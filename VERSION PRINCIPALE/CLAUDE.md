@@ -167,6 +167,11 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   tout (`RS` ×0,9, `rPlancher` = 1,35 × le rayon tenable dans arc(), `VILLE_WM`, `ESP_ROUTE.wm`, entrée des villes 260 + 320 m en virage), le glacier
   et Jade aussi ; LE ROYAUME DE FEU est refait : `vlcTrace3` (la balade des flammes puis la spirale qui monte autour du cône, `vlc3Cone` le cône
   taillé pour elle, portail en haut ; `VLC_BALADE`, `?volcan=v4` = avant, `dbgVolcan('test')` = la règle d'or) ; la forêt allégée (3-4 pointes).
+  LA DURÉE DES MAPS (18/10, Léo, v644) : au JOUER une map se compte en SECONDES — 45 s au palier 0, 20 s au palier 25 et au-delà (`DUREE`,
+  `dureeCible`, `longueurCible` = durée × `vPalier` × `DUREE_ELAN` × `DUREE_ALLURE[carte]`, le glacier par `DUREE_V`). Chaque générateur lit
+  `longueurCible()` (0 hors du JOUER : tout reste à l'identique) et ne raccourcit que le remplissage — genCtrl LEN, glacier LEN à plat, jade
+  `jmN`/`FX9`, forêt `nN`, volcan `bal()` (vlcTrace3) / `tient()` (vlcTrace), canyon `tient()` ; PARIS (tracé dessiné) n'y est pas.
+  `?duree=ancien`, `?duree=40-18`, `dbgDuree()`. ⚠ Une map NEUVE du JOUER : lui faire lire `longueurCible()` et caler son allure au banc.
   LA FORÊT (17/10, Léo) : les arbres en VITRAIL dans `FOR_ARB_FS` (`dbgVitrail`) ; le slalom des troncs (`forZigzag`), ses ponts et la mousse ont été retirés le 18/10 (voir le journal).
   LA VILLE (16/10) : toujours la nuit, quatre temps (pluie, nuit, brouillard `villeBrume`/`LVL.brume`, orage) × quatre TEINTES tirées au hasard
   (`VTEINTES`, `vtRgb`/`vtBio`/`vtGo`/`vtPose`, uniforms `skyU.uFd`/`uVc`, `CITY.uPiedC`, `ROAD_U.uBmM` ; `?teinte=`, `dbgTeinte()`).
@@ -526,6 +531,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 
 - « LE PORTAIL DE CUBES — LA FENÊTRE SUR LA MAP D'EN FACE, LE PASSAGE QUI SE DÉFAIT EN CUBES » (17/10, Léo)
 - « LES BORDS DE LA MAP — UNE COULEUR PAR MAP, LE SCINTILLEMENT RGB AU BOOST » (18/10, Léo) — `BMAP_PAL`, `bmapPeint`, `bmapBoost`, `BMAP_U`, `dbgBordsMap`
+- « LA DURÉE DES MAPS — UNE MAP SE COMPTE EN SECONDES » (18/10, Léo) — `DUREE`, `longueurCible`, `DUREE_ALLURE`, `?duree=ancien`, `dbgDuree`
 - « LE PRÉ-BÂTI — LA MAP D'EN FACE SE BÂTIT PENDANT QU'ON ROULE » (18/10, Léo) — `PREB`, `pisteRoute`, `prebEchange`, `prebDecorG`, `?prebati=0`, `dbgPrebati`
 - « LES NUAGES EN VITRAIL » (18/10, Léo) — `nuage8Calc` opt.vit, `nuVitMats`, `NUVIT`/`NV_DOSES`, `dbgNuVit`
 - « LES NUAGES FANTÔMES + LE FOND PEINT DE LA MER DE NUAGES » (18/10, Léo) — `opt.fant`, `nuFantGeo`, `NUFOND_V`/`NU_FOND`, `dbgNuFond`

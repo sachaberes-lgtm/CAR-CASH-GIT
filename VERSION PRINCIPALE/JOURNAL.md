@@ -3,6 +3,29 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA DURÉE DES MAPS — UNE MAP SE COMPTE EN SECONDES (2026-10-18, v644 — essayée sur un lien à part, puis Léo : « c'est bon, mets la durée des maps sur le main » ; la demande : « trouve la longueur parfaite des maps : fluide, sur téléphone, ni trop courte ni trop longue ; plus la vitesse va vite, plus on doit avoir l'impression de traverser plein de dimensions »)
+- **MESURÉ AVANT** (banc muet, main v628, pilote auto + nitro au sol, bac à sable) : une map du JOUER durait de ~70 s (jade, forêt) à plus de 3 min
+  (canyon 195 s, nuages ~170 s, glacier ~160 s) ; une partie traversée : 92 s → 100 s → 127 s → 129 s pour les 4 premières maps. Et la map
+  S'ALLONGEAIT avec la vitesse : les générateurs grandissaient plus vite que le palier (genCtrl ×2,5, canyon ×2,3, forêt ×2,7) ; seule la jade
+  (longueur fixe) défilait (~25 s à fond). Sur téléphone, un débutant ne voyait jamais la 2e map.
+- **LA RÈGLE** (`DUREE`, `dureeCible`, `longueurCible`, juste après `TORD`) : au JOUER (niveaux `sansFin` du mode classique : ni menu, ni école,
+  ni carrière), longueur visée = durée × `vPalier()` × l'ÉLAN (`DUREE_ELAN` 1,8 → 1 du palier 0 au palier 25 : au départ l'élan, la nitro et
+  le FLOW poussent la caisse bien au-dessus de vPalier) × l'ALLURE de la map (`DUREE_ALLURE`, relative à la ville ; le glacier a sa propre
+  vitesse `DUREE_V` : sur la glace elle ne suit pas le moteur). Durée : **45 s au palier 0 → 20 s au palier 25 et au-delà**. Le pré-bâti
+  bâtit la map d'en face avec la même règle (LVL.cur et engTier y sont ceux de la map d'en face).
+- **CHAQUE GÉNÉRATEUR GARDE SA PIÈCE MAÎTRESSE** : genCtrl (nuages, ville, crypto, vitrée, orbite) prend LEN ; ses modules de course et de map
+  commencent plus tôt sur une map courte (au moins un) · glacier : LEN à plat · jade : la Porte, le Pont et l'effondrement restent, les
+  virages entre eux prennent le reste · forêt : autant de nœuds que la longueur en tient (au moins un : l'étoile qui se recroise + l'arche) ·
+  volcan : cratère, arche, lac ; boucles 1-3 et fumerons selon la place (`tient(f)`) · canyon : Route 66 (raccourcie), brèche, raccourci A,
+  arche, finale ; étroits, amphithéâtre, raccourcis B-H, mine, chameau selon la place. Hors JOUER : tout est IDENTIQUE (tirages compris).
+- **MESURÉ APRÈS** (même banc) : au départ 39-50 s (canyon 46 s au lieu de 195), à fond ~20-33 s (ville 21, nuages 23, jade 24, glacier 28,
+  canyon 33) ; le volcan reste ~30 s à fond (ses boucles ont besoin de leur longueur). Pré-bâti : 10 maps sur 10 prêtes avant le portail.
+  Le pilote du banc se crashe souvent sur le glacier, l'orbite et le volcan à haute vitesse : leurs chiffres sont les moins sûrs.
+- `?duree=ancien` = les longueurs d'avant · `?duree=40-18` = d'autres durées (départ-fond) · console `dbgDuree()` (visée, longueur, palier).
+  Bancs : `~/Downloads/CAR-bancs/longueur/` (t2 traversée, t5 visée contre réelle, t6 maps imposées).
+- **AVEC L'ALLÈGEMENT ET LES MODULES DE SACHA (v642)** : ses changements gardés tels quels (abords de la Porte et du Pont raccourcis, modules
+  resserrés, forêt à 3-4 pointes) ; seules les bornes « au moins un module » et le budget de la jade (`FX9` ~2,4 km de pièces fixes, ~1 km par
+  module, un seul module au départ) suivent la durée visée.
 ## LES BORDS DE LA ROUTE AU BOOST : LE JEU DE LUMIÈRE DE LA TRAÎNÉE (2026-10-18, Sacha : v636 « change le rgb que Léo a mis sur le bord de la route pour qu'il soit de la même couleur que la traînée choisie par le joueur » ; v643 « il faut aussi que les côtés de la route clignotent mais surtout il faut le même jeu de lumière que la traînée : si la traînée a 70 % de pixels roses et 30 % de blancs il faut le même jeu de clignotement »)
 - Au boost (nitro), les rails et leur nappe ne passent plus à l'arc-en-ciel de Léo : chaque tronçon de 2 m devient un PIXEL du feu de la traînée.
   Il change ~8 fois par seconde, chacun à son temps, et tire une des 10 nuances du feu (`NFEU.pal` : cœur blanc, couleur pleine, braise, fumée)
@@ -398,7 +421,7 @@
 - **1er lot SUR LE MAIN (v633, oui de Léo sur les planches)** : LA BULLE devient **LE SCARABÉE** (nom, mission `fig5`, EN « THE SCARAB » —
   pas « THE BEETLE », la marque) · LE COMBI en lecture **A** (la livrée de Fillmore seule, sans `yeux:1`) · la MX-5 NA s'appelle **LA CERISE**
   (EN « THE CHERRY ») et ses phares se lèvent **à la nitro** (`MX5PH.mode='nitro'` ; le clin d'œil à l'arrivée au garage reste).
-- **2e lot SUR LE MAIN (v644, Léo : « vas-y push » sur la planche des dix)** avec les choix par défaut des discussions : LA DOLCE VITA
+- **2e lot SUR LE MAIN (v645, Léo : « vas-y push » sur la planche des dix)** avec les choix par défaut des discussions : LA DOLCE VITA
   (500, bleu « un cran plus bleu » 0x8eb2df, ses 4 retouches : capot, rétro, jante « 1957 », barre au nez) · LE BAROUDEUR (vert Sarge) ·
   LA CABOSSÉE · LE ROUGE-GORGE · LA LAME (argent clair) · LE TOFU (phares à la nitro, jantes bronze). La Corolla (81) reste cachée :
   Léo la veut « plus fidèle » (en reprise chez JAPONAISES). Fusion : seul conflit, le bloc des traductions que l'allègement de Sacha
