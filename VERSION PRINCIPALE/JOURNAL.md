@@ -445,6 +445,39 @@
   Léo la veut « plus fidèle » (en reprise chez JAPONAISES). Fusion : seul conflit, le bloc des traductions que l'allègement de Sacha
   avait vidé — son ménage gardé, nos deux noms (LA LAME, LE TOFU) ajoutés.
 
+## LA QUEUE DE CANARD REFAITE AU PLAN D'USINE — LA 911 CARRERA RS 2.7 DE 1973 (2026-10-18, discussion RONDES ; Léo : « la ducktail, il y a des bugs au niveau des phares — retravaille-la vraiment à fond, même technique et même rigueur que la Taycan » ; index 45, ÉPIQUE inchangée)
+- **Le bug, nommé** : (1) le JONC NOIR du pare-chocs avant était une boîte posée à 5 mm de la tôle du pare-chocs — sous le post-traitement
+  la profondeur est en 16 bits (voir LA PERLE) : le jonc CLIGNOTAIT en pointillés noir / blanc juste sous les phares ; (2) chaque PHARE
+  était trois cylindres empilés à 5-10 mm, penchés de 20° vers le ciel, posés DEVANT l'aile : ils se mangeaient de loin et sortaient de
+  la silhouette (deux « cornes » vues de derrière au garage). ⚠ Tout détail empilé sur un autre à moins de ~1,5 cm clignote : un détail
+  se PLANTE dans la tôle (il la traverse franchement) ou se DÉCOUPE dedans, jamais posé à plat contre elle.
+- **Le plan** : dimensions.com n'a que la 993 et la 992 → le DESSIN DE CARROSSERIE PORSCHE de la 911 (4 vues + une coupe, 3486 px,
+  the-blueprints.com). ⚠ Un scan : chaque vue a SA propre échelle — étalonnée sur ses cotes (côté et dessus 404 px/m, face 421 × 410,
+  dos 414 × 409) et recomposée à 404 px/m pour l'outil de vue. « Plan 0 » (axe avant, 0,35 m du sol) : z = 1,177 + (2066 − px)/404,
+  y = 0,35 + (497 − py)/404 — le pavillon tombe à 1,32 m (la RS). Ce que la RS change au dessin de 1967 : l'empattement long (+57 mm,
+  la roue arrière reculée), les ailes arrière élargies (1,65 m), la queue de canard, les pare-chocs de 1973 (photos Wikimedia Commons).
+- **La coque** (`SHAPES.b_canard`, posé dans la zone RONDES ; l'ancienne méthode de l'objet SHAPES n'est pas touchée) : un loft sur
+  les courbes relevées au pixel (profil dans l'axe, plus grande largeur, crête des ailes avant, bord du capot, ceinture, gouttière,
+  lunette). La section du flanc suit la COUPE d'usine (le flanc rentre de plus en plus vite jusqu'à la ceinture — une courbe de Bézier
+  faisait une coque de berline). ⚠ Toutes les sections DOIVENT avoir le même nombre de points (sinon le loft relie de travers : une
+  rigole « noire » au milieu du capot). ⚠ La base du pare-brise est CINTRÉE en plan (z 0,692 au milieu, 0,449 au pied du montant) : la
+  zone du pare-brise suit cette courbe, pas un z constant. Devant le phare, l'aile redescend (le bord du phare, trait raide du profil) ;
+  près du phare, l'aile s'élargit en cuvette (un dessus plat de la largeur du phare). La queue de canard fait partie de la coque : le
+  capot moteur se relève, la LÈVRE en surplomb est une tranche (son dessous remonte), la face arrière est la marche entre la dernière
+  section pleine et la lèvre ; un seul bord continu de la lunette à la lèvre (deux tables raccordées sautaient de 3,5 cm : froissé).
+- **Découpé dans la tôle** (`bulleOutils.decoupe`, une zone = UNE vue) : vitres de porte et de custode (la goutte), cadre noir et
+  montant B (il descend jusqu'au pied du pare-brise : les deux cadres noirs s'y rejoignent, sinon dents de scie), portes, capot (son
+  bord le long des ailes, son nez), fente d'auvent, pare-brise et lunette cerclés de noir, joint et grille à lames de la queue de
+  canard, feux rouge / ambre au coin de la poupe, grilles d'avertisseur et clignotants sous les phares, la BANDE BLEUE de bas de caisse
+  (sans lettrage). **En relief** : le PHARE rond aux cotes du plan (cerclage 0,105 m, penché de 18°, logé dans la cuvette ; glace H4 à
+  anneau argent et cache chromé ; un tour — aucune face contre une autre), les PARE-CHOCS en deux tubes qui se touchent par une arête
+  (couleur caisse + jonc noir), les FUCHS (cinq branches polies, creux BLEUS, lèvre polie), rétro de course, poignées, essuie-glaces.
+  Le pot de Léo (`ECH_POTS.b_canard`) n'a pas bougé.
+- **Mesuré** : 0 programme compilé en course (couché, debout ; un +2 vu une fois = la carte tirée au hasard, 236 → 236 aux passages
+  suivants), mêmes avertissements que le main ; la découpe (~60 ms) se fait à la préchauffe du menu (`rondesChauffe`, une ligne dans
+  `chauffeDivers`, gabarit en chantier muet `K.muet` comme les japonaises) ; construction 31-59 ms (LA PERLE : 118 dans la même
+  session) ; ~20 000 facettes. Hook `dbgRondesChauffe()`. Planche : `photos-gameplay/canard-avant-apres.png`.
+
 ## LE ROUGE-GORGE — LA RELIANT ROBIN Mk1, TROIS ROUES, LA ROUE AVANT AU MILIEU (2026-10-18, discussion RONDES — la trois-roues anglaise des années 70, fibre de verre ; index 84, RARE)
 - **Pas de plan vectoriel libre** (dimensions.com n'a pas la Robin, getoutlines sur devis) : le plan raster de the-blueprints.com (côté +
   dessus, étalonné sur l'EMPATTEMENT de 2,159 m — 170 px/m), relu en mètres du jeu, + les cotes officielles de la Mk1 (3,33 × 1,42 × 1,37 m)
