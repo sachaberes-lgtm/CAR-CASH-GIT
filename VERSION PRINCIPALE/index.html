@@ -15252,6 +15252,14 @@ const SANS_HAUT=!/[?&]sans=([^&]*,)?haut(,|&|$)/.test(location.search);
    `?sans=virages` rend la route du 15/10. */
 const NV_ON=!/[?&]sans=([^&]*,)?virages(,|&|$)/.test(location.search);
 const TORD_AMP=NV_ON?1.1:2.4;
+/* MOINS TORDUE (2026-10-18 soir, Sacha : « la map nuage, la route est un peu trop tordue et en spirale — ça doit arriver, mais moins que ça »).
+   MESURÉ (banc Node genCtrl + pisteTord, 12 graines) : la route n'était À L'ENDROIT que 32 % du temps (37 % sur la tranche, 31 % à l'envers), on
+   restait jusqu'à 87 s d'affilée hors de l'endroit — les vrilles s'enchaînaient sans jamais revenir. `NV_CALME` : la route revient TOUJOURS à
+   l'endroit après une vrille (par le plus court, parfois après 2-4 s de tenue là-haut), les tenues À L'ENDROIT sont longues (6-12 s), un quart de
+   tour six fois sur dix, un demi-tour 35 %, le tonneau complet 5 %. Les vrilles restent lentes (mêmes durées). ⚠ Revenir au même angle ne suffit pas
+   (sur la tranche, chaque virage fait tourner tout le repère) : pendant les tenues à l'endroit, la dalle est RAPPELÉE vers le ciel (penchée du
+   dévers, au plus un demi-tour en 4 s) et sa pente revient doucement à celle de la piste d'origine — comme avant le portail. `?nuages=tordu` = avant. */
+const NV_CALME=NV_ON&&!/[?&]nuages=tordu\b/.test(location.search);
 const TORD_W=[1,0,1.8,2,.5,1.8,.25,.2,2.2,.9,1,0,0]; // [loop,hélice,ÉPINGLE,ESSES,vague,VIRAGE,plongeon,droite,CHICANE,balayage,gap,tire-bouchon,entrelacs] — multiplie les poids de l'archétype
 const TORD_DEVERS={max:50/57.3,k:.75,g:23,lis:.9,vmax:30/57.3,roulis:62/57.3}; // max : l'angle plafond · k : la part du virage relevé physique (atan v²/gR) · g : la gravité MONDE (FALL_G×SPD) · lis : le lissage (s de croisière) · vmax : le roulis du dévers seul au plus (rad/s) · roulis : le roulis TOTAL au plus, vrilles + dévers (rad/s)
 const TORD={on:false,N:null,info:null};
@@ -15293,7 +15301,12 @@ function pisteTord(ctrl,seed,sansVrille,essai){ // essai : (2026-10-18) le n° d
     const room=z?z.a-s:1e9;
     if(room<120){const s1=Math.max(s,z.b);seg.push({s0:s,s1:s1,r0:rho,r1:rho});s=s1;continue;} // le trou : on tient le plan (le rappel fait le reste)
     const r=rg();let len,amt=0;
-    if(r<.4)len=Math.max(400,vC*(4+rg()*5)); // une tenue : la dalle reste où elle est (couchée, retournée…) 4-9 s — de quoi respirer entre deux vrilles
+    if(NV_CALME){const w=Math.atan2(Math.sin(rho),Math.cos(rho)); // (MOINS TORDUE, voir NV_CALME) w : le roulis ramené entre −π et π (0 = à l'endroit)
+      if(Math.abs(w)>.3){if(r<.35)len=Math.max(250,vC*(2+rg()*2)); // là-haut (couchée, retournée) : 2-4 s de tenue, une fois sur trois…
+        else{amt=-w;len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));}} // …puis on revient à l'endroit, par le plus court
+      else if(r<.6){len=Math.max(450,vC*(6+rg()*6));const v9=len;len=Math.min(len,fin-s,room);if(len<60)break;seg.push({s0:s,s1:s+len,r0:rho,r1:rho,calme:1});s+=len;continue;} // à l'endroit : une longue tenue, 6-12 s — CALME : la dalle y est rappelée vers le ciel (voir plus bas)
+      else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<.6?Math.PI/2:k<.95?Math.PI:TOUR);len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));}}
+    else if(r<.4)len=Math.max(400,vC*(4+rg()*5)); // une tenue : la dalle reste où elle est (couchée, retournée…) 4-9 s — de quoi respirer entre deux vrilles
     else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<.45?Math.PI/2:k<.9?Math.PI:TOUR);len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));} // (EN GRAND) ~3× plus lentes qu'au premier jet, le tour complet rare
     const veut=len;len=Math.min(len,fin-s,room);if(len<60)break;
     if(amt&&len<veut*.7)amt=0; // pas la place de la vrille entière avant un trou ou le portail : on tient, on ne la serre pas
@@ -15301,6 +15314,7 @@ function pisteTord(ctrl,seed,sansVrille,essai){ // essai : (2026-10-18) le n° d
   const rhoAt=function(x){for(const g of seg)if(x<=g.s1){if(x<=g.s0)return g.r0;const u=(x-g.s0)/(g.s1-g.s0);return g.r0+(g.r1-g.r0)*u*u*(3-2*u);}return rho;};
   const droit=new Uint8Array(n1+1);
   if(!sansVrille){const mk=function(x0,x1){for(let i=Math.max(0,Math.floor(x0/h));i<=Math.min(n1,Math.ceil(x1/h));i++)droit[i]=1;};mk(fin,Lc+h);for(const z of zones)mk(z.a,z.b);}
+  const calme=new Uint8Array(n1+1);if(!sansVrille&&NV_CALME)for(const g of seg)if(g.calme)for(let i=Math.max(0,Math.ceil(g.s0/h));i<=Math.min(n1,Math.floor(g.s1/h));i++)calme[i]=1; // (MOINS TORDUE) les tenues à l'endroit
   /* 2 bis) LE DÉVERS (2026-10-18, voir NV_ON) : dans chaque virage la dalle se couche vers l'INTÉRIEUR, de l'angle qu'aurait un virage relevé pris
      à la croisière (atan v²/gR, plafonné) — l'épingle se prend presque sur la tranche, le grand balayage à peine penché. Le lacet est relevé dans le
      plan de la dalle d'origine (lissé sur ~30 m), la cible lissée sur ~1 s puis bornée en vitesse de roulis (deux passes, aller et retour : la
@@ -15328,10 +15342,12 @@ function pisteTord(ctrl,seed,sansVrille,essai){ // essai : (2026-10-18) le n° d
     const rN=rhoAt((i+1)*h)+dev[i+1];let rl; // (2026-10-18) + le DÉVERS (2 bis)
     if(NV_ON){const mR=TORD_DEVERS.roulis/vC*h,dR=THREE.MathUtils.clamp(rN-rhoP,-mR,mR);rl=om[i]+dR;rhoP+=dR;} // (2026-10-18) le roulis TOTAL borné (vrille + dévers qui s'ajoutent) : le retard se rattrape dans la tenue qui suit
     else{rl=om[i]+(rN-rhoP);rhoP=rN;}
+    if(calme[i+1]&&!droit[i+1]){const ty=Math.abs(T2.y);if(ty<.95){up.set(-T2.x*T2.y,1-T2.y*T2.y,-T2.z*T2.y);if(up.lengthSq()>1e-8){up.normalize();up.applyAxisAngle(T2,dev[i+1]); // (MOINS TORDUE) le ciel, penché du dévers
+      const th=Math.atan2(c9.crossVectors(N2,up).dot(T2),N2.dot(up)),mx=Math.min(.05,Math.PI/(4*vC))*h*Math.min(1,(.95-ty)/.25);rl=THREE.MathUtils.clamp(th,-mx,mx);rhoP=rN;}}} // au plus un demi-tour en 4 s de croisière : la route se REMET à l'endroit pendant la tenue
     if(droit[i+1]){rl=0;const ty=Math.abs(T2.y);if(ty<.95){up.set(-T2.x*T2.y,1-T2.y*T2.y,-T2.z*T2.y);if(up.lengthSq()>1e-8){up.normalize(); // le rappel vers le ciel, sans la condition « pas à l'envers » — (EN GRAND) et jusque dans les montées raides (.7 → .95) : un rappel plus doux doit pouvoir agir partout
       const th=Math.atan2(c9.crossVectors(N2,up).dot(T2),N2.dot(up)),mx=Math.min(.05,Math.PI/(3*vC))*h*Math.min(1,(.95-ty)/.25);rl=THREE.MathUtils.clamp(th,-mx,mx);}}} /* au plus un demi-tour en 3 s de croisière (EN GRAND ; c'était 1,3 s : un coup de vrille sec avant chaque trou) */
     rMax=Math.max(rMax,Math.abs(rl)/h);N2.applyAxisAngle(T2,rl);
-    if(droit[i+1]){ax.crossVectors(T2,Y9);if(ax.lengthSq()>1e-6){ax.normalize(); /* (EN GRAND) LA PENTE AUSSI : sur cette route la pente dérive (mesuré : portail au bout d'un piqué de 50-60°, le roulis pourtant juste) —
+    if(droit[i+1]||calme[i+1]){ax.crossVectors(T2,Y9);if(ax.lengthSq()>1e-6){ax.normalize(); /* (MOINS TORDUE : aussi dans les tenues calmes) (EN GRAND) LA PENTE AUSSI : sur cette route la pente dérive (mesuré : portail au bout d'un piqué de 50-60°, le roulis pourtant juste) —
       dans les tronçons droits elle revient DOUCEMENT à celle de la piste d'origine (≤ un quart de tour en 8 s de croisière : une bosse de ~400 m de rayon, pas un coude) */
       const pm=Math.PI/(16*vC)*h,a=THREE.MathUtils.clamp(Math.asin(THREE.MathUtils.clamp(Tv[i+1].y,-1,1))-Math.asin(THREE.MathUtils.clamp(T2.y,-1,1)),-pm,pm);T2.applyAxisAngle(ax,a).normalize();N2.applyAxisAngle(ax,a);}}
     N2.addScaledVector(T2,-N2.dot(T2)).normalize();TT.push(T2.clone());NN.push(N2.clone());}

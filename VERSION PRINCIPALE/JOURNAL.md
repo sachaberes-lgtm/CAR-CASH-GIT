@@ -3,6 +3,22 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA ROUTE DES NUAGES MOINS TORDUE — LES VRILLES REVIENNENT À L'ENDROIT (2026-10-18 soir, session MODULES — Sacha : « la map nuage, la route est un peu trop tordue et en spirale — ça doit arriver, mais moins que ça »)
+- LA CAUSE (mesurée, banc Node genCtrl + pisteTord, 12 graines) : les vrilles de `pisteTord` s'enchaînaient (60 % des tronçons : quart, demi, tour
+  complet) sans jamais revenir — la route n'était À L'ENDROIT que 32 % du temps (37 % sur la tranche, 31 % à l'envers), jusqu'à 87 s d'affilée hors
+  de l'endroit. Et revenir au même angle de roulis ne suffisait pas : sur la tranche, chaque virage fait tourner tout le repère (la route « sans haut
+  ni bas »), seul un rappel vers le ciel la remet à l'endroit.
+- CE QUI CHANGE (`NV_CALME`, `?nuages=tordu` = la route d'avant ; l'orage, tordu lui aussi, suit) : après une vrille la route REVIENT à l'endroit
+  (par le plus court ; une fois sur trois après 2-4 s de tenue là-haut) ; à l'endroit, de longues tenues (6-12 s) pendant lesquelles la dalle est
+  RAPPELÉE vers le ciel (penchée du dévers des virages, au plus un demi-tour en 4 s) et sa pente revient doucement à celle de la piste d'origine —
+  le même rappel qu'avant le portail ; le prochain coup : un quart de tour 60 %, un demi-tour 35 %, le tonneau complet 5 %. Les vrilles gardent leur
+  lenteur (« pas tire-bouchonné », 15/10) ; au volant, les virages ne changent pas (ils se lisent dans le plan de la dalle).
+- MESURÉ (avant → après, palier 0 · palier 10) : à l'endroit 32 → 66 % · 34 → 64 % ; sur la tranche 37 → 18 % · 32 → 21 % ; à l'envers 31 → 16 % ·
+  34 → 14 % ; plus long passage hors de l'endroit 39 → 24 s (pire 87 → 38) · 33 → 17 s ; roulis max 73 → 64 °/s ; contacts de la route avec
+  elle-même : 0 (tordContacts) ; construction 23-37 ms la zone (Node). Une dose plus calme (70 % de tenues) a été essayée : 71 % à l'endroit — gardée
+  en réserve, la demande était « un peu trop ».
+- À TRANCHER par Sacha : la dose (la chance d'une tenue à l'endroit, 0,6, dans pisteTord ; la vitesse du rappel, un demi-tour en 4 s).
+
 ## LA MIGRATION DES MISSIONS v2 NE TOURNAIT PAS — M2_COLK ET M2_RECO EN ZONE MORTE (2026-10-18, session m2colk — trouvé en passant par la session CHAUMIÈRES : « missions v2 : migration ReferenceError: Cannot access 'M2_COLK' before initialization » dans la console de `main`)
 - LE DÉFAUT : l'appel du démarrage `try{m2Etat();}catch(e){console.warn('missions v2 : migration',e);}` (juste après `SAVE.load()`) s'exécute ~1 700 lignes AVANT
   `const M2_COLK` et `let M2_RECO` (le bloc des fonctions `m2*`). Lus avant leur ligne, ils sont en zone morte : `ReferenceError`, avalée par le `try/catch`.
