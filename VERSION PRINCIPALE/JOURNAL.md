@@ -3,6 +3,10 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## DEUX PLACES RÉSERVÉES : 87 LA PIKES PEAK, 88 LA CLASSE G (2026-10-18, v653)
+- Cachées (`retire:1`, « NOUVELLE 87/88 ») : 87 = la 208 T16 Pikes Peak (JAPONAISES), 88 = la Classe G que BOÎTES avait faite pour LE CAÏD (Léo :
+  « le boss » voulait dire un GMC → LE CAÏD devient un HUMMER EV ; la G est gardée à part, « améliore-la »). ⚠ La suivante = **89**.
+
 ## LA FIDÈLE DANS LE JEU, LA POUPÉE RETIRÉE À NOUVEAU (2026-10-18, v652, Léo : « yes » / « on l'enlève »)
 - **LA FIDÈLE** (index 81, COMMUNE, 4 000 $) : la Corolla berline 2019 de JAPONAISES, reprise « plus fidèle » (le nez) puis le coin avant
   « identique » au recadrage de Léo (phare, prise en L, antibrouillard, bouche) — commits 913ffde0 + 221df91f.
