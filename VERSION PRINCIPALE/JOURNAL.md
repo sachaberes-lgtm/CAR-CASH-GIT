@@ -3,6 +3,12 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA FIDÈLE DANS LE JEU, LA POUPÉE RETIRÉE À NOUVEAU (2026-10-18, v652, Léo : « yes » / « on l'enlève »)
+- **LA FIDÈLE** (index 81, COMMUNE, 4 000 $) : la Corolla berline 2019 de JAPONAISES, reprise « plus fidèle » (le nez) puis le coin avant
+  « identique » au recadrage de Léo (phare, prise en L, antibrouillard, bouche) — commits 913ffde0 + 221df91f.
+- **LA POUPÉE** (index 77) : Léo l'avait fait retirer le 17/10 (716ff989) ; l'allègement de Sacha l'a remise le 18/10 (20cda983) ; Léo,
+  prévenu : « on l'enlève ». `retire:1` de nouveau (remboursement de SAVE, comme LA DAYTONA). ⚠ Ne pas la remettre sans Léo.
+
 ## LA BOUTIQUE RANGÉE PAR RARETÉ (2026-10-18, v650, Léo : « mets avec les communes le scarabée et le camper, organise bien la rareté »)
 - **Avant** : le rayon VOITURES était trié au PRIX seul, puis toutes les caisses des MISSIONS à la fin — LE SCARABÉE et LE COMBI (communes)
   tombaient après LA PERLE, LA ZED (rare, 1,6 M$) au milieu des épiques, LA QUEUE DE CANARD (épique) entre deux exotiques.
