@@ -51236,7 +51236,7 @@ const SAVE={
     /* (2026-10-16) LES MISSIONS v2 : bornées comme le reste — ids a-z0-9 (2 à 12), listes courtes, nombres finis ; un code importé ne coche rien qu'il ne saurait dire */
     if(d.m2&&typeof d.m2==='object'){const s9=d.m2,o9=c.m2,I9=/^[a-z0-9]{2,12}$/,L9=function(a,n){return Array.isArray(a)?[...new Set(a.filter(function(x){return typeof x==='string'&&I9.test(x);}))].slice(0,n):[];},
       N9=function(x,hi){x=+x;return isFinite(x)?Math.max(0,Math.min(hi,x)):0;};
-      o9.v=s9.v===1?1:0;if(s9.vc===1)o9.vc=1;o9.ok=L9(s9.ok,200);o9.pr=L9(s9.pr,200);o9.su=L9(s9.su,3);o9.nv=L9(s9.nv,200);o9.fl=L9(s9.fl,60);
+      o9.v=s9.v===1?1:0;if(s9.vc===1)o9.vc=1;if(s9.vr===1)o9.vr=1;/* (2026-10-18) la reprise de la migration, faite */o9.ok=L9(s9.ok,200);o9.pr=L9(s9.pr,200);o9.su=L9(s9.su,3);o9.nv=L9(s9.nv,200);o9.fl=L9(s9.fl,60);
       if(s9.vu&&typeof s9.vu==='object')for(const k of Object.keys(s9.vu).slice(0,200))if(I9.test(k))o9.vu[k]=N9(s9.vu[k],1e30);
       if(s9.r&&typeof s9.r==='object')for(const k of ['fig','airP','parf','frenN','frenT','kmh','vie','tours','vol','lac','rejoue','prof'])if(s9.r[k]!=null)o9.r[k]=N9(s9.r[k],1e7);
       const cc=s9.c&&typeof s9.c==='object'?s9.c:{};o9.c.morts=Math.round(N9(cc.morts,1e7));o9.c.gagne=N9(cc.gagne,1e30);o9.c.jours=Math.round(N9(cc.jours,1e5));
@@ -52961,7 +52961,7 @@ window.dbgSec=function(a){if(a==='raz'){secReset();return 'remis à zéro';}cons
    juge sur la conduite depuis le DÉPART, « partie entière sans… » sur toute la partie) ; seule la vie repart (« tiens 5 min sans
    mourir » : on est mort). Rien en BALADE, au BAC À SABLE, au PARC ni à l'AUTO-ÉCOLE. */
 function m2Vierge(){return {v:0,ok:[],pr:[],su:[],vu:{},nv:[],fl:[],r:{},c:{morts:0,gagne:0,jours:0,jd:'',cartes:[],cartesP:[],rejoue:0}};}
-function m2Etat(){const d=SAVE.d;let s=d.m2;if(!s||typeof s!=='object'||!s.c)s=d.m2=m2Vierge();if(s.v!==1)m2Migre(s);if(MISSIONS_V2&&s.vc!==1)m2MigreV2(s);return s;}
+function m2Etat(){const d=SAVE.d;let s=d.m2;if(!s||typeof s!=='object'||!s.c)s=d.m2=m2Vierge();if(s.v!==1)m2Migre(s);if(MISSIONS_V2&&s.vc!==1)m2MigreV2(s);else if(MISSIONS_V2&&s.vr!==1)m2MigreV2(s,1);return s;} /* (2026-10-18) vr : la REPRISE de la migration avortée (voir m2MigreV2) */
 function m2EnC(){try{return !!(started&&!gameOver);}catch(e){return false;}} // (les `let` de la course naissent APRÈS SAVE.load : la migration passe avant)
 function m2Ok(){try{return started&&!gameOver&&!BALADE&&!SANDBOX&&!(PARK&&PARK.on)&&!TUTO.on;}catch(e){return false;}}
 function m2Def(id){for(let i=0;i<M2.length;i++)if(M2[i].id===id)return M2[i];return null;}
@@ -53027,15 +53027,22 @@ function gagneAjoute(x){try{const s=SAVE.d&&SAVE.d.m2;x=+x;if(s&&s.c&&isFinite(x
    2. m2MigreV2 (une fois, à la première ouverture en v2) — les CAISSES déjà acquises sous l'ancienne règle (carnet relevé, 100 parties,
       achat) entrent dans `owned` : à toi pour toujours ; une mission DÉJÀ remplie à ce moment est réussie ; sa récompense est donnée si
       c'est un OBJET qu'on n'a pas ; sa prime en ARGENT n'est versée que pour la COLLECTION — les exploits, l'aura, l'argent et le moteur
-      avaient leurs primes dans les carnets (« sans redonner de primes déjà touchées ») ; ce qu'on a déjà est marqué pris. */
+      avaient leurs primes dans les carnets (« sans redonner de primes déjà touchées ») ; ce qu'on a déjà est marqué pris.
+   3. (2026-10-18) LA REPRISE — m2MigreV2(s,1), une fois, pour une sauvegarde déjà marquée `vc` sans `vr` : du 16 au 18/10 la passe 2 avortait
+      (M2_COLK / M2_RECO en zone morte) APRÈS avoir posé `vc` — les caisses de l'ancienne règle étaient faites, les missions jugées jusqu'à `carall`
+      seulement (car5…car20 vues à 0, toute la collection, `maps` et les secrètes jamais jugées). La reprise ne refait PAS les caisses et ne juge
+      que les missions pas encore réussies ; une prime en ARGENT n'y est JAMAIS marquée prise : les seules hors collection (fig2, air5, fren,
+      aura10k/20k, eng10/20) ont été bien jugées par la passe avortée, et si l'une est remplie depuis, c'est en jouant en v2 — elle se touche.
+      Un OBJET déjà à soi est marqué pris (RÉCUPÈRE ne donnerait rien). Rien n'est retiré, rien n'est versé ici. Une sauvegarde migrée en entier
+      (v634 et après) y passe aussi : sans effet. `vr` posé avec `vc`, gardé par `san`. */
 function m2Migre(s){const d=SAVE.d,ex=d.ex||{},c=s.c;
   let mo=0;try{for(const k in (ex.morts||{}))for(const q in ex.morts[k])mo+=ex.morts[k][q]|0;}catch(e){}c.morts=Math.max(c.morts|0,mo);
   c.gagne=Math.max(c.gagne||0,m2GagneEstime());
   const j=d.jour||{};if(!c.jd&&j.d)c.jd=String(j.d);c.jours=Math.max(c.jours|0,j.n|0,(ex.runs|0)>0?1:0);
   s.v=1;SAVE.mark();}
-function m2MigreV2(s){const d=SAVE.d;s.vc=1; /* posé d'abord : m2Val rappelle m2Etat */
+function m2MigreV2(s,rep){const d=SAVE.d;s.vc=1;s.vr=1; /* posés d'abord : m2Val rappelle m2Etat — rep : la reprise (voir 3. plus haut) */
   if(!Array.isArray(d.owned))d.owned=[];
-  for(let i=0;i<CAR_UNLOCK.length;i++){const u=CAR_UNLOCK[i];if(!u||carRetiree(i)||carOwned(i))continue;let a=false;
+  if(!rep)for(let i=0;i<CAR_UNLOCK.length;i++){const u=CAR_UNLOCK[i];if(!u||carRetiree(i)||carOwned(i))continue;let a=false;
     if(u.k==='mis'){const o=u.av;if(o&&o.k&&!o.p&&o.k!=='premium'&&!o.eur)try{a=carStat(o.k)>=o.v;}catch(e){}}
     else if(u.exK==='carnet')try{a=carStat('carnet')>=u.exV;}catch(e){}
     if(a)d.owned.push(i);}
@@ -53043,7 +53050,7 @@ function m2MigreV2(s){const d=SAVE.d;s.vc=1; /* posé d'abord : m2Val rappelle m
     s.ok.push(m.id);const r=m.r||{};let deja=false;
     if(r.car){const i=m2CarIdx(r.car);deja=i>=0&&carOwned(i);}
     else if(r.cat)deja=d.shop.own.indexOf(r.cat+':'+r.id)>=0;
-    else if(r.cash)deja=m.f!=='collection';
+    else if(r.cash)deja=!rep&&m.f!=='collection'; /* la reprise ne marque jamais une prime en argent prise */
     (deja?s.pr:s.nv).push(m.id);}
   SAVE.mark();}
 function m2GagneEstime(){const d=SAVE.d;let t=bank();

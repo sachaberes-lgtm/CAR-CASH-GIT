@@ -3,6 +3,43 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA REPRISE DE LA MIGRATION DES MISSIONS v2 — LES SAUVEGARDES MARQUÉES PAR LA PASSE AVORTÉE SONT REJUGÉES UNE FOIS (2026-10-18, session fix-m2 — demandée par la session de contrôle console de Sacha : « faire repasser une fois la migration pour les sauvegardes déjà marquées vc=1 alors qu'elle avait avorté, sans re-créditer deux fois et sans confisquer quoi que ce soit »)
+- SUITE DE « LA MIGRATION DES MISSIONS v2 NE TOURNAIT PAS » (juste en dessous) : `M2_COLK` / `M2_RECO` remontées (v634), la migration complète tourne pour une
+  sauvegarde neuve ou d'avant les missions v2. Mais une sauvegarde ouverte entre le 16/10 18:26 et le 18/10 ~19 h garde `vc=1` posé par la passe AVORTÉE : jamais
+  rejugée. Elle convergeait seulement à la fin de la 1re partie (`m2Verifie(false)`), et un OBJET déjà possédé y restait « à récupérer » (mesuré : `jours30`).
+- LE CORRECTIF : un drapeau neuf `SAVE.d.m2.vr` (la reprise faite), posé avec `vc` par `m2MigreV2`, gardé par `san` (`if(s9.vr===1)o9.vr=1`). `m2Etat` : `vc` absent →
+  migration complète (pose `vc` ET `vr`) ; `vc` sans `vr` → `m2MigreV2(s,1)`, LA REPRISE, une fois :
+  · elle ne refait PAS les caisses de l'ancienne règle (la passe avortée les avait faites AVANT la boucle des missions) ;
+  · elle ne juge que les missions pas encore dans `ok` (rien n'est jamais retiré, rien n'est versé : `m2Prend` reste le seul à payer) ;
+  · une prime en ARGENT n'y est JAMAIS marquée prise (`deja=!rep&&m.f!=='collection'`) : les seules primes en argent hors collection (fig2, air5, fren,
+    aura10k/20k, eng10/20) sont AVANT `carall` dans `M2` et ne lisent ni `M2_COLK` ni `M2_RECO` — la passe avortée les a bien jugées ; une qui n'est pas
+    dans `ok` n'était pas remplie, et si elle l'est maintenant, c'est en jouant en v2 : elle se touche (marquée prise, elle aurait été CONFISQUÉE) ;
+  · un objet (caisse, habillage) déjà à soi est marqué pris, comme dans la migration complète (RÉCUPÈRE ne donnerait rien).
+  Pourquoi un drapeau neuf et pas `vc=2` : `san` ne garde que `vc===1` — une version plus ancienne (cache, copie locale) effacerait `vc=2` et rejouerait la
+  migration COMPLÈTE (caisses comprises, primes hors collection marquées prises). Avec `vr`, une version ancienne efface `vr` seulement : la reprise repassera,
+  et elle est sans effet sur une sauvegarde déjà jugée (mesuré ci-dessous).
+- MESURÉ (banc `C:\Users\sacha\cc-banc\fix-m2\` : `fixtures.cjs` fait les sauvegardes, `m2rep.cjs` les charge — Chrome headless MUET sous le créneau du banc commun,
+  `SAVE.d` lu par un crochet `__ev`, variante RT = le correctif + une trace `console.log` de chaque passe —, `compare.cjs` compare, `res/` garde les résultats ;
+  sauvegardes : celles du banc m2colk, plus « A0 » = l'état laissé JUSTE APRÈS le démarrage avorté, rien de rattrapé, et « A0p » = A0 où le joueur a, depuis,
+  passé l'aura 25 000 et le moteur 25 en jouant) :
+
+  | sauvegarde de départ | main v636 (sans reprise) au démarrage → après la 1re fin de partie | le correctif au démarrage → après la 1re fin de partie |
+  |---|---|---|
+  | neuve | — | 0 / 0 / 0 (réussies / prises / à récupérer), `vc` et `vr` posés, AUCUN avertissement « missions v2 : migration » |
+  | milieu de partie d'avant les missions v2 | (v634 : 8/1/7) | migration complète : 8/1/7 → 8/1/7, `vr` posé |
+  | très avancée d'avant les missions v2 | (v634 : 27/6/21) | 27/6/21 → 27/6/21 |
+  | milieu, passe avortée (A0) | 5/1/4 → 8/1/7 | **reprise : 8/1/7 dès le démarrage** (car5, car10, fig3), identique à la migration complète et à main après sa 1re partie |
+  | très avancée, passe avortée (A0) | 11/5/6 → 27/5/22 | **27/6/21 dès le démarrage** = la migration complète ; seul écart avec main : `jours30` (L'ÉTERNELLE, déjà à soi) prise au lieu d'« à récupérer » |
+  | A0 + aura 25 000 / moteur 25 depuis (A0p) | 5/1/4 → 11/1/10, 263 000 $ à récupérer | **11/1/10 dès le démarrage, 263 000 $ à récupérer** : aura10k, aura20k, eng20 PAS prises, prêtes à toucher |
+  | passe avortée PUIS rattrapée par une partie (mid_A, riche_A) | — | inchangée (ok/pr/nv, caisses) |
+
+  · Partout : mêmes caisses (`owned`), mêmes habillages, même banque que la référence ; la reprise n'a ajouté aucune caisse.
+  · UNE FOIS : 2e démarrage sur ce que le 1er a écrit au disque → aucune passe (trace muette), état identique ; `vr` lu au disque après `SAVE.flush`.
+  · Console des démarrages : plus d'avertissement « missions v2 : migration » ; restent les connus (404 voulu de `assets/audio/music/dark-triad.mp3`,
+    « flatShading » de three). Premier lancement aussi contrôlé au Playwright (MCP), sauvegarde muette posée avant le chargement.
+- CROCHETS : aucun neuf. Pour rejouer la migration entière d'un appareil : l'existant `a==='raz'` du débogage des missions (remet `SAVE.d.m2` à neuf).
+- RESTE À TRANCHER (inchangé, voir l'entrée du dessous) : les primes en argent de COLLECTION tombent d'un coup à la 1re ouverture d'un joueur ancien.
+
 ## LA ROUTE DES NUAGES MOINS TORDUE — LES VRILLES REVIENNENT À L'ENDROIT (2026-10-18 soir, session MODULES — Sacha : « la map nuage, la route est un peu trop tordue et en spirale — ça doit arriver, mais moins que ça »)
 - LA CAUSE (mesurée, banc Node genCtrl + pisteTord, 12 graines) : les vrilles de `pisteTord` s'enchaînaient (60 % des tronçons : quart, demi, tour
   complet) sans jamais revenir — la route n'était À L'ENDROIT que 32 % du temps (37 % sur la tranche, 31 % à l'envers), jusqu'à 87 s d'affilée hors
