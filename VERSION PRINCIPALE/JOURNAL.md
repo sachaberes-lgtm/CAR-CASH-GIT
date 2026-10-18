@@ -3,35 +3,93 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
-## LE FONDU DES NUAGES — PLUS DE BASCULE ENTRE LA OUATE ET LES CUBES (2026-10-18, Sacha : « c'est bien l'effet des nuages pixeliser mais ca bug par moment, quand on s'eloigne ou on se raproche les nuage on parfois l'ancienne texture parfois les pixel »)
+## LE FONDU DES NUAGES — PLUS DE BASCULE ENTRE LA OUATE ET LES CUBES (2026-10-18, v627, Sacha : « c'est bien l'effet des nuages pixeliser mais ca bug par moment, quand on s'eloigne ou on se raproche les nuage on parfois l'ancienne texture parfois les pixel »)
 - **La cause** : `cotonTick` rangeait chaque nuage dans UN aspect selon sa distance, par seuils, sans transition : de loin la v8 (lots 0-1),
   puis le vitrail (ou 40 % des fantômes au lot 2, puis tous au lot 3), et TOUT PRÈS de nouveau la v8 (cube > `NUVIT.ang` à l'écran) ; un
   nuage changeait de peau d'une image à l'autre en franchissant un seuil. Les nuages seuls fantômes (bancs, coussins, tours) basculaient
   aussi vers la v8 tout près. MESURÉ (banc, 4 km de la mer de nuages, pas de 6 m, nuages vus à plus de 0,05 rad) : **103 nuages qui sautent
-  d'un coup sur la route, 101 en vol** ; à l'approche d'un nuage, jusqu'à 27 % de l'image qui change en un seul pas.
+  d'un coup sur la route, 101 en vol** (92 et 92 sur la version fusionnée avec les fantômes en texture) ; à l'approche d'un nuage, jusqu'à
+  19-27 % de l'image qui change en un seul pas.
 - **Le correctif** (`NUVIT.fondu`, `nuvPoids`, `nuvLisse`, `NUVP`) : deux PARTS par nuage, le CORPS (v8 → corps rentré, ou vitrail) et les
   CUBES, qui montent et descendent en douceur avec x = (d−R)/R et c = la taille d'un cube à l'écran. Fantôme : les paliers de Léo GARDÉS,
-  en fondu — 0 → 37 % des cubes (et le corps) de x 4,06 à 3,2, puis 37 → 100 % de 2,2 à 1,78 (les anciens seuils des lots 2 et 3 : le lot
-  lointain, 40 %, porte tout le palier, le coût ne bouge pas). Vitrail (`?nuvit=moyen`…) : une rampe de 4,06 à 2,53. Tout près, tout
+  en fondu — 0 → 37 % des cubes (et le corps) de x 4,06 à 3,5, puis 37 → 100 % de 2,05 à 1,78 (les anciens seuils des lots 2 et 3 : le lot
+  lointain, 40 %, porte tout le palier). Vitrail (`?nuvit=moyen`…) : une rampe de 4,06 à 2,53. Tout près, tout
   redescend vers la v8 quand un cube grossit (`bPres` 0,06 → 0,09 rad en vitrail, `bPresF` 0,035 → 0,09 en fantôme) : jamais de cube plus
   gros ni plus lointain qu'avant.
 - **Comment** : la v8 et le corps se partagent les points de la MÊME trame (`N8_TRAME`) — complémentaires, jamais deux fois le même point ;
-  les fantômes arrivent un par un dans leur ordre tiré au hasard (attribut `aR` = le rang dans `nuFantGeo` : un cube se montre quand la part
-  le dépasse ; pas encore là = sommet hors champ) ; la peau du vitrail suit en alpha. Les parts voyagent dans la ligne du bas de la matrice
+  les fantômes arrivent un par un dans leur ordre tiré au hasard (le RANG d'un cube : son numéro `cu/uFN` dans la texture `NUF_TEX` de Léo,
+  l'attribut `aR` sur l'ancien chemin ; un cube se montre quand la part le dépasse ; pas encore là = sommet hors champ) ; la peau du vitrail suit en alpha. Les parts voyagent dans la ligne du bas de la matrice
   d'instance (inutilisée : les shaders ne gardent que xyz) : `[0][3]` = le corps (≥ 0 pour la v8, en négatif pour le corps rentré et le
   vitrail), `[1][3]` = −les cubes ; une matrice ordinaire ne change rien. Un nuage est dans le lot v8 si son corps < 1, dans un jeu de cubes
   si > 0 (`COTON.W`/`COTON.WC`, listes `COTON.LV` par gabarit × lot 2|3) ; `cotonInst` pose une instance pour les deux. Nuages seuls
   fantômes (`mkCloud`) : `uNvW` posé par objet (`onBeforeRender`), les cubes s'effacent tout près, le corps reste (plus de bascule vers g8).
   Le vitrail des nuages seuls (`?nuvit=moyen`) garde sa bascule (son cœur n'a pas de trame).
-- **MESURÉ, même banc** : sauts **103 → 0 sur la route, 101 → 0 en vol** (part qui bouge au plus de 0,16-0,21 en 6 m) ; à l'approche, le
-  plus gros changement d'image en un pas 27 % → 3 % (210 pas), et il rapetisse avec le pas (une bascule, non) ; nuage seul traversé : 24 %
-  d'un coup → un fondu sur ~18 m (≤ 5 % par pas). Coût : triangles des nuages +9 % (563 k → 616 k), temps d'image égal au bruit près
-  (6,1-6,5 → 5,9-6,4 ms au banc). Vues de route et de vol identiques à l'œil (le style ne change pas, seulement les passages).
+- **MESURÉ, même banc, version finale (fusionnée avec v626)** : sauts **92 → 0 sur la route, 92 → 0 en vol** (une part bouge au plus de
+  0,22 en 6 m, soit ~0,1 s à fond) ; à l'approche, le plus gros changement d'image en un pas 19 % → 2 % (210 pas), et il rapetisse avec le
+  pas (une bascule, non) ; nuage seul traversé (r 58 m) : 24 % d'un coup → un fondu sur ~18 m (≤ 5 % par pas), le white-out d'entrée inchangé.
+  Coût : triangles des nuages envoyés +12 % en moyenne sur 4 km (route 330 k → 369 k, vol 303 k → 341 k ; une partie sont des sommets de
+  cubes pas encore là, rejetés hors champ) ; temps d'image dans le bruit (bancs d'autres sessions en même temps). Vues de route et de vol
+  identiques à l'œil (le style ne change pas, seulement les passages). Fumée OK couché + debout.
 - **Écarté d'abord** : le vitrail PARTOUT (aucun seuil) — de près des cubes de 30 m en dalles grises, de loin des bords carrés, jusqu'à ×6
-  triangles dans une vue large. Puis une seule rampe 0 → 100 % des fantômes : +44 % de triangles (tout le lot 3 dessiné) — d'où les paliers.
+  triangles dans une vue large. Puis une seule rampe 0 → 100 % des fantômes : +44 % de triangles (tout le lot 3 dessiné) — d'où les paliers,
+  puis des rampes plus larges (4,06 → 3,2 et 2,2 → 1,78) : +22 % — resserrées.
 - `?sans=nuvitfondu` = les bascules d'avant ; `dbgNuVit(1,{fondu:0|1,rendre:1})` = A/B sur la même image (retourne `fondu`). Banc (scratchpad
   de la session) : `nuvit-approche.cjs` (le ciel GELÉ — `cotonTick` court-circuité — d'un pas au suivant : seul le changement de peau compte),
-  `nuvit-solo.cjs`, `nuvit-vue.cjs`.
+  `nuvit-solo.cjs`, `nuvit-vue.cjs`, `nuvit-cout.cjs`.
+
+## LA PERLE — LE REFLET DU PARE-BRISE SANS CASSURE (2026-10-18, Léo : « petit bug de reflet au niveau du bas de la vitre avant… je parlais de la vitre avant tout simplement » — le pare-brise)
+- **Le défaut** : au bas du pare-brise (et au pied du montant avant, sur la vitre de porte), le reflet du ciel CASSAIT en diagonale — un
+  « V » blanc à bord net au studio du garage. La normale lissée de la serre (`lisse`, sous 32°) se calcule PAR COIN de triangle, chacun
+  avec les voisins proches de SA facette : là où la tôle se vrille, deux triangles voisins ne choisissaient pas les mêmes voisins, donc pas
+  la même normale. ⚠ L'outil de vue le montre à peine : le ciel du studio du jeu le révèle (et `MeshNormalMaterial`).
+- **Corrigé** (`peintPlan`, « LE REFLET DES VITRES SANS CASSURE ») : en chaque POINT de la tôle, les facettes qui s'y touchent sont réunies
+  en GROUPES (moins de 35° de proche en proche) ; chaque groupe a UNE normale, partagée par tous ses triangles. Appliqué au verre et au
+  noir brillant de la serre. Plus de cassure, et l'arête capot / pare-brise reste nette (une moyenne simple par point y faisait un liseré
+  clair). La forme ne bouge pas ; 0 NaN ; studio et courses sans erreur. Planche : photos-gameplay/perle-reflet-parebrise-avant-apres.png.
+
+## LES NUAGES FANTÔMES EN TEXTURE — LE MÊME RENDU, 5× MOINS DE MÉMOIRE (2026-10-18, Léo : « trouver un moyen d'avoir le même rendu, mais avec moins de RAM — je n'ai pas essayé si ça RAM ou pas »)
+- MESURÉ d'abord (`dbgRamNuages()` : octets des tampons et textures des nuages au GPU, uniques, + copies JavaScript ; banc `ram.py`) : avec les cubes
+  fantômes 105 Mo au GPU + 105 Mo de copies JS (sans eux 17 + 16). Chaque cube était écrit 4 fois (un sommet par coin, 240 octets) et tout restait en double.
+- `NUF_TEX` (WebGL2 ; `?fant=attr` = l'ancien chemin) : un cube = 3 texels RGBA en DEMI-PRÉCISION (24 octets : place + taille, normale + voile,
+  modelé + teinte) dans UNE texture par gabarit (`nuFantGeo`, `THREE.DataUtils.toHalfFloat`) ; le sommet retrouve son cube et son coin par
+  `gl_VertexID` (`nuFantVS(tex)`) ; UN tampon d'indices pour tous (`nufIdx`, 10 920 carrés) ; une matière par gabarit, même programme (`nufMat`).
+  ⚠ Le tampon d'indices partagé ne doit JAMAIS être détruit : un nuage seul qui disparaît passe par `nufJette` (index détaché, texture et matière jetées).
+  Sans attribut de position three ne calcule pas la sphère englobante : elle est posée à la main.
+- Le CORPS rentré PARTAGE normales, modelé et indices de la surface v8 (seules ses positions sont à lui) — au passage, le corps des nuages seuls
+  (bancs, coussins, tours) n'est plus décalé deux fois vers le bas (la v8 était déjà à sa place).
+- `nuLibre(attr)` : la copie JavaScript d'un tampon est jetée une fois envoyée au GPU (`onUpload`), pour toutes les surfaces de nuage (`cotonBuf`)
+  et les fantômes ; la texture jette la sienne (`onUpdate`). ⚠ Ne plus lire `geometry.attributes.*.array` d'un nuage après son premier rendu.
+- RÉSULTAT (même piste, `?pistegraine=777`) : GPU 105 → 23 Mo, JS 105 → 14 Mo (le reste = des finesses pas encore dessinées) ; image identique
+  (écart moyen 0,7/255 : l'animation qui respire n'était pas au même instant) ; même temps d'image ; 0 programme compilé en course.
+  Nouveau paramètre de banc : `?pistegraine=n` (la même piste à chaque chargement, pour comparer deux versions au pixel).
+
+## LA PERLE — LES TRAITS DANS LA TÔLE, EN FACETTES, LE RIDEAU D'AIR CREUSÉ, LE PHARE REFAIT (2026-10-18, Léo, en quatre temps : « la vitre en dessous du phare un peu chelou » · « plus de gris chelou, mais qu'on voie chaque partie : les traits définissent des parties » · « check sur internet c'est quoi le composant (un truc noir non identifiable) ; s'il existe des modèles sans, enlève ; plus aucun bout pointu ; rends-la poly en gardant le résultat » · « voilà où tu as le plus de mal, le phare : ça doit être beau » · « le truc noir c'est un trou, c'est creux »)
+- **LES TRAITS DANS LA TÔLE** (`peintPlan`, `LGN`, `RLF`) : plus de rubans gris posés dessus. Les lignes du plan COUPENT la tôle : un JOINT
+  (portières, capot, malle, pare-chocs) = un fin interstice sombre (`PAL.J`) dont les bords penchent vers lui ; un PLI = une arête de
+  lumière (les normales s'écartent du trait), seulement sur les grands panneaux vus de face (sinon mosaïque sur la hanche et le nez).
+  Une ligne est taillée dans TOUTES les vues qui regardent assez la tôle (morceaux en barycentres) : plus de joints en pointillés là où
+  la vue dominante changeait d'un triangle à l'autre. Restent en décalcomanie les lignes de couleur (feux, LED…).
+- **EN FACETTES** (`PERLE_LISSE=false`) : la carrosserie a ses facettes plates comme toute la gamme (une tranche tous les 15 cm ; à
+  7,5 cm elle se rayait) ; vitres et noirs gardent un reflet lisse (`lisseN`), les décalcomanies aussi (`lisseDecal`, 70°). La forme ne
+  bouge pas. `PERLE_LISSE=true` rend la laque lissée du 16/10.
+- **LE RIDEAU D'AIR** (« air curtain » de Porsche, sur TOUTES les Taycan — le restylage 2024 le sépare seulement du phare) : le noir sous
+  le phare est une OUVERTURE ; l'air y entre, longe la roue avant et ressort derrière elle. Découpé dans la tôle (`PLAN.zf`, préparé au
+  banc par plan_phares.py), bas arrondi en U, une ailette en travers, et CREUSÉ : la tôle s'enfonce de 7 cm le long de sa normale
+  lissée (`creux`, fonction de la seule position : aucun jour entre les morceaux). La PAROI est hors éclairage (matière 'l') : gris
+  anthracite à la lèvre, noir du fond en descendant. ⚠ Éclairée, toute surface vue en rasant prend le liseré de contre-jour du garage
+  (lavande) QUELLE QUE SOIT sa couleur : le trou se lisait comme une poche couleur carrosserie (Léo) ; brillante, elle renvoyait le ciel
+  en zigzags. Juger une matière AU STUDIO DU JEU, pas seulement dans l'outil de vue.
+- **LE PHARE** (photos Wikimedia de la vraie + presse Porsche) : un œil en goutte cerclé de NOIR BRILLANT (9 mm), VERRE FUMÉ, la signature
+  « quatre points » (quatre lames de LED plates et larges, `W`) autour d'une optique ronde cerclée de chrome ; la pointe intérieure
+  émoussée (une aiguille dans le plan). Il remplace le plein de verre bleu, l'anneau blanc gribouillé (`W` du plan) et le cerne gris.
+  Le CLIGNOTANT latéral est une pilule ambre sur l'aile (trait 176 vu de côté) — dessiné de face, il s'étirait en « 7 » sur l'aile.
+  ⚠ Le phare vu de CÔTÉ (traits 181/180) ne tombe pas au même endroit de notre tôle que celui de face : raccordés, marches et
+  languettes — une zone = UNE vue, elle se referme sur son contour ; et ces contours de côté sont retirés des PLIS (« )) » clairs).
+- **Le reste** : le nez à la largeur du plan vu de dessus (il était jusqu'à 20 cm trop carré aux coins), le bandeau des feux taillé dans
+  la tôle (`PLAN.feux` : autocollant, il se fendait au coin), la pointe des vitres sans tranches serrées (elles faisaient des éclats).
+- Mesuré : 33 100 triangles (comme avant), découpe ~0,1 s faite au préchargement (`perleTraits`, gardée sur `SHAPES.perle._tole`),
+  zéro NaN, studio et course (couché, debout, plein écran) sans erreur. Outils et méthode : ~/Downloads/CAR-bancs/plan-voiture
+  (LISEZMOI.txt). Planches : photos-gameplay/perle-pieces-, perle-rideau-poly-, perle-phare-, perle-rideau-creux-, perle-creux-noir-avant-apres.png.
 
 ## LES NUAGES FANTÔMES + LE FOND PEINT DE LA MER DE NUAGES (2026-10-18, Léo, après LES NUAGES EN VITRAIL : « essaie en mode vitrail » → « plus visible » → « mais pas comme Minecraft ; triche pour une sorte de réalisme ; fais le peintre » → « travaille le fond comme pour le menu, là c'est un peu bleu ; sois un peintre réaliste expressionniste et designer digital » → « pas mal le fond du matin » → « les cubes encore plus minuscules, encore plus fantomatiques, pour vraiment construire de nouveaux nuages ; joue sur les teintes comme un peintre » → « éparpille mieux les cubes » → oui)
 - LE DOSAGE PAR DÉFAUT devient `fantome` (`NV_DOSES` ; `?nuvit=moyen` = la v612, `?nuvit=peintre` = les touches irrégulières de l'essai, `?sans=nuvit`).
