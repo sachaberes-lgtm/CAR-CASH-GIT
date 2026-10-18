@@ -533,6 +533,31 @@
   Léo la veut « plus fidèle » (en reprise chez JAPONAISES). Fusion : seul conflit, le bloc des traductions que l'allègement de Sacha
   avait vidé — son ménage gardé, nos deux noms (LA LAME, LE TOFU) ajoutés.
 
+## LA GRANDE ANGLAISE REFAITE AU PLAN — LA BENTLEY CONTINENTAL GT DE 2003 (2026-10-18, discussion RONDES ; Léo : « dans la direction qu'on a prise jusque-là, améliorer, amplifier l'effet de THE ENGLISH DAME » ; RARE inchangée)
+- **Le plan** : pas de plan coté libre de la 2003 (dimensions.com n'a que la 4e génération). Le PROFIL = le dessin de la 2004
+  (the-blueprints.com, 245 px/m en long et 251 en haut : étalonné sur la longueur 4,804 m et la hauteur 1,39 m — un dessin peut être
+  étiré différemment dans les deux sens), la VUE DE DESSUS = la GTC 2012 (même plate-forme, ramenée à 1,918 m), les vues de face / dos
+  de la 2011 pour la coupe seulement. Recomposés à 250 px/m (une toile, une échelle, un miroir par source) : z = (628,7 − px)/250,
+  y = (373,6 − py)/250. Les détails (calandre, phares, feux, jantes) : les photos de la 1re génération (Wikimedia Commons).
+- **La coque** (`SHAPES.e_anglaise` dans la zone RONDES ; l'ancienne méthode de l'objet SHAPES n'est pas touchée) : loft sur le profil,
+  la largeur (taille aux portières, HANCHES au-dessus des roues arrière), la ceinture, la gouttière, le pare-brise à base cintrée et la
+  lunette de fastback. ⚠ Le nez et la poupe se referment en BANDES (largeur → 4 cm sur les derniers millimètres) : un bouchon de loft
+  faisait des éventails de triangles aux coins.
+- **La calandre maille en VOLUME** : sur une tôle penchée (21°) et bombée, une maille découpée dans la tôle ne tenait pas (les bandes
+  débordaient du cadre, le cadre tombait sur la face « dessus ») → un module à part, dans un plan penché comme le nez, posé 1,6 cm
+  devant : fond noir et cadre chromé (anneau construit à la main — ⚠ `ExtrudeGeometry` avec un trou le REMPLISSAIT) qui s'enfoncent
+  dans le nez, maille en losanges sur deux épaisseurs (1,6 cm d'écart), barre verticale. Les prises d'air du bouclier, elles, sont
+  découpées (maille coupée au rectangle par Liang-Barsky : `maille`).
+- **Le reste** : quatre phares ronds (l'intérieur plus grand ; ⚠ une optique centrale sombre sur une glace blanche faisait des « yeux de
+  dessin animé » → cuvette et optique en chrome fumé), posés sur la tôle (recherche de la tranche la plus en avant à partir de z 1,95 :
+  plus près, le passage de roue relève le bas des sections et le phare se cache DANS la caisse) ; vitres sans cadre et joint noir,
+  montant fin, baguettes chromées (vitres, bas de caisse), portes, capot, malle, feux OVALES au coin de la poupe ; rétros couleur caisse,
+  poignées et trappe à essence chromées, essuie-glaces ; jantes de 19 pouces à six branches en hélice, lèvre rivetée, cache sombre sans
+  logo. Les sorties ovales de Léo (`ECH_POTS.e_anglaise`) n'ont pas bougé.
+- **Mesuré** : 0 programme compilé en course (couché, debout), mêmes avertissements que le main ; la découpe (~60-90 ms) faite à la
+  préchauffe du menu (`rondesChauffe` découpe désormais LA QUEUE DE CANARD puis LA GRANDE ANGLAISE, une par étape) ; construction
+  ~25 ms ensuite (LA PERLE : 70 dans la même session, Mac chargé) ; ~19 000 facettes. Planche : `photos-gameplay/anglaise-avant-apres.png`.
+
 ## LA QUEUE DE CANARD REFAITE AU PLAN D'USINE — LA 911 CARRERA RS 2.7 DE 1973 (2026-10-18, discussion RONDES ; Léo : « la ducktail, il y a des bugs au niveau des phares — retravaille-la vraiment à fond, même technique et même rigueur que la Taycan » ; index 45, ÉPIQUE inchangée)
 - **Le bug, nommé** : (1) le JONC NOIR du pare-chocs avant était une boîte posée à 5 mm de la tôle du pare-chocs — sous le post-traitement
   la profondeur est en 16 bits (voir LA PERLE) : le jonc CLIGNOTAIT en pointillés noir / blanc juste sous les phares ; (2) chaque PHARE
