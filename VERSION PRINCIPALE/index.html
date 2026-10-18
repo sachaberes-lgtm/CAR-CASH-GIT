@@ -10297,6 +10297,20 @@ html:not(.sansGarJouer) #gMis #gmBas .gmJouer .mChev .pxi:nth-child(3){animation
 @media (prefers-reduced-motion:reduce){html body #garage#garage #gAct>#gJouer .mChev .pxi,#gMis #gmBas .gmJouer .mChev .pxi{animation:none;opacity:1;transform:none}}
 html[data-reduced-motion="1"] body #garage#garage #gAct>#gJouer .mChev .pxi,html[data-reduced-motion="1"] #gMis #gmBas .gmJouer .mChev .pxi{animation:none;opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){html:not(.sansGarJouer) body #garage#garage:is(.atelierInv,.shopRet) #gAct#gAct>#gJouer#gJouer{animation:none}}
+/* UNE CAISSE À VENDRE À L'ÉCRAN (2026-10-18, Sacha, capture couchée de la ROSSO 40 : « je veux le bouton JOUER sur cet écran ») : depuis le
+   15/10, une caisse à vendre effaçait JOUER et faisait descendre la BOUTIQUE à sa place (le lingot magenta du milieu). Désormais la barre ne
+   change plus de forme : en haut INVENTAIRE · MISSIONS · BOUTIQUE à parts égales, en bas HOME · JOUER à chevrons · l'ŒIL — exactement la barre
+   d'une caisse à toi. JOUER part avec ta caisse équipée (garJouer rend la tienne avant le départ) ; on achète par la BOUTIQUE, toujours en haut
+   à droite. `?garjouer=0` = la barre d'avant. */
+html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct:has(>#gEquip.achat)>#gJouer#gJouer{display:flex!important}
+html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct:has(>#gEquip.achat)>#gvCof#gvCof{grid-column:1/3!important;gap:7px!important;font-size:var(--f0)!important}
+html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct:has(>#gEquip.achat)>#gvMis#gvMis{grid-column:3/5!important;gap:7px!important;font-size:var(--f0)!important}
+html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct:has(>#gEquip.achat)>#gShopBas#gShopBas{grid-row:1!important;grid-column:5/7!important;height:52px!important;min-height:52px!important;gap:7px!important;font-size:var(--f0)!important;letter-spacing:1px!important;
+  background:linear-gradient(115deg,rgba(255,255,255,.10) 0 18%,transparent 18% 100%),linear-gradient(180deg,rgba(38,30,72,.96),rgba(14,11,30,.98))!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),inset 0 -3px 0 var(--pc),0 0 0 1px rgba(7,5,15,.95),0 7px 16px -9px var(--pc)!important}
+html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct:has(>#gEquip.achat)>:is(#gvCof,#gvMis,#gShopBas) .pxi.pxi{--pxs:2!important}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct:has(>#gEquip.achat)>#gShopBas#gShopBas{height:44px!important;min-height:44px!important}} /* couché, les trois portes du haut à 44 px, comme d'habitude */
 </style>
 <div id="chDoigt" aria-hidden="true"><i class="cdOnde"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdMain"></i><div class="cdBul"><b data-fr="BIENVENUE !">BIENVENUE !</b><span data-fr="TAPE TA CAISSE">TAPE TA CAISSE</span></div></div><!-- (2026-10-15 soir, Sacha) LE DOIGT DE BIENVENUE : voir <style id="accueilDoigt"> -->
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
