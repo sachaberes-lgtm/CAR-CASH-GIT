@@ -587,6 +587,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LES LUMIÈRES DE LA CAISSE v2 — PHARES, FEUX, NITRO ET TRAÎNÉES ÉCLAIRENT LA ROUTE » (17/10) — `LUM_GLSL`, `lumTick`/`lumVue`, `FEU_U`, `LUMK`
 
 **Caisses, boutique, habillages**
+- « L'ACIDE v3 AU KIT, LE CORBILLARD GOTHIQUE, L'ÉTERNELLE v3 » (18/10 soir) — les gouttes d'acide sur la peau, la tête de mort taillée `crane`, les deux bleus
 - « LES AILES VIVANTES — QUATORZE AILES, CHACUNE SON GESTE » (16/10) — les ailes en X au boost, battements, la soudure qui les figeait
 - « LES GESTES DES AILES ONT LEUR SON — … » (16/10) — `ailSon`, `ailes.xwing`/`xwingFerme`/`dragon`/`pigeon`, rangés en PCM
 - « LA PHOTO D'UNE FIGURE — UNE ILLUSTRATION PAR CARTE DANS LA BOUTIQUE » (15/10 soir) — la photo-séquence de chaque figure (`figFile`/`figPhoto`)

@@ -3,6 +3,68 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'ACIDE v3 AU KIT, LE CORBILLARD GOTHIQUE, L'ÉTERNELLE v3 (2026-10-18 soir, v659, Sacha : « la voiture acide, retravaille-la pour qu'elle soit magnifique » · « améliore la hearse avec plus de trucs en mode vampire gothique, genre rajoute des têtes de mort et autres » · « retravaille la eternal »)
+- **ACIDE (`SHAPES.tuner`)** : c'était la dernière caisse en boîtes lisses (matières Phong à part, textures paillettes / autocollants /
+  bandeau, normales retaillées par `facetteCaisse`). Refaite AU KIT, comme la gamme : un LOFT à facettes (capot court, pare-brise couché,
+  pavillon, hayon coupé net), le BAS trempé dans le noir laqué et l'acide qui COULE dessus (des gouttes vert acide, posées SUR la peau relue
+  à la section — `peauX`), les ailes élargies RIVETÉES (un bourrelet qui suit l'arche, 9 rivets en pointes), le CAPOT VITRÉ (baie ouverte,
+  la vitre devinée à deux reflets, ses goujons ; dessous le 4-cylindres en travers : cache-culbuteurs alu, QUATRE TROMPETTES chromées,
+  l'escargot du turbo, la barre anti-rapprochement bronze, le radiateur), les phares en amande sous leur paupière, la bouche et son
+  échangeur, la lame et son fil néon, les canards, la sangle de remorquage, le bandeau de pare-brise à lettres de néon (sans marque),
+  les générateurs de vortex, le becquet et le 3e feu stop, l'aileron « table à repasser » en CARBONE TISSÉ (un sergé de deux tons) sur
+  cols de cygne, la poupe v2 du 17/10 recalée (LED en équerre, plaque dessinée, diffuseur à ailettes néon). Jantes BRONZE à six branches.
+  · Fiche : `h` .62 → **1,27** (sa vraie hauteur : l'ancienne cotait la caisse au-dessus d'un plancher à 35 cm). Le néon `glow` de la fiche
+    court sous les jupes (`glowX/Y/L`, `glowF:0`). `ECH_POTS.tuner` : plus `vieux:1`, le gros canon recalé (0,36 ; 0,30 ; −2,40).
+    `FACET_SHAPES` n'a plus `tuner`. Les textures `MATV` flake / stickers / banner ne servent plus à aucune caisse (paresseuses : rien ne se
+    calcule) ; le bandeau de la ligne `LE BANDEAU DE PARE-BRISE du tuner` reste, inutilisé.
+  · Mesuré au studio : 692 facettes de kit (les roues seules) + une trentaine de maillages Phong → **6 163 facettes**, 7 familles de matière
+    du kit (p, g, m, c, o, k, l), toutes déjà chaudes au menu.
+- **LE CORBILLARD (`SHAPES.d_corbillard`)**, la silhouette du corbillard de 59 inchangée, en carrosse de vampire : le CERCUEIL laqué noir sur
+  le toit (six pans, filet rouge sang, six poignées, une tête de mort couchée, deux sangles) dans une GALERIE de fer forgé à pointes ; deux
+  LANTERNES à flamme ambrée devant, deux têtes de mort aux yeux rouges derrière ; la tête de mort en MASCOTTE ; deux CROCS sous la calandre ;
+  les deux phares du milieu ROUGE SANG ; les rideaux du salon en VELOURS cramoisi derrière des fenêtres en OGIVE (remplages de fer) ; une
+  tête de mort en médaillon sur chaque barre de landau ; à la poupe une ROSACE de vitrail allumée (cramoisi / violet) et deux lancettes,
+  une CHAUVE-SOURIS chromée, des feux en forme de CERCUEIL ; le jonc de ceinture devient un liseré rouge sang ; jantes noires à pique de moyeu.
+  · `crane(x,y,z,s,ry,rx,yeux,fin)` dans le gabarit : la tête de mort taillée (voûte en icosaèdre reculée, orbites et nez DEVANT la voûte —
+    posées dedans elles ne se voyaient pas), ~150 triangles. 4 040 → **7 666 facettes** (au-delà du +25 % de la méthode : c'est la demande).
+- **L'ÉTERNELLE (`SHAPES.a_eternelle`)**, LÉGENDAIRE à 1,61 €, silhouette inchangée : les DEUX BLEUS (le carbone noir de derrière devient
+  BLEU NUIT 0x112250 : en poursuite on ne voyait qu'une masse sombre), le fer à cheval plus grand à grille de POINTES chromées et son
+  MACARON ovale rouge cerclé d'argent (sans lettres), des phares plus grands et leur jonc, la PRISE D'AIR dans la ligne en C (creux noir,
+  trois lames ; ligne en C élargie), le moteur sous la vitre du capot arrière (deux bancs de couvre-culasses alu, bougies rouges, deux
+  reflets), l'AILERON relevé sur deux vérins avec un filet bleu clair, la grille arrière en LOSANGES, le trait de LED plus franc, la sortie
+  centrale cerclée. Jantes à dix branches. 5 008 → **6 026 facettes**.
+- Bancs (scratchpad de la session, `outils/banc-caisses/` adapté au PC : Chrome de Windows, verrou commun `cc-banc`, plafond configurable
+  `CC_CAP`, `navigator.webdriver` posé pour sauter l'atelier de la plaque) : studio avant/après des trois, ACIDE dans le vrai jeu (accueil,
+  garage, boutique), verif couché / debout / cadre de l'ordi. Ce soir le jeu met ~90 s à charger au banc (la machine est chargée) : un
+  passage `jeu.mjs` complet dépasse 8 min — couper en deux passages (menus, puis course).
+
+## LA DOLORÈS ÉPIQUE À 3 M$, LA POUPÉE RETIRÉE, L'ORIGAMI À 1,2 M$, LE TRÔNE CENTRAL ÉPIQUE À 2 M$ (2026-10-18 soir, v659, Sacha : « la dolores doit coûter 3 millions et être epic » · « enlève the doll » · « origami à 1,2 million » · « center throne doit être epic à 2 millions » · « enlève la comète » · « met la eternal en légendaire à 1,61 euro » · « the specter doit être en légendaire et coûter 1,61 euro » · « the sound barrière doit coûter 1,61 » · « the doge doit coûter 1,61 » · « à part la pizza express et le cat, toutes les voitures coûtent 1,61 »)
+- LA DOLORÈS : `rar:'epique'` sur sa fiche, `{p:3e6}` dans `CAR_UNLOCK`. Elle était la récompense de la mission « DÉPASSE 1000 KM/H »
+  (`kmh1000`) : une caisse donnée par une mission ne s'achète pas (le patch de CAR_UNLOCK sous `M2`), donc la mission paie désormais
+  **100 000 $** (montant choisi par Claude, entre `aura20k` à 30 000 $ et `car20` à 300 000 $ — à valider par Sacha). Qui l'a déjà gagnée la garde.
+- LA POUPÉE (« THE DOLL » en anglais) : `retire:1`, fiche gardée entière. Qui l'avait rachetée est remboursé 4,2 M$ et repart en LA HONTE
+  s'il roulait avec (LES CAISSES RETIRÉES dans SAVE).
+- L'ORIGAMI : son prix était déjà 1 200 000 $ dans `CAR_UNLOCK`, mais la mission « JOUE SUR CHAQUE MAP » (`maps`) la donnait, ce qui la
+  sortait de la vente. La mission paie désormais **50 000 $** (montant choisi par Claude, comme `car5` — à valider par Sacha) : l'ORIGAMI
+  s'achète à 1,2 M$. Qui l'a déjà gagnée la garde.
+- LE TRÔNE CENTRAL : `rar:'epique'` (était LÉGENDAIRE), `{p:2e6}` (était en boutique à 1,61 €, puis récompense de la mission « COLLECTE TOUTES
+  LES VOITURES », `carall`). La mission paie désormais **500 000 $** (choisi par Claude, au-dessus de `car20` à 300 000 $ — à valider par Sacha).
+- RÈGLE (rappel) : une caisse nommée dans une récompense de mission `M2` (`r:{car:…}`) ne s'achète pas, quel que soit son `CAR_UNLOCK` —
+  pour la mettre en vente, changer la récompense de la mission.
+- LA COMÈTE : déjà `retire:1`, mais la mission secrète « FAIS UN SALTO DEVANT LA TERRE » (`terre`) la donnait, et le patch des missions
+  RALLUME une retirée qui a encore son gabarit (`revenue`). La mission paie désormais **100 000 $** (choisi par Claude) : LA COMÈTE ne revient
+  plus. Qui l'avait gagnée la perd (elle ne coûtait rien : pas de remboursement) et repart en LA HONTE s'il roulait avec.
+- L'ÉTERNELLE : `rar:'legendaire'` (était un DÉFI), `{k:'premium',eur:'1,61 €',rar:'leg'}` : en BOUTIQUE au vrai argent (StoreKit pas encore
+  branché : `shopPaye` refuse tout, comme pour toutes les premium). La mission secrète « JOUE 30 JOURS DIFFÉRENTS » (`jours30`), qui la donnait,
+  paie **100 000 $** (choisi par Claude). Qui l'a déjà la garde. Son redesign (« retravaille la eternal ») suit dans un commit à part.
+- LE SPECTRE : il était déjà LÉGENDAIRE à 1,61 € dans `CAR_UNLOCK`, mais la mission secrète « MEURS PILE À 0 S DE VOL RESTANT » (`air0`) le
+  donnait (donc hors de la boutique). Elle paie **100 000 $** (choisi par Claude) : LE SPECTRE revient en boutique à 1,61 €.
+- LE MUR DU SON : 0,99 € → **1,61 €** (LÉGENDAIRE), de nouveau en boutique ; la mission secrète « DÉPASSE 2000 KM/H » (`kmh2000`) paie 150 000 $.
+- LE DOGE : 4 M$ → **1,61 €** en boutique, toujours ÉPIQUE (sa fiche ; Sacha n'a pas demandé de changer sa rareté) ; la mission secrète « REJOUE
+  10 FOIS DE SUITE » (`rejoue10`) paie 100 000 $.
+- TOUTES LES CAISSES EN EUROS À 1,61 €, sauf LA PIZZA EXPRESS (161 €) et le CHAT POP-TART (4,20 €) : REQUIN, LE BLINDÉ NOIR, LE DRAGON
+  D'OR passent de 9,99 € à 1,61 € (LA FÉLINE, L'ÉTERNELLE, LE SPECTRE, LE MUR DU SON, LE DOGE y sont déjà). Les caisses à l'argent du jeu ne changent pas.
+
 ## LES TRAÎNÉES, PASSE GLOBALE : LISIBLES DE JOUR, LE FEU À LEUR COULEUR, LA COULEUR GARDÉE (2026-10-18, v658, Sacha : « améliore toutes les traînées en cherchant globalement à les améliorer »)
 Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par traînée : la session du 16-17/10 avait soigné chacune.
 - VU AVANT (banc muet : les 16 en mer de nuages midi, puis A/B même code ± la passe) : (1) de JOUR, ce qui brille dans les traînées POP — filés
