@@ -851,6 +851,22 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
 
+## LE CAÏD, LE DÉTAIL DU VRAI HUMMER EV (2026-10-19, discussion BOÎTES ; Léo : « plus de détail »)
+- Tout en pièces du kit (facettes, matières existantes : 0 programme en plus) — 21,8 k → 32 k facettes (budget 50 k). La découpe de la tôle ne
+  change presque pas (un joint de plus au hayon) : la construction reste ~35-60 ms la 1re fois (découpe en moment creux), ~25 ensuite.
+- **Face** : antibrouillards en boîtiers carrés (cadre, vitre, projecteur), calandre à six lames inclinées en retrait + montants + prises d'air,
+  caméra, sabot alu ajouré (trois fentes) et vissé, ses montants autour des ANNEAUX DE REMORQUAGE (tore + goupille), lèvres haute et basse.
+  ⚠ l'ancienne « calandre » (boîte à z 2,736) était DANS le bouclier (face à 2,75) : invisible — toute pièce de face se pose à z ≥ 2,75.
+- **Capot** : nervures nettes du dôme (2 cm), échantillons du capot à x .423/.445/.60 (ajoutés à CHAQUE rang, mis à l'échelle de la largeur : un
+  nombre de points variable par rang casse `quad`), joint clair du panneau noir, trois ouïes par côté (posées à H(x,z)).
+- **Flancs** : bord épais des élargisseurs (`bande(FO,0,.035)` en prisme un peu plus large) et VIS tous les 16 cm (`pas(off(FO,-.05))` : le décalage
+  NÉGATIF va vers la roue) ; rétros à fente de clignotant ambre ; poignées en niche + barre chromée ; marchepieds à grip (10 lames) et embouts.
+- **Roues** : pneu à 28 rangs de trois pavés en quinconce + épaulement alterné + anneau de 36 crans sur le flanc ; jante noire à dix branches en V
+  creusées, moyeu, huit écrous, cache. **Toit** : épine + traverse entre les panneaux, deux barres sur pieds. **Arrière** : passages de roue dans la
+  benne (prismes en arc), anneaux d'arrimage, nervures de doublure, hayon dans le hayon (joint), poignée + caméra, feux en C à réflecteurs et
+  points de LED (rouge allumé = feu : rien d'autre de rouge allumé à l'arrière), recul, ATTELAGE (tube, goupille, prise).
+- Banc : course couchée et debout 0 programme compilé, garage sans erreur. Planche : photos-gameplay/hummer-detail-avant-apres.png.
+
 ## LE CAÏD, LE NEZ ARRONDI DU HUMMER EV (2026-10-19, discussion BOÎTES ; Léo : « plus arrondi le devant, et respirant le même air que le modèle original »)
 - **Le capot** : plus une nappe posée à plat sur l'épaule (des angles vifs tout autour) — une nappe BOMBÉE sur toute l'empreinte du nez (en plan,
   un rectangle aux coins arrondis de RC 30 cm) qui S'ENROULE en quart de cercle vers ses bords (`rB(z)` : 0 au pare-brise, 15 cm devant) ; les
