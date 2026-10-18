@@ -3,6 +3,113 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES NUAGES FANTÔMES + LE FOND PEINT DE LA MER DE NUAGES (2026-10-18, Léo, après LES NUAGES EN VITRAIL : « essaie en mode vitrail » → « plus visible » → « mais pas comme Minecraft ; triche pour une sorte de réalisme ; fais le peintre » → « travaille le fond comme pour le menu, là c'est un peu bleu ; sois un peintre réaliste expressionniste et designer digital » → « pas mal le fond du matin » → « les cubes encore plus minuscules, encore plus fantomatiques, pour vraiment construire de nouveaux nuages ; joue sur les teintes comme un peintre » → « éparpille mieux les cubes » → oui)
+- LE DOSAGE PAR DÉFAUT devient `fantome` (`NV_DOSES` ; `?nuvit=moyen` = la v612, `?nuvit=peintre` = les touches irrégulières de l'essai, `?sans=nuvit`).
+  Ni écailles ni peau : l'ouvrier (`nuage8Calc`, `opt.fant`/`opt.fsz`) tire 8 000 cubes par gabarit AU HASARD sur la surface v8 (triangle choisi
+  selon son aire, point dedans — plus un paquet par sommet : une grille faisait des rangées), en grappes légères (bruit de densité, plancher .55 ;
+  à .18 de grandes trouées lisses montraient le corps), les deux tiers DEDANS (jusqu'à 7,5 tailles), le reste en VAPEUR dehors (jusqu'à 6 tailles,
+  plus rare, plus légère), tailles .35-1,6 × ext/110, un peu de désordre en 3D, tirés dans le désordre (le lot lointain en dessine 40 % :
+  `NUVIT.loin`, drawRange sur les mêmes tampons). Chaque cube = un carré face à l'objectif (`nuFantVS/FS`, `nuFantGeo`), à demi transparent,
+  éclairé par la lumière v8 (`n8lum`), qui respire ; TEINTE DE PEINTRE par cube (crème ou rose au soleil, lavande ou bleu ciel à l'ombre) ;
+  biseau léger. Le CORPS v8 est rentré de 3 tailles (sinon il cachait les cubes du dedans). Tout près (cube trop gros à l'écran) : la v8.
+  Bancs/coussins/tours (`mkCloud`) : les cubes en enfant, le maillage devient le corps rentré. MESURÉ : triangles ×2, +0 à 3 ms/image sur le
+  Mac (bruité), 0 programme compilé en course (2 de plus au menu).
+- LE FOND PEINT (`NUFOND_V`, `?sans=nufond`, `NU_FOND`, `nuFondTick` dans la boucle, `dbgNuFond(0|1,probe)`) : en course sur la mer de nuages,
+  la couche peinte du MENU (`cielTitre`, `uTi`…) allumée avec SA palette matin/midi/soir (zénith rabattu lilas, horizon pêche-crème, lueur et
+  rayons du soleil, cirrus), apparition en 0,7 s ; la brume des biomes = l'horizon peint ; sat/con rabattus (1,04/1,14 au matin et à midi : le
+  bleu électrique venait aussi de l'étalonnage). La NUIT garde son clair de lune (la couche la noircissait), pluie et orage leur ciel. 0 compilé.
+- Bancs (scratchpad de la session) : `banc.py` (KS=0,1,2,3 plusieurs états, SEEDRAND = Math.random figé pour la même piste), `dbgNuVue('nuageN',a,d)`
+  (le N-ième plus grand nuage en portrait), `perfnuv.py`, `cpcarte.py` (cartes postales). ⚠ En pause le jeu ne redessine pas : un crochet A/B rend lui-même.
+  Planches photos-gameplay/nuages-peintre-, fond-nuages-peint-, nuages-fantomes-, nuages-eparpilles-avant-apres.png.
+
+## LA VILLE VITRÉE AU SOL — SOUS DES GÉANTES (2026-10-18, Léo : « parfois je vois des formes de ville dans le ciel à l'envers, enlève s'il en reste dans le main ; et la vitrée je la trouve pas assez différente — celle-là on reste au sol, effet Shanghai vu d'en bas, mais sur des trucs immenses » ; questionnaire : vues DANS la ville vitrée · la route descend aussi au pied des tours)
+- LA VILLE À L'ENVERS, MESURÉE : la route de la ville descend en SPIRALE (5,7 km de chute sur 16,7 km). D'un étage du bas, les tours bâties autour
+  des étages du haut PENDAIENT dans le ciel, leur pied fondu dans le bleu (capture : la ville éclatée au-dessus de la tête). La ville au sol l'enlève
+  par construction : plus d'étage au-dessus d'un autre, sauf les ponts. `?vitre=spirale` = la ville d'avant (pour comparer).
+- LA ROUTE À PLAT (`vitreAplanir`, appelée en fin de genCtrl pour la ville vitrée seulement) : l'altitude des points de contrôle est réécrite — une
+  houle de ±14 m — et partout où la route repasse (en plan) sur un bout déjà posé, le passage suivant MONTE en PONT (rampe en S de ~550 m, ≤ ~7°,
+  `VIT_SEP` 46 m au-dessus) ; on recommence jusqu'à ce qu'aucun croisement ne reste. Tracé en plan inchangé, aucun tirage `rnd`. Mesuré : routes
+  entre −14 et +56 m (un pont), parfois des échangeurs à plusieurs niveaux.
+- LE SOL (`vitreSolMat`, un plan sous toute la piste + 7 km, `VIT_SOL_H` 26 m sous le point le plus bas) : îlots de 240 m, avenues de 36 m
+  (asphalte, lignes, tirets), parvis en dalles de 6 m, pelouses tondues, bassins qui renvoient le ciel et le soleil ; la nuit, LED bleues le long
+  des avenues, réverbères, bassins éclairés ; dalle mouillée sous la pluie ; couleur par heure (`VIT_SOLC`). TOUCHER LE SOL EN VOL = l'explosion
+  (cause `sol`, « AU PIED DES TOURS ») ; `CITY.solY` (null hors ville vitrée).
+- LES PILIERS (`vitreSolPose`) : un fût de 7 m et un chapiteau en T sous le tablier tous les ~64 m (pas là où une autre route passe dessous) ;
+  la nuit un anneau de LED bleue tous les 16 m. Visuels seulement (on peut toujours rouler sous la route).
+- LES GÉANTES : posées sur le sol (pied à `CITY.solY`, plus de brume au pied), 170 m à 1,3 km au bord de la route (une sur six passe le kilomètre ;
+  le 1er rang un peu moins haut, les géantes de derrière se lisent au-dessus), 90 à 470 m au large ; plus larges (30-72 m) et plus loin (le ciel
+  et leurs pieds se voient entre elles) ; aucune ne chevauche une autre (16 bits de profondeur) ni ne pousse sous une route. Le verre renvoie le
+  SOL vers le bas. Le DIRIGEABLE croise au-dessus des géantes qui l'entourent (jamais dans une tour).
+- LE PORTAIL : 5 cartes postales `assets/portail/vitree-<heure>.webp` (tirées par `dbgCartePostale`), la palette des cubes `PCUBE_PAL.vitree`.
+  Liste des maps : les 5 photos refaites (`repertoire-maps/banc/photos.py vitree`).
+- MESURÉ (banc, téléphone 390 × 844) : 0 programme compilé en course, au départ comme après le portail pré-bâti (208 → 208) ; puce p50 5,4 ms (la
+  spirale 5,7, la ville de nuit 4,6) ; triangles d'une image 279 k (la spirale 626 k). À mesurer sur un vrai iPhone (`?banc=1`).
+- Console : `dbgVitre('sol')` (sol, ponts, piliers, cause de la mort), `dbgVitre('pts',n)` (la route, un point sur n).
+- Planche : `photos-gameplay/ville-vitree-au-sol-avant-apres.jpg` (dossier de Léo, hors dépôt).
+
+## LES BORDS DE LA MAP — UNE COULEUR PAR MAP, LE SCINTILLEMENT RGB AU BOOST (2026-10-18, Léo : « je voudrais que les maps aient les côtés lumineux de la route en fonction de la map, les couleurs, et qu'ils évoluent en fonction de comment la personne booste » puis « quand on booste, les côtés scintillent un peu en mode RGB, mais chaque niveau a sa couleur de base »)
+
+- **AVANT (mesuré au banc sur chaque map × météo, `dbgBords`)** : le ROSE de la bible (#F24AA0) partout — rail à 70 % de jour, plein la nuit
+  et sous la pluie ; nappe 0,43 de jour, 0,78 la nuit. Trois écarts : l'ORAGE des nuages (id `orage`) avait perdu la signature (rail gris-blanc
+  0,56 + nappe ambre : `routeSig` teste `c.id==='nuages'`) ; CRYPTO CITY était en béton #C9C3B6 sans nappe de jour, blanc doux la nuit ;
+  les PICS DE JADE la nuit tombaient à 44 % (nappe 0,08) — `villeApres` baisse les néons de nuit hors des six maps de la continuité et la
+  branche `routeSig` ne le compensait pas. La VILLE VITRÉE avait ses rails bleus mais une nappe et un liseré de flancs ROSES (accC).
+- **LA PALETTE** (`BMAP_PAL`, une couleur de BASE par map du JOUER) : MER DE NUAGES rose #F24AA0 (la marque, orage compris) · PICS DE JADE
+  vert jade #2EE8A6 · FORÊT NOIRE luciole #C8F03C · ROYAUME DE FEU soufre #FFE03A (l'orange #FF4A1A disparaissait dans la lave : nuancier
+  au banc, même image) · CRYPTO CITY or #FFC23A · EN ORBITE violet #8C6BFF · CANYON turquoise #22E0C2 · VILLE VITRÉE bleu #2F8CFF ·
+  GLACIER #52D8FF (sa piste de glace n'a pas de bord visible : rien ne se voit). LA VILLE n'est pas dans la palette : ses quatre teintes et
+  son caméléon restent. `bmapCle()` (la map par `LVL.cur.carte`, sinon l'id) ; `bmapPeint(k)` remplace la peinture de `bordsTick` pour ces
+  maps : rails, nappe et liseré des flancs + reflet des flaques (`ROAD_U.uAcc`), 70 % de jour, plein la nuit, `villeApres` compensé d'avance
+  (au-delà d'une opacité pleine, c'est la couleur de la nappe qui porte le reste).
+- **LA NAPPE** porte désormais une couleur de sommet NEUTRE (sa force `ka9`) et sa MATIÈRE la teinte (`accC`, posée par buildTrack) :
+  identique à l'image près pour les maps hors palette (vérifié : `?sans=bordsmap` redonne les valeurs du main, map par map).
+- **LE BOOST RGB** (`bmapBoost`, `BMAP_U`) : au boost (NFX.len, ~0,1 s pour s'ouvrir, ~0,3 s pour se refermer) les rails et la nappe passent
+  à 82 % à un ARC-EN-CIEL qui court le long de la route (tout le spectre en ~60 m, `aS` = l'abscisse de la piste, nouvel attribut des rails
+  et de la nappe) et qui SCINTILLE (chaque tronçon de ~2,5 m tire son éclat 16 fois par seconde, un sur sept éclate en blanc — un simple
+  frémissement disparaissait dans le flou de vitesse du boost, vu au banc) ; le bord s'allume aussi un peu plus fort (la lueur prend). Lâché,
+  la couleur de la map revient. Le pad turbo allume un peu, sans arc-en-ciel. Peint par `traitMat` (pal 0 et 1 : les programmes des rails et
+  de la nappe, à eux seuls) : trois uniformes, AUCUN programme de plus.
+- **Essayé avant** (17/10, refusé par Léo : « j'imaginais plus un truc où ça scintille en mode RGB ») : L'ÉCLAT, LE FEU (couleur de la poussée),
+  LA CHAUFFE (montée au blanc en 1,2 s). Un plein de nitro dure ~1,5 s (mesuré).
+- **Mesuré** : programmes 200 au menu → 202 en course (comme le main, `?sans=bordsmap` aussi), +0 au boost ; aucune erreur sur 5 maps.
+  Bancs : Chrome sans fenêtre muet, la caisse au rase-bord (`dbgAuto(1,0,{latK:-.8})`), planches `photos-gameplay/bords-map-*.jpg`.
+- **Crochets** : `?sans=bordsmap` (le rose partout, d'avant) · `?bordsboost=0` (pas d'effet au boost) · `dbgBordsMap()` (ce qui est posé) ·
+  `dbgBordsMap('canyon',0x22e0c2)` (essayer une couleur) · `dbgBordsMap('rgb',1)` (l'arc-en-ciel sans boost, pour les photos ; `null` le rend).
+- **Sacha** : sa bible (14/10) mettait le rose sur toutes les routes — cette palette la remplace ; poussé sur l'ordre de Léo, qui le prévient
+  lui-même (« pousse sur le main, je préviens Sacha moi-même ») ; `?sans=bordsmap` rend le rose partout.
+
+## LE PRÉ-BÂTI — LA MAP D'EN FACE SE BÂTIT PENDANT QU'ON ROULE (2026-10-18, Léo : « super push » ; demandé le 2026-10-17 soir, Léo : « la pause du passage est beaucoup trop longue » — le portail de cubes, 3e tour)
+- MESURÉ AVANT (banc : téléphone simulé 390 × 844, processeur ×4) : au passage, newTrack bloquait le script d'un bloc — 0,35 à 1,35 s (la jade 1,35 s,
+  le canyon et la forêt 0,75 s) : la ROUTE (génération, courbe, repères, bitume, flancs, rails, nappe, ligne) puis le DÉCOR. Voile 0,8 à 1,9 s.
+- LA ROUTE = `pisteRoute`, un générateur : le code de buildTrack tel quel, avec des `yield` entre ses tranches. Il travaille sur un ÉTAT FANTÔME,
+  échangé avec l'état vivant le temps d'une tranche (`prebEchange` : pts, T, Nn, B, L, NP, trous, filets, pads, plots, flaques, tremplins,
+  trackMeshes, PISTE_LOD, NEON_*, les repères de la génération, THICK, ROAD_HALF, KAPB, les champs que la génération de la map écrit — `prebChampsDe` —,
+  et en entrée : LVL.cur, LVL.n, runStats.zones, engTier, F). Rien n'entre dans la scène pendant la construction : `pisteInstalle` retire
+  l'ancienne route et met la neuve en scène au passage, dans l'ordre. Les tirages `rnd()` sont ceux de buildTrack dans le même ordre.
+- LES DÉCORS d'avance : la JADE (jadeBatit, déjà en tranches, + LA CARTE GARDÉE : buildJade la reprend en quelques ms) ; la FORÊT, le VOLCAN, le
+  GLACIER (`buildForetG`/`buildVolcanG`/`buildBanqG` — générateurs ; `buildForet(seed)` = `jadeFini(buildForetG(seed))` : au passage, d'un trait,
+  JF.lim = Infinity) — leur module échangé EN ENTIER le temps d'une tranche (`prebDecorG`, `prebObj`), `scene.add` intercepté, installés au passage par
+  `prebDecor`. Restent au passage : la ville (0,06-0,09 s ×4), le relief du canyon (déjà dans un travailleur), les nuages, les pièces (spawnPickups).
+- QUAND : mode classique en course, la map d'en face connue (portDest), le portail à moins de 20 s de route (`PREB_AVANCE`), 3 à 6 ms par image,
+  hors pause/passage/chauffe. Le PALIER MOTEUR est celui du départ du travail (gardé jusqu'au passage, décor compris : `prebPalier`). La map d'en
+  face change (dbgClassique) → le travail repart ; pas fini au passage → le reste d'un trait. Tout autre newTrack (rejouer, dbgSaut, carrière,
+  campagne, auto-école, parc, balade) : d'un trait, par le même générateur (`pisteDirecte`). Une map NEUVE dont la génération n'est pas dans
+  `PREB_PISTES` n'est pas bâtie d'avance.
+- VÉRIFIÉ : ÉQUIVALENCE au bit près sur 24 cas (10 maps, météos, graines, paliers) — origine / d'un trait / d'avance : route, objets, maillages,
+  modules, carte de jade, objets du décor de la forêt, du volcan, du glacier ; AUCUNE FUITE dans l'état vivant pendant le pré-bâti. 10 passages
+  d'affilée (`?portail=vite` + dbgAuto) : 0 mort, programmes compilés en course identiques à `?prebati=0` (+2 puis −5 dans les deux), les
+  mêmes exceptions attrapées et la même erreur console dans les deux (« computeBoundingSphere : radius is NaN » — elle est déjà sur le main).
+  REVÉRIFIÉ après la fusion du main v619 (la jade tirée au hasard, les nuages en virages et en vitrail, la forêt en vitrail, la caméra du glacier).
+- MESURÉ APRÈS (même banc, mêmes maps, sur v619) : construction au passage 0,35-1,35 s → 0,02-0,20 s ; voile moyen 1,09 s → 0,59 s ; image
+  figée la plus longue 0,63 s → 0,12 s en moyenne (jade 1,37 → 0,15, forêt 0,77 → 0,08). Les images pendant le pré-bâti : p90 17-67 ms à ×4
+  (17-50 sans). Planche : `photos-gameplay/portail-prebati-avant-apres.png`. ⚠ Un banc sur une machine chargée (d'autres bancs en même temps)
+  ne mesure rien : la même passe sous charge 12 donnait l'inverse (relancée au calme).
+- ⚠ RÈGLES : dans `pisteRoute`, jamais de `scene.add` (pousser dans trackMeshes), jamais d'écriture d'un état vivant hors de la liste échangée ;
+  une génération qui écrit un champ de module neuf → l'ajouter à `prebChampsDe` ; un décor neuf se bâtit au passage tant qu'il n'a pas son
+  `prebDecorG`. `?prebati=0` = l'ancien comportement. Console : `dbgPrebati()` (état, palier, temps), `dbgPrebati(0|1)`.
+- LE GLACIER : la déclaration `tS` avalée par un commentaire (« tS is not defined » à la fin de chaque buildBanq) est déjà réparée sur main
+  (61d12ae1) ; `buildBanqG` la porte telle quelle.
+
 ## LA PERLE AU PLAN — LA SERRE CONSTRUITE SUR LES TRAITS, LES VITRES DÉCOUPÉES AU PLAN (2026-10-18, Léo : « corrige encore la Porsche ; faut qu'on apprenne à générer parfaitement les voitures, pour qu'à la fin la seule limite soit l'imagination — les traits gris mettent en avant les défauts : au niveau de la vitre, le trait est clairement arrondi alors que la voiture est encore un peu carrée »)
 - **Le diagnostic** : les traits gris de LA PERLE sont les lignes du PLAN COTÉ de la vraie (projetées sur la tôle, voir « LA PERLE » du
   16/10). Là où la tôle ne les suit pas, ils trahissent l'écart. Mesuré tranche par tranche contre le plan : vitres, cadres, montant B,
