@@ -3,6 +3,59 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES DUNES D'OR — UNE NOUVELLE MAP : L'ERG QU'ON DÉVALE DE CRÊTE EN CRÊTE (2026-10-18 soir, session dunes-or — Sacha : « propose-moi des idées de nouvelle map » → « fais les dunes d'or de manière parfaite » ; la proposition retenue : « un désert ouvert (pas de parois, contrairement au Canyon) : on dévale des dunes géantes, d'une crête à l'autre ; obélisques, caravane, mirages au loin ; l'orage = tempête de sable ; sable orange + ciel turquoise, la base même de la DA ») — v674
+- **Le principe** : le moteur de terrain du CANYON (CDLOD en instances, grilles de données lues à l'identique par la puce et par la collision,
+  monde calculé dans un travailleur, ombre balayée au soleil de l'heure) sur une MER DE DUNES. Le canyon n'est pas touché : tout est à part
+  (`DN`, `genDunes`, `buildDunes`, `dnMondeCalc`, `dnHauteur`, `DN_VS`/`DN_FS`, `dunesTick`, `dunesHeurt`, `dunesChauffe`, `dbgDunes`),
+  seuls son CIEL (`canyonCiel`) et son SOLEIL DE L'HEURE (`canyonSoleil`, `cyA`) sont partagés : `LVL.canyonA` vaut 1 dans les dunes aussi.
+- **LA ROUTE (`genDunes`)** — l'ossature de genCanyon (droites et arcs ≤ 8°, cap dans ±58° hors boucles), rayons en multiples du rayon tenable
+  RMIN (1,3 à 3 × : au-delà, c'est « du tout droit » pour Sacha). Sections : LA CRÊTE DU GRAND ERG (la route sur le fil d'une dune, en S),
+  LE TOBOGGAN (la face d'avalanche, en virage, dans sa tranchée de sable), LES VAGUES (« d'une crête à l'autre » : la montée tourne, la CRÊTE est
+  droite et on y décolle, la face d'avalanche est droite et fait 1,12 × la portée du saut — la cassure suit la vitesse du palier, ~1,9 s de vol,
+  jamais plus de ~2,2 s), LA VALLÉE MORTE (le fond d'argile blanche et ses acacias morts, façon Deadvlei, cernée de dunes plus hautes que la
+  route), LA DEUXIÈME CRÊTE, L'ALLÉE DES OBÉLISQUES, L'OASIS (le portail au-dessus de l'eau). Les BOUCLES à raccourci = le trombone du canyon
+  (racA… racG). Les MODULES : `dSlalom`, `dVagues`, `dCorde`, `dChicane` (hasard `rm` à part). LA DURÉE DES MAPS (Léo) : au JOUER, crête
+  raccourcie, toboggan, raccourci A, vagues, vallée, allée et oasis restent ; B-G, la 2e crête et les 2es vagues selon la place (`tient`).
+  `DUREE_ALLURE.dunes` = 0,75.
+- **LE SABLE** — `dnDune` (même calcul en JS et en GLSL, bruit `CY.nz` canal 0 aux SEULES grandes échelles) : des dunes poussées par UN vent
+  (dans l'axe de la descente ±35° : les crêtes coupent la route en travers), face au vent douce, face d'avalanche raide, crêtes qui serpentent
+  sur 1-7 km, pics et cols le long des crêtes, une houle en biais dans les creux. Posée sur un FOND (grille de 64 m adoucie : la route lissée
+  ±300 m moins la profondeur H de la section ; au loin une mer plus haute et calme). Près de la route, la grille FINE (12 m) tient un PLAFOND (le
+  sable à D m sous la dalle, puis 37° — la route creuse sa tranchée dans les dunes plus hautes qu'elle ; presque plat dans les boucles : rien ne
+  monte entre la zone de saut et la sortie) et, sur les crêtes et les vagues, un PLANCHER (la dune qui porte la route).
+- **LE RENDU** — sable doré → rouge (dnA/dnB), crête plus claire, RIDES du vent dans la normale (de près), SATIN au rasant, PAILLETTES,
+  ombre portée des crêtes au violet (la bible) + le REBOND chaud (jamais de creux noir), argile craquelée, herbe et eau de l'oasis, MIRAGE au
+  loin. Le CIEL : l'horizon de mesas devient deux houles de dunes et trois PYRAMIDES (`uCyDn`, fondu `LVL.dunes`). Six TEMPS (`dunesMatin`,
+  `dunesMidi`, `dunesSoir` — un peu plus souvent —, `dunesNuit`, `dunesVent` = le temps « pluie » : VENT DE SABLE, `dunesTempete` = l'« orage » :
+  TEMPÊTE DE SABLE, orage sec) ; ils entrent dans `CONTI` (la recette commune des maps) ; le SABLE QUI VOLE (`dnPart`, dnQ.z) dans les deux derniers.
+- **LES DÉCORS** (low-poly à facettes, même lumière et même ombre que le sable : `DN_MVS`/`DN_AFS`, or poli `DN_OR`) : OBÉLISQUES (l'allée en
+  paires, d'autres épars ; pyramidions d'or), LA GRANDE PYRAMIDE près de l'oasis (coiffe d'or ; elle ombre les dunes), ACACIAS MORTS de la vallée,
+  PALMIERS de l'oasis, CARAVANES de sept chameaux qui marchent sur les crêtes (`dnCaravane`). Rien ne touche une dalle (`dnPresRoute`, `pres`).
+- **EN VOL** le sable, l'eau de l'oasis, les obélisques et la pyramide TUENT (`dunesHeurt` → ENSEVELI DANS LE SABLE · AU FOND DE L'OASIS ·
+  CONTRE L'OBELISQUE · CONTRE LA PYRAMIDE). Fruits du désert (ceux du canyon). Bords de route turquoise `BMAP_PAL.dunes`, portail `PCUBE_PAL.dunes`.
+- **MESURÉ** (bancs muets, file commune ; scratchpad de la session dunes-or : `dunes-banc.cjs` photos/états, `dunes-pilote.cjs` pilote automatique,
+  `relief.js` relief ombré de `dnDune` HORS GPU) — le monde : 63 à 443 ms (travailleur ; sous le voile du JOUER, au fil principal) ; grilles
+  ~150 × 500 à 12 m, ~230 × 300 à 64 m, ~105 × 205 à 44 m (l'ombre). LA RÈGLE D'OR : 13 constructions (6 temps × 2 paliers + la 1re), 0 sable sur
+  ni sous la route, marge mini 10,1 à 11,4 m, 0 décor sur la dalle. LE PORTAIL : parti des Pics de jade, la map d'en face imposée — le pré-bâti a
+  bâti les dunes en roulant (411 ms, 148 ms de calcul sur 23 images), reprises au passage (`pris` 1), monde posé, 0 erreur. LE PILOTE (palier 0,
+  sans nitro) : 7 traversées sur 7, 48 à 61 s ; nitro TENUE : morts dans l'épingle serrée de la boucle (3,7 s de vol, le trombone du canyon :
+  il se négocie sans nitro) — aucune mort dans les vagues. Raccourci A : gain 808 à 944 m, chute 56 à 83 m, 90 à 100 m à côté.
+  Les retouches mesurées en route : la 1re `dnDune` lisait les canaux FINS du bruit (3-100 m) et faisait de la roche (relief hors GPU) → canal 0, grandes
+  échelles ; les rides du vent crénelaient en DAMIER au-delà de 70 m → de près seulement ; l'ombre au coucher tombait au noir → le REBOND ; le lac
+  se répétait en grille (bruit de 18 m) → bruits larges tournés ; la nuit, le sable sortait blanc rosé comme de la neige et une bande NOIRE barrait
+  l'horizon → sable sombre, crête argentée, brume indigo plus claire ; la tempête était un orange plat → plus sombre, plus brune ; les obélisques
+  en grès se perdaient dans le sable → LAPIS-LAZULI cerclé d'or ; les vagues : à 0,27 puis 0,35 de cassure la caisse ne décollait pas à la
+  croisière, et la nitro l'envoyait 3,4 s dans le sable → la cassure fait décoller la caisse LANCÉE, la face fait 1,12 × ce saut ; au palier 7 la
+  map faisait 6,3-7,3 km pour 5,4 visés → vagues resserrées (1,35 × la croisière), une ou deux sur une map courte.
+- **VÉRIFIÉ AVANT LA POUSSÉE** (fusionné avec LES PROFONDEURS, la grotte de la session voisine : les deux maps ajoutées aux mêmes listes — SF_CARTES,
+  CONTI, BMAP_PAL, PCUBE_PAL/PCUBE_CP, PREB_PISTES, DUREE_ALLURE, LVL, CAUSES — gardées toutes deux) : la règle d'or (nuit, soir, midi : 0 / 0, marge
+  11,2-11,4 m ; 5,0-5,6 km pour 4,74 visés au palier 0), la fumée commune OK couché + debout, 0 erreur JS ; gardes burn-out et charte OK.
+- Console : `dbgDunes()` · `dbgDunes('test')` (la règle d'or) · `dbgDunes('raccourcis')` · `dbgDunes('vue',d,h,cap,pente)` / `('vueA',s,…)` ·
+  `?carte=dunes&meteo=soir` · `?dnw=0` (sans travailleur). Répertoire des maps de Léo : la ligne `dunes` dans `repertoire-maps/maps.js`.
+- **À trancher par Sacha** : (1) les vagues décollent à la nitro, pas à la croisière — plus de saut à vitesse normale ? (2) une seule boucle à
+  raccourci au palier 0 (la durée de Léo : 45 s) — en vouloir une deuxième, plus courte ? (3) le soir est très rouge, le vent de sable a un plafond
+  de poussière. Les cartes postales du portail (`assets/portail/dunes-*.webp`, `PCUBE_CP`) et les vignettes du répertoire sont tirées de cette version.
+
 ## LE FILM D'UNE FIGURE — UNE MINI ANIMATION AU RALENTI PAR CARTE (2026-10-18, Sacha : « pour la boutique des tricks fais des mini animation ralenti pour voir la figure plutot que les image stop motion que tu as mis »)
 - **Avant** (15/10 soir) : chaque carte du rayon FIGURES montrait une PHOTO-SÉQUENCE — cinq à sept poses figées de la caisse sur une seule image
   (`figPhoto`, `PHOTO_FIG`, retirés).
