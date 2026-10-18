@@ -3,6 +3,34 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA PERLE — LES TRAITS DANS LA TÔLE, EN FACETTES, LE RIDEAU D'AIR CREUSÉ, LE PHARE REFAIT (2026-10-18, Léo, en quatre temps : « la vitre en dessous du phare un peu chelou » · « plus de gris chelou, mais qu'on voie chaque partie : les traits définissent des parties » · « check sur internet c'est quoi le composant (un truc noir non identifiable) ; s'il existe des modèles sans, enlève ; plus aucun bout pointu ; rends-la poly en gardant le résultat » · « voilà où tu as le plus de mal, le phare : ça doit être beau » · « le truc noir c'est un trou, c'est creux »)
+- **LES TRAITS DANS LA TÔLE** (`peintPlan`, `LGN`, `RLF`) : plus de rubans gris posés dessus. Les lignes du plan COUPENT la tôle : un JOINT
+  (portières, capot, malle, pare-chocs) = un fin interstice sombre (`PAL.J`) dont les bords penchent vers lui ; un PLI = une arête de
+  lumière (les normales s'écartent du trait), seulement sur les grands panneaux vus de face (sinon mosaïque sur la hanche et le nez).
+  Une ligne est taillée dans TOUTES les vues qui regardent assez la tôle (morceaux en barycentres) : plus de joints en pointillés là où
+  la vue dominante changeait d'un triangle à l'autre. Restent en décalcomanie les lignes de couleur (feux, LED…).
+- **EN FACETTES** (`PERLE_LISSE=false`) : la carrosserie a ses facettes plates comme toute la gamme (une tranche tous les 15 cm ; à
+  7,5 cm elle se rayait) ; vitres et noirs gardent un reflet lisse (`lisseN`), les décalcomanies aussi (`lisseDecal`, 70°). La forme ne
+  bouge pas. `PERLE_LISSE=true` rend la laque lissée du 16/10.
+- **LE RIDEAU D'AIR** (« air curtain » de Porsche, sur TOUTES les Taycan — le restylage 2024 le sépare seulement du phare) : le noir sous
+  le phare est une OUVERTURE ; l'air y entre, longe la roue avant et ressort derrière elle. Découpé dans la tôle (`PLAN.zf`, préparé au
+  banc par plan_phares.py), bas arrondi en U, une ailette en travers, et CREUSÉ : la tôle s'enfonce de 7 cm le long de sa normale
+  lissée (`creux`, fonction de la seule position : aucun jour entre les morceaux). La PAROI est hors éclairage (matière 'l') : gris
+  anthracite à la lèvre, noir du fond en descendant. ⚠ Éclairée, toute surface vue en rasant prend le liseré de contre-jour du garage
+  (lavande) QUELLE QUE SOIT sa couleur : le trou se lisait comme une poche couleur carrosserie (Léo) ; brillante, elle renvoyait le ciel
+  en zigzags. Juger une matière AU STUDIO DU JEU, pas seulement dans l'outil de vue.
+- **LE PHARE** (photos Wikimedia de la vraie + presse Porsche) : un œil en goutte cerclé de NOIR BRILLANT (9 mm), VERRE FUMÉ, la signature
+  « quatre points » (quatre lames de LED plates et larges, `W`) autour d'une optique ronde cerclée de chrome ; la pointe intérieure
+  émoussée (une aiguille dans le plan). Il remplace le plein de verre bleu, l'anneau blanc gribouillé (`W` du plan) et le cerne gris.
+  Le CLIGNOTANT latéral est une pilule ambre sur l'aile (trait 176 vu de côté) — dessiné de face, il s'étirait en « 7 » sur l'aile.
+  ⚠ Le phare vu de CÔTÉ (traits 181/180) ne tombe pas au même endroit de notre tôle que celui de face : raccordés, marches et
+  languettes — une zone = UNE vue, elle se referme sur son contour ; et ces contours de côté sont retirés des PLIS (« )) » clairs).
+- **Le reste** : le nez à la largeur du plan vu de dessus (il était jusqu'à 20 cm trop carré aux coins), le bandeau des feux taillé dans
+  la tôle (`PLAN.feux` : autocollant, il se fendait au coin), la pointe des vitres sans tranches serrées (elles faisaient des éclats).
+- Mesuré : 33 100 triangles (comme avant), découpe ~0,1 s faite au préchargement (`perleTraits`, gardée sur `SHAPES.perle._tole`),
+  zéro NaN, studio et course (couché, debout, plein écran) sans erreur. Outils et méthode : ~/Downloads/CAR-bancs/plan-voiture
+  (LISEZMOI.txt). Planches : photos-gameplay/perle-pieces-, perle-rideau-poly-, perle-phare-, perle-rideau-creux-, perle-creux-noir-avant-apres.png.
+
 ## LES NUAGES FANTÔMES + LE FOND PEINT DE LA MER DE NUAGES (2026-10-18, Léo, après LES NUAGES EN VITRAIL : « essaie en mode vitrail » → « plus visible » → « mais pas comme Minecraft ; triche pour une sorte de réalisme ; fais le peintre » → « travaille le fond comme pour le menu, là c'est un peu bleu ; sois un peintre réaliste expressionniste et designer digital » → « pas mal le fond du matin » → « les cubes encore plus minuscules, encore plus fantomatiques, pour vraiment construire de nouveaux nuages ; joue sur les teintes comme un peintre » → « éparpille mieux les cubes » → oui)
 - LE DOSAGE PAR DÉFAUT devient `fantome` (`NV_DOSES` ; `?nuvit=moyen` = la v612, `?nuvit=peintre` = les touches irrégulières de l'essai, `?sans=nuvit`).
   Ni écailles ni peau : l'ouvrier (`nuage8Calc`, `opt.fant`/`opt.fsz`) tire 8 000 cubes par gabarit AU HASARD sur la surface v8 (triangle choisi
