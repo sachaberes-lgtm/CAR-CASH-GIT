@@ -29,6 +29,12 @@ le BURN-OUT du garage est à Léo (une garde bloque toute publication sans lui) 
   d'erreur sont ceux du source) et sans les crochets `window.dbgX` que rien de publié n'appelle. Les bancs travaillent sur le source
   local : pour un crochet sur /jouer/, il faut qu'un code publié le nomme. Un nouveau commentaire ou un nouveau dbg ne coûte donc rien
   aux joueurs.
+  ⚠ ELLE NE PORTE QUE LES SONS QUE LE JEU PEUT DEMANDER (2026-10-18, Sacha ; `vercel-build.sh` + `outils/publie-audio.cjs`) : ni la bibliothèque
+  des sons (`bibliotheque.html`, outil local) ni ses boucles/catalogues ; pour Pouce bleu, seulement les dossiers de `paliers/rendus/` des morceaux
+  rangés « bleu », les générateurs `direct/musique-trente-<v>.js` que les 👍 rejouent et les échantillons `direct/vrais/` du REJEU de ces musiques
+  (`outils/vrais-jeu.json`). ⚠ Quand Léo range un nouveau morceau dans Pouce bleu (`musique-moteur.json`) : `node outils/preuve-vrais/rejoue.mjs`
+  refait la liste des échantillons (sinon le build ne retire plus rien de `vrais/` et le dit). Un nouveau fichier de musique lu par le jeu
+  hors Pouce bleu (ciel, auto-école, frénésie…) ne doit PAS être dans les `rm` de `vercel-build.sh`.
 - **Sur son PC, Sacha joue une COPIE** : `C:\Users\sacha\Downloads\CAR-CASH-GIT-main\CAR-CASH-GIT-main\VERSION PRINCIPALE\`
   (JOUER.bat → localhost:8000), à la souris, dans le cadre d'un iPhone couché (844 × 390).
 
@@ -345,7 +351,8 @@ repère de la caisse) · `dbgLumReprise()`.
 
 **Les outils de Léo** (locaux, retirés du site par `vercel-build.sh` et des portails par `poki-construire.js`) : `simulateur.html`
 (`python3 simulateur/serveur.py 9101`), `maps-ciel.html` (`python3 maps-ciel/serveur.py 9019`), `salle-blanche.html`,
-`boite-dauphins.html`, `boite-singe.html` (elles lisent `creatures/*.js`). `boite-figures.html` est EN LIGNE (/jouer/boite-figures.html).
+`boite-dauphins.html`, `boite-singe.html` (elles lisent `creatures/*.js`), `bibliotheque.html` (la bibliothèque des sons, avec son serveur
+`atelier-son/serveur-moteur.py` ; plus publiée depuis le 18/10). `boite-figures.html` est EN LIGNE (/jouer/boite-figures.html).
 **Les MAPS DU JEU** (15-16/10, Léo : « une liste des maps qu'on a sur le jeu, pour appuyer dessus, aller voir dedans et te donner des
 changements ») : `repertoire-maps/index.html` = la liste (photo + nom) des maps que JOUER tire au hasard (`SF_CARTES`) ; un toucher →
 `voir.html?carte=<id>&meteo=<m>` = le vrai jeu dans un cadre 844 × 390, JOUER touché pour lui, la map gardée armée (`dbgClassique`) aux
@@ -573,7 +580,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LES SONS GRAVES ET DISCRETS + LE DOUM DES FIGURES » (15/10 soir) — la pièce « tchic » grave, la gamme dans l'octave, les figures en doum
 - « LA CONSOLE DE SON » (28/09) · « LE SON EN COURSE REMIS D'APLOMB » (12/10) · « LE LOBBY « CHRIS » » (14/10)
 - « LE DÉPART EN MUSIQUE » (04/10) · « PLUS DE COUPURES DE MUSIQUE + LE TEMPO MESURÉ » (03/10) · « LA MUSIQUE DE LÉO SUR MAIN » (29/09)
-- « LA MUSIQUE DU CIEL ET DU GARAGE » (14/10) · « LA BIBLIOTHÈQUE DES SONS — `bibliotheque.html` » (14/10) — en ligne /jouer/bibliotheque.html
+- « LA MUSIQUE DU CIEL ET DU GARAGE » (14/10) · « LA BIBLIOTHÈQUE DES SONS — `bibliotheque.html` » (14/10) — outil LOCAL depuis le 18/10 (plus publiée : `python3 atelier-son/serveur-moteur.py 9141`)
 
 **Archives** : le bas du journal (« ⚠ FUSION SACHA × LÉO + NIVEAUX — 2026-09-24 », « ⚠ FUSION DU 2026-08-30 », puis « Le jeu »,
 « Architecture », « Conventions »…) décrit des lignées anciennes. Une section plus récente l'emporte toujours sur une plus ancienne.

@@ -15,7 +15,8 @@
      · Tout le reste : NIVEAUX, LOBBY, ANCIENS, PETITS SONS — les catalogues de boucles.html (*-donnees.js), en boucle.
      · MODIFIER : renommer, retirer (et remettre) un son — musique-moteur.json via atelier-son/serveur-moteur.py, sinon ce navigateur.
      Servie par : python3 atelier-son/serveur-moteur.py 9141 (depuis VERSION PRINCIPALE) → http://127.0.0.1:9141/bibliotheque.html
-     · EN LIGNE (2026-10-14, sur le main : car-cash-git.vercel.app/jouer/bibliotheque.html) : pas de serveur Python. La page le sait par
+     · PLUS PUBLIÉE (2026-10-18, Sacha : outil LOCAL, retirée de la copie en ligne par vercel-build.sh ; elle fut en ligne à /jouer/bibliotheque.html
+       du 14 au 18/10) : sans serveur Python (un simple http.server). La page le sait par
        l'en-tête X-Serveur-Moteur (posé par serveur-moteur.py sur chaque réponse) : sans lui, elle n'envoie RIEN (ni noms, ni goûts, ni
        inspirations), musique-moteur.json est l'instantané des choix de Léo, et les 👍 / noms / suppressions d'un visiteur restent dans
        SON navigateur. Les INSPIRATIONS (morceaux d'artistes réels) et OG GINOBILI ne sont pas sur le main : le main est public. -->
