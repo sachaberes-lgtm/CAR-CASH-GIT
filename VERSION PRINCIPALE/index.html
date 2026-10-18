@@ -13168,9 +13168,8 @@ function portalMat(){if(PORTAL.mat)return PORTAL.mat;
    au portail) : c'est bien là qu'on arrive.
    Coût : 2 appels de dessin (les cubes en UNE instance, la fenêtre), ~3 k triangles, aucune lumière ajoutée (la PointLight du portail
    reste : le compte des lumières ne bouge pas), deux programmes compilés au menu, une image de 640² chargée par portail.
-   `?portail=ancien` = l'ovule d'avant. Console : `dbgPortailCubes()`, `dbgVuePortail(d,h)`, `dbgCartePostale()`.
+   L'ovule rose d'avant ne reste que dans le PARC (Freestyle). Console : `dbgPortailCubes()`, `dbgVuePortail(d,h)`, `dbgCartePostale()`.
    ========================================================================== */
-const PCUBE_ON=!/[?&]portail=ancien\b/.test(location.search);
 const PCUBE_VITE=/[?&]portail=vite\b/.test(location.search); // (essai) `?portail=vite` : 2,5 s après chaque départ, la caisse est posée à 450 m du portail — pour enchaîner les passages sans rouler 2 minutes
 const PCUBE={on:false,S:5.2,Ri:44,Ro:54,H:20,grp:null,cub:null,mem:null,halo:null,mU:null,cU:null,G:null,n:0,dest:null,cle:'',tex:null,img:{},
   inv:new THREE.Matrix3(),x:new THREE.Vector3(),y:new THREE.Vector3(),z:new THREE.Vector3(),M:new THREE.Matrix4(),asp:0};
@@ -13315,7 +13314,7 @@ window.dbgPortailCubes=function(){const d=PCUBE.dest;let cam=null;
   try{frameAt(s,GF);const o=camera.position.clone().sub(carGroup.position);cam={avant:+o.dot(GF.t).toFixed(2),haut:+o.dot(GF.n).toFixed(2),cote:+o.dot(GF.b).toFixed(2),fov:+camera.fov.toFixed(1),aspect:+camera.aspect.toFixed(3)};}catch(e){cam=e.message;}
   return {on:PCUBE.on,cubes:PCUBE.n,dest:d,carte:PCUBE.cle,image:!!PCUBE.mU&&PCUBE.mU.uHas.value>0,c:PORTAL.c.toArray().map(Math.round),asp:+PCUBE.asp.toFixed(2),cam:cam,tirage:SF.tirage.slice()};};
 /* (banc) LA VUE DU PORTAIL : l'œil posé sur la route à d m de la fenêtre, à h m au-dessus du bitume, regard le long de la route (pente de la caméra de poursuite) —
-   rend UNE image et la renvoie en JPEG (sans le HUD) : la même pour l'ovule d'avant (`?portail=ancien`) et pour les cubes */
+   rend UNE image et la renvoie en JPEG (sans le HUD) : la même pour l'ovule du parc et pour les cubes */
 window.dbgVuePortail=function(d,h,q){if(started&&!gameOver&&!paused)togglePause();
   frameAt(Math.max(0,L-25-(d||200)),GF);camera.position.copy(GF.p).addScaledVector(GF.n,h==null?5.5:h);camera.up.copy(GF.n);
   CV1.copy(GF.p).addScaledVector(GF.t,60).addScaledVector(GF.n,(h==null?5.5:h)-3.2);camera.lookAt(CV1);camera.updateMatrixWorld();
@@ -17296,7 +17295,7 @@ function buildTrack(seed){
      un halo tout autour. On le franchit en y ENTRANT, d'où qu'on vienne : par la route, par le côté, en tombant du ciel
      (voir franchirPortail : distance au centre, au sol comme en vol). */
   frameAt(L-25,F);
-  if(PCUBE_ON&&!PARK.on){ // (2026-10-17, Léo) LE PORTAIL DE CUBES (voir PCUBE) — `portalMesh` n'est plus qu'un JETON neuf à chaque piste (le bourdon d'approche s'y accroche)
+  if(!PARK.on){ // (2026-10-17, Léo) LE PORTAIL DE CUBES (voir PCUBE) — `portalMesh` n'est plus qu'un JETON neuf à chaque piste (le bourdon d'approche s'y accroche)
     PORTAL.c.copy(F.p).addScaledVector(F.n,PCUBE.H);pcubePose(F);
     portalMesh=new THREE.Object3D();portalMesh.position.copy(PORTAL.c);scene.add(portalMesh);trackMeshes.push(portalMesh);PORTAL.noy=null;PORTAL.halo=null;
   }else{pcubeCache();
@@ -17612,17 +17611,6 @@ function fbRideau(K,o){
         for(const d9 of [-h9,h9]){const b9=a+d9;fbV(K,cx+Math.cos(b9)*r,y,cz+Math.sin(b9)*r,sg*nx,ny,sg*nz,A9,C9,[1,0]);}}
       for(let j9=0;j9<m;j9++){const l=b0+j9*2,rr=l+1,l2=l+2,r2=l+3;if(f9)K.I.push(l,l2,rr,rr,l2,r2);else K.I.push(l,rr,l2,rr,r2,l2);}}}}
 }
-/* (2026-10-17, Léo : « les arbres sont pas très beaux — constitue-les avec les mêmes cubes que pour la mer, la même complexité » ; au
-   questionnaire : TOUS les arbres) LES ARBRES EN CUBES — `fbCubes` change n'importe quel prototype en PETITS CUBES soudés (la mer en cubes
-   des PICS DE JADE) : ses triangles sont semés dans une grille de `vs` m (le feuillage l'emporte sur le bois dans une case partagée), le
-   dehors est rempli par inondation depuis les bords (aucune face cachée à l'intérieur n'est dessinée), et seules les faces qui donnent sur le
-   DEHORS sont tirées, FUSIONNÉES (les faces d'un même plan et de la même matière ne font qu'un quadrilatère : de dessus et de dessous dans
-   les deux sens, de côté seulement à l'horizontale — le vent du shader, ∝ hauteur², n'ouvre ainsi aucune fente entre deux faces). Chaque face
-   garde la matière de sa case (partie, écorce, mousse, couleur, l'ombre des cubes voisins) ; aA.z porte 10 + sens de la face + 10 × (vs·10) :
-   le shader en tire la case de chaque pixel et peint CHAQUE CUBE d'une seule teinte (la MOSAÏQUE : toutes les peintures — écorce, mousse,
-   feuilles — lues au centre du cube, puis une nuance par cube et quelques ÉCLATS qui scintillent au soleil). Une fois par session (les
-   prototypes), au menu. `?sans=cubes` = les arbres lisses d'avant. */
-const FOR_CUBES_V=/[?&]cubes=gros\b/.test(location.search); // (même jour, Léo : « un tout petit peu moins Minecraft… évite le cube, un tronc à peu près cylindrique, fais des MINI-CUBES ») les gros cubes ne sont plus qu'une option : `?cubes=gros`
 /* LES MINI-CUBES (2026-10-17, Léo : « moins Minecraft, notre touche à nous ; évite le cube ; tous les arbres un tronc à peu près cylindrique ; fais
    des mini-cubes ; encore plus de brillance ; que la scène soit belle, l'obscurité belle aussi ; joue sur le contraste ») : les arbres gardent leurs
    formes (troncs ronds, couronnes, rideaux) et le FEUILLAGE se peint en cubes de 42 cm — la grille suit l'arbre (position sans le vent × l'échelle
@@ -17630,45 +17618,6 @@ const FOR_CUBES_V=/[?&]cubes=gros\b/.test(location.search); // (même jour, Léo
    hasard : il attrape la lumière à sa façon), un reflet serré (la BRILLANCE) et parfois un ÉCLAT qui scintille ; tout se fond quand le cube tombe
    sous ~2 px (aucun fourmillement au loin). Zéro triangle de plus, le même programme. `?sans=minicubes` = les feuilles d'avant. */
 const MINI_V=!/[?&]sans=([^&]*,)?minicubes(,|&|$)/.test(location.search),VITRAIL_V=!/[?&]sans=([^&]*,)?vitrail(,|&|$)/.test(location.search),CONTRASTE_V=!/[?&]sans=([^&]*,)?contraste(,|&|$)/.test(location.search);
-function fbCubes(K,vs,ytop,mosa){
-  const P=K.P,A=K.A,Cc=K.C,B=K.B,I=K.I,nv=K.n;let mnx=1e9,mny=1e9,mnz=1e9,mxx=-1e9,mxy=-1e9,mxz=-1e9;
-  for(let i=0;i<nv;i++){const x=P[3*i],y=P[3*i+1],z=P[3*i+2];if(x<mnx)mnx=x;if(x>mxx)mxx=x;if(y<mny)mny=y;if(y>mxy)mxy=y;if(z<mnz)mnz=z;if(z>mxz)mxz=z;}
-  const ox=Math.floor(mnx/vs)-1,oy=Math.floor(mny/vs)-1,oz=Math.floor(mnz/vs)-1,NX=Math.floor(mxx/vs)-ox+2,NY=Math.floor(mxy/vs)-oy+2,NZ=Math.floor(mxz/vs)-oz+2,NXY=NX*NY,NN=NXY*NZ;
-  const occ=new Int32Array(NN).fill(-1),fol=v=>A[4*v]>.5&&A[4*v]<2.5;
-  for(let t=0;t<I.length;t+=3){const a=I[t],b=I[t+1],c=I[t+2],ax=P[3*a],ay=P[3*a+1],az=P[3*a+2],bx=P[3*b]-ax,by=P[3*b+1]-ay,bz=P[3*b+2]-az,cx=P[3*c]-ax,cy=P[3*c+1]-ay,cz=P[3*c+2]-az;
-    const n=Math.max(1,Math.ceil(Math.max(Math.hypot(bx,by,bz),Math.hypot(cx,cy,cz),Math.hypot(cx-bx,cy-by,cz-bz))/(vs*.45)));
-    for(let u=0;u<=n;u++)for(let w=0;w<=n-u;w++){const fu=u/n,fw=w/n,fa=1-fu-fw,ci=(Math.floor((ax+bx*fu+cx*fw)/vs)-ox)+NX*((Math.floor((ay+by*fu+cy*fw)/vs)-oy)+NY*(Math.floor((az+bz*fu+cz*fw)/vs)-oz));
-      const v=fa>=fu&&fa>=fw?a:fu>=fw?b:c,old=occ[ci];if(old<0||(!fol(old)&&fol(v)))occ[ci]=v;}}
-  const ext=new Uint8Array(NN),Qu=new Int32Array(NN);let qh=0,qt=0;   // LE DEHORS : inondé depuis les bords de la grille
-  const sem=c=>{if(occ[c]<0&&!ext[c]){ext[c]=1;Qu[qt++]=c;}};
-  for(let k=0;k<NZ;k++)for(let j=0;j<NY;j++){sem(NX*(j+NY*k));sem(NX-1+NX*(j+NY*k));}
-  for(let k=0;k<NZ;k++)for(let i=0;i<NX;i++){sem(i+NX*NY*k);sem(i+NX*(NY-1+NY*k));}
-  for(let j=0;j<NY;j++)for(let i=0;i<NX;i++){sem(i+NX*j);sem(i+NX*(j+NY*(NZ-1)));}
-  while(qh<qt){const c=Qu[qh++],i=c%NX,j=((c/NX)|0)%NY,k=(c/NXY)|0;if(i>0)sem(c-1);if(i<NX-1)sem(c+1);if(j>0)sem(c-NX);if(j<NY-1)sem(c+NX);if(k>0)sem(c-NXY);if(k<NZ-1)sem(c+NXY);}
-  const qc=x=>Math.max(0,Math.min(31,Math.round(Math.sqrt(Math.max(0,x)/.9)*31))),dc=q=>q*q/961*.9;
-  const K2=fbNew(),ST=[1,NX,NXY],DIM=[NX,NY,NZ];
-  for(let d=0;d<6;d++){const ax=d>>1,sg=d&1?1:-1,aA=ax===1?0:(ax===0?2:0),aB=ax===1?2:1,vert=ax!==1; // (A, B) : les deux axes du plan de la face ; une face de côté a B = y
-    const NA=DIM[aA],NB=DIM[aB],NW=DIM[ax],M=new Int32Array(NA*NB),nx9=ax===0?sg:0,ny9=ax===1?sg:0,nz9=ax===2?sg:0;
-    for(let w=0;w<NW;w++){const w2=w+sg;if(w2<0||w2>=NW)continue;M.fill(-1);
-      for(let b=0;b<NB;b++)for(let a=0;a<NA;a++){const co=[0,0,0];co[ax]=w;co[aA]=a;co[aB]=b;const c=co[0]+NX*(co[1]+NY*co[2]),v=occ[c];if(v<0)continue;
-        const e=c+sg*ST[ax];if(!ext[e])continue;
-        let nb=0;for(const q of [aA,aB])for(const sq of [-1,1]){const cq=[co[0],co[1],co[2]];cq[ax]=w2;cq[q]+=sq;if(cq[q]<0||cq[q]>=DIM[q])continue;if(!ext[cq[0]+NX*(cq[1]+NY*cq[2])])nb++;}
-        const part=Math.round(A[4*v]),ec=Math.max(0,Math.min(7,Math.round(B[2*v]))),mo=Math.max(0,Math.min(3,Math.round(B[2*v+1]*3))),aoB=Math.max(0,Math.min(7,Math.round(A[4*v+1]*(1-.11*nb)*7)));
-        const mech=fol(v)&&B[2*v]>.5,wB=mech?Math.max(0,Math.min(7,Math.round(A[4*v+3]*3.5))):0;
-        M[a+NA*b]=part|ec<<3|mo<<6|aoB<<8|qc(Cc[3*v])<<11|qc(Cc[3*v+1])<<16|qc(Cc[3*v+2])<<21|wB<<26;}
-      for(let b=0;b<NB;b++)for(let a=0;a<NA;){const k=M[a+NA*b];if(k<0){a++;continue;}
-        let wd=1;while(a+wd<NA&&M[a+wd+NA*b]===k)wd++;
-        // (l'écorce de côté se fusionne aussi en hauteur, sur 8 cubes au plus : son vent est trois fois plus faible, l'écart reste sous le centimètre)
-        let h=1;if(!vert||(k&7)===0)while(b+h<NB&&(!vert||h<8)){let ok=true;for(let q=0;q<wd;q++)if(M[a+q+NA*(b+h)]!==k){ok=false;break;}if(!ok)break;h++;}
-        for(let hh=0;hh<h;hh++)for(let q=0;q<wd;q++)M[a+q+NA*(b+hh)]=-1;
-        const part=k&7,ec=k>>3&7,mo=(k>>6&3)/3,ao=(k>>8&7)/7,col=[dc(k>>11&31),dc(k>>16&31),dc(k>>21&31)],wB=k>>26&7,mech=part>0&&part<3&&ec>0,tag=mosa?10+d+10*Math.round(vs*10):0;
-        const pl=(w+(sg>0?1:0)),cr=[[a,b],[a+wd,b],[a+wd,b+h],[a,b+h]],V9=[];
-        for(const r of cr){const co=[0,0,0];co[ax]=pl;co[aA]=r[0];co[aB]=r[1];V9.push([(co[0]+ox)*vs,(co[1]+oy)*vs,(co[2]+oz)*vs]);}
-        const ux=V9[1][0]-V9[0][0],uy=V9[1][1]-V9[0][1],uz=V9[1][2]-V9[0][2],vx=V9[3][0]-V9[0][0],vy=V9[3][1]-V9[0][1],vz=V9[3][2]-V9[0][2],inv=((uy*vz-uz*vy)*nx9+(uz*vx-ux*vz)*ny9+(ux*vy-uy*vx)*nz9)<0;
-        const i0=K2.n;for(const p of V9)fbV(K2,p[0],p[1],p[2],nx9,ny9,nz9,[part,ao,tag,mech?wB/3.5:Math.max(0,p[1]/ytop)],col,[ec,mo]);
-        if(inv)K2.I.push(i0,i0+2,i0+1,i0,i0+3,i0+2);else K2.I.push(i0,i0+1,i0+2,i0,i0+2,i0+3);
-        a+=wd;}}}
-  return K2;}
 /* ---------------- LES ESSENCES : six arbres de la Forêt-Noire, trois niveaux de détail chacun ----------------
    Chaque bâtisseur dessine l'arbre « nominal » (pied en 0, mètres) et rend {h : sa hauteur, cr : le rayon de sa couronne, cy : le centre
    de la couronne}. lod 0 = de près (touffes bosselées, écorce à côtes) · 1 = à mi-distance · 2 = au loin (une masse, quelques triangles).
@@ -17733,7 +17682,7 @@ const FOR_ESP={
       fbTube(K,[[lx,5.4,lz],[lx+x*1.7,8.4+rg(),lz+z*1.7],[lx+x*3.6,11.6+rg()*1.2,lz+z*3.6],[lx+x*5.2,12.4,lz+z*5.2]],[.44,.32,.2,.08],lod?4:6,{col:FC.eSaule,ec:2,mousse:.25,ytop:H,rg:rg});}
     const cc=[lx,cy,lz];
     fbTouffe(K,[lx,13.2,lz],6.8,lod?0:1,Object.assign(o,{cc:cc,cr:cr,col:FC.saule,sq:.5,bos:.2}));
-    fbRideau(K,{rg:rg,cx:lx,cz:lz,n:FOR_CUBES_V?(lod?10:20):(lod?18:36),m:lod?3:5,R:7.4,L:12.6,y0:13.2,col:FC.saule,ytop:H,pli:.08,ev:.14});
+    fbRideau(K,{rg:rg,cx:lx,cz:lz,n:lod?18:36,m:lod?3:5,R:7.4,L:12.6,y0:13.2,col:FC.saule,ytop:H,pli:.08,ev:.14});
     return {h:H,cr:cr,cy:cy};},
   /* LE HÊTRE PLEUREUR (« le tortillard ») : un tronc énorme, tordu, moussu, ses racines, des branches SERPENTINES qui partent à l'horizontale
      puis plongent, une canopée plate — et des rideaux de feuilles seulement au BOUT des branches : entre eux, on voit le bois. */
@@ -17746,7 +17695,7 @@ const FOR_ESP={
       fbTube(K,L9,[.78,.62,.46,.32,.16],lod?4:6,{col:FC.eHetre,ec:1,mousse:.7,ytop:H,rg:rg,rug:lod?0:.1});
       ends.push([L9[3],Math.atan2(L9[3][2],L9[3][0])]);}
     fbTouffe(K,[0,12.6,0],10.8,lod?0:1,Object.assign(o,{cc:[0,cy,0],cr:cr,col:FC.pleureur,sq:.34,bos:.28}));
-    for(const e of ends){const p=e[0];fbRideau(K,{rg:rg,n:FOR_CUBES_V?(lod?3:4):(lod?4:6),m:lod?2:4,R:Math.hypot(p[0],p[2])+1.2,L:8.5,y0:p[1]+.8,a0:e[1]-.42,ar:.84,col:FC.pleureur,ytop:H,pli:.1,ev:.06});}
+    for(const e of ends){const p=e[0];fbRideau(K,{rg:rg,n:lod?4:6,m:lod?2:4,R:Math.hypot(p[0],p[2])+1.2,L:8.5,y0:p[1]+.8,a0:e[1]-.42,ar:.84,col:FC.pleureur,ytop:H,pli:.1,ev:.06});}
     return {h:H,cr:cr,cy:cy};}};
 /* (2026-10-17, Léo : « la forêt noire, je l'imaginais plus avec des ARBRES PLEUREURS » + deux photos — des saules pleureurs, un hêtre pleureur)
    LES PLEUREURS : deux essences de plus (saule, pleureur) sur le programme des arbres (M.arb : zéro programme en plus). Elles REMPLACENT une
@@ -17844,7 +17793,7 @@ const FOR_GEANTS={
     fbTouffe(K,[X,152,Z],34,lod?1:2,{rg:rg,cc:cc,cr:46,col:FC.saule,ytop:H,sq:.5,bos:.2});S.push([X,152,Z,26]);
     for(let k=0;k<(lod?3:6);k++){const an=k/(lod?3:6)*6.283+rg()*.5,c=[X+Math.cos(an)*26,142+rg()*6,Z+Math.sin(an)*26],r=15+rg()*4;
       fbTouffe(K,c,r,1,{rg:rg,cc:cc,cr:46,col:FC.saule,ytop:H,sq:.55,bos:.22});S.push([c[0],c[1],c[2],r*.7]);}
-    fbRideau(K,{rg:rg,cx:X,cz:Z,n:FOR_CUBES_V?(lod?22:44):(lod?36:84),m:lod?3:6,R:42,L:52,y0:146,col:FC.saule,ytop:H,pli:.06,ev:.12,deux:true,vent:1.7});
+    fbRideau(K,{rg:rg,cx:X,cz:Z,n:lod?36:84,m:lod?3:6,R:42,L:52,y0:146,col:FC.saule,ytop:H,pli:.06,ev:.12,deux:true,vent:1.7});
     return {h:H,cr:48,cy:146,C:C,S:S};},
   /* LE HÊTRE PLEUREUR GÉANT (« le tortillard ») : un tronc énorme, tordu, moussu, huit branches SERPENTINES qui partent à l'horizontale, se
      tordent, puis plongent ; une canopée plate posée dessus, et un rideau de feuilles au bout de chaque branche — entre eux, le bois. */
@@ -17859,7 +17808,7 @@ const FOR_GEANTS={
       C.push([p[0][0],p[0][1],p[0][2],p[2][0],p[2][1],p[2][2],3.3]);ends.push([p[3],Math.atan2(p[3][2],p[3][0])]);
       const c=[p[2][0]*1.05,p[2][1]+12,p[2][2]*1.05];fbTouffe(K,c,16+rg()*4,lod?1:2,{rg:rg,cc:cc,cr:48,col:FC.pleureur,ytop:H,sq:.45,bos:.28});S.push([c[0],c[1],c[2],12]);}
     fbTouffe(K,[0,126,0],26,lod?1:2,{rg:rg,cc:cc,cr:48,col:FC.pleureur,ytop:H,sq:.42,bos:.25});S.push([0,126,0,20]);
-    for(const e of ends){const p=e[0];fbRideau(K,{rg:rg,n:FOR_CUBES_V?(lod?4:7):(lod?6:13),m:lod?2:5,R:Math.hypot(p[0],p[2])+4,L:34,y0:p[1]+6,a0:e[1]-.36,ar:.72,col:FC.pleureur,ytop:H,pli:.1,ev:.05,deux:true,vent:1.6});}
+    for(const e of ends){const p=e[0];fbRideau(K,{rg:rg,n:lod?6:13,m:lod?2:5,R:Math.hypot(p[0],p[2])+4,L:34,y0:p[1]+6,a0:e[1]-.36,ar:.72,col:FC.pleureur,ytop:H,pli:.1,ev:.05,deux:true,vent:1.6});}
     return {h:H,cr:50,cy:124,C:C,S:S};}};
 const FOR_GEANTS_N=['chene','hetre','epicea','ancien','sequoia'];
 /* (2026-10-17 soir) le VOLUME des géants pleureurs, en unités du prototype : du bas des rideaux (bas) à la cime (h), rayon r — pour la pelote, où une route d'un autre étage peut passer à côté */
@@ -17873,13 +17822,12 @@ function foretLoin(k,K,rg){const H=k==='epicea'?37:33,o=FOR_LOIN[k];
 /* LES PROTOTYPES (une fois par session : la géométrie ne dépend pas de la piste) */
 function foretProtos(){if(FORET.protos)return FORET.protos;const t0=performance.now(),P={esp:{},geant:{}};
   for(const k of FOR_ESP_N){P.esp[k]=[];for(let l=0;l<2;l++){let K=fbNew();const rg=mulberry32(0xF0E5+k.length*977+l*31);let m;if(l===2){foretLoin(k,K,rg);m=P.esp[k][0].m;}else m=FOR_ESP[k](K,l,rg);
-    if(FOR_CUBES_V)K=fbCubes(K,l?3.4:1.4,m.h,true); // (2026-10-17) EN CUBES : 1,4 m de près, 3,4 m à mi-distance (× l'échelle de l'arbre, ~2,1)
     P.esp[k].push({g:fbGeo(K),m:m,tri:K.I.length/3});}}
-  for(const k of FOR_GEANTS_N.concat(FOR_GEANTS_PL)){P.geant[k]=[];for(let l=0;l<2;l++){let K=fbNew();const m=FOR_GEANTS[k](K,l,mulberry32(0x6EA7+k.length*131));if(FOR_CUBES_V)K=fbCubes(K,(k==='sequoia'?1.25:k[0]==='g'?1.15:1)*(l?9:3.5),m.h,true);P.geant[k].push({g:fbGeo(K),m:m,tri:K.I.length/3});}} // même graine aux deux détails : mêmes branches, mêmes collisions
+  for(const k of FOR_GEANTS_N.concat(FOR_GEANTS_PL)){P.geant[k]=[];for(let l=0;l<2;l++){let K=fbNew();const m=FOR_GEANTS[k](K,l,mulberry32(0x6EA7+k.length*131));P.geant[k].push({g:fbGeo(K),m:m,tri:K.I.length/3});}} // même graine aux deux détails : mêmes branches, mêmes collisions
   // LE LOIN, EN DEUX FAMILLES SEULEMENT (toutes essences) : une boule unité (feuillus) et un cône unité (conifères), blancs — l'albédo de
   // chaque arbre voyage dans son exemplaire (aI.yzw, voir FOR_ARB_VS) : 2 appels de dessin au lieu de 6
-  {let K=fbNew();const rg=mulberry32(0x10A1);fbTouffe(K,[0,0,0],1,FOR_CUBES_V?1:0,{rg:rg,cc:[0,0,0],cr:1,col:[1,1,1],ytop:1,bos:.12,sq:1});if(FOR_CUBES_V)K=fbCubes(K,.8,1,false);P.boule={g:fbGeo(K),tri:K.I.length/3};}
-  {let K=fbNew();const rg=mulberry32(0x10A2);fbTube(K,[[0,0,0],[0,1,0]],[1,.02],FOR_CUBES_V?10:6,{col:[1,1,1],ec:0,ytop:1,rg:rg,part:2,fixe:1});if(FOR_CUBES_V)K=fbCubes(K,.75,1,false);P.cone={g:fbGeo(K),tri:K.I.length/3};}
+  {let K=fbNew();const rg=mulberry32(0x10A1);fbTouffe(K,[0,0,0],1,0,{rg:rg,cc:[0,0,0],cr:1,col:[1,1,1],ytop:1,bos:.12,sq:1});P.boule={g:fbGeo(K),tri:K.I.length/3};}
+  {let K=fbNew();const rg=mulberry32(0x10A2);fbTube(K,[[0,0,0],[0,1,0]],[1,.02],6,{col:[1,1,1],ec:0,ytop:1,rg:rg,part:2,fixe:1});P.cone={g:fbGeo(K),tri:K.I.length/3};}
   P.ms=Math.round(performance.now()-t0);return FORET.protos=P;}
 /* ---------------- LES PEINTURES : fleurs, papillons, lune, loup-garou, brume (des canvas, cuits une fois) ---------------- */
 function forTex(cv,mip){const t=new THREE.CanvasTexture(cv);t.generateMipmaps=mip!==false;t.minFilter=mip===false?THREE.LinearFilter:THREE.LinearMipmapLinearFilter;t.magFilter=THREE.LinearFilter;
@@ -18031,23 +17979,17 @@ const FOR_ARB_VS=['attribute vec4 aA;attribute vec3 aC;attribute vec2 aB;','#ifd
   'void main(){vec4 I=vec4(0.);mat4 M=modelMatrix;','#ifdef USE_INSTANCING','I=aI;M=modelMatrix*instanceMatrix;','#endif',
   '  vec3 p=position;float h=aA.w,sw=uVent*h*h*(aA.x>.5&&aA.x<2.5?1.:.35);vS9=length(M[0].xyz);',
   '  p.x+=sin(uTime*1.05+I.x*31.+p.y*.04)*sw*.9;p.z+=sin(uTime*.83+I.x*17.+p.y*.05)*sw*.7;',              // le vent : tout l'arbre se balance
-  '  if(aA.x>.5&&aA.x<2.5&&aA.z<10.)p+=normal*sin(uTime*3.3+dot(p,vec3(.6,.4,.5))+I.x*9.)*.10*uVent;',   // …et le feuillage frissonne (pas les CUBES : leurs faces se sépareraient)
+  '  if(aA.x>.5&&aA.x<2.5)p+=normal*sin(uTime*3.3+dot(p,vec3(.6,.4,.5))+I.x*9.)*.10*uVent;',   // …et le feuillage frissonne
   '  vec4 wp=M*vec4(p,1.);vW=wp.xyz;vN=normalize((M*vec4(normal,0.)).xyz);vO=position+I.x*vec3(71.3,13.7,37.1);vNo=normal;vC=aC;vA=aA;vB=aB;vI=I;', // (2026-10-17) vO SANS le vent : les peintures ne glissent plus sur l arbre qui se balance (et le cube garde sa case)
   '  if(I.z>0.){vC=aC*I.yzw;vI=vec4(I.x,0.,0.,0.);vO=wp.xyz*.15;}',                                   // le LOIN : l'albédo de l'arbre est dans son exemplaire
   '  vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
 const FOR_ARB_FS=[FG_BRUIT,FG_LUM,'uniform float uFen,uMini,uCon,uVit,uVitL,uVitS;uniform vec3 uVitG;varying vec3 vW,vN,vO,vC,vNo;varying vec4 vA,vI;varying vec2 vB;varying float vS9;','#include <fog_pars_fragment>',
   'void main(){float part=floor(vA.x+.5);vec3 N=normalize(vN);vec3 V=uCam-vW;float dist=length(V);V/=max(dist,.001);vec3 L=uSunDir;',
-  '  vec3 alb=vC;float ao=vA.y,leaf=0.;vec3 o=vO;float hC9=-1.,hT9=0.;',
+  '  vec3 alb=vC;float ao=vA.y,leaf=0.;vec3 o=vO;',
   '  float mk9=0.,mh9=0.;vec3 mn9=vec3(0.),mp9=vec3(0.);bool br9=part<.5||part>6.5;float ts9=vI.z<=0.&&vI.w>.5&&uVit>0.?1.45:.42;',
   '  if(uMini>0.||uVit>0.){vec3 jm9=vI.x*vec3(71.3,13.7,37.1);mp9=(vO-jm9)*vS9/ts9;vec3 ce9=floor(mp9);mk9=1.-smoothstep(.3,.85,length(fwidth(mp9)));', // (2026-10-17) LES MINI-CUBES : la case de 42 cm de ce pixel ; mk9 s efface quand elle tombe sous ~2 px
   '    mh9=fract(sin(dot(ce9+vI.x*31.,vec3(12.9898,78.233,37.719)))*43758.5453);mn9=vec3(fract(mh9*17.31),fract(mh9*43.17),fract(mh9*91.7))-.5;',
-  '    if(((part>.5&&part<2.5)||(uVit>0.&&br9))&&vA.z<10.)o=mix(vO,(ce9+.5)*ts9/max(vS9,.01)+jm9,mk9);}',   // (vitrail) l ÉCORCE aussi lue au centre de son écaille : une écaille, une teinte                                    // le feuillage lu au CENTRE de son mini-cube : une teinte par cube
-  '  if(vA.z>10.5){float q9=vA.z-10.,v9=floor(q9/10.+.001),dr=q9-v9*10.,vs9=v9*.1;',                              // (2026-10-17) LES CUBES : la case de ce pixel (aA.z : sens de la face, taille du cube)
-  '    vec3 n9=dr<.5?vec3(-1.,0.,0.):dr<1.5?vec3(1.,0.,0.):dr<2.5?vec3(0.,-1.,0.):dr<3.5?vec3(0.,1.,0.):dr<4.5?vec3(0.,0.,-1.):vec3(0.,0.,1.);',
-  '    vec3 j9=vI.x*vec3(71.3,13.7,37.1),ce=floor((vO-j9)/vs9-n9*.5+.001);o=(ce+.5)*vs9+j9;',                        // toutes les peintures lues au CENTRE du cube : un cube, une teinte
-  '    hC9=fract(sin(dot(ce+vI.x*31.,vec3(12.9898,78.233,37.719)))*43758.5453);',
-  '    vec3 mp=(vO-j9)/vs9;vec2 fp=dr<1.5?mp.zy:dr<3.5?mp.xz:mp.xy;vec2 tl=floor(fp*4.+.001);',                    // LA MOSAÏQUE DE LA MER : chaque face de cube en 4 × 4 carreaux, chacun sa nuance
-  '    hT9=fract(sin(dot(vec3(tl,dr)+ce*1.37+vI.x*7.,vec3(41.31,17.91,63.73)))*24634.6345);}',
+  '    if((part>.5&&part<2.5)||(uVit>0.&&br9))o=mix(vO,(ce9+.5)*ts9/max(vS9,.01)+jm9,mk9);}',   // (vitrail) l ÉCORCE aussi lue au centre de son écaille : une écaille, une teinte                                    // le feuillage lu au CENTRE de son mini-cube : une teinte par cube
   '  if(part<.5||part>6.5){float st=vB.x;',                                                                        // L'ÉCORCE
   '    if(st<.5){float pl=fn3(o*vec3(1.6,.55,1.6));alb*=.66+.66*pl;}',                                                 // épicéa : des écailles
   '    else if(st<1.5){float b=fn3(o*vec3(.45,.2,.45));alb*=.84+.28*b;float li=fn3(o*.9+vec3(3.1,0.,1.7))*.6+fn3(mat3(.8,.6,0.,-.6,.8,0.,0.,0.,1.)*o*2.3)*.4;alb=mix(alb,alb*vec3(.80,.97,.80),smoothstep(.55,.75,li));}', // hêtre : gris lisse, des lichens (deux octaves tournées : pas de pavés)
@@ -18055,20 +17997,19 @@ const FOR_ARB_FS=[FG_BRUIT,FG_LUM,'uniform float uFen,uMini,uCon,uVit,uVitL,uVit
   '    else if(st<3.5){float ba=step(.70,fn3(vec3(o.x*2.2,o.y*5.,o.z*2.2)));alb=mix(alb,vec3(.07,.06,.055),ba*.92);alb=mix(vec3(.13,.11,.09),alb,smoothstep(.02,.14,vA.w));}', // bouleau : blanc, des tirets noirs, le pied sombre
   '    else if(st<4.5){float r=fn3(o*vec3(1.4,.4,1.4));alb=mix(vec3(.30,.27,.24)*(.55+.6*r),alb*(.82+.35*r),smoothstep(.35,.62,vA.w));}', // pin : gris en bas, saumon en haut
   '    else alb*=.9+.2*fn3(o*2.);',
-  '    float mo=clamp(vB.y*(smoothstep(-.2,.6,N.y+fn3(o*.35)*.7-.35)+.32)+uWet*.3*vB.y,0.,1.);alb=mix(alb,vec3(.15,.30,.07)*(.8+.4*fn3(o*1.7)),mo*.85);if(hC9>=0.)alb*=(.9+.14*hC9)*(.92+.16*hT9);}', // la MOUSSE (plus verte sous la pluie) — (cubes) une nuance par cube d écorce
+  '    float mo=clamp(vB.y*(smoothstep(-.2,.6,N.y+fn3(o*.35)*.7-.35)+.32)+uWet*.3*vB.y,0.,1.);alb=mix(alb,vec3(.15,.30,.07)*(.8+.4*fn3(o*1.7)),mo*.85);}', // la MOUSSE (plus verte sous la pluie)
   /* (2026-10-17, Sacha, sur une capture de la forêt : « on voit clairement un problème de texture des feuilles des arbres ») LE FEUILLAGE EN CAMOUFLAGE :
      le bruit multipliait la couleur de ×,32 à ×1,22 (3,8 fois d'écart, en taches franches) — des TROUS NOIRS dans des grappes vert fluo. Désormais un écart
      doux (×,74 à ×1,06) sur des grappes plus larges, et la variation passe par DEUX VERTS (plus jaune au soleil, plus froid dans le creux) ; le relief
      bosselé de la touffe et la lumière font le reste. `?sans=continuite` = l'ancien. */
   (CONTI_V?'  else if(part<2.5){float fin=1.-smoothstep(60.,170.,dist);leaf=fn3(o*.26)*.50+fn3(o*.80)*.34+mix(.5,fn3(o*2.1),fin)*.16;float lk=smoothstep(.18,.82,leaf);alb*=mix(.74,1.06,lk)*mix(vec3(.92,.97,1.06),vec3(1.06,1.03,.90),lk);ao*=mix(.82,1.,smoothstep(.15,.65,leaf));'
           :'  else if(part<2.5){float fin=1.-smoothstep(60.,170.,dist);leaf=fn3(o*.38)*.35+fn3(o*1.15)*.40+mix(.5,fn3(o*2.9),fin)*.25;alb*=mix(.32,1.22,smoothstep(.28,.72,leaf));ao*=mix(.62,1.,smoothstep(.2,.6,leaf));'), // LE FEUILLAGE : des grappes de feuilles
-  '    if(hC9>=0.){float t6=floor(hT9*6.);alb*=(.8+.08*t6)*(.94+.12*hC9);alb=mix(alb,alb*vec3(1.2,1.14,.7),step(5.,t6)*.55);alb=mix(alb,alb*vec3(.74,.88,.84),step(t6,0.));}', // (cubes) la MOSAÏQUE du feuillage : six nuances par carreau (comme la mer), la plus claire tire au jaune, la plus sombre au bleu-vert
   '    if(mk9>0.){vec3 fm9=fract(mp9);vec3 em9=min(fm9,1.-fm9);float eb9=uVit>0.?1.:smoothstep(.0,.16,min(min(em9.x,em9.y),em9.z));alb*=mix(1.,(.76+.48*mh9)*mix(.52,1.,eb9),mk9);}', // (mini-cubes) chaque cube sa nuance, et son bord un peu dans l ombre : on lit les petits cubes                                                                   // (mini-cubes) chaque cube sa nuance
   '    if(vI.y>1.5)alb*=vec3(1.35,1.12,.7);',                           // l'érable d'or
   '    else alb*=1.+vI.y*vec3(.16,.06,-.18);alb*=uLeafT;}',
   '  else if(part<3.5)alb*=.92+.16*fn3(o*1.5);',
   '  else if(part>5.5)alb=mix(alb*(.8+.3*fn3(o*.9)),vec3(.96,.94,.88),step(.62,fn3(o*3.)));',                       // l'amanite : rouge, points blancs
-  '  float vj9=0.;vec3 cg9=vec3(0.);bool vb9=uVit>0.&&vI.z<=0.&&vA.z<10.5&&(part<2.5||part>6.5);',
+  '  float vj9=0.;vec3 cg9=vec3(0.);bool vb9=uVit>0.&&vI.z<=0.&&(part<2.5||part>6.5);',
   '  if(vb9){cg9=mix(alb/max(max(alb.r,max(alb.g,alb.b)),.04),uVitG,.42);',
   '    if(mk9>0.){vec3 fq9=fract(mp9),eq9=min(fq9,1.-fq9),no9=abs(normalize(vNo)),sq9=sqrt(max(1.-no9*no9,.05)),es9=eq9/sq9,fw9=fwidth(mp9)/sq9+.002,w9=vec3(.05);',
   '      vec3 jl9=(1.-smoothstep(w9-fw9,w9+fw9,es9))*min(vec3(1.),w9/fw9);if(!(part>.5&&part<2.5&&vB.x>.5))vj9=max(jl9.x,max(jl9.y,jl9.z))*mk9;',
@@ -18079,9 +18020,8 @@ const FOR_ARB_FS=[FG_BRUIT,FG_LUM,'uniform float uFen,uMini,uCon,uVit,uVitL,uVit
   '  vec3 col=alb*((uSky*(.42+.36*N.y)*ao+uGnd*(.40-.30*N.y)*ao)*(1.-.12*uCon)+uSunC*dif*mix(.45,.86,ao)*(1.+.15*uCon)+uFillC*max(dot(N,-uFillD),0.)*.4);', // (contraste) moins de lumière du ciel dans l ombre, plus de soleil
   '  if(part>.5&&part<2.5){float tr=pow(max(dot(-V,L),0.),5.)*(1.-.45*ao);col+=alb*uSunC*tr*vec3(1.2,1.45,.7)*.85;', // le CONTRE-JOUR à travers les feuilles
   '    col+=uSunC*pow(max(dot(reflect(-L,N),V),0.),24.)*step(.72,leaf)*.35*uRos;',                                     // la rosée qui scintille
-  '    if(hC9>=0.)col+=uSunC*alb*2.4*step(.982,fract(hT9*7.31+floor(uTime*.9+hT9*13.)*.618))*max(ndl,0.);',
   '    if(mk9>0.){col+=uSunC*pow(max(dot(reflect(-L,N),V),0.),16.)*(.2+.55*mh9)*mk9*.72;',                           // (mini-cubes) la BRILLANCE : un reflet serré par cube (la nuit, celui de la lune)
-  '      col+=uSunC*alb*2.*step(.985,fract(mh9*7.31+floor(uTime*.9+mh9*13.)*.618))*max(ndl,0.)*mk9;}}',               // …et des ÉCLATS : un cube sur soixante-dix s allume, puis un autre            // (cubes) les ÉCLATS : un carreau sur cinquante s allume au soleil, puis un autre (comme la mer en cubes)
+  '      col+=uSunC*alb*2.*step(.985,fract(mh9*7.31+floor(uTime*.9+mh9*13.)*.618))*max(ndl,0.)*mk9;}}',               // …et des ÉCLATS : un cube sur soixante-dix s allume, puis un autre
   '  if(vb9){vec3 Ns9=normalize(vN);float nv9=max(dot(Ns9,V),0.),fr9=pow(1.-nv9,2.2);vec3 rf9=reflect(-V,Ns9),sk9=mix(uGnd*.7,uSky*1.25,smoothstep(-.3,.4,rf9.y));',
   '    col=col*(1.-.22*fr9*uVit)+uVit*(sk9*(.03+.5*fr9)+uSunC*pow(max(dot(rf9,L),0.),260.)*2.4+(.5+.5*cos(6.2832*(fr9*1.4+vW.y*.02+vec3(0.,.33,.67))))*fr9*.14);',
   '    float sc9=uVitS*exp(-pow((vA.w-fract(uTime*.16+vI.x*.37))/.09,2.)),lu9=uVitL*(1.+.5*uHante);vj9*=1.-uHante*.85*smoothstep(28.,105.,dist);',
@@ -53426,7 +53366,7 @@ const PORTV={el:null,att:0,n:0,tS:0,t0:0};
    une fois et recopiée dans une toile plein écran (la fenêtre couvre déjà tout l'écran : on y voit la map d'en face) ; la toile AVANCE (un
    zoom joué par le compositeur : il continue pendant que newTrack bloque le script) ; le monde neuf bâti, elle se DÉFAIT EN CUBES — des
    carrés qui rétrécissent, du centre vers les bords — sur la vraie map d'arrivée, qui est la vue même de la carte postale. Aucun calcul
-   pendant la construction ; ~500 petits dessins par image pendant 0,44 s ensuite. `?portail=ancien` : l'ovule et les feux. */
+   pendant la construction ; ~500 petits dessins par image pendant 0,44 s ensuite. */
 const PCV={el:null,cv:null,g:null,src:null,sg:null,t0:0,raf:0,tS:0,fen:false,copie:false}; // fen : un passage par la fenêtre est en cours (newTrack bascule le ciel d'un coup)
 function pcVoile(rendre){
   let e=PCV.el;
