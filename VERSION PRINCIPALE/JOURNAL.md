@@ -3,6 +3,36 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE FONDU DES NUAGES — PLUS DE BASCULE ENTRE LA OUATE ET LES CUBES (2026-10-18, Sacha : « c'est bien l'effet des nuages pixeliser mais ca bug par moment, quand on s'eloigne ou on se raproche les nuage on parfois l'ancienne texture parfois les pixel »)
+- **La cause** : `cotonTick` rangeait chaque nuage dans UN aspect selon sa distance, par seuils, sans transition : de loin la v8 (lots 0-1),
+  puis le vitrail (ou 40 % des fantômes au lot 2, puis tous au lot 3), et TOUT PRÈS de nouveau la v8 (cube > `NUVIT.ang` à l'écran) ; un
+  nuage changeait de peau d'une image à l'autre en franchissant un seuil. Les nuages seuls fantômes (bancs, coussins, tours) basculaient
+  aussi vers la v8 tout près. MESURÉ (banc, 4 km de la mer de nuages, pas de 6 m, nuages vus à plus de 0,05 rad) : **103 nuages qui sautent
+  d'un coup sur la route, 101 en vol** ; à l'approche d'un nuage, jusqu'à 27 % de l'image qui change en un seul pas.
+- **Le correctif** (`NUVIT.fondu`, `nuvPoids`, `nuvLisse`, `NUVP`) : deux PARTS par nuage, le CORPS (v8 → corps rentré, ou vitrail) et les
+  CUBES, qui montent et descendent en douceur avec x = (d−R)/R et c = la taille d'un cube à l'écran. Fantôme : les paliers de Léo GARDÉS,
+  en fondu — 0 → 37 % des cubes (et le corps) de x 4,06 à 3,2, puis 37 → 100 % de 2,2 à 1,78 (les anciens seuils des lots 2 et 3 : le lot
+  lointain, 40 %, porte tout le palier, le coût ne bouge pas). Vitrail (`?nuvit=moyen`…) : une rampe de 4,06 à 2,53. Tout près, tout
+  redescend vers la v8 quand un cube grossit (`bPres` 0,06 → 0,09 rad en vitrail, `bPresF` 0,035 → 0,09 en fantôme) : jamais de cube plus
+  gros ni plus lointain qu'avant.
+- **Comment** : la v8 et le corps se partagent les points de la MÊME trame (`N8_TRAME`) — complémentaires, jamais deux fois le même point ;
+  les fantômes arrivent un par un dans leur ordre tiré au hasard (attribut `aR` = le rang dans `nuFantGeo` : un cube se montre quand la part
+  le dépasse ; pas encore là = sommet hors champ) ; la peau du vitrail suit en alpha. Les parts voyagent dans la ligne du bas de la matrice
+  d'instance (inutilisée : les shaders ne gardent que xyz) : `[0][3]` = le corps (≥ 0 pour la v8, en négatif pour le corps rentré et le
+  vitrail), `[1][3]` = −les cubes ; une matrice ordinaire ne change rien. Un nuage est dans le lot v8 si son corps < 1, dans un jeu de cubes
+  si > 0 (`COTON.W`/`COTON.WC`, listes `COTON.LV` par gabarit × lot 2|3) ; `cotonInst` pose une instance pour les deux. Nuages seuls
+  fantômes (`mkCloud`) : `uNvW` posé par objet (`onBeforeRender`), les cubes s'effacent tout près, le corps reste (plus de bascule vers g8).
+  Le vitrail des nuages seuls (`?nuvit=moyen`) garde sa bascule (son cœur n'a pas de trame).
+- **MESURÉ, même banc** : sauts **103 → 0 sur la route, 101 → 0 en vol** (part qui bouge au plus de 0,16-0,21 en 6 m) ; à l'approche, le
+  plus gros changement d'image en un pas 27 % → 3 % (210 pas), et il rapetisse avec le pas (une bascule, non) ; nuage seul traversé : 24 %
+  d'un coup → un fondu sur ~18 m (≤ 5 % par pas). Coût : triangles des nuages +9 % (563 k → 616 k), temps d'image égal au bruit près
+  (6,1-6,5 → 5,9-6,4 ms au banc). Vues de route et de vol identiques à l'œil (le style ne change pas, seulement les passages).
+- **Écarté d'abord** : le vitrail PARTOUT (aucun seuil) — de près des cubes de 30 m en dalles grises, de loin des bords carrés, jusqu'à ×6
+  triangles dans une vue large. Puis une seule rampe 0 → 100 % des fantômes : +44 % de triangles (tout le lot 3 dessiné) — d'où les paliers.
+- `?sans=nuvitfondu` = les bascules d'avant ; `dbgNuVit(1,{fondu:0|1,rendre:1})` = A/B sur la même image (retourne `fondu`). Banc (scratchpad
+  de la session) : `nuvit-approche.cjs` (le ciel GELÉ — `cotonTick` court-circuité — d'un pas au suivant : seul le changement de peau compte),
+  `nuvit-solo.cjs`, `nuvit-vue.cjs`.
+
 ## LES NUAGES FANTÔMES + LE FOND PEINT DE LA MER DE NUAGES (2026-10-18, Léo, après LES NUAGES EN VITRAIL : « essaie en mode vitrail » → « plus visible » → « mais pas comme Minecraft ; triche pour une sorte de réalisme ; fais le peintre » → « travaille le fond comme pour le menu, là c'est un peu bleu ; sois un peintre réaliste expressionniste et designer digital » → « pas mal le fond du matin » → « les cubes encore plus minuscules, encore plus fantomatiques, pour vraiment construire de nouveaux nuages ; joue sur les teintes comme un peintre » → « éparpille mieux les cubes » → oui)
 - LE DOSAGE PAR DÉFAUT devient `fantome` (`NV_DOSES` ; `?nuvit=moyen` = la v612, `?nuvit=peintre` = les touches irrégulières de l'essai, `?sans=nuvit`).
   Ni écailles ni peau : l'ouvrier (`nuage8Calc`, `opt.fant`/`opt.fsz`) tire 8 000 cubes par gabarit AU HASARD sur la surface v8 (triangle choisi
