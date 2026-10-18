@@ -3,6 +3,25 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES NUAGES FANTÔMES + LE FOND PEINT DE LA MER DE NUAGES (2026-10-18, Léo, après LES NUAGES EN VITRAIL : « essaie en mode vitrail » → « plus visible » → « mais pas comme Minecraft ; triche pour une sorte de réalisme ; fais le peintre » → « travaille le fond comme pour le menu, là c'est un peu bleu ; sois un peintre réaliste expressionniste et designer digital » → « pas mal le fond du matin » → « les cubes encore plus minuscules, encore plus fantomatiques, pour vraiment construire de nouveaux nuages ; joue sur les teintes comme un peintre » → « éparpille mieux les cubes » → oui)
+- LE DOSAGE PAR DÉFAUT devient `fantome` (`NV_DOSES` ; `?nuvit=moyen` = la v612, `?nuvit=peintre` = les touches irrégulières de l'essai, `?sans=nuvit`).
+  Ni écailles ni peau : l'ouvrier (`nuage8Calc`, `opt.fant`/`opt.fsz`) tire 8 000 cubes par gabarit AU HASARD sur la surface v8 (triangle choisi
+  selon son aire, point dedans — plus un paquet par sommet : une grille faisait des rangées), en grappes légères (bruit de densité, plancher .55 ;
+  à .18 de grandes trouées lisses montraient le corps), les deux tiers DEDANS (jusqu'à 7,5 tailles), le reste en VAPEUR dehors (jusqu'à 6 tailles,
+  plus rare, plus légère), tailles .35-1,6 × ext/110, un peu de désordre en 3D, tirés dans le désordre (le lot lointain en dessine 40 % :
+  `NUVIT.loin`, drawRange sur les mêmes tampons). Chaque cube = un carré face à l'objectif (`nuFantVS/FS`, `nuFantGeo`), à demi transparent,
+  éclairé par la lumière v8 (`n8lum`), qui respire ; TEINTE DE PEINTRE par cube (crème ou rose au soleil, lavande ou bleu ciel à l'ombre) ;
+  biseau léger. Le CORPS v8 est rentré de 3 tailles (sinon il cachait les cubes du dedans). Tout près (cube trop gros à l'écran) : la v8.
+  Bancs/coussins/tours (`mkCloud`) : les cubes en enfant, le maillage devient le corps rentré. MESURÉ : triangles ×2, +0 à 3 ms/image sur le
+  Mac (bruité), 0 programme compilé en course (2 de plus au menu).
+- LE FOND PEINT (`NUFOND_V`, `?sans=nufond`, `NU_FOND`, `nuFondTick` dans la boucle, `dbgNuFond(0|1,probe)`) : en course sur la mer de nuages,
+  la couche peinte du MENU (`cielTitre`, `uTi`…) allumée avec SA palette matin/midi/soir (zénith rabattu lilas, horizon pêche-crème, lueur et
+  rayons du soleil, cirrus), apparition en 0,7 s ; la brume des biomes = l'horizon peint ; sat/con rabattus (1,04/1,14 au matin et à midi : le
+  bleu électrique venait aussi de l'étalonnage). La NUIT garde son clair de lune (la couche la noircissait), pluie et orage leur ciel. 0 compilé.
+- Bancs (scratchpad de la session) : `banc.py` (KS=0,1,2,3 plusieurs états, SEEDRAND = Math.random figé pour la même piste), `dbgNuVue('nuageN',a,d)`
+  (le N-ième plus grand nuage en portrait), `perfnuv.py`, `cpcarte.py` (cartes postales). ⚠ En pause le jeu ne redessine pas : un crochet A/B rend lui-même.
+  Planches photos-gameplay/nuages-peintre-, fond-nuages-peint-, nuages-fantomes-, nuages-eparpilles-avant-apres.png.
+
 ## LA VILLE VITRÉE AU SOL — SOUS DES GÉANTES (2026-10-18, Léo : « parfois je vois des formes de ville dans le ciel à l'envers, enlève s'il en reste dans le main ; et la vitrée je la trouve pas assez différente — celle-là on reste au sol, effet Shanghai vu d'en bas, mais sur des trucs immenses » ; questionnaire : vues DANS la ville vitrée · la route descend aussi au pied des tours)
 - LA VILLE À L'ENVERS, MESURÉE : la route de la ville descend en SPIRALE (5,7 km de chute sur 16,7 km). D'un étage du bas, les tours bâties autour
   des étages du haut PENDAIENT dans le ciel, leur pied fondu dans le bleu (capture : la ville éclatée au-dessus de la tête). La ville au sol l'enlève
