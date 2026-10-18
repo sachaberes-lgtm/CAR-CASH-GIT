@@ -27239,30 +27239,19 @@ const BIOMES={
   // ---- MATIN CLAIR : l'air lavé, la lumière propre ----
   // Le biome le plus NET du jeu : cyan franc, soleil blanc-doré, zéro rose. Il sert de respiration
   // au milieu de tout ce violet — c'est justement son contraste avec le reste qui le rend beau.
-  matin:{ nm:'MATIN CLAIR', skyMul:[1.00,1.26,1.76],skyLift:[.05,.10,.17],sunTint:[1,.92,.74],sunHalo:.70,city:0,stars:0,moon:.08,
-    fog:[.62,.75,.89],fogN:520,fogF:3200,
-    hemiS:[.81,.91,1.0],hemiG:[.30,.34,.43],hemiI:.88, sunC:[1,.95,.84],sunI:1.30,
-    fillC:[.48,.63,.89],fillI:.24, kickC:[1,.86,.68],kickI:.08,
-    volSun:[2.00,1.85,1.55],volSky:[.58,.72,.96],volGnd:[.34,.38,.49],volAmb:.84,
-    expo:1.04,sat:1.20,
-    env:[[0,'#4a8ad8'],[.3,'#8ab4e8'],[.48,'#d8e4f2'],[.58,'#f2ecd8'],[.66,'#9aa8bc'],[1,'#5a6c8a']],eS1:[255,250,235,.44],eS2:[160,205,250,.32]},
+  matin:{ nm:'MATIN CLAIR', skyMul:[1.00,1.26,1.76],skyLift:[.05,.10,.17],city:0,stars:0,moon:.08,
+    fillI:.24, kickC:[1,.86,.68],kickI:.08,
+    sat:1.20},
   // ---- PLEIN MIDI : le soleil au zénith, la lumière qui cogne ----
   // Le plus LUMINEUX : bleu cobalt profond au-dessus, soleil quasi blanc, ombres courtes et dures.
   // Saturation volontairement plus basse — à cette heure c'est la LUMIÈRE qui claque, pas la teinte.
-  midi:{ nm:'PLEIN MIDI', skyMul:[.88,1.20,1.88],skyLift:[.03,.07,.15],sunTint:[1,.97,.90],sunHalo:.55,city:0,stars:0,moon:0,
-    fog:[.70,.81,.96],fogN:580,fogF:3500,
-    hemiS:[.85,.92,1.0],hemiG:[.38,.36,.39],hemiI:.95, sunC:[1,.99,.94],sunI:1.42,
-    fillC:[.42,.57,.93],fillI:.18, kickC:[1,.92,.80],kickI:.06,
-    volSun:[2.30,2.20,2.00],volSky:[.55,.70,1.00],volGnd:[.38,.40,.49],volAmb:.92,
-    expo:1.06,sat:1.16,
-    env:[[0,'#2a72d8'],[.3,'#6aa2e8'],[.48,'#cfe2f5'],[.58,'#ffffff'],[.66,'#a8b4c4'],[1,'#68788e']],eS1:[255,255,250,.48],eS2:[150,200,255,.30]},
-  aprem:{ nm:'FIN D\'APRÈS-MIDI', skyMul:[1.22,1.38,1.70],skyLift:[.06,.10,.18],sunTint:[1,.80,.55],sunHalo:.85,city:0,stars:0,moon:.15,
-    fog:[.66,.70,.82],fogN:460,fogF:3000,
-    hemiS:[.85,.88,.95],hemiG:[.32,.30,.38],hemiI:.78, sunC:[1,.88,.72],sunI:1.15,
-    fillC:[.55,.62,.80],fillI:.22, kickC:[1,.75,.60],kickI:.08,
-    volSun:[1.75,1.55,1.30],volSky:[.60,.66,.88],volGnd:[.34,.34,.44],volAmb:.78,
-    expo:1.00,sat:1.18,
-    env:[[0,'#7fa8d8'],[.3,'#a8c0e0'],[.48,'#e8d4b8'],[.58,'#f2d8a8'],[.66,'#98a0b8'],[1,'#5a6a92']],eS1:[255,244,220,.42],eS2:[180,210,245,.3]},
+  midi:{ nm:'PLEIN MIDI', skyMul:[.88,1.20,1.88],skyLift:[.03,.07,.15],city:0,stars:0,moon:0,
+    fillI:.18, kickC:[1,.92,.80],kickI:.06,
+    volAmb:.92},
+  aprem:{ nm:'FIN D\'APRÈS-MIDI', skyMul:[1.22,1.38,1.70],skyLift:[.06,.10,.18],city:0,stars:0,moon:.15,
+    sunC:[1,.88,.72],
+    fillI:.22, kickC:[1,.75,.60],kickI:.08,
+    sat:1.18},
   golden:{ nm:'GOLDEN HOUR', skyMul:[1.30,1.05,.92],skyLift:[.12,.05,.02],sunTint:[1,.62,.30],sunHalo:1.15,city:.15,stars:0,moon:.25,
     fog:[.80,.55,.38],fogN:400,fogF:2500,
     hemiS:[.95,.78,.62],hemiG:[.26,.20,.26],hemiI:.60, sunC:[1,.72,.36],sunI:1.55,
@@ -27312,34 +27301,23 @@ const BIOMES={
   // de la route il n'y a rien à fondre, seulement de la distance.
   // ⚠ (2026-09-24) « dans le NOIR COMPLET » : zéro étoile, zéro lune, zéro halo solaire — il ne reste que la
   // Terre, la route et la caisse. Le soleil garde sa LUMIÈRE (sunI) : c'est lui qui éclaire la Terre et la caisse.
-  espace:{ nm:'ORBITE', skyMul:[0,0,0],skyLift:[0,0,0],sunTint:[1,.90,.80],sunHalo:0,city:0,stars:0,moon:0,
-    fog:[0,0,0],fogN:900,fogF:4200,
-    hemiS:[.05,.05,.09],hemiG:[.18,.34,.70],hemiI:.50, sunC:[1,.97,.92],sunI:1.95, // (2026-09-27) LA LUMIÈRE SPATIALE : pas de ciel (le dessus de l'hémisphère est noir), son dessous est le BLEU DE LA TERRE ; UN soleil blanc et dur (sa direction : orbiteLumiere)
-    fillC:[.28,.52,1.0],fillI:.40, kickC:[.62,.66,.80],kickI:.10, // `fill` vient de la Terre, `kick` est le clair de lune (leurs directions : orbiteLumiere)
-    volSun:[1.25,1.20,1.65],volSky:[.12,.14,.32],volGnd:[.03,.03,.08],volAmb:.40,
-    expo:.74,sat:1.30,
-    env:[[0,'#04050e'],[.3,'#0a0d24'],[.48,'#1a2250'],[.58,'#2c3f86'],[.66,'#0c1026'],[1,'#020208']],eS1:[200,222,255,.46],eS2:[120,150,255,.30]},
+  espace:{ nm:'ORBITE', skyMul:[0,0,0],skyLift:[0,0,0],sunTint:[1,.90,.80],sunHalo:0,city:0,moon:0,
+    fogN:900,fogF:4200,
+    hemiS:[.05,.05,.09],// (2026-09-27) LA LUMIÈRE SPATIALE : pas de ciel (le dessus de l'hémisphère est noir), son dessous est le BLEU DE LA TERRE ; UN soleil blanc et dur (sa direction : orbiteLumiere)
+    // `fill` vient de la Terre, `kick` est le clair de lune (leurs directions : orbiteLumiere)
+    volSun:[1.25,1.20,1.65],volSky:[.12,.14,.32],volGnd:[.03,.03,.08],volAmb:.40},
   // ---- AURORE (2026-09-24) : le NIVEAU 1 de la carrière — « le soleil vient de se lever, la journée promet ».
   // Déjà du JOUR, pas l'heure bleue : un ciel clair qui jaunit vers l'horizon, une lumière chaude et RASANTE (ombres
   // longues : sunI haut, hemi clair), un remplissage bleu tendre de l'autre côté, un air LIMPIDE (brume lointaine).
-  aurore:{ nm:'AURORE', skyMul:[1.58,1.68,1.86],skyLift:[.34,.24,.08],sunTint:[1,.80,.46],sunHalo:1.15,city:0,stars:0,moon:0,
-    fog:[.88,.78,.64],fogN:650,fogF:3800,
-    hemiS:[.94,.88,.80],hemiG:[.34,.30,.30],hemiI:.92, sunC:[1,.84,.58],sunI:1.62,
-    fillC:[.52,.66,.96],fillI:.28, kickC:[1,.72,.46],kickI:.12,
-    volSun:[2.2,1.8,1.3],volSky:[.62,.66,.86],volGnd:[.30,.28,.30],volAmb:.80,
-    expo:1.08,sat:1.12,
-    env:[[0,'#6f9ee0'],[.3,'#a9c6ee'],[.48,'#ffd9a0'],[.58,'#ffe6b0'],[.66,'#b8a8a8'],[1,'#5a5a78']],eS1:[255,226,170,.55],eS2:[170,205,255,.32]},
+  aurore:{ nm:'AURORE', skyMul:[1.58,1.68,1.86],skyLift:[.34,.24,.08],city:0,stars:0,moon:0},
   // ---- PLUIE NÉON (2026-09-24) : le ciel du niveau VILLE — « le village caché de la pluie », version cyberpunk ----
   // Un plafond ARDOISE bas et mouillé (pas de soleil : sunHalo au plancher, pas de lune, pas d'étoiles), une
   // brume gris-bleu qui avale le lointain, et toute la couleur qui vient d'EN BAS : la guirlande néon de
   // l'horizon au maximum (city 1.5), un remplissage CYAN et un contre-jour MAGENTA — les deux néons de la pluie.
-  pluie:{ nm:'PLUIE NÉON', skyMul:[.42,.50,.64],skyLift:[.03,.04,.06],sunTint:[.70,.50,.80],sunHalo:.06,city:1.5,stars:0,moon:0,
-    fog:[.20,.12,.28],fogN:320,fogF:2600, // brume VIOLETTE (était .12/.14/.19, bleu-noir) : la ville se FOND dans l'horizon au lieu d'y trancher
-    hemiS:[.42,.48,.64],hemiG:[.06,.07,.10],hemiI:.44, sunC:[.62,.70,.95],sunI:.72,
-    fillC:[.25,.80,.95],fillI:.34, kickC:[1,.25,.70],kickI:.30,
-    volSun:[.95,1.0,1.25],volSky:[.20,.24,.34],volGnd:[.05,.06,.09],volAmb:.44,
-    expo:.72,sat:1.38,
-    env:[[0,'#10141e'],[.3,'#1c2434'],[.48,'#3a4a5e'],[.58,'#6a3a6a'],[.66,'#1a2030'],[1,'#080a12']],eS1:[255,90,200,.45],eS2:[80,230,255,.35]},
+  pluie:{ nm:'PLUIE NÉON', skyMul:[.42,.50,.64],skyLift:[.03,.04,.06],sunTint:[.70,.50,.80],sunHalo:.06,stars:0,moon:0,
+    // brume VIOLETTE (était .12/.14/.19, bleu-noir) : la ville se FOND dans l'horizon au lieu d'y trancher
+    volAmb:.44,
+    eS2:[80,230,255,.35]},
   // ---- PARIS LA NUIT (2026-09-28, Léo : « une map ville à Paris », « Paris la nuit ») : le 4e monde ----
   // Le COUPLE COMPLÉMENTAIRE de la nuit parisienne : un ciel BLEU MARINE (lune, quelques étoiles) sur une ville ORANGE-OR (lampadaires au
   // sodium, façades éclairées, la tour dorée). La lumière vient d'EN BAS (hemiG chaud, `fill` ambré) et du clair de lune d'en haut.
@@ -27350,7 +27328,7 @@ const BIOMES={
     volSun:[1.0,1.0,1.3],volSky:[.16,.18,.36],volGnd:[.10,.07,.05],volAmb:.42,
     expo:.78,sat:1.30,
     env:[[0,'#0a1030'],[.3,'#18224c'],[.48,'#3a3a6a'],[.58,'#b06a36'],[.66,'#261c36'],[1,'#07081a']],eS1:[255,200,130,.5],eS2:[140,170,255,.3],
-    wb:[1.02,.99,.96],sh:[.004,.008,.03],hi:[.05,.03,0],con:1.12,bloomS:.62,bloomT:.86,vigK:.40,vigC:[.05,.04,.12],rimK:.2,rimS:.4},
+    wb:[1.02,.99,.96],sh:[.004,.008,.03],hi:[.05,.03,0],con:1.12,bloomS:.62,bloomT:.86,vigK:.40,vigC:[.05,.04,.12],rimK:.2},
   // ---- PARIS AU SOL (2026-09-28) : trois heures, fondues d'un quartier à l'autre par parisTick (le ciel, lui, suit uParisT) ----
   parisOr:{ nm:'PARIS — HEURE DORÉE', skyMul:[1,1,1],skyLift:[0,0,0],sunTint:[1,.62,.30],sunHalo:.3,city:0,stars:0,moon:0,
     fog:[.86,.67,.54],fogN:420,fogF:3400,
@@ -27375,7 +27353,7 @@ const BIOMES={
     volSun:[.9,.9,1.2],volSky:[.14,.16,.34],volGnd:[.1,.07,.05],volAmb:.4,
     expo:.8,sat:1.3,
     env:[[0,'#0a1030'],[.3,'#18224c'],[.48,'#3a3a6a'],[.58,'#b06a36'],[.66,'#261c36'],[1,'#07081a']],eS1:[255,200,130,.5],eS2:[140,170,255,.3],
-    wb:[1.02,.99,.96],sh:[.004,.008,.03],hi:[.05,.03,0],con:1.12,bloomS:.64,bloomT:.84,vigK:.4,vigC:[.05,.04,.12],rimK:.2,rimS:.4},
+    wb:[1.02,.99,.96],sh:[.004,.008,.03],hi:[.05,.03,0],con:1.12,bloomS:.64,bloomT:.84,vigK:.4,vigC:[.05,.04,.12],rimK:.2},
   // ---- L'ATELIER (2026-09-26, vague 2) : l'ambiance du GARAGE — jamais tirée, posée par openGarage, rendue à la fermeture ----
   // MESURÉ avant : saturation .42-.56, les caisses blanches BRÛLÉES — l'atelier héritait du ciel et du SOLEIL de la dernière course
   // (plein midi : `hemiI` .95 + soleil 1,42 à travers les murs) EN PLUS de ses deux lampes et de ses cônes additifs. Un atelier, c'est
@@ -27388,7 +27366,7 @@ const BIOMES={
     volSun:[1.2,1.1,1.0],volSky:[.2,.2,.3],volGnd:[.05,.05,.08],volAmb:.40,
     expo:.82,sat:1.35,
     env:[[0,'#06070b'],[.47,'#2b313d'],[1,'#0a0b0f']],eS1:[255,226,184,.5],eS2:[130,220,255,.4],
-    wb:[1,.99,.975],sh:[.012,.002,.04],hi:[.04,.022,0],con:1.20,bloomS:.36,bloomT:.90,vigK:.46,vigC:[.11,.016,.19],rimK:0,rimS:.40},
+    wb:[1,.99,.975],sh:[.012,.002,.04],hi:[.04,.022,0],con:1.20,bloomS:.36,bloomT:.90,vigK:.46,vigC:[.11,.016,.19]},
 };
 /* L'ÉTALONNAGE PAR NIVEAU (2026-09-26, vague 2 « L'ENCRE ET L'OR ») — UN MONDE, TROIS HEURES, LA MÊME ENCRE.
    Jusqu'ici la balance des blancs, la teinte des ombres et des hautes lumières, le contraste, le bloom et la vignette étaient des
@@ -27414,33 +27392,26 @@ const MN_T9=new THREE.Color();
 Object.assign(BIO_ETAL0,{mzH:[1,.985,.96,0],mzO:[.4,.5,.66,0],nuA:[1,1,1]}); // rgb = la teinte d'avant (le fondu d'un portail glisse vers elle), w 0 = inerte · nuA = l'albédo des nuages × 1 (inchangé)
 Object.assign(BIO_ETAL0,{nuLav:[.72,.78,.97],nuR:[-.25,.5,.64,1],nuK:[1,1,1,1]}); // (2026-10-14, passe graphismes · nuages-jour) LA MATIÈRE DES CUMULUS PAR AMBIANCE : nuLav = la teinte de l'ombre (GLSL uLav), nuR = uR (frontière d'ombre, clarté de l'ombre), nuK = uK (albédo, soleil, lisière, bord) ; les défauts = les valeurs d'avant, inertes
 // (vague 3) ETAL_JOUR retiré : le jour des NUAGES reprend l'étalonnage d'origine (BIO_ETAL0), voir le haut de BIOMES
-Object.assign(BIOMES.pluie,{bloomS:.55,bloomT:.88,rimK:1,rimS:.55}); // VILLE : l'étalonnage d'avant (déjà au niveau) — le liseré vient du NÉON de contre-jour
-Object.assign(BIOMES.espace,{fog:[.016,.02,.055],wb:[.98,1,1.04],sh:[.008,.008,.03],hi:[.03,.03,.03],con:1.28,bloomS:.50,bloomT:.90,vigK:.42,vigC:[.05,.012,.09],rimK:0,rimS:.62}); // ORBITE : le vide NOIR et froid, un contraste dur ; la brume n'est plus le noir absolu mais le noir bleuté #04050e de la bible (le lointain de la route s'y fond, et la brillance d'horizon du bitume, qui en prend la couleur, n'est plus nulle)
+Object.assign(BIOMES.pluie,{rimS:.55}); // VILLE : l'étalonnage d'avant (déjà au niveau) — le liseré vient du NÉON de contre-jour
+Object.assign(BIOMES.espace,{fog:[.016,.02,.055],wb:[.98,1,1.04],rimS:.62}); // ORBITE : le vide NOIR et froid, un contraste dur ; la brume n'est plus le noir absolu mais le noir bleuté #04050e de la bible (le lointain de la route s'y fond, et la brillance d'horizon du bitume, qui en prend la couleur, n'est plus nulle)
 /* LA TEMPÊTE (2026-09-29) — le ciel du niveau L'ORAGE (jamais tiré au hasard) : les NUAGES du niveau 1 dans le noir — ardoise au zénith,
    brume proche et sombre (on voit la route à ~1 km, moins dans les bancs : l'ÉCLAIR ouvre le brouillard, voir orageTick), pas de soleil
    (la pluie l'éteint), les nuages éclairés d'un argent FROID (volSun bleuté) sur des flancs d'ardoise, le liseré des caisses vient du néon.
    Clone de l'ORAGE VIOLET SANS la ville peinte à l'horizon (city 0). */
 BIOMES.tempete=Object.assign(JSON.parse(JSON.stringify(BIOMES.orage)),{nm:'TEMPÊTE',
-  skyMul:[.34,.38,.60],skyLift:[.012,.014,.032],sunTint:[.75,.78,.95],sunHalo:0,city:0,stars:0,moon:0,
-  fog:[.13,.14,.22],fogN:70,fogF:660, /* (2026-09-30, « que ça gêne la visibilité ») 140/1050 → 70/660 : la route se lit à ~600 m, l'éclair l'ouvre (CAMP_FOG) */
-  hemiS:[.42,.45,.62],hemiG:[.06,.06,.11],hemiI:.62, sunC:[.66,.70,.92],sunI:.8,
-  fillC:[.30,.42,.75],fillI:.32, kickC:[.55,.46,1.0],kickI:.26,
+  skyMul:[.34,.38,.60],skyLift:[.012,.014,.032],sunTint:[.75,.78,.95],sunHalo:0,city:0,
+  fogN:70,fogF:660, /* (2026-09-30, « que ça gêne la visibilité ») 140/1050 → 70/660 : la route se lit à ~600 m, l'éclair l'ouvre (CAMP_FOG) */
+  fillI:.32,
   volSun:[1.02,1.10,1.42],volSky:[.30,.33,.50],volGnd:[.08,.08,.14],volAmb:.5,
-  expo:.86,sat:1.2,
+  expo:.86,
   env:[[0,'#161a2c'],[.3,'#232a44'],[.48,'#3a4260'],[.58,'#566080'],[.66,'#20263c'],[1,'#0c0e18']],eS1:[170,190,255,.30],eS2:[110,140,220,.25],
-  bloomS:.6,bloomT:.85,vigK:.6,vigC:[.02,.02,.07],rimK:.7,rimS:.5,fogIn:[.33,.35,.46],fogCj:[.28,.29,.40]});
+  bloomS:.6,bloomT:.85,rimK:.7,rimS:.5});
 /* MINUIT (2026-09-30) — le ciel du niveau MINUIT EN VILLE (jamais tiré au hasard) : la PLUIE NÉON trois heures plus tard. Le ciel presque
    noir, quelques étoiles entre les nuages, la ville peinte à l'horizon n'est plus qu'une braise, la brume noire-bleue à ~900 m ; les
    lumières d'ambiance au plancher : ce qui éclaire la route, ce sont les PHARES (voir villeApres et les faisceaux PHARE_FX). */
-BIOMES.nuitNoire=Object.assign(JSON.parse(JSON.stringify(BIOMES.pluie)),{nm:'MINUIT',
-  skyMul:[.12,.13,.22],skyLift:[.004,.005,.014],sunTint:[.5,.5,.8],sunHalo:0,city:.5,stars:.7,moon:0,
-  fog:[.03,.03,.07],fogN:90,fogF:950,
-  hemiS:[.26,.30,.48],hemiG:[.02,.02,.04],hemiI:.16, sunC:[.40,.46,.75],sunI:.14,
-  fillC:[.18,.40,.85],fillI:.12, kickC:[.9,.22,.62],kickI:.10,
-  expo:.62,sat:1.25,
-  env:[[0,'#05060c'],[.3,'#0a0d16'],[.48,'#141a26'],[.58,'#2a1830'],[.66,'#0a0c14'],[1,'#030408']],eS1:[255,90,200,.22],eS2:[80,230,255,.18],
-  bloomS:.62,bloomT:.80,vigK:.72,vigC:[.0,.0,.03],rimK:.6,rimS:.5});
-Object.assign(BIOMES.tempete,{daCon:0,daExpo:1.12,daWbN:.5,daSh:.35});Object.assign(BIOMES.nuitNoire,{daCon:0,daExpo:1.16,daWbN:.4,daSh:.25});Object.assign(BIOMES.espace,{daSh:.1,daWbN:.6}); // (DA) les niveaux sombres : voir daPose
+BIOMES.nuitNoire=Object.assign(JSON.parse(JSON.stringify(BIOMES.pluie)),{
+  });
+Object.assign(BIOMES.tempete,{daCon:0,daExpo:1.12,daWbN:.5,daSh:.35});Object.assign(BIOMES.espace,{daWbN:.6}); // (DA) les niveaux sombres : voir daPose
 /* LES PICS DE JADE (2026-10-09, Léo) — l'air d'un rouleau peint : un soleil bas et doux (or pâle), une brume crème-jade qui avale le
    lointain à ~2,5 km (les piliers s'y fondent, le ciel peint prend le relais), un ciel clair, un remplissage vert-de-gris. Étalonnage doux
    (la couche DA en retrait : les verts et les gris du lavis, pas le split teal/orange). */
@@ -27479,16 +27450,16 @@ const BIO_DAY=['aube','lever','matin','midi','aprem','golden','couchant','soir',
    peine sarcelle) ; des nuages BLANCS au soleil (volSun presque neutre : la pêche, c'est l'après-midi). Réglé au banc (ciel2.js, menu
    et course figée, debout et couché) ; `dbgAmb(nom,{…})` pour retoucher à chaud. Le menu (MENU_BIO = 'matin') prend le même ciel. */
 {const G9={daHi:0,wb:[1,1,1],sh:[-.006,.008,.03],hi:[0,0,0],con:1.2, /* (2026-10-01) daHi 0 : plus de split or de la couche DA au jour d'altitude (les blancs sortaient SABLE) — le hi de compensation n'a plus lieu d'être */ /* hi : compense le split or de la couche DA (+.02,+.038,−.042) — sinon un nuage blanc, haute lumière, sortait ORANGE */vigC:[.05,.14,.22],vigK:.26, /* (niveau 1 v2) .34 → .26 : avec le bitume plus sombre, le bas de l'image tournait au trou noir */fogIn:[.93,.95,.97],hemiG:[.78,.80,.86],volGnd:[.60,.66,.78],volSky:[.55,.75,.95]};
- Object.assign(BIOMES.matin,G9,{jour:1,con:1.28,jZen:[.08,.30,.62],jMid:[.30,.66,.86],jHor:[.93,.93,.86],jSol:[.55,.38,.18],sunTint:[1,.90,.70],sunHalo:.8,
-   fog:[.84,.90,.92],fogN:900,fogF:5200,fogCj:[.96,.90,.78],hemiS:[.78,.86,.95],hemiI:.70,sunC:[1,.95,.84],sunI:1.5,fillC:[.55,.75,.95],
+ Object.assign(BIOMES.matin,G9,{jour:1,con:1.28,jSol:[.55,.38,.18],sunTint:[1,.90,.70],sunHalo:.8,
+   fogN:900,fogF:5200,fogCj:[.96,.90,.78],hemiS:[.78,.86,.95],hemiI:.70,sunI:1.5,fillC:[.55,.75,.95],
    volSun:[2.05,1.98,1.84],volAmb:.9,expo:.96,
    env:[[0,'#2f7fc0'],[.3,'#6cc0dc'],[.48,'#e6f2ee'],[.58,'#fff4de'],[.66,'#b9c9d6'],[1,'#8ea4ba']],eS1:[255,248,230,.44],eS2:[150,215,240,.32]});
- Object.assign(BIOMES.midi,G9,{jour:1,con:1.3,jZen:[.03,.22,.55],jMid:[.18,.55,.84],jHor:[.86,.92,.94],jSol:[.40,.36,.26],sunTint:[1,.96,.88],sunHalo:.6,
-   fog:[.78,.87,.95],fogN:1000,fogF:5600,fogCj:[.94,.93,.86],hemiS:[.76,.86,.98],hemiI:.70,sunC:[1,.98,.92],sunI:1.55,fillC:[.5,.72,.96],
-   volSun:[2.3,2.25,2.15],volAmb:.92,expo:.95,
+ Object.assign(BIOMES.midi,G9,{jour:1,sunTint:[1,.96,.88],sunHalo:.6,
+   fogN:1000,fogF:5600,hemiS:[.76,.86,.98],hemiI:.70,sunC:[1,.98,.92],sunI:1.55,
+   volSun:[2.3,2.25,2.15],
    env:[[0,'#1f6cc4'],[.3,'#5ab0e0'],[.48,'#dff0f6'],[.58,'#ffffff'],[.66,'#bccbd8'],[1,'#90a4bc']],eS1:[255,255,248,.46],eS2:[140,205,250,.3]});
  Object.assign(BIOMES.aprem,G9,{jour:1,con:1.28,jZen:[.14,.34,.62],jMid:[.40,.62,.82],jHor:[.98,.88,.74],jSol:[.75,.42,.16],sunTint:[1,.82,.58],sunHalo:.9,
-   fog:[.90,.87,.83],fogN:900,fogF:5000,fogCj:[1,.84,.66],hemiS:[.80,.84,.96],hemiI:.70,sunC:[1,.88,.72],sunI:1.35,fillC:[.58,.66,.86],
+   fog:[.90,.87,.83],fogN:900,fogF:5000,fogCj:[1,.84,.66],hemiS:[.80,.84,.96],hemiI:.70,sunI:1.35,fillC:[.58,.66,.86],
    volSun:[1.9,1.6,1.3],volAmb:.8,expo:.94,hi:[.01,0,-.01], // l'après-midi garde un peu d'or dans ses lumières
    env:[[0,'#3a78b8'],[.3,'#80b4d6'],[.48,'#f2dcbc'],[.58,'#ffd9a0'],[.66,'#c2b8b4'],[1,'#8e98ac']],eS1:[255,236,200,.44],eS2:[170,205,240,.3]});}
 /* L'AMBIANCE DU TITRE (titre v3) : le matin d'altitude, poussé vers l'écran titre de Zelda TOTK — un azur plus profond au zénith, un
@@ -27498,13 +27469,13 @@ const BIO_DAY=['aube','lever','matin','midi','aprem','golden','couchant','soir',
    ville sort d'une brume dorée), le soleil franc et chaud, le remplissage vert « profit », le sol qui renvoie de l'or ; pas de lune (une
    pièce ₿ la remplace, voir cryptoTick). Étalonnage : un cran plus saturé, hautes lumières dorées, vignette d'or sombre. */
 BIOMES.bullrun=Object.assign(JSON.parse(JSON.stringify(BIOMES.midi)),{nm:'BULL RUN',
-  jZen:[.03,.22,.60],jMid:[.18,.56,.90],jHor:[.98,.90,.72],jSol:[1,.62,.22],sunTint:[1,.92,.70],sunHalo:1,moon:0,stars:0,city:0,
-  fog:[.95,.88,.72],fogN:620,fogF:3300,fogCj:[1,.86,.60],fogIn:[1,.96,.88],
-  hemiS:[.80,.88,1],hemiG:[.66,.52,.26],hemiI:.80,sunC:[1,.92,.72],sunI:1.6,fillC:[.42,.92,.62],fillI:.22,kickC:[1,.80,.38],kickI:.12,
-  volSun:[2.2,2,1.6],volAmb:.9,expo:.95,sat:1.12,con:1.24,hi:[.016,.008,-.01],vigC:[.16,.11,.03],vigK:.22,
-  env:[[0,'#1d64c8'],[.3,'#58aee6'],[.48,'#f6ecd0'],[.58,'#ffe2a0'],[.66,'#c9b48a'],[1,'#8a7a5a']],eS1:[255,236,180,.5],eS2:[120,255,190,.3]});
+  sunTint:[1,.92,.70],sunHalo:1,
+  fogN:620,fogF:3300,
+  hemiG:[.66,.52,.26],sunC:[1,.92,.72],fillI:.22,kickC:[1,.80,.38],kickI:.12,
+  volSun:[2.2,2,1.6],volAmb:.9,sat:1.12,hi:[.016,.008,-.01],
+  eS1:[255,236,180,.5],eS2:[120,255,190,.3]});
 BIOMES.titre=JSON.parse(JSON.stringify(BIOMES.matin));
-Object.assign(BIOMES.titre,{nm:'TITRE',jZen:[.05,.27,.66],jMid:[.22,.62,.90],jHor:[.90,.95,.94],fog:[.80,.90,.96],fogN:500,fogF:5200,sunC:[1,.96,.88],sunI:1.6,hemiI:.78,expo:.94,sat:1.24,vigK:.2});
+Object.assign(BIOMES.titre,{nm:'TITRE',jZen:[.05,.27,.66],jMid:[.22,.62,.90],jHor:[.90,.95,.94],fog:[.80,.90,.96],fogN:500,sunC:[1,.96,.88],sunI:1.6,hemiI:.78,expo:.94,vigK:.2});
 /* LES HEURES DU TITRE (2026-10-05, Sacha : « pour l'écran d'accueil dans le ciel, fais plusieurs éclairages et ambiances à plusieurs
    moments de la journée : matin, midi, après-midi, golden hour, soir, nuit — il faut que toutes les ambiances soient magnifiques »).
    Six ambiances du ciel de l'accueil, toutes tirées du titre v3 (le MATIN, inchangé) : seules la lumière, les couleurs et l'air changent —
@@ -27531,8 +27502,8 @@ BIOMES.titreSoir=titreAmb({nm:'TITRE · SOIR',jZen:[.05,.07,.24],jMid:[.28,.20,.
   expo:.88,sat:1.26,con:1.22,vigC:[.06,.04,.14],vigK:.34,
   env:[[0,'#0e1030'],[.3,'#3a2a5e'],[.48,'#c25a6a'],[.58,'#ff8a70'],[.66,'#4a3858'],[1,'#141428']],eS1:[255,150,150,.45],eS2:[120,130,220,.3]});
 // NUIT : la lune — un ciel d'encre semé d'étoiles, la mer de nuages argentée, des cumulus d'argent bleuté, pas de soleil
-BIOMES.titreNuit=titreAmb({nm:'TITRE · NUIT',jZen:[.006,.012,.045],jMid:[.025,.045,.12],jHor:[.09,.13,.25],jSol:[.04,.05,.09],sunTint:[.6,.7,1],sunHalo:0,stars:1.25,moon:1.35,city:0,
-  fog:[.06,.08,.16],fogN:500,fogF:5200,fogCj:[.30,.36,.55],fogIn:[.30,.34,.48],hemiS:[.30,.38,.60],hemiG:[.06,.08,.16],hemiI:.5,sunC:[.62,.72,1],sunI:.75,fillC:[.30,.40,.70],
+BIOMES.titreNuit=titreAmb({nm:'TITRE · NUIT',jZen:[.006,.012,.045],jMid:[.025,.045,.12],jHor:[.09,.13,.25],jSol:[.04,.05,.09],sunTint:[.6,.7,1],sunHalo:0,stars:1.25,moon:1.35,
+  fog:[.06,.08,.16],fogCj:[.30,.36,.55],fogIn:[.30,.34,.48],hemiS:[.30,.38,.60],hemiG:[.06,.08,.16],hemiI:.5,sunC:[.62,.72,1],sunI:.75,fillC:[.30,.40,.70],
   expo:.92,sat:1.1,con:1.18,vigC:[.01,.02,.06],vigK:.42,sh:[0,.005,.03],
   env:[[0,'#04060f'],[.3,'#0a1430'],[.48,'#24345e'],[.58,'#5a6a96'],[.66,'#121a34'],[1,'#05070f']],eS1:[180,200,255,.4],eS2:[90,110,180,.3]});
 /* LES MÉTÉOS DU MODE CLASSIQUE (2026-10-13, Sacha : « la map, le biome, et la météo : la pluie, l'orage avec des nuages, le soleil le matin,
@@ -27550,37 +27521,32 @@ BIOMES.nuagesSoir=bioMet(BIOMES.aprem,Object.assign(bioPris(BIOMES.titreGolden,B
 BIOMES.nuagesNuit=bioMet(BIOMES.aprem,Object.assign(bioPris(BIOMES.titreNuit,BIO_TITRE_CLES),{nm:'NUIT D\'ALTITUDE',fog:[.06,.08,.16],fogN:700,fogF:4600,
   volSun:[1,1.1,1.45],volSky:[.15,.19,.42],volGnd:[.04,.05,.11],volAmb:.46,kickC:[.42,.48,.87],kickI:.14,rimK:.5,rimS:.5,daExpo:1.1,daSh:.3,daWbN:.6}));
 // …sous la PLUIE : un plafond gris au-dessus de la mer de nuages, pas de soleil, la brume qui se referme à ~1,8 km (le rideau : LVL.pluie)
-BIOMES.nuagesPluie=bioMet(BIOMES.midi,{nm:'AVERSE',jZen:[.30,.34,.42],jMid:[.46,.50,.57],jHor:[.66,.68,.71],jSol:[.04,.04,.04],sunTint:[.8,.82,.9],sunHalo:.05,stars:0,moon:0,
-  fog:[.50,.53,.59],fogN:260,fogF:1900,fogCj:[.62,.64,.70],fogIn:[.66,.68,.74],hemiS:[.60,.64,.72],hemiG:[.24,.25,.30],hemiI:.78,sunC:[.78,.82,.92],sunI:.62,
+BIOMES.nuagesPluie=bioMet(BIOMES.midi,{nm:'AVERSE',jSol:[.04,.04,.04],sunTint:[.8,.82,.9],sunHalo:.05,
+  fogN:260,fogF:1900,hemiS:[.60,.64,.72],hemiI:.78,sunI:.62,
   fillC:[.45,.55,.72],fillI:.26,kickC:[.55,.62,.80],kickI:.12,volSun:[1.15,1.2,1.32],volSky:[.46,.50,.60],volGnd:[.22,.23,.28],volAmb:.7,
-  expo:.98,sat:1.02,con:1.16,vigC:[.04,.05,.08],vigK:.34,hi:[0,0,0],rimK:.3,rimS:.42,
+  rimK:.3,rimS:.42,
   env:[[0,'#3a4250'],[.3,'#58606e'],[.48,'#8a909a'],[.58,'#a2a7ae'],[.66,'#5e6470'],[1,'#30343c']],eS1:[200,210,230,.30],eS2:[150,165,190,.25]});
 // LA VILLE — sous l'orage (la tempête, les néons rallumés)
-BIOMES.villeOrage=bioMet(BIOMES.tempete,{nm:'VILLE · ORAGE',city:1.2,fog:[.12,.12,.19],fogN:140,fogF:1400,kickC:[.9,.32,.8],kickI:.26,rimK:.8});
+BIOMES.villeOrage=bioMet(BIOMES.tempete,{});
 // LES PICS DE JADE — le rouleau de Léo (BIOMES.jade : l'or du soir) repeint à quatre autres heures : la soie change, le pinceau reste
-BIOMES.jadeMatin=bioMet(BIOMES.jade,{nm:'JADE · MATIN',fog:[.86,.88,.86],fogN:260,fogF:2700,sunC:[1,.92,.76],sunI:1.25,hemiS:[.86,.90,.94],hemiG:[.56,.56,.52],hemiI:1,
-  fillC:[.62,.72,.88],fillI:.2,volSun:[2,1.9,1.7],volSky:[.70,.78,.92],
-  jdZ:[.50,.64,.82],jdL:[.72,.80,.86],jdM:[.94,.92,.84],jdH:[1,.93,.78],jdR:[.42,.46,.50],jdB:[.90,.90,.86],jdS:[1,.92,.74],jdK:[.55,.7,1.05,0],
-  fogCj:[1,.92,.76],env:[[0,'#6a92d0'],[.3,'#a8c4e4'],[.48,'#f2eadb'],[.58,'#fff0cc'],[.66,'#98a4ac'],[1,'#4a5464']],eS1:[255,244,214,.5],eS2:[170,205,240,.3]});
-BIOMES.jadeMidi=bioMet(BIOMES.jade,{nm:'JADE · MIDI',fog:[.84,.88,.92],fogN:300,fogF:3000,sunC:[1,.98,.94],sunI:1.45,hemiS:[.84,.90,1],hemiG:[.52,.54,.52],hemiI:1.02,
-  fillC:[.55,.70,.92],fillI:.18,volSun:[2.2,2.15,2.05],volSky:[.66,.76,.96],sat:1.12,
-  jdZ:[.30,.52,.84],jdL:[.56,.72,.90],jdM:[.84,.90,.94],jdH:[.94,.95,.92],jdR:[.38,.44,.52],jdB:[.88,.90,.92],jdS:[1,.98,.92],jdK:[.25,.45,1.15,0],
-  fogCj:[.96,.95,.90],env:[[0,'#3a78d0'],[.3,'#80b0e6'],[.48,'#e6f0f6'],[.58,'#ffffff'],[.66,'#a8b6c4'],[1,'#5a6a80']],eS1:[255,255,248,.48],eS2:[150,200,255,.3]});
-BIOMES.jadeNuit=bioMet(BIOMES.jade,{nm:'JADE · NUIT',fog:[.07,.09,.16],fogN:200,fogF:2300,sunTint:[.7,.78,1],sunC:[.62,.72,1],sunI:.62,hemiS:[.26,.32,.50],hemiG:[.06,.07,.12],hemiI:.5,
-  fillC:[.30,.40,.70],fillI:.2,kickC:[.55,.62,.95],kickI:.12,volSun:[1,1.1,1.45],volSky:[.16,.2,.4],volGnd:[.04,.05,.1],volAmb:.45,expo:.92,sat:1.1,con:1.12,
-  vigC:[.02,.03,.08],vigK:.4,hi:[0,0,0],sh:[0,.006,.03],rimK:.5,rimS:.5,fogCj:[.30,.36,.55],fogIn:[.30,.34,.48],daSh:.3,daWbN:.6,daExpo:1.08,
-  jdZ:[.025,.04,.10],jdL:[.06,.09,.18],jdM:[.11,.14,.25],jdH:[.19,.22,.34],jdR:[.06,.07,.12],jdB:[.16,.19,.28],jdS:[.45,.55,.85],jdK:[.85,.12,.38,1],
-  env:[[0,'#04060f'],[.3,'#0a1430'],[.48,'#24345e'],[.58,'#4a5a88'],[.66,'#121a34'],[1,'#05070f']],eS1:[180,200,255,.4],eS2:[90,110,180,.3]});
-BIOMES.jadePluie=bioMet(BIOMES.jade,{nm:'JADE · PLUIE',fog:[.50,.54,.56],fogN:150,fogF:1700,sunC:[.80,.84,.88],sunI:.6,hemiS:[.62,.68,.72],hemiG:[.30,.32,.32],hemiI:.85,
-  fillC:[.5,.6,.68],fillI:.2,kickC:[.6,.66,.74],kickI:.08,volSun:[1.2,1.25,1.3],volSky:[.5,.55,.6],volAmb:.72,expo:.94,sat:.98,con:1.04,
-  vigC:[.05,.07,.08],vigK:.32,hi:[0,0,0],fogCj:[.62,.66,.68],fogIn:[.66,.70,.72],
-  jdZ:[.36,.40,.46],jdL:[.48,.52,.56],jdM:[.58,.61,.63],jdH:[.66,.68,.69],jdR:[.30,.33,.36],jdB:[.56,.59,.61],jdS:[.3,.32,.34],jdK:[0,.1,.62,0],
-  env:[[0,'#3a4450'],[.3,'#5a646e'],[.48,'#8a9298'],[.58,'#9aa2a6'],[.66,'#5a646c'],[1,'#2e343a']],eS1:[200,214,226,.3],eS2:[150,170,186,.25]});
-BIOMES.jadeOrage=bioMet(BIOMES.jadePluie,{nm:'JADE · ORAGE',fog:[.17,.18,.25],fogN:90,fogF:1150,sunC:[.62,.66,.86],sunI:.5,hemiS:[.40,.42,.58],hemiG:[.08,.08,.13],hemiI:.6,
-  fillC:[.30,.40,.70],fillI:.28,kickC:[.55,.46,1],kickI:.24,volSun:[1.02,1.1,1.42],volSky:[.3,.33,.5],volGnd:[.08,.08,.14],volAmb:.5,expo:.88,sat:1.12,con:1.1,
-  vigC:[.02,.02,.07],vigK:.5,rimK:.7,rimS:.5,fogCj:[.28,.29,.40],fogIn:[.33,.35,.46],daCon:.4,daExpo:1.1,daWbN:.5,daSh:.35,
-  jdZ:[.12,.13,.19],jdL:[.19,.20,.27],jdM:[.25,.26,.33],jdH:[.32,.33,.40],jdR:[.12,.12,.17],jdB:[.26,.27,.34],jdS:[.2,.2,.3],jdK:[0,0,.42,0],
-  env:BIOMES.tempete.env,eS1:BIOMES.tempete.eS1,eS2:BIOMES.tempete.eS2});
+BIOMES.jadeMatin=bioMet(BIOMES.jade,{nm:'JADE · MATIN',fogN:260,fogF:2700,sunC:[1,.92,.76],sunI:1.25,hemiI:1,
+  volSun:[2,1.9,1.7],
+  jdK:[.55,.7,1.05,0],
+  fogCj:[1,.92,.76],eS1:[255,244,214,.5],eS2:[170,205,240,.3]});
+BIOMES.jadeMidi=bioMet(BIOMES.jade,{nm:'JADE · MIDI',fogN:300,fogF:3000,sunC:[1,.98,.94],sunI:1.45,hemiI:1.02,
+  fillI:.18,volSun:[2.2,2.15,2.05],sat:1.12,
+  jdK:[.25,.45,1.15,0],
+  fogCj:[.96,.95,.90],eS1:[255,255,248,.48],eS2:[150,200,255,.3]});
+BIOMES.jadeNuit=bioMet(BIOMES.jade,{nm:'JADE · NUIT',fogN:200,fogF:2300,
+  kickI:.12,volAmb:.45,expo:.92,con:1.12,
+  vigK:.4,hi:[0,0,0],rimK:.5,rimS:.5,daWbN:.6,daExpo:1.08});
+BIOMES.jadePluie=bioMet(BIOMES.jade,{nm:'JADE · PLUIE',fogN:150,fogF:1700,sunI:.6,hemiI:.85,
+  kickI:.08,volSun:[1.2,1.25,1.3],volAmb:.72,expo:.94,con:1.04,
+  vigK:.32,hi:[0,0,0],
+  jdS:[.3,.32,.34],jdK:[0,.1,.62,0]});
+BIOMES.jadeOrage=bioMet(BIOMES.jadePluie,{nm:'JADE · ORAGE',fogN:90,fogF:1150,sunI:.5,hemiI:.6,
+  fillI:.28,volAmb:.5,expo:.88,con:1.1,
+  vigK:.5,rimK:.7,rimS:.5,daCon:.4,daExpo:1.1,daWbN:.5,daSh:.35});
 /* LE CANYON DES GÉANTS (2026-10-14, Sacha : « toutes les météos et heures de la journée parfaitement gérées et adaptées à un biome
    désertique ») — six ambiances, la signature de chaque météo (la charte de l'image) teintée par l'identité du canyon : l'air SEC (un azur
    plus profond, un horizon chaud et poudré), la roche qui renvoie sa couleur (le rebond `cyL`, le sol de l'hémisphère), l'eau turquoise.
@@ -27642,59 +27608,58 @@ BIOMES.jadeOrage=bioMet(BIOMES.jadePluie,{nm:'JADE · ORAGE',fog:[.17,.18,.25],f
    vignette = l'ombre de la scène en plus sombre. Identité de la map : des VERTS NATURELS (ni fluo, ni sarcelle), l'OR de la lumière, la BRUME.
    La lumière de la forêt elle-même (hauteur du soleil, rayons, brume du fond, papillons, hantise) est dans FOR_MET ; ici : le ciel, l'air, les
    lumières de la caisse. La nuit, la lune du dôme s'éteint (moon:0) : la forêt pose la sienne, pleine et énorme (foretLuneTick). */
-BIOMES.foretMatin=bioMet(BIOMES.matin,{nm:'FORÊT · MATIN',jour:1,jZen:[.11,.35,.72],jMid:[.38,.55,.72],jHor:[.83,.72,.52],jSol:[.62,.40,.20],sunTint:[1,.88,.68],sunHalo:.8,stars:0,moon:0,city:0,
-  fog:[.80,.73,.55],fogN:90,fogF:2300,fogCj:[.95,.86,.66],fogIn:[.86,.88,.80],hemiS:[.62,.72,.92],hemiG:[.30,.36,.22],hemiI:.75,sunC:[1,.88,.68],sunI:1.45,fillC:[.45,.56,.80],fillI:.22,kickC:[1,.85,.65],kickI:.08,
-  expo:.97,sat:1.0,con:1.16,rtK:.75,wb:[1,1,1],sh:[0,.008,.03],hi:[.012,.006,-.008],vigK:.22,vigC:[.03,.045,.05],bloomS:.42,bloomT:.93,
+BIOMES.foretMatin=bioMet(BIOMES.matin,{nm:'FORÊT · MATIN',jZen:[.11,.35,.72],jMid:[.38,.55,.72],jHor:[.83,.72,.52],jSol:[.62,.40,.20],sunTint:[1,.88,.68],moon:0,
+  fogN:90,fogF:2300,fogCj:[.95,.86,.66],fogIn:[.86,.88,.80],hemiS:[.62,.72,.92],hemiG:[.30,.36,.22],hemiI:.75,sunC:[1,.88,.68],sunI:1.45,fillC:[.45,.56,.80],fillI:.22,
+  expo:.97,con:1.16,rtK:.75,sh:[0,.008,.03],hi:[.012,.006,-.008],vigK:.22,vigC:[.03,.045,.05],bloomS:.42,bloomT:.93,
   env:[[0,'#5E9FDD'],[.3,'#9CC4D6'],[.48,'#E8DCC0'],[.58,'#F2E6CC'],[.66,'#6E7A5A'],[1,'#2E3A26']],eS1:[255,236,200,.44],eS2:[170,210,235,.28]});
-BIOMES.foretMidi=bioMet(BIOMES.midi,{nm:'FORÊT · MIDI',jour:1,jZen:[.05,.28,.74],jMid:[.21,.48,.82],jHor:[.62,.81,.93],jSol:[.30,.28,.20],sunTint:[1,.97,.90],sunHalo:.55,stars:0,moon:0,city:0,
-  fog:[.60,.77,.84],fogN:140,fogF:2700,fogCj:[.92,.93,.86],fogIn:[.86,.92,.90],hemiS:[.68,.80,.98],hemiG:[.32,.42,.22],hemiI:.78,sunC:[1,.98,.92],sunI:1.6,fillC:[.48,.64,.90],fillI:.2,kickC:[1,.94,.82],kickI:.06,
-  expo:.98,sat:1.02,con:1.18,rtK:.85,wb:[1,1,1],sh:[0,.008,.03],hi:[.01,.006,-.006],vigK:.2,vigC:[.03,.045,.05],bloomS:.42,bloomT:.95,
-  env:[[0,'#3F8FE0'],[.3,'#7FB8EA'],[.48,'#D8ECF2'],[.58,'#FFFFFF'],[.66,'#6E8A5E'],[1,'#2A3A24']],eS1:[255,255,248,.46],eS2:[150,205,250,.3]});
-BIOMES.foretSoir=bioMet(BIOMES.nuagesSoir,{nm:'FORÊT · SOIR',jour:1,jZen:[.10,.115,.39],jMid:[.46,.30,.32],jHor:[1,.49,.25],jSol:[1,.50,.20],sunTint:[1,.62,.38],sunHalo:1,stars:.15,moon:0,city:0,
-  fog:[.92,.50,.28],fogN:100,fogF:2200,fogCj:[1,.72,.48],fogIn:[1,.88,.78],hemiS:[.52,.50,.70],hemiG:[.30,.24,.16],hemiI:.55,sunC:[1,.68,.42],sunI:1.7,fillC:[.42,.40,.66],fillI:.2,kickC:[1,.6,.35],kickI:.12,
-  expo:.94,sat:1.05,con:1.2,rtK:.9,wb:[1,1,1],sh:[0,.004,.02],hi:[.02,.008,-.01],vigK:.26,vigC:[.06,.04,.05],bloomS:.46,bloomT:.92,
+BIOMES.foretMidi=bioMet(BIOMES.midi,{nm:'FORÊT · MIDI',jZen:[.05,.28,.74],jMid:[.21,.48,.82],jHor:[.62,.81,.93],jSol:[.30,.28,.20],sunTint:[1,.97,.90],sunHalo:.55,
+  fogN:140,fogF:2700,fogCj:[.92,.93,.86],fogIn:[.86,.92,.90],hemiS:[.68,.80,.98],hemiG:[.32,.42,.22],hemiI:.78,sunI:1.6,fillC:[.48,.64,.90],fillI:.2,
+  expo:.98,con:1.18,rtK:.85,sh:[0,.008,.03],hi:[.01,.006,-.006],vigK:.2,vigC:[.03,.045,.05],bloomS:.42,
+  env:[[0,'#3F8FE0'],[.3,'#7FB8EA'],[.48,'#D8ECF2'],[.58,'#FFFFFF'],[.66,'#6E8A5E'],[1,'#2A3A24']],eS2:[150,205,250,.3]});
+BIOMES.foretSoir=bioMet(BIOMES.nuagesSoir,{nm:'FORÊT · SOIR',jZen:[.10,.115,.39],jMid:[.46,.30,.32],jHor:[1,.49,.25],jSol:[1,.50,.20],sunTint:[1,.62,.38],sunHalo:1,stars:.15,moon:0,
+  fog:[.92,.50,.28],fogN:100,fogF:2200,fogCj:[1,.72,.48],fogIn:[1,.88,.78],hemiS:[.52,.50,.70],hemiG:[.30,.24,.16],sunC:[1,.68,.42],fillC:[.42,.40,.66],fillI:.2,
+  expo:.94,con:1.2,rtK:.9,sh:[0,.004,.02],hi:[.02,.008,-.01],vigK:.26,vigC:[.06,.04,.05],bloomT:.92,
   env:[[0,'#3C4C8C'],[.3,'#8C7CAA'],[.48,'#FFB98A'],[.58,'#FFD6A8'],[.66,'#5A4A3A'],[1,'#2A2018']],eS1:[255,190,130,.5],eS2:[150,140,210,.28]});
-BIOMES.foretNuit=bioMet(BIOMES.nuagesNuit,{nm:'FORÊT · NUIT',jour:1,jZen:[.006,.010,.040],jMid:[.010,.018,.060],jHor:[.03,.05,.09],jSol:[0,0,0],sunTint:[.6,.7,1],sunHalo:0,stars:1.1,moon:0,city:0,
-  fog:[.08,.11,.13],fogN:40,fogF:1150,fogCj:[.22,.28,.36],fogIn:[.22,.26,.30],hemiS:[.30,.38,.55],hemiG:[.04,.06,.07],hemiI:.5,sunC:[.62,.74,.95],sunI:.7,fillC:[.30,.40,.60],fillI:.2,kickC:[.50,.58,.80],kickI:.1,
-  expo:.95,sat:.92,con:1.16,rtK:1,wb:[1,1,1],sh:[0,.006,.025],hi:[0,0,0],daSh:.3,vigK:.4,vigC:[.01,.02,.03],bloomS:.5,bloomT:.9,
-  env:[[0,'#04060f'],[.3,'#0a1430'],[.48,'#24345e'],[.58,'#4a5a88'],[.66,'#0c1416'],[1,'#05080a']],eS1:[180,200,255,.4],eS2:[90,120,150,.28]});
-BIOMES.foretPluie=bioMet(BIOMES.nuagesPluie,{nm:'FORÊT · PLUIE',jour:1,jZen:[.155,.21,.30],jMid:[.27,.33,.43],jHor:[.40,.47,.56],jSol:[0,0,0],sunTint:[.8,.82,.9],sunHalo:.05,stars:0,moon:0,city:0,
-  fog:[.27,.32,.30],fogN:70,fogF:1250,fogCj:[.40,.44,.44],fogIn:[.44,.48,.48],hemiS:[.58,.66,.72],hemiG:[.24,.30,.26],hemiI:.8,sunC:[.82,.88,.90],sunI:.65,fillC:[.45,.55,.62],fillI:.22,kickC:[.55,.62,.70],kickI:.1,
-  expo:.95,sat:.9,con:1.12,rtK:.8,wb:[1,1,1],sh:[0,.01,.022],hi:[0,0,0],vigK:.3,vigC:[.04,.05,.05],bloomS:.44,bloomT:.95,
+BIOMES.foretNuit=bioMet(BIOMES.nuagesNuit,{nm:'FORÊT · NUIT',jZen:[.006,.010,.040],jMid:[.010,.018,.060],jHor:[.03,.05,.09],jSol:[0,0,0],stars:1.1,moon:0,
+  fog:[.08,.11,.13],fogN:40,fogF:1150,fogCj:[.22,.28,.36],fogIn:[.22,.26,.30],hemiS:[.30,.38,.55],hemiG:[.04,.06,.07],sunC:[.62,.74,.95],sunI:.7,fillC:[.30,.40,.60],fillI:.2,
+  expo:.95,sat:.92,con:1.16,sh:[0,.006,.025],vigK:.4,vigC:[.01,.02,.03],bloomS:.5,bloomT:.9,
+  env:[[0,'#04060f'],[.3,'#0a1430'],[.48,'#24345e'],[.58,'#4a5a88'],[.66,'#0c1416'],[1,'#05080a']],eS2:[90,120,150,.28]});
+BIOMES.foretPluie=bioMet(BIOMES.nuagesPluie,{nm:'FORÊT · PLUIE',jZen:[.155,.21,.30],jMid:[.27,.33,.43],jHor:[.40,.47,.56],jSol:[0,0,0],
+  fog:[.27,.32,.30],fogN:70,fogF:1250,fogCj:[.40,.44,.44],fogIn:[.44,.48,.48],hemiS:[.58,.66,.72],hemiG:[.24,.30,.26],hemiI:.8,sunC:[.82,.88,.90],sunI:.65,fillC:[.45,.55,.62],fillI:.22,
+  expo:.95,sat:.9,con:1.12,rtK:.8,sh:[0,.01,.022],vigK:.3,vigC:[.04,.05,.05],bloomS:.44,
   env:[[0,'#3a4450'],[.3,'#5a646e'],[.48,'#8a9298'],[.58,'#9aa2a6'],[.66,'#4a5650'],[1,'#262e2a']],eS1:[200,214,226,.3],eS2:[150,170,186,.25]});
-BIOMES.foretOrage=bioMet(BIOMES.tempete,{nm:'FORÊT · ORAGE',jour:1,jZen:[.013,.020,.051],jMid:[.035,.05,.10],jHor:[.068,.093,.162],jSol:[0,0,0],sunTint:[.7,.75,.9],sunHalo:0,stars:0,moon:0,city:0,
-  fog:[.10,.12,.13],fogN:50,fogF:1000,fogCj:[.24,.29,.31],fogIn:[.28,.32,.33],hemiS:[.36,.42,.50],hemiG:[.07,.09,.09],hemiI:.52,sunC:[.62,.70,.82],sunI:.5,fillC:[.30,.40,.52],fillI:.26,kickC:[.45,.52,.70],kickI:.18,
-  expo:.9,sat:.9,con:1.18,rtK:.85,wb:[1,1,1],sh:[0,.01,.02],hi:[0,0,0],daCon:.4,daExpo:1.1,daWbN:.5,daSh:.35,vigK:.45,vigC:[.015,.02,.025],bloomS:.5,bloomT:.92,
-  env:BIOMES.tempete.env,eS1:BIOMES.tempete.eS1,eS2:BIOMES.tempete.eS2});
+BIOMES.foretOrage=bioMet(BIOMES.tempete,{nm:'FORÊT · ORAGE',jour:1,jZen:[.013,.020,.051],jMid:[.035,.05,.10],jHor:[.068,.093,.162],sunTint:[.7,.75,.9],
+  fog:[.10,.12,.13],fogN:50,fogF:1000,fogCj:[.24,.29,.31],fogIn:[.28,.32,.33],hemiS:[.36,.42,.50],hemiG:[.07,.09,.09],hemiI:.52,sunC:[.62,.70,.82],sunI:.5,fillC:[.30,.40,.52],fillI:.26,kickI:.18,
+  expo:.9,sat:.9,con:1.18,rtK:.85,sh:[0,.01,.02],hi:[0,0,0],daCon:.4,daExpo:1.1,vigK:.45,vigC:[.015,.02,.025],bloomS:.5,bloomT:.92});
 /* LA BANQUISE — SES SIX TEMPS (2026-10-14, Sacha : « fais une map absolument magnifique »). Écrites d'après la CHARTE (jour:1, couleurs du ciel et
    brume en LINÉAIRE, sat ≤ 1,03 de jour, ≤ 1,07 le soir, ≤ ,95 la nuit, la neige et le blizzard ; con ≤ 1,24). Identité de la map : le BLEU
    PROFOND du ciel d'altitude contre la neige, des OMBRES BLEUES (jamais grises), la glace TURQUOISE, le rose de l'alpenglow aux heures
    basses, le vert des aurores la nuit ; la neige et le blizzard tirent vers le LAVANDE (jamais le gris délavé). La lumière de la banquise
    elle-même (hauteur du soleil, étincelles, alpenglow, aurores, brume de vallée, neige qui tombe) est dans BK_MET ; ici : le ciel, l'air,
    les lumières de la caisse. La nuit, la lune du dôme reste (moon) et les AURORES se lèvent (banqTick). */
-BIOMES.banqMatin=bioMet(BIOMES.matin,{nm:'GLACIER · MATIN',jour:1,jZen:[.07,.20,.58],jMid:[.42,.42,.76],jHor:[1,.58,.50],jSol:[.92,.70,.72],sunTint:[1,.80,.66],sunHalo:1,stars:0,moon:0,city:0,
-  fog:[.74,.58,.72],fogN:220,fogF:4200,fogCj:[1,.80,.70],fogIn:[.80,.82,.96],hemiS:[.56,.64,.98],hemiG:[.62,.52,.66],hemiI:.72,sunC:[1,.82,.68],sunI:1.5,fillC:[.48,.52,.92],fillI:.22,kickC:[1,.45,.76],kickI:.13,
-  expo:.95,sat:1.03,con:1.18,rtK:.8,wb:[1,1,1],sh:[0,.01,.045],hi:[.014,.004,-.004],vigK:.2,vigC:[.04,.04,.09],bloomS:.48,bloomT:.92,
+BIOMES.banqMatin=bioMet(BIOMES.matin,{nm:'GLACIER · MATIN',jZen:[.07,.20,.58],jMid:[.42,.42,.76],jHor:[1,.58,.50],jSol:[.92,.70,.72],sunTint:[1,.80,.66],sunHalo:1,moon:0,
+  fog:[.74,.58,.72],fogN:220,fogF:4200,fogCj:[1,.80,.70],fogIn:[.80,.82,.96],hemiS:[.56,.64,.98],hemiG:[.62,.52,.66],hemiI:.72,sunC:[1,.82,.68],fillC:[.48,.52,.92],fillI:.22,
+  expo:.95,con:1.18,rtK:.8,sh:[0,.01,.045],hi:[.014,.004,-.004],vigK:.2,vigC:[.04,.04,.09],bloomS:.48,bloomT:.92,
   env:[[0,'#3A62C8'],[.3,'#8C8EC8'],[.48,'#FFC2B0'],[.58,'#FFE2D2'],[.66,'#C8B8D8'],[1,'#8890B8']],eS1:[255,214,190,.46],eS2:[160,180,255,.3]});
-BIOMES.banqMidi=bioMet(BIOMES.midi,{nm:'GLACIER · MIDI',jour:1,jZen:[.012,.14,.62],jMid:[.10,.40,.88],jHor:[.95,.62,.48],jSol:[.62,.66,.88],sunTint:[1,.93,.84],sunHalo:.7,stars:0,moon:0,city:0,
-  fog:[.52,.64,.90],fogN:260,fogF:5200,fogCj:[.98,.86,.78],fogIn:[.80,.86,1],hemiS:[.56,.70,1],hemiG:[.58,.62,.78],hemiI:.80,sunC:[1,.94,.86],sunI:1.6,fillC:[.46,.62,1],fillI:.24,kickC:[1,.42,.76],kickI:.12,
-  expo:.93,sat:1.03,con:1.2,rtK:.85,wb:[1,1,1],sh:[0,.012,.05],hi:[.01,.005,-.004],vigK:.18,vigC:[.02,.04,.09],bloomS:.5,bloomT:.9,
+BIOMES.banqMidi=bioMet(BIOMES.midi,{nm:'GLACIER · MIDI',jZen:[.012,.14,.62],jMid:[.10,.40,.88],jHor:[.95,.62,.48],jSol:[.62,.66,.88],sunTint:[1,.93,.84],sunHalo:.7,
+  fog:[.52,.64,.90],fogN:260,fogF:5200,fogCj:[.98,.86,.78],fogIn:[.80,.86,1],hemiS:[.56,.70,1],hemiG:[.58,.62,.78],hemiI:.80,sunC:[1,.94,.86],sunI:1.6,fillC:[.46,.62,1],fillI:.24,
+  expo:.93,rtK:.85,sh:[0,.012,.05],hi:[.01,.005,-.004],vigK:.18,vigC:[.02,.04,.09],bloomS:.5,bloomT:.9,
   env:[[0,'#1E5ED8'],[.3,'#5C9AF0'],[.48,'#CFE6FA'],[.58,'#FFFFFF'],[.66,'#C8D8F0'],[1,'#90A8D0']],eS1:[255,255,250,.48],eS2:[150,200,255,.32]});
-BIOMES.banqSoir=bioMet(BIOMES.nuagesSoir,{nm:'GLACIER · SOIR',jour:1,jZen:[.06,.07,.30],jMid:[.50,.27,.46],jHor:[1,.46,.30],jSol:[.92,.48,.46],sunTint:[1,.56,.36],sunHalo:1.1,stars:.2,moon:0,city:0,
-  fog:[.74,.44,.54],fogN:200,fogF:3900,fogCj:[1,.62,.44],fogIn:[.82,.64,.78],hemiS:[.46,.42,.78],hemiG:[.52,.34,.44],hemiI:.6,sunC:[1,.60,.42],sunI:1.6,fillC:[.40,.36,.78],fillI:.22,kickC:[1,.45,.62],kickI:.14,
-  expo:.94,sat:1.06,con:1.2,rtK:.9,wb:[1,1,1],sh:[0,.004,.035],hi:[.02,.006,-.01],vigK:.26,vigC:[.07,.03,.09],bloomS:.5,bloomT:.9,
+BIOMES.banqSoir=bioMet(BIOMES.nuagesSoir,{nm:'GLACIER · SOIR',jZen:[.06,.07,.30],jMid:[.50,.27,.46],jHor:[1,.46,.30],jSol:[.92,.48,.46],sunTint:[1,.56,.36],sunHalo:1.1,stars:.2,moon:0,
+  fog:[.74,.44,.54],fogN:200,fogF:3900,fogCj:[1,.62,.44],fogIn:[.82,.64,.78],hemiS:[.46,.42,.78],hemiG:[.52,.34,.44],hemiI:.6,sunC:[1,.60,.42],sunI:1.6,fillC:[.40,.36,.78],
+  expo:.94,con:1.2,rtK:.9,sh:[0,.004,.035],hi:[.02,.006,-.01],vigK:.26,vigC:[.07,.03,.09],bloomS:.5,bloomT:.9,
   env:[[0,'#2A2C78'],[.3,'#8A5A9A'],[.48,'#FF9A78'],[.58,'#FFC69A'],[.66,'#B87890'],[1,'#5A4870']],eS1:[255,170,120,.5],eS2:[150,130,230,.3]});
-BIOMES.banqNuit=bioMet(BIOMES.nuagesNuit,{nm:'GLACIER · NUIT',jour:1,jZen:[.003,.008,.035],jMid:[.008,.022,.065],jHor:[.025,.07,.11],jSol:[.02,.05,.07],sunTint:[.6,.75,1],sunHalo:0,stars:1.35,moon:1.15,city:0,
-  fog:[.035,.04,.10],fogN:120,fogF:2800,fogCj:[.14,.32,.30],fogIn:[.10,.22,.26],hemiS:[.28,.46,.70],hemiG:[.10,.18,.24],hemiI:.55,sunC:[.55,.72,1],sunI:.75,fillC:[.22,.60,.48],fillI:.26,kickC:[1,.32,.80],kickI:.14,
-  expo:.96,sat:.95,con:1.16,rtK:1,wb:[1,1,1],sh:[0,.008,.03],hi:[0,0,0],daSh:.3,vigK:.38,vigC:[.005,.02,.03],bloomS:.56,bloomT:.88,
+BIOMES.banqNuit=bioMet(BIOMES.nuagesNuit,{nm:'GLACIER · NUIT',jZen:[.003,.008,.035],jMid:[.008,.022,.065],jHor:[.025,.07,.11],jSol:[.02,.05,.07],sunTint:[.6,.75,1],stars:1.35,moon:1.15,
+  fog:[.035,.04,.10],fogN:120,fogF:2800,fogCj:[.14,.32,.30],fogIn:[.10,.22,.26],hemiS:[.28,.46,.70],hemiG:[.10,.18,.24],hemiI:.55,sunC:[.55,.72,1],fillC:[.22,.60,.48],fillI:.26,
+  expo:.96,sat:.95,con:1.16,sh:[0,.008,.03],vigK:.38,vigC:[.005,.02,.03],bloomS:.56,bloomT:.88,
   env:[[0,'#02060e'],[.3,'#082036'],[.48,'#1E5A5A'],[.58,'#3E7A88'],[.66,'#0E1E2A'],[1,'#06101a']],eS1:[140,255,190,.36],eS2:[170,120,255,.28]});
-BIOMES.banqNeige=bioMet(BIOMES.nuagesPluie,{nm:'GLACIER · NEIGE',jour:1,jZen:[.30,.34,.52],jMid:[.46,.50,.70],jHor:[.66,.69,.88],jSol:[.62,.66,.84],sunTint:[.86,.88,1],sunHalo:.08,stars:0,moon:0,city:0,
-  fog:[.54,.56,.82],fogN:60,fogF:1400,fogCj:[.74,.76,.92],fogIn:[.70,.74,.90],hemiS:[.74,.80,1],hemiG:[.58,.62,.78],hemiI:.95,sunC:[.84,.88,1],sunI:.55,fillC:[.55,.62,.92],fillI:.2,kickC:[1,.48,.80],kickI:.12,
-  expo:.95,sat:.95,con:1.14,rtK:.8,wb:[1,1,1],sh:[0,.01,.04],hi:[0,0,0],vigK:.28,vigC:[.05,.05,.11],bloomS:.46,bloomT:.92,
+BIOMES.banqNeige=bioMet(BIOMES.nuagesPluie,{nm:'GLACIER · NEIGE',jZen:[.30,.34,.52],jMid:[.46,.50,.70],jHor:[.66,.69,.88],jSol:[.62,.66,.84],sunTint:[.86,.88,1],sunHalo:.08,
+  fog:[.54,.56,.82],fogN:60,fogF:1400,fogCj:[.74,.76,.92],fogIn:[.70,.74,.90],hemiS:[.74,.80,1],hemiG:[.58,.62,.78],hemiI:.95,sunC:[.84,.88,1],sunI:.55,fillC:[.55,.62,.92],fillI:.2,
+  expo:.95,sat:.95,con:1.14,rtK:.8,sh:[0,.01,.04],vigK:.28,vigC:[.05,.05,.11],bloomT:.92,
   env:[[0,'#5A6290'],[.3,'#8088B0'],[.48,'#B0B6D6'],[.58,'#C8CCE6'],[.66,'#9AA0C6'],[1,'#7880A8']],eS1:[220,226,255,.32],eS2:[170,170,230,.26]});
-BIOMES.banqBlizzard=bioMet(BIOMES.tempete,{nm:'GLACIER · BLIZZARD',jour:1,jZen:[.09,.11,.24],jMid:[.20,.24,.40],jHor:[.38,.42,.60],jSol:[.36,.40,.58],sunTint:[.8,.82,.95],sunHalo:0,stars:0,moon:0,city:0,
-  fog:[.38,.40,.64],fogN:25,fogF:720,fogCj:[.50,.54,.72],fogIn:[.48,.52,.70],hemiS:[.58,.64,.88],hemiG:[.36,.40,.56],hemiI:.85,sunC:[.70,.76,.95],sunI:.45,fillC:[.45,.52,.85],fillI:.24,kickC:[.95,.42,.80],kickI:.14,
-  expo:.94,sat:.92,con:1.15,rtK:.85,wb:[1,1,1],sh:[0,.01,.035],hi:[0,0,0],vigK:.42,vigC:[.03,.03,.08],bloomS:.48,bloomT:.92,
+BIOMES.banqBlizzard=bioMet(BIOMES.tempete,{nm:'GLACIER · BLIZZARD',jour:1,jZen:[.09,.11,.24],jMid:[.20,.24,.40],jHor:[.38,.42,.60],jSol:[.36,.40,.58],sunTint:[.8,.82,.95],
+  fog:[.38,.40,.64],fogN:25,fogF:720,fogCj:[.50,.54,.72],fogIn:[.48,.52,.70],hemiS:[.58,.64,.88],hemiG:[.36,.40,.56],hemiI:.85,sunC:[.70,.76,.95],sunI:.45,fillC:[.45,.52,.85],fillI:.24,kickI:.14,
+  expo:.94,sat:.92,con:1.15,rtK:.85,sh:[0,.01,.035],hi:[0,0,0],vigK:.42,vigC:[.03,.03,.08],bloomS:.48,bloomT:.92,
   env:[[0,'#2a3050'],[.3,'#485270'],[.48,'#7a84a8'],[.58,'#8e98ba'],[.66,'#5a6488'],[1,'#3a4262']],eS1:[200,210,255,.3],eS2:[140,150,220,.25]});
 /* LE ROYAUME DE FEU — SES SIX TEMPS (2026-10-14, Sacha : « il faut une ambiance et des couleurs bien travaillées »). La grammaire de la forêt
    (ciel d'altitude jour:1, couleurs en LINÉAIRE, sat ≤ 1,03 de jour, ≤ 1,07 le soir, ≤ ,95 la nuit, la cendre et l'orage ; con ≤ 1,24).
@@ -27704,109 +27669,94 @@ BIOMES.banqBlizzard=bioMet(BIOMES.tempete,{nm:'GLACIER · BLIZZARD',jour:1,jZen:
    roche elle-même (hauteur du soleil, lueur des rives, panache, braises, cendre) est dans VLC_MET.
    Raccord à la bible DA (passation/DA-CARCASH.md) : le contre-jour ROSE (kick) à toutes les heures, le ciel froid contre la braise (deux
    températures), la vignette à l'encre bleu nuit, les bords de route néon rose ; l'accent propre de la map, c'est l'ORANGE de la lave. */
-BIOMES.volcanMatin=bioMet(BIOMES.matin,{nm:'VOLCAN · MATIN',jour:1,jZen:[.07,.08,.28],jMid:[.36,.24,.44],jHor:[1,.55,.42],jSol:[1,.56,.32],sunTint:[1,.74,.55],sunHalo:.9,stars:.1,moon:0,city:0,
-  fog:[.36,.22,.30],fogN:220,fogF:2600,fogCj:[1,.64,.50],fogIn:[.56,.40,.46],hemiS:[.56,.50,.74],hemiG:[.36,.13,.08],hemiI:.66,sunC:[1,.72,.52],sunI:1.5,fillC:[.62,.24,.12],fillI:.24,kickC:[1,.20,.52],kickI:.16,
-  expo:.96,sat:1.03,con:1.18,rtK:.72,wb:[1,1,1],sh:[0,.004,.03],hi:[.016,.006,-.004],vigK:.26,vigC:[.03,.035,.08],bloomS:.5,bloomT:.9,
+BIOMES.volcanMatin=bioMet(BIOMES.matin,{nm:'VOLCAN · MATIN',jZen:[.07,.08,.28],jMid:[.36,.24,.44],jHor:[1,.55,.42],jSol:[1,.56,.32],sunTint:[1,.74,.55],sunHalo:.9,stars:.1,moon:0,
+  fog:[.36,.22,.30],fogN:220,fogF:2600,fogCj:[1,.64,.50],fogIn:[.56,.40,.46],hemiS:[.56,.50,.74],hemiG:[.36,.13,.08],hemiI:.66,sunC:[1,.72,.52],fillC:[.62,.24,.12],
+  sat:1.03,con:1.18,rtK:.72,sh:[0,.004,.03],hi:[.016,.006,-.004],vigC:[.03,.035,.08],bloomS:.5,bloomT:.9,
   env:[[0,'#1c1a4a'],[.3,'#5a3a78'],[.48,'#ff9a78'],[.58,'#ffc49a'],[.66,'#3a1a16'],[1,'#140806']],eS1:[255,180,140,.45],eS2:[150,130,220,.28]});
-BIOMES.volcanMidi=bioMet(BIOMES.midi,{nm:'VOLCAN · MIDI',jour:1,jZen:[.06,.20,.56],jMid:[.30,.40,.60],jHor:[.86,.70,.46],jSol:[.52,.40,.24],sunTint:[1,.95,.84],sunHalo:.5,stars:0,moon:0,city:0,
-  fog:[.40,.38,.41],fogN:200,fogF:3200,fogCj:[.94,.82,.62],fogIn:[.66,.62,.60],hemiS:[.64,.70,.88],hemiG:[.34,.16,.09],hemiI:.74,sunC:[1,.95,.86],sunI:1.7,fillC:[.55,.22,.10],fillI:.22,kickC:[1,.26,.56],kickI:.12,
-  expo:.97,sat:1.02,con:1.2,rtK:.8,wb:[1,1,1],sh:[0,.006,.03],hi:[.012,.006,-.006],vigK:.22,vigC:[.03,.04,.08],bloomS:.46,bloomT:.92,
+BIOMES.volcanMidi=bioMet(BIOMES.midi,{nm:'VOLCAN · MIDI',jZen:[.06,.20,.56],jMid:[.30,.40,.60],jHor:[.86,.70,.46],jSol:[.52,.40,.24],sunTint:[1,.95,.84],sunHalo:.5,
+  fog:[.40,.38,.41],fogN:200,fogF:3200,fogCj:[.94,.82,.62],fogIn:[.66,.62,.60],hemiS:[.64,.70,.88],hemiG:[.34,.16,.09],hemiI:.74,sunC:[1,.95,.86],sunI:1.7,fillC:[.55,.22,.10],fillI:.22,
+  expo:.97,sat:1.02,rtK:.8,sh:[0,.006,.03],hi:[.012,.006,-.006],vigK:.22,vigC:[.03,.04,.08],bloomT:.92,
   env:[[0,'#2f62b8'],[.3,'#6c8cc0'],[.48,'#e8cfa0'],[.58,'#fff0d0'],[.66,'#3a2418'],[1,'#120a08']],eS1:[255,248,230,.46],eS2:[150,190,240,.3]});
-BIOMES.volcanSoir=bioMet(BIOMES.nuagesSoir,{nm:'VOLCAN · SOIR',jour:1,jZen:[.10,.025,.09],jMid:[.40,.06,.14],jHor:[1,.30,.07],jSol:[1,.40,.10],sunTint:[1,.45,.20],sunHalo:1.1,stars:.08,moon:0,city:0,
-  fog:[.26,.07,.10],fogN:200,fogF:3000,fogCj:[.72,.24,.16],fogIn:[.55,.20,.20],hemiS:[.46,.34,.62],hemiG:[.42,.10,.04],hemiI:.6,sunC:[1,.50,.24],sunI:1.6,fillC:[.70,.20,.06],fillI:.26,kickC:[1,.16,.50],kickI:.2,
-  expo:.93,sat:1.07,con:1.22,rtK:.86,wb:[1,1,1],sh:[0,.002,.02],hi:[.02,.006,-.01],vigK:.3,vigC:[.04,.025,.08],bloomS:.55,bloomT:.88,
+BIOMES.volcanSoir=bioMet(BIOMES.nuagesSoir,{nm:'VOLCAN · SOIR',jZen:[.10,.025,.09],jMid:[.40,.06,.14],jHor:[1,.30,.07],jSol:[1,.40,.10],sunTint:[1,.45,.20],sunHalo:1.1,stars:.08,moon:0,
+  fog:[.26,.07,.10],fogN:200,fogF:3000,fogCj:[.72,.24,.16],fogIn:[.55,.20,.20],hemiS:[.46,.34,.62],hemiG:[.42,.10,.04],hemiI:.6,sunC:[1,.50,.24],sunI:1.6,fillC:[.70,.20,.06],fillI:.26,kickI:.2,
+  expo:.93,sat:1.07,con:1.22,rtK:.86,sh:[0,.002,.02],hi:[.02,.006,-.01],vigC:[.04,.025,.08],bloomS:.55,bloomT:.88,
   env:[[0,'#2a0818'],[.3,'#7a1a1a'],[.48,'#ff6a2a'],[.58,'#ffb060'],[.66,'#3a0c06'],[1,'#120404']],eS1:[255,150,90,.5],eS2:[200,80,90,.3]});
-BIOMES.volcanNuit=bioMet(BIOMES.nuagesNuit,{nm:'VOLCAN · NUIT',jour:1,jZen:[.010,.006,.032],jMid:[.04,.014,.06],jHor:[.22,.045,.03],jSol:[0,0,0],sunTint:[.6,.6,.9],sunHalo:0,stars:.45,moon:.35,city:0,
-  fog:[.12,.03,.04],fogN:260,fogF:3200,fogCj:[.46,.12,.06],fogIn:[.34,.10,.09],hemiS:[.32,.24,.48],hemiG:[.40,.10,.04],hemiI:.72,sunC:[.55,.52,.78],sunI:.5,fillC:[.80,.22,.06],fillI:.34,kickC:[1,.14,.55],kickI:.24,
-  expo:.95,sat:.95,con:1.18,rtK:1,wb:[1,1,1],sh:[0,.004,.02],hi:[0,0,0],daSh:.3,vigK:.42,vigC:[.01,.012,.04],bloomS:.6,bloomT:.85,
+BIOMES.volcanNuit=bioMet(BIOMES.nuagesNuit,{nm:'VOLCAN · NUIT',jZen:[.010,.006,.032],jMid:[.04,.014,.06],jHor:[.22,.045,.03],jSol:[0,0,0],sunTint:[.6,.6,.9],stars:.45,moon:.35,
+  fog:[.12,.03,.04],fogN:260,fogF:3200,fogCj:[.46,.12,.06],fogIn:[.34,.10,.09],hemiS:[.32,.24,.48],hemiG:[.40,.10,.04],hemiI:.72,sunC:[.55,.52,.78],sunI:.5,fillC:[.80,.22,.06],fillI:.34,kickI:.24,
+  expo:.95,sat:.95,sh:[0,.004,.02],vigC:[.01,.012,.04],bloomS:.6,bloomT:.85,
   env:[[0,'#040208'],[.3,'#140810'],[.48,'#3a1010'],[.58,'#6a1c0c'],[.66,'#200604'],[1,'#0a0202']],eS1:[255,140,80,.4],eS2:[120,80,140,.25]});
-BIOMES.volcanCendre=bioMet(BIOMES.nuagesPluie,{nm:'VOLCAN · CENDRES',jour:1,jZen:[.10,.085,.08],jMid:[.20,.16,.14],jHor:[.38,.27,.20],jSol:[0,0,0],sunTint:[.9,.75,.6],sunHalo:.1,stars:0,moon:0,city:0,
-  fog:[.25,.18,.15],fogN:50,fogF:1350,fogCj:[.42,.30,.24],fogIn:[.38,.31,.28],hemiS:[.50,.50,.64],hemiG:[.32,.14,.08],hemiI:.72,sunC:[.86,.72,.60],sunI:.62,fillC:[.62,.24,.10],fillI:.24,kickC:[.95,.22,.52],kickI:.16,
-  expo:.95,sat:.92,con:1.14,rtK:.8,wb:[1,1,1],sh:[0,.004,.02],hi:[0,0,0],vigK:.32,vigC:[.03,.035,.07],bloomS:.52,bloomT:.88,
+BIOMES.volcanCendre=bioMet(BIOMES.nuagesPluie,{nm:'VOLCAN · CENDRES',jZen:[.10,.085,.08],jMid:[.20,.16,.14],jHor:[.38,.27,.20],jSol:[0,0,0],sunTint:[.9,.75,.6],sunHalo:.1,
+  fog:[.25,.18,.15],fogN:50,fogF:1350,fogCj:[.42,.30,.24],fogIn:[.38,.31,.28],hemiS:[.50,.50,.64],hemiG:[.32,.14,.08],hemiI:.72,sunC:[.86,.72,.60],fillC:[.62,.24,.10],fillI:.24,
+  expo:.95,sat:.92,con:1.14,rtK:.8,sh:[0,.004,.02],vigK:.32,vigC:[.03,.035,.07],bloomS:.52,bloomT:.88,
   env:[[0,'#2a2420'],[.3,'#4a3c34'],[.48,'#7a6250'],[.58,'#8a6c56'],[.66,'#2a1a12'],[1,'#120a06']],eS1:[220,190,160,.3],eS2:[150,120,110,.25]});
-BIOMES.volcanOrage=bioMet(BIOMES.tempete,{nm:'VOLCAN · ORAGE',jour:1,jZen:[.014,.010,.03],jMid:[.04,.028,.06],jHor:[.15,.06,.06],jSol:[0,0,0],sunTint:[.7,.65,.9],sunHalo:0,stars:0,moon:0,city:0,
-  fog:[.09,.05,.06],fogN:50,fogF:1600,fogCj:[.30,.16,.16],fogIn:[.28,.18,.20],hemiS:[.34,.30,.46],hemiG:[.24,.07,.03],hemiI:.52,sunC:[.58,.56,.76],sunI:.5,fillC:[.70,.20,.07],fillI:.3,kickC:[.95,.24,.70],kickI:.2,
-  expo:.9,sat:.92,con:1.18,rtK:.85,wb:[1,1,1],sh:[0,.006,.024],hi:[0,0,0],daCon:.4,daExpo:1.1,daWbN:.5,daSh:.35,vigK:.46,vigC:[.012,.014,.04],bloomS:.56,bloomT:.88,
+BIOMES.volcanOrage=bioMet(BIOMES.tempete,{nm:'VOLCAN · ORAGE',jour:1,jZen:[.014,.010,.03],jMid:[.04,.028,.06],jHor:[.15,.06,.06],sunTint:[.7,.65,.9],
+  fog:[.09,.05,.06],fogN:50,fogF:1600,fogCj:[.30,.16,.16],fogIn:[.28,.18,.20],hemiS:[.34,.30,.46],hemiG:[.24,.07,.03],hemiI:.52,sunC:[.58,.56,.76],sunI:.5,fillC:[.70,.20,.07],fillI:.3,kickI:.2,
+  expo:.9,sat:.92,con:1.18,rtK:.85,sh:[0,.006,.024],hi:[0,0,0],daCon:.4,daExpo:1.1,vigK:.46,vigC:[.012,.014,.04],bloomS:.56,bloomT:.88,
   env:[[0,'#0c0812'],[.3,'#1c1420'],[.48,'#3a2030'],[.58,'#5a2a2a'],[.66,'#1a0a08'],[1,'#080404']],eS1:[200,180,240,.3],eS2:[160,80,80,.25]});
-BIOMES.espaceMatin=bioMet(BIOMES.espace,{nm:'ORBITE · LEVER',sunC:[1,.84,.62],sunI:1.85,sunTint:[1,.8,.6],fillC:[.36,.56,1],kickC:[.8,.7,.75],volSun:[1.5,1.2,1.0],
-  env:[[0,'#06050e'],[.3,'#120d24'],[.48,'#3a2a50'],[.58,'#7a5a6a'],[.66,'#14102a'],[1,'#030208']],eS1:[255,214,170,.48],eS2:[120,150,255,.3]});
-BIOMES.espaceSoir=bioMet(BIOMES.espace,{nm:'ORBITE · COUCHANT',sunC:[1,.56,.40],sunI:1.6,sunTint:[1,.5,.38],fillC:[.40,.42,.95],kickC:[.9,.5,.75],volSun:[1.6,.95,.8],
-  env:[[0,'#08040e'],[.3,'#1a0a22'],[.48,'#4a1e40'],[.58,'#8a3a4a'],[.66,'#180a20'],[1,'#040208']],eS1:[255,160,120,.5],eS2:[140,120,255,.3]});
+BIOMES.espaceMatin=bioMet(BIOMES.espace,{nm:'ORBITE · LEVER',volSun:[1.5,1.2,1.0]});
+BIOMES.espaceSoir=bioMet(BIOMES.espace,{nm:'ORBITE · COUCHANT',volSun:[1.6,.95,.8]});
 /* ================= L'ÉTALONNAGE PAR MAP × MÉTÉO (2026-10-14, passe graphismes) =================
    Sacha : « pour chaque map, pour chaque météo… la colorimétrie, l'étalonnage… que tout soit cohérent » — et la route devient un béton mat.
    Des SURCHARGES de valeurs, posées APRÈS toutes les définitions : `bioMet` COPIE son parent, donc retoucher ici une ambiance mère ne
    change plus ses filles — chaque couple se règle seul. Une section par map (une équipe par section). Gratuit pour la puce : des nombres. */
 // ---- ÉTALONNAGE · MER DE NUAGES (matin · midi · nuagesSoir · nuagesNuit · nuagesPluie · tempete) ----
-Object.assign(BIOMES.matin,{sat:1.10,con:1.14,expo:.98,jZen:[.12,.36,.76],jMid:[.35,.58,.85],jHor:[.97,.85,.74],jSol:[.5,.36,.2],fog:[.93,.87,.82],fogCj:[.98,.9,.76],fogIn:[.96,.95,.95],sunC:[1,.92,.78],hemiG:[.7,.72,.8],fillC:[.55,.68,.92],volSun:[2.1,2.05,2.0],volSky:[.8,.84,.94],volGnd:[.78,.78,.86],vigC:[.06,.07,.11],env:[[0,'#5E9FDD'],[.3,'#9CC4E6'],[.48,'#F4E2D0'],[.58,'#FFF1DC'],[.66,'#B9C3D2'],[1,'#8E9AB0']]}); // (2026-10-14, passe graphismes) MATIN : sat/con produits 1,19/1,21 (≤1,20/1,22), ciel azur → pêche pâle (charte #5E9FDD → #F7D9BC), brume pêche de l'horizon, clé or pâle, ombres lavande, cumulus crème clair (plus de beige/lilas), vignette neutre. NB les jZen/jMid/jHor sont LINÉAIRES (avant ACES) : les poser en sRGB les rend trop clairs
-Object.assign(BIOMES.midi,{rtK:.9,sat:1.14,con:1.18,expo:.96,jZen:[.13,.40,.84],jMid:[.5,.74,.93],jHor:[.81,.91,.97],jSol:[.3,.28,.2],fog:[.8,.89,.96],fogCj:[.94,.93,.88],sunC:[1,.99,.96],hemiG:[.7,.72,.8],fillC:[.5,.7,.95],volSun:[2.35,2.35,2.3],volSky:[.8,.86,.95],volGnd:[.8,.82,.88],vigC:[.06,.08,.12],env:[[0,'#3F8FE0'],[.3,'#7FB8EA'],[.48,'#DDEEF8'],[.58,'#FFFFFF'],[.66,'#BCCBD8'],[1,'#90A4BC']]}); // (2026-10-14, passe graphismes) MIDI : sat/con 1,23/1,25, fini le cobalt (azur → horizon bleu très clair), brume bleu clair, cumulus BLANCS (clé blanche, ombres bleu pâle, plus de taupe), expo .96 pour que le béton reste à L* ~45, vignette neutre
-Object.assign(BIOMES.nuagesSoir,{rtK:.83,sat:1.16,con:1.18,expo:.97,sunI:1.15,hemiI:.6,jZen:[.14,.17,.42],jMid:[.5,.38,.5],jHor:[1,.66,.46],jSol:[.9,.5,.24],sunHalo:.9,fog:[.93,.76,.66],fogCj:[1,.74,.56],sunC:[1,.78,.6],hemiG:[.46,.38,.52],volSun:[2.1,1.85,1.5],volSky:[.56,.5,.68],volGnd:[.34,.27,.34],vigC:[.07,.05,.08],env:[[0,'#3C4C8C'],[.3,'#8C7CAA'],[.48,'#FFB98A'],[.58,'#FFD6A8'],[.66,'#A88A94'],[1,'#6A6080']]}); // (2026-10-14, passe graphismes) SOIR : sat/con 1,25/1,25 (≤1,30), pêche → mauve doux (plus de violet vif ni d'orange fluo), clé pêche (#FFC79A) ADOUCIE après contrôle (sunI 1,7 → 1,15, hemi .55 → .6 : au soleil de face le béton virait au saumon L* 65, sat .5 — non revérifié à l'image), ombres prune, cumulus pêche (ventres moins noirs), halo du soleil .9, vignette neutre (plus de rose)
-Object.assign(BIOMES.nuagesSoir,{rtK:1.05,hemiG:[.54,.44,.48],hemiS:[.7,.66,.82],sunI:1.25}); // (2026-10-14, passe graphismes · hasard-beaute) NUAGES SOIR : béton plus lisible et moins violet-sombre (rtK .83 → 1,05, rebond sol plus chaud, clé 1,15 → 1,25) ; vu au vrai tirage
-Object.assign(BIOMES.nuagesNuit,{sat:1.04,con:1.14,expo:1.0,hemiI:.55,hemiS:[.4,.45,.6],sunI:.74,sunC:[.7,.76,.9],fillI:.26,fillC:[.4,.46,.64],kickC:[.48,.52,.75],jZen:[.004,.008,.035],jMid:[.008,.014,.055],jHor:[.013,.024,.09],fog:[.02,.03,.08],fogN:600,fogF:4000,volSky:[.22,.28,.5],volGnd:[.1,.12,.22],vigK:.34}); // (2026-10-14, passe graphismes) NUIT : sat/con 1,12/1,21 (≤1,15/1,25) ; lumière qui éclaire le béton remontée (hemi .5 → .58, lune .75 → .8 en #B3C2E6, fill .22 → .26, expo .92 → 1,0) : béton L* 18-34 mesuré selon l'angle avec .65/.9/.3 (avant : trou noir), puis allégé d'un cran — non revérifié, ciel linéaire charte #0B1230 → #1E2A52 (plus sombre que la route), brume bleu sombre = horizon. Reste : la mer de nuages (GLSL merZ) garde des sommets blancs
-Object.assign(BIOMES.nuagesNuit,{sunI:.4,hemiI:.5,volSun:[.4,.46,.7],volSky:[.14,.18,.34]}); // (2026-10-14, passe graphismes · hasard-beaute) NUAGES NUIT : les cumulus ne sont plus éclairés comme en plein jour (volSun/volSky plus bas, lune .74 → .4, hemi .55 → .5) ; la mer (GLSL) reste claire, béton toujours lisible
+Object.assign(BIOMES.matin,{sat:1.10,con:1.14,expo:.98,jZen:[.12,.36,.76],jMid:[.35,.58,.85],jHor:[.97,.85,.74],jSol:[.5,.36,.2],fog:[.93,.87,.82],fogCj:[.98,.9,.76],fogIn:[.96,.95,.95],sunC:[1,.92,.78],hemiG:[.7,.72,.8],fillC:[.55,.68,.92],volSky:[.8,.84,.94],volGnd:[.78,.78,.86],vigC:[.06,.07,.11],env:[[0,'#5E9FDD'],[.3,'#9CC4E6'],[.48,'#F4E2D0'],[.58,'#FFF1DC'],[.66,'#B9C3D2'],[1,'#8E9AB0']]}); // (2026-10-14, passe graphismes) MATIN : sat/con produits 1,19/1,21 (≤1,20/1,22), ciel azur → pêche pâle (charte #5E9FDD → #F7D9BC), brume pêche de l'horizon, clé or pâle, ombres lavande, cumulus crème clair (plus de beige/lilas), vignette neutre. NB les jZen/jMid/jHor sont LINÉAIRES (avant ACES) : les poser en sRGB les rend trop clairs
+Object.assign(BIOMES.midi,{rtK:.9,sat:1.14,con:1.18,expo:.96,jZen:[.13,.40,.84],jMid:[.5,.74,.93],jHor:[.81,.91,.97],jSol:[.3,.28,.2],fog:[.8,.89,.96],fogCj:[.94,.93,.88],sunC:[1,.99,.96],hemiG:[.7,.72,.8],fillC:[.5,.7,.95],volSky:[.8,.86,.95],volGnd:[.8,.82,.88],vigC:[.06,.08,.12],env:[[0,'#3F8FE0'],[.3,'#7FB8EA'],[.48,'#DDEEF8'],[.58,'#FFFFFF'],[.66,'#BCCBD8'],[1,'#90A4BC']]}); // (2026-10-14, passe graphismes) MIDI : sat/con 1,23/1,25, fini le cobalt (azur → horizon bleu très clair), brume bleu clair, cumulus BLANCS (clé blanche, ombres bleu pâle, plus de taupe), expo .96 pour que le béton reste à L* ~45, vignette neutre
+Object.assign(BIOMES.nuagesSoir,{expo:.97,hemiI:.6,jSol:[.9,.5,.24],sunHalo:.9,sunC:[1,.78,.6],volSky:[.56,.5,.68],volGnd:[.34,.27,.34],vigC:[.07,.05,.08],env:[[0,'#3C4C8C'],[.3,'#8C7CAA'],[.48,'#FFB98A'],[.58,'#FFD6A8'],[.66,'#A88A94'],[1,'#6A6080']]}); // (2026-10-14, passe graphismes) SOIR : sat/con 1,25/1,25 (≤1,30), pêche → mauve doux (plus de violet vif ni d'orange fluo), clé pêche (#FFC79A) ADOUCIE après contrôle (sunI 1,7 → 1,15, hemi .55 → .6 : au soleil de face le béton virait au saumon L* 65, sat .5 — non revérifié à l'image), ombres prune, cumulus pêche (ventres moins noirs), halo du soleil .9, vignette neutre (plus de rose)
+Object.assign(BIOMES.nuagesSoir,{sunI:1.25}); // (2026-10-14, passe graphismes · hasard-beaute) NUAGES SOIR : béton plus lisible et moins violet-sombre (rtK .83 → 1,05, rebond sol plus chaud, clé 1,15 → 1,25) ; vu au vrai tirage
+Object.assign(BIOMES.nuagesNuit,{expo:1.0,fogN:600,fogF:4000}); // (2026-10-14, passe graphismes) NUIT : sat/con 1,12/1,21 (≤1,15/1,25) ; lumière qui éclaire le béton remontée (hemi .5 → .58, lune .75 → .8 en #B3C2E6, fill .22 → .26, expo .92 → 1,0) : béton L* 18-34 mesuré selon l'angle avec .65/.9/.3 (avant : trou noir), puis allégé d'un cran — non revérifié, ciel linéaire charte #0B1230 → #1E2A52 (plus sombre que la route), brume bleu sombre = horizon. Reste : la mer de nuages (GLSL merZ) garde des sommets blancs
 Object.assign(BIOMES.nuagesPluie,{sat:.96,con:1.10,expo:.97,sunC:[.84,.87,.92],hemiG:[.26,.29,.38],jZen:[.2,.24,.3],jMid:[.3,.34,.4],jHor:[.42,.45,.5],fog:[.46,.5,.56],fogIn:[.5,.53,.58],fogCj:[.46,.48,.54],vigK:.3,vigC:[.05,.06,.09]}); // (2026-10-14, passe graphismes) PLUIE : sat/con 1,04/1,17 (≤1,05/1,18), gris perle (ciel et brume du même gris-bleu, plus de pervenche clair), clé diffuse #D5DEEA, la route mouillée garde le spectacle
 Object.assign(BIOMES.matin,{nuLav:[.82,.89,.95],nuR:[-.3,.45,.78,1],nuK:[1,1.15,1,1],volSun:[2.75,2.7,2.65]}); // (2026-10-14, passe graphismes · nuages-jour) MATIN : les cumulus ne sont plus gris-lavande. Cause : l'ombre des cumulus (GLSL nuage8Mat) était un bleu-lavande FIGÉ vec3(.72,.78,.97) × .64 ; elle devient un bleu-gris clair vert-bleuté (L* ventre ~65 au lieu de ~55, plus de teinte 280°), frontière d'ombre plus douce (pas de liseré), soleil ×1,15 et albédo ~1 (sommets L* ~88-90). Valeurs seulement. (Le fond de dalle ne s'estompe pas par fogN/fogF : la route a sa propre brume, essayé 200/1100 → 320/1900, sans effet à l'horizon.)
 Object.assign(BIOMES.midi,{nuLav:[.80,.89,.97],nuR:[-.3,.45,.78,1],nuK:[1,1.08,1,1],volSun:[2.7,2.7,2.65]}); // (2026-10-14, passe graphismes · nuages-jour) MIDI : cumulus BLANCS au soleil (sommets L* ~90, soleil ×1,08 pour garder le modelé ; ventres bleu-gris clair (L* ~60-65, ex. lavande L* ~45-55 d'orage), ombre douce sans liseré ; même mécanisme que le matin
-Object.assign(BIOMES.nuagesSoir,{jZen:[.14,.14,.42],jHor:[.95,.70,.58],fog:[.93,.78,.70],sat:1.08,con:1.14,nuLav:[.84,.72,.78],nuR:[-.3,.45,.74,1],nuK:[1,1.12,.5,.5],volSun:[2.5,2.25,2.0],hemiS:[.76,.69,.8]}); // (2026-10-14, passe graphismes · nuages-jour) SOIR (course) : même famille que le titre SOIR/GOLDEN (zénith mauve doux [.14,.14,.42], horizon pêche [.95,.70,.58], sat 1,08 / con 1,14) ; cumulus pêche crème, ventres prune rosée désaturée (nuLav), lisière de contre-jour adoucie (nuK.z .5), plus de galets orange-mauve ; hemiS un peu moins bleu (le dessus des cumulus à l'ombre). N'écrit QUE nuagesSoir (copie figée de titreGolden au chargement : le titre ne bouge pas)
-Object.assign(BIOMES.nuagesSoir,{jZen:[.10,.14,.32],jMid:[.42,.38,.46],sat:1.06,con:1.24,rtK:.90,mzH:[.95,.68,.52,.8],mzO:[.13,.11,.13,.8],nuLav:[.66,.60,.64],nuR:[-.3,.45,.56,1],nuK:[1,1.3,.5,.5]}); // (2026-10-14, passe graphismes · soir2) SOIR, en VALEURS (le passage d'avant n'avait changé que la teinte) : la mer de nuages avait un seul étage clair (sommets crème, creux bleu-violet pâle, tout à L* 45-65) → sommets pêche chaud (mzH .95,.68,.52, part .8) et CREUX prune désaturée sombre (mzO .15,.10,.14, part .8) : l'étagement sommet/creux se lit enfin, comme au titre SOIR/GOLDEN (pêche → prune) ; cumulus : clé ×1,12 → ×1,3 (sommets plus clairs), ventres plus sombres et moins bleus (nuLav .84,.72,.78 → .70,.58,.66, clarté d'ombre nuR.z .74 → .56) ; béton rtK 1,05 → .90 (L* mesuré 32 → ~25, charte 22-30 : la caisse orange se détache) ; con 1,14 → 1,24 (≤1,32), sat 1,08 → 1,06 (réel 1,28 ≤ 1,30) ; zénith un cran moins violet (jZen .14,.14,.42 → .16,.15,.36, non revérifié à l'image). N'écrit QUE nuagesSoir (copie figée de titreGolden : le titre ne bouge pas, mesuré identique). ⚠ mzT n'est PAS un champ d'ambiance (bioLerp lit BIO.from[k][0] : TypeError) — ne pas l'ajouter."
-Object.assign(BIOMES.tempete,{sat:1.0,jour:1,jZen:[.012,.017,.05],jMid:[.025,.03,.07],jHor:[.07,.08,.14],jSol:[0,0,0],hemiS:[.38,.42,.52],hemiG:[.1,.12,.2],sunC:[.6,.66,.77],fillC:[.3,.4,.6],kickC:[.4,.5,.7],kickI:.2,fog:[.17,.2,.28],fogIn:[.3,.34,.42],fogCj:[.28,.31,.4],volSun:[1.1,1.18,1.35],volSky:[.34,.38,.5],volGnd:[.1,.11,.17],sh:[0,.008,.03],vigK:.5,vigC:[.02,.025,.045],eS1:[190,205,235,.3],eS2:[120,140,180,.25],env:[[0,'#1B2236'],[.3,'#2A3348'],[.48,'#4A5670'],[.58,'#6A7690'],[.66,'#2A3144'],[1,'#10131C']]}); // (2026-10-14, passe graphismes) ORAGE (niveau L'ORAGE) : ARDOISE — le ciel passe de l'ancien dégradé Vice City (violet/magenta, orange au zénith sous skyMul) au « jour d'altitude » gris-bleu #1E2740 → #4A5670 (jour:1, comme les 5 autres météos), contre-jour violet → bleu-gris, hemi/fill/brume/vignette sans violet, sat 1,0 × 1,08 = 1,08 (≤1,10) ; mêmes fogN/fogF (visibilité du niveau)
-Object.assign(BIOMES.tempete,{sunI:.4,hemiI:.46,volSun:[.45,.5,.72],volSky:[.2,.23,.34]}); // (2026-10-14, passe graphismes · hasard-beaute) ORAGE (nuages) : cumulus ardoise sombres au lieu de blanc-lavande lumineux (volSun/volSky plus bas, clé .8 → .4)
+Object.assign(BIOMES.nuagesSoir,{jHor:[.95,.70,.58],volSun:[2.5,2.25,2.0],hemiS:[.76,.69,.8]}); // (2026-10-14, passe graphismes · nuages-jour) SOIR (course) : même famille que le titre SOIR/GOLDEN (zénith mauve doux [.14,.14,.42], horizon pêche [.95,.70,.58], sat 1,08 / con 1,14) ; cumulus pêche crème, ventres prune rosée désaturée (nuLav), lisière de contre-jour adoucie (nuK.z .5), plus de galets orange-mauve ; hemiS un peu moins bleu (le dessus des cumulus à l'ombre). N'écrit QUE nuagesSoir (copie figée de titreGolden au chargement : le titre ne bouge pas)
+Object.assign(BIOMES.nuagesSoir,{jZen:[.10,.14,.32],jMid:[.42,.38,.46],sat:1.06,rtK:.90,mzH:[.95,.68,.52,.8],mzO:[.13,.11,.13,.8],nuLav:[.66,.60,.64],nuR:[-.3,.45,.56,1],nuK:[1,1.3,.5,.5]}); // (2026-10-14, passe graphismes · soir2) SOIR, en VALEURS (le passage d'avant n'avait changé que la teinte) : la mer de nuages avait un seul étage clair (sommets crème, creux bleu-violet pâle, tout à L* 45-65) → sommets pêche chaud (mzH .95,.68,.52, part .8) et CREUX prune désaturée sombre (mzO .15,.10,.14, part .8) : l'étagement sommet/creux se lit enfin, comme au titre SOIR/GOLDEN (pêche → prune) ; cumulus : clé ×1,12 → ×1,3 (sommets plus clairs), ventres plus sombres et moins bleus (nuLav .84,.72,.78 → .70,.58,.66, clarté d'ombre nuR.z .74 → .56) ; béton rtK 1,05 → .90 (L* mesuré 32 → ~25, charte 22-30 : la caisse orange se détache) ; con 1,14 → 1,24 (≤1,32), sat 1,08 → 1,06 (réel 1,28 ≤ 1,30) ; zénith un cran moins violet (jZen .14,.14,.42 → .16,.15,.36, non revérifié à l'image). N'écrit QUE nuagesSoir (copie figée de titreGolden : le titre ne bouge pas, mesuré identique). ⚠ mzT n'est PAS un champ d'ambiance (bioLerp lit BIO.from[k][0] : TypeError) — ne pas l'ajouter."
+Object.assign(BIOMES.tempete,{jour:1,hemiG:[.1,.12,.2],volGnd:[.1,.11,.17],sh:[0,.008,.03],vigK:.5,vigC:[.02,.025,.045],eS1:[190,205,235,.3],eS2:[120,140,180,.25],env:[[0,'#1B2236'],[.3,'#2A3348'],[.48,'#4A5670'],[.58,'#6A7690'],[.66,'#2A3144'],[1,'#10131C']]}); // (2026-10-14, passe graphismes) ORAGE (niveau L'ORAGE) : ARDOISE — le ciel passe de l'ancien dégradé Vice City (violet/magenta, orange au zénith sous skyMul) au « jour d'altitude » gris-bleu #1E2740 → #4A5670 (jour:1, comme les 5 autres météos), contre-jour violet → bleu-gris, hemi/fill/brume/vignette sans violet, sat 1,0 × 1,08 = 1,08 (≤1,10) ; mêmes fogN/fogF (visibilité du niveau)
 /* (2026-10-14, passe graphismes · aurore2) L'AURORE = LA TOUTE PREMIÈRE IMAGE DE COURSE (l'auto-école, et le niveau 1 de la carrière). Elle tournait encore sur
    le ciel d'avant (jour:0 : bande rose Miami → bleu électrique / magenta / orange qui se battaient), avec une lumière orangée et le split or de la couche DA qui
    changeaient le béton en SABLE : la caisse orange s'y perdait. → le ciel d'altitude (jour:1) en aube SOBRE : zénith bleu pâle, horizon crème à peine pêche,
    soleil doux et blanc chaud, rebond du sol neutre ; split or coupé (daHi 0, comme le matin : les blancs sortaient sable) ; béton gris (rtK). Couleurs du ciel
    et brume en LINÉAIRE. */
-Object.assign(BIOMES.aurore,{jour:1,daHi:0,wb:[1,1,1],sh:[-.006,.008,.03],hi:[0,0,0],sat:1.06,con:1.16,expo:.97,rtK:.85,jZen:[.20,.37,.67],jMid:[.51,.60,.75],jHor:[.90,.83,.72],jSol:[.38,.29,.18],sunTint:[1,.88,.68],sunHalo:.85,fog:[.90,.86,.82],fogN:900,fogF:5200,fogCj:[.95,.89,.80],fogIn:[.95,.95,.96],hemiS:[.80,.85,.92],hemiG:[.62,.62,.66],hemiI:.66,sunC:[1,.90,.76],sunI:1.5,fillC:[.56,.68,.90],fillI:.26,kickC:[.9,.8,.7],kickI:.1,volSun:[2.1,2.0,1.9],volSky:[.78,.82,.92],volGnd:[.7,.72,.8],volAmb:.85,vigK:.24,vigC:[.05,.07,.1],env:[[0,'#6E95C8'],[.3,'#A9BFDA'],[.48,'#F2DFC8'],[.58,'#FBEBD6'],[.66,'#B8BEC8'],[1,'#8C94A6']],eS1:[255,232,200,.46],eS2:[170,200,240,.3]});
+Object.assign(BIOMES.aurore,{jour:1,daHi:0,sh:[-.006,.008,.03],hi:[0,0,0],sat:1.06,expo:.97,rtK:.85,jZen:[.20,.37,.67],jMid:[.51,.60,.75],jHor:[.90,.83,.72],jSol:[.38,.29,.18],sunTint:[1,.88,.68],sunHalo:.85,fog:[.90,.86,.82],fogN:900,fogF:5200,fogCj:[.95,.89,.80],fogIn:[.95,.95,.96],hemiS:[.80,.85,.92],hemiG:[.62,.62,.66],hemiI:.66,sunC:[1,.90,.76],sunI:1.5,fillC:[.56,.68,.90],fillI:.26,kickC:[.9,.8,.7],kickI:.1,volSun:[2.1,2.0,1.9],volSky:[.78,.82,.92],volGnd:[.7,.72,.8],volAmb:.85,vigK:.24,vigC:[.05,.07,.1],env:[[0,'#6E95C8'],[.3,'#A9BFDA'],[.48,'#F2DFC8'],[.58,'#FBEBD6'],[.66,'#B8BEC8'],[1,'#8C94A6']],eS1:[255,232,200,.46],eS2:[170,200,240,.3]});
 /* (2026-10-14, LA BIBLE CAR CASH, passe graphismes · nuagesjour) LA MER DE NUAGES DE JOUR SORT DU BLANC (mur des maps : ciel L* 91-95, chroma 1-2, brume #f7f0ea).
    Des COPIES pour la course (`nuagesMatinCC`, `nuagesMidiCC`, branchées sur SF_CARTES plus bas) : le menu et le titre gardent matin/midi au bit près.
    Zénith azur → horizon PÊCHE, brume bleu tendre (plus jamais blanche), ombre des cumulus bleu ciel (ventres colorés, pas gris), mer aux sommets crème
    chaud et aux creux bleus, contre-jour ROSE, saturation effective ~1,38 ; plus la signature de route (bords roses, ligne or). */
 {
- BIOMES.nuagesMatinCC=bioMet(BIOMES.matin,{nm:'MATIN CLAIR',sat:1.14,con:1.22,jZen:[.10,.30,.66],jMid:[.40,.60,.86],jHor:[1,.74,.52],jSol:[.62,.40,.20],fog:[.70,.74,.84],fogCj:[1,.80,.62],fogIn:[.88,.90,.96],kickC:[1,.38,.66],kickI:.2,nuLav:[.70,.80,.98],nuR:[-.3,.45,.64,1],mzH:[1,.92,.82,.5],mzO:[.50,.62,.86,.5],vigC:[.05,.06,.14]});
- BIOMES.nuagesMidiCC=bioMet(BIOMES.midi,{nm:'MIDI',sat:1.14,con:1.24,jZen:[.08,.28,.68],jMid:[.34,.58,.90],jHor:[.95,.80,.64],jSol:[.40,.32,.20],fog:[.66,.74,.88],fogCj:[.96,.86,.72],fogIn:[.86,.90,.96],kickC:[1,.38,.68],kickI:.18,nuLav:[.70,.80,.98],nuR:[-.3,.45,.64,1],mzH:[1,.95,.88,.45],mzO:[.50,.62,.88,.5],vigC:[.05,.06,.14]});
+ BIOMES.nuagesMatinCC=bioMet(BIOMES.matin,{sat:1.14,con:1.22,jZen:[.10,.30,.66],jMid:[.40,.60,.86],fog:[.70,.74,.84],fogIn:[.88,.90,.96],kickC:[1,.38,.66],kickI:.2,nuLav:[.70,.80,.98],nuR:[-.3,.45,.64,1],mzH:[1,.92,.82,.5],mzO:[.50,.62,.86,.5],vigC:[.05,.06,.14]});
+ BIOMES.nuagesMidiCC=bioMet(BIOMES.midi,{nm:'MIDI',con:1.24,jZen:[.08,.28,.68],jMid:[.34,.58,.90],fog:[.66,.74,.88],fogIn:[.86,.90,.96],kickC:[1,.38,.68],kickI:.18,nuLav:[.70,.80,.98],nuR:[-.3,.45,.64,1],mzH:[1,.95,.88,.45],mzO:[.50,.62,.88,.5],vigC:[.05,.06,.14]});
 }
-{ // (2026-10-14, passe graphismes · mer-nuit) LA MER S'ÉTEINT LA NUIT ET À L'ORAGE : sommets et ombres de la mer (GLSL merZ) posés en LINÉAIRE ; ailleurs w 0 (BIO_ETAL0)
- Object.assign(BIOMES.nuagesNuit,{mzH:[.013,.023,.084,.85],mzO:[.004,.007,.028,.85],nuA:[.32,.34,.41]}); // NUIT : sommets bleu nuit #1E2A52 (= l'horizon du ciel), ombres encre — avant : sommets blanc crème, ombres indigo clair (+.10,.10,.16) ; ouate ×(.32,.34,.41) : la couleur du ciel nocturne, un cran moins bleue que la cible .30/.34/.45 (vu : bleu roi saturé), plus la lune en plein
- Object.assign(BIOMES.tempete,{mzH:[.068,.093,.162,.8],mzO:[.022,.03,.055,.8],nuA:[.55,.58,.66]}); // ORAGE : sommets ardoise #4A5670, ombres ardoise sombre — avant : mer indigo claire ; ouate ardoise ×(.55,.58,.66) (ses filles villeOrage/jadeOrage, copies figées plus haut, ne bougent pas)
-}
-Object.assign(BIOMES.nuagesNuit,{nuLav:[.10,.16,.32],nuR:[-.05,.55,.5,1],nuK:[1,1.8,.7,1]}); // (2026-10-14, passe graphismes · cumnuit) NUIT : cumulus à DÉGRADÉ — sommet touché par la lune, ventre bleu encre. Avant : ombre lavande figée [.72,.78,.97] (aussi claire que la face éclairée = aplat) ; après : ombre bleu encre [.10,.16,.32], frontière d'ombre resserrée (-.25/.5 → -.05/.55) et clarté d'ombre .64 → .5, lune ×1,8 sur les faces éclairées, lisière de contre-jour .7
 Object.assign(BIOMES.nuagesPluie,{nuLav:[.40,.46,.56],nuR:[-.1,.55,.5,1],nuK:[.92,.85,.6,1],nuA:[.86,.87,.9],volSun:[.95,1.0,1.1]}); // (2026-10-14, passe graphismes · cumnuit) PLUIE : cumulus gris perle → ardoise, plus laiteux. Avant : albédo 1, ombre lavande .64, soleil 1,15-1,32 (blancs lumineux) ; après : albédo ×(.86,.87,.9) et ×.92, ombre ardoise [.40,.46,.56] à .5, clé diffuse .95-1,1 ×.85, lisière .6
-Object.assign(BIOMES.tempete,{nuLav:[.14,.19,.30],nuR:[-.05,.5,.5,1],nuK:[1,1.5,.5,1]}); // (2026-10-14, passe graphismes · cumnuit) ORAGE : cumulus ardoise sombre à ventre noir-bleu. Avant : ombre lavande .64 (ventre presque aussi clair que le dessus) ; après : ombre ardoise-encre [.14,.19,.30] à .5, éclair/clé ×1,5 sur les faces éclairées pour garder un sommet lisible, lisière .5
-Object.assign(BIOMES.tempete,{sat:1.24,jZen:[.02,.018,.08],jMid:[.05,.034,.13],jHor:[.15,.08,.24],fog:[.17,.16,.33],fogIn:[.3,.28,.48],fogCj:[.32,.24,.46],hemiS:[.42,.40,.62],kickC:[.62,.42,1],kickI:.3,volSky:[.24,.2,.44],nuLav:[.2,.16,.42],mzH:[.11,.09,.26,.8],mzO:[.035,.025,.085,.8],nuA:[.58,.56,.78]}); // (2026-10-15, Sacha : « l'orage de la mer de nuages, beaucoup trop gris ») l'ardoise vire à l'ORAGE ÉLECTRIQUE : ciel indigo-violet, brume violette, ventres pourpres, kick violet néon
+Object.assign(BIOMES.tempete,{nuR:[-.05,.5,.5,1],nuK:[1,1.5,.5,1]}); // (2026-10-14, passe graphismes · cumnuit) ORAGE : cumulus ardoise sombre à ventre noir-bleu. Avant : ombre lavande .64 (ventre presque aussi clair que le dessus) ; après : ombre ardoise-encre [.14,.19,.30] à .5, éclair/clé ×1,5 sur les faces éclairées pour garder un sommet lisible, lisière .5
+Object.assign(BIOMES.tempete,{jZen:[.02,.018,.08],jMid:[.05,.034,.13],jHor:[.15,.08,.24],fog:[.17,.16,.33],fogIn:[.3,.28,.48],fogCj:[.32,.24,.46],hemiS:[.42,.40,.62],kickC:[.62,.42,1],kickI:.3,volSky:[.24,.2,.44],nuLav:[.2,.16,.42],mzH:[.11,.09,.26,.8],mzO:[.035,.025,.085,.8],nuA:[.58,.56,.78]}); // (2026-10-15, Sacha : « l'orage de la mer de nuages, beaucoup trop gris ») l'ardoise vire à l'ORAGE ÉLECTRIQUE : ciel indigo-violet, brume violette, ventres pourpres, kick violet néon
 /* (2026-10-14, Sacha : « trop gris, trop triste ; rajoute des couleurs pures, bleu ou violet, une ambiance CLAIR DE LUNE » — passe graphismes · clairdelune) LA MER DE
    NUAGES DE NUIT = CLAIR DE LUNE (la bible : la nuit = bleu et violet PURS, jamais gris). Ciel bleu profond saturé → indigo → horizon violet (linéaire), étoiles et lune
    plus fortes ; mer de nuages bleu nuit LUMINEUSE ; cumulus aux sommets argent-bleu (la lune) et aux ventres VIOLETS ; lumière : lune bleutée, remplissage violet,
    contre-jour ROSE ; saturation effective ~1,43 ; la signature de route (bords roses, ligne or). */
-Object.assign(BIOMES.nuagesNuit,{sat:1.18,con:1.22,expo:1.0,jZen:[.010,.022,.13],jMid:[.030,.040,.20],jHor:[.085,.060,.26],stars:1.6,moon:1.6,fog:[.04,.05,.16],fogIn:[.18,.18,.40],fogCj:[.16,.14,.38],
-  hemiS:[.35,.40,.80],hemiG:[.14,.10,.30],hemiI:.58,sunC:[.75,.82,1.0],sunI:.75,fillC:[.48,.36,.98],fillI:.32,kickC:[1,.38,.66],kickI:.22,
+Object.assign(BIOMES.nuagesNuit,{sat:1.18,con:1.22,jZen:[.010,.022,.13],jMid:[.030,.040,.20],jHor:[.085,.060,.26],stars:1.6,moon:1.6,fog:[.04,.05,.16],fogIn:[.18,.18,.40],fogCj:[.16,.14,.38],
+  hemiS:[.35,.40,.80],hemiG:[.14,.10,.30],hemiI:.58,sunC:[.75,.82,1.0],fillC:[.48,.36,.98],fillI:.32,kickC:[1,.38,.66],kickI:.22,
   volSun:[.75,.85,1.35],volSky:[.26,.22,.58],volGnd:[.12,.08,.26],nuLav:[.34,.24,.66],nuR:[-.1,.5,.58,1],nuK:[1,2.2,.8,1],nuA:[.58,.64,.88],
   mzH:[.11,.17,.44,.85],mzO:[.035,.04,.17,.85],vigC:[.02,.02,.08],vigK:.32});
 window.dbgMer=function(){return {h:skyU.uMzH.value.toArray(),o:skyU.uMzO.value.toArray(),alb:CLOUD_MAT.color.toArray().map(x=>+x.toFixed(3)),bio:BIO.name};}; // (banc mer-nuit) les uniformes de la mer
 // (fin MER DE NUAGES)
 //
 //
-/* (2026-10-14, passe graphismes · etal-ville2) LES FINITIONS DE LA VILLE : une ligne FUSIONNÉE par ambiance (valeurs complètes) posée APRÈS les lignes empilées ci-dessous. Notes : $G/notes/etal-ville2.md */
+/* (2026-10-14, passe graphismes · etal-ville2) LES FINITIONS DE LA VILLE : les valeurs finales des ambiances de la ville. Notes : $G/notes/etal-ville2.md */
 // ---- ÉTALONNAGE · LA VILLE (nuitNoire · pluie · villeOrage) ----
-Object.assign(BIOMES.nuitNoire,{jour:1,sat:1.04,con:1.14,expo:.85,jZen:[.004,.008,.035],jMid:[.008,.014,.055],jHor:[.013,.024,.09],jSol:[0,0,0],moon:.4,fog:[.02,.03,.08],fogN:200,fogF:2200,fogIn:[.1,.12,.2],fogCj:[.1,.12,.22],hemiS:[.4,.45,.62],hemiG:[.04,.05,.09],hemiI:.4,sunC:[.7,.76,.92],sunI:.55,fillC:[.4,.48,.68],fillI:.22,kickC:[.5,.56,.82],kickI:.08,volSun:[.8,.88,1.1],volSky:[.2,.26,.46],volGnd:[.08,.1,.18],bloomS:.55,bloomT:.85,rimK:.4,vigK:.5,vigC:[.01,.02,.05],eS1:[200,215,255,.2],eS2:[120,150,210,.18],env:[[0,'#0B1230'],[.3,'#141C3A'],[.48,'#2A3A5E'],[.58,'#4A5E88'],[.66,'#10162C'],[1,'#060810']]}); // (2026-10-14, passe graphismes) VILLE NUIT (niveau MINUIT) : encre BLEUE (jour:1 avec le ciel linéaire de la charte #0B1230 → #1E2A52, plus sombre que la route, étoiles gardées), expo .62 → .85 + hemi .16 → .4 + lune sunI .14 → .55 (vu : béton bleu-nuit lisible, ciel plus noir que la route ; .95/.5/.7 le rendait trop clair) + fill .22 : le béton reste lisible (cible L* 14-20, fini le trou noir) ; plus de kick magenta, env/eS sans rose ni cyan, fog bleu sombre 200/2200 (les tours se lisent) ; sat/con 1,12/1,14 (≤1,15/1,25), vignette .5×.6
-Object.assign(BIOMES.pluie,{jour:1,sat:.96,con:1.08,expo:.8,jZen:[.12,.16,.22],jMid:[.2,.24,.31],jHor:[.34,.38,.45],jSol:[0,0,0],city:1.2,fog:[.34,.38,.45],fogN:300,fogF:2400,fogIn:[.4,.44,.5],fogCj:[.34,.37,.44],hemiS:[.5,.56,.7],hemiG:[.14,.16,.22],hemiI:.5,sunC:[.78,.83,.92],sunI:.85,fillC:[.4,.5,.68],fillI:.22,kickC:[.5,.55,.7],kickI:.15,volSun:[.95,1,1.15],volSky:[.3,.34,.44],volGnd:[.1,.11,.16],bloomS:.5,bloomT:.9,rimK:.5,vigK:.4,vigC:[.04,.05,.08],sh:[0,.006,.03],eS1:[200,215,240,.3],eS2:[140,170,210,.25],env:[[0,'#141A26'],[.3,'#2A3446'],[.48,'#6C7C94'],[.58,'#A0AEC0'],[.66,'#2A3244'],[1,'#10141E']]}); // (2026-10-14, passe graphismes) VILLE PLUIE (niveau VILLE, « pluie néon ») : gris-bleu désaturé (jour:1, ciel #6E7F96-ish assombri, brume du même gris, plus de violet-magenta dans fog/ciel/kick/fill teal), sat/con 1,04/1,15 (≤1,05/1,18), expo .72 → .8 + hemi .44 → .5 (vu : gris-bleu, béton mouillé qui reflète les enseignes ; .9/.62 était trop clair et plat) ; seules les enseignes (shaders, city 1,2) gardent de la couleur ; vignette neutre
-Object.assign(BIOMES.villeOrage,{jour:1,sat:1,con:1.16,expo:.86,jZen:[.02,.025,.04],jMid:[.034,.041,.058],jHor:[.085,.095,.125],jSol:[0,0,0],fog:[.12,.14,.2],fogIn:[.3,.34,.42],fogCj:[.28,.31,.4],hemiS:[.38,.42,.52],hemiG:[.1,.12,.2],sunC:[.6,.66,.77],fillC:[.3,.4,.6],kickC:[.4,.5,.7],kickI:.2,volSun:[1.1,1.18,1.35],volSky:[.34,.38,.5],volGnd:[.1,.11,.17],sh:[0,.008,.03],vigK:.5,vigC:[.02,.025,.045],eS1:[190,205,235,.3],eS2:[120,140,180,.25],env:[[0,'#1B2236'],[.3,'#2A3348'],[.48,'#4A5670'],[.58,'#6A7690'],[.66,'#2A3144'],[1,'#10131C']]}); // (2026-10-14, passe graphismes) VILLE ORAGE : ARDOISE comme la tempête des Nuages refaite en jour:1 (ciel gris-bleu #1E2740 → #4A5670 au lieu du dégradé Vice City violet), contre-jour magenta → bleu-gris, hemi/fill/brume/vignette sans violet, sat 1,0×1,08 (≤1,10), expo .86 inchangé (vu : .94 trop clair) ; ciel un peu moins indigo que la tempête (zénith plus gris, NON REVU) ; mêmes fogN/fogF 140/1400 (visibilité du niveau)
-Object.assign(BIOMES.villeOrage,{jZen:[.022,.028,.036],jMid:[.04,.048,.056],jHor:[.1,.11,.125],hemiS:[.4,.45,.5],hemiG:[.12,.14,.18],fillC:[.36,.46,.62],sat:.92}); // (2026-10-14, passe graphismes · hasard-beaute) VILLE ORAGE : ciel ardoise gris-bleu (plus d'indigo violacé), sat .92, ombres froides ; vu au vrai tirage
-Object.assign(BIOMES.nuitNoire,{jour:1,sat:0.94,con:1.14,expo:0.85,jZen:[0.004,0.008,0.035],jMid:[0.008,0.014,0.055],jHor:[0.013,0.024,0.09],jSol:[0,0,0],moon:0.4,fog:[0.02,0.03,0.08],fogN:200,fogF:2200,fogIn:[0.1,0.12,0.2],fogCj:[0.1,0.12,0.22],hemiS:[0.4,0.45,0.62],hemiG:[0.04,0.05,0.09],hemiI:0.4,sunC:[0.7,0.76,0.92],sunI:0.55,fillC:[0.4,0.48,0.68],fillI:0.22,kickC:[0.5,0.56,0.82],kickI:0.08,volSun:[0.8,0.88,1.1],volSky:[0.2,0.26,0.46],volGnd:[0.08,0.1,0.18],bloomS:0.55,bloomT:0.85,rimK:0.4,vigK:0.5,vigC:[0.01,0.02,0.05],eS1:[200,215,255,0.2],eS2:[120,150,210,0.18],env:[[0,'#0B1230'],[0.3,'#141C3A'],[0.48,'#2A3A5E'],[0.58,'#4A5E88'],[0.66,'#10162C'],[1,'#060810']]}); // (2026-10-14, passe graphismes · etal-ville2) VILLE NUIT (niveau MINUIT) : béton L* 18-20 (charte 14-20) et ciel plus noir que la route, déjà au niveau — seul le produit sat était hors charte (1,04 × 1,08 × 1,12 = 1,26 > 1,15) : sat .94 → 1,14 réel ; image à peine différente (conformité chiffrée, retirable)
-Object.assign(BIOMES.pluie,{jour:1,sat:0.86,con:1.08,expo:0.8,jZen:[0.12,0.16,0.22],jMid:[0.2,0.24,0.31],jHor:[0.34,0.38,0.45],jSol:[0,0,0],city:1.2,fog:[0.34,0.38,0.45],fogN:300,fogF:2400,fogIn:[0.4,0.44,0.5],fogCj:[0.34,0.37,0.44],hemiS:[0.5,0.56,0.7],hemiG:[0.14,0.16,0.22],hemiI:0.5,sunC:[0.78,0.83,0.92],sunI:0.85,fillC:[0.4,0.5,0.68],fillI:0.22,kickC:[0.5,0.55,0.7],kickI:0.15,volSun:[0.95,1,1.15],volSky:[0.3,0.34,0.44],volGnd:[0.1,0.11,0.16],bloomS:0.5,bloomT:0.9,rimK:0.5,vigK:0.4,vigC:[0.04,0.05,0.08],sh:[0,0.006,0.03],eS1:[200,215,240,0.3],eS2:[140,170,210,0.25],env:[[0,'#141A26'],[0.3,'#2A3446'],[0.48,'#6C7C94'],[0.58,'#A0AEC0'],[0.66,'#2A3244'],[1,'#10141E']]}); // (2026-10-14, passe graphismes · etal-ville2) VILLE PLUIE (niveau VILLE) : gris-bleu ardoise, béton mouillé L* 25-28, déjà au niveau — seul le produit sat était hors charte (.96 × 1,08 × 1,12 = 1,16 > 1,05) : sat .86 → 1,04 réel ; image à peine différente, les enseignes gardent leurs couleurs (conformité chiffrée, retirable)
-Object.assign(BIOMES.pluie,{jour:0,jZen:[0,0,0],jMid:[0,0,0],jHor:[0,0,0],sat:1.38,con:1.3,expo:.72,city:1.5,fog:[.20,.12,.28],fogN:320,fogF:2600,fogIn:[.847,.737,.816],fogCj:[.753,.416,.329],hemiS:[.42,.48,.64],hemiG:[.06,.07,.10],hemiI:.44,sunC:[.62,.70,.95],sunI:.72,fillC:[.25,.80,.95],fillI:.34,kickC:[1,.25,.70],kickI:.30,volSun:[.95,1,1.25],volSky:[.20,.24,.34],volGnd:[.05,.06,.09],bloomS:.55,bloomT:.88,rimK:1,rimS:.55,vigK:.8,vigC:[.149,.047,.212],wb:[1.02,.985,1.03],sh:[.004,-.008,.062],hi:[.052,.008,-.014],eS1:[255,90,200,.45],eS2:[80,230,255,.35],env:[[0,'#10141e'],[.3,'#1c2434'],[.48,'#3a4a5e'],[.58,'#6a3a6a'],[.66,'#1a2030'],[1,'#080a12']]}); // (villerose) LA VILLE AU NÉON ROSE : l'ambiance d'AVANT la passe graphismes (fill cyan, kick magenta, brume violette, guirlande 1,5), cette map seule — con 1,23 → 1,3 et vigK .52 → .8 compensent la couche DA commune (con 1,14 → 1,06, vignette ×.6)
+Object.assign(BIOMES.pluie,{sat:1.38,con:1.3,expo:.72,city:1.5,fog:[.20,.12,.28],fogN:320,fogF:2600,hemiS:[.42,.48,.64],hemiG:[.06,.07,.10],hemiI:.44,sunC:[.62,.70,.95],sunI:.72,fillC:[.25,.80,.95],fillI:.34,kickC:[1,.25,.70],kickI:.30,volSun:[.95,1,1.25],volSky:[.20,.24,.34],volGnd:[.05,.06,.09],bloomS:.55,bloomT:.88,rimK:1,vigK:.8,vigC:[.149,.047,.212],wb:[1.02,.985,1.03],sh:[.004,-.008,.062],hi:[.052,.008,-.014],eS1:[255,90,200,.45],env:[[0,'#10141e'],[.3,'#1c2434'],[.48,'#3a4a5e'],[.58,'#6a3a6a'],[.66,'#1a2030'],[1,'#080a12']]}); // (villerose) LA VILLE AU NÉON ROSE : l'ambiance d'AVANT la passe graphismes (fill cyan, kick magenta, brume violette, guirlande 1,5), cette map seule — con 1,23 → 1,3 et vigK .52 → .8 compensent la couche DA commune (con 1,14 → 1,06, vignette ×.6)
 {const R9=JSON.parse(JSON.stringify(BIOMES.pluie)); // (villerose, Sacha 20 h 50 : « la ville doit être en ROSE la nuit ») LA NUIT ET L'ORAGE PRENNENT LE ROSE DE LA VILLE AU NÉON (l'ambiance pluie rendue plus haut) — leur ancien rendu à elles était noir ou ardoise, pas rose
- Object.assign(BIOMES.nuitNoire,R9,{nm:'MINUIT',stars:1.5,moon:.6,expo:.8,fogN:260,fogF:2600}); // minuit : le néon rose + les étoiles et la lune, un cran plus lumineux (la route était à L* 5)
+ Object.assign(BIOMES.nuitNoire,R9,{nm:'MINUIT',stars:1.5,moon:.6,expo:.8,fogN:260}); // minuit : le néon rose + les étoiles et la lune, un cran plus lumineux (la route était à L* 5)
  Object.assign(BIOMES.villeOrage,R9,{nm:'VILLE · ORAGE',expo:.68,sunI:.6,hemiI:.38,kickI:.36,city:1.3,fogN:220,fogF:2200});} // l'orage : le néon rose sous un ciel plus bas et plus sombre (les éclairs restent ceux de l'orage)
 // (fin LA VILLE)
 //
 //
 // ---- ÉTALONNAGE · PICS DE JADE (jadeMatin · jadeMidi · jade · jadeNuit · jadePluie · jadeOrage) ----
-Object.assign(BIOMES.jadeMatin,{rtK:.6,expo:.95,sat:1.04,wb:[1,1,1],sh:[0,.012,.03],hi:[.014,.012,-.006],hemiS:[.84,.92,.94],hemiG:[.5,.58,.56],fillC:[.56,.74,.8],volSky:[.76,.86,.9],volGnd:[.46,.5,.5],vigC:[.04,.05,.06],fog:[.86,.9,.84],fogIn:[.88,.92,.88],jdZ:[.34,.5,.62],jdL:[.58,.72,.7],jdM:[.72,.82,.72],jdH:[.95,.84,.66],jdR:[.3,.38,.36],jdB:[.82,.88,.82],jdS:[1,.9,.66],env:[[0,'#6aa6c0'],[.3,'#a8d0d0'],[.48,'#e2ecdc'],[.58,'#fff0cc'],[.66,'#98aca8'],[1,'#44564f']]}); // (2026-10-14, passe graphismes) matin céladon : azur-jade → pêche clair, brume blanc de brume, ombres bleu-vert, vignette neutre (plus de violet), béton non avalé par un ciel crème
-Object.assign(BIOMES.jadeMidi,{rtK:.6,expo:1,wb:[1,1,1],sh:[0,.012,.03],hi:[.01,.012,-.004],hemiS:[.82,.92,.98],hemiG:[.46,.56,.52],fillC:[.5,.72,.8],volSky:[.78,.86,.94],volGnd:[.5,.54,.56],vigC:[.04,.05,.06],fog:[.82,.89,.87],fogIn:[.86,.92,.9],jdZ:[.28,.5,.7],jdL:[.5,.68,.76],jdM:[.66,.82,.78],jdH:[.86,.93,.88],jdR:[.28,.4,.38],jdB:[.82,.9,.86],jdS:[1,.97,.9],env:[[0,'#4a8cc0'],[.3,'#90c4d4'],[.48,'#e2f0ee'],[.58,'#ffffff'],[.66,'#a4b8b8'],[1,'#506670']]}); // (2026-10-14, passe graphismes) midi céladon : plus de cobalt, ciel azur-jade → blanc de brume, ombres bleu-vert, vignette neutre
+Object.assign(BIOMES.jadeMatin,{rtK:.6,expo:.95,wb:[1,1,1],sh:[0,.012,.03],hi:[.014,.012,-.006],hemiS:[.84,.92,.94],hemiG:[.5,.58,.56],fillC:[.56,.74,.8],volSky:[.76,.86,.9],volGnd:[.46,.5,.5],vigC:[.04,.05,.06],jdM:[.72,.82,.72],jdR:[.3,.38,.36],jdB:[.82,.88,.82],jdS:[1,.9,.66],env:[[0,'#6aa6c0'],[.3,'#a8d0d0'],[.48,'#e2ecdc'],[.58,'#fff0cc'],[.66,'#98aca8'],[1,'#44564f']]}); // (2026-10-14, passe graphismes) matin céladon : azur-jade → pêche clair, brume blanc de brume, ombres bleu-vert, vignette neutre (plus de violet), béton non avalé par un ciel crème
+Object.assign(BIOMES.jadeMidi,{rtK:.6,expo:1,wb:[1,1,1],sh:[0,.012,.03],hi:[.01,.012,-.004],hemiS:[.82,.92,.98],hemiG:[.46,.56,.52],fillC:[.5,.72,.8],volSky:[.78,.86,.94],volGnd:[.5,.54,.56],vigC:[.04,.05,.06],jdM:[.66,.82,.78],jdR:[.28,.4,.38],jdB:[.82,.9,.86],jdS:[1,.97,.9],env:[[0,'#4a8cc0'],[.3,'#90c4d4'],[.48,'#e2f0ee'],[.58,'#ffffff'],[.66,'#a4b8b8'],[1,'#506670']]}); // (2026-10-14, passe graphismes) midi céladon : plus de cobalt, ciel azur-jade → blanc de brume, ombres bleu-vert, vignette neutre
 Object.assign(BIOMES.jade,{sat:1.2,vigC:[.06,.045,.06]}); // (2026-10-14, passe graphismes) soir de Léo : on lui rend sa saturation d'avant la couche commune (1,08 × 1,11 → produit 1,30), vignette violette → ombre prune neutre ; rien d'autre
 Object.assign(BIOMES.jade,{rtK:.72}); // (2026-10-14, passe graphismes · oeil-neuf) JADE SOIR : la route la plus claire et la plus beige du jeu (L* ~62 contre ~45 aux autres soirs) → béton gris mat comme ailleurs (rtK 1 → .72)
-Object.assign(BIOMES.jadeNuit,{sat:1.06,sunTint:[.7,.82,.95],sunC:[.6,.76,.92],sunI:.5,hemiI:.58,hemiS:[.16,.28,.34],hemiG:[.04,.08,.09],fillC:[.24,.42,.5],kickC:[.4,.6,.7],volSun:[.8,1,1.1],volSky:[.1,.15,.19],volGnd:[.04,.06,.07],sh:[0,.012,.024],vigC:[.012,.02,.03],fog:[.03,.075,.1],fogCj:[.2,.3,.38],fogIn:[.2,.28,.34],jdZ:[.01,.025,.045],jdL:[.02,.045,.07],jdM:[.03,.07,.1],jdH:[.05,.11,.15],jdR:[.012,.025,.035],jdB:[.04,.09,.12],jdS:[.3,.42,.55],env:[[0,'#030a0e'],[.3,'#08181f'],[.48,'#1b3440'],[.58,'#35566a'],[.66,'#0d1a22'],[1,'#04080b']],eS1:[170,205,225,.4],eS2:[80,120,140,.3]}); // (2026-10-14, passe graphismes) nuit bleu-vert sombre sans violet : lune argent-bleuté, ciel et brume du même bleu-vert, coton et ouate moins clairs (hemi/lune/vol), vignette neutre
+Object.assign(BIOMES.jadeNuit,{sat:1.06,sunTint:[.7,.82,.95],sunC:[.6,.76,.92],sunI:.5,hemiI:.58,hemiS:[.16,.28,.34],hemiG:[.04,.08,.09],fillC:[.24,.42,.5],kickC:[.4,.6,.7],volSun:[.8,1,1.1],volSky:[.1,.15,.19],volGnd:[.04,.06,.07],sh:[0,.012,.024],vigC:[.012,.02,.03],env:[[0,'#030a0e'],[.3,'#08181f'],[.48,'#1b3440'],[.58,'#35566a'],[.66,'#0d1a22'],[1,'#04080b']],eS1:[170,205,225,.4],eS2:[80,120,140,.3]}); // (2026-10-14, passe graphismes) nuit bleu-vert sombre sans violet : lune argent-bleuté, ciel et brume du même bleu-vert, coton et ouate moins clairs (hemi/lune/vol), vignette neutre
 Object.assign(BIOMES.jadePluie,{sat:.95,wb:[1,1,1],sh:[0,.01,.022],sunC:[.84,.88,.88],hemiS:[.62,.7,.68],hemiG:[.28,.34,.32],fillC:[.5,.62,.6],kickC:[.58,.66,.66],vigC:[.04,.05,.05],fog:[.5,.56,.53],fogCj:[.6,.66,.63],fogIn:[.64,.7,.67],volSky:[.5,.56,.56],jdZ:[.3,.38,.38],jdL:[.4,.48,.47],jdM:[.5,.57,.55],jdH:[.6,.66,.62],jdR:[.26,.32,.31],jdB:[.52,.58,.55],env:[[0,'#3a4a4a'],[.3,'#5c6c68'],[.48,'#8c9a94'],[.58,'#9eaaa4'],[.66,'#5a6862'],[1,'#2e3836']],eS1:[200,216,222,.3],eS2:[150,175,175,.25]}); // (2026-10-14, passe graphismes) pluie gris-vert perle : ciel, brume et lumières du même gris à peine vert (plus de lavande), vignette neutre
-Object.assign(BIOMES.jadeOrage,{sat:1.02,wb:[1,1,1],sh:[0,.01,.02],sunC:[.58,.68,.72],hemiS:[.36,.42,.46],hemiG:[.08,.1,.11],fillC:[.28,.4,.44],kickC:[.38,.52,.58],kickI:.18,volSun:[.9,1,1.04],volSky:[.26,.32,.34],volGnd:[.07,.09,.1],vigC:[.015,.02,.025],fog:[.14,.17,.18],fogCj:[.24,.3,.32],fogIn:[.28,.34,.36],jdZ:[.09,.12,.13],jdL:[.15,.19,.2],jdM:[.19,.24,.25],jdH:[.25,.31,.32],jdR:[.09,.11,.11],jdB:[.2,.25,.26],jdS:[.2,.24,.28],env:[[0,'#1c2628'],[.3,'#2e3c40'],[.48,'#56686c'],[.58,'#6c7e82'],[.66,'#2c383a'],[1,'#141a1c']],eS1:[190,210,215,.3],eS2:[110,140,150,.25]}); // (2026-10-14, passe graphismes) orage ardoise verdie : plus d'indigo ni de kick violet, ciel/brume/lumières gris-vert sombres, vignette neutre
+Object.assign(BIOMES.jadeOrage,{sat:1.02,wb:[1,1,1],sh:[0,.01,.02],sunC:[.58,.68,.72],hemiS:[.36,.42,.46],hemiG:[.08,.1,.11],fillC:[.28,.4,.44],kickC:[.38,.52,.58],kickI:.18,volSun:[.9,1,1.04],volSky:[.26,.32,.34],volGnd:[.07,.09,.1],vigC:[.015,.02,.025],jdS:[.2,.24,.28],env:[[0,'#1c2628'],[.3,'#2e3c40'],[.48,'#56686c'],[.58,'#6c7e82'],[.66,'#2c383a'],[1,'#141a1c']],eS1:[190,210,215,.3],eS2:[110,140,150,.25]}); // (2026-10-14, passe graphismes) orage ardoise verdie : plus d'indigo ni de kick violet, ciel/brume/lumières gris-vert sombres, vignette neutre
 /* (2026-10-14, passe graphismes · A4 jade-nuit) L'ESTAMPE DE NUIT — les pics en silhouette d'encre sur un horizon encre-vert PLUS CLAIR, la brume qui
    sépare les plans. Les cibles de la charte (#0D1A1E zénith, #1C3036 horizon) ne se posent PAS en « linéaire » : la chaîne (ACES, contraste pivot .5,
    saturation du grade) écrase tout ce qui sort du shader sous ~.09 en noir pur — le ciel de nuit d'avant tombait donc à 0 et les pics noirs ne se
@@ -27836,9 +27786,9 @@ Object.assign(BIOMES.jadeOrage,{fog:[.23,.265,.275],fogCj:[.26,.30,.31],fogIn:[.
 //
 //
 // ---- ÉTALONNAGE · EN ORBITE (espaceMatin · espace · espaceSoir) ----
-Object.assign(BIOMES.espaceMatin,{expo:.72,sat:1.04,con:1.18,sh:[0,.006,.03],daSh:0,hi:[.012,.008,0],daHi:0,sunC:[1,.94,.84],sunI:1.9,sunTint:[1,.86,.68],hemiG:[.22,.32,.55],fillC:[.32,.52,.92],kickC:[.8,.74,.7],bloomS:.46,bloomT:.95,vigK:.3,vigC:[.012,.014,.024],env:[[0,'#06070f'],[.3,'#0e1226'],[.48,'#28325a'],[.58,'#8a7c72'],[.66,'#0e1226'],[1,'#030308']],eS1:[255,226,185,.4],eS2:[120,150,235,.26]}); // (2026-10-14, passe graphismes) LEVER derrière la Terre : clé or pâle, Terre bleue en rebond, ombres bleu-nuit neutres (plus de violet ni de vert), sat/con sous les plafonds, vignette neutre
-Object.assign(BIOMES.espace,{expo:.69,sat:1.04,con:1.18,sh:[0,.006,.03],daSh:0,hi:[.01,.008,0],daHi:0,sunC:[1,.98,.94],sunI:2.05,hemiG:[.22,.32,.55],fillC:[.3,.5,.9],kickC:[.7,.72,.8],bloomS:.46,bloomT:.95,vigK:.3,vigC:[.012,.014,.024],env:[[0,'#05060e'],[.3,'#0b1024'],[.48,'#1c2a54'],[.58,'#3a4e86'],[.66,'#0b1024'],[1,'#020208']],eS1:[215,230,255,.4],eS2:[130,160,240,.26]}); // (2026-10-14, passe graphismes) MIDI (et PLUIE DE SATELLITES, qui lit la même ambiance) : lumière blanche dure, Terre bleue, ombres bleu-nuit neutres, sat 1,12 / con 1,25 (plafonds du niveau satellites inclus), vignette neutre
-Object.assign(BIOMES.espaceSoir,{expo:.7,sat:1.02,con:1.18,sh:[0,.004,.026],daSh:0,hi:[.014,.006,0],daHi:0,sunC:[1,.82,.66],sunI:1.6,sunTint:[1,.55,.36],hemiG:[.2,.28,.5],fillC:[.32,.42,.82],kickC:[.8,.56,.5],bloomS:.46,bloomT:.95,vigK:.3,vigC:[.014,.012,.022],env:[[0,'#07060c'],[.3,'#140f1e'],[.48,'#2c2c52'],[.58,'#8a5a44'],[.66,'#140f1e'],[1,'#040306']],eS1:[255,170,120,.42],eS2:[120,130,220,.24]}); // (2026-10-14, passe graphismes) COUCHANT : clé ambrée plus sombre, Terre bleue en ombre, plus de magenta (kick rose, env prune retirés), vignette neutre
+Object.assign(BIOMES.espaceMatin,{expo:.72,sat:1.04,con:1.18,sh:[0,.006,.03],daSh:0,hi:[.012,.008,0],daHi:0,sunC:[1,.94,.84],sunTint:[1,.86,.68],vigK:.3,vigC:[.012,.014,.024],env:[[0,'#06070f'],[.3,'#0e1226'],[.48,'#28325a'],[.58,'#8a7c72'],[.66,'#0e1226'],[1,'#030308']],eS1:[255,226,185,.4],eS2:[120,150,235,.26]}); // (2026-10-14, passe graphismes) LEVER derrière la Terre : clé or pâle, Terre bleue en rebond, ombres bleu-nuit neutres (plus de violet ni de vert), sat/con sous les plafonds, vignette neutre
+Object.assign(BIOMES.espace,{expo:.69,sat:1.04,con:1.18,sh:[0,.006,.03],daSh:0,hi:[.01,.008,0],daHi:0,sunC:[1,.98,.94],vigK:.3,vigC:[.012,.014,.024],eS1:[215,230,255,.4]}); // (2026-10-14, passe graphismes) MIDI (et PLUIE DE SATELLITES, qui lit la même ambiance) : lumière blanche dure, Terre bleue, ombres bleu-nuit neutres, sat 1,12 / con 1,25 (plafonds du niveau satellites inclus), vignette neutre
+Object.assign(BIOMES.espaceSoir,{expo:.7,sat:1.02,con:1.18,sh:[0,.004,.026],daSh:0,hi:[.014,.006,0],daHi:0,sunTint:[1,.55,.36],vigK:.3,vigC:[.014,.012,.022],eS1:[255,170,120,.42]}); // (2026-10-14, passe graphismes) COUCHANT : clé ambrée plus sombre, Terre bleue en ombre, plus de magenta (kick rose, env prune retirés), vignette neutre
 Object.assign(BIOMES.espaceSoir,{sunC:[1,.9,.8]}); // (2026-10-14, passe graphismes · hasard-beaute) ESPACE SOIR : béton gris-taupe au lieu de chocolat (clé [1,.82,.66] → [1,.9,.8]) ; vu au vrai tirage
 /* (2026-10-14, passe graphismes · orbite2) LE REBOND VIENT DE LA PLANÈTE. Le dessous de l'hémisphère (hemiG), le remplissage (fillC), la bande .58 du reflet
    (env) et le 2e liseré (eS2) restaient BLEU TERRE sur les quatre couples, même sous Mars, Jupiter et Saturne : la caisse et la route recevaient la lumière
@@ -27855,37 +27805,37 @@ Object.assign(BIOMES.espaceSoir,{sunC:[1,.9,.8]}); // (2026-10-14, passe graphis
    à ~1) pour que la caisse et la route sortent du noir, contre-jour ROSE, et la signature de route (bords roses, ligne or) sur le vide. */
 for(const k of ['espaceMatin','espace','espaceSoir','espaceSat'])if(BIOMES[k])Object.assign(BIOMES[k],{expo:+(BIOMES[k].expo*1.15).toFixed(3),kickC:[1,.38,.66],kickI:.18,rtK:.72}); /* rtK .72 : A/B au même instant, le béton de l'orbite était à L* 52-72 (cible 32-45) */
 for(const k of ['espaceMatin','espace','espaceSoir','espaceSat'])if(BIOMES[k])BIOMES[k].stars=.8; // (2026-10-15) LES NÉBULEUSES : les étoiles se rallument (elles étaient à 0, « noir complet »)
-Object.assign(BIOMES.bullrun,{expo:.88,sat:1.12,con:1.18,sunI:1.2,hemiI:.62,jZen:[.2,.42,.82],jMid:[.5,.7,.9],jHor:[.98,.92,.76],jSol:[1,.7,.3],fog:[.9,.88,.8],fogCj:[1,.88,.64],fogIn:[1,.96,.9],hemiS:[.84,.9,1],fillC:[.52,.74,.92],vigK:.2,vigC:[.05,.06,.08],env:[[0,'#3f86d8'],[.3,'#7ab6ea'],[.48,'#f2ecd8'],[.58,'#ffe6a8'],[.66,'#c9b890'],[1,'#8a7e66']]}); // (2026-10-14, passe graphismes) CRYPTOCITY : jour clair TENU — ciel sans cobalt (azur → horizon or pâle), con 1,24 → 1,18 (produit 1,26), rebond vert retiré (le vert de hausse reste aux tours), vignette neutre, or du ₿ intact
+Object.assign(BIOMES.bullrun,{expo:.88,con:1.18,sunI:1.2,hemiI:.62,jZen:[.2,.42,.82],jMid:[.5,.7,.9],jHor:[.98,.92,.76],jSol:[1,.7,.3],fog:[.9,.88,.8],fogCj:[1,.88,.64],fogIn:[1,.96,.9],hemiS:[.84,.9,1],fillC:[.52,.74,.92],vigK:.2,vigC:[.05,.06,.08],env:[[0,'#3f86d8'],[.3,'#7ab6ea'],[.48,'#f2ecd8'],[.58,'#ffe6a8'],[.66,'#c9b890'],[1,'#8a7e66']]}); // (2026-10-14, passe graphismes) CRYPTOCITY : jour clair TENU — ciel sans cobalt (azur → horizon or pâle), con 1,24 → 1,18 (produit 1,26), rebond vert retiré (le vert de hausse reste aux tours), vignette neutre, or du ₿ intact
 /* (2026-10-15, Sacha) CRYPTO CITY — LES QUATRE TEMPS DU BULL RUN : le MIDI est le bull run de Léo (bullrun, ci-dessus) ; le MATIN, une aube rose
    et or sur les tours de verre ; le SOIR, l'heure où tout l'or de la ville s'allume ; la NUIT, la ville qui ne dort pas (bureaux allumés :
    uNuit9 dans CRYPTO_VERRE, feux d'artifice, la lune ₿). Jamais de pluie ni d'orage : c'est l'apogée. Que des uniforms. */
 BIOMES.cryptoMatin=bioMet(BIOMES.bullrun,{nm:'CRYPTO CITY · MATIN',jZen:[.16,.30,.64],jMid:[.54,.62,.88],jHor:[1,.84,.72],jSol:[1,.64,.40],sunTint:[1,.86,.68],sunC:[1,.86,.68],sunI:1.05,
   fog:[.96,.86,.80],fogCj:[1,.80,.64],fogIn:[1,.92,.88],hemiS:[.88,.86,1],fillC:[.64,.66,.94],expo:.9,
   env:[[0,'#3a5aa8'],[.3,'#8a9ad8'],[.48,'#ffe2d0'],[.58,'#ffd2a4'],[.66,'#c2aa94'],[1,'#7a6a5c']],eS1:[255,226,196,.5],eS2:[170,180,240,.3]});
-BIOMES.cryptoSoir=bioMet(BIOMES.nuagesSoir,{nm:'CRYPTO CITY · SOIR',moon:0,city:0,fog:[.98,.74,.50],fogN:700,fogF:4200,fogCj:[1,.72,.40],sunC:[1,.76,.42],sunI:1.6,
-  hemiG:[.62,.46,.30],sat:1.22,env:[[0,'#24346e'],[.3,'#8a6aa0'],[.48,'#ffb060'],[.58,'#ffd27a'],[.66,'#b88a70'],[1,'#6a5a60']],eS1:[255,206,130,.55],eS2:[160,150,220,.3]});
-BIOMES.cryptoNuit=bioMet(BIOMES.nuagesNuit,{nm:'CRYPTO CITY · NUIT',moon:0,city:0,stars:1,jZen:[.008,.014,.05],jMid:[.03,.05,.13],jHor:[.14,.13,.22],
-  fog:[.08,.08,.16],fogN:620,fogF:4000,fogCj:[.42,.36,.50],hemiG:[.10,.08,.12],kickC:[1,.78,.36],kickI:.16,
+BIOMES.cryptoSoir=bioMet(BIOMES.nuagesSoir,{nm:'CRYPTO CITY · SOIR',moon:0,fog:[.98,.74,.50],fogN:700,fogF:4200,fogCj:[1,.72,.40],sunC:[1,.76,.42],sunI:1.6,
+  hemiG:[.62,.46,.30],sat:1.22,env:[[0,'#24346e'],[.3,'#8a6aa0'],[.48,'#ffb060'],[.58,'#ffd27a'],[.66,'#b88a70'],[1,'#6a5a60']],eS1:[255,206,130,.55]});
+BIOMES.cryptoNuit=bioMet(BIOMES.nuagesNuit,{nm:'CRYPTO CITY · NUIT',moon:0,stars:1,jZen:[.008,.014,.05],jMid:[.03,.05,.13],jHor:[.14,.13,.22],
+  fog:[.08,.08,.16],fogN:620,fogCj:[.42,.36,.50],hemiG:[.10,.08,.12],kickC:[1,.78,.36],kickI:.16,
   env:[[0,'#04060f'],[.3,'#0c1430'],[.48,'#2a2a52'],[.58,'#6a5a6e'],[.66,'#141a30'],[1,'#05070f']],eS1:[255,210,140,.4],eS2:[90,230,170,.3]});
 /* (2026-10-17, Léo) LA VILLE VITRÉE — LES QUATRE HEURES : le jour d'altitude, un ciel BLEU (le verre le renvoie), la brume claire où se noient les
    pieds des tours ; le MATIN : soleil bas, horizon doré ; le COUCHER : le ciel orange et rose que les tours renvoient ; la NUIT : bleu profond,
    les bureaux allumés (uNuit9). Que des uniforms. Les nuages de chaque heure sont dans VIT_MET. */
 BIOMES.vitreMidi=bioMet(BIOMES.bullrun,{nm:'VILLE VITREE · MIDI',jZen:[.08,.30,.78],jMid:[.36,.62,.94],jHor:[.84,.91,.99],jSol:[.62,.74,.88],sunTint:[1,.97,.92],sunC:[1,.97,.92],sunI:1.45,
-  fog:[.80,.87,.96],fogN:640,fogF:3600,fogCj:[.96,.95,.92],fogIn:[.92,.95,1],hemiS:[.78,.88,1],hemiG:[.40,.45,.54],hemiI:.66,fillC:[.58,.74,.98],fillI:.2,kickC:[1,.38,.66],kickI:.14,
-  expo:.85,sat:1.1,con:1.16,hi:[0,.004,.012],vigC:[.03,.05,.09],vigK:.2,
+  fog:[.80,.87,.96],fogCj:[.96,.95,.92],fogIn:[.92,.95,1],hemiS:[.78,.88,1],hemiG:[.40,.45,.54],hemiI:.66,fillC:[.58,.74,.98],fillI:.2,
+  expo:.85,sat:1.1,con:1.16,hi:[0,.004,.012],vigC:[.03,.05,.09],
   env:[[0,'#2a6fd8'],[.3,'#6aa8ec'],[.48,'#e4eefa'],[.58,'#d8e6f6'],[.66,'#8a98ac'],[1,'#4a5668']],eS1:[255,250,240,.55],eS2:[150,200,255,.3]});
 BIOMES.vitreMatin=bioMet(BIOMES.cryptoMatin,{nm:'VILLE VITREE · MATIN',jZen:[.12,.26,.62],jMid:[.50,.60,.88],jHor:[1,.82,.62],jSol:[1,.66,.44],sunTint:[1,.84,.62],sunC:[1,.82,.58],sunI:1.25,
-  fog:[.94,.86,.78],fogCj:[1,.80,.58],fogIn:[1,.92,.86],hemiS:[.86,.84,1],hemiG:[.46,.40,.40],fillC:[.62,.66,.94],kickC:[1,.38,.66],kickI:.14,expo:.9,
+  fog:[.94,.86,.78],fogCj:[1,.80,.58],fogIn:[1,.92,.86],hemiS:[.86,.84,1],hemiG:[.46,.40,.40],fillC:[.62,.66,.94],
   env:[[0,'#34509e'],[.3,'#8496d6'],[.48,'#ffdcc0'],[.58,'#ffc88e'],[.66,'#a8907c'],[1,'#5e5250']],eS1:[255,214,160,.55],eS2:[160,176,240,.3]});
-BIOMES.vitreSoir=bioMet(BIOMES.cryptoSoir,{nm:'VILLE VITREE · COUCHER',jZen:[.26,.20,.50],jMid:[.94,.52,.46],jHor:[1,.64,.34],jSol:[1,.48,.22],sunTint:[1,.70,.42],sunC:[1,.64,.36],sunI:1.6,
-  fog:[.96,.70,.56],fogN:700,fogF:4200,fogCj:[1,.66,.40],fogIn:[1,.82,.72],hemiS:[.84,.64,.80],hemiG:[.56,.38,.38],kickC:[1,.38,.66],kickI:.16,sat:.98,
+BIOMES.vitreSoir=bioMet(BIOMES.cryptoSoir,{nm:'VILLE VITREE · COUCHER',jZen:[.26,.20,.50],jMid:[.94,.52,.46],jHor:[1,.64,.34],jSol:[1,.48,.22],sunTint:[1,.70,.42],sunC:[1,.64,.36],
+  fog:[.96,.70,.56],fogCj:[1,.66,.40],fogIn:[1,.82,.72],hemiS:[.84,.64,.80],hemiG:[.56,.38,.38],sat:.98,
   env:[[0,'#2a2a6e'],[.3,'#9a5a96'],[.48,'#ffa060'],[.58,'#ffc070'],[.66,'#a8706a'],[1,'#5a4458']],eS1:[255,190,120,.6],eS2:[200,130,220,.3]});
-BIOMES.vitreNuit=bioMet(BIOMES.cryptoNuit,{nm:'VILLE VITREE · NUIT',stars:.7,moon:0,jZen:[.005,.008,.03],jMid:[.018,.03,.075],jHor:[.075,.085,.15],jSol:[.03,.035,.06],
-  fog:[.04,.05,.09],fogN:640,fogF:4000,fogCj:[.20,.22,.32],fogIn:[.2,.22,.3],hemiS:[.24,.28,.42],hemiG:[.06,.06,.09],hemiI:.4,sunC:[.55,.62,.82],sunI:.45,
-  fillC:[.30,.34,.50],kickC:[.62,.80,1],kickI:.14,sat:.92,volSky:[.10,.12,.24],volGnd:[.03,.035,.06],
+BIOMES.vitreNuit=bioMet(BIOMES.cryptoNuit,{nm:'VILLE VITREE · NUIT',stars:.7,jZen:[.005,.008,.03],jMid:[.018,.03,.075],jHor:[.075,.085,.15],jSol:[.03,.035,.06],
+  fog:[.04,.05,.09],fogCj:[.20,.22,.32],fogIn:[.2,.22,.3],hemiS:[.24,.28,.42],hemiG:[.06,.06,.09],hemiI:.4,sunC:[.55,.62,.82],sunI:.45,
+  fillC:[.30,.34,.50],sat:.92,volSky:[.10,.12,.24],volGnd:[.03,.035,.06],
   env:[[0,'#03050e'],[.3,'#0a1430'],[.48,'#24305a'],[.58,'#4a5a7e'],[.66,'#121a32'],[1,'#04060e']],eS1:[255,226,180,.45],eS2:[120,170,255,.3]});
 BIOMES.vitrePluie=bioMet(BIOMES.vitreMidi,{nm:'VILLE VITREE · PLUIE',jZen:[.30,.34,.42],jMid:[.42,.47,.55],jHor:[.60,.64,.70],jSol:[.30,.33,.38],sunTint:[.8,.84,.9],sunHalo:.1,sunC:[.78,.82,.90],sunI:.55,
-  fog:[.50,.55,.62],fogN:420,fogF:2900,fogCj:[.62,.66,.72],fogIn:[.6,.64,.7],hemiS:[.62,.68,.78],hemiG:[.30,.32,.36],hemiI:.7,fillC:[.5,.56,.66],fillI:.18,kickI:.08,expo:.84,sat:.92,con:1.1,
+  fog:[.50,.55,.62],fogN:420,fogF:2900,fogCj:[.62,.66,.72],fogIn:[.6,.64,.7],hemiS:[.62,.68,.78],hemiG:[.30,.32,.36],hemiI:.7,fillC:[.5,.56,.66],fillI:.18,expo:.84,sat:.92,con:1.1,
   env:[[0,'#3a4250'],[.3,'#5a6474'],[.48,'#8a94a2'],[.58,'#7a8494'],[.66,'#4a525e'],[1,'#2a3038']],eS1:[200,210,225,.4],eS2:[150,165,190,.3]});
 for(const k9 of ['vitreMatin','vitreMidi','vitreSoir','vitreNuit'])Object.assign(BIOMES[k9],{fogN:Math.max(BIOMES[k9].fogN||0,900),fogF:Math.max(BIOMES[k9].fogF||0,4600)});
 if(!VIT_PLAFOND){for(const k9 of ['vitreMatin','vitreMidi','vitreSoir','vitreNuit','vitrePluie'])Object.assign(BIOMES[k9],{kickC:[.80,.88,1],kickI:.12});BIOMES.vitreNuit.moon=1;} // (CLEAN CITY) le contre-jour en blanc froid (le rose est la signature des autres maps) ; la lune revient // (v2) la brume recule : la ville d'en haut se voit
