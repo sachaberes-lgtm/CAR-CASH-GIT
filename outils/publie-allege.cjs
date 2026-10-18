@@ -13,6 +13,7 @@
    (moins les crochets retirés, chacun remplacé par un `;`). Au moindre doute, il part tel quel. Ce script ne fait jamais échouer la
    publication (sortie 0 sauf dossier introuvable).
    Essai : node outils/publie-allege.cjs <dossier> --essai   (n'écrit rien, affiche les gains)
+   Banc sur la copie allégée : --garde-dbg dbgState,dbgBoom (la fumée a besoin de ces deux crochets)
    acorn (MIT) est vendu dans outils/vendor/ : rien à installer sur Vercel. */
 'use strict';
 const fs=require('fs'),path=require('path');
@@ -91,7 +92,8 @@ for(const p of JS)p.cand=p.cand.filter(c=>!p.cand.some(d=>d!==c&&d.a<=c.a&&c.b<=
 const MOT=/\bdbg[A-Za-z0-9_$]*/g,dehors=new Set((blancs(html,P.filter(p=>p.k==='js'))+String.fromCharCode(10)+texteAutres).match(MOT)||[]),occ=new Map();
 for(const p of JS){const t=p.L?blancs(p.src,p.L.com.map(c=>({a:c.start,b:c.end}))):p.src;let m;MOT.lastIndex=0;
   while((m=MOT.exec(t))){const c=p.cand.find(c=>m.index>=c.a&&m.index<c.b);if(!occ.has(m[0]))occ.set(m[0],[]);occ.get(m[0]).push(c?c.nom:null);}}
-let retirables=new Set(JS.flatMap(p=>p.cand.map(c=>c.nom)));
+const GARDE_DBG=new Set((process.argv[process.argv.indexOf('--garde-dbg')+1]||'').split(',').filter(x=>process.argv.includes('--garde-dbg')&&x)); /* banc : garder des crochets */
+let retirables=new Set(JS.flatMap(p=>p.cand.map(c=>c.nom)).filter(n=>!GARDE_DBG.has(n)));
 for(let ch=true;ch;){ch=false;for(const n of [...retirables])if(dehors.has(n)||(occ.get(n)||[]).some(o=>o===null||!retirables.has(o))){retirables.delete(n);ch=true;}}
 let sortie=[],i=0,nbRet=0;
 for(const p of P){sortie.push(html.slice(i,p.a));const t=html.slice(p.a,p.b);let r=t;
