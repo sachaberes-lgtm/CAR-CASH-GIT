@@ -55,4 +55,11 @@ window.MODELES = {
   "LE MUR DU SON": "? ThrustSSC (1997)",
   "LA POUPÉE": "Porsche Cayenne (2018)",
   "LA CERISE": "Mazda MX-5 NA (1989)",
+  "LA DOLCE VITA": "Fiat 500 « 1957 Edition » (2007-2015)",
+  "LE BAROUDEUR": "Jeep Wrangler JL 4 portes (2018)",
+  "LA CABOSSÉE": "la voiture des Simpson (Plymouth Valiant 1973)",
+  "LE ROUGE-GORGE": "Reliant Robin Mk1 (1973)",
+  "LA LAME": "Mazda MX-5 RF (2016)",
+  "LE TOFU": "Toyota AE86 Sprinter Trueno (1983)",
+  "LA FIDÈLE": "Toyota Corolla berline (2019)",
 };
