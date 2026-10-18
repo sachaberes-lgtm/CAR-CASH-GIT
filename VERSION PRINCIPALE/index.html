@@ -49188,7 +49188,7 @@ function frLance(){ // le double-tap au sol : la figure de la direction tenue, S
   C.vide();C.budget=9;C.poseK=0;const r=C.lance(f,sens,D,{douce:true});if(!r)return false; // douce : comme celle du saut — jamais une chute, pas de trio
   r.nitN=1;FX2.nitL=1;FX2.n++;VEQ.n++;FR.n++;FX2.cyc=(s+1)%FIG_NB;VEQ.sautT=performance.now();
   {const D9=FIG.dirs?FIG.dirs(f):[];r.flD=f.sens==='avant'||(D9.length===1&&D9[0]==='avant')?'haut':f.sens==='arriere'||(D9.length===1&&D9[0]==='arriere')?'bas':((ax===2||f.piv)?(sens<0?'gauche':'droite'):(sens>0?'gauche':'droite'));} // la flèche du HUD (voir figLance)
-  FR.on=true;FR.t=0;FR.D=D;FR.T=D*1.12+FIG.PHY.retT+.08;FR.H=frHaut(f);FR.s=s;FR.r=r;FR.f=f;FR.pivK=0;FR.lift=0;FR.liftMax=0;
+  FR.on=true;FR.t=0;FR.D=D;FR.T=D*1.12+FIG.PHY.retT+.08;FR.H=frHaut(f);FR.s=s;FR.r=r;FR.f=f;FR.pivK=0;FR.lift=0;FR.liftMax=0;FDC.a=frNez()<FDC.arme; /* (2026-10-19) LE DÉCOLLAGE AU MANCHE : le pouce qui a CHOISI la figure (en haut) doit revenir avant de faire décoller */
   figCoup(Math.hypot(r.imp[0],r.imp[1],r.imp[2])/10,false);fhLance(s,r,{}); // le coup de la figure (son, main, caméra) ; son nom tombe en grand, dans la couleur de son emplacement
   const p9=carGroup.position,sp9=CARS[level]||CARS[0];for(let k=0;k<14;k++){const a=Math.random()*6.2832; // le souffle contre la route, sous la caisse
     spawnP(k%3?flames:flameCore,p9.x+Math.cos(a)*sp9.w*.5,p9.y+.2,p9.z+Math.sin(a)*sp9.l*.4,FR.vel.x*.8+Math.cos(a)*(3+Math.random()*5),-1-Math.random()*2,FR.vel.z*.8+Math.sin(a)*(3+Math.random()*5),.16+Math.random()*.14);}
@@ -49222,6 +49222,7 @@ function frTick(dt){if(!FR.on)return; // (la boucle, en course) le corps de la f
     else if(r.osc&&r.t<r.D){const nb=Math.floor(r.t*r.osc.w/Math.PI);if(nb>(r.batDit|0)){r.batDit=nb;try{if(SONV2)sfx('fig.battement',{var:r.osc.z>.3?1:0,vol:-4,st:sonPdAR(ECH+(nb&1))});}catch(e){}hap(5);}}}
   {let pv9=0;for(let i=0;i<C.figs.length;i++){const r=C.figs[i];if(!r.paye&&r.f&&r.f.piv){pv9=r.f.piv;break;}}FR.pivK+=(pv9-FR.pivK)*Math.min(1,dt*14);} // le TAIL WHIP : le point fixe glisse vers le nez
   for(let i=0;i<fin.length;i++)frPaye(fin[i]);
+  if(frEnvol())return; // (2026-10-19, Léo) LE DÉCOLLAGE AU MANCHE : le nez tiré vers le haut pendant le bond, la caisse quitte la route
   if(FR.t>=FR.T&&(C.ecart()<.03||FR.t>FR.T+.6))frFin();}
 function frPose(F,dt){const p=carGroup.position; // (conduite, chaque image, après la pose de la caisse sur la route) la figure tourne autour du MILIEU de la caisse, le bond la soulève
   if(FR.p0ok&&dt>0){FR.vel.subVectors(p,FR.p0).multiplyScalar(1/dt);if(FR.vel.lengthSq()>16e4)FR.vel.set(0,0,0);}FR.p0.copy(p);FR.p0ok=true; // la vitesse de la caisse dans le monde : le souffle des explosions la suit
@@ -49232,11 +49233,36 @@ function frPose(F,dt){const p=carGroup.position; // (conduite, chaque image, apr
   const x=Math.min(1,FR.t/FR.T);FR.lift=Math.max(FR.H*4*x*(1-x),dg>0?dg+FR_K.marge:0);if(FR.lift>FR.liftMax)FR.liftMax=FR.lift;
   p.addScaledVector(F.n,FR.lift);}
 function frDecolle(){ // (startFall, AVANT ses remises à zéro) la caisse décolle en pleine figure sur la route
-  if(!FR.on)return null;const k={nitL:0};
+  if(!FR.on)return null;const k={nitL:0,lift:FR.lift}; // (2026-10-19) lift : le vol part d'où la caisse EST, le bond compris (elle retombait d'un coup sur le bitume)
   if(FR.r&&FR.r.paye)frEncaisse();else k.nitL=FX2.nitL|0; // déjà plantée : elle est posée sur la route ; sinon elle part avec le vol (et se paiera à SA pose)
   return k;}
 function frVersVol(k){ // (startFall, APRÈS figDepart) le corps de la figure devient celui du vol : elle continue de tourner, en l'air
   const C0=FX2.corps;FX2.corps=FR.C;FR.C=C0;if(C0)C0.vide();FX2.corps.budget=9;FX2.nitL=(FX2.nitL|0)+k.nitL;FR.on=false;FR.lift=0;FR.vols++;}
+/* LE DÉCOLLAGE AU MANCHE (2026-10-19, Léo : « chaque figure qui fait un saut en l'air — seulement quand la voiture est en l'air — laisse au
+   joueur l'opportunité de décoller de la route avec le joystick qui oriente le nez vers le haut » ; au questionnaire : un geste PENDANT le
+   bond, puis la caisse monte COMME UN AVION). Pendant le bond d'une figure sur la route, le manche du VOL poussé au-delà de la moitié de sa
+   course (`frNez` = la lecture de pitT/wPitch : pouce HAUT par défaut, BAS en réglage PLONGE, ↓ au clavier) fait DÉCOLLER : startFall part
+   d'où la caisse EST (le bond compris, `k.lift` de frDecolle), avec la vitesse du bond ; la figure continue en l'air (frDecolle/frVersVol)
+   et se paie à SA pose ; tenu, le même manche fait monter la caisse (le cabré du vol tourne la trajectoire) ; lâché, elle retombe. Un vrai vol.
+   · LE GESTE NEUF : le pouce déjà poussé au double-tap (il CHOISIT la figure avant) ne compte pas — il doit repasser sous `arme` (30 %)
+     avant de repousser au-delà de `seuil` (55 %). Sans geste, rien ne change : la figure reste sur la route (le choix de Sacha du 17/10).
+   · Seulement EN L'AIR (le bond ≥ `haut`, 20 cm). Pas sous la dalle (pendue à la route, décoller = tomber dans le vide : comme le saut
+     nitro), ni à l'auto-école, ni pendant un rebond (hopY, la pose qui se tasse), ni pendant le demi-tour.
+   · Gratuit (la figure a payé ses 20 %) ; la pose rend la nitro d'un SAUT NITRO (`VEQ.sautF`) ; le volant n'est pas verrouillé.
+   `?fdecolle=0` = sans. Console : `dbgFDecolle()` (l'état), `dbgFDecolle(v)` = le manche forcé à v (null : rend la main au pouce). */
+const FDC={ok:!/[?&]fdecolle=0\b/.test(location.search),arme:.3,seuil:.55,haut:.2,imp:6,a:false,n:0,force:null,dv:0,lift:0};
+function frNez(){if(FDC.force!=null)return FDC.force; // le manche du vol lu sur la route : +1 = le nez en HAUT (le cabré), comme pitT/wPitch en vol
+  if(TCTL.act)return -TCTL.sv*volSens();return (keys.KeyS||keys.ArrowDown?1:0)-(keys.KeyW||keys.KeyZ||keys.ArrowUp?1:0);}
+function frEnvol(){ // (frTick, chaque image du bond) le manche tiré : la caisse quitte la route — true : elle vole
+  const u=frNez();if(u<FDC.arme){FDC.a=true;return false;}
+  if(!FDC.ok||!FDC.a||u<FDC.seuil||!FR.on||mode!=='drive'||FR.lift<FDC.haut||side<0||TUTO.on||hopY>0||hopV!==0||POSE_F||DMT.act)return false;
+  const x=Math.min(1,FR.t/FR.T),vb=FR.H*4*(1-2*x)/Math.max(.1,FR.T)/SPD; // la vitesse du bond, dans les unités du vol (la position avance de fallVel × SPD)
+  FDC.dv=Math.max(FDC.imp,vb);FDC.lift=FR.lift;FDC.a=false;FDC.n++;
+  startFall(FDC.dv,1);VEQ.sautF=flightId;VEQ.l0=0; // un décollage VOULU : comme le saut nitro, le volant tenu continue de tourner, la pose rend la nitro d'un saut
+  return true;}
+window.dbgFDecolle=function(v){if(v!==undefined)FDC.force=v==null?null:+v;
+  return {ok:FDC.ok,arme:FDC.a,nez:+frNez().toFixed(2),force:FDC.force,decolles:FDC.n,dv:+FDC.dv.toFixed(1),liftDecolle:+FDC.lift.toFixed(2),route:FR.on,lift:+FR.lift.toFixed(2),
+    mode:mode,vol:mode==='fall'?+fallTR.toFixed(2):0,haut:mode==='fall'?+fallPos.y.toFixed(1):null};};
 window.dbgFRoute=function(x,y){if(x!=null){FDIR.force=[+x||0,+y||0];let r;try{r=veqDouble();}finally{setTimeout(function(){FDIR.force=null;},250);}
     return {ok:!!r,route:FR.on,mode:mode,fig:FR.on&&FR.f?FR.f.id:null,saut:!FR.on&&mode==='fall',nit:+(nitroR+nitroX).toFixed(2)};}
   const C=FR.C;return {ok:FR.ok,on:FR.on,mode:mode,fig:FR.f?FR.f.id:null,t:+FR.t.toFixed(2),T:+FR.T.toFixed(2),H:+FR.H.toFixed(2),lift:+FR.lift.toFixed(2),liftMax:+FR.liftMax.toFixed(2),
@@ -51805,7 +51831,7 @@ function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe(); // (2026-10
      pas à pas (feel.cjs) : la caisse montait de 0,61 m entre deux images (la vitesse de 4 images de montée d'un coup), puis repartait
      à sa vitesse. Elle part désormais d'où elle roule ; l'impulsion seule la lève. La pose ne peut pas être déclarée avant 0,35 s de vol
      (0,1 s pour un plan percé) : la caisse a le temps de quitter la dalle. */
-  fallPos.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+hopY);
+  fallPos.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+hopY+(fr9?fr9.lift:0)); /* (2026-10-19) fr9.lift : une figure sur la route décolle d'où elle EST, le bond compris */
   FLOW.s0=s;FLOW.p0.copy(fallPos); // (FLOW v2) d'où part le vol — la pose dira si c'était un RACCOURCI
   {const vm9=vitMult(); /* (2026-09-30) l'ÉJECTION = la vitesse d'avance RÉELLE : au sol, NITROOO et VITESSE ×2 multiplient l'avance (vitMult), pas vA — la caisse décollait sans eux */
   fallVel.copy(F.t).multiplyScalar(vA*Math.cos(cap0)*driveDir*(impF||1)*vm9).addScaledVector(F.b,vL*driveDir*vm9) /* (2026-10-17) ×cos(cap) : la vitesse et le cap du vol sont ceux de la route (voir cap0) */.addScaledVector(F.n,impU==null?.9:impU);} // driveDir : on décolle dans le sens où l'on roulait (le parc autorise les deux) — ⚠ (bord v2) `impU==null` et non `impU||` : le bord passe 0 (aucune impulsion), qui valait .9
