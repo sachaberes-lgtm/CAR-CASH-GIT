@@ -98,7 +98,7 @@ const SANS_METEORE=!/[?&]meteore=1\b/.test(location.search);
    remplace ce jeton par le commit publié et pose `version.json` à côté du jeu. Le jeu compare les deux et se recharge tout seul
    s'il est en retard (voir « LA MISE À JOUR TOUTE SEULE », près du service worker). En copie locale le jeton reste tel quel : rien ne se vérifie. */
 const CC_BUILD='__CC_BUILD__';
-const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]menu=leo\b/.test(location.search)?' · MENU LEO':'')+(/[?&]chute=0\b/.test(location.search)?' · SANS CIEL':'');
+const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b/.test(location.search)?' · SANS CIEL':'');
 (function(){
   var q=location.search,M=window.matchMedia;
   /* L'ÉCRAN NU PAR DÉFAUT (2026-10-01, copie de test de Léo : « je préfère le point de vue de la 1re image » = sans la forme de
@@ -2887,64 +2887,19 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 #garage.quiet #gTop,#garage.quiet #gBottom,#garage.quiet .gNav,#garage.launching #gTop,#garage.launching #gBottom,#garage.launching .gNav{display:none!important}
 /* ---- LE GARAGE EST LE MENU (2026-09-30, sketch de Léo) — `#garage.menu` : profil, PLAY, réglages, socle des missions, [🔒][LEVEL][BOUTIQUE].
    Sans `.menu` c'est la BOUTIQUE (l'ancien atelier : fiche, onglets, vignettes, MENU | BOUTIQUE | JOUER). ---- */
-#gMenu{display:none;position:absolute;inset:0;pointer-events:none;z-index:1}
-#garage.menu #gMenu{display:block}
-#garage.quiet #gMenu,#garage.launching #gMenu{display:none!important}
 #garage.menu #gTopRow,#garage.menu #gCard,#garage.menu #gCarr,#garage.menu #gBottom,#garage.menu .gNav,#garage.menu #gOutils{display:none!important}
 #garage.menu::before{height:min(30%,230px)}
 html #garage.menu::after{top:auto;left:0;right:0;bottom:0;width:auto;height:min(28%,210px);background:linear-gradient(0deg,rgba(7,5,15,.92),rgba(7,5,15,0))}
 html #garage.menu.ciel::after{background:linear-gradient(0deg,rgba(var(--tvB,6,28,60),var(--tvBA,.62)),rgba(var(--tvB,6,28,60),0))} /* (2026-09-30, niveau 1 v2) au CIEL, le bandeau des boutons n'est plus un noir d'atelier : l'azur profond du zénith, assez dense pour lire les plaques */
 html #garage.menu #gTop{position:absolute;left:0;right:0;top:0;width:auto;max-width:none;margin:0;align-items:center;padding:calc(var(--sT) + 16px) 0 0}
 html #garage.menu #gPlayMain{display:inline-flex!important;pointer-events:auto;align-self:center;margin-top:4px}
-#gProfil{position:absolute;left:calc(var(--sL) + var(--gut));top:calc(var(--sT) + 12px);display:flex;align-items:center;gap:10px;pointer-events:auto;
-  padding:8px 14px 8px 8px;background:linear-gradient(180deg,rgba(18,14,36,.92),rgba(8,6,18,.92));box-shadow:inset 0 0 0 1px var(--fil);
-  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
-.gpAv{width:46px;height:46px;flex:none;border-radius:50%;background:#1b1433;box-shadow:0 0 0 2px var(--neoC),0 0 12px rgba(95,240,255,.35);display:grid;place-items:center;overflow:hidden}
-.gpAv svg{width:32px;height:32px}
-.gpJ{display:flex;flex-direction:column;gap:7px;min-width:132px}
-.gpL{display:grid;grid-template-columns:auto 1fr;align-items:center;column-gap:7px;row-gap:3px;font-size:var(--f2)}
-.gpL .pxi{--pxs:2}
-.gpL b{font-weight:400;letter-spacing:1px;white-space:nowrap}
-.gpArgent b{color:var(--cash)}.gpArgent .pxi{color:var(--au2)}
-.gpAura b{color:#d6a8ff}.gpAura .pxi{color:#b46bff}
-.gpL small{grid-column:2;font-size:var(--f0);color:var(--tx3);letter-spacing:1px;white-space:nowrap}
-.gpL u{grid-column:1/-1;display:block;height:6px;background:var(--k0);box-shadow:0 0 0 1px var(--kl2)}
-.gpL u em{display:block;height:100%;width:0;background:var(--cash);transition:width var(--t-slow) var(--ease)}
-.gpAura u em{background:#b46bff}
-#gReglage{position:absolute;right:calc(var(--sR) + var(--gut));top:calc(var(--sT) + 12px);width:50px;min-width:50px;height:46px;min-height:0;padding:0;pointer-events:auto;--nc:var(--neoC)}
-#gReglage .pxi{--pxs:2}
-#gMisAncre{position:absolute;left:0;top:0;transform:translate(-50%,-100%);pointer-events:auto;will-change:transform}
-#gMisBtn{gap:7px;min-height:34px;padding:0 10px;font-size:var(--f1);letter-spacing:1px;--nc:var(--neoV);white-space:nowrap}
-#gMisBtn .mMisPips u{width:5px;height:11px}
-#gMisBtn .pxi{--pxs:2;color:var(--neoV)}
-#gMenuBas{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--sB) + 14px);display:flex;gap:12px;pointer-events:auto;width:min(calc(100vw - 2 * var(--gut)),520px)}
-#gMenuBas .gVerrou,#gMenuBas .gBoutique{flex:none;width:74px;min-width:74px;min-height:64px;flex-direction:column;gap:5px;padding:6px 4px 4px 8px;font-size:var(--f0);letter-spacing:1px}
-#gMenuBas .pxi{--pxs:3}
-#gMenuBas .gVerrou{--nc:var(--tx3);color:var(--tx3);opacity:.6}
-#gMenuBas .gLevel{flex:1;min-width:0;flex-direction:column;gap:5px;min-height:64px;--nc:var(--neoC)}
-.gLevel .glN{font-size:var(--f5);letter-spacing:2px;color:var(--tx)}
-.gLevel .glM{font-size:var(--f0);letter-spacing:1px;color:var(--neoC)}
 @media (max-width:760px){html #garage.menu #gTop{padding-top:calc(var(--sT) + 84px)}html #garage.menu #gPlayMain .lg{font-size:38px}} /* écran étroit : JOUER passe SOUS le profil, dans l'ouverture de la porte */
 /* (2026-09-30, Léo : « les trucs sont un peu petits en mode portrait, c'est un peu chelou ») DEBOUT, tout le menu prend ~×1,25 : le
    profil (avatar 58, chiffres 12 px, jauges 8 px), ⚙ 60 × 56, JOUER 46 px (sous le profil), l'étiquette MISSIONS 42 px de haut, la rangée
    du bas 84 × 82 (pictogrammes ×4). Couché rien ne bouge (la place manque en hauteur). */
 @media (orientation:portrait) and (max-width:760px){
-  #gProfil{top:calc(var(--sT) + 14px);gap:12px;padding:10px 16px 10px 10px}
-  .gpAv{width:58px;height:58px}.gpAv svg{width:40px;height:40px}
-  .gpJ{gap:8px;min-width:150px}
-  .gpL{font-size:var(--f3);column-gap:8px}
-  .gpL u{height:8px}
-  #gReglage{top:calc(var(--sT) + 14px);width:60px;min-width:60px;height:56px}
-  #gReglage .pxi{--pxs:3}
   html #garage.menu #gTop{padding-top:calc(var(--sT) + 112px)}
   html #garage.menu #gPlayMain .lg{font-size:46px}
-  #gMisBtn{gap:9px;min-height:42px;padding:0 13px;font-size:var(--f3)}
-  #gMisBtn .mMisPips u{width:6px;height:14px}
-  #gMenuBas{bottom:calc(var(--sB) + 18px);gap:10px}
-  #gMenuBas .gVerrou,#gMenuBas .gBoutique{width:86px;min-width:86px;min-height:82px;gap:7px;font-size:var(--f1)}
-  #gMenuBas .pxi{--pxs:4}
-  #gMenuBas .gLevel{min-height:82px;gap:7px}
-  .gLevel .glM{font-size:var(--f1)}
 }
 /* ---- LE MENU = LE GARAGE + LES BOUTONS DE SACHA (2026-09-30, Sacha : « les boutons ne vont pas du tout dans la version de Léo : on garde
    la base de garage pour le menu mais on remet les mêmes boutons que ceux que j'avais faits pour ma version ») — `body.garMenuH` (posée par
@@ -2955,7 +2910,7 @@ html #garage.menu #gPlayMain{display:inline-flex!important;pointer-events:auto;a
 body.garMenuH #overlay{display:flex!important;z-index:61}
 body.garMenuH #overlay[data-ecran="home"]{pointer-events:none;overflow:hidden}
 body.garMenuH #overlay[data-ecran="home"] [data-m]{pointer-events:auto}
-body.garMenuH #garage #gMenu,body.garMenuH #garage.menu #gTop{display:none!important}
+body.garMenuH #garage.menu #gTop{display:none!important}
 body.garMenuH #garage.menu::before,body.garMenuH #garage.menu::after{display:none}
 /* couché (le PC, un téléphone en paysage) : sa colonne centrée couvrait la caisse — elle se range à DROITE, la caisse se cadre dans la moitié gauche (garLibre) */
 @media (orientation:landscape) and (max-height:540px){body.garMenuH #mHome{align-self:flex-end!important;margin-right:calc(var(--sR) + 8px)}}
@@ -2968,7 +2923,7 @@ body.garMenuH #garage.menu::before,body.garMenuH #garage.menu::after{display:non
    (`#misFocus`). En bas : HOME · JOUER. ---- */
 #gMis{display:none;position:absolute;inset:0;pointer-events:none;z-index:2;font-family:var(--pix)}
 #garage.missions #gMis{display:block}
-#garage.missions #gMenu,#garage.quiet #gMis,#garage.launching #gMis{display:none!important}
+#garage.quiet #gMis,#garage.launching #gMis{display:none!important}
 html #garage.missions #gPlayMain{display:none!important}
 #gMis::before{content:'';position:absolute;inset:0;pointer-events:none;                                   /* l'hologramme : trame, halo, bords éteints */
   background:repeating-linear-gradient(0deg,rgba(95,240,255,.05) 0 1px,transparent 1px 4px),radial-gradient(ellipse 80% 75% at 50% 45%,rgba(10,40,80,0) 35%,rgba(3,8,22,.66) 100%);
@@ -2976,13 +2931,11 @@ html #garage.missions #gPlayMain{display:none!important}
 #gMis::after{content:'';position:absolute;left:0;right:0;height:22%;top:-22%;pointer-events:none;
   background:linear-gradient(180deg,rgba(95,240,255,0),rgba(95,240,255,.08) 70%,rgba(160,250,255,.18) 72%,rgba(95,240,255,0) 74%);animation:gmBalaye 5s linear infinite}
 @keyframes gmTrame{to{background-position:0 64px,0 0}}
-/* L'ÉCRAN MISSIONS DE SACHA (f474c51, rétabli le 30/09 au soir : « je préfère ma version de l'interface ») — html.misS = MENU_SACHA */
+/* L'ÉCRAN MISSIONS DE SACHA (f474c51, rétabli le 30/09 au soir : « je préfère ma version de l'interface ») — html.misS, toujours posée */
 html.misS #gMis::before{background:repeating-linear-gradient(0deg,rgba(95,240,255,.04) 0 1px,transparent 1px 4px),radial-gradient(ellipse 80% 75% at 50% 45%,rgba(10,40,80,0) 35%,rgba(3,8,22,.7) 100%),linear-gradient(rgba(4,8,20,.38),rgba(4,8,20,.38))} /* un voile de plus : l'atelier ne dispute plus la lecture */
 html.misS #gmFils path{stroke-width:1.2;stroke-dasharray:none;animation:none}
 html.misS #gmFils path.ch{stroke-dasharray:3 6;opacity:.32;animation:gmFlux 2.2s linear infinite} /* la constellation : discrète, elle ne barre plus les cartes */
 html.misS #gmFils path.ch.r{stroke:#ffd75e;opacity:.42}
-html.misS #gmFils path.lead{stroke-width:1.3;stroke-dasharray:none;opacity:.8}   /* le filet : de la carte à son meuble */
-html.misS #gmFils path.lead.f,html.misS #gmFils path.lead.r{stroke:#ffd75e;opacity:.95}
 html.misS .gmC{display:flex;flex-direction:column;background:linear-gradient(180deg,rgb(11,30,57),rgb(6,14,33))}
 html.misS .gmC small{margin-top:auto}
 html.misS .gmP{display:flex;align-items:center;gap:6px;margin:6px 0 4px}html.misS .gmP u{flex:1;min-width:0;margin:0}html.misS .gmP b{flex:none;font-weight:400;font-size:7px;color:var(--cash,#5ee37a);white-space:nowrap}
@@ -3047,23 +3000,14 @@ html.misS #gmHead small{line-height:1.6}
 #gmListe.land>.glB>.glSec.r:first-child{margin-top:2px}
 @media (orientation:landscape) and (max-height:540px){.glM{min-height:50px;padding:8px 10px}.glRec{min-height:56px;padding:8px 10px}#gmListe .glSec.r,#gmListe .glSec.n{margin-top:12px}}
 @media (prefers-reduced-motion:reduce){#gmListe,.glM,.glRec{animation:none!important}}
-@media (orientation:portrait) and (max-width:760px){html.misS .gmC{padding:7px 8px 8px}html.misS .gmC .gmX{font-size:8px}html.misS .gmT b{font-size:7px}}
+@media (orientation:portrait) and (max-width:760px){html.misS .gmC{padding:7px 8px 8px}}
 @keyframes gmBalaye{to{top:122%}}
 #gmFils{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}
 #gmFils path{fill:none;stroke:#5ff0ff;stroke-width:1.6;stroke-dasharray:7 7;stroke-linecap:round;animation:gmFlux 1.1s linear infinite}
 #gmFils path.hl{stroke-width:6;stroke-dasharray:none;opacity:.16;animation:none}
 #gmFils path.n{stroke:#8f84c8;opacity:.55;animation-duration:2.6s}
 #gmFils path.r{stroke:#ffd75e}
-#gmFils path.lead{stroke-width:1;stroke-dasharray:2 3;opacity:.75;animation:none}
-#gmFils path.lead.f{stroke:#ffd75e;opacity:1}
 @keyframes gmFlux{to{stroke-dashoffset:-28}}
-.gmPt{position:absolute;left:0;top:0;width:12px;height:12px;margin:-6px 0 0 -6px;pointer-events:none;will-change:transform}
-.gmPt::before{content:'';position:absolute;inset:0;transform:rotate(45deg);background:#5ff0ff;box-shadow:0 0 0 2px rgba(7,5,15,.85),0 0 14px #5ff0ff}
-.gmPt::after{content:'';position:absolute;inset:-9px;border:1px solid rgba(95,240,255,.7);transform:rotate(45deg);animation:gmOnde 1.8s var(--ease) infinite}
-.gmPt.ok::before{background:#5ee37a;box-shadow:0 0 0 2px rgba(7,5,15,.85),0 0 14px #5ee37a}.gmPt.ok::after{border-color:rgba(94,227,122,.7)}
-.gmPt.f::before,.gmPt.r::before{background:#ffd75e;box-shadow:0 0 0 2px rgba(7,5,15,.85),0 0 16px #ffd75e}.gmPt.f::after,.gmPt.r::after{border-color:rgba(255,215,94,.8)}
-.gmPt.n::before{background:#8f84c8;box-shadow:0 0 0 2px rgba(7,5,15,.85)}.gmPt.n::after{display:none}
-@keyframes gmOnde{from{opacity:.9;transform:rotate(45deg) scale(.6)}to{opacity:0;transform:rotate(45deg) scale(1.5)}}
 .gmC{position:absolute;left:0;top:0;width:var(--gmW,156px);box-sizing:border-box;padding:8px 10px 9px;pointer-events:auto;cursor:pointer;will-change:transform;
   background:linear-gradient(180deg,rgba(10,30,58,.84),rgba(6,14,34,.9));color:#dff8ff;font-size:8px;letter-spacing:1px;line-height:1.5;
   box-shadow:inset 0 0 0 1px rgba(95,240,255,.35),0 0 18px rgba(95,240,255,.12);
@@ -3071,9 +3015,6 @@ html.misS #gmHead small{line-height:1.6}
 .gmC::before,.gmC::after{content:'';position:absolute;width:10px;height:10px;border:2px solid var(--bc);pointer-events:none} /* les crochets d'un viseur */
 .gmC::before{left:-2px;top:-2px;border-right:0;border-bottom:0}.gmC::after{right:-2px;bottom:-2px;border-left:0;border-top:0}
 @keyframes gmIn{0%{opacity:0;filter:brightness(3);clip-path:inset(0 0 100% 0)}60%{opacity:1;clip-path:inset(0 0 0 0)}80%{filter:brightness(1.6)}100%{filter:none}}
-.gmT{display:flex;align-items:center;gap:6px;color:var(--bc);font-size:8px;margin-bottom:5px;white-space:nowrap}
-.gmT b{margin-left:auto;font-weight:400;color:var(--cash,#5ee37a)}
-.gmX{font-size:9px;color:#fff;letter-spacing:1px}
 .gmC u{display:block;height:4px;margin:6px 0 4px;background:rgba(0,0,0,.55);box-shadow:0 0 0 1px rgba(95,240,255,.3)}
 .gmC u em{display:block;height:100%;background:var(--bc);box-shadow:0 0 8px var(--bc)}
 .gmC small{display:block;font-size:7px;color:#8fb8c8;letter-spacing:1px}
@@ -3086,7 +3027,6 @@ html.misS #gmHead small{line-height:1.6}
 .gmC.r{--bc:#ffd75e;width:var(--gmWr,172px)}
 .gmC.r .obFig{position:relative;right:auto;top:auto;display:block;width:100%;height:46px;margin:2px 0 4px}.gmC.r .obFig img{width:100%;height:100%;object-fit:contain} /* (correctif repris de Sacha, f474c51) .obFig est en position absolue ailleurs : l'image recouvrait le nom */
 .gmC.n{--bc:#8f84c8;opacity:.72;width:var(--gmWn,128px);cursor:default}
-.gmC.n .gmX{color:#b9b2e6}
 .gmC.vu{animation:none}.gmC.flash{animation:gmFlash .5s var(--ease)}
 @keyframes gmFlash{30%{filter:brightness(2.2)}}
 #gmHead{position:absolute;left:calc(var(--sL) + var(--gut));top:calc(var(--sT) + 12px);display:flex;flex-direction:column;gap:6px;pointer-events:none;max-width:min(60vw,420px)}
@@ -3098,7 +3038,7 @@ html.misS #gmHead small{line-height:1.6}
 #gmBas .gmJouer{flex:1;min-width:0}
 @media (orientation:landscape) and (max-height:540px){#gmBas{left:auto;right:calc(var(--sR) + var(--gut));transform:none;width:min(46vw,380px)}#gmHead b{font-size:18px}}
 @media (orientation:portrait) and (max-width:760px){.gmC{--gmW:140px}.gmC.r{--gmWr:150px}.gmC.n{--gmWn:112px}}
-@media (prefers-reduced-motion:reduce){#gMis::before,#gMis::after,#gmFils path,.gmPt::after,.gmC{animation:none!important}}
+@media (prefers-reduced-motion:reduce){#gMis::before,#gMis::after,#gmFils path,.gmC{animation:none!important}}
 /* LA MISSION SUIVIE, EN COURSE : une ligne discrète — la consigne, l'avancement, une jauge fine (voir misFocusMaj) */
 #misFocus{position:fixed;z-index:3;left:50%;bottom:calc(var(--sB,0px) + 6px);transform:translateX(-50%);display:none;align-items:center;gap:7px;
   max-width:min(62vw,340px);padding:5px 9px 6px;font:8px/1.3 var(--pix);letter-spacing:1px;color:#fff3c6;pointer-events:none;opacity:.82;
@@ -3113,8 +3053,7 @@ body:not(.play) #misFocus{display:none!important}
 /* debout, le bas est à NITRO (droite) et au volant (gauche) : la ligne se range sur la marge gauche de la grille du HUD (hudOrdre, --hudG),
    juste au-dessus de la consigne du volant, et s'arrête avant NITRO */
 @media (orientation:portrait){#misFocus{left:var(--hudG,16px);transform:none;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 40px);max-width:calc(100vw - var(--hudG,16px) - var(--hudD,16px) - 118px)}}
-@media (max-width:360px){#gProfil{padding:6px 10px 6px 6px}.gpAv{width:38px;height:38px}.gpAv svg{width:28px;height:28px}.gpJ{min-width:110px}.gpL{font-size:var(--f2)}
-  #gMenuBas{gap:8px}#gMenuBas .gVerrou,#gMenuBas .gBoutique{width:70px;min-width:70px;font-size:var(--f0);letter-spacing:0}#gMenuBas .pxi{--pxs:3}.gLevel .glN{font-size:var(--f4);letter-spacing:1px}
+@media (max-width:360px){
   html #garage.menu #gTop{padding-top:calc(var(--sT) + 92px)}html #garage.menu #gPlayMain .lg{font-size:38px}}
 /* L'ÉTAL (outil de réglage des fruits) : il partage les ids de l'atelier — le strict nécessaire, scopé */
 #stall{position:fixed;inset:0;display:none;z-index:60;pointer-events:none;flex-direction:column;justify-content:space-between;font-family:var(--pix);color:var(--tx)}
@@ -5594,7 +5533,6 @@ html body #garage:not(.menu) #gLvl{font-size:11px!important;line-height:1.3!impo
 html body #garage:not(.menu) #gRar .gR::after{top:-6px;bottom:-6px} /* la zone de touche (déjà en ::after, le ::before est le losange) : 32 + 12 = 44 px */
 html body #garage:not(.menu) #gStrip{-webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 40px),transparent)}
 html body #garage:not(.menu) #gStrip.finDroite{-webkit-mask-image:none;mask-image:none}
-html body #garage:not(.menu) #gMisAncre{display:none!important}
 html body #garage:not(.menu) #gRar .gR b{font-size:var(--f1)} /* les comptes « 1/15 » étaient à 8 px */
 html body #garage:not(.menu) .gTab{font-size:var(--f1)} /* les onglets étaient en --f0 (8 px) : 10 px, « TRAINEES » tient encore dans son quart de console debout (80 px dans 89) */
 /* LES ONGLETS FINS (2026-10-08, Léo, capture debout de la console : « les boutons prennent trop de place, rends-les plus minimalistes,
@@ -5632,67 +5570,18 @@ html body #garage:not(.menu) .gTab.on:is(:active,.appui){background:linear-gradi
      commun, chaque objet dans une lueur de la couleur de sa rareté (les familles du garage ; pour les habillages, voir `cosmRar`) ;
      toucher = équiper, tout de suite, sur la caisse. Couché, le tiroir vient de la droite. L'astuce « MAINTIENS LA CAISSE » se montre tant
      qu'on ne l'a jamais ouvert (`SAVE.d.ast`, bit 4). */
-#gPerso{display:none}
 #gInv,#gInvAide{display:none}
-html body #garage.vitrine:not(.menu) :is(#gTabs,#gRar,#gStrip,.gNav,#gBuyRow,#gEquip,#gShopBas,#gCompteur,#gBank,#gLvl,#gRarPill,#gDesc,#gDots,#gSw,#gHint,#gMeta,#lbBoxG){display:none!important}
-/* les voiles : courts et légers — la caisse au milieu prend toute la lumière */
-html body #garage.vitrine:not(.menu)::before{height:min(24%,210px);background:linear-gradient(180deg,rgba(7,5,15,.74),rgba(7,5,15,.3) 55%,rgba(7,5,15,0))}
-html body #garage.vitrine:not(.menu)::after{top:auto;bottom:0;left:0;right:0;width:auto;height:min(26%,210px);background:linear-gradient(0deg,rgba(7,5,15,.9),rgba(7,5,15,.46) 50%,rgba(7,5,15,0))} /* (2026-10-06, Léo : « corrige le rectangle transparent buggé en haut ») ⚠ couché, la console (#garage::after en colonne à droite, top 0) gardait top/left/largeur : le voile du BAS devenait un rectangle sombre de 439 × 101 px EN HAUT, sur la porte en feu — il est remis en bas, sur toute la largeur */
-html body #garage.vitrine:not(.menu) #gName::after{opacity:.75}
 /* (2026-10-05, Léo : « travaille plus le rendu ») LE VIGNETTAGE : les bords de l'image s'assombrissent doucement, l'œil va à la caisse — centré
    sur sa place (debout au milieu, couché en bas à gauche, voir VITRINE_CAM.cx/cxL) ; seulement en vitrine, éteint au lancement */
 #gVig{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;transition:opacity .9s var(--ease);
   background:radial-gradient(120% 95% at 50% 52%,rgba(7,5,15,0) 48%,rgba(7,5,15,.28) 74%,rgba(7,5,15,.6) 100%)}
 @media (orientation:landscape){#gVig{background:radial-gradient(95% 125% at 34% 60%,rgba(7,5,15,0) 44%,rgba(7,5,15,.3) 72%,rgba(7,5,15,.62) 100%)}}
-html body #garage.vitrine:not(.menu):not(.quiet):not(.launching) #gVig{opacity:1}
-html body #garage.vitrine:not(.menu) #gName{animation:gvNom .7s var(--ease) backwards}
-@keyframes gvNom{from{opacity:0;translate:-18px 0}to{opacity:1;translate:0 0}}
-/* LA MISE EN PAGE v3 (même soir, Léo : « réorganise les boutons et la place occupée sur l'écran, c'est pas beau ») — MESURÉ sur les captures :
-   tout s'empilait dans un coin (debout : ⚙, nom et plaque des jauges l'un sous l'autre à gauche, la droite vide ; couché : ⚙, plaque, astuce et
-   touches à droite, la gauche vide), la plaque des jauges faisait un pavé, HOME et SHOP n'avaient ni la largeur ni la hauteur de JOUER.
-   Désormais DEUX BARRES, sur la même marge (16 px + zone sûre) et le même pas (8-10 px) :
-   · EN HAUT : le NOM à gauche, le ⚙ dans le coin droit (debout aussi), et les deux JAUGES en cartes égales — debout en rangée pleine largeur
-     sous le nom, couché sur la ligne du nom, entre lui et le ⚙ ;
-   · EN BAS : HOME et SHOP en deux carrés (le pictogramme sur son mot, comme la maison de la console), JOUER prend le reste — même hauteur pour
-     les trois ; couché, calée à droite sous le pouce, l'astuce à gauche sur la même ligne.
-   La caisse a tout le milieu. */
-html body #garage.vitrine:not(.menu) #gOutils{position:fixed;top:calc(var(--sT) + 12px);left:calc(var(--sL) + 16px);right:auto;z-index:2;flex-direction:row-reverse;align-items:center;gap:8px} /* (puis, Léo : « HOME · settings à gauche en haut ») : HOME dans le coin, le ⚙ à sa droite */ /* (2026-10-05, Léo : « les settings et le HOME peuvent être mis côte à côte ») : le ⚙ garde le coin, HOME à sa gauche */
-#gvHome{display:none}
-html body #garage.vitrine:not(.menu) #gOutils>#gvHome{display:flex;--nc:#b8b0e0;color:var(--nc)} /* (2026-10-06, Léo : « retire celui d'en haut » puis, sur une capture, « remets HOME · settings au même endroit ») : HOME de nouveau dans le coin haut-gauche, le boulon à sa droite */
-/* (2026-10-06, Léo : « HOME et settings un peu plus petits et transparents ») : des pastilles de verre fumé, le pictogramme seul se détache */
-html body #garage.vitrine:not(.menu) #gOutils>.pbtn{width:40px;min-width:40px;height:36px;min-height:36px;background:linear-gradient(180deg,rgba(46,36,88,.42),rgba(10,7,24,.38));
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.2),inset 0 1px 0 rgba(255,255,255,.18),0 6px 14px -8px rgba(0,0,0,.6);opacity:.88}
-html body #garage.vitrine:not(.menu) #gOutils>.pbtn::before,html body #garage.vitrine:not(.menu) #gOutils>.pbtn::after{opacity:.35}
-html body #garage.vitrine:not(.menu) #gOutils>.pbtn:is(:active,.appui){opacity:1;translate:0 1px}
-html body #garage.vitrine:not(.menu) #gOutils>#gvHome .pxi{filter:drop-shadow(0 0 6px var(--nc))}
-html body #garage.vitrine:not(.menu) #gTop{max-width:none;margin:0;padding:calc(var(--sT) + 14px) calc(var(--sR) + 16px) 0 calc(var(--sL) + 16px)}
-html body #garage.vitrine:not(.menu) #gCard{display:none} /* (même soir, Léo : « enlève le blase de la voiture, énorme, qui sert à rien ») — le nom vit dans l'inventaire et dans la console du SHOP */
-html body #garage.vitrine:not(.menu) #gBottom{position:absolute;left:0;right:0;top:auto;bottom:0;width:auto;max-width:none;margin:0;
-  padding:0 calc(var(--sR) + 16px) calc(var(--sB) + 16px) calc(var(--sL) + 16px);background:none;box-shadow:none;clip-path:none;gap:0;animation:none;
-  transition:opacity .28s var(--ease),translate .28s var(--ease)}
-html body #garage.vitrine:not(.menu) #gBottom::before{display:none}
-html body #garage.vitrine:not(.menu) #gAct{position:relative;display:grid;grid-template-columns:minmax(0,.83fr) minmax(0,1fr);grid-template-rows:auto 46px auto;column-gap:10px;row-gap:0;align-items:stretch;margin:0;width:100%;max-width:none}
-/* (2026-10-05, Léo : « en dessous du play, MISSIONS, et le nom du level qui va être lancé, limite collé, stylé, branché énergétiquement ») LA PILE
-   DU DÉPART : JOUER en haut, le CARTOUCHE du niveau branché dessous (deux conducteurs d'or où le courant monte, un éclair qui grésille, un flux
-   qui court sur sa tranche), puis MISSIONS ; HOME et SHOP sur la rangée du bas, à côté de MISSIONS. */
-html body #garage.vitrine:not(.menu) #gAct>#gJouer{grid-column:2;grid-row:2} /* (même soir, « enlève le bouton coffre ») JOUER sur toute la largeur — (puis, Léo : « le PLAY était mieux plus petit, c'était mieux avec la mission branchée sur le PLAY ») : la colonne de droite, comme la v114 */
 /* (même soir, Léo : « mets le bouton home en haut à droite avec les settings ») #gClose était caché ici — (2026-10-06) il revient en bas : voir LE SHOP COUPÉ */
-html body #garage.vitrine:not(.menu) #gAct>#gPerso{grid-column:1;grid-row:3;margin-top:13px} /* (même soir, « le bouton shop n'est pas très grand ») : grand — (puis) à gauche de JOUER, à sa hauteur */
-#gvNiv,#gvMis,#gvCof,#gvLvls,#gvLvl,#gvNivs{display:none}
-html body #garage.vitrine:not(.menu) #gAct>#gvCof{display:none!important} /* (même soir, Léo : « enlève le bouton coffre ; un bouton rouge sur la plateforme ») : voir LE BOUTON ROUGE ET SES OUTILS */ /* (2026-10-05) le COFFRE, à gauche de JOUER — (même soir, « plus gros ») sur les deux colonnes */
+#gvNiv,#gvMis,#gvCof,#gvLvls{display:none} /* (2026-10-05) le COFFRE, à gauche de JOUER — (même soir, « plus gros ») sur les deux colonnes */
 /* (2026-10-05, Léo : « missions branché au play plutôt que le niveau, et les niveaux affichés avec leur distance et leur titre — vignette
    avec un fond imagé représentatif, léger, agréable, kawaii mais pas abusé, pas trop gentil non plus ») : MISSIONS prend la place BRANCHÉE
    sous JOUER (les deux conducteurs d'or où le courant monte, le flux qui court sur sa tranche) ; le NIVEAU devient une VIGNETTE illustrée
    (rangée du bas) — son paysage en pixel art peint par `gvVignette`, son titre, sa distance ; (même soir) TOUTE la suite, en bande qui défile (#gvLvls). */
-html body #garage.vitrine:not(.menu) #gAct>#gvMis{display:flex;grid-column:2;grid-row:1;margin:0 4px 8px;height:30px;min-height:30px;font-size:var(--f0);letter-spacing:1px;gap:8px} /* (puis, Léo : « mets MISSIONS en plus fin, en haut du PLAY ») : une barre fine au-dessus de JOUER, sans conducteurs */
-html body #garage.vitrine:not(.menu) #gAct>#gvLvl{display:block;grid-column:2;grid-row:3;margin-top:13px;height:46px} /* (puis, Léo : « la map branchée à la place de MISSIONS ») : sous JOUER, les deux conducteurs d'or (#gvBranche) */
-#gvBranche{display:none}
-html body #garage.vitrine:not(.menu) #gAct>#gvBranche{display:block;grid-column:2;grid-row:3;align-self:start;position:relative;height:13px;pointer-events:none;z-index:1}
-html body #garage.vitrine:not(.menu) #gAct>#gvBranche::before,html body #garage.vitrine:not(.menu) #gAct>#gvBranche::after{content:'';position:absolute;top:0;width:4px;height:100%;background:linear-gradient(0deg,#b8790a 0%,#fff3c4 45%,#ffd75e 55%,#b8790a 100%);background-size:100% 260%;
-  box-shadow:0 0 8px #ffb83a,0 0 2px #fff;animation:gvCourant .55s linear infinite}
-html body #garage.vitrine:not(.menu) #gAct>#gvBranche::before{left:18%}html body #garage.vitrine:not(.menu) #gAct>#gvBranche::after{right:18%;animation-delay:-.27s}
-html body #garage.vitrine:not(.menu) #gAct>#gvMis::before,html body #garage.vitrine:not(.menu) #gAct>#gvMis::after,html body #garage.vitrine:not(.menu) #gAct>#gvMis .gvFx{display:none}
-#gvLvl .gvFx{position:absolute;z-index:2;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,#fff3b0,#ffb83a,transparent) no-repeat;background-size:34% 100%;animation:gvFlux 1.5s linear infinite} /* (puis) la VIGNETTE seule, sous SHOP, à la hauteur de MISSIONS */
 #gvMis{--nc:var(--neoV);position:relative;flex-direction:row;align-items:center;justify-content:center;gap:10px;min-width:0;height:42px;min-height:42px;padding:0 12px;
   font-size:var(--f1);letter-spacing:2px;color:var(--tx);white-space:nowrap;
   background:linear-gradient(180deg,#1c1338,#0a0717);box-shadow:inset 0 0 0 1px rgba(255,205,90,.55),inset 0 1px 0 rgba(255,240,190,.25),inset 0 -2px 0 var(--nc),0 0 16px -4px rgba(255,190,40,.65);
@@ -5705,206 +5594,21 @@ html body #garage.vitrine:not(.menu) #gAct>#gvMis::before,html body #garage.vitr
 @keyframes gvFlux{from{background-position:-50% 0}to{background-position:150% 0}}
 #gvMis .pxi{--pxs:2;color:var(--nc);filter:drop-shadow(0 0 6px var(--nc))}
 #gvMis:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px);box-shadow:inset 0 0 0 1px #fff3c4,inset 0 -2px 0 var(--nc),0 0 26px 0 rgba(255,200,60,.9)}
-html body #garage.vitrine:not(.menu) #gAct>#gJouer:is(:active,.appui)~#gvLvl{box-shadow:inset 0 0 0 2px #fff3c4,inset 0 -2px 0 var(--lc,#5ee6ff),0 0 26px 0 rgba(255,200,60,.9)}
 .gvPips{display:flex;gap:4px}
 .gvPips u{display:block;width:8px;height:8px;transform:rotate(45deg);background:#1b1433;box-shadow:inset 0 0 0 1px rgba(94,240,138,.6)}
 .gvPips u.ok{background:var(--neoV);box-shadow:0 0 8px var(--neoV)}
-/* LA VIGNETTE DU NIVEAU + SON TIROIR (2026-10-05, Léo, après la bande à défiler : « les niveaux, non : tu vois le niveau comme avant ; juste
-   quand tu cliques dessus, tu vois les niveaux que tu as accomplis ») — `#gvLvl` = le niveau que JOUER lance (l'auto-école tant que le permis
-   manque, sinon NIVEAUX[0]) : son paysage en pixel art (`gvVignette`), son numéro dans sa pastille d'or, son titre, sa distance (moyenne :
-   la piste est tirée à chaque partie). Une petite flèche dit qu'il s'ouvre. Touché, le TIROIR `#gvNivs` monte au-dessus de la pile : les
-   niveaux TERMINÉS (portail franchi, `SAVE.d.ex.zones` ; l'auto-école si le permis est passé), chacun sa vignette et sa coche, arrivés en
-   cascade ; dessous, le prochain à battre et ce qui reste à découvrir. Retouché, un tap ailleurs, Échap : il se referme. */
-#gvLvl{position:relative;min-width:0;overflow:hidden;transform:skewX(var(--sk));cursor:pointer;pointer-events:auto;-webkit-tap-highlight-color:transparent;
-  background:#0a0717;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),inset 0 -2px 0 var(--lc,#5ee6ff),0 12px 26px -12px rgba(0,0,0,.85);
-  animation:gvMonte .52s var(--ease) .38s backwards;transition:box-shadow .2s var(--ease),translate .07s}
-#gvLvl[aria-expanded="true"]{box-shadow:inset 0 0 0 2px #ffd75e,inset 0 -2px 0 var(--lc,#5ee6ff),0 0 18px -4px rgba(255,200,60,.85)}
-#gvLvl:is(:active,.appui){translate:0 2px}
-#gvLvl::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,5,20,.78) 0%,rgba(8,5,20,.4) 46%,rgba(8,5,20,0) 74%)}
-/* (puis, Léo : « les niveaux imagés, mais un peu plus brillants ») : le paysage plus clair et plus saturé, le voile d'encre allégé, un liseré
-   de la couleur du monde qui luit, et un ÉCLAT qui balaie la vignette toutes les ~4 s */
-:is(#gvLvl,.gvV) .gvImg{filter:brightness(1.18) saturate(1.3)}
-#gvLvl{box-shadow:inset 0 0 0 1px rgba(255,205,90,.6),inset 0 1px 0 rgba(255,240,190,.3),inset 0 -2px 0 var(--lc,#5ee6ff),0 0 16px -4px rgba(255,190,40,.7),0 12px 26px -12px rgba(0,0,0,.85)}
-#gvLvl .gvTx::after,.gvV .gvTx::after{content:none}
-#gvLvl::before,.gvV::before{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.42) 50%,transparent 60%) no-repeat;background-size:260% 100%;animation:k4Lingot 4.2s var(--ease) 1.4s infinite}
-#gvLvl .gvOuv{position:absolute;z-index:1;top:4px;right:6px;--pxs:1;color:#fff;transform:skewX(calc(-1 * var(--sk)));animation:gvOuvBat 1.8s ease-in-out infinite}
-#gvLvl[aria-expanded="true"] .gvOuv{scale:1 -1;animation:none;color:#ffd75e}
-@keyframes gvOuvBat{0%,100%{translate:0 0;opacity:.75}50%{translate:0 -2px;opacity:1}}
-.gvV{position:relative;flex:0 0 auto;width:min(64%,230px);height:58px;overflow:hidden;transform:skewX(var(--sk));
-  background:#0a0717;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),inset 0 -2px 0 var(--lc,#5ee6ff),0 10px 22px -12px rgba(0,0,0,.85)}
-.gvV.prochain{box-shadow:inset 0 0 0 2px #ffd75e,inset 0 -2px 0 var(--lc,#5ee6ff),0 0 16px -3px rgba(255,200,60,.85)}
-:is(.gvV,#gvLvl) .gvImg{position:absolute;inset:0 -8px;background-size:cover;background-position:center;image-rendering:pixelated;image-rendering:crisp-edges}
-.gvV::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,5,20,.78) 0%,rgba(8,5,20,.4) 46%,rgba(8,5,20,0) 74%)}
-:is(.gvV,#gvLvl) .gvTx{position:absolute;z-index:1;left:12px;right:8px;top:50%;translate:0 -50%;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:7px;row-gap:3px;align-items:center;
-  transform:skewX(calc(-1 * var(--sk)));font-size:var(--f0);letter-spacing:0;white-space:nowrap}
-#gvLvl .gvTx{left:10px;right:13px;column-gap:6px;grid-template-columns:auto auto minmax(0,1fr)}
-#gvLvl .gvTx>:is(.gvT,.gvD){grid-column:3}
-/* (2026-10-06, Léo : « avec le petit logo électrique, c'est mieux ») l'ÉCLAIR du cartouche de main, devant le numéro : or, il GRÉSILLE */
-#gvLvl .gvEcl{grid-row:1 / span 2;--pxs:1;color:#ffd75e;animation:gvEclairGr 2.2s steps(1) infinite}
-@keyframes gvEclairGr{0%,40%,46%,70%,100%{opacity:1}42%,72%{opacity:.25}}
-:is(.gvV,#gvLvl) .gvN{grid-row:1 / span 2;display:grid;place-items:center;min-width:20px;height:20px;padding:0 3px;color:#1a1000;background:#ffd75e;box-shadow:0 0 8px rgba(255,200,60,.7)}
-:is(.gvV,#gvLvl) .gvT{min-width:0;color:#fff;text-shadow:0 1px 0 #000,0 0 8px rgba(0,0,0,.8);overflow:hidden;text-overflow:ellipsis}
-:is(.gvV,#gvLvl) .gvD{color:var(--lc,#5ee6ff);text-shadow:0 1px 0 #000,0 0 8px var(--lc,#5ee6ff)}
-.gvV .gvOk{position:absolute;z-index:1;top:6px;right:12px;--pxs:2;color:var(--neoV);filter:drop-shadow(0 0 5px var(--neoV));transform:skewX(calc(-1 * var(--sk)))}
-/* le TIROIR : la plaque des menus (laque, filet, coins coupés, liseré d'or à gauche), posée au-dessus de la pile, à sa largeur */
-#gvNivs{position:absolute;z-index:3;left:0;right:0;bottom:calc(100% + 14px);max-height:min(52vh,430px);overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;
-  padding:12px 12px 12px 15px;box-sizing:border-box;pointer-events:auto;transform-origin:20% 100%;scrollbar-width:none;
-  background:linear-gradient(180deg,rgba(26,19,54,.95),rgba(9,6,22,.97));
-  box-shadow:inset 3px 0 0 #ffd75e,inset 0 0 0 1px rgba(255,255,255,.12),inset 0 1px 0 rgba(255,255,255,.16),0 20px 44px -14px rgba(0,0,0,.92);
-  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
-#gvNivs::-webkit-scrollbar{display:none}
-html body #garage.vitrine:not(.menu) #gvNivs.on{display:block;animation:gvNivsEntre .36s var(--ease) both}
-html body #garage.vitrine:not(.menu) #gvNivs.sortant{display:block;animation:gvNivsSort .17s ease-in both}
-@keyframes gvNivsEntre{from{opacity:0;translate:0 18px;scale:.94}to{opacity:1;translate:0 0;scale:1}}
-@keyframes gvNivsSort{to{opacity:0;translate:0 12px;scale:.97}}
-#gvNivs .gnH{display:flex;align-items:center;gap:9px;margin:0 0 11px;font-size:var(--f1);letter-spacing:1px;color:#fff;text-shadow:0 1px 0 #000}
-#gvNivs .gnH .pxi{--pxs:2;color:#ffd75e}
-#gvNivs .gnH em{margin-left:auto;font-style:normal;color:#1a1000;background:#ffd75e;padding:3px 6px;box-shadow:0 0 10px rgba(255,200,60,.6)}
-#gvNivs .gnG{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px}
-#gvNivs .gvV{width:auto;height:46px;animation:gvNivTuile .34s var(--ease) calc(var(--i,0) * 50ms + 90ms) backwards}
-@keyframes gvNivTuile{from{opacity:0;translate:0 10px}to{opacity:1;translate:0 0}}
-#gvNivs .gnP{display:flex;align-items:center;gap:8px;margin-top:11px;font-size:var(--f0);letter-spacing:1px;color:var(--tx2);white-space:nowrap;overflow:hidden}
-#gvNivs .gnP b{font-weight:400;color:#ffd75e;overflow:hidden;text-overflow:ellipsis}
-#gvNivs .gnP i{font-style:normal;margin-left:auto;color:var(--tx3)}
-#gvNivs .gnVide{font-size:var(--f0);letter-spacing:1px;line-height:1.9;color:var(--tx2);padding:2px 0 4px}
-#gvNivs .gnVide b{font-weight:400;color:#fff}
-html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso,#gvCof){display:flex;flex:none;flex-direction:column;justify-content:center;gap:7px;width:74px;min-width:74px;height:62px;min-height:62px;
-  padding:6px 4px 3px 9px;font-size:var(--f0);letter-spacing:1px;color:var(--tx);
-  background:linear-gradient(180deg,rgba(30,22,62,.84),rgba(11,8,26,.88));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),inset 0 0 0 1px rgba(255,255,255,.1),inset 0 -2px 0 var(--nc),0 12px 26px -12px rgba(0,0,0,.85);
-  text-shadow:0 1px 0 var(--txO)}
-html body #garage.vitrine:not(.menu) #gAct>#gClose{--nc:#b8b0e0}
-html body #garage.vitrine:not(.menu) #gAct>#gPerso{--nc:var(--neoC)}
-html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso,#gvCof) .pxi{--pxs:3;color:var(--nc);filter:drop-shadow(0 0 6px var(--nc))}
-html body #garage.vitrine:not(.menu) #gAct>:is(#gvCof,#gPerso){width:auto;min-width:0;flex-direction:row;align-items:center;justify-content:center;gap:12px;padding:0 10px;font-size:var(--f1);letter-spacing:2px}
-html body #garage.vitrine:not(.menu) #gAct>:is(#gvCof,#gPerso) .pxi{--pxs:3}
-html body #garage.vitrine:not(.menu) #gAct>#gPerso{height:46px;min-height:46px}
-html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso,#gvCof):is(:active,.appui){transform:skewX(var(--sk)) translateY(2px);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),inset 0 0 0 1px var(--nc),inset 0 -2px 0 var(--nc),0 0 22px -6px var(--nc)}
-html body #garage.vitrine:not(.menu) #gAct>#gJouer{flex:1;height:46px;min-height:46px} /* (puis, Léo : « JOUER petit, comme le MISSIONS actuel ») */
 /* elles ARRIVENT : du sol, l'une après l'autre (propriétés individuelles : le `transform` penché de la touche reste à elle) */
-html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso,#gJouer){animation:gvMonte .52s var(--ease) backwards}
-html body #garage.vitrine:not(.menu) #gAct>#gClose{animation-delay:.12s}
-html body #garage.vitrine:not(.menu) #gAct>#gPerso{animation-delay:.19s}
-html body #garage.vitrine:not(.menu) #gAct>#gJouer{animation:gvMonte .52s var(--ease) .27s backwards,k4Lingot 4.2s var(--ease) 1.6s infinite}
 @keyframes gvMonte{from{opacity:0;translate:0 22px}to{opacity:1;translate:0 0}}
-/* LE SHOP COUPÉ, LE PETIT HOME (2026-10-06, Léo : « coupe le bouton shop, il faut qu'il soit visible, attrayant, et ajoute à gauche, inséré en
-   petit, un home » puis « retire celui d'en haut ») : la case du SHOP est coupée en deux — à gauche un petit HOME carré (verre fumé, la maison
-   seule : `#gClose`, le geste de la console), à droite le SHOP en BONBON : laque rose framboise, reflet qui passe, tranche épaisse, la pièce
-   d'or dessinée qui tourne, une étincelle qui s'allume au coin. Le HOME du haut (#gvHome) était retiré — REVENU le même jour (capture de Léo), le petit HOME repart. Ni or (JOUER est le lingot), ni pixel
-   dans la pièce (celle des jauges). */
-html body #garage.vitrine:not(.menu) #gAct>#gClose{display:none!important} /* (même jour) le HOME revenu en haut, le petit HOME inséré dans le SHOP repart (deux HOME = un de trop) ; pour le remettre : display:flex, grid-column:1, grid-row:3, 46 × 46, et la marge gauche du SHOP */
-html body #garage.vitrine:not(.menu) #gAct>#gClose>span{display:none}
-html body #garage.vitrine:not(.menu) #gAct>#gClose .pxi{--pxs:2;filter:drop-shadow(0 0 5px rgba(214,206,255,.6))}
-#gPerso .gvIco{display:none}
-html body #garage.vitrine:not(.menu) #gAct>#gPerso{--nc:#ff6ad8;margin:13px 0 0 0;gap:8px;padding:0 10px;color:#fff;
-  background:linear-gradient(105deg,transparent 0 38%,rgba(255,255,255,.62) 46%,rgba(255,255,255,0) 54%) no-repeat,
-    linear-gradient(180deg,#ffb8f0 0%,#ff62d4 22%,#ee30b8 55%,#a8128f 86%,#d93cbd 100%);
-  background-size:250% 100%,auto;background-position:180% 0,0 0;
-  box-shadow:inset 0 2px 0 rgba(255,255,255,.72),inset 0 -2px 0 rgba(255,175,236,.5),inset 0 0 0 1px rgba(120,0,90,.35),
-    0 0 0 1px #3a0233,0 5px 0 0 #7a0a68,0 5px 0 1px #3a0233,0 14px 22px -10px rgba(60,0,50,.8),0 0 26px -6px rgba(255,80,210,.85);
-  text-shadow:0 2px 0 #6a0758,0 0 10px rgba(255,255,255,.35);
-  animation:gvMonte .52s var(--ease) .19s backwards,k4Lingot 4.6s var(--ease) 2.4s infinite}
-html body #garage.vitrine:not(.menu) #gAct>#gPerso .pxi{display:none}
-html body #garage.vitrine:not(.menu) #gAct>#gPerso .gvIco{display:block;width:22px;height:22px;transform:skewX(calc(-1 * var(--sk)));filter:drop-shadow(0 2px 0 rgba(80,0,60,.6))}
-html body #garage.vitrine:not(.menu) #gAct>#gPerso::after{content:'';position:absolute;top:-6px;right:7px;width:15px;height:15px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23fff' stop-opacity='.9'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='10' cy='10' r='9' fill='url(%23g)'/%3E%3Cpath d='M10 0.5L11.4 8.6 19.5 10 11.4 11.4 10 19.5 8.6 11.4 0.5 10 8.6 8.6z' fill='%23fff'/%3E%3C/svg%3E") center/contain no-repeat;opacity:0;animation:gvShopEtin 3.4s ease-in-out 1.2s infinite}
-@keyframes gvShopEtin{0%,52%,100%{opacity:0;scale:.2;rotate:0deg}64%{opacity:1;scale:1.2;rotate:45deg}80%{opacity:0;scale:.5;rotate:90deg}}
-html body #garage.vitrine:not(.menu) #gAct>#gPerso:is(:active,.appui){transform:skewX(var(--sk)) translateY(5px);
-  box-shadow:inset 0 2px 0 rgba(255,255,255,.72),inset 0 -2px 0 rgba(255,175,236,.5),inset 0 0 0 1px rgba(120,0,90,.35),0 0 0 1px #3a0233,0 0 0 0 #7a0a68,0 0 0 1px #3a0233,0 0 32px rgba(255,80,210,.95)}
-html body #garage.vitrine:not(.menu) #gAct>#gClose:is(:active,.appui){transform:skewX(var(--sk)) translateY(4px);box-shadow:inset 0 1px 0 rgba(255,255,255,.24),inset 0 0 0 1px rgba(214,206,255,.6),0 0 0 1px rgba(0,0,0,.55),0 0 0 0 rgba(10,7,24,.9),0 0 18px -4px rgba(214,206,255,.7)}
 /* LE BOULON (2026-10-06, Léo : « mets un boulon 3D à la place du setting ») : le ⚙ de l'atelier est une tête de boulon dessinée en 3D (voir
    `boulonDessine`) ; en vitrine il flotte seul en haut à gauche, sans plaque. */
 .boulon{display:block;width:30px;height:30px;overflow:visible}
-html body #garage.vitrine:not(.menu) #gOutils>[data-go="set"]{width:44px;min-width:44px;height:44px;min-height:44px;padding:0;background:none;box-shadow:none;transform:none;opacity:1}
-html body #garage.vitrine:not(.menu) #gOutils>[data-go="set"]::before,html body #garage.vitrine:not(.menu) #gOutils>[data-go="set"]::after{display:none}
-html body #garage.vitrine:not(.menu) #gOutils>[data-go="set"] .boulon{width:44px;height:44px;filter:drop-shadow(0 3px 3px rgba(0,0,0,.6))}
-html body #garage.vitrine:not(.menu) #gOutils>[data-go="set"]:is(:active,.appui){transform:translateY(2px) scale(.93);translate:none}
 /* le tiroir ouvert : la barre s'efface (le tiroir est le sujet) */
 html body #garage.inv:not(.menu) #gBottom{opacity:0;translate:0 18px}
 html body #garage.inv:not(.menu) #gBottom *{pointer-events:none!important}
 html body #garage.deplie:not(.menu) #gBottom{animation:gDeplie .34s var(--ease,cubic-bezier(.32,.72,0,1)) both}
 @keyframes gDeplie{from{translate:0 24px;opacity:.35}to{translate:0 0;opacity:1}}
-/* LES JAUGES (même soir, Léo : « ça fait un peu vide, ajoute un peu de vie : jauge money, jauge aura, moyennes, colorées ») — l'ARGENT (vert
-   billet) vers la prochaine caisse à vendre (`objectif()`), l'AURA (violet → rose) vers le rang suivant.
-   v2 BRILLANTES (2026-10-05, Léo : « les jauges peuvent être des jauges brillantes, satisfaisantes, avec des mots un peu plus stylés — là c'est
-   un peu classique ») : empilées comme la barre de vie et la barre de mana d'un jeu (debout en haut à gauche, couché sous HOME · ⚙) ; une
-   ÉTIQUETTE d'arcade penchée (CASH · AURA, sa couleur en plein) ; le chiffre en quatre bandes ; la barre = un TUBE de 12 px : laque de verre
-   (lèvre blanche, reflet, ventre sombre), un courant de bandes en biais qui COULE dedans, des crans tous les 10 %, une POINTE chauffée à blanc
-   qui pulse, un éclat qui passe ; à l'entrée elle se remplit avec un léger dépassement, puis CLAQUE (éclair, le % qui saute, `.pose`) ; pleine,
-   elle bat. La ligne du dessous parle : la caisse visée et ce qui MANQUE (« ENCORE $ 1 200 », « À TA PORTÉE ! »), ton rang et le suivant.
-   Masquées pendant l'inventaire. */
-#gVJ{display:none}
-html body #garage.vitrine:not(.menu):not(.inv) #gVJ{display:grid}
-/* LES JAUGES v4 — L'ÉNERGIE (2026-10-06, Léo : « pas ouf les trucs juicy ; réfléchis à un plan pour bien placer les jauges en haut, une structure
-   avec les settings bien mis et les jauges bien placées, agréable à l'œil mais qui ne cache pas trop le décor ; puis redesign-les selon
-   l'emplacement : jauge énergétique intense plutôt que juicy Roblox ; une barre money sur le total jamais atteint — plus tu dépasses ton record,
-   plus la jauge est dure à remplir, mais elle reste remplie tant qu'on y est ; impressionne-moi »).
-   · LE PLAN : UNE BANDE EN HAUT, sans carte — le boulon (⚙) à gauche, centré sur les jauges ; les jauges à sa droite, debout l'une sous l'autre
-     (~85 px de haut au lieu de 175), couché côte à côte sur une seule ligne. Rien d'opaque : un voile qui descend du bord (`#gTop::before`)
-     suffit à les lire, le plafond et la porte restent visibles.
-   · LA JAUGE : un TUBE D'ÉNERGIE dessiné en direct (`<canvas class="gvC">`, `gveDessine`) — plasma qui coule vers la tête, cœur blanc, tête
-     incandescente qui lance des étincelles, ARCS ÉLECTRIQUES qui claquent ; pleine, elle SURCHARGE (arcs hors du tube, bord qui pulse). Le
-     texte en italique condensé (course), le chiffre blanc qui irradie sa couleur.
-   · L'ARGENT = TA FORTUNE CONTRE TON RECORD (`SAVE.d.bankMax`, le plus haut total jamais atteint) : à ton sommet elle est PLEINE et le reste
-     tant que tu y es ; tu dépenses, elle baisse — et plus ton record est haut, plus elle est dure à remplir. Record battu depuis la dernière
-     visite (`bankMaxVu`) : elle se charge jusqu'à l'ANCIEN record, y bute (une barrière qui grésille), puis la fait sauter. */
-html body #garage.vitrine:not(.menu) #gVJ{position:fixed;z-index:2;top:calc(var(--sT) + 12px);left:calc(var(--sL) + 114px);right:calc(var(--sR) + 16px);width:auto;margin:0;padding:0;grid-template-columns:minmax(0,1fr);row-gap:6px;pointer-events:none;animation:gvJEntre .6s var(--ease) .2s backwards} /* (même jour, Léo, capture : « les jauges qui se chevauchent comme sur la photo ») : empilées en cartes, à droite de HOME · boulon */
-@keyframes gvJEntre{from{opacity:0;translate:0 -10px}to{opacity:1;translate:0 0}}
 /* (le voile du haut de la v4 est retiré : les jauges ont repris leurs cartes) */
-/* HOME · boulon : à leur place d'origine (top sT + 12, voir #gOutils plus haut) */
-.gvL{--gvF:var(--pix);
-  position:relative;min-width:0;display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:baseline;column-gap:8px;font-family:var(--gvF);font-stretch:condensed;
-  padding:7px 11px 4px 13px;background:linear-gradient(180deg,rgba(24,17,52,.84),rgba(7,5,16,.88));
-  box-shadow:inset 3px 0 0 var(--gc),inset 0 0 0 1px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.12),0 0 18px -8px var(--gc),0 12px 24px -14px rgba(0,0,0,.85);
-  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)} /* la CARTE de la capture : laque sombre, coins coupés, filet de sa couleur à gauche */
-.gvA{--gc:#35ff86;--gh:#b4ffcf}
-.gvU{--gc:#c46bff;--gh:#ffc6f5}
-.gvK{font-style:normal;font-weight:400;font-size:8px;line-height:1;letter-spacing:2.4px;color:var(--gc);text-shadow:0 0 8px var(--gc),0 1px 0 #000,0 0 3px #000}
-.gvL b{font-style:normal;font-weight:400;font-size:12px;line-height:1;letter-spacing:.4px;white-space:nowrap;font-variant-numeric:tabular-nums;color:#fff;
-  text-shadow:0 0 12px var(--gc),0 0 3px var(--gc),0 1px 0 #000,0 0 5px rgba(0,0,0,.9)}
-.gvL .gvR{justify-self:end;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:normal;font-weight:400;font-size:8px;line-height:1.4;letter-spacing:1px;
-  color:var(--gh);text-shadow:0 1px 0 #000,0 0 3px rgba(0,0,0,.85),0 0 9px var(--gc)}
-.gvL .gvR em{font-style:normal;color:#fff;letter-spacing:.6px}
-.gvC{grid-column:1/-1;display:block;width:100%;height:20px;margin-top:1px}
-.gvL.sommet .gvR{color:#fff;animation:gvSommet 1.4s ease-in-out infinite}
-@keyframes gvSommet{50%{text-shadow:0 1px 0 #000,0 0 14px var(--gc),0 0 4px #fff}}
-.gvL.casse .gvR{animation:gvCasse .5s steps(2) 4,gvSommet 1.4s ease-in-out 2s infinite}
-.gvK{letter-spacing:1.6px}.gvL .gvR{letter-spacing:.9px}.gvL{column-gap:6px} /* debout, la carte est étroite : « RECORD ! +$ 9 k » doit tenir en entier */
-@keyframes gvCasse{50%{color:var(--gc);text-shadow:0 0 18px #fff,0 0 6px var(--gc)}}
-.gvL.casse b{animation:gvCasseB .7s var(--ease)}
-@keyframes gvCasseB{0%{scale:1.35;text-shadow:0 0 22px #fff,0 0 8px var(--gc)}100%{scale:1}}
-/* (le SHOP l'annonce) une caisse est à ta portée : une pastille verte sur le bouton */
-html body #garage.vitrine:not(.menu) #gAct>#gPerso[data-portee]::before{content:'';position:absolute;top:-6px;left:-5px;width:13px;height:13px;border-radius:50%;z-index:2;
-  background:radial-gradient(circle at 40% 35%,#eaffef,#4dff8a 55%,#14a84a);box-shadow:0 0 0 2px #2a0326,0 0 12px #4dff8a;transform:skewX(calc(-1 * var(--sk)));animation:gvPortee 1.6s ease-in-out infinite}
-@keyframes gvPortee{50%{box-shadow:0 0 0 2px #2a0326,0 0 20px #8dffb0;scale:1.12}}
-.gvIco{flex:none;display:block;width:17px;height:17px;background:center/contain no-repeat}
-.gvPiece{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3CradialGradient id='a' cx='38%25' cy='32%25' r='72%25'%3E%3Cstop offset='0' stop-color='%23fffbd8'/%3E%3Cstop offset='.42' stop-color='%23ffd640'/%3E%3Cstop offset='1' stop-color='%23d98400'/%3E%3C/radialGradient%3E%3ClinearGradient id='b' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23ffeb8a'/%3E%3Cstop offset='1' stop-color='%23a85800'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='16' cy='16.6' r='15' fill='%235c2c00'/%3E%3Ccircle cx='16' cy='16' r='14.2' fill='url(%23b)'/%3E%3Ccircle cx='16' cy='16' r='11.2' fill='url(%23a)' stroke='%23c77400' stroke-width='1'/%3E%3Cpath d='M20.2 11.6c-1-1.3-2.5-2-4.2-2-2.3 0-3.9 1.1-3.9 2.8 0 3.9 8 2.3 8 6.4 0 1.9-1.8 3.1-4.1 3.1-1.9 0-3.4-.7-4.4-2' fill='none' stroke='%23a35600' stroke-width='2.3' stroke-linecap='round'/%3E%3Cpath d='M16 7.4v17.2' stroke='%23a35600' stroke-width='2.1' stroke-linecap='round'/%3E%3Cellipse cx='11.6' cy='9.4' rx='4.6' ry='2.2' fill='%23fff' opacity='.75' transform='rotate(-32 11.6 9.4)'/%3E%3C/svg%3E");animation:gvPieceTourne 4.2s var(--ease) 1.4s infinite}
-@keyframes gvPieceTourne{0%,70%{scale:1 1}78%{scale:-1 1}86%,100%{scale:1 1}}
-/* COUCHÉ : la caisse à gauche ; à droite, de haut en bas : HOME · ⚙, les deux jauges, puis la pile du départ sous le pouce */
-@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
-  html body #garage.vitrine:not(.menu) #gTop{width:calc(100% - 460px - var(--sR));padding-right:12px}
-  html body #garage.vitrine:not(.menu) #gVJ{left:auto;right:calc(var(--sR) + 16px);width:min(330px,40%)}
-  .gvK{letter-spacing:1.8px}.gvL .gvR{letter-spacing:1.5px}.gvL{column-gap:8px}
-  /* HOME · boulon : coin haut-gauche, comme debout */ /* (puis, Léo : « les jauges en haut ») : le coin haut-droit, HOME · ⚙ sont partis à gauche */
-  .gvL b{font-size:12px}
-  html body #garage.vitrine:not(.menu) #gAct{width:min(440px,56%);margin:0 0 0 auto;grid-template-columns:minmax(0,.83fr) minmax(0,1fr);grid-template-rows:auto 40px auto}
-  html body #garage.vitrine:not(.menu) #gAct>#gJouer{height:40px;min-height:40px}
-  html body #garage.vitrine:not(.menu) #gAct>#gvMis{height:26px;min-height:26px;margin-bottom:6px}
-  html body #garage.vitrine:not(.menu) #gAct>#gvBranche{height:11px}
-  html body #garage.vitrine:not(.menu) #gAct>#gPerso{width:auto;min-width:0;height:40px;min-height:40px;gap:9px;margin-top:11px}
-  html body #garage.vitrine:not(.menu) #gAct>#gPerso .pxi{--pxs:3}
-  html body #garage.vitrine:not(.menu) #gAct>#gClose{width:40px;min-width:40px;height:40px;min-height:40px;margin-top:11px}
-  html body #garage.vitrine:not(.menu) #gAct>#gvLvl{height:40px;min-height:40px;margin-top:11px}
-  .gvV{height:42px}
-  #gvNivs{bottom:calc(100% + 10px);max-height:calc(100vh - var(--sT) - var(--sB) - 150px);padding:10px 10px 10px 13px}
-  #gvNivs .gnH{margin-bottom:8px}
-  #gvNivs .gvV{height:40px}
-}
-@media (prefers-reduced-motion:reduce){.gvIco,.gvL::before,.gvL u em s,.gvL u em::after,#gAct>#gPerso,#gAct>#gPerso::after{animation:none!important}.gvL u em s,.gvL::before{opacity:0!important}#gVJ,.gvL u::after,.gvL u em,.gvL u em::after,.gvA .gvK .pxi,.gvL.plein u,.gvA.portee :is(.gvR,.gvS em),#gvLvl .gvOuv,#gvNivs.on,#gvNivs .gvV,#gvLvl::before,.gvV::before,#gvLvl .gvEcl{animation:none!important}.gvL u em{transition:none}}
-html[data-reduced-motion] .gvIco,html[data-reduced-motion] .gvL::before,html[data-reduced-motion] .gvL u em s,html[data-reduced-motion] .gvL u em::after,html[data-reduced-motion] #gAct>#gPerso,html[data-reduced-motion] #gAct>#gPerso::after{animation:none!important}html[data-reduced-motion] .gvL u em s,html[data-reduced-motion] .gvL::before{opacity:0!important} /* (un pseudo-élément ne peut pas entrer dans :is()) */
-html[data-reduced-motion] #gVJ,html[data-reduced-motion] .gvL u::after,html[data-reduced-motion] .gvL u em,html[data-reduced-motion] .gvL u em::after,html[data-reduced-motion] .gvL.plein u,html[data-reduced-motion] .gvA.portee .gvR,html[data-reduced-motion] .gvA.portee .gvS em,html[data-reduced-motion] #gvLvl .gvOuv,html[data-reduced-motion] #gvNivs .gvV{animation:none!important} /* (2026-10-06) en liste : un pseudo-élément dans :is() rendait toute la règle invalide */
 /* L'ASTUCE : le geste dit une fois — un doigt qui appuie, un anneau qui se remplit */
-html body #garage.vitrine.aideInv:not(.menu):not(.inv) #gInvAide{display:flex}
 #gInvAide{position:absolute;z-index:2;left:50%;bottom:calc(var(--sB) + 240px);translate:-50% 0;align-items:center;gap:10px;padding:9px 14px 9px 12px;pointer-events:none;white-space:nowrap;
   font-size:var(--f0);letter-spacing:1px;color:var(--tx2);background:linear-gradient(180deg,rgba(24,17,50,.8),rgba(10,7,24,.84));
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.12),0 10px 24px -12px rgba(0,0,0,.8);
@@ -5943,7 +5647,6 @@ html body #garage.vitrine.aideInv:not(.menu):not(.inv) #gInvAide{display:flex}
 @keyframes gvAide{0%{opacity:0;translate:-50% 10px}6%,88%{opacity:1;translate:-50% 0}100%{opacity:0;translate:-50% 0}}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
   #gInvAide{left:calc(var(--sL) + 16px);right:auto;translate:0 0;bottom:auto;top:calc(var(--sT) + 58px);animation-name:gvAideC;grid-template-columns:auto auto;column-gap:10px;row-gap:4px;padding:8px 14px 8px 12px}
-  html body #garage.vitrine.aideInv:not(.menu):not(.inv) #gInvAide{display:grid} /* (v3) sur deux lignes : à gauche de la barre des touches, même dans les marges de l'iPhone */
   #gInvAide .ivDoigt{grid-row:1/3;align-self:center}
   #gInvAide b::before{display:none}
   @keyframes gvAideC{0%{opacity:0;translate:0 10px}6%,88%{opacity:1;translate:0 0}100%{opacity:0;translate:0 0}}
@@ -6030,13 +5733,13 @@ html body #garage.vitrine.aideInv:not(.menu):not(.inv) #gInvAide{display:flex}
   .ivTab em{position:static}
   #ivGrille{grid-template-columns:repeat(auto-fill,minmax(84px,1fr));grid-auto-rows:94px;gap:12px 10px}
 }
-@media (prefers-reduced-motion:reduce){html body #garage.deplie:not(.menu) #gBottom,html body #garage.vitrine:not(.menu) #gAct>*,html body #garage.vitrine:not(.menu) #gName,#gInv.on,#gInv.on .ivT,.ivT::after,.ivT::before{animation:none!important}}
+@media (prefers-reduced-motion:reduce){html body #garage.deplie:not(.menu) #gBottom,#gInv.on,#gInv.on .ivT,.ivT::after,.ivT::before{animation:none!important}}
 #garage.quiet :is(#gInv,#gInvAide,#gInvAnneau),#garage.launching :is(#gInv,#gInvAide,#gInvAnneau),#garage.menu :is(#gInv,#gInvAide){display:none!important}
-html[data-reduced-motion] body #garage.deplie:not(.menu) #gBottom,html[data-reduced-motion] body #garage.vitrine:not(.menu) #gAct>*,html[data-reduced-motion] body #garage.vitrine:not(.menu) #gName,html[data-reduced-motion] #gInv.on,html[data-reduced-motion] #gInv.on .ivT,html[data-reduced-motion] .ivT::after,html[data-reduced-motion] .ivT::before{animation:none!important}
+html[data-reduced-motion] body #garage.deplie:not(.menu) #gBottom,html[data-reduced-motion] #gInv.on,html[data-reduced-motion] #gInv.on .ivT,html[data-reduced-motion] .ivT::after,html[data-reduced-motion] .ivT::before{animation:none!important}
 </style>
 <style id="hubGarage">
 /* LE GARAGE, HUB DES TROIS (2026-10-06, Sacha : « le garage doit servir de hub aux 3, mets-toi dans la peau d'un designer UX/UI senior »).
-   html.hub   = la version de Sacha (MENU_SACHA) : l'accueil n'a plus que GARAGE · BOUTIQUE · ⚙ et JOUER.
+   html.hub   = la version de Sacha : l'accueil n'a plus que GARAGE · BOUTIQUE · ⚙ et JOUER.
    html.hubOn = on est DANS le hub (atelier, missions ou carrière ouverts depuis le garage) : la barre est là, chaque page lui laisse sa place.
    LA BARRE : trois onglets à parts égales, au même endroit sur les trois pages (la mémoire du pouce) — en bas debout, en bas à GAUCHE
    couché (la colonne de droite est celle de la console et de JOUER). Un onglet = sa couleur (atelier magenta comme la console,
@@ -6119,7 +5822,7 @@ html.hubOn #gHub .ghPips u{width:4px;height:4px}
 @supports not (color:color-mix(in srgb,red 50%,blue)){html.hubOn #gHub .ghT.on{background:rgba(255,255,255,.08);text-shadow:0 1px 0 rgba(7,5,15,.85)}}
 /* (même jour, Léo : « enlève le settings ») le ⚙ du garage part (`#gOutils [data-go="set"]`, en haut à droite) : les RÉGLAGES restent
    sur l'écran titre (le ⚙ à côté de la boutique) et dans la pause. Masqué, pas retiré : les écouteurs le cherchent toujours. */
-html body #garage #gOutils>[data-go="set"],#gReglage{display:none!important}
+html body #garage #gOutils>[data-go="set"]{display:none!important}
 /* LE RANG À CÔTÉ DU NOM (même jour, Léo, capture « 32 / 46 » : « le 1 / 46, mets-le en petit à côté du nom de la voiture »). Il était
    SOUS le filet du nom, sur sa propre ligne : il monte sur la ligne du nom, en petit (9 px), calé sur le bas des lettres. Le nom n'occupe
    plus toute la largeur (flex auto) et sa taille réserve 90 px au rang (« 32 / 46 » en fait ~70) — un nom long rapetisse un peu au lieu de pousser le rang à la
@@ -6183,7 +5886,7 @@ html[data-reduced-motion="1"] #gTourne{animation:none!important}
 #gAuraC small{font-size:var(--f0);letter-spacing:1px;color:var(--tx3);white-space:nowrap;transform:skewX(var(--sk))}
 #gAuraC u{position:absolute;left:0;right:0;bottom:0;height:3px;display:block;text-decoration:none}
 #gAuraC u em{display:block;height:100%;width:0;background:#b46bff;box-shadow:0 0 8px #b46bff;transition:width var(--t-slow) var(--ease)}
-html body #garage.vitrine:not(.menu) #gAuraC,#garage.menu #gAuraC{display:none!important}
+#garage.menu #gAuraC{display:none!important}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){#gAuraC{height:30px;margin-top:5px}}
 /* LA JAUGE MONTE, LES BOUTONS DESCENDENT (même jour, Léo : « mets la jauge plus haut en portrait : échange l'emplacement de HOME ·
    BOUTIQUE · JOUER et de la jauge, seulement en portrait ») : DEBOUT, la jauge entre DANS la console, juste au-dessus de la rangée
@@ -6197,7 +5900,7 @@ html.hubOn.gtConsole body #garage:not(.menu)>#gTourne.on{position:relative;left:
    Une grille : INVENTAIRE · BOUTIQUE · JOUER sur la ligne du bas (comme avant), ÉQUIPER en barre de 28 px au-dessus de la seule colonne de
    JOUER. Le HOME (#gClose, le haut #gvHome) est caché ; Échap ramène toujours à l'accueil. ACHETER / IL MANQUE (#gBuyRow) disparaît :
    toucher ÉQUIPER en ROUGE sur une caisse à vendre l'achète (le relais vit dans le JS, gEqTon) — le prix est déjà sous chaque vignette. */
-html body #garage:not(.menu):not(.vitrine) #gAct>#gClose,html body #garage:not(.menu):not(.vitrine) #gOutils>#gvHome,html body #garage:not(.menu):not(.vitrine) #gAct>#gBuyRow{display:none!important}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gClose,html body #garage:not(.menu):not(.vitrine) #gAct>#gBuyRow{display:none!important}
 html body #garage:not(.menu):not(.vitrine) #gAct{display:grid;grid-template-columns:auto auto minmax(0,1fr);grid-template-rows:auto auto;column-gap:16px;row-gap:6px;align-items:stretch}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gvCof{grid-column:1;grid-row:2;display:flex;flex-direction:column;justify-content:center;gap:6px;width:96px;min-width:96px;
   padding:6px 4px 4px 8px;font-size:var(--f0);letter-spacing:0;--nc:var(--neoC)}
@@ -7075,7 +6778,7 @@ html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>
 html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis{grid-column:3/5!important;--pc:#b07bff}
 html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gShopBas{grid-column:5/7!important;--pc:#ff4fc3}
 html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>:is(#gvCof,#gvMis,#gShopBas) .pxi{--pxs:2!important;color:var(--pc)!important;filter:drop-shadow(0 0 5px var(--pc))!important}
-html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>:is(#gvCof,#gvMis,#gShopBas) .gvIco,html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis .gvFx{display:none!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis .gvFx{display:none!important}
 html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis .gvPips{position:absolute;right:7px;top:5px;gap:3px}
 html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis .gvPips u{width:5px;height:5px}
 html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis{position:relative}
@@ -7826,7 +7529,7 @@ html[data-reduced-motion="1"] body #coach.v2.v2 *,html[data-reduced-motion="1"] 
 /* (2026-10-14, Sacha : « supprime complètement de main le mode challenge pour l'instant » — la CARRIÈRE, voir SANS_CARRIERE dans le <head>)
    Toutes les portes de la carrière disparaissent sous `html.sansCarr` ; sur l'accueil, la carte CARRIÈRE n'est même plus fabriquée, et
    MISSIONS prend sa place : les deux colonnes larges de la rangée. */
-html.sansCarr [data-m="carr"],html.sansCarr #gCarr,html.sansCarr .gLevel,html.sansCarr #carr,html.sansCarr #gHub .ghT[data-h="carr"]{display:none!important}
+html.sansCarr [data-m="carr"],html.sansCarr #gCarr,html.sansCarr #carr,html.sansCarr #gHub .ghT[data-h="carr"]{display:none!important}
 html.hub.sansCarr:not(.c6) body #mHome.acc2 .mAccP>.mMisBarre{grid-column:1/3}
 @media (orientation:landscape) and (max-height:540px){
   html.hub.sansCarr:not(.c6) body #mHome.acc2 .mAccP>.mMisBarre{grid-column:2/4}}
@@ -8423,7 +8126,7 @@ html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAc
    vert = l'argent et RÉCUPÈRE. Voir « LES MISSIONS v2 » au journal. */
 html.misV2 #gMis{--m2Col:#4db8ff;--m2Exp:#3ee8a8;--m2T:.9s}
 html.misV2 #gmSous{font-size:var(--f3);line-height:1.5;letter-spacing:2px;color:var(--neoC)}
-html.misV2 #gMisPips,html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips,html.misV2 #misFocus{display:none!important}
+html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips,html.misV2 #misFocus{display:none!important}
 #gmListe.m2 .glA{padding-bottom:8px}
 .m2L{position:relative;display:flex;align-items:center;gap:10px;min-height:60px;box-sizing:border-box;padding:9px 10px 9px 9px;margin-bottom:6px;cursor:pointer;
   --fc:var(--neoC);--bc:var(--fc);background:#0f2747;box-shadow:inset 0 0 0 1px rgba(95,240,255,.18);
@@ -8702,21 +8405,6 @@ html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRe
   <div id="garage">
     <div id="gEclat" aria-hidden="true"></div>
     <div id="gVig" aria-hidden="true"></div>
-    <!-- (2026-09-30, sketch de Léo) LE GARAGE EST LE MENU : profil en haut à gauche (argent, aura), PLAY en haut au centre (#gPlayMain,
-         dans #gTop), réglages en haut à droite, le socle des MISSIONS à droite de la caisse (l'étiquette suit le 3D), en bas :
-         [verrouillé pour l'instant] [LEVEL] [BOUTIQUE]. La BOUTIQUE est l'ancien atelier (onglets, vignettes, achat) : `garMode`. -->
-    <div id="gMenu">
-      <div id="gProfil"><div class="gpAv"><svg viewBox="0 0 12 12" aria-hidden="true" shape-rendering="crispEdges"><rect x="4" y="1" width="4" height="1" fill="#ffd75e"/><rect x="3" y="2" width="6" height="4" fill="#ffd75e"/><rect x="4" y="3" width="1" height="1" fill="#1b1433"/><rect x="7" y="3" width="1" height="1" fill="#1b1433"/><rect x="5" y="5" width="2" height="1" fill="#c07a2a"/><rect x="5" y="6" width="2" height="1" fill="#ffd75e"/><rect x="2" y="7" width="8" height="5" fill="#5ff0ff"/><rect x="5" y="7" width="2" height="2" fill="#f24aa0"/></svg></div><div class="gpJ">
-        <div class="gpL gpArgent"><b id="gpArg">$0</b><u><em id="gpArgF"></em></u></div>
-        <div class="gpL gpAura"><i class="pxi pxi-etoile" aria-hidden="true"></i><b id="gpAur">0</b><small id="gpRang"></small><u><em id="gpAurF"></em></u></div>
-      </div></div>
-      <div id="gReglage" class="pbtn pbCarre" role="button" tabindex="0" aria-label="Réglages"><i class="pxi pxi-reglages" aria-hidden="true"></i></div>
-      <div id="gMisAncre"><div id="gMisBtn" class="pbtn" role="button" tabindex="0" aria-label="Missions"><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="mMisPips" id="gMisPips" aria-hidden="true"><u></u><u></u><u></u></b></div></div>
-      <div id="gMenuBas">
-        <div class="pbtn gLevel" role="button" tabindex="0" aria-label="Niveau"><span class="glN" id="glN">NIVEAU 1</span><span class="glM" id="glM"></span></div>
-        <div class="pbtn pb-mag gBoutique" role="button" tabindex="0" aria-label="Boutique"><i class="pxi pxi-panier" aria-hidden="true"></i><span data-fr="BOUTIQUE">BOUTIQUE</span></div>
-      </div>
-    </div>
       <!-- L'ÉCRAN MISSIONS DU GARAGE (2026-09-30, Léo : « un truc beaucoup plus ambitieux pour le bouton mission : un point de vue face au
            garage, une ambiance sci-fi, des lignes qui montrent les missions réparties à différents endroits, reliées, et un bouton JOUER ;
            on coche une mission pour la suivre, elle reste affichée discrètement pendant le jeu ») — voir « LES MISSIONS DANS L'ATELIER » -->
@@ -8734,7 +8422,7 @@ html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRe
          barre d'action : la SORTIE sous le pouce gauche, LA décision — un seul lingot — sous le pouce droit). La caisse,
          au milieu, reste nue. Les ids n'ont pas bougé : tout le câblage JS les retrouve. -->
     <div id="gTop">
-      <div id="gTopRow"><span id="gTitle" hidden>GARAGE</span><div id="gCompteur" aria-label="Compte"><b>$0</b></div><!-- (2026-09-29, Léo : « reprends les boutons du menu d'après le crash et mets-les dans le garage ») BOUTIQUE · RÉGLAGES, en haut à droite (le coin vide) ; GARAGE n'est pas repris : on y est --><div id="gOutils"><div class="pbtn pbCarre pb-mag" data-go="shop" role="button" tabindex="0" aria-label="Boutique"><i class="pxi pxi-panier" aria-hidden="true"></i></div><div class="pbtn pbCarre" data-go="set" role="button" tabindex="0" aria-label="Réglages"><svg class="boulon" viewBox="3 8 42 40" aria-hidden="true"></svg></div><div class="pbtn pbCarre" id="gvHome" role="button" tabindex="0" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i></div></div></div>
+      <div id="gTopRow"><span id="gTitle" hidden>GARAGE</span><div id="gCompteur" aria-label="Compte"><b>$0</b></div><!-- (2026-09-29, Léo : « reprends les boutons du menu d'après le crash et mets-les dans le garage ») BOUTIQUE · RÉGLAGES, en haut à droite (le coin vide) ; GARAGE n'est pas repris : on y est --><div id="gOutils"><div class="pbtn pbCarre pb-mag" data-go="shop" role="button" tabindex="0" aria-label="Boutique"><i class="pxi pxi-panier" aria-hidden="true"></i></div><div class="pbtn pbCarre" data-go="set" role="button" tabindex="0" aria-label="Réglages"><svg class="boulon" viewBox="3 8 42 40" aria-hidden="true"></svg></div></div></div>
       <div id="gAuraC" aria-label="Aura"><i class="pxi pxi-etoile" aria-hidden="true"></i><b>0</b><small></small><u><em></em></u></div>
       <div id="gPlayMain" role="button" tabindex="0" aria-label="Jouer"></div><!-- (le JOUER en lettres de l'ancien garage : masqué, gardé pour le câblage) -->
       <div id="gCarr" class="pbtn" role="button" tabindex="0" style="display:none"><i class="pxi pxi-trophee" aria-hidden="true"></i><span data-fr="CARRIERE">CARRIERE</span></div>
@@ -8747,11 +8435,6 @@ html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRe
         <div id="gDesc"></div>
         <div id="gBank">COMPTE : —</div>
         <div id="gHint">glisse pour tourner · molette pour zoomer</div>
-      </div>
-      <!-- (2026-10-04, Léo : « ça fait un peu vide, ajoute un peu de vie : jauge money, jauge aura, moyennes, colorées ») LA VITRINE : voir gvJauges -->
-      <div id="gVJ" aria-label="Compte et aura">
-        <div class="gvL gvA"><i class="gvK" data-fr="CASH">CASH</i><b>$ 0</b><small class="gvR"></small><canvas class="gvC" aria-hidden="true"></canvas></div>
-        <div class="gvL gvU"><i class="gvK" data-fr="AURA">AURA</i><b>0</b><small class="gvR"></small><canvas class="gvC" aria-hidden="true"></canvas></div>
       </div>
     </div>
     <div id="lbBoxG"></div>
@@ -8773,7 +8456,6 @@ html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRe
              entre les deux quand il y a un choix à faire (la caisse équipée n'en a pas : JOUER prend la place) -->
         <button id="gClose" class="pbtn" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i><span data-fr="HOME">HOME</span></button><!-- (2026-09-30, Léo : « dans la boutique, au lieu d'un bouton MENU (erreur), un bouton HOME, qui remplace tous les boutons GARAGE ou MENU ») -->
         <!-- (2026-09-30, Sacha via DEBUGGING, idée de Léo) la BOUTIQUE bien visible, EN BAS (charte règle 4) : secondaire magenta, jamais d'or (règle 3) -->
-        <button id="gPerso" class="pbtn pb-cyan" aria-label="Shop"><i class="pxi pxi-piece" aria-hidden="true"></i><i class="gvIco gvPiece" aria-hidden="true"></i><span data-fr="SHOP">SHOP</span></button><!-- (2026-10-04, Léo : « ne mets pas direct le shop dans le garage, c'est agressif » puis « des boutons visibles minimalistes : menu, shop, comme avant mais un peu mieux, premium, smooth ») LA VITRINE : voir garVitrine — SHOP déplie la console (caisses, peinture, ailes, traînées : l'argent du JEU, d'où la pièce) -->
         <button id="gShopBas" class="pbtn pb-mag" data-go="shop" aria-label="Boutique"><i class="pxi pxi-panier" aria-hidden="true"></i><span data-fr="BOUTIQUE">BOUTIQUE</span></button>
         <div id="gBuyRow"><button id="gBuy" class="pbtn pb-gold">ACHETER</button></div>
         <button id="gEquip" class="pbtn pb-gold">ÉQUIPER</button>
@@ -8784,10 +8466,6 @@ html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRe
         <!-- (2026-10-05, Léo : « en dessous du play, insère MISSIONS, et le nom du level qui va être lancé, limite collé, de manière stylée, branché énergétiquement ») LA VITRINE : voir gvNiveau -->
         <button id="gvMis" class="pbtn" aria-label="Missions"><s class="gvFx" aria-hidden="true"></s><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="gvPips" aria-hidden="true"><u></u><u></u><u></u></b></button>
         <!-- (2026-10-05, Léo : « l'inventaire va être ajouté à côté du bouton jouer ») le COFFRE : l'inventaire (le doigt tenu sur la caisse lance désormais le BURN-OUT) -->
-        <!-- (2026-10-05, Léo : « les niveaux, non : tu vois le niveau comme avant ; juste quand tu cliques dessus, tu vois les niveaux que tu as accomplis ») LA VIGNETTE du niveau que JOUER lance, et son TIROIR : voir gvNiveau / gvNivs -->
-        <i id="gvBranche" aria-hidden="true"></i><!-- (2026-10-05, Léo : « la map branchée à la place de MISSIONS ») les deux conducteurs d'or entre JOUER et la map -->
-        <div id="gvLvl" role="button" tabindex="0" aria-label="Les niveaux" aria-expanded="false"><i class="gvImg" aria-hidden="true"></i><s class="gvFx" aria-hidden="true"></s><span class="gvTx"><i class="gvEcl pxi pxi-eclair" aria-hidden="true"></i><b class="gvN"></b><span class="gvT"></span><em class="gvD"></em></span><i class="gvOuv pxi pxi-haut" aria-hidden="true"></i></div>
-        <div id="gvNivs" role="dialog" aria-label="Niveaux accomplis"></div>
         <button id="gvCof" class="pbtn" aria-label="Inventaire"><i class="pxi pxi-coffre" aria-hidden="true"></i><span data-fr="INVENTAIRE">INVENTAIRE</span></button>
       </div>
     </div>
@@ -25932,9 +25610,9 @@ function soldeRoule(){const n=performance.now(),L=SOLDE.l;let j=0;
     el._sv=Math.round(el._s0+(el._sc-el._s0)*e);soldeTxt(el,el._sv);if(k<1)L[j++]=el;}
   L.length=j;SOLDE.on=j>0;if(SOLDE.on)requestAnimationFrame(soldeRoule);}
 /* (banc) dbgSolde({banque, course}) : pose le compte et/ou l'argent de la partie, puis rend ce que chaque plaque de SOLDE affiche (texte, corps, bords) */
-window.dbgSolde=function(o){o=o||{};if(o.banque!=null){SAVE.d.bank=Math.max(0,+o.banque);try{SAVE.mark();}catch(e){}try{gBankPaint();}catch(e){}try{garMenuMaj();}catch(e){}}if(o.course!=null)money=Math.max(0,+o.course);
+window.dbgSolde=function(o){o=o||{};if(o.banque!=null){SAVE.d.bank=Math.max(0,+o.banque);try{SAVE.mark();}catch(e){}try{gBankPaint();}catch(e){}try{m2Portes();}catch(e){}}if(o.course!=null)money=Math.max(0,+o.course);
   const q=function(s){const e=document.querySelector(s);if(!e)return null;const r=e.getBoundingClientRect();return {t:e.textContent,vu:r.width>0,fs:getComputedStyle(e).fontSize,x0:Math.round(r.left),x1:Math.round(r.right)};};
-  return {banque:bank(),course:money,ux8:q('#ux8Arg b'),gar:q('#gCompteur b'),gp:q('#gpArg'),bq:q('#gBqArg'),gBank:q('#gBank'),fin:q('#mCashTot'),hud:q('#cashHud .chV span'),VPw:VP.w};};
+  return {banque:bank(),course:money,gar:q('#gCompteur b'),bq:q('#gBqArg'),gBank:q('#gBank'),fin:q('#mCashTot'),hud:q('#cashHud .chV span'),VPw:VP.w};};
 // ---- UNITÉS COMPACTES : « $ 1,4 M » se lit d'un œil, « $ 1 400 000 » est du bruit. Échelle
 // longue française (million, milliard, billion, billiard, trillion) — assez folle toute seule.
 const UNITS=[[1e30,'Qn','QUINTILLIONS 🛸'],[1e27,'Qd','QUADRILLIARDS'],[1e24,'Q','QUADRILLIONS 🤑'],[1e21,'Td','TRILLIARDS'],[1e18,'T','TRILLIONS 🤯'],[1e15,'Bd','BILLIARDS'],[1e12,'Bn','BILLIONS'],[1e9,'Md','MILLIARDS'],[1e6,'M','MILLIONS'],[1e3,'k','MILLIERS']];
@@ -49882,7 +49560,7 @@ function m2Recupere(id,row){
   if(o.car!=null){try{carSnapshot();}catch(e){}toast(pxi('voiture')+' '+TR(CARS[o.car].name)+' — '+TR('EST À TOI'),true);}
   else if(o.cat){const d=(COSM[o.cat]||[]).find(function(x){return x.id===o.hab;});toast(pxi('coche')+' '+(d?TR(d.n):'')+' — '+TR('EST À TOI'),true);}
   else toast(pxi('piece')+' +'+fmtC(o.cash)+' '+TR('VERSÉS AU COMPTE'),true);
-  try{gBankPaint();}catch(e){}try{garMenuMaj();}catch(e){}
+  try{gBankPaint();}catch(e){}try{m2Portes();}catch(e){}
   setTimeout(function(){if(garageOn&&gEl&&gEl.classList.contains('missions'))m2Render(true);else m2Portes();},REDUCED_MOTION?0:560);}
 function m2Clic(e){const t=e.target;if(!t||!t.closest)return;
   const fin=t.closest('.m2Fin');if(fin){M2E.fin=!M2E.fin;uiClic(M2E.fin?'on':'off');hap(8);m2Render(true);
@@ -49900,7 +49578,7 @@ function m2Clic(e){const t=e.target;if(!t||!t.closest)return;
   const r2=document.querySelector('#gmListe .m2L[data-m2="'+id+'"]');if(r2){r2.classList.add('flash');if(k<0&&r2.scrollIntoView)try{r2.scrollIntoView({block:'nearest'});}catch(x){}}}
 /* LE POINT VERT DES PORTES (à la place des trois pastilles du carnet) : une récompense attend d'être récupérée */
 function m2Portes(){if(!MISSIONS_V2)return;const n=m2NbPret();
-  document.querySelectorAll('#gMisBtn,#gvMis,.ghT[data-h="mis"],#mHome [data-m="mis"]').forEach(function(d){let p=d.querySelector(':scope>.m2Pt');
+  document.querySelectorAll('#gvMis,.ghT[data-h="mis"],#mHome [data-m="mis"]').forEach(function(d){let p=d.querySelector(':scope>.m2Pt');
     if(!p){if(!n)return;p=document.createElement('i');p.className='m2Pt';p.setAttribute('aria-hidden','true');try{if(getComputedStyle(d).position==='static')d.style.position='relative';}catch(e){}d.appendChild(p);}
     p.hidden=!n;});}
 /* LES MISSIONS SUIVIES, EN COURSE (#m2Focus, à la place de #misFocus) : trois lignes au plus, discrètes — consigne · avancement · jauge
@@ -56449,7 +56127,7 @@ function buildGarageRoom(){
   /* LE SOCLE DES MISSIONS (2026-09-30, sketch de Léo : « missions » sur un fût à droite de la caisse) : une colonne de fer cerclée de
      néon VERT (la couleur des défis), coiffée d'une cible qui tourne. Au sol, HORS du plateau (il ne tourne pas avec la caisse), côté
      porte, à 3,8 m du centre : la plus longue caisse (6 m) balaie 3,2 m. x < 0 = à DROITE de l'écran (la caméra regarde la porte, +Z).
-     Son étiquette MISSIONS est du DOM qui le suit à l'écran (#gMisAncre, garMenuSuit) : un vrai bouton, net, traduit, accessible. */
+     (le menu de Léo et son étiquette MISSIONS sont retirés : le socle reste caché). */
   {const n9=g.children.length,sx=-2.9,sz=2.5,vert=BA(0x5ee37a);
    cy(sx,.62,sz,.42,1.24,M.fer);cy(sx,1.27,sz,.47,.07,M.acier);cy(sx,.08,sz,.5,.16,M.acier);
    for(const y9 of [.34,.98])cy(sx,y9,sz,.435,.06,vert);                                   // deux cerclages néon
@@ -56457,7 +56135,7 @@ function buildGarageRoom(){
    const tg=new THREE.TorusGeometry(.3,.035,6,28),tg2=new THREE.TorusGeometry(.15,.03,6,20);
    ci.add(new THREE.Mesh(tg,vert));ci.add(new THREE.Mesh(tg2,vert));
    const pt=new THREE.Mesh(new THREE.SphereGeometry(.05,8,6),vert);ci.add(pt);
-   GAR.misSocle=g.children.slice(n9);if(MENU_SACHA)GAR.misSocle.forEach(function(o){o.visible=false;});} // (2026-10-06, Léo : « l'ancien truc mission vert, à enlever ») : le BOUTON ROUGE prend sa place (voir atlBuild)
+   GAR.misSocle=g.children.slice(n9);GAR.misSocle.forEach(function(o){o.visible=false;});} // (2026-10-06, Léo : « l'ancien truc mission vert, à enlever ») : le BOUTON ROUGE prend sa place (voir atlBuild)
 
   // ===== LE PLATEAU TOURNANT : la caisse est une PIÈCE D'EXPOSITION, pas une bagnole garée =====
   // ⚠ le plateau a SES géométries : mettre le tore unité à l'échelle 8,8 gonflait aussi son tube —
@@ -58213,7 +57891,7 @@ function garBeaute(dt,t9){ // (2026-09-30) L'ATELIER v2 : ce qui vit — le feu 
    cette ligne au lieu de lever une erreur (la zone morte d'un const planterait le tout premier rendu). */
 var CHUTE={G:new THREE.Vector3(),nu:null,oA:0,oAc:0,oW:0,oP:0,oPc:0,mvT:0,tk:0,tSens:1,on:false,t:0,go:null,L:-1,s:0,C:new THREE.Vector3(),cam:new THREE.Vector3(),f:new THREE.Vector3(),fh:new THREE.Vector3(),lh:new THREE.Vector3(),
   q:new THREE.Quaternion(),m:new THREE.Matrix4(),v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),w:null,fil:null,voile:null,bioPas:-1,vent:false,entree:0};
-const CHUTE_OK=!/[?&]chute=0\b/.test(location.search); // (et seulement avec les boutons de Sacha : le menu de Léo, ?menu=leo, garde son atelier — son étiquette MISSIONS vit sur le socle)
+const CHUTE_OK=!/[?&]chute=0\b/.test(location.search);
 const CHUTE_P={cielT:1,voiles:0,brumeT:2.2,elevP:.06,studio:1,amb:.55,sk:1.6,kh:.75,sc:.12,sb:0,sr:1.35,fige:null, /* (2026-10-03) LE MODELÉ DE LA CAISSE, choisi sur planche (banc studio.mjs, f1) : voir chuteStudio */cleC:0xfff1dc,rimC:0xbfe4ff,rim:1.1,rimS:0,lampe:1,az:2.35,cote:0,nuages:1,K:[1.02,1.08,1.1,1],R:[-.3,.5,.72,1],mzA:[1500,.8,9,.2],mzB:null,gite:-.45,coton:0,cle:.5,brume:1,expo:1,trainee:0,alt:900,avant:-1700,pitch:.62,roule:.12,cap:.28,elev:.015, /* (titre v3) voir « L'ÉCRAN TITRE v3 » : alt = au-dessus du SOMMET de la piste, az = l'angle regard ↔ soleil, cote = la piste décalée à droite de la caisse (couché), nuages = les cumulus du titre */ /* (niveau 1 v2) pitch .22 → .55, elev .22 → .30 : à plat, elle PLANAIT ; le nez piqué vers la mer, on la voit TOMBER */vit:14,echelle:1,taille:.82,sol:.3,sous:70,plancher:0,tour:75,sens:1,face:-.785,faceA:.21,vb:.8,cjF:1.2}; /* (2026-10-08, LE SENS DU TOUR) sens : +1 = le décor glisse vers la GAUCHE (mesuré : un point du décor à 1,7 km recule de 0,1 à 0,13 d'écran pour 0,1 rad de tour) — la caisse, nez à droite, a l'air d'AVANCER vers la droite : le sens de lecture (Maass & Russo 2003 : un mouvement de gauche à droite se lit « vers l'avant » chez qui lit de gauche à droite ; Chokron & De Agostini 2000 : on préfère les images orientées vers la droite), le travelling qui suit un sujet allant à droite, et vu d'en haut le sens des aiguilles d'une montre. Le doigt ne l'inverse plus. */ /* (2026-10-08, LA CAISSE EN DIAGONALE) face : l'angle (rad) d'où le regard la voit, autour d'elle — −0,785 (315°) = trois-quarts avant nez à droite : l'avant ET le flanc (phares, calandre, portières ; Léo : « plus diagonale, qu'on voie un peu l'avant et le profil » — choisi sur planche 295° → 345°) ; faceA : le balancement autour (±12°, un aller-retour par tour) ; face:null = la caisse fixe dans le monde, le tour passe par son dos */ /* (2026-10-07, LE TOUR SANS FIN) tour : secondes pour un tour complet du regard autour de la caisse (0 = la vue ne tourne que sous le doigt) */ // (2026-09-30, le JOUR D'ALTITUDE) de très haut au-dessus de TOUT le monde du niveau : les cumulus deviennent un champ de nuages sous la caisse, la mer à perte de vue ; plus de traînée orange ni de plancher peint ; brume repoussée, exposition et clé baissées (l'image sortait délavée) // (choisi aux captures : l'horizon et la mer de nuages dans l'image, le soleil de côté devant — sa lueur rose-or sur l'horizon)
 window.dbgChute=function(o){if(o&&typeof o==='object'){if(o.orb!=null){CHUTE.oA=CHUTE.oAc=+o.orb||0;CHUTE.oW=0;CHUTE.tk=0;o=Object.assign({},o);delete o.orb;} /* (le tour sans fin, banc) orb : poser le regard à cet angle (rad) — avec tour:0 il y reste */if(o.NU&&CHUTE.nu){o.NU.forEach(function(d,i){const c=CHUTE.nu[i];if(!c||!d)return;c.a=d[0];c.b=d[1];c.r=d[2];c.v=d[4];c.y=d[5];c.m.scale.set(d[2],d[2],d[2]);const dd=Math.hypot(d[0],d[1]);c.lo=-(1.2*dd+1.3*d[2]);c.hi=.1*dd+1.3*d[2];c.off=false;});for(let i=o.NU.length;i<CHUTE.nu.length;i++)CHUTE.nu[i].off=true;o=Object.assign({},o);delete o.NU;} /* (banc) NU : rejouer la disposition des cumulus du titre sans recharger */
   Object.assign(CHUTE_P,o);CHUTE.L=-1;}
@@ -59406,7 +59084,7 @@ function chuteStudio(C,up,P){
   camera.getWorldDirection(CHUTE_ST.r).multiplyScalar(1-P.rimS).addScaledVector(SUN_DIR,P.rimS).normalize();
   stallRim.color.setHex(P.rimC);stallRim.intensity=P.rim*P.sr;stallRim.distance=40;stallRim.position.copy(C).addScaledVector(CHUTE_ST.r,7).addScaledVector(AXIS_Y,2.5);
 }
-function chuteVoulue(){return CHUTE_OK&&MENU_SACHA&&garageOn&&!!gEl&&gEl.classList.contains('menu')&&!gEl.classList.contains('missions');}
+function chuteVoulue(){return CHUTE_OK&&garageOn&&!!gEl&&gEl.classList.contains('menu')&&!gEl.classList.contains('missions');}
 function chutePlan(){ // (titre v3) le REGARD se règle sur le SOLEIL (lumière de côté : le volume des nuages), la caisse au-dessus de TOUTE la piste
   CHUTE.L=L;const P9=CHUTE_P,sx=SUN_DIR.x,sz=SUN_DIR.z,sn=Math.hypot(sx,sz)||1,ca=Math.cos(P9.az),sa=Math.sin(P9.az);
   let lx9=(sx*ca-sz*sa)/sn,lz9=(sx*sa+sz*ca)/sn;if((-lz9*sx+lx9*sz<0)!==(P9.az<0)){lx9=(sx*ca+sz*sa)/sn;lz9=(-sx*sa+sz*ca)/sn;} // le soleil à DROITE de l'image, à P.az du regard (az < 0 : à GAUCHE)
@@ -61172,7 +60850,6 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   if(GAR.misCible)GAR.misCible.rotation.y+=dt*1.1; // la cible des missions tourne sur elle-même
   if(GMIS.holo.length)gmHoloTick(t9);
   if(gEl.classList.contains('missions'))gmSuit();
-  else if(gEl.classList.contains('menu'))garMenuSuit();
 }
 /* LE CADRAGE MESURÉ (2026-09-30, Léo : « la voiture est toujours pas cadrée, c'est chelou »). Deux décalages FIXES d'objectif faisaient le
    cadrage : .075 de la hauteur en portrait, .23 de la LARGEUR dès que l'écran était couché — pensé pour le téléphone couché, où les commandes
@@ -61194,8 +60871,8 @@ function garLibre(){
     if(W>H*1.25&&hr&&hr.width&&hr.left>W*.3)r.x1=hr.left;                              // couché : la colonne est à droite
     else{if(tr&&tr.height)r.y0=tr.bottom+14;if(orr&&orr.height)r.y1=orr.top;}          // debout : entre le titre et les boutons
   }else if(gEl&&gEl.classList.contains('menu')&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching')){ // LE MENU : entre PLAY et la rangée du bas
-    const pm=$('gPlayMain'),mb=$('gMenuBas'),pr=pm&&pm.getBoundingClientRect(),br=mb&&mb.getBoundingClientRect();
-    if(pr&&pr.height){r.y0=pr.bottom;r.pl={l:pr.left,r:pr.right,b:pr.bottom};}if(br&&br.height)r.y1=br.top; // (pl : JOUER, que l'étiquette des missions évite)
+    const pm=$('gPlayMain'),pr=pm&&pm.getBoundingClientRect();
+    if(pr&&pr.height){r.y0=pr.bottom;r.pl={l:pr.left,r:pr.right,b:pr.bottom};}
   }else if(gEl&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching')){
     const b=$('gBottom'),t=$('gTop'),bb=b&&b.getBoundingClientRect(),tb=t&&t.getBoundingClientRect();
     if(bb&&bb.width>0){
@@ -61352,11 +61029,9 @@ $('stBoost').addEventListener('change',saveFruits);
 $('stFreq').addEventListener('change',saveFruits);
 addEventListener('keydown',e=>{if(!stallOn)return;
   if(e.code==='Escape')closeStall();else if(e.code==='ArrowLeft')stallShow(stallI-1);else if(e.code==='ArrowRight')stallShow(stallI+1);});
-$('garageBtn').addEventListener('click',e=>{e.stopPropagation();openGarage();if(!MENU_SACHA)garVitrine(true);}); // (2026-10-04) la VITRINE d'abord — (2026-10-06) dans le menu de Léo seulement : Sacha a SA console (voir LE GARAGE DE SACHA)
+$('garageBtn').addEventListener('click',e=>{e.stopPropagation();openGarage();});
 /* (2026-09-29, Léo) la MAISON de l'atelier = le MENU de l'écran de mort : on rentre à l'ACCUEIL (venu de la mort, la course est rangée
    comme par son MENU — accueilRetour) ; venu des MISSIONS (VOIR), on y retourne comme avant (`__mRetour`, lu à la fermeture). */
-$('gPerso').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);uiClic('nav'); // TUNING : la console se déplie (onglets, familles, vignettes, achat)
-  gEl.classList.add('deplie');garVitrine(false);gEl.classList.add('deplie');});
 $('gClose').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);uiClic('retour');
   if(window.__mRetour){ecranWipe(function(){closeGarage();});return;} // venu des MISSIONS (VOIR) : on y retourne
   ecranWipe(function(){if(started&&gameOver)accueilRetour();garMode('menu');});}); // (2026-09-30) le garage EST le menu : la maison y ramène
@@ -61420,14 +61095,6 @@ try{$('gAct').addEventListener('click',function(e){const b=e.target&&e.target.cl
    « le garage devient le nouveau menu » : l'accueil n'existe plus à l'écran — le routeur, en arrivant sur 'home', ouvre l'atelier en
    mode MENU (`garAccueil`). Deux modes, une seule scène : MENU (profil · PLAY · réglages · socle des MISSIONS · [🔒][LEVEL][BOUTIQUE])
    et BOUTIQUE (l'ancien atelier : fiche, onglets, vignettes, achat, MENU | BOUTIQUE | JOUER — sa maison rend le MENU). */
-/* LES DEUX MENUS (2026-09-30) — Sacha a posé SES boutons (l'accueil #mHome) par-dessus le garage (« les boutons ne vont pas du tout dans la
-   version de Léo ») ; Léo : « remets ma version sketch, Sacha dit que c'est brouillon ». Les deux existent : par défaut le menu du SKETCH de
-   Léo (#gMenu : profil, JOUER en pixels, [verrou][NIVEAU][BOUTIQUE], l'étiquette MISSIONS du socle) ; `?menu=sacha` dans l'adresse (le cadre
-   de l'ordi la transmet à la colonne) = les boutons de Sacha. À TRANCHER ENTRE EUX : c'est ce seul booléen.
-   (même soir, Sacha a tranché : « je préfère ma version de l'interface finalement ») — le DÉFAUT est la version de Sacha : ses boutons,
-   son écran MISSIONS rangé (f474c51, rétabli à côté de celui de Léo : gmRenderS/gmPlace/gmSuitS, CSS sous html.misS) et sa porte fermée.
-   La version de Léo reste ENTIÈRE derrière `?menu=leo` (menu du sketch, ses missions, la porte relevée). ?menu=sacha marche toujours. */
-const MENU_SACHA=!/[?&]menu=leo\b/.test(location.search);
 /* ================= LE GARAGE, HUB DES TROIS (2026-10-06) =================
    Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage doit servir de hub aux 3 ».
    · L'ACCUEIL : la porte des MISSIONS devient la PORTE DU GARAGE (même place, même largeur, à côté du ⚙) ; la BOUTIQUE la rejoint en
@@ -61435,16 +61102,15 @@ const MENU_SACHA=!/[?&]menu=leo\b/.test(location.search);
      avec ses trois cases (le même #mMisPips, rempli par le même code) et le trophée de la carrière — le joueur qui les cherchait les voit.
    · LE GARAGE : une barre ATELIER · MISSIONS · CARRIÈRE (#gHub), au MÊME endroit sur les trois pages. Chaque page garde sa rangée
      d'actions (HOME à gauche, JOUER en or à droite ; la carrière, elle, se joue en touchant un monde) ; la carrière ouverte du hub
-     remplace son RETOUR par HOME — on ne « revient » pas d'un onglet, on en change.
-   · ?menu=leo (sa vitrine) : rien ne change. */
-const HUB=MENU_SACHA;
+     remplace son RETOUR par HOME — on ne « revient » pas d'un onglet, on en change. */
+const HUB=true; /* (2026-10-18, allègement) le menu de Léo (?menu=leo) est retiré : le hub est toujours là */
 /* (2026-10-08, Sacha : « maintenant quand on clique sur JOUER on lance les niveaux au lieu de lancer le mode classique ») LE PLAY REDEVIENT
    LE MODE CLASSIQUE (la partie sans fin), et la CARRIÈRE relance ses niveaux au toucher, comme avant le 7/10. « LE NIVEAU DES PLAY » de
    Léo (PLAY = la map de carrière choisie, la carrière qui CHOISIT au lieu de lancer, la pastille JOUER, la petite ligne sous PLAY) est
    gardé entier derrière `?play=carriere` dans l'adresse : PLAY_CARR coupe ses quatre portes (carrPlayOk, le toucher de la carrière,
    la carte qui porte le niveau choisi, carrPlayMaj qui suit carrPlayOk). SAVE.d.carrSel continue d'être tenu : rien ne se perd. */
 const PLAY_CARR=!SANS_CARRIERE&&/[?&]play=carriere\b/.test(location.search); // (2026-10-14, Sacha) sans carrière, cette porte-là ferme aussi
-if(HUB){document.documentElement.classList.add('hub');
+{document.documentElement.classList.add('hub');
   try{const hm=$('mHome'),ou=hm&&hm.querySelector('.mOutils'),mb=ou&&ou.querySelector('.mMisBtn'),ge=ou&&ou.querySelector('.mGear'),
       sh=hm&&hm.querySelector('.mIcons [data-m="shop"]'),bd=$('bdGar');
     if(mb&&ge&&sh){
@@ -61464,8 +61130,8 @@ if(HUB){document.documentElement.classList.add('hub');
      d'ici qu'on rejoint les missions et la carrière.
    · RANGÉE 2 (`.mAccP`) : ⚙ · JOUER (le mot d'or, un cran plus petit) · la BOUTIQUE en € (gardée : c'est la seule porte du shop payant).
    · Les vraies touches sont DÉPLACÉES (leurs écouteurs, leur badge, leur aiguillage `data-m` restent) ; MISSIONS et CARRIÈRE sont neuves
-     (l'aiguilleur de la coque lit `data-m` : 'mis', 'carr'). ?menu=leo ne passe pas ici (HUB faux). */
-if(HUB)try{const hm=$('mHome'),ou=hm&&hm.querySelector('.mOutils'),gar=ou&&ou.querySelector('.mHubPorte'),ge=ou&&ou.querySelector('.mGear'),
+     (l'aiguilleur de la coque lit `data-m` : 'mis', 'carr'). */
+try{const hm=$('mHome'),ou=hm&&hm.querySelector('.mOutils'),gar=ou&&ou.querySelector('.mHubPorte'),ge=ou&&ou.querySelector('.mGear'),
     sh=ou&&ou.querySelector('.mHubShop'),pl=hm&&hm.querySelector('.mPlay');
   if(ou&&gar&&ge&&sh&&pl){hm.classList.add('acc2');
     const tuile=function(m,ic,fr,lb,plus){const d=document.createElement('div');d.className='pbtn mAccB';d.setAttribute('data-m',m);d.setAttribute('role','button');d.setAttribute('aria-label',lb);
@@ -61487,7 +61153,7 @@ if(HUB)try{const hm=$('mHome'),ou=hm&&hm.querySelector('.mOutils'),gar=ou&&ou.qu
 /* (les FLAMMES du logo — feu de DOOM, puis contour des lettres en cubes — ont été essayées le 2026-10-10 et retirées le même soir, Léo :
    « enlève les flammes, sois plus mature : juste le logo, fais-le briller encore plus ». Elles vivent dans l'historique, commits 844674a → dd9993f.) */
 function hubCtx(){ // l'onglet du hub où l'on est ('' = hors du hub)
-  if(!HUB||!garageOn||!gEl||(started&&!gameOver))return '';
+  if(!garageOn||!gEl||(started&&!gameOver))return '';
   const c=document.getElementById('carr');if(c&&c.classList.contains('on')&&!c.classList.contains('sortant'))return 'carr';
   if(gEl.classList.contains('missions'))return 'mis';
   if(gEl.classList.contains('menu'))return '';
@@ -61573,21 +61239,19 @@ function gHomePlace(force){const el=document.getElementById('gHomeMini');if(!el|
   const top=Math.max(6,Math.round(r.top+(r.height-32)/2));if(top===gHomePlace._k)return;gHomePlace._k=top;el.style.setProperty('--hmT',top+'px');}
 try{const hm=document.getElementById('gHomeMini');const va=function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(hm);const c=$('gClose');if(c)c.click();};
   hm.addEventListener('click',va);hm.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();va(e);}});}catch(e){}
-document.documentElement.classList.toggle('misS',MENU_SACHA); // l'écran MISSIONS de Sacha : ses règles CSS vivent sous html.misS
+document.documentElement.classList.add('misS'); // l'écran MISSIONS de Sacha : ses règles CSS vivent sous html.misS
 /* (même soir, Léo : « enlève la porte ») la porte FERMÉE au menu (Sacha, b8e7ce7) va avec SA version : par défaut (ou ?porte=1) elle
-   descend au menu et s'ouvre au JOUER ; avec ?menu=leo elle reste RELEVÉE sous le plafond (l'image d'avant : le feu se voit dès le menu). */
+   descend au menu et s'ouvre au JOUER. */
 const PORTE_FERMEE=/[?&]porte=1\b/.test(location.search); // (2026-10-08, Léo : « rouvre la porte en flammes ») la porte de Sacha ne ferme plus le garage : le rideau de feu brûle, grand ouvert, derrière la caisse — `?porte=1` la remet fermée (elle s'ouvrait au JOUER).
 /* AVANT le 08/10 : PORTE_FERMEE=MENU_SACHA||?porte=1 */ // (2026-10-04) Léo l'avait enlevée le matin, puis : « remets une porte maintenant que les flammes sont plus jolies » — la porte fermée de Sacha revient (voir LA PORTE v2)
-/* LA VITRINE (voir <style id="garageVitrine">) : le garage AU CALME — ta caisse, sans prix. `garMode` la replie toujours (tous les autres
-   chemins ouvrent la boutique dépliée) ; seul le bouton GARAGE la pose, APRÈS garMode / openGarage.
-   ⚠ LE GARAGE DE SACHA (2026-10-06, Sacha : « j'aime pas les modifs que Léo a faites dans le garage concernant les boutons et le HUD ; garde
+/* ⚠ LE GARAGE DE SACHA (2026-10-06, Sacha : « j'aime pas les modifs que Léo a faites dans le garage concernant les boutons et le HUD ; garde
    les améliorations qu'il a faites dans le garage 3D, puis remets mes boutons et mon affichage » · « tu peux garder son bouton inventaire,
-   mais retravaille-le dans la DA du reste du jeu ») : la vitrine (HOME · SHOP · JOUER, MISSIONS et la carte branchés, les jauges, le boulon)
-   n'est posée QUE dans le menu de Léo (`?menu=leo`). Par défaut le bouton GARAGE ouvre la CONSOLE de Sacha telle qu'avant la vitrine (le nom,
+   mais retravaille-le dans la DA du reste du jeu ») : la vitrine de Léo (le menu ?menu=leo) est retirée (18/10). Le bouton GARAGE ouvre la
+   CONSOLE de Sacha telle qu'avant la vitrine (le nom,
    le compte, ⚙, les onglets, les vignettes, HOME · BOUTIQUE · JOUER). La 3D de Léo reste partout : l'atelier aéré, la porte et son feu, la
    caméra sans déclic, le BURN-OUT au doigt tenu sur la caisse, le BOUTON INVENTAIRE et ses bras-robots — `garAtelierLibre()` dit quand
-   l'atelier est à toi (la vitrine chez Léo, la console chez Sacha). */
-function garAtelierLibre(){return !!(gEl&&garageOn&&!gEl.classList.contains('menu')&&!gEl.classList.contains('missions')&&(gEl.classList.contains('vitrine')||MENU_SACHA));}
+   l'atelier est à toi. */
+function garAtelierLibre(){return !!(gEl&&garageOn&&!gEl.classList.contains('menu')&&!gEl.classList.contains('missions'));}
 /* LA VUE DE LÉO DANS LA CONSOLE DE SACHA (2026-10-06, Léo : « sans changer le garage de Sacha, remets le beau point de vue — l'angle travaillé,
    légèrement éloigné, vers la porte —, le glissé et le burn-out »). La console (ses boutons, sa fiche, ses onglets, la barre du HUB) ne bouge
    pas d'un pixel ; seule la 3D derrière reprend ce que la vitrine faisait : la caméra de présentation (`VITRINE_CAM` : recul calculé sur la
@@ -61595,332 +61259,13 @@ function garAtelierLibre(){return !!(gEl&&garageOn&&!gEl.classList.contains('men
    la vue, sur la caisse il tient le plateau) et le BURN-OUT complet (dérapage, DONUT au doigt, coup de gaz). `garVueLeo()` dit quand : l'atelier
    est libre (voir garAtelierLibre), hors du départ direct de l'accueil (`quiet` : le JOUER de l'accueil reste celui de Sacha). */
 function garVueLeo(){return garAtelierLibre()&&!gEl.classList.contains('quiet');}
-function garVitrine(on){
-  if(!gEl)return;if(!on)invFerme(true);gEl.classList.toggle('vitrine',!!on);gEl.classList.toggle('aideInv',!!on&&!((SAVE.d.ast|0)&8)); // (v2) l'astuce du doigt tenu — (2026-10-05) celle du BURN-OUT, tant qu'il n'a jamais été lancé (bit 8)
-  gEl.classList.toggle('deplie',!on&&gEl.classList.contains('deplie'));garLibre._r=null; // (2026-10-05) ⚠ collé au bout du commentaire depuis la vitrine v2 (066332f) : jamais exécuté — rendu
-  if(on){if(SHOP.tab!=='voiture'||SHOP.prev)shopTab('voiture');const eq=equippedCar();if(garageI!==eq&&!GAR.sw)garageShow(eq);} // en vitrine : TA caisse, jamais un essai
-  if(on){gvJauges(true);gvNiveau();}
-}
-/* LE CARTOUCHE DU NIVEAU (2026-10-05, Léo : « le nom du level qui va être lancé, en dessous du play ») : JOUER de l'atelier lance la partie SANS FIN
-   (`garJouer` : CARR.actif = null) — son 1er niveau, `NIVEAUX[0]` ; tant que le permis n'est pas passé, c'est l'AUTO-ÉCOLE (tutoArme). Et les
-   trois pastilles des MISSIONS (les défis relevés du carnet en cours, `misEtat`). */
-const GV_TEINTE={vitree:'#7fd8ff',crypto:'#ffd23e',banquise:'#9fe8ff',nuages:'#5ee6ff',ville:'#ff3ec8',paris:'#ffd75e',espace:'#b9a8ff',orage:'#8a7dff',jade:'#7ddcae'};
-/* LES VIGNETTES DES NIVEAUX (2026-10-05, Léo : « les niveaux affichés avec leur distance et leur titre — vignette avec un fond imagé
-   représentatif, léger, agréable, kawaii mais pas abusé, pas trop gentil non plus »). Un paysage en PIXEL ART de 96 × 36, peint une fois par
-   monde (cache GV_VIG), le sujet à DROITE (le texte vit à gauche, sur un voile d'encre). La touche kawaii tient en quelques pixels — et
-   n'est pas toujours aimable : un nuage qui sourit, un cœur de néon sous la pluie, un ballon-cœur près de la tour, une petite lune qui
-   regarde, un nuage d'orage EN COLÈRE, des phares dans le noir, un satellite K.-O. qui tombe en feu, un plot d'auto-école qui fait la tête.
-   LES DISTANCES (GV_KM) : la longueur MOYENNE des pistes de chaque niveau (elles sont tirées à chaque partie), mesurée au banc
-   (lvlL.mjs, `dbgPas().L` × SPD) — d'où « ≈ ». */
-const GV_VIG={},GV_KM={nuages:8.3,ville:7.9,villeN:8.0,paris:7.1,espace:9.4,espaceH:9.4,orage:8.5};
-function gvVignette(cle){
-  if(GV_VIG[cle])return GV_VIG[cle];
-  const W=96,H=36,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
-  let sd=1234567;const rd=function(){sd=(sd*16807)%2147483647;return sd/2147483647;};
-  const R=function(a,b,w,h,c){x.fillStyle=c;x.fillRect(a,b,w,h);};
-  const ciel=function(cols){const n=cols.length-1;for(let y=0;y<H;y++){const f=y/(H-1)*n,i=Math.min(n-1,Math.floor(f)),q=f-i;
-    for(let k=0;k<W;k++)R(k,y,1,1,cols[q>.62||(q>.38&&(k+y)%2)?i+1:i]);}};          // le ciel en BANDES, tramées à la jonction
-  const rond=function(cx,cy,r,c){for(let y=-r;y<=r;y++){const w=Math.round(Math.sqrt(Math.max(0,r*r-y*y)));R(cx-w,cy+y,2*w+1,1,c);}};
-  const nuage=function(cx,cy,s,c,o){rond(cx,cy,s,c);rond(cx-s,cy+2,Math.round(s*.7),c);rond(cx+s+1,cy+2,Math.round(s*.75),c);
-    R(cx-2*s,cy+2,4*s+2,Math.round(s*.6)+1,c);if(o)R(cx-2*s+1,cy+2+Math.round(s*.6),4*s,1,o);};
-  const yeux=function(cx,cy,c,joue){R(cx-2,cy,1,1,c);R(cx+2,cy,1,1,c);if(joue){R(cx-4,cy+1,1,1,joue);R(cx+4,cy+1,1,1,joue);}};
-  const etoiles=function(n,cols){for(let i=0;i<n;i++)R((rd()*W)|0,(rd()*H*.8)|0,1,1,cols[(rd()*cols.length)|0]);};
-  const pluie=function(n,c){for(let i=0;i<n;i++){const a=(rd()*W)|0,b=(rd()*H)|0;R(a,b,1,1,c);R(a-1,b+1,1,1,c);}};
-  const tours=function(y0,cols,fen,nb,seed){sd=seed;let px=34;while(px<W){const w=4+((rd()*6)|0),h=6+((rd()*(H-y0-2))|0);R(px,H-h,w,h,cols);
-      for(let wy=H-h+2;wy<H-1;wy+=2)for(let wx=px+1;wx<px+w-1;wx+=2)if(rd()<nb)R(wx,wy,1,1,fen[(rd()*fen.length)|0]);px+=w+1;}};
-  if(cle==='nuages'){
-    ciel(['#6fc8ff','#9fdcff','#cdeeff','#ffe4f2']);
-    rond(80,8,4,'#fff6c8');R(76,8,9,1,'#fff6c8');                                   // le soleil du matin
-    nuage(44,26,4,'#ffffff','#d9cdf2');nuage(70,22,6,'#ffffff','#d9cdf2');nuage(90,29,4,'#f6f1ff','#d9cdf2');
-    yeux(70,22,'#3a2a55','#ffa6cf');R(70,24,1,1,'#3a2a55');                          // il sourit — un peu
-    R(0,33,W,3,'#f3eeff');R(0,32,W,1,'#ff5ccf');                                     // la route néon file au-dessus de la mer de nuages
-  }else if(cle==='ville'){
-    ciel(['#1a1240','#2c1b58','#4a2a6e','#6d3478']);
-    tours(10,'#120c26',['#ffd75e','#ff6ad5','#7ff3ff'],.45,77);
-    R(84,12,1,1,'#ff3ec8');R(86,12,1,1,'#ff3ec8');R(83,13,5,1,'#ff3ec8');R(84,14,3,1,'#ff3ec8');R(85,15,1,1,'#ff3ec8'); // un cœur de néon
-    pluie(70,'rgba(150,190,255,.55)');
-  }else if(cle==='villeN'){
-    ciel(['#03020c','#07061a','#0e0b26','#1a1235']);
-    rond(84,8,5,'#fff2c0');rond(86,6,5,'#03020c');                                   // le croissant
-    tours(10,'#06040f',['#ffd75e','#ff6ad5'],.12,91);
-    for(let i=0;i<22;i++){const h=1+Math.round(i*.32),a=(.62-i*.026).toFixed(2);R(58+i,32-Math.round(h/2),1,h,'rgba(255,238,170,'+a+')');} // le faisceau des phares
-    R(46,30,12,4,'#0a0814');R(48,28,7,2,'#0a0814');R(57,31,2,1,'#fff6c8');R(46,31,1,1,'#ff2a3a');   // la caisse dans le noir : phare, feu arrière
-  }else if(cle==='paris'){
-    ciel(['#5a2f86','#c2508f','#ff8a7a','#ffc27a']);
-    rond(64,26,6,'#ffe08a');
-    const tx=78;R(tx,3,1,4,'#2a1838');for(let y=7;y<H;y++){const w=1+Math.round(Math.pow((y-7)/(H-7),1.6)*14);R(tx-w,y,2*w+1,1,'#2a1838');} // la Dame de fer
-    R(tx-6,24,13,1,'#ffb35a');R(tx-3,15,7,1,'#ffb35a');                                // ses étages allumés
-    for(let y=31;y<H;y++){const w=Math.round(5-(y-31)*.2);R(tx-w,y,2*w+1,1,'#ffc27a');} // l'arche
-    R(55,9,3,2,'#ff5c9a');R(54,10,5,1,'#ff5c9a');R(55,11,3,1,'#ff5c9a');R(56,12,1,1,'#ff5c9a');R(56,13,1,4,'#e8d8ff'); // le ballon-cœur
-  }else if(cle==='espace'){
-    ciel(['#05041a','#0b0828','#140d3a','#1c1248']);
-    etoiles(40,['#ffffff','#9ad8ff','#ffd7a0']);
-    const px=74,py=22,anneau=function(av){for(let a=0;a<64;a++){const t=a/64*Math.PI*2,s9=Math.sin(t);if((s9>0)!==av)continue; // l'anneau : la moitié de DERRIÈRE, puis celle de DEVANT
-      R(px+Math.round(Math.cos(t)*23),py+Math.round(s9*5-Math.cos(t)*3),2,1,av?'#ffe2b0':'rgba(255,215,160,.45)');}};
-    anneau(false);rond(px,py,11,'#3b2d8a');for(let y=-10;y<=10;y+=4){const w=Math.round(Math.sqrt(121-y*y));R(px-w,py+y,2*w+1,2,'#5541b8');} // la planète et ses bandes
-    rond(px-4,py-4,3,'rgba(190,175,255,.55)');anneau(true);
-    rond(46,7,3,'#e8e6ff');R(45,7,1,1,'#3a2a55');R(47,7,1,1,'#3a2a55');               // la petite lune qui regarde
-  }else if(cle==='espaceH'){
-    ciel(['#05041a','#0b0828','#140d3a','#1c1248']);
-    etoiles(34,['#ffffff','#9ad8ff']);
-    const sat=function(sx,sy,ko){for(let i=1;i<10;i++)R(sx-i,sy-i,1,1,i<4?'#ffd75e':i<7?'#ff7a2a':'rgba(255,60,40,.55)'); // la traînée de feu
-      R(sx-1,sy-1,3,3,'#c9cbd6');R(sx-5,sy,3,1,'#4a8cff');R(sx+3,sy,3,1,'#4a8cff');
-      if(ko){R(sx-1,sy-1,1,1,'#3a2a55');R(sx+1,sy-1,1,1,'#3a2a55');}};
-    sat(60,14,false);sat(86,26,true);sat(74,6,false);                                 // l'un d'eux est K.-O.
-  }else if(cle==='crypto'){ // (2026-10-15) CRYPTO CITY : l'azur et l'or, des tours d'or, d'argent et de blanc, la pièce ₿ dans le ciel, les bougies vertes
-    ciel(['#3f86d8','#7ab6ea','#f2ecd8','#ffe6a8']);
-    rond(50,9,5,'#f7931a');R(49,6,1,7,'#fff1d0');R(49,6,3,1,'#fff1d0');R(49,9,3,1,'#fff1d0');R(49,12,3,1,'#fff1d0');R(52,7,1,2,'#fff1d0');R(52,10,1,2,'#fff1d0'); // la lune ₿
-    const T9=[[60,9,'#ffd23e'],[67,6,'#e8eef2'],[72,10,'#9fd8ff'],[78,7,'#ffffff'],[84,11,'#c0c4cc'],[90,8,'#ffd23e']];
-    for(const t of T9){R(t[0],t[1],5,H-t[1],t[2]);for(let wy=t[1]+2;wy<H-2;wy+=3)R(t[0]+1,wy,3,1,'rgba(40,60,90,.35)');R(t[0]+1,t[1]+1,1,H-t[1]-2,'rgba(255,255,255,.5)');} // les tours qui reflètent
-    for(let i=0;i<7;i++){const h=3+i*2,rg=i===3;R(36+i*3,30-h-i,2,h,rg?'#ff3b5c':'#2bff88');R(36+i*3,29-h-i,1,h+2,rg?'#ff3b5c':'#2bff88');} // le graphique qui monte
-    R(0,33,W,3,'#2a2e38');R(0,32,W,1,'#35ff9e');                                       // la route, l'accent vert profit
-  }else if(cle==='vitree'){ // (2026-10-17) LA VILLE VITRÉE : le ciel bleu, un nuage, des tours de verre qui le renvoient, l'éclat du soleil
-    ciel(['#2a6fd8','#5a9ae8','#a8ccf2','#e4eefa']);
-    nuage(50,9,4,'#ffffff','#c8d8ee');
-    const T9=[[58,6,'#4a86d0'],[66,12,'#7fb0e6'],[73,3,'#3a6aa8'],[81,9,'#9cc4ee'],[89,5,'#5a92d8']];
-    for(const t of T9){R(t[0],t[1],7,H-t[1],t[2]);for(let wy=t[1]+2;wy<H-1;wy+=3)R(t[0],wy,7,1,'rgba(220,236,255,.45)');for(let wx=t[0]+2;wx<t[0]+7;wx+=2)R(wx,t[1],1,H-t[1],'rgba(20,40,80,.25)');R(t[0]+1,t[1]+1,2,6,'rgba(255,255,255,.55)');} // les carreaux et leurs montants
-    R(75,8,1,1,'#ffffff');R(74,8,3,1,'rgba(255,255,255,.7)');R(75,7,1,3,'rgba(255,255,255,.7)'); // l'éclat
-    R(0,33,W,3,'#2a2e38');R(0,32,W,1,'#ff5fd0');
-  }else if(cle==='jade'){ // (2026-10-13) LES PICS DE JADE : le rouleau — la soie orangée, le soleil vermillon, les piliers de jade au-dessus du fleuve
-    ciel(['#7f86b0','#c9a0a8','#f2b07a','#ffcf8a']);
-    rond(30,13,5,'#e8482a');
-    const pil=function(px,w,top,c,c2){R(px,top,w,H-top-8,c);R(px,top,1,H-top-8,c2);R(px+1,top-1,w-2,1,c2);R(px+1,H-8,w-2,2,c);};
-    pil(50,6,9,'#2f6a5a','#6fb896');pil(61,4,15,'#3f7e68','#86c8a6');pil(72,8,5,'#25584a','#5aa080');pil(87,5,12,'#356f5c','#78bc9a');
-    R(0,H-5,W,5,'#3f8a9a');for(let k=2;k<W;k+=7)R(k,H-3,3,1,'#bfe6e8');               // le fleuve et ses lignes d'eau
-  }else if(cle==='banquise'){ // (2026-10-14) LE GLACIER (ex-banquise) : le ciel bleu profond, des pics de glace a facettes (une face ombree, une face au soleil, la neige au sommet), la poudreuse, la route neon qui DEVALE
-    ciel(['#1a4fc8','#3f86ec','#9fd2ff','#e4f4ff']);
-    const pic=function(px,w,top,c,c2,c3){for(let y=top;y<H;y++){const k=(y-top)/(H-top),hw=Math.round(k*w);R(px-hw,y,hw,1,c);R(px,y,hw+1,1,c2);if(y-top<3)R(px-hw,y,2*hw+1,1,c3);}};
-    pic(20,14,6,'#2a6fb0','#7fd6f0','#ffffff');pic(46,9,14,'#1f5a9a','#62c2e6','#f4fbff');pic(78,18,2,'#2a6fb0','#8fe0f6','#ffffff');pic(92,8,16,'#1f5a9a','#5ab8e0','#f4fbff');
-    R(0,30,W,6,'#eef6ff');for(let k=3;k<W;k+=11)R(k,31,4,1,'#c8dcf4');
-    for(let i=0;i<W;i++){const y=21+Math.round(i*.09);R(i,y,1,1,'#ff5fd0');}
-  }else if(cle==='orage'){
-    ciel(['#100c1e','#1d1730','#2a2442','#3a3456']);
-    nuage(66,10,7,'#3b3555','#2a2442');nuage(88,13,5,'#332d4c','#2a2442');
-    R(62,9,2,1,'#fff27a');R(63,10,1,1,'#fff27a');R(69,10,1,1,'#fff27a');R(70,9,2,1,'#fff27a');   // les sourcils froncés…
-    R(63,12,1,1,'#fff27a');R(69,12,1,1,'#fff27a');                                    // …et les yeux qui brillent
-    const zx=[74,73,72,74,73,71,73];for(let i=0;i<zx.length;i++)R(zx[i],18+i*2,2,2,'#fff27a'); // l'éclair
-    pluie(60,'rgba(170,170,230,.5)');
-  }else{ // l'AUTO-ÉCOLE
-    ciel(['#7fd0ff','#b6e6ff','#dff4ff','#bff2b6']);
-    R(0,26,W,10,'#6fd27a');R(0,30,W,6,'#3c3a52');for(let k=4;k<W;k+=10)R(k,32,5,1,'#ffffff');  // la piste et ses pointillés
-    const plot=function(px,f){for(let y=0;y<7;y++){const w=Math.round(y*.6);R(px-w,22+y,2*w+1,1,y%3===1?'#ffffff':'#ff7a2a');}R(px-4,29,9,1,'#c4581e');
-      if(f){R(px-1,25,1,1,'#3a2a55');R(px+1,25,1,1,'#3a2a55');R(px-2,24,1,1,'#3a2a55');R(px+2,24,1,1,'#3a2a55');}}; // le plot qui fait la tête
-    plot(66,false);plot(80,true);plot(92,false);
-  }
-  return GV_VIG[cle]=cv.toDataURL();
-}
-function gvListe(){ // la suite d'une partie : l'auto-école (tant que le permis manque, ou passée), puis NIVEAUX dans l'ordre — `ok` = terminé
-  const tuto=!SAVE.d.tuto,fait=Math.max(0,(SAVE.d.ex&&SAVE.d.ex.zones)|0),L=[];
-  if(tuto||SAVE.d.permis)L.push({cle:'tuto',n:'P',t:'AUTO-ECOLE',d:sansAcc(TR('PERMIS')),c:'#7dff9b',ok:!tuto&&!!SAVE.d.permis});
-  NIVEAUX.forEach(function(v,k){const cle=v.id+(v.nuit?'N':'')+(v.hard?'H':''),km=GV_KM[cle]||GV_KM[v.id]||0;
-    L.push({cle:cle,n:String(k+1),t:v.nm,d:km.toFixed(1).replace('.',',')+' KM',c:GV_TEINTE[v.id]||'#5ee6ff',ok:!tuto&&fait>k});});
-  return L;
-}
-function gvTuile(o,k){let im='';try{im=gvVignette(o.cle);}catch(e){}
-  return '<div class="gvV'+(o.ok?' fait':'')+'" style="--lc:'+o.c+';--i:'+k+'"><i class="gvImg" aria-hidden="true" style="background-image:url('+im+')"></i>'+
-    '<span class="gvTx"><b class="gvN">'+o.n+'</b><span class="gvT">'+sansAcc(TR(o.t))+'</span><em class="gvD">'+o.d+'</em></span>'+(o.ok?'<i class="gvOk pxi pxi-coche" aria-hidden="true"></i>':'')+'</div>';}
-function gvNiveau(){ // (2026-10-05, Léo : « le niveau comme avant ») la VIGNETTE du niveau que JOUER lance — et les pastilles des MISSIONS (branchées à JOUER)
-  {const el9=$('gvLvl');if(el9&&sfPlayOk()&&!carrPlayOk()&&!jadePlayOk()){ // (2026-10-13) MODE CLASSIQUE : la vignette annonce le couple que JOUER va lancer (tiré d'avance, classiqueJouer le prend)
-    if(!SF.prochain)SF.prochain=SF.force?sfImpose(SF.der):sfTire(SF.der);const t=SF.prochain,cle=t.meteo==='orage'&&t.carte==='nuages'?'orage':t.meteo==='nuit'&&t.carte==='ville'?'villeN':t.meteo==='satellites'?'espaceH':t.carte;
-    el9.querySelector('.gvN').textContent='1';el9.querySelector('.gvT').textContent=sansAcc(TR(SF_CARTES[t.carte].nm));el9.querySelector('.gvD').textContent=sansAcc(TR(SF_METEOS[t.meteo]));
-    el9.style.setProperty('--lc',GV_TEINTE[t.carte]||'#5ee6ff');try{el9.querySelector('.gvImg').style.backgroundImage='url('+gvVignette(cle)+')';}catch(e){}
-    gvNivs(false,true);const pp=$('gvMis');if(pp)try{const s9=misEtat();const p9=misPips(s9);pp.querySelectorAll('.gvPips u').forEach(function(u,k){u.classList.toggle('ok',!!p9[k]);});}catch(e){}try{m2Portes();}catch(e){}
-    return;}}
-  const el=$('gvLvl');if(el){const tuto=!SAVE.d.tuto,L0=NIVEAUX[0],cle=tuto?'tuto':L0.id+(L0.nuit?'N':'')+(L0.hard?'H':''),km=tuto?0:(GV_KM[cle]||GV_KM[L0.id]||0);
-    el.querySelector('.gvN').textContent=tuto?'P':'1';
-    el.querySelector('.gvT').textContent=sansAcc(TR(tuto?'AUTO-ECOLE':L0.nm));
-    el.querySelector('.gvD').textContent=tuto?sansAcc(TR('PERMIS')):km.toFixed(1).replace('.',',')+' KM';
-    el.style.setProperty('--lc',tuto?'#7dff9b':(GV_TEINTE[L0.id]||'#5ee6ff'));
-    try{el.querySelector('.gvImg').style.backgroundImage='url('+gvVignette(cle)+')';}catch(e){}}
-  gvNivs(false,true);
-  const pp=$('gvMis');if(pp)try{const s9=misEtat();const p9=misPips(s9);pp.querySelectorAll('.gvPips u').forEach(function(u,k){u.classList.toggle('ok',!!p9[k]);});}catch(e){}try{m2Portes();}catch(e){}
-}
-/* LE TIROIR DES NIVEAUX ACCOMPLIS (`#gvNivs`) : la vignette touchée l'ouvre, retouchée (ou un tap ailleurs, Échap, HOME, SHOP, JOUER) le
-   referme. Dedans : les niveaux TERMINÉS (coche), puis le prochain à battre et ce qui reste à découvrir — ou, s'il n'y en a aucun, la phrase qui
-   dit comment en terminer un. Bâti à chaque ouverture (la sauvegarde a pu bouger depuis). */
-function gvNivs(on,sec){
-  const el=$('gvNivs'),v=$('gvLvl');if(!el)return;
-  if(on==null)on=!el.classList.contains('on');
-  if(on){if(!garageOn||GAR.go||!gEl||!gEl.classList.contains('vitrine')||gEl.classList.contains('menu')||(INV&&INV.on))return;
-    const L=gvListe(),F=L.filter(function(o){return o.ok;}),nx=L.find(function(o){return !o.ok;}),tot=L.filter(function(o){return o.cle!=='tuto';}).length,nf=F.filter(function(o){return o.cle!=='tuto';}).length;
-    let h='<div class="gnH">'+pxi('trophee')+'<span>'+sansAcc(TR('NIVEAUX ACCOMPLIS'))+'</span><em>'+nf+' / '+tot+'</em></div>';
-    if(F.length)h+='<div class="gnG">'+F.map(gvTuile).join('')+'</div>';
-    else h+='<p class="gnVide">'+sansAcc(TR('AUCUN NIVEAU TERMINE'))+'<br><b>'+sansAcc(TR('FRANCHIS TON 1ER PORTAIL'))+'</b></p>';
-    if(nx){const reste=L.filter(function(o){return !o.ok;}).length-1;
-      h+='<div class="gnP">'+pxi('droite')+'<b>'+sansAcc(TR('A BATTRE'))+' : '+nx.n+' · '+sansAcc(TR(nx.t))+'</b>'+(reste>0?'<i>+'+reste+' '+sansAcc(TR('A DECOUVRIR'))+'</i>':'')+'</div>';}
-    else h+='<div class="gnP">'+pxi('etoile')+'<b>'+sansAcc(TR('TOUT EST TERMINE'))+'</b></div>';
-    el.innerHTML=h;el.scrollTop=0;el.classList.remove('sortant');void el.offsetWidth;feuilleOuvre(el,'on');
-    if(v)v.setAttribute('aria-expanded','true'); /* (2026-10-14, session SON) feuilleOuvre sonne DÉJÀ ui.feuille : le 2e appel faisait sonner le tiroir deux fois */
-  }else{if(!el.classList.contains('on'))return;if(v)v.setAttribute('aria-expanded','false');
-    if(sec){el.classList.remove('on','sortant');return;}feuilleFerme(el,'on');}
-}
-try{const v9=$('gvLvl');const go9=function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(v9);uiClic($('gvNivs').classList.contains('on')?'retour':'nav');gvNivs();};
-  v9.addEventListener('click',go9);v9.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go9(e);}});
-  addEventListener('pointerdown',function(e){const n9=$('gvNivs');if(n9&&n9.classList.contains('on')&&!(e.target.closest&&e.target.closest('#gvNivs,#gvLvl')))gvNivs(false);},true);
-  addEventListener('keydown',function(e){if(e.key==='Escape'){const n9=$('gvNivs');if(n9&&n9.classList.contains('on')){gvNivs(false);e.stopImmediatePropagation();e.preventDefault();}}},true);}catch(e){}
-// (même soir) HOME est monté en haut à droite, à côté des réglages (même geste que l'ancien HOME)
-try{const h9=$('gvHome');const go9=function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(h9);const c=$('gClose');if(c)c.click();};
-  h9.addEventListener('click',go9);h9.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go9(e);}});}catch(e){}
 try{Object.assign(I18N,{'PERMIS':'LICENSE','AUTO-ECOLE':'DRIVING SCHOOL','NIVEAUX ACCOMPLIS':'LEVELS CLEARED','AUCUN NIVEAU TERMINE':'NO LEVEL CLEARED YET','FRANCHIS TON 1ER PORTAIL':'CROSS YOUR FIRST PORTAL','A BATTRE':'NEXT UP','A DECOUVRIR':'TO DISCOVER','A DECOUVRIR1':'TO DISCOVER','TOUT EST TERMINE':'ALL CLEARED'});}catch(e){}
-/* LES JAUGES DE LA VITRINE (voir « LES JAUGES » dans <style id="garageVitrine">) : l'ARGENT vers la prochaine caisse à vendre (`objectif()`, ce
-   que vise le menu de Léo), l'AURA vers le rang suivant. `anim` : elles partent de zéro et se remplissent, les chiffres défilent (0,9 s). */
 /* LE RECORD DE FORTUNE (2026-10-06, Léo : « une barre money sur le total jamais atteint ») : `SAVE.d.bankMax` = le plus haut total que la banque
    ait jamais tenu, relevé à CHAQUE entrée d'argent (fin de partie, défis, permis, partie interrompue) — pas seulement au garage : un achat fait
    juste après une partie ne doit pas l'effacer. `bankMaxVu` = le record que la jauge a déjà montré (pour fêter celui qu'on vient de battre). */
 function bankMaxMaj(){const b=bank();if(b>(SAVE.d.bankMax||0))SAVE.d.bankMax=b;}
-function gvJauges(anim){
-  const el=$('gVJ');if(!el)return;
-  bankMaxMaj();
-  const b=Math.max(0,Math.floor(bank())),R=Math.max(0,Math.floor(SAVE.d.bankMax||0)),Rvu=Math.floor(SAVE.d.bankMaxVu||0),au=Math.max(0,SAVE.d.aura||0),r=auraRank(),lo=AURA_RANKS[r].v,nx=AURA_RANKS[r+1];
-  const fA=R>0?Math.max(0,Math.min(1,b/R)):0,fU=nx?Math.max(0,Math.min(1,(au-lo)/(nx.v-lo))):1,casse=!!anim&&Rvu>0&&R>Rvu&&b>=R;
-  if(R!==Rvu){SAVE.d.bankMaxVu=R;SAVE.mark();}
-  const ac=function(t,fr){return LANG==='fr'?(fr||t):TR(t);}; // la police condensée a les accents : en français ils reviennent (TR les retire pour la police pixel)
-  const fm=function(x){return (b>=1e6||(b>=1e5&&POR>.5))?fmtC(x):CUR()+(LANG==='fr'?' ':'')+Math.round(x).toLocaleString(LOC()).replace(/[  ]/g,' ');};
-  const A=el.querySelector('.gvA'),U=el.querySelector('.gvU'),q=function(e,c){return e.querySelector(c);},rA=q(A,'.gvR'),rU=q(U,'.gvR');
-  const plein=R>0&&b>=R;A.classList.toggle('sommet',plein&&!casse);A.classList.remove('casse');
-  rA.innerHTML='';if(casse){rA.textContent=ac('RECORD !','RECORD !')+' ';const e9=document.createElement('em');e9.textContent='+'+fmtC(R-Rvu);rA.appendChild(e9);}
-  else if(plein)rA.textContent=ac('SOMMET');
-  else{rA.textContent=ac('RECORD')+' ';const e9=document.createElement('em');e9.textContent=fmtC(R);rA.appendChild(e9);}
-  rU.innerHTML='';if(nx){rU.textContent='▸ ';const e9=document.createElement('em');e9.textContent=Math.floor(fU*100)+' %';rU.appendChild(e9);}else rU.textContent=ac('MAX');
-  U.classList.toggle('sommet',!nx);
-  A.title=ac('RECORD')+' '+fmtC(R);U.title=auraSansNom()?'AURA '+fmtAura(au):ac(AURA_RANKS[r].n)+(nx?' → '+ac(nx.n)+' · '+fmtAura(Math.max(0,nx.v-au)):'');
-  const o=objectif(),pe=$('gPerso');if(pe)pe.toggleAttribute('data-portee',!!(o&&o.prix&&b>=o.prix)); // une caisse est à ta portée : le SHOP le dit
-  gveInit();const BA=GVE.bars[0],BU=GVE.bars[1];BA.cible=fA;BU.cible=fU;
-  if(anim&&!REDUCED_MOTION){
-    BA.fS=BU.fS=0;BA.seq={t:-.3,m:casse?Math.max(.04,Math.min(.96,Rvu/R)):null,fin:fA,boum:false};BU.seq={t:-.45,m:null,fin:fU,boum:false};
-    if(casse)setTimeout(function(){if(gEl.classList.contains('vitrine'))A.classList.add('casse');},1650);
-    const t0=performance.now(),bA=q(A,'b'),bU=q(U,'b'),D=1100,f9=function(){const k=Math.min(1,(performance.now()-t0-300)/D),e=k<0?0:1-Math.pow(1-k,3);
-      bA.textContent=fm(b*e);bU.textContent=fmtAura(au*e);if(k<1&&gEl.classList.contains('vitrine'))requestAnimationFrame(f9);else{bA.textContent=fm(b);bU.textContent=fmtAura(au);}};
-    bA.textContent=fm(0);bU.textContent=fmtAura(0);requestAnimationFrame(f9);}
-  else{q(A,'b').textContent=fm(b);q(U,'b').textContent=fmtAura(au);if(REDUCED_MOTION){BA.fS=fA;BU.fS=fU;}}
-  if(!GVE.raf)GVE.raf=requestAnimationFrame(gveBoucle);
-}
-/* LE TUBE D'ÉNERGIE (v4) — dessiné en direct sur un petit canevas par jauge, seulement quand la vitrine est à l'écran. Un tube de verre noir ;
-   dedans le PLASMA de sa couleur (dégradé qui chauffe vers la tête), trois filaments qui ondulent et COULENT vers la tête, des pulsations qui
-   la rejoignent, un cœur blanc ; la TÊTE incandescente (éclat en croix) lance des ÉTINCELLES ; des ARCS ÉLECTRIQUES claquent le long de
-   l'énergie. PLEINE (ton sommet) elle SURCHARGE : arcs hors du tube, bord qui pulse, deux fois plus d'étincelles. La SÉQUENCE d'entrée la
-   charge (1 s) ; record battu : elle se charge jusqu'à l'ancien record, y BUTE (une barrière qui grésille), puis la fait SAUTER (éclats,
-   éclair). « Réduire les animations » : la jauge est posée, sans arcs ni étincelles. Coût : deux canevas de ~300 × 18 px, < 1 ms par image. */
-const GVE={bars:[],raf:0,last:0,k:0};
-const GVE_COL={A:{d:[4,64,34],m:[22,214,104],h:[150,255,192],c:[236,255,244]},U:{d:[54,14,128],m:[168,66,255],h:[255,138,234],c:[255,240,255]}};
-function gveInit(){if(GVE.bars.length)return;const el=$('gVJ');if(!el)return;
-  [['.gvA','A'],['.gvU','U']].forEach(function(z){const cv=el.querySelector(z[0]+' .gvC');if(!cv)return;
-    GVE.bars.push({cv:cv,ctx:cv.getContext('2d'),K:GVE_COL[z[1]],fS:0,cible:0,seq:null,sp:[],arcs:[],w:0,h:0,d:1,emit:0,fl:0});});}
-function gveTaille(B){const r=B.cv.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1),w=Math.round(r.width*d),h=Math.round(r.height*d);
-  if(w>0&&(w!==B.cv.width||h!==B.cv.height)){B.cv.width=w;B.cv.height=h;}B.w=r.width;B.h=r.height;B.d=d;}
-function gveRgba(c,a){return 'rgba('+c[0]+','+c[1]+','+c[2]+','+(a<0?0:a>1?1:a).toFixed(3)+')';}
-function gveTube(c,x,y,w,h){const r=h/2;c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.arc(x+w-r,y+r,r,-Math.PI/2,Math.PI/2);c.lineTo(x+r,y+h);c.arc(x+r,y+r,r,Math.PI/2,Math.PI*1.5);c.closePath();}
-function gveAvance(B,dt){const S=B.seq;
-  if(!S){B.fS+=(B.cible-B.fS)*(1-Math.exp(-dt*5));return;}
-  S.t+=dt;const t=S.t,e=function(u){u=Math.max(0,Math.min(1,u));return 1-Math.pow(1-u,3);};
-  if(S.m==null){B.fS=S.fin*e(t/1);if(t>=1)B.seq=null;return;}
-  if(t<.95)B.fS=S.m*e(t/.95);                                                     // la charge jusqu'à l'ancien record
-  else if(t<1.45)B.fS=S.m+Math.sin((t-.95)*60)*.004;                              // elle BUTE : la barrière grésille
-  else{if(!S.boum){S.boum=true;B.fl=1;const x=B.x0+(B.x1-B.x0)*S.m;for(let i=0;i<34;i++){const a=Math.random()*Math.PI*2,v=40+Math.random()*150;B.sp.push({x:x,y:B.h/2,vx:Math.cos(a)*v,vy:Math.sin(a)*v*.6,l:.35+Math.random()*.45,l0:.8,eclat:1});}}
-    B.fS=S.m+(S.fin-S.m)*e((t-1.45)/.35);if(t>=1.8)B.seq=null;}}                  // elle la fait SAUTER
-function gveDessine(B,t,dt){
-  const c=B.ctx,w=B.w,h=B.h,K=B.K;if(!w||!h)return;
-  c.setTransform(B.d,0,0,B.d,0,0);c.clearRect(0,0,w,h);c.globalCompositeOperation='source-over';
-  const y0=h/2,th=9,r=th/2,x0=r+1,x1=w-r-1;B.x0=x0;B.x1=x1;const fS=Math.max(0,Math.min(1,B.fS)),fx=x0+(x1-x0)*fS,plein=fS>.996,calme=REDUCED_MOTION,pz=.5+.5*Math.sin(t*5.2);
-  gveTube(c,x0-r,y0-r,x1-x0+th,th);c.fillStyle='rgba(3,2,10,.82)';c.fill();
-  c.lineWidth=1;c.strokeStyle=plein?gveRgba(K.h,.45+.4*pz):'rgba(255,255,255,.17)';c.stroke();
-  if(plein&&!calme){c.globalCompositeOperation='lighter';c.lineWidth=3;c.strokeStyle=gveRgba(K.m,.12+.14*pz);gveTube(c,x0-r-1,y0-r-1,x1-x0+th+2,th+2);c.stroke();c.globalCompositeOperation='source-over';}
-  if(fS>.002){
-    c.save();gveTube(c,x0-r,y0-r,x1-x0+th,th);c.clip();
-    const g=c.createLinearGradient(x0,0,fx+r,0);g.addColorStop(0,gveRgba(K.d,.95));g.addColorStop(.62,gveRgba(K.m,.98));g.addColorStop(1,gveRgba(K.h,1));
-    c.fillStyle=g;c.fillRect(x0-r,y0-r,fx-x0+r+r,th);
-    c.globalCompositeOperation='lighter';
-    if(!calme)for(let i=0;i<3;i++){c.beginPath();for(let x=x0;x<=fx+.1;x+=3){const y=y0+Math.sin(x*.11*(1+i*.31)-t*(9+i*4)+i*2.1)*(1.3+i*.45)*(.55+.45*Math.sin(x*.027+t*(1.7+i*.5)+i));if(x===x0)c.moveTo(x,y);else c.lineTo(x,y);}
-      c.strokeStyle=gveRgba(K.h,.34);c.lineWidth=1.2;c.stroke();}
-    if(!calme)for(let i=0;i<4;i++){const u=(t*.85+i/4)%1,px=x0+(fx-x0)*u*u,rg=c.createRadialGradient(px,y0,0,px,y0,11);rg.addColorStop(0,gveRgba(K.c,.6*u));rg.addColorStop(1,gveRgba(K.c,0));c.fillStyle=rg;c.fillRect(px-11,y0-r,22,th);}
-    const gc=c.createLinearGradient(x0,0,fx,0);gc.addColorStop(0,gveRgba(K.c,.12));gc.addColorStop(1,gveRgba(K.c,.95));c.strokeStyle=gc;c.lineWidth=1.3;c.beginPath();c.moveTo(x0,y0);c.lineTo(fx,y0);c.stroke();
-    c.restore();
-    c.globalCompositeOperation='lighter';
-    const hr=(plein?14:10)+(calme?0:pz*2),rh=c.createRadialGradient(fx,y0,0,fx,y0,hr);rh.addColorStop(0,gveRgba(K.c,.95));rh.addColorStop(.35,gveRgba(K.h,.55));rh.addColorStop(1,gveRgba(K.m,0));
-    c.fillStyle=rh;c.fillRect(fx-hr,y0-hr,hr*2,hr*2);
-    c.lineWidth=1;c.strokeStyle=gveRgba(K.c,.6);c.beginPath();c.moveTo(fx-(plein?22:15),y0);c.lineTo(fx+(plein?22:15),y0);c.stroke();
-    c.strokeStyle=gveRgba(K.c,.35);c.beginPath();c.moveTo(fx,y0-(plein?8:6));c.lineTo(fx,y0+(plein?8:6));c.stroke();
-    if(!calme){ // les ÉTINCELLES de la tête
-      B.emit+=dt*(plein?64:30)*Math.min(1,fS*6);while(B.emit>=1){B.emit--;B.sp.push({x:fx-1,y:y0+(Math.random()-.5)*4,vx:-(25+Math.random()*95),vy:(Math.random()-.5)*(plein?90:50),l:.22+Math.random()*.38,l0:.6});}
-      // les ARCS : ils claquent le long de l'énergie (pleine : ils sortent du tube)
-      if(Math.random()<dt*(plein?7:2.4*Math.min(1,fS*1.5))&&fx-x0>14){const a=x0+Math.random()*(fx-x0-12),L=14+Math.random()*34;B.arcs.push({a:a,b:Math.min(fx,a+L),l:.08+Math.random()*.07,amp:plein?h/2-1:r+2.5});}}
-  }
-  // l'ancien record : la BARRIÈRE (pendant la séquence du record battu)
-  if(B.seq&&B.seq.m!=null&&!B.seq.boum){const mx=x0+(x1-x0)*B.seq.m,k=B.seq.t>.95?.6+.4*Math.random():.5;c.globalCompositeOperation='lighter';
-    c.strokeStyle=gveRgba(K.c,k);c.lineWidth=2;c.beginPath();c.moveTo(mx,1);c.lineTo(mx,h-1);c.stroke();c.strokeStyle=gveRgba(K.h,.35*k);c.lineWidth=6;c.stroke();
-    if(B.seq.t>.95&&Math.random()<.5)B.arcs.push({a:mx-10,b:mx+1,l:.06,amp:h/2-1});}
-  c.globalCompositeOperation='lighter';
-  for(let i=B.arcs.length-1;i>=0;i--){const A=B.arcs[i];A.l-=dt;if(A.l<=0){B.arcs.splice(i,1);continue;}
-    c.beginPath();c.moveTo(A.a,y0);for(let x=A.a+3;x<A.b;x+=3)c.lineTo(x,y0+(Math.random()*2-1)*A.amp);c.lineTo(A.b,y0);
-    c.strokeStyle=gveRgba(K.h,.3);c.lineWidth=3;c.stroke();c.strokeStyle=gveRgba(K.c,.95);c.lineWidth=1;c.stroke();}
-  for(let i=B.sp.length-1;i>=0;i--){const p=B.sp[i];p.l-=dt;if(p.l<=0){B.sp.splice(i,1);continue;}p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.96;p.vy*=.94;
-    const a=Math.min(1,p.l/p.l0)*(p.eclat?1:.9),s=p.eclat?2.2:1.6;c.fillStyle=gveRgba(p.eclat?K.c:K.h,a);c.fillRect(p.x-s/2,p.y-s/2,s,s);}
-  if(B.sp.length>160)B.sp.splice(0,B.sp.length-160);
-  if(B.fl>0){c.fillStyle=gveRgba(K.c,B.fl*.5);c.fillRect(0,0,w,h);B.fl=Math.max(0,B.fl-dt*3);} // l'ÉCLAIR du record qui saute
-  c.globalCompositeOperation='source-over';
-}
-function gveBoucle(n){GVE.raf=0;if(!garageOn)return;
-  const dt=Math.min(.05,Math.max(0,(n-(GVE.last||n))/1000));GVE.last=n;
-  const vis=!!(gEl&&gEl.classList.contains('vitrine')&&!gEl.classList.contains('menu')&&!gEl.classList.contains('inv')&&!document.hidden);
-  if(vis){if(!(GVE.k++%30))GVE.bars.forEach(gveTaille);const t=n/1000;GVE.bars.forEach(function(B){gveAvance(B,dt);gveDessine(B,t,dt);});}
-  GVE.raf=requestAnimationFrame(gveBoucle);}
 try{Object.assign(I18N,{'SOMMET':'PEAK','RECORD !':'RECORD!','CASH':'CASH','AURA':'AURA','ENCORE':'NEED','A TA PORTEE !':'IT\'S YOURS!','COLLECTION COMPLETE':'FULL COLLECTION','INTOUCHABLE':'UNTOUCHABLE','A TA PORTEE':'AFFORDABLE','VERS':'TO','TOUT EST A TOI':'YOU OWN IT ALL','SOMMET ATTEINT':'TOP RANK','TUNING':'TUNING','SHOP':'SHOP','INVENTAIRE':'INVENTORY','MAINTIENS LA CAISSE':'HOLD YOUR CAR','OBJETS':'ITEMS','OBJET':'ITEM'});}catch(e){}
-/* ================= LE BOULON (2026-10-06, Léo : « mets un boulon 3D à la place du setting ») =================
-   Le ⚙ de l'atelier devient un BOULON en vraie 3D : l'écrou (un prisme hexagonal) sur sa rondelle, la vis filetée qui dépasse, vu d'au-dessus (44°), redessiné à
-   chaque pas de sa rotation — les pans tournés vers nous seulement, chacun éclairé par la lampe de l'atelier (la clé en haut à gauche), un filet
-   cyan sur le flanc droit, une lueur rose sous la rondelle (la DA néon). Il se VISSE d'un sixième de tour de temps en temps (toutes les 5-8 s,
-   avec le petit rebond d'un cliquet), et d'un tour complet quand on le touche. Il ne tourne que dans l'atelier, à l'écran ; « Réduire les
-   animations » le laisse immobile. Un hexagone revient sur lui-même tous les 60° : l'angle est ramené dans [0, π/3) après chaque tour.
-   SVG pur, ~12 polygones : rien sur la carte graphique. */
-const BOULON={el:null,th:.2,a:null,raf:0,next:0};
-function boulonDessine(){
-  const el=BOULON.el;if(!el)return;
-  const cx=24,cy=27.5,R=14.2,H=8.6,Rw=16.4,TW=2.2,sp=.70,cp=.714,rT=5.4,hT=6.2,f=function(n){return n.toFixed(2);},P=function(x,y,z){return [cx+x,cy-y*cp+z*sp];};
-  const Lx=-.52,Lz=.59,D=[24,25,44],C=[226,232,255],CY=[94,230,255];
-  const mix=function(a,b,k){return [a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k,a[2]+(b[2]-a[2])*k];},rgb=function(c){return 'rgb('+Math.round(c[0])+','+Math.round(c[1])+','+Math.round(c[2])+')';};
-  const pts=function(L){return L.map(function(q){return f(q[0])+','+f(q[1]);}).join(' ');},ell=function(c,rx,ry,a){return '<ellipse cx="'+f(c[0])+'" cy="'+f(c[1])+'" rx="'+f(rx)+'" ry="'+f(ry)+'" '+a+'/>';};
-  let o='<defs><radialGradient id="bOm"><stop offset="0" stop-color="#ff3ec8" stop-opacity=".6"/><stop offset=".55" stop-color="#5a1aa8" stop-opacity=".3"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>'
-    +'<linearGradient id="bWs" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2a2d4a"/><stop offset=".33" stop-color="#9aa1c8"/><stop offset=".62" stop-color="#4b5078"/><stop offset="1" stop-color="#5fd8f0"/></linearGradient>'
-    +'<linearGradient id="bWt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#dfe4ff"/><stop offset=".55" stop-color="#7a80a8"/><stop offset="1" stop-color="#383c5e"/></linearGradient>'
-    +'<linearGradient id="bSd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".32"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".42"/></linearGradient>'
-    +'<radialGradient id="bTp" cx="32%" cy="26%" r="85%"><stop offset="0" stop-color="#fff"/><stop offset=".4" stop-color="#b9c0e6"/><stop offset="1" stop-color="#4f557e"/></radialGradient>'
-    +'<linearGradient id="bTg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2f3352"/><stop offset=".35" stop-color="#e6eaff"/><stop offset=".7" stop-color="#6d739c"/><stop offset="1" stop-color="#7fe6ff"/></linearGradient></defs>';
-  const wb=P(0,-TW,0),wt=P(0,0,0),K='stroke="#07050f" stroke-width="1.3"';
-  o+=ell([cx,wb[1]+2],Rw+4,(Rw+4)*sp,'fill="url(#bOm)"')                                                   // la lueur rose dessous
-    +ell(wb,Rw,Rw*sp,'fill="#16182c" '+K)                                                                  // la rondelle : le dessous,
-    +'<rect x="'+f(cx-Rw)+'" y="'+f(wt[1])+'" width="'+f(2*Rw)+'" height="'+f(wb[1]-wt[1])+'" fill="url(#bWs)"/>'  // sa tranche,
-    +ell(wt,Rw,Rw*sp,'fill="url(#bWt)"');                                                                  // son dessus
-  const V=[];for(let k=0;k<6;k++){const a=BOULON.th+k*Math.PI/3;V.push([R*Math.cos(a),R*Math.sin(a)]);}
-  // le contour d'encre de l'écrou (sa silhouette), puis les pans tournés vers nous
-  const sil=[];for(let k=0;k<6;k++)sil.push(P(V[k][0],H,V[k][1]));const bas=[];for(let k=0;k<6;k++)bas.push(P(V[k][0],0,V[k][1]));
-  let lo=0;for(let k=1;k<6;k++)if(V[k][1]<V[lo][1])lo=k;
-  o+='<polygon points="'+pts(sil.concat(bas))+'" fill="#07050f" stroke="#07050f" stroke-width="2.6" stroke-linejoin="round"/>';
-  for(let k=0;k<6;k++){const an=BOULON.th+k*Math.PI/3+Math.PI/6,nx=Math.cos(an),nz=Math.sin(an);if(nz<=.001)continue;
-    const d=Math.max(0,nx*Lx+nz*Lz),c=mix(mix(D,C,.12+.88*d),CY,Math.max(0,nx)*.45*nz+(nx>.55?.2:0)),a=V[k],b=V[(k+1)%6],
-      q=pts([P(a[0],H,a[1]),P(b[0],H,b[1]),P(b[0],0,b[1]),P(a[0],0,a[1])]);
-    o+='<polygon points="'+q+'" fill="'+rgb(c)+'" stroke="rgba(7,5,15,.55)" stroke-width=".5"/><polygon points="'+q+'" fill="url(#bSd)"/>';}
-  const c0=P(0,H,0);
-  o+='<polygon points="'+pts(sil)+'" fill="url(#bTp)" stroke="rgba(255,255,255,.85)" stroke-width=".8" stroke-linejoin="round"/>'          // le dessus de l'écrou,
-    +ell(c0,R*.84,R*.84*sp,'fill="none" stroke="rgba(40,44,80,.55)" stroke-width="1.2"')                                                // son chanfrein,
-    +ell(c0,rT+1.6,(rT+1.6)*sp,'fill="#14162a"');                                                                                     // le trou
-  // LA VIS qui dépasse : une tige filetée (filets en arcs), son bout plat
-  const t0=P(0,H,0),t1=P(0,H+hT,0);
-  o+='<rect x="'+f(cx-rT)+'" y="'+f(t1[1])+'" width="'+f(2*rT)+'" height="'+f(t0[1]-t1[1])+'" fill="url(#bTg)"/>'+ell(t0,rT,rT*sp,'fill="url(#bTg)"');
-  for(let y=H+1.1;y<H+hT-.4;y+=1.35){const c=P(0,y,0);o+='<path d="M'+f(cx-rT)+' '+f(c[1])+' A '+f(rT)+' '+f(rT*sp)+' 0 0 0 '+f(cx+rT)+' '+f(c[1]-.5)+'" fill="none" stroke="rgba(10,10,30,.55)" stroke-width=".7"/>';}
-  o+=ell(t1,rT,rT*sp,'fill="#c9cff0" stroke="#07050f" stroke-width=".9"')+ell([t1[0]-1.4,t1[1]-.6],2.2,.9,'fill="#fff" opacity=".9"')
-    +'<path d="M'+f(cx-rT)+' '+f(t1[1])+' V '+f(t0[1])+' M '+f(cx+rT)+' '+f(t1[1])+' V '+f(t0[1])+'" stroke="#07050f" stroke-width=".9"/>'
-    +ell([c0[0]-6.5,c0[1]-3],3.2,1.3,'fill="#fff" opacity=".75" transform="rotate(-18 '+f(c0[0]-6.5)+' '+f(c0[1]-3)+')"');            // le reflet de l'écrou
-  el.innerHTML=o;
-}
-function boulonPas(){BOULON.raf=0;const A=BOULON.a;if(!A)return;const u=Math.min(1,(performance.now()-A.t0)/A.D),v=u-1,e=1+2.70158*v*v*v+1.70158*v*v; // le rebond du cliquet
-  BOULON.th=A.th0+A.da*e;boulonDessine();
-  if(u<1)BOULON.raf=requestAnimationFrame(boulonPas);else{BOULON.a=null;const s6=Math.PI/3;BOULON.th=((BOULON.th%s6)+s6)%s6;}}
-function boulonVisse(da,D){if(REDUCED_MOTION||!BOULON.el)return;BOULON.a={t0:performance.now(),th0:BOULON.th,da:da,D:D};if(!BOULON.raf)BOULON.raf=requestAnimationFrame(boulonPas);}
-try{const b9=document.querySelector('#gOutils [data-go="set"]');if(MENU_SACHA&&b9){const s9=b9.querySelector('.boulon');if(s9)s9.outerHTML=pxi('reglages');} /* (2026-10-06) LE GARAGE DE SACHA : son ⚙ en pixels (le boulon 3D est dans le menu de Léo) */
-  BOULON.el=b9&&b9.querySelector('.boulon');boulonDessine();
-  if(b9)b9.addEventListener('pointerdown',function(){boulonVisse(-2*Math.PI,700);});
-  setInterval(function(){const n=performance.now();if(!BOULON.el||BOULON.a||!garageOn||document.hidden)return;if(n<BOULON.next)return;
-    BOULON.next=n+5000+Math.random()*3000;if(BOULON.el.getBoundingClientRect().width>0)boulonVisse(Math.PI/3,520);},1000);}catch(e){console.warn('boulon',e);}
+try{const b9=document.querySelector('#gOutils [data-go="set"]'),s9=b9&&b9.querySelector('.boulon');if(s9)s9.outerHTML=pxi('reglages');}catch(e){} /* (2026-10-06) LE GARAGE DE SACHA : son ⚙ en pixels */
 /* ================= L'INVENTAIRE (2026-10-04, Léo : « quand on maintient sur la voiture, ça active un inventaire comme le shop, mais avec les
    objets possédés, entourés par une lueur de la couleur de leur rareté ») =================
    · LE GESTE : en VITRINE, le doigt (ou la souris) posé SUR la caisse (`garSurCaisse` : sa carrosserie projetée à l'écran, un peu élargie) et
@@ -62614,7 +61959,7 @@ function atlBuild(){
    const t=new THREE.CanvasTexture(cv);t.magFilter=t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;
    const ico=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false,fog:false}));ico.scale.set(.3,.3,1);ico.position.y=.98;b.add(ico);ATL.ico=ico;}
   b.scale.setScalar(1.6);
-  b.position.set((MENU_SACHA?1:-1)*ATL_POS.x,0,ATL_POS.z);GAR.pod.parent.add(b);ATL.btn=b;ATL.cap=cap;ATL.halo=halo;ATL.y0=0;
+  b.position.set(ATL_POS.x,0,ATL_POS.z);GAR.pod.parent.add(b);ATL.btn=b;ATL.cap=cap;ATL.halo=halo;ATL.y0=0;
   // LES DEUX BRAS : pied, colonne, épaule → bras → coude → avant-bras → l'outil
   for(const s of [1,-1]){
     const rig=new THREE.Group(),pied=atlPiece(function(K){K.cyl('N',.3,.12,8,0,.06,0,'y',.34);K.cyl('J',.2,.7,8,0,.47,0,'y',.22);K.cyl('Jf',.23,.06,8,0,.83,0,'y');
@@ -62686,7 +62031,7 @@ function atlTick(dt){
   /* (2026-10-07, soir) plus de burnPas ici : burnTick fait vivre les réservoirs à CHAQUE image du garage — burn-out ou pas. Les deux à la fois (quand BURN.k retombait à 0), la fumée VIEILLISSAIT DEUX FOIS PLUS VITE après le lâcher. */
 }
 window.dbgAtelier=function(a,x,z){
-  if(a==='pos'){ATL_POS.x=x;ATL_POS.z=z;if(ATL.btn)ATL.btn.position.set((MENU_SACHA?1:-1)*x,0,z);}
+  if(a==='pos'){ATL_POS.x=x;ATL_POS.z=z;if(ATL.btn)ATL.btn.position.set(x,0,z);}
   else if(a===1)invOuvre();else if(a===0)invFerme();else if(typeof a==='string')atlConstruit(a);
   const B=atlBoutonEcran();return {inventaire:!!INV.on,bras:+ATL.k.toFixed(2),construit:+ATL.cons.toFixed(2),cat:ATL.cat,bouton:B?[Math.round(B.x),Math.round(B.y),Math.round(B.r)]:null};
 };
@@ -62710,44 +62055,10 @@ function garMode(m){
   const deMenu9=gEl.classList.contains('menu')||gEl.classList.contains('missions');
   gEl.classList.toggle('menu',menu);gEl.classList.toggle('missions',mis);garLibre._r=null;
   if(!menu&&deMenu9){try{gVueSeule(false);gGarageReplie();}catch(e){}} // (2026-10-14, Léo) de l'accueil au garage : REPLIÉ (l'inventaire ne s'ouvre plus tout seul)
-  document.body.classList.toggle('garMenuH',MENU_SACHA&&menu&&!mis); // (2026-09-30, Sacha) au MENU, ses boutons — (même soir, Léo : « remets ma version sketch ») seulement avec ?menu=sacha, voir MENU_SACHA : l'accueil #mHome par-dessus l'atelier (voir « LE MENU = LE GARAGE + LES BOUTONS DE SACHA »)
-  if(MENU_SACHA&&menu&&!mis&&window.__mHomeSur)try{window.__mHomeSur();}catch(e){}
-  if(menu)garMenuMaj();
+  document.body.classList.toggle('garMenuH',menu&&!mis); // (2026-09-30, Sacha) au MENU, ses boutons : l'accueil #mHome par-dessus l'atelier (voir « LE MENU = LE GARAGE + LES BOUTONS DE SACHA »)
+  if(menu&&!mis&&window.__mHomeSur)try{window.__mHomeSur();}catch(e){}
+  if(menu)try{m2Portes();}catch(e){}
   if(mis)try{gmRender();}catch(e){console.warn('missions',e);}
-}
-function garMenuMaj(){ // le profil (argent, aura), le niveau de la carrière, les missions
-  const b=bank(),o=objectif(),pc=function(x){return Math.round(100*Math.max(0,Math.min(1,x)))+'%';};
-  soldeEcrit($('gpArg'),b); /* (2026-10-14) le SOLDE PRÉCIS */
-  const af=$('gpArgF');if(af)af.style.width=pc(o&&o.prix?b/o.prix:1);                 // la jauge d'argent : vers la prochaine caisse à vendre
-  const au=SAVE.d.aura||0,r=auraRank(),lo=AURA_RANKS[r].v,nx=AURA_RANKS[r+1];
-  const gu=$('gpAur');if(gu)gu.textContent=fmtAura(au);
-  const gr=$('gpRang');if(gr)gr.textContent='';
-  const uf=$('gpAurF');if(uf)uf.style.width=pc(nx?(au-lo)/(nx.v-lo):1);                // la jauge d'aura : vers le rang suivant
-  let w=0;for(let k=0;k<CARRIERE.length;k++){w=k;if(carrFait(k)<CARRIERE[k].niveaux.length)break;} /* (2026-10-07, audit) chaque monde a SON nombre de niveaux (5 ou 10) */              // le monde en cours de la CARRIÈRE
-  GAR.lvlW=w;const n=Math.min(CARRIERE[w].niveaux.length,carrFait(w)+1);
-  const gn=$('glN');if(gn)gn.textContent=TR('NIVEAU')+' '+n;
-  const gm=$('glM');if(gm)gm.textContent=sansAcc(TR(CARRIERE[w].nm));
-  const pp=$('gMisPips'),s9=misEtat(),p9=misPips(s9);if(pp)pp.querySelectorAll('u').forEach(function(u,i){u.classList.toggle('ok',!!p9[i]);});try{m2Portes();}catch(e){}
-}
-function garMenuSuit(){ // l'étiquette MISSIONS se pose sur le socle, où qu'il soit à l'écran
-  const an=$('gMisAncre');if(!an||!GAR.misPos)return;
-  const v=GAR._mv||(GAR._mv=new THREE.Vector3());v.copy(GAR.misPos);v.y+=GARAGE_Y;
-  v.applyMatrix4(camera.matrixWorldInverse);const der=v.z>-.5,cote=v.x;     // (2026-09-30, le tour complet) DERRIÈRE la caméra (on regarde l'établi) : la projection s'inverse
-  v.applyMatrix4(camera.projectionMatrix);                                   // (= v.project(camera), en deux temps pour lire le repère caméra au passage)
-  const vis=der||Math.abs(v.y)<1.05; // (2026-09-30) plus de test sur x : quand la vue balance ou que le doigt la tourne, le socle peut sortir par le côté — l'étiquette reste alors COLLÉE AU BORD (on ne perd jamais la porte des missions)
-  an.style.visibility=vis?'':'hidden';
-  if(!vis)return;const w9=an.offsetWidth||140,m9=8+w9/2;                     // l'étiquette reste DANS l'écran (le socle est au bord en portrait)
-  let x9,y9;
-  if(der){const L9=garLibre()||{};x9=cote>=0?VP.w-m9:m9;y9=(L9.y0||VP.h*.25)+(an.offsetHeight||34)+10;} // le socle est dans notre dos : l'étiquette attend au bord de SON côté, sous JOUER
-  else{x9=Math.max(m9,Math.min(VP.w-m9,(v.x*.5+.5)*VP.w));y9=(.5-v.y*.5)*VP.h;}
-  /* (2026-09-30) elle ne se pose jamais SUR JOUER (couché, le haut du socle tombait dans le mot) : à côté de lui si la place le permet,
-     sinon dessous */
-  const pl=(garLibre()||{}).pl;
-  if(pl){const h9=an.offsetHeight||34;
-    if(x9+w9/2>pl.l-6&&x9-w9/2<pl.r+6&&y9-h9<pl.b+6){
-      const xd=x9>=(pl.l+pl.r)/2?pl.r+6+w9/2:pl.l-6-w9/2;
-      if(xd>=m9&&xd<=VP.w-m9)x9=xd;else y9=pl.b+6+h9;}}
-  an.style.transform='translate('+x9.toFixed(1)+'px,'+y9.toFixed(1)+'px) translate(-50%,-100%)';
 }
 /* ==================== LES MISSIONS DANS L'ATELIER (2026-09-30, Léo) ====================
    « Un point de vue face au garage, une ambiance sci-fi, des lignes qui montrent les missions réparties à différents endroits et
@@ -62762,17 +62073,11 @@ function garMenuSuit(){ // l'étiquette MISSIONS se pose sur le socle, où qu'il
    · SUIVRE : toucher un défi le coche (`SAVE.d.mis.f`, un seul à la fois, re-toucher = décocher) ; en course `#misFocus` le montre
      en bas, discret (consigne · avancement · jauge fine), vert 3 s quand il tombe. Carnet neuf ou défi réussi : plus de suivi. */
 const GMIS={mk:0,e:0,v:new THREE.Vector3(),holo:[],
-  ancres:MENU_SACHA? // (Sacha a tranché) les ancres de SON écran rangé (f474c51) ; celles de Léo avec ?menu=leo
+  ancres: // (Sacha a tranché) les ancres de SON écran rangé (f474c51)
          [{k:'d',i:0,p:[-9.3,2.3,2.6],pp:[-5.6,1.5,-12.2]},   // le compresseur, mur gauche (debout : l'étau, au bout de l'établi)
           {k:'d',i:1,p:[-4.4,2.2,-12.0],pp:[-2.7,1.4,-12.4]},  // l'établi, au fond (debout : son autre bout)
           {k:'d',i:2,p:[9.9,2.4,-10.3],pp:[4.8,2.0,-12.6]},   // le pont élévateur, au fond à droite (debout : le mur de l'affiche) — (2026-09-30) couché, 4,2 → 2,4 m
-          {k:'r',p:[0,3.0,0]}]          // la récompense, au-dessus de la caisse — (2026-09-30, « un peu brouillon ») les deux carnets SUIVANTS n'ont plus de carte ni de faisceau : une ligne dans la carte de la récompense
-        :[{k:'d',i:0,p:[-9.3,2.3,2.6]},   // le compresseur, mur gauche
-          {k:'d',i:1,p:[-4.4,2.2,-12.0]}, // l'établi, au fond
-          {k:'d',i:2,p:[9.9,4.2,-10.3]},  // le pont élévateur, au fond à droite
-          {k:'r',p:[0,3.0,0]},            // la récompense, au-dessus de la caisse
-          {k:'n',j:1,p:[9.5,3.5,3.4]},    // le carnet suivant : le rack
-          {k:'n',j:2,p:[9.6,2.7,8.4]}]}; // et celui d'après : le distributeur
+          {k:'r',p:[0,3.0,0]}]};        // la récompense, au-dessus de la caisse — (2026-09-30, « un peu brouillon ») les deux carnets SUIVANTS n'ont plus de carte ni de faisceau : une ligne dans la carte de la récompense
 function gmHoloBuild(g){ // les hologrammes 3D des ancres : un faisceau (sprite) et un anneau au sol — opacité 0 hors de l'écran MISSIONS
   GMIS.holo=[];const rg=new THREE.RingGeometry(.4,.5,28);
   for(const a of GMIS.ancres){const col=a.k==='r'?0xffd75e:a.k==='n'?0x8f84c8:0x5ff0ff;
@@ -62785,55 +62090,9 @@ function gmHoloBuild(g){ // les hologrammes 3D des ancres : un faisceau (sprite)
 function gmHoloTick(t9){const e=GMIS.e;for(let i=0;i<GMIS.holo.length;i++){const h=GMIS.holo[i],o=e*(.34+.12*Math.sin(t9*2.7+i*1.3));
   h.beam.material.opacity=o;if(h.ring){h.ring.material.opacity=e*.8;const k=1+.12*Math.sin(t9*3.1+i);h.ring.scale.set(k,k,k);}}}
 function gmRender(vu){ // vu : l'écran est déjà là (un défi coché) — les cartes ne rejouent pas leur entrée
-  if(MISSIONS_V2)return m2Render(vu); /* (2026-10-16) LES MISSIONS v2 : la liste unique */if(MENU_SACHA)return gmRenderS(vu); // (Sacha a tranché) son écran rangé ; celui de Léo avec ?menu=leo
-  const el=$('gmNoeuds'),sv=$('gmFils');if(!el||!sv)return;
-  const s=misEtat(),c=carnet(s.n),g=misGain(c);let h='';
-  if(s.f>=0&&s.ok[s.f])s.f=-1;
-  GMIS.ancres.forEach(function(a,k){let cls,pt,in9;
-    if(a.k==='d'){const m=misM(s,a.i),ok=!!s.ok[a.i],f=s.f===a.i,b=Math.min(m.v,s.best[a.i]||0);
-      cls='d'+(ok?' ok':'')+(f?' f':'');pt=ok?'ok':f?'f':'';
-      in9='<div class="gmT"><span class="gmChk"><i></i></span>'+TR('MISSION')+' '+(a.i+1)+'<b>+'+fmtC(m.p)+'</b></div><div class="gmX">'+misTxt(m)+'</div><u><em style="width:'+Math.round(100*(ok?1:misPart(m,b)))+'%"></em></u><small>'+(ok?TR('REUSSI'):f?TR('SUIVI EN COURSE'):TR('MEILLEUR ESSAI')+' '+misProgV(m,b))+'</small>';}
-    else if(a.k==='r'){cls=pt='r';
-      in9='<div class="gmT">'+pxi('etoile')+' '+TR('RECOMPENSE')+'<b style="color:#ffd75e">'+s.ok.filter(Boolean).length+' / 3</b></div>'+misGainFig(g)+'<div class="gmX" style="color:'+g.col+'">'+sansAcc(g.nom)+'</div><small>'+sansAcc(g.fam||'')+'</small>';}
-    else{const gN=misGain(carnet(s.n+a.j));cls=pt='n';
-      in9='<div class="gmT">'+pxi('verrou')+' '+TR('ENSUITE')+'</div><div class="gmX">'+sansAcc(gN.nom)+'</div><small>'+TR('CARNET')+' '+(s.n+a.j+1)+'</small>';}
-    h+='<i class="gmPt '+pt+'"></i><div class="gmC '+cls+(vu?' vu':'')+'" data-k="'+k+'" style="--i:'+k+'" role="button">'+in9+'</div>';});
-  el.innerHTML=h;
-  let p9='';for(let i=0;i<GMIS.ancres.length-1;i++){const cl=i>=3?'n':i===2?'r':'';p9+='<path class="hl '+cl+'"/><path class="'+cl+'"/>';}
-  for(let i=0;i<GMIS.ancres.length;i++)p9+='<path class="lead'+(GMIS.ancres[i].k==='d'&&s.f===GMIS.ancres[i].i?' f':'')+'"/>';
-  sv.innerHTML=p9;
-  GMIS.cards=[].slice.call(el.querySelectorAll('.gmC'));GMIS.pts=[].slice.call(el.querySelectorAll('.gmPt'));
-  GMIS.paths=[].slice.call(sv.querySelectorAll('path'));GMIS.sz=GMIS.cards.map(function(c9){return [c9.offsetWidth||150,c9.offsetHeight||60];});
-  GMIS.last=null;
-  const sous=$('gmSous');if(sous)sous.textContent=TR('CARNET')+' '+(s.n+1)+' · '+TR('CHAQUE MISSION EN UNE PARTIE');
-  const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?TR('SUIVI')+(LANG==='fr'?' : ':': ')+misTxt(c.m[s.f]):TR('TOUCHE UNE MISSION POUR LA SUIVRE EN COURSE');
+  if(MISSIONS_V2)return m2Render(vu); /* (2026-10-16) LES MISSIONS v2 : la liste unique */return gmRenderS(vu); // (Sacha a tranché) son écran rangé
 }
-function gmSuit(){ // chaque image : les points sur leurs meubles, les cartes à côté (écartées, dans l'écran), les fils
-  if(MISSIONS_V2||MENU_SACHA)return gmSuitS();
-  if(!GMIS.cards||!GMIS.cards.length)return;
-  const W=VP.w,H=VP.h,v=GMIS.v,A=GMIS.ancres,n=A.length,P=GMIS.P||(GMIS.P=[]),Q=GMIS.Q||(GMIS.Q=[]);
-  const now=performance.now();if(!GMIS.bT||now-GMIS.bT>300){GMIS.bT=now;const hd=$('gmHead'),bs=$('gmBas');
-    const rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect();GMIS.y0=(rh&&rh.height?rh.bottom:40)+8;GMIS.y1=(rb&&rb.height?rb.top:H)-8;
-    GMIS.bx=rb&&rb.height?[rb.left,rb.right]:null;}
-  const y0=GMIS.y0,y1=GMIS.y1,cl=function(x,a,b){return x<a?a:x>b?b:x;};
-  for(let k=0;k<n;k++){v.set(A[k].p[0],A[k].p[1]+GARAGE_Y,A[k].p[2]).project(camera);
-    const px=(v.x*.5+.5)*W,py=(.5-v.y*.5)*H,w=GMIS.sz[k][0],h=GMIS.sz[k][1];P[k]=[px,py,v.z<1];
-    const up=py-h-24>=y0;Q[k]=[cl(px-w/2,8,W-w-8),cl(up?py-h-24:py+24,y0,y1-h),w,h];}
-  for(let it=0;it<8;it++)for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const a=Q[i],b=Q[j];
-    const ox=Math.min(a[0]+a[2],b[0]+b[2])-Math.max(a[0],b[0])+8,oy=Math.min(a[1]+a[3],b[1]+b[3])-Math.max(a[1],b[1])+8;
-    if(ox<=0||oy<=0)continue;
-    if(oy<ox){const d=(a[1]+a[3]/2<=b[1]+b[3]/2?1:-1)*oy/2;a[1]=cl(a[1]-d,y0,y1-a[3]);b[1]=cl(b[1]+d,y0,y1-b[3]);}
-    else{const d=(a[0]+a[2]/2<=b[0]+b[2]/2?1:-1)*ox/2;a[0]=cl(a[0]-d,8,W-a[2]-8);b[0]=cl(b[0]+d,8,W-b[2]-8);}}
-  let sig='';for(let k=0;k<n;k++)sig+=(P[k][0]|0)+','+(P[k][1]|0)+','+(Q[k][0]|0)+','+(Q[k][1]|0)+';';
-  if(sig===GMIS.last)return;GMIS.last=sig;                                  // rien n'a bougé : pas une écriture
-  for(let k=0;k<n;k++){const pt=GMIS.pts[k],cd=GMIS.cards[k];
-    pt.style.transform='translate('+P[k][0].toFixed(1)+'px,'+P[k][1].toFixed(1)+'px)';pt.style.visibility=P[k][2]?'':'hidden';
-    cd.style.transform='translate('+Q[k][0].toFixed(1)+'px,'+Q[k][1].toFixed(1)+'px)';}
-  const pa=GMIS.paths;let q=0;
-  for(let k=0;k<n-1;k++){const d9=(P[k][2]&&P[k+1][2])?'M'+P[k][0].toFixed(1)+' '+P[k][1].toFixed(1)+'L'+P[k+1][0].toFixed(1)+' '+P[k+1][1].toFixed(1):'';pa[q++].setAttribute('d',d9);pa[q++].setAttribute('d',d9);}
-  for(let k=0;k<n;k++){const r=Q[k],x=cl(P[k][0],r[0],r[0]+r[2]),y=cl(P[k][1],r[1],r[1]+r[3]);
-    pa[q++].setAttribute('d',P[k][2]?'M'+P[k][0].toFixed(1)+' '+P[k][1].toFixed(1)+'L'+x.toFixed(1)+' '+y.toFixed(1):'');}
-}
+function gmSuit(){return gmSuitS();} // chaque image : le panneau MISSIONS se recale, les hologrammes suivent l'orientation
 function gmHoloPlace(land){ // (2026-09-30) les hologrammes suivent l'ancre de l'orientation (voir `pp`)
   for(const h of GMIS.holo){const q=(!land&&h.a.pp)||h.a.p;h.beam.scale.set(.5,q[1]+.5,1);h.beam.position.set(q[0],(q[1]+.5)/2,q[2]);if(h.ring)h.ring.position.set(q[0],.05,q[2]);}}
 function gmRenderS(vu){ // (2026-10-15, Sacha : « refonte du système de mission, plus de petits groupes de trois, l'interface la plus claire possible, toujours dans l'écran caméra de surveillance du garage ») — vu : l'écran est déjà là (une mission cochée) : les lignes ne rejouent pas leur entrée
@@ -62908,7 +62167,7 @@ function gmSuitS(){ // chaque image : (2026-10-15) le panneau MISSIONS se recale
     pa[q++].setAttribute('d',inside?'':'M'+x.toFixed(1)+' '+y.toFixed(1)+'L'+P[k][0].toFixed(1)+' '+P[k][1].toFixed(1));}
 }
 /* (2026-10-05) MISSIONS depuis la VITRINE : l'écran des missions de l'atelier, et HOME / Échap y RAMÈNENT (pas au menu) */
-function garMisRetour(){if(GAR.misVit){GAR.misVit=false;garMode('boutique');if(!MENU_SACHA)garVitrine(true);}else garMode('menu');}
+function garMisRetour(){if(GAR.misVit){GAR.misVit=false;garMode('boutique');}else garMode('menu');}
 $('gvCof').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic('nav');if(INV.on)invFerme();else invOuvre();}); // (2026-10-05) le COFFRE ouvre l'inventaire
 $('gvMis').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic('nav');GAR.misVit=true;garMode('missions');});
 function garMissionsOuvre(){ // la porte des MISSIONS, d'où qu'on vienne : l'écran de l'atelier
@@ -62948,8 +62207,6 @@ function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
 }
 {const clicM=function(el,f){if(!el)return;el.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(el);f(el);});
    el.addEventListener('keydown',function(e){if(e.code==='Enter'||e.code==='Space'){e.preventDefault();el.click();}});};
- clicM($('gReglage'),function(){uiClic('nav');ecranWipe(function(){window.__mRetour='set';closeGarage();});});   // les RÉGLAGES (retour : le menu)
- clicM($('gMisBtn'),function(){uiClic('nav');garMode('missions');});    // les MISSIONS : l'écran de l'atelier (voir « LES MISSIONS DANS L'ATELIER »)
  clicM(document.querySelector('#gmBas .gmHome'),function(){uiClic('retour');garMisRetour();});
  clicM(document.querySelector('#gmHead .c6Ret'),function(){uiClic('retour');garMisRetour();}); // (2026-10-14, charte 6) le ◀ de l'en-tête = HOME (masqué sous c6)             // HOME : le menu (ou la VITRINE, si on en vient)
  clicM(document.querySelector('#gmBas .gmJouer'),function(e){garJouer();});                 // JOUER : la map des PLAY (voir « LE NIVEAU DES PLAY » ; la partie sans fin hors du hub), la mission suivie à l'écran
@@ -62967,8 +62224,6 @@ function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
      ecranWipe(function(){garMode('boutique');if(g.car!=null){shopTab('voiture');garageShow(g.car);}else if(g.cat){shopTab(g.cat);shopShow(g.cat,g.i);}});}
    else{uiClic('refus');toast(pxi('verrou')+' '+TR("LES 3 MISSIONS D'ABORD"));}});
    nd.addEventListener('keydown',function(e){if((e.code==='Enter'||e.code==='Space')&&e.target.closest&&e.target.closest('.glM,.glRec,.m2L,.m2Fin')){e.preventDefault();e.stopPropagation();e.target.click();}});}
- clicM(document.querySelector('#gMenuBas .gBoutique'),function(){uiClic('nav');ecranWipe(function(){garMode('boutique');});}); // la BOUTIQUE : l'atelier et ses vitrines
- clicM(document.querySelector('#gMenuBas .gLevel'),function(){uiClic('nav');carrVue(GAR.lvlW||0);});            // le NIVEAU : la carrière, sur le monde en cours
 }
 
 function gSecoue(b){b.classList.remove('secoue');void b.offsetWidth;b.classList.add('secoue');hap([8,40,8]);} // le NON du garage : ça bouge, ça vibre, et un toast dit pourquoi
@@ -63129,7 +62384,7 @@ $('gNext').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarge
 /* (2026-09-29, audit de sortie) UN SEUL DOIGT fait tourner l'atelier : le 2e (le pincement) écrasait le point de départ, l'orbite sautait
    d'un doigt à l'autre, et au relâcher le premier comptait pour un glissé — la caisse changeait. Rien ne passe à travers le voile. */
 let gpId=null,gPince=false;
-addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#gBottom,#gFlot,#gMenu,#gMis .gmC,#gmBas,#wipe,#carr,#modale,[data-m],#gInv,#gHub,#gTourne,#gHomeMini,#gBurnBtns,#gProf,#prof,#plq'))return; /* (2026-10-17) LA PLAQUE : le trophée et ses deux écrans ne font ni tourner l'atelier ni partir le burn-out */
+addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#gBottom,#gFlot,#gMis .gmC,#gmBas,#wipe,#carr,#modale,[data-m],#gInv,#gHub,#gTourne,#gHomeMini,#gBurnBtns,#gProf,#prof,#plq'))return; /* (2026-10-17) LA PLAQUE : le trophée et ses deux écrans ne font ni tourner l'atelier ni partir le burn-out */
   if(GBQ.on&&e.target.closest&&e.target.closest('#gBq'))return; /* (2026-10-15) en boutique, la page de vente n'est jamais un glissé du garage : ses boutons gardent leur clic, le reste est la scène de la boutique (bqScene) */ /* (2026-10-11) #gFlot : HOME et l'ŒIL flottants ne sont pas un glissé de la vue */
   if(!garageDrag&&atlVise(e)){ATL.appui=e.pointerId;return;} // (même soir) LE BOUTON ROUGE du plateau : ni vue ni plateau, il s'enfonce // (2026-09-30) [data-m] : un bouton de l'accueil n'est pas un glissé · (2026-10-04) le tiroir de l'INVENTAIRE non plus
   if(garageDrag){gPince=true;return;}
@@ -63169,7 +62424,7 @@ addEventListener('pointerup',e=>{
 });
 addEventListener('pointermove',e=>{
   if(!garageDrag){ // (affiches) LE SURVOL à la souris : l'affiche s'allume, le curseur devient une main
-    if(garageOn&&e.pointerType==='mouse'&&!GAR.go&&!(e.target.closest&&e.target.closest('#gTop,#gBottom,#gFlot,#gMenu,#wipe,#carr,#modale,#gInv,#gHub,#gTourne,#gHomeMini'))){let af=null;try{af=afficheVise(e);}catch(_){}
+    if(garageOn&&e.pointerType==='mouse'&&!GAR.go&&!(e.target.closest&&e.target.closest('#gTop,#gBottom,#gFlot,#wipe,#carr,#modale,#gInv,#gHub,#gTourne,#gHomeMini'))){let af=null;try{af=afficheVise(e);}catch(_){}
       if(af!==GAR.affH){GAR.affH=af;document.body.style.cursor=af?'pointer':'';}}
     return;}
   if(e.pointerId!==gpId||gPince)return;
@@ -63192,7 +62447,7 @@ addEventListener('pointermove',e=>{
 // ⚠ ORBITE BORNÉE À 7,8 m : au-delà on sortait par les murs et on traversait la servante et les
 // piles de pneus. Le décor est rangé POUR ce rayon (rien de posé à moins de 8,3 m du centre).
 addEventListener('wheel',e=>{if(!garageOn||PLQ.on||PLQ.prof)return;garageDist=THREE.MathUtils.clamp(garageDist+e.deltaY*.008,4.6,8.6);},{passive:true}); // plafond 7,8→8,6 (2026-09-05) : le zoom arrière par défaut est monté, la molette doit pouvoir suivre
-addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on)return;if(GATL.on&&e.code==='Escape'){e.preventDefault();gAtelier(false);return;}if(INV.on){if(e.code==='Escape'||e.code==='KeyI'){e.preventDefault();invFerme();}return;}if(e.code==='KeyI'&&!e.repeat&&garAtelierLibre()){invOuvre();return;} /* (2026-10-04) L'INVENTAIRE au clavier : I l'ouvre, I ou Échap le referme */ if(e.code==='Escape'){const cr9=$('carr');if(cr9&&cr9.classList.contains('on'))feuilleFerme(cr9,'on');else if(!GAR.go&&gEl.classList.contains('missions'))garMisRetour();else if(!GAR.go&&!gEl.classList.contains('menu')&&(gModeM()==='shop'||gModeM()==='tous')){uiClic('retour');gModeVa('shop');} /* (2026-10-12, passe qualité) en BOUTIQUE, Échap = ◀ RETOUR (le même chemin que la touche), pas la sortie du garage */ else if(!GAR.go&&!gEl.classList.contains('menu')){if(window.__mRetour)ecranWipe(closeGarage);else ecranWipe(function(){if(started&&gameOver)accueilRetour();garMode('menu');});}}else if((e.code==='ArrowLeft'||e.code==='ArrowRight')&&gEl.classList.contains('vitrine'))garVitrine(false);else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);else if(e.code==='Enter'&&!e.repeat&&!document.querySelector('#modale.on,#carr.on')&&!gEl.classList.contains('shopRet')){e.preventDefault();garJouer();}}); // (passe qualité) pas de JOUER au clavier en BOUTIQUE : la touche JOUER y est masquée · même chemin que les flèches à l'écran (boutique comprise, premium exclues) · (2026-09-29) Entrée = JOUER, comme à l'accueil
+addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on)return;if(GATL.on&&e.code==='Escape'){e.preventDefault();gAtelier(false);return;}if(INV.on){if(e.code==='Escape'||e.code==='KeyI'){e.preventDefault();invFerme();}return;}if(e.code==='KeyI'&&!e.repeat&&garAtelierLibre()){invOuvre();return;} /* (2026-10-04) L'INVENTAIRE au clavier : I l'ouvre, I ou Échap le referme */ if(e.code==='Escape'){const cr9=$('carr');if(cr9&&cr9.classList.contains('on'))feuilleFerme(cr9,'on');else if(!GAR.go&&gEl.classList.contains('missions'))garMisRetour();else if(!GAR.go&&!gEl.classList.contains('menu')&&(gModeM()==='shop'||gModeM()==='tous')){uiClic('retour');gModeVa('shop');} /* (2026-10-12, passe qualité) en BOUTIQUE, Échap = ◀ RETOUR (le même chemin que la touche), pas la sortie du garage */ else if(!GAR.go&&!gEl.classList.contains('menu')){if(window.__mRetour)ecranWipe(closeGarage);else ecranWipe(function(){if(started&&gameOver)accueilRetour();garMode('menu');});}}else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);else if(e.code==='Enter'&&!e.repeat&&!document.querySelector('#modale.on,#carr.on')&&!gEl.classList.contains('shopRet')){e.preventDefault();garJouer();}}); // (passe qualité) pas de JOUER au clavier en BOUTIQUE : la touche JOUER y est masquée · même chemin que les flèches à l'écran (boutique comprise, premium exclues) · (2026-09-29) Entrée = JOUER, comme à l'accueil
 
 // ---------- BOUCLE ----------
 const fwdW=new THREE.Vector3(),tmp=new THREE.Vector3(),tmp2=new THREE.Vector3(),tmp3=new THREE.Vector3(),mat4=new THREE.Matrix4();
@@ -66855,7 +66110,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     /* (2026-09-30, Sacha : « c'est buggé, les boutons ne sont pas connectés ») GARAGE et MISSIONS, APRÈS UNE PARTIE, depuis le menu : la course
        était finie (started && gameOver restent vrais jusqu'au prochain JOUER) → ils repassaient par accueilRetour, qui ne rejoue qu'une fois
        (MENUV.retour) → le bouton ne faisait RIEN jusqu'à la partie suivante. L'atelier déjà ouvert (garageOn) = on y va tout droit. */
-    else if(a==='garage'){ if(started&&gameOver&&!garageOn)ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); else ecranWipe(function(){ if(garageOn)garMode('boutique'); else openGarage(); if(!MENU_SACHA)garVitrine(true); }); } // (2026-09-30, Sacha : ses boutons) GARAGE = l'ATELIER (caisses, peinture, ailes, traînées) — le menu, on y est déjà
+    else if(a==='garage'){ if(started&&gameOver&&!garageOn)ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); else ecranWipe(function(){ if(garageOn)garMode('boutique'); else openGarage(); }); } // (2026-09-30, Sacha : ses boutons) GARAGE = l'ATELIER (caisses, peinture, ailes, traînées) — le menu, on y est déjà
     else if(a==='surv'){ clic(survBtnEl); mFill(); }
     else if(a==='park'){ clic(parkBtnEl); mFill(); }
     else if(a==='sand'){ SANDBOX=!SANDBOX; SAVE.d.sand=SANDBOX; SAVE.flush(); mFill(); }
