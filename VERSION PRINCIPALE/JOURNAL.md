@@ -3,6 +3,273 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## DEUX TRAÎNÉES CHANGENT DE RARETÉ : LA GRILLE ÉPIQUE, FOUDRE DIVINE LÉGENDAIRE (2026-10-18 soir, Sacha : « the grid doit être epic » · « divine ligthing doit etre legendaire ») — v670
+- THE GRID et DIVINE LIGHTNING sont les noms anglais de deux traînées : **LA GRILLE** (id `grille`, le mur de lumière des motos de néon) et
+  **FOUDRE DIVINE** (id `foudre`, les éclairs). Seuls objets du jeu de ces noms (les autres « grille » du code sont des grilles de calcul).
+- **LA GRILLE** : `r:'epique'` (elle était `legendaire`) et son **prix dans sa famille**, comme LA ZED et LA QUEUE DE CANARD (v651) :
+  350 000 → **200 000 $** — la tranche ÉPIQUE de `cosmRar` s'arrête sous 250 000 ; elle reste la plus chère des traînées épiques
+  et sous les légendaires (FAIS PLEUVOIR 500 000). Qui l'avait achetée la garde (rien n'est remboursé).
+- **FOUDRE DIVINE** : `r:'legendaire'` (elle était `mythique`). Elle se gagne toujours par sa mission (`mis2`) ; son prix `pk`
+  (450 000, celui de l'édition Poki) est déjà dans la tranche LÉGENDAIRE (250 000 – 900 000) : il ne bouge pas.
+- Ni id, ni effet, ni place dans la liste : le rayon TRAÎNÉES suit l'ordre de `COSM`, où LA GRILLE est déjà entre les épiques et les
+  légendaires, et FOUDRE DIVINE juste après FAIS PLEUVOIR, la dernière légendaire (plus aucune traînée MYTHIQUE).
+- Vérifié au banc muet (couché et debout) : rayon TRAÎNÉES de la boutique — HYPERESPACE et LA GRILLE en ÉPIQUE (violet, 200 000 $), puis
+  FAIS PLEUVOIR et FOUDRE DIVINE en LÉGENDAIRE (or, « MISSION ») ; 0 erreur JS ; fumée commune OK (couché + debout). Rebasée ensuite sur le
+  retrait de 88 MILES À L'HEURE, MENTHE et PLUIE DE BLOCS (v667-v668) : les deux fiches restent voisines dans `COSM.trainee`.
+
+
+## LA TRAÎNÉE 88 MILES À L'HEURE RETIRÉE (2026-10-18 soir, session RETRAIT-88MPH — Sacha : « 88 mph enlève ») — v668
+- « 88 MPH » = le nom anglais de la traînée **88 MILES À L'HEURE** (id `retour`, 140 000 $, épique) ; aucun autre objet ne porte ce nom.
+- Même méthode que MENTHE et PLUIE DE BLOCS (section ci-dessous) : sa ligne sort de `COSM.trainee`, son pictogramme `tr_88` de l'atlas, et
+  `HAB_RETIRES` reçoit `'trainee:retour' → {p:140000, n:'LA TRAÎNÉE 88 MILES À L'HEURE'}` (+ sa clé `I18N` : « THE 88 MPH TRAIL », pour le
+  message de remboursement en anglais). Les deux clés `I18N` de l'ancienne fiche (« 88 MILES À L'HEURE » → « 88 MPH » et sa description)
+  sortent aussi : plus rien ne les appelle. L'émetteur `TRX_EMET.retour` (les sillons de feu, `dbgTrx('retour')`) reste dans le code.
+- Qui l'avait achetée : 140 000 $ rendus au chargement par `SAVE.san` (le même toast que les caisses), l'id sort de `shop.own` ; qui la portait
+  repart avec NITRO. Aucune mission ne la donnait. Pour la remettre : rendre sa ligne de COSM (git) et ôter son entrée de HAB_RETIRES.
+
+## MENTHE ET PLUIE DE BLOCS RETIRÉES, L'ARC-EN-CIEL DANS LE PACK DU CHAT (2026-10-18 soir, session PIXTRAIL — Sacha : « enlève la trainé minth » · « supprime block rain » · « la trainé rainbow doit etre incluse avec le pack nian cat »)
+- Les deux lignes sortent de `COSM.trainee` (et `tr_menthe` / `tr_blocs` de l'atlas de pictogrammes, `menthe` de `ILLU_COS.trainee`). La sauvegarde
+  désigne un habillage par son id (`shop.own` = `cat:id`, `shop.eq[cat]` = id) : aucun index ne bouge, contrairement aux caisses.
+- `HAB_RETIRES` (juste après COSM) : `'cat:id' → {p, n}`. Dans `SAVE.san`, bloc LES CAISSES RETIRÉES : l'id sort de `shop.own`, le prix payé est
+  remboursé dans le MÊME `SAVE.remb` que les caisses (un seul toast « … EST PARTIE : … REMBOURSÉS »), et qui la portait repart avec celle
+  d'origine (`usine` / `panneaux` / `nitro`). Pour retirer un autre habillage : une entrée dans HAB_RETIRES + sa ligne de COSM ôtée.
+- Les émetteurs `TRX_EMET.bulles` et `TRX_EMET.blocs` restent dans le code, appelés par aucune traînée.
+- L'ARC-EN-CIEL DANS LE PACK DU CHAT (Sacha : « la trainé rainbow doit etre incluse avec le pack nian cat ») : la règle existait (`pack:'chat'`,
+  shopOwned → m2Chat : à toi avec le CHAT POP-TART) mais la boutique ne le disait pas — sa carte affichait « MISSION », l'inventaire le prix de la
+  PALETTE (0,99 €), son bouton « À GAGNER ». Désormais (`chatPackI` = la place du chat dans CARS) : carte et inventaire « PACK CHAT », bouton
+  AVEC LE CHAT + le prix du chat (`bqEtat` e:'chat'), qui mène au rayon ACHAT, le chat sur le plateau (`bqAction`) ; la carte du chat porte le
+  bandeau arc-en-ciel « + ARC-EN-CIEL » (`.bqKl.arc`) tant qu'on ne l'a pas. Mots EN : CAT PACK, WITH THE CAT, + RAINBOW.
+
+## LE GLACIER, 3e TOUR — LA CONGÈRE AU LIEU DU MUR, 40-50° POUR DE VRAI, DE VRAIS TREMPLINS, MOINS DE PICS (2026-10-18, session GLACIER-BORDS — Sacha : « debug la map montagne glace : déjà quand on touche le bord on y reste collé, et il y a des problèmes de collision avec la glace elle-même ; ensuite je t'ai dit 100 fois de faire la map plus pentue, genre 40-50 degrés ; les tremplins doivent être plus beaux, gros et visibles, et moins d'obstacles sur la route » · « quand on touche le bord on doit pas mourir : on s'enfonce dans la neige, ce qui ralentit beaucoup, mais ça tue pas »)
+- POURQUOI ON RESTAIT COLLÉ : le bord était le mur des couloirs du canyon (`parisMur` : lat bornée à 1,15 m du bord, vL = 0, mort au-delà de 30° et
+  200 km/h) et le verglas pousse la caisse vers l'EXTÉRIEUR des virages (`banqVerglas`) : elle y revenait à chaque image. Mesuré (banc, pilote qui
+  vise le bord) : plaquée entre 91 et 95 m, 286 → 183 km/h.
+- LA CONGÈRE (`bkCongere`, `BK_CG`, `BKB`) : au-delà de la glace, 16 m de neige profonde de chaque côté. La caisse y entre (plouf, gerbe jetée vers
+  l'extérieur), s'y enfonce (`BKB.enf`, 38 cm), freine fort (vers 32 % de la vmax ; la nitro laboure mieux), la neige la remet dans l'axe et la
+  repousse vers la glace (6 m/s) ; le volant y mord entier. Jamais de mort, jamais de mur (au bout des 16 m, la lat est bornée). Mesuré : on entre
+  jusqu'à 6 m dans la neige, 210 → 95-105 km/h, puis retour sur la glace en ~2 s. Le ruban (`bkCongerePose`, profil `BK_CG_X/Y`, matière de la
+  neige) est posé sur le repère de la piste : la grille de neige (cases de 34-40 m) ne savait pas dessiner un bord net.
+- LES COLLISIONS AVEC LA GLACE : (1) la grille de neige montait son bourrelet dès le bord — interpolée sur 34-40 m, elle crevait la glace par
+  endroits (la caisse roulait « dans » la neige, et EN VOL `banqSolVol` y voyait de la poudreuse au-dessus de la piste : freinage, mort
+  « poudreuse » en l'air) → le bourrelet part après la congère (34 → 82 m du bord), et en vol, au-dessus de la piste et de sa congère, seule la
+  piste reçoit (tryLand s'y pose, plus de tranche à cogner) ; la poudre du glacier ne tue plus (on y est tenu à 27 cm sous la surface).
+  (2) à 45°, le flanc AVAL d'un pic peu raide devenait presque parallèle à la glace : une lame basse de 30-50 m qu'on croyait franchir et qui
+  tuait → chaque pic de la piste ajoute la pente locale à la sienne (`pic()` : sa face aval garde, par rapport à la piste, la raideur du plat).
+- LA PENTE : `BK_PENTE4` est une TANGENTE — « 58-88 % » ne faisait que 30-41° (33° de moyenne, mesuré). Désormais virages 42-46°, droites 46-51° :
+  43° de moyenne, 49-50° au plus (Node `banq-trace.cjs` sur 16 pistes ; en jeu `dbgBanq('pente')` : moy 100 %, max 115-120 %), ~6,8 km de
+  dénivelé ; LEN ×,75 (même longueur 3D). ⚠ À l'écran, la caméra de course suit la piste (CAM_GLACIER ne redresse que ~11°) : la pente se lit
+  surtout au vol, aux pics qui penchent et à la vue de côté. Essayé `garde` 4 / `max` 40 : vue rasante, caisse à moitié cachée — non retenu.
+- LES TREMPLINS (`BK_BEC`, `bkBecMesh`, `bkBecTex`) : le bec de 8 × 1,1 m, blanc sur glace blanche, était invisible (photo). Désormais une rampe de
+  36 m qui monte en courbe à 7 m (~18° à la lèvre), glace blanche à CHEVRONS ORANGE, lèvre qui brille, flancs bleu nuit, deux BALISES orange de
+  15 m ; la caisse MONTE la rampe (hopY suit la courbe) et décolle à la lèvre (poussée ,18 × la vitesse, ,2 avant), DANS L'AXE de la piste
+  (`BK_BEC.axe` : 65 % de la vitesse de travers redressée). ⚠ À 45°, la caisse accélère en vol (rien ne la freine) : avec ,26 puis ,22, les
+  vols duraient 3-6 s et couvraient ~450 m — la piste tournait dessous et la caisse retombait à côté (2 morts sur 9 au banc, « vide » et un pic du
+  décor). D'où : poussée ,18, et un tremplin n'est posé que devant `BK_BEC.droit` (260 m) de piste presque droite (< 31° de cap), cherchée jusqu'à
+  240 m plus loin ; 60 m d'approche sans pic dans son couloir. Un tremplin avant deux figures sur trois + un seul au milieu d'une longue descente sur deux. Les pièces s'écartent d'un
+  tremplin, les pics de sa retombée (260 m). ⚠ Au banc, le pilote `dbgAuto` BRAQUE EN VOL avec une lat périmée (il fait tourner le vol) :
+  mesurer les vols volant lâché (`LACHE=1`, `dbgAuto(0)` au décollage).
+- LA GLACE QU'ON TRAVERSAIT EN VOL : `tryLand` ne regardait la pose qu'à moins de 40 m du centre de la piste (`bd>1600`, la règle des routes de
+  56 m) — sur les 196 m du glacier, une caisse qui retombait à plus de 40 m du centre PASSAIT À TRAVERS LA GLACE et tombait dessous (dans la neige,
+  « vide », un pic). Au glacier, la pose se cherche désormais sur toute la largeur et la congère. Banc (9 tremplins, volant lâché en vol) : avant,
+  4 vols de 6-7 s finis hors piste et 1 mort ; après, 8 posés en 1,2-3 s (le 9e : un pic percuté en visant la rampe → 60 m d'approche dégagés).
+- LA NEIGE HORS PISTE, EN VOL (`BK_PH`) : plus de planing (lift ,0 — une caisse sortie en vol touchait le bourrelet à 200 km/h, la poudre la
+  relançait à 47 m et elle mourait « trop longtemps en l'air »), freinage fort (kT ,6, kTp 2,2), la montagne ramène après 1,4 s sous 60
+  (2,2 s sous 40). Banc : trois lâchers dans la neige, aucune mort, ramenée en 2,4-4,8 s.
+- MOINS D'OBSTACLES : une figure tous les 0,6-1 km (0,3-0,5 avant), fourche 3-5 pics, champ 5-7 (11-18), îlot 2-3 : 31-44 pics par piste au lieu de 112.
+- Banc : `dbgBanq('cg',{fx,prof,…})` (la congère : réglages, état, repère). Fumée commune OK (couché + debout, 0 erreur JS).
+## LE DÉCOLLAGE AU MANCHE — LA FIGURE SUR LA ROUTE PEUT S'ENVOLER (2026-10-19, v664, Léo : « fais en sorte que chaque trick qui fait un saut en l'air, seulement lorsque la voiture est en l'air, laisse au joueur l'opportunité de décoller de la route en utilisant le joystick qui permet d'orienter le nez de la voiture vers le haut »)
+- **Le questionnaire** (deux lectures possibles, le pouce HAUT choisit déjà la figure AVANT au double-tap) : « un geste PENDANT le bond »
+  (le pouce tenu depuis le double-tap ne compte pas) et « comme un avion » (tant qu'on tient le nez en haut elle monte, lâché elle retombe).
+- **Avant** : depuis le 17/10 (Sacha), une figure lancée au sol se fait SUR LA ROUTE — la carrosserie fait un bond de 0,35 à 2,4 m (`FR`,
+  `frPose`), la conduite ne bouge pas, et rien ne pouvait la faire quitter la route (seule une crête le faisait).
+- **Maintenant** (bloc « LE DÉCOLLAGE AU MANCHE », juste après `frVersVol`) : pendant le bond (`FR.on`, bond ≥ 20 cm), le manche du VOL poussé
+  au-delà de 55 % de sa course (`frNez` = la même lecture que pitT/wPitch en vol : pouce HAUT par défaut, pouce BAS en réglage PLONGE,
+  ↓ au clavier) fait décoller : `frEnvol` (appelé par `frTick`) → `startFall(max(6, vitesse du bond), 1)`, la figure continue en l'air
+  (`frDecolle`/`frVersVol`, le chemin d'une crête) et se paie à SA pose ; le cabré du vol fait ensuite monter la caisse tant que le pouce tient.
+  · LE GESTE NEUF (`FDC.a`) : armé au lancement seulement si le manche est sous 30 % ; sinon il doit d'abord y repasser. Sans geste : la figure
+    reste sur la route, comme avant (le choix de Sacha est intact pour qui ne fait rien).
+  · Pas sous la dalle (`side<0` : décoller = tomber dans le vide, comme le saut nitro), ni à l'auto-école, ni pendant un rebond (hopY, POSE_F)
+    ou le demi-tour. Gratuit (la figure a payé ses 20 %) ; `VEQ.sautF` (la pose rend la nitro d'un saut nitro), volant non verrouillé.
+  · `frDecolle` rend aussi `lift` : TOUT décollage en pleine figure sur la route (crête comprise) part d'où la caisse EST, le bond compris
+    (`fallPos` + `fr9.lift`) — elle retombait d'un coup de 1-2 m sur le bitume à l'image du décollage.
+- `?fdecolle=0` = sans. Console : `dbgFDecolle()` (état : armé, manche, décollages, `dv`, bond au décollage), `dbgFDecolle(v)` force le manche
+  (null rend la main au pouce). Réglages : `FDC` (`arme` .3, `seuil` .55, `haut` .2 m, `imp` 6).
+- MESURÉ (banc muet, Chrome sans fenêtre 390 × 844, VRAIS touchers — pouce gauche sur le volant + double-tap NITRO —, pilote auto au volant) :
+  pouce tenu en haut depuis le double-tap → 0 décollage ; pouce au repos puis poussé pendant le bond → décolle (bond 1,6-1,8 m au décollage) ;
+  pouce en haut, revenu, repoussé → décolle ; aucun geste ou pouce vers le bas → 0 ; réglage PLONGE : pouce BAS décolle, HAUT non ; clavier : ↓
+  décolle, ↑ non. Hors bac à sable, `?carte=nuages`, 3 essais (pouce tenu 0,7 s) : 3 décollages, 3 figures payées à la pose, 0 mort, 0 erreur JS ;
+  après la fusion du main (v663) : 2 décollages payés, puis une mort au CHRONO (`air` : vol > 6 s, la route des nuages qui descend sous la
+  caisse — le pilote du banc ne pique jamais). C'est la règle de tout vol : tenir le nez en haut longtemps, c'est monter haut.
+  La caisse ne saute pas au décollage (vitesse continue d'une image à l'autre) ; la caméra traîne 2-3 images comme sur tout saut (mesuré aussi
+  sur un saut de `startFall(21)` sans figure). Pouce tenu 1,2 s : 3,3-4,8 s de vol (le chrono et la pose comme tout vol).
+
+## CINQ VOITURES DE PLUS SUR LE MAIN (2026-10-19, v663, Léo : « oui, mets les 5 dans le jeu avec les choix ★ »)
+- LA QUEUE DE CANARD (RONDES, f84fc25a) et LA GRANDE ANGLAISE (RONDES, 0bfbb75b) refaites au plan ; LE BAROUDEUR en gris Sahara, élargisseurs
+  et toit couleur caisse, chaque lumière à sa place (BOÎTES, cba2f543 + 9f04afe8) ; LE CAÏD devient le GMC HUMMER EV pick-up, vert anis
+  gardé (BOÎTES, 9e279867 + 20294f96 ; la Classe G n'a jamais été poussée) ; LA BÊTE = la 208 T16 Pikes Peak (JAPONAISES, index 87,
+  ÉPIQUE 1 000 000 $, livrée A sans logo). La ROSSO 40 reste celle d'avant (Léo, chez JAPONAISES : « la rosso revient sur avant »).
+- Fusion : un conflit dans `chauffeDivers` (les étapes `japChauffe` ×5 de JAPONAISES + `rondesChauffe` ×2 de RONDES : toutes gardées).
+
+## LA PASSE PERF DU 18/10 — PLUS AUCUN PROGRAMME COMPILÉ EN COURSE (CANYON, APRÈS LE GLACIER) + LE CLASSEMENT DES POSTES (2026-10-18, session PERF — Léo : « démarre une session optimisation des performances » ; le but : « tout le monde doit pouvoir jouer », fluide en NETTE sur iPhone, sans à-coups, sans perte de netteté)
+- **LE BANC** (scratchpad de la session ; la méthode est celle de « LA PASSE MOBILE » du 14/10) : Chrome sans fenêtre déguisé en iPhone (390 × 844 ×3,
+  tactile, UA iPhone → le vrai chemin `TEL_NATIF`), sauvegarde muette en NETTE (`q:'net'`), `?palier=2`, processeur bridé ×4 (posé APRÈS le menu : le
+  petit banc de PAL doit voir la vraie machine), `dbgSable(1)` + `dbgQual(0)` (le cran figé : même travail de la puce d'une manche à l'autre), le
+  pilote auto au sol (`dbgAuto(1,0,{})`) puis en vol (`{vol:1,saut:.3,imp:25,nit:2}`), chaque map du tirage atteinte par `dbgClassique`+`dbgSaut` ;
+  les COMPILATIONS comptées en accrochant `WebGL2RenderingContext.prototype.linkProgram` avant le chargement (avec le shader et l'appelant), les
+  programmes NEUFS nommés en comparant `renderer.info.programs` avant / après (la clé du plus proche, champ par champ : `doubleSided`, `custom`…).
+  Les traversées NATURELLES d'un portail (pré-bâti pris) chronométrées image par image. ⚠ La machine est partagée : sous charge 30-90 (bancs
+  d'autres sessions, mise à jour du système) les ms ne valent rien — les chiffres ci-dessous sont pris au calme (charge 3-7) ; les compteurs
+  (appels, triangles, compilations) ne dépendent pas de la charge. Le profileur à 100 µs déforme les images longues (une image de 567 ms sous
+  profileur = 4 images de 50-67 ms sans) : chronométrer sans lui.
+- **LE CLASSEMENT** (main v657, ×4, au calme) :
+  1. LES COMPILATIONS EN COURSE — chacune fige un iPhone 0,1-0,3 s (piège n° 7) : à CHAQUE 1re visite du CANYON 2 programmes, et à l'entrée de la
+     map qui SUIT LE GLACIER 5 programmes (toujours, dès que le glacier est passé). → corrigé, voir plus bas.
+  2. LE JOUER : 1,1 s d'image figée sous le nuage blanc (1re partie ; 3,6 s sous charge) — la piste tirée (`rebuildMenuScene` → `newTrack`,
+     260 ms) + la 1re image du monde neuf (envois à la puce) + la chauffe 120 ms plus tard. Au JOUER depuis l'ACCUEIL après une partie, la piste
+     est bâtie DEUX FOIS (`sous9` puis `resetGame`, 212 + 240 ms) : la 1re pour rien. Pas touché : sans la 1re, le ciel du départ ne serait plus
+     posé d'un coup (`rebuildMenuScene` baisse `started`, `resetGame` fait le fondu de portail `bioPortDur` + `BIO.dip`) → la 1re seconde
+     changerait d'image. REJOUER : une construction de ~1 s (×4) sous le volet. Piste pour une prochaine passe : bâtir la 1re map PENDANT le menu
+     (et celle du REJOUER pendant l'écran de fin) avec la machine du PRÉ-BÂTI.
+  3. LES PORTAILS (pré-bâti pris) : 4 images de 50-67 ms au passage (nuages → ville : `newTrack` 66 ms, dont `buildVoxCity` — la ville n'est pas
+     pré-bâtie — et la copie de l'image traversée `pcCopie`), pendant que le voile du portail zoome tout seul (compositeur) : le gel y est caché.
+  4. EN COURSE : au calme, 60 i/s presque partout à ×4 ; à-coups au jade (vol p90 50 ms) et aux nuages (p90 33). Le fil principal se partage
+     (canyon en vol) : JS de la boucle 31 % · styles 11 % · peinture + calques ~10 %. Dans le JS, le rendu three.js domine (150-340 ms/s à ×4 :
+     ~60 % le coût PAR APPEL de dessin — `setProgram`, `setup` —, le reste le parcours, l'ombre de la caisse, `updateMatrixWorld`) ; puis `jadeTick`
+     (= `finTravail`, travail de fond borné à 4 ms), `coinPose` (5-23 ms/s : chaque pièce visible tourne et se recopie dans l'instance), `drawSpeedLines`
+     (~10), `pickupsTick`, `chaineTick`, `cashHudTick`. Rien d'énorme à gagner à image égale : le coût suit le nombre d'appels, donc le LOOK
+     (nuages : 110 appels et 1,3 M triangles pour le coton au sol ; jade : 3 passes par famille de verre). Les `:has()` restants (35 règles, dont
+     `html:has(#modale.on) #tPanel`) : −20 % du temps des styles quand on les retire tous à chaud — mais le sélecteur ne coûte presque rien en
+     lui-même (53 ms sur 3 s, `SelectorStats`) : le temps des styles est dans le calcul des ~13 éléments par recalcul (animations du HUD), pas
+     dans le filtrage. Appels de dessin vides : 1 à 3 par image, rien à gagner.
+  La PUCE (chrono `EXT_disjoint_timer_query`, M2 sans bridage) : 4-14 ms par image selon la map en NETTE — sur un iPhone c'est probablement
+  ELLE le goulot (le processeur d'un iPhone récent vaut bien plus qu'un M2 ×4) : à mesurer sur un VRAI téléphone (`?banc=1`).
+- **CE QUI CHANGE** (image identique : on compile plus tôt, on garde en vie, rien d'autre) :
+  · `canyonChauffe` dessine aussi les deux matières DOUBLE FACE des pièces du canyon (`cyMonuMats().b`, le grès des mesas/voûtes, et `.g`, la roche à
+    couleurs des tunnels) — `.g` sur la géométrie colorée des arbres (`cyArbreGeo`) : sans attribut `color`, la clé du programme diffère d'un détail
+    (`vertexAlphas` vide au lieu de `false`) et le programme naissait quand même en course.
+  · `PISTE_GARDE` / `pisteGarde(m)` (à côté de `MAT_SURSIS`) : `matSursisTick` ne libère plus la 1re matière de route vue de chaque programme (bitume
+    `bitumeV5fsL`, tranche `trancheV3`, rails `trait0_1.5` / `trait1_2`, ligne `ligneFile`, comme `CAR_GARDE` pour les caisses). La piste nue du glacier
+    ne les reprenait pas : leurs matières partaient, three DÉTRUISAIT les programmes (piège n° 8) et la map suivante les recompilait.
+- **MESURÉ** (A/B contre le main, mêmes séquences, iPhone simulé ×4, au calme) :
+  · COMPILATIONS EN COURSE (`linkProgram`, programmes neufs dans `renderer.info.programs`) : volcan après le glacier **5 → 0**, canyon (1re visite)
+    **2 → 0** ; une partie de 12 maps avec revisites, sur le main v661 (avec LES PROFONDEURS) — jade, grotte, glacier, grotte, volcan, canyon,
+    nuages-orage, grotte, forêt, glacier, ville, jade : **12 → 0** (5 à la grotte qui suit le glacier, 2 au canyon, 5 à la ville qui suit le 2e glacier) ;
+    trois manches alternées main / passe (glacier → volcan → canyon) : 5/2 à chaque manche → 0/0.
+  · Le TEMPS gagné ne se chronomètre pas sur le Mac (Chrome compile en tâche de fond, WebKit compile ces programmes en quelques ms sur la puce du M2 :
+    l'image d'entrée reste dominée par la construction) ; sur iPhone un programme compilé en course fige l'image 0,1-0,3 s (passes du 26/09 et du
+    14/10, piège n° 7) — c'est cet à-coup qui disparaît, à chaque canyon et à chaque map qui suit un glacier.
+  · EN RÉGIME (ms par image, p50 / p90, sol puis vol) : inchangé, comme attendu (le rendu n'est pas touché) — jade 16,7/33 · 16,7/33-50 ; nuages
+    16,7/33 · 16,7/17-33 ; ville, forêt, glacier, crypto, orbite 16,7/17 (à ×4 !) ; volcan 16,7/33 ; canyon 16,7/17-33 ; les écarts de p90 entre deux
+    tours (16,7 ↔ 33,3) vont dans les deux sens : c'est l'arrondi de l'écran, du bruit. Appels de dessin (sol) : jade 213, nuages 253, ville 155,
+    forêt 159, glacier 111, volcan 181, crypto 197, orbite 114, canyon 152 ; triangles : nuages 1,38 M, canyon 0,83 M, forêt 0,73 M, jade 0,70 M.
+  · JOUER (1re partie, la chauffe du menu finie) : pire image 1,1 s à ×4, 0 compilation ; `?banc=1` vérifié de bout en bout sur ce code (Chrome).
+- **À MESURER SUR UN VRAI iPHONE** : `…/jouer/?banc=1&refaire=1` (3 min sans toucher, puis la capture) — la puce en NETTE, poste par poste.
+
+## LA VETTE : SES ESCAMOTABLES SE LÈVENT À LA NITRO, ET FERMÉS ELLE N'ÉCLAIRE PLUS (2026-10-18, v661, Sacha : « la vette ne doit pas faire de lumière dans le shop et doit ouvrir ses phare que quand tu boost »)
+- VU AVANT (banc muet, boutique couchée) : les phares de LA VETTE sont des escamotables rangés à plat dans le capot, mais son point de phare
+  (`hl`) était posé SUR le capot : en boutique, de face, le halo des phares (HALO.h) brillait par-dessus les couvercles fermés (0,9).
+- LES ESCAMOTABLES (SHAPES.d_vette) : le couvercle soudé devient un BOÎTIER par côté — dessus le couvercle rouge (fermé, il affleure comme
+  avant), dessous la face noire et ses DEUX PHARES RONDS (cerclage chromé, glace). À la NITRO il pivote d'un bloc (101° autour d'un axe calculé
+  pour que la face se dresse droite au bord avant du logement), le couvercle passe derrière : les quatre yeux de la C3. Le logement noir reste
+  dans la caisse. Au garage, en boutique, au menu : fermés ; pas de clin d'œil (celui de LA CERISE). `dbgPhares(1|0|null)` les force.
+- `CAR_PHK` (nouveau, à côté de HALO) : combien les phares de la caisse sont levés, 0 → 1 ; null = phares fixes (toutes les autres caisses,
+  rien ne change pour elles). Il multiplie le halo des phares et leur nappe au sol (carVit) et leur lumière sur la route (`LUM.hl`, lumTick).
+  buildCar le remet à null ; `dbgLum().phK` le lit. LA CERISE et LE TOFU (escamotables de Léo) ne le posent pas : leur lumière reste comme avant.
+- MESURÉ (banc muet) : boutique fermée halo 0 (phK 0), forcée levée halo 0,9 ; course de nuit (pilote auto) sans nitro phK 0 et phares 0,
+  nitro tenue phK 1 en 0,5 s et phares 0,99, lâchée phK 0. Aucune erreur.
+
+## LES PROFONDEURS — LES BIOMES DE GROTTE DE MINECRAFT, DANS LA DA DU JEU (2026-10-18, Sacha : « fais une nouvelle map en mode dans les grottes, en mode minecraft mais ça bien, mets-toi dans la peau d'un designer senior de jeu vidéo et fais un truc parfait » · au premier banc, en cubes : « non arrête ça fait pas minecraft — je veux une grotte, les biomes de grotte dans minecraft, mais avec la même DA que les autres maps »)
+- **L'idée** : une DESCENTE sous la terre à travers les biomes de grotte de Minecraft, chacun SA lumière — l'œil sait toujours où il est, et la
+  roche qui défile à côté de la caisse donne la vitesse. 0 · L'ENTRÉE ET LA MINE (galerie carrée, cadres de bois, torches) · 1 · LA GROTTE
+  LUXURIANTE (mousse, lianes aux baies qui luisent, azalées fleuries, lac d'eau) · 2 · LE PUITS DE LA GÉODE (la pièce maîtresse : la route entre en
+  tangente dans un entonnoir et fait 1¼ tour autour d'un pilier dont le cœur est une GÉODE d'améthyste géante hérissée de cristaux ; chaque tour
+  passe ~60 m sous le précédent et 34 m plus à l'intérieur — sauter du bord INTÉRIEUR fait retomber sur le tour d'en dessous : LE RACCOURCI ;
+  on ressort dans l'axe) · 3 · LES STALACTITES (cathédrale ocre, concrétions en cônes à six pans, colonnes en sablier) · 4 · LE LAC DE LAVE
+  (lave PLATE ~48 m sous la route, à plaques de croûte, chutes de lave, piliers de basalte, rivage de magma) · 5 · LES ABYSSES (le noir bleuté,
+  le sculk qui pulse en cyan, les capteurs, les piliers d'une cité oubliée et leurs feux d'âme, la salle du portail). Des grappes de DIAMANTS et
+  d'OR luisent dans les parois près de la route (c'est CASH CAR).
+- **LA DA** (le premier jet en cubes et texture pixel a été arrêté par Sacha au premier banc, jamais poussé) : la roche est LOW-POLY À FACETTES,
+  comme les pics du glacier et le cône du volcan ; chaque salle a sa paroi et son sol en couleurs pleines (`GRT_MUR`/`GRT_SOL` : brun chaud, sarcelle
+  et vert mousse, violet, ocre, basalte indigo et pourpre, bleu ardoise et sarcelle) avec des strates douces, aucune texture ; une matière par
+  facette ; la grotte suit LA RECETTE COMMUNE des maps (`contiMap` + `grtConti` : saturation, contraste, vignette, contre-jour rose, bitume commun
+  par temps).
+- **La route** (`genGrotte` → `grtTrace`) : descend de ~230-330 m ; les aides de la balade du volcan (cap borné ±68° par un axe), ≥ 1 module du
+  paquet `gSlalom`/`gCorde`/`gChicane`/`gHoule` (2 à 5 selon la place), leur propre hasard ; contrôle des croisements (0 conflit sur 12 graines).
+  **LA DURÉE DES MAPS** : entrée + mine + puits + salle du portail fixes, les quatre autres salles se partagent le reste de `longueurCible()`
+  (27/20/30/23 %) ; `DUREE_ALLURE.grotte` .85. MESURÉ (banc Node, 4 graines) : palier 0 → 5,4-5,6 km (visé 5,4) ; palier 10 → ~7 km ; palier 25 →
+  8,4-9,2 km (visé 7,1 : la spirale tient 1,9 × le rayon tenable, ~24 s à fond, comme le volcan).
+- **La roche** (`grtCreuse1`, `grtPuits`, `grtLacs`, `grtPiliers`) : un CHAMP DE DENSITÉ (~ la distance signée à la paroi, en mètres × 1,6) sur une
+  grille de 8 m stockée en tronçons de 16³ cases ; chaque échantillon de route (tous les rh/3,2 m) creuse un ellipsoïde par salle (`GRT_FORME` :
+  demi-largeur, plafond, fond, exposant — la mine est CARRÉE —, morsure du bruit), fondu sur ±90 m aux frontières ; le puits (cône, pilier, géode,
+  bassin), les lacs (surfaces plates), les piliers. RÈGLE D'OR : un NOYAU vide autour de la route (ROAD_HALF + 10 m, 30 m dessus, THICK + 9
+  dessous) — `dbgGrotte('test')` : 0 roche, 0 décor (12 graines en Node, et dans le jeu).
+- **Le rendu** (`grtMailleNets`, `GRT_FS`) : la surface est tirée du champ par « surface nets » (un sommet par cube traversé, facettes de ~8 m),
+  une maille par tronçon cachée au-delà du brouillard ; la normale de la FACETTE vient des dérivées ; l'OCCLUSION (la part de roche autour du
+  sommet) ; la lumière CUITE aux sommets en deux canaux — TORCHES et LUMIÈRE DU LIEU (l'air de la salle, la lave par en dessous, la géode, l'eau,
+  les baies, les chutes, les capteurs, les feux d'âme, les gemmes) —, dosée par la météo ; la LANTERNE de la caisse allume la roche autour
+  d'elle. Les décors (`grtDecors` : prismes, boîtes, octaèdres) sont dans la même matière. Les POUSSIÈRES (700 points ronds : poussière, spores,
+  paillettes, gouttes, braises, âmes) changent avec la salle. Zéro image, zéro lumière three, deux programmes (chauffés au menu).
+- **Piège trouvé au banc** : un numéro de matière INTERPOLÉ sur un triangle à cheval entre deux matières (roche 0 → améthyste 3) passe par toutes
+  les matières entre les deux — un liseré arc-en-ciel le long des bords. Les sommets de la roche sont dédoublés par triangle, la facette prend la
+  matière de la majorité de ses coins.
+- **Les temps** (`SF_CARTES.grotte`, `GRT_MET`) : TORCHES (matin), CRISTAUX (midi : peu de torches, minerais et améthyste à pleine lumière),
+  MAGMA (soir), NOIR COMPLET (nuit : torches éteintes — les bâtons restent —, tes phares et la lave). Chaque SALLE a son ambiance par temps
+  (`grtBiomes` : 24 ambiances `grt-<temps>-<salle>`, brume teal / violette / ambre / pourpre / noir bleuté, jamais grise), fondue en 2,4 s à
+  l'entrée de la salle (bioGo, après le fondu du portail) : la caisse prend la couleur du lieu. Pas de soleil « 1.61 » (`LVL.grotte`), pas de nuage.
+- **Ce qui tue** (`grotteHeurt`) : en vol, la densité au point (la surface qu'on voit), la lave ('lave'), l'eau ('eau' : « AU FOND DE L EAU »), les
+  gros décors (boîtes orientées, grille de 64 m). La route n'a aucun obstacle de plus.
+- **La construction** : au pré-bâti (`PREB_PISTES`, `prebChampsDe`, `prebJob`, `prebDecor`) en tranches ; en direct (le 1er portail, un rejouer) :
+  creuser + les 1 100 premiers mètres tout de suite (~0,5-0,6 s sur le PC), le reste ~4 ms par image (`grtTranches`). ~200 k triangles, ~460
+  tronçons, ~8 Mo de grille. À SURVEILLER sur iPhone : la construction directe (×3 ?) et le remplissage (la roche couvre l'écran).
+- **Branché** : `NIV_GROTTE`, `SF_NIV`, `SF_CARTES.grotte`, `DUREE_ALLURE`, `pisteRoute`, buildTrack, le pré-bâti, `lvlNuageOk`, `LVL.grotte`
+  (bioApply : le soleil), `contiMap`/`grtConti`, `impTestIci` et la chaîne de vol, `CAUSES.eau`, la chauffe (`grotteChauffe`), la boucle
+  (`grotteTick`), l'accent du bitume et les bords au bleu DIAMANT (`BMAP_PAL`, accC), les cubes du portail (`PCUBE_PAL`) et ses cartes postales
+  (`assets/portail/grotte-*.webp`, tirées par le banc avec `dbgCartePostale`), `repertoire-maps/maps.js`.
+- Console : `dbgGrotte()` · `dbgGrotte('test')` · `dbgGrotte('salle',{k,d,h,r,fov})` · `dbgGrotte('puits',{h})` · `dbgGrotte('meteo','nuit')` ·
+  `?carte=grotte&meteo=matin|midi|soir|nuit` (consommé avant le JOUER : au banc, `dbgClassique('grotte',m)` puis `dbgSaut()`). Bancs (scratchpad de
+  la session bf86b413) : `grotte/node-banc.cjs` (tracé + construction en Node, sans Chrome : `node node-banc.cjs 1,2,3 <palier> --tout --svg d`),
+  `grotte/plan.py` (plan + profil), `grotte/grotte-banc.cjs` (le vrai jeu, muet : photos par salle, course au pilote, cartes postales).
+- **À trancher par Sacha / Léo** : le nom ; la musique (Pouce bleu joue partout aujourd'hui) ; un 2e raccourci (une boucle au-dessus du lac de
+  lave, la mécanique du volcan) si la map paraît trop linéaire.
+## SANS AILES — L'AILE QUI N'A PAS D'AILE (2026-10-18, Léo : « essaie de créer un nouveau type d'aile, mais en fait la blague c'est qu'il n'y a pas d'aile : c'est juste le système de propulsion qu'a présenté Elon Musk très récemment, qui permet à une voiture de pivoter et voler »)
+- LA RÉFÉRENCE : le Roadster présenté le 15/10/2026 — des propulseurs à GAZ FROID (air comprimé, dix buses) qui soulèvent la caisse et la font
+  pivoter en l'air. Aucune marque dans le jeu (revue App Store) : le nom dit la blague, « SANS AILES » (EN « NO WINGS »), et la fiche finit par
+  « Bon. Ça a marché. » (le mot de la démo). LÉGENDAIRE à 500 000 : l'aile la plus chère de la boutique… n'a pas d'aile.
+- LE DESSIN (`AILES_POP.air`) : rien qui dépasse — cinq BUSES par côté (fût d'acier, bouche noire, anneau qui s'allume quand elle souffle), posées
+  SUR la tôle de CHAQUE caisse par un rayon qui cherche sa carrosserie (`Raycaster` sur les maillages déjà posés, à la construction seulement) :
+  flanc avant, flanc arrière, poupe, deux sous le bas de caisse. Elles crachent des bouffées BLANCHES en CUBES (`ailEtincelles`, fondu normal,
+  la vapeur qui gonfle — la grammaire des flammes du jeu) : la POUPE au boost, les FLANCS quand on tourne en l'air (l'avant d'un côté, l'arrière
+  de l'autre : ce sont elles qui font pivoter la caisse), le DESSOUS quand on monte, un « pfft » de stabilisation de temps en temps, et une
+  bouffée de TOUTES à la sortie (elle « se gonfle »). La photo de la boutique : toutes soufflent (la vignette montre l'air).
+- ⚠ LE PIVOT S'ÉTIRE : la boucle pose `scale.x` (5 % → 100 %) et un dièdre sur le pivot des ailes ; des buses dedans glissaient hors de la tôle.
+  `g1`/`g2` l'annulent, rappelés par `piv.userData.recale` juste après que la boucle les pose (une ligne dans la boucle) — et par la photo.
+- MESURÉ au banc (vol réel, caméra du jeu) : le jet de la poupe à 20 m/s pendant 0,45 s montait jusqu'à l'objectif (7-9 m derrière) et
+  couvrait le tiers de l'écran → vie 0,26-0,52 s, vent relatif ÷ 2 : ~5 m de jet. 0 erreur, 0 groupe vidé par la soudure.
+- LE SON `ailes.air` (recette dans le bloc AILES de `atelier-son/recettes.js`, cuit en PCM, banque `v=33`) : la vanne, le PSCHHT froid d'une
+  bonbonne, le corps sourd du jet — à la sortie et au boost, EN VOL seulement (ailSon).
+- Pictogramme `ai_air` = le panneau INTERDIT. Hooks : `dbgAiles('air')`, `dbgAilesForce({ouvre:1,vir:1})`, `dbgAilesVue('reprend')` (nouveau).
+
+## LES TRAÎNÉES, PASSE GLOBALE : LISIBLES DE JOUR, LE FEU À LEUR COULEUR, LA COULEUR GARDÉE (2026-10-18, v658, Sacha : « améliore toutes les traînées en cherchant globalement à les améliorer »)
+Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par traînée : la session du 16-17/10 avait soigné chacune.
+- VU AVANT (banc muet : les 16 en mer de nuages midi, puis A/B même code ± la passe) : (1) de JOUR, ce qui brille dans les traînées POP — filés
+  d'HYPERESPACE, code de MATRICE, éclairs, paillettes, cœurs de néon — s'effaçait sur le ciel clair et les nuages (une lumière additive ne fait
+  qu'éclaircir le blanc), et les rubans pâlissaient dès qu'ils passaient sur le ciel (en vol) ; (2) au nitro, un ruban vert, rose ou bleu sortait
+  d'une boule de feu ROUGE ; (3) après le nitro, tant que dure le boost, la traînée reste à mi-énergie et sa couleur se MÉLANGEAIT au rouge des
+  feux : MENTHE devenait jaune doré (on aurait dit POUDRE D'OR), HYPERESPACE violacé ; (4) là où le ruban passe dans l'axe du regard (vol,
+  vrilles), son côté s'inversait d'une rangée à l'autre et la bande se pinçait en nœud papillon.
+- (1) LE VOILE DE JOUR (`TRJ`) : sous le halo de chaque ruban, un voile d'ENCRE (la salle blanche, `silEncre`) teinte le fond de la couleur de la
+  traînée, puis la lumière s'y pose — le gris devient vert sous MENTHE, le ciel bleu nuit sous les filés. Il suit `LUM.nuit` (la lumière du lieu,
+  celle des phares) : NUL la nuit, plein en plein jour ; surtout au nitro (le trait des feux arrière reste discret de jour). Rubans : un maillage
+  enfant `tr.mi` (même géométrie, ses couleurs, cœur exclu) ; TRX : un enfant du maillage additif, même programme (`uInk` dans TRX_FS).
+  `?sans=encrejour` = avant. Au garage et en boutique, rien ne change.
+- (2) LE FEU À SA COULEUR : au nitro le halo du feu arrière (`HALO.t`) prend la teinte de la traînée à la mesure de son énergie et enfle d'un tiers
+  (`VIT9.trC`/`trK`, posés par la boucle, lus par `carVit`) ; il retourne au rouge avec elle. Réserve bleue et nitro infinie : bleu, violet.
+- (3) LA COULEUR GARDÉE (`cw9`) : la bascule rouge des feux → couleur de la traînée est pleine dès 38 % d'énergie, et le court passage creuse
+  l'éclat au lieu de montrer la teinte boueuse. L'énergie (longueur, chaleur, pouls) suit toujours `trailK`.
+- (4) Le côté du ruban garde son sens d'une rangée à l'autre (`SP` dans `silRuban`).
+- MESURÉ : A/B jour (6 traînées, sol + vol) et extinction ; temps par image inchangé au banc ; aucun programme compilé en plus
+  (le mélange n'entre pas dans la clé des programmes de three r128) ; +1 appel de dessin par ruban visible, de jour seulement.
+
 ## LA VILLE, NÉON ET VERRE — LES GÉANTES DE LA VILLE VITRÉE DANS LA VILLE AU NÉON (2026-10-18, session VILLE-NEON — Sacha : « mets-toi dans la peau d'une designer de jeux vidéo senior et fusionne les maps ville et ville vitrée ; on garde l'ambiance néon et tout, mais avec certains bâtiments qui viennent de la ville vitrée »)
 - L'IDÉE (le parti de designer) : LE NÉON AU PIED, LE VERRE DANS LE CIEL. La ville garde tout ce qui fait son identité (la nuit, ses quatre temps,
   ses quatre teintes, les enseignes, les réclames, la pluie, la descente en spirale, GLASSY PLUCKS) ; les tours qui MONTENT au-dessus de la route —
@@ -217,7 +484,8 @@
   ×1,75 ; + TONNEAU + SALTO ARRIÈRE + LE GYROSCOPE en grand, ×2,75 ; posé propre : « COMBO ×2,75 +490 » dans la chaîne. Chute : maillons rouges
   qui tombent. VRAIS BUMPS (caisse poussée hors du bord, ramenée par le pilote auto, 14 sorties) : 6 bumps, 4 entrés dans le combo du vol en plein
   vol (les 2 autres : le pilote les a reposés dans la même image). 0 erreur JS, `__loopErr` vide. Fumée commune : voir le commit.
-- À TRANCHER PAR SACHA : la rareté qui MONTE avec les bumps (DOUBLE rare, TRIPLE exotique, MEGA épique) ; la ligne limitée aux 3-4 derniers noms
+- TRANCHÉ par Sacha le 18/10 : « oui, garde la rareté du bump qui monte à chaque rebond » (DOUBLE rare, TRIPLE exotique, MEGA épique).
+- À TRANCHER PAR SACHA : la ligne limitée aux 3-4 derniers noms
   (taille ×1,2 du corps : plus petit = plus de noms, moins lisibles) ; le BUMP perdu à la chute avec le reste du combo (avant, sa part de chaîne restait).
 ## LA REPRISE DE LA MIGRATION DES MISSIONS v2 — LES SAUVEGARDES MARQUÉES PAR LA PASSE AVORTÉE SONT REJUGÉES UNE FOIS (2026-10-18, session fix-m2 — demandée par la session de contrôle console de Sacha : « faire repasser une fois la migration pour les sauvegardes déjà marquées vc=1 alors qu'elle avait avorté, sans re-créditer deux fois et sans confisquer quoi que ce soit »)
 - SUITE DE « LA MIGRATION DES MISSIONS v2 NE TOURNAIT PAS » (juste en dessous) : `M2_COLK` / `M2_RECO` remontées (v634), la migration complète tourne pour une
@@ -533,6 +801,64 @@
   Léo la veut « plus fidèle » (en reprise chez JAPONAISES). Fusion : seul conflit, le bloc des traductions que l'allègement de Sacha
   avait vidé — son ménage gardé, nos deux noms (LA LAME, LE TOFU) ajoutés.
 
+## LA GRANDE ANGLAISE REFAITE AU PLAN — LA BENTLEY CONTINENTAL GT DE 2003 (2026-10-18, discussion RONDES ; Léo : « dans la direction qu'on a prise jusque-là, améliorer, amplifier l'effet de THE ENGLISH DAME » ; RARE inchangée)
+- **Le plan** : pas de plan coté libre de la 2003 (dimensions.com n'a que la 4e génération). Le PROFIL = le dessin de la 2004
+  (the-blueprints.com, 245 px/m en long et 251 en haut : étalonné sur la longueur 4,804 m et la hauteur 1,39 m — un dessin peut être
+  étiré différemment dans les deux sens), la VUE DE DESSUS = la GTC 2012 (même plate-forme, ramenée à 1,918 m), les vues de face / dos
+  de la 2011 pour la coupe seulement. Recomposés à 250 px/m (une toile, une échelle, un miroir par source) : z = (628,7 − px)/250,
+  y = (373,6 − py)/250. Les détails (calandre, phares, feux, jantes) : les photos de la 1re génération (Wikimedia Commons).
+- **La coque** (`SHAPES.e_anglaise` dans la zone RONDES ; l'ancienne méthode de l'objet SHAPES n'est pas touchée) : loft sur le profil,
+  la largeur (taille aux portières, HANCHES au-dessus des roues arrière), la ceinture, la gouttière, le pare-brise à base cintrée et la
+  lunette de fastback. ⚠ Le nez et la poupe se referment en BANDES (largeur → 4 cm sur les derniers millimètres) : un bouchon de loft
+  faisait des éventails de triangles aux coins.
+- **La calandre maille en VOLUME** : sur une tôle penchée (21°) et bombée, une maille découpée dans la tôle ne tenait pas (les bandes
+  débordaient du cadre, le cadre tombait sur la face « dessus ») → un module à part, dans un plan penché comme le nez, posé 1,6 cm
+  devant : fond noir et cadre chromé (anneau construit à la main — ⚠ `ExtrudeGeometry` avec un trou le REMPLISSAIT) qui s'enfoncent
+  dans le nez, maille en losanges sur deux épaisseurs (1,6 cm d'écart), barre verticale. Les prises d'air du bouclier, elles, sont
+  découpées (maille coupée au rectangle par Liang-Barsky : `maille`).
+- **Le reste** : quatre phares ronds (l'intérieur plus grand ; ⚠ une optique centrale sombre sur une glace blanche faisait des « yeux de
+  dessin animé » → cuvette et optique en chrome fumé), posés sur la tôle (recherche de la tranche la plus en avant à partir de z 1,95 :
+  plus près, le passage de roue relève le bas des sections et le phare se cache DANS la caisse) ; vitres sans cadre et joint noir,
+  montant fin, baguettes chromées (vitres, bas de caisse), portes, capot, malle, feux OVALES au coin de la poupe ; rétros couleur caisse,
+  poignées et trappe à essence chromées, essuie-glaces ; jantes de 19 pouces à six branches en hélice, lèvre rivetée, cache sombre sans
+  logo. Les sorties ovales de Léo (`ECH_POTS.e_anglaise`) n'ont pas bougé.
+- **Mesuré** : 0 programme compilé en course (couché, debout), mêmes avertissements que le main ; la découpe (~60-90 ms) faite à la
+  préchauffe du menu (`rondesChauffe` découpe désormais LA QUEUE DE CANARD puis LA GRANDE ANGLAISE, une par étape) ; construction
+  ~25 ms ensuite (LA PERLE : 70 dans la même session, Mac chargé) ; ~19 000 facettes. Planche : `photos-gameplay/anglaise-avant-apres.png`.
+
+## LA QUEUE DE CANARD REFAITE AU PLAN D'USINE — LA 911 CARRERA RS 2.7 DE 1973 (2026-10-18, discussion RONDES ; Léo : « la ducktail, il y a des bugs au niveau des phares — retravaille-la vraiment à fond, même technique et même rigueur que la Taycan » ; index 45, ÉPIQUE inchangée)
+- **Le bug, nommé** : (1) le JONC NOIR du pare-chocs avant était une boîte posée à 5 mm de la tôle du pare-chocs — sous le post-traitement
+  la profondeur est en 16 bits (voir LA PERLE) : le jonc CLIGNOTAIT en pointillés noir / blanc juste sous les phares ; (2) chaque PHARE
+  était trois cylindres empilés à 5-10 mm, penchés de 20° vers le ciel, posés DEVANT l'aile : ils se mangeaient de loin et sortaient de
+  la silhouette (deux « cornes » vues de derrière au garage). ⚠ Tout détail empilé sur un autre à moins de ~1,5 cm clignote : un détail
+  se PLANTE dans la tôle (il la traverse franchement) ou se DÉCOUPE dedans, jamais posé à plat contre elle.
+- **Le plan** : dimensions.com n'a que la 993 et la 992 → le DESSIN DE CARROSSERIE PORSCHE de la 911 (4 vues + une coupe, 3486 px,
+  the-blueprints.com). ⚠ Un scan : chaque vue a SA propre échelle — étalonnée sur ses cotes (côté et dessus 404 px/m, face 421 × 410,
+  dos 414 × 409) et recomposée à 404 px/m pour l'outil de vue. « Plan 0 » (axe avant, 0,35 m du sol) : z = 1,177 + (2066 − px)/404,
+  y = 0,35 + (497 − py)/404 — le pavillon tombe à 1,32 m (la RS). Ce que la RS change au dessin de 1967 : l'empattement long (+57 mm,
+  la roue arrière reculée), les ailes arrière élargies (1,65 m), la queue de canard, les pare-chocs de 1973 (photos Wikimedia Commons).
+- **La coque** (`SHAPES.b_canard`, posé dans la zone RONDES ; l'ancienne méthode de l'objet SHAPES n'est pas touchée) : un loft sur
+  les courbes relevées au pixel (profil dans l'axe, plus grande largeur, crête des ailes avant, bord du capot, ceinture, gouttière,
+  lunette). La section du flanc suit la COUPE d'usine (le flanc rentre de plus en plus vite jusqu'à la ceinture — une courbe de Bézier
+  faisait une coque de berline). ⚠ Toutes les sections DOIVENT avoir le même nombre de points (sinon le loft relie de travers : une
+  rigole « noire » au milieu du capot). ⚠ La base du pare-brise est CINTRÉE en plan (z 0,692 au milieu, 0,449 au pied du montant) : la
+  zone du pare-brise suit cette courbe, pas un z constant. Devant le phare, l'aile redescend (le bord du phare, trait raide du profil) ;
+  près du phare, l'aile s'élargit en cuvette (un dessus plat de la largeur du phare). La queue de canard fait partie de la coque : le
+  capot moteur se relève, la LÈVRE en surplomb est une tranche (son dessous remonte), la face arrière est la marche entre la dernière
+  section pleine et la lèvre ; un seul bord continu de la lunette à la lèvre (deux tables raccordées sautaient de 3,5 cm : froissé).
+- **Découpé dans la tôle** (`bulleOutils.decoupe`, une zone = UNE vue) : vitres de porte et de custode (la goutte), cadre noir et
+  montant B (il descend jusqu'au pied du pare-brise : les deux cadres noirs s'y rejoignent, sinon dents de scie), portes, capot (son
+  bord le long des ailes, son nez), fente d'auvent, pare-brise et lunette cerclés de noir, joint et grille à lames de la queue de
+  canard, feux rouge / ambre au coin de la poupe, grilles d'avertisseur et clignotants sous les phares, la BANDE BLEUE de bas de caisse
+  (sans lettrage). **En relief** : le PHARE rond aux cotes du plan (cerclage 0,105 m, penché de 18°, logé dans la cuvette ; glace H4 à
+  anneau argent et cache chromé ; un tour — aucune face contre une autre), les PARE-CHOCS en deux tubes qui se touchent par une arête
+  (couleur caisse + jonc noir), les FUCHS (cinq branches polies, creux BLEUS, lèvre polie), rétro de course, poignées, essuie-glaces.
+  Le pot de Léo (`ECH_POTS.b_canard`) n'a pas bougé.
+- **Mesuré** : 0 programme compilé en course (couché, debout ; un +2 vu une fois = la carte tirée au hasard, 236 → 236 aux passages
+  suivants), mêmes avertissements que le main ; la découpe (~60 ms) se fait à la préchauffe du menu (`rondesChauffe`, une ligne dans
+  `chauffeDivers`, gabarit en chantier muet `K.muet` comme les japonaises) ; construction 31-59 ms (LA PERLE : 118 dans la même
+  session) ; ~20 000 facettes. Hook `dbgRondesChauffe()`. Planche : `photos-gameplay/canard-avant-apres.png`.
+
 ## LE ROUGE-GORGE — LA RELIANT ROBIN Mk1, TROIS ROUES, LA ROUE AVANT AU MILIEU (2026-10-18, discussion RONDES — la trois-roues anglaise des années 70, fibre de verre ; index 84, RARE)
 - **Pas de plan vectoriel libre** (dimensions.com n'a pas la Robin, getoutlines sur devis) : le plan raster de the-blueprints.com (côté +
   dessus, étalonné sur l'EMPATTEMENT de 2,159 m — 170 px/m), relu en mètres du jeu, + les cotes officielles de la Mk1 (3,33 × 1,42 × 1,37 m)
@@ -624,6 +950,49 @@
   basculaient en vue « dessus » → règle de vue abaissée à 0,83 m.
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
+
+## LE CAÏD DEVIENT LE GMC HUMMER EV PICK-UP (2026-10-18, discussion BOÎTES ; Léo : « une magnifique GMC »)
+- **Où** : le même `SHAPES.caid=…` de la zone BOÎTES (repère `// <<< SHAPES.caid (BOITES) >>>`, après LA CABOSSÉE) ; l'ancienne méthode `caid(K)`
+  reste en place (la coordination l'effacera). `ECH_POTS.caid` : électrique, deux FENTES qui luisent au bas du bouclier arrière (comme LA PERLE).
+  Ligne CARS 2 : seulement h 2,01, w 2,20, l 5,51 (cotes réelles) ; nom, rareté, vert anis 0x86f51c gardés.
+- **Le plan** : dimensions.com « GMC Hummer EV Pickup (1st Gen) » (SVG : profil, face, dos, dessus ; 104,9 unités/m sur l'empattement 3,45 m).
+  Photos de Commons (Edition 1 Interstellar White, Ethan Llamas ; Meteorite ; Neptune Blue).
+- **Méthode** : la grille de LA CABOSSÉE (+ `bout`/`fx` : le nez en marches ; `plafond(z)` : les rangées couchées sur l'épaule des ailes) + `boutD`/`fxd` (le contour de la POUPE de la cabine par rangée, ses colonnes aux x donnés : les deux
+  AILERONS qui plongent dans la benne autour de la lunette en retrait) ; la cabine noire par code (26 + vitres) sauf les ailerons (code 0).
+- **La découpe en moment creux** : sur ce gabarit elle coûte ~30 ms (1re construction ~40-60 ms, au-dessus des 50 de la règle). `chauffeDivers`
+  est hors de la zone BOÎTES : le gabarit expose `SHAPES.caid.pre` (la découpe seule, mise en cache) et le bloc l'appelle par
+  `requestIdleCallback` (au plus tard 3 s ; repli setTimeout 2,5 s) — la caisse montée ensuite : 15-30 ms (machine chargée).
+- Teintes réelles proposées : INTERSTELLAR WHITE 0xdde1e4 (Edition 1), METEORITE 0x50555c, NEPTUNE BLUE 0x34506e (jugées au garage).
+- Les lumières (la leçon du BAROUDEUR) : catadioptres du bouclier arrière en rouge MAT (ils tiraient le halo et les traînées sous les feux en C),
+  le point des phares au milieu des longs feux (`hl` x .76).
+- Banc : course couchée et debout 0 programme compilé, garage sans erreur. Planche : photos-gameplay/hummer-vraie-et-nous.png.
+  Outils : boites/hummer/ (src, ref, photos), assemble_h.py, integre_h.py, planche_hummer.py.
+
+## LE BAROUDEUR, CHAQUE LUMIÈRE À SA PLACE (2026-10-18, discussion BOÎTES ; Léo : « les lumières ont l'air trop détachées… il y en a deux qui apparaissent au-dessus »)
+- **Les deux « au-dessus »** : le feu de jour (bâtonnet blanc de 22 cm) et le clignotant (languette orange) posés SUR chaque élargisseur avant,
+  qui dépassaient de la tôle au-dessus des roues — une fois l'élargisseur couleur caisse (Sahara), ils flottaient. Désormais une bande de LED de
+  1 cm À FLEUR de l'arête avant de l'élargisseur (`P.prism` sur une bande décalée du contour, 4 mm de relief), blanche en haut, orange au bout.
+- **Les phares** : le cerclage dépassait de 4 cm devant la calandre → il affleure sa face, anneau et lentille en retrait ; `hl` reculé de 4 cm.
+- ⚠ **Le halo rouge et le départ des traînées** : `buildCar` les pose sur la moyenne des pièces ROUGES ALLUMÉES (`g:'l'`) les plus en arrière de
+  chaque côté (fenêtre de 30 cm, voir CAR_FEUX) — les catadioptres rouges du pare-chocs y entraient : halo et traînées 20 cm SOUS les feux.
+  Un catadioptre n'est pas un feu : rouge sombre MAT (`R:{g:'m',c:0x7a1018}`). Règle pour toute caisse : un rouge allumé à l'arrière = un feu.
+- Les feux arrière posés sur la tôle (2,5 cm de relief au lieu de 4). Banc : course couchée et debout 0 programme compilé, garage sans erreur.
+  Planche : photos-gameplay/wrangler-lumieres-avant-apres.png. Banc des lumières : boites/wrangler/lum/, `jour.py` (`CHASE=1` : la vue de poursuite).
+
+## LE BAROUDEUR EN FINITION SAHARA (2026-10-18, discussion BOÎTES ; Léo, photo d'un JL Sahara gris : « même couleurs, même le truc au-dessus de la roue »)
+- **La teinte** `0x464950` (l'olive `0x4a4d38` part) : mesurée sur la photo (la porte à l'ombre d'un ciel gris : 75 · 76 · 82) puis jugée DANS LE
+  JEU, jamais au studio. ⚠ La même base change beaucoup selon la scène : au garage les lampes chaudes la tirent vers le beige (un gris neutre
+  `0x5c5d60` y sortait crème, 149 · 129 · 120), la VILLE VITRÉE la bleuit (une porte en `0x6c7077` mesurée 62 · 92 · 140 alors qu'à l'œil elle
+  semblait grise : mesurer les pixels, l'entourage bleu trompe). D'où un gris moyen à peine bleuté : gris au garage, le poids de la photo à
+  PICS DE JADE à midi. Scène de jour fixe pour un AVANT/APRÈS : `?carte=jade&meteo=midi` (le 1er couple du mode classique est imposé).
+- **Couleur caisse** : élargisseurs (prismes `ELAV`/`ELAR` en `p`), hard-top (code 26 → `{g:'#'}`, sans joint propre : la découpe retombe sur
+  le code 1), charnières. Noirs : poignées, rétroviseurs, pare-chocs, marchepieds (déjà comme la photo). La glissière de la vitre arrière passe
+  au code 23 (noir) pour ne pas devenir couleur caisse.
+- **Jantes Sahara** : cinq branches en trapèze poli (`J.prism` dans le plan de la roue : contour [z,y] extrudé en x), une gorge grise en relief au
+  milieu de chaque branche, rebord poli large, moyeu gris (`P` mat `0x3d4047`) ; la roue de secours a la même (ExtrudeGeometry dans le plan x-y).
+- Banc : `jour.py` (CAR-bancs/nouvelles-voitures/boites) — course, pause, photos dans le repère de la caisse (`dbgLumVue`), HUD et jus masqués
+  en `opacity:0` (en `visibility` leurs enfants revenaient). Course couchée et debout : 0 programme compilé ; garage sans erreur ; ~30 ms à bâtir.
+  Planche : photos-gameplay/wrangler-sahara-avant-apres.png.
 
 ## LE BAROUDEUR — LA JEEP WRANGLER JL 4 PORTES RELEVÉE SUR SON ÉLÉVATION (2026-10-18, discussion BOÎTES ; Léo : « le Wrangler moderne, 4 portes »)
 - **Le gabarit** : `SHAPES.wrangler=(function(){…})()` à sa ligne-repère + `ECH_POTS.wrangler` (un pot à droite, comme sur la photo de dos) +

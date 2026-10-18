@@ -34,4 +34,8 @@ window.REPERTOIRE = [
     meteos: [['matin', 'TERRE'], ['midi', 'MARS'], ['soir', 'JUPITER']] },
   { id: 'canyon',   nom: 'CANYON DES GÉANTS', couverture: 'matin',
     meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
+  // (2026-10-18, Sacha : « une nouvelle map dans les grottes, en mode Minecraft mais bien ») LES PROFONDEURS : la descente en blocs, de la mine aux
+  // abysses — sous la terre, ses « temps » sont des lumières
+  { id: 'grotte',   nom: 'LES PROFONDEURS',   couverture: 'matin',
+    meteos: [['matin', 'TORCHES'], ['midi', 'CRISTAUX'], ['soir', 'MAGMA'], ['nuit', 'NOIR COMPLET']] },
 ];
