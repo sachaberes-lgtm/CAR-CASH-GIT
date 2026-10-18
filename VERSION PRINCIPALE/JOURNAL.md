@@ -3,6 +3,141 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA DURÉE DES MAPS — UNE MAP SE COMPTE EN SECONDES (2026-10-18, ESSAI sur la branche `longueur-maps`, pas sur le main — Léo : « trouve la longueur parfaite des maps : fluide, sur téléphone, ni trop courte ni trop longue ; plus la vitesse va vite, plus on doit avoir l'impression de traverser plein de dimensions »)
+- **MESURÉ AVANT** (banc muet, main v628, pilote auto + nitro au sol, bac à sable) : une map du JOUER durait de ~70 s (jade, forêt) à plus de 3 min
+  (canyon 195 s, nuages ~170 s, glacier ~160 s) ; une partie traversée : 92 s → 100 s → 127 s → 129 s pour les 4 premières maps. Et la map
+  S'ALLONGEAIT avec la vitesse : les générateurs grandissaient plus vite que le palier (genCtrl ×2,5, canyon ×2,3, forêt ×2,7) ; seule la jade
+  (longueur fixe) défilait (~25 s à fond). Sur téléphone, un débutant ne voyait jamais la 2e map.
+- **LA RÈGLE** (`DUREE`, `dureeCible`, `longueurCible`, juste après `TORD`) : au JOUER (niveaux `sansFin` du mode classique : ni menu, ni école,
+  ni carrière), longueur visée = durée × `vPalier()` × l'ÉLAN (`DUREE_ELAN` 1,8 → 1 du palier 0 au palier 25 : au départ l'élan, la nitro et
+  le FLOW poussent la caisse bien au-dessus de vPalier) × l'ALLURE de la map (`DUREE_ALLURE`, relative à la ville ; le glacier a sa propre
+  vitesse `DUREE_V` : sur la glace elle ne suit pas le moteur). Durée : **45 s au palier 0 → 20 s au palier 25 et au-delà**. Le pré-bâti
+  bâtit la map d'en face avec la même règle (LVL.cur et engTier y sont ceux de la map d'en face).
+- **CHAQUE GÉNÉRATEUR GARDE SA PIÈCE MAÎTRESSE** : genCtrl (nuages, ville, crypto, vitrée, orbite) prend LEN ; ses modules de course et de map
+  commencent plus tôt sur une map courte (au moins un) · glacier : LEN à plat · jade : la Porte, le Pont et l'effondrement restent, les
+  virages entre eux prennent le reste · forêt : autant de nœuds que la longueur en tient (au moins un : l'étoile qui se recroise + l'arche) ·
+  volcan : cratère, arche, lac ; boucles 1-3 et fumerons selon la place (`tient(f)`) · canyon : Route 66 (raccourcie), brèche, raccourci A,
+  arche, finale ; étroits, amphithéâtre, raccourcis B-H, mine, chameau selon la place. Hors JOUER : tout est IDENTIQUE (tirages compris).
+- **MESURÉ APRÈS** (même banc) : au départ 39-50 s (canyon 46 s au lieu de 195), à fond ~20-33 s (ville 21, nuages 23, jade 24, glacier 28,
+  canyon 33) ; le volcan reste ~30 s à fond (ses boucles ont besoin de leur longueur). Pré-bâti : 10 maps sur 10 prêtes avant le portail.
+  Le pilote du banc se crashe souvent sur le glacier, l'orbite et le volcan à haute vitesse : leurs chiffres sont les moins sûrs.
+- `?duree=ancien` = les longueurs d'avant · `?duree=40-18` = d'autres durées (départ-fond) · console `dbgDuree()` (visée, longueur, palier).
+  Bancs : `~/Downloads/CAR-bancs/longueur/` (t2 traversée, t5 visée contre réelle, t6 maps imposées).
+
+## LE TAUREAU v2 DE CRYPTO CITY — LA POSE DU « CHARGING BULL », L'OR POLI, ET UNE HITBOX QUI EST LA FORME (2026-10-18, session TAUREAU — Sacha : « dans la map crypto city retravaille le design du toreau géant et vérifie bien que la hit box dans la map fonctionne »)
+- LA HITBOX D'AVANT, MESURÉE (audit hors ligne : la forme dessinée testée volume par volume par parité de rayon, contre les neuf boîtes de
+  `cryptoHeurt`, au pas de 5,4 m) : **6,7 % du taureau visible se traversait** — l'ENCOLURE (un trou de 35 m entre la boîte du corps et celle de la
+  tête), les CORNES (aucune collision), le haut des pattes (prismes penchés, boîtes droites) — et **les boîtes débordaient de 75 % du volume
+  visible** : des murs FANTÔMES autour des pattes (88 m de profondeur pour une patte de 60), sous la croupe, au-dessus du flanc. On mourait dans le vide.
+  Et à la pose (`cryptoPlace`), seul un cercle de 280 m autour du centre était gardé libre : sur une graine du banc, la ROUTE passait à **4 m** de la tête.
+- LA RECETTE : UNE seule description pour voir ET heurter. `taureauForme(pl)` rend des VOLUMES — des anneaux le long d'un axe (`crAnneau` : centre,
+  demi-largeur, demi-hauteurs dessus/dessous, tangage de l'axe ; une section super-ellipse `crSection` par volume) ou le long d'une courbe
+  (`crTubeV` : cornes, oreilles, queue). `crVolume` en tire les triangles (faces dehors, `crTri`), `crDans` dit si un point est dedans (le point se
+  place entre deux anneaux par ses distances à leurs plans, l'anneau est interpolé là, le point est comparé au polygone de la section : exactement la
+  surface dessinée). `taureauDur(F,x,y,z,m)` = l'union. `cryptoHeurt` passe la caisse dans le repère du taureau et appelle `taureauDur` (marge 0,7 m).
+  Retoucher la forme déplace la collision avec elle. `crLoft`/`crPatte` (les anciennes formes) sont partis.
+- LA FORME (repère local, ×1,35 = `TAUREAU_K`) : la pose du taureau de Wall Street — penché de 7° vers l'avant (`Y`, la croupe haute, le mufle bas),
+  croupe ronde, hanches larges, taille creusée, poitrail profond sous la BOSSE du garrot (le plus haut : ~320 m au-dessus de la route), TÊTE BASSE
+  et large (axe à 74°, le front face à la caisse), CORNES grosses à la base qui sortent de côté puis viennent EN AVANT, oreilles dessous, queue en S
+  et sa touffe. Les pattes sont des pattes jusqu'au sabot (l'avant lancée, genou plié ; l'arrière qui pousse, jarret en arrière), puis chaque sabot
+  pose sur le TOIT D'UNE TOUR (corniche, puis un fût à vitres qui s'élargit en trois gradins Art déco jusqu'au pied, dans la brume). Une route juste
+  sous le taureau coupe pattes et tours au pied (`crCoupe`). Yeux laser et anneau du mufle posés par la forme (`F.yeux`, `F.nez`). ~2 700 triangles.
+- LA MATIÈRE (`TAUREAU_VERRE`, programme `taureauCrypto2`, attribut `aVit`) : le CORPS est une statue d'OR POLI à facettes — presque plus de diffus,
+  le ciel teinté d'or au carré (l'horizon clair et le zénith sombre se séparent : chaque facette tranche sur sa voisine), Fresnel, l'éclat du soleil ;
+  la nuit, des projecteurs d'en bas (`CRYPTO.uNuit`). Les VITRES (une baie tous les 3,4 m) ne sont plus que sur les TOURS (`aVit` = 1), bureaux
+  allumés la nuit. (La grille de baies sur le corps, vue de 300 m, ne faisait qu'un grain orange.) Le ruban de cours vert à hauteur de route : gardé.
+- LA POSE : `taureauLibre` — aucun point de la route (au bitume et 6 m au-dessus) à moins de 30 m de la forme posée ; sinon le candidat suivant (les
+  tirages `cr` d'un candidat refusé sont les mêmes qu'avant : seules les graines où la route frôlait le taureau changent). Une route JUSTE DESSOUS
+  (le pied à moins de 250 m sous le ventre : 2 taureaux sur 10 au banc) coupait les pattes en moignons : ce candidat n'est plus pris qu'en dernier
+  recours, et le bout d'une patte ou d'une tour coupée s'effile (`crPointe`) — le taureau pose alors sur quatre socles. La forme calculée à la pose
+  est gardée (`t.F`) et reprise par `cryptoTaureau`.
+- MESURÉ — hors ligne (`proto.cjs` + `audit-hitbox.cjs`, scratchpad de la session) : visible mais pas dur **0,03 %**, dur mais invisible **0,19 %**
+  (une peau, et l'échantillonnage pile sur un plan de bouchon). Au banc (Chrome, 844 × 390, muet, `?carte=crypto&meteo=midi`) : `dbgCrypto('dur')`
+  — le repère de la collision = celui du maillage (`worldToLocal`) : **0 écart sur 8 000 points** ; la route à plus de 81 m des deux taureaux (31 m
+  sur la graine qui donnait 4 m). LES TIRS (`dbgCrypto('tir',…)`, la caisse lancée en vol dans la vraie boucle, bouclier de la seconde chance pour
+  enchaîner) : **14 / 14** — touché à 0,3-0,8 m de la surface VUE (raycast sur le maillage) sur l'encolure, le flanc, la bosse, le front, la corne,
+  la queue, le genou, la tour (2,4 m sur la fine pointe de corne) ; PASSÉ sans heurt devant les pattes avant (l'ancien mur fantôme), sous le ventre,
+  entre les pattes avant, entre les cornes, à côté d'une tour. Puis une VRAIE mort sur la corne : cause `tour`, L'IMPACT et la boule, comme partout.
+  Aucune erreur de page, `__loopErr` nul, `dbgCrypto('progs')` vide.
+- Console : `dbgCrypto('cadre',{n,vue})` (photo du taureau n : profil, face, trois, dos, dessous, haut, cote, route, arrive), `dbgCrypto('dur')`,
+  `dbgCrypto('tir',{n,cible,dir,d,vit,passe,bouclier})`, `dbgCrypto('taureaux')` (avec `pied`). Bancs : `banc-tirs.cjs`, `banc-photos.cjs`.
+- À TRANCHER (Sacha) : la tête tournée vers la route (comme la statue, qui regarde de côté) — pas fait, elle rapprocherait les cornes de la route.
+
+## LES MODULES DE CHAQUE MAP — AU MOINS TROIS PAR MAP, TIRÉS AU HASARD (2026-10-18, session MODULES — Sacha : « pour l'instant dans les générations de map il n'y a pas beaucoup de modules, il faut que tu rajoutes des modules adaptés au gameplay de chaque map, il en faut au moins 3 par map qui seront sélectionnés automatiquement ; pour l'instant il y a trop de tout droit et trop peu de modules »)
+- AVANT : seuls les NUAGES (et leur orage) avaient des modules (le matin même : tSlalom, tEpingle, tCorde, tEsses, tRusses). Les neuf autres maps
+  du tirage n'avaient AUCUN module : des virages génériques et, en ville comme en orbite, des « grands virages » si larges qu'ils se prenaient
+  comme des droites (banc : 15 s de ligne droite en moyenne en ville, 17-19 s en orbite ; 1 virage par km en orbite, 0,2 au palier 15).
+- LE PRINCIPE, partout le même : chaque générateur a SON paquet (au moins trois modules), mélangé, tiré dans un hasard À PART né de la graine
+  (un seul tirage de plus, ou aucun) — jamais deux fois le même de suite, à intervalles réguliers ; leurs tronçons vont dans MODMARK (ni plot
+  ni huile dedans) ; les rayons se règlent sur le rayon que la caisse tient au palier (40 + 0,3·v, passation/RACCOURCIS.md), jamais en dessous
+  de 1,1 à 1,7 fois selon la map : serré, jamais infranchissable. Interrupteur : `MODC_ON` (`?sans=modcartes` = les pistes d'avant, au tirage
+  près — vérifié : même graine, même piste) ; au banc, sans recharger : `dbgModCartes(0|1)` ; `dbgTrace()` rend désormais `mods` (les tronçons).
+- LES MODULES, map par map :
+  · LA VILLE (et MINUIT, toutes ses teintes) — genCtrl `mAngles` LES ANGLES DE RUE (3-4 coins de 80-95° alternés, un pâté de maisons entre
+    deux), `mBretelle` L'ÉCHANGEUR (une bretelle de 200-250° qui plonge), `tSlalom` LE SLALOM DES TOURS, `tCorde` LA DOUBLE CORDE.
+  · CRYPTO CITY — `mBougie` LA BOUGIE (le pump : une montée en courbe ~20 % ; le dump : la chute en contre-courbe ~28 % — le saut du bull run),
+    `mDents` LES DENTS DE SCIE (4-5 virages alternés qui montent et redescendent comme une courbe de cours), `tSlalom` LE SLALOM DES TAUREAUX,
+    `tEpingle` LE RETOURNEMENT.
+  · LA VILLE VITRÉE (au sol, à plat) — `mTour` LE TOUR DE LA GÉANTE (la route fait le tour, 300-340°, et repasse au-dessus d'elle-même : le
+    pont de vitreAplanir), `mAngles` LES ANGLES DROITS, `tSlalom` LE SLALOM DES GÉANTES, `tEsses` LES ESSES.
+  · EN ORBITE — `mFronde` LA FRONDE (un grand virage de 200-260° qui relance), `mHoule` LA HOULE (3-4 vagues, chacune un virage de 50-70°),
+    `tSlalom` LE SLALOM DES SATELLITES, `tCorde`, `tEsses` ; et l'orbite modulaire a ses poids `ESP_ROUTE.wm` (grands balayages ×0,5, lignes
+    de momentum ×0,6, esses ×1,4, chicanes ×1) et des grands virages un cran plus serrés.
+  · Les quatre (genCtrl, hors nuages) : les rayons des motifs suivent aussi `40 + 0,3·v` au lieu de LV (`RS`, comme les nuages le matin) —
+    au palier 15, plus un virage ne demandait le volant. Un module tous les 0,45-0,8 km × LV (0,3-0,6 en orbite), le premier à 0,7 km × LV
+    (en ville : juste après la rampe d'entrée).
+  · LE GLACIER — du SKI, rien de bizarre (v3 : « une descente normale avec des virages ») : `bkSlalom` LE SLALOM GÉANT (4-5 portes alternées
+    de 45-65°), `bkEsse` LE GRAND S, `bkDouble` LE DOUBLE VIRAGE (deux appuis du même côté, d'un bord de la pente à l'autre). Le cap reste à
+    moins de 75° de la pente (la piste ne se recroise jamais), rayons ≥ 2,6 demi-largeurs, pentes de BK_PENTE4. Tous les 0,5-0,9 km.
+  · LE ROYAUME DE FEU — `vSlalom` LE SLALOM DE CENDRE, `vCorde` LA DOUBLE CORDE, `vChicane` LA CHICANE D'OBSIDIENNE (serrée, 1,3-1,5 rM :
+    le défi de visibilité dans la fumée), `vHoule` LA HOULE DE LAVE (3-4 rouleaux : la pente ondule de ± 8-11 % — `gM` dans `pente()` —, en
+    slalom). Ils prennent la 1re case d'un `virages()` ; le cap reste dans ± 62° ; les boucles à raccourci, l'arche, les fumerons, le lac et
+    l'arrivée ne bougent pas. Ceux de l'essai gardé (`mods`) vont dans MODMARK.
+  · LA FORÊT NOIRE — `fSlalom` LE SLALOM DES GÉANTS (les troncs se posent d'eux-mêmes à chaque corde), `fLacets` LES LACETS (deux épingles
+    opposées, un Z), `fCorde` LA DOUBLE CORDE, `fRacines` LES RACINES (3-4 bosses ± 5 % par-dessus le relief du nœud — `ZM` —, en slalom).
+    Ils remplacent un S de `vers()` quand la cible est loin, seulement dans une zone qui DESCEND (sinon la forêt perdait sa descente : banc) ;
+    un essai à moins de trois modules est noté plus mal (les 8 essais en choisissent un qui en a trois).
+  · LE CANYON — 5 ou 6 de ses 6 liaisons (`lien()` à la place de `virages()`) deviennent `cSlalom` LE SLALOM DES CAIRNS (plus vif que les
+    étroits), `cCorde` LA DOUBLE CORDE autour d'une butte, `cWhoops` LES WHOOPS DE LA GORGE (3-4 bosses rondes, chacune un virage), `cChicane`
+    LA CHICANE DES BUTTES (serrée, 1,1-1,3 × RMIN). Jamais la route 67, les boucles, les étroits, l'arche, l'amphithéâtre, la mine ni la finale.
+    Leur hasard `rm` naît de la graine de l'essai : aucun tirage de plus.
+  · LES PICS DE JADE — les TROIS à chaque vallée, un au cœur de chaque tronçon de virages (jamais collé à la Porte ni au Pont), dans un ordre
+    tiré : `jLacets` LES LACETS DU DRAGON (5-7 virages alternés), `jEpingle` L'ÉPINGLE DE LA FALAISE (150-166°, d'une butée de cap à l'autre),
+    `jSommet` LE DOUBLE SOMMET (deux grands appuis du même côté autour d'un pic).
+- MESURÉ (bancs Node qui font tourner les VRAIS générateurs tirés de index.html — `gc-banc.cjs` pour genCtrl, `ded-banc.cjs` pour les
+  cinq autres —, 12 graines, paliers 0 et 10 ; règle COURSE de passation/RACCOURCIS.md : un virage = 20° de cap à un rayon < 4 × le rayon
+  tenable ; avant → après) :
+  | map | modules par piste (mini) | virages/km p0 · p10 | enchaînements/km p0 · p10 | plus longue « droite » p0 · p10 | longueur p0 |
+  |---|---|---|---|---|---|
+  | VILLE | 7,5 (7) · 6,2 (6) | 2,78 → 3,03 · 1,22 → 2,05 | 2,03 → 2,42 · 0,68 → 1,07 | hors entrée 6,5 → 5,3 s · 6,0 → 3,8 s | 16,6 → 16,2 km |
+  | CRYPTO | 8,2 (8) · 6,8 (6) | 2,78 → 3,29 · 1,22 → 2,12 | 2,03 → 2,47 · 0,68 → 1,40 | hors entrée 6,5 → 7,4 s (le dump) · 6,0 → 7,0 s | 16,6 → 16,2 km |
+  | VITRÉE | 6,8 (6) · 5,9 (5) | 2,78 → 2,94 · 1,22 → 2,03 | 2,03 → 2,31 · 0,68 → 1,17 | hors entrée 6,5 → 5,4 s · 6,0 → 4,1 s | 16,6 → 16,2 km |
+  | ORBITE | 7,6 (7) · 6,7 (6) | 0,92 → 2,39 · 0,36 → 1,45 | 0,36 → 1,67 · 0,09 → 0,84 | 17,3 → 10,8 s · 13,3 → 7,3 s | 19,5 → 18,9 km |
+  | VOLCAN | 4,5 (4) · 4,4 (4) | 1,90 → 2,71 · 2,02 → 2,37 | 0,51 → 1,46 · 0,81 → 1,32 | 15,1 → 14,8 s (la sortie des boucles) · 7,5 → 7,4 s | 9,8 → 11,5 km |
+  | FORÊT | 3,8 (3) · 3,7 (3) | 3,71 → 3,97 · 2,85 → 3,01 | 3,32 → 3,71 · 2,51 → 2,71 | 4,2 → 4,1 s · 2,4 → 2,4 s | 12,9 → 15,0 km |
+  | CANYON | 5,6 (5) · 5,5 (5) | 1,01 → 1,39 · 0,85 → 1,21 | 0,16 → 0,51 · 0,14 → 0,46 | 28 → 30 s (route 67 / l'arche) · 16,3 → 14,6 s | 25,0 → 25,6 km |
+  Le GLACIER (piste de 196 m : tout rayon ≥ 255 m) et JADE (rayons ≥ 280 m, pas d'échelle de palier) n'ont aucun virage « de course » à ce
+  seuil ; au seuil 10 × : glacier 1,95 → 2,22 virages/km, 0,57 → 1,45 enchaînements/km, 3,5 modules (3) ; Jade 1,20 → 1,40, 0,75 → 0,94,
+  plus longue droite 24 → 21 s au palier 0, 3 modules à chaque vallée. Aucun virage INFRANCHISSABLE nulle part.
+  · Le minimum de TROIS est tenu sur 20-24 graines × 4 paliers (0, 5, 10, 15) pour chaque map (la forêt le garantit par sa note, voir plus haut).
+  · DANS LE VRAI JEU (Chrome du banc, `dbgTrace`) : les 20 pistes `dbgModCartes(0)` (10 maps × 2 graines) sont identiques AU BIT à celles
+    d'origin/main ; les 20 pistes ON portent leurs modules (`mods`). Parcours (JOUER, puis chaque map forcée par dbgClassique + dbgSaut, pilote
+    de mesure 9 s) : les 10 maps se bâtissent et se roulent sans __loopErr ; au canyon, la règle d'or dbgCanyon('test') : 0 rocher sur ni sous la
+    route, marge 9,1 m. Le pilote de mesure meurt sur 4 maps sur 10 dans les premières centaines de mètres — AVEC les modules (crypto 261 m,
+    orbite 414, forêt 466, glacier 579) comme SANS (passage témoin `dbgModCartes(0)` : orbite 404, forêt 781, glacier 503, canyon 312) : c'est le
+    pilote, pas les modules (ces morts tombent toutes avant le premier module ; le début de la crypto est le même tracé dans les deux cas). Une
+    erreur « computeBoundingSphere : NaN » en forêt venait du double `fbBoite` (les chaumières), réparé sur main entre-temps : absente du témoin.
+  · Les niveaux du VOLCAN, de la FORÊT et de JADE sont un peu plus LONGS (+17 %, +16 %, +13 % au palier 0) : leurs modules prennent la place de
+    virages, mais sont plus longs qu'eux (ils s'allongeaient de 30 à 50 % avant qu'on les fasse prendre la place de la route : Jade retire la
+    longueur du module de son tronçon, le volcan lui donne une case entière de virages, la forêt ne les pose que si la cible est loin).
+  · Construction : volcan 13-15 ms en médiane, canyon ~225 ms (Node, essais compris — en tranches dans le jeu : il rend la main entre deux
+    essais), forêt 10-37 ms, glacier et Jade < 5 ms.
+- À TRANCHER par Sacha : la fréquence des modules (les intervalles ci-dessus) ; les niveaux un peu plus longs du volcan, de la forêt et de Jade ;
+  et s'il garde la longue ligne droite d'entrée de la VILLE (420 + 520 m × LV, demandée le 29/09) et la ROUTE 67 du canyon (demandée le 15/10) —
+  ce sont désormais les plus longues lignes droites du jeu, avec la sortie des boucles du volcan et l'arche du canyon.
+- BANCS (scratchpad de la session) : `gc-banc.cjs`, `ded-banc.cjs` (planches vue de dessus en PNG, `--qs "?sans=modcartes"`), `acq.cjs`
+  (traces du vrai jeu ON/OFF + référence), `ana.cjs`, `parcours.cjs` (les 10 maps roulées dans le jeu).
+
 ## LE VOL QUI SUIT LA ROUTE — LES NUAGES SANS HAUT NI BAS, EN L'AIR AUSSI (2026-10-18, Sacha : « dans la map nuage la route fait des rotations et tout mais la voiture a du mal à voler, comme si le jeu n'arrivait pas à savoir de quel côté de la route on va »)
 - LA CAUSE, MESURÉE : la route des nuages se tord dans l'espace (à l'endroit, sur la tranche, à l'envers), mais EN VOL la gravité, le plané du
   nitro et l'ÉQUILIBRE de la caisse gardaient le bas du MONDE (« En vol la gravité reste », 15/10). Un saut depuis une dalle sur la tranche partait
