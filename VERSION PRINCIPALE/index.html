@@ -24753,7 +24753,10 @@ const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau da
 ];
 /* (2026-10-18, Sacha : « remet la map paris dans le mode classique ») PARIS, le niveau AU SOL de Léo (2026-09-28, voir « PARIS AU SOL » :
    genParis, buildParis — de la Concorde au Sacré-Cœur, l'heure qui tourne de l'or à la nuit le long de la route), redevient une MAP du mode
-   classique au hasard, comme les autres (SF_CARTES.paris). Le cycle fixe (`?classique=cycle`) reste celui du 10/10, sans lui. */
+   classique au hasard, comme les autres (SF_CARTES.paris). Le cycle fixe (`?classique=cycle`) reste celui du 10/10, sans lui.
+   (2026-10-18 au soir, Sacha : « enfait enlève paris du mode classique ») PARIS RESSORT DU TIRAGE : plus d'entrée dans SF_CARTES, plus de
+   chauffe au menu. Son code (genParis, buildParis, NIV_PARIS) reste en place ; pour le remettre, rendre l'entrée `paris` de SF_CARTES
+   (un temps, `soir` → parisOr) et la ligne parisChauffe de chauffeDivers. */
 const NIV_PARIS={id:'paris',nm:'PARIS',bio:['parisOr'],planete:0,espace:0,pluie:0,cielMusical:false,route:.45,sheen:.16,piste:'paris',pr:'LES FACADES SONT DES MURS'};
 /* ============================================================================
    LE MODE CLASSIQUE AU HASARD (2026-10-13, Sacha : « il faut que les biomes soient aléatoires — montagne chinoise, nuages, ville… — et
@@ -24769,7 +24772,7 @@ const NIV_PARIS={id:'paris',nm:'PARIS',bio:['parisOr'],planete:0,espace:0,pluie:
    MODE CLASSIQUE », près de BIOMES) et les leviers de toujours : la pluie (LVL.pluie : le rideau, la route mouillée), la nuit (LVL.nuit :
    les phares), l'orage (`orage` : les éclairs d'orageTick, partout sauf dans l'espace). Les PICS DE JADE y sont un niveau COMPLET (le
    SOLEIL DE JADE : pièces ¥, ses fruits, sa musique GLISSE V2) dont le portail mène à la suite au lieu de l'ARRIVÉE.
-   PARIS en est une map depuis le 18/10 (Sacha : « remet la map paris dans le mode classique »). `?classique=cycle` rend le cycle fixe,
+   PARIS n'en est plus une map (18/10 au soir : remis l'après-midi, retiré le soir). `?classique=cycle` rend le cycle fixe,
    et `?play=sansfin` (le simulateur de Léo : sa « PARTIE SANS FIN » clique JOUER et attend la MER DE NUAGES) le garde.
    Le tirage d'une partie est tenu dans `SF.tirage` (un couple par zone) : la piste bâtie sous le voile du JOUER est celle qu'on roule.
    Banc / lien de test : `?carte=jade&meteo=orage` impose le 1er couple ; `dbgClassique('ville','soir')` impose le suivant (puis dbgSaut()).
@@ -24818,9 +24821,7 @@ const SF_CARTES={
      s'embrasent, la NUIT des bureaux allumés derrière le verre. Jamais de pluie ni d'orage. Voir « LA VILLE VITRÉE ». */
   ...({vitree:{nm:'VILLE VITRÉE',base:'vitree',m:{matin:{bio:'vitreMatin',pr:'REFLETS DORES'},midi:{bio:'vitreMidi',p:1.2},soir:{bio:'vitreSoir',p:1.2,pr:'LES TOURS S EMBRASENT'},nuit:{bio:'vitreNuit',nuit:1,pr:'LES BUREAUX BRILLENT'},
     pluie:{bio:'vitrePluie',pluie:.8,sheen:.2,pr:'IL PLEUT ENTRE LES VILLES'}}}}), // (v2) la PLUIE : elle tombe de la ville d'en haut
-  /* (2026-10-18, Sacha : « remet la map paris dans le mode classique ») PARIS : UN temps — la course part à l'heure dorée et Paris fait lui-même
-     tourner l'heure le long de la route (parisOr → parisBleu → parisNuit, voir parisTick) ; ni pluie ni orage. */
-  paris:{nm:'PARIS',base:'paris',m:{soir:{bio:'parisOr'}}},
+  /* (2026-10-18 au soir, Sacha : « enfait enlève paris du mode classique ») plus de PARIS ici — voir NIV_PARIS. */
   espace:{nm:'EN ORBITE',base:'espace',m:{matin:{bio:'espaceMatin'},midi:{bio:'espace'},soir:{bio:'espaceSoir'}}}, // ni nuages, ni pluie, ni orage (Sacha) — (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») plus de météo SATELLITES
   ...(CANYON_OK?{canyon:{nm:'CANYON DES GÉANTS',base:'canyon',m:{matin:{bio:'canyonMatin'},midi:{bio:'canyonMidi'},soir:{bio:'canyonSoir'},nuit:{bio:'canyonNuit',nuit:1}, // (2026-10-14, Sacha) LE CANYON DES GÉANTS : les six météos du désert
     pluie:{bio:'canyonPluie',pluie:.6,sheen:.18},orage:{bio:'canyonOrage',pluie:.9,orage:1,sheen:.2}}}}:{})
@@ -37138,7 +37139,6 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   const E=[
   function(){orbiteChauffe();}, // (vague 3) la lune peinte et montée au GPU, lune + rochers compilés : rien ne naît au portail de l'orbite
   function(){if(!CITY.chaud){CITY.chaud=true;villeChauffe();}},
-  function(){try{parisChauffe();}catch(e){console.warn('parisChauffe',e);}}, // (2026-09-30) PARIS : ses matières compilées au menu (16 programmes de moins au portail)
   function(){if(SPIN.on){const m9=mkJeton(1);scene.add(m9);chauffeRendu([m9]);scene.remove(m9);}}, /* (2026-10-14) LE JETON DU FINAL SPIN : texture et matières montées au menu */
   function(){try{canyonChauffe();}catch(e){console.warn('canyonChauffe',e);}}, // (2026-10-14) LE CANYON DES GÉANTS : le relief et son ciel compilés au menu
   function(){campChauffe();},
@@ -48395,8 +48395,8 @@ function m2Val(m){const d=SAVE.d,s=m2Etat(),r=s.r,c=s.c,ex=d.ex||{},enC=m2EnC();
     case 'kmh':return Math.max(ex.kmh|0,r.kmh|0);
     case 'vie':return Math.max(r.vie||0,enC?M2R.vie:0);
     case 'tours':return r.tours|0;
-    case 'cartesP':return c.cartesP.length;
-    case 'cartes':return c.cartes.length;
+    case 'cartesP':return c.cartesP.filter(function(k){return !!SF_CARTES[k];}).length; /* (2026-10-18) seules les maps encore tirées : un PARIS déjà vu ne compte plus */
+    case 'cartes':return c.cartes.filter(function(k){return !!SF_CARTES[k];}).length;
     case 'aura':{let a=d.auraMax||0;if(enC)try{a=Math.max(a,Math.round(auraRun)||0);}catch(e){}return a;}
     case 'gagne':return c.gagne||0;
     case 'eng':{let e=ex.eng|0;if(enC)e=Math.max(e,engTier|0);return e+1;}
