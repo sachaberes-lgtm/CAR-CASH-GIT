@@ -26,6 +26,55 @@
 - Banc : `C:/Users/sacha/cc-banc/volcote.cjs <dossier VERSION PRINCIPALE> index.html <port>` (SCEN=saut|bord|nitro, PILOTE=1 = un pilote qui braque
   vers la route, SEAUX=0..3 = les seaux de roulis, NPT = points par seau, TRACE=1 = la trajectoire image par image ; plafond 7 min : un ou deux seaux par passage).
 
+## LES NOUVELLES VOITURES — HUIT PLACES RÉSERVÉES, LA BULLE ET LE COMBI EN COMMUNES (2026-10-18, v629, Léo : « actuellement la seule commune du jeu est LA HONTE, ajoute… »)
+- **La demande** : communes = la voiture des Simpson, la Fiat 500 (2007, finition « 1957 » de sa photo : bleu ciel, toit blanc), la Toyota
+  Corolla berline (2019), la Jeep Wrangler (2018), la Mazda MX-5 NA (phares escamotables qui se lèvent), LA BULLE refaite (Coccinelle 1962,
+  bleu ciel), LE COMBI refait façon *Cars* ; rares = la Reliant Robin, la Mazda MX-5 RF (argent), la Toyota AE86 (1983). Toutes « au
+  niveau de LA PERLE » : construites sur le plan coté de la vraie (méthode : `~/Downloads/CAR-bancs/plan-voiture/LISEZMOI.txt`).
+- **L'organisation** : trois discussions en parallèle — RONDES (LA BULLE, Fiat 500, Reliant Robin), JAPONAISES (Corolla, MX-5 NA, MX-5 RF,
+  AE86), BOÎTES (LE COMBI, Wrangler, Simpson) ; la discussion « 🚗 Nouvelles voitures » coordonne et pousse.
+- **Les places** : `CARS[79…86]` et `CAR_UNLOCK[79…86]` sont RÉSERVÉES (`retire:1`, gabarit `epave` provisoire, nom « NOUVELLE n ») —
+  79 Simpson · 80 Fiat 500 · 81 Corolla · 82 Wrangler · 83 MX-5 NA · 84 Reliant Robin · 85 MX-5 RF · 86 AE86. Chaque discussion remplace
+  SA ligne et SA ligne-repère `// <<< SHAPES.x >>>` (après `perleTraits`) ; les commentaires « · » entre les places évitent les conflits
+  de fusion. LA BULLE / LE COMBI refaits = `SHAPES.bulle=` / `SHAPES.combi=` à leur repère (les anciens de l'objet SHAPES s'effacent à la fin).
+  ⚠ La prochaine caisse d'une autre demande prend l'index **87**.
+- **Prix provisoires** (à régler dans la salle blanche) : communes 2 500 → 8 000 $, rares 25 000 → 50 000 $. LA BULLE et LE COMBI restent
+  des récompenses de mission, mais leur famille est COMMUNE (`rar:'commun'` : elles étaient RARES par leur contrat 1 et 2).
+
+## LE FONDU DES NUAGES — PLUS DE BASCULE ENTRE LA OUATE ET LES CUBES (2026-10-18, v628, Sacha : « c'est bien l'effet des nuages pixeliser mais ca bug par moment, quand on s'eloigne ou on se raproche les nuage on parfois l'ancienne texture parfois les pixel »)
+- **La cause** : `cotonTick` rangeait chaque nuage dans UN aspect selon sa distance, par seuils, sans transition : de loin la v8 (lots 0-1),
+  puis le vitrail (ou 40 % des fantômes au lot 2, puis tous au lot 3), et TOUT PRÈS de nouveau la v8 (cube > `NUVIT.ang` à l'écran) ; un
+  nuage changeait de peau d'une image à l'autre en franchissant un seuil. Les nuages seuls fantômes (bancs, coussins, tours) basculaient
+  aussi vers la v8 tout près. MESURÉ (banc, 4 km de la mer de nuages, pas de 6 m, nuages vus à plus de 0,05 rad) : **103 nuages qui sautent
+  d'un coup sur la route, 101 en vol** (92 et 92 sur la version fusionnée avec les fantômes en texture) ; à l'approche d'un nuage, jusqu'à
+  19-27 % de l'image qui change en un seul pas.
+- **Le correctif** (`NUVIT.fondu`, `nuvPoids`, `nuvLisse`, `NUVP`) : deux PARTS par nuage, le CORPS (v8 → corps rentré, ou vitrail) et les
+  CUBES, qui montent et descendent en douceur avec x = (d−R)/R et c = la taille d'un cube à l'écran. Fantôme : les paliers de Léo GARDÉS,
+  en fondu — 0 → 37 % des cubes (et le corps) de x 4,06 à 3,5, puis 37 → 100 % de 2,05 à 1,78 (les anciens seuils des lots 2 et 3 : le lot
+  lointain, 40 %, porte tout le palier). Vitrail (`?nuvit=moyen`…) : une rampe de 4,06 à 2,53. Tout près, tout
+  redescend vers la v8 quand un cube grossit (`bPres` 0,06 → 0,09 rad en vitrail, `bPresF` 0,035 → 0,09 en fantôme) : jamais de cube plus
+  gros ni plus lointain qu'avant.
+- **Comment** : la v8 et le corps se partagent les points de la MÊME trame (`N8_TRAME`) — complémentaires, jamais deux fois le même point ;
+  les fantômes arrivent un par un dans leur ordre tiré au hasard (le RANG d'un cube : son numéro `cu/uFN` dans la texture `NUF_TEX` de Léo,
+  l'attribut `aR` sur l'ancien chemin ; un cube se montre quand la part le dépasse ; pas encore là = sommet hors champ) ; la peau du vitrail suit en alpha. Les parts voyagent dans la ligne du bas de la matrice
+  d'instance (inutilisée : les shaders ne gardent que xyz) : `[0][3]` = le corps (≥ 0 pour la v8, en négatif pour le corps rentré et le
+  vitrail), `[1][3]` = −les cubes ; une matrice ordinaire ne change rien. Un nuage est dans le lot v8 si son corps < 1, dans un jeu de cubes
+  si > 0 (`COTON.W`/`COTON.WC`, listes `COTON.LV` par gabarit × lot 2|3) ; `cotonInst` pose une instance pour les deux. Nuages seuls
+  fantômes (`mkCloud`) : `uNvW` posé par objet (`onBeforeRender`), les cubes s'effacent tout près, le corps reste (plus de bascule vers g8).
+  Le vitrail des nuages seuls (`?nuvit=moyen`) garde sa bascule (son cœur n'a pas de trame).
+- **MESURÉ, même banc, version finale (fusionnée avec v626)** : sauts **92 → 0 sur la route, 92 → 0 en vol** (une part bouge au plus de
+  0,22 en 6 m, soit ~0,1 s à fond) ; à l'approche, le plus gros changement d'image en un pas 19 % → 2 % (210 pas), et il rapetisse avec le
+  pas (une bascule, non) ; nuage seul traversé (r 58 m) : 24 % d'un coup → un fondu sur ~18 m (≤ 5 % par pas), le white-out d'entrée inchangé.
+  Coût : triangles des nuages envoyés +12 % en moyenne sur 4 km (route 330 k → 369 k, vol 303 k → 341 k ; une partie sont des sommets de
+  cubes pas encore là, rejetés hors champ) ; temps d'image dans le bruit (bancs d'autres sessions en même temps). Vues de route et de vol
+  identiques à l'œil (le style ne change pas, seulement les passages). Fumée OK couché + debout.
+- **Écarté d'abord** : le vitrail PARTOUT (aucun seuil) — de près des cubes de 30 m en dalles grises, de loin des bords carrés, jusqu'à ×6
+  triangles dans une vue large. Puis une seule rampe 0 → 100 % des fantômes : +44 % de triangles (tout le lot 3 dessiné) — d'où les paliers,
+  puis des rampes plus larges (4,06 → 3,2 et 2,2 → 1,78) : +22 % — resserrées.
+- `?sans=nuvitfondu` = les bascules d'avant ; `dbgNuVit(1,{fondu:0|1,rendre:1})` = A/B sur la même image (retourne `fondu`). Banc (scratchpad
+  de la session) : `nuvit-approche.cjs` (le ciel GELÉ — `cotonTick` court-circuité — d'un pas au suivant : seul le changement de peau compte),
+  `nuvit-solo.cjs`, `nuvit-vue.cjs`, `nuvit-cout.cjs`.
+
 ## LA CHAUMIÈRE RETROUVE SES MURS — fbBoite EN DOUBLE, L'ALERTE « RADIUS IS NaN » (2026-10-18, débogage : « trouver l'origine de l'alerte computeBoundingSphere NaN au passage canyon → forêt bâti par le pré-bâti »)
 - **La cause** : deux `function fbBoite` dans la même portée (l'IIFE du jeu). Celle de la CHAUMIÈRE (14/10, `fbBoite(K,x0,y0,z0,x1,y1,z1,col,part,ytop)` :
   par ses coins) et celle des ABEILLES (17/10, `fbBoite(K,c,sz,col,part)` : par son centre et sa taille). Deux déclarations du même nom : la
