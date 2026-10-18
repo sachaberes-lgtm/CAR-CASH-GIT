@@ -36871,17 +36871,23 @@ SHAPES.perle=function(K){
               new THREE.Color(0x0e131b),new THREE.Color(PAL.W.c),new THREE.Color(0xb6bcc4),new THREE.Color(0x1a2840),new THREE.Color(0xf08c1e),new THREE.Color(0x2c2e34),new THREE.Color(0x303137),new THREE.Color(0x0b0b0d)];   // (… l'ailette du rideau, un noir plus clair, brillant ; la paroi du creux : HORS DE LA LUMIÈRE (matière 'l'), un gris anthracite à la lèvre qui tombe au noir du fond — l'ombre d'un vrai trou. Éclairée, elle prenait le liseré de contre-jour du garage, lavande, quelle que soit sa couleur ; brillante, elle renvoyait le ciel en zigzags) — claire, sous la lumière du garage elle prenait la teinte de la carrosserie et le trou se lisait comme une bosse, détaché du phare (Léo))
     const MEM9=(typeof SHAPES==='object'&&SHAPES.perle)||null;let C9=MEM9&&MEM9._tole;
     if(!C9||C9.n!==pa.length){   // (le découpage ne dépend que de la forme : fait une fois par session, gardé sur la fonction)
-      /* LE REFLET DES VITRES SANS CASSURE (2026-10-18, Léo : « petit bug de reflet au bas de la vitre avant de la porte ») : la normale
-         lissée (`lisse`, sous 32°) se calcule PAR COIN de triangle, chacun avec les voisins proches de SA facette ; au pied du montant avant,
-         là où les tranches se vrillent, deux triangles voisins n'avaient pas la même normale et le reflet du ciel cassait en « V » au bas
-         de la vitre. Le verre et le noir brillant de la serre prennent UNE normale par POINT de la tôle (la somme des facettes qui s'y
-         touchent, pondérée par leur aire), partagée par tous les triangles du point : aucune cassure possible. */
-      const NU=new Map(),nk=i=>Math.round(pa[i]*4e3)+','+Math.round(pa[i+1]*4e3)+','+Math.round(pa[i+2]*4e3);
+      /* LE REFLET DES VITRES SANS CASSURE (2026-10-18, Léo : « petit bug de reflet au bas de la vitre avant », c.-à-d. du PARE-BRISE) : la
+         normale lissée (`lisse`, sous 32°) se calcule PAR COIN de triangle, chacun avec les voisins proches de SA facette ; là où la tôle se
+         vrille (le bas du pare-brise, le pied du montant avant), deux triangles voisins n'avaient pas les mêmes voisins, donc pas la même
+         normale, et le reflet du ciel cassait en diagonale. Ici, en chaque POINT de la tôle, les facettes qui s'y touchent sont réunies en
+         GROUPES (deux facettes à moins de 35° l'une de l'autre sont du même groupe, de proche en proche) : chaque groupe a UNE normale,
+         partagée par tous ses triangles — plus de cassure, et une vraie arête (le capot contre le pare-brise) reste nette. */
+      const NU=new Map(),nk=i=>Math.round(pa[i]*4e3)+','+Math.round(pa[i+1]*4e3)+','+Math.round(pa[i+2]*4e3),NC=Math.cos(35*Math.PI/180);
       for(let i=0;i<pa.length;i+=9){if(pa[i+1]<.8&&pa[i+4]<.8&&pa[i+7]<.8)continue;
         const ux=pa[i+3]-pa[i],uy=pa[i+4]-pa[i+1],uz=pa[i+5]-pa[i+2],wx=pa[i+6]-pa[i],wy=pa[i+7]-pa[i+1],wz=pa[i+8]-pa[i+2];
-        const fx=uy*wz-uz*wy,fy=uz*wx-ux*wz,fz=ux*wy-uy*wx;
-        for(let q=0;q<9;q+=3){const k=nk(i+q);let s=NU.get(k);if(!s)NU.set(k,s=[0,0,0]);s[0]+=fx;s[1]+=fy;s[2]+=fz;}}
-      const nuC=i=>{const s=NU.get(nk(i));if(!s)return null;const h=Math.hypot(s[0],s[1],s[2]);return h>1e-12?[s[0]/h,s[1]/h,s[2]/h]:null;};
+        const fx=uy*wz-uz*wy,fy=uz*wx-ux*wz,fz=ux*wy-uy*wx,fl=Math.hypot(fx,fy,fz);if(fl<1e-14)continue;
+        for(let q=0;q<9;q+=3){const k=nk(i+q);let s=NU.get(k);if(!s)NU.set(k,s=[]);s.push([i,fx,fy,fz,fx/fl,fy/fl,fz/fl]);}}
+      const NG=new Map();
+      for(const [k,L] of NU){const n=L.length,par=L.map((_,a)=>a),rac=a=>{while(par[a]!==a)a=par[a]=par[par[a]];return a;};
+        for(let a=0;a<n;a++)for(let c=a+1;c<n;c++)if(L[a][4]*L[c][4]+L[a][5]*L[c][5]+L[a][6]*L[c][6]>=NC){const ra=rac(a),rc=rac(c);if(ra!==rc)par[ra]=rc;}
+        const S9=new Map();for(let a=0;a<n;a++){const r=rac(a);let s=S9.get(r);if(!s)S9.set(r,s=[0,0,0]);s[0]+=L[a][1];s[1]+=L[a][2];s[2]+=L[a][3];}
+        for(let a=0;a<n;a++){const s=S9.get(rac(a)),h=Math.hypot(s[0],s[1],s[2]);if(h>1e-14)NG.set(k+'|'+L[a][0],[s[0]/h,s[1]/h,s[2]/h]);}}
+      const nuC=(i,t)=>NG.get(nk(i)+'|'+t)||null;
       const OUT={};for(const g of new Set(GRP_DE))OUT[g]={P:[],N:[],K:[]};
       const garde=i=>{const o=OUT[GP];for(let j=0;j<9;j++){o.P.push(pa[i+j]);o.N.push(na[i+j]);}o.K.push(0,0,0);};
       for(let i=0;i<pa.length;i+=9){
@@ -36933,7 +36939,7 @@ SHAPES.perle=function(K){
               o.P.push(px,py,pz);T3.push(px,py,pz);
               // (vitres et noirs : la normale LISSÉE — leurs reflets restent nets ; la tôle : sa facette)
               let x=l0*nn[i]+l1*nn[i+3]+l2*nn[i+6],y=l0*nn[i+1]+l1*nn[i+4]+l2*nn[i+7],z=l0*nn[i+2]+l1*nn[i+5]+l2*nn[i+8],h=Math.hypot(x,y,z)||1;x/=h;y/=h;z/=h;
-              if((code===2||code===3)&&py>.86&&!rid){const A9=nuC(i),B9=nuC(i+3),C9=nuC(i+6);   // (le verre et le noir brillant de la serre : voir LE REFLET DES VITRES)
+              if((code===2||code===3)&&py>.86&&!rid){const A9=nuC(i,i),B9=nuC(i+3,i),C9=nuC(i+6,i);   // (le verre et le noir brillant de la serre : voir LE REFLET DES VITRES)
                 if(A9&&B9&&C9){let ux=l0*A9[0]+l1*B9[0]+l2*C9[0],uy=l0*A9[1]+l1*B9[1]+l2*C9[1],uz=l0*A9[2]+l1*B9[2]+l2*C9[2];const uh=Math.hypot(ux,uy,uz);
                   if(uh>1e-9&&(ux*x+uy*y+uz*z)/uh>.5){x=ux/uh;y=uy/uh;z=uz/uh;}}}
               if(L9&&!gap){let r=rc;if(PERLE_LISSE){const c=UV(Lw,P3([l0,l1,l2]));r=loin(L9,c[0],c[1]);}const dd=r[0],R9=L9.r;   // (en facettes : une inclinaison par morceau, celle de son centre)
