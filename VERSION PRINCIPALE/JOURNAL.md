@@ -199,6 +199,16 @@
 - **Mesuré** : ~21 000 facettes, construite en 20-30 ms ; 0 programme compilé en course (couché, debout, plein — un +2 vu une fois en plein
   écran venait de la carte tirée au hasard : 4 passages LA HONTE / 500 à 213 → 213) ; mêmes 30 avertissements que le main ; garage, inventaire OK.
 - Planche : `photos-gameplay/cinq-vraie-et-nous.png`. Noms : LA DOLCE VITA (posé) · LA BONBONNIÈRE · LE SORBET.
+- **Les quatre retouches de Léo** (même jour, sur la planche) : (1) LE CAPOT — « les traits noirs se mélangent » : le bord de la coquille
+  était tracé deux fois (vue de dessus ET vue de face) et les deux traits ne tombaient pas au même endroit sur le nez. Le plan (trait 160)
+  et la photo de 3/4 avant le disent : le bord DESCEND du pied du montant de pare-brise, rejoint le PLI D'ÉPAULE et le suit jusque sous le
+  phare → UN trait par côté, découpé en vue de côté ; devant, un seul trait entre les phares (face, y 0,745) ; le V en vue de dessus devant
+  le pare-brise est remplacé par la grille d'auvent noire + deux essuie-glaces (la photo). ⚠ Un trait qui fait le tour d'un coin se découpe
+  dans UNE vue par tronçon, jamais deux vues sur le même tronçon. (2) LE RÉTRO était déjà à la place du plan (z 0,41-0,55) : c'est sa forme
+  qui trompait (un œuf sur la vitre, le bras caché dedans) → coque « en savon » (sphère poussée en carré aux coins ronds), glace vers
+  l'arrière, PIED noir qui sort de la porte sous la ceinture (trait 173), barre noire du déflecteur devant (trait 174). (3) LA JANTE
+  « 1957 » : le cercle crème au BORD de la jante, bombé, une gorge, le disque couleur caisse, l'embase à quatre crans, le moyeu bombé.
+  (4) DEVANT : les deux moustaches reliées par une seule barre chromée, plus de logo. Planche : `photos-gameplay/cinq-retouches-avant-apres.png`.
 
 ## LA BULLE REFAITE SUR LE PLAN COTÉ DE LA COCCINELLE 1962 (2026-10-18, discussion RONDES — Léo : « à refaire, avec le même soin que LA PERLE ; s'inspirer de la photo de cette annonce (combikombi, VW Beetle 1962) ; bleu ciel »)
 - **Le plan** : dimensions.com « Volkswagen Beetle Type 1 » (SVG 4 vues, 213,6 unités/m, étalon = l'empattement de 2,40 m), relevé en mètres

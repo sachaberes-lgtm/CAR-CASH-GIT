@@ -37938,24 +37938,28 @@ SHAPES.cinq=function(K){
     FEUC=[[-1.446,.936],[-1.437,.919],[-1.451,.887],[-1.569,.744],[-1.607,.718],[-1.661,.711],[-1.671,.714],[-1.675,.721],[-1.671,.747],[-1.577,.89],[-1.541,.924],[-1.512,.934],[-1.485,.938]];
   const vit=(x,y,z)=>y>.9;
   zo('cote',CADRE,'K',{al:.45,ou:vit});zo('cote',DLO,'g',{al:.45,ou:vit});
+  zo('cote',[[.528,.95],[.546,.95],[.546,1.16],[.528,1.16]],'K',{al:.45,ou:vit});                                    // la barre noire du déflecteur (le trait 174 du plan), le rétro dessous
   zo('cote',[[-.605,1.035],[-.415,1.025],[-.415,1.41],[-.605,1.41]],'K',{al:.45,ou:vit});zo('cote',CUS,'g',{al:.45,ou:vit});   // le montant central NOIR, puis la custode
   zo('cote',JONC,'c',{al:.55,ou:(x,y,z)=>z>-.8&&z<.6});                                                                 // la baguette chromée de porte
   zo('cote',O.bande(PORTE,.0035),'j',{al:.55});zo('cote',O.bande(HAYON,.0035),'j',{al:.45,ou:(x,y,z)=>z<-1.1});
   zo('cote',FEUC,'L',{al:.62,ou:(x,y,z)=>z<-1.4});                                                                      // le feu qui tourne sur le flanc
-  // dessus : la coquille du capot (son bord sur l'aile, son nez), le TOIT BLANC (le pavillon et le becquet)
-  zo('dessus',O.bande([[.935,.677],[.973,.652],[1.013,.613],[1.044,.567],[1.069,.518],[1.091,.457],[1.112,.377],[1.143,.186],[1.153,0]],.0035),'j',{al:.4,ou:(x,y,z)=>z>.9});
-  zo('dessus',O.bande([[.93,.765],[1.094,.741],[1.333,.695],[1.40,.676],[1.473,.649],[1.53,.60],[1.575,.53],[1.598,.47],[1.628,.358],[1.648,.251],[1.662,.124],[1.667,0]],.0035),'j',{al:.4,ou:(x,y,z)=>z>.92});
+  /* LA COQUILLE DU CAPOT, retracée sur la photo de 3/4 avant (Léo : « les traits noirs se mélangent un peu ») : UN seul trait de chaque côté
+     — il descend du pied du montant de pare-brise (le trait 160 du plan, dans le prolongement du montant), rejoint le PLI D'ÉPAULE et le suit
+     jusque sous le phare (côté) ; devant, UN seul trait entre les phares (face) ; derrière, la grille d'auvent noire sous les essuie-glaces
+     (dessus). Plus de bord de capot tracé dans deux vues à la fois : les deux traits ne tombaient pas au même endroit et se croisaient. */
+  zo('cote',O.bande([[.842,1.004],[.90,.955],[.97,.896],[1.03,.846],[1.099,.803],[1.221,.788],[1.33,.768],[1.45,.744],[1.53,.722],[1.60,.70],[1.65,.672]],.0035),'j',{al:.3,ou:(x,y,z)=>z>.8&&y>.6});
+  zo('dessus',[[.955,0],[.955,.30],[.945,.48],[.925,.58],[.965,.58],[1.002,.48],[1.02,.30],[1.026,0]],'K',{al:.5,ou:(x,y,z)=>z>.85&&z<1.1&&y>.9});
+  // le TOIT BLANC (le pavillon et le becquet)
   zo('dessus',[[.305,0],[.305,.66],[-1.03,.66],[-1.045,.507],[-1.073,.383],[-1.09,.268],[-1.103,.129],[-1.106,0]],'R',{al:0,ou:(x,y,z)=>y>yR(z)-.003&&y>1.25});   // (le BORD DU PAVILLON est un point de chaque section : la limite tombe sur une arête, sans dents)
   // face : pare-brise, phares, antibrouillards, moustache, baguette, bouche, clignotants
   const PBR=[[0,1.339],[.038,1.344],[.073,1.39],[.094,1.397],[.354,1.385],[.469,1.369],[.51,1.358],[.529,1.345],[.543,1.327],[.561,1.276],[.60,1.094],[.599,1.063],[.591,1.037],[.576,1.019],[.556,1.008],[.471,.999],[0,.999]],
         pare=(x,y,z)=>z>.3&&y>.95,avant=(x,y,z)=>z>1.3;
   zo('face',O.gonfle(PBR.concat(PBR.slice(1,-1).reverse().map(p=>[-p[0],p[1]])),.022).map(p=>[Math.abs(p[0]),p[1]]),'K',{al:.3,ou:pare});zo('face',PBR,'g',{al:.3,ou:pare});
-  const rond=(cx,cy,r,n)=>{const o=[];for(let i=0;i<(n||20);i++){const a=i/(n||20)*Math.PI*2;o.push([cx+Math.cos(a)*r,cy+Math.sin(a)*r]);}return o;};
-  zo('face',[[.042,.625],[.278,.626],[.333,.629],[.343,.633],[.335,.641],[.309,.644],[.042,.644]],'c',{al:.3,ou:avant});zo('face',rond(0,.635,.03,16),'c',{al:.3,ou:avant});
+  zo('face',[[0,.625],[.278,.626],[.333,.629],[.343,.633],[.335,.641],[.309,.644],[0,.644]],'c',{al:.3,ou:avant});   // la MOUSTACHE : les deux lames reliées par UNE barre chromée (Léo : « une barre de fer au lieu du logo »)
   zo('face',O.bande([[0,.553],[.30,.555],[.362,.556],[.374,.548],[.36,.532],[.342,.523]],.0065),'c',{al:.3,ou:avant});      // la baguette du bas (le « sourire »)
   zo('face',[[0,.394],[.495,.404],[.527,.394],[.536,.381],[.538,.362],[.53,.328],[.51,.304],[.48,.288],[.438,.281],[0,.27]],'K',{al:.3,ou:avant});
   zo('face',[[.544,.387],[.694,.394],[.709,.392],[.714,.382],[.698,.367],[.666,.354],[.544,.336]],'O',{al:.3,ou:avant});
-  zo('face',O.bande([[0,.738],[.468,.738]],.0035),'j',{al:.3,ou:(x,y,z)=>z>1.55});
+  zo('face',O.bande([[0,.745],[.468,.745]],.0035),'j',{al:.3,ou:(x,y,z)=>z>1.55});                                  // le bord avant de la coquille (le plan, vu de face)
   // dos : lunette, joint du hayon, feux (l'îlot couleur caisse), poignée chromée, catadioptres, 3e feu stop
   const LUN=[[0,1.134],[.07,1.132],[.11,1.111],[.129,1.106],[.377,1.109],[.411,1.115],[.429,1.13],[.438,1.155],[.426,1.313],[.406,1.336],[.364,1.355],[.307,1.369],[.242,1.375],[.192,1.373],[.133,1.353],[.091,1.348],[0,1.348]],
         arr=(x,y,z)=>z<-1.3;
@@ -37971,9 +37975,22 @@ SHAPES.cinq=function(K){
   K.commit({ech:true,prims:[],done:()=>O.decoupe(PL.done(),GP,Z,PP,MEMO,['g'])});
   // ---- LES DÉTAILS ----
   const P=K.kit(PAL);P.ech=true;
-  // les RÉTROS : coque BLANCHE (la finition), glace noire vers l'arrière, sur un bras noir au pied du montant
-  P.sym(sd=>{P.put('R',new THREE.SphereGeometry(1,14,9),sd*.865,1.072,.50,0,0,0,.085,.05,.072);P.put('K',new THREE.CircleGeometry(1,14),sd*.865,1.072,.44,0,Math.PI,0,.07,.04,1);
-    P.box('k',.10,.03,.05,sd*.78,1.035,.53,0,0,sd*-.25);});
+  // une barre de section w × d tendue de a à b (le pied du rétro, les bras d'essuie-glace)
+  const barre=(k,a,b,w,d)=>{const v=new THREE.Vector3(b[0]-a[0],b[1]-a[1],b[2]-a[2]),l=v.length(),g=new THREE.BoxGeometry(w,l,d);
+    g.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),v.normalize())));
+    P.put(k,g,(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2);};
+  /* les RÉTROS, à leur place du plan (côté 171-173, face, dessus : la coque de z ,41 à ,55, de x ,75 à ,955, de y 1,01 à 1,12) et des
+     photos : une COQUE BLANCHE en savon (un carré aux coins ronds, plus haute au bout), la glace vers l'arrière, et le PIED noir qui sort de
+     la porte SOUS la ceinture (le trait 173) et monte vers la coque — l'œuf posé sur la vitre flottait. */
+  const coque=sd=>{const g=new THREE.SphereGeometry(1,16,10),a=g.attributes.position;
+    for(let i=0;i<a.count;i++){let x=a.getX(i),y=a.getY(i),z=a.getZ(i);const f=v=>Math.sign(v)*Math.pow(Math.abs(v),.55);x=f(x);y=f(y);z=f(z);
+      y*=.80+.20*(x+1)/2;a.setXYZ(i,sd*x,y,z);}
+    if(sd<0)g.index.array.reverse();g.computeVertexNormals();return g;};
+  P.sym(sd=>{P.put('R',coque(sd),sd*.852,1.066,.482,0,0,0,.103,.054,.066);
+    P.put('g',new THREE.PlaneGeometry(1,1),sd*.858,1.066,.414,0,Math.PI,0,.17,.078,1);
+    barre('k',[sd*.80,1.03,.50],[sd*.748,.895,.548],.042,.032);});
+  // les ESSUIE-GLACES couchés au pied du pare-brise, sur la grille d'auvent (la photo)
+  for(const [x0,y0,x1,y1] of [[-.47,.978,.04,.995],[.0,.995,.44,.982]])barre('k',[x0,y0,.986],[x1,y1,.974],.012,.012);
   // LES PHARES RONDS et les ANTIBROUILLARDS : cerclage chromé, glace bombée, réflecteur — chacun tourné comme sa face du plan
   // (vu de dessus, l'optique est en biais à ~40° : elle regarde devant ET dehors, sur le coin arrondi du nez)
   // (le centre de chaque optique est posé SUR la tôle : la tranche la plus en avant dont la section contient le point)
@@ -37994,12 +38011,20 @@ SHAPES.cinq=function(K){
   const joue=w=>{const o=[[w-.38,.18]];for(let k=0;k<=12;k++){const a=Math.PI*k/12;o.push([w-Math.cos(a)*.38,.20+Math.sin(a)*.45]);}o.push([w+.38,.18]);return o;};
   P.sym(sd=>{P.prism('d',joue(ZF),.02,sd*.60);P.prism('d',joue(ZR),.02,sd*.60);});
   K.commit(P);
-  // ---- LES ROUES : la jante rétro de la finition — couleur caisse, un LARGE CERCLE CRÈME au bord, le moyeu chromé ; pneu noir ----
+  /* ---- LES ROUES : la jante « 1957 » vue de près (la photo) — un pneu à flanc bas, au bord de la jante un LARGE CERCLE CRÈME bombé,
+     une gorge sombre, le grand DISQUE couleur caisse légèrement creusé, l'embase du moyeu couleur caisse en relief avec ses quatre
+     crans, et le MOYEU CHROMÉ bombé (sans logo) ---- */
   const JW=.185,hw=JW/2,fx=hw-.02,cJ=PP.p.c!=null?PP.p.c:PAL.p.c,J=lpKit({k:{g:'m',c:0x18191b},w:{g:'p',c:0xf0e8d2,f:0},p:{g:'p',c:cJ,f:0},c:{g:'c',c:0xe4e8ed},d:{g:'m',c:0x101114}});
-  J.lathe('k',[[.19,-hw],[R*.86,-hw],[R*.97,-hw*.72],[R,-hw*.3],[R,hw*.3],[R*.97,hw*.72],[R*.86,hw],[.19,hw]],24,0,0,0,'x');
-  J.lathe('w',[[.191,hw-.004],[.188,fx+.006],[.150,fx+.002]],24,0,0,0,'x');                       // le cercle crème
-  J.lathe('p',[[.150,fx+.002],[.11,fx],[.072,fx]],24,0,0,0,'x');J.lathe('d',[[.19,-hw+.02],[.19,fx-.04],[0,fx-.04]],20,0,0,0,'x');
-  J.lathe('c',[[.072,fx],[.066,fx+.014],[.045,fx+.022],[0,fx+.025]],18,0,0,0,'x');                // le moyeu chromé (sans logo)
+  J.lathe('k',[[.214,-hw],[R*.86,-hw],[R*.97,-hw*.72],[R,-hw*.3],[R,hw*.3],[R*.97,hw*.72],[R*.86,hw],[.214,hw]],24,0,0,0,'x');
+  J.lathe('w',[[.216,hw-.002],[.212,fx+.012],[.200,fx+.016],[.188,fx+.012],[.184,fx+.006]],28,0,0,0,'x');   // le cercle crème, bombé
+  J.lathe('d',[[.184,fx+.006],[.180,fx-.002],[.176,fx]],28,0,0,0,'x');                                       // la gorge
+  J.lathe('p',[[.176,fx],[.15,fx+.002],[.128,fx+.005]],24,0,0,0,'x');                                         // le disque couleur caisse
+  J.lathe('p',[[.128,fx+.005],[.126,fx+.016],[.104,fx+.019]],24,0,0,0,'x');                                     // l'embase du moyeu
+  J.lathe('d',[[.128,fx+.005],[.131,fx+.004],[.134,fx+.005]],24,0,0,0,'x');                                  // l'ombre au pied de l'embase
+  for(let i=0;i<4;i++){const a=i*Math.PI/2+Math.PI/4;J.box('p',.016,.03,.042,fx+.012,Math.cos(a)*.14,Math.sin(a)*.14,a,0,0);   // ses quatre crans
+    for(const s of [-1,1]){const b=a+s*.19;J.box('d',.008,.022,.012,fx+.008,Math.cos(b)*.14,Math.sin(b)*.14,b,0,0);}}
+  J.lathe('d',[[.214,-hw+.02],[.214,fx-.04],[0,fx-.04]],20,0,0,0,'x');
+  J.lathe('c',[[.104,fx+.019],[.10,fx+.028],[.088,fx+.037],[.066,fx+.043],[.036,fx+.047],[0,fx+.048]],22,0,0,0,'x');   // le moyeu chromé bombé (sans logo)
   const JG=J.done();
   return {hl:[.56,.70,1.66],tl:[.60,.82,-1.68],wx:.70,wzF:ZF,wzR:-ZR,
           roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],K.mats[g]||K.mats.c);m.userData.lp=1;w.add(m);}},
