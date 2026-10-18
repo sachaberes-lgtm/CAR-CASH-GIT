@@ -3,6 +3,10 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA DAYTONA RETIRÉE DU JEU (2026-10-18, v647, Léo : « enlève la daytona du main »)
+- `retire:1` sur sa ligne de CARS (index gardé) : plus en vente ni au garage ; qui l'avait achetée est remboursé (550 000 $, le
+  remboursement de `SAVE` — LES CAISSES RETIRÉES) et repart en LA HONTE s'il roulait avec. Le gabarit `b_daytona` reste dans le code.
+
 ## LE GARAGE : LE TROPHÉE EN HAUT À DROITE, LA BOUTIQUE DEUX FOIS PLUS LARGE (2026-10-18 soir, Sacha, capture couchée de la ROSSO 40 : « la disposition des boutons sur cet écran est catastrophique : boutique doit être plus gros et le trophée doit être en haut à droite ») — v646
 - **Le trophée** (`#gProf`) quitte la grappe de JOUER : coin haut-droit, en MIROIR du compte `#gCompteur` (même marge au bord, centré sur
   sa hauteur), recalé à 4 Hz par `plqGarage` ; la place CSS (`right/top`) n'est que le premier cadre. Mesuré : marge 69 px des deux côtés
