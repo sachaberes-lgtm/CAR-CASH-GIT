@@ -277,8 +277,11 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `VOLR` — en vol, gravité, plané du nitro, équilibre de la caisse et de l'écran, viseur, BUMP et prédictions des figures suivent la normale de la dalle
   survolée (face quittée) ; on retombe sur sa route qu'elle soit à plat, sur la tranche ou à l'envers. Ailleurs, le bas du monde au chiffre près.
   `?sans=volroute` = avant, `dbgVolRoute(false)` en direct. Banc apparié : `cc-banc/volcote.cjs` (journal).
-- LE GLACIER EST UNE PISTE DE GLACE (17/10, Sacha : « plus de route ») : (196 m, bourrelets de neige = murs, pics sur la piste, becs pour s'envoler ; plus de lacs gelés ni de stalactites depuis le 18/10). Les satellites de l'orbite FLOTTENT au bord de la route, décor pur (17/10 soir, Sacha : « je voulais juste qu'ils flottent proche de la route » —
+- LE GLACIER EST UNE PISTE DE GLACE (17/10, Sacha : « plus de route ») : (196 m, pics sur la piste, tremplins pour s'envoler ; plus de lacs gelés ni de stalactites depuis le 18/10). Les satellites de l'orbite FLOTTENT au bord de la route, décor pur (17/10 soir, Sacha : « je voulais juste qu'ils flottent proche de la route » —
   `orbiteBuild` §0 bis) ; les obstacles SUR la route de l'après-midi sont retirés (18/10).
+  (18/10, 3e tour) le bord n'est PLUS un mur : LA CONGÈRE (`bkCongere`, `BK_CG`) — 16 m de neige profonde où l'on s'enfonce et ralentit fort,
+  jamais de mort (Sacha : « on doit pas mourir ») ; pente 40-50° pour de vrai (`BK_PENTE4` est une TANGENTE : 43° de moyenne) ; TREMPLINS
+  de 36 m × 7 m à chevrons orange et balises (`BK_BEC`, `bkBecMesh`) ; ~4 × moins de pics ;
 - LA VILLE EST TOUJOURS LA NUIT (16/10, Sacha : « la ville-jour, ça marche pas : on abandonne toutes les maps ville-jour ») : ni matin, ni midi, ni soir au
   JOUER ; ses variations sont des TEINTES (violet = la base, vert, jaune, bleu) et des temps de nuit.
   LA VILLE VITRÉE N'EST PLUS UNE MAP DU JOUER (18/10, Sacha : « fusionne les maps ville et ville vitrée ») : ses géantes de verre vivent dans LA VILLE,

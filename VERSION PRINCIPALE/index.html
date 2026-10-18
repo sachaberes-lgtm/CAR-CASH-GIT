@@ -16317,7 +16317,10 @@ const BK_LUNE=new THREE.Vector3(-.52,.40,-.72).normalize(); // la lune du dôme 
 //  le choc de face qui tue · frG : la glace qui retient (presque rien) ·
 //  grip : la part du volant qui tourne la trajectoire sur la glace (le reste fait DÉRIVER la caisse) · colle : la marge qui garde la glisse ·
 //  rameneT/rameneV : arrêté plus de rameneT s sous rameneV, la montagne te ramène
-const BK_PH={prof:2.4,kN:16,flot:2.3,H:1.4,kT:.10,kTp:.75,vPl:70,lift:1.15,nyMin:.5,vnMort:105,sinMax:.88,frG:.03,grip:.42,colle:.9,rameneT:2.2,rameneV:40};
+const BK_PH={prof:2.4,kN:16,flot:2.3,H:1.4,kT:.6,kTp:2.2,vPl:70,lift:0,nyMin:.5,vnMort:105,sinMax:.88,frG:.03,grip:.42,colle:.9,rameneT:1.4,rameneV:60};
+/* (2026-10-18, Sacha : « on s'enfonce dans la neige, ça ralentit beaucoup, mais ça tue pas ») la neige HORS de la piste, en vol : plus de PLANING (lift ,0 — au banc,
+   une caisse sortie en vol touchait le bourrelet à 200 km/h, la poudre la relançait à 47 m et elle mourait « trop longtemps en l'air »), elle FREINE fort
+   (kT ,10 → ,6, kTp ,75 → 2,2) et la montagne te ramène plus tôt (1,4 s sous 60, au lieu de 2,2 s sous 40). */
 try{Object.assign(PAL.B,{banqSolC:[40,36,34],banqMarge:[1300,1500,1700],banqPics:[.55,.8,1],banqFlo:[700,1400,2400],banqDD:[160,300,500],
   banqPoudre:[260,400,520],banqTrace:[500,800,1100],banqLoin:[.5,.75,1]});}catch(e){}
 function PAL_BK(k,d){return PAL_B9(k,d);}
@@ -16340,18 +16343,23 @@ function PAL_BK(k,d){return PAL_B9(k,d);}
      givre fondue dans la neige). Plus raide (58-88 %, ~70 % de moyenne — « beaucoup plus pentue », Sacha, deux fois : voir BK_PENTE4) et à grands rayons (≥ 2,6 demi-largeurs : le bord intérieur ne se replie jamais).
    · SES BORDS : la neige se cale AU RAS de la glace puis monte en BOURRELET (13-19 m sur 45 m) — on ne tombe plus de la piste, on COGNE la neige :
      le mur des couloirs du canyon (`parisMur`, coup d'épaule ; mort au-delà de ~30° et 200 km/h). Plus de lacs (ils creusaient la piste).
+     (2026-10-18) PLUS DE MUR : LA CONGÈRE — 16 m de neige profonde où l'on s'enfonce et ralentit, sans mourir (voir bkCongere).
    · LES PICS SUR LA PISTE (`BANQ.obst`) : des cristaux de glace coiffés de neige, en QUATRE FIGURES qui ouvrent des chemins — la FOURCHE (une arête au
      milieu : deux couloirs), le CHAMP (des pics semés), la PORTE (deux géants, une trouée), l'ÎLOT (un massif d'un côté, le large de l'autre). Au sol,
      les toucher = L'IMPACT (`banqPisteHeurt` → impPic) ; en vol, ils sont dans la physique des pics (banqSurf : on glisse sur les doux, on se fracasse sur
      les raides).
-   · LES BECS DE GLACE (`BANQ.kick`) : un petit rebord de glace sur une partie de la largeur ; passé dessus au-dessus de 70 km/h, on S'ENVOLE (startFall,
+   · LES BECS DE GLACE (`BANQ.kick`) — (2026-10-18) devenus de vrais TREMPLINS (voir BK_BEC) : un petit rebord de glace sur une partie de la largeur ; passé dessus au-dessus de 70 km/h, on S'ENVOLE (startFall,
      la poussée suit la vitesse) — souvent juste avant un champ de pics, pour le survoler.
    · LA GLISSE : un cran de plus (grip ,92 → ,86, dérive ,16 → ,21) — et la brume de vallée descend (on VOIT la montagne dévaler sous soi).
    */
 /* (2026-10-17 nuit, Sacha : « la route de glace doit être beaucoup plus large et la map de glace doit être beaucoup plus pentue ») — 2e tour :
    la piste 123 → 196 m (`BK_LARG4` 4,4 → 7) ; la pente 36-58 % → 58-88 % (`BK_PENTE4` : [virage, +hasard, droite, +hasard, retour dans la pente,
    arrivée]). La caméra de course s'incline toujours avec la piste (gelée) : la pente se lit au paysage qui plonge et à l'horizon qui monte. */
-const BK_LARG4=7,BK_PENTE4=[.58,.16,.68,.20,.58,.46];
+/* (2026-10-18, Sacha : « je t'ai dit 100 fois de faire la map plus pentue, genre 40-50 degrés ») — 3e tour : BK_PENTE4 est une PENTE (tangente),
+   pas un angle : 58-88 % ne faisait que 30-41°. Désormais 40-50° pour de vrai : virages tan 42-46° (,92-1,04), droites tan 46-51° (1,05-1,22) ;
+   lissée aux raccords, la piste fait 43° de moyenne et 49-50° au plus (mesuré sur 16 pistes ; avant : 33° et 40°). LEN ×,75 (au lieu de ,89) :
+   la même longueur de course en 3D (~9,5-10,5 km). */
+const BK_LARG4=7,BK_PENTE4=[.92,.12,1.05,.17,.90,.72];
 function genBanq(rnd){
   const ctrl=[];CAMPM.length=0;MODMARK.length=0;
   ROAD_HALF=ROAD_HALF0*BK_LARG4; // la PISTE : 123 m, puis 196 m (« beaucoup plus large »)
@@ -16365,7 +16373,7 @@ function genBanq(rnd){
   const LV=Math.min(3.2,typeof lvPiste==='function'?lvPiste():1),cas=[],spi=[];
   const KR=typeof rayonPalier==='function'?Math.max(1,rayonPalier()/63):LV; // (GAMEPLAY, RACCOURCIS.md) les rayons suivent le rayon tenable du palier (rayonPalier/63) ; sans lui, l'échelle du moteur
   const cap=a=>{phi=Math.atan2(Math.sin(phi),Math.cos(phi));const d=Math.atan2(Math.sin(a-phi),Math.cos(a-phi))*57.2958;if(Math.abs(d)>2)A(d,Math.max(ROAD_HALF*2.6,(140+rnd()*40)*KR),BK_PENTE4[4]);}; // (v4) le bord intérieur d'une piste large ne se replie jamais // se remettre dans la pente (phi = 0 : la ligne de pente, +z)
-  const LIB=75*Math.PI/180,LC9=longueurCible(),LEN=LC9?Math.max(1800,(LC9-560)*.89):8600*Math.min(1.25,Math.sqrt(KR))*.89; /* (LA DURÉE DES MAPS) au JOUER : la longueur visée, à plat, moins le départ et l'arrivée */ // (2026-10-17 nuit) LEN se compte À PLAT : la pente du 2e tour allongeait la piste de 13 % — on garde la même course
+  const LIB=75*Math.PI/180,LC9=longueurCible(),LEN=LC9?Math.max(1800,(LC9-560)*.75):8600*Math.min(1.25,Math.sqrt(KR))*.75; /* (LA DURÉE DES MAPS) au JOUER : la longueur visée, à plat, moins le départ et l'arrivée */ // (2026-10-17 nuit) LEN se compte À PLAT : la pente du 2e tour allongeait la piste de 13 % — on garde la même course ; (2026-10-18, 3e tour à 45°) ×,75 au lieu de ,89
   push();ici('depart');D(260,.10);
   let sg=rnd()<.5?-1:1;
   /* LES MODULES DU GLACIER (2026-10-18, LES MODULES DE CHAQUE MAP — voir MODC_ON). Du SKI, rien de bizarre (v3, Sacha : « une descente normale
@@ -16394,7 +16402,7 @@ function genBanq(rnd){
     const big=rnd()<.3,a=big?70+rnd()*40:30+rnd()*40,R=Math.max(ROAD_HALF*2.6,(big?220+rnd()*140:175+rnd()*150)*KR); // (v4) grands rayons : la piste fait 196 m (le plancher 2,6 demi-largeurs l'emporte souvent)
     let lib=(LIB-sg*phi)*57.2958;if(lib<20){sg=-sg;lib=(LIB-sg*phi)*57.2958;}               // le cap reste dans la pente : la route ne se recroise jamais
     A(sg*Math.min(rm?Math.min(125,a*1.3+10):a,lib),rm?Math.max(ROAD_HALF*2,R*.72):R,BK_PENTE4[0]+rnd()*BK_PENTE4[1]);
-    D((rm?.35:1)*(50+rnd()*140),BK_PENTE4[2]+rnd()*BK_PENTE4[3]);} // (v4) une piste NOIRE : 58-88 % (2026-10-17 nuit, 2e tour — c'était 36-58 %, et 22-37 % avant)
+    D((rm?.35:1)*(50+rnd()*140),BK_PENTE4[2]+rnd()*BK_PENTE4[3]);} // (v4) une piste NOIRE : 40-50° (2026-10-18, 3e tour — c'était 30-41°, puis 20-30°, et 12-20° avant)
   cap(0);D(160,BK_PENTE4[5]);ici('fin');D(120,.06); // l'arrivée : dans la pente, puis le replat de la ligne
   /* LE PROFIL : la pente de chaque tronçon (positive = on descend), lue sur la longueur de la polyligne, adoucie aux raccords (moyenne glissante
      de 60 m) ; les 300 premiers mètres en douceur. Intégrée tous les 10 m : aucun point ne remonte. */
@@ -16460,9 +16468,11 @@ function banqSol(){
     D[k]=d;
     if(d>=BK_DF){H[k]=gBil(HF,x,z);continue;}
     let h=bkProfil(x,z,d,ys,sd9);
-    if(d<ROAD_HALF+90&&YN[k]>-1e8){ // LA PISTE : la neige se cale au RAS de la glace (le point de piste le plus proche, pas la moyenne), puis le BOURRELET
-      const y0=YN[k]-.9,hb=y0+THREE.MathUtils.smoothstep(d,ROAD_HALF+1,ROAD_HALF+46)*(13+6*forBruit(x*.5,z*.5,sd9+9));
-      h=d<ROAD_HALF+1?y0-.6:d<ROAD_HALF+46?hb:hb+(Math.max(hb,h)-hb)*THREE.MathUtils.smoothstep(d,ROAD_HALF+46,ROAD_HALF+90);}
+    if(d<ROAD_HALF+130&&YN[k]>-1e8){ // LA PISTE : la neige se cale au RAS de la glace (le point de piste le plus proche, pas la moyenne), puis le BOURRELET
+      // (2026-10-18) le bourrelet part après la CONGÈRE (bkCongerePose : la bande de neige où l'on roule, 36 m) : jusque-là la grille reste SOUS le ruban — en cases
+      // de 34-40 m, sa pente montait jusque dans la piste et y crevait la glace par endroits
+      const y0=YN[k]-.9,hb=y0+THREE.MathUtils.smoothstep(d,ROAD_HALF+34,ROAD_HALF+82)*(13+6*forBruit(x*.5,z*.5,sd9+9));
+      h=d<ROAD_HALF+1?y0-.6:d<ROAD_HALF+82?hb:hb+(Math.max(hb,h)-hb)*THREE.MathUtils.smoothstep(d,ROAD_HALF+82,ROAD_HALF+130);}
     if(d>BK_DF-200)h+=(gBil(HF,x,z)-h)*THREE.MathUtils.smoothstep(d,BK_DF-200,BK_DF);                 // le raccord avec le loin
     const kb=1-THREE.MathUtils.smoothstep(d,700,BK_DF-200);
     if(kb>0)h+=kb*(2.4*forBruit(x*2.7,z*2.7,sd9+1)+(d<500?1.1*forBruit(x*6.1,z*6.1,sd9+2):0));     // les bosses de la poudreuse
@@ -16727,7 +16737,7 @@ function banqVide(){
   bkPisteNue(false);BANQ.obst=[];BANQ.kick=[]; // (v4) la route revient aux autres maps ; les pics et les becs partent avec leur piste
   BANQ.sol=null;BANQ.solM=[];BANQ.pics=[];BANQ.picG=null;BANQ.picM=[];BANQ.loinM=[];BANQ.file=[];BANQ.fi=0;BANQ.msFile=0;
   if(BANQ.root){BANQ.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});BANQ.root=null;}
-  BANQ.glisse=false;BANQ.pou=false;BANQ.sur=0;BANQ.mort='';BANQ.dNow=9;bkTraceVide();BANQ.verg=[];BKV.sur=false;BKV.yaw=0;BKV.gl=0;BKV.gk=0;bkSkateRaz();
+  BANQ.glisse=false;BANQ.pou=false;BANQ.sur=0;BANQ.mort='';BANQ.dNow=9;bkTraceVide();BANQ.verg=[];BKV.sur=false;BKV.yaw=0;BKV.gl=0;BKV.gk=0;bkSkateRaz();BKB.k=0;BKB.enf=0;BKB.dans=false;
 }
 function buildBanq(seed){jadeFini(buildBanqG(seed));} // (2026-10-17, LE PRÉ-BÂTI) d'un trait au passage ; en tranches d'avance (prebDecorG)
 function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au pré-bâti
@@ -16739,7 +16749,7 @@ function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au
   const TP=BANQ.tp={},tp=k=>{const n=performance.now();TP[k]=Math.round((n-(tp.t||t0))*10)/10;tp.t=n;};
   banqSol();tp('sol');if(performance.now()>JF.lim)yield;const tS=performance.now();
   banqSolMesh(root);tp('solMesh');if(performance.now()>JF.lim)yield;
-  try{bkVerglasPose(root,seed);}catch(e){window.__banqErr=e;}tp('verglas');if(performance.now()>JF.lim)yield;
+  try{bkVerglasPose(root,seed);}catch(e){window.__banqErr=e;}try{bkCongerePose(root);}catch(e){window.__banqErr=e;}tp('verglas'); /* (2026-10-18) LA CONGÈRE du bord */if(performance.now()>JF.lim)yield;
   // ---- la route en grille (les règles de distance) ----
   const HB=100,grille=new Map(),pg=Math.max(1,Math.round(3/ds)); // un point tous les 3 m : un sérac de 8 m ne passe pas entre deux
   for(let i=0;i<NP;i+=pg){const p=pts[i],k=Math.floor(p.x/HB)*100003+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);}
@@ -16781,30 +16791,29 @@ function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au
   // ---- 4 bis (v4). LA PISTE : LES BECS DE GLACE, puis LES PICS SUR LA PISTE, en figures ----
   BANQ.obst=[];BANQ.kick=[];
   {const RH=ROAD_HALF,kRH=RH/61.6,O=BANQ.obst,KK=BANQ.kick,ou=(s9,la)=>{const i=Math.max(0,Math.min(NP-1,Math.round(s9/ds))),p=pts[i],b=B[i];return [p.x+b.x*la,p.y+b.y*la,p.z+b.z*la];};
-    const libreK=(s9,la,r)=>{for(const k of KK)if(s9>k.s-50&&s9<k.s+150&&la+r>k.l0-6&&la-r<k.l1+6)return false;for(const o of O)if(Math.abs(o.s-s9)<o.r+r+8&&Math.abs(o.lat-la)<o.r+r+8)return false;return true;}; // ni sur un bec ni dans sa retombée, ni collé à un autre pic
-    const pic=(s9,la,H,pente)=>{const R=H/pente;if(Math.abs(la)>RH-R*.35-3||!libreK(s9,la,R))return false;const q=ou(s9,la);
+    const libreK=(s9,la,r)=>{for(const k of KK)if(s9>k.s-k.lg-12&&s9<k.s+260&&la+r>k.l0-8&&la-r<k.l1+8)return false; /* (2026-10-18) la retombée d'un tremplin : 260 m (à 45°, on vole loin) */for(const o of O)if(Math.abs(o.s-s9)<o.r+r+8&&Math.abs(o.lat-la)<o.r+r+8)return false;return true;}; // ni sur un bec ni dans sa retombée, ni collé à un autre pic
+    const pic=(s9,la,H,pente)=>{{const i=Math.max(3,Math.min(NP-4,Math.round(s9/ds))),a=pts[i-3],c=pts[i+3];pente+=Math.max(0,(a.y-c.y)/Math.max(1,Math.hypot(a.x-c.x,a.z-c.z)));} /* (2026-10-18) + la PENTE de la piste : à 45°, le flanc aval d'un pic à 55° (1,4) devenait presque parallèle à la glace — une lame basse de 30 à 50 m qu'on croyait franchir et qui tuait (« des problèmes de collision avec la glace ») ; sa face aval garde désormais, par rapport à la piste, la raideur qu'elle aurait sur le plat */const R=H/pente;if(Math.abs(la)>RH-R*.35-3||!libreK(s9,la,R))return false;const q=ou(s9,la);
       const L9=bkGrappe(q[0],q[2],q[1]-.4,H,pente,(fr()*3)|0,fr,1.4,Math.max(9,R*1.1)); /* (pied profond : sur la pente raide, le côté aval ne flotte pas) fam 1,4 : une aiguille pour la physique, mais COIFFÉE DE NEIGE (BK_PIC_FS) */pose(L9,true,false);let r=0;for(const P of L9)r=Math.max(r,Math.hypot(P.cx-q[0],P.cz-q[2])+P.r);
       O.push({s:s9,lat:la,L9:L9,r:r,x:q[0],z:q[2]});return true;};
-    const bec=(s9,c,w)=>{c=THREE.MathUtils.clamp(c,-RH+w/2+4,RH-w/2-4);KK.push({s:s9,l0:c-w/2,l1:c+w/2});};
+    const bec=(s9,c,w)=>{{const cap9=s=>{const t0=T[Math.min(NP-1,Math.round((s+BK_BEC.lg)/ds))],t1=T[Math.min(NP-1,Math.round((s+BK_BEC.lg+BK_BEC.droit)/ds))];return Math.abs(Math.atan2(t0.x*t1.z-t0.z*t1.x,t0.x*t1.x+t0.z*t1.z));};
+      let o=0;while(o<=240&&cap9(s9+o)>.55)o+=30;if(o>240)return;s9+=o;} /* (2026-10-18) jamais devant un virage : à 45°, un vol couvre 250-450 m — posé avant une courbe, il retombait à côté de la piste ; on cherche la portion presque droite (< 31° de cap sur BK_BEC.droit m) jusqu'à 240 m plus loin */c=THREE.MathUtils.clamp(c,-RH+w/2+6,RH-w/2-6);KK.push({s:s9+BK_BEC.lg,l0:c-w/2,l1:c+w/2,lg:BK_BEC.lg,h:BK_BEC.h});}; // (2026-10-18) s = la LÈVRE du tremplin ; sa rampe monte sur les lg m d'avant
+    /* (2026-10-18, Sacha : « moins d'obstacles sur la route ») une figure tous les ~0,6-1 km (0,3-0,5 avant) et moins de pics dans chacune (fourche 3-5,
+       champ 5-7, îlot 2-3) — ~4 × moins de pics ; (« les tremplins doivent être plus beaux, gros et visibles ») un TREMPLIN avant deux figures sur trois,
+       et un tremplin seul au milieu d'une longue descente sur deux (voir BK_BEC) */
     let sp=560+fr()*120;
     while(sp<L-380){const f=fr();
-      if(fr()<.5){bec(sp,(fr()*2-1)*RH*.5,26+fr()*22);sp+=90+fr()*30;} // un BEC, le plus souvent juste avant une figure : on peut la survoler
-      if(f<.25){const c=(fr()-.5)*14,n=4+((fr()*4)|0),pas=34+fr()*16; // LA FOURCHE : une arête au milieu, deux couloirs
+      if(fr()<.65){bec(sp,(fr()*2-1)*RH*.45,36+fr()*22);sp+=BK_BEC.lg+100+fr()*30;} // un TREMPLIN, le plus souvent juste avant une figure : on peut la survoler
+      if(f<.25){const c=(fr()-.5)*14,n=3+((fr()*3)|0),pas=34+fr()*16; // LA FOURCHE : une arête au milieu, deux couloirs
         for(let j=0;j<n;j++)pic(sp+j*pas,c+(fr()-.5)*8,12+fr()*14,1.7+fr()*.8);sp+=n*pas;}
-      else if(f<.55){const lg=160+fr()*90,n=Math.round((7+((fr()*5)|0))*kRH); // LE CHAMP : des pics semés, des trouées — (2026-10-17 nuit) autant de pics au m² sur la piste élargie (kRH : la largeur ÷ celle de 123 m)
+      else if(f<.55){const lg=140+fr()*80,n=Math.round((4+((fr()*3)|0))*kRH*.75); // LE CHAMP : des pics semés, des trouées — (kRH : la largeur ÷ celle de 123 m) — (2026-10-18) 5-7 pics, au lieu de 11-18
         for(let j=0,e=0;j<n&&e<n*4;e++){if(pic(sp+fr()*lg,(fr()*2-1)*(RH-10),6+fr()*14,1.4+fr()*1.2))j++;}sp+=lg;}
       else if(f<.75){const gw=26+fr()*12,g=(fr()*2-1)*(RH*.45); // LA PORTE : deux géants, une trouée à viser
         for(const sg of [-1,1]){const H=26+fr()*14,pe=1.8+fr()*.6;pic(sp+(fr()-.5)*6,g+sg*(gw/2+H/pe*.85),H,pe);}sp+=40;}
-      else{const sg=fr()<.5?-1:1,n=3+((fr()*3)|0); // L'ÎLOT : un massif d'un côté, le large de l'autre
+      else{const sg=fr()<.5?-1:1,n=2+((fr()*2)|0); // L'ÎLOT : un massif d'un côté, le large de l'autre
         for(let j=0;j<n;j++)pic(sp+fr()*70,sg*(RH*.35+fr()*RH*.4),10+fr()*16,1.5+fr()*.9);sp+=70;}
-      sp+=180+fr()*200;}
-    if(KK.length){const P=[],Cc=[],I=[];let n=0;const LG=8,HT=1.1,col=(a,b,c)=>Cc.push(a,b,c); // le maillage des becs : un coin de glace bas, sa LÈVRE claire
-      for(const k of KK){const nl=6;for(let a=0;a<=nl;a++){const la=k.l0+(k.l1-k.l0)*a/nl;
-          for(const [ds9,h9] of [[-1,0],[LG,HT],[LG,0]]){frameAt(k.s+ds9,F);P.push(F.p.x+F.b.x*la+F.n.x*(h9+.05),F.p.y+F.b.y*la+F.n.y*(h9+.05),F.p.z+F.b.z*la+F.n.z*(h9+.05));
-            if(h9>0)col(1.25,1.3,1.35);else col(.62,.88,1.05);}} // (lisible de loin : la lèvre BLANCHE, le coin cyan clair sur la glace sombre)
-        for(let a=0;a<nl;a++){const r0=n+a*3,r1=n+(a+1)*3;I.push(r0,r1,r0+1,r0+1,r1,r1+1,r0+1,r1+1,r0+2,r0+2,r1+1,r1+2);}n+=(nl+1)*3;}
-      const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(Cc,3));g.setIndex(I);g.computeVertexNormals();g.computeBoundingSphere();
-      const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,fog:true}));m.name='glacier becs';m.matrixAutoUpdate=false;root.add(m);}
+      const gap=420+fr()*380;if(gap>520&&fr()<.5&&sp+gap*.5<L-380)bec(sp+gap*.4,(fr()*2-1)*RH*.5,36+fr()*22); // un TREMPLIN seul, au milieu de la descente : pour le plaisir de voler
+      sp+=gap;}
+    if(KK.length)bkBecMesh(root,KK); // (2026-10-18) LE TREMPLIN DE GLACE : la rampe, sa lèvre, ses balises
     BANQ.n.pistePics=O.length;BANQ.n.becs=KK.length;}
   if(performance.now()>JF.lim)yield;
   BANQ.picM=[];BANQ.loinM=[];
@@ -16851,6 +16860,7 @@ function banqSolVol(dt,dtF){
   if(!banqOk()){if(BANQ.sur||BANQ.glisse)banqLache();return;}
   const p=fallPos,v=fallVel,k9=dtF*SPD,S=banqSurf(p.x+v.x*k9,p.z+v.z*k9);
   if(!S.ok){banqLache();return;}
+  if(S.t===1&&curNear&&Math.abs(curLatOff)<ROAD_HALF+BK_CG.w+3&&curHOff>-6){if(BANQ.sur||BANQ.glisse||BANQ.pou)banqLache();return;} // (2026-10-18) au-dessus de la piste et de sa congère, c'est la PISTE qui reçoit (tryLand) : la grille de neige (cases de 34-40 m) y passait par endroits AU-DESSUS de la glace — « poudreuse » en plein vol, au-dessus de la piste
   const py=p.y+v.y*k9,d=S.h-py,nx=S.nx,ny=S.ny,nz=S.nz,vn=v.x*nx+v.y*ny+v.z*nz,g=FALL_G*gK();
   if(S.t>=2){ // ---- LA GLACE ----
     if(BANQ.pou)BANQ.pou=false;
@@ -16879,6 +16889,7 @@ function banqSolVol(dt,dtF){
     {const vn2=v.x*nx+v.y*ny+v.z*nz;if(vn2<0){const kk=1-Math.exp(-BK_PH.kN*dtF*Math.min(1,.35+f));v.x-=nx*vn2*kk;v.y-=ny*vn2*kk;v.z-=nz*vn2*kk;}} // elle TASSE
     {const kt=Math.exp(-(BK_PH.kT+BK_PH.kTp*f*f)*dtF);v.x*=kt;v.z*=kt;}                               // elle freine (à peine au ras)
     if(hv>BK_PH.vPl){const pl=Math.min(1,(hv-BK_PH.vPl)/60);v.y+=g*BK_PH.lift*pl*pl*Math.min(1,f*3)*dtF;} // le PLANING : vite, on surfe
+    if(d>BK_PH.prof*.7){p.y=Math.max(p.y,S.h-BK_PH.prof*.7-v.y*k9);const vn3=v.x*nx+v.y*ny+v.z*nz;if(vn3<0){v.x-=nx*vn3;v.y-=ny*vn3;v.z-=nz*vn3;}} // (2026-10-18, Sacha : « on s'enfonce dans la neige, ça ralentit mais ça tue pas ») la poudre du glacier ne t'avale plus : elle te tient sous la surface
     fallTR=Math.max(0,fallTR-dt*3);BANQ.sur=1;BANQ.pT+=dt;
   }else{BANQ.sur=d>-.7?1:0;if(BANQ.pou&&d<-1.2)BANQ.pou=false;}
   if(d>-1.5){BK_N.set(nx,ny,nz);FLY_U.lerp(BK_N,Math.min(1,dt*5)).normalize();} // au ras de la neige, la caisse SURFE : son haut suit la pente (et la caméra reste au-dessus)
@@ -16913,7 +16924,7 @@ function banqHeurt(p){
   if(BANQ.mort){const m=BANQ.mort;BANQ.mort='';banqMortFx(m);return m;}
   const S=banqSurf(p.x,p.z);if(!S.ok){BANQ.dNow=99;BANQ.tNow=0;return '';}
   const d=S.h-p.y;BANQ.dNow=d;BANQ.tNow=S.t;BANQ.hNow=S.h;
-  if(S.t===1&&d>BK_PH.prof){banqMortFx('poudreuse');return 'poudreuse';}
+  // (2026-10-18) la poudre du glacier ne tue plus (on y est tenu sous la surface : banqSolVol) — était : au-delà de BK_PH.prof, 'poudreuse'
   if(S.t>=2&&d>1.6){BANQ.pourquoi='percée '+d.toFixed(1)+' ny '+S.ny.toFixed(2);banqMortFx('glace');return 'glace';}
   return '';}
 function banqMortFx(m){bkSkateRaz();try{if(m==='poudreuse')banqGerbe(fallPos,120,Math.hypot(fallVel.x,fallVel.z),2.2);else banqGivre(fallPos,90,30);}catch(e){}banqLache();bkTraceCoupe();}
@@ -17002,6 +17013,88 @@ function banqVerglas(dt){ // la boucle de conduite, chaque image, après les fla
   else{BKV.gl*=Math.exp(-dt*10);BKV.gk*=Math.exp(-dt*8);BKV.cr=0;}
   BKV.yaw+=(tg-BKV.yaw)*Math.min(1,dt*(v?4.5:3));if(!v&&Math.abs(BKV.yaw)<.002)BKV.yaw=0;}
 function bkSkateRaz(){BKV.t=0;BKV.hors=0;BKV.aura=0;BKV.dix=0;} // (2026-10-15, Sacha : « enlève la figure ICE SKATE ») la figure est partie ; ses remises à zéro restent, inertes
+/* ---------------- LA CONGÈRE : LA NEIGE PROFONDE DU BORD (2026-10-18) ----------------
+   (Sacha : « quand on touche le bord on y reste collé » puis « quand on touche le bord on doit pas mourir : on s'enfonce dans la neige, ce qui
+   ralentit beaucoup, mais ça tue pas ».) Le bord de la piste était le MUR des couloirs du canyon (parisMur : coup d'épaule, mort au-delà de 30°
+   et 200 km/h) ; et sur la glace la caisse part vers l'extérieur des virages (banqVerglas) : elle y revenait à chaque image, collée au mur.
+   Désormais, au-delà de la glace, une bande de NEIGE PROFONDE de `BK_CG.w` m de chaque côté — un ruban posé sur le repère de la piste
+   (`bkCongerePose`), car la grille de neige, en cases de 34-40 m, ne savait pas dessiner un bord net (et passait par endroits AU-DESSUS de la
+   glace). La caisse y ENTRE (gerbe, plouf), s'y ENFONCE (`BKB.enf`, jusqu'à `BK_CG.prof` m), y FREINE fort (vers `BK_CG.vMin` × la vmax, d'autant
+   plus qu'on est loin dans la neige ; la nitro laboure mieux), la neige la remet dans l'axe et la REPOUSSE doucement vers la glace ; le volant y
+   mord entier (pas de verglas dans la neige). Jamais de mort, jamais de mur : au bout de la bande, le bourrelet arrête la caisse (lat bornée).
+   En vol, la congère prolonge la piste (tryLand s'y pose) et la grille de neige ne joue plus au-dessus de la piste (banqSolVol). */
+const BK_CG={w:16,prof:.38,fr0:.7,fr1:2.4,vMin:.32,pousse:6,redresse:2.2,fx:1},BKB={k:0,enf:0,em:0,dans:false}; // fx : la gerbe (banc : dbgBanq('cg',{fx:0}))
+const BK_CG_X=[-1.5,.4,3,9,16,22,30,36],BK_CG_Y=[-.5,.14,.22,.28,.45,1.4,3.0,-1.5]; // (au banc : .75 m d'enfoncement + .45 de neige, on ne voyait plus la caisse — désormais les roues et le bas de caisse) // le profil : x m au-delà du bord de la glace → hauteur de la neige au-dessus du plan de la piste (le bout plonge sous la grille)
+function bkCgH(x){const X=BK_CG_X,Y=BK_CG_Y;if(x<=X[0])return Y[0];for(let i=1;i<X.length;i++)if(x<=X[i])return Y[i-1]+(Y[i]-Y[i-1])*(x-X[i-1])/(X[i]-X[i-1]);return Y[Y.length-1];}
+function bkCgBord(){return banqOk()?BK_CG.w:0;} // la largeur de neige où l'on peut rouler (et se poser) au-delà de la glace
+function bkCongerePose(root){ // les deux rubans de neige du bord, du départ à l'arrivée (même pas de 4 m que le verglas)
+  const P=[],A=[],I=[],X=BK_CG_X,NC=X.length,nk=Math.max(2,Math.ceil(L/4));let n=0;
+  for(const sd of [1,-1]){
+    for(let k=0;k<=nk;k++){frameAt(L*k/nk,F);
+      for(let q=0;q<NC;q++){const l=sd*(ROAD_HALF+X[q]),h=BK_CG_Y[q];P.push(F.p.x+F.b.x*l+F.n.x*h,F.p.y+F.b.y*l+F.n.y*h,F.p.z+F.b.z*l+F.n.z*h);A.push(ROAD_HALF+X[q],0);}
+      if(k>0){const r0=n+(k-1)*NC,r1=n+k*NC;for(let q=0;q<NC-1;q++){if(sd>0)I.push(r0+q,r1+q,r0+q+1,r0+q+1,r1+q,r1+q+1);else I.push(r0+q,r0+q+1,r1+q,r0+q+1,r1+q+1,r1+q);}}}
+    n+=(nk+1)*NC;}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('aS',new THREE.Float32BufferAttribute(A,2));
+  g.setIndex(n>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeVertexNormals();
+  {const Nm=g.attributes.normal.array;for(let i=0;i<Nm.length;i+=3){Nm[i+1]+=.6;const l=Math.hypot(Nm[i],Nm[i+1],Nm[i+2])||1;Nm[i]/=l;Nm[i+1]/=l;Nm[i+2]/=l;}} // (au banc : à 45°, parallèle à la glace, elle restait dans l'ombre bleue — presque la couleur de la glace) la neige du bord regarde un peu le ciel : plus claire, on la distingue
+  g.computeBoundingSphere();
+  const m=new THREE.Mesh(g,BANQ.mats.sol);m.name='glacier congere';m.matrixAutoUpdate=false;m.userData.jeter=true;m.frustumCulled=false;root.add(m);BANQ.n.congere=I.length/3;}
+/* LE TREMPLIN DE GLACE (2026-10-18, Sacha : « les tremplins doivent être plus beaux, gros et visibles ») — le « bec » d'avant était un coin de 8 m
+   sur 1,1 m, blanc sur glace blanche : on ne le voyait pas venir. Désormais une RAMPE de BK_BEC.lg m qui monte en courbe (u^1,7 : ~18° à la
+   lèvre) jusqu'à BK_BEC.h m, en glace blanche à CHEVRONS ORANGE qui montent vers la lèvre, une LÈVRE blanche qui brille, des flancs bleu
+   nuit, et deux BALISES orange de BK_BEC.poteau m aux coins de la lèvre (lisibles de loin, sur toutes les météos : matière sans lumière).
+   (1er essai au banc : 26 × 4,5 m, chevrons blancs sur bleu clair — invisible à 100 m sur une piste de 196 m.)
+   La caisse MONTE la rampe (hopY suit la courbe) et décolle à la lèvre, poussée de BK_BEC.pop × sa vitesse (,2 avant ; ,26 puis ,22 essayés : 3-6 s de vol à 45°, 450 m parcourus — la piste tournait dessous). */
+const BK_BEC={lg:36,h:7,pop:.18,poteau:15,axe:.65,droit:260}; // droit : la piste presque droite (< 31° de cap) qu'il faut devant la lèvre // axe : la part de la vitesse de travers que la rampe redresse au décollagelet BK_BEC_TEX=null;
+function bkBecTex(){if(BK_BEC_TEX)return BK_BEC_TEX;const c=document.createElement('canvas');c.width=64;c.height=256;const x=c.getContext('2d');
+  const g=x.createLinearGradient(0,256,0,0);g.addColorStop(0,'#bfe6ff');g.addColorStop(1,'#ffffff');x.fillStyle=g;x.fillRect(0,0,64,256);
+  x.strokeStyle='#ff7a14';x.lineWidth=11;x.lineJoin='miter';for(let i=0;i<3;i++){const y=206-i*68;x.beginPath();x.moveTo(5,y+26);x.lineTo(32,y);x.lineTo(59,y+26);x.stroke();} // les CHEVRONS ORANGE, pointe vers la lèvre (la couleur des balises : sur la glace bleue, on les voit de loin)
+  x.fillStyle='#ffffff';x.fillRect(0,244,64,12); // le bas de l'image : du blanc pur — flancs, lèvre et balises y prennent leur seule couleur
+  const t=new THREE.CanvasTexture(c);t.anisotropy=4;return BK_BEC_TEX=t;}
+function bkBecMesh(root,KK){
+  const P=[],C=[],UV=[],I=[];let n=0;
+  const V=(s9,la,h,r,g,b9,u,v)=>{frameAt(s9,F);P.push(F.p.x+F.b.x*la+F.n.x*h,F.p.y+F.b.y*la+F.n.y*h,F.p.z+F.b.z*la+F.n.z*h);C.push(r,g,b9);UV.push(u,v);return n++;};
+  for(const k of KK){const NR=10,NL=8,s0=k.s-k.lg,H=k.h,w=k.l1-k.l0,hR=u=>H*Math.pow(u,1.7)+.06;
+    let b0=n;for(let r=0;r<=NR;r++){const u=r/NR;for(let a=0;a<=NL;a++){const e=Math.abs(a/NL-.5)*2,c=1.02+.22*u-.08*e;V(s0+k.lg*u,k.l0+w*a/NL,hR(u),c,c,c*1.04,a/NL,.06+.94*u);}} // la RAMPE
+    for(let r=0;r<NR;r++)for(let a=0;a<NL;a++){const q=b0+r*(NL+1)+a;I.push(q,q+NL+1,q+1,q+1,q+NL+1,q+NL+2);}
+    b0=n;for(const u of [.9,1])for(let a=0;a<=NL;a++)V(s0+k.lg*u,k.l0+w*a/NL,hR(u)+.05,1.55,1.62,1.7,.5,.02); // la LÈVRE qui brille
+    for(let a=0;a<NL;a++){const q=b0+a;I.push(q,q+NL+1,q+1,q+1,q+NL+1,q+NL+2);}
+    b0=n;for(const h of [hR(1)+.05,-.3])for(let a=0;a<=NL;a++)V(k.s+.03,k.l0+w*a/NL,h,.10,.24,.62,.5,.02); // la face AVAL de la lèvre
+    for(let a=0;a<NL;a++){const q=b0+a;I.push(q,q+1,q+NL+1,q+1,q+NL+2,q+NL+1);}
+    for(const la of [k.l0,k.l1]){b0=n;for(let r=0;r<=NR;r++){const u=r/NR;V(s0+k.lg*u,la,-.3,.08,.20,.55,.5,.02);V(s0+k.lg*u,la,hR(u),.22,.48,1.05,.5,.02);} // les FLANCS bleu nuit
+      for(let r=0;r<NR;r++){const q=b0+r*2;I.push(q,q+2,q+1,q+1,q+2,q+3);}}
+    const co=[[-.7,-.7],[.7,-.7],[.7,.7],[-.7,.7]],bd=[[-.3,H+BK_BEC.poteau*.75,1.9,.55,.08],[H+BK_BEC.poteau*.75,H+BK_BEC.poteau,1.8,1.8,1.8]]; // les BALISES : orange, la tête blanche
+    for(const la of [k.l0-3,k.l1+3])for(let f=0;f<4;f++){const A9=co[f],B9=co[(f+1)%4];
+      for(const d of bd){b0=n;V(k.s+A9[0],la+A9[1],d[0],d[2],d[3],d[4],.5,.02);V(k.s+B9[0],la+B9[1],d[0],d[2],d[3],d[4],.5,.02);V(k.s+A9[0],la+A9[1],d[1],d[2],d[3],d[4],.5,.02);V(k.s+B9[0],la+B9[1],d[1],d[2],d[3],d[4],.5,.02);
+        I.push(b0,b0+1,b0+2,b0+1,b0+3,b0+2);}}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(UV,2));
+  g.setIndex(I);g.computeBoundingSphere();
+  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,map:bkBecTex(),side:THREE.DoubleSide,fog:true}));m.name='glacier becs';m.matrixAutoUpdate=false;m.userData.jeter=true;root.add(m);}
+function bkCgEntre(kmh){ // l'entrée dans la neige : le plouf, la gerbe, un coup dans la main
+  const k=Math.min(1,kmh/300);shake=Math.max(shake,.22+.3*k);fovPunch=Math.max(fovPunch,3+5*k);hap(k>.5?[14,22]:[10]);
+  try{if(SONV2){if(!(window.CCSON&&window.CCSON.existe('banq.plouf')&&sfx('banq.plouf',{vol:-8+6*k})))sfx('nuage.entre',{vol:-4+4*k});}else noiseBurst(.35,.08+.08*k,700);}catch(e){}
+  const fx=BANQ.fx;if(fx&&fx.poudre&&BK_CG.fx>0){const p=carGroup.position,vc=PT_U.uVc.value;for(let i=0;i<10+18*k;i++){const a=Math.random()*6.2832,r=Math.random();
+    spawnP(fx.poudre,p.x+(Math.random()-.5)*3,p.y+.3,p.z+(Math.random()-.5)*3,vc.x*.7+Math.cos(a)*(3+r*9),vc.y*.7+5+Math.random()*12*(.5+k),vc.z*.7+Math.sin(a)*(3+r*9),.6+Math.random()*.8);}}}
+function bkCongere(dt){ // la boucle de conduite (glacier v4), chaque image, à la place du mur du bord
+  const x=Math.abs(lat)-ROAD_HALF,out=Math.sign(lat)||1,W=BK_CG.w;let k=0;
+  if(mode==='drive'&&side>0&&x>-.6){                                                           // (le flanc de la caisse touche la neige 60 cm avant son centre)
+    if(x>W)lat=out*(ROAD_HALF+W);                                                              // le bourrelet : on ne va pas plus loin (ni mur qui tue, ni chute)
+    k=THREE.MathUtils.smoothstep(x,-.6,W*.55);
+    const kmh=Math.abs(vA)*3.6*SPD,vmin=Math.max(80,vmaxShow()*BK_CG.vMin)/(3.6*SPD);
+    if(Math.abs(vA)>vmin)vA=Math.sign(vA)*(vmin+(Math.abs(vA)-vmin)*Math.exp(-dt*(BK_CG.fr0+BK_CG.fr1*k)*(nitroOn?.55:1))); // la neige FREINE
+    lat-=out*BK_CG.pousse*k*dt;                                                                 // le bourrelet REPOUSSE vers la glace
+    if(psi*driveDir*out>0)psi*=Math.exp(-dt*BK_CG.redresse*k);                                  // et remet la caisse dans l'axe : elle ne file plus vers l'extérieur
+    if(!BKB.dans&&k>.08){BKB.dans=true;bkCgEntre(kmh);}
+    const fx=BANQ.fx;
+    if(fx&&fx.poudre&&kmh>15&&carGroup.visible){const vc=PT_U.uVc.value,w=CARS[level].w*.5,l=CARS[level].l*.4; // LA POUDRE : deux rideaux jetés par les roues, plus hauts loin dans la neige
+      BKB.em+=dt*(6+22*k)*Math.min(1,kmh/150)*BK_CG.fx;
+      BKV_A.set(1,0,0).applyQuaternion(carGroup.quaternion);const sO=BKV_A.dot(F.b)*out>=0?1:-1; // le flanc de la caisse côté neige
+      while(BKB.em>=1){BKB.em-=1;const sg=sO;DRIFT_V.set(sg*w,.15,-l*(.2+.5*Math.random()));carGroup.localToWorld(DRIFT_V);const ou=out*(8+Math.random()*10)*(.6+.4*k),k1=.82+.14*Math.random();
+        spawnP(fx.poudre,DRIFT_V.x,DRIFT_V.y,DRIFT_V.z,vc.x*k1+F.b.x*ou,vc.y*k1+2.5+Math.random()*(4+7*k),vc.z*k1+F.b.z*ou,.35+Math.random()*.45);}} // (elle file AVEC la caisse, jetée vers l'extérieur : à ,35 de la vitesse, la caméra la traversait — un mur blanc)
+    if(side>0){const i=Math.max(0,Math.min(NP-1,Math.round(s/Math.max(1,L)*(NP-1)))),t=T[i],hl=Math.hypot(t.x,t.z)||1,cp=carGroup.position; // LA TRACE dans la poudre
+      bkTrace(cp.x,cp.z,t.x/hl,t.z/hl,0,Math.min(1,.35+k),1.7+.7*k,F.p.y+F.b.y*lat+F.n.y*bkCgH(Math.max(0,x)));}}
+  else if(BKB.dans&&x<-.9)BKB.dans=false;
+  BKB.k=k;BKB.enf+=(BK_CG.prof*k-BKB.enf)*Math.min(1,dt*7);if(BKB.enf<.003)BKB.enf=0;}
 /* ---------------- LES TRACES : un anneau de quads (4 sommets chacun : aucun pont entre deux traces) ---------------- */
 const BK_TR={N:1100,i:0,mesh:null,pos:null,at:null,on:false,lx:0,lz:0,lpx:0,lpz:0,lw:1,ty:0,lo:1e9,hi:-1};
 function bkTraceMesh(){if(BK_TR.mesh)return BK_TR.mesh;const N=PAL_BK('banqTrace',1100);BK_TR.N=N;
@@ -17095,9 +17188,10 @@ function banqTick(dt){
   if(BANQ.picM){const ff=(scene.fog&&scene.fog.far)||6000,cp=camera.position;for(const m of BANQ.picM){const b=m.geometry.boundingSphere,v=cp.distanceTo(b.center)-b.radius<ff+60;if(m.visible!==v)m.visible=v;}}
   if(vit){try{updatePool(fx.poudre,dt,0);updatePool(fx.givre,dt,0);updatePool(fx.eclat,dt,0);updatePool(fx.brume,dt,0);}catch(e){}}
   if(BANQ.fid!==flightId){BANQ.fid=flightId;BANQ.figs={};BANQ.lent=0;}
+  if(mode!=='drive'){BKB.k=0;BKB.enf=0;BKB.dans=false;} // (2026-10-18) la congère ne suit pas la caisse en vol
   if(mode==='fall'&&vit&&started&&!gameOver)banqVolFx(dt);
-  else{if(BANQ.sur||BANQ.glisse||BANQ.pou){BANQ.sur=0;BANQ.glisse=false;BANQ.pou=false;}if(!BKV.sur)bkTraceCoupe();
-    bkBoucle('banq.glisse',vit&&started&&!gameOver&&mode==='drive'&&BKV.sur&&BKV.gk>.12,-22+14*BKV.gk,.85+.4*BKV.gk);bkBoucle('banq.poudre',false);} // (2026-10-15 soir) sur le verglas, la glisse CHANTE tant que la caisse est en crabe
+  else{if(BANQ.sur||BANQ.glisse||BANQ.pou){BANQ.sur=0;BANQ.glisse=false;BANQ.pou=false;}if(!BKV.sur&&!BKB.dans)bkTraceCoupe();
+    bkBoucle('banq.glisse',vit&&started&&!gameOver&&mode==='drive'&&BKV.sur&&BKV.gk>.12,-22+14*BKV.gk,.85+.4*BKV.gk);bkBoucle('banq.poudre',vit&&started&&!gameOver&&mode==='drive'&&BKB.dans,-16+10*BKB.k,.85+.3*BKB.k);} /* (2026-10-18) dans la congère, la poudre chante */ // (2026-10-15 soir) sur le verglas, la glisse CHANTE tant que la caisse est en crabe
   bkTraceEnvoi();
   // LA CAMÉRA NE PASSE JAMAIS SOUS LA NEIGE (en rasant la poudre, elle suivait la trajectoire jusque dedans : écran blanc)
   if(mode==='fall'||mode==='boom'){const cp=camera.position,S=banqSurf(cp.x,cp.z);if(S.ok&&cp.y<S.h+2.4){cp.y=S.h+2.4;camera.lookAt(carGroup.position);camera.updateMatrixWorld();}}
@@ -17170,6 +17264,7 @@ window.dbgBanq=function(k,o){
     return {plaques:V9,sur:BKV.sur,yaw:+BKV.yaw.toFixed(3),gl:+BKV.gl.toFixed(3),gk:+BKV.gk.toFixed(2),ecl:bkVie(BANQ.fx.eclat),bru:bkVie(BANQ.fx.brume),t:+BKV.t.toFixed(2),aura:Math.round(BKV.aura),s:Math.round(s),lat:+lat.toFixed(2),psi:+psi.toFixed(3),kmh:Math.round(Math.abs(vA)*3.6*SPD),mode:mode};}
   if(k==='meteo'){banqMeteo(o||'nuit',.01);return BANQ.met;}
   if(k==='phys'&&o){Object.assign(BK_PH,o);return BK_PH;}
+  if(k==='cg'){if(o)Object.assign(BK_CG,o);return {cg:BK_CG,k:+BKB.k.toFixed(2),enf:+BKB.enf.toFixed(2),dans:BKB.dans,lat:+lat.toFixed(1),kmh:Math.round(Math.abs(vA)*3.6*SPD),p:carGroup.position.toArray().map(function(v){return +v.toFixed(1);}),t:F.t.toArray().map(function(v){return +v.toFixed(3);}),b:F.b.toArray().map(function(v){return +v.toFixed(3);}),n:F.n.toArray().map(function(v){return +v.toFixed(3);}),mort:mortCause,pq:BANQ.pourquoi||'',latOff:+curLatOff.toFixed(1),hOff:+curHOff.toFixed(1)};} // (banc, 2026-10-18) LA CONGÈRE : réglages et état
   if(k==='vue'&&o){if(started&&!gameOver&&!paused)togglePause();camera.position.fromArray(o.p);camera.up.set(0,1,0);camera.lookAt(new THREE.Vector3().fromArray(o.c));camera.updateMatrixWorld();
     if(o.fov){camera.fov=o.fov;camera.updateProjectionMatrix();}skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);banqTick(0);if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return 'ok';}
   /* les PHOTOS (en pause) : 'pic' = le prochain pic où l'on glisse (o.d m avant, o.h m de haut) */
@@ -44166,6 +44261,7 @@ function spawnPickups(rnd){
     }
     if(BANQ.obst&&LVL.cur&&LVL.cur.id==='banquise')for(const o of BANQ.obst){ // (2026-10-17, GLACIER v4) jamais une pièce dans un pic de la piste
       if(Math.abs(o.s-sp)>o.r+3||Math.abs(o.lat-lt)>o.r+2)continue;let n9=o.lat+(lt>=o.lat?1:-1)*(o.r+3);if(Math.abs(n9)>HALF)n9=o.lat+(lt>=o.lat?-1:1)*(o.r+3);lt=n9;}
+    if(BANQ.kick&&LVL.cur&&LVL.cur.id==='banquise')for(const k of BANQ.kick){if(sp<k.s-(k.lg||8)-3||sp>k.s+3||lt<k.l0-2||lt>k.l1+2)continue;let n9=lt-k.l0<k.l1-lt?k.l0-4:k.l1+4;if(Math.abs(n9)>HALF)n9=lt-k.l0<k.l1-lt?k.l1+4:k.l0-4;lt=n9;} // (2026-10-18) ni sous un tremplin
     return THREE.MathUtils.clamp(lt,-HALF,HALF);
   };
   // pose UNE pièce (mirroir deux faces, saute les trous, s'écarte des obstacles, clamp sur la route)
@@ -53061,7 +53157,7 @@ function tryLand(dt){
      bitume ne REBONDIT plus (MESURÉ : « BUMP (h 0,06, à 25 cm du bord) puis tombée » — les trois quarts de la caisse au-dessus de la route,
      et elle repartait dans le vide) : le pneu monte la marche et elle se POSE au bord — une vraie pose (la chaîne s'encaisse, la vitesse
      se paie comme partout). Plus bas, c'est la carrosserie qui cogne la tranche : BUMP, comme avant. */
-  const tranche9=sideCd<=0&&hOff>-THICK-.12&&hOff<.12&&(bumpIn||bumpThru),levre9=tranche9&&hOff>-LEVRE_POSE&&fallT>.35&&vN<4.5?(bumpThru?Math.sign(prevL):Math.sign(latOff)):0;
+  const tranche9=!bkCgBord()&&sideCd<=0&&hOff>-THICK-.12&&hOff<.12&&(bumpIn||bumpThru),levre9=tranche9&&hOff>-LEVRE_POSE&&fallT>.35&&vN<4.5?(bumpThru?Math.sign(prevL):Math.sign(latOff)):0;
   if(tranche9&&!levre9){
     const sg=bumpThru?Math.sign(prevL):Math.sign(latOff),impB=Math.abs(vB);
     fallVel.addScaledVector(B[bestI],-vB*1.65); // réflexion amortie sur la paroi
@@ -53107,9 +53203,9 @@ function tryLand(dt){
   // dalle (interpolé entre l'image d'avant et celle-ci) ; s'il est au-dessus du vide, on tombe. Aucun recentrage.
   if(!sideL)return false;
   const hS9=sideL>0?0:-THICK,dh9=prevH-hOff,f9=Math.abs(dh9)>1e-4?THREE.MathUtils.clamp((prevH-hS9)/dh9,0,1):1,latX9=levre9?levre9*(ROAD_HALF-.05):prevL+(latOff-prevL)*f9; /* (la LÈVRE : posée au bord, roues intérieures sur le bitume) */
-  if(Math.abs(latX9)>=ROAD_HALF)return false;
+  if(Math.abs(latX9)>=ROAD_HALF+(sideL>0?bkCgBord():0))return false; /* (2026-10-18, GLACIER) on se pose aussi dans la congère */
   s=THREE.MathUtils.clamp(bestI/(NP-1)*L+THREE.MathUtils.clamp(dTmp.dot(T[bestI]),-2,2),0,L-1);
-  side=sideL;lat=THREE.MathUtils.clamp(latX9,-ROAD_HALF+.02,ROAD_HALF-.02)*sideL;
+  side=sideL;{const lm9=ROAD_HALF-.02+(sideL>0?bkCgBord():0);lat=THREE.MathUtils.clamp(latX9,-lm9,lm9)*sideL;}
   // RÉCEPTION EN GLISSE : la caisse se pose de travers et rattrape — petit drift au lieu d'un psi=0 sec
   {const vTan=fallVel.dot(T[bestI]),vLat=fallVel.dot(B[bestI])*sideL;
    psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*lacetVol(fallVel.length());slipB=0;driftYaw=0;veqPose(bestI,sideL); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */ // (2026-09-25) le cap de la pose = la direction EXACTE du vol — plus de redressement (×0,6) : c'était une aide
@@ -62606,7 +62702,7 @@ function loop(now){
       // BORD : si la voiture dépasse le côté de la route, elle bascule et tombe dans le vide.
       if(PARIS.sol&&Math.abs(lat)>ROAD_HALF-1.15)parisMur(dt); // (Paris au sol) les façades sont des MURS : on frotte, on ne tombe pas
       else if(cyCouloirIci()&&Math.abs(lat)>ROAD_HALF-1.15){parisMur(dt,'paroi');slideContact();} // (2026-10-14, CANYON) LE COULOIR des Étroits : les parois touchent la route — même mur que Paris
-      else if(banqOk()&&Math.abs(lat)>ROAD_HALF-1.15){parisMur(dt,'glace');slideContact();} // (2026-10-17, GLACIER v4) les BOURRELETS de neige : on cogne, on ne tombe pas
+      else if(banqOk())bkCongere(dt); // (2026-10-18, GLACIER) LA CONGÈRE : au-delà de la glace, la neige profonde — on s'enfonce, on ralentit, on ne meurt pas (était : le mur parisMur, où la caisse restait collée)
       else if(Math.abs(lat)>ROAD_HALF){
         const out=Math.sign(lat);
         // (bord v2) le CENTRE DE GRAVITÉ passe la lèvre : elle BASCULE — ni saut (était +3,4 vers le haut), ni poussée (+4 %) : on ne
@@ -62643,10 +62739,13 @@ function loop(now){
       }
       rampCd=Math.max(0,rampCd-dt);
       if(mode==='drive')banqPisteHeurt(); // (v4) un pic de la piste, percuté au sol : L'IMPACT
-      if(mode==='drive'&&rampCd<=0&&BANQ.kick&&BANQ.kick.length&&banqOk())for(const k9 of BANQ.kick){ // (v4) LES BECS DE GLACE : on passe dessus, on s'envole
-        if(k9.s<Math.min(sPrev9,s)-2||k9.s>Math.max(sPrev9,s)+2||lat<k9.l0||lat>k9.l1)continue;
-        if(Math.abs(vA)*3.6*SPD<70)break;
-        rampCd=1.2;startFall(THREE.MathUtils.clamp(.2*Math.abs(vA)*vitMult(),12,48),1.04);boost=Math.max(boost,1.2);shake=Math.max(shake,.45);try{hap(10);}catch(e){}break;}
+      if(mode==='drive'&&BANQ.kick&&BANQ.kick.length&&banqOk())for(const k9 of BANQ.kick){ // (v4) LES TREMPLINS DE GLACE — (2026-10-18) une vraie rampe de BK_BEC.lg m : on la MONTE, on décolle à la LÈVRE (k9.s)
+        if(lat<k9.l0-.5||lat>k9.l1+.5||s<k9.s-k9.lg-2||Math.min(sPrev9,s)>k9.s+2)continue;
+        if(s<k9.s){if(rampCd<=0){const u=Math.max(0,(s-k9.s+k9.lg)/k9.lg),hR=k9.h*Math.pow(u,1.7);if(hR>hopY-.6){hopY=Math.max(hR-.8,hopY+(hR-hopY)*Math.min(1,dt*25));hopV=0;}}break;} // sur la rampe : la caisse en suit la courbe (hopY)
+        if(rampCd>0||k9.s<Math.min(sPrev9,s))break;                                                     // la lèvre franchie pendant cette image
+        hopY=Math.max(hopY,k9.h);hopV=0;                                                                 // on part du HAUT de la lèvre
+        if(Math.abs(vA)*3.6*SPD<70)break;                                                                // au pas : on tombe de la lèvre, sans décoller
+        rampCd=1.2;startFall(THREE.MathUtils.clamp(BK_BEC.pop*Math.abs(vA)*vitMult(),14,60),1.04);fallVel.addScaledVector(F.b,-fallVel.dot(F.b)*BK_BEC.axe);boost=Math.max(boost,1.2);shake=Math.max(shake,.5);try{hap([10,18]);}catch(e){}break;} /* (BK_BEC.axe) le tremplin envoie DANS L'AXE de la piste : au banc, la glisse de travers emportée en vol (3-5 s à 45°) sortait la caisse des 196 m — 2 vols sur 9 finissaient hors piste */
       if(hopY>0||hopV!==0){
         hopY+=hopV*dt;hopV-=26*GRAV_K*gK()*dt;
         if(hopY<=0){hopY=0;hopV=0;squashT=Math.max(squashT,.15);if(introD)smashPig();if(POSE_F){const f9=POSE_F;POSE_F=null;try{f9();}catch(e){}}} // SPLAT. — (2026-10-01) et le CONTACT d'une pose (gerbe, choc, gomme)
@@ -62691,7 +62790,7 @@ function loop(now){
         frameAt(s,F);
         if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
         if(levreY<0){levreY*=Math.exp(-dt*16);if(levreY>-.005)levreY=0;} // (bord v2) la caisse qui a raccroché la LÈVRE finit de remonter sa marche (~0,15 s)
-        carGroup.position.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+hopY+levreY);
+        carGroup.position.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+hopY+levreY-BKB.enf); /* (2026-10-18) -BKB.enf : enfoncée dans la congère du glacier (0 ailleurs) */
         fwdW.copy(F.t).multiplyScalar(Math.cos(psi)*driveDir).addScaledVector(F.b,Math.sin(psi)*driveDir).normalize(); // la caisse REGARDE son sens de marche (parc : peut faire face à -T)
         tmp.crossVectors(F.n,fwdW).normalize();
         mat4.makeBasis(tmp,F.n,fwdW);

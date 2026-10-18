@@ -3,6 +3,32 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE GLACIER, 3e TOUR — LA CONGÈRE AU LIEU DU MUR, 40-50° POUR DE VRAI, DE VRAIS TREMPLINS, MOINS DE PICS (2026-10-18, session GLACIER-BORDS — Sacha : « debug la map montagne glace : déjà quand on touche le bord on y reste collé, et il y a des problèmes de collision avec la glace elle-même ; ensuite je t'ai dit 100 fois de faire la map plus pentue, genre 40-50 degrés ; les tremplins doivent être plus beaux, gros et visibles, et moins d'obstacles sur la route » · « quand on touche le bord on doit pas mourir : on s'enfonce dans la neige, ce qui ralentit beaucoup, mais ça tue pas »)
+- POURQUOI ON RESTAIT COLLÉ : le bord était le mur des couloirs du canyon (`parisMur` : lat bornée à 1,15 m du bord, vL = 0, mort au-delà de 30° et
+  200 km/h) et le verglas pousse la caisse vers l'EXTÉRIEUR des virages (`banqVerglas`) : elle y revenait à chaque image. Mesuré (banc, pilote qui
+  vise le bord) : plaquée entre 91 et 95 m, 286 → 183 km/h.
+- LA CONGÈRE (`bkCongere`, `BK_CG`, `BKB`) : au-delà de la glace, 16 m de neige profonde de chaque côté. La caisse y entre (plouf, gerbe jetée vers
+  l'extérieur), s'y enfonce (`BKB.enf`, 38 cm), freine fort (vers 32 % de la vmax ; la nitro laboure mieux), la neige la remet dans l'axe et la
+  repousse vers la glace (6 m/s) ; le volant y mord entier. Jamais de mort, jamais de mur (au bout des 16 m, la lat est bornée). Mesuré : on entre
+  jusqu'à 6 m dans la neige, 210 → 95-105 km/h, puis retour sur la glace en ~2 s. Le ruban (`bkCongerePose`, profil `BK_CG_X/Y`, matière de la
+  neige) est posé sur le repère de la piste : la grille de neige (cases de 34-40 m) ne savait pas dessiner un bord net.
+- LES COLLISIONS AVEC LA GLACE : (1) la grille de neige montait son bourrelet dès le bord — interpolée sur 34-40 m, elle crevait la glace par
+  endroits (la caisse roulait « dans » la neige, et EN VOL `banqSolVol` y voyait de la poudreuse au-dessus de la piste : freinage, mort
+  « poudreuse » en l'air) → le bourrelet part après la congère (34 → 82 m du bord), et en vol, au-dessus de la piste et de sa congère, seule la
+  piste reçoit (tryLand s'y pose, plus de tranche à cogner) ; la poudre du glacier ne tue plus (on y est tenu à 27 cm sous la surface).
+  (2) à 45°, le flanc AVAL d'un pic peu raide devenait presque parallèle à la glace : une lame basse de 30-50 m qu'on croyait franchir et qui
+  tuait → chaque pic de la piste ajoute la pente locale à la sienne (`pic()` : sa face aval garde, par rapport à la piste, la raideur du plat).
+- LA PENTE : `BK_PENTE4` est une TANGENTE — « 58-88 % » ne faisait que 30-41° (33° de moyenne, mesuré). Désormais virages 42-46°, droites 46-51° :
+  43° de moyenne, 49-50° au plus (Node `banq-trace.cjs` sur 16 pistes ; en jeu `dbgBanq('pente')` : moy 100 %, max 115-120 %), ~6,8 km de
+  dénivelé ; LEN ×,75 (même longueur 3D). ⚠ À l'écran, la caméra de course suit la piste (CAM_GLACIER ne redresse que ~11°) : la pente se lit
+  surtout au vol, aux pics qui penchent et à la vue de côté. Essayé `garde` 4 / `max` 40 : vue rasante, caisse à moitié cachée — non retenu.
+- LES TREMPLINS (`BK_BEC`, `bkBecMesh`, `bkBecTex`) : le bec de 8 × 1,1 m, blanc sur glace blanche, était invisible (photo). Désormais une rampe de
+  36 m qui monte en courbe à 7 m (~18° à la lèvre), glace blanche à CHEVRONS ORANGE, lèvre qui brille, flancs bleu nuit, deux BALISES orange de
+  15 m ; la caisse MONTE la rampe (hopY suit la courbe) et décolle à la lèvre (poussée ,26 × la vitesse, ,2 avant). Mesuré : décollage à
+  215 km/h, 1,6 s de vol, posée. Un tremplin avant deux figures sur trois + un seul au milieu d'une longue descente sur deux (8-14 par piste).
+  Les pièces s'écartent d'un tremplin, les pics de sa retombée (260 m).
+- MOINS D'OBSTACLES : une figure tous les 0,6-1 km (0,3-0,5 avant), fourche 3-5 pics, champ 5-7 (11-18), îlot 2-3 : 31-44 pics par piste au lieu de 112.
+- Banc : `dbgBanq('cg',{fx,prof,…})` (la congère : réglages, état, repère). Fumée commune OK (couché + debout, 0 erreur JS).
 ## LE DÉCOLLAGE AU MANCHE — LA FIGURE SUR LA ROUTE PEUT S'ENVOLER (2026-10-19, v664, Léo : « fais en sorte que chaque trick qui fait un saut en l'air, seulement lorsque la voiture est en l'air, laisse au joueur l'opportunité de décoller de la route en utilisant le joystick qui permet d'orienter le nez de la voiture vers le haut »)
 - **Le questionnaire** (deux lectures possibles, le pouce HAUT choisit déjà la figure AVANT au double-tap) : « un geste PENDANT le bond »
   (le pouce tenu depuis le double-tap ne compte pas) et « comme un avion » (tant qu'on tient le nez en haut elle monte, lâché elle retombe).
