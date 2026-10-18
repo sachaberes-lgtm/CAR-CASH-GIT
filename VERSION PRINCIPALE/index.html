@@ -27397,8 +27397,8 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'NOUVELLE 81',shape:'epave',color:0xd8dade,accent:0x17181b,maxKmh:215,accel:24,turn:2.7,h:1.44,w:1.78,l:4.63,spoiler:0,rar:'commun',retire:1, // 81 — discussion JAPONAISES : Toyota Corolla berline (2019) (gabarit à venir : SHAPES.corolla)
-  desc:'(place réservée)'},
+ {name:'LA FIDÈLE',shape:'corolla',color:0x9fa3a9,accent:0x17181b,maxKmh:215,accel:24,turn:2.7,h:1.44,w:1.78,l:4.63,spoiler:0,rar:'commun', // 81 — discussion JAPONAISES : la berline compacte de 2019 (la ligne de la Toyota Corolla E210), argent (SHAPES.corolla)
+  desc:'La voiture la plus vendue de la planète. Elle ne tombe jamais en panne, ce qui est presque suspect.'},
  /* · */
  /* · */
  /* · */
@@ -27680,6 +27680,7 @@ const I18N={
  'LA CERISE':'THE CHERRY','Elle ouvre les yeux à chaque coup de nitro. Une tonne, cent quinze chevaux, et le plus grand sourire du parking.':'It opens its eyes at every nitro hit. One ton, 115 horsepower, and the biggest smile in the parking lot.', // (JAPONAISES) 83 — la MX-5 NA
  'LA LAME':'THE BLADE','Le même petit roadster, avec un toit qui se range en treize secondes. Il ne pleut jamais assez vite pour la rattraper.':'The same little roadster, with a roof that tucks away in thirteen seconds. It never rains fast enough to catch her.', // (JAPONAISES) 85 — la MX-5 RF
  'LE TOFU':'THE TOFU','Livreur de tofu au petit matin, roi de la descente la nuit. Le verre d\'eau posé sur le tableau de bord ne se renverse jamais.':'Tofu delivery boy at dawn, king of the downhill at night. The glass of water on the dashboard never spills.',
+ 'LA FIDÈLE':'THE FAITHFUL','La voiture la plus vendue de la planète. Elle ne tombe jamais en panne, ce qui est presque suspect.':'The best-selling car on the planet. It never breaks down, which is almost suspicious.',
  'Trois cylindres : deux qui toussent, un qui prie. Elle démarre par pitié. Fais des thunes et oublie-la vite.':'Three cylinders: two coughing, one praying. It starts out of pity. Make cash and forget it fast.',
  'Le moteur d\'une tondeuse, le charisme d\'un caddie. Mais ça roule — et vu d\'où tu viens, c\'est déjà un miracle.':'A lawnmower engine, the charisma of a shopping cart. But it moves — and given where you\'re coming from, that\'s already a miracle.',
  'Sièges chauffants, porte-gobelets, zéro gloire. Conçue pour conduire prudemment. Toi ? Prudent ? On y croit très fort.':'Heated seats, cup holders, zero glory. Built for careful driving. You? Careful? We believe in you, really.',
@@ -38030,7 +38031,165 @@ ECH_POTS.bulle={p:[{t:'rond',r:.021,ev:1.35,k:'c',pts:[[-.155,.325,-1.965],[.155
 // · · ·
 // · · ·
 // · · ·
-// <<< SHAPES.corolla (JAPONAISES) >>>
+// <<< SHAPES.corolla (JAPONAISES) — début >>>
+SHAPES.corolla=function(K){
+  /* LA FIDÈLE — la berline compacte de 2019 (la ligne de la Toyota Corolla E210, quatre portes), ARGENT. Tout vient de son PLAN COTÉ
+     VECTORIEL (dimensions.com, quatre vues, 127 unités/m, empattement 2,70 m) : la silhouette de côté (capot long qui plonge vers le nez en
+     flèche, pare-brise couché, pavillon à 1,437 m, lunette qui file vers une malle courte, poupe droite), la largeur vue de dessus (1,78 m aux
+     ailes), la coupe vue de face (flanc qui rentre vers l'épaule, vitres rentrées de 25°). Découpés dans la tôle (`japDecoupe`), les contours
+     mêmes du plan : les phares effilés et leur signature, le projecteur, la grande calandre en trapèze, les prises d'air latérales, le bandeau
+     noir sous le capot, les feux arrière reliés par leur barre chromée, la plaque, le bas de bouclier noir et ses catadioptres, les vitres et
+     leurs montants noirs, la grille d'auvent, la lunette, les poignées ; les joints (portières, capot, malle, boucliers) et les plis (la ligne
+     d'épaule, le pli bas des portières, les arcs d'ailes, les nervures du capot). Repère : x à droite, y en haut, z vers l'avant, mètres. */
+  const U=LPU,R=.319,ZF=1.4015,ZR=-1.3047,ZE=2.316,ZB=-2.316;
+  const L=(t,z)=>U.lin(t,z),cl=(v,a,b)=>v<a?a:v>b?b:v,mix=(a,b,t)=>a+(b-a)*t;
+  const ARGENT=0x9fa3a9;   // (un argent moyen, celui des photos : en argent clair la laque sortait blanc rosé au studio des vignettes, comme la RF)
+  const PAL={p:{g:'p',c:ARGENT},k:{g:'m',c:0x121214},K:{g:'g',c:0x0b0b0e},g:{g:'g',c:0x141c26},s:{g:'s',c:0x2a2b30},b:{g:'s',c:0x151518},
+    W:{g:'l',c:0xf2f6ff},L:{g:'l',c:0xd0101e},c:{g:'c',c:0xd4d8de},O:{g:'g',c:0xe08414},q:{g:'g',c:0xd9dde2},d:{g:'m',c:0x0d0e11},
+    n:{g:'g',c:0x101013},Q:{g:'l',c:0xe6e6e6}};
+  const PLAN={"face":{"phare":[[0.759,0.808],[0.769,0.762],[0.772,0.723],[0.769,0.683],[0.759,0.645],[0.745,0.618],[0.724,0.594],[0.698,0.576],[0.663,0.558],[0.648,0.553],[0.641,0.555],[0.636,0.641],[0.633,0.649],[0.626,0.652],[0.462,0.634],[0.274,0.621],[0.294,0.675],[0.419,0.694],[0.595,0.731],[0.693,0.761],[0.722,0.773],[0.742,0.786],[0.757,0.804],[0.763,0.819],[0.762,0.85],[0.74,0.9],[0.719,0.933],[0.694,0.964]],"phareHaut":[[0.674,0.594],[0.694,0.606],[0.712,0.622],[0.721,0.634],[0.73,0.656],[0.737,0.686],[0.738,0.71],[0.731,0.732],[0.724,0.734],[0.519,0.686],[0.412,0.667],[0.342,0.658]],"projo":[[0.647,0.667],[0.651,0.682],[0.656,0.688],[0.669,0.695],[0.677,0.696],[0.691,0.69],[0.697,0.685],[0.703,0.671],[0.703,0.663],[0.697,0.65],[0.691,0.644],[0.677,0.639],[0.669,0.64],[0.656,0.647],[0.651,0.653]],"grilleHaut":[[0.274,0.621],[0.124,0.613],[0.103,0.604],[0.077,0.564],[0.066,0.553],[0.043,0.548],[0.004,0.547],[0.004,0.664],[0.177,0.666],[0.294,0.675]],"logo":[[0.067,0.617],[0.062,0.632],[0.051,0.643],[0.029,0.652],[0.002,0.656],[0.025,0.653],[0.047,0.645],[0.059,0.635],[0.066,0.621],[0.064,0.606],[0.047,0.59],[0.025,0.581],[0.002,0.579],[0.029,0.582],[0.051,0.592],[0.062,0.603]],"grille":[[0.0,0.249],[0.365,0.251],[0.46,0.255],[0.498,0.262],[0.52,0.272],[0.531,0.282],[0.535,0.305],[0.526,0.335],[0.504,0.377],[0.395,0.54],[0.38,0.558],[0.367,0.567],[0.345,0.574],[0.313,0.577],[0.0,0.578]],"prise":[[0.603,0.531],[0.522,0.501],[0.516,0.496],[0.513,0.489],[0.516,0.482],[0.578,0.401],[0.601,0.381],[0.638,0.368],[0.738,0.347],[0.767,0.336],[0.776,0.324],[0.784,0.278],[0.784,0.255],[0.778,0.25],[0.592,0.23]],"lignes":{"j":[[[0.889,0.668],[0.832,0.709],[0.772,0.743]]],"h":[[[0.611,0.629],[0.468,0.591],[0.399,0.576]]]}},"dos":{"feu":[[0.0,0.903],[0.307,0.902],[0.354,0.9],[0.369,0.896],[0.39,0.885],[0.458,0.832],[0.48,0.825],[0.511,0.823],[0.621,0.83],[0.691,0.844],[0.727,0.858],[0.754,0.874],[0.77,0.891],[0.773,0.907],[0.764,0.937],[0.746,0.962],[0.725,0.972],[0.694,0.975],[0.466,0.974],[0.427,0.967],[0.345,0.939],[0.291,0.932],[0.0,0.929]],"feuLigne":[[0.685,0.869],[0.664,0.9],[0.651,0.908],[0.636,0.912],[0.59,0.915],[0.397,0.916]],"logo":[[0.0,0.937],[0.03,0.943],[0.044,0.951],[0.053,0.963],[0.056,0.971],[0.053,0.986],[0.037,1.002],[0.023,1.008],[0.0,1.012],[0.023,1.008],[0.037,1.002],[0.049,0.992],[0.056,0.978],[0.053,0.963],[0.044,0.951],[0.023,0.941]],"plaque":[[0.0,0.666],[0.341,0.666],[0.364,0.672],[0.374,0.684],[0.374,0.692],[0.359,0.728],[0.321,0.796],[0.298,0.828],[0.274,0.848],[0.251,0.854],[0.228,0.856],[0.0,0.856]],"bas":[[0,0.512],[0.425,0.509],[0.503,0.504],[0.55,0.494],[0.577,0.478],[0.601,0.447],[0.692,0.255],[0.704,0.245],[0.735,0.241],[0.735,0.2],[0,0.2]],"catadi":[[0.65,0.512],[0.751,0.511],[0.767,0.508],[0.773,0.504],[0.777,0.489],[0.78,0.45],[0.779,0.349],[0.776,0.326],[0.769,0.323],[0.754,0.326],[0.75,0.34],[0.746,0.48],[0.747,0.496],[0.751,0.511]],"lignes":{"j":[[[0.0,1.089],[0.613,1.089],[0.617,1.074],[0.572,0.81],[0.559,0.749],[0.548,0.719],[0.537,0.698],[0.523,0.679],[0.506,0.663],[0.486,0.651],[0.464,0.643],[0.401,0.633],[0.268,0.629],[0.0,0.628]],[[0.809,0.294],[0.807,0.601],[0.81,0.812]]],"h":[[[0.0,0.529],[0.576,0.529],[0.552,0.55],[0.532,0.562],[0.51,0.569],[0.471,0.575],[0.377,0.578],[0.0,0.579]],[[0.0,1.037],[0.287,1.036],[0.609,1.022],[0.632,1.024],[0.655,1.03],[0.676,1.042],[0.694,1.057],[0.0,1.057]]]}},"cote":{"cadre":[[0.691,0.913],[0.542,0.917],[-0.582,0.986],[-1.061,1.02],[-1.178,1.032],[-1.31,1.054],[-1.347,1.066],[-1.358,1.077],[-1.36,1.085],[-1.36,1.093],[-1.352,1.106],[-1.327,1.125],[-1.231,1.178],[-1.131,1.226],[-1.052,1.26],[-0.956,1.296],[-0.873,1.321],[-0.804,1.336],[-0.672,1.356],[-0.499,1.368],[-0.255,1.369],[-0.019,1.357],[0.09,1.344],[0.215,1.323],[0.337,1.294],[0.435,1.264],[0.552,1.219],[0.718,1.147],[0.868,1.076],[0.964,1.022],[1.009,0.991],[1.038,0.964],[1.048,0.943],[1.045,0.936],[1.038,0.932],[1.015,0.926],[0.945,0.921]],"vitre":[[0.791,0.934],[0.957,0.941],[1.011,0.946],[1.024,0.949],[0.996,0.976],[0.95,1.007],[0.882,1.046],[0.804,1.084],[0.56,1.194],[0.45,1.238],[0.376,1.262],[0.254,1.294],[0.153,1.314],[0.052,1.329],[-0.065,1.34],[-0.27,1.349],[-0.506,1.348],[-0.67,1.336],[-0.803,1.316],[-0.872,1.301],[-0.94,1.28],[-1.094,1.221],[-1.187,1.178],[-1.284,1.127],[-1.325,1.103],[-1.331,1.089],[-1.327,1.082],[-1.314,1.075],[-1.236,1.061],[-1.104,1.044],[-0.955,1.031],[0.53,0.938],[0.64,0.933]],"montantB":[[-0.283,0.988],[-0.311,1.35],[-0.189,1.347],[-0.099,0.977]],"montantC":[[-0.867,1.024],[-0.894,1.294],[-0.87,1.301],[-0.841,1.023]],"ecoinc":[[0.854,1.083],[0.937,1.039],[1.003,0.996],[1.027,0.976],[1.043,0.958],[1.048,0.943],[1.045,0.936],[1.031,0.929],[1.015,0.926],[0.85,0.916],[0.868,0.937],[0.835,1.069]],"poigneeAr":[[-0.811,0.888],[-0.821,0.898],[-0.859,0.908],[-1.031,0.916],[-1.045,0.91],[-1.051,0.896],[-1.046,0.882],[-1.039,0.878],[-1.016,0.876],[-0.984,0.875],[-0.962,0.879],[-0.93,0.879],[-0.899,0.877],[-0.876,0.871],[-0.861,0.872],[-0.822,0.878]],"poigneeAv":[[0.106,0.827],[0.095,0.837],[0.057,0.847],[-0.115,0.855],[-0.129,0.849],[-0.135,0.835],[-0.133,0.827],[-0.122,0.817],[-0.076,0.814],[-0.029,0.819],[0.056,0.811],[0.095,0.817]],"creuxAr":[[-0.976,0.876],[-0.97,0.862],[-0.959,0.851],[-0.944,0.846],[-0.921,0.845],[-0.905,0.846],[-0.891,0.853],[-0.878,0.872]],"creuxAv":[[-0.06,0.815],[-0.053,0.801],[-0.042,0.79],[-0.027,0.785],[-0.012,0.784],[0.004,0.784],[0.019,0.788],[0.031,0.797],[0.038,0.811]],"feu":[[-1.728,0.892],[-2.146,0.821],[-2.154,0.822],[-2.166,0.832],[-2.209,0.906],[-2.215,0.911],[-2.23,0.914],[-2.235,0.92],[-2.236,0.928],[-2.235,0.936],[-2.229,0.94],[-2.206,0.945],[-2.183,0.966],[-2.161,0.973],[-2.074,0.976],[-1.933,0.972],[-1.855,0.963],[-1.802,0.949],[-1.761,0.925]],"phare":[[2.011,0.619],[1.989,0.641],[1.976,0.66],[1.963,0.688],[1.962,0.703],[2.008,0.697],[2.19,0.659],[2.262,0.652],[2.257,0.609],[2.158,0.633],[2.057,0.648],[2.034,0.645],[2.029,0.639],[2.03,0.623]],"lignes":{"j":[[[-1.174,1.052],[-1.188,1.006],[-1.192,0.983],[-1.186,0.961],[-1.175,0.94],[-0.956,0.595],[-0.823,0.363],[-0.793,0.327],[-0.759,0.306],[-0.73,0.296],[-0.691,0.288],[-0.582,0.28],[0.778,0.251],[0.817,0.253],[0.84,0.259],[0.853,0.268],[0.867,0.286],[0.879,0.315],[0.891,0.361],[0.912,0.517],[0.927,0.705],[0.927,0.783],[0.918,0.83],[0.856,1.081]],[[-0.171,0.273],[-0.156,0.539],[-0.156,0.648],[-0.16,0.75],[-0.171,0.851],[-0.25,1.369]],[[-1.728,0.892],[-1.524,0.63]],[[1.579,0.632],[1.639,0.681],[1.726,0.743]]],"h":[[[-1.893,0.999],[-1.562,0.995],[-1.24,0.984],[-0.942,0.969],[-0.581,0.945],[-0.205,0.914],[0.249,0.871],[1.304,0.756]],[[-0.815,0.408],[-0.787,0.422],[-0.749,0.431],[-0.702,0.436],[-0.639,0.438],[0.502,0.419],[0.612,0.411],[0.697,0.394],[0.771,0.367],[0.855,0.325]],[[1.899,0.25],[1.752,0.518],[1.727,0.558],[1.696,0.594],[1.644,0.641],[1.584,0.679],[1.519,0.706],[1.45,0.722],[1.372,0.725],[1.294,0.713],[1.257,0.701],[1.214,0.683],[1.147,0.642],[1.089,0.589],[1.059,0.553],[1.038,0.52],[1.005,0.449],[0.986,0.372]],[[-1.762,0.312],[-1.738,0.419],[-1.725,0.464],[-1.698,0.52],[-1.669,0.566],[-1.628,0.614],[-1.581,0.655],[-1.528,0.689],[-1.471,0.715],[-1.411,0.733],[-1.349,0.743],[-1.287,0.744],[-1.217,0.735],[-1.149,0.715],[-1.093,0.689],[-1.04,0.655],[-0.993,0.614]]]}},"dessus":{"parebrise":[[1.185,0.0],[1.178,0.204],[1.169,0.298],[1.154,0.4],[1.128,0.523],[1.114,0.576],[1.095,0.611],[1.072,0.631],[1.051,0.641],[1.028,0.646],[0.996,0.646],[0.957,0.641],[0.466,0.529],[0.444,0.522],[0.432,0.512],[0.428,0.505],[0.428,0.489],[0.456,0.366],[0.479,0.195],[0.487,0.181],[0.494,0.177],[0.561,0.156],[0.574,0.147],[0.579,0.141],[0.588,0.086],[0.591,0.0]],"cadrePB":[[0.427,0.0],[1.185,0.0],[1.178,0.204],[1.169,0.298],[1.154,0.4],[1.13,0.515],[1.114,0.576],[1.095,0.611],[1.072,0.631],[1.051,0.641],[1.02,0.647],[0.973,0.644],[0.934,0.636],[0.466,0.529],[0.437,0.517],[0.432,0.512],[0.427,0.497]],"lunetteK":[[-1.221,0.0],[-1.869,0.0],[-1.863,0.22],[-1.856,0.291],[-1.841,0.376],[-1.82,0.452],[-1.795,0.518],[-1.76,0.58],[-1.735,0.609],[-1.709,0.627],[-1.671,0.638],[-1.624,0.643],[-1.561,0.64],[-1.444,0.627],[-1.312,0.603],[-1.229,0.582],[-1.215,0.574],[-1.203,0.563],[-1.195,0.542],[-1.194,0.518],[-1.216,0.299]],"lunette":[[-1.818,0.0],[-1.286,0.0],[-1.282,0.22],[-1.266,0.448],[-1.271,0.486],[-1.282,0.507],[-1.307,0.526],[-1.359,0.542],[-1.452,0.559],[-1.584,0.577],[-1.631,0.58],[-1.663,0.576],[-1.692,0.565],[-1.717,0.546],[-1.741,0.515],[-1.762,0.473],[-1.781,0.422],[-1.795,0.36],[-1.804,0.306],[-1.812,0.22]],"auvent":[[1.276,0.004],[1.272,0.2],[1.253,0.371],[1.238,0.448],[1.218,0.532],[1.162,0.711],[1.012,0.647],[1.004,0.647],[1.02,0.647],[0.996,0.646],[1.028,0.646],[0.988,0.646],[1.035,0.645],[0.973,0.644],[1.043,0.643],[0.965,0.643],[1.051,0.641],[0.957,0.641],[1.058,0.639],[1.072,0.631],[1.09,0.617],[1.104,0.598],[1.114,0.576],[1.147,0.438],[1.167,0.314],[1.18,0.173],[1.185,0.0]],"lignes":{"j":[[[1.197,0.477],[0.504,0.481],[0.009,0.491],[0.235,0.502],[0.352,0.516]],[[1.229,0.697],[1.317,0.73],[1.385,0.749],[1.455,0.762],[1.526,0.766],[1.644,0.762],[1.831,0.742],[1.909,0.727],[1.951,0.707],[1.976,0.688],[2.003,0.659],[2.072,0.563],[2.169,0.401],[2.235,0.276],[2.247,0.239],[2.257,0.177],[2.265,0.09],[2.267,0.004]],[[-2.29,0.004],[-2.282,0.232],[-2.262,0.435],[-2.254,0.474],[-2.243,0.503],[-2.228,0.531],[-2.209,0.556],[-2.186,0.577],[-2.158,0.592],[-2.12,0.602],[-2.066,0.609],[-1.799,0.624],[-1.768,0.62],[-1.741,0.603]],[[1.608,0.889],[1.681,0.818],[1.718,0.776]],[[1.743,0.78],[1.661,0.823],[1.556,0.889]]],"h":[[[1.328,0.617],[1.39,0.558],[1.422,0.535],[1.458,0.518],[1.503,0.504],[1.619,0.484],[1.749,0.457],[1.87,0.424],[1.944,0.398],[2.031,0.361],[2.206,0.273]]]}}};
+  // ---- LES COTES DU PLAN (mètres) ----
+  const XM=[[ZB,.40],[-2.30,.46],[-2.28,.499],[-2.24,.582],[-2.20,.632],[-2.16,.678],[-2.12,.722],[-2.08,.762],[-2.04,.794],[-2.0,.809],[-1.96,.818],[-1.92,.826],
+            [-1.88,.835],[-1.84,.844],[-1.80,.854],[-1.76,.863],[-1.72,.872],[-1.68,.88],[-1.64,.886],[-1.60,.888],[-1.56,.889],[-1.04,.887],[-.96,.885],[-.88,.882],
+            [-.80,.878],[-.72,.875],[-.68,.874],[.60,.873],[.96,.874],[1.04,.875],[1.12,.879],[1.20,.884],[1.28,.887],[1.36,.888],[1.40,.889],[1.70,.889],[1.76,.884],
+            [1.80,.878],[1.84,.87],[1.88,.862],[1.92,.853],[1.96,.84],[2.0,.82],[2.04,.812],[2.08,.799],[2.12,.752],[2.16,.69],[2.20,.626],[2.24,.559],[2.28,.481],
+            [2.30,.43],[ZE,.38]],
+        // le haut du flanc : la malle et sa poupe, la ceinture (le bas des vitres), la crête des ailes avant, le nez
+        YT=[[ZB,.45],[-2.309,.565],[-2.29,.606],[-2.271,.621],[-2.264,.664],[-2.24,.69],[-2.236,.70],[-2.228,1.016],[-2.207,1.025],[-2.136,1.032],[-2.0,1.052],
+            [-1.87,1.078],[-1.60,1.075],[-1.36,1.068],[-1.27,1.046],[-1.11,1.024],[-.95,1.011],[-.79,1.0],[-.63,.989],[-.47,.979],[-.31,.969],[-.15,.959],[.01,.95],
+            [.17,.94],[.33,.93],[.49,.92],[.65,.913],[.81,.915],[.97,.922],[1.10,.94],[1.205,.962],[1.289,.928],[1.373,.886],[1.459,.846],[1.549,.816],[1.641,.796],
+            [1.734,.779],[1.827,.763],[1.92,.745],[2.012,.726],[2.105,.707],[2.197,.685],[2.242,.672],[2.264,.665],[2.271,.645],[2.275,.603],[2.294,.59],[2.30,.567],
+            [2.306,.544],[2.311,.521],[ZE,.47]],
+        // le milieu du dessus : capot, pare-brise, pavillon, lunette, malle (la silhouette de côté)
+        YC=[[ZB,.45],[-2.309,.565],[-2.29,.606],[-2.271,.621],[-2.264,.664],[-2.24,.69],[-2.236,.70],[-2.228,1.036],[-2.207,1.045],[-2.16,1.049],[-2.12,1.053],
+            [-2.08,1.058],[-2.04,1.065],[-2.0,1.072],[-1.96,1.081],[-1.92,1.09],[-1.87,1.098],[-1.84,1.109],[-1.80,1.128],[-1.76,1.146],[-1.72,1.165],[-1.68,1.182],
+            [-1.64,1.2],[-1.60,1.217],[-1.56,1.233],[-1.52,1.25],[-1.48,1.266],[-1.44,1.281],[-1.40,1.296],[-1.36,1.311],[-1.32,1.325],[-1.28,1.339],[-1.24,1.352],
+            [-1.20,1.369],[-1.16,1.378],[-1.12,1.385],[-1.04,1.398],[-.96,1.409],[-.88,1.416],[-.80,1.422],[-.72,1.427],[-.64,1.431],[-.56,1.434],[-.44,1.437],
+            [-.28,1.437],[-.16,1.434],[-.08,1.431],[0,1.426],[.08,1.419],[.16,1.409],[.24,1.396],[.32,1.381],[.36,1.371],[.40,1.359],[.44,1.342],[.48,1.328],
+            [.52,1.312],[.56,1.297],[.60,1.281],[.64,1.264],[.68,1.247],[.72,1.23],[.76,1.212],[.80,1.194],[.84,1.175],[.88,1.156],[.92,1.137],[.96,1.118],[1.0,1.098],
+            [1.04,1.078],[1.08,1.058],[1.12,1.038],[1.16,1.017],[1.20,.996],[1.24,.976],[1.28,.964],[1.32,.96],[1.36,.957],[1.40,.952],[1.48,.943],[1.56,.931],
+            [1.64,.918],[1.72,.903],[1.80,.885],[1.88,.863],[1.96,.838],[2.04,.808],[2.10,.781],[2.166,.749],[2.227,.712],[2.264,.683],[2.271,.665],[2.275,.603],
+            [2.294,.59],[2.30,.567],[2.306,.544],[2.311,.521],[ZE,.47]],
+        YB=[[ZB,.40],[-2.314,.34],[-2.302,.32],[-2.285,.302],[-2.24,.285],[-2.12,.282],[-2.0,.27],[-1.88,.256],[-1.75,.244],[-1.66,.255],[-1.0,.224],[-.94,.206],
+            [0,.198],[.94,.19],[1.0,.189],[1.07,.203],[1.75,.192],[1.80,.182],[1.86,.184],[1.90,.195],[2.25,.209],[2.28,.215],[2.293,.242],[2.30,.31],[2.31,.38],[ZE,.44]],
+        ARF=[[0,.682],[.04,.68],[.08,.674],[.12,.664],[.16,.649],[.20,.627],[.24,.599],[.28,.561],[.30,.535],[.315,.48],[.322,.35],[.326,0]],
+        ARR=[[0,.698],[.06,.693],[.10,.684],[.145,.667],[.18,.651],[.22,.624],[.26,.588],[.29,.56],[.305,.535],[.318,.45],[.325,.30],[.33,0]];
+  const xM=z=>L(XM,z),yT=z=>L(YT,z),yB0=z=>L(YB,z),yC=z=>L(YC,z);
+  /* LA SERRE (z = 1.26 le pied du pare-brise, −1.87 le bas de la lunette) : le bord du toit `yr` suit le haut du cadre des vitres (relevé sur le
+     plan), posé dans le PLAN DES VITRES (rentrée de 25°, relevée vue de face) ; devant le cadre, le pied du montant ; derrière, le montant de
+     lunette qui rejoint la malle. */
+  const ZW=1.26,ZHT=-1.87;
+  const YR=[[-1.36,1.116],[-1.27,1.166],[-1.19,1.207],[-1.11,1.244],[-1.03,1.277],[-.95,1.306],[-.87,1.33],[-.79,1.347],[-.71,1.36],[-.63,1.369],[-.55,1.374],
+            [-.47,1.377],[-.35,1.378],[-.23,1.376],[-.15,1.373],[-.07,1.368],[.01,1.362],[.09,1.352],[.17,1.34],[.25,1.324],[.33,1.304],[.41,1.281],[.49,1.252],
+            [.57,1.22],[.65,1.185],[.73,1.149],[.81,1.112],[.89,1.072],[.97,1.027],[1.047,.95]];
+  const vitreX=y=>.77-.47*(y-.95);
+  const zone=z=>z>ZW?'capot':z>=ZHT?'serre':'malle';
+  const DX=[[0,.04],[.05,.016],[.17,.014],[.33,.007],[.45,.002],[.55,0],[.65,0],[.70,.004],[.75,.011],[.80,.029],[.855,.05],[.91,.072],[.96,.09],[1.0,.105]];
+  const TS=[.04,.12,.24,.38,.52,.64,.74,.83,.92],NC=2+TS.length;   // le flanc (vue de face), en part de sa hauteur ; NC : l'indice de l'épaule
+  const S0=z=>{const xm=xM(z),y0=yB0(z),yt=yT(z),zo=zone(z),kx=Math.min(1,xm/.62),H=Math.max(.04,yt-y0);
+    const yb=Math.max(y0,L(ARF,Math.abs(z-ZF)),L(ARR,Math.abs(z-ZR)));
+    const sx=t=>xm-L(DX,t)*kx;
+    const s=[[0,yb],[xm-.10*kx,yb]];
+    let pr=yb;for(let i=0;i<TS.length;i++){let h=Math.max(y0+TS[i]*H,pr+.0015);h=Math.min(h,yt-(TS.length-i)*.0015);if(h<pr+.0005)h=pr+.0005;pr=h;s.push([sx(cl((h-y0)/H,0,1)),h]);}
+    const xb=xm-.105*kx;
+    if(zo==='capot'){const yh=Math.max(yC(z),yt),xc=xm-.09*kx;
+      s.push([xc,yt],[xc-.02*kx,yt+.008],[xm*.72,yh-.022],[xm*.55,yh-.011],[xm*.36,yh-.004],[xm*.18,yh],[0,yh]);}
+    else if(zo==='serre'){let xr,yr;
+      if(z>1.047){xr=xb-.03;yr=yt+.015;}                                                        // (le pied du montant : le cadre n'a pas commencé)
+      else if(z>=-1.36){yr=L(YR,z);xr=vitreX(yr);}                                               // le haut du cadre des vitres
+      else{yr=mix(1.116,1.10,(-1.36-z)/(-1.36-ZHT));xr=vitreX(yr);}                              // le montant de lunette
+      yr=Math.max(yr,yt+.01);xr=Math.min(xr,xb-.012);const yc=Math.max(yC(z),yr+.004);
+      s.push([xb,yt],[xb-.008,yt+.012],[mix(xb,xr,.5)+.004,mix(yt,yr,.5)],[xr,yr],[xr-.06,yr+(yc-yr)*.64],[xr*.58,yc-.005],[0,yc]);}
+    else{const yd=yC(z),ye=Math.min(yt,yd);s.push([xb,ye],[xb-.015*kx,ye+.004],[xm*.72,yd-.008],[xm*.55,yd-.004],[xm*.36,yd-.001],[xm*.18,yd],[0,yd]);}
+    for(let i=NC+1;i<s.length;i++)s[i][1]=Math.max(s[i][1],s[i-1][1]);   // (le dessus ne redescend jamais vers le milieu)
+    if(z>=ZE-1e-6||z<=ZB+1e-6)for(const q of s)q[0]*=.02;                  // (les deux bouts se replient sur l'axe : la face est une bande du loft)
+    return s;};
+  const SM=new Map(),S=z=>{const k=Math.round(z*2000);let s=SM.get(k);if(!s){s=S0(k/2000);SM.set(k,s);}return s;};
+  const zs0=[ZB,ZB+.003,-2.31,-2.30,-2.29,-2.28,-2.271,-2.264,-2.25,-2.24,-2.236,-2.228,-2.215,-2.2,-2.16,-2.12,-2.08,-2.04,-2.0,-1.96,-1.92,ZHT,ZHT-.004,-1.84,-1.80,
+    -1.76,-1.72,-1.68,-1.64,-1.60,-1.56,-1.50,-1.44,-1.36,-1.27,-1.19,-1.11,-1.03,-.95,-.87,-.79,-.71,-.63,-.55,-.47,-.39,-.31,-.23,-.15,-.07,.01,.09,.17,.25,
+    .33,.41,.49,.57,.65,.73,.81,.89,.97,1.047,1.10,1.16,1.205,ZW,ZW+.004,1.32,1.40,1.48,1.56,1.64,1.72,1.80,1.88,1.96,2.04,2.10,2.16,2.20,2.227,2.25,2.264,
+    2.271,2.275,2.285,2.294,2.30,2.306,2.311,ZE-.003,ZE];
+  for(const [w,a] of [[ZF,.326],[ZR,.33]])for(const f of [0,.2,.4,.55,.7,.8,.88,.95,.99,1])zs0.push(w-a*f,w+a*f);
+  zs0.sort((a,b)=>a-b);const zs=zs0.filter((z,i)=>i===0||z-zs0[i-1]>.002);
+  const peint=(j,z)=>j===0?'k':'p';
+  const EP=(typeof peintPal==='function'?peintPal(PAL):PAL).p,GP=EP.g;
+  const PL=K.kit(PAL);PL.loft(zs,S,peint);
+  // ---- LA DÉCOUPE AU PLAN (`japDecoupe`) ----
+  const MEM=(typeof SHAPES==='object'&&SHAPES.corolla)||null;
+  const av=(x,y,z,nx,ny,nz)=>z>2.0&&nz>.2,ar=(x,y,z,nx,ny,nz)=>z<-2.1&&nz<-.2,cs=(x,y,z,nx,ny,nz)=>Math.abs(nx)>.5;
+  const F9=PLAN.face,D9=PLAN.dos,C9=PLAN.cote,T9=PLAN.dessus;
+  const bas=D9.bas;
+  const ZN={
+    face:japZones([
+      {k:'K',p:F9.phare,gate:av},{k:'W',p:japRuban(F9.phareHaut,.012),gate:av,axe:false},
+      {k:'c',p:F9.projo,gate:av},{k:'W',p:japEchelle(F9.projo,.62),gate:av},
+      {k:'K',p:F9.grilleHaut,gate:av},{k:'c',p:F9.logo,gate:av},
+      {k:'K',p:F9.grille,creux:.03,gate:av},{k:'K',p:F9.prise.map(p=>[Math.min(p[0],.76),p[1]]),creux:.02,gate:(x,y,z,nx,ny,nz)=>z>2.0&&nz>.35}]),
+    cote:japZones([
+      {k:'K',p:C9.cadre,gate:cs},{k:'g',p:C9.vitre,gate:cs},{k:'K',p:C9.montantB,gate:cs},{k:'K',p:C9.montantC,gate:cs},{k:'K',p:C9.ecoinc,gate:cs},
+      {k:'c',p:C9.poigneeAr,gate:cs},{k:'c',p:C9.poigneeAv,gate:cs},{k:'K',p:C9.creuxAr,creux:.008,gate:cs},{k:'K',p:C9.creuxAv,creux:.008,gate:cs},
+      {k:'L',p:C9.feu,gate:(x,y,z,nx,ny,nz)=>z<-1.6},{k:'K',p:C9.phare,gate:(x,y,z,nx,ny,nz)=>z>1.6}]),
+    dos:japZones([
+      {k:'L',p:D9.feu,gate:ar},{k:'r',p:japRuban(D9.feuLigne,.014),gate:ar,axe:false},{k:'c',p:japDemi(.38,.904,.936,.003,1),gate:ar},
+      {k:'c',p:D9.logo,gate:ar},{k:'b',p:bas,gate:ar},{k:'r',p:D9.catadi,gate:ar}]),
+    dessus:japZones([
+      {k:'K',p:T9.cadrePB,gate:(x,y,z,nx,ny,nz)=>z>.3&&z<1.3&&ny>.2},{k:'g',p:T9.parebrise,gate:(x,y,z,nx,ny,nz)=>z>.3&&z<1.3&&ny>.2},
+      {k:'K',p:T9.lunetteK,gate:(x,y,z,nx,ny,nz)=>z<-1.1&&ny>.2},{k:'g',p:T9.lunette,gate:(x,y,z,nx,ny,nz)=>z<-1.1&&ny>.2},
+      {k:'b',p:T9.auvent,gate:(x,y,z,nx,ny,nz)=>z>1.0&&z<1.4&&ny>.3}])};
+  const LG=v=>japLignes([].concat((PLAN[v].lignes.j||[]).map(p=>({k:'j',p:p})),(PLAN[v].lignes.h||[]).map(p=>({k:'h',p:p}))));
+  const LGN={cote:LG('cote'),face:japLignes([].concat(F9.lignes.j.map(p=>({k:'j',p:p,gate:av})),F9.lignes.h.map(p=>({k:'h',p:p,gate:av})))),
+    dos:japLignes([].concat(D9.lignes.j.map(p=>({k:'j',p:p,gate:ar})),D9.lignes.h.map(p=>({k:'h',p:p,gate:ar})),[{k:'j',p:D9.plaque,gate:ar}])),dessus:LG('dessus')};
+  const CODES={p:{g:GP},gap:{g:GP,c:0x26282c},K:{g:'g',c:PAL.K.c,lisse:1},g:{g:'g',c:PAL.g.c,lisse:1},c:{g:'c',c:0xd4d8de},W:{g:'l',c:0xf2f6ff},
+    L:{g:'l',c:0xd8101e},r:{g:'g',c:0x6a0812,lisse:1},b:{g:'s',c:0x151518},O:{g:'g',c:PAL.O.c,lisse:1}};
+  {const f2=PL.done;PL.done=()=>{const gs=f2(),G=gs[GP];if(!G)return gs;
+    const out=japDecoupe(G,{zones:ZN,lignes:LGN,codes:CODES,ns:()=>japLisse(G,32),GP:GP,colP:japColP(EP),cache:MEM,
+      vue:(x,y,z,ax,ay,az,nx,ny,nz)=>{if(z>2.05&&nz>.35&&y<.8)return 'face';if(z<-2.15&&nz<-.5&&y<1.05)return 'dos';
+        if(z<ZW&&z>ZHT&&y>.9&&ny>.2){const s9=S(z);if(Math.abs(x)<s9[NC+3][0]-.004)return 'dessus';}
+        return null;}});
+    G.dispose();delete gs[GP];return japFusion(gs,out);};}
+  K.commit(PL);if(K.muet)return {};
+  // la hauteur de la tôle (le dessus) en (x, z)
+  const ZS9=zs,SC9=ZS9.map(z=>S(z)),T=z=>{let i=0,j=ZS9.length-1;if(z<=ZS9[0])return SC9[0];if(z>=ZS9[j])return SC9[j];while(j-i>1){const m=(i+j)>>1;if(ZS9[m]<=z)i=m;else j=m;}
+    const t=(z-ZS9[i])/(ZS9[j]-ZS9[i]),A=SC9[i],B=SC9[j];return A.map((p,q)=>[p[0]+(B[q][0]-p[0])*t,p[1]+(B[q][1]-p[1])*t]);};
+  const yDessus=(x,z)=>{const s=T(z);for(let i=s.length-1;i>0;i--){const a=s[i],b=s[i-1];if((a[0]-x)*(b[0]-x)<=0&&a[0]!==b[0])return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}return s[s.length-1][1];};
+  // ---- LES DÉTAILS ----
+  const P=K.kit(PAL);
+  // LES RÉTROVISEURS (relevés sur les trois vues) : la coque à la couleur de la caisse, la glace vers l'arrière, le répétiteur orange devant
+  P.sym(sd=>{P.box('k',.10,.035,.10,sd*.80,.885,.745,0,0,0);                              // le pied, sur la portière
+    const cx=sd*.94,cy=.995,cz=.71;
+    {const g=new THREE.SphereGeometry(.08,10,7);P.put('p',g,cx,cy,cz+.01,0,sd*.18,0,1.0,.82,.9);}
+    P.box('K',.15,.105,.006,cx-sd*.004,cy-.002,cz-.063,0,sd*.18,0);
+    P.box('O',.08,.012,.02,cx+sd*.03,cy-.04,cz+.07,0,sd*.18,0);});
+  // L'ANTENNE en aileron, sur le pavillon
+  {const g=new THREE.CylinderGeometry(.018,.03,.13,6);g.rotateX(Math.PI/2);P.put('n',g,0,yDessus(0,-1.08)+.03,-1.08,.12,0,0,1,1.2,1);}
+  // LES ESSUIE-GLACES, couchés sur la grille d'auvent
+  for(const x of [-.36,.12])P.box('k',.56,.012,.018,x,yDessus(Math.abs(x),1.17)+.012,1.17,0,-.08,0);
+  // LE SUPPORT DE PLAQUE, entre les feux : une boîte claire que la plaque du jeu reconnaît (`plqDessinee`)
+  P.box('Q',.40,.11,.006,0,.755,-2.232);
+  // LA JOUE DES PASSAGES DE ROUE
+  {const joue=(w,A9)=>{const o=[],a9=A9[A9.length-1][0];for(let i=A9.length-1;i>=0;i--){const p=A9[i];if(p[1]>=.17)o.push([w-p[0]*1.02,p[1]+.01]);}
+      o.unshift([w-a9,.17]);for(let i=1;i<A9.length;i++){const p=A9[i];if(p[1]>=.17)o.push([w+p[0]*1.02,p[1]+.01]);}o.push([w+a9,.17]);return o;};
+   P.sym(sd=>{P.prism('d',joue(ZF,ARF),.02,sd*.66);P.prism('d',joue(ZR,ARR),.02,sd*.66);});}
+  K.commit(P);
+  // ---- LE POT : discret, sous le bouclier, à gauche ----
+  let pots=[[.50,.25,-2.27]];
+  if(typeof ECHP==='object'&&ECHP.reel&&typeof ECH_PAL==='object'){const E=K.kit(ECH_PAL);E.ech=1;ECHP.reel(E,{r:.03,k:'c',len:.30,pts:[[.50,.25,-2.27]]});K.commit(E);}
+  // ---- LA JANTE À DIX BRANCHES (17 pouces), argent usiné : les branches fines, le rebord poli, le cache-moyeu ; le pneu 225/45 ----
+  const JW=.21,hw=JW/2,fx=hw-.03,RJ=.208,J=lpKit({k:{g:'m',c:0x161719},a:{g:'c',c:0xc4c8ce},s:{g:'s',c:0x3a3c42},d:{g:'m',c:0x0f1013}});
+  J.lathe('k',[[RJ,-hw],[R*.92,-hw],[R,-hw*.62],[R,hw*.62],[R*.92,hw],[RJ,hw]],24,0,0,0,'x');
+  J.lathe('a',[[RJ,fx-.012],[RJ+.004,fx+.002],[RJ-.01,fx+.006],[RJ-.018,fx-.006]],24,0,0,0,'x');
+  J.lathe('d',[[RJ-.02,-hw+.02],[RJ-.02,fx-.02],[.06,fx-.035],[0,fx-.035]],20,0,0,0,'x');
+  {const sh=new THREE.Shape();sh.moveTo(-.011,.055);sh.lineTo(.011,.055);sh.lineTo(.007,.192);sh.lineTo(-.007,.192);sh.lineTo(-.011,.055);
+   for(let q=0;q<10;q++){const g=new THREE.ExtrudeGeometry(sh,{depth:.02,bevelEnabled:true,bevelThickness:.004,bevelSize:.003,bevelSegments:1,curveSegments:1});
+     g.rotateY(-Math.PI/2);g.rotateX(q/10*Math.PI*2+(q%2?.09:-.09));g.translate(fx+.002,0,0);J.put('a',g,0,0,0);}}   // (deux par deux : cinq doubles branches)
+  J.lathe('s',[[.064,fx-.03],[.062,fx+.004],[.05,fx+.012],[0,fx+.014]],16,0,0,0,'x');
+  J.lathe('a',[[.034,fx+.012],[.03,fx+.022],[0,fx+.025]],12,0,0,0,'x');
+  const JG=J.done();
+  return {hl:[.60,.65,2.20],tl:[.62,.93,-2.23],wx:.765,wzF:ZF,wzR:-ZR,pots:pots,lamps:0,halos:0,
+          roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],(K.mats&&K.mats[g])||(typeof lpMat==='function'?lpMat(g):null));m.userData.lp=1;w.add(m);}},
+          lpw:{R:R,w:JW,style:'nyan',jante:0xc4c8ce}};
+};
+// <<< SHAPES.corolla (JAPONAISES) — fin >>>
 // · · ·
 // · · ·
 // · · ·
@@ -38076,6 +38235,7 @@ function japLisse(G,deg){const a=G.attributes.position.array,n=G.attributes.norm
   for(const l of M.values())for(const i of l){let x=0,y=0,z=0;for(const q of l)if(n[i]*n[q]+n[i+1]*n[q+1]+n[i+2]*n[q+2]>=cs){x+=n[q];y+=n[q+1];z+=n[q+2];}const h=Math.hypot(x,y,z)||1;o[i]=x/h;o[i+1]=y/h;o[i+2]=z/h;}
   return o;}
 /* LA DÉCOUPE. `G` : la géométrie de la tôle (non indexée, une normale par facette). `o` :
+   · ns : les normales lissées (japLisse), ou une fonction qui les rend (appelée seulement quand la découpe n'est pas gardée) ;
    · zones {cote,dessus,face,dos} (japZones) — chaque zone : k (code de matière), gate(cx,cy,cz,nx,ny,nz) facultative, creux (m) facultatif ;
    · lignes {cote,dessus,face,dos} (japLignes) ;
    · codes {k:{g:groupe, c:couleur, lisse:bool}} — 'p' = la tôle (couleur par colP(y)), 'gap' = l'interstice d'un joint ;
@@ -38083,9 +38243,10 @@ function japLisse(G,deg){const a=G.attributes.position.array,n=G.attributes.norm
    · colP(y,x,z) : la couleur de la tôle à une hauteur (`colTri` : prise au CENTRE de chaque triangle — une livrée à deux tons garde son trait net) ; GP : son groupe ; cache : un objet où garder la découpe (elle ne dépend que de la forme).
    Rend {groupe: géométrie}. Coût : une fois par session (le découpage est gardé, seules les couleurs sont refaites). */
 function japDecoupe(G,o){
-  const pa=G.attributes.position.array,na=G.attributes.normal.array,ns=o.ns||na,Z=o.zones||{},LG=o.lignes||{},C=o.codes,CK=Object.keys(C);
+  const pa=G.attributes.position.array,na=G.attributes.normal.array,Z=o.zones||{},LG=o.lignes||{},C=o.codes,CK=Object.keys(C);
   const cle=o.cleCache||'_tole';let C9=o.cache&&o.cache[cle];
   if(!C9||C9.n!==pa.length||CK.some(k=>!C9.G[k])){
+    const ns=typeof o.ns==='function'?o.ns():(o.ns||na);   // (`ns` peut être une fonction : les normales lissées ne se calculent que si l'on découpe)
     const croise=(a,b,c,d,e,f,g,h)=>{const s=(x1,y1,x2,y2,x3,y3)=>(x2-x1)*(y3-y1)-(y2-y1)*(x3-x1);
             return ((s(e,f,g,h,a,b)>0)!==(s(e,f,g,h,c,d)>0))&&((s(a,b,c,d,e,f)>0)!==(s(a,b,c,d,g,h)>0));},
           touche=(Pc,s)=>{const n=Pc.length,dedans=(x,y)=>{let sg=0;for(let i=0;i<n;i++){const p=Pc[i],r=Pc[(i+1)%n],c=(r[0]-p[0])*(y-p[1])-(r[1]-p[1])*(x-p[0]);
