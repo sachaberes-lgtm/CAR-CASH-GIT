@@ -7947,7 +7947,7 @@ html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRe
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=31"></script>
+<script defer src="sons-banque.js?v=32"></script>
 <script defer src="sfx.js?v=6"></script>
 <script>
 (function(){
@@ -40339,7 +40339,7 @@ function boomDetone(){ // (2026-10-15) LA DÉTONATION — tout de suite (vide, a
      progression ; c'est aujourd'hui l'INDEX de la caisse choisie au garage : les quatre premières caisses explosaient sans grave.
      Même grondement pour toutes, un peu allégé (.35/.5 → .3, sub .3) : `boomSnd` part dans la même milliseconde sur le même bus. */
   if(!SONV2){noiseBurst(1.2,.3,240);subBoom(.3);}
-  else{const mc9={vide:'mort.vide',air:'mort.air',arret:'mort.arret',police:'mort.police',feu:'mort.feu',sat:'mort.foudre'}[mortCause];if(mc9&&!TUTO.on)sfx(mc9);} // (console) chaque mort a sa signature (sauf à l'auto-école : un crash n'y est qu'un RATÉ), par-dessus l'explosion : on ENTEND pourquoi on est mort · (2026-09-30) le SATELLITE percuté (PLUIE DE SATELLITES) : l'arc électrique qui grille, `mort.foudre` — cuit dans la banque, joué nulle part jusqu'ici
+  else{const mc9={vide:'mort.vide',air:'mort.air',arret:'mort.arret',police:'mort.police'}[mortCause];if(mc9&&!TUTO.on)sfx(mc9);} // (console) chaque mort a sa signature (sauf à l'auto-école : un crash n'y est qu'un RATÉ), par-dessus l'explosion : on ENTEND pourquoi on est mort · (2026-09-30) le SATELLITE percuté (PLUIE DE SATELLITES) : l'arc électrique qui grille, `mort.foudre` — cuit dans la banque, joué nulle part jusqu'ici
   if(level>=4){
     shake=Math.max(shake,level===5?3.6:3);
   }
@@ -42379,7 +42379,7 @@ const SON_PENTA={'jeu.sansFaute':9,'jeu.palierVitesse':7}; // le PLAFOND du degr
    des sons graves et discrets (la pièce v2) : elles n'ont plus à passer DEVANT la musique. */
 const SIG_RECUL={'nitro.sec':1,'flow.perdu':1,'aura.perdue':1,'portail.proche':1,'alerte.dernier':1};
 function musRecul(){try{if(musWaTient()&&MUS_WA.bus)MUS_WA.bus.recul(-3,.4);if(window.POUCE_JEU)POUCE_JEU.recul();}catch(e){}}
-const SON_DUCK={'frenesie.entre':.6,'cratere':.6,'impact.immeuble':.6,'verdict.3':.5,'caisse.debloquee':.5,'ui.carnet':.5,'orbite.entre':.5,
+const SON_DUCK={'frenesie.entre':.6,'cratere':.6,'impact.immeuble':.6,'verdict.3':.5,'caisse.debloquee':.5,'orbite.entre':.5,
   'moteur.palier':.45,'argent.palier':.45,'fig.jackpot':.45,'portail':.4,'jeu.miracule':.4,'aura.x10':.4,'verdict.2':.35,'pad':.3,'turbo.ultra':.3,
   'victoire':.4,'defaite':.3,'fig.monstre':.25,'pwr.n':.25,'pwr.a':.25,'pwr.v':.25,'pwr.m':.25,'pwr.x':.25,'pwr.triple':.35,
   // (2026-10-15, Sacha : « que les figures fassent plus de bruit ») le DOUM des figures écarte le moteur et le vent un instant (pas la musique)
@@ -48266,7 +48266,7 @@ window.dbgSaut=function(){ if(!started||gameOver||PARK.on)return 'pas de course 
    whoomp et le réacteur du départ de la partie suivante (ils sont dans le bus des effets, `stopJeu` ne les connaît que pour la pause).
    `resetGame` les éteint (CCSON.stop : rampe de 10 ms, jamais net) et annule ce qui était programmé en avance, UNIQUEMENT si l'on sort d'un
    écran de fin (`gameOver`) : les sons du départ qui précèdent resetGame (JOUER depuis le garage) ne sont jamais touchés. */
-const FIN_SONS=['explosion','explosion.loin','impact.immeuble','mort.vide','mort.arret','mort.air','mort.police','mort.feu','mort.foudre',
+const FIN_SONS=['explosion','explosion.loin','impact.immeuble','mort.vide','mort.arret','mort.air','mort.police',
   'mort.enseigne','mort.compteFin','ui.debloque','ui.record','caisse.debloquee','aura.encaisse1','aura.encaisse2','aura.encaisse3'];
 /* LA RÉGIE ADSENSE, CÔTÉ JEU (2026-10-15 soir, Sacha : « branche les vraies pubs sur le site web avec Google AdSense (jeux H5) ») — le
    chargeur du <head> (« LA RÉGIE ADSENSE » : CC_ADSENSE, ?pubtest=1) a posé adBreak/adConfig ; on en fait la régie de LA PUB QUI RESSUSCITE.
