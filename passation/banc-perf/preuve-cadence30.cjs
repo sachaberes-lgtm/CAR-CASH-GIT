@@ -60,7 +60,7 @@ const X = extrait(src);
 function constantes(t) {
   const K = {};
   K.SPD = +/const SPD=([0-9.]+)/.exec(t)[1];
-  K.NTR = +/NTR_BOOST_MAX=([0-9.]+)/.exec(t)[1];
+  K.NTR = +/function vitMult\(\)\{return Math\.min\(([0-9.]+),/.exec(t)[1] - 1; /* (18/10) le plafond ×2,6 : NTR_BOOST_MAX est parti avec NITROOO, vitMult porte le 2,6 */
   const iC = t.indexOf('const CARS='); const mC = /maxKmh:([0-9.]+),accel:([0-9.]+)/.exec(t.slice(iC < 0 ? 0 : iC)); K.maxKmh = +mC[1]; K.accel = +mC[2];
   const iE = unique(t, 'const ENGINE_TIERS=['); const blocE = t.slice(iE, t.indexOf('\n];', iE)); K.push = (blocE.match(/push:([0-9.]+)/g) || []).map(function (x) { return +x.slice(5); });
   return K;

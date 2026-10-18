@@ -10,16 +10,14 @@ const SRC=fs.readFileSync(FILE,'utf8');
 // ---------- 1. LES CONSTANTES DU JEU, lues dans le code ----------
 function bloc(deb,fin){const i=SRC.indexOf(deb);if(i<0)throw new Error('introuvable : '+deb);const j=SRC.indexOf(fin,i);if(j<0)throw new Error('fin introuvable : '+fin);return SRC.slice(i,j+fin.length);}
 function ligne(deb){const i=SRC.indexOf(deb);if(i<0)throw new Error('introuvable : '+deb);return SRC.slice(i,SRC.indexOf('\n',i));}
-const GAP_ON=false; // index.html : `const GAP_ON=false` (tremplins coupes) — relu ci-dessous
-if(!/const GAP_ON=false;/.test(SRC))throw new Error('GAP_ON a change : revoir le modele');
-const G=new Function('GAP_ON',
+const G=new Function(
   bloc('const DENOMS=[','];')+'\n'+
   bloc('const ECO3={','\n};')+'\n'+
   bloc('const ENGINE_TIERS=[','\n];')+'\n'+
   bloc('const COSM={','\n};')+'\n'+
   bloc('const CARNETS=[','\n];')+'\n'+
   ligne('function ecoRond(')+'\n'+ligne('function ecoCash(')+'\n'+
-  'return {DENOMS,ECO3,ENGINE_TIERS,COSM,CARNETS,ecoRond,ecoCash};')(GAP_ON);
+  'return {DENOMS,ECO3,ENGINE_TIERS,COSM,CARNETS,ecoRond,ecoCash};')();
 const {DENOMS,ECO3,ENGINE_TIERS,COSM,CARNETS,ecoRond,ecoCash}=G;
 const PERMIS=+/if\(paye\)\{SAVE\.d\.permis=1;SAVE\.d\.bank=Math\.min\(1e30,bank\(\)\+(\d+)\)/.exec(SRC)[1]; // tutoFin : prime du permis (une fois)
 const START_CASH=+/const START_CASH=([\d.]+);/.exec(SRC)[1];
