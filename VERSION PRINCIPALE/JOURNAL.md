@@ -28,6 +28,37 @@
 - Console : `dbgVitre('sol')` (sol, ponts, piliers, cause de la mort), `dbgVitre('pts',n)` (la route, un point sur n).
 - Planche : `photos-gameplay/ville-vitree-au-sol-avant-apres.jpg` (dossier de Léo, hors dépôt).
 
+## LES BORDS DE LA MAP — UNE COULEUR PAR MAP, LE SCINTILLEMENT RGB AU BOOST (2026-10-18, Léo : « je voudrais que les maps aient les côtés lumineux de la route en fonction de la map, les couleurs, et qu'ils évoluent en fonction de comment la personne booste » puis « quand on booste, les côtés scintillent un peu en mode RGB, mais chaque niveau a sa couleur de base »)
+
+- **AVANT (mesuré au banc sur chaque map × météo, `dbgBords`)** : le ROSE de la bible (#F24AA0) partout — rail à 70 % de jour, plein la nuit
+  et sous la pluie ; nappe 0,43 de jour, 0,78 la nuit. Trois écarts : l'ORAGE des nuages (id `orage`) avait perdu la signature (rail gris-blanc
+  0,56 + nappe ambre : `routeSig` teste `c.id==='nuages'`) ; CRYPTO CITY était en béton #C9C3B6 sans nappe de jour, blanc doux la nuit ;
+  les PICS DE JADE la nuit tombaient à 44 % (nappe 0,08) — `villeApres` baisse les néons de nuit hors des six maps de la continuité et la
+  branche `routeSig` ne le compensait pas. La VILLE VITRÉE avait ses rails bleus mais une nappe et un liseré de flancs ROSES (accC).
+- **LA PALETTE** (`BMAP_PAL`, une couleur de BASE par map du JOUER) : MER DE NUAGES rose #F24AA0 (la marque, orage compris) · PICS DE JADE
+  vert jade #2EE8A6 · FORÊT NOIRE luciole #C8F03C · ROYAUME DE FEU soufre #FFE03A (l'orange #FF4A1A disparaissait dans la lave : nuancier
+  au banc, même image) · CRYPTO CITY or #FFC23A · EN ORBITE violet #8C6BFF · CANYON turquoise #22E0C2 · VILLE VITRÉE bleu #2F8CFF ·
+  GLACIER #52D8FF (sa piste de glace n'a pas de bord visible : rien ne se voit). LA VILLE n'est pas dans la palette : ses quatre teintes et
+  son caméléon restent. `bmapCle()` (la map par `LVL.cur.carte`, sinon l'id) ; `bmapPeint(k)` remplace la peinture de `bordsTick` pour ces
+  maps : rails, nappe et liseré des flancs + reflet des flaques (`ROAD_U.uAcc`), 70 % de jour, plein la nuit, `villeApres` compensé d'avance
+  (au-delà d'une opacité pleine, c'est la couleur de la nappe qui porte le reste).
+- **LA NAPPE** porte désormais une couleur de sommet NEUTRE (sa force `ka9`) et sa MATIÈRE la teinte (`accC`, posée par buildTrack) :
+  identique à l'image près pour les maps hors palette (vérifié : `?sans=bordsmap` redonne les valeurs du main, map par map).
+- **LE BOOST RGB** (`bmapBoost`, `BMAP_U`) : au boost (NFX.len, ~0,1 s pour s'ouvrir, ~0,3 s pour se refermer) les rails et la nappe passent
+  à 82 % à un ARC-EN-CIEL qui court le long de la route (tout le spectre en ~60 m, `aS` = l'abscisse de la piste, nouvel attribut des rails
+  et de la nappe) et qui SCINTILLE (chaque tronçon de ~2,5 m tire son éclat 16 fois par seconde, un sur sept éclate en blanc — un simple
+  frémissement disparaissait dans le flou de vitesse du boost, vu au banc) ; le bord s'allume aussi un peu plus fort (la lueur prend). Lâché,
+  la couleur de la map revient. Le pad turbo allume un peu, sans arc-en-ciel. Peint par `traitMat` (pal 0 et 1 : les programmes des rails et
+  de la nappe, à eux seuls) : trois uniformes, AUCUN programme de plus.
+- **Essayé avant** (17/10, refusé par Léo : « j'imaginais plus un truc où ça scintille en mode RGB ») : L'ÉCLAT, LE FEU (couleur de la poussée),
+  LA CHAUFFE (montée au blanc en 1,2 s). Un plein de nitro dure ~1,5 s (mesuré).
+- **Mesuré** : programmes 200 au menu → 202 en course (comme le main, `?sans=bordsmap` aussi), +0 au boost ; aucune erreur sur 5 maps.
+  Bancs : Chrome sans fenêtre muet, la caisse au rase-bord (`dbgAuto(1,0,{latK:-.8})`), planches `photos-gameplay/bords-map-*.jpg`.
+- **Crochets** : `?sans=bordsmap` (le rose partout, d'avant) · `?bordsboost=0` (pas d'effet au boost) · `dbgBordsMap()` (ce qui est posé) ·
+  `dbgBordsMap('canyon',0x22e0c2)` (essayer une couleur) · `dbgBordsMap('rgb',1)` (l'arc-en-ciel sans boost, pour les photos ; `null` le rend).
+- **Sacha** : sa bible (14/10) mettait le rose sur toutes les routes — cette palette la remplace ; poussé sur l'ordre de Léo, qui le prévient
+  lui-même (« pousse sur le main, je préviens Sacha moi-même ») ; `?sans=bordsmap` rend le rose partout.
+
 ## LE PRÉ-BÂTI — LA MAP D'EN FACE SE BÂTIT PENDANT QU'ON ROULE (2026-10-18, Léo : « super push » ; demandé le 2026-10-17 soir, Léo : « la pause du passage est beaucoup trop longue » — le portail de cubes, 3e tour)
 - MESURÉ AVANT (banc : téléphone simulé 390 × 844, processeur ×4) : au passage, newTrack bloquait le script d'un bloc — 0,35 à 1,35 s (la jade 1,35 s,
   le canyon et la forêt 0,75 s) : la ROUTE (génération, courbe, repères, bitume, flancs, rails, nappe, ligne) puis le DÉCOR. Voile 0,8 à 1,9 s.

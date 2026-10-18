@@ -16225,13 +16225,18 @@ const BITUME_MOUILLE=['#if defined(USE_ENVMAP)&&defined(ENVMAP_TYPE_CUBE)',
    pixel à 1 m de l'œil) est écrit par routeTick. Coût : une poignée d'opérations par SOMMET, zéro par pixel.
    `pal` : 0 = opaque (on assombrit), 1 = additif (on divise l'énergie), 2 = alpha (on éclaircit l'alpha). */
 const TRAIT_U={uPx:{value:.002}};
+const BMAP_U={uRgb:{value:0},uRgbT:{value:0},uRgbK:{value:0}}; // (2026-10-18, Léo) LE BOOST RGB des bords (voir BMAP) : part d'arc-en-ciel, défilement (tours), pas du scintillement
 function traitMat(m,minPx,pal){
-  m.onBeforeCompile=function(sh){sh.uniforms.uPx9=TRAIT_U.uPx;
-    sh.vertexShader='attribute vec3 aLat;uniform float uPx9;varying float vK9;\n'+sh.vertexShader.replace('#include <begin_vertex>',
+  const rgb9=pal<2; // (2026-10-18, Léo : « quand on booste, les côtés scintillent un peu en mode RGB ») les RAILS (0) et la NAPPE (1) — les seuls à porter ces deux programmes — peignent l'arc-en-ciel du boost (BMAP_U, à 0 hors boost : rien ne change)
+  m.onBeforeCompile=function(sh){sh.uniforms.uPx9=TRAIT_U.uPx;if(rgb9){sh.uniforms.uRgb9=BMAP_U.uRgb;sh.uniforms.uRgbT9=BMAP_U.uRgbT;sh.uniforms.uRgbK9=BMAP_U.uRgbK;}
+    sh.vertexShader='attribute vec3 aLat;uniform float uPx9;varying float vK9;\n'+(rgb9?'attribute float aS;varying float vS9;\n':'')+sh.vertexShader.replace('#include <begin_vertex>',
       '#include <begin_vertex>\n{float hw9=max(length(aLat),1e-4),d9=max(0.,-(modelViewMatrix*vec4(position,1.)).z);'+
-      'float k9=max(1.,'+minPx.toFixed(2)+'*.5*uPx9*d9/hw9);transformed+=aLat*(k9-1.);vK9=1./k9;}');
-    sh.fragmentShader='varying float vK9;\n'+sh.fragmentShader.replace('#include <fog_fragment>',
-      (pal===0?'gl_FragColor.rgb*=.35+.65*sqrt(vK9);':pal===1?'gl_FragColor.rgb*=vK9;':'gl_FragColor.a*=.25+.75*vK9;')+'\n#include <fog_fragment>');
+      'float k9=max(1.,'+minPx.toFixed(2)+'*.5*uPx9*d9/hw9);transformed+=aLat*(k9-1.);vK9=1./k9;}'+(rgb9?'vS9=aS;':''));
+    sh.fragmentShader='varying float vK9;\n'+(rgb9?'varying float vS9;uniform float uRgb9,uRgbT9,uRgbK9;\n':'')+sh.fragmentShader.replace('#include <fog_fragment>',
+      (pal===0?'gl_FragColor.rgb*=.35+.65*sqrt(vK9);':pal===1?'gl_FragColor.rgb*=vK9;':'gl_FragColor.a*=.25+.75*vK9;')+
+      (rgb9?'if(uRgb9>.001){float h9=fract(vS9*.016+uRgbT9);vec3 c9=clamp(abs(mod(h9*6.+vec3(0.,4.,2.),6.)-3.)-1.,0.,1.);'+ // la teinte de l'arc-en-ciel à cet endroit de la route (tout le spectre en ~60 m)
+        'float n9=fract(sin(mod(floor(vS9*.4),997.)*12.9898+uRgbK9*78.233)*43758.5453);'+ // le SCINTILLEMENT : chaque tronçon de ~2,5 m tire son éclat, 16 fois par seconde — un sur sept ÉCLATE (blanc vif) : le flou de vitesse du boost avalait un simple frémissement (vu au banc)
+        'float I9=max(max(gl_FragColor.r,gl_FragColor.g),gl_FragColor.b);gl_FragColor.rgb=mix(gl_FragColor.rgb,mix(c9,vec3(1.),.45*step(.86,n9))*I9*(.7+.3*n9+1.4*step(.86,n9)),uRgb9);}':'')+'\n#include <fog_fragment>');
   };
   m.customProgramCacheKey=function(){return 'trait'+pal+'_'+minPx;};
   m.polygonOffset=true; // … et plus de Z-FIGHTING : 4 à 9 cm au-dessus du bitume, c'était sous la précision du tampon de profondeur dès 300 m
@@ -16343,9 +16348,51 @@ function routeSig(){const c=typeof LVL!=='undefined'&&LVL.cur;if(!c||!c.bio)retu
 const BORDS={jour:new THREE.Color(0xc9c3b6),nuit:new THREE.Color(0xe8e4da),kJ:1,kNuit:.62,glowN:.4,jf:1}; // kNuit .62 = le « rail blanc doux » (le rail est opaque : on baisse sa couleur ; .5 sortait un peu mince au banc, le bord du vide doit rester lisible) · glowN .4 = la nappe ambre garde 40 % de son opacité la nuit
 const LIGNE_OPJ=BORDS_V2?.55:.42; // l'opacité de la ligne centrale aux PICS DE JADE (blanc cassé sur béton clair : un peu plus franche)
 const _c9=new THREE.Color(),_d9=new THREE.Color();
+/* (2026-10-17, Léo : « je voudrais que les maps aient les côtés lumineux de la route en fonction de la map, les couleurs, et qu'ils évoluent en
+   fonction de comment la personne booste ») LES BORDS DE LA MAP. Chaque map du JOUER a SA couleur de bord (`BMAP_PAL`) — les rails, leur nappe
+   de lueur et le liseré des flancs (ROAD_U.uAcc) la prennent : ~70 % de jour, pleine la nuit et sous la pluie (la règle de la bible, qui mettait le
+   ROSE partout). La MER DE NUAGES garde le rose de la marque (son orage le retrouve : il avait perdu la signature) ; la VILLE au néon garde ses
+   teintes et son caméléon (elle n'est pas dans la palette). La NAPPE porte une couleur de sommet NEUTRE (sa force, ka9) et sa MATIÈRE la teinte
+   (accC, posée par buildTrack) : à l'image près la même chose pour les maps hors palette. `?sans=bordsmap` = avant (le rose partout).
+   (2026-10-18, Léo : « quand on booste, les côtés scintillent un peu en mode RGB, mais chaque niveau a sa couleur de base ») LE BOOST RGB : au boost,
+   les bords quittent leur couleur pour un ARC-EN-CIEL qui court le long de la route (tout le spectre en ~60 m, `aS` = l'abscisse de la piste) et
+   SCINTILLE (chaque tronçon de ~2,5 m tire son éclat 16 fois par seconde, un sur sept éclate en blanc) ; ils s'allument un peu plus fort (la lueur prend) ; lâché, la
+   couleur de la map revient en ~0,3 s. C'est le trait des bords (`traitMat`, rails et nappe : leurs programmes à eux seuls) qui le peint, mené par
+   trois uniformes (`BMAP_U`) : aucun programme de plus (mesuré : dbgProgs). `?bordsboost=0` = pas d'effet au boost. `dbgBordsMap()` (ce qui est posé),
+   `dbgBordsMap('canyon',0x22e0c2)` (essayer une couleur), `dbgBordsMap('rgb',1)` (l'arc-en-ciel sans boost, pour les photos). */
+const BMAP_V=!/[?&]sans=([^&]*,)?bordsmap(,|&|$)/.test(location.search);
+const BMAP_PAL={nuages:0xf24aa0,jade:0x2ee8a6,foret:0xc8f03c,banquise:0x52d8ff,volcan:0xffe03a,crypto:0xffc23a,espace:0x8c6bff,canyon:0x22e0c2,vitree:0x2f8cff};
+const BMAP_B=!/[?&]bordsboost=0\b/.test(location.search);
+const BMAP={c:new THREE.Color(),g:new THREE.Color(),t:0,ph:0,cle:null,i:0,rgb:0,force:null};
+function bmapCle(){const c=typeof LVL!=='undefined'&&LVL.cur;if(!BMAP_V||!c||PARK.on)return null; // la map de la palette (null : la ville au néon, le parc, une map sans couleur)
+  const k=c.carte||(c.crypto?'crypto':c.vitre?'vitree':c.id==='orage'?'nuages':c.id);return BMAP_PAL[k]!=null&&c.id!=='paris'?k:null;}
+function bmapBoost(){ // L'ÉLAN DU BOOST → BMAP.rgb (part d'arc-en-ciel), BMAP.i (éclat en plus) ; fait défiler et scintiller l'arc-en-ciel (BMAP_U)
+  let e=0,ig=0,pad=0,dt=0;
+  try{const t=performance.now()*.001;dt=paused?0:Math.min(.1,Math.max(0,t-BMAP.t));BMAP.t=t; // (bordsTick tourne dès buildTrack : NFX et la course peuvent ne pas être nés)
+    const vit=running&&!gameOver&&mode!=='boom';e=vit?NFX.len:0;ig=vit?NFX.ign*NFX.ign*NFX.ignK:0;pad=vit&&!nitroOn&&boost>0?1:0;}catch(x){}
+  if(!BMAP_B)e=ig=pad=0;if(BMAP.force!=null)e=BMAP.force;
+  BMAP.rgb=Math.min(1,.82*e+.3*ig);BMAP.i=.6*e+.15*pad; // NFX.len : il s'ouvre en ~0,1 s, se referme en ~0,3 s — le pad turbo allume un peu, sans arc-en-ciel
+  BMAP.ph=(BMAP.ph+dt*(.45+.5*e))%1; // l'arc-en-ciel défile vers l'arrière (il double la vitesse de la caisse)
+  BMAP_U.uRgb.value=BMAP.rgb;BMAP_U.uRgbT.value=BMAP.ph;BMAP_U.uRgbK.value=Math.floor(BMAP.t*16)%997;}
+function bmapPeint(k){ // remplace la peinture des bords pour une map de la palette (appelée par bordsTick, à chaque image)
+  const jf=(1-LVL.nuit)*(1-Math.min(1,LVL.pluie*1.5));BORDS.jf=jf;BMAP.cle=k;bmapBoost();
+  let kk=1;if(!contiMap())try{const kv=(CAMP.n===16?VC.cour:1)*(1-.6*LVL.nuit);if(kv<.999)kk=1/(.07+.93*kv);}catch(e){} // villeApres baissera les rails ×kr et la nappe ×kr² (les PICS DE JADE et CRYPTO CITY ne sont pas des six maps) : on l'annule d'avance — pleins la nuit
+  BMAP.c.setHex(BMAP_PAL[k]);ROAD_U.uAcc.value.copy(BMAP.c); // le liseré des flancs et le reflet des flaques parlent la même couleur
+  const dj=.7+.3*(1-jf),I=BMAP.i; // de jour à 70 % ; le boost rallume jusqu'au plein (et au-delà : la lueur — bloom — prend au-dessus de ~0,92)
+  _c9.copy(BMAP.c).multiplyScalar(Math.min(1.9,dj+(1-dj)*Math.min(1,I)+.55*I)*kk);
+  for(let i=0;i<NEON_RAILS.length;i++){const m=NEON_RAILS[i];if(m.userData.base)m.color.copy(_c9);}
+  BMAP.g.copy(BMAP.c).multiplyScalar(1+1.6*I); // la nappe (additive) : sa couleur monte avec le boost, son opacité suit le jour
+  const og=Math.min(1,.78*(.55+.45*(1-jf))+.22*Math.min(1,I))*kk*kk;if(og>1)BMAP.g.multiplyScalar(og); // (au-delà d'une opacité pleine, c'est la couleur qui porte le reste : la nappe additive reste pleine la nuit sous villeApres)
+  for(let i=0;i<NEON_GLOW.length;i++){const m=NEON_GLOW[i];if(m.userData.base!=null){m.color.copy(BMAP.g);m.opacity=Math.min(1,og);}}}
+window.dbgBordsMap=function(k,hex){if(k==='rgb'){BMAP.force=hex==null?null:+hex;}else if(k&&hex!=null){BMAP_PAL[k]=hex;}if(k){bordsTick();try{villeApres();}catch(e){}if(paused&&POST_ON&&composer)composer.render();}
+  return {on:BMAP_V,boost:BMAP_B,cle:BMAP.cle,pal:Object.keys(BMAP_PAL).map(function(n){return n+' #'+('00000'+BMAP_PAL[n].toString(16)).slice(-6);}),
+  rgb:+BMAP.rgb.toFixed(2),i:+BMAP.i.toFixed(2),force:BMAP.force,u:[+BMAP_U.uRgb.value.toFixed(2),+BMAP_U.uRgbT.value.toFixed(2),BMAP_U.uRgbK.value],rail:NEON_RAILS[0]?NEON_RAILS[0].color.toArray().map(function(x){return +x.toFixed(3);}):null,
+  nappe:NEON_GLOW[0]?NEON_GLOW[0].color.toArray().map(function(x){return +x.toFixed(3);}).concat([+NEON_GLOW[0].opacity.toFixed(3)]):null};};
 function bordsTick(){ // appelée par musicTick, APRÈS la peinture « caméléon » des rails et de la nappe
   skyU.uRose.value=(PLAFROSE_V&&villeRose())?1:0; // (plafrose, Sacha : « la ville la nuit = ROSE ») le plafond de la pluie et de l'orage retrouve sa lueur LILAS et son éclair violet en ville au néon
+  BMAP_U.uRgb.value=0; // (2026-10-18, boost RGB) l'arc-en-ciel n'est posé que par bmapPeint (maps de la palette)
   if(villeRose())return; // (villerose) la ville au néon garde ses rails et sa nappe ROSES (la peinture caméléon d'avant)
+  {const k9=bmapCle();if(k9){bmapPeint(k9);return;}} // (2026-10-17, Léo) LES BORDS DE LA MAP : la couleur de la map, et le boost (voir BMAP)
   if(routeSig()){const jf=(1-LVL.nuit)*(1-Math.min(1,LVL.pluie*1.5));BORDS.jf=jf;_c9.setHex(LVL.cur&&LVL.cur.vitre?0x2f8cff:0xf24aa0) /* (2026-10-17, Léo) la VILLE VITRÉE : les bords de la route en BLEU */.multiplyScalar(.7+.3*(1-jf)); // (bible) la SIGNATURE : rails roses (70 % de jour, plein la nuit), nappe à 55 % de jour
     for(let i=0;i<NEON_RAILS.length;i++){const m=NEON_RAILS[i];if(m.userData.base)m.color.copy(_c9);}
     for(let i=0;i<NEON_GLOW.length;i++){const m=NEON_GLOW[i],b=m.userData.base;if(b!=null)m.opacity=Math.min(1,b*(.55+.45*(1-jf)));}return;}
@@ -16915,23 +16962,24 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   if(VILLE_NUIT_V)vtCol(accC,vtCur()); // (2026-10-16) LES TEINTES DE LA VILLE : le rose de la route prend la couleur de la ville (rails, nappe, flaques, couronnes des tours)
   W.accC=accC; // (LE PRÉ-BÂTI) posé sur le bitume à l'installation (pisteInstalle) — (2026-09-26) le bitume mouillé reflète aussi l'accent de la zone
   // BANDES NÉON (dessus + dessous) : les rails de Vice City — couleur d'accent de la zone
-  {const ep=new Float32Array(4*NP*6),el=new Float32Array(4*NP*6);let q=0; // (passe perf) les QUATRE rails dans un seul maillage, une seule matière (le caméléon les peignait tous pareil), découpé en tranches — (chasse aux gels) écrits en place
+  {const ep=new Float32Array(4*NP*6),el=new Float32Array(4*NP*6),es9=new Float32Array(4*NP*2),dS9=L/Math.max(1,NP-1);let q=0; // (passe perf) les QUATRE rails dans un seul maillage, une seule matière (le caméléon les peignait tous pareil), découpé en tranches — (chasse aux gels) écrits en place
   for(const fy of [0,-THICK]) for(const sd of [-1,1]){ // el : `aLat`, du milieu du rail vers chaque bord (voir traitMat)
     for(let i=0;i<NP;i++,q+=6){if((i&2047)===2047)yield;
       const p=pts[i],b=B[i],nn=Nn[i],o=sd*(ROAD_HALF+.05),h=fy+(fy===0?.06:-.06);
       ep[q]=p.x+b.x*(o-sd*.6)+nn.x*h;ep[q+1]=p.y+b.y*(o-sd*.6)+nn.y*h;ep[q+2]=p.z+b.z*(o-sd*.6)+nn.z*h;
       ep[q+3]=p.x+b.x*o+nn.x*h;ep[q+4]=p.y+b.y*o+nn.y*h;ep[q+5]=p.z+b.z*o+nn.z*h;
       el[q]=-b.x*sd*.3;el[q+1]=-b.y*sd*.3;el[q+2]=-b.z*sd*.3;el[q+3]=b.x*sd*.3;el[q+4]=b.y*sd*.3;el[q+5]=b.z*sd*.3;
+      es9[q/3]=es9[q/3+1]=i*dS9; // (2026-10-18, boost RGB) l'abscisse de la piste : l'arc-en-ciel court le long de la route
     }
   }
     const mat9=traitMat(new THREE.MeshBasicMaterial({color:accC,side:THREE.DoubleSide,polygonOffsetFactor:-2,polygonOffsetUnits:-2}),1.5,0);
     mat9.userData.base=accC.clone(); // la teinte d'accent de la zone, à retrouver après chaque pulsation
     NEON_RAILS.push(mat9);
-    yield* pisteTranches({position:[ep,3],aLat:[el,3]},{blocs:4,pr:2,np:NP,pas:1},holeSeg,mat9,{marge:20}); // les rails néon s'arrêtent au bord du vide
+    yield* pisteTranches({position:[ep,3],aLat:[el,3],aS:[es9,1]},{blocs:4,pr:2,np:NP,pas:1},holeSeg,mat9,{marge:20}); // les rails néon s'arrêtent au bord du vide
   }
   // NAPPE DE LUEUR sous chaque bande : additif qui saigne vers l intérieur du bitume — sans fog, le néon perce
   // la brume et les rails roses filent jusqu au bout de la nuit (1 mesh par face : gauche+droite fusionnées)
-  {const gp=new Float32Array(4*NP*6),gc=new Float32Array(4*NP*6),gl=new Float32Array(4*NP*6);let q=0; // (passe perf) les deux faces dans un seul maillage, une seule matière (même opacité pulsée), découpé en tranches — (chasse aux gels) écrits en place
+  {const gp=new Float32Array(4*NP*6),gc=new Float32Array(4*NP*6),gl=new Float32Array(4*NP*6),gs9=new Float32Array(4*NP*2),dS9=L/Math.max(1,NP-1);let q=0; // (passe perf) les deux faces dans un seul maillage, une seule matière (même opacité pulsée), découpé en tranches — (chasse aux gels) écrits en place
   for(const fy of [0,-THICK]){
     const mo9=LVL.cur&&LVL.cur.pluie?1:0,lg9=1.15+2.2*mo9,ka9=(.48+.14*mo9)*(idA9==='paris'?0:1); // (2026-09-26) sous la PLUIE le bitume mouillé renvoie le rail : la nappe s'élargit (1,15 → 3,35 m) et chauffe un peu
     for(const sd of [-1,1]){
@@ -16941,15 +16989,17 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
         gp[q]=p.x+b.x*oI+nn.x*h;gp[q+1]=p.y+b.y*oI+nn.y*h;gp[q+2]=p.z+b.z*oI+nn.z*h;
         gp[q+3]=p.x+b.x*oO+nn.x*h;gp[q+4]=p.y+b.y*oO+nn.y*h;gp[q+5]=p.z+b.z*oO+nn.z*h;
         gl[q]=-b.x*sd*lg9*.5;gl[q+1]=-b.y*sd*lg9*.5;gl[q+2]=-b.z*sd*lg9*.5;gl[q+3]=b.x*sd*lg9*.5;gl[q+4]=b.y*sd*lg9*.5;gl[q+5]=b.z*sd*lg9*.5;
-        gc[q+3]=accC.r*ka9;gc[q+4]=accC.g*ka9;gc[q+5]=accC.b*ka9; // noir additif = invisible → dégradé d'accent qui meurt sur l asphalte (le noir : les zéros du tableau neuf)
+        gs9[q/3]=gs9[q/3+1]=i*dS9; // (boost RGB) l'abscisse de la piste
+        if(BMAP_V)gc[q+3]=gc[q+4]=gc[q+5]=ka9;else{gc[q+3]=accC.r*ka9;gc[q+4]=accC.g*ka9;gc[q+5]=accC.b*ka9;} // noir additif = invisible → dégradé d'accent qui meurt sur l asphalte (le noir : les zéros du tableau neuf) — (2026-10-17, bords de la map) la FORCE seule : la teinte est dans la matière
       }
     }
   }
     const mat9=traitMat(new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,transparent:true,opacity:.78,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,polygonOffsetFactor:-1,polygonOffsetUnits:-1}),2,1);
+    if(BMAP_V)mat9.color.copy(accC); // (2026-10-17, bords de la map) la teinte de la nappe : l'accent de la zone (bmapPeint la repeint aux maps de la palette)
     mat9.userData.base=.78; // opacité de repos — la pulsation part de là et y revient
     NEON_GLOW.push(mat9);
     W.bords=BORDS_V2; // (LE PRÉ-BÂTI) bordsTick part à l'installation — (2026-10-14, bords-route) la 1re image du rail est déjà à la bonne couleur (chanfrein de jour / rail blanc de nuit)
-    yield* pisteTranches({position:[gp,3],color:[gc,3],aLat:[gl,3]},{blocs:4,pr:2,np:NP,pas:1},holeSeg,mat9,{ordre:1,marge:20}); // ...et leur nappe aussi
+    yield* pisteTranches({position:[gp,3],color:[gc,3],aLat:[gl,3],aS:[gs9,1]},{blocs:4,pr:2,np:NP,pas:1},holeSeg,mat9,{ordre:1,marge:20}); // ...et leur nappe aussi
   }
   // ligne centrale pointillée — sodium doré, comme les vraies voies rapides la nuit (les DEUX faces : zéro dessus-dessous)
   /* (2026-09-26) UNE VRAIE PEINTURE AU SOL. C'était un trait GL d'UN pixel : aussi fin sous la caisse qu'à 2 km, crénelé, et au loin des

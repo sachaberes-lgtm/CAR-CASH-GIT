@@ -170,6 +170,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   le grand livre `LIVRE`/`livre`/`dbgLivre`. LA FIGURE SE PAIE (17/10, loi 6, `NITRO2.figN`) : 20 % au lancement, 40 % par figure
   LANCÉE à la pose réussie (30 % jusqu'au 18/10), cumulable, le trop-plein dans la réserve bleue (17/10 soir) — `figNitCout`/`figNitPaye`/`figNitRend`, `FX2.nitL`
   (lancements) / `FX2.nitF` (plantées), `dbgFigNit()`.
+- **Bords de la route** (18/10, Léo) : une couleur de BASE par map (`BMAP_PAL`, `bmapCle`, `bmapPeint` dans `bordsTick` : rails, nappe, liseré `ROAD_U.uAcc` ;
+  la ville garde ses teintes) et au boost le SCINTILLEMENT RGB (`bmapBoost`, `BMAP_U`, peint par `traitMat` sur l'abscisse `aS`). `?sans=bordsmap`, `?bordsboost=0`, `dbgBordsMap()`.
 - **Lumières de la caisse** (17/10) : phares, feux arrière, feu du nitro, flamme du moteur et traînées ÉCLAIRENT LE BITUME dans son shader (`LUM_GLSL`/`lmRoute`,
   uniformes `LUM_U`, `LM_N` lampes-segments + deux phares ; `lumTick` les pose en monde, `lumVue` — chaîné sur `scene.onBeforeRender` — les passe en vue ; réglages
   `LUMK`) et la lueur des feux allume la CAISSE et sa lunette (`FEU_U`/`FEU_GLSL`, bloc VOITURES) — aucune lumière three. `?sans=lumieres` = avant.
@@ -482,6 +484,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - Le mode classique au hasard (13/10) n'a pas de section : le commentaire « LE MODE CLASSIQUE AU HASARD » au-dessus de `const SF` fait foi.
 
 - « LE PORTAIL DE CUBES — LA FENÊTRE SUR LA MAP D'EN FACE, LE PASSAGE QUI SE DÉFAIT EN CUBES » (17/10, Léo)
+- « LES BORDS DE LA MAP — UNE COULEUR PAR MAP, LE SCINTILLEMENT RGB AU BOOST » (18/10, Léo) — `BMAP_PAL`, `bmapPeint`, `bmapBoost`, `BMAP_U`, `dbgBordsMap`
 - « LE PRÉ-BÂTI — LA MAP D'EN FACE SE BÂTIT PENDANT QU'ON ROULE » (18/10, Léo) — `PREB`, `pisteRoute`, `prebEchange`, `prebDecorG`, `?prebati=0`, `dbgPrebati`
 - « LES NUAGES EN VITRAIL » (18/10, Léo) — `nuage8Calc` opt.vit, `nuVitMats`, `NUVIT`/`NV_DOSES`, `dbgNuVit`
 - « LA FORÊT NOIRE EN VITRAIL — PONTS, MOUSSE, PLEUREURS (+ LA VILLE AUX FAÇADES GTA) » (17/10, Léo) — `VITRAIL_V`, `forZigzag`, `MOUSSE_V`, `TORDUS_V`, `PLEUR_V`, `VILLE_GTA_V`
