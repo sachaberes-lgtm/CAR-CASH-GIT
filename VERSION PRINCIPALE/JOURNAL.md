@@ -3,6 +3,27 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES TRAÎNÉES, PASSE GLOBALE : LISIBLES DE JOUR, LE FEU À LEUR COULEUR, LA COULEUR GARDÉE (2026-10-18, v658, Sacha : « améliore toutes les traînées en cherchant globalement à les améliorer »)
+Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par traînée : la session du 16-17/10 avait soigné chacune.
+- VU AVANT (banc muet : les 16 en mer de nuages midi, puis A/B même code ± la passe) : (1) de JOUR, ce qui brille dans les traînées POP — filés
+  d'HYPERESPACE, code de MATRICE, éclairs, paillettes, cœurs de néon — s'effaçait sur le ciel clair et les nuages (une lumière additive ne fait
+  qu'éclaircir le blanc), et les rubans pâlissaient dès qu'ils passaient sur le ciel (en vol) ; (2) au nitro, un ruban vert, rose ou bleu sortait
+  d'une boule de feu ROUGE ; (3) après le nitro, tant que dure le boost, la traînée reste à mi-énergie et sa couleur se MÉLANGEAIT au rouge des
+  feux : MENTHE devenait jaune doré (on aurait dit POUDRE D'OR), HYPERESPACE violacé ; (4) là où le ruban passe dans l'axe du regard (vol,
+  vrilles), son côté s'inversait d'une rangée à l'autre et la bande se pinçait en nœud papillon.
+- (1) LE VOILE DE JOUR (`TRJ`) : sous le halo de chaque ruban, un voile d'ENCRE (la salle blanche, `silEncre`) teinte le fond de la couleur de la
+  traînée, puis la lumière s'y pose — le gris devient vert sous MENTHE, le ciel bleu nuit sous les filés. Il suit `LUM.nuit` (la lumière du lieu,
+  celle des phares) : NUL la nuit, plein en plein jour ; surtout au nitro (le trait des feux arrière reste discret de jour). Rubans : un maillage
+  enfant `tr.mi` (même géométrie, ses couleurs, cœur exclu) ; TRX : un enfant du maillage additif, même programme (`uInk` dans TRX_FS).
+  `?sans=encrejour` = avant. Au garage et en boutique, rien ne change.
+- (2) LE FEU À SA COULEUR : au nitro le halo du feu arrière (`HALO.t`) prend la teinte de la traînée à la mesure de son énergie et enfle d'un tiers
+  (`VIT9.trC`/`trK`, posés par la boucle, lus par `carVit`) ; il retourne au rouge avec elle. Réserve bleue et nitro infinie : bleu, violet.
+- (3) LA COULEUR GARDÉE (`cw9`) : la bascule rouge des feux → couleur de la traînée est pleine dès 38 % d'énergie, et le court passage creuse
+  l'éclat au lieu de montrer la teinte boueuse. L'énergie (longueur, chaleur, pouls) suit toujours `trailK`.
+- (4) Le côté du ruban garde son sens d'une rangée à l'autre (`SP` dans `silRuban`).
+- MESURÉ : A/B jour (6 traînées, sol + vol) et extinction ; temps par image inchangé au banc ; aucun programme compilé en plus
+  (le mélange n'entre pas dans la clé des programmes de three r128) ; +1 appel de dessin par ruban visible, de jour seulement.
+
 ## LA VILLE, NÉON ET VERRE — LES GÉANTES DE LA VILLE VITRÉE DANS LA VILLE AU NÉON (2026-10-18, session VILLE-NEON — Sacha : « mets-toi dans la peau d'une designer de jeux vidéo senior et fusionne les maps ville et ville vitrée ; on garde l'ambiance néon et tout, mais avec certains bâtiments qui viennent de la ville vitrée »)
 - L'IDÉE (le parti de designer) : LE NÉON AU PIED, LE VERRE DANS LE CIEL. La ville garde tout ce qui fait son identité (la nuit, ses quatre temps,
   ses quatre teintes, les enseignes, les réclames, la pluie, la descente en spirale, GLASSY PLUCKS) ; les tours qui MONTENT au-dessus de la route —
