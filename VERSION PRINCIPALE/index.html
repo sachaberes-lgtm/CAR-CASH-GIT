@@ -4656,7 +4656,6 @@ html body #flowHud .fT.trois{gap:5px}
   html body.touch #nitroBar.plein #nitroR,html body.touch #nitroBar.plein #nitroX,html body.touch #nitroBar::before,html body.touch #nitroBar.bas,
   html body.touch #flowHud.monte .fSeg::after,html body.touch #flowHud.monte .fM,html body.touch #flowHud.monte .fL,html body.touch #auraV2 .avTot.pulse,
   html body.touch #avRec.presque,html body.touch #avX.up,html body.touch #avX.feu,html body #triade .trPiece,html body.touch #pwrChip .pw,html body.touch #airPie,html body #tSteer.act #tStick{animation:none!important}
-  html body.touch #ajCourse .ajSeg::after{animation:none!important} /* (passe qualité) la jauge d'aura suit la règle */
   html body.touch #avCh{transform:none}
 }
 html[data-reduced-motion="1"] body.touch.play :is(#nitroWrap,#flowHud,#tGear,#auraV2,#ajCourse),html[data-reduced-motion="1"] body.touch #pwrChip .pw,
@@ -6848,40 +6847,9 @@ html body.touch #nitroBar.boost #nitroR::after,html body.touch #nitroBar.inf #ni
 @keyframes nbBout{50%{box-shadow:0 0 14px #fff1c8,0 0 26px #ff8d2e;background:#fff}}
 html body.touch #nitroFeu{display:none!important}
 /* ---- 2. LA JAUGE D'AURA = la barre flow d'origine ---- */
-#ajCourse,#ajVols{display:none}
-html body.touch.play #ajCourse{display:block;position:fixed;z-index:6;left:var(--hudG);right:calc(var(--hudD) + 70px);top:calc(var(--hudH) + 49px);
-  padding:0 var(--nxV) 0 34px;box-sizing:border-box;pointer-events:none}
-html body.touch.play #ajCourse{animation:hmHaut .55s var(--ease) 1.25s both}
-#ajCourse::before{content:'';position:absolute;left:4px;top:-2px;width:18px;height:18px;background:var(--ajI,#5ee6ff);transition:background .3s;
-  -webkit-mask:var(--pxi-etoile) center/100% 100% no-repeat;mask:var(--pxi-etoile) center/100% 100% no-repeat;filter:drop-shadow(0 2px 0 #1c0430)}
-#ajCourse .ajBar{position:relative}
-#ajCourse .ajSeg{position:relative;display:flex;gap:2px;height:14px;padding:3px;box-sizing:border-box;overflow:hidden;
-  background:#0d0a2a;box-shadow:inset 0 0 0 3px #170f55,0 3px 0 #170f55,0 6px 10px rgba(0,0,0,.35);transition:box-shadow .15s}
-#ajCourse .ajSeg>i{flex:1 1 0;min-width:0;position:relative;overflow:hidden;display:block;background:rgba(255,255,255,.09);transition:flex-grow .45s var(--ease)}
-#ajCourse .ajSeg>i:nth-child(4){flex-grow:0}
-#ajCourse.revele .ajSeg>i:nth-child(4){flex-grow:1}
-#ajCourse .ajSeg s{position:absolute;left:0;top:0;bottom:0;width:calc(var(--f,0) * 100%);
-  background:var(--sc); /* (2026-10-12, passe qualité) repli : sans color-mix (iOS 15 / 16.0-16.1) tout le dégradé tombe et la jauge restait VIDE */
-  background:linear-gradient(180deg,color-mix(in srgb,var(--sc) 40%,#fff) 0 2px,var(--sc) 2px 50%,color-mix(in srgb,var(--sc) 80%,#000) 50% calc(100% - 2px),color-mix(in srgb,var(--sc) 55%,#000) calc(100% - 2px))}
-#ajCourse .ajSeg>i.cur s::after{content:'';position:absolute;right:0;top:0;bottom:0;width:3px;background:#fff6d8;box-shadow:0 0 6px var(--sc)}
-#ajCourse .ajSeg::after{content:'';position:absolute;inset:3px;pointer-events:none;
-  background:linear-gradient(100deg,transparent 40%,rgba(255,255,255,.35) 50%,transparent 60%) no-repeat;background-size:300% 100%;animation:nbReflet 3.6s ease-in-out infinite}
+#ajVols{display:none}
 /* l'aura qui arrive : la cellule en cours s'éclaire, la barre bat */
-#ajCourse .ajSeg>i.cur s::before{content:'';position:absolute;inset:0;background:#fff;opacity:0}
-#ajCourse.prend .ajSeg>i.cur s::before{animation:ajPrend .32s var(--ease)}
-#ajCourse.prend2 .ajSeg>i.cur s::before{animation:ajPrend2 .32s var(--ease)} /* (2026-10-15, perf-devtools) la jumelle : alterner prend/prend2 relance sans offsetWidth (voir jumelle) */
-@keyframes ajPrend{0%{opacity:.6}100%{opacity:0}}
-@keyframes ajPrend2{0%{opacity:.6}100%{opacity:0}}
 @keyframes ajBat{0%{scale:1 1.3}100%{scale:1 1}}
-/* le RECORD battu : le cadre à l'or */
-#ajCourse.record .ajSeg{box-shadow:inset 0 0 0 3px #ffc93a,0 3px 0 #7a4200,0 0 14px rgba(255,201,58,.55)}
-/* le BOUT : « MOY » puis « RECORD », et le chiffre à atteindre (sous la vitesse) — record battu, de combien */
-#ajCourse .ajLbl{position:absolute;left:100%;top:50%;width:var(--nxV);transform:translateY(-50%);box-sizing:border-box;padding-left:8px;
-  display:flex;flex-direction:row;align-items:baseline;justify-content:flex-end;gap:4px;font-family:var(--pix);font-style:normal;line-height:1;white-space:nowrap}
-#ajCourse .ajLbl small{font-size:8px;letter-spacing:1px;color:var(--ajI,#5ee6ff);filter:var(--contourP)}
-#ajCourse .ajLbl b{font-weight:normal;font-size:9px;color:#f0f6ff;filter:var(--contourP)}
-#ajCourse.record .ajLbl small,#ajCourse.record .ajLbl b{color:#ffc93a}
-#ajCourse .ajLbl.serre small{display:none} #ajCourse .ajLbl.serre2 b{font-size:10px} /* (passe qualité) le bout trop long pour sa place : voir ajSerre */
 /* ---- 3. LE FLOW EN TOUT PETIT, juste dessous (toute sa logique intacte) ---- */
 html body.touch #flowHud{top:calc(var(--hudH) + 69px)!important;right:calc(var(--hudD) + 70px)!important;padding:0 var(--nxV) 0 34px!important;
   grid-template-rows:6px!important;gap:0!important}
@@ -6896,9 +6864,6 @@ html body.touch #flowHud .fM{position:absolute;left:calc(100% - var(--nxV));righ
 html body.touch #flowHud[data-lv="4"]::after{top:-10px!important;height:24px!important}
 /* ---- couché : les barres gardent toute leur longueur, les bouts (MOY, ×CASH) passent À DROITE, sous la vitesse ---- */
 @media (orientation:landscape) and (max-height:540px){
-  html body.touch.play #ajCourse{right:auto;width:min(50vw,440px);padding-right:0;top:calc(var(--hudH) + 52px)}
-  #ajCourse .ajLbl{left:calc(100% + 18px);width:auto;padding-left:0;gap:6px}
-  #ajCourse .ajLbl b{font-size:13px}
   html body.touch #flowHud{right:auto!important;width:min(50vw,440px)!important;padding-right:0!important;top:calc(var(--hudH) + 73px)!important}
   html body.touch #flowHud .fM{left:calc(100% + 18px);right:auto;width:auto;padding-left:0;justify-content:flex-start;font-size:9px!important}
 }
@@ -6931,24 +6896,20 @@ html body.touch #nitroR,html body.touch #nitroX{transition:none!important}   /* 
 /* la pause passe devant : la jauge et ce qui vole se cachent comme le reste du HUD */
 body.hTp:not(#ccH) :is(#ajCourse,#ajVols){visibility:hidden}
 body.coOn :is(#ajCourse,#ajVols){visibility:hidden} /* (2026-10-12, passe qualité) l'auto-école garde le haut de l'écran pour elle, comme le flow et l'aura (voir body.coOn #flowHud) */
-@media (prefers-reduced-motion:reduce){#ajVols u.on,#ajVols u.on2,html body.touch #nitroBar>.nbPrend.on,html body.touch #nitroBar>.nbPrend.on2,#ajCourse .ajSeg::after,html body.touch #nitroBar.boost #nitroR,html body.touch #nitroBar.bleu #nitroX,html body.touch #nitroBar.inf #nitroR,html body.touch #nitroBar.inf #nitroX,html body.touch #nitroBar #nitroR::after{animation:none!important}}
+@media (prefers-reduced-motion:reduce){#ajVols u.on,#ajVols u.on2,html body.touch #nitroBar>.nbPrend.on,html body.touch #nitroBar>.nbPrend.on2,html body.touch #nitroBar.boost #nitroR,html body.touch #nitroBar.bleu #nitroX,html body.touch #nitroBar.inf #nitroR,html body.touch #nitroBar.inf #nitroX,html body.touch #nitroBar #nitroR::after{animation:none!important}}
 /* ---- 4. (2026-10-12, Léo : « l'aura un peu plus courte, les km/h plus à droite encore, et le flow même taille ») : la jauge d'aura et le flow à
    80 % de la barre de boost (même longueur l'une que l'autre), leurs bouts juste après ; la VITESSE va se ranger contre le ⏸ (couché : son bord
    droit à 16 px du bouton ; debout : 8 px plus loin que la case). `--ajPad` = ce que la barre laisse à droite, debout. ---- */
 html body.touch{--ajK:.8;--ajPad:calc(var(--nxV) + (100vw - var(--hudG) - var(--hudD) - 70px - 34px - var(--nxV)) * (1 - var(--ajK)))}
-html body.touch.play #ajCourse{padding-right:var(--ajPad)}
-#ajCourse .ajLbl{width:auto;justify-content:flex-start}
 html body.touch #flowHud{padding-right:var(--ajPad)!important}
 html body.touch #flowHud .fM{left:calc(100% - var(--ajPad))}
 html body.touch #nitroBar>#nxVit{width:calc(var(--nxV) + 8px)}
 #nxVit b{font-size:22px}   /* (Léo : « plus gros la vitesse ») debout : 18 → 22 px */
 @media (orientation:landscape) and (max-height:540px){
-  html body.touch.play #ajCourse{width:calc(34px + (min(50vw,440px) - 34px) * var(--ajK));padding-right:0}
   html body.touch #flowHud{width:calc(34px + (min(50vw,440px) - 34px) * var(--ajK))!important;padding-right:0!important}
   html body.touch #flowHud .fM{left:calc(100% + 18px)}
   html body.touch #nitroBar>#nxVit{left:auto;width:auto;right:calc(var(--hudG) + min(50vw,440px) - 100vw + var(--hudD) + 73px)}
   /* (Léo : « 600 doit se finir au niveau de la fin de la barre nitro ») le bout de l'aura se cale À DROITE sur la fin de la barre de boost */
-  #ajCourse .ajLbl{left:auto;right:calc((min(50vw,440px) - 34px) * (var(--ajK) - 1));justify-content:flex-end}
   html body.touch #flowHud .fM{left:auto;right:calc((min(50vw,440px) - 34px) * (var(--ajK) - 1));justify-content:flex-end}   /* le ×CASH aussi, sous le 600 */
   /* (Léo : « plus gros la vitesse ») 24 → 34 px, KM/H 9 → 11 */
   #nxVit b{font-size:34px}
@@ -7765,17 +7726,16 @@ html:not(.c6) #gmHead #mCadeau[hidden]{display:none}
    à l'expérience »). Relevé au banc en course, debout (390 × 844) et couché (844 × 390) : le coin haut-gauche empilait TROIS barres (boost,
    aura, flow), DEUX lectures de l'aura et la liste de chaque figure. Retirés (Sacha a tranché pour la jauge de Léo) :
    1. LA JAUGE D'AURA « MOY 400 » (`#ajCourse`, Léo, 12/10) et les « +N » d'aura qui volaient vers elle à travers l'écran : doublon du
-      compteur « 609 AURA ». Code gardé : `?jauge=1` la rend (`JAUGE_AURA`). Le FLOW remonte à sa place, l'AURA d'autant (mesuré :
+      compteur « 609 AURA ». Retirée le 18/10 (allègement) avec `?jauge=1`. Le FLOW remonte à sa place, l'AURA d'autant (mesuré :
       16 px à l'écran debout, 17 couché ; `#auraV2` est rétréci par `zoom`, d'où des pas CSS plus grands — l'écart flow → aura ne change pas). Les éclairs de NITRO qui volent vers la barre de boost (même couche `#ajVols`) restent.
    2. LA LISTE DES FIGURES sous la chaîne (« VIRAGE SERRE +45 / TONNEAU +50 ») : la chaîne garde son total, son × et sa barre.
    3. Le « $×1 » du FLOW au palier 0 : il ne dit rien tant que le flow ne multiplie pas ; il revient dès le palier 1.
    4. (dans le script, `pwrPrend`) le NOM DU POUVOIR au centre de l'écran : sa plaque, à droite, le dit déjà. */
-html.sansJauge #ajCourse{display:none!important}
-html.sansJauge body.touch #flowHud{top:calc(var(--hudH) + 53px)!important}
-html.sansJauge body.touch #auraV2{top:calc(var(--hudH) + 76px)!important}
+html body.touch #flowHud{top:calc(var(--hudH) + 53px)!important}
+html body.touch #auraV2{top:calc(var(--hudH) + 76px)!important}
 @media (orientation:landscape) and (max-height:540px){
-  html.sansJauge body.touch #flowHud{top:calc(var(--hudH) + 56px)!important}
-  html.sansJauge body.touch #auraV2{top:calc(var(--hudH) + 72px)!important}
+  html body.touch #flowHud{top:calc(var(--hudH) + 56px)!important}
+  html body.touch #auraV2{top:calc(var(--hudH) + 72px)!important}
 }
 html body #avList{display:none!important}
 html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
@@ -49967,7 +49927,7 @@ function addAura(n,titre,brut){ // brut : n est DÉJÀ multiplié par la vitesse
   // l'on ne risque rien — sinon le mode d'entrainement devient la meilleure facon de monter en rang.
   if(!(n>0)||!running||gameOver||(typeof PARK!=='undefined'&&PARK.on))return;
   n=(brut?Math.round(n):Math.round(n*auraMultVitesse()))*(pwrAurT>0?2:1); // (pouvoirs v2) AURA ×2
-  auraRun+=n;livre('a:direct'+(titre?'.'+String(titre).split(' ')[0]:''),n);ajGain(n,false); // (2026-10-12) il vole vers la JAUGE D'AURA
+  auraRun+=n;livre('a:direct'+(titre?'.'+String(titre).split(' ')[0]:''),n);
   auraPop=Math.min(1,auraPop+n/90);
   if(titre){ // un gain NOMMÉ : il claque à l'écran, avec sa raison
     auraFlash=1;auraLastTxt=titre+' +'+n;
@@ -50053,7 +50013,7 @@ function chaineAuraMuette(nom,base,fam,brut,muet){const s9=CHA.sansPop;CHA.sansP
 function chaineAura(nom,base,fam,brut,muet,rob){ // rob : un ROBINET (récolte, rafale, palier de NITROOO, nage du dauphin) — payé au compteur, hors chaîne · brut : pas de décote de redite (les échelles qui grimpent déjà : vrilles, bumps) · muet : l'appelant sonne déjà (figure en vol, pose)
   if(!(base>0)||!running||gameOver||(typeof PARK!=='undefined'&&PARK.on))return 0;
   if(rob){ /* (2026-10-01) LE ROBINET : au compteur, tel quel — ni chaîne, ni ×, ni horloge (voir LA CHAÎNE SE FERME) */
-    const p=Math.max(1,Math.round(base*(pwrAurT>0?2:1)));auraRun+=p;livre('a:robinet.'+(fam||nom),p);ajGain(p,false);auraPop=Math.min(1,auraPop+p/90);
+    const p=Math.max(1,Math.round(base*(pwrAurT>0?2:1)));auraRun+=p;livre('a:robinet.'+(fam||nom),p);auraPop=Math.min(1,auraPop+p/90);
     if(TCTL.on&&!CHA.sansPop)popTexte(sansAcc(TR(nom))+' +'+p,'#ffd75e',0);
     if(!muet)try{chimeNote(noteP(1,1),0,.10,.16);}catch(e){}
     return p;}
@@ -50290,7 +50250,7 @@ function chaineTick(dt){
 function chaineEncaisse(){
   const g=Math.round(CHA.pts*Math.max(1,CHA.x));
   if(g>0&&running&&!gameOver){
-    auraRun+=g;livre('a:chaine',g);auraPop=Math.min(1,auraPop+g/90);ajGain(g,true); // (2026-10-12) la chaîne encaissée part de sa boîte vers la JAUGE D'AURA
+    auraRun+=g;livre('a:chaine',g);auraPop=Math.min(1,auraPop+g/90);
     // (HUD v4) la chaîne S'ENVOLE dans le compteur, ce qu'elle verse s'affiche à côté ; une grosse chaîne prend aussi le couloir
     avPlusPop('+'+fmtAura(g));{const c9=avE('avCh');if(c9){c9.classList.remove('vole','perdu');void c9.offsetWidth;c9.classList.add('vole');}}
     /* (2026-10-15, Sacha : « enlève les inscriptions qui se mettent au milieu de l'écran, comme + 2000 AURA, qui est écrit ailleurs de toute façon ») plus de
@@ -62169,37 +62129,13 @@ window.dbgNitro3=function(a,b){
   if(a==='p'){NX3.pF=b==null?null:+b;return NX3.pF;}
   return {monte:!!NX3.el,grille:NX3.W+'×'+NX3.H,k:+NX3.k.toFixed(2),enfonce:+NX3.p.toFixed(2),dessin:NX3.cle,kmh:Math.round(NX3.kmh||0),affiche:NX3.v,couleur:NX3.vc,nitro:nitroOn};
 };
-/* =====================================================================================================================================
-   LA JAUGE D'AURA ET L'AURA QUI VOLE DEDANS (2026-10-12, Léo : « la jauge flow devient une jauge aura, qui se remplit en fonction de
-   combien on se rapproche de l'aura moyenne […] les + aura se dirigent et remplissent la barre aura » ; puis « même taille, format et
-   couleur au début que la barre flow de la v1 ») — voir <style id="auraJauge">.
-   · ajMonte : bâtit `#ajCourse` (⚠ pas « auraJauge » : c'est le nom de sa feuille de style, un <style> dans le body) — les QUATRE cellules
-     de la barre flow d'origine (FLOW_CEL : cyan · jaune · rose · violet), le bout « MOY » — et la couche `#ajVols`.
-   · CE QU'ELLE MESURE : les trois premières cellules mènent à TON AURA MOYENNE (`ajMoy` = `SAVE.d.aura` ÷ `SAVE.d.ex.runs`, la partie en cours
-     exclue ; 400 sans partie ; jamais sous 100) ; la moyenne battue, la 4e (violette) pousse et mène à TON RECORD (`SAVE.d.auraMax`) ; le
-     record battu, le cadre passe à l'or (`.record`) et le bout dit de combien. L'étoile et les « +N » prennent la couleur de la cellule en cours.
-   · ajGain(n, d'où) : branché aux TROIS robinets de l'aura (addAura, le robinet de chaineAura, chaineEncaisse). Le gain ne remplit PAS la
-     jauge tout de suite : il part en « +N » de là où il naît (la boîte de la chaîne qu'on encaisse, sinon la caisse) et c'est en arrivant au
-     bout du plein qu'il la remplit. Les petits gains rapprochés partent ensemble (un « +N » toutes les 0,15 s au plus), 8 en vol au plus,
-     au-delà ils passent directement. Filet : ce que la jauge montre + ce qui vole = `auraRun`, recalé à chaque image.
-   Console : `dbgJaugeAura()` (moyenne, record, montré, en vol, phase) · `dbgJaugeAura(n)` verse n d'aura depuis la caisse (le vol se voit).
-   ⚠ PAS `dbgAura` : c'est le crochet du jeu (banque, aura totale, rangs, caisses) — la 1re version de cette jauge l'avait écrasé.
-   ===================================================================================================================================== */
-const AJ={el:null,seg:null,cel:null,lS:null,lB:null,vols:null,pool:[],moy:0,rec:0,moyT:0,vis:0,vv:0,envol:0,acc:0,accT:0,accCh:false,
-  enVol:0,fs:[-1,-1,-1,-1],cur:-1,rev:false,recB:false,fx:0,w:0,wT:0,dit:false,txt:'',lbl:'',run0:-1,v3:null};
-/* (2026-10-15, Sacha : « trop d'info affichée ») la jauge est MASQUÉE par défaut — voir <style id="hudAllege"> ; `?jauge=1` la rend.
-   Sans elle : plus d'aura qui vole, plus de « MOYENNE BATTUE » au centre. La boucle (ajTick) tourne toujours : elle porte aussi les vols de NITRO. */
-const JAUGE_AURA=/[?&]jauge=1\b/.test(location.search);
-if(!JAUGE_AURA)document.documentElement.classList.add('sansJauge');
-function ajMoy(){const r=(SAVE.d.ex&&SAVE.d.ex.runs)|0,a=SAVE.d.aura||0;return r>0?Math.max(100,a/r):400;}
+/* LA COUCHE DES GAINS QUI VOLENT (#ajVols) — (2026-10-12, Léo) elle portait aussi la JAUGE D'AURA (#ajCourse, masquée depuis le 15/10,
+   retirée le 18/10 avec `?jauge=1`) ; elle porte les éclairs de NITRO qui tombent dans la barre de boost (voir LES GAINS QUI FLOTTENT). */
+const AJ={vols:null,run0:-1,v3:null};
 function ajMonte(){
-  if(AJ.el)return true;if(!document.getElementById('nitroBar'))return false;
-  const e=document.createElement('div');e.id='ajCourse';e.setAttribute('aria-hidden','true');
-  e.innerHTML='<div class="ajBar"><div class="ajSeg">'+FLOW_CEL.map(function(c){return '<i style="--sc:'+c+'"><s></s></i>';}).join('')+'</div><em class="ajLbl"><small>MOY</small><b>0</b></em></div>';
-  document.body.appendChild(e);AJ.el=e;AJ.seg=e.querySelector('.ajSeg');AJ.cel=[...AJ.seg.children];
-  AJ.lS=e.querySelector('.ajLbl small');AJ.lB=e.querySelector('.ajLbl b');
+  if(AJ.vols)return true;if(!document.getElementById('nitroBar'))return false;
   const v=document.createElement('div');v.id='ajVols';v.setAttribute('aria-hidden','true');document.body.appendChild(v);AJ.vols=v;
-  AJ.v3=new THREE.Vector3();addEventListener('resize',function(){AJ.wT=0;});
+  AJ.v3=new THREE.Vector3();
   return true;
 }
 function ajSource(ch){
@@ -62207,18 +62143,6 @@ function ajSource(ch){
   const p=AJ.v3.copy(carGroup.position);p.project(camera);
   if(p.z<1&&p.x>-1.2&&p.x<1.2&&p.y>-1.2&&p.y<1.2)return [(p.x+1)/2*VP.w,(1-p.y)/2*VP.h-28];
   return [VP.w*.5,VP.h*.55];
-}
-function ajGain(n,ch){
-  if(!(n>0)||!AJ.el||!JAUGE_AURA)return;
-  if(REDUCED_MOTION||document.hidden||!document.body.classList.contains('play'))return; // pas de vol : l'image suivante recale la jauge sur auraRun
-  AJ.acc+=n;if(ch)AJ.accCh=true;
-  if(ch||n>=150)ajLance(); // une chaîne qu'on encaisse, un gros gain : il part tout de suite
-}
-function ajLance(){
-  const n=AJ.acc;if(!(n>0))return;
-  const ch=AJ.accCh;AJ.acc=0;AJ.accCh=false;AJ.accT=0;
-  if(!AJ.w)return; // pas encore mesurée : l'aura passe directement, l'image suivante la montre
-  if(volgLance('a',n,ajSource(ch),n>=300?1.35:n>=100?1.15:1)){AJ.envol+=n;AJ.enVol++;} // plus de place en vol : elle passe directement
 }
 /* =====================================================================================================================================
    LES GAINS QUI FLOTTENT, PUIS TOMBENT DANS LEUR JAUGE (2026-10-12, Léo : « quand on gagne de l'aura, n'importe quoi, ça arrive dans l'écran
@@ -62332,52 +62256,12 @@ function volgTick(dt){
   }
 }
 function ajTick(dt){
-  if(!AJ.el&&!ajMonte())return;
+  if(!AJ.vols&&!ajMonte())return;
   if(!document.body.classList.contains('play')){if(VOLG.L.length||VOLG.n.r||VOLG.n.x)volgVide();return;}
-  // une NOUVELLE partie : rien en vol, la moyenne et le record relus (la partie d'avant vient de les changer)
-  if(auraRun<AJ.run0||!AJ.moy||(AJ.moyT-=dt)<=0){if(auraRun<AJ.run0){volgVide();AJ.envol=0;AJ.acc=0;AJ.vis=0;AJ.vv=0;AJ.dit=false;}
-    AJ.moyT=1;AJ.moy=ajMoy();AJ.rec=Math.max(AJ.moy,SAVE.d.auraMax||0);}
+  if(auraRun<AJ.run0)volgVide(); // une NOUVELLE partie : rien en vol
   AJ.run0=auraRun;
-  if((AJ.wT-=dt)<=0){AJ.wT=1;AJ.w=AJ.seg.clientWidth-6;}
-  if(AJ.acc>0&&(AJ.accT+=dt)>=.15)ajLance();
-  // ce que la jauge MONTRE = l'aura gagnée moins ce qui vole encore ; elle y glisse vite (on la voit se remplir à l'arrivée)
-  // (2026-10-12, Léo : « que ce soit satisfaisant quand ça se remplit ») elle s'y VERSE en ressort : elle file, dépasse un peu, revient, se
-  // pose (~0,45 s). Les états (moyenne battue, record, le bout) se lisent sur ce qui est vraiment arrivé (`vS`), jamais sur le dépassement.
-  const cible=Math.max(0,auraRun-AJ.envol-AJ.acc),kd=Math.min(dt,.05)*VOLG.k;
-  AJ.vv+=((cible-AJ.vis)*VOLG_W*VOLG_W-2*VOLG_Z*VOLG_W*AJ.vv)*kd;AJ.vis+=AJ.vv*kd;if(Math.abs(cible-AJ.vis)<.5&&Math.abs(AJ.vv)<6){AJ.vis=cible;AJ.vv=0;}
-  const v=Math.max(0,AJ.vis),vS=Math.min(v,cible),rev=vS>=AJ.moy,recB=rev&&vS>AJ.rec&&AJ.rec>AJ.moy;
-  // les quatre cellules : trois tiers jusqu'à la moyenne, puis la 4e jusqu'au record
-  let cur=0;for(let k=0;k<4;k++){let f;
-    if(k<3)f=rev?1:Math.max(0,Math.min(1,v/AJ.moy*3-k));else f=!rev?0:(AJ.rec>AJ.moy?Math.max(0,Math.min(1,(v-AJ.moy)/(AJ.rec-AJ.moy))):1);
-    f=Math.round(f*200)/200;if(f!==AJ.fs[k]){AJ.fs[k]=f;AJ.cel[k].style.setProperty('--f',f);}
-    if(f>0)cur=k;}
-  const nV=rev?4:3;AJ.fx=Math.min(1,(cur+AJ.fs[cur])/nV);
-  if(cur!==AJ.cur){if(AJ.cur>=0)AJ.cel[AJ.cur].classList.remove('cur');AJ.cel[cur].classList.add('cur');AJ.cur=cur;
-    AJ.el.style.setProperty('--ajI',FLOW_CEL[cur]);AJ.vols.style.setProperty('--ajI',FLOW_CEL[cur]);}
-  if(rev!==AJ.rev){AJ.rev=rev;AJ.el.classList.toggle('revele',rev);
-    if(rev&&!AJ.dit&&JAUGE_AURA&&running&&!gameOver&&!TUTO.on&&((SAVE.d.ex&&SAVE.d.ex.runs)|0)>0){AJ.dit=true;try{popTexte(sansAcc(TR('MOYENNE BATTUE')),FLOW_CEL[3],2);}catch(e){}hap([10,30,14]);
-      try{typeof sfx==='function'&&!sfx('aura.moyenne')&&sfx('victoire',{vol:-4});}catch(e){}}} // (console de son) aura.moyenne — (2026-10-14, session SON) cuit le 14/10 : la MOYENNE BATTUE, trois notes de marimba qui montent, 3 dB sous la victoire. Le repli sur victoire n'est plus qu'un filet
-  if(recB!==AJ.recB){AJ.recB=recB;AJ.el.classList.toggle('record',recB);}
-  // (2026-10-12, passe qualité) le libellé et le chiffre ne se REFABRIQUENT que si ce qu'ils disent change (TR + majPix + toLocaleString
-  // tournaient à chaque image pour une valeur qui bouge au plus une fois par seconde : des chaînes jetées au ramasse-miettes en pleine course)
-  if(rev!==AJ.revL||LANG!==AJ.lgL){AJ.revL=rev;AJ.lgL=LANG;AJ.kv=NaN;const lbl=TR(rev?'RECORD':'MOY');if(lbl!==AJ.lbl){AJ.lbl=lbl;AJ.lS.textContent=lbl;}}
-  const kv=recB?-1-Math.floor(vS/AJ.rec*10):(rev?AJ.rec:AJ.moy);
-  if(kv!==AJ.kv){AJ.kv=kv;const t=recB?'×'+(Math.floor(vS/AJ.rec*10)/10).toFixed(1):fmtAura(rev?AJ.rec:AJ.moy);
-    if(t!==AJ.txt){AJ.txt=t;AJ.lB.textContent=t;}ajSerre();}
-  volgTick(dt); // les gains qui flottent puis tombent dans leur jauge (aura ET nitro)
+  volgTick(dt); // les gains qui flottent puis tombent dans leur jauge (la nitro)
 }
-/* LE BOUT QUI NE MORD PLUS SUR LA JAUGE (2026-10-12, passe qualité, mesuré au banc couché 844×390) : couché, le bout est calé À DROITE sur la fin
-   de la barre de boost (Léo) et ne dispose que des ~78 px que laisse la jauge à 80 % — « MOY 600 » tient, mais « MOY 1 234 » mordait de 20 px
-   sur la fin de la jauge et « RECORD 2 500 » de 47 px (la 4e cellule, la violette, disparaissait dessous). Quand il ne tient pas, le MOT
-   s'efface (le chiffre reste ; la 4e cellule dit déjà qu'on vise le record), puis le chiffre se resserre. Mesuré seulement quand le texte
-   change (≤ 1 fois/s) ou à la rotation — jamais par image. Debout, le bout est à droite de la jauge : rien ne bouge. */
-function ajSerre(){const L=AJ.lB&&AJ.lB.parentNode,S=AJ.seg;if(!L||!S)return;L.classList.remove('serre','serre2');
-  const g=S.getBoundingClientRect().right;if(!(g>0))return;
-  if(L.getBoundingClientRect().left<g+2){L.classList.add('serre');if(L.getBoundingClientRect().left<g+2)L.classList.add('serre2');}}
-addEventListener('resize',function(){AJ.kv=NaN;});
-window.dbgJaugeAura=function(n){if(n>0&&running&&!gameOver){auraRun+=n;ajGain(n,false);ajLance();}
-  return {moyenne:Math.round(AJ.moy||ajMoy()),record:Math.round(AJ.rec),montre:Math.round(AJ.vis),enVol:Math.round(AJ.envol),attend:Math.round(AJ.acc),vols:AJ.enVol,aura:Math.round(auraRun),
-    phase:AJ.recB?'record battu':AJ.rev?'vers le record':'vers la moyenne',cellules:AJ.fs.slice(),bout:AJ.lbl+' '+AJ.txt,parties:(SAVE.d.ex&&SAVE.d.ex.runs)|0,auraTotale:SAVE.d.aura||0};};
 function loopWarn(b,nom,e){if(!((loop._crWarn|0)&b)){console.warn('créatures/musique · '+nom,e);loop._crWarn=(loop._crWarn|0)|b;}} // (2026-09-30) un bit par appel gardé : chaque panne se dit UNE fois, sans masquer celle du voisin
 /* (2026-10-13, passe de sortie — perf-iphone7) BANC : LE COÛT D'UNE IMAGE ENTIÈRE. `renderer.info` se remet à zéro à CHAQUE render() du
    compositeur : seul, il ne montre que la dernière passe (l'ACES : 1 appel, 2 triangles). Armé, il additionne TOUTES les passes de l'image
