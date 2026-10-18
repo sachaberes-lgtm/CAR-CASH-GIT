@@ -1,6 +1,6 @@
 # ALLÈGEMENT — LOT C (interface), 18/10/2026
 
-Branche `al-interface` (base 024675ba). `index.html` : 7 660 148 → 7 227 173 octets (**−432 975**, −5,7 %). Le jeu par défaut ne
+Branche `al-interface` (base 024675ba). `index.html` : 7 660 148 → 7 227 247 octets (**−432 901**, −5,7 %) ; fumée OK (couché + debout, 0 erreur JS). Le jeu par défaut ne
 change pas — banc AVANT/APRÈS (couché + debout ; accueil, bienvenue, garage, boutique, un rayon, réglages, pause, fin) :
 logo 0 pixel de différence ; DOM figé 0 pixel sauf ce qui bouge tout seul (nom projeté sur la caisse, photos des ailes animées,
 map tirée au hasard de la fin) ; styles calculés identiques élément par élément (mêmes exceptions). L'écran MISSIONS n'a pas été
