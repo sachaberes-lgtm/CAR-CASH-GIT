@@ -3,6 +3,38 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE PRÉ-BÂTI — LA MAP D'EN FACE SE BÂTIT PENDANT QU'ON ROULE (2026-10-18, Léo : « super push » ; demandé le 2026-10-17 soir, Léo : « la pause du passage est beaucoup trop longue » — le portail de cubes, 3e tour)
+- MESURÉ AVANT (banc : téléphone simulé 390 × 844, processeur ×4) : au passage, newTrack bloquait le script d'un bloc — 0,35 à 1,35 s (la jade 1,35 s,
+  le canyon et la forêt 0,75 s) : la ROUTE (génération, courbe, repères, bitume, flancs, rails, nappe, ligne) puis le DÉCOR. Voile 0,8 à 1,9 s.
+- LA ROUTE = `pisteRoute`, un générateur : le code de buildTrack tel quel, avec des `yield` entre ses tranches. Il travaille sur un ÉTAT FANTÔME,
+  échangé avec l'état vivant le temps d'une tranche (`prebEchange` : pts, T, Nn, B, L, NP, trous, filets, pads, plots, flaques, tremplins,
+  trackMeshes, PISTE_LOD, NEON_*, les repères de la génération, THICK, ROAD_HALF, KAPB, les champs que la génération de la map écrit — `prebChampsDe` —,
+  et en entrée : LVL.cur, LVL.n, runStats.zones, engTier, F). Rien n'entre dans la scène pendant la construction : `pisteInstalle` retire
+  l'ancienne route et met la neuve en scène au passage, dans l'ordre. Les tirages `rnd()` sont ceux de buildTrack dans le même ordre.
+- LES DÉCORS d'avance : la JADE (jadeBatit, déjà en tranches, + LA CARTE GARDÉE : buildJade la reprend en quelques ms) ; la FORÊT, le VOLCAN, le
+  GLACIER (`buildForetG`/`buildVolcanG`/`buildBanqG` — générateurs ; `buildForet(seed)` = `jadeFini(buildForetG(seed))` : au passage, d'un trait,
+  JF.lim = Infinity) — leur module échangé EN ENTIER le temps d'une tranche (`prebDecorG`, `prebObj`), `scene.add` intercepté, installés au passage par
+  `prebDecor`. Restent au passage : la ville (0,06-0,09 s ×4), le relief du canyon (déjà dans un travailleur), les nuages, les pièces (spawnPickups).
+- QUAND : mode classique en course, la map d'en face connue (portDest), le portail à moins de 20 s de route (`PREB_AVANCE`), 3 à 6 ms par image,
+  hors pause/passage/chauffe. Le PALIER MOTEUR est celui du départ du travail (gardé jusqu'au passage, décor compris : `prebPalier`). La map d'en
+  face change (dbgClassique) → le travail repart ; pas fini au passage → le reste d'un trait. Tout autre newTrack (rejouer, dbgSaut, carrière,
+  campagne, auto-école, parc, balade) : d'un trait, par le même générateur (`pisteDirecte`). Une map NEUVE dont la génération n'est pas dans
+  `PREB_PISTES` n'est pas bâtie d'avance.
+- VÉRIFIÉ : ÉQUIVALENCE au bit près sur 24 cas (10 maps, météos, graines, paliers) — origine / d'un trait / d'avance : route, objets, maillages,
+  modules, carte de jade, objets du décor de la forêt, du volcan, du glacier ; AUCUNE FUITE dans l'état vivant pendant le pré-bâti. 10 passages
+  d'affilée (`?portail=vite` + dbgAuto) : 0 mort, programmes compilés en course identiques à `?prebati=0` (+2 puis −5 dans les deux), les
+  mêmes exceptions attrapées et la même erreur console dans les deux (« computeBoundingSphere : radius is NaN » — elle est déjà sur le main).
+  REVÉRIFIÉ après la fusion du main v619 (la jade tirée au hasard, les nuages en virages et en vitrail, la forêt en vitrail, la caméra du glacier).
+- MESURÉ APRÈS (même banc, mêmes maps, sur v619) : construction au passage 0,35-1,35 s → 0,02-0,20 s ; voile moyen 1,09 s → 0,59 s ; image
+  figée la plus longue 0,63 s → 0,12 s en moyenne (jade 1,37 → 0,15, forêt 0,77 → 0,08). Les images pendant le pré-bâti : p90 17-67 ms à ×4
+  (17-50 sans). Planche : `photos-gameplay/portail-prebati-avant-apres.png`. ⚠ Un banc sur une machine chargée (d'autres bancs en même temps)
+  ne mesure rien : la même passe sous charge 12 donnait l'inverse (relancée au calme).
+- ⚠ RÈGLES : dans `pisteRoute`, jamais de `scene.add` (pousser dans trackMeshes), jamais d'écriture d'un état vivant hors de la liste échangée ;
+  une génération qui écrit un champ de module neuf → l'ajouter à `prebChampsDe` ; un décor neuf se bâtit au passage tant qu'il n'a pas son
+  `prebDecorG`. `?prebati=0` = l'ancien comportement. Console : `dbgPrebati()` (état, palier, temps), `dbgPrebati(0|1)`.
+- LE GLACIER : la déclaration `tS` avalée par un commentaire (« tS is not defined » à la fin de chaque buildBanq) est déjà réparée sur main
+  (61d12ae1) ; `buildBanqG` la porte telle quelle.
+
 ## LA PERLE AU PLAN — LA SERRE CONSTRUITE SUR LES TRAITS, LES VITRES DÉCOUPÉES AU PLAN (2026-10-18, Léo : « corrige encore la Porsche ; faut qu'on apprenne à générer parfaitement les voitures, pour qu'à la fin la seule limite soit l'imagination — les traits gris mettent en avant les défauts : au niveau de la vitre, le trait est clairement arrondi alors que la voiture est encore un peu carrée »)
 - **Le diagnostic** : les traits gris de LA PERLE sont les lignes du PLAN COTÉ de la vraie (projetées sur la tôle, voir « LA PERLE » du
   16/10). Là où la tôle ne les suit pas, ils trahissent l'écart. Mesuré tranche par tranche contre le plan : vitres, cadres, montant B,

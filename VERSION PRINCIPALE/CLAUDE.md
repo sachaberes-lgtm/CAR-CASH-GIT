@@ -138,6 +138,10 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   LE PORTAIL DE CUBES (17/10, Léo) : `PCUBE` (l'anneau, `pcubePose`/`pcubeDest`/`pcubeTick`), `portDest` (la map d'en face TIRÉE D'AVANCE dans
   `SF.tirage[zone+1]`), la fenêtre sur `assets/portail/*.webp` (`PCUBE_CP`, `dbgCartePostale`), le passage `pcVoile`/`pcVoileSort` (`#portC`),
   `pcubeFranchi` ; `?portail=ancien` (l'ovule et les feux), `?portail=vite`. ⚠ Une map nouvelle ou refaite → refaire ses cartes postales.
+  LE PRÉ-BÂTI (18/10, Léo) : la map d'en face se BÂTIT pendant qu'on roule vers le portail — `PREB`, `prebTick`/`prebTravaille`, la route de
+  buildTrack en générateur `pisteRoute` sur un état fantôme (`prebEchange`, `pisteTravail`), installée au passage (`pisteInstalle`) ; les décors
+  d'avance (`prebJade`, `prebDecorG`/`prebDecor` : forêt, volcan, glacier) ; `?prebati=0`, `dbgPrebati()`. ⚠ Dans `pisteRoute` : jamais de
+  `scene.add`, jamais d'écriture d'un état vivant hors de la liste échangée ; une génération ou un décor NEUF → `prebChampsDe` / `PREB_PISTES` / `prebDecorG`.
   LA FORÊT (17/10, Léo) : le slalom `forZigzag` (ponts de 18-30 m, `dbgPont`), les arbres en VITRAIL dans `FOR_ARB_FS` (`VITRAIL_V`, `dbgVitrail`),
   la MOUSSE où l'on roule hors de la route (`foretSolVol`, `MOU`, `dbgMousse`) — voir le journal.
   LA VILLE (16/10) : toujours la nuit, quatre temps (pluie, nuit, brouillard `villeBrume`/`LVL.brume`, orage) × quatre TEINTES tirées au hasard
@@ -478,6 +482,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - Le mode classique au hasard (13/10) n'a pas de section : le commentaire « LE MODE CLASSIQUE AU HASARD » au-dessus de `const SF` fait foi.
 
 - « LE PORTAIL DE CUBES — LA FENÊTRE SUR LA MAP D'EN FACE, LE PASSAGE QUI SE DÉFAIT EN CUBES » (17/10, Léo)
+- « LE PRÉ-BÂTI — LA MAP D'EN FACE SE BÂTIT PENDANT QU'ON ROULE » (18/10, Léo) — `PREB`, `pisteRoute`, `prebEchange`, `prebDecorG`, `?prebati=0`, `dbgPrebati`
 - « LES NUAGES EN VITRAIL » (18/10, Léo) — `nuage8Calc` opt.vit, `nuVitMats`, `NUVIT`/`NV_DOSES`, `dbgNuVit`
 - « LA FORÊT NOIRE EN VITRAIL — PONTS, MOUSSE, PLEUREURS (+ LA VILLE AUX FAÇADES GTA) » (17/10, Léo) — `VITRAIL_V`, `forZigzag`, `MOUSSE_V`, `TORDUS_V`, `PLEUR_V`, `VILLE_GTA_V`
 
