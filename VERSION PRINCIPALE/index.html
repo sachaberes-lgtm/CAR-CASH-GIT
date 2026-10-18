@@ -33497,6 +33497,14 @@ SHAPES.corolla=function(K){
         if(z<ZW&&z>ZHT&&y>.9&&ny>.2){const s9=S(z);if(Math.abs(x)<s9[NC+3][0]-.004)return 'dessus';}
         return null;}});
     G.dispose();delete gs[GP];return japFusion(gs,out);};}
+  /* LA PROFONDEUR DE LA TÔLE en (x, y) sur le nez (`zFace`, pour poser les lames et l'optique de l'antibrouillard) : par dichotomie sur z, la
+     demi-largeur des deux tranches voisines à la hauteur y, interpolée. Calculée une fois (la préchauffe du menu passe ici) et gardée sur le gabarit. */
+  const PROF=(MEM&&MEM._prof)||(()=>{const xCote=(s9,y)=>{let m=0;for(let i=1;i<s9.length;i++){const a=s9[i-1],b=s9[i];if((a[1]-y)*(b[1]-y)<=0&&a[1]!==b[1]){const x=a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);if(x>m)m=x;}}return m;};
+      const i0=zs.findIndex(z=>z>=1.88),Z9=zs.slice(Math.max(0,i0-1)),xAt=(z,y)=>{let i=0;while(i<Z9.length-2&&Z9[i+1]<z)i++;const t=cl((z-Z9[i])/(Z9[i+1]-Z9[i]),0,1);return mix(xCote(S(Z9[i]),y),xCote(S(Z9[i+1]),y),t);};
+      const zFace=(x,y)=>{let a=1.9,b=ZE;for(let k=0;k<20;k++){const m=(a+b)/2;if(xAt(m,y)>x)a=m;else b=m;}return (a+b)/2;};
+      const L9=[];for(let k=0;k<11;k++){const y=.274+k*.0275,xe=xBord(F9.grille,y)-.016;if(xe<.05)continue;const r=[];for(let i=0;i<=12;i++){const x=xe*i/12;r.push([x,zFace(x,y)]);}L9.push([y,r]);}
+      const x0=.725,y0=.298,F0=[zFace(x0,y0),(zFace(x0+.01,y0)-zFace(x0-.01,y0))/.02,(zFace(x0,y0+.01)-zFace(x0,y0-.01))/.02];
+      const o={lames:L9,anti:F0};if(MEM)MEM._prof=o;return o;})();
   K.commit(PL);if(K.muet)return {};
   // la hauteur de la tôle (le dessus) en (x, z)
   const ZS9=zs,SC9=ZS9.map(z=>S(z)),T=z=>{let i=0,j=ZS9.length-1;if(z<=ZS9[0])return SC9[0];if(z>=ZS9[j])return SC9[j];while(j-i>1){const m=(i+j)>>1;if(ZS9[m]<=z)i=m;else j=m;}
@@ -33514,15 +33522,12 @@ SHAPES.corolla=function(K){
   {const g=new THREE.CylinderGeometry(.018,.03,.13,6);g.rotateX(Math.PI/2);P.put('n',g,0,yDessus(0,-1.08)+.03,-1.08,.12,0,0,1,1.2,1);}
   // LES LAMES DE LA BOUCHE : onze barres chromées sur la tôle d'origine, devant le fond noir creusé — elles suivent le nez en flèche (`zFace` : la
   // profondeur de la tôle en (x, y), cherchée tranche à tranche) ; l'OPTIQUE de l'antibrouillard, posée au fond de sa coupelle
-  {const xCote=(s9,y)=>{let m=0;for(let i=1;i<s9.length;i++){const a=s9[i-1],b=s9[i];if((a[1]-y)*(b[1]-y)<=0&&a[1]!==b[1]){const x=a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);if(x>m)m=x;}}return m;};
-   const zFace=(x,y)=>{let a=1.9,b=ZE;for(let k=0;k<26;k++){const m=(a+b)/2;if(xCote(T(m),y)>x)a=m;else b=m;}return (a+b)/2;};
-   const LA=K.kit({c:{g:'c',c:0xc7ccd3},q:{g:'g',c:0xd9dde2},K:{g:'g',c:0x0b0b0e}}),h=.0036,ep=.018,N=12;
-   for(let k=0;k<11;k++){const y=.274+k*.0275,xe=xBord(F9.grille,y)-.016;if(xe<.05)continue;
-     for(const sd of [1,-1]){let pv=null;for(let i=0;i<=N;i++){const x=xe*i/N,p=[sd*x,y,zFace(x,y)+.004];
+  {const LA=K.kit({c:{g:'c',c:0xc7ccd3},q:{g:'g',c:0xd9dde2},K:{g:'g',c:0x0b0b0e}}),h=.0036,ep=.018;
+   for(const [y,r] of PROF.lames)for(const sd of [1,-1]){let pv=null;for(const [x,z] of r){const p=[sd*x,y,z+.004];
        if(pv){LA.tri('c',[pv[0],y-h,pv[2]],[p[0],y-h,p[2]],[p[0],y+h,p[2]]);LA.tri('c',[pv[0],y-h,pv[2]],[p[0],y+h,p[2]],[pv[0],y+h,pv[2]]);
          LA.tri('c',[pv[0],y+h,pv[2]],[p[0],y+h,p[2]],[p[0],y+h,p[2]-ep]);LA.tri('c',[pv[0],y+h,pv[2]],[p[0],y+h,p[2]-ep],[pv[0],y+h,pv[2]-ep]);}
-       pv=p;}}}
-   for(const sd of [1,-1]){const x0=.725,y0=.298,z0=zFace(x0,y0),dzx=(zFace(x0+.01,y0)-zFace(x0-.01,y0))/.02,dzy=(zFace(x0,y0+.01)-zFace(x0,y0-.01))/.02;
+       pv=p;}}
+   for(const sd of [1,-1]){const x0=.725,y0=.298,[z0,dzx,dzy]=PROF.anti;
      const n=new THREE.Vector3(-sd*dzx,-dzy,1).normalize(),q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1),n),e=new THREE.Euler().setFromQuaternion(q),c=new THREE.Vector3(sd*x0,y0,z0).addScaledVector(n,-.009);
      LA.put('K',new THREE.CylinderGeometry(.043,.043,.02,18).rotateX(Math.PI/2),c.x-n.x*.006,c.y-n.y*.006,c.z-n.z*.006,e.x,e.y,e.z);                       // le fond de l'optique
      LA.put('c',new THREE.TorusGeometry(.034,.006,6,18),c.x+n.x*.007,c.y+n.y*.007,c.z+n.z*.007,e.x,e.y,e.z);                     // son cerclage chromé

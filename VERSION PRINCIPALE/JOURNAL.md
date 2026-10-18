@@ -599,6 +599,13 @@
   vraie : bouclier couleur caisse (le U n'est qu'un creux), catadioptres couchés au pied, pas de barre chromée, feux en rouge fumé émissif avec leur
   ligne de LED, continus dans le coin (porte de la vue de dos à z < −2.0 + zone « tout le plan » au coin). JANTES : dix doubles branches bicolores.
   Planche : `photos-gameplay/corolla-plus-fidele-avant-apres.png` (VRAIE | AVANT 3f8c6210 | APRÈS, gros plans du nez).
+- **LE COIN AVANT « IDENTIQUE »** (Léo, sur son recadrage du coin de la vraie, 913ffde0 + suite) : zones 2D taillées dans la tôle vue de face — le
+  PHARE (cerclage noir, fond en verre fumé, bande noire sous l'arête du capot, jonc chromé en crochet le long du bord extérieur puis du bas, filet
+  de LED, projecteur carré cerclé), la PRISE EN L (jonc chromé en relief `creux:-.004`, son creux noir −1,2 cm, qui rejoint le jonc sous la bouche),
+  l'ANTIBROUILLARD (coupelle creusée −2,2 cm, optique en vraie géométrie posée dedans), la BOUCHE creusée −2,6 cm et ses onze lames chromées en
+  vraie géométrie sur la tôle d'origine (`zFace`, la profondeur de la tôle par dichotomie entre tranches, calculée pendant la préchauffe du menu et
+  gardée sur le gabarit, `_prof` : 1re pose 21-34 ms). L'arête du capot est lue de face jusqu'à ny < 0,92 (la bande du phare s'y posait en éclats).
+  Planche : `photos-gameplay/corolla-coin-avant-apres.png` (recadrage de Léo | AVANT a6fb35cc | APRÈS, + 3/4 avant entière).
 - **La teinte** : argent moyen (0x9fa3a9, celui des photos) — au studio des vignettes tous les gris clairs sortent lavande (LA LAME aussi).
 - **Les outils** : `japDecoupe` accepte `ns` en fonction (les normales lissées ne se calculent que si la découpe n'est pas gardée) — 1re pose de la
   Corolla 79 → 55 ms (la deuxième 28 ms ; le reste est le coût de toute première pose d'une caisse). Les quatre découpes sont préchauffées au menu.
