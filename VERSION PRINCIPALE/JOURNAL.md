@@ -3,6 +3,68 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## CINQ VOITURES DE PLUS SUR LE MAIN (2026-10-19, v663, Léo : « oui, mets les 5 dans le jeu avec les choix ★ »)
+- LA QUEUE DE CANARD (RONDES, f84fc25a) et LA GRANDE ANGLAISE (RONDES, 0bfbb75b) refaites au plan ; LE BAROUDEUR en gris Sahara, élargisseurs
+  et toit couleur caisse, chaque lumière à sa place (BOÎTES, cba2f543 + 9f04afe8) ; LE CAÏD devient le GMC HUMMER EV pick-up, vert anis
+  gardé (BOÎTES, 9e279867 + 20294f96 ; la Classe G n'a jamais été poussée) ; LA BÊTE = la 208 T16 Pikes Peak (JAPONAISES, index 87,
+  ÉPIQUE 1 000 000 $, livrée A sans logo). La ROSSO 40 reste celle d'avant (Léo, chez JAPONAISES : « la rosso revient sur avant »).
+- Fusion : un conflit dans `chauffeDivers` (les étapes `japChauffe` ×5 de JAPONAISES + `rondesChauffe` ×2 de RONDES : toutes gardées).
+
+## LA PASSE PERF DU 18/10 — PLUS AUCUN PROGRAMME COMPILÉ EN COURSE (CANYON, APRÈS LE GLACIER) + LE CLASSEMENT DES POSTES (2026-10-18, session PERF — Léo : « démarre une session optimisation des performances » ; le but : « tout le monde doit pouvoir jouer », fluide en NETTE sur iPhone, sans à-coups, sans perte de netteté)
+- **LE BANC** (scratchpad de la session ; la méthode est celle de « LA PASSE MOBILE » du 14/10) : Chrome sans fenêtre déguisé en iPhone (390 × 844 ×3,
+  tactile, UA iPhone → le vrai chemin `TEL_NATIF`), sauvegarde muette en NETTE (`q:'net'`), `?palier=2`, processeur bridé ×4 (posé APRÈS le menu : le
+  petit banc de PAL doit voir la vraie machine), `dbgSable(1)` + `dbgQual(0)` (le cran figé : même travail de la puce d'une manche à l'autre), le
+  pilote auto au sol (`dbgAuto(1,0,{})`) puis en vol (`{vol:1,saut:.3,imp:25,nit:2}`), chaque map du tirage atteinte par `dbgClassique`+`dbgSaut` ;
+  les COMPILATIONS comptées en accrochant `WebGL2RenderingContext.prototype.linkProgram` avant le chargement (avec le shader et l'appelant), les
+  programmes NEUFS nommés en comparant `renderer.info.programs` avant / après (la clé du plus proche, champ par champ : `doubleSided`, `custom`…).
+  Les traversées NATURELLES d'un portail (pré-bâti pris) chronométrées image par image. ⚠ La machine est partagée : sous charge 30-90 (bancs
+  d'autres sessions, mise à jour du système) les ms ne valent rien — les chiffres ci-dessous sont pris au calme (charge 3-7) ; les compteurs
+  (appels, triangles, compilations) ne dépendent pas de la charge. Le profileur à 100 µs déforme les images longues (une image de 567 ms sous
+  profileur = 4 images de 50-67 ms sans) : chronométrer sans lui.
+- **LE CLASSEMENT** (main v657, ×4, au calme) :
+  1. LES COMPILATIONS EN COURSE — chacune fige un iPhone 0,1-0,3 s (piège n° 7) : à CHAQUE 1re visite du CANYON 2 programmes, et à l'entrée de la
+     map qui SUIT LE GLACIER 5 programmes (toujours, dès que le glacier est passé). → corrigé, voir plus bas.
+  2. LE JOUER : 1,1 s d'image figée sous le nuage blanc (1re partie ; 3,6 s sous charge) — la piste tirée (`rebuildMenuScene` → `newTrack`,
+     260 ms) + la 1re image du monde neuf (envois à la puce) + la chauffe 120 ms plus tard. Au JOUER depuis l'ACCUEIL après une partie, la piste
+     est bâtie DEUX FOIS (`sous9` puis `resetGame`, 212 + 240 ms) : la 1re pour rien. Pas touché : sans la 1re, le ciel du départ ne serait plus
+     posé d'un coup (`rebuildMenuScene` baisse `started`, `resetGame` fait le fondu de portail `bioPortDur` + `BIO.dip`) → la 1re seconde
+     changerait d'image. REJOUER : une construction de ~1 s (×4) sous le volet. Piste pour une prochaine passe : bâtir la 1re map PENDANT le menu
+     (et celle du REJOUER pendant l'écran de fin) avec la machine du PRÉ-BÂTI.
+  3. LES PORTAILS (pré-bâti pris) : 4 images de 50-67 ms au passage (nuages → ville : `newTrack` 66 ms, dont `buildVoxCity` — la ville n'est pas
+     pré-bâtie — et la copie de l'image traversée `pcCopie`), pendant que le voile du portail zoome tout seul (compositeur) : le gel y est caché.
+  4. EN COURSE : au calme, 60 i/s presque partout à ×4 ; à-coups au jade (vol p90 50 ms) et aux nuages (p90 33). Le fil principal se partage
+     (canyon en vol) : JS de la boucle 31 % · styles 11 % · peinture + calques ~10 %. Dans le JS, le rendu three.js domine (150-340 ms/s à ×4 :
+     ~60 % le coût PAR APPEL de dessin — `setProgram`, `setup` —, le reste le parcours, l'ombre de la caisse, `updateMatrixWorld`) ; puis `jadeTick`
+     (= `finTravail`, travail de fond borné à 4 ms), `coinPose` (5-23 ms/s : chaque pièce visible tourne et se recopie dans l'instance), `drawSpeedLines`
+     (~10), `pickupsTick`, `chaineTick`, `cashHudTick`. Rien d'énorme à gagner à image égale : le coût suit le nombre d'appels, donc le LOOK
+     (nuages : 110 appels et 1,3 M triangles pour le coton au sol ; jade : 3 passes par famille de verre). Les `:has()` restants (35 règles, dont
+     `html:has(#modale.on) #tPanel`) : −20 % du temps des styles quand on les retire tous à chaud — mais le sélecteur ne coûte presque rien en
+     lui-même (53 ms sur 3 s, `SelectorStats`) : le temps des styles est dans le calcul des ~13 éléments par recalcul (animations du HUD), pas
+     dans le filtrage. Appels de dessin vides : 1 à 3 par image, rien à gagner.
+  La PUCE (chrono `EXT_disjoint_timer_query`, M2 sans bridage) : 4-14 ms par image selon la map en NETTE — sur un iPhone c'est probablement
+  ELLE le goulot (le processeur d'un iPhone récent vaut bien plus qu'un M2 ×4) : à mesurer sur un VRAI téléphone (`?banc=1`).
+- **CE QUI CHANGE** (image identique : on compile plus tôt, on garde en vie, rien d'autre) :
+  · `canyonChauffe` dessine aussi les deux matières DOUBLE FACE des pièces du canyon (`cyMonuMats().b`, le grès des mesas/voûtes, et `.g`, la roche à
+    couleurs des tunnels) — `.g` sur la géométrie colorée des arbres (`cyArbreGeo`) : sans attribut `color`, la clé du programme diffère d'un détail
+    (`vertexAlphas` vide au lieu de `false`) et le programme naissait quand même en course.
+  · `PISTE_GARDE` / `pisteGarde(m)` (à côté de `MAT_SURSIS`) : `matSursisTick` ne libère plus la 1re matière de route vue de chaque programme (bitume
+    `bitumeV5fsL`, tranche `trancheV3`, rails `trait0_1.5` / `trait1_2`, ligne `ligneFile`, comme `CAR_GARDE` pour les caisses). La piste nue du glacier
+    ne les reprenait pas : leurs matières partaient, three DÉTRUISAIT les programmes (piège n° 8) et la map suivante les recompilait.
+- **MESURÉ** (A/B contre le main, mêmes séquences, iPhone simulé ×4, au calme) :
+  · COMPILATIONS EN COURSE (`linkProgram`, programmes neufs dans `renderer.info.programs`) : volcan après le glacier **5 → 0**, canyon (1re visite)
+    **2 → 0** ; une partie de 12 maps avec revisites, sur le main v661 (avec LES PROFONDEURS) — jade, grotte, glacier, grotte, volcan, canyon,
+    nuages-orage, grotte, forêt, glacier, ville, jade : **12 → 0** (5 à la grotte qui suit le glacier, 2 au canyon, 5 à la ville qui suit le 2e glacier) ;
+    trois manches alternées main / passe (glacier → volcan → canyon) : 5/2 à chaque manche → 0/0.
+  · Le TEMPS gagné ne se chronomètre pas sur le Mac (Chrome compile en tâche de fond, WebKit compile ces programmes en quelques ms sur la puce du M2 :
+    l'image d'entrée reste dominée par la construction) ; sur iPhone un programme compilé en course fige l'image 0,1-0,3 s (passes du 26/09 et du
+    14/10, piège n° 7) — c'est cet à-coup qui disparaît, à chaque canyon et à chaque map qui suit un glacier.
+  · EN RÉGIME (ms par image, p50 / p90, sol puis vol) : inchangé, comme attendu (le rendu n'est pas touché) — jade 16,7/33 · 16,7/33-50 ; nuages
+    16,7/33 · 16,7/17-33 ; ville, forêt, glacier, crypto, orbite 16,7/17 (à ×4 !) ; volcan 16,7/33 ; canyon 16,7/17-33 ; les écarts de p90 entre deux
+    tours (16,7 ↔ 33,3) vont dans les deux sens : c'est l'arrondi de l'écran, du bruit. Appels de dessin (sol) : jade 213, nuages 253, ville 155,
+    forêt 159, glacier 111, volcan 181, crypto 197, orbite 114, canyon 152 ; triangles : nuages 1,38 M, canyon 0,83 M, forêt 0,73 M, jade 0,70 M.
+  · JOUER (1re partie, la chauffe du menu finie) : pire image 1,1 s à ×4, 0 compilation ; `?banc=1` vérifié de bout en bout sur ce code (Chrome).
+- **À MESURER SUR UN VRAI iPHONE** : `…/jouer/?banc=1&refaire=1` (3 min sans toucher, puis la capture) — la puce en NETTE, poste par poste.
+
 ## LA VETTE : SES ESCAMOTABLES SE LÈVENT À LA NITRO, ET FERMÉS ELLE N'ÉCLAIRE PLUS (2026-10-18, v661, Sacha : « la vette ne doit pas faire de lumière dans le shop et doit ouvrir ses phare que quand tu boost »)
 - VU AVANT (banc muet, boutique couchée) : les phares de LA VETTE sont des escamotables rangés à plat dans le capot, mais son point de phare
   (`hl`) était posé SUR le capot : en boutique, de face, le halo des phares (HALO.h) brillait par-dessus les couvercles fermés (0,9).
@@ -639,6 +701,64 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   Léo la veut « plus fidèle » (en reprise chez JAPONAISES). Fusion : seul conflit, le bloc des traductions que l'allègement de Sacha
   avait vidé — son ménage gardé, nos deux noms (LA LAME, LE TOFU) ajoutés.
 
+## LA GRANDE ANGLAISE REFAITE AU PLAN — LA BENTLEY CONTINENTAL GT DE 2003 (2026-10-18, discussion RONDES ; Léo : « dans la direction qu'on a prise jusque-là, améliorer, amplifier l'effet de THE ENGLISH DAME » ; RARE inchangée)
+- **Le plan** : pas de plan coté libre de la 2003 (dimensions.com n'a que la 4e génération). Le PROFIL = le dessin de la 2004
+  (the-blueprints.com, 245 px/m en long et 251 en haut : étalonné sur la longueur 4,804 m et la hauteur 1,39 m — un dessin peut être
+  étiré différemment dans les deux sens), la VUE DE DESSUS = la GTC 2012 (même plate-forme, ramenée à 1,918 m), les vues de face / dos
+  de la 2011 pour la coupe seulement. Recomposés à 250 px/m (une toile, une échelle, un miroir par source) : z = (628,7 − px)/250,
+  y = (373,6 − py)/250. Les détails (calandre, phares, feux, jantes) : les photos de la 1re génération (Wikimedia Commons).
+- **La coque** (`SHAPES.e_anglaise` dans la zone RONDES ; l'ancienne méthode de l'objet SHAPES n'est pas touchée) : loft sur le profil,
+  la largeur (taille aux portières, HANCHES au-dessus des roues arrière), la ceinture, la gouttière, le pare-brise à base cintrée et la
+  lunette de fastback. ⚠ Le nez et la poupe se referment en BANDES (largeur → 4 cm sur les derniers millimètres) : un bouchon de loft
+  faisait des éventails de triangles aux coins.
+- **La calandre maille en VOLUME** : sur une tôle penchée (21°) et bombée, une maille découpée dans la tôle ne tenait pas (les bandes
+  débordaient du cadre, le cadre tombait sur la face « dessus ») → un module à part, dans un plan penché comme le nez, posé 1,6 cm
+  devant : fond noir et cadre chromé (anneau construit à la main — ⚠ `ExtrudeGeometry` avec un trou le REMPLISSAIT) qui s'enfoncent
+  dans le nez, maille en losanges sur deux épaisseurs (1,6 cm d'écart), barre verticale. Les prises d'air du bouclier, elles, sont
+  découpées (maille coupée au rectangle par Liang-Barsky : `maille`).
+- **Le reste** : quatre phares ronds (l'intérieur plus grand ; ⚠ une optique centrale sombre sur une glace blanche faisait des « yeux de
+  dessin animé » → cuvette et optique en chrome fumé), posés sur la tôle (recherche de la tranche la plus en avant à partir de z 1,95 :
+  plus près, le passage de roue relève le bas des sections et le phare se cache DANS la caisse) ; vitres sans cadre et joint noir,
+  montant fin, baguettes chromées (vitres, bas de caisse), portes, capot, malle, feux OVALES au coin de la poupe ; rétros couleur caisse,
+  poignées et trappe à essence chromées, essuie-glaces ; jantes de 19 pouces à six branches en hélice, lèvre rivetée, cache sombre sans
+  logo. Les sorties ovales de Léo (`ECH_POTS.e_anglaise`) n'ont pas bougé.
+- **Mesuré** : 0 programme compilé en course (couché, debout), mêmes avertissements que le main ; la découpe (~60-90 ms) faite à la
+  préchauffe du menu (`rondesChauffe` découpe désormais LA QUEUE DE CANARD puis LA GRANDE ANGLAISE, une par étape) ; construction
+  ~25 ms ensuite (LA PERLE : 70 dans la même session, Mac chargé) ; ~19 000 facettes. Planche : `photos-gameplay/anglaise-avant-apres.png`.
+
+## LA QUEUE DE CANARD REFAITE AU PLAN D'USINE — LA 911 CARRERA RS 2.7 DE 1973 (2026-10-18, discussion RONDES ; Léo : « la ducktail, il y a des bugs au niveau des phares — retravaille-la vraiment à fond, même technique et même rigueur que la Taycan » ; index 45, ÉPIQUE inchangée)
+- **Le bug, nommé** : (1) le JONC NOIR du pare-chocs avant était une boîte posée à 5 mm de la tôle du pare-chocs — sous le post-traitement
+  la profondeur est en 16 bits (voir LA PERLE) : le jonc CLIGNOTAIT en pointillés noir / blanc juste sous les phares ; (2) chaque PHARE
+  était trois cylindres empilés à 5-10 mm, penchés de 20° vers le ciel, posés DEVANT l'aile : ils se mangeaient de loin et sortaient de
+  la silhouette (deux « cornes » vues de derrière au garage). ⚠ Tout détail empilé sur un autre à moins de ~1,5 cm clignote : un détail
+  se PLANTE dans la tôle (il la traverse franchement) ou se DÉCOUPE dedans, jamais posé à plat contre elle.
+- **Le plan** : dimensions.com n'a que la 993 et la 992 → le DESSIN DE CARROSSERIE PORSCHE de la 911 (4 vues + une coupe, 3486 px,
+  the-blueprints.com). ⚠ Un scan : chaque vue a SA propre échelle — étalonnée sur ses cotes (côté et dessus 404 px/m, face 421 × 410,
+  dos 414 × 409) et recomposée à 404 px/m pour l'outil de vue. « Plan 0 » (axe avant, 0,35 m du sol) : z = 1,177 + (2066 − px)/404,
+  y = 0,35 + (497 − py)/404 — le pavillon tombe à 1,32 m (la RS). Ce que la RS change au dessin de 1967 : l'empattement long (+57 mm,
+  la roue arrière reculée), les ailes arrière élargies (1,65 m), la queue de canard, les pare-chocs de 1973 (photos Wikimedia Commons).
+- **La coque** (`SHAPES.b_canard`, posé dans la zone RONDES ; l'ancienne méthode de l'objet SHAPES n'est pas touchée) : un loft sur
+  les courbes relevées au pixel (profil dans l'axe, plus grande largeur, crête des ailes avant, bord du capot, ceinture, gouttière,
+  lunette). La section du flanc suit la COUPE d'usine (le flanc rentre de plus en plus vite jusqu'à la ceinture — une courbe de Bézier
+  faisait une coque de berline). ⚠ Toutes les sections DOIVENT avoir le même nombre de points (sinon le loft relie de travers : une
+  rigole « noire » au milieu du capot). ⚠ La base du pare-brise est CINTRÉE en plan (z 0,692 au milieu, 0,449 au pied du montant) : la
+  zone du pare-brise suit cette courbe, pas un z constant. Devant le phare, l'aile redescend (le bord du phare, trait raide du profil) ;
+  près du phare, l'aile s'élargit en cuvette (un dessus plat de la largeur du phare). La queue de canard fait partie de la coque : le
+  capot moteur se relève, la LÈVRE en surplomb est une tranche (son dessous remonte), la face arrière est la marche entre la dernière
+  section pleine et la lèvre ; un seul bord continu de la lunette à la lèvre (deux tables raccordées sautaient de 3,5 cm : froissé).
+- **Découpé dans la tôle** (`bulleOutils.decoupe`, une zone = UNE vue) : vitres de porte et de custode (la goutte), cadre noir et
+  montant B (il descend jusqu'au pied du pare-brise : les deux cadres noirs s'y rejoignent, sinon dents de scie), portes, capot (son
+  bord le long des ailes, son nez), fente d'auvent, pare-brise et lunette cerclés de noir, joint et grille à lames de la queue de
+  canard, feux rouge / ambre au coin de la poupe, grilles d'avertisseur et clignotants sous les phares, la BANDE BLEUE de bas de caisse
+  (sans lettrage). **En relief** : le PHARE rond aux cotes du plan (cerclage 0,105 m, penché de 18°, logé dans la cuvette ; glace H4 à
+  anneau argent et cache chromé ; un tour — aucune face contre une autre), les PARE-CHOCS en deux tubes qui se touchent par une arête
+  (couleur caisse + jonc noir), les FUCHS (cinq branches polies, creux BLEUS, lèvre polie), rétro de course, poignées, essuie-glaces.
+  Le pot de Léo (`ECH_POTS.b_canard`) n'a pas bougé.
+- **Mesuré** : 0 programme compilé en course (couché, debout ; un +2 vu une fois = la carte tirée au hasard, 236 → 236 aux passages
+  suivants), mêmes avertissements que le main ; la découpe (~60 ms) se fait à la préchauffe du menu (`rondesChauffe`, une ligne dans
+  `chauffeDivers`, gabarit en chantier muet `K.muet` comme les japonaises) ; construction 31-59 ms (LA PERLE : 118 dans la même
+  session) ; ~20 000 facettes. Hook `dbgRondesChauffe()`. Planche : `photos-gameplay/canard-avant-apres.png`.
+
 ## LE ROUGE-GORGE — LA RELIANT ROBIN Mk1, TROIS ROUES, LA ROUE AVANT AU MILIEU (2026-10-18, discussion RONDES — la trois-roues anglaise des années 70, fibre de verre ; index 84, RARE)
 - **Pas de plan vectoriel libre** (dimensions.com n'a pas la Robin, getoutlines sur devis) : le plan raster de the-blueprints.com (côté +
   dessus, étalonné sur l'EMPATTEMENT de 2,159 m — 170 px/m), relu en mètres du jeu, + les cotes officielles de la Mk1 (3,33 × 1,42 × 1,37 m)
@@ -731,6 +851,49 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
 
+## LE CAÏD DEVIENT LE GMC HUMMER EV PICK-UP (2026-10-18, discussion BOÎTES ; Léo : « une magnifique GMC »)
+- **Où** : le même `SHAPES.caid=…` de la zone BOÎTES (repère `// <<< SHAPES.caid (BOITES) >>>`, après LA CABOSSÉE) ; l'ancienne méthode `caid(K)`
+  reste en place (la coordination l'effacera). `ECH_POTS.caid` : électrique, deux FENTES qui luisent au bas du bouclier arrière (comme LA PERLE).
+  Ligne CARS 2 : seulement h 2,01, w 2,20, l 5,51 (cotes réelles) ; nom, rareté, vert anis 0x86f51c gardés.
+- **Le plan** : dimensions.com « GMC Hummer EV Pickup (1st Gen) » (SVG : profil, face, dos, dessus ; 104,9 unités/m sur l'empattement 3,45 m).
+  Photos de Commons (Edition 1 Interstellar White, Ethan Llamas ; Meteorite ; Neptune Blue).
+- **Méthode** : la grille de LA CABOSSÉE (+ `bout`/`fx` : le nez en marches ; `plafond(z)` : les rangées couchées sur l'épaule des ailes) + `boutD`/`fxd` (le contour de la POUPE de la cabine par rangée, ses colonnes aux x donnés : les deux
+  AILERONS qui plongent dans la benne autour de la lunette en retrait) ; la cabine noire par code (26 + vitres) sauf les ailerons (code 0).
+- **La découpe en moment creux** : sur ce gabarit elle coûte ~30 ms (1re construction ~40-60 ms, au-dessus des 50 de la règle). `chauffeDivers`
+  est hors de la zone BOÎTES : le gabarit expose `SHAPES.caid.pre` (la découpe seule, mise en cache) et le bloc l'appelle par
+  `requestIdleCallback` (au plus tard 3 s ; repli setTimeout 2,5 s) — la caisse montée ensuite : 15-30 ms (machine chargée).
+- Teintes réelles proposées : INTERSTELLAR WHITE 0xdde1e4 (Edition 1), METEORITE 0x50555c, NEPTUNE BLUE 0x34506e (jugées au garage).
+- Les lumières (la leçon du BAROUDEUR) : catadioptres du bouclier arrière en rouge MAT (ils tiraient le halo et les traînées sous les feux en C),
+  le point des phares au milieu des longs feux (`hl` x .76).
+- Banc : course couchée et debout 0 programme compilé, garage sans erreur. Planche : photos-gameplay/hummer-vraie-et-nous.png.
+  Outils : boites/hummer/ (src, ref, photos), assemble_h.py, integre_h.py, planche_hummer.py.
+
+## LE BAROUDEUR, CHAQUE LUMIÈRE À SA PLACE (2026-10-18, discussion BOÎTES ; Léo : « les lumières ont l'air trop détachées… il y en a deux qui apparaissent au-dessus »)
+- **Les deux « au-dessus »** : le feu de jour (bâtonnet blanc de 22 cm) et le clignotant (languette orange) posés SUR chaque élargisseur avant,
+  qui dépassaient de la tôle au-dessus des roues — une fois l'élargisseur couleur caisse (Sahara), ils flottaient. Désormais une bande de LED de
+  1 cm À FLEUR de l'arête avant de l'élargisseur (`P.prism` sur une bande décalée du contour, 4 mm de relief), blanche en haut, orange au bout.
+- **Les phares** : le cerclage dépassait de 4 cm devant la calandre → il affleure sa face, anneau et lentille en retrait ; `hl` reculé de 4 cm.
+- ⚠ **Le halo rouge et le départ des traînées** : `buildCar` les pose sur la moyenne des pièces ROUGES ALLUMÉES (`g:'l'`) les plus en arrière de
+  chaque côté (fenêtre de 30 cm, voir CAR_FEUX) — les catadioptres rouges du pare-chocs y entraient : halo et traînées 20 cm SOUS les feux.
+  Un catadioptre n'est pas un feu : rouge sombre MAT (`R:{g:'m',c:0x7a1018}`). Règle pour toute caisse : un rouge allumé à l'arrière = un feu.
+- Les feux arrière posés sur la tôle (2,5 cm de relief au lieu de 4). Banc : course couchée et debout 0 programme compilé, garage sans erreur.
+  Planche : photos-gameplay/wrangler-lumieres-avant-apres.png. Banc des lumières : boites/wrangler/lum/, `jour.py` (`CHASE=1` : la vue de poursuite).
+
+## LE BAROUDEUR EN FINITION SAHARA (2026-10-18, discussion BOÎTES ; Léo, photo d'un JL Sahara gris : « même couleurs, même le truc au-dessus de la roue »)
+- **La teinte** `0x464950` (l'olive `0x4a4d38` part) : mesurée sur la photo (la porte à l'ombre d'un ciel gris : 75 · 76 · 82) puis jugée DANS LE
+  JEU, jamais au studio. ⚠ La même base change beaucoup selon la scène : au garage les lampes chaudes la tirent vers le beige (un gris neutre
+  `0x5c5d60` y sortait crème, 149 · 129 · 120), la VILLE VITRÉE la bleuit (une porte en `0x6c7077` mesurée 62 · 92 · 140 alors qu'à l'œil elle
+  semblait grise : mesurer les pixels, l'entourage bleu trompe). D'où un gris moyen à peine bleuté : gris au garage, le poids de la photo à
+  PICS DE JADE à midi. Scène de jour fixe pour un AVANT/APRÈS : `?carte=jade&meteo=midi` (le 1er couple du mode classique est imposé).
+- **Couleur caisse** : élargisseurs (prismes `ELAV`/`ELAR` en `p`), hard-top (code 26 → `{g:'#'}`, sans joint propre : la découpe retombe sur
+  le code 1), charnières. Noirs : poignées, rétroviseurs, pare-chocs, marchepieds (déjà comme la photo). La glissière de la vitre arrière passe
+  au code 23 (noir) pour ne pas devenir couleur caisse.
+- **Jantes Sahara** : cinq branches en trapèze poli (`J.prism` dans le plan de la roue : contour [z,y] extrudé en x), une gorge grise en relief au
+  milieu de chaque branche, rebord poli large, moyeu gris (`P` mat `0x3d4047`) ; la roue de secours a la même (ExtrudeGeometry dans le plan x-y).
+- Banc : `jour.py` (CAR-bancs/nouvelles-voitures/boites) — course, pause, photos dans le repère de la caisse (`dbgLumVue`), HUD et jus masqués
+  en `opacity:0` (en `visibility` leurs enfants revenaient). Course couchée et debout : 0 programme compilé ; garage sans erreur ; ~30 ms à bâtir.
+  Planche : photos-gameplay/wrangler-sahara-avant-apres.png.
+
 ## LE BAROUDEUR — LA JEEP WRANGLER JL 4 PORTES RELEVÉE SUR SON ÉLÉVATION (2026-10-18, discussion BOÎTES ; Léo : « le Wrangler moderne, 4 portes »)
 - **Le gabarit** : `SHAPES.wrangler=(function(){…})()` à sa ligne-repère + `ECH_POTS.wrangler` (un pot à droite, comme sur la photo de dos) +
   le nom anglais par `Object.assign(I18N,{'LE BAROUDEUR':'THE TRAILBLAZER',…})` dans le même emplacement (pas de ligne réservée dans le bloc
@@ -779,6 +942,44 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **Outils** (`~/Downloads/CAR-bancs/nouvelles-voitures/boites/`) : `releve.py` (le SVG → toutes ses lignes en unités), `traits.py` (→ mètres
   par vue), `trace.py` (lignes numérotées), `regard2.py` + `vue/index.html` (la caisse sous le plan, paramétré par plan), `studio2.py`
   (studio du jeu, plusieurs fiches), `banc_jeu.py` / `banc_garage.py` (cadre de l'ordi, programmes), `cpuprof.py` (profil de la construction).
+
+## LES JAPONAISES — 6 · ROSSO 40 REFAITE AU PLAN (2026-10-18, discussion JAPONAISES, Léo : « complexifie la ROSSO 40, imitation encore plus fidèle et satisfaisante pour les vrais kiffeurs de voiture »)
+- ⚠ **RETIRÉE LE SOIR MÊME** (Léo : « la rosso revient sur avant c'était mieux ») : le bloc `SHAPES.rosso` et son repère sont ôtés de la zone des
+  JAPONAISES, la ROSSO 40 d'origine reprend la main (ses pots, sa ligne CARS : rien n'avait bougé). La préchauffe repasse à cinq étapes. La source
+  refaite reste au banc (`CAR-bancs/japonaises/rosso.js`) ; ne pas la remettre sans que Léo le redemande. Ce qui suit est l'historique.
+- **Le plan** : the-blueprints « Ferrari F40 (1987) » (aperçu vectoriel en couleur, quatre vues, 172,65 px/m, empattement 2,45 m) + les plans au trait gratuits
+  (ouïes du Lexan, feux) ; photos Wikimedia Commons (catégorie « Ferrari F40 »). Relevé au quadrillage métrique (`grille.py`).
+- **Le gabarit** : `SHAPES.rosso=…` dans la zone des JAPONAISES (repère `// <<< SHAPES.rosso (JAPONAISES) >>>`) — il REMPLACE au chargement la méthode
+  `rosso` de l'objet SHAPES, dont le texte reste intact plus haut ; la ligne CARS de ROSSO 40 n'est pas touchée ; les trois sorties de Léo
+  (`ECH_POTS.rosso`) s'appliquent toujours. Loft à 18 points (taille de guêpe : le haut des portières rentre de 18 cm, `TOP`), zones capot / serre /
+  moteur (arcs-boutants, paroi intérieure, Lexan). Découpés : le capot moteur en Lexan fumé et ses 24 ouïes, les deux plénums rouges du V8 dessous ;
+  les trappes des phares escamotables (`ROSSOPH`, à la nitro comme LA CERISE et LE TOFU : deux optiques rondes) ; les feux fixes (lus de dessus sur la
+  pente du nez : cuvette, clignotant, optique) ; NACA du capot et de portière, prise des hanches, bouche grillagée, prises des freins, quatre fentes,
+  panneau arrière grillagé en losanges, quatre feux ronds, catadioptres, cuvette des sorties, bouchons d'essence, vitres, joints, pli de ceinture.
+  Posés : l'aileron intégré (deux dérives penchées, le plan, bord de fuite noir), la lame qui suit le nez, rétros, essuie-glace, diffuseur, plaque.
+  Jantes à cinq branches, écrou central, rebord poli. 4 000 → 26 700 facettes.
+- `'rosso'` ajouté à `japChauffe`, et la préchauffe passe à SIX étapes (une par japonaise — LA BÊTE n'était pas préchauffée : 1re pose 32 ms désormais).
+  1re pose de ROSSO 35-50 ms : l'encastrement des trois pots de Léo (`echEncastre`, une trentaine de rayons contre la caisse) en est la moitié.
+- Vérifié (main fusionné) : course ordi/debout/couché, 0 programme compilé, aucune erreur ; garage + inventaire. Planche :
+  `photos-gameplay/rosso40-avant-apres.png` (VRAIE | AVANT | APRÈS : 3/4 avant, profil, 3/4 arrière, moteur, phares, de près).
+
+## LES JAPONAISES — 5 · LA PIKES PEAK, « LA BÊTE » (nom provisoire), ÉPIQUE, INDEX 87 — ⚠ LA SUIVANTE DE LA GAMME DEVIENT LA 88 (2026-10-18, discussion JAPONAISES, Léo : « une voiture de rallye de bâtard, inspirée un peu Red Bull »)
+- **Le plan** : the-blueprints « Peugeot 208 T16 Pikes Peak (2013) » (aperçu vectoriel, quatre vues, 172 px/m, empattement 2,695 m, 4,50 × 2,00 × 1,30 m) —
+  relevé au quadrillage métrique (`grille.py <image> <sortie> <px/m> <x0> <y0> <su> <sv> <cadre> <échelle>` : 10 cm posés sur le plan).
+- **La caisse** (`SHAPES.pikes`) : loft à 18 points par tranche — ailes de ±0,985 aux roues, ±0,925 aux portières, épaule à ±0,86, capot plus bas que la crête
+  des ailes (le creux est permis dans la zone du capot), pare-brise très couché (1,26 → 0,42), pavillon 1,275, serre et hayon d'une même formule (pas
+  d'arête à la jonction). Posés dessus : le BOUCLIER-LAME (plateau au ras du sol + deux lames verticales rayées, bandes découpées dans la lame par un
+  `clip` de Sutherland-Hodgman), l'AILERON (deux éléments en profil d'aile, 1,97 m, joues de 50 cm, deux cols de cygne en plaques de carbone), le becquet
+  de pavillon et son feu stop, l'écope de toit et son antenne, rétros de course, canards, diffuseur et dérives, bavettes, bas de caisse ; découpés au
+  plan : vitres et montants, phares (filet de LED, deux optiques), feux, grande bouche et radiateurs à lames, ouïes du capot et des ailes, joints et plis.
+  Jantes 18" à 14 branches, écrou doré, slicks 32 cm. ~21 000 facettes.
+- **La livrée, SANS logo ni lettrage** (`LIVREE`) : A proche de l'originale (blanc devant, bas de caisse et poupe bleu nuit mat, filet rouge, nez rouge,
+  trapèze bleu nuit sur le capot, soleil jaune sur la portière, bas de caisse argent, rayures bleu/rouge/jaune des lames) — par défaut ; B plus libre
+  (tout bleu nuit mat, argent en bas, deux filets rouges, grand soleil cerclé de rouge).
+- Place : CARS 87 après LE TOFU (`rar:'epique'`), CAR_UNLOCK `{p:1000000}` (prix provisoire), traduction à côté de LA LAME / LE TOFU, `'pikes'` ajouté à
+  `japChauffe` (la tôle découpée pendant la préchauffe du menu).
+- Vérifié (origin/main v649 fusionné) : course ordi/debout/couché, 0 programme compilé en course, aucune erreur ; garage + inventaire ; LE TOFU et LA FIDÈLE
+  inchangées. Planche : `photos-gameplay/pikes-vraie-et-nous.png` (A | B, 3 noms : LA BÊTE · LE SOMMET · AUX NUAGES).
 
 ## LES JAPONAISES — 4 · LA COROLLA BERLINE 2019, « LA FIDÈLE » (nom provisoire), ARGENT (2026-10-18, discussion JAPONAISES : « la Toyota Corolla berline 2019, COMMUNE »)
 - **Le plan** : dimensions.com « Toyota Corolla (E210) » (SVG vectoriel, berline, quatre vues, 127 unités/m — empattement 2,70 m, 4,63 × 1,78 × 1,44 m) ;
