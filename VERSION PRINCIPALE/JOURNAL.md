@@ -3,6 +3,41 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'ALLÈGEMENT — 65 LIGNES D'AUDIT, LA COPIE EN LIGNE SANS COMMENTAIRES, PARIS DANS LE MODE CLASSIQUE, TROIS CAISSES REVENUES (2026-10-18, Sacha : « petite session d'allègement du code du jeu, essaie de faire un audit et une liste très claire et exhaustive des éléments qu'on peut supprimer » · « fais les lignes 1 et 2 » · « 3 et 4 aussi » · « enlève l'élément saute-mouton, le snake loop, les sons des bêtes, les bouts morts de creature, retire la charte, remet la map Paris dans le mode classique, enlève tous les trucs du mode carrière, l'ancien menu de Léo, enlève tous les trucs de 25 à 46 » · « remet dans le jeu les modèles 3D de LA POUPÉE, du REQUIN et de LA RAIE » · « enlève 48 à 65 »)
+- **L'audit** : https://claude.ai/artifact/5etvYKNBcHb4EhbiPXQUKG (65 lignes numérotées, sur main 359f9fb8). Sacha a choisi par numéros ; le travail
+  a été fait en 6 lots parallèles (B carrière + Paris, C interface, D fonctions coupées, E maps, F caisses, G musique), un worktree chacun,
+  fusionnés, puis main v635 fusionné par-dessus. Le détail de chaque lot : `passation/ALLEGEMENT-{CARRIERE,C,COUPEES,MAPS,CAISSES,MUSIQUE}.md`.
+- **Ce qui ne change PAS** : le jeu par défaut, au pixel et au comportement près (banc AVANT/APRÈS de l'interface : logo à 0 pixel ; tables
+  BIOMES/SF_CARTES identiques ; aucun tirage `rnd()` déplacé ; gameplay figé respecté : seules des branches mortes sont parties).
+- **Ce qui change, voulu** : PARIS est revenu dans le tirage du mode classique (un temps, « soir » : la course tourne l'heure elle-même ;
+  carte postale `assets/portail/paris-soir.webp`) ; LA POUPÉE (Léo avait demandé son retrait, 716ff989 — Sacha revient dessus), LE REQUIN
+  (premium 9,99 €, comme avant le 6/10) et LA RAIE (2,5 M$) sont de nouveau au garage et en boutique (remboursements déjà versés acquis) ;
+  plus de carte PARC FREESTYLE dans les modes ; la bibliothèque des sons n'est plus en ligne (outil local).
+- **Parti du jeu** (tout reste dans l'historique : étiquette `avant-allegement-2026-10-18` = 024675ba) : la CARRIÈRE entière (niveaux, écrans,
+  campagne, moutons, police, banquier, satellites-obstacles, images `assets/img/carriere/`) ; la charte 6 (`?ui=6`, garde-charte.sh mise à jour,
+  empreinte du logo inchangée) ; l'ancien menu de Léo (`?menu=leo`) ; UX 8 (`?ux8g=1`) ; missions v1 / carnets ; jauge d'aura ; NITROOO, PURE
+  SPEED, AIR NITROOO ; météore, cratère, pluie de débris ; plots, cônes, portes, tremplins, trous, bosses, boule ; voix ; mode facile ; figures
+  libres ; parc ; loopings ; impact d'immeuble v2 ; snake ; forêt slalom + mousse ; villes de jour ; glacier v3 ; portail ovule ; gros cubes ;
+  styles de route de Jade ; courbe de ton 2 ; ciel pommelé ; les ~60 `?sans=` d'images d'avant (les deux NEUFS de main — `?sans=modcartes`,
+  `?sans=nuvitfondu` — restent) ; GLISSE v2, la radio, `?musique=niveaux`, `?ecole=` ; 31 sons de la banque ; 27 fiches de caisses retirées
+  réduites à leur nom ; 6 formes de caisse en réserve ; les bouts morts de `creatures/` (boîtes de Léo adaptées) ; 11 crochets de test
+  cités nulle part ; 17 déclarations mortes ; 97 traductions orphelines ; `AUTRE VERSION/` et `version-leolei-2026/` (hors du dépôt).
+- **LA COPIE EN LIGNE ALLÉGÉE** (`outils/publie-allege.cjs`, appelé par vercel-build.sh avant l'empreinte) : sans commentaires (même nombre
+  de lignes) et sans les crochets `window.dbgX` que rien de publié ne nomme ; un fichier n'est réécrit que si ses jetons acorn restent
+  identiques. `outils/publie-audio.cjs` (lot G) ne publie que les sons que Pouce bleu peut tirer. acorn 8.19.0 vendu dans `outils/vendor/`.
+  Pour une fumée sur la copie allégée : `--garde-dbg dbgState,dbgBoom` (la fumée a besoin de ces deux crochets).
+- **Les chiffres** (main v635 → l'allègement) : index.html source 7,86 → 6,84 Mo ; index.html PUBLIÉ 7,86 → 3,97 Mo, soit 2,39 → 1,10 Mo
+  téléchargés (brotli) ; sons-banque.js 7,40 → 6,72 Mo ; sw.js 274 → 5 Ko (l'historique v2 → v635 est à la fin de ce journal) ; la copie
+  publiée 95 Mo / 621 fichiers → 37 Mo / 235 fichiers ; le dépôt perd ~150 Mo (audio en double ou jamais joué, les deux vieux dossiers).
+- **Gardé exprès** : les caisses, ailes et peintures animales (vendues) ; les singes et dauphins de Jade, les pigeons, vautours, grues et les
+  bêtes de la forêt (visibles : Sacha ne les a pas demandés) ; `palDonne`/`palPossede` (StoreKit) ; les 253 échantillons `vrais/` que le
+  générateur en direct de la bibliothèque peut tirer (retirés de la copie en ligne, pas du dépôt ; la branche `al-musique-vrais-jeu` les
+  efface si Sacha le veut) ; les ~110 tests `PARK.on` (toujours faux) éparpillés.
+- **Vu en passant, pas corrigé** : `TEST_CAISSES=true` (toute caisse s'équipe) ; `MUSIC_FREN` cherche `music/dark-triad.mp3` (le morceau est
+  `boucles/dark-triad.m4a`) ; la mission `vie5min` promet LA JEEP, qui n'existe pas ; `ROBLOX/outils/preparer-sons.js` nomme des sons retirés.
+- **Vérifié** : `verif.cjs` (noms non résolus comparés à main, acorn + eslint-scope), garde-burnout et garde-charte OK, le vrai vercel-build.sh
+  exécuté, fumées sur le source ET sur la copie en ligne, le tour des 12 maps par leurs portails (voir la poussée).
+
 ## LA MIGRATION DES MISSIONS v2 NE TOURNAIT PAS — M2_COLK ET M2_RECO EN ZONE MORTE (2026-10-18, session m2colk — trouvé en passant par la session CHAUMIÈRES : « missions v2 : migration ReferenceError: Cannot access 'M2_COLK' before initialization » dans la console de `main`)
 - LE DÉFAUT : l'appel du démarrage `try{m2Etat();}catch(e){console.warn('missions v2 : migration',e);}` (juste après `SAVE.load()`) s'exécute ~1 700 lignes AVANT
   `const M2_COLK` et `let M2_RECO` (le bloc des fonctions `m2*`). Lus avant leur ligne, ils sont en zone morte : `ReferenceError`, avalée par le `try/catch`.
