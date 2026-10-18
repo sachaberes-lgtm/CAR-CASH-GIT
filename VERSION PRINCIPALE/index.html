@@ -40638,6 +40638,11 @@ const M2=[
    caisses tombaient en mourant à la 2e seconde ; `frole` : la distance (m) d'un flanc de tour qui compte comme frôlé ; `prof` : le fond de
    la mer de Jade (m sous la surface) — EAU.fond n'est jamais atteint (la poussée ramène avant), le seuil est le fond qu'on atteint vraiment. */
 const M2K={partie:60,frole:6,prof:EAU.fond,debut:3}; // prof : le fond de la mer de Jade (420 m) — mesuré : en tenant la plongée on le passe en ~25 s
+/* (2026-10-18) ⚠ CES DEUX-LÀ SONT ICI, AVANT L'APPEL DE m2Etat DU DÉMARRAGE (voir « la migration de la sauvegarde, une fois »), et nulle part plus bas : la migration
+   (m2MigreV2 → m2Val / m2Seuil → m2Col) les lit, et un `const` / `let` lu avant sa ligne est en zone morte (ReferenceError). Le try/catch de l'appel avalait
+   l'erreur : la migration des missions v2 s'arrêtait net, sans bruit, depuis le 16/10. M2_COLK : la catégorie de collection de chaque `k` ; M2_RECO : le cache de m2Reco. */
+const M2_COLK={cars:'voiture',peint:'peinture',trainee:'trainee',aile:'aile',figure:'figure'};
+let M2_RECO=null;
 /* l'état de la partie en cours (jamais sauvegardé) : ctl = secondes de conduite (sans le largage), vie = depuis la dernière (re)naissance,
    parf = poses parfaites d'affilée, lac = glisse tenue sur un lac gelé, tourV = les tours frôlées pendant CE saut, run = missions
    réussies pendant cette partie (l'écran de mort), deb = la partie a été comptée (jour, heure). */
@@ -50060,7 +50065,7 @@ if(SAVE.d.tutoProv){SAVE.d.tutoProv=0;if(!SAVE.d.bienv&&!SAVE.d.permis)SAVE.d.tu
 if(SANS_CARRIERE)try{const mo9={carrN:'nuages',carrV:'ville'};let m9=false;
   CAR_UNLOCK.forEach(function(u,i){if(u&&u.exK&&mo9[u.exK]&&(((SAVE.d.carr||{})[mo9[u.exK]])|0)>=u.exV&&!carOwned(i)){SAVE.d.owned.push(i);m9=true;}});
   if(m9)SAVE.mark();}catch(e){}
-try{m2Etat();}catch(e){console.warn('missions v2 : migration',e);} // (2026-10-16) LES MISSIONS v2 : la migration de la sauvegarde, une fois (voir m2Migre / m2MigreV2)
+try{m2Etat();}catch(e){console.warn('missions v2 : migration',e);} // (2026-10-16) LES MISSIONS v2 : la migration de la sauvegarde, une fois (voir m2Migre / m2MigreV2) — (2026-10-18) tout `const` / `let` qu'elle atteint doit être déclaré AVANT cette ligne (M2_COLK, M2_RECO : à côté de M2K)
 if(BALADE){SAVE.d.tuto=1;SAVE.d.permis=1;if(SAVE.d.facile==null)SAVE.d.facile=0;SAVE.flush=function(){};SAVE.mark=function(){};} // (2026-10-09) LA BALADE n'écrit rien : ni leçon, ni question du mode, ni sauvegarde
 /* (2026-09-30) la partie tuée en arrière-plan vient d'être versée (SAVE.load) : le menu le DIT, une fois, à son apparition */
 Object.assign(I18N,{'PARTIE INTERROMPUE':'RUN INTERRUPTED','COPIE IMPOSSIBLE : COPIE-LE A LA MAIN':'COPY FAILED: COPY IT BY HAND','Sélectionne le code et copie-le à la main.':'Select the code and copy it by hand.'});
@@ -51720,7 +51725,7 @@ function m2HabAMoi(cat,d){if(cat==='figure')return d.id==='tailwhip'||(Array.isA
 function m2Chat(){for(let i=0;i<CARS.length;i++)if(CARS[i]&&CARS[i].shape==='poptart')return m2CarAMoi(i)||(function(){try{return carUnlockedVrai(i);}catch(e){return false;}})();return false;}
 /* les objets que donnent les missions : hors des « toutes » (« les objets gagnés par mission ne comptent PAS dans toutes ») — les
    couleurs SECRÈTES de la palette aussi (elles se gagnent par leur mission secrète) */
-let M2_RECO=null;
+/* (M2_RECO, le cache de m2Reco, est déclarée plus haut, à côté de M2K : voir là) */
 function m2Reco(){if(M2_RECO)return M2_RECO;const R={car:{},hab:{}};for(const m of M2){const r=m.r||{};if(r.car)R.car[r.car]=m.id;if(r.cat)R.hab[r.cat+':'+r.id]=m.id;}return (M2_RECO=R);}
 function m2HabReco(cat,d){return !!(m2Reco().hab[cat+':'+d.id]||(cat==='peinture'&&d.sec));}
 /* LA COLLECTION : n = possédés (tout compte), tot/nT = le lot « toutes » (sans les objets de mission) et ce qu'on en a */
@@ -51729,7 +51734,7 @@ function m2Col(cat){const R=m2Reco();let n=0,tot=0,nT=0;
   else{const L=COSM[cat]||[];for(const d of L){const a=m2HabAMoi(cat,d);if(a)n++;if(!m2HabReco(cat,d)){tot++;if(a)nT++;}}}
   return {n:n,tot:tot,nT:nT};}
 function m2Tout(){let tot=0,nT=0;for(const c of ['voiture','peinture','aile','trainee','figure']){const o=m2Col(c);tot+=o.tot;nT+=o.nT;}return {tot:tot,nT:nT};}
-const M2_COLK={cars:'voiture',peint:'peinture',trainee:'trainee',aile:'aile',figure:'figure'};
+/* (M2_COLK est déclarée plus haut, à côté de M2K : voir là) */
 /* LA VALEUR D'UNE MISSION, maintenant (les records de la partie en cours compris) */
 function m2Val(m){const d=SAVE.d,s=m2Etat(),r=s.r,c=s.c,ex=d.ex||{},enC=m2EnC();
   switch(m.k){
