@@ -3,6 +3,104 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES MODULES DE CHAQUE MAP — AU MOINS TROIS PAR MAP, TIRÉS AU HASARD (2026-10-18, session MODULES — Sacha : « pour l'instant dans les générations de map il n'y a pas beaucoup de modules, il faut que tu rajoutes des modules adaptés au gameplay de chaque map, il en faut au moins 3 par map qui seront sélectionnés automatiquement ; pour l'instant il y a trop de tout droit et trop peu de modules »)
+- AVANT : seuls les NUAGES (et leur orage) avaient des modules (le matin même : tSlalom, tEpingle, tCorde, tEsses, tRusses). Les neuf autres maps
+  du tirage n'avaient AUCUN module : des virages génériques et, en ville comme en orbite, des « grands virages » si larges qu'ils se prenaient
+  comme des droites (banc : 15 s de ligne droite en moyenne en ville, 17-19 s en orbite ; 1 virage par km en orbite, 0,2 au palier 15).
+- LE PRINCIPE, partout le même : chaque générateur a SON paquet (au moins trois modules), mélangé, tiré dans un hasard À PART né de la graine
+  (un seul tirage de plus, ou aucun) — jamais deux fois le même de suite, à intervalles réguliers ; leurs tronçons vont dans MODMARK (ni plot
+  ni huile dedans) ; les rayons se règlent sur le rayon que la caisse tient au palier (40 + 0,3·v, passation/RACCOURCIS.md), jamais en dessous
+  de 1,1 à 1,7 fois selon la map : serré, jamais infranchissable. Interrupteur : `MODC_ON` (`?sans=modcartes` = les pistes d'avant, au tirage
+  près — vérifié : même graine, même piste) ; au banc, sans recharger : `dbgModCartes(0|1)` ; `dbgTrace()` rend désormais `mods` (les tronçons).
+- LES MODULES, map par map :
+  · LA VILLE (et MINUIT, toutes ses teintes) — genCtrl `mAngles` LES ANGLES DE RUE (3-4 coins de 80-95° alternés, un pâté de maisons entre
+    deux), `mBretelle` L'ÉCHANGEUR (une bretelle de 200-250° qui plonge), `tSlalom` LE SLALOM DES TOURS, `tCorde` LA DOUBLE CORDE.
+  · CRYPTO CITY — `mBougie` LA BOUGIE (le pump : une montée en courbe ~20 % ; le dump : la chute en contre-courbe ~28 % — le saut du bull run),
+    `mDents` LES DENTS DE SCIE (4-5 virages alternés qui montent et redescendent comme une courbe de cours), `tSlalom` LE SLALOM DES TAUREAUX,
+    `tEpingle` LE RETOURNEMENT.
+  · LA VILLE VITRÉE (au sol, à plat) — `mTour` LE TOUR DE LA GÉANTE (la route fait le tour, 300-340°, et repasse au-dessus d'elle-même : le
+    pont de vitreAplanir), `mAngles` LES ANGLES DROITS, `tSlalom` LE SLALOM DES GÉANTES, `tEsses` LES ESSES.
+  · EN ORBITE — `mFronde` LA FRONDE (un grand virage de 200-260° qui relance), `mHoule` LA HOULE (3-4 vagues, chacune un virage de 50-70°),
+    `tSlalom` LE SLALOM DES SATELLITES, `tCorde`, `tEsses` ; et l'orbite modulaire a ses poids `ESP_ROUTE.wm` (grands balayages ×0,5, lignes
+    de momentum ×0,6, esses ×1,4, chicanes ×1) et des grands virages un cran plus serrés.
+  · Les quatre (genCtrl, hors nuages) : les rayons des motifs suivent aussi `40 + 0,3·v` au lieu de LV (`RS`, comme les nuages le matin) —
+    au palier 15, plus un virage ne demandait le volant. Un module tous les 0,45-0,8 km × LV (0,3-0,6 en orbite), le premier à 0,7 km × LV
+    (en ville : juste après la rampe d'entrée).
+  · LE GLACIER — du SKI, rien de bizarre (v3 : « une descente normale avec des virages ») : `bkSlalom` LE SLALOM GÉANT (4-5 portes alternées
+    de 45-65°), `bkEsse` LE GRAND S, `bkDouble` LE DOUBLE VIRAGE (deux appuis du même côté, d'un bord de la pente à l'autre). Le cap reste à
+    moins de 75° de la pente (la piste ne se recroise jamais), rayons ≥ 2,6 demi-largeurs, pentes de BK_PENTE4. Tous les 0,5-0,9 km.
+  · LE ROYAUME DE FEU — `vSlalom` LE SLALOM DE CENDRE, `vCorde` LA DOUBLE CORDE, `vChicane` LA CHICANE D'OBSIDIENNE (serrée, 1,3-1,5 rM :
+    le défi de visibilité dans la fumée), `vHoule` LA HOULE DE LAVE (3-4 rouleaux : la pente ondule de ± 8-11 % — `gM` dans `pente()` —, en
+    slalom). Ils prennent la 1re case d'un `virages()` ; le cap reste dans ± 62° ; les boucles à raccourci, l'arche, les fumerons, le lac et
+    l'arrivée ne bougent pas. Ceux de l'essai gardé (`mods`) vont dans MODMARK.
+  · LA FORÊT NOIRE — `fSlalom` LE SLALOM DES GÉANTS (les troncs se posent d'eux-mêmes à chaque corde), `fLacets` LES LACETS (deux épingles
+    opposées, un Z), `fCorde` LA DOUBLE CORDE, `fRacines` LES RACINES (3-4 bosses ± 5 % par-dessus le relief du nœud — `ZM` —, en slalom).
+    Ils remplacent un S de `vers()` quand la cible est loin, seulement dans une zone qui DESCEND (sinon la forêt perdait sa descente : banc) ;
+    un essai à moins de trois modules est noté plus mal (les 8 essais en choisissent un qui en a trois).
+  · LE CANYON — 5 ou 6 de ses 6 liaisons (`lien()` à la place de `virages()`) deviennent `cSlalom` LE SLALOM DES CAIRNS (plus vif que les
+    étroits), `cCorde` LA DOUBLE CORDE autour d'une butte, `cWhoops` LES WHOOPS DE LA GORGE (3-4 bosses rondes, chacune un virage), `cChicane`
+    LA CHICANE DES BUTTES (serrée, 1,1-1,3 × RMIN). Jamais la route 67, les boucles, les étroits, l'arche, l'amphithéâtre, la mine ni la finale.
+    Leur hasard `rm` naît de la graine de l'essai : aucun tirage de plus.
+  · LES PICS DE JADE — les TROIS à chaque vallée, un au cœur de chaque tronçon de virages (jamais collé à la Porte ni au Pont), dans un ordre
+    tiré : `jLacets` LES LACETS DU DRAGON (5-7 virages alternés), `jEpingle` L'ÉPINGLE DE LA FALAISE (150-166°, d'une butée de cap à l'autre),
+    `jSommet` LE DOUBLE SOMMET (deux grands appuis du même côté autour d'un pic).
+- MESURÉ (bancs Node qui font tourner les VRAIS générateurs tirés de index.html — `gc-banc.cjs` pour genCtrl, `ded-banc.cjs` pour les
+  cinq autres —, 12 graines, paliers 0 et 10 ; règle COURSE de passation/RACCOURCIS.md : un virage = 20° de cap à un rayon < 4 × le rayon
+  tenable ; avant → après) :
+  | map | modules par piste (mini) | virages/km p0 · p10 | enchaînements/km p0 · p10 | plus longue « droite » p0 · p10 | longueur p0 |
+  |---|---|---|---|---|---|
+  | VILLE | 7,5 (7) · 6,2 (6) | 2,78 → 3,03 · 1,22 → 2,05 | 2,03 → 2,42 · 0,68 → 1,07 | hors entrée 6,5 → 5,3 s · 6,0 → 3,8 s | 16,6 → 16,2 km |
+  | CRYPTO | 8,2 (8) · 6,8 (6) | 2,78 → 3,29 · 1,22 → 2,12 | 2,03 → 2,47 · 0,68 → 1,40 | hors entrée 6,5 → 7,4 s (le dump) · 6,0 → 7,0 s | 16,6 → 16,2 km |
+  | VITRÉE | 6,8 (6) · 5,9 (5) | 2,78 → 2,94 · 1,22 → 2,03 | 2,03 → 2,31 · 0,68 → 1,17 | hors entrée 6,5 → 5,4 s · 6,0 → 4,1 s | 16,6 → 16,2 km |
+  | ORBITE | 7,6 (7) · 6,7 (6) | 0,92 → 2,39 · 0,36 → 1,45 | 0,36 → 1,67 · 0,09 → 0,84 | 17,3 → 10,8 s · 13,3 → 7,3 s | 19,5 → 18,9 km |
+  | VOLCAN | 4,5 (4) · 4,4 (4) | 1,90 → 2,71 · 2,02 → 2,37 | 0,51 → 1,46 · 0,81 → 1,32 | 15,1 → 14,8 s (la sortie des boucles) · 7,5 → 7,4 s | 9,8 → 11,5 km |
+  | FORÊT | 3,8 (3) · 3,7 (3) | 3,71 → 3,97 · 2,85 → 3,01 | 3,32 → 3,71 · 2,51 → 2,71 | 4,2 → 4,1 s · 2,4 → 2,4 s | 12,9 → 15,0 km |
+  | CANYON | 5,6 (5) · 5,5 (5) | 1,01 → 1,39 · 0,85 → 1,21 | 0,16 → 0,51 · 0,14 → 0,46 | 28 → 30 s (route 67 / l'arche) · 16,3 → 14,6 s | 25,0 → 25,6 km |
+  Le GLACIER (piste de 196 m : tout rayon ≥ 255 m) et JADE (rayons ≥ 280 m, pas d'échelle de palier) n'ont aucun virage « de course » à ce
+  seuil ; au seuil 10 × : glacier 1,95 → 2,22 virages/km, 0,57 → 1,45 enchaînements/km, 3,5 modules (3) ; Jade 1,20 → 1,40, 0,75 → 0,94,
+  plus longue droite 24 → 21 s au palier 0, 3 modules à chaque vallée. Aucun virage INFRANCHISSABLE nulle part.
+  · Le minimum de TROIS est tenu sur 20-24 graines × 4 paliers (0, 5, 10, 15) pour chaque map (la forêt le garantit par sa note, voir plus haut).
+  · DANS LE VRAI JEU (Chrome du banc, `dbgTrace`) : les 20 pistes `dbgModCartes(0)` (10 maps × 2 graines) sont identiques AU BIT à celles
+    d'origin/main ; les 20 pistes ON portent leurs modules (`mods`). Parcours (JOUER, puis chaque map forcée par dbgClassique + dbgSaut, pilote
+    de mesure 9 s) : les 10 maps se bâtissent et se roulent sans __loopErr ; au canyon, la règle d'or dbgCanyon('test') : 0 rocher sur ni sous la
+    route, marge 9,1 m. Le pilote de mesure meurt sur 4 maps sur 10 dans les premières centaines de mètres — AVEC les modules (crypto 261 m,
+    orbite 414, forêt 466, glacier 579) comme SANS (passage témoin `dbgModCartes(0)` : orbite 404, forêt 781, glacier 503, canyon 312) : c'est le
+    pilote, pas les modules (ces morts tombent toutes avant le premier module ; le début de la crypto est le même tracé dans les deux cas). Une
+    erreur « computeBoundingSphere : NaN » en forêt venait du double `fbBoite` (les chaumières), réparé sur main entre-temps : absente du témoin.
+  · Les niveaux du VOLCAN, de la FORÊT et de JADE sont un peu plus LONGS (+17 %, +16 %, +13 % au palier 0) : leurs modules prennent la place de
+    virages, mais sont plus longs qu'eux (ils s'allongeaient de 30 à 50 % avant qu'on les fasse prendre la place de la route : Jade retire la
+    longueur du module de son tronçon, le volcan lui donne une case entière de virages, la forêt ne les pose que si la cible est loin).
+  · Construction : volcan 13-15 ms en médiane, canyon ~225 ms (Node, essais compris — en tranches dans le jeu : il rend la main entre deux
+    essais), forêt 10-37 ms, glacier et Jade < 5 ms.
+- À TRANCHER par Sacha : la fréquence des modules (les intervalles ci-dessus) ; les niveaux un peu plus longs du volcan, de la forêt et de Jade ;
+  et s'il garde la longue ligne droite d'entrée de la VILLE (420 + 520 m × LV, demandée le 29/09) et la ROUTE 67 du canyon (demandée le 15/10) —
+  ce sont désormais les plus longues lignes droites du jeu, avec la sortie des boucles du volcan et l'arche du canyon.
+- BANCS (scratchpad de la session) : `gc-banc.cjs`, `ded-banc.cjs` (planches vue de dessus en PNG, `--qs "?sans=modcartes"`), `acq.cjs`
+  (traces du vrai jeu ON/OFF + référence), `ana.cjs`, `parcours.cjs` (les 10 maps roulées dans le jeu).
+
+## LE VOL QUI SUIT LA ROUTE — LES NUAGES SANS HAUT NI BAS, EN L'AIR AUSSI (2026-10-18, Sacha : « dans la map nuage la route fait des rotations et tout mais la voiture a du mal à voler, comme si le jeu n'arrivait pas à savoir de quel côté de la route on va »)
+- LA CAUSE, MESURÉE : la route des nuages se tord dans l'espace (à l'endroit, sur la tranche, à l'envers), mais EN VOL la gravité, le plané du
+  nitro et l'ÉQUILIBRE de la caisse gardaient le bas du MONDE (« En vol la gravité reste », 15/10). Un saut depuis une dalle sur la tranche partait
+  à côté d'elle, depuis une dalle à l'envers il tombait LOIN d'elle ; et l'équilibre redressait caisse et écran vers un ciel qui n'existe pas sur
+  cette map. Banc `volcote.cjs` (saut de 21 m/s, l'impulsion du saut nitro, à 162 km/h, sans toucher au volant, même point de la piste pour
+  l'ancien et le nouveau vol) : posés sur leur route 6/6 à plat, 3/5 penchée (30-75°), 1/6 sur la tranche, 0/6 à l'envers — les autres perdus
+  jusqu'au couperet des 6 s ; l'écran tournait de 73 à 88° pendant un saut depuis une dalle sur la tranche ou à l'envers.
+- LE CORRECTIF (`VOLR`, à côté de `TBORD`) : sur la route sans haut ni bas, le HAUT DU VOL est le ciel de la dalle survolée — la normale du point
+  le plus proche (le radar de tryLand), sur la face quittée ; quand le radar passe à un autre tronçon, la face la plus proche du haut d'avant
+  (jamais plus de 90° d'un coup), lissée en ~0,08 s. Le suivent : la gravité, le plané du nitro, l'équilibre (`veqNiveau`) donc la caméra, le
+  viseur de pose, le plafond de montée (70) et celui de la vitesse « à plat », le BUMP hors bascule, le vertigo du plongeon, les prédictions des
+  figures (`sautVolPredit`, `figBudget`, le coup de rein), l'ombre de pose, le MIRACULÉ, le compteur et les ailes. La dalle à l'envers n'a plus de
+  « plafond » d'où l'on décroche au ralenti. Hors de cette route (`VOLR.on` faux) : les mêmes formules qu'avant, au chiffre près.
+- MESURÉ APRÈS (même banc, mêmes points) : 23/23 sauts posés sur leur route, même face, à ~15 m (0,35-1,6 s de vol), l'écran tourne de 6 à 14°.
+  Sortie par le BORD sans toucher au volant : perdue comme avant, mêmes temps sur dalle à plat (3,09 s contre 3,10).
+  Longs vols NITRO (saut + 1,4 s de nitro, un pilote de banc qui braque vers la route, 2 passages) : 8/13 posés contre 7/13 — et sur la
+  tranche le haut de la caisse reste à 7-17° de celui de la route (110 à 160° avant : elle volait presque à l'envers par rapport à elle).
+  Une route qui VRILLE sous une caisse haute la laisse sur le côté (la route tourne autour de son axe, pas autour de la caisse) : on braque
+  pour revenir — aucune aide ajoutée (verdict « zéro assistance »).
+- `?sans=volroute` = le vol d'avant ; `dbgVolRoute(false|true)` le bascule en direct pour les vols suivants (le banc apparié s'en sert).
+- Banc : `C:/Users/sacha/cc-banc/volcote.cjs <dossier VERSION PRINCIPALE> index.html <port>` (SCEN=saut|bord|nitro, PILOTE=1 = un pilote qui braque
+  vers la route, SEAUX=0..3 = les seaux de roulis, NPT = points par seau, TRACE=1 = la trajectoire image par image ; plafond 7 min : un ou deux seaux par passage).
+
 ## LES NOUVELLES VOITURES — HUIT PLACES RÉSERVÉES, LA BULLE ET LE COMBI EN COMMUNES (2026-10-18, v629, Léo : « actuellement la seule commune du jeu est LA HONTE, ajoute… »)
 - **La demande** : communes = la voiture des Simpson, la Fiat 500 (2007, finition « 1957 » de sa photo : bleu ciel, toit blanc), la Toyota
   Corolla berline (2019), la Jeep Wrangler (2018), la Mazda MX-5 NA (phares escamotables qui se lèvent), LA BULLE refaite (Coccinelle 1962,
