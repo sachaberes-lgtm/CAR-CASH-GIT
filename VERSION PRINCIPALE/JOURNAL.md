@@ -3,6 +3,14 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## JOUER RESTE QUAND LA CAISSE EST À VENDRE (2026-10-18, session UI-REVUE, Sacha, capture couchée de la ROSSO 40 au garage : « je veux le bouton jouer sur cet écran »)
+- AVANT (règle du 15/10, « LA BARRE DU GARAGE ») : une caisse à vendre à l'écran effaçait JOUER (`#gAct:has(>#gEquip.achat)>#gJouer`) et la
+  BOUTIQUE descendait à sa place, lingot magenta du milieu ; INVENTAIRE et MISSIONS se partageaient le haut.
+- DÉSORMAIS (fin de `<style id="jouerGarage">`) : la barre ne change plus de forme selon la caisse — en haut INVENTAIRE · MISSIONS · BOUTIQUE à parts
+  égales, en bas HOME · JOUER à chevrons · l'ŒIL, comme pour une caisse à toi. ACHETER reste caché à cet endroit (on achète par la BOUTIQUE).
+  JOUER part avec ta caisse ÉQUIPÉE : `garJouer` rend la tienne avant le départ (`if(!carUnlocked(garageI))garageShow(equippedCar())`, déjà là).
+- Le petit trophée du profil revient sur cette vue (c'est la vue principale). `?garjouer=0` = la barre d'avant.
+- BANC : `garjouer3.cjs` (FMT, LANCE=1 : flèche droite jusqu'à une caisse `#gEquip.achat`, relevé de la barre, puis JOUER → la course part).
 ## LA CAMÉRA DU GLACIER : ON VOIT LA PENTE EN ROULANT (2026-10-18, Sacha : « oui : redresse la caméra sur le glacier seulement, pour qu'on voie la pente en roulant »)
 - Réponse à la question laissée par le 2e tour (ci-dessous) : la caméra de course s'inclinait avec la piste, la glace à 70 % remplissait l'écran
   comme un parking plat. `CAM_GLACIER` (`k` .8, `max` 30°, `garde` 12°) + `camGlacier()` : au glacier v4, SUR la piste, le CABRAGE ANTICIPÉ

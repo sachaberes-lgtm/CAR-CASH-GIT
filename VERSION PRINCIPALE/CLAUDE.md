@@ -544,6 +544,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 » (28/09) · « LA TAILLE DU HUD » (28/09) · « L'ORDRE DU HUD » (30/09)
 - « LA REVUE DE L'INTERFACE — CHAQUE BOUTON MESURÉ, L'APPUI POUR TOUS, LE PASSAGE DIRECT » (17/10) — bancs audit/film/chrono
 - « LE JOUER PARTOUT DANS LE GARAGE — INVENTAIRE ET BOUTIQUE » (18/10) — `?garjouer=0`
+- « JOUER RESTE QUAND LA CAISSE EST À VENDRE » (18/10) — la barre du garage ne change plus de forme
 
 **Son et musique**
 - « LA GOMME DOUCE — LE CRISSEMENT QUI CHUCHOTE » (16/10) — le crissement des pneus refait, doux, sous la musique · « LE FEU QUI RUGIT » (16/10) — le son du nitro
