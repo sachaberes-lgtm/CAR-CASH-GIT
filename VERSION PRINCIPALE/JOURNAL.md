@@ -3,6 +3,13 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## CINQ VOITURES DE PLUS SUR LE MAIN (2026-10-19, v662, Léo : « oui, mets les 5 dans le jeu avec les choix ★ »)
+- LA QUEUE DE CANARD (RONDES, f84fc25a) et LA GRANDE ANGLAISE (RONDES, 0bfbb75b) refaites au plan ; LE BAROUDEUR en gris Sahara, élargisseurs
+  et toit couleur caisse, chaque lumière à sa place (BOÎTES, cba2f543 + 9f04afe8) ; LE CAÏD devient le GMC HUMMER EV pick-up, vert anis
+  gardé (BOÎTES, 9e279867 + 20294f96 ; la Classe G n'a jamais été poussée) ; LA BÊTE = la 208 T16 Pikes Peak (JAPONAISES, index 87,
+  ÉPIQUE 1 000 000 $, livrée A sans logo). La ROSSO 40 reste celle d'avant (Léo, chez JAPONAISES : « la rosso revient sur avant »).
+- Fusion : un conflit dans `chauffeDivers` (les étapes `japChauffe` ×5 de JAPONAISES + `rondesChauffe` ×2 de RONDES : toutes gardées).
+
 ## LA VETTE : SES ESCAMOTABLES SE LÈVENT À LA NITRO, ET FERMÉS ELLE N'ÉCLAIRE PLUS (2026-10-18, v661, Sacha : « la vette ne doit pas faire de lumière dans le shop et doit ouvrir ses phare que quand tu boost »)
 - VU AVANT (banc muet, boutique couchée) : les phares de LA VETTE sont des escamotables rangés à plat dans le capot, mais son point de phare
   (`hl`) était posé SUR le capot : en boutique, de face, le halo des phares (HALO.h) brillait par-dessus les couvercles fermés (0,9).
