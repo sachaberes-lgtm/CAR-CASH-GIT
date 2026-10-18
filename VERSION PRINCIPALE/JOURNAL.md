@@ -155,6 +155,28 @@
 - **Prix provisoires** (à régler dans la salle blanche) : communes 2 500 → 8 000 $, rares 25 000 → 50 000 $. LA BULLE et LE COMBI restent
   des récompenses de mission, mais leur famille est COMMUNE (`rar:'commun'` : elles étaient RARES par leur contrat 1 et 2).
 
+## LA BULLE REFAITE SUR LE PLAN COTÉ DE LA COCCINELLE 1962 (2026-10-18, discussion RONDES — Léo : « à refaire, avec le même soin que LA PERLE ; s'inspirer de la photo de cette annonce (combikombi, VW Beetle 1962) ; bleu ciel »)
+- **Le plan** : dimensions.com « Volkswagen Beetle Type 1 » (SVG 4 vues, 213,6 unités/m, étalon = l'empattement de 2,40 m), relevé en mètres
+  (repère du jeu, z = 0 au milieu de la longueur). Bancs et relevés : `~/Downloads/CAR-bancs/nouvelles-voitures/rondes/` (releve.py, trace.py,
+  extrait.py, l'outil de vue `vue/index.html` + regard.py/voir.sh = la caisse en gris SOUS le plan rose, studio.py/photos.py = le studio du
+  jeu, jeu.py = démarrage/garage/inventaire/course/programmes, vues.py = mode photo en course, planche.py). Photos : l'annonce (combikombi).
+- **Le gabarit** (`SHAPES.bulle=` à son repère, qui remplace l'ancienne méthode `bulle(K)` de l'objet SHAPES) : la COQUE en loft (le dessus
+  dans l'axe, la plus grande largeur, la gouttière, le capot avant relevés au plan ; la jupe avant entre les ailes) · QUATRE AILES séparées
+  (tubes fermés hors axe, points répartis PAR TRONÇON — rééchantillonnés au périmètre ils glissaient et la tôle se froissait), l'aile avant se
+  referme en NACELLE autour du phare penché de 25° (sections qui portent un 3e terme : leur pente) · marchepieds caoutchouc à jonc chromé ·
+  pare-chocs à lame, butoirs et « porte-serviettes » (l'annonce) · phares en cerclage chromé, feux en nacelle couleur caisse, bosse de
+  l'éclairage de plaque, nervure du capot moteur, clignotants obus, rétros ronds, essuie-glaces · roues : flanc blanc, jante couleur caisse
+  (la peinture de la boutique la suit), enjoliveur dôme · `ECH_POTS.bulle` : les deux « sarbacanes » sous le pare-chocs.
+- **La tôle découpée au plan** (`bulleOutils.decoupe`, la méthode de LA PERLE en outil générique, pour les trois RONDES) : vitres + cadre
+  chromé (contour gonflé), déflecteur, pare-brise, lunette, baguette de ceinture, joints (portes, capot, capot moteur), ouïes — chaque contour
+  dans SA vue (`al` : la tôle doit regarder la vue). Les morceaux restent dans leur facette (normales intactes) ; le verre lissé par groupes.
+  Gardée sur la fonction (`SHAPES.bulle._tole`) avec un CODE par sommet : une peinture de la boutique repeint sans redécouper.
+- **Mesuré** : construction 25-30 ms (LA PERLE 72-83 ms), ~22 000 facettes ; 0 programme compilé en course (213 → 213) ; démarrage, garage,
+  inventaire (vignette), course debout / couché / plein : les mêmes 30 avertissements que le main (flatShading ×29, M2_COLK). Peintures
+  menthe, couchant (dégradé), chrome, noir, gotham : OK. La fiche : h 1,55 · w 1,57 · l 4,07 (cotes réelles), le bleu de l'annonce 0x93cfd6.
+- ⚠ Le studio du jeu (`dbgEssaiCaisse`) BLANCHIT les teintes claires (l'ancienne BULLE aussi) : juger une couleur en course ou au garage.
+- Planche : `photos-gameplay/bulle-vraie-et-nous.png` (vraie | avant | après | en course). Noms : LA BULLE (gardé) · LA DRAGÉE · LE SCARABÉE.
+
 ## LE FONDU DES NUAGES — PLUS DE BASCULE ENTRE LA OUATE ET LES CUBES (2026-10-18, v628, Sacha : « c'est bien l'effet des nuages pixeliser mais ca bug par moment, quand on s'eloigne ou on se raproche les nuage on parfois l'ancienne texture parfois les pixel »)
 - **La cause** : `cotonTick` rangeait chaque nuage dans UN aspect selon sa distance, par seuils, sans transition : de loin la v8 (lots 0-1),
   puis le vitrail (ou 40 % des fantômes au lot 2, puis tous au lot 3), et TOUT PRÈS de nouveau la v8 (cube > `NUVIT.ang` à l'écran) ; un
