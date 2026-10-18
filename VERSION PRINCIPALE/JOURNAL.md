@@ -155,6 +155,27 @@
 - **Prix provisoires** (à régler dans la salle blanche) : communes 2 500 → 8 000 $, rares 25 000 → 50 000 $. LA BULLE et LE COMBI restent
   des récompenses de mission, mais leur famille est COMMUNE (`rar:'commun'` : elles étaient RARES par leur contrat 1 et 2).
 
+## LA DOLCE VITA — LA 500 « 1957 » SUR LE PLAN COTÉ (2026-10-18, discussion RONDES — la photo de Léo : la 500 de 2007 en finition « 1957 Edition »)
+- **Le plan** : dimensions.com « Fiat 500 » (2015, même caisse que 2007 ; 154,67 unités/m, étalon = l'empattement de 2,30 m). Photos de
+  référence : Wikimedia Commons (« Fiat 500 "1957" Edition », « Vintage '57 », « Azzurro Cuor Leggero »). Index 80, COMMUNE, `SHAPES.cinq`.
+- **Le gabarit** : UNE coque (la 500 est un œuf) en loft sur les courbes du plan — profil, plus grande largeur, PLI D'ÉPAULE (du feu au phare),
+  ceinture, bord du pavillon, coquille du capot. ⚠ Le nez et la poupe : au-delà de AV / en deçà de AP, la dernière section complète est
+  RÉDUITE en largeur et ROGNÉE au profil (la méthode de LA PERLE) — rétrécies point par point, les tranches finissaient en pointe et le
+  bouclier se pinçait en losange. ⚠ Le bord avant de la coquille du capot est un JOINT découpé au plan, pas une arête de la tôle : le faire
+  rentrer vers l'axe en 7 cm froissait tout le nez.
+- **Découpé au plan** (`bulleOutils.decoupe`) : vitres et cadres noirs, montant central noir, custode, pare-brise, lunette, baguettes chromées
+  (porte, bouclier arrière, poignée du hayon), moustache et « sourire », bouche noire, clignotants, feux arrière (l'îlot couleur caisse au
+  milieu), joints (coquille, portes, hayon) et le TOIT BLANC (clé `R`, hors peinture de la boutique : au-dessus du bord du pavillon — un point
+  de chaque section, la limite tombe sur une arête, sans dents ; derrière, bornée au trait du becquet vu de dessus).
+- **En relief** : phares ronds et antibrouillards cerclés de chrome, posés SUR la tôle (`zAvant` : la tranche la plus en avant dont la section
+  contient le point) et tournés comme sur le plan (vus de dessus, en biais à ~40°) ; rétros à coque blanche ; poignées ; antenne ; jantes rétro
+  couleur caisse à large cercle crème + moyeu chromé (sans logo). `ECH_POTS.cinq` : une sortie à gauche. Traduction : son bloc `I18N`.
+- **Couleur** : le bleu très pâle de la photo (0xaac4e2) se confondait avec le toit blanc dans la lumière du jeu → 0x8eb2df (un cran plus
+  bleu) ; la planche montre les deux (A / B), à trancher par Léo.
+- **Mesuré** : ~21 000 facettes, construite en 20-30 ms ; 0 programme compilé en course (couché, debout, plein — un +2 vu une fois en plein
+  écran venait de la carte tirée au hasard : 4 passages LA HONTE / 500 à 213 → 213) ; mêmes 30 avertissements que le main ; garage, inventaire OK.
+- Planche : `photos-gameplay/cinq-vraie-et-nous.png`. Noms : LA DOLCE VITA (posé) · LA BONBONNIÈRE · LE SORBET.
+
 ## LA BULLE REFAITE SUR LE PLAN COTÉ DE LA COCCINELLE 1962 (2026-10-18, discussion RONDES — Léo : « à refaire, avec le même soin que LA PERLE ; s'inspirer de la photo de cette annonce (combikombi, VW Beetle 1962) ; bleu ciel »)
 - **Le plan** : dimensions.com « Volkswagen Beetle Type 1 » (SVG 4 vues, 213,6 unités/m, étalon = l'empattement de 2,40 m), relevé en mètres
   (repère du jeu, z = 0 au milieu de la longueur). Bancs et relevés : `~/Downloads/CAR-bancs/nouvelles-voitures/rondes/` (releve.py, trace.py,

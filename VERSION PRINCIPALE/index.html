@@ -27217,8 +27217,8 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'NOUVELLE 80',shape:'epave',color:0xaec3e0,accent:0xf4f1ea,maxKmh:200,accel:22,turn:2.9,h:1.50,w:1.63,l:3.57,spoiler:0,rar:'commun',retire:1, // 80 — discussion RONDES : Fiat 500 (2007), finition « 1957 » de la photo de Léo : bleu ciel, toit blanc, enjoliveurs crème (gabarit à venir : SHAPES.cinq)
-  desc:'(place réservée)'},
+ {name:'LA DOLCE VITA',shape:'cinq',color:0x8eb2df,accent:0xf3f1ea,maxKmh:200,accel:22,turn:2.9,h:1.50,w:1.63,l:3.57,spoiler:0,rar:'commun', // 80 — discussion RONDES : la 500 (2007) en finition « 1957 » de la photo de Léo — bleu ciel, toit blanc, rétros blancs, jantes à cercle crème (SHAPES.cinq, sur le plan coté)
+  desc:'Toit blanc, robe céleste, moustache chromée. Elle se gare dans un mouchoir de poche, et elle repart avec le mouchoir.'},
  /* · */
  /* · */
  /* · */
@@ -37845,6 +37845,169 @@ ECH_POTS.bulle={p:[{t:'rond',r:.021,ev:1.35,k:'c',pts:[[-.155,.325,-1.965],[.155
 // · · ·
 // · · ·
 // <<< SHAPES.cinq (RONDES) >>>
+SHAPES.cinq=function(K){
+  /* LA 500 « 1957 » (2026-10-18, discussion RONDES — Léo a envoyé la photo d'une 500 de 2007 en finition « 1957 Edition » : bleu ciel pâle,
+     TOIT BLANC, coques de rétro blanches, moustache et baguettes chromées, phares ronds + antibrouillards ronds, jantes rétro couleur caisse
+     à large cercle crème, moyeu chromé — pas de logo chez nous). Tout vient du PLAN COTÉ de la 500 (2007-2015, 4 vues, 154,67 unités par
+     mètre, étalon : l'empattement de 2,30 m), relevé en mètres dans le repère du jeu (x à droite, y en haut, z vers l'avant, z = 0 au milieu
+     de la longueur). Une seule coque (la 500 est un œuf) en loft, la tôle DÉCOUPÉE au plan (`bulleOutils.decoupe`). */
+  const U=LPU,O=bulleOutils,L=(t,z)=>U.lin(t,z),cl=(v,a,b)=>v<a?a:v>b?b:v,mix=(a,b,t)=>a+(b-a)*t,lis=t=>t*t*(3-2*t);
+  const R=.29,ZF=1.072,ZR=-1.228;
+  const PAL={p:{g:'p',c:0x8eb2df},C:{g:'c',c:0x8a9098},R:{g:'p',c:0xf3f1ea,f:0},w:{g:'p',c:0xf0e8d2,f:0},k:{g:'m',c:0x161719},K:{g:'g',c:0x0c0d10},c:{g:'c',c:0xe2e6eb},
+    g:{g:'g',c:0x182330},W:{g:'l',c:0xf6f4ec},L:{g:'l',c:0xd0182a},r:{g:'l',c:0x7a0d18},O:{g:'l',c:0xffa21a},d:{g:'m',c:0x101114}};
+  // ---- LES COURBES DU PLAN (mètres) ----
+  // le dessus dans l'axe (côté) : la jupe arrière, le hayon, le becquet, le pavillon, le pare-brise, le capot, le nez
+  const yTop=z=>L([[-1.752,.40],[-1.745,.47],[-1.72,.60],[-1.709,.668],[-1.69,.734],[-1.617,.869],[-1.60,.922],[-1.543,.956],[-1.526,.973],[-1.40,1.115],[-1.30,1.227],
+    [-1.20,1.338],[-1.164,1.378],[-1.15,1.43],[-1.139,1.452],[-.986,1.461],[-.827,1.476],[-.663,1.489],[-.452,1.495],[-.204,1.49],[-.004,1.471],[.113,1.451],[.216,1.427],
+    [.273,1.41],[.322,1.388],[.612,1.229],[.843,1.085],[1.017,.964],[1.10,.963],[1.169,.949],[1.385,.89],[1.517,.837],[1.585,.79],[1.654,.71],[1.70,.68],[1.738,.617],
+    [1.763,.567],[1.778,.50],[1.795,.44],[1.805,.38],[1.81,.33]],z);
+  const yBas=z=>L([[-1.752,.30],[-1.72,.24],[-1.62,.22],[-1.50,.205],[-.95,.20],[.74,.18],[1.46,.18],[1.73,.192],[1.78,.24],[1.81,.27]],z);
+  // la plus grande largeur (dessus), à ~0,6 m du sol (face et dos)
+  const xM=z=>L([[-1.752,.04],[-1.745,.152],[-1.72,.452],[-1.705,.525],[-1.68,.609],[-1.656,.668],[-1.625,.722],[-1.582,.767],[-1.539,.792],[-1.49,.804],[-1.39,.813],[-.964,.818],
+    [1.082,.822],[1.345,.813],[1.407,.802],[1.443,.79],[1.571,.712],[1.676,.623],[1.709,.585],[1.729,.553],[1.765,.46],[1.792,.312],[1.803,.174],[1.81,.04]],z),
+        yM=z=>L([[-1.75,.55],[-1.6,.66],[-1.3,.64],[1.2,.60],[1.6,.56],[1.81,.42]],z);
+  // le PLI D'ÉPAULE (côté : 181 ; dessus : 89) qui court du feu au phare, et sa suite sur l'aile avant
+  const xS=z=>L([[-1.62,.40],[-1.55,.48],[-1.435,.572],[-1.348,.622],[-1.195,.675],[-1.048,.711],[-.867,.736],[-.624,.755],[-.236,.772],[.136,.779],[.477,.78],[1.05,.776],[1.30,.74],[1.45,.67],[1.57,.58],[1.68,.46],[1.76,.30],[1.81,.03]],z),
+        yS=z=>L([[-1.62,.89],[-1.543,.94],[-1.473,.937],[1.051,.807],[1.221,.788],[1.45,.747],[1.60,.70],[1.70,.64],[1.81,.52]],z);
+  // la CEINTURE (le bas du cadre des vitres : côté 140, dessus 116)
+  const yB=z=>L([[-1.30,1.10],[-1.07,1.052],[-.897,1.037],[-.349,1.011],[.472,.954],[.80,.95],[.95,.93]],z),
+        xB=z=>L([[-1.30,.62],[-1.026,.674],[-.922,.685],[-.586,.707],[-.102,.731],[.216,.74],[.738,.732],[.95,.72]],z);
+  // le BORD DU PAVILLON (dessus : 53 ; côté : 160) — devant, le montant du pare-brise ; derrière, le bord du hayon qui descend
+  const xR=z=>L([[-1.62,.30],[-1.519,.40],[-1.448,.546],[-1.319,.539],[-1.109,.512],[-.961,.504],[-.454,.507],[-.14,.517],[.099,.533],[.246,.549],[.553,.614],[.935,.677],[1.0,.70]],z),
+        yR=z=>L([[-1.62,.89],[-1.475,.937],[-1.295,1.129],[-1.144,1.275],[-1.057,1.345],[-.971,1.39],[-.852,1.425],[-.706,1.444],[-.419,1.454],[-.191,1.451],[-.028,1.435],
+          [.132,1.408],[.248,1.378],[.345,1.338],[.482,1.258],[.716,1.098],[.837,1.008],[.95,.94],[1.03,.90]],z);
+  // le CAPOT (coquille) : son bord (dessus : 75 ; côté : 161), jusqu'au nez (dessus : 131)
+  // (le bord avant de la coquille ne rentre PAS dans la tôle : il est un joint découpé au plan ; la tôle, elle, plonge en douceur vers le
+  // bouclier — le bord du capot qui rentrait vers l'axe en 7 cm froissait les tranches du nez)
+  const xH=z=>L([[.95,.76],[1.094,.741],[1.333,.695],[1.40,.676],[1.473,.649],[1.55,.60],[1.62,.545],[1.68,.475],[1.75,.37],[1.81,.03]],z),
+        yH=z=>L([[.95,.965],[1.051,.965],[1.132,.958],[1.301,.915],[1.412,.881],[1.495,.848],[1.562,.809],[1.60,.776],[1.667,.72],[1.72,.66],[1.81,.50]],z);
+  const AR=[[0,.66],[.15,.64],[.25,.59],[.32,.51],[.355,.41],[.372,.30],[.38,.19]];
+  // ---- LA COQUE : une section par tranche, 22 points du bas (axe) au faîte (axe) ----
+  const NS=22;
+  const brut=z=>{
+    const yb0=yBas(z),yb=Math.max(yb0,U.arch(z,[ZF,ZR],AR,yb0)),yt=yTop(z),s=[];
+    const hk=lis(cl((z-.98)/.12,0,1)),fk=lis(cl((z-1.60)/.10,0,1)),rk=lis(cl((-1.06-z)/.14,0,1));
+    let xm=xM(z),ym=Math.min(yM(z),yt-.06),xs=Math.min(xS(z),xm-.012),ys=Math.min(yS(z),yt-.03);
+    let xb=Math.min(xB(z),xs-.01),yb2=Math.min(yB(z),yt-.02),xr=Math.min(xR(z),xb-.02),yr=Math.min(yR(z),yt-.004);
+    // derrière la vitre de custode : le panneau plein monte jusqu'au bord du hayon
+    if(rk>0){yb2=mix(yb2,Math.max(ys+.02,yr-.04),rk);xb=mix(xb,Math.max(xr+.02,(xs+xr)/2),rk);}
+    // le capot : la ceinture et le bord du pavillon se posent sur le bord du capot
+    if(hk>0){const xh=Math.min(xH(z),xs-.005),yh=Math.max(Math.min(yH(z),yt-.004),ys+.005);xb=mix(xb,xh,hk);yb2=mix(yb2,yh,hk);xr=mix(xr,xh*.99,hk);yr=mix(yr,yh+.001,hk);}
+    yb2=Math.max(yb2,ys+.006);yr=Math.max(yr,yb2+.002);
+    const xl=Math.min(xm-.08,.74),yl=Math.max(yb,yb0+.02);
+    s.push([0,yb],[xl*.9,yb],[xl,Math.min(yl+.02,ym-.01)]);
+    for(const t of [.35,.7])s.push([mix(xl,xm,Math.sin(t*Math.PI/2)),mix(yl+.02,ym,t)]);
+    s.push([xm,ym]);
+    for(const t of [.4,.75])s.push([mix(xm,xs,Math.pow(t,1.6)),mix(ym,ys,t)]);
+    s.push([xs,ys],[mix(xs,xb,.55),mix(ys,yb2,.5)],[xb,yb2]);
+    for(const t of [.33,.66])s.push([mix(xb,xr,t)+.012*Math.sin(t*Math.PI),mix(yb2,yr,t)]);
+    s.push([xr,yr]);
+    const p=mix(mix(3.2,2.3,hk),2.6,rk);
+    for(const t of [.88,.72,.54,.36,.18])s.push([t*xr,yt-(yt-yr)*Math.pow(t,p)]);
+    s.push([0,yt]);
+    for(let i=1;i<s.length-1;i++)if(s[i][1]<s[i-1][1]-.0001)s[i][1]=s[i-1][1];
+    return s;};
+  /* LE NEZ ET LA POUPE ARRONDIS (la méthode de LA PERLE) : au-delà de AV et en deçà de AP, la dernière section complète est RÉDUITE en
+     largeur (la plus grande largeur du plan, vue de dessus) et ROGNÉE au profil (haut et bas vus de côté) — rétrécies point par point, les
+     tranches finissaient en pointe et le bouclier se pinçait en losange. */
+  const AV=1.68,AP=-1.62,S_AV=brut(AV),S_AP=brut(AP);
+  const sect=z=>{if(z<=AV&&z>=AP)return brut(z);const s0=z>AV?S_AV:S_AP,kx=xM(z)/xM(z>AV?AV:AP),t=yTop(z),b=yBas(z);
+    return s0.map(p=>[p[0]*kx,Math.min(t,Math.max(b,p[1]))]);};
+  const zs0=[-1.752,-1.745,-1.735,-1.72,-1.705,-1.69,-1.67,-1.645,-1.617,-1.60,-1.57,-1.543,-1.526,-1.48,-1.43,-1.38,-1.33,-1.28,-1.23,-1.18,-1.15,-1.139,-1.10,-1.06,-1.0,
+    -.94,-.86,-.78,-.70,-.62,-.54,-.46,-.38,-.30,-.20,-.10,0,.10,.20,.27,.322,.40,.48,.56,.64,.72,.80,.87,.93,.98,1.017,1.06,1.10,1.17,1.24,1.31,1.385,1.45,1.517,
+    1.56,1.60,1.63,1.654,1.68,1.70,1.72,1.738,1.752,1.765,1.778,1.79,1.80,1.81];
+  for(let z=1.40;z<1.81;z+=.025)zs0.push(+z.toFixed(3));for(let z=-1.75;z<-1.50;z+=.025)zs0.push(+z.toFixed(3));
+  for(const w of [ZF,ZR])for(const d of [.15,.25,.32,.355,.372,.38])zs0.push(+(w-d).toFixed(3),+(w+d).toFixed(3));
+  const zs=zs0.sort((a,b)=>a-b).filter((z,i,a)=>i===0||z-a[i-1]>.004);
+  const PL=K.kit(PAL);PL.loft(zs,sect,(j,z)=>j<0?'p':j<=1?'k':'p');
+  /* LA TÔLE DÉCOUPÉE AU PLAN : vitres et leur cadre noir, le montant central noir, la custode ; la baguette chromée de porte ; la coquille du
+     capot, la porte, le hayon (joints) ; devant, les phares ronds et les antibrouillards cerclés de chrome, la MOUSTACHE, la baguette du bas,
+     la bouche ; derrière, les feux (rouges, l'îlot couleur caisse au milieu), la poignée chromée du hayon, la lunette ; le TOIT BLANC. */
+  const PP=typeof peintPal==='function'?peintPal(PAL):PAL,GP=PP.p.g,Z=[],zo=(v,P9,k,o)=>Z.push(O.poly(P9,k,v,o));
+  const DLO=[[.454,.977],[-.351,1.032],[-.858,1.056],[-1.043,1.07],[-1.052,1.086],[-1.045,1.103],[-.992,1.176],[-.945,1.229],[-.868,1.292],[-.774,1.338],[-.673,1.365],[-.541,1.381],
+    [-.371,1.385],[-.186,1.38],[.027,1.36],[.149,1.341],[.239,1.312],[.337,1.263],[.58,1.107],[.765,.966],[.765,.962],[.751,.96],[.533,.972]],
+    CADRE=[[.472,.954],[-.349,1.011],[-.897,1.037],[-1.051,1.047],[-1.07,1.052],[-1.082,1.067],[-1.077,1.091],[-1.031,1.162],[-.981,1.224],[-.938,1.265],[-.895,1.299],[-.848,1.328],
+    [-.794,1.353],[-.688,1.383],[-.565,1.40],[-.371,1.407],[-.181,1.401],[.037,1.38],[.179,1.355],[.286,1.314],[.425,1.235],[.636,1.094],[.767,.994],[.807,.956],[.802,.943],[.767,.94],[.543,.95]],
+    CUS=[[-.592,1.322],[-.589,1.268],[-.605,1.13],[-.617,1.094],[-.639,1.072],[-.676,1.063],[-.749,1.063],[-.954,1.078],[-.98,1.084],[-.992,1.093],[-.996,1.108],[-.992,1.127],
+    [-.968,1.166],[-.892,1.243],[-.826,1.291],[-.756,1.322],[-.669,1.342],[-.612,1.344],[-.598,1.336]],
+    PORTE=[[.636,.964],[.655,.905],[.664,.852],[.672,.623],[.669,.503],[.658,.38],[.646,.307],[.632,.284],[.591,.277],[.467,.278],[-.203,.302],[-.319,.309],[-.383,.324],[-.422,.341],
+    [-.458,.365],[-.486,.391],[-.51,.421],[-.536,.481],[-.552,.589],[-.563,.774],[-.562,.914],[-.549,.978],[-.522,1.042],[-.482,1.381]],
+    JONC=[[.557,.411],[.564,.42],[.567,.435],[.563,.442],[.548,.446],[-.723,.499],[-.742,.497],[-.749,.489],[-.745,.474],[-.731,.451],[-.706,.443],[.538,.408]],
+    HAYON=[[-1.149,1.401],[-1.171,1.369],[-1.357,1.167],[-1.527,.971],[-1.551,.951],[-1.599,.926],[-1.608,.886],[-1.692,.729],[-1.698,.687]],
+    FEUC=[[-1.446,.936],[-1.437,.919],[-1.451,.887],[-1.569,.744],[-1.607,.718],[-1.661,.711],[-1.671,.714],[-1.675,.721],[-1.671,.747],[-1.577,.89],[-1.541,.924],[-1.512,.934],[-1.485,.938]];
+  const vit=(x,y,z)=>y>.9;
+  zo('cote',CADRE,'K',{al:.45,ou:vit});zo('cote',DLO,'g',{al:.45,ou:vit});
+  zo('cote',[[-.605,1.035],[-.415,1.025],[-.415,1.41],[-.605,1.41]],'K',{al:.45,ou:vit});zo('cote',CUS,'g',{al:.45,ou:vit});   // le montant central NOIR, puis la custode
+  zo('cote',JONC,'c',{al:.55,ou:(x,y,z)=>z>-.8&&z<.6});                                                                 // la baguette chromée de porte
+  zo('cote',O.bande(PORTE,.0035),'j',{al:.55});zo('cote',O.bande(HAYON,.0035),'j',{al:.45,ou:(x,y,z)=>z<-1.1});
+  zo('cote',FEUC,'L',{al:.62,ou:(x,y,z)=>z<-1.4});                                                                      // le feu qui tourne sur le flanc
+  // dessus : la coquille du capot (son bord sur l'aile, son nez), le TOIT BLANC (le pavillon et le becquet)
+  zo('dessus',O.bande([[.935,.677],[.973,.652],[1.013,.613],[1.044,.567],[1.069,.518],[1.091,.457],[1.112,.377],[1.143,.186],[1.153,0]],.0035),'j',{al:.4,ou:(x,y,z)=>z>.9});
+  zo('dessus',O.bande([[.93,.765],[1.094,.741],[1.333,.695],[1.40,.676],[1.473,.649],[1.53,.60],[1.575,.53],[1.598,.47],[1.628,.358],[1.648,.251],[1.662,.124],[1.667,0]],.0035),'j',{al:.4,ou:(x,y,z)=>z>.92});
+  zo('dessus',[[.305,0],[.305,.66],[-1.03,.66],[-1.045,.507],[-1.073,.383],[-1.09,.268],[-1.103,.129],[-1.106,0]],'R',{al:0,ou:(x,y,z)=>y>yR(z)-.003&&y>1.25});   // (le BORD DU PAVILLON est un point de chaque section : la limite tombe sur une arête, sans dents)
+  // face : pare-brise, phares, antibrouillards, moustache, baguette, bouche, clignotants
+  const PBR=[[0,1.339],[.038,1.344],[.073,1.39],[.094,1.397],[.354,1.385],[.469,1.369],[.51,1.358],[.529,1.345],[.543,1.327],[.561,1.276],[.60,1.094],[.599,1.063],[.591,1.037],[.576,1.019],[.556,1.008],[.471,.999],[0,.999]],
+        pare=(x,y,z)=>z>.3&&y>.95,avant=(x,y,z)=>z>1.3;
+  zo('face',O.gonfle(PBR.concat(PBR.slice(1,-1).reverse().map(p=>[-p[0],p[1]])),.022).map(p=>[Math.abs(p[0]),p[1]]),'K',{al:.3,ou:pare});zo('face',PBR,'g',{al:.3,ou:pare});
+  const rond=(cx,cy,r,n)=>{const o=[];for(let i=0;i<(n||20);i++){const a=i/(n||20)*Math.PI*2;o.push([cx+Math.cos(a)*r,cy+Math.sin(a)*r]);}return o;};
+  zo('face',[[.042,.625],[.278,.626],[.333,.629],[.343,.633],[.335,.641],[.309,.644],[.042,.644]],'c',{al:.3,ou:avant});zo('face',rond(0,.635,.03,16),'c',{al:.3,ou:avant});
+  zo('face',O.bande([[0,.553],[.30,.555],[.362,.556],[.374,.548],[.36,.532],[.342,.523]],.0065),'c',{al:.3,ou:avant});      // la baguette du bas (le « sourire »)
+  zo('face',[[0,.394],[.495,.404],[.527,.394],[.536,.381],[.538,.362],[.53,.328],[.51,.304],[.48,.288],[.438,.281],[0,.27]],'K',{al:.3,ou:avant});
+  zo('face',[[.544,.387],[.694,.394],[.709,.392],[.714,.382],[.698,.367],[.666,.354],[.544,.336]],'O',{al:.3,ou:avant});
+  zo('face',O.bande([[0,.738],[.468,.738]],.0035),'j',{al:.3,ou:(x,y,z)=>z>1.55});
+  // dos : lunette, joint du hayon, feux (l'îlot couleur caisse), poignée chromée, catadioptres, 3e feu stop
+  const LUN=[[0,1.134],[.07,1.132],[.11,1.111],[.129,1.106],[.377,1.109],[.411,1.115],[.429,1.13],[.438,1.155],[.426,1.313],[.406,1.336],[.364,1.355],[.307,1.369],[.242,1.375],[.192,1.373],[.133,1.353],[.091,1.348],[0,1.348]],
+        arr=(x,y,z)=>z<-1.3;
+  zo('dos',O.gonfle(LUN.concat(LUN.slice(1,-1).reverse().map(p=>[-p[0],p[1]])),.02).map(p=>[Math.abs(p[0]),p[1]]),'K',{al:.25,ou:(x,y,z)=>z<-1.0&&y>1.05});zo('dos',LUN,'g',{al:.25,ou:(x,y,z)=>z<-1.0&&y>1.05});
+  zo('dos',[[.602,.941],[.63,.928],[.645,.902],[.669,.765],[.667,.742],[.652,.73],[.625,.725],[.525,.72],[.463,.724],[.50,.80],[.54,.90],[.57,.935]],'L',{al:.42,ou:arr});
+  zo('dos',[[.623,.796],[.616,.858],[.608,.883],[.581,.898],[.566,.898],[.552,.892],[.542,.879],[.537,.861],[.528,.796],[.531,.777],[.555,.765],[.597,.764],[.618,.774]],'p',{al:.42,ou:arr});
+  zo('dos',O.bande([[0,.888],[.117,.879],[.237,.881]],.007),'c',{al:.25,ou:arr});
+  zo('dos',O.bande([[0,.956],[.302,.952],[.597,.942],[.682,.932],[.76,.911]],.0035),'j',{al:.25,ou:arr});
+  zo('dos',O.bande([[0,.449],[.622,.453],[.715,.457],[.785,.468]],.007),'c',{al:.3,ou:arr});                         // la baguette chromée du bouclier (la finition)
+  zo('dos',[[.507,.346],[.653,.347],[.668,.351],[.679,.362],[.475,.413],[.467,.403],[.477,.374],[.49,.355]],'r',{al:.25,ou:arr});
+  zo('dos',[[0,1.385],[.07,1.385],[.07,1.395],[0,1.395]],'L',{al:.2,ou:(x,y,z)=>z<-1.0&&y>1.3});
+  const MEMO=(typeof SHAPES==='object'&&SHAPES.cinq&&SHAPES.cinq.length===1)?(SHAPES.cinq._tole||(SHAPES.cinq._tole={})):null;
+  K.commit({ech:true,prims:[],done:()=>O.decoupe(PL.done(),GP,Z,PP,MEMO,['g'])});
+  // ---- LES DÉTAILS ----
+  const P=K.kit(PAL);P.ech=true;
+  // les RÉTROS : coque BLANCHE (la finition), glace noire vers l'arrière, sur un bras noir au pied du montant
+  P.sym(sd=>{P.put('R',new THREE.SphereGeometry(1,14,9),sd*.865,1.072,.50,0,0,0,.085,.05,.072);P.put('K',new THREE.CircleGeometry(1,14),sd*.865,1.072,.44,0,Math.PI,0,.07,.04,1);
+    P.box('k',.10,.03,.05,sd*.78,1.035,.53,0,0,sd*-.25);});
+  // LES PHARES RONDS et les ANTIBROUILLARDS : cerclage chromé, glace bombée, réflecteur — chacun tourné comme sa face du plan
+  // (vu de dessus, l'optique est en biais à ~40° : elle regarde devant ET dehors, sur le coin arrondi du nez)
+  // (le centre de chaque optique est posé SUR la tôle : la tranche la plus en avant dont la section contient le point)
+  const dansS=(s,x,y)=>{let c=false;const n=s.length;for(let i=0,j=n-1;i<n;j=i++){const a=s[i],b=s[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])c=!c;}return c;},
+        zAvant=(x,y)=>{for(let z=1.81;z>.9;z-=.003)if(dansS(sect(z),x,y))return z;return 1.5;};
+  const zPh=zAvant(.565,.702),zAb=zAvant(.618,.53);
+  P.sym(sd=>{const ph=[sd*.565,.702,zPh-.012],dp=[sd*.60,.08,.80],ab=[sd*.618,.53,zAb-.008],da=[sd*.55,.0,.84];
+    O.tour(P,'c',[[.105,-.03],[.106,0],[.099,.014],[.084,.019],[.078,.014]],22,ph,dp);O.tour(P,'C',[[.078,.006],[.03,.0],[.02,-.01]],18,ph,dp);
+    O.tour(P,'W',[[.078,.014],[.066,.024],[.04,.03],[0,.033]],22,ph,dp);O.tour(P,'c',[[.024,.034],[.01,.036],[0,.036]],12,ph,dp);
+    O.tour(P,'c',[[.068,-.025],[.069,0],[.063,.011],[.05,.015]],18,ab,da);O.tour(P,'W',[[.05,.012],[.04,.02],[0,.025]],18,ab,da);});
+  // les POIGNÉES chromées
+  P.sym(sd=>P.box('c',.016,.03,.21,sd*.785,.826,-.42));
+  // l'ANTENNE, au fond du pavillon
+  P.put('k',new THREE.CylinderGeometry(.005,.012,.22,6),0,1.57,-.92,-.25,0,0);
+  // la plaque dessinée : la vraie s'y pose (voir plqDessinee)
+  P.box('l',.42,.105,.012,0,.825,-1.725,.2,0,0);
+  // les passages de roue : une joue sombre derrière chaque roue
+  const joue=w=>{const o=[[w-.38,.18]];for(let k=0;k<=12;k++){const a=Math.PI*k/12;o.push([w-Math.cos(a)*.38,.20+Math.sin(a)*.45]);}o.push([w+.38,.18]);return o;};
+  P.sym(sd=>{P.prism('d',joue(ZF),.02,sd*.60);P.prism('d',joue(ZR),.02,sd*.60);});
+  K.commit(P);
+  // ---- LES ROUES : la jante rétro de la finition — couleur caisse, un LARGE CERCLE CRÈME au bord, le moyeu chromé ; pneu noir ----
+  const JW=.185,hw=JW/2,fx=hw-.02,cJ=PP.p.c!=null?PP.p.c:PAL.p.c,J=lpKit({k:{g:'m',c:0x18191b},w:{g:'p',c:0xf0e8d2,f:0},p:{g:'p',c:cJ,f:0},c:{g:'c',c:0xe4e8ed},d:{g:'m',c:0x101114}});
+  J.lathe('k',[[.19,-hw],[R*.86,-hw],[R*.97,-hw*.72],[R,-hw*.3],[R,hw*.3],[R*.97,hw*.72],[R*.86,hw],[.19,hw]],24,0,0,0,'x');
+  J.lathe('w',[[.191,hw-.004],[.188,fx+.006],[.150,fx+.002]],24,0,0,0,'x');                       // le cercle crème
+  J.lathe('p',[[.150,fx+.002],[.11,fx],[.072,fx]],24,0,0,0,'x');J.lathe('d',[[.19,-hw+.02],[.19,fx-.04],[0,fx-.04]],20,0,0,0,'x');
+  J.lathe('c',[[.072,fx],[.066,fx+.014],[.045,fx+.022],[0,fx+.025]],18,0,0,0,'x');                // le moyeu chromé (sans logo)
+  const JG=J.done();
+  return {hl:[.56,.70,1.66],tl:[.60,.82,-1.68],wx:.70,wzF:ZF,wzR:-ZR,
+          roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],K.mats[g]||K.mats.c);m.userData.lp=1;w.add(m);}},
+          lpw:{R:R,w:JW,style:'nyan',jante:0xe4e8ed}};
+};
+ECH_POTS.cinq={p:[{t:'rond',r:.032,ev:1.2,k:'c',pts:[[-.418,.255,-1.765]]}]}; // (2026-10-18, LA DOLCE VITA) une seule sortie, à gauche sous le bouclier (le plan)
+Object.assign(I18N,{"LA DOLCE VITA":"LA DOLCE VITA",
+ "Toit blanc, robe céleste, moustache chromée. Elle se gare dans un mouchoir de poche, et elle repart avec le mouchoir.":"White roof, sky-blue dress, chrome moustache. She parks on a handkerchief, and drives off with the handkerchief."});
+// <<< fin SHAPES.cinq (RONDES) >>>
 // · · ·
 // · · ·
 // · · ·
