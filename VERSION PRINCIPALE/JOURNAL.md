@@ -3,7 +3,7 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
-## LE ×2 DU GAIN CONTRE UNE PUB + LA PRISE ADMOB DE L'APP (2026-10-19, v691 — Sacha : « prépare les emplacements de pub récompensée dans le jeu (sans module AdMob), on branchera AdMob en v1.1 » ; au quiz : « ×2 sur le gain », « pub maison de 5 s » tant qu'AdMob n'est pas branché, « vraies pubs seulement » pour L'ÉTERNELLE)
+## LE ×2 DU GAIN CONTRE UNE PUB + LA PRISE ADMOB DE L'APP (2026-10-19, v692 — Sacha : « prépare les emplacements de pub récompensée dans le jeu (sans module AdMob), on branchera AdMob en v1.1 » ; au quiz : « ×2 sur le gain », « pub maison de 5 s » tant qu'AdMob n'est pas branché, « vraies pubs seulement » pour L'ÉTERNELLE)
 La sortie App Store est prévue ~3 semaines plus tard (~9/11) ; la pub native (AdMob) arrive en v1.1. La SECONDE CHANCE était déjà payée par une pub
 (LA PUB QUI RESSUSCITE, 15/10) : c'est le 2e emplacement.
 - **LE ×2 DU GAIN** (bloc `DBL` juste sous `dbgChance` ; plaque « LE ×2 DU GAIN À L'ÉCRAN DE FIN » sous celle de la seconde chance ; CSS dans
@@ -33,6 +33,50 @@ La sortie App Store est prévue ~3 semaines plus tard (~9/11) ; la pub native (A
   recouvre) ; toucher → la pub maison 5 s (« TON GAIN ×2 APRÈS LA PUB ») → compte 53 000 → 56 000, grand chiffre $ 3 k → $ 6 k, plaque partie.
   Régie qui dit NON → 0 $ versé, offre gardée ; régie qui dit OUI → +3 000 $, sans pub maison, `ex.pubs` 0 → 1. DEBOUT 390 × 844 → la plaque sous
   l'argent, au-dessus des cartes, REJOUER toujours à l'écran ; même parcours, 53 000 → 56 000. 0 erreur. Fumée commune (`cc-banc/fumee.cjs`) avant la poussée.
+
+## LA RÉSURRECTION + LE JACKPOT QUI DONNE UNE ÉPIQUE + LES LOTS DU FINAL SPIN REVUS (2026-10-19, session resurrection — Sacha : « seconde chance doit ressusciter la voiture : fais une animation stylée où les pièces de la voiture se réassemblent par magie » · « le jackpot doit faire gagner une voiture épique » · « seconde chance doit être plus probable ; les sacs d'argent doivent être plus rares, mais ils rapportent 50× plus d'argent qu'actuellement »)
+- **LA RÉSURRECTION** (`RESU`, `resuLance`/`resuBatit`/`resuTick`/`resuClac`/`resuFin`/`resuVue`) — la reprise de la seconde chance ne pose plus
+  la caisse d'un coup. Sous le volet (`chanceRepart`), ses VRAIES pièces (`CAR_PIECES`, celles que l'explosion arrache) apparaissent éparpillées
+  autour d'elle (sur les côtés, en hauteur, vers l'avant : derrière, c'est la caméra) et flottent ; puis elles s'aimantent vers leur place
+  EN TOURBILLON, une à une — les roues d'abord (elles arrivent en roulant), puis le bas de caisse, puis le haut —, chacune traînant des
+  étincelles d'or et de néon (`sparkGold`/`sparkBlue`), une hélice cyan qui monte autour de la caisse. Chaque éclat qui se verrouille claque
+  (`spin.arret`, une note de la pentatonique plus haut à chaque fois : l'arpège monte avec la caisse) et jette une gerbe ; le dernier posé, la
+  caisse soudée revient d'un coup sous un ANNEAU DE NÉON (`neonPool`), une gerbe d'or, un flash or et le chœur du MIRACULÉ (`jeu.miracule`).
+  Le départ : les carillons de `pwr.a`. ~1,5 s, pendant le 3 · 2 · 1 — qui se tait (plus de `ui.bip` ni de `ui.go` : l'arpège et le chœur
+  les remplacent) ; le bouclier (`CHANCE.invD`) et le clignotement suivent comme avant.
+- **Mesuré au banc** (Chrome sans fenêtre, muet, menu → JOUER → pilote → mort → bon de seconde chance) : 13 éclats, 34 dessins, les 13 posés
+  à 1,5 s, la caisse revient, clignote, la course continue — couché (844 × 390), debout (390 × 844) et dans le cadre de l'ordi, aucune
+  erreur nouvelle (les 23 avertissements `flatShading` existaient avant). Deux pièges trouvés : (1) au premier jet, un pan de toit partait
+  en hauteur et tournait de 195° jusque devant l'objectif (la caméra est à 5,4 m derrière, 1,9 m au-dessus, 90°) — les départs sont
+  désormais devant et sur les côtés, sous 2,3 m, et le tourbillon tourne de 25 à 55° vers l'avant ; (2) `e = u²(2,2 − 1,2u)` vaut
+  1,0000000000000002 à u = 1 : `k = 1 − e` négatif, `Math.pow(k,1.5)` = NaN, chaque éclat posé DISPARAISSAIT (k borné à 0). Après la
+  dernière pièce, la caisse reste pleine 0,4 s (`RESU.plein`) : le clignotement l'éteignait parfois pile à son retour.
+- **Comment** : les pièces sont regroupées en ÉCLATS — chaque roue seule, la carrosserie en 12 morceaux (gauche/droite × avant/milieu/arrière ×
+  bas/haut, au centre de chaque pièce) — et chaque éclat est SOUDÉ par matière (`fusGeo`/`fusMaillage`, comme `caisseSoude`) : une quinzaine
+  d'éclats, quelques dizaines de dessins pendant 1,5 s, les MÊMES matières (aucun programme compilé en course) ; les géométries soudées sont
+  libérées à la fin. Le groupe `RESU.g` vit dans la scène, calé sur la caisse AU RENDU (`scene.onBeforeRender`, chaîné) : les éclats suivent
+  la caisse qui roule déjà. La caisse reste cachée tant qu'ils volent (`chanceTick`) ; `resuVue` fait le ménage si la course s'arrête
+  (fin, garage, menu), `chanceRaz` aussi. **`?resu=0` = la reprise d'avant.** Banc : `dbgResu()` (l'état), `dbgResu('lance')` (la rejouer).
+- **LE JACKPOT = UNE VOITURE ÉPIQUE** (`spinEpique`, `spinDonne`, `spinPaye`) : trois 7 donnent une ÉPIQUE pas encore à toi, au hasard, parmi
+  celles qui se vendent à l'argent du jeu (ni défi, ni euros), ni retirées, ni promises par une MISSION (les secrètes restent à gagner).
+  Elle entre dans `SAVE.d.owned` (et `carWas` : la course suivante ne la recrie pas « NOUVELLE CAISSE »). L'écran des lots écrit son nom à
+  la couleur des épiques, « VOITURE ÉPIQUE », et sa PHOTO de boutique (`carPhoto`) remplace le 7 après les éclats. Quand le joueur les a
+  TOUTES, le 7 verse 500 000 $ (`cash` du lot `sept`). Banc : `dbgSpin(n,'sept')`.
+  Au 19/10, 10 épiques possibles : ROSSO 40, ACIDE, LA QUEUE DE CANARD, LA TAURINE, LA ZED, LA RAIE, L'ABSTRAITE, L'ICEBERG, LA PERLE,
+  LA BÊTE (les épiques des MISSIONS — FOURNAISE, AIGLE DE FEU, ATCHOUM, SQUALE, CAISSE-NUAGE… — restent à gagner).
+- **LES LOTS** (`SPIN.lots`) — avant → après :
+  | lot | proba | gain |
+  |---|---|---|
+  | PETIT SAC | 20 % → **8 %** | 120 → **6 000 $** |
+  | SAC D'ARGENT | 12 % → **4 %** | 300 → **15 000 $** |
+  | GROS SAC | 4 % → **1,2 %** | 1 000 → **50 000 $** |
+  | SECONDE CHANCE GRATUITE | 5 % → **15 %** | |
+  | DÉPART BOOSTÉ | 7 % | |
+  | +1 JETON | 5 % | |
+  | JACKPOT | 1,2 % | 5 000 $ → **une ÉPIQUE** |
+  | consolation | 45,8 % → **58,6 %** | 40 $ |
+  L'espérance d'argent par tirage passe d'environ 178 $ à environ 1 700 $ : le plafond de GENERAL (« ≤ 10 % du gain d'une partie ») est
+  levé par cette demande de Sacha.
 
 ## LE TUNNEL DE GRÈS — LA GALERIE AUX ANNEAUX D'OR, LA SALLE DU PORTAIL, LA BOUCHE EN VOUSSOIRS (2026-10-19, session tunnel-canyon — Sacha : « le tunel d'arriver pour la map canyon est moche » ; entre deux idées proposées, le choix : « le tunnel de grès » plutôt que « la fente façon Antelope »)
 Le TUNNEL D'ARRIVÉE du canyon (les 460 derniers mètres, du 14/10) est refait sur place. **`?sans=tunnelcanyon` = celui du 14/10, au bit près**
@@ -99,6 +143,24 @@ Le TUNNEL D'ARRIVÉE du canyon (les 460 derniers mètres, du 14/10) est refait s
   `dbgAuto(1,0)` entre deux vols (sinon la caisse sort de la route pendant que la machine rame et la partie finit).
 - À TRANCHER par Sacha : rien — sauf si l'écran qui roule avec la route en vol gêne (il roule à la vitesse de la vrille, comme en roulant).
 
+## LES 10 MISSIONS CACHÉES REVIENNENT, PAYÉES EN ARGENT (2026-10-19, session missions-propres — Sacha : « rends les 10 missions cachées avec une récompense en argent à la place de la caisse absente »)
+- Les dix missions que `m2Dispo` cachait (section juste dessous) ont maintenant `r:{cash:N}` dans `M2` (la récompense d'avant est notée en fin de
+  ligne) ; leurs `id` ne bougent pas (sauvegardes) :
+  · visibles — fren30 TIENS LA FRÉNÉSIE 30 S : 25 000 $ (avant : la traînée « sang ») · vie5min TIENS 5 MIN SANS MOURIR : 30 000 $ (LA JEEP) ·
+    tours5 FRÔLE 5 TOURS : 20 000 $ (LE TAXI JAUNE) · toutall COLLECTE TOUS LES OBJETS DU JEU : 500 000 $ (récompense « à définir ») ;
+  · secrètes — mort3s : 5 000 $ (LA SANS-PERMIS) · arret : 5 000 $ (LE GRILLE-PAIN) · nitplein : 10 000 $ (LA BOULE) · lac10 : 15 000 $
+    (LE GLACIER) · sanspiece : 15 000 $ (LA DEUCHE) · jours7 : 25 000 $ (LA DÉESSE).
+  Les montants suivent l'échelle des autres (FRÉNÉSIE 10 k, 20 000 D'AURA 30 k, une très bonne partie ≈ 30 k).
+- Une SECRÈTE payée en argent n'a pas de scène de révélation (elle montre une caisse) : `m2RevFile` ne prend plus que les secrètes à caisse ;
+  celle-ci brille « SECRÈTE … RÉCUPÈRE + $ 5 k » et se récupère d'un tap, comme une autre.
+- Une réussie d'avant (restée « BIENTÔT AU GARAGE ») se récupère maintenant : l'argent.
+- Si une de ces caisses revient au garage un jour : elle s'achète à son prix d'avant (le patch `k:'mis'` ne la prend plus) ; pour qu'une
+  mission la redonne, remettre `r:{car:'…'}` sur sa ligne.
+- **Vérifié** (Chrome sans fenêtre, téléphone couché) : 57 missions, aucune cachée ; vie5min et mort3s réussies → écran MISSIONS : « TIENS 5 MIN
+  SANS MOURIR · RÉCUPÈRE · + $ 30 k », « SECRÈTE · MEURS DANS LES 3 PREMIÈRES SECONDES · RÉCUPÈRE · + $ 5 k », compte 2 / 39, aucune
+  « BIENTÔT AU GARAGE », pas de ligne cadeau ; les deux récupérées d'un tap ; une course couché, debout et dans le cadre de l'ordi sans
+  erreur. Cache v691.
+
 ## MISSIONS SANS CADEAU NI « BIENTÔT AU GARAGE » (2026-10-19, session missions-propres — Sacha : « dans le bouton mission il y a un truc streak 3 days gift ready, enlève ça » · « il y a des missions en vert avec marqué coming to the garage soon » · « ça aussi enlève »)
 - **La ligne du cadeau** (en tête de l'écran MISSIONS, `#mCadeau` : « SÉRIE 3 JOURS · CADEAU PRÊT · TOUCHE », en anglais « STREAK 3 DAYS · GIFT READY · TAP ») :
   `CADO.on` est FAUX par défaut (`/[?&]cadeau=1\b/` au lieu de `!/[?&]cadeau=0\b/`) → `cadeauEtat().actif` faux → la ligne se tait, plus de
@@ -135,8 +197,8 @@ Le TUNNEL D'ARRIVÉE du canyon (les 460 derniers mètres, du 14/10) est refait s
   `__loopErr` vide. Le Mac était saturé (charge 150 à 270, les bancs d'autres sessions) : la photo du grand nom et de la ligne du combo est
   prise au banc du HUD seul — les VRAIES feuilles et les vraies `fhNet`/`fhTitre`/`FIG_RP` d'index.html, le DOM de `fhEl`, la taille de
   `fhNom`, sur la photo de la map —, avant/après, couché et debout.
-- À TRANCHER PAR SACHA : s'il préfère une autre police plutôt que le gothique en minuscules, la planche montre les candidates (Workbench,
-  Handjet, Bitcount Grid Double se lisent le mieux) — ce serait un .woff2 de plus (3 à 7 Ko) et une ligne dans <style id="policeUnique">.
+- VALIDÉ PAR SACHA (2026-10-19, après la planche avant / après et les trois autres polices : Workbench, Handjet, Bitcount Grid Double) :
+  « OK, on garde le gothique en minuscules pour les légendaires. »
 ## LA GROTTE VASTE — LES PROFONDEURS 1,7 × PLUS LONGUES, DES SALLES 2,5 × PLUS GRANDES (2026-10-19, session GROTTE — Sacha : « la map grotte doit etre plus longue et la grotte beaucoup plus vaste »)
 - **Ce qui change** (tout derrière `GRT_VASTE` ; `?sans=grottevaste` = la grotte d'avant À L'IDENTIQUE — vérifié sur la même graine : mêmes
   comptes que `main`, jusqu'aux 205 776 triangles) :

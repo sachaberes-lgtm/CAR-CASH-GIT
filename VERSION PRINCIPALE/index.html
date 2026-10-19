@@ -6739,6 +6739,10 @@ html.hub.hub:not(.c6) body #mHome.acc2 .mAccP>.mMisBarre{grid-column:1/3}
 #spinM .spGain:not(.attente){animation:spMonte var(--t-slow) var(--ease)}
 @keyframes spMonte{0%{transform:translateY(8px);opacity:0}100%{transform:none;opacity:1}}
 #spinM .spGIco{width:calc(var(--spH)*.7);height:calc(var(--spH)*.7)}
+/* (2026-10-19) LE JACKPOT = UNE VOITURE ÉPIQUE : son nom à la couleur de la famille (RARETES), sa photo de boutique à la place du 7 */
+#spinM .spGain.voit b.voit{font-size:var(--f4);line-height:1.3;color:#c77dff;text-shadow:0 2px 0 #3a1260,0 0 14px rgba(199,125,255,.6);animation:spJack .5s var(--ease) 3}
+#spinM .spGain.voit small.rar{color:#c77dff;font-size:var(--f0)}
+#spinM .spGPh{display:block;flex:none;width:calc(var(--spH)*1.47);height:calc(var(--spH)*.9);object-fit:contain;animation:spMonte var(--t-slow) var(--ease)}
 /* LA FENTE : où tombe le jeton */
 #spinM .spFente{position:absolute;top:calc(var(--spH)*.1);right:calc(var(--spH)*.36);width:calc(var(--spH)*.36);height:5px;background:var(--k0);box-shadow:0 0 0 2px var(--auE)}
 /* LE LEVIER : le socle d'or vissé au flanc, la tige d'acier doré, la boule de laque rouge — il se TIRE au doigt (voir SPIN.lv) */
@@ -41687,10 +41691,10 @@ const M2=[
   {id:'air5',f:'exploit',k:'airP',v:5,u:'s',r:{cash:2000},t:'RESTE {v} S EN L\'AIR, PUIS POSE-TOI EN PARFAIT',en:'STAY {v} S IN THE AIR, THEN LAND A PERFECT'},
   {id:'parf10',f:'exploit',k:'parf',v:10,u:'',r:{car:'LE COMBI'},t:'FAIS {v} POSES PARFAITES D\'AFFILÉE',en:'LAND {v} PERFECTS IN A ROW'},
   {id:'fren',f:'exploit',k:'fren',v:1,u:'b',r:{cash:10000},t:'ATTEINS LA FRÉNÉSIE',en:'REACH FRENZY'},
-  {id:'fren30',f:'exploit',k:'frenT',v:30,u:'s',r:{cat:'trainee',id:'sang'},t:'TIENS LA FRÉNÉSIE {v} S',en:'HOLD FRENZY FOR {v} S'},
+  {id:'fren30',f:'exploit',k:'frenT',v:30,u:'s',r:{cash:25000},t:'TIENS LA FRÉNÉSIE {v} S',en:'HOLD FRENZY FOR {v} S'}, // (2026-10-19, Sacha) avant : traînée sang — absente du garage, l'argent à la place
   {id:'kmh1000',f:'exploit',k:'kmh',v:1000,u:'kmh',r:{car:'LA DOLORÈS'},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
-  {id:'vie5min',f:'exploit',k:'vie',v:300,u:'mn',r:{car:'LA JEEP'},t:'TIENS 5 MIN SANS MOURIR',en:'SURVIVE 5 MIN WITHOUT DYING'},
-  {id:'tours5',f:'exploit',k:'tours',v:5,u:'',r:{car:'LE TAXI JAUNE'},t:'FRÔLE {v} TOURS DANS UN SEUL SAUT (LA VILLE)',en:'SKIM {v} TOWERS IN ONE JUMP (THE CITY)'},
+  {id:'vie5min',f:'exploit',k:'vie',v:300,u:'mn',r:{cash:30000},t:'TIENS 5 MIN SANS MOURIR',en:'SURVIVE 5 MIN WITHOUT DYING'}, // (2026-10-19, Sacha) avant : LA JEEP — absente du garage, l'argent à la place
+  {id:'tours5',f:'exploit',k:'tours',v:5,u:'',r:{cash:20000},t:'FRÔLE {v} TOURS DANS UN SEUL SAUT (LA VILLE)',en:'SKIM {v} TOWERS IN ONE JUMP (THE CITY)'}, // (2026-10-19, Sacha) avant : LE TAXI JAUNE — absente du garage, l'argent à la place
   {id:'parfmaps',f:'exploit',k:'cartesP',v:'tot',u:'',r:{car:'LA STRATOS'},t:'POSE-TOI EN PARFAIT SUR CHAQUE MAP',en:'LAND A PERFECT ON EVERY MAP'}, // (proposition de la demande : LA STRATOS, à valider par Sacha)
   // AURA — le record d'une partie
   {id:'aura10k',f:'aura',k:'aura',v:10000,u:'aura',r:{cash:15000},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
@@ -41722,14 +41726,14 @@ const M2=[
   {id:'fig3',f:'collection',k:'figure',v:3,u:'',r:{cash:3000},t:'COLLECTE {v} FIGURES',en:'COLLECT {v} TRICKS'},
   {id:'fig8',f:'collection',k:'figure',v:8,u:'',r:{cash:10000},t:'COLLECTE {v} FIGURES',en:'COLLECT {v} TRICKS'},
   {id:'figall',f:'collection',k:'figureT',v:'tot',u:'',r:{cash:50000},t:'COLLECTE TOUTES LES FIGURES',en:'COLLECT EVERY TRICK'},
-  {id:'toutall',f:'collection',k:'toutT',v:'tot',u:'',r:{vide:1},t:'COLLECTE TOUS LES OBJETS DU JEU',en:'COLLECT EVERYTHING IN THE GAME'}, // la récompense : à définir par Sacha
+  {id:'toutall',f:'collection',k:'toutT',v:'tot',u:'',r:{cash:500000},t:'COLLECTE TOUS LES OBJETS DU JEU',en:'COLLECT EVERYTHING IN THE GAME'}, // (2026-10-19, Sacha) avant : {vide:1}, la récompense à définir — c'est l'argent
   // EXPLORATION
   {id:'maps',f:'exploration',k:'cartes',v:'tot',u:'',r:{car:'L\'ORIGAMI'},t:'JOUE SUR CHAQUE MAP AU MOINS UNE FOIS',en:'PLAY EVERY MAP AT LEAST ONCE'},
-  // SECRÈTES — invisibles tant qu'elles ne sont pas trouvées ; chacune donne une caisse, montrée en silhouette noire à la boutique
+  // SECRÈTES — invisibles tant qu'elles ne sont pas trouvées ; chacune donne une caisse, montrée en silhouette noire à la boutique (2026-10-19 : six d'entre elles donnent de l'ARGENT, leur caisse n'étant plus au garage — une secrète en argent n'a pas de scène de révélation, elle se RÉCUPÈRE comme les autres)
   {id:'morts100',f:'secret',k:'morts',v:100,u:'',r:{car:'LE CORBILLARD'},t:'MEURS {v} FOIS',en:'DIE {v} TIMES'},
-  {id:'mort3s',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA SANS-PERMIS'},t:'MEURS DANS LES 3 PREMIÈRES SECONDES',en:'DIE IN THE FIRST 3 SECONDS'},
-  {id:'arret',f:'secret',k:'flag',v:1,u:'b',r:{car:'LE GRILLE-PAIN'},t:'RESTE À L\'ARRÊT JUSQU\'À EXPLOSER',en:'STAND STILL UNTIL YOU BLOW UP'},
-  {id:'nitplein',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA BOULE'},t:'MEURS LA JAUGE DE NITRO PLEINE',en:'DIE WITH A FULL NITRO TANK'},
+  {id:'mort3s',f:'secret',k:'flag',v:1,u:'b',r:{cash:5000},t:'MEURS DANS LES 3 PREMIÈRES SECONDES',en:'DIE IN THE FIRST 3 SECONDS'}, // (2026-10-19, Sacha) avant : LA SANS-PERMIS — absente du garage, l'argent à la place
+  {id:'arret',f:'secret',k:'flag',v:1,u:'b',r:{cash:5000},t:'RESTE À L\'ARRÊT JUSQU\'À EXPLOSER',en:'STAND STILL UNTIL YOU BLOW UP'}, // (2026-10-19, Sacha) avant : LE GRILLE-PAIN — absente du garage, l'argent à la place
+  {id:'nitplein',f:'secret',k:'flag',v:1,u:'b',r:{cash:10000},t:'MEURS LA JAUGE DE NITRO PLEINE',en:'DIE WITH A FULL NITRO TANK'}, // (2026-10-19, Sacha) avant : LA BOULE — absente du garage, l'argent à la place
   {id:'air0',f:'secret',k:'flag',v:1,u:'b',r:{car:'LE SPECTRE'},t:'MEURS PILE À 0 S DE VOL RESTANT',en:'DIE WITH EXACTLY 0 S OF AIRTIME LEFT'},
   {id:'kmh2000',f:'secret',k:'kmh',v:2000,u:'kmh',r:{car:'LE MUR DU SON'},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
   {id:'cratere',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA FOURNAISE'},t:'MEURS AU-DESSUS DU CRATÈRE DU VOLCAN',en:'DIE ABOVE THE VOLCANO CRATER'},
@@ -41738,12 +41742,12 @@ const M2=[
   {id:'abysse',f:'secret',k:'prof',v:'prof',u:'',r:{car:'SQUALE'},t:'DESCENDS AU FOND DE LA MER DE JADE',en:'DIVE TO THE BOTTOM OF THE JADE SEA'},
   {id:'nuage30',f:'secret',k:'vol',v:30,u:'s',r:{car:'LA CAISSE-NUAGE'},t:'RESTE {v} S EN L\'AIR AU-DESSUS DES NUAGES',en:'STAY {v} S IN THE AIR ABOVE THE CLOUDS'},
   {id:'terre',f:'secret',k:'flag',v:1,u:'b',r:{car:'COMÈTE'},t:'FAIS UN SALTO DEVANT LA TERRE',en:'FLIP IN FRONT OF THE EARTH'},
-  {id:'lac10',f:'secret',k:'lac',v:10,u:'s',r:{car:'LE GLACIER'},t:'GLISSE {v} S SUR UN LAC GELÉ',en:'SLIDE {v} S ON A FROZEN LAKE'},
+  {id:'lac10',f:'secret',k:'lac',v:10,u:'s',r:{cash:15000},t:'GLISSE {v} S SUR UN LAC GELÉ',en:'SLIDE {v} S ON A FROZEN LAKE'}, // (2026-10-19, Sacha) avant : LE GLACIER — absente du garage, l'argent à la place
   {id:'sansnit',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA SILENCIEUSE'},t:'FAIS UNE PARTIE ENTIÈRE SANS TOUCHER NITRO',en:'PLAY A WHOLE RUN WITHOUT TOUCHING NITRO'},
-  {id:'sanspiece',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA DEUCHE'},t:'FAIS UNE PARTIE SANS RAMASSER UNE SEULE PIÈCE',en:'PLAY A WHOLE RUN WITHOUT PICKING UP A COIN'},
+  {id:'sanspiece',f:'secret',k:'flag',v:1,u:'b',r:{cash:15000},t:'FAIS UNE PARTIE SANS RAMASSER UNE SEULE PIÈCE',en:'PLAY A WHOLE RUN WITHOUT PICKING UP A COIN'}, // (2026-10-19, Sacha) avant : LA DEUCHE — absente du garage, l'argent à la place
   {id:'rejoue10',f:'secret',k:'rejoue',v:10,u:'',r:{car:'LE DOGE'},t:'REJOUE {v} FOIS DE SUITE SANS REVENIR AU MENU',en:'REPLAY {v} TIMES IN A ROW WITHOUT THE MENU'},
   {id:'nuit3h',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA NOCTAMBULE'},t:'JOUE À 3 H DU MATIN',en:'PLAY AT 3 AM'},
-  {id:'jours7',f:'secret',k:'jours',v:7,u:'',r:{car:'LA DÉESSE'},t:'JOUE {v} JOURS DIFFÉRENTS',en:'PLAY ON {v} DIFFERENT DAYS'},
+  {id:'jours7',f:'secret',k:'jours',v:7,u:'',r:{cash:25000},t:'JOUE {v} JOURS DIFFÉRENTS',en:'PLAY ON {v} DIFFERENT DAYS'}, // (2026-10-19, Sacha) avant : LA DÉESSE — absente du garage, l'argent à la place
   {id:'jours30',f:'secret',k:'jours',v:30,u:'',r:{car:'L\'ÉTERNELLE'},t:'JOUE {v} JOURS DIFFÉRENTS',en:'PLAY ON {v} DIFFERENT DAYS'}];
 /* les réglages des détections (mesurés : voir le journal) — `partie` : une « partie entière » dure au moins ça (s de conduite), sinon trois
    caisses tombaient en mourant à la 2e seconde ; `frole` : la distance (m) d'un flanc de tour qui compte comme frôlé ; `prof` : le fond de
@@ -45260,17 +45264,22 @@ function mkPower(kind,dir){
 Object.assign(I18N,{'FINAL SPIN':'FINAL SPIN','JETON SPIN':'SPIN TOKEN','TIRER':'PULL','CONTINUER':'CONTINUE','JACKPOT !':'JACKPOT!',
   'PETIT SAC':'SMALL BAG',"SAC D'ARGENT":'MONEY BAG','GROS SAC':'BIG BAG','SECONDE CHANCE GRATUITE':'FREE SECOND CHANCE','DÉPART BOOSTÉ':'BOOSTED START',
   '+1 JETON':'+1 TOKEN','LOT DE CONSOLATION':'CONSOLATION PRIZE','TIRE LE LEVIER':'PULL THE LEVER','À TA PROCHAINE CHUTE':'ON YOUR NEXT CRASH',
-  'NITRO PLEINE · MOTEUR +1':'FULL NITRO · ENGINE +1','UN TIRAGE DE PLUS':'ONE MORE PULL','GRATUIT':'FREE','À LA PROCHAINE PARTIE':'ON YOUR NEXT RUN'});
+  'NITRO PLEINE · MOTEUR +1':'FULL NITRO · ENGINE +1','UN TIRAGE DE PLUS':'ONE MORE PULL','GRATUIT':'FREE','À LA PROCHAINE PARTIE':'ON YOUR NEXT RUN',
+  'VOITURE ÉPIQUE':'EPIC CAR'}); // (2026-10-19) le jackpot donne une caisse
 const SPIN={on:!/[?&]spin=0\b/.test(location.search),pZone:.28,max:3,pose:0,ouvert:false,vu0:0,roule:false,force:null,total:0,el:null,N:20,
-  /* LES LOTS — une ligne par lot, l'index = le symbole des rouleaux. p = probabilité par tirage (le reste : la consolation). GENERAL en règle
-     l'économie (plafond validé par Sacha : en moyenne ≤ 10 % du gain d'une partie) : argent ≈ 178 $ d'espérance par tirage, ~0,4 jeton par partie. */
-  lots:[{id:'petit',nm:'PETIT SAC',p:.20,cash:120},
-        {id:'sac',nm:"SAC D'ARGENT",p:.12,cash:300},
-        {id:'gros',nm:'GROS SAC',p:.04,cash:1000},
-        {id:'coeur',nm:'SECONDE CHANCE GRATUITE',p:.05,bon:'chanceG',sous:'À TA PROCHAINE CHUTE'},
+  /* LES LOTS — une ligne par lot, l'index = le symbole des rouleaux. p = probabilité par tirage (le reste : la consolation).
+     (2026-10-19, Sacha : « seconde chance doit être plus probable ; les sacs d'argent doivent être plus rares mais ils rapportent 50× plus
+     d'argent ; le jackpot doit faire gagner une voiture épique ») — les sacs ×50 (120 → 6 000, 300 → 15 000, 1 000 → 50 000) et 2,5 à
+     3,3 fois plus rares (,20 → ,08 · ,12 → ,04 · ,04 → ,012) ; le CŒUR ,05 → ,15 ; le 7 donne une ÉPIQUE pas encore à toi (spinEpique),
+     `cash` = ce qu'il verse quand elles le sont toutes. Argent ≈ 1 700 $ d'espérance par tirage (avant : ≈ 178 $, plafond de GENERAL
+     « ≤ 10 % du gain d'une partie » levé par Sacha). */
+  lots:[{id:'petit',nm:'PETIT SAC',p:.08,cash:6000},
+        {id:'sac',nm:"SAC D'ARGENT",p:.04,cash:15000},
+        {id:'gros',nm:'GROS SAC',p:.012,cash:50000},
+        {id:'coeur',nm:'SECONDE CHANCE GRATUITE',p:.15,bon:'chanceG',sous:'À TA PROCHAINE CHUTE'},
         {id:'boost',nm:'DÉPART BOOSTÉ',p:.07,bon:'spinBoost',sous:'NITRO PLEINE · MOTEUR +1'},
         {id:'jeton',nm:'+1 JETON',p:.05,jeton:1,sous:'UN TIRAGE DE PLUS'},
-        {id:'sept',nm:'JACKPOT !',p:.012,cash:5000}],
+        {id:'sept',nm:'JACKPOT !',p:.012,voiture:'epique',cash:500000}],
   conso:{nm:'LOT DE CONSOLATION',cash:40},
   bandeN:[4,4,2,2,3,3,2]};                                          // combien de fois chaque symbole sur un rouleau de 20
 // LES SYMBOLES — pixel art 12 × 12, une palette par symbole (k = l'encre), `z` = la taille dans la fenêtre (les sacs grossissent avec le lot)
@@ -45462,21 +45471,36 @@ function spinLance(R){ // les trois rouleaux : l'élan, la course, la pose — p
 function spinSonsStop(){if(SPIN.mot){try{SPIN.mot.stop(.12);}catch(e){}SPIN.mot=null;}if(SPIN.tz){try{SPIN.tz.stop(.08);}catch(e){}SPIN.tz=null;}} // (2026-10-15 soir) les boucles de la machine se taisent (fin du tirage, fermeture)
 function spinMoteur(st,V,t){const h=SPIN.mot;if(!h)return;let k=0;for(let r=0;r<3;r++){const S=st[r];k+=S.fin?0:S.ph===0?S.v/V:Math.max(0,1-(t-S.ts)/Math.max(.05,S.D));} /* la vitesse moyenne des rouleaux (0-1) : le moteur monte avec l'élan, ralentit à chaque pose */
   k/=3;if(Math.abs(k-(SPIN.motK||0))<.03)return;SPIN.motK=k;try{h.gain(-16+13*Math.min(1,k),.06);h.rate(.7+.45*Math.min(1,k),.06);}catch(e){}}
-function spinDonne(R){ // le lot, dans la sauvegarde — l'argent au compte, les bons dans leurs tiroirs, le jeton au plateau
-  const L=R.lot;
-  if(L.cash){SAVE.d.bank=Math.min(1e30,bank()+L.cash);gagneAjoute(L.cash);SPIN.total+=L.cash;}
+/* (2026-10-19, Sacha : « le jackpot doit faire gagner une voiture épique ») LA VOITURE DU JACKPOT : une ÉPIQUE pas encore à toi, au hasard — de
+   celles qui se vendent à l'argent du jeu (ni défi, ni euros), ni retirée, ni promise par une MISSION (les secrètes restent à gagner). -1 : il n'en
+   reste plus, le 7 verse son `cash`. */
+function spinEpique(){
+  const mis={};try{M2.forEach(function(m){if(m.r&&m.r.car)mis[m.r.car]=1;});}catch(e){}
+  const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];
+    if(carRar(i)!=='epique'||carRetiree(i)||!u||!u.p||u.k||carEuros(i)||mis[CARS[i].name]||carUnlockedVrai(i))continue;L.push(i);}
+  return L.length?L[(Math.random()*L.length)|0]:-1;}
+function spinDonne(R){ // le lot, dans la sauvegarde — l'argent au compte, les bons dans leurs tiroirs, le jeton au plateau, la caisse au garage
+  const L=R.lot;R.car=-1;R.cash=L.cash|0;
+  if(L.voiture){const i=spinEpique();if(i>=0){if(!Array.isArray(SAVE.d.owned))SAVE.d.owned=[];if(SAVE.d.owned.indexOf(i)<0)SAVE.d.owned.push(i);
+    try{carWas[i]=true;}catch(e){} /* la machine la fête : la course suivante ne la recrie pas « NOUVELLE CAISSE » */R.car=i;R.cash=0;}}
+  if(R.cash){SAVE.d.bank=Math.min(1e30,bank()+R.cash);gagneAjoute(R.cash);SPIN.total+=R.cash;}
   if(L.bon)SAVE.d[L.bon]=Math.min(3,(SAVE.d[L.bon]|0)+1);
   if(L.jeton)SAVE.d.spinJ=Math.min(9,(SAVE.d.spinJ|0)+L.jeton);
   SAVE.flush();}
 function spinPaye(R){ // le gain : donné TOUT DE SUITE, puis l'écran de la machine le raconte
-  spinDonne(R);const L=R.lot,gros=R.i>=2,jack=L.id==='sept';
-  SPIN.gEl.className='spGain '+(jack?'jackpot':gros?'gros':R.i>=0?'lot':'conso');
+  spinDonne(R);const L=R.lot,gros=R.i>=2,jack=L.id==='sept',C=R.cash|0,V=R.car>=0; /* (2026-10-19) C = l'argent VERSÉ (0 quand le 7 donne une caisse), V = une caisse gagnée */
+  SPIN.gEl.className='spGain '+(jack?'jackpot':gros?'gros':R.i>=0?'lot':'conso')+(V?' voit':'');
   SPIN.gEl.innerHTML=(R.i>=0?spinIco(R.i,'spGIco'):'')+'<div class="spGTx"><small>'+sansAcc(TR(L.nm))+'</small>'
-    +(L.cash?'<b>+'+fmtC(0)+'</b>':'<b class="bon">'+sansAcc(TR(L.sous||''))+'</b>')+'</div>';
-  if(L.cash){const b=SPIN.gEl.querySelector('b'),T0=performance.now(),D=jack?1500:gros?950:600;let last=0;
-    (function monte(now){const u=Math.min(1,(now-T0)/D),v=L.cash*(1-Math.pow(1-u,3));b.textContent='+'+fmtC(v);
+    +(V?'<b class="voit">'+sansAcc(TR(CARS[R.car].name))+'</b><small class="rar">'+sansAcc(TR('VOITURE ÉPIQUE'))+'</small>'
+       :C?'<b>+'+fmtC(0)+'</b>':'<b class="bon">'+sansAcc(TR(L.sous||''))+'</b>')+'</div>';
+  if(V)setTimeout(function(){ /* la PHOTO de la caisse gagnée (celle de la boutique) remplace le 7 — après les éclats : la prise de vue coûte une image */
+    if(!SPIN.ouvert||!SPIN.gEl||!SPIN.gEl.classList.contains('voit'))return;
+    try{carPhoto(R.car,function(u){const ic=SPIN.gEl&&SPIN.gEl.querySelector('.spGIco');if(!u||!ic||!SPIN.ouvert)return;
+      const im=document.createElement('img');im.className='spGPh';im.alt='';im.src=u;ic.replaceWith(im);});}catch(e){}},700);
+  if(C){const b=SPIN.gEl.querySelector('b'),T0=performance.now(),D=jack?1500:gros?950:600;let last=0;
+    (function monte(now){const u=Math.min(1,(now-T0)/D),v=C*(1-Math.pow(1-u,3));b.textContent='+'+fmtC(v);
       if(u<1&&now-last>70){last=now;try{if(SONV2)sfx('spin.piece');}catch(e){}} /* (session SON) les pièces qui tombent dans le bac */
-      if(u<1&&SPIN.ouvert)requestAnimationFrame(monte);else b.textContent='+'+fmtC(L.cash);})(T0);}
+      if(u<1&&SPIN.ouvert)requestAnimationFrame(monte);else b.textContent='+'+fmtC(C);})(T0);}
   if(R.i>=0){SPIN.el.classList.add('gagne');if(jack)SPIN.el.classList.add('jackpot');
     setTimeout(function(){if(SPIN.el)SPIN.el.classList.remove('gagne','jackpot');},jack?3200:1600);}
   try{if(SONV2){if(jack)sfx('spin.jackpot');else if(R.i<0&&R.s[0]===R.s[1]){sfx('spin.presque');sfx('spin.gain',{var:0,vol:-11,t:.75});}else sfx('spin.gain',{var:gros?1:0,vol:R.i<0?-6:0});}}catch(e){} /* (session SON) les gains de la machine — (2026-10-15 soir) deux pareils et le 3e à côté : le PRESQUE, puis la consolation tout bas */
@@ -52442,7 +52466,7 @@ document.addEventListener('click',function(e){const t=e.target&&e.target.closest
    ou à la console (dbgMissions('gagne',id)). Une à la fois ; la suivante enchaîne. « Réduire les animations » : tout est posé d'un coup. */
 const M2REV={on:false,id:null,t:0};
 Object.assign(I18N,{'CONTINUER':'CONTINUE'});
-function m2RevFile(){const s=m2Etat();return M2.filter(function(m){return m.f==='secret'&&s.ok.indexOf(m.id)>=0&&s.pr.indexOf(m.id)<0&&m2Pret(m.id);}).map(function(m){return m.id;});}
+function m2RevFile(){const s=m2Etat();return M2.filter(function(m){return m.f==='secret'&&!!(m.r&&m.r.car)&&s.ok.indexOf(m.id)>=0&&s.pr.indexOf(m.id)<0&&m2Pret(m.id);}).map(function(m){return m.id;});}
 function m2RevAuto(delai){if(M2REV.on||!m2RevFile().length)return;clearTimeout(M2REV.t);
   M2REV.t=setTimeout(function(){if(M2REV.on||m2EnC())return;const L=m2RevFile();if(L.length)m2Revele(L[0]);},delai||0);}
 function m2Revele(id){const m=m2Def(id);if(!m||M2REV.on||m2EnC())return false;const i=m2CarIdx((m.r||{}).car);if(i<0||carRetiree(i))return false;
@@ -55175,7 +55199,7 @@ const CHANCE={on:!/[?&]chance=0\b/.test(location.search),plancher:300,tMin:20,mo
   offre:false,used:false,pub:false,fin:0,prix:0,m0:0,a0:0,v1:0,rs:null,lb:null,inv:0,tm:0};
 function chanceBase(){return CHANCE.used?CHANCE.m0:START_CASH;} // ce que la prochaine fin de partie NE verse PAS (déjà versé avant la reprise)
 function chanceSignal(){try{document.dispatchEvent(new Event('cc:chance'));}catch(e){}}
-function chanceRaz(){clearTimeout(CHANCE.tm);CHANCE.gratuit=false;CHANCE.pub=false;const f=CHANCE.offre;CHANCE.offre=false;CHANCE.used=false;CHANCE.inv=0;CHANCE.fin=0;CHANCE.prix=0;CHANCE.m0=0;CHANCE.a0=0;CHANCE.v1=0;CHANCE.rs=null;CHANCE.lb=null;if(f)chanceSignal();}
+function chanceRaz(){resuFin(false);RESU.plein=0;clearTimeout(CHANCE.tm);CHANCE.gratuit=false;CHANCE.pub=false;const f=CHANCE.offre;CHANCE.offre=false;CHANCE.used=false;CHANCE.inv=0;CHANCE.fin=0;CHANCE.prix=0;CHANCE.m0=0;CHANCE.a0=0;CHANCE.v1=0;CHANCE.rs=null;CHANCE.lb=null;if(f)chanceSignal();}
 function chanceOuvre(boom,sc,q){ // fin de endGame : la partie est versée, l'écran de mort s'ouvre — l'offre aussi, si elle a lieu d'être
   clearTimeout(CHANCE.tm);CHANCE.offre=false;
   const bon=(SAVE.d.chanceG|0)>0; // (FINAL SPIN d'IDEE) un BON de seconde chance GRATUITE gagné à la machine : pas de prix, pas de durée minimale — il faut toujours une explosion
@@ -55233,21 +55257,24 @@ function chanceRepart(bon){ // sous le volet : la course reprend où elle s'est 
   if(AC)for(const n9 of [gainN,windG,whG,skidG,jrG,jetG,jetLowG,jetOscG,engLfoG,engWhineG,transG,diffG,ovrG,engTickG,pinkG,RUG.rgG,RUG.thG,RUG.crG,GOM.sG,GOM.gG,GOM.respG])if(n9&&n9.gain)n9.gain._s9=undefined; // endGame les a coupés à la main : le cache de `stt` doit renvoyer les cibles
   musicStartRun(true,true);
   CHANCE.inv=CHANCE.invD;
-  try{flashEcran('rgba(255,255,255,.35)');}catch(e){}
+  const resu=resuLance(); /* (2026-10-19) LA RÉSURRECTION : les pièces de la caisse se réassemblent pendant le compte (voir RESU) */
+  if(!resu)try{flashEcran('rgba(255,255,255,.35)');}catch(e){} /* (avec elle, le flash attend la dernière pièce) */
   try{document.dispatchEvent(new Event('cc:jeu'));}catch(e){} // les commandes reviennent À L'INSTANT
   let n=3;const pas=function(){ // 3 · 2 · 1 : le compte du BOUCLIER (la caisse roule déjà ; ce n'est pas un gel)
     const s9=avE('slam9');
     if(!started||gameOver){if(s9)s9.classList.remove('compte','on');return;}
     if(paused){CHANCE.tm=setTimeout(pas,200);return;} // la pause pendant le compte : il attend
-    if(n===0){if(s9)s9.classList.remove('compte','on');try{if(SONV2)sfx('ui.go');}catch(e){}return;}
+    if(n===0){if(s9)s9.classList.remove('compte','on');try{if(SONV2&&!resu)sfx('ui.go');}catch(e){}return;} /* (2026-10-19) après une résurrection, le chœur du MIRACULÉ vient de jouer : pas de GO par-dessus */
     slam(String(n),n===3&&bon?(LANG==='en'?'FREE':'GRATUIT'):'','#ffd75e','#ff7ad5',64,9); /* (15/10 soir) plus de « −prix » sous le 3 : la pub a payé */{const s8=avE('slam9');if(s8)s8.classList.add('compte');}
-    try{if(SONV2)sfx('ui.bip');else chimeNote(noteP(n===1?4:2,1),0,.08,.1);}catch(e){}hap(6);
+    if(!RESU.actif)try{if(SONV2)sfx('ui.bip');else chimeNote(noteP(n===1?4:2,1),0,.08,.1);}catch(e){}hap(6); /* (2026-10-19) pendant la résurrection, l'arpège des pièces tient lieu de bips */
     n--;CHANCE.tm=setTimeout(pas,500);};
   CHANCE.tm=setTimeout(pas,120);
 }
 function chanceTick(dt){ // dans la porte de simulation de loop : la pause fige le bouclier avec le reste
   CHANCE.inv=Math.max(0,CHANCE.inv-dt);
   if(mode==='boom')return;
+  if(RESU.actif){resuTick(dt);if(RESU.actif){carGroup.visible=false;return;}} // (2026-10-19) LA RÉSURRECTION : la caisse attend que ses pièces soient revenues
+  if(RESU.plein>0){RESU.plein-=dt;carGroup.visible=true;return;} // …puis elle reste PLEINE 0,4 s : le clignotement l'éteignait parfois pile à son retour
   carGroup.visible=CHANCE.inv<=0||((CHANCE.inv*(CHANCE.inv<1?16:9))|0)%2===0; // il clignote, plus vite à la fin
 }
 function chanceProtege(cause){ // explode, pendant le bouclier
@@ -55259,6 +55286,113 @@ function chanceProtege(cause){ // explode, pendant le bouclier
 }
 function chanceRefuse(){if(!CHANCE.offre)return false;clearTimeout(CHANCE.tm);CHANCE.offre=false;chanceSignal();return true;} // l'offre se ferme tout de suite (un geste ailleurs, la machine à sous d'IDEE qui veut sa place)
 function chanceAttend(){return !!(CHANCE.pub||PUBR.on)||!!(CHANCE.offre&&!CHANCE.used&&performance.now()<CHANCE.fin&&chanceEtat().ok);} // vrai tant que l'offre est à l'écran : ce qui vient APRÈS la mort (le FINAL SPIN) attend qu'elle tombe — l'événement cc:chance le dit
+/* LA RÉSURRECTION (2026-10-19, Sacha : « seconde chance doit ressusciter la voiture : une animation stylée où les pièces de la voiture se
+   réassemblent par magie ») — la reprise ne pose plus la caisse d'un coup. Sous le volet, ses VRAIES pièces (`CAR_PIECES`, celles que
+   l'explosion arrache) apparaissent éparpillées autour d'elle et flottent ; puis elles s'aimantent vers leur place EN TOURBILLON, une à une —
+   les roues d'abord (elles arrivent en roulant), puis le bas de caisse, puis le haut —, chacune traînant des étincelles d'or et de néon.
+   Chaque éclat qui se verrouille claque (`spin.arret`, une note plus haut à chaque fois : l'arpège monte avec la caisse) et jette une gerbe ;
+   le dernier posé, la caisse soudée revient d'un coup sous un anneau de néon, une gerbe d'or et le chœur du MIRACULÉ (`jeu.miracule`).
+   ~1,5 s, pendant le 3 · 2 · 1 (qui se tait : l'arpège le remplace) ; le bouclier et le clignotement suivent comme avant.
+   · LES ÉCLATS : chaque roue seule, la carrosserie en 12 morceaux (gauche/droite × avant/milieu/arrière × bas/haut), chacun SOUDÉ par matière
+     (`fusGeo`, comme `caisseSoude`) : une quinzaine d'éclats, quelques dizaines de dessins pendant 1,5 s, les MÊMES matières (aucun programme
+     compilé en course). Les géométries soudées sont libérées à la fin.
+   · `RESU.g` vit dans la scène, calé sur la caisse AU RENDU (`scene.onBeforeRender`, chaîné) : les éclats suivent la caisse qui roule déjà
+     (rien n'est figé, comme avant). Elle-même reste cachée tant qu'ils volent (chanceTick).
+   · `?resu=0` = la reprise d'avant (la caisse posée d'un coup). Banc : `dbgResu()` (l'état), `dbgResu('lance')` (la rejouer en course). */
+const RESU={on:!/[?&]resu=0\b/.test(location.search),actif:false,t:0,T0:.3,Tv:.72,Dmax:.42,fin:1.5,plein:0,g:null,E:[],geos:[],n:0,tSon:0,dessins:0};
+const RESU_V=new THREE.Vector3(),RESU_W=new THREE.Vector3(),RESU_Q=new THREE.Quaternion(),RESU_Q2=new THREE.Quaternion(),RESU_X=new THREE.Vector3(1,0,0),RESU_Y=new THREE.Vector3(0,1,0),RESU_Z=new THREE.Vector3(0,0,1);
+function resuVa(o,M,out){ // les maillages d'une pièce, chacun avec sa matrice dans le repère de la caisse
+  if(!o.visible||o.isSprite||o.isPoints||o.isLine||(o.userData&&(o.userData.fx||o.userData.contour)))return;
+  if(o.isMesh&&o.geometry&&o.material&&!o.isInstancedMesh&&!o.isSkinnedMesh&&!(!Array.isArray(o.material)&&o.material.blending===THREE.AdditiveBlending))out.push([o,M]); // (les halos additifs ne volent pas : de la lumière, pas de la tôle)
+  for(const c of o.children){if(c.matrixAutoUpdate)c.updateMatrix();resuVa(c,new THREE.Matrix4().multiplyMatrices(M,c.matrix),out);}} /* (une matrice posée à la main, gelée, fait foi telle quelle) */
+function resuMaillage(o,M){ // un maillage seul, posé par sa matrice (géométrie et matière PARTAGÉES : rien à libérer)
+  const m=new THREE.Mesh(o.geometry,o.material);m.castShadow=o.castShadow;m.receiveShadow=o.receiveShadow;m.frustumCulled=o.frustumCulled;m.renderOrder=o.renderOrder;
+  if(o.userData.lp)m.userData.lp=1;M.decompose(m.position,m.quaternion,m.scale);m.updateMatrix();m.matrixAutoUpdate=false;return m;}
+function resuBatit(){ // les ÉCLATS de la caisse montée — au repos, carBody est l'identité dans carGroup (buildCar) : une pièce a la même matrice dans les deux repères
+  const P=[];let z0=1e9,z1=-1e9,y0=1e9,y1=-1e9;
+  for(const pc of CAR_PIECES){const o=pc[0];
+    if(o===carBody||!(o.isMesh||o.isGroup)||!o.visible||(o.geometry&&o.geometry.type==='PlaneGeometry'))continue; // (ni l'underglow, comme l'explosion)
+    if(o.matrixAutoUpdate)o.updateMatrix();const L=[];resuVa(o,o.matrix.clone(),L);if(!L.length)continue;
+    const c=new THREE.Vector3();let n=0;
+    for(const e of L){const g=e[0].geometry;if(!g.boundingSphere)g.computeBoundingSphere();if(!g.boundingSphere)continue;c.add(RESU_V.copy(g.boundingSphere.center).applyMatrix4(e[1]));n++;}
+    if(!n)continue;c.multiplyScalar(1/n);
+    const ro=wheels.indexOf(o);P.push({L:L,c:c,roue:ro});
+    if(ro<0){z0=Math.min(z0,c.z);z1=Math.max(z1,c.z);y0=Math.min(y0,c.y);y1=Math.max(y1,c.y);}}
+  const grp=new Map(),dz=Math.max(.01,z1-z0),ym=(y0+y1)/2;
+  for(const p of P){const k=p.roue>=0?100+p.roue:(p.c.x<0?0:1)+2*Math.min(2,Math.floor((p.c.z-z0)/dz*3))+6*(p.c.y>ym?1:0);
+    let G=grp.get(k);if(!G)grp.set(k,G={P:[],c:new THREE.Vector3(),haut:k<100&&k>=6,roue:p.roue>=0});G.P.push(p);G.c.add(p.c);}
+  const E=[];let dessins=0;
+  for(const G of grp.values()){G.c.multiplyScalar(1/G.P.length);
+    const g=new THREE.Group(),Mi=new THREE.Matrix4().makeTranslation(-G.c.x,-G.c.y,-G.c.z),lots=new Map();
+    for(const p of G.P)for(const e of p.L){const o=e[0],Mr=new THREE.Matrix4().multiplyMatrices(Mi,e[1]);
+      if(fusSoudable(o)){const k=fusCle(o);let L=lots.get(k);if(!L)lots.set(k,L=[]);L.push([o.geometry,Mr,o]);}
+      else{g.add(resuMaillage(o,Mr));dessins++;}}
+    for(const L of lots.values()){if(L.length===1)g.add(resuMaillage(L[0][2],L[0][1]));else{const m=fusMaillage(L);g.add(m);RESU.geos.push(m.geometry);}dessins++;}
+    if(!g.children.length)continue;
+    /* LE DÉPART : sur les CÔTÉS et DEVANT (+z), pas plus haut que 2,3 m — la caméra de poursuite est à 5,4 m DERRIÈRE (−z), 1,9 m au-dessus, 90°
+       d'ouverture (mesuré au banc) : au premier jet, un pan de toit de 2 m qui partait en hauteur et tournait de 195° passait devant
+       l'objectif et couvrait la moitié de l'écran. Le tourbillon ne tourne plus que de 25 à 55°, et TOUJOURS vers l'avant (th0 de signe −sx). */
+    const dx=G.c.x||(Math.random()-.5),sx=dx<0?-1:1,r=Math.random();
+    const off=G.roue?new THREE.Vector3(sx*(2.2+r*1.2),.3+Math.random()*.7,.5+Math.random()*2.5)
+      :new THREE.Vector3(sx*(2+r*1.8),.5+Math.random()*1.3+(G.haut?.5:0),1+Math.random()*4);
+    const q0=new THREE.Quaternion().setFromAxisAngle(RESU_V.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize(),Math.PI*(.6+Math.random()));
+    const d=G.roue?Math.random()*.08:G.haut?.26+Math.random()*(RESU.Dmax-.26):.1+Math.random()*.14;
+    g.position.copy(G.c).add(off);g.quaternion.copy(q0);g.scale.setScalar(.001);
+    E.push({g:g,P:G.c.clone(),off:off,q0:q0,d:d,roue:G.roue,spin:sx*Math.PI*(4+Math.random()*2),th0:-sx*(G.roue?.3+Math.random()*.3:.45+Math.random()*.5),ph:Math.random()*6.28,arr:false,tp:0});}
+  E.sort(function(a,b){return a.d-b.d;});RESU.dessins=dessins;return E;}
+function resuLance(){ // fin de chanceRepart (sous le volet) : les éclats apparaissent autour de la caisse
+  resuFin(false);if(!RESU.on||!CAR_PIECES.length)return false;
+  let E=null;try{E=resuBatit();}catch(e){console.warn('resurrection',e);E=null;}
+  if(!E||!E.length){for(const g of RESU.geos)g.dispose();RESU.geos.length=0;return false;}
+  const G=RESU.g=new THREE.Group();G.matrixAutoUpdate=false;for(const e of E)G.add(e.g);scene.add(G);
+  RESU.E=E;RESU.t=0;RESU.n=0;RESU.tSon=0;RESU.actif=true;resuVue();
+  try{if(SONV2)sfx('pwr.a',{vol:-5});}catch(e){} // les carillons et le souffle qui soulève : la magie commence
+  return true;}
+function resuTick(dt){ // (chanceTick : la pause fige la résurrection avec le reste)
+  const R=RESU,t=(R.t+=dt),mw=carGroup.matrixWorld,vc=PT_U.uVc.value;
+  const ap=Math.min(1,t/.22),sa=ap>=1?1:1+2.70158*Math.pow(ap-1,3)+1.70158*Math.pow(ap-1,2); // l'apparition : easeOutBack
+  for(const c of R.E){const g=c.g,u=Math.max(0,Math.min(1,(t-R.T0-c.d)/R.Tv)),e=u*u*(2.2-1.2*u); // lente au départ, elle ARRIVE avec de la vitesse : le clac
+    const k=Math.max(0,1-e),th=c.th0*Math.pow(k,1.5); /* (borné : à u = 1, e vaut 1,0000000000000002 — k négatif, pow → NaN, l'éclat posé disparaissait) */
+    RESU_V.copy(c.off).applyAxisAngle(RESU_Y,th).multiplyScalar(k);RESU_V.y+=.14*Math.sin(t*5+c.ph)*k;
+    g.position.copy(c.P).add(RESU_V);
+    if(c.roue)g.quaternion.setFromAxisAngle(RESU_X,c.spin*k).multiply(RESU_Q2.setFromAxisAngle(RESU_Z,.5*k*Math.sin(t*7+c.ph)));
+    else g.quaternion.copy(c.q0).slerp(RESU_Q.identity(),e);
+    let s=sa;
+    if(u>=1){if(!c.arr){c.arr=true;R.n++;resuClac(c,mw,vc);}c.tp+=dt;s=1+.14*Math.max(0,1-c.tp/.16);}
+    else if(u>0){RESU_W.copy(g.position).applyMatrix4(mw);
+      if(Math.random()<dt*45)spawnP(Math.random()<.55?sparkGold:sparkBlue,RESU_W.x,RESU_W.y,RESU_W.z,vc.x*.82+(Math.random()-.5)*2,vc.y*.82+Math.random()*1.5,vc.z*.82+(Math.random()-.5)*2,.32+Math.random()*.22); // la traînée : des étincelles d'or et de néon, lâchées sur place (la caisse les laisse derrière)
+      if(Math.random()<dt*7)spawnP(neonPool,RESU_W.x,RESU_W.y,RESU_W.z,vc.x,vc.y,vc.z,.22);} // l'aura : une lueur néon qui colle à l'éclat
+    g.scale.setScalar(s);}
+  if(t<R.fin&&Math.random()<dt*40){const a=t*9+Math.random()*.4,rr=2.4*(1-t/R.fin)+.7; // LE TOURBILLON : des étincelles cyan qui montent en hélice autour de la caisse
+    RESU_V.set(Math.cos(a)*rr,.2+2*t/R.fin,Math.sin(a)*rr+.4).applyMatrix4(mw);
+    spawnP(sparkBlue,RESU_V.x,RESU_V.y,RESU_V.z,vc.x*.92-Math.sin(a)*4,vc.y+2.5,vc.z*.92+Math.cos(a)*4,.4);}
+  if(t>=R.fin&&R.n>=R.E.length)resuFin(true);}
+function resuClac(c,mw,vc){ // un éclat se verrouille : la gerbe, le tchonk qui monte d'une note, un tap dans la main
+  RESU_W.copy(c.P).applyMatrix4(mw);
+  for(let i=0;i<7;i++)spawnP(sparkGold,RESU_W.x,RESU_W.y,RESU_W.z,vc.x+(Math.random()-.5)*7,vc.y+Math.random()*5,vc.z+(Math.random()-.5)*7,.3+Math.random()*.2);
+  const n9=performance.now();if(n9-RESU.tSon>55){RESU.tSon=n9;try{if(SONV2)sfx('spin.arret',{st:sonPd(Math.min(RESU.n-1,9)),vol:c.roue?-7:-9});}catch(e){}hap(5);}}
+function resuFin(fete){ // la caisse revient (fete : la dernière pièce posée) — sinon le ménage d'une résurrection interrompue
+  if(!RESU.actif&&!RESU.g)return;RESU.actif=false;
+  if(RESU.g){scene.remove(RESU.g);RESU.g=null;}
+  for(const g of RESU.geos)g.dispose();RESU.geos.length=0;RESU.E.length=0;
+  if(!fete)return;
+  carGroup.visible=true;RESU.plein=.4;
+  const p=carGroup.position,vc=PT_U.uVc.value,q=carGroup.quaternion;
+  for(let i=0;i<30;i++){const a=i/30*Math.PI*2;RESU_V.set(Math.cos(a),0,Math.sin(a)).applyQuaternion(q); // L'ANNEAU DE NÉON qui part au ras de la route
+    spawnP(neonPool,p.x+RESU_V.x*.8,p.y+.35,p.z+RESU_V.z*.8,vc.x+RESU_V.x*15,vc.y+RESU_V.y*15+.5,vc.z+RESU_V.z*15,.45);}
+  for(let i=0;i<34;i++)spawnP(sparkGold,p.x,p.y+.6,p.z,vc.x+(Math.random()-.5)*16,vc.y+3+Math.random()*9,vc.z+(Math.random()-.5)*16,.45+Math.random()*.3);
+  try{flashEcran('rgba(255,215,94,.4)');}catch(e){}
+  try{if(SONV2)sfx('jeu.miracule',{vol:-2});}catch(e){}hap([18,40,26,60,40]);}
+function resuVue(){ // au rendu : les éclats calés sur la caisse (qui a bougé cette image) — et le ménage si la course s'est arrêtée
+  if(!started||gameOver||garageOn||mode==='boom'||!(CHANCE.inv>0)){resuFin(false);return;}
+  const g=RESU.g;if(!g)return;g.position.copy(carGroup.position);g.quaternion.copy(carGroup.quaternion);g.scale.copy(carGroup.scale);g.updateMatrix();g.updateMatrixWorld(true);}
+{const ob9=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt){ob9.call(this,r9,s9,cam,rt);if(RESU.actif)resuVue();};} // CHAÎNÉ (jamais réassigné)
+window.dbgResu=function(k){ // banc : dbgResu() l'état · ('lance') la rejouer en course (bouclier compris)
+  if(k==='lance'&&started&&!gameOver){CHANCE.inv=Math.max(CHANCE.inv,CHANCE.invD);resuLance();}
+  const o={on:RESU.on,actif:RESU.actif,t:+RESU.t.toFixed(2),eclats:RESU.E.length,poses:RESU.n,dessins:RESU.dessins,pieces:CAR_PIECES.length,visible:carGroup.visible};
+  if(k==='detail'&&RESU.g){const f=function(v){return [+v.x.toFixed(2),+v.y.toFixed(2),+v.z.toFixed(2)];};o.g=f(RESU.g.position);o.gVis=RESU.g.visible;o.gPar=!!RESU.g.parent;o.car=f(carGroup.position);
+    o.E=RESU.E.map(function(c){return {P:f(c.P),p:f(c.g.position),s:+c.g.scale.x.toFixed(3),arr:c.arr,vis:c.g.visible,n:c.g.children.length,mw:f(new THREE.Vector3().setFromMatrixPosition(c.g.matrixWorld))};});}
+  return o;};
 window.chanceEtat=chanceEtat;window.chanceJoue=chanceJoue;window.chanceRefuse=chanceRefuse;window.chanceAttend=chanceAttend; // (l'écran de mort, IDEE et les bancs les appellent hors de l'IIFE)
 window.dbgChance=function(k){ // banc : dbgChance() l'état · ('mort') explose · ('joue') prend l'offre · ('t',s) vieillit la partie · ('$',n) n $ encaissés · ('choc') un choc
   if(k==='mort'&&started&&!gameOver&&mode!=='boom')explode('vide');
