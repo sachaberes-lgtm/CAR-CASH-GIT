@@ -16395,8 +16395,9 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
        ~2,6 s ; la face d'avalanche, DROITE, fait 1,12 × ce saut-là (on retombe dessus) ; le virage est dans la MONTÉE (au creux, la caisse roule).
        g monde ~23 m/s² (FALL_G × SPD). */
     const GB=Math.min(.23,17/VW),VN=1.35*VW,LD=1.12*VN*2*GB*VN/23; /* (MESURÉ au palier 7 : à 1,6 × la croisière, deux vagues faisaient 1,7 km et la map 6,3-7,3 km pour 5,4 visés) */
+    let nLv=0;const levre=()=>ici('lv'+nLv),pied=()=>ici('lf'+(nLv++)); // (2026-10-19) LES LÈVRES : la crête où l'on décolle, le pied de la face (voir dnLevre)
     const vague=sg=>{const R=RMIN*(1.6+r()*.7);let a=26+r()*14;if(lib(sg)<a+4)sg=-sg;a=Math.max(8,Math.min(a,lib(sg)));
-      arc(sg*a,R,.07+r()*.03);droite((34+r()*14)*LL,.04,1);const ld=LD*(1+r()*.12);droite(ld,-(GB-.04+r()*.02),Math.max(3,Math.round(ld/45)));return sg;};
+      arc(sg*a,R,.07+r()*.03);droite((34+r()*14)*LL,.04,1);levre();const ld=LD*(1+r()*.12);droite(ld,-(GB-.04+r()*.02),Math.max(3,Math.round(ld/45)));pied();return sg;};
     const vagues=n=>{let sg=phi>0?-1:1;for(let k=0;k<n;k++)sg=-vague(sg);};
     /* LES MODULES DES DUNES (2026-10-18, LES MODULES DE CHAQUE MAP — voir MODC_ON). 4 ou 5 des 5 liaisons (tirées au sort) deviennent un module —
        jamais les boucles, les crêtes, les vagues de section, la vallée, l'allée ni l'oasis. Paquet mélangé, jamais deux fois de suite ; leur hasard
@@ -16412,7 +16413,7 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
       for(let k=0;k<n;k++){sg=-sg;arc(sg*a,R,dmPe(p0,p1));}arc(-sg*a*.5,R,dmPe(p0,p1));};
     const dVagues=(p0,p1)=>{dmRe(.5,dmPe(p0,p1));let sg=phi>0?-1:1;const n=(LC9?1:2)+(rm()<.4?1:0); /* (LA DURÉE DES MAPS : une vague fait ~500 m au palier 0 — MESURÉ, trois rouleaux allongeaient la map de 1,5 km) */
       for(let k=0;k<n;k++){const R=RMIN*(1.6+rm()*.6);let a=26+rm()*14;if(lib(sg)<a+4)sg=-sg;a=Math.max(8,Math.min(a,lib(sg)));
-        arc(sg*a,R,.07+rm()*.03);droite((34+rm()*12)*LL,.04,1);const ld=LD*(1+rm()*.12);droite(ld,-(GB-.04+rm()*.02),Math.max(3,Math.round(ld/45)));sg=-sg;}};
+        arc(sg*a,R,.07+rm()*.03);droite((34+rm()*12)*LL,.04,1);levre();const ld=LD*(1+rm()*.12);droite(ld,-(GB-.04+rm()*.02),Math.max(3,Math.round(ld/45)));pied();sg=-sg;}};
     const dCorde=(p0,p1)=>{const T=95+rm()*15,sg=phi>0?-1:1,a1=T*(.5+rm()*.1),R=RMIN*(1.5+rm()*.4);{const d=(-sg*T/2/57.2958-phi)*57.2958;if(Math.abs(d)>3)arc(d,RMIN*(2.2+rm()*.5),dmPe(p0,p1));}
       arc(sg*a1,R,dmPe(p0,p1));droite((40+rm()*40)*LL,dmPe(p0,p1)*.8);arc(sg*(T-a1),Math.max(RMIN*1.15,R*.8),dmPe(p0,p1));};
     const dChicane=(p0,p1)=>{const a=30+rm()*10,R=RMIN*(1.1+rm()*.2);dmRe(LIM-a/57.3-.05,dmPe(p0,p1));const sg=phi>0?-1:1;droite(50*LL,dmPe(p0,p1)*.6);
@@ -16584,7 +16585,7 @@ function dnMondeCalc(S,opt){
   return {Z:Z,F:F,O:DN.O,ob:pv.ob,pyr:pv.pyr,yMin:yMin-40,yMax:yMax+40,ms:ms};
 }
 /* ---- LA CONSTRUCTION (appelée en fin de buildTrack ; no-op hors des dunes) : les échantillons de la route ici, le MONDE dans un travailleur ---- */
-function dnEteindre(){DN.on=false;if(DN.mesh)DN.mesh.visible=false;if(DN.grp)DN.grp.visible=false;DN.oa=null;if(DN.mat)DN.mat.uniforms.uOA.value.set(0,0,0,0);}
+function dnEteindre(){DN.on=false;DN.lev=[];if(DN.mesh)DN.mesh.visible=false;if(DN.grp)DN.grp.visible=false;DN.oa=null;if(DN.mat)DN.mat.uniforms.uOA.value.set(0,0,0,0);}
 function buildDunes(seed){
   dnEteindre();DN.job=(DN.job||0)+1;
   if(PARK.on||!LVL.cur||LVL.cur.piste!=='dunes'||!(NP>1)||!DUNES_OK)return;
@@ -16640,6 +16641,9 @@ function buildDunes(seed){
     DN.rac.push(o);}
   // LE VENT de la map : il souffle à peu près dans l'axe de la descente (les crêtes coupent la route en travers), à ±35°
   {const dx=S.x[NS-1]-S.x[0],dz=S.z[NS-1]-S.z[0],a=Math.atan2(dx,dz)+(r()-.5)*1.2,b=a+.49;DN.vent=[Math.sin(a),Math.cos(a),Math.sin(b),Math.cos(b)];DN.lam=(520+r()*90)*K;}
+  DN.lev=[];for(const k in sQ){const m=/^lv(\d+)$/.exec(k);if(!m||sQ['lf'+m[1]]==null)continue;const a=sQ[k],e=sQ['lf'+m[1]];if(!(e>a+40))continue;
+    const ia=Math.min(NS-1,Math.round(a/DS)),ie=Math.min(NS-1,Math.round(e/DS));DN.lev.push({s:a,e:e,g:Math.max(0,(S.y[ia]-S.y[ie])/(e-a))});}
+  DN.lev.sort(function(p,q){return p.s-q.s;}); // (2026-10-19) LES LÈVRES des vagues (dnLevre)
   DN.S=S;DN.ms={ech:Math.round(performance.now()-t0)};
   const bio9=BIOMES[(LVL.cur.bio&&LVL.cur.bio[0])||'dunesSoir']||BIOMES.dunesSoir,cA=bio9.cyA||[6,-110,0,0];
   const opt={K:K,seed:seed,RH:RH,TH:TH,sQ:sQ,sun:[cA[0],cA[1]],vent:DN.vent,lam:DN.lam,oa:oa,Af:120*K,pal:{dnPlat:PAL.b('dnPlat',64),dnFin:PAL.b('dnFin',12),dnOmbre:PAL.b('dnOmbre',44)}};
@@ -16787,6 +16791,23 @@ function dunesTick(dt){
   DN.ombre+=(ombre-DN.ombre)*Math.min(1,dt*5);dnPartTick(dt,c);
   if(k>.001||DN.ecrit){const e=DN.on?k:0;sun.intensity=c.sunI*(1-.62*(1-DN.ombre)*e);DN.ecrit=e>.001;}
   dnCaravane(dt);}
+/* LES LÈVRES DES VAGUES (2026-10-19, Sacha : « je veux qu'on décolle sur les vagues des dunes même sans nitro, de crête en crête ») — au sol la caisse
+   reste COLLÉE au ruban (elle ne quitte la route que par le bord, le saut nitro, une figure ou un tremplin) : MESURÉ au pilote, aucune cassure de
+   pente ne la faisait décoller. La crête de chaque vague est donc une LÈVRE, comme les tremplins du glacier : franchie en roulant (dans le sens de
+   la course, sur la dalle, au-dessus de 70 km/h), elle lance la caisse juste ce qu'il faut pour retomber sur SA face d'avalanche, vers 72 % de sa
+   longueur, à n'importe quelle vitesse : t = 0,72 × la face / la vitesse (entre 0,9 et 2,4 s), la montée = ½ g t − la pente × la vitesse (g monde
+   ~23 m/s², FALL_G × SPD), moins ce que la crête (+4 %) donne déjà. rampCd : une lèvre à la fois. DN.sauts = le compte (banc). */
+const DN_LF={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
+function dnLevre(s0){if(rampCd>0||side<0||introD||driveDir<0)return;const a=Math.min(s0,s),b=Math.max(s0,s);
+  for(const k of DN.lev){if(k.s<a||k.s>b)continue;if(Math.abs(lat)>ROAD_HALF)return;const vm=vitMult(),vx=Math.abs(vA)*SPD*vm;if(vx*3.6<70)return; /* au pas : on roule sur la crête */
+    /* (v2, MESURÉ au pilote : à l'élan de la pente MOYENNE, la caisse ne volait que 0,3-0,5 s — juste après la crête le ruban lissé descend encore à peine,
+       et la pose se déclare dès 0,35 s si la caisse est à moins de 3 m du bitume) : la face est relue dans la route (DN.S) — l'élan qui pose la caisse à
+       72 % de la face, et au moins celui qui la tient à plus de 4 m du bitume au bout de 0,35 s */
+    const S9=DN.S,yAt=q=>{const f=Math.max(0,Math.min(S9.n-1.001,q/S9.ds)),i=Math.floor(f);return S9.y[i]+(S9.y[i+1]-S9.y[i])*(f-i);},g2=FALL_G*SPD*.5,y0=yAt(k.s);
+    const t=Math.max(.9,Math.min(2.6,.72*Math.max(40,k.e-k.s)/Math.max(1,vx))),D=y0-yAt(k.s+vx*t),d35=y0-yAt(k.s+vx*.35);
+    frameAt(k.s,DN_LF);const ty=DN_LF.t.y; /* (v3) la pente RÉELLE du ruban à la lèvre : lissée, elle plonge déjà un peu — compter +4 % retirait jusqu'à 7 m/s à l'élan */
+    const vy=Math.min(24,Math.max((g2*t*t-D)/t,(4+g2*.1225-d35)/.35)),u=THREE.MathUtils.clamp(vy/SPD-ty*Math.abs(vA)*vm,0,60);DN.dbgLev={vx:+vx.toFixed(1),vy:+vy.toFixed(1),u:+u.toFixed(1),ty:+ty.toFixed(3),t:+t.toFixed(2),D:+D.toFixed(1),d35:+d35.toFixed(1)};
+    rampCd=1.2;startFall(u,1);shake=Math.max(shake,.35);try{hap([8,14]);}catch(e){}DN.sauts=(DN.sauts|0)+1;return;}}
 /* EN VOL : le sable, l'eau de l'oasis, les obélisques et la pyramide tuent (5 points de caisse) — renvoie la cause, ou '' */
 const DN_H9={};
 function dunesHeurt(p){if(!DN.on||!DN.Z)return '';
@@ -16918,7 +16939,7 @@ window.dbgDunes=function(k,a,b,c,d){
     skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return {cam:camera.position.toArray().map(Math.round),noeuds:DN.n};}
   return {on:DN.on,ms:DN.ms,noeuds:DN.n,sep:DN.sep,rmin:DN.rmin,F:DN.F?[DN.F.nx,DN.F.nz,DN.F.ts]:null,Z:DN.Z?[DN.Z.nx,DN.Z.nz,DN.Z.ts]:null,O:DN.O?[DN.O.nx,DN.O.nz,DN.O.ts]:null,
     ciel:CIEL2.mode,attente:!!DN.attente,sQ:DN.sQ,L:Math.round(L),obelisques:DN.ob.length,pyramide:!!DN.pyr,acacias:DN.nArb|0,palmiers:DN.nPal|0,caravanes:DN.car.length,oasis:DN.oa?{r:Math.round(DN.oa.r),y:Math.round(DN.oa.y)}:null,
-    vent:DN.vent.map(v=>+v.toFixed(2)),lam:Math.round(DN.lam),soleil:SUN_DIR.toArray().map(v=>+v.toFixed(3)),ombre:+DN.ombre.toFixed(2),dunes:+(LVL.dunes||0).toFixed(2),canyon:+(LVL.canyon||0).toFixed(2),
+    levres:(DN.lev||[]).length,sauts:DN.sauts|0,levre:DN.dbgLev||null,vent:DN.vent.map(v=>+v.toFixed(2)),lam:Math.round(DN.lam),soleil:SUN_DIR.toArray().map(v=>+v.toFixed(3)),ombre:+DN.ombre.toFixed(2),dunes:+(LVL.dunes||0).toFixed(2),canyon:+(LVL.canyon||0).toFixed(2),
     carHaut:DN.on?+(carGroup.position.y-dnHauteur(carGroup.position.x,carGroup.position.z)).toFixed(1):null};};
 /* <<<FIN DUNES>>> */
 /* <<<BANQUISE>>> */
@@ -63948,6 +63969,7 @@ function loop(now){
       }
       rampCd=Math.max(0,rampCd-dt);
       if(mode==='drive')banqPisteHeurt(); // (v4) un pic de la piste, percuté au sol : L'IMPACT
+      if(mode==='drive'&&DN.on&&DN.lev&&DN.lev.length)dnLevre(sPrev9); // (2026-10-19) LES DUNES D'OR : on décolle à la crête des vagues, même sans nitro
       if(mode==='drive'&&BANQ.kick&&BANQ.kick.length&&banqOk())for(const k9 of BANQ.kick){ // (v4) LES TREMPLINS DE GLACE — (2026-10-18) une vraie rampe de BK_BEC.lg m : on la MONTE, on décolle à la LÈVRE (k9.s)
         if(lat<k9.l0-.5||lat>k9.l1+.5||s<k9.s-k9.lg-2||Math.min(sPrev9,s)>k9.s+2)continue;
         if(s<k9.s){if(rampCd<=0){const u=Math.max(0,(s-k9.s+k9.lg)/k9.lg),hR=k9.h*Math.pow(u,1.7);if(hR>hopY-.6){hopY=Math.max(hR-.8,hopY+(hR-hopY)*Math.min(1,dt*25));hopV=0;}}break;} // sur la rampe : la caisse en suit la courbe (hopY)
