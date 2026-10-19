@@ -1573,6 +1573,16 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **LE TOFU** : tour des coins (dessous, dessus, nez, poupe, en course) — rien à reprendre.
 - 0 programme compilé en course, console propre. Planche : `photos-gameplay/affinement-lot4-japonaises.png`.
 
+## LES JANTES DE L'AIGLE DE FEU, DU MASTODONTE ET DU HOT ROD (2026-10-19, discussion JAPONAISES, responsable de lpWheel ; laissées « à faire » par BOÎTES)
+- Jugées avec la correction globale en marche (main v682), à côté des vraies (`affinement/boites/vraies/r52|r62|r64`).
+- **L'AIGLE DE FEU** (la Trans Am) : `creux:.06` — la jante dorée « flocon » creusée de 6 cm (4 cm par la correction globale).
+- **LE MASTODONTE** (Bigfoot) : `n:16, creux:.12, ecrous:6` — une CUVETTE chromée de 12 cm presque pleine (seize branches serrées), six écrous sur le moyeu
+  enfoncé (c'était une grande roue plate à cinq branches).
+- **LE HOT ROD** (le 32) : option neuve du style `enjoliveur`, **`chapeau:c`** — la jante TÔLE peinte en couleur de `fond` (léger cône), l'anneau poli au bord,
+  un chapeau chromé de c × le rayon de la jante ; ici `chapeau:.66` + `blanc:1` (flancs blancs). Sans `chapeau`, l'enjoliveur reste le dôme d'origine.
+- Vérifié au sommet près (`roues.py`) : enjoliveur sans chapeau, cadran, plis, creux 4 cm, branches, rayons, multi, `deux` inchangés. 0 programme compilé
+  en course (les trois), console propre. Planche : `photos-gameplay/jantes-aigle-mastodonte-hotrod.png`.
+
 ## `lpWheel` — LES VRAIES BRANCHES, UN SEUL OUTIL (2026-10-19, discussion JAPONAISES, responsable de lpWheel ; réunit `creux` de BOÎTES et `branches`)
 - **Le défaut** : dans les styles `rayons`/`multi`, les planches sont posées EN TRAVERS du rayon (rotation −a : la longueur part en tangente) — les n
   planches font un ANNEAU à n pans, aucune branche ne part du moyeu (« les disques à cercles »). Le dessin d'origine est GARDÉ tel quel pour toute fiche
@@ -1581,11 +1591,16 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   du bord vers le moyeu enfoncé (le dessin de BOÎTES, commit 6ef9692b). `creux:d` (≤ 4 cm, BOÎTES) ou `branches:1` (= 4 cm, JAPONAISES). Le `creux` de
   BOÎTES donne au sommet près la même roue que sur sa branche (LA BAVAROISE ne bouge pas). Les neuf caisses à `branches` passent des planches inclinées
   aux arêtes. ⚠ À la fusion de `caisses-boites` : le bloc lpWheel est en conflit — garder CELUI-CI (il contient leur `creux`, à l'identique).
+- **+ le lot 4 de BOÎTES (2dc45860)** : `creux` jusqu'à 60 % de la demi-largeur du pneu (au-delà de 4 cm le FOND recule d'autant : `fdd`), et
+  `ecrous:n` (n écrous sur le moyeu enfoncé, avec un creux ou des branches). La profondeur `crW` se calcule avant le fond ; `creux` vaut pour tout style,
+  comme chez eux. Vérifié au sommet près : LE MASTODONTE (creux 12 cm, six écrous, crampons), L'AIGLE DE FEU et LA BAVAROISE rendent la même roue que
+  sur `caisses-boites` ; les 11 fiches sans option, et les `branches`, inchangées.
 - **La correction GLOBALE, ÉTEINTE** (`ROUES_VRAIES=false`, juste avant `function lpWheel`) : allumée, toute fiche à rayons qui ne dit rien prend les
   vraies branches (4 cm), et un `accent` trop sombre (luminance < .25) s'éclaircit vers la jante (sinon les branches se perdent sur le fond sombre).
   `branches:0` dans une fiche la refuse pour elle. Essai : `?roues=vraies`, ou `dbgRoues(1|0)` en console. Concernées : 20 caisses du kit (relevé
   `roues_liste.py`) — DOLORÈS, CHARGEUR, DÉFIEUR, BAVAROISE, SILENCIEUSE, CHARGEUR 69, DAYTONA, TAURINE, NOCTAMBULE, AIGLE DE FEU, FÉLINE, BLINDÉ NOIR,
   DRAGON D'OR, MASTODONTE, PUCE, ATCHOUM, SQUALE, ICEBERG, FOURNAISE, DOGE. Planche : `photos-gameplay/roues-branches-globale.png` — Léo décide.
+  (Depuis le lot 1 de RONDES, LA FÉLINE dessine ses propres roues : 19 caisses ; LE MASTODONTE, L'AIGLE DE FEU et LA BAVAROISE sont creusés par BOÎTES.)
 
 ## LES JAPONAISES — 6 · ROSSO 40 REFAITE AU PLAN (2026-10-18, discussion JAPONAISES, Léo : « complexifie la ROSSO 40, imitation encore plus fidèle et satisfaisante pour les vrais kiffeurs de voiture »)
 - ⚠ **RETIRÉE LE SOIR MÊME** (Léo : « la rosso revient sur avant c'était mieux ») : le bloc `SHAPES.rosso` et son repère sont ôtés de la zone des

@@ -29816,17 +29816,26 @@ function lpWheel(o){
     K.box('k',o.w*.84,.05,.11,0,Math.sin(a)*R,Math.cos(a)*R,Math.PI/2-a);}
   if(o.bande&&!o.sansPneu)K.lathe('b',[[R+.004,-hw*.16],[R+.004,hw*.16]],16,0,0,0,'x'); // (2026-10-08, SQUALE) une BANDE claire au milieu de la bande de roulement : vue d'en dessous, la roue se lit
   const fx0=hw-.035,FACES=o.deux?[1,-1]:[1];                 // le plan de la jante, en retrait du pneu
+  // la profondeur des VRAIES BRANCHES (0 = l'ancien dessin) : `creux` (BOÎTES : jusqu'à 60 % de la demi-largeur — au-delà de 4 cm le fond recule
+  // d'autant) ou `branches` (JAPONAISES : 4 cm) ; ou, pour les styles à rayons qui ne disent rien, la correction GLOBALE `ROUES_VRAIES` (éteinte :
+  // `?roues=vraies`, `dbgRoues(1)`) — `branches:0` dans une fiche la refuse pour elle
+  const crW=o.creux?Math.min(o.creux,hw*.6):(o.style==='cadran'||o.style==='enjoliveur'||o.style==='plis')?0:(o.branches||(ROUES_VRAIES&&o.branches!==0))?.04:0,
+        fdd=Math.max(0,crW-.04);
   // (2026-10-08, SQUALE) `deux` : la roue du MILIEU, qu'on voit des deux côtés — un tambour FERMÉ et une jante sur CHAQUE face (miroir en x)
   if(o.deux)K.lathe('d',[[0,-(fx0-.05)],[R*.64,-(fx0-.05)],[R*.64,fx0-.05],[0,fx0-.05]],16,0,0,0,'x');
-  else K.lathe('d',[[R*.64,-hw+.02],[R*.64,fx0-.05],[0,fx0-.05]],16,0,0,0,'x'); // fût + fond sombre
+  else K.lathe('d',[[R*.64,-hw+.02],[R*.64,fx0-.05-fdd],[0,fx0-.05-fdd]],16,0,0,0,'x'); // fût + fond sombre (il recule derrière une jante creusée de plus de 4 cm)
   for(const e of FACES){const fx=e*fx0;
-  // la profondeur des VRAIES BRANCHES (0 = l'ancien dessin) : `creux` (≤ 4 cm) ou `branches` (4 cm) ; ou, pour les styles à rayons qui ne disent
-  // rien, la correction GLOBALE `ROUES_VRAIES` (éteinte : `?roues=vraies`, `dbgRoues(1)`) — `branches:0` dans une fiche la refuse pour elle
-  const crW=(o.style==='cadran'||o.style==='enjoliveur'||o.style==='plis')?0:o.creux?Math.min(o.creux,.04):(o.branches||(ROUES_VRAIES&&o.branches!==0))?.04:0;
   if(o.blanc)K.lathe('w',[[R*.70,e*(hw+.004)],[R*.86,e*(hw+.004)]],16,0,0,0,'x');
   if(o.style==='cadran'){
     K.lathe('c',[[R*.64,fx],[0,fx]],16,0,0,0,'x');
     for(let h=0;h<5;h++){const a=h/5*Math.PI*2;K.cyl('d',R*.13,.012,8,fx+e*.004,Math.sin(a)*R*.40,Math.cos(a)*R*.40,'x');}
+  }else if(o.style==='enjoliveur'&&o.chapeau){ // (2026-10-19, le HOT ROD) `chapeau:c` : la JANTE TÔLE peinte (`fond`), l'anneau poli au bord et un petit
+    // enjoliveur au moyeu (c × le rayon de la jante) — sans l'option, le dôme couvre toute la face (inchangé)
+    const c=o.chapeau,rc=R*.64*c;
+    K.lathe('d',[[R*.64,fx],[R*.58,fx+e*.004],[rc,fx+e*.012]],16,0,0,0,'x');                        // la tôle peinte, en léger cône
+    K.lathe('c',[[R*.64,fx+e*.002],[R*.60,fx+e*.007]],16,0,0,0,'x');                                // l'anneau poli
+    K.lathe('c',[[rc,fx+e*.012],[rc*.80,fx+e*.03],[rc*.40,fx+e*.05],[0,fx+e*.054]],16,0,0,0,'x');    // le chapeau chromé
+    K.cyl('o',rc*.22,.02,8,fx+e*.058,0,0,'x');
   }else if(o.style==='enjoliveur'){
     K.lathe('c',[[R*.64,fx],[R*.52,fx+e*.025],[R*.24,fx+e*.055],[0,fx+e*.06]],16,0,0,0,'x');
     K.cyl('o',R*.13,.02,8,fx+e*.064,0,0,'x');
@@ -29842,7 +29851,7 @@ function lpWheel(o){
     K.cyl('d',R*.10,.012,7,fx+e*.016,0,0,'x');                                // le cache-moyeu
   }else{
     const n=o.n||5,multi=o.style==='multi';
-    if(crW){ /* (2026-10-19) LES VRAIES BRANCHES — UN SEUL outil pour `creux` (BOÎTES, « des jantes en disques plats » : la jante CREUSÉE, ≤ 4 cm) et
+    if(crW){ /* (2026-10-19) LES VRAIES BRANCHES — UN SEUL outil pour `creux` (BOÎTES, « des jantes en disques plats » : la jante CREUSÉE) et
        `branches` (JAPONAISES, = un creux de 4 cm) : la lèvre plonge, chaque rayon est une ARÊTE (deux pans qui prennent chacun leur lumière) qui
        descend, LE LONG du rayon, du bord vers le moyeu enfoncé. Mêmes matières : 0 programme de plus. */
       K.lathe('c',[[R*.64,fx],[R*.60,fx-e*crW*.3],[R*.55,fx-e*crW*.45]],16,0,0,0,'x');
@@ -29859,6 +29868,7 @@ function lpWheel(o){
       K.box(multi?'c':'a',.03,R*.46,multi?R*.07:R*.13,fx-e*.012,Math.sin(a)*R*.33,Math.cos(a)*R*.33,-a);}}
   }
   if(o.style!=='enjoliveur'&&o.style!=='plis')K.cyl('c',R*.16,.05,8,fx-e*(crW?crW+.012:.01),0,0,'x'); // le moyeu (enfoncé dans la jante creusée)
+  if(o.ecrous&&crW)for(let i=0;i<o.ecrous;i++){const a=i/o.ecrous*Math.PI*2+.3;K.cyl('c',R*.028,.024,6,fx-e*(crW-.02),Math.sin(a)*R*.10,Math.cos(a)*R*.10,'x');} // (19/10, BOÎTES) les ÉCROUS sur le moyeu
   if(o.pique&&e>0){K.cyl('c',R*.15,.14,6,fx+.07,0,0,'x',R*.07);K.cyl('w',R*.07,.12,6,fx+.20,0,0,'x',.004);} // (2026-10-16, LE BLINDÉ NOIR) LE PIC DE MOYEU : le char de Ben-Hur — dans l'axe, il ne tourne pas à l'œil
   }
   return K.done();
@@ -32498,7 +32508,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   P.box('p',1.74,.05,.22,0,1.035,-2.40,-.18); // le becquet (13/10 : sa bordure d'or retirée)
   K.commit(P);
   return {hl:[.64,.62,2.50],tl:[.60,.76,-2.56],wx:.77,wzF:ZF,wzR:-ZR,
-          lpw:{R:R,w:.28,style:'multi',n:10,jante:0xd9a520}};
+          lpw:{R:R,w:.28,style:'multi',n:10,jante:0xd9a520,creux:.06}}; // (19/10, JAPONAISES) la jante dorée « flocon » CREUSÉE (6 cm)
 },
   e_zed:function(K){
   /* (13/10, « plus ressemblante ») le coupé de Yokohama a un capot LONG et presque à plat (il plongeait en coin vers 0,55),
@@ -33331,7 +33341,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   });
   K.commit(P);
   return {hl:[.74,1.86,ZE+.03],tl:[.86,1.86,-ZE-.03],wx:1.00,wzF:ZF,wzR:-ZR,pots:[[-.57,.50,-2.39],[.57,.50,-2.39]], // (pots) la bouche des deux pots qui plongent
-          lpw:{R:R,w:.62,style:'rayons',n:5,jante:0xe6e9ee,accent:0xe6e9ee,crampons:1}};
+          lpw:{R:R,w:.62,style:'rayons',n:16,jante:0xe6e9ee,accent:0xe6e9ee,crampons:1,creux:.12,ecrous:6}}; // (19/10, JAPONAISES) la jante de Bigfoot : une CUVETTE chromée de 12 cm (seize branches serrées, presque pleine), six écrous
  },
   b_groupeb:function(K){
   const U=LPU,R=.33,ZF=1.28,ZR=-1.26;
@@ -33486,7 +33496,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   P.lathe('k',[[.15,-.015],[.15,.015]],10,-.25,1.12,.25,'z');
   K.commit(P);
   return {hl:[.44,.82,1.70],tl:[.34,.70,-1.87],wx:WX,wzF:ZF,wzR:-ZR,
-          lpw:{R:R,w:2*HW,style:'enjoliveur',jante:0xe6e9ee,fond:0xb81c14}};
+          lpw:{R:R,w:2*HW,style:'enjoliveur',jante:0xe6e9ee,fond:0xb81c14,chapeau:.66,blanc:1}}; // (19/10, JAPONAISES) la jante tôle rouge, le petit chapeau, l'anneau poli, les flancs blancs
 },
   d_puce:function(K){
   /* (13/10, « plus ressemblante ») la petite anglaise de rallye : des coins RONDS vus de dessus (elle était carrée), le
