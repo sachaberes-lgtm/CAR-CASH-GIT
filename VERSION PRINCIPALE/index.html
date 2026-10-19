@@ -35172,9 +35172,9 @@ function japLignes(L,R){R=R||{j:{w:.012,g:.0035,k:.6},h:{w:.016,g:0,k:.25}};
     const nm=i=>{const a=P[Math.max(0,i-1)],b=P[Math.min(n-1,i+1)],dx=b[0]-a[0],dy=b[1]-a[1],h=Math.hypot(dx,dy)||1;return [-dy/h,dx/h];};
     const off=d=>P.map((p,i)=>{const m=nm(i);return [p[0]+m[0]*d,p[1]+m[1]*d];}),segs=[];
     const add=Q=>{for(let i=0;i<Q.length-1;i++){const a=Q[i],b=Q[i+1];segs.push([a[0],a[1],b[0],b[1],Math.min(a[0],b[0]),Math.max(a[0],b[0]),Math.min(a[1],b[1]),Math.max(a[1],b[1])]);}};
-    if(r.g){add(off(r.g));add(off(-r.g));}else{add(P);add(off(r.w));add(off(-r.w));}
+    let segW=null;if(r.g){add(off(r.g));add(off(-r.g));const n0=segs.length;add(off(r.g+.011));add(off(-r.g-.011));segW=segs.splice(n0);}else{add(P);add(off(r.w));add(off(-r.w));}
     let u0=1e9,u1=-1e9,v0=1e9,v1=-1e9;for(const p of P){u0=Math.min(u0,p[0]);u1=Math.max(u1,p[0]);v0=Math.min(v0,p[1]);v1=Math.max(v1,p[1]);}
-    return {P:P,r:r,segs:segs,gate:l.gate,bb:[u0-r.w,u1+r.w,v0-r.w,v1+r.w]};}).filter(Boolean);}
+    return {P:P,r:r,segs:segs,segW:segW,gate:l.gate,bb:[u0-r.w,u1+r.w,v0-r.w,v1+r.w]};}).filter(Boolean);}
 // LISSER : normales moyennées sous `deg` (les arêtes au-delà restent vives) — rend un Float32Array
 function japLisse(G,deg){const a=G.attributes.position.array,n=G.attributes.normal.array,M=new Map(),cs=Math.cos((deg||32)*Math.PI/180);
   for(let i=0;i<a.length;i+=3){const k=Math.round(a[i]*2e3)+','+Math.round(a[i+1]*2e3)+','+Math.round(a[i+2]*2e3);let l=M.get(k);if(!l)M.set(k,l=[]);l.push(i);}
@@ -35189,10 +35189,18 @@ function japLisse(G,deg){const a=G.attributes.position.array,n=G.attributes.norm
    · vue(cx,cy,cz,ax,ay,az,nx,ny,nz) facultative : la vue des zones pour ce triangle (sinon celle qui le regarde le plus en face) ;
    · colP(y,x,z) : la couleur de la tôle à une hauteur (`colTri` : prise au CENTRE de chaque triangle — une livrée à deux tons garde son trait net) ; GP : son groupe ; cache : un objet où garder la découpe (elle ne dépend que de la forme).
    Rend {groupe: géométrie}. Coût : une fois par session (le découpage est gardé, seules les couleurs sont refaites). */
+/* LA FENTE (2026-10-19, Léo : « un effet de séparation discret qui simule une FENTE, sans trait noir, aussi fin que sur les photos ») — le joint d'une
+   tôle (`japLignes`, k 'j') n'est plus un trait d'une couleur sombre posée : c'est une OMBRE DE LA COULEUR DE LA CAISSE (dans la fente) et, selon la
+   variante, un fil de lumière sur l'arête. Variantes (`?fente=A|B|C|D`, `window.JAPFENTE_FORCE`) : A le trait d'avant · B l'ombre · C l'ombre et le
+   fil · D le fondu. La couleur suit la distance au joint, sommet par sommet (gardée avec la découpe) ; la bande est coupée à ±g ET ±w. */
+function japFente(){try{return (typeof window!=='undefined'&&window.JAPFENTE_FORCE)||((/[?&]fente=([A-D])/.exec(location.search)||[])[1])||JAPFENTE_DEF;}catch(e){return JAPFENTE_DEF;}}
+var JAPFENTE_DEF='A';
+const JAPFENTE_V={B:{gap:.45,bord:.78,lb:.010,fil:0,lf:0},C:{gap:.50,bord:.82,lb:.010,fil:.20,lf:.004},D:{gap:.70,bord:.86,lb:.006,fil:0,lf:0}};
 function japDecoupe(G,o){
   const pa=G.attributes.position.array,na=G.attributes.normal.array,Z=o.zones||{},LG=o.lignes||{},C=o.codes,CK=Object.keys(C);
   const cle=o.cleCache||'_tole';let C9=o.cache&&o.cache[cle];
-  if(!C9||C9.n!==pa.length||CK.some(k=>!C9.G[k])){
+  const FV=japFente(),FX=FV!=='A';
+  if(!C9||C9.n!==pa.length||CK.some(k=>!C9.G[k])||(C9.fv||'A')!==FV){
     const ns=typeof o.ns==='function'?o.ns():(o.ns||na);   // (`ns` peut être une fonction : les normales lissées ne se calculent que si l'on découpe)
     const croise=(a,b,c,d,e,f,g,h)=>{const s=(x1,y1,x2,y2,x3,y3)=>(x2-x1)*(y3-y1)-(y2-y1)*(x3-x1);
             return ((s(e,f,g,h,a,b)>0)!==(s(e,f,g,h,c,d)>0))&&((s(a,b,c,d,e,f)>0)!==(s(a,b,c,d,g,h)>0));},
@@ -35215,8 +35223,8 @@ function japDecoupe(G,o){
           loin=(L9,u,w)=>{const P9=L9.P;let bd=1e9,sg=1,du=0,dv=0;for(let i=0;i<P9.length-1;i++){const a=P9[i],b=P9[i+1],dx=b[0]-a[0],dy=b[1]-a[1],l2=dx*dx+dy*dy||1e-12,
               t=Math.max(0,Math.min(1,((u-a[0])*dx+(w-a[1])*dy)/l2)),ex=u-a[0]-t*dx,ey=w-a[1]-t*dy,d=Math.hypot(ex,ey);
               if(d<bd){bd=d;sg=(dx*ey-dy*ex)>=0?1:-1;const l=Math.sqrt(l2);du=-dy/l;dv=dx/l;}}return [bd,sg,du,dv];};
-    const OUT={},COP={};for(const k of CK)OUT[k]={P:[],N:[]};
-    const garde=i=>{const q=OUT.p;for(let j=0;j<9;j++){q.P.push(pa[i+j]);q.N.push(na[i+j]);}};
+    const OUT={},COP={};for(const k of CK)OUT[k]={P:[],N:[],D:[]};
+    const garde=i=>{const q=OUT.p;for(let j=0;j<9;j++){q.P.push(pa[i+j]);q.N.push(na[i+j]);}if(FX)q.D.push(9,9,9);};
     for(let i=0;i<pa.length;i+=9){
       const cx=(pa[i]+pa[i+3]+pa[i+6])/3,cy=(pa[i+1]+pa[i+4]+pa[i+7])/3,cz=(pa[i+2]+pa[i+5]+pa[i+8])/3;
       const ux=pa[i+3]-pa[i],uy=pa[i+4]-pa[i+1],uz=pa[i+5]-pa[i+2],wx=pa[i+6]-pa[i],wy=pa[i+7]-pa[i+1],wz=pa[i+8]-pa[i+2];
@@ -35233,7 +35241,7 @@ function japDecoupe(G,o){
       if(!zon.length&&!lgn.length){garde(i);continue;}
       let pcs=[[[1,0,0],[0,1,0],[0,0,1]]];
       for(const Z9 of zon){const n2=[];for(const Pp of pcs)for(const q of coupe9(enV(v,Pp),Z9.sg))n2.push(deV(q));pcs=n2;}
-      for(const [w,L9] of lgn){const n2=[];for(const Pp of pcs)for(const q of coupe9(enV(w,Pp),L9.segs))n2.push(deV(q));pcs=n2;}
+      for(const [w,L9] of lgn){const sg9=FX&&L9.r.g?L9.segs.concat(L9.segW||[]):L9.segs,n2=[];for(const Pp of pcs)for(const q of coupe9(enV(w,Pp),sg9))n2.push(deV(q));pcs=n2;}
       const vers3=(w,du,dv)=>w==='cote'?[0,dv,du]:w==='dessus'?[dv,0,du]:[du,dv,0];
       for(const Pq of pcs){const Pp=enV(v,Pq);let su=0,sv=0;for(const p of Pp){su+=p[0];sv+=p[1];}su/=Pp.length;sv/=Pp.length;
         let k='p',Zk=null;for(const Z9 of zon)if(dansZ(Z9,su,sv)){k=Z9.k;Zk=Z9;}
@@ -35250,19 +35258,26 @@ function japDecoupe(G,o){
             if(cr){const d=Math.min(1,dBord(cr,qq[0],qq[1])/.008)*cr.creux;let sx=l0*ns[i]+l1*ns[i+3]+l2*ns[i+6],sy=l0*ns[i+1]+l1*ns[i+4]+l2*ns[i+7],sz=l0*ns[i+2]+l1*ns[i+5]+l2*ns[i+8];
               const sh=Math.hypot(sx,sy,sz)||1;px-=sx/sh*d;py-=sy/sh*d;pz-=sz/sh*d;}
             q.P.push(px,py,pz);
+            if(FX){let dj=9;if(L9&&L9.r.g){const c9=UV(Lw,[px,py,pz]),r9=loin(L9,c9[0],c9[1]);dj=r9[0]*r9[1];}q.D.push(dj);}   // (la fente : la distance signée au joint, sommet par sommet)
             let x=l0*nn[i]+l1*nn[i+3]+l2*nn[i+6],y=l0*nn[i+1]+l1*nn[i+4]+l2*nn[i+7],z=l0*nn[i+2]+l1*nn[i+5]+l2*nn[i+8],h=Math.hypot(x,y,z)||1;x/=h;y/=h;z/=h;
             if(L9&&!gap){const r=rc,dd=r[0],R9=L9.r;
               const tl=R9.g?-R9.k*Math.max(0,1-(dd-R9.g)/(R9.w-R9.g)):R9.k*Math.max(0,1-dd/R9.w);
               if(tl){let A=vers3(Lw,r[2]*sgc,r[3]*sgc);const an=A[0]*x+A[1]*y+A[2]*z;A=[A[0]-an*x,A[1]-an*y,A[2]-an*z];const la=Math.hypot(A[0],A[1],A[2]);
                 if(la>1e-6){x+=A[0]/la*tl;y+=A[1]/la*tl;z+=A[2]/la*tl;h=Math.hypot(x,y,z)||1;x/=h;y/=h;z/=h;}}}
             q.N.push(x,y,z);}}}}
-    C9={n:pa.length,G:{},C:{}};for(const k of CK)C9.G[k]={P:new Float32Array(OUT[k].P),N:new Float32Array(OUT[k].N)};
+    C9={n:pa.length,G:{},C:{},fv:FV};for(const k of CK)C9.G[k]={P:new Float32Array(OUT[k].P),N:new Float32Array(OUT[k].N),D:FX?new Float32Array(OUT[k].D):null};
     for(const k in COP)C9.C[k]={P:new Float32Array(COP[k].P),N:new Float32Array(COP[k].N)};
     if(o.cache)o.cache[cle]=C9;}
   // les couleurs (refaites à chaque construction : la peinture de la boutique peut changer) et les géométries, réunies par groupe de matière
   const col=new THREE.Color(),PAR={};
   for(const k of CK){const c=C9.G[k];if(!c.P.length)continue;const g=k==='p'||k==='gap'?(k==='p'?o.GP:(C.gap.g||o.GP)):C[k].g,Cc=new Float32Array(c.P.length);
-    for(let i=0;i<c.P.length;i+=3){let r,gg,bb;if(k==='p'){const t=i-i%9,q=o.colTri?o.colP((c.P[t+1]+c.P[t+4]+c.P[t+7])/3,(c.P[t]+c.P[t+3]+c.P[t+6])/3,(c.P[t+2]+c.P[t+5]+c.P[t+8])/3):o.colP(c.P[i+1]);r=q[0];gg=q[1];bb=q[2];}else{col.setHex(C[k].c);r=col.r;gg=col.g;bb=col.b;}Cc[i]=r;Cc[i+1]=gg;Cc[i+2]=bb;}
+    const FP=FX&&c.D&&(k==='p'||k==='gap')?JAPFENTE_V[FV]:null,gR=(C.gap&&C.gap.r)||.0035;
+    for(let i=0;i<c.P.length;i+=3){let r,gg,bb;if(FP){const t=i-i%9,q=o.colTri?o.colP((c.P[t+1]+c.P[t+4]+c.P[t+7])/3,(c.P[t]+c.P[t+3]+c.P[t+6])/3,(c.P[t+2]+c.P[t+5]+c.P[t+8])/3):o.colP(c.P[i+1]);
+        const d=c.D[i/3],a9=Math.abs(d);let f=1,w9=0;
+        if(k==='gap')f=FP.gap;
+        else if(a9<9){const e=a9-gR;if(FP.fil&&d>0&&e<FP.lf){const lu=.3*q[0]+.59*q[1]+.11*q[2];w9=FP.fil*(.6+1.4*(1-Math.min(1,lu)))*(1-Math.max(0,e)/FP.lf);}   /* (le fil se voit plus sur une caisse foncée : l'arête claire sur le noir) */else if(e<FP.lb){const u=Math.max(0,e)/FP.lb;f=FP.bord+(1-FP.bord)*u*u*(3-2*u);}}
+        r=q[0]*f+(1-q[0])*w9;gg=q[1]*f+(1-q[1])*w9;bb=q[2]*f+(1-q[2])*w9;}
+      else if(k==='p'){const t=i-i%9,q=o.colTri?o.colP((c.P[t+1]+c.P[t+4]+c.P[t+7])/3,(c.P[t]+c.P[t+3]+c.P[t+6])/3,(c.P[t+2]+c.P[t+5]+c.P[t+8])/3):o.colP(c.P[i+1]);r=q[0];gg=q[1];bb=q[2];}else{col.setHex(C[k].c);r=col.r;gg=col.g;bb=col.b;}Cc[i]=r;Cc[i+1]=gg;Cc[i+2]=bb;}
     const L=PAR[g]||(PAR[g]={P:[],N:[],C:[]});L.P.push(c.P);L.N.push(c.N);L.C.push(Cc);}
   const cat=A=>{let n=0;for(const a of A)n+=a.length;const r=new Float32Array(n);let o2=0;for(const a of A){r.set(a,o2);o2+=a.length;}return r;},out={};
   for(const k in (C9.C||{})){const c=C9.C[k],Cc=new Float32Array(c.P.length);for(let i=0;i<c.P.length;i+=3){const q=o.colP(c.P[i+1],c.P[i],c.P[i+2]);Cc[i]=q[0];Cc[i+1]=q[1];Cc[i+2]=q[2];}
