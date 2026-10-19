@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v702'; // v702 (2026-10-19) : la fusion — LE GARAGE QUI PREND TOUT L'ÉCRAN (Sacha : le ⚙ à côté du trophée, les portes et VITESSE montent ; ?garage=leo = avant) par-dessus v701 LE CANYON ET LES DUNES AU HASARD ; le détail des deux au journal
+const CACHE = 'cashcar-v703'; // v703 (2026-10-19 soir, Léo : « la vitesse n'apparaît que quand on a atteint le niveau 30, moteur 30 ») : avant le palier 30, plus de grille VITESSE au garage, les portes remontent à sa place
 // const CACHE = 'cashcar-v698'; // v698 (2026-10-19, Léo : « oui, mets le bras argent de la boutique dans le jeu ») : boutique › FIGURES, les deux bras posent la voiture, un bras robot argent fait la figure ; gestes plus fluides
 // const CACHE = 'cashcar-v697'; // v697 (2026-10-19, Léo : « oui, mets le bras robot dans le jeu ») : LE BRAS DES FIGURES — inventaire › FIGURES, un bras robot fait la figure sans traverser la caisse
 // const CACHE = 'cashcar-v696'; // v696 (2026-10-19, Léo) : LA VITESSE DE DÉPART — six crans au garage, l'étal du moteur soulevé, l'affiche des records à droite (voir le journal)

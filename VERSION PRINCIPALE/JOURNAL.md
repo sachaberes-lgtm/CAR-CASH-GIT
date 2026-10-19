@@ -3,6 +3,15 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA VITESSE N'APPARAÎT QU'AU MOTEUR 30 (2026-10-19 soir, v703, Léo : « la vitesse n'apparaît que quand on a atteint le niveau 30, moteur 30 »)
+- Avant le palier 30 (`vdepFonction()` faux), la grille VITESSE DE DÉPART du garage (`#gVdep`) n'est plus montrée du tout : ni « VITESSE »,
+  ni les six cadenas. `vdepPlace` pose `#garage.sansVdep` ; dans `<style id="garageHaut">` (code/page/ecrans-garage.html, bloc « SANS LA
+  VITESSE ») les portes prennent sa place : debout INVENTAIRE · MISSIONS · BOUTIQUE à + 174 sous le nom (la caisse descend moins : garCadre
+  lit le bas de la BOUTIQUE), couché le bloc des portes reste centré au même endroit (50 % − 89 / − 33 px).
+- Le palier 30 atteint : la grille apparaît comme avant, avec le toast « VITESSE DE DÉPART DÉBLOQUÉE » (vdepMaj, inchangé). Le code cousin
+  l'ouvre toujours. L'ÉTAL du moteur (à gauche de la porte) reste, au cran 1.
+- Vérifié au banc (390 × 844 et 844 × 390, sauvegarde au palier 1 puis au palier 30+) : grille cachée / visible, portes à leur place, 0 erreur.
+  Planche : `CAR CAHS V3/photos-gameplay/vitesse-cachee-avant-30-avant-apres.png`.
 ## LE GARAGE QUI PREND TOUT L'ÉCRAN — LE ⚙ REVIENT, LES BOUTONS MONTENT (2026-10-17 → 19, Sacha : « dans le garage, les boutons sont toujours assez mal positionnés ; faut que tu rajoutes un bouton réglage et un bouton jouer, le bouton jouer avec les trois flèches ; dispose-les mieux dans l'écran : ils sont tous assez en bas alors qu'il y a tout le haut de l'écran qui peut être utilisé » ; puis, le 19 : « oui, pousse sur main, je préviens Léo (il a ?garage=leo s'il veut l'ancien) »)
 ⚠ **LÉO EST PRÉVENU PAR SACHA** : ce rangement remplace par défaut la vue principale du garage et rend le ⚙ que Léo avait masqué le 9/10
 (31840c4, « enlève le settings »). Rien n'est détruit : **`?garage=leo`** (ou `?garage=avant`, html.garLeo) rend le garage d'avant AU PIXEL
