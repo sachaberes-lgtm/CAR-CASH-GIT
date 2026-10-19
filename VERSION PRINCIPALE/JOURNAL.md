@@ -1021,6 +1021,23 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   Léo la veut « plus fidèle » (en reprise chez JAPONAISES). Fusion : seul conflit, le bloc des traductions que l'allègement de Sacha
   avait vidé — son ménage gardé, nos deux noms (LA LAME, LE TOFU) ajoutés.
 
+## L'AFFINEMENT RONDES, LOT 1 — LA PUCE, LA FÉLINE, LA QUEUE DE CANARD (2026-10-19, discussion RONDES ; Léo : « tout corriger », « le style poly pour perfectionner chaque coin »)
+- **LA PUCE** (la Mini, défi) : la section refaite — le bas de caisse RENTRE en arrondi (la rentrée s'efface au-dessus des roues : `kA`), la
+  portière bombe, l'épaule ronde, le pavillon bombé jusqu'à sa gouttière ; deux tranches de plus à chaque coin. Les pare-chocs sont une barre
+  chromée à huit pans qui ENVELOPPE les coins (`bulleOutils.tube`), butoirs en tubes debout. La boîte noire sous la malle devient CLAIRE :
+  `plqDessinee` y pose la vraie plaque (elle était sur la malle, la boîte noire faisait un trou). Peinture : les bandes 'p' décalées de 2.
+- **LA FÉLINE** (la Type E) : les phares étaient un CRISTAL bleu nuit qui dépassait de l'aile → une découpe EN GOUTTE couchée sur la tôle
+  (`yHaut` relit la section : la section est devenue `SEC`), son jonc chromé (tube), le verre clair 'v' (famille 'g', gris-vert) et le phare
+  rond dedans. Les roues : des anneaux plats → de vraies roues À RAYONS (`roueDeco` : jante chromée, deux nappes de 16 rayons croisés, écrou à
+  oreilles ; `lpw.style:'nyan'`). ⚠ `BufferGeometry.applyQuaternion` n'existe pas en r128 : passer par `applyMatrix4`.
+- **LA QUEUE DE CANARD** : les bouts des pare-chocs (tracés `avP`/`arP`) finissaient à 1-3 cm HORS de la tôle → en lame ; ils rentrent de 3 cm.
+  Le phare : l'anneau argent à mi-rayon et le cache chromé central faisaient un iris et une pupille → une glace d'un seul verre. Le cadre noir
+  des feux 11 → 5 mm, le filet 8 → 4 mm.
+- Le tour des coins (12 vues + dessous, garage et course) : rien d'autre sur ces trois-là, sauf la coque en facettes de LA FÉLINE (ses passages
+  de roue sont creusés dans le loft ; les adoucir = des ailes séparées comme LE SCARABÉE, à décider). La fente C attend l'outil de JAPONAISES.
+- Vérifié : 0 programme compilé en course (les trois), 29 avertissements comme le main, construction 11-41 ms. Planche
+  `photos-gameplay/affinement-rondes-lot1.png`.
+
 ## BUGS RONDES — L'ÉVENTAIL DE LA GRANDE ANGLAISE, LA TACHE NOIRE DE POSTER 84 (2026-10-19, discussion RONDES ; Léo, sur le relevé de l'affinement : « tout corriger », les bugs d'abord)
 - **LA GRANDE ANGLAISE** : l'éventail de lamelles claires/sombres au-dessus du feu arrière venait du LOFT, pas de la découpe (il restait sans
   aucune zone). Deux causes mesurées (`plis.js` du banc : l'angle entre les deux triangles de chaque quad) : (1) la poupe « rognée » au profil
