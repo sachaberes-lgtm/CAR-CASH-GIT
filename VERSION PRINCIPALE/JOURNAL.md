@@ -75,6 +75,7 @@
   `const BK_BEC=…` (piège n° 1) — `bkBecTex` lève « BK_BEC_TEX is not defined » à chaque construction du glacier (`window.__banqErr`) : buildBanqG
   s'arrête aux tremplins (`bkBecMesh`), sans sa météo ni la fin de son décor. Le départ d'avance le reproduit tel quel (prebDecorG rend l'exception
   au même endroit).
+
 ## LE CAÏD, LE HUMMER AU NEZ ARRONDI ET DÉTAILLÉ (2026-10-19, v676, Léo : « plus arrondi le devant… » · « plus de détail » · « oui, et refais-le en SUV »)
 - BOÎTES 373979fc (le nez : capot bombé qui s'enroule dans les ailes, face aux coins ronds, panneau noir, bandeau à coin ambre, 5 feux ambre
   au toit) + a97dbba6 (le détail : calandre à lames, antibrouillards carrés, anneaux, sabot ajouré, nervures du capot, élargisseurs vissés,
