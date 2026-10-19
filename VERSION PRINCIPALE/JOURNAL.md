@@ -1210,6 +1210,20 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
 
+## LE HOT ROD v2 — LE COUPÉ DE LA PHOTO DE LÉO (2026-10-19, discussion BOÎTES ; Léo, une photo à l'appui : « exactement celle-là, la couleur, moteur vraiment stylé, roues exactes, plaque au même endroit, tout tout pareil, poly réalisme — en mode poly hybride, ultra mini cubes si besoin »)
+- Le gabarit `c_hotrod` RÉÉCRIT : le coupé « trois fenêtres » de 1932, ROUGE (0xc8141c, la fiche aussi), en highboy (sans ailes) — la coque
+  sur son CHÂSSIS rouge à l'air (longerons sous les portes, « kick-up » sur l'essieu, cornes qui plongent), la porte « suicide » et la malle en
+  FENTE C, la banquette capitonnée, le volant à droite ; la CALANDRE rouge, son bord qui avance de 8 cm, la grille au fond et ses 31 barreaux
+  fins ; les PHARES-OBUS chromés sur leurs pieds ; l'essieu surbaissé chromé, la lame transversale, les jambes de force, les amortisseurs ;
+  la PLAQUE noire en bas devant, « CASH 32 » en mini cubes (décor : celle du joueur reste derrière, `plqDessinee`).
+- LE V8 POLI : bloc rouge, couvre-culasses polis à ailettes et vis (mini cubes), fils de bougies rouges vers l'allumeur, deux carburateurs
+  sous la grande ÉCOPE ovale, poulies, alternateur, durite chromée, collecteurs quatre-en-un qui partent sous la caisse.
+- LES ROUES dessinées par le gabarit (`roueDeco`, style `nyan` : l'outil commun `lpWheel` n'est PAS touché) : pneu à FLANC BLANC, jante
+  ROUGE, grand chapeau chromé ; petites devant (`wRF` 0,82 : rayon 0,31, voie `wxF` 0,66), grosses derrière (0,38).
+- Les pots : `ECH_POTS.c_hotrod` passe en deux sorties `reel` sous la poupe (les cheminées sont parties ; le type `hotrod` ne sert plus).
+- Banc : construction 34 ms, 0 programme compilé en course (couché, debout), garage comme avant (+6, déjà le cas). Planche :
+  `photos-gameplay/hotrod-vraie-et-nous.png`. Attend le oui de Léo.
+
 ## AFFINEMENT · LOT 4 BOÎTES — LE HOT ROD, LE MASTODONTE, L'AIGLE DE FEU, LA CABOSSÉE, L'ORIGAMI (2026-10-19, discussion BOÎTES)
 - **LE HOT ROD** (64) : les phares-obus DESCENDUS contre la calandre (y 0,82, x 0,44 : ils flottaient en haut et mordaient dans les pneus),
   vus de face un jonc chromé, le verre, l'ampoule (le disque ÉMISSIF plein faisait une boule de lumière jaune) ; la calandre EN CREUX — un
