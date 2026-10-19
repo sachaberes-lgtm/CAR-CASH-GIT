@@ -1,5 +1,11 @@
 Copyright 2012 The Press Start 2P Project Authors (cody@zone38.net), with Reserved Font Name "Press Start 2P".
 
+The same license (SIL Open Font License 1.1, text below) covers the four pixel fonts of the figure rarities (HUD des figures, 2026-10-18):
+  silkscreen.woff2  - Copyright 2001 The Silkscreen Project Authors (https://github.com/googlefonts/silkscreen)
+  jersey10.woff2    - Copyright 2023 The Soft Type Project Authors (https://github.com/scfried/soft-type-jersey)
+  sixtyfour.woff2   - Copyright 2021 The Sixtyfour Project Authors (https://github.com/jenskutilek/homecomputer-fonts)
+  jacquard12.woff2  - Copyright 2023 The Soft Type Project Authors (https://github.com/scfried/soft-type-jacquard)
+
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
 http://scripts.sil.org/OFL

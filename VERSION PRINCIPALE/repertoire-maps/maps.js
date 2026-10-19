@@ -11,8 +11,17 @@
 window.REPERTOIRE = [
   { id: 'nuages',   nom: 'MER DE NUAGES',     couverture: 'matin',
     meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
+  // (2026-10-16, Sacha : « la map ville sera toujours la nuit […] on abandonne toutes les maps ville-jour ») : quatre temps (la teinte de base, violette) puis
+  // les trois autres TEINTES sous la pluie — une clé « météo-teinte » = index.html?carte=ville&meteo=<météo>&teinte=<teinte> (banc/photos.py la comprend)
   { id: 'ville',    nom: 'LA VILLE',          couverture: 'pluie',
-    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
+    meteos: [['pluie', 'PLUIE'], ['nuit', 'NUIT'], ['brouillard', 'BROUILLARD'], ['orage', 'ORAGE'], ['pluie-vert', 'NÉONS VERTS'], ['pluie-jaune', 'NÉONS JAUNES'], ['pluie-bleu', 'BLEU ÉLECTRIQUE']] },
+  // (2026-10-17, Léo) LA VILLE VITRÉE : les tours de verre et leur reflet qui pend du ciel — quatre heures et la pluie
+  { id: 'vitree',   nom: 'VILLE VITRÉE',      couverture: 'midi',
+    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'COUCHER'], ['nuit', 'NUIT'], ['pluie', 'PLUIE']] },
+  // (2026-10-18, Sacha : « remet la map paris dans le mode classique ») PARIS AU SOL, de la Concorde au Sacré-Cœur : un seul temps — la course
+  // fait tourner l'heure elle-même, de l'or à la nuit
+  { id: 'paris',    nom: 'PARIS',             couverture: 'soir',
+    meteos: [['soir', 'HEURE DORÉE']] },
   { id: 'jade',     nom: 'PICS DE JADE',      couverture: 'matin',
     meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
   { id: 'foret',    nom: 'LA FORÊT NOIRE',    couverture: 'soir',
@@ -25,4 +34,12 @@ window.REPERTOIRE = [
     meteos: [['matin', 'TERRE'], ['midi', 'MARS'], ['soir', 'JUPITER']] },
   { id: 'canyon',   nom: 'CANYON DES GÉANTS', couverture: 'matin',
     meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
+  // (2026-10-18, Sacha : « une nouvelle map dans les grottes, en mode Minecraft mais bien ») LES PROFONDEURS : la descente en blocs, de la mine aux
+  // abysses — sous la terre, ses « temps » sont des lumières
+  { id: 'grotte',   nom: 'LES PROFONDEURS',   couverture: 'matin',
+    meteos: [['matin', 'TORCHES'], ['midi', 'CRISTAUX'], ['soir', 'MAGMA'], ['nuit', 'NOIR COMPLET']] },
+  // (2026-10-18, Sacha : « fais les dunes d'or de manière parfaite ») LES DUNES D'OR : l'erg qu'on dévale de crête en crête, la vallée morte, l'allée des
+  // obélisques, l'oasis — le temps « pluie » est un vent de sable, l'« orage » une tempête de sable
+  { id: 'dunes',    nom: "LES DUNES D'OR",    couverture: 'soir',
+    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'VENT DE SABLE'], ['orage', 'TEMPÊTE DE SABLE']] },
 ];

@@ -10,25 +10,92 @@
      titre). Le JOUER de l'accueil est touché pour toi ; le couple map × météo est gardé ARMÉ (dbgClassique) : le départ, chaque portail
      et chaque nouvelle partie restent sur CETTE map. Une partie finie repart seule après 3 s. La barre : retour à la liste, le nom,
      les météos de la map (une touche = on y va). Les touches du clavier frappées hors du cadre partent dans le jeu (comme le cadre du
-     jeu sur l'ordi). La musique du jeu démarre au premier toucher (le navigateur l'exige). -->
+     jeu sur l'ordi). La musique du jeu démarre au premier toucher (le navigateur l'exige).
+     LES NOTES (2026-10-17, Léo : « une page locale sur laquelle je pourrai retoucher chaque map » → « notes seulement ») : le panneau
+     NOTES (à droite sur un grand écran, en bas sur un petit) — il écrit ce qu'il veut changer dans CETTE map ; chaque note garde la
+     météo où il était et l'IMAGE du jeu à cet instant. Tout vit sur le disque, par serveur.py (~/Downloads/CAR-notes-maps/ : notes.json
+     + notes-maps.txt, le fichier que Claude lit). La coche verte = « fait » (Claude la pose quand c'est dans le jeu ; Léo peut aussi). -->
 <style>
-  :root{--sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif}
+  :root{--sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;--pan:0px;
+    --fond2:#161618;--champ:#252528;--txt2:rgba(255,255,255,.62);--txt3:rgba(255,255,255,.42);--vert:#30d158;--rouge:#ff6961}
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var(--sys);-webkit-font-smoothing:antialiased}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   #barre{position:fixed;top:0;left:0;right:0;height:44px;display:flex;align-items:center;gap:10px;
-    padding:0 max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));font-size:13px;white-space:nowrap;z-index:2}
+    padding:0 max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));font-size:13px;white-space:nowrap;z-index:3;background:#000}
   #retour{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;background:rgba(255,255,255,.12);flex:none}
   #retour:hover{background:rgba(255,255,255,.22)}
-  svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;display:block}
   #titre{font-weight:650;letter-spacing:.01em;flex:none}
   #meteos{display:flex;gap:6px;margin-left:auto;overflow-x:auto;scrollbar-width:none;min-width:0}
   #meteos::-webkit-scrollbar{display:none}
-  #meteos a{height:28px;padding:0 11px;border-radius:999px;font-size:11.5px;font-weight:600;letter-spacing:.05em;color:rgba(255,255,255,.62);
+  #meteos a{height:28px;padding:0 11px;border-radius:999px;font-size:11.5px;font-weight:600;letter-spacing:.05em;color:var(--txt2);
     text-decoration:none;display:inline-flex;align-items:center;flex:none}
   #meteos a:hover{background:rgba(255,255,255,.12);color:#fff}
   #meteos a.on{background:#fff;color:#000}
-  #scene{position:fixed;left:0;right:0;top:44px;bottom:0;display:grid;place-items:center}
+  #bNotes{height:30px;padding:0 12px 0 10px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;flex:none;
+    background:rgba(255,255,255,.12);font-size:12.5px;font-weight:650}
+  #bNotes:hover{background:rgba(255,255,255,.22)}
+  body.nOuvert #bNotes{background:#fff;color:#000}
+  #bNotes .nb{min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--rouge);color:#fff;font-size:11px;
+    display:none;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+  #bNotes .nb.on{display:inline-flex}
+  #scene{position:fixed;left:0;right:var(--pan);top:44px;bottom:var(--panB,0px);display:grid;place-items:center}
   #jeu{border:0;display:block;background:#000}
+
+  /* le panneau des notes : une colonne à droite sur un grand écran, une feuille du bas sur un petit */
+  #notes{position:fixed;z-index:2;top:44px;right:0;bottom:0;width:340px;background:var(--fond2);border-left:1px solid rgba(255,255,255,.07);
+    display:flex;flex-direction:column;font-size:14px;transform:translateX(100%);visibility:hidden;transition:transform .28s cubic-bezier(.32,.72,0,1),visibility 0s .28s}
+  body.nOuvert #notes{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.32,.72,0,1)}
+  .nTete{display:flex;align-items:center;gap:8px;padding:14px 12px 10px 16px}
+  .nTete b{font-size:17px;font-weight:700;letter-spacing:-.01em}
+  .nTete span{color:var(--txt3);font-size:12px;font-weight:600;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #nFerme{margin-left:auto;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.08);flex:none}
+  #nFerme:hover{background:rgba(255,255,255,.16)}
+  #nForm{padding:0 16px 12px}
+  #nTxt{display:block;width:100%;min-height:78px;max-height:220px;resize:none;background:var(--champ);border:1px solid transparent;border-radius:12px;
+    color:#fff;padding:10px 12px;font:inherit;line-height:1.4}
+  #nTxt::placeholder{color:var(--txt3)}
+  #nTxt:focus{outline:none;border-color:rgba(255,255,255,.3)}
+  .nBas{display:flex;align-items:center;gap:8px;margin-top:8px}
+  #nOu{color:var(--txt3);font-size:11.5px;font-weight:600;letter-spacing:.04em;display:inline-flex;align-items:center;gap:5px;min-width:0}
+  #nOu svg{width:13px;height:13px;stroke-width:2}
+  #nAjoute{margin-left:auto;height:32px;padding:0 16px;border-radius:999px;background:#fff;color:#000;font-weight:700;font-size:13px;flex:none}
+  #nAjoute:disabled{opacity:.3;cursor:default}
+  #nErr{display:none;margin:0 16px 10px;padding:8px 10px;border-radius:10px;background:rgba(255,105,97,.14);color:var(--rouge);font-size:12.5px;line-height:1.35}
+  #nErr.on{display:block}
+  #nListe{flex:1;overflow-y:auto;list-style:none;padding:2px 8px 18px;border-top:1px solid rgba(255,255,255,.06)}
+  #nListe li{display:grid;grid-template-columns:26px minmax(0,1fr) auto 26px;column-gap:8px;align-items:start;padding:10px 6px 10px 8px;border-radius:10px}
+  #nListe li:hover{background:rgba(255,255,255,.04)}
+  .nCoche{width:20px;height:20px;margin-top:1px;border-radius:50%;border:1.6px solid rgba(255,255,255,.34);display:grid;place-items:center;color:transparent}
+  .nCoche:hover{border-color:rgba(255,255,255,.7)}
+  .nCoche svg{width:12px;height:12px;stroke-width:3}
+  li.fait .nCoche{background:var(--vert);border-color:var(--vert);color:#000}
+  .nT{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.38}
+  li.fait .nT{color:var(--txt3);text-decoration:line-through;text-decoration-color:rgba(255,255,255,.3)}
+  .nMeta{display:block;font-size:11px;color:var(--txt3);margin-top:3px;letter-spacing:.03em}
+  li.fait .nMeta b{color:var(--vert);font-weight:650}
+  .nPh{width:66px;aspect-ratio:844/390;border-radius:6px;object-fit:cover;background:#222;cursor:zoom-in;display:block}
+  .nSup{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:var(--txt3);opacity:0}
+  #nListe li:hover .nSup,.nSup:focus-visible{opacity:1}
+  .nSup:hover{background:rgba(255,255,255,.1);color:#fff}
+  @media (hover:none){.nSup{opacity:1}}
+  .nVide{color:var(--txt3);padding:18px 10px;font-size:13px;line-height:1.4}
+  #nAnnule{position:absolute;left:12px;right:12px;bottom:12px;display:flex;align-items:center;gap:10px;padding:10px 10px 10px 14px;border-radius:12px;
+    background:#2c2c2f;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.4);opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .2s,transform .2s}
+  #nAnnule.on{opacity:1;transform:none;pointer-events:auto}
+  #nAnnule button{margin-left:auto;font-weight:700;color:#fff;padding:6px 10px;border-radius:8px}
+  #nAnnule button:hover{background:rgba(255,255,255,.1)}
+  #nGrand{position:fixed;inset:0;z-index:9;background:rgba(0,0,0,.86);display:none;place-items:center;padding:24px;cursor:zoom-out}
+  #nGrand.on{display:grid}
+  #nGrand img{max-width:100%;max-height:100%;border-radius:10px}
+  @media (max-width:899px){
+    #notes{top:auto;left:0;width:auto;height:min(58vh,440px);border-left:0;border-radius:16px 16px 0 0;transform:translateY(100%);
+      box-shadow:0 -10px 40px rgba(0,0,0,.5);padding-bottom:env(safe-area-inset-bottom)}
+    #bNotes .lab{display:none}
+    #bNotes{padding:0 9px}
+  }
+  @media (prefers-reduced-motion:reduce){#notes,body.nOuvert #notes,#nAnnule{transition:none}}
 </style>
 </head>
 <body>
@@ -36,8 +103,28 @@
   <a id="retour" href="index.html" aria-label="Retour à la liste des maps"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a>
   <b id="titre"></b>
   <nav id="meteos" aria-label="Météo"></nav>
+  <button id="bNotes" type="button" aria-label="Notes" aria-controls="notes" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span class="lab">Notes</span><span class="nb"></span></button>
 </div>
 <div id="scene"><iframe id="jeu" title="Le jeu"></iframe></div>
+<aside id="notes" aria-label="Notes de la map">
+  <div class="nTete"><b>Notes</b><span id="nMap"></span><button id="nFerme" type="button" aria-label="Fermer les notes"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <form id="nForm" autocomplete="off">
+    <textarea id="nTxt" rows="3" placeholder="Ce que tu veux changer ici…" aria-label="Nouvelle note"></textarea>
+    <div class="nBas"><span id="nOu"></span><button id="nAjoute" type="submit" disabled>Ajouter</button></div>
+  </form>
+  <div id="nErr" role="alert">Pas enregistré : le serveur des maps est arrêté. Ton texte reste dans la case.</div>
+  <ol id="nListe"></ol>
+  <div id="nAnnule" role="status"><span>Note supprimée</span><button type="button">Annuler</button></div>
+</aside>
+<div id="nGrand"><img alt=""></div>
+<script>
+// (16/10) le service worker du JEU, s'il s'est installé sur cette adresse (voir.html charge le jeu), fait échouer maps.js et les photos dans le
+// navigateur du chat (la liste restait VIDE) : on le retire et on recharge une fois. serveur.py refuse sw.js, il ne revient pas.
+if (navigator.serviceWorker) navigator.serviceWorker.getRegistrations().then(rs => {
+  if (!rs.length) return;
+  Promise.all(rs.map(r => r.unregister())).then(() => { try { if (!sessionStorage.getItem('ccSwRetire')) { sessionStorage.setItem('ccSwRetire', '1'); location.reload(); } } catch (e) {} });
+}).catch(() => {});
+</script>
 <script src="maps.js"></script>
 <script>
 (function(){
@@ -45,7 +132,8 @@
   const q = new URLSearchParams(location.search);
   const M = L.find(m => m.id === q.get('carte')) || L[0];
   let met = q.get('meteo'); if (!M.meteos.some(x => x[0] === met)) met = M.couverture;
-  const nomMet = (M.meteos.find(x => x[0] === met) || [met, met])[1];
+  const nomMetDe = k => (M.meteos.find(x => x[0] === k) || [k, (k || '').toUpperCase()])[1];
+  const nomMet = nomMetDe(met);
   document.title = M.nom + ' · ' + nomMet;
   $('titre').textContent = M.nom;
   $('meteos').innerHTML = M.meteos.map(x => '<a href="voir.html?carte=' + M.id + '&meteo=' + x[0] + '"' + (x[0] === met ? ' class="on"' : '') + '>' + x[1] + '</a>').join('');
@@ -58,40 +146,157 @@
     localStorage.setItem('cashcarSave', JSON.stringify(d));
   } catch (e) {}
 
-  // le jeu, à la taille d'un téléphone couché (debout si la fenêtre est plus haute que large)
+  // le panneau des notes : ouvert d'emblée sur un grand écran (on écrit en regardant), fermé sur un petit ; le choix est retenu
+  const large = () => innerWidth >= 900;
+  let ouvert = large();
+  try { const v = localStorage.getItem('ccNotesOuvert'); if (v != null && large()) ouvert = v === '1'; } catch (e) {}
+
+  // le jeu, à la taille d'un téléphone couché (debout si la place est plus haute que large) — à côté du panneau quand il est ouvert
   const jeu = $('jeu');
-  function taille(){
-    const W = innerWidth, H = innerHeight - 44, debout = H > W * 1.1, w = debout ? 390 : 844, h = debout ? 844 : 390;
+  function taille(){ // le panneau ouvert prend sa place : à droite (grand écran) ou en bas (petit) — le jeu se range dans le reste, jamais dessous
+    const pan = ouvert && large() ? 340 : 0, panB = ouvert && !large() ? Math.round(Math.min(innerHeight * .58, 440)) : 0;
+    document.documentElement.style.setProperty('--pan', pan + 'px'); document.documentElement.style.setProperty('--panB', panB + 'px');
+    const W = innerWidth - pan, H = innerHeight - 44 - panB, debout = H > W * 1.1, w = debout ? 390 : 844, h = debout ? 844 : 390;
     jeu.style.width = w + 'px'; jeu.style.height = h + 'px'; jeu.style.zoom = Math.min(W / w, H / h);
   }
-  addEventListener('resize', taille); taille();
-  jeu.src = '../index.html?simu=1&carte=' + encodeURIComponent(M.id) + '&meteo=' + encodeURIComponent(met);
-  const focusJeu = () => { try { jeu.focus(); jeu.contentWindow.focus(); } catch (e) {} };
-  jeu.addEventListener('load', () => { E.charge = performance.now(); focusJeu(); });
-  document.addEventListener('pointerdown', ev => { if (!ev.target.closest('#barre')) setTimeout(focusJeu, 0); });
-  for (const t of ['keydown', 'keyup']) addEventListener(t, ev => { // une touche frappée hors du cadre part dans le jeu
-    if (ev.target === jeu) return;
+  addEventListener('resize', taille);
+  // (2026-10-16) une clé « météo-teinte » (LA VILLE : « pluie-vert ») = la météo + la TEINTE ; la ville sans teinte dite = la violette (celle de base)
+  const mt = met.split('-')[0], te = met.split('-')[1] || (M.id === 'ville' ? 'violet' : '');
+  jeu.src = '../index.html?simu=1&carte=' + encodeURIComponent(M.id) + '&meteo=' + encodeURIComponent(mt) + (te ? '&teinte=' + encodeURIComponent(te) : '');
+  const txt = $('nTxt'), dansNotes = el => !!(el && el.closest && el.closest('#notes, #nGrand'));
+  const focusJeu = force => { if (!force && dansNotes(document.activeElement)) return; try { jeu.focus(); jeu.contentWindow.focus(); } catch (e) {} };
+  jeu.addEventListener('load', () => { E.charge = performance.now(); focusJeu(); }); // un jeu rechargé ne vole pas la case où l'on écrit
+  document.addEventListener('pointerdown', ev => { if (!ev.target.closest('#barre') && !dansNotes(ev.target)) setTimeout(() => focusJeu(true), 0); });
+  for (const t of ['keydown', 'keyup']) addEventListener(t, ev => { // une touche frappée hors du cadre part dans le jeu (pas celles qu'on écrit dans une note)
+    if (ev.target === jeu || dansNotes(ev.target)) return;
     try { const w = jeu.contentWindow; w.document.dispatchEvent(new w.KeyboardEvent(t, { code: ev.code, key: ev.key, keyCode: ev.keyCode, repeat: ev.repeat, bubbles: true, cancelable: true })); } catch (e) {}
     if (/^(Space|Arrow)/.test(ev.code)) ev.preventDefault();
   });
 
   // le départ et la tenue : JOUER touché pour toi, la map gardée armée, une partie finie relancée
-  const E = { charge: 0, essai: 0, roule: false, finT: 0 };
+  // (16/10, Léo : « je ne vois rien ») MESURÉ dans le navigateur du chat, plus lent que le banc : JOUER touché à 1,5 s, AVANT que le ciel
+  // du titre soit en place (body.titreCiel), lançait le départ par l'atelier, puis le ciel arrivait par-dessus — le départ restait figé
+  // (#garage.launching) pour toujours. On attend donc le ciel du titre (1 s stable ; 9 s au plus si le jeu n'en montre pas), et un départ
+  // qui n'a pas pris en 12 s recharge le jeu (deux fois au plus).
+  const E = { charge: 0, essai: 0, cielT: 0, relance: 0, finT: 0 };
+  const visible = el => !!(el && el.getClientRects().length);
   setInterval(() => {
     let w, st; try { w = jeu.contentWindow; st = w && w.dbgState ? w.dbgState() : null; } catch (e) { st = null; }
     if (!st) return;
-    const now = performance.now();
-    try { if (!w.dbgClassique().force) w.dbgClassique(M.id, met); } catch (e) {}
-    if (st.started && !st.gameOver) { E.roule = true; E.finT = 0; return; }
+    const now = performance.now(), d = w.document;
+    try { if (!w.dbgClassique().force) w.dbgClassique(M.id, mt, te || null); } catch (e) {}
+    if (st.started && !st.gameOver) { E.essai = 0; E.finT = 0; return; }
     if (st.started && st.gameOver) { // la mort : 3 s pour la voir, puis on repart sur la même map
       if (!E.finT) E.finT = now;
-      if (now - E.finT > 3000 && now - E.essai > 2500) { E.essai = now; try { if (w.dbgEco) w.dbgEco('rejouer'); } catch (e) {} }
+      if (now - E.finT > 3000 && now - (E.rejoue || 0) > 2500) { E.rejoue = now; try { if (w.dbgEco) w.dbgEco('rejouer'); } catch (e) {} }
       return;
     }
-    if (now - E.charge < 1200 || now - E.essai < 2000) return; // l'accueil : JOUER, tant que la course ne tourne pas
-    const b = w.document.querySelector('[data-m="play"]');
-    if (b && b.getClientRects().length) { E.essai = now; b.click(); }
+    if (E.essai && now - E.essai > 12000 && E.relance < 2) { // un départ figé : on recharge le jeu
+      E.relance++; E.essai = 0; E.cielT = 0; E.charge = now; jeu.src = jeu.src; return;
+    }
+    if (E.essai) return;
+    if (d.body.classList.contains('titreCiel')) { if (!E.cielT) E.cielT = now; } else E.cielT = 0;
+    const pret = (E.cielT && now - E.cielT > 1000) || now - E.charge > 9000;
+    if (!pret) return;
+    const b = [d.querySelector('[data-m="play"]'), d.getElementById('gJouer')].find(visible);
+    if (b) { E.essai = now; b.click(); }
   }, 300);
+
+  // ---------- LES NOTES (2026-10-17) ----------
+  // Les notes de TOUTES les maps vivent sur le disque (serveur.py → ~/Downloads/CAR-notes-maps/) ; cette page n'affiche que celles de sa map.
+  // Chaque geste part en OPÉRATION (ajoute · fait · retire · remet) : le serveur relit le disque, applique, rend la liste — une coche posée
+  // par Claude pendant que la page est ouverte n'est jamais écrasée, et la page la voit au plus tard 5 s après (relecture).
+  const N = { liste: [], vu: '', annule: null, annuleT: 0 };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const ICO_OK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>', ICO_X = '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  $('nMap').textContent = M.nom;
+  $('nOu').innerHTML = '<svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>' + esc(nomMet) + ' · avec l\'image';
+  function quand(s){
+    const d = new Date(s); if (isNaN(d)) return '';
+    const h = String(d.getHours()).padStart(2, '0') + ' h ' + String(d.getMinutes()).padStart(2, '0'), auj = new Date();
+    return d.toDateString() === auj.toDateString() ? h : String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + ' · ' + h;
+  }
+  function rendu(){
+    const ns = N.liste.filter(n => n.carte === M.id).sort((a, b) => (a.fait - b.fait) || (a.quand < b.quand ? 1 : -1)); // à faire d'abord, les plus récentes en haut
+    const afaire = ns.filter(n => !n.fait).length, nb = document.querySelector('#bNotes .nb');
+    nb.textContent = afaire; nb.classList.toggle('on', afaire > 0);
+    $('nListe').innerHTML = ns.length ? ns.map(n =>
+      '<li data-id="' + esc(n.id) + '"' + (n.fait ? ' class="fait"' : '') + '>' +
+        '<button class="nCoche" type="button" aria-label="' + (n.fait ? 'Fait — décocher' : 'Marquer comme fait') + '">' + ICO_OK + '</button>' +
+        '<div><div class="nT">' + esc(n.t) + '</div><span class="nMeta">' + (n.fait ? '<b>FAIT</b> · ' : '') + esc(nomMetDe(n.meteo)) + ' · ' + quand(n.quand) + '</span></div>' +
+        (n.photo ? '<img class="nPh" alt="L\'image du jeu quand tu as écrit" src="notes-' + esc(n.photo) + '">' : '<span></span>') +
+        '<button class="nSup" type="button" aria-label="Supprimer la note">' + ICO_X + '</button>' +
+      '</li>').join('') : '<li class="nVide" style="display:block">Rien pour l\'instant. Roule, et écris ce qui ne va pas ou ce que tu veux en plus.</li>';
+  }
+  function prend(d){ const s = JSON.stringify(d.notes || []); if (s !== N.vu) { N.vu = s; N.liste = d.notes || []; rendu(); } }
+  function erreur(on){ $('nErr').classList.toggle('on', on); }
+  function relit(){
+    fetch('notes', { cache: 'no-store' }).then(r => r.ok ? r.json() : Promise.reject(r.status)).then(d => { prend(d); erreur(false); }).catch(() => erreur(true));
+  }
+  function envoie(op){
+    return fetch('notes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(op) })
+      .then(r => r.ok ? r.json() : Promise.reject(r.status)).then(d => { prend(d); erreur(false); return d; })
+      .catch(e => { erreur(true); throw e; });
+  }
+  // l'image du jeu au moment de la note : la toile 3D lue dans le rendu suivant (le jeu dessine en tête d'image, on passe juste après) ;
+  // une image vide (le jeu n'a pas redessiné cette fois) → on réessaie, puis on s'en passe (la note part quand même)
+  function photo(){
+    return new Promise(res => {
+      let w, cv; try { w = jeu.contentWindow; cv = [...w.document.querySelectorAll('body>canvas')].find(c => { try { return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; } }); } catch (e) {}
+      if (!cv || !cv.width) return res(null);
+      let n = 0; const fin = setTimeout(() => res(null), 1500);
+      const essai = () => {
+        try {
+          const k = Math.min(1, 720 / cv.width), o = document.createElement('canvas'); o.width = Math.round(cv.width * k); o.height = Math.round(cv.height * k);
+          const x = o.getContext('2d'); x.drawImage(cv, 0, 0, o.width, o.height);
+          const px = x.getImageData(0, 0, o.width, o.height).data; let s = 0; for (let i = 0; i < px.length; i += 4 * 61) s += px[i] + px[i + 1] + px[i + 2];
+          if (s < 60 && ++n < 6) return w.requestAnimationFrame(essai);
+          clearTimeout(fin); res(s < 60 ? null : o.toDataURL('image/jpeg', .82));
+        } catch (e) { clearTimeout(fin); res(null); }
+      };
+      w.requestAnimationFrame(essai);
+    });
+  }
+  const bouton = () => { $('nAjoute').disabled = !txt.value.trim() || N.envoi; };
+  const hauteur = () => { txt.style.height = 'auto'; txt.style.height = Math.min(220, Math.max(78, txt.scrollHeight + 2)) + 'px'; };
+  txt.addEventListener('input', () => { bouton(); hauteur(); });
+  txt.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter' && !ev.shiftKey && !ev.isComposing) { ev.preventDefault(); $('nForm').requestSubmit(); } // Entrée = ajouter, Maj+Entrée = à la ligne
+    if (ev.key === 'Escape') { txt.blur(); focusJeu(true); }
+  });
+  $('nForm').addEventListener('submit', ev => {
+    ev.preventDefault();
+    const t = txt.value.trim(); if (!t || N.envoi) return;
+    N.envoi = true; bouton();
+    photo().then(ph => envoie({ op: 'ajoute', carte: M.id, meteo: met, t, photo: ph }))
+      .then(() => { txt.value = ''; hauteur(); $('nListe').scrollTop = 0; }, () => {})
+      .then(() => { N.envoi = false; bouton(); });
+  });
+  $('nListe').addEventListener('click', ev => {
+    const li = ev.target.closest('li[data-id]'); if (!li) return;
+    const n = N.liste.find(x => x.id === li.dataset.id); if (!n) return;
+    if (ev.target.closest('.nCoche')) envoie({ op: 'fait', id: n.id, v: !n.fait }).catch(() => {});
+    else if (ev.target.closest('.nSup')) envoie({ op: 'retire', id: n.id }).then(() => { // supprimée, mais rattrapable 6 s
+      N.annule = n; $('nAnnule').classList.add('on'); clearTimeout(N.annuleT); N.annuleT = setTimeout(() => $('nAnnule').classList.remove('on'), 6000);
+    }).catch(() => {});
+    else if (ev.target.closest('.nPh')) { $('nGrand').querySelector('img').src = ev.target.src; $('nGrand').classList.add('on'); }
+  });
+  $('nAnnule').querySelector('button').addEventListener('click', () => {
+    clearTimeout(N.annuleT); $('nAnnule').classList.remove('on');
+    if (N.annule) envoie({ op: 'remet', note: N.annule }).catch(() => {}); N.annule = null;
+  });
+  $('nGrand').addEventListener('click', () => $('nGrand').classList.remove('on'));
+  function ouvre(v, garde){
+    ouvert = v; document.body.classList.toggle('nOuvert', v); $('bNotes').setAttribute('aria-expanded', v ? 'true' : 'false');
+    if (garde && large()) try { localStorage.setItem('ccNotesOuvert', v ? '1' : '0'); } catch (e) {}
+    taille();
+    if (!v && dansNotes(document.activeElement)) focusJeu(true);
+  }
+  $('bNotes').addEventListener('click', () => { ouvre(!ouvert, true); if (ouvert) setTimeout(() => txt.focus(), 60); });
+  $('nFerme').addEventListener('click', () => ouvre(false, true));
+  addEventListener('keydown', ev => { if (ev.key === 'Escape' && $('nGrand').classList.contains('on')) $('nGrand').classList.remove('on'); });
+  ouvre(ouvert, false);
+  relit(); setInterval(() => { if (document.visibilityState === 'visible') relit(); }, 5000);
 })();
 </script>
 </body>

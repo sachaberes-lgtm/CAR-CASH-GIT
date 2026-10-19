@@ -77,7 +77,7 @@ Ordres : PILOTAGE (voir `PROTOCOLE-PC.md` sur `origin/pilotage-notes`).
 
 ## Tester sans les bancs du Mac
 - `cd "VERSION PRINCIPALE" && python3 -m http.server 8000` → http://localhost:8000/index.html (couché) ; `index.html?colonne=portrait` (debout).
-- Paramètres utiles : `?colonne=portrait`, `?sans=<interrupteur>` (ex. `oeil`), `?ui=5` (ancienne interface), `?voix=1` (annonceur, coupé par défaut).
+- Paramètres utiles : `?colonne=portrait`, `?ui=5` (ancienne interface), `?voix=1` (annonceur, coupé par défaut).
 - Crochets console `window.dbg*` (outils de banc, pas des bugs) : `dbgState()` (état), `dbgAuto(1)` (pilote auto, la caisse survit),
   `dbgCadence(30)` (force 30 i/s), `dbgStep(n)` (pas à pas), `dbgEco()`, `dbgNitro`, `dbgEau()` (plongeon Jade), `dbgSaut`, `dbgVol`, `dbgOrbite`.
 - Fumée minimale à la main : accueil → JOUER → course → mort → REJOUER → mort → accueil, en couché ET debout, console sans erreur.
