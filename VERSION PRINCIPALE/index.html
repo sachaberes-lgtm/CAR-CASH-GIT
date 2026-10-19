@@ -30669,7 +30669,7 @@ const SHAPES={
       return 'p';});
     for(let i=0;i<8;i++){const z=-.74-i*.115;P.box('k',.96,.016,.07,0,yC(z)+.012,z,-.20);} // PERSIENNES de lunette
     P.sym(sd=>{
-      P.box('k',.02,.06,3.60,sd*.935,.62,-.02);                               // le jonc noir
+      for(const [z0,z1] of [[-.76,.72],[-2.06,-1.76]])P.box('k',.02,.06,z1-z0,sd*.935,.62,(z0+z1)/2); // le jonc noir — (2026-10-19, BOÎTES) en tronçons : d'un seul tenant (3,60 m) il traversait les passages de roue et flottait au-dessus des roues
       P.box('k',.012,.012,1.34,sd*.22,1.147,-.26);                            // la charnière des portes papillon
       P.box('W',.24,.10,.02,sd*.36,.56,2.118);P.box('W',.24,.10,.02,sd*.64,.56,2.118); // phares carrés
       P.box('O',.10,.06,.02,sd*.82,.44,2.118);
@@ -31284,7 +31284,7 @@ Object.assign(SHAPES,{
   const P=K.kit({p:{g:'g',c:0x020203},   // (13/10, Léo : « plus noir brillant ») le NOIR LAQUÉ : un noir presque pur — la laque n'y renvoie plus que le reflet, net sur les pans qui fuient (c'était un gris)
     k:{g:'m',c:0x121316},K:{g:'g',c:0x0b0c0f},c:{g:'c',c:0xe9ecf0},
     g:{g:'g',c:0x16202a},W:{g:'l',c:0xf2f7ff},L:{g:'l',c:0xff1a2a},r:{g:'l',c:0x9a0f1a},O:{g:'l',c:0xffa21a},
-    m:{g:'s',c:0x3a3f47},e:{g:'m',c:0xc8102e}});
+    m:{g:'s',c:0x3a3f47},e:{g:'m',c:0xc8102e},n:{g:'s',c:0x0a0b0d}}); // n : (2026-10-19, BOÎTES) le fond de l'ÉCOPE, noir satiné
   const AR=[[0,2*R+.05],[R*.60,2*R+.03],[R*.98,R*1.16],[R+.12,.34]];
   const CW=1.30,RF=.36,RR=-.50,RB=-1.76,ZE=2.50;
   const zs=[-ZE,-2.47,-2.44,-2.30,-2.10,RB,-1.20,-.86,-.80,RR,-.02,.10,RF,CW,2.00,2.30,2.44,ZE];
@@ -31303,6 +31303,7 @@ Object.assign(SHAPES,{
     return s;
   },(j,z)=>{
     if(j===0||j===1)return 'k';                                      /* bas de caisse noir, jupes */
+    if((j===3||j===4)&&z>-.98&&z<1.04)return 'n';                   /* (2026-10-19) le creux de l'ÉCOPE : en laque-verre ses deux pans plats se miraient en aplat (le sol rose de l'environnement, magenta) */
     if(j===6&&cab(z)){if(z>.10&&z<1.24)return 'g';if(z>-.86&&z<-.02)return 'g';if(z>-.02&&z<.10)return 'K';return 'p';}
     if(j===7&&cab(z)&&z>-.86&&z<1.26)return 'K';                     /* l'entourage de vitres noir */
     if(j===8&&((z>RF&&z<CW)||(z>RB&&z<RR)))return 'g';
@@ -32314,8 +32315,17 @@ Object.assign(SHAPES,{
      remonte vers la malle), le capot long entre deux ailes, le BEC et ses orbites carrées, la coque qui rentre sous la
      taille, des vitres qui rentrent sur un pavillon arrondi, la grande lunette couchée, le becquet en canard. */
   const U=LPU,R=.34,ZF=1.47,ZR=-1.27;
-  const P=K.kit({p:{g:'p',c:0x0f0f11},o:{g:'o',c:0xd9a520},k:{g:'m',c:0x151619},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},
-    g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
+  const PAL9={p:{g:'p',c:0x0f0f11},o:{g:'o',c:0xd9a520},k:{g:'m',c:0x151619},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},
+    g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}},P=K.kit(PAL9);
+  /* (2026-10-19, BOÎTES) LE DAMIER DU FLANC : sur ce noir laqué, chaque facette plate du flanc (elles s'inclinent un peu d'une station à
+     l'autre, élargisseurs compris) renvoyait un morceau différent du ciel — en course, le flanc se couvrait de carrés gris et blancs.
+     Les normales de la laque sont lissées entre facettes à moins de ~25° l'une de l'autre : le reflet coule, les arêtes vives restent. */
+  {const gP=(typeof peintPal==='function'?peintPal(PAL9):PAL9).p.g,d0=P.done;P.done=function(){const o=d0.call(P),G9=o[gP];if(G9){
+    const a=G9.attributes.position.array,n=G9.attributes.normal.array,M9=new Map(),N9=new Float32Array(n.length);
+    for(let i=0;i<a.length;i+=3){const q=Math.round(a[i]*500)+','+Math.round(a[i+1]*500)+','+Math.round(a[i+2]*500);let L9=M9.get(q);if(!L9)M9.set(q,L9=[]);L9.push(i);}
+    for(const L9 of M9.values())for(const i of L9){let x=0,y=0,z=0;for(const j of L9)if(n[i]*n[j]+n[i+1]*n[j+1]+n[i+2]*n[j+2]>.9){x+=n[j];y+=n[j+1];z+=n[j+2];}
+      const l=Math.hypot(x,y,z)||1;N9[i]=x/l;N9[i+1]=y/l;N9[i+2]=z/l;}
+    G9.setAttribute('normal',new THREE.Float32BufferAttribute(N9,3));}return o;};}
   const AR=[[0,2*R+.05],[R*.60,2*R+.01],[R*.98,R*1.12],[R+.14,.28]];
   let zs=[-2.55,-2.50,-2.45,-2.30,-1.72,-1.40,-1.10,-.95,-.90,-.70,-.55,-.50,-.30,0,.40,.46,.60,1.00,2.00,2.25,2.33,2.42,2.50,2.55];
   for(const w of [ZF,ZR])for(const d of [R*.60,R*.98,R+.14])zs.push(w-d,w+d);

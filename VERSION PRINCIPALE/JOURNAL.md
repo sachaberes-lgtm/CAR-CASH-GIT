@@ -1178,6 +1178,17 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
 
+## BUGS BOÎTES — LA DOLORÈS, L'AIGLE DE FEU, LE CHARGEUR (2026-10-19, discussion BOÎTES ; l'AFFINEMENT, choix de Léo)
+- **LA DOLORÈS** : le jonc noir était une barre de 3,60 m d'un seul tenant qui traversait les passages de roue (arche à 0,74, jonc à 0,62) —
+  il flottait au-dessus des roues. En tronçons : entre les roues (−0,76 → 0,72) et derrière la roue arrière.
+- **L'AIGLE DE FEU** : le « damier » du flanc en course = le REFLET. Sur un noir laqué (`p`, envMap) chaque facette plate du flanc, un peu
+  inclinée d'une station à l'autre (élargisseurs `fl`), renvoie un morceau différent du ciel → des carrés gris/blancs (au garage, ciel sombre :
+  invisible). Les normales de la laque sont lissées entre facettes à moins de ~25° (`P.done` enveloppé, soudure par position) : le reflet coule,
+  les arêtes vives restent. ⚠ Le même piège guette toute caisse noire laquée à grands pans peu cintrés.
+- **LE CHARGEUR** : sa laque est le VERRE (`g`, réflexion .55) : les deux pans plats de l'ÉCOPE (j 3 et 4 du loft) se miraient en aplat — le pan
+  bas regarde le sol de l'environnement, rose à PICS DE JADE → une bande magenta. Le creux de l'écope en noir satiné (`n`, sans reflet).
+- Banc : course couchée et debout 0 programme compilé, garage sans erreur. Planche : photos-gameplay/bugs-boites-avant-apres.png.
+
 ## LE CAÏD, LE DÉTAIL DU VRAI HUMMER EV (2026-10-19, discussion BOÎTES ; Léo : « plus de détail »)
 - Tout en pièces du kit (facettes, matières existantes : 0 programme en plus) — 21,8 k → 32 k facettes (budget 50 k). La découpe de la tôle ne
   change presque pas (un joint de plus au hayon) : la construction reste ~35-60 ms la 1re fois (découpe en moment creux), ~25 ensuite.
