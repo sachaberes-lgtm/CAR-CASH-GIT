@@ -1271,6 +1271,59 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
 
+## AFFINEMENT · LOT 4 BOÎTES — LE HOT ROD, LE MASTODONTE, L'AIGLE DE FEU, LA CABOSSÉE, L'ORIGAMI (2026-10-19, discussion BOÎTES)
+- **LE HOT ROD** (64) : les phares-obus DESCENDUS contre la calandre (y 0,82, x 0,44 : ils flottaient en haut et mordaient dans les pneus),
+  vus de face un jonc chromé, le verre, l'ampoule (le disque ÉMISSIF plein faisait une boule de lumière jaune) ; la calandre EN CREUX — un
+  jonc chromé prolonge l'écusson de 7 cm, la grille au fond, neuf barreaux fins (⚠ la coque `plate` va de z à z + épaisseur : 1,60 → 1,70).
+- **LES JANTES RESTENT À FAIRE** (HOT ROD, MASTODONTE, AIGLE) : `lpWheel` est l'outil commun, JAPONAISES en est désormais le seul
+  responsable (son option `branches`, et le `creux` du lot 2 à réunir) ; la coordination dira quelle option prendre, et Léo si on corrige
+  les jantes de TOUTES les voitures.
+- **LA CABOSSÉE** (79) : le pare-chocs du DESSIN — une bande extrudée qui tourne en rond aux coins et revient sur le flanc sans dépasser la
+  caisse, arêtes chanfreinées (c'étaient des boîtes dont les bouts sortaient aux coins). Ses traits noirs restent (choix de Léo).
+- **L'ORIGAMI** (68) : les joints des portes, du coffre avant et du hayon en FENTE C (`fentePal` : l'inox × ,50 et son fil).
+- Banc : 0 programme compilé en course, couché et debout ; garage sans erreur. Planche : `photos-gameplay/affinement-lot4-boites.png`.
+
+## AFFINEMENT · LOT 3 BOÎTES — LE CHARGEUR, LE CHARGEUR 69, LA NOCTAMBULE, LE CORBILLARD (2026-10-19, discussion BOÎTES)
+- **LE CHARGEUR** (31) : la calandre et la bouche basse en LAMES fines et serrées (c'était un damier de gros carreaux) ; « noir sur noir » :
+  un JONC CHROMÉ de ceinture sous les vitres, la taille se lit (la laque noire voulue par Léo ne bouge pas).
+- **LE CHARGEUR 69** (43) : la laque noire EN PANNEAUX, en style poly (rappel de la coordination : des facettes PLATES, pas de normales
+  lissées sur la tôle) — les facettes voisines presque dans le même plan (< 9° entre elles, < 14° de la première) prennent UNE normale, la
+  moyenne pondérée par l'aire : un reflet net par panneau, les vraies arêtes gardées (des bandes presque parallèles se miraient chacune un
+  bout de ciel violet) ; la calandre AU FOND DE SA BOUCHE (le bord du capot et les bouts d'ailes avancent de 7 cm, le jonc chromé au bord) ;
+  la vitre va jusqu'au montant (une pointe blanche restait devant).
+- **LA NOCTAMBULE** (49) : les LAMES CHROMÉES de la calandre, couchées sur la pente du nez de requin (un panneau noir plat) ; l'aileron en
+  PROFIL D'AILE (bord d'attaque rond, extrados bombé, bord de fuite fin — c'était une boîte).
+- **LE CORBILLARD** (26) : la coque qui RENTRE sous l'arête (un caisson plat) ; les rideaux un ton plus doux, plis deux fois plus nombreux et
+  plus fins, une cantonnière ; les SOURCILS d'aile sur les phares ; le liseré de jupe flottait 7 cm hors de la caisse, le jonc de bas de caisse
+  suit la coque.
+- Banc : 0 programme compilé en course, couché et debout ; garage sans erreur. Planche : `photos-gameplay/affinement-lot3-boites.png`.
+
+## AFFINEMENT · LOT 2 BOÎTES — LA SILENCIEUSE, LA BAVAROISE, LE DÉFIEUR (2026-10-19, discussion BOÎTES)
+- **LA SILENCIEUSE** (36, « une silhouette de Cybertruck ») : pavillon en ARC (un point tous les 30-40 cm du pare-brise à la malle), coupe du
+  toit BOMBÉE (quatre facettes au lieu d'une arête), coque qui rentre sous l'épaule, nez et poupe RONDS vus de dessus (le nez finit à 0,56 de
+  demi-largeur, il était à 0,70), custode arrière noire (un triangle blanc dans la vitre), la barre de pavillon retirée (ses bouts flottaient
+  au-dessus du toit bombé), les portes en FENTE C (la fente arrière s'arrête au-dessus de l'arche, elle la traversait).
+- **LA BAVAROISE** (33) : l'arche RONDE (`AR` en cinq stations ; elle était en trapèze) et le jonc des élargisseurs qui la suit, plus fin ;
+  le pavillon plus large (vitres plus droites : le toit faisait une pyramide), le pli du toit adouci ; les antibrouillards ⌀ 10 cm (13) ;
+  les portes et la jupe en FENTE C ; les jantes CREUSÉES.
+- **LE DÉFIEUR** (32, la Camaro jaune de Sacha) : le pare-brise RECULE (pied à 0,86, il était à 1,06), le capot s'allonge À PLAT jusqu'au nez
+  (0,865 au bout), le pavillon s'allonge vers l'arrière (−0,70) ; la vitre de custode le suit ; rétros reculés avec le pied du pare-brise ;
+  les joints en FENTE C.
+- **LA JANTE CREUSÉE** (`lpWheel`, option `creux` ≤ 4 cm, seules les caisses qui la demandent changent) : la lèvre plonge, chaque rayon est une
+  ARÊTE (deux pans qui prennent chacun leur lumière) qui descend du bord vers le moyeu enfoncé. Mêmes matières : 0 programme de plus.
+- Banc : 0 programme compilé en course, couché et debout ; garage sans erreur. Planche : `photos-gameplay/affinement-lot2-boites.png`.
+
+## AFFINEMENT · LOT 1 BOÎTES — LA FENTE C DANS LA DÉCOUPE EN GRILLE ; LE COMBI, LE BAROUDEUR, LE CAÏD (2026-10-19, discussion BOÎTES)
+- **La fente C branchée** dans la découpe des caisses en grille (COMBI, BAROUDEUR, CAÏD — pas LA CABOSSÉE, qui garde le trait du dessin) :
+  `RLF.j` coupe la tôle à ±g ET ±(g + 1 cm) (`lb`), `dJoint` donne à chaque sommet sa distance SIGNÉE au joint (d > 0 du côté éclairé : le haut
+  ou l'avant ; 0 dans la fente ; 9 = loin), gardée dans le cache de la découpe (`D`) ; au montage, `fenteRGB` (l'outil commun) refait la couleur
+  — peinture de la boutique comprise, la variante lue une fois (`?fente=A` = l'ancien trait). La plongée des bords du joint passe de .55 à .22
+  (l'ombre est dans la couleur). Les joints de vitres (caoutchouc), grilles et noirs restent noirs. 1re construction 17-37 ms (découpe en cache).
+- **LE CAÏD** : les vis des élargisseurs en acier noirci (`V`, elles sortaient en clous blancs) ; le vert anis 0x86f51c → 0x7cb83f (moins fluo,
+  du modelé au garage comme en course ; jugé contre 0x6fbf22 et 0x8cc63f).
+- Tour des coins (dessous, toit, nez, poupe, vu de dessous en vol) : rien d'autre sur ces trois. Banc : 0 programme compilé, couché et debout,
+  garage sans erreur. Planche : photos-gameplay/affinement-lot1-boites.png. Patch : boites/fente_patch.py (relançable).
+
 ## LE CAÏD EN HUMMER EV SUV (2026-10-19, discussion BOÎTES ; Léo : « refais-le en SUV »)
 - Le nez et tout le détail du pick-up gardés ; l'arrière refait sur les cotes du SUV (dimensions.com n'a que le pick-up) : longueur 5,00 roue de
   secours comprise, empattement 3,218, largeur 2,197, hauteur 1,976 (Wikipedia, evspecifications). `ZR` −1,573 → −1,340, `ZT` −2,71 → −1,85.
