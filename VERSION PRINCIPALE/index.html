@@ -15455,14 +15455,16 @@ const CY={Q:null,on:false,ms:{},yMin:-1e4,yMax:1e4,ombre:1,prof:0,mesh:null,mat:
    (la sortie, sous l'approche) sont relus par buildCanyon → `CY.rac`. */
 /* LE CANYON AU HASARD (2026-10-19, Sacha : « vérifie bien que toutes les maps sont générées aléatoirement ») — MESURÉ (40 graines, palier 0) : la graine
    changeait à chaque partie, mais genCanyon suivait toujours la même RECETTE : plein nord (±11°), Route 67 → brèche → fer à cheval/raccourci → arche →
-   finale, aux mêmes % du parcours (écart de forme 0,08 ; la jade d'avant son tirage : 0,26 après). Désormais chaque canyon tire :
-   · son AXE (±`axe`° autour du nord) ;
-   · ses PIÈCES et leur ORDRE entre le départ (Route 67 + brèche, gardés) et la finale (le tunnel) : un raccourci et un monument (l'arche ou
-     l'amphithéâtre) toujours, puis, mélangés, ce que la longueur tient parmi les étroits, l'autre monument, la mine, le dos de chameau, les bosses
-     et un 2e raccourci (hors JOUER : tout, huit raccourcis) ;
+   finale, aux mêmes % du parcours (écart de forme 0,08 ; la jade après son tirage : 0,26). Désormais chaque canyon tire :
+   · son AXE (±`axe`° autour du nord) et ses COUDES : entre deux pièces, `coude` fois sur 1, l'axe tourne de ±10-25° (±`cmax`° au plus) ;
+   · ses PIÈCES et leur ORDRE entre le départ (Route 67 + brèche, gardés) et la finale (le tunnel) : un raccourci et une pièce toujours (l'arche
+     ou l'amphithéâtre le plus souvent : poids `PDS`), puis, mélangées, celles que la longueur tient parmi les étroits, les monuments, la mine, le
+     dos de chameau, les bosses et un 2e raccourci (hors JOUER : tout, huit raccourcis) ;
    · un CARACTÈRE par liaison — méandres, gorge, serpent, dérive, cassures — ou un module (`mod` : la part des liaisons qui en sont un) ;
    · sa PENTE (les liaisons ×0,85-1,2) et sa LONGUEUR : longueurCible() × `kL` ±8 % (la longueur réelle d'avant au palier 0, celle sur laquelle la
      durée des maps a été mesurée : 46 s) ; `lien` = la longueur moyenne d'une liaison au JOUER (×LL).
+   MESURÉ (banc des tracés, 40 graines, palier 0 → 25) : écart de forme 0,08 → 0,26 ; 1 → 17 ordres des pièces ; longueur/visée 1,34 (avant 1,34) ;
+   rayon mini 1,11 × RMIN au palier 0, 1,0 au palier 25 (comme avant) ; aucun croisement hors des boucles ; 4-23 ms par tracé.
    Le relief, la rivière, les parois et tous les décors (Mitaines, station, arche, cheminées, mine, tunnel) sont posés AUTOUR de la route : ils suivent ;
    le soleil de l'heure (`cyA`) reste celui du monde — il ne tombe plus toujours du même côté de la route. `?sans=canyonhasard` = la recette d'avant,
    au tirage près ; `dbgCanyon().hz` = l'axe, la pente, la longueur visée et les pièces dans l'ordre. */
