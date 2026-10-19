@@ -3,6 +3,33 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA VRILLE PORTE LE VOL — LA ROUTE DES NUAGES NE DÉVIE PLUS LA CAISSE EN L'AIR (2026-10-19, session vol-route — Sacha : « il y a toujours des problèmes dans la map nuage quand on vole près de la route, ça dévie la trajectoire ») — v689
+- LA CAUSE, MESURÉE : depuis LE VOL QUI SUIT LA ROUTE (18/10, `VOLR`), le haut du vol suit la dalle survolée en ~0,08 s. Quand la route VRILLE
+  sous la caisse (jusqu'à 64°/s sur la route sans haut ni bas), la gravité tourne avec elle — mais l'élan de la caisse, son repère de vol (`FLY_U`,
+  autour duquel tourne le volant) et le haut de l'écran restent dans l'ancien : l'équilibre (`veqNiveau`) les rattrape à 2,6/s, la caméra (`camUp`)
+  à 3/s. Pendant ce retard la gravité tire DE CÔTÉ à l'écran : la caisse glisse sans qu'on touche au volant (« ça dévie »), et le volant, qui
+  tourne autour d'un axe penché, fait monter ou plonger au lieu de ramener sur la route. Ce n'est pas un autre tronçon qui attire la caisse
+  (vérifié : sur les pistes des nuages, deux tronçons éloignés restent à plus de 180 m l'un de l'autre, le radar reste sur la route survolée).
+- LE CORRECTIF (`VOLR_ROULIS`, dans `volrSuit`) : à chaque image de vol, la part de la rotation du haut du vol qui est le ROULIS de la route
+  autour de son axe (`T` du radar) emporte aussi `fallVel`, `FLY_U`/`FLY_R`, la caisse (`VEQ.qb`) et `camUp` : la route tourne, le vol tourne avec
+  elle, comme quand on roule. Le reste — la route qui plonge ou se cabre sous la caisse — ne touche que la gravité, comme avant : on décolle
+  toujours des crêtes, aucune force ne ramène vers la route (« zéro assistance » tenu : sans les mains, on se pose ni plus ni moins qu'avant).
+  Hors de la route sans haut ni bas (`VOLR.on` faux) : rien ne change. `?sans=volroulis` = avant ; `dbgVolRoulis(false|true)` en direct.
+- MESURÉ — SIMULATEUR (la branche 'fall' recopiée en Node sur deux pistes des nuages vidées du jeu, 88 départs, saut de 21 m/s à 80 m/s ; la
+  « poussée de côté » = la gravité cumulée le long de la droite de la caméra, en m/s) : sans les mains, 1,5 s de nitro : méd 14,8 et 11,3,
+  max 92 et 88 → méd 1,4 et 1,0, max 10 et 13 ; posés 21/48 et 18/40 → 22/48 et 18/40 (la durée des vols ne bouge pas : pas d'aimant). Un
+  pilote qui vise la route (celui de `dbgAuto`, vol) : 34/48 et 34/40 posés → 48/48 et 40/40 ; gros vols (35 m/s + 2 s de nitro) 23/48 et
+  24/40 → 37/48 et 36/40. Sauts courts : tous posés, avant comme après. Écartés au même banc : la gravité FIGÉE sur la dalle quittée (plus de
+  poussée sans les mains, mais 106 poses pilotées sur 176 contre 115 aujourd'hui) et L'ÉLAN PORTÉ par toute la rotation de la route (100 %
+  posés, mais la caisse plonge avec la route après une crête : les vols s'allongeaient de 1 à 2 s — un aimant).
+- MESURÉ — EN JEU (Chrome sans fenêtre, muet, `?carte=nuages&meteo=midi&pistegraine=12345`, couché 844 × 390 ; 10 points de la piste, même
+  saut + 1,5 s de nitro, `dbgVolRoulis` éteint puis allumé, la poussée lue sur la VRAIE caméra) : sans les mains, poussée max méd ~25 → ~7 m/s
+  (pire 81 → 25) ; avec le pilote, posés 6/10 → 9/10, poussée méd ~17 → ~8. Aucune erreur de boucle (`__loopErr`).
+- Banc (scratchpad de la session, pas dans le dépôt) : une copie de `index.html` + des crochets de diagnostic (`dbgVolDiag`, `dbgPisteDump`,
+  `dbgRemet` — ⚠ remettre la caisse à `s` garde son CAP : il faut remettre `psi` à 0 juste avant `dbgDauphin`, sinon elle décolle de travers),
+  `dbgAuto(1,0)` entre deux vols (sinon la caisse sort de la route pendant que la machine rame et la partie finit).
+- À TRANCHER par Sacha : rien — sauf si l'écran qui roule avec la route en vol gêne (il roule à la vitesse de la vrille, comme en roulant).
+
 ## MISSIONS SANS CADEAU NI « BIENTÔT AU GARAGE » (2026-10-19, session missions-propres — Sacha : « dans le bouton mission il y a un truc streak 3 days gift ready, enlève ça » · « il y a des missions en vert avec marqué coming to the garage soon » · « ça aussi enlève »)
 - **La ligne du cadeau** (en tête de l'écran MISSIONS, `#mCadeau` : « SÉRIE 3 JOURS · CADEAU PRÊT · TOUCHE », en anglais « STREAK 3 DAYS · GIFT READY · TAP ») :
   `CADO.on` est FAUX par défaut (`/[?&]cadeau=1\b/` au lieu de `!/[?&]cadeau=0\b/`) → `cadeauEtat().actif` faux → la ligne se tait, plus de
