@@ -13381,7 +13381,8 @@ function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée
    · LE BUDGET : 3 à 6 ms par image (moins quand l'image est déjà lourde), seulement en course, hors pause, hors passage, la chauffe du monde
      neuf faite. `?prebati=0` : tout se bâtit au passage, comme avant. Console : dbgPrebati() (état, temps), dbgPrebati(0|1). */
 const PREB={on:!/[?&]prebati=0\b/.test(location.search),W:null,g:null,fait:false,prend:false,porte:false,sd:0,t:null,z:0,eng:0,rh:0,carte:'',v:0,sT:0,sP:0,
-  tNeuf:0,t0:0,tFin:0,cpu:0,img:0,jadeM:null,non:null,echecs:0,pris:0,finis:0,annules:0,der:'',msFin:0};
+  tNeuf:0,t0:0,tFin:0,cpu:0,img:0,jadeM:null,non:null,echecs:0,pris:0,finis:0,annules:0,der:'',msFin:0,
+  dep:false,ctx:null,depPorte:false,fin0:0,ntLeger:false,cam:false,depPris:0,legers:0}; // (LE DÉPART D'AVANCE, voir prebDepTick)
 const PREB_V=new THREE.Vector3();
 const PREB_TAB=['trackMeshes','PISTE_LOD','NEON_RAILS','NEON_GLOW','PAD_MATS','MODMARK','FILETMARK','CAMPM'];
 function prebTabDe(k){return k==='trackMeshes'?trackMeshes:k==='PISTE_LOD'?PISTE_LOD:k==='NEON_RAILS'?NEON_RAILS:k==='NEON_GLOW'?NEON_GLOW:k==='PAD_MATS'?PAD_MATS:k==='MODMARK'?MODMARK:k==='FILETMARK'?FILETMARK:CAMPM;}
@@ -13399,7 +13400,8 @@ function pisteTravail(c){ // l'état de travail d'une route : celle d'en face (c
   const W={pts:[],T:[],Nn:[],B:[],L:0,NP:0,trackMinY:-1e9,FILETS:[],MODS:[],PADS:[],PADL:[],OILS:[],
     VILLE_ENTREE:null,THICK:THICK,ROAD_HALF:ROAD_HALF,KAPB:KAPB,zoneArch:zoneArch,tab:{},
     cur:LVL.cur,n:LVL.n,zones:runStats.zones,eng:engTier,F:{p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},jade:null,jadeFait:false};
-  if(c){W.cur=sfNiveau(c.t.carte,c.t.meteo,c.t.teinte);W.n=c.zn+1;W.zones=c.z;W.ROAD_HALF=ROAD_HALF0*LARGEUR[Math.min(LARGEUR.length-1,c.z)];W.KAPB=new Float32Array(1);}
+  if(c){W.cur=sfNiveau(c.t.carte,c.t.meteo,c.t.teinte);W.n=c.zn+1;W.zones=c.z;W.ROAD_HALF=ROAD_HALF0*LARGEUR[Math.min(LARGEUR.length-1,c.z)];W.KAPB=new Float32Array(1);
+    if(c.dep){W.eng=c.eng;W.ctx={started:c.st,gameOver:false,pret:true};}} // (LE DÉPART D'AVANCE) le palier et l'état de la partie au moment où elle partira (voir prebDepCible)
   for(const k of PREB_TAB)W.tab[k]=/MARK|CAMPM/.test(k)?prebTabDe(k).slice():[]; // les repères de la génération partent de leur état vivant (une génération qui ne les touche pas les laisse tels quels, comme avant)
   W.piste=W.cur&&!PARK.on?(W.cur.piste||''):'';
   W.champs=prebChampsDe(W.piste);W.ch=W.champs.map(function(e){const o={};for(const k of e[1])if(k in e[0])o[k]=e[0][k];return o;}); // (au départ : les valeurs vivantes — une clé absente reste absente)
@@ -13418,6 +13420,7 @@ function prebEchange(W,entrees){ // l'état de la piste vivante ⇄ celui du tra
     if(W.tabs)for(const e of W.tabs){const A=e[0],B9=e[1];e[1]=A.slice();A.length=0;for(let i=0;i<B9.length;i++)A.push(B9[i]);} // …et ses listes
     if(W.add){x=scene.add;scene.add=W.add;W.add=x;} // …et ce qu'il met dans la scène est noté, pas ajouté
     x=LVL.cur;LVL.cur=W.cur;W.cur=x;x=LVL.n;LVL.n=W.n;W.n=x;x=runStats.zones;runStats.zones=W.zones;W.zones=x;x=engTier;engTier=W.eng;W.eng=x;
+    if(W.ctx){const C=W.ctx;x=started;started=C.started;C.started=x;x=gameOver;gameOver=C.gameOver;C.gameOver=x;x=SF.pret;SF.pret=C.pret;C.pret=x;} // (LE DÉPART D'AVANCE) bâtie au menu comme si la partie partait (hautOn, la météo des décors)
     for(const k of ['p','t','n','b']){PREB_V.copy(F[k]);F[k].copy(W.F[k]);W.F[k].copy(PREB_V);}}
 }
 function prebObj(O,S){const ks=new Set(Object.keys(O).concat(Object.keys(S)));for(const k of ks){const a=k in O,b=k in S,x=O[k];if(b)O[k]=S[k];else delete O[k];if(a)S[k]=x;else delete S[k];}} // deux états d'un module ⇄ (toutes ses clés)
@@ -13485,7 +13488,9 @@ function* prebJob(sd,W){yield* pisteRoute(sd,W);if(PARK.on)return;
 const PREB_PISTES=['','jade','foret','volcan','canyon','banquise','grotte']; // les pistes dont on sait ce que la génération écrit (prebChampsDe) — une map NEUVE n'est pas bâtie d'avance tant qu'elle n'y est pas
 function prebPart(c){ // on commence la piste d'en face
   const W=pisteTravail(c);if(PREB_PISTES.indexOf(W.piste)<0){PREB.non=c.t;return;}
-  PREB.W=W;PREB.sd=(Math.random()*1e9)|0;PREB.t=c.t;PREB.z=c.z;PREB.eng=engTier;PREB.rh=W.ROAD_HALF;PREB.carte=c.t.carte+'-'+c.t.meteo;
+  PREB.W=W;PREB.sd=(Math.random()*1e9)|0;PREB.t=c.t;PREB.z=c.z;PREB.eng=c.dep?c.eng:engTier;PREB.rh=W.ROAD_HALF;PREB.carte=c.t.carte+'-'+c.t.meteo;
+  PREB.dep=!!c.dep;PREB.ctx=c.dep?c.st:null;
+  if(c.dep){const g9=+((/[?&]pistegraine=(\d+)/.exec(location.search)||[])[1])||0;if(g9)PREB.sd=g9;} // (banc) ?pistegraine=n : la 1re piste aussi (comme newTrack0)
   PREB.fait=false;PREB.prend=false;PREB.t0=performance.now();PREB.tFin=0;PREB.cpu=0;PREB.img=0;PREB.jadeM=null;
   PREB.g=prebJob(PREB.sd,W);}
 function prebTravaille(lim){ // une tranche de travail, jusqu'à l'échéance lim (Infinity : jusqu'au bout)
@@ -13497,7 +13502,7 @@ function prebTravaille(lim){ // une tranche de travail, jusqu'à l'échéance li
     if(W.jade&&W.jadeFait){if(JADE_GARDE.m)jadeJette(JADE_GARDE.m);JADE_GARDE.m=W.jade;PREB.jadeM=W.jade;W.jade=null;}}} // la jade bâtie rejoint la CARTE GARDÉE : buildJade la reprendra
 function prebAnnule(r){ // le travail en cours est jeté (la map d'en face a changé, un newTrack d'ailleurs, la fin de la partie, une erreur)
   if(!PREB.W)return;
-  const W=PREB.W,g=PREB.g;PREB.W=null;PREB.g=null;PREB.fait=false;PREB.prend=false;PREB.annules++;PREB.der=r||'';
+  const W=PREB.W,g=PREB.g;PREB.W=null;PREB.g=null;PREB.fait=false;PREB.prend=false;PREB.dep=false;PREB.annules++;PREB.der=r||'';
   try{if(g)prebAvec(W,function(){g.return();});}catch(e){} // (les finally des générateurs : les tampons partagés des cubes de jade rendus)
   for(const m of W.tab.trackMeshes||[])if(m.geometry)m.geometry.dispose(); // jamais dessinées ; leurs matières non plus (et certaines sont partagées : on n'y touche pas)
   if(W.jade&&W.jade.J)try{jadeJette(W.jade);}catch(e){}
@@ -13506,21 +13511,27 @@ function prebAnnule(r){ // le travail en cours est jeté (la map d'en face a cha
 function prebPorte(fn){PREB.porte=true;try{fn();}finally{PREB.porte=false;PREB.prend=false;}} // c'est le PORTAIL qui construit : la piste bâtie d'avance peut servir
 function prebGraine(niv){ // (newTrack0, après lvlChoisir) la piste d'en face est-elle celle qu'on a bâtie d'avance ? → sa graine
   if(!PREB.W)return null;
-  const zn=Math.max(0,(runStats.zones|0)-(LVL.tutoZ|0));
+  if(PREB.dep){ // (LE DÉPART D'AVANCE) la 1re piste de la partie, bâtie au menu ou à l'écran de fin : le JOUER (sous9) ou resetGame la prennent
+    const ok=PREB.depPorte&&!!niv&&niv===LVL.cur&&!niv.graine&&!PARK.on&&(runStats.zones|0)===0&&!(LVL.tutoZ|0)&&SF.tirage[0]===PREB.t&&PREB.rh===ROAD_HALF
+      &&PREB.eng===engTier&&PREB.ctx===started&&!gameOver&&(started||SF.pret); // même map, même départ, même palier, même état de la partie qu'au moment où elle a été bâtie
+    if(!ok){prebAnnule(PREB.depPorte?'départ':'hors départ');return null;}}
+  else{const zn=Math.max(0,(runStats.zones|0)-(LVL.tutoZ|0));
   const ok=PREB.porte&&!!niv&&niv===LVL.cur&&!niv.graine&&!PARK.on&&SF.tirage[zn]===PREB.t&&PREB.z===(runStats.zones|0)&&PREB.rh===ROAD_HALF;
-  if(!ok){prebAnnule(PREB.porte?'portail':'hors portail');return null;}
+  if(!ok){prebAnnule(PREB.porte?'portail':'hors portail');return null;}}
   if(!PREB.fait){const t0=performance.now();PREB.finis++;prebTravaille(Infinity);PREB.msFin=Math.round(performance.now()-t0);if(!PREB.fait)return null;} // pas fini à temps : le reste d'un trait
   else PREB.msFin=0;
   PREB.prend=true;return PREB.sd;}
 function prebPrend(seed){ // (buildTrack) la route bâtie d'avance, si c'est elle qu'on construit
   if(!(PREB.prend&&PREB.W&&PREB.fait&&PREB.sd===seed))return null;
-  const W=PREB.W;PREB.W=null;PREB.g=null;PREB.prend=false;PREB.fait=false;PREB.pris++;PREB.der='pris';return W;}
+  const W=PREB.W;PREB.W=null;PREB.g=null;PREB.prend=false;PREB.fait=false;PREB.pris++;if(PREB.dep)PREB.depPris++;PREB.der=PREB.dep?'pris au départ':'pris';PREB.dep=false;return W;}
 function prebPalier(){ // (newTrack0) la piste bâtie d'avance l'a été à SON palier moteur : son décor se bâtit au même (le temps de buildTrack)
   if(!PREB.prend||PREB.eng===engTier)return null;const e=engTier;engTier=PREB.eng;return e;}
 const PREB_AVANCE=20; // (s) la map d'en face commence quand le portail est à moins de 20 s de route : son palier moteur (l'échelle de la piste) est celui de ce moment-là
 function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier, travailler
-  if(PREB.W&&(!started||gameOver)){prebAnnule('fin');return;}
-  if(!started||gameOver)return;
+  PREB.cam=false; // (voir sous9 : resetGame l'a lu dans cette image, ou rien ne l'a lu)
+  if(!started||gameOver){prebDepTick(now);return;} // (LE DÉPART D'AVANCE) au menu et à l'écran de fin
+  PREB.fin0=0;
+  if(PREB.W&&PREB.dep){prebAnnule('départ');return;} // la partie est partie sans prendre la piste du départ
   if(mode==='drive'&&PREB.sT){const d9=(now-PREB.sT)/1000,v9=(s-PREB.sP)/Math.max(1e-3,d9);if(d9>0&&d9<.5&&v9>0)PREB.v=PREB.v?PREB.v+(v9-PREB.v)*Math.min(1,d9*2):v9;} // la vitesse le long de la piste (m/s), lissée
   PREB.sT=now;PREB.sP=s;
   if(paused||!running||garageOn||PCV.fen||PORTV.att||CHAUFFE_R.t)return;
@@ -13532,8 +13543,57 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
   if(PREB.fait)return;
   const tr=typeof QLR!=='undefined'&&QLR.t0?performance.now()-QLR.t0:8;
   prebTravaille(performance.now()+Math.max(3,Math.min(6,14-tr)));}
+/* LE DÉPART D'AVANCE (2026-10-19, session PERF — chantier du pré-bâti de Léo ; la passe perf du 18/10 : « JOUER : ~1,1 s d'image figée sous le
+   nuage blanc · REJOUER : ~1 s de construction sous le volet · depuis l'accueil, la piste bâtie deux fois »). La 1re piste d'une partie se bâtit
+   comme la map d'en face : AU MENU et À L'ÉCRAN DE FIN, quelques ms par image, par la même machine (pisteRoute, prebJade, prebDecorG), puis le
+   départ la PREND au lieu de la bâtir. Image identique : même graine → même piste au bit près, et rien d'autre ne bouge (le ciel, la météo,
+   la caméra, les pièces se posent au départ, comme avant).
+   · LE TIRAGE D'AVANCE : le couple map × météo du prochain départ est tiré dès le menu ou l'écran de fin (`SF.prochain`, contre `SF.der` :
+     `SF.prochainDer`), par la même règle que celle qui l'aurait tiré au départ (classiqueJouer : sfTire(SF.der) ; le REJOUER, dans lvlChoisir :
+     sfTire(SF.der) aussi) ; un lien de test (`?carte=`, dbgClassique) est consommé par lui (sfImpose : sans map valide, rien d'avance).
+     classiqueJouer le prenait déjà (`SF.prochain`) ; resetGame le pose dans `SF.tirage[0]` (le REJOUER). Le JOUER qui suit un autre JOUER
+     (SF.neuf : la boutique, l'atelier, où le lâcher attend) bâtit `SF.tirage[0]`.
+   · LE CONTEXTE : au menu d'une session neuve (!started), la piste se bâtit pour le newTrack de sous9 (rebuildMenuScene, started baissé, palier
+     du moment) ; après une partie (started && gameOver : écran de fin, accueil), pour celui de resetGame (started, palier 0). Le temps d'une
+     tranche, `started`, `gameOver` et `SF.pret` prennent la valeur qu'ils auront au départ (W.ctx, prebEchange) : hautOn et la météo des décors
+     les lisent. prebGraine vérifie tout au départ (map, zone 0, largeur, palier, started) — sinon la piste est jetée et le départ bâtit comme avant.
+   · LE BUDGET : 3 à 6 ms par image, comme en course, après les gabarits de la jade (jadeGabFond), la chauffe faite, jamais pendant un volet,
+     un lâcher (GAR.go) ou un piqué (CHUTE.go) ; 0,7 s après qu'un monde neuf est entré, 0,8 s après la fin de la partie. Pas fini au départ :
+     le reste d'un trait (le travail fait reste fait).
+   · LE JOUER DEPUIS L'ACCUEIL APRÈS UNE PARTIE bâtissait la piste DEUX fois dans la même image (sous9 puis resetGame) : la 1re n'était jamais
+     dessinée, seuls son ciel (lvlGo d'un coup, BIO.name que lvlBiome évite ensuite) et la caméra du lâcher (closeGarage, au départ de cette
+     piste) en restaient. Sous le nuage blanc et sous le voile chaud de l'atelier, elle se fait LÉGÈRE (`rebuildMenuScene(true)` → newTrack0
+     sans buildTrack, padsInstancier, computeMinimap ni spawnPickups ; le ciel et tout le reste comme avant) et resetGame repose la caméra
+     comme closeGarage l'aurait posée (`PREB.cam`), au départ de la piste neuve : même place pour toutes les maps dont le départ ne dépend pas
+     de la graine (toutes, sauf la jade : son départ tiré au hasard — la caméra y part maintenant de derrière la caisse, comme au 1er JOUER et au
+     REJOUER, au lieu de partir du départ d'une piste jetée).
+   `?prebati=0` : tout comme avant. Console : dbgPrebati() (dep : le départ d'avance). */
+function prebDepCible(){ // la 1re piste du prochain départ, quand on sait la bâtir d'avance (le JOUER du mode classique, le REJOUER)
+  if(!SF.on||PARK.on||TUTO.on||BALADE||JADE_JEU||SURV.armed||JSG_ESSAI||!sfPlayOk()||jadePlayOk())return null;
+  if(SF.neuf&&SF.tirage[0]){const t=SF.tirage[0];if(!SF_CARTES[t.carte])return null; // le JOUER est parti (le piqué, le lâcher, l'atelier qui attend) : c'est SON tirage
+    if(started&&gameOver)return {t:t,z:0,zn:0,dep:true,st:true,eng:0}; // resetGame le prendra
+    return CHUTE.sous||GAR.sous?{t:t,z:0,zn:0,dep:true,st:false,eng:engTier}:null;} // sous9, au bout du piqué ou du lâcher (déjà passé : la piste est bâtie)
+  if(SF.force&&!(SF.force.carte&&SF_CARTES[SF.force.carte]))return null; // un lien de test sans map valide : tiré au départ, comme avant
+  if(SF.prochain&&(SF.prochainDer!==SF.der||SF.force))SF.prochain=null; // périmé : le dernier couple a changé, ou un lien de test impose sa map
+  if(!SF.prochain){SF.prochain=SF.force?sfImpose(SF.der):sfTire(SF.der);SF.prochainDer=SF.der;} // tiré D'AVANCE, par la règle du départ
+  const t=SF.prochain;if(!SF_CARTES[t.carte])return null;
+  return {t:t,z:0,zn:0,dep:true,st:!!started,eng:started?0:engTier};}
+function prebDepTick(now){ // (prebTick, hors course) commencer, vérifier, travailler
+  if(PREB.W&&!PREB.dep){prebAnnule('fin');return;} // la piste d'en face d'une partie finie
+  if(started&&gameOver){if(!PREB.fin0)PREB.fin0=now;}else PREB.fin0=0;
+  const c=prebDepCible();
+  if(PREB.W&&(!c||c.t!==PREB.t||c.st!==PREB.ctx||c.eng!==PREB.eng)){prebAnnule(!c?'cible':c.t!==PREB.t?'map':'contexte');return;}
+  if(!c||PREB.fait)return;
+  if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go)||CHUTE.go||!CHAUFFE_R.fait||CHAUFFE_R.t||(!JADE.geos&&!GAB_FOND.fini))return; // ni volet, ni lâcher, ni piqué ; la chauffe et les gabarits de la jade d'abord
+  if(now-PREB.tNeuf<700||(PREB.fin0&&now-PREB.fin0<800))return; // le monde neuf (le menu, l'écran de fin) s'installe d'abord
+  if(!PREB.W){if(c.t!==PREB.non&&PREB.echecs<3)prebPart(c);return;} // (l'image suivante travaille)
+  chauffeGrace(); // (la qualité auto ne lit pas une tranche comme une faiblesse, comme jadeGabFond)
+  const tr=QLR.t0?performance.now()-QLR.t0:8;
+  prebTravaille(performance.now()+Math.max(3,Math.min(6,14-tr)));}
+function prebDepPrend(fn){PREB.depPorte=true;try{fn();}finally{PREB.depPorte=false;PREB.prend=false;}} // c'est le DÉPART qui construit : la piste bâtie d'avance peut servir
 window.dbgPrebati=function(on){if(on!=null){PREB.on=!!on;if(!PREB.on)prebAnnule('dbg');}
   return {on:PREB.on,etat:PREB.W?(PREB.fait?'pret':'en cours'):'',carte:PREB.carte,graine:PREB.sd,palier:PREB.eng,palierCourse:engTier,reste:+((L-s)/Math.max(20,PREB.v||60)).toFixed(1),v:Math.round(PREB.v||0),ms:PREB.W||PREB.tFin?Math.round((PREB.tFin||performance.now())-PREB.t0):0,
+    dep:PREB.W&&PREB.dep?{pourStarted:PREB.ctx,prochain:SF.prochain?SF.prochain.carte+'-'+SF.prochain.meteo:null}:null,prisAuDepart:PREB.depPris,legers:PREB.legers, // (LE DÉPART D'AVANCE)
     cpu:+PREB.cpu.toFixed(1),images:PREB.img,pris:PREB.pris,finisAuPassage:PREB.finis,msFin:PREB.msFin,annules:PREB.annules,der:PREB.der,echecs:PREB.echecs,jade:!!PREB.jadeM,
     err:window.__prebErr?String(window.__prebErr.stack||window.__prebErr).slice(0,400):null};};
 function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tranches — sur l'état de travail W (voir prebEchange), jamais sur la scène
@@ -25694,7 +25754,7 @@ const NIV_PARIS={id:'paris',nm:'PARIS',bio:['parisOr'],planete:0,espace:0,pluie:
    Le tirage d'une partie est tenu dans `SF.tirage` (un couple par zone) : la piste bâtie sous le voile du JOUER est celle qu'on roule.
    Banc / lien de test : `?carte=jade&meteo=orage` impose le 1er couple ; `dbgClassique('ville','soir')` impose le suivant (puis dbgSaut()).
    ========================================================================== */
-const SF={on:!/[?&](classique=cycle|play=sansfin)\b/.test(location.search),pret:false,neuf:false,tirage:[],der:null,force:null,prochain:null};
+const SF={on:!/[?&](classique=cycle|play=sansfin)\b/.test(location.search),pret:false,neuf:false,tirage:[],der:null,force:null,prochain:null,prochainDer:null};
 const SF_HORS={vitree:VILLE_VERRE_V&&!/[?&]vitree=1\b/.test(location.search)}; // (2026-10-18, Sacha : « fusionne les maps ville et ville vitrée ») les maps HORS DU TIRAGE — jouables par ?carte= et dbgClassique (voir VILLE_VERRE_V)
 {const q9=/[?&]carte=(\w+)/.exec(location.search)||(/[?&]niveau=crypto\b/.test(location.search)?[0,'crypto']:null),m9=/[?&]meteo=(\w+)/.exec(location.search),t9=/[?&]teinte=(\w+)/.exec(location.search);if(q9||m9)SF.force={carte:q9?q9[1]:null,meteo:m9?m9[1]:null,teinte:t9?t9[1]:null};} // (2026-10-16) + `?teinte=` (la ville : violet, vert, jaune, bleu)
 const SF_NIV={nuages:NIVEAUX.find(function(n){return n.id==='nuages';}),orage:NIVEAUX.find(function(n){return n.id==='orage';}),
@@ -53456,6 +53516,7 @@ function ccConstr(etape,ms){try{document.dispatchEvent(new CustomEvent('cc:const
 function newTrack(){
   const t0NT=performance.now();ccConstr('debut');try{newTrack0();}finally{ccConstr('fin',Math.round(performance.now()-t0NT));}}
 function newTrack0(){
+  const leger9=PREB.ntLeger;PREB.ntLeger=false; // (LE DÉPART D'AVANCE) la piste que resetGame rebâtit dans la même image : jamais dessinée, seul son ciel compte (voir sous9)
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) portail / nouvelle piste : la tension du vol repart de zéro
   PADCH.sL=0; /* (LE TRAIN DE BOOSTS) il traverse le portail — mais les pads de la nouvelle piste comptent dès son début */
   traceVide(); // (2026-09-26) les traces de pneus restent sur l'ancienne route
@@ -53467,10 +53528,10 @@ function newTrack0(){
   try{flowLieu(niv&&niv.id==='ville'?'ville':'');}catch(e){} // (2026-09-28, FLOW2 loi 15) en VILLE, la triade se gagne sur la route
   {const id9=niv&&niv.id,av9=ORBFX.prev;ORBFX.prev=id9; // (2026-09-28) L'ORBITE A SES PORTES : tunnel en y entrant, feu en en sortant (portail franchi en course)
    if(started&&!gameOver&&runStats.zones>0&&!PARK.on&&av9&&id9&&av9!==id9){if(id9==='espace')orbWarp();else if(av9==='espace')orbFeu();}}
-  {const s9=prebGraine(niv);if(s9!=null)sd=s9;} // (2026-10-17) LE PRÉ-BÂTI : au passage du portail, la piste d'en face bâtie d'avance garde SA graine (voir PREB)
+  if(!leger9){const s9=prebGraine(niv);if(s9!=null)sd=s9;} // (2026-10-17) LE PRÉ-BÂTI : au passage du portail, la piste d'en face bâtie d'avance garde SA graine (voir PREB)
   if(niv&&niv.graine)sd=niv.graine; // (2026-09-27) CAMPAGNE : la même piste, les mêmes pièces, les mêmes nuages à chaque essai
-  {const e9=prebPalier();try{buildTrack(sd);}finally{if(e9!=null)engTier=e9;}} // (LE PRÉ-BÂTI) le décor d'une piste bâtie d'avance se bâtit à son palier (prebPalier)
-  padsInstancier(); // (2026-09-27, passe perf iPhone) …et les plaques turbo : 82 appels de dessin → 1
+  if(!leger9){const e9=prebPalier();try{buildTrack(sd);}finally{if(e9!=null)engTier=e9;} // (LE PRÉ-BÂTI) le décor d'une piste bâtie d'avance se bâtit à son palier (prebPalier)
+  padsInstancier();} // (2026-09-27, passe perf iPhone) …et les plaques turbo : 82 appels de dessin → 1
   // LE CIEL : chaque NIVEAU tire le sien dans sa propre liste (voir NIVEAUX). Hors niveaux (parc
   // freestyle), l'ancien CYCLE DU CIEL : une heure du jour au hasard, jamais deux fois la même de
   // suite, et la VRAIE NUIT au 3e portail (runStats.zones est ++ AVANT newTrack, remis à 0 par resetGame).
@@ -53484,9 +53545,9 @@ function newTrack0(){
   lvlGo(started?bioPortDur():.01);     // …et le monde (étoiles de l'orbite, taille de la planète) bascule avec lui
   if(niv&&started&&!gameOver&&runStats.zones>0)lvlAnnonce(); // « NIVEAU 2 — MER DE NUAGES » (le niveau 1, lui, s'annonce après le logo du départ : voir fireLaunchBoost)
   else if(nightFalls)showMsg('LA NUIT TOMBE…','#9ac8ff'); // le déblocage s'annonce
-  computeMinimap();
+  if(!leger9)computeMinimap();
   try{musicSuitLieu();}catch(e){} // LA MUSIQUE PAR MONDE : change si le lieu en réclame une autre
-  spawnPickups(mulberry32(sd^0x9e3779b9));
+  if(!leger9)spawnPickups(mulberry32(sd^0x9e3779b9));
   dmtCoupe();s=0;lat=0;psi=0;side=1;driveDir=1;prevTvalid=false;safeS=0;loop._camDriveT=0; // (2026-09-28) la caméra repart de sa place sur la NOUVELLE piste (la coupe se cache sous le flash du portail)
   if(vA<20)vA=20;
   mode='drive';
@@ -53770,7 +53831,7 @@ function resetGame(){
   VEQ.dReq=false;VEQ.dDn=0;GLI.req=null;GLI.id=null;VEQ.sautAtt=0;figGVoit(null);gsolCoupe(); // (2026-10-14) un double-tap de l'écran de mort ne saute pas au départ de la partie suivante
   if(gameOver)finSonsCoupe(); // (2026-10-14, session SON) REJOUER : rien de la mort d'avant ne sonne dans la partie neuve
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) nouvelle partie : pas de tension héritée
-  if(SF.neuf)SF.neuf=false;else SF.tirage=[]; // (2026-10-13) MODE CLASSIQUE : REJOUER tire une nouvelle suite — sauf celle que le JOUER vient de bâtir sous le voile
+  if(SF.neuf)SF.neuf=false;else{SF.tirage=[];if(PREB.on&&SF.prochain&&SF.prochainDer===SF.der&&!SF.force)SF.tirage[0]=SF.prochain;} // (2026-10-13) MODE CLASSIQUE : REJOUER tire une nouvelle suite — sauf celle que le JOUER vient de bâtir sous le voile · (2026-10-19, LE DÉPART D'AVANCE) sa 1re map tirée d'avance à l'écran de fin (prebDepCible), par la même règle
   PORTV.att=0;if(PORTV.el){clearTimeout(PORTV.tS);PORTV.el.style.transition='none';PORTV.el.style.opacity='0';} // (le passage en deux temps) un passage en attente ne survit pas à la partie
   try{hautVide();}catch(e){} // (2026-10-14, chasse aux bugs) RECOMMENCER depuis la pause ne passe ni par explode ni par endGame : une carte MOTEUR / DÉFI / RECORD en attente dans la file du haut (derrière le verrou d'une bannière de niveau) sortait dans la partie SUIVANTE — la file se vide ici aussi (auto-école : les cartes gardées restent, comme à l'explosion)
   try{engBigCoupe();engBig.vu=null;}catch(e){} /* (2026-09-30) vu : la dernière carte moteur montrée — une partie neuve repart de zéro */ /* (débogage son 2026-09-29) RECOMMENCER pendant la carte MOTEUR : la visseuse et le NOUVEAU SOMMET ne sonnent plus dans la partie suivante */
@@ -53805,7 +53866,9 @@ function resetGame(){
   scene.fog.near=FOG_N;scene.fog.far=FOG_F;scene.fog.color.copy(FOG_BASE);
   moneyRainClear(); // (vague 2) la pluie de devises instanciée
   overlay.style.display='none';
-  newTrack();respawn();safeS=0;s=0;
+  prebDepPrend(newTrack); // (2026-10-19, LE DÉPART D'AVANCE) la piste bâtie au menu ou à l'écran de fin peut servir (voir prebDepCible)
+  if(PREB.cam){PREB.cam=false;frameAt(0,F);camera.up.set(0,1,0);camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4);camera.lookAt(F.p);} // (sous9 léger) la caméra du lâcher, comme closeGarage l'aurait posée au départ de la piste de sous9
+  respawn();safeS=0;s=0;
   AIP.resetRun(); // les compteurs d'observation repartent avec la run
   survStart(); // APRÈS la piste neuve et s=0 : la meute encadre le vrai départ
   // ⚠ PLUS DE LARGAGE (2026-09-05, demande du user) : la caisse ne tombe plus du ciel sur la
@@ -54912,18 +54975,21 @@ window.dbgNiveauVitre=function(m){SF.force={carte:'vitree',meteo:m||null};return
 function classiqueJouer(){ // (2026-10-13, Sacha) JOUER = le MODE CLASSIQUE AU HASARD : la 1re map et sa météo tirées, la piste bâtie sous le voile (le chemin de jadeJouer)
   if(pendingScore!=null||(started&&!gameOver))return 'en course';if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go))return 'occupé';
   JADE_JEU=false;if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}}
-  const t=SF.force?sfImpose(SF.der):(SF.prochain||sfTire(SF.der));SF.prochain=null;SF.tirage=[t];SF.der=t;SF.neuf=true;SF.pret=true; // neuf : le REJOUER de garageLaunch (resetGame) garde ce tirage · prochain : celui que la vignette du garage annonçait
-  const sous9=function(){runStats.zones=0;rebuildMenuScene();try{jadeGabarits();}catch(e){}};
+  const t=SF.force?sfImpose(SF.der):(SF.prochain&&SF.prochainDer===SF.der?SF.prochain:sfTire(SF.der));SF.prochain=null;SF.tirage=[t];SF.der=t;SF.neuf=true;SF.pret=true; // neuf : le REJOUER de garageLaunch (resetGame) garde ce tirage · prochain : celui que la vignette du garage annonçait — (2026-10-19) le tirage D'AVANCE du départ (prebDepCible)
+  /* (2026-10-19, LE DÉPART D'AVANCE) sous9 : au 1er JOUER de la session, la piste du départ bâtie au menu est PRISE (prebDepPrend) ; après une
+     partie, sous le nuage blanc ou le voile chaud (leger : resetGame suit dans la même image), la piste de sous9 n'est jamais dessinée — elle se
+     fait légère (son ciel seul) et resetGame prend la sienne, la caméra reposée comme closeGarage l'aurait fait (PREB.cam). */
+  const sous9=function(leger){runStats.zones=0;if(leger===true&&PREB.on&&started&&gameOver){PREB.ntLeger=true;PREB.cam=true;PREB.legers++;rebuildMenuScene();}else prebDepPrend(rebuildMenuScene);try{jadeGabarits();}catch(e){}};
   /* (2026-10-15, Sacha : « améliore l'animation du lancement ») MESURÉ (film du JOUER, accueil debout) : la caisse est DÉJÀ dans le ciel du
      menu, et le JOUER passait d'abord par le balayage pixel (≈ 0,45 s d'écran sombre) pour rebâtir la piste… puis rouvrait le MÊME ciel
      et lançait le piqué. Depuis le ciel, elle pique tout de suite : la piste tirée se bâtit sous le NUAGE BLANC de la fin du piqué
      (`CHUTE.sous`, juste avant start/resetGame — le voile tient jusqu'à la 1re image rendue). Ailleurs (atelier, boutique) : le balayage. */
-  if(garageOn&&CHUTE.on&&!CHUTE.go){CHUTE.sous=sous9;garageLaunch();if(CHUTE.go)return t;CHUTE.sous=null;}
+  if(garageOn&&CHUTE.on&&!CHUTE.go){CHUTE.sous=function(){sous9(true);};garageLaunch();if(CHUTE.go)return t;CHUTE.sous=null;}
   /* (2026-10-15, Sacha : « une fois le bouton pressé dans le garage, il faut que tu retrouves l'animation où la voiture s'avance dans les
      flammes ») DEPUIS L'ATELIER, même principe : le balayage d'abord (écran sombre + la piste rebâtie : ≈ 0,5 s au PC, bien plus sur
      téléphone) passait AVANT le lâcher. Le LÂCHER part sur l'appui — la caisse roule dans le rideau de flammes — et la piste tirée se bâtit
      sous le VOILE CHAUD de la fin (`GAR.sous`, juste avant start/resetGame, voir garageRender). La boutique et l'accueil gardent le balayage. */
-  if(garageOn&&!CHUTE.on&&!GAR.go&&GAR.root&&!GBQ.on&&!GBQ.veut&&gEl&&!gEl.classList.contains('menu')){GAR.sous=sous9;garageLaunch();if(GAR.go)return t;GAR.sous=null;}
+  if(garageOn&&!CHUTE.on&&!GAR.go&&GAR.root&&!GBQ.on&&!GBQ.veut&&gEl&&!gEl.classList.contains('menu')){GAR.sous=function(){sous9(true);};garageLaunch();if(GAR.go)return t;GAR.sous=null;}
   ecranWipe(function(){sous9();if(!garageOn)openGarage(true);},function(){garageLaunch();});return t;} // jadeGabarits : taillés une fois par session, sous le voile (≈ 0,7 s de moins au 1er portail vers la jade)
 const NIT_GRONDE=.3; /* le grondement du nitro (4e passe, 12/10 : ,4 → ,3) — resté seul de l'ancien bloc de la musique du SOLEIL DE JADE */
 window.dbgQuitte=function(){ // (2026-10-12, le simulateur) finir la course en cours SANS explosion — comme QUITTER du panneau ⏸
