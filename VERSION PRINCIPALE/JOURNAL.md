@@ -3,6 +3,12 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'AFFINEMENT, 2e ENVOI : LE HUMMER SUV ET LES DEUX PREMIERS LOTS (2026-10-19, v680, Léo : « oui, mets le Hummer SUV et les deux lots dans le jeu »)
+- LE CAÏD en HUMMER EV SUV (BOÎTES 9176c959 : le nez et le détail gardés, la cabine jusqu'au hayon, la roue de secours sur le hayon).
+- RONDES lot 1 (665b7a04) : LA PUCE ronde comme la Mini, LA FÉLINE (phares en goutte à verre clair, roues à rayons), LA QUEUE DE CANARD
+  (bouts de pare-chocs rentrés, phare d'un seul verre). JAPONAISES lot 1 (00f04429) : plus de damier sur les ailes arrière (LAME, FIDÈLE,
+  BÊTE ; `japQuads`), dérives de LA BÊTE remontées, nez de LA CERISE, coques de rétro retaillées. Les lots suivants attendent le oui de Léo.
+
 ## L'AFFINEMENT DES VOITURES, 1er ENVOI : LES BUGS ET LA FENTE (2026-10-19, v679 — Léo : « corrige tous les traits noirs dénaturés… un effet de séparation discret qui simule une fente » ; fente C choisie sur planche)
 - Le chantier : `~/Downloads/CAR-bancs/nouvelles-voitures/AFFINEMENT.md` (le relevé de 46 caisses, la FENTE, la dernière retouche en style poly).
 - **Les bugs** (partis direct) : RONDES 7f3d858f — l'éventail de triangles de LA GRANDE ANGLAISE, la tache noire du capot de POSTER 84 ;
@@ -1021,6 +1027,23 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   Léo la veut « plus fidèle » (en reprise chez JAPONAISES). Fusion : seul conflit, le bloc des traductions que l'allègement de Sacha
   avait vidé — son ménage gardé, nos deux noms (LA LAME, LE TOFU) ajoutés.
 
+## L'AFFINEMENT RONDES, LOT 1 — LA PUCE, LA FÉLINE, LA QUEUE DE CANARD (2026-10-19, discussion RONDES ; Léo : « tout corriger », « le style poly pour perfectionner chaque coin »)
+- **LA PUCE** (la Mini, défi) : la section refaite — le bas de caisse RENTRE en arrondi (la rentrée s'efface au-dessus des roues : `kA`), la
+  portière bombe, l'épaule ronde, le pavillon bombé jusqu'à sa gouttière ; deux tranches de plus à chaque coin. Les pare-chocs sont une barre
+  chromée à huit pans qui ENVELOPPE les coins (`bulleOutils.tube`), butoirs en tubes debout. La boîte noire sous la malle devient CLAIRE :
+  `plqDessinee` y pose la vraie plaque (elle était sur la malle, la boîte noire faisait un trou). Peinture : les bandes 'p' décalées de 2.
+- **LA FÉLINE** (la Type E) : les phares étaient un CRISTAL bleu nuit qui dépassait de l'aile → une découpe EN GOUTTE couchée sur la tôle
+  (`yHaut` relit la section : la section est devenue `SEC`), son jonc chromé (tube), le verre clair 'v' (famille 'g', gris-vert) et le phare
+  rond dedans. Les roues : des anneaux plats → de vraies roues À RAYONS (`roueDeco` : jante chromée, deux nappes de 16 rayons croisés, écrou à
+  oreilles ; `lpw.style:'nyan'`). ⚠ `BufferGeometry.applyQuaternion` n'existe pas en r128 : passer par `applyMatrix4`.
+- **LA QUEUE DE CANARD** : les bouts des pare-chocs (tracés `avP`/`arP`) finissaient à 1-3 cm HORS de la tôle → en lame ; ils rentrent de 3 cm.
+  Le phare : l'anneau argent à mi-rayon et le cache chromé central faisaient un iris et une pupille → une glace d'un seul verre. Le cadre noir
+  des feux 11 → 5 mm, le filet 8 → 4 mm.
+- Le tour des coins (12 vues + dessous, garage et course) : rien d'autre sur ces trois-là, sauf la coque en facettes de LA FÉLINE (ses passages
+  de roue sont creusés dans le loft ; les adoucir = des ailes séparées comme LE SCARABÉE, à décider). La fente C attend l'outil de JAPONAISES.
+- Vérifié : 0 programme compilé en course (les trois), 29 avertissements comme le main, construction 11-41 ms. Planche
+  `photos-gameplay/affinement-rondes-lot1.png`.
+
 ## BUGS RONDES — L'ÉVENTAIL DE LA GRANDE ANGLAISE, LA TACHE NOIRE DE POSTER 84 (2026-10-19, discussion RONDES ; Léo, sur le relevé de l'affinement : « tout corriger », les bugs d'abord)
 - **LA GRANDE ANGLAISE** : l'éventail de lamelles claires/sombres au-dessus du feu arrière venait du LOFT, pas de la découpe (il restait sans
   aucune zone). Deux causes mesurées (`plis.js` du banc : l'angle entre les deux triangles de chaque quad) : (1) la poupe « rognée » au profil
@@ -1396,6 +1419,23 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   facettes sur une caisse très jointée (LA FIDÈLE 33 000 → 44 000), 1re pose +20-40 ms.
 - **Mode d'emploi pour les autres découpes et les caisses de kit** : `CAR-bancs/nouvelles-voitures/AFFINEMENT.md`, section JAPONAISES, § 0.
 - Planche du choix : `photos-gameplay/fente-variantes.png` (vrais joints | A | B | C | D, argent et noire, studio, garage, course).
+
+## L'AFFINEMENT DES JAPONAISES — LOT 1 : LA LAME · LA FIDÈLE · LA BÊTE · LA CERISE (2026-10-19, discussion JAPONAISES ; mission AFFINEMENT de Léo)
+- **Le DAMIER des ailes arrière** (bandes claires et sombres qui cassaient le reflet, au studio comme en course) avait deux causes :
+  (1) au-dessus d'un passage de roue, les points du flanc s'empilaient sur l'arche (le flanc partait de `yb`, le haut de l'arche, mais gardait ses
+  hauteurs relatives au bas de caisse) → ils se répartissent désormais entre `max(y0,yb)` et l'épaule (`B9`/`H9` dans les coupes de LA FIDÈLE, LA LAME
+  et LA BÊTE) ; (2) chaque facette du loft est faite de DEUX triangles un peu tordus, chacun sa normale → `japQuads(G)` (outil commun, appelé par
+  `japDecoupe` seulement quand la découpe n'est pas en cache) recolle les deux triangles de chaque facette sous une seule normale, puis la lisse avec
+  la facette voisine de la même bande, le long de la caisse, tant que l'angle reste sous 25° : les vraies arêtes restent vives. Vaut pour TOUTES les
+  caisses découpées au plan (`o.quads:false` pour s'en passer).
+- **LA BÊTE** : les quatre dérives du diffuseur remontées (elles pendaient sous la poupe). **LA CERISE** : le nez finit sur une face plus haute
+  (YT .445 → .458, YB .40 → .37 au bout) — il n'est plus en bec ; le reflet rose de son aile n'est que la lumière du studio.
+- **Le tour des coins** (section 3 d'AFFINEMENT : dessous vu en vol, dessus, nez et poupe de près — `releve.py` avec `VUES=…` et `NOCOURSE=1`) :
+  les coques de rétro de LA LAME, LA FIDÈLE et LA CERISE étaient des boules à petites facettes (10 × 7, un effet boule disco, adoucies par
+  `japLisse`) → 8 côtés, 3 à 5 rangées (des angles au-delà des 32° du lissage : de grandes facettes nettes), le verre à 8 côtés aligné sur la
+  coque. Rien d'autre : dessous fermés, pots et suspensions en place, aucune pièce qui flotte.
+- 0 programme compilé en course (les quatre, banc `jeu.py`), console propre. Pose en jeu (1re / suivante) : LA LAME 66 / 24 ms,
+  LA FIDÈLE 63 / 34, LA BÊTE 26 / 20, LA CERISE 42 / 26 (la découpe se fait à la chauffe du menu). Planche : `photos-gameplay/affinement-lot1-japonaises.png`.
 
 ## LES JAPONAISES — 6 · ROSSO 40 REFAITE AU PLAN (2026-10-18, discussion JAPONAISES, Léo : « complexifie la ROSSO 40, imitation encore plus fidèle et satisfaisante pour les vrais kiffeurs de voiture »)
 - ⚠ **RETIRÉE LE SOIR MÊME** (Léo : « la rosso revient sur avant c'était mieux ») : le bloc `SHAPES.rosso` et son repère sont ôtés de la zone des
