@@ -8832,6 +8832,7 @@ function makeCar(){
     // ---- conduite ----
     mode:'drive', s:0, lat:0, v:0, vL:0, psi:0, side:1, driveDir:1,
     steer:0, steerHold:0, momT:0, driftT:0,
+    driftArm:0, driftEnCours:false, yawR:0, slipB:0, // LE DRIFT (2026-10-19)
     graceT:0, sideCd:0, slipT:0, boost:0, padCd:0, rampCd:0, oilCd:0,
     hopY:0, hopV:0, idleT:0, safeS:0, pureT:0, pureArmed:true, sPrev:0, kmh:0,
     nitroR:2, nitroX:0, nitroOn:false, nitroBlue:false,
@@ -8951,6 +8952,11 @@ function carTryLand(car,dt,w){
 }
 
 /* ---------- AU SOL ---------- */
+/* LE DRIFT (porte depuis code/gameplay/camera.js le 2026-10-19, Sacha : « les bots doivent driver ») :
+   lacetMax(v) = le lacet max au pouce a fond, VOL_TAU = le temps de reponse du lacet commande.
+   Ported from the live game's drift system — see code/gameplay/camera.js for the original. */
+const VOL_R0=40,VOL_RK=.3,VOL_TAU=.1;
+function lacetMax(v){const vw=Math.max(8,Math.abs(v)*SPD);return vw/(VOL_R0+VOL_RK*vw);}
 function carDrive(car,input,dt,w){
   const spec=CARS[0],late=lateMul(),
         eng9=ENGINE_TIERS[engTier]||ENGINE_TIERS[0],
@@ -8972,13 +8978,14 @@ function carDrive(car,input,dt,w){
     car.psi=THREE.MathUtils.clamp(car.psi-dyaw,-1.4,1.4);
   }
   car.prevTv.copy(F.t);car.prevTvalid=true;
-  // MOMENTUM : tenir la ligne droite fait monter la puissance en exponentiel
-  if(up&&Math.abs(car.steer)<.2&&Math.abs(car.psi)<.25)car.momT+=dt;
-  else car.momT=Math.max(0,car.momT-dt*3);
+  // MOMENTUM v2 (2026-10-19, porte) : tenir sa ligne REMPLIT la reserve (meme dans un virage tant qu'on
+  // ne drift pas) ; seuls la glisse, le gros coup de volant et le pied leve la VIDENT.
+  if(up&&!car.driftEnCours&&Math.abs(car.psi)<.6){if(Math.abs(car.psi)<.25)car.momT=Math.min(4.3,car.momT+dt);}
+  else car.momT=Math.max(0,car.momT-dt*2);
   const momF=1+Math.min(1.8,car.momT*car.momT*.1);
   let a=0;
   if(up)a=acc9*(car.v<maxSp?1:.55)*(car.boost>0?1.5:1)*momF; // ca pousse TOUJOURS sur la route
-  if(dn)a=car.v>2?-acc9*1.5:-acc9*.5;
+  if(dn&&!car.driftEnCours)a=car.v>2?-acc9*1.5:-acc9*.75;    // ↓ est AUSSI le geste du drift : il ne freine plus en drift
   car.v+=a*dt;
   if(car.nitroOn)car.v+=(car.nitroBlue?48:30)*eng9.push*dt;  // LE MOTEUR pousse : le palier multiplie
   car.v+=-GRAV*F.t.y*Math.cos(car.psi)*car.driveDir*dt;      // la pente selon le SENS reel de marche
@@ -8986,18 +8993,30 @@ function carDrive(car,input,dt,w){
   car.v*=Math.max(0,1-.03*dt);
   if(!up&&!dn&&!car.nitroOn)car.v*=Math.max(0,1-.4*dt);
   if(car.park&&car.v>PARK_VCAP)car.v=PARK_VCAP;              // PARC : gouverneur de vitesse
-  if(car.v<-8)car.v=-8;
+  if(car.v<-16)car.v=-16;
   if(car.introD){car.v=0;car.momT=0;car.steer=0;car.psi=0;}  // LARGAGE : controles geles
   if(Math.abs(target)>.1)car.steerHold=Math.min(.3,car.steerHold+dt);else car.steerHold=0;
-  car.psi+=(car.slipT>0?.18:1)*car.steer*(.55+.45*(car.steerHold/.3))*spec.turn*.75
-          *THREE.MathUtils.clamp(car.v/8,-1,1)*(1/(1+Math.abs(car.v)*TURN_HS))*(dn?1.3:1)*dt;
+  // LE DRIFT (2026-10-19, porte depuis code/gameplay/camera.js) : le geste du frein (dn, ↓ au clavier) EN
+  // braquant fort, a bonne vitesse ; hysteresis — on entre a vitOk+dn+steer>.35, on ne sort que sous .2/vitOk.
+  // PAS de geste tactile ici (pas de pouce chez un bot) : dn tient lieu du « pouce tire vers le bas ».
+  const vitOk9=Math.abs(car.v)>maxSp*.42;
+  const veut9=!car.introD&&!car.park&&vitOk9&&dn&&Math.abs(car.steer)>.35;
+  car.driftArm=veut9?car.driftArm+dt:0;
+  if(veut9)car.driftEnCours=true;
+  else if(!vitOk9||!dn||Math.abs(car.steer)<.2)car.driftEnCours=false;
+  const drifte9=car.driftEnCours;
+  const spdMult=car.pwrSpdT>0?1.6:1;                         // SPEED UP : le sol defile +60 %
+  {const rT=car.steer*lacetMax(car.v)*spdMult*(drifte9?1.15:1)*THREE.MathUtils.clamp(car.v/8,-1,1)*(car.slipT>0?.18:1);
+   car.yawR+=(rT-car.yawR)*(1-Math.exp(-dt*spdMult/VOL_TAU));
+   const b0=car.slipB,bT=drifte9?Math.sign(car.steer)*.42*Math.min(1,Math.abs(car.steer)):0;
+   car.slipB+=(bT-car.slipB)*(1-Math.exp(-dt*(drifte9?4:6)));
+   car.psi+=car.yawR*dt+(car.slipB-b0);} // le nez = la trajectoire + la glisse
   car.driftT=Math.max(0,car.driftT-dt*2.2);                  // retombe apres une pose en travers
   car.psi=THREE.MathUtils.clamp(car.psi,-1.4,1.4);
-  car.vL=car.v*Math.sin(car.psi);
-  const spdMult=car.pwrSpdT>0?1.6:1;                         // SPEED UP : le sol defile +60 %
+  car.vL=car.v*Math.sin(car.psi-car.slipB);                  // la TRAJECTOIRE : le cap moins la glisse (0 hors drift)
   car.lat+=car.vL*car.driveDir*dt*SPD*spdMult;
   car.sPrev=car.s;  // ATTENTION : memorise AVANT l'avance — les tremplins se testent sur le SEGMENT
-  car.s+=car.v*Math.cos(car.psi)*car.driveDir*dt*SPD*spdMult;
+  car.s+=car.v*Math.cos(car.psi-car.slipB)*car.driveDir*dt*SPD*spdMult;
   const vF=car.v;
   car.boost=Math.max(0,car.boost-dt);
   car.kmh=Math.abs(vF)*3.6*SPD*spdMult;
