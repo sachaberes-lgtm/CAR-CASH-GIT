@@ -3,6 +3,53 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA GROTTE VASTE — LES PROFONDEURS 1,7 × PLUS LONGUES, DES SALLES 2,5 × PLUS GRANDES (2026-10-19, session GROTTE — Sacha : « la map grotte doit etre plus longue et la grotte beaucoup plus vaste »)
+- **Ce qui change** (tout derrière `GRT_VASTE` ; `?sans=grottevaste` = la grotte d'avant À L'IDENTIQUE — vérifié sur la même graine : mêmes
+  comptes que `main`, jusqu'aux 205 776 triangles) :
+  · **la longueur** : `grtTrace` vise `longueurCible() × GRV.long` (1,7) ; seul le remplissage des quatre salles grandit (l'entrée, la mine, le
+    puits et la salle du portail restent). La calibration de LA DURÉE DES MAPS (`DUREE_ALLURE`, Léo) n'est pas touchée.
+  · **les salles** (`GRT_FORME`, demi-largeur / plafond / fond en m) : grotte luxuriante 122/80/64 → 290/200/150, cathédrale des stalactites
+    106/104/78 → 250/290/150, lac de lave 178/86/70 → 400/210/170, abysses 98/68/72 → 260/180/220, salle du portail 138/140/86 → 230/210/160,
+    l'arrivée 96/92/52 → 140/130/80. **La MINE reste la galerie étroite** (c'est son ouverture sur la grotte luxuriante qui donne l'échelle) ; le
+    puits garde sa spirale, son ENTONNOIR passe de +92 à +200 m au-delà de la route, sa voûte de 150 à 300 m, son bassin de 112 à 190 m sous le
+    dernier tour. La lave est 70 m sous le point le plus bas de sa salle (48), le lac de la grotte luxuriante 60 m (44).
+  · **la grille** : `GRT.B` 8 → 12 m. À 8 m, construction, mémoire et triangles auraient été ×4 à ×6 ; à 12 m les facettes, rapportées à des
+    salles 2,5 × plus grandes, restent plus fines qu'avant. Le bruit de la roche (`grtRoche`) a des bosses 2 × plus larges (`GRV.nzK`), la teinte par
+    paquet de facettes du shader suit la case (`.19` → `.13`).
+  · **les décors à l'échelle** (`grtDecors`, `grtPiliers`, `VZ`) : torches 1,7 × plus grandes, posées sur la paroi jusqu'à 1,45 × la demi-largeur
+    (elles se voient de loin, portée de lumière 46 → 66 m) ; gemmes 2 × ; lianes 2,4 × plus longues et 190 (110) ; azalées 80 (46) ; concrétions
+    jusqu'à ~120 m et 240 (140) ; chutes de lave 14 (9), plus larges, quatre lumières ; capteurs 90 (48) ; piliers de la cité oubliée jusqu'à
+    ~190 m, 28 (16) ; piliers de basalte et colonnes de la cathédrale 27 (11), plus gros, dans toute la largeur. Les recherches de paroi, de voûte
+    et de sol suivent la forme de la salle.
+  · **la lumière et la brume** (`GRV.amb`, `fogS`, `fogN`, `fog`) : MESURÉ au banc, à 300 m une paroi éclairée comme avant sortait à ~16/255 (rendu
+    linéaire) — une grande salle se lisait comme du NOIR. Quatre réglages comparés sur la même graine : l'air des salles ×2 (pas la mine), la brume
+    ×1,6 (abysses ×2,2) qui commence 2,5 × plus près et finit 1,3 × plus loin — la perspective de l'air : la paroi lointaine se lit dans la brume
+    colorée de la salle (×2,6 délavait). La lueur de la lave porte 85 m au lieu de 38 **dans sa salle seulement** (dans la cathédrale voisine, midi et
+    soir viraient à l'orange), celle de la géode 110 m (70). La mine garde sa brume (des tronçons cachés en moins).
+  · **le creusement** (`grtCreuse1`) : à plus de 3 cases de la paroi la case est SATURÉE dès le premier passage (seul le signe sert : surface,
+    collision, décors, occlusion) et les échantillons suivants la sautent — sans ça le creusement était ×1,8.
+- **MESURÉ** (banc Chrome sans fenêtre, muet, Mac TRÈS chargé par d'autres sessions — load 12 à 190 : les temps absolus sont bruités, les
+  rapports avant/après sont pris en alternance) :
+  · longueur : palier 0 → 8,9-9,4 km (5,4-5,6) ; palier 10 → 11,8-12,1 km (6,9-7,2) ; palier 25 → 12,3-12,8 km (7,5-7,8), 4 graines chacune ;
+    0 conflit de croisement, la règle d'or `dbgGrotte('test')` à 0 roche / 0 décor partout (12 graines × paliers + en course).
+  · durée au pilote (`dbgAuto`, palier 0, même graine) : **95 s au lieu de 66 s**, jusqu'au portail et la map suivante, sans erreur.
+  · construction d'un trait (le 1er portail, un rejouer) : ~1,4 × (médianes 1,1 s contre 0,78 s ce jour-là ; le creusement ~1,5 ×). Tronçons
+    705-790 (450-480), triangles ~345-365 k (205-220 k), grille ~6,7 Mo (4). Le PRÉ-BÂTI finit à temps (palier 5, depuis la ville) : prêt 3,3 s avant
+    le portail, 3,6 s de calcul en 320 images (l'ancienne : 1,3 s avant, 2,3 s) — rien de fini « au passage ».
+  · rendu, vue de course par salle (appels / triangles, scène entière) : mine 207/353 k (201/276 k) · luxuriante 187/334 k (202/300 k) · puits
+    214/390 k (179/260 k) · cathédrale 205/246 k (156/158 k) · lave 165/219 k (126/124 k) · abysses 160/176 k (135/89 k) · portail 82/73 k (115/79 k).
+    Aucun programme neuf en course dû à la grotte (le +1 du départ existait avant).
+  · couché, debout (`?colonne=portrait`) et dans le cadre de l'ordi : menu → JOUER → course dans la grotte, sans erreur.
+- **Les cartes postales du portail** (`assets/portail/grotte-*.webp`, les quatre temps) retirées dans la grotte vaste : la spirale qui plonge sous la
+  voûte hérissée, l'eau tout en bas (`dbgCartePostale({s:geode + 0,3 × (stal − geode), h:50})`, graine 4242).
+- **Le banc** : `dbgGrotte('vue')` pose maintenant la brume de la salle avant la photo — en pause la boucle ne la recopie pas, et TOUTES les photos
+  de banc des salles (celles du 18/10 comprises) avaient la brume de la mine. `?grv=amb:2.6,fogC:1.3,…` règle `GRV` à l'essai (nombres seulement).
+  `?pistegraine=n` pour comparer avant/après sur la même grotte. ⚠ Sous forte charge, brancher `dbgAuto` dès le départ : sinon la caisse roule
+  sans volant et sort au premier virage de la mine (un faux « mort dans la mine » vu au banc).
+- **À trancher par Sacha** : la longueur (1,7 ×, `GRV.long`) et l'échelle (`GRT_FORME` vaste) se règlent d'une valeur ; sur iPhone, regarder le
+  1er portail et le rejouer quand la grotte sort d'un trait (~1,4 × plus long qu'avant à construire). La session « Refonte map volcan » prépare des
+  obstacles et des modules pour la grotte (champignons, colonnes sur la route, galeries) : elle bâtira par-dessus.
+
 ## LE GLACIER : LES PICS INVISIBLES QUI TUAIENT, LE VOL QUI FLOTTAIT, LA RETOMBÉE DES TREMPLINS (2026-10-19, session glace-montagne — Sacha : « je meurs sans raison sur la route de glace dans la map montagne »)
 - **La cause principale : une déclaration avalée par un commentaire.** Depuis `e66f25b2` (« Le glacier, 3e tour », 18/10 au soir), la ligne de
   `BK_BEC` finissait par `// axe : … au décollagelet BK_BEC_TEX=null;` : `let BK_BEC_TEX=null;` faisait partie du commentaire. `bkBecTex` lisait une
