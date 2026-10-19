@@ -18,7 +18,109 @@
   secrètes mort3s (LA SANS-PERMIS), arret (LE GRILLE-PAIN), nitplein (LA BOULE), lac10 (LE GLACIER), sanspiece (LA DEUCHE), jours7 (LA DÉESSE).
   Pour en rendre une : remettre sa caisse au garage, ou changer sa récompense dans `M2` (ex. `{cash:20000}`) — jamais son `id`.
 - **Vérifié** (navigateur intégré, cadre de l'ordi) : l'écran MISSIONS s'ouvre, `#mCadeau` caché, 34 lignes, 0 « BIENTÔT AU GARAGE »,
-  vie5min réussie absente, compte 1 / 34 ; avec `?sans=missionsvides` : 38 lignes, vie5min « BIENTÔT AU GARAGE », 2 / 38. Cache v685.
+  vie5min réussie absente, compte 1 / 34 ; avec `?sans=missionsvides` : 38 lignes, vie5min « BIENTÔT AU GARAGE », 2 / 38. Cache v688.
+
+## LES FIGURES LÉGENDAIRES SE LISENT — LE GOTHIQUE EN MINUSCULES (2026-10-19, session police-legendaire — Sacha : « la police que tu as faite pour les figures légendaires est un peu illisible »)
+- CE QUI CLOCHAIT : depuis le HUD des figures v5 (18/10), le nom d'une figure LÉGENDAIRE (SALTO COSMIQUE, RODÉO) s'écrit en Jacquard 12, le
+  gothique en pixels, EN CAPITALES comme toutes les autres. Or les capitales gothiques ne se reconnaissent pas : sur la planche, « SALTO
+  COSMIQUE » se lisait « SALVD CVSMIXUE », et « RODEO » dans la ligne du combo n'était plus qu'une tache dorée.
+- CE QUI CHANGE : même police, même or, même halo, même reflet blanc — mais la LÉGENDAIRE s'écrit en MINUSCULES gothiques à capitale initiale :
+  « Salto Cosmique », « Rodeo » (`fhTitre(t,rp)`, à côté de `fhNet`). Appliqué partout où s'écrit un nom de rareté : le grand nom (`fhNom`), les
+  maillons du combo (`fhMaillon`, `fhMaillonMaj`) et le rappel des gestes (#fhLeg). Les autres raretés gardent leurs capitales ; le BUMP n'est
+  jamais légendaire. `FIG_RP.legendaire.w` 1,07 → ,9 : la chasse en minuscules, MESURÉE au canvas à k 1,9, est de ,77 à ,89 (contre 1,11 à 1,19
+  en capitales) — debout, le nom long (SALTO COSMIQUE, 390 px) passe de 30 à 38 px au lieu d'être réduit pour une largeur de capitales.
+- LA PLANCHE (faite dans le scratchpad de la session) : 10 polices pixel rendues comme dans le HUD (or, contour d'encre, halo, reflet, hauteur
+  de capitale égale à Press Start 2P), sur le ciel de midi et la forêt de nuit — Jacquard 12 en capitales (avant) et en minuscules, Jacquard 24,
+  Jacquarda Bastarda 9, Pixelify Sans, Workbench, Bitcount Grid Double, Handjet, DotGothic16, Press Start 2P. Les minuscules de Jacquard 12 se
+  lisent ET gardent l'air légendaire ; Jacquard 24 en capitales reste illisible ; Pixelify lit « SALTO OOSMIQUE » ; Bitcount se confond avec
+  Press Start 2P (la commune) ; Workbench et Handjet se lisent mais n'ont plus rien de légendaire. Aucune police neuve n'entre dans le jeu.
+- VÉRIFIÉ : en course (Chrome sans fenêtre, muet, couché 844 × 390, nuages midi) le rappel des gestes écrit « Salto Cosmique » et « Rodeo » en
+  Jacquard 12 (data-rp legendaire), le SALTO COSMIQUE lancé s'écrit « Salto Cosmique » en grand (CC Jacquard, 49 px), aucune erreur JS,
+  `__loopErr` vide. Le Mac était saturé (charge 150 à 270, les bancs d'autres sessions) : la photo du grand nom et de la ligne du combo est
+  prise au banc du HUD seul — les VRAIES feuilles et les vraies `fhNet`/`fhTitre`/`FIG_RP` d'index.html, le DOM de `fhEl`, la taille de
+  `fhNom`, sur la photo de la map —, avant/après, couché et debout.
+- À TRANCHER PAR SACHA : s'il préfère une autre police plutôt que le gothique en minuscules, la planche montre les candidates (Workbench,
+  Handjet, Bitcount Grid Double se lisent le mieux) — ce serait un .woff2 de plus (3 à 7 Ko) et une ligne dans <style id="policeUnique">.
+## LA GROTTE VASTE — LES PROFONDEURS 1,7 × PLUS LONGUES, DES SALLES 2,5 × PLUS GRANDES (2026-10-19, session GROTTE — Sacha : « la map grotte doit etre plus longue et la grotte beaucoup plus vaste »)
+- **Ce qui change** (tout derrière `GRT_VASTE` ; `?sans=grottevaste` = la grotte d'avant À L'IDENTIQUE — vérifié sur la même graine : mêmes
+  comptes que `main`, jusqu'aux 205 776 triangles) :
+  · **la longueur** : `grtTrace` vise `longueurCible() × GRV.long` (1,7) ; seul le remplissage des quatre salles grandit (l'entrée, la mine, le
+    puits et la salle du portail restent). La calibration de LA DURÉE DES MAPS (`DUREE_ALLURE`, Léo) n'est pas touchée.
+  · **les salles** (`GRT_FORME`, demi-largeur / plafond / fond en m) : grotte luxuriante 122/80/64 → 290/200/150, cathédrale des stalactites
+    106/104/78 → 250/290/150, lac de lave 178/86/70 → 400/210/170, abysses 98/68/72 → 260/180/220, salle du portail 138/140/86 → 230/210/160,
+    l'arrivée 96/92/52 → 140/130/80. **La MINE reste la galerie étroite** (c'est son ouverture sur la grotte luxuriante qui donne l'échelle) ; le
+    puits garde sa spirale, son ENTONNOIR passe de +92 à +200 m au-delà de la route, sa voûte de 150 à 300 m, son bassin de 112 à 190 m sous le
+    dernier tour. La lave est 70 m sous le point le plus bas de sa salle (48), le lac de la grotte luxuriante 60 m (44).
+  · **la grille** : `GRT.B` 8 → 12 m. À 8 m, construction, mémoire et triangles auraient été ×4 à ×6 ; à 12 m les facettes, rapportées à des
+    salles 2,5 × plus grandes, restent plus fines qu'avant. Le bruit de la roche (`grtRoche`) a des bosses 2 × plus larges (`GRV.nzK`), la teinte par
+    paquet de facettes du shader suit la case (`.19` → `.13`).
+  · **les décors à l'échelle** (`grtDecors`, `grtPiliers`, `VZ`) : torches 1,7 × plus grandes, posées sur la paroi jusqu'à 1,45 × la demi-largeur
+    (elles se voient de loin, portée de lumière 46 → 66 m) ; gemmes 2 × ; lianes 2,4 × plus longues et 190 (110) ; azalées 80 (46) ; concrétions
+    jusqu'à ~120 m et 240 (140) ; chutes de lave 14 (9), plus larges, quatre lumières ; capteurs 90 (48) ; piliers de la cité oubliée jusqu'à
+    ~190 m, 28 (16) ; piliers de basalte et colonnes de la cathédrale 27 (11), plus gros, dans toute la largeur. Les recherches de paroi, de voûte
+    et de sol suivent la forme de la salle.
+  · **la lumière et la brume** (`GRV.amb`, `fogS`, `fogN`, `fog`) : MESURÉ au banc, à 300 m une paroi éclairée comme avant sortait à ~16/255 (rendu
+    linéaire) — une grande salle se lisait comme du NOIR. Quatre réglages comparés sur la même graine : l'air des salles ×2 (pas la mine), la brume
+    ×1,6 (abysses ×2,2) qui commence 2,5 × plus près et finit 1,3 × plus loin — la perspective de l'air : la paroi lointaine se lit dans la brume
+    colorée de la salle (×2,6 délavait). La lueur de la lave porte 85 m au lieu de 38 **dans sa salle seulement** (dans la cathédrale voisine, midi et
+    soir viraient à l'orange), celle de la géode 110 m (70). La mine garde sa brume (des tronçons cachés en moins).
+  · **le creusement** (`grtCreuse1`) : à plus de 3 cases de la paroi la case est SATURÉE dès le premier passage (seul le signe sert : surface,
+    collision, décors, occlusion) et les échantillons suivants la sautent — sans ça le creusement était ×1,8.
+- **MESURÉ** (banc Chrome sans fenêtre, muet, Mac TRÈS chargé par d'autres sessions — load 12 à 190 : les temps absolus sont bruités, les
+  rapports avant/après sont pris en alternance) :
+  · longueur : palier 0 → 8,9-9,4 km (5,4-5,6) ; palier 10 → 11,8-12,1 km (6,9-7,2) ; palier 25 → 12,3-12,8 km (7,5-7,8), 4 graines chacune ;
+    0 conflit de croisement, la règle d'or `dbgGrotte('test')` à 0 roche / 0 décor partout (12 graines × paliers + en course).
+  · durée au pilote (`dbgAuto`, palier 0, même graine) : **95 s au lieu de 66 s**, jusqu'au portail et la map suivante, sans erreur.
+  · construction d'un trait (le 1er portail, un rejouer) : ~1,4 × (médianes 1,1 s contre 0,78 s ce jour-là ; le creusement ~1,5 ×). Tronçons
+    705-790 (450-480), triangles ~345-365 k (205-220 k), grille ~6,7 Mo (4). Le PRÉ-BÂTI finit à temps (palier 5, depuis la ville) : prêt 3,3 s avant
+    le portail, 3,6 s de calcul en 320 images (l'ancienne : 1,3 s avant, 2,3 s) — rien de fini « au passage ».
+  · rendu, vue de course par salle (appels / triangles, scène entière) : mine 207/353 k (201/276 k) · luxuriante 187/334 k (202/300 k) · puits
+    214/390 k (179/260 k) · cathédrale 205/246 k (156/158 k) · lave 165/219 k (126/124 k) · abysses 160/176 k (135/89 k) · portail 82/73 k (115/79 k).
+    Aucun programme neuf en course dû à la grotte (le +1 du départ existait avant).
+  · couché, debout (`?colonne=portrait`) et dans le cadre de l'ordi : menu → JOUER → course dans la grotte, sans erreur.
+- **Les cartes postales du portail** (`assets/portail/grotte-*.webp`, les quatre temps) retirées dans la grotte vaste : la spirale qui plonge sous la
+  voûte hérissée, l'eau tout en bas (`dbgCartePostale({s:geode + 0,3 × (stal − geode), h:50})`, graine 4242).
+- **Le banc** : `dbgGrotte('vue')` pose maintenant la brume de la salle avant la photo — en pause la boucle ne la recopie pas, et TOUTES les photos
+  de banc des salles (celles du 18/10 comprises) avaient la brume de la mine. `?grv=amb:2.6,fogC:1.3,…` règle `GRV` à l'essai (nombres seulement).
+  `?pistegraine=n` pour comparer avant/après sur la même grotte. ⚠ Sous forte charge, brancher `dbgAuto` dès le départ : sinon la caisse roule
+  sans volant et sort au premier virage de la mine (un faux « mort dans la mine » vu au banc).
+- **À trancher par Sacha** : la longueur (1,7 ×, `GRV.long`) et l'échelle (`GRT_FORME` vaste) se règlent d'une valeur ; sur iPhone, regarder le
+  1er portail et le rejouer quand la grotte sort d'un trait (~1,4 × plus long qu'avant à construire). La session « Refonte map volcan » prépare des
+  obstacles et des modules pour la grotte (champignons, colonnes sur la route, galeries) : elle bâtira par-dessus.
+
+## LE GLACIER : LES PICS INVISIBLES QUI TUAIENT, LE VOL QUI FLOTTAIT, LA RETOMBÉE DES TREMPLINS (2026-10-19, session glace-montagne — Sacha : « je meurs sans raison sur la route de glace dans la map montagne »)
+- **La cause principale : une déclaration avalée par un commentaire.** Depuis `e66f25b2` (« Le glacier, 3e tour », 18/10 au soir), la ligne de
+  `BK_BEC` finissait par `// axe : … au décollagelet BK_BEC_TEX=null;` : `let BK_BEC_TEX=null;` faisait partie du commentaire. `bkBecTex` lisait une
+  variable inexistante, `buildBanqG` cassait au dessin du premier tremplin (`window.__banqErr` = « ReferenceError: BK_BEC_TEX is not defined ») et
+  s'arrêtait là. Les 15 pics de la piste (`BANQ.obst`) et les tremplins (`BANQ.kick`) étaient POSÉS — leurs chocs (`banqPisteHeurt`) et leurs
+  envols marchaient — mais rien n'était DESSINÉ : ni eux, ni les ~400 pics du décor (`BANQ.picM` vide, `BANQ.pics` vide : plus de glisse en vol),
+  et la route n'était plus cachée (`bkPisteNue` jamais appelé) : on roulait sur une « route de glace » et on mourait contre un pic invisible, ou un
+  tremplin invisible nous envoyait en l'air. Correctif : la déclaration sur sa propre ligne — trouvé en même temps par la session PERF (613edf17, v681 : « LE DÉPART D'AVANCE ») ;
+  à la fusion, c'est SA ligne qui reste, `retombe` et `BK_RETOMBE` s'y ajoutent. MESURÉ (graine 39525) : avant 0 maillage de pics, après
+  21 maillages, 410 pics, les mêmes 15 pics de piste et 5 tremplins, dessinés (photo du banc : le pic qu'on percutait apparaît au milieu de la piste).
+  La syntaxe (`chk.js`) ne le voyait pas : seul le jeu lancé le montre — `__banqErr` est le premier témoin à lire au glacier.
+- **Le vol qui flottait : `banqLacet`.** En vol, le volant tourne la vitesse autour du HAUT DE LA CAISSE (`FLY_U`, « vol libre ») ; au glacier la
+  caisse vole piquée de 35 à 45°, son haut penche, et chaque coup de volant changeait de la CHUTE en dérive de côté, que le plafond de l'avance
+  (`fallVH0`) rabotait ensuite : la vitesse vers la glace restait vers −15 pendant 3 s au lieu de croître. MESURÉ (banc des tremplins : la caisse
+  posée 70 m avant la rampe, à 350/500/700 km/h, le pilote de vol qui ramène vers l'axe) : à 500 km/h 850 à 1 320 m et 4,8 à 7,1 s de vol (sans
+  braquer : 500 m, 3 s) ; à 700 km/h plus de pose (sortie de piste, « vide ») ; nitro tenue jusqu'à 8,15 s — au-delà des 6 s de la jauge, la caisse
+  explosait « trop longtemps en l'air » à 50-90 m au-dessus d'une piste qui file à 45°. Désormais, AU GLACIER SEULEMENT, le volant ne tourne que le
+  CAP (la vitesse verticale et l'avance horizontale restent). MESURÉ après, avec la retombée ci-dessous (3 tremplins × 3 vitesses, avec et
+  sans nitro) : 17 vols sur 17 posés (un départ raté par le banc), 2,2 à 4,1 s sans nitro, 4,7 s au plus nitro tenue, plus aucune mort en l'air ;
+  deux poses à ~500 km/h sur le même tremplin, 540 et 625 m après la lèvre, percutent ensuite le pic d'une figure 30 à 60 m plus loin (voir
+  « à trancher »). `?sans=glacelacet` = avant. Le même effet existe ailleurs dans les piqués, en plus faible :
+  pas touché.
+- **La retombée des tremplins : `BK_RETOMBE`, `BK_BEC.retombe` = 500 m.** `libreK` ne dégageait que 260 m après la lèvre, dans la seule bande du
+  tremplin ; MESURÉ en course (29 vols, 255-414 km/h au décollage) la caisse se pose de 160 à 511 m plus loin, souvent hors de la bande. Désormais
+  aucun pic sur TOUTE la largeur pendant 500 m après la lèvre, et la figure qui suit un tremplin (ou un tremplin seul) attend la fin de sa retombée
+  (`bec()` rend la lèvre). Effet sur la piste (6 graines, `?pistegraine=`) : 84 pics de piste au lieu de 104 (−19 %, de 0 à −50 % selon la graine).
+  `?sans=glaceretombe` = avant (même graine, même piste : le tirage n'a pas bougé).
+- **Les bancs** (Chrome sans fenêtre du Mac, CDP en Python, une copie de banc avec `window.__ev` dans la fermeture du jeu pour relire `BANQ`,
+  `explode`, `startFall`, `tryLand`) : 10 courses « pilote aux tremplins » AVANT : 4 morts (2 posées dans ou juste devant une figure, 2 chocs du
+  pilote) ; 8 courses APRÈS : 1 mort, un choc du pilote contre un pic visible, sans vol. Démarrage couché, debout et dans le cadre de l'ordi :
+  sans erreur, `__banqErr` vide, la route cachée. Gardes burn-out et charte OK.
+- **À trancher par Sacha** : la longueur de la retombée (500 m). Au-delà de ~500 km/h, un vol peut encore se poser 550-900 m plus loin, devant la
+  figure suivante — les pics sont maintenant visibles pendant le vol et le volant y mord sans faire flotter. Plus long = encore moins de pics.
 
 ## LES DUNES D'OR : ON DÉCOLLE DE CRÊTE EN CRÊTE, MÊME SANS NITRO (2026-10-19, Sacha, à la question « les vagues doivent-elles décoller aussi à vitesse normale ? » : « oui : je veux qu'on décolle sur les vagues des dunes même sans nitro, de crête en crête ») — v684
 - **Pourquoi elles ne décollaient pas** (MESURÉ au pilote, 7 traversées) : au sol la caisse reste COLLÉE au ruban — elle ne quitte la route que par
