@@ -58782,6 +58782,15 @@ const BRB={L1:2.5,L2:2.4,Hs:1.05,Rr:3.95,Lh:.3,jeu:.12,pre:.55,elHaut:1.25,cote:
   M9:new THREE.Matrix4(),A:[0,0,0,1],F1:{m:[null]},R:null,Rk:null,caps:[]};
 function brasVoulu(){return !!(GATL.on&&garageOn&&!GAR.go&&gEl&&!gEl.classList.contains('menu')&&SHOP.tab==='figure');}
 function brasBqVoulu(){return !!(garageOn&&!GAR.go&&GBQ.on&&GBQ.k>.5&&GBQ.grp&&GBQ.grp.visible&&GBQ.cat==='figure'&&(GBQ.ong||'cat')==='cat');} // la BOUTIQUE, catégorie FIGURES (2026-10-19)
+/* (2026-10-19, soir — Léo : « enlève les bras robots ; quand il y a les tricks, on enlève le truc qui bloque les roues, on le remet sur une
+   autre catégorie ; dans la boutique aussi : le bras enlevé, la voiture posée au sol, elle fait la figure, tout simplement ») LE BRAS DES
+   FIGURES EST RANGÉ : il ne sort plus (BRAS_FIG faux ; `?bras=1` le rend tel quel, pour comparer). Dès qu'on ARRIVE dans FIGURES — l'onglet
+   de l'inventaire, la catégorie de la boutique — les pinces des roues rentrent (garAtelierTick) ; en boutique les deux bras d'argent posent
+   la caisse sur le plateau et rentrent dans le sol (BRB.bqK, sans attendre la 1re figure). La figure touchée, la caisse la fait SEULE
+   (garFigEssai : l'animation d'avant le bras), une fois posée (figPosee ; touchée trop tôt, elle attend dans BRB.libre). Une autre
+   catégorie : les pinces et les bras d'argent reviennent. */
+const BRAS_FIG=/[?&]bras=1\b/.test(location.search);
+function figPosee(){return brasBqVoulu()?(BRB.bqK>.98&&(GBQ.ba||0)<.03&&Math.abs(GBQ.lev||0)<.04):!(GATL.p>.06);} // la caisse est libre : posée sur le plateau de la boutique, ou les pinces rentrées
 function brasYaw0(){return garRot()+(BRB.lieu==='boutique'?(GBQ.yaw||0):0);} // le cap de la caisse posée (en boutique, le doigt la tourne : GBQ.yaw)
 function brasSm(u){u=u<0?0:u>1?1:u;return u*u*(3-2*u);}
 function brasDep(u){u=u<0?0:u>1?1:u;const c=1.25;return 1+(c+1)*Math.pow(u-1,3)+c*Math.pow(u-1,2);} // monte, dépasse de ~4 %, se pose (sortie « en arrière »)
@@ -58973,8 +58982,9 @@ function brasTick(dt){dt=Math.min(.05,dt||0)*(BRB.lent||1); // (banc) dbgBras('l
   /* EN BOUTIQUE (Léo : « les autres posent la voiture et un autre bras apparaît ») : à la 1re figure demandée, les deux bras d'argent posent la
      caisse sur le plateau et rentrent dans le socle (BRB.bqK, lu par garBqIndus et garBqBras) ; le grand bras ne sort qu'une fois la caisse posée.
      On quitte la catégorie : il rentre d'abord, puis les deux bras ressortent et la relèvent. */
-  BRB.bqK=Math.max(0,Math.min(1,BRB.bqK+((BRB.lieu==='boutique'&&(BRB.bqVeut||BRB.p>.02))?dt/.55:-dt/.55)));
-  const posee=BRB.lieu!=='boutique'||(BRB.bqK>.98&&(GBQ.ba||0)<.03&&Math.abs(GBQ.lev||0)<.04),veut=enA||(enB&&BRB.bqVeut);
+  if(!BRAS_FIG&&!enA&&!enB)BRB.libre=null; // (sans le bras) on quitte FIGURES : la figure qui attendait la pose tombe
+  BRB.bqK=Math.max(0,Math.min(1,BRB.bqK+((BRB.lieu==='boutique'&&(BRAS_FIG?(BRB.bqVeut||BRB.p>.02):enB))?dt/.55:-dt/.55))); // (sans le bras) posée dès qu'on ARRIVE dans la catégorie
+  const posee=BRAS_FIG?(BRB.lieu!=='boutique'||(BRB.bqK>.98&&(GBQ.ba||0)<.03&&Math.abs(GBQ.lev||0)<.04)):figPosee(),veut=BRAS_FIG&&(enA||(enB&&BRB.bqVeut));
   const c9=((veut&&posee&&(enB||(GATL.c>.62&&GATL.p<.06))&&!GAR.sw&&!BRB.libre&&!(BRB.esquive>0))||!!BRB.plan)?1:0;
   BRB.p=Math.max(0,Math.min(1,BRB.p+(c9?dt/1.3:-dt/.9)));
   BRB.esquive=Math.max(0,BRB.esquive-dt);
@@ -62000,7 +62010,8 @@ function figEqToast(id,c){const f=window.FIG&&FIG.par[id];if(!f)return;const r=f
   else{uiClic('nav');toast(pxi('rotation')+' '+sansAcc(TR(f.n))+' · '+sansAcc(TR('ÉQUIPÉE'))+' · '+fam);}} // déjà là : une par direction, toujours — on en change en équipant une autre de cette direction
 function figEquipee(id){return figSlots().indexOf(id);} // son 1er emplacement (0 avant · 1 arrière · 2 côté), −1 sinon
 function garFigEssai(id,c,libre){let f=window.FIG&&FIG.par[id];if(!f)return;if(c!=null&&c<2&&FIG.oriente)f=FIG.oriente(f,FIG_DIR[c]);
-  if(!libre&&(brasVoulu()||brasBqVoulu())){if(brasBqVoulu())BRB.bqVeut=true;if(GFIG.corps)GFIG.corps.vide();if(GFIG.lect)GFIG.lect.vide();GFIG.D=0;const r9=brasFigure(f);if(r9===true)return;if(r9==='libre'){BRB.libre={id:id,c:c,t:.5};return;}} // (2026-10-19) à l'inventaire, LE BRAS DES FIGURES la fait (sans plan sûr : il se range d'abord, puis elle la fait seule) // (2026-10-15) la caisse la fait dans le sens de la carte (le rodéo avant ≠ le rodéo arrière)
+  if(!libre&&!BRAS_FIG&&(brasVoulu()||brasBqVoulu())&&!figPosee()){if(GFIG.corps)GFIG.corps.vide();if(GFIG.lect)GFIG.lect.vide();GFIG.D=0;BRB.libre={id:id,c:c,t:.5};return;} // (19/10 soir) pas encore posée (pinces, bras d'argent qui rentrent) : elle la fera dès qu'elle l'est (brasTick)
+  if(!libre&&BRAS_FIG&&(brasVoulu()||brasBqVoulu())){if(brasBqVoulu())BRB.bqVeut=true;if(GFIG.corps)GFIG.corps.vide();if(GFIG.lect)GFIG.lect.vide();GFIG.D=0;const r9=brasFigure(f);if(r9===true)return;if(r9==='libre'){BRB.libre={id:id,c:c,t:.5};return;}} // (2026-10-19) à l'inventaire, LE BRAS DES FIGURES la fait (sans plan sûr : il se range d'abord, puis elle la fait seule) // (2026-10-15) la caisse la fait dans le sens de la carte (le rodéo avant ≠ le rodéo arrière)
   if(FIGV2.on&&FIG.Corps){if(!GFIG.corps)GFIG.corps=new FIG.Corps();const C=GFIG.corps;C.vide();C.lance(f,1,f.D*1.2);C.evts.length=0;GFIG.t=0;GFIG.D=f.D*1.2*(FIG.PHY.elan?1:1/.85)+.6; /* (2026-10-15 soir) le coup net : la figure en f.D × 1,2, puis le planté */
     try{if(SONV2){sfx('turbo.mini',{vol:-6});GSON9=true;}}catch(e){}return;} // (LES FIGURES v2) la caisse fait la figure en vraie physique : explosion, élan, planté
   if(!GFIG.lect)GFIG.lect=new FIG.Lecteur();GFIG.lect.vide();GFIG.lect.lance(f,1,f.D*1.25);GFIG.t=0;GFIG.D=f.D*1.25;
