@@ -3,6 +3,19 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE BRAS DES FIGURES EN BOUTIQUE (2026-10-19, Léo : « mets aussi les bras robots dans la boutique, onglet FIGURES » · « faut pas qu'il soit orange, faut qu'il soit comme dans la boutique un peu ; travaille un tout petit peu l'animation ; les autres posent la voiture et un autre bras apparaît »)
+- Boutique (salle blanche), catégorie FIGURES (`brasBqVoulu` : GBQ.cat 'figure') : à la 1re figure touchée, les DEUX BRAS D'ARGENT posent la caisse
+  sur le plateau et rentrent dans le socle (`BRB.bqK`, lu par `garBqIndus` — la lévitation descend — et `garBqBras` — ils rentrent une fois la
+  caisse posée ; le PLATEAU reste visible) ; le grand bras sort ensuite du sol et fait la figure, comme à l'atelier. On quitte la catégorie : il
+  rentre, puis les deux bras ressortent et la relèvent. Tant qu'il est là : ni tangage ni roulis au doigt, la vitrine ne tourne plus d'elle-même.
+- L'HABIT par salle (`brasHabille`) : chaque pièce a un rôle ; atelier = le jaune des pinces, boutique = l'argent / graphite / chrome des deux bras
+  (`GBQ.matB`, aucun programme de plus) et leur diode ambre, verte quand il tient ; pas de gorge noire sur le sol blanc. Le bras vit maintenant dans
+  la SCÈNE (GAR.root est éteint en boutique) ; repère posé sur la caisse au repos (`BRB.y0`), le sol 6 cm plus bas (`BRB.dSol`).
+- L'ANIMATION : trajets d'un seul geste (les trois temps se chevauchent : il monte en commençant à tourner) ; un temps SERRE (la diode passe au vert,
+  la caisse décolle de 2,5 cm sous la pression) ; la levée dépasse de ~4 % et se pose (`brasDep`, portée vérifiée à 1,06 × la levée).
+- Mesuré : en boutique les 13 figures avec le bras, 0 traversée, la caisse jamais sous le plateau ; l'inventaire inchangé (13/13, 0 contact).
+  Planche : `photos-gameplay/bras-robot-boutique-avant-apres.png` (dossier CAR CAHS V3).
+
 ## LE BRAS DES FIGURES — L'INVENTAIRE, ONGLET FIGURES (2026-10-19, Léo : « au lieu d'avoir une machine qui tient les roues, une machine prête à soulever la voiture et à la faire tourner — faire attention à la physique, que le truc ne passe pas à travers la voiture, cohérent avec ce qu'on a déjà » ; choix : « elle fait la figure » · « onglet FIGURES seulement »)
 - **Ce qui change** : à l'atelier fermé (`GATL.on`), onglet FIGURES (`SHOP.tab 'figure'`), les 4 pinces des roues rentrent (`garAtelierTick`,
   condition `!brasVoulu()`) et un grand BRAS ROBOT jaune (matières `GATL.M`, 0 programme de plus) sort replié d'une trappe, sur un RAIL posé
