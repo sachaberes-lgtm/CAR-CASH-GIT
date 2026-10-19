@@ -3,6 +3,91 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE HOT ROD REFAIT SUR LA PHOTO DE LÉO — v2 → v3 → v3.1 (2026-10-19, v695 — Léo : « au style poli, tu peux vraiment faire un truc mieux… il y a un truc qui vole un peu dans les airs… pour le moteur, joue avec les mini-cubes » puis « écope chromée comme sur ma photo, cabine de coupé 32 plus ronde » ; « oui, mets le HOT ROD v3.1 dans le jeu »)
+- BOÎTES 7adeed96 (v2 : le coupé 32 rouge de sa photo), 159c7f22 (v3), d3ea10be (v3.1) — le détail plus bas, dans les sections de BOÎTES.
+- Ce qui VOLAIT dans le v2 : la coquille de calandre (9 cm au-dessus de sa traverse), la lame de ressort (15 cm au-dessus de l'essieu, sans
+  jumelles), le moteur (sans supports), épingles et direction dans le vide. v3 : tout rebâti de bas en haut, chaque pièce POSÉE sur une autre.
+- Le moteur : un V8 HEMI 392 (les fils entrent PAR LE DESSUS des couvre-culasses), deux quadruple-corps sous l'écope, en mini-cubes. v3.1 :
+  l'écope en chrome BOMBÉ deux tons, gueule ouverte ; la cabine de coupé « trois fenêtres » ronde (toit bombé, auvent court, vitres aux
+  coins arrondis, bas de caisse qui rentre, jonc de ceinture).
+- La roue : celle du gabarit (`roueDeco`), plus proche du gros plan de Léo que l'option `chapeau` de `lpWheel` (qui reste dans l'outil, inutilisée).
+- Vérifié : course sans erreur, 0 programme compilé en roulant. Planches : `photos-gameplay/hotrod-v3-avant-apres.png`, `hotrod-v31-avant-apres.png`.
+
+## LE ×2 DU GAIN CONTRE UNE PUB + LA PRISE ADMOB DE L'APP (2026-10-19, v694 — Sacha : « prépare les emplacements de pub récompensée dans le jeu (sans module AdMob), on branchera AdMob en v1.1 » ; au quiz : « ×2 sur le gain », « pub maison de 5 s » tant qu'AdMob n'est pas branché, « vraies pubs seulement » pour L'ÉTERNELLE)
+La sortie App Store est prévue ~3 semaines plus tard (~9/11) ; la pub native (AdMob) arrive en v1.1. La SECONDE CHANCE était déjà payée par une pub
+(LA PUB QUI RESSUSCITE, 15/10) : c'est le 2e emplacement.
+- **LE ×2 DU GAIN** (bloc `DBL` juste sous `dbgChance` ; plaque « LE ×2 DU GAIN À L'ÉCRAN DE FIN » sous celle de la seconde chance ; CSS dans
+  `<style id="pubRecompense">`) : à l'écran de fin, la plaque `#mDouble` « ×2 · +$ N · ▶ PUB » — laque au néon VERT de l'argent (`.pb-cash`),
+  jamais l'or (REJOUER reste le seul lingot). Debout : juste sous la plaque d'argent. Couchée : la case `row` au-dessus de ⌂ · REJOUER (celle que
+  NON MERCI tient pendant l'offre). Elle entre 1,1 s après que l'écran est jouable (le compte du grand chiffre est fini). Pub vue jusqu'au bout →
+  ce que la partie a VERSÉ AU COMPTE (`RUNX.verse`, le grand chiffre vert) est versé une 2e fois, le chiffre monte de N à 2 N et claque, la ligne
+  COMPTE suit. UNE fois par partie (`dblRaz` au départ, à côté de `chanceRaz`) ; jamais pendant l'offre de seconde chance, la machine à sous ou
+  une pub (`chanceAttend`, `SPIN.ouvert`, `PUBR.on`) ; pas sous `DBL.min` (50 $), ni au bac à sable, à l'auto-école, au parc, au Survivant, en
+  balade. Pub fermée trop tôt (vraie régie) : rien n'est versé, la plaque revient tout de suite. Ce que la machine à sous verse APRÈS la mort
+  n'est pas doublé (`RUNX.verse` est figé à la mort). Il s'ajoute au ×2 DU JOUR (1re partie du jour : ×4 au total).
+  Sans régie (l'app v1 et le site d'aujourd'hui) : la PUB MAISON de 5 s, dont le pied dit « TON GAIN ×2 APRÈS LA PUB » (`pubMaison(fini,nom)`).
+  `?double=0` éteint tout ; banc `dbgDouble()` / `dbgDouble('joue')`.
+- **L'ÉTERNELLE** (« REGARDE 100 PUBS », `SAVE.d.ex.pubs`) se remplit de nouveau : `pubCompte()` dans `pubRecompense`, pour chaque pub d'une
+  VRAIE régie vue jusqu'au bout. La pub maison ne compte pas (`dbgPub().pubs`).
+- **LA PRISE ADMOB** (« LA RÉGIE ADMOB DE L'APP iPHONE » dans le `<head>` : `CC_ADMOB={recompense:''}` ; « LA RÉGIE ADMOB, CÔTÉ JEU » : `AMOB`,
+  juste au-dessus de la régie AdSense) : ÉTEINTE. Elle ne s'allume que dans l'app (`window.Capacitor`), avec le module natif
+  `@capacitor-community/admob` installé ET l'identifiant du bloc récompensé dans `CC_ADMOB.recompense`. Alors : initialize, consentement RGPD
+  de Google (UMP), fenêtre de suivi d'Apple (ATT), une pub préchargée ; elle pose `CC_PUB_PREPARE`/`CC_PUB_RECOMPENSE` et sert les DEUX
+  emplacements. `?pubtest=1` dans l'app = le bloc de test de Google. ⚠ Écrite sans le module ni Mac : noms d'événements/options de la v5-v7 du
+  module, à vérifier au banc sur un vrai iPhone. **À FAIRE EN v1.1, côté Mac** : `npm i @capacitor-community/admob` + `npx cap sync ios` ; l'App
+  ID AdMob (`GADApplicationIdentifier`), `SKAdNetworkItems` et `NSUserTrackingUsageDescription` dans Info.plist ; l'identifiant du bloc dans
+  `CC_ADMOB.recompense` ; refaire les réponses « confidentialité » de l'App Store (identifiant publicitaire, données d'usage, suivi) ;
+  `app-ads.txt` sur le site du développeur (Vercel).
+- **MESURÉ au banc** (Chrome sans fenêtre, muet, `cc-banc/lib.cjs`, partie de 40 s, 3 000 $ versés, compte 50 000 $) : COUCHÉ 844 × 390 →
+  pendant l'offre de seconde chance la plaque ×2 est cachée ; NON MERCI → elle entre (« ×2 +$ 3 k ▶ PUB », au-dessus de REJOUER, rien ne la
+  recouvre) ; toucher → la pub maison 5 s (« TON GAIN ×2 APRÈS LA PUB ») → compte 53 000 → 56 000, grand chiffre $ 3 k → $ 6 k, plaque partie.
+  Régie qui dit NON → 0 $ versé, offre gardée ; régie qui dit OUI → +3 000 $, sans pub maison, `ex.pubs` 0 → 1. DEBOUT 390 × 844 → la plaque sous
+  l'argent, au-dessus des cartes, REJOUER toujours à l'écran ; même parcours, 53 000 → 56 000. 0 erreur. Fumée commune (`cc-banc/fumee.cjs`) avant la poussée.
+
+## LA RÉSURRECTION + LE JACKPOT QUI DONNE UNE ÉPIQUE + LES LOTS DU FINAL SPIN REVUS (2026-10-19, session resurrection — Sacha : « seconde chance doit ressusciter la voiture : fais une animation stylée où les pièces de la voiture se réassemblent par magie » · « le jackpot doit faire gagner une voiture épique » · « seconde chance doit être plus probable ; les sacs d'argent doivent être plus rares, mais ils rapportent 50× plus d'argent qu'actuellement »)
+- **LA RÉSURRECTION** (`RESU`, `resuLance`/`resuBatit`/`resuTick`/`resuClac`/`resuFin`/`resuVue`) — la reprise de la seconde chance ne pose plus
+  la caisse d'un coup. Sous le volet (`chanceRepart`), ses VRAIES pièces (`CAR_PIECES`, celles que l'explosion arrache) apparaissent éparpillées
+  autour d'elle (sur les côtés, en hauteur, vers l'avant : derrière, c'est la caméra) et flottent ; puis elles s'aimantent vers leur place
+  EN TOURBILLON, une à une — les roues d'abord (elles arrivent en roulant), puis le bas de caisse, puis le haut —, chacune traînant des
+  étincelles d'or et de néon (`sparkGold`/`sparkBlue`), une hélice cyan qui monte autour de la caisse. Chaque éclat qui se verrouille claque
+  (`spin.arret`, une note de la pentatonique plus haut à chaque fois : l'arpège monte avec la caisse) et jette une gerbe ; le dernier posé, la
+  caisse soudée revient d'un coup sous un ANNEAU DE NÉON (`neonPool`), une gerbe d'or, un flash or et le chœur du MIRACULÉ (`jeu.miracule`).
+  Le départ : les carillons de `pwr.a`. ~1,5 s, pendant le 3 · 2 · 1 — qui se tait (plus de `ui.bip` ni de `ui.go` : l'arpège et le chœur
+  les remplacent) ; le bouclier (`CHANCE.invD`) et le clignotement suivent comme avant.
+- **Mesuré au banc** (Chrome sans fenêtre, muet, menu → JOUER → pilote → mort → bon de seconde chance) : 13 éclats, 34 dessins, les 13 posés
+  à 1,5 s, la caisse revient, clignote, la course continue — couché (844 × 390), debout (390 × 844) et dans le cadre de l'ordi, aucune
+  erreur nouvelle (les 23 avertissements `flatShading` existaient avant). Deux pièges trouvés : (1) au premier jet, un pan de toit partait
+  en hauteur et tournait de 195° jusque devant l'objectif (la caméra est à 5,4 m derrière, 1,9 m au-dessus, 90°) — les départs sont
+  désormais devant et sur les côtés, sous 2,3 m, et le tourbillon tourne de 25 à 55° vers l'avant ; (2) `e = u²(2,2 − 1,2u)` vaut
+  1,0000000000000002 à u = 1 : `k = 1 − e` négatif, `Math.pow(k,1.5)` = NaN, chaque éclat posé DISPARAISSAIT (k borné à 0). Après la
+  dernière pièce, la caisse reste pleine 0,4 s (`RESU.plein`) : le clignotement l'éteignait parfois pile à son retour.
+- **Comment** : les pièces sont regroupées en ÉCLATS — chaque roue seule, la carrosserie en 12 morceaux (gauche/droite × avant/milieu/arrière ×
+  bas/haut, au centre de chaque pièce) — et chaque éclat est SOUDÉ par matière (`fusGeo`/`fusMaillage`, comme `caisseSoude`) : une quinzaine
+  d'éclats, quelques dizaines de dessins pendant 1,5 s, les MÊMES matières (aucun programme compilé en course) ; les géométries soudées sont
+  libérées à la fin. Le groupe `RESU.g` vit dans la scène, calé sur la caisse AU RENDU (`scene.onBeforeRender`, chaîné) : les éclats suivent
+  la caisse qui roule déjà. La caisse reste cachée tant qu'ils volent (`chanceTick`) ; `resuVue` fait le ménage si la course s'arrête
+  (fin, garage, menu), `chanceRaz` aussi. **`?resu=0` = la reprise d'avant.** Banc : `dbgResu()` (l'état), `dbgResu('lance')` (la rejouer).
+- **LE JACKPOT = UNE VOITURE ÉPIQUE** (`spinEpique`, `spinDonne`, `spinPaye`) : trois 7 donnent une ÉPIQUE pas encore à toi, au hasard, parmi
+  celles qui se vendent à l'argent du jeu (ni défi, ni euros), ni retirées, ni promises par une MISSION (les secrètes restent à gagner).
+  Elle entre dans `SAVE.d.owned` (et `carWas` : la course suivante ne la recrie pas « NOUVELLE CAISSE »). L'écran des lots écrit son nom à
+  la couleur des épiques, « VOITURE ÉPIQUE », et sa PHOTO de boutique (`carPhoto`) remplace le 7 après les éclats. Quand le joueur les a
+  TOUTES, le 7 verse 500 000 $ (`cash` du lot `sept`). Banc : `dbgSpin(n,'sept')`.
+  Au 19/10, 10 épiques possibles : ROSSO 40, ACIDE, LA QUEUE DE CANARD, LA TAURINE, LA ZED, LA RAIE, L'ABSTRAITE, L'ICEBERG, LA PERLE,
+  LA BÊTE (les épiques des MISSIONS — FOURNAISE, AIGLE DE FEU, ATCHOUM, SQUALE, CAISSE-NUAGE… — restent à gagner).
+- **LES LOTS** (`SPIN.lots`) — avant → après :
+  | lot | proba | gain |
+  |---|---|---|
+  | PETIT SAC | 20 % → **8 %** | 120 → **6 000 $** |
+  | SAC D'ARGENT | 12 % → **4 %** | 300 → **15 000 $** |
+  | GROS SAC | 4 % → **1,2 %** | 1 000 → **50 000 $** |
+  | SECONDE CHANCE GRATUITE | 5 % → **15 %** | |
+  | DÉPART BOOSTÉ | 7 % | |
+  | +1 JETON | 5 % | |
+  | JACKPOT | 1,2 % | 5 000 $ → **une ÉPIQUE** |
+  | consolation | 45,8 % → **58,6 %** | 40 $ |
+  L'espérance d'argent par tirage passe d'environ 178 $ à environ 1 700 $ : le plafond de GENERAL (« ≤ 10 % du gain d'une partie ») est
+  levé par cette demande de Sacha.
+
 ## LE TUNNEL DE GRÈS — LA GALERIE AUX ANNEAUX D'OR, LA SALLE DU PORTAIL, LA BOUCHE EN VOUSSOIRS (2026-10-19, session tunnel-canyon — Sacha : « le tunel d'arriver pour la map canyon est moche » ; entre deux idées proposées, le choix : « le tunnel de grès » plutôt que « la fente façon Antelope »)
 Le TUNNEL D'ARRIVÉE du canyon (les 460 derniers mètres, du 14/10) est refait sur place. **`?sans=tunnelcanyon` = celui du 14/10, au bit près**
 (cyBandes/cyGalerie, intouchés). Tout est dans `cyTunnel2` (appelé par `cyCouloir`), le commentaire « LE TUNNEL DE GRÈS » au-dessus fait foi.
@@ -68,6 +153,24 @@ Le TUNNEL D'ARRIVÉE du canyon (les 460 derniers mètres, du 14/10) est refait s
   `dbgAuto(1,0)` entre deux vols (sinon la caisse sort de la route pendant que la machine rame et la partie finit).
 - À TRANCHER par Sacha : rien — sauf si l'écran qui roule avec la route en vol gêne (il roule à la vitesse de la vrille, comme en roulant).
 
+## LES 10 MISSIONS CACHÉES REVIENNENT, PAYÉES EN ARGENT (2026-10-19, session missions-propres — Sacha : « rends les 10 missions cachées avec une récompense en argent à la place de la caisse absente »)
+- Les dix missions que `m2Dispo` cachait (section juste dessous) ont maintenant `r:{cash:N}` dans `M2` (la récompense d'avant est notée en fin de
+  ligne) ; leurs `id` ne bougent pas (sauvegardes) :
+  · visibles — fren30 TIENS LA FRÉNÉSIE 30 S : 25 000 $ (avant : la traînée « sang ») · vie5min TIENS 5 MIN SANS MOURIR : 30 000 $ (LA JEEP) ·
+    tours5 FRÔLE 5 TOURS : 20 000 $ (LE TAXI JAUNE) · toutall COLLECTE TOUS LES OBJETS DU JEU : 500 000 $ (récompense « à définir ») ;
+  · secrètes — mort3s : 5 000 $ (LA SANS-PERMIS) · arret : 5 000 $ (LE GRILLE-PAIN) · nitplein : 10 000 $ (LA BOULE) · lac10 : 15 000 $
+    (LE GLACIER) · sanspiece : 15 000 $ (LA DEUCHE) · jours7 : 25 000 $ (LA DÉESSE).
+  Les montants suivent l'échelle des autres (FRÉNÉSIE 10 k, 20 000 D'AURA 30 k, une très bonne partie ≈ 30 k).
+- Une SECRÈTE payée en argent n'a pas de scène de révélation (elle montre une caisse) : `m2RevFile` ne prend plus que les secrètes à caisse ;
+  celle-ci brille « SECRÈTE … RÉCUPÈRE + $ 5 k » et se récupère d'un tap, comme une autre.
+- Une réussie d'avant (restée « BIENTÔT AU GARAGE ») se récupère maintenant : l'argent.
+- Si une de ces caisses revient au garage un jour : elle s'achète à son prix d'avant (le patch `k:'mis'` ne la prend plus) ; pour qu'une
+  mission la redonne, remettre `r:{car:'…'}` sur sa ligne.
+- **Vérifié** (Chrome sans fenêtre, téléphone couché) : 57 missions, aucune cachée ; vie5min et mort3s réussies → écran MISSIONS : « TIENS 5 MIN
+  SANS MOURIR · RÉCUPÈRE · + $ 30 k », « SECRÈTE · MEURS DANS LES 3 PREMIÈRES SECONDES · RÉCUPÈRE · + $ 5 k », compte 2 / 39, aucune
+  « BIENTÔT AU GARAGE », pas de ligne cadeau ; les deux récupérées d'un tap ; une course couché, debout et dans le cadre de l'ordi sans
+  erreur. Cache v691.
+
 ## MISSIONS SANS CADEAU NI « BIENTÔT AU GARAGE » (2026-10-19, session missions-propres — Sacha : « dans le bouton mission il y a un truc streak 3 days gift ready, enlève ça » · « il y a des missions en vert avec marqué coming to the garage soon » · « ça aussi enlève »)
 - **La ligne du cadeau** (en tête de l'écran MISSIONS, `#mCadeau` : « SÉRIE 3 JOURS · CADEAU PRÊT · TOUCHE », en anglais « STREAK 3 DAYS · GIFT READY · TAP ») :
   `CADO.on` est FAUX par défaut (`/[?&]cadeau=1\b/` au lieu de `!/[?&]cadeau=0\b/`) → `cadeauEtat().actif` faux → la ligne se tait, plus de
@@ -104,8 +207,8 @@ Le TUNNEL D'ARRIVÉE du canyon (les 460 derniers mètres, du 14/10) est refait s
   `__loopErr` vide. Le Mac était saturé (charge 150 à 270, les bancs d'autres sessions) : la photo du grand nom et de la ligne du combo est
   prise au banc du HUD seul — les VRAIES feuilles et les vraies `fhNet`/`fhTitre`/`FIG_RP` d'index.html, le DOM de `fhEl`, la taille de
   `fhNom`, sur la photo de la map —, avant/après, couché et debout.
-- À TRANCHER PAR SACHA : s'il préfère une autre police plutôt que le gothique en minuscules, la planche montre les candidates (Workbench,
-  Handjet, Bitcount Grid Double se lisent le mieux) — ce serait un .woff2 de plus (3 à 7 Ko) et une ligne dans <style id="policeUnique">.
+- VALIDÉ PAR SACHA (2026-10-19, après la planche avant / après et les trois autres polices : Workbench, Handjet, Bitcount Grid Double) :
+  « OK, on garde le gothique en minuscules pour les légendaires. »
 ## LA GROTTE VASTE — LES PROFONDEURS 1,7 × PLUS LONGUES, DES SALLES 2,5 × PLUS GRANDES (2026-10-19, session GROTTE — Sacha : « la map grotte doit etre plus longue et la grotte beaucoup plus vaste »)
 - **Ce qui change** (tout derrière `GRT_VASTE` ; `?sans=grottevaste` = la grotte d'avant À L'IDENTIQUE — vérifié sur la même graine : mêmes
   comptes que `main`, jusqu'aux 205 776 triangles) :
@@ -1515,6 +1618,48 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   basculaient en vue « dessus » → règle de vue abaissée à 0,83 m.
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
+
+## LE HOT ROD v3.1 — L'ÉCOPE CHROMÉE, LA CABINE DE COUPÉ 32 (2026-10-19, discussion BOÎTES ; Léo : « pousse encore le HOT ROD : écope chromée comme sur ma photo, cabine de coupé 32 plus ronde »)
+- **L'ÉCOPE** : un grand volume de CHROME BOMBÉ (loft à huit points par demi-section ; le bas en chrome sombre `C`, le haut clair : le reflet
+  du sol et du ciel), posé sur les deux quadruple-corps, l'arrière arrondi, le ventre qui se relève devant les carburateurs, la gueule qui
+  monte ; OUVERTE : une lèvre polie évasée, son bord, et le tunnel sombre derrière. Elle s'arrête avant le radiateur (rien ne traverse).
+- **LA CABINE** : le toit plus BOMBÉ (11 cm de bombé, l'arête arrondie) ; l'auvent court et ROND (il se rétrécit en courbe et sa crête
+  tombe devant ; plus de face en caisse devant la porte) ; la vitre de porte aux coins HAUTS arrondis (deux éventails rouges, l'encadrement
+  qui suit l'arrondi) ; la porte en FENTE C aux coins du bas arrondis, posée sur la tôle (`cote`) ; le bas de caisse qui rentre ; le JONC
+  de ceinture. Pas de vitre de custode : c'est un coupé « trois fenêtres » (deux vitres de porte + la lunette), comme la photo.
+- Banc : 0 programme compilé en course (couché, debout ; un +1 intermittent en portrait vu aussi avec le v3 : un événement de course) ;
+  garage comme avant. Planche : `photos-gameplay/hotrod-v31-avant-apres.png`. Attend le oui de Léo.
+
+## LE HOT ROD v3 — LA STRUCTURE EN POLY, LE MOTEUR EN MINI-CUBES (2026-10-19, discussion BOÎTES ; Léo sur la planche du v2 : « au style poly tu peux vraiment faire mieux, concentre-toi sur la structure — il y a un truc qui vole dans les airs ; inspire-toi des gros plans ; le moteur, joue avec les mini-cubes, recherche le modèle »)
+- **CE QUI VOLAIT** (vues basses du v2) : la coquille de calandre 9 cm au-dessus de sa traverse, la lame de ressort 15 cm au-dessus de l'essieu
+  sans jumelles, le moteur sans supports, les épingles et la direction accrochées dans le vide.
+- **BÂTI DE BAS EN HAUT** : les longerons rouges en prismes CHANFREINÉS (octogones), qui remontent sous la calandre et plongent en CORNES
+  jusqu'à la barre chromée ; traverses (ressort, support de radiateur, boîte, arrière) ; la caisse POSÉE dessus ; la coquille sur son
+  support ; l'essieu en I, la lame transversale en arc serrée sous sa traverse, ses jumelles et brides ; épingles, amortisseurs et
+  direction AU LONGERON ; les phares sur des pattes boulonnées aux longerons. Les vrais volumes de la cabine : gouttière du toit,
+  encadrements de la vitre, du pare-brise, de la lunette.
+- **LE MOTEUR** identifié : un V8 HEMI Chrysler (392) — les fils rouges entrent par le DESSUS des grands couvre-culasses (bougies au
+  milieu de la culasse) ; pas de compresseur sur la photo (deux quadruple-corps sous la grande écope). En mini-cubes : culasses rouges,
+  couvre-culasses en alu satiné à ailettes polies et vis, capuchons dressés et fils qui bouclent, pipe haute, carburateurs et leurs cuves,
+  écope (loft), collecteurs 4-en-1 gris, distribution, poulies, courroie, allumeur, boîtier bleu, cloche et boîte ; SUR SES SUPPORTS.
+- **LES ROUES** : la nôtre (`roueDeco`) gardée — plus proche du gros plan 2 que la jante `chapeau` de lpWheel (grand chapeau, flanc fin).
+- Prismes posés triangle par triangle (`poutreF`, sans ExtrudeGeometry). Banc : 0 programme compilé en course (couché, debout, répété),
+  garage comme le v2 ; construction 40-50 ms sous charge (le v2 : 22-29 ms dans les mêmes conditions). Planche :
+  `photos-gameplay/hotrod-v3-avant-apres.png`. Attend le oui de Léo.
+
+## LE HOT ROD v2 — LE COUPÉ DE LA PHOTO DE LÉO (2026-10-19, discussion BOÎTES ; Léo, une photo à l'appui : « exactement celle-là, la couleur, moteur vraiment stylé, roues exactes, plaque au même endroit, tout tout pareil, poly réalisme — en mode poly hybride, ultra mini cubes si besoin »)
+- Le gabarit `c_hotrod` RÉÉCRIT : le coupé « trois fenêtres » de 1932, ROUGE (0xc8141c, la fiche aussi), en highboy (sans ailes) — la coque
+  sur son CHÂSSIS rouge à l'air (longerons sous les portes, « kick-up » sur l'essieu, cornes qui plongent), la porte « suicide » et la malle en
+  FENTE C, la banquette capitonnée, le volant à droite ; la CALANDRE rouge, son bord qui avance de 8 cm, la grille au fond et ses 31 barreaux
+  fins ; les PHARES-OBUS chromés sur leurs pieds ; l'essieu surbaissé chromé, la lame transversale, les jambes de force, les amortisseurs ;
+  la PLAQUE noire en bas devant, « CASH 32 » en mini cubes (décor : celle du joueur reste derrière, `plqDessinee`).
+- LE V8 POLI : bloc rouge, couvre-culasses polis à ailettes et vis (mini cubes), fils de bougies rouges vers l'allumeur, deux carburateurs
+  sous la grande ÉCOPE ovale, poulies, alternateur, durite chromée, collecteurs quatre-en-un qui partent sous la caisse.
+- LES ROUES dessinées par le gabarit (`roueDeco`, style `nyan` : l'outil commun `lpWheel` n'est PAS touché) : pneu à FLANC BLANC, jante
+  ROUGE, grand chapeau chromé ; petites devant (`wRF` 0,82 : rayon 0,31, voie `wxF` 0,66), grosses derrière (0,38).
+- Les pots : `ECH_POTS.c_hotrod` passe en deux sorties `reel` sous la poupe (les cheminées sont parties ; le type `hotrod` ne sert plus).
+- Banc : construction 34 ms, 0 programme compilé en course (couché, debout), garage comme avant (+6, déjà le cas). Planche :
+  `photos-gameplay/hotrod-vraie-et-nous.png`. Attend le oui de Léo.
 
 ## AFFINEMENT · LOT 4 BOÎTES — LE HOT ROD, LE MASTODONTE, L'AIGLE DE FEU, LA CABOSSÉE, L'ORIGAMI (2026-10-19, discussion BOÎTES)
 - **LE HOT ROD** (64) : les phares-obus DESCENDUS contre la calandre (y 0,82, x 0,44 : ils flottaient en haut et mordaient dans les pneus),
