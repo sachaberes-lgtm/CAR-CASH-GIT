@@ -1,0 +1,188 @@
+<style id="missionsV2">
+/* LES MISSIONS v2 — L'ÉCRAN (2026-10-16, Sacha : « un écran MISSIONS magnifique, bâti à partir de la vue garage » · « une seule liste,
+   triée intelligemment » · charte v4/v5 : texte et icônes en pixel, aucun emoji, l'argent du jeu en vert, l'or réservé à la décision et
+   au suivi). Sur le panneau de la vue caméra (#gmListe.m2, placé par gmPlaceL). Chaque famille a SA couleur — jamais l'or : exploit
+   cyan · aura rose · argent vert · moteur ambre · collection bleu · exploration menthe · secrète magenta. L'or = la mission SUIVIE ; le
+   vert = l'argent et RÉCUPÈRE. Voir « LES MISSIONS v2 » au journal. */
+html.misV2 #gMis{--m2Col:#4db8ff;--m2Exp:#3ee8a8;--m2T:.9s}
+html.misV2 #gmSous{font-size:var(--f3);line-height:1.5;letter-spacing:2px;color:var(--neoC)}
+html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!important}
+#gmListe.m2 .glA{padding-bottom:8px}
+.m2L{position:relative;display:flex;align-items:center;gap:10px;min-height:60px;box-sizing:border-box;padding:9px 10px 9px 9px;margin-bottom:6px;cursor:pointer;
+  --fc:var(--neoC);--bc:var(--fc);background:#0f2747;box-shadow:inset 0 0 0 1px rgba(95,240,255,.18);
+  transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease);animation:gmIn .4s var(--ease) backwards;animation-delay:calc(var(--i,0)*45ms + 220ms)}
+.m2L:active{transform:translateY(2px)}
+.m2F-exploit{--fc:var(--neoC)}.m2F-aura{--fc:var(--aura)}.m2F-argent{--fc:var(--cash)}.m2F-moteur{--fc:var(--neoA)}
+.m2F-collection{--fc:var(--m2Col)}.m2F-exploration{--fc:var(--m2Exp)}.m2F-secret{--fc:var(--neoM)}
+/* l'icône de la famille = la case qu'on coche : un octogone pixel, son coin d'or quand la mission est suivie */
+.m2Ic{position:relative;flex:none;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--fc);background:#06142b;
+  box-shadow:inset 0 0 0 1px var(--fc);clip-path:polygon(5px 0,calc(100% - 5px) 0,100% 5px,100% calc(100% - 5px),calc(100% - 5px) 100%,5px 100%,0 calc(100% - 5px),0 5px)}
+.m2Ic .pxi{--pxs:2}
+.m2Ck{position:absolute;right:0;bottom:0;width:12px;height:12px;background:var(--au2);clip-path:polygon(100% 0,100% 100%,0 100%)}
+.m2L .glTx b{font-size:var(--f1);line-height:1.45}
+.m2L u{display:block;height:5px;margin:6px 0 5px;background:#030914;box-shadow:0 0 0 1px rgba(95,240,255,.2)}
+.m2L u em{display:block;height:100%;width:0;background:var(--bc);box-shadow:0 0 8px var(--bc);transition:width var(--m2T) var(--ease)}
+.m2L .glTx small{color:#8fb8c8}
+.m2Sec{font-style:normal;display:inline-block;padding:2px 4px 1px;margin-right:2px;background:var(--neoM);color:#fff;font-size:var(--f0);line-height:1.3;letter-spacing:1px;vertical-align:1px}
+/* la vignette de la récompense : elle tourne doucement (une caisse sur son plateau) */
+.m2R{flex:none;width:88px;height:50px;display:flex;align-items:center;justify-content:center} /* (2026-10-17, Sacha : « les vignettes de récompense plus grandes ») 70 × 44 → 88 × 50 */
+.m2R.voir{cursor:pointer}
+.m2R .obFig{position:relative;right:auto;top:auto;margin:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.m2Ph{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#4c5f8c}
+.m2Ph .pxi{--pxs:2}
+.m2Ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.m2Ph img:not([src]){display:none}
+/* (2026-10-17) la photo du studio (720 × 440) laisse un grand vide autour de la caisse (elle tient dans x 68-666, y 46-306) : la vignette
+   la RECADRE sur la caisse — 115 % de large, son milieu (51 % en x, 40 % en y) au milieu de la case (rapport ~1,75 à toutes les tailles :
+   top 0 tombe juste). La caisse y passe de ~60 × 26 à ~84 × 37 px ; le débord est transparent et ne prend pas le doigt. */
+.m2R .m2Ph img{inset:auto;left:-8.65%;top:0;width:115%;height:auto;object-fit:fill;pointer-events:none}
+.m2R .m2Ph img,.m2R .obFig{animation:m2Tourne 5.5s var(--ease) infinite alternate;transform-origin:50% 62%}
+@keyframes m2Tourne{from{transform:perspective(240px) rotateY(-18deg)}to{transform:perspective(240px) rotateY(18deg)}}
+.m2Cash{font-weight:400;font-size:var(--f1);color:var(--cash);white-space:nowrap;text-shadow:0 0 8px rgba(125,255,155,.35)}
+.m2Vide{font-style:normal;font-size:var(--f4);color:#6f6a99}.m2Vide .pxi{--pxs:3} /* (2026-10-17) l'objet pas encore dans le jeu (la traînée de SANG) : son icône à la taille de la vignette */
+/* SUIVIE : le filet d'or */
+.m2L.f{--bc:var(--au2);background:#2b240c;box-shadow:inset 0 0 0 2px var(--au2)}
+.m2L.f .glTx small{color:var(--au1)}
+.m2L.f .m2Ic{box-shadow:inset 0 0 0 2px var(--au2)}
+/* À RÉCUPÉRER : elle brille, et RÉCUPÈRE (penché : on touche) — toute la ligne répond */
+.m2L.pret{--bc:var(--cash);background:#0b2a1c;box-shadow:inset 0 0 0 2px var(--cash),0 0 16px rgba(125,255,155,.25);
+  animation:gmIn .4s var(--ease) backwards,m2Brille 1.4s var(--ease) infinite alternate;animation-delay:calc(var(--i,0)*45ms + 220ms),0s}
+@keyframes m2Brille{to{box-shadow:inset 0 0 0 2px var(--cash),0 0 28px rgba(125,255,155,.55)}}
+.m2Pr{display:inline-flex;align-items:center;margin-top:7px;min-height:30px;padding:0 12px;background:linear-gradient(180deg,#9dffb4,#3fd46a);color:var(--cashO);
+  font-size:var(--f0);letter-spacing:1px;transform:skewX(var(--sk));box-shadow:0 3px 0 #127a35,inset 0 1px 0 rgba(255,255,255,.6)}
+.m2Pr>span{display:inline-flex;align-items:center;gap:6px;transform:skewX(var(--skI))}.m2Pr .pxi{--pxs:1}
+.m2L.pret:active .m2Pr{transform:skewX(var(--sk)) translateY(2px);box-shadow:0 1px 0 #127a35}
+.m2Bt{color:#6f93a6!important}
+.m2L.pris .m2R{animation:m2Tombe .55s var(--ease) forwards}
+@keyframes m2Tombe{to{transform:translateY(26px) scale(.55);opacity:0}}
+/* TERMINÉE : posée, cochée, en retrait */
+.m2L.ok:not(.pret){background:#0b1a33;box-shadow:inset 0 0 0 1px rgba(95,240,255,.10);cursor:default}
+.m2L.ok:not(.pret) .glTx b{color:#a9bfd6}.m2L.ok:not(.pret) .glTx small{color:#5ee37a}.m2L.ok:not(.pret) .m2Ic{color:#5ee37a;box-shadow:inset 0 0 0 1px #5ee37a}
+.m2L.ok:not(.pret) .m2R{opacity:.75}
+.m2L.flash{animation:gmFlash .5s var(--ease)}
+#gmListe.m2.vu .m2L:not(.pret){animation:none}#gmListe.m2.vu .m2L.pret{animation:m2Brille 1.4s var(--ease) infinite alternate}#gmListe.m2.vu .m2L.flash{animation:gmFlash .5s var(--ease)}
+.m2Fin{display:flex;align-items:center;gap:8px;min-height:44px;margin:10px 2px 4px;padding:0 4px;cursor:pointer;font-size:var(--f0);letter-spacing:1px;color:#b9b2e6;
+  border-top:1px solid rgba(143,132,200,.3)}
+.m2Fin span{flex:1}.m2Fin .pxi{--pxs:1}.m2Fin.on{color:#dfeeff}
+.m2Rien{padding:16px 6px;font-size:var(--f0);color:#8fb8c8;text-align:center}
+/* LE POINT VERT des portes MISSIONS : une récompense attend */
+.m2Pt{position:absolute;top:5px;right:6px;width:10px;height:10px;background:var(--cash);box-shadow:0 0 0 2px var(--k0),0 0 10px var(--cash);pointer-events:none;
+  clip-path:polygon(2px 0,8px 0,10px 2px,10px 8px,8px 10px,2px 10px,0 8px,0 2px);animation:m2Pouls 1.2s var(--ease) infinite alternate}
+.m2Pt[hidden]{display:none}
+.m2Pt.in{position:relative;top:auto;right:auto;display:inline-block;margin-left:6px;vertical-align:0}
+@keyframes m2Pouls{to{box-shadow:0 0 0 2px var(--k0),0 0 18px var(--cash)}}
+/* EN COURSE : les missions suivies (#m2Focus), là où vivait #misFocus — discrètes, sous la route */
+#m2Focus{position:fixed;z-index:3;left:50%;bottom:calc(var(--sB,0px) + 6px);transform:translateX(-50%);display:none;flex-direction:column;gap:2px;pointer-events:none;
+  width:min(42vw,360px);font-family:var(--pix)}
+#m2Focus.on{display:flex}
+body:not(.play) #m2Focus{display:none!important}
+.m2FR{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:6px;padding:3px 6px 2px;background:rgba(6,14,33,.84);
+  box-shadow:inset 0 0 0 1px rgba(255,199,42,.5);font-size:var(--f0);line-height:1.2;color:#fff}
+.m2FR i{font-style:normal;line-height:0;color:var(--au2)}.m2FR i .pxi{--pxs:1}
+.m2FR span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.m2FR b{font-weight:400;color:var(--au1);white-space:nowrap}
+.m2FR u{grid-column:1/-1;display:block;height:2px;margin-top:2px;background:rgba(255,255,255,.12)}
+.m2FR u em{display:block;height:100%;background:var(--au2)}
+.m2FR.ok{box-shadow:inset 0 0 0 1px var(--cash)}.m2FR.ok i,.m2FR.ok b{color:var(--cash)}.m2FR.ok u em{background:var(--cash)}
+@media (orientation:portrait){#m2Focus{left:var(--hudG,16px);transform:none;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 40px);width:calc(100vw - var(--hudG,16px) - var(--hudD,16px) - 118px)}}
+/* LA LIGNE DES MISSIONS (2026-10-17, Sacha : « trop de pop-up mission pendant la partie : en ligne, plus discrète, en bas ») — une mission
+   réussie en course : une ligne fine au-dessus des suivies (--m2lY = leur hauteur, posée par m2LigneSuit), à leur place et dans leur matière */
+#m2Ligne{position:fixed;z-index:3;left:50%;bottom:calc(var(--sB,0px) + 6px + var(--m2lY,0px));transform:translate(-50%,4px);opacity:0;
+  display:flex;align-items:center;gap:6px;box-sizing:border-box;width:max-content;max-width:min(60vw,520px);padding:3px 7px 2px;pointer-events:none;
+  background:color-mix(in srgb,var(--k1) 84%,transparent);box-shadow:inset 2px 0 0 var(--m2lC);font-family:var(--pix);font-size:var(--f0);
+  line-height:1.3;color:var(--tx);--m2lC:var(--cash);transition:opacity var(--t-slow) var(--ease),transform var(--t-slow) var(--ease)}
+#m2Ligne.on{opacity:1;transform:translate(-50%,0)}
+#m2Ligne.sec{--m2lC:var(--neoM)}
+#m2Ligne i{flex:none;font-style:normal;line-height:0;color:var(--m2lC)}#m2Ligne i .pxi{--pxs:1}
+#m2Ligne span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#m2Ligne small{font-size:inherit;color:var(--m2lC)}
+#m2Ligne b{flex:none;font-weight:400;color:var(--au1);white-space:nowrap}
+body:not(.play) #m2Ligne{display:none!important}
+@media (orientation:portrait){#m2Ligne{left:var(--hudG,16px);transform:translateY(4px);bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 40px + var(--m2lY,0px));
+  max-width:calc(100vw - var(--hudG,16px) - var(--hudD,16px) - 118px)}
+  #m2Ligne.on{transform:none}
+  #m2Ligne span{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3}}
+@media (prefers-reduced-motion:reduce){#m2Ligne{transition:opacity var(--t-slow) linear}}
+/* L'ÉCRAN DE MORT : la carte MISSIONS (objRenderV2) */
+.mObj.m2Ob .obHd span{display:inline-flex;align-items:center;gap:6px}
+.mObj.m2Ob .m2Cpt{font-weight:400;color:var(--neoC);letter-spacing:1px}
+.mObj.m2Ob .obM{display:flex;align-items:center;gap:8px;min-width:0;font-size:var(--f0);line-height:1.45;letter-spacing:.5px;color:#dfeeff}
+.mObj.m2Ob .obM .pxi{--pxs:1;flex:none;color:var(--neoC)}
+.mObj.m2Ob .obM span{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.mObj.m2Ob .obM b{font-weight:400;color:#8fb8c8;white-space:nowrap}
+.mObj.m2Ob .obM em{font-style:normal;color:var(--cash);white-space:nowrap;max-width:40%;overflow:hidden;text-overflow:ellipsis}
+.mObj.m2Ob .obM.ok .pxi{color:var(--cash)}.mObj.m2Ob .obM.sec,.mObj.m2Ob .obM.sec .pxi{color:var(--neoM)}
+.mObj.m2Ob .obBar{margin:-2px 0 2px}
+/* les petits téléphones et le couché bas : plus serré, la vignette rapetisse, rien ne déborde */
+@media (orientation:landscape) and (max-height:540px){.m2L{min-height:52px;padding:7px 9px 7px 8px;gap:9px}.m2R{width:80px;height:46px}.m2Ic{width:28px;height:28px}.m2L u{margin:5px 0 4px}}
+@media (max-width:360px){.m2L{gap:8px;padding:8px}.m2R{width:70px;height:40px}.m2Ic{width:28px;height:28px}}
+@media (prefers-reduced-motion:reduce){.m2L,.m2L.pret,.m2R .m2Ph img,.m2R .obFig,.m2Pt,.m2L.pris .m2R{animation:none!important}.m2L u em{transition:none}}
+/* LA BOUTIQUE ET LE GARAGE (étape 3) : SE DÉBLOQUE + la jauge + VOIR LA MISSION (cyan : aller voir) ; les SECRÈTES en silhouette noire */
+.m2Deb{display:flex;flex-direction:column;gap:6px;font-family:var(--pix)}
+.m2DebT{font-size:var(--f0);line-height:1.5;letter-spacing:.5px;color:var(--neoC)}.m2DebT .pxi{--pxs:1}
+.m2DebB{display:flex;align-items:center;gap:8px}
+.m2DebB u{flex:1;min-width:40px;display:block;height:5px;background:#030914;box-shadow:0 0 0 1px rgba(95,240,255,.25)}
+.m2DebB u em{display:block;height:100%;background:var(--neoC);box-shadow:0 0 6px var(--neoC)}
+.m2DebB b{font-weight:400;font-size:var(--f0);color:#dfeeff;white-space:nowrap}
+.m2DebV{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;font-size:var(--f0);letter-spacing:1px;color:#031b24;
+  background:var(--neoC);transform:skewX(var(--sk));cursor:pointer;box-shadow:0 3px 0 #0a6f80;transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
+.m2DebV:active{transform:skewX(var(--sk)) translateY(2px);box-shadow:0 1px 0 #0a6f80}.m2DebV .pxi{--pxs:1}
+.m2Deb.sec .m2DebT{color:var(--neoM)}
+.m2Nw{white-space:nowrap}
+/* dans la salle blanche de la boutique : l'étiquette au-dessus de l'objet, encre sombre sur blanc */
+#gBqNom .bqM2{display:block;max-width:min(80vw,440px);margin-top:4px;white-space:normal;text-align:center}
+#gBqNom .bqM2[hidden]{display:none}
+@media (orientation:landscape){#gBqNom .bqM2{max-width:min(33vw,290px)}} /* couché : la place entre les rayons et le panneau (garBq la resserre à la place réelle) */
+#gBqNom .m2Deb{align-items:center}
+#gBqNom .m2DebT{color:#0b7183;font-size:var(--f1);line-height:1.6}#gBqNom .m2Deb.sec .m2DebT{color:#c2187f}
+#gBqNom .m2DebB{width:100%;min-width:min(60vw,180px)}#gBqNom .m2DebB u{height:8px;background:#cfd5dc;box-shadow:none}#gBqNom .m2DebB u em{background:#00b8d4;box-shadow:none}#gBqNom .m2DebB b{color:#14171c;font-size:var(--f1)}
+/* (2026-10-17, Sacha : « SE DÉBLOQUE en plus gros avec son compteur entier ») 8 → 10 px, la jauge de 6 → 8 px et sur toute la largeur de
+   l'étiquette ; la règle couchée de la jauge (230 px) était écrasée par celle-ci, écrite après : la jauge restait à 260 px et le compteur
+   passait sous la grille. */
+html.bqIndus body #garage #gAct>#gBqBtn[data-e="mis"],html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="mis"]{background:#00b8d4;color:#fff;box-shadow:0 4px 0 #087a8c}
+html.bqIndus body #garage #gAct>#gBqBtn[data-e="sec"],html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="sec"]{background:#f3eef2;color:#c2187f;box-shadow:none;cursor:default}
+.bqK.m2sec .bqKph img,.gT.m2sec>img{filter:brightness(0) drop-shadow(0 0 1px rgba(255,62,200,.9))}
+.bqK.m2sec .bqKp.sec{color:#c2187f}
+/* (2026-10-17, Sacha : « les silhouettes secrètes pas rognées ») la grille agrandit chaque photo (118 %) et la centre : le toit et les bouts
+   sortaient de la case — une caisse en couleur se lit quand même, une silhouette noire devenait une tache. La silhouette tient ENTIÈRE :
+   la photo au plus 110 % de large et 148 % de haut (la caisse = 83 % × 59 % de la photo : ~90 % de la case), descendue de 10 % (le milieu de
+   la caisse est à 40 % de la hauteur de la photo). L'étiquette SECRÈTE lui couvrait le toit : retirée ici, la carte dit déjà
+   « MISSION SECRÈTE » en magenta juste dessous. */
+#gBqPan .bqK.m2sec .bqKph img{width:auto;height:auto;min-width:0;max-width:110%;max-height:148%;transform:translateY(10%)}
+#gBqPan .bqK.m2sec .bqKr{display:none}
+html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-left:4px;padding-right:4px} /* debout, « MISSION SECRÈTE » (117 px de texte) était coupé dans une carte de 112 px : il passe sur deux lignes ; couché (128 px) il tient sur une, à 4 px des bords */
+/* LA RÉVÉLATION D'UNE SECRÈTE (étape 4, #m2Rev) : la nuit, les rayons à la couleur de la rareté, la silhouette qui se remplit de couleur
+   de bas en haut sous une ligne de lumière, le nom qui tombe, l'intitulé tapé, RÉCUPÈRE (le lingot de l'écran) */
+#m2Rev{position:fixed;inset:0;z-index:95;display:none;align-items:center;justify-content:center;box-sizing:border-box;font-family:var(--pix);
+  padding:calc(var(--sT,0px) + 14px) calc(var(--sR,0px) + 16px) calc(var(--sB,0px) + 14px) calc(var(--sL,0px) + 16px);overflow:hidden;cursor:pointer}
+#m2Rev.on{display:flex}
+.m2RvFond{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,#22102f 0,#0b0614 55%,#05030a 100%);opacity:0;transition:opacity .45s var(--ease)}
+#m2Rev.on .m2RvFond{opacity:.97}
+.m2RvRayons{position:absolute;left:50%;top:44%;width:160vmax;height:160vmax;margin:-80vmax 0 0 -80vmax;opacity:0;
+  background:repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--rc) 20%,transparent) 0 5deg,transparent 5deg 15deg);transition:opacity 1.2s var(--ease);animation:m2RvTourne 22s linear infinite}
+#m2Rev.plein .m2RvRayons{opacity:1}
+@keyframes m2RvTourne{to{transform:rotate(360deg)}}
+.m2RvBloc{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;max-width:min(92vw,560px);text-align:center;opacity:0;transform:scale(.92);
+  transition:transform .5s var(--ease),opacity .4s var(--ease)}
+#m2Rev.on .m2RvBloc{opacity:1;transform:none}
+.m2RvHd{display:inline-flex;align-items:center;gap:8px;font-size:var(--f3);letter-spacing:3px;color:var(--neoM);text-shadow:0 0 12px rgba(255,62,200,.6)}.m2RvHd .pxi{--pxs:2}
+.m2RvPh{position:relative;width:min(84vw,440px);aspect-ratio:720/440}
+.m2RvPh img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.m2RvPh img:not([src]){display:none}
+.m2RvPh img.n{filter:brightness(0) drop-shadow(0 0 2px rgba(255,62,200,.9));clip-path:inset(0 0 0 0);transition:clip-path 1.4s var(--ease)}
+#m2Rev.plein .m2RvPh img.n{clip-path:inset(0 0 100% 0)}
+.m2RvPh img.c{filter:drop-shadow(0 0 18px color-mix(in srgb,var(--rc) 55%,transparent))}
+.m2RvLigne{position:absolute;left:3%;right:3%;top:100%;height:3px;background:var(--rc);box-shadow:0 0 14px var(--rc),0 0 30px var(--rc);opacity:0}
+#m2Rev.plein .m2RvLigne{animation:m2RvBalaye 1.4s var(--ease) forwards}
+@keyframes m2RvBalaye{0%{top:100%;opacity:1}88%{opacity:1}100%{top:0;opacity:0}}
+.m2RvRar{font-size:var(--f0);letter-spacing:3px;color:var(--rc);opacity:0;transition:opacity .4s var(--ease)}
+.m2RvNom{font-size:var(--f7);line-height:1.2;color:#fff;text-shadow:0 3px 0 #000,0 0 20px var(--rc);opacity:0;transform:scale(1.7);transition:transform .45s var(--ease),opacity .3s var(--ease)}
+#m2Rev.nom .m2RvRar,#m2Rev.nom .m2RvNom{opacity:1;transform:none}
+.m2RvTx{min-height:3.2em;max-width:min(86vw,520px);font-size:var(--f1);line-height:1.6;letter-spacing:1px;color:#ffd7f2}
+.m2RvBt{min-width:220px;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .3s var(--ease),transform .3s var(--ease)}
+.m2RvBt .pxi{--pxs:2}
+#m2Rev.bt .m2RvBt{opacity:1;pointer-events:auto;transform:none}
+#m2Rev.fin .m2RvBloc{opacity:0;transform:scale(1.06)}#m2Rev.fin .m2RvFond,#m2Rev.fin .m2RvRayons{opacity:0}
+@media (orientation:landscape) and (max-height:540px){.m2RvPh{width:min(44vw,300px)}.m2RvNom{font-size:var(--f6)}.m2RvBloc{gap:5px}.m2RvTx{min-height:2.4em}}
+@media (prefers-reduced-motion:reduce){.m2RvRayons{animation:none}.m2RvBloc,.m2RvNom,.m2RvBt,.m2RvRar,.m2RvPh img.n,.m2RvFond,.m2RvRayons{transition:none}#m2Rev.plein .m2RvLigne{animation:none}}
+</style>

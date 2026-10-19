@@ -1,0 +1,355 @@
+  /* ⚠ LE MENU EST TRANSPARENT (2026-08-30, demande du user : « pour qu'on voie le décor »).
+     Le fond passe de .94 à .56 et le flou de 9 px à 2,5 : le ciel, la piste et la caisse continuent
+     de VIVRE derrière l'écran-titre au lieu de disparaître sous un voile. Ce qui rend le texte
+     lisible par-dessus un décor qui bouge, ce n'est PAS l'opacité du fond — c'est que chaque lettre
+     porte sa propre extrusion et son ombre portée dure (voir `.or3` et `#overlay h1`). Un menu qui
+     s'appuie sur son fond pour être lisible ne peut jamais devenir transparent ; un menu dont les
+     lettres se défendent toutes seules, si. ⚠ ne pas remonter l'opacité pour « corriger » un
+     contraste : c'est le halo derrière le titre qu'il faut épaissir, pas le voile. */
+  #overlay>*{position:relative;z-index:1}
+  /* ---- LES BRAISES : le menu respirait déjà (titre, reflet, pulse du "go") mais tout ça reste
+     COLLÉ au texte — rien ne vit dans le VIDE de l'écran. Huit petits éclats (losanges néon, la
+     même famille que les glyphes du logo qu'on casse) montent lentement en dérivant, chacun sur son
+     propre timing (durée/délai/x/couleur décalés via nth-child) pour ne jamais rejouer le même
+     battement deux fois. Purement décoratif, CSS seul (0 coût JS/frame) — n'existe QUE derrière le
+     texte, jamais dessus (premier enfant de `#overlay`, DOM = ordre de peinture). */
+  /* L'OR EXTRUDÉ, en une classe : la matière du logo, disponible pour n'importe quelle ligne. */
+  .or3{background:linear-gradient(180deg,#fffdf2 0%,#ffe9a0 26%,#ffc400 52%,#c07a06 76%,#ffe9a0 97%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 .055em 0 #7a4600) drop-shadow(0 .10em 0 #4a2a00)
+           drop-shadow(0 .15em .16em rgba(0,0,0,.62))}
+  /* ---- JOUER : la plaque d'or, la plus grosse chose cliquable de l'écran ---- */
+  #playBtn{position:relative;margin:16px 0 8px;padding:20px 62px;border:0;border-radius:0;cursor:pointer;
+    font-family:var(--pix);font-size:19px;letter-spacing:6px;color:#2a1500;
+    background:linear-gradient(180deg,#ffeeb0,#ffc400 52%,#eb9c00);
+    text-shadow:0 1px 0 rgba(255,255,255,.45);
+    clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px);
+    filter:drop-shadow(0 8px 0 #7a4400);transition:transform .05s,filter .05s}
+  #playBtn::after{content:'';position:absolute;inset:0;pointer-events:none;
+    box-shadow:inset 4px 4px 0 rgba(255,255,255,.35),inset -4px -4px 0 rgba(0,0,0,.28)}
+  #playBtn:hover{filter:drop-shadow(0 8px 0 #7a4400) brightness(1.06)}
+  #playBtn:active{transform:translateY(7px);filter:drop-shadow(0 1px 0 #7a4400) brightness(1.1)}
+  #playBtn:focus-visible{outline:2px solid #fff;outline-offset:4px}
+  #overlay h1{font-family:var(--pix);text-align:center}
+  /* ------- LOGO 3D OR (partagé accueil + intro) ------- */
+  .lg{position:relative;display:inline-block;line-height:1.2}
+  .lg::before{content:attr(data-t);position:absolute;left:0;top:0;width:100%;z-index:-1;color:#4a2a00;
+    transform:translateY(.09em);
+    text-shadow:0 .015em 0 #6e3f00,0 .03em 0 #5c3300,0 .05em 0 #472700,0 .07em 0 #331c00,0 .16em .3em rgba(0,0,0,.7)}
+  .lg.gold{background:linear-gradient(180deg,#fffdf2 0%,#ffe9a0 28%,#ffc400 52%,#b06c05 74%,#ffe9a0 96%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 .35em rgba(255,200,80,.5))}
+  .lg.grad{background:linear-gradient(180deg,#fff3c0,#ffd75e 40%,#ff8a3d 72%,#ff3ec8);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 .35em rgba(255,110,190,.45))}
+  .lg::after{content:attr(data-t);position:absolute;left:0;top:0;width:100%;
+    background:linear-gradient(105deg,transparent 32%,rgba(255,255,255,.95) 50%,transparent 68%) 180% 0/240% 100% no-repeat;
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    animation:lgShine 3.4s ease-in-out infinite}
+  @keyframes lgShine{0%,18%{background-position:180% 0}58%,100%{background-position:-90% 0}}
+  /* ------- LE LOGO DU LANCEMENT (2026-09-05, agrandi le même jour — « plus impressionnant ») :
+     brille au-dessus de la caisse au départ, puis s'efface — voir `fireLaunchBoost()`. Réutilise TEL
+     QUEL le logo 3D or (`.lg`/.gold/.grad) : le sweep `lgShine` tourne déjà en boucle, donc l'afficher
+     suffit à lui faire « briller un coup » sans une seule ligne d'animation en plus. ⚠ l'ENTRÉE est un
+     IMPACT, pas un fondu : parti de tout petit (scale .18) avec un `cubic-bezier` à REBOND (dépasse
+     1 avant de s'y stabiliser, comme un ressort) — un simple ease-out aurait juste grandi sagement,
+     jamais donné l'impression de CLAQUER à l'écran. `#launchGlow` (halo radial doré, même minuteur
+     que le logo via la classe `.on` partagée) fait le flash qui accompagne le coup. ------- */
+  #launchLogo{position:absolute;left:50%;top:26%;transform:translate(-50%,-50%) scale(.18);
+    font-family:var(--pix);font-size:clamp(34px,8.6vw,84px);letter-spacing:.04em;display:flex;gap:.16em;
+    white-space:nowrap;opacity:0;pointer-events:none;z-index:30;
+    transition:opacity .3s ease-out,transform .7s cubic-bezier(.22,1.61,.36,1)}
+  #launchLogo.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  #launchLogo .lg{line-height:1}
+  #launchGlow{position:absolute;left:50%;top:26%;width:70vmin;height:70vmin;
+    transform:translate(-50%,-50%) scale(.4);border-radius:50%;pointer-events:none;z-index:29;
+    background:radial-gradient(circle,rgba(255,222,140,.85) 0%,rgba(255,180,60,.4) 32%,transparent 68%);
+    opacity:0;transition:opacity .5s ease-out,transform .8s cubic-bezier(.22,1.61,.36,1)}
+  #launchGlow.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  #overlay h2{font-family:var(--pix);font-size:11px;margin:14px 0 0;color:#00eaff;text-shadow:0 0 12px rgba(0,234,255,.7)}
+  #overlay p{max-width:640px;text-align:center;line-height:1.9;opacity:.92;font-size:10px;font-family:var(--pix)}
+  #overlay .go{font-family:var(--pix)}
+  #finalScore{display:none;
+    -webkit-background-clip:text}
+  kbd{background:#1a1433;border:1px solid #00eaff;border-radius:3px;padding:2px 8px;font-size:8px;font-family:var(--pix)}
+  @keyframes pulse{50%{opacity:.4}}
+  /* --- classement top 10 --- */
+  /* le classement passe en second plan : on ouvre le jeu pour JOUER, pas pour lire un tableau */
+  #lbBox{margin:22px 0 0;max-width:86vw;opacity:.78;transition:opacity .2s,filter .2s}
+  #lbBox:hover{opacity:1;filter:drop-shadow(0 0 14px rgba(0,234,255,.18))}
+  .lbTitle{font-family:var(--pix);text-align:center}
+  .lbRow{display:flex;align-items:center;font-family:var(--pix);line-height:2;padding:3px 10px;transition:background .15s}
+  .lbRow:hover{background:rgba(0,234,255,.08)}
+  .lbRow.hl{color:#ffb000;text-shadow:0 0 8px rgba(255,176,0,.6)}
+  .lbRank{width:30px;color:#8f84c8;text-align:right;padding-right:12px}
+  .lbName{flex:1;text-align:left;letter-spacing:2px}
+  .lbScore{color:#62e062}
+  .lbRow.hl .lbScore{color:#ffd75e}
+  .lbEmpty{text-align:center;padding:6px}
+
+  /* ------- ÉCRANS MODERNES (accueil / game over) ------- */
+  /* le décor du menu : halo magenta, veine cyan rasante et trame de balayage — on est dans une borne,
+     pas dans une app. Le jeu reste visible derrière (blur léger), il ne disparaît pas sous un voile plat. */
+  #overlay{background:
+      radial-gradient(1100px 620px at 50% 26%,rgba(255,62,200,.16),transparent 62%),
+      linear-gradient(105deg,transparent 38%,rgba(0,234,255,.10) 49%,transparent 60%),
+      repeating-linear-gradient(0deg,rgba(255,255,255,.028) 0 1px,transparent 1px 3px),
+      radial-gradient(1200px 700px at 50% 30%,rgba(74,34,58,.5),rgba(8,5,16,.94));
+    backdrop-filter:blur(9px);gap:6px}
+  /* ================= LE TITRE SORT DE L'ÉCRAN (2026-08-30) ================================
+     Demande du user, mot pour mot : les lettres « sortent de l'écran ». Ce n'est pas une taille de
+     plus, c'est un CADRAGE : le mot est plus large que la fenêtre, on n'en voit pas les bords, et
+     c'est ça qui donne l'échelle — un objet dont on voit les limites paraît petit, un objet qu'on
+     ne peut pas contenir paraît énorme. `11.5vw` sur huit lettres dépasse la largeur utile à
+     toutes les tailles d'écran ; `nowrap` interdit au navigateur de « réparer » en passant à la
+     ligne (ce qui casserait l'effet en le transformant en titre sur deux lignes).
+     La perspective vient de SA version (rotateX 11°) — on la pousse à 13° et on l'ancre plus bas
+     pour que le haut des lettres s'éloigne : c'est ce basculement qui fait le générique d'arcade. */
+  /* ⚠ LA TAILLE EST BORNÉE PAR LA HAUTEUR AUTANT QUE PAR LA LARGEUR (`min(vw,vh)`) : indexée sur la
+     seule largeur, sur un écran bas (1280×720, un portable) le titre mangeait 208 px et poussait les
+     boutons du bas hors de l'écran. Le `min` garde le débordement HORIZONTAL — le seul qui soit
+     voulu — sans transformer le menu en page à faire défiler.
+     ⚠ RÉDUIT (2026-09-05, demande du user : « trop gros, réduis ») : le débordement volontaire
+     (2026-08-30) a fait son effet un temps, mais la taille elle-même est devenue le problème — un
+     titre qui mange l'écran laisse trop peu de place pour que le reste du menu respire. Le plafond
+     et les facteurs vw/vh baissent tous ensemble (même logique, valeurs plus sages) : le titre garde
+     sa perspective et son extrusion, il ne domine plus l'écran. */
+  #overlay h1{font-size:clamp(40px,min(8.2vw,14vh),150px);letter-spacing:.04em;display:flex;gap:.16em;
+    white-space:nowrap;flex:0 0 auto;line-height:.94; /* ⚠ le pixel n'a NI jambage NI accent qui monte :
+      l'interligne de 1,4 hérité réservait ~70 px de vide sous un titre déjà géant, et c'est ce vide —
+      pas la taille — qui poussait les boutons du bas hors de l'écran. */
+    transform:perspective(700px) rotateX(13deg);transform-origin:50% 66%;
+    filter:drop-shadow(0 26px 34px rgba(0,0,0,.55));
+    margin:0 0 2px;animation:wmRespire 6s ease-in-out infinite}
+  @keyframes wmRespire{
+    0%,100%{filter:drop-shadow(0 26px 34px rgba(0,0,0,.55)) drop-shadow(0 0 22px rgba(255,190,70,.18))}
+    50%    {filter:drop-shadow(0 26px 34px rgba(0,0,0,.55)) drop-shadow(0 0 40px rgba(255,190,70,.38))}}
+  @media (prefers-reduced-motion:reduce){#overlay h1{animation:none}}
+  /* ⚠ `.lg` (partagé avec l'intro) porte `line-height:1.2` : dans le titre c'est LUI qui commandait,
+     pas le h1 — l'interligne réglé plus haut n'avait aucun effet tant qu'on ne le reprenait pas ici. */
+  #overlay h1 .lg{line-height:.94}
+  #overlay h1:hover{transform:perspective(700px) rotateX(13deg) scale(1.03);
+    filter:drop-shadow(0 26px 34px rgba(0,0,0,.55)) drop-shadow(0 0 50px rgba(255,205,90,.62)) brightness(1.10)}
+  /* la ligne sous le titre repasse en pixel doré : plus une seule typo système sur cet écran */
+  #tagline{font-family:var(--pix);font-size:9px;letter-spacing:4px;text-transform:uppercase;
+    margin:2px 0 10px;
+    background:linear-gradient(180deg,#ffe9c0,#e0a24a 70%,#8a5510);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 1px 0 #43260a) drop-shadow(0 2px 3px rgba(0,0,0,.7))}
+  #ovSub{font-size:13px;color:#ff5e7a;text-shadow:0 0 16px rgba(255,60,90,.6);margin:6px 0 0;letter-spacing:6px}
+  /* LE MAGOT DE FIN DE PARTIE : lui aussi extrudé — c'est le chiffre qu'on vient chercher */
+  #finalScore{font-family:var(--pix);font-size:34px;margin:14px 0 6px;letter-spacing:2px;
+    background:linear-gradient(180deg,#fffdf2 0%,#ffe9a0 26%,#ffc400 52%,#c07a06 76%,#ffe9a0 97%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 .055em 0 #7a4600) drop-shadow(0 .10em 0 #4a2a00) drop-shadow(0 .15em .16em rgba(0,0,0,.62))}
+  #bestChip{font-family:var(--pix);font-size:9px;letter-spacing:2.2px;color:#ffd75e;border-radius:0;
+    padding:8px 15px;margin:6px 0 6px}
+  #lbBox{width:400px;padding:12px 14px}
+  .lbTitle{font-size:11px;letter-spacing:3px;color:#ffd75e;text-shadow:none;margin-bottom:8px}
+  .lbRow{border-bottom:1px solid rgba(255,255,255,.06);color:#c8dcf2;font-size:9px}
+  .lbRow.hl{background:rgba(255,176,0,.12);box-shadow:none}
+  /* le gros bouton doré devient une simple INVITE sous le logo : c'est le titre qu'on clique */
+  #overlay .go{margin-top:12px;font-size:11px;letter-spacing:5px;color:#ffcf6a;background:none;
+    border:none;padding:4px 10px;animation:pulse 1.8s infinite;cursor:pointer;
+    text-shadow:0 0 14px rgba(255,190,80,.5);transition:color .15s,transform .15s}
+  #overlay .go:hover{color:#fff0c2;transform:scale(1.04)}
+  /* ------- INTRO STUDIO 1.61 : accumulation → FISSION ------- */
+  #splash{position:fixed;inset:0;background:radial-gradient(900px 600px at 50% 46%,#191024,#000 75%);z-index:80;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity .7s;overflow:hidden}
+  #fxCv{position:absolute;inset:0;width:100%;height:100%}
+  /* (2026-10-15, Sacha : « améliore l'écran de chargement CAR CASH ») LE CŒUR QUI BAT PENDANT LE CHARGEMENT : tant que le jeu se construit, le
+     script est occupé et la poussière d'or (canvas) reste FIGÉE — l'écran avait l'air planté. Ce halo or-rose respire en CSS pur, sur
+     transform/opacity : le compositeur l'anime même quand le script est pris. Il suit le voile jusqu'à son effacement (.spVoile). */
+  #splash::before,.spVoile::before{content:'';position:absolute;left:50%;top:50%;width:130vmax;height:130vmax;margin:-65vmax 0 0 -65vmax;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(255,196,90,.17),rgba(255,62,200,.07) 42%,rgba(25,16,36,0) 72%);
+    animation:spHalo 3.2s var(--ease,ease-in-out) infinite alternate;will-change:transform,opacity}
+  @keyframes spHalo{from{opacity:.5;transform:scale(.86)}to{opacity:1;transform:scale(1.05)}}
+  @media (prefers-reduced-motion:reduce){#splash::before,.spVoile::before{animation:none;opacity:.8}}
+  #spStage{position:relative;text-align:center;z-index:2}
+  /* ---- LA MARQUE φ : LA SUITE DE FIBONACCI QUI DONNE SON NOM AU STUDIO ----------------------
+     « 1.61 », c'est le nombre d'or. Le mettre en chiffres sans jamais montrer d'où il vient, c'était
+     laisser la référence à l'état de private joke. La marque le DÉMONTRE : les carrés de Fibonacci
+     (1,1,2,3,5,8,13…) s'emboîtent, et la spirale les traverse. Tracée en canvas et pas en SVG parce
+     qu'elle se DESSINE — l'intro la construit carré par carré, et c'est ça qui la rend vivante. */
+  /* ⚠ DERRIÈRE LE NUMÉRO (z-index 0 contre 2), et volontairement DÉBORDANTE : la marque ne doit pas
+     concurrencer « 1.61 », elle doit l'entourer. À l'échelle 1 elle passait pile dessus et on ne
+     lisait plus le nombre — mesuré à l'écran, pas supposé. */
+  /* ⚠ UNE MARQUE, PAS UN SCHÉMA. Première version : le rectangle d'or occupait tout le cadre et se
+     battait avec « 1.61 » — on ne lisait plus ni l'un ni l'autre. Elle se pose donc SOUS le nombre,
+     petite, comme un sceau : c'est ce qu'on a demandé (« un petit logo de la suite Fibonacci »).
+     Elle grandit légèrement en se traçant, puis se fige. */
+  /* ---- 1.61 GAMING : LA SIGNATURE DU STUDIO, et elle passe EN DERNIER (ordre inverse, 2026-09-03).
+     Elle est ABSOLUE et centree sur l'etage : elle se leve donc EXACTEMENT la ou le titre vient
+     d'exploser — c'est ce recouvrement de place qui fait lire une signature et non un deuxieme ecran. */
+  #spNum{position:absolute;left:50%;top:50%;z-index:2;white-space:nowrap;
+    font-family:var(--pix);font-size:clamp(52px,11.4vw,104px);letter-spacing:8px;
+    opacity:0;transform:translate(-50%,-50%) scale(.72);
+    transition:opacity .7s ease,transform .8s cubic-bezier(.18,.9,.28,1.35),filter .7s ease;
+    background:linear-gradient(180deg,#fffdf0,#ffe9a0 32%,#ffb000 58%,#7c4a00 80%,#ffe9a0);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 34px rgba(255,190,60,.8)) drop-shadow(0 5px 0 #4a2a00)}
+  #spNum.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  /* ELLE DISPARAIT : elle s'eloigne et se floute, elle n'explose PAS — deux explosions de suite et la
+     premiere ne vaut plus rien. Le studio salue, il ne refait pas le numero. */
+  #spNum.out{opacity:0;transform:translate(-50%,-50%) scale(1.16);filter:blur(7px) drop-shadow(0 0 50px rgba(255,190,60,.5))}
+  /* ⚠ le parent est en color:transparent (degrade decoupe) : sans -webkit-text-fill-color explicite,
+     GAMING herite du transparent et ne se peint QUE du bas du degrade, la ou il est brun sombre. */
+  #spGam{display:block;font-size:.215em;letter-spacing:.42em;text-indent:.42em;margin-top:.18em;
+    color:#ffdf9a;-webkit-text-fill-color:#ffdf9a}
+  @keyframes teaseBreath{50%{opacity:.36}}
+  /* ---- LE BOUTON A SAUTÉ (2026-09-05) — « on clique juste sur CASH CAR » --------------------
+     Il n'y a plus de plaque « JOUER » sous le titre : le titre EST la cible, `sp9` écoute déjà le
+     clic sur tout l'écran. Il ne reste qu'UNE ligne, qui dit où cliquer au lieu de le montrer avec
+     un deuxième objet — et elle respire doucement (`spBreath`, sur `opacity`, pas sur un `filter`
+     coûteux) pour rester une invite et non une notice statique qu'on ignore. */
+  #spNote{
+    opacity:0;transition:opacity 1s}
+  /* ⚠ 2026-09-24 : en une ligne, l'invite mesurait 506 px sur un écran de 375 — coupée des deux côtés.
+     Sous 560 px elle a le droit de passer sur deux lignes. */
+  @media (max-width:560px){#spNote{white-space:normal;width:86vw;line-height:2.1;letter-spacing:2px}}
+  @media (prefers-reduced-motion:reduce){#spNote.on{animation:none}}
+  /* ---- CASH CAR : c'est LUI qu'on voit en arrivant, et c'est LUI qui explose. Il est DANS LE FLUX
+     (plus en absolu) : l'etage prend sa hauteur, donc la plaque JOUER et la note se calent dessous
+     toutes seules, sans une seule valeur en dur a re-regler. */
+  #spTitle{display:inline-flex;gap:22px;white-space:nowrap;
+    font-family:var(--pix);font-size:clamp(38px,8.4vw,72px);letter-spacing:8px;
+    opacity:0;transform:scale(.5);
+    transition:transform .55s cubic-bezier(.18,.9,.28,1.35),opacity .5s ease,filter .45s ease}
+  #spTitle.tease{opacity:.26;transform:scale(.88);animation:teaseBreath 2.8s ease-in-out infinite}
+  #spTitle.on{opacity:1;transform:scale(1);animation:none}
+  /* L'EXPLOSION, MOT POUR MOT CELLE DU NOMBRE D'AVANT (meme echelle, meme flou, meme duree) :
+     la demande etait « ca explose de la MEME maniere qu'avant » — on deplace l'effet, on ne le refait pas.
+     ⚠ FLOU ET OMBRE ALLÉGÉS (2026-09-05, plainte du user : « ça lague ») : `blur`+`drop-shadow`
+     animés EN MÊME TEMPS qu'un `scale(3.6)` forcent le navigateur à repeindre (pas juste composer)
+     à chaque image — et ce moment précis coïncide avec les 70 particules du canvas ET le flash. Trop
+     de travail cher au même instant. Le flou descend à 6px et l'ombre à 42px : la silhouette reste
+     lisible pendant qu'elle explose, le coût de calcul baisse d'autant. `will-change` prévient le
+     navigateur qu'un calque dédié vaut le coup ICI, pas partout (un `will-change` posé en permanence
+     gaspille de la mémoire GPU pour rien). */
+  #spTitle.boom{opacity:0;transform:scale(3.6);filter:blur(6px) drop-shadow(0 0 42px #ffd75e);
+    will-change:transform,filter,opacity;
+    transition:opacity .45s ease-in,transform .45s ease-in,filter .45s ease-in}
+  /* ⚠ RADIALE, PAS UN APLAT (2026-09-05) : un `background:#fff` plein écran qui saute à `opacity:1`
+     se lit comme un RECTANGLE BLANC qui traverse l'écran, pas comme un flash — un carré à bords nets
+     n'a pas de raison d'être là et le regard le lit comme un bug. Un dégradé radial centré sur le
+     titre a des bords qui se perdent AVANT le cadre : la même intensité au centre, mais plus rien à
+     pointer du doigt sur les côtés. */
+  #spFlash{position:absolute;inset:0;
+    background:radial-gradient(60vw 60vh at 50% 50%,#fff6e2,rgba(255,246,226,0) 72%);
+    opacity:0;transition:opacity .35s;pointer-events:none;z-index:3}
+  /* ================= MOBILE / TACTILE — LA VERSION TÉLÉPHONE =================
+     Tout est scopé sous body.touch (classe posée par le bloc MOBILE en fin de fichier) :
+     le desktop ne bouge pas d'un pixel, et aucune physique n'est réécrite (le tactile pilote le
+     MÊME objet `keys` et le MÊME `steer`). PORTRAIT assumé, DEUX POUCES et pas un de plus :
+     · pouce GAUCHE = VOLANT ANALOGIQUE (toute la moitié gauche, stick flottant sous le doigt)
+     · pouce DROIT  = NITRO (énorme) · double-tap = braquage
+     Le gaz est AUTOMATIQUE (AUTO_GAS) : on ne réclame jamais un troisième doigt. */
+  html,body{overscroll-behavior:none;-webkit-touch-callout:none}
+  body.touch #hud,body.touch>canvas{touch-action:none}       /* zéro scroll/zoom parasite sur la zone de jeu */
+  body.touch #chainHud,body.touch #caseHud{-webkit-backdrop-filter:none;backdrop-filter:none} /* le flou d'arrière-plan coûte une passe plein écran : hors de question sur téléphone */
+  #touchCtl{position:fixed;inset:0;z-index:4;pointer-events:none;display:none;touch-action:none;
+    padding:var(--ccT,env(safe-area-inset-top,0px)) var(--ccR,env(safe-area-inset-right,0px)) var(--ccB,env(safe-area-inset-bottom,0px)) var(--ccL,env(safe-area-inset-left,0px))}
+  body.touch.play #touchCtl{display:block}  /* les commandes n'existent que manette en main : le menu reste net */
+  .tbtn{position:absolute;pointer-events:auto;touch-action:none;-webkit-user-select:none;user-select:none;
+    -webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;
+    font-family:var(--pix);color:#dfeeff;border-radius:50%;text-align:center;line-height:1.2;
+    background:rgba(12,8,34,.42);border:2px solid rgba(0,234,255,.5);
+    box-shadow:0 0 14px rgba(0,234,255,.25),inset 0 0 18px rgba(0,234,255,.08);
+    transition:transform .06s,background .1s;opacity:.9}
+  .tbtn.on,.tbtn:active{transform:scale(.92);background:rgba(0,234,255,.32)}
+  /* --- VOLANT ANALOGIQUE : la moitié gauche EST le volant, le stick naît sous le pouce --- */
+  #tSteer{position:absolute;left:0;top:0;width:54%;height:100%;pointer-events:auto;touch-action:none}
+  body.tpad #tSteer{pointer-events:none}                     /* mode PAD : ce sont les flèches qui pilotent */
+  #tStick{position:absolute;width:132px;height:132px;margin:-66px 0 0 -66px;border-radius:50%;pointer-events:none;
+    border:2px solid rgba(0,234,255,.28);
+    background:radial-gradient(circle,rgba(0,234,255,.10) 0%,rgba(6,4,16,.20) 66%,transparent 70%);
+    opacity:0;transition:opacity .14s}
+  #tSteer.act #tStick{opacity:.92}
+  #tKnob{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;
+    background:radial-gradient(circle at 38% 32%,rgba(210,250,255,.9),rgba(0,190,230,.55) 58%,rgba(0,110,150,.28));
+    border:2px solid rgba(170,244,255,.8);box-shadow:0 0 18px rgba(0,234,255,.55)}
+  #tSteerHint{position:absolute;left:calc(var(--ccL,env(safe-area-inset-left,0px)) + 24px);bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 20px);font-family:var(--pix);font-size:8px;letter-spacing:2px;pointer-events:none;text-shadow:0 0 10px rgba(0,234,255,.5);transition:opacity .3s}
+  #tSteer.act #tSteerHint,#tSteer.used #tSteerHint,body.tpad #tSteerHint{opacity:0} /* dit UNE fois : au premier braquage la consigne s'efface pour de bon */
+  /* --- flèches : mode PAD, pour qui préfère le tout-ou-rien --- */
+  #tLeft,#tRight{display:none;width:min(84px,21vh);height:min(84px,21vh);bottom:20px;font-size:24px}
+  body.tpad #tLeft,body.tpad #tRight{display:flex}
+  #tLeft{left:16px}
+  #tRight{left:calc(min(84px,21vh) + 30px)}
+  /* --- pouce DROIT : NITRO énorme. Une VRAIE touche d'arcade : plaque orange, biseau, épaisseur. --- */
+  #tNitro{right:calc(var(--ccR,env(safe-area-inset-right,0px)) + 16px);bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 16px);width:min(122px,30vh);height:min(122px,30vh);font-size:13px;letter-spacing:2px;
+    border:0;border-radius:0;color:#2a1000;background:linear-gradient(180deg,#ffc074,#ff8c1a 52%,#d05e00);
+    clip-path:polygon(12px 0,calc(100% - 12px) 0,100% 12px,100% calc(100% - 12px),calc(100% - 12px) 100%,12px 100%,0 calc(100% - 12px),0 12px);
+    filter:drop-shadow(0 7px 0 #7a3200);text-shadow:0 1px 0 rgba(255,255,255,.4);
+    box-shadow:inset 4px 4px 0 rgba(255,255,255,.28),inset -4px -4px 0 rgba(0,0,0,.30);
+    backdrop-filter:none;-webkit-backdrop-filter:none;transition:transform .05s,filter .05s}
+  #tNitro.on,#tNitro:active{transform:translateY(6px);filter:drop-shadow(0 1px 0 #7a3200) brightness(1.15);
+    background:linear-gradient(180deg,#fff0c0,#ffb24a 52%,#e87400)}
+  /* le ⏸ / ⚙ : même plaque, en petit */
+  #tGear{position:fixed;z-index:8;top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 10px);right:calc(var(--ccR,env(safe-area-inset-right,0px)) + 10px);
+    width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;
+    border:0;border-radius:0;color:#9fe8ff;background:linear-gradient(180deg,#22305c,#141d3a);opacity:.94;
+    clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px);
+    filter:drop-shadow(0 5px 0 #06122e);
+    box-shadow:inset 3px 3px 0 rgba(255,255,255,.16),inset -3px -3px 0 rgba(0,0,0,.40),inset 0 0 0 2px rgba(0,234,255,.42);
+    -webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;touch-action:none}
+  #tGear:active{transform:translateY(4px);filter:drop-shadow(0 1px 0 #06122e)}
+  /* la jauge de nitro : segments francs, cadre net — plus de coins arrondis */
+  body.touch #nitroBar{border:0;box-shadow:inset 0 0 0 2px rgba(0,234,255,.55),0 3px 0 rgba(4,10,26,.9)}
+  /* ================= ÉCRAN NU (mobile) : LA ROUTE, LA CAISSE, LA NITRO =================
+     Verdict user : tout le HUD dégage. Plus de compteur, plus de minimap, plus de barre de style,
+     plus un seul texte qui saute à l'écran. Il reste la jauge de nitro (remontée tout en HAUT : en
+     bas elle barrait la caisse en travers), le bouton NITRO, et UN bouton de réglages. Rien n'est
+     supprimé du CODE (les éléments existent et sont écrits comme avant, ils sont juste masqués) :
+     rallumer une ligne = enlever son sélecteur d'ici. Le camembert d'airtime est un rescapé — sans
+     lui on explose en vol sans prévenir. */
+  body.touch #money,body.touch #speedo,body.touch #styleBar,
+  body.touch #msg,body.touch #trickBox,body.touch #chainHud,body.touch #caseHud,
+  body.touch #survHud,body.touch #lastAlert,body.touch #engVig,
+  body.touch #nitroLbl,body.touch #record,body.touch .bill,body.touch #scan,body.touch #beatFx,
+  body.touch #auraHud{display:none!important} /* ⚠ l'AURA suit la règle de l'écran nu : elle est née APRÈS ce bloc (17/08), elle n'y était donc pas — sans cette ligne la jauge or restait plantée seule au milieu d'un écran qu'on a vidé exprès */
+  /* ⚠ LA MINI-CARTE ET LES 4 BOUTONS ÉPARPILLÉS — RETIRÉS PARTOUT, PAS SEULEMENT SUR TOUCH
+     (2026-09-05) : retour du user — « enlève la mini app, déplace tous les boutons du gameplay,
+     par un petit logo réglages qui inclue tous les boutons qu'on vient de supprimer ». `#minimap`
+     était déjà masquée côté mobile (l'écran nu, juste au-dessus) ; DESKTOP suit maintenant la même
+     route, ET les 3 boutons (`#resetBtn`/`#sndBtn`/`#musBtn`) rejoignent le même sort — ils
+     ne DISPARAISSENT PAS du code (`sndBtnEl.click()` etc restent le point de vérité unique, voir
+     `panOpen`/le panneau plus bas), ils deviennent juste invisibles PARTOUT : `#tGear`/`#tPanel`
+     (déjà construit pour le mobile) est le SEUL point d'entrée visuel désormais, sur les deux
+     plateformes. Un élément `display:none` répond toujours à `.click()` appelé depuis le JS — rien
+     à changer côté logique, seulement côté vue. */
+  #minimap,#resetBtn,#sndBtn,#musBtn{display:none!important}
+  /* ------- LE BOUTON DE RÉGLAGES : un seul, en haut à droite, et son panneau — DESKTOP COMPRIS
+     (2026-09-05) : gaté sur `body.play` (déjà synchronisé pour les DEUX plateformes par le tick de
+     `setInterval` plus bas) plutôt que sur `body.touch` — ce N'ÉTAIT PAS un bouton tactile, c'était
+     juste le SEUL endroit qui avait déjà réglé le problème que le desktop vient de poser à son tour. */
+  #tSet{display:none}
+  body.play #tSet{display:block}
+  /* ⚠ « VOLANT » N'A RIEN À FAIRE SUR DESKTOP (2026-09-05) : ce panneau s'affiche maintenant aux
+     DEUX plateformes (voir `body.play #tSet` plus haut), mais `data-a="ctl"` ne fait que basculer le
+     PAD TACTILE en joystick — zéro sens sans écran tactile. SON/VOIX/MUSIQUE/IMAGE/SURVIVANT/
+     RECOMMENCER restent universels ; seul CE bouton-là est spécifique au doigt. */
+  body:not(.touch) [data-a="ctl"]{display:none}
+  /* la jauge de nitro monte SOUS le ciel : en bas elle barrait la caisse en travers, en haut elle ne
+     masque rien et se lit d'un coup d'œil. C'est le dernier élément de HUD. */
+  body.touch:not(.play) #nitroWrap,body.touch:not(.play) #airPie{display:none} /* hors partie, l'écran n'appartient qu'au menu */
+  body.touch #nitroWrap{left:calc(var(--ccL,env(safe-area-inset-left,0px)) + 14px);right:calc(var(--ccR,env(safe-area-inset-right,0px)) + 64px);
+    width:auto;transform:none;bottom:auto;top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 18px)} /* sous l'encoche / la Dynamic Island, comme le ⏸ */
+  body.touch #styleBar{height:6px;margin-bottom:4px}
+  body.touch #airPie{top:13%;right:5%;width:76px;height:76px}
+  /* ------- LES NIVEAUX (2026-09-24) : la bannière « NIVEAU n — LIEU ». Au-dessus de la route, dans le
+     ciel ; un FONDU d'opacité et rien d'autre (aucun mouvement : REDUCED_MOTION n'a rien à couper).
+     `max-width` + `white-space:normal` : sur un téléphone de 375 px, « AU-DESSUS DE LA VILLE » passe
+     sur deux lignes au lieu de sortir de l'écran. ------- */
+  #lvlBan{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:7;pointer-events:none;
+    display:flex;flex-direction:column;align-items:center;gap:9px;width:max-content;max-width:88vw;
+    font-family:var(--pix);text-align:center;opacity:0;transition:opacity .45s}
+  #lvlBan.on{opacity:1}
+  #lvlBan b{font-size:clamp(20px,6.4vw,36px);letter-spacing:.16em;color:#ffd75e;
+    text-shadow:0 3px 0 #7a4400,0 0 24px rgba(255,200,90,.45)}
+  #lvlBan span{font-size:clamp(9px,2.7vw,14px);letter-spacing:.2em;line-height:1.7;color:#9fe8ff;white-space:normal;
+    text-shadow:0 2px 0 rgba(0,0,0,.6),0 0 14px rgba(120,220,255,.45)}
+  /* ------- PORTRAIT : L'ORIENTATION NORMALE DU JEU (le paysage n'est plus qu'un repli) ------- */
+  @media (orientation:portrait){
+    body.touch #tSteer{width:52%}
+    body.touch #tNitro{width:min(128px,17vh);height:min(128px,17vh);right:calc(var(--ccR,env(safe-area-inset-right,0px)) + 14px);bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 18px)}
+    body.touch #airPie{top:15%;right:5%;width:76px;height:76px}
+  }

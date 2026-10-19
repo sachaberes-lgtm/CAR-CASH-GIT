@@ -1,0 +1,207 @@
+<style id="charte4">
+/* =====================================================================================================================
+   LA CHARTE v5 — LAQUE · OR · NÉON (2026-09-28) — la v4 CARBONE · OR · NÉON, un cran plus haut
+   ---------------------------------------------------------------------------------------------------------------------
+   Sacha : « ça manque de soin — tous les affichages doivent être beaucoup plus soignés, beaucoup plus cohérents entre
+   eux, beaucoup plus modernes ; le futur des jeux iPhone, sur les écrans de test de l'App Store ; reprends la structure
+   globale mais prends des libertés ». Historique des rejets (ne pas y revenir) : v1 plate · v2 borne d'arcade 1985 ·
+   v3 bonbon violet. La v4 (carbone penché, lingot d'or, néon) a posé l'IDENTITÉ ; la v5 la garde et en soigne la MAIN.
+   LE DIAGNOSTIC (34 écrans capturés, en portrait ET en paysage — le paysage est ce que montre l'ordi) :
+     (1) le sergé de carbone sur CHAQUE surface faisait un grain, une moire qui salissait tout ;
+     (2) chaque touche portait TROIS contours (anneau d'encre 2 px + tranche noire + ombre) : lourd, bon marché ;
+     (3) des corps de pixel au hasard (9, 10, 12, 14, 18, 22 px) et une chasse de 3-4 px qui étalait les mots ;
+     (4) l'écran de mort empilait sept blocs du même poids ; la pause laissait un trou au milieu ;
+     (5) en PAYSAGE, l'accueil s'entassait sous le logo, le garage cachait la caisse et coupait sa barre d'action.
+   LA RÉPONSE — même voix, autre soin :
+     · LA LAQUE remplace le carbone : une laque noire-violette, lisse, avec un reflet oblique et une LÈVRE de lumière en
+       haut — le tableau de bord d'une hypercar, la nuit. La texture ne vit plus que dans le FOND des écrans : une trame
+       de points (la MATRICE) qui fait de la police pixel ce qu'elle est, un AFFICHEUR À LED ;
+     · UN FILET (1 px) dessine chaque plaque, et il suit les coins coupés (deux traits en dégradé dans les coupes) ;
+     · LA LIVRÉE — les trois traits magenta · cyan · or sous le logo — devient la SIGNATURE du jeu : sous chaque titre
+       d'écran, en tête des cartes héros, sur le volet ;
+     · une gamme de corps COURTE (8 · 10 · 12 · 16 · 20 · 24 · 28 · 40) et une chasse sobre ;
+     · la grammaire ne change pas : PENCHÉ = je touche · DROIT à coins coupés = je lis · ROND = une jauge ; l'OR = UN
+       lingot par écran ; le néon = le sens (cyan aller voir · magenta boutique · vert allumé · rouge danger).
+   ⚠ CE BLOC VIT DANS SON PROPRE <style>, DANS LE <body> : il passe APRÈS toute la feuille historique, et il est à
+   l'écart de la fin du premier <style>, où s'ajoute le HUD de course (zéro conflit de fusion). Toutes les règles des
+   écrans refaits (accueil, mort, modes, boutique, réglages, pause, garage, fenêtre, toast, carrière, fondu) vivent ICI.
+   Charte UI (CLAUDE.md) respectée : fonds opaques (aucun backdrop-filter), texte en couleur pleine (le logo seul a son
+   dégradé), une seule plaque or par écran, le tactile en bas, cibles ≥ 44 px, safe areas partout, --ease et deux
+   durées, pas de rebond hors célébration, et zéro valeur en dur hors de :root.
+   ===================================================================================================================== */
+:root{
+  --sk:-11deg;--skI:11deg;                                  /* la pente de la vitesse, et son inverse (photos redressées) */
+  /* l'encre : noir-violet, du plus profond au filet */
+  --k0:#07050f;--k1:#0c0919;--k2:#130f25;--k3:#1b1634;--k4:#272046;--kl:#3a3168;--kl2:#564a8e;
+  /* l'or du lingot */
+  --au0:#fff8d6;--au1:#ffe27a;--au2:#ffc72a;--au3:#f29a00;--auE:#9c5200;--auO:#2a1200;--auT:#3a1800;--auG:rgba(255,190,40,.38);
+  /* les néons */
+  --neoM:#ff3ec8;--neoC:#00eaff;--neoV:#5ee37a;--neoR:#ff4a64;--neoA:#ffb000;
+  --cash:#7dff9b;--cashO:#05240f;--aura:#ff7ad5;
+  /* le texte */
+  --tx:#fff7ee;--tx2:#c9bdf0;--txO:#0a0616;
+  --sans:'Press Start 2P',monospace; /* (2026-10-15, UNE SEULE POLICE) l'ancienne police système pointe sur le pixel : une règle oubliée tombe juste */
+  /* LES CORPS — une gamme courte (--f2 garde son nom pour les règles historiques, il vaut le même 10 px que --f1) */
+  --f0:8px;--f1:10px;--f2:10px;--f3:12px;--f4:14px;--f5:16px;--f6:20px;--f9:24px;--f7:28px;--f8:40px;
+  /* les marges d'écran (safe areas comprises) */
+  --sT:var(--ccT,env(safe-area-inset-top,0px));--sB:var(--ccB,env(safe-area-inset-bottom,0px));--sL:var(--ccL,env(safe-area-inset-left,0px));--sR:var(--ccR,env(safe-area-inset-right,0px));
+  --gut:18px;
+  /* LA LAQUE — ce qui se TOUCHE : un reflet oblique (la lumière de la rue sur une carrosserie), une laque qui descend vers le noir */
+  --laque:linear-gradient(112deg,transparent 0 37%,rgba(255,255,255,.055) 37% 45%,transparent 45% 49%,rgba(255,255,255,.03) 49% 51%,transparent 51%),
+    linear-gradient(180deg,#272049 0%,#1c1738 46%,#141029 100%);
+  /* la laque des PLAQUES qu'on lit : plus sourde, plus profonde */
+  --laqueP:linear-gradient(180deg,#1a1532 0%,#140f28 52%,#0f0c20 100%);
+  /* compatibilité : toute règle qui peignait le carbone ou la tresse peint désormais la laque et son reflet */
+  --carbone:var(--laque);
+  --tresse:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,0) 42%);
+  /* LA MATRICE — le fond des écrans : une trame de points d'afficheur (la police pixel y devient une LED) */
+  --matrice:radial-gradient(circle,rgba(214,200,255,.09) 0 1px,transparent 1.5px) 0 0/7px 7px;
+  --fondEcran:radial-gradient(95% 42% at 8% -4%,rgba(255,62,200,.24),transparent 70%),
+    radial-gradient(80% 38% at 104% 104%,rgba(0,234,255,.13),transparent 72%),
+    var(--matrice),linear-gradient(180deg,#110c24 0%,#09061a 46%,#07050f 100%);
+  /* le FILET, la LÈVRE, la TRANCHE, l'OMBRE */
+  --fil:rgba(200,184,255,.17);--filF:rgba(200,184,255,.30);--neoL:#b58cff;
+  --levre:inset 0 1px 0 rgba(255,255,255,.16);
+  --tranche:#0a0818;--anneau:rgba(3,1,9,.92);
+  --ombreSol:0 14px 24px -10px rgba(0,0,0,.72);
+  --coupe:14px;                                              /* les coins coupés des panneaux */
+  /* LA LIVRÉE — la signature : magenta · cyan · or, séparés d'un jour (sous le logo, sous chaque titre, sur le volet) */
+  --livree:linear-gradient(90deg,var(--neoM) 0 46%,transparent 46% 52%,var(--neoC) 52% 74%,transparent 74% 80%,var(--au2) 80% 100%);
+}
+
+/* ============================================ LA TOUCHE ============================================================
+   UNE construction pour tout ce qui se touche : une face de LAQUE, la bande de livrée à gauche (--nc, sa lueur qui
+   déborde sur la face), une lèvre de lumière en haut, un filet d'encre de 1 px, et l'ÉPAISSEUR dessous (--tranche,
+   5 px). À l'appui, la touche descend de son épaisseur et la livrée s'allume : le doigt l'ENFONCE. Penchée d'un bloc. */
+.pbtn{--nc:var(--neoC);
+  position:relative;display:flex;align-items:center;justify-content:center;gap:12px;box-sizing:border-box;
+  min-height:56px;padding:0 22px;margin:0;border:0;border-radius:0;cursor:pointer;user-select:none;-webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  font-family:var(--pix);font-size:var(--f3);line-height:1.25;letter-spacing:1px;color:var(--tx);text-align:center;white-space:nowrap;
+  transform:skewX(var(--sk));
+  background:var(--laque);
+  box-shadow:inset 3px 0 0 var(--nc),inset 34px 0 30px -28px color-mix(in srgb,var(--nc) 75%,transparent),var(--levre),inset 0 0 0 1px rgba(255,255,255,.06),
+    0 0 0 1px var(--anneau),0 5px 0 0 var(--tranche),0 5px 0 1px var(--anneau),var(--ombreSol);
+  text-shadow:0 2px 0 var(--txO);
+  transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease),filter var(--t-fast) var(--ease),opacity var(--t-fast) var(--ease)}
+.pbtn .pxi{color:var(--nc);filter:drop-shadow(0 0 6px color-mix(in srgb,var(--nc) 45%,transparent))}
+.pbtn:active,.pbtn.appui{transform:skewX(var(--sk)) translateY(5px);
+  box-shadow:inset 3px 0 0 var(--nc),inset 60px 0 44px -34px color-mix(in srgb,var(--nc) 80%,transparent),var(--levre),inset 0 0 0 1px color-mix(in srgb,var(--nc) 30%,transparent),
+    0 0 0 1px var(--anneau),0 0 0 0 var(--tranche),0 0 0 1px var(--anneau),0 4px 10px rgba(0,0,0,.55)}
+.pbtn:focus-visible{outline:2px solid var(--nc);outline-offset:6px}
+.pb-cyan{--nc:var(--neoC)}
+.pb-mag{--nc:var(--neoM)}
+/* l'OR — le LINGOT : or poli, reflet qui passe, filet gravé, et le rebord bas qui renvoie la lumière (c'est ce qui en fait du métal) */
+.pb-gold{--nc:var(--auT);color:var(--auT);
+  background:linear-gradient(105deg,transparent 0 38%,rgba(255,255,255,.78) 46%,rgba(255,255,255,0) 54%) no-repeat,
+    linear-gradient(180deg,#fffadf 0%,#ffe78e 15%,#ffd044 40%,#f7ae16 68%,#ea930a 86%,#ffc84e 100%);
+  background-size:250% 100%,auto;background-position:180% 0,0 0;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.95),inset 0 -2px 0 rgba(255,238,170,.55),inset 0 0 0 1px rgba(150,72,0,.35),
+    0 0 0 1px #331600,0 6px 0 0 var(--auE),0 6px 0 1px #331600,0 18px 28px -10px rgba(70,24,0,.75),0 0 34px -6px var(--auG);
+  text-shadow:0 1px 0 rgba(255,247,210,.9);
+  animation:k4Lingot 4.2s var(--ease) 1.2s infinite}
+.pb-gold .pxi{color:var(--auT);filter:none}
+.pb-gold:active,.pb-gold.appui{transform:skewX(var(--sk)) translateY(6px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -2px 0 rgba(255,238,170,.55),inset 0 0 0 1px rgba(150,72,0,.35),
+    0 0 0 1px #331600,0 0 0 0 var(--auE),0 0 0 1px #331600,0 5px 10px rgba(40,10,0,.5),0 0 44px rgba(255,190,40,.62)}
+.pb-gold:focus-visible{outline:2px solid var(--au1);outline-offset:6px}
+@keyframes k4Lingot{0%,64%{background-position:180% 0,0 0}94%,100%{background-position:-80% 0,0 0}}
+/* le ROUGE — détruire, isolé */
+.pb-red{--nc:#fff;color:#fff;
+  background:linear-gradient(180deg,#ff8e9c 0%,#ff4d67 30%,#d81a3c 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 0 0 1px rgba(120,0,20,.35),0 0 0 1px #2a0008,0 5px 0 0 #85091f,0 5px 0 1px #2a0008,var(--ombreSol);
+  text-shadow:0 1px 0 #7a0a1e}
+.pb-red .pxi{color:#fff;filter:none}
+.pb-red:active,.pb-red.appui{box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 0 0 1px rgba(120,0,20,.35),0 0 0 1px #2a0008,0 0 0 0 #85091f,0 0 0 1px #2a0008,0 4px 10px rgba(0,0,0,.5)}
+/* ÉTEINTE — verrouillée, coupée, pas les moyens : elle répond encore au doigt (secousse), elle n'appelle plus l'œil */
+.pbtn.off{--nc:#4a4270;color:var(--tx3);animation:none;outline:0;
+  background:linear-gradient(180deg,#1a1631,#120e24);
+  box-shadow:inset 3px 0 0 #4a4270,inset 0 1px 0 rgba(255,255,255,.08),inset 0 0 0 1px rgba(255,255,255,.04),0 0 0 1px var(--anneau),0 5px 0 0 var(--tranche),0 5px 0 1px var(--anneau),var(--ombreSol);
+  text-shadow:0 2px 0 var(--txO)}
+.pbtn.off .pxi{color:var(--tx3);filter:none}
+/* les tailles */
+.pbtn.big{min-height:74px;font-size:var(--f9);letter-spacing:4px}
+.pbtn.wide{width:100%}
+.pbCarre{width:52px;min-width:52px;min-height:52px;padding:0}
+.pbCarre .pxi{--pxs:3}
+.pbtn.ico{flex-direction:column;gap:10px;min-height:86px;padding:12px 8px 10px 14px;font-size:var(--f2);letter-spacing:1px}
+.pbtn.ico .pxi{--pxs:4}
+.pbtn.ico>span{display:block}
+/* le RELÂCHER (uiPop) : un souffle de lumière, pas un rebond */
+.pbtn.pop,.gTab.pop,.gR.pop,.gT.pop,.mLigne.pop,.mMode.pop{animation:k4Pop var(--t-slow) var(--ease)}
+@keyframes k4Pop{0%{filter:brightness(1.45)}100%{filter:brightness(1)}}
+/* le NON (gSecoue) : ça tremble latéralement, penché */
+.secoue{animation:k4Secoue var(--t-slow) var(--ease)!important}
+@keyframes k4Secoue{0%,100%{translate:0}15%{translate:-9px}35%{translate:8px}55%{translate:-6px}75%{translate:4px}}
+
+/* les PASTILLES : un chiffre ou NEW, étiquette penchée au coin de la touche */
+.mBadge{position:absolute;top:-10px;right:-6px;display:none;min-width:24px;padding:5px 7px 4px;box-sizing:border-box;
+  font-family:var(--pix);font-style:normal;font-size:var(--f0);line-height:1;text-align:center;letter-spacing:1px;
+  color:var(--k0);background:var(--neoC);box-shadow:0 0 0 1px var(--anneau),0 3px 0 1px var(--anneau),0 0 14px color-mix(in srgb,var(--neoC) 55%,transparent);text-shadow:none}
+.mBadge.on{display:block;animation:k4Badge 2.4s var(--ease) infinite}
+#bdShop{color:#fff;background:var(--neoM);text-shadow:0 1px 0 #5a0040;box-shadow:0 0 0 1px var(--anneau),0 3px 0 1px var(--anneau),0 0 14px rgba(255,62,200,.55)}
+@keyframes k4Badge{0%,80%,100%{transform:translateY(0)}88%{transform:translateY(-3px)}}
+
+/* ============================================ LE PANNEAU ===========================================================
+   Ce qui se LIT : laque droite (on lit mieux à plat), deux coins coupés (--c), le FILET qui en fait le tour — coupes
+   comprises : deux traits en dégradé posés dans les coins, là où l'ombre intérieure ne sait pas aller — une lèvre de
+   lumière en haut, et la bande de SA couleur à gauche (--fc). */
+.mPanel,.tpPanel,.mMode,.hCard,.mObj,.modIn{--c:var(--coupe);--fc:var(--kl2);position:relative;box-sizing:border-box;
+  background:linear-gradient(to bottom right,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 0 0/var(--c) var(--c) no-repeat,
+    linear-gradient(to top left,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 100% 100%/var(--c) var(--c) no-repeat,
+    var(--tresse),var(--laqueP);
+  clip-path:polygon(var(--c) 0,100% 0,100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,0 100%,0 var(--c));
+  box-shadow:inset 0 0 0 1px var(--fil),var(--levre),inset 3px 0 0 var(--fc)}
+
+/* les TITRES D'ÉCRAN : une enseigne — penchée, blanche, auréolée de magenta, la LIVRÉE qui file dessous */
+.mHead{display:flex;flex-direction:column;align-items:flex-start;gap:14px;width:100%;margin:6px 0 24px}
+.mHead h3,.tpH:first-child{transform-origin:0 100%;display:flex;align-items:center;gap:14px;margin:0;font-family:var(--pix);font-weight:400;font-size:var(--f9);letter-spacing:2px;color:#fff;
+  transform:skewX(var(--sk));text-shadow:0 3px 0 #2c0a33,0 0 26px rgba(255,62,200,.5)}
+.mHead::after{content:'';display:block;width:96px;height:4px;margin-left:4px;transform:skewX(var(--sk));background:var(--livree);
+  filter:drop-shadow(0 0 6px rgba(255,62,200,.55))}
+.mHead h3::before{content:none}
+/* les TITRES DE SECTION : petites capitales espacées, un filet qui file vers la droite */
+.mSec,.tpH{display:flex;align-items:center;gap:12px;width:100%;margin:24px 0 10px;font-family:var(--pix);font-size:var(--f0);letter-spacing:2px;color:var(--tx3);text-align:left}
+.mSec::after,.tpH::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--fil),transparent)}
+/* la PAUSE a le même titre : la livrée sous le mot, pas de filet à droite */
+.tpH:first-child{flex-direction:column;align-items:flex-start;gap:14px}
+.tpH:first-child::after{content:'';flex:none;display:block;width:96px;height:4px;margin-left:4px;background:var(--livree);filter:drop-shadow(0 0 6px rgba(255,62,200,.55))}
+.tpH:first-child::before{content:none}
+
+/* les LIGNES de réglage (réglages + pause) : un PUITS pour l'icône (la case sombre des réglages d'un iPhone), le libellé,
+   la valeur ou l'interrupteur à droite ; un filet entre deux lignes */
+.mLigne,.tp.ligne{position:relative;display:flex;align-items:center;gap:16px;box-sizing:border-box;min-height:58px;padding:0 16px 0 20px;margin:0;cursor:pointer;
+  font-family:var(--pix);font-size:var(--f2);letter-spacing:1px;color:var(--tx);text-align:left;border-top:1px solid rgba(255,255,255,.055);
+  -webkit-tap-highlight-color:transparent;transition:background var(--t-fast) var(--ease)}
+.mPanel>.mLigne:first-child,.tpPanel>.tp.ligne:first-child{border-top:0}
+.mLigne:active,.tp.ligne:active,.mLigne.appui,.tp.ligne.appui{background:rgba(255,255,255,.05)}
+.mLigne::before,.tp.ligne::before{content:'';position:absolute;left:16px;top:50%;width:34px;height:34px;margin-top:-17px;
+  background:linear-gradient(180deg,#221c40,#151129);clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);
+  box-shadow:inset 0 0 0 1px var(--fil),inset 0 1px 0 rgba(255,255,255,.1)}
+.mLigne>.pxi,.tp.ligne>.pxi{position:relative;--pxs:2;margin:0 4px 0 4px;color:var(--neoC)}
+.mLigne .tpL,.tp.ligne .tpL{flex:1;min-width:0}
+.mLigne.lien::after{content:'';width:9px;height:9px;flex:none;-webkit-mask:var(--pxi-droite) center/contain no-repeat;mask:var(--pxi-droite) center/contain no-repeat}
+/* l'INTERRUPTEUR : une glissière penchée, le patin glisse — vert allumé, gris éteint (le mot ON/OFF est DANS la glissière) */
+b.bascule{position:relative;flex:none;display:flex;align-items:center;justify-content:flex-start;box-sizing:border-box;width:72px;height:30px;padding:0 10px;
+  font-family:var(--pix);font-weight:400;font-size:var(--f0);letter-spacing:1px;color:var(--neoV);transform:skewX(var(--sk));
+  background:linear-gradient(180deg,#05200f,#0a3019);box-shadow:inset 0 2px 3px rgba(0,0,0,.6),0 0 0 1px #1f8a4b,0 0 16px rgba(94,227,122,.28);
+  text-shadow:0 0 8px rgba(94,227,122,.6)}
+b.bascule::before{content:'';position:absolute;top:3px;right:3px;width:26px;height:24px;background:linear-gradient(180deg,#e6ffec 0%,#7cf29c 45%,#3bc96a 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -2px 0 rgba(0,70,25,.35),0 2px 0 rgba(0,0,0,.45);transition:transform var(--t-fast) var(--ease),background var(--t-fast) var(--ease)}
+.mLigne.off b.bascule,b.bascule.ko{justify-content:flex-end;color:var(--tx3);background:linear-gradient(180deg,#07050f,#0e0b1d);box-shadow:inset 0 2px 3px rgba(0,0,0,.6),0 0 0 1px var(--kl);text-shadow:none}
+.mLigne.off b.bascule::before,b.bascule.ko::before{transform:translateX(-40px);background:linear-gradient(180deg,#3d3563 0%,#2b2549 60%,#211c3a 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 0 0 1px var(--kl),0 2px 0 rgba(0,0,0,.45)}
+/* la VALEUR : cyan, avec son chevron */
+b.valeur{display:flex;align-items:center;gap:9px;flex:none;font-family:var(--pix);font-weight:400;font-size:var(--f2);color:var(--neoC);text-shadow:0 0 10px rgba(0,234,255,.4)}
+b.valeur::after{content:'';width:9px;height:9px;background:currentColor;-webkit-mask:var(--pxi-droite) center/contain no-repeat;mask:var(--pxi-droite) center/contain no-repeat}
+/* le CURSEUR de volume : rail penché qui se remplit de cyan jusqu'au patin */
+.volRow{display:block;box-sizing:border-box;padding:0 16px 12px 70px;transition:opacity var(--t-fast) var(--ease)}
+.volRow.mute,.mLigne.off+.volRow{opacity:.4;filter:grayscale(1)}
+.mLigne.off+.volRow{pointer-events:none}
+.volHd{display:flex;justify-content:space-between;align-items:center;font-family:var(--pix);font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
+.volHd b{font-weight:400;color:var(--tx)}
+.volS{-webkit-appearance:none;appearance:none;display:block;width:100%;margin:0;background:transparent;cursor:pointer;transform:skewX(var(--sk));touch-action:pan-y}
+.volS::-webkit-slider-runnable-track{height:6px;background:linear-gradient(90deg,#0a8fa8 0,var(--neoC) var(--v,50%),var(--k0) var(--v,50%));box-shadow:0 0 0 1px var(--kl),0 0 12px rgba(0,234,255,.18)}
+.volS::-moz-range-track{height:6px;background:linear-gradient(90deg,#0a8fa8 0,var(--neoC) var(--v,50%),var(--k0) var(--v,50%));box-shadow:0 0 0 1px var(--kl)}
+.volS::-webkit-slider-thumb{-webkit-appearance:none;border-radius:0}
+.volS::-moz-range-thumb{width:16px;height:26px;border:0;border-radius:0;box-shadow:0 0 0 1px var(--anneau)}
+

@@ -1,0 +1,296 @@
+/* ---- 10. LA FRÉNÉSIE, REFAITE (2026-09-28 au soir, Sacha : « retravaille l'effet frénésie / dark triad, beaucoup beaucoup ; une
+   petite part rouge dans la barre de flow = une zone de tolérance pour rester en frénésie plus souvent ; la barre devient toute rouge
+   et scintille quand elle reçoit encore du flow ; le logo plus beau, plus gros, mieux animé, ROUGE ; parfaitement intégré, pro dès
+   le début »). La mécanique vit dans le JS (FREN, flowLvDe) ; ici, tout ce qui se voit.
+   UNE COULEUR, UN SENS : le ROUGE FRÉNÉSIE (--fren) ne sert qu'à elle — la zone de la jauge, la jauge entière quand on y est, les bords
+   de l'écran, l'emblème, ses braises. Le rouge du DANGER (--danger, rosé) reste celui des alertes ; « ça fuit » en frénésie se dit
+   donc autrement que d'habitude (la zone se hachure et clignote, l'emblème pâlit, puis tremble).
+   (a) LA ZONE ROUGE : le bout de la 4e cellule, hachuré tant qu'il est vide, un cran clair au seuil ; y entrer rougit le bout du
+       violet (son remplissage passe PAR-DESSUS) ; aller jusqu'au bout = FRÉNÉSIE ; ne pas en ressortir = la garder.
+   (b) LA JAUGE EN FRÉNÉSIE : elle S'EMBRASE de gauche à droite puis reste toute rouge, un halo bat derrière elle, des paillettes y
+       courent en continu ; chaque goutte de style la fait SCINTILLER (éclat qui la balaie, paillettes à fond, braises). Elle FUIT :
+       la zone se hachure et clignote. Elle LÂCHE : le cadre clignote (le tic sonore), l'emblème tremble.
+   (c) L'EMBLÈME : 108 px (68 avant), rouge, il NAÎT de la zone rouge et vient claquer à sa place (onde de choc triangulaire,
+       braises) ; deux tours à gauche, deux à droite (la demande d'origine) avec un ARRÊT lisible entre les deux ; chaque double tour
+       part sur une FRAPPE (pouls + halo) ; deux fantômes du cadre font la traînée ; il bat quand on nourrit, pâlit quand ça fuit,
+       tremble quand ça lâche, meurt en vrillant quand la frénésie tombe.
+   (d) LES BORDS DE L'ÉCRAN (#flowGlow) battent en rouge — deux battements par double tour, calés sur les frappes de l'emblème (même
+       départ, même courbe) ; le halo de la jauge bat avec eux.
+   PLACE (mesurée en capture 390×844) : ses pointes balaient un disque de ~51 px de rayon — sous la jauge, à gauche de la case du chrono
+   de vol, au-dessus des pouvoirs et de l'objectif de campagne ; la barre du record se contracte pour le laisser passer. */
+:root{--fren:#ff2a3d;--frenV:#ff6b78;--frenC:#ffd0d5;--frenS:#a8001a;--frenN:#4a0010;--frenO:#1c0006;--frenA:#ffb000;
+  --frenGr:linear-gradient(180deg,var(--frenC) 0 2px,var(--fren) 2px 50%,var(--frenS) 50% calc(100% - 2px),var(--frenN) calc(100% - 2px));
+  --frenT:108px;--frenH:72px;--frenD:80px;   /* l'emblème : largeur × hauteur (54 × 49 cases de 2 px), hauteur sous l'encoche, écart au bord droit */
+  --frenCycle:5.2s;                          /* deux tours à gauche + un arrêt, deux tours à droite + un arrêt */
+  --frenNait:.56s}                           /* sa naissance : tout le reste attend qu'il soit posé */
+/* (a) LA ZONE ROUGE */
+html body #flowHud .fSeg{overflow:hidden}
+html body #flowHud .fSeg>i:nth-child(4)::before{content:'';position:absolute;top:0;bottom:0;left:var(--fzL,52%);right:0;pointer-events:none;
+  background:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--fren) 42%,transparent) 0 2px,transparent 2px 5px),color-mix(in srgb,var(--fren) 16%,transparent)}
+html body #flowHud .fZ{position:absolute;top:0;bottom:0;left:var(--fzL,52%);right:0;pointer-events:none}
+html body #flowHud .fSeg .fZ s{position:absolute;left:0;top:0;bottom:0;right:auto;width:calc(var(--f,0) * 100%);background:var(--frenGr)}
+html body #flowHud .fZ::after{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--frenC);opacity:.9}   /* le CRAN du seuil : posé APRÈS le remplissage, il reste lisible zone pleine (c'est la marge qu'il reste en frénésie) */
+html body #flowHud:not(.dansZ) .fZ s::after,html body #flowHud.dansZ .fSeg>i.cur>s::after{display:none}   /* UN curseur : celui de la zone quand on y est */
+html body #flowHud.fuit .fSeg .fZ s{background:repeating-linear-gradient(-45deg,var(--fren) 0 4px,var(--frenS) 4px 8px)}
+/* (a') LA TRIADE SE MÉRITE (FLOW v2, même nuit — Sacha : « la barre violette pâle et rouge doit être cachée au début et ne se révéler
+   que quand la partie rose est pleine »). TROIS cellules au départ ; la rose pleine, la 4e S'OUVRE (elle pousse depuis zéro, les trois
+   autres se serrent pour lui faire place, un éclair la traverse) ; elle reste ouverte jusqu'à la fin de la partie. Sous la vitesse de
+   la triade, elle GÈLE (grise, éteinte) : le jeu dit « plus vite » sans écrire un mot. */
+html body #flowHud:not(.revele) .fSeg>i:nth-child(4){display:none}
+html body #flowHud.ouvre .fSeg>i:nth-child(4){animation:frOuvre var(--t-slow) var(--ease) both}
+@keyframes frOuvre{0%{flex-grow:.001;filter:brightness(3) saturate(.3)}70%{flex-grow:1}100%{flex-grow:1;filter:none}}
+html body #flowHud.lent:not([data-lv="4"]) .fSeg>i:nth-child(4){filter:grayscale(1) brightness(.55);transition:filter var(--t-fast) var(--ease)}
+@media (prefers-reduced-motion:reduce){html body #flowHud.ouvre .fSeg>i:nth-child(4){animation:none}}
+/* (b) LA JAUGE EN FRÉNÉSIE : toute rouge, cadre et pictogramme compris */
+html body #flowHud[data-lv="4"] .fSeg{background:var(--frenO);box-shadow:inset 0 0 0 3px var(--frenN),0 3px 0 var(--frenO),0 0 14px color-mix(in srgb,var(--fren) 70%,transparent)}
+html body #flowHud[data-lv="4"] .fSeg>i{background:color-mix(in srgb,var(--frenN) 75%,#000)}
+html body #flowHud[data-lv="4"] .fSeg>i>s,html body #flowHud[data-lv="4"].fuit .fSeg>i.cur>s{background:var(--frenGr)}
+html body #flowHud[data-lv="4"]::before{filter:drop-shadow(0 2px 0 var(--encre)) drop-shadow(0 0 6px var(--fren))}
+html body #flowHud[data-lv="4"] .fL{text-shadow:2px 0 0 var(--encre),-2px 0 0 var(--encre),0 2px 0 var(--encre),0 -2px 0 var(--encre),0 3px 0 var(--encre),0 0 10px var(--fren)}
+html body #flowHud[data-lv="4"]::after{content:'';display:block;position:absolute;left:24px;right:-6px;top:-9px;height:32px;z-index:-1;pointer-events:none;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--fren) 60%,transparent),transparent);
+  animation:frBat calc(var(--frenCycle) / 4) var(--ease) var(--frenNait) infinite}
+/* elle s'EMBRASE de gauche à droite (une cellule après l'autre) */
+html body #flowHud.embrase .fSeg>i{animation:frEmbrase .5s var(--ease)}
+html body #flowHud.embrase .fSeg>i:nth-child(2){animation-delay:.07s}
+html body #flowHud.embrase .fSeg>i:nth-child(3){animation-delay:.14s}
+html body #flowHud.embrase .fSeg>i:nth-child(4){animation-delay:.21s}
+@keyframes frEmbrase{0%{filter:brightness(3) saturate(.2);transform:scaleY(1.8)}100%{filter:none;transform:none}}
+/* les PAILLETTES qui y courent (deux trames décalées, deux cadences : le scintillement ne se répète jamais à l'identique) */
+html body #flowHud .fSeg::before,html body #flowHud .fG{content:'';display:block;position:absolute;top:3px;bottom:3px;right:0;z-index:2;pointer-events:none;opacity:0;text-decoration:none}
+html body #flowHud .fSeg::before{left:-24px;
+  background:radial-gradient(circle,var(--tx) 0 1px,transparent 1.6px) 0 -2px/24px 8px repeat-x,radial-gradient(circle,var(--frenC) 0 .8px,transparent 1.4px) 13px 2px/24px 8px repeat-x}
+html body #flowHud .fG{left:-31px;
+  background:radial-gradient(circle,var(--tx) 0 .9px,transparent 1.5px) 6px 1px/31px 8px repeat-x,radial-gradient(circle,var(--frenA) 0 .8px,transparent 1.4px) 21px -2px/31px 8px repeat-x}
+html body #flowHud[data-lv="4"] .fSeg::before{animation:frGlisse .9s linear infinite,frScint .42s steps(3) infinite}
+html body #flowHud[data-lv="4"] .fG{animation:frGlisse2 1.3s linear infinite,frScint .57s steps(3) infinite}
+@keyframes frGlisse{to{transform:translateX(24px)}}
+@keyframes frGlisse2{to{transform:translateX(31px)}}
+@keyframes frScint{0%{opacity:.2}40%{opacity:.85}100%{opacity:.35}}
+/* le reflet de la nitro, plus vif et plus rapide */
+html body #flowHud[data-lv="4"] .fSeg::after{background-image:linear-gradient(100deg,transparent 40%,color-mix(in srgb,var(--frenC) 80%,transparent) 50%,transparent 60%);
+  animation:nbReflet 1.6s var(--ease) infinite}
+/* ELLE SCINTILLE QUAND ON LA NOURRIT (.sc1/.sc2, posées par frenNourrit) : l'éclat passe DERNIER dans la liste — il gagne le temps de sa
+   course, puis les animations continues (qui n'ont jamais cessé) reprennent la main */
+html body #flowHud[data-lv="4"].sc1 .fSeg{animation:frEclatA .3s var(--ease)}
+html body #flowHud[data-lv="4"].sc2 .fSeg{animation:frEclatB .3s var(--ease)}
+html body #flowHud[data-lv="4"].sc1 .fSeg::after{animation:nbReflet 1.6s var(--ease) infinite,frGlintA .34s var(--ease)}
+html body #flowHud[data-lv="4"].sc2 .fSeg::after{animation:nbReflet 1.6s var(--ease) infinite,frGlintB .34s var(--ease)}
+html body #flowHud[data-lv="4"].sc1 .fSeg::before{animation:frGlisse .9s linear infinite,frScint .42s steps(3) infinite,frPetA .3s steps(2)}
+html body #flowHud[data-lv="4"].sc2 .fSeg::before{animation:frGlisse .9s linear infinite,frScint .42s steps(3) infinite,frPetB .3s steps(2)}
+@keyframes frEclatA{from{filter:brightness(1.8)}to{filter:none}}
+@keyframes frEclatB{from{filter:brightness(1.8)}to{filter:none}}
+@keyframes frGlintA{from{background-position:150% 0}to{background-position:-50% 0}}
+@keyframes frGlintB{from{background-position:150% 0}to{background-position:-50% 0}}
+@keyframes frPetA{0%,100%{opacity:1}}
+@keyframes frPetB{0%,100%{opacity:1}}
+/* elle FUIT : la marge BRÛLE (hachures qui clignotent), le halo s'éteint à moitié */
+html body #flowHud[data-lv="4"].fuit .fSeg{box-shadow:inset 0 0 0 3px var(--frenS),0 3px 0 var(--frenO),0 0 6px color-mix(in srgb,var(--fren) 40%,transparent)}
+html body #flowHud[data-lv="4"].fuit .fSeg .fZ s{animation:frBrule .36s steps(2) infinite}
+@keyframes frBrule{50%{filter:brightness(1.6)}}
+/* (d) LES BORDS DE L'ÉCRAN battent en rouge */
+#flowGlow[data-lv="4"]{animation:frBat calc(var(--frenCycle) / 4) var(--ease) var(--frenNait) infinite}
+@keyframes frBat{0%{opacity:1}14%{opacity:.5}22%{opacity:.82}40%{opacity:.4}100%{opacity:.4}}
+/* (c) L'EMBLÈME — v3 EN PIXEL (même soir, Sacha : « toute l'interface est faite en pixel, réinterprète la dark triad »). Un badge de
+   54 × 49 cases de 2 px (voir le balisage) : il se lit comme les icônes et les plaques du HUD. Tout ce qui le bouge respecte la grille :
+   il TOURNE COMME UNE PIÈCE (rotateY — les pixels restent droits, une rotation dans le plan les floutait), il BONDIT au lieu de gonfler
+   (translations entières, en paliers), il TREMBLE de 2 px, l'onde de choc avance par PALIERS. */
+#triade{position:fixed;display:none;z-index:6;pointer-events:none;width:var(--frenT);height:var(--frenTh);
+  top:calc(var(--hudH) + var(--frenH));right:calc(var(--hudD) + var(--frenD))}
+html body.touch.play #triade.on,html body.touch.play #triade.sort{display:block}
+html body #triade.mesure{display:block;visibility:hidden;animation:none}
+#triade .trTr,#triade .trBat,#triade .trPouls,#triade .trPiece{position:absolute;inset:0}
+#triade svg{position:absolute;inset:0;display:block;width:100%;height:100%;overflow:visible}
+#triade .trPiece{transform-style:preserve-3d;will-change:transform}
+#triade .trFace{-webkit-backface-visibility:hidden;backface-visibility:hidden}
+#triade .trFace.dos{transform:rotateY(180deg)}   /* le revers : la même face, déjà retournée — la pièce se lit des deux côtés */
+#triade .trAura{position:absolute;left:-30%;top:-30%;width:160%;height:160%;opacity:0;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--fren) 45%,transparent),transparent)}
+#triade .trOnde{opacity:0}
+#triade .trOnde path{fill:var(--frenV)}
+/* SA NAISSANCE : partie du centre de la zone rouge (--ox/--oy, relevés par frenEntre), elle file jusqu'à sa place et CLAQUE — l'onde
+   pixel part à l'impact, par paliers */
+#triade.on{animation:trNait var(--frenNait) var(--ease) both}
+@keyframes trNait{0%{opacity:0;transform:translate(var(--ox,0px),var(--oy,0px)) scale(.14)}22%{opacity:1}
+  62%{transform:translate(0px,0px) scale(1.2)}100%{opacity:1;transform:translate(0px,0px) scale(1)}}
+#triade.on .trOnde{animation:trOnde .6s steps(6) calc(var(--frenNait) * .62) forwards}
+@keyframes trOnde{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2.2)}}
+/* SA VIE : deux tours à gauche, un arrêt (on LIT « THE DARK TRIAD »), deux tours à droite, un arrêt — autour de l'axe vertical ; chaque
+   départ est une FRAPPE : elle bondit de 6 px (trois paliers de 2 px, la grille) et le halo s'embrase */
+#triade .trPiece{animation:trTourne var(--frenCycle) var(--ease) var(--frenNait) infinite}
+@keyframes trTourne{0%{transform:rotateY(0deg)}36%{transform:rotateY(-720deg)}50%{transform:rotateY(-720deg)}86%{transform:rotateY(0deg)}100%{transform:rotateY(0deg)}}
+#triade .trPouls{animation:trPouls var(--frenCycle) steps(3) var(--frenNait) infinite}
+@keyframes trPouls{0%{transform:translateY(-6px)}9%{transform:translateY(0)}49.9%{transform:translateY(0)}50%{transform:translateY(-6px)}59%{transform:translateY(0)}100%{transform:translateY(0)}}
+#triade .trAura{animation:trAura calc(var(--frenCycle) / 2) var(--ease) var(--frenNait) infinite}
+@keyframes trAura{0%{opacity:1;transform:scale(1.12)}45%{opacity:.4;transform:scale(.94)}100%{opacity:.4;transform:scale(.94)}}
+/* on la NOURRIT : elle s'illumine et saute de 2 px · ça FUIT : elle pâlit · ça LÂCHE : elle tremble de 2 px · la frénésie tombe : elle
+   s'éteint en rétrécissant */
+#triade.bat1 .trBat{animation:trBatA .24s steps(3)}
+#triade.bat2 .trBat{animation:trBatB .24s steps(3)}
+@keyframes trBatA{from{transform:translateY(-2px);filter:brightness(1.7)}to{transform:none;filter:none}}
+@keyframes trBatB{from{transform:translateY(-2px);filter:brightness(1.7)}to{transform:none;filter:none}}
+#triade .trTr{transition:opacity var(--t-slow) var(--ease)}
+#triade.froid .trTr{opacity:.72}
+#triade.tremble .trTr{animation:trTremble .1s steps(2) infinite}
+@keyframes trTremble{50%{transform:translateX(2px)}}
+#triade.sort{animation:trMeurt .44s var(--ease) both}
+/* (v3) LE CHRONO DE LA FRÉNÉSIE, sous l'emblème (logique : flowTick → frenChrono ; .rec = le record est battu) */
+#frenChrono{position:absolute;left:0;right:0;top:100%;text-align:center;font-family:var(--pix);font-weight:normal;font-size:calc(var(--fs-min) + 2px);color:var(--frenC);
+  text-shadow:0 2px 0 var(--frenO),0 0 6px var(--fren)}
+#frenChrono.rec{color:var(--frenA)}
+/* (v4) LA TRIADE : trois traits sous le chrono — le nom, et sa barre de mémoire (--f). .faible bat, .mort s'éteint ; .fl1/.fl2 = nourri */
+#frenTraits{position:absolute;left:-12px;right:-12px;top:calc(100% + 26px);display:flex;flex-direction:column;gap:3px}
+#frenTraits i{display:block;position:relative;font-style:normal}
+#frenTraits b{display:block;font-family:var(--pix);font-weight:normal;font-size:var(--fs-min);color:var(--frenC);text-shadow:0 1px 0 var(--frenO)}
+#frenTraits s{display:block;height:3px;margin-top:1px;background:var(--frenN);text-decoration:none}
+#frenTraits s::after{content:'';display:block;height:100%;width:calc(var(--f,1) * 100%);background:var(--fren)}
+#frenTraits i.faible{animation:frBrule .36s steps(2) infinite}
+#frenTraits i.mort{opacity:.35}
+#frenTraits i.fl1,#frenTraits i.fl2{filter:brightness(1.6)}
+/* (v4) ARMÉE : la jauge est pleine, la frénésie attend une figure POSÉE — la zone rouge bat (style fin : session UI) */
+html body #flowHud.arme .fSeg .fZ s{animation:frBrule .3s steps(2) infinite}
+@keyframes trMeurt{0%{opacity:1;transform:scale(1)}25%{opacity:1;transform:scale(1.12)}100%{opacity:0;transform:scale(.2)}}
+/* la barre du RECORD se contracte pour laisser passer ses pointes (le texte, lui, ne bouge pas) */
+html body.touch.play.hTriade:not(#ccH) #avRec{max-width:calc(100vw - var(--hudD) - var(--frenD) - var(--frenT) - var(--hudG) - 6px)}
+html body.touch.play.hTriade:not(#ccH) #avRec i{flex:0 1 70px;width:auto;min-width:18px}
+html body.touch.play.hTriade:not(#ccH) #auraV2{z-index:7}   /* le « +820 » d'aura versée court à droite du mot AURA et passe sur l'emblème : l'INFORMATION (1,4 s) gagne sur la décoration */
+body.hTp:not(#ccH) #triade,body.dead #triade,body.coOn #triade{visibility:hidden}
+/* « Réduire les animations » (iOS ou réglage) : la zone, le rouge et l'emblème restent ; plus rien ne tourne, ne bat ni ne clignote */
+html[data-reduced-motion="1"] #triade.on,html[data-reduced-motion="1"] #triade .trPiece,html[data-reduced-motion="1"] #triade .trPouls,
+html[data-reduced-motion="1"] #triade .trAura,html[data-reduced-motion="1"] #triade .trBat,html[data-reduced-motion="1"] #triade .trTr,
+html[data-reduced-motion="1"] #flowGlow[data-lv="4"],html[data-reduced-motion="1"] body #flowHud[data-lv="4"]::after,
+html[data-reduced-motion="1"] body #flowHud .fSeg,html[data-reduced-motion="1"] body #flowHud .fSeg>i,html[data-reduced-motion="1"] body #flowHud .fSeg::before,
+html[data-reduced-motion="1"] body #flowHud .fG,html[data-reduced-motion="1"] body #flowHud .fSeg::after,html[data-reduced-motion="1"] body #flowHud .fSeg .fZ s{animation:none!important}
+html[data-reduced-motion="1"] #triade .trFace.dos,html[data-reduced-motion="1"] #triade .trOnde,html[data-reduced-motion="1"] #triade.sort{display:none!important}
+html[data-reduced-motion="1"] #triade .trAura{opacity:.5}
+/* ---- 11. LE BOUTON NITRO ET LE CHRONO DE VOL, EN PIXEL (2026-09-28, Sacha, après le DARK TRIAD pixel : « pas mal, fais pareil pour le
+   camembert air time et le bouton nitro »). Les deux cadrans ronds de la course étaient les derniers ronds LISSES du jeu (dégradés
+   coniques, arcs vectoriels) : ils deviennent des DISQUES PIXEL de la même main que le badge — grille de 2 px, contour d'encre, biseau
+   éclairé d'en haut à gauche, face carbone tramée, épaisseur d'encre dessous, jauge en SEGMENTS de cases.
+   · NITRO : le dessin (`.nxArt`, 52 × 54 cases, généré par `fr/pix/nitro.js`) est en place dans le bouton ; la JAUGE (`.nxJauge`) garde
+     SA lecture et son câblage — le dégradé conique piloté par --nr (orange) / --nx (réserve bleue), 280° depuis 220° — mais elle ne se
+     voit plus qu'à travers un MASQUE de cases (--nxMasque : 14 segments de 16°, 4° de noir). Appuyer = la plaque descend de 2 cases
+     sur son épaisseur (qui disparaît) et la face S'EMBRASE (orange) ;
+   · CHRONO DE VOL : dessiné case par case dans sa toile (`airPieDraw`, 39 × 39 cases de 4 px de toile = 78 px affichés, `pixelated`),
+     18 segments de 20° qui s'éteignent dans le sens horaire, chiffres et « AIR » dans la police du jeu, calés sur ses pixels. */
+:root{--nxMasque:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 52 54' shape-rendering='crispEdges'%3E%3Cpath fill='%23fff' d='M20 5h5v1h-5zM26 5h6v1h-6zM19 6h6v1h-6zM26 6h6v1h-6zM33 6h2v1h-2zM15 7h3v1h-3zM19 7h6v1h-6zM26 7h5v1h-5zM33 7h4v1h-4zM14 8h4v1h-4zM20 8h5v1h-5zM26 8h5v1h-5zM32 8h6v1h-6zM12 9h7v1h-7zM32 9h6v1h-6zM13 10h5v1h-5zM34 10h3v1h-3zM39 10h2v1h-2zM10 11h2v1h-2zM14 11h2v1h-2zM36 11h1v1h-1zM38 11h4v1h-4zM9 12h4v1h-4zM37 12h6v1h-6zM9 13h5v1h-5zM38 13h5v1h-5zM8 14h5v1h-5zM39 14h4v1h-4zM8 15h4v1h-4zM40 15h2v1h-2zM44 15h1v1h-1zM10 16h1v1h-1zM42 16h3v1h-3zM6 17h3v1h-3zM41 17h5v1h-5zM6 18h4v1h-4zM42 18h4v1h-4zM6 19h4v1h-4zM42 19h4v1h-4zM5 20h4v1h-4zM43 20h4v1h-4zM5 21h4v1h-4zM43 21h1v1h-1zM6 22h3v1h-3zM46 22h1v1h-1zM43 23h4v1h-4zM5 24h4v1h-4zM43 24h4v1h-4zM5 25h4v1h-4zM43 25h4v1h-4zM5 26h4v1h-4zM43 26h4v1h-4zM5 27h4v1h-4zM43 27h4v1h-4zM5 28h4v1h-4zM5 29h1v1h-1zM43 29h3v1h-3zM8 30h1v1h-1zM43 30h4v1h-4zM5 31h4v1h-4zM43 31h4v1h-4zM6 32h4v1h-4zM42 32h4v1h-4zM6 33h4v1h-4zM42 33h4v1h-4zM6 34h5v1h-5zM43 34h3v1h-3zM7 35h3v1h-3zM41 35h1v1h-1zM7 36h1v1h-1zM10 36h2v1h-2zM40 36h4v1h-4zM9 37h4v1h-4zM39 37h5v1h-5zM9 38h5v1h-5zM38 38h5v1h-5zM9 39h6v1h-6zM39 39h4v1h-4zM10 40h4v1h-4zM40 40h2v1h-2zM11 41h2v1h-2z'/%3E%3C/svg%3E")}
+html body.touch #tNitro,html body.touch #tNitro:active,html body.touch #tNitro.on{box-shadow:none!important;overflow:visible}
+html body.touch #tNitro>.nxArt,html body.touch #tNitro>.nxJauge{position:absolute;left:0;top:0;width:104px;height:108px;display:block;pointer-events:none}
+html body.touch #tNitro>.nxJauge{-webkit-mask:var(--nxMasque) 0 0/100% 100% no-repeat;mask:var(--nxMasque) 0 0/100% 100% no-repeat;
+  background:conic-gradient(from 220deg at 52px 52px,#ffd23a 0deg,#ff6a0e calc(var(--nr)*280deg),#3f6bff calc(var(--nr)*280deg),var(--neoC) calc(min(1,var(--nr) + var(--nx))*280deg),
+    rgba(255,255,255,.13) calc(min(1,var(--nr) + var(--nx))*280deg),rgba(255,255,255,.13) 280deg,transparent 280deg)}
+html body.touch #tNitro>i,html body.touch #tNitro>span{position:relative}   /* l'éclair et le mot passent DEVANT le disque */
+#tNitro .nx-ep,#tNitro .nx-encre{fill:var(--k0)}
+#tNitro .nx-levre{fill:var(--kl2)}
+#tNitro .nx-clair{fill:var(--kl)}
+#tNitro .nx-mi{fill:var(--k4)}
+#tNitro .nx-sombre{fill:var(--k2)}
+#tNitro .nx-piste{fill:var(--k1)}
+#tNitro .nx-face{fill:var(--k3)}
+#tNitro .nx-face2{fill:var(--k2)}
+#tNitro .nx-reflet{fill:var(--k4)}
+/* l'APPUI : 2 cases de descente sur l'épaisseur (elle s'efface), la face s'embrase, la jauge blanchit */
+#tNitro:active .nx-ep,#tNitro.on .nx-ep{visibility:hidden}
+#tNitro:active .nx-face,#tNitro.on .nx-face{fill:#ff6a0e}
+#tNitro:active .nx-face2,#tNitro.on .nx-face2{fill:#e2520a}
+#tNitro:active .nx-reflet,#tNitro.on .nx-reflet{fill:#ffb35c}
+html body.touch #tNitro:active>.nxJauge,html body.touch #tNitro.on>.nxJauge{
+  background:conic-gradient(from 220deg at 52px 52px,#fff3b0 0deg,#ffd23a calc(var(--nr)*280deg),#8fb0ff calc(var(--nr)*280deg),#b8f6ff calc(min(1,var(--nr) + var(--nx))*280deg),
+    rgba(255,255,255,.13) calc(min(1,var(--nr) + var(--nx))*280deg),rgba(255,255,255,.13) 280deg,transparent 280deg)}
+/* le CHRONO DE VOL : une toile nette au pixel (plus d'ombre floue : l'épaisseur est dessinée), il tremble de 2 px entiers sous 1,5 s */
+html body.touch #airPie{width:78px!important;height:78px!important;filter:none;image-rendering:pixelated;image-rendering:crisp-edges}
+@keyframes k6PieDanger{50%{transform:translateX(2px)}}
+@media (prefers-reduced-motion:reduce){html body.touch #airPie.danger{animation:none}}
+/* ---- 12. LE PAYSAGE (2026-09-28, charte v5). Le jeu se joue debout ET couché depuis le 27/09, et c'est le téléphone COUCHÉ que
+   l'ordi montre par défaut (844 × 390). Jusqu'ici chaque écran restait une colonne de téléphone debout posée au milieu : l'accueil
+   s'entassait sous le logo, la mort débordait, la pause défilait, le garage cachait sa caisse et coupait sa barre d'action. Chaque
+   écran a désormais SA mise en page couchée — même grammaire : on LIT à gauche et en haut, on TOUCHE en bas, et l'action primaire
+   (le lingot) tombe sous le pouce DROIT. Le seuil : un écran couché de moins de 540 px de haut (un téléphone, pas un moniteur). */
+@media (orientation:landscape) and (max-height:540px){
+  html body.touch #overlay>#mob{max-width:none}
+  html .mscr{padding:calc(var(--sT) + 14px) calc(var(--sR) + 24px) calc(var(--sB) + 14px) calc(var(--sL) + 24px)}
+  html .mHead{margin:0 0 16px;gap:10px}
+  html .mHead h3,html .tpH:first-child{font-size:var(--f6)}
+  /* L'ACCUEIL garde sa colonne de la v4 (verdict de Sacha, 28/09 : « pour l'écran d'accueil, remets la v4 ») — voir section 18 */
+  /* L'ÉCRAN DE MORT : le verdict et les deux héros à gauche ; le ticket, le défi, les portes et REJOUER à droite */
+  html #mDead.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:22px}
+  html #mDead .mOver{font-size:var(--f6)}
+  html #mDead .mCause{grid-area:cause;margin:8px 0 0}
+  html #mDead .hCard{min-height:0}
+  html #mDead .mCashL{padding:10px 12px 8px}
+  html #mDead .mCashL b{font-size:var(--f5)}
+  html #mDead .mStat{min-height:46px;gap:7px}
+  html #mDead .mStat b{font-size:var(--f3)}
+  html #mDead .mObj{padding:10px 14px;gap:7px}
+  html #mDead .mEsp{grid-area:esp;max-height:none;min-height:8px}
+  html #mDead>.mRow{grid-area:row;margin:0}
+  html #mDead>.mRow .pbtn{min-height:48px;flex-direction:row;gap:8px;padding:0 8px 0 12px;font-size:var(--f0)}
+  html #mDead>.mRow .pbtn .pxi{--pxs:2}
+  html #mDead .mFin{grid-area:rej;margin:16px 0 0}
+  html #mDead .mFin>[data-m="replay"]{min-height:58px;font-size:var(--f6)}
+  html #mDead #nameEntry{grid-column:2}
+  /* LES SOUS-ÉCRANS : une colonne plus large, et la place qu'il faut à chacun */
+  html #mModes.on,html #mShop.on,html #mSet.on{max-width:820px;align-self:center}
+  html #mModes.on{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:14px;align-content:start}
+  html #mModes .mHead,html #mModes .mDock{grid-column:1/-1}
+  html #mModes .mMode{margin:0;padding:14px 12px 14px 16px}
+  html #mModes .mmT{font-size:var(--f2);gap:8px}
+  html #mModes .mmT>span:first-child{gap:8px}
+  html #mModes .mmT .pxi{--pxs:2}
+  html #mModes .mmD{font-size:13px}
+  html .mSet{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:22px;grid-auto-flow:row dense;align-items:start}
+  html .mSet>*{grid-column:2}
+  html .mSet>.mSec:nth-child(1),html .mSet>.mPanel:nth-child(2){grid-column:1}
+  html .mSet>.mPanel:nth-child(2){grid-row:2/span 6}
+  html .mSet>.mSec:nth-child(3){margin-top:0}
+  html .shGrille{grid-template-columns:repeat(4,minmax(0,1fr))}
+  html .shUneCadre{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);grid-template-areas:"ruban ruban" "photo tx" "photo bas";column-gap:18px;align-items:center}
+  html .shUneCadre .shPhoto{grid-area:photo}
+  html .shUneCadre .shUneTx{grid-area:tx}
+  html .shUneCadre .shUneBas{grid-area:bas}
+  /* LA PAUSE : deux colonnes — le titre, la partie et REPRENDRE à gauche (le lingot en bas, sous le pouce) ; les réglages à droite */
+  html #tpIn{max-width:820px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:28px;row-gap:12px;
+    grid-template-rows:auto auto auto auto 1fr;padding:calc(var(--sT) + 16px) calc(var(--sR) + 24px) calc(var(--sB) + 16px) calc(var(--sL) + 24px)}
+  html #tpIn>.tpH:nth-child(1){grid-column:1;grid-row:1}
+  html #tpIn>.tpH:nth-child(2){grid-column:1;grid-row:2;margin:4px 0 0}
+  html #tpIn>.tpRow{grid-column:1;grid-row:3}
+  html #tpIn>.tpResume{grid-column:1;grid-row:4;margin:6px 0 0}
+  html #tpIn>.tpHR{grid-column:2;grid-row:2;margin:4px 0 0}
+  html #tpIn>.tpPanel{grid-column:2;grid-row:3/span 3;align-self:start}
+  html #tpIn>.tp.go{grid-column:1;grid-row:5;align-self:end;position:relative;bottom:auto;margin:0 0 6px;min-height:64px}
+  html #tpIn .tp.ligne{min-height:52px}
+  /* la FENÊTRE : une feuille centrée, moins haute */
+  html #modale{align-items:center}
+  html .modIn{max-width:520px;padding:20px 22px 18px;gap:10px}
+  html .modB{flex-direction:row-reverse;gap:16px;margin-top:6px}
+  html .modB .pbtn{flex:1}
+}
+/* (2026-09-30, Léo : « la voiture est toujours pas cadrée ») LE GARAGE EN COLONNE vaut aussi pour l'écran d'ORDI pas très haut (large, ≤ 820 px) :
+   à 1000 × 570 les commandes empilées en bas mangeaient la moitié de l'écran et la fiche le haut — la caisse, coincée entre les deux, passait
+   derrière le texte. Mêmes règles que le téléphone couché, sorties de son bloc (les autres écrans n'en changent pas) ; garCadre lit la colonne. */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  /* LE GARAGE : la fiche en haut à gauche, les commandes en COLONNE à droite (onglets, familles, vignettes, barre d'action) ;
+     l'objectif est décentré en JS (garageDecale, GAR_DECX) : la caisse glisse dans la moitié gauche, entre les deux */
+  html #garage::before{height:min(46%,200px);background:linear-gradient(180deg,rgba(7,5,15,.88),rgba(7,5,15,.5) 55%,rgba(7,5,15,0))}
+  html #garage::after{top:0;bottom:0;left:auto;right:0;width:min(52%,460px);height:auto;background:linear-gradient(270deg,rgba(7,5,15,.96),rgba(7,5,15,.86) 70%,rgba(7,5,15,0))}
+  html #gTop{max-width:none;margin:0;padding:calc(var(--sT) + 12px) 0 0 calc(var(--sL) + 22px);width:min(50%,420px)}
+  html #gCard{margin-top:12px}
+  html #gName{font-size:var(--f6);margin-top:10px}
+  html #gName::after{margin-top:9px}
+  html #gBottom{position:absolute;right:0;bottom:0;top:0;width:min(50%,430px);max-width:none;margin:0;justify-content:flex-end;gap:10px;
+    padding:calc(var(--sT) + 12px) calc(var(--sR) + 16px) calc(var(--sB) + 12px) 12px}
+  html #gTabs{margin:0 4px}
+  html .gTab{min-height:44px;padding:6px 0 5px;gap:5px}
+  html #gRar,html #gStrip{margin:0 -16px 0 -12px}
+  html #gStrip{padding:6px 18px 10px}
+  html .gT{width:86px;height:58px}
+  html #gAct{margin:2px 4px 0}
+  html #gAct #gClose,html #gBuy,html #gEquip{min-height:54px}
+  html #gAct #gClose{width:66px;min-width:66px;gap:4px;padding:4px 2px 2px 6px} /* (2026-09-29) la MAISON porte son mot, comme sur l'écran de mort */
+  html #gJouer{min-height:54px}
+  html #gOutils .pbtn{width:46px;min-width:46px;height:44px}
+  html #gOutils{position:fixed;top:calc(var(--sT) + 12px);right:calc(var(--sR) + 16px);z-index:2} /* couché : le vrai coin haut-droit (vide, au-dessus des onglets) */
+  html #gNext{right:calc(min(50%,430px) + 4px)}
+  html body.inGarage #toast{top:calc(var(--sT) + 14px);bottom:auto;left:auto;right:calc(var(--sR) + 16px);transform:translate(0,-14px)}
+  html body.inGarage #toast.on{transform:none}
+}

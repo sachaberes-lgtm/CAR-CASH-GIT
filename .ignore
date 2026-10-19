@@ -1,0 +1,3 @@
+# Les recherches (ripgrep, l'outil Grep de Claude) sautent index.html : c'est la copie assemblée de code/, on cherche dans code/.
+# Viser le fichier par son chemin le lit quand même.
+/VERSION PRINCIPALE/index.html
