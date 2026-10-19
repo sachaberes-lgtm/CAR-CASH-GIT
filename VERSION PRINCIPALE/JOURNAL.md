@@ -19263,3 +19263,19 @@ const CACHE = 'cashcar-v624'; // v624 (2026-10-18, Léo : « plus de gris chelou
 // const CACHE = 'cashcar-v636'; // v636 (2026-10-18, Sacha : « change le rgb que Léo a mis sur le bord de la route pour qu'il soit de la même couleur que la traînée choisie par le joueur ») : au boost, les bords de la route prennent la couleur de la TRAÎNÉE équipée (le scintillement reste) ; la traînée ARC-EN-CIEL garde l'arc-en-ciel ; `?bordsboost=rgb` = la version de Léo
 // const CACHE = 'cashcar-v635'; // v635 (2026-10-18, session m2colk — Claude, trouvé en passant par la session CHAUMIÈRES) : LA MIGRATION DES MISSIONS v2 TOURNE ENFIN — `M2_COLK` et `M2_RECO` étaient déclarées plus bas que l'appel de `m2Etat` du démarrage (zone morte, avalée par le try/catch : « missions v2 : migration ReferenceError » à chaque première ouverture) ; remontées à côté de `M2K`, mesuré sans effet sur les sauvegardes déjà passées
 ```
+
+## LES VOITURES ROUGES, MOINS LUMINEUSES (2026-10-19 soir, discussion Map — Léo : « rends la vette et toutes les voitures rouges moins lumineuses, tu peux donner de la vie aux couleurs ; c'est trop luisant, il n'y a pas de détail sur la voiture ») — v704
+- LE DÉFAUT, MESURÉ (banc : Chrome sans fenêtre, garage et course figée par `dbgView`) : la laque rouge sature. LA VETTE (d01a22 : 208/26/34) rendue au garage : 69-75 % de ses pixels rouges à 255,
+  vert et bleu à 0 (médiane R 253) ; en course de jour (NUAGES, midi) 63 % ; de nuit 35-39 %. La lumière du garage (~4× l'albédo) et le grade du jeu (saturation) écrasent un rouge saturé en
+  rouge pur : plus aucun dégradé, donc plus de relief ni de reflet lisible. Même défaut sur ROSSO 40, LA CERISE, LE HOT ROD, LA RAIE, LA PUCE (palette `p` de leur gabarit).
+- LA CORRECTION : la peinture `p` de ces six gabarits passe de c à c × 0,55 + (8, 15, 18) : plus foncée, un fond de vert et de bleu qui donne de la vie (un cramoisi qui chauffe vers l'orange
+  sous la lampe, au lieu d'un rouge pur). VETTE d01a22 → 7a1e25 · ROSSO 40 e8121c/b00d15 → 871921/68161d · CERISE c8151d → 761b22 · HOT ROD c8141c → 761a21 · PUCE c8141e → 761a22 · RAIE c4161c → 731b21.
+  Essayé : ×0,38 (relief maximal au garage mais un bordeaux terne en plein jour), ×0,6, ×0,5 ; ×0,55 est le compromis. Le seul levier est l'albédo : le garage reste lumineux (même à ×0,4, 48 %
+  des pixels restent saturés), le relief vient du capot, des lignes de caisse et des reflets qui reparaissent.
+- NON TOUCHÉ : `CARS[i].color` (cars.js) — c'est la couleur de la vignette de la peinture d'USINE dans l'inventaire (elle doit rester le rouge vif) ; la laque réellement rendue vient de la palette du gabarit.
+  LA DAYTONA (retirée) garde sa palette. Les peintures du joueur (boutique) passent par `peintPal` : inchangées.
+- À MONTRER À LÉO (pas appliqué, il décide) : même défaut sur LA TAURINE, LE TRÔNE CENTRAL, LA ZED (oranges qui sortent rouge-orange au garage : 40-43 % de pixels plats), LE DÉFIEUR (jaune, 35 %),
+  POSTER 84 (33 %). Planche : `photos-gameplay/rouges-autres-propositions.png` (dossier de Léo, hors dépôt).
+- Banc (scratchpad de la discussion Map) : `ab.py` (avant/après au garage et en course figée, deux serveurs), `tune3.py`/`tune4.py` (réglages à chaud par `dbgRed` + mesure des pixels saturés), `flat.py`
+  (classement de toute la gamme), `planche.py` (planche légendée capturée par Chrome).
+
