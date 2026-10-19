@@ -49,6 +49,10 @@
   dunes **27 sur 28** (dont 20 à graine fixée `?pistegraine=`) — la seule mort : une sortie de route dans le demi-tour d'une boucle à raccourci, lancée
   à pleine vitesse (la limite connue du pilote, qui ne freine pas : « À la nitro TENUE… » dans LES DUNES D'OR) ; la version d'avant au même banc : 11 sur
   11 et 3 sur 3. Durées pareilles (dunes 42-77 s jusqu'au portail, avant 46-71 s).
+  Au banc PHOTO (photos.py : son pilote ne dirige PAS en vol), la graine 7 des dunes explosait vers 30 s — des vagues (un module dVagues) y arrivent
+  dès ~25 s, juste après l'allée des obélisques ; rejouée au pilote qui vole : 2 traversées sur 2. Les modules de vagues pouvaient déjà tomber avant
+  le 1er raccourci (la liaison d'avant était un module 4-5 fois sur 5). Fumée d'avant push (menu → JOUER → 12 s de course, canyon puis dunes) :
+  couché, debout et dans le cadre de l'ordi, 0 erreur JS.
 - **Ce qui ne change pas** : `?sans=canyonhasard` / `?sans=duneshasard` = la recette d'avant au tirage près (MESURÉ : 40 tracés sur 40 identiques, chaque map) ;
   hors JOUER (longueurCible = 0) les maps entières gardent toutes leurs pièces, mélangées. Console : `dbgCanyon().hz` / `dbgDunes().hz` = l'axe, la pente,
   la longueur visée, les coudes et les pièces dans l'ordre (avec leurs longueurs) ; les champs `hz` passent par le pré-bâti (`prebChampsDe`).
