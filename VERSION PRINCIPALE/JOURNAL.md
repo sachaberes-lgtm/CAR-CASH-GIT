@@ -1027,6 +1027,15 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   Léo la veut « plus fidèle » (en reprise chez JAPONAISES). Fusion : seul conflit, le bloc des traductions que l'allègement de Sacha
   avait vidé — son ménage gardé, nos deux noms (LA LAME, LE TOFU) ajoutés.
 
+## LA FÉLINE — LE BAS DE CAISSE SUR LA PHOTO DE LÉO (2026-10-19, discussion RONDES ; Léo, une bande du profil de la Type E 1964 : « imite exactement ça pour la voiture et partie concernée »)
+- Les ARCHES serrent le pneu : un cercle de 4 cm autour de la roue (`arc`, centre au moyeu ; la demi-ellipse de 45 cm bâillait).
+- Les LAMES CHROMÉES (`lame` : un tube à huit pans posé sur le flanc relu à sa hauteur — `xFlanc` lit la coque ou l'aile, `zFace` la face pleine
+  du nez ou de la poupe) : devant, une lame courte qui tourne le coin à mi-bouche et file 35 cm le long de l'aile ; derrière, la lame à la hauteur
+  du haut des roues qui tourne le coin et longe la hanche jusqu'à l'arche.
+- La POUPE plus haute et plus pleine (T, yB, sH relevés au bout : la photo tombe presque droit), les FEUX posés SUR la lame (sur la tôle relue).
+- Les JANTES : une large lèvre chromée plate, 48 rayons gris acier plus fins (blancs, ils faisaient un soleil), le gros PAPILLON (cône + deux oreilles).
+- Vérifié : 0 programme compilé en course, construction 13-14 ms. Planche `photos-gameplay/feline-bas-de-caisse-avant-apres.png`.
+
 ## LA FÉLINE — LES AILES SÉPARÉES (2026-10-19, discussion RONDES ; Léo : « oui », pour adoucir sa coque en grandes facettes)
 - La coque en grandes facettes venait des passages de roue CREUSÉS dans le loft : 9 points par section, et à l'arche le flanc s'écrasait en
   lanières tordues (quads jusqu'à 65°). Désormais, comme LE SCARABÉE : la COQUE (12 points : le tonneau des portières, le capot entre les ailes,
