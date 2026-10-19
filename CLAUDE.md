@@ -21,19 +21,6 @@ la montre sur n'importe quelle copie. Le détail : « L'ÉDITION POKI » dans `V
   18/10 (allègement), son contrôle aussi. `GARDE_CHARTE=0` la coupe. Changement VOULU du logo : `sh garde-charte.sh --empreinte`, puis mettre
   `EMPREINTE_LOGO` à jour dans le même commit. Vérifier à la main : `sh garde-charte.sh`.
 
-## LA VITESSE DE DÉPART (2026-10-19, Léo : « choisir le niveau du moteur auquel commencer, en tranches de 5 — six vitesses, dans le garage ; progressif ; à la place de l'affiche record, un étal avec le moteur soulevé qui change avec le niveau choisi, l'affiche à droite »)
-- **Six crans** (`VDEP_PAL` = index 0 · 5 · 10 · 15 · 20 · 25 = paliers 1 · 6 · 11 · 16 · 21 · 26) : 1 = le départ normal. Un cran s'OUVRE quand son moteur a
-  déjà été atteint en course (`SAVE.d.ex.eng`, versé à la fin de chaque partie) ; le code cousin ouvre tout. Choix : `SAVE.d.vdep` (0-5, `san`).
-- **Au départ** : `vdepPose()` remplace la remise à zéro du moteur dans `resetGame`, et tourne dans `sous9` / `jadeJouer` au 1er JOUER (avant la piste) —
-  pièces du palier comptées, nitro pleine. `prebDepCible` bâtit le DÉPART D'AVANCE au palier `vdepPal()` (mesuré : « pris au départ », 0 programme
-  compilé). Auto-école, parc, balade, joueur sans permis : toujours le cran 1.
-- **Au garage** (bloc « LA VITESSE DE DÉPART AU GARAGE », après `afficheTap`) : la grille `#gVdep` (enfant de #gBottom, placée par `vdepPlace` au-dessus
-  de INVENTAIRE · MISSIONS · BOUTIQUE, debout comme couché ; cran fermé = cadenas + toast), l'étiquette « 3 · V8 ATMO » sur le PLAY du garage
-  (`#gVdepTag`) et de l'accueil (`#mVdepTag`, dans #mHome). L'ÉTAL (`vdepEtal`, dans buildGarageRoom) à gauche de la porte (5,95 ; hd−1,4) : socle,
-  vérin, les six moteurs bâtis avec l'atelier (compilés par sa chauffe), un seul visible, qui redescend et remonte au changement. L'affiche des records
-  est passée à DROITE (x −6,45). Les tas de billets évitent les deux. CSS `<style id="vitesseDepart">` avant `#splash`. Console : `dbgVdep()`,
-  `dbgVdep(n)`, `dbgVdep('tout'|'rien')`.
-
 ## LA VERSION DE RÉFÉRENCE (2026-10-01, Léo : « toutes les discussions où j'évoque une version récente, je parle de celle-là — et qu'on soit à jour avec ça, sans tout casser, parce que la dernière fois ça a tout cassé »)
 - Quand Léo (ou Sacha) dit « la version récente », « la nouvelle version », « la dernière », « celle de ce soir » ou « la bonne », il parle
   du JEU WEB DE `main`, dossier `VERSION PRINCIPALE/`. C'est celui que Vercel publie à chaque push sur `main` :

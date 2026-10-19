@@ -3,6 +3,19 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA VITESSE DE DÉPART — SIX CRANS AU GARAGE, L'ÉTAL DU MOTEUR SOULEVÉ (2026-10-19, session GARAGE — Léo : « choisir le niveau du moteur auquel commencer, en tranches de 5 — six vitesses, dans le garage ; progressif ; à la place de l'affiche record, un étal avec le moteur soulevé qui change avec le niveau choisi, l'affiche à droite »)
+- **Six crans** (`VDEP_PAL` = index 0 · 5 · 10 · 15 · 20 · 25 = paliers 1 · 6 · 11 · 16 · 21 · 26) : 1 = le départ normal. Un cran s'OUVRE quand son moteur a
+  déjà été atteint en course (`SAVE.d.ex.eng`, versé à la fin de chaque partie) ; le code cousin ouvre tout. Choix : `SAVE.d.vdep` (0-5, `san`).
+- **Au départ** : `vdepPose()` remplace la remise à zéro du moteur dans `resetGame`, et tourne dans `sous9` / `jadeJouer` au 1er JOUER (avant la piste) —
+  pièces du palier comptées, nitro pleine. `prebDepCible` bâtit le DÉPART D'AVANCE au palier `vdepPal()` (mesuré : « pris au départ », 0 programme
+  compilé). Auto-école, parc, balade, joueur sans permis : toujours le cran 1.
+- **Au garage** (bloc « LA VITESSE DE DÉPART AU GARAGE », après `afficheTap`) : la grille `#gVdep` (enfant de #gBottom, placée par `vdepPlace` au-dessus
+  de INVENTAIRE · MISSIONS · BOUTIQUE, debout comme couché ; cran fermé = cadenas + toast), l'étiquette « 3 · V8 ATMO » sur le PLAY du garage
+  (`#gVdepTag`) et de l'accueil (`#mVdepTag`, dans #mHome). L'ÉTAL (`vdepEtal`, dans buildGarageRoom) à gauche de la porte (5,95 ; hd−1,4) : socle,
+  vérin, les six moteurs bâtis avec l'atelier (compilés par sa chauffe), un seul visible, qui redescend et remonte au changement. L'affiche des records
+  est passée à DROITE (x −6,45). Les tas de billets évitent les deux. CSS `<style id="vitesseDepart">` avant `#splash`. Console : `dbgVdep()`,
+  `dbgVdep(n)`, `dbgVdep('tout'|'rien')`.
+
 ## LA GROTTE VASTE — LES PROFONDEURS 1,7 × PLUS LONGUES, DES SALLES 2,5 × PLUS GRANDES (2026-10-19, session GROTTE — Sacha : « la map grotte doit etre plus longue et la grotte beaucoup plus vaste »)
 - **Ce qui change** (tout derrière `GRT_VASTE` ; `?sans=grottevaste` = la grotte d'avant À L'IDENTIQUE — vérifié sur la même graine : mêmes
   comptes que `main`, jusqu'aux 205 776 triangles) :
