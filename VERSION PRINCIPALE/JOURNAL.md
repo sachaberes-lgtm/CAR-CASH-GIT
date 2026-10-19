@@ -1187,6 +1187,21 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
 
+## AFFINEMENT · LOT 2 BOÎTES — LA SILENCIEUSE, LA BAVAROISE, LE DÉFIEUR (2026-10-19, discussion BOÎTES)
+- **LA SILENCIEUSE** (36, « une silhouette de Cybertruck ») : pavillon en ARC (un point tous les 30-40 cm du pare-brise à la malle), coupe du
+  toit BOMBÉE (quatre facettes au lieu d'une arête), coque qui rentre sous l'épaule, nez et poupe RONDS vus de dessus (le nez finit à 0,56 de
+  demi-largeur, il était à 0,70), custode arrière noire (un triangle blanc dans la vitre), la barre de pavillon retirée (ses bouts flottaient
+  au-dessus du toit bombé), les portes en FENTE C (la fente arrière s'arrête au-dessus de l'arche, elle la traversait).
+- **LA BAVAROISE** (33) : l'arche RONDE (`AR` en cinq stations ; elle était en trapèze) et le jonc des élargisseurs qui la suit, plus fin ;
+  le pavillon plus large (vitres plus droites : le toit faisait une pyramide), le pli du toit adouci ; les antibrouillards ⌀ 10 cm (13) ;
+  les portes et la jupe en FENTE C ; les jantes CREUSÉES.
+- **LE DÉFIEUR** (32, la Camaro jaune de Sacha) : le pare-brise RECULE (pied à 0,86, il était à 1,06), le capot s'allonge À PLAT jusqu'au nez
+  (0,865 au bout), le pavillon s'allonge vers l'arrière (−0,70) ; la vitre de custode le suit ; rétros reculés avec le pied du pare-brise ;
+  les joints en FENTE C.
+- **LA JANTE CREUSÉE** (`lpWheel`, option `creux` ≤ 4 cm, seules les caisses qui la demandent changent) : la lèvre plonge, chaque rayon est une
+  ARÊTE (deux pans qui prennent chacun leur lumière) qui descend du bord vers le moyeu enfoncé. Mêmes matières : 0 programme de plus.
+- Banc : 0 programme compilé en course, couché et debout ; garage sans erreur. Planche : `photos-gameplay/affinement-lot2-boites.png`.
+
 ## AFFINEMENT · LOT 1 BOÎTES — LA FENTE C DANS LA DÉCOUPE EN GRILLE ; LE COMBI, LE BAROUDEUR, LE CAÏD (2026-10-19, discussion BOÎTES)
 - **La fente C branchée** dans la découpe des caisses en grille (COMBI, BAROUDEUR, CAÏD — pas LA CABOSSÉE, qui garde le trait du dessin) :
   `RLF.j` coupe la tôle à ±g ET ±(g + 1 cm) (`lb`), `dJoint` donne à chaque sommet sa distance SIGNÉE au joint (d > 0 du côté éclairé : le haut
