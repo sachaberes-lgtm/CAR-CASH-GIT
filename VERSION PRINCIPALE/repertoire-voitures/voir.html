@@ -25,6 +25,7 @@
   #choix{position:relative;display:inline-flex;align-items:center;flex:0 1 auto;min-width:0;max-width:44vw}
   #voit{appearance:none;-webkit-appearance:none;background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:999px;height:32px;padding:0 30px 0 14px;
     font:650 13px var(--sys);letter-spacing:.01em;cursor:pointer;max-width:100%;text-overflow:ellipsis}
+  #voit{box-shadow:inset 0 0 0 1.5px var(--rc,transparent)}   /* le liseré de la famille (COMMUNES, RARES…) */
   #voit:hover{background:rgba(255,255,255,.22)}
   #voit:focus-visible{outline:2px solid rgba(255,255,255,.6);outline-offset:1px}
   #voit option{color:#000;background:#fff}
@@ -44,6 +45,7 @@
   #actions button:disabled{opacity:.45;cursor:default}
   #scene{position:fixed;left:0;right:0;top:48px;bottom:0;display:grid;place-items:center}
   #jeu{border:0;display:block;background:#000}
+  #attente{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-size:13px;letter-spacing:.06em;color:rgba(255,255,255,.5);pointer-events:none}
   @media (max-width:760px){#fam{display:none!important}#rang{min-width:46px}}
 </style>
 </head>
@@ -58,7 +60,7 @@
     <button id="bRouler" type="button">ROULER</button>
   </div>
 </div>
-<div id="scene"><iframe id="jeu" title="Le jeu"></iframe></div>
+<div id="scene"><iframe id="jeu" title="Le jeu"></iframe><div id="attente">Le jeu se charge…</div></div>
 <script>
 // (19/10) le service worker du JEU, s'il s'est installé sur cette adresse, sert une vieille copie et fait échouer des pages dans le navigateur du chat :
 // on le retire et on recharge une fois (serveur.py refuse sw.js, il ne revient pas)
@@ -106,16 +108,8 @@ if (navigator.serviceWorker) navigator.serviceWorker.getRegistrations().then(rs 
 
   // ---------- LA LISTE ----------
   let cars = [], fams = {}, idx = {};   // cars : [{i, nom, rar}] dans l'ordre du garage · fams : id → {n, c} · idx : index de voiture → rang
-  function liste(){
-    const w = W(); let fait = false;
-    try {
-      if (hook && w.dbgVoitures) {
-        const d = w.dbgVoitures(); cars = d.cars; fams = {}; d.fam.forEach(f => fams[f.id] = f); fait = cars.length > 0;
-      } else if (w.dbgNbCaisses && w.dbgSpec) {   // repli : toutes les fiches du jeu, sans familles (les retirées en font partie)
-        const n = w.dbgNbCaisses(); cars = []; for (let i = 0; i < n; i++) { const s = w.dbgSpec(i); if (s) cars.push({ i, nom: s.name, rar: '' }); } fams = {}; fait = cars.length > 0;
-      }
-    } catch (e) {}
-    if (!fait) return false;
+  const CLE = 'ccVoituresListe';   // (19/10, Léo : « une page claire comme celle des maps ») la dernière liste lue : la barre est pleine dès l'ouverture, sans attendre le jeu
+  function construit(){
     idx = {}; cars.forEach((c, k) => idx[c.i] = k);
     let h = '', rar = null;
     for (const c of cars) {
@@ -125,15 +119,37 @@ if (navigator.serviceWorker) navigator.serviceWorker.getRegistrations().then(rs 
     h += '</optgroup>';
     if (!(cur in idx)) h = '<option value="' + cur + '" disabled>(hors du garage)</option>' + h;
     $('voit').innerHTML = h;
+  }
+  function liste(){
+    const w = W(); let fait = false;
+    try {
+      if (hook && w.dbgVoitures) {
+        const d = w.dbgVoitures(); cars = d.cars; fams = {}; d.fam.forEach(f => fams[f.id] = f); fait = cars.length > 0;
+        if (fait) try { localStorage.setItem(CLE, JSON.stringify({ cars: cars, fam: d.fam })); } catch (e) {}
+      } else if (w.dbgNbCaisses && w.dbgSpec) {   // repli : toutes les fiches du jeu, sans familles (les retirées en font partie)
+        const n = w.dbgNbCaisses(); cars = []; for (let i = 0; i < n; i++) { const s = w.dbgSpec(i); if (s) cars.push({ i, nom: s.name, rar: '' }); } fams = {}; fait = cars.length > 0;
+      }
+    } catch (e) {}
+    if (!fait) return false;
+    construit();
     return true;
   }
+  (function depuisCache(){
+    try {
+      const d = JSON.parse(localStorage.getItem(CLE) || 'null');
+      if (d && d.cars && d.cars.length && d.fam) { cars = d.cars; fams = {}; d.fam.forEach(f => fams[f.id] = f); construit(); return; }
+    } catch (e) {}
+    $('voit').innerHTML = '<option>Chargement des voitures…</option>';
+  })();
   function barre(){
     const c = cars[idx[cur]], k = idx[cur];
     $('voit').value = String(cur);
     $('rang').textContent = k == null ? '–' : (k + 1) + ' / ' + cars.length;
     const f = c && fams[c.rar];
     const fm = $('fam'); fm.textContent = f ? f.n : ''; fm.style.display = f ? 'inline-flex' : 'none'; if (f) fm.style.setProperty('--rc', f.c);
+    if (f) $('choix').style.setProperty('--rc', f.c); else $('choix').style.removeProperty('--rc');
     $('bPrec').disabled = $('bSuiv').disabled = cars.length < 2;
+    if (!cars.length) { $('rang').textContent = ''; return; }
     document.title = (c ? c.nom : 'Voiture ' + cur) + ' · dans le jeu';
     try { history.replaceState(null, '', 'voir.html?i=' + cur); } catch (e) {}   // recharger la page reste sur CETTE voiture
     $('retour').href = 'index.html#i=' + cur;
@@ -163,7 +179,7 @@ if (navigator.serviceWorker) navigator.serviceWorker.getRegistrations().then(rs 
   }
   function recharge(){   // le jeu repart de zéro sur la voiture courante : le garage s'ouvre tout seul (pret)
     try { const d = JSON.parse(localStorage.getItem('cashcarSave') || '{}') || {}; d.equipped = cur; localStorage.setItem('cashcarSave', JSON.stringify(d)); } catch (e) {}
-    occupe = true; vue = 'garage'; vues(); jeu.src = jeu.src;
+    occupe = true; vue = 'garage'; vues(); $('attente').style.display = ''; jeu.src = jeu.src;
   }
   async function aGarage(){
     if (occupe) return;
@@ -222,12 +238,13 @@ if (navigator.serviceWorker) navigator.serviceWorker.getRegistrations().then(rs 
       try { if (w.document.body.classList.contains('titreCiel')) { if (!cielT) cielT = now; } else cielT = 0; } catch (e) { continue; }
       if ((bouton('[data-m="garage"]') || auGarage()) && ((cielT && now - cielT > 800) || now - t0 > 8000)) break;
     }
-    if (!cars.length && !liste()) { occupe = false; return; }
-    barre(); vue = 'garage'; vues();
+    if (!liste() && !cars.length) { occupe = false; return; }
+    barre(); vue = 'garage'; vues(); $('attente').style.display = 'none';
     try { await versGarage(); await applique(); } finally { occupe = false; }
     focusJeu();
   }
   jeu.addEventListener('load', () => { pret(); });
+  if (cars.length) barre();   // la liste du cache : la barre se pose tout de suite
   // le garage peut changer de voiture tout seul (flèches du jeu, glissé) : la barre suit
   setInterval(() => { if (!hook || occupe || vue !== 'garage' || !(cur in idx) || !cars.length) return; try { const i = W().dbgGarageVa(); if (typeof i === 'number' && i !== cur && i in idx) { cur = i; barre(); } } catch (e) {} }, 600);
   // une course finie (mort) : ni GARAGE ni ARRÊTER — ROULER repart tout de suite
