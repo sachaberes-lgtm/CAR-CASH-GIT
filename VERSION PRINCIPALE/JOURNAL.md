@@ -1021,6 +1021,20 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   Léo la veut « plus fidèle » (en reprise chez JAPONAISES). Fusion : seul conflit, le bloc des traductions que l'allègement de Sacha
   avait vidé — son ménage gardé, nos deux noms (LA LAME, LE TOFU) ajoutés.
 
+## L'AFFINEMENT RONDES, LOT 3 — LE SCARABÉE · LA GRANDE ANGLAISE · LA PERLE · POSTER 84 (2026-10-19, discussion RONDES)
+- **LE SCARABÉE** : butoirs et « porte-serviettes » RONDS (huit pans ; des barres carrées). Son « sourire noir » du relevé = le joint du capot :
+  déjà en fente depuis le lot 2.
+- **LA GRANDE ANGLAISE** : le cadre de calandre 3,4 → 2,2 cm et un chrome moins blanc (`F`, même famille 'c') — un tube de plastique ; la maille
+  élargie au nouveau cadre ; les six branches des jantes vont jusqu'à la marche de la jante (elles s'arrêtaient 1 cm avant), le moyeu argent
+  jusqu'à un petit cache ; la trappe à essence POSÉE sur la hanche et tournée comme elle (`O.tour` le long de la normale relue sur `xTole`).
+- **LA PERLE** : l'interstice des joints (son découpage à elle, `peintPlan`) prend la FENTE C (la peinture × ,5 au lieu d'un gris foncé fixe ;
+  ses bords inclinés restent) ; le bandeau des feux, le feu stop et les catadioptres : des BARRES continues reposées sur la poupe tous les 3 cm
+  (`zAr`), à la place du ruban couché sur la tôle qui faisait des marches. Les deux fentes bleues sous le diffuseur = `ECH_POTS.perle`, la
+  singularité de Léo (« électrique ») : gardées.
+- **POSTER 84** : la jante « téléphone » en relief (lèvre, voile creusé, cinq trous, moyeu et écrous ; `roueDeco`) au lieu d'un disque plat ;
+  la prise NACA en trapèze pointu devant (une plaque rectangulaire).
+- Planche `photos-gameplay/affinement-rondes-lot3.png`.
+
 ## L'AFFINEMENT RONDES, LOT 2 — LA FENTE C DANS LA DÉCOUPE · ELDORADO · LA TAURINE · LE ROUGE-GORGE · LA DOLCE VITA (2026-10-19, discussion RONDES)
 - **LA FENTE C dans `bulleOutils.decoupe`** (l'outil commun de JAPONAISES : `fenteRGB`/`fentePal`/`japFente`) : un joint 'j' n'est plus peint d'un
   gris fixe (CJ0) ; la bande prend la couleur de la TÔLE × ,50 (d = 0), et, si la bande connaît sa ligne (`bande` la garde désormais : `o.L`,

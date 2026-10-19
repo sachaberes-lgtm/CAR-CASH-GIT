@@ -30524,7 +30524,7 @@ const SHAPES={
     P.sym(sd=>{
       P.prism('p',[[-.62,.84],[-1.30,.84],[-1.30,.99],[-.70,1.05]],.30,sd*.78);  // LES OREILLES
       P.box('k',.26,.08,.02,sd*.78,.97,-.655,-.5);                              // leur bouche
-      P.box('k',.02,.10,.60,sd*1.001,.66,-.55,.25);                             // LA NACA, en biais
+      P.prism('k',[[-.25,.62],[-.85,.66],[-.85,.78],[-.25,.645]],.02,sd*1.001); // LA NACA, en biais — (19/10) en TRAPÈZE, pointue devant (une plaque rectangulaire)
       P.box('k',.98,.04,.30,sd*.49,1.16+.035,-1.88,0,0,sd*.07);                 // l'aileron en V…
       P.box('k',.05,.24,.12,sd*.30,1.03,-1.88);                                 // …sur deux mâts
       P.box('r',.30,.012,.30,sd*.62,yC(1.35)+.005,1.35,.10);                   // capots de phares
@@ -30537,8 +30537,20 @@ const SHAPES={
     P.box('k',1.60,.05,.10,0,.30,2.05);                                        // la lame avant
     P.box('k',1.90,.40,.02,0,.62,-2.075);                                      // poupe noire
     K.commit(P);
+    /* (19/10, l'affinement) LA JANTE « TÉLÉPHONE » en relief (un disque plat et ses ronds noirs) : la lèvre, le VOILE creusé, cinq TROUS, le moyeu
+       et ses écrous ; pneu à flancs ronds */
+    const JW=.30,hw=JW/2,fx=hw-.03,J=lpKit({k:{g:'m',c:0x16171a},c:{g:'c',c:0xd4d8de},s:{g:'s',c:0xc6cad1},d:{g:'m',c:0x111215}});
+    J.lathe('k',[[.235,-hw],[R*.86,-hw],[R*.97,-hw*.7],[R,-hw*.3],[R,hw*.3],[R*.97,hw*.7],[R*.86,hw],[.235,hw]],20,0,0,0,'x');
+    J.lathe('c',[[.235,hw-.004],[.232,fx+.010],[.222,fx+.006]],24,0,0,0,'x');                          // la lèvre polie
+    J.lathe('s',[[.222,fx+.006],[.20,fx-.006],[.13,fx-.016],[.075,fx-.008],[.06,fx+.004]],24,0,0,0,'x'); // le voile, creusé
+    J.lathe('d',[[.235,-hw+.02],[.235,fx-.05],[0,fx-.05]],20,0,0,0,'x');                              // le fond
+    for(let i=0;i<5;i++){const a=i/5*Math.PI*2;J.cyl('d',.04,.016,10,fx-.016,Math.cos(a)*.148,Math.sin(a)*.148,'x');}   // les cinq trous
+    J.lathe('c',[[.06,fx+.004],[.055,fx+.016],[.03,fx+.024],[0,fx+.026]],16,0,0,0,'x');               // le moyeu
+    for(let i=0;i<5;i++){const a=(i+.5)/5*Math.PI*2;J.cyl('s',.009,.012,6,fx+.016,Math.cos(a)*.042,Math.sin(a)*.042,'x');}
+    const JG=J.done();
     return {hl:[.72,.40,2.10],tl:[.74,.68,-2.10],wx:.80,wzF:ZF,wzR:-ZR,
-            lpw:{R:R,w:.30,style:'cadran',jante:0xd4d8de}};
+            roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],K.mats[g]||K.mats.c);m.userData.lp=1;w.add(m);}},
+            lpw:{R:R,w:JW,style:'nyan',jante:0xd4d8de}};
   },
   /* ============================================================================================
      LES CAISSES DE CONTRAT (2026-09-25) — trois silhouettes que tout le monde reconnaît à 200 m,
@@ -34289,7 +34301,7 @@ SHAPES.perle=function(K){
               const N9=o.N,b9=N9.length-9;for(let q=0;q<3;q++)if(G3[3*q]!=null){N9[b9+3*q]=G3[3*q];N9[b9+3*q+1]=G3[3*q+1];N9[b9+3*q+2]=G3[3*q+2];}}}}}
       C9={n:pa.length,G:{}};for(const g in OUT)C9.G[g]={P:new Float32Array(OUT[g].P),N:new Float32Array(OUT[g].N),K:new Uint8Array(OUT[g].K)};
       if(MEM9)MEM9._tole=C9;}
-    const coul=(P9,K9)=>{const o=new Float32Array(P9.length);for(let i=0,j=0;j<K9.length;i+=3,j++){const k=K9[j],c=k===0?colP(P9[i+1]):[KC[k].r,KC[k].g,KC[k].b];
+    const coul=(P9,K9)=>{const o=new Float32Array(P9.length);for(let i=0,j=0;j<K9.length;i+=3,j++){const k=K9[j],c=k===0?colP(P9[i+1]):k===1&&typeof fenteRGB==='function'?fenteRGB(colP(P9[i+1]),0,.0035):[KC[k].r,KC[k].g,KC[k].b];   // (19/10) l'interstice : la FENTE C (la peinture × ,5 ; ?fente=A le gris foncé d'avant)
         o[i]=c[0];o[i+1]=c[1];o[i+2]=c[2];}return o;};
     const mk=(P9,N9,Cc)=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P9.slice(),3));
       g.setAttribute('normal',new THREE.Float32BufferAttribute(N9.slice(),3));g.setAttribute('color',new THREE.Float32BufferAttribute(Cc,3));return g;};
@@ -34392,7 +34404,7 @@ SHAPES.perle=function(K){
   if(!MEM||!MEM._tri){
     for(const v of ['cote','face','dos','dessus']){const D=PLAN[v];
       for(const f of (D.plein||[]))plein(v,f.p,f.k);
-      for(const l of (D.lignes||[]))if(l.k!=='j')trait(v,l.p,l.k,l.w,2);}   // (les joints et les plis sont DANS la tôle : voir LES TRAITS DANS LA TÔLE)
+      for(const l of (D.lignes||[]))if(l.k!=='j'&&!(v==='dos'&&(l.k==='L'||l.k==='r')))trait(v,l.p,l.k,l.w,2);}   // (les joints et les plis sont DANS la tôle : voir LES TRAITS DANS LA TÔLE ; les feux de la poupe : des barres, plus bas)
     if(MEM)MEM._tri=TRI.slice();}
   else for(const t of MEM._tri)TRI.push(t);
   /* LES DÉCALCOMANIES (traits et zones pleines) sur LEURS PROPRES matières, tirées vers l'œil (polygonOffset). Sous le post-traitement, le
@@ -34431,6 +34443,11 @@ SHAPES.perle=function(K){
   // LE PASSAGE DE ROUE : une joue noire derrière la roue, à la forme de l'ouverture — on ne voit plus le ciel à travers l'aile
   const joue=w=>{const o=[];for(let i=AR.length-1;i>=0;i--){const p=AR[i];if(p[1]>=.16)o.push([w-p[0]*1.04,p[1]+.03*(p[0]<.25)]);}
     o.unshift([w-.43,.16]);for(let i=1;i<AR.length;i++){const p=AR[i];if(p[1]>=.16)o.push([w+p[0]*1.04,p[1]+.03*(p[0]<.25)]);}o.push([w+.43,.16]);return o;};
+  /* (19/10, l'affinement) LE BANDEAU DES FEUX, le feu stop et les catadioptres : des BARRES continues posées sur la poupe (le ruban couché sur la
+     tôle suivait ses facettes et faisait des marches) — la ligne du plan tous les 3 cm, chaque point reposé sur la tôle (zAr), 8 mm d'épaisseur */
+  {const bar=(L9,k,hh,ep)=>{const ch=[];for(const p of dense(L9)){const z=zAr(Math.abs(p[0]),p[1]);if(z!=null)ch.push([p[0],p[1],z-ep/2-.002]);}
+      if(ch.length>1)bulleOutils.tube(P,k,ch,[[ep/2,-hh/2],[ep/2,hh/2],[-ep/2,hh/2],[-ep/2,-hh/2]],true);};
+    for(const l of (PLAN.dos.lignes||[]))if(l.k==='L'||l.k==='r')bar(l.p,l.k,l.w,.008);}
   P.sym(sd=>{
     retro(sd);P.prism('K',PLAN.retro.bras,.06,sd*.86);
     for(const w of [ZF,ZR]){const ph=2.55,rr=.19;P.box('e',.06,.075,w>0?.20:.16,sd*(.83+.1075-.085),R+Math.sin(ph)*rr,w+Math.cos(ph)*rr,Math.PI/2-ph,0,0);
@@ -34779,7 +34796,7 @@ SHAPES.bulle=function(K){
   const lameCh=(Q,y)=>{const o=[];for(let i=Q.length-1;i>=1;i--)o.push([-Q[i][0],y,Q[i][1]]);for(const q of Q)o.push([q[0],y,q[1]]);return o;};
   const AVL=[[0,2.012],[.20,2.003],[.35,1.985],[.48,1.958],[.58,1.927],[.65,1.89],[.70,1.85],[.725,1.815]],ARL=[[0,-1.95],[.13,-1.947],[.25,-1.932],[.35,-1.907],[.45,-1.872],[.53,-1.833],[.61,-1.783],[.68,-1.725],[.72,-1.68]];
   O.tube(P,'c',lameCh(AVL,.42),LAME,true);O.tube(P,'c',lameCh(ARL,.42).reverse(),LAME,true);
-  const BUT=[[-.014,-.016],[.014,-.016],[.02,0],[.014,.016],[-.014,.016],[-.02,0]],BAR=[[0,-.012],[.012,0],[0,.012],[-.012,0]];
+  const BUT=[[.018,0],[.0127,.0127],[0,.018],[-.0127,.0127],[-.018,0],[-.0127,-.0127],[0,-.018],[.0127,-.0127]],BAR=[[.011,0],[.0078,.0078],[0,.011],[-.0078,.0078],[-.011,0],[-.0078,-.0078],[0,-.011],[.0078,-.0078]];   // (19/10) butoirs et porte-serviettes RONDS, huit pans (des barres carrées)
   P.sym(sd=>{
     for(const [x9,zb,s] of [[.355,1.99,1],[.40,-1.935,-1]]){
       O.tube(P,'c',[[sd*x9,.36,zb],[sd*x9,.40,zb+s*.035],[sd*x9,.47,zb+s*.04],[sd*x9,.54,zb+s*.032],[sd*x9,.60,zb+s*.015],[sd*x9,.63,zb-s*.02]],BUT,true);
@@ -35363,7 +35380,7 @@ SHAPES.e_anglaise=function(K){
   const U=LPU,O=bulleOutils,L=(t,z)=>U.lin(t,z),cl=(v,a,b)=>v<a?a:v>b?b:v,mix=(a,b,t)=>a+(b-a)*t,lis=t=>t*t*(3-2*t);
   const R=.352,ZF=1.343,ZR=-1.378;
   const PAL={p:{g:'p',c:0x1a3d2a},k:{g:'m',c:0x141518},K:{g:'g',c:0x0b0c10},g:{g:'g',c:0x1c2733},c:{g:'c',c:0xeef0f3},C:{g:'c',c:0x8a9098},
-    W:{g:'l',c:0xf6f2e4},w:{g:'l',c:0xd9dce0},L:{g:'l',c:0xd0182a},r:{g:'l',c:0x7e0a14},O:{g:'l',c:0xffa21a},d:{g:'m',c:0x101114},n:{g:'m',c:0x1c1d20}};
+    W:{g:'l',c:0xf6f2e4},w:{g:'l',c:0xd9dce0},L:{g:'l',c:0xd0182a},r:{g:'l',c:0x7e0a14},O:{g:'l',c:0xffa21a},d:{g:'m',c:0x101114},n:{g:'m',c:0x1c1d20},F:{g:'c',c:0xbfc4cb}};   // (19/10) F : le chrome du cadre de calandre, moins blanc
   // ---- LE PLAN (mètres du jeu) ----
   // le profil dans l'axe (le haut de la silhouette de côté) : bouclier, calandre, capot, pare-brise, pavillon, lunette, malle, bouclier
   const yC=z=>L([[-2.40,.62],[-2.393,.674],[-2.36,.76],[-2.313,.846],[-2.27,.93],[-2.233,.978],[-2.153,1.006],[-2.073,1.03],[-1.993,1.05],[-1.913,1.066],
@@ -35470,7 +35487,7 @@ SHAPES.e_anglaise=function(K){
   const clip=(a,b,x0,y0,x1,y1)=>{let t0=0,t1=1;const dx=b[0]-a[0],dy=b[1]-a[1];for(const [p,q] of [[-dx,a[0]-x0],[dx,x1-a[0]],[-dy,a[1]-y0],[dy,y1-a[1]]]){if(p===0){if(q<0)return null;continue;}const r=q/p;if(p<0){if(r>t1)return null;if(r>t0)t0=r;}else{if(r<t0)return null;if(r<t1)t1=r;}}return [[a[0]+t0*dx,a[1]+t0*dy],[a[0]+t1*dx,a[1]+t1*dy]];};
   const maille=(v,x0,y0,x1,y1,pas,k,w,ou)=>{const h=y1-y0;for(let x=x0-h;x<=x1+h;x+=pas)for(const s of [1,-1]){const L9=clip([x,y0],[x+s*h,y1],x0,y0,x1,y1);if(L9&&Math.hypot(L9[1][0]-L9[0][0],L9[1][1]-L9[0][1])>.01)zo(v,O.bande(L9,w),k,{al:.3,ou});}};
   const GR=rr(-.425,.505,.425,.815,.055,5).map(q=>[q[0],q[1]+.02*(1-(q[0]/.425)**2)*(q[1]>.7?1:0)]);
-  const GRi=O.gonfle(GR,-.034);
+  const GRi=O.gonfle(GR,-.022);   // (19/10) le cadre 2,2 cm (3,4 : un tube de plastique)
   // (la calandre elle-même est un VOLUME, plus bas : son cadre chromé dépasse du nez comme sur la vraie)
   // les prises d'air du bouclier : la grande au milieu, deux sur les côtés (la maille noire)
   const bas=(x,y,z)=>z>2.1&&y<.48;
@@ -35514,8 +35531,8 @@ SHAPES.e_anglaise=function(K){
       const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));
       const A0=GR.slice(0,3),ar=(A0[1][0]-A0[0][0])*(A0[2][1]-A0[0][1])-(A0[1][1]-A0[0][1])*(A0[2][0]-A0[0][0]);if(ar<0)g.index=null;
       if(ar<0){const p9=g.attributes.position.array;for(let k=0;k<p9.length;k+=9)for(let m=0;m<3;m++){const s=p9[k+3+m];p9[k+3+m]=p9[k+6+m];p9[k+6+m]=s;}}
-      g.computeVertexNormals();P.put('c',g,0,y0,z0,-a9,0,0);}
-    const vy=.78-.54,pas=.06;for(const [s9,w9] of [[1,-.004],[-1,.012]])for(let x=-.385-vy;x<=.385+vy;x+=pas){const L9=clip([x,.54],[x+s9*vy,.78],-.385,.54,.385,.78);if(!L9)continue;
+      g.computeVertexNormals();P.put('F',g,0,y0,z0,-a9,0,0);}
+    const vy=.79-.53,pas=.06;for(const [s9,w9] of [[1,-.004],[-1,.012]])for(let x=-.398-vy;x<=.398+vy;x+=pas){const L9=clip([x,.53],[x+s9*vy,.79],-.398,.53,.398,.79);if(!L9)continue;
       const dx=L9[1][0]-L9[0][0],dy=L9[1][1]-L9[0][1],l=Math.hypot(dx,dy);if(l<.012)continue;const g=new THREE.BoxGeometry(.007,l,.008);g.rotateZ(-Math.atan2(dx,dy));
       g.translate((L9[0][0]+L9[1][0])/2,(L9[0][1]+L9[1][1])/2-y0,w9);P.put('C',g,0,y0,z0,-a9,0,0);}
     const bar=new THREE.BoxGeometry(.016,.30,.012);bar.translate(0,.66-y0,.02);P.put('c',bar,0,y0,z0,-a9,0,0);}
@@ -35526,7 +35543,8 @@ SHAPES.e_anglaise=function(K){
     P.put('p',g,sd*(xb+.13),1.02,.60,0,sd*.12,0,.10,.055,.065);P.put('K',new THREE.PlaneGeometry(1,1),sd*(xb+.135),1.02,.534,0,Math.PI,0,.17,.085,1);
     P.box('k',.05,.04,.08,sd*(xb+.03),.985,.62);
     const xh=xTole(-.32,.84);P.box('c',.02,.026,.17,sd*(xh+.009),.84,-.32);});
-  {const xf=xTole(-1.70,1.0);P.cyl('c',.055,.02,14,xf-.004,1.0,-1.70,'x');}
+  {const xf=xTole(-1.70,1.0),n=[1,-(xTole(-1.70,1.03)-xTole(-1.70,.97))/.06,-(xTole(-1.67,1.0)-xTole(-1.73,1.0))/.06];   // (19/10) la trappe POSÉE sur la hanche, tournée comme elle (un disque droit qui débordait)
+    O.tour(P,'c',[[.055,-.012],[.055,.001],[.05,.005],[.02,.007],[0,.007]],16,[xf-.002,1.0,-1.70],n);}
   // les essuie-glaces couchés au pied du pare-brise
   const barre=(k,a,b,w,d)=>{const v=new THREE.Vector3(b[0]-a[0],b[1]-a[1],b[2]-a[2]),l=v.length(),g=new THREE.BoxGeometry(w,l,d);
     g.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),v.normalize())));
@@ -35543,10 +35561,10 @@ SHAPES.e_anglaise=function(K){
   J.lathe('s',[[.226,fx+.004],[.222,fx-.004],[.214,fx-.006]],30,0,0,0,'x');                                     // la marche rivetée
   for(let i=0;i<12;i++){const a=i*Math.PI/6;J.box('c',.008,.008,.008,fx-.002,Math.cos(a)*.218,Math.sin(a)*.218,a,0,0);}
   J.lathe('d',[[.245,-hw+.02],[.245,fx-.06],[0,fx-.06]],20,0,0,0,'x');
-  J.lathe('s',[[.07,fx-.01],[.064,fx+.008],[.052,fx+.012]],20,0,0,0,'x');                                       // le moyeu
-  J.lathe('n',[[.052,fx+.012],[.03,fx+.016],[0,fx+.017]],18,0,0,0,'x');                                        // le cache sombre
+  J.lathe('s',[[.07,fx-.01],[.064,fx+.008],[.052,fx+.012],[.034,fx+.013]],20,0,0,0,'x');                       // le moyeu (19/10 : argent jusqu'au petit cache)
+  J.lathe('n',[[.034,fx+.013],[.02,fx+.016],[0,fx+.017]],18,0,0,0,'x');                                        // le cache sombre, petit
   for(let i=0;i<6;i++){const a=i*Math.PI/3,pt=(r,d)=>[r*Math.cos(a+d),r*Math.sin(a+d)];
-    J.prism('s',[pt(.06,-.20),pt(.12,-.13),pt(.19,-.03),pt(.215,.04),pt(.215,.22),pt(.17,.17),pt(.11,.10),pt(.06,.20)],.03,fx-.012);}   // les six branches en hélice
+    J.prism('s',[pt(.06,-.20),pt(.12,-.13),pt(.19,-.03),pt(.229,.04),pt(.229,.22),pt(.17,.17),pt(.11,.10),pt(.06,.20)],.03,fx-.012);}   // les six branches en hélice (19/10 : jusqu'à la marche de la jante, elles s'arrêtaient 1 cm avant)
   const JG=J.done();
   return {hl:[.565,.685,2.33],tl:[.66,.84,-2.32],wx:.80,wzF:ZF,wzR:-ZR,
           roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],K.mats[g]||K.mats.c);m.userData.lp=1;w.add(m);}},
