@@ -3,6 +3,39 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE GLACIER : LES PICS INVISIBLES QUI TUAIENT, LE VOL QUI FLOTTAIT, LA RETOMBÉE DES TREMPLINS (2026-10-19, session glace-montagne — Sacha : « je meurs sans raison sur la route de glace dans la map montagne »)
+- **La cause principale : une déclaration avalée par un commentaire.** Depuis `e66f25b2` (« Le glacier, 3e tour », 18/10 au soir), la ligne de
+  `BK_BEC` finissait par `// axe : … au décollagelet BK_BEC_TEX=null;` : `let BK_BEC_TEX=null;` faisait partie du commentaire. `bkBecTex` lisait une
+  variable inexistante, `buildBanqG` cassait au dessin du premier tremplin (`window.__banqErr` = « ReferenceError: BK_BEC_TEX is not defined ») et
+  s'arrêtait là. Les 15 pics de la piste (`BANQ.obst`) et les tremplins (`BANQ.kick`) étaient POSÉS — leurs chocs (`banqPisteHeurt`) et leurs
+  envols marchaient — mais rien n'était DESSINÉ : ni eux, ni les ~400 pics du décor (`BANQ.picM` vide, `BANQ.pics` vide : plus de glisse en vol),
+  et la route n'était plus cachée (`bkPisteNue` jamais appelé) : on roulait sur une « route de glace » et on mourait contre un pic invisible, ou un
+  tremplin invisible nous envoyait en l'air. Correctif : la déclaration sur sa propre ligne. MESURÉ (graine 39525) : avant 0 maillage de pics, après
+  21 maillages, 410 pics, les mêmes 15 pics de piste et 5 tremplins, dessinés (photo du banc : le pic qu'on percutait apparaît au milieu de la piste).
+  La syntaxe (`chk.js`) ne le voyait pas : seul le jeu lancé le montre — `__banqErr` est le premier témoin à lire au glacier.
+- **Le vol qui flottait : `banqLacet`.** En vol, le volant tourne la vitesse autour du HAUT DE LA CAISSE (`FLY_U`, « vol libre ») ; au glacier la
+  caisse vole piquée de 35 à 45°, son haut penche, et chaque coup de volant changeait de la CHUTE en dérive de côté, que le plafond de l'avance
+  (`fallVH0`) rabotait ensuite : la vitesse vers la glace restait vers −15 pendant 3 s au lieu de croître. MESURÉ (banc des tremplins : la caisse
+  posée 70 m avant la rampe, à 350/500/700 km/h, le pilote de vol qui ramène vers l'axe) : à 500 km/h 850 à 1 320 m et 4,8 à 7,1 s de vol (sans
+  braquer : 500 m, 3 s) ; à 700 km/h plus de pose (sortie de piste, « vide ») ; nitro tenue jusqu'à 8,15 s — au-delà des 6 s de la jauge, la caisse
+  explosait « trop longtemps en l'air » à 50-90 m au-dessus d'une piste qui file à 45°. Désormais, AU GLACIER SEULEMENT, le volant ne tourne que le
+  CAP (la vitesse verticale et l'avance horizontale restent). MESURÉ après, avec la retombée ci-dessous (3 tremplins × 3 vitesses, avec et
+  sans nitro) : 17 vols sur 17 posés (un départ raté par le banc), 2,2 à 4,1 s sans nitro, 4,7 s au plus nitro tenue, plus aucune mort en l'air ;
+  deux poses à ~500 km/h sur le même tremplin, 540 et 625 m après la lèvre, percutent ensuite le pic d'une figure 30 à 60 m plus loin (voir
+  « à trancher »). `?sans=glacelacet` = avant. Le même effet existe ailleurs dans les piqués, en plus faible :
+  pas touché.
+- **La retombée des tremplins : `BK_RETOMBE`, `BK_BEC.retombe` = 500 m.** `libreK` ne dégageait que 260 m après la lèvre, dans la seule bande du
+  tremplin ; MESURÉ en course (29 vols, 255-414 km/h au décollage) la caisse se pose de 160 à 511 m plus loin, souvent hors de la bande. Désormais
+  aucun pic sur TOUTE la largeur pendant 500 m après la lèvre, et la figure qui suit un tremplin (ou un tremplin seul) attend la fin de sa retombée
+  (`bec()` rend la lèvre). Effet sur la piste (6 graines, `?pistegraine=`) : 84 pics de piste au lieu de 104 (−19 %, de 0 à −50 % selon la graine).
+  `?sans=glaceretombe` = avant (même graine, même piste : le tirage n'a pas bougé).
+- **Les bancs** (Chrome sans fenêtre du Mac, CDP en Python, une copie de banc avec `window.__ev` dans la fermeture du jeu pour relire `BANQ`,
+  `explode`, `startFall`, `tryLand`) : 10 courses « pilote aux tremplins » AVANT : 4 morts (2 posées dans ou juste devant une figure, 2 chocs du
+  pilote) ; 8 courses APRÈS : 1 mort, un choc du pilote contre un pic visible, sans vol. Démarrage couché, debout et dans le cadre de l'ordi :
+  sans erreur, `__banqErr` vide, la route cachée. Gardes burn-out et charte OK.
+- **À trancher par Sacha** : la longueur de la retombée (500 m). Au-delà de ~500 km/h, un vol peut encore se poser 550-900 m plus loin, devant la
+  figure suivante — les pics sont maintenant visibles pendant le vol et le volant y mord sans faire flotter. Plus long = encore moins de pics.
+
 ## LE CAÏD, LE HUMMER AU NEZ ARRONDI ET DÉTAILLÉ (2026-10-19, v676, Léo : « plus arrondi le devant… » · « plus de détail » · « oui, et refais-le en SUV »)
 - BOÎTES 373979fc (le nez : capot bombé qui s'enroule dans les ailes, face aux coins ronds, panneau noir, bandeau à coin ambre, 5 feux ambre
   au toit) + a97dbba6 (le détail : calandre à lames, antibrouillards carrés, anneaux, sabot ajouré, nervures du capot, élargisseurs vissés,
