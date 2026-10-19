@@ -3,6 +3,88 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'AFFINEMENT DES VOITURES, 1er ENVOI : LES BUGS ET LA FENTE (2026-10-19, v679 — Léo : « corrige tous les traits noirs dénaturés… un effet de séparation discret qui simule une fente » ; fente C choisie sur planche)
+- Le chantier : `~/Downloads/CAR-bancs/nouvelles-voitures/AFFINEMENT.md` (le relevé de 46 caisses, la FENTE, la dernière retouche en style poly).
+- **Les bugs** (partis direct) : RONDES 7f3d858f — l'éventail de triangles de LA GRANDE ANGLAISE, la tache noire du capot de POSTER 84 ;
+  BOÎTES a15db8c7 — la barre qui dépassait de LA DOLORÈS, le damier du flanc de L'AIGLE DE FEU en course, l'écope rose du CHARGEUR.
+- **LA FENTE C** (JAPONAISES d2928ae4) : un joint de tôle n'est plus un trait noir mais une ombre de la couleur de la caisse + un fil clair
+  sur l'arête (`fenteRGB` / `fenteHex` / `fentePal` / `fenteVar`, `JAPFENTE_DEF='C'`, `?fente=A` = l'ancien trait). En jeu sur les 5 japonaises
+  au plan ; RONDES et BOÎTES la branchent ensuite sur leurs caisses (LA CABOSSÉE garde ses traits de dessin animé, choix de Léo).
+- Vu au banc, pas à nous : +1 programme compilé pendant une EXPLOSION en course (quelle que soit la caisse).
+
+## LE DÉPART D'AVANCE — LA 1re PISTE DE LA PARTIE SE BÂTIT AU MENU ET À L'ÉCRAN DE FIN (2026-10-19, session PERF — chantier du PRÉ-BÂTI de Léo ; la passe perf du 18/10 : « JOUER : ~1,1 s d'image figée sous le nuage blanc · REJOUER : ~1 s de construction sous le volet · depuis l'accueil, la piste bâtie deux fois »)
+- **MESURÉ AVANT** (banc : iPhone simulé 390 × 844 ×3, NETTE, processeur ×4, `?palier=2`, `?pistegraine=777`, au calme — charge 2,5 à 4,8) : la
+  construction du départ fige l'image d'un bloc — au 1er JOUER `sous9` → `rebuildMenuScene` → `newTrack` (230-250 ms aux nuages, ~1 s à la jade),
+  au REJOUER `resetGame` → `newTrack` (300 ms au volcan, 500-550 ms à la forêt), et au JOUER DEPUIS L'ACCUEIL APRÈS UNE PARTIE deux newTrack dans la
+  même image (sous9 puis resetGame : 410-470 ms à la ville, 1,35-1,45 s à la jade).
+- **L'IDÉE** (celle du pré-bâti, appliquée au départ) : la map du prochain départ est connue d'avance si on la TIRE d'avance — on la bâtit pendant
+  le menu et l'écran de fin, quelques ms par image, par la MÊME machine (`pisteRoute`, `prebJade`, `prebDecorG` : la route et les décors forêt,
+  volcan, glacier, grotte, jade), et le départ la PREND au lieu de la bâtir (`prebGraine`/`prebPrend`, comme au portail).
+- **LE TIRAGE D'AVANCE** (`prebDepCible`) : `SF.prochain` (que classiqueJouer prenait déjà, plus rien ne le posait) est tiré au menu et à l'écran
+  de fin, contre `SF.der` (`SF.prochainDer` : périmé si le dernier couple change), par la règle du départ — `sfTire(SF.der)` pour le JOUER comme pour
+  le REJOUER (lvlChoisir tire exactement ça). Un lien de test (`?carte=`, `dbgClassique`) est consommé par lui (`sfImpose`) ; sans map valide (un
+  `?meteo=` seul), rien d'avance. resetGame pose `SF.prochain` dans `SF.tirage[0]` (le REJOUER) ; le JOUER déjà parti (`SF.neuf` : le piqué, le
+  lâcher) bâtit son `SF.tirage[0]`.
+- **LE CONTEXTE** : au menu d'une session neuve, la piste se bâtit pour le newTrack de sous9 (started faux, palier du moment) ; après une partie
+  (écran de fin, accueil), pour celui de resetGame (started vrai, palier 0). Le temps d'une tranche, `started`, `gameOver` et `SF.pret` prennent la
+  valeur du départ (`W.ctx`, échangé par `prebEchange` avec le palier, la map, la zone) : `hautOn` (la route sans haut ni bas des nuages) et la
+  météo des décors les lisent. Au départ, `prebGraine` vérifie map (`SF.tirage[0]`), zone 0, largeur, palier et `started` ; sinon la piste est
+  jetée et le départ bâtit comme avant. Prise seulement là où on l'attend (`prebDepPrend` : sous9 et resetGame) ; tout autre newTrack la jette.
+- **LE BUDGET** (`prebDepTick`, appelé par prebTick hors course) : 3 à 6 ms par image comme en course, après la chauffe du menu et les gabarits de
+  la jade (`jadeGabFond`, ils passent avant), jamais pendant un volet, un lâcher (`GAR.go`) ou un piqué (`CHUTE.go`) ; 0,7 s après qu'un monde neuf
+  est entré, 0,8 s après la fin de la partie ; `chauffeGrace` (la qualité auto ne lit pas une tranche comme une faiblesse). Pas fini au départ : le
+  reste d'un trait (le travail fait reste fait). MESURÉ : la jade (la plus lourde) finit en < 14 s ×4 au menu ; les images du menu et de l'écran de
+  fin ne bougent pas (33,3 ms de cadence ×4, pire 33,5 ms, 0 image > 50 ms, avant comme après).
+- **LE JOUER DEPUIS L'ACCUEIL APRÈS UNE PARTIE** (sous le nuage blanc ou le voile chaud de l'atelier : `CHUTE.sous`, `GAR.sous`, resetGame suit dans
+  la même image) : la 1re des deux pistes n'était JAMAIS dessinée. Il en restait : son ciel — `lvlGo(.01)` pose d'un coup la planète, l'espace, la
+  pluie, la ville… de la map, et `bioGo` change `BIO.name`, que lvlBiome évite ensuite (BIO.cur, lui, n'avance qu'à l'image suivante) —, et la
+  caméra du lâcher (closeGarage la pose au départ de cette piste). Désormais elle est LÉGÈRE : `sous9(true)` → `rebuildMenuScene` avec
+  `PREB.ntLeger` → newTrack0 sans buildTrack, padsInstancier, computeMinimap ni spawnPickups (le ciel, la musique, le reste : comme avant) ; puis
+  resetGame prend la piste d'avance et repose la caméra comme closeGarage l'aurait posée, au départ de la piste neuve (`PREB.cam`). Au départ de
+  toutes les maps sauf la jade, ce point ne dépend pas de la graine (MESURÉ, 4 graines × 2 paliers par map : (0,0,0) et la même tangente ; nuages et
+  orbite ±0,01 de pente, la forêt 7 cm selon le palier) : même caméra. ⚠ LA SEULE DIFFÉRENCE : au SOLEIL DE JADE (départ tiré au hasard : hauteur
+  5-42 m, cap ±25°), la caméra glissait jusqu'ici depuis le départ de la piste jetée (un glissé au hasard sous le nuage qui se déchire) ; elle part
+  maintenant de derrière la caisse, comme au 1er JOUER et au REJOUER. Ailleurs (la boutique par le volet, `ecranWipe`), la 1re piste reste entière.
+- **VÉRIFIÉ — MÊME PISTE AU BIT PRÈS** (empreintes FNV des tableaux : pts/T/Nn/B, objets, trackMeshes champ par champ — géométries, matrices,
+  instances —, champs des générations, chaque champ de chaque module de décor, nuages, scène ; et l'état au départ : caméra, LVL, BIO, météo des
+  décors) : (1) d'une page à l'autre contre origin/main, même graine, mêmes maps — JOUER, REJOUER, JOUER depuis l'accueil — forêt, volcan, jade,
+  ville (vert), grotte, nuages, canyon, crypto, orbite, glacier, jade du soir, forêt de nuit, et après la fusion de main v675 LES DUNES D'OR
+  (soir, midi) et le volcan de nuit : 0 différence hors du BRUIT (ce qui diffère déjà
+  entre deux pages d'origin/main : temps mesurés, sons, pièces, l'ordre de la scène, les prototypes de la forêt) ; (2) dans une même page, la piste
+  du REJOUER prise d'avance contre la MÊME bâtie d'un trait par `dbgTrace` (graine 777, palier 0) : route, objets et décors identiques. Ce qui diffère,
+  et pourquoi : les états vivants (fx, sons, minuteurs) ; `CY.job` (le compteur des travaux du relief du canyon : une piste de moins) ; LA GROTTE, prise
+  ENTIÈRE (bâtie d'avance, elle finit ses tranches ; d'un trait, elle s'arrête à 1 100 m et finit en roulant — la règle du pré-bâti) ; la JADE reprise
+  par la carte gardée (jadeReprend, la règle du pré-bâti) ; l'ordre dans `scene.children` de quelques effets cachés créés plus tard (sans effet à
+  l'écran). `?prebati=0` contre origin/main : 0 différence hors bruit.
+- **MESURÉ APRÈS** (A/B alterné contre origin/main, 2 manches, mêmes graines, mêmes maps, piste prête au départ) — pire image du départ (construction) :
+  · nuages · forêt · jade : JOUER **317 → 200 ms** (239 → 72) · REJOUER **600 → 108 ms** (528 → 10) · JOUER depuis l'accueil **1 517 → 133 ms**
+    (1 404 → 25 ; au banc la 2e jade reprenait la 1re par la carte gardée, même graine — en vrai, deux graines : ~1,3 s de plus avant) ;
+  · jade · volcan · ville violette : JOUER **1 100 → 150 ms** (1 003 → 29) · REJOUER **367 → 117 ms** (302 → 13) · JOUER depuis l'accueil **500 → 133 ms**
+    (441 → 51).
+  0 programme compilé au départ dans les deux. Aucune erreur : téléphone couché, debout, cadre de l'ordi (JOUER, REJOUER, JOUER depuis l'accueil),
+  JOUER pressé (0,5 s : rien d'avance, bâti comme avant), REJOUER pressé, RECOMMENCER, JOUER de l'atelier et de la boutique, `?prebati=0`, l'auto-école
+  d'un joueur neuf ; le pré-bâti du PORTAIL est toujours pris après un départ pris.
+  REVÉRIFIÉ après la fusion de main v675 (les dunes, la caisse-nuage éteinte) : empreintes, chemins de bord, couché/debout/ordi, 0 erreur ;
+  A/B ×4 (charge 6-9 : d'autres bancs tournaient) nuages · forêt · jade : JOUER 433 → 275 ms, REJOUER 792 → 142 ms, JOUER depuis
+  l'accueil 1 392 → 250 ms.
+- **CE QUI RESTE dans l'image du départ** (profil ×4, hors du chantier) : les NUAGES (`buildClouds` ~45 ms aux nuages, puis `nuFantGeo` à la
+  réponse du travailleur, ~50-80 ms, une image plus tard), `buildCar` (~26-30 ms : closeGarage, puis resetGame — deux fois au JOUER après une
+  partie), la VILLE (`buildVoxCity`, ~40-50 ms), `fireLaunchBoost` (~17), puis la 1re image du monde neuf (envois à la puce). Et LES DUNES D'OR
+  (map du 18/10 au soir, arrivée pendant ce chantier) : leur ROUTE est bâtie d'avance (`PREB_PISTES`), mais leur DÉCOR (`buildDunes`, pas un
+  générateur) se bâtit encore au départ — c'est lui qui reste au JOUER des dunes (~0,6-0,9 s ×4 mesurés sous charge ; ~30 % de moins qu'avant).
+  Les nuages, la ville et le décor des dunes ne sont pas bâtis d'avance (pas dans le pré-bâti, ni au portail) : c'est la suite logique
+  (un `buildDunesG` + `prebDecorG`, comme la forêt).
+- **Console** : `dbgPrebati()` → `dep` (la piste du départ en cours : pour quel `started`, `SF.prochain`), `prisAuDepart`, `legers` (les sous9
+  légers), `der` (« pris au départ », « départ », « hors départ »…). `?pistegraine=n` vaut aussi pour la piste bâtie d'avance (banc).
+- **Bancs** (`~/Downloads/CAR-bancs/depart-avance/` sur le Mac de Léo, LISEZMOI ; Chrome sans fenêtre CDP Python — la méthode de la passe perf du 18/10) : `tab.py` (A/B alterné ×4 :
+  JOUER → fin → REJOUER → fin → accueil → JOUER), `th.py` + `hashjs.py` + `cmp.py` (les empreintes d'une page à l'autre, le bruit = deux pages
+  d'origin/main), `tw.py` (prise d'avance contre dbgTrace dans la même page), `tf0.py` (le départ de chaque map selon la graine), `tmenu.py`
+  (les images du menu pendant le travail), `tedge.py`/`tedge2.py` (les chemins de bord), `t28.py` (couché, debout, l'ordi), `tprof.py` (ce qui reste).
+- ⚠ TROUVÉ EN PASSANT (pas touché, à signaler à la session du glacier) : sur main, `let BK_BEC_TEX=null;` est AVALÉ par un `//` en fin de la ligne
+  `const BK_BEC=…` (piège n° 1) — `bkBecTex` lève « BK_BEC_TEX is not defined » à chaque construction du glacier (`window.__banqErr`) : buildBanqG
+  s'arrête aux tremplins (`bkBecMesh`), sans sa météo ni la fin de son décor. Le départ d'avance le reproduit tel quel (prebDecorG rend l'exception
+  au même endroit).
+
 ## LE CAÏD, LE HUMMER AU NEZ ARRONDI ET DÉTAILLÉ (2026-10-19, v676, Léo : « plus arrondi le devant… » · « plus de détail » · « oui, et refais-le en SUV »)
 - BOÎTES 373979fc (le nez : capot bombé qui s'enroule dans les ailes, face aux coins ronds, panneau noir, bandeau à coin ambre, 5 feux ambre
   au toit) + a97dbba6 (le détail : calandre à lames, antibrouillards carrés, anneaux, sabot ajouré, nervures du capot, élargisseurs vissés,
@@ -939,6 +1021,22 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   Léo la veut « plus fidèle » (en reprise chez JAPONAISES). Fusion : seul conflit, le bloc des traductions que l'allègement de Sacha
   avait vidé — son ménage gardé, nos deux noms (LA LAME, LE TOFU) ajoutés.
 
+## BUGS RONDES — L'ÉVENTAIL DE LA GRANDE ANGLAISE, LA TACHE NOIRE DE POSTER 84 (2026-10-19, discussion RONDES ; Léo, sur le relevé de l'affinement : « tout corriger », les bugs d'abord)
+- **LA GRANDE ANGLAISE** : l'éventail de lamelles claires/sombres au-dessus du feu arrière venait du LOFT, pas de la découpe (il restait sans
+  aucune zone). Deux causes mesurées (`plis.js` du banc : l'angle entre les deux triangles de chaque quad) : (1) la poupe « rognée » au profil
+  (`sect` au-delà de AP) écrasait une douzaine de points sur la même hauteur → quads tordus de 31 à 49° ; elle se resserre désormais EN BANDES
+  (la section garde sa forme, sa hauteur se comprime entre le bas de caisse et le profil) ; (2) une tranche tous les 10 cm là où la poupe
+  s'arrondit vite en plan (0,47 → 0,80 m en 20 cm) → 18 à 32° ; sept tranches de plus (−2,275 → −2,05). Restent deux quads à 12-14°. Le nez a
+  le même rognage, mais ses quads tordus sont derrière la calandre en volume et dans les prises d'air : non touché.
+- **POSTER 84** : la « tache noire » devant le pare-brise (un V vu de face, un hexagone vu de dessus) était le PLANCHER noir (bandes j 0-1)
+  qui montait à la hauteur de l'arche sur TOUTE la largeur : à l'essieu avant il passait 18 cm au-dessus du centre du capot. Au milieu il
+  reste désormais 8 cm sous le capot (`[0,Math.min(yb,c-.08)]`), l'arche ne change pas sur les côtés. ⚠ LA DOLORÈS a le même gabarit :
+  ~2,5 cm au-dessus du capot à l'essieu avant (signalé à BOÎTES).
+- **ELDORADO** : le « pavé noir » du capot du relevé n'était pas la caisse — un objet de la piste figé par la pause à l'instant de la photo
+  (rien au garage, rien en deux nouvelles courses, aucune pièce sombre de la caisse à cet endroit) : rien changé.
+- Vérifié : 0 programme compilé en course (couché/debout), 29 avertissements comme le main, la tôle de LA GRANDE ANGLAISE découpée au menu
+  (50-72 ms). Planche `photos-gameplay/bugs-rondes-avant-apres.png`.
+
 ## LA GRANDE ANGLAISE REFAITE AU PLAN — LA BENTLEY CONTINENTAL GT DE 2003 (2026-10-18, discussion RONDES ; Léo : « dans la direction qu'on a prise jusque-là, améliorer, amplifier l'effet de THE ENGLISH DAME » ; RARE inchangée)
 - **Le plan** : pas de plan coté libre de la 2003 (dimensions.com n'a que la 4e génération). Le PROFIL = le dessin de la 2004
   (the-blueprints.com, 245 px/m en long et 251 en haut : étalonné sur la longueur 4,804 m et la hauteur 1,39 m — un dessin peut être
@@ -1230,6 +1328,21 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **Outils** (`~/Downloads/CAR-bancs/nouvelles-voitures/boites/`) : `releve.py` (le SVG → toutes ses lignes en unités), `traits.py` (→ mètres
   par vue), `trace.py` (lignes numérotées), `regard2.py` + `vue/index.html` (la caisse sous le plan, paramétré par plan), `studio2.py`
   (studio du jeu, plusieurs fiches), `banc_jeu.py` / `banc_garage.py` (cadre de l'ordi, programmes), `cpuprof.py` (profil de la construction).
+
+## LA FENTE — L'OUTIL COMMUN DES JOINTS DE TÔLE (2026-10-19, discussion JAPONAISES ; Léo : « un effet de séparation discret qui simule une FENTE, sans trait noir, aussi fin que sur les photos » — il a choisi la lecture C)
+- Sur la vraie, un joint (portière, capot, malle) est une fente de 3-5 mm : une ombre DE LA COULEUR DE LA CAISSE et un fil clair sur l'arête (sur le
+  noir, on ne voit presque que lui). Plus aucun joint de tôle en trait noir.
+- **Les fonctions** (bloc « LES OUTILS DES JAPONAISES », déclarées donc hissées : toute zone peut les appeler) :
+  · `fenteRGB(c,d,g,out[,P])` — la couleur d'un sommet de tôle près d'un joint : c [r,g,b] de la tôle, d distance SIGNÉE au joint (> 0 = côté du fil),
+    g demi-largeur de la fente (3,5 mm). Fente ×0,50 · ombre ×0,82 → 1 sur 1 cm · fil sur 4 mm (plus fort sur une caisse foncée) ;
+  · `fenteHex(hex)` — une fente en bande unie (×0,50) ; `fentePal(pal)` — palette de kit + 'J' (la fente) et 'Jf' (le fil), dérivées de la PEINTURE
+    effective (boutique comprise), même matière que la tôle ;
+  · `fenteVar()` — la lecture (`JAPFENTE_DEF='C'` ; `?fente=A|B|C|D`, `window.JAPFENTE_FORCE` pour les bancs ; A = l'ancien trait noir).
+- **Branchée** dans `japDecoupe` (les japonaises au plan) : la distance au joint est gardée par sommet avec la découpe, la tôle coupée à ±g et à
+  ±(g + 1,1 cm) (`segW` de japLignes), les couleurs refaites à chaque construction. Aucune matière neuve, 0 programme compilé (mesuré) ; +30 % de
+  facettes sur une caisse très jointée (LA FIDÈLE 33 000 → 44 000), 1re pose +20-40 ms.
+- **Mode d'emploi pour les autres découpes et les caisses de kit** : `CAR-bancs/nouvelles-voitures/AFFINEMENT.md`, section JAPONAISES, § 0.
+- Planche du choix : `photos-gameplay/fente-variantes.png` (vrais joints | A | B | C | D, argent et noire, studio, garage, course).
 
 ## LES JAPONAISES — 6 · ROSSO 40 REFAITE AU PLAN (2026-10-18, discussion JAPONAISES, Léo : « complexifie la ROSSO 40, imitation encore plus fidèle et satisfaisante pour les vrais kiffeurs de voiture »)
 - ⚠ **RETIRÉE LE SOIR MÊME** (Léo : « la rosso revient sur avant c'était mieux ») : le bloc `SHAPES.rosso` et son repère sont ôtés de la zone des
