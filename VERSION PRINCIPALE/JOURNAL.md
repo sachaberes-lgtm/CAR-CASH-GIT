@@ -1214,6 +1214,23 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **Mode d'emploi pour les autres découpes et les caisses de kit** : `CAR-bancs/nouvelles-voitures/AFFINEMENT.md`, section JAPONAISES, § 0.
 - Planche du choix : `photos-gameplay/fente-variantes.png` (vrais joints | A | B | C | D, argent et noire, studio, garage, course).
 
+## L'AFFINEMENT DES JAPONAISES — LOT 1 : LA LAME · LA FIDÈLE · LA BÊTE · LA CERISE (2026-10-19, discussion JAPONAISES ; mission AFFINEMENT de Léo)
+- **Le DAMIER des ailes arrière** (bandes claires et sombres qui cassaient le reflet, au studio comme en course) avait deux causes :
+  (1) au-dessus d'un passage de roue, les points du flanc s'empilaient sur l'arche (le flanc partait de `yb`, le haut de l'arche, mais gardait ses
+  hauteurs relatives au bas de caisse) → ils se répartissent désormais entre `max(y0,yb)` et l'épaule (`B9`/`H9` dans les coupes de LA FIDÈLE, LA LAME
+  et LA BÊTE) ; (2) chaque facette du loft est faite de DEUX triangles un peu tordus, chacun sa normale → `japQuads(G)` (outil commun, appelé par
+  `japDecoupe` seulement quand la découpe n'est pas en cache) recolle les deux triangles de chaque facette sous une seule normale, puis la lisse avec
+  la facette voisine de la même bande, le long de la caisse, tant que l'angle reste sous 25° : les vraies arêtes restent vives. Vaut pour TOUTES les
+  caisses découpées au plan (`o.quads:false` pour s'en passer).
+- **LA BÊTE** : les quatre dérives du diffuseur remontées (elles pendaient sous la poupe). **LA CERISE** : le nez finit sur une face plus haute
+  (YT .445 → .458, YB .40 → .37 au bout) — il n'est plus en bec ; le reflet rose de son aile n'est que la lumière du studio.
+- **Le tour des coins** (section 3 d'AFFINEMENT : dessous vu en vol, dessus, nez et poupe de près — `releve.py` avec `VUES=…` et `NOCOURSE=1`) :
+  les coques de rétro de LA LAME, LA FIDÈLE et LA CERISE étaient des boules à petites facettes (10 × 7, un effet boule disco, adoucies par
+  `japLisse`) → 8 côtés, 3 à 5 rangées (des angles au-delà des 32° du lissage : de grandes facettes nettes), le verre à 8 côtés aligné sur la
+  coque. Rien d'autre : dessous fermés, pots et suspensions en place, aucune pièce qui flotte.
+- 0 programme compilé en course (les quatre, banc `jeu.py`), console propre. Pose en jeu (1re / suivante) : LA LAME 66 / 24 ms,
+  LA FIDÈLE 63 / 34, LA BÊTE 26 / 20, LA CERISE 42 / 26 (la découpe se fait à la chauffe du menu). Planche : `photos-gameplay/affinement-lot1-japonaises.png`.
+
 ## LES JAPONAISES — 6 · ROSSO 40 REFAITE AU PLAN (2026-10-18, discussion JAPONAISES, Léo : « complexifie la ROSSO 40, imitation encore plus fidèle et satisfaisante pour les vrais kiffeurs de voiture »)
 - ⚠ **RETIRÉE LE SOIR MÊME** (Léo : « la rosso revient sur avant c'était mieux ») : le bloc `SHAPES.rosso` et son repère sont ôtés de la zone des
   JAPONAISES, la ROSSO 40 d'origine reprend la main (ses pots, sa ligne CARS : rien n'avait bougé). La préchauffe repasse à cinq étapes. La source

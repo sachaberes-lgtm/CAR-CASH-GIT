@@ -35499,7 +35499,8 @@ SHAPES.corolla=function(K){
     const yb=Math.max(y0,L(ARF,Math.abs(z-ZF)),L(ARR,Math.abs(z-ZR)));
     const sx=t=>xm-L(DX,t)*kx;
     const s=[[0,yb],[xm-.10*kx,yb]];
-    let pr=yb;for(let i=0;i<TS.length;i++){let h=Math.max(y0+TS[i]*H,pr+.0015);h=Math.min(h,yt-(TS.length-i)*.0015);if(h<pr+.0005)h=pr+.0005;pr=h;s.push([sx(cl((h-y0)/H,0,1)),h]);}
+    const B9=Math.max(y0,yb),H9=Math.max(.04,yt-B9);   // (affinement : au-dessus d'un passage de roue, le flanc se répartit entre l'arche et l'épaule — tassé sur l'arche, il faisait un damier)
+    let pr=yb;for(let i=0;i<TS.length;i++){let h=Math.max(B9+TS[i]*H9,pr+.0015);h=Math.min(h,yt-(TS.length-i)*.0015);if(h<pr+.0005)h=pr+.0005;pr=h;s.push([sx(cl((h-B9)/H9,0,1)),h]);}
     const xb=xm-.105*kx;
     if(zo==='capot'){const yh=Math.max(yC(z),yt),xc=xm-.09*kx;
       s.push([xc,yt],[xc-.02*kx,yt+.008],[xm*.72,yh-.022],[xm*.55,yh-.011],[xm*.36,yh-.004],[xm*.18,yh],[0,yh]);}
@@ -35594,7 +35595,8 @@ SHAPES.corolla=function(K){
   // LES RÉTROVISEURS (relevés sur les trois vues) : la coque à la couleur de la caisse, la glace vers l'arrière, le répétiteur orange devant
   P.sym(sd=>{P.box('k',.10,.035,.10,sd*.80,.885,.745,0,0,0);                              // le pied, sur la portière
     const cx=sd*.94,cy=.995,cz=.71;
-    {const g=new THREE.SphereGeometry(.08,10,7);P.put('p',g,cx,cy,cz+.01,0,sd*.18,0,1.0,.82,.9);}
+    {const g=new THREE.SphereGeometry(.08,8,5);   // (affinement : en facettes, plus une bulle)
+    P.put('p',g,cx,cy,cz+.01,0,sd*.18,0,1.0,.82,.9);}
     P.box('K',.15,.105,.006,cx-sd*.004,cy-.002,cz-.063,0,sd*.18,0);
     P.box('O',.08,.012,.02,cx+sd*.03,cy-.04,cz+.07,0,sd*.18,0);});
   // L'ANTENNE en aileron, sur le pavillon
@@ -35683,7 +35685,8 @@ SHAPES.pikes=function(K){
   const S0=z=>{const xm=xM(z),y0=yB0(z),yt=yT(z),zo=zone(z),kx=Math.min(1,xm/.62),H=Math.max(.04,yt-y0);
     const yb=Math.max(y0,L(ARF,Math.abs(z-ZF)),L(ARR,Math.abs(z-ZR)));
     const s=[[0,yb],[xm-.10*kx,yb]];
-    let pr=yb;for(let i=0;i<TS.length;i++){let h=Math.max(y0+TS[i]*H,pr+.0015);h=Math.min(h,yt-(TS.length-i)*.0015);if(h<pr+.0005)h=pr+.0005;pr=h;s.push([xm-L(DX,cl((h-y0)/H,0,1))*kx,h]);}
+    const B9=Math.max(y0,yb),H9=Math.max(.04,yt-B9);   // (affinement : au-dessus d'un passage de roue, le flanc se répartit entre l'arche et l'épaule — tassé sur l'arche, il faisait des bandes)
+    let pr=yb;for(let i=0;i<TS.length;i++){let h=Math.max(B9+TS[i]*H9,pr+.0015);h=Math.min(h,yt-(TS.length-i)*.0015);if(h<pr+.0005)h=pr+.0005;pr=h;s.push([xm-L(DX,cl((h-B9)/H9,0,1))*kx,h]);}
     const xb=xm-.12*kx;
     if(zo==='capot'){const yh=yC(z);   // la crête des ailes, puis le capot qui se creuse entre elles (il est plus bas que les ailes : vu de face, .80 contre .87)
       s.push([xb+.004,yt+.004],[xm*.80,yt-.012],[xm*.66,mix(yt,yh,.55)],[xm*.50,yh+.012],[xm*.33,yh+.004],[xm*.16,yh],[0,yh]);}
@@ -35792,7 +35795,7 @@ SHAPES.pikes=function(K){
   P.sym(sd=>{P.box('C',.10,.03,.05,sd*.86,.97,.80);P.box('C',.14,.08,.07,sd*.95,1.0,.79,0,sd*.12,0);P.box('K',.12,.065,.006,sd*.952,1.0,.753,0,sd*.12,0);});
   // LE DIFFUSEUR et ses dérives, les bavettes derrière les roues, les bas de caisse
   P.box('k',1.30,.02,.48,0,.16,-1.80,-.25,0,0);
-  for(const x of [-.45,-.20,.20,.45])P.box('k',.012,.17,.48,x,.15,-1.82);
+  for(const x of [-.45,-.20,.20,.45])P.box('k',.012,.11,.46,x,.19,-1.82);   // (affinement : les dérives ne pendent plus sous la poupe)
   P.sym(sd=>{P.box('k',.02,.36,.26,sd*.965,.22,-1.80);P.box('k',.05,.05,2.05,sd*.905,.085,0);
     P.box('C',.16,.012,.11,sd*.90,.40,2.07,0,0,sd*.12);P.box('C',.14,.012,.10,sd*.91,.30,2.08,0,0,sd*.10);});   // (les canards du bouclier)
   // LE SUPPORT DE PLAQUE (la plaque du jeu le reconnaît : `plqDessinee`)
@@ -35899,11 +35902,32 @@ function fenteHex(hex){const P=fenteVar(),r=(hex>>16&255)*P.gap,g=(hex>>8&255)*P
 function fentePal(pal){const ep=((typeof peintPal==='function'?peintPal(pal):pal)||pal).p||{g:'p',c:0x808080},c=ep.c!=null?ep.c:(ep.grad?ep.grad[1]:0x808080);
   const o=fenteRGB([(c>>16&255)/255,(c>>8&255)/255,(c&255)/255],.0035+.001,.0035),hx=v=>Math.round(Math.max(0,Math.min(1,v))*255);
   return Object.assign({},pal,{J:{g:ep.g&&ep.g.indexOf('pm:')===0?'p':ep.g,c:fenteHex(c)},Jf:{g:ep.g&&ep.g.indexOf('pm:')===0?'p':ep.g,c:(hx(o[0])<<16)|(hx(o[1])<<8)|hx(o[2])}});}
+/* LES FACETTES PAR QUADRILATÈRE (affinement, 19/10) : un loft pose chaque case en DEUX triangles ; sur une tôle qui se tord (une aile arrière
+   qui rentre en même temps qu'elle monte), ces deux triangles ne sont pas dans le même plan et prennent deux lumières → un DAMIER clair/sombre
+   (relevé sur LA LAME, LA FIDÈLE, LA BÊTE). `japQuads(G)` reconnaît les paires d'une même case (l'ordre du loft : (a,b,c)(a,c,d) et leur miroir
+   (-a,-c,-b)(-a,-d,-c)) et leur donne UNE normale, la moyenne : chaque case est UNE facette plate — le style poly, sans damier. */
+function japQuads(G){const p=G.attributes.position.array,n=G.attributes.normal.array,eq=(i,j)=>p[i]===p[j]&&p[i+1]===p[j+1]&&p[i+2]===p[j+2];
+  // 1) les paires d'une même case → une normale par case ; on garde, pour chaque case, ses deux arêtes TRANSVERSALES (à z constant)
+  const Q=[],E=new Map(),key=(i,j)=>{const a=Math.round(p[i]*1e4)+','+Math.round(p[i+1]*1e4)+','+Math.round(p[i+2]*1e4),b=Math.round(p[j]*1e4)+','+Math.round(p[j+1]*1e4)+','+Math.round(p[j+2]*1e4);return a<b?a+'|'+b:b+'|'+a;};
+  for(let t=0;t+18<=p.length;){const u=t+9;let V=null;
+    if(eq(t,u)&&eq(t+6,u+3))V={a:[t,u],b:[t+3],c:[t+6,u+3],d:[u+6],e0:[t,t+3],e1:[t+6,u+6]};            // (a,b,c)(a,c,d)
+    else if(eq(t,u)&&eq(t+3,u+6))V={a:[t,u],b:[t+6],c:[t+3,u+6],d:[u+3],e0:[t,t+6],e1:[t+3,u+3]};       // le miroir (a,c,b)(a,d,c)
+    if(V&&p[V.e0[0]+2]===p[V.e0[1]+2]&&p[V.e1[0]+2]===p[V.e1[1]+2]){let x=0,y=0,z=0;for(const b of [t,u])for(let k=0;k<9;k+=3){x+=n[b+k];y+=n[b+k+1];z+=n[b+k+2];}
+      const h=Math.hypot(x,y,z)||1;V.N=[x/h,y/h,z/h];V.k0=key(V.e0[0],V.e0[1]);V.k1=key(V.e1[0],V.e1[1]);
+      for(const kk of [V.k0,V.k1]){let l=E.get(kk);if(!l)E.set(kk,l=[]);l.push(Q.length);}Q.push(V);t+=18;}
+    else t+=9;}
+  // 2) le long de la caisse, une case se fond dans sa voisine (même bande) sous 25° : la lumière glisse le long de la tôle, les arêtes restent
+  const cs=Math.cos(25*Math.PI/180),voisin=(q,kk)=>{const N=Q[q].N,l=E.get(kk);let r=N;for(const o of l)if(o!==q){const M=Q[o].N,d=N[0]*M[0]+N[1]*M[1]+N[2]*M[2];
+      if(d>=cs){const x=N[0]+M[0],y=N[1]+M[1],z=N[2]+M[2],h=Math.hypot(x,y,z)||1;r=[x/h,y/h,z/h];}}return r;};
+  const pose=(v,N)=>{n[v]=N[0];n[v+1]=N[1];n[v+2]=N[2];};
+  for(let q=0;q<Q.length;q++){const V=Q[q],n0=voisin(q,V.k0),n1=voisin(q,V.k1);for(const v of V.a)pose(v,n0);for(const v of V.b)pose(v,n0);for(const v of V.c)pose(v,n1);for(const v of V.d)pose(v,n1);}
+  G.attributes.normal.needsUpdate=true;return G;}
 function japDecoupe(G,o){
   const pa=G.attributes.position.array,na=G.attributes.normal.array,Z=o.zones||{},LG=o.lignes||{},C=o.codes,CK=Object.keys(C);
   const cle=o.cleCache||'_tole';let C9=o.cache&&o.cache[cle];
   const FV=japFente(),FX=FV!=='A';
-  if(!C9||C9.n!==pa.length||CK.some(k=>!C9.G[k])||(C9.fv||'A')!==FV){
+  if(!C9||C9.n!==pa.length||CK.some(k=>!C9.G[k])||(C9.fv||'A')!==FV||C9.q!==(o.quads!==false)){
+    if(o.quads!==false&&!G.userData.quads){japQuads(G);G.userData.quads=1;}   // (affinement : une facette par case du loft, fondue le long de la caisse — seulement quand on découpe : le résultat est gardé)
     const ns=typeof o.ns==='function'?o.ns():(o.ns||na);   // (`ns` peut être une fonction : les normales lissées ne se calculent que si l'on découpe)
     const croise=(a,b,c,d,e,f,g,h)=>{const s=(x1,y1,x2,y2,x3,y3)=>(x2-x1)*(y3-y1)-(y2-y1)*(x3-x1);
             return ((s(e,f,g,h,a,b)>0)!==(s(e,f,g,h,c,d)>0))&&((s(a,b,c,d,e,f)>0)!==(s(a,b,c,d,g,h)>0));},
@@ -35968,7 +35992,7 @@ function japDecoupe(G,o){
               if(tl){let A=vers3(Lw,r[2]*sgc,r[3]*sgc);const an=A[0]*x+A[1]*y+A[2]*z;A=[A[0]-an*x,A[1]-an*y,A[2]-an*z];const la=Math.hypot(A[0],A[1],A[2]);
                 if(la>1e-6){x+=A[0]/la*tl;y+=A[1]/la*tl;z+=A[2]/la*tl;h=Math.hypot(x,y,z)||1;x/=h;y/=h;z/=h;}}}
             q.N.push(x,y,z);}}}}
-    C9={n:pa.length,G:{},C:{},fv:FV};for(const k of CK)C9.G[k]={P:new Float32Array(OUT[k].P),N:new Float32Array(OUT[k].N),D:FX?new Float32Array(OUT[k].D):null};
+    C9={n:pa.length,G:{},C:{},fv:FV,q:o.quads!==false};for(const k of CK)C9.G[k]={P:new Float32Array(OUT[k].P),N:new Float32Array(OUT[k].N),D:FX?new Float32Array(OUT[k].D):null};
     for(const k in COP)C9.C[k]={P:new Float32Array(COP[k].P),N:new Float32Array(COP[k].N)};
     if(o.cache)o.cache[cle]=C9;}
   // les couleurs (refaites à chaque construction : la peinture de la boutique peut changer) et les géométries, réunies par groupe de matière
@@ -36033,9 +36057,9 @@ SHAPES.mx5na=function(K){
             [-1.44,.842],[-1.37,.848],[-1.30,.853],[-1.23,.853],[-1.16,.843],[-1.09,.832],[-1.02,.82],[-.95,.813],[-.88,.803],[-.81,.796],[-.74,.79],[-.67,.784],[-.60,.779],
             [-.50,.777],[-.36,.773],[-.30,.768],[.20,.768],[.27,.772],[.32,.776],[.44,.79],[.51,.802],[.58,.813],[.65,.82],[.72,.825],[.90,.826],[.96,.821],[1.03,.814],
             [1.07,.808],[1.14,.797],[1.21,.785],[1.28,.773],[1.35,.757],[1.42,.739],[1.49,.72],[1.56,.698],[1.63,.675],[1.70,.651],[1.77,.618],[1.84,.587],[1.87,.567],
-            [1.905,.545],[1.94,.505],[ZE,.445]],
+            [1.905,.545],[1.94,.505],[ZE,.458]],
         YB=[[ZB,.36],[-1.95,.32],[-1.93,.30],[-1.894,.267],[-1.86,.242],[-1.51,.232],[-1.47,.22],[-.78,.163],[-.5,.159],[0,.157],[.8,.152],[.86,.19],[1.52,.235],[1.60,.226],
-            [1.70,.218],[1.80,.202],[1.836,.195],[1.852,.27],[1.87,.335],[1.905,.355],[1.94,.365],[ZE,.40]],
+            [1.70,.218],[1.80,.202],[1.836,.195],[1.852,.27],[1.87,.335],[1.905,.35],[1.94,.355],[ZE,.37]],   // (affinement : le nez finit en face ronde, plus en bec)
         AR=[[0,.61],[.07,.60],[.14,.583],[.18,.563],[.21,.54],[.25,.51],[.28,.47],[.31,.42],[.325,.36],[.33,.29],[.335,0]];
   const xM=z=>L(XM,z),yT=z=>L(YT,z),yB0=z=>L(YB,z);
   // l'habitacle : la planche de bord (son bord arrière), les sièges, le couvre-capote ; le pare-brise (son pied, vu de dessus)
@@ -36135,8 +36159,8 @@ SHAPES.mx5na=function(K){
   P.sym(sd=>{const x0=sd*.80,y0=yT(.20)+.005,z0=.19;
     P.box('p',.05,.026,.11,x0-sd*.005,y0+.008,z0);P.box('k',.026,.05,.028,x0+sd*.05,y0+.032,z0-.035,0,0,-sd*.6);
     const cx=x0+sd*.11,cy=y0+.075,cz=z0-.04;
-    {const g=new THREE.SphereGeometry(.06,10,7,0,Math.PI*2,0,Math.PI*.62);g.rotateX(Math.PI/2);P.put('p',g,cx,cy,cz+.012,0,0,0,1.45,.95,1.05);}   // la coque, une demi-goutte ouverte vers l'arrière
-    P.cyl('K',.058,.006,12,cx,cy,cz-.022,'z');P.put('K',new THREE.CircleGeometry(.056,12).scale(1.42,.92,1).rotateY(Math.PI),cx,cy,cz-.026);});
+    {const g=new THREE.SphereGeometry(.06,8,3,0,Math.PI*2,0,Math.PI*.62);g.rotateX(Math.PI/2);P.put('p',g,cx,cy,cz+.012,0,0,0,1.45,.95,1.05);}   // la coque, une demi-goutte ouverte vers l'arrière
+    P.cyl('K',.058,.006,8,cx,cy,cz-.022,'z');P.put('K',new THREE.CircleGeometry(.056,8).scale(1.42,.92,1).rotateY(Math.PI),cx,cy,cz-.026);});
   // L'HABITACLE : deux baquets (assise, dossier, appui-tête), la console, le volant (à gauche), le levier
   // LES BAQUETS : une coque en U (le dos et deux joues), l'assise creusée, l'appui-tête intégré — tissu noir
   P.sym(sd=>{const x0=sd*.35,A=-.30,ca=Math.cos(A),sa=Math.sin(A),dos=(u,v,w)=>[x0+u,YF+.10+v*ca-w*sa,-.47+v*sa+w*ca];   // (u en travers, v le long du dossier, w devant)
@@ -36283,7 +36307,7 @@ SHAPES.mx5rf=function(K){
   const COTE=[[.066,.911],[.326,.962],[.632,.997],[.741,.995],[.807,.977],[.891,.920]];
   const S0=z=>{const xm=xM(z),y0=yB0(z),zo=zone(z),yt=yT(z),H=Math.max(.04,yt-y0),yb=U.arch(z,[ZF,ZR],AR,y0),kx=Math.min(1,xm/.62);
     const s=[[0,yb],[xm-.11*kx,yb]];
-    for(const q of COTE)s.push([xm-(1-q[1])*.866*kx,y0+q[0]*H]);
+    {const B9=Math.max(y0,yb),H9=Math.max(.04,yt-B9);for(const q of COTE)s.push([xm-(1-q[1])*.866*kx,B9+q[0]*H9]);}   // (affinement : au-dessus d'un passage de roue, le flanc se répartit entre l'arche et l'épaule — tassé sur l'arche, il faisait un damier)
     const xb=xm-.13*kx;   // le haut du flanc : la ceinture (ou la crête de l'aile)
     if(zo==='capot'){const dd=L([[1.40,.036],[1.62,.02],[1.80,.006]],z);
       s.push([xm-.06*kx,yt-.03],[xm-.10*kx,yt-.012],[xm-.13*kx,yt],[xm-.19*kx,yt-.012],[xm*.55,yt-dd*.8],[xm*.28,yt-dd*.97],[0,yt-dd]);}
@@ -36346,8 +36370,8 @@ SHAPES.mx5rf=function(K){
   const P=K.kit(PAL);
   // LES RÉTROVISEURS (du plan : coque de 17 × 13 cm sur un pied noir au coin de la portière)
   P.sym(sd=>{P.box('k',.05,.04,.10,sd*.775,.835,.13);P.box('k',.04,.05,.035,sd*.80,.86,.10,0,0,-sd*.4);
-    const g=new THREE.SphereGeometry(.065,10,7,0,Math.PI*2,0,Math.PI*.6);g.rotateX(Math.PI/2);P.put('p',g,sd*.88,.885,.075,0,0,0,1.35,1.0,1.1);
-    P.put('K',new THREE.CircleGeometry(.064,12).scale(1.32,.98,1).rotateY(Math.PI),sd*.88,.885,.035);});
+    const g=new THREE.SphereGeometry(.065,8,3,0,Math.PI*2,0,Math.PI*.6);g.rotateX(Math.PI/2);P.put('p',g,sd*.88,.885,.075,0,0,0,1.35,1.0,1.1);
+    P.put('K',new THREE.CircleGeometry(.064,8).scale(1.32,.98,1).rotateY(Math.PI),sd*.88,.885,.035);});   // (affinement : la coque en facettes, plus une bulle)
   // LA JOUE DES PASSAGES DE ROUE
   {const joue=w=>{const o=[];for(let i=AR.length-1;i>=0;i--){const p=AR[i];if(p[1]>=.17)o.push([w-p[0]*1.02,p[1]+.01]);}
       o.unshift([w-.375,.17]);for(let i=1;i<AR.length;i++){const p=AR[i];if(p[1]>=.17)o.push([w+p[0]*1.02,p[1]+.01]);}o.push([w+.375,.17]);return o;};
