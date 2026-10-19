@@ -1187,6 +1187,19 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
 
+## AFFINEMENT · LOT 3 BOÎTES — LE CHARGEUR, LE CHARGEUR 69, LA NOCTAMBULE, LE CORBILLARD (2026-10-19, discussion BOÎTES)
+- **LE CHARGEUR** (31) : la calandre et la bouche basse en LAMES fines et serrées (c'était un damier de gros carreaux) ; « noir sur noir » :
+  un JONC CHROMÉ de ceinture sous les vitres, la taille se lit (la laque noire voulue par Léo ne bouge pas).
+- **LE CHARGEUR 69** (43) : la laque noire LISSÉE (normales moyennées entre facettes à moins de ~25°, la recette de L'AIGLE DE FEU) — le
+  pavillon et les flancs ne cassent plus en grands reflets violets ; le pavillon BOMBÉ ; la calandre AU FOND DE SA BOUCHE (le bord du capot
+  et les bouts d'ailes avancent de 7 cm, le jonc chromé au bord) ; la vitre va jusqu'au montant (une pointe blanche restait devant).
+- **LA NOCTAMBULE** (49) : les LAMES CHROMÉES de la calandre, couchées sur la pente du nez de requin (un panneau noir plat) ; l'aileron en
+  PROFIL D'AILE (bord d'attaque rond, extrados bombé, bord de fuite fin — c'était une boîte).
+- **LE CORBILLARD** (26) : la coque qui RENTRE sous l'arête (un caisson plat) ; les rideaux un ton plus doux, plis deux fois plus nombreux et
+  plus fins, une cantonnière ; les SOURCILS d'aile sur les phares ; le liseré de jupe flottait 7 cm hors de la caisse, le jonc de bas de caisse
+  suit la coque.
+- Banc : 0 programme compilé en course, couché et debout ; garage sans erreur. Planche : `photos-gameplay/affinement-lot3-boites.png`.
+
 ## AFFINEMENT · LOT 2 BOÎTES — LA SILENCIEUSE, LA BAVAROISE, LE DÉFIEUR (2026-10-19, discussion BOÎTES)
 - **LA SILENCIEUSE** (36, « une silhouette de Cybertruck ») : pavillon en ARC (un point tous les 30-40 cm du pare-brise à la malle), coupe du
   toit BOMBÉE (quatre facettes au lieu d'une arête), coque qui rentre sous l'épaule, nez et poupe RONDS vus de dessus (le nez finit à 0,56 de
