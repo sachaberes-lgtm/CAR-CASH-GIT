@@ -3,6 +3,27 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES FIGURES LÉGENDAIRES SE LISENT — LE GOTHIQUE EN MINUSCULES (2026-10-19, session police-legendaire — Sacha : « la police que tu as faite pour les figures légendaires est un peu illisible »)
+- CE QUI CLOCHAIT : depuis le HUD des figures v5 (18/10), le nom d'une figure LÉGENDAIRE (SALTO COSMIQUE, RODÉO) s'écrit en Jacquard 12, le
+  gothique en pixels, EN CAPITALES comme toutes les autres. Or les capitales gothiques ne se reconnaissent pas : sur la planche, « SALTO
+  COSMIQUE » se lisait « SALVD CVSMIXUE », et « RODEO » dans la ligne du combo n'était plus qu'une tache dorée.
+- CE QUI CHANGE : même police, même or, même halo, même reflet blanc — mais la LÉGENDAIRE s'écrit en MINUSCULES gothiques à capitale initiale :
+  « Salto Cosmique », « Rodeo » (`fhTitre(t,rp)`, à côté de `fhNet`). Appliqué partout où s'écrit un nom de rareté : le grand nom (`fhNom`), les
+  maillons du combo (`fhMaillon`, `fhMaillonMaj`) et le rappel des gestes (#fhLeg). Les autres raretés gardent leurs capitales ; le BUMP n'est
+  jamais légendaire. `FIG_RP.legendaire.w` 1,07 → ,9 : la chasse en minuscules, MESURÉE au canvas à k 1,9, est de ,77 à ,89 (contre 1,11 à 1,19
+  en capitales) — debout, le nom long (SALTO COSMIQUE, 390 px) passe de 30 à 38 px au lieu d'être réduit pour une largeur de capitales.
+- LA PLANCHE (faite dans le scratchpad de la session) : 10 polices pixel rendues comme dans le HUD (or, contour d'encre, halo, reflet, hauteur
+  de capitale égale à Press Start 2P), sur le ciel de midi et la forêt de nuit — Jacquard 12 en capitales (avant) et en minuscules, Jacquard 24,
+  Jacquarda Bastarda 9, Pixelify Sans, Workbench, Bitcount Grid Double, Handjet, DotGothic16, Press Start 2P. Les minuscules de Jacquard 12 se
+  lisent ET gardent l'air légendaire ; Jacquard 24 en capitales reste illisible ; Pixelify lit « SALTO OOSMIQUE » ; Bitcount se confond avec
+  Press Start 2P (la commune) ; Workbench et Handjet se lisent mais n'ont plus rien de légendaire. Aucune police neuve n'entre dans le jeu.
+- VÉRIFIÉ : en course (Chrome sans fenêtre, muet, couché 844 × 390, nuages midi) le rappel des gestes écrit « Salto Cosmique » et « Rodeo » en
+  Jacquard 12 (data-rp legendaire), le SALTO COSMIQUE lancé s'écrit « Salto Cosmique » en grand (CC Jacquard, 49 px), aucune erreur JS,
+  `__loopErr` vide. Le Mac était saturé (charge 150 à 270, les bancs d'autres sessions) : la photo du grand nom et de la ligne du combo est
+  prise au banc du HUD seul — les VRAIES feuilles et les vraies `fhNet`/`fhTitre`/`FIG_RP` d'index.html, le DOM de `fhEl`, la taille de
+  `fhNom`, sur la photo de la map —, avant/après, couché et debout.
+- À TRANCHER PAR SACHA : s'il préfère une autre police plutôt que le gothique en minuscules, la planche montre les candidates (Workbench,
+  Handjet, Bitcount Grid Double se lisent le mieux) — ce serait un .woff2 de plus (3 à 7 Ko) et une ligne dans <style id="policeUnique">.
 ## LES DUNES D'OR : ON DÉCOLLE DE CRÊTE EN CRÊTE, MÊME SANS NITRO (2026-10-19, Sacha, à la question « les vagues doivent-elles décoller aussi à vitesse normale ? » : « oui : je veux qu'on décolle sur les vagues des dunes même sans nitro, de crête en crête ») — v684
 - **Pourquoi elles ne décollaient pas** (MESURÉ au pilote, 7 traversées) : au sol la caisse reste COLLÉE au ruban — elle ne quitte la route que par
   le bord, le saut nitro, une figure ou un tremplin (le glacier) ; aucune cassure de pente ne la lance, quelle qu'elle soit.

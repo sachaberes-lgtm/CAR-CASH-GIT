@@ -325,6 +325,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   tout champ, en `var(--pix)!important`) et `UNE_POLICE` (tout `ctx.font` de canvas réécrit en pixel, à 62 % du corps, sans gras) ;
   SEULE EXCEPTION VOULUE (18/10, Sacha, au quiz : « une police par rareté ») : le NOM des figures en course (`#fh`, `#fhLeg`, porteurs de
   `data-rp`) prend une police PIXEL selon sa rareté — Silkscreen, Jersey 10, Sixtyfour, Jacquard 12 (`assets/fonts/`) ; ne pas l'étendre ailleurs sans lui.
+  La LÉGENDAIRE (Jacquard 12, gothique) s'écrit en minuscules à capitale initiale (`fhTitre`, 19/10) : ses capitales gothiques ne se lisent pas.
   `apresPolice(f)` redessine une texture peinte avant que la police soit chargée ; `garde-charte.sh` refuse une version sans eux. Un texte
   long : `--f1` (10 px), interligne 1,6-1,7, graisse 400 ; une note : `--f0`. Seule exception, nommée : le φ de `#spPhi` (logo).
   Elle n'a PAS de capitales accentuées : tout libellé passe par `TR()` (qui applique
