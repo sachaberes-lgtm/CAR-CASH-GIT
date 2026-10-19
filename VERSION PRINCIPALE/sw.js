@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v676'; // v676 (2026-10-19, Léo : « oui ») : LE CAÏD (Hummer EV) au nez arrondi et au détail du vrai (calandre, sabot, anneaux, élargisseurs vissés, jantes et pneus, toit, benne) — le SUV suit
+const CACHE = 'cashcar-v677'; // v677 (2026-10-19, Sacha : « vue plus haute qui plonge ») : LA CAMÉRA DU GLACIER, plus haute (le dosage « 1 » choisi sur planche)
 // const CACHE = 'cashcar-v675'; // v675 (2026-10-19, Sacha : « enlève le truc qui dit : cloud car catch je sais pas quoi dans la map nuage, j'en veux pas ») : la chasse de la CAISSE-NUAGE (« ACCROCHE SON SILLAGE ») ne surgit plus dans la mer de nuages — éteinte par défaut, ?evt=1 la rallume (voir le journal)
 // const CACHE = 'cashcar-v673'; // v673 (2026-10-19, Sacha : « pour la boutique des tricks fais des mini animations au ralenti pour voir la figure plutôt que les images stop motion ») : chaque carte FIGURES joue un petit FILM au ralenti de la figure (la caisse équipée, 32 images, son ombre) au lieu de la photo-séquence figée
 // const CACHE = 'cashcar-v670'; // v670 (2026-10-18 soir, Sacha : « the grid doit être epic » · « divine ligthing doit etre legendaire ») : la traînée LA GRILLE passe ÉPIQUE, à 200 000 $ (le prix dans sa famille) ; FOUDRE DIVINE passe LÉGENDAIRE
