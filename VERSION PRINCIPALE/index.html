@@ -18362,8 +18362,8 @@ function vlcTrace(rnd,LV){
    parcours, le lac au milieu, la montée du volcan toujours à 43-49 %. Désormais chaque royaume tire, dans son propre flux (`rh` : un seul
    tirage `rnd` de plus) :
    · son AXE (±45° autour du nord, comme la vallée de jade : la butée de cap ±72° et le « devant » du cône se comptent autour de lui) ;
-   · l'ORDRE des tableaux de la balade — l'arche, le lac, deux fumerons, trois modules (jamais l'arche juste avant la montée) —, ceux que la
-     longueur visée tient, et la longueur des tronçons de virages qui les séparent ;
+   · l'ORDRE des tableaux de la balade — l'arche, le lac, un ou deux fumerons, un à trois modules (jamais l'arche juste avant la montée) —,
+     ceux que la longueur visée tient, et la longueur des tronçons de virages qui les séparent ;
    · un CARACTÈRE par tronçon (`VLC_HUMEURS`), jamais deux fois le même de suite ;
    · LA MONTÉE : 0,9 à 1,55 tour, ses rayons (le dernier tour 1-1,25 × celui d'avant, ≥ 140 m d'un tour à l'autre), sa pente (5-7 %) — elle
      prend de ~35 à ~60 % du parcours ; le portail reste là-haut ;
@@ -18438,15 +18438,15 @@ function vlcTrace3(rnd,LV){
   SP=(function(){const Rb=Math.max(450,rM*3.8),R1=Math.max(250,rM*2.4)*(1+rh()*.25);let tr=.9+rh()*.65,R0=Math.max(R1+140*tr,Rb*(.9+rh()*.35));
     if(LC9){const Lx=tr*Math.PI*(R0+R1);if(Lx>.58*LC9){tr=Math.max(.9,tr*.58*LC9/Lx);R0=Math.max(R1+140*tr,Math.min(R0,Rb*1.1));}}
     return {R0:R0,R1:R1,TH:tr*Math.PI*2,pM:.05+rh()*.02,L:tr*Math.PI*(R0+R1)};})();
-  /* LES TABLEAUX DE LA BALADE, dans un ordre tiré : l'arche et le lac toujours, les fumerons et les modules que la longueur tient (au moins un
-     module) ; entre eux (et avant la montée) des tronçons de virages, chacun SON caractère (VLC_HUMEURS) et sa part de la longueur libre */
-  const Bb=LC9?Math.max(1200,LC9-SP.L-300):4500*KV,nLac=2+((rh()*3)|0),E={arche:210*KV,lac:(60+nLac*190)*KV,fum:200*KV,mod:480*KV},lib0=Bb-200*KV;
-  const TB=['arche','lac','fum','fum','mod','mod','mod'];for(let i=TB.length-1;i>0;i--){const j=(rh()*(i+1))|0,x=TB[i];TB[i]=TB[j];TB[j]=x;}
+  /* LES TABLEAUX DE LA BALADE, dans un ordre tiré : l'arche, le lac, un fumeron et un module toujours ; puis, si la longueur visée les tient, le
+     2e module, le 3e module, le 2e fumeron (au palier 0 : le plus souvent 1 fumeron et 2 modules, comme avant) ; entre eux (et avant la montée) des
+     tronçons de virages, chacun SON caractère (VLC_HUMEURS) et sa part de la longueur libre */
+  const Bb=LC9?Math.max(1200,LC9-SP.L-300):4500*KV,lib0=Bb-200*KV;let nLac=2+((rh()*3)|0);
+  const E={arche:210*KV,lac:(60+nLac*190)*KV,fum:200*KV,mod:480*KV};
+  let tot=E.arche+E.lac+E.fum+E.mod;if(tot>.95*lib0&&nLac>2){tot-=(nLac-2)*190*KV;nLac=2;} // (serré : le lac en deux courbes)
+  const TB=['arche','lac','fum','mod'];for(const k of ['mod','mod','fum'])if(tot+E[k]<=.95*lib0){TB.push(k);tot+=E[k];}
+  for(let i=TB.length-1;i>0;i--){const j=(rh()*(i+1))|0,x=TB[i];TB[i]=TB[j];TB[j]=x;}
   if(TB[TB.length-1]==='arche'){const j=(rh()*(TB.length-1))|0;TB[TB.length-1]=TB[j];TB[j]='arche';} // l'arche jamais juste avant la montée
-  let tot=0;for(const k of TB)tot+=E[k];
-  for(let e=0;e<8&&tot>.8*lib0;e++){const nM=TB.filter(function(k){return k==='mod';}).length,op=[];for(let i=0;i<TB.length;i++)if(TB[i]==='fum'||(TB[i]==='mod'&&nM>2))op.push(i); // d'abord les fumerons et le 3e module,
-    if(!op.length)for(let i=0;i<TB.length;i++)if(TB[i]==='mod'&&nM>1)op.push(i);if(!op.length)break;                                         // puis le 2e module (jamais le dernier)
-    const i=op[(rh()*op.length)|0];tot-=E[TB[i]];TB.splice(i,1);}
   const W=[];for(let i=0;i<=TB.length;i++)W.push(.35+rh());const sw=W.reduce(function(a,b){return a+b;},0),free=Math.max(0,lib0-tot),HU=[];
   let hPrec=-1;const humeur=()=>{let i=(rh()*VLC_HUMEURS.length)|0;if(i===hPrec)i=(i+1+((rh()*(VLC_HUMEURS.length-1))|0))%VLC_HUMEURS.length;hPrec=i;return VLC_HUMEURS[i];}; // jamais deux fois le même de suite
   const tronH=(len,H)=>{const s0=s,dv=rh()<.5?-1:1;let n=0; // un tronçon de virages au caractère H (la DÉRIVE insiste d'un côté jusqu'à la butée)
