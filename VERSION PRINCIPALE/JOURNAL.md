@@ -1438,6 +1438,7 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   `branches:0` dans une fiche la refuse pour elle. Essai : `?roues=vraies`, ou `dbgRoues(1|0)` en console. Concernées : 20 caisses du kit (relevé
   `roues_liste.py`) — DOLORÈS, CHARGEUR, DÉFIEUR, BAVAROISE, SILENCIEUSE, CHARGEUR 69, DAYTONA, TAURINE, NOCTAMBULE, AIGLE DE FEU, FÉLINE, BLINDÉ NOIR,
   DRAGON D'OR, MASTODONTE, PUCE, ATCHOUM, SQUALE, ICEBERG, FOURNAISE, DOGE. Planche : `photos-gameplay/roues-branches-globale.png` — Léo décide.
+  (Depuis le lot 1 de RONDES, LA FÉLINE dessine ses propres roues : 19 caisses ; LE MASTODONTE, L'AIGLE DE FEU et LA BAVAROISE sont creusés par BOÎTES.)
 
 ## LES JAPONAISES — 6 · ROSSO 40 REFAITE AU PLAN (2026-10-18, discussion JAPONAISES, Léo : « complexifie la ROSSO 40, imitation encore plus fidèle et satisfaisante pour les vrais kiffeurs de voiture »)
 - ⚠ **RETIRÉE LE SOIR MÊME** (Léo : « la rosso revient sur avant c'était mieux ») : le bloc `SHAPES.rosso` et son repère sont ôtés de la zone des
