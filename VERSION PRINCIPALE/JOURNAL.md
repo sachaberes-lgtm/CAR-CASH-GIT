@@ -3,6 +3,11 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE CAÏD, LE HUMMER AU NEZ ARRONDI ET DÉTAILLÉ (2026-10-19, v676, Léo : « plus arrondi le devant… » · « plus de détail » · « oui, et refais-le en SUV »)
+- BOÎTES 373979fc (le nez : capot bombé qui s'enroule dans les ailes, face aux coins ronds, panneau noir, bandeau à coin ambre, 5 feux ambre
+  au toit) + a97dbba6 (le détail : calandre à lames, antibrouillards carrés, anneaux, sabot ajouré, nervures du capot, élargisseurs vissés,
+  rétros, jantes et pneus 35 pouces, toit, benne) — ~32 k facettes, 0 programme compilé en course. Le SUV (arrière) est en cours chez BOÎTES.
+
 ## PLUS DE CAISSE-NUAGE DANS LA MER DE NUAGES (2026-10-19, session sans-caisse-nuage — Sacha : « enlève le truc qui dit : cloud car catch je sais pas quoi dans la map nuage, j'en veux pas »)
 - **Ce que c'était** : le dernier des ÉVÉNEMENTS RARES (14/10, GAMEPLAY) — dans 75 % des parties, à la 1re zone MER DE NUAGES, la CAISSE-NUAGE
   se condensait devant la caisse avec la bannière « CAISSE-NUAGE — ACCROCHE SON SILLAGE » (en anglais « CLOUD CAR — CATCH HER SLIPSTREAM »).
