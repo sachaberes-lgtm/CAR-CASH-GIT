@@ -3,6 +3,144 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## PLUS DE CAISSE-NUAGE DANS LA MER DE NUAGES (2026-10-19, session sans-caisse-nuage — Sacha : « enlève le truc qui dit : cloud car catch je sais pas quoi dans la map nuage, j'en veux pas »)
+- **Ce que c'était** : le dernier des ÉVÉNEMENTS RARES (14/10, GAMEPLAY) — dans 75 % des parties, à la 1re zone MER DE NUAGES, la CAISSE-NUAGE
+  se condensait devant la caisse avec la bannière « CAISSE-NUAGE — ACCROCHE SON SILLAGE » (en anglais « CLOUD CAR — CATCH HER SLIPSTREAM »).
+- **Ce qui change** : `EVT_ON` est FAUX par défaut (`/[?&]evt=1\b/` au lieu de `!/[?&]evt=0\b/`) : aucun tirage, aucun appel au hasard,
+  rien ne se pose (le jeu de l'ancien `?evt=0`). Rien n'est détruit : **`?evt=1` la rallume** (= avant), et `dbgEvt('caisse')` alors ;
+  sans `?evt=1`, `dbgEvt('caisse')` répond « les evenements rares sont eteints (?evt=1 pour la caisse-nuage) ». La CAISSE-NUAGE du garage
+  (la voiture, le défi `nuage30`) n'est pas touchée.
+- **Mesuré** : `node outils/evt-test.cjs` (mis à jour : par défaut et `?evt=0` = éteint, sur 5000 parties aucune armée, `Math.random`
+  jamais appelé ; les autres cas sous `?evt=1`) → TOUT EST BON. Banc CDP (`outils/banc-caisses/cdp.mjs`), `?carte=nuages&meteo=midi`,
+  menu → JOUER → 13 s de pilote auto : couché, debout et cadre de l'ordi démarrent sans erreur, `dbgEvt()` = `on:false, arme:false`,
+  bannière « NIVEAU 1 » seulement ; témoin `&evt=1` : la caisse-nuage part et la bannière dit « CAISSE-NUAGE ». Gardes burn-out et charte OK.
+
+## LES DUNES D'OR — UNE NOUVELLE MAP : L'ERG QU'ON DÉVALE DE CRÊTE EN CRÊTE (2026-10-18 soir, session dunes-or — Sacha : « propose-moi des idées de nouvelle map » → « fais les dunes d'or de manière parfaite » ; la proposition retenue : « un désert ouvert (pas de parois, contrairement au Canyon) : on dévale des dunes géantes, d'une crête à l'autre ; obélisques, caravane, mirages au loin ; l'orage = tempête de sable ; sable orange + ciel turquoise, la base même de la DA ») — v674
+- **Le principe** : le moteur de terrain du CANYON (CDLOD en instances, grilles de données lues à l'identique par la puce et par la collision,
+  monde calculé dans un travailleur, ombre balayée au soleil de l'heure) sur une MER DE DUNES. Le canyon n'est pas touché : tout est à part
+  (`DN`, `genDunes`, `buildDunes`, `dnMondeCalc`, `dnHauteur`, `DN_VS`/`DN_FS`, `dunesTick`, `dunesHeurt`, `dunesChauffe`, `dbgDunes`),
+  seuls son CIEL (`canyonCiel`) et son SOLEIL DE L'HEURE (`canyonSoleil`, `cyA`) sont partagés : `LVL.canyonA` vaut 1 dans les dunes aussi.
+- **LA ROUTE (`genDunes`)** — l'ossature de genCanyon (droites et arcs ≤ 8°, cap dans ±58° hors boucles), rayons en multiples du rayon tenable
+  RMIN (1,3 à 3 × : au-delà, c'est « du tout droit » pour Sacha). Sections : LA CRÊTE DU GRAND ERG (la route sur le fil d'une dune, en S),
+  LE TOBOGGAN (la face d'avalanche, en virage, dans sa tranchée de sable), LES VAGUES (« d'une crête à l'autre » : la montée tourne, la CRÊTE est
+  droite et on y décolle, la face d'avalanche est droite et fait 1,12 × la portée du saut — la cassure suit la vitesse du palier, ~1,9 s de vol,
+  jamais plus de ~2,2 s), LA VALLÉE MORTE (le fond d'argile blanche et ses acacias morts, façon Deadvlei, cernée de dunes plus hautes que la
+  route), LA DEUXIÈME CRÊTE, L'ALLÉE DES OBÉLISQUES, L'OASIS (le portail au-dessus de l'eau). Les BOUCLES à raccourci = le trombone du canyon
+  (racA… racG). Les MODULES : `dSlalom`, `dVagues`, `dCorde`, `dChicane` (hasard `rm` à part). LA DURÉE DES MAPS (Léo) : au JOUER, crête
+  raccourcie, toboggan, raccourci A, vagues, vallée, allée et oasis restent ; B-G, la 2e crête et les 2es vagues selon la place (`tient`).
+  `DUREE_ALLURE.dunes` = 0,75.
+- **LE SABLE** — `dnDune` (même calcul en JS et en GLSL, bruit `CY.nz` canal 0 aux SEULES grandes échelles) : des dunes poussées par UN vent
+  (dans l'axe de la descente ±35° : les crêtes coupent la route en travers), face au vent douce, face d'avalanche raide, crêtes qui serpentent
+  sur 1-7 km, pics et cols le long des crêtes, une houle en biais dans les creux. Posée sur un FOND (grille de 64 m adoucie : la route lissée
+  ±300 m moins la profondeur H de la section ; au loin une mer plus haute et calme). Près de la route, la grille FINE (12 m) tient un PLAFOND (le
+  sable à D m sous la dalle, puis 37° — la route creuse sa tranchée dans les dunes plus hautes qu'elle ; presque plat dans les boucles : rien ne
+  monte entre la zone de saut et la sortie) et, sur les crêtes et les vagues, un PLANCHER (la dune qui porte la route).
+- **LE RENDU** — sable doré → rouge (dnA/dnB), crête plus claire, RIDES du vent dans la normale (de près), SATIN au rasant, PAILLETTES,
+  ombre portée des crêtes au violet (la bible) + le REBOND chaud (jamais de creux noir), argile craquelée, herbe et eau de l'oasis, MIRAGE au
+  loin. Le CIEL : l'horizon de mesas devient deux houles de dunes et trois PYRAMIDES (`uCyDn`, fondu `LVL.dunes`). Six TEMPS (`dunesMatin`,
+  `dunesMidi`, `dunesSoir` — un peu plus souvent —, `dunesNuit`, `dunesVent` = le temps « pluie » : VENT DE SABLE, `dunesTempete` = l'« orage » :
+  TEMPÊTE DE SABLE, orage sec) ; ils entrent dans `CONTI` (la recette commune des maps) ; le SABLE QUI VOLE (`dnPart`, dnQ.z) dans les deux derniers.
+- **LES DÉCORS** (low-poly à facettes, même lumière et même ombre que le sable : `DN_MVS`/`DN_AFS`, or poli `DN_OR`) : OBÉLISQUES (l'allée en
+  paires, d'autres épars ; pyramidions d'or), LA GRANDE PYRAMIDE près de l'oasis (coiffe d'or ; elle ombre les dunes), ACACIAS MORTS de la vallée,
+  PALMIERS de l'oasis, CARAVANES de sept chameaux qui marchent sur les crêtes (`dnCaravane`). Rien ne touche une dalle (`dnPresRoute`, `pres`).
+- **EN VOL** le sable, l'eau de l'oasis, les obélisques et la pyramide TUENT (`dunesHeurt` → ENSEVELI DANS LE SABLE · AU FOND DE L'OASIS ·
+  CONTRE L'OBELISQUE · CONTRE LA PYRAMIDE). Fruits du désert (ceux du canyon). Bords de route turquoise `BMAP_PAL.dunes`, portail `PCUBE_PAL.dunes`.
+- **MESURÉ** (bancs muets, file commune ; scratchpad de la session dunes-or : `dunes-banc.cjs` photos/états, `dunes-pilote.cjs` pilote automatique,
+  `relief.js` relief ombré de `dnDune` HORS GPU) — le monde : 63 à 443 ms (travailleur ; sous le voile du JOUER, au fil principal) ; grilles
+  ~150 × 500 à 12 m, ~230 × 300 à 64 m, ~105 × 205 à 44 m (l'ombre). LA RÈGLE D'OR : 13 constructions (6 temps × 2 paliers + la 1re), 0 sable sur
+  ni sous la route, marge mini 10,1 à 11,4 m, 0 décor sur la dalle. LE PORTAIL : parti des Pics de jade, la map d'en face imposée — le pré-bâti a
+  bâti les dunes en roulant (411 ms, 148 ms de calcul sur 23 images), reprises au passage (`pris` 1), monde posé, 0 erreur. LE PILOTE (palier 0,
+  sans nitro) : 7 traversées sur 7, 48 à 61 s ; nitro TENUE : morts dans l'épingle serrée de la boucle (3,7 s de vol, le trombone du canyon :
+  il se négocie sans nitro) — aucune mort dans les vagues. Raccourci A : gain 808 à 944 m, chute 56 à 83 m, 90 à 100 m à côté.
+  Les retouches mesurées en route : la 1re `dnDune` lisait les canaux FINS du bruit (3-100 m) et faisait de la roche (relief hors GPU) → canal 0, grandes
+  échelles ; les rides du vent crénelaient en DAMIER au-delà de 70 m → de près seulement ; l'ombre au coucher tombait au noir → le REBOND ; le lac
+  se répétait en grille (bruit de 18 m) → bruits larges tournés ; la nuit, le sable sortait blanc rosé comme de la neige et une bande NOIRE barrait
+  l'horizon → sable sombre, crête argentée, brume indigo plus claire ; la tempête était un orange plat → plus sombre, plus brune ; les obélisques
+  en grès se perdaient dans le sable → LAPIS-LAZULI cerclé d'or ; les vagues : à 0,27 puis 0,35 de cassure la caisse ne décollait pas à la
+  croisière, et la nitro l'envoyait 3,4 s dans le sable → la cassure fait décoller la caisse LANCÉE, la face fait 1,12 × ce saut ; au palier 7 la
+  map faisait 6,3-7,3 km pour 5,4 visés → vagues resserrées (1,35 × la croisière), une ou deux sur une map courte.
+- **VÉRIFIÉ AVANT LA POUSSÉE** (fusionné avec LES PROFONDEURS, la grotte de la session voisine : les deux maps ajoutées aux mêmes listes — SF_CARTES,
+  CONTI, BMAP_PAL, PCUBE_PAL/PCUBE_CP, PREB_PISTES, DUREE_ALLURE, LVL, CAUSES — gardées toutes deux) : la règle d'or (nuit, soir, midi : 0 / 0, marge
+  11,2-11,4 m ; 5,0-5,6 km pour 4,74 visés au palier 0), la fumée commune OK couché + debout, 0 erreur JS ; gardes burn-out et charte OK.
+- Console : `dbgDunes()` · `dbgDunes('test')` (la règle d'or) · `dbgDunes('raccourcis')` · `dbgDunes('vue',d,h,cap,pente)` / `('vueA',s,…)` ·
+  `?carte=dunes&meteo=soir` · `?dnw=0` (sans travailleur). Répertoire des maps de Léo : la ligne `dunes` dans `repertoire-maps/maps.js`.
+- **À trancher par Sacha** : (1) les vagues décollent à la nitro, pas à la croisière — plus de saut à vitesse normale ? (2) une seule boucle à
+  raccourci au palier 0 (la durée de Léo : 45 s) — en vouloir une deuxième, plus courte ? (3) le soir est très rouge, le vent de sable a un plafond
+  de poussière. Les cartes postales du portail (`assets/portail/dunes-*.webp`, `PCUBE_CP`) et les vignettes du répertoire sont tirées de cette version.
+
+## LE FILM D'UNE FIGURE — UNE MINI ANIMATION AU RALENTI PAR CARTE (2026-10-18, Sacha : « pour la boutique des tricks fais des mini animation ralenti pour voir la figure plutot que les image stop motion que tu as mis »)
+- **Avant** (15/10 soir) : chaque carte du rayon FIGURES montrait une PHOTO-SÉQUENCE — cinq à sept poses figées de la caisse sur une seule image
+  (`figPhoto`, `PHOTO_FIG`, retirés).
+- **Maintenant** : un petit FILM AU RALENTI qui tourne en boucle dans la carte (`figFile` → `figFilm`, cache `fa:<figure>:<sens>:<caisse>`) :
+  la caisse ÉQUIPÉE, même studio et même pellicule que les photos des caisses, fait la VRAIE figure (`FIG.quat`, sens de la carte par
+  `FIG.oriente`) le long d'un petit saut, vue de trois quarts avant (de plus haut pour une figure à plat : toupie, tail whip, hélico).
+  32 images sur une PLANCHE 8 × 4 de 224 × 112 ; le temps du geste à mi-chemin d'une rotation régulière (`regu`) ; son OMBRE au sol.
+  Le saut est PETIT, presque sur place (`span` .3, `haut` .22 longueur de caisse) : la case fait 113 × 50 en couché, un grand saut (essayé
+  à .85 / .62) rapetissait la caisse au cinquième de la case ; le pointillé du saut, essayé aussi, flottait au-dessus de la caisse posée.
+- Prises d'une traite sur la puce : chaque image rendue au double puis développée/réduite par le programme de la pellicule (`photoDevPrep`,
+  sorti de `photoDev`) dans SA case de la planche, une seule lecture à la fin — plus de boucle de pixels en JavaScript.
+- La carte JOUE la planche dans une toile `.fgFilm` (`filmPose`, puis `filmJoue` à chaque image depuis `garBqPanneau`, rayon FIGURES seulement) :
+  `avant` 450 ms posée, le geste à `ms` 62 ms par image (`ms2` 76 pour deux tours et plus — environ 3 × plus lent qu'en course), `apres`
+  800 ms posée, en boucle ; un FONDU entre deux images (`fondu`) ; une carte hors de vue ne se redessine pas. « Réduire les animations » :
+  une image fixe au milieu du geste. Réglages : `FILM_FIG` ; banc : `dbgFigFilm(id, sens, o)` (rend la planche et les temps).
+
+## HYPERESPACE v2 — LA TRAÎNÉE QUI PASSE VRAIMENT EN VITESSE LUMIÈRE (2026-10-18, nuit, session HYPERESPACE — Sacha : « ameliore largement hyper espace largement »)
+- QUOI : la traînée ÉPIQUE de la boutique HYPERESPACE (90 k, `pop:'hyper'`), pas la map ORBITE (le code tranche : c'est le seul « hyperespace » du
+  jeu). « Améliorer » = l'existant (lumière, couleur, matière, netteté, vitesse, lisibilité) : aucun objet, décor ni mécanique en plus ; le
+  gameplay ne bouge pas (la traînée ne vit qu'à la nitro, comme avant).
+- VU AU BANC AVANT (même piste `?pistegraine=7`, mer de nuages à midi et orbite) : sur le ciel clair les filés étaient PÂLES, noyés dans le blanc
+  (l'additif s'efface sur un fond clair) ; des bâtons uniformes, sans tête ni queue ; ruban et feu de pixels du nitro en blanc bleuté DÉLAVÉ ; et
+  1 programme compilé à la 1re nitro — pile au moment du SAUT.
+- LE FILÉ D'ÉTOILE (case 37 de `trxPlanche`) : une TÊTE ronde et pleine au bout tourné vers la caméra, un corps qui s'amincit et s'éteint vers
+  le point de fuite — les bords de l'écran flambent, le CENTRE (la route devant) reste net.
+- DEUX LUMIÈRES PAR FILÉ (`trxParts`, champs `cw`/`sb`, à zéro pour les autres traînées) : la COULEUR (bleu électrique, cyan, ou blanc chauffé)
+  et, dedans, le CŒUR chauffé à blanc (⅓ de la largeur) — la netteté. De jour, le VOILE DE JOUR commun des traînées (TRJ, `uInk`, la passe
+  globale poussée juste avant) les pose sur une encre de leur couleur : une première version avait sa propre encre, retirée (doublon).
+  L'ÉTOILE DE NAISSANCE : à sa naissance un filé est une étoile (case 2) qui brille à sa pointe et s'éteint en 0,17 s — on VOIT l'étoile devenir
+  un trait (« les étoiles s'étirent en traits », la fiche de la boutique).
+- LE TUNNEL (`trxHyFile`) : plus dense vers l'extérieur (rayon 1,3-5,2 m, √ du hasard), la caisse reste lisible au milieu ; nés de −1 à +9 m ; trois lumières : bleu électrique, cyan, blanc.
+- LA VITESSE SE SENT (`sk`, de ×0,75 à ×2, ×1 à 75 m/s) : les filés s'allongent (et se densifient un peu) quand NITROOO accélère.
+- LE SAUT v2 (l'appui) : l'éclair blanc qui se resserre sur la tuyère, une onde bleue qui s'ouvre, l'ÉCLAT horizontal d'une optique de cinéma
+  (case 38, gaussien des deux bouts), et 56 étoiles nées loin devant qui s'étirent deux fois plus vite.
+- LE CŒUR À LA TUYÈRE v2 : halo bleu + point chauffé à blanc + le JET (une aiguille de lumière qui sort du pot, plus longue avec la vitesse) ;
+  il BAT (des pouls rapides et un frémissement).
+- LE RUBAN ET LE FEU EN BLEU ÉLECTRIQUE : `rgb` .95,1.15,1.6 → .42,.98,2.2 — le ruban, le feu de pixels du nitro (`nfeuPalTrainee`) et les bords
+  de la route au boost (v636/v643) prennent ce bleu franc au lieu d'un blanc bleuté.
+- PERF : aucun programme en plus (les deux cases sont peintes une fois sur la planche). Et LA CHAUFFE :
+  `chauffeDivers` compile au menu le programme des traînées POP et monte leur planche, si la caisse en porte une (sinon rien ne change) —
+  avant, il naissait à la 1re nitro, en course.
+- MESURÉ AU BANC (Puppeteer muet, 844 × 390 couché, DPR 1,5, `?pistegraine=7`, avant = main de la passe globale, après = cette version) :
+  0 programme compilé en course à la nitro sur la mer de nuages (midi) et l'orbite (soir) — avant : 1, le programme TRX ; 0 erreur JS ;
+  TRX ≈ 0,1 ms par image (105-113 particules, ~240 quads ; avant 0,05 ms, ~76) ; la vitrine (INVENTAIRE → TRAÎNÉES) tourne sans erreur.
+- RÉGLÉ EN DEUX PASSES AU BANC : à la 1re, sur l'orbite les filés lisaient BLANCS et fins à côté des gros faisceaux d'avant — cœur passé au bleu
+  glacier (1, 1,4, 2,4), lueur bleue plus pleine (case 37), filés plus larges (6,5-12,5 cm), 10 % de filés blancs au lieu de 22, 165 filés/s.
+- PLANCHE avant/après montrée à Sacha (le saut et 1,1 s après, nuages à midi et orbite le soir).
+
+## LA GRILLE DES PRIX DES VOITURES (2026-10-19, v671, Léo : « réorganise bien les raretés, c'est le bordel, les prix » → « oui » à la grille)
+- **Le principe** : le prix suit le PRESTIGE DE LA VRAIE VOITURE, et chaque prix reste dans la tranche de sa famille (la règle de Sacha
+  pour les habillages, v670 : « son prix dans sa famille »). Communes ≤ 8 000 · rares 25 000 → 300 000 · épiques 550 000 → 4 000 000.
+- **Ce qui bouge** (rien d'autre) : LA PUCE (Mini) 400 000 → 30 000 (`PX9[6]`, un prix posé par Claude « à valider par Sacha ») ·
+  LE CAÏD (désormais le Hummer EV) 50 000 → 180 000 · ACIDE (Civic tunée) 750 000 → 550 000 · LA ZED (240Z) 1 600 000 → 600 000 ·
+  LA QUEUE DE CANARD (911 RS) 550 000 → 800 000 · LA TAURINE (Miura) 650 000 → 1 200 000 · LA BÊTE (Pikes Peak) 1 000 000 → 1 500 000 ·
+  LA PERLE (Taycan) 4 400 000 → 2 000 000 · ROSSO 40 (F40) 2 500 000 → 4 000 000 : la caisse de rêve redevient la plus chère à l'argent du jeu.
+- **Gardés tels quels** : les prix posés par Sacha (ELDORADO 40 000, LE CHARGEUR 60 000, LA BAVAROISE 100 000, LE DÉFIEUR 120 000),
+  les communes, les créations (LA RAIE, L'ABSTRAITE, L'ICEBERG…). Personne n'est remboursé ni débité : un prix ne change que l'achat à venir.
+
+## DEUX TRAÎNÉES CHANGENT DE RARETÉ : LA GRILLE ÉPIQUE, FOUDRE DIVINE LÉGENDAIRE (2026-10-18 soir, Sacha : « the grid doit être epic » · « divine ligthing doit etre legendaire ») — v670
+- THE GRID et DIVINE LIGHTNING sont les noms anglais de deux traînées : **LA GRILLE** (id `grille`, le mur de lumière des motos de néon) et
+  **FOUDRE DIVINE** (id `foudre`, les éclairs). Seuls objets du jeu de ces noms (les autres « grille » du code sont des grilles de calcul).
+- **LA GRILLE** : `r:'epique'` (elle était `legendaire`) et son **prix dans sa famille**, comme LA ZED et LA QUEUE DE CANARD (v651) :
+  350 000 → **200 000 $** — la tranche ÉPIQUE de `cosmRar` s'arrête sous 250 000 ; elle reste la plus chère des traînées épiques
+  et sous les légendaires (FAIS PLEUVOIR 500 000). Qui l'avait achetée la garde (rien n'est remboursé).
+- **FOUDRE DIVINE** : `r:'legendaire'` (elle était `mythique`). Elle se gagne toujours par sa mission (`mis2`) ; son prix `pk`
+  (450 000, celui de l'édition Poki) est déjà dans la tranche LÉGENDAIRE (250 000 – 900 000) : il ne bouge pas.
+- Ni id, ni effet, ni place dans la liste : le rayon TRAÎNÉES suit l'ordre de `COSM`, où LA GRILLE est déjà entre les épiques et les
+  légendaires, et FOUDRE DIVINE juste après FAIS PLEUVOIR, la dernière légendaire (plus aucune traînée MYTHIQUE).
+- Vérifié au banc muet (couché et debout) : rayon TRAÎNÉES de la boutique — HYPERESPACE et LA GRILLE en ÉPIQUE (violet, 200 000 $), puis
+  FAIS PLEUVOIR et FOUDRE DIVINE en LÉGENDAIRE (or, « MISSION ») ; 0 erreur JS ; fumée commune OK (couché + debout). Rebasée ensuite sur le
+  retrait de 88 MILES À L'HEURE, MENTHE et PLUIE DE BLOCS (v667-v668) : les deux fiches restent voisines dans `COSM.trainee`.
+
+
 ## LA TRAÎNÉE 88 MILES À L'HEURE RETIRÉE (2026-10-18 soir, session RETRAIT-88MPH — Sacha : « 88 mph enlève ») — v668
 - « 88 MPH » = le nom anglais de la traînée **88 MILES À L'HEURE** (id `retour`, 140 000 $, épique) ; aucun autre objet ne porte ce nom.
 - Même méthode que MENTHE et PLUIE DE BLOCS (section ci-dessous) : sa ligne sort de `COSM.trainee`, son pictogramme `tr_88` de l'atlas, et
@@ -62,6 +200,7 @@
   (2,2 s sous 40). Banc : trois lâchers dans la neige, aucune mort, ramenée en 2,4-4,8 s.
 - MOINS D'OBSTACLES : une figure tous les 0,6-1 km (0,3-0,5 avant), fourche 3-5 pics, champ 5-7 (11-18), îlot 2-3 : 31-44 pics par piste au lieu de 112.
 - Banc : `dbgBanq('cg',{fx,prof,…})` (la congère : réglages, état, repère). Fumée commune OK (couché + debout, 0 erreur JS).
+
 ## LE DÉCOLLAGE AU MANCHE — LA FIGURE SUR LA ROUTE PEUT S'ENVOLER (2026-10-19, v664, Léo : « fais en sorte que chaque trick qui fait un saut en l'air, seulement lorsque la voiture est en l'air, laisse au joueur l'opportunité de décoller de la route en utilisant le joystick qui permet d'orienter le nez de la voiture vers le haut »)
 - **Le questionnaire** (deux lectures possibles, le pouce HAUT choisit déjà la figure AVANT au double-tap) : « un geste PENDANT le bond »
   (le pouce tenu depuis le double-tap ne compte pas) et « comme un avion » (tant qu'on tient le nez en haut elle monte, lâché elle retombe).
