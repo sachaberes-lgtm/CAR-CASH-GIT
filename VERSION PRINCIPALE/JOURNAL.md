@@ -75,6 +75,10 @@
   `const BK_BEC=…` (piège n° 1) — `bkBecTex` lève « BK_BEC_TEX is not defined » à chaque construction du glacier (`window.__banqErr`) : buildBanqG
   s'arrête aux tremplins (`bkBecMesh`), sans sa météo ni la fin de son décor. Le départ d'avance le reproduit tel quel (prebDecorG rend l'exception
   au même endroit).
+## LE CAÏD, LE HUMMER AU NEZ ARRONDI ET DÉTAILLÉ (2026-10-19, v676, Léo : « plus arrondi le devant… » · « plus de détail » · « oui, et refais-le en SUV »)
+- BOÎTES 373979fc (le nez : capot bombé qui s'enroule dans les ailes, face aux coins ronds, panneau noir, bandeau à coin ambre, 5 feux ambre
+  au toit) + a97dbba6 (le détail : calandre à lames, antibrouillards carrés, anneaux, sabot ajouré, nervures du capot, élargisseurs vissés,
+  rétros, jantes et pneus 35 pouces, toit, benne) — ~32 k facettes, 0 programme compilé en course. Le SUV (arrière) est en cours chez BOÎTES.
 
 ## PLUS DE CAISSE-NUAGE DANS LA MER DE NUAGES (2026-10-19, session sans-caisse-nuage — Sacha : « enlève le truc qui dit : cloud car catch je sais pas quoi dans la map nuage, j'en veux pas »)
 - **Ce que c'était** : le dernier des ÉVÉNEMENTS RARES (14/10, GAMEPLAY) — dans 75 % des parties, à la 1re zone MER DE NUAGES, la CAISSE-NUAGE
@@ -235,6 +239,15 @@
   PALETTE (0,99 €), son bouton « À GAGNER ». Désormais (`chatPackI` = la place du chat dans CARS) : carte et inventaire « PACK CHAT », bouton
   AVEC LE CHAT + le prix du chat (`bqEtat` e:'chat'), qui mène au rayon ACHAT, le chat sur le plateau (`bqAction`) ; la carte du chat porte le
   bandeau arc-en-ciel « + ARC-EN-CIEL » (`.bqKl.arc`) tant qu'on ne l'a pas. Mots EN : CAT PACK, WITH THE CAT, + RAINBOW.
+
+## LA CAMÉRA DU GLACIER, PLUS HAUTE (2026-10-19, session GLACIER-BORDS — Sacha : « fais une caméra du glacier qui montre la pente (vue plus haute qui plonge), montre-moi une planche avant/après avant de pousser »)
+- `camGlacierM(i)` : au glacier, le recul (`CAM_GLACIER.recul`) et la hauteur (`CAM_GLACIER.monte`) de la caméra de course montent avec la pente
+  (pleine dose à 35°) ; plus haute, le cabrage (`camRouteCabrage`, plafonné par la garde de 12° au-dessus de la glace derrière la caisse) peut
+  redresser davantage. Planche de trois dosages, mêmes endroits, couché et debout (banc `camvar.cjs`) : l'actuelle (redressée de 11°), « 1 »
+  (monte 2, k ,9, max 40 : 28°), « 2 » (monte 2,6, recul 1,2, k 1, max 45 : 35°). Sacha a choisi « 1 ». La caisse descend à l'écran
+  (caisseY −,34 → −,63 couché, −,31 → −,55 debout) et rapetisse un peu. ⚠ Sur une pente RÉGULIÈRE à 45°, aucune caméra de poursuite ne fait
+  vraiment « plonger » l'image (pour voir l'horizon ET la caisse, il faudrait une caméra à moins de ~15° au-dessus de la glace derrière : rasante) ;
+  ce qui manque encore, c'est de voir la vallée tout en bas — la brume de vallée et le brouillard la cachent (piste proposée, non faite).
 
 ## LE GLACIER, 3e TOUR — LA CONGÈRE AU LIEU DU MUR, 40-50° POUR DE VRAI, DE VRAIS TREMPLINS, MOINS DE PICS (2026-10-18, session GLACIER-BORDS — Sacha : « debug la map montagne glace : déjà quand on touche le bord on y reste collé, et il y a des problèmes de collision avec la glace elle-même ; ensuite je t'ai dit 100 fois de faire la map plus pentue, genre 40-50 degrés ; les tremplins doivent être plus beaux, gros et visibles, et moins d'obstacles sur la route » · « quand on touche le bord on doit pas mourir : on s'enfonce dans la neige, ce qui ralentit beaucoup, mais ça tue pas »)
 - POURQUOI ON RESTAIT COLLÉ : le bord était le mur des couloirs du canyon (`parisMur` : lat bornée à 1,15 m du bord, vL = 0, mort au-delà de 30° et
@@ -1147,6 +1160,33 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   basculaient en vue « dessus » → règle de vue abaissée à 0,83 m.
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
+
+## LE CAÏD, LE DÉTAIL DU VRAI HUMMER EV (2026-10-19, discussion BOÎTES ; Léo : « plus de détail »)
+- Tout en pièces du kit (facettes, matières existantes : 0 programme en plus) — 21,8 k → 32 k facettes (budget 50 k). La découpe de la tôle ne
+  change presque pas (un joint de plus au hayon) : la construction reste ~35-60 ms la 1re fois (découpe en moment creux), ~25 ensuite.
+- **Face** : antibrouillards en boîtiers carrés (cadre, vitre, projecteur), calandre à six lames inclinées en retrait + montants + prises d'air,
+  caméra, sabot alu ajouré (trois fentes) et vissé, ses montants autour des ANNEAUX DE REMORQUAGE (tore + goupille), lèvres haute et basse.
+  ⚠ l'ancienne « calandre » (boîte à z 2,736) était DANS le bouclier (face à 2,75) : invisible — toute pièce de face se pose à z ≥ 2,75.
+- **Capot** : nervures nettes du dôme (2 cm), échantillons du capot à x .423/.445/.60 (ajoutés à CHAQUE rang, mis à l'échelle de la largeur : un
+  nombre de points variable par rang casse `quad`), joint clair du panneau noir, trois ouïes par côté (posées à H(x,z)).
+- **Flancs** : bord épais des élargisseurs (`bande(FO,0,.035)` en prisme un peu plus large) et VIS tous les 16 cm (`pas(off(FO,-.05))` : le décalage
+  NÉGATIF va vers la roue) ; rétros à fente de clignotant ambre ; poignées en niche + barre chromée ; marchepieds à grip (10 lames) et embouts.
+- **Roues** : pneu à 28 rangs de trois pavés en quinconce + épaulement alterné + anneau de 36 crans sur le flanc ; jante noire à dix branches en V
+  creusées, moyeu, huit écrous, cache. **Toit** : épine + traverse entre les panneaux, deux barres sur pieds. **Arrière** : passages de roue dans la
+  benne (prismes en arc), anneaux d'arrimage, nervures de doublure, hayon dans le hayon (joint), poignée + caméra, feux en C à réflecteurs et
+  points de LED (rouge allumé = feu : rien d'autre de rouge allumé à l'arrière), recul, ATTELAGE (tube, goupille, prise).
+- Banc : course couchée et debout 0 programme compilé, garage sans erreur. Planche : photos-gameplay/hummer-detail-avant-apres.png.
+
+## LE CAÏD, LE NEZ ARRONDI DU HUMMER EV (2026-10-19, discussion BOÎTES ; Léo : « plus arrondi le devant, et respirant le même air que le modèle original »)
+- **Le capot** : plus une nappe posée à plat sur l'épaule (des angles vifs tout autour) — une nappe BOMBÉE sur toute l'empreinte du nez (en plan,
+  un rectangle aux coins arrondis de RC 30 cm) qui S'ENROULE en quart de cercle vers ses bords (`rB(z)` : 0 au pare-brise, 15 cm devant) ; les
+  rangées du bas (flancs, face) montent jusqu'au pied de l'enroulé (`PL = tB − rB`) : les épaules coulent dans les ailes, le capot tombe sur
+  le bandeau. `dN(x,z)` = la distance au bord de l'empreinte arrondie ; `wN(z)` = sa demi-largeur.
+- **Le panneau noir mat** au fond du capot (le grand panneau central de la photo de Léo), le dôme devant lui.
+- **La face** : bandeau un cran plus bas, six segments séparés, les longs phares aux bouts et leur COIN AMBRE en 7 pastilles qui tournent sur
+  l'arrondi ; le sabot gris (`C`). **Le toit** : les CINQ FEUX AMBRE sur le bord avant du pavillon. L'arrière reste le pick-up.
+- Photos SUV de Commons (la face est la même) : OWS Photography (CC BY 4.0). Banc : 0 programme compilé couché/debout, garage sans erreur.
+  Planche : photos-gameplay/hummer-nez-avant-apres.png. ⚠ `dbgLumVue(d,h,az,vise)` : `vise=0` vaut 4 (`vise||4`) — viser le nez = 2.
 
 ## LE CAÏD DEVIENT LE GMC HUMMER EV PICK-UP (2026-10-18, discussion BOÎTES ; Léo : « une magnifique GMC »)
 - **Où** : le même `SHAPES.caid=…` de la zone BOÎTES (repère `// <<< SHAPES.caid (BOITES) >>>`, après LA CABOSSÉE) ; l'ancienne méthode `caid(K)`
