@@ -1730,6 +1730,16 @@ D('ailes.pigeon',{fam:'ailes',bus:'fx',dur:.95,v:2,db:-3,max:1,cd:.5,rj:.03,dit:
     frou(.03,.12,.05,1100);clap(.155,1);frou(.24,.16,.07,950);clap(.465,.85);                                        // les deux claps, à l'image (clap = .62 dans AILES_POP.pigeon)
     frou(.62,.1,.06,1250);frou(.77,.09,.035,1150);                                                                    // il bat trop vite (6,5 coups/s), puis plane
     O.filtre(b,'lp',6500,.7);}});
+   /* `ailes.air` (2026-10-18, Léo : SANS AILES) — LES BUSES À AIR COMPRIMÉ lâchent leur bouffée : à la sortie (toutes à la fois) et au boost
+      (la poupe). La VANNE qui claque, le PSCHHT froid d'une bonbonne (un souffle aigu qui s'ouvre d'un coup puis s'étouffe), un corps sourd
+      dessous. Pas de note : c'est de l'air. */
+D('ailes.air',{fam:'ailes',bus:'fx',dur:.55,v:2,db:-4,max:1,cd:.15,rj:.03,dit:'SANS AILES : les buses à air comprimé lâchent leur bouffée — la vanne qui claque, le PSCHHT froid d’une bonbonne, le corps sourd du jet',
+  r:function(b,R,o){const k=o.v;
+    clic(b,{t0:.004,f:1900+k*150,d:.005,v:.38,ft:'bp'},R);                                                          // la VANNE,
+    bruit(b,{c:'b',t0:.006,a:.004,d:.34,v:.5,ft:'hp',f:2400+k*250,f1:3600,g:.3,q:.7},R);                            // le jet froid, aigu, qui s'ouvre,
+    bruit(b,{c:'b',t0:.008,a:.012,d:.24,v:.28,ft:'bp',f:5600,q:1.1,am:[31,.35]},R);                                 // son sifflement qui frémit,
+    bruit(b,{c:'r',t0:.006,a:.006,d:.16,v:.45,ft:'bp',f:620+k*70,f1:380,g:.16,q:1},R);                              // le CORPS : la bouffée qui pousse
+    O.filtre(b,'lp',9500,.7);}});
 })(typeof window!=='undefined'?window:globalThis);
 /* <<<FIN AILES>>> */
 /* <<<RICHESSE>>> ================================================================================
