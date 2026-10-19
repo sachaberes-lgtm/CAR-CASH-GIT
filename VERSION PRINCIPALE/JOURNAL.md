@@ -3,6 +3,16 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE HOT ROD REFAIT SUR LA PHOTO DE LÉO — v2 → v3 → v3.1 (2026-10-19, v695 — Léo : « au style poli, tu peux vraiment faire un truc mieux… il y a un truc qui vole un peu dans les airs… pour le moteur, joue avec les mini-cubes » puis « écope chromée comme sur ma photo, cabine de coupé 32 plus ronde » ; « oui, mets le HOT ROD v3.1 dans le jeu »)
+- BOÎTES 7adeed96 (v2 : le coupé 32 rouge de sa photo), 159c7f22 (v3), d3ea10be (v3.1) — le détail plus bas, dans les sections de BOÎTES.
+- Ce qui VOLAIT dans le v2 : la coquille de calandre (9 cm au-dessus de sa traverse), la lame de ressort (15 cm au-dessus de l'essieu, sans
+  jumelles), le moteur (sans supports), épingles et direction dans le vide. v3 : tout rebâti de bas en haut, chaque pièce POSÉE sur une autre.
+- Le moteur : un V8 HEMI 392 (les fils entrent PAR LE DESSUS des couvre-culasses), deux quadruple-corps sous l'écope, en mini-cubes. v3.1 :
+  l'écope en chrome BOMBÉ deux tons, gueule ouverte ; la cabine de coupé « trois fenêtres » ronde (toit bombé, auvent court, vitres aux
+  coins arrondis, bas de caisse qui rentre, jonc de ceinture).
+- La roue : celle du gabarit (`roueDeco`), plus proche du gros plan de Léo que l'option `chapeau` de `lpWheel` (qui reste dans l'outil, inutilisée).
+- Vérifié : course sans erreur, 0 programme compilé en roulant. Planches : `photos-gameplay/hotrod-v3-avant-apres.png`, `hotrod-v31-avant-apres.png`.
+
 ## LE ×2 DU GAIN CONTRE UNE PUB + LA PRISE ADMOB DE L'APP (2026-10-19, v694 — Sacha : « prépare les emplacements de pub récompensée dans le jeu (sans module AdMob), on branchera AdMob en v1.1 » ; au quiz : « ×2 sur le gain », « pub maison de 5 s » tant qu'AdMob n'est pas branché, « vraies pubs seulement » pour L'ÉTERNELLE)
 La sortie App Store est prévue ~3 semaines plus tard (~9/11) ; la pub native (AdMob) arrive en v1.1. La SECONDE CHANCE était déjà payée par une pub
 (LA PUB QUI RESSUSCITE, 15/10) : c'est le 2e emplacement.
