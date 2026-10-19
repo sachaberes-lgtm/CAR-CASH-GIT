@@ -1316,6 +1316,23 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
 
+## LE HOT ROD v3 — LA STRUCTURE EN POLY, LE MOTEUR EN MINI-CUBES (2026-10-19, discussion BOÎTES ; Léo sur la planche du v2 : « au style poly tu peux vraiment faire mieux, concentre-toi sur la structure — il y a un truc qui vole dans les airs ; inspire-toi des gros plans ; le moteur, joue avec les mini-cubes, recherche le modèle »)
+- **CE QUI VOLAIT** (vues basses du v2) : la coquille de calandre 9 cm au-dessus de sa traverse, la lame de ressort 15 cm au-dessus de l'essieu
+  sans jumelles, le moteur sans supports, les épingles et la direction accrochées dans le vide.
+- **BÂTI DE BAS EN HAUT** : les longerons rouges en prismes CHANFREINÉS (octogones), qui remontent sous la calandre et plongent en CORNES
+  jusqu'à la barre chromée ; traverses (ressort, support de radiateur, boîte, arrière) ; la caisse POSÉE dessus ; la coquille sur son
+  support ; l'essieu en I, la lame transversale en arc serrée sous sa traverse, ses jumelles et brides ; épingles, amortisseurs et
+  direction AU LONGERON ; les phares sur des pattes boulonnées aux longerons. Les vrais volumes de la cabine : gouttière du toit,
+  encadrements de la vitre, du pare-brise, de la lunette.
+- **LE MOTEUR** identifié : un V8 HEMI Chrysler (392) — les fils rouges entrent par le DESSUS des grands couvre-culasses (bougies au
+  milieu de la culasse) ; pas de compresseur sur la photo (deux quadruple-corps sous la grande écope). En mini-cubes : culasses rouges,
+  couvre-culasses en alu satiné à ailettes polies et vis, capuchons dressés et fils qui bouclent, pipe haute, carburateurs et leurs cuves,
+  écope (loft), collecteurs 4-en-1 gris, distribution, poulies, courroie, allumeur, boîtier bleu, cloche et boîte ; SUR SES SUPPORTS.
+- **LES ROUES** : la nôtre (`roueDeco`) gardée — plus proche du gros plan 2 que la jante `chapeau` de lpWheel (grand chapeau, flanc fin).
+- Prismes posés triangle par triangle (`poutreF`, sans ExtrudeGeometry). Banc : 0 programme compilé en course (couché, debout, répété),
+  garage comme le v2 ; construction 40-50 ms sous charge (le v2 : 22-29 ms dans les mêmes conditions). Planche :
+  `photos-gameplay/hotrod-v3-avant-apres.png`. Attend le oui de Léo.
+
 ## LE HOT ROD v2 — LE COUPÉ DE LA PHOTO DE LÉO (2026-10-19, discussion BOÎTES ; Léo, une photo à l'appui : « exactement celle-là, la couleur, moteur vraiment stylé, roues exactes, plaque au même endroit, tout tout pareil, poly réalisme — en mode poly hybride, ultra mini cubes si besoin »)
 - Le gabarit `c_hotrod` RÉÉCRIT : le coupé « trois fenêtres » de 1932, ROUGE (0xc8141c, la fiche aussi), en highboy (sans ailes) — la coque
   sur son CHÂSSIS rouge à l'air (longerons sous les portes, « kick-up » sur l'essieu, cornes qui plongent), la porte « suicide » et la malle en
