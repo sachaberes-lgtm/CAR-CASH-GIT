@@ -3,6 +3,25 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE GLACIER RETROUVE SES TREMPLINS — `BK_BEC_TEX` AVALÉE PAR UN « // » (2026-10-19, v681, correctif — trouvé par la session PERF ; chantier de Sacha, 3e tour du glacier : « les tremplins doivent être plus beaux, gros et visibles »)
+- **La cause** (piège n° 1) : dans le 3e tour du glacier (e66f25b2, 18/10), `let BK_BEC_TEX=null;` était collée derrière le `//` de la ligne
+  `const BK_BEC`. `bkBecTex()` levait donc « ReferenceError: BK_BEC_TEX is not defined » à chaque glacier. L'erreur était attrapée (`window.__banqErr`,
+  `console.warn('Banquise', …)`) et `buildBanqG` s'arrêtait à `bkBecMesh`.
+- **Ce qui manquait depuis le 18/10 au soir** : le maillage des TREMPLINS, alors que `BANQ.kick` était posé (la rampe soulevait la caisse sans se voir),
+  et les maillages de TOUS les pics (`BANQ.picM` = 0), alors que les pics de la piste (`BANQ.obst`) tuaient quand même. Par lecture du code, il manquait
+  aussi la grille physique des pics (`BANQ.picG`/`BANQ.pics`), la mise en file des tranches, `bkPisteNue(true)` et la météo posée à la construction
+  (reprise plus tard par `banqTick`, à .01, sans fondu).
+- **Le correctif** : la déclaration est remise sur SA ligne, et les deux commentaires de `BK_BEC` passent en `/* */`. Rien d'autre ne change.
+- **Mesuré** (Chrome sans fenêtre, `?carte=banquise&meteo=midi&pistegraine=777`, menu → JOUER au doigt, puis `dbgClassique('banquise','soir')` + `dbgSaut()` ;
+  un point d'arrêt conditionnel qui note `BANQ` à la fin de `buildBanqG`) :
+  - AVANT : `__banqErr` = la ReferenceError aux 2 glaciers, la fin de `buildBanqG` n'est jamais atteinte, `picM` 0.
+  - APRÈS : `__banqErr` vide, la fin est atteinte aux deux glaciers (`BANQ.to` posé, k = 0, 6 tremplins, 9 pics de piste, 317 primitives, `picG`), `picM` 18.
+  - 0 erreur couché, debout et dans le cadre de l'ordi (à la souris). Il ne reste que les avertissements `flatShading`, déjà là avant.
+  - Aucune autre déclaration avalée de cette forme dans `index.html` (recherche par motif).
+- **Planche AVANT | APRÈS** et bancs (`glacier.py`, `ordi.py`) : `~/Downloads/CAR-bancs/glacier-bec/`.
+- **À Sacha** : les réglages du 3e tour et de aa2c30ad (nombre de pics, tremplins, « moins d'obstacles ») ont été jugés SANS tremplins ni pics visibles.
+  À rejouer maintenant qu'on les voit.
+
 ## L'AFFINEMENT, 2e ENVOI : LE HUMMER SUV ET LES DEUX PREMIERS LOTS (2026-10-19, v680, Léo : « oui, mets le Hummer SUV et les deux lots dans le jeu »)
 - LE CAÏD en HUMMER EV SUV (BOÎTES 9176c959 : le nez et le détail gardés, la cabine jusqu'au hayon, la roue de secours sur le hayon).
 - RONDES lot 1 (665b7a04) : LA PUCE ronde comme la Mini, LA FÉLINE (phares en goutte à verre clair, roues à rayons), LA QUEUE DE CANARD

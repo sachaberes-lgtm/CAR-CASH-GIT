@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v680'; // v680 (2026-10-19, Léo : « oui ») : LE CAÏD en HUMMER EV SUV ; l'affinement, lot 1 de RONDES (LA PUCE ronde, LA FÉLINE : phares et roues à rayons, LA QUEUE DE CANARD sans lames) et de JAPONAISES (LA LAME, LA FIDÈLE, LA BÊTE, LA CERISE : plus de damier, rétros retaillés)
+const CACHE = 'cashcar-v681'; // v681 (2026-10-19, correctif) : le glacier retrouve ses tremplins, ses pics et sa météo — `let BK_BEC_TEX` n'est plus avalée par un « // »
 // const CACHE = 'cashcar-v679'; // v679 (2026-10-19, l'affinement) : les BUGS des voitures (l'éventail de LA GRANDE ANGLAISE, la tache de POSTER 84, la barre de LA DOLORÈS, le damier de L'AIGLE DE FEU, l'écope rose du CHARGEUR) + LA FENTE C (Léo) sur les japonaises : les joints de tôle sans trait noir
 // const CACHE = 'cashcar-v678'; // v678 (2026-10-19, session PERF, le pré-bâti de Léo) : LE DÉPART D'AVANCE — la 1re piste de la partie se bâtit au menu et à l'écran de fin, le JOUER et le REJOUER la prennent (image identique ; ?prebati=0 = avant)
 // const CACHE = 'cashcar-v677'; // v677 (2026-10-19, Sacha : « vue plus haute qui plonge ») : LA CAMÉRA DU GLACIER, plus haute (le dosage « 1 » choisi sur planche)
