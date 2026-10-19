@@ -3,7 +3,7 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
-## LE ×2 DU GAIN CONTRE UNE PUB + LA PRISE ADMOB DE L'APP (2026-10-19, v692 — Sacha : « prépare les emplacements de pub récompensée dans le jeu (sans module AdMob), on branchera AdMob en v1.1 » ; au quiz : « ×2 sur le gain », « pub maison de 5 s » tant qu'AdMob n'est pas branché, « vraies pubs seulement » pour L'ÉTERNELLE)
+## LE ×2 DU GAIN CONTRE UNE PUB + LA PRISE ADMOB DE L'APP (2026-10-19, v694 — Sacha : « prépare les emplacements de pub récompensée dans le jeu (sans module AdMob), on branchera AdMob en v1.1 » ; au quiz : « ×2 sur le gain », « pub maison de 5 s » tant qu'AdMob n'est pas branché, « vraies pubs seulement » pour L'ÉTERNELLE)
 La sortie App Store est prévue ~3 semaines plus tard (~9/11) ; la pub native (AdMob) arrive en v1.1. La SECONDE CHANCE était déjà payée par une pub
 (LA PUB QUI RESSUSCITE, 15/10) : c'est le 2e emplacement.
 - **LE ×2 DU GAIN** (bloc `DBL` juste sous `dbgChance` ; plaque « LE ×2 DU GAIN À L'ÉCRAN DE FIN » sous celle de la seconde chance ; CSS dans
