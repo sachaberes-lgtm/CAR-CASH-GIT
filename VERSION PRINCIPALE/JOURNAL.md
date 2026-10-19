@@ -1564,6 +1564,16 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **LE TOFU** : tour des coins (dessous, dessus, nez, poupe, en course) — rien à reprendre.
 - 0 programme compilé en course, console propre. Planche : `photos-gameplay/affinement-lot4-japonaises.png`.
 
+## LES JANTES DE L'AIGLE DE FEU, DU MASTODONTE ET DU HOT ROD (2026-10-19, discussion JAPONAISES, responsable de lpWheel ; laissées « à faire » par BOÎTES)
+- Jugées avec la correction globale en marche (main v682), à côté des vraies (`affinement/boites/vraies/r52|r62|r64`).
+- **L'AIGLE DE FEU** (la Trans Am) : `creux:.06` — la jante dorée « flocon » creusée de 6 cm (4 cm par la correction globale).
+- **LE MASTODONTE** (Bigfoot) : `n:16, creux:.12, ecrous:6` — une CUVETTE chromée de 12 cm presque pleine (seize branches serrées), six écrous sur le moyeu
+  enfoncé (c'était une grande roue plate à cinq branches).
+- **LE HOT ROD** (le 32) : option neuve du style `enjoliveur`, **`chapeau:c`** — la jante TÔLE peinte en couleur de `fond` (léger cône), l'anneau poli au bord,
+  un chapeau chromé de c × le rayon de la jante ; ici `chapeau:.66` + `blanc:1` (flancs blancs). Sans `chapeau`, l'enjoliveur reste le dôme d'origine.
+- Vérifié au sommet près (`roues.py`) : enjoliveur sans chapeau, cadran, plis, creux 4 cm, branches, rayons, multi, `deux` inchangés. 0 programme compilé
+  en course (les trois), console propre. Planche : `photos-gameplay/jantes-aigle-mastodonte-hotrod.png`.
+
 ## `lpWheel` — LES VRAIES BRANCHES, UN SEUL OUTIL (2026-10-19, discussion JAPONAISES, responsable de lpWheel ; réunit `creux` de BOÎTES et `branches`)
 - **Le défaut** : dans les styles `rayons`/`multi`, les planches sont posées EN TRAVERS du rayon (rotation −a : la longueur part en tangente) — les n
   planches font un ANNEAU à n pans, aucune branche ne part du moyeu (« les disques à cercles »). Le dessin d'origine est GARDÉ tel quel pour toute fiche
