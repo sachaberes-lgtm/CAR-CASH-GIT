@@ -3,6 +3,12 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'AFFINEMENT, 2e ENVOI : LE HUMMER SUV ET LES DEUX PREMIERS LOTS (2026-10-19, v680, Léo : « oui, mets le Hummer SUV et les deux lots dans le jeu »)
+- LE CAÏD en HUMMER EV SUV (BOÎTES 9176c959 : le nez et le détail gardés, la cabine jusqu'au hayon, la roue de secours sur le hayon).
+- RONDES lot 1 (665b7a04) : LA PUCE ronde comme la Mini, LA FÉLINE (phares en goutte à verre clair, roues à rayons), LA QUEUE DE CANARD
+  (bouts de pare-chocs rentrés, phare d'un seul verre). JAPONAISES lot 1 (00f04429) : plus de damier sur les ailes arrière (LAME, FIDÈLE,
+  BÊTE ; `japQuads`), dérives de LA BÊTE remontées, nez de LA CERISE, coques de rétro retaillées. Les lots suivants attendent le oui de Léo.
+
 ## L'AFFINEMENT DES VOITURES, 1er ENVOI : LES BUGS ET LA FENTE (2026-10-19, v679 — Léo : « corrige tous les traits noirs dénaturés… un effet de séparation discret qui simule une fente » ; fente C choisie sur planche)
 - Le chantier : `~/Downloads/CAR-bancs/nouvelles-voitures/AFFINEMENT.md` (le relevé de 46 caisses, la FENTE, la dernière retouche en style poly).
 - **Les bugs** (partis direct) : RONDES 7f3d858f — l'éventail de triangles de LA GRANDE ANGLAISE, la tache noire du capot de POSTER 84 ;
@@ -1254,6 +1260,18 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
 
+## LE CAÏD EN HUMMER EV SUV (2026-10-19, discussion BOÎTES ; Léo : « refais-le en SUV »)
+- Le nez et tout le détail du pick-up gardés ; l'arrière refait sur les cotes du SUV (dimensions.com n'a que le pick-up) : longueur 5,00 roue de
+  secours comprise, empattement 3,218, largeur 2,197, hauteur 1,976 (Wikipedia, evspecifications). `ZR` −1,573 → −1,340, `ZT` −2,71 → −1,85.
+- Le passage de roue arrière du pick-up est GARDÉ et transformé (`mR` : avancé sur le nouvel essieu, resserré ×0,73 derrière lui) : même
+  élargisseur, même bord épais et mêmes vis. Le BAS s'arrête à la ceinture (plus de benne) ; la SERRE va jusqu'au hayon (plus d'ailerons ni de
+  lunette en retrait : `boutD` retiré), son montant arrière couleur caisse, une vitre de custode, six panneaux de toit, l'aileron au bout.
+- Le HAYON porte la ROUE DE SECOURS (pneu à pavés et jante à dix branches, recopiés de la roue du jeu) ; poignée à gauche, charnières à droite.
+  Les pièces de la poupe du pick-up (bouclier, attelage, plaque, catadioptres) sont décalées de `DZB` (= ZT + 2,71) ; les fentes de l'échappement
+  électrique aussi (`ECH_POTS.caid` à z −1,93). Ligne CARS 2 : h 1,98, l 5,00.
+- Banc : course couchée et debout 0 programme compilé, garage sans erreur ; 32 k facettes ; 1re construction ~31 ms (découpe en moment creux).
+  Planche : photos-gameplay/hummer-suv-vraie-et-nous.png.
+
 ## BUGS BOÎTES — LA DOLORÈS, L'AIGLE DE FEU, LE CHARGEUR (2026-10-19, discussion BOÎTES ; l'AFFINEMENT, choix de Léo)
 - **LA DOLORÈS** : le jonc noir était une barre de 3,60 m d'un seul tenant qui traversait les passages de roue (arche à 0,74, jonc à 0,62) —
   il flottait au-dessus des roues. En tronçons : entre les roues (−0,76 → 0,72) et derrière la roue arrière.
@@ -1398,6 +1416,23 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   facettes sur une caisse très jointée (LA FIDÈLE 33 000 → 44 000), 1re pose +20-40 ms.
 - **Mode d'emploi pour les autres découpes et les caisses de kit** : `CAR-bancs/nouvelles-voitures/AFFINEMENT.md`, section JAPONAISES, § 0.
 - Planche du choix : `photos-gameplay/fente-variantes.png` (vrais joints | A | B | C | D, argent et noire, studio, garage, course).
+
+## L'AFFINEMENT DES JAPONAISES — LOT 1 : LA LAME · LA FIDÈLE · LA BÊTE · LA CERISE (2026-10-19, discussion JAPONAISES ; mission AFFINEMENT de Léo)
+- **Le DAMIER des ailes arrière** (bandes claires et sombres qui cassaient le reflet, au studio comme en course) avait deux causes :
+  (1) au-dessus d'un passage de roue, les points du flanc s'empilaient sur l'arche (le flanc partait de `yb`, le haut de l'arche, mais gardait ses
+  hauteurs relatives au bas de caisse) → ils se répartissent désormais entre `max(y0,yb)` et l'épaule (`B9`/`H9` dans les coupes de LA FIDÈLE, LA LAME
+  et LA BÊTE) ; (2) chaque facette du loft est faite de DEUX triangles un peu tordus, chacun sa normale → `japQuads(G)` (outil commun, appelé par
+  `japDecoupe` seulement quand la découpe n'est pas en cache) recolle les deux triangles de chaque facette sous une seule normale, puis la lisse avec
+  la facette voisine de la même bande, le long de la caisse, tant que l'angle reste sous 25° : les vraies arêtes restent vives. Vaut pour TOUTES les
+  caisses découpées au plan (`o.quads:false` pour s'en passer).
+- **LA BÊTE** : les quatre dérives du diffuseur remontées (elles pendaient sous la poupe). **LA CERISE** : le nez finit sur une face plus haute
+  (YT .445 → .458, YB .40 → .37 au bout) — il n'est plus en bec ; le reflet rose de son aile n'est que la lumière du studio.
+- **Le tour des coins** (section 3 d'AFFINEMENT : dessous vu en vol, dessus, nez et poupe de près — `releve.py` avec `VUES=…` et `NOCOURSE=1`) :
+  les coques de rétro de LA LAME, LA FIDÈLE et LA CERISE étaient des boules à petites facettes (10 × 7, un effet boule disco, adoucies par
+  `japLisse`) → 8 côtés, 3 à 5 rangées (des angles au-delà des 32° du lissage : de grandes facettes nettes), le verre à 8 côtés aligné sur la
+  coque. Rien d'autre : dessous fermés, pots et suspensions en place, aucune pièce qui flotte.
+- 0 programme compilé en course (les quatre, banc `jeu.py`), console propre. Pose en jeu (1re / suivante) : LA LAME 66 / 24 ms,
+  LA FIDÈLE 63 / 34, LA BÊTE 26 / 20, LA CERISE 42 / 26 (la découpe se fait à la chauffe du menu). Planche : `photos-gameplay/affinement-lot1-japonaises.png`.
 
 ## LES JAPONAISES — 6 · ROSSO 40 REFAITE AU PLAN (2026-10-18, discussion JAPONAISES, Léo : « complexifie la ROSSO 40, imitation encore plus fidèle et satisfaisante pour les vrais kiffeurs de voiture »)
 - ⚠ **RETIRÉE LE SOIR MÊME** (Léo : « la rosso revient sur avant c'était mieux ») : le bloc `SHAPES.rosso` et son repère sont ôtés de la zone des
