@@ -30669,7 +30669,7 @@ const SHAPES={
       return 'p';});
     for(let i=0;i<8;i++){const z=-.74-i*.115;P.box('k',.96,.016,.07,0,yC(z)+.012,z,-.20);} // PERSIENNES de lunette
     P.sym(sd=>{
-      P.box('k',.02,.06,3.60,sd*.935,.62,-.02);                               // le jonc noir
+      for(const [z0,z1] of [[-.76,.72],[-2.06,-1.76]])P.box('k',.02,.06,z1-z0,sd*.935,.62,(z0+z1)/2); // le jonc noir — (2026-10-19, BOÎTES) en tronçons : d'un seul tenant (3,60 m) il traversait les passages de roue et flottait au-dessus des roues
       P.box('k',.012,.012,1.34,sd*.22,1.147,-.26);                            // la charnière des portes papillon
       P.box('W',.24,.10,.02,sd*.36,.56,2.118);P.box('W',.24,.10,.02,sd*.64,.56,2.118); // phares carrés
       P.box('O',.10,.06,.02,sd*.82,.44,2.118);
@@ -31284,7 +31284,7 @@ Object.assign(SHAPES,{
   const P=K.kit({p:{g:'g',c:0x020203},   // (13/10, Léo : « plus noir brillant ») le NOIR LAQUÉ : un noir presque pur — la laque n'y renvoie plus que le reflet, net sur les pans qui fuient (c'était un gris)
     k:{g:'m',c:0x121316},K:{g:'g',c:0x0b0c0f},c:{g:'c',c:0xe9ecf0},
     g:{g:'g',c:0x16202a},W:{g:'l',c:0xf2f7ff},L:{g:'l',c:0xff1a2a},r:{g:'l',c:0x9a0f1a},O:{g:'l',c:0xffa21a},
-    m:{g:'s',c:0x3a3f47},e:{g:'m',c:0xc8102e}});
+    m:{g:'s',c:0x3a3f47},e:{g:'m',c:0xc8102e},n:{g:'s',c:0x0a0b0d}}); // n : (2026-10-19, BOÎTES) le fond de l'ÉCOPE, noir satiné
   const AR=[[0,2*R+.05],[R*.60,2*R+.03],[R*.98,R*1.16],[R+.12,.34]];
   const CW=1.30,RF=.36,RR=-.50,RB=-1.76,ZE=2.50;
   const zs=[-ZE,-2.47,-2.44,-2.30,-2.10,RB,-1.20,-.86,-.80,RR,-.02,.10,RF,CW,2.00,2.30,2.44,ZE];
@@ -31303,6 +31303,7 @@ Object.assign(SHAPES,{
     return s;
   },(j,z)=>{
     if(j===0||j===1)return 'k';                                      /* bas de caisse noir, jupes */
+    if((j===3||j===4)&&z>-.98&&z<1.04)return 'n';                   /* (2026-10-19) le creux de l'ÉCOPE : en laque-verre ses deux pans plats se miraient en aplat (le sol rose de l'environnement, magenta) */
     if(j===6&&cab(z)){if(z>.10&&z<1.24)return 'g';if(z>-.86&&z<-.02)return 'g';if(z>-.02&&z<.10)return 'K';return 'p';}
     if(j===7&&cab(z)&&z>-.86&&z<1.26)return 'K';                     /* l'entourage de vitres noir */
     if(j===8&&((z>RF&&z<CW)||(z>RB&&z<RR)))return 'g';
@@ -32314,8 +32315,17 @@ Object.assign(SHAPES,{
      remonte vers la malle), le capot long entre deux ailes, le BEC et ses orbites carrées, la coque qui rentre sous la
      taille, des vitres qui rentrent sur un pavillon arrondi, la grande lunette couchée, le becquet en canard. */
   const U=LPU,R=.34,ZF=1.47,ZR=-1.27;
-  const P=K.kit({p:{g:'p',c:0x0f0f11},o:{g:'o',c:0xd9a520},k:{g:'m',c:0x151619},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},
-    g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
+  const PAL9={p:{g:'p',c:0x0f0f11},o:{g:'o',c:0xd9a520},k:{g:'m',c:0x151619},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},
+    g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}},P=K.kit(PAL9);
+  /* (2026-10-19, BOÎTES) LE DAMIER DU FLANC : sur ce noir laqué, chaque facette plate du flanc (elles s'inclinent un peu d'une station à
+     l'autre, élargisseurs compris) renvoyait un morceau différent du ciel — en course, le flanc se couvrait de carrés gris et blancs.
+     Les normales de la laque sont lissées entre facettes à moins de ~25° l'une de l'autre : le reflet coule, les arêtes vives restent. */
+  {const gP=(typeof peintPal==='function'?peintPal(PAL9):PAL9).p.g,d0=P.done;P.done=function(){const o=d0.call(P),G9=o[gP];if(G9){
+    const a=G9.attributes.position.array,n=G9.attributes.normal.array,M9=new Map(),N9=new Float32Array(n.length);
+    for(let i=0;i<a.length;i+=3){const q=Math.round(a[i]*500)+','+Math.round(a[i+1]*500)+','+Math.round(a[i+2]*500);let L9=M9.get(q);if(!L9)M9.set(q,L9=[]);L9.push(i);}
+    for(const L9 of M9.values())for(const i of L9){let x=0,y=0,z=0;for(const j of L9)if(n[i]*n[j]+n[i+1]*n[j+1]+n[i+2]*n[j+2]>.9){x+=n[j];y+=n[j+1];z+=n[j+2];}
+      const l=Math.hypot(x,y,z)||1;N9[i]=x/l;N9[i+1]=y/l;N9[i+2]=z/l;}
+    G9.setAttribute('normal',new THREE.Float32BufferAttribute(N9,3));}return o;};}
   const AR=[[0,2*R+.05],[R*.60,2*R+.01],[R*.98,R*1.12],[R+.14,.28]];
   let zs=[-2.55,-2.50,-2.45,-2.30,-1.72,-1.40,-1.10,-.95,-.90,-.70,-.55,-.50,-.30,0,.40,.46,.60,1.00,2.00,2.25,2.33,2.42,2.50,2.55];
   for(const w of [ZF,ZR])for(const d of [R*.60,R*.98,R+.14])zs.push(w-d,w+d);
@@ -35946,9 +35956,9 @@ function japLignes(L,R){R=R||{j:{w:.012,g:.0035,k:.6},h:{w:.016,g:0,k:.25}};
     const nm=i=>{const a=P[Math.max(0,i-1)],b=P[Math.min(n-1,i+1)],dx=b[0]-a[0],dy=b[1]-a[1],h=Math.hypot(dx,dy)||1;return [-dy/h,dx/h];};
     const off=d=>P.map((p,i)=>{const m=nm(i);return [p[0]+m[0]*d,p[1]+m[1]*d];}),segs=[];
     const add=Q=>{for(let i=0;i<Q.length-1;i++){const a=Q[i],b=Q[i+1];segs.push([a[0],a[1],b[0],b[1],Math.min(a[0],b[0]),Math.max(a[0],b[0]),Math.min(a[1],b[1]),Math.max(a[1],b[1])]);}};
-    if(r.g){add(off(r.g));add(off(-r.g));}else{add(P);add(off(r.w));add(off(-r.w));}
+    let segW=null;if(r.g){add(off(r.g));add(off(-r.g));const n0=segs.length;add(off(r.g+.011));add(off(-r.g-.011));segW=segs.splice(n0);}else{add(P);add(off(r.w));add(off(-r.w));}
     let u0=1e9,u1=-1e9,v0=1e9,v1=-1e9;for(const p of P){u0=Math.min(u0,p[0]);u1=Math.max(u1,p[0]);v0=Math.min(v0,p[1]);v1=Math.max(v1,p[1]);}
-    return {P:P,r:r,segs:segs,gate:l.gate,bb:[u0-r.w,u1+r.w,v0-r.w,v1+r.w]};}).filter(Boolean);}
+    return {P:P,r:r,segs:segs,segW:segW,gate:l.gate,bb:[u0-r.w,u1+r.w,v0-r.w,v1+r.w]};}).filter(Boolean);}
 // LISSER : normales moyennées sous `deg` (les arêtes au-delà restent vives) — rend un Float32Array
 function japLisse(G,deg){const a=G.attributes.position.array,n=G.attributes.normal.array,M=new Map(),cs=Math.cos((deg||32)*Math.PI/180);
   for(let i=0;i<a.length;i+=3){const k=Math.round(a[i]*2e3)+','+Math.round(a[i+1]*2e3)+','+Math.round(a[i+2]*2e3);let l=M.get(k);if(!l)M.set(k,l=[]);l.push(i);}
@@ -35963,10 +35973,37 @@ function japLisse(G,deg){const a=G.attributes.position.array,n=G.attributes.norm
    · vue(cx,cy,cz,ax,ay,az,nx,ny,nz) facultative : la vue des zones pour ce triangle (sinon celle qui le regarde le plus en face) ;
    · colP(y,x,z) : la couleur de la tôle à une hauteur (`colTri` : prise au CENTRE de chaque triangle — une livrée à deux tons garde son trait net) ; GP : son groupe ; cache : un objet où garder la découpe (elle ne dépend que de la forme).
    Rend {groupe: géométrie}. Coût : une fois par session (le découpage est gardé, seules les couleurs sont refaites). */
+/* ===== LA FENTE — L'OUTIL COMMUN (2026-10-19 ; Léo a choisi la lecture C, « l'ombre + le fil ») =====
+   Un joint de tôle (portière, capot, malle, hayon, trappe) n'est plus un trait NOIR : c'est une FENTE — une ombre DE LA COULEUR DE LA CAISSE dans la
+   fente, qui remonte en douceur vers la tôle, et un FIL CLAIR sur l'arête qui prend le ciel (plus fort sur une caisse foncée, où c'est lui qu'on voit).
+   Fonctions DÉCLARÉES (hissées) : toute zone du fichier peut les appeler, à n'importe quel moment.
+   · fenteRGB(c,d,g,out) — la couleur d'un SOMMET de tôle près d'un joint. c = [r,g,b] (0-1) de la tôle à cet endroit ; d = distance SIGNÉE (m) du
+     sommet à la ligne du joint, d > 0 du côté qui porte le fil (l'arête éclairée, en général le haut ou l'avant) ; g = demi-largeur de la fente (m,
+     défaut .0035). |d| < g : la fente (c × ,50) · puis l'ombre (× ,82 → 1 sur 1 cm) · côté d > 0, le fil sur 4 mm. Rend out (ou un tableau neuf).
+     Pour que le dégradé se voie, la tôle doit avoir des SOMMETS à ±g et à ±(g + 1,1 cm) du joint (couper la tôle le long de ces deux lignes).
+   · fenteHex(hex) — la couleur d'une fente pleine (hex × ,50) : un joint qui reste une BANDE d'une seule couleur (sans rampe).
+   · fentePal(pal) — la palette d'un chantier de kit, plus 'J' (la fente : la PEINTURE de la caisse × ,50, celle de la boutique comprise) et 'Jf' (le
+     fil : la peinture éclaircie), même matière que la tôle : `K.kit(fentePal(PAL))` puis `P.box('J',…)` à la place d'un joint `'k'` noir.
+   La lecture : `fenteVar()` (A le trait noir d'avant · B l'ombre · C l'ombre + le fil · D le fondu) ; `?fente=A` en jeu pour comparer. */
+var JAPFENTE_DEF='C';
+var JAPFENTE_V={A:{gap:.16,bord:1,lb:0,fil:0,lf:0},B:{gap:.45,bord:.78,lb:.010,fil:0,lf:0},C:{gap:.50,bord:.82,lb:.010,fil:.20,lf:.004},D:{gap:.70,bord:.86,lb:.006,fil:0,lf:0}};
+function japFente(){let v=null;try{if(japFente._u===undefined)japFente._u=((/[?&]fente=([A-D])/.exec(location.search)||[])[1])||null;v=(typeof window!=='undefined'&&window.JAPFENTE_FORCE)||japFente._u;}catch(e){}   // (l'adresse lue une fois)
+  return v||(typeof JAPFENTE_DEF==='string'?JAPFENTE_DEF:'C');}
+function fenteVar(){const V=typeof JAPFENTE_V==='object'&&JAPFENTE_V?JAPFENTE_V:{C:{gap:.50,bord:.82,lb:.010,fil:.20,lf:.004}};return V[japFente()]||V.C;}   // (repli : appelée avant que la table soit posée)
+function fenteRGB(c,d,g,out,P){out=out||[0,0,0];P=P||fenteVar();const a=Math.abs(d||0),e=a-(g||.0035);let f=1,w=0;
+  if(e<0)f=P.gap;
+  else if(P.fil&&d>0&&e<P.lf){const lu=.3*c[0]+.59*c[1]+.11*c[2];w=P.fil*(.6+1.4*(1-Math.min(1,lu)))*(1-e/P.lf);}
+  else if(e<P.lb){const u=e/P.lb;f=P.bord+(1-P.bord)*u*u*(3-2*u);}
+  out[0]=c[0]*f+(1-c[0])*w;out[1]=c[1]*f+(1-c[1])*w;out[2]=c[2]*f+(1-c[2])*w;return out;}
+function fenteHex(hex){const P=fenteVar(),r=(hex>>16&255)*P.gap,g=(hex>>8&255)*P.gap,b=(hex&255)*P.gap;return (Math.round(r)<<16)|(Math.round(g)<<8)|Math.round(b);}
+function fentePal(pal){const ep=((typeof peintPal==='function'?peintPal(pal):pal)||pal).p||{g:'p',c:0x808080},c=ep.c!=null?ep.c:(ep.grad?ep.grad[1]:0x808080);
+  const o=fenteRGB([(c>>16&255)/255,(c>>8&255)/255,(c&255)/255],.0035+.001,.0035),hx=v=>Math.round(Math.max(0,Math.min(1,v))*255);
+  return Object.assign({},pal,{J:{g:ep.g&&ep.g.indexOf('pm:')===0?'p':ep.g,c:fenteHex(c)},Jf:{g:ep.g&&ep.g.indexOf('pm:')===0?'p':ep.g,c:(hx(o[0])<<16)|(hx(o[1])<<8)|hx(o[2])}});}
 function japDecoupe(G,o){
   const pa=G.attributes.position.array,na=G.attributes.normal.array,Z=o.zones||{},LG=o.lignes||{},C=o.codes,CK=Object.keys(C);
   const cle=o.cleCache||'_tole';let C9=o.cache&&o.cache[cle];
-  if(!C9||C9.n!==pa.length||CK.some(k=>!C9.G[k])){
+  const FV=japFente(),FX=FV!=='A';
+  if(!C9||C9.n!==pa.length||CK.some(k=>!C9.G[k])||(C9.fv||'A')!==FV){
     const ns=typeof o.ns==='function'?o.ns():(o.ns||na);   // (`ns` peut être une fonction : les normales lissées ne se calculent que si l'on découpe)
     const croise=(a,b,c,d,e,f,g,h)=>{const s=(x1,y1,x2,y2,x3,y3)=>(x2-x1)*(y3-y1)-(y2-y1)*(x3-x1);
             return ((s(e,f,g,h,a,b)>0)!==(s(e,f,g,h,c,d)>0))&&((s(a,b,c,d,e,f)>0)!==(s(a,b,c,d,g,h)>0));},
@@ -35989,8 +36026,8 @@ function japDecoupe(G,o){
           loin=(L9,u,w)=>{const P9=L9.P;let bd=1e9,sg=1,du=0,dv=0;for(let i=0;i<P9.length-1;i++){const a=P9[i],b=P9[i+1],dx=b[0]-a[0],dy=b[1]-a[1],l2=dx*dx+dy*dy||1e-12,
               t=Math.max(0,Math.min(1,((u-a[0])*dx+(w-a[1])*dy)/l2)),ex=u-a[0]-t*dx,ey=w-a[1]-t*dy,d=Math.hypot(ex,ey);
               if(d<bd){bd=d;sg=(dx*ey-dy*ex)>=0?1:-1;const l=Math.sqrt(l2);du=-dy/l;dv=dx/l;}}return [bd,sg,du,dv];};
-    const OUT={},COP={};for(const k of CK)OUT[k]={P:[],N:[]};
-    const garde=i=>{const q=OUT.p;for(let j=0;j<9;j++){q.P.push(pa[i+j]);q.N.push(na[i+j]);}};
+    const OUT={},COP={};for(const k of CK)OUT[k]={P:[],N:[],D:[]};
+    const garde=i=>{const q=OUT.p;for(let j=0;j<9;j++){q.P.push(pa[i+j]);q.N.push(na[i+j]);}if(FX)q.D.push(9,9,9);};
     for(let i=0;i<pa.length;i+=9){
       const cx=(pa[i]+pa[i+3]+pa[i+6])/3,cy=(pa[i+1]+pa[i+4]+pa[i+7])/3,cz=(pa[i+2]+pa[i+5]+pa[i+8])/3;
       const ux=pa[i+3]-pa[i],uy=pa[i+4]-pa[i+1],uz=pa[i+5]-pa[i+2],wx=pa[i+6]-pa[i],wy=pa[i+7]-pa[i+1],wz=pa[i+8]-pa[i+2];
@@ -36007,7 +36044,7 @@ function japDecoupe(G,o){
       if(!zon.length&&!lgn.length){garde(i);continue;}
       let pcs=[[[1,0,0],[0,1,0],[0,0,1]]];
       for(const Z9 of zon){const n2=[];for(const Pp of pcs)for(const q of coupe9(enV(v,Pp),Z9.sg))n2.push(deV(q));pcs=n2;}
-      for(const [w,L9] of lgn){const n2=[];for(const Pp of pcs)for(const q of coupe9(enV(w,Pp),L9.segs))n2.push(deV(q));pcs=n2;}
+      for(const [w,L9] of lgn){const sg9=FX&&L9.r.g?L9.segs.concat(L9.segW||[]):L9.segs,n2=[];for(const Pp of pcs)for(const q of coupe9(enV(w,Pp),sg9))n2.push(deV(q));pcs=n2;}
       const vers3=(w,du,dv)=>w==='cote'?[0,dv,du]:w==='dessus'?[dv,0,du]:[du,dv,0];
       for(const Pq of pcs){const Pp=enV(v,Pq);let su=0,sv=0;for(const p of Pp){su+=p[0];sv+=p[1];}su/=Pp.length;sv/=Pp.length;
         let k='p',Zk=null;for(const Z9 of zon)if(dansZ(Z9,su,sv)){k=Z9.k;Zk=Z9;}
@@ -36024,19 +36061,24 @@ function japDecoupe(G,o){
             if(cr){const d=Math.min(1,dBord(cr,qq[0],qq[1])/.008)*cr.creux;let sx=l0*ns[i]+l1*ns[i+3]+l2*ns[i+6],sy=l0*ns[i+1]+l1*ns[i+4]+l2*ns[i+7],sz=l0*ns[i+2]+l1*ns[i+5]+l2*ns[i+8];
               const sh=Math.hypot(sx,sy,sz)||1;px-=sx/sh*d;py-=sy/sh*d;pz-=sz/sh*d;}
             q.P.push(px,py,pz);
+            if(FX){let dj=9;if(L9&&L9.r.g){const c9=UV(Lw,[px,py,pz]),r9=loin(L9,c9[0],c9[1]);dj=r9[0]*r9[1];}q.D.push(dj);}   // (la fente : la distance signée au joint, sommet par sommet)
             let x=l0*nn[i]+l1*nn[i+3]+l2*nn[i+6],y=l0*nn[i+1]+l1*nn[i+4]+l2*nn[i+7],z=l0*nn[i+2]+l1*nn[i+5]+l2*nn[i+8],h=Math.hypot(x,y,z)||1;x/=h;y/=h;z/=h;
             if(L9&&!gap){const r=rc,dd=r[0],R9=L9.r;
               const tl=R9.g?-R9.k*Math.max(0,1-(dd-R9.g)/(R9.w-R9.g)):R9.k*Math.max(0,1-dd/R9.w);
               if(tl){let A=vers3(Lw,r[2]*sgc,r[3]*sgc);const an=A[0]*x+A[1]*y+A[2]*z;A=[A[0]-an*x,A[1]-an*y,A[2]-an*z];const la=Math.hypot(A[0],A[1],A[2]);
                 if(la>1e-6){x+=A[0]/la*tl;y+=A[1]/la*tl;z+=A[2]/la*tl;h=Math.hypot(x,y,z)||1;x/=h;y/=h;z/=h;}}}
             q.N.push(x,y,z);}}}}
-    C9={n:pa.length,G:{},C:{}};for(const k of CK)C9.G[k]={P:new Float32Array(OUT[k].P),N:new Float32Array(OUT[k].N)};
+    C9={n:pa.length,G:{},C:{},fv:FV};for(const k of CK)C9.G[k]={P:new Float32Array(OUT[k].P),N:new Float32Array(OUT[k].N),D:FX?new Float32Array(OUT[k].D):null};
     for(const k in COP)C9.C[k]={P:new Float32Array(COP[k].P),N:new Float32Array(COP[k].N)};
     if(o.cache)o.cache[cle]=C9;}
   // les couleurs (refaites à chaque construction : la peinture de la boutique peut changer) et les géométries, réunies par groupe de matière
   const col=new THREE.Color(),PAR={};
   for(const k of CK){const c=C9.G[k];if(!c.P.length)continue;const g=k==='p'||k==='gap'?(k==='p'?o.GP:(C.gap.g||o.GP)):C[k].g,Cc=new Float32Array(c.P.length);
-    for(let i=0;i<c.P.length;i+=3){let r,gg,bb;if(k==='p'){const t=i-i%9,q=o.colTri?o.colP((c.P[t+1]+c.P[t+4]+c.P[t+7])/3,(c.P[t]+c.P[t+3]+c.P[t+6])/3,(c.P[t+2]+c.P[t+5]+c.P[t+8])/3):o.colP(c.P[i+1]);r=q[0];gg=q[1];bb=q[2];}else{col.setHex(C[k].c);r=col.r;gg=col.g;bb=col.b;}Cc[i]=r;Cc[i+1]=gg;Cc[i+2]=bb;}
+    const FP=FX&&c.D&&(k==='p'||k==='gap'),gR=(C.gap&&C.gap.r)||.0035,T3=[0,0,0],FVo=fenteVar();
+    for(let i=0;i<c.P.length;i+=3){let r,gg,bb;if(FP){const t=i-i%9,q=o.colTri?o.colP((c.P[t+1]+c.P[t+4]+c.P[t+7])/3,(c.P[t]+c.P[t+3]+c.P[t+6])/3,(c.P[t+2]+c.P[t+5]+c.P[t+8])/3):o.colP(c.P[i+1]);
+        const d=c.D[i/3];if(k==='gap'||Math.abs(d)<9)fenteRGB(q,k==='gap'?0:(d>0?Math.max(d,gR):Math.min(d,-gR)),gR,T3,FVo);else{T3[0]=q[0];T3[1]=q[1];T3[2]=q[2];}   // (LA FENTE, l'outil commun)
+        r=T3[0];gg=T3[1];bb=T3[2];}
+      else if(k==='p'){const t=i-i%9,q=o.colTri?o.colP((c.P[t+1]+c.P[t+4]+c.P[t+7])/3,(c.P[t]+c.P[t+3]+c.P[t+6])/3,(c.P[t+2]+c.P[t+5]+c.P[t+8])/3):o.colP(c.P[i+1]);r=q[0];gg=q[1];bb=q[2];}else{col.setHex(C[k].c);r=col.r;gg=col.g;bb=col.b;}Cc[i]=r;Cc[i+1]=gg;Cc[i+2]=bb;}
     const L=PAR[g]||(PAR[g]={P:[],N:[],C:[]});L.P.push(c.P);L.N.push(c.N);L.C.push(Cc);}
   const cat=A=>{let n=0;for(const a of A)n+=a.length;const r=new Float32Array(n);let o2=0;for(const a of A){r.set(a,o2);o2+=a.length;}return r;},out={};
   for(const k in (C9.C||{})){const c=C9.C[k],Cc=new Float32Array(c.P.length);for(let i=0;i<c.P.length;i+=3){const q=o.colP(c.P[i+1],c.P[i],c.P[i+2]);Cc[i]=q[0];Cc[i+1]=q[1];Cc[i+2]=q[2];}

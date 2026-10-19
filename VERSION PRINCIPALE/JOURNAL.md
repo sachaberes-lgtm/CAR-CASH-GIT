@@ -3,6 +3,15 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'AFFINEMENT DES VOITURES, 1er ENVOI : LES BUGS ET LA FENTE (2026-10-19, v679 — Léo : « corrige tous les traits noirs dénaturés… un effet de séparation discret qui simule une fente » ; fente C choisie sur planche)
+- Le chantier : `~/Downloads/CAR-bancs/nouvelles-voitures/AFFINEMENT.md` (le relevé de 46 caisses, la FENTE, la dernière retouche en style poly).
+- **Les bugs** (partis direct) : RONDES 7f3d858f — l'éventail de triangles de LA GRANDE ANGLAISE, la tache noire du capot de POSTER 84 ;
+  BOÎTES a15db8c7 — la barre qui dépassait de LA DOLORÈS, le damier du flanc de L'AIGLE DE FEU en course, l'écope rose du CHARGEUR.
+- **LA FENTE C** (JAPONAISES d2928ae4) : un joint de tôle n'est plus un trait noir mais une ombre de la couleur de la caisse + un fil clair
+  sur l'arête (`fenteRGB` / `fenteHex` / `fentePal` / `fenteVar`, `JAPFENTE_DEF='C'`, `?fente=A` = l'ancien trait). En jeu sur les 5 japonaises
+  au plan ; RONDES et BOÎTES la branchent ensuite sur leurs caisses (LA CABOSSÉE garde ses traits de dessin animé, choix de Léo).
+- Vu au banc, pas à nous : +1 programme compilé pendant une EXPLOSION en course (quelle que soit la caisse).
+
 ## LE DÉPART D'AVANCE — LA 1re PISTE DE LA PARTIE SE BÂTIT AU MENU ET À L'ÉCRAN DE FIN (2026-10-19, session PERF — chantier du PRÉ-BÂTI de Léo ; la passe perf du 18/10 : « JOUER : ~1,1 s d'image figée sous le nuage blanc · REJOUER : ~1 s de construction sous le volet · depuis l'accueil, la piste bâtie deux fois »)
 - **MESURÉ AVANT** (banc : iPhone simulé 390 × 844 ×3, NETTE, processeur ×4, `?palier=2`, `?pistegraine=777`, au calme — charge 2,5 à 4,8) : la
   construction du départ fige l'image d'un bloc — au 1er JOUER `sous9` → `rebuildMenuScene` → `newTrack` (230-250 ms aux nuages, ~1 s à la jade),
@@ -1195,6 +1204,17 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
 
+## BUGS BOÎTES — LA DOLORÈS, L'AIGLE DE FEU, LE CHARGEUR (2026-10-19, discussion BOÎTES ; l'AFFINEMENT, choix de Léo)
+- **LA DOLORÈS** : le jonc noir était une barre de 3,60 m d'un seul tenant qui traversait les passages de roue (arche à 0,74, jonc à 0,62) —
+  il flottait au-dessus des roues. En tronçons : entre les roues (−0,76 → 0,72) et derrière la roue arrière.
+- **L'AIGLE DE FEU** : le « damier » du flanc en course = le REFLET. Sur un noir laqué (`p`, envMap) chaque facette plate du flanc, un peu
+  inclinée d'une station à l'autre (élargisseurs `fl`), renvoie un morceau différent du ciel → des carrés gris/blancs (au garage, ciel sombre :
+  invisible). Les normales de la laque sont lissées entre facettes à moins de ~25° (`P.done` enveloppé, soudure par position) : le reflet coule,
+  les arêtes vives restent. ⚠ Le même piège guette toute caisse noire laquée à grands pans peu cintrés.
+- **LE CHARGEUR** : sa laque est le VERRE (`g`, réflexion .55) : les deux pans plats de l'ÉCOPE (j 3 et 4 du loft) se miraient en aplat — le pan
+  bas regarde le sol de l'environnement, rose à PICS DE JADE → une bande magenta. Le creux de l'écope en noir satiné (`n`, sans reflet).
+- Banc : course couchée et debout 0 programme compilé, garage sans erreur. Planche : photos-gameplay/bugs-boites-avant-apres.png.
+
 ## LE CAÏD, LE DÉTAIL DU VRAI HUMMER EV (2026-10-19, discussion BOÎTES ; Léo : « plus de détail »)
 - Tout en pièces du kit (facettes, matières existantes : 0 programme en plus) — 21,8 k → 32 k facettes (budget 50 k). La découpe de la tôle ne
   change presque pas (un joint de plus au hayon) : la construction reste ~35-60 ms la 1re fois (découpe en moment creux), ~25 ensuite.
@@ -1313,6 +1333,21 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **Outils** (`~/Downloads/CAR-bancs/nouvelles-voitures/boites/`) : `releve.py` (le SVG → toutes ses lignes en unités), `traits.py` (→ mètres
   par vue), `trace.py` (lignes numérotées), `regard2.py` + `vue/index.html` (la caisse sous le plan, paramétré par plan), `studio2.py`
   (studio du jeu, plusieurs fiches), `banc_jeu.py` / `banc_garage.py` (cadre de l'ordi, programmes), `cpuprof.py` (profil de la construction).
+
+## LA FENTE — L'OUTIL COMMUN DES JOINTS DE TÔLE (2026-10-19, discussion JAPONAISES ; Léo : « un effet de séparation discret qui simule une FENTE, sans trait noir, aussi fin que sur les photos » — il a choisi la lecture C)
+- Sur la vraie, un joint (portière, capot, malle) est une fente de 3-5 mm : une ombre DE LA COULEUR DE LA CAISSE et un fil clair sur l'arête (sur le
+  noir, on ne voit presque que lui). Plus aucun joint de tôle en trait noir.
+- **Les fonctions** (bloc « LES OUTILS DES JAPONAISES », déclarées donc hissées : toute zone peut les appeler) :
+  · `fenteRGB(c,d,g,out[,P])` — la couleur d'un sommet de tôle près d'un joint : c [r,g,b] de la tôle, d distance SIGNÉE au joint (> 0 = côté du fil),
+    g demi-largeur de la fente (3,5 mm). Fente ×0,50 · ombre ×0,82 → 1 sur 1 cm · fil sur 4 mm (plus fort sur une caisse foncée) ;
+  · `fenteHex(hex)` — une fente en bande unie (×0,50) ; `fentePal(pal)` — palette de kit + 'J' (la fente) et 'Jf' (le fil), dérivées de la PEINTURE
+    effective (boutique comprise), même matière que la tôle ;
+  · `fenteVar()` — la lecture (`JAPFENTE_DEF='C'` ; `?fente=A|B|C|D`, `window.JAPFENTE_FORCE` pour les bancs ; A = l'ancien trait noir).
+- **Branchée** dans `japDecoupe` (les japonaises au plan) : la distance au joint est gardée par sommet avec la découpe, la tôle coupée à ±g et à
+  ±(g + 1,1 cm) (`segW` de japLignes), les couleurs refaites à chaque construction. Aucune matière neuve, 0 programme compilé (mesuré) ; +30 % de
+  facettes sur une caisse très jointée (LA FIDÈLE 33 000 → 44 000), 1re pose +20-40 ms.
+- **Mode d'emploi pour les autres découpes et les caisses de kit** : `CAR-bancs/nouvelles-voitures/AFFINEMENT.md`, section JAPONAISES, § 0.
+- Planche du choix : `photos-gameplay/fente-variantes.png` (vrais joints | A | B | C | D, argent et noire, studio, garage, course).
 
 ## LES JAPONAISES — 6 · ROSSO 40 REFAITE AU PLAN (2026-10-18, discussion JAPONAISES, Léo : « complexifie la ROSSO 40, imitation encore plus fidèle et satisfaisante pour les vrais kiffeurs de voiture »)
 - ⚠ **RETIRÉE LE SOIR MÊME** (Léo : « la rosso revient sur avant c'était mieux ») : le bloc `SHAPES.rosso` et son repère sont ôtés de la zone des
