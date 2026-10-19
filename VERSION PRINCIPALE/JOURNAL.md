@@ -1498,6 +1498,57 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - 0 programme compilé en course (les quatre, banc `jeu.py`), console propre. Pose en jeu (1re / suivante) : LA LAME 66 / 24 ms,
   LA FIDÈLE 63 / 34, LA BÊTE 26 / 20, LA CERISE 42 / 26 (la découpe se fait à la chauffe du menu). Planche : `photos-gameplay/affinement-lot1-japonaises.png`.
 
+## L'AFFINEMENT DES JAPONAISES — LOT 2 : ACIDE · LE SAMOURAÏ · LA ZED · LA VETTE (2026-10-19, discussion JAPONAISES ; caisses de Sacha, oui de Léo)
+- **LES JANTES « DISQUES À CERCLES »** : dans `lpWheel`, les styles `rayons` et `multi` posent leurs planches EN TRAVERS du rayon (rotation `-a` : la
+  longueur part en tangente) — les n planches font un anneau à n pans, aucune branche ne part du moyeu, et ce sur toutes les caisses du kit. Pas changé
+  pour tout le monde (60 caisses) : l'option **`branches:1`** de la fiche `lpw` pose de vraies branches (`Math.PI/2-a`), du moyeu à la lèvre, en
+  cuvette (le bout dehors, le pied 4 cm plus creux, la jante qui plonge derrière la lèvre), plus larges (multi R×.08, rayons R×.15). Branchée sur
+  LE SAMOURAÏ (10), LA VETTE (12), LA ZED (8, branches passées en argent : sombres sur le fond sombre elles ne se lisaient pas).
+- **ACIDE** : les quatre ailes élargies étaient des ellipsoïdes de 1,4 m (`K.sph`, un ballon vernis ; en course 8 × 6 facettes) → une AILE RAPPORTÉE
+  en arche (`K.prof` d'un contour à 8 pans, 10 cm de bande, 30 cm de large, rivets reposés sur sa face) qui couvre le pneu. Ses lignes de portières
+  communes (`doors:1`, des traits noirs posés à W/2 : 6 cm hors du flanc de cette caisse) → `doors:0` et sa propre FENTE plaquée sur la tôle : un
+  `MeshBasicMaterial` en mélange MULTIPLIER (gris .5 : la tôle × .5 sous toutes les lumières, le programme des lignes, aucun de plus) + la poignée
+  contre la portière. ⚠ Au studio d'essai (`dbgEssaiCaisse`), les caisses de `FACET_SHAPES` ne sont PAS taillées (l'essai s'appelle `__essai`) :
+  juger ACIDE en course.
+- **LE SAMOURAÏ** : la lame carbone flottait 7 cm sous le bouclier → deux prismes soudés sous le bouclier (la lame, et son avancée au milieu).
+- **LA ZED** : les lames des pare-chocs (deux barres droites posées devant) suivent le plan du nez et de la poupe et tournent le coin (`lame()`, des
+  tronçons orientés ; butoirs inchangés).
+- **LA VETTE** (la C4 des photos de référence) : `K.kit(fentePal(PAL))` ; la ligne de joint de la coquille en FENTE C (`J` 6 mm + `Jf`) ; le jonc noir
+  de 4,5 cm collé à plat → un PLI de tôle en arête (boîte en losange) et un fin jonc noir de 1 cm sur son arête, comme sur la C4 ; les ouïes : des
+  lames de tôle penchées sur le fond noir (c'étaient des traits noirs).
+- 0 programme compilé en course (les quatre, `jeu.py` au canyon), console propre. Planche : `photos-gameplay/affinement-lot2-japonaises.png`.
+
+## L'AFFINEMENT DES JAPONAISES — LOT 3 : LA STRATOS · LE TRÔNE CENTRAL · LA RAIE · L'ÉTERNELLE (2026-10-19, discussion JAPONAISES ; caisses de Sacha)
+- Les quatre jantes : `branches:1` (STRATOS 5 or, TRÔNE 5 gris magnésium — l'accent sombre passé à 0x9ea3ab —, RAIE 5, ÉTERNELLE 10).
+- **LA STRATOS** : la poupe finissait sur un pan plat à angle droit (un pavé blanc) → quatre tranches au bout (−1,848 · −1,835 · −1,81 · −1,77), la
+  largeur y tourne de 0,86 à 0,68 ; les feux ronds resserrés (.42/.58) et la face noire à 1,34 pour rester sur la face.
+- **LE TRÔNE CENTRAL** : la bulle des phares en chrome (`c` : le réflecteur, c'étaient deux gros yeux noirs) ; six tranches de plus dans le nez.
+- **LA RAIE** (une C3 70-72) : l'ouïe en GRILLE en caisson couleur caisse (3 × 5) dans son creux noir (trois barres chromées posées). Le tube
+  chromé pointillé du bas de caisse est le pot latéral de Léo (`ECH_POTS`) : pas touché.
+- 0 programme compilé en course (les quatre), console propre. Planche : `photos-gameplay/affinement-lot3-japonaises.png`.
+- ⚠ Piège revu : un commentaire posé en bout de ligne au milieu d'une ligne de code avale la suite (les feux de la STRATOS, corrigé aussitôt).
+
+## L'AFFINEMENT DES JAPONAISES — LOT 4 : ROSSO 40 · LE SPECTRE · LE TOFU (2026-10-19, discussion JAPONAISES ; fin de la liste)
+- **ROSSO 40** (Léo garde l'ancienne : « seulement ses jantes et ses traits ») : `branches:1` (cinq branches en étoile) ; sa palette passe par
+  `fentePal` et le trait noir de 4 cm du seuil devient la FENTE C (`J` 6 mm + `Jf` 3 mm). Aucune autre ligne touchée.
+- **LE SPECTRE** (création de Sacha) : `branches:1` (sept branches sous la lèvre néon) ; ses néons et ses facettes restent.
+- **LE TOFU** : tour des coins (dessous, dessus, nez, poupe, en course) — rien à reprendre.
+- 0 programme compilé en course, console propre. Planche : `photos-gameplay/affinement-lot4-japonaises.png`.
+
+## `lpWheel` — LES VRAIES BRANCHES, UN SEUL OUTIL (2026-10-19, discussion JAPONAISES, responsable de lpWheel ; réunit `creux` de BOÎTES et `branches`)
+- **Le défaut** : dans les styles `rayons`/`multi`, les planches sont posées EN TRAVERS du rayon (rotation −a : la longueur part en tangente) — les n
+  planches font un ANNEAU à n pans, aucune branche ne part du moyeu (« les disques à cercles »). Le dessin d'origine est GARDÉ tel quel pour toute fiche
+  qui ne demande rien (vérifié au sommet près, `CAR-bancs/japonaises/roues.py` : 11 fiches types identiques avant / après).
+- **Les vraies branches** (une seule voie, `crW` = la profondeur) : la lèvre plonge, chaque rayon est une ARÊTE en deux pans qui descend LE LONG du rayon
+  du bord vers le moyeu enfoncé (le dessin de BOÎTES, commit 6ef9692b). `creux:d` (≤ 4 cm, BOÎTES) ou `branches:1` (= 4 cm, JAPONAISES). Le `creux` de
+  BOÎTES donne au sommet près la même roue que sur sa branche (LA BAVAROISE ne bouge pas). Les neuf caisses à `branches` passent des planches inclinées
+  aux arêtes. ⚠ À la fusion de `caisses-boites` : le bloc lpWheel est en conflit — garder CELUI-CI (il contient leur `creux`, à l'identique).
+- **La correction GLOBALE, ÉTEINTE** (`ROUES_VRAIES=false`, juste avant `function lpWheel`) : allumée, toute fiche à rayons qui ne dit rien prend les
+  vraies branches (4 cm), et un `accent` trop sombre (luminance < .25) s'éclaircit vers la jante (sinon les branches se perdent sur le fond sombre).
+  `branches:0` dans une fiche la refuse pour elle. Essai : `?roues=vraies`, ou `dbgRoues(1|0)` en console. Concernées : 20 caisses du kit (relevé
+  `roues_liste.py`) — DOLORÈS, CHARGEUR, DÉFIEUR, BAVAROISE, SILENCIEUSE, CHARGEUR 69, DAYTONA, TAURINE, NOCTAMBULE, AIGLE DE FEU, FÉLINE, BLINDÉ NOIR,
+  DRAGON D'OR, MASTODONTE, PUCE, ATCHOUM, SQUALE, ICEBERG, FOURNAISE, DOGE. Planche : `photos-gameplay/roues-branches-globale.png` — Léo décide.
+
 ## LES JAPONAISES — 6 · ROSSO 40 REFAITE AU PLAN (2026-10-18, discussion JAPONAISES, Léo : « complexifie la ROSSO 40, imitation encore plus fidèle et satisfaisante pour les vrais kiffeurs de voiture »)
 - ⚠ **RETIRÉE LE SOIR MÊME** (Léo : « la rosso revient sur avant c'était mieux ») : le bloc `SHAPES.rosso` et son repère sont ôtés de la zone des
   JAPONAISES, la ROSSO 40 d'origine reprend la main (ses pots, sa ligne CARS : rien n'avait bougé). La préchauffe repasse à cinq étapes. La source
