@@ -1080,6 +1080,18 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
 
+## LE CAÏD EN HUMMER EV SUV (2026-10-19, discussion BOÎTES ; Léo : « refais-le en SUV »)
+- Le nez et tout le détail du pick-up gardés ; l'arrière refait sur les cotes du SUV (dimensions.com n'a que le pick-up) : longueur 5,00 roue de
+  secours comprise, empattement 3,218, largeur 2,197, hauteur 1,976 (Wikipedia, evspecifications). `ZR` −1,573 → −1,340, `ZT` −2,71 → −1,85.
+- Le passage de roue arrière du pick-up est GARDÉ et transformé (`mR` : avancé sur le nouvel essieu, resserré ×0,73 derrière lui) : même
+  élargisseur, même bord épais et mêmes vis. Le BAS s'arrête à la ceinture (plus de benne) ; la SERRE va jusqu'au hayon (plus d'ailerons ni de
+  lunette en retrait : `boutD` retiré), son montant arrière couleur caisse, une vitre de custode, six panneaux de toit, l'aileron au bout.
+- Le HAYON porte la ROUE DE SECOURS (pneu à pavés et jante à dix branches, recopiés de la roue du jeu) ; poignée à gauche, charnières à droite.
+  Les pièces de la poupe du pick-up (bouclier, attelage, plaque, catadioptres) sont décalées de `DZB` (= ZT + 2,71) ; les fentes de l'échappement
+  électrique aussi (`ECH_POTS.caid` à z −1,93). Ligne CARS 2 : h 1,98, l 5,00.
+- Banc : course couchée et debout 0 programme compilé, garage sans erreur ; 32 k facettes ; 1re construction ~31 ms (découpe en moment creux).
+  Planche : photos-gameplay/hummer-suv-vraie-et-nous.png.
+
 ## BUGS BOÎTES — LA DOLORÈS, L'AIGLE DE FEU, LE CHARGEUR (2026-10-19, discussion BOÎTES ; l'AFFINEMENT, choix de Léo)
 - **LA DOLORÈS** : le jonc noir était une barre de 3,60 m d'un seul tenant qui traversait les passages de roue (arche à 0,74, jonc à 0,62) —
   il flottait au-dessus des roues. En tronçons : entre les roues (−0,76 → 0,72) et derrière la roue arrière.
