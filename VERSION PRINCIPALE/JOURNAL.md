@@ -1516,6 +1516,17 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
 
+## LE HOT ROD v3.1 — L'ÉCOPE CHROMÉE, LA CABINE DE COUPÉ 32 (2026-10-19, discussion BOÎTES ; Léo : « pousse encore le HOT ROD : écope chromée comme sur ma photo, cabine de coupé 32 plus ronde »)
+- **L'ÉCOPE** : un grand volume de CHROME BOMBÉ (loft à huit points par demi-section ; le bas en chrome sombre `C`, le haut clair : le reflet
+  du sol et du ciel), posé sur les deux quadruple-corps, l'arrière arrondi, le ventre qui se relève devant les carburateurs, la gueule qui
+  monte ; OUVERTE : une lèvre polie évasée, son bord, et le tunnel sombre derrière. Elle s'arrête avant le radiateur (rien ne traverse).
+- **LA CABINE** : le toit plus BOMBÉ (11 cm de bombé, l'arête arrondie) ; l'auvent court et ROND (il se rétrécit en courbe et sa crête
+  tombe devant ; plus de face en caisse devant la porte) ; la vitre de porte aux coins HAUTS arrondis (deux éventails rouges, l'encadrement
+  qui suit l'arrondi) ; la porte en FENTE C aux coins du bas arrondis, posée sur la tôle (`cote`) ; le bas de caisse qui rentre ; le JONC
+  de ceinture. Pas de vitre de custode : c'est un coupé « trois fenêtres » (deux vitres de porte + la lunette), comme la photo.
+- Banc : 0 programme compilé en course (couché, debout ; un +1 intermittent en portrait vu aussi avec le v3 : un événement de course) ;
+  garage comme avant. Planche : `photos-gameplay/hotrod-v31-avant-apres.png`. Attend le oui de Léo.
+
 ## LE HOT ROD v3 — LA STRUCTURE EN POLY, LE MOTEUR EN MINI-CUBES (2026-10-19, discussion BOÎTES ; Léo sur la planche du v2 : « au style poly tu peux vraiment faire mieux, concentre-toi sur la structure — il y a un truc qui vole dans les airs ; inspire-toi des gros plans ; le moteur, joue avec les mini-cubes, recherche le modèle »)
 - **CE QUI VOLAIT** (vues basses du v2) : la coquille de calandre 9 cm au-dessus de sa traverse, la lame de ressort 15 cm au-dessus de l'essieu
   sans jumelles, le moteur sans supports, les épingles et la direction accrochées dans le vide.
