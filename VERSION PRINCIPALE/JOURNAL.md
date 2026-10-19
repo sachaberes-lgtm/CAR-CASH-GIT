@@ -4,8 +4,10 @@
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
 ## LA VITESSE DE DÉPART — SIX CRANS AU GARAGE, L'ÉTAL DU MOTEUR SOULEVÉ (2026-10-19, session GARAGE — Léo : « choisir le niveau du moteur auquel commencer, en tranches de 5 — six vitesses, dans le garage ; progressif ; à la place de l'affiche record, un étal avec le moteur soulevé qui change avec le niveau choisi, l'affiche à droite »)
-- **Six crans** (`VDEP_PAL` = index 0 · 5 · 10 · 15 · 20 · 25 = paliers 1 · 6 · 11 · 16 · 21 · 26) : 1 = le départ normal. Un cran s'OUVRE quand son moteur a
-  déjà été atteint en course (`SAVE.d.ex.eng`, versé à la fin de chaque partie) ; le code cousin ouvre tout. Choix : `SAVE.d.vdep` (0-5, `san`).
+- **Six crans** (`VDEP_PAL` = index 0 · 5 · 10 · 15 · 20 · 25 = paliers 1 · 6 · 11 · 16 · 21 · 26) : 1 = le départ normal. LA FONCTION S'OUVRE AU PALIER 30
+  (Léo : « seulement quand on a atteint le palier trente ») : le TROU NOIR atteint une fois (`SAVE.d.ex.eng`, versé à la fin de chaque partie,
+  `vdepFonction`) ouvre les six crans d'un coup, toast « VITESSE DE DÉPART DÉBLOQUÉE » ; avant, les six cases sont visibles sous CADENAS (son
+  choix) et disent « ATTEINS LE PALIER 30 ». Le code cousin ouvre tout. Choix : `SAVE.d.vdep` (0-5, `san`).
 - **Au départ** : `vdepPose()` remplace la remise à zéro du moteur dans `resetGame`, et tourne dans `sous9` / `jadeJouer` au 1er JOUER (avant la piste) —
   pièces du palier comptées, nitro pleine. `prebDepCible` bâtit le DÉPART D'AVANCE au palier `vdepPal()` (mesuré : « pris au départ », 0 programme
   compilé). Auto-école, parc, balade, joueur sans permis : toujours le cran 1.
