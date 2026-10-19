@@ -30293,8 +30293,9 @@ const SHAPES={
       // (13/10, Léo : « les barres chelou ») le SKEG chromé RETIRÉ
     });
     // LE PARE-CHOCS À OBUS, qui s'enroule sur les ailes — (17/10) et dans ses coins, les FEUX DE POSITION ronds
-    P.box('c',1.80,.20,.24,0,.42,2.94);P.box('c',1.70,.07,.18,0,.55,2.90);
-    P.sym(sd=>{P.box('c',.30,.20,.22,sd*.95,.42,2.80,0,sd*.55,0);
+    const BPC=(a,b,S9)=>bulleOutils.tube(P,'c',[a,b],S9,true);   // (19/10, l'affinement) les pare-chocs en barres CHANFREINÉES (des boîtes à angles droits)
+    BPC([-.90,.42,2.94],[.90,.42,2.94],[[0.12,-0.065],[0.12,0.065],[0.085,0.1],[-0.085,0.1],[-0.12,0.065],[-0.12,-0.065],[-0.085,-0.1],[0.085,-0.1]]);BPC([-.85,.55,2.90],[.85,.55,2.90],[[0.09,-0.015],[0.09,0.015],[0.07,0.035],[-0.07,0.035],[-0.09,0.015],[-0.09,-0.015],[-0.07,-0.035],[0.07,-0.035]]);
+    P.sym(sd=>{BPC([sd*.822,.42,2.878],[sd*1.078,.42,2.722],[[0.11,-0.065],[0.11,0.065],[0.075,0.1],[-0.075,0.1],[-0.11,0.065],[-0.11,-0.065],[-0.075,-0.1],[0.075,-0.1]]);
       P.cyl('c',.085,.20,12,sd*.46,.37,3.10,'z',.035);P.cyl('c',.06,.05,10,sd*.46,.37,2.98,'z');   // les OBUS
       tube('c',.085,.08,.05,12,sd*.74,.41,3.075);P.cyl('O',.055,.02,10,sd*.74,.41,3.10,'z');});
     // LA CALANDRE à deux étages, piquée de bijoux — (17/10) SORTIE de la tôle : l'étage haut entre les phares, l'étage bas dans le pare-chocs
@@ -30315,8 +30316,8 @@ const SHAPES={
     P.box('G',1.24,.20,.03,0,.66,-2.915);
     for(const y of [.765,.555])P.box('c',1.28,.022,.035,0,y,-2.922);
     for(let i=0;i<13;i++)for(let r=0;r<3;r++)bijou((i/12-.5)*1.12,.60+r*.06,-2.93,.036,-1);
-    P.box('c',1.80,.20,.24,0,.42,-2.94);
-    P.sym(sd=>{P.box('c',.30,.20,.22,sd*.95,.42,-2.80,0,sd*-.55,0);
+    BPC([-.90,.42,-2.94],[.90,.42,-2.94],[[0.12,-0.065],[0.12,0.065],[0.085,0.1],[-0.085,0.1],[-0.12,0.065],[-0.12,-0.065],[-0.085,-0.1],[0.085,-0.1]]);
+    P.sym(sd=>{BPC([sd*.822,.42,-2.878],[sd*1.078,.42,-2.722],[[0.11,-0.065],[0.11,0.065],[0.075,0.1],[-0.075,0.1],[-0.11,0.065],[-0.11,-0.065],[-0.075,-0.1],[0.075,-0.1]]);
       tube('c',.125,.112,.08,12,sd*.88,.51,-3.06);tube('G',.092,.092,.02,12,sd*.88,.51,-3.095);tube('W',.042,.042,.02,8,sd*.88,.51,-3.10);});
     P.prism('c',[[2.72,.90],[2.44,.926],[2.47,.985],[2.62,.932]],.026,0);    // la mascotte — (17/10) une flèche couchée qui file
     // (17/10) LES JOINTS DES PORTIÈRES : un fil sombre posé SUR la peau, relu à la section du loft (jamais à un x constant), 4 mm dehors
@@ -30350,8 +30351,19 @@ const SHAPES={
     P.box('k',.44,.10,.04,.36,.92,.475);for(const x of [.27,.45])P.cyl('W',.028,.01,8,x,.92,.453,'z');
     P.box('c',1.50,.025,.025,0,.85,.468);
     K.commit(P);
+    /* (19/10, l'affinement) L'ENJOLIVEUR « SABRE » de la 59 (un dôme lisse) : la bande blanche du pneu, la cuvette chromée et ses VINGT ailettes
+       rayonnantes, le moyeu à cône et son centre d'or */
+    const JW9=.26,hw9=JW9/2,fx9=hw9-.03,J9=lpKit({k:{g:'m',c:0x16171a},w:{g:'s',c:0xf4f1ea},c:{g:'c',c:0xe9ecf0},s:{g:'c',c:0xc9ced6},d:{g:'m',c:0x1b1c21},o:{g:'o',c:0xffc24a}});
+    J9.lathe('k',[[R*.64,-hw9],[R*.88,-hw9],[R,-hw9*.55],[R,hw9*.55],[R*.88,hw9],[R*.64,hw9]],16,0,0,0,'x');
+    J9.lathe('w',[[R*.66,hw9+.004],[R*.86,hw9+.004]],16,0,0,0,'x');
+    J9.lathe('d',[[R*.64,-hw9+.02],[R*.64,fx9-.05],[0,fx9-.05]],16,0,0,0,'x');
+    J9.lathe('c',[[R*.65,fx9-.004],[R*.62,fx9+.012],[R*.52,fx9+.006],[R*.30,fx9+.02],[R*.16,fx9+.04]],20,0,0,0,'x');   // la cuvette
+    for(let i=0;i<20;i++){const a=i/20*Math.PI*2,rr=R*.41;J9.box('s',.012,R*.22,.012,fx9+.016,Math.cos(a)*rr,Math.sin(a)*rr,a-Math.PI/2,0,0);}   // les ailettes
+    J9.lathe('c',[[R*.16,fx9+.04],[R*.10,fx9+.06],[R*.05,fx9+.068]],14,0,0,0,'x');J9.lathe('o',[[R*.05,fx9+.068],[0,fx9+.07]],10,0,0,0,'x');
+    const JE=J9.done();
     return {hl:[.74,.75,2.90],tl:[.955,1.12,-2.96],wx:.83,wzF:ZF,wzR:-ZR,
-            lpw:{R:R,w:.26,style:'enjoliveur',blanc:1}};
+            roueDeco:w=>{for(const g in JE)if(JE[g]){const m=new THREE.Mesh(JE[g],K.mats[g]||K.mats.c);m.userData.lp=1;w.add(m);}},
+            lpw:{R:R,w:.26,style:'nyan',jante:0xe9ecf0}};
   },
   // 3. LE CAÏD — Mercedes G63. Un cube de trois tonnes : passages CARRÉS élargis, clignotants posés
   //    sur les ailes, charnières apparentes, calandre à barreaux, roue de secours sur la porte.
@@ -31012,7 +31024,7 @@ const SHAPES={
     // 3. LA QUEUE, de profil : DEUX dessins (tombante, relevée) qui alternent — le battement du GIF, pas une rotation
     for(const [jh,L] of NY_QUEUE){const V=voxGrille();
       for(let a=0;a<L.length;a++)for(let b=0;b<5;b++){const c=L[a][b];if(c!=='.')for(let i=-1;i<=1;i++)V.set(i,jh-a,b-5,i===0&&c==='B'?'G':c);} // (v4) sans sa colonne k 0 : elle s'accroche à la poupe sans la traverser · (v12) la tranche du MILIEU grise : de dos, gris cerné de noir
-      NYAN.queue.push(pose(V,bloc(),0));}
+      const q9=pose(V,bloc(),0);q9.traverse(o=>{o.userData.plqNon=1;});NYAN.queue.push(q9);}   // (19/10) la plaque ne se pose plus SUR la queue (les rayons du centre la touchaient avant la poupe)
     NYAN.queue[1].visible=false;NYAN.arc.set(0,.75-NY_BAS,-1.0);
     // 4. LA CAISSE DESCEND SUR SES ROUES (v13) : tout ce qui précède a été dessiné 25 cm plus haut (la caisse flottait sur ses pattes) —
     //    une voiture pose sur ses roues, dans ses passages. On descend la caisse, la tête, la queue et les feux d'un bloc.
@@ -32203,8 +32215,21 @@ Object.assign(SHAPES,{
      for(let j=0;j<NS;j++)tri('N',A9[NR][j],A9[NR][(j+1)%NS],apex);
      C.box('c',.22,.03,.26,sd*.74,yF(1.30)-.005,1.30);}                        // la platine du pied
    K.commit(C);}
+  /* (19/10, l'affinement) LA JANTE CAMPAGNOLO de la Miura (des disques dentés plats) : la lèvre, le voile d'alliage doré creusé de DIX trous en
+     goutte (le bout étroit vers le centre), le moyeu et son écrou papillon */
+  const JW=.27,hw=JW/2,fx=hw-.03,J=lpKit({k:{g:'m',c:0x16171a},a:{g:'c',c:0xd8c9a2},s:{g:'s',c:0xc4b48a},d:{g:'m',c:0x111215},c:{g:'c',c:0xe9ecf0}});
+  J.lathe('k',[[.215,-hw],[R*.86,-hw],[R*.97,-hw*.7],[R,-hw*.3],[R,hw*.3],[R*.97,hw*.7],[R*.86,hw],[.215,hw]],20,0,0,0,'x');
+  J.lathe('a',[[.215,hw-.004],[.212,fx+.010],[.204,fx+.006]],24,0,0,0,'x');
+  J.lathe('s',[[.204,fx+.006],[.19,fx-.004],[.12,fx-.014],[.07,fx-.006],[.055,fx+.004]],24,0,0,0,'x');
+  J.lathe('d',[[.215,-hw+.02],[.215,fx-.05],[0,fx-.05]],20,0,0,0,'x');
+  for(let i=0;i<10;i++){const a=i/10*Math.PI*2,c=Math.cos(a),s=Math.sin(a);
+    J.cyl('d',.026,.016,8,fx-.012,c*.165,s*.165,'x');J.cyl('d',.016,.016,6,fx-.010,c*.122,s*.122,'x');}
+  J.lathe('a',[[.055,fx+.004],[.05,fx+.016],[.03,fx+.022],[0,fx+.024]],14,0,0,0,'x');
+  J.box('c',.016,.11,.02,fx+.03,0,0);J.box('c',.016,.02,.11,fx+.03,0,0);
+  const JG=J.done();
   return {hl:[.64,.75,1.80],tl:[.66,.64,-2.20],wx:.76,wzF:ZF,wzR:-ZR,
-          lpw:{R:R,w:.27,style:'multi',n:12,jante:0xd8c9a2}};
+          roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],K.mats[g]||K.mats.c);m.userData.lp=1;w.add(m);}},
+          lpw:{R:R,w:JW,style:'nyan',jante:0xd8c9a2}};
 },
   c_stratos:function(K){
   /* (13/10, « plus ressemblante ») la berlinette de rallye de Turin : des AILES qui bombent au-dessus des roues (avant comme arrière)
@@ -34972,8 +34997,8 @@ SHAPES.cinq=function(K){
   const LUN=[[0,1.134],[.07,1.132],[.11,1.111],[.129,1.106],[.377,1.109],[.411,1.115],[.429,1.13],[.438,1.155],[.426,1.313],[.406,1.336],[.364,1.355],[.307,1.369],[.242,1.375],[.192,1.373],[.133,1.353],[.091,1.348],[0,1.348]],
         arr=(x,y,z)=>z<-1.3;
   zo('dos',O.gonfle(LUN.concat(LUN.slice(1,-1).reverse().map(p=>[-p[0],p[1]])),.02).map(p=>[Math.abs(p[0]),p[1]]),'K',{al:.25,ou:(x,y,z)=>z<-1.0&&y>1.05});zo('dos',LUN,'g',{al:.25,ou:(x,y,z)=>z<-1.0&&y>1.05});
-  zo('dos',[[.602,.941],[.63,.928],[.645,.902],[.669,.765],[.667,.742],[.652,.73],[.625,.725],[.525,.72],[.463,.724],[.50,.80],[.54,.90],[.57,.935]],'L',{al:.42,ou:arr});
-  zo('dos',[[.623,.796],[.616,.858],[.608,.883],[.581,.898],[.566,.898],[.552,.892],[.542,.879],[.537,.861],[.528,.796],[.531,.777],[.555,.765],[.597,.764],[.618,.774]],'p',{al:.42,ou:arr});
+  zo('dos',[[.602,.941],[.63,.928],[.645,.902],[.669,.765],[.667,.742],[.652,.73],[.625,.725],[.525,.72],[.463,.724],[.50,.80],[.54,.90],[.57,.935]],'L',{al:.26,ou:arr});
+  zo('dos',[[.623,.796],[.616,.858],[.608,.883],[.581,.898],[.566,.898],[.552,.892],[.542,.879],[.537,.861],[.528,.796],[.531,.777],[.555,.765],[.597,.764],[.618,.774]],'p',{al:.26,ou:arr});   // (19/10) le feu vu de dos mord jusqu'au coin (al ,42 → ,26) : entre lui et le feu du flanc, des facettes n'étaient à personne — le feu cassé en morceaux
   zo('dos',O.bande([[0,.888],[.117,.879],[.237,.881]],.007),'c',{al:.25,ou:arr});
   zo('dos',O.bande([[0,.956],[.302,.952],[.597,.942],[.682,.932],[.76,.911]],.0035),'j',{al:.25,ou:arr});
   zo('dos',O.bande([[0,.449],[.622,.453],[.715,.457],[.785,.468]],.007),'c',{al:.3,ou:arr});                         // la baguette chromée du bouclier (la finition)
@@ -39768,7 +39793,7 @@ function plqMats(){if(PLQ.matF)return;plqTex();
 function plqCherche(sd,W9,H9,L9,y0,pw,exclus,verre){
   const R=PLQ.ray||(PLQ.ray=new THREE.Raycaster()),o=new THREE.Vector3(),d=new THREE.Vector3(),n=new THREE.Vector3(),
     M=carGroup.matrixWorld,Mi=new THREE.Matrix4().copy(M).invert(),cib=[];
-  carGroup.traverse(function(m){if(!m.isMesh||m.isSprite||m.isInstancedMesh||!m.geometry||!m.visible)return; /* (les effets instanciés : flammes, écume, gouttes — pas de la tôle, et chers à viser) */const u=m.userData||{};if(u.sol||u.fx||u.noShadow)return;
+  carGroup.traverse(function(m){if(!m.isMesh||m.isSprite||m.isInstancedMesh||!m.geometry||!m.visible)return; /* (les effets instanciés : flammes, écume, gouttes — pas de la tôle, et chers à viser) */const u=m.userData||{};if(u.sol||u.fx||u.noShadow||u.plqNon)return; /* (19/10, RONDES) plqNon : une pièce qui n'est pas la poupe (la queue du chat) */
     let p=m;while(p&&p!==carGroup){if(exclus.indexOf(p)>=0||!p.visible)return;p=p.parent;}cib.push(m);});
   const verreOu=function(mt){return !mt||mt===verre||mt.transparent||(mt.userData&&mt.userData.g==='g');}; // ni verre (le kit : g · hors kit : la vitre), ni ce qui se voit à travers
   const tir=function(px,py){o.set(px,py,sd<0?-L9-3:L9+3).applyMatrix4(M);d.set(0,0,-sd).transformDirection(M);R.set(o,d);R.far=L9*2+6;

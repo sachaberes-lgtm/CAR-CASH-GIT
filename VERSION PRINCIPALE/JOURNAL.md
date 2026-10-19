@@ -1021,6 +1021,21 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   Léo la veut « plus fidèle » (en reprise chez JAPONAISES). Fusion : seul conflit, le bloc des traductions que l'allègement de Sacha
   avait vidé — son ménage gardé, nos deux noms (LA LAME, LE TOFU) ajoutés.
 
+## L'AFFINEMENT RONDES, LOT 4 — ELDORADO · LA TAURINE · LA DOLCE VITA · CHAT POP-TART, ET LA FIN DE LA LISTE (2026-10-19, discussion RONDES)
+- **ELDORADO** : les pare-chocs en barres CHANFREINÉES (huit pans, `bulleOutils.tube` ; des boîtes à angles droits) ; les roues portent
+  l'enjoliveur « SABRE » de la 59 (`roueDeco` : bande blanche, cuvette chromée, vingt ailettes rayonnantes, moyeu à cône, centre d'or) au lieu
+  du dôme lisse.
+- **LA TAURINE** : la jante CAMPAGNOLO de la Miura (lèvre, voile d'alliage doré creusé, dix trous en goutte, écrou papillon) au lieu des
+  disques dentés plats.
+- **LA DOLCE VITA** : le feu arrière vu de dos mord jusqu'au coin (`al` ,42 → ,26) — entre lui et le feu du flanc, des facettes n'étaient à
+  personne : le feu sortait en morceaux. Ses jantes « 1957 » (retouche de Léo, 18/10) : gardées.
+- **CHAT POP-TART** : la plaque se posait SUR la queue (les rayons du centre de `plqCherche` la touchaient avant la poupe) → la queue porte
+  `userData.plqNon` et `plqCherche` l'ignore (une condition de plus, rien d'autre ne lit ce drapeau).
+- **Laissé, et pourquoi** : les chromes « lavande » = le reflet du ciel rose du jeu dans la famille 'c' (toutes les caisses, toutes les cartes) :
+  à trancher globalement, pas caisse par caisse ; LA HONTE (l'épave, voulue en blocs) et LE DOGE : rien de cassé ; LA FÉLINE et ses ailes
+  séparées : attend le oui de Léo.
+- Planche `photos-gameplay/affinement-rondes-lot4.png`.
+
 ## L'AFFINEMENT RONDES, LOT 3 — LE SCARABÉE · LA GRANDE ANGLAISE · LA PERLE · POSTER 84 (2026-10-19, discussion RONDES)
 - **LE SCARABÉE** : butoirs et « porte-serviettes » RONDS (huit pans ; des barres carrées). Son « sourire noir » du relevé = le joint du capot :
   déjà en fente depuis le lot 2.
