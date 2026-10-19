@@ -1021,6 +1021,27 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   Léo la veut « plus fidèle » (en reprise chez JAPONAISES). Fusion : seul conflit, le bloc des traductions que l'allègement de Sacha
   avait vidé — son ménage gardé, nos deux noms (LA LAME, LE TOFU) ajoutés.
 
+## L'AFFINEMENT RONDES, LOT 2 — LA FENTE C DANS LA DÉCOUPE · ELDORADO · LA TAURINE · LE ROUGE-GORGE · LA DOLCE VITA (2026-10-19, discussion RONDES)
+- **LA FENTE C dans `bulleOutils.decoupe`** (l'outil commun de JAPONAISES : `fenteRGB`/`fentePal`/`japFente`) : un joint 'j' n'est plus peint d'un
+  gris fixe (CJ0) ; la bande prend la couleur de la TÔLE × ,50 (d = 0), et, si la bande connaît sa ligne (`bande` la garde désormais : `o.L`,
+  `o.w` ; `poly` la recopie sur la zone), une zone de RAMPE 'jr' de 1,1 cm de part et d'autre la double : la tôle y est recoupée et chaque
+  sommet prend `fenteRGB(tôle, distance signée)` — l'ombre qui remonte, le fil clair du côté haut (ou avant). La distance est gardée par
+  sommet (`D`, `Gd` du mémo) : une peinture de boutique la recalcule ; le mémo retient la variante (`fv`). `?fente=A` = les traits d'avant.
+  Touche les cinq caisses découpées au plan : LE SCARABÉE, LA DOLCE VITA, LE ROUGE-GORGE, LA QUEUE DE CANARD, LA GRANDE ANGLAISE.
+  ⚠ piège rencontré : dans la boucle des triangles, `fz` est déjà la composante z d'une arête — une variable de même nom posée au-dessus
+  était masquée et peignait la fente sur des facettes au hasard (le capot de la Robin en damier) : `fzn`.
+  Coût : 1re construction +5 à 9 ms (24-36 ms), préchauffe du menu (Canard, Anglaise) 46-90 ms une fois.
+- **ELDORADO** (kit) : la palette passe par `fentePal` ; les joints des portières (quads noirs) deviennent 'J' (la fente) + 'Jf' (le fil, 3 mm,
+  côté avant) ; les OBUS des feux en vraies balles (`lathe` : deux disques et un cône avant) ; les phares au cerclage BISEAUTÉ et au verre bombé
+  (des disques plats à 12 pans) ; les montants du pare-brise en TUBES chromés (barres carrées) ; le rétro, une tête ronde sur sa tige (un cube).
+- **LA TAURINE** : le butoir avant (bloc de 18 cm) et le clignotant flottaient HORS de la tôle là où le nez se resserre → une lame chromée qui
+  épouse le coin (`tube` le long de `xW`), le clignotant posé sur la face ; à l'arrière la barre droite qui dépassait → une barre qui tourne au
+  coin ; le rétro cube → une tête ronde. Cils et cornes : intacts.
+- **LE ROUGE-GORGE** : le pare-chocs avant était COUPÉ EN DEUX — `zBout` partait de z 1,15 où le tunnel de la roue avant laisse un vide au
+  milieu, et rendait 1,6 (dans le nez) : il cherche alors depuis le bout. Le rétro (deux boîtes noires) → une tête ronde sur son bras.
+- **LA DOLCE VITA** : la glace du phare d'un seul verre (le cache chromé du milieu renvoyait le ciel en point bleu).
+- Planche `photos-gameplay/affinement-rondes-lot2.png`.
+
 ## L'AFFINEMENT RONDES, LOT 1 — LA PUCE, LA FÉLINE, LA QUEUE DE CANARD (2026-10-19, discussion RONDES ; Léo : « tout corriger », « le style poly pour perfectionner chaque coin »)
 - **LA PUCE** (la Mini, défi) : la section refaite — le bas de caisse RENTRE en arrondi (la rentrée s'efface au-dessus des roues : `kA`), la
   portière bombe, l'épaule ronde, le pavillon bombé jusqu'à sa gouttière ; deux tranches de plus à chaque coin. Les pare-chocs sont une barre
