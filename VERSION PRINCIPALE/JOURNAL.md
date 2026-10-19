@@ -13,6 +13,13 @@
   caisse soudée revient d'un coup sous un ANNEAU DE NÉON (`neonPool`), une gerbe d'or, un flash or et le chœur du MIRACULÉ (`jeu.miracule`).
   Le départ : les carillons de `pwr.a`. ~1,5 s, pendant le 3 · 2 · 1 — qui se tait (plus de `ui.bip` ni de `ui.go` : l'arpège et le chœur
   les remplacent) ; le bouclier (`CHANCE.invD`) et le clignotement suivent comme avant.
+- **Mesuré au banc** (Chrome sans fenêtre, muet, menu → JOUER → pilote → mort → bon de seconde chance) : 13 éclats, 34 dessins, les 13 posés
+  à 1,5 s, la caisse revient, clignote, la course continue — couché (844 × 390), debout (390 × 844) et dans le cadre de l'ordi, aucune
+  erreur nouvelle (les 23 avertissements `flatShading` existaient avant). Deux pièges trouvés : (1) au premier jet, un pan de toit partait
+  en hauteur et tournait de 195° jusque devant l'objectif (la caméra est à 5,4 m derrière, 1,9 m au-dessus, 90°) — les départs sont
+  désormais devant et sur les côtés, sous 2,3 m, et le tourbillon tourne de 25 à 55° vers l'avant ; (2) `e = u²(2,2 − 1,2u)` vaut
+  1,0000000000000002 à u = 1 : `k = 1 − e` négatif, `Math.pow(k,1.5)` = NaN, chaque éclat posé DISPARAISSAIT (k borné à 0). Après la
+  dernière pièce, la caisse reste pleine 0,4 s (`RESU.plein`) : le clignotement l'éteignait parfois pile à son retour.
 - **Comment** : les pièces sont regroupées en ÉCLATS — chaque roue seule, la carrosserie en 12 morceaux (gauche/droite × avant/milieu/arrière ×
   bas/haut, au centre de chaque pièce) — et chaque éclat est SOUDÉ par matière (`fusGeo`/`fusMaillage`, comme `caisseSoude`) : une quinzaine
   d'éclats, quelques dizaines de dessins pendant 1,5 s, les MÊMES matières (aucun programme compilé en course) ; les géométries soudées sont
@@ -24,6 +31,8 @@
   Elle entre dans `SAVE.d.owned` (et `carWas` : la course suivante ne la recrie pas « NOUVELLE CAISSE »). L'écran des lots écrit son nom à
   la couleur des épiques, « VOITURE ÉPIQUE », et sa PHOTO de boutique (`carPhoto`) remplace le 7 après les éclats. Quand le joueur les a
   TOUTES, le 7 verse 500 000 $ (`cash` du lot `sept`). Banc : `dbgSpin(n,'sept')`.
+  Au 19/10, 10 épiques possibles : ROSSO 40, ACIDE, LA QUEUE DE CANARD, LA TAURINE, LA ZED, LA RAIE, L'ABSTRAITE, L'ICEBERG, LA PERLE,
+  LA BÊTE (les épiques des MISSIONS — FOURNAISE, AIGLE DE FEU, ATCHOUM, SQUALE, CAISSE-NUAGE… — restent à gagner).
 - **LES LOTS** (`SPIN.lots`) — avant → après :
   | lot | proba | gain |
   |---|---|---|
@@ -37,6 +46,89 @@
   | consolation | 45,8 % → **58,6 %** | 40 $ |
   L'espérance d'argent par tirage passe d'environ 178 $ à environ 1 700 $ : le plafond de GENERAL (« ≤ 10 % du gain d'une partie ») est
   levé par cette demande de Sacha.
+
+## LE TUNNEL DE GRÈS — LA GALERIE AUX ANNEAUX D'OR, LA SALLE DU PORTAIL, LA BOUCHE EN VOUSSOIRS (2026-10-19, session tunnel-canyon — Sacha : « le tunel d'arriver pour la map canyon est moche » ; entre deux idées proposées, le choix : « le tunnel de grès » plutôt que « la fente façon Antelope »)
+Le TUNNEL D'ARRIVÉE du canyon (les 460 derniers mètres, du 14/10) est refait sur place. **`?sans=tunnelcanyon` = celui du 14/10, au bit près**
+(cyBandes/cyGalerie, intouchés). Tout est dans `cyTunnel2` (appelé par `cyCouloir`), le commentaire « LE TUNNEL DE GRÈS » au-dessus fait foi.
+- **MESURÉ AVANT (banc photo, soir)** : la façade était la matière du RELIEF (`.b`, CY_FS) posée sur un mur droit — ses strates et son bruit lus
+  par xz sur un plan vertical : des coulures rouge et noir — percée d'une fente de 104 m ; dedans tout NOIR (roche simple à l'ombre, voûte à
+  104 m), deux bandes roses qui flottaient à 6 m, un trait or tout en haut ; et les murs à 31,5 m de l'axe COUPAIENT le portail de cubes de Léo
+  (108 m de large, 17/10) : on n'en voyait qu'un rectangle.
+- **LA BOUCHE** (`cyT2Facade`) : un arc rond net (le profil de la galerie) cerclé de 31 VOUSSOIRS de grès (crème / terre cuite en alternance,
+  une clé or pâle plus grosse, 5 m de large, 2,2 m de saillie, joints de 0,36 m) ; la falaise autour en STRATES horizontales (les couleurs de
+  `cyStrates` à la hauteur où le relief les met : elle continue les parois), creusée d'un relief doux loin de l'arc (jusqu'à 22 m, normales
+  analytiques), éclairée comme les pièces du canyon (`.g` = CY_AFS : soleil de l'heure, ombre des parois, nuit). Couleurs au-delà de 1 (elles
+  passent au carré) : la façade est à l'ombre au fond de la gorge.
+- **LA GALERIE** : murs droits de 16 m, clé à 46 m (`cyT2Prof`, `CY_TUN2`), trottoirs de 3,5 m. Le grès en lits pêche, crème et rose (strates
+  serrées à 2,4 m/texel dedans, contraste ×0,4, saturation ×0,6 — `CY_T2L`) ; des ANNEAUX d'or tous les 36 m (rubans additifs `CY_T2M.o`) dont
+  la lumière est CUITE dans les sommets (matière sans éclairage NI BRUME `CY_T2M.m` : la brume rouge du soir noyait tout) — des flaques d'or,
+  l'ombre violette entre deux anneaux ; le jour de la bouche entre sur ~30 m à la force de l'heure (`T2_JOUR`). MESURÉ en réglant
+  (`dbgTunnel('regle',{…})`, 7 jeux sur un chargement) : la chaîne de l'image (CONTI) sature déjà — grès saturé + lumière orangée = un tube de
+  lave ; les lits à leur vrai contraste = des rayures noires (les lits lie-de-vin au carré).
+- **LA SALLE DU PORTAIL** : à 190 m du bout la galerie s'évase (80 m de fondu, `cyT2k`) en un DÔME — ellipse de 78 m de large × 82 m de haut
+  autour du centre du portail (`PCUBE.H`) — au-dessus d'un GOUFFRE (fond à −48 m) : l'anneau de cubes (54 m de rayon) tient en entier. Les
+  anneaux d'or continuent en grandes arches jusqu'à ~55 m du bout ; la salle prend la lumière de la fenêtre (`PCUBE.pal[2]`, à moitié blanc
+  chaud : pur, le tilleul de la forêt sur le grès faisait du kaki) et un HALO de la couleur des cubes (`pal[0]`) cerne l'anneau sur le mur du fond.
+- **LE RELIEF S'ÉCARTE** (buildCanyon, `TUN2_ON`) : sur les 250 derniers mètres (fondu de 140 m), le pied des parois passe à 106 m de l'axe, sans
+  asymétrie ni alcôve ; aucun arbre au-delà de 270 m du bout (ils montaient à 9 m sous la dalle : à travers le fond du gouffre). Aucun tirage
+  de hasard ajouté. `dbgTunnel('test')` : 0 point de relief au-dessus de la moitié basse de la coque (pire −5,6 à −14,9 m selon la graine) ;
+  `dbgCanyon('test')` (la règle d'or) tenue.
+- **EN JEU** : au volant rien ne change (on frotte au bord de la route, `cyCouloirIci`) ; EN VOL la coque est dure (`cyTun2Heurt` dans
+  canyonHeurt → « ENCASTRÉ DANS LA PAROI » ; le fond du gouffre → « AU FOND DU CANYON » ; les trottoirs de la galerie ne tuent pas, une pose au
+  ras du bord reste une pose). `dbgTunnel('heurt',[[m avant le bout, côté, hauteur],…])` : galerie libre au centre, mur à 30,6 m, voûte à
+  45 m, dôme à 77,5 m et 101 m, gouffre à −47,5 m — conformes. Dedans, le soleil et le ciel baissent sur la caisse (canyonTick, comme la mine,
+  moins fort : ombre 0,3).
+- **COÛT** : trois maillages (la roche 8 534 triangles, les anneaux, la façade et ses voussoirs — `dbgTunnel()` les compte), aucune lumière ;
+  les deux matières neuves sont chauffées au menu (canyonChauffe). MESURÉ (Chrome sans fenêtre, soir) : **0 programme compilé en course** —
+  211 au menu, 211 au fond de la salle — couché (1280 × 592), DEBOUT (390 × 844) et dans le CADRE de l'ordi ; aucune erreur, aucun avertissement neuf.
+  Photos AVANT / APRÈS au soir, à midi et la nuit (banc `banc_tunnel.py` de la session : vues figées `dbgCanyon('vueA',…)` + caméra de course
+  `dbgPortail`/`dbgPortailPhoto`).
+- **À trancher par Sacha** : la teinte des anneaux (or chaud) et la couleur de la salle (celle du portail) ; le tunnel du 14/10 reste à `?sans=tunnelcanyon`.
+
+## LA VRILLE PORTE LE VOL — LA ROUTE DES NUAGES NE DÉVIE PLUS LA CAISSE EN L'AIR (2026-10-19, session vol-route — Sacha : « il y a toujours des problèmes dans la map nuage quand on vole près de la route, ça dévie la trajectoire ») — v689
+- LA CAUSE, MESURÉE : depuis LE VOL QUI SUIT LA ROUTE (18/10, `VOLR`), le haut du vol suit la dalle survolée en ~0,08 s. Quand la route VRILLE
+  sous la caisse (jusqu'à 64°/s sur la route sans haut ni bas), la gravité tourne avec elle — mais l'élan de la caisse, son repère de vol (`FLY_U`,
+  autour duquel tourne le volant) et le haut de l'écran restent dans l'ancien : l'équilibre (`veqNiveau`) les rattrape à 2,6/s, la caméra (`camUp`)
+  à 3/s. Pendant ce retard la gravité tire DE CÔTÉ à l'écran : la caisse glisse sans qu'on touche au volant (« ça dévie »), et le volant, qui
+  tourne autour d'un axe penché, fait monter ou plonger au lieu de ramener sur la route. Ce n'est pas un autre tronçon qui attire la caisse
+  (vérifié : sur les pistes des nuages, deux tronçons éloignés restent à plus de 180 m l'un de l'autre, le radar reste sur la route survolée).
+- LE CORRECTIF (`VOLR_ROULIS`, dans `volrSuit`) : à chaque image de vol, la part de la rotation du haut du vol qui est le ROULIS de la route
+  autour de son axe (`T` du radar) emporte aussi `fallVel`, `FLY_U`/`FLY_R`, la caisse (`VEQ.qb`) et `camUp` : la route tourne, le vol tourne avec
+  elle, comme quand on roule. Le reste — la route qui plonge ou se cabre sous la caisse — ne touche que la gravité, comme avant : on décolle
+  toujours des crêtes, aucune force ne ramène vers la route (« zéro assistance » tenu : sans les mains, on se pose ni plus ni moins qu'avant).
+  Hors de la route sans haut ni bas (`VOLR.on` faux) : rien ne change. `?sans=volroulis` = avant ; `dbgVolRoulis(false|true)` en direct.
+- MESURÉ — SIMULATEUR (la branche 'fall' recopiée en Node sur deux pistes des nuages vidées du jeu, 88 départs, saut de 21 m/s à 80 m/s ; la
+  « poussée de côté » = la gravité cumulée le long de la droite de la caméra, en m/s) : sans les mains, 1,5 s de nitro : méd 14,8 et 11,3,
+  max 92 et 88 → méd 1,4 et 1,0, max 10 et 13 ; posés 21/48 et 18/40 → 22/48 et 18/40 (la durée des vols ne bouge pas : pas d'aimant). Un
+  pilote qui vise la route (celui de `dbgAuto`, vol) : 34/48 et 34/40 posés → 48/48 et 40/40 ; gros vols (35 m/s + 2 s de nitro) 23/48 et
+  24/40 → 37/48 et 36/40. Sauts courts : tous posés, avant comme après. Écartés au même banc : la gravité FIGÉE sur la dalle quittée (plus de
+  poussée sans les mains, mais 106 poses pilotées sur 176 contre 115 aujourd'hui) et L'ÉLAN PORTÉ par toute la rotation de la route (100 %
+  posés, mais la caisse plonge avec la route après une crête : les vols s'allongeaient de 1 à 2 s — un aimant).
+- MESURÉ — EN JEU (Chrome sans fenêtre, muet, `?carte=nuages&meteo=midi&pistegraine=12345`, couché 844 × 390 ; 10 points de la piste, même
+  saut + 1,5 s de nitro, `dbgVolRoulis` éteint puis allumé, la poussée lue sur la VRAIE caméra) : sans les mains, poussée max méd ~25 → ~7 m/s
+  (pire 81 → 25) ; avec le pilote, posés 6/10 → 9/10, poussée méd ~17 → ~8. Aucune erreur de boucle (`__loopErr`).
+- Banc (scratchpad de la session, pas dans le dépôt) : une copie de `index.html` + des crochets de diagnostic (`dbgVolDiag`, `dbgPisteDump`,
+  `dbgRemet` — ⚠ remettre la caisse à `s` garde son CAP : il faut remettre `psi` à 0 juste avant `dbgDauphin`, sinon elle décolle de travers),
+  `dbgAuto(1,0)` entre deux vols (sinon la caisse sort de la route pendant que la machine rame et la partie finit).
+- À TRANCHER par Sacha : rien — sauf si l'écran qui roule avec la route en vol gêne (il roule à la vitesse de la vrille, comme en roulant).
+
+## LES 10 MISSIONS CACHÉES REVIENNENT, PAYÉES EN ARGENT (2026-10-19, session missions-propres — Sacha : « rends les 10 missions cachées avec une récompense en argent à la place de la caisse absente »)
+- Les dix missions que `m2Dispo` cachait (section juste dessous) ont maintenant `r:{cash:N}` dans `M2` (la récompense d'avant est notée en fin de
+  ligne) ; leurs `id` ne bougent pas (sauvegardes) :
+  · visibles — fren30 TIENS LA FRÉNÉSIE 30 S : 25 000 $ (avant : la traînée « sang ») · vie5min TIENS 5 MIN SANS MOURIR : 30 000 $ (LA JEEP) ·
+    tours5 FRÔLE 5 TOURS : 20 000 $ (LE TAXI JAUNE) · toutall COLLECTE TOUS LES OBJETS DU JEU : 500 000 $ (récompense « à définir ») ;
+  · secrètes — mort3s : 5 000 $ (LA SANS-PERMIS) · arret : 5 000 $ (LE GRILLE-PAIN) · nitplein : 10 000 $ (LA BOULE) · lac10 : 15 000 $
+    (LE GLACIER) · sanspiece : 15 000 $ (LA DEUCHE) · jours7 : 25 000 $ (LA DÉESSE).
+  Les montants suivent l'échelle des autres (FRÉNÉSIE 10 k, 20 000 D'AURA 30 k, une très bonne partie ≈ 30 k).
+- Une SECRÈTE payée en argent n'a pas de scène de révélation (elle montre une caisse) : `m2RevFile` ne prend plus que les secrètes à caisse ;
+  celle-ci brille « SECRÈTE … RÉCUPÈRE + $ 5 k » et se récupère d'un tap, comme une autre.
+- Une réussie d'avant (restée « BIENTÔT AU GARAGE ») se récupère maintenant : l'argent.
+- Si une de ces caisses revient au garage un jour : elle s'achète à son prix d'avant (le patch `k:'mis'` ne la prend plus) ; pour qu'une
+  mission la redonne, remettre `r:{car:'…'}` sur sa ligne.
+- **Vérifié** (Chrome sans fenêtre, téléphone couché) : 57 missions, aucune cachée ; vie5min et mort3s réussies → écran MISSIONS : « TIENS 5 MIN
+  SANS MOURIR · RÉCUPÈRE · + $ 30 k », « SECRÈTE · MEURS DANS LES 3 PREMIÈRES SECONDES · RÉCUPÈRE · + $ 5 k », compte 2 / 39, aucune
+  « BIENTÔT AU GARAGE », pas de ligne cadeau ; les deux récupérées d'un tap ; une course couché, debout et dans le cadre de l'ordi sans
+  erreur. Cache v691.
 
 ## MISSIONS SANS CADEAU NI « BIENTÔT AU GARAGE » (2026-10-19, session missions-propres — Sacha : « dans le bouton mission il y a un truc streak 3 days gift ready, enlève ça » · « il y a des missions en vert avec marqué coming to the garage soon » · « ça aussi enlève »)
 - **La ligne du cadeau** (en tête de l'écran MISSIONS, `#mCadeau` : « SÉRIE 3 JOURS · CADEAU PRÊT · TOUCHE », en anglais « STREAK 3 DAYS · GIFT READY · TAP ») :
@@ -74,8 +166,8 @@
   `__loopErr` vide. Le Mac était saturé (charge 150 à 270, les bancs d'autres sessions) : la photo du grand nom et de la ligne du combo est
   prise au banc du HUD seul — les VRAIES feuilles et les vraies `fhNet`/`fhTitre`/`FIG_RP` d'index.html, le DOM de `fhEl`, la taille de
   `fhNom`, sur la photo de la map —, avant/après, couché et debout.
-- À TRANCHER PAR SACHA : s'il préfère une autre police plutôt que le gothique en minuscules, la planche montre les candidates (Workbench,
-  Handjet, Bitcount Grid Double se lisent le mieux) — ce serait un .woff2 de plus (3 à 7 Ko) et une ligne dans <style id="policeUnique">.
+- VALIDÉ PAR SACHA (2026-10-19, après la planche avant / après et les trois autres polices : Workbench, Handjet, Bitcount Grid Double) :
+  « OK, on garde le gothique en minuscules pour les légendaires. »
 ## LA GROTTE VASTE — LES PROFONDEURS 1,7 × PLUS LONGUES, DES SALLES 2,5 × PLUS GRANDES (2026-10-19, session GROTTE — Sacha : « la map grotte doit etre plus longue et la grotte beaucoup plus vaste »)
 - **Ce qui change** (tout derrière `GRT_VASTE` ; `?sans=grottevaste` = la grotte d'avant À L'IDENTIQUE — vérifié sur la même graine : mêmes
   comptes que `main`, jusqu'aux 205 776 triangles) :
