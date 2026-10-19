@@ -3,6 +3,13 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA FÉLINE AU BAS DE CAISSE DE LA TYPE E + LES TROIS DERNIÈRES JANTES (2026-10-19, v683, Léo dans RONDES : « oui, la FÉLINE peut partir sur le main » ; et la suite de « applique la correction des jantes à toutes les voitures »)
+- RONDES 342e6368 (LA FÉLINE : arches serrées, lames chromées, poupe, jantes — détail plus bas, section « LA FÉLINE — LE BAS DE CAISSE ») et
+  JAPONAISES 855eb347 (L'AIGLE DE FEU, LE MASTODONTE, LE HOT ROD : option `chapeau` de l'enjoliveur — section « LES JANTES DE L'AIGLE DE FEU »).
+- Vérifié : les 4 caisses (54, 52, 62, 64) équipées en course sans erreur, aucun programme compilé en roulant (le MASTODONTE : +1 à
+  l'EXPLOSION, déjà le cas avant). En attente du oui de Léo : LE HOT ROD v2 de BOÎTES (7adeed96, refait sur sa photo du coupé 32 rouge) —
+  à sa fusion, garder la jante `chapeau` de JAPONAISES.
+
 ## L'AFFINEMENT COMPLET SUR LE MAIN + LES VRAIES JANTES POUR TOUTES (2026-10-19, v682, Léo : « mets tout ce qui est à valider dans le jeu, et applique la correction des jantes à toutes les voitures »)
 - RONDES d9beaad1 (lots 2-4 + LA FÉLINE aux ailes séparées), BOÎTES a921161b (lots 1-4 ; LE CHARGEUR 69 en panneaux plats, style poly),
   JAPONAISES 1fb3a0cf (lots 2-4 + `lpWheel` réuni). Le détail de chaque caisse : `~/Downloads/CAR-bancs/nouvelles-voitures/AFFINEMENT.md`.
