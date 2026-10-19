@@ -99,7 +99,8 @@ function morceauxDe(L){
     bloc('const NUAGE_BLOBS=','const GH=',false),
     un('function lingotGeo('),
     // TOUS les gabarits posés hors de la gamme (`SHAPES.xxx=function…` : le lingot, l'origami, ATCHOUM, le SQUALE… et ceux de demain)
-    ...L.map((l,i)=>/^SHAPES\.\w+=/.test(l)?i:-1).filter(i=>i>=0).map(i=>{let b=i+1;while(b<L.length&&!L[b].startsWith('};'))b++;return L.slice(i,b+1).join('\n');}),
+    ...L.map((l,i)=>/^SHAPES\.\w+=/.test(l)?i:-1).filter(i=>i>=0).map(i=>{const fin=/^SHAPES\.\w+=\s*\(function/.test(L[i])?'})();':'};'; // (19/10) COMBI, WRANGLER, SIMPSON, CAÏD sont des fonctions auto-appelées : elles finissent par « })(); », pas par le premier « }; » (le morceau était coupé en deux : « Unexpected end of input »)
+    let b=i+1;while(b<L.length&&!L[b].startsWith(fin))b++;return L.slice(i,b+1).join('\n');}),
     bloc('const NY_U=','const SHAPES={',false),
     un('const ATCH=')];}
 const RETOUR='return {CARS,CAR_UNLOCK,RARETES,carRar,carOrdre,AURA_RANKS,SHAPES,lpKit,lpWheel,lpOmbre,carProfile,SPH9,FACET_SHAPES,geoFacette,echRetire,echappement,monte:function(g){carGroup=g;}};';

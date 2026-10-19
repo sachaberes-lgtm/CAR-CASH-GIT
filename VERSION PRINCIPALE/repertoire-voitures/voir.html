@@ -4,50 +4,80 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Dans le jeu</title>
-<!-- DANS LE JEU (2026-10-16, avec LES VOITURES DU JEU) : voir.html?i=<n° de la voiture> — LE JEU (../index.html, sans une ligne changée) dans
-     un cadre de téléphone couché (844 × 390, comme sur l'ordi ; debout si la fenêtre est plus haute que large), en ?simu=1 (pas d'écran
-     titre), la voiture ÉQUIPÉE pour toi (dbgEquipe) : on la voit à l'accueil, au garage, et ROULER part en course avec elle. Même mécanique
-     que la liste des maps (repertoire-maps/voir.html). La sauvegarde est celle du jeu à cette adresse (la caisse reste équipée ici). -->
+<!-- DANS LE JEU (2026-10-16, avec LES VOITURES DU JEU) : voir.html?i=<n° de la voiture> — LE JEU dans un cadre de téléphone couché (844 × 390, comme sur
+     l'ordi ; debout si la fenêtre est plus haute que large), en ?simu=1 (pas d'écran titre).
+     (2026-10-19, Léo : « fais pareil, optimisé pour les voitures » — comme la page des maps) LA VOITURE SE CHANGE SUR PLACE : le jeu ne se charge qu'UNE fois
+     (~3 s au banc). La barre : la liste des voitures du garage par famille, ‹ › (et les flèches du clavier au garage), GARAGE · ROULER. Une voiture choisie
+     au garage se montre en ~10 ms (dbgGarageVa : l'équipement ET le garage — nom, rang) au lieu de recharger la page ; ROULER lance la course avec elle,
+     ARRÊTER revient au garage (sortie sans explosion → accueil → garage, ~3 s) et changer de voiture en roulant fait pareil.
+     Les deux crochets (dbgVoitures, dbgGarageVa) sont posés par serveur.py dans /jeu-voitures.html (le jeu du dépôt n'est pas touché) ; sans eux (jeu servi
+     ailleurs), la page retombe sur dbgEquipe/dbgSpec : toutes les fiches, sans familles. -->
 <style>
-  :root{--sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif}
+  :root{--sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;--txt2:rgba(255,255,255,.66)}
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var(--sys);-webkit-font-smoothing:antialiased}
-  #barre{position:fixed;top:0;left:0;right:0;height:48px;display:flex;align-items:center;gap:10px;
-    padding:0 max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));font-size:13px;white-space:nowrap;z-index:2}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  #barre{position:fixed;top:0;left:0;right:0;height:48px;display:flex;align-items:center;gap:8px;
+    padding:0 max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));font-size:13px;white-space:nowrap;z-index:2;background:#000}
   #retour{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:#fff;background:rgba(255,255,255,.12);flex:none}
   #retour:hover{background:rgba(255,255,255,.22)}
-  svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-  #titre{font-weight:650;letter-spacing:.02em;flex:none;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;display:block}
+  #choix{position:relative;display:inline-flex;align-items:center;flex:0 1 auto;min-width:0;max-width:44vw}
+  #voit{appearance:none;-webkit-appearance:none;background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:999px;height:32px;padding:0 30px 0 14px;
+    font:650 13px var(--sys);letter-spacing:.01em;cursor:pointer;max-width:100%;text-overflow:ellipsis}
+  #voit:hover{background:rgba(255,255,255,.22)}
+  #voit:focus-visible{outline:2px solid rgba(255,255,255,.6);outline-offset:1px}
+  #voit option{color:#000;background:#fff}
+  #choix svg{position:absolute;right:11px;width:12px;height:12px;stroke-width:2.6;pointer-events:none}
+  #pas{display:inline-flex;align-items:center;gap:2px;flex:none}
+  #pas button{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.1)}
+  #pas button:hover{background:rgba(255,255,255,.22)}
+  #pas button:disabled{opacity:.3;cursor:default}
+  #rang{min-width:54px;text-align:center;font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--txt2);font-variant-numeric:tabular-nums}
+  #fam{font-size:11.5px;font-weight:650;letter-spacing:.06em;padding:0 10px;height:24px;border-radius:999px;display:none;align-items:center;flex:none;
+    color:var(--rc,#fff);background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px var(--rc,rgba(255,255,255,.3))}
   #actions{display:flex;gap:6px;margin-left:auto;flex:none}
-  #actions button{height:30px;padding:0 13px;border-radius:999px;font:inherit;font-size:12px;font-weight:600;letter-spacing:.04em;border:0;cursor:pointer;
-    color:rgba(255,255,255,.8);background:rgba(255,255,255,.1)}
-  #actions button:hover{background:rgba(255,255,255,.2);color:#fff}
-  #actions button.or{background:#fff;color:#000}
+  #actions button{height:32px;padding:0 14px;border-radius:999px;font-size:12px;font-weight:650;letter-spacing:.05em;
+    color:rgba(255,255,255,.85);background:rgba(255,255,255,.1)}
+  #actions button:hover{background:rgba(255,255,255,.22);color:#fff}
+  #actions button.on{background:#fff;color:#000}
+  #actions button:disabled{opacity:.45;cursor:default}
   #scene{position:fixed;left:0;right:0;top:48px;bottom:0;display:grid;place-items:center}
   #jeu{border:0;display:block;background:#000}
+  @media (max-width:760px){#fam{display:none!important}#rang{min-width:46px}}
 </style>
 </head>
 <body>
 <div id="barre">
   <a id="retour" href="index.html" aria-label="Retour à la liste des voitures"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a>
-  <b id="titre"></b>
+  <label id="choix"><select id="voit" aria-label="Choisir la voiture"></select><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></label>
+  <div id="pas"><button id="bPrec" type="button" aria-label="Voiture précédente"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><span id="rang"></span><button id="bSuiv" type="button" aria-label="Voiture suivante"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button></div>
+  <span id="fam"></span>
   <div id="actions">
-    <button id="bAccueil">ACCUEIL</button>
-    <button id="bGarage">GARAGE</button>
-    <button id="bRouler" class="or">ROULER</button>
+    <button id="bGarage" type="button" class="on">GARAGE</button>
+    <button id="bRouler" type="button">ROULER</button>
   </div>
 </div>
 <div id="scene"><iframe id="jeu" title="Le jeu"></iframe></div>
 <script>
+// (19/10) le service worker du JEU, s'il s'est installé sur cette adresse, sert une vieille copie et fait échouer des pages dans le navigateur du chat :
+// on le retire et on recharge une fois (serveur.py refuse sw.js, il ne revient pas)
+if (navigator.serviceWorker) navigator.serviceWorker.getRegistrations().then(rs => {
+  if (!rs.length) return;
+  Promise.all(rs.map(r => r.unregister())).then(() => { try { if (!sessionStorage.getItem('ccSwRetire')) { sessionStorage.setItem('ccSwRetire', '1'); location.reload(); } } catch (e) {} });
+}).catch(() => {});
+</script>
+<script>
 (function(){
   const $ = id => document.getElementById(id);
-  const N = Math.max(0, parseInt(new URLSearchParams(location.search).get('i'), 10) || 0);
-  $('retour').href = 'index.html#i=' + N;
+  const q = new URLSearchParams(location.search);
+  let cur = Math.max(0, parseInt(q.get('i'), 10) || 0);       // l'index de la voiture dans la gamme du jeu (CARS)
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
   // la sauvegarde de cette adresse : auto-école passée, pas de question du mode au 1er JOUER, la voiture équipée (le reste : celle du jeu)
   try {
     const d = JSON.parse(localStorage.getItem('cashcarSave') || '{}') || {};
-    d.v = d.v || 2; d.tuto = 1; d.permis = 1; if (d.facile == null) d.facile = 0; d.equipped = N;
+    d.v = d.v || 2; d.tuto = 1; d.permis = 1; if (d.facile == null) d.facile = 0; d.equipped = cur;
     localStorage.setItem('cashcarSave', JSON.stringify(d));
   } catch (e) {}
 
@@ -57,36 +87,151 @@
     jeu.style.width = w + 'px'; jeu.style.height = h + 'px'; jeu.style.zoom = Math.min(W / w, H / h);
   }
   addEventListener('resize', taille); taille();
-  jeu.src = '../index.html?simu=1&voiture=' + N;
+
+  const W = () => { try { return jeu.contentWindow; } catch (e) { return null; } };
+  const ST = () => { const w = W(); try { return w && w.dbgState ? w.dbgState() : null; } catch (e) { return null; } };
+  const visible = el => !!(el && el.getClientRects().length);
+  const bouton = sel => { const w = W(); try { const b = w.document.querySelector(sel); return visible(b) ? b : null; } catch (e) { return null; } };
+  const dort = ms => new Promise(r => setTimeout(r, ms));
+  async function attend(cond, ms){ const t0 = performance.now(); while (performance.now() - t0 < ms) { let v = false; try { v = cond(); } catch (e) {} if (v) return true; await dort(100); } return false; }
+  const enCourse = () => { const s = ST(); return !!(s && s.started && !s.gameOver); };
+  const finie = () => { const s = ST(); return !!(s && s.started && s.gameOver); };
+  const auGarage = () => !!bouton('#gJouer');
+
+  // le jeu de l'outil (avec les deux crochets, posé par serveur.py) si ce serveur le sert ; sinon le jeu tel quel
+  let hook = false;
+  fetch('../jeu-voitures.html', { method: 'HEAD', cache: 'no-store' }).then(r => r.ok).catch(() => false).then(ok => {
+    hook = ok; jeu.src = (ok ? '../jeu-voitures.html' : '../index.html') + '?simu=1&hd=0&voiture=' + cur;
+  });
+
+  // ---------- LA LISTE ----------
+  let cars = [], fams = {}, idx = {};   // cars : [{i, nom, rar}] dans l'ordre du garage · fams : id → {n, c} · idx : index de voiture → rang
+  function liste(){
+    const w = W(); let fait = false;
+    try {
+      if (hook && w.dbgVoitures) {
+        const d = w.dbgVoitures(); cars = d.cars; fams = {}; d.fam.forEach(f => fams[f.id] = f); fait = cars.length > 0;
+      } else if (w.dbgNbCaisses && w.dbgSpec) {   // repli : toutes les fiches du jeu, sans familles (les retirées en font partie)
+        const n = w.dbgNbCaisses(); cars = []; for (let i = 0; i < n; i++) { const s = w.dbgSpec(i); if (s) cars.push({ i, nom: s.name, rar: '' }); } fams = {}; fait = cars.length > 0;
+      }
+    } catch (e) {}
+    if (!fait) return false;
+    idx = {}; cars.forEach((c, k) => idx[c.i] = k);
+    let h = '', rar = null;
+    for (const c of cars) {
+      if (c.rar !== rar) { if (rar !== null) h += '</optgroup>'; rar = c.rar; h += '<optgroup label="' + esc(fams[rar] ? fams[rar].n : 'TOUTES') + '">'; }
+      h += '<option value="' + c.i + '">' + esc(c.nom) + '</option>';
+    }
+    h += '</optgroup>';
+    if (!(cur in idx)) h = '<option value="' + cur + '" disabled>(hors du garage)</option>' + h;
+    $('voit').innerHTML = h;
+    return true;
+  }
+  function barre(){
+    const c = cars[idx[cur]], k = idx[cur];
+    $('voit').value = String(cur);
+    $('rang').textContent = k == null ? '–' : (k + 1) + ' / ' + cars.length;
+    const f = c && fams[c.rar];
+    const fm = $('fam'); fm.textContent = f ? f.n : ''; fm.style.display = f ? 'inline-flex' : 'none'; if (f) fm.style.setProperty('--rc', f.c);
+    $('bPrec').disabled = $('bSuiv').disabled = cars.length < 2;
+    document.title = (c ? c.nom : 'Voiture ' + cur) + ' · dans le jeu';
+    try { history.replaceState(null, '', 'voir.html?i=' + cur); } catch (e) {}   // recharger la page reste sur CETTE voiture
+    $('retour').href = 'index.html#i=' + cur;
+  }
+
+  // ---------- LES VUES : GARAGE · COURSE ----------
+  // garage = la vitrine, la voiture se change SUR PLACE · course = ROULER ; l'arrêt (ARRÊTER, ou une autre voiture en roulant) RECHARGE le jeu
+  // (~4 s) : revenir de la course par le menu du jeu coûte 9 à 17 s (il reconstruit l'accueil), mesuré au banc.
+  let vue = 'garage', occupe = true;   // occupe : le jeu charge, ou un geste est en cours
+  function vues(){
+    $('bGarage').classList.toggle('on', vue === 'garage'); $('bRouler').classList.toggle('on', vue === 'course'); // 'fin' : la course est finie (mort), ni l'un ni l'autre
+    $('bRouler').textContent = vue === 'course' ? 'ARRÊTER' : 'ROULER';
+  }
+  async function applique(){   // équipe ET montre la voiture ; le crochet dit « attends » tant qu'une animation du garage tourne
+    for (let k = 0; k < 24; k++) {
+      const w = W(); let r = null;
+      try { r = hook && w.dbgGarageVa ? w.dbgGarageVa(cur) : (w.dbgEquipe ? w.dbgEquipe(cur) : null); } catch (e) {}
+      if (r !== 'attends') return r;
+      await dort(150);
+    }
+  }
+  async function versGarage(){
+    if (auGarage()) return true;
+    await attend(() => bouton('[data-m="garage"]') || auGarage(), 8000);
+    const g = bouton('[data-m="garage"]'); if (g) g.click();
+    return await attend(auGarage, 6000);
+  }
+  function recharge(){   // le jeu repart de zéro sur la voiture courante : le garage s'ouvre tout seul (pret)
+    try { const d = JSON.parse(localStorage.getItem('cashcarSave') || '{}') || {}; d.equipped = cur; localStorage.setItem('cashcarSave', JSON.stringify(d)); } catch (e) {}
+    occupe = true; vue = 'garage'; vues(); jeu.src = jeu.src;
+  }
+  async function aGarage(){
+    if (occupe) return;
+    if (enCourse() || finie()) { recharge(); return; }
+    occupe = true; vue = 'garage'; vues();
+    try { await versGarage(); await applique(); } finally { occupe = false; }
+    focusJeu();
+  }
+  async function aRouler(){
+    if (occupe) return;
+    if (finie()) { occupe = true; try { await applique(); const w = W(); if (w.dbgEco) w.dbgEco('rejouer'); vue = 'course'; vues(); await attend(enCourse, 12000); } finally { occupe = false; } focusJeu(); return; }
+    if (enCourse()) return;
+    occupe = true;
+    try {
+      if (!auGarage()) await versGarage();
+      await applique(); await dort(150);
+      const b = bouton('#gJouer');
+      if (b) { b.click(); vue = 'course'; vues(); await attend(enCourse, 8000); }
+    } finally { occupe = false; }
+    focusJeu();
+  }
+  async function va(i){   // une autre voiture : sur place au garage ; en roulant, le jeu repart (voir recharge)
+    if (!(i in idx) && cars.length) return;
+    cur = i; barre();
+    if (enCourse() || finie()) { recharge(); return; }
+    if (occupe) return; occupe = true;
+    try { if (!auGarage()) await versGarage(); await applique(); } finally { occupe = false; }
+    focusJeu();
+  }
+  const pas = d => { if (!cars.length) return; const k = idx[cur] == null ? 0 : idx[cur]; va(cars[(k + d + cars.length) % cars.length].i); };
+  $('voit').addEventListener('change', () => { const i = parseInt($('voit').value, 10); $('voit').blur(); va(i); });
+  $('bPrec').addEventListener('click', () => pas(-1)); $('bSuiv').addEventListener('click', () => pas(1));
+  $('bGarage').addEventListener('click', () => aGarage());
+  $('bRouler').addEventListener('click', () => { if (vue === 'course') aGarage(); else aRouler(); });
+
+  // ---------- LE CLAVIER ET LE FOCUS ----------
   const focusJeu = () => { try { jeu.focus(); jeu.contentWindow.focus(); } catch (e) {} };
-  jeu.addEventListener('load', focusJeu);
   document.addEventListener('pointerdown', ev => { if (!ev.target.closest('#barre')) setTimeout(focusJeu, 0); });
-  for (const t of ['keydown', 'keyup']) addEventListener(t, ev => { // une touche frappée hors du cadre part dans le jeu
-    if (ev.target === jeu) return;
+  for (const t of ['keydown', 'keyup']) addEventListener(t, ev => {   // une touche frappée hors du cadre part dans le jeu ; ← → changent de voiture au garage
+    if (ev.target === jeu || (ev.target.tagName === 'SELECT')) return;
+    if (vue !== 'course' && !enCourse() && /^Arrow(Left|Right)$/.test(ev.code)) { if (t === 'keydown' && !ev.repeat) pas(ev.code === 'ArrowLeft' ? -1 : 1); ev.preventDefault(); return; }
     try { const w = jeu.contentWindow; w.document.dispatchEvent(new w.KeyboardEvent(t, { code: ev.code, key: ev.key, keyCode: ev.keyCode, repeat: ev.repeat, bubbles: true, cancelable: true })); } catch (e) {}
     if (/^(Space|Arrow)/.test(ev.code)) ev.preventDefault();
   });
 
-  const W = () => { try { return jeu.contentWindow; } catch (e) { return null; } };
-  const etat = () => { const w = W(); try { return w && w.dbgState ? w.dbgState() : null; } catch (e) { return null; } };
-  // la voiture équipée UNE fois, dès que le jeu sait le faire (la sauvegarde l'a déjà posée ; ceci la remet si le jeu l'a refusée)
-  let mise = false;
-  const T = setInterval(() => {
-    const w = W(), st = etat(); if (mise || !w || !st || typeof w.dbgEquipe !== 'function') return;
-    if (st.started && !st.gameOver) return;
-    try { const n = w.dbgEquipe(N); if (n && n !== 'en course') { $('titre').textContent = n; document.title = n + ' · dans le jeu'; mise = true; clearInterval(T); } } catch (e) {}
-  }, 400);
-  const clique = sel => { const w = W(); if (!w) return false; const b = w.document.querySelector(sel); if (b && b.getClientRects().length) { b.click(); return true; } return false; };
-  // ROULER : le PLAY de l'accueil ; depuis le garage (il n'a plus de JOUER), on revient à l'accueil et le PLAY est touché à l'arrivée
-  let veutRouler = false;
-  const rouler = () => { const st = etat(); if (st && st.started && !st.gameOver) return true;
-    if (st && st.started && st.gameOver) { try { W().dbgEco('rejouer'); } catch (e) {} return true; }
-    return clique('[data-m="play"]'); };
-  $('bRouler').onclick = () => { if (!rouler()) { veutRouler = true; jeu.src = jeu.src; } focusJeu(); };
-  setInterval(() => { if (veutRouler && rouler()) veutRouler = false; }, 500);
-  $('bGarage').onclick = () => { const w = W(); if (!w) return; const st = etat(); if (st && st.started && !st.gameOver) return;
-    clique('[data-m="garage"]'); focusJeu(); };
-  $('bAccueil').onclick = () => { location.reload(); };
+  // ---------- LE DÉPART (à chaque chargement du jeu) ----------
+  // le jeu charge → on attend son accueil (et le ciel du titre : un clic trop tôt figeait le départ des maps, voir repertoire-maps/voir.html) → la liste est lue
+  // (une fois) → le garage s'ouvre sur la voiture courante
+  async function pret(){
+    const t0 = performance.now(); let cielT = 0;
+    for (;;) {
+      await dort(300);
+      const w = W(), st = ST(), now = performance.now();
+      if (now - t0 > 90000) { occupe = false; return; }
+      if (!w || !st) continue;
+      try { if (w.document.body.classList.contains('titreCiel')) { if (!cielT) cielT = now; } else cielT = 0; } catch (e) { continue; }
+      if ((bouton('[data-m="garage"]') || auGarage()) && ((cielT && now - cielT > 800) || now - t0 > 8000)) break;
+    }
+    if (!cars.length && !liste()) { occupe = false; return; }
+    barre(); vue = 'garage'; vues();
+    try { await versGarage(); await applique(); } finally { occupe = false; }
+    focusJeu();
+  }
+  jeu.addEventListener('load', () => { pret(); });
+  // le garage peut changer de voiture tout seul (flèches du jeu, glissé) : la barre suit
+  setInterval(() => { if (!hook || occupe || vue !== 'garage' || !(cur in idx) || !cars.length) return; try { const i = W().dbgGarageVa(); if (typeof i === 'number' && i !== cur && i in idx) { cur = i; barre(); } } catch (e) {} }, 600);
+  // une course finie (mort) : ni GARAGE ni ARRÊTER — ROULER repart tout de suite
+  setInterval(() => { if (vue === 'course' && finie() && !occupe) { vue = 'fin'; vues(); } }, 500);
 })();
 </script>
 </body>
