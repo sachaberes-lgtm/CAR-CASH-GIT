@@ -77,6 +77,10 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   uVille:{value:0},uPluie:{value:0},uFogCol:{value:new THREE.Color(0x331f48)},uCam:{value:new THREE.Vector3()},
   uVilleY:{value:0},uParis:{value:0},uParisT:{value:0}, // (2026-09-28) uParis : le ciel de PARIS (toits bas à l'horizon, lueur d'or) au lieu des tours de la ville
   // (2026-09-26) la SKYLINE descend à l'altitude de la ville (en sinus d'élévation) : la route spirale AU-DESSUS des toits
+  /* (2026-10-19, essai ARC) LE FOND EN PHOTO + LA MER DE CUMULUS — voir « LE CIEL D'ARC » plus bas. uPh : x la part de la photo, y la colonne (0-1) de son
+     soleil, z sa hauteur (rad), w l exposition · uPh2.x le sens du tour · uMr : x la mer de cumulus (0 = la mer peinte d avant), y la profondeur du
+     pont de nuages (m sous l œil), z la tuile (m), w la couverture (le seuil des trouées) · uMr2 : x le relief, y la brume (× la tuile). */
+  uPhT:{value:null},uMrT:{value:null},uPh:{value:new THREE.Vector4(0,.6,.1,1)},uPh2:{value:new THREE.Vector4(1,0,0,0)},uMr:{value:new THREE.Vector4(0,900,4200,.22)},uMr2:{value:new THREE.Vector4(3.2,3.,0,1)},
   uTi:{value:new THREE.Vector4(0,0,0,1)},uTi2:{value:new THREE.Vector4(0,0,.35,0)},uTZen:{value:new THREE.Vector3()},uTMid:{value:new THREE.Vector3()},uTHor:{value:new THREE.Vector3()},uTSol:{value:new THREE.Vector3()},uTMerH:{value:new THREE.Vector3()},uTMerO:{value:new THREE.Vector3()},uTCir:{value:new THREE.Vector3()}, // (titre v4) LE CIEL DE L'ÉCRAN TITRE (cielTitre) — uTi.x = 0 hors du titre : rien ne change en course
   uMzA:{value:new THREE.Vector4(760,.8,15,.25)},uMzB:{value:new THREE.Vector4(.20,.16,.26,.8)},uMzT:{value:new THREE.Vector4(0,0,0,0)},uMzO:{value:new THREE.Vector4(0,0,0,0)},uMzH:{value:new THREE.Vector4(0,0,0,0)}, /* ⚠ (0,0,0,0) ÉCRIT : un Vector4() vide vaut (0,0,0,1) — la part 1 peignait toute la mer en NOIR (vu par Léo au menu de sa copie). */ /* (2026-10-03, atelier des nuages : « une fonction pour altérer le ciel en bas ») les COULEURS de la mer de nuages forcées — trous, ombres, dômes : rgb + part (w) ; w = 0 partout = la mer d'avant au bit près */ // (2026-09-30, niveau 1 v2) LA MER SCULPTÉE : échelle des cellules, part « gonflée », franchise de la lumière, remous · couverture, fermeture au loin, creux, clarté des trouées
   uVG:{value:0}, /* (2026-10-01, Sacha : « enlève tous les trucs Van Gogh ») la touche Van Gogh est RETIRÉE du ciel comme des nuages : plus aucun shader ne lit cet uniforme — l'objet reste, inerte, pour qu'un code qui l'écrirait encore ne plante pas */
@@ -108,10 +112,20 @@ const skyDome=(function(){
      mer, le MÊME ciel qu'au-dessus (son soleil a son reflet en bas). Toutes les couches lisent `vDir` : une macro le replie pour elles, en une
      ligne. À 0 (toutes les autres maps), mix(y,|y|,0) = y : l'image d'avant au bit près. */
   const TETE=[
-      'varying vec3 vDirR;uniform float uSym;vec3 vDirS(){return vec3(vDirR.x,mix(vDirR.y,abs(vDirR.y),uSym),vDirR.z);}',
+      'varying vec3 vDirR;uniform float uSym;uniform vec4 uMr;vec3 vDirS(){return vec3(vDirR.x,mix(vDirR.y,abs(vDirR.y),uSym*(1.-uMr.x)),vDirR.z);}', // (essai ARC) la mer de cumulus allumée : le dessous redevient un dessous
       'uniform float uSkySat;vec3 cielSat(vec3 c){float l=dot(c,vec3(.2126,.7152,.0722));return max(mix(vec3(l),c,uSkySat),0.);}', // (2026-10-15 soir) la chroma du ciel de jour, plafonnée (voir routeTick)
       '#define vDir vDirS()',
       'uniform vec3 uSunDir;uniform float uTime;',
+      /* (2026-10-19, essai ARC) LA PHOTO DU CIEL : un vrai ciel (Poly Haven, CC0), sa moitié haute en équirectangulaire ; son soleil est calé sur
+         le nôtre (la colonne tourne avec uSunDir, la hauteur se plie : 0 → le soleil du jeu = 0 → celui de la photo, puis jusqu au zénith).
+         Lue avec les dérivées de la plus continue des deux coordonnées (fract et fract + ½) : pas de couture au raccord du tour. */
+      'uniform sampler2D uPhT,uMrT;uniform vec4 uPh,uPh2,uMr2;',
+      'vec3 phCiel(vec3 d){float H=1.5708,e=asin(clamp(d.y,0.,1.)),eg=max(asin(clamp(uSunDir.y,-1.,1.)),.02),ep=uPh.z;',
+      '  float e2=e<eg?e*ep/eg:ep+(H-ep)*(e-eg)/(H-eg);',
+      '  float u=uPh.y+uPh2.x*(atan(d.x,-d.z)-atan(uSunDir.x,-uSunDir.z))/6.2832,u1=fract(u),u2=fract(u+.5)-.5;',
+      '  vec2 uv=vec2(u1,e2/H),g=vec2(u2,uv.y);vec2 dx=dFdx(g),dy=dFdy(g);vec2 dx1=dFdx(uv),dy1=dFdy(uv);',
+      '  if(abs(dx1.x)+abs(dy1.x)<abs(dx.x)+abs(dy.x)){dx=dx1;dy=dy1;}',
+      '  return textureGrad(uPhT,uv,dx,dy).rgb*uPh.w;}',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse,uRose;', // grade biome (identité par défaut) + uPulse musique
       'uniform vec3 uFd[8];uniform vec3 uVc[6];', // (2026-10-16) LES TEINTES DE LA VILLE : les couleurs fixes du dégradé et du ciel de la ville (valeurs d'origine hors ville teintée)
       'uniform float uSpace,uNeb;', // NIVEAU ORBITE : 0 = aucun effet · uNeb : les nébuleuses (2026-10-15)
@@ -633,6 +647,34 @@ const skyDome=(function(){
     titre:[
       'uniform vec4 uTi,uTi2;uniform vec3 uTZen,uTMid,uTHor,uTSol,uTMerH,uTMerO,uTCir;',
       'float tH(vec2 p,float fp){float s=0.,a=.55,f=1.;for(int i=0;i<4;i++){float k=1.-smoothstep(.3,.8,fp*f);s+=a*(k*vn(p)+(1.-k)*.5);p=p*2.07+vec2(5.3,1.7);a*=.45;f*=2.07;}return s;}', // (titre v6) le champ de hauteur de la mer
+      /* (2026-10-19, essai ARC) LA MER DE CUMULUS : sous l horizon, le dessus d un vrai pont de nuages — la carte de relief cuite
+         (atelier-ciel/mer-cumulus.js : des dômes de trois tailles soudés en chou-fleur) relue à deux échelles tournées, éclairée par le
+         soleil du jeu (la pente, l ombre portée de trois pas vers lui, les plis à l ombre), des trouées vers l abîme là où le relief
+         descend sous la couverture, le liseré d argent à contre-jour, et la perspective aérienne qui rejoint l horizon DE LA PHOTO à la
+         même direction (pas de couture entre la mer et le ciel). Les mips de la carte font l anticrénelage du lointain. */
+      'void merArc(inout vec3 c,vec3 d,float y,float sd){',
+      '  float yy=min(y,-.0006),t=uMr.y/(-yy);',
+      '  vec2 p=d.xz*t+uCam.xz+vec2(uTime*7.,uTime*3.),q=p/uMr.z;',
+      '  mat2 R=mat2(.80,-.60,.60,.80);vec2 q2=R*q*3.1+vec2(.37,.11);',
+      '  vec4 A=texture2D(uMrT,q),B=texture2D(uMrT,q2);',
+      '  float h=A.r*.7+B.r*.3;',
+      '  vec2 ga=vec2(A.g-.5,.5-A.b),gb=vec2(B.g-.5,.5-B.b),g=ga*.7+(gb*R)*.3*3.1;',                     // la pente dans la tuile (la carte est retournée en v)
+      '  vec3 N=normalize(vec3(-g.x*uMr2.x,1.,-g.y*uMr2.x));',
+      '  vec3 L=normalize(vec3(uSunDir.x,max(uSunDir.y,.04)+.07,uSunDir.z));',
+      '  float nl=dot(N,L),dif=clamp(nl*.6+.4,0.,1.);',
+      '  vec2 sx=normalize(uSunDir.xz+vec2(1e-4));float tg=(max(uSunDir.y,.04)+.07)/length(uSunDir.xz+vec2(1e-4));',
+      '  float sh=1.;for(int i=1;i<4;i++){float fi=float(i)*.028;float hs=texture2D(uMrT,q+sx*fi).r*.7+texture2D(uMrT,q2+R*sx*fi*3.1).r*.3;sh=min(sh,clamp(1.-(hs-h-fi*tg*12.)*7.,0.,1.));}', // l ombre portée des dômes voisins
+      '  sh=mix(1.,sh,uMr2.w);float ao=mix(A.a,1.,.2)*mix(B.a,1.,.4);',
+      '  float cov=smoothstep(uMr.w-.07,uMr.w+.05,h),epa=smoothstep(uMr.w,uMr.w+.3,h);',                   // la couverture ; l épaisseur (les bords des trouées s amincissent)
+      '  vec3 far=uPh.x>.001?phCiel(normalize(vec3(d.x,.008,d.z))):uTHor;',                              // l air : l horizon de la PHOTO, à cette direction
+      '  vec3 lit=mix(uTMerO,uTMerH,dif*mix(.3,1.,sh));',
+      '  lit*=mix(.7,1.,ao)*mix(.82,1.,epa);',
+      '  lit+=uTMerH*.22*pow(max(nl,0.),5.)*sh;',                                                          // l éclat des sommets au soleil
+      '  lit+=uTSol*pow(max(sd,0.),5.)*(1.-epa)*.8;',                                                      // le liseré d argent : les bords minces, à contre-jour
+      '  vec3 ab=mix(uTMerO*.6,far,.4+.3*uMr2.z);',                                                        // l abîme sous les trouées : un bleu noyé d air, pas un aplat saturé
+      '  vec3 m=mix(ab,lit,cov);',
+      '  m=mix(m,far,1.-exp(-t/(uMr.z*uMr2.y)));',
+      '  c=mix(m,uPh.x>.001?far:c,smoothstep(-.02,0.,y));}',                                            // au ras de l horizon : l air de la photo (pas le dégradé peint : il y faisait un trait clair)
       'void cielTitre(inout vec3 col,vec3 d,float y,float sd){',
       '  float yp=max(y,0.),sv=max(sd,0.);',
       '  vec3 c=mix(mix(uTHor,uTMid,smoothstep(0.,.30,yp)),uTZen,smoothstep(.12,.95,yp));',          // le dégradé, sans palier
@@ -650,6 +692,7 @@ const skyDome=(function(){
          par sa pente côté soleil ET ombré par les sommets voisins : quatre pas vers le soleil, bas sur l'horizon, et toute crête plus haute que
          le rayon y projette son ombre — les longues ombres bleues des levers de soleil au-dessus des nuages. Les octaves trop fines pour le
          pixel s'effacent (tH). La lisière des sommets prend la lumière (le rebord translucide), et tout se noie dans l'air vers l'horizon. */
+      '  if(y<0.&&uMr.x>.5)merArc(c,d,y,sd);else',
       '  if(y<0.){float yy=min(y,-.0008),t=700./(-yy);',
       '    vec2 p=d.xz*t+uCam.xz+vec2(uTime*5.,uTime*2.),q=p/1500.;',
       '    float fp=t*.0016/max(-yy,.02)/1500.*MER_FPK;',
@@ -889,6 +932,7 @@ const skyDome=(function(){
       '  cielJour(col,y,sd);', // (2026-09-30) le jour d altitude : la lueur du soleil sur l horizon
       '  cielSoleil(col,sd);',
       '  if(uTi.x>.001)cielTitre(col,vDir,y,sd);', // (titre v4) le ciel de l écran titre
+      '  if(uPh.x>.001&&y>-.006)col=mix(col,phCiel(vDir),uPh.x*smoothstep(-.006,.004,y));', // (essai ARC) la photo
       '  if(uParis>.001)parisCiel(col,vDir,y,sd);', // PARIS AU SOL : le ciel de l heure
       '  bool gOn=cielGOn(y,sd),sOn=cielSOn(y,sd);',
       '  float az=0.;if(gOn||sOn||uLvl>.001||uVille>.001)az=atan(vDir.x,-vDir.z);',
@@ -919,6 +963,7 @@ const skyDome=(function(){
     netN:[LECT,
       'void main(){',
       '  vec3 col=texture2D(uBasTex,gl_FragCoord.xy*uBasInv).rgb;float y=vDir.y,sd=max(dot(vDir,uSunDir),0.);',
+      '  if(uPh.x>.001&&y>-.006){vec3 p9=phCiel(vDir);col=mix(col,mix(cielSat(p9),p9,uPh2.y),uPh.x*smoothstep(-.006,.004,y));}', // (essai ARC) la photo, à pleine résolution
       '  if(cielSOn(y,sd))cielEtoiles(col,y,atan(vDir.x,-vDir.z),sd);',
       '  if(uSpace*uNeb>.001)cielPoussiere(col,y,atan(vDir.x,-vDir.z));', // (2026-10-15) la poussière d étoiles
       '  cielLune(col);',

@@ -3,6 +3,34 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA MER DE NUAGES FAÇON ARC RAIDERS — LE FOND EN PHOTO, LA MER DE CUMULUS, LES NUAGES EN VERRE ÉPARPILLÉS (2026-10-19 soir, v704, Léo : « retouche la mer des nuages ; le ciel dans ARC Raiders est hyper bien fait, prends les images pour un fond plus réaliste encore ; les nuages devant, c'était mieux l'avant-dernière version, avec les cubes, joue plus la transparence » → questionnaire : l'avant-dernière = le vitrail MOYEN → « reste sur ce que tu as fait, mais un tout petit peu éparpillé : le côté trash de la version d'avant, le gros nuage condensé qui se sépare en plein de trucs ; le ciel, c'est vraiment mieux » → « oui, sur le main »)
+- **Les images d'ARC Raiders sont à Embark (protégées)** : aucune n'entre dans le jeu. On en garde la LEÇON (un bleu naturel qui pâlit dans une
+  brume claire, de vrais nuages, l'air épais sur l'horizon) avec de VRAIES photos libres : Poly Haven, CC0 — MATIN `kloppenheim_06_puresky`
+  (soleil bas derrière un nuage, rayons), MIDI `wasteland_clouds_puresky`, SOIR `belfast_sunset_puresky` (altocumulus roses, horizon d'or).
+  `assets/ciel/ciel-*.jpg` : la moitié HAUTE de l'équirectangulaire, 4096 × 1024 (≈ 640 Ko les trois). La nuit, la pluie, l'orage : inchangés.
+- **Au-dessus de l'horizon : la photo** (bloc « LE CIEL D'ARC », `CIEL_ARC`, `cielArcPose` dans `nuFondTick`) — `phCiel(d)` dans la TÊTE des
+  shaders du ciel, lue dans la PASSE NETTE (pleine résolution) et le programme plein ; son soleil est CALÉ sur le nôtre (la colonne tourne avec
+  uSunDir, la hauteur se plie : 0 → notre soleil = 0 → le sien, puis jusqu'au zénith) ; `textureGrad` avec les dérivées de la plus continue
+  de fract(u) / fract(u+½) : pas de couture au raccord du tour. `ex` l'exposition (,8 · ,8 · ,9), `ns` = sans le plafond de chroma (le soir).
+- **En dessous : la MER DE CUMULUS** (`merArc`, dans `cielTitre` quand `uMr.x`) — un vrai pont de nuages sous la route : la carte de relief
+  `assets/ciel/mer-cumulus.png` (512², R hauteur · GB pente · A creux), cuite par `node atelier-ciel/mer-cumulus.js` (des dômes de trois
+  tailles au bord doux, soudés en chou-fleur, tordus par des sinus tuilables), relue à deux échelles tournées, éclairée par NOTRE soleil
+  (pente, ombre portée de trois pas, plis), des trouées vers un abîme noyé d'air, le liseré d'argent à contre-jour, et la perspective aérienne
+  qui rejoint l'horizon DE LA PHOTO à la même direction. Anisotropie au maximum de la puce (on la regarde rasante). Réglages `uMr`/`uMr2`
+  (profondeur 900 m, tuile 4,2 km, couverture ,22 · relief, brume, abîme, ombre). ⚠ Le ciel « sans dessous » de Sacha (15/10, `uSym` : le bas
+  du dôme = le reflet du haut) se COUPE quand la mer est allumée — sur la photo, le reflet faisait un lac-miroir ; la nuit / la pluie / l'orage le gardent.
+- **Les nuages : la dose VERRE** (`NV_DOSES.verre`, défaut quand l'essai est allumé) = le vitrail MOYEN d'il y a deux versions, plus
+  transparent : écailles et cœur OUVERTS DE FACE par la trame (`nvVerre`, `uVerre` ,5 : pleins sur la silhouette), peau plus claire
+  (uCoqA0 ,2), le contour qui se défait (uBordC ,6), un peu de lumière qui traverse (uTrans ,25). + **LE MÉLANGE** (`NUVIT.mix`) : l'ouvrier
+  calcule AUSSI 6 500 cubes fantômes par gabarit (`fsz` 95), aux trois quarts DEHORS et jusqu'à 10 tailles (`opt.fdeh` ,75), plus visibles —
+  le nuage dense qui se défait en petits cubes ; posés avec le vitrail (`nuFantPose` → `V.gOk`, le corps rentré n'est pas pris), aussi sur
+  les bancs, coussins et tours (`mkCloud`). Les cartes postales des six météos de la map refaites (`assets/portail/nuages-*.webp`, piste 42).
+- `?arc=0` = le main d'avant (fond peint + fantômes) ; `?nuvit=moyen|verre|fantome` ; `dbgCielArc()` l'état, `dbgCielArc(null,{ex,ns,mi,mr,mr2})`
+  règle à chaud (mi:1 = la photo et son miroir). ⚠ Noms : `ARC_C`, `arcPose`, `dbgArc` existaient déjà (l'arc-en-ciel) — tout est préfixé `cielArc`.
+- **Mesuré** (banc Chrome sans fenêtre, 844 × 390, Mac, charge 12-20) : 0 programme compilé en course (215 → 215), 60 i/s tenus ; rendu
+  synchronisé 14,3 ms contre 12,2 au main (le vitrail + 6 500 cubes contre 8 000 fantômes ; la photo et la mer, seules, ne coûtaient rien de
+  mesurable : 11,6 = 11,6). Planches : `photos-gameplay/mer-nuages-arc-avant-apres.png`, `mer-nuages-arc-avant-apres-2.png` (CAR CAHS V3).
+
 ## LA VITESSE N'APPARAÎT QU'AU MOTEUR 30 (2026-10-19 soir, v703, Léo : « la vitesse n'apparaît que quand on a atteint le niveau 30, moteur 30 »)
 - Avant le palier 30 (`vdepFonction()` faux), la grille VITESSE DE DÉPART du garage (`#gVdep`) n'est plus montrée du tout : ni « VITESSE »,
   ni les six cadenas. `vdepPlace` pose `#garage.sansVdep` ; dans `<style id="garageHaut">` (code/page/ecrans-garage.html, bloc « SANS LA

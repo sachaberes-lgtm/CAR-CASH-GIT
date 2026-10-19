@@ -102,15 +102,45 @@ const NU_FOND={ // z zénith, m milieu, h horizon (et la brume), s lueur du sole
   /* nuit : PAS de fond peint — la couche du menu la noircissait (le CLAIR DE LUNE bleu-violet de Sacha, 14/10, reste) */};
 const NUF={k:0,on:false,T:null,force:null,av:{},ap:{}};
 for(const m9 in NU_FOND){const S9=SF_CARTES&&SF_CARTES.nuages&&SF_CARTES.nuages.m[m9],B9=S9&&BIOMES[S9.bio],P9=NU_FOND[m9];if(!B9)continue; // la brume des cumulus = l'horizon peint ; l'étalonnage rabattu (le bleu électrique venait AUSSI de là : sat 1,14 · con 1,24)
-  NUF.av[m9]={fog:B9.fog.slice(),sat:B9.sat,con:B9.con};B9.fog=P9.h.slice();if(P9.sat)B9.sat=P9.sat;if(P9.con)B9.con=P9.con;NUF.ap[m9]={fog:B9.fog.slice(),sat:B9.sat,con:B9.con};}
+  NUF.av[m9]={fog:B9.fog.slice(),sat:B9.sat,con:B9.con};B9.fog=P9.h.slice();(NUF.ap0=NUF.ap0||{})[m9]=P9.h.slice();if(P9.sat)B9.sat=P9.sat;if(P9.con)B9.con=P9.con;NUF.ap[m9]={fog:B9.fog.slice(),sat:B9.sat,con:B9.con};}
+/* LE CIEL D'ARC (2026-10-19, essai — Léo : « le ciel dans ARC Raiders est hyper bien fait ; prends les images pour faire un fond plus réaliste
+   encore ; les nuages devant, c'était mieux l'avant-dernière version, avec les cubes, joue plus la transparence »). Les images d'ARC Raiders
+   sont à Embark (protégées) : on garde leur LEÇON — un ciel naturel, un bleu profond qui pâlit dans une brume claire, de vrais nuages, l'air
+   épais sur l'horizon — avec de VRAIES photos libres (Poly Haven, CC0 : kloppenheim_06, wasteland_clouds, belfast_sunset ; assets/ciel/,
+   la moitié haute en 4096 × 1024). Au-dessus de l'horizon : la PHOTO (passe nette, pleine résolution), son soleil calé sur celui du jeu.
+   En dessous : la MER DE CUMULUS (merArc) — un vrai pont de nuages éclairé par notre soleil, qui rejoint l'horizon de la photo. La brume
+   des cumulus du décor prend la couleur de cet horizon. Les nuages devant : le vitrail MOYEN en VERRE (NV_DOSES.verre). La nuit, la pluie,
+   l'orage : inchangés. ?arc=0 = le main d'avant ; dbgCielArc() l'état, dbgCielArc(0|1) A/B sur la même image. */
+const CIEL_ARC={ // f la photo · su/se son soleil (colonne 0-1, hauteur en degrés) · ex l'exposition · mh/mo la mer au soleil / à l'ombre · s le liseré · h l'horizon (la brume des cumulus)
+  matin:{f:'ciel-matin.jpg',su:.612,se:5,ex:.8,ns:0,mi:0,mh:[1,.89,.76],mo:[.44,.52,.70],s:[.85,.55,.30],h:[.74,.72,.72]},
+  midi: {f:'ciel-midi.jpg', su:.603,se:7.5,ex:.8,ns:0,mi:0,mh:[1,.98,.94],mo:[.48,.58,.76],s:[.65,.55,.38],h:[.74,.77,.80]},
+  soir: {f:'ciel-soir.jpg', su:.665,se:3,ex:.9,ns:1,mi:0,mh:[1,.80,.68],mo:[.40,.39,.55],s:[.95,.52,.26],h:[.64,.58,.58]}};
+const CARC={tex:{},mer:null,force:null};
+function cielArcTex(f){let t=CARC.tex[f];if(t)return t.pret?t:null;
+  t=CARC.tex[f]=new THREE.Texture();t.minFilter=THREE.LinearMipmapLinearFilter;t.magFilter=THREE.LinearFilter;t.generateMipmaps=true;t.anisotropy=4;t.wrapS=THREE.RepeatWrapping;t.wrapT=THREE.ClampToEdgeWrapping;
+  const im=new Image();im.onload=function(){t.image=im;t.needsUpdate=true;t.pret=true;};im.src='assets/ciel/'+f;return null;}
+function cielArcMer(){if(CARC.mer)return CARC.mer.pret?CARC.mer:null;const t=CARC.mer=new THREE.Texture();t.minFilter=THREE.LinearMipmapLinearFilter;t.magFilter=THREE.LinearFilter;t.generateMipmaps=true;t.anisotropy=Math.min(16,renderer.capabilities.getMaxAnisotropy());
+  t.wrapS=t.wrapT=THREE.RepeatWrapping;t.premultiplyAlpha=false;const im=new Image();im.onload=function(){t.image=im;t.needsUpdate=true;t.pret=true;};im.src='assets/ciel/mer-cumulus.png';return null;}
+if(ARC_ON){cielArcMer();for(const m9 in CIEL_ARC){cielArcTex(CIEL_ARC[m9].f); // chargées dès le départ (≈ 1 Mo en tout) ; la brume des cumulus = l'horizon de la photo
+  const S9=SF_CARTES&&SF_CARTES.nuages&&SF_CARTES.nuages.m[m9],B9=S9&&BIOMES[S9.bio];if(B9&&NUF.ap[m9]){B9.fog=CIEL_ARC[m9].h.slice();NUF.ap[m9].fog=B9.fog.slice();}}}
+function cielArcPose(m,k){const U=skyU,A=CIEL_ARC[m],on=ARC_ON&&CARC.force!==0&&A&&k>.001,tp=on&&cielArcTex(A.f),tm=on&&cielArcMer();
+  if(tp){U.uPhT.value=tp;U.uPh.value.set(k,A.su,A.se*Math.PI/180,A.ex);U.uPh2.value.y=A.ns||0;}else U.uPh.value.x=0;
+  if(tm&&!A.mi){U.uMrT.value=tm;U.uMr.value.x=1;U.uTMerH.value.fromArray(A.mh);U.uTMerO.value.fromArray(A.mo);U.uTSol.value.fromArray(A.s);}else U.uMr.value.x=0;}
 function nuFondPose(P,k){const U=skyU;U.uTi.value.set(k,P.ca,0,P.hz);U.uTi2.value.set(P.tw||0,P.ry||0,P.cr||.35,0);
   U.uTZen.value.fromArray(P.z);U.uTMid.value.fromArray(P.m);U.uTHor.value.fromArray(P.h);U.uTSol.value.fromArray(P.s);U.uTMerH.value.fromArray(P.mh);U.uTMerO.value.fromArray(P.mo);U.uTCir.value.fromArray(P.c);}
 function nuFondTick(dt){ // à chaque image : la mer de nuages en course → le fond peint (il APPARAÎT en 0,7 s au portail) ; ailleurs, éteint
-  if(typeof CHUTE!=='undefined'&&CHUTE.on)return; // (le menu peint son ciel lui-même)
+  if(typeof CHUTE!=='undefined'&&CHUTE.on){skyU.uPh.value.x=0;skyU.uMr.value.x=0;return;} // (le menu peint son ciel lui-même)
   const c=LVL&&LVL.cur,T=(NUF.force!==0)&&c&&c.carte==='nuages'&&!PARK.on?NU_FOND[c.meteo]:null;if(T)NUF.T=T;
   NUF.k+=((T?1:0)-NUF.k)*(NUF.force!=null?1:Math.min(1,dt*1.5));
-  if(!T&&NUF.k<.002){if(NUF.on){skyU.uTi.value.x=0;NUF.on=false;}NUF.k=0;return;}
-  if(NUF.T){nuFondPose(NUF.T,NUF.k);NUF.on=true;}}
+  if(!T&&NUF.k<.002){if(NUF.on){skyU.uTi.value.x=0;NUF.on=false;}NUF.k=0;skyU.uPh.value.x=0;skyU.uMr.value.x=0;return;}
+  if(NUF.T){nuFondPose(NUF.T,NUF.k);NUF.on=true;cielArcPose(c&&c.meteo,NUF.k);}}
+window.dbgCielArc=function(k,o){if(k!==undefined)CARC.force=k==null?null:+k;o=o||{};const c=LVL&&LVL.cur,m9=c&&c.meteo; // (banc) A/B sur la même image : 0 = le main d avant (fond peint + mer peinte + fantômes), 1 = l essai
+  if(k===0||k===1){const S9=SF_CARTES.nuages.m[m9],B9=S9&&BIOMES[S9.bio];if(B9&&CIEL_ARC[m9]&&NUF.av[m9]){B9.fog=(k===0?(NUF.ap0||{})[m9]||NUF.av[m9].fog:CIEL_ARC[m9].h).slice();bioGo(S9.bio,.01);bioStep(1);}
+    const d9=k===0?'fantome':'verre';if(NV_DOSES[d9]&&o.nuages!==false)dbgNuVit(1,{dose:d9});}
+  for(const q in o)if(CIEL_ARC[m9]&&q in CIEL_ARC[m9])CIEL_ARC[m9][q]=o[q];
+  if(o.mr)skyU.uMr.value.set(skyU.uMr.value.x,o.mr[0],o.mr[1],o.mr[2]);if(o.mr2)skyU.uMr2.value.fromArray(o.mr2); // (banc) la profondeur, la tuile, la couverture · le relief, la brume, l abîme, l ombre
+  nuFondTick(1);if(paused||o.rendre){if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);}
+  return {on:ARC_ON,force:CARC.force,meteo:m9,uPh:skyU.uPh.value.toArray().map(function(v){return +v.toFixed(3);}),uMr:skyU.uMr.value.toArray(),photo:Object.keys(CARC.tex).filter(function(f){return CARC.tex[f].pret;}),mer:!!(CARC.mer&&CARC.mer.pret),dose:NUVIT.dose};};
 window.dbgNuFond=function(k){NUF.force=k==null?null:+k; // (banc) même image : 0 = le ciel d'avant (et sa brume), 1 = le fond peint
   const c=LVL&&LVL.cur,m9=c&&c.meteo,S9=SF_CARTES.nuages.m[m9],B9=S9&&BIOMES[S9.bio],E9=(+k===0?NUF.av:NUF.ap)[m9];
   if(B9&&E9){Object.assign(B9,JSON.parse(JSON.stringify(E9)));bioGo(S9.bio,.01);bioStep(1);}nuFondTick(1);
