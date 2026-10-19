@@ -30454,7 +30454,7 @@ const SHAPES={
             yB=Math.max(U.lin([[-2.07,.84],[-1.98,.88],[-.74,.92],[.62,.72],[2.07,.44]],z),yb+.10),c=yC(z);
       const p4=cab(z)?[.80,yB+.02]:[xw-.08,yB+.005];
       const p5=cab(z)?[U.lin([[-.74,.56],[-.18,.56],[.62,.74]],z),c-.01]:[.50,Math.max(p4[1]+.002,c-.005)];
-      return [[0,yb],[xw-.06,yb],[xw,Math.max(.40,yb+.04)],[xw-.01,yB],p4,p5,[0,c]];
+      return [[0,Math.min(yb,c-.08)],[xw-.06,yb],[xw,Math.max(.40,yb+.04)],[xw-.01,yB],p4,p5,[0,c]]; // (19/10, RONDES) au milieu, le plancher ne monte plus à l'arche : à l'essieu avant il passait 18 cm AU-DESSUS du capot (la tache noire devant le pare-brise)
     },(j,z)=>{
       if(j<=1)return 'k';
       if(j===4&&cab(z))return (z>-.40&&z<.50)?'g':'p';
@@ -35315,9 +35315,10 @@ SHAPES.e_anglaise=function(K){
   // le nez et la poupe : la dernière section complète, réduite en largeur et rognée au profil (la méthode de LA PERLE)
   const AV=2.33,AP=-2.32,S_AV=brut(AV),S_AP=brut(AP);
   const sect=z=>{if(z<=AV&&z>=AP)return brut(z);const s0=z>AV?S_AV:S_AP,kx=xM(z)/xM(z>AV?AV:AP),t=yC(z),b=yBas(z);
+    if(z<AP){const b0=s0[0][1],ky=(t-b)/(s0[s0.length-1][1]-b0);return s0.map(p=>[p[0]*kx,b+(p[1]-b0)*ky]);} // (19/10) la poupe se resserre en BANDES : rognée au profil, ses points s'écrasaient sur la même hauteur et tordaient les facettes (l'éventail au-dessus du feu)
     return s0.map(p=>[p[0]*kx,Math.min(t,Math.max(b,p[1]))]);};
   const zs0=[];for(let z=-2.30;z<=2.30;z+=.10)zs0.push(+z.toFixed(3));
-  for(const z of [2.33,2.36,2.38,2.395,2.403,2.407,-2.33,-2.36,-2.38,-2.385,-2.396,-2.40,ZPB,ZBPB,ZTOIT,ZLUN,ZMALLE,.78,.86,.92,.955,-1.10,-1.20])zs0.push(z);
+  for(const z of [2.33,2.36,2.38,2.395,2.403,2.407,-2.33,-2.36,-2.38,-2.385,-2.396,-2.40,ZPB,ZBPB,ZTOIT,ZLUN,ZMALLE,.78,.86,.92,.955,-1.10,-1.20,-2.275,-2.25,-2.225,-2.175,-2.15,-2.125,-2.05])zs0.push(z); // (19/10) sept tranches de plus aux hanches arrière : la poupe s'y arrondit vite en plan (0,47 → 0,80 m en 20 cm), une tranche tous les 10 cm y tordait les facettes
   for(const w of [ZF,ZR])for(const d of [.08,.17,.25,.32,.37,.40,.415,.43])zs0.push(+(w-d).toFixed(3),+(w+d).toFixed(3));
   const zs=zs0.filter(z=>z>=-2.40&&z<=2.407).sort((a,b)=>a-b).filter((z,i,a)=>i===0||z-a[i-1]>.006);
   const PL=K.kit(PAL);PL.loft(zs,sect,(j,z)=>j<0?'p':j<=1?'k':'p');
