@@ -36,6 +36,67 @@
   INVENTAIRE → JOUER → course · mort → Accueil → GARAGE (les huit touches dessus, `elementFromPoint`) → JOUER → 2e course. 0 exception.
   `?garage=leo` : les mêmes rectangles que le main du 19/10. Pas de Poki (`html.poki`) : intouché.
 
+## LE CANYON ET LES DUNES AU HASARD — L'AXE, LES PIÈCES ET LEUR ORDRE, LE CARACTÈRE DES LIAISONS, LES COUDES (2026-10-19, v701, session tracés canyon + dunes — Sacha : « vérifie bien que toutes les maps sont générées aléatoirement »)
+- **Le constat, mesuré** (banc des tracés, 40 graines, palier 0) : la graine changeait à chaque partie, pas la RECETTE. Le CANYON partait toujours
+  plein nord (−11° à +13°) et enchaînait toujours brèche (4-6 % du parcours) → fer à cheval/raccourci (17-36 %) → arche (65-82 %) → finale (89-92 %) :
+  UN seul ordre sur 40, écart de forme 0,078. Les DUNES : nord (−13° à +8°), crête du Grand Erg → toboggan → raccourci → vagues → vallée morte →
+  obélisques → oasis, trois ordres sur 40, écart 0,062. (« Écart de forme » : les tracés rééchantillonnés en 64 points xz par fraction de longueur,
+  départ à l'origine, distance moyenne entre deux tracés ÷ longueur moyenne ; la jade après son tirage du 18/10 : 0,26.)
+- **Désormais (`CY_HZ` dans genCanyon, `DN_HZ` dans genDunes)**, chaque map tire, dans un hasard à elle (`rh`, né de la graine de l'essai ; la route
+  est bâtie dans l'axe puis TOURNÉE à la fin) :
+  · son AXE : ±55° autour du nord (`axe`) ; la butée de cap ±58°, les recentrages et les boucles se comptent autour de lui ;
+  · ses COUDES : entre deux pièces, deux fois sur trois (`coude`), l'axe tourne de ±10-25°, ±28° au plus (`cmax`) — la route garde son cap, la suite
+    se compte autour du nouvel axe. Le cap reste à moins de 90° de l'axe tiré : la route ne revient jamais sur elle-même (`AX9`, lu par `droite`/`arc`,
+    vaut 0 dans la recette d'avant) ;
+  · ses PIÈCES et leur ORDRE (les pièces d'avant, telles quelles, chacune derrière sa liaison) — CANYON : la Route 67 + la brèche au départ et la
+    finale (le tunnel de grès) gardées ; entre elles un raccourci et une pièce toujours (l'arche ou l'amphithéâtre le plus souvent, poids `PDS` :
+    arche 3, amphithéâtre 3, étroits 2, mine 1,5, chameau 1, bosses 1), puis ce que la longueur tient parmi les autres et un 2e raccourci, le tout
+    mélangé. DUNES : la crête du Grand Erg + le toboggan au départ et l'oasis à l'arrivée gardés ; entre eux un raccourci, les vagues (« de crête en
+    crête ») et DEUX décors parmi la vallée morte, l'allée des obélisques et la deuxième crête, plus ce que la longueur tient ; entre deux pièces, une
+    liaison une fois sur trois seulement (`pl` : comme avant, la vallée suivait les vagues) ;
+  · un CARACTÈRE par liaison, jamais deux fois le même de suite — canyon : méandres (les virages d'avant), gorge (grandes courbes R 300-480 × RS),
+    serpent (S serrés à 1,25-1,6 × RMIN), dérive (la gorge part en biais jusqu'à la butée et y ondule), cassures (courtes droites et coudes) ; dunes :
+    virages, houle (2,2-3 × RMIN), serpent, dérive — ou un MODULE de Sacha (`mod` = 0,6 : six liaisons sur dix ; cSlalom… / dSlalom…, leur paquet
+    `cmPose`/`dmPose`, inchangé) ;
+  · sa PENTE (les liaisons ×0,85-1,2) et sa LONGUEUR : `longueurCible()` × `kL` ±8 % — `kL` = 1,34 au canyon, 1,1 aux dunes, la longueur réelle d'avant
+    (celle sur laquelle LA DURÉE DES MAPS a été mesurée : 46 s au départ). Les longueurs moyennes des pièces (`EST`) viennent du banc, paliers 0 à 25.
+- **Ce qui suit la route sans rien changer** : relief, rivière, parois, plateau en escalier, buttes, Mitaines, station Route 67, arche, cheminées, mine,
+  tunnel ; la mer de dunes, son VENT (il souffle déjà dans l'axe de la descente), l'oasis, la pyramide, obélisques, acacias, caravanes. **Ce qui reste
+  fixé au monde** : le soleil de l'heure (`cyA`) — il ne tombe plus toujours du même côté de la route, comme à la jade — et les trois pyramides de
+  l'horizon du ciel des dunes (`dnHorizon`, ~60° à droite du nord) : selon l'axe, on les a devant, de côté ou dans le dos.
+- **Corrigé au passage — LES MITAINES** (`cyMitaines`) : posées à côté de la Route 67 sans regarder où la route allait ensuite ; avec une brèche, une dérive
+  ou un coude vers elles, MESURÉ 4 canyons sur 40 passaient DANS une butte (360 à 830 m sous sa cime). Une butte dont le pied (1,65 × son grand rayon ;
+  le pouce : rx + 100 m) approche une route s'écarte de 60 m en 60 m (12 fois au plus, sinon elle n'est pas posée), et les trois se tournent avec le cap
+  de la Route 67 (plein nord : rien ne change). Après : 0 sur 40.
+- **MESURÉ APRÈS** — banc des tracés (40 graines) : écart de forme canyon 0,078 → **0,263** (palier 0 ; 0,26 et 0,267 aux paliers 10 et 20), dunes
+  0,062 → **0,235** (0,244 ; 0,252) ; ordres des pièces 1 → **17** (canyon), 3 → **30** (dunes) ; axe −53° à +53° ; longueur réelle ÷ visée 1,34 → 1,33
+  (canyon) et 1,10 → 1,11 (dunes) au palier 0 (au palier 20 : 1,71 → 1,59 et 1,60 → 1,70) ; rayon mini 1,11 × RMIN au palier 0, 1,0 au palier 25, comme
+  avant ; aucun croisement hors des boucles ; séparation des bras 256-387 m (avant 270-383) ; 4-35 ms par tracé. Au palier 0, le canyon porte 2 pièces
+  (33 fois sur 40) ou 3, comme avant (raccourci + arche) : l'arche 13 fois sur 40 (avant 40), l'amphithéâtre 10 (avant 0), les étroits 5, la mine 4,
+  le chameau 7, les bosses 8 ; les dunes toujours 4 pièces : la vallée 33 fois, l'allée 32, la deuxième crête 15 (avant 40, 40, 0).
+- **Dans le jeu** (Chrome sans fenêtre, muet) — 40 constructions du canyon et 30 des dunes par `dbgTrace({carte,palier})`, paliers 0 à 25 : **0 erreur JS** ;
+  la règle d'or (`dbgCanyon('test')`, `dbgDunes('test')` : rien sous ni sur la dalle, aucun décor sur la route) tenue partout aux paliers 0-3 (20 sur 20
+  au canyon, après le correctif des Mitaines) et aux dunes à tous les paliers. Le calcul du monde ne s'allonge pas (médianes 50-170 ms ici, comme avant), sa
+  mémoire GPU monte d'un quart à deux tiers (la boîte englobante d'une route en biais est plus grande : canyon 2,0 → 2,6 Mo au palier 0, 4,5 → 6 Mo au
+  palier 20-25 ; dunes 1,5 → 2,0 Mo et 5,1 → 7,8 Mo). Courses au pilote (`dbgAuto(1,0,{vol:true})`, sans nitro, jusqu'au portail) : canyon **5 sur 5**,
+  dunes **27 sur 28** (dont 20 à graine fixée `?pistegraine=`) — la seule mort : une sortie de route dans le demi-tour d'une boucle à raccourci, lancée
+  à pleine vitesse (la limite connue du pilote, qui ne freine pas : « À la nitro TENUE… » dans LES DUNES D'OR) ; la version d'avant au même banc : 11 sur
+  11 et 3 sur 3. Durées pareilles (dunes 42-77 s jusqu'au portail, avant 46-71 s).
+  Au banc PHOTO (photos.py : son pilote ne dirige PAS en vol), la graine 7 des dunes explosait vers 30 s — des vagues (un module dVagues) y arrivent
+  dès ~25 s, juste après l'allée des obélisques ; rejouée au pilote qui vole : 2 traversées sur 2. Les modules de vagues pouvaient déjà tomber avant
+  le 1er raccourci (la liaison d'avant était un module 4-5 fois sur 5). Fumée d'avant push (menu → JOUER → 12 s de course, canyon puis dunes) :
+  couché, debout et dans le cadre de l'ordi, 0 erreur JS.
+- **Ce qui ne change pas** : `?sans=canyonhasard` / `?sans=duneshasard` = la recette d'avant au tirage près (MESURÉ : 40 tracés sur 40 identiques, chaque map) ;
+  hors JOUER (longueurCible = 0) les maps entières gardent toutes leurs pièces, mélangées. Console : `dbgCanyon().hz` / `dbgDunes().hz` = l'axe, la pente,
+  la longueur visée, les coudes et les pièces dans l'ordre (avec leurs longueurs) ; les champs `hz` passent par le pré-bâti (`prebChampsDe`).
+- **À savoir, pas de nous** : aux hauts paliers, la règle d'or du canyon casse DÉJÀ sur main (MESURÉ avant : 5 constructions sur 6 aux paliers 20-25 et 2 sur 9
+  aux paliers 6-15 — roche ou rivière jusqu'à 50 m dans la dalle, au bord de la route ; après : 4-5 sur 8 et 1-4 sur 12, de 1 à 30 m). Un chantier à part.
+- **À trancher par Sacha** : l'arche n'est plus dans chaque canyon (13 sur 40) — `PDS` la rend plus fréquente ; tourner le soleil ou les pyramides de
+  l'horizon avec l'axe (un réglage chacun) ; l'axe ±55° (la jade : ±45°).
+- Bancs (dans le worktree de la session, `banc-hasard/`, non commités) : `prep.cjs` (la copie avec `__ev`/`__ctrl`, cf. la mémoire « banc des tracés »),
+  `mesure.cjs` (les 40 graines : écart, ordres, caps, longueurs, rayons, croisements ; plans SVG), `construit.cjs` (constructions dans le jeu : erreurs,
+  temps, règle d'or, décors sur la route, mémoire), `course.cjs` (le pilote jusqu'au portail, morts et pièce en cause), `planche.cjs` (la planche AVANT |
+  APRÈS), `photos2.py` (photos.py avec `?pistegraine=`).
 ## LE BRAS DES FIGURES RANGÉ (2026-10-19 soir, v700, Léo : « enlève les bras robots ; quand il y a les tricks, on enlève le truc qui bloque les roues, on le remet sur une autre catégorie ; dans la boutique aussi, le bras enlevé, la voiture posée au sol, elle va faire le trick, tout simplement »)
 - `BRAS_FIG` (faux) : le grand bras robot ne sort plus, ni à l'inventaire ni en boutique ; `?bras=1` rend tout le bras des deux sections
   ci-dessous, à l'identique (pour comparer). Son code reste en place, endormi (`BRB.p` reste à 0 : rien n'est bâti).
