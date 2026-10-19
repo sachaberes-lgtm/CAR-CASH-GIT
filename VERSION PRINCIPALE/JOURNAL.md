@@ -3,6 +3,66 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE BRAS DES FIGURES EN BOUTIQUE (2026-10-19, Léo : « mets aussi les bras robots dans la boutique, onglet FIGURES » · « faut pas qu'il soit orange, faut qu'il soit comme dans la boutique un peu ; travaille un tout petit peu l'animation ; les autres posent la voiture et un autre bras apparaît »)
+- Boutique (salle blanche), catégorie FIGURES (`brasBqVoulu` : GBQ.cat 'figure') : à la 1re figure touchée, les DEUX BRAS D'ARGENT posent la caisse
+  sur le plateau et rentrent dans le socle (`BRB.bqK`, lu par `garBqIndus` — la lévitation descend — et `garBqBras` — ils rentrent une fois la
+  caisse posée ; le PLATEAU reste visible) ; le grand bras sort ensuite du sol et fait la figure, comme à l'atelier. On quitte la catégorie : il
+  rentre, puis les deux bras ressortent et la relèvent. Tant qu'il est là : ni tangage ni roulis au doigt, la vitrine ne tourne plus d'elle-même.
+- L'HABIT par salle (`brasHabille`) : chaque pièce a un rôle ; atelier = le jaune des pinces, boutique = l'argent / graphite / chrome des deux bras
+  (`GBQ.matB`, aucun programme de plus) et leur diode ambre, verte quand il tient ; pas de gorge noire sur le sol blanc. Le bras vit maintenant dans
+  la SCÈNE (GAR.root est éteint en boutique) ; repère posé sur la caisse au repos (`BRB.y0`), le sol 6 cm plus bas (`BRB.dSol`).
+- L'ANIMATION : trajets d'un seul geste (les trois temps se chevauchent : il monte en commençant à tourner) ; un temps SERRE (la diode passe au vert,
+  la caisse décolle de 2,5 cm sous la pression) ; la levée dépasse de ~4 % et se pose (`brasDep`, portée vérifiée à 1,06 × la levée).
+- Mesuré : en boutique les 13 figures avec le bras, 0 traversée, la caisse jamais sous le plateau ; l'inventaire inchangé (13/13, 0 contact).
+  Planche : `photos-gameplay/bras-robot-boutique-avant-apres.png` (dossier CAR CAHS V3).
+
+## LE BRAS DES FIGURES — L'INVENTAIRE, ONGLET FIGURES (2026-10-19, Léo : « au lieu d'avoir une machine qui tient les roues, une machine prête à soulever la voiture et à la faire tourner — faire attention à la physique, que le truc ne passe pas à travers la voiture, cohérent avec ce qu'on a déjà » ; choix : « elle fait la figure » · « onglet FIGURES seulement »)
+- **Ce qui change** : à l'atelier fermé (`GATL.on`), onglet FIGURES (`SHOP.tab 'figure'`), les 4 pinces des roues rentrent (`garAtelierTick`,
+  condition `!brasVoulu()`) et un grand BRAS ROBOT jaune (matières `GATL.M`, 0 programme de plus) sort replié d'une trappe, sur un RAIL posé
+  sur le plateau (rayon `BRB.Rr` 3,95 m, il tourne avec lui). En attente : l'outil 18 cm au-dessus du toit, de trois-quarts arrière vu de la
+  caméra (`BRB.cote`), il glisse sur le rail quand on tourne la caisse. Une figure touchée → `garFigEssai` → `brasFigure` : c'est le bras
+  qui la fait — trajet par le haut, approche sur l'axe, l'outil se déplie, il serre (diode verte, `garage.tole`), soulève, tourne, repose,
+  replie, revient. Les autres onglets : les pinces comme avant. Les autres endroits où une figure se joue (boutique) : inchangés.
+- **La règle anti-traversée** : une rotation laisse son AXE immobile → le patin prend la caisse là où sort l'axe de la figure (flanc =
+  salto/chandelle/rodéo, poupe ou nez = tonneau/shimmy, toit = toupie/hélico, haut du flanc = vrille penchée) ; patin + tige tournent
+  avec la caisse, le boîtier du poignet est au-delà de sa boîte sur l'axe. Deux mouvements : le 1er autour de la verticale → le PLATEAU
+  tourne (`BRB.yaw`, lu par `GAR.pod`) ; sinon une ÉQUERRE à deux pivots (tire-bouchon, cosmique) qui passe hors du rayon de la caisse.
+  Le TAIL WHIP (pivot au nez) passe aussi par le plateau : la caisse est décalée pour poser son nez au-dessus du centre (`pl.sh`).
+  Levée = juste assez pour que caisse et équerre ne touchent pas le plateau (`brasBas`, 97 instants) — et pas plus haut que `BRB.plafond`
+  (5,85 m : la lampe de l'atelier rentre dans le plafond quand le bras est là). Chaque plan est vérifié avant de partir (`brasPlan` : bras
+  en capsules contre la boîte de la caisse et l'équerre, à 61 instants de la figure, la montée, l'approche, et les deux TRAJETS — aller et
+  retour par le haut, `brasCheminSur` essaie plus haut / plus loin s'il touche) ; `dbgBras('plan',id)` dit pourquoi un plan est refusé.
+  Sans plan sûr le bras RENTRE dans sa trappe et la caisse fait la figure seule, comme avant (`libre`), puis il ressort.
+- **S'adapte à la caisse** : la boîte est mesurée sur les SOMMETS (certaines géométries soudées gardent une boîte vide) et le contact du
+  patin au rayon, triangle par triangle ; l'épaule monte avec la caisse (colonne télescopique, `BRB.Hs`) ; devant le nez et la poupe d'une
+  caisse très longue certains crans du rail sont interdits (`brasHovCale`/`brasHovSur`) : il ne s'y arrête ni ne les traverse ; une toupie
+  trop longue pour le poignet passe par le plateau. **Les 57 caisses de la gamme** : 46 font les 13 figures avec le bras ; 11 grandes
+  (ELDORADO, COMÈTE, LE CORBILLARD, LE MUR DU SON, L'ORIGAMI, L'ICEBERG — plus de 6 m — ; LE MASTODONTE, LE BLINDÉ NOIR, SQUALE, LE CAÏD,
+  LE CHARGEUR 69) gardent l'ancienne animation pour les figures qui ne tiennent pas sous le plafond (saltos, cosmique, tire-bouchon…).
+- **Caméra** : `BRB.cK` (recul dans `dV`) et `BRB.cY` (le point que `garCadre` pose dans la place libre monte avec la levée — l'objectif
+  est déjà à 88° en inventaire, le recul seul ne suffisait pas). Pendant que le bras est là, la caisse ne s'écrase plus sous le doigt.
+- **Mesuré** (banc Chrome muet, `dbgBras('verif')` = l'écart réel image par image entre le bras dessiné et la caisse dessinée) : 0 traversée
+  sur toutes les démonstrations jouées (14 caisses × 13 figures), jeu minimal 3,5 cm (tire-bouchon/cosmique), debout et couché ; 0 programme
+  compilé en entrant dans l'onglet ; un toucher = une seule démonstration (la console appelle `garFigEssai` deux fois : la 2e remplace la 1re).
+- Crochets : `dbgBras()` (état), `('plan',id)` (le plan, ou `refus`), `('fig',id)`, `('verif')`, `('lent',k)`, `('fige','tourne',.4)`, `('cam')`,
+  `('caisse',i)` (change la caisse comme l'inventaire — depuis l'onglet VOITURES), `('remesure')`, `('pieces')`.
+  Bancs : scratchpad de la session (`bras/` : s15 photos aux vrais touchers, s17 démonstrations vérifiées par caisse, s19 tour des plans).
+
+## LA VITESSE DE DÉPART — SIX CRANS AU GARAGE, L'ÉTAL DU MOTEUR SOULEVÉ (2026-10-19, session GARAGE — Léo : « choisir le niveau du moteur auquel commencer, en tranches de 5 — six vitesses, dans le garage ; progressif ; à la place de l'affiche record, un étal avec le moteur soulevé qui change avec le niveau choisi, l'affiche à droite »)
+- **Six crans** (`VDEP_PAL` = index 0 · 5 · 10 · 15 · 20 · 25 = paliers 1 · 6 · 11 · 16 · 21 · 26) : 1 = le départ normal. LA FONCTION S'OUVRE AU PALIER 30
+  (Léo : « seulement quand on a atteint le palier trente ») : le TROU NOIR atteint une fois (`SAVE.d.ex.eng`, versé à la fin de chaque partie,
+  `vdepFonction`) ouvre les six crans d'un coup, toast « VITESSE DE DÉPART DÉBLOQUÉE » ; avant, les six cases sont visibles sous CADENAS (son
+  choix) et disent « ATTEINS LE PALIER 30 ». Le code cousin ouvre tout. Choix : `SAVE.d.vdep` (0-5, `san`).
+- **Au départ** : `vdepPose()` remplace la remise à zéro du moteur dans `resetGame`, et tourne dans `sous9` / `jadeJouer` au 1er JOUER (avant la piste) —
+  pièces du palier comptées, nitro pleine. `prebDepCible` bâtit le DÉPART D'AVANCE au palier `vdepPal()` (mesuré : « pris au départ », 0 programme
+  compilé). Auto-école, parc, balade, joueur sans permis : toujours le cran 1.
+- **Au garage** (bloc « LA VITESSE DE DÉPART AU GARAGE », après `afficheTap`) : la grille `#gVdep` (enfant de #gBottom, placée par `vdepPlace` au-dessus
+  de INVENTAIRE · MISSIONS · BOUTIQUE, debout comme couché ; cran fermé = cadenas + toast), l'étiquette « 3 · V8 ATMO » sur le PLAY du garage
+  (`#gVdepTag`) et de l'accueil (`#mVdepTag`, dans #mHome). L'ÉTAL (`vdepEtal`, dans buildGarageRoom) à gauche de la porte (5,95 ; hd−1,4) : socle,
+  vérin, les six moteurs bâtis avec l'atelier (compilés par sa chauffe), un seul visible, qui redescend et remonte au changement. L'affiche des records
+  est passée à DROITE (x −6,45). Les tas de billets évitent les deux. CSS `<style id="vitesseDepart">` avant `#splash`. Console : `dbgVdep()`,
+  `dbgVdep(n)`, `dbgVdep('tout'|'rien')`.
+
 ## LE HOT ROD REFAIT SUR LA PHOTO DE LÉO — v2 → v3 → v3.1 (2026-10-19, v695 — Léo : « au style poli, tu peux vraiment faire un truc mieux… il y a un truc qui vole un peu dans les airs… pour le moteur, joue avec les mini-cubes » puis « écope chromée comme sur ma photo, cabine de coupé 32 plus ronde » ; « oui, mets le HOT ROD v3.1 dans le jeu »)
 - BOÎTES 7adeed96 (v2 : le coupé 32 rouge de sa photo), 159c7f22 (v3), d3ea10be (v3.1) — le détail plus bas, dans les sections de BOÎTES.
 - Ce qui VOLAIT dans le v2 : la coquille de calandre (9 cm au-dessus de sa traverse), la lame de ressort (15 cm au-dessus de l'essieu, sans
