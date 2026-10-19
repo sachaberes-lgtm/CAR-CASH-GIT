@@ -159,6 +159,10 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   buildTrack en générateur `pisteRoute` sur un état fantôme (`prebEchange`, `pisteTravail`), installée au passage (`pisteInstalle`) ; les décors
   d'avance (`prebJade`, `prebDecorG`/`prebDecor` : forêt, volcan, glacier) ; `?prebati=0`, `dbgPrebati()`. ⚠ Dans `pisteRoute` : jamais de
   `scene.add`, jamais d'écriture d'un état vivant hors de la liste échangée ; une génération ou un décor NEUF → `prebChampsDe` / `PREB_PISTES` / `prebDecorG`.
+  LE DÉPART D'AVANCE (19/10, la suite du pré-bâti) : la 1re piste de la partie se bâtit au MENU et à l'ÉCRAN DE FIN (`prebDepTick`/`prebDepCible`, le
+  tirage d'avance `SF.prochain`/`SF.prochainDer`, le contexte du départ `W.ctx` : started, gameOver, SF.pret), prise par sous9 ou resetGame
+  (`prebDepPrend`) ; au JOUER depuis l'accueil après une partie, la piste de sous9 (jamais dessinée) est LÉGÈRE (`sous9(true)`, `PREB.ntLeger`,
+  la caméra reposée par resetGame : `PREB.cam`). ⚠ Tout ce que le départ lit hors de la liste échangée doit valoir la même chose au menu et au départ.
   LES MODULES DE CHAQUE MAP (18/10, Sacha : « au moins 3 par map, sélectionnés automatiquement ») : chaque générateur a SON paquet (≥ 3), mélangé, jamais
   deux fois de suite, dans un hasard à part né de la graine — genCtrl `MCJ`/`mcTire` (ville `mAngles`/`mBretelle`, crypto `mBougie`/`mDents`, vitrée
   `mTour`, orbite `mFronde`/`mHoule`, plus `tSlalom`/`tEpingle`/`tCorde`/`tEsses` des nuages), genBanq `bkSlalom`/`bkEsse`/`bkDouble`, vlcTrace
@@ -281,7 +285,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `orbiteBuild` §0 bis) ; les obstacles SUR la route de l'après-midi sont retirés (18/10).
   (18/10, 3e tour) le bord n'est PLUS un mur : LA CONGÈRE (`bkCongere`, `BK_CG`) — 16 m de neige profonde où l'on s'enfonce et ralentit fort,
   jamais de mort (Sacha : « on doit pas mourir ») ; pente 40-50° pour de vrai (`BK_PENTE4` est une TANGENTE : 43° de moyenne) ; TREMPLINS
-  de 36 m × 7 m à chevrons orange et balises (`BK_BEC`, `bkBecMesh`) ; ~4 × moins de pics ;
+  de 36 m × 7 m à chevrons orange et balises (`BK_BEC`, `bkBecMesh`) ; ~4 × moins de pics ; (19/10) caméra plus haute (`camGlacierM`, monte 2) ;
 - LA VILLE EST TOUJOURS LA NUIT (16/10, Sacha : « la ville-jour, ça marche pas : on abandonne toutes les maps ville-jour ») : ni matin, ni midi, ni soir au
   JOUER ; ses variations sont des TEINTES (violet = la base, vert, jaune, bleu) et des temps de nuit.
   LA VILLE VITRÉE N'EST PLUS UNE MAP DU JOUER (18/10, Sacha : « fusionne les maps ville et ville vitrée ») : ses géantes de verre vivent dans LA VILLE,
@@ -558,6 +562,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LES BORDS DE LA MAP — UNE COULEUR PAR MAP, LE SCINTILLEMENT RGB AU BOOST » (18/10, Léo) — `BMAP_PAL`, `bmapPeint`, `bmapBoost`, `BMAP_U`, `dbgBordsMap`
 - « LA DURÉE DES MAPS — UNE MAP SE COMPTE EN SECONDES » (18/10, Léo) — `DUREE`, `longueurCible`, `DUREE_ALLURE`, `?duree=ancien`, `dbgDuree`
 - « LE PRÉ-BÂTI — LA MAP D'EN FACE SE BÂTIT PENDANT QU'ON ROULE » (18/10, Léo) — `PREB`, `pisteRoute`, `prebEchange`, `prebDecorG`, `?prebati=0`, `dbgPrebati`
+- « LE DÉPART D'AVANCE — LA 1re PISTE DE LA PARTIE SE BÂTIT AU MENU ET À L'ÉCRAN DE FIN » (19/10) — `prebDepTick`, `SF.prochain`, `sous9(true)`, le banc des empreintes
 - « LES NUAGES EN VITRAIL » (18/10, Léo) — `nuage8Calc` opt.vit, `nuVitMats`, `NUVIT`/`NV_DOSES`, `dbgNuVit`
 - « LES NUAGES FANTÔMES + LE FOND PEINT DE LA MER DE NUAGES » (18/10, Léo) — `opt.fant`, `nuFantGeo`, `NUFOND_V`/`NU_FOND`, `dbgNuFond`
 - « LE FONDU DES NUAGES — PLUS DE BASCULE ENTRE LA OUATE ET LES CUBES » (18/10, Sacha) — `NUVIT.fondu`, `nuvPoids`, `COTON.LV`, attribut `aR`, `?sans=nuvitfondu`
