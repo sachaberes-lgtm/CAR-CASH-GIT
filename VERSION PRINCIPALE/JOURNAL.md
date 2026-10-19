@@ -3,6 +3,37 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE ×2 DU GAIN CONTRE UNE PUB + LA PRISE ADMOB DE L'APP (2026-10-19, v684 — Sacha : « prépare les emplacements de pub récompensée dans le jeu (sans module AdMob), on branchera AdMob en v1.1 » ; au quiz : « ×2 sur le gain », « pub maison de 5 s » tant qu'AdMob n'est pas branché, « vraies pubs seulement » pour L'ÉTERNELLE)
+La sortie App Store est prévue ~3 semaines plus tard (~9/11) ; la pub native (AdMob) arrive en v1.1. La SECONDE CHANCE était déjà payée par une pub
+(LA PUB QUI RESSUSCITE, 15/10) : c'est le 2e emplacement.
+- **LE ×2 DU GAIN** (bloc `DBL` juste sous `dbgChance` ; plaque « LE ×2 DU GAIN À L'ÉCRAN DE FIN » sous celle de la seconde chance ; CSS dans
+  `<style id="pubRecompense">`) : à l'écran de fin, la plaque `#mDouble` « ×2 · +$ N · ▶ PUB » — laque au néon VERT de l'argent (`.pb-cash`),
+  jamais l'or (REJOUER reste le seul lingot). Debout : juste sous la plaque d'argent. Couchée : la case `row` au-dessus de ⌂ · REJOUER (celle que
+  NON MERCI tient pendant l'offre). Elle entre 1,1 s après que l'écran est jouable (le compte du grand chiffre est fini). Pub vue jusqu'au bout →
+  ce que la partie a VERSÉ AU COMPTE (`RUNX.verse`, le grand chiffre vert) est versé une 2e fois, le chiffre monte de N à 2 N et claque, la ligne
+  COMPTE suit. UNE fois par partie (`dblRaz` au départ, à côté de `chanceRaz`) ; jamais pendant l'offre de seconde chance, la machine à sous ou
+  une pub (`chanceAttend`, `SPIN.ouvert`, `PUBR.on`) ; pas sous `DBL.min` (50 $), ni au bac à sable, à l'auto-école, au parc, au Survivant, en
+  balade. Pub fermée trop tôt (vraie régie) : rien n'est versé, la plaque revient tout de suite. Ce que la machine à sous verse APRÈS la mort
+  n'est pas doublé (`RUNX.verse` est figé à la mort). Il s'ajoute au ×2 DU JOUR (1re partie du jour : ×4 au total).
+  Sans régie (l'app v1 et le site d'aujourd'hui) : la PUB MAISON de 5 s, dont le pied dit « TON GAIN ×2 APRÈS LA PUB » (`pubMaison(fini,nom)`).
+  `?double=0` éteint tout ; banc `dbgDouble()` / `dbgDouble('joue')`.
+- **L'ÉTERNELLE** (« REGARDE 100 PUBS », `SAVE.d.ex.pubs`) se remplit de nouveau : `pubCompte()` dans `pubRecompense`, pour chaque pub d'une
+  VRAIE régie vue jusqu'au bout. La pub maison ne compte pas (`dbgPub().pubs`).
+- **LA PRISE ADMOB** (« LA RÉGIE ADMOB DE L'APP iPHONE » dans le `<head>` : `CC_ADMOB={recompense:''}` ; « LA RÉGIE ADMOB, CÔTÉ JEU » : `AMOB`,
+  juste au-dessus de la régie AdSense) : ÉTEINTE. Elle ne s'allume que dans l'app (`window.Capacitor`), avec le module natif
+  `@capacitor-community/admob` installé ET l'identifiant du bloc récompensé dans `CC_ADMOB.recompense`. Alors : initialize, consentement RGPD
+  de Google (UMP), fenêtre de suivi d'Apple (ATT), une pub préchargée ; elle pose `CC_PUB_PREPARE`/`CC_PUB_RECOMPENSE` et sert les DEUX
+  emplacements. `?pubtest=1` dans l'app = le bloc de test de Google. ⚠ Écrite sans le module ni Mac : noms d'événements/options de la v5-v7 du
+  module, à vérifier au banc sur un vrai iPhone. **À FAIRE EN v1.1, côté Mac** : `npm i @capacitor-community/admob` + `npx cap sync ios` ; l'App
+  ID AdMob (`GADApplicationIdentifier`), `SKAdNetworkItems` et `NSUserTrackingUsageDescription` dans Info.plist ; l'identifiant du bloc dans
+  `CC_ADMOB.recompense` ; refaire les réponses « confidentialité » de l'App Store (identifiant publicitaire, données d'usage, suivi) ;
+  `app-ads.txt` sur le site du développeur (Vercel).
+- **MESURÉ au banc** (Chrome sans fenêtre, muet, `cc-banc/lib.cjs`, partie de 40 s, 3 000 $ versés, compte 50 000 $) : COUCHÉ 844 × 390 →
+  pendant l'offre de seconde chance la plaque ×2 est cachée ; NON MERCI → elle entre (« ×2 +$ 3 k ▶ PUB », au-dessus de REJOUER, rien ne la
+  recouvre) ; toucher → la pub maison 5 s (« TON GAIN ×2 APRÈS LA PUB ») → compte 53 000 → 56 000, grand chiffre $ 3 k → $ 6 k, plaque partie.
+  Régie qui dit NON → 0 $ versé, offre gardée ; régie qui dit OUI → +3 000 $, sans pub maison, `ex.pubs` 0 → 1. DEBOUT 390 × 844 → la plaque sous
+  l'argent, au-dessus des cartes, REJOUER toujours à l'écran ; même parcours, 53 000 → 56 000. 0 erreur. Fumée commune (`cc-banc/fumee.cjs`) avant la poussée.
+
 ## LA FÉLINE AU BAS DE CAISSE DE LA TYPE E + LES TROIS DERNIÈRES JANTES (2026-10-19, v683, Léo dans RONDES : « oui, la FÉLINE peut partir sur le main » ; et la suite de « applique la correction des jantes à toutes les voitures »)
 - RONDES 342e6368 (LA FÉLINE : arches serrées, lames chromées, poupe, jantes — détail plus bas, section « LA FÉLINE — LE BAS DE CAISSE ») et
   JAPONAISES 855eb347 (L'AIGLE DE FEU, LE MASTODONTE, LE HOT ROD : option `chapeau` de l'enjoliveur — section « LES JANTES DE L'AIGLE DE FEU »).

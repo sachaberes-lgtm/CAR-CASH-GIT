@@ -177,6 +177,16 @@ var CC_ADSENSE='',CC_ADSENSE_SITES=['car-cash-git.vercel.app'];
   window.CC_ADS={test:test,client:CC_ADSENSE||'test'};
   document.head.appendChild(s);
 }catch(e){}})();
+/* LA RÉGIE ADMOB DE L'APP iPHONE (2026-10-19, Sacha : « prépare les emplacements de pub récompensée dans le jeu (sans module AdMob), on
+   branchera AdMob en v1.1 ») — la prise est posée, ÉTEINTE. Le côté jeu est le bloc « LA RÉGIE ADMOB, CÔTÉ JEU », juste au-dessus de
+   « LA RÉGIE ADSENSE, CÔTÉ JEU ». Elle ne s'allume que si les TROIS sont vrais :
+   · on est dans l'app (window.Capacitor : jamais sur le site ni dans une copie locale) ;
+   · le module natif @capacitor-community/admob est installé dans le projet Xcode (Capacitor.Plugins.AdMob) — le travail du Mac en v1.1 ;
+   · CC_ADMOB.recompense porte l'identifiant du BLOC de pub récompensée iOS (« ca-app-pub-…/… », AdMob › Applis › Blocs d'annonces). VIDE = éteinte.
+   `?pubtest=1` dans l'app = le bloc de TEST de Google (ca-app-pub-3940256099942544/1712485313) et isTesting, même sans identifiant.
+   ⚠ À LA v1.1, en plus du module : l'App ID AdMob (GADApplicationIdentifier), SKAdNetworkItems et NSUserTrackingUsageDescription dans
+   Info.plist, et les réponses « confidentialité » de l'App Store (identifiant publicitaire, données d'usage) à refaire. */
+var CC_ADMOB={recompense:''};
 </script>
 <style>
 /* LA PAGE-CADRE : la nuit du jeu, l'écran du téléphone au centre, rien d'autre (tout le reste du document dort, masqué) — la
@@ -6988,6 +6998,21 @@ html:not(.c6) body.chOffre #mDead #mChanceNon:not([hidden]){animation:u8ChMonte 
    Rien ne se touche. Sous le volet (#wipe 300), au-dessus de la machine à sous (250) et des fenêtres (95). */
 html:not(.c6) #mDead #mChance .chP{display:inline-flex;align-items:center;gap:7px}
 html:not(.c6) #mDead #mChance .chP .pxi{--pxs:1.5}
+/* LE ×2 DU GAIN (2026-10-19, Sacha au quiz : « ×2 sur le gain ») — la plaque #mDouble : la touche de laque au néon VERT de l'argent (jamais
+   l'or : REJOUER reste le seul lingot), « ×2 · +$ N · ▶ PUB ». Debout, juste sous la plaque d'argent (même rang -5, après elle) ; couchée, la
+   case `row` de la colonne de droite, au-dessus de ⌂ · REJOUER — celle que NON MERCI tient pendant l'offre de seconde chance. */
+.pb-cash{--nc:var(--cash)}
+html:not(.c6) #mDead #mDouble{order:-5;display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:52px;margin:10px 0 0;
+  padding:0 16px;box-sizing:border-box;font-size:var(--f1);white-space:nowrap}
+html:not(.c6) #mDead #mDouble[hidden]{display:none}
+html:not(.c6) #mDead #mDouble .dbT{font-size:var(--f3);color:var(--cash);text-shadow:0 2px 0 var(--cashO),0 0 10px rgba(125,255,155,.45)}
+html:not(.c6) #mDead #mDouble .dbS{font-weight:400;color:var(--cash);text-shadow:0 2px 0 var(--cashO)}
+html:not(.c6) #mDead #mDouble .dbP{display:inline-flex;align-items:center;gap:7px;font-weight:400}
+html:not(.c6) #mDead #mDouble .dbP .pxi{--pxs:1.5}
+html:not(.c6) #mDead #mDouble.dbOn{animation:u8ChMonte var(--t-slow) var(--ease) both}
+@media (orientation:landscape) and (max-height:540px){
+  html:not(.c6) #mDead #mDouble{grid-area:row;align-self:end;margin:0;min-height:48px}}
+@media (prefers-reduced-motion:reduce){html:not(.c6) #mDead #mDouble.dbOn{animation:none}}
 #pubR{position:fixed;inset:0;z-index:260;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;box-sizing:border-box;
   padding:calc(var(--sT) + 64px) calc(var(--sR) + 16px) calc(var(--sB) + 40px) calc(var(--sL) + 16px);
   background:radial-gradient(ellipse at 50% 52%,var(--k3),var(--k0) 74%);color:var(--tx);font-family:var(--pix);text-align:center;
@@ -42638,7 +42663,7 @@ function runxReset(){m2Raz();/* (2026-10-16) LES MISSIONS v2 : une partie neuve 
 RUNX.coins=RUNX.fruits=RUNX.perfect=0;RUNX.t=RUNX.nitro=0;RUNX.fren=RUNX.frenMax=0;
   RUNX.pwr=RUNX.miracles=RUNX.sfMax=0;RAM.n.fill(0);RAM.ok=false;/* (2026-09-30) le ramassage (dbgRamasse) */try{grisantRaz();}catch(e){} // (2026-09-28) pouvoirs v2 et petits trucs grisants
   try{RUNX.engAvant=(SAVE.d.ex&&SAVE.d.ex.eng)|0;}catch(e){RUNX.engAvant=0;} // le meilleur moteur AVANT la partie : l'écran de fin dit « RECORD ! » s'il est battu
-  try{RUNX.bank0=bank();}catch(e){RUNX.bank0=0;}RUNX.verse=null;chanceRaz();} /* (2026-10-14) une partie neuve, une SECONDE CHANCE neuve */ // la banque AVANT la partie : l'écran de mort remplit la barre depuis là
+  try{RUNX.bank0=bank();}catch(e){RUNX.bank0=0;}RUNX.verse=null;chanceRaz();dblRaz();} /* (2026-10-14) une partie neuve, une SECONDE CHANCE neuve */ // la banque AVANT la partie : l'écran de mort remplit la barre depuis là
 function ecoRond(v){if(v<100)return Math.max(10,Math.round(v/10)*10);const p=Math.pow(10,Math.floor(Math.log10(v))-1);return Math.round(v/p)*p;} // 2 chiffres qui se lisent : 3 125 → 3 100 (le cadeau de l'accueil, CADO)
 /* (2026-10-14) LES CARNETS POP (10 à 12) sont arrivés APRÈS la suite sans fin : un joueur déjà au-delà les a relevés avec d'autres défis —
    on lui remet leur habillage, une fois (sinon il ne pourrait plus jamais l'avoir). */
@@ -54715,6 +54740,52 @@ window.dbgSaut=function(){ if(!started||gameOver||PARK.on)return 'pas de course 
    écran de fin (`gameOver`) : les sons du départ qui précèdent resetGame (JOUER depuis le garage) ne sont jamais touchés. */
 const FIN_SONS=['explosion','explosion.loin','impact.immeuble','mort.vide','mort.arret','mort.air','mort.police',
   'mort.enseigne','mort.compteFin','ui.debloque','ui.record','caisse.debloquee','aura.encaisse1','aura.encaisse2','aura.encaisse3'];
+/* LA RÉGIE ADMOB, CÔTÉ JEU (2026-10-19, Sacha : « prépare les emplacements de pub récompensée dans le jeu (sans module AdMob), on branchera
+   AdMob en v1.1 ») — ÉTEINTE tant que le chargeur du <head> (« LA RÉGIE ADMOB DE L'APP iPHONE » : CC_ADMOB) n'a pas son identifiant ET que
+   le module natif n'est pas dans l'app : aujourd'hui elle ne fait RIEN (AMOB.on faux), la pub maison joue comme avant.
+   Allumée, elle devient la régie de TOUTES les pubs récompensées (seconde chance, ×2 du gain) par les deux crochets que pubRecompense
+   connaît déjà : CC_PUB_PREPARE (l'offre s'ouvre → prepareRewardVideoAd) et CC_PUB_RECOMPENSE (le toucher → showRewardVideoAd).
+   Au lancement de l'app : initialize, le message de consentement RGPD de Google (UMP : requestConsentInfo/showConsentForm, obligatoire en
+   Europe), la fenêtre de suivi d'Apple (ATT : requestTrackingAuthorization), puis une pub préchargée. La fin d'une pub se lit aux
+   ÉVÉNEMENTS du module (récompense gagnée, pub fermée, pub ratée) — pas à la promesse de showRewardVideoAd, qui selon les versions rend
+   la main avant que la pub soit fermée. Rien de prêt au toucher → null → la pub maison. Une pub qui ne rend jamais la main : 150 s, puis
+   « pas vue ». ⚠ ÉCRIT SANS LE MODULE SOUS LA MAIN (aucun Mac ici) : les noms d'événements et d'options sont ceux de
+   @capacitor-community/admob v5-v7 — à vérifier contre la version installée, au banc ?pubtest=1 sur un vrai iPhone. Banc : dbgPub().admob. */
+const AMOB={on:false,pret:false,charge:false,vu:false,res:null,tm:0,etat:'',n:0,init:false};
+(function(){try{
+  const C=window.Capacitor;if(!C)return;
+  let A=C.Plugins&&C.Plugins.AdMob;
+  if(!A&&typeof C.isPluginAvailable==='function'&&C.isPluginAvailable('AdMob')&&typeof C.registerPlugin==='function')A=C.registerPlugin('AdMob');
+  const test=/[?&]pubtest=1\b/.test(location.search),cfg=window.CC_ADMOB||{};
+  const id=test?'ca-app-pub-3940256099942544/1712485313':String(cfg.recompense||'');
+  if(!A||typeof A.prepareRewardVideoAd!=='function'||typeof A.showRewardVideoAd!=='function'||!/^ca-app-pub-\d{10,20}\/\d{6,14}$/.test(id))return;
+  AMOB.on=true;
+  const fin=function(v){clearTimeout(AMOB.tm);const r=AMOB.res;AMOB.res=null;if(r)r(v);};
+  const charge=function(){if(!AMOB.init||AMOB.pret||AMOB.charge||AMOB.res)return;AMOB.charge=true;
+    Promise.resolve().then(function(){return A.prepareRewardVideoAd({adId:id,isTesting:test});})
+      .then(function(){AMOB.charge=false;AMOB.pret=true;AMOB.etat='prête';},function(){AMOB.charge=false;AMOB.etat='pas chargée';});};
+  const ecoute=function(n,f){try{A.addListener(n,f);}catch(e){}};
+  ecoute('onRewardedVideoAdReward',function(){AMOB.vu=true;});
+  ecoute('onRewardedVideoAdDismissed',function(){AMOB.etat='fermée';fin(AMOB.vu);});
+  ecoute('onRewardedVideoAdFailedToShow',function(){AMOB.etat='ratée';fin(null);});
+  const lance=async function(){
+    try{await A.initialize({initializeForTesting:test});}catch(e){}
+    try{if(typeof A.requestConsentInfo==='function'){const ci=await A.requestConsentInfo();
+      if(ci&&ci.isConsentFormAvailable&&ci.status==='REQUIRED'&&typeof A.showConsentForm==='function')await A.showConsentForm();}}catch(e){}
+    try{if(typeof A.trackingAuthorizationStatus==='function'&&typeof A.requestTrackingAuthorization==='function'){
+      const t=await A.trackingAuthorizationStatus();if(t&&t.status==='notDetermined')await A.requestTrackingAuthorization();}}catch(e){}
+    AMOB.init=true;charge();};
+  if(document.readyState==='complete')setTimeout(lance,1500);else addEventListener('load',function(){setTimeout(lance,1500);});
+  window.CC_PUB_PREPARE=function(nom){charge();};
+  window.CC_PUB_RECOMPENSE=function(nom){
+    if(!AMOB.pret||AMOB.res){charge();return null;} // rien de prêt : la pub maison
+    AMOB.pret=false;AMOB.vu=false;AMOB.n++;AMOB.etat='montrée';
+    const p=new Promise(function(res){AMOB.res=res;});
+    AMOB.tm=setTimeout(function(){fin(false);},150000);
+    Promise.resolve().then(function(){return A.showRewardVideoAd();}).then(function(r){if(r&&r.type!=null)AMOB.vu=true;},function(){AMOB.etat='ratée';fin(null);});
+    p.then(function(){setTimeout(charge,1000);}); // la suivante se prépare dès que celle-ci a rendu la main
+    return p;};
+}catch(e){AMOB.on=false;}})();
 /* LA RÉGIE ADSENSE, CÔTÉ JEU (2026-10-15 soir, Sacha : « branche les vraies pubs sur le site web avec Google AdSense (jeux H5) ») — le
    chargeur du <head> (« LA RÉGIE ADSENSE » : CC_ADSENSE, ?pubtest=1) a posé adBreak/adConfig ; on en fait la régie de LA PUB QUI RESSUSCITE.
    Le parcours de Google pour une pub RÉCOMPENSÉE : on DEMANDE une pub quand l'offre s'ouvre (adBreak type 'reward', depuis chanceOuvre :
@@ -54759,7 +54830,7 @@ if(ADS.on){
      n'a pas encore, son nom, son prix ; le compte ROND et la barre disent le temps qui reste ; rien ne se touche ; le temps ne court que
      l'écran allumé. `pubRecompense(nom, fin)` : fin(vue) part UNE fois. `?pub=0` : pas de pub, reprise immédiate. Banc : dbgPub(). */
 const PUBR={on:false,d:5,t:0,tm:0,el:null,mus:false,sans:/[?&]pub=0\b/.test(location.search)};
-Object.assign(I18N,{'PUB':'AD','EN BOUTIQUE':'IN THE SHOP','TA COURSE REPREND APRÈS LA PUB':'YOUR RUN RESUMES AFTER THE AD'});
+Object.assign(I18N,{'PUB':'AD','EN BOUTIQUE':'IN THE SHOP','TA COURSE REPREND APRÈS LA PUB':'YOUR RUN RESUMES AFTER THE AD','TON GAIN ×2 APRÈS LA PUB':'YOUR WINNINGS ×2 AFTER THE AD'});
 function pubSilence(on){try{ // une régie montre SA pub par-dessus le jeu : le jeu se tait (la musique en pause, le contexte audio suspendu), puis reprend
   if(on){PUBR.mus=!!(musicEl&&!musicEl.paused);if(PUBR.mus)musicEl.pause();if(AC&&AC.state==='running')AC.suspend();}
   else{if(AC&&AC.state==='suspended')AC.resume();if(PUBR.mus&&musicVoulue&&!paused)musicJoue();PUBR.mus=false;}}catch(e){}}
@@ -54772,17 +54843,20 @@ function pubRecompense(nom,fin){
   if(typeof regie==='function'){
     let p=null;try{p=regie(nom);}catch(e){p=null;}
     if(p&&typeof p.then==='function'){pubSilence(true); // (15/10 soir, régie AdSense) on ne se tait que si la régie montre VRAIMENT une pub (une promesse) : « rien de prêt » rend null tout de suite
-      p.then(function(v){pubSilence(false);if(v===true||v===false)fini(v);else pubMaison(fini);},function(){pubSilence(false);pubMaison(fini);});}
-    else if(p===true||p===false)fini(p);
-    else pubMaison(fini);
+      p.then(function(v){pubSilence(false);if(v===true)pubCompte();if(v===true||v===false)fini(v);else pubMaison(fini,nom);},function(){pubSilence(false);pubMaison(fini,nom);});}
+    else if(p===true||p===false){if(p)pubCompte();fini(p);}
+    else pubMaison(fini,nom);
     return true;}
-  pubMaison(fini);return true;
+  pubMaison(fini,nom);return true;
 }
+/* (2026-10-19, Sacha au quiz : « vraies pubs seulement ») L'ÉTERNELLE — « REGARDE 100 PUBS » (SAVE.d.ex.pubs) ne se remplissait plus depuis le
+   retrait du kit des portails : chaque pub d'une VRAIE régie (AdMob, AdSense) vue jusqu'au bout compte une. La pub maison ne compte pas. */
+function pubCompte(){try{if(SAVE.d.ex){SAVE.d.ex.pubs=Math.min(1e6,(SAVE.d.ex.pubs|0)+1);SAVE.mark();}}catch(e){}}
 function pubPrepare(nom){try{if(!PUBR.sans&&typeof window.CC_PUB_PREPARE==='function')window.CC_PUB_PREPARE(nom);}catch(e){}} // une offre de pub s'OUVRE (la plaque va paraître) : la régie peut aller chercher sa pub
 function pubCaisse(){ // la caisse de la réclame : une qu'on peut ACHETER à l'argent du jeu et qu'on n'a pas encore (jamais une caisse en euros)
   const L=[],T=[];for(let i=0;i<CARS.length;i++){if(carRetiree(i)||carEuros(i))continue;T.push(i);const u=CAR_UNLOCK[i];if(u&&u.p>0&&!carOwned(i))L.push(i);}
   const P=L.length?L:T;return P.length?P[(Math.random()*P.length)|0]:0;}
-function pubMaison(fini){
+function pubMaison(fini,nom){
   let el=PUBR.el;
   if(!el){el=PUBR.el=document.createElement('div');el.id='pubR';el.hidden=true;el.setAttribute('role','dialog');
     el.innerHTML='<i class="prTag" data-fr="PUB">'+TR('PUB')+'</i><span class="prRond" aria-hidden="true"><b></b></span><img class="prImg" alt=""><b class="prNom"></b>'+
@@ -54795,6 +54869,7 @@ function pubMaison(fini){
   try{el.style.setProperty('--rc',rarInfo(carRar(i)).c);}catch(e){}
   el.querySelector('.prSous').textContent=TR('EN BOUTIQUE')+(u&&u.p>0&&!carOwned(i)?' · '+fmtC(u.p):'');
   el.setAttribute('aria-label',TR('PUB'));
+  {const pd=el.querySelector('.prPied'),k9=nom==='double-gain'?'TON GAIN ×2 APRÈS LA PUB':'TA COURSE REPREND APRÈS LA PUB';if(pd){pd.setAttribute('data-fr',k9);pd.textContent=TR(k9);}} // (2026-10-19) le pied dit ce que la pub va donner : la reprise, ou le ×2 du gain
   try{carPhoto(i,function(s9){if(s9&&PUBR.on)img.src=s9;});}catch(e){}
   el.style.setProperty('--pr','0');el.hidden=false;void el.offsetWidth;el.classList.add('on');
   PUBR.t=0;let t0=performance.now(),vu=-1;const rond=el.querySelector('.prRond b');
@@ -54809,7 +54884,8 @@ addEventListener('keydown',function(e){if(PUBR.on&&PUBR.el&&!PUBR.el.hidden){e.s
 window.dbgPub=function(k){ // banc : dbgPub() l'état · ('fin') la pub maison finit tout de suite · (n) elle dure n s
   if(k==='fin'&&PUBR.on)PUBR.t=PUBR.d;else if(+k>0)PUBR.d=+k;
   return {on:PUBR.on,d:PUBR.d,t:+PUBR.t.toFixed(2),regie:typeof window.CC_PUB_RECOMPENSE==='function',maison:!!(PUBR.el&&!PUBR.el.hidden),chance:!!CHANCE.pub,
-    ads:{on:ADS.on,test:!!(window.CC_ADS&&window.CC_ADS.test),pret:ADS.pret,etat:ADS.etat,n:ADS.n,prete:!!(ADS.b&&ADS.b.show)}};};
+    ads:{on:ADS.on,test:!!(window.CC_ADS&&window.CC_ADS.test),pret:ADS.pret,etat:ADS.etat,n:ADS.n,prete:!!(ADS.b&&ADS.b.show)},
+    admob:{on:AMOB.on,init:AMOB.init,pret:AMOB.pret,etat:AMOB.etat,n:AMOB.n},pubs:(SAVE.d.ex&&SAVE.d.ex.pubs)|0};};
 /* LA SECONDE CHANCE (2026-10-14, Sacha au quiz de 14 h 35 — « façon Subway Surfers » ; le principe vient du CŒUR À LA MORT de l'édition
    ROBLOX). À la mort, l'écran de fin propose UNE fois par partie de CONTINUER — ⚠ depuis le 15/10 soir contre une PUB (voir LA PUB QUI
    RESSUSCITE, juste au-dessus) ; avant, contre de l'ARGENT DU JEU (jamais d'euros) :
@@ -54926,6 +55002,35 @@ window.dbgChance=function(k){ // banc : dbgChance() l'état · ('mort') explose 
   if(k==='$'&&arguments.length>1){money=START_CASH+(+arguments[1]);try{paintMoney();}catch(e){}}
   if(k==='choc'&&started&&!gameOver)explode('tour'); // pendant le bouclier : rien ne doit se passer
   const e=chanceEtat();return {ok:e.ok,prix:e.prix,reste:e.reste,offre:CHANCE.offre,used:CHANCE.used,inv:+CHANCE.inv.toFixed(2),bank:Math.round(bank()),money:Math.round(money),t:+(RUNX.t||0).toFixed(1),gameOver:gameOver,mode:mode,base:chanceBase()};};
+/* LE ×2 DU GAIN (2026-10-19, Sacha au quiz : « ×2 sur le gain » ; « pub maison de 5 s » tant qu'AdMob n'est pas branché) — à l'écran de fin,
+   la plaque ×2 · +$ N · ▶ PUB (#mDouble, voir « LE ×2 DU GAIN À L'ÉCRAN DE FIN ») : une pub vue jusqu'au bout, et ce que la partie a VERSÉ
+   AU COMPTE (le grand chiffre vert, RUNX.verse) est versé une 2e fois. UNE fois par PARTIE (une seconde chance prise ne la rouvre pas : elle
+   n'est proposée qu'à la mort qui finit vraiment la partie), jamais pendant l'offre de seconde chance ni pendant la machine à sous (chacune
+   sa décision : elle attend qu'elles tombent), pas sous DBL.min $ ni au bac à sable, à l'auto-école, au parc, au Survivant, en balade.
+   Sans régie (aujourd'hui : l'app v1 et le site), c'est la pub maison de 5 s qui la paie. Fermée avant la fin (vraie régie) : rien n'est
+   versé, la plaque revient — on peut réessayer. Ce que la machine à sous verse après la mort n'est PAS doublé (RUNX.verse est figé à la mort).
+   `?double=0` éteint tout. Banc : dbgDouble() l'état · ('joue') la touche. */
+const DBL={on:!/[?&]double=0\b/.test(location.search),min:50,used:false,pub:false,v:0};
+function dblRaz(){DBL.used=false;DBL.pub=false;DBL.v=0;}
+function dblGain(){return Math.max(0,Math.floor(RUNX.verse!=null?RUNX.verse:bank()-(RUNX.bank0||0)));}
+function dblEtat(){
+  const v=dblGain();
+  const ok=!!(DBL.on&&!DBL.used&&!DBL.pub&&started&&gameOver&&!SANDBOX&&!TUTO.on&&!TUTO.quitte&&!PARK.on&&!SURV.on&&!BALADE&&v>=DBL.min&&
+    overlay.style.display!=='none'&&!garageOn&&!MENUV.retour&&!chanceAttend()&&!SPIN.ouvert&&!PUBR.on&&!ecranWipe._on&&document.querySelector('#mDead.on'));
+  return {ok:ok,v:v,used:DBL.used,pub:DBL.pub};
+}
+function dblJoue(apres){ // le toucher de la plaque : la pub, puis le 2e versement — apres(vue, v) dit à l'écran de fin ce qui s'est passé
+  const e=dblEtat();if(!e.ok)return false;
+  DBL.pub=true;DBL.v=e.v;
+  const lance=pubRecompense('double-gain',function(vue){DBL.pub=false;const v=DBL.v;
+    const ok=!!(vue&&started&&gameOver&&!DBL.used&&v>0);
+    if(ok){DBL.used=true;SAVE.d.bank=Math.min(1e30,bank()+v);gagneAjoute(v);bankMaxMaj();RUNX.verse=dblGain()+v;SAVE.flush();}
+    try{if(apres)apres(ok,ok?v:0);}catch(e){console.warn('double',e);}});
+  if(!lance){DBL.pub=false;return false;}
+  return true;
+}
+window.dblEtat=dblEtat;
+window.dbgDouble=function(k){if(k==='joue')return dblJoue(window.__dblApres||null);const e=dblEtat();return {ok:e.ok,v:e.v,used:DBL.used,pub:DBL.pub,min:DBL.min,bank:Math.round(bank()),verse:RUNX.verse};};
 function finSonsCoupe(){
   if(!SONV2||!window.CCSON)return;
   try{window.CCSON.annuleFutur(0);for(let i9=0;i9<FIN_SONS.length;i9++)window.CCSON.stop(FIN_SONS[i9]);}catch(e){}
@@ -66495,6 +66600,43 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
        ensuite : la plaque SUIT donc l'offre, relue toutes les 200 ms pendant sa fenêtre (5,5 s + marge), puis se tait. */
     let suitT=0;const suit=function(){maj();clearInterval(suitT);let n=0;suitT=setInterval(function(){maj();if(++n>45)clearInterval(suitT);},200);};
     document.addEventListener('cc:chance',suit);window.__chanceMaj=maj;maj();})();}catch(e){console.warn('seconde chance',e);}
+  /* LE ×2 DU GAIN À L'ÉCRAN DE FIN (2026-10-19, Sacha au quiz : « ×2 sur le gain ») — contrat : dblEtat() → {ok, v}, dblJoue(apres). La plaque
+     #mDouble (laque, néon VERT de l'argent — jamais l'or : REJOUER reste le seul lingot) prend la case que la seconde chance libère : debout
+     sous la plaque d'argent, couchée la case `row` au-dessus de ⌂ · REJOUER (NON MERCI y était pendant l'offre). Elle entre 1,1 s après que
+     l'écran de fin est jouable (le compte du grand chiffre est fini), se relit toutes les 250 ms (l'offre de seconde chance et la machine à
+     sous la font attendre). Vue → le grand chiffre MONTE de N à 2 N et claque, la ligne COMPTE suit ; même garde de 600 ms que les autres
+     touches de l'écran de fin. */
+  try{(function(){const ch=$t('mChance');if(!ch||typeof dblEtat!=='function')return;
+    const el=document.createElement('div');el.id='mDouble';el.className='pbtn pb-cash';el.setAttribute('role','button');el.tabIndex=0;el.hidden=true;
+    el.innerHTML='<span class="dbT">×2</span><b class="dbS"></b><b class="dbP">'+pxi('lecture')+'<span data-fr="PUB">'+TR('PUB')+'</span></b>';
+    ch.parentNode.insertBefore(el,ch);
+    let vu0=0,mort=-1,prep=false,deja=false;
+    const maj=function(){let e=null;try{e=dblEtat();}catch(_){e=null;}const ok=!!(e&&e.ok);
+      if(mort!==TCTL.mortT){mort=TCTL.mortT;prep=false;deja=false;}
+      if(!ok)vu0=0;else if(!vu0)vu0=performance.now();
+      const voir=ok&&(deja||performance.now()-vu0>=1100); // (une pub fermée trop tôt : la plaque revient tout de suite, sans rejouer son entrée)
+      if(voir)deja=true;
+      if(voir){const s9='+'+fmtC(e.v);if(el._s9!==s9){el._s9=s9;el.querySelector('.dbS').textContent=s9;}
+        if(!prep){prep=true;pubPrepare('double-gain');} // la régie va chercher sa pub pendant que la plaque monte
+        el.setAttribute('aria-label','×2 '+s9+' '+TR('PUB'));
+        if(el.hidden){el.hidden=false;el.classList.remove('dbOn');void el.offsetWidth;el.classList.add('dbOn');}}
+      else if(!el.hidden)el.hidden=true;};
+    const monte=function(v){ // le grand chiffre passe de v à 2 v (0,6 s, ease-out), puis claque ; la ligne COMPTE dit le nouveau solde
+      const c9=$t('mCash'),t9=$t('mCashTot');
+      if(t9&&t9.firstChild&&t9.firstChild.nodeType===3)t9.firstChild.nodeValue=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtSolde(bank());
+      try{if(SONV2)sfx('piece.serie');else rewardSfx('m3',2);}catch(_){}hap([10,30,10,30,24]);
+      if(!c9)return;if(mCntT){clearInterval(mCntT);mCntT=0;}
+      c9.style.setProperty('--n',fmtC(2*v).length);
+      if(REDUCED_MOTION){c9.textContent=fmtC(2*v);return;}
+      const t0=performance.now(),D=600;
+      mCntT=setInterval(function(){const k=Math.min(1,(performance.now()-t0)/D),q=1-Math.pow(1-k,3);c9.textContent=fmtC(Math.round(v*(1+q)));
+        if(k>=1){clearInterval(mCntT);mCntT=0;c9.classList.remove('clac');void c9.offsetWidth;c9.classList.add('clac');}},28);};
+    const apres=function(vue,v){if(vue)monte(v);maj();};window.__dblApres=apres;
+    const sourd=function(){return !!(TCTL.mortT&&performance.now()-TCTL.mortT<600);};
+    const go=function(ev){ev.preventDefault();ev.stopPropagation();if(sourd()||el.hidden)return;uiPop(el);uiClic('');hap(8);let r=false;
+      try{r=dblJoue(apres);}catch(_){r=false;}if(!r)uiClic('refus');maj();};
+    el.addEventListener('click',go);el.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' ')go(ev);});
+    setInterval(maj,250);maj();})();}catch(e){console.warn('double',e);}
   if(mob){
     const mHit=function(e){
       const el=e.target&&e.target.closest?e.target.closest('[data-m]'):null;

@@ -115,6 +115,10 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   n'appelle ni `runxReset` ni `resetGame`, elle décale les bases de commitExploits — `chanceBase`). Depuis le 15/10 soir elle se gagne par une
   PUB, plus avec de l'argent : `pubRecompense(nom,fin)`/`PUBR` ; une régie se branche par `window.CC_PUB_RECOMPENSE`, sinon la pub maison `#pubR`.
   Sur le SITE, la régie est AdSense (`CC_ADSENSE` dans le `<head>`, vide = éteinte ; `ADS`, `CC_PUB_PREPARE` ; `?pubtest=1` = le mode test de Google).
+  Dans l'APP, la régie sera AdMob (19/10, prise posée ÉTEINTE : `CC_ADMOB.recompense` dans le `<head>` + le module natif `@capacitor-community/admob`
+  à installer côté Mac en v1.1 ; `AMOB`, `dbgPub().admob`). LE ×2 DU GAIN (19/10) : à l'écran de fin, `#mDouble` « ×2 · +$ N · ▶ PUB » verse une
+  2e fois ce que la partie a versé au compte, une fois par partie (`DBL`, `dblEtat`/`dblJoue`, `?double=0`, `dbgDouble()`). Les vraies pubs vues
+  comptent pour L'ÉTERNELLE (`pubCompte`, `SAVE.d.ex.pubs`), pas la pub maison.
 - **La mort** : `explode` (comptes, musique) → `boomDetone` (la boule DESSINÉE de l'airtime : `spawnBoomArt`, `VOLU`/`DARD`, `BOOM_ONDES`,
   pièces de la caisse) → `BOOM_CAM` (le plan de la mort) → `endGame`. Contre une PAROI, L'IMPACT passe avant : `impPrep(test,cause,marge)`
   trouve le contact et la normale, `IMP`/`impCoupTick` (0,11 s : la caisse s'écrase, étoile, négatif), puis le cratère `IMP_CRAT`, les

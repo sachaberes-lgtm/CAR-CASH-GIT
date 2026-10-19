@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v683'; // v683 (2026-10-19, Léo : « oui, la FÉLINE peut partir sur le main » ; « applique la correction des jantes à toutes les voitures ») : LA FÉLINE au bas de caisse de la Type E (arches serrées, lames chromées, poupe, jantes) ; les jantes de L'AIGLE DE FEU, du MASTODONTE et du HOT ROD
+const CACHE = 'cashcar-v684'; // v684 (2026-10-19, Sacha au quiz : « ×2 sur le gain », « pub maison de 5 s », « vraies pubs seulement ») : LE ×2 DU GAIN contre une pub à l'écran de fin, la prise AdMob de l'app posée éteinte, L'ÉTERNELLE compte les vraies pubs
 // const CACHE = 'cashcar-v682'; // v682 (2026-10-19, Léo : « mets tout ce qui est à valider dans le jeu, et applique la correction des jantes à toutes les voitures ») : L'AFFINEMENT COMPLET — la fente C partout, les formes, les coins en style poly sur ~45 caisses, LA FÉLINE aux ailes séparées, et les VRAIES JANTES pour toutes (ROUES_VRAIES ; ?roues=ancien)
 // const CACHE = 'cashcar-v681'; // v681 (2026-10-19, correctif) : le glacier retrouve ses tremplins, ses pics et sa météo — `let BK_BEC_TEX` n'est plus avalée par un « // »
 // const CACHE = 'cashcar-v680'; // v680 (2026-10-19, Léo : « oui ») : LE CAÏD en HUMMER EV SUV ; l'affinement, lot 1 de RONDES (LA PUCE ronde, LA FÉLINE : phares et roues à rayons, LA QUEUE DE CANARD sans lames) et de JAPONAISES (LA LAME, LA FIDÈLE, LA BÊTE, LA CERISE : plus de damier, rétros retaillés)
