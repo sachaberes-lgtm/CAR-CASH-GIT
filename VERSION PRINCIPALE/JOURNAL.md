@@ -3,6 +3,35 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'AFFINEMENT COMPLET SUR LE MAIN + LES VRAIES JANTES POUR TOUTES (2026-10-19, v682, Léo : « mets tout ce qui est à valider dans le jeu, et applique la correction des jantes à toutes les voitures »)
+- RONDES d9beaad1 (lots 2-4 + LA FÉLINE aux ailes séparées), BOÎTES a921161b (lots 1-4 ; LE CHARGEUR 69 en panneaux plats, style poly),
+  JAPONAISES 1fb3a0cf (lots 2-4 + `lpWheel` réuni). Le détail de chaque caisse : `~/Downloads/CAR-bancs/nouvelles-voitures/AFFINEMENT.md`.
+- **Les jantes** : `lpWheel` = UN seul outil (JAPONAISES en est responsable) — `creux` (≤ 4 cm), `branches`, et la correction GLOBALE des
+  rayons posés en travers (`ROUES_VRAIES`, EN MARCHE : de vraies branches en cuvette sur toutes les caisses du kit qui ne disent rien ;
+  `branches:0` dans une fiche la refuse ; `?roues=ancien` = l'ancien dessin, `dbgRoues()`). Fusion : les 3 conflits de `lpWheel` → la version réunie.
+- Vérifié : les 51 caisses de l'inventaire construites sans exception (photo de chacune), 10 caisses en course sans programme compilé ;
+  quelques programmes compilés au moment d'une EXPLOSION (déjà le cas avant, toutes caisses) — à regarder par une passe perf.
+- Planche de tout le chantier : `photos-gameplay/tout-ce-qui-a-ete-fait.png`.
+
+## LE GLACIER RETROUVE SES TREMPLINS — `BK_BEC_TEX` AVALÉE PAR UN « // » (2026-10-19, v681, correctif — trouvé par la session PERF ; chantier de Sacha, 3e tour du glacier : « les tremplins doivent être plus beaux, gros et visibles »)
+- **La cause** (piège n° 1) : dans le 3e tour du glacier (e66f25b2, 18/10), `let BK_BEC_TEX=null;` était collée derrière le `//` de la ligne
+  `const BK_BEC`. `bkBecTex()` levait donc « ReferenceError: BK_BEC_TEX is not defined » à chaque glacier. L'erreur était attrapée (`window.__banqErr`,
+  `console.warn('Banquise', …)`) et `buildBanqG` s'arrêtait à `bkBecMesh`.
+- **Ce qui manquait depuis le 18/10 au soir** : le maillage des TREMPLINS, alors que `BANQ.kick` était posé (la rampe soulevait la caisse sans se voir),
+  et les maillages de TOUS les pics (`BANQ.picM` = 0), alors que les pics de la piste (`BANQ.obst`) tuaient quand même. Par lecture du code, il manquait
+  aussi la grille physique des pics (`BANQ.picG`/`BANQ.pics`), la mise en file des tranches, `bkPisteNue(true)` et la météo posée à la construction
+  (reprise plus tard par `banqTick`, à .01, sans fondu).
+- **Le correctif** : la déclaration est remise sur SA ligne, et les deux commentaires de `BK_BEC` passent en `/* */`. Rien d'autre ne change.
+- **Mesuré** (Chrome sans fenêtre, `?carte=banquise&meteo=midi&pistegraine=777`, menu → JOUER au doigt, puis `dbgClassique('banquise','soir')` + `dbgSaut()` ;
+  un point d'arrêt conditionnel qui note `BANQ` à la fin de `buildBanqG`) :
+  - AVANT : `__banqErr` = la ReferenceError aux 2 glaciers, la fin de `buildBanqG` n'est jamais atteinte, `picM` 0.
+  - APRÈS : `__banqErr` vide, la fin est atteinte aux deux glaciers (`BANQ.to` posé, k = 0, 6 tremplins, 9 pics de piste, 317 primitives, `picG`), `picM` 18.
+  - 0 erreur couché, debout et dans le cadre de l'ordi (à la souris). Il ne reste que les avertissements `flatShading`, déjà là avant.
+  - Aucune autre déclaration avalée de cette forme dans `index.html` (recherche par motif).
+- **Planche AVANT | APRÈS** et bancs (`glacier.py`, `ordi.py`) : `~/Downloads/CAR-bancs/glacier-bec/`.
+- **À Sacha** : les réglages du 3e tour et de aa2c30ad (nombre de pics, tremplins, « moins d'obstacles ») ont été jugés SANS tremplins ni pics visibles.
+  À rejouer maintenant qu'on les voit.
+
 ## L'AFFINEMENT, 2e ENVOI : LE HUMMER SUV ET LES DEUX PREMIERS LOTS (2026-10-19, v680, Léo : « oui, mets le Hummer SUV et les deux lots dans le jeu »)
 - LE CAÏD en HUMMER EV SUV (BOÎTES 9176c959 : le nez et le détail gardés, la cabine jusqu'au hayon, la roue de secours sur le hayon).
 - RONDES lot 1 (665b7a04) : LA PUCE ronde comme la Mini, LA FÉLINE (phares en goutte à verre clair, roues à rayons), LA QUEUE DE CANARD
@@ -1280,6 +1309,59 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
 
+## AFFINEMENT · LOT 4 BOÎTES — LE HOT ROD, LE MASTODONTE, L'AIGLE DE FEU, LA CABOSSÉE, L'ORIGAMI (2026-10-19, discussion BOÎTES)
+- **LE HOT ROD** (64) : les phares-obus DESCENDUS contre la calandre (y 0,82, x 0,44 : ils flottaient en haut et mordaient dans les pneus),
+  vus de face un jonc chromé, le verre, l'ampoule (le disque ÉMISSIF plein faisait une boule de lumière jaune) ; la calandre EN CREUX — un
+  jonc chromé prolonge l'écusson de 7 cm, la grille au fond, neuf barreaux fins (⚠ la coque `plate` va de z à z + épaisseur : 1,60 → 1,70).
+- **LES JANTES RESTENT À FAIRE** (HOT ROD, MASTODONTE, AIGLE) : `lpWheel` est l'outil commun, JAPONAISES en est désormais le seul
+  responsable (son option `branches`, et le `creux` du lot 2 à réunir) ; la coordination dira quelle option prendre, et Léo si on corrige
+  les jantes de TOUTES les voitures.
+- **LA CABOSSÉE** (79) : le pare-chocs du DESSIN — une bande extrudée qui tourne en rond aux coins et revient sur le flanc sans dépasser la
+  caisse, arêtes chanfreinées (c'étaient des boîtes dont les bouts sortaient aux coins). Ses traits noirs restent (choix de Léo).
+- **L'ORIGAMI** (68) : les joints des portes, du coffre avant et du hayon en FENTE C (`fentePal` : l'inox × ,50 et son fil).
+- Banc : 0 programme compilé en course, couché et debout ; garage sans erreur. Planche : `photos-gameplay/affinement-lot4-boites.png`.
+
+## AFFINEMENT · LOT 3 BOÎTES — LE CHARGEUR, LE CHARGEUR 69, LA NOCTAMBULE, LE CORBILLARD (2026-10-19, discussion BOÎTES)
+- **LE CHARGEUR** (31) : la calandre et la bouche basse en LAMES fines et serrées (c'était un damier de gros carreaux) ; « noir sur noir » :
+  un JONC CHROMÉ de ceinture sous les vitres, la taille se lit (la laque noire voulue par Léo ne bouge pas).
+- **LE CHARGEUR 69** (43) : la laque noire EN PANNEAUX, en style poly (rappel de la coordination : des facettes PLATES, pas de normales
+  lissées sur la tôle) — les facettes voisines presque dans le même plan (< 9° entre elles, < 14° de la première) prennent UNE normale, la
+  moyenne pondérée par l'aire : un reflet net par panneau, les vraies arêtes gardées (des bandes presque parallèles se miraient chacune un
+  bout de ciel violet) ; la calandre AU FOND DE SA BOUCHE (le bord du capot et les bouts d'ailes avancent de 7 cm, le jonc chromé au bord) ;
+  la vitre va jusqu'au montant (une pointe blanche restait devant).
+- **LA NOCTAMBULE** (49) : les LAMES CHROMÉES de la calandre, couchées sur la pente du nez de requin (un panneau noir plat) ; l'aileron en
+  PROFIL D'AILE (bord d'attaque rond, extrados bombé, bord de fuite fin — c'était une boîte).
+- **LE CORBILLARD** (26) : la coque qui RENTRE sous l'arête (un caisson plat) ; les rideaux un ton plus doux, plis deux fois plus nombreux et
+  plus fins, une cantonnière ; les SOURCILS d'aile sur les phares ; le liseré de jupe flottait 7 cm hors de la caisse, le jonc de bas de caisse
+  suit la coque.
+- Banc : 0 programme compilé en course, couché et debout ; garage sans erreur. Planche : `photos-gameplay/affinement-lot3-boites.png`.
+
+## AFFINEMENT · LOT 2 BOÎTES — LA SILENCIEUSE, LA BAVAROISE, LE DÉFIEUR (2026-10-19, discussion BOÎTES)
+- **LA SILENCIEUSE** (36, « une silhouette de Cybertruck ») : pavillon en ARC (un point tous les 30-40 cm du pare-brise à la malle), coupe du
+  toit BOMBÉE (quatre facettes au lieu d'une arête), coque qui rentre sous l'épaule, nez et poupe RONDS vus de dessus (le nez finit à 0,56 de
+  demi-largeur, il était à 0,70), custode arrière noire (un triangle blanc dans la vitre), la barre de pavillon retirée (ses bouts flottaient
+  au-dessus du toit bombé), les portes en FENTE C (la fente arrière s'arrête au-dessus de l'arche, elle la traversait).
+- **LA BAVAROISE** (33) : l'arche RONDE (`AR` en cinq stations ; elle était en trapèze) et le jonc des élargisseurs qui la suit, plus fin ;
+  le pavillon plus large (vitres plus droites : le toit faisait une pyramide), le pli du toit adouci ; les antibrouillards ⌀ 10 cm (13) ;
+  les portes et la jupe en FENTE C ; les jantes CREUSÉES.
+- **LE DÉFIEUR** (32, la Camaro jaune de Sacha) : le pare-brise RECULE (pied à 0,86, il était à 1,06), le capot s'allonge À PLAT jusqu'au nez
+  (0,865 au bout), le pavillon s'allonge vers l'arrière (−0,70) ; la vitre de custode le suit ; rétros reculés avec le pied du pare-brise ;
+  les joints en FENTE C.
+- **LA JANTE CREUSÉE** (`lpWheel`, option `creux` ≤ 4 cm, seules les caisses qui la demandent changent) : la lèvre plonge, chaque rayon est une
+  ARÊTE (deux pans qui prennent chacun leur lumière) qui descend du bord vers le moyeu enfoncé. Mêmes matières : 0 programme de plus.
+- Banc : 0 programme compilé en course, couché et debout ; garage sans erreur. Planche : `photos-gameplay/affinement-lot2-boites.png`.
+
+## AFFINEMENT · LOT 1 BOÎTES — LA FENTE C DANS LA DÉCOUPE EN GRILLE ; LE COMBI, LE BAROUDEUR, LE CAÏD (2026-10-19, discussion BOÎTES)
+- **La fente C branchée** dans la découpe des caisses en grille (COMBI, BAROUDEUR, CAÏD — pas LA CABOSSÉE, qui garde le trait du dessin) :
+  `RLF.j` coupe la tôle à ±g ET ±(g + 1 cm) (`lb`), `dJoint` donne à chaque sommet sa distance SIGNÉE au joint (d > 0 du côté éclairé : le haut
+  ou l'avant ; 0 dans la fente ; 9 = loin), gardée dans le cache de la découpe (`D`) ; au montage, `fenteRGB` (l'outil commun) refait la couleur
+  — peinture de la boutique comprise, la variante lue une fois (`?fente=A` = l'ancien trait). La plongée des bords du joint passe de .55 à .22
+  (l'ombre est dans la couleur). Les joints de vitres (caoutchouc), grilles et noirs restent noirs. 1re construction 17-37 ms (découpe en cache).
+- **LE CAÏD** : les vis des élargisseurs en acier noirci (`V`, elles sortaient en clous blancs) ; le vert anis 0x86f51c → 0x7cb83f (moins fluo,
+  du modelé au garage comme en course ; jugé contre 0x6fbf22 et 0x8cc63f).
+- Tour des coins (dessous, toit, nez, poupe, vu de dessous en vol) : rien d'autre sur ces trois. Banc : 0 programme compilé, couché et debout,
+  garage sans erreur. Planche : photos-gameplay/affinement-lot1-boites.png. Patch : boites/fente_patch.py (relançable).
+
 ## LE CAÏD EN HUMMER EV SUV (2026-10-19, discussion BOÎTES ; Léo : « refais-le en SUV »)
 - Le nez et tout le détail du pick-up gardés ; l'arrière refait sur les cotes du SUV (dimensions.com n'a que le pick-up) : longueur 5,00 roue de
   secours comprise, empattement 3,218, largeur 2,197, hauteur 1,976 (Wikipedia, evspecifications). `ZR` −1,573 → −1,340, `ZT` −2,71 → −1,85.
@@ -1453,6 +1535,57 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   coque. Rien d'autre : dessous fermés, pots et suspensions en place, aucune pièce qui flotte.
 - 0 programme compilé en course (les quatre, banc `jeu.py`), console propre. Pose en jeu (1re / suivante) : LA LAME 66 / 24 ms,
   LA FIDÈLE 63 / 34, LA BÊTE 26 / 20, LA CERISE 42 / 26 (la découpe se fait à la chauffe du menu). Planche : `photos-gameplay/affinement-lot1-japonaises.png`.
+
+## L'AFFINEMENT DES JAPONAISES — LOT 2 : ACIDE · LE SAMOURAÏ · LA ZED · LA VETTE (2026-10-19, discussion JAPONAISES ; caisses de Sacha, oui de Léo)
+- **LES JANTES « DISQUES À CERCLES »** : dans `lpWheel`, les styles `rayons` et `multi` posent leurs planches EN TRAVERS du rayon (rotation `-a` : la
+  longueur part en tangente) — les n planches font un anneau à n pans, aucune branche ne part du moyeu, et ce sur toutes les caisses du kit. Pas changé
+  pour tout le monde (60 caisses) : l'option **`branches:1`** de la fiche `lpw` pose de vraies branches (`Math.PI/2-a`), du moyeu à la lèvre, en
+  cuvette (le bout dehors, le pied 4 cm plus creux, la jante qui plonge derrière la lèvre), plus larges (multi R×.08, rayons R×.15). Branchée sur
+  LE SAMOURAÏ (10), LA VETTE (12), LA ZED (8, branches passées en argent : sombres sur le fond sombre elles ne se lisaient pas).
+- **ACIDE** : les quatre ailes élargies étaient des ellipsoïdes de 1,4 m (`K.sph`, un ballon vernis ; en course 8 × 6 facettes) → une AILE RAPPORTÉE
+  en arche (`K.prof` d'un contour à 8 pans, 10 cm de bande, 30 cm de large, rivets reposés sur sa face) qui couvre le pneu. Ses lignes de portières
+  communes (`doors:1`, des traits noirs posés à W/2 : 6 cm hors du flanc de cette caisse) → `doors:0` et sa propre FENTE plaquée sur la tôle : un
+  `MeshBasicMaterial` en mélange MULTIPLIER (gris .5 : la tôle × .5 sous toutes les lumières, le programme des lignes, aucun de plus) + la poignée
+  contre la portière. ⚠ Au studio d'essai (`dbgEssaiCaisse`), les caisses de `FACET_SHAPES` ne sont PAS taillées (l'essai s'appelle `__essai`) :
+  juger ACIDE en course.
+- **LE SAMOURAÏ** : la lame carbone flottait 7 cm sous le bouclier → deux prismes soudés sous le bouclier (la lame, et son avancée au milieu).
+- **LA ZED** : les lames des pare-chocs (deux barres droites posées devant) suivent le plan du nez et de la poupe et tournent le coin (`lame()`, des
+  tronçons orientés ; butoirs inchangés).
+- **LA VETTE** (la C4 des photos de référence) : `K.kit(fentePal(PAL))` ; la ligne de joint de la coquille en FENTE C (`J` 6 mm + `Jf`) ; le jonc noir
+  de 4,5 cm collé à plat → un PLI de tôle en arête (boîte en losange) et un fin jonc noir de 1 cm sur son arête, comme sur la C4 ; les ouïes : des
+  lames de tôle penchées sur le fond noir (c'étaient des traits noirs).
+- 0 programme compilé en course (les quatre, `jeu.py` au canyon), console propre. Planche : `photos-gameplay/affinement-lot2-japonaises.png`.
+
+## L'AFFINEMENT DES JAPONAISES — LOT 3 : LA STRATOS · LE TRÔNE CENTRAL · LA RAIE · L'ÉTERNELLE (2026-10-19, discussion JAPONAISES ; caisses de Sacha)
+- Les quatre jantes : `branches:1` (STRATOS 5 or, TRÔNE 5 gris magnésium — l'accent sombre passé à 0x9ea3ab —, RAIE 5, ÉTERNELLE 10).
+- **LA STRATOS** : la poupe finissait sur un pan plat à angle droit (un pavé blanc) → quatre tranches au bout (−1,848 · −1,835 · −1,81 · −1,77), la
+  largeur y tourne de 0,86 à 0,68 ; les feux ronds resserrés (.42/.58) et la face noire à 1,34 pour rester sur la face.
+- **LE TRÔNE CENTRAL** : la bulle des phares en chrome (`c` : le réflecteur, c'étaient deux gros yeux noirs) ; six tranches de plus dans le nez.
+- **LA RAIE** (une C3 70-72) : l'ouïe en GRILLE en caisson couleur caisse (3 × 5) dans son creux noir (trois barres chromées posées). Le tube
+  chromé pointillé du bas de caisse est le pot latéral de Léo (`ECH_POTS`) : pas touché.
+- 0 programme compilé en course (les quatre), console propre. Planche : `photos-gameplay/affinement-lot3-japonaises.png`.
+- ⚠ Piège revu : un commentaire posé en bout de ligne au milieu d'une ligne de code avale la suite (les feux de la STRATOS, corrigé aussitôt).
+
+## L'AFFINEMENT DES JAPONAISES — LOT 4 : ROSSO 40 · LE SPECTRE · LE TOFU (2026-10-19, discussion JAPONAISES ; fin de la liste)
+- **ROSSO 40** (Léo garde l'ancienne : « seulement ses jantes et ses traits ») : `branches:1` (cinq branches en étoile) ; sa palette passe par
+  `fentePal` et le trait noir de 4 cm du seuil devient la FENTE C (`J` 6 mm + `Jf` 3 mm). Aucune autre ligne touchée.
+- **LE SPECTRE** (création de Sacha) : `branches:1` (sept branches sous la lèvre néon) ; ses néons et ses facettes restent.
+- **LE TOFU** : tour des coins (dessous, dessus, nez, poupe, en course) — rien à reprendre.
+- 0 programme compilé en course, console propre. Planche : `photos-gameplay/affinement-lot4-japonaises.png`.
+
+## `lpWheel` — LES VRAIES BRANCHES, UN SEUL OUTIL (2026-10-19, discussion JAPONAISES, responsable de lpWheel ; réunit `creux` de BOÎTES et `branches`)
+- **Le défaut** : dans les styles `rayons`/`multi`, les planches sont posées EN TRAVERS du rayon (rotation −a : la longueur part en tangente) — les n
+  planches font un ANNEAU à n pans, aucune branche ne part du moyeu (« les disques à cercles »). Le dessin d'origine est GARDÉ tel quel pour toute fiche
+  qui ne demande rien (vérifié au sommet près, `CAR-bancs/japonaises/roues.py` : 11 fiches types identiques avant / après).
+- **Les vraies branches** (une seule voie, `crW` = la profondeur) : la lèvre plonge, chaque rayon est une ARÊTE en deux pans qui descend LE LONG du rayon
+  du bord vers le moyeu enfoncé (le dessin de BOÎTES, commit 6ef9692b). `creux:d` (≤ 4 cm, BOÎTES) ou `branches:1` (= 4 cm, JAPONAISES). Le `creux` de
+  BOÎTES donne au sommet près la même roue que sur sa branche (LA BAVAROISE ne bouge pas). Les neuf caisses à `branches` passent des planches inclinées
+  aux arêtes. ⚠ À la fusion de `caisses-boites` : le bloc lpWheel est en conflit — garder CELUI-CI (il contient leur `creux`, à l'identique).
+- **La correction GLOBALE, ÉTEINTE** (`ROUES_VRAIES=false`, juste avant `function lpWheel`) : allumée, toute fiche à rayons qui ne dit rien prend les
+  vraies branches (4 cm), et un `accent` trop sombre (luminance < .25) s'éclaircit vers la jante (sinon les branches se perdent sur le fond sombre).
+  `branches:0` dans une fiche la refuse pour elle. Essai : `?roues=vraies`, ou `dbgRoues(1|0)` en console. Concernées : 20 caisses du kit (relevé
+  `roues_liste.py`) — DOLORÈS, CHARGEUR, DÉFIEUR, BAVAROISE, SILENCIEUSE, CHARGEUR 69, DAYTONA, TAURINE, NOCTAMBULE, AIGLE DE FEU, FÉLINE, BLINDÉ NOIR,
+  DRAGON D'OR, MASTODONTE, PUCE, ATCHOUM, SQUALE, ICEBERG, FOURNAISE, DOGE. Planche : `photos-gameplay/roues-branches-globale.png` — Léo décide.
 
 ## LES JAPONAISES — 6 · ROSSO 40 REFAITE AU PLAN (2026-10-18, discussion JAPONAISES, Léo : « complexifie la ROSSO 40, imitation encore plus fidèle et satisfaisante pour les vrais kiffeurs de voiture »)
 - ⚠ **RETIRÉE LE SOIR MÊME** (Léo : « la rosso revient sur avant c'était mieux ») : le bloc `SHAPES.rosso` et son repère sont ôtés de la zone des
