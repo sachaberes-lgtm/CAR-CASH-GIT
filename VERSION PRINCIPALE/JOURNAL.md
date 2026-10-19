@@ -3,7 +3,7 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
-## LE CANYON ET LES DUNES AU HASARD — L'AXE, LES PIÈCES ET LEUR ORDRE, LE CARACTÈRE DES LIAISONS, LES COUDES (2026-10-19, v700, session tracés canyon + dunes — Sacha : « vérifie bien que toutes les maps sont générées aléatoirement »)
+## LE CANYON ET LES DUNES AU HASARD — L'AXE, LES PIÈCES ET LEUR ORDRE, LE CARACTÈRE DES LIAISONS, LES COUDES (2026-10-19, v701, session tracés canyon + dunes — Sacha : « vérifie bien que toutes les maps sont générées aléatoirement »)
 - **Le constat, mesuré** (banc des tracés, 40 graines, palier 0) : la graine changeait à chaque partie, pas la RECETTE. Le CANYON partait toujours
   plein nord (−11° à +13°) et enchaînait toujours brèche (4-6 % du parcours) → fer à cheval/raccourci (17-36 %) → arche (65-82 %) → finale (89-92 %) :
   UN seul ordre sur 40, écart de forme 0,078. Les DUNES : nord (−13° à +8°), crête du Grand Erg → toboggan → raccourci → vagues → vallée morte →
@@ -64,6 +64,18 @@
   `mesure.cjs` (les 40 graines : écart, ordres, caps, longueurs, rayons, croisements ; plans SVG), `construit.cjs` (constructions dans le jeu : erreurs,
   temps, règle d'or, décors sur la route, mémoire), `course.cjs` (le pilote jusqu'au portail, morts et pièce en cause), `planche.cjs` (la planche AVANT |
   APRÈS), `photos2.py` (photos.py avec `?pistegraine=`).
+## LE BRAS DES FIGURES RANGÉ (2026-10-19 soir, v700, Léo : « enlève les bras robots ; quand il y a les tricks, on enlève le truc qui bloque les roues, on le remet sur une autre catégorie ; dans la boutique aussi, le bras enlevé, la voiture posée au sol, elle va faire le trick, tout simplement »)
+- `BRAS_FIG` (faux) : le grand bras robot ne sort plus, ni à l'inventaire ni en boutique ; `?bras=1` rend tout le bras des deux sections
+  ci-dessous, à l'identique (pour comparer). Son code reste en place, endormi (`BRB.p` reste à 0 : rien n'est bâti).
+- INVENTAIRE › FIGURES : les PINCES des roues rentrent dès l'onglet (la règle de `garAtelierTick` déjà posée pour le bras), la lampe reste ;
+  la figure touchée, la caisse la fait SEULE sur le plateau (l'animation d'avant le bras : `GFIG`, `FIG.Corps`). Un autre onglet : les pinces reviennent.
+- BOUTIQUE › FIGURES : dès l'ARRIVÉE dans la catégorie (plus d'attente de la 1re figure), les deux bras d'argent POSENT la caisse sur le plateau
+  et rentrent dans le sol (`BRB.bqK` → 1 sur `enB`) ; la figure se joue seule, posée. Une autre catégorie : ils ressortent et la relèvent.
+- `figPosee()` : la caisse est libre (bras d'argent rentrés et lévitation finie en boutique, pinces rentrées à l'inventaire). Une figure
+  touchée avant (ou celle que `shopShow` lance en ouvrant la catégorie) attend dans `BRB.libre` et part dès que c'est vrai ; on quitte
+  FIGURES : elle tombe.
+- Vérifié au banc (Chrome sans fenêtre, 390 × 844, vrais touchers) : inventaire et boutique, entrée dans TRICKS, BACKFLIP / FRONTFLIP, retour
+  à CARS et à TRICKS — aucune erreur, le bras ne sort jamais. Planche : `CAR CAHS V3/photos-gameplay/figures-sans-bras-avant-apres.png`.
 ## LA FORÊT ET LE GLACIER AU HASARD — L'AXE TIRÉ, LES PELOTES ET LES ARCHES QUI BOUGENT, LA MONTAGNE QUI TOURNE (2026-10-19, v699, session foret-glacier — Sacha : « vérifie bien que toutes les maps sont générées aléatoirement »)
 - **Le constat, mesuré** (banc des tracés, 40 graines, longueur du JOUER aux paliers 0 / 10 / 25) : la graine changeait à chaque partie, pas la
   RECETTE — le défaut que Sacha avait relevé sur la jade (« LA VALLÉE DE JADE AU HASARD », 18/10). LA FORÊT NOIRE partait toujours plein nord

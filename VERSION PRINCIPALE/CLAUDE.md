@@ -204,7 +204,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   (toutes les caisses payantes), `bqEphemeres` (les quatre de la semaine, plus montrées en boutique), la salle blanche 3D `GBQ`/`garBqBatit`/`garBqPanneau`, `gShopJour`,
   `figAchat`/`figPossede`, le FILM AU RALENTI d'une carte FIGURES `figFile`/`figFilm` → `filmPose`/`filmJoue` (studio commun `photoStudio`, pellicule `photoDevPrep`), `eurTxt`, `shopPaye` (la porte StoreKit : elle refuse tout aujourd'hui).
 - **Garage et menus** : `openGarage`/`closeGarage`/`garageRender`, `garMode`/`GMODE`, `GAR`, `garLibre`/`garCadre`, `invOuvre`,
-  LE BRAS DES FIGURES de l'inventaire (`BRB`, `brasVoulu`/`brasTick`/`brasPlan`/`brasFigure`, `dbgBras()` — voir JOURNAL.md),
+  LE BRAS DES FIGURES (`BRB`, `brasVoulu`/`brasTick`/`brasPlan`/`brasFigure`, `dbgBras()` — voir JOURNAL.md) : RANGÉ depuis le 19/10 soir
+  (`BRAS_FIG` faux, `?bras=1` le rend) — en FIGURES les pinces et les bras d'argent rentrent, la caisse fait la figure seule (`figPosee`),
   `hubSync`, l'accueil au ciel `chuteRender`/`CHUTE`/`TITRE_H`, la coque `#mob` (`mGo`, `mTap`, `#mHome`,
   `#mDead`), `ecranWipe`, `modale`, `toast`, `uiGarde`, MISSIONS v2 `M2`/`m2Etat`/`m2Val`/`m2Tick`/`m2Prend` (sauvegarde `SAVE.d.m2` ;
   l'ancien système des carnets est retiré le 18/10 : `SAVE.d.mis` reste lu par `carStat('carnet')`, `m2MigreV2` et le cadeau `popCarnets`/`misPop`).
