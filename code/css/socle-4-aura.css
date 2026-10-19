@@ -1,0 +1,468 @@
+  /* ---- L'AURA v2 — LA CHAÎNE (2026-09-26) : le compteur TOUJOURS visible, et la chaîne en cours dessous — points, multiplicateur,
+     temps restant, et les trois derniers gestes AVEC leurs points. À GAUCHE, sous la pastille FLOW : à droite vit le chrono de vol. ---- */
+  #auraV2{position:fixed;left:calc(var(--ccL,env(safe-area-inset-left,0px)) + 14px);top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 84px);z-index:6;
+    pointer-events:none;font-family:var(--pix);text-align:left;display:none}
+  body.play #auraV2{display:block}
+  #auraHud{display:none!important} /* l'ancienne jauge d'aura (PC) : un seul compteur, celui-ci */
+  #auraV2 .avTot{display:flex;justify-content:flex-start;align-items:baseline;color:#ffd75e;font-size:16px;transform-origin:left center}
+  #auraV2 .avTot em{font-style:normal}
+  #avCh{margin-top:10px;opacity:0;transform:translateX(-10px);transition:opacity var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
+  #avCh.on{opacity:1;transform:none}
+  #avCh .avChTop{display:flex;justify-content:flex-start;align-items:baseline;gap:8px}
+  #avPts{text-shadow:0 2px 0 #000}
+  #avCh .avBar{margin:6px 0;background:rgba(0,0,0,.5)}
+  #avCh .avBar i{display:block;height:100%;background:#ff5ec8;transform-origin:left center}
+  #avList{list-style:none;margin:0;padding:0;line-height:2;color:#dfeeff;text-shadow:0 2px 0 #000,0 0 6px #000}
+  #avList li:first-child{color:#ffd75e}
+  #avGain{position:fixed;left:50%;top:36%;z-index:7;pointer-events:none;font-family:var(--pix);white-space:nowrap;opacity:0;transform:translate(-50%,-50%)}
+  #avGain small{display:block;letter-spacing:2px;margin-bottom:8px}
+  #avGain.on{animation:avGain 1.2s var(--ease) forwards}
+  #avGain.perdu{color:#ff5e7a;text-shadow:0 3px 0 #000,0 0 16px rgba(255,94,122,.8)}
+  @keyframes avGain{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}14%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}
+    72%{opacity:1;transform:translate(-50%,-58%) scale(1)}100%{opacity:0;transform:translate(-50%,-90%) scale(.92)}}
+  @media (prefers-reduced-motion:reduce){#avGain.on{animation-duration:1ms;opacity:1}#auraV2 .avTot.pulse,#avX.up{animation:none}}
+  /* ===== HUD v3 — L'ÉCRAN QUI CLAQUE (2026-09-26, user : « beaucoup plus d'effort pour tous les affichages, plus beaux, plus travaillés,
+     plus jouissifs, plus assumés ») : l'aura dans le VIOLET de l'écran de fin (.hAura b), un multiplicateur qui BAT et EXPLOSE à chaque
+     palier, des annonces qui CLAQUENT au centre (BOOST, pouvoirs, ×5…), les bords de l'écran à la couleur du pouvoir actif. ===== */
+  #avVal{font-size:28px;letter-spacing:1px;background:linear-gradient(180deg,#ffe6ff,#ff7ad5 55%,#b14bff);-webkit-background-clip:text;
+    background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #3a0f4a) drop-shadow(0 0 10px rgba(255,90,220,.55))}
+  #auraV2 .avTot{gap:8px;text-shadow:none}
+  #auraV2 .avTot em{font-size:10px;letter-spacing:3px;color:#ff9ee6;text-shadow:0 2px 0 #3a0f4a,0 0 8px rgba(255,90,220,.6)}
+  #auraV2 .avTot.pulse{animation:avGros .55s cubic-bezier(.2,1.6,.4,1)}
+  @keyframes avGros{0%{transform:scale(1.6)}100%{transform:scale(1)}}
+  #avPts{font-size:15px;color:#fff}
+  #avX{display:inline-block;font-size:30px;transform-origin:center;background:linear-gradient(180deg,#fff 5%,var(--xc,#ff5ec8) 60%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;
+    filter:drop-shadow(0 3px 0 #2a0636) drop-shadow(0 0 12px var(--xc,#ff5ec8));animation:avBat .5s ease-in-out infinite alternate}
+  @keyframes avBat{from{transform:scale(1)}to{transform:scale(1.14)}}
+  #avX.up{animation:avMonte .65s cubic-bezier(.2,1.8,.4,1),avBat .5s ease-in-out .65s infinite alternate}
+  @keyframes avMonte{0%{transform:scale(2.8) rotate(-16deg)}45%{transform:scale(.82) rotate(7deg)}100%{transform:scale(1) rotate(0)}}
+  #avX.feu{animation:avBat .42s ease-in-out infinite alternate,avArc 1.1s linear infinite} /* ×5 et plus : il passe à l'arc-en-ciel */
+  #avX.feu.up{animation:avMonte .65s cubic-bezier(.2,1.8,.4,1),avBat .42s ease-in-out .65s infinite alternate,avArc 1.1s linear infinite}
+  @keyframes avArc{to{filter:drop-shadow(0 3px 0 #2a0636) drop-shadow(0 0 16px var(--xc,#ff5ec8)) hue-rotate(360deg)}}
+  #avCh .avBar{height:6px;width:150px;box-shadow:0 0 10px rgba(255,94,200,.6)}
+  #avList{font-size:9px}
+  #avGain{font-size:36px;background:linear-gradient(180deg,#fff,#ff7ad5 55%,#b14bff);-webkit-background-clip:text;background-clip:text;
+    color:transparent;text-shadow:none;filter:drop-shadow(0 4px 0 #2a0636) drop-shadow(0 0 18px rgba(255,90,220,.85))}
+  #avGain small{font-size:11px;color:#fff;-webkit-text-fill-color:#fff;filter:none}
+  #avGain.perdu{background:linear-gradient(180deg,#fff,#ff5e7a 60%,#b0102a);-webkit-background-clip:text;background-clip:text}
+  /* LA GRANDE ANNONCE : elle CLAQUE au centre haut (BOOST, pouvoirs, paliers du ×) */
+  #slam9{position:fixed;left:50%;top:30%;z-index:41;pointer-events:none;font-family:var(--pix);text-align:center;white-space:nowrap;
+    opacity:0;transform:translate(-50%,-50%)}
+  #slam9 b{display:block;font-size:36px;letter-spacing:2px;background:linear-gradient(180deg,#fff 0%,var(--s1) 42%,var(--s2) 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 #120420) drop-shadow(0 0 16px var(--s1))}
+  #slam9 small{display:block;margin-top:10px;font-size:11px;letter-spacing:3px;color:#fff;text-shadow:0 2px 0 #000,0 0 10px var(--s1)}
+  #slam9.on{animation:slamIn 1.45s var(--ease) forwards}
+  @keyframes slamIn{0%{opacity:0;transform:translate(-50%,-50%) scale(3.2) rotate(-9deg)}11%{opacity:1;transform:translate(-50%,-50%) scale(.88) rotate(2deg)}
+    20%{transform:translate(-50%,-50%) scale(1.07) rotate(0)}28%{transform:translate(-50%,-50%) scale(1)}78%{opacity:1;transform:translate(-50%,-53%) scale(1)}
+    100%{opacity:0;transform:translate(-50%,-72%) scale(.9)}}
+  /* LES BORDS DE L'ÉCRAN à la couleur du pouvoir actif (ils battent) + le FLASH d'un coup de boost */
+  #pwrFx{position:fixed;inset:0;z-index:3;pointer-events:none;display:none;
+    box-shadow:inset 0 0 50px 8px var(--pf),inset 0 0 150px 28px var(--pf2);animation:pwrPuls .6s ease-in-out infinite alternate}
+  #pwrFx.on{display:block}
+  @keyframes pwrPuls{from{opacity:.5}to{opacity:1}}
+  #flash9{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 62%,transparent 28%,var(--ff) 100%)}
+  #flash9.on{animation:flash9 .5s ease-out}
+  #flash9.on2{animation:flash9b .5s ease-out} /* (2026-10-14, OPTIMISATION) la jumelle : alterner on/on2 relance l'animation sans forcer de mise en page */
+  /* (2026-10-05, Léo : « rends plus smooth la transition entre deux niveaux, avec le portail ») LE VOILE DU PASSAGE : posé UNE image avant
+     que le niveau suivant se construise (portailPasse → portPasseNiveau), il couvre le gel de la construction et la coupe de caméra, puis
+     s'ouvre en 0,5 s sur le nouveau monde. Cœur blanc, rose du portail, bords violets. */
+  #portV{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:0;
+    background:radial-gradient(circle at 50% 56%,rgba(255,246,255,1) 0,rgba(255,150,232,.97) 26%,rgba(255,79,216,.96) 48%,rgba(84,26,150,.98) 100%)}
+  @keyframes flash9{0%{opacity:1}100%{opacity:0}}
+  @keyframes flash9b{0%{opacity:1}100%{opacity:0}}
+  /* LES POUVOIRS ACTIFS : de vraies pastilles lumineuses, plus un chiffre en 9 px */
+  #pwrChip{font-size:12px!important;margin-bottom:10px!important;text-shadow:none!important}
+  #pwrChip span{display:inline-block;margin:0 4px;padding:6px 10px;background:#0b0730;box-shadow:inset 0 0 0 2px currentColor,0 0 14px currentColor;
+    clip-path:polygon(5px 0,calc(100% - 5px) 0,100% 5px,100% calc(100% - 5px),calc(100% - 5px) 100%,5px 100%,0 calc(100% - 5px),0 5px);animation:avBat .5s ease-in-out infinite alternate}
+  /* le texte qui jaillit au-dessus de la caisse : plus gros, mieux cerné */
+  #popTxt{font-size:22px;-webkit-text-stroke:0!important;text-shadow:0 3px 0 #0b0730,2px 0 0 #0b0730,-2px 0 0 #0b0730,0 -2px 0 #0b0730,0 0 18px var(--pc)!important;color:var(--pc)!important;top:47%}
+  @media (prefers-reduced-motion:reduce){#slam9.on{animation-duration:1.2s}#avX,#avX.up,#avX.feu,#pwrChip span,#pwrFx{animation:none}}
+  /* ===== HUD v4 — LE TABLEAU DE BORD, PENSÉ COMME UN TOUT (2026-09-26, user : « la fenêtre FLOW en haut est toujours petite ;
+     gère tous les affichages à l'écran en les pensant les uns avec les autres, comme un tout qui rend accro le joueur ») =====
+     LA CARTE DE L'ÉCRAN (portrait) — chaque chose a SA place, plus rien ne se marche dessus :
+       · EN HAUT, CE QU'ON LIT (le tableau de bord) : R1 nitro + ⏸ · R2 la BANDE DU FLOW, pleine largeur · R3 l'AURA en héros et,
+         juste dessous, le RECORD à battre · R4 (à gauche) la CHAÎNE en cours ; à droite, la colonne du chrono de vol et des pouvoirs.
+       · AU CENTRE, LE COULOIR DES ANNONCES (--laneA : sous le tableau de bord, au-dessus de l'horizon) — UNE voix à la fois :
+         la grande annonce (slam) gagne toujours ; le niveau, le dauphin et les contrats s'effacent le temps qu'elle passe.
+       · SUR LA CAISSE, LE GESTE : le texte qui jaillit suit la voiture (au sol comme en vol) ; la carte du moteur s'y pose aussi,
+         et le geste se tait pendant qu'elle est là.
+       · EN BAS, CE QU'ON TOUCHE (volant, NITRO) — rien d'autre.
+     LE SENS DES COULEURS, partout le même : FLOW = la couleur de son palier · $ = vert billet (le FLOW multiplie le CASH, pas l'aura) ·
+     AURA = violet · × de chaîne = son échelle cyan → or → rose → rouge · RECORD = or · danger = rouge.
+     LES CROCHETS (ce qui fait relancer une partie) : une jauge VIDE qui demande à être remplie, le segment qui BAT quand le palier
+     suivant est à portée, la bande qui FUIT puis LÂCHE (en rythme avec le tic sonore), le record de la meilleure partie à battre EN
+     DIRECT, et la chaîne qui s'envole DANS le compteur quand elle s'encaisse. */
+  :root{--hudG:calc(var(--ccL,env(safe-area-inset-left,0px)) + 14px);--hudD:calc(var(--ccR,env(safe-area-inset-right,0px)) + 14px);--hudH:var(--ccT,env(safe-area-inset-top,0px));
+    --laneA:max(40%,calc(var(--ccT,env(safe-area-inset-top,0px)) + 338px));--cashV:#7dff9a;--recOr:#ffd75e;--danger:#ff5e7a;
+    --oct:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px)}
+  /* R2 — LA BANDE DU FLOW : pleine largeur, toujours là */
+  body #flowHud{box-sizing:border-box;z-index:6;border-radius:0;opacity:1;transform:none;
+    box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--fc) 75%,#0b0730),inset 0 -5px 0 rgba(0,0,0,.35),inset 0 3px 0 rgba(255,255,255,.07)}
+  body #flowHud.on{transform:none}
+  body #flowHud .fL{flex:none;font-size:15px;letter-spacing:1px;color:var(--fc);white-space:nowrap;
+    text-shadow:0 2px 0 #0b0730,0 0 12px color-mix(in srgb,var(--fc) 55%,transparent)}
+  body #flowHud .fSeg{flex:1;min-width:0;display:flex}
+  body #flowHud .fSeg i{flex:1;display:block;width:auto;height:auto;position:relative;overflow:hidden}
+  body #flowHud .fSeg s{position:absolute;inset:0;height:auto;background:var(--sc);transform-origin:left center}
+  body #flowHud .fM{flex:none;font-style:normal;font-size:13px;color:var(--cashV);white-space:nowrap;
+    text-shadow:0 2px 0 #06301a,0 0 10px rgba(125,255,154,.45)}
+  body #flowHud[data-lv="0"] .fM{opacity:.4}
+  body #flowHud.presque .fSeg i.cur s{animation:fPresque .3s ease-in-out infinite alternate}   /* le palier suivant est À PORTÉE */
+  @keyframes fPresque{to{filter:brightness(1.8)}}   /* plus de style depuis 1,8 s : ça FUIT */
+  body #flowHud.fuit .fSeg i.cur s{background:repeating-linear-gradient(-45deg,var(--sc) 0 5px,color-mix(in srgb,var(--sc) 40%,#000) 5px 10px)}   /* moins d'1,1 s avant de perdre le palier : ça LÂCHE (au rythme du tic) */
+  /* R3 — L'AURA EN HÉROS, et le RECORD à battre juste dessous */
+  body #auraV2{left:var(--hudG);top:calc(var(--hudH) + 128px);max-width:58vw}
+  /* LE CONTOUR D'ARCADE : le ciel passe du rose pâle au blanc des nuages — un chiffre sans contour s'y DISSOUT (captures du 26/09 :
+     « 1 112 » lilas sur nuage lilas). Quatre ombres dures autour de la lettre, une cinquième dessous pour l'épaisseur. */
+  body #avVal,body #avX{filter:drop-shadow(2px 0 0 #1c0430) drop-shadow(-2px 0 0 #1c0430) drop-shadow(0 2px 0 #1c0430) drop-shadow(0 -2px 0 #1c0430)
+    drop-shadow(0 4px 0 #1c0430)}
+  body #avVal{font-size:32px}
+  body #auraV2 .avTot em,body #avPts,body #avList,#avRec,#avPlus{text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,0 4px 0 #1c0430}
+  body #avCh .avBar{box-shadow:0 0 0 2px #1c0430}
+  body #avList{white-space:nowrap}
+  body #auraV2 .avTot{align-items:center}
+  #avPlus{font-style:normal;font-size:15px;color:#ff9ee6;white-space:nowrap;opacity:0;
+    text-shadow:0 2px 0 #3a0f4a,0 0 10px rgba(255,90,220,.7)}
+  #avPlus.on{animation:avPlus 1.4s var(--ease) forwards}   /* ce que la chaîne vient de verser, à côté du compteur qui grimpe */
+  @keyframes avPlus{0%{opacity:0;transform:translate3d(-18px,16px,0) scale(1.6)}14%{opacity:1;transform:none}72%{opacity:1;transform:none}
+    100%{opacity:0;transform:translate3d(0,-10px,0)}}
+  #avRec{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:10px;letter-spacing:1px;color:var(--recOr);white-space:nowrap;text-shadow:0 2px 0 #000} /* (2026-09-26) l'objectif « encore une » : en OR et lisible, plus en lavande 8 px */
+  #avRec i{display:block;flex:none;width:110px;height:6px;background:rgba(0,0,0,.55);box-shadow:inset 0 0 0 1px rgba(255,215,94,.3)}
+  #avRec s{display:block;height:100%;background:var(--recOr);transform-origin:left center;transform:scaleX(var(--r,0));transition:transform .25s linear}
+  #avRec.vide{display:none}
+  #avRec.presque{color:var(--recOr)}
+  #avRec.presque i{animation:recPresque .45s ease-in-out infinite alternate}
+  @keyframes recPresque{to{box-shadow:inset 0 0 0 1px var(--recOr),0 0 10px var(--recOr)}}
+  #avRec.battu{color:var(--recOr);animation:recBattu .5s steps(2) 5}
+  #avRec.battu s{background:linear-gradient(90deg,#ffd75e,#fff6cf,#ffd75e);background-size:200% 100%;animation:recFile 1s linear infinite}
+  @keyframes recBattu{50%{color:#fff}}
+  @keyframes recFile{to{background-position:-200% 0}}
+  /* R4 — LA CHAÎNE : elle s'ENVOLE dans le compteur quand elle s'encaisse, elle se BRISE quand on la perd */
+  body #avCh{margin-top:14px}
+  body #avCh .avBar{width:160px}
+  body #avCh .avBar.urg i{background:var(--danger);animation:avUrg .18s steps(2) infinite}
+  @keyframes avUrg{50%{opacity:.35}}
+  body #avList{font-size:10px;line-height:1.9}
+  body #avCh.vole{animation:avVole .42s var(--ease) forwards}
+  @keyframes avVole{0%{opacity:1;transform:none}100%{opacity:0;transform:translate3d(8px,-72px,0) scale(.5)}}
+  body #avCh.perdu{animation:avPerdu .6s steps(6) forwards}
+  @keyframes avPerdu{0%{opacity:1;transform:none}30%{transform:translateX(-6px);filter:grayscale(1)}60%{transform:translateX(6px);filter:grayscale(1)}
+    100%{opacity:0;transform:translate3d(0,24px,0);filter:grayscale(1)}}
+  /* LA COLONNE DE DROITE : le chrono de vol, et les POUVOIRS actifs dessous (ils étaient masqués sur téléphone : on ne savait pas
+     combien de secondes de NITRO ∞ il restait) */
+  body.touch #airPie{right:var(--hudD)!important;width:78px!important;height:78px!important}
+  body.touch #pwrChip{position:fixed;right:var(--hudD);z-index:6;margin:0!important;max-width:38vw;
+    flex-direction:column;align-items:flex-end;font-family:var(--pix);pointer-events:none}
+  body.touch #pwrChip[style*="block"]{display:flex!important}
+  body.touch #pwrChip span{margin:0;font-size:10px;padding:7px 9px;white-space:nowrap}
+  body:not(.play) #pwrChip{display:none!important}
+  body:not(.play) #pwrChip[style],body:not(.play) #pwrFx{display:none!important} /* (2026-09-26) même poids que la règle `[style*="block"]` au-dessus, posée APRÈS : elle gagne — les plaques figées restaient sur GAME OVER */
+  /* LE COULOIR DES ANNONCES */
+  body #slam9{top:var(--laneA)}
+  body.touch #lvlBan{top:var(--laneA);transform:translate(-50%,-50%)}
+  body.touch #misBan{top:calc(var(--laneA) - 36px)}
+  body.slamOn #lvlBan,body.slamOn #misBan,body.slamOn #launchLogo{visibility:hidden}
+  #avGain{display:none!important}   /* l'encaissement vit DANS le tableau de bord (et dans le couloir s'il est gros) */
+  body.ebOn #popTxt{visibility:hidden}   /* la carte du moteur est posée sur la caisse : le geste attend */
+  body.coOn #flowHud,body.coOn #auraV2{visibility:hidden}   /* l'auto-école garde le haut de l'écran pour elle */
+  /* ===== LA GAMME EN CINQ FAMILLES (2026-09-26, user : « classe-les en commun, rare, épique, légendaire et défi ; que les
+     catégories soient bien organisées et que ce soit le plus ergonomique possible de naviguer entre toutes ») =====
+     Au garage, onglet VOITURES : (1) la BARRE DES FAMILLES — cinq plaques à la couleur de leur rareté, avec « possédées / total » ;
+     (2) la BANDE DE VIGNETTES — les photos de studio de la famille, qu'on fait défiler au pouce et qu'on touche pour y aller
+     (plus besoin de cliquer 60 fois sur une flèche) ; (3) la fiche, coiffée de sa pastille de rareté. Les flèches restent :
+     elles parcourent la famille puis passent à la suivante. Les couleurs de rareté sont celles de TOUT le jeu vidéo : gris,
+     bleu, violet, or — et vert pour les défis (ça se GAGNE). */
+  @keyframes gTv{to{opacity:.35}}
+  /* ===== LES PETITES ANIMATIONS (2026-09-26, user : « barre de nitro avec des flammes animées quand nitro infini, et plein
+     d'autres petites animations comme ça partout ») — chacune dit quelque chose, aucune ne bouge pour rien =====
+     · la JAUGE EN FEU (#nitroFeu, un feu de particules au pixel de l'écran depuis le 28/09) : brasier en NITRO MAX ;
+     · la jauge chauffée à blanc pendant NITRO MAX (.inf) ;
+     · les POUVOIRS : leur temps restant fond sous le nom, ils clignotent la dernière seconde et demie ;
+     · la BANDE DU FLOW : un reflet la balaie tant qu'on tient un palier ;
+     · le NIVEAU : ses lettres tombent une à une ;
+     · le CHRONO DE VOL tremble sous 1,5 s ;
+     · les grandes annonces heureuses (FRÉNÉSIE, RECORD, ×8, MÉTÉORE, grosse chaîne) éclatent en confettis pixel. */
+  body.touch #nitroBar.inf{box-shadow:inset 0 0 0 3px #fff3c4,0 4px 0 #170f55,0 0 26px rgba(255,170,40,.95),0 0 44px rgba(255,90,20,.55)!important}
+  body.touch #nitroBar.inf #nitroR,body.touch #nitroBar.inf #nitroX{background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.45) 0 6px,transparent 6px 14px),
+    linear-gradient(180deg,#fffbe6 0 3px,#ffd75e 3px 50%,#ffab1a 50% calc(100% - 3px),#c45a00 calc(100% - 3px))!important;background-size:20px 20px,100% 100%!important;
+    animation:nbFile .18s linear infinite!important}
+  body.touch #pwrChip span{position:relative;overflow:hidden}
+  body.touch #pwrChip span i{position:absolute;left:5px;right:5px;bottom:3px;height:3px;background:currentColor;transform-origin:left center;transform:scaleX(var(--p,1));opacity:.85}
+  body.touch #pwrChip span.fin{animation:chipFin .24s steps(2) infinite}
+  @keyframes chipFin{50%{opacity:.25}}
+  body #flowHud:not([data-lv="0"])::after{content:'';position:absolute;top:0;bottom:0;left:-45%;width:38%;pointer-events:none;
+    background:linear-gradient(100deg,transparent,rgba(255,255,255,.2),transparent);animation:fSheen 2.6s var(--ease) infinite}
+  @keyframes fSheen{0%,45%{left:-45%}100%{left:125%}}
+  #lvlBan.on #lvlNum i{display:inline-block;font-style:normal;animation:lvlLettre .5s var(--ease) both}
+  @keyframes lvlLettre{from{opacity:0;transform:translate3d(0,-26px,0) scale(1.7)}to{opacity:1;transform:none}}
+  body.touch #airPie.danger{animation:pieDanger .12s steps(2) infinite}
+  @keyframes pieDanger{50%{transform:translate(2px,-1px) rotate(4deg)}}
+
+  /* ===== LES POUVOIRS EN GROS (2026-09-26, user : « le power-up doit être affiché en gros avec un timer en temps réel ») =====
+     Une grande plaque par pouvoir, dans la colonne de droite : le pictogramme, le nom, et un MINUTEUR à la seconde près qui
+     défile au dixième, sur une jauge qui se vide EN CONTINU (écrite à chaque image — pas en innerHTML). Elle bat à la couleur du
+     pouvoir, et clignote la dernière seconde et demie. Le moteur de l'écran de mort, lui, flotte en 3D (plus de fenêtre). */
+  body.touch #pwrChip{gap:10px}
+  body.touch #pwrChip .pw{position:relative;display:flex;align-items:center;gap:9px;min-width:150px;padding:9px 12px 13px 10px;box-sizing:border-box;
+    background:#0b0730;color:var(--pc);clip-path:var(--oct);box-shadow:inset 0 0 0 3px var(--pc),inset 0 0 18px color-mix(in srgb,var(--pc) 35%,transparent);
+    animation:pwBat .55s ease-in-out infinite alternate}
+  @keyframes pwBat{to{box-shadow:inset 0 0 0 3px var(--pc),inset 0 0 30px color-mix(in srgb,var(--pc) 60%,transparent)}}
+  body.touch #pwrChip .pw i{font-style:normal;font-size:22px;line-height:1}
+  body.touch #pwrChip .pw span{display:flex;flex-direction:column;gap:5px;font-family:var(--pix);padding:0;margin:0;background:none;box-shadow:none;clip-path:none;animation:none;white-space:nowrap}
+  body.touch #pwrChip .pw span small{font-size:8px;letter-spacing:1px;color:#fff}
+  body.touch #pwrChip .pw span b{font-size:20px;font-weight:normal;color:var(--pc);text-shadow:0 2px 0 #000}
+  body.touch #pwrChip .pw u{position:absolute;left:8px;right:8px;bottom:5px;height:4px;background:var(--pc);transform-origin:left center;transform:scaleX(var(--p,1))}
+  body.touch #pwrChip .pw.fin{animation:chipFin .24s steps(2) infinite}
+  @media (prefers-reduced-motion:reduce){body.touch #pwrChip .pw{animation:none}}
+  @media (prefers-reduced-motion:reduce){body.touch #pwrChip span.fin,body #flowHud::after,#lvlBan.on #lvlNum i,body.touch #airPie.danger{animation:none}}
+  @media (prefers-reduced-motion:reduce){body #flowHud.monte,body #flowHud.lache,body #flowHud.presque .fSeg i.cur s,body #flowHud[data-lv="4"] .fSeg,
+    #avRec.battu,#avRec.presque i,body #avCh.vole,body #avCh.perdu{animation:none}#avPlus.on{animation-duration:1ms;opacity:1}}
+  /* ---- LE PLANCHER DE LECTURE (2026-09-25 — rappel de la passe UX du 24/09 : « textes : 8 px minimum ») ----
+     Les blocs du 25/09 (contrats, objectif, boutique, fin v3) étaient redescendus à 6-7 px. Press Start 2P est dessinée sur une
+     grille de 8 : en dessous, ses pixels tombent ENTRE deux pixels d'écran et bavent. Une variable, pour que la règle ne se perde plus. */
+  :root{--fs-min:8px}
+  #misBan .mbTx small,#engBig small{font-size:var(--fs-min)!important}           /* « NOUVEAU RANG ! » : sinon le « ! » passe à la ligne à 375 */   /* la bande descend jusqu'au bord bas de la carte */
+  /* ======================= LE MOUVEMENT — NIVEAU APP STORE (2026-09-25) =======================
+     User : « améliore l'ergonomie, que les transitions entre les écrans soient niveau App Store ». Le passage précédent
+     animait tout en `steps()` (« on anime en PIXELS, pas en fondus mous ») : à 6 images par geste, l'œil lit des SACCADES,
+     et c'est ce qui trahissait le prototype. Les jeux et les apps qu'Apple met en avant bougent autrement : fluide, avec
+     une intention (on AVANCE → l'écran arrive de droite ; on REVIENT → il revient de gauche), et avec une seule loi de
+     mouvement pour tout. D'où, et c'est la charte : UNE courbe (`--ease`, la courbe des feuilles iOS : départ franc,
+     arrivée qui se pose sans rebond) et DEUX durées (`--t-fast` pour l'appui et ce qui s'en va, `--t-slow` pour ce qui
+     arrive). La police et les icônes restent en pixels : c'est l'IDENTITÉ ; seul le mouvement quitte les saccades.
+     Ce bloc est le DERNIER du <style> : il gagne sur les passes précédentes sans les effacer. */
+  :root{--ease:cubic-bezier(.32,.72,0,1);--t-fast:140ms;--t-slow:420ms} /* il apparaît (mort, retour d'atelier) : il se POSE, il ne claque pas */
+  /* ---- LE BOUTON : il s'enfonce sous le doigt, et remonte en douceur au relâcher (plus de rebond en 5 images) ---- */
+  #tGear,.saveBtn,#playBtn{
+    transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease),filter var(--t-fast) var(--ease)!important}
+  #tGear:active,.saveBtn:active,#playBtn:active{transition-duration:50ms!important}
+  /* ---- À LA SOURIS (la version téléphone jouée sur l'ordi) : ce qui se clique le DIT au survol ---- */
+  @media (hover:hover) and (pointer:fine){
+    [data-m],[data-a],[data-c]{cursor:pointer}
+  }
+  /* ---- LES COMMANDES DE COURSE (2026-09-25) : elles se POSENT au départ et s'effacent à la mort, en même temps que l'écran —
+     avant, elles passaient de rien à tout (display) entre 0 et 140 ms après le lâcher, au hasard du tick. Le fondu est sur
+     #tGear, PAS sur #tSet (son parent non positionné : une opacité y changerait l'empilement, la pause passerait sous la NITRO). */
+  body.touch #touchCtl,body.touch #nitroWrap{display:block!important;opacity:0;visibility:hidden;
+    transition:opacity var(--t-fast) var(--ease),transform var(--t-fast) var(--ease),visibility 0s linear var(--t-fast)}
+  body.touch.play #touchCtl,body.touch.play #nitroWrap{opacity:1;visibility:visible;
+    transition:opacity var(--t-slow) var(--ease),transform var(--t-slow) var(--ease),visibility 0s}
+  body.touch:not(.play) #nitroWrap{transform:translate3d(0,-10px,0)}
+  body.touch #tSet{display:block!important} /* #tPanel, lui, reste display:none tant qu'il n'est pas .open */
+  body.touch #tGear{transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease),filter var(--t-fast) var(--ease),opacity var(--t-slow) var(--ease),visibility 0s!important}
+  body.touch #tGear:active{transition-duration:50ms!important}
+  body.touch:not(.play) #tGear{opacity:0;visibility:hidden;pointer-events:none;
+    transition:opacity var(--t-fast) var(--ease),visibility 0s linear var(--t-fast)!important} /* pointer-events coupe TOUT DE SUITE : jamais un ⏸ sur l'écran de mort */
+  /* ---- « RÉDUIRE LES ANIMATIONS » (iOS) : plus aucun déplacement, uniquement des fondus courts — la règle d'Apple ---- */
+  @media (prefers-reduced-motion:reduce){
+    body.touch:not(.play) #nitroWrap{transform:none}
+  }
+  /* ================= PASSE DE FINITION (2026-09-26) — audits son · interface · ergonomie · rendu =================
+     Dernier bloc : il gagne sur l'historique. Chaque règle dit quel défaut mesuré elle corrige. */
+  /* L'AUTO-ÉCOLE SE LIT EN CONDUISANT — la consigne était en 8 px de pixel ; la carte finit bien au-dessus de l'horizon, la place existe */
+  #coach .coSkip{font-size:10px}#spNote.on{opacity:1;animation:spBreath2 2.4s ease-in-out infinite}
+  @keyframes spBreath2{50%{opacity:.72}}
+  /* LA ZONE NITRO — une surface invisible sous le disque : tout le coin bas-droit (hors de la moitié du volant) répond au pouce */
+  #tNitroZone{display:none}
+  body.touch.play #tNitroZone{display:block;position:fixed;right:0;bottom:0;width:46vw;height:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 190px);
+    pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent} /* sans z-index : le disque, posé après, reste dessus */
+  body.touch.tpad #tNitroZone{display:none}
+  /* POURQUOI ON EST MORT — sous GAME OVER, dans la même langue pixel, sans voler la vedette au titre */
+  #slam9.compte.on{animation:slamCompte .3s var(--ease) forwards}
+  @keyframes slamCompte{0%{opacity:0;transform:translate(-50%,-50%) scale(1.6)}35%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:1;transform:translate(-50%,-50%) scale(.94)}}
+  /* ---- INTERFACE PREMIUM (lot 6) ---- */
+  /* 6.1 LES POUVOIRS : icône pixel à la couleur du pouvoir, taille entière (27 px) ; l'éclair de la jauge à 27 px (un multiple de 9 : net) */
+  body.touch #pwrChip .pw>.pxi{--pxs:3;color:var(--pc);filter:drop-shadow(0 2px 0 #000)}
+  body.touch #nitroBar::before{width:27px;height:27px;left:-35px}
+  /* 6.6 LE CONTOUR D'ARCADE partout où le texte passe sur le monde (la ville mangeait le sous-titre du niveau) */
+  #lvlBan span,#tSteerHint{text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,0 4px 0 #1c0430}
+  /* 6.8 LE MOUVEMENT : la jauge de nitro glisse (elle avançait par crans), les pastilles de l'accueil clignotent à l'arrivée puis se posent */
+  body.touch #nitroR,body.touch #nitroX{transition:width var(--t-fast) var(--ease)}
+  /* ===== HUD DE COURSE — VAGUE 2 (2026-09-26, bible « L'ENCRE ET L'OR ») =====
+     Un seul monde peint à l'ENCRE #1c0430 : c'est le contour de chaque lettre du HUD de course, et seule la VALEUR émet (l'or).
+     · la CARTE MOTEUR (H1) : dans le couloir sous le tableau de bord, scène 3D 220 × 147 (le moteur y est RECOLLÉ par WebGL, voir
+       engQuadDraw), numéro en badge sur son épaule, nom dessous ; puis `.plonge` : les textes s'effacent, le moteur entre dans la caisse ;
+     · UNE voix à la fois (H2) : la file `hautPasse` les arbitre ; ces règles-ci ne sont que le filet (carte en place = couloir muet) ;
+     · UN seul traitement de texte (H9) : couleur PLEINE + contour d'encre + lèvre claire en biseau (`::after` sur `data-t`, la rangée
+       de pixels du haut de chaque lettre) — fini le dégradé découpé dans le texte ;
+     · la carte d'ASTUCE / de DÉFI (H8) : plaque pixel du HUD (octogone `--oct`, liseré intérieur), plus de pastille ronde façon iOS. */
+  body #engBig{left:50%;top:50%;width:auto;z-index:40;transform:translate(-50%,-50%) scale(var(--ebS,1));transform-origin:50% 50%;
+    opacity:1;visibility:hidden;animation:none}
+  body #engBig.on{visibility:visible;animation:none;transform:translate(-50%,-50%) scale(var(--ebS,1))}
+  body #engBig .ebCarte{position:relative;width:268px;display:flex;flex-direction:column;align-items:center;gap:0;padding:0;
+    font-family:var(--pix);text-align:center;color:#fff}
+  body #engBig.on .ebCarte{animation:eb2Vie .26s var(--ease) both}
+  body #engBig.plonge .ebCarte{animation:eb2Part .16s linear both}
+  @keyframes eb2Vie{from{opacity:0;transform:scale(1.35)}to{opacity:1;transform:none}}
+  @keyframes eb2Part{from{opacity:1;transform:none}to{opacity:0;transform:scale(.92)}}
+  body #engBig .ebTit{position:relative;z-index:2}
+  body #engBig .ebScene{position:relative;flex:none;width:220px;height:147px}
+  body #engBig .ebCarte>b{position:relative;z-index:2;display:block;line-height:1.2;letter-spacing:1px;white-space:nowrap;
+    background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#ffd75e;-webkit-text-fill-color:currentColor;filter:none;
+    text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,2px 2px 0 #1c0430,-2px 2px 0 #1c0430,2px -2px 0 #1c0430,
+      -2px -2px 0 #1c0430,0 5px 0 #1c0430}
+  body #engBig .ebCarte>b::after,body #slam9 b::after{content:attr(data-t);position:absolute;left:0;top:0;right:0;pointer-events:none;
+    color:#fff3b0;-webkit-text-fill-color:currentColor;text-shadow:none;clip-path:inset(0 0 calc(100% - .225em) 0)}
+  body #engBig.ruban .ebTit,body #engBig.mini .ebTit{visibility:hidden}
+  body #engBig .ebRuban{position:absolute;left:-18px;right:-18px;top:-14px;z-index:3;display:flex;align-items:baseline;justify-content:center;gap:10px;
+    padding:8px 12px 10px;clip-path:var(--oct);transform:rotate(-4deg);
+    background:linear-gradient(180deg,#fff3b0 0 3px,#ffd75e 3px 58%,#f0a818 58%);box-shadow:inset 0 0 0 3px #1c0430,inset 0 -6px 0 #b8860b;
+    animation:eb2Ruban .3s var(--ease) both}
+  body #engBig .ebRuban b{font-size:12px;letter-spacing:1px;line-height:1;background:none;-webkit-background-clip:border-box;background-clip:border-box;
+    color:#2a0e00;-webkit-text-fill-color:currentColor;filter:none;text-shadow:0 2px 0 rgba(255,243,176,.6)}
+  body #engBig .ebRuban small{color:#4a2200;letter-spacing:1px;text-shadow:none}
+  @keyframes eb2Ruban{from{opacity:0;transform:rotate(-4deg) scale(1.7)}to{opacity:1;transform:rotate(-4deg)}}
+  /* (2026-09-28) LA CARTE MOTEUR v4 — voir `engBig` : BANDEAU à la couleur du moteur, NOM, ligne PALIER · +N KM/H, cylindres, moteur.
+     Tout est centré ; l'entrée reste `eb2Vie` (la courbe unique), le gain claque à part (`.gain`) quand le dernier cylindre s'allume. */
+  body #engBig .ebTit{display:inline-block;padding:5px 11px 6px;margin:0 0 8px;clip-path:var(--oct);font-size:9px;letter-spacing:3px;
+    background:color-mix(in srgb,var(--ec) 82%,#fff);color:#1c0430;text-shadow:none}
+  body #engBig.rec .ebTit{background:#ffd75e;color:#2a0e00}
+  body #engBig .ebCarte>b{font-size:22px;margin:0}
+  body #engBig .ebScene{margin:0 0 -18px}
+  /* tant que la carte parle, le couloir se tait (filet de la file) ; pendant la plongée, le geste attend encore */
+  body.ebOn #lvlBan,body.ebOn #slam9,body.ebOn #misBan,body.ebOn #launchLogo,body.ebOn #avRec,body.ebPlonge #popTxt{visibility:hidden}
+  @media (prefers-reduced-motion:reduce){body #engBig.on .ebCarte,body #engBig.plonge .ebCarte,body #engBig .ebRuban{animation:none}
+    body #engBig.plonge .ebCarte{opacity:0}}
+  /* LA GRANDE ANNONCE (H9) : couleur pleine, contour d'encre de 3 px, épaisseur dessous, lèvre claire */
+  body #slam9 b{position:relative;line-height:1.2;background:none;-webkit-background-clip:border-box;background-clip:border-box;
+    color:var(--s1);-webkit-text-fill-color:currentColor;filter:none;
+    text-shadow:3px 0 0 #1c0430,-3px 0 0 #1c0430,0 3px 0 #1c0430,0 -3px 0 #1c0430,3px 3px 0 #1c0430,-3px 3px 0 #1c0430,3px -3px 0 #1c0430,
+      -3px -3px 0 #1c0430,0 7px 0 #1c0430,0 0 22px color-mix(in srgb,var(--s1) 65%,transparent)}
+  body #slam9 b::after{color:color-mix(in srgb,var(--s1) 28%,#fff)}
+  body #slam9 small{color:#fff;text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,0 4px 0 #1c0430}
+  /* LE GESTE SUR LA CAISSE : la même encre que le tableau de bord */
+  body #popTxt{text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,2px 2px 0 #1c0430,-2px 2px 0 #1c0430,2px -2px 0 #1c0430,
+    -2px -2px 0 #1c0430,0 4px 0 #1c0430,0 0 16px var(--pc)!important}
+  /* LA BANNIÈRE DE NIVEAU : l'or en couleur pleine, cerné d'encre comme le reste */
+  body #lvlBan b{text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,2px 2px 0 #1c0430,-2px 2px 0 #1c0430,2px -2px 0 #1c0430,
+    -2px -2px 0 #1c0430,0 5px 0 #1c0430,0 0 20px rgba(255,200,90,.4)}
+  /* LA CARTE D'ASTUCE / DE DÉFI (H8) : plaque pixel du HUD — la même que la bande du FLOW (octogone, liseré intérieur, lèvre et ombre) */
+  body #misBan{--mbC:#62e062;border:0;border-radius:0;clip-path:var(--oct);background:linear-gradient(180deg,#1f185c,#0e0a38);
+    box-shadow:inset 0 0 0 3px var(--mbC),inset 0 0 0 5px #1c0430,inset 0 -6px 0 rgba(0,0,0,.35),inset 0 4px 0 rgba(255,255,255,.07);
+    transition:transform var(--t-fast) var(--ease),opacity var(--t-fast) var(--ease)}
+  body #misBan.astuce{--mbC:#5ee6ff}
+  body #misBan .mbIco{border-radius:0;color:#1c0430;background:var(--mbC);
+    clip-path:polygon(5px 0,calc(100% - 5px) 0,100% 5px,100% calc(100% - 5px),calc(100% - 5px) 100%,5px 100%,0 calc(100% - 5px),0 5px);
+    box-shadow:inset 0 -5px 0 rgba(0,0,0,.28),inset 0 3px 0 rgba(255,255,255,.45)}
+  body #misBan.on .mbIco{animation:mbIco var(--t-slow) var(--ease)}
+  body #misBan .mbTx small{color:var(--mbC);text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430}
+  body #misBan .mbTx span{text-shadow:0 2px 0 #1c0430}
+  body #misBan .mbPrime{border-radius:0;color:#2a0e00;clip-path:polygon(4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px),0 4px);
+    background:linear-gradient(180deg,#fff3b0 0 2px,#ffd75e 2px 60%,#f0a818 60%);box-shadow:inset 0 0 0 2px #1c0430,inset 0 -4px 0 #b8860b}
+  /* ===== HUD DE COURSE — VAGUE 3 (2026-09-27) =====
+     (1) LA JAUGE DU FLOW, SŒUR DE LA NITRO — user : « la barre de flow doit ressembler à celle de nitro mais en dessous et plus fine ».
+         La plaque octogonale de 44 px pleine largeur devient une JAUGE de la même famille que la nitro : même cadre d'encre de 3 px,
+         même fond nuit, même lèvre dessous, même reflet qui la balaie, même curseur blanc au bout du remplissage, et son pictogramme
+         pixel en tête — la VAGUE (18 px = 2 px par pixel), rangée sous l'éclair. Mêmes bords gauche/droit que la nitro, 14 px de haut
+         (58 % de ses 24). Les quatre paliers restent lisibles : quatre cellules séparées d'une encoche, chacune à la couleur de SON
+         palier. Dessous, en 10 px cerné d'encre : le NOM du palier (sa couleur) à gauche, ce qu'il VAUT à droite ($×, vert billet).
+         Le tableau de bord remonte de 32 px (aura, chrono de vol, pouvoirs) : la route gagne ce que la bande a rendu. */
+  :root{--pxi-flot:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 9' shape-rendering='crispEdges'%3E%3Cpath d='M1 1h3v1h-3zM0 2h2v1h-2zM3 2h2v1h-2zM8 2h1v1h-1zM0 3h1v1h-1zM4 3h2v1h-2zM7 3h2v1h-2zM5 4h3v1h-3zM1 5h3v1h-3zM0 6h2v1h-2zM3 6h2v1h-2zM8 6h1v1h-1zM0 7h1v1h-1zM4 7h2v1h-2zM7 7h2v1h-2zM5 8h3v1h-3z'/%3E%3C/svg%3E")}
+  body #flowHud{left:var(--hudG);right:calc(var(--ccR,env(safe-area-inset-right,0px)) + 64px);top:calc(var(--hudH) + 52px);height:auto;padding:0 0 0 34px;
+    display:grid;grid-template-columns:1fr auto;grid-template-rows:14px auto;gap:7px 8px;align-items:center;
+    background:none;clip-path:none;box-shadow:none;transition:none}
+  body #flowHud::before{content:'';position:absolute;left:4px;top:-2px;width:18px;height:18px;background:var(--fc);
+    -webkit-mask:var(--pxi-flot) center/100% 100% no-repeat;mask:var(--pxi-flot) center/100% 100% no-repeat;filter:drop-shadow(0 2px 0 #1c0430)}
+  body #flowHud[data-lv="0"]::before{opacity:.55}
+  body #flowHud::after,body #flowHud:not([data-lv="0"])::after{content:none;display:none;animation:none}   /* l'ancien reflet de plaque : il vit dans la jauge */
+  body #flowHud .fSeg{grid-column:1/-1;grid-row:1;position:relative;height:14px;box-sizing:border-box;padding:3px;gap:2px;border-radius:7px;
+    background:#0d0a2a;box-shadow:inset 0 0 0 3px #170f55,0 3px 0 #170f55,0 6px 10px rgba(0,0,0,.35);transition:box-shadow .15s}
+  body #flowHud .fSeg i{border-radius:1px;background:rgba(255,255,255,.09);box-shadow:none}
+  body #flowHud .fSeg i:first-child{border-radius:4px 1px 1px 4px}
+  body #flowHud .fSeg i:last-child{border-radius:1px 4px 4px 1px}
+  body #flowHud .fSeg s{right:auto;width:calc(var(--f,0) * 100%);transform:none;box-shadow:none;transition:width .14s linear;
+    background:linear-gradient(180deg,color-mix(in srgb,var(--sc) 40%,#fff) 0 2px,var(--sc) 2px 50%,color-mix(in srgb,var(--sc) 80%,#000) 50% calc(100% - 2px),
+      color-mix(in srgb,var(--sc) 55%,#000) calc(100% - 2px))}
+  body #flowHud .fSeg i.cur s::after{content:'';position:absolute;right:0;top:0;bottom:0;width:3px;background:#fff6d8;box-shadow:0 0 6px var(--sc)}   /* le curseur, comme la nitro */
+  body #flowHud .fSeg::after{content:'';position:absolute;inset:3px;border-radius:4px;pointer-events:none;
+    background:linear-gradient(100deg,transparent 40%,rgba(255,255,255,.35) 50%,transparent 60%) no-repeat;background-size:300% 100%;
+    animation:nbReflet 3.6s ease-in-out infinite}   /* le reflet de la nitro : il passe tant qu'on TIENT un palier */
+  body #flowHud[data-lv="0"] .fSeg::after{display:none}
+  body #flowHud .fL,body #flowHud .fM{grid-row:2;font-size:10px;line-height:1;letter-spacing:1px;
+    text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,0 3px 0 #1c0430}
+  body #flowHud .fL{grid-column:1;justify-self:start;font-weight:normal}
+  body #flowHud .fM{grid-column:2;justify-self:end}
+  body #flowHud[data-lv="0"] .fL{opacity:.7}
+  /* ça FUIT : le cadre rougit, la cellule en cours se hachure · ça LÂCHE : le cadre clignote au rythme du tic (comme la nitro à sec) */
+  body #flowHud.fuit{box-shadow:none}
+  body #flowHud.fuit .fSeg{box-shadow:inset 0 0 0 3px var(--danger),0 3px 0 #170f55,0 6px 10px rgba(0,0,0,.35)}
+  body #flowHud.fuit .fSeg i.cur s{background:repeating-linear-gradient(-45deg,var(--sc) 0 4px,color-mix(in srgb,var(--sc) 40%,#000) 4px 8px)}
+  body #flowHud.lache{animation:none}
+  body #flowHud.lache .fSeg{animation:fLache3 .22s steps(2) infinite}
+  @keyframes fLache3{50%{box-shadow:inset 0 0 0 3px #fff,0 3px 0 #170f55,0 0 14px rgba(255,90,110,.8)}}
+  /* un palier de plus : les cellules CLAQUENT et la vague bondit (la plaque entière grossissait jusque sous le ⏸) */
+  body #flowHud.monte{animation:none}
+  body #flowHud.monte .fSeg i{animation:fMonte3 var(--t-slow) var(--ease)}
+  body #flowHud.monte::before{animation:fIco3 var(--t-slow) var(--ease)}
+  @keyframes fMonte3{0%{transform:scaleY(1.7);filter:brightness(2.2)}100%{transform:none;filter:none}}
+  @keyframes fIco3{0%{transform:scale(1.5) rotate(-8deg)}100%{transform:none}}
+  /* le tableau de bord remonte d'autant (sur téléphone : sur PC, le compteur d'argent occupe ce coin — l'aura reste dessous) */
+  body.touch #auraV2{top:calc(var(--hudH) + 96px)}
+  body.touch #airPie{top:calc(var(--hudH) + 96px)!important}
+  body.touch #pwrChip{top:calc(var(--hudH) + 96px)}
+  body.touch #pwrChip.sousPie{top:calc(var(--hudH) + 184px)}
+  /* l'édition PC (pas de .touch) : la nitro vit en bas au centre, 320 px — la jauge du FLOW s'y range DESSOUS, même largeur, cadre
+     carré néon comme elle (elle recouvrait jusqu'ici le compteur d'argent, en haut à gauche) */
+  body:not(.touch) #nitroWrap{bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 56px)}
+  body:not(.touch) #flowHud{left:calc(50% - 160px);right:auto;width:320px;top:auto;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 22px);padding:0;
+    grid-template-rows:12px auto;row-gap:6px}
+  body:not(.touch) #flowHud::before{display:none}
+  body:not(.touch) #flowHud .fSeg{height:12px;padding:2px;border-radius:0;box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--fc) 60%,#00eaff),0 0 10px rgba(0,234,255,.25)}
+  body:not(.touch) #flowHud .fSeg i,body:not(.touch) #flowHud .fSeg::after{border-radius:0}
+  @media (prefers-reduced-motion:reduce){body #flowHud .fSeg::after,body #flowHud.monte .fSeg i,body #flowHud.monte::before,body #flowHud.lache .fSeg{animation:none}}
+  /* (2) LE VERDICT DE POSE REVIENT SUR TÉLÉPHONE — user : « rajoute les textes monster et tout ». `#trickBox` est masqué par l'ÉCRAN
+     NU : MONSTRE, DOUBLE, TRIPLE, MÉTÉORE, SNAKE LOOP… ne se lisaient plus (l'annonceur les criait dans le vide). Ils reviennent dans
+     le COULOIR des annonces, par la file unique (`hautPasse`, famille « ver ») : le mot du rang en grand (couleur pleine, contour
+     d'encre, lèvre claire — le traitement des grandes annonces), le multiplicateur au-dessus (DOUBLE / TRIPLE / MEGA), ce que la
+     pose a RAPPORTÉ en or dessous, puis les bonus de pose en pastilles (FACE CACHÉE ×2, À RECULONS, PILE AU CENTRE, POSÉ LOURD).
+     Entrée qui CLAQUE : la courbe unique, un seul petit rebond (c'est une célébration) ; le montant tombe 120 ms après le mot. */
+  #verdHud{position:fixed;left:50%;top:calc(var(--laneA) - 60px);z-index:41;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:4px;
+    width:max-content;max-width:88vw;font-family:var(--pix);text-align:center;white-space:nowrap;opacity:0;visibility:hidden;
+    transform:translateX(-50%);transform-origin:50% 30%}
+  #verdHud.on{visibility:visible;animation:verdIn 1.4s var(--ease) forwards}
+  #verdHud[data-r="0"].on{animation-duration:1.1s}
+  @keyframes verdIn{0%{opacity:0;transform:translateX(-50%) scale(1.9)}12%{opacity:1;transform:translateX(-50%) scale(.94)}20%{transform:translateX(-50%) scale(1)}
+    82%{opacity:1;transform:translateX(-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-12px) scale(1)}}
+  #verdHud b{position:relative;display:block;font-weight:normal;line-height:1.2;letter-spacing:2px;color:var(--vc);
+    text-shadow:3px 0 0 #1c0430,-3px 0 0 #1c0430,0 3px 0 #1c0430,0 -3px 0 #1c0430,3px 3px 0 #1c0430,-3px 3px 0 #1c0430,3px -3px 0 #1c0430,
+      -3px -3px 0 #1c0430,0 7px 0 #1c0430,0 0 22px color-mix(in srgb,var(--vc) 65%,transparent)}
+  #verdHud b::after{content:attr(data-t);position:absolute;left:0;top:0;right:0;pointer-events:none;color:color-mix(in srgb,var(--vc) 28%,#fff);
+    text-shadow:none;clip-path:inset(0 0 calc(100% - .225em) 0)}   /* la lèvre claire : la rangée de pixels du haut de chaque lettre */
+  #verdHud b.vK{text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,2px 2px 0 #1c0430,-2px 2px 0 #1c0430,2px -2px 0 #1c0430,
+    -2px -2px 0 #1c0430,0 5px 0 #1c0430,0 0 16px color-mix(in srgb,var(--vc) 55%,transparent)}
+  #verdHud .vM{display:block;margin-top:4px;font-style:normal;line-height:1.2;letter-spacing:1px;color:#ffd75e;
+    text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,2px 2px 0 #1c0430,-2px 2px 0 #1c0430,2px -2px 0 #1c0430,
+      -2px -2px 0 #1c0430,0 5px 0 #1c0430,0 0 14px rgba(255,215,94,.55)}
+  #verdHud .vTags{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 8px;max-width:84vw;margin-top:6px}
+  #verdHud .vTags i{font-style:normal;font-size:9px;line-height:1;letter-spacing:1px;padding:6px 8px 5px;color:var(--tc);background:#1c0430;
+    box-shadow:inset 0 0 0 2px var(--tc);clip-path:polygon(4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px),0 4px)}
+  #verdHud.on .vM{animation:verdMt .45s var(--ease) .12s both}
+  #verdHud.on .vTags{animation:verdMt .45s var(--ease) .24s both}
+  @keyframes verdMt{from{opacity:0;transform:translateY(10px) scale(1.35)}to{opacity:1;transform:none}}
+  body:not(.play) #verdHud{display:none}
+  body.ebOn #verdHud,body.hTp:not(#ccH) #verdHud{visibility:hidden}   /* la carte moteur tient le couloir ; la pause fait taire le HUD */
+  body.verdOn #lvlBan,body.verdOn #misBan,body.verdOn #launchLogo{visibility:hidden}   /* UNE voix au centre */
+  @media (prefers-reduced-motion:reduce){#verdHud.on{animation:verdRM 1.3s linear forwards;transform:translateX(-50%)}#verdHud.on .vM,#verdHud.on .vTags{animation:none}
+    @keyframes verdRM{0%{opacity:0}10%{opacity:1}82%{opacity:1}100%{opacity:0}}}
+  /* ---- LA CAMPAGNE NUAGES (2026-09-27) ----
+     La PROMESSE du niveau, une ligne sous son nom (lvlAnnonce). Les HALOS de l'écran (campFx) : quatre calques à dégradé FIXE dont seule
+     l'OPACITÉ bouge (compositeur, zéro repeint sur iPhone) — rouge/bleu en bas quand la police est derrière, magenta sur les bords sous le
+     feu, or quand on tient le sillage de la caisse-nuage. Aucun backdrop-filter, aucun texte en dégradé. */
+  #lvlBan span em{display:block;margin-top:.7em;font-style:normal;color:#ffd75e;font-size:1.08em;letter-spacing:.18em}
+  /* (2026-09-27) LA PLAQUE DE LA CAMPAGNE VILLE (#campChip) : ce qu'on LIT, en haut (sous la jauge de nitro au téléphone) — un CADRE
+     d'arcade opaque (charte : ni verre dépoli ni dégradé sur le texte, coins coupés, couleur pleine), deux lignes : l'objectif et son
+     chiffre (rang, distance, pourcentage). Elle ne se touche pas. Fondu d'opacité seul ; « alerte » = le liseré bat rouge (dernier, courant). */
+  #campChip{position:fixed;left:50%;top:calc(var(--sT,0px) + 16px);transform:translateX(-50%);z-index:6;pointer-events:none;
+    max-width:calc(100vw - 32px - var(--sL,0px) - var(--sR,0px));font-family:var(--pix);font-size:var(--f3,12px);letter-spacing:1px;
+    text-align:center;white-space:nowrap;color:var(--tx,#fff7ee);background:var(--plaque);clip-path:var(--coupe7);box-shadow:var(--biseau);
+    padding:9px 14px 8px;opacity:0;transition:opacity var(--t-fast) var(--ease)}
+  body.touch #campChip{top:calc(var(--sT,0px) + 88px)} /* sous la jauge de nitro ET la barre du FLOW (mesuré en capture : à 54 px, le FLOW mangeait la 1re ligne), entre AURA et le × de droite */
+  #campChip.on{opacity:1}
+  #campChip b{font-weight:400;color:var(--cc,var(--or))}
+  #campChip small{display:block;margin-top:6px;font-size:var(--f0,8px);color:var(--cyan)}
+  #campChip.alerte{animation:ccAlerte .6s steps(2) infinite}
+  @keyframes ccAlerte{50%{box-shadow:inset 0 0 0 2px var(--neoR),inset 3px 3px 0 rgba(255,255,255,.10),inset -3px -3px 0 rgba(0,0,0,.45)}}
+  @media (prefers-reduced-motion:reduce){#campChip.alerte{animation:none;box-shadow:inset 0 0 0 2px var(--neoR)}}
+  body.dead #campChip,body.hTp:not(#ccH) #campChip,body.touch:not(.play) #campChip{visibility:hidden}
+</style>

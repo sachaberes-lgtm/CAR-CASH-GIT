@@ -1,0 +1,122 @@
+<style id="finalSpin">
+/* LE FINAL SPIN v2 (2026-10-14 soir, Sacha sur la v1 : « c'est ÇA la roulette, sérieux ? ») — la machine à sous de l'écran de fin, voir SPIN.
+   Charte : police pixel, laque · or · néon ; l'or pour le seul geste (TIRER / CONTINUER) et les garnitures ; le fond est OPAQUE (plus rien de
+   l'écran de mort ne transparaît) ; aucun flou d'arrière-plan. --spH = la hauteur d'un symbole : elle se règle sur la hauteur ET la largeur. */
+#spinM{position:fixed;inset:0;z-index:250;display:none;align-items:center;justify-content:center;box-sizing:border-box;overflow:hidden;
+  padding:calc(var(--sT) + 10px) calc(var(--sR) + 14px) calc(var(--sB) + 14px) calc(var(--sL) + 14px);
+  background:radial-gradient(90% 60% at 50% 42%,#2a1f52 0%,#160f2e 48%,#07050f 100%);font-family:var(--pix);color:var(--tx);
+  opacity:0;transition:opacity var(--t-slow) var(--ease);-webkit-user-select:none;user-select:none;touch-action:none;
+  --spH:clamp(46px,min(9.2vh,calc((100vw - var(--sL) - var(--sR) - 40px)/4.95)),96px);--spW:calc(var(--spH)*1.12)}
+#spinM.on{display:flex}
+#spinM.vu{opacity:1}
+#spinM .spBox{display:flex;flex-direction:column;align-items:center;gap:clamp(8px,1.6vh,16px);transform:translateY(22px) scale(.94);transition:transform var(--t-slow) var(--ease)}
+#spinM.vu .spBox{transform:none}
+/* L'ENSEIGNE : la plaque sombre, le nom en or néon, ses ampoules */
+#spinM .spEnseigne{position:relative;padding:calc(var(--spH)*.2) calc(var(--spH)*.34);background:linear-gradient(180deg,#1b1634,#07050f);
+  box-shadow:inset 0 0 0 2px var(--auE),inset 0 0 0 4px var(--k0),0 0 0 3px var(--au2),0 6px 0 var(--k0),0 0 34px rgba(255,62,200,.28)}
+#spinM .spNeon{display:block;font-weight:400;font-size:min(calc(var(--spH)*.42),calc((100vw - var(--sL) - var(--sR) - 96px)/11.5)); /* (banc) debout, l'enseigne débordait de l'écran */line-height:1;letter-spacing:2px;color:var(--au1);white-space:nowrap;
+  text-shadow:0 3px 0 var(--auE),0 0 10px var(--au2),0 0 26px rgba(255,62,200,.65)}
+#spinM.gagne .spNeon{animation:spNeon .34s steps(1,end) infinite}
+@keyframes spNeon{50%{color:var(--au0);text-shadow:0 3px 0 var(--auE),0 0 14px var(--au0),0 0 32px var(--neoM)}}
+/* LES AMPOULES : elles chassent ; plus vite pendant le tirage, en fou pendant le suspense, or/magenta au gain */
+#spinM .spBulbs{position:absolute;inset:-1px;pointer-events:none;z-index:3}
+#spinM .spBulbs i{position:absolute;width:calc(var(--spH)*.12);height:calc(var(--spH)*.12);min-width:7px;min-height:7px;transform:translate(-50%,-50%);
+  background:#5a3a10;box-shadow:0 0 0 1px var(--k0);animation:spBulbe 1.5s steps(1,end) infinite;animation-delay:calc(var(--i)*-.06s)}
+@keyframes spBulbe{0%,33%{background:var(--au0);box-shadow:0 0 0 1px var(--k0),0 0 8px 2px var(--au2)}34%,100%{background:#5a3a10;box-shadow:0 0 0 1px var(--k0)}}
+#spinM.roule .spBulbs i{animation-duration:.45s;animation-delay:calc(var(--i)*-.015s)}
+#spinM.tease .spBulbs i{animation-duration:.18s}
+#spinM.gagne .spBulbs i{animation:spBulbeG .34s steps(1,end) infinite;animation-delay:0s}
+@keyframes spBulbeG{0%{background:var(--au0);box-shadow:0 0 0 1px var(--k0),0 0 10px 3px var(--au2)}50%{background:var(--neoM);box-shadow:0 0 0 1px var(--k0),0 0 10px 3px var(--neoM)}}
+/* LE CORPS : la caisse et son levier */
+#spinM .spCorps{position:relative;display:flex;align-items:center;padding-right:calc(var(--spH)*.72)}
+/* LA CAISSE : laque violette en relief — biseau clair en haut à gauche, ombre en bas à droite, épaisseur dessous, cerclage d'or */
+#spinM .spCab{position:relative;display:flex;flex-direction:column;align-items:center;gap:calc(var(--spH)*.16);
+  padding:calc(var(--spH)*.34) calc(var(--spH)*.3) calc(var(--spH)*.3);
+  background:linear-gradient(112deg,transparent 0 30%,rgba(255,255,255,.07) 30% 36%,transparent 36%),linear-gradient(180deg,#3a2a6e 0%,#251b4c 40%,#160f30 100%);
+  box-shadow:inset 3px 3px 0 rgba(255,255,255,.12),inset -4px -6px 0 rgba(0,0,0,.45),inset 0 0 0 2px var(--au2),inset 0 0 0 5px var(--k0),inset 0 0 0 6px var(--auE),
+    0 calc(var(--spH)*.16) 0 #0b0818,0 calc(var(--spH)*.16 + 3px) 0 var(--auE),0 18px 30px rgba(0,0,0,.65),0 0 46px rgba(255,62,200,.2)}
+/* LA VITRE : le cadre d'or biseauté, les rouleaux ivoire */
+#spinM .spVitre{position:relative;padding:calc(var(--spH)*.12);background:#07050f;
+  box-shadow:0 0 0 3px var(--auE),0 0 0 6px var(--au2),0 0 0 8px var(--k0),inset 0 0 0 2px var(--k0)}
+#spinM .spFens{position:relative;display:flex;gap:calc(var(--spH)*.1)}
+#spinM .spRou{position:relative;width:var(--spW);height:calc(var(--spH)*3);overflow:hidden;
+  background:linear-gradient(90deg,#c9b88e 0%,#f6ecd2 22%,#fffaee 50%,#f6ecd2 78%,#c9b88e 100%);box-shadow:inset 0 0 0 2px #7a6440}
+#spinM .spRou::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:linear-gradient(180deg,rgba(28,12,8,.78) 0%,rgba(28,12,8,.22) 24%,transparent 40%,transparent 60%,rgba(28,12,8,.22) 76%,rgba(28,12,8,.8) 100%)}
+#spinM .spRou.file::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.55;
+  background:repeating-linear-gradient(90deg,transparent 0 9px,rgba(90,60,30,.18) 9px 11px)}
+#spinM .spBande{position:absolute;left:0;right:0;top:0;will-change:transform}
+#spinM .spSym{display:block;height:var(--spH);background-repeat:no-repeat;background-position:center;image-rendering:pixelated;
+  background-size:calc(var(--spPx,60px)*var(--z,1)) calc(var(--spPx,60px)*var(--z,1))}
+#spinM .spRou.pose{animation:spPose .32s var(--ease)}
+@keyframes spPose{0%{transform:translateY(4px)}100%{transform:none}}
+#spinM .spLigne{position:absolute;left:4px;right:4px;top:50%;height:var(--spH);transform:translateY(-50%);z-index:3;pointer-events:none;
+  box-shadow:inset 0 0 0 2px var(--neoM),0 0 12px var(--neoM)}
+#spinM .spLigne i{position:absolute;top:50%;width:0;height:0;border:calc(var(--spH)*.14) solid transparent;transform:translateY(-50%)}
+#spinM .spLigne i:first-child{left:calc(var(--spH)*-.3);border-left-color:var(--au1)}
+#spinM .spLigne i:last-child{right:calc(var(--spH)*-.3);border-right-color:var(--au1)}
+#spinM.gagne .spLigne{box-shadow:inset 0 0 0 3px var(--au1),0 0 20px var(--au2)}
+#spinM .spReflet{position:absolute;inset:0;z-index:4;pointer-events:none;
+  background:linear-gradient(118deg,transparent 0 18%,rgba(255,255,255,.16) 18% 24%,transparent 24% 30%,rgba(255,255,255,.08) 30% 32%,transparent 32%)}
+/* L'ÉCRAN DES LOTS : le petit écran sous la vitre */
+#spinM .spEcran{width:100%;min-height:calc(var(--spH)*.9);display:flex;align-items:center;justify-content:center;padding:6px 10px;box-sizing:border-box;
+  background:linear-gradient(180deg,#05030c,#120b26);box-shadow:inset 0 0 0 2px var(--k0),inset 0 0 0 3px var(--kl),inset 0 6px 12px rgba(0,0,0,.6)}
+#spinM .spGain{display:flex;align-items:center;justify-content:center;gap:10px;text-align:center}
+#spinM .spGain.attente span{font-size:var(--f1);color:var(--tx2);letter-spacing:1px;animation:spRespire 1.6s var(--ease) infinite}
+@keyframes spRespire{50%{opacity:.45}}
+#spinM .spGTx{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+#spinM .spGain small{font-size:var(--f1);color:var(--tx2);letter-spacing:1px}
+#spinM .spGain b{font-weight:400;font-size:var(--f6);color:var(--cash);text-shadow:0 2px 0 var(--cashO)}
+#spinM .spGain b.bon{font-size:var(--f1);color:var(--neoC);text-shadow:none}
+#spinM .spGain.gros small,#spinM .spGain.lot small{color:var(--au1)}
+#spinM .spGain.gros b{font-size:var(--f9)}
+#spinM .spGain.jackpot small{color:var(--au1);font-size:var(--f3)}
+#spinM .spGain.jackpot b{font-size:var(--f7);color:var(--au1);text-shadow:0 3px 0 var(--auE),0 0 18px var(--auG);animation:spJack .5s var(--ease) 3}
+@keyframes spJack{40%{transform:scale(1.14)}}
+#spinM .spGain:not(.attente){animation:spMonte var(--t-slow) var(--ease)}
+@keyframes spMonte{0%{transform:translateY(8px);opacity:0}100%{transform:none;opacity:1}}
+#spinM .spGIco{width:calc(var(--spH)*.7);height:calc(var(--spH)*.7)}
+/* (2026-10-19) LE JACKPOT = UNE VOITURE ÉPIQUE : son nom à la couleur de la famille (RARETES), sa photo de boutique à la place du 7 */
+#spinM .spGain.voit b.voit{font-size:var(--f4);line-height:1.3;color:#c77dff;text-shadow:0 2px 0 #3a1260,0 0 14px rgba(199,125,255,.6);animation:spJack .5s var(--ease) 3}
+#spinM .spGain.voit small.rar{color:#c77dff;font-size:var(--f0)}
+#spinM .spGPh{display:block;flex:none;width:calc(var(--spH)*1.47);height:calc(var(--spH)*.9);object-fit:contain;animation:spMonte var(--t-slow) var(--ease)}
+/* LA FENTE : où tombe le jeton */
+#spinM .spFente{position:absolute;top:calc(var(--spH)*.1);right:calc(var(--spH)*.36);width:calc(var(--spH)*.36);height:5px;background:var(--k0);box-shadow:0 0 0 2px var(--auE)}
+/* LE LEVIER : le socle d'or vissé au flanc, la tige d'acier doré, la boule de laque rouge — il se TIRE au doigt (voir SPIN.lv) */
+#spinM .spLevier{position:absolute;right:0;top:50%;width:calc(var(--spH)*.72);height:calc(var(--spH)*3.4);transform:translateY(-50%);cursor:grab;touch-action:none;z-index:5}
+#spinM .spLevier.mort{opacity:.35;pointer-events:none}
+#spinM .spSocle{position:absolute;left:0;top:50%;width:calc(var(--spH)*.42);height:calc(var(--spH)*.7);transform:translateY(-50%);
+  background:linear-gradient(90deg,var(--auE),var(--au2) 40%,var(--au1) 60%,var(--auE));box-shadow:0 0 0 2px var(--k0),inset -3px 0 0 rgba(0,0,0,.3)}
+#spinM .spBras{position:absolute;left:calc(var(--spH)*.3);top:0;width:calc(var(--spH)*.36);height:50%;--L:calc(var(--spH)*1.7)}
+#spinM .spTige{position:absolute;left:50%;bottom:0;width:calc(var(--spH)*.2);height:var(--L);margin-left:calc(var(--spH)*-.1);transform-origin:50% 100%;transform:scaleY(var(--lc,1));
+  background:linear-gradient(90deg,#6b4a10,#ffe27a 40%,#fff8d6 55%,#c08a1a 80%,#6b4a10);box-shadow:0 0 0 2px var(--k0)}
+#spinM .spBoule{position:absolute;border-radius:50%;left:50%;bottom:var(--L);width:calc(var(--spH)*.72);height:calc(var(--spH)*.72);
+  transform:translate(-50%,calc(50% + var(--lb,0)*2*var(--L))) scale(calc(1 + var(--lb,0)*.18));
+  background:radial-gradient(circle at 34% 30%,#fff 0 10%,#ff8a9a 20%,#ff2a4a 46%,#8a0f24 92%);box-shadow:0 0 0 2px var(--k0),0 4px 0 rgba(0,0,0,.35),0 0 16px rgba(255,42,74,.5)}
+#spinM .spBoule::before{content:'';position:absolute;left:50%;top:50%;width:64px;height:64px;transform:translate(-50%,-50%)} /* la cible du doigt : 64 px, plus grande que la boule */
+/* LE PLATEAU : les jetons qui restent, des pièces à couronne sur un rail d'or (plus de compteur « ×0 ») */
+#spinM .spPlateau{display:flex;gap:6px;align-items:center;justify-content:center;min-height:calc(var(--spH)*.5);padding:4px 12px;
+  background:linear-gradient(180deg,#120b26,#07050f);box-shadow:inset 0 0 0 2px var(--auE),0 3px 0 var(--k0)}
+#spinM .spPlateau.vide{visibility:hidden}
+#spinM .spIco{display:inline-block;flex:none;background-repeat:no-repeat;background-position:center;background-size:contain;image-rendering:pixelated}
+#spinM .spPiece{width:calc(var(--spH)*.42);height:calc(var(--spH)*.42)}
+#spinM .spVole{position:absolute;z-index:6;width:calc(var(--spH)*.42);height:calc(var(--spH)*.42);pointer-events:none}
+#spinM .spTire{width:min(100%,340px);min-height:58px;justify-content:center;font-size:var(--f5)}
+#spinM.roule .spTire{opacity:.45;pointer-events:none}
+/* LE JACKPOT : les éclats (3 par seconde au plus, voir spinFlash), la pluie de billets, les pièces */
+#spinM .spFlash{position:absolute;inset:0;background:var(--au0);opacity:0;pointer-events:none;z-index:7}
+#spinM .spPluie{position:absolute;inset:0;pointer-events:none;z-index:8;overflow:hidden}
+#spinM .spBillet{position:absolute;top:0;width:30px;height:16px;background:var(--neoV);box-shadow:inset 0 0 0 2px var(--cashO),inset 0 0 0 4px var(--cash)}
+#spinM .spPart{position:absolute;z-index:8;width:calc(var(--spH)*.4);height:calc(var(--spH)*.4);pointer-events:none}
+.spIco.mini{display:inline-block;width:18px;height:18px;vertical-align:-4px;background-size:contain;background-repeat:no-repeat;image-rendering:pixelated}
+/* COUCHÉ : la machine à gauche, aussi haute que l'écran le permet ; l'enseigne, le plateau et l'or à droite */
+@media (orientation:landscape) and (max-height:540px){
+  #spinM{--spH:clamp(40px,min(calc((100vh - var(--sT) - var(--sB) - 48px)/5.1),calc((100vw - var(--sL) - var(--sR) - 290px)/4.95)),90px)}
+  #spinM .spBox{display:grid;grid-template-columns:auto minmax(0,240px);grid-template-rows:1fr auto auto 1fr;column-gap:calc(var(--spH)*.95); /* (banc) la boule du levier mordait sur l'enseigne */row-gap:12px;align-items:center;justify-items:center}
+  #spinM .spCorps{grid-column:1;grid-row:1/5}
+  #spinM .spEnseigne{grid-column:2;grid-row:1;align-self:end}
+  #spinM .spNeon{font-size:var(--f6)}
+  #spinM .spPlateau{grid-column:2;grid-row:2}
+  #spinM .spTire{grid-column:2;grid-row:3;width:100%;min-height:52px}}
+@media (prefers-reduced-motion:reduce){#spinM .spBulbs i{animation-duration:3s}#spinM.gagne .spNeon{animation:none}}
+</style>

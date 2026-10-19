@@ -1,0 +1,485 @@
+<style>
+/* LA PAGE-CADRE : la nuit du jeu, l'écran du téléphone au centre, rien d'autre (tout le reste du document dort, masqué) — la
+   taille du cadre (844 × 390 couché, 390 × 844 debout) est posée par le script, à côté de son zoom */
+html.colonne,html.colonne body{height:100%;margin:0;overflow:hidden;background:#07050f}
+html.colonne body{display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse 70% 42% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
+html.colonne.debout body{background:radial-gradient(ellipse 42% 70% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
+html.colonne:not(.poki) body>*:not(#tel):not(#tourne):not(#ccVer):not(#labNu):not(#labNuBtn){display:none!important}
+html.colonne #ccVer{position:fixed;left:14px;bottom:10px;z-index:9;font:8px/1 var(--pix);letter-spacing:1px;color:rgba(255,255,255,.38);pointer-events:none}
+/* le BOÎTIER (#tel, posé en px par le script) : la lunette noire, le cerclage d'acier, l'ombre et le halo néon du jeu ;
+   l'écran du 13 Pro dedans : coins de 47 pt (le zoom du cadre les agrandit avec lui) ; l'encoche dans la lunette, par-dessus l'image */
+html.colonne #tel{position:fixed;box-sizing:border-box;z-index:1;background:#050307;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),0 0 0 2px #2b2540,0 0 0 3px #0c0a14,0 24px 70px rgba(0,0,0,.7),0 0 90px rgba(255,62,200,.16)}
+html.colonne.encoche #colonne{border-radius:47px}
+html.colonne #encoche{position:absolute;z-index:8;background:#050307;pointer-events:none}
+html.colonne #encoche::before,html.colonne #encoche::after{content:'';position:absolute;width:var(--or);height:var(--or)}
+html.colonne.couche #encoche::before{left:0;top:calc(-1*var(--or));background:radial-gradient(circle at 100% 0,transparent calc(var(--or) - .5px),#050307 var(--or))}
+html.colonne.couche #encoche::after{left:0;bottom:calc(-1*var(--or));background:radial-gradient(circle at 100% 100%,transparent calc(var(--or) - .5px),#050307 var(--or))}
+html.colonne.debout #encoche::before{top:0;left:calc(-1*var(--or));background:radial-gradient(circle at 0 100%,transparent calc(var(--or) - .5px),#050307 var(--or))}
+html.colonne.debout #encoche::after{top:0;right:calc(-1*var(--or));background:radial-gradient(circle at 100% 100%,transparent calc(var(--or) - .5px),#050307 var(--or))}
+/* (Léo) le bouton TOURNER, dans un coin de la page-cadre (hors du téléphone) */
+html.colonne #tourne{position:fixed;right:16px;bottom:16px;z-index:9;font:10px/1 var(--pix);letter-spacing:1px;color:#fff;cursor:pointer;padding:11px 16px;border:0;border-radius:12px;
+  background:linear-gradient(#7a6cff,#5143d9);box-shadow:0 4px 0 #2c2280,0 8px 18px rgba(0,0,0,.45);opacity:.85}
+html.colonne #tourne:hover{opacity:1}
+/* couché, le cadre prend toute la largeur : le bouton se range au milieu du bas, là où le jeu n'a rien */
+html.colonne:not(.debout) #tourne{right:auto;left:50%;bottom:8px;transform:translateX(-50%);padding:7px 12px;font-size:10px;opacity:.6}
+html.colonne #colonne{display:block;flex:none;border:0;background:#07050f}
+</style>
+<style>
+@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
+/* LES POLICES DES RARETÉS (2026-10-18, Sacha : « en fonction de la rareté de la figure, écris-la dans une couleur et une police différente » — choisi au quiz :
+   une police PIXEL par rareté, pour le NOM des figures en course seulement ; voir <style id="policeUnique"> et <style id="figuresHud"> v5). Licence OFL : assets/fonts/OFL.txt */
+@font-face{font-family:'CC Silkscreen';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/silkscreen.woff2') format('woff2');}
+@font-face{font-family:'CC Jersey';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/jersey10.woff2') format('woff2');}
+@font-face{font-family:'CC Sixtyfour';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/sixtyfour.woff2') format('woff2');}
+@font-face{font-family:'CC Jacquard';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/jacquard12.woff2') format('woff2');}
+:root{--pix:'Press Start 2P',monospace}
+/* L'ENCOCHE DANS LA COLONNE DE L'ORDI (2026-10-01, voir le <head>) : les zones sûres de l'iPhone 13 Pro de Sacha. Toutes les
+   marges du jeu lisent var(--ccX, env(safe-area-inset-X)) : un vrai téléphone ne pose pas --ccX et garde les siennes. */
+html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
+/* L'ATELIER DES NUAGES (?nuages=1) : l'interface du menu reste EN PLACE (la caisse se cadre sur elle) mais invisible et intouchable */
+#mSet p.ccVer{margin:14px 0 2px;text-align:center;font:8px/1.6 var(--pix);letter-spacing:1px;color:var(--tx3,#9a90c8);opacity:.8;max-width:none} /* le numéro de version (LA MISE À JOUR TOUTE SEULE) */
+@media (orientation:portrait){html.telCadre{--ccT:47px;--ccB:34px;--ccL:0px;--ccR:0px}}
+  html,body{margin:0;padding:0;overflow:hidden;background:#07050f;font-family:var(--pix);user-select:none} /* (2026-09-29) #07050f, l'encre des écrans : plus de flash blanc entre l'écran natif et le jeu */
+  canvas{display:block}
+  #hud{position:fixed;inset:0;pointer-events:none;color:#fff;z-index:2} /* au-dessus du canvas filtré (le filter crée un contexte d'empilement) */
+  /* HUD épuré : on ne garde que l'argent, le camembert d'airtime, la nitro et les figures */
+  #carInfo,#record,#cpInfo,#turnHint{display:none!important} /* HUD épuré : on garde VITESSE, on cache le reste (⚠ commentaire mis à jour 2026-09-05 : la minimap est désormais masquée PARTOUT, voir #minimap plus bas — elle ne fait plus partie de ce qu'on « garde ») */
+  /* LE VOILE DE BEAT — ⚠ BORDS SEULEMENT, jamais le centre. Un flash plein écran serait
+     spectaculaire trois secondes puis insupportable, et surtout aveuglant pile au moment où l'on
+     vise une réception. Ici le centre (là où l'on conduit) reste TOUJOURS transparent : c'est ce
+     qui rend le stroboscope compatible avec un jeu de précision. `screen` fait rayonner la teinte
+     sans jamais assombrir. La couleur est écrite par le code (caméléon). */
+  #beatFx{position:absolute;inset:0;pointer-events:none;opacity:0;mix-blend-mode:screen;
+    background:radial-gradient(ellipse at 50% 46%,transparent 42%,currentColor 128%);
+    color:#ff3ec8;transition:none}
+  #vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 44%,transparent 50%,rgba(38,12,54,.52) 100%)}
+  /* étalonnage cinéma du rendu 3D : couleurs plus riches, contraste doux */
+  body>canvas{filter:saturate(1.12) contrast(1.05) brightness(.97)}
+  body.post>canvas{filter:none} /* téléphone : l'étalonnage vit dans l'ACES (GRADE_ACES) — plus de filtre de compositeur sur les calques plein écran */ /* l'ACES (passe post) fait le gros de l'étalonnage ; ce filtre ajoute un pop + un assombrissement final */
+  #scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 2px,transparent 2px 4px);opacity:.22}
+  #speedFx{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 42%,rgba(45,20,55,.55) 100%);opacity:0}
+  /* ACCESSIBILITÉ : iOS « Réduire les animations » → grain CRT + vignette vitesse coupés */
+  html[data-reduced-motion="1"] #scan{display:none} /* deux règles, pas une liste : ios/cashcar/verify-reduced-motion.js cherche celle-ci telle quelle */
+  html[data-reduced-motion="1"] #speedFx{display:none}
+  /* immersion nuage : voile blanc laiteux quand on traverse un banc */
+  #cloudFx{position:absolute;inset:0;opacity:0;pointer-events:none;
+    background:radial-gradient(ellipse at 50% 55%,rgba(250,240,248,.62) 0%,rgba(232,222,240,.42) 55%,rgba(214,206,230,.14) 100%)}
+  /* speed lines anime plein écran (dessinées en canvas) */
+  #slCv{position:absolute;inset:0;width:100%;height:100%;visibility:hidden} /* s'allume au premier filé, s'éteint au dernier (drawSpeedLines) */
+  /* LE JUS SUR L'OBJECTIF. ⚠ 3e tentative, et la bonne : les deux premières giclaient des particules
+     3D depuis la caisse — donc derrière elle, minuscules à l'écran, et emportées par la caméra de
+     poursuite en trois frames. On ne les voyait pas. Ici le jus est peint EN 2D, PAR-DESSUS TOUT :
+     c'est la lentille qui est repeinte, comme dans une GoPro qu'on éclabousse. Impossible à rater,
+     et ça ne coûte rien au moteur 3D. */
+  #juiceCv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:1;visibility:hidden} /* idem (juiceScreenTick) — opacité 1 (c'était .92) : c'est la goutte qui dose (v3) */
+  /* `#gPlayMain` — SANS BULLE, PLUS GROS, FAIT DE CUBES (2026-09-05 quater, retour du user : « je
+     veux pas entouré d'une bulle », puis « plus gros le bouton play et plus de cube qui le
+     constitue »). Pas de fond, pas de padding-boîte, pas de `.saveBtn` : juste des lettres
+     construites une par une par `buildPlayWord()`, chacune en `.lg.gold` (le MÊME traitement or
+     extrudé que le logo CASH CAR du menu) PLUS une grille de petits carrés superposée EN
+     `background-image` (voir plus bas) — la texture du jeu entier est faite de voxels (les
+     caisses, le garage) : ce grillage fait lire chaque lettre comme empilée de petits cubes plutôt
+     que comme un aplat lisse, sans avoir à reconstruire un vrai bitmap voxel par lettre. `perspective`
+     posé ICI (sur le conteneur, pas sur chaque lettre) : toutes les lettres partagent le même point
+     de fuite quand elles basculent (voir la vague plus bas), sinon chacune bascule « à plat ». */
+  #gPlayMain{align-self:center;display:inline-flex;gap:.06em;cursor:pointer;user-select:none;
+    -webkit-tap-highlight-color:transparent;padding:10px 14px;perspective:640px}
+  #gPlayMain .lg{font-family:var(--pix);font-size:44px}
+  #gPlayMain .lg.gold{background-image:
+      repeating-linear-gradient(90deg,rgba(255,255,255,.55) 0 1.5px,transparent 1.5px 6px),
+      repeating-linear-gradient(0deg,rgba(70,35,0,.5) 0 1.5px,transparent 1.5px 6px),
+      linear-gradient(180deg,#fffdf2 0%,#ffe9a0 28%,#ffc400 52%,#b06c05 74%,#ffe9a0 96%)}
+  #gPlayMain:focus-visible{outline:2px solid #ffd75e;outline-offset:6px}
+  /* LA VAGUE (2026-09-05) : `playWordWave()` pose un délai d'animation PROPORTIONNEL à la distance
+     au point cliqué avant de (re)déclencher cette même classe sur chaque lettre — c'est ÇA qui fait
+     voyager la réaction depuis le point de clic au lieu de faire bouger tout le mot d'un bloc.
+     ⚠ CE N'EST PLUS UN REBOND (2026-09-05 quater, retour du user : « que ça ne bounce pas mais
+     plutôt que ça réagit comme des écailles ») : une écaille ne saute pas verticalement, elle
+     BASCULE depuis sa base et retombe — `rotateX` pivoté depuis `transform-origin:50% 100%` (le
+     PIED de la lettre, pas son centre) donne exactement ce mouvement, le `translateZ` en fait
+     ressortir le dessus vers la lumière au pic du geste. */
+  @keyframes pxScale{0%{transform:rotateX(0deg) translateZ(0)}35%{transform:rotateX(-58deg) translateZ(9px)}100%{transform:rotateX(0deg) translateZ(0)}}
+  #gPlayMain .lg.pxScale{animation:pxScale .5s cubic-bezier(.36,1.4,.4,1);transform-origin:50% 100%;backface-visibility:hidden}
+  /* LE COMPTE EN BANQUE au garage : vert billet, comme le compteur en jeu — c'est le MÊME argent,
+     il doit se reconnaître d'un coup d'œil. L'aura, elle, est or : une autre monnaie, une autre teinte. */
+  /* L'AURA EN JEU : sous l'argent, en OR, volontairement plus petite que lui. Deux monnaies visibles
+     à la même taille se concurrenceraient du regard ; l'argent reste le chiffre qu'on surveille, et
+     l'aura ce qui scintille quand on fait quelque chose de bien. Elle PULSE au gain (auraPop). */
+  /* ---- L'AURA : DE L'ÉNERGIE, PAS UN COMPTEUR ----------------------------------------------
+     1re version : un petit chiffre or discret. Verdict : « on ne voit pas, ça donne pas envie
+     d'augmenter ». Un score qu'on doit chercher des yeux n'est pas une récompense.
+     Refaite en JAUGE DE CHARGE : le chiffre est gros, il RAYONNE, une barre montre le rang suivant
+     (donc où l'on va), et un halo derrière PULSE à chaque gain. La référence est l'énergie qui monte
+     dans un shonen : ça se charge, ça déborde, ça se voit de l'autre bout de la pièce. */
+  /* ⚠ POSÉ SOUS LA VIGNETTE MOTEUR, PAS DESSUS. À 130 px il se superposait à `#engVig`
+     (top 150, hauteur 132) : on lisait « MOTEUR ROUILLÉ » au travers du chiffre d'aura. La colonne
+     de gauche est déjà prise jusqu'à 282 px — argent, puis moteur. L'aura commence après. */
+  #auraHud{position:absolute;top:292px;left:22px;font-family:var(--pix);pointer-events:none;
+    width:184px;transform-origin:0 50%}
+  #auraGlow{position:absolute;left:-46px;top:-40px;width:230px;height:132px;opacity:0;
+    background:radial-gradient(ellipse at 28% 42%,rgba(255,236,150,.62),rgba(255,180,40,.30) 38%,rgba(255,140,0,0) 72%);
+    filter:blur(2px)}
+  #auraTop{position:relative;display:flex;align-items:baseline;gap:7px}
+  #auraVal{font-size:26px;color:#fff6cf;
+    text-shadow:0 0 10px #ffd75e,0 0 26px rgba(255,176,20,.9),0 0 44px rgba(255,140,0,.55),0 3px 0 #6b4a00}
+  #auraLbl{font-size:7px;letter-spacing:3px;color:#ffd75e;text-shadow:0 0 10px rgba(255,215,94,.9)}
+  /* la jauge : elle dit OÙ ON VA (le rang suivant), pas seulement où on en est */
+  #auraBar{position:relative;height:6px;margin-top:6px;background:rgba(40,26,4,.72);
+    border:1px solid rgba(255,215,94,.45);border-radius:3px;overflow:hidden}
+  #auraBarF{height:100%;width:0%;background:linear-gradient(90deg,#ffb400,#ffe89a,#fff8dc);
+    box-shadow:0 0 12px rgba(255,200,60,.9)}
+  #auraSub{position:relative;margin-top:5px;font-size:6.5px;letter-spacing:1.6px;color:#e0c46a;
+    text-shadow:0 1px 3px rgba(0,0,0,.9)}
+  /* LE COMBO : le chiffre qui grimpe quand on enchaîne. Il ne s'affiche QUE pendant la fenêtre. */
+  #auraCombo{position:relative;margin-top:6px;font-size:15px;color:#fff;opacity:0;
+    text-shadow:0 0 12px #ff9c2b,0 0 30px rgba(255,120,0,.8),0 2px 0 #5c2a00}
+  @media (max-width:820px){
+    #auraHud{top:150px;left:14px;width:140px} /* la vignette moteur est plus haute sur mobile : on suit */
+    #auraVal{font-size:18px}#auraCombo{font-size:12px}
+    #auraGlow{left:-34px;top:-30px;width:170px;height:100px}} /* étal ouvert : HUD de jeu masqué, le fruit reste (canvas au niveau body) */ /* garage ouvert : on masque le HUD de jeu (compteur, jauges), la caisse reste (canvas au niveau body) */
+  /* RÉGLAGES — carte sobre, verre dépoli, typo système (DA simple et efficace) */
+  #settings{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;
+    background:rgba(6,8,18,.6);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    font-family:var(--pix);color:#f2f5fa}
+  #settings.on{display:flex}
+  #setCard{width:min(460px,92vw);max-height:86vh;overflow-y:auto;
+    border:1px solid rgba(255,255,255,.12);padding:22px 24px 24px}
+  #setHead{display:flex;justify-content:space-between;align-items:center;font-size:21px;font-weight:600;letter-spacing:.2px}
+  #setClose{width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,.1);color:#e8eef8;font-size:15px;cursor:pointer}
+  #setClose:hover{background:rgba(255,255,255,.2)}
+  .setSec{margin:20px 0 8px;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:#8d97ab}
+  .setRow{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;margin-bottom:6px;
+    background:rgba(255,255,255,.06);border-radius:12px;cursor:pointer;font-size:15px;transition:background .15s}
+  .setRow:hover{background:rgba(255,255,255,.1)}
+  .setRow b{font-size:12px;letter-spacing:1px;padding:4px 12px;border-radius:20px;background:#34c759;color:#08210f}
+  .setRow b.off{background:rgba(255,255,255,.16);color:#98a2b3}
+  /* la coque téléphone est en pixel : les curseurs s'y habillent, sinon ils dénoncent le HTML brut */
+  .setKeys{display:grid;grid-template-columns:auto 1fr;gap:9px 16px;align-items:center;font-size:13.5px;color:#c9d2e0}
+  .setKeys i{font-style:normal;display:inline-block;padding:3px 8px;border-radius:7px;background:rgba(255,255,255,.11);
+    border:1px solid rgba(255,255,255,.14);font-size:12px;color:#eef3fb}
+  .setBtns{display:flex;gap:10px;flex-wrap:wrap}
+  /* MULTIMÉDIA : les commandes affichées suivent la plateforme (clavier sur ordi, pad sur mobile) */
+  #setTouch{display:none}
+  body.touch #setKb{display:none}
+  body.touch #setTouch{display:grid}
+  /* Menu + réglages sur petit écran : tout reste atteignable au pouce */
+  @media (max-width:820px){
+    #setCard{width:94vw;max-height:82vh;padding:18px 16px 20px;border-radius:18px}
+    #setHead{font-size:19px}
+    .setRow{padding:14px 14px;font-size:15px}      /* cibles tactiles confortables */
+    .setKeys{grid-template-columns:1fr;gap:4px 0;font-size:13px}
+    .setKeys span:nth-child(odd){margin-top:8px}
+    #saveRow{gap:8px;margin-top:14px}
+    .saveBtn{font-size:12.5px;padding:10px 14px}   /* ≥44px de haut au doigt */
+    #overlay .go{font-size:15px;padding:14px 42px}
+  }
+  /* PAYSAGE MOBILE (écran bas) : le menu doit tenir EN ENTIER sans scroll — titre et listes compactés */
+  @media (max-height:520px){
+    #overlay{justify-content:flex-start;padding:8px 0 12px;overflow-y:auto;gap:2px}
+    #overlay h1{font-size:26px!important;letter-spacing:4px!important;gap:12px!important}
+    #tagline{font-size:9px!important;letter-spacing:1px}
+    #lbBox{margin:6px 0;padding:6px 10px;max-height:88px;overflow:hidden}
+    #bestChip{margin:2px 0}
+    #overlay .go{margin-top:8px;padding:10px 34px;font-size:13px}
+    #saveRow{margin-top:8px;gap:6px}
+    .saveBtn{font-size:11.5px;padding:7px 12px}
+    #setCard{max-height:92vh;padding:14px 14px 16px}
+    .setSec{margin:12px 0 6px}
+    .setRow{padding:10px 12px;margin-bottom:5px}
+  }
+  .panel{background:rgba(12,8,34,.75);border:2px solid #00eaff;
+    box-shadow:0 0 14px rgba(0,234,255,.35),inset 0 0 18px rgba(0,234,255,.08);padding:14px 16px}
+  #carInfo{position:absolute;top:16px;left:16px;max-width:300px}
+  #carName{font-size:13px;line-height:1.5;color:#ffb000;text-shadow:0 0 10px rgba(255,176,0,.6)}
+  #carLevel{font-size:8px;line-height:1.6;color:#9ae6ff;margin-top:6px}
+  /* compteur d'argent — OR MASSIF 3D */
+  /* l'argent était au CENTRE : sur écran étroit il passait sous les boutons SON/VOIX/RADIO.
+     Il descend à gauche, sous la fiche de caisse — le haut de l'écran est rendu aux réglages. */
+  #money{position:absolute;top:70px;left:16px;transform:perspective(420px) rotateX(8deg);
+    padding:12px 24px 14px;
+    background:rgba(12,24,16,.62);border:1px solid rgba(110,230,130,.35);border-radius:14px;
+    box-shadow:0 14px 40px rgba(0,0,0,.5),0 0 26px rgba(80,220,110,.22),inset 0 0 22px rgba(90,220,120,.07)}
+  /* VERT GTA V : billets, pas lingots — dégradé menthe→vert billet→vert bouteille, ombres presque noires */
+  #moneyTxt{display:block;font-size:31px;letter-spacing:2px;
+    background:linear-gradient(180deg,#eaffe2 0%,#9ce870 38%,#4fc63f 68%,#1c6e22 88%,#7ede58 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 2px 0 #0e3a14) drop-shadow(0 4px 1px #06230c) drop-shadow(0 8px 16px rgba(0,0,0,.55))}
+  #moneyTxt .dz{-webkit-text-fill-color:#1d4423;color:#1d4423}
+  /* LES CENTIMES — ⚠ ILS ÉTAIENT INVISIBLES. `#moneyTxt` peint ses chiffres avec un dégradé en
+     `background-clip:text` + `-webkit-text-fill-color:transparent`. Ce transparent est HÉRITÉ par
+     ce span, et le dégradé du parent ne repeint pas le texte d'un enfant : les « ,61 » occupaient
+     leurs 53 px de large sans jamais rien afficher — d'où un compteur qui disait « 1 » au lieu de
+     « 1,61 ». (`.dz` s'en sortait uniquement parce qu'il impose SA couleur.) On impose donc la
+     nôtre : le vert clair du haut du dégradé, pour que la mise se lise au centime. */
+  #moneyTxt .cts{font-size:.56em;opacity:.95;letter-spacing:0;
+    -webkit-text-fill-color:#9ce870;color:#9ce870}
+  /* VIGNETTE MOTEUR — le cadre est du DOM, le moteur 3D est peint DEDANS par le WebGL (RenderTarget).
+     C'est le CSS qui décide de la place : le quad va lire ce rectangle chaque frame et s'y caler. */
+  /* SANS CADRE (2026-08-03) : la bordure + le fond faisaient une vignette « fenêtre de logiciel »
+     collée sur le ciel. Le moteur flotte désormais librement dans le HUD, comme la caisse flotte
+     dans le monde. Le rectangle n'apportait rien : le quad WebGL a déjà un fond transparent. */
+  #engVig{position:absolute;top:150px;left:16px;width:196px;height:132px;display:none}
+  /* LE MOTEUR DE FIN DE PARTIE : plus grand, centré, il tient la place d'un trophée. */
+  #endEng{position:relative;width:min(320px,72vw);height:min(212px,48vw);margin:6px auto 2px;display:none}
+  #endEngCv{width:100%;height:100%;display:block}
+  #endEngCap{position:absolute;left:0;right:0;bottom:-4px;font-family:var(--pix);font-size:9px;
+    line-height:1.6;letter-spacing:.5px;text-align:center;color:#7dffec;
+    text-shadow:0 0 10px rgba(125,255,236,.6),0 2px 5px rgba(0,0,0,.95)}
+  #endEngTier{display:block;color:#ffd75e;font-size:7px;opacity:.95;margin-top:4px}
+  #engVigCap{position:absolute;left:0;right:0;bottom:0;padding:4px 8px 5px;
+    font-family:var(--pix);font-size:7px;line-height:1.5;letter-spacing:.5px;text-align:center;
+    color:#7dffec;
+    /* plus de bandeau derrière : c'est l'ombre portée qui décolle le texte du ciel */
+    text-shadow:0 0 8px rgba(125,255,236,.55),0 2px 4px rgba(0,0,0,.9),0 0 14px rgba(0,0,0,.75)}
+  #engVigTier{display:block;color:#ffd75e;font-size:6px;opacity:.9;margin-top:2px}
+  /* ---- LE BADGE DE PALIER : la récompense qui CLAQUE ----
+     ⚠ il se pose SUR la vignette du moteur, jamais au centre de l'écran. Ce qui vient de
+     changer, c'est CETTE pièce-là : l'œil doit y aller. Un bandeau de plus au milieu se
+     lirait comme un message parmi les autres, et on récompenserait le joueur nulle part.
+     ⚠ Le geste, c'est l'ÉLASTIQUE : ça dépasse la taille finale puis ça se repose. Une montée
+     linéaire vers la bonne taille ne procure rien — c'est le dépassement qui fait la joie. */
+  #engPop{position:absolute;top:150px;left:16px;width:196px;height:132px;display:none;
+    pointer-events:none;z-index:7;overflow:visible}
+  #engPop.on{display:block}
+  .epOnde{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;
+    border-radius:50%;border:5px solid #ffd75e;opacity:0;
+    animation:epOnde .9s cubic-bezier(.15,.75,.3,1) forwards}
+  .epOnde.b{border-color:#7dffec;animation-delay:.13s}
+  @keyframes epOnde{0%{transform:scale(.2);opacity:.95;border-width:7px}
+    100%{transform:scale(4.8);opacity:0;border-width:1px}}
+  #epFlash{position:absolute;inset:-10px;border-radius:14px;opacity:0;
+    background:radial-gradient(circle at 50% 44%,rgba(255,255,238,1),rgba(255,225,140,.72) 24%,rgba(255,180,50,.30) 48%,rgba(255,180,50,0) 72%);
+    animation:epFlash .7s ease-out forwards}
+  @keyframes epFlash{0%{opacity:0}12%{opacity:1}100%{opacity:0}}
+  #epBadge{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);text-align:center;
+    opacity:0;animation:epBadge 1.7s cubic-bezier(.16,1.25,.32,1) forwards;white-space:nowrap}
+  @keyframes epBadge{
+    0%{transform:translate(-50%,-50%) scale(.15) rotate(-30deg);opacity:0}
+    16%{opacity:1}
+    38%{transform:translate(-50%,-50%) scale(1.22) rotate(4deg)}
+    52%{transform:translate(-50%,-50%) scale(.96) rotate(-1deg)}
+    64%{transform:translate(-50%,-50%) scale(1) rotate(0)}
+    82%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+    100%{transform:translate(-50%,-72%) scale(.98);opacity:0}}
+  /* ⚠ LE HÉROS, C'EST LE NUMÉRO. Première version : un engrenage de 30 px au-dessus d'une ligne
+     « PALIER 12 » en corps 15 — l'engrenage se perdait et le chiffre, noyé dans son mot, ne
+     claquait pas. Ce que le joueur doit lire en un dixième de seconde, c'est LE NOMBRE : il est
+     donc énorme, l'engrenage lui sert de sceau derrière, et le mot « palier » redevient une
+     étiquette discrète. */
+  #epGear{position:absolute;left:50%;top:34%;transform:translate(-50%,-50%);
+    font-size:58px;line-height:1;opacity:.30;color:#ffd75e;
+    filter:drop-shadow(0 0 14px rgba(255,215,94,.8));
+    animation:epGear 1.7s cubic-bezier(.16,1.2,.3,1) forwards}
+  @keyframes epGear{0%{transform:translate(-50%,-50%) rotate(-170deg) scale(.6)}
+    55%{transform:translate(-50%,-50%) rotate(16deg) scale(1.05)}
+    100%{transform:translate(-50%,-50%) rotate(0) scale(1)}}
+  #epNum{position:relative;display:block;font-size:30px;color:#fff8dc;letter-spacing:1px;
+    text-shadow:0 0 16px rgba(255,215,94,1),0 0 34px rgba(255,160,20,.7),0 3px 0 #7a4e00}
+  #epNum i{display:block;font-style:normal;font-size:7px;letter-spacing:2px;color:#ffd75e;
+    opacity:.9;margin-bottom:6px;text-shadow:0 0 10px rgba(255,215,94,.8)}
+  #epNom{display:block;margin-top:7px;font-size:7px;color:#7dffec;
+    text-shadow:0 0 12px rgba(125,255,236,.85)}
+  @media (max-width:820px){
+    #engPop{top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 70px);left:10px;width:118px;height:80px} /* sous la jauge de nitro, plus dessus */
+    #epGear{font-size:36px}#epNum{font-size:19px}#epNum i{font-size:5px;margin-bottom:4px}
+    #epNom{font-size:5px;margin-top:5px}}
+  #record{position:absolute;top:150px;left:50%;transform:translateX(-50%);font-size:9px;color:#8f84c8}
+  #resetBtn{position:absolute;top:16px;right:16px;pointer-events:auto;cursor:pointer;
+    font-family:var(--pix);font-size:12px;
+    background:rgba(90,10,30,.85);color:#ffd9d0;
+    border:2px solid #ff3924;box-shadow:0 0 14px rgba(255,57,36,.4);
+    padding:14px 18px;text-shadow:0 0 8px rgba(255,57,36,.8)}
+  #resetBtn:hover{background:rgba(140,15,40,.9)}
+  /* LE LOGO EST LE BOUTON : on clique le titre pour jouer (le gros bouton doré mangeait la place) */
+  #overlay h1{cursor:pointer;transition:transform .22s cubic-bezier(.2,.8,.2,1),filter .22s}
+  #overlay h1:active{transform:scale(.985)}
+  #saveRow{display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;justify-content:center;max-width:92vw}
+  /* BOUTONS ARCADE : coins coupés, liseré néon, texte condensé — la pilule grise faisait « app mobile ».
+     Le biseau (clip-path) et le double liseré cyan/rose sont la signature du jeu, pas un composant générique. */
+  /* ---- LES ACTIONS SECONDAIRES REDEVIENNENT DES PLAQUES (2026-08-30) ----
+     Le 18/08 je les avais passées en liens gris pour dégager une action primaire unique. Le user a
+     tranché deux fois contre : d'abord « où est le garage », puis « oublie la DA Apple ». Elles
+     redeviennent donc des boutons — mais des boutons de BORNE, pas les pavés à double liseré néon
+     d'avant : la même plaque d'arcade que sur téléphone (biseau clair, ombre dure, épaisseur qui
+     s'écrase sous le doigt). Une seule langue de bouton pour tout le jeu, écran et téléphone. */
+  .saveBtn{position:relative;font-family:var(--pix);font-size:10px;letter-spacing:2px;
+    padding:13px 16px;cursor:pointer;border:0;border-radius:0;color:#9fe8ff;
+    background:linear-gradient(180deg,#22305c,#141d3a);
+    clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px);
+    filter:drop-shadow(0 5px 0 #06122e);transition:transform .05s,filter .05s}
+  .saveBtn::after{content:'';position:absolute;inset:0;pointer-events:none;
+    box-shadow:inset 3px 3px 0 rgba(255,255,255,.16),inset -3px -3px 0 rgba(0,0,0,.40),inset 0 0 0 2px rgba(0,234,255,.42)}
+  .saveBtn:hover{filter:drop-shadow(0 5px 0 #06122e) brightness(1.12)}
+  .saveBtn:active{transform:translateY(4px);filter:drop-shadow(0 1px 0 #06122e) brightness(1.12)}
+  .saveBtn:focus-visible{outline:2px solid #ffd75e;outline-offset:3px}
+  /* ---- LE GARAGE : deuxième destination du jeu, donc plaque plus large, sur sa propre ligne ----
+     ⚠ le pictogramme reste en `::before` et JAMAIS un enfant : `applyLangDOM` réécrit le
+     `textContent` du bouton à chaque bascule de langue (`put('#garageBtn',TR('Garage'))`) — un <i>
+     à l'intérieur serait effacé au premier passage en anglais et ne reviendrait jamais. */
+  /* ================= LE VOILE, RÉDUIT AU MINIMUM (2026-09-05) — v3 ===============================
+     v1 (fondu noir) se lisait comme un rechargement de page. v2 (éclair néon magenta/cyan + traits)
+     a été jugée PIRE par le user — « horrible », les couleurs, les traits, le timing, l'idée elle-
+     même. Verdict du user, discuté avant de recoder : ce n'est PAS un réglage à affiner, c'est le
+     PRINCIPE qui ne convient pas — vouloir « vendre » la coupure avec un effet d'écran est le mauvais
+     endroit où mettre l'énergie. La sensation doit venir du BOOST + du LOGO qui apparaît sur la
+     piste (voir plus bas, `startBoostT`/`#launchLogo`), pas d'un flash. Ce voile redevient donc ce
+     qu'il aurait toujours dû être : un cache-misère d'UNE frame, pas un spectacle. */
+  #gFade{position:fixed;inset:0;background:#ffe3b8;opacity:0;pointer-events:none;z-index:70; /* (2026-09-29) blanc CHAUD : on sort du rideau de flammes du garage — toujours le voile d'une image, pas un effet */
+    transition:opacity .18s ease-out}
+  #gFade.on{opacity:.9;transition:opacity .08s ease-out}
+  #garageRow{margin:2px 0 14px}
+  .saveBtn.majeur{font-size:13px;letter-spacing:4px;padding:16px 40px;color:#dff6ff}
+  .saveBtn.majeur::before{content:'\1F3CE\FE0F';margin-right:11px;font-size:15px;
+    filter:drop-shadow(0 0 6px rgba(0,234,255,.55))}
+  /* ⚠ MÊME RÈGLE que le garage : l'icône vit en `::before` (contenu fixe), jamais dans le
+     `textContent` réécrit par `applyLangDOM` à chaque bascule de langue — sinon un `<i>` enfant
+     serait effacé au premier passage en anglais et ne reviendrait jamais. */
+  #setBtn::before{content:'\2699\FE0F';margin-right:8px;font-size:11px;
+    filter:drop-shadow(0 0 6px rgba(0,234,255,.55))}
+  /* LE BUTIN : ce que le logo lâche quand on le casse (voir logoCasse) */
+  #butin{margin-top:18px;font-family:var(--pix);font-size:8px;letter-spacing:2px;color:#6f6690;
+    min-height:12px;text-align:center;transition:color .3s}
+  /* ⚠ LES JETONS SONT TYPOGRAPHIQUES, DONC DANS NOTRE POLICE. En emoji, c'est le système qui les
+     dessinait — autre facture, autres couleurs, autre époque : ça faisait autocollant sur une DA
+     tenue. En pixel + halo coloré, ils appartiennent au jeu. */
+  .jeton{position:fixed;pointer-events:none;z-index:9;font-family:var(--pix);font-size:30px;
+    line-height:1;font-weight:400;white-space:nowrap;
+    text-shadow:0 0 14px currentColor,0 0 34px currentColor,0 3px 0 rgba(0,0,0,.55);
+    will-change:transform,opacity}
+  .jeton.petit{font-size:15px;opacity:.9;
+    text-shadow:0 0 10px currentColor,0 2px 0 rgba(0,0,0,.5)}
+  /* L'ÉCLAT : les tessons qui giclent du wordmark quand il casse */
+  .tesson{position:fixed;pointer-events:none;z-index:8;width:2.5px;height:12px;border-radius:2px;
+    background:linear-gradient(180deg,#fff6d8,#ffb400 55%,#c97a00);
+    box-shadow:0 0 8px rgba(255,190,70,.75);will-change:transform,opacity}
+  /* L'ONDE DE CHOC : c'est elle qui donne l'ÉCHELLE. Sans elle, la gerbe ressemble à un feu
+     d'artifice de fête foraine ; avec elle, quelque chose vient de CÉDER. */
+  .casseOnde{position:fixed;pointer-events:none;z-index:8;width:120px;height:120px;
+    border-radius:50%;border:5px solid rgba(255,214,110,.9);
+    box-shadow:0 0 30px rgba(255,190,70,.5),inset 0 0 22px rgba(255,190,70,.35);
+    will-change:transform,opacity}
+  @keyframes logoChoc{
+    0%{transform:scale(1) translate(0,0)}
+    12%{transform:scale(1.10) translate(-4px,2px) rotate(-1.4deg)}
+    26%{transform:scale(.94) translate(5px,-3px) rotate(1.1deg)}
+    44%{transform:scale(1.03) translate(-3px,1px) rotate(-.5deg)}
+    68%{transform:scale(.99) translate(2px,0) rotate(.2deg)}
+    100%{transform:scale(1) translate(0,0)}}
+  #overlay h1.casse{animation:logoChoc .46s cubic-bezier(.2,.9,.25,1)}
+  #survHud{position:absolute;top:64px;right:16px;font-family:var(--pix);font-size:9px;letter-spacing:.5px;
+    background:rgba(10,8,24,.72);border:1px solid #3a2e58;border-radius:8px;padding:7px 10px;
+    display:none;pointer-events:none;min-width:158px;z-index:3}
+  .svHead{color:#ffd75e;margin-bottom:5px;white-space:nowrap}
+  .svHead .hot{color:#ff5e5e}
+  .svRow{color:#cfc4ff;display:flex;justify-content:space-between;gap:10px;line-height:1.75;white-space:nowrap}
+  .svRow span{color:#8dff9e}
+  .svRow.me{color:#fff;text-shadow:0 0 8px rgba(255,215,94,.8)}
+  .svRow.me span{color:#ffd75e}
+  .svRow.dead{opacity:.34;text-decoration:line-through}
+  #svClock{width:60px;height:60px;image-rendering:pixelated;display:block;margin:0 auto 2px}
+  .svHead{text-align:center}
+  #svSecs{font-size:12px;letter-spacing:1px}
+  #lastAlert{position:absolute;top:16%;left:50%;transform:translateX(-50%);text-align:center;
+    font-family:var(--pix);font-size:15px;line-height:1.9;color:#ff5e5e;
+    text-shadow:0 2px 0 #4a0808,0 0 22px rgba(255,40,40,.85);display:none;z-index:4;
+    pointer-events:none;white-space:nowrap;animation:lastBlink .45s infinite alternate}
+  @keyframes lastBlink{from{opacity:1}to{opacity:.3}}
+  .sndBtn{position:absolute;top:16px;pointer-events:auto;cursor:pointer;
+    font-family:var(--pix);font-size:12px;
+    background:rgba(10,40,70,.85);color:#c8ecff;
+    border:2px solid #00eaff;box-shadow:0 0 14px rgba(0,234,255,.35);
+    padding:14px 14px;text-shadow:0 0 8px rgba(0,234,255,.7)}
+  .sndBtn:hover{background:rgba(15,60,100,.9)}
+  .sndBtn.off{color:#5a6a78;border-color:#3a4a58;box-shadow:none;text-shadow:none;background:rgba(20,26,34,.85)}
+  #sndBtn{right:150px}
+  #musBtn{right:410px}
+  #speedo{position:absolute;bottom:210px;right:20px;text-align:right;min-width:150px}
+  #minimap{position:absolute;bottom:20px;right:20px;width:176px;height:176px;border:2px solid #9aa0aa;border-radius:4px;background:rgba(18,18,24,.5);box-shadow:0 0 12px rgba(0,0,0,.25)}
+  #speedVal{font-size:30px;line-height:1.2;color:#ff3ec8;text-shadow:0 0 16px rgba(255,62,200,.7);display:inline-block;transition:color .25s;transform-origin:100% 50%}
+  #runStats{font-family:var(--pix);font-size:8px;letter-spacing:2px;color:#8fa4c4;margin:2px 0 6px;display:none;white-space:pre-line} /* pre-line : les '\n' du bilan ne passaient à la ligne que dans le code */
+  #speedUnit{font-size:9px;color:#9ae6ff;margin-top:4px}
+  #cpInfo{position:absolute;bottom:20px;left:20px;font-size:9px;line-height:1.7;color:#9ae6ff}
+  #cpBar{width:240px;height:14px;background:#0c0d18;border:2px solid #00eaff;margin-top:8px;overflow:hidden}
+  #cpFill{height:100%;width:0%;background:linear-gradient(90deg,#ff3924,#ffb000,#62e062)}
+  #nitroWrap{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);width:320px}
+  #styleBar{height:8px;background:#0c0d18;border:2px solid #ff3ec8;margin-bottom:6px;overflow:hidden;box-shadow:0 0 10px rgba(255,62,200,.35)}
+  #styleFill{height:100%;width:0%;background:repeating-linear-gradient(90deg,#ff3ec8 0 10px,#b3208c 10px 14px)}
+  #styleFill.fever{background:repeating-linear-gradient(90deg,#ffd75e 0 10px,#ffb000 10px 14px)}
+  #styleFill.armed{background:repeating-linear-gradient(90deg,#ff3ec8 0 10px,#ffd75e 10px 14px);animation:armBlink .4s infinite alternate}
+  @keyframes armBlink{from{filter:brightness(1)}to{filter:brightness(1.9)}}
+  /* HALO D'ÉCRAN — il RESPIRE au lieu d'être une ombre figée.
+     .armed = jauge pleine : discret mais insistant, il appelle le double-tap.
+     (sans classe) = décollage en cours : plein, rose + or, il bat vite. */
+  #feverGlow{position:absolute;inset:0;display:none;pointer-events:none;
+    animation:feverPulse .85s ease-in-out infinite alternate}
+  @keyframes feverPulse{
+    from{box-shadow:inset 0 0 90px rgba(255,62,200,.42),inset 0 0 34px rgba(255,215,94,.20)}
+    to{box-shadow:inset 0 0 180px rgba(255,62,200,.75),inset 0 0 66px rgba(255,215,94,.42)}}
+  #feverGlow.armed{animation:armGlow 1.15s ease-in-out infinite alternate}
+  @keyframes armGlow{
+    from{box-shadow:inset 0 0 40px rgba(255,62,200,.18)}
+    to{box-shadow:inset 0 0 120px rgba(255,62,200,.52),inset 0 0 28px rgba(255,215,94,.16)}}
+  #flash{position:absolute;inset:0;background:#ff2020;opacity:0;transition:opacity .5s}
+  #nitroLbl{font-size:9px;color:#9ae6ff;text-align:center;margin-bottom:6px;text-shadow:0 0 8px rgba(0,234,255,.6)}
+  #pwrChip{font-size:9px;text-align:center;margin-bottom:6px;letter-spacing:1px;display:none;text-shadow:0 0 10px rgba(255,255,255,.35)}
+  #nitroBar{height:18px;background:#0c0d18;border:2px solid #00eaff;overflow:hidden;display:flex;box-shadow:inset 0 0 10px rgba(0,0,0,.8),0 0 12px rgba(0,234,255,.3)}
+  #nitroR{height:100%;background:repeating-linear-gradient(90deg,#ff8c1a 0 12px,#c96500 12px 16px);width:50%}
+  #nitroX{height:100%;background:repeating-linear-gradient(90deg,#1c35e0 0 12px,#101f8f 12px 16px);width:0%}
+  #msg{position:absolute;top:13%;left:50%;transform:translateX(-50%);font-size:22px;line-height:1.5;color:#ffb000;text-shadow:0 0 18px rgba(255,176,0,.7);opacity:0;transition:opacity .3s;text-align:center;white-space:nowrap}
+  /* verdicts de figures — OR 3D ÉPIQUE */
+  #trickBox{position:absolute;top:22%;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;perspective:640px}
+  .trick{font-family:var(--pix);font-size:16px;line-height:1.5;letter-spacing:1px;margin:6px 0;
+    background:linear-gradient(180deg,#fffbe8,#ffd75e 42%,#ff9d2e 78%,#8a4d00);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 2px 0 #5c3600) drop-shadow(0 5px 10px rgba(0,0,0,.5));
+    animation:trickPop .95s cubic-bezier(.17,1.3,.32,1) forwards}
+  .trick.big{font-size:24px}
+  .trick.m1{font-size:24px}
+  .trick.m2{font-size:34px;filter:drop-shadow(0 3px 0 #5c3600) drop-shadow(0 0 18px rgba(255,170,60,.6)) drop-shadow(0 7px 14px rgba(0,0,0,.5));animation-duration:1.2s}
+  .trick.m3{font-size:46px;background:linear-gradient(180deg,#ffffff,#ffe9a0 30%,#ff9d2e 58%,#ff3ec8 90%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 4px 0 #4a2500) drop-shadow(0 0 30px rgba(255,180,70,.95)) drop-shadow(0 12px 22px rgba(0,0,0,.55));animation-duration:1.5s}
+  @keyframes trickPop{0%{transform:scale(.2) rotateX(50deg);opacity:0}16%{transform:scale(1.28) rotateX(-6deg);opacity:1}30%{transform:scale(1) rotateX(0)}75%{opacity:1}100%{opacity:0;transform:scale(1) translateY(-30px)}}
+  #chainHud{position:absolute;top:37%;left:50%;transform:translateX(-50%);font-family:var(--pix);font-size:15px;
+    letter-spacing:1px;color:#ffd75e;text-shadow:0 2px 0 #5c3600,0 0 14px rgba(255,170,60,.55);
+    background:rgba(8,5,18,.34);padding:5px 14px;border-radius:9px;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
+    opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+  #chainHud.pulse{animation:chPulse .32s cubic-bezier(.2,1.6,.4,1)}
+  @keyframes chPulse{0%{transform:translateX(-50%) scale(1.5)}100%{transform:translateX(-50%) scale(1)}}
+  #caseHud{position:absolute;top:42%;left:50%;transform:translateX(-50%);font-family:var(--pix);
+    letter-spacing:1px;color:#8dff9e;text-shadow:0 2px 0 #0a3a14,0 0 16px rgba(90,255,140,.5);
+    background:rgba(8,5,18,.34);padding:4px 13px;border-radius:9px;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
+    opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+  #caseHud.hot{color:#ffd75e;text-shadow:0 2px 0 #5c3600,0 0 22px rgba(255,170,60,.85);animation:caseTremble .09s infinite}
+  @keyframes caseTremble{0%{transform:translateX(-50%) translate(1px,-1px)}25%{transform:translateX(-50%) translate(-1px,1px)}
+    50%{transform:translateX(-50%) translate(1px,1px)}75%{transform:translateX(-50%) translate(-2px,-1px)}100%{transform:translateX(-50%) translate(1px,-1px)}}
+  .bill{position:absolute;font-family:var(--pix);font-size:15px;color:#8dff9e;
+    text-shadow:0 0 8px rgba(90,255,140,.8);pointer-events:none;z-index:4;
+    transition:left .55s cubic-bezier(.5,-.1,.7,1),top .55s cubic-bezier(.5,-.1,.7,1),opacity .55s,font-size .55s}
+  #turnHint{position:absolute;top:33%;left:50%;transform:translateX(-50%);font-size:44px;color:#ff3924;opacity:0;text-shadow:0 0 16px rgba(255,57,36,.8);transition:opacity .15s}
+  #airPie{position:absolute;top:40%;right:7%;width:114px;height:114px;display:none;filter:drop-shadow(0 6px 10px rgba(0,0,0,.45))}
+  /* ================= LE MENU REDEVIENT UNE BORNE (2026-08-30) =============================
+     Verdict du user : « oublie la DA Apple, reprends la version que je t'ai fournie pour le menu,
+     et maintenant toutes les lettres sont en 3D comme le logo, et sortent de l'écran ».
+     La refonte sobre du 18/08 est donc ANNULÉE — plus de fond mat, plus de typo système, plus
+     d'actions secondaires en texte gris. On reprend SON fond (halo magenta, veine cyan rasante,
+     trame de balayage, le jeu qui reste visible derrière au lieu de disparaître sous un voile) et
+     on pousse le trait : tout est en pixel, tout est EXTRUDÉ, et le titre DÉBORDE de l'écran.
+     ⚠ POURQUOI L'EXTRUSION EST EN `drop-shadow` ET PAS EN `text-shadow` : ces lettres sont peintes
+     par un dégradé découpé (`background-clip:text`, donc `color:transparent`). Un `text-shadow` se
+     dessine DERRIÈRE la glyphe — derrière du transparent, il ne se voit pas. `filter:drop-shadow`
+     empile des copies de la FORME déjà rendue : c'est ce qui donne la tranche dorée du logo, sur
+     n'importe quel texte, sans dupliquer le contenu ni exiger un `data-t` à tenir à jour dans les
+     deux langues (c'est la limite de `.lg`, qui recopie son texte via `attr(data-t)`).
+     ⚠ `overflow-x:hidden` : le wordmark est VOLONTAIREMENT plus large que l'écran. Sans ça le
+     navigateur ajoute une barre de défilement horizontale et le menu se met à glisser sous la
+     souris — un titre qui déborde est un parti pris, une page qui se balade est un bug. */
+  #overlay{position:fixed;inset:0;overflow-x:hidden;overflow-y:auto;padding:24px 0;z-index:5;
+    display:flex;flex-direction:column;align-items:center;
+    justify-content:center;justify-content:safe center; /* ⚠ `safe` : un centrage flex classique COUPE le
+      DÉBUT du contenu quand il dépasse (le titre se retrouvait rogné par le haut de l'écran, et aucune
+      barre de défilement ne permettait d'y remonter). `safe center` centre tant que ça tient, puis
+      retombe en flex-start — le titre reste entier et la page défile normalement. */
+    color:#fff;cursor:default;font-family:var(--pix);-webkit-backdrop-filter:blur(2.5px)}

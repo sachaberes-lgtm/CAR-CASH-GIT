@@ -1,0 +1,118 @@
+<style id="accueilDoigt">
+/* LE DOIGT DE BIENVENUE (2026-10-15 soir, Sacha : « dans l'écran d'accueil, une sorte d'icône avec un doigt qui clignote sur la voiture la
+   première fois, pour lui montrer qu'on peut cliquer sur la voiture ; rends-le un peu stylisé, un peu accueillant pour la première
+   connexion, la première fois qu'il voit le menu »). La première fois qu'on voit l'accueil, une MAIN EN PIXELS (gant blanc, manchette
+   d'or, contour d'encre) vient se poser sous la caisse et la TAPE : à chaque coup, une onde et quatre éclats d'or partent du bout du doigt ;
+   une bulle dit BIENVENUE ! · TAPE TA CAISSE. Le point d'ancrage (left/top 0, déplacé par `transform`) = le bout du doigt = le centre de
+   la caisse à l'écran, suivi image par image (chuteDoigtTick, appelé par chuteRender). Au premier coup sur la caisse elle s'envole et ne
+   revient plus (SAVE.d.ast, bit 256 : chuteDoigtFini). Rien ne se touche ici (pointer-events:none) : le doigt du joueur passe au travers. */
+#chDoigt{position:fixed;left:0;top:0;z-index:6;width:0;height:0;pointer-events:none;opacity:0;visibility:hidden;
+  transition:opacity .3s var(--ease),visibility 0s linear .3s}
+#chDoigt.on{opacity:1;visibility:visible;transition:opacity .3s var(--ease)}
+#chDoigt .cdMain{position:absolute;left:-18px;top:2px;width:48px;height:54px;background:var(--cdSvg) 0 0/100% 100% no-repeat;transform-origin:18px 0;
+  filter:drop-shadow(0 3px 0 rgba(10,4,24,.6)) drop-shadow(0 0 9px rgba(255,215,94,.45))}
+#chDoigt.on .cdMain{animation:cdEntre .55s var(--ease) both,cdTape 1.6s var(--ease) .55s infinite}
+#chDoigt .cdOnde{position:absolute;left:-24px;top:-24px;width:48px;height:48px;border-radius:50%;box-sizing:border-box;opacity:0;
+  border:3px solid #fff;box-shadow:0 0 0 2px rgba(255,215,94,.85),inset 0 0 0 2px rgba(255,215,94,.85)}
+#chDoigt.on .cdOnde{animation:cdOnde 1.6s steps(6,end) .55s infinite}
+#chDoigt .cdEcl{position:absolute;left:-3px;top:-3px;width:6px;height:6px;background:#ffd75e;box-shadow:0 0 0 2px #1c0430;opacity:0}
+#chDoigt.on .cdEcl{animation:cdEcl 1.6s var(--ease) .55s infinite}
+#chDoigt .cdEcl:nth-of-type(1){--ex:-26px;--ey:-22px}#chDoigt .cdEcl:nth-of-type(2){--ex:26px;--ey:-22px}
+#chDoigt .cdEcl:nth-of-type(3){--ex:-32px;--ey:4px}#chDoigt .cdEcl:nth-of-type(4){--ex:32px;--ey:4px}
+#chDoigt .cdBul{position:absolute;left:0;top:70px;translate:-50% 0;display:flex;flex-direction:column;align-items:center;gap:7px;white-space:nowrap;
+  padding:9px 13px 10px;background:linear-gradient(180deg,#2a1e56,#140c2c);box-shadow:inset 0 0 0 2px #ffd75e,inset 0 0 0 4px #1c0430,0 4px 0 #0a0818,0 0 18px rgba(255,215,94,.3)}
+#chDoigt .cdBul::before{content:'';position:absolute;left:50%;top:-8px;width:12px;height:8px;translate:-50% 0;background:#ffd75e;
+  clip-path:polygon(0 100%,33% 50%,33% 0,67% 0,67% 50%,100% 100%)}
+#chDoigt .cdBul b{font-weight:400;font-size:8px;letter-spacing:2px;color:#ffd75e;text-shadow:0 2px 0 #1c0430}
+#chDoigt .cdBul span{font-size:10px;letter-spacing:1px;color:#fff;text-shadow:0 2px 0 #1c0430}
+#chDoigt.on .cdBul{animation:cdBul .6s var(--ease) .25s both,cdFlotte 2.4s ease-in-out .85s infinite}
+#chDoigt.fini{opacity:0;visibility:hidden;transition:opacity .35s var(--ease) .1s,visibility 0s linear .45s}
+#chDoigt.fini .cdMain{animation:cdPart .45s var(--ease) both}
+#chDoigt.fini .cdBul{animation:cdBulPart .35s var(--ease) both}
+#chDoigt.fini :is(.cdOnde,.cdEcl){animation:none;opacity:0}
+@keyframes cdEntre{0%{opacity:0;transform:translate(10px,34px) rotate(-14deg)}100%{opacity:1;transform:translate(3px,10px) rotate(-7deg)}}
+@keyframes cdTape{0%,30%{transform:translate(3px,10px) rotate(-7deg)}42%{transform:translate(0,-2px) rotate(0) scale(.9)}52%{transform:translate(0,0) rotate(0) scale(.94)}
+  70%,100%{transform:translate(3px,10px) rotate(-7deg)}}
+@keyframes cdOnde{0%,38%{opacity:0;transform:scale(.15)}42%{opacity:1;transform:scale(.25)}100%{opacity:0;transform:scale(1.5)}}
+@keyframes cdEcl{0%,40%{opacity:0;transform:translate(0,0)}44%{opacity:1;transform:translate(0,0)}75%{opacity:0;transform:translate(var(--ex),var(--ey))}100%{opacity:0}}
+@keyframes cdBul{0%{opacity:0;scale:.6}60%{opacity:1;scale:1.06}100%{opacity:1;scale:1}}
+@keyframes cdFlotte{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes cdPart{0%{opacity:1;transform:translate(0,0) scale(.94)}100%{opacity:0;transform:translate(0,-30px) scale(1.5)}}
+@keyframes cdBulPart{to{opacity:0;scale:.7}}
+html[data-reduced-motion] #chDoigt.on :is(.cdMain,.cdOnde,.cdEcl,.cdBul){animation:none}
+html[data-reduced-motion] #chDoigt.on .cdMain{transform:translate(3px,10px) rotate(-7deg)}
+@media (prefers-reduced-motion:reduce){#chDoigt.on :is(.cdMain,.cdOnde,.cdEcl,.cdBul){animation:none}#chDoigt.on .cdMain{transform:translate(3px,10px) rotate(-7deg)}}
+/* (2026-10-16, Léo : « enlève le tap your car… pas besoin, les gens découvriront ; la main s'enlève aussi ») LE DOIGT DE BIENVENUE ne
+   s'affiche plus du tout (ni la main, ni la bulle) — le code reste (chuteDoigtTick), invisible : retirer cette ligne le rend. */
+#chDoigt{display:none!important}
+</style>
+<style id="bqFigHex">
+/* ===== LA BOUTIQUE : LES TROIS FIGURES EN BLANC + UN RETOUR QUI SE LIT (2026-10-16, Sacha : « quand on est dans l'onglet figure, tout en haut,
+   tu remets les hexagones comme tu avais mis, mais en blanc » · « le bouton retour en bas au milieu, il est toujours bizarrement fait : rends-le
+   plus clair ») — le script : bqFigSelEl / bqFigSelMaj (près de bqFigRail).
+   · #bqFigSel : la carte de la salle blanche (fond blanc, filet gris, droite : on LIT), l'éclair du NITRO et « ×2 » à gauche, puis les trois cases
+     hexagonales — l'anneau à la couleur de la rareté, le cœur clair comme la photo d'une carte, la caisse à l'ENCRE (blanche, elle disparaissait) ;
+     le joystick de la direction en pastille blanche cerclée d'encre, flèche bleue (le bleu des intertitres VERS L'AVANT…). La case de la figure
+     qu'on regarde prend l'anneau d'encre, comme la carte choisie (.sel). Vide : anneau gris, « ? », VIDE. */
+#bqFigSel{display:none}
+#gBqPan.bqFigOn #bqFigSel{display:flex;flex:none;align-items:flex-start;gap:4px;padding:11px 8px 7px 4px;background:#fff;box-shadow:0 0 0 1px #dde1e6,0 8px 20px rgba(30,40,55,.07);pointer-events:auto;font-family:var(--pix);animation:bqSec .38s var(--ease) both}
+#bqFigSel .fsNitro{flex:none;align-self:center;display:flex;flex-direction:column;align-items:center;gap:3px;width:40px}
+#bqFigSel .fsBolt{display:block;width:26px;height:37px}
+#bqFigSel .fsNitro b{font-weight:400;font-size:9px;line-height:1;color:#14171c}
+#bqFigSel .fsHex{position:relative;flex:1 1 0;min-width:0;min-height:44px;display:flex;flex-direction:column;align-items:center;gap:5px;padding:0;border:0;background:none;cursor:pointer;
+  font-family:var(--pix);-webkit-tap-highlight-color:transparent;transition:translate var(--t-fast) var(--ease)}
+#bqFigSel .fsHex:active{translate:0 2px}
+#bqFigSel .fsCase{position:relative;display:block;width:56px;height:48px;background:color-mix(in srgb,var(--fc) 82%,#14171c);clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);transition:background var(--t-fast) var(--ease)}
+#bqFigSel .fsIn{position:absolute;inset:3px 4px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#fbfcfd,#e9edf1);clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+#bqFigSel .fgIl>.fgCv{color:#14171c;filter:none;animation:var(--fgA,fgSalto) 3.2s var(--ease) infinite}
+#bqFigSel .fgIl>.fgAn{color:color-mix(in srgb,var(--fc) 62%,#14171c)} /* l'anneau du sens : foncé d'un cran, sinon l'or et le gris des communes se perdent dans le clair */
+#bqFigSel .fsHex:nth-of-type(2) .fgIl>.fgCv{animation-delay:-1.07s}
+#bqFigSel .fsHex:nth-of-type(3) .fgIl>.fgCv{animation-delay:-2.13s}
+#bqFigSel .fsQ{font-weight:400;font-size:14px;color:#a3abb5}
+#bqFigSel .fsJoy{position:absolute;left:calc(50% - 39px);top:-7px;display:flex;align-items:center;justify-content:center;width:22px;height:22px;background:#fff;color:#3d4bff;
+  box-shadow:inset 0 0 0 2px #14171c;clip-path:polygon(6px 0,16px 0,22px 6px,22px 16px,16px 22px,6px 22px,0 16px,0 6px);font-style:normal}
+#bqFigSel .fsJoy .pxi{--pxs:1;width:12px;height:12px;margin:0}
+#bqFigSel .fsNom{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-width:100%;overflow:hidden;overflow-wrap:anywhere;text-align:center;font-weight:400;font-size:8px;line-height:10px;letter-spacing:0;color:#14171c}
+#bqFigSel .fsHex.vide .fsCase{background:#d3d8de}
+#bqFigSel .fsHex.vide .fsIn{background:#f4f6f8}
+#bqFigSel .fsHex.vide .fsNom{color:#8a929c}
+#bqFigSel .fsHex.on{translate:0 -2px}
+#bqFigSel .fsHex.on .fsCase{background:#14171c}
+#bqFigSel .fsHex.flash .fsCase{animation:bqFsFlash .6s var(--ease)}
+@keyframes bqFsFlash{0%{filter:brightness(1.8)}100%{filter:none}}
+@media (prefers-reduced-motion:reduce){#gBqPan.bqFigOn #bqFigSel,#bqFigSel .fsHex.flash .fsCase{animation:none}}
+html[data-reduced-motion] :is(#gBqPan.bqFigOn #bqFigSel,#bqFigSel .fsHex.flash .fsCase){animation:none}
+/* · LE RETOUR DU BAS (#gShopBas, au milieu en boutique) : VU au banc, un texte d'encre de 8 px qui portait encore l'ombre sombre des boutons du
+     garage (0 2px 0, sur du blanc : les lettres se dédoublaient), une flèche de 9 px auréolée de magenta et un cadre noir mêlé d'une ombre grise
+     floue (plusieurs passes empilées). Désormais une plaque blanche nette : cadre d'encre de 2 px, ◀ bleu de 18 px sans lueur, RETOUR en 10 px
+     sans ombre, une ombre douce dessous ; appuyé, il s'enfonce et grise. Droit, comme ACHETER et ÉQUIPER (le magasin de Léo est droit). */
+html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:10px!important;
+  width:auto!important;min-width:118px!important;height:44px!important;min-height:44px!important;padding:0 16px 0 12px!important;
+  background:#fff!important;background-image:none!important;outline:0!important;box-shadow:inset 0 0 0 2px #14171c,0 6px 16px rgba(20,23,28,.16)!important;
+  clip-path:none!important;filter:none!important;transform:none!important;translate:none!important;color:#14171c!important;text-shadow:none!important}
+html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas::before,html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas::after{display:none!important}
+html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas span{font-size:10px!important;line-height:1!important;letter-spacing:2px!important;font-style:normal!important;color:#14171c!important;text-shadow:none!important;transform:none!important}
+html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi{--pxs:2!important;margin:0!important;color:#3d4bff!important;filter:none!important;text-shadow:none!important;transform:none!important}
+html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas:is(:active,.appui){translate:0 2px!important;background:#eef0f3!important;box-shadow:inset 0 0 0 2px #14171c,0 2px 6px rgba(20,23,28,.14)!important}
+</style>
+<style id="policeUnique">
+/* UNE SEULE POLICE (2026-10-15, Sacha : « c'est partout la même police ») — LE FILET CSS. Tout élément, tout pseudo-élément, tout champ
+   (un <textarea>, un <input>, un <button> n'héritent PAS de la police de la page : c'est ainsi que le champ du CODE COUSIN tapait en
+   monospace système) prend Press Start 2P, quoi qu'écrive une règle plus haut ou un style en ligne. Les règles qui étaient en police
+   système ont été refaites en pixel (corps --f0/--f1, graisse 400). SEULE EXCEPTION, NOMMÉE : le φ du « 1.61φ » de l'écran d'ouverture
+   (#spPhi) — c'est le logo, et la police pixel n'a pas de φ. Les textes des canvas ont leur filet (UNE_POLICE, premier script du body). */
+*,*::before,*::after{font-family:var(--pix)!important}
+::placeholder{font-family:var(--pix)!important}
+/* DEUXIÈME EXCEPTION, NOMMÉE (2026-10-18, Sacha : « en fonction de la rareté de la figure, écris-la dans une couleur et une police différente
+   correspondant à la rareté » — au quiz : « une police par rareté », toutes en PIXELS) : le NOM d'une figure en course, et lui seul — le HUD des
+   figures (#fh : le nom en grand, les maillons du combo) et le rappel des gestes (#fhLeg). Tout porteur de data-rp : COMMUNE Press Start 2P ·
+   RARE Silkscreen · EXOTIQUE Jersey 10 · ÉPIQUE Sixtyfour · LÉGENDAIRE Jacquard 12 (le gothique en pixels, en minuscules à capitale initiale
+   depuis le 19/10 : « Salto Cosmique », `fhTitre` — ses capitales ne se lisaient pas). Le « + », le × du combo, RECORD,
+   COMBO PERDU et tout le reste du jeu restent en Press Start 2P. Les couleurs et tailles sont dans <style id="figuresHud"> (v5). */
+:is(#fh,#fhLeg) [data-rp]{--rpf:'Press Start 2P'}
+:is(#fh,#fhLeg) [data-rp=rare]{--rpf:'CC Silkscreen'}
+:is(#fh,#fhLeg) [data-rp=exotique]{--rpf:'CC Jersey'}
+:is(#fh,#fhLeg) [data-rp=epique]{--rpf:'CC Sixtyfour'}
+:is(#fh,#fhLeg) [data-rp=legendaire]{--rpf:'CC Jacquard'}
+:is(#fh,#fhLeg) [data-rp],:is(#fh,#fhLeg) [data-rp] b,:is(#fh,#fhLeg) [data-rp] b::after{font-family:var(--rpf),'Press Start 2P',monospace!important}
+</style>

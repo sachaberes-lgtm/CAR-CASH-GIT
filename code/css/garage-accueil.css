@@ -1,0 +1,356 @@
+<style id="garageV6">
+/* ======================= LE GARAGE v6 — LA REFONTE (2026-09-30, Sacha, capture couchée à l'appui : « améliore le garage, notamment les
+   raretés, qui sont écrites deux fois alors qu'on peut juste mettre les couleurs — refonte totale du garage ») =======================
+   Mesuré sur sa capture (couché, 844 × 390, l'écran de l'ordi) et debout :
+   · la RARETÉ écrite DEUX fois : la pastille « ◆ COMMUNE » sur la fiche et « ◆ COMMUNES 1/15 » dans la rangée des familles (en habillage :
+     « PEINTURE » sur la fiche, déjà écrit sur l'onglet) ;
+   · la rangée des familles DÉBORDAIT (ÉPIQUES coupé au bord, LÉGENDES et DÉFIS invisibles, il fallait faire défiler cinq puces) ;
+   · les grosses flèches ◀ ▶ posées SUR la caisse et sur le décor, en double des vignettes ;
+   · quatre plaques flottantes sans lien (onglets, puces, vignettes, actions), et quatre vignettes seulement à l'écran.
+   LA RÈGLE : la rareté se dit EN COULEUR, une seule fois — le filet de couleur sous le NOM, la couleur des pastilles, le liseré des
+   vignettes. Le mot reste pour qui ne voit pas la couleur (aria-label, title des pastilles).
+   · la FICHE : le nom, un filet de sa couleur, « 1 / 68 » — plus de pastille ;
+   · LA CONSOLE : tout ce qu'on touche dans UNE plaque (laque, filet, coins coupés, la LIVRÉE magenta · cyan · or en tête, comme sous
+     chaque titre) : onglets, puces, vignettes, actions ;
+   · les PUCES des familles : un losange de couleur et le compte, les cinq sur une ligne, sans défilement (en habillage, TOUT · À MOI ·
+     À ACHETER gardent leur mot : ce ne sont pas des raretés) ;
+   · les VIGNETTES : sur DEUX rangées couché (8 caisses d'un coup d'œil, au lieu de 4), une rangée debout et sur les écrans bas ;
+   · plus de flèches : on touche une vignette.
+   Tout est ici, scopé à la BOUTIQUE de l'atelier (`#garage:not(.menu)`) : le menu, les missions et l'étal (#stall) n'en voient rien. */
+html body #garage:not(.menu) #gRarPill{display:none}
+html body #garage:not(.menu) .gNav{display:none!important}
+/* LA FICHE : le nom, puis son filet de couleur et le rang */
+html body #garage:not(.menu) #gCard{align-items:flex-start;container-type:inline-size}
+html body #garage:not(.menu) #gName{order:1;margin:0;white-space:nowrap;font-size:min(clamp(20px,6.8vw,28px),calc(100cqw / var(--nL,10) - 3px))} /* (1 em par lettre + l'espacement) */
+html body #garage:not(.menu) #gName::after{content:'';display:block;width:min(100%,230px);height:3px;margin-top:10px;
+  background:linear-gradient(90deg,var(--rc,var(--tx2)) 0 72%,transparent);box-shadow:0 0 12px color-mix(in srgb,var(--rc,#fff) 60%,transparent)}
+html body #garage:not(.menu) #gLvl{order:2;margin-top:8px;font-size:var(--f0);color:var(--tx3)}
+html body #garage:not(.menu) #gDesc{order:3}
+/* LA CONSOLE : une seule plaque pour tout ce qu'on touche */
+html body #garage:not(.menu) #gBottom{box-sizing:border-box;width:calc(100% - var(--sL) - var(--sR) - 20px);max-width:560px;margin:0 auto calc(var(--sB) + 10px);
+  padding:15px 12px 12px;gap:12px;background:linear-gradient(180deg,rgba(26,21,50,.7) 0%,rgba(20,15,40,.7) 52%,rgba(15,12,32,.7) 100%); /* (2026-10-07, Léo : « rendre un tout petit peu transparente la zone gris-violet derrière PLAY, les voitures, PAINT, WINGS — qu'on voie un peu plus le garage derrière ») la laque du panneau (--laqueP) à 70 % ; sans flou (pas de backdrop-filter sur téléphone) */
+  box-shadow:inset 0 0 0 1px var(--fil),0 22px 40px -14px rgba(0,0,0,.75);
+  clip-path:polygon(var(--coupe) 0,100% 0,100% calc(100% - var(--coupe)),calc(100% - var(--coupe)) 100%,0 100%,0 var(--coupe))}
+html body #garage:not(.menu) #gBottom::before{content:'';position:absolute;left:calc(var(--coupe) + 4px);right:18px;top:0;height:3px;background:var(--livree);opacity:.9;pointer-events:none}
+html body #garage:not(.menu) #gTabs{margin:0} /* (2026-10-07) le creux des onglets suit le panneau devenu translucide */
+/* LES PUCES : cinq, sur une ligne, à parts égales — la couleur dit la famille, le chiffre dit ce qui est à toi */
+html body #garage:not(.menu) #gRar{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px;overflow:visible;margin:0;padding:0;-webkit-mask:none;mask:none}
+html body #garage:not(.menu) .gR{min-width:0;height:34px;justify-content:center;gap:8px;padding:0 4px;letter-spacing:0;white-space:nowrap;color:var(--tx3);transform:skewX(var(--sk));
+  background:var(--k1);box-shadow:inset 0 -3px 0 color-mix(in srgb,var(--rc) 55%,transparent),inset 0 0 0 1px var(--fil),0 0 0 1px var(--anneau)}
+html body #garage:not(.menu) .gR::before{width:9px;height:9px;background:var(--rc);box-shadow:0 0 8px var(--rc)}
+html body #garage:not(.menu) .gR::after{top:-5px;bottom:-5px}   /* 44 px de cible, le dessin reste fin (charte règle 5) */
+html body #garage:not(.menu) .gR .gRn{display:none}              /* la famille se dit en COULEUR — son nom vit dans aria-label et title */
+html body #garage:not(.menu) .gR b{font-weight:400;color:var(--tx2);white-space:nowrap}
+html body #garage:not(.menu) .gR.on{color:#fff;background:color-mix(in srgb,var(--rc) 24%,var(--k1));
+  box-shadow:inset 0 -3px 0 var(--rc),inset 0 0 0 1px var(--rc),0 0 0 1px var(--anneau),0 0 16px color-mix(in srgb,var(--rc) 45%,transparent)}
+html body #garage:not(.menu) .gR.on::before{background:var(--rc);box-shadow:0 0 10px var(--rc)}
+html body #garage:not(.menu) .gR.on b{color:#fff}
+html body #garage:not(.menu) .gR.gF .gRn{display:inline}          /* en habillage : TOUT · À MOI · À ACHETER (des filtres, pas des raretés) */
+html body #garage:not(.menu) .gR.gF{gap:7px}
+/* LES VIGNETTES : dans la console, liseré de la couleur de la famille */
+html body #garage:not(.menu) #gStrip{margin:0 -12px;padding:8px 14px 8px;gap:10px;
+  -webkit-mask:linear-gradient(90deg,transparent 0,#000 12px,#000 calc(100% - 18px),transparent);mask:linear-gradient(90deg,transparent 0,#000 12px,#000 calc(100% - 18px),transparent)}
+html body #garage:not(.menu) .gT{box-shadow:inset 0 -3px 0 var(--rc),inset 0 0 0 1px var(--fil),0 0 0 1px var(--anneau),0 5px 0 1px var(--anneau)}
+html body #garage:not(.menu) .gT.on{box-shadow:inset 0 -3px 0 var(--rc),inset 0 0 0 2px var(--rc),0 0 0 1px var(--anneau),0 5px 0 1px var(--anneau),0 0 20px color-mix(in srgb,var(--rc) 65%,transparent)}
+html body #garage:not(.menu) .gT em{bottom:3px}
+html body #garage:not(.menu) #gAct{margin:0}
+
+/* COUCHÉ (l'écran de l'ordi) : la fiche en haut à gauche, la CONSOLE en bas à droite, les vignettes sur deux rangées */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage:not(.menu) #gBottom{position:absolute;top:auto;left:auto;right:calc(var(--sR) + 14px);bottom:calc(var(--sB) + 12px);
+    width:min(48%,450px);max-width:none;margin:0;padding:14px 12px 10px;gap:8px;justify-content:flex-start}
+  html body #garage:not(.menu) .gTab{min-height:44px}
+  html body #garage:not(.menu) #gStrip{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,50px);grid-auto-columns:82px;gap:8px 10px;padding:8px 14px 8px}
+  html body #garage:not(.menu) .gT{width:82px;height:50px}
+  html body #garage:not(.menu) .gR{height:32px}
+  html body #garage:not(.menu) #gName{font-size:min(var(--f6),calc(100cqw / var(--nL,10) - 3px))}
+  html body #garage:not(.menu) #gAct #gClose,html body #garage:not(.menu) #gBuy,html body #garage:not(.menu) #gEquip,html body #garage:not(.menu) #gJouer{min-height:50px}
+  html body #garage:not(.menu) #gName::after{width:min(100%,260px)}
+}
+/* couché sur un écran BAS (< 380 px : la plupart des Android, l'iPhone SE) : une rangée de vignettes, la console reste sous le ⚙ */
+@media (orientation:landscape) and (max-height:379px){
+  html body #garage:not(.menu) #gStrip{grid-template-rows:50px}
+}
+</style>
+<style id="lueurs">
+/* LES LUEURS DE LA BOUTIQUE (2026-10-07, Léo : « une lueur derrière chaque voiture, de la couleur de sa rareté ; au lieu de les cacher —
+   on les montre dans tous les cas quand on appuie dessus. Les banderoles lumineuses créent un trop gros contraste, trop d'informations
+   visuelles ; des petites lueurs, ça fait le style. Le reste, touche pas ») — les vignettes des VOITURES seulement (les habillages gardent
+   leur nuancier) :
+   · la caisse à vendre se montre EN COULEURS (elle était éteinte : luminosité ,42, saturation ,35) — le cadenas et le prix disent qu'elle
+     n'est pas à toi ;
+   · plus de liseré de couleur sous chaque vignette (la « banderole ») : un filet neutre, et DERRIÈRE la caisse une lueur douce de la couleur
+     de sa famille (`.gTl`, --rg/--rg2 posés par garageFamilles, d'autant plus forte que la famille est rare) ;
+   · la vignette choisie : le cadre à la couleur de la famille et sa lueur qui s'ouvre. */
+.gT .gTl{position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.85;
+  background:radial-gradient(44% 52% at 50% 44%,var(--rg,transparent) 0,transparent 100%);transition:opacity var(--t-fast) var(--ease),scale var(--t-fast) var(--ease)}
+.gT.on .gTl{opacity:1;scale:1.18}
+html body #garage #gStrip .gT[data-car]{background:var(--laqueP);box-shadow:inset 0 0 0 1px var(--fil),0 0 0 1px var(--anneau),0 5px 0 1px var(--anneau)}
+html body #garage #gStrip .gT[data-car].on{box-shadow:inset 0 0 0 2px var(--rc),0 0 0 1px var(--anneau),0 5px 0 1px var(--anneau),0 0 18px var(--rg,transparent)}
+/* la lueur ÉPOUSE la caisse (l'ombre portée de la photo, sans décalage, à la couleur de la famille) — l'ombre de contact de la photo
+   s'allume aussi : un néon sous la caisse */
+html body #garage #gStrip .gT[data-car] img,html body #garage #gStrip .gT[data-car].lock img{filter:drop-shadow(0 0 4px var(--rg2,transparent))}
+html body #garage #gStrip .gT[data-car].on img{filter:drop-shadow(0 0 6px var(--rg2,transparent))}
+</style>
+<style id="accueilCiel">
+/* L'ACCUEIL CONTEMPLATIF (2026-09-30, nuit — Sacha : « prends le bouton sans fond JOUER de Léo et remplace le mien pour laisser plus
+   d'espace au ciel ; réduis aussi la taille des boutons pour que ce soit plus contemplatif »). UNE couche, ici, par-dessus toutes les
+   autres. MESURÉ avant (menu-boites.js, 4 formats) : les boutons couvraient 19 à 27 % de l'écran (couché 844×390 : colonne de 424 px,
+   tuiles de 66 px, JOUER en plaque d'or de 66 px ; debout : 256 px de haut sur 844).
+   · JOUER = le mot de Léo (#gPlayMain) : des lettres d'or extrudées, grillées de petits cubes, SANS plaque ; au toucher, la vague
+     d'écailles part du doigt (mPlayVague). Construit par mPlayMot() — la classe .mMot remplace la plaque .pbtn/.pb-gold.
+   · MISSIONS, ⚙ et les trois tuiles : plus bas, plus étroits (couché, la colonne passe de 424 à ~330 px), icônes ×2 au lieu de ×3,
+     libellés plus petits ; chaque cible garde ses 44 px (charte, règle 5). */
+html #mHome .mPlay.mMot{display:flex;justify-content:center;align-items:center;gap:.06em;background:none!important;clip-path:none!important;
+  box-shadow:none!important;border:0!important;outline:0;padding:4px 10px 8px!important;min-height:50px;margin:2px auto 0!important;width:auto!important;
+  perspective:640px;cursor:pointer;-webkit-tap-highlight-color:transparent;filter:drop-shadow(0 0 .3em rgba(255,200,80,.42)) drop-shadow(0 3px 10px rgba(4,20,48,.55))}
+html #mHome .mPlay.mMot::before,html #mHome .mPlay.mMot::after{content:none!important;display:none!important}
+html #mHome .mPlay.mMot .lg{font-family:var(--pix);font-size:40px}
+html #mHome .mPlay.mMot .lg.gold{background-image:
+    repeating-linear-gradient(90deg,rgba(255,255,255,.55) 0 1.5px,transparent 1.5px 6px),
+    repeating-linear-gradient(0deg,rgba(70,35,0,.5) 0 1.5px,transparent 1.5px 6px),
+    linear-gradient(180deg,#fffdf2 0%,#ffe9a0 28%,#ffc400 52%,#b06c05 74%,#ffe9a0 96%)}
+html #mHome .mPlay.mMot .lg.pxScale{animation:pxScale .5s cubic-bezier(.36,1.4,.4,1);transform-origin:50% 100%;backface-visibility:hidden}
+html #mHome.on>.mPlay.mMot,html #mHome.on.revu>.mPlay.mMot{animation:k6Surgit var(--t-in) var(--ease) backwards!important;animation-delay:calc(8 * var(--stag) + 90ms)!important}
+html #mHome .mMisBtn,html #mHome .mGear{min-height:44px!important;font-size:11px}
+html #mHome .mMisBtn .pxi,html #mHome .mGear .pxi{--pxs:2}
+html #mHome .mIcons .pbtn{min-height:52px!important;gap:3px!important;font-size:10px}
+html #mHome .mIcons .pbtn .pxi{--pxs:2}
+html #mHome .mIcons .mBadge{top:-9px!important;right:6px!important;transform:scale(.86);transform-origin:100% 0} /* la tuile a rapetissé : la pastille NEW / 10 cachait l'icône — elle passe à cheval sur le bord haut */
+@media (orientation:landscape) and (max-height:540px){ /* couché : le LOGO garde sa largeur, seule la colonne des boutons se resserre, calée à droite */
+  html #mHome .mOutils,html #mHome .mIcons{width:340px;max-width:100%;margin-left:auto!important;margin-right:0!important;align-self:flex-end}
+  html #mHome .mPlay.mMot{width:340px!important;box-sizing:border-box;max-width:100%;align-self:flex-end}html #mHome .mPlay.mMot .lg{font-size:34px}}
+@media (orientation:portrait){html #mHome .mPlay.mMot{margin-bottom:6px!important}html #mHome .mPlay.mMot .lg{font-size:42px}}
+@media (prefers-reduced-motion:reduce){html #mHome .mPlay.mMot .lg.pxScale{animation:none}}
+html[data-reduced-motion="1"] #mHome .mPlay.mMot .lg.pxScale{animation:none!important}
+/* L'ACCUEIL QUI RESPIRE (2026-10-01, session DEBUGGING, dans cette couche avec l'accord de SON — Sacha, capture debout : « les boutons du bas
+   sont trop tassés »). MESURÉ (st-accueil.js, 5 formats) : 8 px entre MISSIONS et les tuiles, 8 px entre les tuiles et JOUER — mais chaque
+   plaque porte sous elle sa TRANCHE de 5 px (drop-shadow, hors de sa boîte) : il ne restait que 3 px de jour visible, et la pastille « 30 »,
+   à cheval sur le bord haut de sa tuile (−9 px), touchait la rangée MISSIONS. Désormais : 18 px sous MISSIONS (la pastille y tient, 4 px de
+   jour au-dessus d'elle), 16 px entre les tuiles et JOUER, 12 px entre MISSIONS et ⚙. Tailles des boutons, cibles de 44 px, logo et colonne
+   couchée de 340 px : inchangés. */
+html #mHome .mOutils{margin-bottom:18px;gap:12px}
+html #mHome .mIcons{margin-bottom:0}
+html #mHome .mPlay.mMot{margin-top:16px!important}
+@media (orientation:landscape) and (max-height:540px){html #mHome .mOutils{margin-bottom:16px}html #mHome .mPlay.mMot{margin:12px 0 0 auto!important}}
+</style>
+<style id="garageV7">
+/* LE GARAGE v7 — LA PERFECTION (2026-10-01, session SON — Sacha : « retravaille le garage, je veux la perfection » ; DEBUGGING, auteur du v6,
+   a passé la main). Relevé MESURÉ d'abord (da/gar-audit.js, 4 formats, onglets, caisse rare, caisse verrouillée) ; UNE couche, par-dessus la v6,
+   même portée (la BOUTIQUE : html body #garage:not(.menu)) :
+   · le PRIX n'est dit qu'UNE fois : pour une caisse à acheter, l'encadré « PRIX : $ 20 k (il te manque $ 20 k) » redisait le bouton
+     « IL MANQUE $ 20 k » et mordait sur la scène → masqué (.prixSeul, posé par la fiche) ; les conditions qui ne sont PAS de l'argent
+     (défis, boutique en €) restent écrites ;
+   · le rang « 1 / 68 » était en 8 px (illisible) → 11 px ;
+   · les puces de rareté (32-34 px de haut) : leur zone de TOUCHE (::after) passe de 42 à 44 px sans changer le dessin (charte, règle 5) ;
+   · la bande de vignettes ne se COUPE plus net au bord de la console : elle s'y FOND (on lit « ça défile », pas « c'est cassé ») ;
+   · l'étiquette MISSIONS posée sur le décor (#gMisAncre) n'a rien à faire dans la BOUTIQUE : elle y flottait à côté de la caisse. */
+html body #garage:not(.menu) #gCard.prixSeul #gDesc{display:none!important}
+html body #garage:not(.menu) #gLvl{line-height:1.3!important}
+html body #garage:not(.menu) #gRar .gR::after{top:-6px;bottom:-6px} /* la zone de touche (déjà en ::after, le ::before est le losange) : 32 + 12 = 44 px */
+html body #garage:not(.menu) #gStrip{-webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 40px),transparent)}
+html body #garage:not(.menu) #gStrip.finDroite{-webkit-mask-image:none;mask-image:none}
+html body #garage:not(.menu) #gRar .gR b{font-size:var(--f1)} /* les comptes « 1/15 » étaient à 8 px */
+html body #garage:not(.menu) .gTab{font-size:var(--f1)} /* les onglets étaient en --f0 (8 px) : 10 px, « TRAINEES » tient encore dans son quart de console debout (80 px dans 89) */
+/* LES ONGLETS FINS (2026-10-08, Léo, capture debout de la console : « les boutons prennent trop de place, rends-les plus minimalistes,
+   moins hauts, et une légère transparence »). VOITURES · PEINTURE · AILES · TRAÎNÉES passent d'un pavé de ~50 px (pictogramme AU-DESSUS
+   du mot, l'actif en rose plein) à une RÉGLETTE de 28 px :
+   · le mot seul, sur une ligne — le pictogramme à côté ne tenait pas : « TRAINEES » fait déjà 80 px des 89 d'un quart de console debout ;
+   · le creux et les onglets laissent voir le garage (le creux à 35 %, l'onglet au repos sans fond) ;
+   · l'actif se dit par un TRAIT magenta dessous, un voile rose léger et le mot en blanc — plus de pavé rose plein ;
+   · la cible reste à 44 px (charte, règle 5) : le dessin fait 28 px, la zone de touche (::after) déborde de 8 px en haut et en bas. */
+html body #garage:not(.menu) #gTabs{gap:2px;padding:2px;background:rgba(11,8,24,.35);box-shadow:inset 0 0 0 1px var(--fil)}
+html body #garage:not(.menu) .gTab{position:relative;flex-direction:row;gap:0;min-height:0;height:28px;padding:0 2px;
+  color:rgba(154,144,200,.85);background:transparent;box-shadow:none;text-shadow:none;white-space:nowrap}
+html body #garage:not(.menu) .gTab .pxi{display:none}
+html body #garage:not(.menu) .gTab::after{content:'';position:absolute;left:0;right:0;top:-8px;bottom:-8px}
+html body #garage:not(.menu) .gTab.on{color:#fff;background:linear-gradient(180deg,rgba(255,62,200,0),rgba(255,62,200,.2));
+  box-shadow:inset 0 -2px 0 #ff3ec8,0 6px 12px -8px rgba(255,62,200,.9);text-shadow:0 0 8px rgba(255,62,200,.65)}
+html body #garage:not(.menu) .gTab:is(:active,.appui){background:rgba(255,255,255,.07)}
+html body #garage:not(.menu) .gTab.on:is(:active,.appui){background:linear-gradient(180deg,rgba(255,62,200,.06),rgba(255,62,200,.3))}
+@media (hover:hover){html body #garage:not(.menu) .gTab:not(.on):hover{color:var(--tx2);background:rgba(255,255,255,.04)}}
+</style>
+<style id="garageVitrine">
+/* LA VITRINE DU GARAGE (2026-10-04, Léo : « ne mets pas direct le shop dans le garage, c'est agressif »). Le bouton GARAGE ouvre d'abord
+   l'atelier AU CALME : ta caisse sur son plateau, la porte, le feu — son nom, et trois touches. Ni compte, ni onglets, ni vignettes à prix,
+   ni ACHETER, ni BOUTIQUE en vrai argent. Les chemins qui visent un OBJET (VOIR une récompense, l'objectif, la personnalisation…) ouvrent
+   toujours la boutique dépliée.
+   v2 (même soir, Léo : « je veux un beau point de vue sur la voiture, avec des boutons visibles minimalistes — menu, shop — comme avant mais
+   un peu mieux, premium, smooth ; quand on maintient sur la voiture, ça active un inventaire comme le shop mais avec les objets possédés,
+   entourés d'une lueur de la couleur de leur rareté ») :
+   · LE POINT DE VUE (garageRender, `VITRINE_CAM`) : la caméra descend à hauteur de phare, se rapproche, l'objectif se resserre un peu, le
+     plateau tourne plus lentement — un plan de présentation, la porte et le feu derrière ;
+   · LES TOUCHES : plus de console. HOME · SHOP · JOUER posées sur le sol, laque fine et un filet de couleur — elles ARRIVENT en cascade ;
+     SHOP (la pièce : l'argent du JEU) déplie la console d'avant (`garVitrine(false)`) ;
+   · LES VOILES s'allègent : la caisse prend la lumière ;
+   · L'INVENTAIRE : le doigt TENU sur la caisse (un anneau se remplit) ouvre un tiroir — ce qui est À TOI, rangé du plus rare au plus
+     commun, chaque objet dans une lueur de la couleur de sa rareté (les familles du garage ; pour les habillages, voir `cosmRar`) ;
+     toucher = équiper, tout de suite, sur la caisse. Couché, le tiroir vient de la droite. L'astuce « MAINTIENS LA CAISSE » se montre tant
+     qu'on ne l'a jamais ouvert (`SAVE.d.ast`, bit 4). */
+#gInv,#gInvAide{display:none}
+/* (2026-10-05, Léo : « travaille plus le rendu ») LE VIGNETTAGE : les bords de l'image s'assombrissent doucement, l'œil va à la caisse — centré
+   sur sa place (debout au milieu, couché en bas à gauche, voir VITRINE_CAM.cx/cxL) ; seulement en vitrine, éteint au lancement */
+#gVig{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;transition:opacity .9s var(--ease);
+  background:radial-gradient(120% 95% at 50% 52%,rgba(7,5,15,0) 48%,rgba(7,5,15,.28) 74%,rgba(7,5,15,.6) 100%)}
+@media (orientation:landscape){#gVig{background:radial-gradient(95% 125% at 34% 60%,rgba(7,5,15,0) 44%,rgba(7,5,15,.3) 72%,rgba(7,5,15,.62) 100%)}}
+/* (même soir, Léo : « mets le bouton home en haut à droite avec les settings ») #gClose était caché ici — (2026-10-06) il revient en bas : voir LE SHOP COUPÉ */
+#gvMis,#gvCof{display:none} /* (2026-10-05) le COFFRE, à gauche de JOUER — (même soir, « plus gros ») sur les deux colonnes */
+/* (2026-10-05, Léo : « missions branché au play plutôt que le niveau, et les niveaux affichés avec leur distance et leur titre — vignette
+   avec un fond imagé représentatif, léger, agréable, kawaii mais pas abusé, pas trop gentil non plus ») : MISSIONS prend la place BRANCHÉE
+   sous JOUER (les deux conducteurs d'or où le courant monte, le flux qui court sur sa tranche) ; le NIVEAU devient une VIGNETTE illustrée
+   (rangée du bas) — son paysage en pixel art peint par `gvVignette`, son titre, sa distance ; (même soir) TOUTE la suite, en bande qui défile (#gvLvls). */
+#gvMis{--nc:var(--neoV);position:relative;flex-direction:row;align-items:center;justify-content:center;gap:10px;min-width:0;height:42px;min-height:42px;padding:0 12px;
+  font-size:var(--f1);letter-spacing:2px;color:var(--tx);white-space:nowrap;
+  background:linear-gradient(180deg,#1c1338,#0a0717);box-shadow:inset 0 0 0 1px rgba(255,205,90,.55),inset 0 1px 0 rgba(255,240,190,.25),inset 0 -2px 0 var(--nc),0 0 16px -4px rgba(255,190,40,.65);
+  text-shadow:0 1px 0 var(--txO);animation:gvMonte .52s var(--ease) .33s backwards}
+#gvMis::before,#gvMis::after{content:'';position:absolute;top:-13px;width:4px;height:13px;background:linear-gradient(0deg,#b8790a 0%,#fff3c4 45%,#ffd75e 55%,#b8790a 100%);background-size:100% 260%;
+  box-shadow:0 0 8px #ffb83a,0 0 2px #fff;animation:gvCourant .55s linear infinite;transform:skewX(calc(-1 * var(--sk)))}
+#gvMis::before{left:16%}#gvMis::after{right:16%;animation-delay:-.27s}
+@keyframes gvCourant{from{background-position:0 0}to{background-position:0 -260%}}
+#gvMis .gvFx{position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,#fff3b0,#ffb83a,transparent) no-repeat;background-size:34% 100%;animation:gvFlux 1.5s linear infinite}
+@keyframes gvFlux{from{background-position:-50% 0}to{background-position:150% 0}}
+#gvMis .pxi{--pxs:2;color:var(--nc);filter:drop-shadow(0 0 6px var(--nc))}
+#gvMis:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px);box-shadow:inset 0 0 0 1px #fff3c4,inset 0 -2px 0 var(--nc),0 0 26px 0 rgba(255,200,60,.9)}
+.gvPips{display:flex;gap:4px}
+.gvPips u{display:block;width:8px;height:8px;transform:rotate(45deg);background:#1b1433;box-shadow:inset 0 0 0 1px rgba(94,240,138,.6)}
+.gvPips u.ok{background:var(--neoV);box-shadow:0 0 8px var(--neoV)}
+/* elles ARRIVENT : du sol, l'une après l'autre (propriétés individuelles : le `transform` penché de la touche reste à elle) */
+@keyframes gvMonte{from{opacity:0;translate:0 22px}to{opacity:1;translate:0 0}}
+/* LE BOULON (2026-10-06, Léo : « mets un boulon 3D à la place du setting ») : le ⚙ de l'atelier est une tête de boulon dessinée en 3D (voir
+   `boulonDessine`) ; en vitrine il flotte seul en haut à gauche, sans plaque. */
+.boulon{display:block;width:30px;height:30px;overflow:visible}
+/* le tiroir ouvert : la barre s'efface (le tiroir est le sujet) */
+html body #garage.inv:not(.menu) #gBottom{opacity:0;translate:0 18px}
+html body #garage.inv:not(.menu) #gBottom *{pointer-events:none!important}
+html body #garage.deplie:not(.menu) #gBottom{animation:gDeplie .34s var(--ease,cubic-bezier(.32,.72,0,1)) both}
+@keyframes gDeplie{from{translate:0 24px;opacity:.35}to{translate:0 0;opacity:1}}
+/* (le voile du haut de la v4 est retiré : les jauges ont repris leurs cartes) */
+/* L'ASTUCE : le geste dit une fois — un doigt qui appuie, un anneau qui se remplit */
+#gInvAide{position:absolute;z-index:2;left:50%;bottom:calc(var(--sB) + 240px);translate:-50% 0;align-items:center;gap:10px;padding:9px 14px 9px 12px;pointer-events:none;white-space:nowrap;
+  font-size:var(--f0);letter-spacing:1px;color:var(--tx2);background:linear-gradient(180deg,rgba(24,17,50,.8),rgba(10,7,24,.84));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.12),0 10px 24px -12px rgba(0,0,0,.8);
+  animation:gvAide 9s var(--ease) 1.1s both}
+#gInvAide b{font-weight:400;color:#fff;letter-spacing:1px}
+/* LES GESTES DU BURN-OUT (2026-10-06) : « DONUT ×n » jaillit au-dessus de la caisse et s'envole — la voix du HUD (contour d'encre) */
+#gBurnTxt{position:fixed;left:50%;top:40%;z-index:61;pointer-events:none;font-family:var(--pix);font-size:15px;letter-spacing:2px;white-space:nowrap;color:var(--bc,#ffd75e);opacity:0;translate:-50% -100%;
+  text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,2px 2px 0 #1c0430,-2px 2px 0 #1c0430,2px -2px 0 #1c0430,-2px -2px 0 #1c0430,0 4px 0 #1c0430,0 0 14px var(--bc,#ffd75e)}
+#gBurnTxt.lent{font-size:10px;letter-spacing:1px}
+#gBurnTxt.on{animation:gBurnTxt 1.15s var(--ease) both}#gBurnTxt.on2{animation:gBurnTxt2 1.15s var(--ease) both}
+#gBurnTxt.lent.on{animation:gBurnTxt 2.6s var(--ease) both}#gBurnTxt.lent.on2{animation:gBurnTxt2 2.6s var(--ease) both}
+#gBurnTxt.calme.on,#gBurnTxt.calme.on2{animation:gBurnTxtC 1.4s linear both}
+@keyframes gBurnTxt{0%{opacity:0;scale:1.8}12%{opacity:1;scale:.92}22%{scale:1.05}32%{scale:1;translate:-50% -100%}72%{opacity:1}100%{opacity:0;translate:-50% -190%}}
+@keyframes gBurnTxt2{0%{opacity:0;scale:1.8}12%{opacity:1;scale:.92}22%{scale:1.05}32%{scale:1;translate:-50% -100%}72%{opacity:1}100%{opacity:0;translate:-50% -190%}}
+@keyframes gBurnTxtC{0%,100%{opacity:0}15%,75%{opacity:1}}
+/* LA NITRO ET LA MARCHE ARRIÈRE (2026-10-08) : deux touches penchées (on les TOUCHE) sous le pouce droit, le temps du burn-out */
+#gBurnBtns{position:fixed;z-index:86;right:calc(var(--sR,0px) + 12px);top:calc(var(--sT,0px) + 196px);display:flex;flex-direction:column;gap:10px;opacity:0;pointer-events:none;translate:28px 0; /* (même soir, Léo : « sans les boutons qui cachent la boutique ») sur la VUE, plus sur la console : debout au bord droit sous le titre, couché au bord gauche */
+  transition:opacity .16s,translate .28s var(--ease)}
+#gBurnBtns.on{opacity:1;pointer-events:auto;translate:0 0}
+#gBurnBtns .gbB{--nc:#ff7a24;width:66px;height:54px;padding:0;border:0;border-radius:0;transform:skewX(-11deg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  font-family:var(--pix);font-size:9px;letter-spacing:1px;color:#fff;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;
+  background:var(--laque,none),linear-gradient(#2a1e46,#120b22);box-shadow:inset 3px 0 0 var(--nc),inset 0 1px 0 rgba(255,255,255,.16),0 0 0 1px rgba(3,1,9,.92),0 5px 0 #0a0818;
+  transition:translate .07s,box-shadow .07s,background .07s}
+#gBurnBtns #gbRecul{--nc:#5ee6ff}
+#gBurnBtns .gbB .pxi{--pxs:2;color:var(--nc)}
+#gBurnBtns .gbB small{display:none;font-size:7px;color:rgba(255,255,255,.55);letter-spacing:1px}
+#gBurnBtns.clavier .gbB small{display:block}
+#gBurnBtns .gbB.on{translate:0 4px;box-shadow:inset 3px 0 0 var(--nc),inset 0 1px 0 rgba(255,255,255,.3),0 0 0 1px rgba(3,1,9,.92),0 1px 0 #0a0818,0 0 22px var(--nc)}
+#gBurnBtns #gbNitro.on{background:linear-gradient(#ffb15c,#d4470e)}#gBurnBtns #gbNitro.on .pxi{color:#fff}
+#gBurnBtns #gbRecul.on{background:linear-gradient(#7af0ff,#1a7fa0)}#gBurnBtns #gbRecul.on .pxi{color:#fff}
+@media (orientation:landscape) and (max-height:540px){#gBurnBtns{top:calc(var(--sT,0px) + 128px);right:auto;left:calc(var(--sL,0px) + 16px);translate:-28px 0}#gBurnBtns.on{translate:0 0}}
+#gInvAide b::before{content:'·';margin-right:8px;color:var(--tx3)}
+#gInvAide .ivDoigt{position:relative;width:12px;height:12px;flex:none;border-radius:50%;background:#fff;box-shadow:0 0 8px #fff}
+#gInvAide .ivDoigt::after{content:'';position:absolute;inset:-6px;border-radius:50%;box-shadow:0 0 0 2px rgba(255,255,255,.75);animation:gvDoigt 1.6s var(--ease) infinite}
+@keyframes gvDoigt{0%{scale:.5;opacity:0}30%{opacity:1}100%{scale:1.5;opacity:0}}
+@keyframes gvAide{0%{opacity:0;translate:-50% 10px}6%,88%{opacity:1;translate:-50% 0}100%{opacity:0;translate:-50% 0}}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  #gInvAide{left:calc(var(--sL) + 16px);right:auto;translate:0 0;bottom:auto;top:calc(var(--sT) + 58px);animation-name:gvAideC;grid-template-columns:auto auto;column-gap:10px;row-gap:4px;padding:8px 14px 8px 12px}
+  #gInvAide .ivDoigt{grid-row:1/3;align-self:center}
+  #gInvAide b::before{display:none}
+  @keyframes gvAideC{0%{opacity:0;translate:0 10px}6%,88%{opacity:1;translate:0 0}100%{opacity:0;translate:0 0}}
+}
+/* L'ANNEAU sous le doigt tenu (posé par invHoldTick : --p de 0 à 1, place en `translate`) */
+#gInvAnneau{position:fixed;left:0;top:0;z-index:4;width:84px;height:84px;margin:-42px 0 0 -42px;pointer-events:none;opacity:0;--p:0;
+  filter:drop-shadow(0 0 8px var(--rc,#fff));transition:opacity .16s var(--ease),scale .16s var(--ease);scale:.8}
+#gInvAnneau::before{content:'';position:absolute;inset:0;border-radius:50%;background:conic-gradient(var(--rc,#fff) calc(var(--p) * 360deg),rgba(255,255,255,.16) 0);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 8px),#000 calc(100% - 7px));mask:radial-gradient(farthest-side,transparent calc(100% - 8px),#000 calc(100% - 7px))}
+#gInvAnneau::after{content:'';position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--rc,#fff);opacity:calc(.35 + var(--p) * .65)}
+#gInvAnneau.on{opacity:1;scale:1}
+#gInvAnneau.part{opacity:0;scale:1.5;transition:opacity .3s var(--ease),scale .3s var(--ease)}
+/* LE TIROIR */
+#gInv{position:absolute;z-index:3;left:calc(var(--sL) + 10px);right:calc(var(--sR) + 10px);bottom:calc(var(--sB) + 10px);height:min(52%,450px);
+  flex-direction:column;gap:12px;box-sizing:border-box;padding:18px 14px 10px;pointer-events:auto;font-family:var(--pix);
+  background:linear-gradient(180deg,rgba(22,15,46,.95),rgba(8,6,19,.97));
+  box-shadow:inset 0 0 0 1px var(--fil),inset 0 1px 0 rgba(255,255,255,.12),0 -20px 50px -18px rgba(0,0,0,.9);
+  clip-path:polygon(var(--coupe) 0,100% 0,100% calc(100% - var(--coupe)),calc(100% - var(--coupe)) 100%,0 100%,0 var(--coupe))}
+#gInv::before{content:'';position:absolute;left:calc(var(--coupe) + 4px);right:18px;top:0;height:3px;background:var(--livree);opacity:.9;pointer-events:none}
+#gInv.on{display:flex;animation:ivMonte .44s var(--ease) both}
+#gInv.sortant{animation:ivDescend .17s ease-in both}
+@keyframes ivMonte{from{opacity:0;translate:0 60px}to{opacity:1;translate:0 0}}
+@keyframes ivDescend{to{opacity:0;translate:0 40px}}
+.ivTete{display:flex;align-items:center;gap:12px;padding:0 2px 0 6px}
+.ivTete>b{font-weight:400;font-size:var(--f3);letter-spacing:3px;color:#fff;text-shadow:0 2px 0 var(--txO),0 0 14px rgba(255,255,255,.25)}
+.ivTete small{font-size:var(--f0);letter-spacing:1px;color:var(--tx3)}
+#ivFerme{margin-left:auto;width:44px;min-width:44px;height:44px;min-height:0;padding:0}
+#ivFerme .pxi{--pxs:2}
+.ivTabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:4px;transform:skewX(var(--sk));background:linear-gradient(180deg,#0b0818,#110d22);box-shadow:inset 0 2px 4px rgba(0,0,0,.6),0 0 0 1px var(--fil)}
+.ivTab{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:48px;padding:6px 0 5px;border:0;border-radius:0;cursor:pointer;
+  font-family:var(--pix);font-size:var(--f0);letter-spacing:0;color:var(--tx3);background:transparent;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
+.ivTab>*{transform:skewX(calc(-1 * var(--sk)))}
+.ivTab .pxi{--pxs:2}
+.ivTab em{position:absolute;right:4px;top:3px;font-style:normal;font-size:var(--f0);color:var(--tx3)}
+.ivTab.on{color:#fff;background:linear-gradient(180deg,rgba(255,62,200,.32),rgba(255,62,200,.12));box-shadow:inset 0 -2px 0 var(--neoM),inset 0 0 0 1px rgba(255,62,200,.5)}
+.ivTab.on .pxi{color:var(--neoM);filter:drop-shadow(0 0 6px var(--neoM))}
+.ivTab.on em{color:#fff}
+#ivGrille{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));grid-auto-rows:100px;gap:16px 12px;align-content:start;padding:12px 10px 16px;
+  scrollbar-width:none;-webkit-mask:linear-gradient(180deg,transparent 0,#000 12px,#000 calc(100% - 14px),transparent);mask:linear-gradient(180deg,transparent 0,#000 12px,#000 calc(100% - 14px),transparent)}
+#ivGrille::-webkit-scrollbar{display:none}
+/* LA TUILE : l'objet, son nom, et la LUEUR de sa rareté (--rc la couleur, --rg la lueur, --rf le fond : posés par invRender, en rgba —
+   pas de color-mix : les vieux iPhone le lisent mal, voir hudDA §7) ; plus la famille est rare, plus elle brille (--rk) */
+.ivT{--rc:#b9c4d6;--rg:rgba(185,196,214,.35);--rf:rgba(185,196,214,.1);--rk:.5;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  box-sizing:border-box;min-width:0;padding:8px 6px 7px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  background:radial-gradient(120% 80% at 50% 100%,var(--rf),transparent 72%),linear-gradient(180deg,#181133,#0c0819);
+  box-shadow:inset 0 0 0 1px var(--rc),inset 0 1px 0 rgba(255,255,255,.1),0 0 calc(8px + var(--rk) * 14px) 0 var(--rg);
+  clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);
+  transition:translate var(--t-fast) var(--ease),scale var(--t-fast) var(--ease)}
+.ivT::after{content:'';position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 calc(10px + var(--rk) * 16px) 0 var(--rg);opacity:.5;
+  animation:ivRespire 3s ease-in-out infinite;animation-delay:calc(var(--n,0) * -.41s)}
+@keyframes ivRespire{50%{opacity:1}}
+.ivT.r-legendaire::before{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 30%,rgba(255,240,190,.32) 46%,transparent 60%) no-repeat;background-size:260% 100%;
+  animation:k4Lingot 3.6s var(--ease) infinite;animation-delay:calc(var(--n,0) * -.6s)}
+.ivT:active,.ivT.appui{translate:0 2px;scale:.97}
+.ivT img{display:block;width:100%;height:50px;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(0,0,0,.6))}
+.ivT .ivPh{display:block;width:72%;height:34px;margin:8px 0;background:linear-gradient(90deg,rgba(255,255,255,.04),rgba(255,255,255,.12),rgba(255,255,255,.04));clip-path:polygon(18% 30%,82% 30%,100% 70%,100% 100%,0 100%,0 70%)}
+.ivT .ivSw{display:block;width:54px;height:38px;margin:6px 0 6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -3px 0 rgba(0,0,0,.35),0 0 0 1px var(--anneau)}
+.ivT .ivSw.chrome{background:linear-gradient(160deg,#fff 0%,#b9c3d2 30%,#f4f7fb 48%,#7d8796 70%,#e9eef5 100%)!important}
+.ivT .ivSw.or{background:linear-gradient(160deg,#fff4c2 0%,#ffc93a 35%,#fff0a8 50%,#b87400 78%,#ffd65a 100%)!important}
+.ivT .ivSw.mat{box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),0 0 0 1px var(--anneau)}
+.ivT .ivRub{display:block;width:80%;height:10px;margin:20px 0 20px;transform:skewX(-20deg);filter:drop-shadow(0 0 6px currentColor)}
+.ivT .ivAile{--pxs:4;margin:4px 0 2px}
+.ivT b{margin-top:auto;max-width:100%;font-weight:400;font-size:var(--f0);line-height:1.5;letter-spacing:0;color:var(--tx);text-align:center;text-shadow:0 1px 0 var(--txO);
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+.ivT u{display:none;position:absolute;right:5px;top:5px;padding:3px;text-decoration:none;color:#08130b;background:var(--neoV);box-shadow:0 0 10px var(--neoV)}
+.ivT u .pxi{--pxs:1;display:block}
+.ivT.eq{box-shadow:inset 0 0 0 2px var(--rc),inset 0 1px 0 rgba(255,255,255,.14),0 0 calc(14px + var(--rk) * 16px) 2px var(--rg)}
+.ivT.eq u{display:block}
+.ivT.flash{animation:ivFlash .55s var(--ease)}
+@keyframes ivFlash{0%{scale:.92;filter:brightness(2.2)}45%{scale:1.05}100%{scale:1;filter:none}}
+#gInv.on .ivT:not(.flash){animation:ivTuile .4s var(--ease) backwards;animation-delay:calc(min(var(--n,0),14) * 26ms + 90ms)}
+#gInv.on .ivT:not(.flash)::after{animation:ivRespire 3s ease-in-out infinite;animation-delay:calc(var(--n,0) * -.41s)}
+@keyframes ivTuile{from{opacity:0;translate:0 12px;scale:.94}to{opacity:1;translate:0 0;scale:1}}
+/* COUCHÉ : le tiroir vient de la droite, la caisse reste à gauche */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  #gInv{left:auto;top:calc(var(--sT) + 10px);width:min(52%,460px);height:auto;padding:14px 12px 8px;gap:10px}
+  #gInv.on{animation-name:ivGlisse}#gInv.sortant{animation-name:ivSort}
+  @keyframes ivGlisse{from{opacity:0;translate:60px 0}to{opacity:1;translate:0 0}}
+  @keyframes ivSort{to{opacity:0;translate:40px 0}}
+  .ivTab{min-height:40px;flex-direction:row;gap:6px}
+  .ivTab span{display:none}
+  .ivTab em{position:static}
+  #ivGrille{grid-template-columns:repeat(auto-fill,minmax(84px,1fr));grid-auto-rows:94px;gap:12px 10px}
+}
+@media (prefers-reduced-motion:reduce){html body #garage.deplie:not(.menu) #gBottom,#gInv.on,#gInv.on .ivT,.ivT::after,.ivT::before{animation:none!important}}
+#garage.quiet :is(#gInv,#gInvAide,#gInvAnneau),#garage.launching :is(#gInv,#gInvAide,#gInvAnneau),#garage.menu :is(#gInv,#gInvAide){display:none!important}
+html[data-reduced-motion] body #garage.deplie:not(.menu) #gBottom,html[data-reduced-motion] #gInv.on,html[data-reduced-motion] #gInv.on .ivT,html[data-reduced-motion] .ivT::after,html[data-reduced-motion] .ivT::before{animation:none!important}
+</style>

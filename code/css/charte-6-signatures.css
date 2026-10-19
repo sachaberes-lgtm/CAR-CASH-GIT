@@ -1,0 +1,227 @@
+/* ---- 13. LES SIGNATURES v5 (2026-09-28) — ce qui fait qu'on reconnaît le jeu sur une seule capture ----
+   (a) LA LIVRÉE SE DESSINE : à l'entrée de chaque écran, les trois traits sous le titre (et sous le logo) filent de gauche à droite —
+       un seul motif pour tout le jeu, comme une bande de course ; `transform` seul (compositeur, zéro repeint). */
+.mscr.on>.mHead::after,#tPanel.open .tpH:first-child::after{transform-origin:0 50%;animation:k5Livree .7s var(--ease) .14s backwards}
+#mHome.on .mTitle::after{transform-origin:0 50%}
+@keyframes k5Livree{from{transform:skewX(var(--sk)) scaleX(0)}to{transform:skewX(var(--sk)) scaleX(1)}}
+.tpH:first-child::after{transform:skewX(var(--sk))}
+/* (c) L'ÉCRAN DE MORT : le moteur prend la couleur de SON palier éclaircie (les premiers paliers, rouille et cuivre, faisaient une carte
+   boueuse) ; « PLUS QUE 2 PIÈCES » — le crochet qui fait relancer — passe en ambre, lisible ; l'offre dit son prix en vert billet */
+html .hMot{--hc:color-mix(in srgb,var(--ec,var(--au2)) 66%,#fff)}
+html .hMot .hNx.hPres{color:var(--neoA)}
+html .mObj.pret .obFt span:first-child,html .mObj.rec .obFt span:first-child{color:var(--cash)}
+/* petits téléphones (SE, mini) : le titre de mort garde son corps de 20 px (le compactage de la section 2 le remontait à 25) */
+@media (max-height:760px){html #mDead .mOver{font-size:var(--f6)}}
+/* (d) LES PRIX : l'argent du JEU en vert billet, le vrai argent (€) en or — partout */
+.gT em{color:var(--cash)}
+.gT em.eur{color:var(--au1)}
+.gT.cos em{color:var(--cash)}
+@media (prefers-reduced-motion:reduce){.mscr.on>.mHead::after,#tPanel.open .tpH:first-child::after,#mHome.on .mTitle::after{animation:none}}
+html[data-reduced-motion="1"] :is(.mscr.on>.mHead,#mHome.on .mTitle)::after,html[data-reduced-motion="1"] #tPanel.open .tpH:first-child::after{animation:none}
+/* ---- 14. LE HUD DE COURSE EN v5 (2026-09-28) — la même main que les menus, sans rien déplacer de ce que Sacha a validé ----
+   (a) LES PLAQUES qu'on lit (pouvoirs, astuce/défi, auto-école, objectif de campagne) : la LAQUE des panneaux, le FILET qui suit les
+       coins coupés, la lèvre de lumière, la bande de SA couleur à gauche — exactement le panneau des menus, en petit. */
+:root{--plaqueH:linear-gradient(to bottom right,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 0 0/var(--coupeH) var(--coupeH) no-repeat,
+    linear-gradient(to top left,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 100% 100%/var(--coupeH) var(--coupeH) no-repeat,
+    linear-gradient(180deg,rgba(26,21,50,.94) 0%,rgba(18,14,36,.94) 55%,rgba(13,10,28,.94) 100%);
+  --filetH:inset 0 0 0 1px var(--fil),inset 0 1px 0 rgba(255,255,255,.14)}
+html body.touch #pwrChip .pw{box-shadow:inset 3px 0 0 var(--pc),inset 34px 0 26px -24px color-mix(in srgb,var(--pc) 60%,transparent),var(--filetH)}
+@keyframes k5PwBat{to{box-shadow:inset 3px 0 0 var(--pc),inset 56px 0 34px -24px color-mix(in srgb,var(--pc) 85%,transparent),var(--filetH)}}
+html body.touch #pwrChip .pw u{background:var(--pc);box-shadow:0 0 8px color-mix(in srgb,var(--pc) 70%,transparent)}
+html body #misBan{box-shadow:inset 3px 0 0 var(--mbC),inset 40px 0 30px -26px color-mix(in srgb,var(--mbC) 45%,transparent),var(--filetH)}
+html body #coach,html body #coach:not(.bravo){box-shadow:inset 3px 0 0 var(--neoC),inset 40px 0 30px -26px rgba(0,234,255,.35),var(--filetH)!important}
+html body #coach.bravo{box-shadow:inset 3px 0 0 var(--neoV),inset 0 0 0 1px rgba(94,227,122,.55),inset 0 1px 0 rgba(255,255,255,.14)!important}
+html body.touch #campChip{box-shadow:inset 3px 0 0 var(--cc,var(--neoC)),inset 40px 0 30px -26px color-mix(in srgb,var(--cc,var(--neoC)) 45%,transparent),var(--filetH)}
+@keyframes k5CampAlerte{50%{box-shadow:inset 3px 0 0 var(--neoR),inset 0 0 0 1px var(--neoR),inset 40px 0 30px -26px rgba(255,74,100,.5)}}
+/* (b) LE VOLANT : l'invitation (avant le premier braquage) et le stick deviennent des CADRANS SEGMENTÉS, frères du disque NITRO — un
+   anneau de crans (16° de trait, 4° de jour) au lieu d'un pointillé de navigateur ; le patin est une touche de laque au liseré cyan */
+html body.touch.play #tSteer:not(.used)::after{border:0;border-radius:50%;
+  background:repeating-conic-gradient(from -8deg,rgba(159,232,255,.62) 0 16deg,transparent 16deg 22.5deg);
+  -webkit-mask:radial-gradient(closest-side,transparent calc(100% - 4px),#000 calc(100% - 4px));mask:radial-gradient(closest-side,transparent calc(100% - 4px),#000 calc(100% - 4px))}
+html body #tStick{border:0;background:radial-gradient(closest-side,rgba(0,234,255,.10) 0%,rgba(6,4,16,.24) 90%,transparent 92%)}
+html body #tStick::before{content:'';position:absolute;inset:0;border-radius:50%;pointer-events:none;
+  background:repeating-conic-gradient(from -8deg,rgba(0,234,255,.55) 0 16deg,transparent 16deg 22.5deg);
+  -webkit-mask:radial-gradient(closest-side,transparent calc(100% - 5px),#000 calc(100% - 5px));mask:radial-gradient(closest-side,transparent calc(100% - 5px),#000 calc(100% - 5px))}
+html body #tKnob{border:0;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.22),transparent 55%),radial-gradient(circle,#2a2350 0%,#161230 72%);
+  box-shadow:inset 0 0 0 2px var(--neoC),inset 0 0 14px rgba(0,234,255,.35),0 0 0 2px rgba(3,1,9,.8),0 0 18px rgba(0,234,255,.5)}
+html body #tSteerHint{color:var(--tx2);opacity:.78}
+/* (b') UNE VOIX AU CENTRE, MÊME À DROITE : pendant qu'une grande annonce ou un verdict de pose passe (1,4 s), les plaques de pouvoirs
+   s'effacent aux trois quarts — « DOUBLE MONSTRE » les traversait. L'information revient dès que l'annonce s'en va. */
+html body.touch.slamOn #pwrChip,html body.touch.verdOn #pwrChip{opacity:.22}
+/* pendant l'AUTO-ÉCOLE, la carte du coach tient le haut de l'écran (jusqu'à ~190 px) : les pouvoirs passent dessous au lieu d'y dépasser */
+html body.touch.coOn #pwrChip{top:calc(var(--hudH) + 236px)}
+/* (c) EN PAYSAGE, les deux jauges du haut ne traversent plus tout l'écran (730 px de barre à lire d'un bout à l'autre) : elles gardent
+   la largeur d'un tableau de bord, à gauche ; le ⏸ reste dans son coin */
+@media (orientation:landscape) and (max-height:540px){
+  html body.touch #nitroWrap{right:auto;width:min(50vw,440px);box-sizing:border-box}
+  html body.touch #flowHud{right:auto;width:min(50vw,440px)}
+}
+/* ---- 15. LA VIGNETTE DE L'OBJECTIF (écran de mort, objFig) : à droite du ticket « TU PEUX TE L'OFFRIR », droite (on la lit), sur son
+   socle de lumière cyan — la même matière que les vignettes du garage : photo de studio, nuancier, ruban ou aile */
+.obFig{position:absolute;right:14px;top:50%;width:84px;height:54px;margin-top:-27px;display:flex;align-items:center;justify-content:center;font-style:normal;pointer-events:none;
+  background:radial-gradient(60% 40% at 50% 82%,rgba(0,234,255,.3),transparent 72%)}
+.obFig img{width:118%;max-width:none;height:auto;filter:drop-shadow(0 6px 6px rgba(0,0,0,.5))}
+.obFig .pxi{--pxs:4;color:var(--tx2)}
+.obSw{display:block;width:56px;height:34px;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -3px 0 rgba(0,0,0,.35),0 0 0 1px var(--anneau)}
+.obSw.chrome{background:linear-gradient(160deg,#fff 0%,#b9c3d2 30%,#f4f7fb 48%,#7d8796 70%,#e9eef5 100%)!important}
+.obSw.or{background:linear-gradient(160deg,#fff4c2 0%,#ffc93a 35%,#fff0a8 50%,#b87400 78%,#ffd65a 100%)!important}
+.obRub{display:block;width:70px;height:10px;transform:skewX(-20deg);filter:drop-shadow(0 0 6px currentColor)}
+/* ---- 17. LA SECONDE CRITIQUE (2026-09-28) — un DA indépendant a relu les 66 captures (portrait + paysage) ; ce qui suit applique ce
+   qui ne contredit aucun verdict de Sacha. Chaque règle dit le défaut qu'elle corrige. */
+/* (a) UNE SEULE FAÇON DE DIRE « SÉLECTIONNÉ » : liseré de sa couleur + fond teinté, jamais un aplat — la famille LÉGENDES, pleine d'or,
+   faisait un DEUXIÈME lingot à côté d'ÉQUIPER */
+html .gR.on{color:var(--rc);background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 22%,#120e26),color-mix(in srgb,var(--rc) 10%,#0c0919));
+  box-shadow:inset 0 0 0 1px var(--rc),inset 0 1px 0 rgba(255,255,255,.14),0 0 0 1px var(--anneau),0 4px 0 1px var(--anneau),0 0 16px color-mix(in srgb,var(--rc) 40%,transparent)}
+html .gR.on::before{background:var(--rc);box-shadow:0 0 8px var(--rc)}
+html .gR.on b{color:var(--tx)}
+/* (c) L'ARGENT DU JEU EST VERT, PARTOUT : la prime d'un défi réussi (une plaque d'or — « jamais un fond de plaque ») et ce que rapporte
+   une pose (« +$ 45 » sous le verdict) passent au vert billet ; le prix en € du garage passe à l'or */
+html body #misBan .mbPrime{color:#03240e;background:linear-gradient(180deg,#d6ffe0 0 2px,#7df29a 2px 60%,#35c05c 60%);box-shadow:inset 0 0 0 2px #1c0430,inset 0 -4px 0 #1d7a3a}
+html #verdHud .vM{color:var(--cash);text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,2px 2px 0 #1c0430,-2px 2px 0 #1c0430,2px -2px 0 #1c0430,
+  -2px -2px 0 #1c0430,0 5px 0 #1c0430,0 0 14px rgba(125,255,155,.5)}
+#gDesc .gEur{font-weight:400;color:var(--au1)}
+#gDesc .gTest{font-style:normal;padding:3px 6px 2px;margin-right:4px;color:var(--tx3);box-shadow:inset 0 0 0 1px var(--kl2)}
+/* (d) LES PASTILLES DES HÉROS parlent UNE langue : liseré + texte de la couleur de leur carte (NOUVEAU RANG rose plein, RECORD crème :
+   deux langages) */
+html .hCard em{color:var(--hc);background:color-mix(in srgb,var(--hc) 14%,#0c0919);box-shadow:inset 0 0 0 1px var(--hc),0 0 14px color-mix(in srgb,var(--hc) 30%,transparent);text-shadow:none}
+/* (e) LE CURSEUR de volume : un patin cyan, pas un rectangle gris de navigateur */
+.volS::-webkit-slider-thumb{background:linear-gradient(180deg,#e9fdff 0%,#7ff0ff 50%,#00b6d2 100%)}
+.volS::-moz-range-thumb{background:linear-gradient(180deg,#e9fdff 0%,#7ff0ff 50%,#00b6d2 100%)}
+/* (f) MODES : l'icône d'un mode éteint reste cyan (comme partout), verte quand il est allumé ; les titres sur deux lignes respirent */
+html .mMode.off .mmT .pxi{color:var(--neoC);filter:none}
+html .mmT>span:first-child{min-width:0;line-height:1.4}
+/* (h) LA PAUSE : le voile laisse vraiment voir la course figée ; au milieu, le RÉSUMÉ de la partie (aura, moteur, niveau) — le ticket
+   de l'écran de mort, en petit : on sait ce qu'on quitte avant de toucher QUITTER */
+#tPanel{background:radial-gradient(95% 42% at 8% -4%,rgba(255,62,200,.2),transparent 70%),var(--matrice),linear-gradient(180deg,rgba(9,6,22,.82),rgba(7,5,15,.6) 45%,rgba(7,5,15,.9))}
+.tpResume{--c:12px;display:grid;grid-template-columns:repeat(3,1fr);width:100%;padding:0 0 2px;
+  background:linear-gradient(to bottom right,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 0 0/var(--c) var(--c) no-repeat,
+    linear-gradient(to top left,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 100% 100%/var(--c) var(--c) no-repeat,var(--laqueP);
+  clip-path:polygon(var(--c) 0,100% 0,100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,0 100%,0 var(--c));box-shadow:inset 0 0 0 1px var(--fil),var(--levre)}
+.tpResume .mStat{background:none;clip-path:none;box-shadow:none;position:relative;min-height:62px}
+.tpResume .mStat+.mStat::before{content:'';position:absolute;left:0;top:12px;bottom:12px;width:1px;background:var(--fil)}
+.tpResume .mStat:first-child b{color:var(--aura)}
+body:not(.play) .tpResume{display:none}
+/* (i) LE HUD SE LIT SUR CIEL CLAIR : un voile d'encre descend du haut de l'écran derrière le tableau de bord (comme la plupart des
+   jeux de course) — il s'efface à 210 px, la route et le ciel du milieu restent intacts */
+body.touch.play #hud::before{content:'';position:fixed;left:0;right:0;top:0;z-index:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(10,6,26,.46) 0%,rgba(10,6,26,.24) 52%,rgba(10,6,26,0) 100%)}
+body.touch.play.dead #hud::before,body.touch.play.coOn #hud::before{opacity:0}
+/* (j) UNE VOIX AU CENTRE : pendant une grande annonce, un verdict ou la carte MOTEUR, les pouvoirs s'effacent vraiment (ils se
+   chevauchaient avec « 3 CYLINDRES ») ; la barre du RECORD ne bute plus sur le chrono de vol ; les flammes de la jauge NITRO MAX se
+   fondent par le haut au lieu de finir en rectangle */
+html body.touch.slamOn #pwrChip,html body.touch.verdOn #pwrChip,html body.touch.ebOn #pwrChip{opacity:.08;transform:translateX(16px)}
+html body.touch #pwrChip{transition:opacity var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
+html body.touch #avRec{max-width:calc(100vw - var(--hudG) - var(--hudD) - 100px)}
+html body.touch #avRec i{flex:0 1 110px;min-width:24px}
+/* (k) L'ÉCRAN TITRE : le logo prend sa place (il flottait, perdu dans le noir) ; l'invite descend dans le tiers bas */
+html #spTitle{font-size:clamp(38px,11.2vw,56px)}   /* la taille du logo de l'accueil : le même logo, du titre au menu */
+html #spNote{position:fixed;bottom:calc(var(--sB) + 84px)}
+/* (l) LE PAYSAGE, suite */
+@media (orientation:landscape) and (max-height:540px){
+  /* le couloir des annonces remonte au tiers (il tombait à 338 px sur 390 : « NIVEAU 1 » sur la caisse, le verdict coupé en bas) */
+  html body.touch,html body.touch.hCampChip:not(#ccH){--laneA:40%}
+  /* les pouvoirs s'installent en haut à droite, à gauche du chrono de vol (ils descendaient sur le disque NITRO) */
+  /* l'invitation du volant descend sous le pouce */
+  html body.touch.play #tSteer:not(.used)::after{bottom:calc(var(--sB) + 34px)}
+  /* le dock de sortie va d'un bord à l'autre, et RETOUR tombe toujours au même endroit */
+  html .mDock{margin-left:-24px;margin-right:-24px;padding:22px 24px calc(var(--sB) + 14px);background:none}
+  html .mDock::before{content:'';position:absolute;top:0;bottom:0;left:-100vw;right:-100vw;z-index:-1;pointer-events:none}
+  /* la vitrine de la boutique tient à l'écran, prix compris */
+  html .shUneCadre{padding:12px 16px 14px;gap:8px 18px}
+  html .shUneCadre .shPhoto{aspect-ratio:auto;height:150px}
+  html .shUneCadre .shPhoto img{width:auto;height:150px}
+  html .shUneTx span{font-size:13px}
+  /* la mort : le moteur et l'aura restent les héros — le défi passe au-dessus du ticket, les chiffres des héros grandissent */
+  html #mDead .mCashL{margin-top:0}
+  html #mDead .hAura>b,html #mDead .hMotN{font-size:var(--f7)}
+}
+@media (prefers-reduced-motion:reduce){html body.touch #pwrChip{transition:none}}
+/* ---- 18. L'ACCUEIL EST CELUI DE LA v4 (2026-09-28, Sacha, après la v5 : « pour l'écran d'accueil, remets la v4 »). L'accueil reprend
+   exactement sa matière et sa mise en page v4 — touches en CARBONE tramé (anneau d'encre 2 px, tranche 6 px), lingot JOUER gravé
+   (filet intérieur, trame de lignes), pastilles v4, livrée du logo fixe, et sa COLONNE centrée aussi en paysage. Tout est scopé sous
+   #mHome : les autres écrans restent en v5. Jetons de la v4 recopiés tels quels (--carbone4, --ombreSol4). */
+:root{--carbone4:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.07) 46%,transparent 62%),
+    linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,0) 48%,rgba(0,0,0,.30)),
+    repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0 3px,transparent 3px 6px),
+    repeating-linear-gradient(-45deg,rgba(0,0,0,.26) 0 3px,transparent 3px 9px);
+  --ombreSol4:0 14px 18px rgba(0,0,0,.55)}
+#mHome .pbtn{background:var(--carbone4),var(--k3);
+  box-shadow:inset 5px 0 0 var(--nc),inset 18px 0 20px -14px var(--nc),inset 0 1px 0 rgba(255,255,255,.22),
+    0 0 0 2px var(--k0),0 6px 0 0 #0a0716,0 6px 0 2px var(--k0),var(--ombreSol4);text-shadow:0 2px 0 var(--txO)}
+#mHome .pbtn .pxi{filter:none}
+#mHome .pbtn:active,#mHome .pbtn.appui{transform:skewX(var(--sk)) translateY(6px);
+  box-shadow:inset 5px 0 0 var(--nc),inset 26px 0 26px -14px var(--nc),inset 0 1px 0 rgba(255,255,255,.22),
+    0 0 0 2px var(--k0),0 0 0 0 #0a0716,0 0 0 2px var(--k0),0 5px 8px rgba(0,0,0,.5)}
+#mHome .pbtn.ico{gap:9px;padding:12px 8px 10px 16px}
+#mHome .pb-gold{background:linear-gradient(105deg,transparent 0 38%,rgba(255,255,255,.8) 46%,rgba(255,255,255,0) 54%) no-repeat,
+    repeating-linear-gradient(0deg,rgba(255,255,255,.07) 0 1px,transparent 1px 3px),
+    linear-gradient(180deg,var(--au0) 0%,var(--au1) 22%,var(--au2) 52%,var(--au3) 100%);
+  background-size:250% 100%,auto,auto;background-position:180% 0,0 0,0 0;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.9),inset 0 -4px 0 rgba(190,95,0,.55),
+    0 7px 0 0 var(--auE),0 0 0 2px var(--auO),0 7px 0 2px var(--auO),0 16px 22px rgba(40,10,0,.55),0 0 26px var(--auG);
+  outline:2px solid rgba(160,82,0,.28);outline-offset:-8px;text-shadow:0 2px 0 rgba(255,244,196,.85)}
+#mHome .pb-gold:active,#mHome .pb-gold.appui{transform:skewX(var(--sk)) translateY(7px);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.9),inset 0 -4px 0 rgba(190,95,0,.55),
+    0 0 0 2px var(--auO),0 0 0 0 var(--auE),0 0 0 2px var(--auO),0 5px 8px rgba(40,10,0,.5),0 0 36px rgba(255,190,40,.6)}
+@keyframes k4LingotV4{0%,64%{background-position:180% 0,0 0,0 0}94%,100%{background-position:-80% 0,0 0,0 0}}
+#mHome.on.revu>.mPlay{animation:k4LingotV4 4.2s var(--ease) 1.4s infinite!important}
+#mHome .mBadge{top:-6px;min-width:26px;padding:6px 7px 5px;box-shadow:0 0 0 2px var(--k0),0 3px 0 2px var(--k0)}
+#mHome #bdShop{box-shadow:0 0 0 2px var(--k0),0 3px 0 2px var(--k0)}
+#mHome .mTitle::after{left:8%;right:8%;bottom:-20px;height:6px;animation:none;
+  background:linear-gradient(90deg,transparent,var(--neoM) 18%,var(--neoM) 40%,transparent 40.5%,transparent 43%,var(--neoC) 43.5%,var(--neoC) 64%,transparent 64.5%,transparent 67%,var(--au2) 67.5%,var(--au2) 82%,transparent);
+  box-shadow:0 0 14px rgba(255,62,200,.5)}
+#mHome.on .mTitle::after{animation:none}
+#mHome .mIcons{margin:0 0 26px}
+#mHome .mIcons .pbtn{min-height:88px}
+@media (max-height:720px){#mHome .mIcons{margin-bottom:20px}#mHome .mIcons .pbtn{min-height:76px}}
+/* en paysage : la colonne de téléphone de la v4, centrée (la coque est pleine largeur pour les autres écrans) */
+@media (orientation:landscape) and (max-height:540px){html #mHome{max-width:460px;align-self:center;padding:calc(var(--sT) + 10px) calc(var(--sR) + var(--gut)) calc(var(--sB) + 18px) calc(var(--sL) + var(--gut))}}
+@media (prefers-reduced-motion:reduce){#mHome.on>.mPlay,#mHome .pb-gold{animation:none}}
+html[data-reduced-motion="1"] #mHome .pb-gold,html[data-reduced-motion="1"] #mHome.on>.mPlay{animation:none!important}
+
+/* ---- 19. LES MISSIONS ET LA SORTIE MENU (2026-09-28, Sacha : « il manque un bouton pour revenir au menu » · « dans le menu il faut
+   aussi un bouton mission » · « l'écran de mission doit être parfait, avec une jauge de progression et un texte expliquant la
+   récompense — aussi bien fini que tout le reste »). Même grammaire : penché = je touche, droit à coins coupés = je lis, le vert
+   néon = les DÉFIS (la bannière « DÉFI RÉUSSI » de la course parle déjà vert), le vert billet = l'argent du jeu, l'or = le lingot. */
+/* la PORTE des missions : en face du ⚙, sur la même ligne — trois cases, une par défi, qui s'allument quand il est relevé */
+#mHome .mMisBtn{--nc:var(--neoV);flex:1;min-width:0;justify-content:flex-start;min-height:50px;padding:0 18px 0 20px;gap:10px;font-size:var(--f1)}
+#mHome .mMisBtn .mMisPips{margin-left:auto} /* (2026-09-28) les trois cases au bout de la plaque : on lit « MISSIONS … où j'en suis » */
+#mHome .mMisBtn .pxi{--pxs:2;color:var(--neoV)}
+.mMisPips{display:flex;gap:4px;margin-left:4px}
+.mMisPips u{display:block;width:7px;height:14px;background:var(--k0);box-shadow:0 0 0 1px var(--kl2)}
+.mMisPips u.ok{background:var(--neoV);box-shadow:0 0 0 1px #0c5a2a,0 0 8px rgba(94,227,122,.65)}
+/* la SORTIE de l'écran de mort : MAISON | REJOUER. La maison est une touche de laque neutre (lavande, comme RÉGLAGES) — le lingot
+   reste seul en or et prend toute la place qui reste */
+#mDead .mFin{display:flex;align-items:stretch;gap:14px;width:100%}
+#mDead .mFin>[data-m="replay"]{flex:1;min-width:0;width:auto;margin:0;padding:0 16px}
+#mDead .mMenu{--nc:var(--tx2);flex:none;flex-direction:column;gap:8px;width:86px;min-height:0;padding:8px 4px 6px 10px;font-size:var(--f1);letter-spacing:1px}
+#mDead .mMenu .pxi{--pxs:3;color:var(--tx2)}
+@media (max-width:360px){#mDead .mMenu{width:72px}#mDead .mFin{gap:10px}}
+/* ---- 20. L'ÉCRAN DE MORT, FINI (2026-09-28, Sacha : « plein de choses sont mal gérées ici, rends ça parfait ») ------------------------
+   MESURÉ en capture (844×390, le cadre de l'ordi) : l'aura « +40 498 » passait sur DEUX lignes ; les deux cartes héros (280 px de haut)
+   gardaient tout en haut et une moitié vide en bas ; « RECORD : STATOREACTEUR » se cassait ; « GAME OVER » et sa cause étaient séparés
+   par un trou (la rangée de l'objectif, à côté, les écartait) ; « 0:00 FRENESIE » criait en rouge une absence ; « MENTHE » ne disait pas
+   ce qu'on achetait, et son ruban flottait seul. */
+.hCard{container-type:inline-size}               /* le chiffre de l'aura se mesure à SA carte (unités cqi) */
+html #mDead .hCard.hAura>b{white-space:nowrap;font-size:min(var(--f7),calc((100cqi - 18px) / var(--n,6)))} /* une ligne, toujours : la police pixel a des chasses de 1 em */
+html #mDead .mStat.mFren.zero b{color:var(--tx3);text-shadow:0 2px 0 var(--txO)} /* pas de frénésie : une case éteinte, pas une alarme */
+.obFig .obRub+.pxi{--pxs:2;margin-left:-3px;color:var(--tx)}  /* le ruban part d'une caisse */
+@media (orientation:landscape) and (max-height:540px){             /* le verdict et sa cause se tiennent (la rangée de l'objectif les écartait) */
+  html #mDead .mCause{align-self:start}
+  html #mDead .hCard{justify-content:flex-start}
+}     /* l'étiquette reste en tête des deux cartes (même hauteur), le reste se CENTRE dessous — */ /* plus de moitié vide en bas de la carte AURA */
+/* LA PORTE DES MISSIONS de l'écran de mort (objRender) : le défi que la partie a le plus approché, sa jauge, l'objet au bout */
+.mObj.misPorte{--fc:var(--neoV);cursor:pointer}
+.mObj.misPorte .obHd{color:var(--neoV)}
+.mObj.misPorte .obHd .pxi{--pxs:2}
+.mObj.misPorte .mMisPips{margin-left:auto}
+.mObj.misPorte .obBar i{background:linear-gradient(90deg,#0a8fa8,var(--neoC));box-shadow:0 0 10px rgba(0,234,255,.45);transition:width 1.1s var(--ease)}
+.mObj.misPorte .obBar.ok i{background:linear-gradient(90deg,#23b853,var(--neoV));box-shadow:0 0 12px rgba(94,227,122,.6)}
+.mObj.misPorte .obFt{color:var(--tx2)}
+/* LE PAYSAGE (ce que l'ordi montre) : titre et règle en tête, défis → objet sur toute la largeur, ENSUITE dans la rangée du RETOUR ;
+   la maison de l'écran de mort passe en ligne */
+@media (orientation:landscape) and (max-height:540px){
+  html #mDead .mMenu{flex-direction:row;width:auto;gap:8px;padding:0 14px 0 16px;font-size:var(--f0)}
+  html #mDead .mMenu .pxi{--pxs:2}
+  html #mHome .mMisBtn{min-height:44px}
+}
