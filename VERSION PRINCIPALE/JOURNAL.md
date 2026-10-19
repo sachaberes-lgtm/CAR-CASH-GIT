@@ -1394,6 +1394,10 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   du bord vers le moyeu enfoncé (le dessin de BOÎTES, commit 6ef9692b). `creux:d` (≤ 4 cm, BOÎTES) ou `branches:1` (= 4 cm, JAPONAISES). Le `creux` de
   BOÎTES donne au sommet près la même roue que sur sa branche (LA BAVAROISE ne bouge pas). Les neuf caisses à `branches` passent des planches inclinées
   aux arêtes. ⚠ À la fusion de `caisses-boites` : le bloc lpWheel est en conflit — garder CELUI-CI (il contient leur `creux`, à l'identique).
+- **+ le lot 4 de BOÎTES (2dc45860)** : `creux` jusqu'à 60 % de la demi-largeur du pneu (au-delà de 4 cm le FOND recule d'autant : `fdd`), et
+  `ecrous:n` (n écrous sur le moyeu enfoncé, avec un creux ou des branches). La profondeur `crW` se calcule avant le fond ; `creux` vaut pour tout style,
+  comme chez eux. Vérifié au sommet près : LE MASTODONTE (creux 12 cm, six écrous, crampons), L'AIGLE DE FEU et LA BAVAROISE rendent la même roue que
+  sur `caisses-boites` ; les 11 fiches sans option, et les `branches`, inchangées.
 - **La correction GLOBALE, ÉTEINTE** (`ROUES_VRAIES=false`, juste avant `function lpWheel`) : allumée, toute fiche à rayons qui ne dit rien prend les
   vraies branches (4 cm), et un `accent` trop sombre (luminance < .25) s'éclaircit vers la jante (sinon les branches se perdent sur le fond sombre).
   `branches:0` dans une fiche la refuse pour elle. Essai : `?roues=vraies`, ou `dbgRoues(1|0)` en console. Concernées : 20 caisses du kit (relevé

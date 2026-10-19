@@ -29815,13 +29815,15 @@ function lpWheel(o){
     K.box('k',o.w*.84,.05,.11,0,Math.sin(a)*R,Math.cos(a)*R,Math.PI/2-a);}
   if(o.bande&&!o.sansPneu)K.lathe('b',[[R+.004,-hw*.16],[R+.004,hw*.16]],16,0,0,0,'x'); // (2026-10-08, SQUALE) une BANDE claire au milieu de la bande de roulement : vue d'en dessous, la roue se lit
   const fx0=hw-.035,FACES=o.deux?[1,-1]:[1];                 // le plan de la jante, en retrait du pneu
+  // la profondeur des VRAIES BRANCHES (0 = l'ancien dessin) : `creux` (BOÎTES : jusqu'à 60 % de la demi-largeur — au-delà de 4 cm le fond recule
+  // d'autant) ou `branches` (JAPONAISES : 4 cm) ; ou, pour les styles à rayons qui ne disent rien, la correction GLOBALE `ROUES_VRAIES` (éteinte :
+  // `?roues=vraies`, `dbgRoues(1)`) — `branches:0` dans une fiche la refuse pour elle
+  const crW=o.creux?Math.min(o.creux,hw*.6):(o.style==='cadran'||o.style==='enjoliveur'||o.style==='plis')?0:(o.branches||(ROUES_VRAIES&&o.branches!==0))?.04:0,
+        fdd=Math.max(0,crW-.04);
   // (2026-10-08, SQUALE) `deux` : la roue du MILIEU, qu'on voit des deux côtés — un tambour FERMÉ et une jante sur CHAQUE face (miroir en x)
   if(o.deux)K.lathe('d',[[0,-(fx0-.05)],[R*.64,-(fx0-.05)],[R*.64,fx0-.05],[0,fx0-.05]],16,0,0,0,'x');
-  else K.lathe('d',[[R*.64,-hw+.02],[R*.64,fx0-.05],[0,fx0-.05]],16,0,0,0,'x'); // fût + fond sombre
+  else K.lathe('d',[[R*.64,-hw+.02],[R*.64,fx0-.05-fdd],[0,fx0-.05-fdd]],16,0,0,0,'x'); // fût + fond sombre (il recule derrière une jante creusée de plus de 4 cm)
   for(const e of FACES){const fx=e*fx0;
-  // la profondeur des VRAIES BRANCHES (0 = l'ancien dessin) : `creux` (≤ 4 cm) ou `branches` (4 cm) ; ou, pour les styles à rayons qui ne disent
-  // rien, la correction GLOBALE `ROUES_VRAIES` (éteinte : `?roues=vraies`, `dbgRoues(1)`) — `branches:0` dans une fiche la refuse pour elle
-  const crW=(o.style==='cadran'||o.style==='enjoliveur'||o.style==='plis')?0:o.creux?Math.min(o.creux,.04):(o.branches||(ROUES_VRAIES&&o.branches!==0))?.04:0;
   if(o.blanc)K.lathe('w',[[R*.70,e*(hw+.004)],[R*.86,e*(hw+.004)]],16,0,0,0,'x');
   if(o.style==='cadran'){
     K.lathe('c',[[R*.64,fx],[0,fx]],16,0,0,0,'x');
@@ -29841,7 +29843,7 @@ function lpWheel(o){
     K.cyl('d',R*.10,.012,7,fx+e*.016,0,0,'x');                                // le cache-moyeu
   }else{
     const n=o.n||5,multi=o.style==='multi';
-    if(crW){ /* (2026-10-19) LES VRAIES BRANCHES — UN SEUL outil pour `creux` (BOÎTES, « des jantes en disques plats » : la jante CREUSÉE, ≤ 4 cm) et
+    if(crW){ /* (2026-10-19) LES VRAIES BRANCHES — UN SEUL outil pour `creux` (BOÎTES, « des jantes en disques plats » : la jante CREUSÉE) et
        `branches` (JAPONAISES, = un creux de 4 cm) : la lèvre plonge, chaque rayon est une ARÊTE (deux pans qui prennent chacun leur lumière) qui
        descend, LE LONG du rayon, du bord vers le moyeu enfoncé. Mêmes matières : 0 programme de plus. */
       K.lathe('c',[[R*.64,fx],[R*.60,fx-e*crW*.3],[R*.55,fx-e*crW*.45]],16,0,0,0,'x');
@@ -29858,6 +29860,7 @@ function lpWheel(o){
       K.box(multi?'c':'a',.03,R*.46,multi?R*.07:R*.13,fx-e*.012,Math.sin(a)*R*.33,Math.cos(a)*R*.33,-a);}}
   }
   if(o.style!=='enjoliveur'&&o.style!=='plis')K.cyl('c',R*.16,.05,8,fx-e*(crW?crW+.012:.01),0,0,'x'); // le moyeu (enfoncé dans la jante creusée)
+  if(o.ecrous&&crW)for(let i=0;i<o.ecrous;i++){const a=i/o.ecrous*Math.PI*2+.3;K.cyl('c',R*.028,.024,6,fx-e*(crW-.02),Math.sin(a)*R*.10,Math.cos(a)*R*.10,'x');} // (19/10, BOÎTES) les ÉCROUS sur le moyeu
   if(o.pique&&e>0){K.cyl('c',R*.15,.14,6,fx+.07,0,0,'x',R*.07);K.cyl('w',R*.07,.12,6,fx+.20,0,0,'x',.004);} // (2026-10-16, LE BLINDÉ NOIR) LE PIC DE MOYEU : le char de Ben-Hur — dans l'axe, il ne tourne pas à l'œil
   }
   return K.done();
