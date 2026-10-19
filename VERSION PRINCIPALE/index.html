@@ -32215,13 +32215,13 @@ Object.assign(SHAPES,{
     k:{g:'m',c:0x121317},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1c2733},
     W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},Y:{g:'l',c:0xffe08a}});
   const AR=[[0,2*R+.05],[R*.70,2*R+.04],[R+.04,R*1.15],[R+.14,.24]];
-  const zs=[-LF,-1.80,-1.66,-1.30,-.80,-.26,-.12,.15,.55,.97,1.40,1.62,1.72,1.76,1.80,LF];
+  const zs=[-LF,-1.848,-1.835,-1.81,-1.77,-1.66,-1.30,-.80,-.26,-.12,.15,.55,.97,1.40,1.62,1.72,1.76,1.80,LF];   // (affinement) -1,83 et -1,76 : la poupe tourne ses coins
   for(const w of [ZF,ZR])for(const d of [R*.70,R+.04,R+.14])zs.push(w-d,w+d);
   zs.sort((a,b)=>a-b);
   const yB=z=>U.lin([[-LF,.72],[-1.80,.80],[-1.66,.84],[-.26,.80],[.97,.72],[1.40,.66],[1.72,.58],[1.80,.52],[LF,.46]],z)+.06*hmp(z,ZF,.75)+.05*hmp(z,ZR,.8),
         yT=z=>U.lin([[-LF,.76],[-1.80,.84],[-1.66,.88],[-1.30,.95],[-.80,1.03],[-.26,1.095],[.15,1.105],[.55,.98],[.97,.76],
                      [1.40,.67],[1.72,.60],[1.80,.54],[LF,.47]],z),
-        xW=z=>U.lin([[-LF,.80],[-1.78,.86],[-1.30,.875],[-.60,.84],[.20,.83],[.80,.85],[1.40,.855],[1.62,.82],[1.76,.74],[LF,.58]],z)+.03*hmp(z,ZF,.6)+.03*hmp(z,ZR,.6),
+        xW=z=>U.lin([[-LF,.68],[-1.848,.74],[-1.835,.785],[-1.81,.825],[-1.77,.852],[-1.30,.875],[-.60,.84],[.20,.83],[.80,.85],[1.40,.855],[1.62,.82],[1.76,.74],[LF,.58]],z)+.03*hmp(z,ZF,.6)+.03*hmp(z,ZR,.6),
         cab=z=>z>-.27&&z<.98;
   P.loft(zs,z=>{
     const yb=U.arch(z,[ZF,ZR],AR,.22),xw=xW(z),B=yB(z),t=yT(z),y2=Math.max(.32,yb+.05);
@@ -32253,17 +32253,17 @@ Object.assign(SHAPES,{
     P.box('k',.34,.08,.03,sd*.42,.38,LF-.005);P.box('O',.08,.05,.03,sd*.52,.46,LF-.02);
     P.box('W',.10,.05,.03,sd*.34,.46,LF-.01);
     // LA POUPE : deux feux ronds par côté dans la face noire, le pot unique
-    for(const x of [.46,.66]){P.cyl('c',.075,.03,10,sd*x,.66,-LF-.005,'z');P.cyl('L',.058,.035,10,sd*x,.66,-LF-.01,'z');}
+    for(const x of [.42,.58]){P.cyl('c',.075,.03,10,sd*x,.66,-LF-.005,'z');P.cyl('L',.058,.035,10,sd*x,.66,-LF-.01,'z');}   // (affinement) resserrés : la poupe arrondie
     P.box('k',.02,.14,.40,sd*(xW(-.70)+.004),.72,-.70);                      // prise d'air latérale
     P.box('p',.10,.06,.14,sd*.87,.80,.92);P.box('k',.05,.03,.08,sd*.83,.78,.92); // rétro
     P.box('c',.012,.025,.12,sd*(xW(-.05)+.003),.76,-.10);
   });
-  P.box('k',1.60,.26,.02,0,.62,-LF-.004);                                      // la face arrière noire
+  P.box('k',1.34,.26,.02,0,.62,-LF-.004);                                      // la face arrière noire (1,34 : la poupe arrondie ne la laisse plus déborder)
   P.cyl('c',.05,.10,8,-.30,.38,-LF-.01,'z');P.cyl('c',.05,.10,8,.30,.38,-LF-.01,'z');
   P.box('k',1.30,.06,.03,0,.30,LF-.005);
   K.commit(P);
   return {hl:[.36,1.02,1.37],tl:[.56,.66,-1.87],wx:.78,wzF:ZF,wzR:-ZR,
-          lpw:{R:R,w:.30,style:'rayons',n:5,jante:0xe0b84a,accent:0xe0b84a}};
+          lpw:{R:R,w:.30,style:'rayons',n:5,jante:0xe0b84a,accent:0xe0b84a,branches:1}};
 },
   d_batmobile:function(K){
   /* (13/10, « plus ressemblante ») le coupé de Munich a un capot À PLAT jusqu'au nez de requin (il plongeait en coin), une
@@ -32608,7 +32608,8 @@ Object.assign(SHAPES,{
     P.box('O',.10,.05,.02,sd*.32,.37,2.345);
     // les OUÏES d'aile (quatre fentes), le rétro obus, bas de caisse
     P.box('k',.02,.16,.34,sd*.83,.60,.70);
-    for(let i=0;i<3;i++)P.box('c',.012,.16,.014,sd*.842,.60,.61+i*.09);
+    // (affinement) L'OUÏE EN GRILLE des C3 de 70-72 : un caisson couleur caisse dans le creux noir (c'étaient trois barres chromées posées)
+    for(const y of [.535,.60,.665])P.box('p',.022,.012,.32,sd*.838,y,.70);for(let i=0;i<5;i++)P.box('p',.024,.15,.012,sd*.839,.60,.56+i*.07);
     P.box('c',.015,.05,.015,sd*.76,.86,.20);P.put('p',new THREE.SphereGeometry(1,8,5),sd*.77,.90,.20,0,0,0,.05,.04,.08);
     P.box('k',.02,.05,1.20,sd*(xW(-.05)-.04),.34,-.05);
     // la poupe tronquée : QUATRE feux ronds, lames, sorties carrées
@@ -32620,7 +32621,7 @@ Object.assign(SHAPES,{
   P.box('c',.90,.035,.05,0,.465,2.315);                                              // la lame du nez
   K.commit(P);
   return {hl:[.56,.72,1.95],tl:[.58,.68,-2.34],wx:.72,wzF:ZF,wzR:-ZR,
-          lpw:{R:R,w:.26,style:'rayons',n:5,jante:0xd4d8de,accent:0x9aa0a8}};
+          lpw:{R:R,w:.26,style:'rayons',n:5,jante:0xd4d8de,accent:0x9aa0a8,branches:1}};
 },
   a_eternelle:function(K){
   /* L'ÉTERNELLE v2 (13/10, « plus ressemblante ») — l'hypercar de Molsheim, relevée sur ses photos : un nez HAUT
@@ -32704,7 +32705,7 @@ Object.assign(SHAPES,{
   for(const x of [-.23,-.08,.08,.23])P.cyl('c',.058,.03,10,x,.47,-ZE-.012,'z');
   K.commit(P);
   return {hl:[.62,.72,2.08],tl:[.83,.905,-ZE-.02],wx:.86,wzF:ZF,wzR:-ZR,
-          lpw:{R:R,w:.30,style:'multi',n:10,jante:0xcfd4da}};
+          lpw:{R:R,w:.30,style:'multi',n:10,jante:0xcfd4da,branches:1}};
  },
   b_trone:function(K){
   /* LE TRÔNE CENTRAL v2 (13/10, « plus ressemblant ») — la supercar à trois places de Woking : nez TRÈS bas et
@@ -32716,7 +32717,7 @@ Object.assign(SHAPES,{
     a:{g:'s',c:0x3a3d44},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   const AR=[[0,2*R+.035],[R*.60,2*R+.01],[R*.95,R*1.20],[R+.10,.20]];
   const ZC=.86,ZE=-.95;                                                          // pied du pare-brise, fin de la verrière
-  let zs=[-2.145,-2.12,-2.05,-1.90,-1.65,-1.10,ZE,-.92,-.80,-.62,-.58,-.40,-.20,.10,.40,.62,.78,.82,ZC,.90,1.10,1.70,1.90,2.02,2.10,2.145];
+  let zs=[-2.145,-2.12,-2.05,-1.90,-1.65,-1.10,ZE,-.92,-.80,-.62,-.58,-.40,-.20,.10,.40,.62,.78,.82,ZC,.90,1.10,1.70,1.80,1.90,1.96,2.02,2.07,2.10,2.13,2.145];   // (affinement) le nez rond en facettes plus fines
   for(const w of [ZF,ZR])for(const d of [R*.60,R*.95,R+.10])zs.push(w-d,w+d);
   zs.sort((a,b)=>a-b);zs=zs.filter((z,i)=>i===0||z-zs[i-1]>.012);
   const cab=z=>z<=ZC&&z>=ZE;
@@ -32760,7 +32761,7 @@ Object.assign(SHAPES,{
     P.box('n',.02,.08,.70,sd*(xW(.3)-.06),.27,.30);                                 // le bas de caisse
     P.box('p',.05,.07,.15,sd*.97,.92,.70);P.box('n',.12,.02,.03,sd*.90,.88,.72);     // les rétros sur tige
     // LES PHARES EN GOUTTE au bout des ailes : deux optiques rondes sous une bulle, le clignotant dessous
-    P.put('K',new THREE.SphereGeometry(1,8,5),sd*.52,.672,1.86,.30,0,0,.13,.03,.16);
+    P.put('c',new THREE.SphereGeometry(1,8,5),sd*.52,.672,1.86,.30,0,0,.13,.03,.16);   // (affinement) le RÉFLECTEUR chromé sous la bulle (noir, c'étaient deux gros yeux)
     P.put('W',new THREE.SphereGeometry(1,8,5),sd*.565,.688,1.82,.30,0,0,.048,.026,.048);P.put('W',new THREE.SphereGeometry(1,8,5),sd*.475,.682,1.89,.30,0,0,.042,.024,.042);
     P.box('O',.12,.022,.03,sd*.36,.47,2.10,0,sd*.30);
     // les deux grandes bouches ovales aux coins du bouclier
@@ -32777,7 +32778,7 @@ Object.assign(SHAPES,{
   for(const x of [-.07,.07])P.cyl('c',.06,.10,10,x,.46,-2.18,'z');                  // les sorties centrales
   K.commit(P);
   return {hl:[.52,.69,1.88],tl:[.70,.70,-2.16],wx:.75,wzF:ZF,wzR:-ZR,
-          lpw:{R:R,w:.28,style:'rayons',n:5,jante:0xc0c4cc,accent:0x2a2d33}};
+          lpw:{R:R,w:.28,style:'rayons',n:5,jante:0xc0c4cc,accent:0x9ea3ab,branches:1}};   // (19/10) cinq branches gris magnésium (sombres, elles ne se lisaient pas)
 },
   c_spectre:function(K){
   const U=LPU,R=.355,ZF=1.27,ZR=-1.43,LF=2.25;

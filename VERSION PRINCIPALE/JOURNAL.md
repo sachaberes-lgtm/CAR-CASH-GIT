@@ -1369,6 +1369,16 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   lames de tôle penchées sur le fond noir (c'étaient des traits noirs).
 - 0 programme compilé en course (les quatre, `jeu.py` au canyon), console propre. Planche : `photos-gameplay/affinement-lot2-japonaises.png`.
 
+## L'AFFINEMENT DES JAPONAISES — LOT 3 : LA STRATOS · LE TRÔNE CENTRAL · LA RAIE · L'ÉTERNELLE (2026-10-19, discussion JAPONAISES ; caisses de Sacha)
+- Les quatre jantes : `branches:1` (STRATOS 5 or, TRÔNE 5 gris magnésium — l'accent sombre passé à 0x9ea3ab —, RAIE 5, ÉTERNELLE 10).
+- **LA STRATOS** : la poupe finissait sur un pan plat à angle droit (un pavé blanc) → quatre tranches au bout (−1,848 · −1,835 · −1,81 · −1,77), la
+  largeur y tourne de 0,86 à 0,68 ; les feux ronds resserrés (.42/.58) et la face noire à 1,34 pour rester sur la face.
+- **LE TRÔNE CENTRAL** : la bulle des phares en chrome (`c` : le réflecteur, c'étaient deux gros yeux noirs) ; six tranches de plus dans le nez.
+- **LA RAIE** (une C3 70-72) : l'ouïe en GRILLE en caisson couleur caisse (3 × 5) dans son creux noir (trois barres chromées posées). Le tube
+  chromé pointillé du bas de caisse est le pot latéral de Léo (`ECH_POTS`) : pas touché.
+- 0 programme compilé en course (les quatre), console propre. Planche : `photos-gameplay/affinement-lot3-japonaises.png`.
+- ⚠ Piège revu : un commentaire posé en bout de ligne au milieu d'une ligne de code avale la suite (les feux de la STRATOS, corrigé aussitôt).
+
 ## LES JAPONAISES — 6 · ROSSO 40 REFAITE AU PLAN (2026-10-18, discussion JAPONAISES, Léo : « complexifie la ROSSO 40, imitation encore plus fidèle et satisfaisante pour les vrais kiffeurs de voiture »)
 - ⚠ **RETIRÉE LE SOIR MÊME** (Léo : « la rosso revient sur avant c'était mieux ») : le bloc `SHAPES.rosso` et son repère sont ôtés de la zone des
   JAPONAISES, la ROSSO 40 d'origine reprend la main (ses pots, sa ligne CARS : rien n'avait bougé). La préchauffe repasse à cinq étapes. La source
