@@ -249,6 +249,32 @@ if (navigator.serviceWorker) navigator.serviceWorker.getRegistrations().then(rs 
   setInterval(() => { if (!hook || occupe || vue !== 'garage' || !(cur in idx) || !cars.length) return; try { const i = W().dbgGarageVa(); if (typeof i === 'number' && i !== cur && i in idx) { cur = i; barre(); } } catch (e) {} }, 600);
   // une course finie (mort) : ni GARAGE ni ARRÊTER — ROULER repart tout de suite
   setInterval(() => { if (vue === 'course' && finie() && !occupe) { vue = 'fin'; vues(); } }, 500);
+
+  // ---------- LA PAGE UNIQUE MAPS | VOITURES (2026-10-19, Léo : « une seule page avec deux onglets, pour passer de l'un à l'autre sans rien recharger ») ----------
+  // maps-voitures.html garde les deux pages vivantes dans deux cadres et ne fait que montrer / cacher. Un jeu caché garderait sa musique (un cadre en
+  // display:none n'est pas « en arrière-plan » pour lui) : on le lui fait croire (document.hidden) — il se met en pause tout seul (course), coupe la
+  // musique et endort l'audio ; au retour tout repart (mesuré : musique en pause + contexte audio suspendu, puis relancés). 'cache-ok' dit à la page
+  // unique qu'elle peut cacher le cadre (le jeu a eu 0,8 s pour réagir : sa boucle tourne tant qu'il est affiché). L'état part vers la page unique
+  // (adresse retenue, jeu prêt ou non) pour qu'un rechargement de la page unique retombe sur la même map / voiture.
+  function __jeuFen(){ try { return jeu.contentWindow; } catch (e) { return null; } }
+  addEventListener('message', ev => {
+    const d = ev.data; if (!d || typeof d.cc !== 'string' || ev.source !== parent) return;
+    const w = __jeuFen(); if (!w) return;
+    try {
+      if (d.cc === 'cache') {
+        const dd = w.document;
+        Object.defineProperty(dd, 'hidden', { configurable: true, get: () => true }); Object.defineProperty(dd, 'visibilityState', { configurable: true, get: () => 'hidden' });
+        dd.dispatchEvent(new w.Event('visibilitychange')); w.dispatchEvent(new w.Event('visibilitychange'));
+        setTimeout(() => parent.postMessage({ cc: 'cache-ok', onglet: 'voitures' }, '*'), 800);
+      } else if (d.cc === 'montre') {
+        const dd = w.document; delete dd.hidden; delete dd.visibilityState;
+        dd.dispatchEvent(new w.Event('visibilitychange')); w.dispatchEvent(new w.Event('visibilitychange'));
+        setTimeout(() => { try { jeu.focus(); jeu.contentWindow.focus(); } catch (e) {} }, 50);
+        setTimeout(() => { try { const st = w.dbgState(); if (st && st.started && !st.gameOver && st.paused) for (const t of ['keydown', 'keyup']) w.document.dispatchEvent(new w.KeyboardEvent(t, { code: 'Escape', key: 'Escape', keyCode: 27, bubbles: true, cancelable: true })); } catch (e) {} }, 250); // la course qui s'était mise en pause reprend (le 3-2-1 du jeu)
+      }
+    } catch (e) {}
+  });
+  if (parent !== window) setInterval(() => { try { const s = __jeuFen().dbgState(); parent.postMessage({ cc: 'etat', onglet: 'voitures', i: cur, pret: !!s, course: !!(s && s.started && !s.gameOver), pause: !!(s && s.paused) }, '*'); } catch (e) {} }, 700);
 })();
 </script>
 </body>

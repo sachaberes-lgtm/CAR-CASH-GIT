@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Maps · Voitures</title>
+<!-- MAPS | VOITURES (2026-10-19, Léo : « une seule page avec deux onglets, Maps et Voitures, pour passer de l'un à l'autre sans rien recharger — le plus rapide
+     et sans bug »). La page ne fait que MONTRER / CACHER deux pages vivantes, chacune dans son cadre : la page des maps (repertoire-maps/voir.html, serveur
+     :9244, ses notes) et celle des voitures (voir.html à côté, serveur :9250). Passer de l'une à l'autre = un changement d'affichage (~1 ms) : le jeu de chaque
+     onglet reste là où on l'a laissé (la map qui roulait, la voiture au garage). Le 2e onglet ne se charge qu'à son premier toucher (deux jeux qui compilent
+     en même temps, c'est une course qui saccade). Le jeu qu'on quitte se croit en arrière-plan (message « cache » : document.hidden) : il se met en pause, coupe sa
+     musique et endort l'audio, puis reprend au retour (« montre ») ; un cadre en display:none ne leur dit rien tout seul. Chaque page rend son état (message
+     « etat » : sa map / sa voiture) : un rechargement de cette page retombe sur les mêmes. Ouvrir : http://127.0.0.1:9250/repertoire-voitures/maps-voitures.html -->
+<style>
+  :root{--sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var(--sys);-webkit-font-smoothing:antialiased}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  #barre{position:fixed;top:0;left:0;right:0;height:40px;display:flex;align-items:center;justify-content:center;gap:8px;z-index:5;background:#000;
+    padding:0 max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left))}
+  #onglets{display:inline-flex;gap:4px;padding:3px;border-radius:999px;background:rgba(255,255,255,.1)}
+  #onglets button{height:28px;padding:0 20px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.62)}
+  #onglets button:hover{color:#fff}
+  #onglets button[aria-selected="true"]{background:#fff;color:#000}
+  #onglets button:focus-visible{outline:2px solid rgba(255,255,255,.7);outline-offset:1px}
+  #note{position:absolute;right:max(14px,env(safe-area-inset-right));font-size:11.5px;letter-spacing:.04em;color:rgba(255,255,255,.45)}
+  #scene{position:fixed;left:0;right:0;top:40px;bottom:0}
+  iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000;display:none}
+  iframe.on{display:block;z-index:2}
+  iframe.sort{display:block;z-index:1}      /* l'onglet qu'on quitte : dessous, 0,8 s, le temps que son jeu se mette en pause */
+</style>
+</head>
+<body>
+<div id="barre">
+  <div id="onglets" role="tablist" aria-label="Maps ou voitures">
+    <button id="tMaps" type="button" role="tab" data-o="maps" aria-selected="false">MAPS</button>
+    <button id="tVoit" type="button" role="tab" data-o="voitures" aria-selected="false">VOITURES</button>
+  </div>
+  <span id="note"></span>
+</div>
+<div id="scene">
+  <iframe id="fMaps" title="Les maps" allow="autoplay; fullscreen"></iframe>
+  <iframe id="fVoit" title="Les voitures" allow="autoplay; fullscreen"></iframe>
+</div>
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const F = { maps: $('fMaps'), voitures: $('fVoit') }, T = { maps: $('tMaps'), voitures: $('tVoit') };
+  const MAPS = 'http://' + location.hostname + ':9244/repertoire-maps/voir.html';   // la page des maps (son serveur écrit les notes)
+  const CLE = 'ccMapsVoitures';
+  let S = { onglet: 'maps', maps: {}, voitures: {} };
+  try { const d = JSON.parse(localStorage.getItem(CLE) || 'null'); if (d && typeof d === 'object') S = Object.assign(S, d); } catch (e) {}
+  const h = (location.hash || '').replace('#', ''); if (h === 'maps' || h === 'voitures') S.onglet = h;
+  const garde = () => { try { localStorage.setItem(CLE, JSON.stringify(S)); } catch (e) {} };
+  const url = o => o === 'maps'
+    ? MAPS + '?carte=' + encodeURIComponent(S.maps.carte || 'ville') + '&meteo=' + encodeURIComponent(S.maps.meteo || 'pluie')
+    : 'voir.html?i=' + (Number.isInteger(S.voitures.i) ? S.voitures.i : 0);
+  const charge = { maps: false, voitures: false }, timers = {};
+  let actif = null;   // l'onglet montré (pas dans S : il se retient pas d'une visite à l'autre)
+  const note = t => { $('note').textContent = t || ''; };
+  const dire = (o, m) => { try { F[o].contentWindow.postMessage(m, '*'); } catch (e) {} };
+
+  function va(o){
+    if (o === actif) return;
+    const ancien = actif; actif = o; S.onglet = o; garde();
+    try { history.replaceState(null, '', '#' + o); } catch (e) {}
+    clearTimeout(timers[o]);
+    for (const k in T) T[k].setAttribute('aria-selected', k === o ? 'true' : 'false');
+    F[o].className = 'on';
+    if (!charge[o]) { charge[o] = true; F[o].src = url(o); note('le jeu se charge…'); }
+    else { dire(o, { cc: 'montre' }); note(''); }
+    if (ancien) {
+      F[ancien].className = 'sort'; dire(ancien, { cc: 'cache' });
+      clearTimeout(timers[ancien]); timers[ancien] = setTimeout(() => { if (actif !== ancien) F[ancien].className = ''; }, 1200);  // 'cache-ok' le fait plus tôt
+    }
+    try { F[o].focus(); F[o].contentWindow.focus(); } catch (e) {}
+  }
+  for (const k in T) T[k].addEventListener('click', () => va(k));
+  T.maps.parentNode.addEventListener('keydown', e => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); va(actif === 'maps' ? 'voitures' : 'maps'); T[actif].focus(); } });
+
+  addEventListener('message', ev => {
+    const d = ev.data; if (!d || typeof d.cc !== 'string') return;
+    const o = d.onglet; if (o !== 'maps' && o !== 'voitures') return;
+    if (ev.source !== F[o].contentWindow) return;
+    if (d.cc === 'cache-ok') { if (actif !== o) { clearTimeout(timers[o]); F[o].className = ''; } }
+    else if (d.cc === 'etat') {
+      const n = o === 'maps' ? { carte: d.carte, meteo: d.meteo } : { i: d.i };
+      if (JSON.stringify(n) !== JSON.stringify(S[o])) { S[o] = n; garde(); }
+      if (o === actif && d.pret) note('');
+      window.__ET = window.__ET || {}; window.__ET[o] = d;   // lu par les bancs
+    }
+  });
+
+  va(S.onglet);
+})();
+</script>
+</body>
+</html>
