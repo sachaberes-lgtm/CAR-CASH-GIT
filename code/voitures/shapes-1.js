@@ -264,7 +264,7 @@ const SHAPES={
     /* (13/10, « plus ressemblante ») la coque est ROUGE jusqu'au seuil (la moitié basse était noire : elle paraissait longue et plate),
        elle rentre sous la taille, et ses hanches se gonflent au-dessus des roues arrière. */
     const U=LPU,R=.37,ZF=1.30,ZR=-1.16;
-    const P=K.kit(fentePal({p:{g:'p',c:0xe8121c},r:{g:'p',c:0xb00d15},k:{g:'m',c:0x131417},K:{g:'g',c:0x0b0c10},
+    const P=K.kit(fentePal({p:{g:'p',c:0x871921},r:{g:'p',c:0x68161d},k:{g:'m',c:0x131417},K:{g:'g',c:0x0b0c10},
       c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},
       Q:{g:'l',c:0x8a0c18},w:{g:'l',c:0xd9dce0}})); // (17/10, l'arrière v2) Q le cœur des feux, w la plaque éclairée — aucune famille de plus · (19/10) + la FENTE (J, Jf)
     const AR=[[0,2*R+.03],[R*.60,2*R-.02],[R*.98,R*1.10],[R+.12,.26]];

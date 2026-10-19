@@ -151,7 +151,7 @@
 },
   d_vette:function(K){
   const U=LPU,R=.33,ZF=1.19,ZR=-1.25;
-  const PAL={p:{g:'p',c:0xd01a22},k:{g:'m',c:0x131417},K:{g:'g',c:0x0c0d10},c:{g:'c',c:0xe9ecf0},
+  const PAL={p:{g:'p',c:0x7a1e25},k:{g:'m',c:0x131417},K:{g:'g',c:0x0c0d10},c:{g:'c',c:0xe9ecf0},
     g:{g:'g',c:0x18212c},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},
     r:{g:'l',c:0x9a0f1a},w:{g:'l',c:0xd9dce0}},P=K.kit(fentePal(PAL)); // (17/10, l'arrière v2) r, w (la plaque éclairée) — aucune famille de plus · (18/10) PAL nommée : les escamotables la reprennent · (19/10) + la FENTE (J, Jf)
   const AR=[[0,2*R+.04],[R*.70,2*R+.02],[R+.06,R*1.12],[R+.14,.26]];

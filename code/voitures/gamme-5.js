@@ -256,7 +256,7 @@
        grands couvre-culasses polis à ailettes (c'est ce qui le signe) —, deux quadruple-corps sur une pipe haute, la grande ÉCOPE polie, les
        collecteurs tubulaires quatre-en-un, posé sur ses SUPPORTS entre les longerons ; derrière lui la cloche et la boîte, sous le plancher. */
   const U=LPU,ZF=1.60,ZR=-1.09,RR9=.38,RF9=.31;
-  const PAL9={p:{g:'p',c:0xc8141c},k:{g:'m',c:0x121317},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1c2733},
+  const PAL9={p:{g:'p',c:0x761a21},k:{g:'m',c:0x121317},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1c2733},
     e:{g:'p',c:0xb3121a,f:0},C:{g:'c',c:0x8f96a1},Y:{g:'s',c:0xb89a52},b:{g:'s',c:0xf1eee6},n:{g:'m',c:0x2a0d10},h:{g:'s',c:0x9ea4ac},B:{g:'p',c:0x2e6fd8,f:0},
     W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},w:{g:'l',c:0xd9dce0}};               // h : les collecteurs (acier gris) · B : le boîtier d'allumage bleu
   const P=K.kit(fentePal(PAL9));                                                    // 'J' / 'Jf' : la FENTE C des ouvrants
@@ -469,7 +469,7 @@
   /* (13/10, « plus ressemblante ») la petite anglaise de rallye : des coins RONDS vus de dessus (elle était carrée), le
      pavillon qui s'arrête plus tôt sur une lunette couchée et une malle basse (elle avait l'air d'un break), le capot qui plonge. */
   const U=LPU,R=.25,ZF=.99,ZR=-.99;
-  const P=K.kit({p:{g:'p',c:0xc8141e},w:{g:'p',c:0xf4f4f0,f:0},c:{g:'c',c:0xe9ecf0},k:{g:'m',c:0x131417},K:{g:'g',c:0x0c0d10},
+  const P=K.kit({p:{g:'p',c:0x761a22},w:{g:'p',c:0xf4f4f0,f:0},c:{g:'c',c:0xe9ecf0},k:{g:'m',c:0x131417},K:{g:'g',c:0x0c0d10},
     g:{g:'g',c:0x18212c},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   const AR=[[0,2*R+.05],[R*.70,2*R+.03],[R+.05,R*1.10],[R+.12,.24]];
   const zs=[-1.45,-1.43,-1.415,-1.39,-1.35,-1.30,-1.10,-.92,-.86,.36,.66,.76,1.30,1.35,1.39,1.415,1.43,1.45];   // (19/10) deux tranches de plus à chaque coin : il s'arrondit en plan
