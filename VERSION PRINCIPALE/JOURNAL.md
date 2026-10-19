@@ -1027,6 +1027,17 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   Léo la veut « plus fidèle » (en reprise chez JAPONAISES). Fusion : seul conflit, le bloc des traductions que l'allègement de Sacha
   avait vidé — son ménage gardé, nos deux noms (LA LAME, LE TOFU) ajoutés.
 
+## LA FÉLINE — LES AILES SÉPARÉES (2026-10-19, discussion RONDES ; Léo : « oui », pour adoucir sa coque en grandes facettes)
+- La coque en grandes facettes venait des passages de roue CREUSÉS dans le loft : 9 points par section, et à l'arche le flanc s'écrasait en
+  lanières tordues (quads jusqu'à 65°). Désormais, comme LE SCARABÉE : la COQUE (12 points : le tonneau des portières, le capot entre les ailes,
+  le nez et la poupe pleins) ne descend plus à l'arche ; sous chaque aile elle se RESSERRE (sa paroi passe à 2 cm à l'intérieur de l'aile, peinte
+  en fond de passage) ; les AILES sont des tubes fermés posés par-dessus (`bulleOutils.loftLibre`, 16 points : la crête, le flanc qui tombe, la
+  lèvre de l'arche ronde — demi-ellipse 0,45 × 0,40 —, la doublure).
+- L'aile avant naît au bord arrière du capot-coquille (z ,50) et plonge dans le nez (son bord rentre de 1,2 cm hors → 1,2 cm dedans entre 1,95
+  et 2,10) ; la hanche arrière naît derrière la portière (z −,70) et plonge dans la poupe : leurs bouts sont les vrais joints (les deux fils
+  `j` posés en 13/10 sont retirés). Les phares en goutte et les roues à rayons du lot 1 sont gardés (`yHaut` lit aussi le dessus des ailes).
+- Vérifié : 0 programme compilé en course (couché et debout), construction 13-34 ms. Planche `photos-gameplay/feline-ailes-avant-apres.png`.
+
 ## L'AFFINEMENT RONDES, LOT 4 — ELDORADO · LA TAURINE · LA DOLCE VITA · CHAT POP-TART, ET LA FIN DE LA LISTE (2026-10-19, discussion RONDES)
 - **ELDORADO** : les pare-chocs en barres CHANFREINÉES (huit pans, `bulleOutils.tube` ; des boîtes à angles droits) ; les roues portent
   l'enjoliveur « SABRE » de la 59 (`roueDeco` : bande blanche, cuvette chromée, vingt ailettes rayonnantes, moyeu à cône, centre d'or) au lieu

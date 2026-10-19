@@ -32513,41 +32513,72 @@ Object.assign(SHAPES,{
   const P=K.kit({p:{g:'p',c:0xeee3c6},j:{g:'p',c:0xa89c7e},k:{g:'m',c:0x131417},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xb9bec6},
     g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},
     w:{g:'l',c:0xd9dce0},v:{g:'g',c:0x93a39f}}); // (17/10, l'arrière v2) w la plaque éclairée — aucune famille de plus · (19/10) v le verre CLAIR du phare (gris-vert : il reflète, on voit au travers)
-  const AR=[[0,2*R+.06],[R*.55,2*R+.03],[R*.95,R*1.30],[R+.12,.27]];
-  const ZC=.28;                                                                   // le pied du pare-brise
-  let zs=[-2.225,-2.19,-2.12,-2.03,-1.92,-1.80,-1.66,-1.50,-1.33,-1.30,-.88,-.80,-.76,-.70,-.66,-.40,-.14,-.10,.10,.24,.27,.30,.45,.70,1.00,1.15,1.62,1.80,1.92,2.02,2.10,2.17,2.205,2.225];
-  for(const w of [ZF,ZR])for(const d of [R*.55,R*.95,R+.12])zs.push(w-d,w+d);
-  zs.sort((a,b)=>a-b);zs=zs.filter((z,i)=>i===0||z-zs[i-1]>.012);
+  /* (19/10, l'affinement — Léo : « oui », les AILES SÉPARÉES comme LE SCARABÉE) la coque en grandes facettes venait des passages de roue
+     creusés dans le loft (9 points par section, l'arche écrasait le flanc en lanières tordues). Désormais : la COQUE (le tonneau des portières,
+     le capot entre les ailes, le nez et la poupe pleins) ne descend plus à l'arche ; sous chaque aile elle se resserre (sa paroi passe à
+     l'intérieur de la roue) et les AILES sont des tubes fermés posés par-dessus (loftLibre) — la crête, le flanc qui tombe, la lèvre de l'arche
+     ronde, la doublure. L'aile avant naît au bord arrière du capot-coquille (z ,50 : son arête est le vrai joint) et plonge dans le nez ;
+     la hanche arrière naît derrière la portière (z −,70) et plonge dans la poupe. */
+  const ZC=.28,ZBF=.50,ZBR=-.70,ZNF=2.06,ZNR=-1.96;                                // pare-brise · joints du capot et de la portière · nez et poupe pleins
+  let zs=[-2.225,-2.19,-2.12,-2.03,-1.99,ZNR,-1.94,-1.88,-1.80,-1.66,-1.50,-1.33,-1.30,-1.20,-1.06,-.92,-.88,-.80,-.76,-.725,ZBR+.005,ZBR,-.66,-.40,-.14,-.10,.10,.24,.27,.30,.45,
+          ZBF,ZBF+.005,.525,.70,.85,1.00,1.15,1.30,1.45,1.62,1.80,1.92,2.02,ZNF-.005,ZNF,2.085,2.10,2.17,2.205,2.225];
+  zs.sort((a,b)=>a-b);zs=zs.filter((z,i)=>i===0||z-zs[i-1]>.003);
   const cab=z=>z<ZC;
   const T=z=>U.lin([[-2.225,.50],[-2.19,.58],[-2.09,.66],[-1.90,.76],[-1.65,.89],[-1.33,1.03],[-1.02,1.16],[-.72,1.22],[-.40,1.24],[-.14,1.21],[ZC,.91],
                     [.63,.895],[1.15,.88],[1.40,.865],[1.66,.83],[1.92,.75],[2.08,.66],[2.17,.58],[2.225,.50]],z),
         yB=z=>U.lin([[-2.225,.47],[-2.12,.58],[-1.95,.68],[-1.75,.78],[-1.50,.86],[-1.33,.895],[-.70,.90],[ZC,.89],[1.00,.86],[1.375,.86],[1.70,.80],[1.95,.71],[2.10,.62],[2.225,.52]],z),
         sH=z=>U.lin([[-2.225,.42],[-2.10,.52],[-1.90,.60],[-1.60,.70],[-1.065,.74],[-.50,.76],[ZC,.77],[1.00,.76],[1.70,.71],[2.00,.61],[2.15,.53],[2.225,.47]],z),
         xW=z=>U.lin([[-2.225,.54],[-2.17,.62],[-2.05,.71],[-1.80,.79],[-1.50,.83],[-1.065,.83],[-.80,.81],[-.30,.79],[.40,.80],[1.00,.81],[1.375,.81],[1.66,.78],[1.92,.71],[2.08,.62],[2.17,.52],[2.225,.40]],z),
-        xR=z=>U.lin([[-2.225,.36],[-2.00,.42],[-1.65,.46],[-1.33,.48],[-1.00,.50],[-.40,.51],[-.14,.54],[ZC,.64]],z);
+        xR=z=>U.lin([[-2.225,.36],[-2.00,.42],[-1.65,.46],[-1.33,.48],[-1.00,.50],[-.40,.51],[-.14,.54],[ZC,.64]],z),
+        yBas=z=>U.lin([[-2.225,.34],[-1.95,.27],[1.90,.27],[2.225,.33]],z);
+  // LES AILES : le bord extérieur (1,2 cm plus large que la coque, il plonge dans le nez et la poupe), la crête, la lèvre de l'arche (ronde)
+  const fier=z=>z>0?U.lin([[ZBF,.012],[1.95,.012],[2.10,-.012]],z):U.lin([[ZBR,.012],[-1.84,.012],[-1.98,-.012]],z),
+        aXo=z=>xW(z)+fier(z),aXi=z=>Math.max(.20,aXo(z)-.30),aYT=z=>yB(z)+(z>0?.02:.012),
+        arc=(z,w)=>{const d=Math.abs(z-w),Ra=.45,ry=.40;return d<Ra?.30+ry*Math.sqrt(1-(d/Ra)*(d/Ra)):.30;},
+        aYL=z=>z>0?Math.max(arc(z,ZF),U.lin([[1.80,.30],[1.95,.33]],z)):Math.max(arc(z,ZR),U.lin([[-1.70,.30],[-1.85,.33]],z));
+  const aile=z=>{const xo=aXo(z),xi=aXi(z),yT=aYT(z),yL=Math.min(aYL(z),yT-.05),a=Math.min(.16,(yT-yL)*.55),s=[[xi,yT-.06]];
+    for(let k=0;k<=7;k++){const t=k/7*Math.PI/2;s.push([xi+(xo-xi)*Math.sin(t),yT-a*(1-Math.cos(t))]);}   // la crête qui tombe vers le flanc
+    const y1=yT-a;s.push([xo,y1-(y1-yL)*.35],[xo-.006,y1-(y1-yL)*.68],[xo-.02,yL+.022],[xo-.045,yL]);       // le flanc, la lèvre de l'arche
+    s.push([(xo-.045+xi)/2,yL],[xi,yL],[xi,(yL+yT-.06)/2]);                                                 // la doublure, on remonte
+    return s;};
+  const aileY=(x,z)=>{const xo=aXo(z),xi=aXi(z),yT=aYT(z),yL=Math.min(aYL(z),yT-.05),a=Math.min(.16,(yT-yL)*.55);if(x<xi||x>xo)return -9;
+    return yT-a*(1-Math.cos(Math.asin(Math.min(1,(x-xi)/(xo-xi)))));};
+  // LA COQUE : 12 points par section ; sous une aile, la paroi passe en x = aile − 2 cm (à l'intérieur de la roue)
+  const etroit=z=>(z>ZBF+.003&&z<ZNF-.003)||(z<ZBR-.003&&z>ZNR+.003);
   const SEC=z=>{
-    const yb=Math.max(U.arch(z,[ZF,ZR],AR,.27),U.lin([[-2.225,.34],[-1.95,.27],[1.90,.27],[2.225,.33]],z)),xw=xW(z),t=T(z),sh=sH(z);
-    const y3=Math.max(yb+.06,Math.min(.56,sh-.12)),y2=Math.max(yb+.03,Math.min(.36,y3-.07)),   // aux deux bouts la coque se referme en goutte
-          y4=Math.max(y3+.02,sh),y5=Math.max(y4+.02,yB(z));
-    const s=[[0,yb],[xw-.12,yb],[xw-.035,y2],[xw,y3],[xw-.03,y4],[xw-.11,y5]];
-    if(cab(z)){const y6=y5+.02,y7=Math.max(y6+.03,t-.05);
-      s.push([xw-.16,y6],[Math.min(xR(z),xw-.20),y7],[0,Math.max(t,y7+.005)]);}
-    else{const xc=xw-.11,tt=Math.max(t,y5);                                       // le capot : la crête des ailes, le creux, le BOSSAGE
-      const yv=Math.max(y4+.01,Math.min(y5,tt)-.022);s.push([xc*.55,yv],[xc*.24,Math.max(yv+.002,tt-.008)],[0,Math.max(yv+.004,tt)]);}
+    const yb=yBas(z),xw=xW(z),t=T(z),sh=sH(z);
+    const y3=Math.max(yb+.06,Math.min(.56,sh-.12)),y4=Math.max(y3+.02,sh),y5=Math.max(y4+.02,yB(z)),xc=xw-.11,tt=Math.max(t,y5),
+          yv=Math.max(y4+.01,Math.min(y5,tt)-.022);
+    let s;
+    if(!etroit(z))s=[[0,yb],[xw-.13,yb],[xw-.065,yb+.04],[xw-.025,(yb+y3)/2+.02],[xw,y3],[xw-.008,(y3+y4)/2],[xw-.03,y4],[xw-.11,y5]];
+    else{const xi=aXi(z)-.02,yH=z>0?aYT(z)-.03:yB(z)-.005;
+      s=[[0,yb],[xi,yb]];for(const f of [.2,.4,.6,.8,.93])s.push([xi,yb+(yH-yb)*f]);s.push([z>0?xi+.02:xi+.01,yH]);}
+    if(cab(z)){const y6=y5+.02,y7=Math.max(y6+.03,t-.05),xr=Math.min(xR(z),xw-.20);
+      s.push([Math.max(xw-.16,s[7][0]+.005),y6],[xr,y7],[xr*.5,t-(t-y7)*.22],[0,Math.max(t,y7+.005)]);}
+    else{const x8=Math.max(xc*.78,xc*.55+.02);s.push([Math.min(x8,s[7][0]-.01),Math.max(yv+.004,Math.min(s[7][1],yv+.02))],[Math.min(xc*.55,s[7][0]-.02),yv],[xc*.24,Math.max(yv+.002,tt-.008)],[0,Math.max(yv+.004,tt)]);}
     return s;
   };
   P.loft(zs,SEC,(j,z)=>{
     if(j===0)return 'k';
+    if(etroit(z)&&j>=1&&j<=6)return 'k';                                          // la paroi sous l'aile : le fond du passage de roue
     if(cab(z)){
-      if(j===6){if(z>-1.30&&z<-.76)return 'g';                                   // la custode
+      if(j===8){if(z>-1.30&&z<-.76)return 'g';                                   // la custode
         if(z>-.70&&z<.24)return (z>-.14&&z<-.10)?'c':'g';                          // la vitre de porte, son déflecteur
         if(z>-.76&&z<-.70)return 'c';}                                            // le montant chromé
-      if(j===7){if(z>-.14&&z<.27)return 'g';                                      // le pare-brise bombé
+      if(j===9||j===10){if(z>-.14&&z<.27)return 'g';                              // le pare-brise bombé
         if(z>-1.80&&z<-.88)return 'g';}                                           // la grande lunette du hayon
     }
     return 'p';});
-  // (19/10) la hauteur de la tôle en (x, z) : le dessus de la section (on la parcourt depuis l'axe)
-  const yHaut=(x,z)=>{const s9=SEC(z);for(let i=s9.length-1;i>0;i--){const a=s9[i],b=s9[i-1];if((a[0]-x)*(b[0]-x)<=0&&a[0]!==b[0])return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}return s9[s9.length-1][1];};
+  {const PA=K.kit({p:{g:'p',c:0xeee3c6},k:{g:'m',c:0x131417}});const zsF=[],zsR=[];
+    for(let z=ZBF;z<ZNF+.04;z+=.05)zsF.push(+z.toFixed(3));for(let d=-.48;d<=.48;d+=.04)zsF.push(+(ZF+d).toFixed(3));zsF.push(ZNF+.04);
+    for(let z=ZBR;z>ZNR-.02;z-=.05)zsR.push(+z.toFixed(3));for(let d=-.48;d<=.48;d+=.04)zsR.push(+(ZR+d).toFixed(3));zsR.push(ZNR-.02);
+    const net=A=>A.filter(z=>A===zsF?z>=ZBF&&z<=ZNF+.04:z<=ZBR&&z>=ZNR-.02).sort((a,b)=>a-b).filter((z,i,B)=>i===0||z-B[i-1]>.012);
+    const pk=j=>j>=13&&j<=14?'k':'p';
+    bulleOutils.loftLibre(PA,pk,net(zsF),aile,{bouts:true,ferme:true});bulleOutils.loftLibre(PA,pk,net(zsR),aile,{bouts:true,ferme:true});
+    PA.ech=true;K.commit(PA);}
+  // (19/10) la hauteur de la tôle en (x, z) : le dessus de la coque ou de l'aile (la plus haute)
+  const yHaut=(x,z)=>{const s9=SEC(z);let y=-9;for(let i=s9.length-1;i>0;i--){const a=s9[i],b=s9[i-1];if((a[0]-x)*(b[0]-x)<=0&&a[0]!==b[0]){y=a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);break;}}
+    if((z>ZBF&&z<ZNF+.04)||(z<ZBR&&z>ZNR-.02))y=Math.max(y,aileY(x,z));return y;};
   // LA BOUCHE OVALE : fond noir, lèvre chromée, la barrette qui la traverse
   P.put('k',new THREE.CylinderGeometry(1,1,1,16),0,.41,2.19,Math.PI/2,0,0,.22,.10,.10);
   P.put('c',new THREE.TorusGeometry(1,.09,3,14),0,.41,2.235,0,0,0,.23,.115,.5);
@@ -32571,8 +32602,7 @@ Object.assign(SHAPES,{
     // flancs : poignée, rétro chromé, la coupe du capot derrière la roue, le jonc de seuil
     P.box('c',.02,.02,.12,sd*(xW(-.48)-.065),.80,-.48);
     P.box('c',.015,.05,.015,sd*.72,.93,.20);P.cyl('c',.042,.03,8,sd*.72,.965,.20,'z');
-    P.box('j',.006,.28,.008,sd*(xW(.50)+.002),.60,.50,0,0,-sd*.06);                // la coupe du capot-coquille (13/10 : un fil, plus un trait noir)
-    P.box('j',.006,.36,.008,sd*(xW(-.70)+.002),.60,-.70);                          // l'arrière de la porte
+    // (19/10) la coupe du capot-coquille et l'arrière de la portière : ce sont désormais les bords des ailes (plus de fil posé)                          // l'arrière de la porte
     // (13/10, Léo : « les barres chelou ») le jonc de seuil chromé RETIRÉ
     // la poupe ronde : petits feux sur les ailes, lames chromées, plaque
     // (17/10, l'arrière v2) LES FEUX SUR LEUR SOCLE CHROMÉ, plus marqués : le rouge bombé au-dessus, l'orange dessous ; la LAME qui tourne
