@@ -29807,9 +29807,10 @@ function lpWheel(o){
     K.box('k',o.w*.84,.05,.11,0,Math.sin(a)*R,Math.cos(a)*R,Math.PI/2-a);}
   if(o.bande&&!o.sansPneu)K.lathe('b',[[R+.004,-hw*.16],[R+.004,hw*.16]],16,0,0,0,'x'); // (2026-10-08, SQUALE) une BANDE claire au milieu de la bande de roulement : vue d'en dessous, la roue se lit
   const fx0=hw-.035,FACES=o.deux?[1,-1]:[1];                 // le plan de la jante, en retrait du pneu
+  const cr0=o.creux?Math.min(o.creux,hw*.6):0,fdd=Math.max(0,cr0-.04);   // (19/10) la jante creusée : au-delà de 4 cm, le fond recule d'autant
   // (2026-10-08, SQUALE) `deux` : la roue du MILIEU, qu'on voit des deux côtés — un tambour FERMÉ et une jante sur CHAQUE face (miroir en x)
   if(o.deux)K.lathe('d',[[0,-(fx0-.05)],[R*.64,-(fx0-.05)],[R*.64,fx0-.05],[0,fx0-.05]],16,0,0,0,'x');
-  else K.lathe('d',[[R*.64,-hw+.02],[R*.64,fx0-.05],[0,fx0-.05]],16,0,0,0,'x'); // fût + fond sombre
+  else K.lathe('d',[[R*.64,-hw+.02],[R*.64,fx0-.05-fdd],[0,fx0-.05-fdd]],16,0,0,0,'x'); // fût + fond sombre
   for(const e of FACES){const fx=e*fx0;
   if(o.blanc)K.lathe('w',[[R*.70,e*(hw+.004)],[R*.86,e*(hw+.004)]],16,0,0,0,'x');
   if(o.style==='cadran'){
@@ -29829,7 +29830,7 @@ function lpWheel(o){
       K.tri('a',pt(a-d,R*.655,e*(hw+.004)),pt(a+d,R*.655,e*(hw+.004)),pt(a,R*.85,e*(hw+.004)));}
     K.cyl('d',R*.10,.012,7,fx+e*.016,0,0,'x');                                // le cache-moyeu
   }else{
-    const n=o.n||5,multi=o.style==='multi',cr=Math.min(o.creux||0,.04);
+    const n=o.n||5,multi=o.style==='multi',cr=cr0;
     if(cr){ /* (2026-10-19, BOÎTES : « des jantes en disques plats ») LA JANTE CREUSÉE, sur demande (`creux`, ≤ 4 cm) : la lèvre plonge, chaque rayon
        est une ARÊTE (deux pans qui prennent chacun leur lumière) qui descend du bord vers le moyeu enfoncé. Mêmes matières : 0 programme de plus. */
       K.lathe('c',[[R*.64,fx],[R*.60,fx-e*cr*.3],[R*.55,fx-e*cr*.45]],16,0,0,0,'x');
@@ -29843,7 +29844,8 @@ function lpWheel(o){
     for(let s=0;s<n;s++){const a=s/n*Math.PI*2;
       K.box(multi?'c':'a',.03,R*.46,multi?R*.07:R*.13,fx-e*.012,Math.sin(a)*R*.33,Math.cos(a)*R*.33,-a);}}
   }
-  if(o.style!=='enjoliveur'&&o.style!=='plis')K.cyl('c',R*.16,.05,8,fx-e*(o.creux?Math.min(o.creux,.04)+.012:.01),0,0,'x'); // le moyeu (enfoncé dans la jante creusée)
+  if(o.style!=='enjoliveur'&&o.style!=='plis')K.cyl('c',R*.16,.05,8,fx-e*(cr0?cr0+.012:.01),0,0,'x'); // le moyeu (enfoncé dans la jante creusée)
+  if(o.ecrous&&cr0)for(let i=0;i<o.ecrous;i++){const a=i/o.ecrous*Math.PI*2+.3;K.cyl('c',R*.028,.024,6,fx-e*(cr0-.02),Math.sin(a)*R*.10,Math.cos(a)*R*.10,'x');} // (19/10) les ÉCROUS sur le moyeu
   if(o.pique&&e>0){K.cyl('c',R*.15,.14,6,fx+.07,0,0,'x',R*.07);K.cyl('w',R*.07,.12,6,fx+.20,0,0,'x',.004);} // (2026-10-16, LE BLINDÉ NOIR) LE PIC DE MOYEU : le char de Ben-Hur — dans l'axe, il ne tourne pas à l'œil
   }
   return K.done();
@@ -32423,7 +32425,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   P.box('p',1.74,.05,.22,0,1.035,-2.40,-.18); // le becquet (13/10 : sa bordure d'or retirée)
   K.commit(P);
   return {hl:[.64,.62,2.50],tl:[.60,.76,-2.56],wx:.77,wzF:ZF,wzR:-ZR,
-          lpw:{R:R,w:.28,style:'multi',n:10,jante:0xd9a520}};
+          lpw:{R:R,w:.28,style:'multi',n:10,jante:0xd9a520,creux:.04}}; // (19/10, BOÎTES) la jante dorée CREUSÉE (un disque plat à cercles)
 },
   e_zed:function(K){
   /* (13/10, « plus ressemblante ») le coupé de Yokohama a un capot LONG et presque à plat (il plongeait en coin vers 0,55),
@@ -33190,7 +33192,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   });
   K.commit(P);
   return {hl:[.74,1.86,ZE+.03],tl:[.86,1.86,-ZE-.03],wx:1.00,wzF:ZF,wzR:-ZR,pots:[[-.57,.50,-2.39],[.57,.50,-2.39]], // (pots) la bouche des deux pots qui plongent
-          lpw:{R:R,w:.62,style:'rayons',n:5,jante:0xe6e9ee,accent:0xe6e9ee,crampons:1}};
+          lpw:{R:R,w:.62,style:'rayons',n:5,jante:0xe6e9ee,accent:0xe6e9ee,crampons:1,creux:.12,ecrous:6}}; // (19/10, BOÎTES : « disques blancs plats, sans creux ni boulons ») la jante CREUSÉE, ses écrous
  },
   b_groupeb:function(K){
   const U=LPU,R=.33,ZF=1.28,ZR=-1.26;
@@ -33293,13 +33295,21 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   // LA CALANDRE HAUTE en écusson : coque chromée, barreaux, radiateur
   const sh=(k2,e)=>[[0,1.20*e+.02*(1-e)],[.14*e,1.19*e],[.23*e,1.15*e],[.28*e,1.07*e],[.27*e,.74],[.18*e,.60],[0,.54+.04*(1-e)],
                     [-.18*e,.60],[-.27*e,.74],[-.28*e,1.07*e],[-.23*e,1.15*e],[-.14*e,1.19*e]];
-  P.plate('c',sh('c',1),.10,1.60);P.plate('k',sh('k',.86).map(p=>[p[0],p[1]<.7?p[1]+.03:p[1]]),.02,1.70);
-  for(let i=-3;i<=3;i++)P.box('c',.016,i*i>4?.40:.50,.02,i*.06,.88,1.715);
+  P.plate('c',sh('c',1),.10,1.60);
+  /* (2026-10-19, BOÎTES : « la calandre en barreaux plats ») la calandre EN CREUX : un jonc chromé fait le tour de l'écusson, en saillie ;
+     la grille au fond, ses neuf barreaux fins (sept barreaux larges posés devant tout, avant) */
+  {const o=sh('c',1);for(let i=0;i<o.length;i++){const a=o[i],b=o[(i+1)%o.length],L=Math.hypot(b[0]-a[0],b[1]-a[1]);
+     P.box('c',L+.014,.026,.07,(a[0]+b[0])/2,(a[1]+b[1])/2,1.735,0,0,Math.atan2(b[1]-a[1],b[0]-a[0]));}}   // (la coque va de 1,60 à 1,70 : le jonc la prolonge de 7 cm)
+  P.plate('k',sh('k',.86).map(p=>[p[0],p[1]<.7?p[1]+.03:p[1]]),.02,1.70);
+  for(let i=-4;i<=4;i++)P.box('c',.010,.50-i*i*.009,.024,i*.05,.88,1.73);
   P.box('k',.56,.56,.10,0,.86,1.50);
   // LES PHARES-OBUS sur leur barre
-  P.box('c',1.02,.035,.035,0,.86,1.60);
-  P.sym(sd=>{P.lathe('c',[[0,-.10],[.11,-.07],[.13,.02],[.13,.06]],10,sd*.50,.98,1.62,'z');P.cyl('W',.11,.02,10,sd*.50,.98,1.685,'z');
-    P.box('c',.03,.10,.03,sd*.50,.89,1.60);});
+  // (2026-10-19, BOÎTES : « deux boules jaunes qui flottent devant la calandre ») descendus contre la calandre, sur leur barre et leur pied
+  // (ils mordaient dans les pneus) ; vus de face : le jonc chromé, le verre, l'ampoule (le disque ÉMISSIF plein faisait une boule de lumière)
+  P.box('c',.94,.035,.035,0,.70,1.60);
+  P.sym(sd=>{P.lathe('c',[[0,-.10],[.11,-.07],[.13,.02],[.13,.06]],10,sd*.44,.82,1.62,'z');P.cyl('c',.13,.02,12,sd*.44,.82,1.68,'z');
+    P.cyl('g',.112,.01,12,sd*.44,.82,1.692,'z');P.cyl('W',.05,.01,10,sd*.44,.82,1.698,'z');
+    P.box('c',.03,.10,.03,sd*.44,.72,1.60);});
   // LE V8 NU : bloc rouge, caches-culbuteurs chromés, COMPRESSEUR et sa prise d'air, courroie
   P.box('e',.46,.30,.72,0,.70,1.08);
   P.sym(sd=>P.box('c',.10,.07,.64,sd*.20,.88,1.08,0,0,-sd*.55));
@@ -33336,8 +33346,8 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   // le volant, vu par la vitre
   P.lathe('k',[[.15,-.015],[.15,.015]],10,-.25,1.12,.25,'z');
   K.commit(P);
-  return {hl:[.50,.98,1.70],tl:[.34,.70,-1.87],wx:WX,wzF:ZF,wzR:-ZR,
-          lpw:{R:R,w:2*HW,style:'enjoliveur',jante:0xe6e9ee,fond:0xb81c14}};
+  return {hl:[.44,.82,1.70],tl:[.34,.70,-1.87],wx:WX,wzF:ZF,wzR:-ZR,
+          lpw:{R:R,w:2*HW,style:'enjoliveur',jante:0xe6e9ee,fond:0xb81c14,deux:1}}; // (19/10) `deux` : les roues, hors de la caisse, se voient de l'INTÉRIEUR de face (c'était un disque rouge plat)
 },
   d_puce:function(K){
   /* (13/10, « plus ressemblante ») la petite anglaise de rallye : des coins RONDS vus de dessus (elle était carrée), le
@@ -37659,8 +37669,15 @@ return function(K){
   // les phares ronds cernés de noir
   P.sym(sd=>{P.put('k',tour([[.082,0],[.097,0],[.097,.012],[.082,.014]],20),sd*.712,.63,2.40);P.put('W',tour([[0,.016],[.06,.014],[.082,.008]],20),sd*.712,.63,2.40);});
   // les pare-chocs gris foncé, épais, qui tournent aux coins ; la plaque arrière (`plqDessinee` y pose celle du joueur)
-  P.box('s',1.64,.21,.11,0,.36,2.415);P.box('s',1.64,.21,.11,0,.36,-2.415);
-  P.sym(sd=>{P.box('s',.34,.21,.11,sd*.85,.36,2.30,0,sd*.62,0);P.box('s',.34,.21,.11,sd*.85,.36,-2.30,0,-sd*.62,0);
+  /* (2026-10-19, BOÎTES : « une boîte grise qui dépasse aux coins ») le pare-chocs du dessin : une BANDE qui tourne en rond aux coins et
+     revient le long du flanc, sans dépasser la caisse ; arêtes chanfreinées */
+  {const pc=new THREE.Shape(),X=.935,Z=2.47,r=.20,t=.08;
+   pc.moveTo(-X,-(Z-r-.11));pc.lineTo(-X,-(Z-r));pc.absarc(-(X-r),-(Z-r),r,Math.PI,Math.PI*1.5,false);pc.lineTo(X-r,-Z);
+   pc.absarc(X-r,-(Z-r),r,-Math.PI/2,0,false);pc.lineTo(X,-(Z-r-.11));pc.lineTo(X-t,-(Z-r-.11));pc.lineTo(X-t,-(Z-r));
+   pc.absarc(X-r,-(Z-r),r-t,0,-Math.PI/2,true);pc.lineTo(-(X-r),-(Z-t));pc.absarc(-(X-r),-(Z-r),r-t,Math.PI*1.5,Math.PI,true);pc.lineTo(-(X-t),-(Z-r-.11));
+   const o9={depth:.15,bevelEnabled:true,bevelThickness:.015,bevelSize:.012,bevelSegments:1,curveSegments:3};
+   P.put('s',new THREE.ExtrudeGeometry(pc,o9),0,.285,0,-Math.PI/2,0,0);P.put('s',new THREE.ExtrudeGeometry(pc,o9),0,.285,0,-Math.PI/2,0,Math.PI);}
+  P.sym(sd=>{
     P.box('s',.012,.024,.11,sd*.927,.80,.30);P.box('s',.012,.024,.11,sd*.927,.80,-.55);                       // les poignées
     P.box('L',.15,.30,.03,sd*.815,.78,-2.388);P.box('S',.17,.02,.03,sd*.815,.94,-2.39);});                     // les feux, en bout d'aileron
   P.box('Q',.46,.12,.01,0,.36,-2.473);
@@ -38107,8 +38124,8 @@ ECH_POTS.caid={p:[{t:'fente',w:.30,h:.035,k:'s',lueur:'G',pts:[[.45,.60,-1.93],[
 // · · ·
 SHAPES.origami=function(K){
   const U=LPU,R=.44,ZF=1.92,ZR=-1.72,ZN=2.74,ZT=-2.74,TB=.64,KL=.10,E=.006;
-  const P=K.kit({p:{g:'c',c:0xbdc2c9},S:{g:'c',c:0x7d838c},s:{g:'c',c:0x666c75},k:{g:'m',c:0x15161a},K:{g:'g',c:0x0b0c10},
-    g:{g:'g',c:0x10161d},W:{g:'l',c:0xf4f8ff},L:{g:'l',c:0xff1a26},O:{g:'l',c:0xffa21a}});
+  const P=K.kit(fentePal({p:{g:'c',c:0xbdc2c9},S:{g:'c',c:0x7d838c},s:{g:'c',c:0x666c75},k:{g:'m',c:0x15161a},K:{g:'g',c:0x0b0c10},
+    g:{g:'g',c:0x10161d},W:{g:'l',c:0xf4f8ff},L:{g:'l',c:0xff1a26},O:{g:'l',c:0xffa21a}}));   // (19/10) 'J' / 'Jf' : la FENTE C
   const yS=z=>U.lin([[ZT,1.21],[ZN,1.045]],z),                                  // L'ARÊTE : elle monte du nez à la poupe, d'un seul trait
         xW=z=>U.lin([[ZT,1.0],[2.56,.985],[ZN,.90]],z),                         // la demi-largeur à l'arête ; le coin du nez est coupé
         T=z=>U.lin([[ZT,1.30],[.50,1.79],[1.70,1.30],[ZN,1.075]],z),            // LE TRIANGLE : poupe · pointe · pied de pare-brise · nez
@@ -38129,8 +38146,8 @@ SHAPES.origami=function(K){
   const bande=(k,x,z0,z1,d)=>poly(k,[TP(x(z0),z0,d),TP(-x(z0),z0,d),TP(-x(z1),z1,d),TP(x(z1),z1,d)]); // d'une rive à l'autre, de z0 à z1
   // ---- LE DESSUS : capot, pare-brise et toit de verre d'un seul tenant, couvre-benne à lames — entre deux rives d'inox ----
   const xg=z=>xR(z)-.05,xt=z=>xR(z)-.07;
-  bande('k',z=>xR(z)-.06,2.704,2.697,E*.5);                                     // les joints du coffre avant : le bord d'attaque…
-  for(const sd of [1,-1])poly('k',[[xR(1.76)-.06,1.76],[xR(1.76)-.053,1.76],[xR(2.70)-.053,2.70],[xR(2.70)-.06,2.70]].map(q=>TP(sd*q[0],q[1],E*.5))); // …et les deux côtés
+  bande('J',z=>xR(z)-.06,2.704,2.697,E*.5);                                     // les joints du coffre avant : le bord d'attaque… (19/10 : la FENTE C)
+  for(const sd of [1,-1])poly('J',[[xR(1.76)-.06,1.76],[xR(1.76)-.053,1.76],[xR(2.70)-.053,2.70],[xR(2.70)-.06,2.70]].map(q=>TP(sd*q[0],q[1],E*.5))); // …et les deux côtés
   bande('k',z=>xR(z)-.03,1.76,1.70,E);                                          // la grille d'auvent, au pied du pare-brise
   bande('g',xg,1.68,.50,E);bande('g',xg,.50,-1.00,E);                           // pare-brise, toit de verre
   poly('k',[TP(xg(1.62)-.07,1.62,3*E),TP(xg(1.62)-.045,1.62,3*E),TP(xg(.80)-.045,.80,3*E),TP(xg(.80)-.07,.80,3*E)]); // L'essuie-glace géant, le long du montant
@@ -38144,8 +38161,10 @@ SHAPES.origami=function(K){
     poly('K',[[.20,yb_w(.20)],[.26,yb_w(.26)],[.26,yt_w(.26)],[.20,yt_w(.20)]].map(q=>SU(sd,q[0],q[1],2*E)));   // le montant central
     // les joints de portes (pas de poignée : c'est un bouton), sur le flanc bas puis jusqu'à la vitre
     for(const z of [1.36,.23,-.98]){
-      poly('k',[[z-.0055,.60],[z+.0055,.60],[z+.0055,yS(z)],[z-.0055,yS(z)]].map(q=>SL(sd,q[0],q[1],E*.5)));
-      poly('k',[[z-.0055,yS(z)],[z+.0055,yS(z)],[z+.0055,yb_w(z)],[z-.0055,yb_w(z)]].map(q=>SU(sd,q[0],q[1],E*.5)));}
+      poly('J',[[z-.0055,.60],[z+.0055,.60],[z+.0055,yS(z)],[z-.0055,yS(z)]].map(q=>SL(sd,q[0],q[1],E*.5)));      // (19/10) la FENTE C…
+      poly('J',[[z-.0055,yS(z)],[z+.0055,yS(z)],[z+.0055,yb_w(z)],[z-.0055,yb_w(z)]].map(q=>SU(sd,q[0],q[1],E*.5)));
+      poly('Jf',[[z+.0055,.60],[z+.0095,.60],[z+.0095,yS(z)],[z+.0055,yS(z)]].map(q=>SL(sd,q[0],q[1],E*.5)));    // …et son fil clair, devant
+      poly('Jf',[[z+.0055,yS(z)],[z+.0095,yS(z)],[z+.0095,yb_w(z)],[z+.0055,yb_w(z)]].map(q=>SU(sd,q[0],q[1],E*.5)));}
     // LES ÉLARGISSEURS : trois plaques par roue (jambe, linteau, jambe), en saillie du flanc ; un feu de gabarit sur chacun
     for(const w of [ZF,ZR]){const a=R*.60,b=R+.14,yt=2*R+.05,x=sd*.9675,ep=.135;
       P.prism('k',[[w-b,.40],[w-a,yt],[w-a-.07,yt+.085],[w-b-.13,.40]],ep,x);
@@ -38162,7 +38181,7 @@ SHAPES.origami=function(K){
     // LA POUPE : le retour de la barre rouge sur le flanc, un catadioptre, le joint du hayon
     P.box('L',.016,.04,.13,sd*1.0,1.168,ZT+.06);
     P.box('L',.16,.03,.02,sd*.68,.68,-2.836);
-    P.box('k',.007,.34,.012,sd*.90,.99,ZT-.002);
+    P.box('J',.007,.34,.012,sd*.90,.99,ZT-.002);P.box('Jf',.004,.34,.012,sd*.8945,.99,ZT-.002);   // (19/10 : la FENTE C)
   });
   // ---- LA FACE ----
   P.box('W',2*xR(ZN)-.02,.028,.03,0,1.048,ZN+.004);                             // LA BARRE DE JOUR, d'un bord à l'autre
@@ -38175,7 +38194,7 @@ SHAPES.origami=function(K){
   // ---- LA POUPE ----
   P.box('L',1.98,.04,.016,0,1.168,ZT-.004);                                     // LA BARRE ROUGE, d'un bord à l'autre
   P.box('k',1.90,.07,.02,0,1.238,ZT-.002);                                      // le bandeau noir qui la coiffe
-  P.box('k',1.80,.007,.012,0,.82,ZT-.002);                                      // le joint bas du hayon
+  P.box('J',1.80,.007,.012,0,.82,ZT-.002);P.box('Jf',1.80,.004,.012,0,.8255,ZT-.002);   // le joint bas du hayon (19/10 : la FENTE C)
   P.box('k',1.90,.40,.01,0,.60,ZT-.003);                                        // le bas du bouchon, derrière le bouclier
   P.loft([-2.84,-2.76,-2.56],z=>{const x=U.lin([[-2.84,.84],[-2.76,.985],[-2.56,1.0]],z),a=U.lin([[-2.84,.57],[-2.76,.48],[-2.56,.42]],z),
     b=U.lin([[-2.84,.76],[-2.78,.80],[-2.56,.80]],z);return [[0,a],[x,a],[x,b],[0,b]];},()=>'k');
