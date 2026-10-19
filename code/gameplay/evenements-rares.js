@@ -345,9 +345,13 @@ function vdepMaj(){
   vdepPlace();}
 function vdepVu(e){return !!e&&e.offsetWidth>1&&e.offsetHeight>1&&getComputedStyle(e).visibility!=='hidden';}
 function vdepPlace(){ // la grille au-dessus de la rangée, les étiquettes au bord haut des PLAY
-  if(!VDEP.el)return;const n=vdepN(),enJeu=started&&!gameOver;
+  if(!VDEP.el)return;const n=vdepN(),enJeu=started&&!gameOver,fn=vdepFonction();
+  /* (2026-10-19 soir, Léo : « la vitesse n'apparaît que quand on a atteint le niveau 30, moteur 30 ») AVANT LE PALIER 30, PLUS DE GRILLE : ni
+     cadenas, ni étiquette « VITESSE » ; les portes remontent à sa place (#garage.sansVdep, <style id="garageHaut">). Le jour où il tombe, elle
+     APPARAÎT, avec « VITESSE DE DÉPART DÉBLOQUÉE » (vdepMaj). */
+  if(gEl&&gEl.classList.contains('sansVdep')===fn)gEl.classList.toggle('sansVdep',!fn);
   let vu=false;
-  if(garageOn&&!enJeu&&!(typeof GAR!=='undefined'&&GAR.go)&&!(typeof GBQ!=='undefined'&&GBQ.on)&&!(typeof INV!=='undefined'&&INV.on)&&!(gEl&&gEl.classList.contains('missions'))){
+  if(fn&&garageOn&&!enJeu&&!(typeof GAR!=='undefined'&&GAR.go)&&!(typeof GBQ!=='undefined'&&GBQ.on)&&!(typeof INV!=='undefined'&&INV.on)&&!(gEl&&gEl.classList.contains('missions'))){
     const J=$('gJouer'),R=[$('gvCof'),$('gvMis'),$('gShopBas')].filter(vdepVu);
     if(vdepVu(J)&&R.length){let l=1e9,r=-1e9,t=1e9;for(const e of R){l=Math.min(l,e.offsetLeft);r=Math.max(r,e.offsetLeft+e.offsetWidth);t=Math.min(t,e.offsetTop);}
       const H=VDEP.el.offsetHeight||36,x=Math.round(l),y=Math.round(t-H-8),w=Math.round(r-l);

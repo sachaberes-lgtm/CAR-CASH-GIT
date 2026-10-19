@@ -7628,6 +7628,16 @@ html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.me
   html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom>#gVdep{position:fixed!important}
   html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom>#gAct{row-gap:0!important}
 }
+/* SANS LA VITESSE (2026-10-19 soir, Léo : « la vitesse n'apparaît que quand on a atteint le niveau 30 ») : avant le palier 30 la grille VITESSE
+   n'existe pas (vdepPlace pose #garage.sansVdep) — les portes prennent sa place : debout à + 174 sous le nom (la caisse descend moins : garCadre
+   lit le bas de la BOUTIQUE) ; couché le bloc des portes (48 + 8 + 48) reste centré au même endroit que le bloc d'avant (50 % − 37 px). */
+@media (orientation:landscape){
+  html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee.sansVdep:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvCof,html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee.sansVdep:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvMis{top:calc(50% - 89px)!important}
+  html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee.sansVdep:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gShopBas{top:calc(50% - 33px)!important}
+}
+@media (orientation:portrait){
+  html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee.sansVdep:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvCof,html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee.sansVdep:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvMis,html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee.sansVdep:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gShopBas{top:calc(var(--sT) + 174px)!important}
+}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -57577,9 +57587,13 @@ function vdepMaj(){
   vdepPlace();}
 function vdepVu(e){return !!e&&e.offsetWidth>1&&e.offsetHeight>1&&getComputedStyle(e).visibility!=='hidden';}
 function vdepPlace(){ // la grille au-dessus de la rangée, les étiquettes au bord haut des PLAY
-  if(!VDEP.el)return;const n=vdepN(),enJeu=started&&!gameOver;
+  if(!VDEP.el)return;const n=vdepN(),enJeu=started&&!gameOver,fn=vdepFonction();
+  /* (2026-10-19 soir, Léo : « la vitesse n'apparaît que quand on a atteint le niveau 30, moteur 30 ») AVANT LE PALIER 30, PLUS DE GRILLE : ni
+     cadenas, ni étiquette « VITESSE » ; les portes remontent à sa place (#garage.sansVdep, <style id="garageHaut">). Le jour où il tombe, elle
+     APPARAÎT, avec « VITESSE DE DÉPART DÉBLOQUÉE » (vdepMaj). */
+  if(gEl&&gEl.classList.contains('sansVdep')===fn)gEl.classList.toggle('sansVdep',!fn);
   let vu=false;
-  if(garageOn&&!enJeu&&!(typeof GAR!=='undefined'&&GAR.go)&&!(typeof GBQ!=='undefined'&&GBQ.on)&&!(typeof INV!=='undefined'&&INV.on)&&!(gEl&&gEl.classList.contains('missions'))){
+  if(fn&&garageOn&&!enJeu&&!(typeof GAR!=='undefined'&&GAR.go)&&!(typeof GBQ!=='undefined'&&GBQ.on)&&!(typeof INV!=='undefined'&&INV.on)&&!(gEl&&gEl.classList.contains('missions'))){
     const J=$('gJouer'),R=[$('gvCof'),$('gvMis'),$('gShopBas')].filter(vdepVu);
     if(vdepVu(J)&&R.length){let l=1e9,r=-1e9,t=1e9;for(const e of R){l=Math.min(l,e.offsetLeft);r=Math.max(r,e.offsetLeft+e.offsetWidth);t=Math.min(t,e.offsetTop);}
       const H=VDEP.el.offsetHeight||36,x=Math.round(l),y=Math.round(t-H-8),w=Math.round(r-l);
