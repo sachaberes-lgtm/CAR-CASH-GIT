@@ -30448,9 +30448,9 @@ const SHAPES={
     /* (13/10, « plus ressemblante ») la coque est ROUGE jusqu'au seuil (la moitié basse était noire : elle paraissait longue et plate),
        elle rentre sous la taille, et ses hanches se gonflent au-dessus des roues arrière. */
     const U=LPU,R=.37,ZF=1.30,ZR=-1.16;
-    const P=K.kit({p:{g:'p',c:0xe8121c},r:{g:'p',c:0xb00d15},k:{g:'m',c:0x131417},K:{g:'g',c:0x0b0c10},
+    const P=K.kit(fentePal({p:{g:'p',c:0xe8121c},r:{g:'p',c:0xb00d15},k:{g:'m',c:0x131417},K:{g:'g',c:0x0b0c10},
       c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},
-      Q:{g:'l',c:0x8a0c18},w:{g:'l',c:0xd9dce0}}); // (17/10, l'arrière v2) Q le cœur des feux, w la plaque éclairée — aucune famille de plus
+      Q:{g:'l',c:0x8a0c18},w:{g:'l',c:0xd9dce0}})); // (17/10, l'arrière v2) Q le cœur des feux, w la plaque éclairée — aucune famille de plus · (19/10) + la FENTE (J, Jf)
     const AR=[[0,2*R+.03],[R*.60,2*R-.02],[R*.98,R*1.10],[R+.12,.26]];
     const zs=[-2.20,-1.95,-.70,-.52,-.36,.10,.60,.74,1.95,2.18];
     for(const w of [ZF,ZR])for(const d of [R*.60,R*.98,R+.12])zs.push(w-d,w+d);
@@ -30480,7 +30480,7 @@ const SHAPES={
       P.box('r',.30,.012,.22,sd*.66,yC(1.82)+.004,1.82,.21);                 // trappes de phares
       P.box('W',.30,.06,.03,sd*.62,.42,2.185);
       P.box('k',.02,.18,.36,sd*(xw9(-.57)+.002),.72,-.57);                                // prise d'air arrière
-      P.box('k',.02,.06,.34,sd*(xw9(.12)+.002),.74,.12);P.box('k',.012,.04,1.40,sd*(xw9(0)-.02),.30,.07);   // NACA de portière, le seuil noir                                 // NACA de portière
+      P.box('k',.02,.06,.34,sd*(xw9(.12)+.002),.74,.12);P.box('J',.012,.006,1.40,sd*(xw9(0)-.02),.30,.07);P.box('Jf',.012,.003,1.40,sd*(xw9(0)-.02),.3045,.07);   // NACA de portière, le joint du seuil (affinement : la FENTE C, c'était un trait noir de 4 cm)                                 // NACA de portière
       P.box('p',.12,.08,.16,sd*.84,.95,.52);P.box('k',.10,.03,.04,sd*.77,.92,.52);
       for(const x of [.55,.76]){P.cyl('K',.088,.04,14,sd*x,.74,-2.225,'z');   // quatre feux ronds — (17/10, l'arrière v2) EN VOLUME : la cuvette
         P.lathe('L',[[.07,0],[.055,-.017],[0,-.024]],14,sd*x,.74,-2.245,'z');P.cyl('Q',.026,.01,8,sd*x,.74,-2.268,'z');} // le verre bombé, son cœur
@@ -30500,7 +30500,7 @@ const SHAPES={
     P.cyl('c',.05,.14,8,0,.43,-2.26,'z');                                     // la troisième sortie
     K.commit(P);
     return {hl:[.62,.42,2.20],tl:[.66,.74,-2.24],wx:.80,wzF:ZF,wzR:-ZR,
-            lpw:{R:R,w:.30,style:'rayons',n:5,jante:0xc9ced6,accent:0xc9ced6}};
+            lpw:{R:R,w:.30,style:'rayons',n:5,jante:0xc9ced6,accent:0xc9ced6,branches:1}};
   },
   // 6. POSTER 84 — Lamborghini Countach, celle du mur de ta chambre. Un coin, des passages de roue
   //    TRAPÉZOÏDAUX, les « oreilles » derrière les vitres, la NACA en biais dans la portière,
@@ -32839,7 +32839,7 @@ Object.assign(SHAPES,{
   P.box('c',.30,.10,.06,0,.44,-LF);P.box('k',.24,.06,.02,0,.44,-LF-.025);     // l'échappement central
   K.commit(P);
   return {hl:[.60,.55,2.00],tl:[.67,.66,-2.27],wx:.84,wzF:ZF,wzR:-ZR,
-          lpw:{R:R,w:.30,style:'rayons',n:7,jante:0x5cff1e,accent:0x2a2e35}};
+          lpw:{R:R,w:.30,style:'rayons',n:7,jante:0x5cff1e,accent:0x2a2e35,branches:1}};
 },
   /* LE BLINDÉ NOIR EN PORC-ÉPIC (2026-10-16, Léo : « un peu en mode gothique, mais partout — c'est un peu une voiture porc-épic »).
      Sa silhouette ne bouge pas (le char à roues avant sur bras, l'arrière doublé, les plaques) ; par-dessus, LE PELAGE : ~350 piquants

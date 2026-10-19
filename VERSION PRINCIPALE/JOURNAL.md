@@ -1379,6 +1379,13 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - 0 programme compilé en course (les quatre), console propre. Planche : `photos-gameplay/affinement-lot3-japonaises.png`.
 - ⚠ Piège revu : un commentaire posé en bout de ligne au milieu d'une ligne de code avale la suite (les feux de la STRATOS, corrigé aussitôt).
 
+## L'AFFINEMENT DES JAPONAISES — LOT 4 : ROSSO 40 · LE SPECTRE · LE TOFU (2026-10-19, discussion JAPONAISES ; fin de la liste)
+- **ROSSO 40** (Léo garde l'ancienne : « seulement ses jantes et ses traits ») : `branches:1` (cinq branches en étoile) ; sa palette passe par
+  `fentePal` et le trait noir de 4 cm du seuil devient la FENTE C (`J` 6 mm + `Jf` 3 mm). Aucune autre ligne touchée.
+- **LE SPECTRE** (création de Sacha) : `branches:1` (sept branches sous la lèvre néon) ; ses néons et ses facettes restent.
+- **LE TOFU** : tour des coins (dessous, dessus, nez, poupe, en course) — rien à reprendre.
+- 0 programme compilé en course, console propre. Planche : `photos-gameplay/affinement-lot4-japonaises.png`.
+
 ## LES JAPONAISES — 6 · ROSSO 40 REFAITE AU PLAN (2026-10-18, discussion JAPONAISES, Léo : « complexifie la ROSSO 40, imitation encore plus fidèle et satisfaisante pour les vrais kiffeurs de voiture »)
 - ⚠ **RETIRÉE LE SOIR MÊME** (Léo : « la rosso revient sur avant c'était mieux ») : le bloc `SHAPES.rosso` et son repère sont ôtés de la zone des
   JAPONAISES, la ROSSO 40 d'origine reprend la main (ses pots, sa ligne CARS : rien n'avait bougé). La préchauffe repasse à cinq étapes. La source
