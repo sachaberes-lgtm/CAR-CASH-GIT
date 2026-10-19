@@ -3,6 +3,15 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'AFFINEMENT DES VOITURES, 1er ENVOI : LES BUGS ET LA FENTE (2026-10-19, v679 — Léo : « corrige tous les traits noirs dénaturés… un effet de séparation discret qui simule une fente » ; fente C choisie sur planche)
+- Le chantier : `~/Downloads/CAR-bancs/nouvelles-voitures/AFFINEMENT.md` (le relevé de 46 caisses, la FENTE, la dernière retouche en style poly).
+- **Les bugs** (partis direct) : RONDES 7f3d858f — l'éventail de triangles de LA GRANDE ANGLAISE, la tache noire du capot de POSTER 84 ;
+  BOÎTES a15db8c7 — la barre qui dépassait de LA DOLORÈS, le damier du flanc de L'AIGLE DE FEU en course, l'écope rose du CHARGEUR.
+- **LA FENTE C** (JAPONAISES d2928ae4) : un joint de tôle n'est plus un trait noir mais une ombre de la couleur de la caisse + un fil clair
+  sur l'arête (`fenteRGB` / `fenteHex` / `fentePal` / `fenteVar`, `JAPFENTE_DEF='C'`, `?fente=A` = l'ancien trait). En jeu sur les 5 japonaises
+  au plan ; RONDES et BOÎTES la branchent ensuite sur leurs caisses (LA CABOSSÉE garde ses traits de dessin animé, choix de Léo).
+- Vu au banc, pas à nous : +1 programme compilé pendant une EXPLOSION en course (quelle que soit la caisse).
+
 ## LE DÉPART D'AVANCE — LA 1re PISTE DE LA PARTIE SE BÂTIT AU MENU ET À L'ÉCRAN DE FIN (2026-10-19, session PERF — chantier du PRÉ-BÂTI de Léo ; la passe perf du 18/10 : « JOUER : ~1,1 s d'image figée sous le nuage blanc · REJOUER : ~1 s de construction sous le volet · depuis l'accueil, la piste bâtie deux fois »)
 - **MESURÉ AVANT** (banc : iPhone simulé 390 × 844 ×3, NETTE, processeur ×4, `?palier=2`, `?pistegraine=777`, au calme — charge 2,5 à 4,8) : la
   construction du départ fige l'image d'un bloc — au 1er JOUER `sous9` → `rebuildMenuScene` → `newTrack` (230-250 ms aux nuages, ~1 s à la jade),
