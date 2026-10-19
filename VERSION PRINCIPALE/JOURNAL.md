@@ -3503,8 +3503,9 @@ Complète « LES TRAÎNÉES ET LES AILES QU'ON VEUT » (15/10 soir, la course : 
   le code elle était à 20 000 depuis le 14/10 au soir ; LE DÉFIEUR, lui, est à 10 000.) Sa rareté reste écrite (`rar:'rare'`).
 - VÉRIFIÉ au banc (Chrome du Mac sans fenêtre, muet, piloté en CDP) : la vignette de boutique (`dbgPhotoCar`), sept vues dans le repère de la
   caisse (`dbgAilesVue`), avant / après ; une partie lancée avec elle (JOUER → canyon, soir, 140 km/h) : 0 erreur, rien d'avalé.
-- À trancher par Sacha ou Léo : les élargisseurs bordés de NOIR et rivetés (la sportive d'origine les a couleur caisse) ; les bavettes ROUGES
-  (sinon : le violet des bandes, `v`) ; la rampe jaune toujours allumée.
+- VALIDÉ par Sacha (19/10, après les photos avant / après de la boutique, de la course et des roues) : « C'est bon, on garde le kit rallye
+  de la Bavaroise tel quel. » — les élargisseurs bordés de NOIR et rivetés, les bavettes ROUGES, la rampe jaune toujours allumée, les jantes
+  dorées. On ne le rebascule pas sans lui.
 - À signaler : la salle blanche (`salle-blanche.html?source=local`) ne lit plus le jeu d'aujourd'hui (« SANS_CARRIERE is not defined », puis
   « EAU ») — elle évalue des blocs d'index.html qui dépendent maintenant de constantes posées ailleurs. Pas touché ici.
 
