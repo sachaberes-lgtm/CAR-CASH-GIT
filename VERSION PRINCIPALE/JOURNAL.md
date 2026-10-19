@@ -3,6 +3,41 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA RÉSURRECTION + LE JACKPOT QUI DONNE UNE ÉPIQUE + LES LOTS DU FINAL SPIN REVUS (2026-10-19, session resurrection — Sacha : « seconde chance doit ressusciter la voiture : fais une animation stylée où les pièces de la voiture se réassemblent par magie » · « le jackpot doit faire gagner une voiture épique » · « seconde chance doit être plus probable ; les sacs d'argent doivent être plus rares, mais ils rapportent 50× plus d'argent qu'actuellement »)
+- **LA RÉSURRECTION** (`RESU`, `resuLance`/`resuBatit`/`resuTick`/`resuClac`/`resuFin`/`resuVue`) — la reprise de la seconde chance ne pose plus
+  la caisse d'un coup. Sous le volet (`chanceRepart`), ses VRAIES pièces (`CAR_PIECES`, celles que l'explosion arrache) apparaissent éparpillées
+  autour d'elle (sur les côtés, en hauteur, vers l'avant : derrière, c'est la caméra) et flottent ; puis elles s'aimantent vers leur place
+  EN TOURBILLON, une à une — les roues d'abord (elles arrivent en roulant), puis le bas de caisse, puis le haut —, chacune traînant des
+  étincelles d'or et de néon (`sparkGold`/`sparkBlue`), une hélice cyan qui monte autour de la caisse. Chaque éclat qui se verrouille claque
+  (`spin.arret`, une note de la pentatonique plus haut à chaque fois : l'arpège monte avec la caisse) et jette une gerbe ; le dernier posé, la
+  caisse soudée revient d'un coup sous un ANNEAU DE NÉON (`neonPool`), une gerbe d'or, un flash or et le chœur du MIRACULÉ (`jeu.miracule`).
+  Le départ : les carillons de `pwr.a`. ~1,5 s, pendant le 3 · 2 · 1 — qui se tait (plus de `ui.bip` ni de `ui.go` : l'arpège et le chœur
+  les remplacent) ; le bouclier (`CHANCE.invD`) et le clignotement suivent comme avant.
+- **Comment** : les pièces sont regroupées en ÉCLATS — chaque roue seule, la carrosserie en 12 morceaux (gauche/droite × avant/milieu/arrière ×
+  bas/haut, au centre de chaque pièce) — et chaque éclat est SOUDÉ par matière (`fusGeo`/`fusMaillage`, comme `caisseSoude`) : une quinzaine
+  d'éclats, quelques dizaines de dessins pendant 1,5 s, les MÊMES matières (aucun programme compilé en course) ; les géométries soudées sont
+  libérées à la fin. Le groupe `RESU.g` vit dans la scène, calé sur la caisse AU RENDU (`scene.onBeforeRender`, chaîné) : les éclats suivent
+  la caisse qui roule déjà. La caisse reste cachée tant qu'ils volent (`chanceTick`) ; `resuVue` fait le ménage si la course s'arrête
+  (fin, garage, menu), `chanceRaz` aussi. **`?resu=0` = la reprise d'avant.** Banc : `dbgResu()` (l'état), `dbgResu('lance')` (la rejouer).
+- **LE JACKPOT = UNE VOITURE ÉPIQUE** (`spinEpique`, `spinDonne`, `spinPaye`) : trois 7 donnent une ÉPIQUE pas encore à toi, au hasard, parmi
+  celles qui se vendent à l'argent du jeu (ni défi, ni euros), ni retirées, ni promises par une MISSION (les secrètes restent à gagner).
+  Elle entre dans `SAVE.d.owned` (et `carWas` : la course suivante ne la recrie pas « NOUVELLE CAISSE »). L'écran des lots écrit son nom à
+  la couleur des épiques, « VOITURE ÉPIQUE », et sa PHOTO de boutique (`carPhoto`) remplace le 7 après les éclats. Quand le joueur les a
+  TOUTES, le 7 verse 500 000 $ (`cash` du lot `sept`). Banc : `dbgSpin(n,'sept')`.
+- **LES LOTS** (`SPIN.lots`) — avant → après :
+  | lot | proba | gain |
+  |---|---|---|
+  | PETIT SAC | 20 % → **8 %** | 120 → **6 000 $** |
+  | SAC D'ARGENT | 12 % → **4 %** | 300 → **15 000 $** |
+  | GROS SAC | 4 % → **1,2 %** | 1 000 → **50 000 $** |
+  | SECONDE CHANCE GRATUITE | 5 % → **15 %** | |
+  | DÉPART BOOSTÉ | 7 % | |
+  | +1 JETON | 5 % | |
+  | JACKPOT | 1,2 % | 5 000 $ → **une ÉPIQUE** |
+  | consolation | 45,8 % → **58,6 %** | 40 $ |
+  L'espérance d'argent par tirage passe d'environ 178 $ à environ 1 700 $ : le plafond de GENERAL (« ≤ 10 % du gain d'une partie ») est
+  levé par cette demande de Sacha.
+
 ## PLUS DE CAISSE-NUAGE DANS LA MER DE NUAGES (2026-10-19, session sans-caisse-nuage — Sacha : « enlève le truc qui dit : cloud car catch je sais pas quoi dans la map nuage, j'en veux pas »)
 - **Ce que c'était** : le dernier des ÉVÉNEMENTS RARES (14/10, GAMEPLAY) — dans 75 % des parties, à la 1re zone MER DE NUAGES, la CAISSE-NUAGE
   se condensait devant la caisse avec la bannière « CAISSE-NUAGE — ACCROCHE SON SILLAGE » (en anglais « CLOUD CAR — CATCH HER SLIPSTREAM »).
