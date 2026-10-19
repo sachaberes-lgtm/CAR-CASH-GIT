@@ -92,6 +92,7 @@ try{Object.assign(PAL.B,{foretArbres:[.42,.66,1],foretRayon:[900,1250,1650],fore
    (palier 22 : 5 → 0). Au palier 10 les pistes s'allongent d'~20 % (mêmes virages, plus grands). Un pas plus loin (plancher 1,62) tuait les virages :
    2,9/km, pistes de 15-17 km. `?foret=serre` = la pelote d'avant. */
 const FORET_LARGE=typeof location==='undefined'||!/[?&]foret=serre\b/.test(location.search);
+const FORET_HASARD=typeof location==='undefined'||!/[?&]sans=([^&]*,)?forethasard(,|&|$)/.test(location.search); // (2026-10-19) LA FORÊT AU HASARD (voir le dessin de forPelote) — `?sans=forethasard` = la recette d'avant, à l'identique
 function* genForet(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main entre deux essais
   CAMPM.length=0;MODMARK.length=0;
   const LV=Math.min(4.4,typeof lvPiste==='function'?lvPiste():1),vP9=70+(LV-1)*100;
@@ -100,7 +101,7 @@ function* genForet(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main en
   const gr=mulberry32((rnd()*4294967296)>>>0);let best=null,ne=0;
   for(let e=0;e<8;e++){if(e)yield;const r=forPelote(gr,kR,kV);ne++;if(!best||r.note<best.note)best=r;if(r.note<1)break;}
   for(const m of best.mods||[])MODMARK.push(m); // (2026-10-18) LES MODULES DE CHAQUE MAP : ceux de l'essai gardé (voir fSlalom)
-  FORET.Q=best.Q;FORET.plg=[];FORET.boucles=best.BO;FORET.noeuds=best.NO;FORET.pel={dsM:best.dsM,note:+best.note.toFixed(2),essais:ne,croise:best.croise,dyMin:best.dyMin,L:Math.round(best.L)};
+  FORET.Q=best.Q;FORET.plg=[];FORET.boucles=best.BO;FORET.noeuds=best.NO;FORET.plan=best.plan;FORET.axe=best.axe;FORET.pel={dsM:best.dsM,note:+best.note.toFixed(2),essais:ne,croise:best.croise,dyMin:best.dyMin,L:Math.round(best.L)};
   return best.ctrl;}
 function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent les rayons : à haute vitesse le nœud grandit en entier, sans s'étirer en lignes droites)
   const rM=63*kR,v9=70*kV,LT=9600*(.55+.45*kR),RH=(typeof ROAD_HALF==='number'&&ROAD_HALF>0)?ROAD_HALF:28,DY=32;
@@ -124,6 +125,7 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
        fRacines· LES RACINES : 3-4 bosses (± 5 % de pente, longueur d'onde ≥ 8 lissages) en slalom (un virage de 40-55° par demi-bosse) — par-dessus le relief du nœud (ZM)
      Leurs tronçons vont dans MODMARK (ni plot ni huile dedans). */
   const rf9=MODC_ON?mulberry32((rnd()*4294967296)>>>0):null,MM=[],ZM=[],fmPaq=[];let fmNext=600*kV,fmLast=-1;
+  let mNeed=3,LMOD=LT*.3,LVISE=0,AXE=0,PLAN=null; // (2026-10-19, LA FORÊT AU HASARD) les modules visés et l'abscisse où on les force (3 et LT × 0,3 : comme avant), la longueur visée, l'axe, le plan — fixés par le dessin au hasard
   const fSlalom=()=>{const n=4+((rf9()*3)|0),a=26+rf9()*18,R=rM*(1.6+rf9()*.6);let sg=rf9()<.5?-1:1;arc(sg*a*.5,R);
     for(let k=0;k<n;k++){sg=-sg;arc(sg*a,R);}arc(-sg*a*.5,R);};
   const fLacets=()=>{const sg=rf9()<.5?-1:1,a=160+rf9()*15,R=rM*(1.7+rf9()*.3);droite((40+rf9()*30)*kV);arc(sg*a,R);droite((60+rf9()*50)*kV);arc(-sg*a,R*(.95+rf9()*.15));droite((40+rf9()*30)*kV);};
@@ -145,7 +147,7 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   // opposés de 22-48°, parfois une respiration) — on avance en slalom, jamais en zigzag sur place
   const vers=(c,ra)=>{cib=c;for(let k=0;k<12&&dist()>ra;k++){const r9=rel(),d=dist();
     if(Math.abs(r9)>.35){const R=FORET_LARGE?Math.max(rM*1.5,Math.min(rM*2.7,d*.29)):Math.max(rM*1.25,Math.min(rM*2.3,d*.26));arc((r9>0?1:-1)*Math.abs(r9)*57.3*(.85+rnd()*.2),R,R*(.85+rnd()*.3),.1);}
-    else if(rf9&&s>fmNext&&(zg<-.02&&d>620*kR||MM.length<3&&s>LT*.3&&d>300*kR))fMod(); // (2026-10-18) LES MODULES DE LA FORÊT NOIRE (voir fSlalom) — dans une zone qui descend : la forêt garde sa pente
+    else if(rf9&&s>fmNext&&(zg<-.02&&d>620*kR||MM.length<mNeed&&s>LMOD&&d>300*kR))fMod(); // (2026-10-18) LES MODULES DE LA FORÊT NOIRE (voir fSlalom) — dans une zone qui descend : la forêt garde sa pente
     else{const a=FORET_LARGE?20+rnd()*26:22+rnd()*26,R=rM*(FORET_LARGE?1.55+rnd()*1.3:1.25+rnd()*1.2),sg=rnd()<.5?-1:1;arc(sg*a,R,null,.1);arc(-sg*a*(.8+rnd()*.5),R*(.9+rnd()*.3),null,.1);if(rnd()<.3)droite((40+rnd()*60)*kV);}}};
   // LA BOUCLE : un tour complet (la sortie au-dessus ou en dessous de l'entrée) — le FILET (360°, le rayon qui s'ouvre : la sortie court
   // à côté de l'entrée, ~70 m à l'extérieur) ou le NOEUD (300-330° ou 390-430° : la sortie recoupe l'entrée en biais)
@@ -159,6 +161,7 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
      boucle à une pointe — chaque branche recoupe les précédentes. Entre deux nœuds, une LIAISON de virages ; la ligne des nœuds ondule à
      travers une forêt de plusieurs kilomètres. CHAQUE NŒUD A SON RELIEF : il DESCEND (sauter sur la route d'en dessous = un raccourci), il
      MONTE (sauter = revenir en arrière), ou il fait LA VAGUE (descend puis remonte : les deux à la fois). Vu d'en haut, rien ne les distingue. */
+  if(!FORET_HASARD){ // la recette d'avant (`?sans=forethasard`), à l'identique — le dessin au hasard est plus bas
   const nN0=3+(kR>1.6&&rnd()<.35?1:0),RHO=225*kR,LC9=typeof longueurCible==='function'?longueurCible():0;let ca=0,cN=[0,RHO+380];
   const nN=LC9?Math.max(1,Math.min(nN0,Math.round((LC9-1200*kR)/(3600*kR)))):nN0; // (LA DURÉE DES MAPS) au JOUER, autant de nœuds (~3,6 km × l'échelle chacun) que la longueur visée en tient — au moins UN : l'étoile qui se recroise et l'arche restent
   const TY=[rnd()<.7?'desc':'vague'],SAC=['desc','monte','vague','desc','monte','vague','desc'];for(let n=1;n<nN;n++)TY.push(SAC.splice(rnd()*SAC.length|0,1)[0]);
@@ -179,6 +182,77 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   }
   zone(-.03,()=>{cib=[cN[0]+Math.sin(ca)*(RHO+900),cN[1]+Math.cos(ca)*(RHO+900)];vers(cib,500*kR);for(let k=0;k<3&&Math.abs(rel())>.25;k++)arc((rel()>0?1:-1)*Math.min(70,Math.abs(rel())*57.3),Math.max(rM*2,200));});
   zone(-.02,()=>{droite(180);ici('fin');droite(100);});
+  }else{
+  /* LA FORÊT AU HASARD (2026-10-19, Sacha : « vérifie bien que toutes les maps sont générées aléatoirement » — la graine changeait, pas la RECETTE) :
+     au JOUER, la forêt partait toujours plein nord (±15°) par ~300 m de droite, UNE pelote au même endroit (~1 km plus loin), l'arche à sa sortie, puis
+     une fuite vers le nord (40 graines : écart de forme 0,07 ; l'arche à 57-86 % du parcours). Désormais chaque forêt tire, dans son flux (`gr`) :
+     · son AXE, n'importe où sur le cercle (la forêt n'a pas de pente qui la tienne au nord) : le plan se dessine face à +z, puis TOURNE EN BLOC (AXE) ;
+     · le nombre de PELOTES — une, ou deux plus petites quand la longueur visée les tient (trois ou quatre hors du JOUER, comme avant) —, leur taille,
+       leurs pointes (3-4), leur relief (desc / vague ; avec deux pelotes, l'une MONTE : le doute, jamais la majorité) ;
+     · les TRAVERSÉES entre le départ, les pelotes et l'arrivée, la longueur partagée au hasard (la pelote peut venir tout de suite, ou en fin de course),
+       chacune avec son CARACTÈRE, jamais deux fois le même de suite : `allee` (le slalom vers la cible, d'avant), `detour` (un grand coude),
+       `lacets` (des virages en chaîne), `boucle` (un tour complet au milieu : un pont de plus) ;
+     · une ARCHE, ou deux (`arche`, `archeB`), n'importe où sur une traversée (ou à la sortie d'une pelote, s'il n'y a pas de traversée assez longue) ;
+     · la ligne des pelotes louvoie (±72° de l'axe) : la forêt avance, elle ne revient jamais sur ses pas.
+     Gardé : l'étoile et ses boucles, les croisements (DY) et leur résolution, le relief, les rayons ; les modules, dont le nombre visé suit la longueur
+     (`mNeed` : 3 au-delà de ~7 km, sinon 1-2 — avant, au JOUER, on en voulait 3 et la note ne passait jamais : 8 essais à chaque forêt). La note
+     écarte aussi un essai qui s'écarte de la longueur visée (au-delà de ×1,3 ou en deçà de ×0,75). */
+  const LC9=typeof longueurCible==='function'?longueurCible():0,dA=(a,l)=>[Math.sin(a)*l,Math.cos(a)*l],RHO=225*kR;
+  LVISE=LC9||LT*(.9+rnd()*.3);AXE=rnd()*6.2832-3.1416;PLAN=[];
+  mNeed=3;LMOD=LC9?1e9:LVISE*.3; // (au JOUER, plus de module FORCÉ n'importe où — 0,7-1 km chacun, la forêt débordait : ils sont PLACÉS, voir MO9)
+  const K=LC9?(LVISE>=5000*kR&&rnd()<.5?2:1):3+(kR>1.6&&rnd()<.35?1:0),NK=[];
+  for(let n=0;n<K;n++){const rho=RHO*(K>1&&LC9?.58+rnd()*.2:LC9?.72+rnd()*.3:.8+rnd()*.3),m=3+(rnd()<(LC9&&(K>1||LVISE<6000*kR)?.12:.35)?1:0);NK.push({rho:rho,m:m,est:3.4*rho*m,c:null});}
+  const TY=NK.map(()=>rnd()<.62?'desc':'vague');if(K>1)TY[(rnd()*K)|0]='monte';
+  const nR=K+1,nA=1+((!LC9||LVISE>=4500*kR)&&rnd()<.45?1:0),W=[];for(let i=0;i<nR;i++)W.push(!i?.1+rnd()*1.6:i<nR-1?.4+rnd()*1.1:.7+rnd()*1.1); // (les poids : la première peut être très courte — la pelote tout de suite —, la dernière jamais)
+  let sNK=0;for(const o of NK)sNK+=o.est;
+  const sW=W.reduce((a,b)=>a+b,0),lib9=Math.max(nR*300*kR,LVISE-(260+nA*290+280)-sNK),RL=W.map(w=>Math.max(250*kR,lib9*w/sW)); // (le partage prévu : il choisit où vont les arches ; la longueur de chaque traversée est reprise en route, voir plus bas)
+  const MO9=RL.map(()=>false);if(LC9&&rf9){const n9=1+(LVISE>=5200*kR?1:0)+(LVISE>=8000*kR&&rnd()<.5?1:0),cd=RL.map((l,i)=>i).filter(i=>RL[i]>=500*kR).sort((a,b)=>RL[b]-RL[a]);
+    for(let j=0;j<n9&&j<cd.length;j++)MO9[cd[j]]=true;mNeed=Math.max(1,Math.min(n9,cd.length));} // LES MODULES, PLACÉS : un, deux (≥ 5,2 km), parfois trois (≥ 8 km), dans les traversées les plus longues
+  const CAR9=['allee','detour','lacets','boucle'],RC=[];{let cP='';for(let i=0;i<nR;i++){let c='';for(let e=0;e<8;e++){c=CAR9[(rnd()*4)|0];if(c!==cP&&(c!=='boucle'||RL[i]>=800*kR))break;}
+    if(c===cP||c==='boucle'&&RL[i]<800*kR)c=cP==='allee'?'detour':'allee';RC.push(c);cP=c;}}
+  const AR9=[];{const ok=RL.map(l=>l>=450*kR?l:0);
+    for(let a=0;a<nA;a++){const k=a?'archeB':'arche',cd=[];for(let i=0;i<nR;i++)if(ok[i]&&!AR9.some(q=>q.i===i))cd.push(i);
+      if(!cd.length){AR9.push({i:-1,n:(rnd()*K)|0,k:k});continue;} // pas de traversée assez longue : à la sortie d'une pelote
+      let tot=0;for(const i of cd)tot+=ok[i];let u=rnd()*tot,ch=cd[cd.length-1];for(const i of cd){u-=ok[i];if(u<=0){ch=i;break;}}AR9.push({i:ch,n:-1,f:ch===nR-1?.15+rnd()*.4:.2+rnd()*.5,k:k});}} // (sur la dernière traversée, jamais collée à l'arrivée : sinon arche + arrivée = 600 m de droite)
+  const arche=k=>zone(-.03,()=>{const a9=rel()*57.3;if(Math.abs(a9)>5)arc(a9,Math.max(rM*2.4,220));droite(50);ici(k+'0');droite(100);ici(k);droite(100);ici(k+'1');droite(40);}); // L'ARCHE, sur une droite (comme avant)
+  const leg=(car,T,ra,mo)=>{if(mo&&rf9){const v=[T[0]-x,T[1]-z];vers([x+v[0]*.3,z+v[1]*.3],100*kR);fMod();} // un bout de traversée vers T : son module (s'il en porte un), puis son caractère
+    const v=[T[0]-x,T[1]-z],d=Math.hypot(v[0],v[1]);
+    if(car==='detour'&&d>520*kR){const b=(rnd()<.5?-1:1)*(.6+rnd()*.5),f=.45+rnd()*.2,c9=Math.cos(b),s9=Math.sin(b);vers([x+(v[0]*c9+v[1]*s9)*f,z+(v[1]*c9-v[0]*s9)*f],150*kR);}
+    else if(car==='lacets'&&d>300*kR){cib=T;virages(2+((rnd()*3)|0));}
+    else if(car==='boucle'&&d>380*kR){const f=.35+rnd()*.25;vers([x+v[0]*f,z+v[1]*f],120*kR);cib=T;boucle();}
+    vers(T,ra);};
+  const traversee=(i,T,ra)=>{const car=RC[i],aa=AR9.find(q=>q.i===i),g=-pente(.025,.05),s0=s;
+    if(aa){const v=[T[0]-x,T[1]-z],dv=Math.hypot(v[0],v[1])||1,f9=Math.max(0,Math.min(aa.f,(dv-290-350*kR)/dv)),A=[x+v[0]*f9,z+v[1]*f9]; // (l'arche finit toujours ~350 m avant la cible : jamais arche + arrivée en une seule droite)
+      zone(g,()=>{if(f9>=.5)leg(car,A,90*kR,MO9[i]);else vers(A,90*kR);});cib=T;arche(aa.k);zone(g,()=>{if(f9<.5)leg(car,T,ra,MO9[i]);else vers(T,ra);});}
+    else zone(g,()=>leg(car,T,ra,MO9[i]));
+    PLAN.push(car+(aa?'+'+aa.k:'')+':'+Math.round(s-s0));}; // (le plan, pour dbgForet / dbgTrace : chaque morceau et sa longueur)
+  const noeud=n=>{const o=NK[n],cN=o.c,ty=TY[n],m=o.m,sr=rnd()<.5?-1:1,th0=Math.atan2(x-cN[0],z-cN[1]),jB=rnd()<(rf9?.3:.55)?1+(rnd()*(m-1)|0):-1,s0=s; // L'ÉTOILE (comme avant, à la taille de SA pelote)
+    for(let j=1;j<=m;j++){const th=th0+sr*j*(130+rnd()*28)*Math.PI/180,r=o.rho*(.62+rnd()*.38),c=[cN[0]+Math.sin(th)*r,cN[1]+Math.cos(th)*r];
+      let g=ty==='desc'?-pente(.06,.08):ty==='monte'?pente(.045,.06):(j<=m/2?-pente(.07,.09):pente(.05,.065));
+      g+=(rnd()-.5)*.05;if(rnd()<.2)g=-Math.sign(g)*pente(.02,.04);
+      zone(g,()=>{vers(c,110*kR);if(j===jB)boucle();});}
+    NO.push({c:cN,t:ty,s0:s0,s1:s});PLAN.push('pelote:'+ty+m+(jB>0?'b':'')+':'+Math.round(s-s0));};
+  ici('depart');zone(-.02,()=>droite((150+rnd()*230)*Math.sqrt(kV)));
+  let ca=(rnd()-.5)*2,cP9=[x,z]; // la LIGNE : son cap autour de l'axe, et d'où elle repart (le départ, puis le centre de la dernière pelote)
+  for(let i=0;i<nR;i++){
+    if(i)ca=Math.max(-1.3,Math.min(1.3,ca+(rnd()<.5?-1:1)*(.5+rnd()*.65)));
+    /* LA LONGUEUR, REPRISE EN ROUTE : ce qui reste de la longueur visée, moins les pelotes à venir (≈ 3,4 × rayon × pointes : mesuré), les arches à
+       venir et l'arrivée, partagé entre les traversées qui restent selon leurs poids ; une traversée roule ~1,5 × sa corde (ses S, ses coudes, ses
+       modules : mesuré) — la dernière rattrape ce que les pelotes ont pris de plus ou de moins. */
+    let fx9=280+(i===nR-1?250:0),sw9=0;for(let n=i;n<K;n++)fx9+=NK[n].est;for(const q of AR9)if(q.i>=i||q.n>=i)fx9+=290;for(let j=i+1;j<nR;j++)if(MO9[j])fx9+=600*kR;for(let j=i;j<nR;j++)sw9+=W[j];
+    const part=Math.max(220*kR,(LVISE-s-fx9)*W[i]/sw9); // la part de CETTE traversée
+    if(MO9[i]&&part<1100*kR){MO9[i]=false;if(i<nR-1)MO9[i+1]=true;} // trop courte pour son module : il passe à la suivante
+    if(RC[i]==='boucle'&&part-(MO9[i]?600*kR:0)<1000*kR||RC[i]==='lacets'&&part-(MO9[i]?600*kR:0)<700*kR){const p9=i?RC[i-1]:'',n9=i<nR-1?RC[i+1]:'';RC[i]=['detour','allee'].find(c=>c!==p9&&c!==n9)||(p9==='allee'?'detour':'allee');} // trop courte pour son caractère : un plus sobre
+    const D=Math.max(220*kR,part-(RC[i]==='boucle'?650*kR:RC[i]==='lacets'?350*kR:0)-(MO9[i]?600*kR:0))/(i===nR-1?1.5:1.8); // (la boucle, les lacets, le module : leur longueur en plus ; avant la dernière, on compte large — c'est elle qui rattrape)
+    if(i<K){const o=NK[i],rP=i?NK[i-1].rho:0,v=dA(ca,D+o.rho);o.c=[x+v[0],z+v[1]]; // (comptée depuis LA SORTIE de la pelote d'avant…
+      if(i&&Math.hypot(o.c[0]-cP9[0],o.c[1]-cP9[1])<rP+o.rho+120*kR){const v2=dA(ca,rP+o.rho+120*kR);o.c=[cP9[0]+v2[0],cP9[1]+v2[1]];} // …mais jamais deux pelotes l'une dans l'autre)
+      const th9=Math.atan2(x-o.c[0],z-o.c[1]);traversee(i,[o.c[0]+Math.sin(th9)*o.rho*.9,o.c[1]+Math.cos(th9)*o.rho*.9],110*kR);noeud(i);cP9=o.c;
+      const an=AR9.find(q=>q.n===i);if(an){const w=dA(ca,o.rho+700);cib=[o.c[0]+w[0],o.c[1]+w[1]];arche(an.k);PLAN.push(an.k);}}
+    else{const u9=dA(ca,1),pj=(x-cP9[0])*u9[0]+(z-cP9[1])*u9[1],v=dA(ca,Math.max(D,(K?150*kR:0)-(K?pj:0))),T=[x+v[0],z+v[1]];traversee(i,T,140*kR); // (depuis la sortie de la dernière pelote ; si elle sort par l'arrière, l'arrivée passe devant elle)
+      zone(-.03,()=>{const w=dA(ca,700);cib=[T[0]+w[0],T[1]+w[1]];for(let k=0;k<3&&Math.abs(rel())>.25;k++)arc((rel()>0?1:-1)*Math.min(70,Math.abs(rel())*57.3),Math.max(rM*2,200));});}}
+  zone(-.02,()=>{droite(180);ici('fin');droite(100);});
+  if(LC9&&rf9)mNeed=MO9.filter(Boolean).length;
+  }
   // ---- LE RELIEF : la pente de chaque tronçon, intégrée tous les 10 m ----
   const L=s,nY=Math.ceil(L/10)+2,GY=new Float64Array(nY);
   for(const o of ZO){const a=Math.floor(o[0]/10),b=Math.min(nY-1,Math.ceil(o[1]/10));for(let k=a;k<=b;k++)GY[k]=o[2];}
@@ -221,14 +295,19 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   for(let c=0;c<CR.length;c++){for(const p of CR[c]){const dy=Math.abs(yA(p[0])-yA(p[1]));if(dy<dyMin)dyMin=dy;if(dy<DY-1)note+=(DY-1-dy)*.5;}}
   for(let k=4;k<nY;k++){const g=(Y[k]-Y[k-4])/40;if(g<-.15)note+=(-.15-g)*40;if(g>.12)note+=(g-.12)*40;}
   const nKm=CR.length/(L/1000),nKmV=rf9?.7:1.1;if(nKm<nKmV)note+=(nKmV-nKm)*8; // (2e tour) moins emmêlée : 0,7 croisement/km suffit avec les modules
-  if(rf9&&MM.length<3)note+=(3-MM.length)*4; // (2026-10-18) au moins TROIS modules (voir fSlalom) : un essai qui en a moins est repris
+  if(rf9&&MM.length<mNeed)note+=(mNeed-MM.length)*4; // (2026-10-18) au moins TROIS modules (voir fSlalom) : un essai qui en a moins est repris — (2026-10-19, au hasard) autant que la longueur en tient (mNeed)
+  if(LVISE){const r9=L/LVISE;if(r9>1.3)note+=(r9-1.3)*12;else if(r9<.75)note+=(.75-r9)*12;} // (2026-10-19, LA FORÊT AU HASARD) près de la longueur visée
+  if(LVISE)for(const k of ['arche','archeB']){const q=Q[k];if(!q)continue; // (2026-10-19) LA PLACE DE L'ARCHE : aucune autre route à moins de 200 m (foretArche renonce à une arche dont le tronc croise un autre étage — au hasard, ça arrivait une fois sur deux)
+    for(let i=0;i<nD;i+=2){if(Math.abs(D[3*i+2]-q.s)<330)continue;if(Math.hypot(D[3*i]-q.x,D[3*i+1]-q.z)<200){note+=3;break;}}}
   // ---- LES POINTS DE CONTRÔLE ----
   const yS=s9=>{const f=s9/10,k=Math.max(0,Math.min(nY-2,Math.floor(f))),w=f-k;return Y[k]*(1-w)+Y[k+1]*w;};
+  if(AXE){const c9=Math.cos(AXE),s9=Math.sin(AXE),ro=p=>{const x9=p[0]*c9+p[1]*s9;p[1]=p[1]*c9-p[0]*s9;p[0]=x9;}; // (2026-10-19, LA FORÊT AU HASARD) le plan dessiné face à +z TOURNE EN BLOC autour du départ
+    for(const c of C)ro(c);for(const k in Q){const o=Q[k],q=[o.x,o.z];ro(q);o.x=q[0];o.z=q[1];o.phi+=AXE;}for(const o of BO){const q=[o.e.x,o.e.z];ro(q);o.e.x=q[0];o.e.z=q[1];}for(const o of NO){o.c=o.c.slice();ro(o.c);}}
   const ctrl=C.map((c,k)=>new THREE.Vector3(c[0],yS(SC[k]),c[1]));
   for(const k in Q){const o=Q[k];Q[k]={p:new THREE.Vector3(o.x,yS(o.s),o.z),phi:o.phi,s:o.s};}
   const BO9=BO.map(o=>({e:new THREE.Vector3(o.e.x,yS(o.e.s),o.e.z),sg:o.sg,R:o.R}));
   let dsM=0;for(const m of CR)for(const p of m)dsM=Math.max(dsM,D[3*p[1]+2]-D[3*p[0]+2]);
-  return {dsM:Math.round(dsM),ctrl:ctrl,Q:Q,BO:BO9,note:note,croise:CR.length,dyMin:Math.round(dyMin),L:L,NO:NO,mods:MM};}
+  return {dsM:Math.round(dsM),ctrl:ctrl,Q:Q,BO:BO9,note:note,croise:CR.length,dyMin:Math.round(dyMin),L:L,NO:NO,mods:MM,plan:PLAN,axe:AXE};}
 /* ---------------- L'ATELIER DES ARBRES : un petit maillage indexé (position, normale, aA, aC, aB) ----------------
    aA = (partie, occlusion, hasard, hauteur relative) · aC = la couleur de base · aB = (écorce, mousse).
    Parties : 0 écorce · 1 feuilles · 2 aiguilles · 3 peint (chaumière, champignon) · 4 fenêtre (luit la nuit) · 5 VISAGE (luit la nuit)

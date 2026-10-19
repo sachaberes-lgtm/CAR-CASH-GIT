@@ -33,7 +33,7 @@ function garBqIndus(dt,ay,t9){
     if(veut){garBqBatit();garBqLueurBatit();GBQ.boum=1;GBQ.levV=2.6;}} /* (2026-10-16, Léo : « j'aime pas trop la transition glitch ») plus de garGlitch : LE SOUFFLE DE LUMIÈRE (bqVoile) fait seul la bascule */
   GBQ.t+=dt;
   if(GBQ.pose){if(!veut||GAR.go)bqPoseLache('sort');else if(garageI!==GBQ.poseI)bqPoseLache('caisse');else if((GBQ.ong||'cat')!==GBQ.poseO||(GBQ.cat||'voiture')!==GBQ.poseC)bqPoseLache();} // (2026-10-15) LA POSE TENUE : une autre caisse, un autre onglet, la sortie → le plateau
-  GBQ.platK=GBQ.pose?0:Math.min(1,GBQ.platK+dt/.9);
+  GBQ.platK=(GBQ.pose||BRB.p>0||BRB.bqK>0)?0:Math.min(1,GBQ.platK+dt/.9); // (2026-10-19) le bras des figures est là : la vitrine ne tourne plus d'elle-même
   if(veut&&GBQ.coupT>=0){GBQ.coupT+=dt;if(GBQ.coupT>=.12&&!GBQ.boum){GBQ.boum=1;GBQ.levV=3.4;garBqChoc();try{if(SONV2)sfx('ui.volet');}catch(e){}try{hap(10);}catch(e){}}}
   GBQ.lueur=0;
   if(!GBQ.bascule&&GBQ.t>.26&&performance.now()-(GBQ.v0||0)>285){ /* (2026-10-15) en temps RÉEL : le voile est monté, même si la 1re image de la boutique (garBqBatit) a toussé — (2026-10-16) 285 ms : LE SOUFFLE DE LUMIÈRE couvre tout l'écran */GBQ.bascule=true;GBQ.on=veut;bqClasses(veut);garBqAmbiance(veut);bqVoile(null);GBQ.rafale=veut;}
@@ -44,7 +44,7 @@ function garBqIndus(dt,ay,t9){
   {const c=on?1:0,w=3;GBQ.kv+=(w*w*(c-GBQ.k)-2*w*GBQ.kv)*dt;GBQ.k+=GBQ.kv*dt;}
   // LA LÉVITATION : le petit coup (elle s'enfonce), le BOUM (elle bondit, dépasse), puis elle flotte
   if(veut&&GBQ.coupT>=0&&GBQ.coupT<.12){GBQ.lev=-.06*Math.sin(Math.PI*.5*GBQ.coupT/.12);GBQ.levV=0;}
-  else{const c=veut?.95:0,w=veut?5.6:5.5,z=veut?.55:1;GBQ.levV+=(w*w*(c-GBQ.lev)-2*z*w*GBQ.levV)*dt;GBQ.lev+=GBQ.levV*dt;}
+  else{const c=veut?.95*(1-BRB.bqK):0,w=veut?5.6:5.5,z=veut?.55:1; /* (2026-10-19) BRB.bqK : les deux bras la POSENT sur le plateau (le bras des figures va la prendre) */GBQ.levV+=(w*w*(c-GBQ.lev)-2*z*w*GBQ.levV)*dt;GBQ.lev+=GBQ.levV*dt;}
   if(!veut&&Math.abs(GBQ.lev)<.002&&Math.abs(GBQ.levV)<.01){GBQ.lev=0;GBQ.levV=0;}
   // LE DOIGT : lacet libre avec élan, tangage qui revient doucement ; au retour, elle se repose à plat
   if(!GBQ.drag&&GBQ.pose){if(GBQ.lan)bqLanceTick(dt);else{GBQ.yaw+=GBQ.yawV*dt;GBQ.yawV*=Math.exp(-2.4*dt);}GBQ.pitV=GBQ.rolV=0;} /* (2026-10-15) POSÉE À LA MAIN : l'élan du lancer (bqLanceTick), puis elle garde sa pose — ni ressort, ni plateau */
@@ -153,8 +153,8 @@ function garBqBrasBatit(){if(GBQ.bras)return GBQ.bras;
 function bqSeg(m,A,B,r){const Y=bqSeg._y||(bqSeg._y=new THREE.Vector3(0,1,0)),d=bqSeg._d||(bqSeg._d=new THREE.Vector3());d.subVectors(B,A);const L=d.length();if(L<1e-5){m.visible=false;return;}m.visible=true;
   m.position.addVectors(A,B).multiplyScalar(.5);m.quaternion.setFromUnitVectors(Y,d.multiplyScalar(1/L));m.scale.set(r,L,r);}
 function garBqBras(dt,t9,ay){
-  const vis=!!(GBQ.grp&&GBQ.grp.visible&&GBQ.socleH);GBQ.ba=Math.max(0,Math.min(1,(GBQ.ba||0)+(GBQ.on&&vis?dt*1.6:-dt*4)));
-  if(!vis||GBQ.ba<=0){if(GBQ.bras)GBQ.bras.visible=false;return;}
+  const vis=!!(GBQ.grp&&GBQ.grp.visible&&GBQ.socleH),rentre9=BRB.bqK>.02&&Math.abs(GBQ.lev||0)<.12;GBQ.ba=Math.max(0,Math.min(1,(GBQ.ba||0)+(GBQ.on&&vis&&!rentre9?dt*1.6:-dt*2.4))); // (2026-10-19) la caisse posée, ils rentrent dans le socle : le bras des figures prend la suite
+  if(!vis||(GBQ.ba<=0&&!(BRB.bqK>0))){if(GBQ.bras)GBQ.bras.visible=false;return;} // (2026-10-19) rentrés pour le bras des figures : le PLATEAU reste (la caisse y est posée), eux sont sous le sol
   const g=garBqBrasBatit(),hm=bqDessous();g.visible=true;
   const V=GBQ._bv||(GBQ._bv=[0,1,2,3,4,5,6,7,8,9].map(function(){return new THREE.Vector3();})),[G,S,W,E,D,o,n,up,T,X]=V;
   const e=GBQ.ba*GBQ.ba*(3-2*GBQ.ba),y0=ay+GBQ.socleH,q=carGroup.quaternion,s9=carGroup.scale,p0=carGroup.position,mont=(1-e)*.75; // ils montent du socle

@@ -9,7 +9,7 @@
      n'a pas encore, son nom, son prix ; le compte ROND et la barre disent le temps qui reste ; rien ne se touche ; le temps ne court que
      l'écran allumé. `pubRecompense(nom, fin)` : fin(vue) part UNE fois. `?pub=0` : pas de pub, reprise immédiate. Banc : dbgPub(). */
 const PUBR={on:false,d:5,t:0,tm:0,el:null,mus:false,sans:/[?&]pub=0\b/.test(location.search)};
-Object.assign(I18N,{'PUB':'AD','EN BOUTIQUE':'IN THE SHOP','TA COURSE REPREND APRÈS LA PUB':'YOUR RUN RESUMES AFTER THE AD'});
+Object.assign(I18N,{'PUB':'AD','EN BOUTIQUE':'IN THE SHOP','TA COURSE REPREND APRÈS LA PUB':'YOUR RUN RESUMES AFTER THE AD','TON GAIN ×2 APRÈS LA PUB':'YOUR WINNINGS ×2 AFTER THE AD'});
 function pubSilence(on){try{ // une régie montre SA pub par-dessus le jeu : le jeu se tait (la musique en pause, le contexte audio suspendu), puis reprend
   if(on){PUBR.mus=!!(musicEl&&!musicEl.paused);if(PUBR.mus)musicEl.pause();if(AC&&AC.state==='running')AC.suspend();}
   else{if(AC&&AC.state==='suspended')AC.resume();if(PUBR.mus&&musicVoulue&&!paused)musicJoue();PUBR.mus=false;}}catch(e){}}
@@ -22,17 +22,20 @@ function pubRecompense(nom,fin){
   if(typeof regie==='function'){
     let p=null;try{p=regie(nom);}catch(e){p=null;}
     if(p&&typeof p.then==='function'){pubSilence(true); // (15/10 soir, régie AdSense) on ne se tait que si la régie montre VRAIMENT une pub (une promesse) : « rien de prêt » rend null tout de suite
-      p.then(function(v){pubSilence(false);if(v===true||v===false)fini(v);else pubMaison(fini);},function(){pubSilence(false);pubMaison(fini);});}
-    else if(p===true||p===false)fini(p);
-    else pubMaison(fini);
+      p.then(function(v){pubSilence(false);if(v===true)pubCompte();if(v===true||v===false)fini(v);else pubMaison(fini,nom);},function(){pubSilence(false);pubMaison(fini,nom);});}
+    else if(p===true||p===false){if(p)pubCompte();fini(p);}
+    else pubMaison(fini,nom);
     return true;}
-  pubMaison(fini);return true;
+  pubMaison(fini,nom);return true;
 }
+/* (2026-10-19, Sacha au quiz : « vraies pubs seulement ») L'ÉTERNELLE — « REGARDE 100 PUBS » (SAVE.d.ex.pubs) ne se remplissait plus depuis le
+   retrait du kit des portails : chaque pub d'une VRAIE régie (AdMob, AdSense) vue jusqu'au bout compte une. La pub maison ne compte pas. */
+function pubCompte(){try{if(SAVE.d.ex){SAVE.d.ex.pubs=Math.min(1e6,(SAVE.d.ex.pubs|0)+1);SAVE.mark();}}catch(e){}}
 function pubPrepare(nom){try{if(!PUBR.sans&&typeof window.CC_PUB_PREPARE==='function')window.CC_PUB_PREPARE(nom);}catch(e){}} // une offre de pub s'OUVRE (la plaque va paraître) : la régie peut aller chercher sa pub
 function pubCaisse(){ // la caisse de la réclame : une qu'on peut ACHETER à l'argent du jeu et qu'on n'a pas encore (jamais une caisse en euros)
   const L=[],T=[];for(let i=0;i<CARS.length;i++){if(carRetiree(i)||carEuros(i))continue;T.push(i);const u=CAR_UNLOCK[i];if(u&&u.p>0&&!carOwned(i))L.push(i);}
   const P=L.length?L:T;return P.length?P[(Math.random()*P.length)|0]:0;}
-function pubMaison(fini){
+function pubMaison(fini,nom){
   let el=PUBR.el;
   if(!el){el=PUBR.el=document.createElement('div');el.id='pubR';el.hidden=true;el.setAttribute('role','dialog');
     el.innerHTML='<i class="prTag" data-fr="PUB">'+TR('PUB')+'</i><span class="prRond" aria-hidden="true"><b></b></span><img class="prImg" alt=""><b class="prNom"></b>'+
@@ -45,6 +48,7 @@ function pubMaison(fini){
   try{el.style.setProperty('--rc',rarInfo(carRar(i)).c);}catch(e){}
   el.querySelector('.prSous').textContent=TR('EN BOUTIQUE')+(u&&u.p>0&&!carOwned(i)?' · '+fmtC(u.p):'');
   el.setAttribute('aria-label',TR('PUB'));
+  {const pd=el.querySelector('.prPied'),k9=nom==='double-gain'?'TON GAIN ×2 APRÈS LA PUB':'TA COURSE REPREND APRÈS LA PUB';if(pd){pd.setAttribute('data-fr',k9);pd.textContent=TR(k9);}} // (2026-10-19) le pied dit ce que la pub va donner : la reprise, ou le ×2 du gain
   try{carPhoto(i,function(s9){if(s9&&PUBR.on)img.src=s9;});}catch(e){}
   el.style.setProperty('--pr','0');el.hidden=false;void el.offsetWidth;el.classList.add('on');
   PUBR.t=0;let t0=performance.now(),vu=-1;const rond=el.querySelector('.prRond b');
@@ -59,7 +63,8 @@ addEventListener('keydown',function(e){if(PUBR.on&&PUBR.el&&!PUBR.el.hidden){e.s
 window.dbgPub=function(k){ // banc : dbgPub() l'état · ('fin') la pub maison finit tout de suite · (n) elle dure n s
   if(k==='fin'&&PUBR.on)PUBR.t=PUBR.d;else if(+k>0)PUBR.d=+k;
   return {on:PUBR.on,d:PUBR.d,t:+PUBR.t.toFixed(2),regie:typeof window.CC_PUB_RECOMPENSE==='function',maison:!!(PUBR.el&&!PUBR.el.hidden),chance:!!CHANCE.pub,
-    ads:{on:ADS.on,test:!!(window.CC_ADS&&window.CC_ADS.test),pret:ADS.pret,etat:ADS.etat,n:ADS.n,prete:!!(ADS.b&&ADS.b.show)}};};
+    ads:{on:ADS.on,test:!!(window.CC_ADS&&window.CC_ADS.test),pret:ADS.pret,etat:ADS.etat,n:ADS.n,prete:!!(ADS.b&&ADS.b.show)},
+    admob:{on:AMOB.on,init:AMOB.init,pret:AMOB.pret,etat:AMOB.etat,n:AMOB.n},pubs:(SAVE.d.ex&&SAVE.d.ex.pubs)|0};};
 /* LA SECONDE CHANCE (2026-10-14, Sacha au quiz de 14 h 35 — « façon Subway Surfers » ; le principe vient du CŒUR À LA MORT de l'édition
    ROBLOX). À la mort, l'écran de fin propose UNE fois par partie de CONTINUER — ⚠ depuis le 15/10 soir contre une PUB (voir LA PUB QUI
    RESSUSCITE, juste au-dessus) ; avant, contre de l'ARGENT DU JEU (jamais d'euros) :
@@ -286,6 +291,35 @@ window.dbgChance=function(k){ // banc : dbgChance() l'état · ('mort') explose 
   if(k==='$'&&arguments.length>1){money=START_CASH+(+arguments[1]);try{paintMoney();}catch(e){}}
   if(k==='choc'&&started&&!gameOver)explode('tour'); // pendant le bouclier : rien ne doit se passer
   const e=chanceEtat();return {ok:e.ok,prix:e.prix,reste:e.reste,offre:CHANCE.offre,used:CHANCE.used,inv:+CHANCE.inv.toFixed(2),bank:Math.round(bank()),money:Math.round(money),t:+(RUNX.t||0).toFixed(1),gameOver:gameOver,mode:mode,base:chanceBase()};};
+/* LE ×2 DU GAIN (2026-10-19, Sacha au quiz : « ×2 sur le gain » ; « pub maison de 5 s » tant qu'AdMob n'est pas branché) — à l'écran de fin,
+   la plaque ×2 · +$ N · ▶ PUB (#mDouble, voir « LE ×2 DU GAIN À L'ÉCRAN DE FIN ») : une pub vue jusqu'au bout, et ce que la partie a VERSÉ
+   AU COMPTE (le grand chiffre vert, RUNX.verse) est versé une 2e fois. UNE fois par PARTIE (une seconde chance prise ne la rouvre pas : elle
+   n'est proposée qu'à la mort qui finit vraiment la partie), jamais pendant l'offre de seconde chance ni pendant la machine à sous (chacune
+   sa décision : elle attend qu'elles tombent), pas sous DBL.min $ ni au bac à sable, à l'auto-école, au parc, au Survivant, en balade.
+   Sans régie (aujourd'hui : l'app v1 et le site), c'est la pub maison de 5 s qui la paie. Fermée avant la fin (vraie régie) : rien n'est
+   versé, la plaque revient — on peut réessayer. Ce que la machine à sous verse après la mort n'est PAS doublé (RUNX.verse est figé à la mort).
+   `?double=0` éteint tout. Banc : dbgDouble() l'état · ('joue') la touche. */
+const DBL={on:!/[?&]double=0\b/.test(location.search),min:50,used:false,pub:false,v:0};
+function dblRaz(){DBL.used=false;DBL.pub=false;DBL.v=0;}
+function dblGain(){return Math.max(0,Math.floor(RUNX.verse!=null?RUNX.verse:bank()-(RUNX.bank0||0)));}
+function dblEtat(){
+  const v=dblGain();
+  const ok=!!(DBL.on&&!DBL.used&&!DBL.pub&&started&&gameOver&&!SANDBOX&&!TUTO.on&&!TUTO.quitte&&!PARK.on&&!SURV.on&&!BALADE&&v>=DBL.min&&
+    overlay.style.display!=='none'&&!garageOn&&!MENUV.retour&&!chanceAttend()&&!SPIN.ouvert&&!PUBR.on&&!ecranWipe._on&&document.querySelector('#mDead.on'));
+  return {ok:ok,v:v,used:DBL.used,pub:DBL.pub};
+}
+function dblJoue(apres){ // le toucher de la plaque : la pub, puis le 2e versement — apres(vue, v) dit à l'écran de fin ce qui s'est passé
+  const e=dblEtat();if(!e.ok)return false;
+  DBL.pub=true;DBL.v=e.v;
+  const lance=pubRecompense('double-gain',function(vue){DBL.pub=false;const v=DBL.v;
+    const ok=!!(vue&&started&&gameOver&&!DBL.used&&v>0);
+    if(ok){DBL.used=true;SAVE.d.bank=Math.min(1e30,bank()+v);gagneAjoute(v);bankMaxMaj();RUNX.verse=dblGain()+v;SAVE.flush();}
+    try{if(apres)apres(ok,ok?v:0);}catch(e){console.warn('double',e);}});
+  if(!lance){DBL.pub=false;return false;}
+  return true;
+}
+window.dblEtat=dblEtat;
+window.dbgDouble=function(k){if(k==='joue')return dblJoue(window.__dblApres||null);const e=dblEtat();return {ok:e.ok,v:e.v,used:DBL.used,pub:DBL.pub,min:DBL.min,bank:Math.round(bank()),verse:RUNX.verse};};
 function finSonsCoupe(){
   if(!SONV2||!window.CCSON)return;
   try{window.CCSON.annuleFutur(0);for(let i9=0;i9<FIN_SONS.length;i9++)window.CCSON.stop(FIN_SONS[i9]);}catch(e){}
@@ -318,7 +352,7 @@ function resetGame(){
   level=equippedCar();levelCash=0;
   buildCar(CARS[level]);
   nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;FREIN_L=0;PARIS.psiK=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;insUsed=false;feverArmed=false;rollover=0;RALENTI.t=0;idleT=0;driftT=0;driftYaw=0;
-  coinsGot=0;engTier=0;engSwapT=0; // le moteur se remonte à chaque run (c'est la progression DE LA PARTIE)
+  vdepPose();engSwapT=0; // le moteur se remonte à chaque run (c'est la progression DE LA PARTIE) — depuis LA VITESSE DE DÉPART (2026-10-19) il repart du cran choisi au garage (le cran 1 = zéro, comme avant)
   pwrNitroT=0;pwrAirT=0;pwrSpdT=0;pwrSpdK=0;pwrMagT=0;pwrAurT=0;pwrV2Raz();
   driftC=0;driftLv=0;driftEnCours=false;raseT=0;raseAnn=false;virT=0;virC=0;virD=false;virPaye=false;FRONDE.cd=0;FRONDE.n=0;FRONDE.pMax=0;PADCH.n=0;PADCH.sL=null;PADCH.max=0;yawR=0;slipB=0;glisse9=0;driftYaw=0;FROLE.n=0;FROLE.t=0; // (2026-09-25) une glisse ne survit pas à la partie (sinon MINI-TURBO fantôme au départ)
   nextRainAt=4e3*ECO3.gain;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;

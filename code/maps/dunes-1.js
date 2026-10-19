@@ -37,17 +37,27 @@ PAL.B.dnFin=[16,14,12];PAL.B.dnPlat=[96,80,64];PAL.B.dnOmbre=[60,52,44];PAL.B.dn
 const DN={Q:null,on:false,ms:{},yMin:-1e4,yMax:1e4,mesh:null,mat:null,geo:null,aN:null,maxN:900,G:32,S0:64,R0:118,lods:7,
   F:null,Z:null,O:null,fr:new THREE.Frustum(),pm:new THREE.Matrix4(),box:new THREE.Box3(),n:0,S:null,job:0,attente:null,grp:null,
   ombre:1,ecrit:false,ob:[],pyr:null,oa:null,rac:[],vent:[1,0,1,0],lam:560,car:[],sep:0,rmin:0}; // (les textes : avec les ambiances des dunes, I18N n'existe pas encore ici)
+/* LES DUNES AU HASARD (2026-10-19, Sacha : « vérifie bien que toutes les maps sont générées aléatoirement ») — MESURÉ (40 graines, palier 0) : genDunes suivait
+   toujours la même RECETTE : plein nord (−13° à +8°), erg → toboggan → raccourci → vagues → vallée morte → obélisques → oasis aux mêmes % du parcours
+   (écart de forme 0,06). Désormais chaque erg tire, comme le canyon (CY_HZ) : son AXE (±`axe`°) ; ses PIÈCES et leur ORDRE entre l'ouverture (la crête
+   du Grand Erg + le toboggan, gardés) et l'oasis (l'arrivée) — un raccourci, les vagues et deux décors toujours (parmi la vallée morte, l'allée des
+   obélisques et la deuxième crête), puis, mélangés, ce que la longueur tient parmi le 3e, des deuxièmes vagues et un 2e raccourci (hors JOUER : tout) ; un
+   CARACTÈRE par liaison (virages, houle, serpent, dérive) ou un module ; sa PENTE (×0,85-1,2) et sa LONGUEUR (longueurCible() × `kL` ±8 % : la
+   longueur réelle d'avant au palier 0). Le sable, le vent (il souffle dans l'axe de la descente), l'oasis, la pyramide, les obélisques, les acacias et
+   les caravanes sont posés AUTOUR de la route : ils suivent ; le soleil de l'heure reste celui du monde, et les trois pyramides de l'horizon (le ciel
+   du canyon) aussi. `?sans=duneshasard` = la recette d'avant, au tirage près ; `dbgDunes().hz` = l'axe, la pente, la longueur visée, les pièces. */
+const DN_HZ={on:!/[?&]sans=([^&]*,)?duneshasard(,|&|$)/.test(location.search),axe:55,kL:1.1,mod:.6,lien:150,pl:.35,coude:.65,cmax:28};
 function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : il rend la main entre deux essais et pendant la mesure des écarts
   CAMPM.length=0;MODMARK.length=0;FILETMARK.length=0;
   const LV=lvPiste(),RS=1.25+.3*(LV-1),LL=1+Math.min(1.3,(LV-1)*.5),SQ=Math.sqrt(LV),g0=(rnd()*4294967296)>>>0;
   const VW=typeof vPalier==='function'?vPalier():70+(LV-1)*100,RMIN=1.08*(typeof rayonPalier==='function'?rayonPalier():40+.3*VW);DN.rmin=Math.round(RMIN);
   let best=null,bestSep=-1;
   for(let essai=0;essai<14;essai++){if(essai)yield;
-    const r=mulberry32((g0+essai*0x9E3779B1)>>>0),C=[],Q={},P=new THREE.Vector3(0,0,0),BO=[];let phi=0;const LIM=58*Math.PI/180;
-    const push=()=>C.push(P.clone()),ici=k=>{Q[k]={p:P.clone(),phi:phi};},lib=sg=>(LIM-sg*phi)*57.2958;
-    const droite=(l,pe,n)=>{n=n||Math.max(2,Math.round(l/90));for(let k=0;k<n;k++){P.x+=Math.sin(phi)*l/n;P.z+=Math.cos(phi)*l/n;P.y+=pe*l/n;push();}};
+    const r=mulberry32((g0+essai*0x9E3779B1)>>>0),C=[],Q={},P=new THREE.Vector3(0,0,0),BO=[];let phi=0,AX9=0;const LIM=58*Math.PI/180; /* AX9 : (AU HASARD) le COUDE de l'axe — 0 dans la recette d'avant */
+    const push=()=>C.push(P.clone()),ici=k=>{Q[k]={p:P.clone(),phi:phi+AX9};},lib=sg=>(LIM-sg*phi)*57.2958;
+    const droite=(l,pe,n)=>{n=n||Math.max(2,Math.round(l/90));for(let k=0;k<n;k++){P.x+=Math.sin(phi+AX9)*l/n;P.z+=Math.cos(phi+AX9)*l/n;P.y+=pe*l/n;push();}};
     const arc=(aDeg,R,pe)=>{R=Math.max(R,RMIN);const n=Math.max(3,Math.ceil(Math.abs(aDeg)/8)),st=aDeg*Math.PI/180/n,ch=2*R*Math.sin(Math.abs(st)/2);
-      for(let k=0;k<n;k++){phi+=st/2;P.x+=Math.sin(phi)*ch;P.z+=Math.cos(phi)*ch;P.y+=pe*ch;phi+=st/2;push();}};
+      for(let k=0;k<n;k++){phi+=st/2;P.x+=Math.sin(phi+AX9)*ch;P.z+=Math.cos(phi+AX9)*ch;P.y+=pe*ch;phi+=st/2;push();}};
     const recentre=pe=>{if(Math.abs(phi)>.06)arc(-phi*57.2958,RMIN*(2.2+r()*.7),pe);};
     // LES VIRAGES DE COURSE : alternés, de 1,35 à 3 × RMIN (4 sur 10 sont des grands virages qu'on tient longtemps)
     const virages=(len,p0,p1)=>{let fait=0,sg=r()<.5?-1:1;
@@ -89,9 +99,9 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
     const dChicane=(p0,p1)=>{const a=30+rm()*10,R=RMIN*(1.1+rm()*.2);dmRe(LIM-a/57.3-.05,dmPe(p0,p1));const sg=phi>0?-1:1;droite(50*LL,dmPe(p0,p1)*.6);
       arc(sg*a,R,dmPe(p0,p1));arc(-sg*2*a,R,dmPe(p0,p1));arc(sg*a,R,dmPe(p0,p1));droite(50*LL,dmPe(p0,p1)*.6);};
     const dmJ=[dSlalom,dVagues,dCorde,dChicane];
-    const lien=(len,p0,p1)=>{const k=dmK++;if(!rm||!dmCase.has(k)){virages(len,p0,p1);return;}
-      let m=0;for(let e=0;e<6;e++){if(!dmPaq.length){const t=[0,1,2,3];for(let i=3;i>0;i--){const j=(rm()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}for(const x9 of t)dmPaq.push(x9);}m=dmPaq.shift();if(m!==dmLast)break;}
-      dmLast=m;const i0=C.length-1;dmJ[m](p0,p1);MM.push({i0:i0,i1:C.length-1});};
+    const dmPose=(p0,p1)=>{let m=0;for(let e=0;e<6;e++){if(!dmPaq.length){const t=[0,1,2,3];for(let i=3;i>0;i--){const j=(rm()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}for(const x9 of t)dmPaq.push(x9);}m=dmPaq.shift();if(m!==dmLast)break;}
+      dmLast=m;const i0=C.length-1;dmJ[m](p0,p1);MM.push({i0:i0,i1:C.length-1});}; // le module suivant du paquet (jamais deux fois le même de suite)
+    const lien=(len,p0,p1)=>{const k=dmK++;if(!rm||!dmCase.has(k)){virages(len,p0,p1);return;}dmPose(p0,p1);};
     // LA BOUCLE (le raccourci) — le trombone de genCanyon, tel quel (mesuré là-bas) : approche droite (la zone de saut), demi-tour R1, retour,
     // demi-tour SERRÉ R2 = R1 − e/2, la SORTIE 94 m à côté de l'approche et 55 à 90 m plus bas, qui passe sous le premier demi-tour
     const boucle=(nm,sg)=>{const k0=C.length;if(Math.abs(phi)>.06)arc(-phi*57.2958,(200+r()*80)*RS,-.20);
@@ -108,6 +118,53 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
        la vallée morte, l'allée des obélisques et l'oasis restent ; les raccourcis B à G, la deuxième crête et les deuxièmes vagues n'entrent que
        si la longueur visée les tient (`tient`) — comme genCanyon. Hors JOUER : tout, tirages compris. */
     const LC9=typeof longueurCible==='function'?longueurCible():0,kC=LC9?.5:1,fait=()=>{let a=0;for(let k=1;k<C.length;k++)a+=Math.hypot(C[k].x-C[k-1].x,C[k].z-C[k-1].z);return a;},tient=f=>!LC9||fait()<LC9*f;
+    let ax=0,hz=null;
+    if(DN_HZ.on){ /* LES DUNES AU HASARD (2026-10-19) — voir DN_HZ. Comme le canyon : `rh` né de la graine de l'essai, la route bâtie dans l'axe puis tournée de `ax` */
+      const rh=mulberry32(((g0^0x0D0E5A5A)+Math.imul(essai+1,0x27D4EB2F))>>>0),kP=.85+rh()*.35,mel=a=>{for(let i=a.length-1;i>0;i--){const j=(rh()*(i+1))|0,x9=a[i];a[i]=a[j];a[j]=x9;}return a;};
+      ax=(rh()-.5)*2*DN_HZ.axe/57.2958;
+      // LES CARACTÈRES DES LIAISONS : les virages d'avant, la houle (grandes courbes entre les dunes), le serpent (S serrés entre les barkhanes), la dérive
+      // (la route part en biais jusqu'à la butée et y ondule) — jamais deux fois le même de suite ; ou un MODULE (dmPose)
+      const cote=(sg,a)=>{const l9=lib(sg);if(l9<15){sg=-sg;a=Math.min(a,lib(sg));}else a=Math.min(a,l9);return [sg,a];};
+      const houle=(len,p0,p1)=>{let f9=0,sg=r()<.5?-1:1;while(f9<len){const t=cote(-sg,35+r()*25),R=RMIN*(2.2+r()*.8);sg=t[0];arc(sg*t[1],R,-(p0+r()*(p1-p0)));f9+=R*t[1]/57.2958;}};
+      const serpent=(len,p0,p1)=>{let f9=0,sg=r()<.5?-1:1;while(f9<len){const t=cote(-sg,30+r()*16),R=RMIN*(1.25+r()*.35);sg=t[0];arc(sg*t[1],R,-(p0+r()*(p1-p0)));f9+=R*t[1]/57.2958;}};
+      const derive=(len,p0,p1)=>{const sg=r()<.5?-1:1,c9=sg*(LIM*57.2958-6-r()*12)-phi*57.2958,R0=RMIN*(2.2+r()*.6);arc(c9,R0,-(p0+r()*(p1-p0)));let f9=R0*Math.abs(c9)/57.2958;
+        while(f9<len){const s9=sg*phi*57.2958>LIM*57.2958-24?-sg:sg,a=Math.min(10+r()*14,lib(s9)),R=RMIN*(1.8+r()*.8);arc(s9*a,R,-(p0+r()*(p1-p0)));f9+=R*a/57.2958;}};
+      const CAR9=[virages,houle,serpent,derive],CARN=['virages','houle','serpent','derive'];let hPrec=-1;
+      const lienH=(len,p0,p1)=>{p0*=kP;p1*=kP;if(rm&&rm()<DN_HZ.mod){dmPose(p0,p1);return 'module';}
+        let i=(rh()*CAR9.length)|0;if(i===hPrec)i=(i+1+((rh()*(CAR9.length-1))|0))%CAR9.length;hPrec=i;CAR9[i](len,p0,p1);return CARN[i];};
+      // LES PIÈCES (celles d'avant, telles quelles) — chacune derrière sa liaison
+      let nRac=0;
+      const PC={rac:()=>{boucle('rac'+'ABCDEFG'[nRac],sens());nRac++;},
+        vagues:()=>{recentre(-.06);ici('vag0');vagues(LC9?2:4);ici('vag1');},
+        vagues2:()=>{recentre(-.06);ici('vag2');vagues(LC9?2:3);ici('vag3');},
+        vlei:()=>{recentre(-.08);ici('vlei0');{let sg=sens();for(let k=0;k<(LC9?4:5);k++){let a=30+r()*16;if(lib(sg)<a)sg=-sg;arc(sg*Math.max(8,Math.min(a,lib(sg))),RMIN*(1.45+r()*.6),-.05);sg=-sg;}}ici('vlei1');},
+        cr2:()=>{ici('cr2a');crete(560*LL*(LC9?.6:1),-.06);ici('cr2b');},
+        obel:()=>{recentre(-.08);ici('obel0');{const sg=sens();arc(sg*(46+r()*14),RMIN*(2.5+r()*.5),-.07);arc(-sg*(46+r()*14),RMIN*(2.5+r()*.5),-.07);}ici('obel1');}};
+      // LA LONGUEUR de chaque pièce, en moyenne (MESURÉ au banc des tracés, 40 graines × paliers 0 à 25) ; une liaison : un module (~6,4 × RMIN) ou un
+      // caractère (~1,45 × la longueur demandée) — entre deux pièces, une fois sur `pl` seulement (comme avant : la vallée suivait les vagues, l'allée la vallée)
+      const LIEN=(LC9?DN_HZ.lien:300)*LL,VG=1.08*(1.12*RMIN+41*LL+1.06*LD),EST={rac:684*LL+857*RS-249,vagues:(LC9?2:4)*VG,vagues2:(LC9?2:3)*VG,vlei:(LC9?6.1:7.6)*RMIN,cr2:1.13*560*LL*(LC9?.6:1),obel:6.3*RMIN},
+        LI9=(rm?DN_HZ.mod*6.4*RMIN:0)+(1-(rm?DN_HZ.mod:0))*1.45*LIEN,FIN=LI9+30+5*RMIN+150,B=LC9?LC9*DN_HZ.kL*(.92+rh()*.16):0;
+      // LE JEU DE PIÈCES : un raccourci, les vagues (« de crête en crête ») et DEUX décors DUS parmi la vallée morte, l'allée des obélisques et la deuxième
+      // crête (avant : toujours la vallée et l'allée) ; les autres, prises dans un ordre mélangé, entrent si la longueur visée les tient ; puis l'ORDRE de
+      // toutes est mélangé à son tour
+      const PDS={vlei:3,obel:3,cr2:1.5},tire=L9=>{let t=rh()*L9.reduce((a,k)=>a+PDS[k],0);for(const k of L9){t-=PDS[k];if(t<0)return k;}return L9[0];};
+      const d1=tire(['vlei','obel','cr2']),d2=tire(['vlei','obel','cr2'].filter(k=>k!==d1));
+      const autres=['vlei','obel','cr2'].filter(k=>k!==d1&&k!==d2).concat(['vagues2']);let jeu=['rac','vagues',d1,d2];
+      const OUV=200*LL*(LC9?.6:1)+640*LL*(LC9?.4:1)+62*RMIN*2.55/57.2958+70*LL;
+      if(!LC9)jeu=jeu.concat(autres,['rac','rac','rac','rac','rac','rac']);
+      else{let u=FIN+OUV+(1+3*DN_HZ.pl)*LI9+EST.rac+EST.vagues+EST[d1]+EST[d2];for(const p of mel(autres.concat(['rac'])))if(u+DN_HZ.pl*LI9+EST[p]<=B){jeu.push(p);u+=DN_HZ.pl*LI9+EST[p];}}
+      mel(jeu);
+      hz={axe:Math.round(ax*57.2958),pente:+kP.toFixed(2),B:Math.round(B),LL:+LL.toFixed(2),RS:+RS.toFixed(2),RMIN:Math.round(RMIN),LD:Math.round(LD),p:[]};
+      push();ici('depart');
+      droite(200*LL*(LC9?.6:1),-.02,3);ici('erg0');crete(640*LL*(LC9?.4:1),-.05);ici('erg1');           // LA CRÊTE DU GRAND ERG
+      {let sg=sens();if(lib(sg)<60)sg=-sg;ici('tob0');arc(sg*Math.max(20,Math.min(lib(sg)-4,52+r()*20)),RMIN*(2.3+r()*.5),-.40);droite(70*LL,-.24,2);ici('tob1');} // LE TOBOGGAN
+      // LE COUDE (comme le canyon) : entre deux pièces, l'axe de l'erg tourne de ±10-25° (±`cmax`° au plus autour de l'axe tiré)
+      const coude=()=>{if(rh()>=DN_HZ.coude)return;let d=(rh()<.5?-1:1)*(10+rh()*15)/57.2958;const M9=DN_HZ.cmax/57.2958;if(Math.abs(AX9+d)>M9)d=-d;
+        if(Math.abs(AX9+d)<=M9&&Math.abs(phi-d)<LIM-.09){AX9+=d;phi-=d;hz.c.push(Math.round(d*57.2958));}};hz.c=[];
+      jeu.forEach(function(p,k){if(k)coude();const f0=fait(),c9=!k||!LC9||rh()<DN_HZ.pl?lienH(LIEN*(.7+rh()*.6),.10,.20):'',f1=fait();PC[p]();if(c9)hz.p.push([c9,Math.round(f1-f0)]);hz.p.push([p,Math.round(fait()-f1)]);});
+      coude();{const f0=fait(),c9=lienH(LC9?Math.max(.6*LIEN,Math.min(900*LL,(B-fait()-(FIN-LI9))/1.45)):220*LL,.10,.18);hz.p.push([c9,Math.round(fait()-f0)]);}recentre(-.12); // la dernière liaison prend ce qui manque
+      ici('oasis0');{const sg=sens();arc(sg*(30+r()*14),RMIN*(2.4+r()*.5),-.30);arc(-sg*(22+r()*10),RMIN*(2.7+r()*.4),-.04);}ici('fin');droite(150,-.02,2); // L'OASIS
+    }else{
     push();ici('depart');
     droite(200*LL*(LC9?.6:1),-.02,3);ici('erg0');crete(640*LL*(LC9?.4:1),-.05);ici('erg1');           // LA CRÊTE DU GRAND ERG
     {let sg=sens();if(lib(sg)<60)sg=-sg;ici('tob0');arc(sg*Math.max(20,Math.min(lib(sg)-4,52+r()*20)),RMIN*(2.3+r()*.5),-.40);droite(70*LL,-.24,2);ici('tob1');} // LE TOBOGGAN
@@ -126,12 +183,16 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
     if(tient(.88)){lien(260*LL,.12,.22);boucle('racG',sens());}
     lien(220*LL*kC,.10,.18);recentre(-.12);
     ici('oasis0');{const sg=sens();arc(sg*(30+r()*14),RMIN*(2.4+r()*.5),-.30);arc(-sg*(22+r()*10),RMIN*(2.7+r()*.4),-.04);}ici('fin');droite(150,-.02,2); // L'OASIS
+    }
     // LE CONTRÔLE (celui du canyon) : deux tronçons à plus de 1,2 km l'un de l'autre sur la route ne passent jamais à moins de ~560 m — sauf dans une même boucle
     const n=C.length,acc=new Float32Array(n),bo=new Int16Array(n).fill(-1);for(let k=1;k<n;k++)acc[k]=acc[k-1]+Math.hypot(C[k].x-C[k-1].x,C[k].z-C[k-1].z);
     BO.forEach(function(q,m){for(let k=q[0];k<=q[1];k++)bo[k]=m;});
     let sep=1e9;for(let i=0;i<n;i++){if((i&63)===63)yield;for(let j=i+1;j<n;j++){if(acc[j]-acc[i]<1200*LL||(bo[i]>=0&&bo[i]===bo[j]))continue;const d=Math.hypot(C[i].x-C[j].x,C[i].z-C[j].z);if(d<sep)sep=d;}}
-    if(sep>bestSep){bestSep=sep;best={C:C,Q:Q,MM:MM};}
+    if(sep>bestSep){bestSep=sep;best={C:C,Q:Q,MM:MM,ax:ax,hz:hz};}
     if(sep>560*SQ)break;}
+  if(best.ax){const ca=Math.cos(best.ax),sa=Math.sin(best.ax),tr=v=>{const x=v.x;v.x=x*ca+v.z*sa;v.z=v.z*ca-x*sa;}; // (LES DUNES AU HASARD) l'AXE : la route tournée autour du départ
+    for(const v of best.C)tr(v);for(const k in best.Q){tr(best.Q[k].p);best.Q[k].phi+=best.ax;}}
+  DN.hz=best.hz||null;if(DN.hz)DN.hz.sep=Math.round(bestSep);
   lisserRaccords(best.C);adoucirCretes(best.C,1);
   for(const k in best.Q){const o=best.Q[k];let bi=0,bd=1e18;for(let j=0;j<best.C.length;j++){const d=best.C[j].distanceToSquared(o.p);if(d<bd){bd=d;bi=j;}}o.p.copy(best.C[bi]);}
   DN.Q=best.Q;DN.sep=Math.round(bestSep);

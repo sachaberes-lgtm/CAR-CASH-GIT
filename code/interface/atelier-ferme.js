@@ -66,7 +66,7 @@ function garAtelierTick(dt,ay){
   const ap=(v,t,r)=>v+Math.max(-r*dt,Math.min(r*dt,t-v)),sm=u=>{u=u<0?0:u>1?1:u;return u*u*(3-2*u);};
   GATL.c=ap(GATL.c,on?1:0,on?1/.9:1/.7);GATL.cs=sm(GATL.c);
   GATL.l=ap(GATL.l,on&&GATL.c>.5?1:0,on?1/.45:1/.3);
-  const cle=garageI+':'+(carBody?carBody.children.length:0)+':'+carGroup.children.length,veut=on&&GATL.c>.62&&!GAR.sw&&GATL.cle===cle;
+  const cle=garageI+':'+(carBody?carBody.children.length:0)+':'+carGroup.children.length,veut=on&&GATL.c>.62&&!GAR.sw&&GATL.cle===cle&&!(brasVoulu()||BRB.p>.02); /* (2026-10-19) onglet FIGURES : les pinces rentrent, LE BRAS DES FIGURES sort */
   GATL.p=ap(GATL.p,veut?1:0,veut?1/.9:1/.4);
   if(GATL.l>.06&&!GATL.sonL){GATL.sonL=1;try{if(SONV2)sfx('ui.on');}catch(e){}}if(GATL.l<.01)GATL.sonL=0;
   if(GATL.p>.985&&!GATL.sonP){GATL.sonP=1;try{if(SONV2)sfx('garage.tole');}catch(e){}try{hap(8);}catch(e){}}if(GATL.p<.5)GATL.sonP=0;
@@ -79,11 +79,11 @@ function garAtelierTick(dt,ay){
   GATL.g.visible=vis;if(!vis)return;
   if(GATL.cle!==cle&&GATL.p<.02)garPincesPose(cle);
   // LA LAMPE : elle descend pendant que la porte ferme, puis s'allume en grésillant
-  const l=GATL.l,b=GATL.lb=l<=0?0:l>=1?1:l*(Math.sin(t*57)+Math.sin(t*23)>-.3?1:.2),H=GAR.H,dr=.25+2.15*GATL.cs,yA=H-dr;
-  GATL.cord.scale.y=dr;GATL.cord.position.set(0,H-dr/2,0);GATL.cul.position.set(0,yA-.02,0);GATL.abat.position.set(0,yA-.24,0);GATL.amp.position.set(0,yA-.42,0);
+  const l=GATL.l,b=GATL.lb=l<=0?0:l>=1?1:l*(Math.sin(t*57)+Math.sin(t*23)>-.3?1:.2),H=GAR.H,dr=(.25+2.15*GATL.cs)*(1-BRB.p)-.75*BRB.p, /* (2026-10-19) le bras des figures est là : la lampe RENTRE dans le plafond (place aux grands saltos) */yA=H-dr;
+  GATL.cord.scale.y=Math.max(.001,dr);GATL.cord.position.set(0,H-dr/2,0);GATL.cul.position.set(0,yA-.02,0);GATL.abat.position.set(0,yA-.24,0);GATL.amp.position.set(0,yA-.42,0);
   GATL.ampM.color.setRGB(.16+.84*b,.15+.8*b,.12+.68*b);
-  const hR=yA-.44-GAR.POD,rB=2.5;GATL.ray.position.set(0,GAR.POD+hR/2,0);GATL.ray.scale.set(2*rB,hR,2*rB);GATL.rayM.opacity=.075*b;GATL.ray.visible=b>.01;
-  GATL.flaq.position.set(0,GAR.POD+.016,0);GATL.flaq.scale.set(6.4,6.4,1);GATL.flaqM.opacity=.42*b;GATL.flaq.visible=b>.01;
+  const hR=yA-.44-GAR.POD,rB=2.5;GATL.ray.position.set(0,GAR.POD+hR/2,0);GATL.ray.scale.set(2*rB,hR,2*rB);GATL.rayM.opacity=.075*b*(1-BRB.p);GATL.ray.visible=b*(1-BRB.p)>.01;
+  GATL.flaq.position.set(0,GAR.POD+.016,0);GATL.flaq.scale.set(6.4,6.4,1);GATL.flaqM.opacity=.42*b*(1-BRB.p);GATL.flaq.visible=b*(1-BRB.p)>.01; // (le bras des figures : la lampe rentrée, sa clé éclaire encore la caisse)
   // la clé passe AU-DESSUS de la caisse (la lampe), plus chaude et plus forte ; le contre-jour baisse
   if(b>0){GATL.v.set(0,ay+yA-.6,.35);stallKey.position.lerp(GATL.v,b);stallKey.intensity+=.85*b;stallKey.color.lerp(GATL.cK,b);stallKey.distance=Math.max(stallKey.distance,22);}
   stallRim.intensity*=1-.5*GATL.cs;
@@ -98,6 +98,362 @@ function garAtelierTick(dt,ay){
     const zB=(P.R+.05)*(.08+.92*br),lg=.02+(P.lw*.75+.04)*se;P.barre.scale.z=2*zB;P.barre.position.set(xb-.01,dz+P.hy,0);P.barre.visible=br>.01;
     P.gAv.scale.x=P.gAr.scale.x=lg;P.gAv.position.set(xb+.02-lg/2,dz+P.hy,zB);P.gAr.position.set(xb+.02-lg/2,dz+P.hy,-zB);P.gAv.visible=P.gAr.visible=br>.01;}
 }
+/* LE BRAS DES FIGURES (2026-10-19, Léo : « dans l'inventaire, quand on regarde les tricks, au lieu d'avoir une machine qui tient les roues,
+   une machine prête à soulever la voiture et à la faire tourner — faire attention à la physique, que le truc ne passe pas à travers la
+   voiture, cohérent avec ce qu'on a déjà dans le jeu » ; aux choix : « elle fait la figure » · « onglet FIGURES seulement »).
+   À l'ATELIER FERMÉ (GATL.on), onglet FIGURES (SHOP.tab 'figure') : les pinces des roues rentrent (garAtelierTick), un grand BRAS ROBOT jaune
+   (les matières des pinces, GATL.M : aucun programme de plus) sort replié d'une trappe du plateau, sur un RAIL posé sur le plateau (il tourne
+   avec lui), et se met EN ATTENTE : son outil au-dessus du toit, de trois-quarts arrière vu de la caméra (on le voit sans qu'il cache la
+   caisse) — il glisse sur son rail quand on tourne la caisse.
+   Une figure touchée (garFigEssai → brasFigure) : c'est LUI qui la fait, sans jamais lâcher la caisse.
+   LA RÈGLE QUI GARANTIT QUE RIEN NE TRAVERSE : une rotation laisse son AXE immobile. Le bras prend la caisse LÀ OÙ SORT L'AXE de la figure —
+   le flanc pour un salto, la poupe pour un tonneau, le toit pour une toupie, le haut du flanc pour la vrille penchée : un PATIN au bout d'une
+   TIGE couchée sur l'axe ; patin et tige tournent avec la caisse (le poignet les entraîne), le BOÎTIER du poignet est au-delà de la caisse sur
+   l'axe, le reste du bras derrière lui. Deux mouvements à la fois :
+   · le 1er autour de la verticale (rodéo, shimmy) : c'est le PLATEAU qui le fait (bras et caisse tournent ensemble, BRB.yaw), le bras ne fait
+     que le 2e ;
+   · sinon (tire-bouchon, salto cosmique) : une ÉQUERRE — l'outil se DÉPLIE en trois temps — tenue par le poignet sur le 1er axe, qui tient la
+     tige sur le 2e ; elle passe plus loin que le rayon de la caisse autour du 2e axe, comme les anneaux d'un gyroscope.
+   Il la SOULÈVE juste assez pour que rien ne touche le plateau en tournant (mesuré sur la figure échantillonnée), la fait tourner (FIG.quat :
+   les courbes du Lecteur, au rythme d'une machine), la repose, replie l'outil, revient en attente. Chaque plan est VÉRIFIÉ avant de partir
+   (brasPlan : le bras en capsules contre la boîte de la caisse et contre l'équerre, à chaque instant de la figure, de la montée, de l'approche) ;
+   pas de plan sûr (figure à trois axes, axes parallèles) : le bras se range au bord de son rail et la caisse fait la figure comme avant.
+   La caméra recule pendant la démonstration (BRB.cK, lu par le recul de garageRender) et la place de la caisse à l'écran monte avec la levée (BRB.cY, lu par garCadre). dbgBras() pour le banc. */
+const BRB={L1:2.5,L2:2.4,Hs:1.05,Rr:3.95,Lh:.3,jeu:.12,pre:.55,elHaut:1.25,cote:2.0,plafond:5.85,
+  p:0,g:null,M:null,m:{},phi:0,TP:null,plan:null,et:-1,t:0,attente:null,esquive:0,eK:0,libre:null,lieu:'atelier',y0:0,dSol:0,bqVeut:false,bqK:0,habit:'',joue:false,yaw:0,serre:0,cK:0,cY:0,
+  mes:null,hovX:0,hovK:'',verif:false,vmin:9,vsol:9,vcoll:0,vmot:'',stat:{plans:0,refus:0,replis:0,chemins:0},
+  qC:new THREE.Quaternion(),qY:new THREE.Quaternion(),qW:new THREE.Quaternion(),q9:new THREE.Quaternion(),q8:new THREE.Quaternion(),
+  v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),v4:new THREE.Vector3(),v5:new THREE.Vector3(),Y:new THREE.Vector3(0,1,0),
+  M9:new THREE.Matrix4(),A:[0,0,0,1],F1:{m:[null]},R:null,Rk:null,caps:[]};
+function brasVoulu(){return !!(GATL.on&&garageOn&&!GAR.go&&gEl&&!gEl.classList.contains('menu')&&SHOP.tab==='figure');}
+function brasBqVoulu(){return !!(garageOn&&!GAR.go&&GBQ.on&&GBQ.k>.5&&GBQ.grp&&GBQ.grp.visible&&GBQ.cat==='figure'&&(GBQ.ong||'cat')==='cat');} // la BOUTIQUE, catégorie FIGURES (2026-10-19)
+/* (2026-10-19, soir — Léo : « enlève les bras robots ; quand il y a les tricks, on enlève le truc qui bloque les roues, on le remet sur une
+   autre catégorie ; dans la boutique aussi : le bras enlevé, la voiture posée au sol, elle fait la figure, tout simplement ») LE BRAS DES
+   FIGURES EST RANGÉ : il ne sort plus (BRAS_FIG faux ; `?bras=1` le rend tel quel, pour comparer). Dès qu'on ARRIVE dans FIGURES — l'onglet
+   de l'inventaire, la catégorie de la boutique — les pinces des roues rentrent (garAtelierTick) ; en boutique les deux bras d'argent posent
+   la caisse sur le plateau et rentrent dans le sol (BRB.bqK, sans attendre la 1re figure). La figure touchée, la caisse la fait SEULE
+   (garFigEssai : l'animation d'avant le bras), une fois posée (figPosee ; touchée trop tôt, elle attend dans BRB.libre). Une autre
+   catégorie : les pinces et les bras d'argent reviennent. */
+const BRAS_FIG=/[?&]bras=1\b/.test(location.search);
+function figPosee(){return brasBqVoulu()?(BRB.bqK>.98&&(GBQ.ba||0)<.03&&Math.abs(GBQ.lev||0)<.04):!(GATL.p>.06);} // la caisse est libre : posée sur le plateau de la boutique, ou les pinces rentrées
+function brasYaw0(){return garRot()+(BRB.lieu==='boutique'?(GBQ.yaw||0):0);} // le cap de la caisse posée (en boutique, le doigt la tourne : GBQ.yaw)
+function brasSm(u){u=u<0?0:u>1?1:u;return u*u*(3-2*u);}
+function brasDep(u){u=u<0?0:u>1?1:u;const c=1.25;return 1+(c+1)*Math.pow(u-1,3)+c*Math.pow(u-1,2);} // monte, dépasse de ~4 %, se pose (sortie « en arrière »)
+function brasAng(a,b){return Math.atan2(Math.sin(a-b),Math.cos(a-b));} // a − b, ramené dans ]−π, π]
+function brasDir(az,el,o){const c=Math.cos(el);return o.set(c*Math.sin(az),Math.sin(el),c*Math.cos(az));}
+function brasAxe(a){const v=new THREE.Vector3(+a[0]||0,+a[1]||0,+a[2]||0);return v.lengthSq()>1e-9?v.normalize():null;}
+/* LA CAISSE, mesurée une fois (repère de la caisse = celui du plateau au repos) : la boîte de toutes ses pièces pleines (roues comprises, ni
+   halos ni flaques), son centre (le pivot des figures), ses huit coins, et les maillages que visent les rayons (le contact du patin). */
+function brasMesure(){const k=garageI+':'+(carBody?carBody.children.length:0)+':'+carGroup.children.length;if(BRB.mes&&BRB.mes.k===k)return BRB.mes;
+  const p0=BRB.v1.copy(carGroup.position),q0=BRB.q9.copy(carGroup.quaternion),s0=BRB.v2.copy(carGroup.scale);
+  carGroup.position.set(0,0,0);carGroup.quaternion.set(0,0,0,1);carGroup.scale.set(1,1,1);carGroup.updateMatrixWorld(true);
+  const bb=new THREE.Box3(),b9=new THREE.Box3(),ms=[];
+  carGroup.traverse(function(o){if(!o.isMesh||!o.geometry||!o.geometry.attributes.position)return;for(let q=o;q&&q!==carGroup;q=q.parent)if(!q.visible)return;
+    const mt=Array.isArray(o.material)?o.material[0]:o.material;if((mt&&(mt.blending===THREE.AdditiveBlending||(mt.transparent&&mt.opacity<.05)))||(o.userData&&o.userData.sol))return; // les vitres et le verre comptent (une caisse de verre mesurée sans elles faisait 30 cm)
+    b9.setFromBufferAttribute(o.geometry.attributes.position).applyMatrix4(o.matrixWorld);if(b9.isEmpty())return;bb.union(b9);ms.push(o);}); // (les sommets eux-mêmes : la boîte gardée par certaines géométries soudées est vide)
+  if(bb.isEmpty())bb.set(new THREE.Vector3(-1,0,-2.2),new THREE.Vector3(1,1.3,2.2));
+  const C=bb.getCenter(new THREE.Vector3()),K=[];for(let i=0;i<8;i++)K.push(new THREE.Vector3(i&1?bb.max.x:bb.min.x,i&2?bb.max.y:bb.min.y,i&4?bb.max.z:bb.min.z));
+  const M=BRB.mes={k:k,bb:bb,C:C,K:K,ms:ms,R:0,cont:{}};for(const v of K)M.R=Math.max(M.R,v.distanceTo(C));
+  BRB.Hs=Math.max(1.05,Math.min(2.9,bb.max.y-.3)); // une caisse haute (LE MASTODONTE, 3 m) : la colonne du bras s'allonge pour passer par-dessus
+  carGroup.position.copy(p0);carGroup.quaternion.copy(q0);carGroup.scale.copy(s0);carGroup.updateMatrixWorld(true);
+  return M;}
+function brasExt(K,pv,d){let m=-1e9;for(const k of K)m=Math.max(m,(k.x-pv.x)*d.x+(k.y-pv.y)*d.y+(k.z-pv.z)*d.z);return m;} // ce que la caisse avance le long de d
+function brasRay(K,pv,d){let m=0;for(const k of K){const t=(k.x-pv.x)*d.x+(k.y-pv.y)*d.y+(k.z-pv.z)*d.z;m=Math.max(m,k.distanceToSquared(pv)-t*t);}return Math.sqrt(m);} // son rayon autour de l'axe (pv, d)
+/* le CONTACT du patin : un rayon qui arrive par l'axe, de l'extérieur, sur la vraie carrosserie (repère de la caisse) → sa distance au pivot */
+function brasContact(pv,d,e){const M=BRB.mes,ck=pv.x.toFixed(3)+','+pv.y.toFixed(3)+','+pv.z.toFixed(3)+'|'+d.x.toFixed(3)+','+d.y.toFixed(3)+','+d.z.toFixed(3);if(M.cont[ck]!=null)return M.cont[ck];
+  const p0=BRB.v1.copy(carGroup.position),q0=BRB.q9.copy(carGroup.quaternion),s0=BRB.v2.copy(carGroup.scale);
+  carGroup.position.set(0,0,0);carGroup.quaternion.set(0,0,0,1);carGroup.scale.set(1,1,1);carGroup.updateMatrixWorld(true);
+  // le rayon, triangle par triangle (pas de Raycaster : il se fie aux sphères englobantes, vides sur certaines géométries soudées)
+  const ray=new THREE.Ray(),loc=new THREE.Ray(),inv=new THREE.Matrix4(),A=new THREE.Vector3(),B=new THREE.Vector3(),Cc=new THREE.Vector3(),h=new THREE.Vector3(),hw=new THREE.Vector3();
+  ray.set(BRB.v3.copy(pv).addScaledVector(d,e+.6),BRB.v4.copy(d).negate());let best=1e9;
+  for(const o of M.ms){inv.copy(o.matrixWorld).invert();loc.copy(ray).applyMatrix4(inv);const ps=o.geometry.attributes.position,ix=o.geometry.index,n=ix?ix.count:ps.count;
+    for(let t=0;t+2<n;t+=3){const i0=ix?ix.getX(t):t,i1=ix?ix.getX(t+1):t+1,i2=ix?ix.getX(t+2):t+2;A.fromBufferAttribute(ps,i0);B.fromBufferAttribute(ps,i1);Cc.fromBufferAttribute(ps,i2);
+      if(loc.intersectTriangle(A,B,Cc,false,h)){hw.copy(h).applyMatrix4(o.matrixWorld);const dd=hw.distanceTo(ray.origin);if(dd<best)best=dd;}}}
+  carGroup.position.copy(p0);carGroup.quaternion.copy(q0);carGroup.scale.copy(s0);carGroup.updateMatrixWorld(true);
+  let r=best<1e8?e+.6-best:e;if(r>e)r=e;return M.cont[ck]=Math.max(.02,r);}
+/* LA ROTATION de la figure à la progression x : BRB.qC (la caisse), BRB.qY (l'équerre), BRB.yaw (le plateau) — repère du plateau */
+function brasMv(mv,x,o){BRB.F1.m[0]=mv;FIG.quat(BRB.F1,x,1,BRB.A);return o.set(BRB.A[0],BRB.A[1],BRB.A[2],BRB.A[3]);}
+function brasRot(pl,x){
+  if(pl.kind==='plateau'){brasMv(pl.f.m[0],x,BRB.q8);BRB.yaw=2*Math.atan2(BRB.q8.y,BRB.q8.w);if(pl.f.m[1])brasMv(pl.f.m[1],x,BRB.qC);else BRB.qC.identity();BRB.qY.identity();return;}
+  FIG.quat(pl.f,x,1,BRB.A);BRB.qC.set(BRB.A[0],BRB.A[1],BRB.A[2],BRB.A[3]);BRB.yaw=0;if(pl.kind==='equerre')brasMv(pl.f.m[0],x,BRB.qY);else BRB.qY.identity();}
+function brasBas(pl){let mn=1e9,mx=-1e9;const C=pl.pv,K=BRB.mes.K,v=BRB.v5; // le plus bas (et le plus haut, pl.hi) que vont la caisse et l'équerre pendant la figure, sans levée
+  for(let i=0;i<=96;i++){brasRot(pl,i/96);for(const k of K){v.copy(k).sub(C).applyQuaternion(BRB.qC);mn=Math.min(mn,C.y+v.y);mx=Math.max(mx,C.y+v.y);}
+    if(pl.kind==='equerre')for(const Q of [pl.Q1,pl.Q2,pl.Wa]){v.copy(Q).sub(C).applyQuaternion(BRB.qY);mn=Math.min(mn,C.y+v.y-.14);mx=Math.max(mx,C.y+v.y+.14);}}
+  BRB.yaw=0;pl.hi=mx;return mn;}
+/* LE BRAS : chariot sur le rail (azimut phi), tourelle, épaule à Hs, bras L1, coude, avant-bras L2, poignet au centre Wc ; le BOÎTIER part du
+   poignet vers la caisse le long de d (sa face W). Coude toujours en haut. */
+function brasIK(phi,Wc,dir,R){R=R||{T:new THREE.Vector3(),S:new THREE.Vector3(),E:new THREE.Vector3(),W2:new THREE.Vector3(),Wc:new THREE.Vector3(),W:new THREE.Vector3(),d:new THREE.Vector3()};
+  R.phi=phi;R.Wc.copy(Wc);R.d.copy(dir);R.T.set(Math.sin(phi)*BRB.Rr,0,Math.cos(phi)*BRB.Rr);R.S.set(R.T.x,BRB.Hs,R.T.z);
+  let hx=Wc.x-R.S.x,hz=Wc.z-R.S.z;const d=Math.hypot(hx,hz),v=Wc.y-R.S.y,D=Math.hypot(d,v),L1=BRB.L1,L2=BRB.L2;
+  if(d>1e-4){hx/=d;hz/=d;}else{hx=-Math.sin(phi);hz=-Math.cos(phi);}R.hx=hx;R.hz=hz;R.ok=D<=L1+L2-.03&&D>=Math.abs(L1-L2)+.05;
+  const Dc=Math.min(L1+L2-1e-3,Math.max(Math.abs(L1-L2)+1e-3,D)),al=Math.atan2(v,d)+Math.acos(Math.max(-1,Math.min(1,(L1*L1+Dc*Dc-L2*L2)/(2*L1*Dc))));
+  R.E.set(R.S.x+L1*Math.cos(al)*hx,R.S.y+L1*Math.sin(al),R.S.z+L1*Math.cos(al)*hz);
+  R.W2.copy(Wc).sub(R.E).setLength(L2).add(R.E);R.W.copy(R.W2).addScaledVector(dir,-BRB.Lh);return R;}
+function brasCaps(R){const c=BRB.caps;c.length=0;const p=(a,b,r)=>{c.push(a.x,a.y,a.z,b.x,b.y,b.z,r);};
+  p(BRB.v4.set(R.T.x,.35,R.T.z),R.S,.45);p(R.S,R.E,.24);p(R.E,R.W2,.18);return c;}
+function brasBoite(x,y,z,bb){const dx=Math.max(bb.min.x-x,0,x-bb.max.x),dy=Math.max(bb.min.y-y,0,y-bb.max.y),dz=Math.max(bb.min.z-z,0,z-bb.max.z);
+  if(dx>0||dy>0||dz>0)return Math.sqrt(dx*dx+dy*dy+dz*dz);return -Math.min(x-bb.min.x,bb.max.x-x,y-bb.min.y,bb.max.y-y,z-bb.min.z,bb.max.z-z);}
+function brasSeg(px,py,pz,A,B){const vx=B.x-A.x,vy=B.y-A.y,vz=B.z-A.z,l2=vx*vx+vy*vy+vz*vz;let t=l2>1e-9?((px-A.x)*vx+(py-A.y)*vy+(pz-A.z)*vz)/l2:0;t=t<0?0:t>1?1:t;
+  const dx=px-A.x-vx*t,dy=py-A.y-vy*t,dz=pz-A.z-vz*t;return Math.sqrt(dx*dx+dy*dy+dz*dz);}
+/* LE JEU entre le bras et la caisse (sa boîte, posée par qC autour de pv levé de L) et l'équerre (posée par qY) : le plus petit écart, en
+   mètres (négatif = il la traverse). x < 0 : la caisse au repos. */
+function brasJeu(R,pl,x,L){const M=BRB.mes,bb=M.bb;let mn=9;const pv=BRB.pvJ||(BRB.pvJ=new THREE.Vector3());pv.copy(pl?pl.pv:M.C);const sk=pl&&pl.sh&&pl.L>0?Math.min(1,L/pl.L):0;
+  if(x<0||!pl){BRB.qC.identity();BRB.qY.identity();}else brasRot(pl,x);
+  BRB.q9.copy(BRB.qC).invert();const c=brasCaps(R),v=BRB.v5,eq=pl&&pl.kind==='equerre'&&x>=0;let Y1,Y2,Ya;
+  if(eq){const C=pl.pv;Y1=BRB.yq1||(BRB.yq1=new THREE.Vector3());Y2=BRB.yq2||(BRB.yq2=new THREE.Vector3());Ya=BRB.yqa||(BRB.yqa=new THREE.Vector3());
+    for(const [o,Q] of [[Y1,pl.Q1],[Y2,pl.Q2],[Ya,pl.Wa]]){o.copy(Q).sub(C).applyQuaternion(BRB.qY).add(C);o.y+=L;}}
+  for(let i=0;i<c.length;i+=7){const ax=c[i],ay=c[i+1],az=c[i+2],bx=c[i+3],by=c[i+4],bz=c[i+5],r=c[i+6],l=Math.hypot(bx-ax,by-ay,bz-az),n=Math.max(1,Math.ceil(l/.12));
+    for(let j=0;j<=n;j++){const t=j/n,px=ax+(bx-ax)*t,py=ay+(by-ay)*t,pz=az+(bz-az)*t;
+      v.set(px-pv.x-(sk?pl.sh.x*sk:0),py-pv.y-L,pz-pv.z-(sk?pl.sh.z*sk:0)).applyQuaternion(BRB.q9).add(pv);mn=Math.min(mn,brasBoite(v.x,v.y,v.z,bb)-r);
+      if(eq&&(px-R.Wc.x)**2+(py-R.Wc.y)**2+(pz-R.Wc.z)**2>.25)mn=Math.min(mn,Math.min(brasSeg(px,py,pz,Y1,Y2),brasSeg(px,py,pz,Y2,Ya))-r-.11);}}
+  BRB.yaw=0;return mn;}
+function brasSur(pv,dir){return brasExt(BRB.mes.K,pv,dir)+BRB.Lh+.26;} // assez loin pour que l'outil REPLIÉ ne touche jamais la boîte
+function brasCamAz(){return garCamA()-(brasYaw0()+BRB.yaw);} // où est la caméra, vue du plateau
+function brasVue(ph,cam){return Math.min(Math.abs(brasAng(ph,cam+BRB.cote)),Math.abs(brasAng(ph,cam-BRB.cote)));} // la place qui MONTRE le bras sans cacher la caisse : de trois-quarts arrière (cote), d'un côté ou de l'autre
+function brasPhis(d,cam){const h=Math.hypot(d.x,d.z),L=[];if(h>.35){const a=Math.atan2(d.x,d.z);L.push(a,a+.32,a-.32);}else for(let k=0;k<12;k++)L.push(k*Math.PI/6);return L;}
+/* LE PLAN d'une figure : le genre de prise, l'axe, le patin, la levée, la place sur le rail — le premier plan SÛR, côté opposé à la caméra */
+function brasPlan(f){
+  const mv=f&&f.m;if(!mv||!mv.length||mv.length>2||!window.FIG||!FIG.quat)return null;
+  const M=brasMesure(),C=M.C,K=M.K,a0=brasAxe(mv[0].a),a1=mv[1]?brasAxe(mv[1].a):null;if(!a0||(mv[1]&&!a1))return null;
+  let kind,inner,outer;
+  if(!a1){kind=f.piv&&Math.abs(a0.y)>.9?'plateau':'axe';inner=kind==='plateau'?BRB.Y.clone():a0;}else if(Math.abs(a0.y)>.9&&Math.abs(a0.dot(a1))<.3){kind='plateau';inner=a1;}else if(Math.abs(a0.dot(a1))<.95){kind='equerre';inner=a1;outer=a0;}else return null;
+  const cam=brasCamAz(),cands=[];
+  if(kind!=='equerre'){
+    const pv=C.clone();if(f.piv&&Math.abs(a0.y)>.9)pv.z+=f.piv*(M.bb.max.z-C.z); // le TAIL WHIP : le point fixe vers le nez
+    for(const sg of [1,-1]){const d=inner.clone().multiplyScalar(sg);if(d.y<-.35||(Math.abs(inner.y)>.9&&d.y<0))continue; // jamais par en dessous : la caisse est posée
+      const e=brasExt(K,pv,d),pc=brasContact(pv,d,e);
+      const pl={f:f,kind:kind,pv:pv,d:d,az:Math.atan2(d.x,d.z),el:Math.asin(Math.max(-1,Math.min(1,d.y))),rho:e+BRB.jeu+BRB.Lh,stub:e+BRB.jeu-pc,sh:kind==='plateau'?new THREE.Vector3(-pv.x,0,-pv.z):null};
+      for(const ph of brasPhis(d,cam))cands.push([pl,ph]);
+      if(kind==='axe'&&Math.abs(inner.y)>.9){const p2=Object.assign({},pl,{kind:'plateau',sh:new THREE.Vector3(-pv.x,0,-pv.z),alt:1,L:null}); // une toupie trop longue pour le poignet (sa poupe balaierait le bras) : c'est le plateau qui la fait tourner
+        for(const ph of brasPhis(d,cam))cands.push([p2,ph]);}}}
+  else for(const sa of [1,-1])for(const sb of [1,-1]){const a=outer.clone().multiplyScalar(sa),b=inner.clone().multiplyScalar(sb);if(b.y<-.35)continue;
+    const cr=BRB.v1.crossVectors(a,b).length();if(cr<.3)continue;
+    const eb=brasExt(K,C,b),Rb=brasRay(K,C,b),r=Rb+.24,s=r/cr,u=a.clone().addScaledVector(b,-a.dot(b)).normalize();
+    const Q1=C.clone().addScaledVector(b,eb+BRB.jeu),Q2=Q1.clone().addScaledVector(u,r),Wa=C.clone().addScaledVector(a,s);
+    if(Math.min(Q1.y,Q2.y,Wa.y)<.2)continue; // l'équerre passerait sous la caisse posée
+    const pc=brasContact(C,b,eb);
+    const pl={f:f,kind:kind,pv:C.clone(),d:a,b:b,az:Math.atan2(a.x,a.z),el:Math.asin(Math.max(-1,Math.min(1,a.y))),rho:s+BRB.Lh,Q1:Q1,Q2:Q2,Wa:Wa,stub:eb+BRB.jeu-pc};
+    for(const ph of brasPhis(a,cam))cands.push([pl,ph]);}
+  cands.sort(function(A,B){return ((A[0].alt?10:0)+brasVue(A[1],cam))-((B[0].alt?10:0)+brasVue(B[1],cam));});
+  const Wc=BRB.v2,R=BRB.Rk||(BRB.Rk=brasIK(0,BRB.v2.set(0,2,0),BRB.Y,null));let essais=0;const pq=BRB.pq={}; // (banc) pourquoi chaque essai a été refusé
+  const no=function(k){pq[k]=(pq[k]||0)+1;};
+  for(const cd of cands){const pl=cd[0],ph=cd[1];essais++;
+    if(pl.L==null){pl.L=Math.max(.45,.1-brasBas(pl));}if(pl.L>2.7||pl.L+pl.hi>BRB.plafond){no('plafond');continue;} // sous la lampe remontée et le plafond de l'atelier
+    const d=pl.d,ok=function(rho,L,x){Wc.copy(pl.pv).addScaledVector(d,rho);Wc.y+=L;if(pl.sh)Wc.addScaledVector(pl.sh,Math.min(1,L/pl.L));brasIK(ph,Wc,d,R);return R.ok&&brasJeu(R,pl,x,L)>.04;};
+    if(!ok(pl.rho+BRB.pre,0,-1)||!ok(pl.rho,0,-1)){no('prise');continue;}
+    let bon=true;for(let i=1;i<=4&&bon;i++)bon=ok(pl.rho,pl.L*i/4,-1);bon=bon&&ok(pl.rho,pl.L*1.06,-1);if(!bon){no('levee');continue;} // (1,06 : la levée dépasse un poil avant de se poser, brasDep)
+    Wc.copy(pl.pv).addScaledVector(d,pl.rho);Wc.y+=pl.L;if(pl.sh)Wc.add(pl.sh);brasIK(ph,Wc,d,R);if(!R.ok){no('portee');continue;}
+    for(let i=0;i<=60&&bon;i++)bon=brasJeu(R,pl,i/60,pl.L)>.04;if(!bon){no('rotation');continue;}
+    const A9=BRB.TP?brasTPcopie(BRB.TP):brasAttente(cam+BRB.cote),B9={pv:pl.pv.clone(),az:pl.az,el:pl.el,rho:pl.rho+BRB.pre,phi:ph,u:0,L:0},
+      phR=brasHovCible(cam,ph),Ca=brasCheminSur(A9,B9),Cr=Ca&&brasCheminSur(B9,brasAttente(phR));
+    if(!Ca||!Cr){BRB.stat.chemins++;no(Ca?'retour':'aller');continue;}
+    let rs=0;for(const k of K)rs=Math.max(rs,k.distanceTo(pl.pv));if(pl.sh)rs=Math.max(rs,pl.sh.length()+1);if(pl.kind==='equerre')rs=Math.max(rs,pl.Q2.distanceTo(C)+.15,pl.Wa.distanceTo(C)+.3);
+    return Object.assign({},pl,{k:M.k,phi:ph,phiR:phR,Ca:Ca,Cr:Cr,Rsw:rs,D:Math.max(.95,(f.D||.7)*1.6),essais:essais});}
+  BRB.stat.refus++;return null;}
+/* LES POSES de l'outil : {pv (le pivot, repère du plateau), az, el, rho (le poignet à rho de pv, sur la direction az/el), phi (le chariot), u
+   (l'outil déplié, 0 → 1), L (la levée)}. L'ATTENTE : au-dessus du toit, côté opposé à la caméra, 18 cm au-dessus de la boîte. */
+function brasTP(){return {pv:new THREE.Vector3(),az:0,el:Math.PI/2,rho:2,phi:0,u:0,L:0};}
+function brasTPcopie(a,o){o=o||brasTP();o.pv.copy(a.pv);o.az=a.az;o.el=a.el;o.rho=a.rho;o.phi=a.phi;o.u=a.u;o.L=a.L;return o;}
+function brasAttente(phi,o){const M=brasMesure();o=o||brasTP();o.pv.copy(M.C);o.az=phi;o.el=Math.PI/2;o.rho=M.bb.max.y-M.C.y+BRB.jeu+BRB.Lh+.18+BRB.hovX;o.phi=phi;o.u=0;o.L=0;return o;}
+/* LES PLACES D'ATTENTE SÛRES : pour chaque cran de 5° du rail, le bras en attente touche-t-il la caisse posée ? Une caisse très longue (L'ICEBERG,
+   LE MUR DU SON) dépasse presque jusqu'au rail : devant son nez et sa poupe, le chariot n'a pas sa place. On prend la plus petite hauteur
+   d'attente (hovX) qui libère le plus de crans ; le bras ne s'arrête jamais sur un cran interdit, ni ne le traverse (brasHovCible). */
+function brasHovCale(){const M=brasMesure();if(BRB.hovK===M.k)return;BRB.hovK=M.k;const R=BRB.Rk||(BRB.Rk=brasIK(0,BRB.v2.set(0,2,0),BRB.Y,null)),T=brasTP();let mx=-1,hb=0,tb=null;
+  for(let h=0;h<=1.6001;h+=.2){BRB.hovX=h;const t=[];let n=0;for(let k=0;k<72;k++){brasAttente(k*Math.PI/36,T);brasDir(T.az,T.el,BRB.v3);BRB.v2.copy(T.pv).addScaledVector(BRB.v3,T.rho);brasIK(T.phi,BRB.v2,BRB.v3,R);const ok=R.ok&&brasJeu(R,null,-1,0)>.08;t.push(ok);if(ok)n++;}
+    if(n>mx){mx=n;hb=h;tb=t;}if(n===72)break;}
+  BRB.hovX=hb;BRB.hovOk=tb;}
+function brasHovSur(ph){const t=BRB.hovOk;if(!t)return true;return t[((Math.round(ph/(Math.PI/36))%72)+72)%72];}
+function brasHovCible(cam,from){ // la place d'attente : la plus proche des deux trois-quarts arrière qu'on atteint depuis from sans passer par un cran interdit
+  if(!brasHovSur(from)){for(let i=1;i<=36;i++)for(const sg of [1,-1]){const p=from+sg*i*Math.PI/36;if(brasHovSur(p))return p;}return from;}
+  let best=from,bs=9;for(const c of [cam+BRB.cote,cam-BRB.cote]){const d=brasAng(c,from),n=Math.max(1,Math.ceil(Math.abs(d)/(Math.PI/72)));let last=from;
+    for(let i=1;i<=n;i++){const p=from+d*i/n;if(!brasHovSur(p))break;last=p;}const sc=Math.abs(brasAng(c,last));if(sc<bs-.05){bs=sc;best=last;}}
+  return best;}
+/* LE CHEMIN d'une pose à l'autre : il MONTE (au-dessus, côté de son chariot), tourne là-haut (le chariot glisse sur le rail), puis DESCEND
+   vers la suivante — le poignet reste du côté de son chariot, l'outil replié jamais plus près de la caisse que brasSur. */
+function brasChemin(A,B,s,o,eH9,rX){eH9=eH9||BRB.elHaut;rX=rX||0;const dA=brasAng(B.az,A.az),dP=brasAng(B.phi,A.phi),loin=Math.abs(dA)>.25||Math.abs(dP)>.25||rX>0;
+  o.pv.lerpVectors(A.pv,B.pv,brasSm(s));o.u=A.u+(B.u-A.u)*s;o.L=A.L+(B.L-A.L)*s;
+  if(!loin){const k=brasSm(s);o.az=A.az+dA*k;o.el=A.el+(B.el-A.el)*k;o.phi=A.phi+dP*k;o.rho=A.rho+(B.rho-A.rho)*k;}
+  else{const eH=Math.max(A.el,B.el,eH9),u=brasSm(s); // en haut, l'outil replié passe AU PLUS PRÈS (brasSur + rX) : plus loin, le bras ne l'atteindrait pas
+    // (2026-10-19, Léo : « travailler un tout petit peu l'animation ») les trois temps se CHEVAUCHENT : il monte en commençant à tourner, descend en finissant — un seul geste continu
+    const k1=brasSm(u/.42),k2=brasSm((u-.24)/.52),k3=brasSm((u-.58)/.42);
+    o.az=A.az+dA*k2;o.phi=A.phi+dP*k2;o.el=A.el+(eH-A.el)*k1+(B.el-eH)*k3;
+    const rs=brasSur(o.pv,brasDir(o.az,o.el,BRB.v3))+rX;o.rho=rs+(A.rho-rs)*(1-k1)+(B.rho-rs)*k3;}
+  if(o.u<.01)o.rho=Math.max(o.rho,brasSur(o.pv,brasDir(o.az,o.el,BRB.v3)));return o;}
+/* un chemin est SÛR si, à 24 instants, le bras l'atteint et ne touche pas la caisse posée ; sinon on essaie plus haut, plus loin */
+const BR_CHEMINS=[[1.25,0],[1.45,0],[1.5708,0],[1.5708,.45],[1.5708,.9],[1.5708,1.4]];
+function brasCheminSur(A,B){const R=BRB.Rc||(BRB.Rc=brasIK(0,BRB.v2.set(0,2,0),BRB.Y,null)),T=BRB.Tc||(BRB.Tc=brasTP()),W=BRB.Wc9||(BRB.Wc9=new THREE.Vector3()),d=BRB.dc9||(BRB.dc9=new THREE.Vector3());
+  for(const c of BR_CHEMINS){let bon=true;for(let i=0;i<=24&&bon;i++){brasChemin(A,B,i/24,T,c[0],c[1]);brasDir(T.az,T.el,d);W.copy(T.pv).addScaledVector(d,T.rho);brasIK(T.phi,W,d,R);bon=R.ok&&brasJeu(R,null,-1,0)>.03;}
+    if(bon)return c;}
+  return null;}
+function brasCheminDur(A,B){return Math.min(1.3,.5+.22*Math.abs(brasAng(B.phi,A.phi))+.25*Math.abs(B.el-A.el)+.12*Math.abs(B.rho-A.rho));}
+/* LA DÉMONSTRATION : les étapes (nom, durée) ; chacune pose BRB.TP (et la caisse quand elle est tenue) */
+function brasFigure(f){if(!f)return false;
+  if(BRB.plan&&BRB.et===0&&BRB.t<.25){BRB.TP=brasTPcopie(BRB.plan.A,BRB.TP);BRB.plan=null;BRB.joue=false;} // le même toucher la demande deux fois (shopShow, puis avec son sens) : la 2e remplace la 1re
+  if(BRB.plan||BRB.p<.999||!BRB.TP){BRB.attente=f;return true;} // il finit celle-ci (ou finit de sortir), puis enchaîne
+  const pl=brasPlan(f);if(!pl){BRB.stat.replis++;return 'libre';} // pas de plan sûr : il rentre dans sa trappe, la caisse la fait seule (garFigEssai, libre)
+  brasLance(pl);return true;}
+function brasDemande(f){const r=brasFigure(f);if(r==='libre')BRB.libre={id:(f.src||f).id,c:f.sens==='avant'?0:f.sens==='arriere'?1:null,t:.5};return r;} // une figure qui attendait : sans plan, la caisse la fera seule
+function brasLance(pl){BRB.stat.plans++;pl.A=brasTPcopie(BRB.TP);pl.Bp={pv:pl.pv.clone(),az:pl.az,el:pl.el,rho:pl.rho+BRB.pre,phi:pl.phi,u:0,L:0};
+  pl.et=[['transit',brasCheminDur(pl.A,pl.Bp)+.25*pl.Ca[1]],['approche',.28],['deplie',pl.kind==='equerre'?.62:.32],['serre',.2],['leve',.62],['tourne',pl.D],['pose',.45],['replie',pl.kind==='equerre'?.42:.26],['recul',.22],['retour',.9+.25*pl.Cr[1]]];
+  BRB.plan=pl;BRB.et=0;BRB.t=0;try{if(SONV2)sfx('garage.bascule',{vol:-10});}catch(e){}}
+function brasEtape(dt){const pl=BRB.plan,TP=BRB.TP;let e=pl.et[BRB.et];if(BRB.fige&&e[0]===BRB.fige[0]){BRB.t=Math.min(BRB.t+dt,e[1]*BRB.fige[1]);dt=0;}BRB.t+=dt;
+  while(BRB.t>=e[1]){BRB.t-=e[1];BRB.et++;
+    if(e[0]==='deplie'){BRB.serre=1;try{if(SONV2)sfx('garage.tole');}catch(er){}try{hap(8);}catch(er){}}
+    if(e[0]==='tourne'){BRB.yaw=0;}
+    if(BRB.et>=pl.et.length){BRB.plan=null;BRB.joue=false;BRB.yaw=0;if(BRB.attente){const f=BRB.attente;BRB.attente=null;brasDemande(f);}return;}
+    e=pl.et[BRB.et];
+    if(e[0]==='tourne'){try{if(SONV2)sfx('turbo.mini',{vol:-6});GSON9=true;}catch(er){}}
+    if(e[0]==='replie'){BRB.serre=0;try{if(SONV2)sfx('ui.on',{vol:-6});}catch(er){}}
+    if(e[0]==='recul'&&BRB.attente){ // une autre figure attend : on enchaîne d'ici, sans repasser par l'attente
+      const f=BRB.attente;BRB.attente=null;BRB.plan=null;BRB.joue=false;TP.u=0;TP.rho=pl.rho;const r9=brasPlan(f);
+      if(r9){BRB.plan=null;brasLance(r9);return;}BRB.plan=pl;BRB.attente=f;}
+    if(e[0]==='retour')pl.Br=brasAttente(pl.phiR,pl.Br);}
+  const s=Math.min(1,BRB.t/e[1]),k=brasSm(s),n=e[0];
+  BRB.joue=n==='serre'||n==='leve'||n==='tourne'||n==='pose';
+  if(n==='transit')brasChemin(pl.A,pl.Bp,s,TP,pl.Ca[0],pl.Ca[1]);
+  else if(n==='retour')brasChemin(pl.Bp,pl.Br,s,TP,pl.Cr[0],pl.Cr[1]);
+  else{TP.pv.copy(pl.pv);TP.az=pl.az;TP.el=pl.el;TP.phi=pl.phi;
+    TP.rho=n==='approche'?pl.rho+BRB.pre*(1-k):n==='recul'?pl.rho+BRB.pre*k:pl.rho;
+    TP.u=n==='deplie'?s:n==='replie'?1-s:(n==='approche'||n==='recul')?0:1;
+    TP.L=n==='serre'?.025*Math.sin(Math.PI*Math.min(1,s*1.4)):n==='leve'?pl.L*brasDep(s):n==='tourne'?pl.L:n==='pose'?pl.L*(1-k):0;}
+  if(n==='tourne')brasRot(pl,s);else{BRB.qC.identity();BRB.qY.identity();BRB.yaw=0;}}
+/* chaque image du garage (dans garFigTick, juste après la pose de la caisse sur le plateau) — rend vrai si c'est lui qui tient la caisse */
+function brasTick(dt){dt=Math.min(.05,dt||0)*(BRB.lent||1); // (banc) dbgBras('lent',.25) : la démonstration au ralenti
+  if(GAR.go&&(BRB.plan||BRB.libre||BRB.attente)){BRB.plan=null;BRB.libre=null;BRB.attente=null;BRB.joue=false;BRB.yaw=0;BRB.serre=0;} // JOUER : il lâche tout, le lâcher du garage prend la caisse
+  const enA=brasVoulu(),enB=brasBqVoulu(),l9=enA?'atelier':enB?'boutique':BRB.lieu;
+  const salle9=l9==='boutique'?!!(GBQ.on&&GBQ.k>.5):!!GATL.on;
+  if(l9!==BRB.lieu||(!salle9&&(BRB.plan||BRB.libre||BRB.attente))){BRB.plan=null;BRB.libre=null;BRB.attente=null;BRB.joue=false;BRB.yaw=0;BRB.serre=0;if(l9!==BRB.lieu){BRB.p=0;BRB.TP=null;}} // on change de salle (ou on la quitte) : il lâche tout — une autre catégorie de la même salle : il finit sa figure
+  BRB.lieu=l9;if(!enB)BRB.bqVeut=false;
+  /* EN BOUTIQUE (Léo : « les autres posent la voiture et un autre bras apparaît ») : à la 1re figure demandée, les deux bras d'argent posent la
+     caisse sur le plateau et rentrent dans le socle (BRB.bqK, lu par garBqIndus et garBqBras) ; le grand bras ne sort qu'une fois la caisse posée.
+     On quitte la catégorie : il rentre d'abord, puis les deux bras ressortent et la relèvent. */
+  if(!BRAS_FIG&&!enA&&!enB)BRB.libre=null; // (sans le bras) on quitte FIGURES : la figure qui attendait la pose tombe
+  BRB.bqK=Math.max(0,Math.min(1,BRB.bqK+((BRB.lieu==='boutique'&&(BRAS_FIG?(BRB.bqVeut||BRB.p>.02):enB))?dt/.55:-dt/.55))); // (sans le bras) posée dès qu'on ARRIVE dans la catégorie
+  const posee=BRAS_FIG?(BRB.lieu!=='boutique'||(BRB.bqK>.98&&(GBQ.ba||0)<.03&&Math.abs(GBQ.lev||0)<.04)):figPosee(),veut=BRAS_FIG&&(enA||(enB&&BRB.bqVeut));
+  const c9=((veut&&posee&&(enB||(GATL.c>.62&&GATL.p<.06))&&!GAR.sw&&!BRB.libre&&!(BRB.esquive>0))||!!BRB.plan)?1:0;
+  BRB.p=Math.max(0,Math.min(1,BRB.p+(c9?dt/1.3:-dt/.9)));
+  BRB.esquive=Math.max(0,BRB.esquive-dt);
+  if(BRB.libre&&BRB.p<=0&&posee){const L9=BRB.libre;BRB.libre=null;try{garFigEssai(L9.id,L9.c,true);}catch(e){}BRB.esquive=(GFIG.D||1.2)+.4;} // RENTRÉ : la caisse fait sa figure seule ; il ressortira après
+  if(BRB.p<=0){if(BRB.g)BRB.g.visible=false;BRB.joue=false;BRB.yaw=0;BRB.cK*=Math.max(0,1-dt*3);BRB.cY*=Math.max(0,1-dt*3);BRB.plan=null;BRB.TP=null;return false;}
+  if(!BRB.g)brasBatir();const M=brasMesure();brasHovCale();brasHabille(BRB.lieu);
+  if(BRB.lieu==='boutique'){BRB.y0=GARAGE_Y+(GBQ.socleH||0)+.06-M.bb.min.y;BRB.dSol=BRB.y0-GARAGE_Y;GBQ.pit=GBQ.pitV=GBQ.rol=GBQ.rolV=0;}else{BRB.y0=GARAGE_Y+GAR.POD;BRB.dSol=0;} // en boutique la caisse posée repose 6 cm au-dessus du socle (garBqIndus) ; ni tangage ni roulis au doigt tant qu'il est là
+  if(BRB.plan&&BRB.plan.k!==undefined&&BRB.plan.k!==M.k){BRB.plan=null;BRB.joue=false;BRB.yaw=0;} // la caisse a changé sous lui
+  const cam=brasCamAz();
+  if(!BRB.TP){BRB.phi=brasHovCible(cam,cam+BRB.cote);BRB.TP=brasAttente(BRB.phi);}
+  if(!BRB.plan&&BRB.attente&&BRB.p>=.999&&BRB.TP){const f=BRB.attente;BRB.attente=null;brasDemande(f);}
+  if(BRB.plan)brasEtape(dt);
+  else{const T=BRB.TP,ci=brasHovCible(cam,T.phi),ph=T.phi+brasAng(ci,T.phi)*(1-Math.exp(-dt*2.2));brasAttente(ph,T);BRB.joue=false;BRB.yaw=0;BRB.serre=0;}
+  const yw=brasYaw0()+BRB.yaw;
+  BRB.g.position.set(0,BRB.y0,0);BRB.g.rotation.set(0,yw,0);BRB.g.visible=true;
+  // la caisse, quand il la tient : tournée par qC autour du pivot levé de L (repère du plateau → monde)
+  if(BRB.joue){const pl=BRB.plan,T=BRB.TP;BRB.qW.setFromAxisAngle(BRB.Y,yw);
+    BRB.v1.copy(pl.pv).applyQuaternion(BRB.qC);BRB.v2.copy(pl.pv);BRB.v2.y+=T.L;if(pl.sh&&pl.L>0)BRB.v2.addScaledVector(pl.sh,Math.min(1,T.L/pl.L));BRB.v2.sub(BRB.v1).applyQuaternion(BRB.qW);
+    carGroup.position.set(BRB.v2.x,BRB.y0+BRB.v2.y,BRB.v2.z);carGroup.quaternion.copy(BRB.qW).multiply(BRB.qC);}
+  brasDessine(dt);
+  // la caméra : un peu de recul pour le bras en attente, beaucoup pendant la démonstration
+  let tK=0,tY=0;if(BRB.plan){const pl=BRB.plan,G=garGabarit(),e9=pl.et[BRB.et][0];tK=Math.min(1.5,Math.max(.25,.36*(pl.L+pl.Rsw)/Math.max(1.2,G.R)));if(e9!=='retour')tY=pl.L*.9+(pl.kind==='equerre'?.25:0);}
+  tK*=BRB.p;tY*=BRB.p;BRB.cK+=(tK-BRB.cK)*Math.min(1,dt*2.2);BRB.cY+=(tY-BRB.cY)*Math.min(1,dt*2.2);
+  if(BRB.verif)brasVerif();
+  return BRB.joue;}
+/* L'HABIT (Léo : « faut pas qu'il soit orange, faut qu'il soit comme dans la boutique ») : chaque pièce a un RÔLE ; à l'atelier le jaune des
+   pinces, en boutique l'argent, le graphite, le chrome et la diode ambre des deux bras de la boutique (GBQ.matB : leurs programmes existent déjà). */
+function brasHabille(l){if(BRB.habit===l||!BRB.g)return;if(l==='boutique'&&!GBQ.matB)return;
+  if(!BRB.roles){BRB.roles=[];const A=GATL.M,mp=new Map([[A.jaune,'jaune'],[A.fer,'fer'],[A.chrome,'chrome'],[A.noir,'noir'],[BRB.M.led,'led']]);BRB.g.traverse(function(o){if(o.isMesh&&mp.has(o.material))BRB.roles.push([o,mp.get(o.material)]);});}
+  if(!BRB.M.ledB){BRB.M.ledB=new THREE.MeshBasicMaterial({color:0xffb347,fog:false});BRB.M.ledB.color.setRGB(1.9,1.05,.38);}
+  const B=GBQ.matB,P=l==='boutique'?{jaune:B.argent,fer:B.graph,chrome:B.chrome,noir:B.graph,led:BRB.M.ledB}:{jaune:GATL.M.jaune,fer:GATL.M.fer,chrome:GATL.M.chrome,noir:GATL.M.noir,led:BRB.M.led};
+  for(const r of BRB.roles)r[0].material=P[r[1]];BRB.habit=l;}
+/* LE MODÈLE (bâti au 1er besoin, matières de l'atelier) */
+function brasBatir(){if(BRB.g)return BRB.g;if(!GATL.g)garAtelierBatir();
+  const G=new THREE.Group();G.visible=false;scene.add(G);BRB.g=G;const M=GATL.M,BX=GATL.BX,CY=GATL.CY,m=BRB.m; // dans la SCÈNE : en boutique GAR.root est éteint
+  BRB.M={led:new THREE.MeshLambertMaterial({color:0x5ff0ff,emissive:0x2fb8d0,flatShading:true,fog:false})}; // sa diode à lui (celle des pinces est partagée)
+  const mk=(geo,mat)=>{const o=new THREE.Mesh(geo,mat);G.add(o);return o;};
+  m.gorge=mk(new THREE.RingGeometry(BRB.Rr-.24,BRB.Rr+.24,72,1),M.noir);m.gorge.rotation.x=-Math.PI/2;m.gorge.position.y=.004; // la GORGE du rail, dans le plateau
+  m.rails=[];for(const dr of [-.16,.16]){const t=mk(new THREE.TorusGeometry(BRB.Rr+dr,.028,4,96),M.chrome);t.rotation.x=-Math.PI/2;t.position.y=.012;m.rails.push(t);}
+  m.trappe=mk(BX,M.jaune);m.trou=mk(BX,M.noir);
+  m.chariot=mk(BX,M.fer);m.chBande=mk(BX,M.jaune);m.chRoues=[mk(CY,M.noir),mk(CY,M.noir)];
+  m.tourBas=mk(CY,M.fer);m.colonne=mk(CY,M.fer);m.colBague=mk(CY,M.jaune);m.tourelle=mk(CY,M.jaune);m.epaule=mk(BX,M.jaune);m.tEpaule=mk(CY,M.fer);
+  m.bras=mk(BX,M.jaune);m.brasFil=mk(BX,M.noir);m.verin=mk(CY,M.chrome);m.verinC=mk(CY,M.fer);
+  m.tCoude=mk(CY,M.fer);m.avBras=mk(BX,M.jaune);m.avFil=mk(BX,M.noir);
+  m.poignet=mk(CY,M.fer);m.boitier=mk(CY,M.jaune);m.led=mk(CY,BRB.M.led);m.bague=mk(CY,M.noir);
+  m.tige=mk(CY,M.chrome);m.patin=mk(CY,M.noir);m.patinB=mk(CY,M.jaune);
+  m.eq1=mk(BX,M.jaune);m.eq2=mk(BX,M.jaune);m.eqC=mk(CY,M.fer);m.boitB=mk(CY,M.jaune);m.ledB=mk(CY,BRB.M.led);
+  return G;}
+function brasTube(o,A,B,r){const d=BRB.v4.subVectors(B,A),l=d.length();o.visible=l>.004;if(!o.visible)return;o.position.addVectors(A,B).multiplyScalar(.5);o.quaternion.setFromUnitVectors(BRB.Y,d.multiplyScalar(1/l));o.scale.set(2*r,l,2*r);}
+function brasPoutre(o,A,B,w,h,up){const l=A.distanceTo(B);o.visible=l>.004;if(!o.visible)return;o.position.addVectors(A,B).multiplyScalar(.5);BRB.M9.lookAt(B,A,up||BRB.Y);o.quaternion.setFromRotationMatrix(BRB.M9);o.scale.set(w,h,l);}
+function brasDisque(o,P,ax,r,ep){o.visible=true;o.position.copy(P);o.quaternion.setFromUnitVectors(BRB.Y,BRB.v4.copy(ax).normalize());o.scale.set(2*r,ep,2*r);}
+const BRV=[...Array(14)].map(function(){return new THREE.Vector3();});
+function brasDessine(dt){const m=BRB.m,T=BRB.TP,pl=BRB.plan,P=BRB.p,R=BRB.R||(BRB.R=brasIK(0,BRB.v2.set(0,2,0),BRB.Y,null)),V=BRV;
+  // la pose du poignet : au repos, sorti de sa trappe (P < .5 : il monte replié ; puis il se déplie vers l'attente)
+  const dir=brasDir(T.az,T.el,V[0]),Wc=V[1].copy(T.pv).addScaledVector(dir,T.rho);Wc.y+=T.L;if(pl&&pl.sh&&pl.L>0)Wc.addScaledVector(pl.sh,Math.min(1,T.L/pl.L));
+  let yOff=0;if(P<1){const k=brasSm((P-.45)/.55);if(k<1){const Wp=V[2],dp=V[3];brasPark(T.phi,Wp,dp);Wc.lerp(Wp,1-k);dir.lerp(dp,1-k).normalize();}yOff=-(1-brasSm(P/.45))*4.4;}
+  if(!pl)Wc.y+=.025*Math.sin(performance.now()*.0017)*P; // il respire, prêt
+  brasIK(T.phi,Wc,dir,R);
+  const Y=BRB.Y,tr=V[4].set(R.T.x,yOff,R.T.z),rad=V[5].set(Math.sin(T.phi),0,Math.cos(T.phi)),tg=V[6].set(Math.cos(T.phi),0,-Math.sin(T.phi));
+  const up=(a)=>a+yOff,ds=BRB.dSol,upB=(a)=>a+yOff-ds;
+  // le rail, la trappe
+  const vr=P>.02;m.gorge.visible=vr&&BRB.lieu!=='boutique';for(const r of m.rails)r.visible=vr;const ks=Math.min(1,P*3);m.gorge.scale.set(1,1,1);m.gorge.position.y=.004-ds;
+  for(const r of m.rails)r.position.y=.012*ks-ds;
+  const ouv=P<1?Math.sin(Math.PI*Math.min(1,P/.7)):0;m.trappe.visible=m.trou.visible=ouv>.01;
+  if(m.trappe.visible){m.trappe.position.set(R.T.x,.006-ds,R.T.z);m.trappe.rotation.set(0,T.phi,0);m.trappe.scale.set(1.5*ouv,.012,1.2*ouv);m.trou.position.set(R.T.x,.008-ds,R.T.z);m.trou.rotation.set(0,T.phi,0);m.trou.scale.set(1.3*ouv,.014,1.0*ouv);}
+  // le chariot, la tourelle, l'épaule
+  m.chariot.position.set(R.T.x,upB(.15),R.T.z);m.chariot.rotation.set(0,T.phi,0);m.chariot.scale.set(1.15,.24,.82);
+  m.chBande.position.copy(m.chariot.position).addScaledVector(rad,.415);m.chBande.rotation.set(0,T.phi,0);m.chBande.scale.set(1.1,.08,.02);
+  for(let i=0;i<2;i++){const w=m.chRoues[i];w.position.copy(tr).addScaledVector(tg,i?.42:-.42);w.position.y=upB(.07);w.quaternion.setFromUnitVectors(Y,rad);w.scale.set(.16,.86,.16);}
+  m.tourBas.position.set(R.T.x,upB(.32),R.T.z);m.tourBas.rotation.set(0,0,0);m.tourBas.scale.set(1.0,.14,1.0);
+  const hx9=BRB.Hs-1.05,lc9=hx9+ds;m.colonne.visible=m.colBague.visible=lc9>.02;if(lc9>.02){m.colonne.position.set(R.T.x,up(.36+(hx9-ds)/2),R.T.z);m.colonne.rotation.set(0,0,0);m.colonne.scale.set(.5,lc9+.05,.5);m.colBague.position.set(R.T.x,upB(.36+.04),R.T.z);m.colBague.rotation.set(0,0,0);m.colBague.scale.set(.66,.08,.66);} // la colonne télescopique
+  m.tourelle.position.set(R.T.x,up(.58+hx9),R.T.z);m.tourelle.rotation.set(0,Math.atan2(R.hx,R.hz),0);m.tourelle.scale.set(.86,.38,.86);
+  const ax=V[7].set(-R.hz,0,R.hx),S=V[8].copy(R.S);S.y+=yOff;const E=V[9].copy(R.E);E.y+=yOff;const W2=V[10].copy(R.W2);W2.y+=yOff;const W=V[11].copy(R.W);W.y+=yOff;
+  m.epaule.position.set(R.T.x,up(.86+hx9),R.T.z);m.epaule.rotation.set(0,Math.atan2(R.hx,R.hz),0);m.epaule.scale.set(.62,.5,.78);
+  brasDisque(m.tEpaule,S,ax,.3,.84);
+  // le bras, son vérin, le coude, l'avant-bras (le câble noir le long du dos)
+  brasPoutre(m.bras,S,E,.4,.34,ax);brasPoutre(m.brasFil,V[12].copy(S).addScaledVector(Y,.2),V[13].copy(E).addScaledVector(Y,.2),.07,.07,ax);
+  const vb=V[12].copy(tr).addScaledVector(V[13].set(R.hx,0,R.hz),-.38);vb.y=up(.95+hx9);const vh=V[13].lerpVectors(S,E,.42);
+  brasTube(m.verinC,vb,V[2].lerpVectors(vb,vh,.55),.085);brasTube(m.verin,vb,vh,.05);
+  brasDisque(m.tCoude,E,ax,.25,.6);
+  brasPoutre(m.avBras,E,W2,.3,.27,ax);brasPoutre(m.avFil,V[12].copy(E).addScaledVector(Y,.17),V[13].copy(W2).addScaledVector(Y,.15),.06,.06,ax);
+  // le poignet, le boîtier (sa diode : cyan prêt, verte quand il tient), la tige et le patin
+  const fa=V[2].subVectors(W2,E).normalize(),pa=V[3].crossVectors(fa,dir);if(pa.lengthSq()<1e-4)pa.copy(ax);
+  brasDisque(m.poignet,W2,pa,.24,.44);brasTube(m.boitier,W2,W,.21);
+  brasDisque(m.bague,V[12].copy(W).addScaledVector(dir,.1),dir,.225,.06);brasDisque(m.led,V[13].copy(W).addScaledVector(dir,.025),dir,.218,.045);
+  BRB.M.led.color.setHex(BRB.serre?0x3dff8a:0x5ff0ff);BRB.M.led.emissive.setHex(BRB.serre?0x1fb85a:0x2fb8d0);if(BRB.M.ledB){if(BRB.serre)BRB.M.ledB.color.setRGB(.45,1.9,.75);else BRB.M.ledB.color.setRGB(1.9,1.05,.38);}
+  const eq=pl&&pl.kind==='equerre'&&(BRB.et>=1&&BRB.et<=7);
+  for(const o of [m.eq1,m.eq2,m.eqC,m.boitB,m.ledB])o.visible=false;
+  let tA,tB;
+  if(eq){ // l'ÉQUERRE, posée par qY autour du pivot levé, dépliée en trois temps
+    const C=pl.pv,u1=Math.min(1,T.u*3),u2=Math.min(1,Math.max(0,T.u*3-1)),u3=Math.min(1,Math.max(0,T.u*3-2)),L=T.L;
+    const pose=(Q,o)=>{o.copy(Q).sub(C).applyQuaternion(BRB.qY).add(C);o.y+=L+yOff;return o;};
+    const Ya=pose(pl.Wa,V[12]),Y2=pose(pl.Q2,V[13]),Y1=pose(pl.Q1,V[4]),bw=V[5].copy(pl.b).applyQuaternion(BRB.qY);
+    const e1=V[6].lerpVectors(Ya,Y2,u1);brasPoutre(m.eq1,Ya,e1,.2,.2);
+    if(u1>=1){brasDisque(m.eqC,Y2,V[7].crossVectors(bw,V[3].subVectors(Ya,Y2).normalize()),.17,.26);const e2=V[3].lerpVectors(Y2,Y1,u2);brasPoutre(m.eq2,Y2,e2,.19,.19);}
+    if(u2>=1){brasTube(m.boitB,V[3].copy(Y1).addScaledVector(bw,.1),V[7].copy(Y1).addScaledVector(bw,-.12),.17);brasDisque(m.ledB,V[7].copy(Y1).addScaledVector(bw,-.09),bw,.18,.04);}
+    tA=V[2].copy(Y1).addScaledVector(bw,-.12);tB=V[3].copy(tA).addScaledVector(bw,-Math.max(0,pl.stub-.12)*u3);if(u3<=0)tB=null;}
+  else{tA=W;tB=V[2].copy(W).addScaledVector(dir,-(pl?pl.stub:0)*T.u);if(!pl||T.u<=0)tB=null;}
+  if(tB){const dd=V[5].subVectors(tB,tA);const l=dd.length();brasTube(m.tige,tA,tB,.07);const nd=l>1e-4?dd.multiplyScalar(1/l):dir;
+    brasDisque(m.patin,V[6].copy(tB).addScaledVector(nd,-.03),nd,.2,.06);brasDisque(m.patinB,V[7].copy(tB).addScaledVector(nd,-.075),nd,.23,.03);}
+  else{m.tige.visible=false;const pd=eq?null:dir;if(pd){brasDisque(m.patin,V[6].copy(W).addScaledVector(pd,-.01),pd,.2,.06);brasDisque(m.patinB,V[7].copy(W).addScaledVector(pd,.035),pd,.23,.03);}else{m.patin.visible=m.patinB.visible=false;}}
+}
+function brasPark(phi,Wc,dir){Wc.set(Math.sin(phi)*(BRB.Rr-.7),Math.max(2.55,(BRB.mes?BRB.mes.bb.max.y:1.4)+1.05),Math.cos(phi)*(BRB.Rr-.7));dir.set(0,1,0);} // REPLIÉ au-dessus de son chariot (la sortie de la trappe, l'esquive)
+/* LE BANC : à chaque image, le vrai écart entre le bras dessiné et la caisse dessinée (et l'équerre), et la caisse contre le plateau */
+function brasVerif(){const M=BRB.mes,R=BRB.R;if(!M||!R||!BRB.g.visible||BRB.p<.999)return;BRB.g.updateMatrixWorld(true);carGroup.updateMatrixWorld(true);
+  const inv=BRB.M9.copy(carGroup.matrixWorld).invert(),c=brasCaps(R).slice(),v=BRB.v5;let mn=9;
+  for(let i=0;i<c.length;i+=7){const n=Math.max(1,Math.ceil(Math.hypot(c[i+3]-c[i],c[i+4]-c[i+1],c[i+5]-c[i+2])/.08));
+    for(let j=0;j<=n;j++){const t=j/n;v.set(c[i]+(c[i+3]-c[i])*t,c[i+1]+(c[i+4]-c[i+1])*t,c[i+2]+(c[i+5]-c[i+2])*t);BRB.g.localToWorld(v).applyMatrix4(inv);mn=Math.min(mn,brasBoite(v.x,v.y,v.z,M.bb)-c[i+6]);}}
+  const m=BRB.m;for(const o of [m.eq1,m.eq2])if(o.visible){for(let j=0;j<=10;j++){v.set(0,0,j/10-.5).applyMatrix4(o.matrix);BRB.g.localToWorld(v).applyMatrix4(inv);mn=Math.min(mn,brasBoite(v.x,v.y,v.z,M.bb)-.085);}}
+  BRB.vmin=Math.min(BRB.vmin,mn);if(mn<-.005){BRB.vcoll++;BRB.vmot=(BRB.plan?BRB.plan.f.id+':'+BRB.plan.et[BRB.et][0]:'attente')+' '+mn.toFixed(3);}
+  if(BRB.joue){let lo=9;const sol9=BRB.lieu==='boutique'?GARAGE_Y+(GBQ.socleH||0)+.05:GARAGE_Y+GAR.POD;for(const k of M.K){v.copy(k).applyMatrix4(carGroup.matrixWorld);lo=Math.min(lo,v.y-sol9);}BRB.vsol=Math.min(BRB.vsol,lo);}}
+window.dbgBras=function(a,b,c){if(a==='caisse'){const i=b|0;if(!CARS[i])return null;SAVE.d.equipped=i;level=i;try{garageSaute(i);}catch(e){return String(e);}return CARS[i].name;} // (banc) la caisse équipée change comme à l'inventaire (bascule du plateau)
+  if(a==='pieces'){const L=[];carGroup.updateMatrixWorld(true);carGroup.traverse(function(o){if(!o.isMesh&&!o.isSprite&&!o.isPoints&&!o.isLine)return;let vis=true;for(let q=o;q&&q!==carGroup;q=q.parent)if(!q.visible)vis=false;const mt=Array.isArray(o.material)?o.material[0]:o.material,g=o.geometry;if(g&&!g.boundingBox&&g.computeBoundingBox)g.computeBoundingBox();const sz=g&&g.boundingBox?g.boundingBox.getSize(new THREE.Vector3()).toArray().map(x=>+x.toFixed(2)):null;
+    const bx=g&&g.attributes&&g.attributes.position?new THREE.Box3().setFromBufferAttribute(g.attributes.position).getSize(new THREE.Vector3()).toArray().map(x=>+x.toFixed(2)):null;L.push([o.type,vis,mt&&mt.type,sz,bx,g&&g.attributes?Object.keys(g.attributes).join(','):'',o.parent===carGroup?'top':(o.parent&&o.parent.type),o.frustumCulled]);});return L;}
+  if(a==='remesure'){BRB.mes=null;BRB.hovK='';return true;}if(a==='lent'){BRB.lent=+b||1;return BRB.lent;}if(a==='fige'){BRB.fige=b?[b,c==null?.5:+c]:null;return BRB.fige;} // (banc) dbgBras('fige','tourne',.4) : la démonstration s'arrête là
+  if(a==='cam'){const M=BRB.mes;if(!M)return null;carGroup.updateMatrixWorld(true);camera.updateMatrixWorld(true);let x0=9,x1=-9,y0=9,y1=-9;const v=new THREE.Vector3();
+    for(const k of M.K){v.copy(k).applyMatrix4(carGroup.matrixWorld).project(camera);x0=Math.min(x0,v.x);x1=Math.max(x1,v.x);y0=Math.min(y0,v.y);y1=Math.max(y1,v.y);}
+    const lb=garLibre();return {pos:camera.position.toArray().map(x=>+x.toFixed(2)),fov:+camera.fov.toFixed(1),caisse:[x0,x1,y0,y1].map(x=>+x.toFixed(2)),libre:{y0:+(1-2*lb.y0/VP.h).toFixed(2),y1:+(1-2*lb.y1/VP.h).toFixed(2),cx:+(2*lb.cx/VP.w-1).toFixed(2)},dVs:+(GAR.dVs||0).toFixed(2)};}
+  if(a==='verif'){BRB.verif=b!==false;BRB.vmin=9;BRB.vsol=9;BRB.vcoll=0;BRB.vmot='';return 'verif '+BRB.verif;}
+  if(a==='plan'){const f=window.FIG&&FIG.par[b];const p=f&&brasPlan(f);if(!p)return {refus:BRB.pq};return {kind:p.kind,L:+p.L.toFixed(2),phi:+p.phi.toFixed(2),az:+p.az.toFixed(2),el:+p.el.toFixed(2),rho:+p.rho.toFixed(2),stub:+p.stub.toFixed(2),Rsw:+p.Rsw.toFixed(2),essais:p.essais,kind2:p.alt?'plateau (toupie trop longue)':''};}
+  if(a==='fig'){const f=window.FIG&&FIG.par[b];if(f&&brasBqVoulu())BRB.bqVeut=true;return f?brasDemande(f):false;}
+  const M=BRB.mes;return {p:+BRB.p.toFixed(2),voulu:brasVoulu(),lieu:BRB.lieu,bqK:+BRB.bqK.toFixed(2),bqVeut:BRB.bqVeut,file:!!BRB.attente||!!BRB.libre,etape:BRB.plan?BRB.plan.et[BRB.et][0]:(BRB.esquive>0||BRB.libre?'esquive':'attente'),fig:BRB.plan&&BRB.plan.f.id,kind:BRB.plan&&BRB.plan.kind,
+    L:BRB.TP?+BRB.TP.L.toFixed(2):0,joue:BRB.joue,serre:BRB.serre,yaw:+BRB.yaw.toFixed(2),cK:+BRB.cK.toFixed(2),cY:+BRB.cY.toFixed(2),hovX:BRB.hovX,
+    boite:M&&[M.bb.min.toArray().map(x=>+x.toFixed(2)),M.bb.max.toArray().map(x=>+x.toFixed(2))],vmin:+BRB.vmin.toFixed(3),vsol:+BRB.vsol.toFixed(3),vcoll:BRB.vcoll,vmot:BRB.vmot,stat:BRB.stat};}; // (banc)
 /* LE RAPPEL DE LA BOUTIQUE (2026-10-12, Léo : « qu'est-ce qu'on pourrait mettre au-dessus de HOME, tout ça ? » → « rappel de la boutique ») :
    au garage replié, une fine bande au-dessus des cinq touches — OFFRES ÉPHÉMÈRES, le compte à rebours, un reflet qui passe ; touchée, elle
    ouvre la BOUTIQUE. Visible replié (#garage.consoleCachee) et en INVENTAIRE (.modeInv, la vue d arrivée : sous l inventaire, au-dessus des touches). */

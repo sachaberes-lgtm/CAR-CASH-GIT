@@ -91,6 +91,9 @@ la montre sur n'importe quelle copie. Le détail : « L'ÉDITION POKI » dans `V
   · (2026-10-18, Sacha) LA VILLE, NÉON ET VERRE : la ville et la ville vitrée FUSIONNENT — la ville au néon garde tout (nuit, teintes, enseignes,
     réclames, pluie) et ses tours les plus hautes deviennent, pour une part, les géantes de verre de la VILLE VITRÉE (formes, biseaux, mur-rideau, bureaux
     allumés), en néon. La ville vitrée n'est plus tirée au JOUER (`?vitree=1` la remet, `?carte=vitree` la joue telle quelle). Détail : `VERSION PRINCIPALE/JOURNAL.md`.
+  · (2026-10-19, Sacha, Léo prévenu) LE GARAGE QUI PREND TOUT L'ÉCRAN : le ⚙ RÉGLAGES (masqué par Léo le 9/10) revient à côté du trophée ; couché,
+    l'ŒIL le rejoint et VITESSE · les portes (BOUTIQUE toujours deux fois plus large) passent dans une colonne à droite, ACCUEIL + JOUER en bas ;
+    debout, VITESSE et les portes montent sous le nom. `?garage=leo` = le garage d'avant, au pixel. Détail : `VERSION PRINCIPALE/JOURNAL.md`.
 - **SANS TOUT CASSER** — la règle de chaque session, avant de pousser :
   1. Partir de `origin/main` À JOUR : `git fetch origin main`, puis `git merge origin/main`. Jamais d'une vieille branche, jamais d'une copie locale.
   2. Sur `main`, on FUSIONNE. Jamais de `push --force`, de `reset` ni de revert du travail de l'autre ; dans un conflit, on garde les deux.
@@ -191,7 +194,8 @@ fois, livrée au fil de l'eau, pas en lot.
   de Sacha (celui de Léo, `?menu=leo`, est retiré le 18/10), JOUER = le mode classique au hasard (le Soleil de jade direct = `?play=jade`),
   l'iPhone avec encoche sur l'ordi (`ENCOCHE_DEFAUT`, écran nu = `?encoche=0`).
 - Une session (ou Léo) a rebasculé un choix de l'autre ? On le SIGNALE à Sacha, on ne rebascule pas. Le rangement du garage du
-  11/10 a été annulé par Léo : ne pas le remettre sans lui.
+  11/10 a été annulé par Léo : ne pas le remettre sans lui. Le 19/10, à la demande de Sacha (Léo prévenu), LE GARAGE QUI PREND TOUT
+  L'ÉCRAN (`<style id="garageHaut">`, le ⚙ revenu) : le garage d'avant = `?garage=leo`.
 - Données de Léo à ne pas écraser en test : `simulateur/choix-musiques.json`, `simulateur/play.json`, `maps-ciel/sauvegarde.json`.
 - **Rien d'ajouté sans demande** : « améliore » = lumière, couleurs, matières de ce qui existe. Un objet, un décor, une mécanique
   neuve se PROPOSE en une ligne avant d'être construit.
@@ -224,6 +228,10 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   n'appelle ni `runxReset` ni `resetGame`, elle décale les bases de commitExploits — `chanceBase`). Depuis le 15/10 soir elle se gagne par une
   PUB, plus avec de l'argent : `pubRecompense(nom,fin)`/`PUBR` ; une régie se branche par `window.CC_PUB_RECOMPENSE`, sinon la pub maison `#pubR`.
   Sur le SITE, la régie est AdSense (`CC_ADSENSE` dans le `<head>`, vide = éteinte ; `ADS`, `CC_PUB_PREPARE` ; `?pubtest=1` = le mode test de Google).
+  Dans l'APP, la régie sera AdMob (19/10, prise posée ÉTEINTE : `CC_ADMOB.recompense` dans le `<head>` + le module natif `@capacitor-community/admob`
+  à installer côté Mac en v1.1 ; `AMOB`, `dbgPub().admob`). LE ×2 DU GAIN (19/10) : à l'écran de fin, `#mDouble` « ×2 · +$ N · ▶ PUB » verse une
+  2e fois ce que la partie a versé au compte, une fois par partie (`DBL`, `dblEtat`/`dblJoue`, `?double=0`, `dbgDouble()`). Les vraies pubs vues
+  comptent pour L'ÉTERNELLE (`pubCompte`, `SAVE.d.ex.pubs`), pas la pub maison.
 - **La mort** : `explode` (comptes, musique) → `boomDetone` (la boule DESSINÉE de l'airtime : `spawnBoomArt`, `VOLU`/`DARD`, `BOOM_ONDES`,
   pièces de la caisse) → `BOOM_CAM` (le plan de la mort) → `endGame`. Contre une PAROI, L'IMPACT passe avant : `impPrep(test,cause,marge)`
   trouve le contact et la normale, `IMP`/`impCoupTick` (0,11 s : la caisse s'écrase, étoile, négatif), puis le cratère `IMP_CRAT`, les
@@ -259,7 +267,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   (`GLI`, `figGJoue`, `figGVoit`/`#figGl` la flèche, `figGBascule` seul écrivain). En l'air ← → TAIL WHIP (15/10 soir, `FIG.par.tailwhip`, `piv` : le nez fixe ; offert, le tonneau à 1 500, `SAVE.d.figT0`), ↑ salto arrière, ↓ salto avant ; AU SOL
   `GSOL` (`gsolLance`/`gsolTick`/`gsolPose`) : ← → SLIDE 360, ↑ WHEELIE, ↓ STOPPIE, joystick avant pendant l'amorce = `veqSaut(fo)` + salto.
 - **Piste et niveaux** : `newTrack` → `lvlChoisir` → `genCtrl` → `buildTrack` ; `frameAt`, `rnd`/`mulberry32`, `NIVEAUX`, `LVL`,
-  mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, `NIV_PARIS`/`genParis`/`buildParis`/`PARIS` (PARIS au sol : hors du classique depuis le 18/10 au soir, code gardé), `NIV_JADE`/`genJade`/`JADE_HUMEURS`/`buildJade` (la vallée de jade tirée au hasard : axe, ordre des monuments, caractère des tronçons, relief), `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt), `NIV_VOLCAN`/`genVolcan`/`buildVolcan`/`VOLCAN` (le volcan), `NIV_CRYPTO`, `NIV_VITRE`/`VIT`/`vitreMatTours`/`vitreGeo`/`vitreGeoR`/`vitreForme`/`vitreCiel`/`vitreDirigeable`/`vitreAplanir`/`vitreSolMat`/`vitreSolPose` (LA VILLE VITRÉE = CLEAN CITY AU SOL : la route à plat à 26 m du sol, des ponts sur piliers où elle se recroise, des géantes de verre posées sur le sol, logos minimalistes, un dirigeable ; toucher le sol = la mort ; `?vitre=spirale` la ville d'avant ; le plafond-miroir derrière `?plafond=1` ; ⚠ dans la ville la profondeur est en 16 bits — rien de caché DANS une tour, voir le journal), `NIV_CANYON`/`genCanyon`/`buildCanyon`/`dbgCanyon`, `NIV_DUNES`/`genDunes`/`buildDunes`/`DN`/`dnHauteur`/`dbgDunes` (LES DUNES D'OR, 18/10 : le moteur de terrain du canyon sur une mer de dunes — le ciel et le soleil de l'heure du canyon, `LVL.canyonA` y vaut 1 ; l'horizon de dunes et les pyramides `uCyDn`), `NIV_GROTTE`/`genGrotte`/`grtTrace`/`buildGrotte`/`GROTTE`/`grtCreuse1`/`grtMailleNets`/`dbgGrotte` (LES PROFONDEURS, 18/10 : les biomes de grotte de Minecraft dans la DA du jeu — un champ de densité creusé autour de la route, une roche low-poly à facettes tirée par « surface nets », une matière `GRT_FS`, lumière cuite en deux canaux, une ambiance par salle — voir le journal ; LA GROTTE VASTE, 19/10 : `GRT_VASTE`/`GRV`, des salles ~2,5 × plus grandes, la map 1,7 × plus longue, la grille à 12 m, `?sans=grottevaste` = avant),
+  mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, `NIV_PARIS`/`genParis`/`buildParis`/`PARIS` (PARIS au sol : hors du classique depuis le 18/10 au soir, code gardé), `NIV_JADE`/`genJade`/`JADE_HUMEURS`/`buildJade` (la vallée de jade tirée au hasard : axe, ordre des monuments, caractère des tronçons, relief), `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt ; tirée au hasard depuis le 19/10 : axe, pelotes, traversées et leur caractère, une ou deux arches — `FORET_HASARD`, `?sans=forethasard`), `NIV_VOLCAN`/`genVolcan`/`buildVolcan`/`VOLCAN` (le volcan), `NIV_CRYPTO`, `NIV_VITRE`/`VIT`/`vitreMatTours`/`vitreGeo`/`vitreGeoR`/`vitreForme`/`vitreCiel`/`vitreDirigeable`/`vitreAplanir`/`vitreSolMat`/`vitreSolPose` (LA VILLE VITRÉE = CLEAN CITY AU SOL : la route à plat à 26 m du sol, des ponts sur piliers où elle se recroise, des géantes de verre posées sur le sol, logos minimalistes, un dirigeable ; toucher le sol = la mort ; `?vitre=spirale` la ville d'avant ; le plafond-miroir derrière `?plafond=1` ; ⚠ dans la ville la profondeur est en 16 bits — rien de caché DANS une tour, voir le journal), `NIV_CANYON`/`genCanyon`/`CY_HZ`/`buildCanyon`/`dbgCanyon` (le canyon tiré au hasard, 19/10 : axe, coudes, pièces et leur ordre, caractère des liaisons — `?sans=canyonhasard`), `NIV_DUNES`/`genDunes`/`DN_HZ`/`buildDunes`/`DN`/`dnHauteur`/`dbgDunes` (les dunes au hasard aussi, `?sans=duneshasard` ; LES DUNES D'OR, 18/10 : le moteur de terrain du canyon sur une mer de dunes — le ciel et le soleil de l'heure du canyon, `LVL.canyonA` y vaut 1 ; l'horizon de dunes et les pyramides `uCyDn`), `NIV_GROTTE`/`genGrotte`/`grtTrace`/`buildGrotte`/`GROTTE`/`grtCreuse1`/`grtMailleNets`/`dbgGrotte` (LES PROFONDEURS, 18/10 : les biomes de grotte de Minecraft dans la DA du jeu — un champ de densité creusé autour de la route, une roche low-poly à facettes tirée par « surface nets », une matière `GRT_FS`, lumière cuite en deux canaux, une ambiance par salle — voir le journal ; LA GROTTE VASTE, 19/10 : `GRT_VASTE`/`GRV`, des salles ~2,5 × plus grandes, la map 1,7 × plus longue, la grille à 12 m, `?sans=grottevaste` = avant),
   `buildVoxCity`/`CITY`, `orbiteBuild`, `PORTAL`/`portailPasse`, `spawnPickups`, `LIGNE`/`ligneTick`.
   LE PORTAIL DE CUBES (17/10, Léo) : `PCUBE` (l'anneau, `pcubePose`/`pcubeDest`/`pcubeTick`), `portDest` (la map d'en face TIRÉE D'AVANCE dans
   `SF.tirage[zone+1]`), la fenêtre sur `assets/portail/*.webp` (`PCUBE_CP`, `dbgCartePostale`), le passage `pcVoile`/`pcVoileSort` (`#portC`),
@@ -309,9 +317,13 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   (toutes les caisses payantes), `bqEphemeres` (les quatre de la semaine, plus montrées en boutique), la salle blanche 3D `GBQ`/`garBqBatit`/`garBqPanneau`, `gShopJour`,
   `figAchat`/`figPossede`, le FILM AU RALENTI d'une carte FIGURES `figFile`/`figFilm` → `filmPose`/`filmJoue` (studio commun `photoStudio`, pellicule `photoDevPrep`), `eurTxt`, `shopPaye` (la porte StoreKit : elle refuse tout aujourd'hui).
 - **Garage et menus** : `openGarage`/`closeGarage`/`garageRender`, `garMode`/`GMODE`, `GAR`, `garLibre`/`garCadre`, `invOuvre`,
+  LE BRAS DES FIGURES (`BRB`, `brasVoulu`/`brasTick`/`brasPlan`/`brasFigure`, `dbgBras()` — voir JOURNAL.md) : RANGÉ depuis le 19/10 soir
+  (`BRAS_FIG` faux, `?bras=1` le rend) — en FIGURES les pinces et les bras d'argent rentrent, la caisse fait la figure seule (`figPosee`),
   `hubSync`, l'accueil au ciel `chuteRender`/`CHUTE`/`TITRE_H`, la coque `#mob` (`mGo`, `mTap`, `#mHome`,
   `#mDead`), `ecranWipe`, `modale`, `toast`, `uiGarde`, MISSIONS v2 `M2`/`m2Etat`/`m2Val`/`m2Tick`/`m2Prend` (sauvegarde `SAVE.d.m2` ;
   l'ancien système des carnets est retiré le 18/10 : `SAVE.d.mis` reste lu par `carStat('carnet')`, `m2MigreV2` et le cadeau `popCarnets`/`misPop`).
+  Les places des touches du garage (19/10) : `<style id="garageHaut">` (`?garage=leo` = avant), le ⚙ `#gOutils [data-go="set"]` posé à côté du
+  trophée par `ghPlace` (`--ghTx`/`--ghTy`), son retour `__setGar`.
 - **HUD** : `#hud`, `hudColonne` (sa mesure `hudColMesure` passe par `apresMiseEnPage`), `hautPasse` (une carte à la fois), `slam`, `trickMsg`, `flowHudMaj`, `ajTick` (la couche `#ajVols` des éclairs de nitro),
   `VOLG` (les gains qui volent vers leur jauge), `airPieDraw`, `#tNitro`, pause `#tGear`/`#tPanel`/`panSync`, `HAS_D`/`hasMaj`.
 - **Économie** : `bank()` (= `SAVE.d.bank`), `DENOMS`/`ECO3`/`denom()`, rangs d'aura `AURA_RANKS`/`auraRank` (13 depuis le 14/10), moteur `ENGINE_TIERS`/`engTier`/`coinsGot`/`addCoins`,
@@ -392,7 +404,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `?sans=volroute` = avant, `dbgVolRoute(false)` en direct. Banc apparié : `cc-banc/volcote.cjs` (journal).
   Et quand la route VRILLE sous la caisse, le vol tourne avec elle (`VOLR_ROULIS`, 19/10, Sacha : « ça dévie la trajectoire ») : élan, repère du
   vol et haut de l'écran suivent le roulis de la route, pas ses plongées — `?sans=volroulis`, `dbgVolRoulis(false)`.
-- LE GLACIER EST UNE PISTE DE GLACE (17/10, Sacha : « plus de route ») : (196 m, pics sur la piste, tremplins pour s'envoler ; plus de lacs gelés ni de stalactites depuis le 18/10). Les satellites de l'orbite FLOTTENT au bord de la route, décor pur (17/10 soir, Sacha : « je voulais juste qu'ils flottent proche de la route » —
+- LE GLACIER EST UNE PISTE DE GLACE (17/10, Sacha : « plus de route ») : (196 m, pics sur la piste, tremplins pour s'envoler ; plus de lacs gelés ni de stalactites depuis le 18/10 ; depuis le 19/10 la montagne TOURNE d'un axe tiré à ±90° et la descente enchaîne des tronçons tirés — lacets, courbes, traverse, schuss : `BK_HASARD`, `?sans=glacierhasard`). Les satellites de l'orbite FLOTTENT au bord de la route, décor pur (17/10 soir, Sacha : « je voulais juste qu'ils flottent proche de la route » —
   `orbiteBuild` §0 bis) ; les obstacles SUR la route de l'après-midi sont retirés (18/10).
   (18/10, 3e tour) le bord n'est PLUS un mur : LA CONGÈRE (`bkCongere`, `BK_CG`) — 16 m de neige profonde où l'on s'enfonce et ralentit fort,
   jamais de mort (Sacha : « on doit pas mourir ») ; pente 40-50° pour de vrai (`BK_PENTE4` est une TANGENTE : 43° de moyenne) ; TREMPLINS
@@ -710,12 +722,14 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LE GLACIER — LA FACE EN LACETS QUI SE SUPERPOSENT » (14/10 soir) — ex-banquise : spirales ovales superposées, raccourcis par le bord aval
 - « LA BANQUISE — LA DESCENTE DES PICS DE GLACE » (14/10) — la route qui dévale, la poudreuse qui porte et qui avale, la glisse sur les pics (les lacs gelés ont été retirés le 18/10), les aurores
 - « LE ROYAUME DE FEU — LA MAP DU VOLCAN » (14/10) — le flanc qui descend, les lacs et les coulées de lave, les éruptions, les six temps
+- « LA FORÊT ET LE GLACIER AU HASARD — L'AXE TIRÉ, LES PELOTES ET LES ARCHES QUI BOUGENT, LA MONTAGNE QUI TOURNE » (19/10) — `FORET_HASARD`/`BK_HASARD`, `?sans=forethasard`, `?sans=glacierhasard`, le banc des tracés (écart de forme)
 - « LA FORÊT NOIRE — LA MAP DES CONTES » (14/10) — la vallée en slalom qui descend, les géants, le jour fleuri, la nuit hantée, le loup-garou
 - « LE NIVEAU « SOLEIL DE JADE » » (12/10) · « LES PICS DE JADE + LA BALADE `?map=jade` » (09/10) · « CRYPTOCITY » (13/10) · « CRYPTO CITY — LA VILLE DU BULL RUN ENTRE DANS LE TIRAGE » (15/10) · « LE CANYON DES GÉANTS » (14/10) · « LE CANYON v2 — RACCOURCIS, COULOIR DE PRÉCISION… » (14/10 soir)
 - « LES NIVEAUX — la page `maps-ciel.html` » (09-10/10) · « LE SIMULATEUR — `simulateur.html` » (12/10) · « PARIS SORT DU MODE INFINI » (10/10)
 - « LA MAP NUAGES, DES VIRAGES DE COURSE — CINQ MODULES À RIDER, LE DÉVERS, LA ROUTE QUI NE SE TOUCHE PLUS » (18/10) — `TORD_AMP`, `TORD_W`, `MODT`, `TORD_DEVERS`, `pisteTordPropre`
 - « LA GROTTE VASTE — LES PROFONDEURS 1,7 × PLUS LONGUES, DES SALLES 2,5 × PLUS GRANDES » (19/10) — `GRT_VASTE`, `GRV`, `GRT.B` 12 m, la brume et l'air des salles, `?sans=grottevaste`, `?grv=`
 - « LES PROFONDEURS — LES BIOMES DE GROTTE DE MINECRAFT, DANS LA DA DU JEU » (18/10) — `genGrotte`, `grtCreuse1`, `grtMailleNets`, `GRT_FS`, `grtBiomes`, `grtConti`, `grotteHeurt`, `dbgGrotte('test')`, bancs Node
+- « LE CANYON ET LES DUNES AU HASARD — L'AXE, LES PIÈCES ET LEUR ORDRE, LE CARACTÈRE DES LIAISONS, LES COUDES » (19/10) — `CY_HZ`, `DN_HZ`, `AX9`, `?sans=canyonhasard`/`duneshasard`, les Mitaines qui s'écartent de la route, le banc des tracés
 - « LE TUNNEL DE GRÈS — LA GALERIE AUX ANNEAUX D'OR, LA SALLE DU PORTAIL, LA BOUCHE EN VOUSSOIRS » (19/10) — le tunnel d'arrivée du canyon refait, `cyTunnel2`, `CY_TUN2`/`CY_T2L`, `dbgTunnel`, `?sans=tunnelcanyon`
 - « LES MODULES DE CHAQUE MAP — AU MOINS TROIS PAR MAP, TIRÉS AU HASARD » (18/10) — `MODC_ON`, `?sans=modcartes`, `dbgModCartes`, un paquet par générateur
 - « LES MAPS, 2e TOUR — MOINS DE TOUT DROIT, LE VOLCAN REFAIT EN BALADE QUI MONTE, LA FORÊT ALLÉGÉE » (18/10) — `vlcTrace3`, `vlc3Cone`, `rPlancher`, `VILLE_WM`
@@ -751,6 +765,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LES MISSIONS v2 — DES MISSIONS LIBRES À LA PLACE DES CARNETS » (16/10) — `M2`, `SAVE.d.m2`, la migration, les secrètes, les mesures des seuils
 - « LA MIGRATION DES MISSIONS v2 NE TOURNAIT PAS — M2_COLK ET M2_RECO EN ZONE MORTE » (18/10) — pourquoi, mesuré sur des sauvegardes d'avant (banc `cc-banc/m2colk/`), ce que le correctif change (rien de dangereux)
 - « LA REPRISE DE LA MIGRATION DES MISSIONS v2 » (18/10) — le drapeau `vr`, les sauvegardes marquées par la passe avortée rejugées une fois, sans confisquer (banc `m2rep.cjs`)
+- « LE GARAGE QUI PREND TOUT L'ÉCRAN — LE ⚙ REVIENT, LES BOUTONS MONTENT » (17 → 19/10) — garageHaut, `?garage=leo`
 - « LA PASSE UX/UI — L'ACCUEIL, LE GARAGE, L'ŒIL, LES TRANSITIONS » (11/10) · « LE GARAGE, HUB DES TROIS » (06/10)
 - « LA VUE DE LÉO DANS LA CONSOLE DE SACHA » (06/10) · « LE PREMIER BURN-OUT, REVENU — AVEC LES DONUTS » (08/10)
 - « L'ÉCRAN TITRE v3 » (01/10) · « LE CIEL DE L'ÉCRAN TITRE v4 » (06/10) · « LES HEURES DU TITRE » (05/10)

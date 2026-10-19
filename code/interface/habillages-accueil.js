@@ -68,7 +68,7 @@ function openGarage(quiet){
   GAR.vueT=0;GAR.vueNeuve=true; // (2026-10-06) LA MISE EN PLACE : l'atelier qui s'ouvre pose son plan d'un coup (voir garageRender) — (2026-09-30) la porte des MISSIONS, venue d'ailleurs (écran de mort…) // (2026-09-30) ouvert par l'ACCUEIL = le menu ; par un autre chemin (mort → GARAGE, missions, objectif) = la boutique
 }
 function closeGarage(){
-  GATL.on=false;GATL.c=GATL.cs=GATL.l=GATL.p=0;if(gEl)gEl.classList.remove('atelierInv'); // (2026-10-12) l'ATELIER FERMÉ ne survit pas au garage
+  GATL.on=false;GATL.c=GATL.cs=GATL.l=GATL.p=0;if(gEl)gEl.classList.remove('atelierInv');BRB.p=0;BRB.plan=null;BRB.TP=null;BRB.attente=null;BRB.libre=null;BRB.joue=false;BRB.yaw=0;BRB.cK=BRB.cY=0;if(BRB.g)BRB.g.visible=false; /* (2026-10-19) le bras des figures non plus */ // (2026-10-12) l'ATELIER FERMÉ ne survit pas au garage
   try{gVueSeule(false);}catch(e){} // (2026-10-10) l'ŒIL ne survit pas à l'atelier
   try{burnCoupe();}catch(e){} // (2026-10-05) le burn-out ne survit pas à l'atelier
   invFerme(true);invHoldFin(); // (2026-10-04) l'INVENTAIRE ne survit pas à l'atelier

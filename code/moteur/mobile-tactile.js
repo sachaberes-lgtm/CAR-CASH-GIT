@@ -672,6 +672,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       else{goImmersive(); playViaGarage(true);} } // 1re partie = AUTO-ÉCOLE : tutoArme passe SOUS le voile (la reconstruction de la piste figeait le bouton avant qu'il monte)
     else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.d.tutoProv=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
     else if(a==='back'&&window.__setPause){ setPauseFerme(); } // (2026-10-14, charte 6) le ◀ des réglages ouverts depuis la pause rend la pause
+    else if(a==='back'&&mCur==='set'&&window.__setGar){ window.__setGar=false; ecranWipe(function(){ openGarage(); }); } // (2026-10-19, Sacha) les RÉGLAGES ouverts par le ⚙ du garage : le RETOUR y ramène (comme __offGar)
     else if(a==='back'&&mCur==='shop'&&window.__offGar){ window.__offGar=false; ecranWipe(function(){ openGarage(); try{gModeVa('shop');}catch(e){} }); } // (2026-10-10) venue de la PORTE DES OFFRES du garage : le RETOUR y ramène
     else if(a==='back')mGo(mRoot());
     else if(a==='mis'){ if(started&&gameOver&&!garageOn){GAR.aMis=true;ecranWipe(function(){ accueilRetour(); mGo('home','racine'); });} else garMissionsOuvre(); } // (2026-09-30) les MISSIONS vivent dans l'atelier (la constellation) — l'ancien écran #mMis n'est plus ouvert d'ici
@@ -748,6 +749,43 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
        ensuite : la plaque SUIT donc l'offre, relue toutes les 200 ms pendant sa fenêtre (5,5 s + marge), puis se tait. */
     let suitT=0;const suit=function(){maj();clearInterval(suitT);let n=0;suitT=setInterval(function(){maj();if(++n>45)clearInterval(suitT);},200);};
     document.addEventListener('cc:chance',suit);window.__chanceMaj=maj;maj();})();}catch(e){console.warn('seconde chance',e);}
+  /* LE ×2 DU GAIN À L'ÉCRAN DE FIN (2026-10-19, Sacha au quiz : « ×2 sur le gain ») — contrat : dblEtat() → {ok, v}, dblJoue(apres). La plaque
+     #mDouble (laque, néon VERT de l'argent — jamais l'or : REJOUER reste le seul lingot) prend la case que la seconde chance libère : debout
+     sous la plaque d'argent, couchée la case `row` au-dessus de ⌂ · REJOUER (NON MERCI y était pendant l'offre). Elle entre 1,1 s après que
+     l'écran de fin est jouable (le compte du grand chiffre est fini), se relit toutes les 250 ms (l'offre de seconde chance et la machine à
+     sous la font attendre). Vue → le grand chiffre MONTE de N à 2 N et claque, la ligne COMPTE suit ; même garde de 600 ms que les autres
+     touches de l'écran de fin. */
+  try{(function(){const ch=$t('mChance');if(!ch||typeof dblEtat!=='function')return;
+    const el=document.createElement('div');el.id='mDouble';el.className='pbtn pb-cash';el.setAttribute('role','button');el.tabIndex=0;el.hidden=true;
+    el.innerHTML='<span class="dbT">×2</span><b class="dbS"></b><b class="dbP">'+pxi('lecture')+'<span data-fr="PUB">'+TR('PUB')+'</span></b>';
+    ch.parentNode.insertBefore(el,ch);
+    let vu0=0,mort=-1,prep=false,deja=false;
+    const maj=function(){let e=null;try{e=dblEtat();}catch(_){e=null;}const ok=!!(e&&e.ok);
+      if(mort!==TCTL.mortT){mort=TCTL.mortT;prep=false;deja=false;}
+      if(!ok)vu0=0;else if(!vu0)vu0=performance.now();
+      const voir=ok&&(deja||performance.now()-vu0>=1100); // (une pub fermée trop tôt : la plaque revient tout de suite, sans rejouer son entrée)
+      if(voir)deja=true;
+      if(voir){const s9='+'+fmtC(e.v);if(el._s9!==s9){el._s9=s9;el.querySelector('.dbS').textContent=s9;}
+        if(!prep){prep=true;pubPrepare('double-gain');} // la régie va chercher sa pub pendant que la plaque monte
+        el.setAttribute('aria-label','×2 '+s9+' '+TR('PUB'));
+        if(el.hidden){el.hidden=false;el.classList.remove('dbOn');void el.offsetWidth;el.classList.add('dbOn');}}
+      else if(!el.hidden)el.hidden=true;};
+    const monte=function(v){ // le grand chiffre passe de v à 2 v (0,6 s, ease-out), puis claque ; la ligne COMPTE dit le nouveau solde
+      const c9=$t('mCash'),t9=$t('mCashTot');
+      if(t9&&t9.firstChild&&t9.firstChild.nodeType===3)t9.firstChild.nodeValue=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtSolde(bank());
+      try{if(SONV2)sfx('piece.serie');else rewardSfx('m3',2);}catch(_){}hap([10,30,10,30,24]);
+      if(!c9)return;if(mCntT){clearInterval(mCntT);mCntT=0;}
+      c9.style.setProperty('--n',fmtC(2*v).length);
+      if(REDUCED_MOTION){c9.textContent=fmtC(2*v);return;}
+      const t0=performance.now(),D=600;
+      mCntT=setInterval(function(){const k=Math.min(1,(performance.now()-t0)/D),q=1-Math.pow(1-k,3);c9.textContent=fmtC(Math.round(v*(1+q)));
+        if(k>=1){clearInterval(mCntT);mCntT=0;c9.classList.remove('clac');void c9.offsetWidth;c9.classList.add('clac');}},28);};
+    const apres=function(vue,v){if(vue)monte(v);maj();};window.__dblApres=apres;
+    const sourd=function(){return !!(TCTL.mortT&&performance.now()-TCTL.mortT<600);};
+    const go=function(ev){ev.preventDefault();ev.stopPropagation();if(sourd()||el.hidden)return;uiPop(el);uiClic('');hap(8);let r=false;
+      try{r=dblJoue(apres);}catch(_){r=false;}if(!r)uiClic('refus');maj();};
+    el.addEventListener('click',go);el.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' ')go(ev);});
+    setInterval(maj,250);maj();})();}catch(e){console.warn('double',e);}
   if(mob){
     const mHit=function(e){
       const el=e.target&&e.target.closest?e.target.closest('[data-m]'):null;

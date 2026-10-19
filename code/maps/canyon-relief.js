@@ -183,10 +183,17 @@ function canyonHeurt(p){if(!CY.on||!CY.Z)return '';
 function cyMitaines(S,F,sQ,K,r){
   const a=sQ.depart!=null?sQ.depart:0,b=sQ.breche0!=null?sQ.breche0:Math.min(L,600);if(b-a<120)return;
   const s9=a+(b-a)*.55,i=Math.min(S.n-1,Math.round(s9/S.ds)),tx=S.tx[i],tz=S.tz[i],px=-tz,pz=tx,K4=Math.pow(K,.8);
+  const th=Math.atan2(tx,tz),dA=Math.abs(th)>1e-6?th:0; // (2026-10-19, LE CANYON AU HASARD) le cap de la Route 67 : les Mitaines se tournent avec elle (plein nord : 0, rien ne change)
   const M=[]; // [x, z, axe x, axe z, rx, rz, hauteur, pouce : côté le long du grand axe]
-  for(const sg of [-1,1]){const lat=(sg<0?430:390)*K4,av=(sg<0?40:-60)*K4,cx=S.x[i]+px*sg*lat+tx*av,cz=S.z[i]+pz*sg*lat+tz*av,an=(sg<0?.35:-.5)+(r()-.5)*.3;
+  for(const sg of [-1,1]){const lat=(sg<0?430:390)*K4,av=(sg<0?40:-60)*K4,cx=S.x[i]+px*sg*lat+tx*av,cz=S.z[i]+pz*sg*lat+tz*av,an=(sg<0?.35:-.5)+(r()-.5)*.3-dA;
     M.push({x:cx,z:cz,ax:Math.cos(an),az:Math.sin(an),rx:(118+r()*20)*K4,rz:(64+r()*10)*K4,h:(320+r()*40)*K4,pouce:sg});}
-  {const lat=820*K4,cx=S.x[i]+px*(r()<.5?-1:1)*lat+tx*260*K4,cz=S.z[i]+pz*lat*(r()<.5?-1:1)+tz*260*K4;M.push({x:cx,z:cz,ax:1,az:0,rx:190*K4,rz:120*K4,h:280*K4,pouce:0});} // la troisième, massive (une mesa), plus loin
+  {const lat=820*K4,cx=S.x[i]+px*(r()<.5?-1:1)*lat+tx*260*K4,cz=S.z[i]+pz*lat*(r()<.5?-1:1)+tz*260*K4;M.push({x:cx,z:cz,ax:Math.cos(dA),az:-Math.sin(dA),rx:190*K4,rz:120*K4,h:280*K4,pouce:0});} // la troisième, massive (une mesa), plus loin
+  /* (2026-10-19, LE CANYON AU HASARD) LA RÈGLE D'OR DES MITAINES : elles sont posées à côté de la Route 67, mais la route peut tourner ensuite vers elles (la brèche, une
+     dérive, un coude : MESURÉ, 4 canyons sur 40 passaient DANS une butte, 360 à 830 m sous sa cime). Une butte dont le pied (1,65 × son grand rayon : là où
+     son talus tombe sous ~15 m ; le pouce : rx + 100 m) approche une route s'écarte de 60 m en 60 m, au plus 12 fois — sinon elle n'est pas posée. Aucun tirage ;
+     la recette d'avant n'en a jamais besoin (sa route file droit sous les Mitaines : 390 m et plus). */
+  for(let k=M.length-1;k>=0;k--){const m=M[k],R9=Math.max(1.65*Math.max(m.rx,m.rz),m.pouce?m.rx+100*K4:0)+ROAD_HALF+10,pres=()=>{for(let j=0;j<S.n;j+=2){const dx=S.x[j]-m.x,dz=S.z[j]-m.z;if(dx*dx+dz*dz<R9*R9)return true;}return false;};
+    if(!pres())continue;let ux=m.x-S.x[i],uz=m.z-S.z[i];const ul=Math.hypot(ux,uz)||1;ux/=ul;uz/=ul;let n9=0;while(n9<12&&pres()){m.x+=ux*60;m.z+=uz*60;n9++;}if(pres())M.splice(k,1);}
   const fc=F.c,fm=F.m,TF=F.ts;CY.mit=[];
   for(const m of M){const base=cyHauteurVite(m.x,m.z)-4,R9=Math.max(m.rx,m.rz)*2.1+60;CY.mit.push({x:m.x,z:m.z,r:Math.max(m.rx,m.rz)*1.1,y0:base,y1:base+m.h});
     const th={x:m.x+m.ax*(m.rx+48*K4)*(m.pouce||0),z:m.z+m.az*(m.rx+48*K4)*(m.pouce||0),r:26*K4,h:m.h*.93};

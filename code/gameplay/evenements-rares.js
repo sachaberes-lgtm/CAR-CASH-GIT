@@ -203,7 +203,7 @@ Object.assign(I18N,{'GUIDE DU JEU':'GAME GUIDE','COMPRIS !':'GOT IT!','DRIFT':'D
   'Le lapin ouvre la boutique. Garde le doigt sur ta voiture : elle charge un boost.':'The bunny opens the shop. Hold your finger on your car: it charges a boost.','ESPACE':'SPACE'});
 function buildAffiches(g){
   const hd=GAR.D/2;GAR.affiches=[];
-  for(const a of [{k:'perso',x:6.45,cad:0xffc83d}]){  // x > 0 = à GAUCHE vu de la caisse — (2026-09-30, Sacha : « enlève le truc de classement mondial ») l'affiche RECORDS MONDIAUX ({k:'monde',x:-8.5,cad:0x5fd8ff}) est retirée : il reste le RECORD PERSO
+  for(const a of [{k:'perso',x:-6.45,cad:0xffc83d}]){  // (2026-10-19, Léo : « mets-la à droite ») x < 0 = à DROITE vu de la caisse (à gauche, l'ÉTAL du moteur, vdepEtal) — x > 0 = à GAUCHE vu de la caisse — (2026-09-30, Sacha : « enlève le truc de classement mondial ») l'affiche RECORDS MONDIAUX ({k:'monde',x:-8.5,cad:0x5fd8ff}) est retirée : il reste le RECORD PERSO
     // (2026-09-30) 2,78 → 2,05 m et ×1,2 : sur main la caméra du menu est plus proche et l'objectif décentré — là-haut, elles passaient
     // DERRIÈRE JOUER et l'étiquette MISSIONS. PERSO contre le pilier gauche de la porte ; MONDE vers le coin droit (−8,5, pas −6,45) : vu
     // de la caméra, le SOCLE DES MISSIONS (−2,9 ; 2,5) tombait pile devant elle.
@@ -296,6 +296,122 @@ function afficheTap(a){ // ⚠ LE POINT D'EXTENSION des affiches : leurs vraies 
   try{uiClic();if(SONV2&&window.CCSON&&window.CCSON.existe('ui.ok'))sfx('ui.ok');else{chimeNote(a.k==='perso'?659:587,0,.12,.12);chimeNote(a.k==='perso'?988:880,.06,.18,.1);}}catch(e){}
   /* (2026-10-14, nettoyage, Sacha : « ce qui dit bientôt : on cache ») plus de toast « TES RECORDS : BIENTOT EN DETAIL » ni « CLASSEMENT MONDIAL : BIENTOT EN LIGNE » : l'affiche rebondit et tinte, c'est tout. L'affiche MONDE n'existe plus dans buildAffiches depuis le 2026-09-30. */
 }
+/* LA VITESSE DE DÉPART AU GARAGE (2026-10-19, Léo : « trouve un bouton et un système qui rend le truc fluide — pas une page qui nique tout
+   le système » · « à la place de l'affiche record, le matos de moteur, à gauche : un étal avec le moteur soulevé, qui change en fonction du
+   niveau que tu vas sélectionner ; l'affiche, mets-la à droite »). RIEN NE S'OUVRE : un toucher sur un cran = la vitesse est choisie (sauvée),
+   l'étiquette du PLAY et le moteur de l'étal changent tout de suite. Le cœur (VDEP_PAL, vdepOuvert, vdepN, vdepPal, vdepPose) vit près
+   d'ENGINE_TIERS.
+   · LA GRILLE `#gVdep` (enfant de #gBottom, en absolu) : posée par vdepPlace au-dessus de la rangée INVENTAIRE · MISSIONS · BOUTIQUE — elle
+     lit leurs boîtes de mise en page (offsetLeft/Top, que l'inclinaison des touches ne fausse pas), debout comme couché ; visible seulement
+     quand le PLAY du garage l'est (ni boutique, ni inventaire, ni missions, ni « la voiture seule », ni pendant le lâcher). Avant le palier 30,
+     les six cases montrent un CADENAS, refusent et disent « ATTEINS LE PALIER 30 » ; le jour où il tombe : « VITESSE DE DÉPART DÉBLOQUÉE ».
+   · L'ÉTIQUETTE « 3 · V8 ATMO » à la couleur du moteur, collée au bord haut du PLAY du garage (`#gVdepTag`) ET de l'accueil (`#mVdepTag`,
+     dans #mHome : le PLAY de l'accueil part lui aussi de ce cran), dès le cran 2. Au cran 1 (le départ normal) : rien.
+   · L'ÉTAL (`VDEP.etal`), à GAUCHE de la porte, là où vivait l'affiche des records (passée à droite, buildAffiches) : un socle bas, un vérin
+     chromé qui SOULÈVE le moteur du cran choisi (mkEngine), qui tourne lentement ; changer de cran = le moteur redescend dans le socle et le
+     nouveau monte. Les six moteurs sont bâtis AVEC l'atelier (au menu : sa chauffe les compile, rien ne compile au toucher), un seul visible.
+     Aucune lumière ajoutée (les lampes de l'atelier les éclairent) ; une lueur au sol et la plaque du socle à la couleur du moteur.
+   Console : dbgVdep() (état), dbgVdep(n) (choisit le cran n, 0-5), dbgVdep('tout') / dbgVdep('rien') (ouvre / referme tous les crans le temps
+   d'un banc, sans rien sauver). */
+const VDEP={el:null,tag:null,mtag:null,b:[],etal:null,m:[],nVu:-1,k:0,ph:0,tPlace:0,ms:0};
+function vdepNom(n){const E=ENGINE_TIERS[VDEP_PAL[n]]||ENGINE_TIERS[0];return sansAcc(TR(E.n));}
+function vdepCol(n){if(!(n>0))return '#b9b0e8';const E=ENGINE_TIERS[VDEP_PAL[n]];return engNeon(E.col);}
+function vdepInit(){
+  if(VDEP.el)return;const el=$('gVdep');if(!el)return;VDEP.el=el;VDEP.tag=$('gVdepTag');
+  for(let i=0;i<VDEP_PAL.length;i++){const b=document.createElement('button');b.type='button';b.dataset.n=i;b.setAttribute('role','radio');
+    b.innerHTML='<b>'+(i+1)+'</b>';el.appendChild(b);VDEP.b.push(b);}
+  const h=document.getElementById('mHome');if(h){const t=document.createElement('div');t.id='mVdepTag';t.setAttribute('aria-hidden','true');h.appendChild(t);VDEP.mtag=t;}
+  el.addEventListener('click',function(e){const b=e.target&&e.target.closest&&e.target.closest('button');if(!b)return;e.stopPropagation();
+    const n=+b.dataset.n;
+    if(!vdepFonction()){try{uiClic('refus');}catch(_){}b.classList.remove('non');void b.offsetWidth;b.classList.add('non');
+      try{toast(pxi('verrou')+' '+sansAcc(TR('ATTEINS LE PALIER 30'))+' · '+sansAcc(TR(ENGINE_TIERS[ENGINE_TIERS.length-1].n)),true);}catch(_){}return;}
+    if(n===vdepN())return;
+    SAVE.d.vdep=n;SAVE.mark();try{uiClic('onglet');}catch(_){}try{hap(8);}catch(_){}vdepMaj();});
+  vdepMaj();
+  setInterval(function(){try{ // (la grille et les étiquettes suivent leurs boutons ; un record de moteur, le code cousin, la langue : les crans se redisent)
+    const sg=((SAVE.d.ex&&SAVE.d.ex.eng)|0)+','+cousin()+','+(SAVE.d.vdep|0)+','+VDEP_TOUT+','+(typeof LANG!=='undefined'?LANG:'');
+    if(sg!==VDEP.sig){VDEP.sig=sg;vdepMaj();if(VDEP.etal&&VDEP.nVu>=0)vdepPlaque(VDEP.nVu);}else vdepPlace();}catch(e){}},250);
+}
+function vdepMaj(){
+  if(!VDEP.el)return;const n=vdepN();
+  const f=vdepFonction();
+  if(VDEP.f===false&&f){try{toast(pxi('coche')+' '+sansAcc(TR('VITESSE DE DÉPART DÉBLOQUÉE')),true);if(SONV2)sfx('ui.ok');}catch(_){}} // le palier 30 vient de tomber : on le dit une fois
+  VDEP.f=f;
+  for(let i=0;i<VDEP.b.length;i++){const b=VDEP.b[i],o=f;b.classList.toggle('on',f&&i===n);b.classList.toggle('ferme',!o);
+    b.setAttribute('aria-checked',i===n?'true':'false');b.setAttribute('aria-label',TR('VITESSE')+' '+(i+1)+' · '+vdepNom(i)+(o?'':' · '+TR('VERROUILLÉE')));}
+  const c=vdepCol(n);VDEP.el.style.setProperty('--vc',c);
+  const txt=n?'<b>'+(n+1)+'</b>'+vdepNom(n):'';
+  for(const t of [VDEP.tag,VDEP.mtag])if(t){t.style.setProperty('--vc',c);if(t._h!==txt){t.innerHTML=txt;t._h=txt;}}
+  vdepPlace();}
+function vdepVu(e){return !!e&&e.offsetWidth>1&&e.offsetHeight>1&&getComputedStyle(e).visibility!=='hidden';}
+function vdepPlace(){ // la grille au-dessus de la rangée, les étiquettes au bord haut des PLAY
+  if(!VDEP.el)return;const n=vdepN(),enJeu=started&&!gameOver;
+  let vu=false;
+  if(garageOn&&!enJeu&&!(typeof GAR!=='undefined'&&GAR.go)&&!(typeof GBQ!=='undefined'&&GBQ.on)&&!(typeof INV!=='undefined'&&INV.on)&&!(gEl&&gEl.classList.contains('missions'))){
+    const J=$('gJouer'),R=[$('gvCof'),$('gvMis'),$('gShopBas')].filter(vdepVu);
+    if(vdepVu(J)&&R.length){let l=1e9,r=-1e9,t=1e9;for(const e of R){l=Math.min(l,e.offsetLeft);r=Math.max(r,e.offsetLeft+e.offsetWidth);t=Math.min(t,e.offsetTop);}
+      const H=VDEP.el.offsetHeight||36,x=Math.round(l),y=Math.round(t-H-8),w=Math.round(r-l);
+      if(VDEP.el._p!==x+','+y+','+w){VDEP.el._p=x+','+y+','+w;VDEP.el.style.left=x+'px';VDEP.el.style.top=y+'px';VDEP.el.style.width=w+'px';}
+      vu=true;
+      if(VDEP.tag){const on=n>0;VDEP.tag.classList.toggle('vu',on);
+        if(on){const k=Math.round(J.offsetLeft+J.offsetWidth/2)+','+Math.round(J.offsetTop);if(VDEP.tag._p!==k){VDEP.tag._p=k;VDEP.tag.style.left=Math.round(J.offsetLeft+J.offsetWidth/2)+'px';VDEP.tag.style.top=Math.round(J.offsetTop)+'px';}}}}}
+  if(!vu&&VDEP.tag)VDEP.tag.classList.remove('vu');
+  if(VDEP.el.classList.contains('vu')!==vu)VDEP.el.classList.toggle('vu',vu);
+  if(VDEP.mtag){const P=document.querySelector('#mHome .mPlay'),T=VDEP.mtag,on=n>0&&!enJeu&&vdepVu(P);T.classList.toggle('vu',on);
+    if(on){ // l'accueil : dans l'espace entre les tuiles et les lettres PLAY s'il y a la place (debout), sinon juste sous PLAY (couché : les tuiles le serrent)
+      const pr=P.getBoundingClientRect(),L=P.querySelectorAll('.lg');let lt=1e9,lb=-1e9,ll=1e9,lr=-1e9;
+      for(const e of L){const r=e.getBoundingClientRect();if(r.width<1)continue;lt=Math.min(lt,r.top);lb=Math.max(lb,r.bottom);ll=Math.min(ll,r.left);lr=Math.max(lr,r.right);}
+      if(lt>lb){lt=pr.top;lb=pr.bottom;ll=pr.left;lr=pr.right;}
+      let tb=-1e9;for(const e of document.querySelectorAll('#mHome .mAccB')){const r=e.getBoundingClientRect();if(r.width>1&&r.bottom<=lt+4&&r.right>ll&&r.left<lr)tb=Math.max(tb,r.bottom+5);} // (+5 : la tranche des tuiles)
+      const h=T.offsetHeight||17,y=(tb>-1e8&&lt-tb>=h+2)?(tb+lt-h)/2:lb+6,ox=pr.left-P.offsetLeft,oy=pr.top-P.offsetTop; // (écran → repère du bloc qui les porte : #mob)
+      const x9=Math.round((ll+lr)/2-ox),y9=Math.round(y-oy),k=x9+','+y9;
+      if(T._p!==k){T._p=k;T.style.left=x9+'px';T.style.top=y9+'px';}}}
+}
+function vdepPlaque(n){ // la plaque du socle : le nom du moteur et son cran, à sa couleur
+  const P=VDEP.etal&&VDEP.etal.pl;if(!P)return;const x=P.cv.getContext('2d'),w=P.cv.width,h=P.cv.height,c=vdepCol(n);
+  x.clearRect(0,0,w,h);x.fillStyle='#120a1e';x.fillRect(0,0,w,h);x.strokeStyle=c;x.lineWidth=4;x.strokeRect(3,3,w-6,h-6);
+  x.textAlign='center';x.textBaseline='middle';x.fillStyle=c;x.font='14px "Press Start 2P"';x.fillText(sansAcc(TR('VITESSE'))+' '+(n+1),w/2,h*.3);
+  x.fillStyle='#ffffff';let f=22;x.font=f+'px "Press Start 2P"';const nm=vdepNom(n);while(f>10&&x.measureText(nm).width>w-28){f-=2;x.font=f+'px "Press Start 2P"';}
+  x.fillText(nm,w/2,h*.68);P.tx.needsUpdate=true;}
+function vdepEtal(g){ // (buildGarageRoom) le socle, le vérin, les six moteurs — un seul visible
+  const t0=performance.now(),hd=GAR.D/2,root=new THREE.Group();root.position.set(5.95,0,hd-1.4);root.rotation.y=Math.PI;g.add(root);
+  const mS=new THREE.MeshLambertMaterial({color:0x1d1a2a}),mL=new THREE.MeshBasicMaterial({color:0xffffff,fog:false}),mC=M9.inox();
+  const socle=new THREE.Mesh(new THREE.BoxGeometry(2.2,.7,1.6),mS);socle.position.y=.35;root.add(socle);
+  const dessus=new THREE.Mesh(new THREE.BoxGeometry(2.32,.08,1.72),new THREE.MeshLambertMaterial({color:0x2b2740}));dessus.position.y=.74;root.add(dessus);
+  const fil=new THREE.Mesh(new THREE.BoxGeometry(2.34,.035,1.74),mL);fil.position.y=.69;root.add(fil); // le liseré néon (couleur du moteur)
+  const verin=new THREE.Group();verin.position.y=.78;root.add(verin);
+  const tige=new THREE.Mesh(new THREE.CylinderGeometry(.11,.11,1,14),mC);tige.position.y=.5;verin.add(tige);
+  const fut=new THREE.Mesh(new THREE.CylinderGeometry(.2,.24,.34,16),new THREE.MeshLambertMaterial({color:0x34303f}));fut.position.y=.95;root.add(fut);
+  const berceau=new THREE.Mesh(new THREE.BoxGeometry(1.25,.06,.75),mC);root.add(berceau);
+  const cv=document.createElement('canvas');cv.width=320;cv.height=80;const tx=new THREE.CanvasTexture(cv);
+  const plaque=new THREE.Mesh(new THREE.PlaneGeometry(1.9,.475),new THREE.MeshBasicMaterial({map:tx,fog:false}));plaque.position.set(0,.36,.81);root.add(plaque);
+  const lueur=new THREE.Sprite(new THREE.SpriteMaterial({map:lampTex,color:0xffffff,transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+  lueur.scale.set(3.4,2.2,1);lueur.position.y=1.6;root.add(lueur);
+  const bx=new THREE.Box3(),sz=new THREE.Vector3(),ce=new THREE.Vector3();
+  for(let i=0;i<VDEP_PAL.length;i++){const e=mkEngine(VDEP_PAL[i]),h=new THREE.Group();h.add(e);
+    bx.setFromObject(e);bx.getSize(sz);bx.getCenter(ce);const k=2.3/Math.max(.01,sz.x,sz.y,sz.z);e.scale.multiplyScalar(k);e.position.set(-ce.x*k,-ce.y*k+sz.y*k/2,-ce.z*k);
+    h.userData.h=sz.y*k;h.visible=false;root.add(h);VDEP.m.push(h);}
+  VDEP.etal={root:root,verin:verin,berceau:berceau,lueur:lueur,fil:fil,pl:{cv:cv,tx:tx}};VDEP.nVu=-1;VDEP.k=0;VDEP.ph=1;
+  vdepEtalTick(1/60,0);VDEP.ms=+(performance.now()-t0).toFixed(1);}
+function vdepEtalTick(dt,t9){ // (garageRender) le moteur descend, change, remonte ; il tourne et respire
+  const E=VDEP.etal;if(!E)return;const n=vdepN();
+  if(VDEP.nVu<0){VDEP.nVu=n;VDEP.m[n].visible=true;VDEP.k=1;VDEP.ph=1;vdepPlaque(n);E.fil.material.color.set(vdepCol(n));E.lueur.material.color.set(vdepCol(n));}
+  if(n!==VDEP.nVu&&VDEP.ph===1)VDEP.ph=-1; // un cran neuf : on redescend d'abord
+  if(VDEP.ph<0){VDEP.k=Math.max(0,VDEP.k-dt/.22);if(VDEP.k<=0){VDEP.m[VDEP.nVu].visible=false;VDEP.nVu=n;VDEP.m[n].visible=true;VDEP.ph=0;vdepPlaque(n);
+    E.fil.material.color.set(vdepCol(n));E.lueur.material.color.set(vdepCol(n));try{if(SONV2)sfx('ui.ok');}catch(_){}}}
+  else if(VDEP.ph===0){VDEP.k=Math.min(1,VDEP.k+dt/.5);if(VDEP.k>=1)VDEP.ph=1;}
+  const k=VDEP.k,q=k-1,e9=VDEP.ph===0?1+2.4*q*q*q+1.4*q*q:k*k; // la montée déborde un poil puis se pose (la descente, en accélérant)
+  const H=VDEP.m[VDEP.nVu],lev=.78+e9*1.05;
+  E.verin.scale.y=Math.max(.02,lev-.78);E.berceau.position.y=lev;H.position.y=lev+.04+Math.sin(t9*1.3)*.03*k;
+  H.rotation.y+=dt*.35;H.scale.setScalar(.55+.45*Math.min(1,e9));
+  E.lueur.material.opacity=(.22+.14*Math.sin(t9*2.1))*Math.min(1,k*1.4);}
+window.dbgVdep=function(n){
+  if(n==='tout'||n==='rien'){VDEP_TOUT=n==='tout';vdepMaj();return {tout:VDEP_TOUT};}
+  if(n!=null){SAVE.d.vdep=Math.max(0,Math.min(5,n|0));vdepMaj();}
+  return {cran:vdepN()+1,sauve:(SAVE.d.vdep|0)+1,palierDepart:vdepPal()+1,moteur:vdepNom(vdepN()),record:((SAVE.d.ex&&SAVE.d.ex.eng)|0)+1,
+    fonction:vdepFonction(),ouverts:VDEP_PAL.map(function(p,i){return vdepOuvert(i);}),etal:!!VDEP.etal,msEtal:VDEP.ms,engTier:engTier,grille:!!(VDEP.el&&VDEP.el.classList.contains('vu')),
+    tag:!!(VDEP.tag&&VDEP.tag.classList.contains('vu')),tagAccueil:!!(VDEP.mtag&&VDEP.mtag.classList.contains('vu'))};};
+Object.assign(I18N,{'ATTEINS LE PALIER 30':'REACH TIER 30','VITESSE DE DÉPART DÉBLOQUÉE':'START GEAR UNLOCKED','VERROUILLÉE':'LOCKED'});
 /* (2026-09-30) UNE BOÎTE CHANFREINÉE à la vraie taille w × h × d, chanfrein b : 6 faces, 12 biseaux, 8 coins (44 triangles), non indexée
    (facettes franches, comme la caisse). NEUVE à chaque appel : les meubles du garage la versent dans leur kit (lpKit.put la déplace EN
    PLACE puis la libère — une géométrie gardée en cache en sortirait déformée). */

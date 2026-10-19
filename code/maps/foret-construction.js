@@ -100,7 +100,8 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
       COL.push({g:1,a:[x,b,z],b:[x,b+46*sy,z],r:9*sxz});break;}}}
   FORET.rocs=RO;
   // ---- 3. L'ARCHE ----
-  const AR=foretArche(root,fr,M);if(AR){for(const c of AR.C)COL.push({g:1,a:[c[0],c[1],c[2]],b:[c[3],c[4],c[5]],r:c[6]});FORET.arche=[AR];}
+  for(const k9 of ['arche','archeB']){if(k9!=='arche'&&!(FORET.Q&&FORET.Q[k9]))continue; // (2026-10-19) une ou deux arches (la seconde : LA FORÊT AU HASARD)
+    const AR=foretArche(root,fr,M,k9);if(AR){for(const c of AR.C)COL.push({g:1,a:[c[0],c[1],c[2]],b:[c[3],c[4],c[5]],r:c[6]});FORET.arche.push(AR);}}
   // ---- 4. LES CHAUMIÈRES (une ou deux, au fond, au bord d'une clairière) ----
   {const geo=FORET.geoChaum||(FORET.geoChaum=foretChaumiereGeo());
    for(const u of [.3+fr()*.15,.62+fr()*.18]){if(fr()<.25)continue;const i=Math.round(u*(NP-1)),l9=lat9(i),sd=fr()<.5?-1:1;
@@ -172,7 +173,7 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
    for(let i=Math.round(30/ds);i<NP-Math.round(20/ds);i+=pl)for(const sd of [-1,1]){if(fr()<.25)continue;const p=pts[i],b=B[i],n=Nn[i],lg=3+fr()*6;
      V3.copy(p).addScaledVector(b,sd*(ROAD_HALF+.15)).addScaledVector(n,-.2);const q=qDe(V3.x,V3.z);
      LIE.push({q:q,m:pose(V3,n,T[i],fr()*.6-.3,[]),j:[6,2.6+fr()*1.8,lg,fr()]});ext(q,V3.x,V3.y-lg-THICK,V3.y,V3.z,4);}
-   if(AR)for(const l of AR.LI){V3.set(l[0],l[1],l[2]);const q=qDe(l[0],l[2]);LIE.push({q:q,m:pose(V3,UP,vx.set(1,0,0),fr()*6.28,[]),j:[6,3.5+fr()*2,l[3],fr()]});ext(q,l[0],l[1]-l[3],l[1],l[2],4);}
+   for(const AR of FORET.arche)for(const l of AR.LI){ /* (2026-10-19) le lierre de CHAQUE arche (une ou deux : LA FORÊT AU HASARD) */V3.set(l[0],l[1],l[2]);const q=qDe(l[0],l[2]);LIE.push({q:q,m:pose(V3,UP,vx.set(1,0,0),fr()*6.28,[]),j:[6,3.5+fr()*2,l[3],fr()]});ext(q,l[0],l[1]-l[3],l[1],l[2],4);}
    // les plantes du FOND (fougères géantes, digitales, jacinthes, et des fleurs dans les prairies) : on les voit d'en haut
    const pfF=Math.max(1,Math.round(PAL_B9('foretPlantes',4.2)/ds));
    for(let i=0;i<NP;i+=pfF)for(let e=0;e<2;e++){if(!e&&performance.now()>JF.lim)yield;const l9=lat9(i),sd=fr()<.5?-1:1,lat=fr()*175,x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat,pr=solBil(S.pr,x,z);
@@ -457,7 +458,7 @@ window.dbgForet=function(k,o){
     for(let i=0;i<NP;i+=st){const p=pts[i],t=T[i],m=p.y-solH(p.x,p.z);if(m<pire){pire=m;ou=i;}if(m<20)n20++;P9.push([+p.x.toFixed(1),+p.y.toFixed(1),+p.z.toFixed(1),+t.x.toFixed(3),+t.z.toFixed(3)]);}
     return {amont:FORET.amont,L:Math.round(L),pts:P9,marge:{min:Math.round(pire),s:Math.round(ou*L/(NP-1)),sous20:n20},n:FORET.n,ms:FORET.ms,msSol:FORET.msSol};}
   const tri=FORET.fam.reduce(function(a,F){return a+F.tri*F.im.count;},0),parFam={};for(const F of FORET.fam)if(F.im.count)parFam[F.nom||'?']=[F.im.count,Math.round(F.tri*F.im.count/1000)+'k'];
-  return {on:!!FORET.root,met:FORET.met,ms:FORET.ms,msSol:FORET.msSol,protos:FORET.protos&&FORET.protos.ms,n:FORET.n,pel:FORET.pel,noeuds:(FORET.noeuds||[]).map(function(o){return [Math.round(o.c[0]),Math.round(o.c[1]),o.t];}),tri:Math.round(tri),fam:FORET.fam.filter(function(F){return F.im.visible;}).length,
+  return {on:!!FORET.root,met:FORET.met,ms:FORET.ms,msSol:FORET.msSol,protos:FORET.protos&&FORET.protos.ms,n:FORET.n,pel:FORET.pel,axe:FORET.axe!=null?Math.round(FORET.axe*57.3):null,plan:FORET.plan||null,noeuds:(FORET.noeuds||[]).map(function(o){return [Math.round(o.c[0]),Math.round(o.c[1]),o.t];}),tri:Math.round(tri),fam:FORET.fam.filter(function(F){return F.im.visible;}).length,
     tri9:{ms:FT.n?+(FT.ms/FT.n).toFixed(3):0,maj:FT.up},cur:FORET.cur&&{hante:+FORET.cur.hante.toFixed(2),pap:+FORET.cur.pap.toFixed(2),ray:+FORET.cur.ray.toFixed(2)},
     loup:FORET.loup&&{t:+FORET.loup.t.toFixed(1),on:FORET.loup.on},geants:FORET.geants.length,col:FORET.gcol&&FORET.gcol.n,parFam:parFam};};
 function PAL_B9(k,d){try{return (typeof PAL!=='undefined'&&PAL&&typeof PAL.b==='function')?PAL.b(k,d):d;}catch(e){return d;}} // les paliers d'optimisation (PAL), s'ils existent

@@ -42,6 +42,7 @@
    `node synchro-versions.js` (racine du dépôt) la régénère depuis la principale. Forçages ponctuels : `?tel=1` / `?pc=1`.
    (Déclarée au niveau global — un `const` de script classique est visible du grand script, qui la lit.) */
 const EDITION='mobile';
+if(/[?&]garage=(leo|avant)\b/.test(location.search))document.documentElement.classList.add('garLeo'); /* (2026-10-19, Sacha) LE GARAGE QUI PREND TOUT L'ÉCRAN (la feuille garageHaut) est le défaut ; ?garage=leo (ou =avant) rend le garage d'avant */
 if(/[?&]garjouer=0\b/.test(location.search))document.documentElement.classList.add('sansGarJouer'); /* (2026-10-18) le JOUER de l'inventaire et de la boutique, coupé : voir <style id="jouerGarage"> */
 /* (2026-10-11, Léo : « enlève les intros, tout ça : lance juste la voiture dans la map ») LA BALADE SANS INTRO — la classe est posée
    dès le <head> : ni le logo du chargement, ni le menu ne se montrent (voir baladeDepart). */
@@ -177,4 +178,14 @@ var CC_ADSENSE='',CC_ADSENSE_SITES=['car-cash-git.vercel.app'];
   window.CC_ADS={test:test,client:CC_ADSENSE||'test'};
   document.head.appendChild(s);
 }catch(e){}})();
+/* LA RÉGIE ADMOB DE L'APP iPHONE (2026-10-19, Sacha : « prépare les emplacements de pub récompensée dans le jeu (sans module AdMob), on
+   branchera AdMob en v1.1 ») — la prise est posée, ÉTEINTE. Le côté jeu est le bloc « LA RÉGIE ADMOB, CÔTÉ JEU », juste au-dessus de
+   « LA RÉGIE ADSENSE, CÔTÉ JEU ». Elle ne s'allume que si les TROIS sont vrais :
+   · on est dans l'app (window.Capacitor : jamais sur le site ni dans une copie locale) ;
+   · le module natif @capacitor-community/admob est installé dans le projet Xcode (Capacitor.Plugins.AdMob) — le travail du Mac en v1.1 ;
+   · CC_ADMOB.recompense porte l'identifiant du BLOC de pub récompensée iOS (« ca-app-pub-…/… », AdMob › Applis › Blocs d'annonces). VIDE = éteinte.
+   `?pubtest=1` dans l'app = le bloc de TEST de Google (ca-app-pub-3940256099942544/1712485313) et isTesting, même sans identifiant.
+   ⚠ À LA v1.1, en plus du module : l'App ID AdMob (GADApplicationIdentifier), SKAdNetworkItems et NSUserTrackingUsageDescription dans
+   Info.plist, et les réponses « confidentialité » de l'App Store (identifiant publicitaire, données d'usage) à refaire. */
+var CC_ADMOB={recompense:''};
 </script>

@@ -97,11 +97,12 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
     // les lampes ne font que confirmer, elles ne doivent pas éclairer la scène une deuxième fois.
     stallKey.intensity+=bo*.45;stallRim.intensity+=bo*.35;
   }else if(GAR.pod){
-    GAR.pod.rotation.y=garRot()+(GAR.podSpin||0);           // (2026-09-29, Léo) le plateau PORTE la caisse : ils tournent ensemble
+    GAR.pod.rotation.y=garRot()+(GAR.podSpin||0)+BRB.yaw; /* (2026-10-19) le bras des figures fait tourner le plateau (rodéo, shimmy) */ // (2026-09-29, Léo) le plateau PORTE la caisse : ils tournent ensemble
     // ---- LE TOUCHER (2026-09-05) : la caisse ACCUSE le clic/tap avant même qu'on ait glissé quoi
     // que ce soit — sans ça le geste de swipe n'a rien à répondre à la PRESSION, seulement au
     // déplacement. Un aplatissement bref (fonction sinus : 0→creux→0, jamais de à-coup) qui s'éteint
     // tout seul — `GAR.pressT` compte à rebours depuis `PRESS_D`, posé au pointerdown.
+    if(GAR.pressT>0&&BRB.p>0)GAR.pressT=0; // (2026-10-19) le bras des figures est là : la caisse ne s'écrase pas sous le doigt (le patin la tient, ou va la tenir)
     if(GAR.pressT>0){
       GAR.pressT=Math.max(0,GAR.pressT-dt);
       const k=1-GAR.pressT/GAR.PRESS_D,sq=1-Math.sin(Math.min(1,k)*Math.PI)*.07;
@@ -111,6 +112,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
     // ---- LE TAP (2026-09-05) : recul bref + pluie de blocs (voir `garageImpact`) — même minuteur
     // pour les deux, ils naissent et retombent ENSEMBLE, c'est un seul geste, pas deux effets qui se
     // chevauchent par hasard.
+    if(GAR.impactT>0&&BRB.joue)GAR.impactT=0; // (2026-10-19) tenue par le bras : pas de recul
     if(GAR.impactT>0){
       GAR.impactT=Math.max(0,GAR.impactT-dt);
       const ik=1-GAR.impactT/GAR.IMPACT_D;
@@ -165,6 +167,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   GAR.swK=(GAR.swK||0)+(((garageDrag||GAR.go||GAR.fige||gEl.classList.contains('missions'))?0:1)-(GAR.swK||0))*Math.min(1,dt*.7);
   GAR.swO=(Math.sin(t9*.28)*.15+Math.sin(t9*.117+1.3)*.05)*GAR.swK*(1-VITRINE_CAM.dSway*VK); // (2026-10-05, Léo : « plus doux, ça tourne trop la tête ») en vitrine le balancement au repos est réduit
   GAR.swP=Math.sin(t9*.21)*.025*GAR.swK*(1-VITRINE_CAM.dSwayV*VK); // (même soir, Léo : « l'effet doit moins basculer ») en vitrine, moitié moins · (2026-10-05) ⚠ la v109 l'avait collé au bout du commentaire ci-dessus : la caméra avait perdu son balancement VERTICAL (menu compris)
+  if(VDEP.etal)vdepEtalTick(dt,t9); // (2026-10-19) LA VITESSE DE DÉPART : l'étal du moteur soulevé
   if(GAR.affiches)for(const a of GAR.affiches){ // LES AFFICHES (branche de Léo) : elles s'allument au survol, sautent au tap
     a.hv+=((GAR.affH===a?1:0)-a.hv)*Math.min(1,dt*8);
     if(a.pop>0)a.pop=Math.max(0,a.pop-dt);
@@ -277,7 +280,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
       zw=Math.max(.3,2*Math.min(lb.cx-lb.x0,lb.x1-lb.cx)/VP.w),zh=Math.max(.25,(lb.y1-lb.y0)/VP.h),fw=VC.fw+(VC.fwP-VC.fw)*POR, /* (même soir, Léo) la caisse décalée à gauche : la place qui compte est la plus petite des deux moitiés ; debout un peu plus de recul (fwP) */
       q=carGroup.rotation.y-(GAR_CAM_A+(GAR.vD||0)),sq=Math.abs(Math.sin(q)),cq=Math.abs(Math.cos(q)),
       w=G.a*sq+G.b*cq,pr=G.a*cq+G.b*sq,wE=garBurnR(G.R+(w-G.R)*VC.adapt),pE=garBurnR(G.R+(pr-G.R)*VC.adapt), /* (BURN-OUT v2) en donut : le cercle balayé */
-      dW=wE/(fw*zw*th)+pE,dH=(G.H*.5+pE*Math.sin(Math.max(.05,cPit))+.25)/((VC.fh+(VC.fhP-VC.fh)*POR)*zh*tv)+pE, /* (2026-10-06, Léo : « le point de vue couché d'avant, un peu plus éloigné, c'est mieux ») couché : fw ,9 · fh ,8, le recul d'avant la v112 ; debout inchangé (fwP · fhP ,88) */dV=Math.max(dW,dH,3.2)*(1+.14*Math.max(0,GBQ.k)*(VP.w>VP.h*1.2?0:1)); /* (2026-10-12, Léo : « la voiture un tout petit peu éloignée ») */
+      dW=wE/(fw*zw*th)+pE,dH=(G.H*.5+pE*Math.sin(Math.max(.05,cPit))+.25)/((VC.fh+(VC.fhP-VC.fh)*POR)*zh*tv)+pE, /* (2026-10-06, Léo : « le point de vue couché d'avant, un peu plus éloigné, c'est mieux ») couché : fw ,9 · fh ,8, le recul d'avant la v112 ; debout inchangé (fwP · fhP ,88) */dV=Math.max(dW,dH,3.2)*(1+.14*Math.max(0,GBQ.k)*(VP.w>VP.h*1.2?0:1))*(1+BRB.cK); /* (2026-10-19) le bras des figures : du recul */ /* (2026-10-12, Léo : « la voiture un tout petit peu éloignée ») */
     if(GAR.dVs&&!GAR.vuePose)garRessort(GAR,'dVs','dVv',dV,1.8,dt);else{GAR.dVs=dV;GAR.dVv=0;}dG0=dG0*(1-VK)+GAR.dVs*VK;} /* (2026-10-06) le recul en RESSORT (même retard, ~1,1 s) : l'inventaire qui s'ouvre changeait la place libre d'un coup, le travelling partait à pleine vitesse */ /* (même soir) le zoom ne dépend plus de l'angle du DOIGT (il zoomait pendant le glissé) : seulement de la caisse qui tourne, vue de la place de repos ; lissé ~1,1 s */
   const capH=8+2.5*Math.pow(Math.max(0,-Math.cos(cA)),2)+3.5*Math.max(0,GBQ.k); /* (essai) au magasin, un peu plus de recul */ // (2026-09-30, le tour complet) 10,5 m seulement dans l'axe libre (côté établi) ; ailleurs le décor est rangé pour 8 m (la règle des 8,3 m)
   const dG=Math.min(dG0,capH/Math.max(.2,Math.cos(garagePitch))); // (2026-09-29) 8 → 10,5 m : la caméra est FIXE, dans l'axe libre de l'atelier (côté établi) — elle recule au lieu d'ouvrir l'objectif jusqu'à ~87° (« l'effet loupe »)

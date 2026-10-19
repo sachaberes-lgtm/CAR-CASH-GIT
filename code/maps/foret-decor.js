@@ -555,8 +555,8 @@ function foretChampiGeo(){const K=fbNew(),rg=mulberry32(0xA3A);
   return fbGeo(K);}
 /* L'ARCHE : un géant tombé il y a mille ans, qui ENJAMBE la route — la souche et ses racines d'un côté, la couronne brisée de l'autre,
    moussue, des amanites qui luisent la nuit. Sous lui, au moins 24 m d'air au-dessus de la dalle. Les gélules de collision sont rendues. */
-function foretArche(root,fr,M){const Q=FORET.Q;if(!Q||!Q.arche)return null;
-  let ia=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(Q.arche.p);if(d<bd){bd=d;ia=i;}}
+function foretArche(root,fr,M,k9){const Q=FORET.Q,qa=Q&&Q[k9||'arche'];if(!qa)return null; // (2026-10-19, LA FORÊT AU HASARD) k9 : 'arche' ou 'archeB' — une forêt peut en avoir deux
+  let ia=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(qa.p);if(d<bd){bd=d;ia=i;}}
   const p=pts[ia],t=T[ia],hl=Math.hypot(t.x,t.z)||1,bx=-t.z/hl,bz=t.x/hl,sg=fr()<.5?-1:1,K=fbNew(),C=[];
   const A=[p.x-bx*sg*(ROAD_HALF+95)+t.x/hl*30,0,p.z-bz*sg*(ROAD_HALF+95)+t.z/hl*30],B9=[p.x+bx*sg*(ROAD_HALF+110)-t.x/hl*25,0,p.z+bz*sg*(ROAD_HALF+110)-t.z/hl*25];
   A[1]=solH(A[0],A[2])+6;B9[1]=solH(B9[0],B9[2])+4;const top=p.y+24+8.5;

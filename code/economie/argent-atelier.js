@@ -58,7 +58,8 @@ function garArgent(g){
   for(const p9 of PAL)RECT.push([p9[0],p9[1],p9[2]?.92:1.12,p9[2]?1.12:.92]);
   const libre=(x,z,m)=>{if(Math.abs(x)>GAR.W/2-.7||Math.abs(z)>GAR.D/2-.7)return false;
     if(Math.abs(x)<2.4+m&&z>3)return false;                              // l'allée de la porte : la caisse sort par là (sa largeur + le tas)
-    if(z>11.2&&x>4.9&&x<8.2)return false;                                // l'affiche du record, au mur de la porte
+    if(z>9.9&&x>4.4&&x<7.6)return false;                                 // (2026-10-19) l'ÉTAL du moteur, au mur de la porte (à gauche)
+    if(z>11.2&&x<-4.9&&x>-8.2)return false;                              // l'affiche du record, au mur de la porte (passée à droite)
     if(z<-4.2&&Math.abs(x)<4.6)return false;                             // entre la caméra (côté établi) et la caisse : rien
     for(const r of RECT)if(Math.abs(x-r[0])<r[2]/2+m&&Math.abs(z-r[1])<r[3]/2+m)return false;
     for(const o of ROND)if(Math.hypot(x-o[0],z-o[1])<o[2]+m)return false;return true;};

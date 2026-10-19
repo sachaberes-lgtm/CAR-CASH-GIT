@@ -94,6 +94,7 @@ function PAL_BK(k,d){return PAL_B9(k,d);}
    lissée aux raccords, la piste fait 43° de moyenne et 49-50° au plus (mesuré sur 16 pistes ; avant : 33° et 40°). LEN ×,75 (au lieu de ,89) :
    la même longueur de course en 3D (~9,5-10,5 km). */
 const BK_LARG4=7,BK_PENTE4=[.92,.12,1.05,.17,.90,.72];
+const BK_HASARD=typeof location==='undefined'||!/[?&]sans=([^&]*,)?glacierhasard(,|&|$)/.test(location.search); // (2026-10-19) LE GLACIER AU HASARD (voir genBanq) — `?sans=glacierhasard` = la descente d'avant, à l'identique
 function genBanq(rnd){
   const ctrl=[];CAMPM.length=0;MODMARK.length=0;
   ROAD_HALF=ROAD_HALF0*BK_LARG4; // la PISTE : 123 m, puis 196 m (« beaucoup plus large »)
@@ -108,7 +109,8 @@ function genBanq(rnd){
   const KR=typeof rayonPalier==='function'?Math.max(1,rayonPalier()/63):LV; // (GAMEPLAY, RACCOURCIS.md) les rayons suivent le rayon tenable du palier (rayonPalier/63) ; sans lui, l'échelle du moteur
   const cap=a=>{phi=Math.atan2(Math.sin(phi),Math.cos(phi));const d=Math.atan2(Math.sin(a-phi),Math.cos(a-phi))*57.2958;if(Math.abs(d)>2)A(d,Math.max(ROAD_HALF*2.6,(140+rnd()*40)*KR),BK_PENTE4[4]);}; // (v4) le bord intérieur d'une piste large ne se replie jamais // se remettre dans la pente (phi = 0 : la ligne de pente, +z)
   const LIB=75*Math.PI/180,LC9=longueurCible(),LEN=LC9?Math.max(1800,(LC9-560)*.75):8600*Math.min(1.25,Math.sqrt(KR))*.75; /* (LA DURÉE DES MAPS) au JOUER : la longueur visée, à plat, moins le départ et l'arrivée */ // (2026-10-17 nuit) LEN se compte À PLAT : la pente du 2e tour allongeait la piste de 13 % — on garde la même course ; (2026-10-18, 3e tour à 45°) ×,75 au lieu de ,89
-  push();ici('depart');D(260,.10);
+  const rh=BK_HASARD?mulberry32((rnd()*4294967296)>>>0):null; // (2026-10-19, LE GLACIER AU HASARD) son flux à lui
+  push();ici('depart');D(rh?140+rh()*220:260,.10);
   let sg=rnd()<.5?-1:1;
   /* LES MODULES DU GLACIER (2026-10-18, LES MODULES DE CHAQUE MAP — voir MODC_ON). Du SKI, rien de bizarre (v3, Sacha : « une descente normale
      avec des virages ») ; ils prennent la place d'un virage + droite tous les ~0,35-0,65 km, paquet mélangé, jamais deux fois de suite :
@@ -130,6 +132,8 @@ function genBanq(rnd){
   const bkJ=[bkSlalom,bkEsse,bkDouble],bkPaq=[];let bkLast=-1,bkNext=700+(rm?rm()*300:0);
   const bkTire=()=>{for(let e=0;e<6;e++){if(!bkPaq.length){const t=[0,1,2];for(let i=2;i>0;i--){const j=(rm()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)bkPaq.push(x);}
     const m=bkPaq.shift();if(m===bkLast)continue;return m;}return 0;};
+  let AXE=0;const PLAN=[];
+  if(!rh){ // la descente d'avant (`?sans=glacierhasard`), à l'identique — au hasard : plus bas
   while(sC<LEN){
     if(rm&&sC>bkNext&&sC<LEN-700){const m=bkTire(),i9=ctrl.length-1;bkLast=m;bkJ[m]();MODMARK.push({i0:i9,i1:ctrl.length-1});bkNext=sC+350+rm()*300;continue;} // LES MODULES DU GLACIER (voir bkSlalom)
     if(rnd()<.78)sg=-sg;                                                                    // le plus souvent on change de côté ; parfois deux virages du même
@@ -137,6 +141,48 @@ function genBanq(rnd){
     let lib=(LIB-sg*phi)*57.2958;if(lib<20){sg=-sg;lib=(LIB-sg*phi)*57.2958;}               // le cap reste dans la pente : la route ne se recroise jamais
     A(sg*Math.min(rm?Math.min(125,a*1.3+10):a,lib),rm?Math.max(ROAD_HALF*2,R*.72):R,BK_PENTE4[0]+rnd()*BK_PENTE4[1]);
     D((rm?.35:1)*(50+rnd()*140),BK_PENTE4[2]+rnd()*BK_PENTE4[3]);} // (v4) une piste NOIRE : 40-50° (2026-10-18, 3e tour — c'était 30-41°, puis 20-30°, et 12-20° avant)
+  }else{
+  /* LE GLACIER AU HASARD (2026-10-19, Sacha : « vérifie bien que toutes les maps sont générées aléatoirement ») — la graine changeait, pas la RECETTE :
+     260 m plein nord, le même S d'ouverture (à un miroir près), puis des lacets qui descendent droit vers le nord (40 graines au palier 0 : écart de
+     forme 0,14, l'arrivée entre −17° et +33° du nord, aucun repère). Désormais, dans son flux à lui (`rh`) :
+     · L'AXE DE LA MONTAGNE, ±90° autour du nord : la descente se dessine dans son repère (la pente vers +z), puis la montagne entière TOURNE (AXE) — le
+       manteau de neige, les pics, la congère, les tremplins se posent autour de la piste : ils tournent avec elle ; les aurores aussi (`BANQ.axe`) ;
+       jamais face au soleil bas (il est au sud : ±90° lui laisse 67° au moins) ;
+     · le départ (140-360 m), puis une suite de TRONÇONS, chacun son CARACTÈRE, jamais deux fois le même de suite — le premier fait l'OUVERTURE :
+         `lacets`   · les virages serrés enchaînés (la descente d'avant) ;
+         `courbes`  · de grandes courbes (R 420-800 m × le palier) entre de longues lignes ;
+         `traverse` · la piste coupe la pente en biais (44-58°) sur 200-420 m, puis repart de l'autre côté : la trace en Z des skieurs ;
+         `schuss`   · tout droit dans la ligne de pente, à la pente la plus raide, un ou deux coudes doux ;
+       les MODULES (bkSlalom, bkEsse, bkDouble) s'intercalent entre eux, comme avant.
+     · GARDÉS : la butée de cap (75° autour de l'axe : la piste avance toujours, elle ne se recroise jamais), les rayons (≥ 2 demi-largeurs, les
+       grands virages ≥ 2,6), les pentes de BK_PENTE4, la longueur (LEN) ; et un essai dont deux bouts de piste (à plus de 700 m de piste l'un de
+       l'autre) passent à moins de 440 m en plan est repris (6 essais au plus) — avant : 455 m au plus près.
+     (Les lacets SUPERPOSÉS du 14/10, et leurs raccourcis, ne reviennent pas : Sacha les a ôtés le 15/10 — « sans module bizarre ».) */
+    AXE=(rh()-.5)*Math.PI;
+    const TR9=['lacets','courbes','traverse','schuss'],vers9=(h,R)=>{phi=Math.atan2(Math.sin(phi),Math.cos(phi));const d=(h-phi)*57.2958;if(Math.abs(d)>2)A(d,R,BK_PENTE4[4]);},
+      gV=()=>BK_PENTE4[0]+rh()*BK_PENTE4[1],gD=()=>BK_PENTE4[2]+rh()*BK_PENTE4[3];
+    const e0={n:ctrl.length,g:segs.length,m:MODMARK.length,P:P.clone(),phi:phi,sC:sC,sg:sg,bkNext:bkNext,bkLast:bkLast,paq:bkPaq.slice()};
+    const pres=()=>{let m=1e9;const S9=[0];for(let k=1;k<ctrl.length;k++)S9.push(S9[k-1]+Math.hypot(ctrl[k].x-ctrl[k-1].x,ctrl[k].z-ctrl[k-1].z)); // le plus près que passent deux bouts de piste (≥ 700 m de piste entre eux)
+      for(let i=0;i<ctrl.length;i++)for(let j=i+1;j<ctrl.length;j++){if(S9[j]-S9[i]<700)continue;const d=Math.hypot(ctrl[i].x-ctrl[j].x,ctrl[i].z-ctrl[j].z);if(d<m)m=d;}return m;};
+    for(let e=0;e<6;e++){
+      if(e){ctrl.length=e0.n;segs.length=e0.g;MODMARK.length=e0.m;P.copy(e0.P);phi=e0.phi;sC=e0.sC;sg=e0.sg;bkNext=e0.bkNext;bkLast=e0.bkLast;bkPaq.length=0;for(const x9 of e0.paq)bkPaq.push(x9);PLAN.length=0;}
+      let tP='';
+      while(sC<LEN){
+        if(rm&&tP&&sC>bkNext&&sC<LEN-700){const m=bkTire(),i9=ctrl.length-1;bkLast=m;bkJ[m]();MODMARK.push({i0:i9,i1:ctrl.length-1});PLAN.push(['module'+m,0]);bkNext=sC+350+rm()*300;continue;} // LES MODULES DU GLACIER (voir bkSlalom)
+        let t=TR9[(rh()*4)|0];if(t===tP)t=TR9[(TR9.indexOf(t)+1+((rh()*3)|0))%4];tP=t;
+        const s0=sC,lg=Math.min(LEN-sC+120,(420+rh()*560)*Math.sqrt(KR));
+        if(t==='lacets'){while(sC-s0<lg&&sC<LEN){if(rh()<.78)sg=-sg;const a=30+rh()*45,R=Math.max(ROAD_HALF*2,(175+rh()*150)*KR*.72);
+            let lib=(LIB-sg*phi)*57.2958;if(lib<20){sg=-sg;lib=(LIB-sg*phi)*57.2958;}A(sg*Math.min(a*1.3+10,125,lib),R,gV());D(.35*(50+rh()*140),gD());}}
+        else if(t==='courbes'){while(sC-s0<lg&&sC<LEN){if(rh()<.85)sg=-sg;const a=45+rh()*50,R=Math.max(ROAD_HALF*2.6,(420+rh()*380)*KR);
+            let lib=(LIB-sg*phi)*57.2958;if(lib<20){sg=-sg;lib=(LIB-sg*phi)*57.2958;}A(sg*Math.min(a,lib),R,gV());D(60+rh()*100,gD());}}
+        else if(t==='traverse'){let sd=Math.abs(phi)>.3?-Math.sign(phi):(rh()<.5?-1:1);
+          for(let k=0;k<2&&sC-s0<lg&&sC<LEN;k++){vers9(sd*(44+rh()*14)/57.2958,Math.max(ROAD_HALF*2.6,(260+rh()*80)*KR));D(200+rh()*220,gD());sd=-sd;}}
+        else{vers9((rh()-.5)*.2,Math.max(ROAD_HALF*2.6,(260+rh()*80)*KR));const n9=1+((rh()*2)|0);
+          for(let k=0;k<n9;k++){D(130+rh()*170,BK_PENTE4[2]+BK_PENTE4[3]);const a=(rh()<.5?-1:1)*(10+rh()*12),lib=(LIB-Math.sign(a)*phi)*57.2958;if(lib>Math.abs(a)+5)A(a,Math.max(ROAD_HALF*3,600*KR),gV());}
+          D(80+rh()*120,BK_PENTE4[2]+BK_PENTE4[3]);}
+        PLAN.push([t,Math.round(sC-s0)]);}
+      BANQ.pres=Math.round(pres());BANQ.essais=e+1;if(BANQ.pres>=440)break;}
+  }
   cap(0);D(160,BK_PENTE4[5]);ici('fin');D(120,.06); // l'arrivée : dans la pente, puis le replat de la ligne
   /* LE PROFIL : la pente de chaque tronçon (positive = on descend), lue sur la longueur de la polyligne, adoucie aux raccords (moyenne glissante
      de 60 m) ; les 300 premiers mètres en douceur. Intégrée tous les 10 m : aucun point ne remonte. */
@@ -147,6 +193,9 @@ function genBanq(rnd){
   let y=0;ctrl[0].y=0;
   for(let k=1;k<ctrl.length;k++){const a=sOf[k-1],b=sOf[k],n=Math.max(1,Math.ceil((b-a)/10));for(let j=0;j<n;j++){const s9=a+(b-a)*(j+.5)/n;y-=pente(s9)*(b-a)/n;}ctrl[k].y=y;}
   for(const k in Q){const o=Q[k];let bi=0,bd=1e18;for(let j=0;j<ctrl.length;j++){const d=(ctrl[j].x-o.p.x)**2+(ctrl[j].z-o.p.z)**2;if(d<bd){bd=d;bi=j;}}o.p.y=ctrl[bi].y;}
+  if(AXE){const c9=Math.cos(AXE),s9=Math.sin(AXE); // (2026-10-19, LE GLACIER AU HASARD) la montagne dessinée face à +z TOURNE EN BLOC autour du départ
+    for(const v of ctrl){const x9=v.x*c9+v.z*s9;v.z=v.z*c9-v.x*s9;v.x=x9;}for(const k in Q){const o=Q[k],x9=o.p.x*c9+o.p.z*s9;o.p.z=o.p.z*c9-o.p.x*s9;o.p.x=x9;o.phi+=AXE;}}
+  BANQ.axe=AXE;BANQ.plan=rh?PLAN.map(function(o){return o[0]+(o[1]?':'+o[1]:'');}):null;
   BANQ.Q=Q;BANQ.cas=cas.map(function(x){return x*kS;});BANQ.spi=spi.map(function(o){return Object.assign(o,{s0:o.s0*kS,s1:o.s1*kS});});
   return ctrl;
 }

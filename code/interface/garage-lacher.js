@@ -27,6 +27,7 @@ function garageLaunch(){
   // (l'échange s'il n'a pas eu lieu, puis scanner éteint, échelle rendue) : la caisse qui sort est bien celle qu'on vient de choisir.
   if(GAR.sw){const SW=GAR.sw;GAR.sw=null;if(!SW.fait)garageShow(SW.to);if(GAR.scan)GAR.scan.visible=false;carGroup.scale.set(1,1,1);}
   window.__offGar=false; // (2026-10-14, chasse aux bugs) une course part : plus de RETOUR d'OFFRES vers le garage
+  window.__setGar=false; // (2026-10-19) …ni des RÉGLAGES (le ⚙ du garage)
   window.__mRetour=null; // (2026-09-29) une course part de l'atelier : l'écran qui l'attend à la fin, c'est la mort, pas les missions
   try{ if(carUnlocked(garageI)){const be=$('gEquip'); if(be&&be.getAttribute('aria-disabled')!=='true')be.click();} }catch(e){}
   if(CHUTE.on){chuteLance();return;} // (2026-09-30) LA CHUTE : depuis le ciel, pas de porte — elle PIQUE vers la route (voir chuteRender)

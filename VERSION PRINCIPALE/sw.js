@@ -10,7 +10,12 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v693'; // v693 (2026-10-19, Sacha : « les boutons en bas ils sont trop proches ») : dans la boutique, JOUER ne touche plus RETOUR
+const CACHE = 'cashcar-v702'; // v702 (2026-10-19) : la fusion — LE GARAGE QUI PREND TOUT L'ÉCRAN (Sacha : le ⚙ à côté du trophée, les portes et VITESSE montent ; ?garage=leo = avant) par-dessus v701 LE CANYON ET LES DUNES AU HASARD ; le détail des deux au journal
+// const CACHE = 'cashcar-v698'; // v698 (2026-10-19, Léo : « oui, mets le bras argent de la boutique dans le jeu ») : boutique › FIGURES, les deux bras posent la voiture, un bras robot argent fait la figure ; gestes plus fluides
+// const CACHE = 'cashcar-v697'; // v697 (2026-10-19, Léo : « oui, mets le bras robot dans le jeu ») : LE BRAS DES FIGURES — inventaire › FIGURES, un bras robot fait la figure sans traverser la caisse
+// const CACHE = 'cashcar-v696'; // v696 (2026-10-19, Léo) : LA VITESSE DE DÉPART — six crans au garage, l'étal du moteur soulevé, l'affiche des records à droite (voir le journal)
+// const CACHE = 'cashcar-v695'; // v695 (2026-10-19, Léo : « oui, mets le HOT ROD v3.1 dans le jeu ») : LE HOT ROD refait sur sa photo du coupé 32 rouge — structure en poly (chaque pièce posée), V8 Hemi en mini-cubes, écope en chrome bombé à la gueule ouverte, cabine de coupé 32 ronde
+// const CACHE = 'cashcar-v694'; // v694 (2026-10-19, Sacha au quiz : « ×2 sur le gain », « pub maison de 5 s », « vraies pubs seulement ») : LE ×2 DU GAIN contre une pub à l'écran de fin, la prise AdMob de l'app posée éteinte, L'ÉTERNELLE compte les vraies pubs
 // const CACHE = 'cashcar-v691'; // v691 (2026-10-19, Sacha : « rends les 10 missions cachées avec une récompense en argent à la place de la caisse absente ») : les dix missions dont la récompense manquait au garage reviennent, payées en argent (5 000 → 500 000 $)
 // const CACHE = 'cashcar-v690'; // v690 (2026-10-19, Sacha : « le tunel d'arriver pour la map canyon est moche ») : LE TUNNEL DE GRÈS (?sans=tunnelcanyon = avant)
 // const CACHE = 'cashcar-v688'; // v688 (2026-10-19, Sacha : « dans le bouton mission il y a un truc streak 3 days gift ready, enlève ça » · « il y a des missions en vert avec marqué coming to the garage soon — ça aussi enlève ») : le cadeau et sa ligne en tête de MISSIONS éteints (?cadeau=1) ; une mission dont la récompense n'est pas au garage ne se montre plus (?sans=missionsvides)

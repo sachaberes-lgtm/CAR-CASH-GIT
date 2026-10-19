@@ -26,13 +26,13 @@
 function prebDepCible(){ // la 1re piste du prochain départ, quand on sait la bâtir d'avance (le JOUER du mode classique, le REJOUER)
   if(!SF.on||PARK.on||TUTO.on||BALADE||JADE_JEU||SURV.armed||JSG_ESSAI||!sfPlayOk()||jadePlayOk())return null;
   if(SF.neuf&&SF.tirage[0]){const t=SF.tirage[0];if(!SF_CARTES[t.carte])return null; // le JOUER est parti (le piqué, le lâcher, l'atelier qui attend) : c'est SON tirage
-    if(started&&gameOver)return {t:t,z:0,zn:0,dep:true,st:true,eng:0}; // resetGame le prendra
-    return CHUTE.sous||GAR.sous?{t:t,z:0,zn:0,dep:true,st:false,eng:engTier}:null;} // sous9, au bout du piqué ou du lâcher (déjà passé : la piste est bâtie)
+    if(started&&gameOver)return {t:t,z:0,zn:0,dep:true,st:true,eng:vdepPal()}; // resetGame le prendra (LA VITESSE DE DÉPART : au palier du cran choisi, que resetGame posera)
+    return CHUTE.sous||GAR.sous?{t:t,z:0,zn:0,dep:true,st:false,eng:vdepPal()}:null;} // sous9, au bout du piqué ou du lâcher (déjà passé : la piste est bâtie)
   if(SF.force&&!(SF.force.carte&&SF_CARTES[SF.force.carte]))return null; // un lien de test sans map valide : tiré au départ, comme avant
   if(SF.prochain&&(SF.prochainDer!==SF.der||SF.force))SF.prochain=null; // périmé : le dernier couple a changé, ou un lien de test impose sa map
   if(!SF.prochain){SF.prochain=SF.force?sfImpose(SF.der):sfTire(SF.der);SF.prochainDer=SF.der;} // tiré D'AVANCE, par la règle du départ
   const t=SF.prochain;if(!SF_CARTES[t.carte])return null;
-  return {t:t,z:0,zn:0,dep:true,st:!!started,eng:started?0:engTier};}
+  return {t:t,z:0,zn:0,dep:true,st:!!started,eng:vdepPal()};} // (LA VITESSE DE DÉPART) sous9 comme resetGame posent le palier du cran choisi avant de bâtir
 function prebDepTick(now){ // (prebTick, hors course) commencer, vérifier, travailler
   if(PREB.W&&!PREB.dep){prebAnnule('fin');return;} // la piste d'en face d'une partie finie
   if(started&&gameOver){if(!PREB.fin0)PREB.fin0=now;}else PREB.fin0=0;

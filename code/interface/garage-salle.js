@@ -675,6 +675,7 @@ function buildGarageRoom(){
     B9.braises.frustumCulled=false;B9.bv=v;}
   }
   try{buildAffiches(g);}catch(e){console.warn('affiches',e);}
+  try{vdepEtal(g);}catch(e){console.warn('étal',e);} // (2026-10-19) LA VITESSE DE DÉPART : l'étal du moteur soulevé, à gauche de la porte
   try{garArgent(g);}catch(e){console.warn('argent',e);} // (2026-10-01) les TAS DE BILLETS : le compte se voit dans l'atelier (voir « L'ARGENT DE L'ATELIER »)
   try{gmHoloBuild(g);}catch(e){console.warn('missions',e);} // (2026-09-30) les hologrammes des MISSIONS (invisibles hors de leur écran) // (2026-09-30) LES AFFICHES DE RECORDS, de part et d'autre de la porte
   return g;

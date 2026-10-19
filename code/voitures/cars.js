@@ -140,7 +140,7 @@ const CARS=[
  {name:'LE MASTODONTE',color:0x1463ff,accent:0xff7a14,maxKmh:280,accel:31,turn:2.4,h:3,w:2.6,l:4.8,spoiler:0,shape:'a_mastodonte',rar:'defi',
   desc:'Il ne double personne : il passe dessus. Les dos d\'âne, c\'est lui qui les fabrique.'},
  {retire:1,name:'LA GROUPE B'}, /* (2026-10-18 soir, Sacha : « enlève la groupe B ») RETIRÉE : sa ligne reste (index de sauvegarde), qui l'avait est remboursé par `san` ; son gabarit b_groupeb reste dans SHAPES */
- {name:'LE HOT ROD',color:0x121212,accent:0xff6a14,maxKmh:380,accel:42,turn:2.5,h:1.4,w:1.7,l:3.9,spoiler:0,shape:'c_hotrod',rar:'defi',
+ {name:'LE HOT ROD',color:0xc8141c,accent:0xe9ecf0,maxKmh:380,accel:42,turn:2.5,h:1.4,w:1.7,l:3.9,spoiler:0,shape:'c_hotrod',rar:'defi',
   desc:'Un capot ? Pour cacher un compresseur pareil ? Tu rigoles. Même les flammes sont d’époque.'},
  {name:'LA PUCE',color:0xc8141e,accent:0xf4f4f0,maxKmh:320,accel:36,turn:3.2,h:1.35,w:1.41,l:3.05,spoiler:0,shape:'d_puce',rar:'defi',
   desc:'Trois mètres, quatre phares, zéro complexe. Elle a battu des monstres sur la neige : toi, c\'est l\'apéro.'},

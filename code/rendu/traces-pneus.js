@@ -181,6 +181,52 @@ window.dbgSaut=function(){ if(!started||gameOver||PARK.on)return 'pas de course 
    écran de fin (`gameOver`) : les sons du départ qui précèdent resetGame (JOUER depuis le garage) ne sont jamais touchés. */
 const FIN_SONS=['explosion','explosion.loin','impact.immeuble','mort.vide','mort.arret','mort.air','mort.police',
   'mort.enseigne','mort.compteFin','ui.debloque','ui.record','caisse.debloquee','aura.encaisse1','aura.encaisse2','aura.encaisse3'];
+/* LA RÉGIE ADMOB, CÔTÉ JEU (2026-10-19, Sacha : « prépare les emplacements de pub récompensée dans le jeu (sans module AdMob), on branchera
+   AdMob en v1.1 ») — ÉTEINTE tant que le chargeur du <head> (« LA RÉGIE ADMOB DE L'APP iPHONE » : CC_ADMOB) n'a pas son identifiant ET que
+   le module natif n'est pas dans l'app : aujourd'hui elle ne fait RIEN (AMOB.on faux), la pub maison joue comme avant.
+   Allumée, elle devient la régie de TOUTES les pubs récompensées (seconde chance, ×2 du gain) par les deux crochets que pubRecompense
+   connaît déjà : CC_PUB_PREPARE (l'offre s'ouvre → prepareRewardVideoAd) et CC_PUB_RECOMPENSE (le toucher → showRewardVideoAd).
+   Au lancement de l'app : initialize, le message de consentement RGPD de Google (UMP : requestConsentInfo/showConsentForm, obligatoire en
+   Europe), la fenêtre de suivi d'Apple (ATT : requestTrackingAuthorization), puis une pub préchargée. La fin d'une pub se lit aux
+   ÉVÉNEMENTS du module (récompense gagnée, pub fermée, pub ratée) — pas à la promesse de showRewardVideoAd, qui selon les versions rend
+   la main avant que la pub soit fermée. Rien de prêt au toucher → null → la pub maison. Une pub qui ne rend jamais la main : 150 s, puis
+   « pas vue ». ⚠ ÉCRIT SANS LE MODULE SOUS LA MAIN (aucun Mac ici) : les noms d'événements et d'options sont ceux de
+   @capacitor-community/admob v5-v7 — à vérifier contre la version installée, au banc ?pubtest=1 sur un vrai iPhone. Banc : dbgPub().admob. */
+const AMOB={on:false,pret:false,charge:false,vu:false,res:null,tm:0,etat:'',n:0,init:false};
+(function(){try{
+  const C=window.Capacitor;if(!C)return;
+  let A=C.Plugins&&C.Plugins.AdMob;
+  if(!A&&typeof C.isPluginAvailable==='function'&&C.isPluginAvailable('AdMob')&&typeof C.registerPlugin==='function')A=C.registerPlugin('AdMob');
+  const test=/[?&]pubtest=1\b/.test(location.search),cfg=window.CC_ADMOB||{};
+  const id=test?'ca-app-pub-3940256099942544/1712485313':String(cfg.recompense||'');
+  if(!A||typeof A.prepareRewardVideoAd!=='function'||typeof A.showRewardVideoAd!=='function'||!/^ca-app-pub-\d{10,20}\/\d{6,14}$/.test(id))return;
+  AMOB.on=true;
+  const fin=function(v){clearTimeout(AMOB.tm);const r=AMOB.res;AMOB.res=null;if(r)r(v);};
+  const charge=function(){if(!AMOB.init||AMOB.pret||AMOB.charge||AMOB.res)return;AMOB.charge=true;
+    Promise.resolve().then(function(){return A.prepareRewardVideoAd({adId:id,isTesting:test});})
+      .then(function(){AMOB.charge=false;AMOB.pret=true;AMOB.etat='prête';},function(){AMOB.charge=false;AMOB.etat='pas chargée';});};
+  const ecoute=function(n,f){try{A.addListener(n,f);}catch(e){}};
+  ecoute('onRewardedVideoAdReward',function(){AMOB.vu=true;});
+  ecoute('onRewardedVideoAdDismissed',function(){AMOB.etat='fermée';fin(AMOB.vu);});
+  ecoute('onRewardedVideoAdFailedToShow',function(){AMOB.etat='ratée';fin(null);});
+  const lance=async function(){
+    try{await A.initialize({initializeForTesting:test});}catch(e){}
+    try{if(typeof A.requestConsentInfo==='function'){const ci=await A.requestConsentInfo();
+      if(ci&&ci.isConsentFormAvailable&&ci.status==='REQUIRED'&&typeof A.showConsentForm==='function')await A.showConsentForm();}}catch(e){}
+    try{if(typeof A.trackingAuthorizationStatus==='function'&&typeof A.requestTrackingAuthorization==='function'){
+      const t=await A.trackingAuthorizationStatus();if(t&&t.status==='notDetermined')await A.requestTrackingAuthorization();}}catch(e){}
+    AMOB.init=true;charge();};
+  if(document.readyState==='complete')setTimeout(lance,1500);else addEventListener('load',function(){setTimeout(lance,1500);});
+  window.CC_PUB_PREPARE=function(nom){charge();};
+  window.CC_PUB_RECOMPENSE=function(nom){
+    if(!AMOB.pret||AMOB.res){charge();return null;} // rien de prêt : la pub maison
+    AMOB.pret=false;AMOB.vu=false;AMOB.n++;AMOB.etat='montrée';
+    const p=new Promise(function(res){AMOB.res=res;});
+    AMOB.tm=setTimeout(function(){fin(false);},150000);
+    Promise.resolve().then(function(){return A.showRewardVideoAd();}).then(function(r){if(r&&r.type!=null)AMOB.vu=true;},function(){AMOB.etat='ratée';fin(null);});
+    p.then(function(){setTimeout(charge,1000);}); // la suivante se prépare dès que celle-ci a rendu la main
+    return p;};
+}catch(e){AMOB.on=false;}})();
 /* LA RÉGIE ADSENSE, CÔTÉ JEU (2026-10-15 soir, Sacha : « branche les vraies pubs sur le site web avec Google AdSense (jeux H5) ») — le
    chargeur du <head> (« LA RÉGIE ADSENSE » : CC_ADSENSE, ?pubtest=1) a posé adBreak/adConfig ; on en fait la régie de LA PUB QUI RESSUSCITE.
    Le parcours de Google pour une pub RÉCOMPENSÉE : on DEMANDE une pub quand l'offre s'ouvre (adBreak type 'reward', depuis chanceOuvre :

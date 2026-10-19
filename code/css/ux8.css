@@ -218,6 +218,21 @@ html:not(.c6) body.chOffre #mDead #mChanceNon:not([hidden]){animation:u8ChMonte 
    Rien ne se touche. Sous le volet (#wipe 300), au-dessus de la machine à sous (250) et des fenêtres (95). */
 html:not(.c6) #mDead #mChance .chP{display:inline-flex;align-items:center;gap:7px}
 html:not(.c6) #mDead #mChance .chP .pxi{--pxs:1.5}
+/* LE ×2 DU GAIN (2026-10-19, Sacha au quiz : « ×2 sur le gain ») — la plaque #mDouble : la touche de laque au néon VERT de l'argent (jamais
+   l'or : REJOUER reste le seul lingot), « ×2 · +$ N · ▶ PUB ». Debout, juste sous la plaque d'argent (même rang -5, après elle) ; couchée, la
+   case `row` de la colonne de droite, au-dessus de ⌂ · REJOUER — celle que NON MERCI tient pendant l'offre de seconde chance. */
+.pb-cash{--nc:var(--cash)}
+html:not(.c6) #mDead #mDouble{order:-5;display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:52px;margin:10px 0 0;
+  padding:0 16px;box-sizing:border-box;font-size:var(--f1);white-space:nowrap}
+html:not(.c6) #mDead #mDouble[hidden]{display:none}
+html:not(.c6) #mDead #mDouble .dbT{font-size:var(--f3);color:var(--cash);text-shadow:0 2px 0 var(--cashO),0 0 10px rgba(125,255,155,.45)}
+html:not(.c6) #mDead #mDouble .dbS{font-weight:400;color:var(--cash);text-shadow:0 2px 0 var(--cashO)}
+html:not(.c6) #mDead #mDouble .dbP{display:inline-flex;align-items:center;gap:7px;font-weight:400}
+html:not(.c6) #mDead #mDouble .dbP .pxi{--pxs:1.5}
+html:not(.c6) #mDead #mDouble.dbOn{animation:u8ChMonte var(--t-slow) var(--ease) both}
+@media (orientation:landscape) and (max-height:540px){
+  html:not(.c6) #mDead #mDouble{grid-area:row;align-self:end;margin:0;min-height:48px}}
+@media (prefers-reduced-motion:reduce){html:not(.c6) #mDead #mDouble.dbOn{animation:none}}
 #pubR{position:fixed;inset:0;z-index:260;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;box-sizing:border-box;
   padding:calc(var(--sT) + 64px) calc(var(--sR) + 16px) calc(var(--sB) + 40px) calc(var(--sL) + 16px);
   background:radial-gradient(ellipse at 50% 52%,var(--k3),var(--k0) 74%);color:var(--tx);font-family:var(--pix);text-align:center;

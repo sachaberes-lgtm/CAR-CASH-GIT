@@ -3,6 +3,264 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE GARAGE QUI PREND TOUT L'ÉCRAN — LE ⚙ REVIENT, LES BOUTONS MONTENT (2026-10-17 → 19, Sacha : « dans le garage, les boutons sont toujours assez mal positionnés ; faut que tu rajoutes un bouton réglage et un bouton jouer, le bouton jouer avec les trois flèches ; dispose-les mieux dans l'écran : ils sont tous assez en bas alors qu'il y a tout le haut de l'écran qui peut être utilisé » ; puis, le 19 : « oui, pousse sur main, je préviens Léo (il a ?garage=leo s'il veut l'ancien) »)
+⚠ **LÉO EST PRÉVENU PAR SACHA** : ce rangement remplace par défaut la vue principale du garage et rend le ⚙ que Léo avait masqué le 9/10
+(31840c4, « enlève le settings »). Rien n'est détruit : **`?garage=leo`** (ou `?garage=avant`, html.garLeo) rend le garage d'avant AU PIXEL
+(mêmes rectangles mesurés que le main du 19/10).
+- **Fait le 17/10, rebâti le 19/10 sur le garage d'alors** : entre-temps le JOUER ▸▸▸ était arrivé dans l'inventaire et la boutique (UI-REVUE,
+  18/10, avec la porte qui remonte d'abord — ma version de ce morceau est abandonnée), le trophée en haut à droite et la BOUTIQUE deux fois plus
+  large (Sacha, 18/10, `<style id="garShop">`), la VITESSE DE DÉPART (Léo, 19/10, `#gVdep`). Tout cela est GARDÉ : seules les PLACES de la vue
+  principale (`#garage.consoleCachee`) changent. Mêmes éléments, mêmes styles, mêmes écouteurs. Tout dans **`<style id="garageHaut">`**, juste
+  après `vitesseDepart` (la dernière feuille avant `#splash`).
+- **LE ⚙ RÉGLAGES** = l'ancien `#gOutils [data-go="set"]` (dans #gTop : le glissé de la vue l'exclut déjà), en or, À GAUCHE DU TROPHÉE, centré
+  sur lui. Le trophée est recalé à 4 Hz par plqGarage (en miroir du compte) ; **`ghPlace`** (4 Hz, garage ouvert) lit sa place et pose sur #garage
+  `--ghTx` (du bord droit de l'écran au bord droit du ⚙) et `--ghTy` (le milieu du trophée) ; trophée caché (l'œil allumé), il garde la dernière
+  place — l'œil ne saute plus de 6 px. Son ◀ RETOUR rouvre le garage : `window.__setGar` (posé par l'écouteur de `#gOutils [data-go]`, lu par le
+  routeur de la coque comme `__offGar`, effacé par `garageLaunch`).
+- **COUCHÉ** : en haut à droite ŒIL · ⚙ · trophée ; `#gBottom` devient LA COLONNE DE DROITE (300 px, de 70 px sous le haut jusqu'en bas) —
+  VITESSE (vdepPlace la pose toute seule au-dessus des portes), [INVENTAIRE][MISSIONS], la BOUTIQUE de toute la largeur (= les deux autres
+  réunies, comme l'a voulu Sacha le 18/10), centrées dans la place libre ; en bas ACCUEIL + JOUER ▸▸▸ (248 × 62). garLibre lit le bord gauche de
+  la colonne : la caisse a le reste de l'écran.
+- **DEBOUT** : le compteur d'argent s'étend loin (« $ 12 345 678 » finit à x = 224 sur 390) : seul le ⚙ tient à gauche du trophée. VITESSE et les
+  trois portes (7 · 7 · 10 sur 24, comme garShop) montent SOUS LE NOM (fixed : `top: sT + 218 px` ; vdepPlace lit alors des places d'écran,
+  `#gVdep` passe en fixed avec elles) ; la rangée ACCUEIL · JOUER ▸▸▸ · ŒIL reste au pied. garLibre : debout, la caisse se pose SOUS les portes
+  montées (sinon elle restait sous le nom, un grand vide au-dessus de JOUER).
+- **LA PENTE** : garAplomb (15/10) penche la grappe autour d'UN axe (style en ligne) ; ici chaque plaque penche autour de SON centre
+  (`transform-origin:50% 50%!important`), sinon le haut d'une colonne de toute la hauteur partait de 30 px à droite.
+- MESURÉ (téléphone couché 844 × 390, rectangles) : AVANT tout tenait dans le bas droit — VITESSE y 214, portes y 258 (116 · 116 · 164),
+  ACCUEIL · JOUER · ŒIL y 312. APRÈS : ŒIL 640,9 · ⚙ 698,9 · trophée 760,8 ; VITESSE y 113 ; INVENTAIRE · MISSIONS y 157 (155 chacun) ; BOUTIQUE
+  y 213 (309) ; ACCUEIL + JOUER y 316. Debout 390 × 844 : AVANT VITESSE y 648, portes y 692 ; APRÈS ⚙ 248,11, VITESSE y 174, portes y 218.
+- Bancs (Chrome sans fenêtre et muet par CDP, scratchpad) : `t-garage.mjs` (garage → inventaire → retour → boutique → retour, photo + relevé
+  des touches et de ce qui les couvre) au téléphone couché et debout (tactile émulé), 375 × 667, 667 × 375, avec un compte de 12 345 678 $ ;
+  `t-flux.mjs` À LA SOURIS dans le cadre de l'ordi : ⚙ → RÉGLAGES → ◀ → garage · l'œil aller-retour (seul l'œil reste, à la même place) ·
+  INVENTAIRE → JOUER → course · mort → Accueil → GARAGE (les huit touches dessus, `elementFromPoint`) → JOUER → 2e course. 0 exception.
+  `?garage=leo` : les mêmes rectangles que le main du 19/10. Pas de Poki (`html.poki`) : intouché.
+
+## LE CANYON ET LES DUNES AU HASARD — L'AXE, LES PIÈCES ET LEUR ORDRE, LE CARACTÈRE DES LIAISONS, LES COUDES (2026-10-19, v701, session tracés canyon + dunes — Sacha : « vérifie bien que toutes les maps sont générées aléatoirement »)
+- **Le constat, mesuré** (banc des tracés, 40 graines, palier 0) : la graine changeait à chaque partie, pas la RECETTE. Le CANYON partait toujours
+  plein nord (−11° à +13°) et enchaînait toujours brèche (4-6 % du parcours) → fer à cheval/raccourci (17-36 %) → arche (65-82 %) → finale (89-92 %) :
+  UN seul ordre sur 40, écart de forme 0,078. Les DUNES : nord (−13° à +8°), crête du Grand Erg → toboggan → raccourci → vagues → vallée morte →
+  obélisques → oasis, trois ordres sur 40, écart 0,062. (« Écart de forme » : les tracés rééchantillonnés en 64 points xz par fraction de longueur,
+  départ à l'origine, distance moyenne entre deux tracés ÷ longueur moyenne ; la jade après son tirage du 18/10 : 0,26.)
+- **Désormais (`CY_HZ` dans genCanyon, `DN_HZ` dans genDunes)**, chaque map tire, dans un hasard à elle (`rh`, né de la graine de l'essai ; la route
+  est bâtie dans l'axe puis TOURNÉE à la fin) :
+  · son AXE : ±55° autour du nord (`axe`) ; la butée de cap ±58°, les recentrages et les boucles se comptent autour de lui ;
+  · ses COUDES : entre deux pièces, deux fois sur trois (`coude`), l'axe tourne de ±10-25°, ±28° au plus (`cmax`) — la route garde son cap, la suite
+    se compte autour du nouvel axe. Le cap reste à moins de 90° de l'axe tiré : la route ne revient jamais sur elle-même (`AX9`, lu par `droite`/`arc`,
+    vaut 0 dans la recette d'avant) ;
+  · ses PIÈCES et leur ORDRE (les pièces d'avant, telles quelles, chacune derrière sa liaison) — CANYON : la Route 67 + la brèche au départ et la
+    finale (le tunnel de grès) gardées ; entre elles un raccourci et une pièce toujours (l'arche ou l'amphithéâtre le plus souvent, poids `PDS` :
+    arche 3, amphithéâtre 3, étroits 2, mine 1,5, chameau 1, bosses 1), puis ce que la longueur tient parmi les autres et un 2e raccourci, le tout
+    mélangé. DUNES : la crête du Grand Erg + le toboggan au départ et l'oasis à l'arrivée gardés ; entre eux un raccourci, les vagues (« de crête en
+    crête ») et DEUX décors parmi la vallée morte, l'allée des obélisques et la deuxième crête, plus ce que la longueur tient ; entre deux pièces, une
+    liaison une fois sur trois seulement (`pl` : comme avant, la vallée suivait les vagues) ;
+  · un CARACTÈRE par liaison, jamais deux fois le même de suite — canyon : méandres (les virages d'avant), gorge (grandes courbes R 300-480 × RS),
+    serpent (S serrés à 1,25-1,6 × RMIN), dérive (la gorge part en biais jusqu'à la butée et y ondule), cassures (courtes droites et coudes) ; dunes :
+    virages, houle (2,2-3 × RMIN), serpent, dérive — ou un MODULE de Sacha (`mod` = 0,6 : six liaisons sur dix ; cSlalom… / dSlalom…, leur paquet
+    `cmPose`/`dmPose`, inchangé) ;
+  · sa PENTE (les liaisons ×0,85-1,2) et sa LONGUEUR : `longueurCible()` × `kL` ±8 % — `kL` = 1,34 au canyon, 1,1 aux dunes, la longueur réelle d'avant
+    (celle sur laquelle LA DURÉE DES MAPS a été mesurée : 46 s au départ). Les longueurs moyennes des pièces (`EST`) viennent du banc, paliers 0 à 25.
+- **Ce qui suit la route sans rien changer** : relief, rivière, parois, plateau en escalier, buttes, Mitaines, station Route 67, arche, cheminées, mine,
+  tunnel ; la mer de dunes, son VENT (il souffle déjà dans l'axe de la descente), l'oasis, la pyramide, obélisques, acacias, caravanes. **Ce qui reste
+  fixé au monde** : le soleil de l'heure (`cyA`) — il ne tombe plus toujours du même côté de la route, comme à la jade — et les trois pyramides de
+  l'horizon du ciel des dunes (`dnHorizon`, ~60° à droite du nord) : selon l'axe, on les a devant, de côté ou dans le dos.
+- **Corrigé au passage — LES MITAINES** (`cyMitaines`) : posées à côté de la Route 67 sans regarder où la route allait ensuite ; avec une brèche, une dérive
+  ou un coude vers elles, MESURÉ 4 canyons sur 40 passaient DANS une butte (360 à 830 m sous sa cime). Une butte dont le pied (1,65 × son grand rayon ;
+  le pouce : rx + 100 m) approche une route s'écarte de 60 m en 60 m (12 fois au plus, sinon elle n'est pas posée), et les trois se tournent avec le cap
+  de la Route 67 (plein nord : rien ne change). Après : 0 sur 40.
+- **MESURÉ APRÈS** — banc des tracés (40 graines) : écart de forme canyon 0,078 → **0,263** (palier 0 ; 0,26 et 0,267 aux paliers 10 et 20), dunes
+  0,062 → **0,235** (0,244 ; 0,252) ; ordres des pièces 1 → **17** (canyon), 3 → **30** (dunes) ; axe −53° à +53° ; longueur réelle ÷ visée 1,34 → 1,33
+  (canyon) et 1,10 → 1,11 (dunes) au palier 0 (au palier 20 : 1,71 → 1,59 et 1,60 → 1,70) ; rayon mini 1,11 × RMIN au palier 0, 1,0 au palier 25, comme
+  avant ; aucun croisement hors des boucles ; séparation des bras 256-387 m (avant 270-383) ; 4-35 ms par tracé. Au palier 0, le canyon porte 2 pièces
+  (33 fois sur 40) ou 3, comme avant (raccourci + arche) : l'arche 13 fois sur 40 (avant 40), l'amphithéâtre 10 (avant 0), les étroits 5, la mine 4,
+  le chameau 7, les bosses 8 ; les dunes toujours 4 pièces : la vallée 33 fois, l'allée 32, la deuxième crête 15 (avant 40, 40, 0).
+- **Dans le jeu** (Chrome sans fenêtre, muet) — 40 constructions du canyon et 30 des dunes par `dbgTrace({carte,palier})`, paliers 0 à 25 : **0 erreur JS** ;
+  la règle d'or (`dbgCanyon('test')`, `dbgDunes('test')` : rien sous ni sur la dalle, aucun décor sur la route) tenue partout aux paliers 0-3 (20 sur 20
+  au canyon, après le correctif des Mitaines) et aux dunes à tous les paliers. Le calcul du monde ne s'allonge pas (médianes 50-170 ms ici, comme avant), sa
+  mémoire GPU monte d'un quart à deux tiers (la boîte englobante d'une route en biais est plus grande : canyon 2,0 → 2,6 Mo au palier 0, 4,5 → 6 Mo au
+  palier 20-25 ; dunes 1,5 → 2,0 Mo et 5,1 → 7,8 Mo). Courses au pilote (`dbgAuto(1,0,{vol:true})`, sans nitro, jusqu'au portail) : canyon **5 sur 5**,
+  dunes **27 sur 28** (dont 20 à graine fixée `?pistegraine=`) — la seule mort : une sortie de route dans le demi-tour d'une boucle à raccourci, lancée
+  à pleine vitesse (la limite connue du pilote, qui ne freine pas : « À la nitro TENUE… » dans LES DUNES D'OR) ; la version d'avant au même banc : 11 sur
+  11 et 3 sur 3. Durées pareilles (dunes 42-77 s jusqu'au portail, avant 46-71 s).
+  Au banc PHOTO (photos.py : son pilote ne dirige PAS en vol), la graine 7 des dunes explosait vers 30 s — des vagues (un module dVagues) y arrivent
+  dès ~25 s, juste après l'allée des obélisques ; rejouée au pilote qui vole : 2 traversées sur 2. Les modules de vagues pouvaient déjà tomber avant
+  le 1er raccourci (la liaison d'avant était un module 4-5 fois sur 5). Fumée d'avant push (menu → JOUER → 12 s de course, canyon puis dunes) :
+  couché, debout et dans le cadre de l'ordi, 0 erreur JS.
+- **Ce qui ne change pas** : `?sans=canyonhasard` / `?sans=duneshasard` = la recette d'avant au tirage près (MESURÉ : 40 tracés sur 40 identiques, chaque map) ;
+  hors JOUER (longueurCible = 0) les maps entières gardent toutes leurs pièces, mélangées. Console : `dbgCanyon().hz` / `dbgDunes().hz` = l'axe, la pente,
+  la longueur visée, les coudes et les pièces dans l'ordre (avec leurs longueurs) ; les champs `hz` passent par le pré-bâti (`prebChampsDe`).
+- **À savoir, pas de nous** : aux hauts paliers, la règle d'or du canyon casse DÉJÀ sur main (MESURÉ avant : 5 constructions sur 6 aux paliers 20-25 et 2 sur 9
+  aux paliers 6-15 — roche ou rivière jusqu'à 50 m dans la dalle, au bord de la route ; après : 4-5 sur 8 et 1-4 sur 12, de 1 à 30 m). Un chantier à part.
+- **À trancher par Sacha** : l'arche n'est plus dans chaque canyon (13 sur 40) — `PDS` la rend plus fréquente ; tourner le soleil ou les pyramides de
+  l'horizon avec l'axe (un réglage chacun) ; l'axe ±55° (la jade : ±45°).
+- Bancs (dans le worktree de la session, `banc-hasard/`, non commités) : `prep.cjs` (la copie avec `__ev`/`__ctrl`, cf. la mémoire « banc des tracés »),
+  `mesure.cjs` (les 40 graines : écart, ordres, caps, longueurs, rayons, croisements ; plans SVG), `construit.cjs` (constructions dans le jeu : erreurs,
+  temps, règle d'or, décors sur la route, mémoire), `course.cjs` (le pilote jusqu'au portail, morts et pièce en cause), `planche.cjs` (la planche AVANT |
+  APRÈS), `photos2.py` (photos.py avec `?pistegraine=`).
+## LE BRAS DES FIGURES RANGÉ (2026-10-19 soir, v700, Léo : « enlève les bras robots ; quand il y a les tricks, on enlève le truc qui bloque les roues, on le remet sur une autre catégorie ; dans la boutique aussi, le bras enlevé, la voiture posée au sol, elle va faire le trick, tout simplement »)
+- `BRAS_FIG` (faux) : le grand bras robot ne sort plus, ni à l'inventaire ni en boutique ; `?bras=1` rend tout le bras des deux sections
+  ci-dessous, à l'identique (pour comparer). Son code reste en place, endormi (`BRB.p` reste à 0 : rien n'est bâti).
+- INVENTAIRE › FIGURES : les PINCES des roues rentrent dès l'onglet (la règle de `garAtelierTick` déjà posée pour le bras), la lampe reste ;
+  la figure touchée, la caisse la fait SEULE sur le plateau (l'animation d'avant le bras : `GFIG`, `FIG.Corps`). Un autre onglet : les pinces reviennent.
+- BOUTIQUE › FIGURES : dès l'ARRIVÉE dans la catégorie (plus d'attente de la 1re figure), les deux bras d'argent POSENT la caisse sur le plateau
+  et rentrent dans le sol (`BRB.bqK` → 1 sur `enB`) ; la figure se joue seule, posée. Une autre catégorie : ils ressortent et la relèvent.
+- `figPosee()` : la caisse est libre (bras d'argent rentrés et lévitation finie en boutique, pinces rentrées à l'inventaire). Une figure
+  touchée avant (ou celle que `shopShow` lance en ouvrant la catégorie) attend dans `BRB.libre` et part dès que c'est vrai ; on quitte
+  FIGURES : elle tombe.
+- Vérifié au banc (Chrome sans fenêtre, 390 × 844, vrais touchers) : inventaire et boutique, entrée dans TRICKS, BACKFLIP / FRONTFLIP, retour
+  à CARS et à TRICKS — aucune erreur, le bras ne sort jamais. Planche : `CAR CAHS V3/photos-gameplay/figures-sans-bras-avant-apres.png`.
+## LA FORÊT ET LE GLACIER AU HASARD — L'AXE TIRÉ, LES PELOTES ET LES ARCHES QUI BOUGENT, LA MONTAGNE QUI TOURNE (2026-10-19, v699, session foret-glacier — Sacha : « vérifie bien que toutes les maps sont générées aléatoirement »)
+- **Le constat, mesuré** (banc des tracés, 40 graines, longueur du JOUER aux paliers 0 / 10 / 25) : la graine changeait à chaque partie, pas la
+  RECETTE — le défaut que Sacha avait relevé sur la jade (« LA VALLÉE DE JADE AU HASARD », 18/10). LA FORÊT NOIRE partait toujours plein nord
+  (300 m de droite), UNE pelote au même endroit (~1 km plus loin : elle commençait à 4-9 % du parcours), l'arche à sa sortie (57-86 %), puis une
+  fuite vers le nord ; écart de forme 0,068 / 0,065 / 0,105. LE GLACIER : 260 m plein nord, la même ouverture en S (à un miroir près), des lacets
+  qui descendent droit vers le nord (l'arrivée entre −17° et +33°), aucun repère ; écart 0,136 / 0,151 / 0,231.
+  (« Écart de forme » = pistes rééchantillonnées en 64 points xz par fraction de longueur, départ à l'origine, distance moyenne entre deux pistes
+  ÷ longueur moyenne, sur toutes les paires ; références du même banc : jade 0,249, nuages 0,305, ville 0,223.)
+- **LA FORÊT AU HASARD** (`forPelote`, le dessin ; `FORET_HASARD`, `?sans=forethasard` = la recette d'avant, à l'identique). Chaque forêt tire,
+  dans son flux (`gr`) : son AXE, n'importe où sur le cercle (le plan se dessine face à +z puis tourne en bloc : `AXE`, `FORET.axe`) ; le nombre de
+  PELOTES — une, ou deux plus petites quand la longueur visée les tient (`K`, `NK` : rayon, pointes 3-4, relief desc / vague, et avec deux pelotes
+  l'une MONTE) ; des TRAVERSÉES entre départ, pelotes et arrivée, à la longueur partagée au hasard et reprise en route (la dernière rattrape),
+  chacune avec un CARACTÈRE, jamais deux fois le même de suite (`allee` = le slalom d'avant, `detour` = un grand coude, `lacets` = des virages en
+  chaîne, `boucle` = un tour complet au milieu, un pont de plus) ; une ARCHE ou deux (`arche`, `archeB`) n'importe où sur une traversée. La ligne
+  des pelotes louvoie à ±72° de l'axe : la forêt ne revient jamais sur ses pas. Les MODULES (fSlalom, fCorde, fRacines) sont PLACÉS dans les
+  traversées les plus longues (`MO9`) — au JOUER ils ne sont plus forcés n'importe où (0,7-1 km chacun, la forêt débordait ; avant, on en voulait 3
+  et la note ne passait JAMAIS au JOUER : 8 essais à chaque forêt). La note d'un essai écarte aussi ce qui s'éloigne de la longueur visée (×0,75-1,3)
+  et une arche dont le tronc toucherait un autre étage (aucune autre route à 200 m : sinon foretArche y renonce — au premier jet, une arche sur deux
+  manquait). Le décor bâtit chaque arche (`foretArche(root,fr,M,k9)`, `FORET.arche` = la liste) et le lierre de chacune.
+- **LE GLACIER AU HASARD** (`genBanq`, `BK_HASARD`, `?sans=glacierhasard` = la descente d'avant, à l'identique), dans son flux (`rh`) : L'AXE DE LA
+  MONTAGNE, ±90° autour du nord — la descente se dessine dans son repère (la pente vers +z) puis TOURNE EN BLOC (`BANQ.axe`) : manteau de neige,
+  pics, congère, tremplins se posent autour de la piste et tournent avec elle, les AURORES aussi (`fx.aur.rotation.y`) ; l'axe ne regarde jamais
+  le soleil bas en face (il est au sud : ±90° lui laisse 67° au moins). Puis le départ (140-360 m) et une suite de TRONÇONS, chacun son CARACTÈRE,
+  jamais deux fois le même de suite, le premier fait l'OUVERTURE : `lacets` (la descente d'avant), `courbes` (R 420-800 m × le palier), `traverse`
+  (la piste coupe la pente à 44-58° sur 200-420 m puis repart de l'autre côté : la trace en Z), `schuss` (tout droit dans la ligne de pente, à la
+  pente la plus raide) ; les modules (bkSlalom, bkEsse, bkDouble) s'intercalent comme avant. Gardés : la butée de cap (75° autour de l'axe), les
+  rayons, les pentes de BK_PENTE4, la longueur ; un essai dont deux bouts de piste (≥ 700 m de piste entre eux) passent à moins de 440 m en plan est
+  repris (`BANQ.pres`, `BANQ.essais` ; jamais arrivé en 120 pistes : 466 m au plus près, avant 455). Les lacets SUPERPOSÉS du 14/10 ne reviennent pas :
+  Sacha les a ôtés le 15/10 (« sans module bizarre »).
+- MESURÉ (banc des tracés, mêmes 40 graines, avant → après, paliers 0 / 10 / 25) :
+  · forêt : écart 0,068 / 0,065 / 0,105 → **0,257 / 0,246 / 0,219** ; l'axe départ → arrivée −11°/+14° → tout le cercle ; la 1re pelote commence à
+    4-9 % → 4-42 % (4-57 % au palier 10) ; l'arche à 57-86 % → 7-92 % ; 2 pelotes : 11 forêts sur 40 au palier 0, 15 au palier 10 (une seule au
+    palier 25 : la pelote y fait 6 km) ; 2 arches : 11 sur 40 ; caractères au palier 0 : allée 34, détour 35, boucle 13, lacets 9 ; longueur ÷ visée
+    (médiane) 0,83 / 0,84 / 1,28 → 1,02 / 0,97 / 1,03 ; rayon mini sur la spline inchangé (73-83 → 73-82 m au palier 0, 174-202 → 173-199 au 25) ;
+    croisements toujours ≥ 33 m de haut (DY 32) ; emprise du sol +5 % au palier 0, −3 % au palier 25.
+  · glacier : écart 0,136 / 0,151 / 0,231 → **0,449 / 0,449 / 0,474** ; l'axe départ → arrivée −17°/+33° → −106°/+76° ; ouvertures : traverse 15,
+    lacets 10, courbes 9, schuss 6 ; longueur ÷ visée inchangée (0,82) ; rayon mini sur la spline 151-164 → 152-214 m ; pentes inchangées.
+  · `?sans=forethasard,glacierhasard` redonne les 240 pistes d'`origin/main` (2 maps × 3 paliers × 40 graines) au point près.
+- EN JEU (copie de banc, Chrome sans fenêtre) : forêt, 20 constructions complètes (`dbgTrace({carte:'foret'})`) sans erreur JS, décor 87-342 ms
+  (avant 62-289), 22 arches prévues, 22 bâties (avant : 8 forêts sur 10 en avaient une) ; 5 courses au pilote (`dbgAuto(1,0)`) jusqu'au portail
+  (58-71 s, sans nitro). Glacier, 10 constructions sans erreur, décor 20-65 ms (avant 18-119), 3-5 tremplins (avant 1-4), 5-20 pics sur la piste
+  (avant 3-17). Le pilote (`dbgAuto(1,0,{gl:true})`) roule au milieu et n'esquive RIEN : il meurt sur un pic de la piste 6 fois sur 6, avec
+  l'ancienne piste comme avec la nouvelle (vers 1,3 km dans les deux cas) ; pics de piste neutralisés le temps du banc, 3 courses sur 4 au
+  portail (avant : 2 sur 4, les autres mortes sur un pic en retombant d'un tremplin). Démarrage menu → JOUER → course sans erreur couché (forêt
+  de nuit), debout (glacier au soir) et dans le cadre de l'ordi.
+- Le PRÉ-BÂTI : les champs neufs écrits par la génération entrent dans la liste échangée (`prebChampsDe` : `FORET.plan`/`axe`, `BANQ.axe`/`plan`/
+  `pres`/`essais`). Console : `dbgForet()` et `dbgBanq()` rendent `axe` (°) et `plan` (chaque morceau et sa longueur), `dbgBanq().pres`.
+- Bancs (non commités) : la copie de banc avec `__ev`/`__ctrl` (voir la mémoire « banc des tracés »), l'analyse (écart, écart sans l'axe, repères,
+  rayon sur la spline, approche), un plan SVG des 40 tracés par map et palier ; les courses au pilote rechargent la page à chaque course.
+- À trancher par Sacha : l'axe de la forêt tourne sur TOUT le cercle (on peut rouler face au soleil couchant, ses rayons) — le borner comme la jade
+  (±45°) si ça gêne ; au glacier ±90°.
+## LE BRAS DES FIGURES EN BOUTIQUE (2026-10-19, Léo : « mets aussi les bras robots dans la boutique, onglet FIGURES » · « faut pas qu'il soit orange, faut qu'il soit comme dans la boutique un peu ; travaille un tout petit peu l'animation ; les autres posent la voiture et un autre bras apparaît »)
+- Boutique (salle blanche), catégorie FIGURES (`brasBqVoulu` : GBQ.cat 'figure') : à la 1re figure touchée, les DEUX BRAS D'ARGENT posent la caisse
+  sur le plateau et rentrent dans le socle (`BRB.bqK`, lu par `garBqIndus` — la lévitation descend — et `garBqBras` — ils rentrent une fois la
+  caisse posée ; le PLATEAU reste visible) ; le grand bras sort ensuite du sol et fait la figure, comme à l'atelier. On quitte la catégorie : il
+  rentre, puis les deux bras ressortent et la relèvent. Tant qu'il est là : ni tangage ni roulis au doigt, la vitrine ne tourne plus d'elle-même.
+- L'HABIT par salle (`brasHabille`) : chaque pièce a un rôle ; atelier = le jaune des pinces, boutique = l'argent / graphite / chrome des deux bras
+  (`GBQ.matB`, aucun programme de plus) et leur diode ambre, verte quand il tient ; pas de gorge noire sur le sol blanc. Le bras vit maintenant dans
+  la SCÈNE (GAR.root est éteint en boutique) ; repère posé sur la caisse au repos (`BRB.y0`), le sol 6 cm plus bas (`BRB.dSol`).
+- L'ANIMATION : trajets d'un seul geste (les trois temps se chevauchent : il monte en commençant à tourner) ; un temps SERRE (la diode passe au vert,
+  la caisse décolle de 2,5 cm sous la pression) ; la levée dépasse de ~4 % et se pose (`brasDep`, portée vérifiée à 1,06 × la levée).
+- Mesuré : en boutique les 13 figures avec le bras, 0 traversée, la caisse jamais sous le plateau ; l'inventaire inchangé (13/13, 0 contact).
+  Planche : `photos-gameplay/bras-robot-boutique-avant-apres.png` (dossier CAR CAHS V3).
+
+## LE BRAS DES FIGURES — L'INVENTAIRE, ONGLET FIGURES (2026-10-19, Léo : « au lieu d'avoir une machine qui tient les roues, une machine prête à soulever la voiture et à la faire tourner — faire attention à la physique, que le truc ne passe pas à travers la voiture, cohérent avec ce qu'on a déjà » ; choix : « elle fait la figure » · « onglet FIGURES seulement »)
+- **Ce qui change** : à l'atelier fermé (`GATL.on`), onglet FIGURES (`SHOP.tab 'figure'`), les 4 pinces des roues rentrent (`garAtelierTick`,
+  condition `!brasVoulu()`) et un grand BRAS ROBOT jaune (matières `GATL.M`, 0 programme de plus) sort replié d'une trappe, sur un RAIL posé
+  sur le plateau (rayon `BRB.Rr` 3,95 m, il tourne avec lui). En attente : l'outil 18 cm au-dessus du toit, de trois-quarts arrière vu de la
+  caméra (`BRB.cote`), il glisse sur le rail quand on tourne la caisse. Une figure touchée → `garFigEssai` → `brasFigure` : c'est le bras
+  qui la fait — trajet par le haut, approche sur l'axe, l'outil se déplie, il serre (diode verte, `garage.tole`), soulève, tourne, repose,
+  replie, revient. Les autres onglets : les pinces comme avant. Les autres endroits où une figure se joue (boutique) : inchangés.
+- **La règle anti-traversée** : une rotation laisse son AXE immobile → le patin prend la caisse là où sort l'axe de la figure (flanc =
+  salto/chandelle/rodéo, poupe ou nez = tonneau/shimmy, toit = toupie/hélico, haut du flanc = vrille penchée) ; patin + tige tournent
+  avec la caisse, le boîtier du poignet est au-delà de sa boîte sur l'axe. Deux mouvements : le 1er autour de la verticale → le PLATEAU
+  tourne (`BRB.yaw`, lu par `GAR.pod`) ; sinon une ÉQUERRE à deux pivots (tire-bouchon, cosmique) qui passe hors du rayon de la caisse.
+  Le TAIL WHIP (pivot au nez) passe aussi par le plateau : la caisse est décalée pour poser son nez au-dessus du centre (`pl.sh`).
+  Levée = juste assez pour que caisse et équerre ne touchent pas le plateau (`brasBas`, 97 instants) — et pas plus haut que `BRB.plafond`
+  (5,85 m : la lampe de l'atelier rentre dans le plafond quand le bras est là). Chaque plan est vérifié avant de partir (`brasPlan` : bras
+  en capsules contre la boîte de la caisse et l'équerre, à 61 instants de la figure, la montée, l'approche, et les deux TRAJETS — aller et
+  retour par le haut, `brasCheminSur` essaie plus haut / plus loin s'il touche) ; `dbgBras('plan',id)` dit pourquoi un plan est refusé.
+  Sans plan sûr le bras RENTRE dans sa trappe et la caisse fait la figure seule, comme avant (`libre`), puis il ressort.
+- **S'adapte à la caisse** : la boîte est mesurée sur les SOMMETS (certaines géométries soudées gardent une boîte vide) et le contact du
+  patin au rayon, triangle par triangle ; l'épaule monte avec la caisse (colonne télescopique, `BRB.Hs`) ; devant le nez et la poupe d'une
+  caisse très longue certains crans du rail sont interdits (`brasHovCale`/`brasHovSur`) : il ne s'y arrête ni ne les traverse ; une toupie
+  trop longue pour le poignet passe par le plateau. **Les 57 caisses de la gamme** : 46 font les 13 figures avec le bras ; 11 grandes
+  (ELDORADO, COMÈTE, LE CORBILLARD, LE MUR DU SON, L'ORIGAMI, L'ICEBERG — plus de 6 m — ; LE MASTODONTE, LE BLINDÉ NOIR, SQUALE, LE CAÏD,
+  LE CHARGEUR 69) gardent l'ancienne animation pour les figures qui ne tiennent pas sous le plafond (saltos, cosmique, tire-bouchon…).
+- **Caméra** : `BRB.cK` (recul dans `dV`) et `BRB.cY` (le point que `garCadre` pose dans la place libre monte avec la levée — l'objectif
+  est déjà à 88° en inventaire, le recul seul ne suffisait pas). Pendant que le bras est là, la caisse ne s'écrase plus sous le doigt.
+- **Mesuré** (banc Chrome muet, `dbgBras('verif')` = l'écart réel image par image entre le bras dessiné et la caisse dessinée) : 0 traversée
+  sur toutes les démonstrations jouées (14 caisses × 13 figures), jeu minimal 3,5 cm (tire-bouchon/cosmique), debout et couché ; 0 programme
+  compilé en entrant dans l'onglet ; un toucher = une seule démonstration (la console appelle `garFigEssai` deux fois : la 2e remplace la 1re).
+- Crochets : `dbgBras()` (état), `('plan',id)` (le plan, ou `refus`), `('fig',id)`, `('verif')`, `('lent',k)`, `('fige','tourne',.4)`, `('cam')`,
+  `('caisse',i)` (change la caisse comme l'inventaire — depuis l'onglet VOITURES), `('remesure')`, `('pieces')`.
+  Bancs : scratchpad de la session (`bras/` : s15 photos aux vrais touchers, s17 démonstrations vérifiées par caisse, s19 tour des plans).
+
+## LA VITESSE DE DÉPART — SIX CRANS AU GARAGE, L'ÉTAL DU MOTEUR SOULEVÉ (2026-10-19, session GARAGE — Léo : « choisir le niveau du moteur auquel commencer, en tranches de 5 — six vitesses, dans le garage ; progressif ; à la place de l'affiche record, un étal avec le moteur soulevé qui change avec le niveau choisi, l'affiche à droite »)
+- **Six crans** (`VDEP_PAL` = index 0 · 5 · 10 · 15 · 20 · 25 = paliers 1 · 6 · 11 · 16 · 21 · 26) : 1 = le départ normal. LA FONCTION S'OUVRE AU PALIER 30
+  (Léo : « seulement quand on a atteint le palier trente ») : le TROU NOIR atteint une fois (`SAVE.d.ex.eng`, versé à la fin de chaque partie,
+  `vdepFonction`) ouvre les six crans d'un coup, toast « VITESSE DE DÉPART DÉBLOQUÉE » ; avant, les six cases sont visibles sous CADENAS (son
+  choix) et disent « ATTEINS LE PALIER 30 ». Le code cousin ouvre tout. Choix : `SAVE.d.vdep` (0-5, `san`).
+- **Au départ** : `vdepPose()` remplace la remise à zéro du moteur dans `resetGame`, et tourne dans `sous9` / `jadeJouer` au 1er JOUER (avant la piste) —
+  pièces du palier comptées, nitro pleine. `prebDepCible` bâtit le DÉPART D'AVANCE au palier `vdepPal()` (mesuré : « pris au départ », 0 programme
+  compilé). Auto-école, parc, balade, joueur sans permis : toujours le cran 1.
+- **Au garage** (bloc « LA VITESSE DE DÉPART AU GARAGE », après `afficheTap`) : la grille `#gVdep` (enfant de #gBottom, placée par `vdepPlace` au-dessus
+  de INVENTAIRE · MISSIONS · BOUTIQUE, debout comme couché ; cran fermé = cadenas + toast), l'étiquette « 3 · V8 ATMO » sur le PLAY du garage
+  (`#gVdepTag`) et de l'accueil (`#mVdepTag`, dans #mHome). L'ÉTAL (`vdepEtal`, dans buildGarageRoom) à gauche de la porte (5,95 ; hd−1,4) : socle,
+  vérin, les six moteurs bâtis avec l'atelier (compilés par sa chauffe), un seul visible, qui redescend et remonte au changement. L'affiche des records
+  est passée à DROITE (x −6,45). Les tas de billets évitent les deux. CSS `<style id="vitesseDepart">` avant `#splash`. Console : `dbgVdep()`,
+  `dbgVdep(n)`, `dbgVdep('tout'|'rien')`.
+
+## LE HOT ROD REFAIT SUR LA PHOTO DE LÉO — v2 → v3 → v3.1 (2026-10-19, v695 — Léo : « au style poli, tu peux vraiment faire un truc mieux… il y a un truc qui vole un peu dans les airs… pour le moteur, joue avec les mini-cubes » puis « écope chromée comme sur ma photo, cabine de coupé 32 plus ronde » ; « oui, mets le HOT ROD v3.1 dans le jeu »)
+- BOÎTES 7adeed96 (v2 : le coupé 32 rouge de sa photo), 159c7f22 (v3), d3ea10be (v3.1) — le détail plus bas, dans les sections de BOÎTES.
+- Ce qui VOLAIT dans le v2 : la coquille de calandre (9 cm au-dessus de sa traverse), la lame de ressort (15 cm au-dessus de l'essieu, sans
+  jumelles), le moteur (sans supports), épingles et direction dans le vide. v3 : tout rebâti de bas en haut, chaque pièce POSÉE sur une autre.
+- Le moteur : un V8 HEMI 392 (les fils entrent PAR LE DESSUS des couvre-culasses), deux quadruple-corps sous l'écope, en mini-cubes. v3.1 :
+  l'écope en chrome BOMBÉ deux tons, gueule ouverte ; la cabine de coupé « trois fenêtres » ronde (toit bombé, auvent court, vitres aux
+  coins arrondis, bas de caisse qui rentre, jonc de ceinture).
+- La roue : celle du gabarit (`roueDeco`), plus proche du gros plan de Léo que l'option `chapeau` de `lpWheel` (qui reste dans l'outil, inutilisée).
+- Vérifié : course sans erreur, 0 programme compilé en roulant. Planches : `photos-gameplay/hotrod-v3-avant-apres.png`, `hotrod-v31-avant-apres.png`.
+
+## LE ×2 DU GAIN CONTRE UNE PUB + LA PRISE ADMOB DE L'APP (2026-10-19, v694 — Sacha : « prépare les emplacements de pub récompensée dans le jeu (sans module AdMob), on branchera AdMob en v1.1 » ; au quiz : « ×2 sur le gain », « pub maison de 5 s » tant qu'AdMob n'est pas branché, « vraies pubs seulement » pour L'ÉTERNELLE)
+La sortie App Store est prévue ~3 semaines plus tard (~9/11) ; la pub native (AdMob) arrive en v1.1. La SECONDE CHANCE était déjà payée par une pub
+(LA PUB QUI RESSUSCITE, 15/10) : c'est le 2e emplacement.
+- **LE ×2 DU GAIN** (bloc `DBL` juste sous `dbgChance` ; plaque « LE ×2 DU GAIN À L'ÉCRAN DE FIN » sous celle de la seconde chance ; CSS dans
+  `<style id="pubRecompense">`) : à l'écran de fin, la plaque `#mDouble` « ×2 · +$ N · ▶ PUB » — laque au néon VERT de l'argent (`.pb-cash`),
+  jamais l'or (REJOUER reste le seul lingot). Debout : juste sous la plaque d'argent. Couchée : la case `row` au-dessus de ⌂ · REJOUER (celle que
+  NON MERCI tient pendant l'offre). Elle entre 1,1 s après que l'écran est jouable (le compte du grand chiffre est fini). Pub vue jusqu'au bout →
+  ce que la partie a VERSÉ AU COMPTE (`RUNX.verse`, le grand chiffre vert) est versé une 2e fois, le chiffre monte de N à 2 N et claque, la ligne
+  COMPTE suit. UNE fois par partie (`dblRaz` au départ, à côté de `chanceRaz`) ; jamais pendant l'offre de seconde chance, la machine à sous ou
+  une pub (`chanceAttend`, `SPIN.ouvert`, `PUBR.on`) ; pas sous `DBL.min` (50 $), ni au bac à sable, à l'auto-école, au parc, au Survivant, en
+  balade. Pub fermée trop tôt (vraie régie) : rien n'est versé, la plaque revient tout de suite. Ce que la machine à sous verse APRÈS la mort
+  n'est pas doublé (`RUNX.verse` est figé à la mort). Il s'ajoute au ×2 DU JOUR (1re partie du jour : ×4 au total).
+  Sans régie (l'app v1 et le site d'aujourd'hui) : la PUB MAISON de 5 s, dont le pied dit « TON GAIN ×2 APRÈS LA PUB » (`pubMaison(fini,nom)`).
+  `?double=0` éteint tout ; banc `dbgDouble()` / `dbgDouble('joue')`.
+- **L'ÉTERNELLE** (« REGARDE 100 PUBS », `SAVE.d.ex.pubs`) se remplit de nouveau : `pubCompte()` dans `pubRecompense`, pour chaque pub d'une
+  VRAIE régie vue jusqu'au bout. La pub maison ne compte pas (`dbgPub().pubs`).
+- **LA PRISE ADMOB** (« LA RÉGIE ADMOB DE L'APP iPHONE » dans le `<head>` : `CC_ADMOB={recompense:''}` ; « LA RÉGIE ADMOB, CÔTÉ JEU » : `AMOB`,
+  juste au-dessus de la régie AdSense) : ÉTEINTE. Elle ne s'allume que dans l'app (`window.Capacitor`), avec le module natif
+  `@capacitor-community/admob` installé ET l'identifiant du bloc récompensé dans `CC_ADMOB.recompense`. Alors : initialize, consentement RGPD
+  de Google (UMP), fenêtre de suivi d'Apple (ATT), une pub préchargée ; elle pose `CC_PUB_PREPARE`/`CC_PUB_RECOMPENSE` et sert les DEUX
+  emplacements. `?pubtest=1` dans l'app = le bloc de test de Google. ⚠ Écrite sans le module ni Mac : noms d'événements/options de la v5-v7 du
+  module, à vérifier au banc sur un vrai iPhone. **À FAIRE EN v1.1, côté Mac** : `npm i @capacitor-community/admob` + `npx cap sync ios` ; l'App
+  ID AdMob (`GADApplicationIdentifier`), `SKAdNetworkItems` et `NSUserTrackingUsageDescription` dans Info.plist ; l'identifiant du bloc dans
+  `CC_ADMOB.recompense` ; refaire les réponses « confidentialité » de l'App Store (identifiant publicitaire, données d'usage, suivi) ;
+  `app-ads.txt` sur le site du développeur (Vercel).
+- **MESURÉ au banc** (Chrome sans fenêtre, muet, `cc-banc/lib.cjs`, partie de 40 s, 3 000 $ versés, compte 50 000 $) : COUCHÉ 844 × 390 →
+  pendant l'offre de seconde chance la plaque ×2 est cachée ; NON MERCI → elle entre (« ×2 +$ 3 k ▶ PUB », au-dessus de REJOUER, rien ne la
+  recouvre) ; toucher → la pub maison 5 s (« TON GAIN ×2 APRÈS LA PUB ») → compte 53 000 → 56 000, grand chiffre $ 3 k → $ 6 k, plaque partie.
+  Régie qui dit NON → 0 $ versé, offre gardée ; régie qui dit OUI → +3 000 $, sans pub maison, `ex.pubs` 0 → 1. DEBOUT 390 × 844 → la plaque sous
+  l'argent, au-dessus des cartes, REJOUER toujours à l'écran ; même parcours, 53 000 → 56 000. 0 erreur. Fumée commune (`cc-banc/fumee.cjs`) avant la poussée.
+
 ## LA RÉSURRECTION + LE JACKPOT QUI DONNE UNE ÉPIQUE + LES LOTS DU FINAL SPIN REVUS (2026-10-19, session resurrection — Sacha : « seconde chance doit ressusciter la voiture : fais une animation stylée où les pièces de la voiture se réassemblent par magie » · « le jackpot doit faire gagner une voiture épique » · « seconde chance doit être plus probable ; les sacs d'argent doivent être plus rares, mais ils rapportent 50× plus d'argent qu'actuellement »)
 - **LA RÉSURRECTION** (`RESU`, `resuLance`/`resuBatit`/`resuTick`/`resuClac`/`resuFin`/`resuVue`) — la reprise de la seconde chance ne pose plus
   la caisse d'un coup. Sous le volet (`chanceRepart`), ses VRAIES pièces (`CAR_PIECES`, celles que l'explosion arrache) apparaissent éparpillées
@@ -1577,6 +1835,48 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   basculaient en vue « dessus » → règle de vue abaissée à 0,83 m.
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
+
+## LE HOT ROD v3.1 — L'ÉCOPE CHROMÉE, LA CABINE DE COUPÉ 32 (2026-10-19, discussion BOÎTES ; Léo : « pousse encore le HOT ROD : écope chromée comme sur ma photo, cabine de coupé 32 plus ronde »)
+- **L'ÉCOPE** : un grand volume de CHROME BOMBÉ (loft à huit points par demi-section ; le bas en chrome sombre `C`, le haut clair : le reflet
+  du sol et du ciel), posé sur les deux quadruple-corps, l'arrière arrondi, le ventre qui se relève devant les carburateurs, la gueule qui
+  monte ; OUVERTE : une lèvre polie évasée, son bord, et le tunnel sombre derrière. Elle s'arrête avant le radiateur (rien ne traverse).
+- **LA CABINE** : le toit plus BOMBÉ (11 cm de bombé, l'arête arrondie) ; l'auvent court et ROND (il se rétrécit en courbe et sa crête
+  tombe devant ; plus de face en caisse devant la porte) ; la vitre de porte aux coins HAUTS arrondis (deux éventails rouges, l'encadrement
+  qui suit l'arrondi) ; la porte en FENTE C aux coins du bas arrondis, posée sur la tôle (`cote`) ; le bas de caisse qui rentre ; le JONC
+  de ceinture. Pas de vitre de custode : c'est un coupé « trois fenêtres » (deux vitres de porte + la lunette), comme la photo.
+- Banc : 0 programme compilé en course (couché, debout ; un +1 intermittent en portrait vu aussi avec le v3 : un événement de course) ;
+  garage comme avant. Planche : `photos-gameplay/hotrod-v31-avant-apres.png`. Attend le oui de Léo.
+
+## LE HOT ROD v3 — LA STRUCTURE EN POLY, LE MOTEUR EN MINI-CUBES (2026-10-19, discussion BOÎTES ; Léo sur la planche du v2 : « au style poly tu peux vraiment faire mieux, concentre-toi sur la structure — il y a un truc qui vole dans les airs ; inspire-toi des gros plans ; le moteur, joue avec les mini-cubes, recherche le modèle »)
+- **CE QUI VOLAIT** (vues basses du v2) : la coquille de calandre 9 cm au-dessus de sa traverse, la lame de ressort 15 cm au-dessus de l'essieu
+  sans jumelles, le moteur sans supports, les épingles et la direction accrochées dans le vide.
+- **BÂTI DE BAS EN HAUT** : les longerons rouges en prismes CHANFREINÉS (octogones), qui remontent sous la calandre et plongent en CORNES
+  jusqu'à la barre chromée ; traverses (ressort, support de radiateur, boîte, arrière) ; la caisse POSÉE dessus ; la coquille sur son
+  support ; l'essieu en I, la lame transversale en arc serrée sous sa traverse, ses jumelles et brides ; épingles, amortisseurs et
+  direction AU LONGERON ; les phares sur des pattes boulonnées aux longerons. Les vrais volumes de la cabine : gouttière du toit,
+  encadrements de la vitre, du pare-brise, de la lunette.
+- **LE MOTEUR** identifié : un V8 HEMI Chrysler (392) — les fils rouges entrent par le DESSUS des grands couvre-culasses (bougies au
+  milieu de la culasse) ; pas de compresseur sur la photo (deux quadruple-corps sous la grande écope). En mini-cubes : culasses rouges,
+  couvre-culasses en alu satiné à ailettes polies et vis, capuchons dressés et fils qui bouclent, pipe haute, carburateurs et leurs cuves,
+  écope (loft), collecteurs 4-en-1 gris, distribution, poulies, courroie, allumeur, boîtier bleu, cloche et boîte ; SUR SES SUPPORTS.
+- **LES ROUES** : la nôtre (`roueDeco`) gardée — plus proche du gros plan 2 que la jante `chapeau` de lpWheel (grand chapeau, flanc fin).
+- Prismes posés triangle par triangle (`poutreF`, sans ExtrudeGeometry). Banc : 0 programme compilé en course (couché, debout, répété),
+  garage comme le v2 ; construction 40-50 ms sous charge (le v2 : 22-29 ms dans les mêmes conditions). Planche :
+  `photos-gameplay/hotrod-v3-avant-apres.png`. Attend le oui de Léo.
+
+## LE HOT ROD v2 — LE COUPÉ DE LA PHOTO DE LÉO (2026-10-19, discussion BOÎTES ; Léo, une photo à l'appui : « exactement celle-là, la couleur, moteur vraiment stylé, roues exactes, plaque au même endroit, tout tout pareil, poly réalisme — en mode poly hybride, ultra mini cubes si besoin »)
+- Le gabarit `c_hotrod` RÉÉCRIT : le coupé « trois fenêtres » de 1932, ROUGE (0xc8141c, la fiche aussi), en highboy (sans ailes) — la coque
+  sur son CHÂSSIS rouge à l'air (longerons sous les portes, « kick-up » sur l'essieu, cornes qui plongent), la porte « suicide » et la malle en
+  FENTE C, la banquette capitonnée, le volant à droite ; la CALANDRE rouge, son bord qui avance de 8 cm, la grille au fond et ses 31 barreaux
+  fins ; les PHARES-OBUS chromés sur leurs pieds ; l'essieu surbaissé chromé, la lame transversale, les jambes de force, les amortisseurs ;
+  la PLAQUE noire en bas devant, « CASH 32 » en mini cubes (décor : celle du joueur reste derrière, `plqDessinee`).
+- LE V8 POLI : bloc rouge, couvre-culasses polis à ailettes et vis (mini cubes), fils de bougies rouges vers l'allumeur, deux carburateurs
+  sous la grande ÉCOPE ovale, poulies, alternateur, durite chromée, collecteurs quatre-en-un qui partent sous la caisse.
+- LES ROUES dessinées par le gabarit (`roueDeco`, style `nyan` : l'outil commun `lpWheel` n'est PAS touché) : pneu à FLANC BLANC, jante
+  ROUGE, grand chapeau chromé ; petites devant (`wRF` 0,82 : rayon 0,31, voie `wxF` 0,66), grosses derrière (0,38).
+- Les pots : `ECH_POTS.c_hotrod` passe en deux sorties `reel` sous la poupe (les cheminées sont parties ; le type `hotrod` ne sert plus).
+- Banc : construction 34 ms, 0 programme compilé en course (couché, debout), garage comme avant (+6, déjà le cas). Planche :
+  `photos-gameplay/hotrod-vraie-et-nous.png`. Attend le oui de Léo.
 
 ## AFFINEMENT · LOT 4 BOÎTES — LE HOT ROD, LE MASTODONTE, L'AIGLE DE FEU, LA CABOSSÉE, L'ORIGAMI (2026-10-19, discussion BOÎTES)
 - **LE HOT ROD** (64) : les phares-obus DESCENDUS contre la calandre (y 0,82, x 0,44 : ils flottaient en haut et mordaient dans les pneus),
@@ -3309,8 +3609,9 @@ Complète « LES TRAÎNÉES ET LES AILES QU'ON VEUT » (15/10 soir, la course : 
   le code elle était à 20 000 depuis le 14/10 au soir ; LE DÉFIEUR, lui, est à 10 000.) Sa rareté reste écrite (`rar:'rare'`).
 - VÉRIFIÉ au banc (Chrome du Mac sans fenêtre, muet, piloté en CDP) : la vignette de boutique (`dbgPhotoCar`), sept vues dans le repère de la
   caisse (`dbgAilesVue`), avant / après ; une partie lancée avec elle (JOUER → canyon, soir, 140 km/h) : 0 erreur, rien d'avalé.
-- À trancher par Sacha ou Léo : les élargisseurs bordés de NOIR et rivetés (la sportive d'origine les a couleur caisse) ; les bavettes ROUGES
-  (sinon : le violet des bandes, `v`) ; la rampe jaune toujours allumée.
+- VALIDÉ par Sacha (19/10, après les photos avant / après de la boutique, de la course et des roues) : « C'est bon, on garde le kit rallye
+  de la Bavaroise tel quel. » — les élargisseurs bordés de NOIR et rivetés, les bavettes ROUGES, la rampe jaune toujours allumée, les jantes
+  dorées. On ne le rebascule pas sans lui.
 - À signaler : la salle blanche (`salle-blanche.html?source=local`) ne lit plus le jeu d'aujourd'hui (« SANS_CARRIERE is not defined », puis
   « EAU ») — elle évalue des blocs d'index.html qui dépendent maintenant de constantes posées ailleurs. Pas touché ici.
 
