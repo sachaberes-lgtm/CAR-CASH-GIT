@@ -3,6 +3,39 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE GARAGE QUI PREND TOUT L'ÉCRAN — LE ⚙ REVIENT, LES BOUTONS MONTENT (2026-10-17 → 19, Sacha : « dans le garage, les boutons sont toujours assez mal positionnés ; faut que tu rajoutes un bouton réglage et un bouton jouer, le bouton jouer avec les trois flèches ; dispose-les mieux dans l'écran : ils sont tous assez en bas alors qu'il y a tout le haut de l'écran qui peut être utilisé » ; puis, le 19 : « oui, pousse sur main, je préviens Léo (il a ?garage=leo s'il veut l'ancien) »)
+⚠ **LÉO EST PRÉVENU PAR SACHA** : ce rangement remplace par défaut la vue principale du garage et rend le ⚙ que Léo avait masqué le 9/10
+(31840c4, « enlève le settings »). Rien n'est détruit : **`?garage=leo`** (ou `?garage=avant`, html.garLeo) rend le garage d'avant AU PIXEL
+(mêmes rectangles mesurés que le main du 19/10).
+- **Fait le 17/10, rebâti le 19/10 sur le garage d'alors** : entre-temps le JOUER ▸▸▸ était arrivé dans l'inventaire et la boutique (UI-REVUE,
+  18/10, avec la porte qui remonte d'abord — ma version de ce morceau est abandonnée), le trophée en haut à droite et la BOUTIQUE deux fois plus
+  large (Sacha, 18/10, `<style id="garShop">`), la VITESSE DE DÉPART (Léo, 19/10, `#gVdep`). Tout cela est GARDÉ : seules les PLACES de la vue
+  principale (`#garage.consoleCachee`) changent. Mêmes éléments, mêmes styles, mêmes écouteurs. Tout dans **`<style id="garageHaut">`**, juste
+  après `vitesseDepart` (la dernière feuille avant `#splash`).
+- **LE ⚙ RÉGLAGES** = l'ancien `#gOutils [data-go="set"]` (dans #gTop : le glissé de la vue l'exclut déjà), en or, À GAUCHE DU TROPHÉE, centré
+  sur lui. Le trophée est recalé à 4 Hz par plqGarage (en miroir du compte) ; **`ghPlace`** (4 Hz, garage ouvert) lit sa place et pose sur #garage
+  `--ghTx` (du bord droit de l'écran au bord droit du ⚙) et `--ghTy` (le milieu du trophée) ; trophée caché (l'œil allumé), il garde la dernière
+  place — l'œil ne saute plus de 6 px. Son ◀ RETOUR rouvre le garage : `window.__setGar` (posé par l'écouteur de `#gOutils [data-go]`, lu par le
+  routeur de la coque comme `__offGar`, effacé par `garageLaunch`).
+- **COUCHÉ** : en haut à droite ŒIL · ⚙ · trophée ; `#gBottom` devient LA COLONNE DE DROITE (300 px, de 70 px sous le haut jusqu'en bas) —
+  VITESSE (vdepPlace la pose toute seule au-dessus des portes), [INVENTAIRE][MISSIONS], la BOUTIQUE de toute la largeur (= les deux autres
+  réunies, comme l'a voulu Sacha le 18/10), centrées dans la place libre ; en bas ACCUEIL + JOUER ▸▸▸ (248 × 62). garLibre lit le bord gauche de
+  la colonne : la caisse a le reste de l'écran.
+- **DEBOUT** : le compteur d'argent s'étend loin (« $ 12 345 678 » finit à x = 224 sur 390) : seul le ⚙ tient à gauche du trophée. VITESSE et les
+  trois portes (7 · 7 · 10 sur 24, comme garShop) montent SOUS LE NOM (fixed : `top: sT + 218 px` ; vdepPlace lit alors des places d'écran,
+  `#gVdep` passe en fixed avec elles) ; la rangée ACCUEIL · JOUER ▸▸▸ · ŒIL reste au pied. garLibre : debout, la caisse se pose SOUS les portes
+  montées (sinon elle restait sous le nom, un grand vide au-dessus de JOUER).
+- **LA PENTE** : garAplomb (15/10) penche la grappe autour d'UN axe (style en ligne) ; ici chaque plaque penche autour de SON centre
+  (`transform-origin:50% 50%!important`), sinon le haut d'une colonne de toute la hauteur partait de 30 px à droite.
+- MESURÉ (téléphone couché 844 × 390, rectangles) : AVANT tout tenait dans le bas droit — VITESSE y 214, portes y 258 (116 · 116 · 164),
+  ACCUEIL · JOUER · ŒIL y 312. APRÈS : ŒIL 640,9 · ⚙ 698,9 · trophée 760,8 ; VITESSE y 113 ; INVENTAIRE · MISSIONS y 157 (155 chacun) ; BOUTIQUE
+  y 213 (309) ; ACCUEIL + JOUER y 316. Debout 390 × 844 : AVANT VITESSE y 648, portes y 692 ; APRÈS ⚙ 248,11, VITESSE y 174, portes y 218.
+- Bancs (Chrome sans fenêtre et muet par CDP, scratchpad) : `t-garage.mjs` (garage → inventaire → retour → boutique → retour, photo + relevé
+  des touches et de ce qui les couvre) au téléphone couché et debout (tactile émulé), 375 × 667, 667 × 375, avec un compte de 12 345 678 $ ;
+  `t-flux.mjs` À LA SOURIS dans le cadre de l'ordi : ⚙ → RÉGLAGES → ◀ → garage · l'œil aller-retour (seul l'œil reste, à la même place) ·
+  INVENTAIRE → JOUER → course · mort → Accueil → GARAGE (les huit touches dessus, `elementFromPoint`) → JOUER → 2e course. 0 exception.
+  `?garage=leo` : les mêmes rectangles que le main du 19/10. Pas de Poki (`html.poki`) : intouché.
+
 ## LE BRAS DES FIGURES RANGÉ (2026-10-19 soir, v700, Léo : « enlève les bras robots ; quand il y a les tricks, on enlève le truc qui bloque les roues, on le remet sur une autre catégorie ; dans la boutique aussi, le bras enlevé, la voiture posée au sol, elle va faire le trick, tout simplement »)
 - `BRAS_FIG` (faux) : le grand bras robot ne sort plus, ni à l'inventaire ni en boutique ; `?bras=1` rend tout le bras des deux sections
   ci-dessous, à l'identique (pour comparer). Son code reste en place, endormi (`BRB.p` reste à 0 : rien n'est bâti).

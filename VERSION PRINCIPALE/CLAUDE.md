@@ -82,7 +82,8 @@ fois, livrée au fil de l'eau, pas en lot.
   de Sacha (celui de Léo, `?menu=leo`, est retiré le 18/10), JOUER = le mode classique au hasard (le Soleil de jade direct = `?play=jade`),
   l'iPhone avec encoche sur l'ordi (`ENCOCHE_DEFAUT`, écran nu = `?encoche=0`).
 - Une session (ou Léo) a rebasculé un choix de l'autre ? On le SIGNALE à Sacha, on ne rebascule pas. Le rangement du garage du
-  11/10 a été annulé par Léo : ne pas le remettre sans lui.
+  11/10 a été annulé par Léo : ne pas le remettre sans lui. Le 19/10, à la demande de Sacha (Léo prévenu), LE GARAGE QUI PREND TOUT
+  L'ÉCRAN (`<style id="garageHaut">`, le ⚙ revenu) : le garage d'avant = `?garage=leo`.
 - Données de Léo à ne pas écraser en test : `simulateur/choix-musiques.json`, `simulateur/play.json`, `maps-ciel/sauvegarde.json`.
 - **Rien d'ajouté sans demande** : « améliore » = lumière, couleurs, matières de ce qui existe. Un objet, un décor, une mécanique
   neuve se PROPOSE en une ligne avant d'être construit.
@@ -209,6 +210,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `hubSync`, l'accueil au ciel `chuteRender`/`CHUTE`/`TITRE_H`, la coque `#mob` (`mGo`, `mTap`, `#mHome`,
   `#mDead`), `ecranWipe`, `modale`, `toast`, `uiGarde`, MISSIONS v2 `M2`/`m2Etat`/`m2Val`/`m2Tick`/`m2Prend` (sauvegarde `SAVE.d.m2` ;
   l'ancien système des carnets est retiré le 18/10 : `SAVE.d.mis` reste lu par `carStat('carnet')`, `m2MigreV2` et le cadeau `popCarnets`/`misPop`).
+  Les places des touches du garage (19/10) : `<style id="garageHaut">` (`?garage=leo` = avant), le ⚙ `#gOutils [data-go="set"]` posé à côté du
+  trophée par `ghPlace` (`--ghTx`/`--ghTy`), son retour `__setGar`.
 - **HUD** : `#hud`, `hudColonne` (sa mesure `hudColMesure` passe par `apresMiseEnPage`), `hautPasse` (une carte à la fois), `slam`, `trickMsg`, `flowHudMaj`, `ajTick` (la couche `#ajVols` des éclairs de nitro),
   `VOLG` (les gains qui volent vers leur jauge), `airPieDraw`, `#tNitro`, pause `#tGear`/`#tPanel`/`panSync`, `HAS_D`/`hasMaj`.
 - **Économie** : `bank()` (= `SAVE.d.bank`), `DENOMS`/`ECO3`/`denom()`, rangs d'aura `AURA_RANKS`/`auraRank` (13 depuis le 14/10), moteur `ENGINE_TIERS`/`engTier`/`coinsGot`/`addCoins`,
@@ -649,6 +652,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LES MISSIONS v2 — DES MISSIONS LIBRES À LA PLACE DES CARNETS » (16/10) — `M2`, `SAVE.d.m2`, la migration, les secrètes, les mesures des seuils
 - « LA MIGRATION DES MISSIONS v2 NE TOURNAIT PAS — M2_COLK ET M2_RECO EN ZONE MORTE » (18/10) — pourquoi, mesuré sur des sauvegardes d'avant (banc `cc-banc/m2colk/`), ce que le correctif change (rien de dangereux)
 - « LA REPRISE DE LA MIGRATION DES MISSIONS v2 » (18/10) — le drapeau `vr`, les sauvegardes marquées par la passe avortée rejugées une fois, sans confisquer (banc `m2rep.cjs`)
+- « LE GARAGE QUI PREND TOUT L'ÉCRAN — LE ⚙ REVIENT, LES BOUTONS MONTENT » (17 → 19/10) — garageHaut, `?garage=leo`
 - « LA PASSE UX/UI — L'ACCUEIL, LE GARAGE, L'ŒIL, LES TRANSITIONS » (11/10) · « LE GARAGE, HUB DES TROIS » (06/10)
 - « LA VUE DE LÉO DANS LA CONSOLE DE SACHA » (06/10) · « LE PREMIER BURN-OUT, REVENU — AVEC LES DONUTS » (08/10)
 - « L'ÉCRAN TITRE v3 » (01/10) · « LE CIEL DE L'ÉCRAN TITRE v4 » (06/10) · « LES HEURES DU TITRE » (05/10)

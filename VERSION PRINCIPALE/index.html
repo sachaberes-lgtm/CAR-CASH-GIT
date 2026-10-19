@@ -42,6 +42,7 @@
    `node synchro-versions.js` (racine du dépôt) la régénère depuis la principale. Forçages ponctuels : `?tel=1` / `?pc=1`.
    (Déclarée au niveau global — un `const` de script classique est visible du grand script, qui la lit.) */
 const EDITION='mobile';
+if(/[?&]garage=(leo|avant)\b/.test(location.search))document.documentElement.classList.add('garLeo'); /* (2026-10-19, Sacha) LE GARAGE QUI PREND TOUT L'ÉCRAN (la feuille garageHaut) est le défaut ; ?garage=leo (ou =avant) rend le garage d'avant */
 if(/[?&]garjouer=0\b/.test(location.search))document.documentElement.classList.add('sansGarJouer'); /* (2026-10-18) le JOUER de l'inventaire et de la boutique, coupé : voir <style id="jouerGarage"> */
 /* (2026-10-11, Léo : « enlève les intros, tout ça : lance juste la voiture dans la map ») LA BALADE SANS INTRO — la classe est posée
    dès le <head> : ni le logo du chargement, ni le menu ne se montrent (voir baladeDepart). */
@@ -7576,6 +7577,57 @@ html:not(.sansGarJouer) body #garage#garage#garage:not(.menu):not(.vitrine):not(
 #gVdepTag b,#mVdepTag b{color:#fff;margin-right:6px}
 @supports not (color:color-mix(in srgb,red,blue)){#gVdepTag,#mVdepTag{color:#fff;box-shadow:inset 0 0 0 1px var(--vc)}}
 @media (prefers-reduced-motion:reduce){#gVdep.vu{animation:none}#gVdep button.non{animation:none}}
+</style>
+<style id="garageHaut">
+/* ===== LE GARAGE QUI PREND TOUT L'ÉCRAN (2026-10-17 → 19, Sacha : « dans le garage, les boutons sont toujours assez mal positionnés ;
+   rajoute un bouton réglage et un bouton jouer, le bouton jouer avec les trois flèches ; dispose-les mieux dans l'écran : ils sont tous
+   en bas alors qu'il y a tout le haut de l'écran qui peut être utilisé ») — le récit et les mesures : même titre au journal.
+   Posé SUR le garage du 19/10 : le trophée en haut à droite et la BOUTIQUE deux fois plus large (Sacha, 18/10, <style id="garShop">), la
+   VITESSE DE DÉPART (Léo, 19/10, #gVdep, placée par vdepPlace au-dessus des portes), le JOUER ▸▸▸ de l'inventaire et de la boutique
+   (UI-REVUE, 18/10) — tout cela est GARDÉ ; seules les PLACES de la vue principale du garage (#garage.consoleCachee) changent.
+   · LE ⚙ RÉGLAGES revient (celui que Léo avait masqué le 9/10, `#gOutils [data-go="set"]`, dans #gTop : le glissé de la vue l'exclut déjà),
+     à GAUCHE DU TROPHÉE ; couché l'ŒIL le rejoint. ghPlace (4 Hz) lit le trophée (plqGarage le recale en miroir du compte) et pose
+     --ghTx (du bord droit au bord droit du ⚙) et --ghTy (le milieu du trophée) ; sans trophée, les valeurs d'ici.
+   · COUCHÉ : #gBottom devient LA COLONNE DE DROITE (300 px, sous le trophée jusqu'en bas) — VITESSE, [INVENTAIRE][MISSIONS], la BOUTIQUE de
+     toute la largeur (= les deux autres réunies), centrées dans la place libre ; en bas ACCUEIL + JOUER ▸▸▸. garLibre lit le bord gauche de la
+     colonne : la caisse a le reste de l'écran.
+   · DEBOUT : VITESSE et les trois portes (7 · 7 · 10 sur 24, comme garShop) montent SOUS LE NOM (fixed ; vdepPlace lit alors des places
+     d'écran, la grille VITESSE passe en fixed avec elles) ; la rangée ACCUEIL · JOUER ▸▸▸ · ŒIL reste au pied.
+   ?garage=leo (ou ?garage=avant) : html.garLeo, le garage d'avant tel quel. Pas de Poki. */
+html:not(.garLeo):not(.poki) body #garage#garage#garage.on{--ghR:calc(var(--sR) + 14px);--ghL:calc(var(--sL) + 14px);--ghB:calc(var(--sB) + 12px);--ghC:50px;--ghH:46px;--ghG:8px;--ghTx:calc(var(--sR) + 86px);--ghTy:calc(var(--sT) + 33px)}
+/* — LE ⚙ : à gauche du trophée, centré sur lui — */
+html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gTop #gOutils{position:fixed!important;top:calc(var(--ghTy) - var(--ghH) / 2)!important;right:var(--ghTx)!important;left:auto!important;bottom:auto!important;width:auto!important;height:auto!important;margin:0!important;display:flex!important;gap:var(--ghG);z-index:4;pointer-events:auto}
+html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gTop #gOutils>[data-go="set"]{display:flex!important;align-items:center;justify-content:center;width:var(--ghC)!important;min-width:var(--ghC)!important;height:var(--ghH)!important;min-height:var(--ghH)!important;padding:0!important;--nc:#ffd75e;color:#ffd75e}
+html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gTop #gOutils>[data-go="set"] .pxi{--pxs:3;filter:drop-shadow(0 0 6px rgba(255,215,94,.55))}
+html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gTop #gOutils>:not([data-go="set"]){display:none!important}
+/* LA PENTE : garAplomb (15/10) penche toute la grappe autour d'UN axe (le milieu de la grille, en style en ligne) ; ici les touches ne sont
+   plus une grille : chaque plaque penche autour de SON centre (le style en ligne cède à !important). */
+html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct #gRang1>#gHomeBas,html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct #gRang1>#gOeil,html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvCof,html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvMis,html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gShopBas,html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gJouer{transform-origin:50% 50%!important;margin:0!important;max-width:none!important}
+/* COUCHÉ — la colonne de droite. Les portes : 48 px (garShop) ; le bloc VITESSE (36) + 8 + porte + 8 + BOUTIQUE = 148 px, centré dans la place
+   entre le haut de la colonne et JOUER (62 px + 12) : la 1re rangée à 50 % − 67 px, la BOUTIQUE à 50 % − 11 px. */
+@media (orientation:landscape){
+  html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom{position:absolute!important;left:auto!important;right:var(--ghR)!important;top:calc(var(--sT) + 70px)!important;bottom:var(--ghB)!important;width:300px!important;height:auto!important;max-height:none!important;min-height:0!important;margin:0!important;padding:0!important;display:block!important;transform:none!important;pointer-events:none!important}
+  html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom>#gAct{display:block!important;position:static!important;width:100%!important;height:100%!important;margin:0!important;padding:0!important;transform:none!important;pointer-events:none!important}
+  html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct #gRang1>#gHomeBas,html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct #gRang1>#gOeil,html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvCof,html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvMis,html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gShopBas,html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gJouer{position:absolute!important;min-width:0!important;pointer-events:auto}
+  html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvCof,html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvMis{top:calc(50% - 67px)!important;bottom:auto!important;width:calc(50% - var(--ghG) / 2)!important}
+  html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvCof{left:0!important;right:auto!important}
+  html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvMis{right:0!important;left:auto!important}
+  html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gShopBas{top:calc(50% - 11px)!important;bottom:auto!important;left:0!important;right:auto!important;width:100%!important}
+  html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct #gRang1>#gHomeBas{left:0!important;right:auto!important;top:auto!important;bottom:0!important;width:56px!important;height:62px!important;min-height:0!important}
+  html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gJouer{right:0!important;left:auto!important;top:auto!important;bottom:0!important;width:calc(100% - 64px)!important;height:62px!important;min-height:0!important}
+  /* l'ŒIL monte à côté du ⚙ (fixed : #garage couvre l'écran, rien entre eux ne le décale) */
+  html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct #gRang1>#gOeil{position:fixed!important;top:calc(var(--ghTy) - var(--ghH) / 2)!important;bottom:auto!important;left:auto!important;right:calc(var(--ghTx) + var(--ghC) + var(--ghG))!important;width:var(--ghC)!important;height:var(--ghH)!important;min-height:0!important;padding:0!important;justify-content:center;align-items:center}
+}
+/* DEBOUT — VITESSE et les portes sous le nom (#gTop finit vers 160 px + l'encoche) : VITESSE à + 174, les portes à + 218 ; trois parts
+   7 · 7 · 10 de la largeur (garShop). La rangée du pied (ACCUEIL · JOUER · ŒIL) ne bouge pas : la grille garde sa 2e rangée, la 1re se vide. */
+@media (orientation:portrait){
+  html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvCof,html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvMis,html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gShopBas{position:fixed!important;top:calc(var(--sT) + 218px)!important;bottom:auto!important;right:auto!important;min-width:0!important;pointer-events:auto}
+  html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvCof{left:var(--ghL)!important;width:calc(7 * ((100% - var(--ghL) - var(--ghR) - 2 * var(--ghG)) / 24))!important}
+  html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvMis{left:calc(var(--ghL) + 7 * ((100% - var(--ghL) - var(--ghR) - 2 * var(--ghG)) / 24) + var(--ghG))!important;width:calc(7 * ((100% - var(--ghL) - var(--ghR) - 2 * var(--ghG)) / 24))!important}
+  html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gShopBas{left:calc(var(--ghL) + 14 * ((100% - var(--ghL) - var(--ghR) - 2 * var(--ghG)) / 24) + 2 * var(--ghG))!important;width:calc(10 * ((100% - var(--ghL) - var(--ghR) - 2 * var(--ghG)) / 24))!important}
+  html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom>#gVdep{position:fixed!important}
+  html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom>#gAct{row-gap:0!important}
+}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -58303,6 +58355,7 @@ function garageLaunch(){
   // (l'échange s'il n'a pas eu lieu, puis scanner éteint, échelle rendue) : la caisse qui sort est bien celle qu'on vient de choisir.
   if(GAR.sw){const SW=GAR.sw;GAR.sw=null;if(!SW.fait)garageShow(SW.to);if(GAR.scan)GAR.scan.visible=false;carGroup.scale.set(1,1,1);}
   window.__offGar=false; // (2026-10-14, chasse aux bugs) une course part : plus de RETOUR d'OFFRES vers le garage
+  window.__setGar=false; // (2026-10-19) …ni des RÉGLAGES (le ⚙ du garage)
   window.__mRetour=null; // (2026-09-29) une course part de l'atelier : l'écran qui l'attend à la fin, c'est la mort, pas les missions
   try{ if(carUnlocked(garageI)){const be=$('gEquip'); if(be&&be.getAttribute('aria-disabled')!=='true')be.click();} }catch(e){}
   if(CHUTE.on){chuteLance();return;} // (2026-09-30) LA CHUTE : depuis le ciel, pas de porte — elle PIQUE vers la route (voir chuteRender)
@@ -62839,6 +62892,7 @@ function garLibre(){
       if(bb.left>W*.3&&(bb.height>H*.6||W>H*1.2))r.x1=bb.left; // téléphone couché : la colonne à droite — (garage v6) la CONSOLE n'en prend plus toute la hauteur
       else{r.y1=bb.top;const g9=document.documentElement.classList.contains('gtConsole')?$('gTourne'):null;if(g9&&g9.classList.contains('on')&&g9.offsetHeight>0)r.y1=Math.min(r.y1,g9.offsetTop-6);}} // sinon : les commandes en bas — (2026-10-10) debout, la JAUGE posée au-dessus de la console borne aussi la caisse (offsetTop : sa place finale, sans le glissé d'entrée)
     if(tb&&tb.height>0&&tb.bottom<r.y1-120)r.y0=tb.bottom;r.shop=true;    // la fiche du haut (si elle laisse de la place)
+    if(H>W&&gEl.classList.contains('consoleCachee')){const sb=$('gShopBas'),sr=sb&&sb.getBoundingClientRect();if(sr&&sr.height>0&&sr.bottom<H*.5&&getComputedStyle(sb).position==='fixed'&&sr.bottom+6<r.y1-120)r.y0=Math.max(r.y0,sr.bottom+6);} // (2026-10-19, garageHaut) debout, les portes sont montées sous le nom : la caisse se pose sous elles
     r.vit=gEl.classList.contains('vitrine');r.leo=garVueLeo(); // (2026-10-06) r.leo : la composition de la vitrine (la caisse décalée, l'entrée au milieu) — aussi dans la console de Sacha
     if(r.leo&&!r.vit&&W>H*1.2&&document.documentElement.classList.contains('hubOn')){const hb=document.documentElement.classList.contains('gtConsole')?null:$('gTourne'),hr=hb&&hb.getBoundingClientRect(); /* (2026-10-09) la barre du hub est partie : c'est la JAUGE qui tient le bas à gauche */if(hr&&hr.height>0&&hr.left<W*.3)r.y1=Math.min(r.y1,hb.offsetTop-8);} // couché, la barre du HUB tient le bas à gauche : la caisse se pose au-dessus — sa place FINALE (offsetTop ignore le glissé d'entrée `hubMonte`, qui faisait bouger le cadrage)
     if(r.vit&&W>H*1.2){const ga=$('gAct'),gr=ga&&ga.getBoundingClientRect();if(gr&&gr.width>0&&gr.left>W*.3){r.x1=gr.left-12;r.y1=H-12;}} // (2026-10-05) couché : la pile JOUER · niveau · MISSIONS à droite, la caisse a toute la gauche
@@ -63026,7 +63080,16 @@ $('gJouer').addEventListener('click',garJouer);
    le chemin que l'observateur de l'overlay lit à la fermeture (un mGo direct serait aussitôt écrasé par son retour à la racine). */
 for(const b9 of document.querySelectorAll('#gOutils [data-go],#gShopBas'))b9.addEventListener('click',function(e){ // (2026-09-30) + la BOUTIQUE du bas
   e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(b9);uiClic('nav');
-  const vers=b9.getAttribute('data-go');ecranWipe(function(){window.__mRetour=vers;closeGarage();});});
+  const vers=b9.getAttribute('data-go');window.__setGar=vers==='set'; /* (2026-10-19, Sacha) le ⚙ du garage (voir <style id="garageHaut">) : le ◀ des RÉGLAGES rouvre le garage (le routeur de la coque) */
+  ecranWipe(function(){window.__mRetour=vers;closeGarage();});});
+/* LE ⚙ ET L'ŒIL À CÔTÉ DU TROPHÉE (2026-10-19, voir <style id="garageHaut">) : plqGarage recale le trophée en miroir du compte ; on lit sa place
+   (4 Hz, garage ouvert) et on la donne au CSS — --ghTx : du bord droit de l'écran au bord droit du ⚙ (8 px avant le trophée), --ghTy : son
+   milieu. Jamais vu : les valeurs par défaut de la feuille. Écrit seulement si ça change. */
+function ghPlace(){if(!garageOn||!gEl||document.documentElement.classList.contains('garLeo'))return;const p=document.getElementById('gProf');
+  if(!p||!p.classList.contains('on'))return; /* trophée caché (l'œil allumé…) : on garde sa dernière place, l'œil ne saute pas */
+  const b=p.getBoundingClientRect();if(b.width<=8||b.bottom<=0)return;const x=Math.round(innerWidth-b.left+8)+'px',y=Math.round(b.top+b.height/2)+'px';
+  if(gEl._ghX!==x){gEl._ghX=x;gEl.style.setProperty('--ghTx',x);}if(gEl._ghY!==y){gEl._ghY=y;gEl.style.setProperty('--ghTy',y);}}
+setInterval(ghPlace,250);
 function gActSync(){const a=$('gAct');if(!a)return;const bt=$('gEquip'),row=$('gBuyRow'),vu=function(x){return !!x&&x.style.display!=='none';};
   const cons=!!gEl&&!gEl.classList.contains('vitrine'); /* (2026-10-09) LA CONSOLE (le garage de Sacha) : JOUER reste en or, ÉQUIPER dit l'état par sa couleur (gEqTon) */
   const ch=!cons&&(vu(row)||(vu(bt)&&bt.dataset.etat!=='eq'));a.classList.toggle('choix',ch);
@@ -67728,6 +67791,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       else{goImmersive(); playViaGarage(true);} } // 1re partie = AUTO-ÉCOLE : tutoArme passe SOUS le voile (la reconstruction de la piste figeait le bouton avant qu'il monte)
     else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.d.tutoProv=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
     else if(a==='back'&&window.__setPause){ setPauseFerme(); } // (2026-10-14, charte 6) le ◀ des réglages ouverts depuis la pause rend la pause
+    else if(a==='back'&&mCur==='set'&&window.__setGar){ window.__setGar=false; ecranWipe(function(){ openGarage(); }); } // (2026-10-19, Sacha) les RÉGLAGES ouverts par le ⚙ du garage : le RETOUR y ramène (comme __offGar)
     else if(a==='back'&&mCur==='shop'&&window.__offGar){ window.__offGar=false; ecranWipe(function(){ openGarage(); try{gModeVa('shop');}catch(e){} }); } // (2026-10-10) venue de la PORTE DES OFFRES du garage : le RETOUR y ramène
     else if(a==='back')mGo(mRoot());
     else if(a==='mis'){ if(started&&gameOver&&!garageOn){GAR.aMis=true;ecranWipe(function(){ accueilRetour(); mGo('home','racine'); });} else garMissionsOuvre(); } // (2026-09-30) les MISSIONS vivent dans l'atelier (la constellation) — l'ancien écran #mMis n'est plus ouvert d'ici

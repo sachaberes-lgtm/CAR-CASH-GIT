@@ -81,6 +81,9 @@ la montre sur n'importe quelle copie. Le détail : « L'ÉDITION POKI » dans `V
   · (2026-10-18, Sacha) LA VILLE, NÉON ET VERRE : la ville et la ville vitrée FUSIONNENT — la ville au néon garde tout (nuit, teintes, enseignes,
     réclames, pluie) et ses tours les plus hautes deviennent, pour une part, les géantes de verre de la VILLE VITRÉE (formes, biseaux, mur-rideau, bureaux
     allumés), en néon. La ville vitrée n'est plus tirée au JOUER (`?vitree=1` la remet, `?carte=vitree` la joue telle quelle). Détail : `VERSION PRINCIPALE/JOURNAL.md`.
+  · (2026-10-19, Sacha, Léo prévenu) LE GARAGE QUI PREND TOUT L'ÉCRAN : le ⚙ RÉGLAGES (masqué par Léo le 9/10) revient à côté du trophée ; couché,
+    l'ŒIL le rejoint et VITESSE · les portes (BOUTIQUE toujours deux fois plus large) passent dans une colonne à droite, ACCUEIL + JOUER en bas ;
+    debout, VITESSE et les portes montent sous le nom. `?garage=leo` = le garage d'avant, au pixel. Détail : `VERSION PRINCIPALE/JOURNAL.md`.
 - **SANS TOUT CASSER** — la règle de chaque session, avant de pousser :
   1. Partir de `origin/main` À JOUR : `git fetch origin main`, puis `git merge origin/main`. Jamais d'une vieille branche, jamais d'une copie locale.
   2. Sur `main`, on FUSIONNE. Jamais de `push --force`, de `reset` ni de revert du travail de l'autre ; dans un conflit, on garde les deux.
