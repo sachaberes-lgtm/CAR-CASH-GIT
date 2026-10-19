@@ -29831,6 +29831,12 @@ function lpWheel(o){
   }else{
     const n=o.n||5,multi=o.style==='multi';
     K.lathe('c',[[R*.64,fx],[R*.55,fx]],16,0,0,0,'x');                     // la lèvre
+    if(o.branches){ // (2026-10-19, l'affinement des JAPONAISES) `branches` : de VRAIES branches, du moyeu à la lèvre, en cuvette (le bout dehors, le pied
+      // 4 cm plus creux) et la jante qui plonge derrière la lèvre — sans l'option, les planches restent posées EN TRAVERS du rayon (un anneau d'or à n pans)
+      const ti=Math.asin(Math.min(.5,.04/(R*.46)));K.lathe('c',[[R*.55,fx],[R*.50,fx-e*.03]],16,0,0,0,'x');
+      for(let s=0;s<n;s++){const a=s/n*Math.PI*2;
+        K.box(multi?'c':'a',.03,R*.46,multi?R*.08:R*.15,fx-e*.028,Math.sin(a)*R*.33,Math.cos(a)*R*.33,Math.PI/2-a,0,-e*ti);}
+    }else
     for(let s=0;s<n;s++){const a=s/n*Math.PI*2;
       K.box(multi?'c':'a',.03,R*.46,multi?R*.07:R*.13,fx-e*.012,Math.sin(a)*R*.33,Math.cos(a)*R*.33,-a);}
   }
@@ -30785,10 +30791,13 @@ const SHAPES={
       // élargie. `zw` est la VRAIE position de roue — la même que celle du montage des roues.
       const zw=L/2-.75;
       for(const fz of [1,-1]){
-        K.sph(W*.115,H*.30,L*.175,vernis,sd*(W/2-.02),y0+H*.32,fz*zw);
-        for(let rv=0;rv<5;rv++){                                     // et leurs RIVETS : le signe
-          const a9=-.6+rv*.30;                                       // qu'une aile a été GREFFÉE,
-          K.cyl(.017,.017,.02,K.chrome,sd*(W/2+.04),y0+H*(.40+Math.sin(a9)*.22),fz*zw+Math.cos(a9)*L*.085,6)
+        // (2026-10-19, l'affinement) L'AILE RAPPORTÉE EN FACETTES : une arche de tôle vernie de 10 cm, 8 pans, qui chevauche le pneu
+        // (c'était une ellipsoïde de 1,4 m posée sur la roue : un ballon brillant, hors de la DA)
+        const zc=fz*zw,yc=.40*.94,ar=[];for(let i=0;i<=8;i++){const t=(-10+i*25)*Math.PI/180;ar.push([zc+.53*Math.cos(t),yc+.53*Math.sin(t)-y0]);}
+        for(let i=8;i>=0;i--){const t=(-10+i*25)*Math.PI/180;ar.push([zc+.43*Math.cos(t),yc+.43*Math.sin(t)-y0]);}
+        K.prof(ar,.30,vernis).position.x=sd*.95;
+        for(let rv=0;rv<5;rv++){const t=(30+rv*30)*Math.PI/180;      // et leurs RIVETS sur la face : le signe
+          K.cyl(.017,.017,.02,K.chrome,sd*1.105,yc+.48*Math.sin(t),zc+.48*Math.cos(t),6)     // qu'une aile a été GREFFÉE,
             .rotation.z=Math.PI/2;}                                  // pas moulée avec la caisse
       }
       B(.05,H*.44,.05,K.chrome,sd*W*.24,y0+H*.72,-L*.06);           // arceau visible sous la vitre
@@ -30848,7 +30857,12 @@ const SHAPES={
      for(const x of [-.66,-.42,-.18,.06,.66])P.box('v',.016,.12,.18,x,.29,zf-.08); // …ses ailettes (le canon passe à droite)
      K.commit(P);}
     B(W*.90,.15,.10,vernis,0,.43,-L/2-.13);                        // le bouclier, dans le vernis de la caisse (9 cm devant la poupe biseautée)
-    return {hl:[W*.32,y0+H*.40,L/2+.06],tl:[W*.34,.55,-L/2+.10],wr:.94,doors:1,sp:0,split:0}; // tl : DANS la caisse (les LED font les feux)
+    {// (2026-10-19, l'affinement) LES PORTIÈRES : la FENTE C plaquée sur la tôle (les lignes communes, des traits noirs, flottaient 6 cm hors du flanc) —
+     // un mélange MULTIPLIER : la tôle × .5 sous toutes les lumières, le programme de toutes les lignes (aucun de plus)
+     const fM=new THREE.MeshBasicMaterial({color:0x808080,transparent:true,blending:THREE.MultiplyBlending});
+     for(const sd of [-1,1]){for(const zz of [L*.07,-L*.17])B(.012,H*.5,.006,fM,sd*(W*.47+.004),y0+H*.45,zz);
+       B(.03,.035,.16,K.chrome,sd*(W*.47+.015),y0+H*.66,L*.01);}}                 // et la poignée, contre la portière
+    return {hl:[W*.32,y0+H*.40,L/2+.06],tl:[W*.34,.55,-L/2+.10],wr:.94,doors:0,sp:0,split:0}; // tl : DANS la caisse (les LED font les feux)
   },
   // 14. LE CHAT POP-TART — refait en VOXELS le 2026-10-06 (voir « LE CHAT POP-TART EN VOXELS », juste avant SHAPES) : le gâteau
   //     couché en châssis, la tête dressée à l'avant, pattes et queue dessinées de profil, quatre roulettes pixel.
@@ -31714,7 +31728,8 @@ Object.assign(SHAPES,{
   P.plate('h',[[-.44,.33],[.44,.33],[.39,.53],[-.39,.53]],.012,2.312);
   for(let i=0;i<7;i++)P.box('C',.92-i*.018,.012,.01,0,.33+i*.033,2.33);
   for(let i=-6;i<=6;i++)P.box('C',.012,.22,.01,i*.068,.43,2.331);
-  P.box('C',1.66,.025,.12,0,.215,2.28);P.box('C',.70,.03,.08,0,.23,2.36);  // la lame carbone, qui avance au milieu
+  P.prism('C',[[2.12,.30],[2.30,.30],[2.30,.275],[2.345,.235],[2.345,.205],[2.12,.205]],1.66,0);   // la lame carbone, SOUDÉE sous le bouclier (affinement : elle flottait 7 cm dessous)…
+  P.prism('C',[[2.30,.27],[2.40,.232],[2.40,.205],[2.30,.205]],.70,0);                               // …qui avance au milieu
   // L'ÉVENT DE CAPOT carbone : un bossage, sa bouche noire devant
   P.prism('C',[[1.70,.935],[2.12,.905],[2.12,.935],[1.80,.955]],.46,0);P.box('K',.40,.022,.01,0,.92,2.124);
   /* L'ARRIÈRE v2 (2026-10-17, Sacha : « refais aussi l'arrière de : ROSSO 40, LE SAMOURAÏ, LA DAYTONA, LA FÉLINE, L'ICEBERG » — la revue des poupes, 2e tour) : les feux ronds en anneaux étaient bons ; la plaque était un pavé noir, le bas plat,
@@ -31729,13 +31744,13 @@ Object.assign(SHAPES,{
   P.cyl('c',.07,.12,10,.39,.30,-2.33,'z');P.cyl('k',.05,.13,10,.39,.30,-2.33,'z'); // UN seul gros canon
   K.commit(P);
   return {hl:[.60,.738,2.33],tl:[.70,.83,-2.32],wx:.78,wzF:ZF,wzR:-ZR,
-          lpw:{R:R,w:.28,style:'multi',n:10,jante:0xb9bec6}};
+          lpw:{R:R,w:.28,style:'multi',n:10,jante:0xb9bec6,branches:1}};
 },
   d_vette:function(K){
   const U=LPU,R=.33,ZF=1.19,ZR=-1.25;
   const PAL={p:{g:'p',c:0xd01a22},k:{g:'m',c:0x131417},K:{g:'g',c:0x0c0d10},c:{g:'c',c:0xe9ecf0},
     g:{g:'g',c:0x18212c},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},
-    r:{g:'l',c:0x9a0f1a},w:{g:'l',c:0xd9dce0}},P=K.kit(PAL); // (17/10, l'arrière v2) r, w (la plaque éclairée) — aucune famille de plus · (18/10) PAL nommée : les escamotables la reprennent
+    r:{g:'l',c:0x9a0f1a},w:{g:'l',c:0xd9dce0}},P=K.kit(fentePal(PAL)); // (17/10, l'arrière v2) r, w (la plaque éclairée) — aucune famille de plus · (18/10) PAL nommée : les escamotables la reprennent · (19/10) + la FENTE (J, Jf)
   const AR=[[0,2*R+.04],[R*.70,2*R+.02],[R+.06,R*1.12],[R+.14,.26]];
   const zs=[-2.24,-2.20,-2.10,-1.85,-.90,-.80,-.30,.40,.45,1.80,2.10,2.20,2.24];
   for(const w of [ZF,ZR])for(const d of [R*.70,R+.06,R+.14])zs.push(w-d,w+d);
@@ -31762,9 +31777,9 @@ Object.assign(SHAPES,{
     P.box('k',.34,.012,.36,sd*.60,.677,1.90,.20);
     // les ouïes derrière les roues avant
     P.box('K',.02,.16,.18,sd*.905,.58,.60);
-    for(let i=0;i<4;i++)P.box('k',.03,.018,.19,sd*.912,.52+i*.04,.60);
-    P.box('k',.02,.014,1.26,sd*.903,.73,1.075,.08);                               // LA LIGNE DE JOINT de la coquille
-    for(const [a,b] of [[-2.10,-1.74],[-.76,.70],[1.68,1.98]])P.box('k',.02,.045,b-a,sd*.908,.50,(a+b)/2); // le jonc de caoutchouc
+    for(let i=0;i<4;i++)P.box('p',.035,.012,.19,sd*.915,.525+i*.04,.60,0,0,-sd*.5);   // (affinement) des LAMES de tôle penchées (c'étaient des traits noirs)
+    P.box('J',.02,.006,1.26,sd*.903,.73,1.075,.08);P.box('Jf',.02,.003,1.26,sd*.903,.7345,1.075,.08);   // LA LIGNE DE JOINT de la coquille (la FENTE C : l'ombre et son fil)
+    for(const [a,b] of [[-2.10,-1.74],[-.76,.70],[1.68,1.98]]){P.box('p',.03,.03,b-a,sd*.905,.50,(a+b)/2,0,0,Math.PI/4);P.box('k',.012,.01,b-a,sd*.926,.50,(a+b)/2);} // (affinement) le jonc de la C4 : un fin jonc noir de 1 cm sur l'arête d'un PLI de tôle (c'était une bande noire de 4,5 cm collée à plat : un autocollant)
     P.box('k',.06,.07,.14,sd*.93,.92,.36);P.box('k',.06,.02,.04,sd*.88,.90,.36); // rétro
     P.box('O',.16,.04,.02,sd*.58,.49,2.235);P.box('W',.12,.04,.02,sd*.36,.34,2.235);
     // QUATRE FEUX CARRÉS sur le tableau noir — (17/10, l'arrière v2) ENFONCÉS : un cerclage chromé qui dépasse, la cuvette noire, le verre
@@ -31816,7 +31831,7 @@ Object.assign(SHAPES,{
    anime(1/30);PHG.userData.anime=anime;
    if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);}
   return {hl:[.60,.757,2.03],tl:[.63,.72,-2.26],wx:.77,wzF:ZF,wzR:-ZR, // hl : les phares LEVÉS (la face droite au bord avant du logement)
-          lpw:{R:R,w:.28,style:'multi',n:12,jante:0xc3c8cf}};
+          lpw:{R:R,w:.28,style:'multi',n:12,jante:0xc3c8cf,branches:1}};
 },
   e_anglaise:function(K){
   /* LA GRANDE ANGLAISE v2 (13/10, « plus ressemblante ») — le grand coupé de Crewe : un seul ARC du pare-brise
@@ -32424,7 +32439,9 @@ Object.assign(SHAPES,{
     P.lathe('c',[[.130,.075],[.106,.075]],12,sd*.52,.645,2.04,'z');
     P.cyl('k',.108,.02,12,sd*.52,.645,2.05,'z');P.cyl('W',.078,.03,12,sd*.52,.645,2.055,'z');
     // pare-chocs en deux lames, butoirs, clignotants
-    P.box('c',.50,.045,.09,sd*.42,.47,2.10);P.box('c',.04,.12,.06,sd*.25,.48,2.12);
+    const lame=(Q,y,h,d)=>{for(let i=0;i<Q.length-1;i++){const [x0,z0]=Q[i],[x1,z1]=Q[i+1],dx=x1-x0,dz=z1-z0;     // (affinement) une lame EN TRONÇONS qui suit le plan du nez
+      P.box('c',Math.hypot(dx,dz)+.02,h,d,sd*(x0+x1)/2,y,(z0+z1)/2,0,Math.atan2(-dz,sd*dx),0);}};                // et tourne le coin (c'était une barre droite posée devant)
+    lame([[.17,2.115],[.56,2.115],[.68,2.07],[.725,1.96]],.47,.045,.08);P.box('c',.04,.12,.06,sd*.25,.48,2.12);
     P.box('O',.14,.05,.03,sd*.56,.39,2.075);
     // RÉTROS SUR LES AILES
     P.box('c',.015,.10,.015,sd*.66,.83,1.28);P.box('k',.05,.06,.10,sd*.66,.90,1.28,0,sd*.3);
@@ -32440,7 +32457,7 @@ Object.assign(SHAPES,{
     P.box('L',.20,.11,.02,sd*.60,.74,-2.106);P.box('r',.12,.11,.02,sd*.43,.74,-2.104);P.box('W',.07,.11,.02,sd*.315,.74,-2.104);
     for(const y of [.70,.74,.78])P.box('K',.20,.014,.006,sd*.60,y,-2.117);
     for(const y of [.663,.817])P.box('c',.50,.014,.012,sd*.49,y,-2.104);
-    P.box('c',.52,.045,.08,sd*.43,.48,-2.10);
+    lame([[.17,-2.115],[.62,-2.115],[.785,-2.07],[.83,-1.96]],.48,.045,.08);
     P.box('c',.035,.13,.05,sd*.21,.49,-2.13);P.box('k',.04,.035,.03,sd*.21,.535,-2.155);
     P.cyl('c',.04,.12,8,sd*.36,.32,-2.12,'z');
   });
@@ -32462,7 +32479,7 @@ Object.assign(SHAPES,{
   for(const x of [-.56,-.38,-.20,0,.20,.56])P.box('K',.014,.15,.08,x,.30,-2.11);             // …ses ailettes (le pot passe à gauche)
   K.commit(P);
   return {hl:[.52,.645,2.10],tl:[.52,.74,-2.09],wx:.705,wzF:ZF,wzR:-ZR,
-          lpw:{R:R,w:.24,style:'rayons',n:8,jante:0xcfd3d8,accent:0x1d1f24}};
+          lpw:{R:R,w:.24,style:'rayons',n:8,jante:0xcfd3d8,accent:0xb3b8c0,branches:1}}; // (19/10) les huit branches en argent (sombres sur le fond sombre, elles ne se lisaient pas)
 },
   e_feline:function(K){
   /* LA FÉLINE v2 (13/10, « plus ressemblante ») — relevée sur une photo de profil du coupé 1964 : le capot

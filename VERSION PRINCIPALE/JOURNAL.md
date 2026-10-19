@@ -1349,6 +1349,26 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - 0 programme compilé en course (les quatre, banc `jeu.py`), console propre. Pose en jeu (1re / suivante) : LA LAME 66 / 24 ms,
   LA FIDÈLE 63 / 34, LA BÊTE 26 / 20, LA CERISE 42 / 26 (la découpe se fait à la chauffe du menu). Planche : `photos-gameplay/affinement-lot1-japonaises.png`.
 
+## L'AFFINEMENT DES JAPONAISES — LOT 2 : ACIDE · LE SAMOURAÏ · LA ZED · LA VETTE (2026-10-19, discussion JAPONAISES ; caisses de Sacha, oui de Léo)
+- **LES JANTES « DISQUES À CERCLES »** : dans `lpWheel`, les styles `rayons` et `multi` posent leurs planches EN TRAVERS du rayon (rotation `-a` : la
+  longueur part en tangente) — les n planches font un anneau à n pans, aucune branche ne part du moyeu, et ce sur toutes les caisses du kit. Pas changé
+  pour tout le monde (60 caisses) : l'option **`branches:1`** de la fiche `lpw` pose de vraies branches (`Math.PI/2-a`), du moyeu à la lèvre, en
+  cuvette (le bout dehors, le pied 4 cm plus creux, la jante qui plonge derrière la lèvre), plus larges (multi R×.08, rayons R×.15). Branchée sur
+  LE SAMOURAÏ (10), LA VETTE (12), LA ZED (8, branches passées en argent : sombres sur le fond sombre elles ne se lisaient pas).
+- **ACIDE** : les quatre ailes élargies étaient des ellipsoïdes de 1,4 m (`K.sph`, un ballon vernis ; en course 8 × 6 facettes) → une AILE RAPPORTÉE
+  en arche (`K.prof` d'un contour à 8 pans, 10 cm de bande, 30 cm de large, rivets reposés sur sa face) qui couvre le pneu. Ses lignes de portières
+  communes (`doors:1`, des traits noirs posés à W/2 : 6 cm hors du flanc de cette caisse) → `doors:0` et sa propre FENTE plaquée sur la tôle : un
+  `MeshBasicMaterial` en mélange MULTIPLIER (gris .5 : la tôle × .5 sous toutes les lumières, le programme des lignes, aucun de plus) + la poignée
+  contre la portière. ⚠ Au studio d'essai (`dbgEssaiCaisse`), les caisses de `FACET_SHAPES` ne sont PAS taillées (l'essai s'appelle `__essai`) :
+  juger ACIDE en course.
+- **LE SAMOURAÏ** : la lame carbone flottait 7 cm sous le bouclier → deux prismes soudés sous le bouclier (la lame, et son avancée au milieu).
+- **LA ZED** : les lames des pare-chocs (deux barres droites posées devant) suivent le plan du nez et de la poupe et tournent le coin (`lame()`, des
+  tronçons orientés ; butoirs inchangés).
+- **LA VETTE** (la C4 des photos de référence) : `K.kit(fentePal(PAL))` ; la ligne de joint de la coquille en FENTE C (`J` 6 mm + `Jf`) ; le jonc noir
+  de 4,5 cm collé à plat → un PLI de tôle en arête (boîte en losange) et un fin jonc noir de 1 cm sur son arête, comme sur la C4 ; les ouïes : des
+  lames de tôle penchées sur le fond noir (c'étaient des traits noirs).
+- 0 programme compilé en course (les quatre, `jeu.py` au canyon), console propre. Planche : `photos-gameplay/affinement-lot2-japonaises.png`.
+
 ## LES JAPONAISES — 6 · ROSSO 40 REFAITE AU PLAN (2026-10-18, discussion JAPONAISES, Léo : « complexifie la ROSSO 40, imitation encore plus fidèle et satisfaisante pour les vrais kiffeurs de voiture »)
 - ⚠ **RETIRÉE LE SOIR MÊME** (Léo : « la rosso revient sur avant c'était mieux ») : le bloc `SHAPES.rosso` et son repère sont ôtés de la zone des
   JAPONAISES, la ROSSO 40 d'origine reprend la main (ses pots, sa ligne CARS : rien n'avait bougé). La préchauffe repasse à cinq étapes. La source
