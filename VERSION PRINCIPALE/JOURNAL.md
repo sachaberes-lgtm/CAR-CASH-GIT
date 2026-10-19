@@ -3,6 +3,16 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'AFFINEMENT COMPLET SUR LE MAIN + LES VRAIES JANTES POUR TOUTES (2026-10-19, v681, Léo : « mets tout ce qui est à valider dans le jeu, et applique la correction des jantes à toutes les voitures »)
+- RONDES d9beaad1 (lots 2-4 + LA FÉLINE aux ailes séparées), BOÎTES a921161b (lots 1-4 ; LE CHARGEUR 69 en panneaux plats, style poly),
+  JAPONAISES 1fb3a0cf (lots 2-4 + `lpWheel` réuni). Le détail de chaque caisse : `~/Downloads/CAR-bancs/nouvelles-voitures/AFFINEMENT.md`.
+- **Les jantes** : `lpWheel` = UN seul outil (JAPONAISES en est responsable) — `creux` (≤ 4 cm), `branches`, et la correction GLOBALE des
+  rayons posés en travers (`ROUES_VRAIES`, EN MARCHE : de vraies branches en cuvette sur toutes les caisses du kit qui ne disent rien ;
+  `branches:0` dans une fiche la refuse ; `?roues=ancien` = l'ancien dessin, `dbgRoues()`). Fusion : les 3 conflits de `lpWheel` → la version réunie.
+- Vérifié : les 51 caisses de l'inventaire construites sans exception (photo de chacune), 10 caisses en course sans programme compilé ;
+  quelques programmes compilés au moment d'une EXPLOSION (déjà le cas avant, toutes caisses) — à regarder par une passe perf.
+- Planche de tout le chantier : `photos-gameplay/tout-ce-qui-a-ete-fait.png`.
+
 ## L'AFFINEMENT, 2e ENVOI : LE HUMMER SUV ET LES DEUX PREMIERS LOTS (2026-10-19, v680, Léo : « oui, mets le Hummer SUV et les deux lots dans le jeu »)
 - LE CAÏD en HUMMER EV SUV (BOÎTES 9176c959 : le nez et le détail gardés, la cabine jusqu'au hayon, la roue de secours sur le hayon).
 - RONDES lot 1 (665b7a04) : LA PUCE ronde comme la Mini, LA FÉLINE (phares en goutte à verre clair, roues à rayons), LA QUEUE DE CANARD
