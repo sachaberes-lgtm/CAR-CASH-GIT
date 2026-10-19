@@ -1190,10 +1190,10 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 ## AFFINEMENT · LOT 4 BOÎTES — LE HOT ROD, LE MASTODONTE, L'AIGLE DE FEU, LA CABOSSÉE, L'ORIGAMI (2026-10-19, discussion BOÎTES)
 - **LE HOT ROD** (64) : les phares-obus DESCENDUS contre la calandre (y 0,82, x 0,44 : ils flottaient en haut et mordaient dans les pneus),
   vus de face un jonc chromé, le verre, l'ampoule (le disque ÉMISSIF plein faisait une boule de lumière jaune) ; la calandre EN CREUX — un
-  jonc chromé prolonge l'écusson de 7 cm, la grille au fond, neuf barreaux fins (⚠ la coque `plate` va de z à z + épaisseur : 1,60 → 1,70) ;
-  les roues en `deux` : hors de la caisse, on les voit de l'INTÉRIEUR de face (c'était un disque rouge plat).
-- **LE MASTODONTE** (62) : la jante CREUSÉE de 12 cm, cinq rayons en arête, moyeu enfoncé, six ÉCROUS. **L'AIGLE DE FEU** (52) : la jante
-  dorée creusée. `lpWheel` : `creux` va jusqu'à 60 % de la demi-largeur de la roue (le fond recule d'autant au-delà de 4 cm), `ecrous:n`.
+  jonc chromé prolonge l'écusson de 7 cm, la grille au fond, neuf barreaux fins (⚠ la coque `plate` va de z à z + épaisseur : 1,60 → 1,70).
+- **LES JANTES RESTENT À FAIRE** (HOT ROD, MASTODONTE, AIGLE) : `lpWheel` est l'outil commun, JAPONAISES en est désormais le seul
+  responsable (son option `branches`, et le `creux` du lot 2 à réunir) ; la coordination dira quelle option prendre, et Léo si on corrige
+  les jantes de TOUTES les voitures.
 - **LA CABOSSÉE** (79) : le pare-chocs du DESSIN — une bande extrudée qui tourne en rond aux coins et revient sur le flanc sans dépasser la
   caisse, arêtes chanfreinées (c'étaient des boîtes dont les bouts sortaient aux coins). Ses traits noirs restent (choix de Léo).
 - **L'ORIGAMI** (68) : les joints des portes, du coffre avant et du hayon en FENTE C (`fentePal` : l'inox × ,50 et son fil).
@@ -1202,9 +1202,11 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 ## AFFINEMENT · LOT 3 BOÎTES — LE CHARGEUR, LE CHARGEUR 69, LA NOCTAMBULE, LE CORBILLARD (2026-10-19, discussion BOÎTES)
 - **LE CHARGEUR** (31) : la calandre et la bouche basse en LAMES fines et serrées (c'était un damier de gros carreaux) ; « noir sur noir » :
   un JONC CHROMÉ de ceinture sous les vitres, la taille se lit (la laque noire voulue par Léo ne bouge pas).
-- **LE CHARGEUR 69** (43) : la laque noire LISSÉE (normales moyennées entre facettes à moins de ~25°, la recette de L'AIGLE DE FEU) — le
-  pavillon et les flancs ne cassent plus en grands reflets violets ; le pavillon BOMBÉ ; la calandre AU FOND DE SA BOUCHE (le bord du capot
-  et les bouts d'ailes avancent de 7 cm, le jonc chromé au bord) ; la vitre va jusqu'au montant (une pointe blanche restait devant).
+- **LE CHARGEUR 69** (43) : la laque noire EN PANNEAUX, en style poly (rappel de la coordination : des facettes PLATES, pas de normales
+  lissées sur la tôle) — les facettes voisines presque dans le même plan (< 9° entre elles, < 14° de la première) prennent UNE normale, la
+  moyenne pondérée par l'aire : un reflet net par panneau, les vraies arêtes gardées (des bandes presque parallèles se miraient chacune un
+  bout de ciel violet) ; la calandre AU FOND DE SA BOUCHE (le bord du capot et les bouts d'ailes avancent de 7 cm, le jonc chromé au bord) ;
+  la vitre va jusqu'au montant (une pointe blanche restait devant).
 - **LA NOCTAMBULE** (49) : les LAMES CHROMÉES de la calandre, couchées sur la pente du nez de requin (un panneau noir plat) ; l'aileron en
   PROFIL D'AILE (bord d'attaque rond, extrados bombé, bord de fuite fin — c'était une boîte).
 - **LE CORBILLARD** (26) : la coque qui RENTRE sous l'arête (un caisson plat) ; les rideaux un ton plus doux, plis deux fois plus nombreux et

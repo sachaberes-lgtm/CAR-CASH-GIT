@@ -29807,10 +29807,9 @@ function lpWheel(o){
     K.box('k',o.w*.84,.05,.11,0,Math.sin(a)*R,Math.cos(a)*R,Math.PI/2-a);}
   if(o.bande&&!o.sansPneu)K.lathe('b',[[R+.004,-hw*.16],[R+.004,hw*.16]],16,0,0,0,'x'); // (2026-10-08, SQUALE) une BANDE claire au milieu de la bande de roulement : vue d'en dessous, la roue se lit
   const fx0=hw-.035,FACES=o.deux?[1,-1]:[1];                 // le plan de la jante, en retrait du pneu
-  const cr0=o.creux?Math.min(o.creux,hw*.6):0,fdd=Math.max(0,cr0-.04);   // (19/10) la jante creusée : au-delà de 4 cm, le fond recule d'autant
   // (2026-10-08, SQUALE) `deux` : la roue du MILIEU, qu'on voit des deux côtés — un tambour FERMÉ et une jante sur CHAQUE face (miroir en x)
   if(o.deux)K.lathe('d',[[0,-(fx0-.05)],[R*.64,-(fx0-.05)],[R*.64,fx0-.05],[0,fx0-.05]],16,0,0,0,'x');
-  else K.lathe('d',[[R*.64,-hw+.02],[R*.64,fx0-.05-fdd],[0,fx0-.05-fdd]],16,0,0,0,'x'); // fût + fond sombre
+  else K.lathe('d',[[R*.64,-hw+.02],[R*.64,fx0-.05],[0,fx0-.05]],16,0,0,0,'x'); // fût + fond sombre
   for(const e of FACES){const fx=e*fx0;
   if(o.blanc)K.lathe('w',[[R*.70,e*(hw+.004)],[R*.86,e*(hw+.004)]],16,0,0,0,'x');
   if(o.style==='cadran'){
@@ -29830,7 +29829,7 @@ function lpWheel(o){
       K.tri('a',pt(a-d,R*.655,e*(hw+.004)),pt(a+d,R*.655,e*(hw+.004)),pt(a,R*.85,e*(hw+.004)));}
     K.cyl('d',R*.10,.012,7,fx+e*.016,0,0,'x');                                // le cache-moyeu
   }else{
-    const n=o.n||5,multi=o.style==='multi',cr=cr0;
+    const n=o.n||5,multi=o.style==='multi',cr=Math.min(o.creux||0,.04);
     if(cr){ /* (2026-10-19, BOÎTES : « des jantes en disques plats ») LA JANTE CREUSÉE, sur demande (`creux`, ≤ 4 cm) : la lèvre plonge, chaque rayon
        est une ARÊTE (deux pans qui prennent chacun leur lumière) qui descend du bord vers le moyeu enfoncé. Mêmes matières : 0 programme de plus. */
       K.lathe('c',[[R*.64,fx],[R*.60,fx-e*cr*.3],[R*.55,fx-e*cr*.45]],16,0,0,0,'x');
@@ -29844,8 +29843,7 @@ function lpWheel(o){
     for(let s=0;s<n;s++){const a=s/n*Math.PI*2;
       K.box(multi?'c':'a',.03,R*.46,multi?R*.07:R*.13,fx-e*.012,Math.sin(a)*R*.33,Math.cos(a)*R*.33,-a);}}
   }
-  if(o.style!=='enjoliveur'&&o.style!=='plis')K.cyl('c',R*.16,.05,8,fx-e*(cr0?cr0+.012:.01),0,0,'x'); // le moyeu (enfoncé dans la jante creusée)
-  if(o.ecrous&&cr0)for(let i=0;i<o.ecrous;i++){const a=i/o.ecrous*Math.PI*2+.3;K.cyl('c',R*.028,.024,6,fx-e*(cr0-.02),Math.sin(a)*R*.10,Math.cos(a)*R*.10,'x');} // (19/10) les ÉCROUS sur le moyeu
+  if(o.style!=='enjoliveur'&&o.style!=='plis')K.cyl('c',R*.16,.05,8,fx-e*(o.creux?Math.min(o.creux,.04)+.012:.01),0,0,'x'); // le moyeu (enfoncé dans la jante creusée)
   if(o.pique&&e>0){K.cyl('c',R*.15,.14,6,fx+.07,0,0,'x',R*.07);K.cyl('w',R*.07,.12,6,fx+.20,0,0,'x',.004);} // (2026-10-16, LE BLINDÉ NOIR) LE PIC DE MOYEU : le char de Ben-Hur — dans l'axe, il ne tourne pas à l'œil
   }
   return K.done();
@@ -31933,14 +31931,25 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   const U=LPU,R=.34,ZF=1.56,ZR=-1.41;
   const PAL9={p:{g:'p',c:0x0e0e10},k:{g:'m',c:0x121316},K:{g:'g',c:0x08090b},c:{g:'c',c:0xe9ecf0},
     g:{g:'g',c:0x18232e},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},r:{g:'l',c:0x9a0f1a},O:{g:'l',c:0xffa21a}},P=K.kit(PAL9);
-  /* (2026-10-19, BOÎTES : « le pavillon en grandes facettes aux reflets violets qui cassent ») la laque noire : normales lissées entre facettes
-     à moins de ~25° (la recette de L'AIGLE DE FEU) — le reflet coule sur le pavillon, les arêtes vives restent. */
+  /* (2026-10-19, BOÎTES : « le pavillon en grandes facettes aux reflets violets qui cassent », en STYLE POLY : des facettes PLATES) la laque
+     noire en PANNEAUX : les facettes voisines presque dans le même plan (< 9° l'une de l'autre, < 14° de la première du panneau) prennent UNE
+     seule normale, la moyenne pondérée par l'aire — chaque panneau renvoie UN reflet net (des bandes presque parallèles se miraient chacune un
+     bout de ciel différent) ; les vraies arêtes restent vives, rien n'est lissé. Les vitres ne changent pas. */
   {const gP=(typeof peintPal==='function'?peintPal(PAL9):PAL9).p.g,d0=P.done;P.done=function(){const o=d0.call(P),G9=o[gP];if(G9){
-    const a=G9.attributes.position.array,n=G9.attributes.normal.array,M9=new Map(),N9=new Float32Array(n.length);
-    for(let i=0;i<a.length;i+=3){const q=Math.round(a[i]*500)+','+Math.round(a[i+1]*500)+','+Math.round(a[i+2]*500);let L9=M9.get(q);if(!L9)M9.set(q,L9=[]);L9.push(i);}
-    for(const L9 of M9.values())for(const i of L9){let x=0,y=0,z=0;for(const j of L9)if(n[i]*n[j]+n[i+1]*n[j+1]+n[i+2]*n[j+2]>.9){x+=n[j];y+=n[j+1];z+=n[j+2];}
-      const l=Math.hypot(x,y,z)||1;N9[i]=x/l;N9[i+1]=y/l;N9[i+2]=z/l;}
-    G9.setAttribute('normal',new THREE.Float32BufferAttribute(N9,3));}return o;};}
+    const a=G9.attributes.position.array,n=G9.attributes.normal.array,T=a.length/9,F=new Float32Array(T*4),E=new Map(),
+      cle=i=>Math.round(a[i]*500)+','+Math.round(a[i+1]*500)+','+Math.round(a[i+2]*500);
+    for(let t=0;t<T;t++){const i=t*9,ux=a[i+3]-a[i],uy=a[i+4]-a[i+1],uz=a[i+5]-a[i+2],vx=a[i+6]-a[i],vy=a[i+7]-a[i+1],vz=a[i+8]-a[i+2],
+        x=uy*vz-uz*vy,y=uz*vx-ux*vz,z=ux*vy-uy*vx,l=Math.hypot(x,y,z)||1,k=[cle(i),cle(i+3),cle(i+6)];
+      F[t*4]=x/l;F[t*4+1]=y/l;F[t*4+2]=z/l;F[t*4+3]=l;
+      for(let e=0;e<3;e++){const p=k[e],q=k[(e+1)%3],ek=p<q?p+'|'+q:q+'|'+p;let L=E.get(ek);if(!L)E.set(ek,L=[]);L.push(t);}}
+    const nb=Array.from({length:T},()=>[]);for(const L of E.values())for(const t of L)for(const u of L)if(u!==t)nb[t].push(u);
+    const grp=new Int32Array(T).fill(-1),c1=Math.cos(9*Math.PI/180),c2=Math.cos(14*Math.PI/180),
+      dot=(p,q)=>F[p*4]*F[q*4]+F[p*4+1]*F[q*4+1]+F[p*4+2]*F[q*4+2],ord=[...Array(T).keys()].sort((p,q)=>F[q*4+3]-F[p*4+3]);
+    for(const s0 of ord){if(grp[s0]>=0)continue;const pile=[s0],mem=[];grp[s0]=s0;
+      while(pile.length){const t=pile.pop();mem.push(t);for(const u of nb[t])if(grp[u]<0&&dot(u,t)>c1&&dot(u,s0)>c2){grp[u]=s0;pile.push(u);}}
+      let x=0,y=0,z=0;for(const t of mem){const w=F[t*4+3];x+=F[t*4]*w;y+=F[t*4+1]*w;z+=F[t*4+2]*w;}const l=Math.hypot(x,y,z)||1;
+      for(const t of mem)for(let v=0;v<9;v+=3){n[t*9+v]=x/l;n[t*9+v+1]=y/l;n[t*9+v+2]=z/l;}}
+    G9.attributes.normal.needsUpdate=true;}return o;};}
   const AR=[[0,2*R+.05],[R*.60,2*R+.03],[R*.98,R*1.14],[R+.13,.30]];
   const CW=1.06,RF=.30,RR=-.56,RW=-.80,ZE=2.56;
   const zs=[-ZE,-2.52,-2.38,-1.74,-1.20,-.94,RW,RR,-.40,-.30,-.04,.04,RF,.86,.98,CW,2.00,2.46,ZE];
@@ -31957,7 +31966,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
           y2=Math.max(yb+.06,.38),y3=Math.max(.56,y2+.01),y4=Math.max(y3+.01,Math.min(bl-.08,sy-.07));
     const s=[[0,yb],[xw-.07,yb],[xw-.02,y2],[xw,y3],[xw-sC(z),Math.max(y3+.005,Math.min(.68,y4-.01))],[xw,y4],[xw-.04,bl]];
     if(z>RR-.001&&z<CW+.001){const xr=U.lin([[RR,.74],[RF,.72],[CW,.80]],z);
-      s.push([xr,Math.max(bl+.01,sy-.05)],[xr-.08,sy],[.46,c+.014],[.26,c+.024],[0,c+.028]);}   // (19/10) le pavillon BOMBÉ (il était plat, en deux grands pans)
+      s.push([xr,Math.max(bl+.01,sy-.05)],[xr-.08,sy],[.52,c+.004],[.50,c+.006],[0,c+.01]);}
     else if(tun(z)){s.push([.80,Math.max(bl+.005,sy-.03)],[.74,sy],[.64,sy-.005],[.62,c+.002],[0,c+.006]);}
     else s.push([xw-.10,Math.max(bl+.002,sy-.01)],[xw-.22,sy],[.52,c+.002],[.50,c+.003],[0,c+.006]);
     return s;
@@ -32425,7 +32434,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   P.box('p',1.74,.05,.22,0,1.035,-2.40,-.18); // le becquet (13/10 : sa bordure d'or retirée)
   K.commit(P);
   return {hl:[.64,.62,2.50],tl:[.60,.76,-2.56],wx:.77,wzF:ZF,wzR:-ZR,
-          lpw:{R:R,w:.28,style:'multi',n:10,jante:0xd9a520,creux:.04}}; // (19/10, BOÎTES) la jante dorée CREUSÉE (un disque plat à cercles)
+          lpw:{R:R,w:.28,style:'multi',n:10,jante:0xd9a520}};
 },
   e_zed:function(K){
   /* (13/10, « plus ressemblante ») le coupé de Yokohama a un capot LONG et presque à plat (il plongeait en coin vers 0,55),
@@ -33192,7 +33201,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   });
   K.commit(P);
   return {hl:[.74,1.86,ZE+.03],tl:[.86,1.86,-ZE-.03],wx:1.00,wzF:ZF,wzR:-ZR,pots:[[-.57,.50,-2.39],[.57,.50,-2.39]], // (pots) la bouche des deux pots qui plongent
-          lpw:{R:R,w:.62,style:'rayons',n:5,jante:0xe6e9ee,accent:0xe6e9ee,crampons:1,creux:.12,ecrous:6}}; // (19/10, BOÎTES : « disques blancs plats, sans creux ni boulons ») la jante CREUSÉE, ses écrous
+          lpw:{R:R,w:.62,style:'rayons',n:5,jante:0xe6e9ee,accent:0xe6e9ee,crampons:1}};
  },
   b_groupeb:function(K){
   const U=LPU,R=.33,ZF=1.28,ZR=-1.26;
@@ -33347,7 +33356,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   P.lathe('k',[[.15,-.015],[.15,.015]],10,-.25,1.12,.25,'z');
   K.commit(P);
   return {hl:[.44,.82,1.70],tl:[.34,.70,-1.87],wx:WX,wzF:ZF,wzR:-ZR,
-          lpw:{R:R,w:2*HW,style:'enjoliveur',jante:0xe6e9ee,fond:0xb81c14,deux:1}}; // (19/10) `deux` : les roues, hors de la caisse, se voient de l'INTÉRIEUR de face (c'était un disque rouge plat)
+          lpw:{R:R,w:2*HW,style:'enjoliveur',jante:0xe6e9ee,fond:0xb81c14}};
 },
   d_puce:function(K){
   /* (13/10, « plus ressemblante ») la petite anglaise de rallye : des coins RONDS vus de dessus (elle était carrée), le
