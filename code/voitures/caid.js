@@ -1,5 +1,5 @@
 // >>> fin SHAPES.simpson (BOITES)
-// <<< SHAPES.caid (BOITES) >>> — LE CAÏD = le GMC HUMMER EV (2026-10-18, discussion BOÎTES ; Léo : « une magnifique GMC » ; 19/10 : « refais-le en SUV »).
+// <<< SHAPES.caid (BOITES) >>> — LE CAÏD = le GMC HUMMER EV pick-up (2026-10-18, discussion BOÎTES ; Léo : « une magnifique GMC » ; 19/10 : « sans le toit, comme sur la photo exactement »).
 // Remplace l'ancienne méthode `caid(K)` de l'objet SHAPES (laissée en place : la coordination l'effacera).
 SHAPES.caid=(function(){
 const CACHE={};
@@ -124,11 +124,14 @@ const decoupe=(TR,ZO,LG,CODES,PEINT,vueDe,GAP)=>{
           if(cx*cx+cy*cy+cz*cz<1e-16)continue;const sw=(cx*un[0]+cy*un[1]+cz*un[2])<0;
           const ds=fen===0?[0,0,0]:PEINT.has(k)?[dJoint(lgn,p0),dJoint(lgn,sw?p2:p1),dJoint(lgn,sw?p1:p2)]:null;emet(CODES[k].g,sw?[p0,p2,p1]:[p0,p1,p2],n,k,ds);}}}
     return OUT;};
-/* ============================ LE CAÏD — LE GMC HUMMER EV SUV (2024) ============================
-   (2026-10-19, Léo : « refais-le en SUV » — le nez et tout le détail du pick-up gardés ; l'arrière refait sur les cotes du SUV : longueur
-   5,00 roue de secours comprise, empattement 3,218, largeur 2,197, hauteur 1,976 : l'essieu arrière avance de 23 cm, la cabine va jusqu'au
-   hayon (vitre de custode, montant arrière couleur caisse), le toit en panneaux de verre sur toute la longueur, le hayon porte la roue de
-   secours ; les élargisseurs arrière se resserrent derrière la roue. Ce qui suit décrivait le pick-up.)
+/* ============================ LE CAÏD — LE GMC HUMMER EV (le pick-up, 2022), TOIT OUVERT ============================
+   (2026-10-19, discussion voiture, Léo, sur sa photo de l'Edition 1 blanche au bord de la mer : « retouche la Hummer selon la photo, c'est-à-dire
+   sans le toit… comme sur la photo exactement ») — le SUV du matin redevient le PICK-UP de la photo (benne, ailerons, lunette en retrait),
+   et l'« Infinity Roof » est OUVERT : les quatre panneaux de verre retirés (quatre TROUS taillés dans la tôle de la serre, `CODES[4]`, avec
+   leur rebord), le cadre gardé (traverse du pare-brise, longerons, l'épine et la traverse en T, le haut de la lunette), les vitres des
+   portes BAISSÉES (des trous aussi, cadrés). Dedans, ce qu'on voit d'en haut et par les portes : le plancher, les contre-portes, la planche
+   de bord (deux écrans), le volant, la console, deux baquets et la banquette clairs, comme le cuir clair de l'Edition 1 ; rétros noirs ;
+   le panneau noir du capot descend jusqu'à la moitié du capot, comme sur la photo (PAN 1,74 → 1,96).
    Léo : « une magnifique GMC » — le HUMMER EV pick-up. Relevé sur le dessin coté de dimensions.com (profil, face, dos, dessus au même pas :
    104,9 unités par mètre, l'empattement 3,45 m ; longueur 5,51, largeur 2,20, hauteur 2,01 ; pneus de 35 pouces → R .45) ; les détails sur
    les photos de Commons (Edition 1 Interstellar White, Meteorite, Neptune Blue, Onyx Black). Ce qui le fait reconnaître, tout y est :
@@ -140,7 +143,7 @@ const decoupe=(TR,ZO,LG,CODES,PEINT,vueDe,GAP)=>{
    · LA POUPE : les FEUX EN C verticaux aux coins de la benne, le hayon, le bouclier noir. Électrique : pas de pots, deux fentes qui luisent.
    Aucun logo, aucun texte. Deux grilles de tôle (la méthode de LA PERLE) : le BAS (benne, flancs, ailes, face, hayon) et la SERRE (cabine) ;
    le capot est une nappe bombée qui s'enroule vers ses bords (le NEZ ARRONDI du 19/10, voir tB/rB/wN/dN). Repère : x à gauche, y en haut, z vers l'avant ; l'origine au milieu de la longueur. */
-const R=.45,TW=.315,WX=.953,ZF=1.878,ZR=-1.340,W0=.98,ZN=2.72,ZT=-1.85,BELT=1.463,ZCOW=1.27,RC=.30,RFB=.22,DZB=ZT+2.71; // DZB : la poupe du pick-up (z −2,71) recalée sur celle du SUV
+const R=.45,TW=.315,WX=.953,ZF=1.878,ZR=-1.573,W0=.98,ZN=2.72,ZT=-2.71,BELT=1.463,RAIL=1.545,ZBEN=-1.12,ZCOW=1.27,RC=.30,RFB=.22;
 /* (2026-10-19, Léo : « plus arrondi le devant, et respirant le même air que le modèle original ») LE NEZ ARRONDI : le capot est une nappe
    bombée posée sur toute l'empreinte du nez (un rectangle aux coins arrondis de RC en plan) ; à moins de `rB(z)` de son bord elle S'ENROULE
    (un quart de cercle) jusqu'à la verticale, et les flancs comme la face montent jusque-là — les épaules coulent dans les ailes, le capot
@@ -150,16 +153,15 @@ const tB=z=>lin([[ZCOW,BELT],[1.47,1.474],[1.88,1.455],[2.22,1.425],[2.50,1.38],
       rB=z=>.15*lis(cl((z-ZCOW)/.43,0,1)),
       wN=z=>z<=ZN-RC?W0:W0-RC+Math.sqrt(Math.max(0,RC*RC-(z-(ZN-RC))*(z-(ZN-RC)))),          // la demi-largeur du nez en plan
       dN=(x,z)=>{const a=Math.abs(x);if(z<=ZN-RC||a<=W0-RC)return Math.min(W0-a,ZN-z);return RC-Math.hypot(a-(W0-RC),z-(ZN-RC));}, // la distance au bord
-      PL=z=>z<ZCOW?BELT:tB(z)-rB(z);
+      PL=z=>z<ZBEN?RAIL:z<ZCOW?BELT:tB(z)-rB(z);
 // LES PASSAGES DE ROUE CARRÉS : le bord de l'ouverture et celui de l'élargisseur (z, hauteur)
 const FI=[[1.306,.364],[1.392,.755],[1.544,1.031],[1.602,1.073],[2.164,1.073],[2.221,1.041],[2.317,.879],[2.412,.707],[2.44,.459]],
       FO=[[1.268,.345],[1.382,.755],[1.525,1.127],[1.573,1.169],[1.745,1.174],[1.802,1.146],[2.183,1.146],[2.355,.974],[2.44,.669],[2.46,.44]],
-      mR=A=>A.map(([z,y])=>{const d=z+1.573;return [ZR+(d<0?d*.73:d),y];}),                                      // (SUV) le passage arrière du pick-up, avancé et resserré derrière l'essieu
-      RI=mR([[-2.107,.898],[-1.935,1.089],[-1.897,1.108],[-1.363,1.108],[-1.306,1.07],[-1.049,.745],[-1.04,.40]]),
-      RO=mR([[-2.259,.898],[-1.992,1.213],[-1.954,1.232],[-1.745,1.232],[-1.687,1.194],[-1.325,1.184],[-1.268,1.146],[-1.039,.765],[-1.0,.62],[-1.0,.364]]);
+      RI=[[-2.107,.898],[-1.935,1.089],[-1.897,1.108],[-1.363,1.108],[-1.306,1.07],[-1.049,.745],[-1.04,.40]],
+      RO=[[-2.259,.898],[-1.992,1.213],[-1.954,1.232],[-1.745,1.232],[-1.687,1.194],[-1.325,1.184],[-1.268,1.146],[-1.039,.765],[-1.0,.62],[-1.0,.364]];
 const ARF=[[1.30,.50],[1.392,.755],[1.544,1.031],[1.602,1.073],[2.164,1.073],[2.221,1.041],[2.317,.879],[2.412,.707],[2.44,.62]],
-      ARR=mR([[-2.12,.66],[-2.107,.898],[-1.935,1.089],[-1.897,1.108],[-1.363,1.108],[-1.306,1.07],[-1.049,.745],[-1.03,.50]]);
-const YBb=z=>z>2.44?.62:z>=1.30?lin(ARF,z):z>ARR[ARR.length-1][0]?.50:z>=ARR[0][0]?lin(ARR,z):.66;
+      ARR=[[-2.12,.66],[-2.107,.898],[-1.935,1.089],[-1.897,1.108],[-1.363,1.108],[-1.306,1.07],[-1.049,.745],[-1.03,.50]];
+const YBb=z=>z>2.44?.62:z>=1.30?lin(ARF,z):z>-1.03?.50:z>=-2.12?lin(ARR,z):.66;
 // LA GRILLE GÉNÉRIQUE (celle de LA CABOSSÉE) : + `bout`/`fx` (le contour du nez et ses colonnes aux x donnés),
 // + `boutD`/`fxd` (pareil à la poupe : les ailerons de la cabine et la lunette en retrait), + `plafond(z)`
 const colBoutX=(r,P,zs,n,ins,xs,dir)=>{const o=[];if(r.t==='fc'){for(let i=0;i<=n;i++)o.push([0,mix(zs,dir>0?r.zc:r.zr,i/n)]);for(const x of xs)o.push([0,dir>0?r.zc:r.zr]);return o;}
@@ -191,27 +193,37 @@ const grille=D=>{
 // ---- LE BAS : benne, flancs, ailes, la face (coins très arrondis en plan), le hayon ----
 const RB=(y,W)=>({t:'s',y:y,W:W,zc:ZN,zr:ZT,rf:y>=.80?RC:RFB,rr:.09}),
       BAS={rows:[{t:'fc',zc:ZN,zr:ZT},{t:'fe',W:.93,zc:ZN,zr:ZT,rf:RFB,rr:.08}].concat([[.50,.95],[.58,.975],[.66,W0],[.76,W0],[.86,W0],[.95,W0],[1.03,W0],[1.10,W0],
-          [1.17,W0],[1.24,W0],[1.30,W0],[1.36,W0],[1.42,W0],[BELT,W0]].map(([y,W])=>RB(y,W))),toit:{u:[],y:()=>0},plafond:PL,
-        zs0:ZT+.11,zs1:2.40,nr:8,nf:12,ins:.32,pas:.22,yb:YBb,plus:FI.map(p=>p[0]).concat(RI.map(p=>p[0]),ARF.map(p=>p[0]),ARR.map(p=>p[0]),
-          [ZCOW,1.24,.105,.09,-.51,-.55,-.60,1.47,1.88,2.22,2.52,2.65])};
+          [1.17,W0],[1.24,W0],[1.30,W0],[1.36,W0],[1.42,W0],[BELT,W0],[1.50,W0],[RAIL,.975]].map(([y,W])=>RB(y,W))),toit:{u:[],y:()=>0},plafond:PL,
+        zs0:-2.20,zs1:2.40,nr:8,nf:12,ins:.32,pas:.22,yb:YBb,plus:FI.map(p=>p[0]).concat(RI.map(p=>p[0]),ARF.map(p=>p[0]),ARR.map(p=>p[0]),
+          [ZBEN-.012,ZBEN,ZCOW,1.24,.105,.09,-.78,-.85,1.47,1.88,2.22,2.52,2.65])};
 // ---- LA SERRE : la cabine noire — pare-brise couché, pavillon, et derrière les deux AILERONS qui encadrent la lunette en retrait ----
-const zW=y=>1.268-(y-1.379)*.739,zS=y=>lin([[BELT,ZT],[1.95,ZT+.13]],y),YT=1.95,
+const zW=y=>1.268-(y-1.379)*.739,zS=y=>lin([[BELT,-1.42],[1.95,-1.07]],y),ZLU=-.74,YT=1.95,
       HDR=[[0,.07],[.3,.069],[.6,.064],[.8,.053],[.9,.04],[.96,.022],[1,0]],BRF=[[0,0],[.02,.45],[.05,.78],[.1,.93],[.3,1]],
+      boutD=r=>{const W=r.W,rc=r.rr,o=[[W,-.35]];for(let i=0;i<=6;i++){const p=i/6*Math.PI/2;o.push([W-rc+rc*Math.cos(p),r.zr+rc-rc*Math.sin(p)]);}
+        o.push([.78,r.zr],[.72,r.zr+.005],[.705,ZLU-.01],[.69,ZLU],[.45,ZLU],[.2,ZLU],[0,ZLU]);return o;},
       SERRE={rows:[[BELT,.975],[1.55,.965],[1.65,.95],[1.75,.93],[1.85,.905],[1.93,.875],[YT,.86]].map(([y,W])=>({t:'s',y:y,W:W,zc:zW(y),zr:zS(y),rf:.07,rr:.05})),
         toit:{u:[1,.96,.9,.8,.6,.3,0],y:(u,z)=>{const B=Math.min(lin(BRF,zW(YT)-z),lin(BRF,z-zS(YT)));return YT+lin(HDR,u)*B;}},
-        zs0:ZT+.12,zs1:.45,nr:6,nf:10,ins:.06,pas:.22,yb:()=>-1,plus:[.105,.09,-.03,.12,-.52,-.60,ZT+.25,ZT+.30]};
+        boutD:boutD,fxd:[.80,.78,.72,.705,.69,.55,.40,.25,.12,0],
+        zs0:-.95,zs1:.45,nr:6,nf:10,ins:.06,pas:.22,yb:()=>-1,plus:[.105,.09,-.03,.12,-.69,ZLU]};
 // un contour aux coins arrondis (rayon r, n pas par coin)
 const arrondi=(P,r,n)=>{const o=[],m=P.length;n=n||4;for(let i=0;i<m;i++){const a=P[(i-1+m)%m],p=P[i],b=P[(i+1)%m];
   const ua=[a[0]-p[0],a[1]-p[1]],ub=[b[0]-p[0],b[1]-p[1]],la=Math.hypot(ua[0],ua[1]),lb=Math.hypot(ub[0],ub[1]),rr=Math.min(r,la*.45,lb*.45);
   const A=[p[0]+ua[0]/la*rr,p[1]+ua[1]/la*rr],B=[p[0]+ub[0]/lb*rr,p[1]+ub[1]/lb*rr];
   for(let k=0;k<=n;k++){const t=k/n,s=1-t;o.push([s*s*A[0]+2*s*t*p[0]+t*t*B[0],s*s*A[1]+2*s*t*p[1]+t*t*B[1]]);}}return o;};
 const rrect=(u0,v0,u1,v1,r,n)=>arrondi([[u0,v0],[u1,v0],[u1,v1],[u0,v1]],r,n);
-const CODES=[];CODES[0]={g:'#'};CODES[1]={g:'#',k:.38};CODES[2]={g:'g',c:0x1d2a36};CODES[3]={g:'g',c:0x0b0c0f};CODES[23]={g:'m',c:0x16171b};
+const CODES=[];CODES[0]={g:'#'};CODES[1]={g:'#',k:.38};CODES[2]={g:'g',c:0x1d2a36};CODES[3]={g:'g',c:0x0b0c0f};CODES[4]={g:'_trou'};CODES[23]={g:'m',c:0x16171b};
 CODES[25]={g:'m',c:0x32333a};CODES[26]={g:'m',c:0x1c1d21};
 const PEINT=new Set([0,26]),GAP={26:25};
+// (19/10, toit ouvert) LES OUVERTURES : les quatre trous du toit (vue de dessus : u = z, v = x) et les deux vitres de porte de chaque côté
+// (vue de côté : u = z, v = y) — la découpe les retire de la tôle, le montage pose leur REBORD (le cadre a une épaisseur)
+const TROUS=[[.10,.78],[-.68,-.02]].reduce((o,[z0,z1])=>o.concat([rrect(z0,.055,z1,.70,.05),rrect(z0,-.70,z1,-.055,.05)]),[]),
+      VIT=[arrondi([[1.13,1.49],[.85,1.885],[.12,1.885],[.12,1.49]],.04),arrondi([[-.03,1.49],[-.03,1.885],[-.69,1.885],[-.69,1.49]],.04)],
+      yToit=(x,z)=>YT+lin(HDR,Math.min(1,Math.abs(x)/.86))*Math.min(lin(BRF,zW(YT)-z),lin(BRF,z-zS(YT))),            // le dessus de la serre (la grille du toit)
+      WS=[[BELT,.975],[1.55,.965],[1.65,.95],[1.75,.93],[1.85,.905],[1.93,.875],[YT,.86]],
+      xFlanc=(z,y)=>{const d=Math.max(0,z-(zW(y)-.07));return lin(WS,y)-(.07-Math.sqrt(Math.max(0,.0049-d*d)));};     // le flanc de la serre (et l'arrondi du montant de pare-brise)
 // LA DÉCOUPE, une fois par session (≈30 ms) : `pre` la fait faire dans un moment creux (voir le bloc d'intégration), sinon le 1er montage la fait
 const cuire=()=>{let C9=CACHE[0];if(C9)return C9;
-    const TR=[],ref=c=>[0,1.1,cl(c[2],ZT+.4,2.2)];
+    const TR=[],ref=c=>[0,1.1,cl(c[2],-2.2,2.2)];
     const tri=(a,b,c,k)=>{const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2],nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;
       if(nx*nx+ny*ny+nz*nz<1e-12)return;const m=[(a[0]+b[0]+c[0])/3,(a[1]+b[1]+c[1])/3,(a[2]+b[2]+c[2])/3],r=ref(m);
       if(nx*(m[0]-r[0])+ny*(m[1]-r[1])+nz*(m[2]-r[2])<0)TR.push([a,c,b,k]);else TR.push([a,b,c,k]);};
@@ -220,38 +232,38 @@ const cuire=()=>{let C9=CACHE[0];if(C9)return C9;
       for(let c=0;c<g.COL.length-1;c++)for(let j=0;j<g.ROWS.length-1;j++){
         const A=G[c][j],B=G[c+1][j],C=G[c+1][j+1],E=G[c][j+1];let k;
         if(bas){k=j<=1?23:0;if(!k&&A[1]<=YBb(A[2])+.001&&B[1]<=YBb(B[2])+.001&&C[1]<=YBb(C[2])+.001&&E[1]<=YBb(E[2])+.001)k=23;}
-        else{const mx=(A[0]+B[0]+C[0]+E[0])/4,mz=(A[2]+B[2]+C[2]+E[2])/4,my=(A[1]+B[1]+C[1]+E[1])/4;k=(mx>.70&&mz<ZT+.25&&my<1.935)?0:26;}  // (SUV) le montant arrière couleur caisse, le reste de la cabine noir
+        else{const mx=(A[0]+B[0]+C[0]+E[0])/4,mz=(A[2]+B[2]+C[2]+E[2])/4,my=(A[1]+B[1]+C[1]+E[1])/4;k=(mx>.70&&mz<-.80&&my<1.935)?0:26;}  // les ailerons couleur caisse, le reste de la cabine noir
         for(const f of [p=>p,M]){tri(f(A),f(B),f(C),k);tri(f(A),f(C),f(E),k);}}}
     // ---- LES CONTOURS ----
     const ZO={cote:[],face:[],dos:[],dessus:[]},LG={cote:[],face:[],dos:[],dessus:[]};
     const zone=(v,k,P,o)=>{o=o||{};ZO[v].push({k:k,sg:segsDe(P,true),bb:bbDe(P,0),s:o.s||0,sur:o.sur||[0]});},
           joint=(v,P,s,ferme)=>{const L=ligneDe(P,'j',s,ferme);if(L)LG[v].push(L);},pli=(v,P,s,ferme)=>{const L=ligneDe(P,'h',s,ferme);if(L)LG[v].push(L);};
     // les vitres (sur la cabine noire), le pare-brise, la lunette entre les ailerons
-    zone('cote',2,arrondi([[1.13,1.49],[.85,1.885],[.12,1.885],[.12,1.49]],.04),{sur:[26]});
-    zone('cote',2,arrondi([[-.03,1.49],[-.03,1.885],[-.52,1.885],[-.52,1.49]],.04),{sur:[26]});
-    zone('cote',2,arrondi([[-.60,1.49],[-.60,1.885],[ZT+.31,1.885],[ZT+.36,1.49]],.04),{sur:[26]});                     // (SUV) la vitre de custode
+    for(const F of VIT)zone('cote',4,F,{sur:[26]});                                                                  // (toit ouvert) les vitres des portes BAISSÉES : des trous
     zone('face',2,rrect(-.86,1.50,.86,1.925,.04),{sur:[26]});
-    zone('dos',2,rrect(-.64,1.54,.64,1.88,.05),{sur:[26]});
-    // les quatre PANNEAUX DE TOIT amovibles (verre fumé brillant sur le cadre mat)
-    for(const [z0,z1] of [[.12,.80],[-.78,-.04],[ZT+.26,-.86]])for(const s of [-1,1])zone('dessus',3,rrect(z0,s>0?.05:-.70,z1,s>0?.70:-.05,.04),{sur:[26]}); // (SUV) + la paire au-dessus du coffre
+    zone('dos',2,rrect(-.64,1.57,.64,1.90,.05),{sur:[26]});
+    // les quatre PANNEAUX DE TOIT amovibles… RETIRÉS (19/10, la photo de Léo) : quatre trous, la croix du cadre entre eux
+    for(const T of TROUS)zone('dessus',4,T,{sur:[26]});
     // LA FACE : couleur caisse, la BARRE NOIRE du bandeau lumineux, une fente noire dessous (le bas est derrière le bouclier)
     zone('face',3,rrect(-.985,1.035,.985,1.168,.02));zone('face',3,rrect(-.62,.968,.62,.99,.008));
     for(const s of [1,-1])zone('cote',3,[[ZN-RC-.02,1.035],[ZN+.05,1.035],[ZN+.05,1.168],[ZN-RC-.02,1.168]],{s:s});
     // les portes (sous la ceinture : au-dessus, la cabine est noire), le hayon, les plis
     joint('cote',[[1.24,BELT],[1.24,.68],[1.20,.64],[.14,.64],[.105,.68],[.105,BELT]]);
-    joint('cote',[[.09,BELT],[.09,.68],[.055,.64],[-.47,.64],[-.51,.70],[-.59,.92],[-.60,1.20],[-.56,BELT]]);          // (SUV) la porte arrière, qui contourne le passage avancé
-    pli('cote',[[2.05,1.27],[1.45,1.31],[ZT+.08,1.31]]);pli('cote',[[1.17,.88],[-.50,.88]]);
-    joint('dos',rrect(-.80,.94,.80,BELT+.012,.03),0,true);pli('dos',[[-.78,1.04],[.78,1.04]]);                              // (SUV) le hayon
+    joint('cote',[[.09,BELT],[.09,.68],[.055,.64],[-.70,.64],[-.74,.70],[-.84,.95],[-.85,1.20],[-.78,BELT]]);
+    pli('cote',[[2.05,1.27],[1.45,1.31],[ZBEN,1.31]]);pli('cote',[[-1.45,1.31],[-2.62,1.31]]);pli('cote',[[1.17,.88],[-.80,.88]]);
+    joint('dos',[[-.80,.92],[-.80,RAIL+.01]]);joint('dos',[[.80,.92],[.80,RAIL+.01]]);joint('dos',[[-.80,.94],[.80,.94]]);
+    pli('dos',rrect(-.68,1.17,.68,1.375,.04),0,true);pli('dos',[[-.78,1.04],[.78,1.04]]);joint('dos',rrect(-.34,.965,.34,1.10,.02),0,true);   // le petit hayon dans le hayon
     const vueDe=(m,n)=>{if(m[2]>2.4&&n[2]>.5)return 'face';if(m[2]>.7&&m[1]>1.45&&n[2]>.5)return 'face';
-      if(m[2]<ZT+.2&&n[2]<-.5)return 'dos';if(m[2]<-.6&&m[1]>1.46&&n[2]<-.5)return 'dos';
+      if(m[2]<-2.5&&n[2]<-.5)return 'dos';if(m[2]<-.6&&m[1]>1.46&&n[2]<-.5)return 'dos';
       if(n[1]>.7)return 'dessus';if(Math.abs(n[0])>.3)return 'cote';return null;};
-    const OUT=decoupe(TR,ZO,LG,CODES,PEINT,vueDe,GAP);
+    const OUT=decoupe(TR,ZO,LG,CODES,PEINT,vueDe,GAP);delete OUT._trou;                                  // les trous : rien n'est émis
     C9={};for(const g in OUT){const o=OUT[g];C9[g]={P:new Float32Array(o.P),N:new Float32Array(o.N),K:Uint8Array.from(o.K),D:new Float32Array(o.D)};}
     return CACHE[0]=C9;};
 const monte=function(K){
   const SP=K.spec||{},CORPS=SP.color!=null?SP.color:0x7cb83f;
   const PAL={p:{g:'p',c:CORPS},k:{g:'m',c:0x16171b},K:{g:'g',c:0x0b0c0f},c:{g:'c',c:0xd4d8de},C:{g:'c',c:0x6c727b},g:{g:'g',c:0x1d2a36},
-    W:{g:'l',c:0xfff6e6},L:{g:'l',c:0xff2a36},O:{g:'l',c:0xffa21a},Q:{g:'l',c:0xe8e8e8},T:{g:'m',c:0x1e2024},r:{g:'m',c:0xc8102e},R:{g:'m',c:0x7a1018},V:{g:'m',c:0x34363b}};
+    W:{g:'l',c:0xfff6e6},L:{g:'l',c:0xff2a36},O:{g:'l',c:0xffa21a},Q:{g:'l',c:0xe8e8e8},T:{g:'m',c:0x1e2024},r:{g:'m',c:0xc8102e},R:{g:'m',c:0x7a1018},V:{g:'m',c:0x34363b},
+    S:{g:'s',c:0xc6c7c3},I:{g:'s',c:0x55575d},D:{g:'m',c:0x26272c},E:{g:'g',c:0x0e1620}};   // (toit ouvert) l'habitacle : cuir clair, son passepoil, le noir des garnitures, les écrans
   const EP=(typeof peintPal==='function'?peintPal(PAL):PAL).p,GP=EP.g;
   const CPx=new THREE.Color(),fondu=y=>.80+.20*cl((y-.25)/1.0,0,1),colP=y=>{CPx.setHex(EP.c);if(EP.grad&&typeof lpGrad==='function')lpGrad(EP.grad,y,CPx);
     const s=((EP.g==='p'||EP.g.charAt(0)==='p')&&EP.f!==0)?fondu(y):1;return [CPx.r*s,CPx.g*s,CPx.b*s];};
@@ -287,11 +299,11 @@ const monte=function(K){
   // LE CAPOT BOMBÉ : une nappe sur toute l'empreinte du nez, qui s'enroule vers ses bords (les ailes, la face) ; au fond, le PANNEAU NOIR
   // mat devant le pare-brise ; devant lui le dôme central du capot
   {const dome=(x,z)=>{const u=Math.abs(x);return .026*lis(cl((.445-u)/.022,0,1))*lis(cl((z-1.70)/.06,0,1))*lis(cl((2.40-z)/.18,0,1));},  // le dôme, ses NERVURES nettes (2 cm)
-     PAN=[1.33,1.74,.60],dansPan=(x,z)=>Math.abs(x)<PAN[2]&&z>PAN[0]&&z<PAN[1],
+     PAN=[1.33,1.96,.60],dansPan=(x,z)=>Math.abs(x)<PAN[2]&&z>PAN[0]&&z<PAN[1],
      H=(x,z)=>{const w=wN(z),r=rB(z),d=dN(x,z),bombe=.05*Math.max(0,1-(x/w)*(x/w))*cl((ZN-z)/.35,0,1),tc=tB(z)+bombe+dome(x,z)-(dansPan(x,z)?.008:0);
        if(r<.002)return tc;const q=Math.min(d,r);return tc-r+Math.sqrt(Math.max(0,r*r-(r-q)*(r-q)));},
      ED=[0,.006,.025,.055,.095,.15,.22],FR=[0,.1,.2,.3,.4,.5,.6,.7,.8,.9],
-     ZH=(()=>{const o=new Set([ZCOW,1.30,1.33,1.45,1.55,1.64,1.74,1.80,1.92,2.05,2.18,2.30,2.40,ZN-RC,2.46]);for(const e of ED)o.add(+(ZN-e).toFixed(4));
+     ZH=(()=>{const o=new Set([ZCOW,1.30,1.33,1.45,1.55,1.64,1.74,1.80,1.92,1.96,2.05,2.18,2.30,2.40,ZN-RC,2.46]);for(const e of ED)o.add(+(ZN-e).toFixed(4));
        return [...o].sort((p,q)=>p-q);})(),
      S=z=>{const w=wN(z),k=(w-.22)/(W0-.22),P9=[];for(const f of FR)if(f>0)P9.push((w-.22)*f);
        for(const x of [.423,.445,.60])P9.push(x*k);                                                                            // les nervures, le bord du panneau (même nombre de points à chaque rang)
@@ -303,7 +315,8 @@ const monte=function(K){
    P.sym(sd=>{for(let i=0;i<3;i++){const z=1.50+i*.055,x=sd*.76;P.box('K',.17,.008,.024,x,H(x,z)+.002,z);}});
    // le joint du capot sur le panneau noir (un trait clair au bord avant du panneau)
    P.box('C',1.20,.004,.008,0,H(0,PAN[1])+.003,PAN[1]+.004);
-   quad('k',[-W0,BELT+.002,zW(BELT)-.02],[W0,BELT+.002,zW(BELT)-.02],[W0,BELT+.002,ZCOW],[-W0,BELT+.002,ZCOW]);}                      // l'auvent sous le pare-brise                                     // le pont noir entre les ailerons
+   quad('k',[-W0,BELT+.002,zW(BELT)-.02],[W0,BELT+.002,zW(BELT)-.02],[W0,BELT+.002,ZCOW],[-W0,BELT+.002,ZCOW]);                       // l'auvent sous le pare-brise
+   quad('k',[-.70,BELT+.002,ZBEN],[.70,BELT+.002,ZBEN],[.70,BELT+.002,ZLU],[-.70,BELT+.002,ZLU]);}                                     // le pont noir entre les ailerons
   // LA FACE : le BANDEAU LUMINEUX — six segments séparés (sans lettres), les longs phares aux bouts, et leur coin AMBRE qui tourne sur
   // l'arrondi de la face ; les antibrouillards dans le bouclier
   {const z=ZN+.007,y=1.102;
@@ -334,48 +347,71 @@ const monte=function(K){
     for(const A of [FO,RO]){P.prism('k',bande(A,0,.035),.20,sd*1.012);                                            // le BORD ÉPAIS de l'élargisseur
       for(const q of pas(off(A,-.05),.16))P.cyl('V',.011,.010,8,sd*1.106,q[1],q[0],'x');}                          // ses VIS apparentes (19/10 : acier noirci — en chrome elles sortaient en clous blancs)
     for(const A of [FI,RI])P.prism('k',A.concat([[A[A.length-1][0],.30],[A[0][0],.30]]),.16,sd*.70);
-    P.prism('k',[[-.79,.36],[1.29,.36],[1.36,.62],[1.24,.66],[-.75,.66],[-.81,.62]],.13,sd*.985);
-    P.box('k',.10,.07,1.88,sd*1.07,.42,.24);P.box('T',.07,.008,1.82,sd*1.07,.457,.24);
-    for(let i=0;i<9;i++)P.box('K',.085,.008,.035,sd*1.07,.464,-.61+i*.21);                                       // le GRIP du marchepied
-    for(const z of [-.71,1.19])P.box('k',.10,.075,.03,sd*1.07,.42,z);                                              // ses embouts
-    for(const z of [-.58,.24,1.0])P.box('k',.12,.05,.08,sd*1.0,.42,z);
+    P.prism('k',[[-1.02,.36],[1.29,.36],[1.36,.62],[1.24,.66],[-.98,.66],[-1.04,.62]],.13,sd*.985);
+    P.box('k',.10,.07,2.10,sd*1.07,.42,.13);P.box('T',.07,.008,2.04,sd*1.07,.457,.13);
+    for(let i=0;i<10;i++)P.box('K',.085,.008,.035,sd*1.07,.464,-.82+i*.21);                                       // le GRIP du marchepied
+    for(const z of [-.93,1.19])P.box('k',.10,.075,.03,sd*1.07,.42,z);                                              // ses embouts
+    for(const z of [-.75,.13,1.0])P.box('k',.12,.05,.08,sd*1.0,.42,z);
     // les rétros carrés noirs, les poignées affleurantes
-    tige('K',[sd*.975,1.47,1.10],[sd*1.06,1.52,1.02],.02);P.box('p',.12,.22,.20,sd*1.12,1.56,.98);P.box('K',.12,.03,.18,sd*1.12,1.44,.98);P.box('g',.09,.18,.004,sd*1.12,1.56,.879);
+    tige('K',[sd*.975,1.47,1.10],[sd*1.06,1.52,1.02],.02);P.box('k',.12,.22,.20,sd*1.12,1.56,.98);P.box('K',.12,.03,.18,sd*1.12,1.44,.98);P.box('g',.09,.18,.004,sd*1.12,1.56,.879);
     P.box('K',.004,.032,.17,sd*1.181,1.52,.98);P.box('O',.004,.016,.15,sd*1.183,1.52,.98);                        // le CLIGNOTANT du rétro (fente noire, ambre dedans)
     for(const z of [.31,-.62]){P.box('K',.012,.058,.17,sd*.986,1.31,z);P.box('C',.016,.022,.135,sd*.998,1.31,z);P.box('C',.02,.018,.012,sd*1.002,1.31,z+.072);}});  // les POIGNÉES : la niche, la barre chromée, son pied
+  // LA BENNE : les dessus des côtés, le dessus du hayon, la doublure noire, le plancher
+  P.sym(sd=>{quad('p',[sd*.80,RAIL,ZT+.03],[sd*.975,RAIL,ZT+.03],[sd*.975,RAIL,ZBEN],[sd*.80,RAIL,ZBEN]);P.box('k',.02,RAIL-.95,ZBEN-ZT-.06,sd*.79,(RAIL+.95)/2,(ZBEN+ZT)/2);});
+  quad('p',[-.80,RAIL,ZT],[.80,RAIL,ZT],[.80,RAIL,ZT+.03],[-.80,RAIL,ZT+.03]);
+  P.box('k',1.58,RAIL-.95,.02,0,(RAIL+.95)/2,ZT+.04);P.box('k',1.58,RAIL-.95,.02,0,(RAIL+.95)/2,ZBEN-.01);
+  P.box('k',1.60,.02,ZBEN-ZT-.06,0,.95,(ZBEN+ZT)/2);for(let i=0;i<5;i++)P.box('K',.04,.012,ZBEN-ZT-.10,-.56+i*.28,.965,(ZBEN+ZT)/2);
+  P.sym(sd=>{const ar=[];for(let i=0;i<=10;i++){const a=Math.PI*i/10;ar.push([ZR+Math.cos(a)*.50,.96+Math.sin(a)*.27]);}P.prism('k',ar,.17,sd*.70);  // les passages de roue dans la benne
+    for(const z of [-1.30,-2.55]){P.box('C',.02,.05,.07,sd*.775,1.40,z);P.box('K',.012,.03,.045,sd*.77,1.40,z);}                           // les anneaux d'arrimage
+    for(let i=0;i<7;i++)P.box('K',.006,.42,.025,sd*.778,1.20,-1.30-i*.20);});                                                             // les nervures de la doublure
   // LA POUPE : les FEUX EN C verticaux aux coins de la benne (et leur retour sur le flanc), le bouclier noir, la plaque (`plqDessinee`)
   P.sym(sd=>{const z=ZT-.012;P.box('K',.15,.38,.03,sd*.855,1.27,ZT-.005);
     P.box('L',.03,.34,.01,sd*.905,1.27,z-.012);P.box('L',.09,.03,.01,sd*.855,1.425,z-.012);P.box('L',.09,.03,.01,sd*.855,1.115,z-.012);P.box('L',.05,.20,.006,sd*.84,1.27,z-.01);
     for(const y of [1.20,1.34])P.box('C',.07,.006,.004,sd*.848,y,z-.016);for(let i=0;i<5;i++)P.box('L',.012,.012,.004,sd*.875,1.17+i*.05,z-.017);   // les réflecteurs, les points de LED
     P.box('W',.06,.03,.006,sd*.86,1.07,z-.012);
     P.box('L',.01,.30,.05,sd*(W0+.005),1.27,ZT+.035);});
-  pave('k',plan([[0,-2.783+DZB],[.80,-2.783+DZB],[.96,-2.74+DZB],[1.0,-2.66+DZB],[1.0,-2.52+DZB]],1),.557,.90);
-  P.box('K',1.40,.012,.012,0,.895,-2.788+DZB);                                                                     // la lèvre du bouclier
+  pave('k',plan([[0,-2.783],[.80,-2.783],[.96,-2.74],[1.0,-2.66],[1.0,-2.52]],1),.557,.90);
+  P.box('K',1.40,.012,.012,0,.895,-2.788);                                                                         // la lèvre du bouclier
   // l'ATTELAGE : le tube carré, son trou, la goupille, la prise
-  P.box('k',.08,.08,.24,0,.50,-2.80+DZB);P.box('K',.05,.05,.006,0,.50,-2.922+DZB);P.cyl('C',.008,.12,8,0,.50,-2.86+DZB,'x');P.box('k',.05,.04,.04,.13,.52,-2.79+DZB);
-  // le HAYON : sa poignée (côté charnières opposé), la caméra, les charnières à droite
-  P.box('K',.04,.20,.02,-.66,1.18,ZT-.012);P.box('C',.02,.15,.03,-.66,1.18,ZT-.022);P.box('K',.04,.03,.02,0,.97,ZT-.012);P.put('g',tour([[.008,0],[0,.003]],10),0,.97,ZT-.022,Math.PI,0,0);
-  for(const y of [1.0,1.38])P.box('k',.07,.10,.04,.77,y,ZT-.018);
-  P.box('Q',.45,.12,.01,0,.74,-2.788+DZB);P.sym(sd=>{P.box('K',.13,.10,.02,sd*.42,.69,-2.786+DZB);P.box('R',.10,.02,.008,sd*.85,.82,-2.786+DZB);});
-  // LA ROUE DE SECOURS sur le hayon : son support, le pneu à pavés (le même que les autres), la jante noire à dix branches, le moyeu
-  {const xs=.10,ys=1.32,h=TW/2,zc=ZT-.10-h;
-   P.box('k',.30,.30,.10,xs,ys,ZT-.05);
-   P.put('k',tour([[.235,h],[.40,h],[R,h*.62],[R,-h*.62],[.40,-h],[.235,-h]],28),xs,ys,zc);
-   for(let i=0;i<28;i++){const a=i/28*Math.PI*2,c9=Math.cos(a),s9=Math.sin(a);
-     for(const d of [-1,1]){const b=a+d*.05;P.put('k',new THREE.BoxGeometry(.078,.042,TW*.34),xs+Math.cos(b)*(R+.012),ys+Math.sin(b)*(R+.012),zc+d*TW*.27,0,0,b-Math.PI/2);}
-     P.put('k',new THREE.BoxGeometry(.07,i%2?.055:.085,.034),xs+c9*(R-(i%2?.03:.045)),ys+s9*(R-(i%2?.03:.045)),zc-h-.012,0,0,a-Math.PI/2);}
-   P.put('T',tour([[.236,-h+.012],[.233,-h-.004],[.205,-h-.01],[.07,-h-.004],[0,-h-.002]],24),xs,ys,zc);
-   for(let i=0;i<5;i++){const a=i/5*Math.PI*2;for(const d of [-1,1]){const b=a+d*.20;P.box('T',.05,.13,.02,xs+Math.cos(b)*.14,ys+Math.sin(b)*.14,zc-h-.012,0,0,b-Math.PI/2);}}
-   P.put('C',tour([[.06,-h-.014],[.04,-h-.022],[0,-h-.024]],14),xs,ys,zc);} // les catadioptres : rouge MAT (un rouge allumé à l'arrière, le jeu le prend pour un feu : halo et traînées tombaient dessous)
-  // LE TOIT : l'épine et la traverse entre les quatre panneaux de verre, les BARRES de toit et leurs pieds
-  {const zr=ZT+.22,L9=.82-zr;P.box('k',.05,.014,L9,0,2.022,(.82+zr)/2);for(const z of [.04,-.82])P.box('k',1.44,.014,.06,0,2.022,z);
-   P.sym(sd=>{P.box('k',.03,.024,L9-.05,sd*.74,2.022,(.80+zr)/2);for(const z of [zr+.05,-.40,.30,.74])P.box('k',.05,.02,.05,sd*.74,2.008,z);});}
+  P.box('k',.08,.08,.24,0,.50,-2.80);P.box('K',.05,.05,.006,0,.50,-2.922);P.cyl('C',.008,.12,8,0,.50,-2.86,'x');P.box('k',.05,.04,.04,.13,.52,-2.79);
+  // le HAYON : sa poignée, la caméra, les vis des charnières
+  P.box('K',.26,.035,.02,0,1.505,ZT-.012);P.box('K',.04,.03,.02,0,1.46,ZT-.012);P.put('g',tour([[.008,0],[0,.003]],10),0,1.46,ZT-.022,Math.PI,0,0);
+  P.sym(sd=>{for(const y of [.95,1.0])P.cyl('C',.008,.008,8,sd*.76,y,ZT-.006,'z');});
+  P.box('Q',.45,.12,.01,0,.74,-2.788);P.sym(sd=>{P.box('K',.13,.10,.02,sd*.42,.69,-2.786);P.box('R',.10,.02,.008,sd*.85,.82,-2.786);}); // les catadioptres : rouge MAT (un rouge allumé à l'arrière, le jeu le prend pour un feu : halo et traînées tombaient dessous)
+  // LE TOIT OUVERT (19/10) : les panneaux retirés, le cadre a une ÉPAISSEUR — un rebord noir de 6 cm qui descend sous chaque trou du toit,
+  // et le cadre des vitres baissées qui rentre de 6 cm dans la portière (le seuil, en bas, est le dessus de la porte)
+  {const rebord=(C,f)=>{for(let i=0;i<C.length;i++){const a=f(C[i]),b=f(C[(i+1)%C.length]);quad('k',a[0],b[0],b[1],a[1]);}};
+   for(const T of TROUS)rebord(T,([z,x])=>{const y=yToit(x,z);return [[x,y+.004,z],[x,y-.06,z]];});
+   P.sym(sd=>{for(const F of VIT)rebord(F,([z,y])=>{const x=xFlanc(z,y);return [[sd*(x+.003),y,z],[sd*(x-.06),y,z]];});});}
+  // L'HABITACLE (19/10) : ce que le toit ouvert et les vitres baissées laissent voir. x à gauche : le volant est à GAUCHE (x > 0).
+  {// le plancher, la cloison derrière la banquette, les CONTRE-PORTES (passepoil clair, poignée, haut-parleur)
+   P.box('D',1.82,.04,1.96,0,.80,.25);P.box('D',1.82,.68,.04,0,1.14,-.74);
+   P.sym(sd=>{P.box('D',.05,.68,1.92,sd*.93,1.14,.25);P.box('I',.02,.05,1.86,sd*.904,1.32,.25);
+     for(const z of [.62,-.36]){P.box('I',.06,.05,.26,sd*.885,1.24,z);P.box('K',.012,.11,.11,sd*.903,.98,z+.12);}});
+   // LA PLANCHE DE BORD : le bloc sous le pare-brise, son casquet, les deux ÉCRANS (12,3 et 13,4 pouces), les aérateurs, la console centrale
+   P.box('D',1.84,.13,.33,0,1.355,1.065);P.box('D',1.70,.30,.22,0,1.15,1.11);P.box('D',.50,.32,.18,0,1.14,.99);P.box('I',1.84,.025,.04,0,1.29,.905);
+   P.box('K',.40,.10,.07,.38,1.43,.94);P.box('E',.36,.085,.008,.38,1.37,.896,.12,0,0);P.box('E',.30,.16,.008,-.04,1.25,.896,.10,0,0);
+   for(const x of [.74,-.74])P.box('K',.12,.045,.01,x,1.35,.896);
+   P.box('D',.26,.34,1.00,0,.98,.48);P.box('I',.22,.02,.70,0,1.155,.38);P.box('E',.08,.012,.10,0,1.16,.78);
+   // LE VOLANT (à gauche) : la colonne, la jante, les branches, le moyeu
+   tige('K',[.38,1.17,.98],[.38,1.25,.79],.03);
+   P.put('K',new THREE.TorusGeometry(.17,.022,6,18),.38,1.255,.76,.47,0,0);P.box('K',.30,.035,.02,.38,1.245,.76,.47,0,0);P.box('I',.09,.07,.035,.38,1.25,.765,.47,0,0);
+   // DEUX BAQUETS (cuir clair, joues et passepoil sombres) : l'assise, le dossier penché, l'appui-tête
+   const pose=(k,w,h,d,x,y0,z0,a,t,x0)=>{const c=Math.cos(a),s9=Math.sin(a);P.box(k,w,h,d,x+(x0||0),y0+c*t,z0-s9*t,-a,0,0);};
+   P.sym(sd=>{const x=sd*.43;
+     P.box('D',.40,.12,.44,x,.88,.38);P.box('S',.50,.13,.52,x,1.0,.38,-.07,0,0);for(const j of [-1,1])P.box('I',.06,.15,.50,x+j*.25,1.02,.38,-.07,0,0);
+     pose('S',.48,.62,.13,x,1.06,.16,.24,.31);for(const j of [-1,1])pose('I',.06,.58,.17,x,1.06,.16,.24,.31,j*.25);
+     pose('S',.26,.18,.11,x,1.06,.16,.24,.74);pose('K',.04,.06,.03,x,1.06,.16,.24,.62,-.06);pose('K',.04,.06,.03,x,1.06,.16,.24,.62,.06);});
+   // LA BANQUETTE : l'assise, le dossier, trois appuis-tête
+   P.box('D',1.60,.10,.44,0,.86,-.29);P.box('S',1.62,.13,.46,0,.99,-.29,-.07,0,0);
+   pose('S',1.62,.58,.12,0,1.05,-.52,.22,.29);for(const x of [-.53,0,.53])pose('S',.25,.16,.10,x,1.05,-.52,.22,.68);
+   for(const x of [-.27,.27])pose('I',.012,.56,.13,0,1.05,-.52,.22,.29,x);}
   // LES CINQ FEUX AMBRE posés sur le bord avant du pavillon
   for(let i=0;i<5;i++)P.box('O',.045,.022,.035,-.30+i*.15,YT+.03,zW(YT)-.03);
   // l'aileron de pavillon et son 3e feu stop
-  P.box('k',1.36,.03,.20,0,YT+.06,ZT+.17);P.box('L',.40,.02,.015,0,YT+.06,ZT+.066);
+  P.box('k',1.30,.03,.22,0,YT+.078,-1.02);P.box('L',.40,.02,.015,0,YT+.078,-1.135);
   // dessous : les moteurs électriques, le plancher (la batterie)
-  P.box('k',1.70,.20,3.9,0,.52,.40);P.cyl('k',.06,1.6,10,0,R,ZF,'x');P.cyl('k',.06,1.6,10,0,R,ZR,'x');
+  P.box('k',1.70,.20,3.6,0,.52,0);P.cyl('k',.06,1.6,10,0,R,ZF,'x');P.cyl('k',.06,1.6,10,0,R,ZR,'x');
   P.box('k',.50,.30,.50,0,.50,ZF);P.box('k',.50,.30,.50,0,.50,ZR);
   K.commit(P);
   // ---- LES ROUES : pneus de 35 pouces tout-terrain à gros pavés, jantes de 18 noires à huit branches, faux beadlock boulonné ----
@@ -409,7 +445,7 @@ return monte;
 
 })();
 {const f9=function(){try{SHAPES.caid.pre&&SHAPES.caid.pre();}catch(e){}};if(window.requestIdleCallback)requestIdleCallback(f9,{timeout:3000});else setTimeout(f9,2500);} // la découpe de sa tôle (≈30 ms, une fois) dans un moment creux, pas au montage
-ECH_POTS.caid={p:[{t:'fente',w:.30,h:.035,k:'s',lueur:'G',pts:[[.45,.60,-1.93],[-.45,.60,-1.93]]}]}; // électrique : pas de pots, deux fentes qui luisent au bas du bouclier arrière (comme LA PERLE)
+ECH_POTS.caid={p:[{t:'fente',w:.30,h:.035,k:'s',lueur:'G',pts:[[.45,.60,-2.79],[-.45,.60,-2.79]]}]}; // électrique : pas de pots, deux fentes qui luisent au bas du bouclier arrière (comme LA PERLE)
 // >>> fin SHAPES.caid (BOITES)
 // · · ·
 // · · ·
