@@ -6421,7 +6421,8 @@ html body.touch.play.figVol.figDir #fhLeg{display:flex;flex-direction:column;ali
    écris-la dans une couleur et une police différente correspondant à la rareté »). Le récit est au-dessus de FIG_RP.
    · LA RARETÉ ÉCRITE (data-rp) : la couleur de la boutique (RARETES) et une police pixel par rareté (déclarées dans <style id="policeUnique">) ;
      --rk = la taille qui donne la même hauteur de capitale que Press Start 2P (MESURÉ : Silkscreen ,63 em · Jersey ,54 · Sixtyfour ,87 ·
-     Jacquard ,57) ; la LÉGENDAIRE un cran plus grande, et un reflet blanc qui la traverse ; l'ÉPIQUE un halo.
+     Jacquard ,57) ; la LÉGENDAIRE un cran plus grande, en minuscules gothiques (Salto Cosmique, `fhTitre`), et un reflet blanc qui la
+     traverse ; l'ÉPIQUE un halo.
    · LA LIGNE DU COMBO SE LIT : plus de pastilles muettes — le NOM de chaque figure plantée, dans sa rareté, reliés par « + » ; « … » devant
      quand la ligne déborde (les plus anciennes sortent). Dessous, LE × en grand + RECORD. Un combo à trois NOMMÉ (LA PERCEUSE…) s'écrit en grand,
      en arc-en-ciel, et ses trois maillons se soulignent d'or. */
@@ -7214,7 +7215,8 @@ html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAc
 /* DEUXIÈME EXCEPTION, NOMMÉE (2026-10-18, Sacha : « en fonction de la rareté de la figure, écris-la dans une couleur et une police différente
    correspondant à la rareté » — au quiz : « une police par rareté », toutes en PIXELS) : le NOM d'une figure en course, et lui seul — le HUD des
    figures (#fh : le nom en grand, les maillons du combo) et le rappel des gestes (#fhLeg). Tout porteur de data-rp : COMMUNE Press Start 2P ·
-   RARE Silkscreen · EXOTIQUE Jersey 10 · ÉPIQUE Sixtyfour · LÉGENDAIRE Jacquard 12 (le gothique en pixels). Le « + », le × du combo, RECORD,
+   RARE Silkscreen · EXOTIQUE Jersey 10 · ÉPIQUE Sixtyfour · LÉGENDAIRE Jacquard 12 (le gothique en pixels, en minuscules à capitale initiale
+   depuis le 19/10 : « Salto Cosmique », `fhTitre` — ses capitales ne se lisaient pas). Le « + », le × du combo, RECORD,
    COMBO PERDU et tout le reste du jeu restent en Press Start 2P. Les couleurs et tailles sont dans <style id="figuresHud"> (v5). */
 :is(#fh,#fhLeg) [data-rp]{--rpf:'Press Start 2P'}
 :is(#fh,#fhLeg) [data-rp=rare]{--rpf:'CC Silkscreen'}
@@ -51093,6 +51095,9 @@ function figRepsEnCours(r){const m=r&&r.mv&&r.mv[0];return m?Math.max(1,Math.rou
    par rareté », toutes en pixels, pour le nom des figures en course seulement). Le dessin est dans <style id="figuresHud"> (v5).
    · LA RARETÉ ÉCRITE (`figRarH`) : celle de la boutique (`cosmRar('figure')`, qui suit le prix) — COMMUNE gris Press Start 2P · RARE bleu
      Silkscreen · EXOTIQUE vert Jersey · ÉPIQUE violet Sixtyfour (halo) · LÉGENDAIRE or Jacquard, le gothique en pixels (un reflet la traverse).
+     (2026-10-19, Sacha : « la police des figures légendaires est un peu illisible ») la LÉGENDAIRE s'écrit en MINUSCULES gothiques à capitale
+     initiale — Salto Cosmique, Rodeo (`fhTitre`) : ce sont les CAPITALES gothiques qui ne se lisaient pas (« SALTO » se lisait « SALVD »).
+     Même police, même or, même reflet ; sa chasse en minuscules (MESURÉE ,77 à ,89 em à k 1,9, contre 1,11 à 1,19 en capitales) → w ,9.
      `FIG_RP` : par rareté, k = la taille qui égale la hauteur de capitale de Press Start 2P, w = la largeur d'une lettre à cette taille
      (MESURÉ au canvas : capitale ,63 / ,54 / ,87 / ,57 em ; chasse ,69 / ,38 / 1 / ,56 em) — même nombres que --rk dans la feuille.
    · LA LIGNE DU COMBO SE LIT (`fhMaillon`, `fhCsCale`) : les pastilles muettes de la v4 sont remplacées par le NOM de chaque figure plantée,
@@ -51103,7 +51108,7 @@ function figRepsEnCours(r){const m=r&&r.mv&&r.mv[0];return m?Math.max(1,Math.rou
      redite +0,25), ses points de chaîne entrent dans FX2.pts (multipliés à la pose, perdus à la chute, comme les autres) ; son nom s'écrit en
      haut (plus de « BUMP +30 » sur la caisse) ; un BUMP qui suit un BUMP grandit sur place : BUMP (commune) → DOUBLE BUMP (rare) → TRIPLE BUMP
      (exotique) → MEGA BUMP (épique). Le nitro et la valeur du bump (BUMP_VAL, ×0,6 par rebond) ne changent pas. `?bumpfig=0` = avant. */
-const FIG_RP={commun:{k:1,w:1},rare:{k:1.59,w:1.1},exotique:{k:1.85,w:.7},epique:{k:1.15,w:1.15},legendaire:{k:1.9,w:1.07},combo:{k:1,w:1}};
+const FIG_RP={commun:{k:1,w:1},rare:{k:1.59,w:1.1},exotique:{k:1.85,w:.7},epique:{k:1.15,w:1.15},legendaire:{k:1.9,w:.9},combo:{k:1,w:1}};
 const BUMP_FIG={id:'bump',n:'BUMP',en:'BUMP',aura:30};
 const BUMP_FIG_ON=!/[?&]bumpfig=0\b/.test(location.search);
 try{if(document.fonts&&document.fonts.load)setTimeout(function(){['CC Silkscreen','CC Jersey','CC Sixtyfour','CC Jacquard'].forEach(function(f){document.fonts.load('20px "'+f+'"','BUMP').catch(function(){});});},2500);}catch(e){} // les quatre polices chargées d'avance (au menu) : la 1re figure rare ne s'écrit pas d'abord en Press Start 2P
@@ -51120,9 +51125,11 @@ function fhEl(){if(FH.el)return FH.el;const e=document.createElement('div');e.id
   e.innerHTML='<div class="fhNom"><i class="pxi fhD"></i><b></b></div><div class="fhLigne"><u class="fhMore"></u><span class="fhCs"></span></div><div class="fhBas"><em class="fhX"></em><u class="fhRec"></u></div>';document.body.appendChild(e); /* (v5) la ligne des NOMS du combo, puis le × dessous */
   FH.el=e;FH.nom=e.firstChild;FH.d=FH.nom.firstChild;FH.b=FH.nom.lastChild;FH.cs=e.querySelector('.fhCs');FH.more=e.querySelector('.fhMore');FH.x=e.querySelector('.fhX');FH.rec=e.querySelector('.fhRec');return e;}
 function fhNet(t){return sansAcc(String(t)).replace(/[<>&"]/g,'');}
+function fhTitre(t,rp){return rp==='legendaire'?String(t).toLowerCase().replace(/(^|[\s'-])(\S)/g,function(m,a,c){return a+c.toUpperCase();}):t;} // (19/10) la LÉGENDAIRE en minuscules gothiques à capitale initiale (Salto Cosmique) : ses capitales gothiques ne se lisaient pas
 function fhNom(t,c,g,dir,rp){const e=fhEl();t=fhNet(t);const b=FH.b;
   if(dir!==undefined){FH.d.className='pxi fhD'+(dir?' pxi-'+dir:' vide');} // (v4) la flèche du geste : ▲ ▼ ◄ ► (undefined = on garde celle d'avant : la plantée, le combo perdu)
   if(rp!==undefined){FH.rp=rp||'';if(rp)FH.nom.setAttribute('data-rp',rp);else FH.nom.removeAttribute('data-rp');} // (v5) la RARETÉ du nom : sa couleur et sa police ('' = Press Start 2P, la couleur c)
+  t=fhTitre(t,FH.rp);
   if(b.textContent!==t||FH.rpT!==FH.rp){const K=FIG_RP[FH.rp]||FIG_RP.commun;FH.rpT=FH.rp;b.textContent=t;b.setAttribute('data-t',t); /* (v5) même hauteur de capitale que Press Start 2P (k), la largeur selon la chasse de SA police (w) */
     b.style.fontSize=Math.round(K.k*Math.max(12,Math.min(FH_N[VP.w>VP.h?0:1],Math.floor(VP.w*.8/Math.max(1,(t.length+1.5)*K.w))-2)))+'px';}
   if(c)FH.nom.style.setProperty('--fc',c);else FH.nom.style.removeProperty('--fc');FH.nom.className='fhNom on'+(g==='ko'?' ko':'');e.classList.add('on');if(!FH.vu)document.body.classList.add('fhOn');FH.vu=true;
@@ -51131,9 +51138,9 @@ function fhNom(t,c,g,dir,rp){const e=fhEl();t=fhNet(t);const b=FH.b;
   else if(g==='pl')fhAnime(FH.nom,[{transform:'scale(1.4)',filter:'brightness(3.2)'},{transform:'scale(.94)',filter:'brightness(1.5)',offset:.5},{transform:'none',filter:'none'}],400);
   else if(g==='ko')fhAnime(FH.nom,[{transform:'none'},{transform:'translateX(-10px) rotate(-3deg)'},{transform:'translateX(9px) rotate(2deg)'},{transform:'translateX(-6px)'},{transform:'translateX(4px)'},{transform:'none'}],460,{easing:'steps(6)'});}
 function fhMaillon(t,rp,o){fhEl();o=o||{};const i=document.createElement('i');i.className='fhM'; // (v5) un MAILLON par figure plantée : son nom, dans sa rareté (remplace la pastille muette de la v4)
-  i.setAttribute('data-rp',rp);if(o.b)i.setAttribute('data-b','1');if(o.d)i.setAttribute('data-d','1');i.textContent=fhNet(t);FH.cs.appendChild(i);fhCsCale();
+  i.setAttribute('data-rp',rp);if(o.b)i.setAttribute('data-b','1');if(o.d)i.setAttribute('data-d','1');i.textContent=fhTitre(fhNet(t),rp);FH.cs.appendChild(i);fhCsCale();
   fhAnime(i,[{transform:'translateY(-26px) scale('+(o.neuf?2.2:1.7)+')',opacity:0,filter:'brightness(3)'},{transform:'translateY(2px) scale(.94)',opacity:1,offset:.55},{transform:'none',opacity:1,filter:'none'}],420);return i;}
-function fhMaillonMaj(i,t,rp){i.setAttribute('data-rp',rp);i.textContent=fhNet(t);fhCsCale(); // (v5) le BUMP qui suit un BUMP : le même maillon grandit (DOUBLE BUMP…)
+function fhMaillonMaj(i,t,rp){i.setAttribute('data-rp',rp);i.textContent=fhTitre(fhNet(t),rp);fhCsCale(); // (v5) le BUMP qui suit un BUMP : le même maillon grandit (DOUBLE BUMP…)
   fhAnime(i,[{transform:'scale(1.7)',filter:'brightness(3)'},{transform:'scale(.94)',offset:.5},{transform:'none',filter:'none'}],380);}
 function fhCsCale(){const L=FH.cs.children,ch=VP.w>VP.h?10:8,lim=Math.min(VP.w*.94,680)*.92; // (v5) la ligne tient en largeur : les plus anciens maillons sortent, « … » devant (estimé sur la chasse de chaque police — --fhCh, ×1,2, « + » et ses marges = 2 corps : aucune mise en page lue)
   let w=0,k=L.length;while(k>0){const e=L[k-1],n=e.textContent.length,K=FIG_RP[e.getAttribute('data-rp')]||FIG_RP.commun,ww=(n*K.w*1.2+2)*ch+n;if(k<L.length&&(w+ww>lim||L.length-k>=6))break;w+=ww;k--;}
@@ -51187,7 +51194,7 @@ function fhTick(vol){if(!FH.vu)return;const n=performance.now(); // (chaque imag
   if(!FH.nomT&&!FH.cs.firstChild)fhRaz();}
 function fhLegMaj(){const el=document.getElementById('fhLeg');if(!el||!window.FIG)return;const S=figSlots(),cle=S.join(',')+'|'+LANG;if(FH.legCle===cle)return;FH.legCle=cle; // (en vol) ↑ figure 1 · ◄► figure 2
   const I=['haut','bas','fleches']; // (2026-10-15, les directions) chaque figure avec le geste et la couleur de SON emplacement ; un emplacement vide ne s'affiche pas (le tonneau ne part que de côté)
-  el.innerHTML=S.map(function(id,i){if(!id)return '';const f=FIG.par[id];return '<div class="fhL" data-s="'+i+'" style="--fc:'+FH_COUL[i]+'">'+pxi(I[i])+'<b data-rp="'+figRarH(f)+'">'+fhNet(figNom(f,1))+'</b></div>';}).join(''); /* (v4) les vrais noms : « SALTO AVANT », plus « AVANT » qui se lisait comme une direction */
+  el.innerHTML=S.map(function(id,i){if(!id)return '';const f=FIG.par[id];return '<div class="fhL" data-s="'+i+'" style="--fc:'+FH_COUL[i]+'">'+pxi(I[i])+'<b data-rp="'+figRarH(f)+'">'+fhTitre(fhNet(figNom(f,1)),figRarH(f))+'</b></div>';}).join(''); /* (v4) les vrais noms : « SALTO AVANT », plus « AVANT » qui se lisait comme une direction */
   FH.legs=[];FH.arme=-2;[].forEach.call(el.children,function(c){FH.legs[+c.getAttribute('data-s')]=c;});} // rangés par EMPLACEMENT : un geste refusé ne secoue pas l'autre
 function fhArme(){if(!FH.legs||figGlisseOn())return;const s=figDirSlot();if(s===FH.arme)return; // (v4, chaque image en vol) le geste que vise le pouce s'ALLUME
   const a=FH.legs[FH.arme];if(a)a.classList.remove('arme');FH.arme=s;const b=FH.legs[s];if(b)b.classList.add('arme');}
