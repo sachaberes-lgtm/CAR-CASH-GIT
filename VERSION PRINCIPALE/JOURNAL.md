@@ -1043,6 +1043,21 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   par vue), `trace.py` (lignes numérotées), `regard2.py` + `vue/index.html` (la caisse sous le plan, paramétré par plan), `studio2.py`
   (studio du jeu, plusieurs fiches), `banc_jeu.py` / `banc_garage.py` (cadre de l'ordi, programmes), `cpuprof.py` (profil de la construction).
 
+## LA FENTE — L'OUTIL COMMUN DES JOINTS DE TÔLE (2026-10-19, discussion JAPONAISES ; Léo : « un effet de séparation discret qui simule une FENTE, sans trait noir, aussi fin que sur les photos » — il a choisi la lecture C)
+- Sur la vraie, un joint (portière, capot, malle) est une fente de 3-5 mm : une ombre DE LA COULEUR DE LA CAISSE et un fil clair sur l'arête (sur le
+  noir, on ne voit presque que lui). Plus aucun joint de tôle en trait noir.
+- **Les fonctions** (bloc « LES OUTILS DES JAPONAISES », déclarées donc hissées : toute zone peut les appeler) :
+  · `fenteRGB(c,d,g,out[,P])` — la couleur d'un sommet de tôle près d'un joint : c [r,g,b] de la tôle, d distance SIGNÉE au joint (> 0 = côté du fil),
+    g demi-largeur de la fente (3,5 mm). Fente ×0,50 · ombre ×0,82 → 1 sur 1 cm · fil sur 4 mm (plus fort sur une caisse foncée) ;
+  · `fenteHex(hex)` — une fente en bande unie (×0,50) ; `fentePal(pal)` — palette de kit + 'J' (la fente) et 'Jf' (le fil), dérivées de la PEINTURE
+    effective (boutique comprise), même matière que la tôle ;
+  · `fenteVar()` — la lecture (`JAPFENTE_DEF='C'` ; `?fente=A|B|C|D`, `window.JAPFENTE_FORCE` pour les bancs ; A = l'ancien trait noir).
+- **Branchée** dans `japDecoupe` (les japonaises au plan) : la distance au joint est gardée par sommet avec la découpe, la tôle coupée à ±g et à
+  ±(g + 1,1 cm) (`segW` de japLignes), les couleurs refaites à chaque construction. Aucune matière neuve, 0 programme compilé (mesuré) ; +30 % de
+  facettes sur une caisse très jointée (LA FIDÈLE 33 000 → 44 000), 1re pose +20-40 ms.
+- **Mode d'emploi pour les autres découpes et les caisses de kit** : `CAR-bancs/nouvelles-voitures/AFFINEMENT.md`, section JAPONAISES, § 0.
+- Planche du choix : `photos-gameplay/fente-variantes.png` (vrais joints | A | B | C | D, argent et noire, studio, garage, course).
+
 ## LES JAPONAISES — 6 · ROSSO 40 REFAITE AU PLAN (2026-10-18, discussion JAPONAISES, Léo : « complexifie la ROSSO 40, imitation encore plus fidèle et satisfaisante pour les vrais kiffeurs de voiture »)
 - ⚠ **RETIRÉE LE SOIR MÊME** (Léo : « la rosso revient sur avant c'était mieux ») : le bloc `SHAPES.rosso` et son repère sont ôtés de la zone des
   JAPONAISES, la ROSSO 40 d'origine reprend la main (ses pots, sa ligne CARS : rien n'avait bougé). La préchauffe repasse à cinq étapes. La source
