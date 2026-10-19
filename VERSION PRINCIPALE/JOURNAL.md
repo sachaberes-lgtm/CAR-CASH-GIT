@@ -3,6 +3,63 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE GLACIER : LES PICS INVISIBLES QUI TUAIENT, LE VOL QUI FLOTTAIT, LA RETOMBÉE DES TREMPLINS (2026-10-19, session glace-montagne — Sacha : « je meurs sans raison sur la route de glace dans la map montagne »)
+- **La cause principale : une déclaration avalée par un commentaire.** Depuis `e66f25b2` (« Le glacier, 3e tour », 18/10 au soir), la ligne de
+  `BK_BEC` finissait par `// axe : … au décollagelet BK_BEC_TEX=null;` : `let BK_BEC_TEX=null;` faisait partie du commentaire. `bkBecTex` lisait une
+  variable inexistante, `buildBanqG` cassait au dessin du premier tremplin (`window.__banqErr` = « ReferenceError: BK_BEC_TEX is not defined ») et
+  s'arrêtait là. Les 15 pics de la piste (`BANQ.obst`) et les tremplins (`BANQ.kick`) étaient POSÉS — leurs chocs (`banqPisteHeurt`) et leurs
+  envols marchaient — mais rien n'était DESSINÉ : ni eux, ni les ~400 pics du décor (`BANQ.picM` vide, `BANQ.pics` vide : plus de glisse en vol),
+  et la route n'était plus cachée (`bkPisteNue` jamais appelé) : on roulait sur une « route de glace » et on mourait contre un pic invisible, ou un
+  tremplin invisible nous envoyait en l'air. Correctif : la déclaration sur sa propre ligne — trouvé en même temps par la session PERF (613edf17, v681 : « LE DÉPART D'AVANCE ») ;
+  à la fusion, c'est SA ligne qui reste, `retombe` et `BK_RETOMBE` s'y ajoutent. MESURÉ (graine 39525) : avant 0 maillage de pics, après
+  21 maillages, 410 pics, les mêmes 15 pics de piste et 5 tremplins, dessinés (photo du banc : le pic qu'on percutait apparaît au milieu de la piste).
+  La syntaxe (`chk.js`) ne le voyait pas : seul le jeu lancé le montre — `__banqErr` est le premier témoin à lire au glacier.
+- **Le vol qui flottait : `banqLacet`.** En vol, le volant tourne la vitesse autour du HAUT DE LA CAISSE (`FLY_U`, « vol libre ») ; au glacier la
+  caisse vole piquée de 35 à 45°, son haut penche, et chaque coup de volant changeait de la CHUTE en dérive de côté, que le plafond de l'avance
+  (`fallVH0`) rabotait ensuite : la vitesse vers la glace restait vers −15 pendant 3 s au lieu de croître. MESURÉ (banc des tremplins : la caisse
+  posée 70 m avant la rampe, à 350/500/700 km/h, le pilote de vol qui ramène vers l'axe) : à 500 km/h 850 à 1 320 m et 4,8 à 7,1 s de vol (sans
+  braquer : 500 m, 3 s) ; à 700 km/h plus de pose (sortie de piste, « vide ») ; nitro tenue jusqu'à 8,15 s — au-delà des 6 s de la jauge, la caisse
+  explosait « trop longtemps en l'air » à 50-90 m au-dessus d'une piste qui file à 45°. Désormais, AU GLACIER SEULEMENT, le volant ne tourne que le
+  CAP (la vitesse verticale et l'avance horizontale restent). MESURÉ après, avec la retombée ci-dessous (3 tremplins × 3 vitesses, avec et
+  sans nitro) : 17 vols sur 17 posés (un départ raté par le banc), 2,2 à 4,1 s sans nitro, 4,7 s au plus nitro tenue, plus aucune mort en l'air ;
+  deux poses à ~500 km/h sur le même tremplin, 540 et 625 m après la lèvre, percutent ensuite le pic d'une figure 30 à 60 m plus loin (voir
+  « à trancher »). `?sans=glacelacet` = avant. Le même effet existe ailleurs dans les piqués, en plus faible :
+  pas touché.
+- **La retombée des tremplins : `BK_RETOMBE`, `BK_BEC.retombe` = 500 m.** `libreK` ne dégageait que 260 m après la lèvre, dans la seule bande du
+  tremplin ; MESURÉ en course (29 vols, 255-414 km/h au décollage) la caisse se pose de 160 à 511 m plus loin, souvent hors de la bande. Désormais
+  aucun pic sur TOUTE la largeur pendant 500 m après la lèvre, et la figure qui suit un tremplin (ou un tremplin seul) attend la fin de sa retombée
+  (`bec()` rend la lèvre). Effet sur la piste (6 graines, `?pistegraine=`) : 84 pics de piste au lieu de 104 (−19 %, de 0 à −50 % selon la graine).
+  `?sans=glaceretombe` = avant (même graine, même piste : le tirage n'a pas bougé).
+- **Les bancs** (Chrome sans fenêtre du Mac, CDP en Python, une copie de banc avec `window.__ev` dans la fermeture du jeu pour relire `BANQ`,
+  `explode`, `startFall`, `tryLand`) : 10 courses « pilote aux tremplins » AVANT : 4 morts (2 posées dans ou juste devant une figure, 2 chocs du
+  pilote) ; 8 courses APRÈS : 1 mort, un choc du pilote contre un pic visible, sans vol. Démarrage couché, debout et dans le cadre de l'ordi :
+  sans erreur, `__banqErr` vide, la route cachée. Gardes burn-out et charte OK.
+- **À trancher par Sacha** : la longueur de la retombée (500 m). Au-delà de ~500 km/h, un vol peut encore se poser 550-900 m plus loin, devant la
+  figure suivante — les pics sont maintenant visibles pendant le vol et le volant y mord sans faire flotter. Plus long = encore moins de pics.
+
+## LES DUNES D'OR : ON DÉCOLLE DE CRÊTE EN CRÊTE, MÊME SANS NITRO (2026-10-19, Sacha, à la question « les vagues doivent-elles décoller aussi à vitesse normale ? » : « oui : je veux qu'on décolle sur les vagues des dunes même sans nitro, de crête en crête ») — v684
+- **Pourquoi elles ne décollaient pas** (MESURÉ au pilote, 7 traversées) : au sol la caisse reste COLLÉE au ruban — elle ne quitte la route que par
+  le bord, le saut nitro, une figure ou un tremplin (le glacier) ; aucune cassure de pente ne la lance, quelle qu'elle soit.
+- **LA LÈVRE** (`dnLevre`, appelée dans la boucle de conduite juste après les tremplins du glacier, même segment `sPrev9` → s, même `rampCd`) : genDunes
+  marque chaque vague (`lv<n>` la lèvre = le bout de la crête droite, `lf<n>` le pied de la face, dans `vague` et le module `dVagues`) ; buildDunes en
+  fait `DN.lev`. Franchie en roulant (dans le sens de la course, sur la dalle, au-dessus de 70 km/h), la lèvre lance la caisse pour la poser vers
+  72 % de SA face, à n'importe quelle vitesse : la face est relue dans la route (`DN.S`), l'élan est celui qui pose à 72 % et au moins celui qui
+  la tient à plus de 4 m du bitume au bout de 0,35 s (sinon la pose se déclare tout de suite), moins ce que la pente RÉELLE du ruban à la lèvre
+  donne déjà (`frameAt` : lissée, elle plonge un peu). g = FALL_G × SPD.
+- MESURÉ (pilote automatique, palier 0, sans nitro, 3 traversées) : à l'élan de la pente moyenne, des bonds de 0,3-0,5 s (la pose dès 0,35 s) ;
+  en comptant la pente réelle, **un vol de 1,6 à 2,1 s à chaque crête**, posé sur la face, 0 mort, 45 à 49 s la traversée. À 208 m/s (le flow), la
+  caisse peut survoler la vague suivante : elle se pose plus loin, sur la route. Console : `dbgDunes().sauts`, `.levre` (le dernier élan : vx, vy, u, la
+  pente, la face).
+- À la nitro TENUE en continu, le pilote meurt toujours dans l'épingle serrée de la boucle à raccourci (le trombone du canyon : elle se prend sans
+  nitro) — pas dans les vagues.
+
+## LA FÉLINE AU BAS DE CAISSE DE LA TYPE E + LES TROIS DERNIÈRES JANTES (2026-10-19, v683, Léo dans RONDES : « oui, la FÉLINE peut partir sur le main » ; et la suite de « applique la correction des jantes à toutes les voitures »)
+- RONDES 342e6368 (LA FÉLINE : arches serrées, lames chromées, poupe, jantes — détail plus bas, section « LA FÉLINE — LE BAS DE CAISSE ») et
+  JAPONAISES 855eb347 (L'AIGLE DE FEU, LE MASTODONTE, LE HOT ROD : option `chapeau` de l'enjoliveur — section « LES JANTES DE L'AIGLE DE FEU »).
+- Vérifié : les 4 caisses (54, 52, 62, 64) équipées en course sans erreur, aucun programme compilé en roulant (le MASTODONTE : +1 à
+  l'EXPLOSION, déjà le cas avant). En attente du oui de Léo : LE HOT ROD v2 de BOÎTES (7adeed96, refait sur sa photo du coupé 32 rouge) —
+  à sa fusion, garder la jante `chapeau` de JAPONAISES.
+
 ## L'AFFINEMENT COMPLET SUR LE MAIN + LES VRAIES JANTES POUR TOUTES (2026-10-19, v682, Léo : « mets tout ce qui est à valider dans le jeu, et applique la correction des jantes à toutes les voitures »)
 - RONDES d9beaad1 (lots 2-4 + LA FÉLINE aux ailes séparées), BOÎTES a921161b (lots 1-4 ; LE CHARGEUR 69 en panneaux plats, style poly),
   JAPONAISES 1fb3a0cf (lots 2-4 + `lpWheel` réuni). Le détail de chaque caisse : `~/Downloads/CAR-bancs/nouvelles-voitures/AFFINEMENT.md`.
@@ -1056,6 +1113,15 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   Léo la veut « plus fidèle » (en reprise chez JAPONAISES). Fusion : seul conflit, le bloc des traductions que l'allègement de Sacha
   avait vidé — son ménage gardé, nos deux noms (LA LAME, LE TOFU) ajoutés.
 
+## LA FÉLINE — LE BAS DE CAISSE SUR LA PHOTO DE LÉO (2026-10-19, discussion RONDES ; Léo, une bande du profil de la Type E 1964 : « imite exactement ça pour la voiture et partie concernée »)
+- Les ARCHES serrent le pneu : un cercle de 4 cm autour de la roue (`arc`, centre au moyeu ; la demi-ellipse de 45 cm bâillait).
+- Les LAMES CHROMÉES (`lame` : un tube à huit pans posé sur le flanc relu à sa hauteur — `xFlanc` lit la coque ou l'aile, `zFace` la face pleine
+  du nez ou de la poupe) : devant, une lame courte qui tourne le coin à mi-bouche et file 35 cm le long de l'aile ; derrière, la lame à la hauteur
+  du haut des roues qui tourne le coin et longe la hanche jusqu'à l'arche.
+- La POUPE plus haute et plus pleine (T, yB, sH relevés au bout : la photo tombe presque droit), les FEUX posés SUR la lame (sur la tôle relue).
+- Les JANTES : une large lèvre chromée plate, 48 rayons gris acier plus fins (blancs, ils faisaient un soleil), le gros PAPILLON (cône + deux oreilles).
+- Vérifié : 0 programme compilé en course, construction 13-14 ms. Planche `photos-gameplay/feline-bas-de-caisse-avant-apres.png`.
+
 ## LA FÉLINE — LES AILES SÉPARÉES (2026-10-19, discussion RONDES ; Léo : « oui », pour adoucir sa coque en grandes facettes)
 - La coque en grandes facettes venait des passages de roue CREUSÉS dans le loft : 9 points par section, et à l'arche le flanc s'écrasait en
   lanières tordues (quads jusqu'à 65°). Désormais, comme LE SCARABÉE : la COQUE (12 points : le tonneau des portières, le capot entre les ailes,
@@ -1564,6 +1630,16 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **LE TOFU** : tour des coins (dessous, dessus, nez, poupe, en course) — rien à reprendre.
 - 0 programme compilé en course, console propre. Planche : `photos-gameplay/affinement-lot4-japonaises.png`.
 
+## LES JANTES DE L'AIGLE DE FEU, DU MASTODONTE ET DU HOT ROD (2026-10-19, discussion JAPONAISES, responsable de lpWheel ; laissées « à faire » par BOÎTES)
+- Jugées avec la correction globale en marche (main v682), à côté des vraies (`affinement/boites/vraies/r52|r62|r64`).
+- **L'AIGLE DE FEU** (la Trans Am) : `creux:.06` — la jante dorée « flocon » creusée de 6 cm (4 cm par la correction globale).
+- **LE MASTODONTE** (Bigfoot) : `n:16, creux:.12, ecrous:6` — une CUVETTE chromée de 12 cm presque pleine (seize branches serrées), six écrous sur le moyeu
+  enfoncé (c'était une grande roue plate à cinq branches).
+- **LE HOT ROD** (le 32) : option neuve du style `enjoliveur`, **`chapeau:c`** — la jante TÔLE peinte en couleur de `fond` (léger cône), l'anneau poli au bord,
+  un chapeau chromé de c × le rayon de la jante ; ici `chapeau:.66` + `blanc:1` (flancs blancs). Sans `chapeau`, l'enjoliveur reste le dôme d'origine.
+- Vérifié au sommet près (`roues.py`) : enjoliveur sans chapeau, cadran, plis, creux 4 cm, branches, rayons, multi, `deux` inchangés. 0 programme compilé
+  en course (les trois), console propre. Planche : `photos-gameplay/jantes-aigle-mastodonte-hotrod.png`.
+
 ## `lpWheel` — LES VRAIES BRANCHES, UN SEUL OUTIL (2026-10-19, discussion JAPONAISES, responsable de lpWheel ; réunit `creux` de BOÎTES et `branches`)
 - **Le défaut** : dans les styles `rayons`/`multi`, les planches sont posées EN TRAVERS du rayon (rotation −a : la longueur part en tangente) — les n
   planches font un ANNEAU à n pans, aucune branche ne part du moyeu (« les disques à cercles »). Le dessin d'origine est GARDÉ tel quel pour toute fiche
@@ -1572,11 +1648,16 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   du bord vers le moyeu enfoncé (le dessin de BOÎTES, commit 6ef9692b). `creux:d` (≤ 4 cm, BOÎTES) ou `branches:1` (= 4 cm, JAPONAISES). Le `creux` de
   BOÎTES donne au sommet près la même roue que sur sa branche (LA BAVAROISE ne bouge pas). Les neuf caisses à `branches` passent des planches inclinées
   aux arêtes. ⚠ À la fusion de `caisses-boites` : le bloc lpWheel est en conflit — garder CELUI-CI (il contient leur `creux`, à l'identique).
+- **+ le lot 4 de BOÎTES (2dc45860)** : `creux` jusqu'à 60 % de la demi-largeur du pneu (au-delà de 4 cm le FOND recule d'autant : `fdd`), et
+  `ecrous:n` (n écrous sur le moyeu enfoncé, avec un creux ou des branches). La profondeur `crW` se calcule avant le fond ; `creux` vaut pour tout style,
+  comme chez eux. Vérifié au sommet près : LE MASTODONTE (creux 12 cm, six écrous, crampons), L'AIGLE DE FEU et LA BAVAROISE rendent la même roue que
+  sur `caisses-boites` ; les 11 fiches sans option, et les `branches`, inchangées.
 - **La correction GLOBALE, ÉTEINTE** (`ROUES_VRAIES=false`, juste avant `function lpWheel`) : allumée, toute fiche à rayons qui ne dit rien prend les
   vraies branches (4 cm), et un `accent` trop sombre (luminance < .25) s'éclaircit vers la jante (sinon les branches se perdent sur le fond sombre).
   `branches:0` dans une fiche la refuse pour elle. Essai : `?roues=vraies`, ou `dbgRoues(1|0)` en console. Concernées : 20 caisses du kit (relevé
   `roues_liste.py`) — DOLORÈS, CHARGEUR, DÉFIEUR, BAVAROISE, SILENCIEUSE, CHARGEUR 69, DAYTONA, TAURINE, NOCTAMBULE, AIGLE DE FEU, FÉLINE, BLINDÉ NOIR,
   DRAGON D'OR, MASTODONTE, PUCE, ATCHOUM, SQUALE, ICEBERG, FOURNAISE, DOGE. Planche : `photos-gameplay/roues-branches-globale.png` — Léo décide.
+  (Depuis le lot 1 de RONDES, LA FÉLINE dessine ses propres roues : 19 caisses ; LE MASTODONTE, L'AIGLE DE FEU et LA BAVAROISE sont creusés par BOÎTES.)
 
 ## LES JAPONAISES — 6 · ROSSO 40 REFAITE AU PLAN (2026-10-18, discussion JAPONAISES, Léo : « complexifie la ROSSO 40, imitation encore plus fidèle et satisfaisante pour les vrais kiffeurs de voiture »)
 - ⚠ **RETIRÉE LE SOIR MÊME** (Léo : « la rosso revient sur avant c'était mieux ») : le bloc `SHAPES.rosso` et son repère sont ôtés de la zone des

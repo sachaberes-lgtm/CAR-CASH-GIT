@@ -16433,8 +16433,9 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
        ~2,6 s ; la face d'avalanche, DROITE, fait 1,12 × ce saut-là (on retombe dessus) ; le virage est dans la MONTÉE (au creux, la caisse roule).
        g monde ~23 m/s² (FALL_G × SPD). */
     const GB=Math.min(.23,17/VW),VN=1.35*VW,LD=1.12*VN*2*GB*VN/23; /* (MESURÉ au palier 7 : à 1,6 × la croisière, deux vagues faisaient 1,7 km et la map 6,3-7,3 km pour 5,4 visés) */
+    let nLv=0;const levre=()=>ici('lv'+nLv),pied=()=>ici('lf'+(nLv++)); // (2026-10-19) LES LÈVRES : la crête où l'on décolle, le pied de la face (voir dnLevre)
     const vague=sg=>{const R=RMIN*(1.6+r()*.7);let a=26+r()*14;if(lib(sg)<a+4)sg=-sg;a=Math.max(8,Math.min(a,lib(sg)));
-      arc(sg*a,R,.07+r()*.03);droite((34+r()*14)*LL,.04,1);const ld=LD*(1+r()*.12);droite(ld,-(GB-.04+r()*.02),Math.max(3,Math.round(ld/45)));return sg;};
+      arc(sg*a,R,.07+r()*.03);droite((34+r()*14)*LL,.04,1);levre();const ld=LD*(1+r()*.12);droite(ld,-(GB-.04+r()*.02),Math.max(3,Math.round(ld/45)));pied();return sg;};
     const vagues=n=>{let sg=phi>0?-1:1;for(let k=0;k<n;k++)sg=-vague(sg);};
     /* LES MODULES DES DUNES (2026-10-18, LES MODULES DE CHAQUE MAP — voir MODC_ON). 4 ou 5 des 5 liaisons (tirées au sort) deviennent un module —
        jamais les boucles, les crêtes, les vagues de section, la vallée, l'allée ni l'oasis. Paquet mélangé, jamais deux fois de suite ; leur hasard
@@ -16450,7 +16451,7 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
       for(let k=0;k<n;k++){sg=-sg;arc(sg*a,R,dmPe(p0,p1));}arc(-sg*a*.5,R,dmPe(p0,p1));};
     const dVagues=(p0,p1)=>{dmRe(.5,dmPe(p0,p1));let sg=phi>0?-1:1;const n=(LC9?1:2)+(rm()<.4?1:0); /* (LA DURÉE DES MAPS : une vague fait ~500 m au palier 0 — MESURÉ, trois rouleaux allongeaient la map de 1,5 km) */
       for(let k=0;k<n;k++){const R=RMIN*(1.6+rm()*.6);let a=26+rm()*14;if(lib(sg)<a+4)sg=-sg;a=Math.max(8,Math.min(a,lib(sg)));
-        arc(sg*a,R,.07+rm()*.03);droite((34+rm()*12)*LL,.04,1);const ld=LD*(1+rm()*.12);droite(ld,-(GB-.04+rm()*.02),Math.max(3,Math.round(ld/45)));sg=-sg;}};
+        arc(sg*a,R,.07+rm()*.03);droite((34+rm()*12)*LL,.04,1);levre();const ld=LD*(1+rm()*.12);droite(ld,-(GB-.04+rm()*.02),Math.max(3,Math.round(ld/45)));pied();sg=-sg;}};
     const dCorde=(p0,p1)=>{const T=95+rm()*15,sg=phi>0?-1:1,a1=T*(.5+rm()*.1),R=RMIN*(1.5+rm()*.4);{const d=(-sg*T/2/57.2958-phi)*57.2958;if(Math.abs(d)>3)arc(d,RMIN*(2.2+rm()*.5),dmPe(p0,p1));}
       arc(sg*a1,R,dmPe(p0,p1));droite((40+rm()*40)*LL,dmPe(p0,p1)*.8);arc(sg*(T-a1),Math.max(RMIN*1.15,R*.8),dmPe(p0,p1));};
     const dChicane=(p0,p1)=>{const a=30+rm()*10,R=RMIN*(1.1+rm()*.2);dmRe(LIM-a/57.3-.05,dmPe(p0,p1));const sg=phi>0?-1:1;droite(50*LL,dmPe(p0,p1)*.6);
@@ -16622,7 +16623,7 @@ function dnMondeCalc(S,opt){
   return {Z:Z,F:F,O:DN.O,ob:pv.ob,pyr:pv.pyr,yMin:yMin-40,yMax:yMax+40,ms:ms};
 }
 /* ---- LA CONSTRUCTION (appelée en fin de buildTrack ; no-op hors des dunes) : les échantillons de la route ici, le MONDE dans un travailleur ---- */
-function dnEteindre(){DN.on=false;if(DN.mesh)DN.mesh.visible=false;if(DN.grp)DN.grp.visible=false;DN.oa=null;if(DN.mat)DN.mat.uniforms.uOA.value.set(0,0,0,0);}
+function dnEteindre(){DN.on=false;DN.lev=[];if(DN.mesh)DN.mesh.visible=false;if(DN.grp)DN.grp.visible=false;DN.oa=null;if(DN.mat)DN.mat.uniforms.uOA.value.set(0,0,0,0);}
 function buildDunes(seed){
   dnEteindre();DN.job=(DN.job||0)+1;
   if(PARK.on||!LVL.cur||LVL.cur.piste!=='dunes'||!(NP>1)||!DUNES_OK)return;
@@ -16678,6 +16679,9 @@ function buildDunes(seed){
     DN.rac.push(o);}
   // LE VENT de la map : il souffle à peu près dans l'axe de la descente (les crêtes coupent la route en travers), à ±35°
   {const dx=S.x[NS-1]-S.x[0],dz=S.z[NS-1]-S.z[0],a=Math.atan2(dx,dz)+(r()-.5)*1.2,b=a+.49;DN.vent=[Math.sin(a),Math.cos(a),Math.sin(b),Math.cos(b)];DN.lam=(520+r()*90)*K;}
+  DN.lev=[];for(const k in sQ){const m=/^lv(\d+)$/.exec(k);if(!m||sQ['lf'+m[1]]==null)continue;const a=sQ[k],e=sQ['lf'+m[1]];if(!(e>a+40))continue;
+    const ia=Math.min(NS-1,Math.round(a/DS)),ie=Math.min(NS-1,Math.round(e/DS));DN.lev.push({s:a,e:e,g:Math.max(0,(S.y[ia]-S.y[ie])/(e-a))});}
+  DN.lev.sort(function(p,q){return p.s-q.s;}); // (2026-10-19) LES LÈVRES des vagues (dnLevre)
   DN.S=S;DN.ms={ech:Math.round(performance.now()-t0)};
   const bio9=BIOMES[(LVL.cur.bio&&LVL.cur.bio[0])||'dunesSoir']||BIOMES.dunesSoir,cA=bio9.cyA||[6,-110,0,0];
   const opt={K:K,seed:seed,RH:RH,TH:TH,sQ:sQ,sun:[cA[0],cA[1]],vent:DN.vent,lam:DN.lam,oa:oa,Af:120*K,pal:{dnPlat:PAL.b('dnPlat',64),dnFin:PAL.b('dnFin',12),dnOmbre:PAL.b('dnOmbre',44)}};
@@ -16825,6 +16829,23 @@ function dunesTick(dt){
   DN.ombre+=(ombre-DN.ombre)*Math.min(1,dt*5);dnPartTick(dt,c);
   if(k>.001||DN.ecrit){const e=DN.on?k:0;sun.intensity=c.sunI*(1-.62*(1-DN.ombre)*e);DN.ecrit=e>.001;}
   dnCaravane(dt);}
+/* LES LÈVRES DES VAGUES (2026-10-19, Sacha : « je veux qu'on décolle sur les vagues des dunes même sans nitro, de crête en crête ») — au sol la caisse
+   reste COLLÉE au ruban (elle ne quitte la route que par le bord, le saut nitro, une figure ou un tremplin) : MESURÉ au pilote, aucune cassure de
+   pente ne la faisait décoller. La crête de chaque vague est donc une LÈVRE, comme les tremplins du glacier : franchie en roulant (dans le sens de
+   la course, sur la dalle, au-dessus de 70 km/h), elle lance la caisse juste ce qu'il faut pour retomber sur SA face d'avalanche, vers 72 % de sa
+   longueur, à n'importe quelle vitesse : t = 0,72 × la face / la vitesse (entre 0,9 et 2,4 s), la montée = ½ g t − la pente × la vitesse (g monde
+   ~23 m/s², FALL_G × SPD), moins ce que la crête (+4 %) donne déjà. rampCd : une lèvre à la fois. DN.sauts = le compte (banc). */
+const DN_LF={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
+function dnLevre(s0){if(rampCd>0||side<0||introD||driveDir<0)return;const a=Math.min(s0,s),b=Math.max(s0,s);
+  for(const k of DN.lev){if(k.s<a||k.s>b)continue;if(Math.abs(lat)>ROAD_HALF)return;const vm=vitMult(),vx=Math.abs(vA)*SPD*vm;if(vx*3.6<70)return; /* au pas : on roule sur la crête */
+    /* (v2, MESURÉ au pilote : à l'élan de la pente MOYENNE, la caisse ne volait que 0,3-0,5 s — juste après la crête le ruban lissé descend encore à peine,
+       et la pose se déclare dès 0,35 s si la caisse est à moins de 3 m du bitume) : la face est relue dans la route (DN.S) — l'élan qui pose la caisse à
+       72 % de la face, et au moins celui qui la tient à plus de 4 m du bitume au bout de 0,35 s */
+    const S9=DN.S,yAt=q=>{const f=Math.max(0,Math.min(S9.n-1.001,q/S9.ds)),i=Math.floor(f);return S9.y[i]+(S9.y[i+1]-S9.y[i])*(f-i);},g2=FALL_G*SPD*.5,y0=yAt(k.s);
+    const t=Math.max(.9,Math.min(2.6,.72*Math.max(40,k.e-k.s)/Math.max(1,vx))),D=y0-yAt(k.s+vx*t),d35=y0-yAt(k.s+vx*.35);
+    frameAt(k.s,DN_LF);const ty=DN_LF.t.y; /* (v3) la pente RÉELLE du ruban à la lèvre : lissée, elle plonge déjà un peu — compter +4 % retirait jusqu'à 7 m/s à l'élan */
+    const vy=Math.min(24,Math.max((g2*t*t-D)/t,(4+g2*.1225-d35)/.35)),u=THREE.MathUtils.clamp(vy/SPD-ty*Math.abs(vA)*vm,0,60);DN.dbgLev={vx:+vx.toFixed(1),vy:+vy.toFixed(1),u:+u.toFixed(1),ty:+ty.toFixed(3),t:+t.toFixed(2),D:+D.toFixed(1),d35:+d35.toFixed(1)};
+    rampCd=1.2;startFall(u,1);shake=Math.max(shake,.35);try{hap([8,14]);}catch(e){}DN.sauts=(DN.sauts|0)+1;return;}}
 /* EN VOL : le sable, l'eau de l'oasis, les obélisques et la pyramide tuent (5 points de caisse) — renvoie la cause, ou '' */
 const DN_H9={};
 function dunesHeurt(p){if(!DN.on||!DN.Z)return '';
@@ -16956,7 +16977,7 @@ window.dbgDunes=function(k,a,b,c,d){
     skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return {cam:camera.position.toArray().map(Math.round),noeuds:DN.n};}
   return {on:DN.on,ms:DN.ms,noeuds:DN.n,sep:DN.sep,rmin:DN.rmin,F:DN.F?[DN.F.nx,DN.F.nz,DN.F.ts]:null,Z:DN.Z?[DN.Z.nx,DN.Z.nz,DN.Z.ts]:null,O:DN.O?[DN.O.nx,DN.O.nz,DN.O.ts]:null,
     ciel:CIEL2.mode,attente:!!DN.attente,sQ:DN.sQ,L:Math.round(L),obelisques:DN.ob.length,pyramide:!!DN.pyr,acacias:DN.nArb|0,palmiers:DN.nPal|0,caravanes:DN.car.length,oasis:DN.oa?{r:Math.round(DN.oa.r),y:Math.round(DN.oa.y)}:null,
-    vent:DN.vent.map(v=>+v.toFixed(2)),lam:Math.round(DN.lam),soleil:SUN_DIR.toArray().map(v=>+v.toFixed(3)),ombre:+DN.ombre.toFixed(2),dunes:+(LVL.dunes||0).toFixed(2),canyon:+(LVL.canyon||0).toFixed(2),
+    levres:(DN.lev||[]).length,sauts:DN.sauts|0,levre:DN.dbgLev||null,vent:DN.vent.map(v=>+v.toFixed(2)),lam:Math.round(DN.lam),soleil:SUN_DIR.toArray().map(v=>+v.toFixed(3)),ombre:+DN.ombre.toFixed(2),dunes:+(LVL.dunes||0).toFixed(2),canyon:+(LVL.canyon||0).toFixed(2),
     carHaut:DN.on?+(carGroup.position.y-dnHauteur(carGroup.position.x,carGroup.position.z)).toFixed(1):null};};
 /* <<<FIN DUNES>>> */
 /* <<<BANQUISE>>> */
@@ -17486,18 +17507,18 @@ function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au
   // ---- 4 bis (v4). LA PISTE : LES BECS DE GLACE, puis LES PICS SUR LA PISTE, en figures ----
   BANQ.obst=[];BANQ.kick=[];
   {const RH=ROAD_HALF,kRH=RH/61.6,O=BANQ.obst,KK=BANQ.kick,ou=(s9,la)=>{const i=Math.max(0,Math.min(NP-1,Math.round(s9/ds))),p=pts[i],b=B[i];return [p.x+b.x*la,p.y+b.y*la,p.z+b.z*la];};
-    const libreK=(s9,la,r)=>{for(const k of KK)if(s9>k.s-k.lg-60&&s9<k.s+260&&la+r>k.l0-8&&la-r<k.l1+8)return false; /* (2026-10-18) 60 m d'approche dégagés devant la rampe (au banc, on percutait un pic en visant le tremplin), et sa retombée : 260 m (à 45°, on vole loin) */for(const o of O)if(Math.abs(o.s-s9)<o.r+r+8&&Math.abs(o.lat-la)<o.r+r+8)return false;return true;}; // ni sur un bec ni dans sa retombée, ni collé à un autre pic
+    const libreK=(s9,la,r)=>{for(const k of KK){if(s9>k.s-k.lg-60&&s9<k.s+260&&la+r>k.l0-8&&la-r<k.l1+8)return false;if(BK_RETOMBE&&s9+r>k.s&&s9-r<k.s+BK_BEC.retombe)return false;} /* (2026-10-18) 60 m d'approche dégagés devant la rampe (au banc, on percutait un pic en visant le tremplin), et sa retombée : 260 m (à 45°, on vole loin) — (2026-10-19) puis BK_BEC.retombe m sur TOUTE la largeur (voir BK_RETOMBE) */for(const o of O)if(Math.abs(o.s-s9)<o.r+r+8&&Math.abs(o.lat-la)<o.r+r+8)return false;return true;}; // ni sur un bec ni dans sa retombée, ni collé à un autre pic
     const pic=(s9,la,H,pente)=>{{const i=Math.max(3,Math.min(NP-4,Math.round(s9/ds))),a=pts[i-3],c=pts[i+3];pente+=Math.max(0,(a.y-c.y)/Math.max(1,Math.hypot(a.x-c.x,a.z-c.z)));} /* (2026-10-18) + la PENTE de la piste : à 45°, le flanc aval d'un pic à 55° (1,4) devenait presque parallèle à la glace — une lame basse de 30 à 50 m qu'on croyait franchir et qui tuait (« des problèmes de collision avec la glace ») ; sa face aval garde désormais, par rapport à la piste, la raideur qu'elle aurait sur le plat */const R=H/pente;if(Math.abs(la)>RH-R*.35-3||!libreK(s9,la,R))return false;const q=ou(s9,la);
       const L9=bkGrappe(q[0],q[2],q[1]-.4,H,pente,(fr()*3)|0,fr,1.4,Math.max(9,R*1.1)); /* (pied profond : sur la pente raide, le côté aval ne flotte pas) fam 1,4 : une aiguille pour la physique, mais COIFFÉE DE NEIGE (BK_PIC_FS) */pose(L9,true,false);let r=0;for(const P of L9)r=Math.max(r,Math.hypot(P.cx-q[0],P.cz-q[2])+P.r);
       O.push({s:s9,lat:la,L9:L9,r:r,x:q[0],z:q[2]});return true;};
     const bec=(s9,c,w)=>{{const cap9=s=>{const t0=T[Math.min(NP-1,Math.round((s+BK_BEC.lg)/ds))],t1=T[Math.min(NP-1,Math.round((s+BK_BEC.lg+BK_BEC.droit)/ds))];return Math.abs(Math.atan2(t0.x*t1.z-t0.z*t1.x,t0.x*t1.x+t0.z*t1.z));};
-      let o=0;while(o<=240&&cap9(s9+o)>.55)o+=30;if(o>240)return;s9+=o;} /* (2026-10-18) jamais devant un virage : à 45°, un vol couvre 250-450 m — posé avant une courbe, il retombait à côté de la piste ; on cherche la portion presque droite (< 31° de cap sur BK_BEC.droit m) jusqu'à 240 m plus loin */c=THREE.MathUtils.clamp(c,-RH+w/2+6,RH-w/2-6);KK.push({s:s9+BK_BEC.lg,l0:c-w/2,l1:c+w/2,lg:BK_BEC.lg,h:BK_BEC.h});}; // (2026-10-18) s = la LÈVRE du tremplin ; sa rampe monte sur les lg m d'avant
+      let o=0;while(o<=240&&cap9(s9+o)>.55)o+=30;if(o>240)return;s9+=o;} /* (2026-10-18) jamais devant un virage : à 45°, un vol couvre 250-450 m — posé avant une courbe, il retombait à côté de la piste ; on cherche la portion presque droite (< 31° de cap sur BK_BEC.droit m) jusqu'à 240 m plus loin */c=THREE.MathUtils.clamp(c,-RH+w/2+6,RH-w/2-6);KK.push({s:s9+BK_BEC.lg,l0:c-w/2,l1:c+w/2,lg:BK_BEC.lg,h:BK_BEC.h});return s9+BK_BEC.lg;}; // (2026-10-18) s = la LÈVRE du tremplin ; sa rampe monte sur les lg m d'avant
     /* (2026-10-18, Sacha : « moins d'obstacles sur la route ») une figure tous les ~0,6-1 km (0,3-0,5 avant) et moins de pics dans chacune (fourche 3-5,
        champ 5-7, îlot 2-3) — ~4 × moins de pics ; (« les tremplins doivent être plus beaux, gros et visibles ») un TREMPLIN avant deux figures sur trois,
        et un tremplin seul au milieu d'une longue descente sur deux (voir BK_BEC) */
     let sp=560+fr()*120;
     while(sp<L-380){const f=fr();
-      if(fr()<.65){bec(sp,(fr()*2-1)*RH*.45,36+fr()*22);sp+=BK_BEC.lg+100+fr()*30;} // un TREMPLIN, le plus souvent juste avant une figure : on peut la survoler
+      if(fr()<.65){const k9=bec(sp,(fr()*2-1)*RH*.45,36+fr()*22),j9=BK_BEC.lg+100+fr()*30;sp=k9!=null&&BK_RETOMBE?Math.max(sp+j9,k9+BK_BEC.retombe):sp+j9;} // un TREMPLIN, le plus souvent juste avant une figure : on peut la survoler — (2026-10-19) elle attend la fin de sa retombée (BK_RETOMBE)
       if(f<.25){const c=(fr()-.5)*14,n=3+((fr()*3)|0),pas=34+fr()*16; // LA FOURCHE : une arête au milieu, deux couloirs
         for(let j=0;j<n;j++)pic(sp+j*pas,c+(fr()-.5)*8,12+fr()*14,1.7+fr()*.8);sp+=n*pas;}
       else if(f<.55){const lg=140+fr()*80,n=Math.round((4+((fr()*3)|0))*kRH*.75); // LE CHAMP : des pics semés, des trouées — (kRH : la largeur ÷ celle de 123 m) — (2026-10-18) 5-7 pics, au lieu de 11-18
@@ -17506,8 +17527,8 @@ function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au
         for(const sg of [-1,1]){const H=26+fr()*14,pe=1.8+fr()*.6;pic(sp+(fr()-.5)*6,g+sg*(gw/2+H/pe*.85),H,pe);}sp+=40;}
       else{const sg=fr()<.5?-1:1,n=2+((fr()*2)|0); // L'ÎLOT : un massif d'un côté, le large de l'autre
         for(let j=0;j<n;j++)pic(sp+fr()*70,sg*(RH*.35+fr()*RH*.4),10+fr()*16,1.5+fr()*.9);sp+=70;}
-      const gap=420+fr()*380;if(gap>520&&fr()<.5&&sp+gap*.5<L-380)bec(sp+gap*.4,(fr()*2-1)*RH*.5,36+fr()*22); // un TREMPLIN seul, au milieu de la descente : pour le plaisir de voler
-      sp+=gap;}
+      const gap=420+fr()*380;let kS=null;if(gap>520&&fr()<.5&&sp+gap*.5<L-380)kS=bec(sp+gap*.4,(fr()*2-1)*RH*.5,36+fr()*22); // un TREMPLIN seul, au milieu de la descente : pour le plaisir de voler
+      sp=kS!=null&&BK_RETOMBE?Math.max(sp+gap,kS+BK_BEC.retombe):sp+gap;} // (2026-10-19) la figure suivante attend la fin de sa retombée
     if(KK.length)bkBecMesh(root,KK); // (2026-10-18) LE TREMPLIN DE GLACE : la rampe, sa lèvre, ses balises
     BANQ.n.pistePics=O.length;BANQ.n.becs=KK.length;}
   if(performance.now()>JF.lim)yield;
@@ -17551,6 +17572,19 @@ function banqOk(){return !!(BANQ.root&&BANQ.sol&&LVL.cur&&LVL.cur.id==='banquise
      qu'on s'enfonce, et vite, la caisse PLANE dessus. La mort se lit dans banqHeurt (au-delà de BK_PH.prof). */
 const BK_V=new THREE.Vector3(),BK_V2=new THREE.Vector3(),BK_N=new THREE.Vector3(),BK_R=new THREE.Vector3(),BK_M4=new THREE.Matrix4(),BK_Q=new THREE.Quaternion();
 function banqLache(){if(BANQ.glisse)banqDecolle();BANQ.sur=0;BANQ.pou=false;}
+/* LE VOLANT EN L'AIR AU GLACIER (2026-10-19, Sacha : « je meurs sans raison sur la route de glace dans la map montagne »). En vol, le lacet tourne
+   la vitesse autour du HAUT DE LA CAISSE (FLY_U, « vol libre ») ; au glacier la caisse vole piquée de 35 à 45° (la pente) : son haut penche, et
+   chaque coup de volant changeait un peu de CHUTE en dérive de côté, que le plafond de l'avance horizontale (fallVH0) rabotait ensuite. La
+   caisse qu'on pilotait FLOTTAIT : sa vitesse vers la glace restait vers −15 pendant 3 s au lieu de croître. MESURÉ au banc (le pilote de vol,
+   qui ramène vers l'axe, sur les mêmes tremplins) : à 500 km/h, 850 à 1 320 m et 4,8 à 7,1 s de vol (sans braquer : 500 m, 3 s) ; à 700 km/h
+   la caisse ne se posait plus (sortie de piste, « vide ») ; nitro tenue, 8 s. Au-delà de la jauge d'air (6 s), on explosait en plein ciel, 50
+   à 90 m au-dessus de la piste. Désormais, au glacier, le volant ne tourne que le CAP : la vitesse verticale et l'avance horizontale restent.
+   MESURÉ (3 tremplins × 350, 500, 700 km/h, avec et sans nitro : 18 vols) : tous posés, de 0,9 à 2,9 s (4,1 s au plus nitro tenue), de 84 à
+   705 m. `?sans=glacelacet` = avant. Ailleurs, rien ne change. */
+const BK_LACET=!/[?&]sans=([^&]*,)?glacelacet(,|&|$)/.test(location.search);
+function banqLacet(v,a){ // le lacet du vol, à chaque image (la boucle, VOL)
+  if(!(BK_LACET&&banqOk())){v.applyAxisAngle(FLY_U,a);return;}
+  const vy=v.y,h0=Math.hypot(v.x,v.z);v.applyAxisAngle(FLY_U,a);const h1=Math.hypot(v.x,v.z);v.y=vy;if(h1>1e-6){v.x*=h0/h1;v.z*=h0/h1;}}
 function banqSolVol(dt,dtF){
   if(!banqOk()){if(BANQ.sur||BANQ.glisse)banqLache();return;}
   const p=fallPos,v=fallVel,k9=dtF*SPD,S=banqSurf(p.x+v.x*k9,p.z+v.z*k9);
@@ -17740,8 +17774,15 @@ function bkCongerePose(root){ // les deux rubans de neige du bord, du départ à
    nuit, et deux BALISES orange de BK_BEC.poteau m aux coins de la lèvre (lisibles de loin, sur toutes les météos : matière sans lumière).
    (1er essai au banc : 26 × 4,5 m, chevrons blancs sur bleu clair — invisible à 100 m sur une piste de 196 m.)
    La caisse MONTE la rampe (hopY suit la courbe) et décolle à la lèvre, poussée de BK_BEC.pop × sa vitesse (,2 avant ; ,26 puis ,22 essayés : 3-6 s de vol à 45°, 450 m parcourus — la piste tournait dessous). */
-const BK_BEC={lg:36,h:7,pop:.18,poteau:15,axe:.65,droit:260}; /* droit : la piste presque droite (< 31° de cap) qu'il faut devant la lèvre ; axe : la part de la vitesse de travers que la rampe redresse au décollage */
+const BK_BEC={lg:36,h:7,pop:.18,poteau:15,axe:.65,droit:260,retombe:500}; /* droit : la piste presque droite (< 31° de cap) qu'il faut devant la lèvre ; axe : la part de la vitesse de travers que la rampe redresse au décollage ; retombe : la piste LIBRE après la lèvre, sur toute sa largeur (voir BK_RETOMBE) */
 let BK_BEC_TEX=null; // (2026-10-19) sur SA ligne : collée derrière le « // » de la ligne du dessus, elle était avalée (piège n° 1) — « BK_BEC_TEX is not defined » à chaque glacier : ni tremplins, ni pics, ni fin du décor, ni météo
+/* LA RETOMBÉE DES TREMPLINS (2026-10-19, même demande) : libreK ne dégageait que 260 m après la lèvre, et dans la seule bande du tremplin.
+   MESURÉ en course (29 vols, 255 à 414 km/h au décollage) : la caisse se pose de 160 à 511 m plus loin, et le pilote de vol la ramène vers
+   l'axe, hors de la bande ; 2 morts sur 10 courses « aux tremplins » : posée à 516 km/h au pied d'un pic de FOURCHE (380 m après la lèvre),
+   ou à 32 m d'un pic. Désormais aucun pic sur TOUTE la largeur pendant BK_BEC.retombe m après la lèvre (vols mesurés avec banqLacet : 84 à
+   705 m, 450 m au plus jusqu'à 500 km/h), et la figure qui suit un tremplin attend la fin de sa retombée. `?sans=glaceretombe` = avant
+   (même graine, même piste). */
+const BK_RETOMBE=!/[?&]sans=([^&]*,)?glaceretombe(,|&|$)/.test(location.search);
 function bkBecTex(){if(BK_BEC_TEX)return BK_BEC_TEX;const c=document.createElement('canvas');c.width=64;c.height=256;const x=c.getContext('2d');
   const g=x.createLinearGradient(0,256,0,0);g.addColorStop(0,'#bfe6ff');g.addColorStop(1,'#ffffff');x.fillStyle=g;x.fillRect(0,0,64,256);
   x.strokeStyle='#ff7a14';x.lineWidth=11;x.lineJoin='miter';for(let i=0;i<3;i++){const y=206-i*68;x.beginPath();x.moveTo(5,y+26);x.lineTo(32,y);x.lineTo(59,y+26);x.stroke();} // les CHEVRONS ORANGE, pointe vers la lèvre (la couleur des balises : sur la glace bleue, on les voit de loin)
@@ -29854,17 +29895,26 @@ function lpWheel(o){
     K.box('k',o.w*.84,.05,.11,0,Math.sin(a)*R,Math.cos(a)*R,Math.PI/2-a);}
   if(o.bande&&!o.sansPneu)K.lathe('b',[[R+.004,-hw*.16],[R+.004,hw*.16]],16,0,0,0,'x'); // (2026-10-08, SQUALE) une BANDE claire au milieu de la bande de roulement : vue d'en dessous, la roue se lit
   const fx0=hw-.035,FACES=o.deux?[1,-1]:[1];                 // le plan de la jante, en retrait du pneu
+  // la profondeur des VRAIES BRANCHES (0 = l'ancien dessin) : `creux` (BOÎTES : jusqu'à 60 % de la demi-largeur — au-delà de 4 cm le fond recule
+  // d'autant) ou `branches` (JAPONAISES : 4 cm) ; ou, pour les styles à rayons qui ne disent rien, la correction GLOBALE `ROUES_VRAIES` (éteinte :
+  // `?roues=vraies`, `dbgRoues(1)`) — `branches:0` dans une fiche la refuse pour elle
+  const crW=o.creux?Math.min(o.creux,hw*.6):(o.style==='cadran'||o.style==='enjoliveur'||o.style==='plis')?0:(o.branches||(ROUES_VRAIES&&o.branches!==0))?.04:0,
+        fdd=Math.max(0,crW-.04);
   // (2026-10-08, SQUALE) `deux` : la roue du MILIEU, qu'on voit des deux côtés — un tambour FERMÉ et une jante sur CHAQUE face (miroir en x)
   if(o.deux)K.lathe('d',[[0,-(fx0-.05)],[R*.64,-(fx0-.05)],[R*.64,fx0-.05],[0,fx0-.05]],16,0,0,0,'x');
-  else K.lathe('d',[[R*.64,-hw+.02],[R*.64,fx0-.05],[0,fx0-.05]],16,0,0,0,'x'); // fût + fond sombre
+  else K.lathe('d',[[R*.64,-hw+.02],[R*.64,fx0-.05-fdd],[0,fx0-.05-fdd]],16,0,0,0,'x'); // fût + fond sombre (il recule derrière une jante creusée de plus de 4 cm)
   for(const e of FACES){const fx=e*fx0;
-  // la profondeur des VRAIES BRANCHES (0 = l'ancien dessin) : `creux` (≤ 4 cm) ou `branches` (4 cm) ; ou, pour les styles à rayons qui ne disent
-  // rien, la correction GLOBALE `ROUES_VRAIES` (éteinte : `?roues=vraies`, `dbgRoues(1)`) — `branches:0` dans une fiche la refuse pour elle
-  const crW=(o.style==='cadran'||o.style==='enjoliveur'||o.style==='plis')?0:o.creux?Math.min(o.creux,.04):(o.branches||(ROUES_VRAIES&&o.branches!==0))?.04:0;
   if(o.blanc)K.lathe('w',[[R*.70,e*(hw+.004)],[R*.86,e*(hw+.004)]],16,0,0,0,'x');
   if(o.style==='cadran'){
     K.lathe('c',[[R*.64,fx],[0,fx]],16,0,0,0,'x');
     for(let h=0;h<5;h++){const a=h/5*Math.PI*2;K.cyl('d',R*.13,.012,8,fx+e*.004,Math.sin(a)*R*.40,Math.cos(a)*R*.40,'x');}
+  }else if(o.style==='enjoliveur'&&o.chapeau){ // (2026-10-19, le HOT ROD) `chapeau:c` : la JANTE TÔLE peinte (`fond`), l'anneau poli au bord et un petit
+    // enjoliveur au moyeu (c × le rayon de la jante) — sans l'option, le dôme couvre toute la face (inchangé)
+    const c=o.chapeau,rc=R*.64*c;
+    K.lathe('d',[[R*.64,fx],[R*.58,fx+e*.004],[rc,fx+e*.012]],16,0,0,0,'x');                        // la tôle peinte, en léger cône
+    K.lathe('c',[[R*.64,fx+e*.002],[R*.60,fx+e*.007]],16,0,0,0,'x');                                // l'anneau poli
+    K.lathe('c',[[rc,fx+e*.012],[rc*.80,fx+e*.03],[rc*.40,fx+e*.05],[0,fx+e*.054]],16,0,0,0,'x');    // le chapeau chromé
+    K.cyl('o',rc*.22,.02,8,fx+e*.058,0,0,'x');
   }else if(o.style==='enjoliveur'){
     K.lathe('c',[[R*.64,fx],[R*.52,fx+e*.025],[R*.24,fx+e*.055],[0,fx+e*.06]],16,0,0,0,'x');
     K.cyl('o',R*.13,.02,8,fx+e*.064,0,0,'x');
@@ -29880,7 +29930,7 @@ function lpWheel(o){
     K.cyl('d',R*.10,.012,7,fx+e*.016,0,0,'x');                                // le cache-moyeu
   }else{
     const n=o.n||5,multi=o.style==='multi';
-    if(crW){ /* (2026-10-19) LES VRAIES BRANCHES — UN SEUL outil pour `creux` (BOÎTES, « des jantes en disques plats » : la jante CREUSÉE, ≤ 4 cm) et
+    if(crW){ /* (2026-10-19) LES VRAIES BRANCHES — UN SEUL outil pour `creux` (BOÎTES, « des jantes en disques plats » : la jante CREUSÉE) et
        `branches` (JAPONAISES, = un creux de 4 cm) : la lèvre plonge, chaque rayon est une ARÊTE (deux pans qui prennent chacun leur lumière) qui
        descend, LE LONG du rayon, du bord vers le moyeu enfoncé. Mêmes matières : 0 programme de plus. */
       K.lathe('c',[[R*.64,fx],[R*.60,fx-e*crW*.3],[R*.55,fx-e*crW*.45]],16,0,0,0,'x');
@@ -29897,6 +29947,7 @@ function lpWheel(o){
       K.box(multi?'c':'a',.03,R*.46,multi?R*.07:R*.13,fx-e*.012,Math.sin(a)*R*.33,Math.cos(a)*R*.33,-a);}}
   }
   if(o.style!=='enjoliveur'&&o.style!=='plis')K.cyl('c',R*.16,.05,8,fx-e*(crW?crW+.012:.01),0,0,'x'); // le moyeu (enfoncé dans la jante creusée)
+  if(o.ecrous&&crW)for(let i=0;i<o.ecrous;i++){const a=i/o.ecrous*Math.PI*2+.3;K.cyl('c',R*.028,.024,6,fx-e*(crW-.02),Math.sin(a)*R*.10,Math.cos(a)*R*.10,'x');} // (19/10, BOÎTES) les ÉCROUS sur le moyeu
   if(o.pique&&e>0){K.cyl('c',R*.15,.14,6,fx+.07,0,0,'x',R*.07);K.cyl('w',R*.07,.12,6,fx+.20,0,0,'x',.004);} // (2026-10-16, LE BLINDÉ NOIR) LE PIC DE MOYEU : le char de Ben-Hur — dans l'axe, il ne tourne pas à l'œil
   }
   return K.done();
@@ -32536,7 +32587,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   P.box('p',1.74,.05,.22,0,1.035,-2.40,-.18); // le becquet (13/10 : sa bordure d'or retirée)
   K.commit(P);
   return {hl:[.64,.62,2.50],tl:[.60,.76,-2.56],wx:.77,wzF:ZF,wzR:-ZR,
-          lpw:{R:R,w:.28,style:'multi',n:10,jante:0xd9a520}};
+          lpw:{R:R,w:.28,style:'multi',n:10,jante:0xd9a520,creux:.06}}; // (19/10, JAPONAISES) la jante dorée « flocon » CREUSÉE (6 cm)
 },
   e_zed:function(K){
   /* (13/10, « plus ressemblante ») le coupé de Yokohama a un capot LONG et presque à plat (il plongeait en coin vers 0,55),
@@ -32633,17 +32684,17 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
           ZBF,ZBF+.005,.525,.70,.85,1.00,1.15,1.30,1.45,1.62,1.80,1.92,2.02,ZNF-.005,ZNF,2.085,2.10,2.17,2.205,2.225];
   zs.sort((a,b)=>a-b);zs=zs.filter((z,i)=>i===0||z-zs[i-1]>.003);
   const cab=z=>z<ZC;
-  const T=z=>U.lin([[-2.225,.50],[-2.19,.58],[-2.09,.66],[-1.90,.76],[-1.65,.89],[-1.33,1.03],[-1.02,1.16],[-.72,1.22],[-.40,1.24],[-.14,1.21],[ZC,.91],
+  const T=z=>U.lin([[-2.225,.55],[-2.20,.63],[-2.15,.68],[-2.06,.72],[-1.90,.78],[-1.65,.89],[-1.33,1.03],[-1.02,1.16],[-.72,1.22],[-.40,1.24],[-.14,1.21],[ZC,.91],
                     [.63,.895],[1.15,.88],[1.40,.865],[1.66,.83],[1.92,.75],[2.08,.66],[2.17,.58],[2.225,.50]],z),
-        yB=z=>U.lin([[-2.225,.47],[-2.12,.58],[-1.95,.68],[-1.75,.78],[-1.50,.86],[-1.33,.895],[-.70,.90],[ZC,.89],[1.00,.86],[1.375,.86],[1.70,.80],[1.95,.71],[2.10,.62],[2.225,.52]],z),
-        sH=z=>U.lin([[-2.225,.42],[-2.10,.52],[-1.90,.60],[-1.60,.70],[-1.065,.74],[-.50,.76],[ZC,.77],[1.00,.76],[1.70,.71],[2.00,.61],[2.15,.53],[2.225,.47]],z),
+        yB=z=>U.lin([[-2.225,.52],[-2.19,.60],[-2.10,.655],[-1.95,.70],[-1.75,.78],[-1.50,.86],[-1.33,.895],[-.70,.90],[ZC,.89],[1.00,.86],[1.375,.86],[1.70,.80],[1.95,.71],[2.10,.62],[2.225,.52]],z),
+        sH=z=>U.lin([[-2.225,.48],[-2.10,.55],[-1.90,.60],[-1.60,.70],[-1.065,.74],[-.50,.76],[ZC,.77],[1.00,.76],[1.70,.71],[2.00,.61],[2.15,.53],[2.225,.47]],z),
         xW=z=>U.lin([[-2.225,.54],[-2.17,.62],[-2.05,.71],[-1.80,.79],[-1.50,.83],[-1.065,.83],[-.80,.81],[-.30,.79],[.40,.80],[1.00,.81],[1.375,.81],[1.66,.78],[1.92,.71],[2.08,.62],[2.17,.52],[2.225,.40]],z),
         xR=z=>U.lin([[-2.225,.36],[-2.00,.42],[-1.65,.46],[-1.33,.48],[-1.00,.50],[-.40,.51],[-.14,.54],[ZC,.64]],z),
         yBas=z=>U.lin([[-2.225,.34],[-1.95,.27],[1.90,.27],[2.225,.33]],z);
   // LES AILES : le bord extérieur (1,2 cm plus large que la coque, il plonge dans le nez et la poupe), la crête, la lèvre de l'arche (ronde)
   const fier=z=>z>0?U.lin([[ZBF,.012],[1.95,.012],[2.10,-.012]],z):U.lin([[ZBR,.012],[-1.84,.012],[-1.98,-.012]],z),
         aXo=z=>xW(z)+fier(z),aXi=z=>Math.max(.20,aXo(z)-.30),aYT=z=>yB(z)+(z>0?.02:.012),
-        arc=(z,w)=>{const d=Math.abs(z-w),Ra=.45,ry=.40;return d<Ra?.30+ry*Math.sqrt(1-(d/Ra)*(d/Ra)):.30;},
+        arc=(z,w)=>{const d=Math.abs(z-w),r=R+.04;return d<r?R+Math.sqrt(r*r-d*d):.30;},   // (19/10, Léo : « imite exactement ça ») l'arche SERRE le pneu : un cercle de 4 cm autour de la roue (une demi-ellipse de 45 cm qui bâillait)
         aYL=z=>z>0?Math.max(arc(z,ZF),U.lin([[1.80,.30],[1.95,.33]],z)):Math.max(arc(z,ZR),U.lin([[-1.70,.30],[-1.85,.33]],z));
   const aile=z=>{const xo=aXo(z),xi=aXi(z),yT=aYT(z),yL=Math.min(aYL(z),yT-.05),a=Math.min(.16,(yT-yL)*.55),s=[[xi,yT-.06]];
     for(let k=0;k<=7;k++){const t=k/7*Math.PI/2;s.push([xi+(xo-xi)*Math.sin(t),yT-a*(1-Math.cos(t))]);}   // la crête qui tombe vers le flanc
@@ -32688,6 +32739,16 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   // (19/10) la hauteur de la tôle en (x, z) : le dessus de la coque ou de l'aile (la plus haute)
   const yHaut=(x,z)=>{const s9=SEC(z);let y=-9;for(let i=s9.length-1;i>0;i--){const a=s9[i],b=s9[i-1];if((a[0]-x)*(b[0]-x)<=0&&a[0]!==b[0]){y=a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);break;}}
     if((z>ZBF&&z<ZNF+.04)||(z<ZBR&&z>ZNR-.02))y=Math.max(y,aileY(x,z));return y;};
+  // (19/10) le flanc en (y, z) : le x de la coque ou de l'aile (la plus large) à cette hauteur — une lame chromée s'y pose
+  const xFlanc=(y,z)=>{const at=(s9,i0,i1)=>{let b=-9;for(let i=i0;i<i1;i++){const a=s9[i],c=s9[i+1];if((a[1]-y)*(c[1]-y)<=0&&a[1]!==c[1])b=Math.max(b,a[0]+(c[0]-a[0])*(y-a[1])/(c[1]-a[1]));}return b;};
+    let x=at(SEC(z),0,7);if((z>ZBF&&z<ZNF+.04)||(z<ZBR&&z>ZNR-.02))x=Math.max(x,at(aile(z),8,12));return x;};
+  // une lame chromée : depuis le centre (xs), elle tourne le coin (sur la face) puis longe le flanc (zs) — huit pans, 3,4 × 2,6 cm
+  const lame=(sd,y,xs,zs)=>{const f=z=>z>0?1:-1,ch=[];for(const x of xs){const zz=f(zs[0])>0?zFace(x,y,1):zFace(x,y,-1);ch.push([sd*x,y,zz+f(zs[0])*.012]);}
+    for(const z of zs){const x=xFlanc(y,z);if(x>0)ch.push([sd*(x+.012),y,z]);}
+    if(ch.length>1)bulleOutils.tube(P,'c',ch,[[.013,0],[.009,.012],[0,.017],[-.009,.012],[-.013,0],[-.009,-.012],[0,-.017],[.009,-.012]],true);};
+  // (la face du nez ou de la poupe en (x, y) : la tranche la plus au bout qui contient le point)
+  const dansS9=(s9,x,y)=>{let c=false;const n=s9.length;for(let i=0,j=n-1;i<n;j=i++){const a=s9[i],b=s9[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])c=!c;}return c;},
+        zFace=(x,y,s)=>{let a=s>0?2.075:-1.99,b=s*2.226;   /* (la recherche part du nez ou de la poupe PLEINS : sous les ailes la coque est étroite) */if(!dansS9(SEC(a),x,y))return a;for(let i=0;i<16;i++){const m=(a+b)/2;if(dansS9(SEC(m),x,y))a=m;else b=m;}return a;};
   // LA BOUCHE OVALE : fond noir, lèvre chromée, la barrette qui la traverse
   P.put('k',new THREE.CylinderGeometry(1,1,1,16),0,.41,2.19,Math.PI/2,0,0,.22,.10,.10);
   P.put('c',new THREE.TorusGeometry(1,.09,3,14),0,.41,2.235,0,0,0,.23,.115,.5);
@@ -32704,7 +32765,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
       const zl=cz+.055,ch=[sd*cx,yHaut(cx,zl)+.004,zl],d=[0,.55,1];
       bulleOutils.tour(P,'c',[[.052,0],[.047,.008],[.038,.013]],16,ch,d);bulleOutils.tour(P,'W',[[.038,.013],[.022,.016],[0,.017]],16,ch,d);}
     // les lames de pare-chocs qui encadrent la bouche, les clignotants dessous
-    P.box('c',.24,.03,.06,sd*.36,.36,2.17,0,sd*.32);P.box('c',.03,.12,.04,sd*.25,.40,2.215);
+    lame(sd,.42,[.25,.36,.45,.52],[2.20,2.15,2.08,2.00,1.92,1.86]);P.box('c',.03,.12,.04,sd*.25,.42,2.222);   // (19/10) la LAME AVANT qui tourne le coin et file le long du flanc (deux bouts de lame : la photo de Léo)
     P.box('O',.08,.035,.03,sd*.48,.47,2.115,0,sd*.45);
     // les OUÏES du capot, de part et d'autre du bossage
     for(let i=0;i<6;i++){const z=1.18+i*.075;P.box('k',.15,.01,.03,sd*.26,T(z)-.024,z,0,0,-sd*.10);}
@@ -32717,11 +32778,11 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
     // (17/10, l'arrière v2) LES FEUX SUR LEUR SOCLE CHROMÉ, plus marqués : le rouge bombé au-dessus, l'orange dessous ; la LAME qui tourne
     // le coin, et son BUTOIR
     // (la queue est ronde : à x 0,5 la tôle est déjà à z −2,18 — socle et verres posés DEHORS)
-    P.put('c',new THREE.CylinderGeometry(1,1,1,12),sd*.505,.56,-2.19,Math.PI/2,0,-sd*.25,.088,.03,.13);
-    P.put('L',new THREE.SphereGeometry(1,8,5),sd*.505,.598,-2.205,0,0,0,.075,.058,.05);P.cyl('L',.012,.01,6,sd*.505,.598,-2.22,'z');
-    P.put('O',new THREE.SphereGeometry(1,8,5),sd*.51,.515,-2.20,0,0,0,.058,.04,.045);
-    P.box('c',.30,.03,.06,sd*.40,.44,-2.205,0,-sd*.28);P.box('c',.10,.03,.05,sd*.58,.44,-2.10,0,-sd*.9);
-    P.box('c',.03,.11,.04,sd*.24,.46,-2.25,.01);
+    {const zf=zFace(.505,.62,-1);P.put('c',new THREE.CylinderGeometry(1,1,1,12),sd*.505,.62,zf+.004,Math.PI/2,0,-sd*.25,.075,.03,.11);
+    P.put('L',new THREE.SphereGeometry(1,8,5),sd*.505,.645,zf-.012,0,0,0,.062,.045,.045);P.cyl('L',.012,.01,6,sd*.505,.645,zf-.03,'z');
+    P.put('O',new THREE.SphereGeometry(1,8,5),sd*.51,.585,zf-.008,0,0,0,.05,.032,.04);}   // (19/10) les feux POSÉS SUR la lame, sur la tôle (la photo de Léo)
+    lame(sd,.55,[.24,.34,.44,.52],[-2.18,-2.12,-2.04,-1.96,-1.84,-1.70,-1.58,-1.50]);   // (19/10) la LAME ARRIÈRE : elle tourne le coin et longe la hanche jusqu'à l'arche (la photo de Léo)
+    P.box('c',.03,.11,.04,sd*.24,.55,zFace(.24,.55,-1)-.03,.01);
   });
   P.box('c',.24,.016,.02,0,.63,-2.20);                                            // poignée de hayon
   /* L'ARRIÈRE v2 (2026-10-17, Sacha : « refais aussi l'arrière de : ROSSO 40, LE SAMOURAÏ, LA DAYTONA, LA FÉLINE, L'ICEBERG » — la revue des poupes, 2e tour) : de petits feux ronds, une plaque vierge, deux pots ; fidèle, mais minuscule de loin.
@@ -32732,16 +32793,17 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   K.commit(P);
   /* (19/10, l'affinement — c'étaient des anneaux plats) LES ROUES À RAYONS de la vraie : la jante chromée, le fond sombre, deux nappes de
      seize rayons croisés (du moyeu à la jante, en biais), le moyeu et son écrou à oreilles ; pneu haut à flancs ronds */
-  const JW=.22,hw=JW/2,fx=hw-.02,J=lpKit({k:{g:'m',c:0x16171a},c:{g:'c',c:0xe4e8ed},s:{g:'m',c:0xc3c8cf},d:{g:'m',c:0x141518}});
+  const JW=.22,hw=JW/2,fx=hw-.02,J=lpKit({k:{g:'m',c:0x16171a},c:{g:'c',c:0xe4e8ed},s:{g:'m',c:0x9ba1aa},d:{g:'m',c:0x141518}});   // (19/10) rayons gris acier (blancs, ils faisaient un soleil ; la photo : fins, sur le tambour sombre)
   J.lathe('k',[[.20,-hw],[R*.86,-hw],[R*.97,-hw*.72],[R,-hw*.3],[R,hw*.3],[R*.97,hw*.72],[R*.86,hw],[.20,hw]],20,0,0,0,'x');
-  J.lathe('c',[[.20,hw-.004],[.196,fx+.010],[.188,fx+.006],[.184,fx-.012],[.184,-hw+.02]],24,0,0,0,'x');            // la jante
+  J.lathe('k',[[.215,-hw],[.215,hw]],20,0,0,0,'x');J.lathe('c',[[.215,hw-.004],[.214,fx+.012],[.19,fx+.010],[.184,fx+.002],[.184,-hw+.02]],24,0,0,0,'x');   // la jante : (19/10) une large lèvre chromée plate (la photo)
   J.lathe('d',[[.184,-hw+.02],[.184,fx-.075],[0,fx-.075]],20,0,0,0,'x');                                         // le fond
   J.lathe('c',[[.048,fx-.075],[.048,fx+.012],[.036,fx+.022],[.022,fx+.026]],14,0,0,0,'x');                       // le moyeu
   const rai=(a0,a1,x0,x1)=>{const A=new THREE.Vector3(x0,.045*Math.cos(a0),.045*Math.sin(a0)),B=new THREE.Vector3(x1,.18*Math.cos(a1),.18*Math.sin(a1)),
-    v=B.clone().sub(A),g=new THREE.BoxGeometry(.007,v.length(),.007);g.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),v.normalize())));
+    v=B.clone().sub(A),g=new THREE.BoxGeometry(.0055,v.length(),.0055);g.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),v.normalize())));
     J.put('s',g,(A.x+B.x)/2,(A.y+B.y)/2,(A.z+B.z)/2);};
-  for(let i=0;i<16;i++){const a=i/16*Math.PI*2;rai(a,a+.42,fx-.06,fx-.022);rai(a+.2,a+.2-.42,fx+.006,fx-.02);}  // deux nappes croisées
-  J.box('c',.02,.13,.026,fx+.03,0,0);J.cyl('c',.026,.03,8,fx+.026,0,0,'x');                                     // l'écrou à oreilles
+  for(let i=0;i<24;i++){const a=i/24*Math.PI*2;rai(a,a+.40,fx-.06,fx-.022);rai(a+.13,a+.13-.40,fx+.006,fx-.02);}  // deux nappes croisées (19/10 : 48 rayons)
+  J.lathe('c',[[.05,fx+.012],[.042,fx+.03],[.03,fx+.042],[0,fx+.046]],14,0,0,0,'x');                              // (19/10) le GROS PAPILLON de la photo : un cône chromé…
+  for(const e of [1,-1])J.prism('c',[[0,e*.03],[.024,e*.10],[.012,e*.11],[-.012,e*.11],[-.024,e*.10],[0,e*.03]].map(p=>[p[0],p[1]]),.016,fx+.036);   // …et ses deux oreilles
   const JG=J.done();
   return {hl:[.535,.625,2.03],tl:[.50,.585,-2.20],wx:.68,wzF:ZF,wzR:-ZR,
           roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],K.mats[g]||K.mats.c);m.userData.lp=1;w.add(m);}},
@@ -33358,7 +33420,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   });
   K.commit(P);
   return {hl:[.74,1.86,ZE+.03],tl:[.86,1.86,-ZE-.03],wx:1.00,wzF:ZF,wzR:-ZR,pots:[[-.57,.50,-2.39],[.57,.50,-2.39]], // (pots) la bouche des deux pots qui plongent
-          lpw:{R:R,w:.62,style:'rayons',n:5,jante:0xe6e9ee,accent:0xe6e9ee,crampons:1}};
+          lpw:{R:R,w:.62,style:'rayons',n:16,jante:0xe6e9ee,accent:0xe6e9ee,crampons:1,creux:.12,ecrous:6}}; // (19/10, JAPONAISES) la jante de Bigfoot : une CUVETTE chromée de 12 cm (seize branches serrées, presque pleine), six écrous
  },
   b_groupeb:function(K){
   const U=LPU,R=.33,ZF=1.28,ZR=-1.26;
@@ -33513,7 +33575,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   P.lathe('k',[[.15,-.015],[.15,.015]],10,-.25,1.12,.25,'z');
   K.commit(P);
   return {hl:[.44,.82,1.70],tl:[.34,.70,-1.87],wx:WX,wzF:ZF,wzR:-ZR,
-          lpw:{R:R,w:2*HW,style:'enjoliveur',jante:0xe6e9ee,fond:0xb81c14}};
+          lpw:{R:R,w:2*HW,style:'enjoliveur',jante:0xe6e9ee,fond:0xb81c14,chapeau:.66,blanc:1}}; // (19/10, JAPONAISES) la jante tôle rouge, le petit chapeau, l'anneau poli, les flancs blancs
 },
   d_puce:function(K){
   /* (13/10, « plus ressemblante ») la petite anglaise de rallye : des coins RONDS vus de dessus (elle était carrée), le
@@ -64078,6 +64140,7 @@ function loop(now){
       }
       rampCd=Math.max(0,rampCd-dt);
       if(mode==='drive')banqPisteHeurt(); // (v4) un pic de la piste, percuté au sol : L'IMPACT
+      if(mode==='drive'&&DN.on&&DN.lev&&DN.lev.length)dnLevre(sPrev9); // (2026-10-19) LES DUNES D'OR : on décolle à la crête des vagues, même sans nitro
       if(mode==='drive'&&BANQ.kick&&BANQ.kick.length&&banqOk())for(const k9 of BANQ.kick){ // (v4) LES TREMPLINS DE GLACE — (2026-10-18) une vraie rampe de BK_BEC.lg m : on la MONTE, on décolle à la LÈVRE (k9.s)
         if(lat<k9.l0-.5||lat>k9.l1+.5||s<k9.s-k9.lg-2||Math.min(sPrev9,s)>k9.s+2)continue;
         if(s<k9.s){if(rampCd<=0){const u=Math.max(0,(s-k9.s+k9.lg)/k9.lg),hR=k9.h*Math.pow(u,1.7);if(hR>hopY-.6){hopY=Math.max(hR-.8,hopY+(hR-hopY)*Math.min(1,dt*25));hopV=0;}}break;} // sur la rampe : la caisse en suit la courbe (hopY)
@@ -64422,7 +64485,7 @@ function loop(now){
       // (le lacet gagne un peu d'autorité à grande vitesse → vol simplifié)
       if(VEQ.lArm)VEQ.lT+=dt; // (vol équilibré) l'horloge du verrou du volant
       const yawIn=veqVolant()*lacetVol(fallVel.length())*dtF; // (2026-10-14) le braquage tenu depuis la route ne continue plus le virage en l'air (veqVolant)
-      fallVel.applyAxisAngle(FLY_U,yawIn); // (vol libre) autour du haut de la CAISSE — à gauche à l'écran, c'est à gauche, même sur le dos
+      banqLacet(fallVel,yawIn); // (vol libre) autour du haut de la CAISSE — à gauche à l'écran, c'est à gauche, même sur le dos — (2026-10-19) au GLACIER, le CAP seulement (banqLacet)
       yawAcc+=yawIn;
       /* (2026-10-17, LE RÉACTEUR QUI S'INSTALLE) lâcher le nitro en vol (ou la jauge qui se vide) faisait passer EN UNE IMAGE la gravité de 40 %
          à 100 % et l'autorité du manche de 1,7 à 0,85 rad/s — la caisse « tombait comme une pierre » et le cabré cassait net. Le plané et
