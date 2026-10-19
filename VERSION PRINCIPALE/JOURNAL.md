@@ -3,6 +3,44 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE TUNNEL DE GRÈS — LA GALERIE AUX ANNEAUX D'OR, LA SALLE DU PORTAIL, LA BOUCHE EN VOUSSOIRS (2026-10-19, session tunnel-canyon — Sacha : « le tunel d'arriver pour la map canyon est moche » ; entre deux idées proposées, le choix : « le tunnel de grès » plutôt que « la fente façon Antelope »)
+Le TUNNEL D'ARRIVÉE du canyon (les 460 derniers mètres, du 14/10) est refait sur place. **`?sans=tunnelcanyon` = celui du 14/10, au bit près**
+(cyBandes/cyGalerie, intouchés). Tout est dans `cyTunnel2` (appelé par `cyCouloir`), le commentaire « LE TUNNEL DE GRÈS » au-dessus fait foi.
+- **MESURÉ AVANT (banc photo, soir)** : la façade était la matière du RELIEF (`.b`, CY_FS) posée sur un mur droit — ses strates et son bruit lus
+  par xz sur un plan vertical : des coulures rouge et noir — percée d'une fente de 104 m ; dedans tout NOIR (roche simple à l'ombre, voûte à
+  104 m), deux bandes roses qui flottaient à 6 m, un trait or tout en haut ; et les murs à 31,5 m de l'axe COUPAIENT le portail de cubes de Léo
+  (108 m de large, 17/10) : on n'en voyait qu'un rectangle.
+- **LA BOUCHE** (`cyT2Facade`) : un arc rond net (le profil de la galerie) cerclé de 31 VOUSSOIRS de grès (crème / terre cuite en alternance,
+  une clé or pâle plus grosse, 5 m de large, 2,2 m de saillie, joints de 0,36 m) ; la falaise autour en STRATES horizontales (les couleurs de
+  `cyStrates` à la hauteur où le relief les met : elle continue les parois), creusée d'un relief doux loin de l'arc (jusqu'à 22 m, normales
+  analytiques), éclairée comme les pièces du canyon (`.g` = CY_AFS : soleil de l'heure, ombre des parois, nuit). Couleurs au-delà de 1 (elles
+  passent au carré) : la façade est à l'ombre au fond de la gorge.
+- **LA GALERIE** : murs droits de 16 m, clé à 46 m (`cyT2Prof`, `CY_TUN2`), trottoirs de 3,5 m. Le grès en lits pêche, crème et rose (strates
+  serrées à 2,4 m/texel dedans, contraste ×0,4, saturation ×0,6 — `CY_T2L`) ; des ANNEAUX d'or tous les 36 m (rubans additifs `CY_T2M.o`) dont
+  la lumière est CUITE dans les sommets (matière sans éclairage NI BRUME `CY_T2M.m` : la brume rouge du soir noyait tout) — des flaques d'or,
+  l'ombre violette entre deux anneaux ; le jour de la bouche entre sur ~30 m à la force de l'heure (`T2_JOUR`). MESURÉ en réglant
+  (`dbgTunnel('regle',{…})`, 7 jeux sur un chargement) : la chaîne de l'image (CONTI) sature déjà — grès saturé + lumière orangée = un tube de
+  lave ; les lits à leur vrai contraste = des rayures noires (les lits lie-de-vin au carré).
+- **LA SALLE DU PORTAIL** : à 190 m du bout la galerie s'évase (80 m de fondu, `cyT2k`) en un DÔME — ellipse de 78 m de large × 82 m de haut
+  autour du centre du portail (`PCUBE.H`) — au-dessus d'un GOUFFRE (fond à −48 m) : l'anneau de cubes (54 m de rayon) tient en entier. Les
+  anneaux d'or continuent en grandes arches jusqu'à ~55 m du bout ; la salle prend la lumière de la fenêtre (`PCUBE.pal[2]`, à moitié blanc
+  chaud : pur, le tilleul de la forêt sur le grès faisait du kaki) et un HALO de la couleur des cubes (`pal[0]`) cerne l'anneau sur le mur du fond.
+- **LE RELIEF S'ÉCARTE** (buildCanyon, `TUN2_ON`) : sur les 250 derniers mètres (fondu de 140 m), le pied des parois passe à 106 m de l'axe, sans
+  asymétrie ni alcôve ; aucun arbre au-delà de 270 m du bout (ils montaient à 9 m sous la dalle : à travers le fond du gouffre). Aucun tirage
+  de hasard ajouté. `dbgTunnel('test')` : 0 point de relief au-dessus de la moitié basse de la coque (pire −5,6 à −14,9 m selon la graine) ;
+  `dbgCanyon('test')` (la règle d'or) tenue.
+- **EN JEU** : au volant rien ne change (on frotte au bord de la route, `cyCouloirIci`) ; EN VOL la coque est dure (`cyTun2Heurt` dans
+  canyonHeurt → « ENCASTRÉ DANS LA PAROI » ; le fond du gouffre → « AU FOND DU CANYON » ; les trottoirs de la galerie ne tuent pas, une pose au
+  ras du bord reste une pose). `dbgTunnel('heurt',[[m avant le bout, côté, hauteur],…])` : galerie libre au centre, mur à 30,6 m, voûte à
+  45 m, dôme à 77,5 m et 101 m, gouffre à −47,5 m — conformes. Dedans, le soleil et le ciel baissent sur la caisse (canyonTick, comme la mine,
+  moins fort : ombre 0,3).
+- **COÛT** : trois maillages (la roche 8 534 triangles, les anneaux, la façade et ses voussoirs — `dbgTunnel()` les compte), aucune lumière ;
+  les deux matières neuves sont chauffées au menu (canyonChauffe). MESURÉ (Chrome sans fenêtre, soir) : **0 programme compilé en course** —
+  211 au menu, 211 au fond de la salle — couché (1280 × 592), DEBOUT (390 × 844) et dans le CADRE de l'ordi ; aucune erreur, aucun avertissement neuf.
+  Photos AVANT / APRÈS au soir, à midi et la nuit (banc `banc_tunnel.py` de la session : vues figées `dbgCanyon('vueA',…)` + caméra de course
+  `dbgPortail`/`dbgPortailPhoto`).
+- **À trancher par Sacha** : la teinte des anneaux (or chaud) et la couleur de la salle (celle du portail) ; le tunnel du 14/10 reste à `?sans=tunnelcanyon`.
+
 ## MISSIONS SANS CADEAU NI « BIENTÔT AU GARAGE » (2026-10-19, session missions-propres — Sacha : « dans le bouton mission il y a un truc streak 3 days gift ready, enlève ça » · « il y a des missions en vert avec marqué coming to the garage soon » · « ça aussi enlève »)
 - **La ligne du cadeau** (en tête de l'écran MISSIONS, `#mCadeau` : « SÉRIE 3 JOURS · CADEAU PRÊT · TOUCHE », en anglais « STREAK 3 DAYS · GIFT READY · TAP ») :
   `CADO.on` est FAUX par défaut (`/[?&]cadeau=1\b/` au lieu de `!/[?&]cadeau=0\b/`) → `cadeauEtat().actif` faux → la ligne se tait, plus de

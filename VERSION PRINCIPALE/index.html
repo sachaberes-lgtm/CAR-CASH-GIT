@@ -15642,6 +15642,8 @@ function buildCanyon(seed){
       const b9=CY_SERRE.pied+(CY_SERRE.pied2-CY_SERRE.pied)*kS,ex=Math.max(0,S.wF[i]-b9)*(CY_SERRE.k+(CY_SERRE.k2-CY_SERRE.k)*kS)/Math.sqrt(K); // (2026-10-15, Sacha : « les parois doivent être plus proches encore de la route ») LE CANYON SERRÉ : le pied des parois à 30 m de l'axe (2 m du bord), seul l'EXCÈS se garde au quart — et il ne gonfle plus avec le palier (les rayons, eux, si)
       const k9=1-zS;S.as[i]*=1-k9+k9*ex/Math.max(1,b9+ex);S.wF[i]+=(b9+ex-S.wF[i])*k9;S.aw[i]*=1-.7*k9-.15*kS;} // les ÉTROITS (zS) gardent leur fente : elle ondule de ±8 m et monte à pic, son couloir a déjà ses murs collés // les alcôves (le bruit qui recule la roche) : 9 m au lieu de 30
     S.wR[i]=Math.min(S.wF[i]-5,(16+9*Math.sin(s9/310+ph[4]))*K*(1-zS)+(S.wF[i]-5)*zS);S.wW[i]=Math.max(10,S.H[i]*S.st[i]*(1-(1-CY_SERRE.raide)*kS));} // (raide : la paroi atteint la hauteur de la route ~8 m après le bord au lieu de ~30)
+  if(TUN2_ON){const a=L-CY_TUN2.ev0-60,b=L-CY_TUN2.ev1; /* (2026-10-19) LE TUNNEL DE GRÈS : la roche s'écarte de la SALLE DU PORTAIL (le dôme fait 78 m de large) — le pied des parois à 106 m de l'axe, sans asymétrie ni alcôve, sur 140 m de fondu (rien ne la traverse : dbgTunnel('test')) */
+    for(let i=Math.max(0,Math.floor(a/DS));i<NS;i++){let u=(i*DS-a)/(b-a);u=u<0?0:u>1?1:u;u=u*u*(3-2*u);if(u<=0)continue;S.wF[i]+=(Math.max(S.wF[i],CY_TUN2.A+28)-S.wF[i])*u;S.as[i]*=1-u;S.aw[i]*=1-u;}}
   // ---- 3. LA RIVIÈRE : jamais plus haut qu'en amont, en vasques et en cascades ----
   {let mn=1e9,Lp=null,p0=0;const stepH=22*K;
    for(let i=0;i<NS;i++){mn=Math.min(mn,S.y[i]-S.D[i]);
@@ -15962,6 +15964,7 @@ function canyonTick(dt){
     if(px>0&&pz>0&&px<O.nx&&pz<O.nz){const hs=cyBil(O.h,O.nx,O.nz,1,0,px,pz);ombre=Math.max(0,Math.min(1,(p.y-hs+3)/14));}
     const Z=CY.Z,zx=(p.x-(Z.x0-Z.ts*.5))/Z.ts,zz=(p.z-(Z.z0-Z.ts*.5))/Z.ts,pl=cyBil(Z.d,Z.nx,Z.nz,4,0,zx,zz),fo=cyBil(Z.d,Z.nx,Z.nz,4,1,zx,zz);prof=Math.max(0,Math.min(1,(pl-p.y)/Math.max(60,pl-fo)));}
   if(CY.mineT&&cyMineIci()){const M9=CY.mineT,d9=Math.min(s-M9.i0*CY.S.ds,M9.i1*CY.S.ds-s);if(d9>25){ombre=Math.min(ombre,.08);prof=1;}} // dans la MINE : le soleil et le ciel s'éteignent sur la caisse (passé 25 m de la bouche)
+  if(CY.tunT&&CY.tunT.v2&&s>=CY.tunT.s0+25){ombre=Math.min(ombre,.3);prof=1;} // (2026-10-19) dans le TUNNEL DE GRÈS : à l'abri du soleil, sous ses anneaux
   CY.ombre+=(ombre-CY.ombre)*Math.min(1,dt*5);CY.prof+=(prof-CY.prof)*Math.min(1,dt*2);
   if(k>.001||CY.ecrit){const e=CY.on?k:0;sun.intensity=c.sunI*(1-.72*(1-CY.ombre)*e);hemi.intensity=c.hemiI*(1-.28*CY.prof*e);CY.ecrit=e>.001;}
 }
@@ -15971,7 +15974,7 @@ function canyonHeurt(p){if(!CY.on||!CY.Z)return '';
   for(const o of JH){const x=p.x+o[0],z=p.z+o[1],h=cyHauteur(x,z,CY_H9);if(p.y<h+.7)return CY_H9.eau?'riviere':CY_H9.rk>.35?'paroi':'canyon';}
   if(CY.monu&&cyMonuHeurt(p))return 'paroi';
   if(CY.couT&&cyCouloirHeurt(p,CY.couT))return 'paroi';
-  if(CY.tunT&&cyCouloirHeurt(p,CY.tunT))return 'paroi';
+  if(CY.tunT){if(CY.tunT.v2){const c9=cyTun2Heurt(p,CY.tunT);if(c9)return c9;}else if(cyCouloirHeurt(p,CY.tunT))return 'paroi';} // (2026-10-19) le tunnel de grès : murs, voûte, dôme, fond du gouffre
   if(CY.mineT&&cyMineHeurt(p,CY.mineT))return 'paroi';
   return '';}
 /* ---- LES MONUMENTS (2026-10-14, CANYON) — ce que le relief seul ne sait pas faire : LES MITAINES (les deux buttes à pouce de Monument
@@ -16061,8 +16064,12 @@ const CY_RAI_M=(function(){const m=new THREE.ShaderMaterial({transparent:true,de
 const CY_COU={g:3.5,T:14};
 const CY_SERRE={pied:30,k:.22,pied2:24,k2:.06,raide:.38}; // le canyon serré (buildCanyon) · pied2/k2/raide : le 2e serrage (15/10), hors raccourcis
 const CY_TUN={l:460,vh:34,ap:104,fw:520,fh:520};  // longueur, hauteur des murs droits, sommet de la voûte (au-dessus de la route), façade (demi-largeur, hauteur)
+const TUN2_ON=!/[?&]sans=tunnelcanyon\b/.test(location.search); // (2026-10-19) LE TUNNEL DE GRÈS (voir cyTunnel2) — `?sans=tunnelcanyon` = le tunnel du 14/10
+const CY_TUN2={hw:16,ha:46,ev0:190,ev1:110,fin:40,fond:-48,A:78,B:82,pas:4,an:36,rgF:55,NQ:16,fw:520,vs:4.3,vR:5,vP:2.2}; // galerie (murs, clé) · la salle (début et fin du fondu avant le bout, mur du fond après, gouffre, ellipse A × B) · pas des rangées, des anneaux, dernier anneau avant le bout · façade, voussoirs
+const T2_JOUR={nuit:.12,orage:.42,pluie:.5,soir:.72,matin:.85,midi:1}; // la force du jour qui entre par la bouche (cuite : la matière est sans éclairage)
+const T2F={x:0,y:0,z:0,tx:0,tz:1},T2P=new Float32Array((CY_TUN2.NQ+2)*2);
 function cyCouloirIci(){return CY.on&&((!!CY.cou&&s>=CY.cou[0]&&s<=CY.cou[1])||(!!CY.tun&&s>=CY.tun[0])||(!!CY.mineT&&s>=CY.mine[0]&&s<=CY.mine[1]));} // (la MINE aussi : ses murs frôlent la route)
-function cyCouloir(){CY.couT=CY.cou?cyBandes(CY.cou,false):null;CY.tunT=CY.tun?cyBandes(CY.tun,true):null;CY.mineT=null;try{CY.mineT=CY.mine?cyMine(CY.mine):null;}catch(e){console.warn('canyon : mine',e);}}
+function cyCouloir(){CY.couT=CY.cou?cyBandes(CY.cou,false):null;CY.tunT=CY.tun?(TUN2_ON?cyTunnel2(CY.tun):cyBandes(CY.tun,true)):null;CY.mineT=null;try{CY.mineT=CY.mine?cyMine(CY.mine):null;}catch(e){console.warn('canyon : mine',e);}}
 function cyBandes(iv,tun){const S=CY.S;if(!S)return null;const i0=Math.max(0,Math.round(iv[0]/S.ds)),i1=Math.min(S.n-1,Math.round(iv[1]/S.ds));if(i1-i0<4)return null;
   const L0=ROAD_HALF+CY_COU.g,T=CY_COU.T,n=i1-i0+1,top=new Float32Array(n*2),bas=new Float32Array(n),o9={};
   for(let k=0;k<n;k++){const i=i0+k;bas[k]=Math.min(S.F[i],S.y[i]-THICK-8)-6;
@@ -16118,6 +16125,163 @@ function cyCouloirHeurt(p,C){const S=CY.S;if(!C)return false;let bi=-1,bd=1e18;
   if(bi<0||bd>(C.L0+CY_COU.T+40)**2)return false;const lt=(p.x-S.x[bi])*-S.tz[bi]+(p.z-S.z[bi])*S.tx[bi],a=Math.abs(lt),k=bi-C.i0;
   if(C.tun){const yr=S.y[bi];if(p.y>yr+CY_TUN.vh&&a<C.L0){const u=a/C.L0;if(p.y>yr+CY_TUN.vh+(CY_TUN.ap-CY_TUN.vh)*Math.sqrt(Math.max(0,1-u*u))-1.5)return true;}}
   return a>C.L0-1.2&&a<C.L0+CY_COU.T+2&&p.y<C.top[k*2+(lt>0?1:0)]&&p.y>C.bas[k]-2;}
+/* LE TUNNEL DE GRÈS (2026-10-19, Sacha : « le tunel d'arriver pour la map canyon est moche » — entre deux idées, le choix : « le tunnel de
+   grès » : une galerie de grès à bandes, des anneaux de lumière dorée qui défilent, une grande salle en dôme où le portail tient en entier, une
+   bouche en arc de pierre dans la falaise). Il remplace le TUNNEL D'ARRIVÉE du 14/10 (cyBandes/cyGalerie), sur les mêmes 460 derniers mètres.
+   MESURÉ avant (banc photo, soir) : la façade était la matière du RELIEF posée sur un mur droit (strates et normales lues dans la grille du terrain :
+   une tache rouge et noire baveuse) percée d'une fente de 104 m ; dedans, tout NOIR (la roche simple à l'ombre, la voûte à 104 m), deux bandes
+   roses qui flottaient, un trait or ; et les murs, à 31,5 m de l'axe, COUPAIENT le portail de cubes (108 m de large, 17/10) : on n'en voyait qu'une tranche.
+   · LA BOUCHE (`cyT2Facade`) : un arc rond net (le profil de la galerie) cerclé de VOUSSOIRS de grès, crème et terre cuite en alternance, une
+     clé plus grosse ; la falaise autour en STRATES horizontales (les couleurs de cyStrates, à la hauteur où le relief les met), sculptée d'un
+     relief doux loin de l'arc, éclairée comme les autres pièces du canyon (`.g` = CY_AFS : le soleil de l'heure, l'ombre des parois, la nuit).
+   · LA GALERIE : murs droits de 16 m, clé de voûte à 46 m (cyT2Prof), le grès en lits pêche, crème et rose qu'on VOIT (les couleurs de cyStrates,
+     serrées et adoucies dedans), des ANNEAUX de lumière dorée tous les 36 m (additifs, CY_T2M.o) dont la lumière est CUITE dans la roche
+     (couleurs de sommet, une matière sans éclairage ni brume : `lum` dans cyTunnel2, réglages CY_T2L) — des flaques d'or, l'ombre violette entre
+     deux anneaux ; le jour de la bouche entre sur ~30 m, à la force de l'heure (T2_JOUR). MESURÉ au banc : la chaîne de l'image sature déjà
+     (CONTI) — le grès saturé et la lumière orangée faisaient un tube de lave ; les lits à leur vrai contraste, des rayures noires (con, sat).
+   · LA SALLE DU PORTAIL : à 190 m du bout la galerie s'évase (fondu de 80 m, cyT2k) en un DÔME — une ellipse de 78 m de large × 82 m de haut
+     autour du centre du portail — au-dessus d'un gouffre (fond à −48 m) : le portail (anneau de 54 m de rayon) y tient en entier ; les anneaux
+     d'or continuent en grandes arches jusqu'à ~55 m du bout ; la salle prend la lumière de la fenêtre du portail (PCUBE.pal, la map d'en face,
+     à moitié blanc chaud : le tilleul de la forêt sur le grès faisait du kaki) et un HALO de la couleur de ses cubes cerne l'anneau sur le mur
+     du fond. Le relief s'écarte (buildCanyon : le pied des parois à 106 m de l'axe au
+     bout de la route, sans asymétrie ni alcôve) et les arbres n'y poussent plus : rien ne traverse le dôme (`dbgTunnel('test')`).
+   · Au volant rien ne change (on frotte au bord de la route : cyCouloirIci) ; EN VOL, murs, voûte, dôme et fond du gouffre sont durs
+     (cyTun2Heurt → « ENCASTRÉ DANS LA PAROI », « AU FOND DU CANYON ») ; dedans, le soleil et le ciel baissent sur la caisse (canyonTick).
+   Coût : trois maillages (la roche ~8,5 k triangles, les anneaux, la façade avec ses voussoirs : `dbgTunnel()` les compte), aucune lumière ; deux
+   matières neuves chauffées au menu (canyonChauffe) + `.g` des pièces du canyon — MESURÉ : 0 programme compilé en course (211 au menu, 211 au
+   fond de la salle ; couché, debout, dans le cadre de l'ordi). `?sans=tunnelcanyon` = le tunnel du 14/10, au bit près ; `dbgTunnel()`,
+   `dbgTunnel('test')` (aucun relief dans la salle), `dbgTunnel('heurt',[[m avant le bout, côté, hauteur],…])`, `dbgTunnel('regle',{…})`. */
+/* les deux matières du tunnel (chauffées au menu, canyonChauffe) : la roche en couleurs de sommet SANS brume (un tunnel n'a pas la brume du dehors :
+   celle du soir la noyait de rouge), l'or additif des anneaux */
+const CY_T2M={m:null,o:null};
+function cyT2Mats(){if(!CY_T2M.m){CY_T2M.m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,fog:false});
+    CY_T2M.o=new THREE.MeshBasicMaterial({color:0xffd27a,transparent:true,opacity:.95,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.DoubleSide});CY_T2M.m.dispose=CY_T2M.o.dispose=function(){};}
+  return CY_T2M;}
+/* LES RÉGLAGES DE LA LUMIÈRE CUITE (dbgTunnel('regle',{…}) les change et rebâtit) : ambiance, couleur des anneaux, pic et lueur des anneaux,
+   saturation du grès (la chaîne de l'image sature déjà), échelle des strates DEDANS (m par texel : plus serrées que dehors, pour voir des lits
+   sur 46 m de voûte), lueur du portail (force, portée, fond), clarté de la façade */
+const CY_T2L={amb:[.09,.07,.19],or:[1,.88,.72],kA:1.15,kB:.3,sat:.6,ech:2.4,con:.4,gl:1.6,glD:40,glB:.04,hal:1.1,fac:1.1}; // hal : le halo de la couleur du portail sur le mur du fond, autour de l'anneau // con : le contraste des lits DEDANS (1 = celui des falaises ; moins, des teintes douces autour du grès crème)
+/* le repère de la route à l'abscisse s (échantillons de 8 m, interpolés) — au-delà du bout, la dernière tangente prolongée, à plat */
+function cyT2Fr(s9,o){const S=CY.S,n=S.n,f=s9/S.ds,i=Math.min(n-2,Math.max(0,Math.floor(f))),u=Math.max(0,f-i),v=Math.min(1,u);
+  o.x=S.x[i]+(S.x[i+1]-S.x[i])*u;o.z=S.z[i]+(S.z[i+1]-S.z[i])*u;o.y=S.y[i]+(S.y[i+1]-S.y[i])*v;
+  const tx=S.tx[i]+(S.tx[i+1]-S.tx[i])*v,tz=S.tz[i]+(S.tz[i+1]-S.tz[i])*v,l=Math.hypot(tx,tz)||1;o.tx=tx/l;o.tz=tz/l;return o;}
+function cyT2k(s9){const T=CY_TUN2,a=L-T.ev0,b=L-T.ev1;let u=(s9-a)/(b-a);u=u<0?0:u>1?1:u;return u*u*(3-2*u);} // 0 = la galerie, 1 = la salle
+/* le DEMI-PROFIL (côté positif, l ≥ 0), fondu galerie → salle : [sous le bord de la route] puis la courbe du pied du mur à la clé (NQ+1 points).
+   Galerie : le sol à −0,4 m (les trottoirs), le mur droit jusqu'à hw, la voûte en quart d'ellipse jusqu'à ha. Salle : l'ellipse (A, B) centrée sur
+   le portail, coupée par le fond du gouffre (le sol court alors sous toute la largeur). */
+function cyT2Prof(k,out){const T=CY_TUN2,W=ROAD_HALF+CY_COU.g,hc=PCUBE.H,f=-.4+(T.fond+.4)*k,p0=Math.asin(Math.max(-1,(T.fond-hc)/T.B));
+  out[0]=(ROAD_HALF-1.5)*(1-k);out[1]=f;
+  for(let q=0;q<=T.NQ;q++){const t=q/T.NQ;let gl,gh;
+    if(t<.25){gl=W;gh=-.4+(T.hw+.4)*t/.25;}else{const a=(t-.25)/.75*Math.PI/2;gl=W*Math.cos(a);gh=T.hw+(T.ha-T.hw)*Math.sin(a);}
+    const a2=p0+(Math.PI/2-p0)*t,sl=T.A*Math.cos(a2),sh=hc+T.B*Math.sin(a2);
+    out[2+q*2]=gl+(sl-gl)*k;out[3+q*2]=gh+(sh-gh)*k;}
+  return out;}
+/* la couleur du grès à la hauteur y (cyStrates, lue comme le shader du relief : un texel = 3,7 m), en octets ramenés à 0..1 */
+function cyT2Strate(y,o,e){const d=CY.tStr&&CY.tStr.image&&CY.tStr.image.data;if(!d){o[0]=.93;o[1]=.80;o[2]=.62;return o;}
+  const v=y/(e||3.7)-.5,i=Math.floor(v),u=v-i,a=(((i%1024)+1024)%1024)*4,b=((((i+1)%1024)+1024)%1024)*4;
+  for(let c=0;c<3;c++)o[c]=(d[a+c]+(d[b+c]-d[a+c])*u)/255;return o;}
+function cyTunnel2(iv){const S=CY.S;if(!S||!(S.n>3))return null;
+  const T=CY_TUN2,s0=iv[0],s1=L+T.fin,NQ=T.NQ,NP=2*NQ+3,hc=PCUBE.H,sP=L-25,P=[],C=[],I=[],st=[0,0,0];
+  const pal=PCUBE.pal||null,cP=new THREE.Color(pal?pal[2]:0xffe0b8).lerp(new THREE.Color(1,.85,.7),.5),cH=new THREE.Color(pal?pal[0]:0xffb060),met=LVL.cur&&LVL.cur.meteo,jour=T2_JOUR[met]!=null?T2_JOUR[met]:.8;
+  const RG=[];for(let a=s0+12;a<=L-T.rgF;a+=T.an)RG.push(a); // les anneaux : à 12 m de la bouche, puis tous les 36 m — dans la salle aussi, jusqu'à ~55 m du bout : de grandes arches d'or autour du portail
+  /* LA LUMIÈRE CUITE d'un sommet : l'ambiance (violette, l'ombre commune des maps), les anneaux d'or, le jour de la bouche, la fenêtre du portail */
+  const Q=CY_T2L,lum=(s9,l,h,k,fl)=>{let gA=0,gB=0;for(const a of RG){const d=s9-a;if(d>70||d<-70)continue;gA+=Math.exp(-d*d/40);gB+=Math.exp(-d*d/400);} // sous l'anneau, puis la lueur qui s'étale
+    const jo=Math.exp(-Math.max(0,s9-s0)/28)*jour,dP=Math.sqrt((s9-sP)*(s9-sP)+l*l+(h-hc)*(h-hc)),gl=k*(Q.gl*Math.exp(-dP/Q.glD)+Q.glB),rr=Math.sqrt(l*l+(h-hc)*(h-hc)),hz=k*Math.max(0,Math.min(1,(s9-sP)/40))*Math.exp(-(rr-58)*(rr-58)/1000)*Q.hal,kA=1-.5*k,kO=(gA*Q.kA+gB*Q.kB)*(fl?.6:1);
+    return [Q.amb[0]*kA+Q.or[0]*kO+jo+cP.r*gl+cH.r*hz,Q.amb[1]*kA+Q.or[1]*kO+.92*jo+cP.g*gl+cH.g*hz,Q.amb[2]*kA+Q.or[2]*kO+.85*jo+cP.b*gl+cH.b*hz];};
+  const coul=(s9,l,h,k,fl,y)=>{cyT2Strate(y,st,Q.ech);st[0]=.92+(st[0]-.92)*Q.con;st[1]=.80+(st[1]-.80)*Q.con;st[2]=.62+(st[2]-.62)*Q.con;let r=st[0]*st[0],g=st[1]*st[1],b=st[2]*st[2];const m=r*.3+g*.55+b*.15; // le grès en linéaire (au carré, comme le relief), DÉSATURÉ (la chaîne de l'image sature déjà)
+    r=m+(r-m)*Q.sat;g=m+(g-m)*Q.sat;b=m+(b-m)*Q.sat;const q=lum(s9,l,h,k,fl);
+    C.push(Math.min(1,r*q[0]),Math.min(1,g*q[1]),Math.min(1,b*q[2]));};
+  // ---- LA ROCHE : une rangée de NP sommets tous les 4 m, de la bouche au mur du fond ----
+  const nR=Math.ceil((s1-s0)/T.pas)+1;
+  for(let r=0;r<nR;r++){const s9=Math.min(s1,s0+r*T.pas),o=cyT2Fr(s9,T2F),k=cyT2k(s9);cyT2Prof(k,T2P);
+    for(let j=0;j<NP;j++){const hp=j<=NQ+1?j:2*NQ+2-j,sg=j<=NQ+1?-1:1,l=sg*T2P[hp*2],h=T2P[hp*2+1];
+      P.push(o.x-o.tz*l,o.y+h,o.z+o.tx*l);coul(s9,l,h,k,hp<=1,o.y+h);}
+    if(r<nR-1)for(let j=0;j<NP-1;j++){const a=r*NP+j,b=a+NP;I.push(a,b,a+1,a+1,b,b+1);}}
+  { // LE MUR DU FOND : un éventail depuis le centre du portail (il prend sa lumière en plein)
+    const o=cyT2Fr(s1,T2F),c=P.length/3,b=(nR-1)*NP;P.push(o.x,o.y+hc,o.z);coul(s1,0,hc,1,false,o.y+hc);
+    for(let j=0;j<NP-1;j++)I.push(c,b+j,b+j+1);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.setIndex(I);g.computeBoundingSphere();
+  const m=new THREE.Mesh(g,cyT2Mats().m);m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();m.name='tunnel';CY.grp.add(m);
+  // ---- LES ANNEAUX D'OR : un ruban de 2,2 m qui suit la voûte, d'un mur à l'autre (3 m au-dessus du sol), 0,5 m en retrait de la roche ----
+  {const R=[],K=[];for(const a of RG){const k=cyT2k(a);cyT2Prof(k,T2P);const hm=T.hw*.5+(hc-T.hw*.5)*k;
+     for(const e of [-1.1,1.1]){const o=cyT2Fr(a+e,T2F);
+       for(let j=2;j<NP-2;j++){const hp=j<=NQ+1?j:2*NQ+2-j,sg=j<=NQ+1?-1:1;let l=sg*T2P[hp*2],h=T2P[hp*2+1];if(h<T2P[1]+3)h=T2P[1]+3; // au pied du mur, l'anneau s'arrête à 3 m du sol
+         const dl=-l,dh=hm-h,dn=Math.hypot(dl,dh)||1;l+=dl/dn*.5;h+=dh/dn*.5;R.push(o.x-o.tz*l,o.y+h,o.z+o.tx*l);}}
+     const n9=NP-4,b0=R.length/3-2*n9;for(let j=0;j<n9-1;j++){const a0=b0+j,a1=b0+n9+j;K.push(a0,a1,a0+1,a0+1,a1,a1+1);}}
+   const ga=new THREE.BufferGeometry();ga.setAttribute('position',new THREE.Float32BufferAttribute(R,3));ga.setIndex(K);ga.computeBoundingSphere();
+   const ma=new THREE.Mesh(ga,cyT2Mats().o);ma.userData.jeter=1;ma.matrixAutoUpdate=false;ma.updateMatrix();ma.renderOrder=3;CY.grp.add(ma);}
+  let triF=0;try{triF=cyT2Facade(s0);}catch(e){console.warn('canyon : façade du tunnel',e);}
+  const i0=Math.max(0,Math.floor(s0/S.ds)),i1=S.n-1;
+  return {v2:1,i0:i0,i1:i1,s0:s0,s1:s1,an:RG.length,tri:I.length/3,triA:RG.length*2*(NP-5),triF:triF};}
+/* LA FAÇADE ET SES VOUSSOIRS (la matière `.g` des pièces du canyon : la couleur au carré, éclairée par l'heure). La falaise en tranches
+   horizontales d'un texel de strate (3,7 m, la couleur nette d'un lit à l'autre), affinées à 1,2 m le long de la bouche ; un relief doux la creuse
+   (jusqu'à 22 m, nul près de l'arc). Les voussoirs : des blocs de ~4,3 m le long du bord de la bouche, 5 m de large, 2,2 m en saillie. */
+function cyT2Facade(s0){const S=CY.S,T=CY_TUN2,W=ROAD_HALF+CY_COU.g,o=Object.assign({},cyT2Fr(s0,T2F)),i=Math.min(S.n-1,Math.round(s0/S.ds));
+  const FW=T.fw,yb=Math.min(S.F[i],S.y[i]-40)-10,yt=o.y+34+Math.max(520,S.R[i]-S.y[i]+80),bx=-o.tz,bz=o.tx; // (les dimensions de la façade d'avant)
+  const wM=h=>h<-.4||h>T.ha?0:h<=T.hw?W:W*Math.sqrt(Math.max(0,1-((h-T.hw)/(T.ha-T.hw))*((h-T.hw)/(T.ha-T.hw)))); // la demi-largeur de la bouche à la hauteur h
+  const D=(l,h)=>{const a=Math.min(1,Math.max(0,(Math.abs(l)-W-14)/90)+Math.max(0,(h-T.ha-14)/90));return a*a*(3-2*a)*22*cyNz((l+713)/260,(h+o.y)/210,1);}; // le recul de la roche (vers l'intérieur de la montagne)
+  const P=[],N=[],C=[],I=[],st=[0,0,0],pt=(l,h,col)=>{const d=D(l,h),e=1.5,dl=(D(l+e,h)-D(l-e,h))/(2*e),dh=(D(l,h+e)-D(l,h-e))/(2*e);
+      P.push(o.x+bx*l+o.tx*d,o.y+h,o.z+bz*l+o.tz*d);const nx=-o.tx+bx*dl,ny=dh,nz=-o.tz+bz*dl,nl=Math.hypot(nx,ny,nz)||1;N.push(nx/nl,ny/nl,nz/nl);C.push(col[0],col[1],col[2]);};
+  // les colonnes : serrées près de la bouche, larges au loin
+  const COL=[];for(let l=W+6;l<FW;l+=l<W+120?20:l<300?40:70)COL.push(l);COL.push(FW);
+  // les tranches : un bord là où le lit change de couleur (ou tous les 24 m), plus un pas de 1,2 m dans la hauteur de la bouche
+  const H=[];{let y=Math.floor(yb/3.7)*3.7,y0=y;const c0=[0,0,0],c1=[0,0,0];cyT2Strate(y+1.85,c0);H.push(y-o.y);
+   while(y<yt){y+=3.7;cyT2Strate(y+1.85,c1);if(Math.max(Math.abs(c1[0]-c0[0]),Math.abs(c1[1]-c0[1]),Math.abs(c1[2]-c0[2]))>.03||y-y0>24){H.push(y-o.y);y0=y;c0[0]=c1[0];c0[1]=c1[1];c0[2]=c1[2];}}
+   H.push(yt-o.y);for(let h=-.4;h<T.ha;h+=1.2)H.push(h);H.push(T.ha);H.sort((a,b)=>a-b);}
+  const row=(h0,h1,ls,col)=>{const b=P.length/3;for(const l of ls){pt(l,h0,col);pt(l,h1,col);}for(let k=0;k<ls.length-1;k++){const a=b+k*2;I.push(a,a+1,a+2,a+2,a+1,a+3);}};
+  for(let k=0;k<H.length-1;k++){const h0=H[k],h1=H[k+1];if(h1-h0<.05)continue;cyT2Strate(o.y+(h0+h1)/2,st);st[0]*=CY_T2L.fac;st[1]*=CY_T2L.fac;st[2]*=CY_T2L.fac; /* (la couleur passe au carré : ×1,2 de clarté, la falaise est à l'ombre au fond de la gorge) */
+    const ouv=h1>-.4+.01&&h0<T.ha-.01,w0=ouv?Math.max(wM(h0),wM(h1)):0;
+    if(!ouv){const ls=[-FW];for(let j=COL.length-2;j>=0;j--)ls.push(-COL[j]);ls.push(0);for(const l of COL)ls.push(l);row(h0,h1,ls,st);}
+    else{const ls=[w0];for(const l of COL)if(l>w0+2)ls.push(l);ls[ls.length-1]=FW;row(h0,h1,ls,st);row(h0,h1,ls.map(v=>-v),st);
+      // le bord de la bouche suit sa courbe : le coin de la tranche, côté bouche, à la largeur exacte de chaque hauteur
+      const n0=P.length/3;for(const sd of [-1,1]){const bi=n0-(2*ls.length)*(sd<0?1:2);P[bi*3]=o.x+bx*sd*wM(h0);P[bi*3+2]=o.z+bz*sd*wM(h0);P[(bi+1)*3]=o.x+bx*sd*wM(h1);P[(bi+1)*3+2]=o.z+bz*sd*wM(h1);}}}
+  // LES VOUSSOIRS : le bord de la bouche (de bas en haut, gauche → droite) découpé en blocs, crème et terre cuite en alternance, la clé en or pâle
+  const B=[];{const NA=60;B.push([-W,-.4]);B.push([-W,T.hw]);for(let q=1;q<NA;q++){const a=q/NA*Math.PI;B.push([-W*Math.cos(a),T.hw+(T.ha-T.hw)*Math.sin(a)]);}B.push([W,T.hw]);B.push([W,-.4]);}
+  const cum=[0];for(let k=1;k<B.length;k++)cum.push(cum[k-1]+Math.hypot(B[k][0]-B[k-1][0],B[k][1]-B[k-1][1]));const Lb=cum[cum.length-1];
+  const at=u=>{u=Math.max(0,Math.min(Lb,u));let k=1;while(k<cum.length-1&&cum[k]<u)k++;const w=(u-cum[k-1])/Math.max(1e-6,cum[k]-cum[k-1]);
+    const l=B[k-1][0]+(B[k][0]-B[k-1][0])*w,h=B[k-1][1]+(B[k][1]-B[k-1][1])*w,tl=B[k][0]-B[k-1][0],th=B[k][1]-B[k-1][1],tn=Math.hypot(tl,th)||1;
+    return [l,h,-th/tn,tl/tn];}; // la normale SORTANTE (vers la falaise) : la tangente tournée d'un quart de tour
+  const nb=Math.max(9,Math.round(Lb/T.vs)|1),CR=[1.2,1.12,.99],TC=[1.08,.64,.46],CLE=[1.3,1.1,.7]; // (au-delà de 1 : la couleur passe au carré, les voussoirs ressortent sur la falaise)
+  const face=(A,col,nx,ny,nz)=>{const b=P.length/3;for(const v of A){P.push(v[0],v[1],v[2]);N.push(nx,ny,nz);C.push(col[0],col[1],col[2]);}I.push(b,b+1,b+2,b,b+2,b+3);};
+  const W3=(l,h,av)=>[o.x+bx*l-o.tx*av,o.y+h,o.z+bz*l-o.tz*av]; // av : la saillie vers celui qui arrive
+  for(let k=0;k<nb;k++){const cle=k===(nb>>1),u0=k/nb*Lb+.18,u1=(k+1)/nb*Lb-.18,R0=cle?T.vR*1.5:T.vR,pv=cle?T.vP*1.4:T.vP,col=cle?CLE:k%2?TC:CR;
+    const a=at(u0),b=at(u1),ia=[a[0],a[1]],ib=[b[0],b[1]],oa=[a[0]+a[2]*R0,a[1]+a[3]*R0],ob=[b[0]+b[2]*R0,b[1]+b[3]*R0];
+    face([W3(ia[0],ia[1],pv),W3(ib[0],ib[1],pv),W3(ob[0],ob[1],pv),W3(oa[0],oa[1],pv)],col,-o.tx,0,-o.tz); // la face
+    {const nl=-(a[2]+b[2])/2,nh=-(a[3]+b[3])/2;face([W3(ia[0],ia[1],0),W3(ib[0],ib[1],0),W3(ib[0],ib[1],pv),W3(ia[0],ia[1],pv)],[col[0]*.86,col[1]*.86,col[2]*.86],bx*nl,nh,bz*nl);} // l'intrados (vers l'axe)
+    {const nl=(a[2]+b[2])/2,nh=(a[3]+b[3])/2;face([W3(oa[0],oa[1],pv),W3(ob[0],ob[1],pv),W3(ob[0],ob[1],0),W3(oa[0],oa[1],0)],[col[0]*.9,col[1]*.9,col[2]*.9],bx*nl,nh,bz*nl);} // l'extrados
+    for(const e of [[ia,oa,-1],[ib,ob,1]]){const tl=(b[0]-a[0]),th=(b[1]-a[1]),tn=Math.hypot(tl,th)||1;face([W3(e[0][0],e[0][1],0),W3(e[0][0],e[0][1],pv),W3(e[1][0],e[1][1],pv),W3(e[1][0],e[1][1],0)],[col[0]*.8,col[1]*.8,col[2]*.8],bx*tl/tn*e[2],th/tn*e[2],bz*tl/tn*e[2]);}} // les joints
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.setIndex(I);g.computeBoundingSphere();
+  const m=new THREE.Mesh(g,cyMonuMats().g);m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();m.name='tunnelFacade';CY.grp.add(m);return I.length/3;}
+/* EN VOL dans le tunnel de grès : '' (libre, ou loin de la coque), 'paroi' (murs, voûte, dôme) ou 'canyon' (le fond du gouffre de la salle).
+   La coque est un VOLUME : à la distance a de l'axe, on est dedans entre le bas (le sol, ou le bas du dôme qui s'évase) et le haut (la voûte) ;
+   on ne heurte que DEHORS et à moins de 12 m de la coque — une caisse sur un autre bout de route qui passe sous la salle ou loin de la galerie
+   n'a rien à craindre d'elle (le relief s'en charge). Les marges : 1,2 m aux murs, 1,5 m sous la voûte, 0,8 m au-dessus du sol. */
+const T2B={lo:0,hi:0,sol:false,max:0};
+function cyT2Bornes(a){const n=CY_TUN2.NQ+2;let jm=0,mx=-1;for(let j=0;j<n;j++)if(T2P[j*2]>mx){mx=T2P[j*2];jm=j;}
+  let lo=-1e9,hi=1e9,sol=false;
+  for(let j=0;j<n-1;j++){const l0=T2P[j*2],h0=T2P[j*2+1],l1=T2P[j*2+2],h1=T2P[j*2+3];if((a-l0)*(a-l1)>0)continue;
+    const w=Math.abs(l1-l0)>1e-6?(a-l0)/(l1-l0):1,h=h0+(h1-h0)*w;
+    if(j<jm){if(h>lo){lo=h;sol=j===0;}}else if(h<hi)hi=h;} // avant le point le plus large : le bas (le sol, le bas du dôme) ; après : la voûte
+  T2B.lo=lo;T2B.hi=hi;T2B.sol=sol;T2B.max=mx;return T2B;}
+function cyTun2Heurt(p,C){const S=CY.S;if(!C||!S)return '';let bi=-1,bd=1e18;
+  for(let i=C.i0;i<=C.i1;i+=2){const d=(p.x-S.x[i])**2+(p.z-S.z[i])**2;if(d<bd){bd=d;bi=i;}}
+  if(bi<0||bd>130*130)return '';
+  const s9=bi*S.ds+(p.x-S.x[bi])*S.tx[bi]+(p.z-S.z[bi])*S.tz[bi];if(s9<C.s0||s9>C.s1)return '';
+  const o=cyT2Fr(s9,T2F),a=Math.abs(-(p.x-o.x)*o.tz+(p.z-o.z)*o.tx),h=p.y-o.y;cyT2Prof(cyT2k(s9),T2P);
+  const f=T2P[1],top=T2P[3+CY_TUN2.NQ*2],B=cyT2Bornes(a+1.2);
+  if(a>B.max+12||h<f-12||h>top+12)return ''; // loin de la coque
+  if(a+1.2<B.max&&h>B.lo+.8&&h<B.hi-1.5)return ''; // dedans
+  if(a+1.2<B.max&&h<=B.lo+.8&&B.sol)return f<-8&&a>ROAD_HALF+.5?'canyon':''; // sous le sol : le fond du GOUFFRE tue ; les trottoirs de la galerie, non (une pose au ras du bord)
+  return 'paroi';}
+window.dbgTunnel=function(k,o){const C=CY.tunT;if(!C)return 'pas de tunnel';if(!C.v2)return {v2:0,i0:C.i0,i1:C.i1};
+  if(k==='regle'){if(o)Object.assign(CY_T2L,o);cyMonuments(CY.job);return {regle:Object.assign({},CY_T2L),tunnel:!!CY.tunT};} // (banc) changer la lumière cuite et tout rebâtir
+  if(k==='heurt')return (o||[]).map(function(q){const f=cyT2Fr(L-q[0],{}),p={x:f.x-f.tz*q[1],y:f.y+q[2],z:f.z+f.tx*q[1]};return q.join('/')+' '+(cyTun2Heurt(p,C)||'libre');}); // (banc) [[m avant le bout, côté, hauteur], …] → ce que la coque fait d'une caisse en vol là
+  if(k==='test'){ // LA SALLE : aucun relief au-dessus de la moitié basse de la coque (le sol du gouffre, le bas du dôme) — sinon il traverse
+    let n=0,pire=-1e9,ou=[];for(let s9=L-CY_TUN2.ev0;s9<=C.s1;s9+=8){const o=cyT2Fr(s9,T2F),k9=cyT2k(s9);cyT2Prof(k9,T2P);
+      const pts=[];for(let l=-T2P[2];l<=T2P[2];l+=6)pts.push([l,T2P[1]]);for(let q=0;q<=CY_TUN2.NQ;q++){const h=T2P[3+q*2];if(h<PCUBE.H*k9+CY_TUN2.hw*(1-k9))for(const sg of [-1,1])pts.push([sg*T2P[2+q*2],h]);}
+      for(const q of pts){const x=o.x-o.tz*q[0],z=o.z+o.tx*q[0],hr=cyHauteur(x,z)-(o.y+q[1]);if(hr>pire)pire=hr;if(hr>.5){n++;if(ou.length<20)ou.push(Math.round(s9-L)+':'+Math.round(q[0])+'/'+Math.round(q[1])+'(+'+hr.toFixed(1)+')');}}}
+    return {intrus:n,pire:+pire.toFixed(1),ou:ou.join(' ')};}
+  return {v2:1,s0:Math.round(C.s0),s1:Math.round(C.s1),L:Math.round(L),anneaux:C.an,triangles:{roche:C.tri,anneaux:C.triA,facade:C.triF},pal:PCUBE.pal?PCUBE.pal.map(v=>v.toString(16)):null,meteo:LVL.cur&&LVL.cur.meteo};};
 /* LA MINE ABANDONNÉE (2026-10-15, Sacha : « rajoute un module tunnel, une mine abandonnée comme dans Minecraft ») — un tronçon de ~600 m
    (les repères `mine0`/`mine1` de genCanyon, deux grandes courbes) passe dans une galerie CARRÉE taillée dans la roche : murs, plafond et sol
    en BLOCS de 8 × 6 m (pierre en quatre gris, charbon, et du minerai d'OR et de DIAMANT — c'est CASH CAR), des CADRES de bois tous les 16 m
@@ -16263,7 +16427,7 @@ function cyMonuments(seed){
   if(CY.arche){const m=new THREE.Mesh(cyArcheGeo(CY.arche),M9.a);m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();CY.grp.add(m);}
   {const S=CY.S,N9=PAL.b('cyArbres',700),rg=mulberry32((seed^0x7A33)>>>0),L9=[];
    if(S)for(let k=0;k<N9*6&&L9.length<N9;k++){const i=Math.floor(rg()*(S.n-1));if(S.zS[i]>.5)continue;const sg=rg()<.5?-1:1,lat=S.wR[i]+3+rg()*26,tx=S.tx[i],tz=S.tz[i],x=S.x[i]-tz*sg*lat,z=S.z[i]+tx*sg*lat,o9={};
-     const h=cyHauteur(x,z,o9);if(o9.eau||o9.rk>.3||h>S.F[i]+6)continue;const ht=(9+rg()*13)*(1+.4*rg());if(h+ht>S.y[i]-THICK-4)continue;L9.push([x,h-.5,z,ht,rg()*6.28]);}
+     const h=cyHauteur(x,z,o9);if(o9.eau||o9.rk>.3||h>S.F[i]+6||TUN2_ON&&i*S.ds>L-CY_TUN2.ev0-80)continue;const ht=(9+rg()*13)*(1+.4*rg());if(h+ht>S.y[i]-THICK-4)continue;L9.push([x,h-.5,z,ht,rg()*6.28]);}
    if(L9.length){if(!CY.gArb)CY.gArb=cyArbreGeo();const im=new THREE.InstancedMesh(CY.gArb,M9.t,L9.length),mt=new THREE.Matrix4(),q9=new THREE.Quaternion(),ax=new THREE.Vector3(0,1,0);
      L9.forEach(function(a,k){q9.setFromAxisAngle(ax,a[4]);mt.compose(new THREE.Vector3(a[0],a[1],a[2]),q9,new THREE.Vector3(a[3]*.9,a[3],a[3]*.9));im.setMatrixAt(k,mt);});
      im.instanceMatrix.needsUpdate=true;im.matrixAutoUpdate=false;im.updateMatrix();im.frustumCulled=false;CY.grp.add(im);}CY.nArb=L9.length;}
@@ -16307,7 +16471,7 @@ function canyonChauffe(){ // au menu (chauffeDivers) : la matière du relief com
   /* (2026-10-18, PASSE PERF, Léo : « optimisation des performances ») + les deux matières DOUBLE FACE des pièces du canyon (`.b` le grès, `.g` la roche
      à couleurs ; mesas, voûtes, tunnels) : MESURÉ, à chaque 1re visite du canyon leurs 2 programmes naissaient EN COURSE (banc ×4, dbgProgs) —
      `.g` sur une géométrie qui porte des COULEURS (celle des arbres) : sans attribut `color`, la clé du programme diffère d'un détail (vertexAlphas) */
-  const M9=cyMonuMats(),g9=new THREE.Group(),bx9=new THREE.BoxGeometry(1,1,1);g9.add(new THREE.Mesh(bx9,M9.a));g9.add(new THREE.Mesh(bx9,M9.b));g9.add(new THREE.Mesh(bx9,CY_RAI_M));{const a9=cyArbreGeo(),i9=new THREE.InstancedMesh(a9,M9.t,1);i9.setMatrixAt(0,new THREE.Matrix4());g9.add(i9);g9.add(new THREE.Mesh(a9,M9.g));}const im9=new THREE.InstancedMesh(bx9,M9.i,1);im9.setMatrixAt(0,new THREE.Matrix4());g9.add(im9);g9.traverse(function(o){o.frustumCulled=false;});scene.add(g9);
+  const M9=cyMonuMats(),g9=new THREE.Group(),bx9=new THREE.BoxGeometry(1,1,1);g9.add(new THREE.Mesh(bx9,M9.a));g9.add(new THREE.Mesh(bx9,M9.b));g9.add(new THREE.Mesh(bx9,CY_RAI_M));{const a9=cyArbreGeo(),i9=new THREE.InstancedMesh(a9,M9.t,1);i9.setMatrixAt(0,new THREE.Matrix4());g9.add(i9);g9.add(new THREE.Mesh(a9,M9.g));if(TUN2_ON){const T9=cyT2Mats();g9.add(new THREE.Mesh(a9,T9.m));g9.add(new THREE.Mesh(bx9,T9.o));}} /* (2026-10-19) + LE TUNNEL DE GRÈS : la roche cuite sans brume et l'or des anneaux */const im9=new THREE.InstancedMesh(bx9,M9.i,1);im9.setMatrixAt(0,new THREE.Matrix4());g9.add(im9);g9.traverse(function(o){o.frustumCulled=false;});scene.add(g9);
   try{chauffeRendu([m,g9]);}finally{m.visible=v;CY.geo.instanceCount=n;scene.remove(g9);bx9.dispose();}
   try{const C=skyDome.userData.ciel;if(C.cy){const sc=new THREE.Scene(),me=new THREE.Mesh(skyDome.geometry,C.cy),t=cielCible(8,8,true),cib=renderer.getRenderTarget();me.frustumCulled=false;sc.add(me);renderer.setRenderTarget(t);renderer.render(sc,camera);renderer.setRenderTarget(cib);t.dispose();}}catch(e){console.warn('canyonChauffe ciel',e);}}
 window.dbgCanyon=function(k,a,b,c){
