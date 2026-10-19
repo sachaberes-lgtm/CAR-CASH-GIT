@@ -3,6 +3,22 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES DUNES D'OR : ON DÉCOLLE DE CRÊTE EN CRÊTE, MÊME SANS NITRO (2026-10-19, Sacha, à la question « les vagues doivent-elles décoller aussi à vitesse normale ? » : « oui : je veux qu'on décolle sur les vagues des dunes même sans nitro, de crête en crête ») — v684
+- **Pourquoi elles ne décollaient pas** (MESURÉ au pilote, 7 traversées) : au sol la caisse reste COLLÉE au ruban — elle ne quitte la route que par
+  le bord, le saut nitro, une figure ou un tremplin (le glacier) ; aucune cassure de pente ne la lance, quelle qu'elle soit.
+- **LA LÈVRE** (`dnLevre`, appelée dans la boucle de conduite juste après les tremplins du glacier, même segment `sPrev9` → s, même `rampCd`) : genDunes
+  marque chaque vague (`lv<n>` la lèvre = le bout de la crête droite, `lf<n>` le pied de la face, dans `vague` et le module `dVagues`) ; buildDunes en
+  fait `DN.lev`. Franchie en roulant (dans le sens de la course, sur la dalle, au-dessus de 70 km/h), la lèvre lance la caisse pour la poser vers
+  72 % de SA face, à n'importe quelle vitesse : la face est relue dans la route (`DN.S`), l'élan est celui qui pose à 72 % et au moins celui qui
+  la tient à plus de 4 m du bitume au bout de 0,35 s (sinon la pose se déclare tout de suite), moins ce que la pente RÉELLE du ruban à la lèvre
+  donne déjà (`frameAt` : lissée, elle plonge un peu). g = FALL_G × SPD.
+- MESURÉ (pilote automatique, palier 0, sans nitro, 3 traversées) : à l'élan de la pente moyenne, des bonds de 0,3-0,5 s (la pose dès 0,35 s) ;
+  en comptant la pente réelle, **un vol de 1,6 à 2,1 s à chaque crête**, posé sur la face, 0 mort, 45 à 49 s la traversée. À 208 m/s (le flow), la
+  caisse peut survoler la vague suivante : elle se pose plus loin, sur la route. Console : `dbgDunes().sauts`, `.levre` (le dernier élan : vx, vy, u, la
+  pente, la face).
+- À la nitro TENUE en continu, le pilote meurt toujours dans l'épingle serrée de la boucle à raccourci (le trombone du canyon : elle se prend sans
+  nitro) — pas dans les vagues.
+
 ## LA FÉLINE AU BAS DE CAISSE DE LA TYPE E + LES TROIS DERNIÈRES JANTES (2026-10-19, v683, Léo dans RONDES : « oui, la FÉLINE peut partir sur le main » ; et la suite de « applique la correction des jantes à toutes les voitures »)
 - RONDES 342e6368 (LA FÉLINE : arches serrées, lames chromées, poupe, jantes — détail plus bas, section « LA FÉLINE — LE BAS DE CAISSE ») et
   JAPONAISES 855eb347 (L'AIGLE DE FEU, LE MASTODONTE, LE HOT ROD : option `chapeau` de l'enjoliveur — section « LES JANTES DE L'AIGLE DE FEU »).
