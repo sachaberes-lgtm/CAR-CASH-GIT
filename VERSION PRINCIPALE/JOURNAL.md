@@ -168,6 +168,15 @@
   AVEC LE CHAT + le prix du chat (`bqEtat` e:'chat'), qui mène au rayon ACHAT, le chat sur le plateau (`bqAction`) ; la carte du chat porte le
   bandeau arc-en-ciel « + ARC-EN-CIEL » (`.bqKl.arc`) tant qu'on ne l'a pas. Mots EN : CAT PACK, WITH THE CAT, + RAINBOW.
 
+## LA CAMÉRA DU GLACIER, PLUS HAUTE (2026-10-19, session GLACIER-BORDS — Sacha : « fais une caméra du glacier qui montre la pente (vue plus haute qui plonge), montre-moi une planche avant/après avant de pousser »)
+- `camGlacierM(i)` : au glacier, le recul (`CAM_GLACIER.recul`) et la hauteur (`CAM_GLACIER.monte`) de la caméra de course montent avec la pente
+  (pleine dose à 35°) ; plus haute, le cabrage (`camRouteCabrage`, plafonné par la garde de 12° au-dessus de la glace derrière la caisse) peut
+  redresser davantage. Planche de trois dosages, mêmes endroits, couché et debout (banc `camvar.cjs`) : l'actuelle (redressée de 11°), « 1 »
+  (monte 2, k ,9, max 40 : 28°), « 2 » (monte 2,6, recul 1,2, k 1, max 45 : 35°). Sacha a choisi « 1 ». La caisse descend à l'écran
+  (caisseY −,34 → −,63 couché, −,31 → −,55 debout) et rapetisse un peu. ⚠ Sur une pente RÉGULIÈRE à 45°, aucune caméra de poursuite ne fait
+  vraiment « plonger » l'image (pour voir l'horizon ET la caisse, il faudrait une caméra à moins de ~15° au-dessus de la glace derrière : rasante) ;
+  ce qui manque encore, c'est de voir la vallée tout en bas — la brume de vallée et le brouillard la cachent (piste proposée, non faite).
+
 ## LE GLACIER, 3e TOUR — LA CONGÈRE AU LIEU DU MUR, 40-50° POUR DE VRAI, DE VRAIS TREMPLINS, MOINS DE PICS (2026-10-18, session GLACIER-BORDS — Sacha : « debug la map montagne glace : déjà quand on touche le bord on y reste collé, et il y a des problèmes de collision avec la glace elle-même ; ensuite je t'ai dit 100 fois de faire la map plus pentue, genre 40-50 degrés ; les tremplins doivent être plus beaux, gros et visibles, et moins d'obstacles sur la route » · « quand on touche le bord on doit pas mourir : on s'enfonce dans la neige, ce qui ralentit beaucoup, mais ça tue pas »)
 - POURQUOI ON RESTAIT COLLÉ : le bord était le mur des couloirs du canyon (`parisMur` : lat bornée à 1,15 m du bord, vL = 0, mort au-delà de 30° et
   200 km/h) et le verglas pousse la caisse vers l'EXTÉRIEUR des virages (`banqVerglas`) : elle y revenait à chaque image. Mesuré (banc, pilote qui

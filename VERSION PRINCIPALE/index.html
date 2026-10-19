@@ -50199,10 +50199,11 @@ function camRouteTonneau(cible,axe,dt){ // LE TONNEAU : `cible` = l'écart caiss
    CAM_GLACIER.max = 30°, et la caméra garde 12° au-dessus de la glace derrière la caisse) borne le geste : ~22-24° debout, ~10° couché.
    ⚠ Ne pas MONTER la caméra pour redresser plus : essayé (banc), la caisse descend et rapetisse à l'écran — le pivot seul la garde à sa place.
    `?glaciercam=0` = la caméra d'avant. Partout ailleurs : zéro. */
-const CAM_GLACIER={on:!/[?&]glaciercam=0\b/.test(location.search),k:.8,max:30,garde:12}; // k : part de la pente redressée · max : plafond (°) · garde : site mini (°) de la caméra au-dessus de la glace derrière la caisse (7 essayé : vue rasante, les roues passaient derrière la glace)
+const CAM_GLACIER={on:!/[?&]glaciercam=0\b/.test(location.search),k:.9,max:40,garde:12,monte:2,recul:1}; /* (2026-10-19, Sacha : « fais une caméra du glacier qui montre la pente, vue plus haute qui plonge » — choisie sur planche parmi 3 : l'actuelle k ,8/max 30/monte 1, « 1 » ci-contre, « 2 » monte 2,6/recul 1,2/k 1/max 45) la caméra MONTE ×2 avec la pente, et le cabrage redresse jusqu'à ~28° (11° avant) : plus de piste qui part devant et de paysage ; la caisse un peu plus basse et plus petite à l'écran */ // k : part de la pente redressée · max : plafond (°) · garde : site mini (°) de la caméra au-dessus de la glace derrière la caisse (7 essayé : vue rasante, les roues passaient derrière la glace)
 function camGlacier(){ // la part de pente (rad, ≥ 0 en descente) que la caméra du glacier redresse
   if(!CAM_GLACIER.on||side<0||!banqOk())return 0;
   const h=Math.hypot(F.t.x,F.t.z);return Math.max(0,Math.atan2(-driveDir*F.t.y,h))*CAM_GLACIER.k;}
+function camGlacierM(i){const g9=camGlacier();if(!(g9>0))return 1;const m9=Math.min(1,g9/(.61*CAM_GLACIER.k));return 1+((i?CAM_GLACIER.monte:CAM_GLACIER.recul)-1)*m9;} // (2026-10-19) LA VUE QUI PLONGE : au glacier, la caméra MONTE (×monte) et RECULE (×recul) avec la pente (pleine dose à 35°) — plus haute, le cabrage peut redresser davantage sans passer sous la glace derrière la caisse
 function camRouteCabrage(dt,camBack,camH){ // LE CABRAGE ANTICIPÉ : pose C.q, le pivot à appliquer autour de la caisse
   const C=CAM_ROUTE,D=THREE.MathUtils.clamp(Math.abs(vA)*SPD*C.VOIR_LOIN,C.LOIN_MIN,C.LOIN_MAX);
   frameAt(THREE.MathUtils.clamp(s+driveDir*D,0,L-.01),C.FA);
@@ -63768,8 +63769,8 @@ function loop(now){
         const hC9=Math.max(0,(CARS[level].h||1.3)-1.5), // (2026-09-26) les HAUTES (monster truck, glacier, combi) : on recule et on monte d'autant — elles bouchaient la route
         ct9=camTailleOn(),H9=CAM_HEROS.on,vCam9=(ct9||H9)?Math.min(speedKmh,CAM_TAILLE.recMax/.0018):speedKmh,bCam9=H9?camBoost*CAM_HEROS.boost:ct9?camBoost*CAM_TAILLE.boost:camBoost, /* (CAM_HEROS) la nitro ne recule plus la caméra ; couché aussi, la vitesse n'éloigne plus au-delà de recMax */
         dz9=H9?CAM_HEROS.dolly(loop._fovB):1,hz9=H9?1-CAM_HEROS.bas*THREE.MathUtils.clamp(speedKmh/Math.max(1,vCroisiere())-.6,0,1):1, /* (CAM_HEROS) le VERTIGO : la caméra avance quand le champ s'ouvre · elle descend à haute vitesse */ // (2026-09-30) CAM_TAILLE : en portrait la vitesse n'éloigne plus la caméra au-delà de recMax (NITROOO ×2,6 l'envoyait à 9 m de haut)
-        camBack=(3.6+CARS[level].l*.42+hC9*1.6+vCam9*.0018+bCam9*1.6)*(1-POR*.28)*dz9*(H9?1+(CAM_HEROS.recP-1)*POR:1), /* (CAM_HEROS) debout, un pas en arrière : le champ resserré suffit à grossir la caisse */ // le recul suit la LONGUEUR de la caisse : la Combi et la Bulle cadrées pareil
-       camH=(camBack*.40+hC9*.9+vCam9*.0012+bCam9*.25)*(1+POR*.70)*hz9;
+        camBack=(3.6+CARS[level].l*.42+hC9*1.6+vCam9*.0018+bCam9*1.6)*(1-POR*.28)*dz9*(H9?1+(CAM_HEROS.recP-1)*POR:1)*camGlacierM(0), /* (CAM_HEROS) debout, un pas en arrière : le champ resserré suffit à grossir la caisse */ // le recul suit la LONGUEUR de la caisse : la Combi et la Bulle cadrées pareil
+       camH=(camBack*.40+hC9*.9+vCam9*.0012+bCam9*.25)*(1+POR*.70)*hz9*camGlacierM(1); // (2026-10-19) ×camGlacierM : la vue qui plonge du glacier
         camLean=(loop._viseR==null||loop._viseR>=1)?steer*.065:camLean+(steer*.065-camLean)*(1-Math.exp(-dt*10));camSwing=0;camKick=0; // (conduite v3) la caméra penche avec toi (était .035) — (2026-10-17) à la POSE la penche (éteinte en vol) revient en ~0,1 s au lieu d'une image (jusqu'à 3,7°, volant tenu) ; ensuite elle colle au volant comme avant
         // (conduite v6) la caméra se place derrière un axe MI-ROUTE MI-CAISSE : avant, elle suivait le cap de la caisse et la clouait au
         // centre de l'image (mesuré : 0 % d'écart à l'écran à 15 m du centre) — on voyait le décor coulisser, pas la caisse bouger.
