@@ -3,6 +3,18 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## PLUS DE CAISSE-NUAGE DANS LA MER DE NUAGES (2026-10-19, session sans-caisse-nuage — Sacha : « enlève le truc qui dit : cloud car catch je sais pas quoi dans la map nuage, j'en veux pas »)
+- **Ce que c'était** : le dernier des ÉVÉNEMENTS RARES (14/10, GAMEPLAY) — dans 75 % des parties, à la 1re zone MER DE NUAGES, la CAISSE-NUAGE
+  se condensait devant la caisse avec la bannière « CAISSE-NUAGE — ACCROCHE SON SILLAGE » (en anglais « CLOUD CAR — CATCH HER SLIPSTREAM »).
+- **Ce qui change** : `EVT_ON` est FAUX par défaut (`/[?&]evt=1\b/` au lieu de `!/[?&]evt=0\b/`) : aucun tirage, aucun appel au hasard,
+  rien ne se pose (le jeu de l'ancien `?evt=0`). Rien n'est détruit : **`?evt=1` la rallume** (= avant), et `dbgEvt('caisse')` alors ;
+  sans `?evt=1`, `dbgEvt('caisse')` répond « les evenements rares sont eteints (?evt=1 pour la caisse-nuage) ». La CAISSE-NUAGE du garage
+  (la voiture, le défi `nuage30`) n'est pas touchée.
+- **Mesuré** : `node outils/evt-test.cjs` (mis à jour : par défaut et `?evt=0` = éteint, sur 5000 parties aucune armée, `Math.random`
+  jamais appelé ; les autres cas sous `?evt=1`) → TOUT EST BON. Banc CDP (`outils/banc-caisses/cdp.mjs`), `?carte=nuages&meteo=midi`,
+  menu → JOUER → 13 s de pilote auto : couché, debout et cadre de l'ordi démarrent sans erreur, `dbgEvt()` = `on:false, arme:false`,
+  bannière « NIVEAU 1 » seulement ; témoin `&evt=1` : la caisse-nuage part et la bannière dit « CAISSE-NUAGE ». Gardes burn-out et charte OK.
+
 ## LES DUNES D'OR — UNE NOUVELLE MAP : L'ERG QU'ON DÉVALE DE CRÊTE EN CRÊTE (2026-10-18 soir, session dunes-or — Sacha : « propose-moi des idées de nouvelle map » → « fais les dunes d'or de manière parfaite » ; la proposition retenue : « un désert ouvert (pas de parois, contrairement au Canyon) : on dévale des dunes géantes, d'une crête à l'autre ; obélisques, caravane, mirages au loin ; l'orage = tempête de sable ; sable orange + ciel turquoise, la base même de la DA ») — v674
 - **Le principe** : le moteur de terrain du CANYON (CDLOD en instances, grilles de données lues à l'identique par la puce et par la collision,
   monde calculé dans un travailleur, ombre balayée au soleil de l'heure) sur une MER DE DUNES. Le canyon n'est pas touché : tout est à part

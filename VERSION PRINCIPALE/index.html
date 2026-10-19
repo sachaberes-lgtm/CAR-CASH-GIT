@@ -55768,6 +55768,9 @@ for(const [k,v] of Object.entries({'FAIS-TOI FLASHER':'GET FLASHED','LIS LES FLA
    SURPRISE, pendant une partie NORMALE. Rares (pas plus d'UN par partie), annoncés CLAIREMENT, jamais mortels de façon injuste, avec une
    RÉCOMPENSE. Interrupteur ?evt=0. ») — il en reste UN : la chasse de la CAISSE-NUAGE (le BANQUIER est retiré le 14/10, les MOUTONS le
    15/10, la carrière et ses niveaux le 18/10).
+   ⚠ (2026-10-19, Sacha : « enlève le truc qui dit : cloud car catch je sais pas quoi dans la map nuage, j'en veux pas ») ÉTEINTE PAR
+   DÉFAUT : plus de « CAISSE-NUAGE — ACCROCHE SON SILLAGE » (CLOUD CAR — CATCH HER SLIPSTREAM) dans la mer de nuages. Le code reste :
+   `?evt=1` la rallume (= avant), dbgEvt aussi alors. Sans ?evt=1 : aucun tirage, aucun appel au hasard (le jeu de ?evt=0).
    ----------------------------------------------------------------------------
    La caisse-nuage court avec fantomeTick ; perdre ne coûte RIEN (on roule, on n'a pas la prime), gagner paie la PRIME.
    · QUAND : le tirage se fait au départ de la partie (evtPartie) — 75 parties sur 100 sont « armées » (EVT_P) ; celle-là verra son
@@ -55784,7 +55787,7 @@ for(const [k,v] of Object.entries({'FAIS-TOI FLASHER':'GET FLASHED','LIS LES FLA
    · CONSOLE : dbgEvt() = l'état · dbgEvt('caisse') = le forcer TOUT DE SUITE sur la zone en cours · dbgEvt('arme') = armer la partie et
      poser l'événement de la zone en cours comme à la naissance d'une zone.
    ========================================================================== */
-const EVT_ON=!/[?&]evt=0\b/.test(location.search),EVT_P=.75,EVT_T0=20,EVT_PRIME=120,EVT_AURA=200,EVT_FUITE=600;
+const EVT_ON=/[?&]evt=1\b/.test(location.search),EVT_P=.75,EVT_T0=20,EVT_PRIME=120,EVT_AURA=200,EVT_FUITE=600;
 const EVT={arme:false,fait:false,nom:'',etat:0,ici:false,fini:false,res:'',s0:0,sMax:0,tRun:0,t0:0,finT:0,paye:0}; // etat : 0 rien · 1 posé (il attend son point) · 2 parti · 3 la zone l'a emporté
 function evtPartie(){ // une partie neuve (resetGame, start) : SON tirage — aucun appel au hasard quand ?evt=0
   EVT.fait=false;EVT.nom='';EVT.etat=0;EVT.ici=false;EVT.fini=false;EVT.res='';EVT.tRun=0;EVT.paye=0;
@@ -55866,7 +55869,7 @@ function evtEtat(){const sp=vPos(),o={on:EVT_ON,arme:EVT.arme,fait:EVT.fait,nom:
   return o;}
 window.dbgEvt=function(a){ // dbgEvt() l'état · dbgEvt('caisse') le forcer ICI · dbgEvt('arme') armer la partie et poser celui de la zone
   if(!a)return evtEtat();
-  if(!EVT_ON)return 'evt=0 : les evenements rares sont eteints';
+  if(!EVT_ON)return 'les evenements rares sont eteints (?evt=1 pour la caisse-nuage)';
   if(!started||gameOver)return 'pas de course';
   if(!evtLieuOk())return 'hors partie classique (auto-ecole, balade, bac a sable, parc, survivant, jade, ?classique=cycle)';
   if(a==='arme'){EVT.arme=true;EVT.fait=false;EVT.etat=0;evtZone();return evtEtat();}
