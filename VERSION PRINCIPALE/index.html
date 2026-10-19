@@ -13397,8 +13397,8 @@ function prebChampsDe(piste){ // les champs de module qu'écrit la construction 
   if(piste==='jade')L9.push([JADE,['Q']]);
   else if(piste==='foret')L9.push([FORET,['Q','plg','boucles','noeuds','pel']]);
   else if(piste==='volcan')L9.push([VOLCAN,['K','C','K2','C2','Q','plg','sauts','sSp','ySea','conflits','croise','th0','th1','lac']]);
-  else if(piste==='canyon')L9.push([CY,['Q','rmin','sep']]);
-  else if(piste==='dunes')L9.push([DN,['Q','rmin','sep']]); // (2026-10-18) LES DUNES D'OR
+  else if(piste==='canyon')L9.push([CY,['Q','rmin','sep','hz']]); // (+ hz : LE CANYON AU HASARD)
+  else if(piste==='dunes')L9.push([DN,['Q','rmin','sep','hz']]); // (2026-10-18) LES DUNES D'OR
   else if(piste==='banquise')L9.push([BANQ,['Q','cas','spi']]);
   else if(piste==='grotte')L9.push([GROTTE,['Q','salles','spi','conflits','croise']]); // (2026-10-18) LES PROFONDEURS
   else if(piste==='paris')L9.push([PARIS,['Q']]);
@@ -15453,6 +15453,20 @@ const CY={Q:null,on:false,ms:{},yMin:-1e4,yMax:1e4,ombre:1,prof:0,mesh:null,mat:
    les bords) et PLUS BAS de `dh` (~120 m) — puis elle passe SOUS le premier demi-tour (la route repasse sous elle-même). Celui qui sort
    par le bord de l'approche retombe sur la sortie : il saute ~2 km de route. Les repères `racX0/racX1` (approche) et `racX2/racX3`
    (la sortie, sous l'approche) sont relus par buildCanyon → `CY.rac`. */
+/* LE CANYON AU HASARD (2026-10-19, Sacha : « vérifie bien que toutes les maps sont générées aléatoirement ») — MESURÉ (40 graines, palier 0) : la graine
+   changeait à chaque partie, mais genCanyon suivait toujours la même RECETTE : plein nord (±11°), Route 67 → brèche → fer à cheval/raccourci → arche →
+   finale, aux mêmes % du parcours (écart de forme 0,08 ; la jade d'avant son tirage : 0,26 après). Désormais chaque canyon tire :
+   · son AXE (±`axe`° autour du nord) ;
+   · ses PIÈCES et leur ORDRE entre le départ (Route 67 + brèche, gardés) et la finale (le tunnel) : un raccourci et un monument (l'arche ou
+     l'amphithéâtre) toujours, puis, mélangés, ce que la longueur tient parmi les étroits, l'autre monument, la mine, le dos de chameau, les bosses
+     et un 2e raccourci (hors JOUER : tout, huit raccourcis) ;
+   · un CARACTÈRE par liaison — méandres, gorge, serpent, dérive, cassures — ou un module (`mod` : la part des liaisons qui en sont un) ;
+   · sa PENTE (les liaisons ×0,85-1,2) et sa LONGUEUR : longueurCible() × `kL` ±8 % (la longueur réelle d'avant au palier 0, celle sur laquelle la
+     durée des maps a été mesurée : 46 s) ; `lien` = la longueur moyenne d'une liaison au JOUER (×LL).
+   Le relief, la rivière, les parois et tous les décors (Mitaines, station, arche, cheminées, mine, tunnel) sont posés AUTOUR de la route : ils suivent ;
+   le soleil de l'heure (`cyA`) reste celui du monde — il ne tombe plus toujours du même côté de la route. `?sans=canyonhasard` = la recette d'avant,
+   au tirage près ; `dbgCanyon().hz` = l'axe, la pente, la longueur visée et les pièces dans l'ordre. */
+const CY_HZ={on:!/[?&]sans=([^&]*,)?canyonhasard(,|&|$)/.test(location.search),axe:55,kL:1.34,mod:.6,lien:170,coude:.65,cmax:28};
 function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main entre deux essais et pendant la mesure des écarts
   CAMPM.length=0;MODMARK.length=0;FILETMARK.length=0;
   const LV=lvPiste(),RS=1.25+.3*(LV-1),LL=1+Math.min(1.3,(LV-1)*.5),SQ=Math.sqrt(LV),g0=(rnd()*4294967296)>>>0;
@@ -15461,11 +15475,11 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
   const VW=typeof vPalier==='function'?vPalier():70+(LV-1)*100,RMIN=1.08*(typeof rayonPalier==='function'?rayonPalier():40+.3*VW);CY.rmin=Math.round(RMIN);
   let best=null,bestSep=-1;
   for(let essai=0;essai<14;essai++){if(essai)yield;
-    const r=mulberry32((g0+essai*0x9E3779B1)>>>0),C=[],Q={},P=new THREE.Vector3(0,0,0),BO=[];let phi=0;const LIM=58*Math.PI/180;
-    const push=()=>C.push(P.clone()),ici=k=>{Q[k]={p:P.clone(),phi:phi};};
-    const droite=(l,pe,n)=>{n=n||Math.max(2,Math.round(l/90));for(let k=0;k<n;k++){P.x+=Math.sin(phi)*l/n;P.z+=Math.cos(phi)*l/n;P.y+=pe*l/n;push();}};
+    const r=mulberry32((g0+essai*0x9E3779B1)>>>0),C=[],Q={},P=new THREE.Vector3(0,0,0),BO=[];let phi=0,AX9=0;const LIM=58*Math.PI/180; /* AX9 : (AU HASARD) le COUDE de l'axe — 0 dans la recette d'avant */
+    const push=()=>C.push(P.clone()),ici=k=>{Q[k]={p:P.clone(),phi:phi+AX9};};
+    const droite=(l,pe,n)=>{n=n||Math.max(2,Math.round(l/90));for(let k=0;k<n;k++){P.x+=Math.sin(phi+AX9)*l/n;P.z+=Math.cos(phi+AX9)*l/n;P.y+=pe*l/n;push();}};
     const arc=(aDeg,R,pe)=>{R=Math.max(R,RMIN);const n=Math.max(3,Math.ceil(Math.abs(aDeg)/8)),st=aDeg*Math.PI/180/n,ch=2*R*Math.sin(Math.abs(st)/2);
-      for(let k=0;k<n;k++){phi+=st/2;P.x+=Math.sin(phi)*ch;P.z+=Math.cos(phi)*ch;P.y+=pe*ch;phi+=st/2;push();}};
+      for(let k=0;k<n;k++){phi+=st/2;P.x+=Math.sin(phi+AX9)*ch;P.z+=Math.cos(phi+AX9)*ch;P.y+=pe*ch;phi+=st/2;push();}};
     const recentre=pe=>{if(Math.abs(phi)>.06)arc(-phi*57.2958,(300+r()*150)*RS,pe);}; // (2026-10-15) R 300-450 : à 520-720 le retour au cap faisait 900 m qu on prenait pour une droite
     // LES VIRAGES DE COURSE (règle RACCOURCIS de GAMEPLAY : ≥ 2,5 virages/km de rayon < 250 m, enchaînés) : gauche-droite, presque plus de droites
     // LE GRAND VIRAGE (2026-10-15, Sacha : « plus de virages larges, la plupart de la map fait du tout droit ») : une longueur donnée
@@ -15499,9 +15513,9 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
     const cChicane=(p0,p1)=>{const a=30+rm()*10,R=RMIN*(1.1+rm()*.2);cmRe(LIM-a/57.3-.05,cmPe(p0,p1));const sg=phi>0?-1:1;droite(50*LL,cmPe(p0,p1)*.6);
       arc(sg*a,R,cmPe(p0,p1));arc(-sg*2*a,R,cmPe(p0,p1));arc(sg*a,R,cmPe(p0,p1));droite(50*LL,cmPe(p0,p1)*.6);};
     const cmJ=[cSlalom,cCorde,cWhoops,cChicane];
-    const lien=(len,p0,p1)=>{const k=cmK++;if(!rm||!cmCase.has(k)){virages(len,p0,p1);return;}  // (2026-10-18) une liaison : des virages… ou un MODULE (voir cSlalom)
-      let m=0;for(let e=0;e<6;e++){if(!cmPaq.length){const t=[0,1,2,3];for(let i=3;i>0;i--){const j=(rm()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}for(const x9 of t)cmPaq.push(x9);}m=cmPaq.shift();if(m!==cmLast)break;}
-      cmLast=m;const i0=C.length-1;cmJ[m](p0,p1);MM.push({i0:i0,i1:C.length-1});};
+    const cmPose=(p0,p1)=>{let m=0;for(let e=0;e<6;e++){if(!cmPaq.length){const t=[0,1,2,3];for(let i=3;i>0;i--){const j=(rm()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}for(const x9 of t)cmPaq.push(x9);}m=cmPaq.shift();if(m!==cmLast)break;}
+      cmLast=m;const i0=C.length-1;cmJ[m](p0,p1);MM.push({i0:i0,i1:C.length-1});}; // le module suivant du paquet (jamais deux fois le même de suite)
+    const lien=(len,p0,p1)=>{const k=cmK++;if(!rm||!cmCase.has(k)){virages(len,p0,p1);return;}cmPose(p0,p1);};  // (2026-10-18) une liaison : des virages… ou un MODULE (voir cSlalom)
     // LA BOUCLE (le raccourci) : approche ~220 m · demi-tour R1 ~135 m · retour · demi-tour SERRÉ R2 = R1 − e/2 (~80 m) · la SORTIE, 94 m à côté
     // de l'approche et 55 à 90 m plus bas (2,6 à 3,4 s de vol : à 70-140 m/s on retombe de 180 à 480 m plus loin — la sortie file droit
     // sous l'approche puis sous le premier demi-tour, et s'incurve à peine : elle est là où la caisse arrive)
@@ -15518,6 +15532,55 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
     /* (LA DURÉE DES MAPS) au JOUER (LC9 > 0) : la Route 66 (moitié), la brèche, le raccourci A, les étroits, l'arche, l'amphithéâtre et la finale
        restent ; les raccourcis B à H, les bosses, la mine et le dos de chameau n'entrent que si la longueur visée les tient (`tient`) */
     const LC9=typeof longueurCible==='function'?longueurCible():0,kC=LC9?.4:1,fait=()=>{let a=0;for(let k=1;k<C.length;k++)a+=Math.hypot(C[k].x-C[k-1].x,C[k].z-C[k-1].z);return a;},tient=f=>!LC9||fait()<LC9*f;
+    let ax=0,hz=null;
+    if(CY_HZ.on){ /* LE CANYON AU HASARD (2026-10-19) — voir CY_HZ. Tout se tire dans `rh` (né de la graine de l'essai) et dans `r` ; la route est bâtie
+                     dans l'axe (+z) puis TOURNÉE de `ax` à la fin (la butée de cap ±58°, les recentrages et les boucles se comptent autour de l'axe) */
+      const rh=mulberry32(((g0^0x0CA4A5A1)+Math.imul(essai+1,0x27D4EB2F))>>>0),kP=.85+rh()*.35,mel=a=>{for(let i=a.length-1;i>0;i--){const j=(rh()*(i+1))|0,x9=a[i];a[i]=a[j];a[j]=x9;}return a;};
+      ax=(rh()-.5)*2*CY_HZ.axe/57.2958;
+      // LES CARACTÈRES DES LIAISONS : les méandres (les virages d'avant), la gorge (grandes courbes), le serpent (S serrés), la dérive (la gorge part
+      // en biais jusqu'à la butée et y ondule), les cassures (courtes droites et coudes) — jamais deux fois le même de suite ; ou un MODULE (cmPose)
+      const cote=(sg,a)=>{const l9=(LIM-sg*phi)*57.2958;if(l9<15){sg=-sg;a=Math.min(a,(LIM-sg*phi)*57.2958);}else a=Math.min(a,l9);return [sg,a];};
+      const gorge=(len,p0,p1)=>{let f9=0,sg=r()<.5?-1:1;while(f9<len){const t=cote(-sg,35+r()*30),R=(300+r()*180)*RS;sg=t[0];arc(sg*t[1],R,-(p0+r()*(p1-p0)));f9+=R*t[1]/57.2958;}};
+      const serpent=(len,p0,p1)=>{let f9=0,sg=r()<.5?-1:1;while(f9<len){const t=cote(-sg,30+r()*18),R=RMIN*(1.25+r()*.35);sg=t[0];arc(sg*t[1],R,-(p0+r()*(p1-p0)));f9+=R*t[1]/57.2958;}};
+      const derive=(len,p0,p1)=>{const sg=r()<.5?-1:1,c9=sg*(LIM*57.2958-6-r()*12)-phi*57.2958,R0=(260+r()*120)*RS;arc(c9,R0,-(p0+r()*(p1-p0)));let f9=R0*Math.abs(c9)/57.2958;
+        while(f9<len){const s9=sg*phi*57.2958>LIM*57.2958-24?-sg:sg,a=Math.min(10+r()*14,(LIM-s9*phi)*57.2958),R=(220+r()*160)*RS;arc(s9*a,R,-(p0+r()*(p1-p0)));f9+=R*a/57.2958;}};
+      const cassures=(len,p0,p1)=>{let f9=0,sg=r()<.5?-1:1;while(f9<len){const l=(60+r()*60)*LL;droite(l,-(p0+r()*(p1-p0))*.8);const t=cote(-sg,28+r()*20),R=RMIN*(1.3+r()*.5);sg=t[0];arc(sg*t[1],R,-(p0+r()*(p1-p0)));f9+=l+R*t[1]/57.2958;}};
+      const CAR9=[virages,gorge,serpent,derive,cassures],CARN=['meandres','gorge','serpent','derive','cassures'];let hPrec=-1;
+      const lienH=(len,p0,p1)=>{p0*=kP;p1*=kP;if(rm&&rm()<CY_HZ.mod){cmPose(p0,p1);return 'module';}
+        let i=(rh()*CAR9.length)|0;if(i===hPrec)i=(i+1+((rh()*(CAR9.length-1))|0))%CAR9.length;hPrec=i;CAR9[i](len,p0,p1);return CARN[i];};
+      // LES PIÈCES (celles d'avant, telles quelles) — chacune derrière sa liaison
+      let nRac=0;
+      const PC={rac:()=>{const nm='rac'+'ABCDEFGH'[nRac];if(!nRac)ici('fer0');boucle(nm,sens());if(!nRac)ici('fer1');nRac++;},
+        etroits:()=>{recentre(-.3);ici('etroit0');let sg=sens();for(let k=0;k<(LC9?4:6);k++){arc(sg*(24+r()*16),(150+r()*60)*RS,-.30);sg=-sg;}ici('etroit1');large(260*LL,-.28);},
+        arche:()=>{droite(90*LL,-.2,2);ici('arche0');large(360*LL*(LC9?.6:1),-.14,(560+r()*200)*RS);ici('arche1');},
+        amphi:()=>{recentre(-.3);const sg=sens();arc(-sg*40,300*RS,-.35);ici('amphi0');arc(sg*96,(230+r()*40)*RS,-.42);ici('amphi1');},
+        mine:()=>{ici('mine0');large(300*LL,-.16);large(300*LL,-.16);ici('mine1');},
+        chameau:()=>{const l1=(150+r()*40)*LL,h=(24+r()*10)*SQ,l2=(250+r()*60)*LL;ici('chameau');droite(l1,h/l1,3);large(l2,-(h+80*SQ)/l2);},
+        bosses:()=>{ici('bosses');bosses(2);}};
+      // LA LONGUEUR de chaque pièce, en moyenne (MESURÉ au banc des tracés, 40 graines × paliers 0 à 25) — pour savoir lesquelles la longueur visée tient ;
+      // une liaison : un module (~8,4 × RMIN) ou un caractère (~1,75 × la longueur demandée : on finit le virage commencé)
+      const LIEN=(LC9?CY_HZ.lien:300)*LL,EST={rac:290*LL+1190*RS+190,etroits:(LC9?860:1290)*RS,arche:(90+360*(LC9?.6:1))*LL,amphi:783*RS,mine:600*LL,chameau:450*LL,bosses:410*LL},
+        LI9=(rm?CY_HZ.mod*8.4*RMIN:0)+(1-(rm?CY_HZ.mod:0))*1.75*LIEN,FIN=LI9+80+(LC9?372:620)*LL+150,B=LC9?LC9*CY_HZ.kL*(.92+rh()*.16):0;
+      // LE JEU DE PIÈCES : un raccourci et une pièce DUS (le plus souvent un monument : l'arche ou l'amphithéâtre) ; les autres, prises dans un ordre
+      // mélangé, entrent si la longueur visée les tient ; puis l'ORDRE de toutes est mélangé à son tour
+      const PDS={arche:3,amphi:3,etroits:2,mine:1.5,chameau:1,bosses:1};let deux='arche';{let t=rh()*11.5;for(const k in PDS){t-=PDS[k];if(t<0){deux=k;break;}}}
+      const autres=Object.keys(PDS).filter(k=>k!==deux);let jeu=['rac',deux];
+      if(!LC9)jeu=jeu.concat(autres,['rac','rac','rac','rac','rac','rac','rac']);
+      else{let u=FIN+2*LI9+EST.rac+EST[deux]+820*LL*.35+98*RS+420*LL;for(const p of mel(autres.concat(['rac'])))if(u+LI9+EST[p]<=B){jeu.push(p);u+=LI9+EST[p];}}
+      mel(jeu);
+      hz={axe:Math.round(ax*57.2958),pente:+kP.toFixed(2),B:Math.round(B),LL:+LL.toFixed(2),RS:+RS.toFixed(2),RMIN:Math.round(RMIN),p:[]};
+      push();ici('depart');
+      {const l9=820*LL*(LC9?.35:1);droite(l9,-.025,Math.max(2,Math.round(l9/90)));}ici('breche0');   // LA ROUTE 67 (sa station, son panneau)
+      {const a=(r()<.5?-1:1)*(5+r()*6);arc(a,700*RS,-.2);}
+      large(330*LL,-.62);ici('breche1');droite(90*LL,-.25,2);                                            // LA BRÈCHE : le plongeon dans la gorge
+      // LE COUDE : entre deux pièces, l'axe de la gorge tourne (±10-25°, ±`cmax`° au plus autour de l'axe tiré) — la route garde son cap, la suite se
+      // compte autour du nouvel axe (le cap reste à moins de 90° de l'axe tiré : la route ne revient jamais sur elle-même)
+      const coude=()=>{if(rh()>=CY_HZ.coude)return;let d=(rh()<.5?-1:1)*(10+rh()*15)/57.2958;const M9=CY_HZ.cmax/57.2958;if(Math.abs(AX9+d)>M9)d=-d;
+        if(Math.abs(AX9+d)<=M9&&Math.abs(phi-d)<LIM-.09){AX9+=d;phi-=d;hz.c.push(Math.round(d*57.2958));}};hz.c=[];
+      jeu.forEach(function(p,k){if(k)coude();const f0=fait(),c9=lienH(LIEN*(.7+rh()*.6),.30,.55),f1=fait();PC[p]();hz.p.push([c9,Math.round(f1-f0)],[p,Math.round(fait()-f1)]);});
+      coude();{const f0=fait(),c9=lienH(LC9?Math.max(.6*LIEN,Math.min(900*LL,(B-fait()-(FIN-LI9))/1.75)):240*LL,.30,.55);hz.p.push([c9,Math.round(fait()-f0)]);}recentre(-.4); // la dernière liaison prend ce qui manque à la longueur visée
+      ici('finale0');large(300*LL*(LC9?.6:1),-.75);large(320*LL*(LC9?.6:1),-.12);ici('fin');droite(150,-.05,2); // LA FINALE (le tunnel de grès)
+    }else{
     push();ici('depart');
     r();r();{const l9=820*LL*(LC9?.35:1);droite(l9,-.025,Math.max(2,Math.round(l9/90)));}ici('breche0'); /* (2026-10-15 soir, Sacha : « le niveau dans le canyon doit commencer par une longue ligne droite, une vieille station-service et un panneau ROUTE 66 ») LA ROUTE 66 : la vallée des Mitaines en LONGUE LIGNE DROITE (820 m, à peine en pente) — les deux tirages de l'ancienne courbe sont gardés : la suite du canyon ne bouge pas. Avant : large(340*LL,-.05,(480+r()*200)*RS) */
     {const a=(r()<.5?-1:1)*(5+r()*6);arc(a,700*RS,-.2);}
@@ -15538,13 +15601,17 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
     if(tient(.84)){lien(260*LL,.30,.55);boucle('racH',sens());}
     lien(240*LL*kC,.30,.55);recentre(-.4);
     ici('finale0');large(300*LL*(LC9?.6:1),-.75);large(320*LL*(LC9?.6:1),-.12);ici('fin');droite(150,-.05,2); // la finale : deux grandes courbes, seule la ligne d'arrivée reste droite
+    }
     // LE CONTRÔLE : deux tronçons à plus de 1,2 km l'un de l'autre sur la route ne passent jamais à moins de ~560 m — SAUF à l'intérieur
     // d'une même boucle (c'est le raccourci, voulu)
     const n=C.length,acc=new Float32Array(n),bo=new Int16Array(n).fill(-1);for(let k=1;k<n;k++)acc[k]=acc[k-1]+Math.hypot(C[k].x-C[k-1].x,C[k].z-C[k-1].z);
     BO.forEach(function(q,m){for(let k=q[0];k<=q[1];k++)bo[k]=m;});
     let sep=1e9;for(let i=0;i<n;i++){if((i&63)===63)yield;for(let j=i+1;j<n;j++){if(acc[j]-acc[i]<1200*LL||(bo[i]>=0&&bo[i]===bo[j]))continue;const d=Math.hypot(C[i].x-C[j].x,C[i].z-C[j].z);if(d<sep)sep=d;}}
-    if(sep>bestSep){bestSep=sep;best={C:C,Q:Q,MM:MM};}
+    if(sep>bestSep){bestSep=sep;best={C:C,Q:Q,MM:MM,ax:ax,hz:hz};}
     if(sep>560*SQ)break;}
+  if(best.ax){const ca=Math.cos(best.ax),sa=Math.sin(best.ax),tr=v=>{const x=v.x;v.x=x*ca+v.z*sa;v.z=v.z*ca-x*sa;}; // (LE CANYON AU HASARD) l'AXE : la route bâtie dans l'axe +z, tournée autour du départ
+    for(const v of best.C)tr(v);for(const k in best.Q){tr(best.Q[k].p);best.Q[k].phi+=best.ax;}}
+  CY.hz=best.hz||null;if(CY.hz)CY.hz.sep=Math.round(bestSep);
   lisserRaccords(best.C);adoucirCretes(best.C,1);
   for(const k in best.Q){const o=best.Q[k];let bi=0,bd=1e18;for(let j=0;j<best.C.length;j++){const d=best.C[j].distanceToSquared(o.p);if(d<bd){bd=d;bi=j;}}o.p.copy(best.C[bi]);}
   CY.Q=best.Q;CY.sep=Math.round(bestSep);
@@ -15986,10 +16053,17 @@ function canyonHeurt(p){if(!CY.on||!CY.Z)return '';
 function cyMitaines(S,F,sQ,K,r){
   const a=sQ.depart!=null?sQ.depart:0,b=sQ.breche0!=null?sQ.breche0:Math.min(L,600);if(b-a<120)return;
   const s9=a+(b-a)*.55,i=Math.min(S.n-1,Math.round(s9/S.ds)),tx=S.tx[i],tz=S.tz[i],px=-tz,pz=tx,K4=Math.pow(K,.8);
+  const th=Math.atan2(tx,tz),dA=Math.abs(th)>1e-6?th:0; // (2026-10-19, LE CANYON AU HASARD) le cap de la Route 67 : les Mitaines se tournent avec elle (plein nord : 0, rien ne change)
   const M=[]; // [x, z, axe x, axe z, rx, rz, hauteur, pouce : côté le long du grand axe]
-  for(const sg of [-1,1]){const lat=(sg<0?430:390)*K4,av=(sg<0?40:-60)*K4,cx=S.x[i]+px*sg*lat+tx*av,cz=S.z[i]+pz*sg*lat+tz*av,an=(sg<0?.35:-.5)+(r()-.5)*.3;
+  for(const sg of [-1,1]){const lat=(sg<0?430:390)*K4,av=(sg<0?40:-60)*K4,cx=S.x[i]+px*sg*lat+tx*av,cz=S.z[i]+pz*sg*lat+tz*av,an=(sg<0?.35:-.5)+(r()-.5)*.3-dA;
     M.push({x:cx,z:cz,ax:Math.cos(an),az:Math.sin(an),rx:(118+r()*20)*K4,rz:(64+r()*10)*K4,h:(320+r()*40)*K4,pouce:sg});}
-  {const lat=820*K4,cx=S.x[i]+px*(r()<.5?-1:1)*lat+tx*260*K4,cz=S.z[i]+pz*lat*(r()<.5?-1:1)+tz*260*K4;M.push({x:cx,z:cz,ax:1,az:0,rx:190*K4,rz:120*K4,h:280*K4,pouce:0});} // la troisième, massive (une mesa), plus loin
+  {const lat=820*K4,cx=S.x[i]+px*(r()<.5?-1:1)*lat+tx*260*K4,cz=S.z[i]+pz*lat*(r()<.5?-1:1)+tz*260*K4;M.push({x:cx,z:cz,ax:Math.cos(dA),az:-Math.sin(dA),rx:190*K4,rz:120*K4,h:280*K4,pouce:0});} // la troisième, massive (une mesa), plus loin
+  /* (2026-10-19, LE CANYON AU HASARD) LA RÈGLE D'OR DES MITAINES : elles sont posées à côté de la Route 67, mais la route peut tourner ensuite vers elles (la brèche, une
+     dérive, un coude : MESURÉ, 4 canyons sur 40 passaient DANS une butte, 360 à 830 m sous sa cime). Une butte dont le pied (1,65 × son grand rayon : là où
+     son talus tombe sous ~15 m ; le pouce : rx + 100 m) approche une route s'écarte de 60 m en 60 m, au plus 12 fois — sinon elle n'est pas posée. Aucun tirage ;
+     la recette d'avant n'en a jamais besoin (sa route file droit sous les Mitaines : 390 m et plus). */
+  for(let k=M.length-1;k>=0;k--){const m=M[k],R9=Math.max(1.65*Math.max(m.rx,m.rz),m.pouce?m.rx+100*K4:0)+ROAD_HALF+10,pres=()=>{for(let j=0;j<S.n;j+=2){const dx=S.x[j]-m.x,dz=S.z[j]-m.z;if(dx*dx+dz*dz<R9*R9)return true;}return false;};
+    if(!pres())continue;let ux=m.x-S.x[i],uz=m.z-S.z[i];const ul=Math.hypot(ux,uz)||1;ux/=ul;uz/=ul;let n9=0;while(n9<12&&pres()){m.x+=ux*60;m.z+=uz*60;n9++;}if(pres())M.splice(k,1);}
   const fc=F.c,fm=F.m,TF=F.ts;CY.mit=[];
   for(const m of M){const base=cyHauteurVite(m.x,m.z)-4,R9=Math.max(m.rx,m.rz)*2.1+60;CY.mit.push({x:m.x,z:m.z,r:Math.max(m.rx,m.rz)*1.1,y0:base,y1:base+m.h});
     const th={x:m.x+m.ax*(m.rx+48*K4)*(m.pouce||0),z:m.z+m.az*(m.rx+48*K4)*(m.pouce||0),r:26*K4,h:m.h*.93};
@@ -16491,7 +16565,7 @@ window.dbgCanyon=function(k,a,b,c){
     frameAt(Math.max(0,Math.min(L-1,(k==='vueA'?0:s)+(a||0))),F9); /* 'vueA' : à l'abscisse a de la piste (sinon a mètres devant la caisse) */const cap=(c||0)*Math.PI/180,dx=F9.t.x*Math.cos(cap)-F9.t.z*Math.sin(cap),dz=F9.t.z*Math.cos(cap)+F9.t.x*Math.sin(cap);
     camera.position.set(F9.p.x,F9.p.y+(b||12),F9.p.z);camera.up.set(0,1,0);camera.lookAt(F9.p.x+dx*200,F9.p.y+(b||12)-200*(a!=null&&arguments[4]!=null?arguments[4]:.12),F9.p.z+dz*200);camera.updateMatrixWorld();
     skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return {cam:camera.position.toArray().map(Math.round),noeuds:CY.n};}
-  return {on:CY.on,r66:CY.r66|0,ms:CY.ms,noeuds:CY.n,sep:CY.sep,F:CY.F?[CY.F.nx,CY.F.nz,CY.F.ts]:null,Z:CY.Z?[CY.Z.nx,CY.Z.nz,CY.Z.ts]:null,O:CY.O?[CY.O.nx,CY.O.nz,CY.O.ts]:null,
+  return {on:CY.on,r66:CY.r66|0,ms:CY.ms,noeuds:CY.n,sep:CY.sep,hz:CY.hz||null,F:CY.F?[CY.F.nx,CY.F.nz,CY.F.ts]:null,Z:CY.Z?[CY.Z.nx,CY.Z.nz,CY.Z.ts]:null,O:CY.O?[CY.O.nx,CY.O.nz,CY.O.ts]:null,
     ciel:CIEL2.mode,attente:!!CY.attente,sQ:CY.sQ,L:Math.round(L),buttes:CY.buttes?CY.buttes.length:0,soleil:SUN_DIR.toArray().map(v=>+v.toFixed(3)),ombre:+CY.ombre.toFixed(2),prof:+CY.prof.toFixed(2),canyon:+(LVL.canyon||0).toFixed(2),
     carHaut:CY.on?+(carGroup.position.y-cyHauteur(carGroup.position.x,carGroup.position.z)).toFixed(1):null};};
 /* <<<DUNES>>> */
@@ -16533,17 +16607,27 @@ PAL.B.dnFin=[16,14,12];PAL.B.dnPlat=[96,80,64];PAL.B.dnOmbre=[60,52,44];PAL.B.dn
 const DN={Q:null,on:false,ms:{},yMin:-1e4,yMax:1e4,mesh:null,mat:null,geo:null,aN:null,maxN:900,G:32,S0:64,R0:118,lods:7,
   F:null,Z:null,O:null,fr:new THREE.Frustum(),pm:new THREE.Matrix4(),box:new THREE.Box3(),n:0,S:null,job:0,attente:null,grp:null,
   ombre:1,ecrit:false,ob:[],pyr:null,oa:null,rac:[],vent:[1,0,1,0],lam:560,car:[],sep:0,rmin:0}; // (les textes : avec les ambiances des dunes, I18N n'existe pas encore ici)
+/* LES DUNES AU HASARD (2026-10-19, Sacha : « vérifie bien que toutes les maps sont générées aléatoirement ») — MESURÉ (40 graines, palier 0) : genDunes suivait
+   toujours la même RECETTE : plein nord (−13° à +8°), erg → toboggan → raccourci → vagues → vallée morte → obélisques → oasis aux mêmes % du parcours
+   (écart de forme 0,06). Désormais chaque erg tire, comme le canyon (CY_HZ) : son AXE (±`axe`°) ; ses PIÈCES et leur ORDRE entre l'ouverture (la crête
+   du Grand Erg + le toboggan, gardés) et l'oasis (l'arrivée) — un raccourci, les vagues et deux décors toujours (parmi la vallée morte, l'allée des
+   obélisques et la deuxième crête), puis, mélangés, ce que la longueur tient parmi le 3e, des deuxièmes vagues et un 2e raccourci (hors JOUER : tout) ; un
+   CARACTÈRE par liaison (virages, houle, serpent, dérive) ou un module ; sa PENTE (×0,85-1,2) et sa LONGUEUR (longueurCible() × `kL` ±8 % : la
+   longueur réelle d'avant au palier 0). Le sable, le vent (il souffle dans l'axe de la descente), l'oasis, la pyramide, les obélisques, les acacias et
+   les caravanes sont posés AUTOUR de la route : ils suivent ; le soleil de l'heure reste celui du monde, et les trois pyramides de l'horizon (le ciel
+   du canyon) aussi. `?sans=duneshasard` = la recette d'avant, au tirage près ; `dbgDunes().hz` = l'axe, la pente, la longueur visée, les pièces. */
+const DN_HZ={on:!/[?&]sans=([^&]*,)?duneshasard(,|&|$)/.test(location.search),axe:55,kL:1.1,mod:.6,lien:150,pl:.35,coude:.65,cmax:28};
 function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : il rend la main entre deux essais et pendant la mesure des écarts
   CAMPM.length=0;MODMARK.length=0;FILETMARK.length=0;
   const LV=lvPiste(),RS=1.25+.3*(LV-1),LL=1+Math.min(1.3,(LV-1)*.5),SQ=Math.sqrt(LV),g0=(rnd()*4294967296)>>>0;
   const VW=typeof vPalier==='function'?vPalier():70+(LV-1)*100,RMIN=1.08*(typeof rayonPalier==='function'?rayonPalier():40+.3*VW);DN.rmin=Math.round(RMIN);
   let best=null,bestSep=-1;
   for(let essai=0;essai<14;essai++){if(essai)yield;
-    const r=mulberry32((g0+essai*0x9E3779B1)>>>0),C=[],Q={},P=new THREE.Vector3(0,0,0),BO=[];let phi=0;const LIM=58*Math.PI/180;
-    const push=()=>C.push(P.clone()),ici=k=>{Q[k]={p:P.clone(),phi:phi};},lib=sg=>(LIM-sg*phi)*57.2958;
-    const droite=(l,pe,n)=>{n=n||Math.max(2,Math.round(l/90));for(let k=0;k<n;k++){P.x+=Math.sin(phi)*l/n;P.z+=Math.cos(phi)*l/n;P.y+=pe*l/n;push();}};
+    const r=mulberry32((g0+essai*0x9E3779B1)>>>0),C=[],Q={},P=new THREE.Vector3(0,0,0),BO=[];let phi=0,AX9=0;const LIM=58*Math.PI/180; /* AX9 : (AU HASARD) le COUDE de l'axe — 0 dans la recette d'avant */
+    const push=()=>C.push(P.clone()),ici=k=>{Q[k]={p:P.clone(),phi:phi+AX9};},lib=sg=>(LIM-sg*phi)*57.2958;
+    const droite=(l,pe,n)=>{n=n||Math.max(2,Math.round(l/90));for(let k=0;k<n;k++){P.x+=Math.sin(phi+AX9)*l/n;P.z+=Math.cos(phi+AX9)*l/n;P.y+=pe*l/n;push();}};
     const arc=(aDeg,R,pe)=>{R=Math.max(R,RMIN);const n=Math.max(3,Math.ceil(Math.abs(aDeg)/8)),st=aDeg*Math.PI/180/n,ch=2*R*Math.sin(Math.abs(st)/2);
-      for(let k=0;k<n;k++){phi+=st/2;P.x+=Math.sin(phi)*ch;P.z+=Math.cos(phi)*ch;P.y+=pe*ch;phi+=st/2;push();}};
+      for(let k=0;k<n;k++){phi+=st/2;P.x+=Math.sin(phi+AX9)*ch;P.z+=Math.cos(phi+AX9)*ch;P.y+=pe*ch;phi+=st/2;push();}};
     const recentre=pe=>{if(Math.abs(phi)>.06)arc(-phi*57.2958,RMIN*(2.2+r()*.7),pe);};
     // LES VIRAGES DE COURSE : alternés, de 1,35 à 3 × RMIN (4 sur 10 sont des grands virages qu'on tient longtemps)
     const virages=(len,p0,p1)=>{let fait=0,sg=r()<.5?-1:1;
@@ -16585,9 +16669,9 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
     const dChicane=(p0,p1)=>{const a=30+rm()*10,R=RMIN*(1.1+rm()*.2);dmRe(LIM-a/57.3-.05,dmPe(p0,p1));const sg=phi>0?-1:1;droite(50*LL,dmPe(p0,p1)*.6);
       arc(sg*a,R,dmPe(p0,p1));arc(-sg*2*a,R,dmPe(p0,p1));arc(sg*a,R,dmPe(p0,p1));droite(50*LL,dmPe(p0,p1)*.6);};
     const dmJ=[dSlalom,dVagues,dCorde,dChicane];
-    const lien=(len,p0,p1)=>{const k=dmK++;if(!rm||!dmCase.has(k)){virages(len,p0,p1);return;}
-      let m=0;for(let e=0;e<6;e++){if(!dmPaq.length){const t=[0,1,2,3];for(let i=3;i>0;i--){const j=(rm()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}for(const x9 of t)dmPaq.push(x9);}m=dmPaq.shift();if(m!==dmLast)break;}
-      dmLast=m;const i0=C.length-1;dmJ[m](p0,p1);MM.push({i0:i0,i1:C.length-1});};
+    const dmPose=(p0,p1)=>{let m=0;for(let e=0;e<6;e++){if(!dmPaq.length){const t=[0,1,2,3];for(let i=3;i>0;i--){const j=(rm()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}for(const x9 of t)dmPaq.push(x9);}m=dmPaq.shift();if(m!==dmLast)break;}
+      dmLast=m;const i0=C.length-1;dmJ[m](p0,p1);MM.push({i0:i0,i1:C.length-1});}; // le module suivant du paquet (jamais deux fois le même de suite)
+    const lien=(len,p0,p1)=>{const k=dmK++;if(!rm||!dmCase.has(k)){virages(len,p0,p1);return;}dmPose(p0,p1);};
     // LA BOUCLE (le raccourci) — le trombone de genCanyon, tel quel (mesuré là-bas) : approche droite (la zone de saut), demi-tour R1, retour,
     // demi-tour SERRÉ R2 = R1 − e/2, la SORTIE 94 m à côté de l'approche et 55 à 90 m plus bas, qui passe sous le premier demi-tour
     const boucle=(nm,sg)=>{const k0=C.length;if(Math.abs(phi)>.06)arc(-phi*57.2958,(200+r()*80)*RS,-.20);
@@ -16604,6 +16688,53 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
        la vallée morte, l'allée des obélisques et l'oasis restent ; les raccourcis B à G, la deuxième crête et les deuxièmes vagues n'entrent que
        si la longueur visée les tient (`tient`) — comme genCanyon. Hors JOUER : tout, tirages compris. */
     const LC9=typeof longueurCible==='function'?longueurCible():0,kC=LC9?.5:1,fait=()=>{let a=0;for(let k=1;k<C.length;k++)a+=Math.hypot(C[k].x-C[k-1].x,C[k].z-C[k-1].z);return a;},tient=f=>!LC9||fait()<LC9*f;
+    let ax=0,hz=null;
+    if(DN_HZ.on){ /* LES DUNES AU HASARD (2026-10-19) — voir DN_HZ. Comme le canyon : `rh` né de la graine de l'essai, la route bâtie dans l'axe puis tournée de `ax` */
+      const rh=mulberry32(((g0^0x0D0E5A5A)+Math.imul(essai+1,0x27D4EB2F))>>>0),kP=.85+rh()*.35,mel=a=>{for(let i=a.length-1;i>0;i--){const j=(rh()*(i+1))|0,x9=a[i];a[i]=a[j];a[j]=x9;}return a;};
+      ax=(rh()-.5)*2*DN_HZ.axe/57.2958;
+      // LES CARACTÈRES DES LIAISONS : les virages d'avant, la houle (grandes courbes entre les dunes), le serpent (S serrés entre les barkhanes), la dérive
+      // (la route part en biais jusqu'à la butée et y ondule) — jamais deux fois le même de suite ; ou un MODULE (dmPose)
+      const cote=(sg,a)=>{const l9=lib(sg);if(l9<15){sg=-sg;a=Math.min(a,lib(sg));}else a=Math.min(a,l9);return [sg,a];};
+      const houle=(len,p0,p1)=>{let f9=0,sg=r()<.5?-1:1;while(f9<len){const t=cote(-sg,35+r()*25),R=RMIN*(2.2+r()*.8);sg=t[0];arc(sg*t[1],R,-(p0+r()*(p1-p0)));f9+=R*t[1]/57.2958;}};
+      const serpent=(len,p0,p1)=>{let f9=0,sg=r()<.5?-1:1;while(f9<len){const t=cote(-sg,30+r()*16),R=RMIN*(1.25+r()*.35);sg=t[0];arc(sg*t[1],R,-(p0+r()*(p1-p0)));f9+=R*t[1]/57.2958;}};
+      const derive=(len,p0,p1)=>{const sg=r()<.5?-1:1,c9=sg*(LIM*57.2958-6-r()*12)-phi*57.2958,R0=RMIN*(2.2+r()*.6);arc(c9,R0,-(p0+r()*(p1-p0)));let f9=R0*Math.abs(c9)/57.2958;
+        while(f9<len){const s9=sg*phi*57.2958>LIM*57.2958-24?-sg:sg,a=Math.min(10+r()*14,lib(s9)),R=RMIN*(1.8+r()*.8);arc(s9*a,R,-(p0+r()*(p1-p0)));f9+=R*a/57.2958;}};
+      const CAR9=[virages,houle,serpent,derive],CARN=['virages','houle','serpent','derive'];let hPrec=-1;
+      const lienH=(len,p0,p1)=>{p0*=kP;p1*=kP;if(rm&&rm()<DN_HZ.mod){dmPose(p0,p1);return 'module';}
+        let i=(rh()*CAR9.length)|0;if(i===hPrec)i=(i+1+((rh()*(CAR9.length-1))|0))%CAR9.length;hPrec=i;CAR9[i](len,p0,p1);return CARN[i];};
+      // LES PIÈCES (celles d'avant, telles quelles) — chacune derrière sa liaison
+      let nRac=0;
+      const PC={rac:()=>{boucle('rac'+'ABCDEFG'[nRac],sens());nRac++;},
+        vagues:()=>{recentre(-.06);ici('vag0');vagues(LC9?2:4);ici('vag1');},
+        vagues2:()=>{recentre(-.06);ici('vag2');vagues(LC9?2:3);ici('vag3');},
+        vlei:()=>{recentre(-.08);ici('vlei0');{let sg=sens();for(let k=0;k<(LC9?4:5);k++){let a=30+r()*16;if(lib(sg)<a)sg=-sg;arc(sg*Math.max(8,Math.min(a,lib(sg))),RMIN*(1.45+r()*.6),-.05);sg=-sg;}}ici('vlei1');},
+        cr2:()=>{ici('cr2a');crete(560*LL*(LC9?.6:1),-.06);ici('cr2b');},
+        obel:()=>{recentre(-.08);ici('obel0');{const sg=sens();arc(sg*(46+r()*14),RMIN*(2.5+r()*.5),-.07);arc(-sg*(46+r()*14),RMIN*(2.5+r()*.5),-.07);}ici('obel1');}};
+      // LA LONGUEUR de chaque pièce, en moyenne (MESURÉ au banc des tracés, 40 graines × paliers 0 à 25) ; une liaison : un module (~6,4 × RMIN) ou un
+      // caractère (~1,45 × la longueur demandée) — entre deux pièces, une fois sur `pl` seulement (comme avant : la vallée suivait les vagues, l'allée la vallée)
+      const LIEN=(LC9?DN_HZ.lien:300)*LL,VG=1.08*(1.12*RMIN+41*LL+1.06*LD),EST={rac:684*LL+857*RS-249,vagues:(LC9?2:4)*VG,vagues2:(LC9?2:3)*VG,vlei:(LC9?6.1:7.6)*RMIN,cr2:1.13*560*LL*(LC9?.6:1),obel:6.3*RMIN},
+        LI9=(rm?DN_HZ.mod*6.4*RMIN:0)+(1-(rm?DN_HZ.mod:0))*1.45*LIEN,FIN=LI9+30+5*RMIN+150,B=LC9?LC9*DN_HZ.kL*(.92+rh()*.16):0;
+      // LE JEU DE PIÈCES : un raccourci, les vagues (« de crête en crête ») et DEUX décors DUS parmi la vallée morte, l'allée des obélisques et la deuxième
+      // crête (avant : toujours la vallée et l'allée) ; les autres, prises dans un ordre mélangé, entrent si la longueur visée les tient ; puis l'ORDRE de
+      // toutes est mélangé à son tour
+      const PDS={vlei:3,obel:3,cr2:1.5},tire=L9=>{let t=rh()*L9.reduce((a,k)=>a+PDS[k],0);for(const k of L9){t-=PDS[k];if(t<0)return k;}return L9[0];};
+      const d1=tire(['vlei','obel','cr2']),d2=tire(['vlei','obel','cr2'].filter(k=>k!==d1));
+      const autres=['vlei','obel','cr2'].filter(k=>k!==d1&&k!==d2).concat(['vagues2']);let jeu=['rac','vagues',d1,d2];
+      const OUV=200*LL*(LC9?.6:1)+640*LL*(LC9?.4:1)+62*RMIN*2.55/57.2958+70*LL;
+      if(!LC9)jeu=jeu.concat(autres,['rac','rac','rac','rac','rac','rac']);
+      else{let u=FIN+OUV+(1+3*DN_HZ.pl)*LI9+EST.rac+EST.vagues+EST[d1]+EST[d2];for(const p of mel(autres.concat(['rac'])))if(u+DN_HZ.pl*LI9+EST[p]<=B){jeu.push(p);u+=DN_HZ.pl*LI9+EST[p];}}
+      mel(jeu);
+      hz={axe:Math.round(ax*57.2958),pente:+kP.toFixed(2),B:Math.round(B),LL:+LL.toFixed(2),RS:+RS.toFixed(2),RMIN:Math.round(RMIN),LD:Math.round(LD),p:[]};
+      push();ici('depart');
+      droite(200*LL*(LC9?.6:1),-.02,3);ici('erg0');crete(640*LL*(LC9?.4:1),-.05);ici('erg1');           // LA CRÊTE DU GRAND ERG
+      {let sg=sens();if(lib(sg)<60)sg=-sg;ici('tob0');arc(sg*Math.max(20,Math.min(lib(sg)-4,52+r()*20)),RMIN*(2.3+r()*.5),-.40);droite(70*LL,-.24,2);ici('tob1');} // LE TOBOGGAN
+      // LE COUDE (comme le canyon) : entre deux pièces, l'axe de l'erg tourne de ±10-25° (±`cmax`° au plus autour de l'axe tiré)
+      const coude=()=>{if(rh()>=DN_HZ.coude)return;let d=(rh()<.5?-1:1)*(10+rh()*15)/57.2958;const M9=DN_HZ.cmax/57.2958;if(Math.abs(AX9+d)>M9)d=-d;
+        if(Math.abs(AX9+d)<=M9&&Math.abs(phi-d)<LIM-.09){AX9+=d;phi-=d;hz.c.push(Math.round(d*57.2958));}};hz.c=[];
+      jeu.forEach(function(p,k){if(k)coude();const f0=fait(),c9=!k||!LC9||rh()<DN_HZ.pl?lienH(LIEN*(.7+rh()*.6),.10,.20):'',f1=fait();PC[p]();if(c9)hz.p.push([c9,Math.round(f1-f0)]);hz.p.push([p,Math.round(fait()-f1)]);});
+      coude();{const f0=fait(),c9=lienH(LC9?Math.max(.6*LIEN,Math.min(900*LL,(B-fait()-(FIN-LI9))/1.45)):220*LL,.10,.18);hz.p.push([c9,Math.round(fait()-f0)]);}recentre(-.12); // la dernière liaison prend ce qui manque
+      ici('oasis0');{const sg=sens();arc(sg*(30+r()*14),RMIN*(2.4+r()*.5),-.30);arc(-sg*(22+r()*10),RMIN*(2.7+r()*.4),-.04);}ici('fin');droite(150,-.02,2); // L'OASIS
+    }else{
     push();ici('depart');
     droite(200*LL*(LC9?.6:1),-.02,3);ici('erg0');crete(640*LL*(LC9?.4:1),-.05);ici('erg1');           // LA CRÊTE DU GRAND ERG
     {let sg=sens();if(lib(sg)<60)sg=-sg;ici('tob0');arc(sg*Math.max(20,Math.min(lib(sg)-4,52+r()*20)),RMIN*(2.3+r()*.5),-.40);droite(70*LL,-.24,2);ici('tob1');} // LE TOBOGGAN
@@ -16622,12 +16753,16 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
     if(tient(.88)){lien(260*LL,.12,.22);boucle('racG',sens());}
     lien(220*LL*kC,.10,.18);recentre(-.12);
     ici('oasis0');{const sg=sens();arc(sg*(30+r()*14),RMIN*(2.4+r()*.5),-.30);arc(-sg*(22+r()*10),RMIN*(2.7+r()*.4),-.04);}ici('fin');droite(150,-.02,2); // L'OASIS
+    }
     // LE CONTRÔLE (celui du canyon) : deux tronçons à plus de 1,2 km l'un de l'autre sur la route ne passent jamais à moins de ~560 m — sauf dans une même boucle
     const n=C.length,acc=new Float32Array(n),bo=new Int16Array(n).fill(-1);for(let k=1;k<n;k++)acc[k]=acc[k-1]+Math.hypot(C[k].x-C[k-1].x,C[k].z-C[k-1].z);
     BO.forEach(function(q,m){for(let k=q[0];k<=q[1];k++)bo[k]=m;});
     let sep=1e9;for(let i=0;i<n;i++){if((i&63)===63)yield;for(let j=i+1;j<n;j++){if(acc[j]-acc[i]<1200*LL||(bo[i]>=0&&bo[i]===bo[j]))continue;const d=Math.hypot(C[i].x-C[j].x,C[i].z-C[j].z);if(d<sep)sep=d;}}
-    if(sep>bestSep){bestSep=sep;best={C:C,Q:Q,MM:MM};}
+    if(sep>bestSep){bestSep=sep;best={C:C,Q:Q,MM:MM,ax:ax,hz:hz};}
     if(sep>560*SQ)break;}
+  if(best.ax){const ca=Math.cos(best.ax),sa=Math.sin(best.ax),tr=v=>{const x=v.x;v.x=x*ca+v.z*sa;v.z=v.z*ca-x*sa;}; // (LES DUNES AU HASARD) l'AXE : la route tournée autour du départ
+    for(const v of best.C)tr(v);for(const k in best.Q){tr(best.Q[k].p);best.Q[k].phi+=best.ax;}}
+  DN.hz=best.hz||null;if(DN.hz)DN.hz.sep=Math.round(bestSep);
   lisserRaccords(best.C);adoucirCretes(best.C,1);
   for(const k in best.Q){const o=best.Q[k];let bi=0,bd=1e18;for(let j=0;j<best.C.length;j++){const d=best.C[j].distanceToSquared(o.p);if(d<bd){bd=d;bi=j;}}o.p.copy(best.C[bi]);}
   DN.Q=best.Q;DN.sep=Math.round(bestSep);
@@ -17105,7 +17240,7 @@ window.dbgDunes=function(k,a,b,c,d){
     skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return {cam:camera.position.toArray().map(Math.round),noeuds:DN.n};}
   return {on:DN.on,ms:DN.ms,noeuds:DN.n,sep:DN.sep,rmin:DN.rmin,F:DN.F?[DN.F.nx,DN.F.nz,DN.F.ts]:null,Z:DN.Z?[DN.Z.nx,DN.Z.nz,DN.Z.ts]:null,O:DN.O?[DN.O.nx,DN.O.nz,DN.O.ts]:null,
     ciel:CIEL2.mode,attente:!!DN.attente,sQ:DN.sQ,L:Math.round(L),obelisques:DN.ob.length,pyramide:!!DN.pyr,acacias:DN.nArb|0,palmiers:DN.nPal|0,caravanes:DN.car.length,oasis:DN.oa?{r:Math.round(DN.oa.r),y:Math.round(DN.oa.y)}:null,
-    levres:(DN.lev||[]).length,sauts:DN.sauts|0,levre:DN.dbgLev||null,vent:DN.vent.map(v=>+v.toFixed(2)),lam:Math.round(DN.lam),soleil:SUN_DIR.toArray().map(v=>+v.toFixed(3)),ombre:+DN.ombre.toFixed(2),dunes:+(LVL.dunes||0).toFixed(2),canyon:+(LVL.canyon||0).toFixed(2),
+    hz:DN.hz||null,levres:(DN.lev||[]).length,sauts:DN.sauts|0,levre:DN.dbgLev||null,vent:DN.vent.map(v=>+v.toFixed(2)),lam:Math.round(DN.lam),soleil:SUN_DIR.toArray().map(v=>+v.toFixed(3)),ombre:+DN.ombre.toFixed(2),dunes:+(LVL.dunes||0).toFixed(2),canyon:+(LVL.canyon||0).toFixed(2),
     carHaut:DN.on?+(carGroup.position.y-dnHauteur(carGroup.position.x,carGroup.position.z)).toFixed(1):null};};
 /* <<<FIN DUNES>>> */
 /* <<<BANQUISE>>> */
