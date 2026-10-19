@@ -170,12 +170,12 @@ function nuage8Calc(B, base, top, N, opt) {
       const dn = vn(x * 5.3 + 11, y * 5.3, z * 5.3 - 7) * .65 + vn(x * 13.1, y * 13.1 + 3, z * 13.1) * .35; // les grappes et les trouées
       if (rnd() > .55 + .45 * Math.min(1, Math.max(0, (dn - .3) * 2.2))) continue; // des grappes légères : jamais de grande trouée lisse
       const r1 = rnd(), r2 = rnd(), r3 = rnd(), r4 = rnd();
-      const dep = r1 < .66 ? -Math.pow(r2, 1.3) * 7.5 : Math.pow(r2, 1.7) * 6; // la profondeur (en tailles de cube) : le corps dedans, la VAPEUR dehors (plus loin, plus rare)
+      const fd = opt.fdeh || .34, dl = opt.fdeh ? 10 : 6, dep = r1 < 1 - fd ? -Math.pow(r2, 1.3) * 7.5 : Math.pow(r2, 1.7) * dl; // la profondeur (en tailles de cube) : le corps dedans, la VAPEUR dehors (plus loin, plus rare) — (mélange) surtout dehors, plus loin : le nuage qui se défait
       const jx = (rnd() - .5) * sz * 2.2, jy = (rnd() - .5) * sz * 2.2, jz = (rnd() - .5) * sz * 2.2; // un peu de désordre en 3D
       FP[q * 3] = x + a * dep * sz + jx; FP[q * 3 + 1] = y + b * dep * sz + jy; FP[q * 3 + 2] = z + c * dep * sz + jz;
       FN[q * 3] = a; FN[q * 3 + 1] = b; FN[q * 3 + 2] = c;
       FC[q * 3] = col[A] * b0 + col[B] * b1 + col[C] * b2; FC[q * 3 + 1] = col[A + 1] * b0 + col[B + 1] * b1 + col[C + 1] * b2; FC[q * 3 + 2] = col[A + 2] * b0 + col[B + 2] * b1 + col[C + 2] * b2;
-      FQ[q * 4] = sz * (.35 + 1.25 * Math.pow(r3, 1.6)) * (dep > 0 ? .8 : 1); FQ[q * 4 + 1] = dep > 0 ? (.07 + .2 * r4) * (1 - dep / 6.5) : .24 + .32 * r4; FQ[q * 4 + 2] = r4; FQ[q * 4 + 3] = dep;
+      FQ[q * 4] = sz * (.35 + 1.25 * Math.pow(r3, 1.6)) * (dep > 0 ? .8 : 1); FQ[q * 4 + 1] = dep > 0 ? (opt.fdeh ? .22 + .4 * r4 : .07 + .2 * r4) * (1 - dep / (dl + .5)) : .24 + .32 * r4; FQ[q * 4 + 2] = r4; FQ[q * 4 + 3] = dep;
       q++; }
     const fin = function (A9, k) { return A9.subarray(0, q * k); };
     fant = { pos: fin(FP, 3), nor: fin(FN, 3), col: fin(FC, 3), q: fin(FQ, 4), k: sz * 3 }; // k : de combien le CORPS du nuage rentre (les fantômes du dessus se voient)
@@ -283,7 +283,7 @@ function cotonCalcAsync(S,sph,cb){ // cb(le calcul), PLUS TARD : dans l'ouvrier 
   if(w){const id=++COTON_OUV.id;COTON_OUV.att.set(id,{job:job,cb:cb});try{w.postMessage({id:id,B:job.B,base:job.base,top:job.top,sp:job.sp,sn:job.sn,si:job.si,CH:job.CH});}catch(e){COTON_OUV.att.delete(id);cotonTranche(job,cb);}}
   else cotonTranche(job,cb);}
 function nuage8Async(S,N,cb,vit){ // (v8) une finesse de la NOUVELLE surface : dans l'ouvrier si possible, sinon par tranches — vit : la taille des écailles du VITRAIL (nombre de cubes sur la plus grande dimension), 0 = sans
-  const job={n8:N,o8:Object.assign({seed:S.seed||0},N8_OPT,vit?(NUVIT.fant?{fant:NUVIT.fant,fsz:NUVIT.fsz}:{vit:vit,iso:NUVIT.iso,nsk:NUVIT.nsk,ecart:NUVIT.ecart,jit:NUVIT.jit||0}):{}),B:S.B,base:S.base,top:S.top},w=cotonOuvrier();
+  const job={n8:N,o8:Object.assign({seed:S.seed||0},N8_OPT,vit?(NUVIT.fant?{fant:NUVIT.fant,fsz:NUVIT.fsz}:Object.assign({vit:vit,iso:NUVIT.iso,nsk:NUVIT.nsk,ecart:NUVIT.ecart,jit:NUVIT.jit||0},NUVIT.mix?{fant:NUVIT.mix,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:{})):{}),B:S.B,base:S.base,top:S.top},w=cotonOuvrier();
   if(w){const id=++COTON_OUV.id;COTON_OUV.att.set(id,{job:job,cb:cb});try{w.postMessage({id:id,n8:N,o8:job.o8,B:job.B,base:job.base,top:job.top});}catch(e){COTON_OUV.att.delete(id);cotonTranche(job,cb);}}
   else cotonTranche(job,cb);}
 function cotonFinesse(k,f,g){ // une finesse est arrivée : elle remplace l'ébauche dans SON lot et dans les lots plus fins encore en attente
