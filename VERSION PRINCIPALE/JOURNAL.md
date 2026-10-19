@@ -1187,6 +1187,17 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
 
+## AFFINEMENT · LOT 1 BOÎTES — LA FENTE C DANS LA DÉCOUPE EN GRILLE ; LE COMBI, LE BAROUDEUR, LE CAÏD (2026-10-19, discussion BOÎTES)
+- **La fente C branchée** dans la découpe des caisses en grille (COMBI, BAROUDEUR, CAÏD — pas LA CABOSSÉE, qui garde le trait du dessin) :
+  `RLF.j` coupe la tôle à ±g ET ±(g + 1 cm) (`lb`), `dJoint` donne à chaque sommet sa distance SIGNÉE au joint (d > 0 du côté éclairé : le haut
+  ou l'avant ; 0 dans la fente ; 9 = loin), gardée dans le cache de la découpe (`D`) ; au montage, `fenteRGB` (l'outil commun) refait la couleur
+  — peinture de la boutique comprise, la variante lue une fois (`?fente=A` = l'ancien trait). La plongée des bords du joint passe de .55 à .22
+  (l'ombre est dans la couleur). Les joints de vitres (caoutchouc), grilles et noirs restent noirs. 1re construction 17-37 ms (découpe en cache).
+- **LE CAÏD** : les vis des élargisseurs en acier noirci (`V`, elles sortaient en clous blancs) ; le vert anis 0x86f51c → 0x7cb83f (moins fluo,
+  du modelé au garage comme en course ; jugé contre 0x6fbf22 et 0x8cc63f).
+- Tour des coins (dessous, toit, nez, poupe, vu de dessous en vol) : rien d'autre sur ces trois. Banc : 0 programme compilé, couché et debout,
+  garage sans erreur. Planche : photos-gameplay/affinement-lot1-boites.png. Patch : boites/fente_patch.py (relançable).
+
 ## LE CAÏD EN HUMMER EV SUV (2026-10-19, discussion BOÎTES ; Léo : « refais-le en SUV »)
 - Le nez et tout le détail du pick-up gardés ; l'arrière refait sur les cotes du SUV (dimensions.com n'a que le pick-up) : longueur 5,00 roue de
   secours comprise, empattement 3,218, largeur 2,197, hauteur 1,976 (Wikipedia, evspecifications). `ZR` −1,573 → −1,340, `ZT` −2,71 → −1,85.

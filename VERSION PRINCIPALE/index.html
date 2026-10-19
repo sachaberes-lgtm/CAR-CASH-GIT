@@ -24443,7 +24443,7 @@ const CARS=[
  // parce que les flaques de lumière, les traînées et la plume s'y calent.
  {name:'ELDORADO',        shape:'eldorado',color:0xff6fae,accent:0xe8ebef,maxKmh:232,accel:26,turn:2.6, h:1.30,w:2.02,l:5.70,spoiler:0,rar:'rare', /* (2026-10-14) à 10 000 $, carRar l'aurait classée COMMUNE */
   desc:'Rose bonbon, ailerons de requin et une banquette pour trois avocats.'},
- {name:'LE CAÏD',         shape:'caid',    color:0x86f51c,accent:0x16171b,maxKmh:275,accel:31,turn:2.7, h:1.98,w:2.20,l:5.00,spoiler:0,
+ {name:'LE CAÏD',         shape:'caid',    color:0x7cb83f,accent:0x16171b,maxKmh:275,accel:31,turn:2.7, h:1.98,w:2.20,l:5.00,spoiler:0,
   desc:'Trois tonnes de cube. Personne ne t\'a jamais demandé de te pousser.'},
  {retire:1,name:'SA MAJESTÉ'},
  {name:'ROSSO 40',        shape:'rosso',   color:0xe8121c,accent:0x131417,maxKmh:420,accel:48,turn:3.05,h:1.12,w:1.98,l:4.36,spoiler:0,
@@ -36836,12 +36836,12 @@ const croise=(a,b,c,d,e,f,g,h)=>{const o=(x1,y1,x2,y2,x3,y3)=>(x2-x1)*(y3-y1)-(y
 const loin=(L9,u,w)=>{const P9=L9.P;let bd=1e9,sg=1,du=0,dv=0;for(let i=0;i<P9.length-1;i++){const a=P9[i],b=P9[i+1],dx=b[0]-a[0],dy=b[1]-a[1],l2=dx*dx+dy*dy||1e-12,
     t=Math.max(0,Math.min(1,((u-a[0])*dx+(w-a[1])*dy)/l2)),ex=u-a[0]-t*dx,ey=w-a[1]-t*dy,d=Math.hypot(ex,ey);
     if(d<bd){bd=d;sg=(dx*ey-dy*ex)>=0?1:-1;const l=Math.sqrt(l2);du=-dy/l;dv=dx/l;}}return [bd,sg,du,dv];};
-const RLF={j:{w:.011,g:.0035,k:.55},h:{w:.016,g:0,k:.28}};   // joint : interstice + bords qui plongent ; pli : une arête de lumière
+const RLF={j:{w:.0135,g:.0035,k:.22,lb:.010},h:{w:.016,g:0,k:.28}};   // joint : LA FENTE C (2026-10-19 : l'ombre, le fil — fenteRGB par sommet) ; pli : une arête de lumière
 const ligneDe=(P0,kind,s,ferme)=>{const r=RLF[kind],P9=ferme?P0.concat([P0[0]]):P0,n=P9.length;if(n<2)return null;
   const nm=i=>{const a=P9[Math.max(0,i-1)],b=P9[Math.min(n-1,i+1)],dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy)||1;return [-dy/l,dx/l];};
   const off=d=>P9.map((p,i)=>{const m=nm(i);return [p[0]+m[0]*d,p[1]+m[1]*d];}),segs=[];
   const add=Q=>{for(const s of segsDe(Q,false))segs.push(s);};
-  if(r.g){add(off(r.g));add(off(-r.g));}else{add(P9);add(off(r.w));add(off(-r.w));}
+  if(r.g){add(off(r.g));add(off(-r.g));if(r.lb){add(off(r.g+r.lb));add(off(-r.g-r.lb));}}else{add(P9);add(off(r.w));add(off(-r.w));}
   return {P:P9,r:r,segs:segs,bb:bbDe(P9,r.w),s:s||0};};
 return function(K){
   const SP=K.spec||{},YEUX=!!SP.yeux||(typeof window!=='undefined'&&window.__combiYeux===1);
@@ -36915,7 +36915,10 @@ return function(K){
     // ---- LA DÉCOUPE : chaque facette, dans la vue qui la regarde, recoupée par les contours et les traits qui la touchent ----
     const vueDe=(m,n)=>{if(m[2]>1.40&&n[2]>(m[1]>1.30?.70:.42))return 'face';if(m[2]<-1.55&&n[2]<-.42)return 'dos';
       if(n[1]>.70)return 'dessus';if(Math.abs(n[0])>.25)return 'cote';return null;};
-    const OUT={},emet=(g,ps,n,k)=>{const o=OUT[g]||(OUT[g]={P:[],N:[],K:[]});for(const p of ps){o.P.push(p[0],p[1],p[2]);o.N.push(n[0],n[1],n[2]);}o.K.push(k);};
+    const OUT={},emet=(g,ps,n,k,ds)=>{const o=OUT[g]||(OUT[g]={P:[],N:[],K:[],D:[]});for(const p of ps){o.P.push(p[0],p[1],p[2]);o.N.push(n[0],n[1],n[2]);}o.K.push(k);o.D.push(ds?ds[0]:9,ds?ds[1]:9,ds?ds[2]:9);};
+    // (2026-10-19, LA FENTE C) la distance signée d'un sommet au joint le plus proche (d > 0 du côté éclairé : le haut, ou l'avant) — 9 = loin
+    const dJoint=(lgn,p)=>{let bd=9,sd=1;for(const [w,L] of lgn){if(L.r!==RLF.j)continue;const uv=UVf[w](p);if(uv[0]<L.bb[0]||uv[0]>L.bb[1]||uv[1]<L.bb[2]||uv[1]>L.bb[3])continue;
+      const r=loin(L,uv[0],uv[1]);if(r[0]<bd){bd=r[0];const A=V3[w](r[2]*r[1],r[3]*r[1]);sd=(A[1]+.3*A[2])>=0?1:-1;}}return bd<RLF.j.g+RLF.j.lb+.002?bd*sd:9;};
     // (les contours et les traits rangés par tranches de 10 cm le long de u : une facette n'interroge que ceux de ses tranches)
     const RANGE=(L)=>{const T=new Map();L.forEach((Z,i)=>{for(let c=Math.floor(Z.bb[0]*10);c<=Math.floor(Z.bb[1]*10);c++){let a=T.get(c);if(!a)T.set(c,a=[]);a.push(i);}});return T;};
     const RZ={},RL={};for(const w in ZO){RZ[w]=RANGE(ZO[w]);RL[w]=RANGE(LG[w]);}
@@ -36948,23 +36951,26 @@ return function(K){
       pcs=pcs.map(deV);
       for(const Pq of pcs){const g3=[0,0,0];for(const q of Pq){g3[0]+=q[0]/Pq.length;g3[1]+=q[1]/Pq.length;g3[2]+=q[2]/Pq.length;}
         const C3=P3(g3);let k=0;if(v){const uv=UVf[v](C3);for(const Z of zon)if(Z.sur.indexOf(k)>=0&&dansP(Z,uv[0],uv[1]))k=Z.k;}
-        let n=un;
+        let n=un,fen=null;
         if(PEINT.has(k)){let best=null,dc=1e9;for(const [w,L] of lgn){const uv=UVf[w](C3);if(uv[0]<L.bb[0]||uv[0]>L.bb[1]||uv[1]<L.bb[2]||uv[1]>L.bb[3])continue;const r=loin(L,uv[0],uv[1]);if(r[0]<L.r.w&&r[0]<dc){dc=r[0];best=[w,L,r];}}
-          if(best){const [w,L,r]=best,R9=L.r;if(R9.g&&dc<R9.g)k=1;
+          if(best){const [w,L,r]=best,R9=L.r;if(R9.g&&dc<R9.g)fen=0;
             else{const tl=R9.g?-R9.k*Math.max(0,1-(dc-R9.g)/(R9.w-R9.g)):R9.k*Math.max(0,1-dc/R9.w);
               if(tl){let A=V3[w](r[2]*r[1],r[3]*r[1]);const an=A[0]*un[0]+A[1]*un[1]+A[2]*un[2];A=[A[0]-an*un[0],A[1]-an*un[1],A[2]-an*un[2]];const la=Math.hypot(A[0],A[1],A[2]);
                 if(la>1e-6){n=[un[0]+A[0]/la*tl,un[1]+A[1]/la*tl,un[2]+A[2]/la*tl];const h=Math.hypot(n[0],n[1],n[2]);n=[n[0]/h,n[1]/h,n[2]/h];}}}}}
         const Pp=Pq.map(P3);for(let t=1;t<Pp.length-1;t++){const p0=Pp[0],p1=Pp[t],p2=Pp[t+1];
           const ex=p1[0]-p0[0],ey=p1[1]-p0[1],ez=p1[2]-p0[2],fx=p2[0]-p0[0],fy=p2[1]-p0[1],fz=p2[2]-p0[2],cx=ey*fz-ez*fy,cy=ez*fx-ex*fz,cz=ex*fy-ey*fx;
-          if(cx*cx+cy*cy+cz*cz<1e-16)continue;emet(CODES[k].g,(cx*un[0]+cy*un[1]+cz*un[2])<0?[p0,p2,p1]:[p0,p1,p2],n,k);}}}
-    C9={};for(const g in OUT){const o=OUT[g];C9[g]={P:new Float32Array(o.P),N:new Float32Array(o.N),K:Uint8Array.from(o.K)};}
+          if(cx*cx+cy*cy+cz*cz<1e-16)continue;const sw=(cx*un[0]+cy*un[1]+cz*un[2])<0;
+          const ds=fen===0?[0,0,0]:PEINT.has(k)?[dJoint(lgn,p0),dJoint(lgn,sw?p2:p1),dJoint(lgn,sw?p1:p2)]:null;emet(CODES[k].g,sw?[p0,p2,p1]:[p0,p1,p2],n,k,ds);}}}
+    C9={};for(const g in OUT){const o=OUT[g];C9[g]={P:new Float32Array(o.P),N:new Float32Array(o.N),K:Uint8Array.from(o.K),D:new Float32Array(o.D)};}
     CACHE[YEUX?1:0]=C9;}
   // ---- LA TÔLE POSÉE : ses couleurs (la peinture de la boutique comprise), une géométrie par matière ----
   const gs={},BASE=(()=>{CPx.setHex(EP.c);return [CPx.r,CPx.g,CPx.b];})(),pDe=(EP.g==='p'||EP.g.charAt(0)==='p')&&EP.f!==0,FIX=CODES.map(d=>{if(d.c==null)return null;CPx.setHex(d.c);return [CPx.r,CPx.g,CPx.b];});
+  const FE9=typeof fenteVar==='function'?fenteVar():null,FC9=[0,0,0];   // (2026-10-19) LA FENTE C : la variante lue une fois (`?fente=A` = le trait noir d'avant)
   for(const g0 in C9){const c=C9[g0],g=g0==='#'?GP:g0,col=new Float32Array(c.P.length);
     for(let t=0;t<c.K.length;t++){const kk=c.K[t],d=CODES[kk],F=FIX[kk];for(let q=0;q<3;q++){const i=t*9+q*3,y=c.P[i+1];let r,gg,b;
       if(!F){if(EP.grad&&typeof lpGrad==='function'){[r,gg,b]=colP(y);}else{const s=pDe?fondu(y):1;r=BASE[0]*s;gg=BASE[1]*s;b=BASE[2]*s;}if(d.k){r*=d.k;gg*=d.k;b*=d.k;}}
       else{const f=d.g==='#'?fondu(y):1;r=F[0]*f;gg=F[1]*f;b=F[2]*f;}
+      if(c.D&&FE9&&PEINT.has(kk)){const dv=c.D[t*3+q];if(dv<8&&dv>-8){FC9[0]=r;FC9[1]=gg;FC9[2]=b;fenteRGB(FC9,dv,RLF.j.g,FC9,FE9);r=FC9[0];gg=FC9[1];b=FC9[2];}}
       col[i]=r;col[i+1]=gg;col[i+2]=b;}}
     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(c.P.slice(),3));
     geo.setAttribute('normal',new THREE.Float32BufferAttribute(c.N.slice(),3));geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
@@ -37112,16 +37118,19 @@ const croise=(a,b,c,d,e,f,g,h)=>{const o=(x1,y1,x2,y2,x3,y3)=>(x2-x1)*(y3-y1)-(y
 const loin=(L9,u,w)=>{const P9=L9.P;let bd=1e9,sg=1,du=0,dv=0;for(let i=0;i<P9.length-1;i++){const a=P9[i],b=P9[i+1],dx=b[0]-a[0],dy=b[1]-a[1],l2=dx*dx+dy*dy||1e-12,
     t=Math.max(0,Math.min(1,((u-a[0])*dx+(w-a[1])*dy)/l2)),ex=u-a[0]-t*dx,ey=w-a[1]-t*dy,d=Math.hypot(ex,ey);
     if(d<bd){bd=d;sg=(dx*ey-dy*ex)>=0?1:-1;const l=Math.sqrt(l2);du=-dy/l;dv=dx/l;}}return [bd,sg,du,dv];};
-const RLF={j:{w:.011,g:.0035,k:.55},h:{w:.016,g:0,k:.28}};   // joint : interstice + bords qui plongent ; pli : une arête de lumière
+const RLF={j:{w:.0135,g:.0035,k:.22,lb:.010},h:{w:.016,g:0,k:.28}};   // joint : LA FENTE C (2026-10-19 : l'ombre, le fil — fenteRGB par sommet) ; pli : une arête de lumière
 const ligneDe=(P0,kind,s,ferme)=>{const r=RLF[kind],P9=ferme?P0.concat([P0[0]]):P0,n=P9.length;if(n<2)return null;
   const nm=i=>{const a=P9[Math.max(0,i-1)],b=P9[Math.min(n-1,i+1)],dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy)||1;return [-dy/l,dx/l];};
   const off=d=>P9.map((p,i)=>{const m=nm(i);return [p[0]+m[0]*d,p[1]+m[1]*d];}),segs=[];
   const add=Q=>{for(const s of segsDe(Q,false))segs.push(s);};
-  if(r.g){add(off(r.g));add(off(-r.g));}else{add(P9);add(off(r.w));add(off(-r.w));}
+  if(r.g){add(off(r.g));add(off(-r.g));if(r.lb){add(off(r.g+r.lb));add(off(-r.g-r.lb));}}else{add(P9);add(off(r.w));add(off(-r.w));}
   return {P:P9,r:r,segs:segs,bb:bbDe(P9,r.w),s:s||0};};
 // LA DÉCOUPE (la même que LE COMBI) : chaque facette, dans la vue qui la regarde, recoupée par les contours et les traits qui la touchent
 const decoupe=(TR,ZO,LG,CODES,PEINT,vueDe,GAP)=>{
-    const OUT={},emet=(g,ps,n,k)=>{const o=OUT[g]||(OUT[g]={P:[],N:[],K:[]});for(const p of ps){o.P.push(p[0],p[1],p[2]);o.N.push(n[0],n[1],n[2]);}o.K.push(k);};
+    const OUT={},emet=(g,ps,n,k,ds)=>{const o=OUT[g]||(OUT[g]={P:[],N:[],K:[],D:[]});for(const p of ps){o.P.push(p[0],p[1],p[2]);o.N.push(n[0],n[1],n[2]);}o.K.push(k);o.D.push(ds?ds[0]:9,ds?ds[1]:9,ds?ds[2]:9);};
+    // (2026-10-19, LA FENTE C) la distance signée d'un sommet au joint le plus proche (d > 0 du côté éclairé : le haut, ou l'avant) — 9 = loin
+    const dJoint=(lgn,p)=>{let bd=9,sd=1;for(const [w,L] of lgn){if(L.r!==RLF.j)continue;const uv=UVf[w](p);if(uv[0]<L.bb[0]||uv[0]>L.bb[1]||uv[1]<L.bb[2]||uv[1]>L.bb[3])continue;
+      const r=loin(L,uv[0],uv[1]);if(r[0]<bd){bd=r[0];const A=V3[w](r[2]*r[1],r[3]*r[1]);sd=(A[1]+.3*A[2])>=0?1:-1;}}return bd<RLF.j.g+RLF.j.lb+.002?bd*sd:9;};
     // (les contours et les traits rangés par tranches de 10 cm le long de u : une facette n'interroge que ceux de ses tranches)
     const RANGE=(L)=>{const T=new Map();L.forEach((Z,i)=>{for(let c=Math.floor(Z.bb[0]*10);c<=Math.floor(Z.bb[1]*10);c++){let a=T.get(c);if(!a)T.set(c,a=[]);a.push(i);}});return T;};
     const RZ={},RL={};for(const w in ZO){RZ[w]=RANGE(ZO[w]);RL[w]=RANGE(LG[w]);}
@@ -37154,15 +37163,16 @@ const decoupe=(TR,ZO,LG,CODES,PEINT,vueDe,GAP)=>{
       pcs=pcs.map(deV);
       for(const Pq of pcs){const g3=[0,0,0];for(const q of Pq){g3[0]+=q[0]/Pq.length;g3[1]+=q[1]/Pq.length;g3[2]+=q[2]/Pq.length;}
         const C3=P3(g3);let k=k0;if(v){const uv=UVf[v](C3);for(const Z of zon)if(Z.sur.indexOf(k)>=0&&dansP(Z,uv[0],uv[1]))k=Z.k;}
-        let n=un;
+        let n=un,fen=null;
         if(PEINT.has(k)){let best=null,dc=1e9;for(const [w,L] of lgn){const uv=UVf[w](C3);if(uv[0]<L.bb[0]||uv[0]>L.bb[1]||uv[1]<L.bb[2]||uv[1]>L.bb[3])continue;const r=loin(L,uv[0],uv[1]);if(r[0]<L.r.w&&r[0]<dc){dc=r[0];best=[w,L,r];}}
-          if(best){const [w,L,r]=best,R9=L.r;if(R9.g&&dc<R9.g)k=(GAP&&GAP[k]!=null)?GAP[k]:1;
+          if(best){const [w,L,r]=best,R9=L.r;if(R9.g&&dc<R9.g){if(GAP&&GAP[k]!=null)k=GAP[k];else fen=0;}
             else{const tl=R9.g?-R9.k*Math.max(0,1-(dc-R9.g)/(R9.w-R9.g)):R9.k*Math.max(0,1-dc/R9.w);
               if(tl){let A=V3[w](r[2]*r[1],r[3]*r[1]);const an=A[0]*un[0]+A[1]*un[1]+A[2]*un[2];A=[A[0]-an*un[0],A[1]-an*un[1],A[2]-an*un[2]];const la=Math.hypot(A[0],A[1],A[2]);
                 if(la>1e-6){n=[un[0]+A[0]/la*tl,un[1]+A[1]/la*tl,un[2]+A[2]/la*tl];const h=Math.hypot(n[0],n[1],n[2]);n=[n[0]/h,n[1]/h,n[2]/h];}}}}}
         const Pp=Pq.map(P3);for(let t=1;t<Pp.length-1;t++){const p0=Pp[0],p1=Pp[t],p2=Pp[t+1];
           const ex=p1[0]-p0[0],ey=p1[1]-p0[1],ez=p1[2]-p0[2],fx=p2[0]-p0[0],fy=p2[1]-p0[1],fz=p2[2]-p0[2],cx=ey*fz-ez*fy,cy=ez*fx-ex*fz,cz=ex*fy-ey*fx;
-          if(cx*cx+cy*cy+cz*cz<1e-16)continue;emet(CODES[k].g,(cx*un[0]+cy*un[1]+cz*un[2])<0?[p0,p2,p1]:[p0,p1,p2],n,k);}}}
+          if(cx*cx+cy*cy+cz*cz<1e-16)continue;const sw=(cx*un[0]+cy*un[1]+cz*un[2])<0;
+          const ds=fen===0?[0,0,0]:PEINT.has(k)?[dJoint(lgn,p0),dJoint(lgn,sw?p2:p1),dJoint(lgn,sw?p1:p2)]:null;emet(CODES[k].g,sw?[p0,p2,p1]:[p0,p1,p2],n,k,ds);}}}
     return OUT;};
 /* ============================ LE WRANGLER (JL 4 portes, 2018) ============================
    Le « JL Unlimited » relevé sur son élévation de côté (getoutlines.com / the-blueprints.com, 365,7 px par mètre mesurés sur l'empattement
@@ -37261,14 +37271,16 @@ return function(K){
     joint('dessus',[[-.40,-.76],[-.40,.76]]);joint('dessus',[[-.40,0],[.25,0]]);
     const vueDe=(m,n)=>{if(m[2]>.15&&n[2]>.5)return 'face';if(m[2]<-1.9&&n[2]<-.5)return 'dos';if(n[1]>.7)return 'dessus';if(Math.abs(n[0])>.3)return 'cote';return null;};
     const OUT=decoupe(TR,ZO,LG,CODES,PEINT,vueDe,GAP);
-    C9={};for(const g in OUT){const o=OUT[g];C9[g]={P:new Float32Array(o.P),N:new Float32Array(o.N),K:Uint8Array.from(o.K)};}
+    C9={};for(const g in OUT){const o=OUT[g];C9[g]={P:new Float32Array(o.P),N:new Float32Array(o.N),K:Uint8Array.from(o.K),D:new Float32Array(o.D)};}
     CACHE[0]=C9;}
   // ---- LA CAISSE POSÉE : ses couleurs (la peinture de la boutique comprise) ----
   const gs={},BASE=(()=>{CPx.setHex(EP.c);return [CPx.r,CPx.g,CPx.b];})(),pDe=(EP.g==='p'||EP.g.charAt(0)==='p')&&EP.f!==0,FIX=CODES.map(d=>{if(!d||d.c==null)return null;CPx.setHex(d.c);return [CPx.r,CPx.g,CPx.b];});
+  const FE9=typeof fenteVar==='function'?fenteVar():null,FC9=[0,0,0];   // (2026-10-19) LA FENTE C : la variante lue une fois (`?fente=A` = le trait noir d'avant)
   for(const g0 in C9){const c=C9[g0],g=g0==='#'?GP:g0,col=new Float32Array(c.P.length);
     for(let t=0;t<c.K.length;t++){const kk=c.K[t],d=CODES[kk],F=FIX[kk];for(let q=0;q<3;q++){const i=t*9+q*3,y=c.P[i+1];let r,gg,b;
       if(!F){if(EP.grad&&typeof lpGrad==='function'){[r,gg,b]=colP(y);}else{const s=pDe?fondu(y):1;r=BASE[0]*s;gg=BASE[1]*s;b=BASE[2]*s;}if(d.k){r*=d.k;gg*=d.k;b*=d.k;}}
       else{const f=d.g==='#'?fondu(y):1;r=F[0]*f;gg=F[1]*f;b=F[2]*f;}
+      if(c.D&&FE9&&PEINT.has(kk)){const dv=c.D[t*3+q];if(dv<8&&dv>-8){FC9[0]=r;FC9[1]=gg;FC9[2]=b;fenteRGB(FC9,dv,RLF.j.g,FC9,FE9);r=FC9[0];gg=FC9[1];b=FC9[2];}}
       col[i]=r;col[i+1]=gg;col[i+2]=b;}}
     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(c.P.slice(),3));
     geo.setAttribute('normal',new THREE.Float32BufferAttribute(c.N.slice(),3));geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
@@ -37713,16 +37725,19 @@ const croise=(a,b,c,d,e,f,g,h)=>{const o=(x1,y1,x2,y2,x3,y3)=>(x2-x1)*(y3-y1)-(y
 const loin=(L9,u,w)=>{const P9=L9.P;let bd=1e9,sg=1,du=0,dv=0;for(let i=0;i<P9.length-1;i++){const a=P9[i],b=P9[i+1],dx=b[0]-a[0],dy=b[1]-a[1],l2=dx*dx+dy*dy||1e-12,
     t=Math.max(0,Math.min(1,((u-a[0])*dx+(w-a[1])*dy)/l2)),ex=u-a[0]-t*dx,ey=w-a[1]-t*dy,d=Math.hypot(ex,ey);
     if(d<bd){bd=d;sg=(dx*ey-dy*ex)>=0?1:-1;const l=Math.sqrt(l2);du=-dy/l;dv=dx/l;}}return [bd,sg,du,dv];};
-const RLF={j:{w:.011,g:.0035,k:.55},h:{w:.016,g:0,k:.28}};   // joint : interstice + bords qui plongent ; pli : une arête de lumière
+const RLF={j:{w:.0135,g:.0035,k:.22,lb:.010},h:{w:.016,g:0,k:.28}};   // joint : LA FENTE C (2026-10-19 : l'ombre, le fil — fenteRGB par sommet) ; pli : une arête de lumière
 const ligneDe=(P0,kind,s,ferme)=>{const r=RLF[kind],P9=ferme?P0.concat([P0[0]]):P0,n=P9.length;if(n<2)return null;
   const nm=i=>{const a=P9[Math.max(0,i-1)],b=P9[Math.min(n-1,i+1)],dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy)||1;return [-dy/l,dx/l];};
   const off=d=>P9.map((p,i)=>{const m=nm(i);return [p[0]+m[0]*d,p[1]+m[1]*d];}),segs=[];
   const add=Q=>{for(const s of segsDe(Q,false))segs.push(s);};
-  if(r.g){add(off(r.g));add(off(-r.g));}else{add(P9);add(off(r.w));add(off(-r.w));}
+  if(r.g){add(off(r.g));add(off(-r.g));if(r.lb){add(off(r.g+r.lb));add(off(-r.g-r.lb));}}else{add(P9);add(off(r.w));add(off(-r.w));}
   return {P:P9,r:r,segs:segs,bb:bbDe(P9,r.w),s:s||0};};
 // LA DÉCOUPE (la même que LE COMBI) : chaque facette, dans la vue qui la regarde, recoupée par les contours et les traits qui la touchent
 const decoupe=(TR,ZO,LG,CODES,PEINT,vueDe,GAP)=>{
-    const OUT={},emet=(g,ps,n,k)=>{const o=OUT[g]||(OUT[g]={P:[],N:[],K:[]});for(const p of ps){o.P.push(p[0],p[1],p[2]);o.N.push(n[0],n[1],n[2]);}o.K.push(k);};
+    const OUT={},emet=(g,ps,n,k,ds)=>{const o=OUT[g]||(OUT[g]={P:[],N:[],K:[],D:[]});for(const p of ps){o.P.push(p[0],p[1],p[2]);o.N.push(n[0],n[1],n[2]);}o.K.push(k);o.D.push(ds?ds[0]:9,ds?ds[1]:9,ds?ds[2]:9);};
+    // (2026-10-19, LA FENTE C) la distance signée d'un sommet au joint le plus proche (d > 0 du côté éclairé : le haut, ou l'avant) — 9 = loin
+    const dJoint=(lgn,p)=>{let bd=9,sd=1;for(const [w,L] of lgn){if(L.r!==RLF.j)continue;const uv=UVf[w](p);if(uv[0]<L.bb[0]||uv[0]>L.bb[1]||uv[1]<L.bb[2]||uv[1]>L.bb[3])continue;
+      const r=loin(L,uv[0],uv[1]);if(r[0]<bd){bd=r[0];const A=V3[w](r[2]*r[1],r[3]*r[1]);sd=(A[1]+.3*A[2])>=0?1:-1;}}return bd<RLF.j.g+RLF.j.lb+.002?bd*sd:9;};
     // (les contours et les traits rangés par tranches de 10 cm le long de u : une facette n'interroge que ceux de ses tranches)
     const RANGE=(L)=>{const T=new Map();L.forEach((Z,i)=>{for(let c=Math.floor(Z.bb[0]*10);c<=Math.floor(Z.bb[1]*10);c++){let a=T.get(c);if(!a)T.set(c,a=[]);a.push(i);}});return T;};
     const RZ={},RL={};for(const w in ZO){RZ[w]=RANGE(ZO[w]);RL[w]=RANGE(LG[w]);}
@@ -37755,15 +37770,16 @@ const decoupe=(TR,ZO,LG,CODES,PEINT,vueDe,GAP)=>{
       pcs=pcs.map(deV);
       for(const Pq of pcs){const g3=[0,0,0];for(const q of Pq){g3[0]+=q[0]/Pq.length;g3[1]+=q[1]/Pq.length;g3[2]+=q[2]/Pq.length;}
         const C3=P3(g3);let k=k0;if(v){const uv=UVf[v](C3);for(const Z of zon)if(Z.sur.indexOf(k)>=0&&dansP(Z,uv[0],uv[1]))k=Z.k;}
-        let n=un;
+        let n=un,fen=null;
         if(PEINT.has(k)){let best=null,dc=1e9;for(const [w,L] of lgn){const uv=UVf[w](C3);if(uv[0]<L.bb[0]||uv[0]>L.bb[1]||uv[1]<L.bb[2]||uv[1]>L.bb[3])continue;const r=loin(L,uv[0],uv[1]);if(r[0]<L.r.w&&r[0]<dc){dc=r[0];best=[w,L,r];}}
-          if(best){const [w,L,r]=best,R9=L.r;if(R9.g&&dc<R9.g)k=(GAP&&GAP[k]!=null)?GAP[k]:1;
+          if(best){const [w,L,r]=best,R9=L.r;if(R9.g&&dc<R9.g){if(GAP&&GAP[k]!=null)k=GAP[k];else fen=0;}
             else{const tl=R9.g?-R9.k*Math.max(0,1-(dc-R9.g)/(R9.w-R9.g)):R9.k*Math.max(0,1-dc/R9.w);
               if(tl){let A=V3[w](r[2]*r[1],r[3]*r[1]);const an=A[0]*un[0]+A[1]*un[1]+A[2]*un[2];A=[A[0]-an*un[0],A[1]-an*un[1],A[2]-an*un[2]];const la=Math.hypot(A[0],A[1],A[2]);
                 if(la>1e-6){n=[un[0]+A[0]/la*tl,un[1]+A[1]/la*tl,un[2]+A[2]/la*tl];const h=Math.hypot(n[0],n[1],n[2]);n=[n[0]/h,n[1]/h,n[2]/h];}}}}}
         const Pp=Pq.map(P3);for(let t=1;t<Pp.length-1;t++){const p0=Pp[0],p1=Pp[t],p2=Pp[t+1];
           const ex=p1[0]-p0[0],ey=p1[1]-p0[1],ez=p1[2]-p0[2],fx=p2[0]-p0[0],fy=p2[1]-p0[1],fz=p2[2]-p0[2],cx=ey*fz-ez*fy,cy=ez*fx-ex*fz,cz=ex*fy-ey*fx;
-          if(cx*cx+cy*cy+cz*cz<1e-16)continue;emet(CODES[k].g,(cx*un[0]+cy*un[1]+cz*un[2])<0?[p0,p2,p1]:[p0,p1,p2],n,k);}}}
+          if(cx*cx+cy*cy+cz*cz<1e-16)continue;const sw=(cx*un[0]+cy*un[1]+cz*un[2])<0;
+          const ds=fen===0?[0,0,0]:PEINT.has(k)?[dJoint(lgn,p0),dJoint(lgn,sw?p2:p1),dJoint(lgn,sw?p1:p2)]:null;emet(CODES[k].g,sw?[p0,p2,p1]:[p0,p1,p2],n,k,ds);}}}
     return OUT;};
 /* ============================ LE CAÏD — LE GMC HUMMER EV SUV (2024) ============================
    (2026-10-19, Léo : « refais-le en SUV » — le nez et tout le détail du pick-up gardés ; l'arrière refait sur les cotes du SUV : longueur
@@ -37887,22 +37903,24 @@ const cuire=()=>{let C9=CACHE[0];if(C9)return C9;
       if(m[2]<ZT+.2&&n[2]<-.5)return 'dos';if(m[2]<-.6&&m[1]>1.46&&n[2]<-.5)return 'dos';
       if(n[1]>.7)return 'dessus';if(Math.abs(n[0])>.3)return 'cote';return null;};
     const OUT=decoupe(TR,ZO,LG,CODES,PEINT,vueDe,GAP);
-    C9={};for(const g in OUT){const o=OUT[g];C9[g]={P:new Float32Array(o.P),N:new Float32Array(o.N),K:Uint8Array.from(o.K)};}
+    C9={};for(const g in OUT){const o=OUT[g];C9[g]={P:new Float32Array(o.P),N:new Float32Array(o.N),K:Uint8Array.from(o.K),D:new Float32Array(o.D)};}
     return CACHE[0]=C9;};
 const monte=function(K){
-  const SP=K.spec||{},CORPS=SP.color!=null?SP.color:0x86f51c;
+  const SP=K.spec||{},CORPS=SP.color!=null?SP.color:0x7cb83f;
   const PAL={p:{g:'p',c:CORPS},k:{g:'m',c:0x16171b},K:{g:'g',c:0x0b0c0f},c:{g:'c',c:0xd4d8de},C:{g:'c',c:0x6c727b},g:{g:'g',c:0x1d2a36},
-    W:{g:'l',c:0xfff6e6},L:{g:'l',c:0xff2a36},O:{g:'l',c:0xffa21a},Q:{g:'l',c:0xe8e8e8},T:{g:'m',c:0x1e2024},r:{g:'m',c:0xc8102e},R:{g:'m',c:0x7a1018}};
+    W:{g:'l',c:0xfff6e6},L:{g:'l',c:0xff2a36},O:{g:'l',c:0xffa21a},Q:{g:'l',c:0xe8e8e8},T:{g:'m',c:0x1e2024},r:{g:'m',c:0xc8102e},R:{g:'m',c:0x7a1018},V:{g:'m',c:0x34363b}};
   const EP=(typeof peintPal==='function'?peintPal(PAL):PAL).p,GP=EP.g;
   const CPx=new THREE.Color(),fondu=y=>.80+.20*cl((y-.25)/1.0,0,1),colP=y=>{CPx.setHex(EP.c);if(EP.grad&&typeof lpGrad==='function')lpGrad(EP.grad,y,CPx);
     const s=((EP.g==='p'||EP.g.charAt(0)==='p')&&EP.f!==0)?fondu(y):1;return [CPx.r*s,CPx.g*s,CPx.b*s];};
   const C9=cuire();
   // ---- LA CAISSE POSÉE : ses couleurs (la peinture de la boutique comprise) ----
   const gs={},BASE=(()=>{CPx.setHex(EP.c);return [CPx.r,CPx.g,CPx.b];})(),pDe=(EP.g==='p'||EP.g.charAt(0)==='p')&&EP.f!==0,FIX=CODES.map(d=>{if(!d||d.c==null)return null;CPx.setHex(d.c);return [CPx.r,CPx.g,CPx.b];});
+  const FE9=typeof fenteVar==='function'?fenteVar():null,FC9=[0,0,0];   // (2026-10-19) LA FENTE C : la variante lue une fois (`?fente=A` = le trait noir d'avant)
   for(const g0 in C9){const c=C9[g0],g=g0==='#'?GP:g0,col=new Float32Array(c.P.length);
     for(let t=0;t<c.K.length;t++){const kk=c.K[t],d=CODES[kk],F=FIX[kk];for(let q=0;q<3;q++){const i=t*9+q*3,y=c.P[i+1];let r,gg,b;
       if(!F){if(EP.grad&&typeof lpGrad==='function'){[r,gg,b]=colP(y);}else{const s=pDe?fondu(y):1;r=BASE[0]*s;gg=BASE[1]*s;b=BASE[2]*s;}if(d.k){r*=d.k;gg*=d.k;b*=d.k;}}
       else{const f=d.g==='#'?fondu(y):1;r=F[0]*f;gg=F[1]*f;b=F[2]*f;}
+      if(c.D&&FE9&&PEINT.has(kk)){const dv=c.D[t*3+q];if(dv<8&&dv>-8){FC9[0]=r;FC9[1]=gg;FC9[2]=b;fenteRGB(FC9,dv,RLF.j.g,FC9,FE9);r=FC9[0];gg=FC9[1];b=FC9[2];}}
       col[i]=r;col[i+1]=gg;col[i+2]=b;}}
     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(c.P.slice(),3));
     geo.setAttribute('normal',new THREE.Float32BufferAttribute(c.N.slice(),3));geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
@@ -37971,7 +37989,7 @@ const monte=function(K){
   // LES ÉLARGISSEURS noirs anguleux, les joues des passages de roue, les bas de caisse noirs, les marchepieds
   P.sym(sd=>{P.prism('k',FO.concat(FI.slice().reverse()),.18,sd*1.01);P.prism('k',RO.concat(RI.slice().reverse()),.18,sd*1.01);
     for(const A of [FO,RO]){P.prism('k',bande(A,0,.035),.20,sd*1.012);                                            // le BORD ÉPAIS de l'élargisseur
-      for(const q of pas(off(A,-.05),.16))P.cyl('C',.011,.012,8,sd*1.106,q[1],q[0],'x');}                          // ses VIS apparentes
+      for(const q of pas(off(A,-.05),.16))P.cyl('V',.011,.010,8,sd*1.106,q[1],q[0],'x');}                          // ses VIS apparentes (19/10 : acier noirci — en chrome elles sortaient en clous blancs)
     for(const A of [FI,RI])P.prism('k',A.concat([[A[A.length-1][0],.30],[A[0][0],.30]]),.16,sd*.70);
     P.prism('k',[[-.79,.36],[1.29,.36],[1.36,.62],[1.24,.66],[-.75,.66],[-.81,.62]],.13,sd*.985);
     P.box('k',.10,.07,1.88,sd*1.07,.42,.24);P.box('T',.07,.008,1.82,sd*1.07,.457,.24);
