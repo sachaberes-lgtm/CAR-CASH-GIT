@@ -281,6 +281,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `VOLR` — en vol, gravité, plané du nitro, équilibre de la caisse et de l'écran, viseur, BUMP et prédictions des figures suivent la normale de la dalle
   survolée (face quittée) ; on retombe sur sa route qu'elle soit à plat, sur la tranche ou à l'envers. Ailleurs, le bas du monde au chiffre près.
   `?sans=volroute` = avant, `dbgVolRoute(false)` en direct. Banc apparié : `cc-banc/volcote.cjs` (journal).
+  Et quand la route VRILLE sous la caisse, le vol tourne avec elle (`VOLR_ROULIS`, 19/10, Sacha : « ça dévie la trajectoire ») : élan, repère du
+  vol et haut de l'écran suivent le roulis de la route, pas ses plongées — `?sans=volroulis`, `dbgVolRoulis(false)`.
 - LE GLACIER EST UNE PISTE DE GLACE (17/10, Sacha : « plus de route ») : (196 m, pics sur la piste, tremplins pour s'envoler ; plus de lacs gelés ni de stalactites depuis le 18/10). Les satellites de l'orbite FLOTTENT au bord de la route, décor pur (17/10 soir, Sacha : « je voulais juste qu'ils flottent proche de la route » —
   `orbiteBuild` §0 bis) ; les obstacles SUR la route de l'après-midi sont retirés (18/10).
   (18/10, 3e tour) le bord n'est PLUS un mur : LA CONGÈRE (`bkCongere`, `BK_CG`) — 16 m de neige profonde où l'on s'enfonce et ralentit fort,
@@ -578,6 +580,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « PASSE PERF iPHONE » (27/09) · « PASSE DÉBOGAGE / PERF » (26/09) · « PASSE DE FINITION » (26/09) · « LA SONDE QUI NE FIGE PLUS » (08/10)
 
 **Conduite, vol, caméra**
+- « LA VRILLE PORTE LE VOL — LA ROUTE DES NUAGES NE DÉVIE PLUS LA CAISSE EN L'AIR » (19/10) — `VOLR_ROULIS`, `?sans=volroulis`, le simulateur du vol
 - « LE DÉCOLLAGE AU MANCHE — LA FIGURE SUR LA ROUTE PEUT S'ENVOLER » (19/10, Léo) — `FDC`, `frEnvol`, le geste neuf pendant le bond
 - « LA DERNIÈRE PASSE DE FLUIDITÉ AVANT LE GEL » (17/10) — décollage, pose, réacteur, caméra : ce qui sautait d'une image à l'autre
 - « L'IMPACT — UNE SEULE ANIMATION POUR TOUT CE QU'ON PERCUTE » (15/10) — la mort contre une paroi, toutes les maps

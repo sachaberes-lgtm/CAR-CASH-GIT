@@ -50974,9 +50974,23 @@ const TBORD={t:0,on:false,u:new THREE.Vector3()};
    dans l'espace — comme sur une route droite. Les autres maps : le haut du monde, au chiffre près (`VOLR.on` faux). Sortie par le bord :
    on tombe sous SA dalle et on s'y perd, comme ailleurs (la gravité de la route ne s'arrête plus au bout d'1,1 s — voir TBORD).
    `?sans=volroute` rend le vol d'avant. */
+/* LA VRILLE PORTE LE VOL (2026-10-19, Sacha : « il y a toujours des problèmes dans la map nuage : quand on vole près de la route, ça dévie la
+   trajectoire »). LA CAUSE, MESURÉE (simulateur de la branche 'fall' sur deux pistes des nuages vidées du jeu, mêmes formules) : le haut du vol
+   suit la dalle survolée en ~0,08 s ; quand la route VRILLE sous la caisse (jusqu'à 64°/s), la gravité tourne avec elle, mais l'élan, le repère
+   de la caisse (FLY_U, autour duquel tourne le volant) et le haut de l'écran restent dans l'ancien (l'équilibre les rattrape à 2,6/s, la caméra
+   à 3/s) : la gravité tire DE CÔTÉ à l'écran. Sans toucher aux commandes, sur un vol de 1,5 s au nitro, la poussée de côté cumulée valait
+   11-15 m/s en médiane et jusqu'à 92 m/s (0,3 sur un saut court) ; et un pilote qui vise la route ne se posait que 34 fois sur 48.
+   Désormais la part de la rotation du haut du vol qui est la VRILLE de la route (son roulis autour de son axe T) emporte aussi l'élan, le repère
+   du vol, la caisse et le haut de l'écran : la route tourne, le vol tourne avec elle, comme quand on roule. Le reste (la route qui plonge ou se
+   cabre sous la caisse) ne touche que la gravité, comme avant : on décolle toujours des crêtes, et aucune force ne ramène vers la route.
+   MESURÉ (même simulateur, 88 départs) : poussée de côté méd 1,0-1,4 m/s, max 10-13 ; sauts courts inchangés (tous posés) ; vols nitro sans
+   les mains 22/48 et 18/40 posés (21 et 18 avant) ; un pilote qui vise la route 48/48 et 40/40 (34 et 34), gros vols 37/48 et 36/40 (23 et 24).
+   `?sans=volroulis` = avant ; `dbgVolRoulis(false|true)` le bascule en direct pour les vols suivants. */
+let VOLR_ROULIS=!/[?&]sans=([^&]*,)?volroulis(,|&|$)/.test(location.search);
+window.dbgVolRoulis=function(v){if(v!=null)VOLR_ROULIS=!!v;return VOLR_ROULIS;};
 let VOLR_ON=!/[?&]sans=([^&]*,)?volroute(,|&|$)/.test(location.search);
 window.dbgVolRoute=function(v){if(v!=null)VOLR_ON=!!v;return {on:VOLR_ON,vol:VOLR.on,u:VOLR.u.toArray().map(function(x){return +x.toFixed(3);})};}; // (banc) dbgVolRoute(false) = le vol d'avant pour les vols suivants
-const VOLR={on:false,k:12,u:new THREE.Vector3(0,1,0),c:new THREE.Vector3()}; // k : la vitesse du lissage (1/s) · u : le haut du vol · c : calcul
+const VOLR={on:false,k:12,u:new THREE.Vector3(0,1,0),c:new THREE.Vector3(),a:new THREE.Vector3(),b:new THREE.Vector3(),q:new THREE.Quaternion()}; // k : la vitesse du lissage (1/s) · u : le haut du vol · c, a, b, q : calcul
 function volrOn(){return VOLR_ON&&TORD.on&&!PARK.on;}
 function volVu(v){return VOLR.on?v.dot(VOLR.u):v.y;} // la part de v vers le haut du vol
 function volMonte(v,d){if(VOLR.on)v.addScaledVector(VOLR.u,d);else v.y+=d;} // + d vers le haut du vol
@@ -50985,7 +50999,12 @@ function volH(v){if(!VOLR.on)return Math.hypot(v.x,v.z);const k=v.dot(VOLR.u);re
 function volHK(v,f){if(!VOLR.on){v.x*=f;v.z*=f;return;}const k=v.dot(VOLR.u);v.addScaledVector(VOLR.u,-k).multiplyScalar(f).addScaledVector(VOLR.u,k);} // la part « à plat » × f
 function volrSuit(dt){if(!VOLR.on)return;if(!TORD.on){VOLR.on=false;VOLR.u.set(0,1,0);return;} // chaque image de vol : le haut suit la dalle survolée (une route qui change en plein vol rend le haut du monde)
   const i=tryLand._bi;if(!(i>=0)||!Nn[i])return;
-  VOLR.c.copy(Nn[i]);if(VOLR.c.dot(VOLR.u)<0)VOLR.c.negate();VOLR.u.lerp(VOLR.c,1-Math.exp(-dt*VOLR.k)).normalize();}
+  const t=T[i],a=VOLR.a.copy(VOLR.u);if(t)a.addScaledVector(t,-a.dot(t)); // (LA VRILLE PORTE LE VOL) le haut d'avant, vu le long de l'axe de la route
+  VOLR.c.copy(Nn[i]);if(VOLR.c.dot(VOLR.u)<0)VOLR.c.negate();VOLR.u.lerp(VOLR.c,1-Math.exp(-dt*VOLR.k)).normalize();
+  if(!VOLR_ROULIS||!t)return;
+  const b=VOLR.b.copy(VOLR.u).addScaledVector(t,-VOLR.u.dot(t));if(a.lengthSq()<1e-6||b.lengthSq()<1e-6)return;
+  const r=Math.atan2(VOLR.c.crossVectors(a,b).dot(t),a.dot(b));if(Math.abs(r)<1e-7)return; // le roulis de la route sous la caisse, cette image
+  fallVel.applyAxisAngle(t,r);FLY_U.applyAxisAngle(t,r);FLY_R.applyAxisAngle(t,r);camUp.applyAxisAngle(t,r);VEQ.qb.premultiply(VOLR.q.setFromAxisAngle(t,r));}
 let bascOn=false,bascDir=1,levreY=0,bascT=0; /* bascT (1/10, soir) : le temps VÉCU depuis la sortie par le bord — `fallT` est rendu par les bumps, il réarmait la bascule en plein vol */
 const BUMP_VY=16; /* (2026-10-01) la vitesse verticale rendue par un BUMP (voir tryLand) */
 const BUMP_VAL=5; /* (2026-10-15 soir, Sacha) ce que le 1er BUMP d'un vol verse à la chaîne, comme une figure (le RICOCHET sur l'eau : 5) — puis ×0,6 par rebond */
