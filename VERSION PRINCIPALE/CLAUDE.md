@@ -281,7 +281,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `orbiteBuild` §0 bis) ; les obstacles SUR la route de l'après-midi sont retirés (18/10).
   (18/10, 3e tour) le bord n'est PLUS un mur : LA CONGÈRE (`bkCongere`, `BK_CG`) — 16 m de neige profonde où l'on s'enfonce et ralentit fort,
   jamais de mort (Sacha : « on doit pas mourir ») ; pente 40-50° pour de vrai (`BK_PENTE4` est une TANGENTE : 43° de moyenne) ; TREMPLINS
-  de 36 m × 7 m à chevrons orange et balises (`BK_BEC`, `bkBecMesh`) ; ~4 × moins de pics ;
+  de 36 m × 7 m à chevrons orange et balises (`BK_BEC`, `bkBecMesh`) ; ~4 × moins de pics ; (19/10) caméra plus haute (`camGlacierM`, monte 2) ;
 - LA VILLE EST TOUJOURS LA NUIT (16/10, Sacha : « la ville-jour, ça marche pas : on abandonne toutes les maps ville-jour ») : ni matin, ni midi, ni soir au
   JOUER ; ses variations sont des TEINTES (violet = la base, vert, jaune, bleu) et des temps de nuit.
   LA VILLE VITRÉE N'EST PLUS UNE MAP DU JOUER (18/10, Sacha : « fusionne les maps ville et ville vitrée ») : ses géantes de verre vivent dans LA VILLE,
