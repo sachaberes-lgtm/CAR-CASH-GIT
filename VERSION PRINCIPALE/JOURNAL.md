@@ -3,6 +3,12 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'AFFINEMENT, 2e ENVOI : LE HUMMER SUV ET LES DEUX PREMIERS LOTS (2026-10-19, v680, Léo : « oui, mets le Hummer SUV et les deux lots dans le jeu »)
+- LE CAÏD en HUMMER EV SUV (BOÎTES 9176c959 : le nez et le détail gardés, la cabine jusqu'au hayon, la roue de secours sur le hayon).
+- RONDES lot 1 (665b7a04) : LA PUCE ronde comme la Mini, LA FÉLINE (phares en goutte à verre clair, roues à rayons), LA QUEUE DE CANARD
+  (bouts de pare-chocs rentrés, phare d'un seul verre). JAPONAISES lot 1 (00f04429) : plus de damier sur les ailes arrière (LAME, FIDÈLE,
+  BÊTE ; `japQuads`), dérives de LA BÊTE remontées, nez de LA CERISE, coques de rétro retaillées. Les lots suivants attendent le oui de Léo.
+
 ## L'AFFINEMENT DES VOITURES, 1er ENVOI : LES BUGS ET LA FENTE (2026-10-19, v679 — Léo : « corrige tous les traits noirs dénaturés… un effet de séparation discret qui simule une fente » ; fente C choisie sur planche)
 - Le chantier : `~/Downloads/CAR-bancs/nouvelles-voitures/AFFINEMENT.md` (le relevé de 46 caisses, la FENTE, la dernière retouche en style poly).
 - **Les bugs** (partis direct) : RONDES 7f3d858f — l'éventail de triangles de LA GRANDE ANGLAISE, la tache noire du capot de POSTER 84 ;
@@ -1021,6 +1027,23 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   Léo la veut « plus fidèle » (en reprise chez JAPONAISES). Fusion : seul conflit, le bloc des traductions que l'allègement de Sacha
   avait vidé — son ménage gardé, nos deux noms (LA LAME, LE TOFU) ajoutés.
 
+## L'AFFINEMENT RONDES, LOT 1 — LA PUCE, LA FÉLINE, LA QUEUE DE CANARD (2026-10-19, discussion RONDES ; Léo : « tout corriger », « le style poly pour perfectionner chaque coin »)
+- **LA PUCE** (la Mini, défi) : la section refaite — le bas de caisse RENTRE en arrondi (la rentrée s'efface au-dessus des roues : `kA`), la
+  portière bombe, l'épaule ronde, le pavillon bombé jusqu'à sa gouttière ; deux tranches de plus à chaque coin. Les pare-chocs sont une barre
+  chromée à huit pans qui ENVELOPPE les coins (`bulleOutils.tube`), butoirs en tubes debout. La boîte noire sous la malle devient CLAIRE :
+  `plqDessinee` y pose la vraie plaque (elle était sur la malle, la boîte noire faisait un trou). Peinture : les bandes 'p' décalées de 2.
+- **LA FÉLINE** (la Type E) : les phares étaient un CRISTAL bleu nuit qui dépassait de l'aile → une découpe EN GOUTTE couchée sur la tôle
+  (`yHaut` relit la section : la section est devenue `SEC`), son jonc chromé (tube), le verre clair 'v' (famille 'g', gris-vert) et le phare
+  rond dedans. Les roues : des anneaux plats → de vraies roues À RAYONS (`roueDeco` : jante chromée, deux nappes de 16 rayons croisés, écrou à
+  oreilles ; `lpw.style:'nyan'`). ⚠ `BufferGeometry.applyQuaternion` n'existe pas en r128 : passer par `applyMatrix4`.
+- **LA QUEUE DE CANARD** : les bouts des pare-chocs (tracés `avP`/`arP`) finissaient à 1-3 cm HORS de la tôle → en lame ; ils rentrent de 3 cm.
+  Le phare : l'anneau argent à mi-rayon et le cache chromé central faisaient un iris et une pupille → une glace d'un seul verre. Le cadre noir
+  des feux 11 → 5 mm, le filet 8 → 4 mm.
+- Le tour des coins (12 vues + dessous, garage et course) : rien d'autre sur ces trois-là, sauf la coque en facettes de LA FÉLINE (ses passages
+  de roue sont creusés dans le loft ; les adoucir = des ailes séparées comme LE SCARABÉE, à décider). La fente C attend l'outil de JAPONAISES.
+- Vérifié : 0 programme compilé en course (les trois), 29 avertissements comme le main, construction 11-41 ms. Planche
+  `photos-gameplay/affinement-rondes-lot1.png`.
+
 ## BUGS RONDES — L'ÉVENTAIL DE LA GRANDE ANGLAISE, LA TACHE NOIRE DE POSTER 84 (2026-10-19, discussion RONDES ; Léo, sur le relevé de l'affinement : « tout corriger », les bugs d'abord)
 - **LA GRANDE ANGLAISE** : l'éventail de lamelles claires/sombres au-dessus du feu arrière venait du LOFT, pas de la découpe (il restait sans
   aucune zone). Deux causes mesurées (`plis.js` du banc : l'angle entre les deux triangles de chaque quad) : (1) la poupe « rognée » au profil
@@ -1186,6 +1209,18 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   basculaient en vue « dessus » → règle de vue abaissée à 0,83 m.
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
+
+## LE CAÏD EN HUMMER EV SUV (2026-10-19, discussion BOÎTES ; Léo : « refais-le en SUV »)
+- Le nez et tout le détail du pick-up gardés ; l'arrière refait sur les cotes du SUV (dimensions.com n'a que le pick-up) : longueur 5,00 roue de
+  secours comprise, empattement 3,218, largeur 2,197, hauteur 1,976 (Wikipedia, evspecifications). `ZR` −1,573 → −1,340, `ZT` −2,71 → −1,85.
+- Le passage de roue arrière du pick-up est GARDÉ et transformé (`mR` : avancé sur le nouvel essieu, resserré ×0,73 derrière lui) : même
+  élargisseur, même bord épais et mêmes vis. Le BAS s'arrête à la ceinture (plus de benne) ; la SERRE va jusqu'au hayon (plus d'ailerons ni de
+  lunette en retrait : `boutD` retiré), son montant arrière couleur caisse, une vitre de custode, six panneaux de toit, l'aileron au bout.
+- Le HAYON porte la ROUE DE SECOURS (pneu à pavés et jante à dix branches, recopiés de la roue du jeu) ; poignée à gauche, charnières à droite.
+  Les pièces de la poupe du pick-up (bouclier, attelage, plaque, catadioptres) sont décalées de `DZB` (= ZT + 2,71) ; les fentes de l'échappement
+  électrique aussi (`ECH_POTS.caid` à z −1,93). Ligne CARS 2 : h 1,98, l 5,00.
+- Banc : course couchée et debout 0 programme compilé, garage sans erreur ; 32 k facettes ; 1re construction ~31 ms (découpe en moment creux).
+  Planche : photos-gameplay/hummer-suv-vraie-et-nous.png.
 
 ## BUGS BOÎTES — LA DOLORÈS, L'AIGLE DE FEU, LE CHARGEUR (2026-10-19, discussion BOÎTES ; l'AFFINEMENT, choix de Léo)
 - **LA DOLORÈS** : le jonc noir était une barre de 3,60 m d'un seul tenant qui traversait les passages de roue (arche à 0,74, jonc à 0,62) —
