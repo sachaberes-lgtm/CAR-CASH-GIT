@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v684'; // v684 (2026-10-19, Sacha : « je veux qu'on décolle sur les vagues des dunes même sans nitro, de crête en crête ») : LES DUNES D'OR — la crête de chaque vague est une LÈVRE qui lance la caisse sur la face d'avalanche (voir le journal)
+const CACHE = 'cashcar-v685'; // v685 (2026-10-19, Sacha : « la map grotte doit etre plus longue et la grotte beaucoup plus vaste ») : LA GROTTE VASTE — LES PROFONDEURS 1,7 × plus longues, des salles ~2,5 × plus grandes, la brume et l'air des salles à l'échelle, les cartes postales du portail retirées (voir le journal)
 // const CACHE = 'cashcar-v683'; // v683 (2026-10-19, Léo : « oui, la FÉLINE peut partir sur le main » ; « applique la correction des jantes à toutes les voitures ») : LA FÉLINE au bas de caisse de la Type E (arches serrées, lames chromées, poupe, jantes) ; les jantes de L'AIGLE DE FEU, du MASTODONTE et du HOT ROD
 // const CACHE = 'cashcar-v682'; // v682 (2026-10-19, Léo : « mets tout ce qui est à valider dans le jeu, et applique la correction des jantes à toutes les voitures ») : L'AFFINEMENT COMPLET — la fente C partout, les formes, les coins en style poly sur ~45 caisses, LA FÉLINE aux ailes séparées, et les VRAIES JANTES pour toutes (ROUES_VRAIES ; ?roues=ancien)
 // const CACHE = 'cashcar-v681'; // v681 (2026-10-19, correctif) : le glacier retrouve ses tremplins, ses pics et sa météo — `let BK_BEC_TEX` n'est plus avalée par un « // »
