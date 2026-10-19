@@ -1012,6 +1012,22 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
   Léo la veut « plus fidèle » (en reprise chez JAPONAISES). Fusion : seul conflit, le bloc des traductions que l'allègement de Sacha
   avait vidé — son ménage gardé, nos deux noms (LA LAME, LE TOFU) ajoutés.
 
+## BUGS RONDES — L'ÉVENTAIL DE LA GRANDE ANGLAISE, LA TACHE NOIRE DE POSTER 84 (2026-10-19, discussion RONDES ; Léo, sur le relevé de l'affinement : « tout corriger », les bugs d'abord)
+- **LA GRANDE ANGLAISE** : l'éventail de lamelles claires/sombres au-dessus du feu arrière venait du LOFT, pas de la découpe (il restait sans
+  aucune zone). Deux causes mesurées (`plis.js` du banc : l'angle entre les deux triangles de chaque quad) : (1) la poupe « rognée » au profil
+  (`sect` au-delà de AP) écrasait une douzaine de points sur la même hauteur → quads tordus de 31 à 49° ; elle se resserre désormais EN BANDES
+  (la section garde sa forme, sa hauteur se comprime entre le bas de caisse et le profil) ; (2) une tranche tous les 10 cm là où la poupe
+  s'arrondit vite en plan (0,47 → 0,80 m en 20 cm) → 18 à 32° ; sept tranches de plus (−2,275 → −2,05). Restent deux quads à 12-14°. Le nez a
+  le même rognage, mais ses quads tordus sont derrière la calandre en volume et dans les prises d'air : non touché.
+- **POSTER 84** : la « tache noire » devant le pare-brise (un V vu de face, un hexagone vu de dessus) était le PLANCHER noir (bandes j 0-1)
+  qui montait à la hauteur de l'arche sur TOUTE la largeur : à l'essieu avant il passait 18 cm au-dessus du centre du capot. Au milieu il
+  reste désormais 8 cm sous le capot (`[0,Math.min(yb,c-.08)]`), l'arche ne change pas sur les côtés. ⚠ LA DOLORÈS a le même gabarit :
+  ~2,5 cm au-dessus du capot à l'essieu avant (signalé à BOÎTES).
+- **ELDORADO** : le « pavé noir » du capot du relevé n'était pas la caisse — un objet de la piste figé par la pause à l'instant de la photo
+  (rien au garage, rien en deux nouvelles courses, aucune pièce sombre de la caisse à cet endroit) : rien changé.
+- Vérifié : 0 programme compilé en course (couché/debout), 29 avertissements comme le main, la tôle de LA GRANDE ANGLAISE découpée au menu
+  (50-72 ms). Planche `photos-gameplay/bugs-rondes-avant-apres.png`.
+
 ## LA GRANDE ANGLAISE REFAITE AU PLAN — LA BENTLEY CONTINENTAL GT DE 2003 (2026-10-18, discussion RONDES ; Léo : « dans la direction qu'on a prise jusque-là, améliorer, amplifier l'effet de THE ENGLISH DAME » ; RARE inchangée)
 - **Le plan** : pas de plan coté libre de la 2003 (dimensions.com n'a que la 4e génération). Le PROFIL = le dessin de la 2004
   (the-blueprints.com, 245 px/m en long et 251 en haut : étalonné sur la longueur 4,804 m et la hauteur 1,39 m — un dessin peut être
