@@ -104,8 +104,8 @@ Le TUNNEL D'ARRIVÉE du canyon (les 460 derniers mètres, du 14/10) est refait s
   `__loopErr` vide. Le Mac était saturé (charge 150 à 270, les bancs d'autres sessions) : la photo du grand nom et de la ligne du combo est
   prise au banc du HUD seul — les VRAIES feuilles et les vraies `fhNet`/`fhTitre`/`FIG_RP` d'index.html, le DOM de `fhEl`, la taille de
   `fhNom`, sur la photo de la map —, avant/après, couché et debout.
-- À TRANCHER PAR SACHA : s'il préfère une autre police plutôt que le gothique en minuscules, la planche montre les candidates (Workbench,
-  Handjet, Bitcount Grid Double se lisent le mieux) — ce serait un .woff2 de plus (3 à 7 Ko) et une ligne dans <style id="policeUnique">.
+- VALIDÉ PAR SACHA (2026-10-19, après la planche avant / après et les trois autres polices : Workbench, Handjet, Bitcount Grid Double) :
+  « OK, on garde le gothique en minuscules pour les légendaires. »
 ## LA GROTTE VASTE — LES PROFONDEURS 1,7 × PLUS LONGUES, DES SALLES 2,5 × PLUS GRANDES (2026-10-19, session GROTTE — Sacha : « la map grotte doit etre plus longue et la grotte beaucoup plus vaste »)
 - **Ce qui change** (tout derrière `GRT_VASTE` ; `?sans=grottevaste` = la grotte d'avant À L'IDENTIQUE — vérifié sur la même graine : mêmes
   comptes que `main`, jusqu'aux 205 776 triangles) :
