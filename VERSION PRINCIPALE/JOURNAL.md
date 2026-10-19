@@ -3,6 +3,79 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE DÉPART D'AVANCE — LA 1re PISTE DE LA PARTIE SE BÂTIT AU MENU ET À L'ÉCRAN DE FIN (2026-10-19, session PERF — chantier du PRÉ-BÂTI de Léo ; la passe perf du 18/10 : « JOUER : ~1,1 s d'image figée sous le nuage blanc · REJOUER : ~1 s de construction sous le volet · depuis l'accueil, la piste bâtie deux fois »)
+- **MESURÉ AVANT** (banc : iPhone simulé 390 × 844 ×3, NETTE, processeur ×4, `?palier=2`, `?pistegraine=777`, au calme — charge 2,5 à 4,8) : la
+  construction du départ fige l'image d'un bloc — au 1er JOUER `sous9` → `rebuildMenuScene` → `newTrack` (230-250 ms aux nuages, ~1 s à la jade),
+  au REJOUER `resetGame` → `newTrack` (300 ms au volcan, 500-550 ms à la forêt), et au JOUER DEPUIS L'ACCUEIL APRÈS UNE PARTIE deux newTrack dans la
+  même image (sous9 puis resetGame : 410-470 ms à la ville, 1,35-1,45 s à la jade).
+- **L'IDÉE** (celle du pré-bâti, appliquée au départ) : la map du prochain départ est connue d'avance si on la TIRE d'avance — on la bâtit pendant
+  le menu et l'écran de fin, quelques ms par image, par la MÊME machine (`pisteRoute`, `prebJade`, `prebDecorG` : la route et les décors forêt,
+  volcan, glacier, grotte, jade), et le départ la PREND au lieu de la bâtir (`prebGraine`/`prebPrend`, comme au portail).
+- **LE TIRAGE D'AVANCE** (`prebDepCible`) : `SF.prochain` (que classiqueJouer prenait déjà, plus rien ne le posait) est tiré au menu et à l'écran
+  de fin, contre `SF.der` (`SF.prochainDer` : périmé si le dernier couple change), par la règle du départ — `sfTire(SF.der)` pour le JOUER comme pour
+  le REJOUER (lvlChoisir tire exactement ça). Un lien de test (`?carte=`, `dbgClassique`) est consommé par lui (`sfImpose`) ; sans map valide (un
+  `?meteo=` seul), rien d'avance. resetGame pose `SF.prochain` dans `SF.tirage[0]` (le REJOUER) ; le JOUER déjà parti (`SF.neuf` : le piqué, le
+  lâcher) bâtit son `SF.tirage[0]`.
+- **LE CONTEXTE** : au menu d'une session neuve, la piste se bâtit pour le newTrack de sous9 (started faux, palier du moment) ; après une partie
+  (écran de fin, accueil), pour celui de resetGame (started vrai, palier 0). Le temps d'une tranche, `started`, `gameOver` et `SF.pret` prennent la
+  valeur du départ (`W.ctx`, échangé par `prebEchange` avec le palier, la map, la zone) : `hautOn` (la route sans haut ni bas des nuages) et la
+  météo des décors les lisent. Au départ, `prebGraine` vérifie map (`SF.tirage[0]`), zone 0, largeur, palier et `started` ; sinon la piste est
+  jetée et le départ bâtit comme avant. Prise seulement là où on l'attend (`prebDepPrend` : sous9 et resetGame) ; tout autre newTrack la jette.
+- **LE BUDGET** (`prebDepTick`, appelé par prebTick hors course) : 3 à 6 ms par image comme en course, après la chauffe du menu et les gabarits de
+  la jade (`jadeGabFond`, ils passent avant), jamais pendant un volet, un lâcher (`GAR.go`) ou un piqué (`CHUTE.go`) ; 0,7 s après qu'un monde neuf
+  est entré, 0,8 s après la fin de la partie ; `chauffeGrace` (la qualité auto ne lit pas une tranche comme une faiblesse). Pas fini au départ : le
+  reste d'un trait (le travail fait reste fait). MESURÉ : la jade (la plus lourde) finit en < 14 s ×4 au menu ; les images du menu et de l'écran de
+  fin ne bougent pas (33,3 ms de cadence ×4, pire 33,5 ms, 0 image > 50 ms, avant comme après).
+- **LE JOUER DEPUIS L'ACCUEIL APRÈS UNE PARTIE** (sous le nuage blanc ou le voile chaud de l'atelier : `CHUTE.sous`, `GAR.sous`, resetGame suit dans
+  la même image) : la 1re des deux pistes n'était JAMAIS dessinée. Il en restait : son ciel — `lvlGo(.01)` pose d'un coup la planète, l'espace, la
+  pluie, la ville… de la map, et `bioGo` change `BIO.name`, que lvlBiome évite ensuite (BIO.cur, lui, n'avance qu'à l'image suivante) —, et la
+  caméra du lâcher (closeGarage la pose au départ de cette piste). Désormais elle est LÉGÈRE : `sous9(true)` → `rebuildMenuScene` avec
+  `PREB.ntLeger` → newTrack0 sans buildTrack, padsInstancier, computeMinimap ni spawnPickups (le ciel, la musique, le reste : comme avant) ; puis
+  resetGame prend la piste d'avance et repose la caméra comme closeGarage l'aurait posée, au départ de la piste neuve (`PREB.cam`). Au départ de
+  toutes les maps sauf la jade, ce point ne dépend pas de la graine (MESURÉ, 4 graines × 2 paliers par map : (0,0,0) et la même tangente ; nuages et
+  orbite ±0,01 de pente, la forêt 7 cm selon le palier) : même caméra. ⚠ LA SEULE DIFFÉRENCE : au SOLEIL DE JADE (départ tiré au hasard : hauteur
+  5-42 m, cap ±25°), la caméra glissait jusqu'ici depuis le départ de la piste jetée (un glissé au hasard sous le nuage qui se déchire) ; elle part
+  maintenant de derrière la caisse, comme au 1er JOUER et au REJOUER. Ailleurs (la boutique par le volet, `ecranWipe`), la 1re piste reste entière.
+- **VÉRIFIÉ — MÊME PISTE AU BIT PRÈS** (empreintes FNV des tableaux : pts/T/Nn/B, objets, trackMeshes champ par champ — géométries, matrices,
+  instances —, champs des générations, chaque champ de chaque module de décor, nuages, scène ; et l'état au départ : caméra, LVL, BIO, météo des
+  décors) : (1) d'une page à l'autre contre origin/main, même graine, mêmes maps — JOUER, REJOUER, JOUER depuis l'accueil — forêt, volcan, jade,
+  ville (vert), grotte, nuages, canyon, crypto, orbite, glacier, jade du soir, forêt de nuit, et après la fusion de main v675 LES DUNES D'OR
+  (soir, midi) et le volcan de nuit : 0 différence hors du BRUIT (ce qui diffère déjà
+  entre deux pages d'origin/main : temps mesurés, sons, pièces, l'ordre de la scène, les prototypes de la forêt) ; (2) dans une même page, la piste
+  du REJOUER prise d'avance contre la MÊME bâtie d'un trait par `dbgTrace` (graine 777, palier 0) : route, objets et décors identiques. Ce qui diffère,
+  et pourquoi : les états vivants (fx, sons, minuteurs) ; `CY.job` (le compteur des travaux du relief du canyon : une piste de moins) ; LA GROTTE, prise
+  ENTIÈRE (bâtie d'avance, elle finit ses tranches ; d'un trait, elle s'arrête à 1 100 m et finit en roulant — la règle du pré-bâti) ; la JADE reprise
+  par la carte gardée (jadeReprend, la règle du pré-bâti) ; l'ordre dans `scene.children` de quelques effets cachés créés plus tard (sans effet à
+  l'écran). `?prebati=0` contre origin/main : 0 différence hors bruit.
+- **MESURÉ APRÈS** (A/B alterné contre origin/main, 2 manches, mêmes graines, mêmes maps, piste prête au départ) — pire image du départ (construction) :
+  · nuages · forêt · jade : JOUER **317 → 200 ms** (239 → 72) · REJOUER **600 → 108 ms** (528 → 10) · JOUER depuis l'accueil **1 517 → 133 ms**
+    (1 404 → 25 ; au banc la 2e jade reprenait la 1re par la carte gardée, même graine — en vrai, deux graines : ~1,3 s de plus avant) ;
+  · jade · volcan · ville violette : JOUER **1 100 → 150 ms** (1 003 → 29) · REJOUER **367 → 117 ms** (302 → 13) · JOUER depuis l'accueil **500 → 133 ms**
+    (441 → 51).
+  0 programme compilé au départ dans les deux. Aucune erreur : téléphone couché, debout, cadre de l'ordi (JOUER, REJOUER, JOUER depuis l'accueil),
+  JOUER pressé (0,5 s : rien d'avance, bâti comme avant), REJOUER pressé, RECOMMENCER, JOUER de l'atelier et de la boutique, `?prebati=0`, l'auto-école
+  d'un joueur neuf ; le pré-bâti du PORTAIL est toujours pris après un départ pris.
+  REVÉRIFIÉ après la fusion de main v675 (les dunes, la caisse-nuage éteinte) : empreintes, chemins de bord, couché/debout/ordi, 0 erreur ;
+  A/B ×4 (charge 6-9 : d'autres bancs tournaient) nuages · forêt · jade : JOUER 433 → 275 ms, REJOUER 792 → 142 ms, JOUER depuis
+  l'accueil 1 392 → 250 ms.
+- **CE QUI RESTE dans l'image du départ** (profil ×4, hors du chantier) : les NUAGES (`buildClouds` ~45 ms aux nuages, puis `nuFantGeo` à la
+  réponse du travailleur, ~50-80 ms, une image plus tard), `buildCar` (~26-30 ms : closeGarage, puis resetGame — deux fois au JOUER après une
+  partie), la VILLE (`buildVoxCity`, ~40-50 ms), `fireLaunchBoost` (~17), puis la 1re image du monde neuf (envois à la puce). Et LES DUNES D'OR
+  (map du 18/10 au soir, arrivée pendant ce chantier) : leur ROUTE est bâtie d'avance (`PREB_PISTES`), mais leur DÉCOR (`buildDunes`, pas un
+  générateur) se bâtit encore au départ — c'est lui qui reste au JOUER des dunes (~0,6-0,9 s ×4 mesurés sous charge ; ~30 % de moins qu'avant).
+  Les nuages, la ville et le décor des dunes ne sont pas bâtis d'avance (pas dans le pré-bâti, ni au portail) : c'est la suite logique
+  (un `buildDunesG` + `prebDecorG`, comme la forêt).
+- **Console** : `dbgPrebati()` → `dep` (la piste du départ en cours : pour quel `started`, `SF.prochain`), `prisAuDepart`, `legers` (les sous9
+  légers), `der` (« pris au départ », « départ », « hors départ »…). `?pistegraine=n` vaut aussi pour la piste bâtie d'avance (banc).
+- **Bancs** (`~/Downloads/CAR-bancs/depart-avance/` sur le Mac de Léo, LISEZMOI ; Chrome sans fenêtre CDP Python — la méthode de la passe perf du 18/10) : `tab.py` (A/B alterné ×4 :
+  JOUER → fin → REJOUER → fin → accueil → JOUER), `th.py` + `hashjs.py` + `cmp.py` (les empreintes d'une page à l'autre, le bruit = deux pages
+  d'origin/main), `tw.py` (prise d'avance contre dbgTrace dans la même page), `tf0.py` (le départ de chaque map selon la graine), `tmenu.py`
+  (les images du menu pendant le travail), `tedge.py`/`tedge2.py` (les chemins de bord), `t28.py` (couché, debout, l'ordi), `tprof.py` (ce qui reste).
+- ⚠ TROUVÉ EN PASSANT (pas touché, à signaler à la session du glacier) : sur main, `let BK_BEC_TEX=null;` est AVALÉ par un `//` en fin de la ligne
+  `const BK_BEC=…` (piège n° 1) — `bkBecTex` lève « BK_BEC_TEX is not defined » à chaque construction du glacier (`window.__banqErr`) : buildBanqG
+  s'arrête aux tremplins (`bkBecMesh`), sans sa météo ni la fin de son décor. Le départ d'avance le reproduit tel quel (prebDecorG rend l'exception
+  au même endroit).
+
 ## LE CAÏD, LE HUMMER AU NEZ ARRONDI ET DÉTAILLÉ (2026-10-19, v676, Léo : « plus arrondi le devant… » · « plus de détail » · « oui, et refais-le en SUV »)
 - BOÎTES 373979fc (le nez : capot bombé qui s'enroule dans les ailes, face aux coins ronds, panneau noir, bandeau à coin ambre, 5 feux ambre
   au toit) + a97dbba6 (le détail : calandre à lames, antibrouillards carrés, anneaux, sabot ajouré, nervures du capot, élargisseurs vissés,
