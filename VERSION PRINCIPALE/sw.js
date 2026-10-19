@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v699'; // v699 (2026-10-19, Sacha : « vérifie bien que toutes les maps sont générées aléatoirement ») : LA FORÊT ET LE GLACIER AU HASARD — l'axe tiré, les pelotes, les traversées et les arches qui bougent, la montagne du glacier qui tourne (?sans=forethasard / ?sans=glacierhasard = avant)
+const CACHE = 'cashcar-v700'; // v700 (2026-10-19, Sacha : « vérifie bien que toutes les maps sont générées aléatoirement ») : LE CANYON ET LES DUNES AU HASARD — l'axe, les coudes, les pièces et leur ordre, le caractère des liaisons tirés ; les Mitaines s'écartent de la route (?sans=canyonhasard / ?sans=duneshasard = avant)
 // const CACHE = 'cashcar-v698'; // v698 (2026-10-19, Léo : « oui, mets le bras argent de la boutique dans le jeu ») : boutique › FIGURES, les deux bras posent la voiture, un bras robot argent fait la figure ; gestes plus fluides
 // const CACHE = 'cashcar-v697'; // v697 (2026-10-19, Léo : « oui, mets le bras robot dans le jeu ») : LE BRAS DES FIGURES — inventaire › FIGURES, un bras robot fait la figure sans traverser la caisse
 // const CACHE = 'cashcar-v696'; // v696 (2026-10-19, Léo) : LA VITESSE DE DÉPART — six crans au garage, l'étal du moteur soulevé, l'affiche des records à droite (voir le journal)
