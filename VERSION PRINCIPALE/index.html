@@ -17388,18 +17388,18 @@ function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au
   // ---- 4 bis (v4). LA PISTE : LES BECS DE GLACE, puis LES PICS SUR LA PISTE, en figures ----
   BANQ.obst=[];BANQ.kick=[];
   {const RH=ROAD_HALF,kRH=RH/61.6,O=BANQ.obst,KK=BANQ.kick,ou=(s9,la)=>{const i=Math.max(0,Math.min(NP-1,Math.round(s9/ds))),p=pts[i],b=B[i];return [p.x+b.x*la,p.y+b.y*la,p.z+b.z*la];};
-    const libreK=(s9,la,r)=>{for(const k of KK)if(s9>k.s-k.lg-60&&s9<k.s+260&&la+r>k.l0-8&&la-r<k.l1+8)return false; /* (2026-10-18) 60 m d'approche dégagés devant la rampe (au banc, on percutait un pic en visant le tremplin), et sa retombée : 260 m (à 45°, on vole loin) */for(const o of O)if(Math.abs(o.s-s9)<o.r+r+8&&Math.abs(o.lat-la)<o.r+r+8)return false;return true;}; // ni sur un bec ni dans sa retombée, ni collé à un autre pic
+    const libreK=(s9,la,r)=>{for(const k of KK){if(s9>k.s-k.lg-60&&s9<k.s+260&&la+r>k.l0-8&&la-r<k.l1+8)return false;if(BK_RETOMBE&&s9+r>k.s&&s9-r<k.s+BK_BEC.retombe)return false;} /* (2026-10-18) 60 m d'approche dégagés devant la rampe (au banc, on percutait un pic en visant le tremplin), et sa retombée : 260 m (à 45°, on vole loin) — (2026-10-19) puis BK_BEC.retombe m sur TOUTE la largeur (voir BK_RETOMBE) */for(const o of O)if(Math.abs(o.s-s9)<o.r+r+8&&Math.abs(o.lat-la)<o.r+r+8)return false;return true;}; // ni sur un bec ni dans sa retombée, ni collé à un autre pic
     const pic=(s9,la,H,pente)=>{{const i=Math.max(3,Math.min(NP-4,Math.round(s9/ds))),a=pts[i-3],c=pts[i+3];pente+=Math.max(0,(a.y-c.y)/Math.max(1,Math.hypot(a.x-c.x,a.z-c.z)));} /* (2026-10-18) + la PENTE de la piste : à 45°, le flanc aval d'un pic à 55° (1,4) devenait presque parallèle à la glace — une lame basse de 30 à 50 m qu'on croyait franchir et qui tuait (« des problèmes de collision avec la glace ») ; sa face aval garde désormais, par rapport à la piste, la raideur qu'elle aurait sur le plat */const R=H/pente;if(Math.abs(la)>RH-R*.35-3||!libreK(s9,la,R))return false;const q=ou(s9,la);
       const L9=bkGrappe(q[0],q[2],q[1]-.4,H,pente,(fr()*3)|0,fr,1.4,Math.max(9,R*1.1)); /* (pied profond : sur la pente raide, le côté aval ne flotte pas) fam 1,4 : une aiguille pour la physique, mais COIFFÉE DE NEIGE (BK_PIC_FS) */pose(L9,true,false);let r=0;for(const P of L9)r=Math.max(r,Math.hypot(P.cx-q[0],P.cz-q[2])+P.r);
       O.push({s:s9,lat:la,L9:L9,r:r,x:q[0],z:q[2]});return true;};
     const bec=(s9,c,w)=>{{const cap9=s=>{const t0=T[Math.min(NP-1,Math.round((s+BK_BEC.lg)/ds))],t1=T[Math.min(NP-1,Math.round((s+BK_BEC.lg+BK_BEC.droit)/ds))];return Math.abs(Math.atan2(t0.x*t1.z-t0.z*t1.x,t0.x*t1.x+t0.z*t1.z));};
-      let o=0;while(o<=240&&cap9(s9+o)>.55)o+=30;if(o>240)return;s9+=o;} /* (2026-10-18) jamais devant un virage : à 45°, un vol couvre 250-450 m — posé avant une courbe, il retombait à côté de la piste ; on cherche la portion presque droite (< 31° de cap sur BK_BEC.droit m) jusqu'à 240 m plus loin */c=THREE.MathUtils.clamp(c,-RH+w/2+6,RH-w/2-6);KK.push({s:s9+BK_BEC.lg,l0:c-w/2,l1:c+w/2,lg:BK_BEC.lg,h:BK_BEC.h});}; // (2026-10-18) s = la LÈVRE du tremplin ; sa rampe monte sur les lg m d'avant
+      let o=0;while(o<=240&&cap9(s9+o)>.55)o+=30;if(o>240)return;s9+=o;} /* (2026-10-18) jamais devant un virage : à 45°, un vol couvre 250-450 m — posé avant une courbe, il retombait à côté de la piste ; on cherche la portion presque droite (< 31° de cap sur BK_BEC.droit m) jusqu'à 240 m plus loin */c=THREE.MathUtils.clamp(c,-RH+w/2+6,RH-w/2-6);KK.push({s:s9+BK_BEC.lg,l0:c-w/2,l1:c+w/2,lg:BK_BEC.lg,h:BK_BEC.h});return s9+BK_BEC.lg;}; // (2026-10-18) s = la LÈVRE du tremplin ; sa rampe monte sur les lg m d'avant
     /* (2026-10-18, Sacha : « moins d'obstacles sur la route ») une figure tous les ~0,6-1 km (0,3-0,5 avant) et moins de pics dans chacune (fourche 3-5,
        champ 5-7, îlot 2-3) — ~4 × moins de pics ; (« les tremplins doivent être plus beaux, gros et visibles ») un TREMPLIN avant deux figures sur trois,
        et un tremplin seul au milieu d'une longue descente sur deux (voir BK_BEC) */
     let sp=560+fr()*120;
     while(sp<L-380){const f=fr();
-      if(fr()<.65){bec(sp,(fr()*2-1)*RH*.45,36+fr()*22);sp+=BK_BEC.lg+100+fr()*30;} // un TREMPLIN, le plus souvent juste avant une figure : on peut la survoler
+      if(fr()<.65){const k9=bec(sp,(fr()*2-1)*RH*.45,36+fr()*22),j9=BK_BEC.lg+100+fr()*30;sp=k9!=null&&BK_RETOMBE?Math.max(sp+j9,k9+BK_BEC.retombe):sp+j9;} // un TREMPLIN, le plus souvent juste avant une figure : on peut la survoler — (2026-10-19) elle attend la fin de sa retombée (BK_RETOMBE)
       if(f<.25){const c=(fr()-.5)*14,n=3+((fr()*3)|0),pas=34+fr()*16; // LA FOURCHE : une arête au milieu, deux couloirs
         for(let j=0;j<n;j++)pic(sp+j*pas,c+(fr()-.5)*8,12+fr()*14,1.7+fr()*.8);sp+=n*pas;}
       else if(f<.55){const lg=140+fr()*80,n=Math.round((4+((fr()*3)|0))*kRH*.75); // LE CHAMP : des pics semés, des trouées — (kRH : la largeur ÷ celle de 123 m) — (2026-10-18) 5-7 pics, au lieu de 11-18
@@ -17408,8 +17408,8 @@ function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au
         for(const sg of [-1,1]){const H=26+fr()*14,pe=1.8+fr()*.6;pic(sp+(fr()-.5)*6,g+sg*(gw/2+H/pe*.85),H,pe);}sp+=40;}
       else{const sg=fr()<.5?-1:1,n=2+((fr()*2)|0); // L'ÎLOT : un massif d'un côté, le large de l'autre
         for(let j=0;j<n;j++)pic(sp+fr()*70,sg*(RH*.35+fr()*RH*.4),10+fr()*16,1.5+fr()*.9);sp+=70;}
-      const gap=420+fr()*380;if(gap>520&&fr()<.5&&sp+gap*.5<L-380)bec(sp+gap*.4,(fr()*2-1)*RH*.5,36+fr()*22); // un TREMPLIN seul, au milieu de la descente : pour le plaisir de voler
-      sp+=gap;}
+      const gap=420+fr()*380;let kS=null;if(gap>520&&fr()<.5&&sp+gap*.5<L-380)kS=bec(sp+gap*.4,(fr()*2-1)*RH*.5,36+fr()*22); // un TREMPLIN seul, au milieu de la descente : pour le plaisir de voler
+      sp=kS!=null&&BK_RETOMBE?Math.max(sp+gap,kS+BK_BEC.retombe):sp+gap;} // (2026-10-19) la figure suivante attend la fin de sa retombée
     if(KK.length)bkBecMesh(root,KK); // (2026-10-18) LE TREMPLIN DE GLACE : la rampe, sa lèvre, ses balises
     BANQ.n.pistePics=O.length;BANQ.n.becs=KK.length;}
   if(performance.now()>JF.lim)yield;
@@ -17453,6 +17453,19 @@ function banqOk(){return !!(BANQ.root&&BANQ.sol&&LVL.cur&&LVL.cur.id==='banquise
      qu'on s'enfonce, et vite, la caisse PLANE dessus. La mort se lit dans banqHeurt (au-delà de BK_PH.prof). */
 const BK_V=new THREE.Vector3(),BK_V2=new THREE.Vector3(),BK_N=new THREE.Vector3(),BK_R=new THREE.Vector3(),BK_M4=new THREE.Matrix4(),BK_Q=new THREE.Quaternion();
 function banqLache(){if(BANQ.glisse)banqDecolle();BANQ.sur=0;BANQ.pou=false;}
+/* LE VOLANT EN L'AIR AU GLACIER (2026-10-19, Sacha : « je meurs sans raison sur la route de glace dans la map montagne »). En vol, le lacet tourne
+   la vitesse autour du HAUT DE LA CAISSE (FLY_U, « vol libre ») ; au glacier la caisse vole piquée de 35 à 45° (la pente) : son haut penche, et
+   chaque coup de volant changeait un peu de CHUTE en dérive de côté, que le plafond de l'avance horizontale (fallVH0) rabotait ensuite. La
+   caisse qu'on pilotait FLOTTAIT : sa vitesse vers la glace restait vers −15 pendant 3 s au lieu de croître. MESURÉ au banc (le pilote de vol,
+   qui ramène vers l'axe, sur les mêmes tremplins) : à 500 km/h, 850 à 1 320 m et 4,8 à 7,1 s de vol (sans braquer : 500 m, 3 s) ; à 700 km/h
+   la caisse ne se posait plus (sortie de piste, « vide ») ; nitro tenue, 8 s. Au-delà de la jauge d'air (6 s), on explosait en plein ciel, 50
+   à 90 m au-dessus de la piste. Désormais, au glacier, le volant ne tourne que le CAP : la vitesse verticale et l'avance horizontale restent.
+   MESURÉ (3 tremplins × 350, 500, 700 km/h, avec et sans nitro : 18 vols) : tous posés, de 0,9 à 2,9 s (4,1 s au plus nitro tenue), de 84 à
+   705 m. `?sans=glacelacet` = avant. Ailleurs, rien ne change. */
+const BK_LACET=!/[?&]sans=([^&]*,)?glacelacet(,|&|$)/.test(location.search);
+function banqLacet(v,a){ // le lacet du vol, à chaque image (la boucle, VOL)
+  if(!(BK_LACET&&banqOk())){v.applyAxisAngle(FLY_U,a);return;}
+  const vy=v.y,h0=Math.hypot(v.x,v.z);v.applyAxisAngle(FLY_U,a);const h1=Math.hypot(v.x,v.z);v.y=vy;if(h1>1e-6){v.x*=h0/h1;v.z*=h0/h1;}}
 function banqSolVol(dt,dtF){
   if(!banqOk()){if(BANQ.sur||BANQ.glisse)banqLache();return;}
   const p=fallPos,v=fallVel,k9=dtF*SPD,S=banqSurf(p.x+v.x*k9,p.z+v.z*k9);
@@ -17642,7 +17655,22 @@ function bkCongerePose(root){ // les deux rubans de neige du bord, du départ à
    nuit, et deux BALISES orange de BK_BEC.poteau m aux coins de la lèvre (lisibles de loin, sur toutes les météos : matière sans lumière).
    (1er essai au banc : 26 × 4,5 m, chevrons blancs sur bleu clair — invisible à 100 m sur une piste de 196 m.)
    La caisse MONTE la rampe (hopY suit la courbe) et décolle à la lèvre, poussée de BK_BEC.pop × sa vitesse (,2 avant ; ,26 puis ,22 essayés : 3-6 s de vol à 45°, 450 m parcourus — la piste tournait dessous). */
-const BK_BEC={lg:36,h:7,pop:.18,poteau:15,axe:.65,droit:260}; // droit : la piste presque droite (< 31° de cap) qu'il faut devant la lèvre // axe : la part de la vitesse de travers que la rampe redresse au décollagelet BK_BEC_TEX=null;
+const BK_BEC={lg:36,h:7,pop:.18,poteau:15,axe:.65,droit:260,retombe:500}; // droit : la piste presque droite (< 31° de cap) qu'il faut devant la lèvre // axe : la part de la vitesse de travers que la rampe redresse au décollage // retombe : la piste LIBRE après la lèvre, sur toute sa largeur (voir BK_RETOMBE)
+/* ⚠ (2026-10-19, Sacha : « je meurs sans raison sur la route de glace dans la map montagne ») LA DÉCLARATION AVALÉE : `let BK_BEC_TEX=null;` était
+   collée au bout du commentaire de la ligne au-dessus (« …au décollagelet BK_BEC_TEX=null; », depuis e66f25b2, le 18/10 au soir). bkBecTex lisait
+   une variable qui n'existait pas : buildBanqG cassait au dessin du premier tremplin (window.__banqErr = « BK_BEC_TEX is not defined ») et
+   s'arrêtait là. Les pics de la piste et les tremplins étaient POSÉS (BANQ.obst, BANQ.kick : leurs chocs, leurs envols) mais jamais DESSINÉS,
+   pas plus que les 400 autres pics (BANQ.picM vide ; BANQ.pics vide : plus de glisse en vol), et la route n'était plus cachée (bkPisteNue) :
+   on roulait sur une « route de glace » et on mourait contre des pics invisibles. MESURÉ au banc (graine 39525) : avant, 0 maillage de pics,
+   15 pics et 5 tremplins actifs ; après, 21 maillages, 410 pics, les mêmes 15 + 5, dessinés. */
+let BK_BEC_TEX=null;
+/* LA RETOMBÉE DES TREMPLINS (2026-10-19, même demande) : libreK ne dégageait que 260 m après la lèvre, et dans la seule bande du tremplin.
+   MESURÉ en course (29 vols, 255 à 414 km/h au décollage) : la caisse se pose de 160 à 511 m plus loin, et le pilote de vol la ramène vers
+   l'axe, hors de la bande ; 2 morts sur 10 courses « aux tremplins » : posée à 516 km/h au pied d'un pic de FOURCHE (380 m après la lèvre),
+   ou à 32 m d'un pic. Désormais aucun pic sur TOUTE la largeur pendant BK_BEC.retombe m après la lèvre (vols mesurés avec banqLacet : 84 à
+   705 m, 450 m au plus jusqu'à 500 km/h), et la figure qui suit un tremplin attend la fin de sa retombée. `?sans=glaceretombe` = avant
+   (même graine, même piste). */
+const BK_RETOMBE=!/[?&]sans=([^&]*,)?glaceretombe(,|&|$)/.test(location.search);
 function bkBecTex(){if(BK_BEC_TEX)return BK_BEC_TEX;const c=document.createElement('canvas');c.width=64;c.height=256;const x=c.getContext('2d');
   const g=x.createLinearGradient(0,256,0,0);g.addColorStop(0,'#bfe6ff');g.addColorStop(1,'#ffffff');x.fillStyle=g;x.fillRect(0,0,64,256);
   x.strokeStyle='#ff7a14';x.lineWidth=11;x.lineJoin='miter';for(let i=0;i<3;i++){const y=206-i*68;x.beginPath();x.moveTo(5,y+26);x.lineTo(32,y);x.lineTo(59,y+26);x.stroke();} // les CHEVRONS ORANGE, pointe vers la lèvre (la couleur des balises : sur la glace bleue, on les voit de loin)
@@ -63821,7 +63849,7 @@ function loop(now){
       // (le lacet gagne un peu d'autorité à grande vitesse → vol simplifié)
       if(VEQ.lArm)VEQ.lT+=dt; // (vol équilibré) l'horloge du verrou du volant
       const yawIn=veqVolant()*lacetVol(fallVel.length())*dtF; // (2026-10-14) le braquage tenu depuis la route ne continue plus le virage en l'air (veqVolant)
-      fallVel.applyAxisAngle(FLY_U,yawIn); // (vol libre) autour du haut de la CAISSE — à gauche à l'écran, c'est à gauche, même sur le dos
+      banqLacet(fallVel,yawIn); // (vol libre) autour du haut de la CAISSE — à gauche à l'écran, c'est à gauche, même sur le dos — (2026-10-19) au GLACIER, le CAP seulement (banqLacet)
       yawAcc+=yawIn;
       /* (2026-10-17, LE RÉACTEUR QUI S'INSTALLE) lâcher le nitro en vol (ou la jauge qui se vide) faisait passer EN UNE IMAGE la gravité de 40 %
          à 100 % et l'autorité du manche de 1,7 à 0,85 rad/s — la caisse « tombait comme une pierre » et le cabré cassait net. Le plané et
