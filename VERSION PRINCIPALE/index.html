@@ -29798,10 +29798,18 @@ function lpOmbre(geo,H){
    jante dessinée sur la face EXTÉRIEURE (+X) — les roues de gauche sont posées en miroir.
    Styles : 'rayons' (n branches), 'multi' (rayons fins et nombreux), 'cadran' (disque percé),
    'enjoliveur' (dôme chromé), 'plis' (flasque plié en étoile). `blanc` = flanc blanc, `crampons` = pavés de tout-terrain. */
+var ROUES_VRAIES=false;try{ROUES_VRAIES=/[?&]roues=vraies/.test(location.search);}catch(e){} // (2026-10-19) la correction GLOBALE des rayons (voir crW), ÉTEINTE : Léo décide
+window.dbgRoues=function(on){if(on!=null){ROUES_VRAIES=!!on;try{buildCar(CARS[equippedCar()]);}catch(e){return e.message;}}return ROUES_VRAIES;};
 function lpWheel(o){
   if(o.style==='nyan')return {}; // (2026-10-08) le chat pop-tart dessine ses roues lui-même (voir « LES ROUES PIXEL » dans son gabarit) : ici, des moyeux VIDES qui portent l'angle
+  // (2026-10-19) la correction GLOBALE (ROUES_VRAIES) sur une fiche qui ne demande rien : des branches couleur `accent` trop sombre se perdraient sur le
+  // fond sombre (l'anneau se lisait contre la lèvre, une branche non) → l'accent sombre s'éclaircit vers la jante. Sans la correction : rien ne change.
+  let acc=o.accent||0xe6e9ee;
+  if(ROUES_VRAIES&&!o.branches&&!o.creux&&o.branches!==0&&o.style!=='multi'&&o.style!=='cadran'&&o.style!=='enjoliveur'&&o.style!=='plis'){
+    const lu=h=>(.3*(h>>16&255)+.59*(h>>8&255)+.11*(h&255))/255,j=o.jante||0xe6e9ee;
+    if(lu(acc)<.25){const m=(x,y)=>Math.round(x+(y-x)*.55);acc=(m(acc>>16&255,j>>16&255)<<16)|(m(acc>>8&255,j>>8&255)<<8)|m(acc&255,j&255);}}
   const R=o.R,hw=o.w/2,K=lpKit({k:{g:'m',c:o.pneu||0x16171a},w:{g:'s',c:0xf4f1ea},
-    c:{g:'c',c:o.jante||0xe6e9ee},d:{g:'m',c:o.fond||0x1b1c21},o:{g:'o',c:0xffc24a},a:{g:'p',c:o.accent||0xe6e9ee,f:0},b:{g:'p',c:o.bande||0xffffff,f:0}});
+    c:{g:'c',c:o.jante||0xe6e9ee},d:{g:'m',c:o.fond||0x1b1c21},o:{g:'o',c:0xffc24a},a:{g:'p',c:acc,f:0},b:{g:'p',c:o.bande||0xffffff,f:0}});
   if(!o.sansPneu)K.lathe('k',[[R*.64,-hw],[R*.88,-hw],[R,-hw*.55],[R,hw*.55],[R*.88,hw],[R*.64,hw]],16,0,0,0,'x'); // `sansPneu` : le gabarit pose le sien (`roueDeco`)
   if(o.crampons)for(let i=0;i<14;i++){const a=i/14*Math.PI*2;
     K.box('k',o.w*.84,.05,.11,0,Math.sin(a)*R,Math.cos(a)*R,Math.PI/2-a);}
@@ -29811,6 +29819,9 @@ function lpWheel(o){
   if(o.deux)K.lathe('d',[[0,-(fx0-.05)],[R*.64,-(fx0-.05)],[R*.64,fx0-.05],[0,fx0-.05]],16,0,0,0,'x');
   else K.lathe('d',[[R*.64,-hw+.02],[R*.64,fx0-.05],[0,fx0-.05]],16,0,0,0,'x'); // fût + fond sombre
   for(const e of FACES){const fx=e*fx0;
+  // la profondeur des VRAIES BRANCHES (0 = l'ancien dessin) : `creux` (≤ 4 cm) ou `branches` (4 cm) ; ou, pour les styles à rayons qui ne disent
+  // rien, la correction GLOBALE `ROUES_VRAIES` (éteinte : `?roues=vraies`, `dbgRoues(1)`) — `branches:0` dans une fiche la refuse pour elle
+  const crW=(o.style==='cadran'||o.style==='enjoliveur'||o.style==='plis')?0:o.creux?Math.min(o.creux,.04):(o.branches||(ROUES_VRAIES&&o.branches!==0))?.04:0;
   if(o.blanc)K.lathe('w',[[R*.70,e*(hw+.004)],[R*.86,e*(hw+.004)]],16,0,0,0,'x');
   if(o.style==='cadran'){
     K.lathe('c',[[R*.64,fx],[0,fx]],16,0,0,0,'x');
@@ -29830,17 +29841,23 @@ function lpWheel(o){
     K.cyl('d',R*.10,.012,7,fx+e*.016,0,0,'x');                                // le cache-moyeu
   }else{
     const n=o.n||5,multi=o.style==='multi';
+    if(crW){ /* (2026-10-19) LES VRAIES BRANCHES — UN SEUL outil pour `creux` (BOÎTES, « des jantes en disques plats » : la jante CREUSÉE, ≤ 4 cm) et
+       `branches` (JAPONAISES, = un creux de 4 cm) : la lèvre plonge, chaque rayon est une ARÊTE (deux pans qui prennent chacun leur lumière) qui
+       descend, LE LONG du rayon, du bord vers le moyeu enfoncé. Mêmes matières : 0 programme de plus. */
+      K.lathe('c',[[R*.64,fx],[R*.60,fx-e*crW*.3],[R*.55,fx-e*crW*.45]],16,0,0,0,'x');
+      const k=multi?'c':'a',x1=fx-e*crW*.45,x0=fx-e*crW,r0=R*.17,r1=R*.57,w0=R*(multi?.036:.06),w1=R*(multi?.055:.09),hz=.014,
+        T=(A,B,C)=>{const nx=(B[1]-A[1])*(C[2]-A[2])-(B[2]-A[2])*(C[1]-A[1]);if(nx*e<0)K.tri(k,A,C,B);else K.tri(k,A,B,C);};
+      for(let s=0;s<n;s++){const a=s/n*Math.PI*2,ca=Math.cos(a),sa=Math.sin(a),Q=(r,t,x)=>[x,sa*r+ca*t,ca*r-sa*t],
+        A=Q(r0,-w0,x0),B=Q(r1,-w1,x1),C=Q(r1,w1,x1),D=Q(r0,w0,x0),M0=Q(r0,0,x0+e*hz),M1=Q(r1,0,x1+e*hz);
+        T(A,B,M1);T(A,M1,M0);T(M0,M1,C);T(M0,C,D);}
+    }else{
+    // ⚠ l'ancien dessin : les planches sont posées EN TRAVERS du rayon (rotation −a : la longueur part en tangente) — les n planches font un ANNEAU à
+    // n pans, aucune branche ne part du moyeu (les « disques à cercles »). Gardé tel quel : toute caisse qui ne demande rien ne change pas.
     K.lathe('c',[[R*.64,fx],[R*.55,fx]],16,0,0,0,'x');                     // la lèvre
-    if(o.branches){ // (2026-10-19, l'affinement des JAPONAISES) `branches` : de VRAIES branches, du moyeu à la lèvre, en cuvette (le bout dehors, le pied
-      // 4 cm plus creux) et la jante qui plonge derrière la lèvre — sans l'option, les planches restent posées EN TRAVERS du rayon (un anneau d'or à n pans)
-      const ti=Math.asin(Math.min(.5,.04/(R*.46)));K.lathe('c',[[R*.55,fx],[R*.50,fx-e*.03]],16,0,0,0,'x');
-      for(let s=0;s<n;s++){const a=s/n*Math.PI*2;
-        K.box(multi?'c':'a',.03,R*.46,multi?R*.08:R*.15,fx-e*.028,Math.sin(a)*R*.33,Math.cos(a)*R*.33,Math.PI/2-a,0,-e*ti);}
-    }else
     for(let s=0;s<n;s++){const a=s/n*Math.PI*2;
-      K.box(multi?'c':'a',.03,R*.46,multi?R*.07:R*.13,fx-e*.012,Math.sin(a)*R*.33,Math.cos(a)*R*.33,-a);}
+      K.box(multi?'c':'a',.03,R*.46,multi?R*.07:R*.13,fx-e*.012,Math.sin(a)*R*.33,Math.cos(a)*R*.33,-a);}}
   }
-  if(o.style!=='enjoliveur'&&o.style!=='plis')K.cyl('c',R*.16,.05,8,fx-e*.01,0,0,'x'); // le moyeu
+  if(o.style!=='enjoliveur'&&o.style!=='plis')K.cyl('c',R*.16,.05,8,fx-e*(crW?crW+.012:.01),0,0,'x'); // le moyeu (enfoncé dans la jante creusée)
   if(o.pique&&e>0){K.cyl('c',R*.15,.14,6,fx+.07,0,0,'x',R*.07);K.cyl('w',R*.07,.12,6,fx+.20,0,0,'x',.004);} // (2026-10-16, LE BLINDÉ NOIR) LE PIC DE MOYEU : le char de Ben-Hur — dans l'axe, il ne tourne pas à l'œil
   }
   return K.done();
