@@ -14204,17 +14204,17 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
     else if(car==='lacets'&&d>300*kR){cib=T;virages(2+((rnd()*3)|0));}
     else if(car==='boucle'&&d>380*kR){const f=.35+rnd()*.25;vers([x+v[0]*f,z+v[1]*f],120*kR);cib=T;boucle();}
     vers(T,ra);};
-  const traversee=(i,T,ra,D9)=>{const car=RC[i],aa=AR9.find(q=>q.i===i),g=-pente(.025,.05),s0=s;
+  const traversee=(i,T,ra)=>{const car=RC[i],aa=AR9.find(q=>q.i===i),g=-pente(.025,.05),s0=s;
     if(aa){const v=[T[0]-x,T[1]-z],dv=Math.hypot(v[0],v[1])||1,f9=Math.max(0,Math.min(aa.f,(dv-290-350*kR)/dv)),A=[x+v[0]*f9,z+v[1]*f9]; // (l'arche finit toujours ~350 m avant la cible : jamais arche + arrivée en une seule droite)
       zone(g,()=>{if(f9>=.5)leg(car,A,90*kR,MO9[i]);else vers(A,90*kR);});cib=T;arche(aa.k);zone(g,()=>{if(f9<.5)leg(car,T,ra,MO9[i]);else vers(T,ra);});}
     else zone(g,()=>leg(car,T,ra,MO9[i]));
-    PLAN.push(car+(aa?'+'+aa.k:'')+':'+Math.round(s-s0)+'/'+Math.round(D9));};
+    PLAN.push(car+(aa?'+'+aa.k:'')+':'+Math.round(s-s0));}; // (le plan, pour dbgForet / dbgTrace : chaque morceau et sa longueur)
   const noeud=n=>{const o=NK[n],cN=o.c,ty=TY[n],m=o.m,sr=rnd()<.5?-1:1,th0=Math.atan2(x-cN[0],z-cN[1]),jB=rnd()<(rf9?.3:.55)?1+(rnd()*(m-1)|0):-1,s0=s; // L'ÉTOILE (comme avant, à la taille de SA pelote)
     for(let j=1;j<=m;j++){const th=th0+sr*j*(130+rnd()*28)*Math.PI/180,r=o.rho*(.62+rnd()*.38),c=[cN[0]+Math.sin(th)*r,cN[1]+Math.cos(th)*r];
       let g=ty==='desc'?-pente(.06,.08):ty==='monte'?pente(.045,.06):(j<=m/2?-pente(.07,.09):pente(.05,.065));
       g+=(rnd()-.5)*.05;if(rnd()<.2)g=-Math.sign(g)*pente(.02,.04);
       zone(g,()=>{vers(c,110*kR);if(j===jB)boucle();});}
-    NO.push({c:cN,t:ty,s0:s0,s1:s});PLAN.push('pelote:'+ty+m+(jB>0?'b':'')+':'+Math.round(s-s0)+'/'+Math.round(o.est));};
+    NO.push({c:cN,t:ty,s0:s0,s1:s});PLAN.push('pelote:'+ty+m+(jB>0?'b':'')+':'+Math.round(s-s0));};
   ici('depart');zone(-.02,()=>droite((150+rnd()*230)*Math.sqrt(kV)));
   let ca=(rnd()-.5)*2,cP9=[x,z]; // la LIGNE : son cap autour de l'axe, et d'où elle repart (le départ, puis le centre de la dernière pelote)
   for(let i=0;i<nR;i++){
@@ -14229,9 +14229,9 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
     const D=Math.max(220*kR,part-(RC[i]==='boucle'?650*kR:RC[i]==='lacets'?350*kR:0)-(MO9[i]?600*kR:0))/(i===nR-1?1.5:1.8); // (la boucle, les lacets, le module : leur longueur en plus ; avant la dernière, on compte large — c'est elle qui rattrape)
     if(i<K){const o=NK[i],rP=i?NK[i-1].rho:0,v=dA(ca,D+o.rho);o.c=[x+v[0],z+v[1]]; // (comptée depuis LA SORTIE de la pelote d'avant…
       if(i&&Math.hypot(o.c[0]-cP9[0],o.c[1]-cP9[1])<rP+o.rho+120*kR){const v2=dA(ca,rP+o.rho+120*kR);o.c=[cP9[0]+v2[0],cP9[1]+v2[1]];} // …mais jamais deux pelotes l'une dans l'autre)
-      const th9=Math.atan2(x-o.c[0],z-o.c[1]);traversee(i,[o.c[0]+Math.sin(th9)*o.rho*.9,o.c[1]+Math.cos(th9)*o.rho*.9],110*kR,D);noeud(i);cP9=o.c;
+      const th9=Math.atan2(x-o.c[0],z-o.c[1]);traversee(i,[o.c[0]+Math.sin(th9)*o.rho*.9,o.c[1]+Math.cos(th9)*o.rho*.9],110*kR);noeud(i);cP9=o.c;
       const an=AR9.find(q=>q.n===i);if(an){const w=dA(ca,o.rho+700);cib=[o.c[0]+w[0],o.c[1]+w[1]];arche(an.k);PLAN.push(an.k);}}
-    else{const u9=dA(ca,1),pj=(x-cP9[0])*u9[0]+(z-cP9[1])*u9[1],v=dA(ca,Math.max(D,(K?150*kR:0)-(K?pj:0))),T=[x+v[0],z+v[1]];traversee(i,T,140*kR,D); // (depuis la sortie de la dernière pelote ; si elle sort par l'arrière, l'arrivée passe devant elle)
+    else{const u9=dA(ca,1),pj=(x-cP9[0])*u9[0]+(z-cP9[1])*u9[1],v=dA(ca,Math.max(D,(K?150*kR:0)-(K?pj:0))),T=[x+v[0],z+v[1]];traversee(i,T,140*kR); // (depuis la sortie de la dernière pelote ; si elle sort par l'arrière, l'arrivée passe devant elle)
       zone(-.03,()=>{const w=dA(ca,700);cib=[T[0]+w[0],T[1]+w[1]];for(let k=0;k<3&&Math.abs(rel())>.25;k++)arc((rel()>0?1:-1)*Math.min(70,Math.abs(rel())*57.3),Math.max(rM*2,200));});}}
   zone(-.02,()=>{droite(180);ici('fin');droite(100);});
   if(LC9&&rf9)mNeed=MO9.filter(Boolean).length;
@@ -15514,7 +15514,7 @@ window.dbgForet=function(k,o){
     for(let i=0;i<NP;i+=st){const p=pts[i],t=T[i],m=p.y-solH(p.x,p.z);if(m<pire){pire=m;ou=i;}if(m<20)n20++;P9.push([+p.x.toFixed(1),+p.y.toFixed(1),+p.z.toFixed(1),+t.x.toFixed(3),+t.z.toFixed(3)]);}
     return {amont:FORET.amont,L:Math.round(L),pts:P9,marge:{min:Math.round(pire),s:Math.round(ou*L/(NP-1)),sous20:n20},n:FORET.n,ms:FORET.ms,msSol:FORET.msSol};}
   const tri=FORET.fam.reduce(function(a,F){return a+F.tri*F.im.count;},0),parFam={};for(const F of FORET.fam)if(F.im.count)parFam[F.nom||'?']=[F.im.count,Math.round(F.tri*F.im.count/1000)+'k'];
-  return {on:!!FORET.root,met:FORET.met,ms:FORET.ms,msSol:FORET.msSol,protos:FORET.protos&&FORET.protos.ms,n:FORET.n,pel:FORET.pel,noeuds:(FORET.noeuds||[]).map(function(o){return [Math.round(o.c[0]),Math.round(o.c[1]),o.t];}),tri:Math.round(tri),fam:FORET.fam.filter(function(F){return F.im.visible;}).length,
+  return {on:!!FORET.root,met:FORET.met,ms:FORET.ms,msSol:FORET.msSol,protos:FORET.protos&&FORET.protos.ms,n:FORET.n,pel:FORET.pel,axe:FORET.axe!=null?Math.round(FORET.axe*57.3):null,plan:FORET.plan||null,noeuds:(FORET.noeuds||[]).map(function(o){return [Math.round(o.c[0]),Math.round(o.c[1]),o.t];}),tri:Math.round(tri),fam:FORET.fam.filter(function(F){return F.im.visible;}).length,
     tri9:{ms:FT.n?+(FT.ms/FT.n).toFixed(3):0,maj:FT.up},cur:FORET.cur&&{hante:+FORET.cur.hante.toFixed(2),pap:+FORET.cur.pap.toFixed(2),ray:+FORET.cur.ray.toFixed(2)},
     loup:FORET.loup&&{t:+FORET.loup.t.toFixed(1),on:FORET.loup.on},geants:FORET.geants.length,col:FORET.gcol&&FORET.gcol.n,parFam:parFam};};
 function PAL_B9(k,d){try{return (typeof PAL!=='undefined'&&PAL&&typeof PAL.b==='function')?PAL.b(k,d):d;}catch(e){return d;}} // les paliers d'optimisation (PAL), s'ils existent
@@ -18320,7 +18320,7 @@ window.dbgBanq=function(k,o){
   if(k==='fini'){const t=performance.now(),n=bkTranches(1e9);return {taches:n,ms:Math.round(performance.now()-t)};}
   if(k==='ramene'){if(mode==='fall')banqRamene();return mode;}
   const triM=function(L9){return (L9||[]).reduce(function(a,m){return a+(m.geometry.index?m.geometry.index.count:m.geometry.attributes.position.count)/3;},0);};
-  return {on:!!BANQ.root,met:BANQ.met,ms:BANQ.ms,msSol:BANQ.msSol,tp:BANQ.tp,file:{reste:BANQ.file.length-BANQ.fi,total:BANQ.nFile,ms:Math.round(BANQ.msFile||0)},tri:{sol:triM(BANQ.solM),pics:triM(BANQ.picM),loin:triM(BANQ.loinM)},n:BANQ.n,cas:BANQ.cas.map(function(x){return Math.round(x);}),
+  return {on:!!BANQ.root,met:BANQ.met,ms:BANQ.ms,msSol:BANQ.msSol,tp:BANQ.tp,axe:BANQ.axe!=null?Math.round(BANQ.axe*57.3):null,plan:BANQ.plan||null,pres:BANQ.pres,essais:BANQ.essais, /* (2026-10-19) LE GLACIER AU HASARD : l'axe (°), les tronçons, le plus près que la piste passe d'elle-même */file:{reste:BANQ.file.length-BANQ.fi,total:BANQ.nFile,ms:Math.round(BANQ.msFile||0)},tri:{sol:triM(BANQ.solM),pics:triM(BANQ.picM),loin:triM(BANQ.loinM)},n:BANQ.n,cas:BANQ.cas.map(function(x){return Math.round(x);}),
     sol:BANQ.sol&&{nx:BANQ.sol.nx,nz:BANQ.sol.nz,C:BANQ.sol.C,morceaux:BANQ.solM&&BANQ.solM.length,vus:BANQ.solM&&BANQ.solM.filter(function(m){return m.visible;}).length},
     cur:BANQ.cur&&{aur:+BANQ.cur.aur.toFixed(2),neige:+BANQ.cur.neige.toFixed(2),alp:+BANQ.cur.alp.toFixed(2)},L:Math.round(L),yMin:Math.round(trackMinY),y0:pts[0]&&Math.round(pts[0].y)};};
 

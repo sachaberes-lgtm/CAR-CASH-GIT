@@ -3,6 +3,58 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA FORÊT ET LE GLACIER AU HASARD — L'AXE TIRÉ, LES PELOTES ET LES ARCHES QUI BOUGENT, LA MONTAGNE QUI TOURNE (2026-10-19, v696, session foret-glacier — Sacha : « vérifie bien que toutes les maps sont générées aléatoirement »)
+- **Le constat, mesuré** (banc des tracés, 40 graines, longueur du JOUER aux paliers 0 / 10 / 25) : la graine changeait à chaque partie, pas la
+  RECETTE — le défaut que Sacha avait relevé sur la jade (« LA VALLÉE DE JADE AU HASARD », 18/10). LA FORÊT NOIRE partait toujours plein nord
+  (300 m de droite), UNE pelote au même endroit (~1 km plus loin : elle commençait à 4-9 % du parcours), l'arche à sa sortie (57-86 %), puis une
+  fuite vers le nord ; écart de forme 0,068 / 0,065 / 0,105. LE GLACIER : 260 m plein nord, la même ouverture en S (à un miroir près), des lacets
+  qui descendent droit vers le nord (l'arrivée entre −17° et +33°), aucun repère ; écart 0,136 / 0,151 / 0,231.
+  (« Écart de forme » = pistes rééchantillonnées en 64 points xz par fraction de longueur, départ à l'origine, distance moyenne entre deux pistes
+  ÷ longueur moyenne, sur toutes les paires ; références du même banc : jade 0,249, nuages 0,305, ville 0,223.)
+- **LA FORÊT AU HASARD** (`forPelote`, le dessin ; `FORET_HASARD`, `?sans=forethasard` = la recette d'avant, à l'identique). Chaque forêt tire,
+  dans son flux (`gr`) : son AXE, n'importe où sur le cercle (le plan se dessine face à +z puis tourne en bloc : `AXE`, `FORET.axe`) ; le nombre de
+  PELOTES — une, ou deux plus petites quand la longueur visée les tient (`K`, `NK` : rayon, pointes 3-4, relief desc / vague, et avec deux pelotes
+  l'une MONTE) ; des TRAVERSÉES entre départ, pelotes et arrivée, à la longueur partagée au hasard et reprise en route (la dernière rattrape),
+  chacune avec un CARACTÈRE, jamais deux fois le même de suite (`allee` = le slalom d'avant, `detour` = un grand coude, `lacets` = des virages en
+  chaîne, `boucle` = un tour complet au milieu, un pont de plus) ; une ARCHE ou deux (`arche`, `archeB`) n'importe où sur une traversée. La ligne
+  des pelotes louvoie à ±72° de l'axe : la forêt ne revient jamais sur ses pas. Les MODULES (fSlalom, fCorde, fRacines) sont PLACÉS dans les
+  traversées les plus longues (`MO9`) — au JOUER ils ne sont plus forcés n'importe où (0,7-1 km chacun, la forêt débordait ; avant, on en voulait 3
+  et la note ne passait JAMAIS au JOUER : 8 essais à chaque forêt). La note d'un essai écarte aussi ce qui s'éloigne de la longueur visée (×0,75-1,3)
+  et une arche dont le tronc toucherait un autre étage (aucune autre route à 200 m : sinon foretArche y renonce — au premier jet, une arche sur deux
+  manquait). Le décor bâtit chaque arche (`foretArche(root,fr,M,k9)`, `FORET.arche` = la liste) et le lierre de chacune.
+- **LE GLACIER AU HASARD** (`genBanq`, `BK_HASARD`, `?sans=glacierhasard` = la descente d'avant, à l'identique), dans son flux (`rh`) : L'AXE DE LA
+  MONTAGNE, ±90° autour du nord — la descente se dessine dans son repère (la pente vers +z) puis TOURNE EN BLOC (`BANQ.axe`) : manteau de neige,
+  pics, congère, tremplins se posent autour de la piste et tournent avec elle, les AURORES aussi (`fx.aur.rotation.y`) ; l'axe ne regarde jamais
+  le soleil bas en face (il est au sud : ±90° lui laisse 67° au moins). Puis le départ (140-360 m) et une suite de TRONÇONS, chacun son CARACTÈRE,
+  jamais deux fois le même de suite, le premier fait l'OUVERTURE : `lacets` (la descente d'avant), `courbes` (R 420-800 m × le palier), `traverse`
+  (la piste coupe la pente à 44-58° sur 200-420 m puis repart de l'autre côté : la trace en Z), `schuss` (tout droit dans la ligne de pente, à la
+  pente la plus raide) ; les modules (bkSlalom, bkEsse, bkDouble) s'intercalent comme avant. Gardés : la butée de cap (75° autour de l'axe), les
+  rayons, les pentes de BK_PENTE4, la longueur ; un essai dont deux bouts de piste (≥ 700 m de piste entre eux) passent à moins de 440 m en plan est
+  repris (`BANQ.pres`, `BANQ.essais` ; jamais arrivé en 120 pistes : 466 m au plus près, avant 455). Les lacets SUPERPOSÉS du 14/10 ne reviennent pas :
+  Sacha les a ôtés le 15/10 (« sans module bizarre »).
+- MESURÉ (banc des tracés, mêmes 40 graines, avant → après, paliers 0 / 10 / 25) :
+  · forêt : écart 0,068 / 0,065 / 0,105 → **0,257 / 0,246 / 0,219** ; l'axe départ → arrivée −11°/+14° → tout le cercle ; la 1re pelote commence à
+    4-9 % → 4-42 % (4-57 % au palier 10) ; l'arche à 57-86 % → 7-92 % ; 2 pelotes : 11 forêts sur 40 au palier 0, 15 au palier 10 (une seule au
+    palier 25 : la pelote y fait 6 km) ; 2 arches : 11 sur 40 ; caractères au palier 0 : allée 34, détour 35, boucle 13, lacets 9 ; longueur ÷ visée
+    (médiane) 0,83 / 0,84 / 1,28 → 1,02 / 0,97 / 1,03 ; rayon mini sur la spline inchangé (73-83 → 73-82 m au palier 0, 174-202 → 173-199 au 25) ;
+    croisements toujours ≥ 33 m de haut (DY 32) ; emprise du sol +5 % au palier 0, −3 % au palier 25.
+  · glacier : écart 0,136 / 0,151 / 0,231 → **0,449 / 0,449 / 0,474** ; l'axe départ → arrivée −17°/+33° → −106°/+76° ; ouvertures : traverse 15,
+    lacets 10, courbes 9, schuss 6 ; longueur ÷ visée inchangée (0,82) ; rayon mini sur la spline 151-164 → 152-214 m ; pentes inchangées.
+  · `?sans=forethasard,glacierhasard` redonne les 240 pistes d'`origin/main` (2 maps × 3 paliers × 40 graines) au point près.
+- EN JEU (copie de banc, Chrome sans fenêtre) : forêt, 20 constructions complètes (`dbgTrace({carte:'foret'})`) sans erreur JS, décor 87-342 ms
+  (avant 62-289), 22 arches prévues, 22 bâties (avant : 8 forêts sur 10 en avaient une) ; 5 courses au pilote (`dbgAuto(1,0)`) jusqu'au portail
+  (58-71 s, sans nitro). Glacier, 10 constructions sans erreur, décor 20-65 ms (avant 18-119), 3-5 tremplins (avant 1-4), 5-20 pics sur la piste
+  (avant 3-17). Le pilote (`dbgAuto(1,0,{gl:true})`) roule au milieu et n'esquive RIEN : il meurt sur un pic de la piste 6 fois sur 6, avec
+  l'ancienne piste comme avec la nouvelle (vers 1,3 km dans les deux cas) ; pics de piste neutralisés le temps du banc, 3 courses sur 4 au
+  portail (avant : 2 sur 4, les autres mortes sur un pic en retombant d'un tremplin). Démarrage menu → JOUER → course sans erreur couché (forêt
+  de nuit), debout (glacier au soir) et dans le cadre de l'ordi.
+- Le PRÉ-BÂTI : les champs neufs écrits par la génération entrent dans la liste échangée (`prebChampsDe` : `FORET.plan`/`axe`, `BANQ.axe`/`plan`/
+  `pres`/`essais`). Console : `dbgForet()` et `dbgBanq()` rendent `axe` (°) et `plan` (chaque morceau et sa longueur), `dbgBanq().pres`.
+- Bancs (non commités) : la copie de banc avec `__ev`/`__ctrl` (voir la mémoire « banc des tracés »), l'analyse (écart, écart sans l'axe, repères,
+  rayon sur la spline, approche), un plan SVG des 40 tracés par map et palier ; les courses au pilote rechargent la page à chaque course.
+- À trancher par Sacha : l'axe de la forêt tourne sur TOUT le cercle (on peut rouler face au soleil couchant, ses rayons) — le borner comme la jade
+  (±45°) si ça gêne ; au glacier ±90°.
+
 ## LE HOT ROD REFAIT SUR LA PHOTO DE LÉO — v2 → v3 → v3.1 (2026-10-19, v695 — Léo : « au style poli, tu peux vraiment faire un truc mieux… il y a un truc qui vole un peu dans les airs… pour le moteur, joue avec les mini-cubes » puis « écope chromée comme sur ma photo, cabine de coupé 32 plus ronde » ; « oui, mets le HOT ROD v3.1 dans le jeu »)
 - BOÎTES 7adeed96 (v2 : le coupé 32 rouge de sa photo), 159c7f22 (v3), d3ea10be (v3.1) — le détail plus bas, dans les sections de BOÎTES.
 - Ce qui VOLAIT dans le v2 : la coquille de calandre (9 cm au-dessus de sa traverse), la lame de ressort (15 cm au-dessus de l'essieu, sans
