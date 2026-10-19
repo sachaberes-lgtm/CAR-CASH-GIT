@@ -10,7 +10,8 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v690'; // v690 (2026-10-19, Sacha : « le tunel d'arriver pour la map canyon est moche ») : LE TUNNEL DE GRÈS (?sans=tunnelcanyon = avant)
+const CACHE = 'cashcar-v691'; // v691 (2026-10-19, Sacha : « rends les 10 missions cachées avec une récompense en argent à la place de la caisse absente ») : les dix missions dont la récompense manquait au garage reviennent, payées en argent (5 000 → 500 000 $)
+// const CACHE = 'cashcar-v690'; // v690 (2026-10-19, Sacha : « le tunel d'arriver pour la map canyon est moche ») : LE TUNNEL DE GRÈS (?sans=tunnelcanyon = avant)
 // const CACHE = 'cashcar-v687'; // v687 (2026-10-19, Sacha : « la police que tu as faite pour les figures légendaires est un peu illisible ») : les figures LÉGENDAIRES s'écrivent en minuscules gothiques à capitale initiale — « Salto Cosmique », « Rodeo » (fhTitre)
 // const CACHE = 'cashcar-v686'; // v686 (2026-10-19, Sacha : « la map grotte doit etre plus longue et la grotte beaucoup plus vaste ») : LA GROTTE VASTE — LES PROFONDEURS 1,7 × plus longues, des salles ~2,5 × plus grandes, la brume et l'air des salles à l'échelle, les cartes postales du portail retirées (voir le journal)
 // const CACHE = 'cashcar-v685'; // v685 (2026-10-19, Sacha : « je meurs sans raison sur la route de glace dans la map montagne ») : au GLACIER les pics de la piste et les tremplins étaient invisibles (une déclaration avalée par un commentaire) — redessinés ; le volant en l'air ne fait plus flotter la caisse ; 500 m libres après chaque tremplin (voir le journal)
