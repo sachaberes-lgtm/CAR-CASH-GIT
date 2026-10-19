@@ -3,6 +3,23 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## MISSIONS SANS CADEAU NI « BIENTÔT AU GARAGE » (2026-10-19, session missions-propres — Sacha : « dans le bouton mission il y a un truc streak 3 days gift ready, enlève ça » · « il y a des missions en vert avec marqué coming to the garage soon » · « ça aussi enlève »)
+- **La ligne du cadeau** (en tête de l'écran MISSIONS, `#mCadeau` : « SÉRIE 3 JOURS · CADEAU PRÊT · TOUCHE », en anglais « STREAK 3 DAYS · GIFT READY · TAP ») :
+  `CADO.on` est FAUX par défaut (`/[?&]cadeau=1\b/` au lieu de `!/[?&]cadeau=0\b/`) → `cadeauEtat().actif` faux → la ligne se tait, plus de
+  cadeau toutes les 6 h. **`?cadeau=1` = avant.** La SÉRIE de jours et le ×2 de la 1re partie du jour (`JOUR`) ne sont PAS touchés
+  (leur texte vit sur l'écran de fin, `jourFinTexte`).
+- **Les missions « BIENTÔT AU GARAGE »** : une mission réussie dont la récompense n'existe pas au garage brillait en vert avec « BIENTÔT AU
+  GARAGE ». Nouveau `m2Dispo(m)` (juste avant `m2Pret`) : faux si la récompense est `{vide:1}`, une caisse RETIRÉE (`carRetiree`) ou
+  introuvable, un habillage absent de `COSM`. Une telle mission n'existe plus pour le joueur : ni dans la liste (`m2Lignes`), ni dans le compte
+  « n / N » (`m2Compte`, le haut ne compte plus que les réussies visibles), ni suivie en course (`m2FocusMaj`), ni sur la carte de l'écran de mort
+  (`objRenderV2`), ni réussie (`m2Verifie` la saute). Elle REVIENT seule le jour où sa récompense revient (une réussie d'avant attend alors,
+  prête à RÉCUPÈRE). **`?sans=missionsvides` = avant.** `dbgMissions()` dit `auGarage` pour chacune.
+- **Cachées aujourd'hui (10)** : fren30 (traînée « sang »), vie5min (LA JEEP), tours5 (LE TAXI JAUNE), toutall (récompense à définir), et les
+  secrètes mort3s (LA SANS-PERMIS), arret (LE GRILLE-PAIN), nitplein (LA BOULE), lac10 (LE GLACIER), sanspiece (LA DEUCHE), jours7 (LA DÉESSE).
+  Pour en rendre une : remettre sa caisse au garage, ou changer sa récompense dans `M2` (ex. `{cash:20000}`) — jamais son `id`.
+- **Vérifié** (navigateur intégré, cadre de l'ordi) : l'écran MISSIONS s'ouvre, `#mCadeau` caché, 34 lignes, 0 « BIENTÔT AU GARAGE »,
+  vie5min réussie absente, compte 1 / 34 ; avec `?sans=missionsvides` : 38 lignes, vie5min « BIENTÔT AU GARAGE », 2 / 38. Cache v676.
+
 ## PLUS DE CAISSE-NUAGE DANS LA MER DE NUAGES (2026-10-19, session sans-caisse-nuage — Sacha : « enlève le truc qui dit : cloud car catch je sais pas quoi dans la map nuage, j'en veux pas »)
 - **Ce que c'était** : le dernier des ÉVÉNEMENTS RARES (14/10, GAMEPLAY) — dans 75 % des parties, à la 1re zone MER DE NUAGES, la CAISSE-NUAGE
   se condensait devant la caisse avec la bannière « CAISSE-NUAGE — ACCROCHE SON SILLAGE » (en anglais « CLOUD CAR — CATCH HER SLIPSTREAM »).
