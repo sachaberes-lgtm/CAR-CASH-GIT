@@ -3,6 +3,11 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## ADOUCIR, OPAQUE, ET LE COUP BRUSQUE (2026-10-21, v765, Léo : « flouter les nuages, pas trop, ne pas les rendre transparents, plus légers à l'œil ; propulsé et dispersé lorsque touché par la voiture, de manière brusque ») — branche `nuages-refonte`
+- Plus AUCUNE transparence : `NU_MOOD` part opaque = 1 partout (reste la lumière de l'intérieur). Adoucis : normales de cube plus lisses (`kn` .9) et nuance par cube plus faible (`jit` .045).
+- LE COUP : trouée ouverte en 0,07 s (R 12-34 m, selon le nuage), 16-44 blocs lancés à 22-70 m/s dans toutes les directions + 75 % de la vitesse de la caisse, qui se cassent en quatre dès 0,16-0,5 s (enfants à 5-18 m/s) ; secousse de caméra ; capacité 700 blocs ; blocs rétrécis près de l'objectif (4-17 m).
+- CONTACT AVEC LE DÉCOR (`nuCasseDecor`) : les nuages en instances n'avaient aucune collision — la caisse qui entre dans l'ellipsoïde d'un nuage le fait éclater (une fois par nuage et par 3 s). Pas vu en situation réelle (les nuages de décor sont hors du couloir) : testé par `dbgCasse`.
+
 ## LES HUMEURS DES CUMULUS PAR MÉTÉO (2026-10-21, v764, Léo : « la technique de la forêt, la transparence, pour que chaque nuage soit adapté à sa météo ; le matin est le plus réussi, pars de lui ; orage plus stylé, pluie plus cool ») — branche `nuages-refonte`
 - `nuage8Mat` : `uMood` (x part opaque en TRAME Bayer = du verre fait de pixels, y lumière de l'intérieur, z éclairs) et `uInC` (sa couleur) ; la lumière de l'intérieur ne se voit que dans l'ombre et les creux + de petits éclairs lointains par quartier de ciel (comme la peau du vitrail de la forêt).
 - `NU_MOOD` / `nuMoodTick` (nuages-casses.js) : MATIN et MIDI = la référence, rien ne change · soir un souffle chaud · nuit bleu lune · PLUIE .9 / bleu froid · ORAGE .78 / violet-bleu qui monte aux éclairs (`CAMP_FLASH`). Lissé. Neutre hors course.

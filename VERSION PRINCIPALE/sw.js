@@ -10,7 +10,8 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v764'; // v764 (2026-10-21, Léo : « chaque nuage adapté à sa météo, transparence façon forêt ») : humeurs des cumulus (trame transparente + lumière intérieure, éclairs) pour pluie, orage, nuit, soir ; le lien de test passe avant le ciel choisi
+const CACHE = 'cashcar-v765'; // v765 (2026-10-21, Léo : « flouter les nuages, pas transparents ; propulsés et dispersés au contact, brusque ») : nuages opaques et adoucis, le coup brusque, contact avec les nuages de décor
+// const CACHE = 'cashcar-v764'; // v764 (2026-10-21, Léo : « chaque nuage adapté à sa météo, transparence façon forêt ») : humeurs des cumulus (trame transparente + lumière intérieure, éclairs) pour pluie, orage, nuit, soir ; le lien de test passe avant le ciel choisi
 // const CACHE = 'cashcar-v763'; // v763 (2026-10-21, Léo : « ça doit changer aussi le ciel du menu, les boutons ») : le choix du ciel pose aussi l'heure du ciel du menu
 // const CACHE = 'cashcar-v762'; // v762 (2026-10-21, Léo : « un point de vue avion vu de haut, trop chaotique ») : le PLAN D'AVION des nuages (couloir libre, quatre rangées au pas régulier) ; la rangée du choix du ciel masquée en course
 // const CACHE = 'cashcar-v761'; // v761 (2026-10-21, Léo : « choisir le ciel avant de jouer ») : rangée AUTO · MATIN · MIDI · SOIR · NUIT · PLUIE · ORAGE à l'accueil (la mer de nuages à la météo choisie)
