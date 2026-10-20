@@ -9,7 +9,45 @@
       emissiveIntensity:.26,shininess:220,specular:0xffffff,envMap:envTex,reflectivity:.72,combine:THREE.MixOperation});
     rimify(vernis,[.083,.5,3,.2]); // (2026-09-26) le vernis : 72 % de ciel de face noyaient le vert acide — (vague 2) même contrat que toute la gamme : ~6 % de face, ~36 % en rasant, teinté
     // trois volumes de hatch : capot court, pare-brise très incliné, toit, hayon coupé net
-    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.34*H],[.34*L,.42*H],[.16*L,.46*H],[.02*L,.90*H],[-.34*L,.94*H],[-.44*L,.62*H],[-.50*L,.56*H]],W*.94,vernis);
+    /* ===== LE RELIEF DU FLANC (2026-10-20, Léo : « le relief visible quand on tourne autour » ; l'étude de la gamme au garage : n° 6 des plus
+       plates, « une porte en dalle entre deux jupes ») ===== la caisse n'est plus le profil EXTRUDÉ (des flancs plans par construction) mais un
+       LOFT de sections qui garde la MÊME silhouette de profil (le biseau de 9 cm de carProfile compris : la poupe, le nez, le toit restent où
+       les pièces les attendent) : le BAS qui rentre (il regarde le sol), la porte qui penche jusqu'à l'ARÊTE, l'ÉPAULE qui rentre sous les
+       vitres (elle regarde le ciel), la HANCHE arrière qui gonfle devant l'aile rivetée, l'aile avant un peu bombée. `xFl(z,y)` : le flanc à
+       une hauteur (stickers, fentes de portières, poignée s'y posent, en décalques). */
+    const BEV=Math.min(.09,W*.94*.055),xb=W*.94/2,lis=t=>{t=t<0?0:t>1?1:t;return t*t*(3-2*t);};
+    const OF=(()=>{const U=[[.5*L,0],[.5*L,.34*H],[.34*L,.42*H],[.16*L,.46*H],[.02*L,.90*H],[-.34*L,.94*H],[-.44*L,.62*H],[-.5*L,.56*H],[-.5*L,0]],
+        lg=[];for(let i=0;i<U.length-1;i++){const a=U[i],b=U[i+1],dz=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dz,dy),n=[dy/l,-dz/l];lg.push([[a[0]+n[0]*BEV,a[1]+n[1]*BEV],[dz,dy]]);}
+        const o=[[.5*L+BEV,-BEV]];for(let i=0;i<lg.length-1;i++){const [p,d]=lg[i],[q,e]=lg[i+1],den=d[0]*e[1]-d[1]*e[0],t=((q[0]-p[0])*e[1]-(q[1]-p[1])*e[0])/den;o.push([p[0]+d[0]*t,p[1]+d[1]*t]);}
+        o.push([-.5*L-BEV,-BEV]);return o;})();
+    const topY=z=>{for(let i=1;i<OF.length-2;i++){const a=OF[i],b=OF[i+1];if(z<=a[0]&&z>=b[0])return a[1]+(b[1]-a[1])*(z-a[0])/((b[0]-a[0])||1);}return z>0?OF[1][1]:OF[OF.length-2][1];};
+    const hanche=z=>.028*lis((-.40-z)/.30)*lis((z+.5*L+BEV)/.20),aileAv=z=>.012*lis((z-.45)/.25)*lis((.5*L+BEV-z)/.20);
+    const sec=(z,e)=>{const t=topY(z)-(e?.03:0),b=-BEV+(e?.03:0),x0=xb-(e?.05:0),f=hanche(z)+aileAv(z),yBl=Math.min(t-.004,.30),
+        k=lis((t-yBl-.06)/.25),y6=Math.max(yBl+.004,t-.01-.04*k),y7=Math.max(y6+.002,t);
+      /* (le pan d'habitacle en DEUX : d'un seul tenant, incliné de 12° sous un vernis aussi brillant, il prenait la lampe du plafond en entier
+         et virait au crème — une dalle claire au lieu d'une dalle plate ; le bas reste presque droit, seul le haut rentre) */
+      const yM=yBl+(y6-yBl)*.55;
+      return [[0,b],[x0-.07,b],[x0-.035,b+.07],[x0+.004+.8*f,.09],[x0+.014+f,.18],[x0-.025,yBl],[x0-.029-.004*k,Math.max(yBl+.002,yM)],[x0-.06-.035*k,Math.max(yBl+.003,y6)],[x0-.12-.05*k,y7],[0,y7+.001]];};
+    const xFl=(z,y)=>{const q=sec(z);for(let i=2;i<8;i++)if(y<=q[i+1][1])return q[i][0]+(q[i+1][0]-q[i][0])*Math.min(1,Math.max(0,(y-q[i][1])/((q[i+1][1]-q[i][1])||1)));return q[8][0];};
+    {const zE=.5*L+BEV,zs=[-zE,-zE+.045,zE-.045,zE];for(const p of OF)if(Math.abs(p[0])<zE-.05)zs.push(p[0]);
+     for(let z=-zE+.2;z<zE-.1;z+=.22)zs.push(z);zs.push(-.40,-.70,-1.6,-1.85,.45,.70,1.85,.07*L,-.17*L);
+     zs.sort((a,b)=>a-b);for(let i=zs.length-1;i>0;i--)if(zs[i]-zs[i-1]<.02)zs.splice(i,1);
+     const S=zs.map(z=>sec(z,Math.abs(z)>zE-.001)),N=S[0].length,P9=[],UV=[],put=(a,b,c)=>{for(const p of [a,b,c]){P9.push(p[0],p[1],p[2]);UV.push(p[2]*.5,p[1]*.5+p[0]*.25);}},mx=p=>[-p[0],p[1],p[2]];
+     for(let i=0;i<zs.length-1;i++){const A=S[i],C=S[i+1];
+       for(let j=0;j<N-1;j++){const a=[A[j][0],A[j][1],zs[i]],b=[A[j+1][0],A[j+1][1],zs[i]],c=[C[j+1][0],C[j+1][1],zs[i+1]],d=[C[j][0],C[j][1],zs[i+1]];
+         put(a,b,c);put(a,c,d);put(mx(a),mx(c),mx(b));put(mx(a),mx(d),mx(c));}}
+     for(const [q,z,dir] of [[S[0],zs[0],-1],[S[S.length-1],zs[zs.length-1],1]]){const ct=[];for(let j=0;j<N;j++)ct.push(new THREE.Vector2(q[j][0],q[j][1]));
+       for(let j=N-2;j>=1;j--)ct.push(new THREE.Vector2(-q[j][0],q[j][1]));
+       for(const f of THREE.ShapeUtils.triangulateShape(ct,[])){let a=ct[f[0]],b=ct[f[1]],c=ct[f[2]];if((((b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x))>0)!==(dir>0)){const t=b;b=c;c=t;}
+         put([a.x,a.y,z],[b.x,b.y,z],[c.x,c.y,z]);}}
+     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P9,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(UV,2));g.computeVertexNormals();
+     const caisse=new THREE.Mesh(g,vernis);caisse.position.y=y0;K.add(caisse);}
+    /* un DÉCALQUE posé sur le flanc (à 3 mm), de z0 à z1 (dans le sens de lecture), de y0r à y1r (repère de la caisse, au-dessus de y0) */
+    const decalque=(sd,z0,z1,ya,yb,mat,nz,ny)=>{const P9=[],UV=[],pt=(u,v)=>{const z=z0+(z1-z0)*u,y=ya+(yb-ya)*v;return [sd*(xFl(z,y)+.003),y0+y,z];};
+      for(let i=0;i<nz;i++)for(let j=0;j<ny;j++){const q=[[i/nz,j/ny],[(i+1)/nz,j/ny],[(i+1)/nz,(j+1)/ny],[i/nz,(j+1)/ny]],v=q.map(([u,w])=>pt(u,w));
+        const T=[[0,1,2],[0,2,3]];for(const t of T){const o=sd*(z1-z0)>0?[t[0],t[2],t[1]]:t;for(const k of o){P9.push(...v[k]);UV.push(q[k][0],q[k][1]);}}}
+      const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P9,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(UV,2));g.computeVertexNormals();
+      const m=new THREE.Mesh(g,mat);carGroup.add(m);return m;};
     K.prof([[.02*L,.52*H],[-.04*L,.88*H],[-.32*L,.90*H],[-.40*L,.60*H]],W*.78,K.glass);
     // LE CAPOT VITRÉ : une vitre à plat au-dessus d'un bloc moteur sommaire — c'est ça, la caisse
     B(W*.62,.03,L*.26,K.glass,0,y0+H*.47,L*.28).rotation.x=.06;
@@ -19,7 +57,7 @@
     // L'AILERON GT : deux pylônes droits + un plan qui dépasse largement du hayon
     for(const sd of [-1,1]){
       B(.06,H*.52,L*.07,K.acc,sd*W*.34,y0+H*1.06,-L*.42);
-      B(.09,H*.20,L*.66,K.acc,sd*(W/2+.03),y0+H*.14,-L*.02);     // JUPES larges
+      B(.15,H*.20,L*.66,K.acc,sd*(W/2+.00),y0+H*.14,-L*.02);     // JUPES larges — (relief) plus profondes vers la caisse : le bas rentre, rien ne se voit au travers
       B(.10,.09,.16,K.acc,sd*(W/2+.10),y0+H*.78,L*.14);
     }
     const carb=new THREE.MeshPhongMaterial({map:MATV.get('carbone'),shininess:150,specular:0xbfc6d2,
@@ -33,12 +71,9 @@
     for(const sd of [-1,1])for(const cz of [0,1]){
       const cn=B(W*.16,.028,L*.055,K.acc,sd*W*(.36+cz*.06),y0+H*(.22+cz*.16),L/2+.02);
       cn.rotation.set(0,sd*-.30,sd*.42);}
-    // STICKERS : une bande sur chaque flanc, à hauteur de bas de caisse
-    for(const sd of [-1,1]){
-      const st9=new THREE.Mesh(new THREE.PlaneGeometry(L*.52,H*.22),
-        new THREE.MeshBasicMaterial({map:MATV.get('stickers'),transparent:true,side:THREE.DoubleSide}));
-      st9.position.set(sd*(W*.475),y0+H*.34,-L*.04);st9.rotation.y=sd*Math.PI/2;carGroup.add(st9);
-    }
+    // STICKERS : une bande sur chaque flanc, à hauteur de bas de caisse — (relief) un décalque qui épouse l'arête
+    {const stM=new THREE.MeshBasicMaterial({map:MATV.get('stickers'),transparent:true,side:THREE.DoubleSide});
+     for(const sd of [-1,1]){const zc=-L*.04,hl=L*.26;decalque(sd,sd>0?zc+hl:zc-hl,sd>0?zc-hl:zc+hl,H*.34-H*.11,H*.34+H*.11,stM,16,4);}}
     // L'INTERCOOLER dans la bouche du pare-chocs : c'est LE détail qui dit « préparée », pas « peinte »
     B(W*.54,H*.17,.08,K.dark,0,y0+H*.26,L/2+.055);
     for(let i9=0;i9<7;i9++)B(W*.052,H*.13,.03,K.chrome,(i9/6-.5)*W*.46,y0+H*.26,L/2+.10);
@@ -133,8 +168,8 @@
     {// (2026-10-19, l'affinement) LES PORTIÈRES : la FENTE C plaquée sur la tôle (les lignes communes, des traits noirs, flottaient 6 cm hors du flanc) —
      // un mélange MULTIPLIER : la tôle × .5 sous toutes les lumières, le programme de toutes les lignes (aucun de plus)
      const fM=new THREE.MeshBasicMaterial({color:0x808080,transparent:true,blending:THREE.MultiplyBlending});
-     for(const sd of [-1,1]){for(const zz of [L*.07,-L*.17])B(.012,H*.5,.006,fM,sd*(W*.47+.004),y0+H*.45,zz);
-       B(.03,.035,.16,K.chrome,sd*(W*.47+.015),y0+H*.66,L*.01);}}                 // et la poignée, contre la portière
+     for(const sd of [-1,1]){for(const zz of [L*.07,-L*.17])decalque(sd,zz-.003*sd,zz+.003*sd,H*.20,H*.70,fM,1,6);   // (relief) la fente suit la tôle pliée
+       B(.03,.035,.16,K.chrome,sd*(xFl(L*.01,H*.66)+.012),y0+H*.66,L*.01);}}       // et la poignée, contre la portière
     return {hl:[W*.32,y0+H*.40,L/2+.06],tl:[W*.34,.55,-L/2+.10],wr:.94,doors:0,sp:0,split:0}; // tl : DANS la caisse (les LED font les feux)
   },
   // 14. LE CHAT POP-TART — refait en VOXELS le 2026-10-06 (voir « LE CHAT POP-TART EN VOXELS », juste avant SHAPES) : le gâteau
