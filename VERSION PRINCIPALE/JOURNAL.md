@@ -3,6 +3,24 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## HUIT PEINTURES UNIES EN MOINS (2026-10-20, v729, Sacha : « il y a trop de couleurs classiques dans les peintures ; essaye d'en enlever quelques-unes qui se ressemblent, genre du gris et du gris foncé ; il y a trop pétrole, British Green et Abyss Blue, ça se ressemble trop »)
+- **Le constat, mesuré** : l'inventaire montrait 42 pastilles unies. Distance de couleur CIEDE2000 entre toutes les peintures unies, sur ce qu'on VOIT (le MÉTALLISÉ
+  rend ~×1,8 plus clair que sa valeur écrite, voir la note de la planche du 14/10) : les paires les plus proches étaient GRAPHITE ≈ NOIR MAT (4), BLEU HÉRISSON ≈ BLEU MINUIT (6),
+  BORDEAUX ≈ FRAMBOISE (8), ROSE DRAGÉE ≈ BARBE À PAPA (10), VERT AMANDE ≈ ÉCUME ≈ MENTHE GLACÉE (11-12), PÉTROLE ≈ ANGLAIS ≈ ABYSSE (12-13), BRONZE entre CUIVRE et OLIVE (13-16).
+  La rangée métallisée sombre (10 teintes) se lisait comme un bloc de quasi-noirs.
+- **Retirées (8)** : GRAPHITE, BLEU HÉRISSON, FRAMBOISE, BARBE À PAPA, BLEU PÉTROLE, VERT ANGLAIS, BRONZE, ÉCUME. **Gardées** de chaque groupe : NOIR MAT (et NUIT DE GOTHAM, laqué : autre
+  fini), BLEU MINUIT, BORDEAUX, ROSE DRAGÉE, BLEU ABYSSE (le seul bleu sombre), VERT AMANDE et MENTHE GLACÉE, CUIVRE et OLIVE. Résultat : 34 pastilles unies, la rangée sombre à 6
+  teintes distinctes (ARGENT, BORDEAUX, CUIVRE, OLIVE, ABYSSE, AUBERGINE). Les secrètes et les motifs ne bougent pas.
+- **Le code** : les sept lignes de la palette sortent de la liste (comme le HÉRISSON de `COSM.peinture`) ; `HAB_RETIRES` les porte (`peinture:<id>`) : au chargement l'id sort de
+  `shop.own` et la peinture portée repart en D'ORIGINE. Remboursement du seul HÉRISSON (7 000, son prix d'avant le 16/10, message « LA PEINTURE BLEU HÉRISSON EST PARTIE ») : les sept de la
+  palette ne s'achetaient qu'en pack ou en €, `p:0`. Le remboursement ne nomme plus que ce qu'il rembourse (`if(h.p)nm.push`). `PALETTE_PACK.ids` se déduit de la liste : le pack
+  donne 33 couleurs (texte « LES 33 COULEURS SONT À TOI » ; l'identifiant App Store `cashcar.palette40` ne bouge pas, ce n'est qu'un nom). Les traductions des sept noms restent dans
+  `I18N`, inertes.
+- **Vérifié** (Chrome sans fenêtre, muet) : l'inventaire montre 49 peintures au lieu de 57 ; une VIEILLE sauvegarde qui possédait graphite + hérisson + écume + minuit et portait le
+  hérisson ressort avec `own=[minuit]`, `eq=usine`, 1 000 → 8 000 $ ; syntaxe, `garde-burnout.sh` et `garde-charte.sh` OK.
+- **Rendre une peinture** : remettre sa ligne dans la liste de la palette (le texte est dans le git, commit de cette section) ET la sortir de `HAB_RETIRES`.
+- **À trancher (Sacha)** : BLANC NEIGE, CHROME MIROIR et FANTÔME (secrète) se lisent comme UN seul blanc dans la liste (3 à 15 de distance) ; leurs finis diffèrent sur la caisse, je n'y ai pas touché.
+
 ## LE ROYAUME DE FEU ET LES PROFONDEURS AU HASARD — L'AXE, L'ORDRE, LES CARACTÈRES, LA MONTÉE ET LE PUITS TIRÉS (2026-10-19 → 20, v727, session HASARD — Sacha : « vérifie bien que toutes les maps sont générées aléatoirement »)
 - **Le constat, mesuré** (banc Node sur les vrais générateurs, 40 graines, palier 0 ; l'ÉCART DE FORME = les pistes rééchantillonnées en 64 points
   par fraction de longueur, départ à l'origine, distance moyenne entre deux pistes / longueur moyenne — la jade refaite le 18/10 : 0,226) : le TIRAGE
