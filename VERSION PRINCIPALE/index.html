@@ -5810,7 +5810,7 @@ html.poki [data-m="shop"],html.poki [data-go="shop"],html.poki .gBoutique,html.p
           <div class="mLigne avecVol" data-m="snd"><i class="pxi pxi-son" aria-hidden="true"></i><span class="tpL">SON</span><b id="mvSnd" class="bascule">ON</b></div>
           <div class="volRow" id="mVolRowSfx"><div class="volHd"><span>VOLUME</span><b id="mVolSfxV">100%</b></div><input type="range" class="volS" id="mVolSfx" min="0" max="100" step="5" value="100"></div>
           <div class="mLigne avecVol" data-m="mus"><i class="pxi pxi-musique" aria-hidden="true"></i><span class="tpL">MUSIQUE</span><b id="mvMus" class="bascule">ON</b></div>
-          <div class="volRow" id="mVolRowMus"><div class="volHd"><span>VOLUME</span><b id="mVolMusV">62%</b></div><input type="range" class="volS" id="mVolMus" min="0" max="100" step="5" value="62"></div>
+          <div class="volRow" id="mVolRowMus"><div class="volHd"><span>VOLUME</span><b id="mVolMusV">70%</b></div><input type="range" class="volS" id="mVolMus" min="0" max="100" step="5" value="70"></div>
           <div class="mLigne avecVol" data-m="vox"><i class="pxi pxi-voix" aria-hidden="true"></i><span class="tpL">VOIX</span><b id="mvVox" class="bascule">ON</b></div>
           <div class="volRow" id="mVolRowVox"><div class="volHd"><span>VOLUME</span><b id="mVolVoxV">100%</b></div><input type="range" class="volS" id="mVolVox" min="0" max="100" step="5" value="100"></div>
         </div>
@@ -5848,7 +5848,7 @@ html.poki [data-m="shop"],html.poki [data-go="shop"],html.poki .gBoutique,html.p
     <div class="setRow" data-tg="musBtn"><span>Musique</span><b id="tgMus">ON</b></div>
     <div class="setRow" data-tg="voxBtn"><span>Voix de l'annonceur</span><b id="tgVox">ON</b></div>
     <div class="setSec">Volumes</div>
-    <div class="setRow volRow" id="volRowMus"><div class="volHd"><span data-fr="Musique">Musique</span><b id="volMusV">62%</b></div><input type="range" class="volS" id="volMus" min="0" max="100" step="5" value="62"></div>
+    <div class="setRow volRow" id="volRowMus"><div class="volHd"><span data-fr="Musique">Musique</span><b id="volMusV">70%</b></div><input type="range" class="volS" id="volMus" min="0" max="100" step="5" value="70"></div>
     <div class="setRow volRow" id="volRowSfx"><div class="volHd"><span data-fr="Effets et moteur">Effets et moteur</span><b id="volSfxV">100%</b></div><input type="range" class="volS" id="volSfx" min="0" max="100" step="5" value="100"></div>
     <div class="setRow volRow" id="volRowVox"><div class="volHd"><span data-fr="Voix">Voix</span><b id="volVoxV">100%</b></div><input type="range" class="volS" id="volVox" min="0" max="100" step="5" value="100"></div>
     <div class="volNote" id="volLock" style="display:none" data-fr="Sur iPhone, le volume de la voix est verrouillé par le système.">Sur iPhone, le volume de la voix est verrouillé par le système.</div>
@@ -11697,8 +11697,10 @@ function buildVoxCity(seed,accC){
       proches(cx,cz,clr,function(i){const p=pts[i],dx=p.x-cx,dz=p.z-cz;if(dx*dx+dz*dz>c2)return;
         if(p.y>t+60||p.y<b-40)return;ok=false;
         if(p.y>(b+t)*.5)t=Math.min(t,p.y-60);else b=Math.max(b,p.y+44);});
-      if(ok)break;if(t-b<40)return null;}
-    return t-b>=40?[b,t]:null;};
+      if(ok)return t-b>=40?[b,t]:null;if(t-b<40)return null;}
+    return null;}; // (2026-10-20, Sacha : « le sommet des tours traverse la route ») 4 passes sans solution = pas de tour (avant : elle restait, rognée à moitié)
+  const routeAuDessus=(cx,cz,hd,t)=>{let m=1e9;const clr=hd+ROAD_HALF+24,c2=clr*clr; // la route la plus basse au-dessus du toit, sous l'emprise : borne le mât (il montait jusque dans le bitume)
+    proches(cx,cz,clr,function(i){const p=pts[i],dx=p.x-cx,dz=p.z-cz;if(dx*dx+dz*dz<=c2&&p.y>t&&p.y<m)m=p.y;});return m;};
   // LES CELLULES : maille SERRÉE près du ruban (le canyon), lâche au large ; chaque cellule retient le point de piste le plus proche
   const R_CAN=330,R_VIL=IS_MOBILE?1700:2100,SN=IS_MOBILE?66:54,SF=IS_MOBILE?230:200; // (2026-09-26) la forêt va jusqu'au brouillard
   const cellules=(S,R,garde)=>{const m=new Map(),rr=Math.ceil(R/S),pas=Math.max(1,Math.round(S*.6/(L/(NP-1))));
@@ -11753,7 +11755,7 @@ function buildVoxCity(seed,accC){
         corps.push(cx+ox,b+ht/2,cz+oz,tk,ht,tk);genre.push(1);tqC.push(cx,km,cz);}
     }
     // L'ANTENNE et son FEU ROUGE — sinon, parfois, la COURONNE à l'accent de la zone
-    if(H>320&&vr()<.5){const ha=24+vr()*56;corps.push(cx,b+(H+ha)/2,cz,2.4,H+ha,2.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,t+ha,cz,4.5,4.5,4.5);neonC.push(5);tqN.push(cx,km,cz);}
+    if(H>320&&vr()<.5){const ha0=24+vr()*56,ha=Math.min(ha0,routeAuDessus(cx,cz,hd,t)-t-12);if(ha<8){/* pas de place sous la route : pas de mât (mêmes tirages) */}else{corps.push(cx,b+(H+ha)/2,cz,2.4,H+ha,2.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,t+ha,cz,4.5,4.5,4.5);neonC.push(5);tqN.push(cx,km,cz);}}
     else if(vr()<.32){neon.push(cx,t-1.4,cz,wk/.72*1.05,2.8,pk/.72*1.05);neonC.push(6);tqN.push(cx,km,cz);}
     // L'ENSEIGNE VERTICALE : le long du canyon, une tour sur deux porte son néon, à hauteur de ROUTE (on la voit passer)
     if(vr()<(canyon?.5:.18)){
@@ -20413,6 +20415,7 @@ const landMark=new THREE.Mesh(new THREE.TorusGeometry(3,.35,8,24),
   new THREE.MeshBasicMaterial({color:0x62e062,transparent:true,opacity:.85,depthTest:false}));
 landMark.renderOrder=999; // (2026-09-28, nuit) le VISEUR passe PAR-DESSUS tout : la caméra de vol garde la caisse plus grande (le « bras », voir la caméra de vol) — elle ne doit jamais cacher l'endroit où l'on se pose
 landMark.visible=false;scene.add(landMark);
+const lmP=new THREE.Vector3(); // (2026-10-20) le pas d'AVANT du viseur : c'est lui qui dit de quel côté de la dalle on arrive (voir le viseur de la boucle de vol)
 const LM={a:0,vu:false,c:new THREE.Color()}; // (2026-09-28) le viseur en FONDU : il surgissait à 1,7 s de la pose, clignotait près des bords, sautait d'or à blanc
 const shadow=new THREE.Mesh(new THREE.CircleGeometry(2.4,20),
   new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.28,depthWrite:false}));
@@ -20979,7 +20982,7 @@ function carUnlockedVrai(i){
    ⚠ Rien ici ne touche au bank-or-bust : la mallette en vol part toujours en fumée.
    ========================================================================== */
 const RUNX={coins:0,fruits:0,perfect:0,t:0,nitro:0,fren:0,frenMax:0}; // ce que `runStats` ne comptait pas (v3 : frénésies de la partie, la plus longue en s)
-const RAM={p0:new THREE.Vector3(),ok:false,face:1,n:[0,0,0,0,0,0,0,0]}; // (2026-09-30) LE RAMASSAGE (pickupsTick) : la caisse à l'image d'avant (un saut décroche) · la face lue · compteurs du banc : pièces/fruits/cristaux au sol, puis en vol, accrochés, filet
+const RAM={p0:new THREE.Vector3(),ok:false,face:1,fv:0,n:[0,0,0,0,0,0,0,0]}; // (2026-09-30) LE RAMASSAGE (pickupsTick) : la caisse à l'image d'avant (un saut décroche) · la face lue · compteurs du banc : pièces/fruits/cristaux au sol, puis en vol, accrochés, filet
 /* LE NITRO SE GAGNE AU STYLE (2026-09-25) : une figure encaissée et un bump rechargent la réserve orange, dans la limite
    du réservoir du moteur. La jauge FLASHE : le joueur doit relier le geste à la récompense. */
 /* LE CHRONO DE VOL v2 (2026-09-25) — « le camembert pixel ne correspond pas au reste ». Après la charte v3 (boutons arrondis,
@@ -25686,9 +25689,9 @@ let musicMode='none',musicBaseVol=1,musicBoostEnv=0;
    ⚠ `VOL` est un MULTIPLICATEUR sur des niveaux déjà accordés, jamais un remplacement : à 100 %
    chaque famille retrouve exactement le mixage d'origine, et un curseur à fond ne peut donc pas
    faire hurler le jeu. */
-const VOL={mus:.62,sfx:1,vox:1};
+const VOL={mus:.7,sfx:1,vox:1}; // (2026-10-20, Sacha : « mieux mixer les sons du jeu et la musique ») musique un cran plus haut par défaut, effets un cran plus bas (SFX_SOUS_MUS)
 const ANN_MUS_DUCK=.88; // la voix parle → la bande-son recule à peine (2026-10-03, Léo : « les MONSTRE ne doivent pas cacher la musique » — c'était .34, −9 dB, la musique semblait s'arrêter à chaque pose)
-const SFX_SOUS_MUS=.7; // (2026-10-03, Léo : « les MONSTRE ne doivent pas cacher la musique — ça vaut pour TOUS les effets sonores ») : tous les effets −3 dB sous la musique (curseur EFFETS inchangé, appliqué par-dessus)
+const SFX_SOUS_MUS=.58; // (2026-10-03, Léo : « les MONSTRE ne doivent pas cacher la musique — ça vaut pour TOUS les effets sonores ») : tous les effets −3 dB sous la musique (curseur EFFETS inchangé, appliqué par-dessus)
 function sfxVol(){return VOL.sfx*SFX_SOUS_MUS;}
 function musVol(){return musicBaseVol*VOL.mus;} // le niveau accordé × le curseur, en un seul endroit
 const MUSIC_FILT_REST=1500; // Hz : caisse à l'ARRÊT = son sourd/étouffé (réglable) — le mouvement rouvre le filtre jusqu'à MUSIC_FILT_OPEN
@@ -27402,19 +27405,30 @@ function initAudio(){
   const jlf=AC.createBiquadFilter();jlf.type='lowpass';jlf.frequency.value=150;
   jetLowG=AC.createGain();jetLowG.gain.value=0;
   j2.connect(jlf);jlf.connect(jetLowG);jetLowG.connect(MASTER);j2.start();
-  jetOsc=AC.createOscillator();jetOsc.type='sawtooth';jetOsc.frequency.value=1200;
-  const jof=AC.createBiquadFilter();jof.type='bandpass';jof.frequency.value=2400;jof.Q.value=6;
+  /* (2026-10-20, Sacha : « le bruit du nitro est très désagréable, on dirait un son blanc ») LA TURBINE : plus de souffle de bruit, un
+     ACCORD qui monte avec la vitesse — deux dents de scie désaccordées (chorus) sous un passe-bas doux + une quinte sinus + un sub,
+     un vibrato lent qui fait respirer le tout. Tonal, rond, qui pousse : un turbo qui s'envole. */
+  jetOsc=AC.createOscillator();jetOsc.type='sawtooth';jetOsc.frequency.value=220;
+  const jo2=AC.createOscillator();jo2.type='sawtooth';jo2.frequency.value=220;jo2.detune.value=9;
+  const jo3=AC.createOscillator();jo3.type='sine';jo3.frequency.value=330;
+  const jo4=AC.createOscillator();jo4.type='sine';jo4.frequency.value=110;
+  jetOsc._o=[jo2,jo3,jo4];
+  const jof=AC.createBiquadFilter();jof.type='lowpass';jof.frequency.value=1500;jof.Q.value=2.2;
+  const jo3g=AC.createGain();jo3g.gain.value=.55;const jo4g=AC.createGain();jo4g.gain.value=.9;
   jetOscG=AC.createGain();jetOscG.gain.value=0;
-  jetOsc.connect(jof);jof.connect(jetOscG);jetOscG.connect(MASTER);jetOsc.start();
+  const jvib=AC.createOscillator();jvib.frequency.value=5.6;const jvibG=AC.createGain();jvibG.gain.value=7;
+  jvib.connect(jvibG);jvibG.connect(jetOsc.detune);jvibG.connect(jo2.detune);jvibG.connect(jo3.detune);jvib.start();
+  jetOsc.connect(jof);jo2.connect(jof);jo3.connect(jo3g);jo3g.connect(jof);jo4.connect(jo4g);jo4g.connect(jof);
+  jof.connect(jetOscG);jetOscG.connect(MASTER);jetOsc.start();jo2.start();jo3.start();jo4.start();
   // LE CORPS DE LA FLAMME : bruit brown sous DOUBLE lowpass (pente raide, tout l'aigu meurt)
   // + flutter lent 5 Hz — le « fwooosh » rond, chaud, moelleux. C'est LUI la nitro, surtout en vol.
   const jr=AC.createBufferSource();jr.buffer=brownBuf(2.7);jr.loop=true;
   jrF=AC.createBiquadFilter();jrF.type='lowpass';jrF.frequency.value=300;jrF.Q.value=.4;
-  const jrF2=AC.createBiquadFilter();jrF2.type='lowpass';jrF2.frequency.value=TEL_NATIF?1000:620;
+  const jrF2=AC.createBiquadFilter();jrF2.type='lowpass';jrF2.frequency.value=TEL_NATIF?900:260;
   jrG=AC.createGain();jrG.gain.value=0;
   jr.connect(jrF);jrF.connect(jrF2);
   if(TEL_NATIF){const jrHp=AC.createBiquadFilter();jrHp.type='highpass';jrHp.frequency.value=120;jrF2.connect(jrHp);jrHp.connect(jrG);} // (2026-09-25) le haut-parleur d'un téléphone ne rend rien sous ~150 Hz : ce grave ne faisait que POMPER le compresseur — et appuyer sur NITRO rendait la caisse plus SOURDE
-  else jrF2.connect(jrG);
+  else{const jrPre=AC.createGain();jrPre.gain.value=3.2;const jrSh=AC.createWaveShaper();jrSh.curve=engCurve(5);jrSh.oversample='none';const jrLp=AC.createBiquadFilter();jrLp.type='lowpass';jrLp.frequency.value=700;jrLp.Q.value=.5;jrF2.connect(jrPre);jrPre.connect(jrSh);jrSh.connect(jrLp);jrLp.connect(jrG);} /* (2026-10-20, Sacha : « du vent, je veux des flammes graves ») le brun est SATURÉ : un rugissement grave et granuleux, plus un souffle */
   jrG.connect(MASTER);jr.start();
   const jrLfo=AC.createOscillator();jrLfo.type='sine';jrLfo.frequency.value=5.3;
   jrDep=AC.createGain();jrDep.gain.value=0;
@@ -28794,8 +28808,18 @@ function nitroWhoomp(k,bleu,air){ // LE « WHOOMP » d'allumage — 8 à 10 nœu
     // 3) LA RUÉE D'AIR : bande de bruit blanc qui MONTE — la vitesse qui arrive (c'est elle qu'un haut-parleur de téléphone rend)
     const s2=AC.createBufferSource();s2.buffer=noiseBuf(.6);
     const b=AC.createBiquadFilter();b.type='bandpass';b.Q.value=.9;b.frequency.setValueAtTime(900,t0);b.frequency.exponentialRampToValueAtTime(bleu?6200:4800,t0+.45);
-    const g2=AC.createGain();g2.gain.setValueAtTime(.0001,t0);g2.gain.exponentialRampToValueAtTime(.075*k,t0+.12);g2.gain.exponentialRampToValueAtTime(.001,t0+.55);
+    const g2=AC.createGain();g2.gain.setValueAtTime(.0001,t0);g2.gain.exponentialRampToValueAtTime(.006*k,t0+.12);g2.gain.exponentialRampToValueAtTime(.001,t0+.55);
     s2.connect(b);b.connect(g2);g2.connect(MASTER);s2.start(t0);s2.stop(t0+.6);
+    { // (2026-10-20) l'ALLUMAGE : un balayage tonal qui MONTE (le turbo qui prend ses tours), deux dents de scie + une quinte — jouissif, pas un souffle
+      const f0=bleu?90:65,fE=f0*(bleu?2.6:2.2),lp=AC.createBiquadFilter();lp.type='lowpass';lp.Q.value=3;
+      lp.frequency.setValueAtTime(500,t0);lp.frequency.exponentialRampToValueAtTime(3200,t0+.32);lp.frequency.exponentialRampToValueAtTime(900,t0+.7);
+      const gs=AC.createGain();gs.gain.setValueAtTime(.0001,t0);gs.gain.exponentialRampToValueAtTime(.075*k,t0+.05);gs.gain.exponentialRampToValueAtTime(.001,t0+.75);
+      lp.connect(gs);gs.connect(MASTER);
+      for(const [m,ty,dt9] of [[1,'sawtooth',0],[1,'sawtooth',11],[1.5,'sine',0]]){
+        const o=AC.createOscillator();o.type=ty;o.detune.value=dt9;
+        o.frequency.setValueAtTime(f0*m,t0);o.frequency.exponentialRampToValueAtTime(fE*m,t0+.34);
+        o.connect(lp);o.start(t0);o.stop(t0+.78);}
+    }
     if(bleu){ // le 2e étage SONNE : un sifflet bref qui monte — la turbine passe la surmultipliée
       const o=AC.createOscillator(),go=AC.createGain();o.type='triangle';
       o.frequency.setValueAtTime(700,t0);o.frequency.exponentialRampToValueAtTime(1900,t0+.22);
@@ -37006,10 +37030,12 @@ function garMissionsOuvre(){ // la porte des MISSIONS, d'où qu'on vienne : l'é
   GAR.aMis=true; // (l'écran de mort passe par le routeur de la coque : voir mTap 'mis')
   ecranWipe(function(){if(garageOn){garMode('missions');GAR.aMis=false;return;}GAR.aMenu=true;openGarage();});
 }
+const MIS_FOCUS_OFF=true;
 function misFocusEl(){let e=document.getElementById('misFocus');
   if(!e){e=document.createElement('div');e.id='misFocus';e.setAttribute('aria-hidden','true');e.innerHTML='<i></i><span></span><b></b><u></u>';(document.getElementById('hud')||document.body).appendChild(e);}
   return e;}
 function misFocusMaj(){ // LA MISSION SUIVIE, en course (appelée par misTick) : consigne · avancement · jauge fine ; verte 3 s quand elle tombe
+  if(MIS_FOCUS_OFF){const e0=document.getElementById('misFocus');if(e0&&e0._on){e0.classList.remove('on','ok');e0._on=0;}return;} // (2026-10-20, Sacha : « enlève ce truc de mission ») plus aucune mission affichée en course ; mettre MIS_FOCUS_OFF à false pour la rallumer
   const s=misEtat(),f=s.f,e=misFocusEl();
   if(!misOn()){if(f>=0&&s.ok[f]){s.f=-1;SAVE.mark();}if(e._on){e.classList.remove('on','ok');e._on=0;}e._okT=0;return;}
   if(f<0){if(e._on){e.classList.remove('on','ok');e._on=0;}return;}
@@ -37030,12 +37056,10 @@ function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
   if(!garAccueil._vu||ecranWipe._on){garAccueil._vu=true;GAR.aMenu=true;openGarage();return;} // le 1er (sous l'écran de démarrage), ou déjà sous un voile
   ecranWipe(function(){if(garageOn||(started&&!gameOver))return;GAR.aMenu=true;openGarage();});
 }
-const MIS_FOCUS_OFF=true;
 {const clicM=function(el,f){if(!el)return;el.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(el);f(el);});
    el.addEventListener('keydown',function(e){if(e.code==='Enter'||e.code==='Space'){e.preventDefault();el.click();}});};
  clicM($('gReglage'),function(){uiClic('nav');ecranWipe(function(){window.__mRetour='set';closeGarage();});});   // les RÉGLAGES (retour : le menu)
  clicM($('gMisBtn'),function(){uiClic('nav');garMode('missions');});    // les MISSIONS : l'écran de l'atelier (voir « LES MISSIONS DANS L'ATELIER »)
-  if(MIS_FOCUS_OFF){const e0=document.getElementById('misFocus');if(e0&&e0._on){e0.classList.remove('on','ok');e0._on=0;}return;} // (2026-10-20, Sacha : « enlève ce truc de mission ») plus aucune mission affichée en course ; mettre MIS_FOCUS_OFF à false pour la rallumer
  clicM(document.querySelector('#gmBas .gmHome'),function(){uiClic('retour');garMode('menu');});             // HOME : le menu
  clicM(document.querySelector('#gmBas .gmJouer'),function(e){CARR.actif=null;garJouer();});                 // JOUER : la partie sans fin, la mission suivie à l'écran
  {const nd=$('gmNoeuds');if(nd)nd.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go)return;
@@ -37284,6 +37308,23 @@ const RAM_K=5.5,RAM_A=30,RAM_T=.5; // l'accroche : tirage de base (/s), sa mont�
 window.dbgRamasse=function(k){if(k==='raz'){RAM.n.fill(0);return true;}
   const n=RAM.n;let a9=0;for(const p of pickups)if(!p.taken&&p.hk>0)a9++;
   return {sol:{pieces:n[0],fruits:n[1],cristaux:n[2]},vol:{pieces:n[3],fruits:n[4],cristaux:n[5]},accroches:n[6],filet:n[7],enCours:a9,mode:mode,face:RAM.face};};
+/* LA FACE DU VOL (2026-10-20, Sacha : « la voiture dans les airs, quand on passe près de la route, le jeu n'arrive pas à savoir où est le
+   dessus et le dessous » — il y a toujours une sorte d'aimant bizarre avec la route tordue du niveau NUAGES). MESURÉ au banc (dbgPose + dbgStep) :
+   la face se lisait au seul SIGNE de la hauteur au point de piste le plus proche (`curHOff < −THICK/2`), sans regarder où l'on est : une caisse
+   qui passe à 45 m du bord (demi-route 28) et descend sous le plan de la dalle passait « SOUS la route » à −1,8 m et y restait à −120 m. Chaque
+   passage du plan (une pente, un virage relevé, un saut qui longe la route) retournait la face, et l'aimant / l'accroche prenait les pièces
+   du JUMEAU de l'autre face — à travers le bitume. Désormais UNE face par vol, avec mémoire : elle part de la face du décollage et ne change
+   que si la caisse est vraiment AU-DESSUS ou EN DESSOUS de la dalle (dans sa largeur + VOLF.m), et d'au moins VOLF.h de l'autre côté du plan
+   qu'elle quitte (hystérésis : plus d'aller-retour sur la tranche). Loin sur le côté : on garde la face d'avant. Même notion que `fallUnder`. */
+const VOLF={m:6,h:.8};
+function volFaceTick(){
+  if(RAM.fv===0)RAM.fv=fallStartSide<0?-1:1;
+  if(curNear&&Math.abs(curLatOff)<ROAD_HALF+VOLF.m){
+    if(RAM.fv>0&&curHOff<-THICK-VOLF.h)RAM.fv=-1;
+    else if(RAM.fv<0&&curHOff>VOLF.h)RAM.fv=1;
+  }
+  return RAM.fv;
+}
 function pickupsTick(dt){
   const enVol=(mode==='fall');
   // (LIGNE PARFAITE) le fruit de la file se teste aussi sur le TRAJET de l'image — (2026-09-30) le trajet AU SOL seulement : en vol `s`
@@ -37313,7 +37354,7 @@ function pickupsTick(dt){
      `side` départage ; en vol rien ne le faisait — sous AIMANT (sphère de 50 m) les deux copies étaient aspirées, l'une À TRAVERS le bitume,
      et les deux encaissées : argent, pièces moteur, séries et nitro des fruits comptés DEUX fois. La face du vol = le côté de la dalle où
      l'on vole (radar de tryLand : sous la dalle → −1, sinon +1). Les grappes du CIEL (`p.air`) n'ont pas de jumeau. (2026-09-30) Sans radar (1re image du vol) : la face du DÉCOLLAGE, plus +1 d'office. */
-  const fV9=enVol?(curNear?(curHOff<-THICK*.5?-1:1):fallStartSide):side;RAM.face=fV9;
+  const fV9=enVol?volFaceTick():(RAM.fv=0,side);RAM.face=fV9; // (2026-10-20) la face du vol : voir VOLF
   for(let i9=0;i9<pickups.length;i9++){
     const p=pickups[i9];
     if(p.taken)continue;
@@ -38346,6 +38387,7 @@ function loop(now){
       CAMV.eta=99; // (caméra de vol v2) temps avant la réception prédite — 99 = rien en vue
       for(let st2=0;st2<14;st2++){ // même intégration que la vraie chute : vel par seconde, position ×SPD
         tmp3.y-=FALL_G*gK()*.12;
+        lmP.copy(tmp2);
         tmp2.addScaledVector(tmp3,.12*SPD);
         // le point le plus proche à moins de 20 m, 1 sur 8, trous exclus (le viseur ne promet jamais un atterrissage dans le vide)
         // (2026-09-27, passe perf iPhone) balayage en casiers (dalleProche) : même point élu, ~6× moins de distances
@@ -38354,7 +38396,11 @@ function loop(now){
           dTmp.subVectors(tmp2,pts[bi]);
           const h2=dTmp.dot(Nn[bi]),l2=dTmp.dot(B[bi]);
           if(Math.abs(l2)<ROAD_HALF+facBord()&&h2>-THICK-1&&h2<3){
-            landMark.position.copy(pts[bi]).addScaledVector(B[bi],facOn()?THREE.MathUtils.clamp(l2,1-ROAD_HALF,ROAD_HALF-1):l2).addScaledVector(Nn[bi],h2>-1.3?.3:-THICK-.3);
+            /* (2026-10-20) DESSUS OU DESSOUS : le côté d'où l'on ARRIVE (le pas d'avant, dans le repère de CETTE dalle), comme tryLand (prevH > −1,2 →
+               dessus). Avant, le seul signe de h2 décidait : un pas qui tombait à mi-épaisseur (−3,6 < h2 < −1,3 — fréquent à haute vitesse, un pas
+               fait plusieurs mètres) posait l'anneau SOUS la route alors que la caisse allait se poser dessus, et il sautait d'une face à l'autre. */
+            const hP9=lmP.sub(pts[bi]).dot(Nn[bi]),dessus9=hP9>-1.2?true:hP9<-THICK+1.2?false:h2>-1.3;
+            landMark.position.copy(pts[bi]).addScaledVector(B[bi],facOn()?THREE.MathUtils.clamp(l2,1-ROAD_HALF,ROAD_HALF-1):l2).addScaledVector(Nn[bi],dessus9?.3:-THICK-.3);
             landMark.quaternion.setFromRotationMatrix(mat4.makeBasis(T[bi],B[bi],Nn[bi]));
             LM.vu=true;CAMV.eta=(st2+1)*.12;
             const impP=Math.abs(tmp3.dot(Nn[bi])); // impact PRÉDIT — même unité que le verdict d'atterrissage
@@ -38752,12 +38798,12 @@ function loop(now){
       }
       if(windG){
         // MORT ('boom') : coupé NET — sinon spd3 (=speedKmh figé au crash) laisse le vent souffler à fond pour toujours
-        stt(windG.gain,mode==='boom'?0:Math.min(.05,spd3*.0001+(mode==='fall'?.018:0)+cloudInS*.02)*dk*(SONV2?1-Math.min(1,LVL.espace):1),AC.currentTime,mode==='boom'?.08:.15); // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
+        stt(windG.gain,mode==='boom'?0:Math.min(.05,spd3*.0001+(mode==='fall'?.018:0)+cloudInS*.02)*(nitroOn?.2:1)*dk*(SONV2?1-Math.min(1,LVL.espace):1),AC.currentTime,mode==='boom'?.08:.15); // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
         stt(windF.frequency,Math.min(16000,(280+spd3*1.25)*(1-.6*cloudInS)+(mode==='fall'?260:0)),AC.currentTime,.15); // ⚠ plafonné : au-delà de 24 kHz le navigateur crachait un avertissement PAR IMAGE // le nuage étouffe le vent, l'air libre l'aère (coef ÷2 : même pitch au même état-caisse)
       }
       if(whG){ // sifflement d'air : la signature des vitesses folles (>330 km/h)
         // MORT : coupé NET (même piège que le vent : sinon le sifflement reste bloqué à fond après le crash)
-        stt(whG.gain,mode==='boom'?0:Math.min(.06,Math.max(0,(spd3-560)/4400))*(1-.7*cloudInS)*(1-.5*nA)*dk*(SONV2?1-Math.min(1,LVL.espace):1),AC.currentTime,mode==='boom'?.08:.12); // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
+        stt(whG.gain,mode==='boom'?0:Math.min(.06,Math.max(0,(spd3-560)/4400))*(nitroOn?.1:1)*(1-.7*cloudInS)*(1-.5*nA)*dk*(SONV2?1-Math.min(1,LVL.espace):1),AC.currentTime,mode==='boom'?.08:.12); // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
         stt(whF.frequency,2000+spd3*1.2,AC.currentTime,.1); // coef ÷2 : même pitch au même état-caisse
       }
       if(cloudInS>.45&&!loop._cldWas&&!SONV2)noiseBurst(.45,.08,520); // percée dans la ouate : fwoosh de coton
@@ -38781,21 +38827,23 @@ function loop(now){
         // et après `endGame` dans la même image, elle réécrivait ses gains — le souffle restait figé sur l'écran de mort
         const nOn9=nitroOn&&mode!=='boom'&&!gameOver&&BTEST!=='feu0';
         const jb=nOn9?(nitroBlue?.52:.4):0;
-        stt(jrG.gain,jb*(air9?1.1:1.05)*(.84+.32*Math.random())*dk,AC.currentTime,.08); // turbulence lente
-        stt(jrDep.gain,jb*(air9?.22:.16)*dk,AC.currentTime,.1); // flutter 5 Hz : la flamme respire
-        stt(jrF.frequency,nOn9?(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0):240,AC.currentTime,.1); // un poil plus mordante au sol
+        stt(jrG.gain,jb*(air9?1.0:1.1)*(.8+.4*Math.random())*dk,AC.currentTime,.08); // (2026-10-20) le grondement ne fait plus que le CORPS : la turbine (jetOsc) porte le son
+        stt(jrDep.gain,jb*(air9?.1:.08)*dk,AC.currentTime,.1); // flutter 5 Hz : la flamme respire
+        stt(jrF.frequency,nOn9?(air9?150+spd3*.08:170+spd3*.1)+(nitroBlue?40:0):120,AC.currentTime,.1); // un poil plus mordante au sol
         // PLUS AUCUNE couche de bruit blanc continue : souffle médium coupé, grave blanc réduit
         // à un fond — tout le caractère vient du rumble brown + des pops bruns
         stt(jetG.gain,nOn9&&air9?.01*dk:0,AC.currentTime,.06);
-        stt(jetLowG.gain,TEL_NATIF?0:(nOn9?(air9?.08:.05):0)*(.7+.6*Math.random())*dk,AC.currentTime,.07); // téléphone : un grave à 150 Hz inaudible qui ne faisait que pousser le compresseur
-        stt(jetOscG.gain,nOn9&&!air9?.003:0,AC.currentTime,.09); // pointe de turbine au sol
+        stt(jetLowG.gain,(nOn9?(air9?.16:.14):0)*(TEL_NATIF?.5:1)*(.7+.6*Math.random())*dk,AC.currentTime,.07); // téléphone : un grave à 150 Hz inaudible qui ne faisait que pousser le compresseur
+        stt(jetOscG.gain,nOn9?.035*dk:0,AC.currentTime,nOn9?.25:.18); // la turbine : montée douce, retombée courte
         stt(jcFb.gain,.12,AC.currentTime,.1);stt(jcDep.gain,.0002,AC.currentTime,.12); // peigne+flanger au repos (ils chuintaient)
         if(nOn9){
           stt(jetF.frequency,320+spd3*.6+(nitroBlue?180:0),AC.currentTime,.07);
-          stt(jetOsc.frequency,900+spd3*3.5+(nitroBlue?400:0),AC.currentTime,.08);
+          const fT9=(58+Math.min(110,spd3*.1))*(nitroBlue?1.4:1); // la hauteur MONTE avec la vitesse : un turbo qui s'envole, la réserve bleue d'une quinte plus haut
+          stt(jetOsc.frequency,fT9,AC.currentTime,.35);
+          if(jetOsc._o){stt(jetOsc._o[0].frequency,fT9,AC.currentTime,.35);stt(jetOsc._o[1].frequency,fT9*1.5,AC.currentTime,.35);stt(jetOsc._o[2].frequency,fT9*.5,AC.currentTime,.35);}
           // pétillement en pops BRUNS, discrets et distincts : ça crépite, ça ne souffle pas.
           // (moins denses qu'avant : 25/s de pops ronds > 50/s de pops blancs qui fusionnent en tapis)
-          if(Math.random()<dt*(air9?9:(TEL_NATIF?10:25)))flamePop(.02+Math.random()*.05,air9?.05+Math.random()*.06:.1+Math.random()*.14,(air9?300:380)+Math.random()*260+(TEL_NATIF?500:0)); // téléphone : moins de pops (≈80 nœuds/s alloués), plus hauts (audibles)
+          if(Math.random()<dt*(air9?10:(TEL_NATIF?12:18)))flamePop(.03+Math.random()*.06,air9?.1+Math.random()*.1:.16+Math.random()*.2,(air9?160:200)+Math.random()*180+(TEL_NATIF?300:0)); // téléphone : moins de pops (≈80 nœuds/s alloués), plus hauts (audibles)
           if(!air9&&Math.random()<dt*2.4){flamePop(.05+Math.random()*.04,.3,520);subBoom(.05);} // le POK : plop + mini coup de poitrine
         }
         if(nOn9&&air9&&!loop._jetWas&&NFX.ign<.5){ // ALLUMAGE : FWOOM rond — souffle grave + coup de poitrine (le sifflet strident a dégagé) — (vague 3) seulement quand on DÉCOLLE nitro tenue : un allumage frais a déjà son WHOOMP (nitroAllume)
