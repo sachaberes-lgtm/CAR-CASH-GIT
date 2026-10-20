@@ -28,6 +28,20 @@
 - MESURÉ : sakura ~300 cubes pleins, billets ~120, foudre ~95 pleins + ~80 contours + ~85 lueurs ; `TRX.ms` 0,1-0,2 ms par image au banc (Mac chargé, charge > 100).
 - À TRANCHER (Sacha) : la taille des pétales et des billets (`TC_K.pet`, `TC_K.bil`), et si les éclairs doivent plus zigzaguer vus de derrière (la poursuite les voit de bout).
 
+## LES NUAGES PAISIBLES — UN SEUL TYPE, 33 NUAGES, UNE MER LISSE (2026-10-20 soir, v737, Léo, relayant Sacha : « c'est trop chelou, il y a trois couches de nuages différents » · « l'impression que ça donne, beaucoup trop de nuages » · « trop chaotique, plus paisible » → « oui, mets les nuages plus calmes sur le main »)
+- **Les « trois types »** (cause trouvée) : la dose VERRE du vitrail (v704) ne vivait qu'ENTRE deux distances : du lisse tout près, une grille de verre à
+  mi-distance (écailles + peau transparente), du lisse au loin — trois aspects dans la même vue. **Retirée du défaut** : un seul type de nuage, le corps
+  lisse v8 et sa poussière de petits cubes (`?nuvit=verre` rend l'essai d'avant ; `?nuvit=fantome` est le défaut).
+- **Moins, plus calme** (map NUAGES seulement ; `?arc=0` rend tout le main d'avant la mer de nuages) :
+  · `CDENS` .14 (`?cdens=`) : 224 → 33 nuages de décor ; `GROS` .4 (`?gros=`) : cathédrales, massifs, titans, tours héroïques ÷2,5 (13 grandes masses → 5) ;
+  · la poussière de cubes 8 000 → 1 400 par gabarit (`?fant=`, `fdeh` .4), le chou-fleur des gabarits ×0,4 (`KIDS_ARC`, `?kids=`) ;
+  · la MER DE CUMULUS plus lisse : relief 3,2 → 1,6, couverture ,22 → ,12 (moins de trouées sombres).
+- **Mesuré** (banc Chrome sans fenêtre muet, 844 × 390, même piste) : 0 programme compilé en course (217 → 217) ; rendu synchronisé 11,8 (v704) → 8,8 (v731)
+  → 7 ms ; triangles des nuages 2 041 k → ~70 k. Cartes postales des six météos refaites (point de vue à 600 m de l'entrée : le soleil, la mer, une masse).
+  Planches : `photos-gameplay/nuages-un-seul-type-avant-apres.png`, `nuages-paisible-avant-apres.png` (CAR CAHS V3).
+- ⚠ Banc : les taches de couleur vives en course = le JUS des fruits ; `dbgNuVue('nuageN')` prend le N-ième PLUS GROS nuage — avec moins de nuages ce
+  n'est plus le même.
+
 ## MOINS DE NUAGES SUR LA MAP NUAGES — UNE MASSE CALME, DU CIEL AUTOUR (2026-10-20, v731, Léo : « il y a trop de nuages, c'est un peu vomitif, mais on y est presque ; essaie de trouver des modèles gratuits sur lesquels tu peux t'inspirer — 3D » → « oui, mets les nuages plus légers sur le main »)
 - **Les modèles 3D libres** (poly.pizza) : les cinq « Cloud » de **Quaternius** sont en **domaine public (CC0)** — une masse calme, base plate, un dôme,
   peu de lobes, aucun chou-fleur sur du chou-fleur ; les « Cumulus Clouds » de S. Paul Michael, « Low Poly Cloud » de Louto, « Cloud Set » de
