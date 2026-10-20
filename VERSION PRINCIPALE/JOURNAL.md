@@ -3,6 +3,21 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## MOINS DE NUAGES SUR LA MAP NUAGES — UNE MASSE CALME, DU CIEL AUTOUR (2026-10-20, v731, Léo : « il y a trop de nuages, c'est un peu vomitif, mais on y est presque ; essaie de trouver des modèles gratuits sur lesquels tu peux t'inspirer — 3D » → « oui, mets les nuages plus légers sur le main »)
+- **Les modèles 3D libres** (poly.pizza) : les cinq « Cloud » de **Quaternius** sont en **domaine public (CC0)** — une masse calme, base plate, un dôme,
+  peu de lobes, aucun chou-fleur sur du chou-fleur ; les « Cumulus Clouds » de S. Paul Michael, « Low Poly Cloud » de Louto, « Cloud Set » de
+  Matt Schaefer sont CC-BY (inspiration seulement). Aucun fichier n'entre dans le jeu : on en garde la LEÇON (une masse, de l'air autour).
+- **Ce qui a changé** (que sur la map NUAGES et les gabarits de cumulus ; ?arc=0 rend le main d'avant la mer de nuages) :
+  · `CDENS` .3 (`?cdens=`, 1 = avant) : le semis de décor — couronne proche, au-dessus/en dessous, milieu, haute, lointain, sphère de la route
+    sans haut ni bas, satellites — passe de 224 à 75 nuages (les cathédrales, massifs, titans et tours héroïques de `okG` ne bougent pas) ;
+  · `KIDS_ARC` .55 (`?kids=`) : le chou-fleur des gabarits (`cumulus8` → `enfants`) ×0,55 : des masses plus lisibles ;
+  · `NUVIT.mix` 2 400 (`?mix=`, 6 500 avant) : les cubes éparpillés autour du vitrail en verre — moins de poussière.
+- **Mesuré** (banc Chrome sans fenêtre muet, 844 × 390, même piste `pistegraine=777`) : 0 programme compilé en course (217 → 217) ; rendu
+  synchronisé 11,8 → 8,8 ms (Mac) ; triangles des nuages 2 041 k → ~500 k. Les cartes postales des six météos de la map refaites
+  (`assets/portail/nuages-*.webp`, piste 42, 1er point de vue). Planches : `photos-gameplay/mer-nuages-moins-avant-apres.png` (CAR CAHS V3).
+- ⚠ Banc : les grandes taches de couleur sur les vues en course = le JUS des fruits (pas des nuages) ; `dbgNuVue('nuageN')` prend le N-ième plus
+  gros nuage : avec une autre densité ce n'est plus le même nuage (comparer des vues EN COURSE au même instant plutôt).
+
 ## HUIT PEINTURES UNIES EN MOINS (2026-10-20, v729, Sacha : « il y a trop de couleurs classiques dans les peintures ; essaye d'en enlever quelques-unes qui se ressemblent, genre du gris et du gris foncé ; il y a trop pétrole, British Green et Abyss Blue, ça se ressemble trop »)
 - **Le constat, mesuré** : l'inventaire montrait 42 pastilles unies. Distance de couleur CIEDE2000 entre toutes les peintures unies, sur ce qu'on VOIT (le MÉTALLISÉ
   rend ~×1,8 plus clair que sa valeur écrite, voir la note de la planche du 14/10) : les paires les plus proches étaient GRAPHITE ≈ NOIR MAT (4), BLEU HÉRISSON ≈ BLEU MINUIT (6),
