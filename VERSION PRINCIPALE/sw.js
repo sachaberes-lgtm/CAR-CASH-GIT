@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v760'; // v760 (2026-10-21, Léo : « brillance et qualité de la voiture en jeu comme au garage ») : le ciel de la map dans la laque en course (soleil à sa place, brume, éclats fins), menu ciel plus lumineux ; ?finition=ancien = avant
+const CACHE = 'cashcar-v761'; // v761 (2026-10-21, Léo : « les builds filtre et dub, tente ») : en course, les montées 'filtre' et 'dub' du générateur Pouce bleu deviennent la montée simple (plus de mesure étouffée ni de trou)
 // const CACHE = 'cashcar-v759'; // v759 (2026-10-21, Léo : « le toit de LA HONTE avec un peu de taches comme le reste de la voiture, pas trop ») : la dalle du toit devient une boîte usée (plaques de rouille, arêtes usées)
 // const CACHE = 'cashcar-v758'; // v758 (2026-10-20, Léo : « les phares rouges de certaines voitures buguent, comme la boule des phares v1 ») : les feux arrière BOMBÉS (LA BÊTE, DOLCE VITA, GRANDE ANGLAISE…) gardent leur lueur collée à leur forme, plus de boule
 // const CACHE = 'cashcar-v757'; // v757 (2026-10-20, Léo : « les numéros sur les billets un peu brillants, une petite lumière légère » · « est-ce que tous les fruits peuvent apparaître ? qu'ils varient autant qu'on en a ») : le grand chiffre des billets de la pluie de richesse LUIT (halo peint + uLum, constant) ; les fruits de la pluie servis par SABOT (tous passent avant qu'un revienne) ; rayons des 3 fruits des dunes

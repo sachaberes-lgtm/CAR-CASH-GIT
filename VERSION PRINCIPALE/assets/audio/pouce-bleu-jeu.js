@@ -55,7 +55,15 @@
       let s2 = s.split(AV_TXT).join('while (nextTime < now + ' + AVANCE + ')');
       if (!MONTEE_ANCIEN) { s2 = s2.split("riser: tpw(['souffle', 'ton'], W.riser)").join("riser: 'souffle'")
         .split("rp(['montee', 'trou', 'filtre']").join("rp(['montee', 'filtre']")
-        .split("const W9 = Object.assign({}, M.C.trans), a = id =>").join("const W9 = Object.assign({}, M.C.trans, { trou: 0 }), a = id =>"); PB.montee = 'douce'; }
+        .split("const W9 = Object.assign({}, M.C.trans), a = id =>").join("const W9 = Object.assign({}, M.C.trans, { trou: 0 }), a = id =>");
+        /* (2026-10-21, Léo : « les builds filtre et dub, ça a l'air convaincant — tente ») LES DEUX AUTRES MONTÉES QUI ÉTOUFFENT. 'filtre' ferme le passe-bas
+           à 420 Hz pendant UNE MESURE ENTIÈRE (~2 s), coupe les éléments, puis tout se rouvre sur le 1er temps ; 'dub' (le drop de la wob/du growl) garde
+           le TROU à 8 % et balaie un filtre de 400 à 14 000 Hz. Au boost, plusieurs paliers s'enchaînent : la musique s'étouffe, « s'arrête », reprend
+           1-2 s après. En course ces deux-là deviennent la montée simple (souffle, roulement, 4 pas de coupe, impact à l'arrivée). */
+        s2 = s2.split("bt = M.build;").join("bt = (M.build === 'filtre' || M.build === 'dub') ? 'montee' : M.build;")
+          .split("M.build = 'dub'; (M.journal").join("M.build = 'montee'; (M.journal")
+          .split("else if (grand) { M.build = rp(['montee', 'filtre']").join("else if (grand) { M.build = 'montee'; void rp(['montee', 'filtre']");
+        PB.montee = 'douce'; }
       else PB.montee = 'ancienne';
       const b = URL.createObjectURL(new Blob([s2.split('import.meta.url').join(JSON.stringify(u))], { type: 'text/javascript' }));
       try { const m = await import(b); PB.avance = AVANCE; return m; } finally { URL.revokeObjectURL(b); }
