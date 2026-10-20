@@ -18405,29 +18405,44 @@ let BK_BEC_TEX=null; // (2026-10-19) sur SA ligne : collée derrière le « // �
    705 m, 450 m au plus jusqu'à 500 km/h), et la figure qui suit un tremplin attend la fin de sa retombée. `?sans=glaceretombe` = avant
    (même graine, même piste). */
 const BK_RETOMBE=!/[?&]sans=([^&]*,)?glaceretombe(,|&|$)/.test(location.search);
-function bkBecTex(){if(BK_BEC_TEX)return BK_BEC_TEX;const c=document.createElement('canvas');c.width=64;c.height=256;const x=c.getContext('2d');
-  const g=x.createLinearGradient(0,256,0,0);g.addColorStop(0,'#bfe6ff');g.addColorStop(1,'#ffffff');x.fillStyle=g;x.fillRect(0,0,64,256);
-  x.strokeStyle='#ff7a14';x.lineWidth=11;x.lineJoin='miter';for(let i=0;i<3;i++){const y=206-i*68;x.beginPath();x.moveTo(5,y+26);x.lineTo(32,y);x.lineTo(59,y+26);x.stroke();} // les CHEVRONS ORANGE, pointe vers la lèvre (la couleur des balises : sur la glace bleue, on les voit de loin)
-  x.fillStyle='#ffffff';x.fillRect(0,244,64,12); // le bas de l'image : du blanc pur — flancs, lèvre et balises y prennent leur seule couleur
+function bkBecTex(){if(BK_BEC_TEX)return BK_BEC_TEX;const c=document.createElement('canvas');c.width=128;c.height=256;const x=c.getContext('2d');
+  const g=x.createLinearGradient(0,256,0,0);g.addColorStop(0,'#a9d8f5');g.addColorStop(.6,'#d6f0ff');g.addColorStop(1,'#ffffff');x.fillStyle=g;x.fillRect(0,0,128,256);
+  /* (2026-10-20, Sacha : « faits de glace, un design plus organique ») plus de chevrons orange : de la GLACE — veines claires, fissures givrées, bulles prises dans la masse */
+  let sd=7;const rn=()=>(sd=(sd*16807)%2147483647)/2147483647;
+  x.lineCap='round';for(let i=0;i<26;i++){let px=rn()*128,py=240*rn()+4;x.strokeStyle='rgba(255,255,255,'+(.35+rn()*.5)+')';x.lineWidth=1+rn()*3;x.beginPath();x.moveTo(px,py);for(let j=0;j<4;j++){px+=(rn()-.5)*34;py-=10+rn()*26;x.lineTo(px,py);}x.stroke();}
+  for(let i=0;i<14;i++){let px=rn()*128,py=240*rn()+4;x.strokeStyle='rgba(60,140,210,'+(.18+rn()*.25)+')';x.lineWidth=1+rn()*1.5;x.beginPath();x.moveTo(px,py);for(let j=0;j<3;j++){px+=(rn()-.5)*30;py-=8+rn()*20;x.lineTo(px,py);}x.stroke();}
+  for(let i=0;i<40;i++){x.fillStyle='rgba(255,255,255,'+(.25+rn()*.4)+')';x.beginPath();x.arc(rn()*128,rn()*236,.8+rn()*2.2,0,6.283);x.fill();}
+  x.fillStyle='#ffffff';x.fillRect(0,244,128,12); /* le bas de l'image : du blanc pur — flancs, lèvre et pointes y prennent leur seule couleur */
   const t=new THREE.CanvasTexture(c);t.anisotropy=4;return BK_BEC_TEX=t;}
 function bkBecMesh(root,KK){
   const P=[],C=[],UV=[],I=[];let n=0;
   const V=(s9,la,h,r,g,b9,u,v)=>{frameAt(s9,F);P.push(F.p.x+F.b.x*la+F.n.x*h,F.p.y+F.b.y*la+F.n.y*h,F.p.z+F.b.z*la+F.n.z*h);C.push(r,g,b9);UV.push(u,v);return n++;};
-  for(const k of KK){const NR=10,NL=8,s0=k.s-k.lg,H=k.h,w=k.l1-k.l0,hR=u=>H*Math.pow(u,1.7)+.06;
-    let b0=n;for(let r=0;r<=NR;r++){const u=r/NR;for(let a=0;a<=NL;a++){const e=Math.abs(a/NL-.5)*2,c=1.02+.22*u-.08*e;V(s0+k.lg*u,k.l0+w*a/NL,hR(u),c,c,c*1.04,a/NL,.06+.94*u);}} // la RAMPE
+  const hs=(a,b)=>{const t=Math.sin(a*127.1+b*311.7)*43758.5453;return t-Math.floor(t);};
+  const pyr=(s9,la,h,ts,tl,th,rad,c0,c1,N9)=>{const b0=n; /* une POINTE de glace (cristal, stalactite, bosse) : une couronne irrégulière et un sommet */
+    for(let i=0;i<N9;i++){const a=i/N9*6.2832+hs(s9,i)*.5,r9=rad*(.75+.5*hs(la,i+3));V(s9+Math.cos(a)*r9,la+Math.sin(a)*r9,h,c0[0],c0[1],c0[2],.5,.02);}
+    const tp=V(ts,tl,th,c1[0],c1[1],c1[2],.5,.02);for(let i=0;i<N9;i++)I.push(b0+i,b0+(i+1)%N9,tp);};
+  for(const k of KK){const NR=18,NL=14,s0=k.s-k.lg,H=k.h,w=k.l1-k.l0,hR=u=>H*Math.pow(u,1.7)+.06,sd=k.s*.013;
+    const fl=u=>1.1+.9*Math.abs(Math.sin(u*4.2+sd))+.6*u,fr9=u=>1.1+.9*Math.abs(Math.sin(u*3.7+sd*1.7+2))+.6*u; /* la largeur FLOTTE : la glace déborde de la piste, plus ou moins, de chaque côté */
+    const GR=(u,t)=>{const fL=fl(u),fR=fr9(u),L=k.l0-fL,R=k.l1+fR,la=L+(R-L)*t,o=la<k.l0?(k.l0-la)/fL:la>k.l1?(la-k.l1)/fR:0;
+      const bump=.1*u*(.5+.5*Math.sin(la*1.3+sd)*Math.sin((k.s-k.lg*(1-u))*.45+la*.7)),h=(hR(u)+.4)*Math.sqrt(Math.max(0,1-o*o))-.4+(o>0?0:bump);return{la,o,h};}; /* le flanc est un talus ARRONDI, qui s'enfonce dans le sol ; la surface reste au niveau de la rampe (hopY) sur la piste */
+    const ICE=(u,o,j)=>{const a=1-o,m=.35*u+.65*(1-o),k9=.04*j;return[(.78+.22*m)*a+.22*o+k9,(.93+.07*m)*a+.55*o+k9,(1.08)*a+1.0*o+k9];}; /* bleu glace, blanchi vers la lèvre, bleu profond sur les talus */
+    let b0=n;for(let r=0;r<=NR;r++){const u=r/NR;for(let a=0;a<=NL;a++){const q=GR(u,a/NL),c=ICE(u,q.o,hs(r,a)-.5);V(k.s-k.lg*(1-u),q.la,q.h,c[0],c[1],c[2],a/NL,.06+.94*u);}} /* la RAMPE */
     for(let r=0;r<NR;r++)for(let a=0;a<NL;a++){const q=b0+r*(NL+1)+a;I.push(q,q+NL+1,q+1,q+1,q+NL+1,q+NL+2);}
-    b0=n;for(const u of [.9,1])for(let a=0;a<=NL;a++)V(s0+k.lg*u,k.l0+w*a/NL,hR(u)+.05,1.55,1.62,1.7,.5,.02); // la LÈVRE qui brille
-    for(let a=0;a<NL;a++){const q=b0+a;I.push(q,q+NL+1,q+1,q+1,q+NL+1,q+NL+2);}
-    b0=n;for(const h of [hR(1)+.05,-.3])for(let a=0;a<=NL;a++)V(k.s+.03,k.l0+w*a/NL,h,.10,.24,.62,.5,.02); // la face AVAL de la lèvre
-    for(let a=0;a<NL;a++){const q=b0+a;I.push(q,q+1,q+NL+1,q+1,q+NL+2,q+NL+1);}
-    for(const la of [k.l0,k.l1]){b0=n;for(let r=0;r<=NR;r++){const u=r/NR;V(s0+k.lg*u,la,-.3,.08,.20,.55,.5,.02);V(s0+k.lg*u,la,hR(u),.22,.48,1.05,.5,.02);} // les FLANCS bleu nuit
-      for(let r=0;r<NR;r++){const q=b0+r*2;I.push(q,q+2,q+1,q+1,q+2,q+3);}}
-    const co=[[-.7,-.7],[.7,-.7],[.7,.7],[-.7,.7]],bd=[[-.3,H+BK_BEC.poteau*.75,1.9,.55,.08],[H+BK_BEC.poteau*.75,H+BK_BEC.poteau,1.8,1.8,1.8]]; // les BALISES : orange, la tête blanche
-    for(const la of [k.l0-3,k.l1+3])for(let f=0;f<4;f++){const A9=co[f],B9=co[(f+1)%4];
-      for(const d of bd){b0=n;V(k.s+A9[0],la+A9[1],d[0],d[2],d[3],d[4],.5,.02);V(k.s+B9[0],la+B9[1],d[0],d[2],d[3],d[4],.5,.02);V(k.s+A9[0],la+A9[1],d[1],d[2],d[3],d[4],.5,.02);V(k.s+B9[0],la+B9[1],d[1],d[2],d[3],d[4],.5,.02);
-        I.push(b0,b0+1,b0+2,b0+1,b0+3,b0+2);}}}
+    const H1=hR(1)+.06,LIP=[[k.s-k.lg*.08,H1+.12,1.35],[k.s-.3,H1+.34,1.75],[k.s+.45,H1+.2,1.6],[k.s+.62,H1-.55,1.15]]; /* la LÈVRE : un rouleau de glace qui déborde et se courbe vers le bas, comme une vague gelée */
+    b0=n;for(const L9 of LIP)for(let a=0;a<=NL;a++){const q=GR(1,a/NL),ro=q.o>0?Math.min(1,q.o):0,wv=.12*Math.sin(a*1.9+sd);V(L9[0],q.la,L9[1]*(1-ro)+(-.4)*ro+wv,L9[2]*(1-ro*.6),L9[2]*(1-ro*.4),Math.min(1.9,L9[2]+.3),.5,.02);}
+    for(let r=0;r<LIP.length-1;r++)for(let a=0;a<NL;a++){const q=b0+r*(NL+1)+a;I.push(q,q+NL+1,q+1,q+1,q+NL+1,q+NL+2);}
+    const b1=n;for(const hh of [[k.s+.62,H1-.55],[k.s+.05,-.3]])for(let a=0;a<=NL;a++){const q=GR(1,a/NL);V(hh[0],q.la,q.o>0?-.4:hh[1],.20,.45,.95,.5,.02);} /* le dessous, creusé sous le rouleau : bleu nuit */
+    for(let a=0;a<NL;a++){const q=b1+a;I.push(q,q+1,q+NL+1,q+1,q+NL+2,q+NL+1);}
+    for(let i=0;i<9;i++){const t=(i+.5+(hs(k.s,i)-.5)*.6)/9,q=GR(1,t);if(q.o>0)continue;const len=1.4+hs(i,k.s)*3.4; /* les STALACTITES sous le rouleau */
+      pyr(k.s+.45,q.la,H1-.52,k.s+.52+hs(i,2)*.2,q.la+(hs(i,5)-.5)*.5,H1-.52-len,.22+.2*hs(i,7),[.55,.82,1.2],[1.5,1.7,1.9],5);}
+    for(const sg of [-1,1]){const lc=sg<0?k.l0-3:k.l1+3,sp0=k.s-3;
+      pyr(sp0,lc,-.3,sp0+(hs(sg,1)-.5)*1.2,lc+sg*2.4,H+BK_BEC.poteau,1.25,[.18,.5,1.05],[1.7,1.85,2],6); /* les deux grands CRISTAUX, hauts, qui annoncent le tremplin de loin */
+      for(let j=0;j<4;j++){const ds=(hs(sg+j,3)-.5)*5,dl=sg*(.8+j*.9)+(hs(j,sg)-.5)*1.2,hh=4+hs(j,sg+7)*7;
+        pyr(sp0+ds,lc+dl,-.3,sp0+ds+(hs(j,9)-.5)*1.8,lc+dl+sg*(.6+hs(j,4)*1.6),hh,.5+.4*hs(j,6),[.25,.58,1.05],[1.3+.3*hs(j,2),1.6,1.85],5);} /* et leur grappe de cristaux plus petits, penchés vers l'extérieur */
+      for(let j=0;j<5;j++){const ss=k.s-k.lg*(.15+.17*j)+(hs(j,sg)-.5)*3,ll=sg<0?k.l0-fl(.3+.15*j)*.7:k.l1+fr9(.3+.15*j)*.7,hh=.9+hs(j,sg+2)*1.4; /* des bosses de glace gelée le long des talus */
+        pyr(ss,ll,-.45,ss+(hs(j,1)-.5)*.8,ll+sg*.3,hh,1.1+.9*hs(j,3),[.5,.78,1.15],[1.25,1.5,1.7],7);}}}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(UV,2));
-  g.setIndex(I);g.computeBoundingSphere();
+  g.setIndex(n>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeBoundingSphere();
   const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,map:bkBecTex(),side:THREE.DoubleSide,fog:true}));m.name='glacier becs';m.matrixAutoUpdate=false;m.userData.jeter=true;root.add(m);}
 function bkCgEntre(kmh){ // l'entrée dans la neige : le plouf, la gerbe, un coup dans la main
   const k=Math.min(1,kmh/300);shake=Math.max(shake,.22+.3*k);fovPunch=Math.max(fovPunch,3+5*k);hap(k>.5?[14,22]:[10]);
