@@ -140,7 +140,7 @@ SHAPES.mx5na=function(K){
      Repère : x à droite, y en haut, z vers l'avant, mètres. */
   const U=LPU,R=.289,ZF=1.165,ZR=-1.115,ZE=1.975,ZB=-1.975;
   const L=(t,z)=>U.lin(t,z),cl=(v,a,b)=>v<a?a:v>b?b:v,mix=(a,b,t)=>a+(b-a)*t,lis=t=>t*t*(3-2*t);
-  const PAL={p:{g:'p',c:0xc8151d},k:{g:'m',c:0x131316},K:{g:'g',c:0x0b0b0e},g:{g:'g',c:0x16202c},i:{g:'s',c:0x1d1e22},v:{g:'s',c:0x141417},
+  const PAL={p:{g:'p',c:0x761b22},k:{g:'m',c:0x131316},K:{g:'g',c:0x0b0b0e},g:{g:'g',c:0x16202c},i:{g:'s',c:0x1d1e22},v:{g:'s',c:0x141417},
     s:{g:'s',c:0x2b2c31},W:{g:'l',c:0xf4f7ff},L:{g:'l',c:0xff1a2e},c:{g:'c',c:0xd4d8de},a:{g:'k',c:0xc3c7cd},d:{g:'m',c:0x0e0f12},
     O:{g:'g',c:0xe08414},q:{g:'s',c:0xdedfe2}};
   // ---- LES COTES DU PLAN (mètres) ----

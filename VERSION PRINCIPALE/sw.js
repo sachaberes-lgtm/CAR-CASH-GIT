@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v705'; // v705 (2026-10-20, Léo : « oui, mets cette version du CAÏD sur le main ») : LE CAÏD, le pick-up de sa photo au toit ouvert — pare-brise séparé (LA VITRE V2), arceaux, plaque du capot (voir le journal)
+const CACHE = 'cashcar-v706'; // v706 (2026-10-19 nuit, Léo : « la vette et toutes les voitures rouges, trop lumineuses, trop luisantes ») : la laque de six voitures rouges (VETTE, ROSSO 40, CERISE, HOT ROD, RAIE, PUCE) à 55 % de sa valeur avec un peu de vert et de bleu — du relief au lieu d'un aplat
 // const CACHE = 'cashcar-v698'; // v698 (2026-10-19, Léo : « oui, mets le bras argent de la boutique dans le jeu ») : boutique › FIGURES, les deux bras posent la voiture, un bras robot argent fait la figure ; gestes plus fluides
 // const CACHE = 'cashcar-v697'; // v697 (2026-10-19, Léo : « oui, mets le bras robot dans le jeu ») : LE BRAS DES FIGURES — inventaire › FIGURES, un bras robot fait la figure sans traverser la caisse
 // const CACHE = 'cashcar-v696'; // v696 (2026-10-19, Léo) : LA VITESSE DE DÉPART — six crans au garage, l'étal du moteur soulevé, l'affiche des records à droite (voir le journal)

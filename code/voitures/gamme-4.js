@@ -4,7 +4,7 @@
      le capot creusé entre les ailes avant avec son bossage), un nez long et pointu, la coque qui rentre sous la taille,
      les arcs-boutants autour d'une lunette debout, le T-top, la poupe tronquée à quatre feux ronds. */
   const U=LPU,R=.33,ZF=1.20,ZR=-1.29;
-  const P=K.kit({p:{g:'p',c:0xc4161c},k:{g:'m',c:0x131417},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},
+  const P=K.kit({p:{g:'p',c:0x731b21},k:{g:'m',c:0x131417},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},
     g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   const AR=[[0,2*R+.05],[R*.60,2*R+.02],[R*.98,R*1.14],[R+.13,.27]];
   let zs=[-2.32,-2.28,-2.20,-1.90,-1.60,-1.20,-.86,-.80,-.60,-.30,0,.26,.31,.45,.80,1.60,1.85,2.00,2.12,2.22,2.28,2.32];

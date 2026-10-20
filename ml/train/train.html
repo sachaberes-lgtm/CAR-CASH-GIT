@@ -8832,6 +8832,7 @@ function makeCar(){
     // ---- conduite ----
     mode:'drive', s:0, lat:0, v:0, vL:0, psi:0, side:1, driveDir:1,
     steer:0, steerHold:0, momT:0, driftT:0,
+    driftArm:0, driftEnCours:false, yawR:0, slipB:0, // LE DRIFT (2026-10-19)
     graceT:0, sideCd:0, slipT:0, boost:0, padCd:0, rampCd:0, oilCd:0,
     hopY:0, hopV:0, idleT:0, safeS:0, pureT:0, pureArmed:true, sPrev:0, kmh:0,
     nitroR:2, nitroX:0, nitroOn:false, nitroBlue:false,
@@ -8847,6 +8848,14 @@ function makeCar(){
     fallPos:new THREE.Vector3(), fallVel:new THREE.Vector3(),
     prevTv:new THREE.Vector3(), prevTvalid:false,
     quat:new THREE.Quaternion(),               // orientation PHYSIQUE (le nez sert a l'anti-blocage)
+    // ---- LES FIGURES (2026-10-20, Sacha : « je veux qu'il ait exactement les memes controles et
+    // habilites que le joueur ») : le CORPS de rotation (FigBody, voir avant carFall) + l'etat du
+    // double-tap NITRO qui le declenche. figQuat = la rotation VISUELLE seule (jamais relue par la
+    // physique de vol : fallPos/fallVel restent intacts, comme chez le joueur ou FIG.Corps ne fait
+    // que superposer l'assiette apres coup, voir code/gameplay/figures-physique.js:141-142).
+    // (pas de prefixe _ : ce sont des valeurs simples, pas des temporaires pre-alloues — TRAIN.resetBot
+    // doit les remettre a zero comme le reste, sinon figTapT perime d'une manche declenche une figure a tort)
+    figBody:new FigBody(), figQuat:new THREE.Quaternion(), figNitroPrev:false, figTapT:-999,
     // ---- temporaires PRIVES ----
     _F:{p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},
     _a:new THREE.Vector3(),_b:new THREE.Vector3(),_c:new THREE.Vector3(),_d:new THREE.Vector3(),
@@ -8856,7 +8865,7 @@ function makeCar(){
 // LA MORT : la physique la DECLARE (mode='boom' tout de suite, comme explode() cote joueur — les
 // gardes mode==='drive' en dessous doivent voir le changement dans la MEME frame), et elle dit
 // d'ou elle vient (from) : le bank-or-bust ne perd la chaine que si l'on mourait EN VOL.
-function carBoom(car,w,why){ carEv(w,'boom',{why:why,from:car.mode}); car.mode='boom'; }
+function carBoom(car,w,why){ car.figBody.pose();car.figBody.vide(); carEv(w,'boom',{why:why,from:car.mode}); car.mode='boom'; }
 
 /* ---------- LE NEZ DE LA CAISSE : d'ou part l'anti-blocage aerien ----------
    Le joueur le lisait sur carGroup.quaternion, les bots sur un cap fige au decollage : deux
@@ -8943,6 +8952,7 @@ function carTryLand(car,dt,w){
   const bigness=Math.max(0,car.fallT-.8);
   const landLoss=Math.min(.52,bigness*.15+impact*.008); // l'impact ralentit la caisse
   car.v*=(1-landLoss);car.vL*=(1-landLoss);
+  car.figBody.pose();car.figBody.vide(); // LA POSE : ce qui tournait encore est jugee (paye ou perdu), puis on repart a plat pour le prochain vol
   car.prevTvalid=false;car.mode='drive';
   carEv(w,'land',{impact:impact,landLoss:landLoss,sideL:sideL,latOff:latOff,fallT:car.fallT,
                   snaked:car.fallUnder&&sideL===car.fallStartSide,gapArmed:car.gapArmed});
@@ -8951,6 +8961,11 @@ function carTryLand(car,dt,w){
 }
 
 /* ---------- AU SOL ---------- */
+/* LE DRIFT (porte depuis code/gameplay/camera.js le 2026-10-19, Sacha : « les bots doivent driver ») :
+   lacetMax(v) = le lacet max au pouce a fond, VOL_TAU = le temps de reponse du lacet commande.
+   Ported from the live game's drift system — see code/gameplay/camera.js for the original. */
+const VOL_R0=40,VOL_RK=.3,VOL_TAU=.1;
+function lacetMax(v){const vw=Math.max(8,Math.abs(v)*SPD);return vw/(VOL_R0+VOL_RK*vw);}
 function carDrive(car,input,dt,w){
   const spec=CARS[0],late=lateMul(),
         eng9=ENGINE_TIERS[engTier]||ENGINE_TIERS[0],
@@ -8972,13 +8987,14 @@ function carDrive(car,input,dt,w){
     car.psi=THREE.MathUtils.clamp(car.psi-dyaw,-1.4,1.4);
   }
   car.prevTv.copy(F.t);car.prevTvalid=true;
-  // MOMENTUM : tenir la ligne droite fait monter la puissance en exponentiel
-  if(up&&Math.abs(car.steer)<.2&&Math.abs(car.psi)<.25)car.momT+=dt;
-  else car.momT=Math.max(0,car.momT-dt*3);
+  // MOMENTUM v2 (2026-10-19, porte) : tenir sa ligne REMPLIT la reserve (meme dans un virage tant qu'on
+  // ne drift pas) ; seuls la glisse, le gros coup de volant et le pied leve la VIDENT.
+  if(up&&!car.driftEnCours&&Math.abs(car.psi)<.6){if(Math.abs(car.psi)<.25)car.momT=Math.min(4.3,car.momT+dt);}
+  else car.momT=Math.max(0,car.momT-dt*2);
   const momF=1+Math.min(1.8,car.momT*car.momT*.1);
   let a=0;
   if(up)a=acc9*(car.v<maxSp?1:.55)*(car.boost>0?1.5:1)*momF; // ca pousse TOUJOURS sur la route
-  if(dn)a=car.v>2?-acc9*1.5:-acc9*.5;
+  if(dn&&!car.driftEnCours)a=car.v>2?-acc9*1.5:-acc9*.75;    // ↓ est AUSSI le geste du drift : il ne freine plus en drift
   car.v+=a*dt;
   if(car.nitroOn)car.v+=(car.nitroBlue?48:30)*eng9.push*dt;  // LE MOTEUR pousse : le palier multiplie
   car.v+=-GRAV*F.t.y*Math.cos(car.psi)*car.driveDir*dt;      // la pente selon le SENS reel de marche
@@ -8986,18 +9002,30 @@ function carDrive(car,input,dt,w){
   car.v*=Math.max(0,1-.03*dt);
   if(!up&&!dn&&!car.nitroOn)car.v*=Math.max(0,1-.4*dt);
   if(car.park&&car.v>PARK_VCAP)car.v=PARK_VCAP;              // PARC : gouverneur de vitesse
-  if(car.v<-8)car.v=-8;
+  if(car.v<-16)car.v=-16;
   if(car.introD){car.v=0;car.momT=0;car.steer=0;car.psi=0;}  // LARGAGE : controles geles
   if(Math.abs(target)>.1)car.steerHold=Math.min(.3,car.steerHold+dt);else car.steerHold=0;
-  car.psi+=(car.slipT>0?.18:1)*car.steer*(.55+.45*(car.steerHold/.3))*spec.turn*.75
-          *THREE.MathUtils.clamp(car.v/8,-1,1)*(1/(1+Math.abs(car.v)*TURN_HS))*(dn?1.3:1)*dt;
+  // LE DRIFT (2026-10-19, porte depuis code/gameplay/camera.js) : le geste du frein (dn, ↓ au clavier) EN
+  // braquant fort, a bonne vitesse ; hysteresis — on entre a vitOk+dn+steer>.35, on ne sort que sous .2/vitOk.
+  // PAS de geste tactile ici (pas de pouce chez un bot) : dn tient lieu du « pouce tire vers le bas ».
+  const vitOk9=Math.abs(car.v)>maxSp*.42;
+  const veut9=!car.introD&&!car.park&&vitOk9&&dn&&Math.abs(car.steer)>.35;
+  car.driftArm=veut9?car.driftArm+dt:0;
+  if(veut9)car.driftEnCours=true;
+  else if(!vitOk9||!dn||Math.abs(car.steer)<.2)car.driftEnCours=false;
+  const drifte9=car.driftEnCours;
+  const spdMult=car.pwrSpdT>0?1.6:1;                         // SPEED UP : le sol defile +60 %
+  {const rT=car.steer*lacetMax(car.v)*spdMult*(drifte9?1.15:1)*THREE.MathUtils.clamp(car.v/8,-1,1)*(car.slipT>0?.18:1);
+   car.yawR+=(rT-car.yawR)*(1-Math.exp(-dt*spdMult/VOL_TAU));
+   const b0=car.slipB,bT=drifte9?Math.sign(car.steer)*.42*Math.min(1,Math.abs(car.steer)):0;
+   car.slipB+=(bT-car.slipB)*(1-Math.exp(-dt*(drifte9?4:6)));
+   car.psi+=car.yawR*dt+(car.slipB-b0);} // le nez = la trajectoire + la glisse
   car.driftT=Math.max(0,car.driftT-dt*2.2);                  // retombe apres une pose en travers
   car.psi=THREE.MathUtils.clamp(car.psi,-1.4,1.4);
-  car.vL=car.v*Math.sin(car.psi);
-  const spdMult=car.pwrSpdT>0?1.6:1;                         // SPEED UP : le sol defile +60 %
+  car.vL=car.v*Math.sin(car.psi-car.slipB);                  // la TRAJECTOIRE : le cap moins la glisse (0 hors drift)
   car.lat+=car.vL*car.driveDir*dt*SPD*spdMult;
   car.sPrev=car.s;  // ATTENTION : memorise AVANT l'avance — les tremplins se testent sur le SEGMENT
-  car.s+=car.v*Math.cos(car.psi)*car.driveDir*dt*SPD*spdMult;
+  car.s+=car.v*Math.cos(car.psi-car.slipB)*car.driveDir*dt*SPD*spdMult;
   const vF=car.v;
   car.boost=Math.max(0,car.boost-dt);
   car.kmh=Math.abs(vF)*3.6*SPD*spdMult;
@@ -9112,6 +9140,157 @@ function carPitch(car,wPitch,rate,dtF){
 }
 
 /* ---------- EN VOL ---------- */
+/* ===== LES FIGURES — LE CORPS (portees depuis VERSION PRINCIPALE/figures.js le 2026-10-20, Sacha :
+   « je veux qu'il ait exactement les memes controles et habilites que le joueur »). FIG.Corps est un
+   module de maths pur (quaternions a la main, equations d'Euler) qui ne depend de rien, meme pas de
+   three : copie quasi telle quelle. Simplifications voulues (rien de ca ne change l'ABILITE, juste
+   l'habillage) : pas d'empilage de tours (Corps.empile), pas de redressement (Corps.redresse, pas de
+   touche dediee chez le bot), pas des flammes/son (boums — pure VFX, zero effet sur w/q). La rotation
+   (q) ne touche QUE car.figQuat (visuel) : fallPos/fallVel ne la relisent jamais, comme chez le
+   joueur (figures-physique.js:141-142 ne fait que superposer l'assiette APRES le calcul du vol). */
+const FIG_BASE=[ // le catalogue (VERSION PRINCIPALE/figures.js, BASE) : id, duree, aura, directions, mouvements
+  {id:'tailwhip', D:.62,aura:50, dir:['cote'],             m:[{a:[0,1,0],t:1}]},
+  {id:'tonneau',  D:.6, aura:50, dir:['cote'],             m:[{a:[0,0,1],t:1}]},
+  {id:'toupie',   D:.6, aura:60, dir:['cote'],             m:[{a:[0,1,0],t:1}]},
+  {id:'chandelle',D:.8, aura:45, dir:['arriere'],          m:[{a:[1,0,0],b:-.17,k:1}]},
+  {id:'saltoa',   D:.7, aura:90, dir:['arriere'],          m:[{a:[1,0,0],t:-1}]},
+  {id:'saltov',   D:.7, aura:90, dir:['avant'],            m:[{a:[1,0,0],t:1}]},
+  {id:'double',   D:.8, aura:110,dir:['cote'],             m:[{a:[0,0,1],t:2}]},
+  {id:'helico',   D:.85,aura:140,dir:['cote'],             m:[{a:[0,1,0],t:2}]},
+  {id:'rodeo',    D:.9, aura:160,dir:['avant','arriere'],  m:[{a:[0,1,0],t:1},{a:[1,0,0],t:-1}]}
+];
+/* (2026-10-20, apres-coup) FIG_W_AURA=.08 ne payait que 12,8 points pour la meilleure figure — rien
+   face aux milliers de points de la distance : sur 200 generations, aucun champion n'a jamais
+   declenche une seule figure (aura totale mesuree = 0 en rejouant le cerveau champion). Monte a 1.2 :
+   une figure plantee (jusqu'a 160*1.2=192 pts) devient comparable a une vraie coupe de piste
+   (goodCuts, ~20-100 pts de gain net) — un motif a decouvrir, pas du bruit. Les CONTROLES ne changent
+   pas (toujours le meme double-tap qu'au clavier) : seul le poids de la recompense est touche. */
+const FIG_W_AURA=1.2;
+const FIG_PHY={I:[1,1.12,.46],gyro:.12,tImp:.08,wE:1.7,drag:.05,sub:1/120,eps:.09,finE:.985,
+  aUp:.55,aDn:3,aFin:14,ret:{w:7.5,z:.7},retT:.22,stickAng:.45,pd:{w:13,z:.42},aero:{w:3.2,z:.36},ok:.35,wPose:9};
+function figQAxe(ax,ang,o){const l=Math.hypot(ax[0],ax[1],ax[2])||1,s=Math.sin(ang/2)/l;o[0]=ax[0]*s;o[1]=ax[1]*s;o[2]=ax[2]*s;o[3]=Math.cos(ang/2);return o;}
+function figQMul(a,b,o){const x=a[3]*b[0]+a[0]*b[3]+a[1]*b[2]-a[2]*b[1],y=a[3]*b[1]-a[0]*b[2]+a[1]*b[3]+a[2]*b[0],z=a[3]*b[2]+a[0]*b[1]-a[1]*b[0]+a[2]*b[3],w=a[3]*b[3]-a[0]*b[0]-a[1]*b[1]-a[2]*b[2];o[0]=x;o[1]=y;o[2]=z;o[3]=w;return o;}
+const FIG_T1=[0,0,0,1];
+function figVNorm(a){const l=Math.hypot(a[0],a[1],a[2])||1;return [a[0]/l,a[1]/l,a[2]/l];}
+function figVDot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
+function figQExpMul(q,w,h){const ang=Math.hypot(w[0],w[1],w[2])*h;if(ang<1e-9)return;const s=Math.sin(ang/2)/(ang/h),b=[w[0]*s,w[1]*s,w[2]*s,Math.cos(ang/2)];figQMul(q,b,FIG_T1);const l=Math.hypot(FIG_T1[0],FIG_T1[1],FIG_T1[2],FIG_T1[3])||1;q[0]=FIG_T1[0]/l;q[1]=FIG_T1[1]/l;q[2]=FIG_T1[2]/l;q[3]=FIG_T1[3]/l;}
+function figRetour(q,o){let x=-q[0],y=-q[1],z=-q[2],w=q[3];if(w<0){x=-x;y=-y;z=-z;w=-w;}const s=Math.hypot(x,y,z);o.phi=2*Math.atan2(s,w);if(s<1e-9){o.n[0]=1;o.n[1]=0;o.n[2]=0;}else{o.n[0]=x/s;o.n[1]=y/s;o.n[2]=z/s;}return o;}
+function FigBody(){this.q=[0,0,0,1];this.w=[0,0,0];this.figs=[];this.mode='aero';this.budget=Infinity;this.r={n:[1,0,0],phi:0};this.aF=0;this.aura=0;}
+FigBody.prototype.vide=function(){this.q[0]=this.q[1]=this.q[2]=0;this.q[3]=1;this.w[0]=this.w[1]=this.w[2]=0;this.figs.length=0;this.mode='aero';this.aF=0;}; // l'aura NE se remet PAS a zero : elle cumule sur toute la manche (la fitness)
+FigBody.prototype.ecart=function(){return 2*Math.acos(Math.min(1,Math.abs(this.q[3])));};
+// LANCER une figure (le double-tap) : ses explosions partent tout de suite, s'AJOUTENT a ce qui tourne deja
+FigBody.prototype.lance=function(f,sens,D){
+  D=Math.max(.3,D||f.D);sens=sens||1;
+  const r={f:f,D:D,t:0,mv:[],imp:[0,0,0],impT:FIG_PHY.tImp,fini:false,paye:false,reps:0,osc:null,force:false};
+  let R=[],i,j,m,a;
+  for(i=0;i<f.m.length;i++){m=f.m[i];a=figVNorm(m.a);
+    if(m.t!=null)R.push({a:a,d:(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)?(m.t>0?1:-1):(m.t>0?1:-1)*sens,tours:Math.abs(m.t)});
+    else{const amp=m.b*6.2832*(m.k>1?sens:1),wo=m.k>1?6.2832*m.k/D:1.7*Math.PI/D,zo=m.k>1?.06:.5,rz=Math.sqrt(1-zo*zo),
+      v0=amp*wo/Math.exp(-zo/rz*Math.atan2(rz,zo));
+      r.osc={w:wo,z:zo};for(j=0;j<3;j++)r.imp[j]+=a[j]*v0;}}
+  if(R.length>1){const V=[0,0,0];for(i=0;i<R.length;i++)for(j=0;j<3;j++)V[j]+=R[i].a[j]*R[i].d*R[i].tours;
+    const L=Math.hypot(V[0],V[1],V[2])||1;R=[{a:[V[0]/L,V[1]/L,V[2]/L],d:1,tours:Math.max(1,Math.round(L))}];}
+  for(i=0;i<R.length;i++){const mv=R[i],TH=mv.tours*6.2832+FIG_PHY.eps;let sp=2*TH/D;
+    a=mv.a;const dd=mv.d;
+    for(let k9=0;k9<this.figs.length;k9++){const r9=this.figs[k9];if(r9.paye||r9.fini||!r9.mv.length)continue;
+      let c9=1;for(let j9=0;j9<r9.mv.length;j9++){const m9=r9.mv[j9];c9=Math.min(c9,figVDot(m9.a,a)*m9.d*dd);}
+      if(c9<-.3){r9.fini=true;r9.force=true;r9.supp=c9>=-.9;}}
+    sp=sp-figVDot(this.w,a)*dd;
+    r.mv.push({a:a,d:dd,tours:mv.tours,th:0,acc:2*TH/(D*D)});for(j=0;j<3;j++)r.imp[j]+=a[j]*dd*sp;}
+  r.base=r.mv.length?r.mv[0].tours:1;
+  this.figs.push(r);return r;
+};
+FigBody.prototype.paye=function(r){r.paye=true;
+  if(!r.mv.length){r.reps=1;this.aura+=r.f.aura;return;}
+  let mm=r.mv[0];for(let j=1;j<r.mv.length;j++)if(r.mv[j].tours>mm.tours)mm=r.mv[j];
+  const x=mm.th/(6.2832*mm.tours);r.reps=Math.max(1,Math.floor(mm.th/(6.2832*(r.base||mm.tours))+.3));
+  if(r.force&&x<(r.supp?.45:.7))return; // relayee/annulee par une figure contraire : ne paie pas
+  this.aura+=r.f.aura*r.reps;
+};
+// un pas de simulation (le gros de FIG.Corps.pas, sans boums/empile/redresse/tiens)
+FigBody.prototype.pas=function(h){
+  const w=this.w,F=this.figs,P=FIG_PHY,I=P.I;let i,j,r,m;
+  for(i=0;i<F.length;i++){r=F[i];r.t+=h;
+    if(r.impT>0){const u=Math.min(h,r.impT)/P.tImp;w[0]+=r.imp[0]*u;w[1]+=r.imp[1]*u;w[2]+=r.imp[2]*u;r.impT-=h;}}
+  const gx=(I[1]-I[2])/I[0]*w[1]*w[2],gy=(I[2]-I[0])/I[1]*w[2]*w[0],gz=(I[0]-I[1])/I[2]*w[0]*w[1],kg=P.gyro*h;
+  w[0]+=gx*kg;w[1]+=gy*kg;w[2]+=gz*kg;
+  let tourne=false,aPlanter=false,osc=null,prog=0;
+  for(i=0;i<F.length;i++){r=F[i];if(r.paye)continue;
+    if(r.osc&&r.t<r.D)osc=r.osc;
+    if(!r.mv.length)continue;
+    if(!r.fini){let ok=true,mort=false;for(j=0;j<r.mv.length;j++){m=r.mv[j];prog=Math.max(prog,m.th/(m.tours*6.2832));if(m.th<m.tours*6.2832*P.finE){ok=false;
+        if(r.impT<=0&&Math.abs(figVDot(w,m.a))<1.2&&!(m.th>m.tours*6.2832*.45)){m.cale=(m.cale||0)+h;if(m.cale>.35)mort=true;}else m.cale=0;}}
+      if(ok)r.fini=true;else if(mort||r.t>r.D*2.2+.4){r.fini=true;r.force=true;}}
+    if(!r.fini)tourne=true;else aPlanter=true;}
+  const sp0=Math.hypot(w[0],w[1],w[2]);this.cale=tourne&&sp0<2.5&&!(prog>.45)?(this.cale||0)+h:0;
+  if(tourne&&(this.cale>.2||this.budget<this.reste()+.05)){for(i=0;i<F.length;i++){r=F[i];if(!r.paye&&r.mv.length&&!r.fini){r.fini=true;r.force=true;}}tourne=false;aPlanter=true;}
+  const sp=Math.hypot(w[0],w[1],w[2]),R=this.r;
+  if(tourne){this.mode='libre';this.aF=0;const dk=1-P.drag*h;w[0]*=dk;w[1]*=dk;w[2]*=dk;
+    for(i=0;i<F.length;i++){r=F[i];if(r.paye||r.fini||!r.mv.length||r.impT>0)continue;
+      for(j=0;j<r.mv.length;j++){m=r.mv[j];const rm2=m.tours*6.2832+P.eps-m.th,va2=figVDot(w,m.a)*m.d,vd=Math.sqrt(2*m.acc*Math.max(0,rm2)),e9=vd-va2,lm=(e9<0?P.aDn:P.aUp)*m.acc*h,e9c=e9>lm?lm:(e9<-lm?-lm:e9);
+        w[0]+=m.a[0]*m.d*e9c;w[1]+=m.a[1]*m.d*e9c;w[2]+=m.a[2]*m.d*e9c;}}}
+  else if(aPlanter&&this.mode!=='prise'&&this.mode!=='plante'){if(this.mode!=='retour')this.mode=this.ecart()<P.stickAng?'plante':'retour';}
+  else if(aPlanter&&this.mode!=='plante'){this.mode='prise';
+    figRetour(this.q,R);const nf0=R.n[0],nf1=R.n[1],nf2=R.n[2],pf=R.phi;
+    if(pf<.22&&sp<P.wE*2.2)this.mode='plante';else this.finVise(w,h,nf0,nf1,nf2,pf);}
+  if(!tourne&&this.mode==='retour'){
+    figRetour(this.q,R);const rn0=R.n[0],rn1=R.n[1],rn2=R.n[2],rp=R.phi;
+    if(rp<.2&&sp<4)this.mode='plante';else this.finVise(w,h,rn0,rn1,rn2,rp);}
+  if(!tourne&&(this.mode==='plante'||!aPlanter)){
+    if(!aPlanter&&this.mode!=='aero'&&this.mode!=='plante'&&this.mode!=='retour')this.mode='aero';
+    const pr=this.mode==='plante'?P.pd:this.mode==='retour'?P.ret:osc||P.aero,wn=pr.w,z=pr.z;
+    figRetour(this.q,R);const kp=wn*wn*R.phi,kd=2*z*wn;
+    w[0]+=(kp*R.n[0]-kd*w[0])*h;w[1]+=(kp*R.n[1]-kd*w[1])*h;w[2]+=(kp*R.n[2]-kd*w[2])*h;}
+  figQExpMul(this.q,w,h);
+  for(i=0;i<F.length;i++){r=F[i];for(j=0;j<r.mv.length;j++){m=r.mv[j];m.th+=figVDot(w,m.a)*m.d*h;}}
+  const ang=this.ecart();
+  for(i=F.length-1;i>=0;i--){r=F[i];if(r.paye)continue;
+    if(r.mv.length){if(r.fini&&(this.mode==='plante'||this.mode==='retour')&&ang<.12&&sp<2.5)this.paye(r);}
+    else if(r.t>=r.D)this.paye(r);}
+  for(i=F.length-1;i>=0;i--)if(F[i].paye&&F[i].t>F[i].D*.5)F.splice(i,1);
+  if((this.mode==='plante'||this.mode==='retour')&&ang<.012&&sp<.1){this.q[0]=this.q[1]=this.q[2]=0;this.q[3]=1;w[0]=w[1]=w[2]=0;this.mode='aero';}
+};
+FigBody.prototype.tick=function(dt){if(!(dt>0))return;const n=Math.max(1,Math.ceil(dt/FIG_PHY.sub)),h=dt/n;for(let k=0;k<n;k++)this.pas(h);};
+FigBody.prototype.finVise=function(w,h,n0,n1,n2,pf){const P=FIG_PHY,dn=w[0]*n0+w[1]*n1+w[2]*n2,b=this.budget;
+  if(!(this.aF>0))this.aF=Math.max(P.aFin,dn>0?dn*dn/(2*pf):0);
+  const a=Math.max(this.aF,b<9?2*pf/Math.pow(Math.max(.12,b-.1),2):0),tg=Math.sqrt(2*a*pf);
+  let e0=n0*tg-w[0],e1=n1*tg-w[1],e2=n2*tg-w[2];const em=Math.hypot(e0,e1,e2),lim=(a*2.2+P.aFin*2.5)*h;
+  if(em>lim){e0*=lim/em;e1*=lim/em;e2*=lim/em;}w[0]+=e0;w[1]+=e1;w[2]+=e2;};
+FigBody.prototype.reste=function(){let t=0;const W=[this.w[0],this.w[1],this.w[2]];let i,r;
+  for(i=0;i<this.figs.length;i++){r=this.figs[i];if(r.paye||!(r.impT>0))continue;const u=r.impT/FIG_PHY.tImp;W[0]+=r.imp[0]*u;W[1]+=r.imp[1]*u;W[2]+=r.imp[2]*u;}
+  let any=false;
+  for(i=0;i<this.figs.length;i++){r=this.figs[i];if(r.paye)continue;any=true;
+    if(r.osc&&!r.mv.length){t=Math.max(t,r.D-r.t);continue;}
+    if(r.fini)continue;
+    for(let j=0;j<r.mv.length;j++){const m=r.mv[j],rE=Math.max(0,m.tours*6.2832*FIG_PHY.finE-m.th),ti=rE>0?Math.max(.05,r.D-r.t)*1.1:0;t=Math.max(t,ti);}}
+  return any?t+FIG_PHY.retT:0;};
+FigBody.prototype.pose=function(){const a=this.ecart(),sp=Math.hypot(this.w[0],this.w[1],this.w[2]);
+  for(let i=0;i<this.figs.length;i++){const r=this.figs[i];if(r.paye)continue;
+    if(!r.mv.length){if(r.t>=r.D*.6&&a<FIG_PHY.ok)this.paye(r);continue;}
+    let x=1;for(let j=0;j<r.mv.length;j++)x=Math.min(x,r.mv[j].th/(6.2832*r.mv[j].tours));
+    if(a<FIG_PHY.ok&&x>.75&&sp<FIG_PHY.wPose){r.force=false;this.paye(r);}}
+};
+// LE DECLENCHEMENT : double-tap NITRO (<280ms, meme regle que code/son/curseurs.js au clavier) ;
+// la DIRECTION vient du manche au moment du 2e tap — pitch pour avant/arriere, steer pour cote —
+// exactement ce que lit figGJoue/figLance cote joueur (le pouce choisit le geste).
+function figDirection(input){
+  if((input.pitch||0)<-.3)return 'avant';
+  if((input.pitch||0)>.3)return 'arriere';
+  return 'cote';
+}
+function figChoisit(dirCat,rnd){
+  const L=FIG_BASE.filter(f=>f.dir.indexOf(dirCat)>=0);
+  return L.length?L[Math.floor((rnd?rnd():Math.random())*L.length)]:FIG_BASE[0];
+}
+function figTenteDecl(car,input,w){
+  if(car.figBody.figs.length>=3)return; // au plus 3 figures qui se melent a la fois (comme les 3 emplacements du joueur)
+  const NRMAX=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,cout=NRMAX*.2;
+  if(car.nitroR+car.nitroX<cout)return; // LA FIGURE SE PAIE (20% de la jauge, comme figNitCout)
+  const dirCat=figDirection(input),sens=input.steer<0?-1:1;
+  const f=figChoisit(dirCat,w&&w.rnd);
+  car.figBody.lance(f,sens,f.D);
+  if(car.nitroR>=cout)car.nitroR-=cout;else{car.nitroX=Math.max(0,car.nitroX-(cout-car.nitroR));car.nitroR=0;}
+}
 function carFall(car,input,dt,w){
   const dtF=dt*car.airRate; // temps de vol accelere : meme arc dans l'espace, moins de temps a flotter
   car.dtF=dtF;
@@ -9120,6 +9299,12 @@ function carFall(car,input,dt,w){
   car.rdNear=car.curNear;car.rdHOff=car.curHOff;car.rdLatOff=car.curLatOff;car.curNear=false;
   car.fallT+=dtF;car.fallTR+=dt; // fallT = temps-sim (figures/paiements) · fallTR = temps REEL (jauge)
   if(car.nitroOn)car.nitroAirT+=dtF;
+  // LES FIGURES : double-tap NITRO (<280ms, horloge reelle = car.fallTR, meme regle qu'au clavier)
+  {const edge=input.nitro&&!car.figNitroPrev;
+   if(edge){ if(car.fallTR-car.figTapT<.28) figTenteDecl(car,input,w); car.figTapT=car.fallTR; }
+   car.figNitroPrev=!!input.nitro;}
+  car.figBody.budget=Math.max(.05,AIR_MAX-car.fallTR);
+  car.figBody.tick(dtF);
   V.y-=FALL_G*dtF;
   // ATTENTION — ANTI-BLOCAGE DU LACET : trajectoire quasi VERTICALE -> la faire tourner autour de Y
   // ne change plus rien, le volant est MORT en plein vol. On retablit un minimum d'horizontale
@@ -12971,7 +13156,8 @@ TRAIN.W_DEATH=2500; // pénalité de MORT (mode boom) : casser le local optimum 
 TRAIN.fitness=function(b){
   return b.totD
          + (b.finished?TRAIN.W_FIN+TRAIN.W_TEMPS*Math.max(0,TRAIN.matchDuration-b.finishT):0)
-         - (b.mode==='boom'?TRAIN.W_DEATH:0);
+         - (b.mode==='boom'?TRAIN.W_DEATH:0)
+         + FIG_W_AURA*b.figBody.aura; // LES FIGURES (2026-10-20) : une petite paye pour que l'evolution essaie — la distance reste le vrai but
 };
 
 TRAIN.tournament=function(sorted){
