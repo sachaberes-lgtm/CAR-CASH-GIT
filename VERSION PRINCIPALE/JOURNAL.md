@@ -3,6 +3,16 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA MONTÉE « GRANDE » DU GÉNÉRATEUR, EN COURSE (2026-10-20 soir, v747, Léo : « quand je booste, ça apparaît, ça évolue, puis ça devient une sorte de trompette horrible qui fait bugger la musique : elle s'arrête, reprend 1-2 s après, et dès que je rappuie sur le boost ça recommence ») — branche `nitro-ronron`
+- **LE SON** n'était pas le nitro : c'est la musique de POUCE BLEU (le générateur `musique-trente-*.js`). Le jeu ne lui passe que le MOTEUR (`setTier`) ;
+  un boost tenu fait monter plusieurs paliers d'un coup, et chaque grand élément qui entre appelle une MONTÉE d'une mesure : un RISER — une fois sur deux
+  « en ton » : trois scies 110 → 440 Hz dans un passe-bas résonant 500 → 6 000 Hz (Q 3, gain jusqu'à 0,6) = la sirène-trompette qui « apparaît, évolue » —,
+  des roulements, une fois sur trois le TROU (la musique à 8 % avant l'arrivée), puis la cymbale et l'impact. Sacha (boost lâché plus tôt, autres tirages) n'y tombait pas.
+- **LA RÈGLE** (`assets/audio/pouce-bleu-jeu.js`, `importeAvance`) : EN COURSE SEULEMENT, le texte du générateur est retouché au chargement (comme l'horloge) :
+  riser = toujours le SOUFFLE (cymbale à l'envers), la montée grande sans trou, le trou retiré du tirage des petites transitions. Les versions figées ne
+  bougent pas sur le disque ; la bibliothèque les charge intactes. `?montee=ancien` = avant (A/B) ; `dbgPouce().montee` = « douce » / « ancienne ».
+- Le RONRON (v745-746) était une fausse piste — réelle au casque (sub à +10 dB), mais pas le son décrit : il reste coupé par défaut (`?ronron=1`).
+
 ## LE RONRON DU NITRO EST COUPÉ PAR DÉFAUT (2026-10-20 soir, v746 — Léo, en détail : « ça apparaît, ça évolue, puis une trompette horrible qui fait bugger la musique » = ses trois temps ; baissé il restait une trompette → `?ronron=1` le rend régulé, `?ronron=ancien` = v740 ; à trancher Léo/Sacha)
 ## LE RONRON DU NITRO SORT DU SUB (2026-10-20 soir, v745, Léo : « un audio parfois sur mon tel et mon ordi qu'il n'y a pas sur le tel ni l'ordi de Sacha, sur le main — lié au boost, un son qui n'a rien à voir ») — branche `nitro-ronron`
 - **LE SON** : le RONRON de Sacha (v740, le soir même) — deux triangles 44 Hz + quinte + une SOUS-OCTAVE à 22 Hz, hachés à 13 → 28 Hz, vibrato et houles après 2,5 s de tenue.
