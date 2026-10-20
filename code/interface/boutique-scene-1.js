@@ -189,18 +189,19 @@ function bqFigHab(k){const o=bqCos(k),d=o.d,hx=function(c9){return '#'+(c9>>>0).
   if(o.cat==='trainee'){const I9=illuTr(d);if(I9)return illuPx(I9,'bqTrIc');} // (2026-10-14) une traînée POP : son pictogramme — (2026-10-16, TRAÎNÉES) TOUTES les traînées, et EN COULEUR (celui de l'inventaire) : en noir sur la salle blanche, SAKURA, MATRICE et LA GRILLE se ressemblaient ; NITRO, MENTHE, ROSE et OR n'étaient qu'un dégradé
   if(o.cat==='trainee')return '<i class="bqRub" style="background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,rgba(255,255,255,0),'+(d.rgb?'rgb('+d.rgb.map(function(v){return Math.round(Math.min(1,v/1.45)*255);}).join(',')+')':'#ff6a14')+' 45%,#fff)')+'"></i>';
   return pxi(d.ico||'aile');}
-function bqPieces(){if(!GBQ.pieces){const L=[],M9=[],S9=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(carRetiree(i))continue;if(u&&u.p>0&&u.k!=='premium')L.push(i);else if(u&&u.k==='mis'){const m9=m2Def(u.id);(m9&&m9.f==='secret'?S9:M9).push(i);}} // les caisses qui s'achètent en PIÈCES, de la moins chère à la plus chère
-  /* (2026-10-18, Léo : « mets avec les communes le scarabée et le camper, organise bien la rareté ») RANGÉES PAR RARETÉ : COMMUNES, RARES,
-     EXOTIQUES, ÉPIQUES… (l'ordre de RARETES) ; dans chaque famille celles qui s'achètent (de la moins chère à la plus chère) PUIS celles des
-     missions ; les secrètes restent à la fin (leur place ne doit pas trahir leur famille). Tri stable : l'ordre des prix est gardé. */
-  const rg9=function(i){const k=RARETES.findIndex(function(x){return x.id===carRar(i);});return k<0?99:k;};
-  GBQ.pieces=L.sort(function(a,b){return (CAR_UNLOCK[a].p-CAR_UNLOCK[b].p)||(a-b);}).concat(M9).sort(function(a,b){return rg9(a)-rg9(b);}).concat(S9);}return GBQ.pieces;}
+function bqPieces(){const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(carRetiree(i))continue;if(u&&u.p>0&&u.k!=='premium')L.push([i,0]);else if(u&&u.k==='mis')L.push([i,1]);} /* les caisses qui s'achètent en PIÈCES (0) et celles des missions (1) */
+  /* (2026-10-20, Sacha : « dans le menu cars du garage c'est le bordel, plusieurs sections de la même rareté : toutes les voitures d'une même rareté dans la même section ») UN SEUL CLASSEMENT, le même
+     que celui des intertitres (bqVoitRail) : RARETÉ (l'ordre de RARETES : COMMUNES, RARES, ÉPIQUES…), puis dans la famille ce qui s'achète (du moins cher au plus cher) AVANT les missions ; les secrètes
+     (m2Secrete, pas encore à toi) en dernier. Plus de liste figée : une secrète qu'on gagne quittait la fin de la liste en gardant sa rareté et rouvrait une 2e section de la même famille. */
+  const g9=function(i){return m2Secrete(i)?99:Math.max(0,RARETES.findIndex(function(x){return x.id===carRar(i);}));};
+  return L.sort(function(a,b){return (g9(a[0])-g9(b[0]))||(a[1]-b[1])||(a[1]?0:CAR_UNLOCK[a[0]].p-CAR_UNLOCK[b[0]].p)||(a[0]-b[0]);}).map(function(e){return e[0];});}
 /* (2026-10-18) l'INTERTITRE de chaque famille dans le rayon VOITURES (comme ceux des figures) : le logo de la rareté à sa couleur, son nom, le
    nombre de caisses ; les missions secrètes ont le leur. `n` = nombre de caisses de la famille dans la liste. */
-function bqRarSec(r,n){if(r==='secret')return '<div class="bqSec bqRarS" data-rar="secret" style="--rc:#ff3ec8">'+pxi('verrou')+'<b>'+sansAcc(TR('MISSIONS SECRÈTES'))+'</b><em>'+n+'</em></div>';
-  const ri=rarInfo(r);return '<div class="bqSec bqRarS" data-rar="'+r+'" style="--rc:'+ri.c+'">'+pxi(RAR_LOGO[r]||'etoile')+'<b>'+sansAcc(TR(ri.n))+'</b><em>'+n+'</em></div>';}
-function bqVoitRail(L){const fam=function(k){const i=+k.slice(2);return m2Secrete(i)?'secret':carRar(i);},nb={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;});
-  return L.map(function(k,n){const f=fam(k);return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f]))+bqCarteHtml(k,n,false);});} /* (2026-10-16) LES MISSIONS v2 : après les caisses à pièces, celles des missions, puis les secrètes en silhouette */
+function bqRarSec(r,n,a){const cpt='<em><i>'+a+'</i>/'+n+'</em>'; /* (2026-10-20) « ceux à toi / le total » de la famille */
+  if(r==='secret')return '<div class="bqSec bqRarS" data-rar="secret" style="--rc:#ff3ec8"><span class="bqRl">'+pxi('verrou')+'</span><b>'+sansAcc(TR('MISSIONS SECRÈTES'))+'</b><s></s>'+cpt+'</div>';
+  const ri=rarInfo(r);return '<div class="bqSec bqRarS" data-rar="'+r+'" style="--rc:'+ri.c+'"><span class="bqRl">'+pxi(RAR_LOGO[r]||'etoile')+'</span><b>'+sansAcc(TR(ri.n))+'</b><s></s>'+cpt+'</div>';}
+function bqVoitRail(L){const fam=function(k){const i=+k.slice(2);return m2Secrete(i)?'secret':carRar(i);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
+  return L.map(function(k,n){const f=fam(k);return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0))+bqCarteHtml(k,n,false);});} /* (2026-10-16) LES MISSIONS v2 : après les caisses à pièces, celles des missions, puis les secrètes en silhouette */
 function bqPxT(v){return fmtSolde(v);} /* (clarté 15/10) les prix de la boutique de Léo au format GTA de GAMEPLAY (chiffres pleins, un seul « $ ») */
 function bqPxLg(t){return String(t).replace(/<[^>]*>/g,'').length>9;} /* un prix long (≥ 1 000 000) passe un corps en dessous : il tient dans sa carte */
 function bqPrixCaisse(i){const u=CAR_UNLOCK[i]||{};if(bqA('v:'+i))return {t:sansAcc(TR('À TOI')),c:'acq'};if(m2Secrete(i))return {t:sansAcc(TR('MISSION SECRÈTE')),c:'defi sec'};if(u.k==='premium')return {t:eurTxt(u.eur),c:'eur'};
