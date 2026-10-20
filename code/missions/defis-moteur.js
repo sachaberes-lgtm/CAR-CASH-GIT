@@ -65,13 +65,13 @@ function m2Vues(L){const K=m2Cartes();let n=0;for(const k of L)if(K.indexOf(k)>=
 function m2CarAMoi(i){if(carRetiree(i))return false;if(carOwned(i))return true;if(i<=((SAVE.d.ex&&SAVE.d.ex.floor)|0))return true;
   const u=CAR_UNLOCK[i];if(!u)return true;if(u.k==='mis'||u.p||u.k==='premium'||u.eur)return false;return carStat(u.k)>=u.v;}
 function m2HabAMoi(cat,d){if(cat==='figure')return d.id==='tailwhip'||(Array.isArray(SAVE.d.figs)&&SAVE.d.figs.indexOf(d.id)>=0);
-  if(d.pack==='chat'&&m2Chat())return true;if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur)return true;return SAVE.d.shop.own.indexOf(cat+':'+d.id)>=0;}
+  if(d.pack==='chat'&&m2Chat())return true;if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur&&!d.serie)return true;return SAVE.d.shop.own.indexOf(cat+':'+d.id)>=0;}
 function m2Chat(){for(let i=0;i<CARS.length;i++)if(CARS[i]&&CARS[i].shape==='poptart')return m2CarAMoi(i)||(function(){try{return carUnlockedVrai(i);}catch(e){return false;}})();return false;}
 /* les objets que donnent les missions : hors des « toutes » (« les objets gagnés par mission ne comptent PAS dans toutes ») — les
    couleurs SECRÈTES de la palette aussi (elles se gagnent par leur mission secrète) */
 /* (M2_RECO, le cache de m2Reco, est déclarée plus haut, à côté de M2K : voir là) */
 function m2Reco(){if(M2_RECO)return M2_RECO;const R={car:{},hab:{}};for(const m of M2){const r=m.r||{};if(r.car)R.car[r.car]=m.id;if(r.cat)R.hab[r.cat+':'+r.id]=m.id;}return (M2_RECO=R);}
-function m2HabReco(cat,d){return !!(m2Reco().hab[cat+':'+d.id]||(cat==='peinture'&&d.sec));}
+function m2HabReco(cat,d){return !!(m2Reco().hab[cat+':'+d.id]||(cat==='peinture'&&(d.sec||d.serie)));} /* (2026-10-20) les peintures de la SÉRIE se gagnent au 7e jour : hors des « toutes » */
 /* LA COLLECTION : n = possédés (tout compte), tot/nT = le lot « toutes » (sans les objets de mission) et ce qu'on en a */
 function m2Col(cat){const R=m2Reco();let n=0,tot=0,nT=0;
   if(cat==='voiture'){for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const a=m2CarAMoi(i);if(a)n++;if(!R.car[CARS[i].name]){tot++;if(a)nT++;}}}
@@ -170,14 +170,14 @@ function m2LigneDit(k,tx,p){if(!m2EnC())return false;M2L.q.push({k:k,tx:tx,p:p||
 function m2LigneSuit(){clearTimeout(M2L.t);let e=document.getElementById('m2Ligne');
   if(!M2L.q.length||!m2EnC()){m2LigneVide();return;}
   let it=M2L.q.shift();
-  if(M2L.on&&M2L.q.length){const n=M2L.q.length+1;M2L.q.length=0;it={k:'ok',tx:'',p:'',n:n};} // une rafale : le reste en une seule ligne
+  if(M2L.on&&M2L.q.length&&it.k!=='dj'){const n=M2L.q.length+1;M2L.q.length=0;it={k:'ok',tx:'',p:'',n:n};} // une rafale : le reste en une seule ligne (2026-10-20 : le DÉFI DU JOUR passe toujours seul, en tête)
   M2L.on=1;
   if(!e){e=document.createElement('div');e.id='m2Ligne';e.setAttribute('role','status');(document.getElementById('hud')||document.body).appendChild(e);}
   const f=document.getElementById('m2Focus');e.style.setProperty('--m2lY',(f&&f._on&&f.offsetHeight?f.offsetHeight+4:0)+'px'); // au-dessus des suivies
-  const sec=it.k!=='ok',ti=it.n?it.n+' '+TR('MISSIONS RÉUSSIES'):TR(sec?'MISSION SECRÈTE':'MISSION RÉUSSIE');
-  e.innerHTML='<i>'+pxi(sec?'oeil':'coche')+'</i><span><small>'+sansAcc(ti)+'</small>'+(it.tx?' '+it.tx:'')+'</span>'+(it.p?'<b>'+it.p+'</b>':'');
+  const dj=it.k==='dj',sec=it.k!=='ok'&&!dj,ti=it.n?it.n+' '+TR('MISSIONS RÉUSSIES'):TR(dj?'DÉFI DU JOUR':sec?'MISSION SECRÈTE':'MISSION RÉUSSIE');
+  e.innerHTML='<i>'+pxi(dj?'cible':sec?'oeil':'coche')+'</i><span><small>'+sansAcc(ti)+'</small>'+(it.tx?' '+it.tx:'')+'</span>'+(it.p?'<b>'+it.p+'</b>':'');
   e.classList.toggle('sec',sec);e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
-  try{if(SONV2&&it.k==='ok')sfx('ui.mission');}catch(x){}
+  try{if(SONV2&&(it.k==='ok'||dj))sfx('ui.mission');}catch(x){}
   M2L.t=setTimeout(function(){e.classList.remove('on');M2L.t=setTimeout(m2LigneSuit,520);},2400);}
 function m2LigneVide(){M2L.q.length=0;clearTimeout(M2L.t);M2L.on=0;const e=document.getElementById('m2Ligne');if(e)e.classList.remove('on');}
 /* ---- LA RÉCOMPENSE (RÉCUPÈRE) : une fois, jamais deux ---- rend {cash|car|cat,hab} ou null */
@@ -209,6 +209,7 @@ function m2Tick(dt,kmh){if(!m2Ok()||paused)return;const s=m2Etat(),r=s.r;if(!M2R
   if(mode==='fall'){if(!JEAU.dans)M2R.volT+=dt;if(k==='nuages'&&M2R.volT>(r.vol||0))r.vol=M2R.volT;if(k==='ville')m2Tours(r);else if(k==='volcan')m2Geyser();}
   if(k==='banquise'&&BANQ.glisse&&BANQ.sur===2){M2R.lac+=dt;if(M2R.lac>(r.lac||0))r.lac=M2R.lac;}else M2R.lac=0;
   if(k==='jade'&&JEAU.dans&&JEAU.prof>(r.prof||0))r.prof=JEAU.prof;
+  try{djTick(dt);}catch(e){} /* (2026-10-20) LE DÉFI DU JOUR (missions/aujourdhui.js) */
   M2R.t-=dt;if(M2R.t<=0){M2R.t=.25;m2Verifie(true);try{m2FocusMaj();}catch(e){}}}
 function m2Saut(){M2R.tourV.length=0;M2R.figV=0;M2R.volT=0;} // startFall : un saut neuf (le bump n'en est pas un : il prolonge le saut)
 /* FRÔLER UNE TOUR (la ville) : passer à moins de M2K.frole m d'un flanc, à hauteur de la tour, sans la toucher — la même grille que

@@ -1487,6 +1487,7 @@ D('garage.feu',{fam:'interface',bus:'amb',dur:6.6,st:1,db:-9,max:1,cd:.5,rj:0,vj
      le hurlement proche, un plus lointain et plus aigu, et un DUO (un second loup répond un ton au-dessous).
    · `foret.chouette` — la hulotte : « hou… hou-hou-houuuu » (le chevrotement de la fin). · `foret.corbeau` — deux ou trois « kraa ».
    · `foret.oiseau` — des phrases de passereaux (merle, rouge-gorge, pinson) : des glissés rapides 2-5 kHz, quatre variantes.
+   · `foret.abeille` — l'abeille qui frôle la caisse : le bourdonnement qui passe (Doppler, d'une oreille à l'autre).
    · `foret.pic` — le pic qui tambourine sur un tronc creux. · `foret.craque` — une branche qui casse puis grince (la nuit).
    · `foret.jourAmb` / `foret.nuitAmb` — deux BOUCLES très discrètes (−14 dB sous les autres ambiances) : le feuillage qui respire le
      jour, le vent grave qui gémit la nuit. ⚠ Rien au-dessus de ~2 kHz en continu : le souffle de la mer de nuages, 11-26 dB au-dessus
@@ -1554,6 +1555,21 @@ D('foret.craque',{fam:'foret',bus:'amb',dur:1.2,st:1,v:2,db:-4,max:1,cd:1,dit:'u
     for(let k=0;k<4;k++)clic(b,{t0:.03+R()*.12,f:1800+R()*1500,d:.004,v:.25,pan:p},R);
     osc(b,{f:o.v?150:120,f1:o.v?95:70,g:.6,gc:.7,w:'saw',t0:.25,a:.08,h:.25,d:.3,v:.07,pan:p,flt:['bp',500,350,.6,6]});
     O.echo(b,.31,.3,1,true);O.versStereo(b,.4,R);}});
+/* (2026-10-20, Léo : « les abeilles n'ont pas de son ») `foret.abeille` — L'ABEILLE QUI FRÔLE LA CAISSE (dbgAbeilles, à < 10 m) : un bourdonnement
+   qui PASSE — le battement d'ailes (fondamentale ~230 Hz, harmoniques en 1/k, un « nez » vers 1,1 kHz), l'effet Doppler (plus aigu quand elle
+   arrive, plus grave quand elle s'éloigne), le volume qui gonfle puis s'efface, et le côté qui glisse d'une oreille à l'autre. Les ailes
+   hésitent (deux vibratos lents) : jamais un moteur. Deux variantes : l'ouvrière et le BOURDON (grave, plus lent). Cuite en PCM (pas de ffmpeg sur le Mac de Léo) : la prochaine
+   cuisson complète avec ffmpeg la repassera en MP3, trois fois plus légère. */
+D('foret.abeille',{fam:'foret',bus:'amb',dur:1.7,st:1,v:2,db:-7,max:1,cd:1.2,dit:'une ABEILLE qui frôle la caisse dans la forêt : le bourdonnement qui passe d’une oreille à l’autre (Doppler)',
+  r:function(b,R,o){const sr=b.sr,k=o.v,f0=k===1?150+R()*15:225+R()*20,du=k===1?1.6:1.4,n=Math.min(b.n,Math.round(du*sr)),
+      cote=R()<.5?-1:1,v1=4+R()*3,v2=9+R()*4,p1=R()*TAU,p2=R()*TAU,NH=14;let ph=0;
+    for(let i=0;i<n;i++){const t=i/sr,u=t/du,x=(u-.5)*2;
+      const am=Math.sin(Math.PI*u)*(1/(1+x*x*2.4)),f=f0*(1-.055*Math.tanh(2.6*x))*(1+.018*Math.sin(TAU*v1*t+p1)+.009*Math.sin(TAU*v2*t+p2));
+      ph+=f/sr;ph-=Math.floor(ph);
+      let s9=0;for(let h=1;h<=NH;h++){const fh=h*f,nez=1+1.6/(1+((fh-1100)/450)*((fh-1100)/450));s9+=Math.sin(TAU*h*ph)*nez/h;}
+      s9*=am*.16*(.85+.15*Math.sin(TAU*f*.5*t));
+      const pan=cote*Math.tanh(2.2*x)*.85,a=(pan+1)*Math.PI/4;b.L[i]+=s9*Math.cos(a);if(b.R)b.R[i]+=s9*Math.sin(a);}
+    O.filtre(b,'hp',90,.7);O.filtre(b,'lp',3600,.7);O.echo(b,.11,.18,.5,true);}});
 D('foret.jourAmb',{fam:'foret',bus:'amb',dur:9,st:1,db:-14,max:1,cd:1,dit:'la FORÊT LE JOUR (boucle, très bas) : le feuillage qui respire au vent, des oiseaux très loin',
   r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.001,h:9,d:.001,v:.16,ft:'bp',f:700,q:.6,am:[.13,.6],pan:-.3},R);
     bruit(b,{c:'r',t0:0,a:.001,h:9,d:.001,v:.12,ft:'bp',f:1100,q:.7,am:[.21,.55],pan:.35},R);

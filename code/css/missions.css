@@ -185,4 +185,32 @@ html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-lef
 #m2Rev.fin .m2RvBloc{opacity:0;transform:scale(1.06)}#m2Rev.fin .m2RvFond,#m2Rev.fin .m2RvRayons{opacity:0}
 @media (orientation:landscape) and (max-height:540px){.m2RvPh{width:min(44vw,300px)}.m2RvNom{font-size:var(--f6)}.m2RvBloc{gap:5px}.m2RvTx{min-height:2.4em}}
 @media (prefers-reduced-motion:reduce){.m2RvRayons{animation:none}.m2RvBloc,.m2RvNom,.m2RvBt,.m2RvRar,.m2RvPh img.n,.m2RvFond,.m2RvRayons{transition:none}#m2Rev.plein .m2RvLigne{animation:none}}
+/* (2026-10-20, Léo) AUJOURD'HUI — en tête de la liste : le DÉFI DU JOUR (une ligne de mission, liseré cyan, son jeton) et la SÉRIE DE SEPT
+   JOURS (sept cases : cochées en vert, celle du jour qui bat en or — l'or = ce qu'on vise, comme une mission suivie —, DEMAIN annoncé,
+   la 7e case = la peinture exclusive, son nuancier). Rien ne bouge en continu sauf la case du jour. */
+.m2Auj{margin:0 0 10px;padding:0 0 8px;box-shadow:0 1px 0 rgba(95,240,255,.14)}
+.m2Auj h4{margin:2px 0 6px;font-weight:400;font-size:var(--f0);letter-spacing:2px;color:var(--neoC)}
+.m2Tag{font-style:normal;display:inline-block;padding:2px 4px 1px;margin-right:3px;background:var(--neoC);color:#06142b;font-size:var(--f0);line-height:1.3;letter-spacing:1px;vertical-align:1px}
+.m2Dj{background:#0c2a4d;box-shadow:inset 0 0 0 2px rgba(95,240,255,.42)}
+.m2Dj.ok{background:#0b2a1c;box-shadow:inset 0 0 0 1px #5ee37a}.m2Dj.ok .m2Tag{background:#5ee37a}
+.m2Jt{width:56px;gap:4px}.m2Auj .spIco{display:inline-block;flex:none;background-size:contain;background-repeat:no-repeat;background-position:center;image-rendering:pixelated}.m2Jt .spIco{width:30px;height:30px}.m2Jt b{font-weight:400;font-size:var(--f1);color:var(--au1)}
+.m2Serie{position:relative;box-sizing:border-box;padding:8px 9px 9px;background:#0f2747;box-shadow:inset 0 0 0 1px rgba(95,240,255,.18);cursor:pointer;
+  animation:gmIn .4s var(--ease) backwards;animation-delay:260ms}
+.m2Serie>b{display:flex;align-items:center;gap:6px;font-weight:400;font-size:var(--f0);letter-spacing:1px;line-height:1.4;color:#cfe3f2;margin-bottom:7px}
+.m2Serie>b .pxi{--pxs:1;color:var(--neoA)}
+.srL{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.srC{position:relative;font-style:normal;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;min-width:0;height:54px;padding:4px 1px 3px;
+  box-sizing:border-box;background:#06142b;box-shadow:inset 0 0 0 1px rgba(95,240,255,.16);clip-path:polygon(4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px),0 4px)}
+.srC>em{font-style:normal;font-size:var(--f0);letter-spacing:1px;color:#6f93a6;white-space:nowrap}
+.srC .m2Cash{font-size:var(--f0);letter-spacing:0;line-height:22px}
+.srC .spIco{width:22px;height:22px}.srC>b{font-weight:400;font-size:var(--f0);color:var(--au1)}
+.srSw{display:block;width:28px;height:22px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),0 0 8px rgba(255,120,200,.35)}
+.srC.fait{background:#0a2418;box-shadow:inset 0 0 0 1px rgba(94,227,122,.55)}.srC.fait>*:not(s):not(em){visibility:hidden}.srC.fait>em{color:#5ee37a}
+.srC>s{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#5ee37a;text-decoration:none}.srC>s .pxi{--pxs:2}
+.srC.auj{background:#2b240c;box-shadow:inset 0 0 0 2px var(--au2);animation:srBat 1.1s var(--ease) infinite alternate}.srC.auj>em{color:var(--au1)}
+@keyframes srBat{to{box-shadow:inset 0 0 0 2px var(--au2),0 0 14px rgba(255,201,58,.45)}}
+.srC.dem{box-shadow:inset 0 0 0 1px var(--au2)}.srC.dem>em{color:var(--au1)}
+.srC.ex:not(.fait){background:linear-gradient(180deg,#1a0f3a,#06142b)}
+@media (orientation:landscape) and (max-height:540px){.srC{height:46px}.m2Auj{margin-bottom:8px}}
+@media (prefers-reduced-motion:reduce){.srC.auj{animation:none}}
 </style>

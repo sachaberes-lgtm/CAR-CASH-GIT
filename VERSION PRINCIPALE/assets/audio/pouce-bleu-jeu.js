@@ -78,7 +78,9 @@
     const O = {}; if (/^hyb:/.test(E.style)) O.style = E.style;   // (la couleur de l'avis : sans elle, une musique v6 en devenait une autre)
     if (E.ret) { O.retouche = E.ret.retouche; O.voix = E.ret.voix; O.acc = E.ret.acc; }
     inst.setTier(1, 30); inst.start(E.n, E.W || undefined, O); let cur = 1;
-    return { regle(m) { if (m !== cur) { cur = m; inst.setTier(m, 30); if (gc) gc.gain.setTargetAtTime(depG(m), ac.currentTime, .3); } }, stop() { try { inst.stop(); } catch (e) {} if (gc) setTimeout(() => { try { gc.disconnect(); } catch (e) {} }, 1500); }, bpm: () => inst.bpm || 120, inst };
+    const on = k => { const b = inst._bus && inst._bus[k]; return !!b && b.gain.value > .01; };   // (20/10) ce qui joue : le dompteur de grosse caisse du bus ne touche jamais la basse seule
+    return { regle(m) { if (m !== cur) { cur = m; inst.setTier(m, 30); if (gc) gc.gain.setTargetAtTime(depG(m), ac.currentTime, .3); } }, stop() { try { inst.stop(); } catch (e) {} if (gc) setTimeout(() => { try { gc.disconnect(); } catch (e) {} }, 1500); }, bpm: () => inst.bpm || 120, inst,
+      groupe() { try { return { kick: on('kick'), basse: on('basse') || on('basse2') || on('sub') }; } catch (e) { return null; } } };
   }
   async function joueurPaliers(ac, dest, E) {
     if (!W.PalLecteur) await script('musique-paliers.js');
@@ -138,7 +140,8 @@
     PB.phase = 'course';
   };
   PB.moteur = function (m) { if (PB.J) try { PB.J.regle(Math.max(1, Math.min(30, m | 0))); } catch (e) {} };
-  PB.niveau = function (v) { if (PB.ch && PB.ac) { const g = PB.ch.g.gain; if (Math.abs((g._v9 == null ? -1 : g._v9) - v) > .003) { g._v9 = v; t9(g, Math.max(0, v), PB.ac.currentTime, .08); } } };
+  PB.niveau = function (v) { if (PB.ch && PB.ac) { const g = PB.ch.g.gain; if (Math.abs((g._v9 == null ? -1 : g._v9) - v) > .003) { g._v9 = v; t9(g, Math.max(0, v), PB.ac.currentTime, .08); }
+    if (PB.ch.bus && PB.ch.bus.tick) PB.ch.bus.tick(PB.J && PB.J.groupe ? PB.J.groupe() : null, Math.max(0, v)); } };   // (20/10) le dompteur de grosse caisse du bus (musique-bus.js) écoute à chaque image, avec le niveau
   PB.recul = function () { if (PB.ch && PB.ch.bus) PB.ch.bus.recul(-3, .4); };
   PB.joue = () => !!PB.J && (PB.phase === 'intro' || PB.phase === 'course');
   /* LA FIN : un fondu (la mort : plus court), puis tout s'éteint */

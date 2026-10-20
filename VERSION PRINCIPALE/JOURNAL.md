@@ -3,6 +3,51 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES ORANGES, PLUS FORT (2026-10-20, v714, discussion voiture, Léo : « retente la correction sur les oranges, plus fort » puis « mets la version C »)
+- MESURÉ (banc : le garage qui tourne + PICS DE JADE à midi, part de la tôle orange au plafond 255) : la correction de la v707 (laque à 70 %)
+  brûlait encore 84-89 % de la tôle DE JOUR (garage ~55 %) — un aplat sans relief. Assombrir de ×0,76 ou passer en métallisé ('k') ne
+  changeait presque rien : la saturation de l'image (1,4) et la lumière du garage poussent l'orange au plafond.
+- La palette `p` à 42 % de la v707 (≈ 29 % de la teinte d'origine), même teinte, sans gris ni bleu ajoutés (c'est ce qui brunissait) :
+  LA TAURINE aa3a05 → 471802, LA ZED ba5213 → 4e2208 (gamme-3.js), LE TRÔNE CENTRAL ba5d10 → 4e2707 (gamme-4.js). De jour 2-7 % au plafond,
+  chaque pan se lit ; au garage le capot, les flancs et le nez se séparent. `CARS[i].color` (la vignette d'usine) inchangé.
+- Essayé : D (30 %) encore plus profond ; planche `photos-gameplay/oranges-plus-fort-avant-apres.png` (avant | C | D). 0 programme compilé en course.
+
+## LE GARAGE TOUT NOIR AVEC UNE CAISSE RETIRÉE (2026-10-20, v712, bug relevé pendant l'étude des feux)
+- **Le symptôme** : au garage, équiper par `dbgEquipe(i)` une des vieilles caisses (SA MAJESTÉ, FORMULE OR, LA DEUCHE, LE LINGOT, LA MERCURE…,
+  30 en tout) mettait toute l'image 3D au NOIR (l'interface restait), avec « computeBoundingSphere : radius is NaN » (go, qn = des
+  ExtrudeGeometry/BoxGeometry de three, pas des noms du jeu). Déjà sur le main avant v711 : rien à voir avec les feux.
+- **La cause** : ce sont les caisses RETIRÉES réduites à `{retire:1,name}` (cars.js, 18/10) — sans `w`, `h`, `l` ni `shape`. Construites quand
+  même, elles tombaient dans le repli `gt` avec une largeur `undefined` : `carProfile` décalait la coque de NaN, toutes les cotes (phares,
+  roues, ancrages) et le GABARIT de la caisse passaient en NaN, le cadrage du garage aussi (`GAR.vD`, `cdx`, `cdy`…) → caméra en NaN, image noire.
+- **Le joueur n'y arrivait pas** (vérifié au banc) : `equippedCar()`, `garageListe()`, l'inventaire, les tuiles et la boutique écartent les
+  retirées ; `san` remet une retirée équipée à 0 ; une course lancée après prend `equippedCar()`. Seuls les crochets de banc y menaient.
+- **Le correctif** (rien du dessin des caisses ne bouge) : `carFicheOk(spec)` en tête de `buildCar` (code/voitures/buildcar.js) — une fiche
+  sans cotes construit LA HONTE à sa place (+ un avertissement dans la console) ; `dbgEquipe` et `dbgBras('caisse',i)` REFUSENT une retirée sans
+  fiche (« … : RETIRÉE (pas de fiche) ») au lieu de la monter. Une retirée qui garde sa fiche (LA POUPÉE, LA DAYTONA, LA COMÈTE) se construit
+  comme avant. ⚠ Pour les bancs qui balaient toute la gamme : sauter ces retours-là.
+- Vérifié : les 30 fiches vides refusées, image intacte, 0 erreur ; `buildCar` forcé dans le jeu sur 5 d'entre elles (point d'arrêt
+  conditionnel) → LA HONTE, garage allumé, 0 erreur ; une course derrière, 0 erreur. Planche :
+  `CAR CAHS V3/photos-gameplay/garage-noir-avant-apres.png` (SA MAJESTÉ, LA DEUCHE, LE LINGOT, LA MERCURE).
+
+## LES FEUX : LA LUMIÈRE DANS LE PHARE, PLUS DE BOULE (2026-10-20, v711, Léo : « une étude des lumières des voitures, que je trouve encore un peu jaunes et pas très stylées ; inspire-toi des physiques d'ARC Raiders » → au questionnaire : les FEUX, pas la lumière posée sur la caisse → planche de deux lectures → « je dirai 2 » + « intègre la lumière à l'intérieur des phares, efface cette forme de boule » → « oui, mets la colonne de droite dans le jeu »)
+- **D'où venait le jaune (mesuré au pixel, nuit et garage)** : le HALO des phares (`HALO.hM`, sprite crème 0xffe2a8 à ,95 — une boule molle qui
+  grossit au bloom : sur LE CAÏD la nuit le cœur du phare sortait #f7bd48), 30 caisses aux phares crème (#fff3d6…), les feux-boîtes des vieux
+  gabarits 0xfff6c8, le faisceau sur la route `LUMK.hlC` [1, ,88, ,7] (ampoule halogène), le halo des feux arrière qui tirait sur l'orange.
+  10 000 à 17 000 pixels jaunes autour des phares de nuit → 20 à 200.
+- **Ce qui change** (`code/voitures/feux-led.js`, une ligne en fin de buildCar) : AUCUN halo, ni devant ni derrière ; les pièces lumineuses
+  ('l') relues après la construction, aux deux bouts de la caisse : blanc LED 7 500 K, rouge LED franc (les ambres gardent leur couleur) ; la
+  LUEUR À LA FORME DE LA LAMPE : trois coques additives recopiées des triangles de chaque lampe, un peu plus larges à chaque fois (la barre du
+  CAÏD luit en barre, les ronds du SCARABÉE en ronds) — devant, la nuit seulement (la règle de Sacha : phares éteints au soleil), derrière
+  toujours, le frein l'embrase ; LE FAISCEAU DANS L'AIR la nuit (un cône additif par phare, l'air épais d'ARC) ; faisceau sur la route blanc froid.
+- ⚠ Une lampe poussée au-delà du blanc ne brille PAS plus : le bloom lit la scène écrêtée à [0,1] (son seuil plié) — d'où les coques.
+- Les CAISSES-PERSONNAGES (`FEUX_SAUF` : CHAT POP-TART, LE DOGE, LA FOURNAISE, L'ICEBERG) gardent leurs pièces lumineuses (des yeux, un pelage).
+- Lectures : `?feux=0` = les feux d'avant · `1` LED nette · `2` + faisceau dans l'air (avec de petits halos) · `3` = le jeu. Bancs : `dbgFeuxLed('mode',n)`
+  change de lecture À CHAUD (même instant), `dbgFeuxEtude({masque,boite})` (pixels des feux).
+- Vérifié : 0 erreur, 0 programme compilé en course (+1 au menu : le cône), toute la gamme passée au garage avant/après. Relevé en passant
+  (déjà sur le main, pas les feux) : au garage, une douzaine de vieilles caisses sans pièces 'l' (SA MAJESTÉ, LA DEUCHE…) sortent en image
+  NOIRE quand on les équipe par `dbgEquipe` — avec les erreurs « computeBoundingSphere : radius is NaN » (go, qn).
+- Planches : `CAR CAHS V3/photos-gameplay/feux-led-avant-apres.png` (les deux lectures) et `phares-dans-le-phare-avant-apres.png` (la 3).
+
 ## LES PORTES REDESCENDENT (2026-10-20, v709, Léo : « le mission, le shop, tu remets ça en dessous ; tu as déplacé les choses d'une manière bizarre »)
 - INVENTAIRE · MISSIONS · BOUTIQUE retrouvent leur rangée AU-DESSUS DE PLAY, debout comme couché (la place du garage d'avant le 19/10) ; au
   palier 30 la grille VITESSE se pose juste au-dessus d'elles (vdepPlace). Le ⚙ ajouté par Sacha reste en haut, à côté du trophée.
@@ -19351,3 +19396,32 @@ const CACHE = 'cashcar-v624'; // v624 (2026-10-18, Léo : « plus de gris chelou
   TAURINE e84800 → aa3a05 (gamme-3.js) · ZED ff6a14 → ba5213 (gamme-3.js) · TRÔNE CENTRAL ff7a10 → ba5d10 (gamme-4.js). `CARS[i].color` (vignette de la peinture d'usine) inchangé.
 - Non fait : LE DÉFIEUR (jaune) et POSTER 84 (même défaut, proposés à Léo — le jaune se brunit vite en dessous de ~80 %).
 
+
+## AUJOURD'HUI — LA SÉRIE DE SEPT JOURS ET LE DÉFI DU JOUR (2026-10-20, séance « ce qu'on n'a jamais vraiment travaillé » — Léo coche : « une série de jours qui vaut le coup » · « le défi du jour, taillé pour toi »)
+- Le morceau `code/missions/aujourdhui.js` (son en-tête dit tout) : `SERIE7` (sept cases 150 $ · 250 $ · 1 jeton · 400 $ · 600 $ · 1 jeton · une PEINTURE EXCLUSIVE —
+  BRAISE FIDÈLE, AURORE BORÉALE, LAGON INTERDIT, NUIT ÉTOILÉE, `serie:1`, épiques, jamais en vente ; toutes à toi → 2 jetons) et `DJ` (un défi par jour, famille tirée sur la
+  date et pondérée par TES records, seuil calé sur ton meilleur, +1 jeton FINAL SPIN, `SAVE.d.dj`).
+- Sur le retour du jour de Sacha (son/mute-cadeau.js) : `jourCommit` verse la case du calendrier au lieu de la prime (`?serie=ancien` = la prime 0…100 $ de Sacha, que
+  `outils/jour-modele.cjs` lit toujours) ; `jourFinTexte` dit le lot, sans accent (la ligne est en police pixel : « SéRIE » s'affichait). Le ×2 du jour ne change pas.
+- Branchements : `m2Tick` → `djTick` ; la ligne du bas des missions a un genre `dj` (jamais fondu dans « n MISSIONS RÉUSSIES ») ; `m2Render` → `aujHtml` en tête ;
+  `shopOwned`/`m2HabAMoi` (`!d.serie`), `m2HabReco` (hors des lots « toutes ») ; `SAVE.d.dj` gardé par `san`. `?defijour=0` éteint le défi.
+- Vérifié au banc (Chrome muet, vrais touchers, 390 × 844) : écran MISSIONS avant / après / journée faite, une vraie partie (défi « 250 km/h » réussi en course, la ligne,
+  « ×2 DU JOUR · SÉRIE 3 +1 JETON » à l'écran de fin, 2 jetons), les 4 peintures au garage. Planche : `photos-gameplay/revenir-joueur-avant-apres.png` (dossier de Léo).
+- Console : `dbgSerie()`, `dbgSerie('jour',n)`, `dbgSerie('pris',n)`, `dbgDefiJour()`, `('force','fig')`, `('reussi')`, `('demain')`.
+
+## LES PETITS BUGS QUI TRAÎNAIENT (2026-10-20, séance « finir ce qui n'a pas été travaillé » — Léo coche : « les 3 petits bugs »)
+- LE GARAGE TROP LOURD SUR TÉLÉPHONE : `PAL.B.vhdPx` MOYEN et RÉCENT 1,6 / 3,2 M → 1,4 M de pixels (rendu/nettete-qualite.js). Mesuré sur l'iPhone 15 de Léo le 16/10 : à 3,2 M (densité 3)
+  le garage et la boutique tombaient à 41-58 i/s avec des accrocs de 200-700 ms ; 1,4 M (densité ~2) est le réglage que son appli iPhone appliquait déjà (preparer-www.js : `Math.min(…,1.4e6)`,
+  qui reste valable — la ligne de vhdDpr n'a pas bougé). L'ordinateur garde 8,3 M. `?palier=2` garde le reste du comportement RÉCENT.
+- LES ABEILLES DE LA FORÊT ÉTAIENT MUETTES : `sfx('foret.abeille')` était appelé (abeille à < 10 m de la caisse) mais aucune recette ne le cuisait. Recette `foret.abeille` (atelier-son/recettes.js) :
+  le bourdonnement qui PASSE — harmoniques en 1/k avec un « nez » vers 1,1 kHz, Doppler (plus aigu à l'arrivée, plus grave au départ), d'une oreille à l'autre ; deux variantes (l'ouvrière ~230 Hz,
+  le bourdon ~150 Hz). Cuite en PCM (`PCM=1 node atelier-son/cuire.js foret.abeille` : pas de ffmpeg sur ce Mac) — une cuisson complète avec ffmpeg la repassera en MP3. Banque `?v=34`.
+
+## LE DOMPTEUR DE GROSSE CAISSE DE POUCE BLEU (2026-10-20, séance « finir ce qui traîne » — noté le 17/10 : « la grosse caisse de certains morceaux ~18 dB au-dessus du reste »)
+- MESURÉ (banc muet, la chaîne de course : bus des basses → limiteur, 20 morceaux × 11 moteurs ; crête 20 ms de la bande 30-120 Hz contre le RMS 200 Hz-8 kHz) : les sains 5-13 dB ;
+  le générateur fait ENTRER la grosse caisse à plein aux moteurs 2-5 quand le reste n'est qu'un clavier → 17-25 dB (le « ~18 dB » = PLUIE D'ARGENT au moteur 3) ; ASPHALTE
+  D'ÉMERAUDE 14-16 dB partout. Le limiteur du jeu ne travaillait jamais (crêtes ≤ −7,5 dBFS) : un écart, pas un écrêtage.
+- `assets/audio/musique-bus.js`, section 5 : clé `kick: 12` sur les 11 morceaux fautifs — la bande sous ~130 Hz (phase linéaire) passe dans un compresseur rapide dont le seuil
+  SUIT le reste du morceau ; la basse SEULE n'est jamais touchée (`pouce-bleu-jeu.js` : `groupe()` dit au bus si la grosse caisse joue, `PB.niveau` → `bus.tick`). Au-dessus
+  de ~195 Hz rien ne bouge. Après : 11-14 dB à l'entrée de la caisse. Restent hauts, VOULU (c'est leur BASSE, décision de Léo) : CAVALE ULTRA et AVERSE DE CHROME aux moteurs 4-6.
+- Les morceaux sains et la bibliothèque : identiques à l'échantillon près (le dompteur n'est pas construit). `?kick=0` = sans dompteur ; `?basses=brut` = tout le bus d'avant.
