@@ -126,7 +126,7 @@ if(ARC_ON){cielArcMer();for(const m9 in CIEL_ARC){cielArcTex(CIEL_ARC[m9].f); //
 /* (2026-10-20, Léo : « enlever en général le tapis complètement rempli de nuages, l'harmoniser avec la répartition des nuages du premier plan selon la météo ») LE TAPIS CLAIRSEMÉ :
    la mer de cumulus ne couvre plus tout le dessous — des ÎLOTS (la couverture TAPIS_M : plus c'est haut, moins il y en a), l'air de l'horizon entre eux ; plus dense là où
    le premier plan l'est (l'orage). `?tapis=0` = le tapis plein d'avant, `?tapis=.5` pour essayer. */
-const TAPIS=(function(){const m=/[?&]tapis=([0-9.]+)/.exec(location.search);return m?+m[1]:1;})(),TAPIS_M={matin:.60,midi:.56,aprem:.52,soir:.54,nuit:.50,orage:.34,menu:.50};
+const TAPIS=(function(){const m=/[?&]tapis=([0-9.]+)/.exec(location.search);return m?+m[1]:1;})(),TAPIS_M={matin:.60,midi:.56,aprem:.52,soir:.54,nuit:.50,orage:.34,pluie:.46,menu:.50};
 function tapisPose(m){skyU.uTapis.value=TAPIS?(TAPIS_M[m]||.55)*Math.min(1,TAPIS):0;}
 function cielArcPose(m,k){tapisPose(m);const U=skyU,A=CIEL_ARC[m],on=ARC_ON&&CARC.force!==0&&A&&k>.001,tp=on&&cielArcTex(A.f),tm=on&&cielArcMer();
   if(tp){U.uPhT.value=tp;U.uPh.value.set(k,A.su,A.se*Math.PI/180,A.ex);U.uPh2.value.y=A.ns||0;}else U.uPh.value.x=0;

@@ -1,0 +1,13 @@
+<style id="cielChoix">
+/* (2026-10-21, Léo : « donne-moi la possibilité de choisir le ciel avant de jouer ») LE CHOIX DU CIEL : une rangée de petites touches penchées au-dessus de la barre de l'accueil
+   (AUTO · MATIN · MIDI · SOIR · NUIT · PLUIE · ORAGE) ; placée par JS d'après la barre (cielChoixPlace), visible seulement quand l'accueil est à l'écran. */
+#mCiel{position:fixed;left:0;right:0;z-index:30;display:none;justify-content:center;align-items:center;gap:4px;padding:0 8px;pointer-events:none}
+#mCiel.on{display:flex}
+#mCiel .cC{pointer-events:auto;position:relative;flex:0 1 auto;min-width:40px;height:30px;padding:0 7px;border:0;border-radius:0;cursor:pointer;color:var(--tx2,#c9c0f5);font:8px var(--pix,monospace);letter-spacing:.04em;
+  background:linear-gradient(180deg,rgba(40,30,78,.86),rgba(20,14,48,.9));box-shadow:inset 0 0 0 1px rgba(150,140,230,.35),0 3px 0 rgba(8,4,24,.8);transform:skewX(-11deg);-webkit-tap-highlight-color:transparent}
+#mCiel .cC>span{display:block;transform:skewX(11deg)}
+#mCiel .cC::after{content:"";position:absolute;inset:-7px -2px}
+#mCiel .cC.on{color:#2a1a00;background:linear-gradient(180deg,#ffe58a,#f0b92e);box-shadow:inset 0 0 0 1px rgba(255,248,200,.9),0 3px 0 rgba(120,70,0,.9)}
+#mCiel .cC:active{transform:skewX(-11deg) translateY(2px)}
+@media (max-width:360px){#mCiel .cC{min-width:34px;padding:0 5px}}
+</style>

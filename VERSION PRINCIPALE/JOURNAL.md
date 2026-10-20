@@ -3,6 +3,11 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE CHOIX DU CIEL AVANT DE JOUER (2026-10-21, v761, Léo : « donne-moi la possibilité de choisir le ciel avant de jouer ; applique à toutes les météos les nuages qui m'ont le plus plu — la nouvelle version ») — branche `nuages-refonte`
+- Accueil : une rangée AUTO · MATIN · MIDI · SOIR · NUIT · PLUIE · ORAGE (`interface/ciel-choix.js`, `css/ciel-choix.css`, `#mCiel` en `position:fixed` placé d'après la barre GARAGE/BOUTIQUE/RÉGLAGES, visible seulement quand l'accueil l'est). Le JOUER suivant part sur la MER DE NUAGES à cette météo ;
+  AUTO = le tirage au hasard du mode classique. Gardé dans `localStorage.cashcarCiel`. Pose `SF.force` au toucher (le départ d'avance rebâtit la bonne piste) ; `classiqueJouer` le repose à chaque départ (`cielChoixImpose`).
+- Les cumulus en CUBES valent pour TOUTES les météos de la map (le corps v8 est commun) ; `TAPIS_M.pluie` ajouté (.46). Vérifié par `dbgNiveau` : NUIT → `nuagesNuit`.
+
 ## LE MENU CIEL : DES VOLUMES AU FOND (2026-10-21, v760, Léo : « dans le menu ciel nuages fond encore plats ») — branche `nuages-refonte`
 - Seize cumulus en cubes de plus dans `CHUTE_NU` (richesse-3.js, en FIN de liste : les silhouettes d'avant ne bougent pas) : posés sur la mer à 2,4-6,2 km, tout autour, immobiles.
 - Le tapis clairsemé atteint aussi la mer du MENU (`merZ` : `uTapis`, `TAPIS_M.menu` .50 → seuil de couverture relevé de .15) : des îlots et de vraies trouées d'ombre entre les volumes.

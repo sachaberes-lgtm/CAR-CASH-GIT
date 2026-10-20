@@ -7587,6 +7587,19 @@ html:not(.sansGarJouer) body #garage#garage#garage:not(.menu):not(.vitrine):not(
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
   html:not(.sansGarJouer) body #garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct#gAct>:is(#gvCof#gvCof,#gvMis#gvMis,#gShopBas#gShopBas){height:48px!important;min-height:48px!important}}
 </style>
+<style id="cielChoix">
+/* (2026-10-21, Léo : « donne-moi la possibilité de choisir le ciel avant de jouer ») LE CHOIX DU CIEL : une rangée de petites touches penchées au-dessus de la barre de l'accueil
+   (AUTO · MATIN · MIDI · SOIR · NUIT · PLUIE · ORAGE) ; placée par JS d'après la barre (cielChoixPlace), visible seulement quand l'accueil est à l'écran. */
+#mCiel{position:fixed;left:0;right:0;z-index:30;display:none;justify-content:center;align-items:center;gap:4px;padding:0 8px;pointer-events:none}
+#mCiel.on{display:flex}
+#mCiel .cC{pointer-events:auto;position:relative;flex:0 1 auto;min-width:40px;height:30px;padding:0 7px;border:0;border-radius:0;cursor:pointer;color:var(--tx2,#c9c0f5);font:8px var(--pix,monospace);letter-spacing:.04em;
+  background:linear-gradient(180deg,rgba(40,30,78,.86),rgba(20,14,48,.9));box-shadow:inset 0 0 0 1px rgba(150,140,230,.35),0 3px 0 rgba(8,4,24,.8);transform:skewX(-11deg);-webkit-tap-highlight-color:transparent}
+#mCiel .cC>span{display:block;transform:skewX(11deg)}
+#mCiel .cC::after{content:"";position:absolute;inset:-7px -2px}
+#mCiel .cC.on{color:#2a1a00;background:linear-gradient(180deg,#ffe58a,#f0b92e);box-shadow:inset 0 0 0 1px rgba(255,248,200,.9),0 3px 0 rgba(120,70,0,.9)}
+#mCiel .cC:active{transform:skewX(-11deg) translateY(2px)}
+@media (max-width:360px){#mCiel .cC{min-width:34px;padding:0 5px}}
+</style>
 <div id="chDoigt" aria-hidden="true"><i class="cdOnde"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdMain"></i><div class="cdBul"><b data-fr="BIENVENUE !">BIENVENUE !</b><span data-fr="TAPE TA CAISSE">TAPE TA CAISSE</span></div></div><!-- (2026-10-15 soir, Sacha) LE DOIGT DE BIENVENUE : voir <style id="accueilDoigt"> -->
 <style id="vitesseDepart">
 /* LA VITESSE DE DÉPART AU GARAGE (2026-10-19, Léo) — la grille des six crans : PENCHÉE (je touche), fine, posée sur la vitre comme les onglets
@@ -59343,6 +59356,7 @@ window.dbgNiveauVitre=function(m){SF.force={carte:'vitree',meteo:m||null};return
 function classiqueJouer(){ // (2026-10-13, Sacha) JOUER = le MODE CLASSIQUE AU HASARD : la 1re map et sa météo tirées, la piste bâtie sous le voile (le chemin de jadeJouer)
   if(pendingScore!=null||(started&&!gameOver))return 'en course';if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go))return 'occupé';
   JADE_JEU=false;if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}}
+  if(typeof cielChoixImpose==='function')cielChoixImpose(); // (2026-10-21) le ciel choisi à l'accueil
   const t=SF.force?sfImpose(SF.der):(SF.prochain&&SF.prochainDer===SF.der?SF.prochain:sfTire(SF.der));SF.prochain=null;SF.tirage=[t];SF.der=t;SF.neuf=true;SF.pret=true; // neuf : le REJOUER de garageLaunch (resetGame) garde ce tirage · prochain : celui que la vignette du garage annonçait — (2026-10-19) le tirage D'AVANCE du départ (prebDepCible)
   /* (2026-10-19, LE DÉPART D'AVANCE) sous9 : au 1er JOUER de la session, la piste du départ bâtie au menu est PRISE (prebDepPrend) ; après une
      partie, sous le nuage blanc ou le voile chaud (leger : resetGame suit dans la même image), la piste de sous9 n'est jamais dessinée — elle se
@@ -59475,6 +59489,33 @@ for(const [k,v] of Object.entries({'FAIS-TOI FLASHER':'GET FLASHED','LIS LES FLA
   
   'LE LINGOT':'THE GOLD BAR',
   'Il dormait au fond du coffre-fort. Tu viens de le sortir : 999,9 millièmes de pure arrogance.':'It slept at the back of the vault. You just took it out: 999.9 fine, and pure arrogance.'}))if(!(k in I18N))I18N[k]=v;
+/* ============================== LE CHOIX DU CIEL (2026-10-21, Léo : « donne-moi la possibilité de choisir le ciel avant de jouer ») ==============================
+   Sur l'accueil, une rangée AUTO · MATIN · MIDI · SOIR · NUIT · PLUIE · ORAGE : le JOUER qui suit part sur la MER DE NUAGES à cette météo (AUTO = le tirage
+   au hasard du mode classique, comme avant). Le choix est gardé (localStorage `cashcarCiel`, hors SAVE : une clé de plus n'a pas à passer par san()). Il pose
+   SF.force dès qu'on le touche (le départ d'avance rebâtit la piste de la bonne météo tout de suite) et classiqueJouer le repose à chaque départ. */
+const CIEL_CH={opts:['auto','matin','midi','soir','nuit','pluie','orage'],v:'auto',el:null};
+try{const v9=localStorage.getItem('cashcarCiel');if(v9&&CIEL_CH.opts.indexOf(v9)>=0)CIEL_CH.v=v9;}catch(e){}
+Object.assign(I18N,{"MATIN":"MORNING","MIDI":"NOON","ORAGE":"STORM","AUTO":"AUTO"});
+function cielChoixImpose(){ // à chaque départ : la map nuages à la météo choisie (sauf si une autre force est déjà posée : lien de test, banc)
+  if(CIEL_CH.v==='auto'||SF.force)return;const p=SF.prochain;
+  if(p&&SF.prochainDer===SF.der&&p.carte==='nuages'&&p.meteo===CIEL_CH.v)return; // la piste d'avance est déjà la bonne
+  SF.force={carte:'nuages',meteo:CIEL_CH.v};}
+function cielChoixPlace(){const e=CIEL_CH.el;if(!e)return;const h=document.getElementById('mHome');let r=null;if(h)for(const q of h.querySelectorAll('[data-m="garage"],[data-m="shop"],[data-m="set"],.mOutils')){const t=q.getBoundingClientRect();if(t.height>2&&(!r||t.top<r.top))r=t;}if(!r)return; /* la plus haute des touches de la barre de l'accueil visibles */e.style.top=Math.max(0,Math.round(r.top-30-10))+'px';}
+function cielChoixMaj(){const e=CIEL_CH.el;if(!e)return;
+  for(const c of e.children){c.classList.toggle('on',c.dataset.c===CIEL_CH.v);c.setAttribute('aria-pressed',c.dataset.c===CIEL_CH.v?'true':'false');}
+  const h=document.getElementById('mHome'),vu=!!(h&&h.classList.contains('on')&&!h.classList.contains('sort'));e.classList.toggle('on',vu);if(vu)cielChoixPlace();}
+function cielChoixInit(){
+  if(CIEL_CH.el)return;const h=document.getElementById('mHome');if(!h)return;
+  const e=document.createElement('div');e.id='mCiel';e.setAttribute('role','group');e.setAttribute('aria-label','Ciel');
+  for(const o of CIEL_CH.opts){const b=document.createElement('button');b.type='button';b.className='cC';b.dataset.c=o;const s=document.createElement('span');s.setAttribute('data-fr',o.toUpperCase());s.textContent=TR(o.toUpperCase());b.appendChild(s);
+    b.addEventListener('click',function(){CIEL_CH.v=o;try{localStorage.setItem('cashcarCiel',o);}catch(e9){}
+      if(o==='auto'){if(SF.force&&SF.force.carte==='nuages')SF.force=null;SF.prochain=null;}else{SF.force={carte:'nuages',meteo:o};SF.prochain=null;}
+      try{uiClic('onglet');}catch(e9){}cielChoixMaj();});
+    e.appendChild(b);}
+  document.body.appendChild(e);CIEL_CH.el=e;
+  new MutationObserver(cielChoixMaj).observe(h,{attributes:true,attributeFilter:['class']});window.addEventListener('resize',function(){setTimeout(cielChoixMaj,60);});setInterval(cielChoixPlace,1500);
+  cielChoixMaj();}
+try{cielChoixInit();}catch(e){console.warn('choix du ciel',e);}
 /* ============================================================================
    LES ÉVÉNEMENTS RARES (2026-10-14, GAMEPLAY — Sacha : « les morceaux de bravoure de l'ex-carrière […] surgissent de temps en temps, PAR
    SURPRISE, pendant une partie NORMALE. Rares (pas plus d'UN par partie), annoncés CLAIREMENT, jamais mortels de façon injuste, avec une
@@ -62589,7 +62630,7 @@ if(ARC_ON){cielArcMer();for(const m9 in CIEL_ARC){cielArcTex(CIEL_ARC[m9].f); //
 /* (2026-10-20, Léo : « enlever en général le tapis complètement rempli de nuages, l'harmoniser avec la répartition des nuages du premier plan selon la météo ») LE TAPIS CLAIRSEMÉ :
    la mer de cumulus ne couvre plus tout le dessous — des ÎLOTS (la couverture TAPIS_M : plus c'est haut, moins il y en a), l'air de l'horizon entre eux ; plus dense là où
    le premier plan l'est (l'orage). `?tapis=0` = le tapis plein d'avant, `?tapis=.5` pour essayer. */
-const TAPIS=(function(){const m=/[?&]tapis=([0-9.]+)/.exec(location.search);return m?+m[1]:1;})(),TAPIS_M={matin:.60,midi:.56,aprem:.52,soir:.54,nuit:.50,orage:.34,menu:.50};
+const TAPIS=(function(){const m=/[?&]tapis=([0-9.]+)/.exec(location.search);return m?+m[1]:1;})(),TAPIS_M={matin:.60,midi:.56,aprem:.52,soir:.54,nuit:.50,orage:.34,pluie:.46,menu:.50};
 function tapisPose(m){skyU.uTapis.value=TAPIS?(TAPIS_M[m]||.55)*Math.min(1,TAPIS):0;}
 function cielArcPose(m,k){tapisPose(m);const U=skyU,A=CIEL_ARC[m],on=ARC_ON&&CARC.force!==0&&A&&k>.001,tp=on&&cielArcTex(A.f),tm=on&&cielArcMer();
   if(tp){U.uPhT.value=tp;U.uPh.value.set(k,A.su,A.se*Math.PI/180,A.ex);U.uPh2.value.y=A.ns||0;}else U.uPh.value.x=0;
