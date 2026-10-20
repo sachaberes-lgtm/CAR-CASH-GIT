@@ -7443,6 +7443,34 @@ html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-lef
 #m2Rev.fin .m2RvBloc{opacity:0;transform:scale(1.06)}#m2Rev.fin .m2RvFond,#m2Rev.fin .m2RvRayons{opacity:0}
 @media (orientation:landscape) and (max-height:540px){.m2RvPh{width:min(44vw,300px)}.m2RvNom{font-size:var(--f6)}.m2RvBloc{gap:5px}.m2RvTx{min-height:2.4em}}
 @media (prefers-reduced-motion:reduce){.m2RvRayons{animation:none}.m2RvBloc,.m2RvNom,.m2RvBt,.m2RvRar,.m2RvPh img.n,.m2RvFond,.m2RvRayons{transition:none}#m2Rev.plein .m2RvLigne{animation:none}}
+/* (2026-10-20, Léo) AUJOURD'HUI — en tête de la liste : le DÉFI DU JOUR (une ligne de mission, liseré cyan, son jeton) et la SÉRIE DE SEPT
+   JOURS (sept cases : cochées en vert, celle du jour qui bat en or — l'or = ce qu'on vise, comme une mission suivie —, DEMAIN annoncé,
+   la 7e case = la peinture exclusive, son nuancier). Rien ne bouge en continu sauf la case du jour. */
+.m2Auj{margin:0 0 10px;padding:0 0 8px;box-shadow:0 1px 0 rgba(95,240,255,.14)}
+.m2Auj h4{margin:2px 0 6px;font-weight:400;font-size:var(--f0);letter-spacing:2px;color:var(--neoC)}
+.m2Tag{font-style:normal;display:inline-block;padding:2px 4px 1px;margin-right:3px;background:var(--neoC);color:#06142b;font-size:var(--f0);line-height:1.3;letter-spacing:1px;vertical-align:1px}
+.m2Dj{background:#0c2a4d;box-shadow:inset 0 0 0 2px rgba(95,240,255,.42)}
+.m2Dj.ok{background:#0b2a1c;box-shadow:inset 0 0 0 1px #5ee37a}.m2Dj.ok .m2Tag{background:#5ee37a}
+.m2Jt{width:56px;gap:4px}.m2Auj .spIco{display:inline-block;flex:none;background-size:contain;background-repeat:no-repeat;background-position:center;image-rendering:pixelated}.m2Jt .spIco{width:30px;height:30px}.m2Jt b{font-weight:400;font-size:var(--f1);color:var(--au1)}
+.m2Serie{position:relative;box-sizing:border-box;padding:8px 9px 9px;background:#0f2747;box-shadow:inset 0 0 0 1px rgba(95,240,255,.18);cursor:pointer;
+  animation:gmIn .4s var(--ease) backwards;animation-delay:260ms}
+.m2Serie>b{display:flex;align-items:center;gap:6px;font-weight:400;font-size:var(--f0);letter-spacing:1px;line-height:1.4;color:#cfe3f2;margin-bottom:7px}
+.m2Serie>b .pxi{--pxs:1;color:var(--neoA)}
+.srL{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.srC{position:relative;font-style:normal;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;min-width:0;height:54px;padding:4px 1px 3px;
+  box-sizing:border-box;background:#06142b;box-shadow:inset 0 0 0 1px rgba(95,240,255,.16);clip-path:polygon(4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px),0 4px)}
+.srC>em{font-style:normal;font-size:var(--f0);letter-spacing:1px;color:#6f93a6;white-space:nowrap}
+.srC .m2Cash{font-size:var(--f0);letter-spacing:0;line-height:22px}
+.srC .spIco{width:22px;height:22px}.srC>b{font-weight:400;font-size:var(--f0);color:var(--au1)}
+.srSw{display:block;width:28px;height:22px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),0 0 8px rgba(255,120,200,.35)}
+.srC.fait{background:#0a2418;box-shadow:inset 0 0 0 1px rgba(94,227,122,.55)}.srC.fait>*:not(s):not(em){visibility:hidden}.srC.fait>em{color:#5ee37a}
+.srC>s{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#5ee37a;text-decoration:none}.srC>s .pxi{--pxs:2}
+.srC.auj{background:#2b240c;box-shadow:inset 0 0 0 2px var(--au2);animation:srBat 1.1s var(--ease) infinite alternate}.srC.auj>em{color:var(--au1)}
+@keyframes srBat{to{box-shadow:inset 0 0 0 2px var(--au2),0 0 14px rgba(255,201,58,.45)}}
+.srC.dem{box-shadow:inset 0 0 0 1px var(--au2)}.srC.dem>em{color:var(--au1)}
+.srC.ex:not(.fait){background:linear-gradient(180deg,#1a0f3a,#06142b)}
+@media (orientation:landscape) and (max-height:540px){.srC{height:46px}.m2Auj{margin-bottom:8px}}
+@media (prefers-reduced-motion:reduce){.srC.auj{animation:none}}
 </style>
 <style id="uiRevue">
 /* LA REVUE DE L'INTERFACE (2026-10-17, session UI-REVUE, Sacha : « revois toute l'interface : chaque bouton de chaque écran au bon endroit,
@@ -8182,8 +8210,8 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
 <script src="vendor/three.min.js"></script>
 <script src="figures.js?v=9"></script>
 <script src="creatures/vitrail.js?v=1"></script><script src="creatures/singe.js?v=2"></script><script src="creatures/dauphin.js?v=2"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html -->
-<script src="assets/audio/musique-bus.js?v=5"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
-<script src="assets/audio/pouce-bleu-jeu.js?v=4"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
+<script src="assets/audio/musique-bus.js?v=6"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
+<script src="assets/audio/pouce-bleu-jeu.js?v=5"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
      si l'un manque, le jeu retombe proprement sur renderer.render() (garde CAN_POST). -->
 <!-- ORDRE IMPORTANT : EffectComposer.js définit THREE.Pass, dont héritent Shader/Render/UnrealBloomPass — il doit venir AVANT elles. -->
@@ -8195,7 +8223,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=33"></script>
+<script defer src="sons-banque.js?v=34"></script>
 <script defer src="sfx.js?v=6"></script>
 <script>
 (function(){
@@ -10400,6 +10428,16 @@ window.dbgLum=function(o){ // (banc) l'état des lumières de la caisse ; dbgLum
   return {actif:LUM.actif,nuit:+LUM.nuit.toFixed(2),halo:+HALO.hM.opacity.toFixed(2),halos:HALO.h.length,phK:CAR_PHK==null?null:+CAR_PHK.toFixed(2),ph:VIT9.ph==null?null:+VIT9.ph.toFixed(2),phares:+LUM.hl.toFixed(2),lampes:LUM.n,hP:LUM.hP.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hF:LUM.hF.toArray().map(function(x){return +x.toFixed(2);}),
     uHlC:LUM_U.uHlC.value.toArray().map(function(x){return +x.toFixed(1);}),uHlP:LUM_U.uHlP.value.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hlK:LUM_U.uHlK.value.toArray(),lmW:LUM_U.uLmW.value.toArray(),
     W:LUM.W?Array.from(LUM.W.slice(0,LUM.n*12)):[].map(function(x){return +x.toFixed(2);})};};
+window.dbgFeuxEtude=function(o){ /* (banc, 2026-10-20, l'étude des feux) les pièces qui ÉMETTENT de la caisse (matière 'l') : leurs couleurs et leur
+     nombre de sommets ; o.masque='l'|'h'|'lh'|'' cache les pièces lumineuses ('l'), les halos ('h'), ou rend tout */
+  const L9=[],C9={};carGroup.traverse(function(m){if(!m.isMesh||!m.material||!m.material.isMeshBasicMaterial||!m.material.vertexColors||!m.material.userData.lp)return;L9.push(m);
+    const c=m.geometry.attributes.color;if(!c)return;for(let i=0;i<c.count;i++){const k=((Math.round(c.getX(i)*255)<<16)|(Math.round(c.getY(i)*255)<<8)|Math.round(c.getZ(i)*255)).toString(16).padStart(6,'0');C9[k]=(C9[k]||0)+1;}});
+  if(o&&o.boite){const bx=new THREE.Box3();carGroup.updateMatrixWorld(true);carGroup.traverse(function(q){if(q.isMesh&&!q.isSprite&&FEUXL.fais.indexOf(q)<0&&!(q.userData&&q.userData.sol)){q.geometry.computeBoundingBox();const bb=q.geometry.boundingBox.clone().applyMatrix4(q.matrixWorld);bx.union(bb);}});const cam=o.cam==='gar'&&typeof GAR!=='undefined'&&GAR.camV?GAR.camV:camera,v=new THREE.Vector3();let x0=1,y0=1,x1=-1,y1=-1;
+    for(let i=0;i<8;i++){v.set(i&1?bx.max.x:bx.min.x,i&2?bx.max.y:bx.min.y,i&4?bx.max.z:bx.min.z).project(cam);x0=Math.min(x0,v.x);x1=Math.max(x1,v.x);y0=Math.min(y0,v.y);y1=Math.max(y1,v.y);}
+    return {x0:(x0+1)/2,x1:(x1+1)/2,y0:(1-y1)/2,y1:(1-y0)/2};}
+  if(o&&o.masque!=null){const q=o.masque;for(const m of L9)m.material.visible=q.indexOf('l')<0;HALO.hM.visible=HALO.tM.visible=q.indexOf('h')<0;if(FEUXL.cM)for(const c of FEUXL.cM)c.visible=q.indexOf('h')<0;}
+  return {pieces:L9.length,couleurs:C9,halo:{h:HALO.hM.color.getHexString(),hOp:+HALO.hM.opacity.toFixed(2),t:HALO.tM.color.getHexString(),tOp:+HALO.tM.opacity.toFixed(2),n:HALO.h.length},
+    faisceau:CARPOOL.head?{c:CARPOOL.head.material.color.getHexString(),op:+CARPOOL.head.material.opacity.toFixed(2),vu:CARPOOL.head.visible}:null,hlC:LUMK.hlC,headSpot:headSpot.color.getHexString()};};
 /* ============ fin TRIPTYQUE ============ */
 
 // ---------- GÉNÉRATEUR (45°, patterns pensés pour l'airtime) ----------
@@ -10840,12 +10878,12 @@ addEventListener('resize',function(){if(VHD.on){VHD.dpr=VHD.max=vhdDpr();VHD.mur
      · qlMin : le cran sous lequel l'échelle ne REMONTE pas. Sur l'ANCIEN, 4 (ombre 512 + halo ¾ tenus) : chaque remontée réalloue une carte
        d'ombre et des cibles — un à-coup — pour les reperdre dix secondes plus tard au premier envol. Le flou radial, lui, peut revenir ;
      · vhdPx / vhdOmbre : l'accueil haute définition garde sa belle caisse (Léo, 10/10) mais à la mesure de la puce — ANCIEN : 0,45 M de
-       pixels (≈ densité 1,3 sur un iPhone 7) et ombre 1024 ; MOYEN : 1,6 M et 2048 ; RÉCENT : 3,2 M et 2048, comme avant. Le FILET de VHD
+       pixels (≈ densité 1,3 sur un iPhone 7) et ombre 1024 ; MOYEN et RÉCENT : 1,4 M et 2048 (3,2 M jusqu'au 20/10 : accrocs au garage sur iPhone 15). Le FILET de VHD
        (baisse ×0,8 si l'image traîne) reste par-dessus ;
      · vhdMort : l'écran de fin de partie en haute définition ? RÉCENT seulement — sur les deux autres il garde la résolution et les crans
        de la course (plus de réallocation des cibles et de la carte d'ombre à chaque mort ET à chaque REJOUER).
    `dbgQual(k)` (banc) passe outre qlMin. `?palier=2` rend exactement le comportement d'avant. */
-PAL.B.qlDepart=[5,2,0];PAL.B.qlMin=[4,0,0];PAL.B.vhdPx=[.45e6,1.6e6,3.2e6];PAL.B.vhdOmbre=[1024,2048,2048];PAL.B.vhdMort=[0,0,1];
+PAL.B.qlDepart=[5,2,0];PAL.B.qlMin=[4,0,0];PAL.B.vhdPx=[.45e6,1.4e6,1.4e6]; /* (2026-10-20, Léo) MOYEN et RÉCENT plafonnés à 1,4 M (densité ~2 sur iPhone 15) : à 3,2 M (densité 3) le garage et la boutique tombaient à 41-58 i/s avec des accrocs de 200-700 ms, mesuré sur l'iPhone 15 de Léo le 16/10 ; c'est le réglage de son appli */PAL.B.vhdOmbre=[1024,2048,2048];PAL.B.vhdMort=[0,0,1];
 if(PAL.b('qlDepart',0)>0){try{qlPose(PAL.b('qlDepart',0));}catch(e){}}
 window.dbgVHD=function(){return {on:VHD.on,dpr:+curDPR.toFixed(2),max:+VHD.max.toFixed(2),baisses:VHD.bas,remontees:VHD.haut,bride:VHD.bride?Math.round((performance.now()-VHD.bride)/1000)+' s':null,mur:(VHD.murT&&performance.now()-VHD.murT<45000)?+VHD.mur.toFixed(2):null,vrai:QLR.vraiT?+QLR.vrai.toFixed(1):null,journal:VHD.log,dprEcran:+devicePixelRatio.toFixed(2),plafondCourse:+DPR_CAP.toFixed(2),
   px:Math.round(innerWidth*innerHeight*curDPR*curDPR),ombre:sun.shadow.mapSize.x,aniso:ASPH_TEX?ASPH_TEX.anisotropy:null,bloom:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,crans:QL.k};};
@@ -29507,6 +29545,140 @@ const jetCoreM=jetMat(0xffe6b0,0xffffff,0xa9c0ff,1,.7,1.35);
 const jetGlowM=new THREE.SpriteMaterial({map:lampTex,color:0xff9040,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false});
 const JETS={shells:[],cores:[],glows:[],k:0}; // rempli par buildCar, animé chaque frame
 const JET_DIR=[0,1,2,3].map(function(){return new THREE.Vector3(0,0,-1);}),JET_NZ=new THREE.Vector3(0,0,-1),JET_Z=new THREE.Vector3(0,0,1),JET_V=new THREE.Vector3(),JET_QI=new THREE.Quaternion(),JET_QS=new THREE.Quaternion(); // (sillage v5) l'axe de chaque plume, dans le repère caisse
+/* ===== LES FEUX EN LED — L'ÉTUDE (2026-10-20, Léo : « fais une étude des lumières des voitures, que je trouve encore un peu jaunes et pas très
+   stylées ; inspire-toi encore une fois des physiques d'ARC Raiders » → au questionnaire : les FEUX des caisses, pas la lumière posée dessus) =====
+   MESURÉ au banc avant de toucher (garage, ville la nuit, pixels lus sur la vraie image) : le jaune vient de QUATRE endroits, empilés —
+   · le HALO des phares (`HALO.hM`, sprite 0xffe2a8 à ,95, allumé en grand au garage) : sur LE CAÏD la nuit, le cœur du phare sort #f7bd48 (or) ;
+   · les pièces lumineuses elles-mêmes : 30 caisses ont des phares crème (#fff3d6, #f6e6c6, #fff6e6), 14 seulement un blanc froid ; les vieux
+     gabarits posent des feux-boîtes 0xfff6c8 (jaune pâle) ; 42 caisses portent de l'ambre, dont des ambres JAUNES (#ffc84a, #ffd23a, #ffe08a) ;
+   · le faisceau sur la route (`LUMK.hlC` [1, ,88, ,7] ≈ une ampoule halogène de 3 000 K) et la nappe peinte du garage (0xffd9a6) ;
+   · les feux arrière, dont le halo tire sur l'ORANGE (0xff2818, 0xff5a36 au frein) — et la boule molle de `lampTex` autour de chaque feu.
+   La LEÇON d'ARC Raiders (ses images sont à Embark : rien n'en est copié) : une lumière NATURELLE et FROIDE — des blancs neutres, des sources
+   NETTES (c'est la forme de la lampe qui brille, pas une boule autour), un rouge franc, et de l'AIR ÉPAIS qui montre la lumière la nuit.
+   Trois lectures sur les planches (`?feux=1` · `?feux=2` · `?feux=3`) — Léo a choisi la 2 puis demandé la lumière DANS le phare : c'est la 3, LE JEU
+   depuis le 20/10 (`?feux=0` = les feux d'avant l'étude) :
+   · 1 LED NETTE : blanc 6 500 K sur les pièces, les halos et le faisceau ; la lampe brille un peu au-delà du blanc (le bloom naît de sa forme) ;
+     halos 30 % plus petits, en point LED serré ; rouge LED franc ; les ambres jaunes ramenés à l'ambre orangé d'un vrai clignotant.
+   · 2 LUMIÈRE DANS L'AIR : la 1, plus froide (7 500 K) et plus vive, halos réduits de moitié, les ambres en veilleuse (un clignotant éteint),
+     et LE FAISCEAU DANS L'AIR : un cône de lumière part de chaque phare, la nuit, dans la brume (l'air épais d'ARC).
+   · 3 LA LUMIÈRE DANS LE PHARE (le jeu) : la 2 SANS AUCUN HALO, ni devant ni derrière ; la lampe s'allume elle-même, sa lueur suit sa forme (voir
+     plus bas, les coques).
+   Rien n'est retouché dans les fiches ni dans les formes : la couleur des pièces 'l' est relue APRÈS la construction (`feuxLed`, fin de buildCar),
+   seulement aux deux BOUTS de la caisse (les décors lumineux d'un flanc — le pelage du DOGE — restent tels quels). */
+const FEUX_DOSES={ /* blanc : la teinte des LED blanches · kB : leur éclat (> 1 : le bloom naît de la FORME de la lampe) · rouge/kR · ambre/kA (,55 = un
+   clignotant en veilleuse) · halo, kH : la teinte et la taille des halos · hlC : le faisceau sur la route · tC/tF : le halo des feux arrière, au frein ·
+   nappe : la nappe peinte du garage et la teinte du faisceau dans l'air · fais : la force du faisceau dans l'air (0 = aucun) */
+  1:{blanc:[.93,.96,1],kB:1.3,rouge:[1,.05,.11],kR:1.15,ambre:[1,.5,.08],kA:1,halo:0xf0f5ff,kH:.7,hlC:[.93,.97,1],tC:0xff1a2c,tF:0xff3646,nappe:0xe9f0ff,fais:0},
+  2:{blanc:[.85,.93,1],kB:1.6,rouge:[1,.04,.12],kR:1.4,ambre:[1,.5,.08],kA:.55,halo:0xe6efff,kH:.5,hlC:[.82,.92,1],tC:0xff0f2a,tF:0xff2a40,nappe:0xdfeaff,fais:.4}};
+/* LECTURE 3 (même jour, Léo, après la planche : « intègre la lumière à l'intérieur des phares, efface cette forme de boule » — « je dirai 2 ») : la 2, SANS
+   aucun halo (ni devant ni derrière) ; c'est la lampe qui s'allume, et le bloom naît de SA forme (la barre du CAÏD, les ronds du SCARABÉE). */
+/* ⚠ MESURÉ : une lampe poussée au-delà du blanc ne brille PAS plus — le bloom lit la scène écrêtée à [0,1] (son seuil plié, voir PLIAGE). La
+   lumière doit donc venir d'une LUEUR À LA FORME DU PHARE : les triangles de chaque lampe (regroupés par voisinage) sont recopiés en trois
+   COQUES de plus en plus larges (chaque sommet poussé vers l'extérieur de SA lampe, axe par axe, de 1/3, 2/3 puis toute la marge : 4 à 12 cm),
+   de plus en plus faibles, additives. La barre du CAÏD luit en barre, les ronds du SCARABÉE en ronds, un feu qui tourne autour du coin aussi
+   (une carte plate devant lui faisait une plaque : essai écarté). Même programme que les lampes (vertexColors, additif : le noir n'ajoute rien). */
+FEUX_DOSES[3]=Object.assign({},FEUX_DOSES[2],{kH:0,carte:[.75,.8],ambre:null});  /* carte : l'éclat de la lueur (devant, derrière) · ambre:null : les ambres
+   gardent LEUR couleur — au balayage de la gamme, la veilleuse éteignait les étoiles d'or du DRAGON D'OR et les phares de rallye de LA STRATOS */
+/* LES CAISSES-PERSONNAGES gardent leurs pièces lumineuses telles quelles (ce sont des YEUX, un pelage, de la lave, de la glace — pas des phares) :
+   relevé au balayage de la gamme (le CHAT : les yeux bleuissaient ; LE DOGE : les sourcils). Les halos et le faisceau suivent la lecture. */
+const FEUX_SAUF=['CHAT POP-TART','LE DOGE','LA FOURNAISE',"L'ICEBERG"];
+/* ⚠ LA 3 EST LE JEU (oui de Léo, 20/10) : `?feux=0` rend les feux d'avant l'étude (halos crème), `?feux=1`/`?feux=2` les deux autres lectures. */
+var FEUXL=(function(){let n=3;try{const q=new URLSearchParams(location.search).get('feux');if(q==='0'||q==='1'||q==='2')n=+q;}catch(e){}
+  return {n:n,d:FEUX_DOSES[n]||null,fais:[],cartes:[],cM:null,stats:null,hlM:null,tlM:null,spec:null};})();
+const FEUX_0={halo:0xffe2a8,tC:0xff2818,tF:0xff5a36,hlC:LUMK.hlC.slice(),nappe:0xffd9a6}; /* le main d'avant l'étude, pour revenir à chaud */
+/* le POINT LED : un cœur blanc serré qui tombe vite (lampTex garde une traîne molle jusqu'à 74 % du rayon : la « boule de lumière ») */
+const ledTex=(function(){
+  const s=128,cv=document.createElement('canvas');cv.width=cv.height=s;const c=cv.getContext('2d');
+  const g=c.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
+  g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.09,'rgba(255,255,255,1)');g.addColorStop(.17,'rgba(255,255,255,.55)');
+  g.addColorStop(.32,'rgba(255,255,255,.16)');g.addColorStop(.55,'rgba(255,255,255,.03)');g.addColorStop(1,'rgba(255,255,255,0)');
+  c.fillStyle=g;c.fillRect(0,0,s,s);const t=new THREE.CanvasTexture(cv);t.minFilter=THREE.LinearFilter;return t;})();
+function feuxGlobal(){ /* ce qui ne dépend pas de la caisse : les halos, les feux arrière, le faisceau sur la route */
+  const D=FEUXL.d;HALO.hM.map=HALO.tM.map=D?ledTex:lampTex;HALO.hM.color.setHex(D?D.halo:FEUX_0.halo);
+  VIT9.tC.setHex(D?D.tC:FEUX_0.tC);VIT9.tF.setHex(D?D.tF:FEUX_0.tF);LUMK.hlC=(D?D.hlC:FEUX_0.hlC).slice();}
+if(FEUXL.d)feuxGlobal();
+/* LE FAISCEAU DANS L'AIR (lecture 2) : un cône ouvert par phare, additif, qui s'éteint vers le bout et sur ses bords (|N·V| : épais au milieu,
+   transparent sur la silhouette, comme un vrai volume de brume éclairée) — de nuit seulement (`VIT9.ph`, la même règle que les halos). */
+const FAIS_M=new THREE.ShaderMaterial({uniforms:{uC:{value:new THREE.Color(0xdfeaff)},uK:{value:0},uL:{value:13}},
+  vertexShader:'uniform float uL;varying float vL;varying vec3 vN;varying vec3 vV;void main(){vL=clamp(position.z/uL,0.,1.);vec4 mv=modelViewMatrix*vec4(position,1.);vN=normalize(normalMatrix*normal);vV=normalize(-mv.xyz);gl_Position=projectionMatrix*mv;}',
+  fragmentShader:'uniform vec3 uC;uniform float uK;varying float vL;varying vec3 vN;varying vec3 vV;void main(){float f=abs(dot(normalize(vN),normalize(vV)));float a=pow(f,2.)*pow(1.-vL,1.6)*smoothstep(0.,.06,vL)*uK;gl_FragColor=vec4(uC*a,1.);}',
+  transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
+FAIS_M.userData.plq=1; /* partagée par toutes les caisses (la règle de LA PLAQUE dans buildCar : jamais libérée, pas de recompilation) */
+const FAIS_G=(function(){const L=13,g=new THREE.CylinderGeometry(1.9,.16,L,18,6,true);g.translate(0,L/2,0);g.rotateX(Math.PI/2);return g;})(); /* l'axe le long de +z (l'avant de la caisse) */
+function feuxCaisse(){ /* la caisse posée : ses pièces lumineuses, ses feux-boîtes, ses halos, sa nappe, ses faisceaux — relus depuis l'ORIGINE à chaque fois */
+  const D0=FEUXL.d,spec=FEUXL.spec||CARS[level]||{l:4.4},D=D0&&FEUX_SAUF.indexOf(spec.name)>=0?null:D0; /* D : les pièces · D0 : les halos, la nappe, les faisceaux */
+  const st={pieces:0,blanc:0,rouge:0,ambre:0,hors:0};
+  const FV=[],RV=[]; /* (lecture 3) les TRIANGLES des lampes blanches (avant) et rouges (arrière), 9 nombres chacun, dans le repère de la caisse */
+  const tris=function(G,Mi,L,K){const pa=G.attributes.position,ix=G.index,n=ix?ix.count:pa.count,q=new THREE.Vector3(); /* K(i) : le sommet i en est-il ? (null : tous) */
+    for(let t=0;t+2<n;t+=3){const a=ix?ix.getX(t):t,b=ix?ix.getX(t+1):t+1,c=ix?ix.getX(t+2):t+2;if(K&&!(K(a)&&K(b)&&K(c)))continue;
+      for(const i of [a,b,c]){q.set(pa.getX(i),pa.getY(i),pa.getZ(i)).applyMatrix4(Mi);L.push(q.x,q.y,q.z);}}};
+  carGroup.updateMatrixWorld(true);
+  const lim=(spec.l||4.4)*.26,inv=new THREE.Matrix4().copy(carGroup.matrixWorld).invert(),M=new THREE.Matrix4(),p=new THREE.Vector3();
+  carGroup.traverse(function(m){
+    const mt=m.material;if(!m.isMesh||!mt||Array.isArray(mt)||!mt.isMeshBasicMaterial)return;
+    if(mt===FEUXL.hlM||mt===FEUXL.tlM){if(mt.userData.feuxC0==null)mt.userData.feuxC0=mt.color.getHex(); /* les feux-boîtes des vieux gabarits */
+      if(!D)mt.color.setHex(mt.userData.feuxC0);else{const c=mt===FEUXL.hlM?D.blanc:D.rouge,k=mt===FEUXL.hlM?D.kB:D.kR;mt.color.setRGB(c[0]*k,c[1]*k,c[2]*k);}
+      if(D&&D.carte)tris(m.geometry,new THREE.Matrix4().multiplyMatrices(inv,m.matrixWorld),mt===FEUXL.hlM?FV:RV,null);return;}
+    if(!mt.vertexColors||!mt.userData.lp)return;
+    const G=m.geometry,ca=G&&G.attributes.color,pa=G&&G.attributes.position;if(!ca||!pa)return;
+    if(!G.userData.feuxC0){const a=new Float32Array(ca.count*3);for(let i=0;i<ca.count;i++){a[i*3]=ca.getX(i);a[i*3+1]=ca.getY(i);a[i*3+2]=ca.getZ(i);}G.userData.feuxC0=a;
+      if(!(ca.array instanceof Float32Array))G.setAttribute('color',new THREE.BufferAttribute(a.slice(),3));}
+    const C=G.attributes.color,O=G.userData.feuxC0;st.pieces++;
+    M.multiplyMatrices(inv,m.matrixWorld);const KL=D&&D.carte?new Uint8Array(C.count):null; /* 1 : lampe blanche de l'avant · 2 : feu rouge de l'arrière */
+    for(let i=0;i<C.count;i++){
+      const r=O[i*3],g=O[i*3+1],b=O[i*3+2];C.setXYZ(i,r,g,b);if(!D)continue;
+      p.set(pa.getX(i),pa.getY(i),pa.getZ(i)).applyMatrix4(M);if(Math.abs(p.z)<lim){st.hors++;continue;} /* seulement aux deux bouts */
+      const mx=Math.max(r,g,b),mn=Math.min(r,g,b),sat=mx>0?(mx-mn)/mx:0;if(mx<.55)continue; /* les boîtiers sombres restent */
+      let h=0;if(mx>mn){if(mx===r)h=((g-b)/(mx-mn))%6;else if(mx===g)h=(b-r)/(mx-mn)+2;else h=(r-g)/(mx-mn)+4;h*=60;if(h<0)h+=360;}
+      let c=null,k=1;
+      if(sat<.3&&mx>=.82){c=D.blanc;k=mx>=.93?D.kB:1;st.blanc++;if(KL&&p.z>0&&mx>=.93)KL[i]=1;}                        /* le blanc des phares : 6 500 / 7 500 K, et l'éclat */
+      else if(sat>=.45&&(h<=14||h>=335)){c=D.rouge;k=mx>=.75?D.kR:1;st.rouge++;if(KL&&p.z<0&&mx>=.75)KL[i]=2;}         /* le rouge des feux : un rouge LED franc */
+      else if(D.ambre&&sat>=.45&&h>14&&h<=62){c=D.ambre;k=D.kA;st.ambre++;}                       /* l'ambre : celui d'un vrai clignotant, pas un jaune */
+      if(c)C.setXYZ(i,c[0]*mx*k,c[1]*mx*k,c[2]*mx*k);}
+    if(KL){tris(G,M,FV,function(i){return KL[i]===1;});tris(G,M,RV,function(i){return KL[i]===2;});}
+    C.needsUpdate=true;});
+  if(CARPOOL.head)CARPOOL.head.material.color.setHex(D0?D0.nappe:FEUX_0.nappe);
+  for(const s of HALO.h.concat(HALO.t)){if(s.userData.k0==null)s.userData.k0=s.userData.k;const k=s.userData.k0*(D0?D0.kH:1),k1=s.userData.k; /* ⚠ k1 vaut 0 après la 3 (pas de halo) : diviser donnait des NaN, et le bloom les étalait sur TOUT l'écran (image noire) */
+    if(k1>1e-6)s.scale.multiplyScalar(k/k1);else s.scale.set(k,k,1);s.userData.k=k;}
+  for(const f of FEUXL.fais){if(f.parent)f.parent.remove(f);f.geometry.dispose();}FEUXL.fais.length=0;
+  if(D0&&D0.fais>0)for(const s of HALO.h){const f=new THREE.Mesh(FAIS_G.clone(),FAIS_M);f.onBeforeRender=function(){}; /* (une géométrie à elle : buildCar libère tout à la caisse suivante) */
+    f.position.copy(s.position);f.position.z-=.1;f.rotation.x=.07; /* un peu vers la route */
+    f.userData.noShadow=true;f.renderOrder=3;f.frustumCulled=false;carGroup.add(f);FEUXL.fais.push(f);}
+  for(const c of FEUXL.cartes){if(c.parent)c.parent.remove(c);c.geometry.dispose();}FEUXL.cartes.length=0;
+  if(D&&D.carte){if(!FEUXL.cM)FEUXL.cM=[0,1].map(function(){const m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false});m.userData.plq=1;return m;});
+    FEUXL.cM[0].userData.c=D.blanc;FEUXL.cM[1].userData.c=D.rouge;
+    feuxCartes(FV,1,FEUXL.cM[0]);feuxCartes(RV,-1,FEUXL.cM[1]);st.cartes=FEUXL.cartes.length;}
+  FEUXL.stats=st;}
+function feuxCartes(V,sens,mat){ /* (lecture 3) les triangles regroupés par lampe (casiers 3D de 8 cm) → trois coques de lueur par lampe */
+  const nt=V.length/9;if(!nt)return;const C=.08,cas=new Map(),cle=function(x,y,z){return Math.floor(x/C)+'|'+Math.floor(y/C)+'|'+Math.floor(z/C);};
+  for(let t=0;t<nt;t++){const o=t*9,k=cle((V[o]+V[o+3]+V[o+6])/3,(V[o+1]+V[o+4]+V[o+7])/3,(V[o+2]+V[o+5]+V[o+8])/3);let L=cas.get(k);if(!L)cas.set(k,L=[]);L.push(t);}
+  const vu=new Set(),P=[],Cc=[],COU=[[1/3,.3],[2/3,.17],[1,.08]];
+  for(const k0 of cas.keys()){if(vu.has(k0))continue;const pile=[k0],T=[];vu.add(k0);
+    while(pile.length){const k=pile.pop();for(const t of cas.get(k))T.push(t);const a=k.split('|').map(Number);
+      for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(let dz=-1;dz<=1;dz++){const kk=(a[0]+dx)+'|'+(a[1]+dy)+'|'+(a[2]+dz);if(cas.has(kk)&&!vu.has(kk)){vu.add(kk);pile.push(kk);}}}
+    let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9,z0=1e9,z1=-1e9;
+    for(const t of T)for(let j=0;j<3;j++){const o=t*9+j*3;x0=Math.min(x0,V[o]);x1=Math.max(x1,V[o]);y0=Math.min(y0,V[o+1]);y1=Math.max(y1,V[o+1]);z0=Math.min(z0,V[o+2]);z1=Math.max(z1,V[o+2]);}
+    const cx=(x0+x1)/2,cy=(y0+y1)/2,cz=(z0+z1)/2,m=Math.min(.12,.04+.3*Math.min(x1-x0,y1-y0)),sg=function(d,e){return d>e?1:d<-e?-1:0;};
+    for(const [f,v] of COU){const mm=m*f;
+      for(const t of T)for(let j=0;j<3;j++){const o=t*9+j*3,x=V[o],y=V[o+1],z=V[o+2];
+        P.push(x+sg(x-cx,.004)*mm,y+sg(y-cy,.004)*mm,z+sg(z-cz,.004)*mm*.5+sens*mm*.35);Cc.push(v,v,v);}}}
+  if(!P.length)return;
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(Cc,3));
+  const c=new THREE.Mesh(g,mat);c.userData.noShadow=true;c.renderOrder=4;c.onBeforeRender=function(){};carBody.add(c);FEUXL.cartes.push(c);}
+function feuxLed(spec,hlM,tlM){FEUXL.hlM=hlM;FEUXL.tlM=tlM;FEUXL.spec=spec;FEUXL.fais.length=0;FEUXL.cartes.length=0;if(FEUXL.d)feuxCaisse();} /* fin de buildCar, après la soudure (l'ancienne caisse est partie avec ses lueurs) */
+{const av9=scene.onBeforeRender; /* ⚠ chaîné, jamais réassigné (pisteLoin, conesVus, la ville l'utilisent) */
+  scene.onBeforeRender=function(a,b,c,d,e,f){if(av9)av9.call(this,a,b,c,d,e,f);
+    if(FEUXL.cartes.length&&FEUXL.cM&&FEUXL.d&&FEUXL.d.carte){const D=FEUXL.d,boom=mode==='boom',ph=(VIT9.ph==null?1:VIT9.ph)*(CAR_PHK==null?1:CAR_PHK),fr=VIT9.frein||0;
+      const ka=boom?0:D.carte[0]*ph,kr=boom?0:D.carte[1]*(.75+.6*fr),ca=FEUXL.cM[0].userData.c,cr=FEUXL.cM[1].userData.c; /* devant : la nuit seulement (les phares s'éteignent au soleil) · derrière : toujours, et le frein l'embrase */
+      FEUXL.cM[0].color.setRGB(ca[0]*ka,ca[1]*ka,ca[2]*ka);FEUXL.cM[1].color.setRGB(cr[0]*kr,cr[1]*kr,cr[2]*kr);}
+    if(!FEUXL.fais.length)return;
+    const bq=garageOn&&typeof GBQ!=='undefined'&&(GBQ.on||GBQ.veut);
+    FAIS_M.uniforms.uK.value=(mode==='boom'||bq||!FEUXL.d)?0:FEUXL.d.fais*(VIT9.ph==null?1:VIT9.ph)*(CAR_PHK==null?1:CAR_PHK);
+    FAIS_M.uniforms.uC.value.setHex(FEUXL.d?FEUXL.d.nappe:FEUX_0.nappe);};}
+window.dbgFeuxLed=function(a,b){ /* (banc) dbgFeuxLed('mode',0|1|2|3) : change de lecture À CHAUD (même image, même instant) · ('fais',x) la force du faisceau dans l'air */
+  if(a==='mode'){FEUXL.n=b|0;FEUXL.d=FEUX_DOSES[FEUXL.n]||null;feuxGlobal();feuxCaisse();}
+  else if(a==='fais'&&FEUXL.d)FEUXL.d.fais=+b;
+  return {lecture:FEUXL.n,stats:FEUXL.stats,cartes:FEUXL.cartes.length,ph:VIT9.ph==null?null:+VIT9.ph.toFixed(2),faisceaux:FEUXL.fais.length,uK:+FAIS_M.uniforms.uK.value.toFixed(2)};};
 /* ---- LE MOTEUR QUI AVANCE + LE NITRO EN FEU DE PIXELS (2026-10-15, pôle TECHNIQUE — Léo : « le nitro et la flamme du moteur, c'est
    un peu fade : on n'arrive pas à distinguer le nitro du moteur » · « pas trop régulier, comme le moteur d'une voiture qui avance : qu'on
    ne voie pas une séquence qui se répète ; en réaction à comment la voiture bouge, inspiré de la physique » · « le nitro : un classique,
@@ -40461,7 +40633,13 @@ Object.assign(I18N,{
   "Quatre voiles irisés qui bourdonnent et sèment de la poussière de fée. Il suffit d'y croire. Et d'un plein de nitro.":"Four shimmering veils that buzz and scatter fairy dust. You just have to believe. And have a full tank of nitro.",
   "Membranes veinées de lave, griffes, grands coups d'aile. Au boost, la lave flambe et crache des braises.":"Lava-veined membranes, claws, mighty wingbeats. When you boost, the lava flares and spits embers.",
   "Des plumes de feu qui battent en semant des étincelles. Tu exploses ? Tu renais de tes cendres. Au prochain run.":"Feathers of fire that beat and scatter sparks. You blow up? You rise from your ashes. Next run."});
+// (2026-10-20) UNE FICHE SANS COTES NE SE CONSTRUIT PAS. Les caisses retirées sont réduites à `{retire:1,name}` (voir cars.js) : montées
+// quand même (dbgEquipe des bancs), le repli `gt` recevait une largeur `undefined` — coque, ancrages et gabarit en NaN, le cadrage du
+// garage (GAR.vD, cdx…) passait en NaN et toute l'image 3D sortait NOIRE. Le joueur n'y arrive pas (equippedCar, garageListe et
+// l'inventaire écartent les retirées) : c'est le filet. Une retirée qui garde sa fiche (LA POUPÉE, LA DAYTONA…) se construit comme avant.
+function carFicheOk(s){return !!s&&s.w>0&&s.h>0&&s.l>0;}
 function buildCar(spec){
+  if(!carFicheOk(spec)){console.warn('CASH CAR : « '+((spec&&spec.name)||'?')+' » n\'a pas de fiche (caisse retirée) — LA HONTE à la place');spec=CARS[0];}
   // ⚠ LES PIÈCES LOW-POLY SE LIBÈRENT : chaque caisse a SA géométrie (plusieurs milliers de facettes)
   // et ses matières. Sans ce passage, chaque aller-retour au garage laisserait une caisse en VRAM.
   // (2026-09-26, passe fuites) MESURÉ : seules les pièces du kit étaient libérées — une caisse hors kit laissait ~45 géométries sur le GPU,
@@ -40811,6 +40989,7 @@ function buildCar(spec){
   carGroup.traverse(o9=>{if(o9.isMesh&&!o9.userData.noShadow)o9.castShadow=true;}); // toute la caisse porte son ombre LONGUE — sauf la nappe néon (un carré d'ombre, non merci)
   if(bodyM.userData.mot)carGroup.traverse(function(o9){const m9=o9.material;if(o9.isMesh&&m9&&!Array.isArray(m9)&&m9.userData&&m9.userData.mot&&!MOT_FAIT.has(m9))try{motGreffe(m9,m9.userData.mot);}catch(e){}}); // (2026-10-16) un gabarit qui CLONE la tôle (l'épave : K.body.clone()) : le clone garde la couleur blanche, il reprend le motif
   caisseSoude(); // (2026-09-27, passe perf iPhone) ce qui ne bouge jamais est soudé par matière — voir « LA CAISSE EN UN MINIMUM DE DESSINS »
+  try{feuxLed(spec,hlM,tlM);}catch(e){console.warn('feux',e);} // (2026-10-20) l'étude des feux en LED, `?feux=1|2` (voir FEUXL) — sans paramètre, rien ne change
 }
 /* <<<FIN VOITURES>>> */
 /* ================= LA PLAQUE D'IMMATRICULATION (2026-10-17, Sacha : « rajoute une plaque d'immatriculation personnalisable au début du
@@ -41661,7 +41840,7 @@ function engVigRender(dt){
 }
 buildCar(CARS[0]);
 try{renderer.initTexture(flouRoueTex);}catch(e){} // (2026-09-26) le flou de jante ne s'allume qu'en course, lancé : sa texture monte au GPU dès maintenant, pas au premier virage
-window.dbgEquipe=function(i){if(started&&!gameOver)return 'en course';i=Math.max(0,Math.min(CARS.length-1,i|0));SAVE.d.equipped=i;level=i;buildCar(CARS[i]);return CARS[i].name;}; // (2026-09-26) équiper une caisse depuis la console (tests)
+window.dbgEquipe=function(i){if(started&&!gameOver)return 'en course';i=Math.max(0,Math.min(CARS.length-1,i|0));if(!carFicheOk(CARS[i]))return CARS[i].name+' : RETIRÉE (pas de fiche)';SAVE.d.equipped=i;level=i;buildCar(CARS[i]);return CARS[i].name;}; // (2026-09-26) équiper une caisse depuis la console (tests) — (2026-10-20) une retirée sans fiche est refusée (voir carFicheOk) : elle mettait le garage au noir
 window.dbgSpec=function(i){const c=CARS[i|0];return c?{name:c.name,w:c.w,l:c.l,h:c.h,shape:c.shape}:null;};window.dbgNbCaisses=function(){return CARS.length;}; // (dev) les fiches, pour les bancs d'essai
  // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
 window.dbgScene=function(){return {car:carGroup,scene:scene,contact:contactShadow,shadow:shadow,cam:camera,rdr:renderer};}; // dissection console (visuel pur) — (2026-09-26) + caméra et renderer : le banc des laques mesure la caisse au pixel
@@ -44532,7 +44711,7 @@ const SHOP_CATS=['voiture','peinture','aile','trainee','figure'];
 const SHOP={tab:'voiture',i:{peinture:0,aile:0,trainee:0},prev:null}; // prev : l'article ESSAYÉ (pas forcément à toi)
 function shopOwned(cat,id){if(cat==='figure')return figPossede(id);if(cousin())return !!COSM[cat].find(x=>x.id===id); // (2026-10-14) LE CODE COUSIN : tous les habillages
 const d=COSM[cat].find(x=>x.id===id);if(!d)return false;
-  if(d.pack==='chat'&&m2Chat())return true; /* (2026-10-16, missions v2) l'ARC-EN-CIEL vient avec le chat */if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur)return true;return SAVE.d.shop.own.indexOf(cat+':'+id)>=0;} // (2026-10-14, palette) pack et secrètes : possédées seulement une fois données
+  if(d.pack==='chat'&&m2Chat())return true; /* (2026-10-16, missions v2) l'ARC-EN-CIEL vient avec le chat */if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur&&!d.serie)return true;return SAVE.d.shop.own.indexOf(cat+':'+id)>=0;} // (2026-10-14, palette) pack et secrètes : possédées seulement une fois données
 function shopEqD(cat){const id=SAVE.d.shop.eq[cat],d=COSM[cat].find(x=>x.id===id);return (d&&shopOwned(cat,d.id))?d:COSM[cat][0];}
 function cosm(cat){return (SHOP.prev&&SHOP.prev.cat===cat)?COSM[cat][SHOP.prev.i]:shopEqD(cat);} // ce que la caisse PORTE (essai compris)
 // ⚠ le TOUT PREMIER `buildCar` tourne à l'init, AVANT que `SAVE`/`SHOP` ne soient déclarés (zone morte) : on rend alors l'origine
@@ -50832,7 +51011,9 @@ function jourCommit(){ // appelée par commitExploits : la partie compte → le 
   try{
     if(!J.on||!J.cmp||!J.dep||!(RUNX.t>=J.tMin))return 0;
     const e=jourEtat(J.dep),S=SAVE.d.jour;
-    if(e.dispo){S.d=J.dep;S.n=e.suiv;const p=jourPrime(e.suiv);
+    if(e.dispo){S.d=J.dep;S.n=e.suiv;
+      if(typeof SERIE7==='object'&&SERIE7.on){const o=serieDonne(e.suiv);J.fin={n:e.suiv,p:o.cash,k:J.k,s:o};J.cmp=false;return o.cash;} /* (2026-10-20, Léo) LA SÉRIE DE SEPT JOURS (missions/aujourdhui.js) : la case du calendrier au lieu de la prime ; ?serie=ancien = la prime */
+      const p=jourPrime(e.suiv);
       if(p>0){SAVE.d.bank=Math.min(1e30,bank()+p);gagneAjoute(p);bankMaxMaj();}
       J.fin={n:e.suiv,p:p,k:J.k};J.cmp=false; // une seule fois par partie
       return p;}
@@ -50843,8 +51024,9 @@ function jourCommit(){ // appelée par commitExploits : la partie compte → le 
 function jourFinTexte(){ // (écran de fin) ce que le quotidien a donné à CETTE partie, à ajouter à la ligne « COMPTE : $ N » : « · ×2 DU JOUR · SÉRIE 3 +$ 40 » ('' si rien) — en capitales JS (accents gardés : la ligne est en police système)
   const f=JOUR.fin;if(!f)return '';
   let s=f.k>1?TR('×2 du jour'):'';
-  if(f.p>0)s+=(s?' · ':'')+TR('Série {n}').replace('{n}',f.n)+' +'+fmtC(f.p);
-  return s?' · '+s.toUpperCase():'';
+  if(f.s){const L=f.s.cash?{cash:f.s.cash}:f.s.jeton?{jeton:f.s.jeton}:{exclu:f.s.exclu};s+=(s?' · ':'')+TR('Série {n}').replace('{n}',f.n)+' '+serieLotTxt(L);} /* (2026-10-20) la case de la série : argent, jeton ou peinture */
+  else if(f.p>0)s+=(s?' · ':'')+TR('Série {n}').replace('{n}',f.n)+' +'+fmtC(f.p);
+  return s?' · '+sansAcc(s.toUpperCase()):''; /* (2026-10-20) la ligne est en police PIXEL (pas de capitales accentuées : « SéRIE » s'affichait) */
 }
 function jourTexte(){ // la phrase du quotidien, déjà traduite ('' = rien à dire) : « Série 3 jours · ×2 sur ta 1re partie » / « Prochain ×2 demain ». Les mots sont en casse mixte (TR ne retire alors aucun accent) : la feuille met en capitales.
   try{
@@ -50953,7 +51135,7 @@ const SAVE={
        `owned` : les index des caisses ACHETÉES. Séparé des exploits : un achat n'est pas un exploit. */
     mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, figs:['tailwhip'], figT0:0, figEq:[], pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
     bank:0, aura:0, owned:[], auraMax:0, gamme:3, eco:3, frenRec:0, // `frenRec` : la plus longue FRÉNÉSIE jamais tenue (s) // `eco` : échelle de l'argent de course (vague 3, voir la migration des records en fin de san) // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
-    jour:{d:'',n:0},cad:{t:0}, // (2026-10-14, GAMEPLAY) LE RETOUR DU JOUR : `d` = la date locale de la dernière partie COMPTÉE ('AAAA-MM-JJ'), `n` = la série à cette date · LE CADEAU : `t` = l'heure (ms) du dernier cadeau ouvert, 0 = jamais (voir JOUR / CAD)
+    jour:{d:'',n:0},cad:{t:0},dj:{d:'',k:'',v:0,b:0,ok:0,y:''}, // (2026-10-14, GAMEPLAY) LE RETOUR DU JOUR : `d` = la date locale de la dernière partie COMPTÉE ('AAAA-MM-JJ'), `n` = la série à cette date · LE CADEAU : `t` = l'heure (ms) du dernier cadeau ouvert, 0 = jamais (voir JOUR / CAD)
     m2:m2Vierge(), // (2026-10-16) LES MISSIONS v2 : réussies, prises, suivies, records, compteurs à vie (voir m2Etat)
     plq:{m:'fr',x:(typeof plqHasard==='function'?plqHasard():'CASH CAR'),ok:0},prof:{ne:Date.now(),tA:0,dMax:0}, // (2026-10-17) LA PLAQUE (modèle, texte, validée) et LE PROFIL (né le, temps de jeu, plus longue partie) — voir PLQ
     ai:{air:.5,boost:.35,caution:.5,skill:.86,aggr:.55,airDur:1.1,runs:0}};}, // profil d'apprentissage des IA
@@ -51080,6 +51262,8 @@ const SAVE={
     c.eco=3;
     if(d.bq&&typeof d.bq==='object'&&isFinite(+d.bq.j)&&Array.isArray(d.bq.l))c.bq={j:Math.round(+d.bq.j),l:d.bq.l.filter(function(x){return typeof x==='string';}).slice(0,12).map(function(x){return x.slice(0,32);})}; // (2026-10-10) LA BOUTIQUE DU JOUR : la vitrine tirée ce jour-là
     /* (2026-10-14, GAMEPLAY) LE RETOUR DU JOUR ET LE CADEAU : une date illisible repart de zéro, la série est bornée ; un cadeau « dans le futur » (horloge reculée, code importé) est ramené à maintenant — il ne bloquerait pas le suivant des mois */
+    /* (2026-10-20, Léo) LE DÉFI DU JOUR : une date et une famille lisibles, des nombres finis — sinon le prochain regard en tire un neuf */
+    if(d.dj&&typeof d.dj==='object'&&/^\d{4}-\d{2}-\d{2}$/.test(String(d.dj.d||''))&&/^[a-zA-Z]{2,8}$/.test(String(d.dj.k||''))){const N9=function(x){x=+x;return isFinite(x)?Math.max(0,Math.min(1e9,x)):0;};c.dj={d:String(d.dj.d),k:String(d.dj.k),v:N9(d.dj.v),b:N9(d.dj.b),ok:d.dj.ok?1:0,y:/^[a-zA-Z]{0,8}$/.test(String(d.dj.y||''))?String(d.dj.y||''):''};}
     c.jour={d:'',n:0};if(typeof jourNum==='function'&&typeof JOUR==='object'&&d.jour&&typeof d.jour==='object'){/* (2026-10-14, GAMEPLAY) le test de typeof : les preuves de sauvegarde (passation/preuves) n'exécutent que la zone SAVE, hors du bloc JOUR — sans lui elles jetaient « jourNum is not defined » */const nj=jourNum(d.jour.d);if(nj===nj){c.jour.d=String(d.jour.d);c.jour.n=Math.max(0,Math.min(JOUR.max,Math.round(+d.jour.n)||0));}}
     /* (2026-10-16) LES MISSIONS v2 : bornées comme le reste — ids a-z0-9 (2 à 12), listes courtes, nombres finis ; un code importé ne coche rien qu'il ne saurait dire */
     if(d.m2&&typeof d.m2==='object'){const s9=d.m2,o9=c.m2,I9=/^[a-z0-9]{2,12}$/,L9=function(a,n){return Array.isArray(a)?[...new Set(a.filter(function(x){return typeof x==='string'&&I9.test(x);}))].slice(0,n):[];},
@@ -52759,13 +52943,13 @@ function m2Vues(L){const K=m2Cartes();let n=0;for(const k of L)if(K.indexOf(k)>=
 function m2CarAMoi(i){if(carRetiree(i))return false;if(carOwned(i))return true;if(i<=((SAVE.d.ex&&SAVE.d.ex.floor)|0))return true;
   const u=CAR_UNLOCK[i];if(!u)return true;if(u.k==='mis'||u.p||u.k==='premium'||u.eur)return false;return carStat(u.k)>=u.v;}
 function m2HabAMoi(cat,d){if(cat==='figure')return d.id==='tailwhip'||(Array.isArray(SAVE.d.figs)&&SAVE.d.figs.indexOf(d.id)>=0);
-  if(d.pack==='chat'&&m2Chat())return true;if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur)return true;return SAVE.d.shop.own.indexOf(cat+':'+d.id)>=0;}
+  if(d.pack==='chat'&&m2Chat())return true;if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur&&!d.serie)return true;return SAVE.d.shop.own.indexOf(cat+':'+d.id)>=0;}
 function m2Chat(){for(let i=0;i<CARS.length;i++)if(CARS[i]&&CARS[i].shape==='poptart')return m2CarAMoi(i)||(function(){try{return carUnlockedVrai(i);}catch(e){return false;}})();return false;}
 /* les objets que donnent les missions : hors des « toutes » (« les objets gagnés par mission ne comptent PAS dans toutes ») — les
    couleurs SECRÈTES de la palette aussi (elles se gagnent par leur mission secrète) */
 /* (M2_RECO, le cache de m2Reco, est déclarée plus haut, à côté de M2K : voir là) */
 function m2Reco(){if(M2_RECO)return M2_RECO;const R={car:{},hab:{}};for(const m of M2){const r=m.r||{};if(r.car)R.car[r.car]=m.id;if(r.cat)R.hab[r.cat+':'+r.id]=m.id;}return (M2_RECO=R);}
-function m2HabReco(cat,d){return !!(m2Reco().hab[cat+':'+d.id]||(cat==='peinture'&&d.sec));}
+function m2HabReco(cat,d){return !!(m2Reco().hab[cat+':'+d.id]||(cat==='peinture'&&(d.sec||d.serie)));} /* (2026-10-20) les peintures de la SÉRIE se gagnent au 7e jour : hors des « toutes » */
 /* LA COLLECTION : n = possédés (tout compte), tot/nT = le lot « toutes » (sans les objets de mission) et ce qu'on en a */
 function m2Col(cat){const R=m2Reco();let n=0,tot=0,nT=0;
   if(cat==='voiture'){for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const a=m2CarAMoi(i);if(a)n++;if(!R.car[CARS[i].name]){tot++;if(a)nT++;}}}
@@ -52864,14 +53048,14 @@ function m2LigneDit(k,tx,p){if(!m2EnC())return false;M2L.q.push({k:k,tx:tx,p:p||
 function m2LigneSuit(){clearTimeout(M2L.t);let e=document.getElementById('m2Ligne');
   if(!M2L.q.length||!m2EnC()){m2LigneVide();return;}
   let it=M2L.q.shift();
-  if(M2L.on&&M2L.q.length){const n=M2L.q.length+1;M2L.q.length=0;it={k:'ok',tx:'',p:'',n:n};} // une rafale : le reste en une seule ligne
+  if(M2L.on&&M2L.q.length&&it.k!=='dj'){const n=M2L.q.length+1;M2L.q.length=0;it={k:'ok',tx:'',p:'',n:n};} // une rafale : le reste en une seule ligne (2026-10-20 : le DÉFI DU JOUR passe toujours seul, en tête)
   M2L.on=1;
   if(!e){e=document.createElement('div');e.id='m2Ligne';e.setAttribute('role','status');(document.getElementById('hud')||document.body).appendChild(e);}
   const f=document.getElementById('m2Focus');e.style.setProperty('--m2lY',(f&&f._on&&f.offsetHeight?f.offsetHeight+4:0)+'px'); // au-dessus des suivies
-  const sec=it.k!=='ok',ti=it.n?it.n+' '+TR('MISSIONS RÉUSSIES'):TR(sec?'MISSION SECRÈTE':'MISSION RÉUSSIE');
-  e.innerHTML='<i>'+pxi(sec?'oeil':'coche')+'</i><span><small>'+sansAcc(ti)+'</small>'+(it.tx?' '+it.tx:'')+'</span>'+(it.p?'<b>'+it.p+'</b>':'');
+  const dj=it.k==='dj',sec=it.k!=='ok'&&!dj,ti=it.n?it.n+' '+TR('MISSIONS RÉUSSIES'):TR(dj?'DÉFI DU JOUR':sec?'MISSION SECRÈTE':'MISSION RÉUSSIE');
+  e.innerHTML='<i>'+pxi(dj?'cible':sec?'oeil':'coche')+'</i><span><small>'+sansAcc(ti)+'</small>'+(it.tx?' '+it.tx:'')+'</span>'+(it.p?'<b>'+it.p+'</b>':'');
   e.classList.toggle('sec',sec);e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
-  try{if(SONV2&&it.k==='ok')sfx('ui.mission');}catch(x){}
+  try{if(SONV2&&(it.k==='ok'||dj))sfx('ui.mission');}catch(x){}
   M2L.t=setTimeout(function(){e.classList.remove('on');M2L.t=setTimeout(m2LigneSuit,520);},2400);}
 function m2LigneVide(){M2L.q.length=0;clearTimeout(M2L.t);M2L.on=0;const e=document.getElementById('m2Ligne');if(e)e.classList.remove('on');}
 /* ---- LA RÉCOMPENSE (RÉCUPÈRE) : une fois, jamais deux ---- rend {cash|car|cat,hab} ou null */
@@ -52903,6 +53087,7 @@ function m2Tick(dt,kmh){if(!m2Ok()||paused)return;const s=m2Etat(),r=s.r;if(!M2R
   if(mode==='fall'){if(!JEAU.dans)M2R.volT+=dt;if(k==='nuages'&&M2R.volT>(r.vol||0))r.vol=M2R.volT;if(k==='ville')m2Tours(r);else if(k==='volcan')m2Geyser();}
   if(k==='banquise'&&BANQ.glisse&&BANQ.sur===2){M2R.lac+=dt;if(M2R.lac>(r.lac||0))r.lac=M2R.lac;}else M2R.lac=0;
   if(k==='jade'&&JEAU.dans&&JEAU.prof>(r.prof||0))r.prof=JEAU.prof;
+  try{djTick(dt);}catch(e){} /* (2026-10-20) LE DÉFI DU JOUR (missions/aujourdhui.js) */
   M2R.t-=dt;if(M2R.t<=0){M2R.t=.25;m2Verifie(true);try{m2FocusMaj();}catch(e){}}}
 function m2Saut(){M2R.tourV.length=0;M2R.figV=0;M2R.volT=0;} // startFall : un saut neuf (le bump n'en est pas un : il prolonge le saut)
 /* FRÔLER UNE TOUR (la ville) : passer à moins de M2K.frole m d'un flanc, à hauteur de la tour, sans la toucher — la même grille que
@@ -53031,6 +53216,7 @@ function m2Render(vu){
   const el=$('gmNoeuds'),sv=$('gmFils');if(!el)return;if(sv)sv.innerHTML='';
   const old=$('gmListe'),sc0=old?old.scrollTop:0,a0=old&&old.querySelector('.glA'),sc1=a0?a0.scrollTop:0;
   const s=m2Etat(),L=m2Lignes(),pal=m2SecPal();let h='<div class="glA m2A">',k=0;
+  try{h+=aujHtml();}catch(e){console.warn('aujHtml',e);} /* (2026-10-20, Léo) AUJOURD'HUI : le défi du jour et la série de sept jours (missions/aujourdhui.js) */
   for(const x of L)if(x.rg<9)h+=m2Ligne(x,k++,s);
   const fin=L.filter(function(x){return x.rg===9;}),nf=fin.length+pal.length;
   if(nf){h+='<div class="m2Fin'+(M2E.fin?' on':'')+'" role="button" tabindex="0" aria-expanded="'+M2E.fin+'">'+pxi('coche')+'<span>'+sansAcc(TR('TERMINÉES'))+' ('+nf+')</span>'+pxi(M2E.fin?'haut':'bas')+'</div>';
@@ -53067,6 +53253,7 @@ function m2Recupere(id,row){
   try{gBankPaint();}catch(e){}try{m2Portes();}catch(e){}
   setTimeout(function(){if(garageOn&&gEl&&gEl.classList.contains('missions'))m2Render(true);else m2Portes();},REDUCED_MOTION?0:560);}
 function m2Clic(e){const t=e.target;if(!t||!t.closest)return;
+  if(t.closest('.m2Auj')){aujClic(t);return;} /* (2026-10-20) le bloc AUJOURD'HUI dit ce qu'il donne */
   const fin=t.closest('.m2Fin');if(fin){M2E.fin=!M2E.fin;uiClic(M2E.fin?'on':'off');hap(8);m2Render(true);
     if(M2E.fin){const f2=document.querySelector('#gmListe .m2Fin');if(f2&&f2.scrollIntoView)try{f2.scrollIntoView({block:'start',behavior:REDUCED_MOTION?'auto':'smooth'});}catch(x){}}return;}
   const pal=t.closest('[data-pal]');if(pal){const j=COSM.peinture.findIndex(function(d){return d.id===pal.getAttribute('data-pal');});if(j<0)return;uiClic('nav');
@@ -53242,6 +53429,137 @@ const NFX={ign:0,ignK:1,air:false,off:0,t0:-9,sT:-9,len:0,edge:0,col:new THREE.C
     opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,depthTest:false,side:THREE.DoubleSide,fog:false})); // (2026-09-28) sans test de profondeur : la route coupait l'onde en FER À CHEVAL
   NFX.ring.visible=false;NFX.ring.frustumCulled=false;NFX.ring.renderOrder=3;scene.add(NFX.ring);
 }
+/* ===== AUJOURD'HUI — LA SÉRIE DE SEPT JOURS ET LE DÉFI DU JOUR (2026-10-20, Léo coche, séance « ce qu'on n'a jamais vraiment travaillé » :
+   « une série de jours qui vaut le coup » · « le défi du jour, taillé pour toi ») =====
+   Bâti SUR le retour du jour de Sacha (son/mute-cadeau.js, 14/10 : le ×2 de la 1re partie du jour, la série comptée par jourEtat/jourCommit) :
+   rien de son horloge ne change, seule la PRIME de la série est remplacée.
+   1. LA SÉRIE DE SEPT JOURS (`SERIE7`) — la prime de série valait 25 à 100 $ (une caisse coûte 1 500 $ à 2,5 M) : on ne la voyait pas, elle ne
+      faisait revenir personne. Désormais un CALENDRIER de sept cases, en tête de l'écran MISSIONS : 150 $ · 250 $ · 1 JETON · 400 $ · 600 $ ·
+      1 JETON · et au 7e jour UNE PEINTURE EXCLUSIVE (quatre, une par semaine : elles ne s'achètent pas, ni en boutique ni à la boutique du
+      jour ; toutes à toi → 2 jetons). Le jour se gagne comme avant : la 1re partie COMPTÉE du jour (jourCommit, ≥ 15 s de course). Après le 7e,
+      le calendrier repart au 1er jour (la série, elle, continue de se compter) ; un jour sauté le remet au 1er jour. Un jeton = un tirage de la
+      machine FINAL SPIN (≈ 1 700 $ d'espérance, la seconde chance, le départ boosté, le jackpot) : c'est lui qui donne envie.
+      Mesuré au modèle de Sacha (outils/jour-modele.cjs) : un joueur moyen gagne 350 à 700 $ par jour ; la semaine pleine verse 1 400 $ + 2 jetons
+      + la peinture, contre 375 $ avant. `?serie=ancien` rend la prime de Sacha (0 · 25 · … · 100, JOUR.prime, que le modèle lit toujours).
+   2. LE DÉFI DU JOUR (`DJ`, SAVE.d.dj) — UN défi par jour, tiré au 1er regard du jour, gardé jusqu'à minuit (heure de l'appareil) :
+      · LA FAMILLE suit TON style : figures dans un saut, temps de vol posé, vitesse, survie, aura, poses parfaites d'affilée, frénésie (si tu l'as
+        déjà atteinte) — chacune pèse 1 + ton record ÷ sa référence (plafonné à 3) : qui saute beaucoup reçoit plus de défis de figures. Jamais
+        la même famille deux jours de suite. Le tirage vient de la date (même défi toute la journée, sur le même appareil).
+      · LE SEUIL est calé sur TON meilleur (les records des missions, m2Etat().r) : égaler ton record pour les petits comptes (figures, poses),
+        ~90 % pour le reste ; un plancher de débutant (2 figures, 3 s de vol, 45 s, 250 km/h, 1 500 d'aura, 2 poses, 8 s de frénésie).
+      · Il se joue EN UNE PARTIE (les mesures de la course : m2ValCourse) ; réussi → +1 JETON tout de suite et la ligne du bas en course
+        (« DÉFI DU JOUR RÉUSSI · +1 JETON ») — la machine FINAL SPIN s'ouvre à l'écran de fin. Rien en balade, bac à sable, parc ni auto-école.
+   L'AFFICHAGE : un bloc AUJOURD'HUI en tête de la liste des missions (m2Render) — la ligne du défi (la même main que les missions : icône,
+   consigne, jauge du meilleur essai du jour, « NOUVEAU DÉFI DANS 7 H ») et la rangée des sept cases (cochées, celle d'aujourd'hui qui bat,
+   DEMAIN annoncé quand la case du jour est prise). L'écran de fin dit ce que la série a donné (jourFinTexte).
+   Console : dbgSerie() · dbgSerie('jour',n) (pose la série à n jours, prise hier) · dbgDefiJour() · ('force','fig') · ('reussi') · ('demain'). */
+const SERIE7={on:!/[?&]serie=ancien\b/.test(location.search),
+  lots:[{cash:150},{cash:250},{jeton:1},{cash:400},{cash:600},{jeton:1},{exclu:1}],
+  exclu:['srBraise','srAurore','srLagon','srEtoile'],plein:{jeton:2}};
+/* LES QUATRE PEINTURES DE LA SÉRIE — `serie:1` : ni prix, ni mission ; shopOwned / m2HabAMoi ne les donnent qu'une fois gagnées ; hors des lots « toutes » des missions (m2HabReco) */
+COSM.peinture.push(
+  {id:'srBraise',n:'BRAISE FIDÈLE',serie:1,r:'epique',g:'o',grad:[0xb3141c,0xff5a1c,0xffc23a],d:'Ne s\'achète pas : le 7e jour de ta série. Sept jours d\'affilée sur l\'asphalte, la laque en garde la chaleur.'},
+  {id:'srAurore',n:'AURORE BORÉALE',serie:1,r:'epique',g:'c',grad:[0x3cffc0,0x6fb8ff,0xc77dff],d:'Ne s\'achète pas : le 7e jour de ta série. Le ciel du Grand Nord, pour ceux qui reviennent chaque jour.'},
+  {id:'srLagon',n:'LAGON INTERDIT',serie:1,r:'epique',g:'g',grad:[0x01404f,0x00b3c7,0x9ff7ff],d:'Ne s\'achète pas : le 7e jour de ta série. Une eau que personne n\'a le droit de voir. Toi si.'},
+  {id:'srEtoile',n:'NUIT ÉTOILÉE',serie:1,r:'epique',g:'c',grad:[0x2a1f8f,0x8f5bff,0xff7ad9],d:'Ne s\'achète pas : le 7e jour de ta série. La nuit entière sur ta carrosserie, une semaine de plus.'});
+function serieCase(n){return ((Math.max(1,n|0)-1)%7)+1;} /* le jour de série n → sa case du calendrier (1 … 7) */
+function serieLot(c){const L=SERIE7.lots[c-1]||SERIE7.lots[0];if(!L.exclu)return L;const id=serieExclu();return id?{exclu:id}:SERIE7.plein;}
+function serieExclu(){const o=(SAVE.d.shop&&SAVE.d.shop.own)||[];for(const id of SERIE7.exclu)if(o.indexOf('peinture:'+id)<0)return id;return '';} /* la prochaine peinture pas encore à toi */
+function serieDonne(n){ /* appelée par jourCommit (la 1re partie comptée du jour) : verse le lot de la case du jour n, rend {c, cash, jeton, exclu} */
+  const c=serieCase(n),L=serieLot(c),o={c:c,cash:0,jeton:0,exclu:''};
+  if(L.cash){SAVE.d.bank=Math.min(1e30,bank()+L.cash);gagneAjoute(L.cash);bankMaxMaj();o.cash=L.cash;}
+  if(L.jeton){SAVE.d.spinJ=Math.min(9,(SAVE.d.spinJ|0)+L.jeton);o.jeton=L.jeton;}
+  if(L.exclu){const k='peinture:'+L.exclu;if(SAVE.d.shop.own.indexOf(k)<0)SAVE.d.shop.own.push(k);o.exclu=L.exclu;
+    setTimeout(function(){try{toast(pxi('pinceau')+' '+serieLotTxt(L)+' — '+TR('EST À TOI'),true);}catch(e){}},1400);} /* le 7e jour : la peinture se dit, après l'entrée de l'écran de fin */
+  SAVE.mark();return o;}
+function serieLotTxt(L){ /* « +$ 150 » · « +1 JETON » · « BRAISE FIDÈLE » */
+  if(L.cash)return '+'+fmtC(L.cash);if(L.jeton)return '+'+L.jeton+' '+TR(L.jeton>1?'JETONS':'JETON');
+  const d=COSM.peinture.find(function(x){return x.id===(L.exclu||'');});return d?TR(d.n):'';}
+function serieVue(){ /* l'état du calendrier pour l'affichage : {c : la case du jour (1-7) · pris : la case du jour est déjà gagnée · faits : cases cochées · n : la série vivante} */
+  const a=jourAuj();if(!a||!JOUR.on)return null;const e=jourEtat(a);
+  if(e.dispo)return {c:serieCase(e.suiv),pris:false,faits:serieCase(e.suiv)-1,n:e.n,casse:e.n>0&&e.suiv===1};
+  return {c:serieCase(e.n),pris:true,faits:serieCase(e.n),n:e.n,casse:false};}
+
+/* ---- LE DÉFI DU JOUR ---- */
+const DJ={on:!/[?&]defijour=0\b/.test(location.search),t:0,
+  fam:[{k:'fig',  u:'',    ref:4,    min:2,   K:1,   t:'FAIS {v} FIGURES DANS UN SEUL SAUT',en:'LAND {v} TRICKS IN A SINGLE JUMP'},
+       {k:'airP', u:'s',   ref:5,    min:3,   K:.9,  t:'TIENS {v} S EN L\'AIR ET POSE-TOI PROPREMENT',en:'STAY {v} S IN THE AIR AND LAND CLEAN'},
+       {k:'vie',  u:'mn',  ref:120,  min:45,  K:.9,  t:'SURVIS {v} EN UNE PARTIE',en:'SURVIVE {v} IN ONE RUN'},
+       {k:'kmh',  u:'kmh', ref:500,  min:250, K:.95, t:'ATTEINS {v} KM/H',en:'HIT {v} KM/H'},
+       {k:'aura', u:'aura',ref:15000,min:1500,K:.85, t:'FAIS {v} D\'AURA EN UNE PARTIE',en:'SCORE {v} AURA IN ONE RUN'},
+       {k:'parf', u:'',    ref:3,    min:2,   K:1,   t:'ENCHAÎNE {v} POSES PARFAITES',en:'CHAIN {v} PERFECT LANDINGS'},
+       {k:'frenT',u:'s',   ref:20,   min:8,   K:.8,  t:'TIENS LA FRÉNÉSIE {v} S',en:'HOLD FRENZY FOR {v} S'}]};
+function djHache(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function djArrondi(f,x){if(f.u==='kmh'||f.u==='mn')return Math.round(x/10)*10;if(f.u==='aura'){const p=Math.pow(10,Math.max(0,Math.floor(Math.log10(Math.max(1,x)))-1));return Math.round(x/p)*p;}
+  return Math.round(x);}
+function djRecord(f){try{return +m2Val({k:f.k})||0;}catch(e){return 0;}} /* le record à vie (les missions le tiennent) */
+function djTire(jour,hier){ /* le défi d'un jour : la famille (ton style, tirée sur la date), le seuil (ton meilleur) */
+  const s=m2Etat(),R=[];let tot=0;
+  for(const f of DJ.fam){if(f.k===hier)continue;if(f.k==='frenT'&&!(s.r&&s.r.frenN))continue;const w=1+Math.min(2,djRecord(f)/f.ref);R.push([f,w]);tot+=w;}
+  let x=(djHache('dj:'+jour)%100000)/100000*tot,f=R[0][0];for(const q of R){x-=q[1];if(x<=0){f=q[0];break;}}
+  const b=djRecord(f),v=Math.max(f.min,djArrondi(f,b*f.K));return {d:jour,k:f.k,v:v,b:0,ok:0,y:hier||''};}
+function djFam(k){for(const f of DJ.fam)if(f.k===k)return f;return DJ.fam[0];}
+function djEtat(){ /* le défi d'AUJOURD'HUI (tiré s'il le faut) ; null si l'horloge est illisible ou le défi éteint */
+  if(!DJ.on)return null;const a=jourAuj();if(!a)return null;const S=SAVE.d.dj;
+  if(S.d!==a){const n=djTire(a,S.d?S.k:'');SAVE.d.dj=n;SAVE.mark();return n;}return S;}
+function djTxt(D){const f=djFam(D.k),v=D.v,x=f.u==='mn'?m2Mn(v):f.u==='aura'?fmtAura(v):m2Nb(v);return String(LANG==='fr'?f.t:f.en).replace('{v}',x);}
+function djM(D){const f=djFam(D.k);return {id:'dj',k:f.k,u:f.u,v:D.v,t:f.t,en:f.en};} /* le défi habillé en mission (m2Txt, m2Prog le lisent) */
+function djTick(dt){ /* m2Tick (chaque image de course, missions allumées) : le meilleur essai du jour, la réussite */
+  if(!DJ.on||(DJ.t-=dt)>0)return;DJ.t=.25;
+  const D=djEtat();if(!D||D.ok)return;let v=0;try{v=m2ValCourse(djM(D))||0;}catch(e){return;}
+  if(v>D.b){D.b=Math.min(D.v,D.k==='airP'||D.k==='vie'||D.k==='frenT'?Math.floor(v*10)/10:Math.floor(v));SAVE.mark();}
+  if(v>=D.v){D.ok=1;D.b=D.v;SAVE.d.spinJ=Math.min(9,(SAVE.d.spinJ|0)+1);SAVE.flush();
+    try{if(m2EnC()){M2L.q.unshift({k:'dj',tx:sansAcc(TR('RÉUSSI')),p:'+1 '+TR('JETON')});if(!M2L.on)m2LigneSuit();} /* la ligne du bas, EN TÊTE de la file : jamais fondue dans « n MISSIONS RÉUSSIES » */
+      else toast(pxi('coche')+' '+TR('DÉFI DU JOUR RÉUSSI')+' · +1 '+TR('JETON'),true);}catch(e){}
+    try{hap([12,40,18]);}catch(e){}}}
+function djReste(){const t=new Date(),m=new Date(t.getFullYear(),t.getMonth(),t.getDate()+1);return Math.max(0,m-t);} /* ms jusqu'à minuit (l'appareil) */
+function djResteTxt(){const mn=Math.max(1,Math.ceil(djReste()/6e4)),h=Math.floor(mn/60);return h?h+' H':mn+' MIN';}
+
+/* ---- LE BLOC AUJOURD'HUI, en tête de la liste des missions ---- */
+function aujHtml(){
+  let h='';
+  const D=djEtat();
+  if(D){const m=djM(D),ok=!!D.ok,w=Math.round(100*Math.max(0,Math.min(1,D.b/D.v)));try{spinSprites();}catch(e){}
+    h+='<div class="m2L m2F-exploit m2Dj'+(ok?' ok':'')+'" data-aj="dj" role="button" tabindex="0">'
+      +'<span class="m2Ic">'+pxi(ok?'coche':'cible')+'</span>'
+      +'<div class="glTx"><b><i class="m2Tag">'+sansAcc(TR('DÉFI DU JOUR'))+'</i> '+sansAcc(djTxt(D))+'</b>'
+      +(ok?'':'<u><em style="width:'+w+'%"></em></u>')
+      +'<small>'+(ok?sansAcc(TR('RÉUSSI')+' · +1 '+TR('JETON')+' · '+TR('NOUVEAU DANS')+' '+djResteTxt()):m2Prog(m,D.b,D.v)+' · '+sansAcc(TR('NOUVEAU DANS'))+' '+djResteTxt())+'</small></div>'
+      +'<div class="m2R m2Jt">'+(typeof spinIco==='function'?spinIco(5):'')+'<b>+1</b></div></div>';}
+  const S=SERIE7.on?serieVue():null;
+  if(S){let cs='';
+    for(let c=1;c<=7;c++){const L=serieLot(c),fait=c<=S.faits,auj=c===S.c,dem=S.pris&&c===serieCase(S.c+1)&&c!==S.c;
+      let ico;if(L.cash)ico='<b class="m2Cash">'+m2Nb(L.cash)+'</b>'; /* le chiffre seul : le vert dit déjà l'argent du jeu (« $ 150 » ne tenait pas dans la case) */else if(L.jeton)ico=(typeof spinIco==='function'?spinIco(5):'')+(L.jeton>1?'<b>×'+L.jeton+'</b>':'');
+      else{const d=COSM.peinture.find(function(x){return x.id===L.exclu;}),hx=function(c){return '#'+((c>>>0)&0xffffff).toString(16).padStart(6,'0');};
+        ico=d?'<b class="srSw" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0))+'"></b>':pxi('etoile');}
+      cs+='<i class="srC'+(fait?' fait':'')+(auj&&!S.pris?' auj':'')+(dem?' dem':'')+(L.exclu?' ex':'')+'" style="--i:'+c+'"><em>'+(LANG==='en'?'D':'J')+c+'</em>'+ico+(fait?'<s>'+pxi('coche')+'</s>':'')+'</i>';}
+    const tit=S.pris?TR('SÉRIE')+' '+S.n+' '+TR(S.n>1?'JOURS':'JOUR')+' · '+TR('DEMAIN')+' : '+serieLotTxt(serieLot(serieCase(S.c+1))):S.casse?TR('SÉRIE PERDUE · ON REPART AU 1ER JOUR'):
+      (S.n?TR('SÉRIE')+' '+S.n+' '+TR(S.n>1?'JOURS':'JOUR')+' · ':'')+TR('JOUE UNE PARTIE POUR LA CASE DU JOUR');
+    h+='<div class="m2Serie" data-aj="serie" role="button" tabindex="0"><b>'+pxi('flamme')+' '+sansAcc(tit)+'</b><div class="srL">'+cs+'</div></div>';}
+  return h?'<div class="m2Auj"><h4>'+sansAcc(TR('AUJOURD\'HUI'))+'</h4>'+h+'</div>':'';}
+function aujClic(t){const a=t.closest&&t.closest('[data-aj]');if(!a)return false;
+  const k=a.getAttribute('data-aj');try{uiClic('nav');}catch(e){}try{hap(8);}catch(e){}
+  if(k==='dj'){const D=djEtat();if(D)try{toast(pxi('cible')+' '+(D.ok?TR('DÉFI DU JOUR RÉUSSI')+' · '+TR('NOUVEAU DÉFI DANS')+' '+djResteTxt():TR('UNE PARTIE POUR LE RÉUSSIR')+' · +1 '+TR('JETON')+' FINAL SPIN'));}catch(e){}}
+  else{const S=serieVue();if(S)try{const L=serieLot(S.pris?serieCase(S.c+1):S.c);toast(pxi('flamme')+' '+(S.pris?TR('DEMAIN')+' : ':TR('AUJOURD\'HUI')+' : ')+serieLotTxt(L));}catch(e){}}
+  return true;}
+Object.assign(I18N,{'DÉFI DU JOUR':'DAILY CHALLENGE','DÉFI DU JOUR RÉUSSI':'DAILY CHALLENGE DONE','JETON':'TOKEN','JETONS':'TOKENS','RÉUSSI':'DONE','MEILLEUR ESSAI':'BEST TRY',
+  'NOUVEAU DÉFI DANS':'NEW CHALLENGE IN','NOUVEAU DANS':'NEW IN','AUJOURD\'HUI':'TODAY','DEMAIN':'TOMORROW','REVIENS DEMAIN':'COME BACK TOMORROW','JOUR':'DAY',
+  'SÉRIE PERDUE · ON REPART AU 1ER JOUR':'STREAK LOST · BACK TO DAY 1','JOUE UNE PARTIE POUR LA CASE DU JOUR':'PLAY A RUN FOR TODAY\'S BOX','UNE PARTIE POUR LE RÉUSSIR':'ONE RUN TO DO IT',
+  'FAIS {v} FIGURES DANS UN SEUL SAUT':'LAND {v} TRICKS IN A SINGLE JUMP','BRAISE FIDÈLE':'FAITHFUL EMBER','AURORE BORÉALE':'NORTHERN LIGHTS','LAGON INTERDIT':'FORBIDDEN LAGOON','NUIT ÉTOILÉE':'STARRY NIGHT',
+  'Ne s\'achète pas : le 7e jour de ta série. Sept jours d\'affilée sur l\'asphalte, la laque en garde la chaleur.':'Not for sale: day 7 of your streak. Seven days in a row on the asphalt, and the paint keeps the heat.',
+  'Ne s\'achète pas : le 7e jour de ta série. Le ciel du Grand Nord, pour ceux qui reviennent chaque jour.':'Not for sale: day 7 of your streak. The sky of the far north, for those who come back every day.',
+  'Ne s\'achète pas : le 7e jour de ta série. Une eau que personne n\'a le droit de voir. Toi si.':'Not for sale: day 7 of your streak. Water nobody is allowed to see. Except you.',
+  'Ne s\'achète pas : le 7e jour de ta série. La nuit entière sur ta carrosserie, une semaine de plus.':'Not for sale: day 7 of your streak. The whole night on your body panels, one more week.'});
+window.dbgSerie=function(a,n){ /* (banc) l'état du calendrier · ('jour',n) : la série à n jours, prise HIER (la case suivante est à jouer) · ('pris',n) : prise aujourd'hui */
+  if(a==='jour'||a==='pris'){const t=new Date();if(a==='jour')t.setDate(t.getDate()-1);const y=t.getFullYear(),m=t.getMonth()+1,d=t.getDate();
+    SAVE.d.jour={d:y+'-'+(m<10?'0':'')+m+'-'+(d<10?'0':'')+d,n:Math.max(0,n|0)};SAVE.flush();}
+  const S=serieVue();return {actif:SERIE7.on,vue:S,lotDuJour:S?serieLot(S.c):null,demain:S?serieLot(serieCase(S.c+1)):null,exclusive:serieExclu(),jetons:SAVE.d.spinJ|0};};
+window.dbgDefiJour=function(a,k){ /* (banc) le défi d'aujourd'hui · ('force','fig') : cette famille · ('reussi') · ('demain') : retirer le défi (le prochain regard en tire un neuf) */
+  if(a==='force'){const f=djFam(k),b=djRecord(f);SAVE.d.dj={d:jourAuj(),k:f.k,v:Math.max(f.min,djArrondi(f,b*f.K)),b:0,ok:0,y:''};SAVE.flush();}
+  else if(a==='reussi'){const D=djEtat();if(D&&!D.ok){D.ok=1;D.b=D.v;SAVE.d.spinJ=Math.min(9,(SAVE.d.spinJ|0)+1);SAVE.flush();}}
+  else if(a==='demain'){SAVE.d.dj.d='';SAVE.flush();}
+  const D=djEtat();if(!D)return 'éteint';const m=djM(D);
+  return {jour:D.d,famille:D.k,texte:djTxt(D),seuil:D.v,meilleurDuJour:D.b,reussi:!!D.ok,record:djRecord(djFam(D.k)),hier:D.y,poids:DJ.fam.map(function(f){return f.k+' '+(1+Math.min(2,djRecord(f)/f.ref)).toFixed(2);}),jetons:SAVE.d.spinJ|0};};
 /* LES STRIES DE VENT : des points POSÉS dans le monde (vitesse nulle), devant l'objectif et décalés de l'axe du regard — la caisse les
    traverse à pleine vitesse, le shader `pt2E` les étire dans leur vitesse RELATIVE : des filets d'air qui passent à 2-8 m de la caméra,
    avec la parallaxe que les filés 2D n'ont pas. Même programme que les étincelles (aucun de plus), fondu près de l'objectif. */
@@ -59479,7 +59797,7 @@ function brasVerif(){const M=BRB.mes,R=BRB.R;if(!M||!R||!BRB.g.visible||BRB.p<.9
   const m=BRB.m;for(const o of [m.eq1,m.eq2])if(o.visible){for(let j=0;j<=10;j++){v.set(0,0,j/10-.5).applyMatrix4(o.matrix);BRB.g.localToWorld(v).applyMatrix4(inv);mn=Math.min(mn,brasBoite(v.x,v.y,v.z,M.bb)-.085);}}
   BRB.vmin=Math.min(BRB.vmin,mn);if(mn<-.005){BRB.vcoll++;BRB.vmot=(BRB.plan?BRB.plan.f.id+':'+BRB.plan.et[BRB.et][0]:'attente')+' '+mn.toFixed(3);}
   if(BRB.joue){let lo=9;const sol9=BRB.lieu==='boutique'?GARAGE_Y+(GBQ.socleH||0)+.05:GARAGE_Y+GAR.POD;for(const k of M.K){v.copy(k).applyMatrix4(carGroup.matrixWorld);lo=Math.min(lo,v.y-sol9);}BRB.vsol=Math.min(BRB.vsol,lo);}}
-window.dbgBras=function(a,b,c){if(a==='caisse'){const i=b|0;if(!CARS[i])return null;SAVE.d.equipped=i;level=i;try{garageSaute(i);}catch(e){return String(e);}return CARS[i].name;} // (banc) la caisse équipée change comme à l'inventaire (bascule du plateau)
+window.dbgBras=function(a,b,c){if(a==='caisse'){const i=b|0;if(!CARS[i])return null;if(!carFicheOk(CARS[i]))return CARS[i].name+' : RETIRÉE (pas de fiche)';SAVE.d.equipped=i;level=i;try{garageSaute(i);}catch(e){return String(e);}return CARS[i].name;} // (banc) la caisse équipée change comme à l'inventaire (bascule du plateau)
   if(a==='pieces'){const L=[];carGroup.updateMatrixWorld(true);carGroup.traverse(function(o){if(!o.isMesh&&!o.isSprite&&!o.isPoints&&!o.isLine)return;let vis=true;for(let q=o;q&&q!==carGroup;q=q.parent)if(!q.visible)vis=false;const mt=Array.isArray(o.material)?o.material[0]:o.material,g=o.geometry;if(g&&!g.boundingBox&&g.computeBoundingBox)g.computeBoundingBox();const sz=g&&g.boundingBox?g.boundingBox.getSize(new THREE.Vector3()).toArray().map(x=>+x.toFixed(2)):null;
     const bx=g&&g.attributes&&g.attributes.position?new THREE.Box3().setFromBufferAttribute(g.attributes.position).getSize(new THREE.Vector3()).toArray().map(x=>+x.toFixed(2)):null;L.push([o.type,vis,mt&&mt.type,sz,bx,g&&g.attributes?Object.keys(g.attributes).join(','):'',o.parent===carGroup?'top':(o.parent&&o.parent.type),o.frustumCulled]);});return L;}
   if(a==='remesure'){BRB.mes=null;BRB.hovK='';return true;}if(a==='lent'){BRB.lent=+b||1;return BRB.lent;}if(a==='fige'){BRB.fige=b?[b,c==null?.5:+c]:null;return BRB.fige;} // (banc) dbgBras('fige','tourne',.4) : la démonstration s'arrête là
