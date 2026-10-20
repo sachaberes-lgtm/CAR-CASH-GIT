@@ -13129,8 +13129,8 @@ const LUM_GLSL=['#define LM_N '+LM_N,
   '    for(int j=0;j<2;j++){vec3 v=P-uHlP[j].xyz;float fw=dot(v,uHlF);',
   '      if(fw>1.5){float iw=1./fw,hx=abs(dot(v,uHlR))*iw;',                                      // les tangentes du rayon : en travers…
   '        if(hx<uHlK.y){float vy=dot(v,uHlU)*iw;',                                               // …et en hauteur
-  '          if(vy<uHlK.x+.02){float d2=dot(v,v);',
-  '            float I=(1.-smoothstep(uHlK.y*.55,uHlK.y,hx))*(.5+.5*exp(-hx*hx*9.))*(1.-smoothstep(uHlK.x-.006,uHlK.x+.02,vy))*pow(.03/(.03+max(-vy,0.)),uHlK.z)*smoothstep(1.5,7.,fw);', // l éventail (des BORDS nets : on lit un faisceau projeté, pas une lueur) · la coupure · le point chaud qui porte loin · presque rien sous le pare-chocs (vu de la poursuite, c était un halo autour du capot)
+  '          if(vy<uHlK.x+.034){float d2=dot(v,v);',
+  '            float I=(1.-smoothstep(uHlK.y*.12,uHlK.y,hx))*(.45+.55*exp(-hx*hx*7.))*(1.-smoothstep(uHlK.x-.03,uHlK.x+.032,vy))*pow(.03/(.03+max(-vy,0.)),uHlK.z)*smoothstep(1.5,7.,fw)*exp(-fw*.018);', // l éventail (des BORDS nets : on lit un faisceau projeté, pas une lueur) · la coupure · le point chaud qui porte loin · presque rien sous le pare-chocs (vu de la poursuite, c était un halo autour du capot)
   '            E+=uHlC*(I*uHlP[j].w*max(dot(N,-v),0.)*inversesqrt(d2)/(d2+uHlK.w));}}}}}',
   '  vec3 dq=P-uLmS.xyz;',
   '  if(uLmN>.5&&dot(dq,dq)<uLmS.w){vec3 R=reflect(-V,N),T=normalize(cross(N,V)+vec3(1e-5,0.,0.)),B=cross(R,T);', // LES LAMPES-SEGMENTS (feux, nitro, traînées) — T : le travers de la route vu d ici, B : le long (vers l œil)
