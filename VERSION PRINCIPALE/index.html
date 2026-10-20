@@ -32456,23 +32456,36 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   const AR=[[0,2*R+.05],[R*.75,2*R+.03],[R+.08,R*1.15],[R+.14,.30]];
   const zs=[-2.30,-2.25,-2.20,-1.50,-.85,-.70,-.20,-.13,.02,.10,.62,.68,1.40,2.10,2.24,2.30];
   for(const w of [ZF,ZR])for(const d of [R*.75,R+.08,R+.14])zs.push(w-d,w+d);
-  zs.sort((a,b)=>a-b);
+  zs.push(.52,.59,.66,2.06,2.13,-.62,-.70,-.78,-2.08,-2.15,-2.22);           // (relief) les rampes des ailes et de la hanche
+  zs.sort((a,b)=>a-b);for(let i=zs.length-1;i>0;i--)if(zs[i]-zs[i-1]<.005)zs.splice(i,1); // (sans doublon : une bande nulle)
   const yC=z=>U.lin([[-2.30,1.00],[-2.25,1.025],[-2.20,1.035],[-1.50,1.05],[-.85,1.345],[.02,1.36],[.68,.975],[1.40,.955],[2.10,.915],[2.24,.895],[2.30,.86]],z),
         yB=z=>U.lin([[-2.30,.95],[-2.20,.98],[-1.50,1.00],[-.80,1.00],[.68,.955],[1.40,.93],[2.10,.885],[2.24,.865],[2.30,.835]],z),
         xW=z=>U.lin([[-2.30,.83],[-2.24,.87],[-2.00,.885],[2.00,.885],[2.24,.86],[2.30,.82]],z),
         xR=z=>U.lin([[-1.50,.80],[-.85,.70],[.02,.68],[.68,.78]],z),
         cab=z=>z>-1.50&&z<.68;
+  /* ===== LE RELIEF DU FLANC (2026-10-20, Léo : « le relief visible quand on tourne autour » ; l'étude de la gamme au garage : n° 1 des plus
+     plates, un flanc d'UNE dalle qui s'allumait d'un bloc) ===== la GT-R en PANS : les AILES qui débordent au-dessus des roues (la hanche
+     arrière plus forte que l'aile avant), la PORTE en creux entre elles et qui rentre vers le bas (elle regarde le sol : plus sombre), le
+     seuil en marche au-dessus de la jupe, l'ARÊTE franche à hauteur de poignée, l'ÉPAULE qui rentre jusqu'à la ceinture (elle regarde le
+     ciel : claire). Une porte en creux mais droite resterait UN pan : elle penche. `flanc(z)` = les points de la demi-section, `xFl(z,y)`
+     le flanc à une hauteur (ouïe, poignée, rétro s'y posent). */
+  const lis=t=>{t=U.cl(t,0,1);return t*t*(3-2*t);},
+        aile=z=>.022*lis((z-.52)/.14)*lis((2.20-z)/.14)+.032*lis((-.62-z)/.16)*lis((z+2.22)/.14),
+        flanc=z=>{const yb=U.arch(z,[ZF,ZR],AR,.30),xw=xW(z),b=Math.max(yB(z),yb+.14),f=aile(z),ya=Math.max(Math.min(.84,yB(z)-.05),yb+.09);
+          return [[0,yb],[xw-.05,yb],[xw+.004,Math.max(yb+.03,.37)],[xw-.028+f*.5,Math.max(yb+.05,.44)],[xw-.004+f*.85,Math.max(yb+.07,.63)],
+                  [xw+.012+f,ya],[xw-.034,b],[xw-.075,b+.02]];},
+        xFl=(z,y)=>{const s=flanc(z);for(let i=2;i<6;i++)if(y<=s[i+1][1])return s[i][0]+(s[i+1][0]-s[i][0])*U.cl((y-s[i][1])/((s[i+1][1]-s[i][1])||1),0,1);return s[6][0];};
   P.loft(zs,z=>{
     const yb=U.arch(z,[ZF,ZR],AR,.30),xw=xW(z),c=yC(z),b=Math.max(yB(z),yb+.14);
-    const s=[[0,yb],[xw-.06,yb],[xw,Math.max(yb+.05,.40)],[xw+.015,Math.max(yb+.08,.62)],[xw,b],[xw-.06,b+.02]];
+    const s=flanc(z);
     if(cab(z)){const y6=Math.max(c-.04,b+.03);s.push([xR(z),y6],[xR(z)-.14,Math.max(y6+.004,c-.005)],[0,c+.005]);}
     else s.push([xw-.22,Math.max(b+.03,c-.02)],[xw-.45,Math.max(b+.035,c-.008)],[0,Math.max(b+.04,c)]);
     return s;
   },(j,z)=>{
     if(j===0)return 'k';
     if(j===1&&z>-2.0&&z<2.0)return 'C';                                      // la jupe latérale
-    if(j<0||j<=4||!cab(z))return 'p';
-    if(j===5){if(z<-.70||z>.62)return 'p';return (z>-.20&&z<-.13)?'K':'g';}  // custode, pied B noir, portière
+    if(j<0||j<=6||!cab(z))return 'p';                                       // (relief) deux bandes de plus au flanc : seuil, porte, arête, épaule
+    if(j===7){if(z<-.70||z>.62)return 'p';return (z>-.20&&z<-.13)?'K':'g';}  // custode, pied B noir, portière
     return (z>.02||z<-.85)?'g':'p';});                                       // pare-brise, lunette, pavillon
   // LE GRAND AILERON sur deux mâts, et son volet
   P.box('p',1.54,.045,.28,0,1.225,-2.04,-.06);
@@ -32493,9 +32506,9 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
     P.box('O',.10,.03,.02,sd*.70,.60,2.312);                                  // le clignotant, dans le bouclier
     // LES ÉCOPES DE FREINS aux coins du bouclier : la bouche noire en biais, et son aileron
     P.plate('k',[[.56*sd,.30],[.78*sd,.30],[.80*sd,.50],[.62*sd,.50]],.02,2.30);P.box('p',.02,.18,.04,sd*.69,.40,2.31,0,0,-sd*.10);
-    P.box('C',.02,.12,.16,sd*(.885+.012),.66,.80);                           // l'ouïe d'aile avant
-    P.prism('K',[[.80,.97],[.58,.97],[.62,1.02],[.74,1.02]],.06,sd*.905);P.box('p',.07,.09,.18,sd*.955,1.03,.66,0,sd*.12,0); // rétro sur son pied, contre le montant
-    P.box('K',.02,.03,.12,sd*.892,.89,.00);                                  // poignée
+    P.box('C',.02,.12,.16,sd*(xFl(.80,.66)+.008),.66,.80);                   // l'ouïe d'aile avant (relief : posée sur l'aile qui déborde)
+    {const xr=xFl(.70,.99)+.025;P.prism('K',[[.80,.97],[.58,.97],[.62,1.02],[.74,1.02]],.06,sd*xr);P.box('p',.07,.09,.18,sd*(xr+.05),1.03,.66,0,sd*.12,0);} // rétro sur son pied, contre le montant (relief : sur l'épaule rentrée)
+    P.box('K',.02,.03,.12,sd*(xFl(0,.80)+.006),.80,.00);                       // poignée (relief : juste sous l'arête)
     // LES QUATRE FEUX RONDS
     for(const x of [.46,.70]){P.cyl('L',.10,.03,12,sd*x,.83,-2.31,'z');
       P.cyl('K',.05,.02,8,sd*x,.83,-2.323,'z');P.cyl(x<.5?'W':'L',.032,.02,8,sd*x,.83,-2.328,'z');}
