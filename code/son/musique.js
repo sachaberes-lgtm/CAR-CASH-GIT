@@ -93,8 +93,8 @@ let musicMode='none',musicBaseVol=1,musicBoostEnv=0;
    ⚠ `VOL` est un MULTIPLICATEUR sur des niveaux déjà accordés, jamais un remplacement : à 100 %
    chaque famille retrouve exactement le mixage d'origine, et un curseur à fond ne peut donc pas
    faire hurler le jeu. */
-const VOL={mus:.62,sfx:1};
-const SFX_SOUS_MUS=.7; // (2026-10-03, Léo : « les MONSTRE ne doivent pas cacher la musique — ça vaut pour TOUS les effets sonores ») : tous les effets −3 dB sous la musique (curseur EFFETS inchangé, appliqué par-dessus)
+const VOL={mus:.7,sfx:1}; // (2026-10-20, Sacha : « mieux mixer les sons du jeu et la musique ») musique un cran plus haut, effets un cran plus bas
+const SFX_SOUS_MUS=.58; // (2026-10-03, Léo : « les MONSTRE ne doivent pas cacher la musique — ça vaut pour TOUS les effets sonores ») : tous les effets −3 dB sous la musique (curseur EFFETS inchangé, appliqué par-dessus)
 /* (2026-10-14, session SON) SUR IPHONE, LES EFFETS NE RECULENT PLUS SOUS LA MUSIQUE. Le −3 dB de `SFX_SOUS_MUS` a été réglé à l'ordi, où la
    musique joue à `musVol()` × .62-1 (−4 à −8 dB sous son fichier). Sur iPhone le volume d'un <audio> est en lecture seule : la musique y sort
    à 100 % de son fichier — déjà 4 à 8 dB AU-DESSUS du mixage voulu. Lui retirer encore 3 dB aux effets, c'était les noyer deux fois (pièces,
