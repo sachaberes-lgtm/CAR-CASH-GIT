@@ -126,6 +126,7 @@ voitures/plaque.js                   # la plaque d'immatriculation, le profil
 interface/vignette-moteur.js         # vignette moteur, étapes de chauffe
 rendu/ciel2.js                       # le ciel en deux temps (CIEL2)
 gameplay/pickups-fruits.js           # pièces pixel, l'étal de fruits
+gameplay/fruits-nouveaux.js           # les nouveaux fruits : 9 normaux + formes des 5 fruits-pouvoirs, les 13 anciens rangés dans FRUIT_EXO
 voitures/deblocage.js                # moteurs, déblocage, conditions des 50
 missions/table.js                    # missions v2 : la table
 economie/aura-banque-contrats.js     # l'aura et la banque, économie v3 : contrats, objectif

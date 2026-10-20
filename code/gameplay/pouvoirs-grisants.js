@@ -262,9 +262,10 @@ function spawnPickups(rnd){
     frameAt(ss,F);
     mat4b.makeBasis(F.b,F.n,F.t);
     for(const face of [1,-1]){
-      const m=mkPower(kind,face);
-      m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?2.1:-(THICK+2.1));
-      m.quaternion.setFromRotationMatrix(mat4b);
+      const m=mkPower(kind,face),lev9=m.userData.lev||2.1;
+      m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?lev9:-(THICK+lev9));
+      if(face<0&&m.userData.fruit){mat4b.makeBasis(FLIP_B.copy(F.b).negate(),FLIP_N.copy(F.n).negate(),F.t);m.quaternion.setFromRotationMatrix(mat4b);mat4b.makeBasis(F.b,F.n,F.t);} // SOUS la route le fruit est RETOURNÉ (comme les fruits)
+      else m.quaternion.setFromRotationMatrix(mat4b);
       m.updateMatrix();m.matrixAutoUpdate=false; // (perf) gelé, comme les pièces
       scene.add(m);
       pickups.push({s:ss,lat:lt,face:face,nitro:false,pow:kind,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)});

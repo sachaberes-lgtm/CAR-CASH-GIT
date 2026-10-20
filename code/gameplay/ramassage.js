@@ -51,6 +51,7 @@ function volFaceTick(){
   return RAM.fv;
 }
 function pickupsTick(dt){
+  fauraGlobalTick(dt); // (2026-10-20) le temps PARTAGÉ des auras des fruits-pouvoirs : une écriture par image pour tous les fruits de la route
   const enVol=(mode==='fall');
   // (LIGNE PARFAITE) le fruit de la file se teste aussi sur le TRAJET de l'image — (2026-09-30) le trajet AU SOL seulement : en vol `s`
   // ne décrit plus la caisse ; le balayage repart de zéro au décollage (startFall) et reprend à la pose
