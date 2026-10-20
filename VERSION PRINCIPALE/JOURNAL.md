@@ -3,6 +3,33 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA BOUTIQUE PAYANTE : LE SQUALE REMPLACE LE REQUIN, TROIS CAISSES À 1,61 €, LA TRAÎNÉE DU CHAT DITE (2026-10-20, v729, Sacha : « supprime dans le shop payant la voiture Shark à 10 euros et remplace-la par la Squall que Léo a faite à 1,61 € ; Black Armor et Golden Dragon dans le shop aussi, à 1,61 € ; il faut que ce soit plus clair que Pop-Tart-Cat est vendu avec la traînée arc-en-ciel »)
+- **Qui est qui** : « Shark » = REQUIN (premium, 9,99 €) ; « Squall » = LE SQUALE (`SHAPES.squale`, la voiture requin que Léo a faite au VOITURE MAKER, 2026-10-08 :
+  « Squall » n'existe nulle part dans le code, c'est la dictée) ; « Black Armor » = LE BLINDÉ NOIR, « Golden Dragon » = LE DRAGON D'OR. Les deux derniers étaient déjà en
+  boutique payante à 9,99 € : seul le prix change. À CONFIRMER par Sacha si « Squall » désignait autre chose.
+- **REQUIN** : `retire:1` dans `CARS` (sa ligne et sa fiche restent, les index de sauvegarde ne bougent pas ; son gabarit `requin` reste dans SHAPES ; pour le ramener :
+  enlever `retire:1`). Il quitte les trois endroits qui listent les premium (`bqPayantes`, la page ACHAT, le rayon ACHAT du garage). L'achat intégré n'étant pas branché
+  (« INDISPONIBLE »), personne ne l'a payé : rien à rembourser. ⚠ Léo a retouché la finition du REQUIN au garage (`FSTU_SANS`, e9cebc7, « juste le requin était mieux ») :
+  inutile tant qu'il est retiré, mais gardé.
+- **LE SQUALE** : `CAR_UNLOCK` passe de `{p:700000}` à `{k:'premium',eur:'1,61 €',rar:'leg'}` ; `CARS.rar` ÉPIQUE → LÉGENDAIRE (toutes les caisses payantes le sont : `carRar`
+  lit la fiche d'abord, l'ancienne rareté l'aurait rangé avec les épiques au garage alors que la boutique dit LÉGENDAIRE). ⚠ Il était la récompense de la mission SECRÈTE
+  `abysse` (« DESCENDS AU FOND DE LA MER DE JADE », `table.js`) : une caisse donnée par mission ne s'achète plus (le patch `CAR_UNLOCK[i]={k:'mis'…}` l'aurait remise en
+  mission). `abysse` paie donc de l'ARGENT, comme les six autres secrètes passées à l'argent le 19/10 : **15 000 $ (valeur posée par Claude, À VALIDER PAR SACHA)**.
+  Qui a déjà LE SQUALE (acheté 700 000 $ ou gagné) le garde ; qui avait déjà fini `abysse` n'est pas payé de nouveau.
+- **LE BLINDÉ NOIR et LE DRAGON D'OR** : `eur` 9,99 € → 1,61 €. Dans la boutique payante : LE CHAT POP-TART 4,20 € (à la une), LA FÉLINE, LE BLINDÉ NOIR, LE DRAGON D'OR et LE SQUALE
+  1,61 €, LA PIZZA EXPRESS 161,00 €.
+- **LA TRAÎNÉE ARC-EN-CIEL DU CHAT, DITE** (`shArcHtml`, `.shArc`). Le défaut trouvé : la pastille « + ARC-EN-CIEL » de la carte du chat au garage (18/10) était posée en haut à gauche,
+  SOUS l'étiquette de rareté LÉGENDAIRE (z-index 1, même coin, 113 px de large : on n'en voyait que les bords) ; et la page ACHAT et la fenêtre d'achat n'en disaient rien (le texte
+  sous le nom a été retiré le 15/10, Sacha : « ça sert à rien »). Maintenant : (1) la carte du chat au garage porte une BANDE arc-en-ciel dans le flux, sous la photo, « + TRAÎNÉE /
+  ARC-EN-CIEL » sur deux lignes ; (2) sa fiche (sous le nom, la place de « SE DÉBLOQUE ») : « + TRAÎNÉE ARC-EN-CIEL INCLUSE » ; (3) la page ACHAT, la carte à la une, sous le nom : la
+  même pastille ; (4) la fenêtre d'achat : la pastille sous le nom (couché, une rangée de plus dans la grille et la phrase passe à 12 px). Rien de tout ça une fois le chat acheté.
+  Traductions : « + RAINBOW TRAIL » / « + RAINBOW TRAIL INCLUDED ». L'offre du chat n'a pas bougé : 4,20 €, la traînée arrive avec (shopOwned → m2Chat).
+- **Vérifié** (navigateur, fenêtre de l'ordi couchée ET debout) : les six caisses de la boutique payante dans le bon ordre et aux bons prix ; la pastille lisible partout, jamais coupée ;
+  `dbgMissions()` : `abysse` → `{cash:15000}`, plus aucune mission ne donne LE SQUALE ; une course démarre, 0 erreur JS ; `sh garde-burnout.sh` et `sh garde-charte.sh` : OK.
+- ⚠ **Le découpage** : à la fusion de `origin/main` (v728), `index.html` et `code/` n'étaient PAS d'accord (le commit « le nitro rugit GRAVE » n'avait touché que `index.html`) ;
+  rangé par `node code/assembler.cjs --depuis-index` (boucle-5-sons, stries-vent, musique, ecrans-menus), commit à part. Après une fusion qui touche les deux, toujours vérifier
+  `node code/assembler.cjs --verifier` ; `--depuis-morceaux` écraserait le travail fait à la main dans `index.html`.
+
 ## LE ROYAUME DE FEU ET LES PROFONDEURS AU HASARD — L'AXE, L'ORDRE, LES CARACTÈRES, LA MONTÉE ET LE PUITS TIRÉS (2026-10-19 → 20, v727, session HASARD — Sacha : « vérifie bien que toutes les maps sont générées aléatoirement »)
 - **Le constat, mesuré** (banc Node sur les vrais générateurs, 40 graines, palier 0 ; l'ÉCART DE FORME = les pistes rééchantillonnées en 64 points
   par fraction de longueur, départ à l'origine, distance moyenne entre deux pistes / longueur moyenne — la jade refaite le 18/10 : 0,226) : le TIRAGE
