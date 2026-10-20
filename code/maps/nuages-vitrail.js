@@ -27,7 +27,9 @@
    vitrail), [1][3] = −les cubes ; une matrice ordinaire = rien ne change. Nuages seuls fantômes (`mkCloud`) : les cubes
    s'effacent tout près (`uNvW`, posé par objet dans `onBeforeRender`), le corps reste. Écarté : le vitrail PARTOUT (dalles grises de près,
    bords carrés de loin, jusqu'à ×6 triangles). `?sans=nuvitfondu` = les bascules d'avant ; `dbgNuVit(1,{fondu:0|1})` = A/B. */
-const ARC_ON=!/[?&]arc=0\b/.test(location.search); // (2026-10-19, essai ARC) le fond en photo + la mer de cumulus + les nuages en VERRE ; ?arc=0 = le main d avant
+const CDENS=(function(){const m=/[?&]cdens=([0-9.]+)/.exec(location.search);return m?+m[1]:.3;})(); // (2026-10-20, Léo : « il y a trop de nuages, c'est un peu vomitif ») la part des nuages de décor gardée sur la map NUAGES (1 = le semis d'avant ; ?cdens=)
+const ARC_ON=!/[?&]arc=0\b/.test(location.search);
+const KIDS_ARC=(function(){const m=/[?&]kids=([0-9.]+)/.exec(location.search);return m?+m[1]:.55;})(); // la part du chou-fleur gardée sur les gabarits de nuages (1 = d'avant) // (2026-10-19, essai ARC) le fond en photo + la mer de cumulus + les nuages en VERRE ; ?arc=0 = le main d avant
 const NUVIT={on:true,nc:36,iso:.3,ang:.09,nsk:0,ecart:.47,
   fondu:!/[?&]sans=([^&]*,)?nuvitfondu(,|&|$)/.test(location.search),bLoin:4.06,bPres:[.06,.09],bPresF:[.035,.09]}; // (2026-10-18) LE FONDU : voir au-dessus
 function nuvLisse(a,b,v){const q=Math.min(1,Math.max(0,(v-a)/(b-a)));return q*q*(3-2*q);}
@@ -40,7 +42,7 @@ const NV_DOSES={doux:{uCoqA0:.5,uCoqA1:.92,uRel:.12,uLueur:1.08,uBis:.08,uTache:
   verre:{uCoqA0:.2,uCoqA1:.86,uRel:.3,uLueur:1.16,uBis:.13,uTache:0,uChaud:0,uTrans:.25,uBordC:.6,uVerre:.5}, // (2026-10-19, Léo : « les nuages devant, c'était mieux l'avant-dernière version [le vitrail MOYEN] ; joue plus la transparence ») : les écailles et le cœur s'ouvrent de FACE (trame), pleins sur la silhouette ; la peau plus claire
   fantome:{uFant:1,uPeint:1}, // (2026-10-18, Léo : « encore plus minuscules, encore plus fantomatiques, construire de nouveaux nuages, les teintes comme un peintre »)
   peintre:{uCoqA0:.34,uCoqA1:.9,uRel:.05,uLueur:1.2,uBis:0,uTache:.12,uChaud:.6,uTrans:.55,uBordC:.85}}; // (2026-10-18, Léo : « pas comme Minecraft ; triche pour obtenir une sorte de réalisme ; fais le peintre ») chaque cube une TOUCHE (chaude au soleil, froide à l ombre), plus de faces dures, le contour en vapeur, la lumière qui TRAVERSE à contre-jour // (2026-10-18) trois dosages du vitrail, à montrer à Léo
-{const m9=/[?&]nuvit=(doux|moyen|fort|peintre|fantome|verre)\b/.exec(location.search);NUVIT.dose=m9?m9[1]:(ARC_ON?'verre':'fantome');if(NUVIT.dose==='fantome'){NUVIT.fant=8000;NUVIT.fsz=110;NUVIT.loin=.4;}if(NUVIT.dose==='verre'){NUVIT.mix=6500;NUVIT.fsz=95;NUVIT.loin=.5;NUVIT.fdeh=.75;} /* (2026-10-19, Léo : « reste sur ce que tu as fait, mais un tout petit peu éparpillé — le côté trash de la version d'avant, les petits cubes qui s'éparpillent : le gros nuage condensé qui se sépare en plein de trucs ») LE MÉLANGE : le vitrail en verre + des cubes fantômes, surtout DEHORS */if(NUVIT.dose==='peintre'){NUVIT.nc=48;NUVIT.nsk=34;NUVIT.ecart=.52;NUVIT.jit=.3;NUVIT.coeur=.25;} /* (2026-10-18, Léo : « essaie en mode vitrail » → au questionnaire : PLUS VISIBLE, le dosage FORT par défaut — MOYEN le 18/10 au matin) */for(const q in NV_DOSES[NUVIT.dose])NV_U[q].value=NV_DOSES[NUVIT.dose][q];} // ?nuvit=doux|moyen|fort
+{const m9=/[?&]nuvit=(doux|moyen|fort|peintre|fantome|verre)\b/.exec(location.search);NUVIT.dose=m9?m9[1]:(ARC_ON?'verre':'fantome');if(NUVIT.dose==='fantome'){NUVIT.fant=8000;NUVIT.fsz=110;NUVIT.loin=.4;}if(NUVIT.dose==='verre'){NUVIT.mix=(function(){const m=/[?&]mix=(\d+)/.exec(location.search);return m?+m[1]:2400;})();NUVIT.fsz=95;NUVIT.loin=.5;NUVIT.fdeh=.75;} /* (2026-10-19, Léo : « reste sur ce que tu as fait, mais un tout petit peu éparpillé — le côté trash de la version d'avant, les petits cubes qui s'éparpillent : le gros nuage condensé qui se sépare en plein de trucs ») LE MÉLANGE : le vitrail en verre + des cubes fantômes, surtout DEHORS */if(NUVIT.dose==='peintre'){NUVIT.nc=48;NUVIT.nsk=34;NUVIT.ecart=.52;NUVIT.jit=.3;NUVIT.coeur=.25;} /* (2026-10-18, Léo : « essaie en mode vitrail » → au questionnaire : PLUS VISIBLE, le dosage FORT par défaut — MOYEN le 18/10 au matin) */for(const q in NV_DOSES[NUVIT.dose])NV_U[q].value=NV_DOSES[NUVIT.dose][q];} // ?nuvit=doux|moyen|fort
 function nuVitGLSL(){ // les déclarations et la lumière v8 (copie de nuage8Mat : SANS la vapeur du palier 2)
   return ['uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd'+(',uLav')+';uniform vec2 uNearF;uniform vec4 uK,uR;uniform float uFondu,uTps,uLueur,uScan,uScanV,uCoqA0,uCoqA1,uRel,uEcl,uBis,uTache,uChaud,uTrans,uBordC,uFant,uPeint,uVerre;',
     'float nvVerre(vec3 N,vec3 V){return mix(1.-uVerre,1.,smoothstep(.12,.8,1.-abs(dot(N,V))));}', // (essai ARC) LE VERRE : ouvert de face, plein sur la silhouette
@@ -273,18 +275,18 @@ function buildCoton(cr){
   const strat=function(k,K){return Math.min(NP-1,Math.floor(((k+.18+cr()*.64)/K)*NP));};
   const perp=function(i){const t=T[i],l=Math.hypot(t.x,t.z)||1;return [-t.z/l,t.x/l];}; // le travers HORIZONTAL du ruban (jamais B[i] : piste inclinée)
   if(okD){
-    const OR=LVL.cur&&LVL.cur.id==='orage',M9=OR?1.6:1,KK=function(n){return Math.max(1,Math.round(n*M9*(LVL.cur&&LVL.cur.id==='nuages'?.5:1)));}; // (2026-09-30) ×0,5 aux NUAGES (NZ, plus bas)
+    const OR=LVL.cur&&LVL.cur.id==='orage',A9=ARC_ON&&LVL.cur&&LVL.cur.id==='nuages'?CDENS:1,M9=OR?1.6:1,KK=function(n){return Math.max(1,Math.round(n*M9*A9*(LVL.cur&&LVL.cur.id==='nuages'?.5:1)));}; // (2026-09-30) ×0,5 aux NUAGES (NZ, plus bas)
     /* (2026-09-30, Sacha : « retravaille les nuages dans le premier niveau, il en faut des plus gros ») GZ : aux NUAGES, les couronnes proche, du
        milieu, haute et lointaine grossissent de ~45 % (bornes de la loi de puissance ×1,45) — même nombre de nuages, mais des MASSES qui
        remplissent le cadre ; la garde de la route rejette toujours ceux qui la toucheraient (on en perd un peu : c'est voulu). */
     /* (2026-09-30, 2e passe, Sacha : « moins de nuages dans le premier niveau, mais il faut qu'ils soient plus gros ») : aux NUAGES, DEUX fois moins
        de nuages dans chaque couronne (NZ) et des tailles ×1,9 (GZ, 1,45 à la 1re passe) — de grandes masses, et du ciel entre elles. */
-    const GZ=LVL.cur&&LVL.cur.id==='nuages'?1.9:1,NZ=LVL.cur&&LVL.cur.id==='nuages'?.5:1; // (2026-09-29) L'ORAGE : plus de nuages partout — (2026-09-30, « au point que ça gêne la visibilité ») ×1,25 → ×1,6
+    const GZ=LVL.cur&&LVL.cur.id==='nuages'?1.9:1,NZ=(LVL.cur&&LVL.cur.id==='nuages'?.5:1)*A9; // (2026-09-29) L'ORAGE : plus de nuages partout — (2026-09-30, « au point que ça gêne la visibilité ») ×1,25 → ×1,6
     for(let k=0;k<KK(30);k++){ // (1) LA COURONNE PROCHE, EN ARCHIPELS (Dragons) : des îlots de 2-3 nuages (un grand, ses satellites au même plafond),
       // et du CIEL OUVERT entre deux — 80 nuages semés un par un encombraient tout le champ (« liberté » = des vides qu'on traverse)
       const i=strat(k,KK(30)),p=pts[i],q=perp(i),sg=cr()<.5?-1:1,r=cotonR(cr,30*GZ,160*GZ,1.5),kk=cotonKind(cr,COTON_POIDS.pres),yB=p.y-130+cr()*300; // (v4) tailles en loi de puissance
       let d=ROAD_HALF+r+50+cr()*300,cx=0,cz=0,ok=false;for(let t=0;t<3;t++,d+=110){cx=p.x+q[0]*sg*d;cz=p.z+q[1]*sg*d;if(cotonPose(cx,yB,cz,r,kk,cr)){ok=true;break;}}
-      if(ok){const ns=1+(cr()*2|0),t9=T[i];for(let m=0;m<ns;m++){const a=(m?-1:1)*(1.5+cr()*1.1)*r,rs=r*(.4+cr()*.3); // les satellites, le long de la route et un peu en travers
+      if(ok){const ns=A9<1?(cr()*2|0):1+(cr()*2|0),t9=T[i];for(let m=0;m<ns;m++){const a=(m?-1:1)*(1.5+cr()*1.1)*r,rs=r*(.4+cr()*.3); // les satellites, le long de la route et un peu en travers
         cotonPose(cx+t9.x*a+q[0]*sg*(cr()-.3)*r,yB+(cr()-.5)*r*.3,cz+t9.z*a+q[1]*sg*(cr()-.3)*r,rs,cotonKind(cr,COTON_POIDS.pres),cr);}}}
     for(let k=0;k<KK(26);k++){ // (2) AU-DESSUS et EN DESSOUS du ruban (la garde garde 18-22 m de ciel libre autour de la route)
       const i=strat(k,KK(26)),p=pts[i],q=perp(i),r=cotonR(cr,24*GZ,130*GZ,1.5),kk=cotonKind(cr,COTON_POIDS.pres),S=COTON.S[kk],h=(S.top-S.base)*r*1.3,lat=(cr()-.5)*120;
@@ -306,9 +308,9 @@ function buildCoton(cr){
     for(let k=0,K5=Math.round(80*NZ);k<K5;k++){ // (5) LE LOINTAIN : 1,2-2,6 km — l'horizon a ses nuages
       const i=strat(k,K5),p=pts[i],a=cr()*6.2832,d=1200+cr()*1400,r=cotonR(cr,120*GZ,560*GZ,1.4);
       cotonPose(p.x+Math.cos(a)*d,p.y-260+cr()*700,p.z+Math.sin(a)*d,r,cotonKind(cr,COTON_POIDS.loin),cr);}
-    if(TORD.on)for(let k=0;k<56;k++){ // (2026-10-15) LA SPHÈRE : sur la route SANS HAUT NI BAS, des nuages dans TOUTES les directions — sous la dalle comme au zénith,
+    if(TORD.on)for(let k=0,K6=Math.max(1,Math.round(56*A9));k<K6;k++){ // (2026-10-15) LA SPHÈRE : sur la route SANS HAUT NI BAS, des nuages dans TOUTES les directions — sous la dalle comme au zénith,
       // tirés uniformément sur la sphère autour de la route (plus de plafond ni de plancher : où que la route regarde, du ciel et de la ouate)
-      const i=strat(k,56),p=pts[i],u=cr()*2-1,a=cr()*6.2832,w=Math.sqrt(1-u*u),d=420+cr()*1500,r=cotonR(cr,70*GZ,320*GZ,1.5);
+      const i=strat(k,K6),p=pts[i],u=cr()*2-1,a=cr()*6.2832,w=Math.sqrt(1-u*u),d=420+cr()*1500,r=cotonR(cr,70*GZ,320*GZ,1.5);
       cotonPose(p.x+w*Math.cos(a)*d,p.y+u*d,p.z+w*Math.sin(a)*d,r,cotonKind(cr,COTON_POIDS.mil),cr);}
   }
   if(okG){ // (7) LES CATHÉDRALES (2026-09-29, Sacha : « encore plus beau et artistique, qu'on ressente la LIBERTÉ comme dans Dragons 1 ») :

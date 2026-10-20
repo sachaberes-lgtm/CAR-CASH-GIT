@@ -237,7 +237,7 @@ function cumulus8(genre, rng) {
     for (let i = 0; i < nt; i++) { const x = -.7 + 1.4 * (i + .5) / nt + U(-.08, .08); let y = base + H, r = rb * U(.8, 1); const h = U(.35, .7);
       while (y < base + H + h) { add(x, y, U(-.1, .1), r, 1); y += r * .8; r *= .82; } }
   }
-  enfants(B.length, kidsK);
+  enfants(B.length, kidsK * (ARC_ON ? KIDS_ARC : 1)); // (2026-10-20, Léo : « trop de nuages, vomitif » ; modèles 3D libres CC0 de Quaternius : UNE masse calme, base plate, un dôme, peu de lobes) moins de chou-fleur
   return fin();
   // LE CHOU-FLEUR : chaque lobe du haut porte des enfants ronds (×.38-.55), eux-mêmes des petits-enfants — posés sur sa calotte, vers le haut et le dehors
   function enfants(n, k) {
