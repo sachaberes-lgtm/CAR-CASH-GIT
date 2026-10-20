@@ -3,6 +3,25 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES FEUX : LA LUMIÈRE DANS LE PHARE, PLUS DE BOULE (2026-10-20, v711, Léo : « une étude des lumières des voitures, que je trouve encore un peu jaunes et pas très stylées ; inspire-toi des physiques d'ARC Raiders » → au questionnaire : les FEUX, pas la lumière posée sur la caisse → planche de deux lectures → « je dirai 2 » + « intègre la lumière à l'intérieur des phares, efface cette forme de boule » → « oui, mets la colonne de droite dans le jeu »)
+- **D'où venait le jaune (mesuré au pixel, nuit et garage)** : le HALO des phares (`HALO.hM`, sprite crème 0xffe2a8 à ,95 — une boule molle qui
+  grossit au bloom : sur LE CAÏD la nuit le cœur du phare sortait #f7bd48), 30 caisses aux phares crème (#fff3d6…), les feux-boîtes des vieux
+  gabarits 0xfff6c8, le faisceau sur la route `LUMK.hlC` [1, ,88, ,7] (ampoule halogène), le halo des feux arrière qui tirait sur l'orange.
+  10 000 à 17 000 pixels jaunes autour des phares de nuit → 20 à 200.
+- **Ce qui change** (`code/voitures/feux-led.js`, une ligne en fin de buildCar) : AUCUN halo, ni devant ni derrière ; les pièces lumineuses
+  ('l') relues après la construction, aux deux bouts de la caisse : blanc LED 7 500 K, rouge LED franc (les ambres gardent leur couleur) ; la
+  LUEUR À LA FORME DE LA LAMPE : trois coques additives recopiées des triangles de chaque lampe, un peu plus larges à chaque fois (la barre du
+  CAÏD luit en barre, les ronds du SCARABÉE en ronds) — devant, la nuit seulement (la règle de Sacha : phares éteints au soleil), derrière
+  toujours, le frein l'embrase ; LE FAISCEAU DANS L'AIR la nuit (un cône additif par phare, l'air épais d'ARC) ; faisceau sur la route blanc froid.
+- ⚠ Une lampe poussée au-delà du blanc ne brille PAS plus : le bloom lit la scène écrêtée à [0,1] (son seuil plié) — d'où les coques.
+- Les CAISSES-PERSONNAGES (`FEUX_SAUF` : CHAT POP-TART, LE DOGE, LA FOURNAISE, L'ICEBERG) gardent leurs pièces lumineuses (des yeux, un pelage).
+- Lectures : `?feux=0` = les feux d'avant · `1` LED nette · `2` + faisceau dans l'air (avec de petits halos) · `3` = le jeu. Bancs : `dbgFeuxLed('mode',n)`
+  change de lecture À CHAUD (même instant), `dbgFeuxEtude({masque,boite})` (pixels des feux).
+- Vérifié : 0 erreur, 0 programme compilé en course (+1 au menu : le cône), toute la gamme passée au garage avant/après. Relevé en passant
+  (déjà sur le main, pas les feux) : au garage, une douzaine de vieilles caisses sans pièces 'l' (SA MAJESTÉ, LA DEUCHE…) sortent en image
+  NOIRE quand on les équipe par `dbgEquipe` — avec les erreurs « computeBoundingSphere : radius is NaN » (go, qn).
+- Planches : `CAR CAHS V3/photos-gameplay/feux-led-avant-apres.png` (les deux lectures) et `phares-dans-le-phare-avant-apres.png` (la 3).
+
 ## LES PORTES REDESCENDENT (2026-10-20, v709, Léo : « le mission, le shop, tu remets ça en dessous ; tu as déplacé les choses d'une manière bizarre »)
 - INVENTAIRE · MISSIONS · BOUTIQUE retrouvent leur rangée AU-DESSUS DE PLAY, debout comme couché (la place du garage d'avant le 19/10) ; au
   palier 30 la grille VITESSE se pose juste au-dessus d'elles (vdepPlace). Le ⚙ ajouté par Sacha reste en haut, à côté du trophée.
