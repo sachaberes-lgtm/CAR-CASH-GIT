@@ -3,7 +3,7 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
-## LE RONRON DU NITRO SORT DU SUB (2026-10-20 soir, v743, Léo : « un audio parfois sur mon tel et mon ordi qu'il n'y a pas sur le tel ni l'ordi de Sacha, sur le main — lié au boost, un son qui n'a rien à voir ») — branche `nitro-ronron`
+## LE RONRON DU NITRO SORT DU SUB (2026-10-20 soir, v745, Léo : « un audio parfois sur mon tel et mon ordi qu'il n'y a pas sur le tel ni l'ordi de Sacha, sur le main — lié au boost, un son qui n'a rien à voir ») — branche `nitro-ronron`
 - **LE SON** : le RONRON de Sacha (v740, le soir même) — deux triangles 44 Hz + quinte + une SOUS-OCTAVE à 22 Hz, hachés à 13 → 28 Hz, vibrato et houles après 2,5 s de tenue.
   MESURÉ au banc muet avec la sauvegarde de Léo (`dbgVu`, tenue de 5 s) : sa chaîne sortait à **−23/−27 dB RMS**, ~10 dB au-dessus de la gorge du nitro (−35) et
   12-15 dB au-dessus du grondement (−40/−44), tout entre 22 et 86 Hz. Un haut-parleur de Mac, de PC ou d'iPhone ne rend rien là-dessous (Sacha n'entendait rien
@@ -21,6 +21,7 @@ Plan de Léo (interview, fruit par fruit) ; tout est dans `code/gameplay/fruits-
 - **LA ROUTE** : plus de plaques turbo (`PADS_OFF`, `?pads=1` = avant) ; la LIGNE PARFAITE de Sacha (ligne-parfaite.js) ne pose plus que des FRUITS, un toutes les 0,45 s (`LIGNE.dt`), ×2,1 (petits),
   chacun rend `LIGNE.don` 0,48 de nitro (≈ 1,05 × ce qu'on brûle entre deux) : la NITRO NORMALE d'abord, le trop-plein dans la RÉSERVE BLEUE. Le jus à l'écran d'un fruit de la file : un sur quatre ; l'annonce
   RAFALE : une sur quatre (même total d'aura). Au BOUT d'une longue file (16-26 fruits) tombe un FRUIT-POUVOIR (`PWR_LIGNE`, `?cristaux=1` = les anciens cristaux au hasard), les cinq à égalité (`PWR_EGAUX`).
+- **(v743, après l'essai de Léo)** la file ne reste plus en ligne : `ligneGroupe`/`ligneMotif` — des GROUPES TIRÉS AU HASARD (longueur 4-15, forme vague/marches/arc/balayage/S/repos, amplitude, espacement 0,8-1,35×, fruit dominant, un repos 1 fois sur 4), PAS de cycle (v744 : le v743 était un cycle de 9, trop répétitif) ; fruits normaux ×1,6 (`FRUIT_K`), fruits-pouvoirs ×4,8 ; sons `pwr.x` (bol chantant) et `pwr.m` (carillon d'or) refaits.
 - **9 FRUITS NORMAUX** (même nitro) : myrtille, cerise, kiwi, pêche, orange, mangue, pomme, melon, litchi — recettes de l'atelier (`FRN_*`), les 13 anciens (dont les 7 exotiques) rangés dans `FRUIT_EXO`, hors du jeu.
 - **PIMENT = nitro infinie 7 s** : la couleur du feu chauffe avec le temps de boost (rouge → orange → jaune → blanc → bleu → violet, `NINF.h`), plume, traînée et bords d'écran la suivent.
 - **CITRON = vitesse ×2** (comme avant) : éclairs en rubans (`ZAP`), onde de choc, compteur km/h électrique, son `citron.zap` (cuit en PCM : pas de ffmpeg ici). **DRAGON = aura ×2, ×3 si `CHA.x ≥ 3`** (`auraDragonK`), jus vert/rose à chaque geste, disque Genjutsu

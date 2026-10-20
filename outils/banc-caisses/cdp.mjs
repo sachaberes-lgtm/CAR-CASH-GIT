@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 export const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 export async function lance({ port = 9477, w = 844, h = 390, dpr = 2 } = {}) {
@@ -54,7 +54,7 @@ export async function lance({ port = 9477, w = 844, h = 390, dpr = 2 } = {}) {
 
 // Une sauvegarde muette, auto-école passée, posée AVANT le chargement (une seule fois par onglet).
 export async function prepare(c, save) {
-  const s = JSON.stringify(Object.assign({ v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, facile: 0, bienv: 1, ex: { runs: 5 } }, save || {}));
+  const s = JSON.stringify(Object.assign({ v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, facile: 0, bienv: 1, ex: { runs: 5 }, plq: { m: 'fr', x: 'BANC', ok: 1 } }, save || {}));
   await c.send('Page.addScriptToEvaluateOnNewDocument', { source:
     `try{if(!sessionStorage.ccBanc){sessionStorage.ccBanc=1;localStorage.cashcarSave=${JSON.stringify(s)};}}catch(e){}` });
 }

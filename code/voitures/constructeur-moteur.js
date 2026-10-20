@@ -336,9 +336,11 @@ function fruitPick(rnd){ // tirage PONDÉRÉ par la fréquence (un brocoli reste
   let der=0;for(let i=0;i<FRUIT_DEFS.length;i++){const q=fq(FRUIT_DEFS[i]);if(q<=0)continue;der=i;r-=q;if(r<=0)return i;}
   return der;
 }
-function mkFruit(i){ const g=new THREE.Mesh(fruitGeo(i),FRUIT_MAT);g.scale.setScalar(2.7);g.userData.fruit=i;return g; } // (2026-09-26) ×2,7 // 1,15 → 1,9 : on les repère de loin · UN mesh par fruit
+/* (2026-10-20, Léo : « si les fruits normaux sont aussi gros que les fruits spéciaux, c'est pas bon ») LES FRUITS NORMAUX SONT PETITS (×1,6) ; les fruits-pouvoirs sont GROS (×4,8, voir mkPower) */
+const FRUIT_K=1.6;
+function mkFruit(i){ const g=new THREE.Mesh(fruitGeo(i),FRUIT_MAT);g.scale.setScalar(FRUIT_K);g.userData.fruit=i;return g; } // (2026-09-26) ×2,7 // 1,15 → 1,9 : on les repère de loin · UN mesh par fruit
 /* (2026-09-26, user : « parfois les fruits sont en collision avec la route ») — MESURÉ : posés à 1,3 m du bitume, mais grossis ×2,7
    (et ×1,08 au battement), certains descendent à 2,3 m sous leur centre : un bon mètre DANS la dalle. `fruitLeve(i)` = la hauteur du
    centre qui garde le plus bas du fruit ~45 cm au-dessus du bitume, battement compris (calculée une fois, sur la vraie géométrie). */
 const FRUIT_LEVE=[];
-function fruitLeve(i){if(FRUIT_LEVE[i]==null){const g=fruitGeo(i);if(!g.boundingBox)g.computeBoundingBox();FRUIT_LEVE[i]=Math.max(1.3,-g.boundingBox.min.y*2.7*1.1+.45);}return FRUIT_LEVE[i];}
+function fruitLeve(i){if(FRUIT_LEVE[i]==null){const g=fruitGeo(i);if(!g.boundingBox)g.computeBoundingBox();FRUIT_LEVE[i]=Math.max(.9,-g.boundingBox.min.y*FRUIT_K*1.1+.45);}return FRUIT_LEVE[i];}
