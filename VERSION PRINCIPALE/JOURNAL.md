@@ -19351,3 +19351,23 @@ const CACHE = 'cashcar-v624'; // v624 (2026-10-18, Léo : « plus de gris chelou
   TAURINE e84800 → aa3a05 (gamme-3.js) · ZED ff6a14 → ba5213 (gamme-3.js) · TRÔNE CENTRAL ff7a10 → ba5d10 (gamme-4.js). `CARS[i].color` (vignette de la peinture d'usine) inchangé.
 - Non fait : LE DÉFIEUR (jaune) et POSTER 84 (même défaut, proposés à Léo — le jaune se brunit vite en dessous de ~80 %).
 
+
+## AUJOURD'HUI — LA SÉRIE DE SEPT JOURS ET LE DÉFI DU JOUR (2026-10-20, séance « ce qu'on n'a jamais vraiment travaillé » — Léo coche : « une série de jours qui vaut le coup » · « le défi du jour, taillé pour toi »)
+- Le morceau `code/missions/aujourdhui.js` (son en-tête dit tout) : `SERIE7` (sept cases 150 $ · 250 $ · 1 jeton · 400 $ · 600 $ · 1 jeton · une PEINTURE EXCLUSIVE —
+  BRAISE FIDÈLE, AURORE BORÉALE, LAGON INTERDIT, NUIT ÉTOILÉE, `serie:1`, épiques, jamais en vente ; toutes à toi → 2 jetons) et `DJ` (un défi par jour, famille tirée sur la
+  date et pondérée par TES records, seuil calé sur ton meilleur, +1 jeton FINAL SPIN, `SAVE.d.dj`).
+- Sur le retour du jour de Sacha (son/mute-cadeau.js) : `jourCommit` verse la case du calendrier au lieu de la prime (`?serie=ancien` = la prime 0…100 $ de Sacha, que
+  `outils/jour-modele.cjs` lit toujours) ; `jourFinTexte` dit le lot, sans accent (la ligne est en police pixel : « SéRIE » s'affichait). Le ×2 du jour ne change pas.
+- Branchements : `m2Tick` → `djTick` ; la ligne du bas des missions a un genre `dj` (jamais fondu dans « n MISSIONS RÉUSSIES ») ; `m2Render` → `aujHtml` en tête ;
+  `shopOwned`/`m2HabAMoi` (`!d.serie`), `m2HabReco` (hors des lots « toutes ») ; `SAVE.d.dj` gardé par `san`. `?defijour=0` éteint le défi.
+- Vérifié au banc (Chrome muet, vrais touchers, 390 × 844) : écran MISSIONS avant / après / journée faite, une vraie partie (défi « 250 km/h » réussi en course, la ligne,
+  « ×2 DU JOUR · SÉRIE 3 +1 JETON » à l'écran de fin, 2 jetons), les 4 peintures au garage. Planche : `photos-gameplay/revenir-joueur-avant-apres.png` (dossier de Léo).
+- Console : `dbgSerie()`, `dbgSerie('jour',n)`, `dbgSerie('pris',n)`, `dbgDefiJour()`, `('force','fig')`, `('reussi')`, `('demain')`.
+
+## LES PETITS BUGS QUI TRAÎNAIENT (2026-10-20, séance « finir ce qui n'a pas été travaillé » — Léo coche : « les 3 petits bugs »)
+- LE GARAGE TROP LOURD SUR TÉLÉPHONE : `PAL.B.vhdPx` MOYEN et RÉCENT 1,6 / 3,2 M → 1,4 M de pixels (rendu/nettete-qualite.js). Mesuré sur l'iPhone 15 de Léo le 16/10 : à 3,2 M (densité 3)
+  le garage et la boutique tombaient à 41-58 i/s avec des accrocs de 200-700 ms ; 1,4 M (densité ~2) est le réglage que son appli iPhone appliquait déjà (preparer-www.js : `Math.min(…,1.4e6)`,
+  qui reste valable — la ligne de vhdDpr n'a pas bougé). L'ordinateur garde 8,3 M. `?palier=2` garde le reste du comportement RÉCENT.
+- LES ABEILLES DE LA FORÊT ÉTAIENT MUETTES : `sfx('foret.abeille')` était appelé (abeille à < 10 m de la caisse) mais aucune recette ne le cuisait. Recette `foret.abeille` (atelier-son/recettes.js) :
+  le bourdonnement qui PASSE — harmoniques en 1/k avec un « nez » vers 1,1 kHz, Doppler (plus aigu à l'arrivée, plus grave au départ), d'une oreille à l'autre ; deux variantes (l'ouvrière ~230 Hz,
+  le bourdon ~150 Hz). Cuite en PCM (`PCM=1 node atelier-son/cuire.js foret.abeille` : pas de ffmpeg sur ce Mac) — une cuisson complète avec ffmpeg la repassera en MP3. Banque `?v=34`.
