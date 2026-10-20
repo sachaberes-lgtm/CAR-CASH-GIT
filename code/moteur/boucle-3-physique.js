@@ -520,6 +520,7 @@
       for(let st2=0;st2<14;st2++){ // même intégration que la vraie chute : vel par seconde, position ×SPD
         if(th9>0){const sp9=tmp3.length();if(sp9>1)tmp3.multiplyScalar((sp9+th9)/sp9);}
         volMonte(tmp3,-FALL_G*gK()*(bascOn?Math.min(1,(bascT+st2*.12)/BASC_T):1)*vg9*.12); // (LE VOL QUI SUIT LA ROUTE) le viseur tombe comme la caisse : vers la dalle survolée sur la route sans haut ni bas
+        lmP.copy(tmp2);
         tmp2.addScaledVector(tmp3,.12*SPD);
         // le point le plus proche à moins de 20 m, 1 sur 8, trous exclus (le viseur ne promet jamais un atterrissage dans le vide)
         // (2026-09-27, passe perf iPhone) balayage en casiers (dalleProche) : même point élu, ~6× moins de distances
@@ -528,7 +529,10 @@
           dTmp.subVectors(tmp2,pts[bi]);
           const h2=dTmp.dot(Nn[bi]),l2=dTmp.dot(B[bi]);
           if(Math.abs(l2)<ROAD_HALF&&h2>-THICK-1&&h2<3){
-            landMark.position.copy(pts[bi]).addScaledVector(B[bi],l2).addScaledVector(Nn[bi],h2>-1.3?.3:-THICK-.3);
+            /* (2026-10-20) DESSUS OU DESSOUS : le côté d'où l'on ARRIVE (le pas d'avant, dans le repère de CETTE dalle), comme tryLand (prevH > −1,2 →
+               dessus). Avant, le seul signe de h2 décidait : un pas tombé à mi-épaisseur posait l'anneau SOUS la route alors que la caisse allait se poser dessus. */
+            const hP9=lmP.sub(pts[bi]).dot(Nn[bi]),dessus9=hP9>-1.2?true:hP9<-THICK+1.2?false:h2>-1.3;
+            landMark.position.copy(pts[bi]).addScaledVector(B[bi],l2).addScaledVector(Nn[bi],dessus9?.3:-THICK-.3);
             landMark.quaternion.setFromRotationMatrix(mat4.makeBasis(T[bi],B[bi],Nn[bi]));
             LM.vu=true;CAMV.eta=(st2+1)*.12;
             const impP=Math.abs(tmp3.dot(Nn[bi])); // impact PRÉDIT — même unité que le verdict d'atterrissage
