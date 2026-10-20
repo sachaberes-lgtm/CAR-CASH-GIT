@@ -372,7 +372,7 @@ const skyDome=(function(){
       '  float far=1.-exp(-t/9000.);',
       '  float lit=clamp(.5+(n-ns)*uMzA.z,0.,1.);',
       '  float big=vn(q*.07+11.3)-.5;',
-      '  float cov=smoothstep(uMzB.x-uMzB.y*far-.22*big,uMzB.x+.14-uMzB.y*far-.22*big,n),cr=smoothstep(.55,.82,n),ao=smoothstep(uMzB.x,uMzB.x+.32,n);',
+      '  float tz9=uTapis>.001?max(uMzB.x,uTapis+.15):uMzB.x;float cov=smoothstep(tz9-uMzB.y*far-.22*big,tz9+.14-uMzB.y*far-.22*big,n),cr=smoothstep(.55,.82,n),ao=smoothstep(tz9,tz9+.32,n);', // (2026-10-20) le tapis clairsemé aussi sur la mer du menu
       '  vec3 trou=mix(mix(uJZen*.6,uJMid*.85,uMzB.w),uMzT.rgb,uMzT.w);',
       '  vec3 ombre=mix(mix(uJMid*.58+vec3(.10,.10,.16),F,.2),uMzO.rgb,uMzO.w);',
       '  vec3 haut=mix(mix(vec3(1.,.985,.96),uSunTint,.18),uMzH.rgb,uMzH.w);',

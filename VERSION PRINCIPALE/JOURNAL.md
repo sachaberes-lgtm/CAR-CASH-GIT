@@ -3,6 +3,10 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE MENU CIEL : DES VOLUMES AU FOND (2026-10-21, v760, Léo : « dans le menu ciel nuages fond encore plats ») — branche `nuages-refonte`
+- Seize cumulus en cubes de plus dans `CHUTE_NU` (richesse-3.js, en FIN de liste : les silhouettes d'avant ne bougent pas) : posés sur la mer à 2,4-6,2 km, tout autour, immobiles.
+- Le tapis clairsemé atteint aussi la mer du MENU (`merZ` : `uTapis`, `TAPIS_M.menu` .50 → seuil de couverture relevé de .15) : des îlots et de vraies trouées d'ombre entre les volumes.
+
 ## LES NUAGES QUI SE DÉGAGENT + LE TAPIS CLAIRSEMÉ (2026-10-20 soir, v759, Léo : « plus d'harmonie entre les nuages du premier plan et l'arrière-plan, parfois pas la même couleur, 2-3 nuages devant et tout un tapis derrière » · « enlever le tapis complètement rempli, l'harmoniser avec la répartition du premier plan selon la météo » · « interactifs quand la voiture les touche, les gros blocs se cassent en petits, fluides ») — branche `nuages-refonte`
 - **LE TAPIS** : `uTapis` (scene-ciel.js : merArc ET la mer peinte du titre) = la couverture sous l'horizon ; `TAPIS_M` par météo (matin .60 · midi .56 · aprem .52 · soir .54 · nuit .50 · orage .34 : plus c'est haut, moins il y en a), `tapisPose(m)` (chute-menu.js), l'air de l'horizon entre les îlots. `?tapis=0` = le tapis plein d'avant.
   Couleur : l'ombre des cumulus en cubes (`N8_U.uLav`) prend à moitié celle du tapis (`CIEL_ARC[m].mo`) : même famille de bleus / mauves par météo.

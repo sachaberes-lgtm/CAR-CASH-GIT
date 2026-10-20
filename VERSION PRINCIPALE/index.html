@@ -8765,7 +8765,7 @@ const skyDome=(function(){
       '  float far=1.-exp(-t/9000.);',
       '  float lit=clamp(.5+(n-ns)*uMzA.z,0.,1.);',
       '  float big=vn(q*.07+11.3)-.5;',
-      '  float cov=smoothstep(uMzB.x-uMzB.y*far-.22*big,uMzB.x+.14-uMzB.y*far-.22*big,n),cr=smoothstep(.55,.82,n),ao=smoothstep(uMzB.x,uMzB.x+.32,n);',
+      '  float tz9=uTapis>.001?max(uMzB.x,uTapis+.15):uMzB.x;float cov=smoothstep(tz9-uMzB.y*far-.22*big,tz9+.14-uMzB.y*far-.22*big,n),cr=smoothstep(.55,.82,n),ao=smoothstep(tz9,tz9+.32,n);', // (2026-10-20) le tapis clairsemé aussi sur la mer du menu
       '  vec3 trou=mix(mix(uJZen*.6,uJMid*.85,uMzB.w),uMzT.rgb,uMzT.w);',
       '  vec3 ombre=mix(mix(uJMid*.58+vec3(.10,.10,.16),F,.2),uMzO.rgb,uMzO.w);',
       '  vec3 haut=mix(mix(vec3(1.,.985,.96),uSunTint,.18),uMzH.rgb,uMzH.w);',
@@ -62589,7 +62589,7 @@ if(ARC_ON){cielArcMer();for(const m9 in CIEL_ARC){cielArcTex(CIEL_ARC[m9].f); //
 /* (2026-10-20, Léo : « enlever en général le tapis complètement rempli de nuages, l'harmoniser avec la répartition des nuages du premier plan selon la météo ») LE TAPIS CLAIRSEMÉ :
    la mer de cumulus ne couvre plus tout le dessous — des ÎLOTS (la couverture TAPIS_M : plus c'est haut, moins il y en a), l'air de l'horizon entre eux ; plus dense là où
    le premier plan l'est (l'orage). `?tapis=0` = le tapis plein d'avant, `?tapis=.5` pour essayer. */
-const TAPIS=(function(){const m=/[?&]tapis=([0-9.]+)/.exec(location.search);return m?+m[1]:1;})(),TAPIS_M={matin:.60,midi:.56,aprem:.52,soir:.54,nuit:.50,orage:.34};
+const TAPIS=(function(){const m=/[?&]tapis=([0-9.]+)/.exec(location.search);return m?+m[1]:1;})(),TAPIS_M={matin:.60,midi:.56,aprem:.52,soir:.54,nuit:.50,orage:.34,menu:.50};
 function tapisPose(m){skyU.uTapis.value=TAPIS?(TAPIS_M[m]||.55)*Math.min(1,TAPIS):0;}
 function cielArcPose(m,k){tapisPose(m);const U=skyU,A=CIEL_ARC[m],on=ARC_ON&&CARC.force!==0&&A&&k>.001,tp=on&&cielArcTex(A.f),tm=on&&cielArcMer();
   if(tp){U.uPhT.value=tp;U.uPh.value.set(k,A.su,A.se*Math.PI/180,A.ex);U.uPh2.value.y=A.ns||0;}else U.uPh.value.x=0;
@@ -62600,7 +62600,7 @@ function nuFondTick(dt){ // à chaque image : la mer de nuages en course → le 
   if(typeof CHUTE!=='undefined'&&CHUTE.on){skyU.uPh.value.x=0;skyU.uMr.value.x=0;tapisPose('menu');return;} // (le menu peint son ciel lui-même)
   const c=LVL&&LVL.cur,T=(NUF.force!==0)&&c&&c.carte==='nuages'&&!PARK.on?NU_FOND[c.meteo]:null;if(T)NUF.T=T;
   NUF.k+=((T?1:0)-NUF.k)*(NUF.force!=null?1:Math.min(1,dt*1.5));
-  if(!T&&NUF.k<.002){if(NUF.on){skyU.uTi.value.x=0;NUF.on=false;}NUF.k=0;skyU.uPh.value.x=0;skyU.uMr.value.x=0;return;}
+  if(!T&&NUF.k<.002){if(!(c&&c.carte==='nuages'))tapisPose('menu');if(NUF.on){skyU.uTi.value.x=0;NUF.on=false;}NUF.k=0;skyU.uPh.value.x=0;skyU.uMr.value.x=0;return;}
   if(NUF.T){nuFondPose(NUF.T,NUF.k);NUF.on=true;cielArcPose(c&&c.meteo,NUF.k);}}
 window.dbgCielArc=function(k,o){if(k!==undefined)CARC.force=k==null?null:+k;o=o||{};const c=LVL&&LVL.cur,m9=c&&c.meteo; // (banc) A/B sur la même image : 0 = le main d avant (fond peint + mer peinte + fantômes), 1 = l essai
   if(k===0||k===1){const S9=SF_CARTES.nuages.m[m9],B9=S9&&BIOMES[S9.bio];if(B9&&CIEL_ARC[m9]&&NUF.av[m9]){B9.fog=(k===0?(NUF.ap0||{})[m9]||NUF.av[m9].fog:CIEL_ARC[m9].h).slice();bioGo(S9.bio,.01);bioStep(1);}
@@ -63766,7 +63766,26 @@ const CHUTE_NU=[
   [ 500,8600,560,4,0,-250],[3000,8200,620,6,0,-300],[-1800,8000,480,5,0,-330],
   // (2026-10-07, campagne de debug) deux tours étaient posées à 10,8 et 12,5 km — AU-DELÀ du plan lointain (camera.far 9800) : jamais
   // dessinées, juste payées. Retirées. Le 7e champ (2) rend leurs deux tirages de rotation : la tour de face garde EXACTEMENT sa silhouette.
-  [1500,9100,700,5,0,-200,2]];
+  [1500,9100,700,5,0,-200,2],
+  /* (2026-10-20, Léo : « dans le menu ciel, les nuages du fond encore plats ») LES BANCS DU MILIEU : seize cumulus en cubes posés sur la mer entre la caisse et les tours de l'horizon
+     (2,4-6,2 km, tout autour, immobiles) — le tapis ne fait plus seul tout le fond : des volumes à toutes les profondeurs, noyés dans l'air plus ils sont loin. Ajoutés en FIN de liste :
+     les silhouettes d'avant ne changent pas (les tirages de rotation suivent l'ordre). */
+  [-403,5004,362,0,0,-636],
+  [1725,5129,423,1,0,-641],
+  [2334,2328,165,3,0,-619],
+  [2480,968,207,2,0,-597],
+  [2555,164,217,0,0,-678],
+  [4198,-2200,242,1,0,-612],
+  [2009,-2007,236,3,0,-618],
+  [2521,-4895,299,0,0,-708],
+  [50,-4497,278,2,0,-637],
+  [-793,-2414,204,1,0,-597],
+  [-2404,-2100,267,3,0,-703],
+  [-5010,-1724,372,0,0,-676],
+  [-4192,-380,332,1,0,-592],
+  [-5081,2738,371,2,0,-618],
+  [-2765,2701,327,3,0,-621],
+  [-1335,2408,206,0,0,-718]];
 /* LES FORMES D'ABORD (titre v3) : les surfaces fines des cinq gabarits du titre sont demandées à l'ouvrier AU CHARGEMENT DU SCRIPT, avant
    les 96 finesses du ciel de coton (cotonInit, au premier newTrack) — sinon elles attendaient 10 à 15 s derrière elles, et le titre
    montrait pendant ce temps des ÉBAUCHES en grappes de boules. Aucune ébauche ici : un cumulus du titre n'existe à l'image que fini. */

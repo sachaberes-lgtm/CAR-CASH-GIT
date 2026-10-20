@@ -307,7 +307,26 @@ const CHUTE_NU=[
   [ 500,8600,560,4,0,-250],[3000,8200,620,6,0,-300],[-1800,8000,480,5,0,-330],
   // (2026-10-07, campagne de debug) deux tours étaient posées à 10,8 et 12,5 km — AU-DELÀ du plan lointain (camera.far 9800) : jamais
   // dessinées, juste payées. Retirées. Le 7e champ (2) rend leurs deux tirages de rotation : la tour de face garde EXACTEMENT sa silhouette.
-  [1500,9100,700,5,0,-200,2]];
+  [1500,9100,700,5,0,-200,2],
+  /* (2026-10-20, Léo : « dans le menu ciel, les nuages du fond encore plats ») LES BANCS DU MILIEU : seize cumulus en cubes posés sur la mer entre la caisse et les tours de l'horizon
+     (2,4-6,2 km, tout autour, immobiles) — le tapis ne fait plus seul tout le fond : des volumes à toutes les profondeurs, noyés dans l'air plus ils sont loin. Ajoutés en FIN de liste :
+     les silhouettes d'avant ne changent pas (les tirages de rotation suivent l'ordre). */
+  [-403,5004,362,0,0,-636],
+  [1725,5129,423,1,0,-641],
+  [2334,2328,165,3,0,-619],
+  [2480,968,207,2,0,-597],
+  [2555,164,217,0,0,-678],
+  [4198,-2200,242,1,0,-612],
+  [2009,-2007,236,3,0,-618],
+  [2521,-4895,299,0,0,-708],
+  [50,-4497,278,2,0,-637],
+  [-793,-2414,204,1,0,-597],
+  [-2404,-2100,267,3,0,-703],
+  [-5010,-1724,372,0,0,-676],
+  [-4192,-380,332,1,0,-592],
+  [-5081,2738,371,2,0,-618],
+  [-2765,2701,327,3,0,-621],
+  [-1335,2408,206,0,0,-718]];
 /* LES FORMES D'ABORD (titre v3) : les surfaces fines des cinq gabarits du titre sont demandées à l'ouvrier AU CHARGEMENT DU SCRIPT, avant
    les 96 finesses du ciel de coton (cotonInit, au premier newTrack) — sinon elles attendaient 10 à 15 s derrière elles, et le titre
    montrait pendant ce temps des ÉBAUCHES en grappes de boules. Aucune ébauche ici : un cumulus du titre n'existe à l'image que fini. */
