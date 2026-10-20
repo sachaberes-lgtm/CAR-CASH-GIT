@@ -122,7 +122,7 @@ function prebChampsDe(piste){ // les champs de module qu'écrit la construction 
   else if(piste==='canyon')L9.push([CY,['Q','rmin','sep','hz']]); // (+ hz : LE CANYON AU HASARD)
   else if(piste==='dunes')L9.push([DN,['Q','rmin','sep','hz']]); // (2026-10-18) LES DUNES D'OR (+ hz : LES DUNES AU HASARD)
   else if(piste==='banquise')L9.push([BANQ,['Q','cas','spi','axe','plan','pres','essais']]); // (2026-10-19) axe, plan, pres, essais : LE GLACIER AU HASARD (l'axe tourne les aurores)
-  else if(piste==='grotte')L9.push([GROTTE,['Q','salles','spi','conflits','croise']]); // (2026-10-18) LES PROFONDEURS
+  else if(piste==='grotte')L9.push([GROTTE,['Q','salles','spi','conflits','croise','hz']]); // (2026-10-18) LES PROFONDEURS (+ hz : LES PROFONDEURS AU HASARD, 20/10)
   else if(piste==='paris')L9.push([PARIS,['Q']]);
   return L9;}
 function pisteTravail(c){ // l'état de travail d'une route : celle d'en face (c, le pré-bâti), ou celle que newTrack vient de choisir (null, d'un trait)
