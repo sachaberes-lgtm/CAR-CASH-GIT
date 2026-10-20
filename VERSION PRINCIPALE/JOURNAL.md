@@ -3,6 +3,19 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA GRUE D'ATELIER À LA PLACE DE L'ÉTAL (2026-10-20, v715, Léo : « le présentoir, il est vraiment pas très beau » → entre un piédestal et une grue : « la grue ; du coin plus à gauche, là elle est vers la porte, ça fait chelou ; le moteur vers la droite et la grue vers la gauche ; et les moteurs se détruisent et se reconstruisent de la même manière que la voiture quand on regarde une pub pour réapparaître »)
+- `vdepEtal2` (code/gameplay/evenements-rares.js, bloc « LA GRUE D'ATELIER ») : une grue d'atelier jaune DE PROFIL — pieds à roulettes rayés
+  au bout, mât à GAUCHE avec ses bagues, flèche, vérin chromé, baladeuse et son cône de lumière ; le moteur pend à DROITE à la chaîne
+  (crochet, palonnier), au-dessus d'une palette, tourne et se balance ; la plaque est vissée au mât (le nom seul avant le palier 30).
+- PLACE : `ETAL_X` 6,9 / `ETAL_Z` 1,0 (l'étal était à 5,95 / 1,4, contre le montant) — mesuré en vue debout 390 × 844 : à 7,2 le mât sort
+  de l'écran, à 6,9 il tient au bord gauche, le moteur s'écarte de la porte. `?etalx=` / `?etalz=` pour la régler au banc.
+- CHANGER DE CRAN = LA RÉSURRECTION de la seconde chance (RESU) appliquée au moteur : `vdepEclats` range chaque moteur en 12 éclats
+  (boîtes gauche/droite × trois étages × avant/arrière, maillages PARTAGÉS) ; le moteur en place éclate (0,5 s, vers le côté libre, gerbe
+  d'or, `garage.tole`), ceux du suivant apparaissent éparpillés (jamais vers le mât), flottent et reviennent un à un EN TOURBILLON, le bas
+  d'abord, avec traînée d'étincelles et un `spin.arret` qui monte d'une note à chaque éclat ; le dernier posé : anneau de néon rose, gerbe
+  d'or, `jeu.miracule` (doux). ~2,4 s en tout. Étincelles : une réserve à elle (56 sprites), les réserves de la course ne tournent pas au garage.
+- `?etal=ancien` rend l'étal du 19/10. Les deux propositions (piédestal, grue d'origine) sont dans le commit 75731b29.
+- Vérifié au banc (palier 1 et palier 30+, cran 1 → 4 : V16), 0 erreur. Planche : `CAR CAHS V3/photos-gameplay/grue-moteur-avant-apres.png`.
 ## LES ORANGES, PLUS FORT (2026-10-20, v714, discussion voiture, Léo : « retente la correction sur les oranges, plus fort » puis « mets la version C »)
 - MESURÉ (banc : le garage qui tourne + PICS DE JADE à midi, part de la tôle orange au plafond 255) : la correction de la v707 (laque à 70 %)
   brûlait encore 84-89 % de la tôle DE JOUR (garage ~55 %) — un aplat sans relief. Assombrir de ×0,76 ou passer en métallisé ('k') ne
