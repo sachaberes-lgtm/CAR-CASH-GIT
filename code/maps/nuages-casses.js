@@ -90,3 +90,14 @@ window.dbgPlanNuages=function(pas){ // (banc, 2026-10-21) LE PLAN D'AVION : la p
   let dans=0,pres=0,tot=0,cam=0;for(const p of P){tot++;let mn=1e9;for(const c of C){const dx=(p[0]-c[0])/c[3],dz=(p[2]-c[2])/c[3],dy=((p[1]+4)-c[1])/Math.max(1,c[4]);mn=Math.min(mn,Math.sqrt(dx*dx+dz*dz+dy*dy));}
     if(mn<1)dans++;else if(mn<1.4)pres++;}
   return {pas:pas,n:C.length,banc:C.filter(function(c){return c[5]===2;}).length,dans:+(dans/tot).toFixed(3),pres:+(pres/tot).toFixed(3),roadHalf:ROAD_HALF,P:P,C:C};};
+/* (2026-10-21, Léo : « chaque nuage adapté à sa météo ; le matin est le plus réussi, pars de lui ») LES HUMEURS DES CUMULUS : le MATIN est la référence (rien ne change). Pour les autres météos de la map, deux
+   réglages de la matière (voir nuage8Mat : uMood, uInC) — la TRANSPARENCE en trame (x : part opaque) et la LUMIÈRE DE L'INTÉRIEUR (y, de la couleur uInC ; z monte aux éclairs). Lissés d'une image à l'autre. */
+const NU_MOOD={ // [part opaque, lumière intérieure, couleur]
+  matin:[1,0,[.8,.85,1]],midi:[1,0,[.8,.88,1]],aprem:[1,0,[1,.9,.75]],soir:[1,.06,[1,.62,.55]],nuit:[.96,.16,[.45,.6,1]],
+  pluie:[.9,.22,[.55,.72,.98]],orage:[.78,.5,[.62,.72,1]]};
+const NU_MOOD_S={x:1,y:0,c:new THREE.Vector3(.8,.85,1),f:0};
+function nuMoodTick(dt){
+  const c=LVL&&LVL.cur,k=c&&(c.carte==='nuages'||c.id==='orage')&&started&&!gameOver&&mode!=='boom'?(c.carte==='nuages'?c.meteo:'orage'):null,M=NU_MOOD[k]||[1,0,NU_MOOD.matin[2]],S=NU_MOOD_S,e=Math.min(1,dt*2.2),U=N8_U;
+  S.x+=(M[0]-S.x)*e;S.y+=(M[1]-S.y)*e;S.c.x+=(M[2][0]-S.c.x)*e;S.c.y+=(M[2][1]-S.c.y)*e;S.c.z+=(M[2][2]-S.c.z)*e;
+  let fl=0;try{fl=Math.min(1,Math.max(0,CAMP_FLASH||0));}catch(e9){}S.f+=(fl-S.f)*Math.min(1,dt*18);
+  U.uMood.value.set(S.x,S.y,S.f,0);U.uInC.value.copy(S.c);}

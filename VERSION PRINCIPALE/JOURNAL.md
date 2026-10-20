@@ -3,6 +3,12 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES HUMEURS DES CUMULUS PAR MÉTÉO (2026-10-21, v764, Léo : « la technique de la forêt, la transparence, pour que chaque nuage soit adapté à sa météo ; le matin est le plus réussi, pars de lui ; orage plus stylé, pluie plus cool ») — branche `nuages-refonte`
+- `nuage8Mat` : `uMood` (x part opaque en TRAME Bayer = du verre fait de pixels, y lumière de l'intérieur, z éclairs) et `uInC` (sa couleur) ; la lumière de l'intérieur ne se voit que dans l'ombre et les creux + de petits éclairs lointains par quartier de ciel (comme la peau du vitrail de la forêt).
+- `NU_MOOD` / `nuMoodTick` (nuages-casses.js) : MATIN et MIDI = la référence, rien ne change · soir un souffle chaud · nuit bleu lune · PLUIE .9 / bleu froid · ORAGE .78 / violet-bleu qui monte aux éclairs (`CAMP_FLASH`). Lissé. Neutre hors course.
+- MIDI gardé (Léo : « il est beau, plus bleu, plus riche »). Un lien de test (`?carte=`/`?meteo=`) passe avant le choix du ciel gardé (il masquait `?meteo=orage`).
+- NON FAIT : la NEIGE (météo neuve + route verglacée) — à confirmer avec Léo.
+
 ## LE CIEL DU MENU SUIT LE CHOIX (2026-10-21, v763, Léo : « ça doit changer aussi le ciel du menu, les boutons » · « garder tous les effets validés, tous les niveaux concernés » · « pas pour le main ») — branche `nuages-refonte`
 - Les touches AUTO · MATIN · MIDI · SOIR · NUIT · PLUIE · ORAGE posent aussi l'heure du titre (`dbgHeure`) : MATIN/MIDI/SOIR/NUIT = leur ciel ; PLUIE → après-midi, ORAGE → soir ; AUTO = l'horloge du téléphone. Vérifié : MIDI → ciel bleu du jour au menu, nuages en cubes devant.
 

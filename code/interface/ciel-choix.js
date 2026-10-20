@@ -4,6 +4,7 @@
    SF.force dès qu'on le touche (le départ d'avance rebâtit la piste de la bonne météo tout de suite) et classiqueJouer le repose à chaque départ. */
 const CIEL_CH={opts:['auto','matin','midi','soir','nuit','pluie','orage'],v:'auto',el:null};
 try{const v9=localStorage.getItem('cashcarCiel');if(v9&&CIEL_CH.opts.indexOf(v9)>=0)CIEL_CH.v=v9;}catch(e){}
+if(/[?&](carte|meteo)=/.test(location.search))CIEL_CH.v='auto'; /* un lien de test (?carte= ?meteo=) passe avant le choix gardé */
 Object.assign(I18N,{"MATIN":"MORNING","MIDI":"NOON","ORAGE":"STORM","AUTO":"AUTO"});
 function cielChoixImpose(){ // à chaque départ : la map nuages à la météo choisie (sauf si une autre force est déjà posée : lien de test, banc)
   if(CIEL_CH.v==='auto'||SF.force)return;const p=SF.prochain;
