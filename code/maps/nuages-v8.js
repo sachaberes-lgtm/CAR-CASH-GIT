@@ -24,12 +24,13 @@ function nuage8Calc(B, base, top, N, opt) {
   const vn = function (x, y, z) { const i = Math.floor(x), j = Math.floor(y), k = Math.floor(z); let fx = x - i, fy = y - j, fz = z - k; fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy); fz = fz * fz * (3 - 2 * fz);
     const a = hs(i, j, k), b = hs(i + 1, j, k), c = hs(i, j + 1, k), d = hs(i + 1, j + 1, k), e = hs(i, j, k + 1), f = hs(i + 1, j, k + 1), g = hs(i, j + 1, k + 1), m = hs(i + 1, j + 1, k + 1);
     const l1 = a + (b - a) * fx, l2 = c + (d - c) * fx, l3 = e + (f - e) * fx, l4 = g + (m - g) * fx, q1 = l1 + (l2 - l1) * fy, q2 = l3 + (l4 - l3) * fy; return q1 + (q2 - q1) * fz; };
-  const sd = (opt.seed || 0) * 17.13;
+  const sd = (opt.seed || 0) * 17.13, VOXF = !!opt.vox, FAR = DET * .5 + .02;
   // le champ : > 0 dedans
-  const champ = function (x, y, z) {
+  const champ = function (x, y, z, LB) { // LB (cubes) : la liste des lobes qui comptent dans la région interrogée
     let f = 0;
-    for (let i = 0; i < B.length; i++) { const b = B[i], r = b[3], ry = b[3] * b[4], dx = (x - b[0]) / r, dy = (y - b[1]) / ry, dz = (z - b[2]) / r, q = dx * dx + dy * dy + dz * dz; if (q < 9) f += Math.exp(-K * q); }
+    for (let ii = 0, nb = LB ? LB.length : B.length; ii < nb; ii++) { const i = LB ? LB[ii] : ii, b = B[i], r = b[3], ry = b[3] * b[4], dx = (x - b[0]) / r, dy = (y - b[1]) / ry, dz = (z - b[2]) / r, q = dx * dx + dy * dy + dz * dz; if (q < 9) f += Math.exp(-K * q); }
     let g = Math.log(Math.max(f, 1e-9) / T); // 0 à la surface, en « unités de rayon » (le log rend le champ presque linéaire près de la surface)
+    if (VOXF && (g > FAR || g < -FAR)) return g - Math.max(0, (base + .015 - y)) * 40; // (cubes) le bruit ne vaut que ±DET/2 : loin de la surface il ne change aucun signe, on ne le calcule pas
     // le chou-fleur : deux octaves de bosses, plus fortes vers le haut (la base reste lisse)
     const hy = Math.max(0, Math.min(1, (y - base) / Math.max(.1, top - base)));
     g += DET * (0.55 * (vn(x * 4.1 * FQ + sd, y * 4.1 * FQ, z * 4.1 * FQ) - .5) + 0.3 * (vn(x * 9.3 * FQ, y * 9.3 * FQ + sd, z * 9.3 * FQ) - .5) + 0.15 * (vn(x * 19.7 * FQ, y * 19.7 * FQ, z * 19.7 * FQ + sd) - .5)) * (.3 + .7 * hy);
@@ -37,6 +38,64 @@ function nuage8Calc(B, base, top, N, opt) {
     g -= Math.max(0, (base + .015 - y)) * 40;
     return g;
   };
+  /* (2026-10-20, Léo : « le niveau nuage a l'air déchiqueté — une refonte, avec toutes les techniques, entre réalisme et cubes pixel de tailles
+     variables ») LE CUMULUS EN CUBES DE TAILLES VARIABLES : du MÊME champ lisse (donc les mêmes formes, la même base plate), la surface n'est plus
+     maillée en surface nets mais en CUBES posés sur une grille emboîtée (régions de 4 unités : des cubes de 1, 2 ou 4 unités selon un bruit lisse
+     par région — petits sur les bourgeons du haut, gros vers le ventre) ; seules les faces tournées vers le dehors sont émises, une par
+     « patch » si le voisin change de taille (jamais de trou entre un gros et un petit cube). La LUMIÈRE reste celle du nuage lisse : la normale
+     d'un cube = sa face mêlée au gradient du champ (opt.vox.kn), le modelé cuit (creux, ombre des bourgeons du haut, hauteur) est lu en son
+     centre, et chaque cube a SA nuance (opt.vox.jit) : c'est elle qui fait lire la mosaïque. Aucun fantôme, aucune poussière : un seul objet opaque. */
+  if (opt.vox) {
+    const VX = opt.vox, hv = ext / (N * (VX.k || 1.5) * (N > 40 ? (VX.kf || .75) : 1)), RG = hv * 4, kn = VX.kn == null ? .5 : VX.kn, jit = VX.jit == null ? .16 : VX.jit;
+    const gx0 = Math.floor(x0 / RG) * RG, gz0 = Math.floor(z0 / RG) * RG, gy0 = base - RG; // la base du nuage sur une frontière de région : le dessous est PLAT
+    const NRX = Math.ceil((x1 + hv * 2 - gx0) / RG) + 1, NRZ = Math.ceil((z1 + hv * 2 - gz0) / RG) + 1, NRY = Math.ceil((y1 + hv * 2 - gy0) / RG) + 1;
+    const NCX = NRX * 4, NCY = NRY * 4;
+    const RL = new Int8Array(NRX * NRY * NRZ), RS = new Int8Array(NRX * NRY * NRZ), memo = new Map();
+    const t0v = VX.t0 == null ? .36 : VX.t0, t1v = VX.t1 == null ? .7 : VX.t1, hbv = VX.hb == null ? .35 : VX.hb, hh0 = Math.max(.1, top - base);
+    for (let k = 0; k < NRZ; k++) for (let j = 0; j < NRY; j++) for (let i = 0; i < NRX; i++) { // la taille des cubes de chaque région : un bruit LISSE (des plaques), plus petite vers le haut
+      const rv = vn(i * .83 + sd + 3.1, j * .83 + 1.7, k * .83 - 2.3) * .65 + hs(i * 7 + 1, j * 13 + 5, k * 11 + 3) * .35, yy = Math.min(1, Math.max(0, (gy0 + (j + .5) * RG - base) / hh0)), t = rv + (.5 - yy) * hbv;
+      RL[i + NRX * (j + NRY * k)] = t < t0v ? 0 : t < t1v ? 1 : 2; }
+    const RBL = new Array(NRX * NRY * NRZ), bl = function (i, j, k) { const q = i + NRX * (j + NRY * k); let L9 = RBL[q]; if (L9) return L9; // les lobes dont la portée (3 rayons : q < 9) touche cette région
+      const ccx = gx0 + (i + .5) * RG, ccy = gy0 + (j + .5) * RG, ccz = gz0 + (k + .5) * RG, rr = RG * .87; L9 = [];
+      for (let b9 = 0; b9 < B.length; b9++) { const b = B[b9], R9 = 3 * Math.max(b[3], b[3] * b[4]) + rr; if (Math.abs(ccx - b[0]) < R9 && Math.abs(ccy - b[1]) < R9 && Math.abs(ccz - b[2]) < R9) L9.push(b9); }
+      RBL[q] = L9; return L9; };
+    const rstate = function (i, j, k) { const q = i + NRX * (j + NRY * k); let s = RS[q]; if (s) return s;
+      let mn = 1e9, mx = -1e9; const xa = gx0 + i * RG, ya = gy0 + j * RG, za = gz0 + k * RG;
+      const L9 = bl(i, j, k); for (let c = 0; c < 9; c++) { const g = champ(c === 8 ? xa + RG * .5 : xa + (c & 1) * RG, c === 8 ? ya + RG * .5 : ya + ((c >> 1) & 1) * RG, c === 8 ? za + RG * .5 : za + ((c >> 2) & 1) * RG, L9); if (g < mn) mn = g; if (g > mx) mx = g; }
+      s = mn > 2.5 ? 2 : mx < -2.5 ? 1 : 3; RS[q] = s; return s; };
+    const cellSolid = function (l, ci, cj, ck) { const key = ((ck * NCY + cj) * NCX + ci) * 3 + l, m = memo.get(key); if (m !== undefined) return m;
+      const s = hv * (1 << l), sh = 2 - l, v = champ(gx0 + (ci + .5) * s, gy0 + (cj + .5) * s, gz0 + (ck + .5) * s, bl(ci >> sh, cj >> sh, ck >> sh)) > 0; memo.set(key, v); return v; };
+    const solidAt = function (x, y, z) { const i = Math.floor((x - gx0) / RG), j = Math.floor((y - gy0) / RG), k = Math.floor((z - gz0) / RG);
+      if (i < 0 || j < 0 || k < 0 || i >= NRX || j >= NRY || k >= NRZ) return false;
+      const st = rstate(i, j, k); if (st === 1) return false; if (st === 2) return true;
+      const l = RL[i + NRX * (j + NRY * k)], s = hv * (1 << l); return cellSolid(l, Math.floor((x - gx0) / s), Math.floor((y - gy0) / s), Math.floor((z - gz0) / s)); };
+    const VP = [], VN = [], VC = [], VI = [], DIRS = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]], QQ = [[-1, -1], [1, -1], [1, 1], [-1, 1]], eps = hv * .25;
+    const quad = function (cx, cy, cz, ax, sg, hs9, cu, cw, hu, hw, nn, md) { const u = (ax + 1) % 3, w = (ax + 2) % 3, b0 = VP.length / 3;
+      for (const q of QQ) { const P = [cx, cy, cz]; P[ax] += sg * hs9; P[u] += cu + q[0] * hu; P[w] += cw + q[1] * hw; VP.push(P[0], P[1], P[2]); VN.push(nn[0], nn[1], nn[2]); VC.push(md[0], md[1], md[2]); }
+      if (sg > 0) VI.push(b0, b0 + 1, b0 + 2, b0, b0 + 2, b0 + 3); else VI.push(b0, b0 + 2, b0 + 1, b0, b0 + 3, b0 + 2); };
+    const e1 = hv * .6;
+    for (let k = 0; k < NRZ; k++) for (let j = 0; j < NRY; j++) for (let i = 0; i < NRX; i++) {
+      if (rstate(i, j, k) !== 3) continue;
+      const l = RL[i + NRX * (j + NRY * k)], n = 4 >> l, s = hv * (1 << l), m = 1 << l;
+      for (let c = 0; c < n; c++) for (let b = 0; b < n; b++) for (let a = 0; a < n; a++) {
+        const ci = i * n + a, cj = j * n + b, ck = k * n + c; if (!cellSolid(l, ci, cj, ck)) continue;
+        const cx = gx0 + (ci + .5) * s, cy = gy0 + (cj + .5) * s, cz = gz0 + (ck + .5) * s; let dat = null;
+        for (const d of DIRS) { const ax = d[0] ? 0 : d[1] ? 1 : 2, u = (ax + 1) % 3, w = (ax + 2) % 3, sg = d[ax], ex = [];
+          let nex = 0; for (let q = 0; q < m; q++) for (let p = 0; p < m; p++) { const P = [cx, cy, cz]; P[ax] += sg * (s * .5 + eps); P[u] += ((p + .5) / m - .5) * s; P[w] += ((q + .5) / m - .5) * s;
+            const e = !solidAt(P[0], P[1], P[2]); ex.push(e); if (e) nex++; }
+          if (!nex) continue;
+          if (!dat) { let gx = champ(cx + e1, cy, cz) - champ(cx - e1, cy, cz), gy = champ(cx, cy + e1, cz) - champ(cx, cy - e1, cz), gz = champ(cx, cy, cz + e1) - champ(cx, cy, cz - e1);
+            const gl = Math.hypot(gx, gy, gz) || 1; gx = -gx / gl; gy = -gy / gl; gz = -gz / gl;
+            let o9 = 0; for (const s9 of [.04, .09, .17, .3]) { const w9 = champ(cx + gx * s9, cy + gy * s9, cz + gz * s9); if (w9 > -1.4) o9 += (w9 + 1.4) / 1.4 * (s9 === .04 ? .35 : s9 === .09 ? .3 : s9 === .17 ? .22 : .13); }
+            let u9 = 0; for (const s9 of [.1, .22, .38, .6]) { const w9 = champ(cx + gx * .03, cy + s9, cz + gz * .03); if (w9 > 0) u9 += Math.min(1, w9) * .5; }
+            const hz = hs(ci * 7 + 3, cj * 13 + 5, ck * 11 + 1 + l * 31) - .5;
+            dat = { g: [gx, gy, gz], md: [Math.max(0, Math.min(1, (.25 + .75 * Math.max(0, Math.min(1, 1 - o9 * 1.15))) * (1 + hz * jit))), Math.min(1, Math.exp(-u9 * 1.6) * (1 + hz * jit * .5)), Math.max(0, Math.min(1, (cy - base) / hh0))] }; }
+          const nn = [d[0] * (1 - kn) + dat.g[0] * kn, d[1] * (1 - kn) + dat.g[1] * kn, d[2] * (1 - kn) + dat.g[2] * kn], nl = Math.hypot(nn[0], nn[1], nn[2]) || 1; nn[0] /= nl; nn[1] /= nl; nn[2] /= nl;
+          if (nex === m * m) quad(cx, cy, cz, ax, sg, s * .5, 0, 0, s * .5, s * .5, nn, dat.md);
+          else { const hp = s / m * .5; let ii = 0; for (let q = 0; q < m; q++) for (let p = 0; p < m; p++, ii++) if (ex[ii]) quad(cx, cy, cz, ax, sg, s * .5, ((p + .5) / m - .5) * s, ((q + .5) / m - .5) * s, hp, hp, nn, dat.md); } } } }
+    const nvv = VP.length / 3;
+    return { pos: new Float32Array(VP), nor: new Float32Array(VN), col: new Float32Array(VC), idx: nvv < 65535 ? new Uint16Array(VI) : new Uint32Array(VI), vit: null, fant: null };
+  }
   // les coins
   const NX = nx + 1, NY = ny + 1, NZ = nz + 1, V = new Float32Array(NX * NY * NZ);
   for (let k = 0; k < NZ; k++) for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) V[i + NX * (j + NY * k)] = champ(x0 + i * h, y0 + j * h, z0 + k * h);
@@ -283,7 +342,7 @@ function cotonCalcAsync(S,sph,cb){ // cb(le calcul), PLUS TARD : dans l'ouvrier 
   if(w){const id=++COTON_OUV.id;COTON_OUV.att.set(id,{job:job,cb:cb});try{w.postMessage({id:id,B:job.B,base:job.base,top:job.top,sp:job.sp,sn:job.sn,si:job.si,CH:job.CH});}catch(e){COTON_OUV.att.delete(id);cotonTranche(job,cb);}}
   else cotonTranche(job,cb);}
 function nuage8Async(S,N,cb,vit){ // (v8) une finesse de la NOUVELLE surface : dans l'ouvrier si possible, sinon par tranches — vit : la taille des écailles du VITRAIL (nombre de cubes sur la plus grande dimension), 0 = sans
-  const job={n8:N,o8:Object.assign({seed:S.seed||0},N8_OPT,vit?(NUVIT.fant?{fant:NUVIT.fant,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:Object.assign({vit:vit,iso:NUVIT.iso,nsk:NUVIT.nsk,ecart:NUVIT.ecart,jit:NUVIT.jit||0},NUVIT.mix?{fant:NUVIT.mix,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:{})):{}),B:S.B,base:S.base,top:S.top},w=cotonOuvrier();
+  const job={n8:N,o8:Object.assign({seed:S.seed||0},N8_OPT,NUVIT.vox?{vox:NUVIT.vox,det:NUVIT.vox.det==null?N8_OPT.det:NUVIT.vox.det}:vit?(NUVIT.fant?{fant:NUVIT.fant,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:Object.assign({vit:vit,iso:NUVIT.iso,nsk:NUVIT.nsk,ecart:NUVIT.ecart,jit:NUVIT.jit||0},NUVIT.mix?{fant:NUVIT.mix,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:{})):{}),B:S.B,base:S.base,top:S.top},w=cotonOuvrier();
   if(w){const id=++COTON_OUV.id;COTON_OUV.att.set(id,{job:job,cb:cb});try{w.postMessage({id:id,n8:N,o8:job.o8,B:job.B,base:job.base,top:job.top});}catch(e){COTON_OUV.att.delete(id);cotonTranche(job,cb);}}
   else cotonTranche(job,cb);}
 function cotonFinesse(k,f,g){ // une finesse est arrivée : elle remplace l'ébauche dans SON lot et dans les lots plus fins encore en attente

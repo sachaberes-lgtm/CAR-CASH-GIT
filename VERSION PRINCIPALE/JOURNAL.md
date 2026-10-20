@@ -3,6 +3,18 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES NUAGES EN CUBES DE TAILLES VARIABLES (2026-10-20 soir, v758, Léo : « le niveau nuage a l'air déchiqueté, une refonte avec toutes les techniques, entre réalisme et cubes pixel de tailles variantes ») — branche `nuages-refonte`
+- **LE CONSTAT** (captures de la map au matin) : des piliers fondus (cathédrales/champignons du sculpteur v8, érodés par le bruit) saupoudrés de cubes FANTÔMES orange/roses
+  au hasard — deux écritures (lisse + poussière) qui se battaient. **LA TECHNIQUE RETENUE** : le corps lisse v8 (mêmes formes, même base plate, même lumière de peintre) est
+  maillé en CUBES posés sur une grille emboîtée (`nuage8Calc`, branche `opt.vox`) : régions de 4 unités, cubes de 1, 2 ou 4 unités selon un bruit lisse par région (petits sur
+  les bourgeons du haut, gros vers le ventre) ; faces tournées vers le dehors seulement, une par « patch » quand le voisin change de taille (aucun trou) ; normale = face mêlée
+  au gradient du champ (`kn` .78), modelé cuit lu au centre du cube (+ une nuance par cube, `jit` .07 : c'est elle qui fait lire la mosaïque) ; AUCUN fantôme, un seul objet opaque.
+- **BRANCHEMENT** : dose `voxel` de `NUVIT` (défaut quand `ARC_ON`) : `NUVIT.on=false`, `NUVIT.vox={k,kn,jit,det,t0,t1,hb}` ; `nuage8Async` envoie `vox` à l'ouvrier à toutes les finesses
+  (le vitrail/fantôme ne sont plus calculés). Tout le reste (lots instanciés, fondus, trame, lumière de biome) est inchangé. `?nuvit=fantome` = l'avant ; `?vk=` (finesse, 2,4),
+  `?vkn=` (lissage des normales), `?vjit=` (nuance par cube).
+- **COÛT** (mesuré, Mac) : prêt en ~6-9 s contre 8,3 s (finesse 48 : cubes ×.75, `kf`), triangles par gabarit ×~1,5 (≤ 18 k), 60 i/s sur matin/midi/soir/orage. Les piliers du
+  sculpteur restent ce qu'ils étaient (forme) ; seule la matière change. Touche TOUS les cumulus v8 (aussi ceux des Pics de Jade).
+
 ## LA MONTÉE « GRANDE » DU GÉNÉRATEUR, EN COURSE (2026-10-20 soir, v751, Léo : « quand je booste, ça apparaît, ça évolue, puis ça devient une sorte de trompette horrible qui fait bugger la musique : elle s'arrête, reprend 1-2 s après, et dès que je rappuie sur le boost ça recommence ») — branche `nitro-ronron`
 - **LE SON** n'était pas le nitro : c'est la musique de POUCE BLEU (le générateur `musique-trente-*.js`). Le jeu ne lui passe que le MOTEUR (`setTier`) ;
   un boost tenu fait monter plusieurs paliers d'un coup, et chaque grand élément qui entre appelle une MONTÉE d'une mesure : un RISER — une fois sur deux
