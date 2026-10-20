@@ -46914,7 +46914,7 @@ function pwrTick(dt){
      SENTAIT pas en chiffres. */
 const MIR={t:0,max:0,min:.6};            // t = secondes « perdu d'avance » (lissé), max = le pire du vol
 function mirTick(dt){ // dans la branche 'fall', après le viseur (LM.vu vient d'être posé)
-  const perdu=!LM.vu&&fallT>.4&&(VOLR.on?(volVu(fallVel)<-4&&tryLand._bi>=0&&VOLR.c.subVectors(fallPos,pts[tryLand._bi]).dot(VOLR.u)<-10):(fallVel.y<-4&&fallPos.y<lastNearY-10)); // (LE VOL QUI SUIT LA ROUTE) sur la route sans haut ni bas : 10 m sous la dalle survolée, en tombant vers son dessous
+  const perdu=!LM.vu&&fallT>.4&&(VOLR.on?(volVu(fallVel)<-4&&tryLand._bi>=0&&VOLR.c.subVectors(fallPos,pts[tryLand._bi]).dot(VOLR_FIGE?VOLR.b.copy(Nn[tryLand._bi]).multiplyScalar(Nn[tryLand._bi].dot(VOLR.u)<0?-1:1):VOLR.u)<-10):(fallVel.y<-4&&fallPos.y<lastNearY-10)); // (LE VOL QUI SUIT LA ROUTE) sur la route sans haut ni bas : 10 m sous la dalle survolée, en tombant vers son dessous
   MIR.t=perdu?MIR.t+dt:Math.max(0,MIR.t-dt*2);if(MIR.t>MIR.max)MIR.max=MIR.t;
 }
 function mirPose(){ // la pose a réussi (tryLand vrai)
@@ -52340,6 +52340,17 @@ const TBORD={t:0,on:false,u:new THREE.Vector3()};
    `?sans=volroulis` = avant ; `dbgVolRoulis(false|true)` le bascule en direct pour les vols suivants. */
 let VOLR_ROULIS=!/[?&]sans=([^&]*,)?volroulis(,|&|$)/.test(location.search);
 window.dbgVolRoulis=function(v){if(v!=null)VOLR_ROULIS=!!v;return VOLR_ROULIS;};
+/* ===== LE VOL SANS HAUT NI BAS (2026-10-20, Sacha : « il y a toujours des problèmes dans la map nuage : on est aimanté à la route, le jeu a du mal à
+   gérer le haut et le bas — il ne faut plus de haut ni de bas, juste la voiture, elle peut voler naturellement, librement ; quand tu voles près de la
+   route tu es attiré et ta trajectoire est déviée par le haut et le bas ») =====
+   `VOLR` faisait encore tourner le haut du vol avec la dalle la plus proche, image après image : près de la route, la gravité tirait toujours vers
+   « sa » dalle, et chaque vrille, chaque plongeon de la route sous la caisse tordait la trajectoire (l'aimant, même quand l'écran ne roulait plus).
+   Désormais le haut du vol est celui du DÉCOLLAGE et il ne bouge plus : la face de la route qu'on quitte (`startFall`, `VOLR.u = F.n`). Un vol est une
+   parabole nette dans le repère de la caisse au départ — gravité, plané du nitro, équilibre de la caisse et de l'écran, viseur et prédictions des figures
+   suivent ce même haut, donc rien ne dévie, rien n'attire (aucune aide : la route qui s'est tordue entre-temps peut aussi être manquée).
+   `?sans=volfige` = le haut qui suit la dalle (v689) ; `dbgVolFige(false|true)` le bascule en direct pour les vols suivants. */
+let VOLR_FIGE=!/[?&]sans=([^&]*,)?volfige(,|&|$)/.test(location.search);
+window.dbgVolFige=function(v){if(v!=null)VOLR_FIGE=!!v;return VOLR_FIGE;};
 let VOLR_ON=!/[?&]sans=([^&]*,)?volroute(,|&|$)/.test(location.search);
 window.dbgVolRoute=function(v){if(v!=null)VOLR_ON=!!v;return {on:VOLR_ON,vol:VOLR.on,u:VOLR.u.toArray().map(function(x){return +x.toFixed(3);})};}; // (banc) dbgVolRoute(false) = le vol d'avant pour les vols suivants
 const VOLR={on:false,k:12,u:new THREE.Vector3(0,1,0),c:new THREE.Vector3(),a:new THREE.Vector3(),b:new THREE.Vector3(),q:new THREE.Quaternion()}; // k : la vitesse du lissage (1/s) · u : le haut du vol · c, a, b, q : calcul
@@ -52350,6 +52361,7 @@ function volPlafU(v,m){if(!VOLR.on){if(v.y>m)v.y=m;return;}const k=v.dot(VOLR.u)
 function volH(v){if(!VOLR.on)return Math.hypot(v.x,v.z);const k=v.dot(VOLR.u);return Math.sqrt(Math.max(0,v.lengthSq()-k*k));} // la vitesse « à plat »
 function volHK(v,f){if(!VOLR.on){v.x*=f;v.z*=f;return;}const k=v.dot(VOLR.u);v.addScaledVector(VOLR.u,-k).multiplyScalar(f).addScaledVector(VOLR.u,k);} // la part « à plat » × f
 function volrSuit(dt){if(!VOLR.on)return;if(!TORD.on){VOLR.on=false;VOLR.u.set(0,1,0);return;} // chaque image de vol : le haut suit la dalle survolée (une route qui change en plein vol rend le haut du monde)
+  if(VOLR_FIGE)return; // (LE VOL SANS HAUT NI BAS) le haut du vol reste celui du décollage : la route qui tourne dessous ne le touche plus
   const i=tryLand._bi;if(!(i>=0)||!Nn[i])return;
   const t=T[i],a=VOLR.a.copy(VOLR.u);if(t)a.addScaledVector(t,-a.dot(t)); // (LA VRILLE PORTE LE VOL) le haut d'avant, vu le long de l'axe de la route
   VOLR.c.copy(Nn[i]);if(VOLR.c.dot(VOLR.u)<0)VOLR.c.negate();VOLR.u.lerp(VOLR.c,1-Math.exp(-dt*VOLR.k)).normalize();
@@ -55835,7 +55847,7 @@ function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe(); // (2026-10
   // (bord v2) LA BASCULE : la vrille part du côté du VIDE (le toit vers l'extérieur : signe opposé à `lat`, même convention que carRoll9),
   // et elle part du roulis que la carrosserie avait déjà — reporté sur la caisse entière, sinon il s'effaçait d'un coup à la sortie
   bascOn=!!bord;bascT=0;bascDir=bord?-(Math.sign(lat)||1):1;levreY=0;
-  TBORD.t=bord&&TORD.on?1.1:0;TBORD.on=false; // (LE BORD DE LA ROUTE TORDUE) la gravité de la route, le temps de la bascule
+  TBORD.t=bord&&TORD.on&&!(VOLR_FIGE&&VOLR.on)?1.1:0;TBORD.on=false; // (LE BORD DE LA ROUTE TORDUE) la gravité de la route, le temps de la bascule — (LE VOL SANS HAUT NI BAS) plus de gravité qui suit la route : le haut du décollage (VOLR.u) est déjà la face quittée
   if(TBORD.t>0){tryLand._bi=Math.max(0,Math.min(NP-1,Math.round(s/L*(NP-1))));curLatOff=lat;curHOff=side<0?-THICK:0;} // le radar part du bord quitté (sinon, à la 1re image, il parle encore du vol d'avant)
   /* (2026-10-17, LE DÉCOLLAGE SANS SURSAUT) le roulis de la carrosserie (jusqu'à 24° dans un virage) passe AU VOL pour tout décollage, plus
      seulement au bord : sur un tremplin pris en courbe, un saut nitro au milieu d'un virage, la caisse se redressait d'un coup à plat en une
