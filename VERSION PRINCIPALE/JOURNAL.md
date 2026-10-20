@@ -3,6 +3,47 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE ROYAUME DE FEU, L'ASPECT REFAIT — LAVE EN PLAQUES, ROCHE EN FACETTES, CIELS ET FUMÉE (2026-10-20, v716, session VOLCAN5 — Sacha : « la map volcan est la plus moche, lance une grosse refonte »)
+- **Ce qui ne bouge pas** : la ROUTE (la balade puis la montée du volcan, `vlcTrace3`, ou `?volcan=v4`), les collisions ('lave' / 'roche'), la physique, la
+  caméra, les sons, les tirages `rnd`/`fr` (chaque tirage supprimé est GARDÉ : le décor en aval ne se décale pas). Tout ce qu'on VOIT est refait,
+  derrière `VLC5` : **`?volcan=avant5` = l'aspect d'avant** (la route se choisit à part).
+- **CE QUI ÉTAIT MOCHE (mesuré au banc, photos en course au pilote automatique + vues posées, soir / nuit / midi)** : tout l'écran MONOCHROME
+  rouge-orange (ciel orange, brume rouge, lave rouge, brume basse rouge-brun sur toute la plaine) ; la lave = un bruit noir et orange à grain fin,
+  une PEAU DE LÉOPARD plein écran ; le grand volcan rouge sur ciel orange (illisible) avec une « tour » noire rayée au sommet ; des taches de suie
+  brunes collées au ciel (plafond de cendre, panache brun) ; des braises en DISQUES rouges de 200 px quand elles frôlaient l'objectif ; dans un banc
+  de fumée l'écran entier ROUGE PUR ; des aiguilles fines comme des antennes noires.
+- **LA LAVE EN PLAQUES** (`VLC_LAVE_FS5`, `VLC_VOR` = des cellules de Voronoï, `code/maps/volcan-route.js`) : de grandes plaques de croûte (~40 m, bords
+  déformés par un courant lent) qui dérivent dans le sens de la pente, séparées par des FENTES de lave vive (ambre au cœur, orange au bord) ; une
+  cellule sur quatre reste OUVERTE (un bassin) ; un liseré tiède le long des bords ; une croûte en verre violacé qui prend le ciel. Rouge-orange →
+  orange, jamais de jaune acide (la bible : mesuré, un premier jet « or » tirait au vert-jaune). Au loin les plaques fondent en une croûte sombre à
+  peine rougeoyante (au-delà de 1,1 km, plus de calcul de cellules) : l'orange vif reste aux rivières et aux lacs proches. Fentes élargies par
+  `fwidth` : aucune ligne d'un pixel qui scintille.
+- **LA ROCHE EN FACETTES** (`VLC_SOL_FS5`) : la normale de la FACETTE (dFdx/dFdy), un relief low-poly adouci au loin ; le BASALTE indigo (une ardoise),
+  la CENDRE mauve sur les plats, une bande d'OXYDE sous le sommet des cônes et une lèvre de SOUFRE (`VOLCAN.sol.cf` = la part du cône et la hauteur
+  sur lui, posée par `volcanSol`, lue dans `aS.w`) ; le ciel froid remplit les ombres (mesuré : l'étalonnage écrasait les flancs au noir pur) ; les
+  FISSURES qui couvent sont des cellules, sur la roche chaude et seulement de près. Aiguilles et arche (`VLC_ROC_FS`, define `V5`) : facettes, basalte
+  indigo, obsidienne en verre VIOLET, arche fendue en plaques (plus de veines en boucles).
+- **LES AIGUILLES** : des flèches de basalte TRAPUES (largeur ×1,6 — `sxz` dans `buildVolcan`, `rR` et la collision suivent).
+- **LE CRATÈRE** (bug) : au bord du lac du cratère la surface de lave sautait du niveau de la mer à celui du cratère — un MUR de lave de 600 m, rayé,
+  dessinait une tour au sommet du grand volcan ; ces cases (sous la roche) ne sont plus tracées (`vlcMorceau`).
+- **LES CIELS** (bloc `if(VLC5)` dans `code/maps/continuite.js`, APRÈS la recette commune) : le SOIR avait un zénith NOIR et une bande orange — il prend
+  le dégradé de la bible (indigo → magenta → braise → or) ; la nuit plus violette ; l'ORAGE (ciel L* 2-4, noir) devient un orage violet ; la PLUIE DE
+  CENDRES (brun gris, l'interdit de la bible) une cendre mauve et ocre ; la brume prune ; elle RECULE (3 000 → 4 000-4 600 m) pour qu'on voie le
+  grand volcan dès le départ.
+- **LA FUMÉE, LA BRUME BASSE, LE PANACHE, LES BRAISES** (`VLC_MET`) : bancs de fumée PRUNE (`fuC`), plus rouge pur ; brume basse allégée de moitié et
+  violette (`bru`, `bC`) ; panache en cendre claire lavande (`fumC`) ; plus de PLAFOND DE CENDRE (`vlcPanaches`, genre 3) ; braises et cendre un
+  cran plus rares et plafonnées à 4,5-7 px (`VLC_PART_VS`).
+- **LES CARTES POSTALES** (`assets/portail/volcan-*.webp`, six) retirées sur la route d'aujourd'hui, et APRÈS la construction complète (`VOLCAN.pret`,
+  file vide) : les anciennes avaient été tirées avant la fin des tranches (un plateau vide, sans volcan).
+- MESURÉ (banc headless, RX 6600, DPR 1,5, 740 000 px, 120 images en course au pilote automatique, `dbgCout`, même route avant / après) : GPU au soir
+  avant p50 6,6 ms / p90 9,4 — après p50 6,3 / p90 8,8 (la lave en cellules ne coûte pas plus que l'ancien bruit à trois octaves, la roche ne
+  cherche ses cellules que de près) ; 206 appels et ~515 000 triangles des deux côtés. 0 erreur sur toutes les passes (6 météos).
+- BANCS (scratchpad de la session) : `vphoto5c.cjs <racine> <étiquette> 1 <météo>` (photos en course + vues posées + bancs de fumée + `dbgCout`),
+  `cp-volcan.cjs` (cartes postales), `planche.py` (avant / après).
+- ⚠ PIÈGE DE MÉTHODE : `node code/assembler.cjs` refuse (« les changements se chevauchent ») si index.html ET les morceaux ont changé depuis HEAD
+  sans s'accorder — committer l'état cohérent AVANT de rééditer, et ne toucher qu'un des deux côtés.
+- À trancher par Sacha : les aiguilles trapues (×1,6, `sxz`) ; la densité des braises (×0,7) ; tout se compare avec `?volcan=avant5`.
+
 ## LA GRUE D'ATELIER À LA PLACE DE L'ÉTAL (2026-10-20, v715, Léo : « le présentoir, il est vraiment pas très beau » → entre un piédestal et une grue : « la grue ; du coin plus à gauche, là elle est vers la porte, ça fait chelou ; le moteur vers la droite et la grue vers la gauche ; et les moteurs se détruisent et se reconstruisent de la même manière que la voiture quand on regarde une pub pour réapparaître »)
 - `vdepEtal2` (code/gameplay/evenements-rares.js, bloc « LA GRUE D'ATELIER ») : une grue d'atelier jaune DE PROFIL — pieds à roulettes rayés
   au bout, mât à GAUCHE avec ses bagues, flèche, vérin chromé, baladeuse et son cône de lumière ; le moteur pend à DROITE à la chaîne
