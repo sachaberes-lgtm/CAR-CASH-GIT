@@ -1213,16 +1213,16 @@ const D=G.CCSON_D,O=G.CCSON_OUTILS,osc=O.osc,bruit=O.bruit,cloche=O.cloche,clic=
 const nE=function(st){return 329.6276*Math.pow(2,st/12);};
 D('pwr.autre',{fam:'machine',dur:1,st:1,key:1,db:+2,max:1,cd:.4,grp:'r',prio:3,dit:'pouvoir (générique, pour un pouvoir sans signature) : éclat + deux notes',
   r:function(b,R,o){T.swish(b,R,0,.4,400,4000,.3);T.stab(b,R,[12,19],.06,.1,.5,.12,1.2);T.scintille(b,R,.1,.5,6,.08);}});
-D('pwr.m',{fam:'machine',dur:1.3,st:1,key:1,db:+2,max:1,cd:.4,grp:'r',prio:3,dit:'pouvoir AIMANT : le champ magnétique qui ronfle (« wub ») + les pièces qui filent vers la caisse',
-  r:function(b,R,o){osc(b,{f:110,t0:0,a:.05,h:.3,d:.5,v:.35,vib:[9,.12]});osc(b,{f:220,w:'saw',t0:0,a:.05,h:.3,d:.4,v:.05,vib:[9,.12],flt:['lp',900,900,1,1.5]});
-    for(let k=0;k<7;k++){const f=nE(24+[0,2,4,7,9,12,14][k]);osc(b,{f:f*.6,f1:f,g:.08,gc:.5,t0:.15+k*.07,a:.002,d:.12,v:.13,pan:(k%2?.5:-.5)});}
-    T.stab(b,R,[16,23],.1,.1,.5,.1,1.1);}});
+D('pwr.m',{fam:'machine',dur:1.4,st:1,key:1,db:+2,max:1,cd:.4,grp:'r',prio:3,dit:'POMME DORÉE (aimant) : un CARILLON D\u2019OR — une cascade de cloches qui monte, chaude, à l\u2019accord majeur',
+  r:function(b,R,o){for(let k=0;k<7;k++)cloche(b,{f:nE(12+[0,2,4,7,9,12,14][k]),r:[1,2.76,5.4],m:[1,.35,.12],d:[.9,.35,.12],t0:.02+k*.06,v:.17,pan:(k%3-1)*.55},R);
+    cloche(b,{f:nE(24),r:[1,2.76],m:[1,.3],d:[.7,.25],t0:.45,v:.14,pan:0},R);T.nappe(b,R,[12,16,19],.08,.15,.3,.7,.05,2800);}});
 D('pwr.b',{fam:'machine',dur:1.5,st:1,key:1,db:+2,max:1,cd:.4,grp:'r',prio:3,dit:'pouvoir BOUCLIER : le champ de force d’acier qui se referme (vwoom) + la cloche d’acier',
   r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.08,d:.6,v:.45,ft:'bp',f:300,f1:2400,g:.35,q:5},R);T.tole(b,R,.12,nE(7),.35,1.2);
     osc(b,{f:nE(-12),t0:.1,a:.05,h:.4,d:.6,v:.2,vib:[4,.01]});cloche(b,{f:nE(31),r:[1,2.39,3.86],m:[1,.4,.2],d:[1,.5,.25],t0:.14,v:.2},R);}});
-D('pwr.x',{fam:'machine',dur:1.4,st:1,key:1,db:+2,max:1,cd:.4,grp:'r',prio:3,dit:'pouvoir AURA ×2 : le chœur d’or bref + les cloches doublées à l’octave',
-  r:function(b,R,o){T.choeur(b,R,[12,19,24],0,.05,.25,.8,.1);[24,31].forEach(function(st,i){cloche(b,{f:nE(st),r:[1,2,2.76],m:[1,.4,.15],d:[.8,.35,.12],t0:.06+i*.09,v:.26},R);cloche(b,{f:nE(st+12),r:[1,2],m:[1,.2],d:[.6,.2],t0:.075+i*.09,v:.12},R);});
-    T.scintille(b,R,.1,.8,10,.1);}});
+D('pwr.x',{fam:'machine',dur:1.8,st:1,key:1,db:+2,max:1,cd:.4,grp:'r',prio:3,dit:'FRUIT DU DRAGON (aura ×2/×3) : le balayage inversé qui aspire + le BOL CHANTANT hypnotique (deux bols, un souffle d\u2019aigus qui tourne)',
+  r:function(b,R,o){T.swish(b,R,0,.55,250,3600,.3,-.5,.5,.6);
+    cloche(b,{f:nE(7),r:[1,2.01,2.99,4.2,5.9],m:[1,.55,.35,.2,.1],d:[1.3,.8,.5,.3,.15],t0:.5,v:.26,pan:-.2},R);cloche(b,{f:nE(14),r:[1,2.01,2.99,4.2],m:[1,.45,.28,.14],d:[1.1,.6,.4,.2],t0:.62,v:.2,pan:.25},R);
+    T.nappe(b,R,[7,14],.5,.25,.5,1.1,.08,2200);}});
 D('pwr.double',{fam:'machine',dur:1.1,st:1,key:1,db:+3,max:1,cd:.5,grp:'r',prio:4,dit:'DOUBLE POUVOIR : deux stabs qui montent + poussière',
   r:function(b,R,o){T.stab(b,R,[12,19],0,.05,.3,.14,1.1);T.stab(b,R,[16,24],.13,.15,.6,.15,1.3);T.scintille(b,R,.15,.6,8,.1);}});
 D('pwr.triple',{fam:'machine',dur:1.5,st:1,key:1,db:+5,max:1,cd:.5,grp:'r',prio:5,dit:'TRIPLE POUVOIR : trois stabs + le grave + le chœur',

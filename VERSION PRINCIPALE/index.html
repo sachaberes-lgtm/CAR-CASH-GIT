@@ -8239,7 +8239,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=36"></script>
+<script defer src="sons-banque.js?v=37"></script>
 <script defer src="sfx.js?v=6"></script>
 <script>
 (function(){
@@ -25275,6 +25275,19 @@ function ligneLat(s9,H9){ // la CORDE : le virage tire l'objet vers l'intérieur
   const k=(LF2.t.dot(LF0.b)-LF1.t.dot(LF0.b))/80; // courbure latérale (1/m), signe = côté de l'intérieur
   return THREE.MathUtils.clamp(k*1600,-H9,H9);
 }
+/* (2026-10-20, Léo : « si les fruits sont en ligne, c'est pas bon ») LES MOTIFS : la file ne reste plus collée à la trajectoire — par groupes de 9 fruits, elle dessine une VAGUE, des MARCHES (trois d'un côté, trois de l'autre),
+   un ARC, des TROIS VOIES qui tournent, une ligne de repos, une grande vague. Calculé sur le rang du fruit (aucun hasard : le flux seedé ne bouge pas) ; amplitudes réglées pour rester jouables
+   (au plus ~9 m/s de décalage latéral). Le motif s'ajoute à la corde : dans un virage la file reste sur la trajectoire. */
+function ligneMotif(base,n,H9){
+  const g=Math.floor(n/9)%6,j=n%9;let o=0;
+  if(g===0)o=.55*H9*Math.sin(j*.7);
+  else if(g===1)o=(Math.floor(j/3)%2?1:-1)*.5*H9;
+  else if(g===2)o=.75*H9*Math.sin(Math.PI*j/8)*(Math.floor(n/54)%2?-1:1);
+  else if(g===3)o=((j%3)-1)*.38*H9;
+  else if(g===4)o=0;
+  else o=.7*H9*Math.sin(j*.45);
+  return THREE.MathUtils.clamp(base+o,-(ROAD_HALF-4),ROAD_HALF-4);
+}
 function ligneBloque(s9,k){
   for(const o of OILS)if(o.face===1&&Math.abs(o.s-s9)<(o.r||4)+7)return true; // jamais dans une flaque
   if(BANQ.obst&&LVL.cur&&LVL.cur.id==='banquise')for(const o of BANQ.obst)if(Math.abs(o.s-s9)<o.r+12)return true; // (2026-10-17) ni dans un pic de la piste du glacier
@@ -25295,7 +25308,7 @@ function lignePad(sp,pl){ // un pad d'OR, deux faces (même recette que la boucl
 function ligneFruit(sp,lt){ // un fruit, deux faces (même recette que `place` dans spawnPickups) — il rend LIGNE.don de nitro
   const fi=fruitPick(),lv=fruitLeve(fi);frameAt(sp,F);
   for(const face of [1,-1]){
-    const m=mkFruit(fi);m.scale.setScalar(2.1);const lv2=lv*.78;m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?lv2:-(THICK+lv2)); // plus PETITS (×2,1) : on les sème partout sans gêner la vue
+    const m=mkFruit(fi);m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?lv:-(THICK+lv)); // petits (FRUIT_K) : on les sème partout sans gêner la vue
     if(face<0)LM4.makeBasis(LV1.copy(F.b).negate(),LV2.copy(F.n).negate(),F.t);else LM4.makeBasis(F.b,F.n,F.t);
     m.quaternion.setFromRotationMatrix(LM4);m.updateMatrix();m.matrixAutoUpdate=false;scene.add(m);
     pickups.push({s:sp,lat:lt,face:face,nitro:true,fruit:fi,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face),ligne:true});
@@ -25330,7 +25343,7 @@ function ligneTick(dt){ // chaque image de course : la file s'allonge devant la 
     let s9=-1;
     for(let d=0;d<=160;d+=20){const q=LIGNE.prochS+d;if(q>=L-120)break;if(!ligneBloque(q,LIGNE.k)){s9=q;break;}}
     if(s9<0){LIGNE.prochS+=180;continue;}
-    const lt=ligneLat(s9,H9);
+    const lt=ligneMotif(ligneLat(s9,H9),LIGNE.n[0],H9);
     if(LIGNE.k){if(!(LVL.cur&&LVL.cur.piste==='banquise'))lignePad(s9,lt);}
     else if(PWR_LIGNE&&LIGNE.cnt>=LIGNE.npow){ // le BOUT D'UNE LONGUE FILE : un fruit-pouvoir (le 1er d'un débutant : l'aimant, sans le chercher)
       let kd='n';if(!LIGNE.prem&&pwrPremier()){kd='m';LIGNE.prem=true;}else kd=pwrTire(Math.random(),pwrPoids());
@@ -46865,12 +46878,14 @@ function fruitPick(rnd){ // tirage PONDÉRÉ par la fréquence (un brocoli reste
   let der=0;for(let i=0;i<FRUIT_DEFS.length;i++){const q=fq(FRUIT_DEFS[i]);if(q<=0)continue;der=i;r-=q;if(r<=0)return i;}
   return der;
 }
-function mkFruit(i){ const g=new THREE.Mesh(fruitGeo(i),FRUIT_MAT);g.scale.setScalar(2.7);g.userData.fruit=i;return g; } // (2026-09-26) ×2,7 // 1,15 → 1,9 : on les repère de loin · UN mesh par fruit
+/* (2026-10-20, Léo : « si les fruits normaux sont aussi gros que les fruits spéciaux, c'est pas bon ») LES FRUITS NORMAUX SONT PETITS (×1,6) ; les fruits-pouvoirs sont GROS (×4,8, voir mkPower) */
+const FRUIT_K=1.6;
+function mkFruit(i){ const g=new THREE.Mesh(fruitGeo(i),FRUIT_MAT);g.scale.setScalar(FRUIT_K);g.userData.fruit=i;return g; } // (2026-09-26) ×2,7 // 1,15 → 1,9 : on les repère de loin · UN mesh par fruit
 /* (2026-09-26, user : « parfois les fruits sont en collision avec la route ») — MESURÉ : posés à 1,3 m du bitume, mais grossis ×2,7
    (et ×1,08 au battement), certains descendent à 2,3 m sous leur centre : un bon mètre DANS la dalle. `fruitLeve(i)` = la hauteur du
    centre qui garde le plus bas du fruit ~45 cm au-dessus du bitume, battement compris (calculée une fois, sur la vraie géométrie). */
 const FRUIT_LEVE=[];
-function fruitLeve(i){if(FRUIT_LEVE[i]==null){const g=fruitGeo(i);if(!g.boundingBox)g.computeBoundingBox();FRUIT_LEVE[i]=Math.max(1.3,-g.boundingBox.min.y*2.7*1.1+.45);}return FRUIT_LEVE[i];}
+function fruitLeve(i){if(FRUIT_LEVE[i]==null){const g=fruitGeo(i);if(!g.boundingBox)g.computeBoundingBox();FRUIT_LEVE[i]=Math.max(.9,-g.boundingBox.min.y*FRUIT_K*1.1+.45);}return FRUIT_LEVE[i];}
 // POUVOIRS : grosses orbes rares — sphère de verre teinté + cœur brûlant + anneau qui tourne
 const pwrGeo=new THREE.IcosahedronGeometry(1.9,1),pwrCoreGeo=new THREE.OctahedronGeometry(.95,0), // (2026-09-26) le CRISTAL à facettes et son cœur-étoile
       pwrRingGeo=new THREE.TorusGeometry(2.6,.12,6,32);
@@ -46948,9 +46963,9 @@ function mkPower(kind,dir){
   const d=PWR_DEFS[kind],g=new THREE.Group();
   if(FRUIT_POW[kind]&&!/[?&]cristaux=1/.test(location.search)){
     const geo=fruitPowGeo(kind);if(!geo.boundingBox)geo.computeBoundingBox();
-    const m=new THREE.Mesh(geo,FRUIT_MAT);m.scale.setScalar(3.8);g.add(m);
+    const m=new THREE.Mesh(geo,FRUIT_MAT);m.scale.setScalar(4.8);g.add(m); // ×4,8 : les fruits-pouvoirs sont GROS, trois fois les fruits normaux
     const au=fauraFruit(FRUIT_POW_AURA[kind],geo);if(au.children.length)m.add(au);
-    g.userData.lev=Math.max(2.1,-geo.boundingBox.min.y*3.8+.8); // posé AU-DESSUS du bitume d'après sa vraie taille, comme les fruits (fruitLeve)
+    g.userData.lev=Math.max(2.1,-geo.boundingBox.min.y*4.8+.8); // posé AU-DESSUS du bitume d'après sa vraie taille, comme les fruits (fruitLeve)
     g.userData.fruit=true;
     return g;
   }
