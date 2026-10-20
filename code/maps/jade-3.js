@@ -158,7 +158,7 @@ function jadeRoute(){ // la route du jeu sur la jade : rails, lueur, liseré, fl
    km), les montagnes à moins de 900 m de la route tombent, l'une après l'autre, ~700 m avant que la caisse arrive à leur hauteur : elles
    TREMBLENT (0,9 s), puis basculent autour de leur pointe et tombent (8-15 m/s²) jusqu'à la mer, où elles soulèvent une gerbe de CUBES
    d'écume, et sombrent. Leurs pins et leurs lianes tombent avec elles ; celles qui portent une cascade ou un temple restent debout (ce sont
-   des maillages fusionnés). Elles quittent la grille des chocs dès qu'elles bougent. Les matrices des familles (F.M, via F.pidx / F.tq) et
+   des maillages fusionnés). Elles quittent la grille des chocs dès qu'elles bougent, mais gardent leur hitbox mobile (jadeHeurt, via c.inv). Les matrices des familles (F.M, via F.pidx / F.tq) et
    celles des cubes fins (FIN.mats) sont réécrites à chaque image ; au redémarrage, tout revient. */
 const JCH={L:[],fixe:new Set(),splash:null,sp:[],t:0};
 function* jadeChutePrep(PIL,jr,root){ // (LE PRÉ-BÂTI) un générateur : rendez-vous à l'échéance JF.lim
@@ -185,12 +185,13 @@ const JCH_M=new THREE.Matrix4(),JCH_R=new THREE.Matrix4(),JCH_T=new THREE.Matrix
 function jadeChuteTick(dt){
   if(!JCH.L.length||!JADE.root||!started||gameOver)return;let chg=false;const tn=JADE_U.uTime.value;
   for(const c of JCH.L){
-    if(!c.t0){if(s>c.sN-700-c.dl&&mode!=='boom'){c.t0=tn;if(JADE.col&&JADE.col.mort)JADE.col.mort.add(c.pi);jadeChuteOrig(c);
+    if(!c.t0){if(s>c.sN-700-c.dl&&mode!=='boom'){c.t0=tn;if(JADE.col&&JADE.col.mort)JADE.col.mort.add(c.pi);if(!c.inv)c.inv=new THREE.Matrix4();c.inv.identity();jadeChuteOrig(c);
       if(carGroup.position.distanceTo(JCH_V.set(c.q[0],carGroup.position.y,c.q[1]))<500)shake=Math.max(shake,.12);}else continue;}
     if(c.fin)continue;chg=true;const q=c.q,t=tn-c.t0,tf=Math.max(0,t-.9),dy=.5*c.g*tf*tf,th=Math.min(1.25,.5*c.w*tf*tf),jx=t<.9?Math.sin(t*57)*.35*(t/.9):0;
     const dr=.6*c.g*tf*tf*.25;JCH_T.makeTranslation(q[0]+jx+c.dx*dr,q[3]-dy,q[1]+c.dz*dr); // (elle s'éloigne de la route en tombant)
     JCH_R.makeRotationAxis(c.ax,th);JCH_M.multiplyMatrices(JCH_T,JCH_R);JCH_A.makeTranslation(-q[0],-q[3],-q[1]);JCH_M.multiply(JCH_A); // D = T(pivot)·T(0,−dy,0)·R·T(−pivot)
     if(!c.spl&&q[3]-dy<JADE.eauY+6){c.spl=true;jadeEcume(q[0],JADE.eauY,q[1],q[2]);}
+    c.inv.copy(JCH_M).invert(); /* (2026-10-21, Léo : « on traverse les montagnes qui tombent ») la hitbox suit la montagne : le point testé est ramené dans son repère d'origine */
     const out=dy>(q[4]-JADE.eauY)+60;if(out)c.fin=true;
     for(const o of c.orig){const A=o.F.M;if(out)A.set(JCH_Z,o.si*16);else{JCH_R.fromArray(o.m);JCH_R.premultiply(JCH_M);JCH_R.toArray(A,o.si*16);}}
     if(c.fo){if(out)FIN.mats.set(c.pi,JCH_Z);else{JCH_R.fromArray(c.fo);JCH_R.premultiply(JCH_M);FIN.mats.set(c.pi,new Float32Array(JCH_R.elements));}}}

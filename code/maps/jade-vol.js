@@ -251,6 +251,10 @@ function jadeHeurt(p){
     const a=C.g.get(Math.floor(x/C.CG)+','+Math.floor(z/C.CG));
     if(a)for(let j=0;j<a.length;j++){if(C.mort&&C.mort.has(a[j]))continue;const q=C.P[a[j]];if(p.y<q[3]-1||p.y>q[4]+1)continue;const dx=x-q[0],dz=z-q[1];if(dx*dx+dz*dz>(q[2]+1)*(q[2]+1))continue;
       if(jadePilierDans(q,x,p.y,z))return true;}
+    /* (2026-10-21, Léo : « on traverse les montagnes qui tombent ») les montagnes en chute gardent leur hitbox : le point est ramené dans leur repère d'origine */
+    for(const c of JCH.L){if(!c.t0||c.fin||!c.inv)continue;const q=c.q;V9J.set(x,p.y,z).applyMatrix4(c.inv);
+      if(V9J.y<q[3]-1||V9J.y>q[4]+1)continue;const dx=V9J.x-q[0],dz=V9J.z-q[1];if(dx*dx+dz*dz>(q[2]+1)*(q[2]+1))continue;
+      if(jadePilierDans(q,V9J.x,V9J.y,V9J.z))return true;}
     V9J.set(x,p.y,z);
     if(JADE.porte&&jadeDansGrille(JADE.porte,V9J))return true;
     if(JADE.pont&&jadeDansGrille(JADE.pont,V9J))return true;}
