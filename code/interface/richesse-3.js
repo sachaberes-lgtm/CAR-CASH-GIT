@@ -10,10 +10,17 @@ function richTire(mu,combo){
 }
 function richPioche(W){let s=0;for(const k in W)s+=W[k];let r=Math.random()*s;for(const k in W){if(r<W[k])return k;r-=W[k];}return 'billet';}
 function richSort(t){const L=RICH.libres[t];let best=null;for(const o of L){if(!o.on)return o;if(!best||o.age/o.vie>best.age/best.vie)best=o;}return best;} // un libre, sinon le plus vieux
+/* (2026-10-20, Léo : « est-ce qu'il y a bien tous les fruits qui peuvent apparaître ? qu'il y en ait toujours autant, mais qu'ils varient
+   tout autant qu'on en a ») LE SABOT DES FRUITS : les 13 fruits étaient tirés au hasard AVEC remise — un fruit sur sept ou huit par gerbe, et
+   le même pouvait sortir trois fois pendant qu'un autre ne venait jamais. Désormais ils sont BATTUS puis servis un par un sans retour :
+   tous passent avant qu'un revienne, et le premier d'un sabot neuf n'est jamais le dernier servi. La quantité de fruits ne change pas. */
+function richFruitK(){const R=RICH;if(!R.sabot||!R.sabot.length){const S=FRUIT_DEFS.map(function(_,i){return i;});for(let i=S.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)),t=S[i];S[i]=S[j];S[j]=t;}
+    if(S.length>1&&S[S.length-1]===R.fruitDer){const t=S[0];S[0]=S[S.length-1];S[S.length-1]=t;}R.sabot=S;}
+  const k=R.sabot.pop();R.fruitDer=k;return k;}
 function richLance(t,P,n,d,delai,kv,mat){ // (rend l'objet lancé ; mat : la matière imposée — le billet vert d'une liasse qui craque)
   if(t==='chaine'){richChaine(P,n,d,delai,kv);return null;}
   const o=richSort(t);if(!o)return null;const D=RICH_T[t],rr=(a)=>a[0]+Math.random()*(a[1]-a[0]),m=o.m;
-  if(t==='fruit'){const k9=Math.floor(Math.random()*FRUIT_DEFS.length),g9=fruitGeo(k9);if(!g9.boundingSphere)g9.computeBoundingSphere();m.geometry=g9;o.fr=(RICH_FRUIT_R[k9]||.35)/Math.max(.05,g9.boundingSphere.radius);}else o.fr=1; // chaque fruit à SA taille
+  if(t==='fruit'){const k9=richFruitK(),g9=fruitGeo(k9);if(!g9.boundingSphere)g9.computeBoundingSphere();m.geometry=g9;o.fr=(RICH_FRUIT_R[FRUIT_DEFS[k9].n]||.35)/Math.max(.05,g9.boundingSphere.radius);}else o.fr=1; // chaque fruit à SA taille
   if(t==='jeton')m.material=RICH.M.jetons[Math.floor(Math.random()*RICH.M.jetons.length)]; // une couleur, une valeur
   if(t==='champagne'){const k9=Math.floor(Math.random()*RICH.G.vins.length);m.geometry=RICH.G.vins[k9];m.material=RICH.M.vins[k9];} // (2026-10-16) le champagne ou l'un de ses quatre cousins
   if(t==='fleur'){m.geometry=RICH.G.fleurs[Math.floor(Math.random()*RICH.G.fleurs.length)];o.A=(.5+Math.random()*1.1)*(Math.random()<.5?-1:1);} // (2026-10-16) une des six fleurs ; o.A : sa vitesse de rotation sur sa tige

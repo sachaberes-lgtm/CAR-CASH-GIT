@@ -297,7 +297,7 @@ function richInit(){
   M.or=metal(richTexUni('#ffb52e'),140);M.lingot=metal(richTexUni('#ffbd3d'),170); // l'or : un jaune profond (F0 de l'or ≈ 1 · .71 · .29), c'est le reflet qui l'éclaire
   M.diamant=richMat(RICH_FS_GEMME,{uTint:{value:new THREE.Color(1,1,1)}});
   RICH.texBillets=RICH_BILLETS.map(richTexBillet);RICH.texBillet=RICH.texBillets[RICH_B100]; // (2026-10-10) la série des sept valeurs ; le 100 (sarcelle) habille aussi la liasse
-  M.billets=RICH_BILLETS.map(function(B,i){return richMat(RICH_FS_SOUPLE,{uMap:{value:RICH.texBillets[i]},uSheen:{value:new THREE.Color(B.sh[0],B.sh[1],B.sh[2])},uSheenK:{value:.5},uBend:{value:.75}},{SOUPLE:1},THREE.DoubleSide);}); // (même programme : 0 compilé de plus)
+  M.billets=RICH_BILLETS.map(function(B,i){return richMat(RICH_FS_SOUPLE,{uMap:{value:RICH.texBillets[i]},uSheen:{value:new THREE.Color(B.sh[0],B.sh[1],B.sh[2])},uSheenK:{value:.5},uBend:{value:.75},uLum:{value:.6}},{SOUPLE:1},THREE.DoubleSide);}); // (même programme : 0 compilé de plus)
   M.billet=M.billets[RICH_B100];
   M.trefle=richMat(RICH_FS_SOUPLE,{uMap:{value:richTexTrefle()},uSheen:{value:new THREE.Color(.55,1,.5)},uSheenK:{value:.35},uBend:{value:.7}},{SOUPLE:1},THREE.DoubleSide);
   M.rubis=richMat(RICH_FS_GEMME,{uTint:{value:new THREE.Color(1,.06,.16)}});M.emeraude=richMat(RICH_FS_GEMME,{uTint:{value:new THREE.Color(.08,.9,.38)}}); // les gemmes de couleur : le programme du diamant, teinté

@@ -62531,7 +62531,7 @@ const RICH={pret:false,chauffe:0,objs:[],libres:{},sp:null,fl:[],gl:[],sec:0,cha
   H:new THREE.Vector3(),cam:new THREE.Vector3(),eu:new THREE.Euler(),
   v4:new THREE.Vector3(),v5:new THREE.Vector3(),v6:new THREE.Vector3(),q2:new THREE.Quaternion(),q3:new THREE.Quaternion(),mx:new THREE.Matrix4()}; // (2026-10-10) les vecteurs du papier qui tombe et de la liasse qui craque
 const RICH_UP=new THREE.Vector3(0,1,0),RICH_BOSSE=.0045; // le relief des pièces : la hauteur (m, à l'échelle de la pièce) que donne le blanc de leur carte de hauteur — exagéré (le vrai fait 0,1 mm), sinon il ne se lit pas
-const RICH_U={uSunDir:{value:new THREE.Vector3().copy(SUN_DIR)},uSunCol:{value:new THREE.Color()},uSky:{value:new THREE.Color()},uGnd:{value:new THREE.Color()},
+const RICH_U={uLum:{value:0},uSunDir:{value:new THREE.Vector3().copy(SUN_DIR)},uSunCol:{value:new THREE.Color()},uSky:{value:new THREE.Color()},uGnd:{value:new THREE.Color()},
   uEnv:{value:envTex},uT:{value:0}};
 // les objets : kd = freinage par l'air (1/s), fl = papillonnement (m/s²), w = rotation (rad/s), v = élan au départ (m/s), vie (s) ;
 // flip = l'axe de la face (la pièce, le jeton et la carte tournent sur un DIAMÈTRE : ils « flashent ») ; nl = les facettes qui renvoient le
@@ -62543,7 +62543,7 @@ const RICH_U={uSunDir:{value:new THREE.Vector3().copy(SUN_DIR)},uSunCol:{value:n
 // la liasse a la taille du billet, les gemmes et les pépites sont petites (et de tailles variées), chaque fruit a la sienne (la myrtille
 // ne fait plus la taille de la pastèque). Les unités de s suivent la forme de chaque objet (rayon d'une pièce, longueur d'un billet…).
 const RICH_GEM_NL=[[0,1,0],[.6,.55,.58],[-.7,.5,.3],[.2,.45,-.85],[-.3,-.7,.6]],RICH_OR_NL=[[0,1,0],[.7,.4,.5],[-.6,.5,-.4],[.2,-.6,.7]],RICH_FACE_Y=[[0,1,0],[0,-1,0]];
-const RICH_FRUIT_R=[.34,.57,.41,.36,.13,.6,.17,.34,.45,.30]; // (+ les fruits du SOLEIL DE JADE : litchi, kaki, pitaya, mangoustan) // le RAYON (m) de chaque fruit, dans l'ordre de FRUIT_DEFS : pêche plate 7 cm, banane 18, grenade 10, orange 8, myrtille 1,2, pastèque 30 (plafonnée)
+const RICH_FRUIT_R={MYRTILLE:.13,CERISE:.18,KIWI:.32,'PÊCHE':.34,'PÊCHE PLATE':.34,ORANGE:.36,MANGUE:.43,POMME:.36,MELON:.51,LITCHI:.23,BANANE:.57,GRENADE:.41,'PASTÈQUE':.6,KAKI:.34,PITAYA:.45,MANGOUSTAN:.30,'FIGUE DE BARBARIE':.36,DATTE:.25,'MELON DU DÉSERT':.46}; // (2026-10-20) PAR NOM, plus par rang : la liste des fruits a été refaite (fruits-nouveaux.js : myrtille, cerise, kiwi, pêche, orange, mangue, pomme, melon, litchi) et l'ancienne table par index donnait à la cerise le rayon de la banane, à l'orange celui de la myrtille, à la mangue celui de la pastèque — Léo : « je n'ai pas l'impression de tous les voir » // le RAYON (m) de chaque fruit, dans l'ordre de FRUIT_DEFS : pêche plate 7 cm, banane 18, grenade 10, orange 8, myrtille 1,2, pastèque 30 (plafonnée)
 const RICH_T={
   billet:{kd:2.4,fl:5,s:[.88,.96],w:[2,6],v:[3,6],vie:[2.8,3.8],papier:1},                            // 156 × 66 mm → 1,05 m (s = sa longueur) · (2026-10-10, Léo : « un tout petit peu plus petits ») −12 % : 0,92 m — la liasse garde sa taille
   liasse:{kd:.9,fl:.3,s:[1,1.1],w:[3,7],v:[4,7],vie:[2.6,3.4]},                              // le billet, en paquet
@@ -62565,7 +62565,7 @@ const RICH_T={
   crane:{kd:.6,fl:0,s:[.24,.29],w:[2,4],v:[4,7],vie:[3,3.8],nl:[[0,1,0],[.5,.6,.6],[-.5,.6,.6]],face:1}, // un crâne de collection, 0,5-0,6 m (Léo : « plus petit ») — face : il part le regard vers la caméra et tourne sur lui-même
   coeur:{kd:1.25,fl:1.1,s:[.17,.25],w:[1.1,2.4],v:[2.5,6.5],vie:[2.4,3.4],face:1,bat:1,pop:1,nl:[[.32,.55,.77],[-.32,.55,.77],[0,.15,1]],gp:40,gs:1.15,gc:[1,.8,.93]}, // (2026-10-15, Léo) le PETIT CŒUR (s = sa largeur ; 2026-10-16, Léo : « plus petits, plus nombreux, et ils explosent — pas tous en même temps » : 17-25 cm, ils viennent en NUÉE (RICH_NUEE) et chacun ÉCLATE à son heure, pop) : léger, il flotte et papillonne un peu, se balance face à toi et BAT (bat, voir richTick), fait de minuscules cubes qu'on voit au travers (richCoeurCubes, RICH_FS_COEUR), et ses lobes scintillent doucement (gp : un éclat large, gs : une étoile à sa taille)
   fleur:{kd:1.3,fl:1.2,s:[.42,.6],w:[1,2],v:[3,6],vie:[3,3.8],fleur:1,nl:[[0,1,0]],gp:22,gs:.9,gc:[1,.92,.96]}, // (2026-10-16, Léo) une PETITE FLEUR (s = sa taille, 42-60 cm) : hibiscus, rose, lilas, lotus, lys ou tulipe — légère, elle flotte, se tourne de trois quarts vers toi et tourne lentement sur sa tige (richTick)
-  fruit:{kd:1,fl:.4,s:[.94,1.06],w:[3,7],v:[3,6],vie:[2.4,3.2]}}; // fruit : s = un écart autour de SON rayon (RICH_FRUIT_R)
+  fruit:{kd:1,fl:.4,s:[.94,1.06],w:[3,7],v:[3,6],vie:[2.4,3.2]}}; // fruit : s = un écart autour de SON rayon (RICH_FRUIT_R, par nom : la règle de taille donne rayon = 0,525 m × (diamètre en cm ÷ 15,6)^0,55 — cerise 2,2 cm, kiwi 6,5, pêche 7, orange 8, mangue 11, pomme 8, melon 15, litchi 3,5)
 const RICH_CAP={billet:30,liasse:6,carte:6,trefle:6,jeton:12,montre:4,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:18,rubis:12,emeraude:12,champagne:8,crane:6,coeur:22,fleur:12,fruit:8};
 const RICH_PD=[0,2,4,7,9,12,14,16,19,21],RICH_MEL=[0,2,4,7,9,12,14,16,14,12,9,7,4,2]; // RICH_MEL : la mélodie des cœurs qui éclatent — elle monte puis redescend (un aller-retour, pas une chute)
 function richSon(){const B=window.CCSON_BANQUE;return !!(B&&B.m&&B.m['riche.coup']);} // richSon : la banque a-t-elle les sons de la pluie de richesse ? (sinon, l'ancien jeu de sons)
@@ -62636,7 +62636,7 @@ const RICH_FS_GEMME=['uniform samplerCube uEnv;uniform vec3 uSunDir;uniform vec3
   ' float sp=pow(max(dot(N,H),0.),200.)*8.+pow(max(dot(N,H2),0.),120.)*3.;',
   ' vec3 c=mix(rf*uTint,studio(Rl,0.)*.8+cube(Rl)*.4,fr)+uSunCol*sp+vec3(sp*.4);',
   ' gl_FragColor=vec4(c,1.);}'].join('\n');
-const RICH_FS_SOUPLE=['uniform sampler2D uMap;uniform vec3 uSunDir;uniform vec3 uSunCol;uniform vec3 uSky;uniform vec3 uGnd;uniform vec3 uSheen;uniform float uSheenK;uniform float uT;',
+const RICH_FS_SOUPLE=['uniform sampler2D uMap;uniform vec3 uSunDir;uniform vec3 uSunCol;uniform vec3 uSky;uniform vec3 uGnd;uniform vec3 uSheen;uniform float uSheenK;uniform float uT;uniform float uLum;',
   'varying vec3 vN;varying vec3 vP;varying vec2 vUv;',
   'void main(){vec2 uv=gl_FrontFacing?vUv:vec2(1.-vUv.x,vUv.y);vec4 tx=texture2D(uMap,uv);if(tx.a<.5)discard;',
   ' vec3 N=normalize(vN);if(!gl_FrontFacing)N=-N;vec3 V=normalize(cameraPosition-vP),L=normalize(uSunDir);',
@@ -62646,6 +62646,7 @@ const RICH_FS_SOUPLE=['uniform sampler2D uMap;uniform vec3 uSunDir;uniform vec3 
   ' float band=smoothstep(0.,.35,sw)*smoothstep(.8,.35,sw);',
   ' c+=uSheen*(pow(1.-ndv,2.)*.55+band*.4)*uSheenK;',
   ' vec3 H=normalize(L+V);c+=uSunCol*pow(max(dot(N,H),0.),36.)*.3*uSheenK;',
+  ' float lm=max(tx.r,max(tx.g,tx.b));c+=(tx.rgb*.6+.4)*uLum*smoothstep(.74,.95,lm);', // (2026-10-20, Léo : « les numéros un peu brillants, pas qui scintillent — une petite lumière légère sur le billet ») LE CHIFFRE LUIT : ce qui est presque blanc dans la toile (le grand chiffre, les petites valeurs) émet un peu de sa couleur, constant, même à l'ombre — uLum le dose (0 partout sauf les billets)
   ' gl_FragColor=vec4(c,1.);}'].join('\n');
 /* (2026-10-15, Léo : « des petits cœurs rouges — un bon rouge, bien rouge, avec un petit dégradé rose fuchsia et un peu de blanc pour les
    rendre vraiment dreamy ») puis (2026-10-16 : « rends les cœurs en minuscules cubes ; joue la transparence, je ne vois pas assez ce côté
@@ -62780,6 +62781,7 @@ function richTexBillet(B){return richCv(512,236,function(x,w,h){
   const n=B.v.length,fz=n>2?74:92,cx=w*.555,cy=h*.53;x.font=fz+'px '+F;x.textAlign='center';x.textBaseline='middle'; // LE GRAND CHIFFRE CARRÉ, là où le pose la toile de Léo
   {const tw=x.measureText(B.v).width,px=cx-tw*.5-16,py=cy-fz*.5-13,pw=tw+32,ph=fz+26;x.fillStyle='rgba(0,0,0,.3)';richRond(x,px,py,pw,ph,10);x.fill(); // (2026-10-16, Léo : « plus visibles les numéros ») un CARTOUCHE sombre sous le chiffre (le voile clair d'avant le noyait)
    x.strokeStyle=T(.45,.4);x.lineWidth=2;richRond(x,px+4,py+4,pw-8,ph-8,7);x.stroke();}
+  x.save();x.shadowColor=B.or?'rgba(255,232,170,.55)':'rgba(255,255,255,.55)';x.shadowBlur=28;x.shadowOffsetX=2000;x.fillStyle='#fff';x.fillText(B.v,cx-2000,cy);x.restore(); // (2026-10-20, Léo) LA LUEUR : un halo blanc doux autour du chiffre, peint dans la toile (le chiffre est dessiné hors toile, seule son ombre floue reste) — la lumière qu'il pose sur le papier ; le chiffre lui-même luit dans le programme (uLum)
   x.fillStyle='rgba(0,0,0,.55)';x.fillText(B.v,cx+6,cy+7);                                                                  // son ombre d'encre
   x.lineJoin='miter';x.lineWidth=9;x.strokeStyle='rgba(0,0,0,.72)';x.strokeText(B.v,cx,cy);                                  // son contour, épais
   const Z=x.createLinearGradient(0,cy-fz*.5,0,cy+fz*.5);if(B.or){Z.addColorStop(0,'#fff8dc');Z.addColorStop(.5,'#ffd970');Z.addColorStop(1,'#e2a73c');}else{Z.addColorStop(0,'#ffffff');Z.addColorStop(.55,L(.88,1));Z.addColorStop(1,L(.7,1));}
@@ -63108,7 +63110,7 @@ function richInit(){
   M.or=metal(richTexUni('#ffb52e'),140);M.lingot=metal(richTexUni('#ffbd3d'),170); // l'or : un jaune profond (F0 de l'or ≈ 1 · .71 · .29), c'est le reflet qui l'éclaire
   M.diamant=richMat(RICH_FS_GEMME,{uTint:{value:new THREE.Color(1,1,1)}});
   RICH.texBillets=RICH_BILLETS.map(richTexBillet);RICH.texBillet=RICH.texBillets[RICH_B100]; // (2026-10-10) la série des sept valeurs ; le 100 (sarcelle) habille aussi la liasse
-  M.billets=RICH_BILLETS.map(function(B,i){return richMat(RICH_FS_SOUPLE,{uMap:{value:RICH.texBillets[i]},uSheen:{value:new THREE.Color(B.sh[0],B.sh[1],B.sh[2])},uSheenK:{value:.5},uBend:{value:.75}},{SOUPLE:1},THREE.DoubleSide);}); // (même programme : 0 compilé de plus)
+  M.billets=RICH_BILLETS.map(function(B,i){return richMat(RICH_FS_SOUPLE,{uMap:{value:RICH.texBillets[i]},uSheen:{value:new THREE.Color(B.sh[0],B.sh[1],B.sh[2])},uSheenK:{value:.5},uBend:{value:.75},uLum:{value:.6}},{SOUPLE:1},THREE.DoubleSide);}); // (même programme : 0 compilé de plus)
   M.billet=M.billets[RICH_B100];
   M.trefle=richMat(RICH_FS_SOUPLE,{uMap:{value:richTexTrefle()},uSheen:{value:new THREE.Color(.55,1,.5)},uSheenK:{value:.35},uBend:{value:.7}},{SOUPLE:1},THREE.DoubleSide);
   M.rubis=richMat(RICH_FS_GEMME,{uTint:{value:new THREE.Color(1,.06,.16)}});M.emeraude=richMat(RICH_FS_GEMME,{uTint:{value:new THREE.Color(.08,.9,.38)}}); // les gemmes de couleur : le programme du diamant, teinté
@@ -63178,10 +63180,17 @@ function richTire(mu,combo){
 }
 function richPioche(W){let s=0;for(const k in W)s+=W[k];let r=Math.random()*s;for(const k in W){if(r<W[k])return k;r-=W[k];}return 'billet';}
 function richSort(t){const L=RICH.libres[t];let best=null;for(const o of L){if(!o.on)return o;if(!best||o.age/o.vie>best.age/best.vie)best=o;}return best;} // un libre, sinon le plus vieux
+/* (2026-10-20, Léo : « est-ce qu'il y a bien tous les fruits qui peuvent apparaître ? qu'il y en ait toujours autant, mais qu'ils varient
+   tout autant qu'on en a ») LE SABOT DES FRUITS : les 13 fruits étaient tirés au hasard AVEC remise — un fruit sur sept ou huit par gerbe, et
+   le même pouvait sortir trois fois pendant qu'un autre ne venait jamais. Désormais ils sont BATTUS puis servis un par un sans retour :
+   tous passent avant qu'un revienne, et le premier d'un sabot neuf n'est jamais le dernier servi. La quantité de fruits ne change pas. */
+function richFruitK(){const R=RICH;if(!R.sabot||!R.sabot.length){const S=FRUIT_DEFS.map(function(_,i){return i;});for(let i=S.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)),t=S[i];S[i]=S[j];S[j]=t;}
+    if(S.length>1&&S[S.length-1]===R.fruitDer){const t=S[0];S[0]=S[S.length-1];S[S.length-1]=t;}R.sabot=S;}
+  const k=R.sabot.pop();R.fruitDer=k;return k;}
 function richLance(t,P,n,d,delai,kv,mat){ // (rend l'objet lancé ; mat : la matière imposée — le billet vert d'une liasse qui craque)
   if(t==='chaine'){richChaine(P,n,d,delai,kv);return null;}
   const o=richSort(t);if(!o)return null;const D=RICH_T[t],rr=(a)=>a[0]+Math.random()*(a[1]-a[0]),m=o.m;
-  if(t==='fruit'){const k9=Math.floor(Math.random()*FRUIT_DEFS.length),g9=fruitGeo(k9);if(!g9.boundingSphere)g9.computeBoundingSphere();m.geometry=g9;o.fr=(RICH_FRUIT_R[k9]||.35)/Math.max(.05,g9.boundingSphere.radius);}else o.fr=1; // chaque fruit à SA taille
+  if(t==='fruit'){const k9=richFruitK(),g9=fruitGeo(k9);if(!g9.boundingSphere)g9.computeBoundingSphere();m.geometry=g9;o.fr=(RICH_FRUIT_R[FRUIT_DEFS[k9].n]||.35)/Math.max(.05,g9.boundingSphere.radius);}else o.fr=1; // chaque fruit à SA taille
   if(t==='jeton')m.material=RICH.M.jetons[Math.floor(Math.random()*RICH.M.jetons.length)]; // une couleur, une valeur
   if(t==='champagne'){const k9=Math.floor(Math.random()*RICH.G.vins.length);m.geometry=RICH.G.vins[k9];m.material=RICH.M.vins[k9];} // (2026-10-16) le champagne ou l'un de ses quatre cousins
   if(t==='fleur'){m.geometry=RICH.G.fleurs[Math.floor(Math.random()*RICH.G.fleurs.length)];o.A=(.5+Math.random()*1.1)*(Math.random()<.5?-1:1);} // (2026-10-16) une des six fleurs ; o.A : sa vitesse de rotation sur sa tige
