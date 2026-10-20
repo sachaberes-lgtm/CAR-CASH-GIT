@@ -3,6 +3,16 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE CAÏD, LE RELIEF DU FLANC QUI SE VOIT EN TOURNANT (2026-10-20, v708, discussion voiture, Léo : « produire le même relief que sur la voiture, dans le style poly, et le rendre visible quand on tourne autour — tourner, bouger la lumière, ça compte beaucoup ; c'est la forme et la propreté qui donnent envie d'acheter »)
+- Lu sur sa photo : les PORTES EN CREUX entre deux HANCHES (l'aile avant, le flanc de benne) ; une MARCHE de l'une à l'autre (droite devant,
+  inclinée derrière la porte arrière) qui attrape la lumière ; une ARÊTE à hauteur des poignées : dessus le flanc rentre (il regarde le ciel :
+  clair), dessous il tombe (plus sombre). En poly, des pans plats et des arêtes franches.
+- `grille()` sait décaler ses rangées de flanc (`D.dx(z,y)`, fondu dans les coins du nez et de la poupe) ; profils `PRF.porte/hanche/aile`,
+  `zMarche(y)`, `dxBas` dans `code/voitures/caid.js` ; colonnes ajoutées aux marches. Recalés sur le creux : contre-portes, poignées, rétros,
+  dessus des portes, pieds des arceaux, bas du pare-brise, auvent.
+- L'ÉTUDE : un banc tournant au garage (inventaire, 8 angles) — `CAR-bancs/nouvelles-voitures/caid-ouvert/tourne.py`, planche
+  `photos-gameplay/caid-relief-tour-avant-apres.png`. 0 programme compilé en course, 0 erreur (couché, debout).
+
 ## LE CAÏD, LE PICK-UP DE LA PHOTO DE LÉO, TOIT OUVERT — LA VITRE V2 (2026-10-20, v705, discussion voiture, Léo : « retouche la Hummer selon la photo, c'est-à-dire sans le toit… comme sur la photo exactement », puis « zoom sur la photo, mesure… une vitre V2 qu'on mettra sur toutes les voitures »)
 - **Sa photo** : la GMC Hummer EV Edition 1 blanche, panneaux de toit retirés. Le SUV du 19/10 redevient le PICK-UP (benne, ailerons, lunette en
   retrait ; CARS 2 : h 2,01, l 5,51, blanc nacré `0xd2d5d9` — l'ancien vert `0x7cb83f`). Tout est dans `code/voitures/caid.js`.
