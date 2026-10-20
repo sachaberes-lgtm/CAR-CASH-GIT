@@ -40863,7 +40863,13 @@ const FSTU_V='attribute vec4 aArete;varying vec3 vArF;varying vec3 vArB;\n',
       FSTU_FM='{vec3 e3=mix(vec3(1.),vArB,step(.5,vArF));float e9=min(e3.x,min(e3.y,e3.z)),w9=fwidth(e9)+1e-5;\n'+
         'float l9=(1.-smoothstep(w9*1.1,w9*2.8,e9))*(1.-smoothstep(.25,.5,w9))*uArK;gl_FragColor.rgb=mix(gl_FragColor.rgb,gl_FragColor.rgb*1.45+vec3(.07),l9);}\n';
 // le vernis profond : au garage (on) ou rendu à la course (off) — sur les matières de la caisse posée
-function finLaque(on){FSTU.garage=!!on;FSTU.uHdr.value=FSTU.on&&on?1:0;if(!FSTU.on)return;
+/* (2026-10-20, Léo, sur la page AVANT | APRÈS de toute la gamme : « juste le requin était mieux ») LES CAISSES QUI GARDENT LE GARAGE D'AVANT :
+   pour elles, au garage, le reflet de l'atelier d'origine (paintEnvAtelier), leur vernis d'origine et pas de reflets qui éclatent. Une seule
+   caisse est au garage à la fois : le cube de reflets se repeint quand on passe de l'une à l'autre (64² ↔ 256²). */
+const FSTU_SANS={requin:1};
+function finLaque(on){FSTU.garage=!!on;const sans=!!FSTU_SANS[carGroup.userData.shape];FSTU.uHdr.value=FSTU.on&&on&&!sans?1:0;if(!FSTU.on)return;
+  if(on){try{if(sans){if(envCvs[0].width!==64)paintEnvAtelier();}else if(envCvs[0].width!==256)paintEnvStudio();}catch(e){}}
+  on=on&&!sans;
   carGroup.traverse(o=>{const ms=o.isMesh?(Array.isArray(o.material)?o.material:[o.material]):[];
     for(const m of ms){
       /* (2026-10-20, Léo : « d'autres voitures qui manquent la finition ? » — mesuré à l'écran : LA HONTE, REQUIN, ACIDE, LA CAISSE-NUAGE) la tôle des
