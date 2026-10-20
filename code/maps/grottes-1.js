@@ -394,8 +394,9 @@ function grtPiliers(V,R,fr,DC){const L9=[],B=V.B,K=GRT.K,VZ=GRT_VASTE,H9=VZ?560:
       if(grtIci(V,x,y,z)!==1||!grtLibre(R,x,z,-1e9,1e9,r+8))continue;
       if(grtPilier(V,L9,x,y,z,r,k,H9,R))n++;}}
   for(const s9 of R.portes||[]){let q=R.i0;while(q<R.n-21&&R.S[q]<s9)q++;const r=VZ?22:12; /* LA PORTE : les deux piliers du goulet, au plus près de la route */
-    for(const sd of [-1,1])for(let lat=ROAD_HALF+r+14;lat<ROAD_HALF+r+80;lat+=6){const x=R.X[q]+R.TZ[q]*sd*lat,z=R.Z[q]-R.TX[q]*sd*lat;
-      if(grtIci(V,x,R.Y[q],z)!==1||!grtLibre(R,x,z,-1e9,1e9,r+8))continue;if(grtPilier(V,L9,x,R.Y[q],z,r,'porte',H9,R))break;}}
+    const rL=r*1.25+2*B; /* (la marge : la bosse du bruit et l'interpolation des cases de 12 m — banc du 20/10 : à r + 8, une graine sur 72 mordait le bord de la route) */
+    for(const sd of [-1,1])for(let lat=ROAD_HALF+rL+12;lat<ROAD_HALF+rL+90;lat+=6){const x=R.X[q]+R.TZ[q]*sd*lat,z=R.Z[q]-R.TX[q]*sd*lat;
+      if(grtIci(V,x,R.Y[q],z)!==1||!grtLibre(R,x,z,-1e9,1e9,rL))continue;if(grtPilier(V,L9,x,R.Y[q],z,r,'porte',H9,R))break;}}
   return L9;}
 function grtPilier(V,L9,x,y,z,r,k,H9,R){const B=V.B,K=GRT.K;{
       let yb=y,yt=y;while(yb>y-H9&&grtIci(V,x,yb-B,z)===1)yb-=B;while(yt<y+H9&&grtIci(V,x,yt+B,z)===1)yt+=B;
