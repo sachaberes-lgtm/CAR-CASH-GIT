@@ -3,6 +3,15 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES ORANGES, PLUS FORT (2026-10-20, v714, discussion voiture, Léo : « retente la correction sur les oranges, plus fort » puis « mets la version C »)
+- MESURÉ (banc : le garage qui tourne + PICS DE JADE à midi, part de la tôle orange au plafond 255) : la correction de la v707 (laque à 70 %)
+  brûlait encore 84-89 % de la tôle DE JOUR (garage ~55 %) — un aplat sans relief. Assombrir de ×0,76 ou passer en métallisé ('k') ne
+  changeait presque rien : la saturation de l'image (1,4) et la lumière du garage poussent l'orange au plafond.
+- La palette `p` à 42 % de la v707 (≈ 29 % de la teinte d'origine), même teinte, sans gris ni bleu ajoutés (c'est ce qui brunissait) :
+  LA TAURINE aa3a05 → 471802, LA ZED ba5213 → 4e2208 (gamme-3.js), LE TRÔNE CENTRAL ba5d10 → 4e2707 (gamme-4.js). De jour 2-7 % au plafond,
+  chaque pan se lit ; au garage le capot, les flancs et le nez se séparent. `CARS[i].color` (la vignette d'usine) inchangé.
+- Essayé : D (30 %) encore plus profond ; planche `photos-gameplay/oranges-plus-fort-avant-apres.png` (avant | C | D). 0 programme compilé en course.
+
 ## LE GARAGE TOUT NOIR AVEC UNE CAISSE RETIRÉE (2026-10-20, v712, bug relevé pendant l'étude des feux)
 - **Le symptôme** : au garage, équiper par `dbgEquipe(i)` une des vieilles caisses (SA MAJESTÉ, FORMULE OR, LA DEUCHE, LE LINGOT, LA MERCURE…,
   30 en tout) mettait toute l'image 3D au NOIR (l'interface restait), avec « computeBoundingSphere : radius is NaN » (go, qn = des

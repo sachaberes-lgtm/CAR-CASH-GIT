@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v713'; // v713 (2026-10-20, Léo : « les 3 petits bugs ») : le DOMPTEUR DE GROSSE CAISSE de Pouce bleu (11 morceaux, ?kick=0 = avant)
+const CACHE = 'cashcar-v714'; // v714 (2026-10-20, Léo : « mets la version C des oranges sur le main ») : LES ORANGES PLUS FORT — TAURINE, ZED, TRÔNE CENTRAL à 42 % de la v707 (voir le journal)
 // const CACHE = 'cashcar-v712'; // v712 (2026-10-20, bug) : une caisse RETIRÉE (fiche vide) ne met plus le garage au noir — buildCar monte LA HONTE à sa place, dbgEquipe/dbgBras la refusent
 // const CACHE = 'cashcar-v711'; // v711 (2026-10-20, Léo : « intègre la lumière à l'intérieur des phares, efface cette forme de boule ») : les FEUX en LED, plus de halo, la lampe s'allume et sa lueur suit sa forme, faisceau dans l'air la nuit (?feux=0 = avant)
 // const CACHE = 'cashcar-v709'; // v709 (2026-10-20, Léo : « le mission, le shop, tu remets ça en dessous ») : INVENTAIRE · MISSIONS · BOUTIQUE redescendent au-dessus de PLAY (?portes=haut = sous le nom)
