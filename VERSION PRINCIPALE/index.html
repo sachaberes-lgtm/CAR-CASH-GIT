@@ -46897,8 +46897,8 @@ function mkEngine(i){
   return g;
 }
 /* <<<FIN MOTEURS>>> */
-function fruitPick(rnd){ // tirage PONDÉRÉ par la fréquence (un brocoli reste rare, une pomme court les rues)
-  const J=!!((JADE_JEU||(LVL.cur&&LVL.cur.sansFin))&&LVL.cur&&LVL.cur.id==='jade'),CN=!!(LVL.cur&&(LVL.cur.id==='canyon'||LVL.cur.id==='dunes')&&!PARK.on),fq=f=>J?(f.jf||0):CN?(f.cf||0):((f.jf!=null||f.cs)?0:Math.max(0,f.freq)); /* (2026-10-14) au CANYON : SES fruits (la figue, la datte, le melon, la grenade) */ // (2026-10-12) au SOLEIL DE JADE : SES fruits, et seulement eux
+function fruitPick(rnd){ // (2026-10-20, Léo : « je ne vois que des myrtilles ») TOUS LES FRUITS À ÉGALITÉ, sur toutes les maps : les anciennes règles par map (`jf`, `cf`, `cs` : fruits de Jade, du Canyon) ne regardaient que les 7 exotiques, retirés du jeu — sans eux le tirage retombait sur le fruit n°0 (la myrtille) à chaque fois
+  const fq=f=>1;
   let tot=0;for(const f of FRUIT_DEFS)tot+=fq(f);
   if(tot<=0)return 0;
   let r=(rnd?rnd():Math.random())*tot;
@@ -46991,8 +46991,8 @@ function mkPower(kind,dir){
   if(FRUIT_POW[kind]&&!/[?&]cristaux=1/.test(location.search)){
     const geo=fruitPowGeo(kind);if(!geo.boundingBox)geo.computeBoundingBox();
     const m=new THREE.Mesh(geo,FRUIT_MAT);m.scale.setScalar(4.8);g.add(m); // ×4,8 : les fruits-pouvoirs sont GROS, trois fois les fruits normaux
-    const au=fauraFruit(FRUIT_POW_AURA[kind],geo);if(au.children.length)m.add(au);
-    g.userData.lev=Math.max(2.1,-geo.boundingBox.min.y*4.8+.8); // posé AU-DESSUS du bitume d'après sa vraie taille, comme les fruits (fruitLeve)
+    g.userData.lev=-geo.boundingBox.min.y*4.8+.08; // POSÉ SUR LE BITUME (Léo : « qu'ils ne flottent pas ») : le centre du groupe est à `lev` au-dessus du sol
+    {const sol=fauraSol(FRUIT_POW_AURA[kind]);sol.position.y=-g.userData.lev;g.add(sol);} // l'aura sort du SOL autour du fruit (sans le cacher)
     g.userData.fruit=true;
     return g;
   }
@@ -47407,6 +47407,60 @@ function fruitsChauffe(){
 }
 setTimeout(fruitsChauffe,9000);
 window.dbgChauffeFruits=function(){fruitsChauffe.ok=false;const n0=renderer.info.programs?renderer.info.programs.length:0;fruitsChauffe();return {avant:n0,apres:renderer.info.programs?renderer.info.programs.length:0};};
+
+/* ===== LES FRUITS-POUVOIRS POSÉS AU SOL (2026-10-20, Léo : « posés par terre, qu'ils ne flottent pas ; l'animation au sol, qui sort un peu du sol autour ; il faut qu'on VOIE le fruit ») =====
+   Le fruit repose sur la route. Autour de lui, SANS le cacher : un CYLINDRE OUVERT (rayon > fruit, 3,4 m de haut) dont le shader dessine l'aura qui sort du sol et se dissout vers le haut
+   (feu, éclairs, bandes hypnotiques, brume, étincelles) + un DISQUE posé sur la route (le Sharingan Genjutsu à plat pour le dragon, un anneau lumineux pour les autres).
+   Les deux ne sont pas mis à l'échelle du fruit (dimensions en mètres) ; leur matière est partagée (`FAURAU.uT`) : zéro travail par fruit. */
+const FSOL_VS=`uniform float uH;varying vec3 vP;varying float vH;varying float vA;
+void main(){vP=position;vH=clamp((position.y+uH*.5)/uH,0.,1.);vA=atan(position.z,position.x);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`;
+const FSOL_FS=`uniform float uT,uKind;varying vec3 vP;varying float vH;varying float vA;
+`+FSH2_NOISE+`
+void main(){float h=vH;vec4 col=vec4(0.);vec3 q=vec3(cos(vA)*2.4,h*2.6-uT*(uKind<.5?2.1:.8),sin(vA)*2.4);
+  float f=n3(q)*.6+n3(q*2.1+7.)*.4;
+  if(uKind<.5){float m=smoothstep(.18,.5,f+(1.-h)*.95-.5);
+    vec3 c=mix(vec3(.85,.1,.04),vec3(1.,.62,.12),smoothstep(.3,.55,f+(1.-h)*.2));c=mix(c,vec3(1.,.96,.66),smoothstep(.62,.85,f+(1.-h)*.25));
+    col=vec4(c,m*(1.-h*h)*.95);}
+  else if(uKind<1.5){float line=pow(1.-abs(2.*f-1.),12.)+.7*pow(1.-abs(2.*n3(q*2.3+3.)-1.),16.);float flick=step(.22,fract(sin(floor(uT*13.)*91.7)*437.5));
+    float a=clamp((line*flick+(1.-h)*.18)*pow(1.-h,1.4)*1.3,0.,1.);col=vec4(mix(vec3(.4,.9,1.),vec3(1.,1.,.8),clamp(line,0.,1.)),a);}
+  else if(uKind<2.5){float b=.5+.5*sin(vA*4.-h*8.+uT*3.2);vec3 c=.55+.45*cos(6.2832*(vec3(0.,.2,.4)+.5*b+uT*.1));c=mix(c,vec3(.9,.1,.35),.4);
+    col=vec4(c,(b*.6+f*.3)*pow(1.-h,1.5)*1.2);}
+  else if(uKind<3.5){col=vec4(1.,.92,.97,f*pow(1.-h,1.6)*.8);}
+  else{float sp=step(.955,n3(q*5.+vec3(0.,floor(uT*6.),0.)));col=vec4(mix(vec3(1.,.78,.25),vec3(1.,.95,.7),sp),clamp((.28*(1.-h)+sp)*pow(1.-h,.8),0.,1.));}
+  if(col.a<.02)discard;gl_FragColor=col;}`;
+const FSOLD_VS=`varying vec2 vUv;void main(){vUv=position.xy*2.;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`;
+const FSOLD_FS=`uniform float uT,uKind;varying vec2 vUv;
+mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,-s,s,c);}
+void main(){vec2 p=vUv;float r=length(p);if(r>1.)discard;float ring=1.-smoothstep(0.,.05,abs(r-.9)),inner=smoothstep(1.,.55,r);vec4 col=vec4(0.);
+  if(uKind<.5)col=vec4(mix(vec3(.2,.02,.02),vec3(1.,.45,.08),ring),(.4*inner+ring*.95)*(.8+.2*sin(uT*7.+atan(p.y,p.x)*6.)));
+  else if(uKind<1.5)col=vec4(mix(vec3(.2,.5,.8),vec3(.8,1.,1.),ring),(.3*inner+ring*.95)*step(.3,fract(sin(floor(uT*13.)*91.7)*437.5)+.35));
+  else if(uKind<3.5)col=vec4(1.,.92,.97,(.22*inner+ring*.9));
+  else col=vec4(mix(vec3(1.,.7,.2),vec3(1.,.95,.7),ring),.25*inner+ring*.95);
+  if(col.a<.02)discard;gl_FragColor=col;}`;
+let FSOL_GEO=null,FSOLD_GEO=null;
+function fauraSol(kind){ // kind : 0 piment · 1 citron · 2 dragon · 3 raisin · 4 pomme dorée — dans le repère de la route : +y = le haut, le sol à y = 0
+  const g=new THREE.Group(),R=5.6,H=3.8;
+  const cm=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uKind:{value:kind},uH:{value:H}},vertexShader:FSOL_VS,fragmentShader:FSOL_FS,transparent:true,depthWrite:false,side:THREE.BackSide}); // BackSide : seule la paroi du FOND est dessinée — l'aura est DERRIÈRE et AUTOUR du fruit, jamais devant (on le voit toujours)
+  const c=new THREE.Mesh(FSOL_GEO||(FSOL_GEO=new THREE.CylinderGeometry(R,R*.86,H,40,1,true)),cm);c.position.y=H*.5;c.renderOrder=21;g.add(c);
+  const dm=kind===2?new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uA:{value:.9}},vertexShader:FSOLD_VS,fragmentShader:FDISC_FS,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3})
+    :new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uKind:{value:kind}},vertexShader:FSOLD_VS,fragmentShader:FSOLD_FS,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3});
+  const d=new THREE.Mesh(FSOLD_GEO||(FSOLD_GEO=new THREE.PlaneGeometry(1,1)),dm);d.rotation.x=-Math.PI/2;d.position.y=.08;d.scale.setScalar(R*2.2);d.renderOrder=20;g.add(d);
+  return g;
+}
+/* banc (dev) : `dbgPwrPhoto(k, t, dist, haut)` — pose le fruit-pouvoir `k` 20 m devant la caisse, EN SITUATION (le vrai mkPower : posé au sol, l'aura qui en sort), place la caméra derrière lui à `dist` m, `haut` m au-dessus,
+   fige l'aura au temps `t` et rend UNE image du vrai jeu (pause). Rend la dataURL. */
+window.dbgPwrPhoto=function(k,t,dist,haut){
+  if(window.__pp){scene.remove(window.__pp);window.__pp=null;}
+  if(started&&!gameOver&&!paused)togglePause();
+  const sp=s+20;frameAt(sp,F);mat4b.makeBasis(F.b,F.n,F.t);
+  const m=mkPower(k,1),lev9=m.userData.lev||2.1;m.position.copy(F.p).addScaledVector(F.n,lev9);m.quaternion.setFromRotationMatrix(mat4b);m.updateMatrix();m.updateMatrixWorld(true);scene.add(m);window.__pp=m;
+  FAURAU.uT.value=t||0;
+  const c=new THREE.Vector3().copy(F.p).addScaledVector(F.t,-(dist||14)).addScaledVector(F.n,haut||4.5).addScaledVector(F.b,2.5);
+  camera.position.copy(c);camera.lookAt(F.p.x+F.n.x*3,F.p.y+F.n.y*3,F.p.z+F.n.z*3);camera.updateMatrixWorld();
+  RIM_U.uSunV.value.copy(RIM_DIR).transformDirection(camera.matrixWorldInverse);
+  if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
+  return renderer.domElement.toDataURL('image/png');
+};
 /* ===== LE FINAL SPIN v2 (2026-10-14 soir — Sacha, sur la v1 : « c'est ÇA la roulette, sérieux ? » ; l'ordre du matin : « le final spin [de
    Jetpack Joyride] … la bonne DA, HUD, lumières, bonnes animations et un vrai niveau de finition ; ça ne doit pas se déclencher à chaque
    partie ») — session IDEE. La v1 (une petite grille d'icônes sur l'écran de mort en transparence) est REFAITE :
