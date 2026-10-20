@@ -13153,7 +13153,18 @@ TRAIN.W_OUT=120;    // ce que coute une sortie de route
 TRAIN.W_FIN=3000;   // franchir la ligne
 TRAIN.W_TEMPS=40;   // ...et chaque seconde gagnee pour le faire
 TRAIN.W_DEATH=2500; // pénalité de MORT (mode boom) : casser le local optimum « couper fort, mourir tard »
+/* ?figstyle=1 (2026-10-20, 3e passe) : MESURE sur les deux runs precedents — a poids normal
+   (.08 puis 1.2 puis 3), les figures restent rares (0 a 1 bot sur 24) parce qu'elles CONCURRENCENT
+   la vitesse pure sur le MEME bouton (NITRO) : tenir le reacteur a fond pour la distance et le
+   double-tapper pour une figure sont deux usages opposes du meme input — exactement la tension
+   qu'un joueur humain qui vise le meilleur temps subirait aussi (il ne fait pas de figures en
+   speedrun). Ce n'est pas un bug a corriger, c'est la regle du jeu. Pour obtenir des bots qui
+   figurent VRAIMENT de facon fiable (ce que Sacha demande), ?figstyle=1 note sur les figures
+   presque exclusivement — un mode d'entrainement SEPARE, « freestyle », pas un changement des
+   regles du mode course normal. */
+TRAIN.FIG_STYLE=/[?&]figstyle=1/.test(location.search);
 TRAIN.fitness=function(b){
+  if(TRAIN.FIG_STYLE) return b.figBody.aura*10 + b.totD*.02 - (b.mode==='boom'?TRAIN.W_DEATH*.1:0);
   return b.totD
          + (b.finished?TRAIN.W_FIN+TRAIN.W_TEMPS*Math.max(0,TRAIN.matchDuration-b.finishT):0)
          - (b.mode==='boom'?TRAIN.W_DEATH:0)
