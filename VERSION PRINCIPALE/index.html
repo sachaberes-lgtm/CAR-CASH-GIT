@@ -8239,7 +8239,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=34"></script>
+<script defer src="sons-banque.js?v=35"></script>
 <script defer src="sfx.js?v=6"></script>
 <script>
 (function(){
@@ -47183,7 +47183,7 @@ window.dbgPwrDevant=function(k,ds,lat){
   pickups.push({s:sp,lat:lat||0,face:1,nitro:false,pow:k,mesh:m,taken:false,ax:F.n.clone()});return sp;
 };
 /* banc (dev) : `dbgLigneFruits()` — l'état de la file de fruits (posés / pris), la nitro (normale, réserve bleue), le nombre de fruits devant la caisse. */
-window.dbgLigneFruits=function(){let ah=0,ap=0;for(const p of pickups)if(!p.taken&&p.ligne&&p.face===1&&p.s>s&&p.s<s+700)ah++;let pw=0,pwp=0;for(const p of pickups)if(p.pow&&p.face===1){pw++;if(p.taken)pwp++;}return {rai:RAI.stage,heat:+NINF.h.toFixed(2),rgb:NINF.rgb,nitroOn:!!nitroOn,pouvoirsPosés:pw,pouvoirsPris:pwp,posés:LIGNE.n.slice(),pris:LIGNE.pris.slice(),devant700m:ah,nitroR:+nitroR.toFixed(2),nitroX:+nitroX.toFixed(2),s:Math.round(s),pads:PADS.length};};
+window.dbgLigneFruits=function(){let ah=0,ap=0;for(const p of pickups)if(!p.taken&&p.ligne&&p.face===1&&p.s>s&&p.s<s+700)ah++;let pw=0,pwp=0;for(const p of pickups)if(p.pow&&p.face===1){pw++;if(p.taken)pwp++;}return {progs:renderer.info.programs?renderer.info.programs.length:null,rai:RAI.stage,heat:+NINF.h.toFixed(2),rgb:NINF.rgb,nitroOn:!!nitroOn,pouvoirsPosés:pw,pouvoirsPris:pwp,posés:LIGNE.n.slice(),pris:LIGNE.pris.slice(),devant700m:ah,nitroR:+nitroR.toFixed(2),nitroX:+nitroX.toFixed(2),s:Math.round(s),pads:PADS.length};};
 
 /* ===== LE PIMENT : LA NITRO INFINIE QUI CHAUFFE (2026-10-20, Léo) =====
    7 s de nitro infinie (au lieu de 9). La couleur du feu ÉVOLUE avec le temps de boost accumulé, dans l'ordre de la TEMPÉRATURE d'une flamme (la chimie) :
@@ -47231,11 +47231,13 @@ function dragonJus(){
 Object.assign(PWR_DEFS.x,{col:0xe0157a,core:0xffd6ea,tint:'#ff5a9a',c2:'#8a0c4a',fx:'rgba(220,20,90,.8)',fx2:'rgba(120,20,160,.35)',msg:'FRUIT DU DRAGON — AURA ×2 · ×3 SI TU ENCHAÎNES !',sous:'AURA x2, x3 SI TU ENCHAINES'});
 {const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.x.bd=f9(PWR_DEFS.x.fx);PWR_DEFS.x.bd2=f9(PWR_DEFS.x.fx2);}
 let DRG_DEC=null;const DRG_V=new THREE.Vector3(),DRG_EL={e:null};
+function dragonDecorBuild(){
+  const mat=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uSize:{value:300},uA:{value:0}},vertexShader:FDISC_VS,fragmentShader:FDISC_FS,transparent:true,depthWrite:false});
+  const m=new THREE.Mesh(FDISC_GEO||(FDISC_GEO=new THREE.PlaneGeometry(1,1)),mat);m.frustumCulled=false;m.renderOrder=-3;m.visible=false;scene.add(m);DRG_DEC={m:m,a:0};
+}
 function dragonDecor(dt){
   const on=pwrAurT>0&&!(mode==='boom'||gameOver);
-  if(!DRG_DEC){if(!on)return;
-    const mat=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uSize:{value:300},uA:{value:0}},vertexShader:FDISC_VS,fragmentShader:FDISC_FS,transparent:true,depthWrite:false});
-    const m=new THREE.Mesh(FDISC_GEO||(FDISC_GEO=new THREE.PlaneGeometry(1,1)),mat);m.frustumCulled=false;m.renderOrder=-3;scene.add(m);DRG_DEC={m:m,a:0};}
+  if(!DRG_DEC){if(!on)return;dragonDecorBuild();}
   const D=DRG_DEC;D.a+=((on?.5:0)-D.a)*Math.min(1,dt*2.5);D.m.visible=D.a>.01;D.m.material.uniforms.uA.value=D.a;
   if(D.m.visible){camera.getWorldDirection(DRG_V);D.m.position.copy(camera.position).addScaledVector(DRG_V,620);D.m.position.y+=190;D.m.updateMatrixWorld(true);}
   // le compteur d'aura hypnotique
@@ -47283,7 +47285,7 @@ function zapTick(dt){
   ZAP.on+=((on?1:0)-ZAP.on)*Math.min(1,dt*8);ZAP.mat.uniforms.uOn.value=ZAP.on;ZAP.grp.visible=ZAP.on>.02;
   if(ZAP.grp.visible){ZAP.grp.position.copy(carGroup.position);ZAP.grp.quaternion.copy(carGroup.quaternion);}
   // l'onde de choc : un anneau qui part de la caisse, toutes les ~0,55 s, face à la caméra
-  if(on){ZAP.rt+=dt;if(ZAP.rt>.55){ZAP.rt=0;ZAP.age=0;}}
+  if(on){ZAP.rt+=dt;if(ZAP.rt>.55){ZAP.rt=0;ZAP.age=0;try{if(SONV2)sfx('citron.zap',{rate:.92+Math.random()*.2});}catch(e){}}else if(ZAP.rt-dt<.27&&ZAP.rt>=.27){try{if(SONV2)sfx('citron.zap',{rate:1.1+Math.random()*.25,vol:-4});}catch(e){}}} // le crépitement : un zap à chaque onde, un petit écho au milieu
   if(ZAP.age<.5){ZAP.age+=dt;const u=Math.min(1,ZAP.age/.5);ZAP.ring.visible=true;ZAP.ring.position.copy(carGroup.position);ZAP.ring.position.y+=.9;
     ZAP.ring.quaternion.copy(camera.quaternion);ZAP.ring.scale.setScalar(1.5+9*u);ZAP.rmat.uniforms.uA.value=.5*Math.pow(1-u,1.6);}
   else ZAP.ring.visible=false;
@@ -47349,6 +47351,20 @@ Object.assign(PWR_DEFS.a,{col:0xffffff,core:0xfff4e8,tint:'#ffd6f0',c2:'#d070d0'
 {const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.a.bd=f9(PWR_DEFS.a.fx);PWR_DEFS.a.bd2=f9(PWR_DEFS.a.fx2);}
 /* banc (dev) : `dbgRaisin()` l'état de la double jauge ; `dbgRaisin('vide')` vide la jauge en cours (pour voir les ailes exploser / la 2e jauge démarrer). */
 window.dbgRaisin=function(k){if(k==='vide')fallTR=airMax()+.05;return {stage:RAI.stage,fallTR:+fallTR.toFixed(2),airMax:airMax(),pwrAirT:+pwrAirT.toFixed(2),mode:mode,ailes:!!(RAI.wings&&RAI.wings.visible)};};
+
+/* ===== LA CHAUFFE DES SHADERS DES FRUITS (0 programme compilé en course) =====
+   Quelques secondes après le chargement, au menu : un exemplaire de chaque fruit-pouvoir (et son aura), l'objet des éclairs, l'anneau de l'onde de choc et le disque du
+   décor Genjutsu sont posés une fois dans la scène, compilés hors écran, puis retirés — le 1er citron de la partie ne fait pas saccader l'image. */
+function fruitsChauffe(){
+  if(fruitsChauffe.ok||(started&&!gameOver))return;fruitsChauffe.ok=true;
+  try{const g=new THREE.Group();for(const k of ['n','v','x','a','m']){const m=mkPower(k,1);g.add(m);}
+    if(!ZAP.grp)zapBuild();if(!DRG_DEC)dragonDecorBuild();
+    scene.add(g);ZAP.ring.visible=true;ZAP.grp.visible=true;DRG_DEC.m.visible=true;raisinAiles().visible=true;
+    renderer.compile(scene,camera);
+    ZAP.ring.visible=false;ZAP.grp.visible=false;DRG_DEC.m.visible=false;raisinAiles().visible=false;scene.remove(g);}catch(e){}
+}
+setTimeout(fruitsChauffe,9000);
+window.dbgChauffeFruits=function(){fruitsChauffe.ok=false;const n0=renderer.info.programs?renderer.info.programs.length:0;fruitsChauffe();return {avant:n0,apres:renderer.info.programs?renderer.info.programs.length:0};};
 /* ===== LE FINAL SPIN v2 (2026-10-14 soir — Sacha, sur la v1 : « c'est ÇA la roulette, sérieux ? » ; l'ordre du matin : « le final spin [de
    Jetpack Joyride] … la bonne DA, HUD, lumières, bonnes animations et un vrai niveau de finition ; ça ne doit pas se déclencher à chaque
    partie ») — session IDEE. La v1 (une petite grille d'icônes sur l'écran de mort en transparence) est REFAITE :
@@ -51203,7 +51219,9 @@ function sonTonSuit(){
   try{const el=musicEl;if(SND.music&&el&&el.src){for(const k in SON_TON)if(el.src.indexOf(k)>=0){t=SON_TON[k];break;}if(FRENM.surm)t+=1;}}catch(e){}
   if(t!==sonTonSuit._t){sonTonSuit._t=t;window.CCSON.ton(t);}
 }
-const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':'fruit.grenade','ORANGE':'fruit.orange','MYRTILLE':'fruit.myrtille','PASTÈQUE':'fruit.pasteque'};
+const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':'fruit.grenade','ORANGE':'fruit.orange','MYRTILLE':'fruit.myrtille','PASTÈQUE':'fruit.pasteque',
+  /* (2026-10-20, les nouveaux fruits) chacun reprend la bouche d'un fruit voisin : la hauteur monte à chaque fruit d'une rafale (sonFruitSt) — la file sonne comme une gamme */
+  'PÊCHE':'fruit.peche','CERISE':'fruit.myrtille','KIWI':'fruit.orange','MANGUE':'fruit.banane','POMME':'fruit.peche','MELON':'fruit.banane','LITCHI':'fruit.myrtille'};
 function figSnd(id){ // chaque figure a SA matière, posée sur l'échelle du vol — (2026-10-14, session SON) une figure du catalogue FINIE (`fig_*`, lecteur `?fig=script`) sonne le MAILLON, comme le tour complet d'une figure libre : elle rejouait la vrille de son départ (veqFigure), deux fois le même son par figure
   if(!SONV2){trickPop(chain);return;}
   if(id.indexOf('fig_combo_')===0)return; /* (2026-10-14, session SON) le COMBO a SA signature (sonCombo, appelée par comboNote) : pas le maillon par-dessus */
@@ -56225,8 +56243,8 @@ function fruitCroque(pos,col,power,nom,leger){ // nom : le fruit — chacun a SA
   if(!leger||(fruitRaf&3)===0)juiceScreen(col,power,leger?1:1+Math.min(4,r));                 // …et LE JUS REPEINT L'OBJECTIF : ça, on le voit (un fruit de la file : un sur quatre)
   if(SONV2){sfx(FRUIT_SON[nom]||'fruit.peche',{rate:Math.pow(2,sonFruitSt(fruitRaf-1)/12),vol:nom==='PASTÈQUE'?0:-4});if(r>=3)sfx('fruit.rafale',{st:sonFruitSt(fruitRaf-3),vol:-3});}else crunchSfx(r); /* (2026-10-15, Sacha : « équilibre mieux, que les figures fassent plus de bruit que ce qu'on ramasse ») un fruit sortait à −28, au-dessus d'une figure : −4 (−32), la rafale −3 ; la PASTÈQUE (le graal) garde son niveau */ // (2026-10-14, session SON) la série MONTE en demi-tons de pentatonique (0-2-4-7, puis 4-7…) : avant, +2,5 % par fruit (0,4 demi-ton) noyé sous le hasard de la fiche (rj ±6 %, ±1 demi-ton) ; la rafale (key:1) monte avec /* (débogage son 2026-09-29) le plein de nitro sonne à la pompe, seulement s'il y a eu plein */
   shake=Math.max(shake,Math.min(.55,.18+r*.07));
-  if(fruitRaf>=3){                                    // 3 fruits d'affilée : ce n'est plus un hasard
-    chaineAura('RAFALE ×'+fruitRaf,Math.round((15+r*6)*(leger?.25:1)),'rafale',true,SONV2,true); /* (2026-10-01) 40+30r → 15+6r : depuis LA LIGNE PARFAITE un fruit arrive toutes les 2,4 s, la rafale ne retombe plus — 220 points par fruit, le plus gros robinet d'aura de la route (voir LA CHAÎNE SE FERME) */
+  if(fruitRaf>=3&&(!leger||fruitRaf%4===0)){          // 3 fruits d'affilée : ce n'est plus un hasard (un fruit de la FILE : une annonce sur quatre, même total d'aura)
+    chaineAura('RAFALE ×'+fruitRaf,Math.round(15+r*6),'rafale',true,SONV2,true); /* (2026-10-01) 40+30r → 15+6r : depuis LA LIGNE PARFAITE un fruit arrive toutes les 2,4 s, la rafale ne retombe plus — 220 points par fruit, le plus gros robinet d'aura de la route (voir LA CHAÎNE SE FERME) */
     trickMsg('🧃 RAFALE ×'+fruitRaf,r>=5?3:2);
   }
 }

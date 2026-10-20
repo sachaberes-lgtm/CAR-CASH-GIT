@@ -912,6 +912,10 @@ D('pwr.a',{fam:'machine',dur:1.4,st:1,key:1,db:+2,max:1,cd:.4,grp:'r',prio:3,dit
 D('pwr.v',{fam:'machine',dur:1,st:1,key:1,db:+2,max:1,cd:.4,grp:'r',prio:3,dit:'pouvoir SPEED UP : l’étincelle électrique + la turbine qui monte',
   r:function(b,R,o){for(let k=0;k<4;k++)osc(b,{f:1800+k*400,f1:300,g:.06,t0:k*.02,a:.0005,d:.06,v:.12,fm:{r:3.3,i:3,d:.04}});osc(b,{f:600,f1:4200,g:.6,gc:.7,w:'saw',t0:0,a:.02,d:.6,v:.05,flt:['bp',1500,6000,.6,4]});
     stab(b,R,[14,21],.06,.1,.5,.12,1.2);grave(b,o,0,100,50,.1,.3,.4);}});
+/* (2026-10-20, Léo : « le citron : petits crépitements électriques mignons, addictifs, peau de gaming audio sound design ») le ZAP du citron : cinq petits « bip » FM qui dévalent, un grain de crépitement, une minuscule cloche au bout — mignon, jamais agressif, à jouer en rafale */
+D('citron.zap',{fam:'machine',bus:'fx',dur:.4,st:1,db:-3,max:3,cd:.05,dit:'citron : un petit crépitement électrique mignon et addictif (bips FM qui dévalent + grain de crépitement + minuscule cloche)',
+  r:function(b,R,o){for(let k=0;k<5;k++)osc(b,{f:2200+k*430,f1:900+k*150,g:.04,t0:k*.045,a:.0004,d:.05,v:.11,fm:{r:2.7,i:2.2,d:.03},pan:(k%3-1)*.5});
+    crepite(b,R,0,.3,14,.16,2500,7000);cloche(b,{f:3100,r:[1,2.76],m:[1,.3],d:[.12,.05],t0:.02,v:.08},R);}});
 D('pwr.bientot',{fam:'machine',bus:'fx',dur:.5,st:1,key:1,db:-4,max:1,cd:.4,dit:'un pouvoir va finir (< 1,5 s) : tic-tac sec, trois fois',
   r:function(b,R,o){bois(b,R,0,1500,.5);bois(b,R,.16,1500,.5);bois(b,R,.32,1100,.6);}});
 D('pwr.fin',{fam:'machine',dur:.8,st:1,key:1,db:0,max:1,cd:.3,dit:'un pouvoir s’éteint : le « power-down » (note qui retombe, filtre qui se ferme)',

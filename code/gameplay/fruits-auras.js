@@ -219,7 +219,7 @@ window.dbgPwrDevant=function(k,ds,lat){
   pickups.push({s:sp,lat:lat||0,face:1,nitro:false,pow:k,mesh:m,taken:false,ax:F.n.clone()});return sp;
 };
 /* banc (dev) : `dbgLigneFruits()` — l'état de la file de fruits (posés / pris), la nitro (normale, réserve bleue), le nombre de fruits devant la caisse. */
-window.dbgLigneFruits=function(){let ah=0,ap=0;for(const p of pickups)if(!p.taken&&p.ligne&&p.face===1&&p.s>s&&p.s<s+700)ah++;let pw=0,pwp=0;for(const p of pickups)if(p.pow&&p.face===1){pw++;if(p.taken)pwp++;}return {rai:RAI.stage,heat:+NINF.h.toFixed(2),rgb:NINF.rgb,nitroOn:!!nitroOn,pouvoirsPosés:pw,pouvoirsPris:pwp,posés:LIGNE.n.slice(),pris:LIGNE.pris.slice(),devant700m:ah,nitroR:+nitroR.toFixed(2),nitroX:+nitroX.toFixed(2),s:Math.round(s),pads:PADS.length};};
+window.dbgLigneFruits=function(){let ah=0,ap=0;for(const p of pickups)if(!p.taken&&p.ligne&&p.face===1&&p.s>s&&p.s<s+700)ah++;let pw=0,pwp=0;for(const p of pickups)if(p.pow&&p.face===1){pw++;if(p.taken)pwp++;}return {progs:renderer.info.programs?renderer.info.programs.length:null,rai:RAI.stage,heat:+NINF.h.toFixed(2),rgb:NINF.rgb,nitroOn:!!nitroOn,pouvoirsPosés:pw,pouvoirsPris:pwp,posés:LIGNE.n.slice(),pris:LIGNE.pris.slice(),devant700m:ah,nitroR:+nitroR.toFixed(2),nitroX:+nitroX.toFixed(2),s:Math.round(s),pads:PADS.length};};
 
 /* ===== LE PIMENT : LA NITRO INFINIE QUI CHAUFFE (2026-10-20, Léo) =====
    7 s de nitro infinie (au lieu de 9). La couleur du feu ÉVOLUE avec le temps de boost accumulé, dans l'ordre de la TEMPÉRATURE d'une flamme (la chimie) :
@@ -267,11 +267,13 @@ function dragonJus(){
 Object.assign(PWR_DEFS.x,{col:0xe0157a,core:0xffd6ea,tint:'#ff5a9a',c2:'#8a0c4a',fx:'rgba(220,20,90,.8)',fx2:'rgba(120,20,160,.35)',msg:'FRUIT DU DRAGON — AURA ×2 · ×3 SI TU ENCHAÎNES !',sous:'AURA x2, x3 SI TU ENCHAINES'});
 {const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.x.bd=f9(PWR_DEFS.x.fx);PWR_DEFS.x.bd2=f9(PWR_DEFS.x.fx2);}
 let DRG_DEC=null;const DRG_V=new THREE.Vector3(),DRG_EL={e:null};
+function dragonDecorBuild(){
+  const mat=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uSize:{value:300},uA:{value:0}},vertexShader:FDISC_VS,fragmentShader:FDISC_FS,transparent:true,depthWrite:false});
+  const m=new THREE.Mesh(FDISC_GEO||(FDISC_GEO=new THREE.PlaneGeometry(1,1)),mat);m.frustumCulled=false;m.renderOrder=-3;m.visible=false;scene.add(m);DRG_DEC={m:m,a:0};
+}
 function dragonDecor(dt){
   const on=pwrAurT>0&&!(mode==='boom'||gameOver);
-  if(!DRG_DEC){if(!on)return;
-    const mat=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uSize:{value:300},uA:{value:0}},vertexShader:FDISC_VS,fragmentShader:FDISC_FS,transparent:true,depthWrite:false});
-    const m=new THREE.Mesh(FDISC_GEO||(FDISC_GEO=new THREE.PlaneGeometry(1,1)),mat);m.frustumCulled=false;m.renderOrder=-3;scene.add(m);DRG_DEC={m:m,a:0};}
+  if(!DRG_DEC){if(!on)return;dragonDecorBuild();}
   const D=DRG_DEC;D.a+=((on?.5:0)-D.a)*Math.min(1,dt*2.5);D.m.visible=D.a>.01;D.m.material.uniforms.uA.value=D.a;
   if(D.m.visible){camera.getWorldDirection(DRG_V);D.m.position.copy(camera.position).addScaledVector(DRG_V,620);D.m.position.y+=190;D.m.updateMatrixWorld(true);}
   // le compteur d'aura hypnotique
@@ -319,7 +321,7 @@ function zapTick(dt){
   ZAP.on+=((on?1:0)-ZAP.on)*Math.min(1,dt*8);ZAP.mat.uniforms.uOn.value=ZAP.on;ZAP.grp.visible=ZAP.on>.02;
   if(ZAP.grp.visible){ZAP.grp.position.copy(carGroup.position);ZAP.grp.quaternion.copy(carGroup.quaternion);}
   // l'onde de choc : un anneau qui part de la caisse, toutes les ~0,55 s, face à la caméra
-  if(on){ZAP.rt+=dt;if(ZAP.rt>.55){ZAP.rt=0;ZAP.age=0;}}
+  if(on){ZAP.rt+=dt;if(ZAP.rt>.55){ZAP.rt=0;ZAP.age=0;try{if(SONV2)sfx('citron.zap',{rate:.92+Math.random()*.2});}catch(e){}}else if(ZAP.rt-dt<.27&&ZAP.rt>=.27){try{if(SONV2)sfx('citron.zap',{rate:1.1+Math.random()*.25,vol:-4});}catch(e){}}} // le crépitement : un zap à chaque onde, un petit écho au milieu
   if(ZAP.age<.5){ZAP.age+=dt;const u=Math.min(1,ZAP.age/.5);ZAP.ring.visible=true;ZAP.ring.position.copy(carGroup.position);ZAP.ring.position.y+=.9;
     ZAP.ring.quaternion.copy(camera.quaternion);ZAP.ring.scale.setScalar(1.5+9*u);ZAP.rmat.uniforms.uA.value=.5*Math.pow(1-u,1.6);}
   else ZAP.ring.visible=false;
@@ -385,3 +387,17 @@ Object.assign(PWR_DEFS.a,{col:0xffffff,core:0xfff4e8,tint:'#ffd6f0',c2:'#d070d0'
 {const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.a.bd=f9(PWR_DEFS.a.fx);PWR_DEFS.a.bd2=f9(PWR_DEFS.a.fx2);}
 /* banc (dev) : `dbgRaisin()` l'état de la double jauge ; `dbgRaisin('vide')` vide la jauge en cours (pour voir les ailes exploser / la 2e jauge démarrer). */
 window.dbgRaisin=function(k){if(k==='vide')fallTR=airMax()+.05;return {stage:RAI.stage,fallTR:+fallTR.toFixed(2),airMax:airMax(),pwrAirT:+pwrAirT.toFixed(2),mode:mode,ailes:!!(RAI.wings&&RAI.wings.visible)};};
+
+/* ===== LA CHAUFFE DES SHADERS DES FRUITS (0 programme compilé en course) =====
+   Quelques secondes après le chargement, au menu : un exemplaire de chaque fruit-pouvoir (et son aura), l'objet des éclairs, l'anneau de l'onde de choc et le disque du
+   décor Genjutsu sont posés une fois dans la scène, compilés hors écran, puis retirés — le 1er citron de la partie ne fait pas saccader l'image. */
+function fruitsChauffe(){
+  if(fruitsChauffe.ok||(started&&!gameOver))return;fruitsChauffe.ok=true;
+  try{const g=new THREE.Group();for(const k of ['n','v','x','a','m']){const m=mkPower(k,1);g.add(m);}
+    if(!ZAP.grp)zapBuild();if(!DRG_DEC)dragonDecorBuild();
+    scene.add(g);ZAP.ring.visible=true;ZAP.grp.visible=true;DRG_DEC.m.visible=true;raisinAiles().visible=true;
+    renderer.compile(scene,camera);
+    ZAP.ring.visible=false;ZAP.grp.visible=false;DRG_DEC.m.visible=false;raisinAiles().visible=false;scene.remove(g);}catch(e){}
+}
+setTimeout(fruitsChauffe,9000);
+window.dbgChauffeFruits=function(){fruitsChauffe.ok=false;const n0=renderer.info.programs?renderer.info.programs.length:0;fruitsChauffe();return {avant:n0,apres:renderer.info.programs?renderer.info.programs.length:0};};
