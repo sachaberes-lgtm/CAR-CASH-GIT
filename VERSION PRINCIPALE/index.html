@@ -38954,18 +38954,33 @@ const grille=D=>{
   const ZS=(()=>{const s=new Set();for(let z=D.zs0;z<D.zs1+.001;z+=D.pas)s.add(+z.toFixed(3));for(const z of (D.plus||[]))s.add(+z.toFixed(4));s.add(D.zs1);
     return [...s].filter(z=>z>=D.zs0-1e-6&&z<=D.zs1+1e-6).sort((a,b)=>a-b).filter((z,i,A)=>i===0||z-A[i-1]>.012);})();
   const COL=[];for(let i=NR;i>0;i--)COL.push({k:'d',i:i});for(const z of ZS)COL.push({k:'s',z:z});for(let i=1;i<=NF;i++)COL.push({k:'n',i:i});
-  const YB=D.yb,PF=D.plafond||(()=>9),hy=(y,z)=>Math.min(y,PF(z)),point=(c,j)=>{const r=ROWS[j];
-    if(c.k==='s'){const z=c.z,yb=YB(z);if(r.t==='fc')return [0,yb,z];if(r.t==='fe')return [xAt(j,z),yb,z];
-      if(r.t==='s')return [xAt(j,z),Math.max(hy(r.y,z),yb),z];return [r.u*xAt(IL,z),D.toit.y(r.u,z),z];}
+  // (2026-10-20, LE RELIEF) `D.dx(z,y)` : le décalage latéral du flanc (creux des portes, hanches, arêtes) — sur les colonnes du flanc,
+  // et fondu vers 0 dans le contour du nez / de la poupe à mesure qu'on quitte le coin (le milieu ne bouge pas : pas de jour au raccord du miroir)
+  const DX=D.dx||(()=>0),
+    YB=D.yb,PF=D.plafond||(()=>9),hy=(y,z)=>Math.min(y,PF(z)),point=(c,j)=>{const r=ROWS[j];
+    if(c.k==='s'){const z=c.z,yb=YB(z);if(r.t==='fc')return [0,yb,z];if(r.t==='fe')return [xAt(j,z)+DX(z,yb),yb,z];
+      if(r.t==='s'){const y=Math.max(hy(r.y,z),yb);return [xAt(j,z)+DX(z,y),y,z];}return [r.u*xAt(IL,z),D.toit.y(r.u,z),z];}
     const S=c.k==='n'?FN:FD;if(r.t==='r'){const q=S[IL][c.i];return [r.u*q[0],D.toit.y(r.u,q[1]),q[1]];}
-    const q=S[j][c.i];return [q[0],r.t==='s'?Math.max(hy(r.y,q[1]),YB(q[1])):YB(q[1]),q[1]];};
+    const q=S[j][c.i],y=r.t==='s'?Math.max(hy(r.y,q[1]),YB(q[1])):YB(q[1]),kc=r.W?cl((q[0]-(r.W-.12))/.12,0,1):0;return [q[0]+DX(q[1],y)*kc*kc*(3-2*kc),y,q[1]];};
   return {ROWS:ROWS,COL:COL,IL:IL,G:COL.map(c=>ROWS.map((r,j)=>point(c,j)))};};
 // ---- LE BAS : benne, flancs, ailes, la face (coins très arrondis en plan), le hayon ----
-const RB=(y,W)=>({t:'s',y:y,W:W,zc:ZN,zr:ZT,rf:y>=.80?RC:RFB,rr:.09}),
-      BAS={rows:[{t:'fc',zc:ZN,zr:ZT},{t:'fe',W:.93,zc:ZN,zr:ZT,rf:RFB,rr:.08}].concat([[.50,.95],[.58,.975],[.66,W0],[.76,W0],[.86,W0],[.95,W0],[1.03,W0],[1.10,W0],
-          [1.17,W0],[1.24,W0],[1.30,W0],[1.36,W0],[1.42,W0],[BELT,W0],[1.50,W0],[RAIL,.975]].map(([y,W])=>RB(y,W))),toit:{u:[],y:()=>0},plafond:PL,
+/* LE RELIEF DU FLANC (2026-10-20, Léo, sur sa photo : « produire le même relief que sur la voiture, dans le style poly, et le rendre visible
+   quand on tourne autour — tourner, bouger la lumière, ça compte beaucoup ; c'est la forme et la propreté qui donnent envie d'acheter ») —
+   lu sur la photo : les PORTES sont EN CREUX entre deux HANCHES (l'aile avant, le flanc de benne) ; on passe de l'une à l'autre par une MARCHE
+   inclinée qui attrape la lumière (derrière la porte arrière elle penche vers l'avant en descendant) ; une ARÊTE à hauteur des poignées : dessus,
+   le flanc rentre vers la ceinture (il regarde le ciel : clair), dessous il tombe droit puis rentre vers le bas de caisse (sombre). En poly :
+   des pans plats et des arêtes franches, que la grille porte (`dx`) — les traits peints (joints, plis) restent dessus. */
+const PRF={porte:[[.50,0],[.62,-.016],[.70,-.034],[.88,-.04],[1.31,-.03],[BELT,-.05]],                      // le creux des portes (rangée → décalage)
+           hanche:[[.50,0],[.70,-.006],[.88,.012],[1.31,.022],[BELT,0],[1.50,-.01],[RAIL,0]],          // le flanc de benne : la hanche qui déborde à l'arête, le rail tenu
+           aile:[[.50,0],[.70,.006],[.95,.016],[1.20,.016],[1.31,0]]},                                  // l'aile avant, un peu bombée sous l'arête du capot
+      zMarche=y=>lin([[.50,-.72],[.70,-.74],[.95,-.80],[1.20,-.78],[BELT,-.70],[RAIL,-.70]],y),            // le pied de la marche arrière (côté porte)
+      dxBas=(z,y)=>{const A=lin(PRF.aile,y)*(1-lis(cl((z-2.12)/.26,0,1)));if(z>=1.24)return A;const P=lin(PRF.porte,y);if(z>1.17)return mix(P,A,lis((z-1.17)/.07));     // l'aile avant : la marche avant, droite
+        const t=lis(cl((zMarche(y)-z)/.07,0,1)),H=lin(PRF.hanche,y)*(1-lis(cl((-2.32-z)/.12,0,1)));return mix(P,H,t);},
+      RB=(y,W)=>({t:'s',y:y,W:W,zc:ZN,zr:ZT,rf:y>=.80?RC:RFB,rr:.09}),
+      BAS={rows:[{t:'fc',zc:ZN,zr:ZT},{t:'fe',W:.93,zc:ZN,zr:ZT,rf:RFB,rr:.08}].concat([[.50,.95],[.58,.975],[.66,W0],[.76,W0],[.88,W0],[.95,W0],[1.03,W0],[1.10,W0],
+          [1.17,W0],[1.24,W0],[1.31,W0],[1.36,W0],[1.42,W0],[BELT,W0],[1.50,W0],[RAIL,.975]].map(([y,W])=>RB(y,W))),toit:{u:[],y:()=>0},plafond:PL,dx:dxBas,
         zs0:-2.20,zs1:2.40,nr:8,nf:12,ins:.32,pas:.22,yb:YBb,plus:FI.map(p=>p[0]).concat(RI.map(p=>p[0]),ARF.map(p=>p[0]),ARR.map(p=>p[0]),
-          [ZBEN-.012,ZBEN,ZCOW,1.24,.105,.09,-.78,-.85,1.47,1.88,2.22,2.52,2.65])};
+          [ZBEN-.012,ZBEN,ZCOW,1.24,.105,.09,-.78,-.85,1.47,1.88,2.22,2.52,2.65,1.17,1.19,1.21].concat(Array.from({length:11},(_,i)=>-.88+i*.02)))};   // (relief) les colonnes des marches
 // ---- LA SERRE : la cabine noire — pare-brise couché, pavillon, et derrière les deux AILERONS qui encadrent la lunette en retrait ----
 const zW=y=>1.268-(y-1.379)*.739,zS=y=>lin([[BELT,-1.42],[1.95,-1.07]],y),ZLU=-.74,YT=1.95,
       HDR=[[0,.07],[.3,.069],[.6,.064],[.8,.053],[.9,.04],[.96,.022],[1,0]],BRF=[[0,0],[.02,.45],[.05,.78],[.1,.93],[.3,1]],
@@ -39075,7 +39090,7 @@ const monte=function(K){
        for(const e of ED)P9.push(w-e);P9.sort((p,q)=>p-q);const o=P9.slice().reverse().map(x=>-x).concat([0],P9);return o.map(x=>[x,H(x,z),z]);};
    for(let i=0;i<ZH.length-1;i++){const A=S(ZH[i]),B=S(ZH[i+1]);for(let j=0;j<A.length-1;j++)quad('p',A[j],B[j],B[j+1],A[j+1]);}
    {const A=S(ZCOW);for(let j=0;j<A.length-1;j++){const a=A[j],b=A[j+1];quad('k',a,[a[0],BELT-.01,ZCOW],[b[0],BELT-.01,ZCOW],b);}}
-   quad('k',[-W0,BELT+.002,zW(BELT)-.02],[W0,BELT+.002,zW(BELT)-.02],[W0,BELT+.002,ZCOW],[-W0,BELT+.002,ZCOW]);                       // l'auvent sous le pare-brise
+   quad('k',[-.935,BELT+.002,zW(BELT)-.02],[.935,BELT+.002,zW(BELT)-.02],[W0,BELT+.002,ZCOW],[-W0,BELT+.002,ZCOW]);                   // l'auvent sous le pare-brise (rentré avec la porte)
    quad('k',[-.70,BELT+.002,ZBEN],[.70,BELT+.002,ZBEN],[.70,BELT+.002,ZLU],[-.70,BELT+.002,ZLU]);                                     // le pont noir entre les ailerons
    // LA PLAQUE DU CAPOT (19/10 v2, la photo zoomée : « l'encoche noire collée à la vitre… mal placée ») : un bloc ANTHRACITE EN RELIEF de 5 cm,
    // collé au pied du pare-brise, plus étroit vers l'avant, ses flancs et son nez chanfreinés — il remplace le panneau peint à plat
@@ -39124,9 +39139,9 @@ const monte=function(K){
     for(const z of [-.93,1.19])P.box('k',.10,.075,.03,sd*1.07,.42,z);                                              // ses embouts
     for(const z of [-.75,.13,1.0])P.box('k',.12,.05,.08,sd*1.0,.42,z);
     // les rétros carrés noirs, les poignées affleurantes
-    tige('K',[sd*.975,1.47,1.10],[sd*1.06,1.52,1.02],.02);P.box('k',.12,.22,.20,sd*1.12,1.56,.98);P.box('K',.12,.03,.18,sd*1.12,1.44,.98);P.box('g',.09,.18,.004,sd*1.12,1.56,.879);
+    tige('K',[sd*.935,1.47,1.10],[sd*1.06,1.52,1.02],.02);P.box('k',.12,.22,.20,sd*1.12,1.56,.98);P.box('K',.12,.03,.18,sd*1.12,1.44,.98);P.box('g',.09,.18,.004,sd*1.12,1.56,.879);
     P.box('K',.004,.032,.17,sd*1.181,1.52,.98);P.box('O',.004,.016,.15,sd*1.183,1.52,.98);                        // le CLIGNOTANT du rétro (fente noire, ambre dedans)
-    for(const z of [.31,-.62]){P.box('K',.012,.058,.17,sd*.986,1.31,z);P.box('C',.016,.022,.135,sd*.998,1.31,z);P.box('C',.02,.018,.012,sd*1.002,1.31,z+.072);}});  // les POIGNÉES : la niche, la barre chromée, son pied
+    for(const z of [.31,-.62]){const xh=W0+dxBas(z,1.31);P.box('K',.012,.058,.17,sd*(xh+.006),1.31,z);P.box('C',.016,.022,.135,sd*(xh+.018),1.31,z);P.box('C',.02,.018,.012,sd*(xh+.022),1.31,z+.072);}});   // (relief) sur l'arête de la porte creusée  // les POIGNÉES : la niche, la barre chromée, son pied
   // LA BENNE : les dessus des côtés, le dessus du hayon, la doublure noire, le plancher
   P.sym(sd=>{quad('p',[sd*.80,RAIL,ZT+.03],[sd*.975,RAIL,ZT+.03],[sd*.975,RAIL,ZBEN],[sd*.80,RAIL,ZBEN]);P.box('k',.02,RAIL-.95,ZBEN-ZT-.06,sd*.79,(RAIL+.95)/2,(ZBEN+ZT)/2);});
   quad('p',[-.80,RAIL,ZT],[.80,RAIL,ZT],[.80,RAIL,ZT+.03],[-.80,RAIL,ZT+.03]);
@@ -39150,11 +39165,11 @@ const monte=function(K){
   P.sym(sd=>{for(const y of [.95,1.0])P.cyl('C',.008,.008,8,sd*.76,y,ZT-.006,'z');});
   P.box('Q',.45,.12,.01,0,.74,-2.788);P.sym(sd=>{P.box('K',.13,.10,.02,sd*.42,.69,-2.786);P.box('R',.10,.02,.008,sd*.85,.82,-2.786);}); // les catadioptres : rouge MAT (un rouge allumé à l'arrière, le jeu le prend pour un feu : halo et traînées tombaient dessous)
   // LE DESSUS DES PORTES (vitres baissées) : la tôle de la ceinture et le joint noir de la vitre, du pied du pare-brise à l'arceau arrière
-  P.sym(sd=>{P.box('p',.075,.022,1.95,sd*.9425,BELT+.011,.235);P.box('k',.05,.012,1.95,sd*.94,BELT+.028,.235);});
+  P.sym(sd=>{P.box('p',.046,.022,1.95,sd*.908,BELT+.011,.235);P.box('k',.03,.012,1.95,sd*.91,BELT+.028,.235);});   // (relief) sur le haut de la porte, rentré
   // LE PARE-BRISE, SÉPARÉ — posé par LA VITRE V2 (voir `vitreV2`, avant SHAPES.caid) dans le plan du pare-brise : u = x, v = la hauteur,
   // w = le décollement le long de sa normale. Traverse haute de 10 cm, montants qui s'élargissent jusqu'à l'aile, coins du haut de 11 cm.
   {const NY=.594,NZ=.804,Q=(u,v,w)=>[u,v+w*NY,zW(v)+w*NZ],V1=1.885;
-   vitreV2(P,K,{Q:Q,V0:1.50,V1:V1,A0:.86,A1:.80,R0:.04,R1:.11,cote:[.125,.075],haut:.10,bas:.035});
+   vitreV2(P,K,{Q:Q,V0:1.50,V1:V1,A0:.86,A1:.80,R0:.04,R1:.11,cote:[.08,.075],haut:.10,bas:.035});
    // les deux essuie-glaces au repos, leur pivot ; les quatre feux de gabarit ÉTEINTS (fumés : pas de points orange) sur la traverse
    for(const [u0,l9] of [[.31,.56],[-.29,.50]]){const p=Q(u0,1.525,.03);P.box('K',l9,.012,.02,p[0],p[1],p[2],.934,0,0);const q=Q(u0+.24*Math.sign(u0),1.508,.035);P.cyl('K',.014,.03,8,q[0],q[1],q[2]);}
    for(const u of [-.21,-.07,.07,.21]){const p=Q(u,V1+.05,.03);P.box('M',.045,.016,.024,p[0],p[1],p[2],.934,0,0);}}
@@ -39163,7 +39178,7 @@ const monte=function(K){
   // l'ÉPINE entre les deux ; RIEN À L'AVANT : entre le pare-brise et l'arceau, le ciel. Le dessus des traverses gris satiné, une marche plus
   // sombre au bord, les montants noirs ; section chanfreinée, coin de 20 cm qui épouse la rentrée du flanc.
   const YA=2.03,TH=.07,CH=.015,
-    chemin=()=>{const o=[];for(const y of [BELT,1.55,1.65,1.75,1.85])o.push([lin(WS,y)+.002,y]);
+    chemin=()=>{const o=[];for(const y of [BELT,1.55,1.65,1.75,1.85])o.push([lin(WS,y)+.002+PRF.porte[5][1]+.002,y]);   // (relief) les montants partent du haut de la porte, rentré
       const p0=o[o.length-1],pm=o[o.length-2];let tx=p0[0]-pm[0],ty=p0[1]-pm[1];const tl=Math.hypot(tx,ty);tx/=tl;ty/=tl;
       const Rr=(YA-p0[1])/(1+tx),cx=p0[0]-Rr*ty,cy=p0[1]+Rr*tx,a0=Math.atan2(p0[1]-cy,p0[0]-cx);
       for(let i=1;i<=8;i++){const a=mix(a0,Math.PI/2,i/8);o.push([cx+Rr*Math.cos(a),cy+Rr*Math.sin(a)]);}
@@ -39182,8 +39197,8 @@ const monte=function(K){
   // L'HABITACLE (19/10) : ce que le toit ouvert et les vitres baissées laissent voir. x à gauche : le volant est à GAUCHE (x > 0).
   {// le plancher, la cloison derrière la banquette, les CONTRE-PORTES (passepoil clair, poignée, haut-parleur)
    P.box('D',1.82,.04,1.96,0,.80,.25);P.box('D',1.82,.68,.04,0,1.14,-.74);
-   P.sym(sd=>{P.box('D',.05,.66,1.92,sd*.93,1.13,.25);P.box('I',.02,.05,1.86,sd*.904,1.32,.25);
-     for(const z of [.62,-.36]){P.box('I',.06,.05,.26,sd*.885,1.24,z);P.box('K',.012,.11,.11,sd*.903,.98,z+.12);}});
+   P.sym(sd=>{P.box('D',.045,.66,1.92,sd*.8925,1.13,.25);P.box('I',.02,.05,1.86,sd*.866,1.32,.25);                       // (relief) rentrées sous la porte creusée
+     for(const z of [.62,-.36]){P.box('I',.06,.05,.26,sd*.845,1.24,z);P.box('K',.012,.11,.11,sd*.866,.98,z+.12);}});
    // LA PLANCHE DE BORD : le bloc sous le pare-brise, son casquet, les deux ÉCRANS (12,3 et 13,4 pouces), les aérateurs, la console centrale
    P.box('D',1.84,.13,.33,0,1.355,1.065);P.box('D',1.70,.30,.22,0,1.15,1.11);P.box('D',.50,.32,.18,0,1.14,.99);P.box('I',1.84,.025,.04,0,1.29,.905);
    P.box('K',.40,.10,.07,.38,1.43,.94);P.box('E',.36,.085,.008,.38,1.37,.896,.12,0,0);P.box('E',.30,.16,.008,-.04,1.25,.896,.10,0,0);
