@@ -292,7 +292,7 @@ html body #garage.deplie:not(.menu) #gBottom{animation:gDeplie .34s var(--ease,c
 .ivTete small{font-size:var(--f0);letter-spacing:1px;color:var(--tx3)}
 #ivFerme{margin-left:auto;width:44px;min-width:44px;height:44px;min-height:0;padding:0}
 #ivFerme .pxi{--pxs:2}
-.ivTabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:4px;transform:skewX(var(--sk));background:linear-gradient(180deg,#0b0818,#110d22);box-shadow:inset 0 2px 4px rgba(0,0,0,.6),0 0 0 1px var(--fil)}
+.ivTabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;padding:4px;transform:skewX(var(--sk));background:linear-gradient(180deg,#0b0818,#110d22);box-shadow:inset 0 2px 4px rgba(0,0,0,.6),0 0 0 1px var(--fil)}
 .ivTab{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:48px;padding:6px 0 5px;border:0;border-radius:0;cursor:pointer;
   font-family:var(--pix);font-size:var(--f0);letter-spacing:0;color:var(--tx3);background:transparent;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
   transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
@@ -302,8 +302,16 @@ html body #garage.deplie:not(.menu) #gBottom{animation:gDeplie .34s var(--ease,c
 .ivTab.on{color:#fff;background:linear-gradient(180deg,rgba(255,62,200,.32),rgba(255,62,200,.12));box-shadow:inset 0 -2px 0 var(--neoM),inset 0 0 0 1px rgba(255,62,200,.5)}
 .ivTab.on .pxi{color:var(--neoM);filter:drop-shadow(0 0 6px var(--neoM))}
 .ivTab.on em{color:#fff}
+.ivTab span{max-width:100%;overflow:hidden;text-overflow:clip;white-space:nowrap;font-size:7px}
+/* LA PROGRESSION (2026-10-20, Sacha : « retravaille et améliore l'inventaire ») : une barre fine sous les onglets, « possédés / total » de l'onglet ouvert */
+.ivProg{display:flex;align-items:center;gap:10px;padding:0 6px}
+.ivProg i{position:relative;flex:1;height:6px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px var(--fil)}
+.ivProg i::before{content:'';position:absolute;left:0;top:0;bottom:0;width:calc(var(--p,0) * 100%);background:linear-gradient(90deg,var(--neoM),#ffd75e);box-shadow:0 0 8px rgba(255,62,200,.6);transition:width .4s var(--ease)}
+.ivProg b{font-weight:400;font-size:var(--f0);letter-spacing:1px;color:#fff;white-space:nowrap}
+.ivVide{grid-column:1/-1;align-self:center;margin:24px 0;text-align:center;font-size:var(--f0);line-height:1.8;color:var(--tx3);letter-spacing:1px}
+.ivT small{display:block;margin-top:2px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:clip;font-size:6px;letter-spacing:1px;color:var(--rc);text-shadow:0 0 6px var(--rg)}
 #ivGrille{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));grid-auto-rows:100px;gap:16px 12px;align-content:start;padding:12px 10px 16px;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));grid-auto-rows:112px;gap:16px 12px;align-content:start;padding:12px 10px 16px;
   scrollbar-width:none;-webkit-mask:linear-gradient(180deg,transparent 0,#000 12px,#000 calc(100% - 14px),transparent);mask:linear-gradient(180deg,transparent 0,#000 12px,#000 calc(100% - 14px),transparent)}
 #ivGrille::-webkit-scrollbar{display:none}
 /* LA TUILE : l'objet, son nom, et la LUEUR de sa rareté (--rc la couleur, --rg la lueur, --rf le fond : posés par invRender, en rgba —
@@ -348,7 +356,7 @@ html body #garage.deplie:not(.menu) #gBottom{animation:gDeplie .34s var(--ease,c
   .ivTab{min-height:40px;flex-direction:row;gap:6px}
   .ivTab span{display:none}
   .ivTab em{position:static}
-  #ivGrille{grid-template-columns:repeat(auto-fill,minmax(84px,1fr));grid-auto-rows:94px;gap:12px 10px}
+  #ivGrille{grid-template-columns:repeat(auto-fill,minmax(84px,1fr));grid-auto-rows:104px;gap:12px 10px}
 }
 @media (prefers-reduced-motion:reduce){html body #garage.deplie:not(.menu) #gBottom,#gInv.on,#gInv.on .ivT,.ivT::after,.ivT::before{animation:none!important}}
 #garage.quiet :is(#gInv,#gInvAide,#gInvAnneau),#garage.launching :is(#gInv,#gInvAide,#gInvAnneau),#garage.menu :is(#gInv,#gInvAide){display:none!important}
