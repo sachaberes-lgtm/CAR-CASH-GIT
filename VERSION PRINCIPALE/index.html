@@ -62758,17 +62758,17 @@ function richTexUni(c){return richCv(4,4,function(x){x.fillStyle=c;x.fillRect(0,
    le jaune et le 200 s'en vont) LES BILLETS v3 : le papier de la 1re version (dégradé, guilloche, double cadre, rosace, bande), un voile clair
    au milieu (le filigrane), et la valeur en GRAND au milieu, en lettres carrées (la police pixel du jeu), frappée : ombre d'encre, contour,
    dégradé clair, un fil de lumière. Le 20 a sa tour Eiffel dans la rosace et sa bande BLEU-BLANC-ROUGE ; le 500 est violet et OR. */
-const RICH_BILLETS=[
-  {v:'10', m:'DIX DOLLARS',       c:['#2a0c0f','#4c1c21','#381418'],l:[236,180,172],sh:[.7,.5,.48]}, // rouge BORDEAUX, peu saturé (l'étalonnage du jeu sature ×1,4 : à l'écran il reste rouge) (2026-10-16, Léo : « le dix est encore trop pétant »)
-  {v:'20', m:'VINGT FRANCS',      c:['#0a1f52','#1d4ba8','#112e72'],l:[150,200,255],sh:[.55,.76,1],fr:1}, // bleu, à la française
-  {v:'50', m:'CINQUANTE DOLLARS', c:['#5a2505','#a8561a','#7b380d'],l:[255,195,130],sh:[1,.76,.45]},  // orange
-  {v:'100',m:'CENT DOLLARS',      c:['#063f46','#138a5e','#0a5a52'],l:[140,255,200],sh:[.49,1,.62]},  // VERT en dégradé (sarcelle → vert) — celui des liasses
-  {v:'500',m:'CINQ CENTS DOLLARS',c:['#22093f','#5a2aa8','#341272'],l:[205,165,255],sh:[.85,.7,1],or:1}]; // violet et or
+const RICH_BILLETS=[ // (2026-10-20, Léo : « chaque billet une plus belle couleur, un dégradé de DEUX couleurs sur chacun ; le 500 en blanc aussi ») c:[départ, arrivée] = le dégradé en diagonale ; l = la couleur des filets/guilloches ; sh = le reflet qui glisse
+  {v:'10', m:'DIX DOLLARS',       c:['#4c0f2c','#c8405e'],l:[255,170,190],sh:[1,.6,.7]},   // grenat → framboise (peu saturé au départ : l'étalonnage du jeu sature ×1,4)
+  {v:'20', m:'VINGT FRANCS',      c:['#0a2a86','#22b4ea'],l:[150,215,255],sh:[.55,.85,1],fr:1}, // bleu roi → turquoise, à la française
+  {v:'50', m:'CINQUANTE DOLLARS', c:['#a8380a','#eaa530'],l:[255,215,140],sh:[1,.82,.45]},  // orange brûlé → ambre doré
+  {v:'100',m:'CENT DOLLARS',      c:['#0a5a4a','#42d884'],l:[160,255,205],sh:[.5,1,.65]},  // vert sapin → vert menthe
+  {v:'500',m:'CINQ CENTS DOLLARS',c:['#2c0f86','#a64ad0'],l:[225,175,255],sh:[.9,.7,1],or:1}]; // violet → magenta ; les filets restent dorés, le chiffre est BLANC
 const RICH_B100=3;
 function richTexBillet(B){return richCv(512,236,function(x,w,h){
   const L=function(k,a){const c=B.l.map(function(v){return Math.round(v+(255-v)*k);});return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')';}, // la couleur des traits, éclaircie de k
     O=function(a){return 'rgba(255,214,128,'+a+')';},T=B.or?function(k,a){return O(a);}:L,F='"Press Start 2P",monospace';
-  const G=x.createLinearGradient(0,0,w,h);G.addColorStop(0,B.c[0]);G.addColorStop(.55,B.c[1]);G.addColorStop(1,B.c[2]);x.fillStyle=G;x.fillRect(0,0,w,h);
+  const G=x.createLinearGradient(0,0,w,h);G.addColorStop(0,B.c[0]);G.addColorStop(1,B.c[1]);x.fillStyle=G;x.fillRect(0,0,w,h); // (2026-10-20) UN dégradé de deux couleurs, en diagonale
   x.lineWidth=1;for(let k=0;k<26;k++){x.strokeStyle=L(0,.09);x.beginPath();for(let i=0;i<=w;i+=6)x.lineTo(i,h/2+Math.sin(i*.03+k*.5)*h*.42*Math.sin(k*.21+1));x.stroke(); // la guilloche, deux familles croisées
     x.strokeStyle=L(.1,.05);x.beginPath();for(let i=0;i<=w;i+=6)x.lineTo(i,h/2-Math.sin(i*.024+k*.61)*h*.4*Math.sin(k*.17+2));x.stroke();}
   x.strokeStyle=T(.25,.42);x.lineWidth=3;x.strokeRect(10,10,w-20,h-20);x.lineWidth=1;x.strokeRect(18,18,w-36,h-36);           // le double cadre
@@ -62784,9 +62784,9 @@ function richTexBillet(B){return richCv(512,236,function(x,w,h){
   x.save();x.shadowColor=B.or?'rgba(255,232,170,.55)':'rgba(255,255,255,.55)';x.shadowBlur=28;x.shadowOffsetX=2000;x.fillStyle='#fff';x.fillText(B.v,cx-2000,cy);x.restore(); // (2026-10-20, Léo) LA LUEUR : un halo blanc doux autour du chiffre, peint dans la toile (le chiffre est dessiné hors toile, seule son ombre floue reste) — la lumière qu'il pose sur le papier ; le chiffre lui-même luit dans le programme (uLum)
   x.fillStyle='rgba(0,0,0,.55)';x.fillText(B.v,cx+6,cy+7);                                                                  // son ombre d'encre
   x.lineJoin='miter';x.lineWidth=9;x.strokeStyle='rgba(0,0,0,.72)';x.strokeText(B.v,cx,cy);                                  // son contour, épais
-  const Z=x.createLinearGradient(0,cy-fz*.5,0,cy+fz*.5);if(B.or){Z.addColorStop(0,'#fff8dc');Z.addColorStop(.5,'#ffd970');Z.addColorStop(1,'#e2a73c');}else{Z.addColorStop(0,'#ffffff');Z.addColorStop(.55,L(.88,1));Z.addColorStop(1,L(.7,1));}
+  const Z=x.createLinearGradient(0,cy-fz*.5,0,cy+fz*.5);if(B.or){Z.addColorStop(0,'#ffffff');Z.addColorStop(.55,'#fffdf5');Z.addColorStop(1,'#f3ead2');}else{Z.addColorStop(0,'#ffffff');Z.addColorStop(.55,L(.88,1));Z.addColorStop(1,L(.7,1));} // (2026-10-20) le 500 aussi en BLANC (chaud à peine)
   x.fillStyle=Z;x.fillText(B.v,cx,cy);x.save();x.beginPath();x.rect(0,cy-fz*.5,w,fz*.16);x.clip();x.fillStyle='rgba(255,255,255,.45)';x.fillText(B.v,cx,cy);x.restore(); // dégradé clair, et le fil de lumière en haut
-  x.font='20px '+F;x.fillStyle=T(.8,.95);x.textAlign='left';x.fillText(B.v,30,42);x.textAlign='right';x.fillText(B.v,w-30,h-38); // les petites valeurs aux coins (un cran plus grandes, plus claires)
+  x.font='20px '+F;x.fillStyle=B.or?'rgba(255,252,240,.95)':T(.8,.95);x.textAlign='left';x.fillText(B.v,30,42);x.textAlign='right';x.fillText(B.v,w-30,h-38); // les petites valeurs aux coins (un cran plus grandes, plus claires)
   x.textAlign='center';x.font='11px '+F;x.fillStyle=T(.55,.8);x.fillText('CASH CAR',cx,h*.2);
   x.font='7px '+F;x.fillStyle=L(.3,.55);x.fillText((B.fr?'REPUBLIQUE DU CIEL':'BANQUE CENTRALE DU CIEL')+' · '+B.m,cx,h*.84);
   x.textAlign='left';x.fillText('CC '+(4100+B.v.length*977+B.v.charCodeAt(0)*13),30,h-34);                                   // le numéro de série
