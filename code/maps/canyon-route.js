@@ -282,7 +282,7 @@ function cyStratesDonnees(d,T){
   return d;}
 /* LE TIRAGE DU DÉCOR DU CANYON (2026-10-20) : des choix INDÉPENDANTS, dans un flux né de la graine de la piste (ni `rnd`, ni `r`, ni le tracé) — un objet simple
    (il part au travailleur) */
-function cyTirage(seed){const rd=mulberry32(((seed^0xDEC0CA)+0x1B873593)>>>0),ch=(L9,P9)=>{let t=rd()*P9.reduce((a,b)=>a+b,0);for(let i=0;i<L9.length;i++){t-=P9[i];if(t<0)return L9[i];}return L9[L9.length-1];},
+function cyTirage(seed){let h9=Math.imul((seed^0xDEC0CA)>>>0,0x9E3779B1);h9^=h9>>>15;h9=Math.imul(h9,0x85EBCA6B);h9^=h9>>>13;const rd=mulberry32(h9>>>0), /* (la graine brassée : des graines voisines ne tirent plus les mêmes choix) */ch=(L9,P9)=>{let t=rd()*P9.reduce((a,b)=>a+b,0);for(let i=0;i<L9.length;i++){t-=P9[i];if(t<0)return L9[i];}return L9[L9.length-1];},
     ent=(a,b)=>a+Math.floor(rd()*(b-a+1)),D={sd:(rd()*4294967296)>>>0};
   D.strates=ch(['classique','sedona','zion','peint','bryce'],[2.4,1.6,1.3,1.2,1.3]);D.brume=+ch([.4,1,1.7],[1,2,1]).toFixed(2);
   D.riviere=ch(['pleine','basse','asec'],[2.2,1.3,1.2]);D.eau={pleine:1,basse:.45,asec:0}[D.riviere];D.buttes=+(.55+rd()*1.1).toFixed(2);
