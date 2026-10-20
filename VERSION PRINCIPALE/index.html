@@ -42173,6 +42173,7 @@ const landMark=new THREE.Mesh(new THREE.TorusGeometry(3,.35,8,24),
   new THREE.MeshBasicMaterial({color:0x62e062,transparent:true,opacity:.85,depthTest:false}));
 landMark.renderOrder=999; // (2026-09-28, nuit) le VISEUR passe PAR-DESSUS tout : la caméra de vol garde la caisse plus grande (le « bras », voir la caméra de vol) — elle ne doit jamais cacher l'endroit où l'on se pose
 landMark.visible=false;scene.add(landMark);
+const lmP=new THREE.Vector3(); // (2026-10-20) le pas d'AVANT du viseur : c'est lui qui dit de quel côté de la dalle on arrive (voir le viseur de la boucle de vol)
 const LM={a:0,vu:false,c:new THREE.Color()}; // (2026-09-28) le viseur en FONDU : il surgissait à 1,7 s de la pose, clignotait près des bords, sautait d'or à blanc
 const shadow=new THREE.Mesh(new THREE.CircleGeometry(2.4,20),
   new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.28,depthWrite:false}));
@@ -43051,7 +43052,7 @@ function carUnlockedVrai(i){
    ⚠ Rien ici ne touche au bank-or-bust : la mallette en vol part toujours en fumée.
    ========================================================================== */
 const RUNX={coins:0,fruits:0,perfect:0,t:0,nitro:0,fren:0,frenMax:0}; // ce que `runStats` ne comptait pas (v3 : frénésies de la partie, la plus longue en s)
-const RAM={p0:new THREE.Vector3(),ok:false,face:1,n:[0,0,0,0,0,0,0,0]}; // (2026-09-30) LE RAMASSAGE (pickupsTick) : la caisse à l'image d'avant (un saut décroche) · la face lue · compteurs du banc : pièces/fruits/cristaux au sol, puis en vol, accrochés, filet
+const RAM={p0:new THREE.Vector3(),ok:false,face:1,fv:0,n:[0,0,0,0,0,0,0,0]}; // (2026-09-30) LE RAMASSAGE (pickupsTick) : la caisse à l'image d'avant (un saut décroche) · la face lue · compteurs du banc : pièces/fruits/cristaux au sol, puis en vol, accrochés, filet
 /* LE NITRO SE GAGNE AU STYLE (2026-09-25) : une figure encaissée et un bump rechargent la réserve orange, dans la limite
    du réservoir du moteur. La jauge FLASHE : le joueur doit relier le geste à la récompense. */
 /* LE CHRONO DE VOL v2 (2026-09-25) — « le camembert pixel ne correspond pas au reste ». Après la charte v3 (boutons arrondis,
@@ -65521,6 +65522,23 @@ function ramD(P,Q,ax,R){ // (2026-10-14, chasse aux bugs) la distance caisse ↔
   let t=((Q.x-A.x)*dx+(Q.y-A.y)*dy+(Q.z-A.z)*dz)/l2;t=t<0?0:t>1?1:t;
   const x=A.x+dx*t-Q.x,y=A.y+dy*t-Q.y,z=A.z+dz*t-Q.z;return Math.min(d0,Math.sqrt(x*x+y*y+z*z));}
 const RAM_K=5.5,RAM_A=30,RAM_T=.5; // l'accroche : tirage de base (/s), sa montée par seconde d'accroche, le filet (s)
+/* LA FACE DU VOL (2026-10-20, Sacha : « la voiture dans les airs, quand on passe près de la route, le jeu n'arrive pas à savoir où est le
+   dessus et le dessous » — il y a toujours une sorte d'aimant bizarre avec la route tordue du niveau NUAGES). MESURÉ au banc (dbgPose + dbgStep) :
+   la face se lisait au seul SIGNE de la hauteur au point de piste le plus proche (`curHOff < −THICK/2`), sans regarder où l'on est : une caisse
+   qui passe à 45 m du bord (demi-route 28) et descend sous le plan de la dalle passait « SOUS la route » à −1,8 m et y restait à −120 m. Chaque
+   passage du plan (une pente, un virage relevé, un saut qui longe la route) retournait la face, et l'aimant / l'accroche prenait les pièces
+   du JUMEAU de l'autre face — à travers le bitume. Désormais UNE face par vol, avec mémoire : elle part de la face du décollage et ne change
+   que si la caisse est vraiment AU-DESSUS ou EN DESSOUS de la dalle (dans sa largeur + VOLF.m), et d'au moins VOLF.h de l'autre côté du plan
+   qu'elle quitte (hystérésis : plus d'aller-retour sur la tranche). Loin sur le côté : on garde la face d'avant. Même notion que `fallUnder`. */
+const VOLF={m:6,h:.8};
+function volFaceTick(){
+  if(RAM.fv===0)RAM.fv=fallStartSide<0?-1:1;
+  if(curNear&&Math.abs(curLatOff)<ROAD_HALF+VOLF.m){
+    if(RAM.fv>0&&curHOff<-THICK-VOLF.h)RAM.fv=-1;
+    else if(RAM.fv<0&&curHOff>VOLF.h)RAM.fv=1;
+  }
+  return RAM.fv;
+}
 function pickupsTick(dt){
   const enVol=(mode==='fall');
   // (LIGNE PARFAITE) le fruit de la file se teste aussi sur le TRAJET de l'image — (2026-09-30) le trajet AU SOL seulement : en vol `s`
@@ -65555,7 +65573,7 @@ function pickupsTick(dt){
      `side` départage ; en vol rien ne le faisait — sous AIMANT (sphère de 50 m) les deux copies étaient aspirées, l'une À TRAVERS le bitume,
      et les deux encaissées : argent, pièces moteur, séries et nitro des fruits comptés DEUX fois. La face du vol = le côté de la dalle où
      l'on vole (radar de tryLand : sous la dalle → −1, sinon +1). Les grappes du CIEL (`p.air`) n'ont pas de jumeau. (2026-09-30) Sans radar (1re image du vol) : la face du DÉCOLLAGE, plus +1 d'office. */
-  const fV9=enVol?(curNear?(curHOff<-THICK*.5?-1:1):fallStartSide):side;RAM.face=fV9;
+  const fV9=enVol?volFaceTick():(RAM.fv=0,side);RAM.face=fV9; // (2026-10-20) la face du vol : voir VOLF
   for(let i9=0;i9<pickups.length;i9++){
     const p=pickups[i9];
     if(p.taken)continue;
@@ -66948,6 +66966,7 @@ function loop(now){
       for(let st2=0;st2<14;st2++){ // même intégration que la vraie chute : vel par seconde, position ×SPD
         if(th9>0){const sp9=tmp3.length();if(sp9>1)tmp3.multiplyScalar((sp9+th9)/sp9);}
         volMonte(tmp3,-FALL_G*gK()*(bascOn?Math.min(1,(bascT+st2*.12)/BASC_T):1)*vg9*.12); // (LE VOL QUI SUIT LA ROUTE) le viseur tombe comme la caisse : vers la dalle survolée sur la route sans haut ni bas
+        lmP.copy(tmp2);
         tmp2.addScaledVector(tmp3,.12*SPD);
         // le point le plus proche à moins de 20 m, 1 sur 8, trous exclus (le viseur ne promet jamais un atterrissage dans le vide)
         // (2026-09-27, passe perf iPhone) balayage en casiers (dalleProche) : même point élu, ~6× moins de distances
@@ -66956,7 +66975,10 @@ function loop(now){
           dTmp.subVectors(tmp2,pts[bi]);
           const h2=dTmp.dot(Nn[bi]),l2=dTmp.dot(B[bi]);
           if(Math.abs(l2)<ROAD_HALF&&h2>-THICK-1&&h2<3){
-            landMark.position.copy(pts[bi]).addScaledVector(B[bi],l2).addScaledVector(Nn[bi],h2>-1.3?.3:-THICK-.3);
+            /* (2026-10-20) DESSUS OU DESSOUS : le côté d'où l'on ARRIVE (le pas d'avant, dans le repère de CETTE dalle), comme tryLand (prevH > −1,2 →
+               dessus). Avant, le seul signe de h2 décidait : un pas tombé à mi-épaisseur posait l'anneau SOUS la route alors que la caisse allait se poser dessus. */
+            const hP9=lmP.sub(pts[bi]).dot(Nn[bi]),dessus9=hP9>-1.2?true:hP9<-THICK+1.2?false:h2>-1.3;
+            landMark.position.copy(pts[bi]).addScaledVector(B[bi],l2).addScaledVector(Nn[bi],dessus9?.3:-THICK-.3);
             landMark.quaternion.setFromRotationMatrix(mat4.makeBasis(T[bi],B[bi],Nn[bi]));
             LM.vu=true;CAMV.eta=(st2+1)*.12;
             const impP=Math.abs(tmp3.dot(Nn[bi])); // impact PRÉDIT — même unité que le verdict d'atterrissage
