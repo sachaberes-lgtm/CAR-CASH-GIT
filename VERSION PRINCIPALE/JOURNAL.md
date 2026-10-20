@@ -3,6 +3,27 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE CAÏD, LE PICK-UP DE LA PHOTO DE LÉO, TOIT OUVERT — LA VITRE V2 (2026-10-20, v705, discussion voiture, Léo : « retouche la Hummer selon la photo, c'est-à-dire sans le toit… comme sur la photo exactement », puis « zoom sur la photo, mesure… une vitre V2 qu'on mettra sur toutes les voitures »)
+- **Sa photo** : la GMC Hummer EV Edition 1 blanche, panneaux de toit retirés. Le SUV du 19/10 redevient le PICK-UP (benne, ailerons, lunette en
+  retrait ; CARS 2 : h 2,01, l 5,51, blanc nacré `0xd2d5d9` — l'ancien vert `0x7cb83f`). Tout est dans `code/voitures/caid.js`.
+- **Le toit, zoomé sur la photo** : le pare-brise est SEUL (rien au-dessus des portes avant), un ARCEAU au milieu (les montants B qui tournent en
+  une large traverse, dessus gris satiné, marche plus sombre au bord, montants noirs), un arceau arrière au-dessus de la lunette, et l'ÉPINE
+  seulement entre les deux. La serre n'est gardée que DERRIÈRE la lunette (`OUVERT` : zones de code 4 = trous, dans les vues dessus/côté/face) ;
+  l'ossature est posée en vraies pièces (`arche()` : une section chanfreinée balayée le long d'un chemin qui suit la rentrée du flanc).
+- **LA VITRE V2** (`vitreV2(P,K,o)`, fonction de haut niveau en tête du fichier, réutilisable sur toute caisse) : une vitre n'est plus peinte sur
+  la tôle, c'est une PIÈCE posée dans son repère `o.Q(u,v,w)` — un cadre noir épais (lèvre chanfreinée laquée, profondeur), le verre en retrait
+  de 2 cm, à peine bombé, normales MESURÉES sur la surface (aucune facette, aucun reflet cassé), la sérigraphie noire du bord en couleurs de
+  sommets, TEINTÉ ET TRANSPARENT (le programme des vitres 'g' en transparent : 0 programme compilé). Sur le CAÏD : le pare-brise, ses deux
+  essuie-glaces, quatre feux de gabarit ÉTEINTS (Léo : « pas de petits points orange »).
+- **Dedans** (vu par le toit et les vitres baissées) : plancher, contre-portes, planche de bord à deux écrans, volant (à gauche), console, deux
+  baquets et la banquette en cuir clair. Le dessus des portes : tôle + joint noir.
+- **Le nez** : le bandeau s'arrête au coin, fermé par le feu en C ambre (la bande noire filait sur l'aile) ; le bouclier haut couleur caisse ;
+  la PLAQUE DU CAPOT = un bloc anthracite EN RELIEF collé au pied du pare-brise (plus de panneau peint, plus d'ouïes ni de joint chromé, flancs
+  du dôme adoucis) ; rétros noirs.
+- ⚠ Une matière laquée ('g') sur un aplat tourné vers le ciel sort CLAIRE en plein jour (reflet) : un noir ou un anthracite posé à plat → 'm'.
+- Vérifié (banc Chrome sans fenêtre) : couché et debout, 0 programme compilé en course, 0 erreur, garage sans erreur. Planches (CAR CAHS V3) :
+  `photos-gameplay/caid-sans-toit-avant-apres.png`, `photos-gameplay/caid-v2-zoom-avant-apres.png` (photo zoomée | v1 | v2).
+
 ## LA MER DE NUAGES FAÇON ARC RAIDERS — LE FOND EN PHOTO, LA MER DE CUMULUS, LES NUAGES EN VERRE ÉPARPILLÉS (2026-10-19 soir, v704, Léo : « retouche la mer des nuages ; le ciel dans ARC Raiders est hyper bien fait, prends les images pour un fond plus réaliste encore ; les nuages devant, c'était mieux l'avant-dernière version, avec les cubes, joue plus la transparence » → questionnaire : l'avant-dernière = le vitrail MOYEN → « reste sur ce que tu as fait, mais un tout petit peu éparpillé : le côté trash de la version d'avant, le gros nuage condensé qui se sépare en plein de trucs ; le ciel, c'est vraiment mieux » → « oui, sur le main »)
 - **Les images d'ARC Raiders sont à Embark (protégées)** : aucune n'entre dans le jeu. On en garde la LEÇON (un bleu naturel qui pâlit dans une
   brume claire, de vrais nuages, l'air épais sur l'horizon) avec de VRAIES photos libres : Poly Haven, CC0 — MATIN `kloppenheim_06_puresky`
