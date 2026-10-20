@@ -139,6 +139,7 @@ economie/achat-carte-moteur.js       # carBuy (l'achat), carte moteur, monnaie d
 voitures/matieres-forme.js           # l'atelier de matières, outils de forme, squelette
 voitures/constructeur-moteur.js      # le constructeur (mkEngine)
 gameplay/pouvoirs-orbes.js           # les orbes de pouvoir
+gameplay/fruits-auras.js             # les auras des fruits-pouvoirs (piment, citron, dragon, raisin, pomme dorée) : banc seulement, rien n'est encore appelé en course
 economie/final-spin.js               # FINAL SPIN : la machine à sous
 gameplay/pouvoirs-grisants.js        # pouvoirs v2, petits trucs grisants, pièces instanciées
 rendu/tirelire-reserves.js           # la tirelire, les réserves (makePool)

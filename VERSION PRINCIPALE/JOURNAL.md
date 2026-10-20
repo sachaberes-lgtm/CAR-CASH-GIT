@@ -3,6 +3,15 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES AURAS DES FRUITS-POUVOIRS — LE MODULE (2026-10-20, v739, Léo : « piment = aura flamme, citron = électrique, dragon = hypnotique… de vraies auras ») — BANC SEULEMENT
+Plan de Léo : les boosts de la route (plaques turbo, cristaux) deviennent des FRUITS. 9 fruits normaux (même nitro : myrtille, cerise, kiwi coupé en quart, pêche, orange, mangue, pomme, melon coupé, litchi),
+4 fruits-pouvoirs : PIMENT (aura de flammes) = nitro infinie 7 s · CITRON (aura électrique) = vitesse ×2 · FRUIT DU DRAGON (aura hypnotique) = aura ×2 · RAISIN ANGÉLIQUE (ailes blanches, SANS halo,
+vol très près de la route) = airtime ×2 en double jauge · POMME DORÉE = aimant. Bouclier supprimé ; les 7 exotiques restent au cahier des charges, hors du jeu.
+- `code/gameplay/fruits-auras.js` (après pouvoirs-orbes) : UN programme (`FAURA`, `fauraMat`), cinq comportements par `uKind`, points CARRÉS à cœur clair et bord sombre, tout le mouvement dans le vertex shader
+  (`uT` + grain `aSeed`) : zéro travail processeur par image. `fauraNew(kind)` / `fauraTick(grp,t,camera)`. RAISIN = aucune aura (N=0).
+- `dbgFruitAura(kind,t,nom,'course',dist)` : en pause, pose le fruit sur la route devant la caisse et rend UNE image du vrai jeu (bloom compris). ⚠ RIEN n'est appelé en course : aucun effet sur le jeu.
+- Les recettes de fruits (formes) vivent dans l'atelier de Léo (scratchpad), PAS encore dans `pickups-fruits.js`. À faire : formes dans le jeu, route sans plaques/cristaux, nitro par fruit, double jauge du raisin.
+
 ## LE VOL SANS HAUT NI BAS — LE HAUT DU VOL FIGÉ AU DÉCOLLAGE, PLUS D'AIMANT SUR LA MAP NUAGES (2026-10-20, v737, session nuages-haut-bas — Sacha : « il y a toujours des problèmes dans la map nuage : on est aimanté à la route, le jeu a du mal à gérer le haut et le bas… il ne faut plus de haut ni de bas, juste la voiture, elle peut voler naturellement, librement ; quand tu voles près de la route, tu es attiré et ta trajectoire est déviée par le haut et le bas »)
 - **Le constat, mesuré** (3e plainte de suite : 18/10 « le jeu ne sait pas de quel côté on va », 19/10 « ça dévie la trajectoire ») : sur la route sans haut ni bas, le HAUT DU VOL
   (`VOLR.u`) était recalé à chaque image sur la normale de la dalle la plus proche. La vrille du 19/10 (`VOLR_ROULIS`) ne portait que le ROULIS de la route ; le reste — la route qui
