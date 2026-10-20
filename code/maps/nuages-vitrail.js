@@ -235,7 +235,7 @@ function cotonGrille(){ // la piste en cases de 120 m : un point tous les ~18 m 
   for(let i=0;i<NP;i+=st){const p=pts[i],k=Math.floor(p.x/120)+','+Math.floor(p.z/120);let a=g.get(k);if(!a)g.set(k,a=[]);a.push(i);}
   return g;}
 function cotonTouche(x,y,z,r,ry){ // ce nuage (ellipsoïde r × ry autour de x,y,z) mord-il sur la route ? — même mesure que nuageTouche
-  const g=COTON.grid;if(!g)return false;const rh=r+ROAD_HALF+18,rv=ry+22,ih=1/(rh*rh),iv=1/(rv*rv),n=Math.ceil(rh/120),cx=Math.floor(x/120),cz=Math.floor(z/120);
+  const g=COTON.grid;if(!g)return false;const rh=r+ROAD_HALF+18+(COTON.corrH||0),rv=ry+22+(COTON.corrV||0),ih=1/(rh*rh),iv=1/(rv*rv),n=Math.ceil(rh/120),cx=Math.floor(x/120),cz=Math.floor(z/120);
   for(let a=-n;a<=n;a++)for(let b=-n;b<=n;b++){const L9=g.get((cx+a)+','+(cz+b));if(!L9)continue;
     for(let j=0;j<L9.length;j++){const p=pts[L9[j]],dx=p.x-x,dz=p.z-z,dy=p.y-y;if((dx*dx+dz*dz)*ih+dy*dy*iv<1)return true;}}
   return false;}
@@ -269,10 +269,34 @@ function cotonJade(cr){ // (2026-10-14, passe graphismes) le coton des PICS DE J
   {const c=LVL.cur,t=c.nuit?([.14,.17,.19]):(c.orage?([.62,.66,.70]):null); // de NUIT, la ouate prenait la lune en plein (vue à l'image : lavande claire devant des pics noirs) — sa teinte par nuage la rentre dans l'ombre ; sous l'ORAGE, un peu
     if(t)for(let j=0;j<COTON.n;j++){const o=j*COTON_ST;COTON.I[o+10]*=t[0];COTON.I[o+11]*=t[1];COTON.I[o+12]*=t[2];}}
   COTON.jd=J;COTON.root.visible=COTON.n>0;}
+/* ============================== LE PLAN D'AVION (2026-10-21, Léo : « tu te perds un peu, fais un point de vue avion vu de haut ; l'impression que tu n'arrives pas à bien
+   ranger tout ça : la voiture se retrouve parfois dans un truc avec que des nuages, c'est trop chaotique ») ==============================
+   Mesuré au plan (`dbgPlanNuages`, vue de dessus) sur la mer de nuages du matin : 56 nuages de toutes tailles semés au hasard par six couronnes superposées, la route
+   à moins d'un demi-rayon d'un nuage 25 % du temps et dedans 2,4 %. Désormais, aux NUAGES (toutes les météos), un PLAN :
+     · UN COULOIR LIBRE autour du ruban (NU_ORD : 95 m de côté, 55 m de haut en plus de la garde d'avant) — plus de nuage de décor sur la route ;
+     · QUATRE RANGÉES, de chaque côté en alternance, au pas régulier le long de la piste (un peu de jeu) : PROCHE (r 55-90, ~230 m du bord, une île tous les 2,3 km),
+       MILIEU (r 130-210, 480-640 m, tous les 1,9 km), LOINTAINE (r 260-420, 1,1-1,5 km, tous les 1,7 km), HAUTE (r 120-210, 700-1 100 m de côté, 240-300 m au-dessus,
+       tous les 2,8 km) ; chaque rangée a SON plafond (le dessous des nuages suit la route : -100 · -190 · -280 m) et sa taille : plus on est loin, plus c'est gros ;
+     · les cathédrales, massifs, titans et le colosse (ancres de fond) sont gardés. L'orage garde son plafond, perd ses murs au ras de la route.
+   `?ordre=0` = le semis d'avant. */
+const NU_ORD={corrH:95,corrV:55};
+function cotonOrdonne(cr,perp){
+  const R=[ // [pas (m), rayon min, rayon max, côté min, côté max, plafond (dessous du nuage par rapport à la route), poids]
+    {pas:2300,r:[60,95],d:[210,300],y:-100,w:COTON_POIDS.pres},
+    {pas:1900,r:[130,210],d:[480,640],y:-190,w:COTON_POIDS.mil},
+    {pas:1700,r:[260,420],d:[1100,1500],y:-280,w:COTON_POIDS.loin},
+    {pas:2800,r:[120,210],d:[700,1100],y:260,w:COTON_POIDS.mil}];
+  const libre=function(x,y,z,r){ // jamais deux nuages qui se chevauchent à la même altitude (sinon : un tas, pas un plan)
+    const I=COTON.I;for(let j=0;j<COTON.n;j++){const o=j*COTON_ST,dx=I[o]-x,dz=I[o+2]-z,rr=(I[o+3]*I[o+8]+r)*.8;if(dx*dx+dz*dz<rr*rr&&Math.abs(I[o+1]+I[o+7]*.5-y)<(I[o+7]*.5+r*.5)+60)return false;}return true;};
+  R.forEach(function(t){const K=Math.max(2,Math.round(L/t.pas)),ph=cr()<.5?0:1;
+    for(let k=0;k<K;k++){const i=Math.max(0,Math.min(NP-1,Math.round(((k+.5+(cr()-.5)*.5)/K)*(NP-1)))),p=pts[i],q=perp(i),sg=((k+ph)&1)?1:-1,
+      r=t.r[0]+(t.r[1]-t.r[0])*cr(),kk=cotonKind(cr,t.w);let d=t.d[0]+(t.d[1]-t.d[0])*cr();
+      for(let e=0;e<3;e++,d*=1.25){const x=p.x+q[0]*sg*d,y=p.y+t.y+(cr()-.5)*40,z=p.z+q[1]*sg*d;if(libre(x,y+r*.35,z,r)&&cotonPose(x,y,z,r,kk,cr))break;}}});}
 function buildCoton(cr){
-  cotonInit();cotonVide();COTON.jd=null;if(!(NP>1)||!pts.length)return;COTON.grid=cotonGrille();
+  cotonInit();cotonVide();COTON.jd=null;COTON.corrH=0;COTON.corrV=0;if(!(NP>1)||!pts.length)return;COTON.grid=cotonGrille();
   if(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!LVL.cur.sansNuages){cotonJade(cr);return;} // (2026-10-14, passe graphismes) LES PICS DE JADE : le ciel de coton, à leur mesure
   const okD=lvlNuageOk({deco:true}),okG=lvlNuageOk({giant:true});if(!okD&&!okG)return;
+  const ORD=!!(ARC_ON&&LVL.cur&&(LVL.cur.id==='nuages'||LVL.cur.id==='orage')&&!/[?&]ordre=0\b/.test(location.search));if(ORD){COTON.corrH=NU_ORD.corrH;COTON.corrV=NU_ORD.corrV;} // (2026-10-21) LE PLAN D'AVION : voir cotonOrdonne
   const strat=function(k,K){return Math.min(NP-1,Math.floor(((k+.18+cr()*.64)/K)*NP));};
   const perp=function(i){const t=T[i],l=Math.hypot(t.x,t.z)||1;return [-t.z/l,t.x/l];}; // le travers HORIZONTAL du ruban (jamais B[i] : piste inclinée)
   if(okD){
@@ -283,22 +307,22 @@ function buildCoton(cr){
     /* (2026-09-30, 2e passe, Sacha : « moins de nuages dans le premier niveau, mais il faut qu'ils soient plus gros ») : aux NUAGES, DEUX fois moins
        de nuages dans chaque couronne (NZ) et des tailles ×1,9 (GZ, 1,45 à la 1re passe) — de grandes masses, et du ciel entre elles. */
     const GZ=LVL.cur&&LVL.cur.id==='nuages'?1.9:1,NZ=(LVL.cur&&LVL.cur.id==='nuages'?.5:1)*A9; // (2026-09-29) L'ORAGE : plus de nuages partout — (2026-09-30, « au point que ça gêne la visibilité ») ×1,25 → ×1,6
-    for(let k=0;k<KK(30);k++){ // (1) LA COURONNE PROCHE, EN ARCHIPELS (Dragons) : des îlots de 2-3 nuages (un grand, ses satellites au même plafond),
+    for(let k=0;k<(ORD?0:KK(30));k++){ // (1) LA COURONNE PROCHE, EN ARCHIPELS (Dragons) : des îlots de 2-3 nuages (un grand, ses satellites au même plafond),
       // et du CIEL OUVERT entre deux — 80 nuages semés un par un encombraient tout le champ (« liberté » = des vides qu'on traverse)
       const i=strat(k,KK(30)),p=pts[i],q=perp(i),sg=cr()<.5?-1:1,r=cotonR(cr,30*GZ,160*GZ,1.5),kk=cotonKind(cr,COTON_POIDS.pres),yB=p.y-130+cr()*300; // (v4) tailles en loi de puissance
       let d=ROAD_HALF+r+50+cr()*300,cx=0,cz=0,ok=false;for(let t=0;t<3;t++,d+=110){cx=p.x+q[0]*sg*d;cz=p.z+q[1]*sg*d;if(cotonPose(cx,yB,cz,r,kk,cr)){ok=true;break;}}
       if(ok){const ns=A9<1?(cr()*2|0):1+(cr()*2|0),t9=T[i];for(let m=0;m<ns;m++){const a=(m?-1:1)*(1.5+cr()*1.1)*r,rs=r*(.4+cr()*.3); // les satellites, le long de la route et un peu en travers
         cotonPose(cx+t9.x*a+q[0]*sg*(cr()-.3)*r,yB+(cr()-.5)*r*.3,cz+t9.z*a+q[1]*sg*(cr()-.3)*r,rs,cotonKind(cr,COTON_POIDS.pres),cr);}}}
-    for(let k=0;k<KK(26);k++){ // (2) AU-DESSUS et EN DESSOUS du ruban (la garde garde 18-22 m de ciel libre autour de la route)
+    for(let k=0;k<(ORD?0:KK(26));k++){ // (2) AU-DESSUS et EN DESSOUS du ruban (la garde garde 18-22 m de ciel libre autour de la route)
       const i=strat(k,KK(26)),p=pts[i],q=perp(i),r=cotonR(cr,24*GZ,130*GZ,1.5),kk=cotonKind(cr,COTON_POIDS.pres),S=COTON.S[kk],h=(S.top-S.base)*r*1.3,lat=(cr()-.5)*120;
       const yB=cr()<.6?p.y+70+cr()*190:p.y-(THICK+60+cr()*170)-h;cotonPose(p.x+q[0]*lat,yB,p.z+q[1]*lat,r,kk,cr);}
-    for(let k=0;k<KK(116);k++){ // (3) LA COURONNE DU MILIEU : 0,35-1,3 km, tout autour, de la mer jusqu'à ~300 m au-dessus de la route
+    for(let k=0;k<(ORD?0:KK(116));k++){ // (3) LA COURONNE DU MILIEU : 0,35-1,3 km, tout autour, de la mer jusqu'à ~300 m au-dessus de la route
       const i=strat(k,KK(116)),p=pts[i],a=cr()*6.2832,d=(350+cr()*950)*(GZ>1?1.12:1),r=cotonR(cr,50*GZ,330*GZ,1.6);
       cotonPose(p.x+Math.cos(a)*d,p.y-210+cr()*520,p.z+Math.sin(a)*d,r,cotonKind(cr,COTON_POIDS.mil),cr);}
-    for(let k=0,K4=Math.round(44*NZ);k<K4;k++){ // (4) LA COUCHE HAUTE : des cumulus qui se DÉCOUPENT sur le ciel (le haut d'un écran portrait, c'est du ciel)
+    for(let k=0,K4=ORD?0:Math.round(44*NZ);k<K4;k++){ // (4) LA COUCHE HAUTE : des cumulus qui se DÉCOUPENT sur le ciel (le haut d'un écran portrait, c'est du ciel)
       const i=strat(k,K4),p=pts[i],a=cr()*6.2832,d=260+cr()*1700,r=cotonR(cr,60*GZ,300*GZ,1.5);
       cotonPose(p.x+Math.cos(a)*d,p.y+230+cr()*420,p.z+Math.sin(a)*d,r,cotonKind(cr,COTON_POIDS.mil),cr);}
-    if(OR)for(let k=0;k<30;k++){ // (2026-09-30) LES MURS : au RAS de la route (la garde lui laisse ses 18-22 m), de chaque côté, à hauteur de caisse — la route file dans un
+    if(OR&&!ORD)for(let k=0;k<30;k++){ // (2026-09-30) LES MURS : au RAS de la route (la garde lui laisse ses 18-22 m), de chaque côté, à hauteur de caisse — la route file dans un
       // couloir de ouate : on ne voit plus d'où vient le virage, seulement la route devant soi, et l'éclair qui éclaire le couloir
       const i=strat(k,30),p=pts[i],q=perp(i),sg=cr()<.5?-1:1,r=cotonR(cr,40,120,1.3),kk=cotonKind(cr,COTON_POIDS.pres);let dd=ROAD_HALF+r*.8+20+cr()*40;
       for(let t=0;t<3;t++,dd+=40)if(cotonPose(p.x+q[0]*sg*dd,p.y-r*.45+cr()*30,p.z+q[1]*sg*dd,r,kk,cr))break;}
@@ -306,9 +330,10 @@ function buildCoton(cr){
       // autour : le ciel se referme (des trouées entre deux), la lumière passe par en dessous — et l'éclair les allume
       const i=strat(k,42),p=pts[i],q=perp(i),lat=(cr()-.5)*900,r=cotonR(cr,110,230,1.2); // (2026-09-30) 26 → 42, et plus BAS (70-170 m) : le ciel se ferme
       cotonPose(p.x+q[0]*lat,p.y+70+cr()*100,p.z+q[1]*lat,r,cotonDe(cr,['stratocumulus','stratocumulus','humilis',1,4]),cr,.8+cr()*.25);}
-    for(let k=0,K5=Math.round(80*NZ);k<K5;k++){ // (5) LE LOINTAIN : 1,2-2,6 km — l'horizon a ses nuages
+    for(let k=0,K5=ORD?0:Math.round(80*NZ);k<K5;k++){ // (5) LE LOINTAIN : 1,2-2,6 km — l'horizon a ses nuages
       const i=strat(k,K5),p=pts[i],a=cr()*6.2832,d=1200+cr()*1400,r=cotonR(cr,120*GZ,560*GZ,1.4);
       cotonPose(p.x+Math.cos(a)*d,p.y-260+cr()*700,p.z+Math.sin(a)*d,r,cotonKind(cr,COTON_POIDS.loin),cr);}
+    if(ORD)cotonOrdonne(cr,perp);
     if(TORD.on)for(let k=0,K6=Math.max(1,Math.round(56*A9));k<K6;k++){ // (2026-10-15) LA SPHÈRE : sur la route SANS HAUT NI BAS, des nuages dans TOUTES les directions — sous la dalle comme au zénith,
       // tirés uniformément sur la sphère autour de la route (plus de plafond ni de plancher : où que la route regarde, du ciel et de la ouate)
       const i=strat(k,K6),p=pts[i],u=cr()*2-1,a=cr()*6.2832,w=Math.sqrt(1-u*u),d=420+cr()*1500,r=cotonR(cr,70*GZ,320*GZ,1.5);

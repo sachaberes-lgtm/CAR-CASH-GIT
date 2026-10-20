@@ -3,6 +3,15 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE PLAN D'AVION DES NUAGES (2026-10-21, v762, Léo : « tu te perds un peu, fais un point de vue avion vu de haut ; tu n'arrives pas à bien ranger tout ça ; la voiture se retrouve parfois dans un truc avec que des nuages ; trop chaotique — pour les maps nuages générales ») — branche `nuages-refonte`
+- **L'OUTIL** : `dbgPlanNuages(pas)` (nuages-casses.js) rend la piste et tous les nuages vus de dessus + la part de route DANS un nuage / frôlant un nuage ; planches : `photos-gameplay/nuages-plan-avion-avant.png` / `-apres.png` (tracé maison, scratchpad `plan.py`).
+- **LE CONSTAT** (piste graine 7, matin) : 58 nuages semés au hasard par six couronnes superposées, la route à moins de .4 rayon d'un nuage 18 % du temps.
+- **LE PLAN** (`cotonOrdonne`, `NU_ORD`, toutes les météos de la map nuages ; `?ordre=0` = l'ancien semis) : couloir libre élargi (95 m de côté, 55 m de haut en plus de la garde) ; QUATRE rangées en alternance, au pas régulier le long de la piste, chacune son plafond
+  qui suit la route et sa taille (proche r 60-95 · milieu 130-210 · lointaine 260-420 · haute 120-210 au-dessus, à l'écart) ; jamais deux nuages qui se chevauchent à la même altitude. Cathédrales, massifs, titans, colosse gardés ; l'orage garde son plafond, perd ses murs au ras de la route.
+  Mesuré : 18 % → 11 % de route à proximité d'un nuage, 70 nuages contre 58.
+- **RESTE** : « dans un nuage » = 1,7 % de la route = les BANCS SUR LA ROUTE (6 sur cette piste ; gameplay de Sacha : « les nuages cachent les virages ») — non touchés ; à réduire si Léo veut ne plus jamais être noyé.
+- Correctif : la rangée du choix du ciel ne s'affiche plus pendant la course.
+
 ## LE CHOIX DU CIEL AVANT DE JOUER (2026-10-21, v761, Léo : « donne-moi la possibilité de choisir le ciel avant de jouer ; applique à toutes les météos les nuages qui m'ont le plus plu — la nouvelle version ») — branche `nuages-refonte`
 - Accueil : une rangée AUTO · MATIN · MIDI · SOIR · NUIT · PLUIE · ORAGE (`interface/ciel-choix.js`, `css/ciel-choix.css`, `#mCiel` en `position:fixed` placé d'après la barre GARAGE/BOUTIQUE/RÉGLAGES, visible seulement quand l'accueil l'est). Le JOUER suivant part sur la MER DE NUAGES à cette météo ;
   AUTO = le tirage au hasard du mode classique. Gardé dans `localStorage.cashcarCiel`. Pose `SF.force` au toucher (le départ d'avance rebâtit la bonne piste) ; `classiqueJouer` le repose à chaque départ (`cielChoixImpose`).

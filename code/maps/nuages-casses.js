@@ -82,3 +82,11 @@ window.dbgCasse=function(o){o=o||{};nuCasseInit();if(!NCB.mesh)return 'pas prêt
   if(o.pas)for(let i=0;i<o.pas;i++)nuCasseTick(1/60,performance.now()/1000+i/60); // (banc, en pause) fait avancer la gerbe de o.pas images
   if(o.sonde){const v=new THREE.Vector3(NCB.P[0],NCB.P[1],NCB.P[2]),w=v.clone().project(camera);return {n:NCB.n,p:v.toArray().map(Math.round),cam:camera.position.toArray().map(Math.round),ecran:[w.x.toFixed(2),w.y.toFixed(2),w.z.toFixed(3)],cnt:NCB.mesh.count,vis:NCB.mesh.visible,par:!!NCB.mesh.parent,progs:renderer.info.programs.length};}
   return {n:NCB.n,trouees:NCB.hs.map(function(h){return +(h.t<h.d?h.R*(1-h.t/h.d):0).toFixed(1);}),v:NCB.cv.toArray().map(Math.round)};};
+window.dbgPlanNuages=function(pas){ // (banc, 2026-10-21) LE PLAN D'AVION : la piste (un point tous les `pas` m) et tous les nuages (centre, demi-largeur, demi-hauteur) + la part de route DANS un nuage / frôlant un nuage
+  pas=pas||15;const st=Math.max(1,Math.round(pas/Math.max(.5,L/Math.max(1,NP-1)))),P=[],C=[];
+  for(let i=0;i<NP;i+=st)P.push([Math.round(pts[i].x),Math.round(pts[i].y),Math.round(pts[i].z)]);
+  for(let j=0;j<COTON.n;j++){const o=j*COTON_ST,I=COTON.I,r=I[o+3],S=COTON.S[I[o+5]];C.push([Math.round(I[o]),Math.round(I[o+1]+S.base*r*I[o+9]+I[o+7]*.5),Math.round(I[o+2]),Math.round(r*I[o+8]),Math.round((S.top-S.base)*r*I[o+9]*.5),0]);}
+  for(const c of CLOUDS)C.push([Math.round(c.g.position.x),Math.round(c.g.position.y),Math.round(c.g.position.z),Math.round(c.r),Math.round(c.ry),c.onRoad?2:1]);
+  let dans=0,pres=0,tot=0,cam=0;for(const p of P){tot++;let mn=1e9;for(const c of C){const dx=(p[0]-c[0])/c[3],dz=(p[2]-c[2])/c[3],dy=((p[1]+4)-c[1])/Math.max(1,c[4]);mn=Math.min(mn,Math.sqrt(dx*dx+dz*dz+dy*dy));}
+    if(mn<1)dans++;else if(mn<1.4)pres++;}
+  return {pas:pas,n:C.length,banc:C.filter(function(c){return c[5]===2;}).length,dans:+(dans/tot).toFixed(3),pres:+(pres/tot).toFixed(3),roadHalf:ROAD_HALF,P:P,C:C};};

@@ -12,7 +12,7 @@ function cielChoixImpose(){ // à chaque départ : la map nuages à la météo c
 function cielChoixPlace(){const e=CIEL_CH.el;if(!e)return;const h=document.getElementById('mHome');let r=null;if(h)for(const q of h.querySelectorAll('[data-m="garage"],[data-m="shop"],[data-m="set"],.mOutils')){const t=q.getBoundingClientRect();if(t.height>2&&(!r||t.top<r.top))r=t;}if(!r)return; /* la plus haute des touches de la barre de l'accueil visibles */e.style.top=Math.max(0,Math.round(r.top-30-10))+'px';}
 function cielChoixMaj(){const e=CIEL_CH.el;if(!e)return;
   for(const c of e.children){c.classList.toggle('on',c.dataset.c===CIEL_CH.v);c.setAttribute('aria-pressed',c.dataset.c===CIEL_CH.v?'true':'false');}
-  const h=document.getElementById('mHome'),vu=!!(h&&h.classList.contains('on')&&!h.classList.contains('sort'));e.classList.toggle('on',vu);if(vu)cielChoixPlace();}
+  const h=document.getElementById('mHome'),B9=document.body.classList,vu=!!(h&&h.classList.contains('on')&&!h.classList.contains('sort')&&!B9.contains('play')&&!B9.contains('dead')&&!B9.contains('garOn'));e.classList.toggle('on',vu);if(vu)cielChoixPlace();}
 function cielChoixInit(){
   if(CIEL_CH.el)return;const h=document.getElementById('mHome');if(!h)return;
   const e=document.createElement('div');e.id='mCiel';e.setAttribute('role','group');e.setAttribute('aria-label','Ciel');
@@ -22,6 +22,6 @@ function cielChoixInit(){
       try{uiClic('onglet');}catch(e9){}cielChoixMaj();});
     e.appendChild(b);}
   document.body.appendChild(e);CIEL_CH.el=e;
-  new MutationObserver(cielChoixMaj).observe(h,{attributes:true,attributeFilter:['class']});window.addEventListener('resize',function(){setTimeout(cielChoixMaj,60);});setInterval(cielChoixPlace,1500);
+  new MutationObserver(cielChoixMaj).observe(h,{attributes:true,attributeFilter:['class']});new MutationObserver(cielChoixMaj).observe(document.body,{attributes:true,attributeFilter:['class']});window.addEventListener('resize',function(){setTimeout(cielChoixMaj,60);});setInterval(cielChoixPlace,1500);
   cielChoixMaj();}
 try{cielChoixInit();}catch(e){console.warn('choix du ciel',e);}
