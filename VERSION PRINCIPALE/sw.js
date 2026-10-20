@@ -10,7 +10,10 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v710'; // v710 (2026-10-20, Léo : « finir ce qu'on n'a jamais vraiment travaillé ») : la SÉRIE DE 7 JOURS et le DÉFI DU JOUR en tête de MISSIONS ; garage moins lourd sur téléphone ; le son des abeilles
+const CACHE = 'cashcar-v716'; // v716 (2026-10-20, Sacha : « la map volcan est la plus moche, lance une grosse refonte ») : LE ROYAUME DE FEU, L'ASPECT REFAIT — la lave en plaques (VLC_LAVE_FS5), la roche en facettes (VLC_SOL_FS5), les ciels du soir, de la nuit, de l'orage et des cendres, la fumée prune, la brume qui recule, les six cartes postales du portail ; ?volcan=avant5 = l'aspect d'avant, la route inchangée.
+// const CACHE = 'cashcar-v715'; // v715 (2026-10-20, Léo : « la grue ») : LA GRUE D'ATELIER remplace l'étal du moteur, dans le coin gauche de la porte ; changer de vitesse = le moteur éclate et le suivant se reconstruit (la résurrection de la pub) ; ?etal=ancien = avant
+// const CACHE = 'cashcar-v712'; // v712 (2026-10-20, bug) : une caisse RETIRÉE (fiche vide) ne met plus le garage au noir — buildCar monte LA HONTE à sa place, dbgEquipe/dbgBras la refusent
+// const CACHE = 'cashcar-v711'; // v711 (2026-10-20, Léo : « intègre la lumière à l'intérieur des phares, efface cette forme de boule ») : les FEUX en LED, plus de halo, la lampe s'allume et sa lueur suit sa forme, faisceau dans l'air la nuit (?feux=0 = avant)
 // const CACHE = 'cashcar-v709'; // v709 (2026-10-20, Léo : « le mission, le shop, tu remets ça en dessous ») : INVENTAIRE · MISSIONS · BOUTIQUE redescendent au-dessus de PLAY (?portes=haut = sous le nom)
 // const CACHE = 'cashcar-v698'; // v698 (2026-10-19, Léo : « oui, mets le bras argent de la boutique dans le jeu ») : boutique › FIGURES, les deux bras posent la voiture, un bras robot argent fait la figure ; gestes plus fluides
 // const CACHE = 'cashcar-v697'; // v697 (2026-10-19, Léo : « oui, mets le bras robot dans le jeu ») : LE BRAS DES FIGURES — inventaire › FIGURES, un bras robot fait la figure sans traverser la caisse

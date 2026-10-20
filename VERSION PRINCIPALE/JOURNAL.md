@@ -3,6 +3,105 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE ROYAUME DE FEU, L'ASPECT REFAIT — LAVE EN PLAQUES, ROCHE EN FACETTES, CIELS ET FUMÉE (2026-10-20, v716, session VOLCAN5 — Sacha : « la map volcan est la plus moche, lance une grosse refonte »)
+- **Ce qui ne bouge pas** : la ROUTE (la balade puis la montée du volcan, `vlcTrace3`, ou `?volcan=v4`), les collisions ('lave' / 'roche'), la physique, la
+  caméra, les sons, les tirages `rnd`/`fr` (chaque tirage supprimé est GARDÉ : le décor en aval ne se décale pas). Tout ce qu'on VOIT est refait,
+  derrière `VLC5` : **`?volcan=avant5` = l'aspect d'avant** (la route se choisit à part).
+- **CE QUI ÉTAIT MOCHE (mesuré au banc, photos en course au pilote automatique + vues posées, soir / nuit / midi)** : tout l'écran MONOCHROME
+  rouge-orange (ciel orange, brume rouge, lave rouge, brume basse rouge-brun sur toute la plaine) ; la lave = un bruit noir et orange à grain fin,
+  une PEAU DE LÉOPARD plein écran ; le grand volcan rouge sur ciel orange (illisible) avec une « tour » noire rayée au sommet ; des taches de suie
+  brunes collées au ciel (plafond de cendre, panache brun) ; des braises en DISQUES rouges de 200 px quand elles frôlaient l'objectif ; dans un banc
+  de fumée l'écran entier ROUGE PUR ; des aiguilles fines comme des antennes noires.
+- **LA LAVE EN PLAQUES** (`VLC_LAVE_FS5`, `VLC_VOR` = des cellules de Voronoï, `code/maps/volcan-route.js`) : de grandes plaques de croûte (~40 m, bords
+  déformés par un courant lent) qui dérivent dans le sens de la pente, séparées par des FENTES de lave vive (ambre au cœur, orange au bord) ; une
+  cellule sur quatre reste OUVERTE (un bassin) ; un liseré tiède le long des bords ; une croûte en verre violacé qui prend le ciel. Rouge-orange →
+  orange, jamais de jaune acide (la bible : mesuré, un premier jet « or » tirait au vert-jaune). Au loin les plaques fondent en une croûte sombre à
+  peine rougeoyante (au-delà de 1,1 km, plus de calcul de cellules) : l'orange vif reste aux rivières et aux lacs proches. Fentes élargies par
+  `fwidth` : aucune ligne d'un pixel qui scintille.
+- **LA ROCHE EN FACETTES** (`VLC_SOL_FS5`) : la normale de la FACETTE (dFdx/dFdy), un relief low-poly adouci au loin ; le BASALTE indigo (une ardoise),
+  la CENDRE mauve sur les plats, une bande d'OXYDE sous le sommet des cônes et une lèvre de SOUFRE (`VOLCAN.sol.cf` = la part du cône et la hauteur
+  sur lui, posée par `volcanSol`, lue dans `aS.w`) ; le ciel froid remplit les ombres (mesuré : l'étalonnage écrasait les flancs au noir pur) ; les
+  FISSURES qui couvent sont des cellules, sur la roche chaude et seulement de près. Aiguilles et arche (`VLC_ROC_FS`, define `V5`) : facettes, basalte
+  indigo, obsidienne en verre VIOLET, arche fendue en plaques (plus de veines en boucles).
+- **LES AIGUILLES** : des flèches de basalte TRAPUES (largeur ×1,6 — `sxz` dans `buildVolcan`, `rR` et la collision suivent).
+- **LE CRATÈRE** (bug) : au bord du lac du cratère la surface de lave sautait du niveau de la mer à celui du cratère — un MUR de lave de 600 m, rayé,
+  dessinait une tour au sommet du grand volcan ; ces cases (sous la roche) ne sont plus tracées (`vlcMorceau`).
+- **LES CIELS** (bloc `if(VLC5)` dans `code/maps/continuite.js`, APRÈS la recette commune) : le SOIR avait un zénith NOIR et une bande orange — il prend
+  le dégradé de la bible (indigo → magenta → braise → or) ; la nuit plus violette ; l'ORAGE (ciel L* 2-4, noir) devient un orage violet ; la PLUIE DE
+  CENDRES (brun gris, l'interdit de la bible) une cendre mauve et ocre ; la brume prune ; elle RECULE (3 000 → 4 000-4 600 m) pour qu'on voie le
+  grand volcan dès le départ.
+- **LA FUMÉE, LA BRUME BASSE, LE PANACHE, LES BRAISES** (`VLC_MET`) : bancs de fumée PRUNE (`fuC`), plus rouge pur ; brume basse allégée de moitié et
+  violette (`bru`, `bC`) ; panache en cendre claire lavande (`fumC`) ; plus de PLAFOND DE CENDRE (`vlcPanaches`, genre 3) ; braises et cendre un
+  cran plus rares et plafonnées à 4,5-7 px (`VLC_PART_VS`).
+- **LES CARTES POSTALES** (`assets/portail/volcan-*.webp`, six) retirées sur la route d'aujourd'hui, et APRÈS la construction complète (`VOLCAN.pret`,
+  file vide) : les anciennes avaient été tirées avant la fin des tranches (un plateau vide, sans volcan).
+- MESURÉ (banc headless, RX 6600, DPR 1,5, 740 000 px, 120 images en course au pilote automatique, `dbgCout`, même route avant / après) : GPU au soir
+  avant p50 6,6 ms / p90 9,4 — après p50 6,3 / p90 8,8 (la lave en cellules ne coûte pas plus que l'ancien bruit à trois octaves, la roche ne
+  cherche ses cellules que de près) ; 206 appels et ~515 000 triangles des deux côtés. 0 erreur sur toutes les passes (6 météos).
+- BANCS (scratchpad de la session) : `vphoto5c.cjs <racine> <étiquette> 1 <météo>` (photos en course + vues posées + bancs de fumée + `dbgCout`),
+  `cp-volcan.cjs` (cartes postales), `planche.py` (avant / après).
+- ⚠ PIÈGE DE MÉTHODE : `node code/assembler.cjs` refuse (« les changements se chevauchent ») si index.html ET les morceaux ont changé depuis HEAD
+  sans s'accorder — committer l'état cohérent AVANT de rééditer, et ne toucher qu'un des deux côtés.
+- À trancher par Sacha : les aiguilles trapues (×1,6, `sxz`) ; la densité des braises (×0,7) ; tout se compare avec `?volcan=avant5`.
+
+## LA GRUE D'ATELIER À LA PLACE DE L'ÉTAL (2026-10-20, v715, Léo : « le présentoir, il est vraiment pas très beau » → entre un piédestal et une grue : « la grue ; du coin plus à gauche, là elle est vers la porte, ça fait chelou ; le moteur vers la droite et la grue vers la gauche ; et les moteurs se détruisent et se reconstruisent de la même manière que la voiture quand on regarde une pub pour réapparaître »)
+- `vdepEtal2` (code/gameplay/evenements-rares.js, bloc « LA GRUE D'ATELIER ») : une grue d'atelier jaune DE PROFIL — pieds à roulettes rayés
+  au bout, mât à GAUCHE avec ses bagues, flèche, vérin chromé, baladeuse et son cône de lumière ; le moteur pend à DROITE à la chaîne
+  (crochet, palonnier), au-dessus d'une palette, tourne et se balance ; la plaque est vissée au mât (le nom seul avant le palier 30).
+- PLACE : `ETAL_X` 6,9 / `ETAL_Z` 1,0 (l'étal était à 5,95 / 1,4, contre le montant) — mesuré en vue debout 390 × 844 : à 7,2 le mât sort
+  de l'écran, à 6,9 il tient au bord gauche, le moteur s'écarte de la porte. `?etalx=` / `?etalz=` pour la régler au banc.
+- CHANGER DE CRAN = LA RÉSURRECTION de la seconde chance (RESU) appliquée au moteur : `vdepEclats` range chaque moteur en 12 éclats
+  (boîtes gauche/droite × trois étages × avant/arrière, maillages PARTAGÉS) ; le moteur en place éclate (0,5 s, vers le côté libre, gerbe
+  d'or, `garage.tole`), ceux du suivant apparaissent éparpillés (jamais vers le mât), flottent et reviennent un à un EN TOURBILLON, le bas
+  d'abord, avec traînée d'étincelles et un `spin.arret` qui monte d'une note à chaque éclat ; le dernier posé : anneau de néon rose, gerbe
+  d'or, `jeu.miracule` (doux). ~2,4 s en tout. Étincelles : une réserve à elle (56 sprites), les réserves de la course ne tournent pas au garage.
+- `?etal=ancien` rend l'étal du 19/10. Les deux propositions (piédestal, grue d'origine) sont dans le commit 75731b29.
+- Vérifié au banc (palier 1 et palier 30+, cran 1 → 4 : V16), 0 erreur. Planche : `CAR CAHS V3/photos-gameplay/grue-moteur-avant-apres.png`.
+## LES ORANGES, PLUS FORT (2026-10-20, v714, discussion voiture, Léo : « retente la correction sur les oranges, plus fort » puis « mets la version C »)
+- MESURÉ (banc : le garage qui tourne + PICS DE JADE à midi, part de la tôle orange au plafond 255) : la correction de la v707 (laque à 70 %)
+  brûlait encore 84-89 % de la tôle DE JOUR (garage ~55 %) — un aplat sans relief. Assombrir de ×0,76 ou passer en métallisé ('k') ne
+  changeait presque rien : la saturation de l'image (1,4) et la lumière du garage poussent l'orange au plafond.
+- La palette `p` à 42 % de la v707 (≈ 29 % de la teinte d'origine), même teinte, sans gris ni bleu ajoutés (c'est ce qui brunissait) :
+  LA TAURINE aa3a05 → 471802, LA ZED ba5213 → 4e2208 (gamme-3.js), LE TRÔNE CENTRAL ba5d10 → 4e2707 (gamme-4.js). De jour 2-7 % au plafond,
+  chaque pan se lit ; au garage le capot, les flancs et le nez se séparent. `CARS[i].color` (la vignette d'usine) inchangé.
+- Essayé : D (30 %) encore plus profond ; planche `photos-gameplay/oranges-plus-fort-avant-apres.png` (avant | C | D). 0 programme compilé en course.
+
+## LE GARAGE TOUT NOIR AVEC UNE CAISSE RETIRÉE (2026-10-20, v712, bug relevé pendant l'étude des feux)
+- **Le symptôme** : au garage, équiper par `dbgEquipe(i)` une des vieilles caisses (SA MAJESTÉ, FORMULE OR, LA DEUCHE, LE LINGOT, LA MERCURE…,
+  30 en tout) mettait toute l'image 3D au NOIR (l'interface restait), avec « computeBoundingSphere : radius is NaN » (go, qn = des
+  ExtrudeGeometry/BoxGeometry de three, pas des noms du jeu). Déjà sur le main avant v711 : rien à voir avec les feux.
+- **La cause** : ce sont les caisses RETIRÉES réduites à `{retire:1,name}` (cars.js, 18/10) — sans `w`, `h`, `l` ni `shape`. Construites quand
+  même, elles tombaient dans le repli `gt` avec une largeur `undefined` : `carProfile` décalait la coque de NaN, toutes les cotes (phares,
+  roues, ancrages) et le GABARIT de la caisse passaient en NaN, le cadrage du garage aussi (`GAR.vD`, `cdx`, `cdy`…) → caméra en NaN, image noire.
+- **Le joueur n'y arrivait pas** (vérifié au banc) : `equippedCar()`, `garageListe()`, l'inventaire, les tuiles et la boutique écartent les
+  retirées ; `san` remet une retirée équipée à 0 ; une course lancée après prend `equippedCar()`. Seuls les crochets de banc y menaient.
+- **Le correctif** (rien du dessin des caisses ne bouge) : `carFicheOk(spec)` en tête de `buildCar` (code/voitures/buildcar.js) — une fiche
+  sans cotes construit LA HONTE à sa place (+ un avertissement dans la console) ; `dbgEquipe` et `dbgBras('caisse',i)` REFUSENT une retirée sans
+  fiche (« … : RETIRÉE (pas de fiche) ») au lieu de la monter. Une retirée qui garde sa fiche (LA POUPÉE, LA DAYTONA, LA COMÈTE) se construit
+  comme avant. ⚠ Pour les bancs qui balaient toute la gamme : sauter ces retours-là.
+- Vérifié : les 30 fiches vides refusées, image intacte, 0 erreur ; `buildCar` forcé dans le jeu sur 5 d'entre elles (point d'arrêt
+  conditionnel) → LA HONTE, garage allumé, 0 erreur ; une course derrière, 0 erreur. Planche :
+  `CAR CAHS V3/photos-gameplay/garage-noir-avant-apres.png` (SA MAJESTÉ, LA DEUCHE, LE LINGOT, LA MERCURE).
+
+## LES FEUX : LA LUMIÈRE DANS LE PHARE, PLUS DE BOULE (2026-10-20, v711, Léo : « une étude des lumières des voitures, que je trouve encore un peu jaunes et pas très stylées ; inspire-toi des physiques d'ARC Raiders » → au questionnaire : les FEUX, pas la lumière posée sur la caisse → planche de deux lectures → « je dirai 2 » + « intègre la lumière à l'intérieur des phares, efface cette forme de boule » → « oui, mets la colonne de droite dans le jeu »)
+- **D'où venait le jaune (mesuré au pixel, nuit et garage)** : le HALO des phares (`HALO.hM`, sprite crème 0xffe2a8 à ,95 — une boule molle qui
+  grossit au bloom : sur LE CAÏD la nuit le cœur du phare sortait #f7bd48), 30 caisses aux phares crème (#fff3d6…), les feux-boîtes des vieux
+  gabarits 0xfff6c8, le faisceau sur la route `LUMK.hlC` [1, ,88, ,7] (ampoule halogène), le halo des feux arrière qui tirait sur l'orange.
+  10 000 à 17 000 pixels jaunes autour des phares de nuit → 20 à 200.
+- **Ce qui change** (`code/voitures/feux-led.js`, une ligne en fin de buildCar) : AUCUN halo, ni devant ni derrière ; les pièces lumineuses
+  ('l') relues après la construction, aux deux bouts de la caisse : blanc LED 7 500 K, rouge LED franc (les ambres gardent leur couleur) ; la
+  LUEUR À LA FORME DE LA LAMPE : trois coques additives recopiées des triangles de chaque lampe, un peu plus larges à chaque fois (la barre du
+  CAÏD luit en barre, les ronds du SCARABÉE en ronds) — devant, la nuit seulement (la règle de Sacha : phares éteints au soleil), derrière
+  toujours, le frein l'embrase ; LE FAISCEAU DANS L'AIR la nuit (un cône additif par phare, l'air épais d'ARC) ; faisceau sur la route blanc froid.
+- ⚠ Une lampe poussée au-delà du blanc ne brille PAS plus : le bloom lit la scène écrêtée à [0,1] (son seuil plié) — d'où les coques.
+- Les CAISSES-PERSONNAGES (`FEUX_SAUF` : CHAT POP-TART, LE DOGE, LA FOURNAISE, L'ICEBERG) gardent leurs pièces lumineuses (des yeux, un pelage).
+- Lectures : `?feux=0` = les feux d'avant · `1` LED nette · `2` + faisceau dans l'air (avec de petits halos) · `3` = le jeu. Bancs : `dbgFeuxLed('mode',n)`
+  change de lecture À CHAUD (même instant), `dbgFeuxEtude({masque,boite})` (pixels des feux).
+- Vérifié : 0 erreur, 0 programme compilé en course (+1 au menu : le cône), toute la gamme passée au garage avant/après. Relevé en passant
+  (déjà sur le main, pas les feux) : au garage, une douzaine de vieilles caisses sans pièces 'l' (SA MAJESTÉ, LA DEUCHE…) sortent en image
+  NOIRE quand on les équipe par `dbgEquipe` — avec les erreurs « computeBoundingSphere : radius is NaN » (go, qn).
+- Planches : `CAR CAHS V3/photos-gameplay/feux-led-avant-apres.png` (les deux lectures) et `phares-dans-le-phare-avant-apres.png` (la 3).
+
 ## LES PORTES REDESCENDENT (2026-10-20, v709, Léo : « le mission, le shop, tu remets ça en dessous ; tu as déplacé les choses d'une manière bizarre »)
 - INVENTAIRE · MISSIONS · BOUTIQUE retrouvent leur rangée AU-DESSUS DE PLAY, debout comme couché (la place du garage d'avant le 19/10) ; au
   palier 30 la grille VITESSE se pose juste au-dessus d'elles (vdepPlace). Le ⚙ ajouté par Sacha reste en haut, à côté du trophée.
@@ -19371,3 +19470,12 @@ const CACHE = 'cashcar-v624'; // v624 (2026-10-18, Léo : « plus de gris chelou
 - LES ABEILLES DE LA FORÊT ÉTAIENT MUETTES : `sfx('foret.abeille')` était appelé (abeille à < 10 m de la caisse) mais aucune recette ne le cuisait. Recette `foret.abeille` (atelier-son/recettes.js) :
   le bourdonnement qui PASSE — harmoniques en 1/k avec un « nez » vers 1,1 kHz, Doppler (plus aigu à l'arrivée, plus grave au départ), d'une oreille à l'autre ; deux variantes (l'ouvrière ~230 Hz,
   le bourdon ~150 Hz). Cuite en PCM (`PCM=1 node atelier-son/cuire.js foret.abeille` : pas de ffmpeg sur ce Mac) — une cuisson complète avec ffmpeg la repassera en MP3. Banque `?v=34`.
+
+## LE DOMPTEUR DE GROSSE CAISSE DE POUCE BLEU (2026-10-20, séance « finir ce qui traîne » — noté le 17/10 : « la grosse caisse de certains morceaux ~18 dB au-dessus du reste »)
+- MESURÉ (banc muet, la chaîne de course : bus des basses → limiteur, 20 morceaux × 11 moteurs ; crête 20 ms de la bande 30-120 Hz contre le RMS 200 Hz-8 kHz) : les sains 5-13 dB ;
+  le générateur fait ENTRER la grosse caisse à plein aux moteurs 2-5 quand le reste n'est qu'un clavier → 17-25 dB (le « ~18 dB » = PLUIE D'ARGENT au moteur 3) ; ASPHALTE
+  D'ÉMERAUDE 14-16 dB partout. Le limiteur du jeu ne travaillait jamais (crêtes ≤ −7,5 dBFS) : un écart, pas un écrêtage.
+- `assets/audio/musique-bus.js`, section 5 : clé `kick: 12` sur les 11 morceaux fautifs — la bande sous ~130 Hz (phase linéaire) passe dans un compresseur rapide dont le seuil
+  SUIT le reste du morceau ; la basse SEULE n'est jamais touchée (`pouce-bleu-jeu.js` : `groupe()` dit au bus si la grosse caisse joue, `PB.niveau` → `bus.tick`). Au-dessus
+  de ~195 Hz rien ne bouge. Après : 11-14 dB à l'entrée de la caisse. Restent hauts, VOULU (c'est leur BASSE, décision de Léo) : CAVALE ULTRA et AVERSE DE CHROME aux moteurs 4-6.
+- Les morceaux sains et la bibliothèque : identiques à l'échantillon près (le dompteur n'est pas construit). `?kick=0` = sans dompteur ; `?basses=brut` = tout le bus d'avant.

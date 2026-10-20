@@ -621,6 +621,16 @@ window.dbgLum=function(o){ // (banc) l'état des lumières de la caisse ; dbgLum
   return {actif:LUM.actif,nuit:+LUM.nuit.toFixed(2),halo:+HALO.hM.opacity.toFixed(2),halos:HALO.h.length,phK:CAR_PHK==null?null:+CAR_PHK.toFixed(2),ph:VIT9.ph==null?null:+VIT9.ph.toFixed(2),phares:+LUM.hl.toFixed(2),lampes:LUM.n,hP:LUM.hP.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hF:LUM.hF.toArray().map(function(x){return +x.toFixed(2);}),
     uHlC:LUM_U.uHlC.value.toArray().map(function(x){return +x.toFixed(1);}),uHlP:LUM_U.uHlP.value.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hlK:LUM_U.uHlK.value.toArray(),lmW:LUM_U.uLmW.value.toArray(),
     W:LUM.W?Array.from(LUM.W.slice(0,LUM.n*12)):[].map(function(x){return +x.toFixed(2);})};};
+window.dbgFeuxEtude=function(o){ /* (banc, 2026-10-20, l'étude des feux) les pièces qui ÉMETTENT de la caisse (matière 'l') : leurs couleurs et leur
+     nombre de sommets ; o.masque='l'|'h'|'lh'|'' cache les pièces lumineuses ('l'), les halos ('h'), ou rend tout */
+  const L9=[],C9={};carGroup.traverse(function(m){if(!m.isMesh||!m.material||!m.material.isMeshBasicMaterial||!m.material.vertexColors||!m.material.userData.lp)return;L9.push(m);
+    const c=m.geometry.attributes.color;if(!c)return;for(let i=0;i<c.count;i++){const k=((Math.round(c.getX(i)*255)<<16)|(Math.round(c.getY(i)*255)<<8)|Math.round(c.getZ(i)*255)).toString(16).padStart(6,'0');C9[k]=(C9[k]||0)+1;}});
+  if(o&&o.boite){const bx=new THREE.Box3();carGroup.updateMatrixWorld(true);carGroup.traverse(function(q){if(q.isMesh&&!q.isSprite&&FEUXL.fais.indexOf(q)<0&&!(q.userData&&q.userData.sol)){q.geometry.computeBoundingBox();const bb=q.geometry.boundingBox.clone().applyMatrix4(q.matrixWorld);bx.union(bb);}});const cam=o.cam==='gar'&&typeof GAR!=='undefined'&&GAR.camV?GAR.camV:camera,v=new THREE.Vector3();let x0=1,y0=1,x1=-1,y1=-1;
+    for(let i=0;i<8;i++){v.set(i&1?bx.max.x:bx.min.x,i&2?bx.max.y:bx.min.y,i&4?bx.max.z:bx.min.z).project(cam);x0=Math.min(x0,v.x);x1=Math.max(x1,v.x);y0=Math.min(y0,v.y);y1=Math.max(y1,v.y);}
+    return {x0:(x0+1)/2,x1:(x1+1)/2,y0:(1-y1)/2,y1:(1-y0)/2};}
+  if(o&&o.masque!=null){const q=o.masque;for(const m of L9)m.material.visible=q.indexOf('l')<0;HALO.hM.visible=HALO.tM.visible=q.indexOf('h')<0;if(FEUXL.cM)for(const c of FEUXL.cM)c.visible=q.indexOf('h')<0;}
+  return {pieces:L9.length,couleurs:C9,halo:{h:HALO.hM.color.getHexString(),hOp:+HALO.hM.opacity.toFixed(2),t:HALO.tM.color.getHexString(),tOp:+HALO.tM.opacity.toFixed(2),n:HALO.h.length},
+    faisceau:CARPOOL.head?{c:CARPOOL.head.material.color.getHexString(),op:+CARPOOL.head.material.opacity.toFixed(2),vu:CARPOOL.head.visible}:null,hlC:LUMK.hlC,headSpot:headSpot.color.getHexString()};};
 /* ============ fin TRIPTYQUE ============ */
 
 // ---------- GÉNÉRATEUR (45°, patterns pensés pour l'airtime) ----------

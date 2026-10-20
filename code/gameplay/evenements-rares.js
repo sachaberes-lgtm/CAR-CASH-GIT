@@ -374,10 +374,12 @@ function vdepPlace(){ // la grille au-dessus de la rangée, les étiquettes au b
 function vdepPlaque(n){ // la plaque du socle : le nom du moteur et son cran, à sa couleur
   const P=VDEP.etal&&VDEP.etal.pl;if(!P)return;const x=P.cv.getContext('2d'),w=P.cv.width,h=P.cv.height,c=vdepCol(n);
   x.clearRect(0,0,w,h);x.fillStyle='#120a1e';x.fillRect(0,0,w,h);x.strokeStyle=c;x.lineWidth=4;x.strokeRect(3,3,w-6,h-6);
-  x.textAlign='center';x.textBaseline='middle';x.fillStyle=c;x.font='14px "Press Start 2P"';x.fillText(sansAcc(TR('VITESSE'))+' '+(n+1),w/2,h*.3);
-  x.fillStyle='#ffffff';let f=22;x.font=f+'px "Press Start 2P"';const nm=vdepNom(n);while(f>10&&x.measureText(nm).width>w-28){f-=2;x.font=f+'px "Press Start 2P"';}
-  x.fillText(nm,w/2,h*.68);P.tx.needsUpdate=true;}
+  x.textAlign='center';x.textBaseline='middle';const fn=vdepFonction(); /* (2026-10-20) avant le palier 30, la vitesse n'existe pas encore : le nom seul */
+  if(fn){x.fillStyle=c;x.font='14px "Press Start 2P"';x.fillText(sansAcc(TR('VITESSE'))+' '+(n+1),w/2,h*.3);}
+  x.fillStyle='#ffffff';let f=fn?22:26;x.font=f+'px "Press Start 2P"';const nm=vdepNom(n);while(f>10&&x.measureText(nm).width>w-28){f-=2;x.font=f+'px "Press Start 2P"';}
+  x.fillText(nm,w/2,fn?h*.68:h*.54);P.tx.needsUpdate=true;}
 function vdepEtal(g){ // (buildGarageRoom) le socle, le vérin, les six moteurs — un seul visible
+  if(ETAL_V){vdepEtal2(g,ETAL_V);return;} // (2026-10-20) LA GRUE D'ATELIER (?etal=ancien = cet étal-ci)
   const t0=performance.now(),hd=GAR.D/2,root=new THREE.Group();root.position.set(5.95,0,hd-1.4);root.rotation.y=Math.PI;g.add(root);
   const mS=new THREE.MeshLambertMaterial({color:0x1d1a2a}),mL=new THREE.MeshBasicMaterial({color:0xffffff,fog:false}),mC=M9.inox();
   const socle=new THREE.Mesh(new THREE.BoxGeometry(2.2,.7,1.6),mS);socle.position.y=.35;root.add(socle);
@@ -399,16 +401,135 @@ function vdepEtal(g){ // (buildGarageRoom) le socle, le vérin, les six moteurs 
   vdepEtalTick(1/60,0);VDEP.ms=+(performance.now()-t0).toFixed(1);}
 function vdepEtalTick(dt,t9){ // (garageRender) le moteur descend, change, remonte ; il tourne et respire
   const E=VDEP.etal;if(!E)return;const n=vdepN();
-  if(VDEP.nVu<0){VDEP.nVu=n;VDEP.m[n].visible=true;VDEP.k=1;VDEP.ph=1;vdepPlaque(n);E.fil.material.color.set(vdepCol(n));E.lueur.material.color.set(vdepCol(n));}
+  if(VDEP.nVu<0){VDEP.nVu=n;VDEP.m[n].visible=true;VDEP.k=1;VDEP.ph=1;vdepPlaque(n);vdepEtalCol(E,vdepCol(n));}
+  if(E.tick){E.tick(dt,t9,n);return;} // (2026-10-20) la grue : l'éclatement et la résurrection (voir LA GRUE D'ATELIER)
   if(n!==VDEP.nVu&&VDEP.ph===1)VDEP.ph=-1; // un cran neuf : on redescend d'abord
   if(VDEP.ph<0){VDEP.k=Math.max(0,VDEP.k-dt/.22);if(VDEP.k<=0){VDEP.m[VDEP.nVu].visible=false;VDEP.nVu=n;VDEP.m[n].visible=true;VDEP.ph=0;vdepPlaque(n);
-    E.fil.material.color.set(vdepCol(n));E.lueur.material.color.set(vdepCol(n));try{if(SONV2)sfx('ui.ok');}catch(_){}}}
+    vdepEtalCol(E,vdepCol(n));try{if(SONV2)sfx('ui.ok');}catch(_){}}}
   else if(VDEP.ph===0){VDEP.k=Math.min(1,VDEP.k+dt/.5);if(VDEP.k>=1)VDEP.ph=1;}
   const k=VDEP.k,q=k-1,e9=VDEP.ph===0?1+2.4*q*q*q+1.4*q*q:k*k; // la montée déborde un poil puis se pose (la descente, en accélérant)
-  const H=VDEP.m[VDEP.nVu],lev=.78+e9*1.05;
+  const H=VDEP.m[VDEP.nVu];if(E.pose){E.pose(H,k,e9,t9,dt);return;}const lev=.78+e9*1.05;
   E.verin.scale.y=Math.max(.02,lev-.78);E.berceau.position.y=lev;H.position.y=lev+.04+Math.sin(t9*1.3)*.03*k;
   H.rotation.y+=dt*.35;H.scale.setScalar(.55+.45*Math.min(1,e9));
   E.lueur.material.opacity=(.22+.14*Math.sin(t9*2.1))*Math.min(1,k*1.4);}
+/* LA GRUE D'ATELIER (2026-10-20, Léo, entre deux propositions — un piédestal de vitrine, une grue — : « la grue ; du coin plus à gauche,
+   là elle est vers la porte, ça fait chelou ; le moteur vers la droite et la grue vers la gauche ; et les moteurs se détruisent et se
+   reconstruisent de la même manière que la voiture quand on regarde une pub pour réapparaître »). Remplace l'étal du 19/10 (`?etal=ancien`
+   le rend). Une grue d'atelier jaune DE PROFIL dans le coin gauche de la porte : pieds à roulettes, mât à gauche (bagues noires), flèche,
+   vérin chromé, baladeuse ; le moteur pend à droite, à la chaîne, au-dessus d'une palette, et tourne doucement ; la plaque est vissée au mât.
+   CHANGER DE CRAN = LA RÉSURRECTION DE LA SECONDE CHANCE (seconde-chance.js, RESU) appliquée au moteur : chaque moteur est rangé en
+   ÉCLATS (12 boîtes de son volume : gauche/droite × trois étages × avant/arrière, ses maillages PARTAGÉS) ; le moteur en place ÉCLATE (les
+   éclats partent en tournant et s'éteignent, une gerbe d'or), puis ceux du suivant apparaissent éparpillés autour du crochet, flottent, et
+   reviennent un à un EN TOURBILLON — le bas d'abord —, chacun traînant des étincelles d'or et de néon et claquant en se verrouillant
+   (`spin.arret`, une note plus haut à chaque éclat) ; le dernier posé : l'anneau de néon, la gerbe d'or, le chœur du MIRACULÉ. Les étincelles
+   ont leur propre petite réserve (la grue vit au garage, où les réserves de la course ne tournent pas). Aucune lumière ajoutée, aucune
+   matière neuve (Lambert, Basic, l'inox des moteurs). */
+const ETAL_V=/[?&]etal=ancien\b/.test(location.search)?'':'grue';
+function vdepEtalCol(E,c){if(E.col){E.col(c);return;}E.fil.material.color.set(c);E.lueur.material.color.set(c);}
+const ETAL_X=+((location.search.match(/[?&]etalx=([\d.]+)/)||[])[1]||6.9),ETAL_Z=+((location.search.match(/[?&]etalz=([\d.]+)/)||[])[1]||1.0); /* la grue, dans le coin gauche de la porte (l'étal du 19/10 était à 5,95, contre le montant) ; ?etalx= / ?etalz= pour la régler au banc */
+function vdepEclats(h,e){ // range le moteur e (dans son support h, au repos) en éclats : 12 boîtes de son volume, ses maillages partagés
+  h.updateMatrixWorld(true);const L=[],bb=new THREE.Box3(),v=new THREE.Vector3();
+  e.traverse(function(o){if(o.isMesh&&o.geometry&&o.visible){if(!o.geometry.boundingSphere)o.geometry.computeBoundingSphere();const c=v.copy(o.geometry.boundingSphere.center).applyMatrix4(o.matrixWorld).clone();L.push([o,o.matrixWorld.clone(),c]);bb.expandByPoint(c);}});
+  if(!L.length)return null;const dy=Math.max(.01,bb.max.y-bb.min.y),cx=(bb.min.x+bb.max.x)/2,cz=(bb.min.z+bb.max.z)/2,G=new Map();
+  for(const it of L){const c=it[2],k=(c.x<cx?0:1)+2*Math.min(2,Math.floor((c.y-bb.min.y)/dy*3))+6*(c.z<cz?0:1);let g=G.get(k);if(!g)G.set(k,g={L:[],c:new THREE.Vector3(),et:Math.min(2,Math.floor((c.y-bb.min.y)/dy*3))});g.L.push(it);g.c.add(c);}
+  h.remove(e);const E=[];
+  for(const g of G.values()){g.c.multiplyScalar(1/g.L.length);const grp=new THREE.Group(),Mi=new THREE.Matrix4().makeTranslation(-g.c.x,-g.c.y,-g.c.z);
+    for(const it of g.L){const o=it[0],m=new THREE.Mesh(o.geometry,o.material);m.castShadow=o.castShadow;m.receiveShadow=o.receiveShadow;m.renderOrder=o.renderOrder;
+      new THREE.Matrix4().multiplyMatrices(Mi,it[1]).decompose(m.position,m.quaternion,m.scale);grp.add(m);}
+    grp.position.copy(g.c);h.add(grp);E.push({g:grp,P:g.c.clone(),et:g.et,off:new THREE.Vector3(),q0:new THREE.Quaternion(),d:0,th0:0,ph:0,arr:true,tp:1});}
+  return E;}
+function vdepEtal2(g,V){
+  const t0=performance.now(),hd=GAR.D/2,root=new THREE.Group();root.position.set(ETAL_X,0,hd-ETAL_Z);root.rotation.y=Math.PI;g.add(root);
+  const L=(c,e)=>new THREE.MeshLambertMaterial({color:c,emissive:e||0}),B=(c,o)=>new THREE.MeshBasicMaterial(Object.assign({color:c,fog:false},o||{}));
+  const boite=(sx,sy,sz,mat,x,y,z,par)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),mat);m.position.set(x,y,z);(par||root).add(m);return m;};
+  const tige=(a,b,r,mat,seg,par)=>{const d=new THREE.Vector3().subVectors(b,a),m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),seg||10),mat);
+    m.position.copy(a).addScaledVector(d,.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());(par||root).add(m);return m;};
+  const poutre=(a,b,w,mat)=>{const d=new THREE.Vector3().subVectors(b,a),m=new THREE.Mesh(new THREE.BoxGeometry(d.length(),w,w),mat); // une poutre carrée de a à b (dans le plan xy)
+    m.position.copy(a).addScaledVector(d,.5);m.rotation.z=Math.atan2(d.y,d.x);root.add(m);return m;};
+  const ad={transparent:true,depthWrite:false,blending:THREE.AdditiveBlending};
+  let gt=VDEP._gt;if(!gt){const cv=document.createElement('canvas');cv.width=cv.height=128;const x=cv.getContext('2d'),gr=x.createRadialGradient(64,64,0,64,64,64);
+    gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.42,'rgba(255,255,255,.42)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,128,128);gt=VDEP._gt=new THREE.CanvasTexture(cv);}
+  const sol=new THREE.Mesh(new THREE.PlaneGeometry(1,1),B(0xffffff,Object.assign({map:gt,opacity:.4},ad)));sol.rotation.x=-Math.PI/2;sol.renderOrder=2;root.add(sol);
+  const cone=(r,h,y,op)=>{const m=new THREE.Mesh(new THREE.ConeGeometry(.5,1,18,1,true),B(0xfff0d6,Object.assign({opacity:op,side:THREE.FrontSide},ad)));m.scale.set(2*r,h,2*r);m.position.y=y;root.add(m);return m;};
+  const plaque=(w,h,x,y,z)=>{const cv=document.createElement('canvas');cv.width=320;cv.height=Math.round(320*h/w);const tx=new THREE.CanvasTexture(cv);
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),B(0xffffff,{map:tx}));m.position.set(x,y,z);root.add(m);return {cv:cv,tx:tx};};
+  const E={root:root,kind:V,sol:sol,ph:1,t:0,yc:-1};
+  // LA GRUE, de profil : le mât à GAUCHE (vers le coin), la flèche au-dessus de la palette, le moteur à DROITE (local −x = le monde +x : la gauche à l'écran)
+  const jaune=L(0xf2b318,0x2e2004),noir=L(0x17181f,0x050507),bois=L(0xa8743e,0x1c1006),acier=L(0x5b6170,0x0d0f14),chrome=M9.inox();
+  const xM=-.85,xE=.7;
+  for(const sz of [-1,1]){boite(2.45,.12,.14,jaune,.27,.16,sz*.5);for(const x of [1.42,1.0])boite(.2,.125,.145,noir,x,.16,sz*.5); // les pieds, rayés au bout
+    for(const x of [xM-.02,1.42]){const r=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,.07,12),noir);r.rotation.x=Math.PI/2;r.position.set(x,.08,sz*.5);root.add(r);}}
+  boite(.16,.14,1.14,jaune,xM-.02,.16,0);boite(.36,.3,.36,noir,xM,.3,0);
+  boite(.24,3.0,.24,jaune,xM,1.66,0);for(let i=0;i<5;i++)boite(.245,.07,.245,noir,xM,.62+i*.5,0); // le mât et ses bagues
+  const P0=new THREE.Vector3(xM,3.05,0),P1=new THREE.Vector3(xE,3.34,0);poutre(P0,P1,.2,jaune);boite(.24,.24,.24,noir,xE,3.34,0);
+  tige(new THREE.Vector3(xM,3.05,-.17),new THREE.Vector3(xM,3.05,.17),.07,chrome,10); // l'axe de la flèche
+  const A=new THREE.Vector3(xM+.13,1.3,0),Bv=new THREE.Vector3(xM+.85,3.05+.29*.85/1.55-.1,0),Am=A.clone().lerp(Bv,.55);tige(A,Am,.09,noir,10);tige(Am,Bv,.05,chrome,10); // le vérin
+  E.cable=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,1,6),acier);E.cable.position.set(xE,0,0);root.add(E.cable);
+  E.croc=new THREE.Group();root.add(E.croc);
+  const croc=new THREE.Mesh(new THREE.TorusGeometry(.09,.028,6,12,Math.PI*1.5),chrome);croc.position.y=.11;E.croc.add(croc);
+  boite(1.0,.07,.07,chrome,0,0,0,E.croc);
+  for(const sx of [-1,1])tige(new THREE.Vector3(sx*.48,0,0),new THREE.Vector3(sx*.3,-.3,0),.018,acier,6,E.croc);
+  for(const z of [-.5,0,.5])boite(1.15,.1,.12,bois,xE,.05,z);for(let i=0;i<5;i++)boite(.18,.035,1.24,bois,xE-.48+i*.24,.1175,0); // la palette
+  E.rayon=cone(.85,2.9,3.2-2.9/2,.05);E.rayon.position.x=xE;
+  const lampe=new THREE.Mesh(new THREE.ConeGeometry(.17,.22,10,1,true),noir);lampe.position.set(xE,3.12,0);root.add(lampe);
+  sol.scale.set(3.4,3.4,1);sol.position.set(xE,.012,0);
+  E.pl=plaque(.74,.24,xM,1.15,.125);
+  // LES ÉTINCELLES de la résurrection (une réserve à elle : 56 sprites, repère de la grue)
+  E.sp=[];for(let i=0;i<56;i++){const m=new THREE.Sprite(new THREE.SpriteMaterial(Object.assign({map:lampTex,color:0xffd75e,opacity:0,fog:false},ad)));m.visible=false;root.add(m);E.sp.push({m:m,v:new THREE.Vector3(),t:0,T:1,s:.2});}
+  E.spI=0;
+  const spark=(x,y,z,vx,vy,vz,col,T,s)=>{const p=E.sp[E.spI++%E.sp.length];p.m.position.set(x,y,z);p.v.set(vx,vy,vz);p.t=0;p.T=T;p.s=s;p.m.material.color.set(col);p.m.visible=true;};
+  const haut=1.5,bas=.66,top=3.22,vH=new THREE.Vector3(),Ya=new THREE.Vector3(0,1,0),Qi=new THREE.Quaternion();
+  const ou=(H,c,o)=>{H.updateMatrix();return o.copy(c.g.position).applyMatrix4(H.matrix);}; // un éclat, dans le repère de la grue
+  E.col=function(c){sol.material.color.set(c);};
+  E.casse=function(H){ // LE MOTEUR ÉCLATE : chaque éclat part en tournant, s'éteint ; une gerbe d'or
+    const C=H.userData.E||[];for(const c of C){const d=vH.copy(c.P).setY(c.P.y-(H.userData.h||1)/2);if(d.lengthSq()<1e-4)d.set(Math.random()-.5,0,Math.random()-.5);if(d.x<0)d.x*=-.4; /* jamais vers le mât (−x) : du côté libre, devant, derrière */
+      c.off.copy(d.normalize()).multiplyScalar(1.1+Math.random()*.9).add(vH.set((Math.random()-.5)*.6,.4+Math.random()*.8,(Math.random()-.5)*.6));
+      c.q0.setFromAxisAngle(vH.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize(),Math.PI*(.8+Math.random()));}
+    H.updateMatrix();for(let i=0;i<18;i++){const a=Math.random()*6.28;spark(xE,bas+(H.userData.h||1)*.5,0,Math.cos(a)*(2+Math.random()*3),1+Math.random()*3,Math.sin(a)*(2+Math.random()*3),Math.random()<.6?0xffd75e:0xff9a3c,.5+Math.random()*.3,.32);}
+    try{if(SONV2)sfx('garage.tole',{vol:-4});}catch(_){}try{hap(10);}catch(_){}};
+  E.arrive=function(H){ // LE SUIVANT : ses éclats éparpillés autour du crochet ; le bas revient d'abord
+    const C=H.userData.E||[];for(const c of C){const sx=c.P.x<0?-1:1,r=Math.random(); /* éparpillés du côté LIBRE (+x, loin du mât), devant et derrière */
+      c.off.set(.35+r*1.15,.3+Math.random()*1.1,sx*(.5+Math.random()*1.0));
+      c.q0.setFromAxisAngle(vH.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize(),Math.PI*(.6+Math.random()));
+      c.d=c.et*.16+Math.random()*.14;c.th0=-sx*(.45+Math.random()*.5);c.ph=Math.random()*6.28;c.arr=false;c.tp=0;c.g.scale.setScalar(.001);}
+    C.sort(function(a,b){return a.d-b.d;});E.n=0;E.tSon=0;try{if(SONV2)sfx('pwr.a',{vol:-8});}catch(_){}};
+  E.tick=function(dt,t9,n){
+    if(n!==VDEP.nVu&&E.ph===1){E.ph=-1;E.t=0;E.casse(VDEP.m[VDEP.nVu]);}
+    let H=VDEP.m[VDEP.nVu];
+    if(E.ph===-1){E.t+=dt;const u=Math.min(1,E.t/.5),e=1-Math.pow(1-u,2);
+      for(const c of H.userData.E||[]){c.g.position.copy(c.P).addScaledVector(c.off,e);c.g.quaternion.copy(Qi).slerp(c.q0,e);c.g.scale.setScalar(Math.max(.001,1-u*u));
+        if(Math.random()<dt*14){ou(H,c,vH);spark(vH.x,vH.y,vH.z,(Math.random()-.5),.5+Math.random(),(Math.random()-.5),Math.random()<.5?0xffd75e:0x5ee6ff,.35,.2);}}
+      if(u>=1){for(const c of H.userData.E||[]){c.g.position.copy(c.P);c.g.quaternion.identity();c.g.scale.setScalar(1);}H.visible=false;
+        VDEP.nVu=n;H=VDEP.m[n];H.visible=true;H.position.set(xE,bas,0);E.arrive(H);E.ph=0;E.t=0;vdepPlaque(n);vdepEtalCol(E,vdepCol(n));}}
+    else if(E.ph===0){const t=(E.t+=dt),C=H.userData.E||[],T0=.3,Tv=.62;H.updateMatrix();
+      const ap=Math.min(1,t/.22),sa=ap>=1?1:1+2.70158*Math.pow(ap-1,3)+1.70158*Math.pow(ap-1,2); // l'apparition : easeOutBack
+      for(const c of C){const g=c.g,u=Math.max(0,Math.min(1,(t-T0-c.d)/Tv)),e=u*u*(2.2-1.2*u),k=Math.max(0,1-e),th=c.th0*Math.pow(k,1.5);
+        vH.copy(c.off).applyAxisAngle(Ya,th).multiplyScalar(k);vH.y+=.1*Math.sin(t*5+c.ph)*k;g.position.copy(c.P).add(vH);g.quaternion.copy(c.q0).slerp(Qi,e);
+        let s=sa;
+        if(u>=1){if(!c.arr){c.arr=true;E.n++;ou(H,c,vH);for(let i=0;i<6;i++)spark(vH.x,vH.y,vH.z,(Math.random()-.5)*3,Math.random()*2.5,(Math.random()-.5)*3,0xffd75e,.4,.22);
+            const n9=performance.now();if(n9-E.tSon>55){E.tSon=n9;try{if(SONV2)sfx('spin.arret',{st:sonPd(Math.min(E.n-1,9)),vol:-12});}catch(_){}}}
+          c.tp+=dt;s=1+.14*Math.max(0,1-c.tp/.16);}
+        else if(u>0&&Math.random()<dt*22){ou(H,c,vH);spark(vH.x,vH.y,vH.z,(Math.random()-.5)*.8,Math.random()*.8,(Math.random()-.5)*.8,Math.random()<.55?0xffd75e:0x5ee6ff,.35,.18);}
+        g.scale.setScalar(s);}
+      if(t<1.4&&Math.random()<dt*24){const a=t*9+Math.random()*.4,rr=1.5*(1-t/1.4)+.5; // le tourbillon : des étincelles cyan qui montent en hélice autour du moteur
+        spark(xE+Math.cos(a)*rr,bas+.1+1.6*t/1.4,Math.sin(a)*rr,-Math.sin(a)*1.5,1.2,Math.cos(a)*1.5,0x5ee6ff,.45,.2);}
+      if(E.n>=C.length&&t>.9){E.ph=1; // le dernier posé : l'anneau de néon, la gerbe d'or, le chœur
+        for(let i=0;i<24;i++){const a=i/24*6.28;spark(xE+Math.cos(a)*.5,bas+.2,Math.sin(a)*.5,Math.cos(a)*4,.2,Math.sin(a)*4,0xff3ec8,.5,.24);}
+        for(let i=0;i<20;i++)spark(xE,bas+(H.userData.h||1)*.6,0,(Math.random()-.5)*5,1.5+Math.random()*4,(Math.random()-.5)*5,0xffd75e,.6,.3);
+        try{if(SONV2)sfx('jeu.miracule',{vol:-12});}catch(_){}try{hap([10,30,16]);}catch(_){}}}
+    // LA GRUE SUIT : le moteur tourne et se balance au bout de la chaîne ; le crochet et le câble suivent son haut
+    H.position.set(xE,bas,0);H.rotation.y+=dt*.22;H.rotation.z=Math.sin(t9*.9)*.025;
+    const yc9=bas+(H.userData.h||1)+.3;E.yc=E.yc<0?yc9:E.yc+(yc9-E.yc)*Math.min(1,dt*4);
+    E.croc.position.set(xE,E.yc,0);E.croc.rotation.y=H.rotation.y;E.cable.position.y=(top+E.yc+.12)/2;E.cable.scale.y=Math.max(.01,top-(E.yc+.12));
+    sol.material.opacity=.3+.07*Math.sin(t9*2.1);E.rayon.material.opacity=.04+.01*Math.sin(t9*1.3);
+    for(const p of E.sp){if(!p.m.visible)continue;p.t+=dt;if(p.t>=p.T){p.m.visible=false;continue;}const f=1-p.t/p.T;
+      p.v.y-=2.2*dt;p.m.position.addScaledVector(p.v,dt);p.m.material.opacity=f;p.m.scale.setScalar(p.s*(.5+.5*f));}};
+  const bx=new THREE.Box3(),sz=new THREE.Vector3(),ce=new THREE.Vector3();
+  for(let i=0;i<VDEP_PAL.length;i++){const e=mkEngine(VDEP_PAL[i]),h=new THREE.Group();h.add(e);
+    bx.setFromObject(e);bx.getSize(sz);bx.getCenter(ce);const k=haut/Math.max(.01,sz.x,sz.y,sz.z);e.scale.multiplyScalar(k);e.position.set(-ce.x*k,-ce.y*k+sz.y*k/2,-ce.z*k);
+    h.userData.h=sz.y*k;try{h.userData.E=vdepEclats(h,e);}catch(err){console.warn('éclats',err);}h.visible=false;root.add(h);VDEP.m.push(h);}
+  VDEP.etal=E;VDEP.nVu=-1;VDEP.k=0;VDEP.ph=1;
+  vdepEtalTick(1/60,0);VDEP.ms=+(performance.now()-t0).toFixed(1);}
 window.dbgVdep=function(n){
   if(n==='tout'||n==='rien'){VDEP_TOUT=n==='tout';vdepMaj();return {tout:VDEP_TOUT};}
   if(n!=null){SAVE.d.vdep=Math.max(0,Math.min(5,n|0));vdepMaj();}

@@ -88,6 +88,22 @@ grtConti(); // (2026-10-18) LES PROFONDEURS : ses 24 ambiances prennent la recet
 for(const k of ['foretMatin','foretMidi','foretSoir','foretNuit','foretPluie','foretOrage'])if(BIOMES[k]){const b=BIOMES[k],n9=k==='foretNuit'||k==='foretOrage';
   b.con=(b.con||1)+(n9?.08:.06);b.vigK=(b.vigK||.3)+(n9?.08:.03);b.bloomS=(b.bloomS||.45)+.06;
   if(n9){b.expo=(b.expo||1)*.84;b.hemiI=(b.hemiI||.5)*.7;}}
+/* (v5, 2026-10-18 — Sacha : « la map volcan est la plus moche, lance une grosse refonte ») LES CIELS DU VOLCAN — APRÈS la continuité (elle réécrit
+   les ciels, les nuits, le grade de toutes les maps) : le SOIR, la carte postale, avait un zénith NOIR et une simple bande orange — il prend le
+   dégradé de la bible (indigo → magenta → braise → or) ; la brume n'est plus un rouge plat qui avale tout, mais un air prune qui laisse lire les
+   silhouettes ; le rebond du sol reste la lave (la caisse éclairée PAR LE BAS) ; la brume recule (3 000 → 4 000-4 600 m) : le GRAND VOLCAN, droit
+   devant le portail à 1,5-3 km, était fondu aux deux tiers dans la brume — c'est le repère de la map, on le voit dès le départ. `?volcan=avant5` = avant. */
+if(VLC5){const V9={
+    volcanSoir:{jZen:[.11,.05,.26],jMid:[.46,.09,.27],jHor:[1,.40,.12],jSol:[1,.52,.14],fog:[.26,.08,.15],fogCj:[.80,.30,.14],fogIn:[.44,.15,.24],
+      hemiS:[.50,.36,.70],hemiG:[.46,.12,.04],hemiI:.66,sunC:[1,.54,.28],sunI:1.6,fillC:[.80,.24,.06],fillI:.30,fogN:320,fogF:4300},
+    volcanMatin:{fog:[.38,.24,.34],fogIn:[.58,.42,.52],fogN:300,fogF:4000},
+    volcanMidi:{fog:[.42,.36,.40],hemiG:[.40,.16,.08],fogN:320,fogF:4600},
+    volcanNuit:{jZen:[.05,.04,.20],jMid:[.15,.06,.28],jHor:[.40,.09,.06],fog:[.10,.045,.12],fogIn:[.24,.09,.16],fogN:320,fogF:4000},
+    /* l'ORAGE VOLCANIQUE sortait presque NOIR (ciel L* 2-4, roche et brume au noir) : un orage violet, la nuit de la bible — les éclairs et la lave par-dessus */
+    volcanOrage:{jZen:[.055,.035,.15],jMid:[.13,.06,.21],jHor:[.30,.08,.09],fog:[.09,.045,.11],fogCj:[.30,.12,.14],fogIn:[.20,.10,.20],hemiS:[.36,.30,.58],hemiI:.62,expo:1},
+    /* la PLUIE DE CENDRES était un brun gris (l'interdit de la bible) : une cendre mauve et ocre */
+    volcanCendre:{jZen:[.15,.11,.19],jMid:[.30,.20,.25],jHor:[.54,.33,.26],fog:[.27,.18,.21],fogCj:[.46,.30,.26],fogIn:[.36,.27,.30],hemiS:[.52,.48,.68]}};
+  for(const k in V9)if(BIOMES[k])Object.assign(BIOMES[k],JSON.parse(JSON.stringify(V9[k])));}
 function planetesAlea(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};} // (même générateur que mulberry32, local : la Terre en dépend à la construction)
 function planetesMars(x,W,H){ // MARS : rouille et ocre, mers sombres, poussière claire, une faille, quelques cratères, deux calottes. AUCUN nuage (Sacha).
   const R=planetesAlea(4242),rd=function(a,b){return a+R()*(b-a);};
