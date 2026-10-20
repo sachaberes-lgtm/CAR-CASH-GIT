@@ -286,8 +286,10 @@ function hautVide(){ // l'explosion, l'écran de mort : plus personne ne parle �
   const p=document.getElementById('popTxt');if(p)p.classList.remove('on','on2');popTexte._s=0; // le dernier geste ne survit pas à la caisse (gt1-16)
   try{m2LigneVide();}catch(e){} // (2026-10-17) la ligne des missions du bas se tait avec les autres (l'écran de mort les récapitule)
 }
-function misBanniere(titre,texte,prime,ico){hautPasse(function(){misBanMontre(titre,texte,prime,ico);},titre==='ASTUCE'?2800:1800,'mis',titre==='ASTUCE'?1:2);} // un défi payé vaut un moteur ; une astuce, un niveau
+function misBanniere(titre,texte,prime,ico){if(titre==='ASTUCE')return; /* (2026-10-20, Sacha : « enlève les pop up astuce, ça sert à rien ») plus d'ASTUCE : elle ne prend même plus son tour dans le couloir */
+  hautPasse(function(){misBanMontre(titre,texte,prime,ico);},1800,'mis',2);} // un défi payé vaut un moteur
 function misBanMontre(titre,texte,prime,ico){
+  if(titre==='ASTUCE')return;
   try{if(SONV2&&titre==='MISSION RÉUSSIE')sfx('ui.mission');}catch(e){} /* (débogage son 2026-09-29) pendant l'auto-école la bannière attend la fin : le son l'attend aussi */
   let b=document.getElementById('misBan');
   if(!b){b=document.createElement('div');b.id='misBan';b.setAttribute('role','status');document.body.appendChild(b);hasMaj();} // hasMaj : la bannière née, son état se suit (voir HAS_D)

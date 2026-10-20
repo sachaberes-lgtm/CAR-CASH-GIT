@@ -8473,7 +8473,7 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   /* (2026-10-19, essai ARC) LE FOND EN PHOTO + LA MER DE CUMULUS — voir « LE CIEL D'ARC » plus bas. uPh : x la part de la photo, y la colonne (0-1) de son
      soleil, z sa hauteur (rad), w l exposition · uPh2.x le sens du tour · uMr : x la mer de cumulus (0 = la mer peinte d avant), y la profondeur du
      pont de nuages (m sous l œil), z la tuile (m), w la couverture (le seuil des trouées) · uMr2 : x le relief, y la brume (× la tuile). */
-  uPhT:{value:null},uMrT:{value:null},uPh:{value:new THREE.Vector4(0,.6,.1,1)},uPh2:{value:new THREE.Vector4(1,0,0,0)},uMr:{value:new THREE.Vector4(0,900,4200,.22)},uMr2:{value:new THREE.Vector4(3.2,3.,0,1)},
+  uPhT:{value:null},uMrT:{value:null},uPh:{value:new THREE.Vector4(0,.6,.1,1)},uPh2:{value:new THREE.Vector4(1,0,0,0)},uMr:{value:new THREE.Vector4(0,900,4200,.12)},uMr2:{value:new THREE.Vector4(1.6,3.6,0,.4)},
   uTi:{value:new THREE.Vector4(0,0,0,1)},uTi2:{value:new THREE.Vector4(0,0,.35,0)},uTZen:{value:new THREE.Vector3()},uTMid:{value:new THREE.Vector3()},uTHor:{value:new THREE.Vector3()},uTSol:{value:new THREE.Vector3()},uTMerH:{value:new THREE.Vector3()},uTMerO:{value:new THREE.Vector3()},uTCir:{value:new THREE.Vector3()}, // (titre v4) LE CIEL DE L'ÉCRAN TITRE (cielTitre) — uTi.x = 0 hors du titre : rien ne change en course
   uMzA:{value:new THREE.Vector4(760,.8,15,.25)},uMzB:{value:new THREE.Vector4(.20,.16,.26,.8)},uMzT:{value:new THREE.Vector4(0,0,0,0)},uMzO:{value:new THREE.Vector4(0,0,0,0)},uMzH:{value:new THREE.Vector4(0,0,0,0)}, /* ⚠ (0,0,0,0) ÉCRIT : un Vector4() vide vaut (0,0,0,1) — la part 1 peignait toute la mer en NOIR (vu par Léo au menu de sa copie). */ /* (2026-10-03, atelier des nuages : « une fonction pour altérer le ciel en bas ») les COULEURS de la mer de nuages forcées — trous, ombres, dômes : rgb + part (w) ; w = 0 partout = la mer d'avant au bit près */ // (2026-09-30, niveau 1 v2) LA MER SCULPTÉE : échelle des cellules, part « gonflée », franchise de la lumière, remous · couverture, fermeture au loin, creux, clarté des trouées
   uVG:{value:0}, /* (2026-10-01, Sacha : « enlève tous les trucs Van Gogh ») la touche Van Gogh est RETIRÉE du ciel comme des nuages : plus aucun shader ne lit cet uniforme — l'objet reste, inerte, pour qu'un code qui l'écrirait encore ne plante pas */
@@ -11459,7 +11459,7 @@ function cotonCalcAsync(S,sph,cb){ // cb(le calcul), PLUS TARD : dans l'ouvrier 
   if(w){const id=++COTON_OUV.id;COTON_OUV.att.set(id,{job:job,cb:cb});try{w.postMessage({id:id,B:job.B,base:job.base,top:job.top,sp:job.sp,sn:job.sn,si:job.si,CH:job.CH});}catch(e){COTON_OUV.att.delete(id);cotonTranche(job,cb);}}
   else cotonTranche(job,cb);}
 function nuage8Async(S,N,cb,vit){ // (v8) une finesse de la NOUVELLE surface : dans l'ouvrier si possible, sinon par tranches — vit : la taille des écailles du VITRAIL (nombre de cubes sur la plus grande dimension), 0 = sans
-  const job={n8:N,o8:Object.assign({seed:S.seed||0},N8_OPT,vit?(NUVIT.fant?{fant:NUVIT.fant,fsz:NUVIT.fsz}:Object.assign({vit:vit,iso:NUVIT.iso,nsk:NUVIT.nsk,ecart:NUVIT.ecart,jit:NUVIT.jit||0},NUVIT.mix?{fant:NUVIT.mix,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:{})):{}),B:S.B,base:S.base,top:S.top},w=cotonOuvrier();
+  const job={n8:N,o8:Object.assign({seed:S.seed||0},N8_OPT,vit?(NUVIT.fant?{fant:NUVIT.fant,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:Object.assign({vit:vit,iso:NUVIT.iso,nsk:NUVIT.nsk,ecart:NUVIT.ecart,jit:NUVIT.jit||0},NUVIT.mix?{fant:NUVIT.mix,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:{})):{}),B:S.B,base:S.base,top:S.top},w=cotonOuvrier();
   if(w){const id=++COTON_OUV.id;COTON_OUV.att.set(id,{job:job,cb:cb});try{w.postMessage({id:id,n8:N,o8:job.o8,B:job.B,base:job.base,top:job.top});}catch(e){COTON_OUV.att.delete(id);cotonTranche(job,cb);}}
   else cotonTranche(job,cb);}
 function cotonFinesse(k,f,g){ // une finesse est arrivée : elle remplace l'ébauche dans SON lot et dans les lots plus fins encore en attente
@@ -11589,9 +11589,10 @@ function nuage8Solo(){ if(COTON.mat8s)return COTON.mat8s; // (v8) la même mati�
    vitrail), [1][3] = −les cubes ; une matrice ordinaire = rien ne change. Nuages seuls fantômes (`mkCloud`) : les cubes
    s'effacent tout près (`uNvW`, posé par objet dans `onBeforeRender`), le corps reste. Écarté : le vitrail PARTOUT (dalles grises de près,
    bords carrés de loin, jusqu'à ×6 triangles). `?sans=nuvitfondu` = les bascules d'avant ; `dbgNuVit(1,{fondu:0|1})` = A/B. */
-const CDENS=(function(){const m=/[?&]cdens=([0-9.]+)/.exec(location.search);return m?+m[1]:.3;})(); // (2026-10-20, Léo : « il y a trop de nuages, c'est un peu vomitif ») la part des nuages de décor gardée sur la map NUAGES (1 = le semis d'avant ; ?cdens=)
+const CDENS=(function(){const m=/[?&]cdens=([0-9.]+)/.exec(location.search);return m?+m[1]:.14;})(); // (2026-10-20, Léo : « trop de nuages… trop chaotique, plus paisible »)
+const GROS=(function(){const m=/[?&]gros=([0-9.]+)/.exec(location.search);return m?+m[1]:.4;})(); // la part gardée des GRANDES masses (cathédrales, massifs, titans, tours) sur la map NUAGES // (2026-10-20, Léo : « il y a trop de nuages, c'est un peu vomitif ») la part des nuages de décor gardée sur la map NUAGES (1 = le semis d'avant ; ?cdens=)
 const ARC_ON=!/[?&]arc=0\b/.test(location.search);
-const KIDS_ARC=(function(){const m=/[?&]kids=([0-9.]+)/.exec(location.search);return m?+m[1]:.55;})(); // la part du chou-fleur gardée sur les gabarits de nuages (1 = d'avant) // (2026-10-19, essai ARC) le fond en photo + la mer de cumulus + les nuages en VERRE ; ?arc=0 = le main d avant
+const KIDS_ARC=(function(){const m=/[?&]kids=([0-9.]+)/.exec(location.search);return m?+m[1]:.4;})(); // la part du chou-fleur gardée sur les gabarits de nuages (1 = d'avant) // (2026-10-19, essai ARC) le fond en photo + la mer de cumulus + les nuages en VERRE ; ?arc=0 = le main d avant
 const NUVIT={on:true,nc:36,iso:.3,ang:.09,nsk:0,ecart:.47,
   fondu:!/[?&]sans=([^&]*,)?nuvitfondu(,|&|$)/.test(location.search),bLoin:4.06,bPres:[.06,.09],bPresF:[.035,.09]}; // (2026-10-18) LE FONDU : voir au-dessus
 function nuvLisse(a,b,v){const q=Math.min(1,Math.max(0,(v-a)/(b-a)));return q*q*(3-2*q);}
@@ -11604,7 +11605,7 @@ const NV_DOSES={doux:{uCoqA0:.5,uCoqA1:.92,uRel:.12,uLueur:1.08,uBis:.08,uTache:
   verre:{uCoqA0:.2,uCoqA1:.86,uRel:.3,uLueur:1.16,uBis:.13,uTache:0,uChaud:0,uTrans:.25,uBordC:.6,uVerre:.5}, // (2026-10-19, Léo : « les nuages devant, c'était mieux l'avant-dernière version [le vitrail MOYEN] ; joue plus la transparence ») : les écailles et le cœur s'ouvrent de FACE (trame), pleins sur la silhouette ; la peau plus claire
   fantome:{uFant:1,uPeint:1}, // (2026-10-18, Léo : « encore plus minuscules, encore plus fantomatiques, construire de nouveaux nuages, les teintes comme un peintre »)
   peintre:{uCoqA0:.34,uCoqA1:.9,uRel:.05,uLueur:1.2,uBis:0,uTache:.12,uChaud:.6,uTrans:.55,uBordC:.85}}; // (2026-10-18, Léo : « pas comme Minecraft ; triche pour obtenir une sorte de réalisme ; fais le peintre ») chaque cube une TOUCHE (chaude au soleil, froide à l ombre), plus de faces dures, le contour en vapeur, la lumière qui TRAVERSE à contre-jour // (2026-10-18) trois dosages du vitrail, à montrer à Léo
-{const m9=/[?&]nuvit=(doux|moyen|fort|peintre|fantome|verre)\b/.exec(location.search);NUVIT.dose=m9?m9[1]:(ARC_ON?'verre':'fantome');if(NUVIT.dose==='fantome'){NUVIT.fant=8000;NUVIT.fsz=110;NUVIT.loin=.4;}if(NUVIT.dose==='verre'){NUVIT.mix=(function(){const m=/[?&]mix=(\d+)/.exec(location.search);return m?+m[1]:2400;})();NUVIT.fsz=95;NUVIT.loin=.5;NUVIT.fdeh=.75;} /* (2026-10-19, Léo : « reste sur ce que tu as fait, mais un tout petit peu éparpillé — le côté trash de la version d'avant, les petits cubes qui s'éparpillent : le gros nuage condensé qui se sépare en plein de trucs ») LE MÉLANGE : le vitrail en verre + des cubes fantômes, surtout DEHORS */if(NUVIT.dose==='peintre'){NUVIT.nc=48;NUVIT.nsk=34;NUVIT.ecart=.52;NUVIT.jit=.3;NUVIT.coeur=.25;} /* (2026-10-18, Léo : « essaie en mode vitrail » → au questionnaire : PLUS VISIBLE, le dosage FORT par défaut — MOYEN le 18/10 au matin) */for(const q in NV_DOSES[NUVIT.dose])NV_U[q].value=NV_DOSES[NUVIT.dose][q];} // ?nuvit=doux|moyen|fort
+{const m9=/[?&]nuvit=(doux|moyen|fort|peintre|fantome|verre)\b/.exec(location.search);NUVIT.dose=m9?m9[1]:'fantome';if(NUVIT.dose==='fantome'){NUVIT.fant=ARC_ON?(function(){const q=/[?&]fant=(\d+)/.exec(location.search);return q?+q[1]:1400;})():8000;NUVIT.fsz=ARC_ON?100:110;NUVIT.loin=.4;if(ARC_ON)NUVIT.fdeh=.4;} /* (2026-10-20, Sacha : « trop chelou, il y a trois types de nuages différents ») le vitrail en verre ne vivait qu'entre deux distances (lisse près, grille de verre au milieu, lisse loin) : trois aspects dans une vue. UN type : le corps lisse v8 et sa poussière de cubes, partout */if(NUVIT.dose==='verre'){NUVIT.mix=(function(){const m=/[?&]mix=(\d+)/.exec(location.search);return m?+m[1]:2400;})();NUVIT.fsz=95;NUVIT.loin=.5;NUVIT.fdeh=.75;} /* (2026-10-19, Léo : « reste sur ce que tu as fait, mais un tout petit peu éparpillé — le côté trash de la version d'avant, les petits cubes qui s'éparpillent : le gros nuage condensé qui se sépare en plein de trucs ») LE MÉLANGE : le vitrail en verre + des cubes fantômes, surtout DEHORS */if(NUVIT.dose==='peintre'){NUVIT.nc=48;NUVIT.nsk=34;NUVIT.ecart=.52;NUVIT.jit=.3;NUVIT.coeur=.25;} /* (2026-10-18, Léo : « essaie en mode vitrail » → au questionnaire : PLUS VISIBLE, le dosage FORT par défaut — MOYEN le 18/10 au matin) */for(const q in NV_DOSES[NUVIT.dose])NV_U[q].value=NV_DOSES[NUVIT.dose][q];} // ?nuvit=doux|moyen|fort
 function nuVitGLSL(){ // les déclarations et la lumière v8 (copie de nuage8Mat : SANS la vapeur du palier 2)
   return ['uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd'+(',uLav')+';uniform vec2 uNearF;uniform vec4 uK,uR;uniform float uFondu,uTps,uLueur,uScan,uScanV,uCoqA0,uCoqA1,uRel,uEcl,uBis,uTache,uChaud,uTrans,uBordC,uFant,uPeint,uVerre;',
     'float nvVerre(vec3 N,vec3 V){return mix(1.-uVerre,1.,smoothstep(.12,.8,1.-abs(dot(N,V))));}', // (essai ARC) LE VERRE : ouvert de face, plein sur la silhouette
@@ -11880,16 +11881,17 @@ function buildCoton(cr){
     // bord — une PORTE (les deux côtés : on file entre deux géants) ou une FALAISE (un seul côté : on longe un mur de ouate). Toutes les
     // ~1,4 km. ⚠ Essayé puis retiré : étirer la tour en hauteur (×1,5) et lui poser une COURONNE — les bourgeons devenaient des œufs
     // empilés, une « chenille » ; la hauteur vient de la TAILLE (r 220-340), l'étirement reste celui des autres nuages (×1-1,15).
-    const K7=Math.max(3,Math.floor(L/(LVL.cur&&LVL.cur.id==='nuages'?2000:1400))); // (2026-09-30) aux NUAGES : moins de cathédrales, plus grosses
+    const K7=Math.max(ARC_ON&&LVL.cur&&LVL.cur.id==='nuages'?2:3,Math.floor(L/(LVL.cur&&LVL.cur.id==='nuages'?2000:1400)*(ARC_ON&&LVL.cur&&LVL.cur.id==='nuages'?GROS:1))); // (2026-09-30) aux NUAGES : moins de cathédrales, plus grosses
     for(let k=0;k<K7;k++){const i=strat(k,K7),p=pts[i],q=perp(i),cotes=cr()<.45?[-1,1]:[cr()<.5?-1:1];
       for(const sg of cotes){const r=(220+cr()*120)*(LVL.cur&&LVL.cur.id==='nuages'?1.45:1),kk=cotonDe(cr,['congestus','cisaille','champignon',2]),yB=p.y-(220+cr()*120);let dd=ROAD_HALF+r*1.25+60+cr()*230;
         for(let t=0;t<3;t++,dd+=90)if(cotonPose(p.x+q[0]*sg*dd,yB,p.z+q[1]*sg*dd,r,kk,cr,1+cr()*.15))break;}}
   }
   if(okG){ // (6) MASSIFS et TITANS (ex-« ciel organisé ») : des tours de 300-1 200 m, au large, hors du couloir du couchant
     const sunAz=Math.atan2(SUN_DIR.z,SUN_DIR.x),loinSol=function(){for(let t=0;t<5;t++){const a=cr()*6.2832;let d9=(a-sunAz)%6.2832;if(d9>3.1416)d9-=6.2832;if(d9<-3.1416)d9+=6.2832;if(Math.abs(d9)>.62)return a;}return sunAz+3.1416;};
-    for(let k=0;k<6;k++){const i=strat(k,6),p=pts[i],a=loinSol(),d=900+cr()*1300,r=280+cr()*300;cotonPose(p.x+Math.cos(a)*d,p.y-320+cr()*160,p.z+Math.sin(a)*d,r,cotonDe(cr,[2,0,'congestus','champignon','stratocumulus']),cr);} // (v4) les massifs piochent aussi dans les congestus tirés — (v6) et les champignons, les rouleaux
-    for(let k=0;k<3;k++){const i=strat(k,3),p=pts[i],a=loinSol(),d=1700+cr()*1500,r=600+cr()*450,k9=cotonDe(cr,[2,'congestus','champignon']);cotonPose(p.x+Math.cos(a)*d,p.y-420+cr()*200,p.z+Math.sin(a)*d,(r*.7),24,cr);} // (v8) les titans : des CUMULONIMBUS à enclume (plus hauts que larges : r ×0,7)
-    for(let k=0;k<3;k++){const i=strat(k,3),p=pts[i],a=loinSol(),d=520+cr()*380,r=(200+cr()*140)*(LVL.cur&&LVL.cur.id==='nuages'?1.5:1); // (v4) les TOURS HÉROÏQUES : trois congestus qui montent TOUT PRÈS du couloir — le niveau a ses montagnes
+    const GN=ARC_ON&&LVL.cur&&LVL.cur.id==='nuages'?GROS:1,N6=Math.max(1,Math.round(6*GN)),N3=Math.max(1,Math.round(3*GN));
+    for(let k=0;k<N6;k++){const i=strat(k,N6),p=pts[i],a=loinSol(),d=900+cr()*1300,r=280+cr()*300;cotonPose(p.x+Math.cos(a)*d,p.y-320+cr()*160,p.z+Math.sin(a)*d,r,cotonDe(cr,[2,0,'congestus','champignon','stratocumulus']),cr);} // (v4) les massifs piochent aussi dans les congestus tirés — (v6) et les champignons, les rouleaux
+    for(let k=0;k<N3;k++){const i=strat(k,N3),p=pts[i],a=loinSol(),d=1700+cr()*1500,r=600+cr()*450,k9=cotonDe(cr,[2,'congestus','champignon']);cotonPose(p.x+Math.cos(a)*d,p.y-420+cr()*200,p.z+Math.sin(a)*d,(r*.7),24,cr);} // (v8) les titans : des CUMULONIMBUS à enclume (plus hauts que larges : r ×0,7)
+    for(let k=0;k<N3;k++){const i=strat(k,N3),p=pts[i],a=loinSol(),d=520+cr()*380,r=(200+cr()*140)*(LVL.cur&&LVL.cur.id==='nuages'?1.5:1); // (v4) les TOURS HÉROÏQUES : trois congestus qui montent TOUT PRÈS du couloir — le niveau a ses montagnes
       for(let t=0;t<3;t++)if(cotonPose(p.x+Math.cos(a)*(d+t*160),p.y-300+cr()*80,p.z+Math.sin(a)*(d+t*160),r,cotonDe(cr,['congestus','cisaille']),cr))break;}
     {const i=Math.min(NP-1,Math.floor(NP*(.6+cr()*.15))),p=pts[i],a=sunAz+3.1416+(cr()-.5)*.9,d=1500+cr()*700;cotonPose(p.x+Math.cos(a)*d,p.y-380,p.z+Math.sin(a)*d,(760+cr()*300)*(.75),24,cr);} // LE COLOSSE, à l'opposé du couchant
   }
@@ -44435,8 +44437,10 @@ function hautVide(){ // l'explosion, l'écran de mort : plus personne ne parle �
   const p=document.getElementById('popTxt');if(p)p.classList.remove('on','on2');popTexte._s=0; // le dernier geste ne survit pas à la caisse (gt1-16)
   try{m2LigneVide();}catch(e){} // (2026-10-17) la ligne des missions du bas se tait avec les autres (l'écran de mort les récapitule)
 }
-function misBanniere(titre,texte,prime,ico){hautPasse(function(){misBanMontre(titre,texte,prime,ico);},titre==='ASTUCE'?2800:1800,'mis',titre==='ASTUCE'?1:2);} // un défi payé vaut un moteur ; une astuce, un niveau
+function misBanniere(titre,texte,prime,ico){if(titre==='ASTUCE')return; /* (2026-10-20, Sacha : « enlève les pop up astuce, ça sert à rien ») plus d'ASTUCE : elle ne prend même plus son tour dans le couloir */
+  hautPasse(function(){misBanMontre(titre,texte,prime,ico);},1800,'mis',2);} // un défi payé vaut un moteur
 function misBanMontre(titre,texte,prime,ico){
+  if(titre==='ASTUCE')return;
   try{if(SONV2&&titre==='MISSION RÉUSSIE')sfx('ui.mission');}catch(e){} /* (débogage son 2026-09-29) pendant l'auto-école la bannière attend la fin : le son l'attend aussi */
   let b=document.getElementById('misBan');
   if(!b){b=document.createElement('div');b.id='misBan';b.setAttribute('role','status');document.body.appendChild(b);hasMaj();} // hasMaj : la bannière née, son état se suit (voir HAS_D)
@@ -45465,9 +45469,8 @@ function tutoFin(passe){
   if(!passe){const paye=!SAVE.d.permis; // (2026-09-28) la prime du permis ne se verse qu'UNE fois : REVOIR L'AUTO-ÉCOLE ne doit pas devenir un robinet à 500
     if(paye){SAVE.d.permis=1;SAVE.d.bank=Math.min(1e30,bank()+500);gagneAjoute(500);bankMaxMaj();}
     /* (2026-09-29, audit des 10 premières minutes) LE PERMIS SE FÊTE : la grande annonce du centre (tenue 1,6 s, les cartes retenues pendant
-       la leçon attendent derrière), puis — à la 1re fois — ce qui vient de changer : fini l'entraînement où l'on ne pouvait pas mourir. */
+       la leçon attendent derrière). (2026-10-20) La carte ASTUCE « fini l'entraînement : une seule vie » qui suivait est retirée avec toutes les astuces. */
     hautPasse(function(){slamMontre('PERMIS OBTENU !',paye?'+'+fmtC(500):'','#62e062','#ffd75e',40,22);},1900,'slam',3,{min:1600});
-    if(paye)hautPasse(function(){misBanMontre('ASTUCE',TR("Fini l'entraînement : UNE SEULE VIE. En l'air, pose-toi avant la fin du chrono."),'','drapeau');},2800,'mis',3);
     try{if(SONV2)sfx('ui.debloque');else fanfare();}catch(e){}hap([20,60,20,60,60]);}
   SAVE.flush();
   hautArme(); // les cartes retenues pendant la leçon passent maintenant, l'une après l'autre (le permis d'abord)
@@ -46671,6 +46674,107 @@ function mkPower(kind,dir){
   const ha=new THREE.Sprite(d.haloM);ha.scale.set(6,6,1);ha.renderOrder=2;ha.updateMatrix();ha.matrixAutoUpdate=false;g.add(ha); // (vague 2) le HALO additif (sprite : 4 sommets, zéro lumière)
   return g;
 }
+/* LES AURAS DES FRUITS-POUVOIRS (2026-10-20, Léo : « piment = aura flamme bien visible, citron = aura électrique, fruit du dragon = aura hypnotique,
+   raisin angélique, pomme dorée ») — de VRAIS effets du moteur, pas des dessins : UN seul programme (`FAURA.mat`), cinq comportements choisis par `uKind`.
+   Chaque aura est un nuage de points CARRÉS (la DA pixel du jeu) dont TOUT le mouvement est calculé dans le vertex shader à partir de `uT` et d'un
+   grain tiré une fois (`aSeed`) : zéro travail processeur par image, zéro allocation, additif (le bloom du jeu fait le reste).
+   0 : PIMENT — langues de feu qui montent autour du fruit (blanc-jaune → orange → rouge sombre)
+   1 : CITRON — arcs électriques brisés qui claquent à 11 Hz, étincelles
+   2 : DRAGON — vortex hypnotique : bras en spirale qui tournent + anneaux qui s'élargissent, teintes qui glissent (disque face à la caméra, DERRIÈRE le fruit)
+   3 : RAISIN — halo d'ange incliné au-dessus + poussière d'or qui monte en scintillant
+   4 : POMME DORÉE — étincelles en croix qui orbitent et montent
+   Usage : `const a=fauraNew(kind);scene.add(a);` puis `fauraTick(a,tSecondes,camera)` à chaque image. */
+const FAURA={mat:null,px:1,N:[320,280,360,0,150]};
+function fauraMat(kind){
+  const m=new THREE.ShaderMaterial({
+    uniforms:{uT:{value:0},uKind:{value:kind},uPx:{value:600}},
+    vertexShader:`uniform float uT,uKind,uPx;attribute vec4 aSeed;varying vec4 vCol;varying float vShape;
+float h(float x){return fract(sin(x*127.1)*43758.5453);}
+vec3 ramp(float l){return mix(mix(vec3(1.,.96,.62),vec3(1.,.52,.08),smoothstep(0.,.42,l)),vec3(.78,.06,.03),smoothstep(.4,1.,l));}
+void main(){
+  vec3 p=vec3(0.);float size=.2;vec4 col=vec4(0.);float shape=0.;vec4 s=aSeed;
+  if(uKind<.5){ // PIMENT : une nappe de feu sur tout le corps du fruit
+    float life=fract(uT*(.7+.8*s.y)+s.x);
+    float bx=(s.z-.5)*4.6;float arch=-.55+.9*(1.-pow(abs(bx)/2.4,2.));
+    p=vec3(bx*(1.-.35*life)+sin(uT*4.+s.w*30.+life*6.)*.22*life,arch+life*(3.1+1.6*s.y),(s.w-.5)*1.3);
+    p.x+=sin(uT*6.+s.x*50.)*.25*life;
+    size=(1.-life*.8)*(.34+.30*s.w)+.06;
+    col=vec4(ramp(life),(1.-pow(life,3.)));
+    } else if(uKind<1.5){ // CITRON : l'arc claque
+    float spark=step(1.5,s.x);float bolt=spark>.5?floor(s.z*8.):floor(s.x*8.+.5);float st=floor(uT*11.+bolt*3.7);
+    float on=step(.22,h(bolt*17.1+st*1.3));
+    float ang=h(bolt*5.7+st*3.1)*6.2832;float el=(h(bolt*9.3+st*2.2)-.5)*1.6;
+    vec3 d=normalize(vec3(cos(ang),el,sin(ang)));
+    vec3 pe=normalize(cross(d,vec3(0.,1.,.0013)));vec3 pf=cross(d,pe);
+    float t=s.y;float sg=floor(t*9.);
+    float j1=(h(sg*3.3+bolt+st*.7)-.5)*1.5,j2=(h(sg*7.1+bolt*2.+st*.9)-.5)*1.5;
+    p=d*(1.6+t*3.8)+(pe*j1+pf*j2)*(.3+sin(t*3.1416)*.9);
+    size=.20+.07*h(s.z*91.+st);
+    col=vec4(mix(vec3(.45,.9,1.),vec3(1.,1.,.8),h(bolt+st*.37)),on);
+    if(spark>.5){float lf=fract(uT*2.2+s.z);p=d*(1.7+3.*s.y)+vec3(h(s.z*3.)-.5,h(s.z*5.)-.5-lf*.5,h(s.z*7.)-.5)*lf*2.2;size=.15*(1.-lf);col=vec4(1.,1.,.7,on*(1.-lf));}
+  } else if(uKind<2.5){ // DRAGON : le vortex
+    float arm=floor(s.x*3.);float hue;float al=1.;
+    if(s.w<.62){float rho=1.2+s.y*5.6;float a=arm*2.0944+rho*.95-uT*1.5+s.z*.12;
+      p=vec3(cos(a)*rho,sin(a)*rho*.95,-1.6);size=.18+.22*(rho/6.8)+.05*sin(uT*5.+rho*3.);hue=fract(rho*.15-uT*.3+arm*.16);al=1.;}
+    else{float rr=fract(uT*.4+s.y)*7.;float a=s.z*6.2832;p=vec3(cos(a)*rr,sin(a)*rr*.95,-1.6);size=.17;hue=fract(rr*.14-uT*.25);al=(1.-rr/7.)*.95;}
+    vec3 pc=.52+.48*cos(6.2832*(hue*.55+vec3(.0,.2,.42)));col=vec4(pc*vec3(1.,.8,1.),al);
+  } else if(uKind<3.5){ // RAISIN : halo d'ange et poussière d'or
+    if(s.w<.3){float a=s.z*6.2832+uT*.9;p=vec3(cos(a)*1.3,2.75+sin(a)*.17+sin(uT*1.6)*.08,sin(a)*.62);size=.14;col=vec4(1.,.93,.55,.95);}
+    else{float life=fract(uT*.3+s.x);float a=s.z*6.2832+uT*.5;float r=1.1+2.*s.y;float tw=.5+.5*sin(uT*7.+s.x*50.);
+      p=vec3(cos(a)*r,-1.+life*5.2,sin(a)*r*.8);size=.2*(.45+tw);col=vec4(1.,.96,.74,(1.-life)*tw);shape=1.;}
+  } else { // POMME DORÉE : les étincelles
+    float life=fract(uT*.42+s.x);float a=s.z*6.2832+uT*(.9+s.y);float r=1.25+1.5*s.y+life*.8;float tw=.45+.55*abs(sin(uT*6.+s.x*40.));
+    p=vec3(cos(a)*r,-1.2+life*4.+sin(a*2.)*.3,sin(a)*r*.7);size=.24*tw*(1.-life*.4);col=vec4(1.,.8,.26,tw*(1.-life*.5));shape=1.;}
+  vCol=col;vShape=shape;
+  vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;
+  gl_PointSize=clamp(size*uPx/max(.1,-mv.z),2.,90.);
+}`,
+    fragmentShader:`varying vec4 vCol;varying float vShape;
+void main(){vec2 c=gl_PointCoord-.5;float v=max(abs(c.x),abs(c.y))*2.;
+  if(vShape>.5){float ax=abs(c.x),ay=abs(c.y);if(!(min(ax,ay)<.09||ax+ay<.17))discard;}
+  vec3 core=min(vCol.rgb*1.35+.15,vec3(1.));vec3 edge=vCol.rgb*vec3(.85,.5,.62);
+  gl_FragColor=vec4(v>.62&&vShape<.5?edge:core,clamp(vCol.a,0.,1.));}`,
+    blending:THREE.NormalBlending,transparent:true,depthWrite:false,depthTest:true});
+  return m;
+}
+function fauraNew(kind){
+  const n=FAURA.N[kind],pos=new Float32Array(n*3),sd=new Float32Array(n*4);let q=kind*7919+13;
+  const r=()=>{q=(q*16807)%2147483647;return q/2147483647;};
+  for(let i=0;i<n;i++){sd[i*4]=r();sd[i*4+1]=r();sd[i*4+2]=r();sd[i*4+3]=r();
+    if(kind===1){if(i<224){sd[i*4]=Math.floor(i/28)/8;sd[i*4+1]=(i%28)/27;}else sd[i*4]=2;}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('aSeed',new THREE.BufferAttribute(sd,4));
+  const pts=new THREE.Points(g,fauraMat(kind));pts.frustumCulled=false;pts.renderOrder=20;pts.visible=n>0; // n=0 : pas d'aura (le RAISIN ne garde que ses ailes blanches)
+  const grp=new THREE.Group();grp.add(pts);grp.userData.faura={kind,pts};return grp;
+}
+const FAURA_Q=new THREE.Quaternion();
+function fauraTick(grp,t,cam){
+  const u=grp.userData.faura;u.pts.material.uniforms.uT.value=t;
+  u.pts.material.uniforms.uPx.value=renderer.domElement.height/(2*Math.tan(cam.fov*Math.PI/360));
+  if(u.kind===2){grp.parent&&grp.parent.updateMatrixWorld();grp.quaternion.copy(cam.quaternion);} // le disque regarde la caméra
+}
+/* banc (dev) : `dbgFruitAura(kind, t, nom)` — en pause, pose le fruit `nom` (recette FV2/FV3/FV5 de l'atelier, ou un fruit du jeu par son numéro) devant la caisse
+   avec son aura et rend UNE image du vrai jeu (bloom compris). `dbgFruitAura(null)` retire tout. Rend l'image en dataURL. */
+window.dbgFruitAura=function(kind,t,nom,ang,dist){
+  if(window.__fa){scene.remove(window.__fa.g);window.__fa=null;}
+  if(kind==null)return 'ok';
+  if(started&&!gameOver&&!paused)togglePause();
+  const g=new THREE.Group();g.position.copy(carGroup.position).add(new THREE.Vector3(0,3.4,0));
+  let geo;try{fruitGeo(0);const pal=Object.assign({},FRUIT_PAL,window.FV2_PAL||{},window.FV3_PAL||{},window.FV4_PAL||{},window.FV5_PAL||{});
+    const f=(window.FV5||{})[nom]||(window.FV4||{})[nom]||(window.FV3||{})[nom]||(window.FV2||{})[nom];
+    if(typeof nom==='number'){geo=fruitGeo(nom);}else{const K=lpKit(pal);f(K);geo=K.done().f;}}catch(e){return 'ERR '+e.message;}
+  const m=new THREE.Mesh(geo,FRUIT_MAT);m.scale.setScalar(kind===0||kind===1||kind===2||kind===3||kind===4?3.1:2.7);g.add(m);
+  const a=fauraNew(kind);g.add(a);scene.add(g);window.__fa={g,a,m};
+  if(ang==='course'){ // le cadre du jeu : le fruit posé sur la route devant la caisse, vu par la caméra de poursuite telle quelle (à `dist` m)
+    camera.getWorldDirection(FAURA_Q.w===1?new THREE.Vector3():new THREE.Vector3());const fw=new THREE.Vector3();camera.getWorldDirection(fw);fw.y=0;fw.normalize();
+    g.position.copy(carGroup.position).addScaledVector(fw,dist||26).add(new THREE.Vector3(0,2.2,0));m.scale.setScalar(2.7);
+  } else {const aa=ang==null?.35:ang,d=dist||22,p=g.position;
+    camera.position.set(p.x+Math.sin(aa)*d,p.y+1.6,p.z+Math.cos(aa)*d);camera.lookAt(p.x,p.y+.6,p.z);camera.updateMatrixWorld();}
+  g.updateMatrixWorld(true);fauraTick(a,t||0,camera);
+  m.rotation.y=(t||0)*.8;g.updateMatrixWorld(true);
+  RIM_U.uSunV.value.copy(RIM_DIR).transformDirection(camera.matrixWorldInverse);
+  if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
+  return renderer.domElement.toDataURL('image/png');
+};
 /* ===== LE FINAL SPIN v2 (2026-10-14 soir — Sacha, sur la v1 : « c'est ÇA la roulette, sérieux ? » ; l'ordre du matin : « le final spin [de
    Jetpack Joyride] … la bonne DA, HUD, lumières, bonnes animations et un vrai niveau de finition ; ça ne doit pas se déclencher à chaque
    partie ») — session IDEE. La v1 (une petite grille d'icônes sur l'écran de mort en transparence) est REFAITE :
@@ -47047,7 +47151,7 @@ function pwrTick(dt){
      SENTAIT pas en chiffres. */
 const MIR={t:0,max:0,min:.6};            // t = secondes « perdu d'avance » (lissé), max = le pire du vol
 function mirTick(dt){ // dans la branche 'fall', après le viseur (LM.vu vient d'être posé)
-  const perdu=!LM.vu&&fallT>.4&&(VOLR.on?(volVu(fallVel)<-4&&tryLand._bi>=0&&VOLR.c.subVectors(fallPos,pts[tryLand._bi]).dot(VOLR.u)<-10):(fallVel.y<-4&&fallPos.y<lastNearY-10)); // (LE VOL QUI SUIT LA ROUTE) sur la route sans haut ni bas : 10 m sous la dalle survolée, en tombant vers son dessous
+  const perdu=!LM.vu&&fallT>.4&&(VOLR.on?(volVu(fallVel)<-4&&tryLand._bi>=0&&VOLR.c.subVectors(fallPos,pts[tryLand._bi]).dot(VOLR_FIGE?VOLR.b.copy(Nn[tryLand._bi]).multiplyScalar(Nn[tryLand._bi].dot(VOLR.u)<0?-1:1):VOLR.u)<-10):(fallVel.y<-4&&fallPos.y<lastNearY-10)); // (LE VOL QUI SUIT LA ROUTE) sur la route sans haut ni bas : 10 m sous la dalle survolée, en tombant vers son dessous
   MIR.t=perdu?MIR.t+dt:Math.max(0,MIR.t-dt*2);if(MIR.t>MIR.max)MIR.max=MIR.t;
 }
 function mirPose(){ // la pose a réussi (tryLand vrai)
@@ -52473,6 +52577,17 @@ const TBORD={t:0,on:false,u:new THREE.Vector3()};
    `?sans=volroulis` = avant ; `dbgVolRoulis(false|true)` le bascule en direct pour les vols suivants. */
 let VOLR_ROULIS=!/[?&]sans=([^&]*,)?volroulis(,|&|$)/.test(location.search);
 window.dbgVolRoulis=function(v){if(v!=null)VOLR_ROULIS=!!v;return VOLR_ROULIS;};
+/* ===== LE VOL SANS HAUT NI BAS (2026-10-20, Sacha : « il y a toujours des problèmes dans la map nuage : on est aimanté à la route, le jeu a du mal à
+   gérer le haut et le bas — il ne faut plus de haut ni de bas, juste la voiture, elle peut voler naturellement, librement ; quand tu voles près de la
+   route tu es attiré et ta trajectoire est déviée par le haut et le bas ») =====
+   `VOLR` faisait encore tourner le haut du vol avec la dalle la plus proche, image après image : près de la route, la gravité tirait toujours vers
+   « sa » dalle, et chaque vrille, chaque plongeon de la route sous la caisse tordait la trajectoire (l'aimant, même quand l'écran ne roulait plus).
+   Désormais le haut du vol est celui du DÉCOLLAGE et il ne bouge plus : la face de la route qu'on quitte (`startFall`, `VOLR.u = F.n`). Un vol est une
+   parabole nette dans le repère de la caisse au départ — gravité, plané du nitro, équilibre de la caisse et de l'écran, viseur et prédictions des figures
+   suivent ce même haut, donc rien ne dévie, rien n'attire (aucune aide : la route qui s'est tordue entre-temps peut aussi être manquée).
+   `?sans=volfige` = le haut qui suit la dalle (v689) ; `dbgVolFige(false|true)` le bascule en direct pour les vols suivants. */
+let VOLR_FIGE=!/[?&]sans=([^&]*,)?volfige(,|&|$)/.test(location.search);
+window.dbgVolFige=function(v){if(v!=null)VOLR_FIGE=!!v;return VOLR_FIGE;};
 let VOLR_ON=!/[?&]sans=([^&]*,)?volroute(,|&|$)/.test(location.search);
 window.dbgVolRoute=function(v){if(v!=null)VOLR_ON=!!v;return {on:VOLR_ON,vol:VOLR.on,u:VOLR.u.toArray().map(function(x){return +x.toFixed(3);})};}; // (banc) dbgVolRoute(false) = le vol d'avant pour les vols suivants
 const VOLR={on:false,k:12,u:new THREE.Vector3(0,1,0),c:new THREE.Vector3(),a:new THREE.Vector3(),b:new THREE.Vector3(),q:new THREE.Quaternion()}; // k : la vitesse du lissage (1/s) · u : le haut du vol · c, a, b, q : calcul
@@ -52483,6 +52598,7 @@ function volPlafU(v,m){if(!VOLR.on){if(v.y>m)v.y=m;return;}const k=v.dot(VOLR.u)
 function volH(v){if(!VOLR.on)return Math.hypot(v.x,v.z);const k=v.dot(VOLR.u);return Math.sqrt(Math.max(0,v.lengthSq()-k*k));} // la vitesse « à plat »
 function volHK(v,f){if(!VOLR.on){v.x*=f;v.z*=f;return;}const k=v.dot(VOLR.u);v.addScaledVector(VOLR.u,-k).multiplyScalar(f).addScaledVector(VOLR.u,k);} // la part « à plat » × f
 function volrSuit(dt){if(!VOLR.on)return;if(!TORD.on){VOLR.on=false;VOLR.u.set(0,1,0);return;} // chaque image de vol : le haut suit la dalle survolée (une route qui change en plein vol rend le haut du monde)
+  if(VOLR_FIGE)return; // (LE VOL SANS HAUT NI BAS) le haut du vol reste celui du décollage : la route qui tourne dessous ne le touche plus
   const i=tryLand._bi;if(!(i>=0)||!Nn[i])return;
   const t=T[i],a=VOLR.a.copy(VOLR.u);if(t)a.addScaledVector(t,-a.dot(t)); // (LA VRILLE PORTE LE VOL) le haut d'avant, vu le long de l'axe de la route
   VOLR.c.copy(Nn[i]);if(VOLR.c.dot(VOLR.u)<0)VOLR.c.negate();VOLR.u.lerp(VOLR.c,1-Math.exp(-dt*VOLR.k)).normalize();
@@ -55968,7 +56084,7 @@ function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe(); // (2026-10
   // (bord v2) LA BASCULE : la vrille part du côté du VIDE (le toit vers l'extérieur : signe opposé à `lat`, même convention que carRoll9),
   // et elle part du roulis que la carrosserie avait déjà — reporté sur la caisse entière, sinon il s'effaçait d'un coup à la sortie
   bascOn=!!bord;bascT=0;bascDir=bord?-(Math.sign(lat)||1):1;levreY=0;
-  TBORD.t=bord&&TORD.on?1.1:0;TBORD.on=false; // (LE BORD DE LA ROUTE TORDUE) la gravité de la route, le temps de la bascule
+  TBORD.t=bord&&TORD.on&&!(VOLR_FIGE&&VOLR.on)?1.1:0;TBORD.on=false; // (LE BORD DE LA ROUTE TORDUE) la gravité de la route, le temps de la bascule — (LE VOL SANS HAUT NI BAS) plus de gravité qui suit la route : le haut du décollage (VOLR.u) est déjà la face quittée
   if(TBORD.t>0){tryLand._bi=Math.max(0,Math.min(NP-1,Math.round(s/L*(NP-1))));curLatOff=lat;curHOff=side<0?-THICK:0;} // le radar part du bord quitté (sinon, à la 1re image, il parle encore du vol d'avant)
   /* (2026-10-17, LE DÉCOLLAGE SANS SURSAUT) le roulis de la carrosserie (jusqu'à 24° dans un virage) passe AU VOL pour tout décollage, plus
      seulement au bord : sur un tremplin pris en courbe, un saut nitro au milieu d'un virage, la caisse se redressait d'un coup à plat en une

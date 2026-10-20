@@ -274,7 +274,7 @@ function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe(); // (2026-10
   // (bord v2) LA BASCULE : la vrille part du côté du VIDE (le toit vers l'extérieur : signe opposé à `lat`, même convention que carRoll9),
   // et elle part du roulis que la carrosserie avait déjà — reporté sur la caisse entière, sinon il s'effaçait d'un coup à la sortie
   bascOn=!!bord;bascT=0;bascDir=bord?-(Math.sign(lat)||1):1;levreY=0;
-  TBORD.t=bord&&TORD.on?1.1:0;TBORD.on=false; // (LE BORD DE LA ROUTE TORDUE) la gravité de la route, le temps de la bascule
+  TBORD.t=bord&&TORD.on&&!(VOLR_FIGE&&VOLR.on)?1.1:0;TBORD.on=false; // (LE BORD DE LA ROUTE TORDUE) la gravité de la route, le temps de la bascule — (LE VOL SANS HAUT NI BAS) plus de gravité qui suit la route : le haut du décollage (VOLR.u) est déjà la face quittée
   if(TBORD.t>0){tryLand._bi=Math.max(0,Math.min(NP-1,Math.round(s/L*(NP-1))));curLatOff=lat;curHOff=side<0?-THICK:0;} // le radar part du bord quitté (sinon, à la 1re image, il parle encore du vol d'avant)
   /* (2026-10-17, LE DÉCOLLAGE SANS SURSAUT) le roulis de la carrosserie (jusqu'à 24° dans un virage) passe AU VOL pour tout décollage, plus
      seulement au bord : sur un tremplin pris en courbe, un saut nitro au milieu d'un virage, la caisse se redressait d'un coup à plat en une

@@ -3,6 +3,45 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES AURAS DES FRUITS-POUVOIRS — LE MODULE (2026-10-20, v739, Léo : « piment = aura flamme, citron = électrique, dragon = hypnotique… de vraies auras ») — BANC SEULEMENT
+Plan de Léo : les boosts de la route (plaques turbo, cristaux) deviennent des FRUITS. 9 fruits normaux (même nitro : myrtille, cerise, kiwi coupé en quart, pêche, orange, mangue, pomme, melon coupé, litchi),
+4 fruits-pouvoirs : PIMENT (aura de flammes) = nitro infinie 7 s · CITRON (aura électrique) = vitesse ×2 · FRUIT DU DRAGON (aura hypnotique) = aura ×2 · RAISIN ANGÉLIQUE (ailes blanches, SANS halo,
+vol très près de la route) = airtime ×2 en double jauge · POMME DORÉE = aimant. Bouclier supprimé ; les 7 exotiques restent au cahier des charges, hors du jeu.
+- `code/gameplay/fruits-auras.js` (après pouvoirs-orbes) : UN programme (`FAURA`, `fauraMat`), cinq comportements par `uKind`, points CARRÉS à cœur clair et bord sombre, tout le mouvement dans le vertex shader
+  (`uT` + grain `aSeed`) : zéro travail processeur par image. `fauraNew(kind)` / `fauraTick(grp,t,camera)`. RAISIN = aucune aura (N=0).
+- `dbgFruitAura(kind,t,nom,'course',dist)` : en pause, pose le fruit sur la route devant la caisse et rend UNE image du vrai jeu (bloom compris). ⚠ RIEN n'est appelé en course : aucun effet sur le jeu.
+- Les recettes de fruits (formes) vivent dans l'atelier de Léo (scratchpad), PAS encore dans `pickups-fruits.js`. À faire : formes dans le jeu, route sans plaques/cristaux, nitro par fruit, double jauge du raisin.
+
+## LE VOL SANS HAUT NI BAS — LE HAUT DU VOL FIGÉ AU DÉCOLLAGE, PLUS D'AIMANT SUR LA MAP NUAGES (2026-10-20, v737, session nuages-haut-bas — Sacha : « il y a toujours des problèmes dans la map nuage : on est aimanté à la route, le jeu a du mal à gérer le haut et le bas… il ne faut plus de haut ni de bas, juste la voiture, elle peut voler naturellement, librement ; quand tu voles près de la route, tu es attiré et ta trajectoire est déviée par le haut et le bas »)
+- **Le constat, mesuré** (3e plainte de suite : 18/10 « le jeu ne sait pas de quel côté on va », 19/10 « ça dévie la trajectoire ») : sur la route sans haut ni bas, le HAUT DU VOL
+  (`VOLR.u`) était recalé à chaque image sur la normale de la dalle la plus proche. La vrille du 19/10 (`VOLR_ROULIS`) ne portait que le ROULIS de la route ; le reste — la route qui
+  plonge, se cabre, vire sous la caisse — tournait encore la gravité, le plané du nitro, l'équilibre de la caisse et de l'écran : près de la route, tout tirait vers « sa » dalle.
+  C'EST l'aimant, et c'est lui qui déviait la trajectoire.
+- **Le correctif** (`VOLR_FIGE`, `camera.js`) : `volrSuit` ne recale plus rien. Au décollage `startFall` pose `VOLR.u = F.n` (la face de la route qu'on quitte) et il ne bouge plus de tout
+  le vol. Gravité, plané du nitro, équilibre (`veqNiveau`), `camUp`, viseur, prédictions des figures, BUMP, plafonds : tout suivait déjà `VOLR.u`, donc tout est cohérent sans autre
+  retouche — un vol est une PARABOLE NETTE dans le repère de la caisse au départ. Deux raccords : (1) `startFall` n'arme plus `TBORD` (la gravité « de la route » pendant 1,1 s après une
+  sortie par le bord : elle suivait la dalle la plus proche, image après image) ; (2) `mirTick` (le MIRACULÉ) mesure la hauteur sous la normale de la dalle la plus proche, orientée sur la face quittée
+  (avant, `VOLR.u` EN ÉTAIT la normale). Aucune aide ajoutée, rien d'enlevé aux autres maps (`VOLR.on` faux : le bas du monde, au chiffre près).
+  **`?sans=volfige` = le haut qui suit la dalle (v689) ; `dbgVolFige(false|true)` le bascule en direct pour les vols suivants.**
+- **MESURÉ — le VRAI jeu** (Chrome sans fenêtre, muet, couché 844 × 390, `?carte=nuages&meteo=midi&pistegraine=12345` puis `777`, l'image par image de `dbgStep`, mêmes points `s` de la
+  piste pour l'ancien et le nouveau vol, décollage `dbgDauphin`, `explode` neutralisé ; « sortie de plan » = de combien la caisse s'écarte du plan (vitesse de départ, haut de départ) que
+  doit garder une parabole pure) :
+  · SANS NITRO, mains libres, 12 points : avant, le haut du vol tourne de 24° en médiane (max 37°) et la caisse sort de son plan de 2,2 m (max 5,7) ; après 0° et 0 m. 12/12 posés des deux
+    côtés, durée médiane 2,35 s → 2,42 s. Avec le pilote de banc (`dbgAuto` vol, 12 points × 2 graines) : 24/24 posés avant ET après.
+  · NITRO TENUE 1,5 s, mains libres, 12 points : avant, le haut tourne de 47° en médiane (max 69°) et la caisse sort de son plan de 36 m (max 60) ; après 0° et 0 m.
+  · NITRO TENUE en continu, mains libres, 7 points : avant, le haut du vol tourne de 92 à 155° et la caisse part de 78 à 375 m sur le côté ; après 0° et 0 m, droite. C'EST ÇA que Sacha sentait.
+  · SAUTS NITRO (1,5 s de nitro, pilote de banc qui ne braque qu'en LACET, 12 points chacun) : impulsion 21 m/s à 60 m/s, graine 12345 → avant 12/12 posés (le haut du vol et la
+    route à la pose à 3° en médiane), après 9/12 ; impulsion 35 m/s à 80 m/s, graine 777 → avant 9/12, après 8/12. L'écart entre le haut du vol et la route à la pose monte à 20° (max 74°)
+    puis 51° (max 69°) en médiane : la route a tourné pendant le vol, la caisse non.
+  · Aucune erreur (`__loopErr`, `__banqErr` vides) ; le haut du vol relevé 6 fois dans un vol à la nitro, en vrai temps réel : IDENTIQUE, couché, debout et dans le cadre de l'ordi.
+- **LE PRIX, dit franchement** : plus rien ne RAMÈNE la caisse vers la route. Un saut normal se pose comme avant ; mais un long vol à la nitro file maintenant droit dans le repère du départ, et
+  sur une route qui vrille il peut la manquer (au banc, 17 sauts nitro posés sur 24 contre 21 avant, avec un pilote qui ne sait pas piquer — un joueur a le manche) ; avant, cette gravité-aimant la rattrapait toute seule.
+  Le viseur de pose, lui, devient exact (il intègre la MÊME gravité que la caisse). Rien n'a été fait pour compenser : ce serait une aide, et la règle est « zéro assistance ».
+- **À trancher (Sacha)** : si les vols à la nitro sont devenus trop durs à poser sur la route des nuages, dis-le — les pistes sont (a) laisser faire, c'est un vol libre ; (b) une route moins
+  vrillée (`NV_CALME`, `TORD_AMP`) ; (c) `?sans=volfige` pour comparer. Pas touché sans toi.
+- **Banc** : `faire-copie.sh` (la copie du jeu avec `window.__ev`, la fermeture du jeu à portée d'`eval`), `banc-vol.mjs` (Node + CDP, décollages appariés), `verif-jeu.mjs` (menu → JOUER →
+  un vol, trois formats d'écran) — dans le scratchpad de la session, pas dans le dépôt.
+
 ## LES TRAÎNÉES EN CUBES — ÉTAPE 1 : SAKURA, BILLETS, FOUDRE DIVINE (2026-10-20, v734, session TRAÎNÉES PIXEL — Sacha : « passer les traînées en un joli jeu de pixels, comme le nitro ou toutes les flammes du jeu ; les billets, les éclairs, tout ça, avec le même style pixel qui bouge ; toutes les traînées du jeu, les feuilles de sakura, les billets, en pixels »)
 - **L'IDÉE** : le feu du nitro, l'arc-en-ciel et la porte sont des CUBES (faces ombrées, couleurs au-delà de 1, halo qui s'accumule) ; les traînées POP (moteur `TRX`)
   étaient des quads lisses peints sur une planche. Elles prennent la même matière. Plan en trois étapes, validé par Sacha (« cubes, étape 1 d'abord ») :
@@ -27,6 +66,20 @@
   Ports 9731/9732 (sonde 9741/9742) : vérifier qu'ils sont libres. Ne jamais éditer `index.html` pendant un passage (la mise à jour toute seule recharge la page).
 - MESURÉ : sakura ~300 cubes pleins, billets ~120, foudre ~95 pleins + ~80 contours + ~85 lueurs ; `TRX.ms` 0,1-0,2 ms par image au banc (Mac chargé, charge > 100).
 - À TRANCHER (Sacha) : la taille des pétales et des billets (`TC_K.pet`, `TC_K.bil`), et si les éclairs doivent plus zigzaguer vus de derrière (la poursuite les voit de bout).
+
+## LES NUAGES PAISIBLES — UN SEUL TYPE, 33 NUAGES, UNE MER LISSE (2026-10-20 soir, v737, Léo, relayant Sacha : « c'est trop chelou, il y a trois couches de nuages différents » · « l'impression que ça donne, beaucoup trop de nuages » · « trop chaotique, plus paisible » → « oui, mets les nuages plus calmes sur le main »)
+- **Les « trois types »** (cause trouvée) : la dose VERRE du vitrail (v704) ne vivait qu'ENTRE deux distances : du lisse tout près, une grille de verre à
+  mi-distance (écailles + peau transparente), du lisse au loin — trois aspects dans la même vue. **Retirée du défaut** : un seul type de nuage, le corps
+  lisse v8 et sa poussière de petits cubes (`?nuvit=verre` rend l'essai d'avant ; `?nuvit=fantome` est le défaut).
+- **Moins, plus calme** (map NUAGES seulement ; `?arc=0` rend tout le main d'avant la mer de nuages) :
+  · `CDENS` .14 (`?cdens=`) : 224 → 33 nuages de décor ; `GROS` .4 (`?gros=`) : cathédrales, massifs, titans, tours héroïques ÷2,5 (13 grandes masses → 5) ;
+  · la poussière de cubes 8 000 → 1 400 par gabarit (`?fant=`, `fdeh` .4), le chou-fleur des gabarits ×0,4 (`KIDS_ARC`, `?kids=`) ;
+  · la MER DE CUMULUS plus lisse : relief 3,2 → 1,6, couverture ,22 → ,12 (moins de trouées sombres).
+- **Mesuré** (banc Chrome sans fenêtre muet, 844 × 390, même piste) : 0 programme compilé en course (217 → 217) ; rendu synchronisé 11,8 (v704) → 8,8 (v731)
+  → 7 ms ; triangles des nuages 2 041 k → ~70 k. Cartes postales des six météos refaites (point de vue à 600 m de l'entrée : le soleil, la mer, une masse).
+  Planches : `photos-gameplay/nuages-un-seul-type-avant-apres.png`, `nuages-paisible-avant-apres.png` (CAR CAHS V3).
+- ⚠ Banc : les taches de couleur vives en course = le JUS des fruits ; `dbgNuVue('nuageN')` prend le N-ième PLUS GROS nuage — avec moins de nuages ce
+  n'est plus le même.
 
 ## MOINS DE NUAGES SUR LA MAP NUAGES — UNE MASSE CALME, DU CIEL AUTOUR (2026-10-20, v731, Léo : « il y a trop de nuages, c'est un peu vomitif, mais on y est presque ; essaie de trouver des modèles gratuits sur lesquels tu peux t'inspirer — 3D » → « oui, mets les nuages plus légers sur le main »)
 - **Les modèles 3D libres** (poly.pizza) : les cinq « Cloud » de **Quaternius** sont en **domaine public (CC0)** — une masse calme, base plate, un dôme,
