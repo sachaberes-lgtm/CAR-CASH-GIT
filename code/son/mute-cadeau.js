@@ -50,7 +50,9 @@ function jourCommit(){ // appelée par commitExploits : la partie compte → le 
   try{
     if(!J.on||!J.cmp||!J.dep||!(RUNX.t>=J.tMin))return 0;
     const e=jourEtat(J.dep),S=SAVE.d.jour;
-    if(e.dispo){S.d=J.dep;S.n=e.suiv;const p=jourPrime(e.suiv);
+    if(e.dispo){S.d=J.dep;S.n=e.suiv;
+      if(typeof SERIE7==='object'&&SERIE7.on){const o=serieDonne(e.suiv);J.fin={n:e.suiv,p:o.cash,k:J.k,s:o};J.cmp=false;return o.cash;} /* (2026-10-20, Léo) LA SÉRIE DE SEPT JOURS (missions/aujourdhui.js) : la case du calendrier au lieu de la prime ; ?serie=ancien = la prime */
+      const p=jourPrime(e.suiv);
       if(p>0){SAVE.d.bank=Math.min(1e30,bank()+p);gagneAjoute(p);bankMaxMaj();}
       J.fin={n:e.suiv,p:p,k:J.k};J.cmp=false; // une seule fois par partie
       return p;}
@@ -61,8 +63,9 @@ function jourCommit(){ // appelée par commitExploits : la partie compte → le 
 function jourFinTexte(){ // (écran de fin) ce que le quotidien a donné à CETTE partie, à ajouter à la ligne « COMPTE : $ N » : « · ×2 DU JOUR · SÉRIE 3 +$ 40 » ('' si rien) — en capitales JS (accents gardés : la ligne est en police système)
   const f=JOUR.fin;if(!f)return '';
   let s=f.k>1?TR('×2 du jour'):'';
-  if(f.p>0)s+=(s?' · ':'')+TR('Série {n}').replace('{n}',f.n)+' +'+fmtC(f.p);
-  return s?' · '+s.toUpperCase():'';
+  if(f.s){const L=f.s.cash?{cash:f.s.cash}:f.s.jeton?{jeton:f.s.jeton}:{exclu:f.s.exclu};s+=(s?' · ':'')+TR('Série {n}').replace('{n}',f.n)+' '+serieLotTxt(L);} /* (2026-10-20) la case de la série : argent, jeton ou peinture */
+  else if(f.p>0)s+=(s?' · ':'')+TR('Série {n}').replace('{n}',f.n)+' +'+fmtC(f.p);
+  return s?' · '+sansAcc(s.toUpperCase()):''; /* (2026-10-20) la ligne est en police PIXEL (pas de capitales accentuées : « SéRIE » s'affichait) */
 }
 function jourTexte(){ // la phrase du quotidien, déjà traduite ('' = rien à dire) : « Série 3 jours · ×2 sur ta 1re partie » / « Prochain ×2 demain ». Les mots sont en casse mixte (TR ne retire alors aucun accent) : la feuille met en capitales.
   try{
