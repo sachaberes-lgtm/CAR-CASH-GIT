@@ -44,6 +44,7 @@ rendu/nettete-qualite.js             # échelle de qualité QL, la sonde
 maps/nuages-coton.js                 # nuages : mesh simples, brillance, finesse, ciel de coton
 maps/nuages-v8.js                    # nuages v8 : une seule matière, sculpteur de cumulus, sans coutures
 maps/nuages-vitrail.js               # nuages en vitrail (Léo)
+maps/nuages-casses.js                # nuages qui se dégagent : trouées par marches de cubes, blocs qui se cassent en petits (Léo)
 maps/pigeons.js                      # pigeons ramiers, pigeons de Paris
 gameplay/route-sans-haut.js          # la route sans haut ni bas, vitesse réelle
 maps/ville-entree.js                 # l'entrée dans la ville

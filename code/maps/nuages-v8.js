@@ -368,6 +368,7 @@ function n8Vap(){ const N=256,A=new Uint8Array(N*N),D=new Uint8Array(N*N*2),rg=m
   const t=new THREE.DataTexture(D,N,N,THREE.LuminanceAlphaFormat);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;return t;}
 const N8_U={uFondu:{value:1},uTps:{value:0},uSunW:{value:SUN_DIR},uNearF:GFX_U.uNearF,uAlb:{value:CLOUD_MAT.color},uSunC:{value:null},uSky:{value:null},uGnd:{value:null},uK:{value:new THREE.Vector4(1,1,1,1)},uR:{value:new THREE.Vector4(-.25,.5,.64,1)}}; // uR : la frontière d'ombre (début, fin en N·L), la clarté du côté ombre, (libre)
 if(N8_VAP){N8_U.uVap={value:null};N8_U.uVapK={value:new THREE.Vector4(1,1,1,1)};} // (coton-blanc) la toile de vapeur et ses doses : x érosion du bord, y grain du cœur, z or du contre-jour, w tout (palier 2)
+N8_U.uHole=NHOLE.uHole;N8_U.uHoleC=NHOLE.uHoleC;
 N8_U.uLav={value:new THREE.Vector3(.72,.78,.97)}; // (2026-10-14, passe graphismes · nuages-jour) la teinte de l'ombre des cumulus (était la constante vec3(.72,.78,.97) du GLSL, un bleu-lavande franc) : un uniforme, posé par ambiance (champ `nuLav`), même valeur par défaut
 /* LES NUAGES SANS COUTURES BLEUES (2026-10-15 soir, Sacha : « les nuages sont encore buggés ») — VU au banc (mer de nuages, rafales de photos) : des
    LISERÉS BLEUS et des trous dans la ouate là où deux cumulus se chevauchent. La cause : le bord d'un nuage est à demi transparent (la silhouette
@@ -405,8 +406,9 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       ...(N8_VAP?['  float sc9=length(modelMatrix[0].xyz);','#ifdef USE_INSTANCING','  sc9*=length(c0);','#endif','  vQ=sc9*.077/max(length(cameraPosition-wp.xyz),1.);']:[]), /* (coton-blanc) la taille d une cellule de vapeur à l écran (rad) : sous ~3 px elle s éteint */
       '#include <fog_vertex>',
       '}'].join('\n'),
-    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform vec4 uK,uR;uniform float uFondu;varying vec3 vN,vW,vA,vT;varying float vNvF;',...(N8_VAP?['uniform sampler2D uVap;uniform vec4 uVapK;varying vec3 vP;varying float vQ;','float n8vap(vec3 x){vec3 p=floor(x),f=fract(x);f=f*f*(3.-2.*f);vec2 uv=mod(p.xy+vec2(37.,17.)*p.z,256.)+f.xy;vec2 rg=texture2D(uVap,(uv+.5)/256.).ra;return mix(rg.x,rg.y,f.z);}']:[]),
+    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform vec4 uK,uR;uniform float uFondu;uniform vec4 uHole[8];uniform float uHoleC;varying vec3 vN,vW,vA,vT;varying float vNvF;',...(N8_VAP?['uniform sampler2D uVap;uniform vec4 uVapK;varying vec3 vP;varying float vQ;','float n8vap(vec3 x){vec3 p=floor(x),f=fract(x);f=f*f*(3.-2.*f);vec2 uv=mod(p.xy+vec2(37.,17.)*p.z,256.)+f.xy;vec2 rg=texture2D(uVap,(uv+.5)/256.).ra;return mix(rg.x,rg.y,f.z);}']:[]),
       'void main(){vec3 N=normalize(vN),N0=N,V=normalize(cameraPosition-vW);',
+      '  for(int i9=0;i9<8;i9++){vec4 h9=uHole[i9];if(h9.w>.01&&distance((floor(vW/uHoleC)+.5)*uHoleC,h9.xyz)<h9.w)discard;}',
       /* LE RELIEF DE PRÈS (SON et DEBUGGING, mesuré : en vol, un grand nuage tout proche était un MUR lisse « en plastique ») : sous ~300 m, la
          normale ondule (deux champs de sinus déformés, en espace monde, des bosses de ~50 m) — le mur redevient de la ouate bosselée. Au loin, rien. */
       '  float dd=length(cameraPosition-vW),kd=smoothstep(320.,70.,dd);',

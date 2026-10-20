@@ -619,7 +619,7 @@ function updateClouds(dt,t){
     if(c.brokenT>0){ // DÉFONCÉ : éclate vite (×.08), reste en miettes, puis se reforme sur la fin
       c.brokenT-=dt;const bt=c.brokenT;
       const sc=bt>4.0?1-(4.5-bt)/0.5*0.92:bt>1.5?0.08:0.08+(1.5-bt)/1.5*0.92;
-      c.g.scale.setScalar(bt<=0?1:Math.max(0.06,sc));
+      if(!NUVIT.vox)c.g.scale.setScalar(bt<=0?1:Math.max(0.06,sc)); // (cubes) le banc ne rétrécit plus : il est TROUÉ (nuCasseBurst) et se referme
     }
     {const ex=camera.position.x-c.g.position.x,ey=camera.position.y-c.g.position.y,ez=camera.position.z-c.g.position.z,
       dc=(ex*ex+ez*ez)/(c.r*c.r)+(ey*ey)/(c.ry*c.ry);if(dc<2.6){const q=Math.min(1,(2.6-dc)/1.6);if(q>prox)prox=q;}
@@ -635,7 +635,7 @@ function updateClouds(dt,t){
         c.wasIn=true;
         if(SONV2){if(!(mode==='drive'&&(c.brokenT||0)<=0))sfx('nuage.entre');}else noiseBurst(.5,.10,520); // on plonge dans la ouate (console de son : défoncé au sol, c'est nuage.defonce qui parle)
         /* (2026-09-30, Sacha : « les nuages doivent juste BLOQUER LA VUE, rien d'autre ») plus de budget d'airtime rendu par un banc (1,2 s — à l'ORAGE, un vol bas rechargeait toutes les 2-4 s) */
-        shatterCloud(cp,Math.min(1,k+.35)); // MILLE MORCEAUX au point de contact (où l'on touche le banc)
+        if(NUVIT.vox)nuCasseBurst(cp,Math.min(1,k+.35),c);else shatterCloud(cp,Math.min(1,k+.35)); // MILLE MORCEAUX au point de contact (où l'on touche le banc)
         if(mode==='drive'&&(c.brokenT||0)<=0){c.brokenT=4.5;if(SONV2)sfx('nuage.defonce');else whoosh();addStyle(3);} // la caisse DÉFONCE le banc → il éclate puis se reforme
         if(SENS)try{c.sensT=performance.now();sensNuage(k,mode==='drive'&&c.brokenT===4.5);}catch(e){} // (2026-10-14, sensations) le POUF dans la main, dosé par la profondeur et la vitesse — la caisse, elle, ne sent rien
       }
@@ -643,6 +643,7 @@ function updateClouds(dt,t){
          d'air (portance), plus de turbulence (vitesse et vrille chahutées), plus de regain d'airtime ; au sol plus de tangage ni de frein.
          Il reste ce qui se VOIT et s'ENTEND : le voile blanc, la paroi vue de dedans, le son feutré — et la caméra qui tremble à peine. */
       shake=Math.max(shake,(mode==='fall'?.1:.07)*k);
+      if(NUVIT.vox)nuCasseDans(c,k,cp);
       // (zéro particule à la traversée — demande de Sacha : la paroi du mesh fait tout le travail)
     }else if(c.wasIn&&d2>1.3){ // ---- SORTIE ----
       c.wasIn=false;
@@ -651,6 +652,7 @@ function updateClouds(dt,t){
       if(c.onRoad&&mode==='drive'&&Math.abs(vA)*3.6*SPD>140)addStyle(7); // percée à l'aveugle
     }
   }
+  if(NUVIT.vox)nuCasseTick(dt,t);
   cloudInS+=(cloudIn-cloudInS)*Math.min(1,dt*(cloudIn>cloudInS?9:3.5));
   if(cloudInS<.004)cloudInS=0;
   {const o9=(cloudInS*.26).toFixed(3);if(updateClouds._o!==o9){updateClouds._o=o9;cloudFxEl.style.opacity=o9;}} // (2026-09-27) écrit seulement quand il change (hors nuage : « 0.000 » à chaque image) // JOUABLE : voile discret (était .92 = white-out aveuglant, puis .40 — encore trop blanc sous le bloom)

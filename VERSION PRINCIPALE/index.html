@@ -8473,7 +8473,7 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   /* (2026-10-19, essai ARC) LE FOND EN PHOTO + LA MER DE CUMULUS — voir « LE CIEL D'ARC » plus bas. uPh : x la part de la photo, y la colonne (0-1) de son
      soleil, z sa hauteur (rad), w l exposition · uPh2.x le sens du tour · uMr : x la mer de cumulus (0 = la mer peinte d avant), y la profondeur du
      pont de nuages (m sous l œil), z la tuile (m), w la couverture (le seuil des trouées) · uMr2 : x le relief, y la brume (× la tuile). */
-  uPhT:{value:null},uMrT:{value:null},uPh:{value:new THREE.Vector4(0,.6,.1,1)},uPh2:{value:new THREE.Vector4(1,0,0,0)},uMr:{value:new THREE.Vector4(0,900,4200,.12)},uMr2:{value:new THREE.Vector4(1.6,3.6,0,.4)},
+  uTapis:{value:0},uPhT:{value:null},uMrT:{value:null},uPh:{value:new THREE.Vector4(0,.6,.1,1)},uPh2:{value:new THREE.Vector4(1,0,0,0)},uMr:{value:new THREE.Vector4(0,900,4200,.12)},uMr2:{value:new THREE.Vector4(1.6,3.6,0,.4)},
   uTi:{value:new THREE.Vector4(0,0,0,1)},uTi2:{value:new THREE.Vector4(0,0,.35,0)},uTZen:{value:new THREE.Vector3()},uTMid:{value:new THREE.Vector3()},uTHor:{value:new THREE.Vector3()},uTSol:{value:new THREE.Vector3()},uTMerH:{value:new THREE.Vector3()},uTMerO:{value:new THREE.Vector3()},uTCir:{value:new THREE.Vector3()}, // (titre v4) LE CIEL DE L'ÉCRAN TITRE (cielTitre) — uTi.x = 0 hors du titre : rien ne change en course
   uMzA:{value:new THREE.Vector4(760,.8,15,.25)},uMzB:{value:new THREE.Vector4(.20,.16,.26,.8)},uMzT:{value:new THREE.Vector4(0,0,0,0)},uMzO:{value:new THREE.Vector4(0,0,0,0)},uMzH:{value:new THREE.Vector4(0,0,0,0)}, /* ⚠ (0,0,0,0) ÉCRIT : un Vector4() vide vaut (0,0,0,1) — la part 1 peignait toute la mer en NOIR (vu par Léo au menu de sa copie). */ /* (2026-10-03, atelier des nuages : « une fonction pour altérer le ciel en bas ») les COULEURS de la mer de nuages forcées — trous, ombres, dômes : rgb + part (w) ; w = 0 partout = la mer d'avant au bit près */ // (2026-09-30, niveau 1 v2) LA MER SCULPTÉE : échelle des cellules, part « gonflée », franchise de la lumière, remous · couverture, fermeture au loin, creux, clarté des trouées
   uVG:{value:0}, /* (2026-10-01, Sacha : « enlève tous les trucs Van Gogh ») la touche Van Gogh est RETIRÉE du ciel comme des nuages : plus aucun shader ne lit cet uniforme — l'objet reste, inerte, pour qu'un code qui l'écrirait encore ne plante pas */
@@ -8512,7 +8512,7 @@ const skyDome=(function(){
       /* (2026-10-19, essai ARC) LA PHOTO DU CIEL : un vrai ciel (Poly Haven, CC0), sa moitié haute en équirectangulaire ; son soleil est calé sur
          le nôtre (la colonne tourne avec uSunDir, la hauteur se plie : 0 → le soleil du jeu = 0 → celui de la photo, puis jusqu au zénith).
          Lue avec les dérivées de la plus continue des deux coordonnées (fract et fract + ½) : pas de couture au raccord du tour. */
-      'uniform sampler2D uPhT,uMrT;uniform vec4 uPh,uPh2,uMr2;',
+      'uniform sampler2D uPhT,uMrT;uniform vec4 uPh,uPh2,uMr2;uniform float uTapis;',
       'vec3 phCiel(vec3 d){float H=1.5708,e=asin(clamp(d.y,0.,1.)),eg=max(asin(clamp(uSunDir.y,-1.,1.)),.02),ep=uPh.z;',
       '  float e2=e<eg?e*ep/eg:ep+(H-ep)*(e-eg)/(H-eg);',
       '  float u=uPh.y+uPh2.x*(atan(d.x,-d.z)-atan(uSunDir.x,-uSunDir.z))/6.2832,u1=fract(u),u2=fract(u+.5)-.5;',
@@ -9058,7 +9058,7 @@ const skyDome=(function(){
       '  vec2 sx=normalize(uSunDir.xz+vec2(1e-4));float tg=(max(uSunDir.y,.04)+.07)/length(uSunDir.xz+vec2(1e-4));',
       '  float sh=1.;for(int i=1;i<4;i++){float fi=float(i)*.028;float hs=texture2D(uMrT,q+sx*fi).r*.7+texture2D(uMrT,q2+R*sx*fi*3.1).r*.3;sh=min(sh,clamp(1.-(hs-h-fi*tg*12.)*7.,0.,1.));}', // l ombre portée des dômes voisins
       '  sh=mix(1.,sh,uMr2.w);float ao=mix(A.a,1.,.2)*mix(B.a,1.,.4);',
-      '  float cov=smoothstep(uMr.w-.07,uMr.w+.05,h),epa=smoothstep(uMr.w,uMr.w+.3,h);',                   // la couverture ; l épaisseur (les bords des trouées s amincissent)
+      '  float cw9=max(uMr.w,uTapis);float cov=smoothstep(cw9-.07,cw9+.05,h),epa=smoothstep(cw9,cw9+.3,h);',                   // la couverture ; l épaisseur (les bords des trouées s amincissent)
       '  vec3 far=uPh.x>.001?phCiel(normalize(vec3(d.x,.008,d.z))):uTHor;',                              // l air : l horizon de la PHOTO, à cette direction
       '  vec3 lit=mix(uTMerO,uTMerH,dif*mix(.3,1.,sh));',
       '  lit*=mix(.7,1.,ao)*mix(.82,1.,epa);',
@@ -9097,6 +9097,7 @@ const skyDome=(function(){
       '    vec3 m=mix(uTMerO*mix(1.-uTi2.z,1.,creux),uTMerH,lit*.8+top*.2);',
       '    m+=uTMerH*pow(1.-lit,3.)*top*.12;',                                                            // le rebord translucide des sommets à contre-jour
       '    m+=uTSol*pow(sv,3.)*.35*lit;',
+      '    if(uTapis>.001)m=mix(mix(uTMerO*.6,uTHor,.55),m,smoothstep(uTapis-.07,uTapis+.05,h0));',                    // (2026-10-20, Léo : « enlever le tapis complètement rempli ») des îlots de cumulus, l air entre eux
       '    m=mix(m,uTHor,(1.-exp(-t/(9000.*uTi.w)))*.85);',                                               // la perspective aérienne
       '    c=mix(m,c,smoothstep(-.035,0.,y));}',                                                          // la mer REJOINT l horizon (pas de rayure)
       '  col=mix(col,c,uTi.x);}'],
@@ -10977,7 +10978,11 @@ function perfMonTick(now,rawMs){const M=PERF_MON;if(rawMs>M.pire)M.pire=rawMs;tr
    et, dans le shader, la LISIÈRE D'ARGENT — face au soleil, le bord de la ouate s'embrase (diffusion avant) — plus un bord
    à peine plus léger. Coût : zéro par image côté CPU, quelques instructions par pixel côté GPU (et deux fois moins de pixels). */
 const GFX_U={uCoeur:{value:1.16},uNearF:{value:new THREE.Vector2(10,40)},uUpV:{value:new THREE.Vector3(0,1,0)},uNuSun:{value:new THREE.Vector3(1.1,.98,.84)},uNuSky:{value:new THREE.Vector3(.9,.98,1.2)},uNuGnd:{value:new THREE.Vector3(.98,.94,1.2)},uDragon:{value:new THREE.Vector3(1,.92,1.08)}}; // uNearF : le fondu des nuages de coton près de l'objectif (m) — 10-40 au sol, 30-110 en vol (posé par la boucle) // (2026-09-28, passe graphismes mobile) le cœur plein des nuages (1 = l'ancienne ouate à 82 % partout) — voir dbgGfx
+/* (2026-10-20, Léo : « ils seraient interactifs quand la voiture les touche : ça les dégage ») LES TROUÉES : huit sphères de monde (xyz, rayon) où la ouate est EFFACÉE, par marches de cubes
+   (la grille `uHoleC` m : le bord d'une trouée est fait de cubes, pas rond) ; posées et animées par nuCasseTick (nuages-casses.js) — un tunnel qui se referme derrière la caisse. */
+const NHOLE={uHole:{value:[0,1,2,3,4,5,6,7].map(function(){return new THREE.Vector4(0,0,0,0);})},uHoleC:{value:3.2}};
 function nuageShader(sh){
+  sh.uniforms.uHole=NHOLE.uHole;sh.uniforms.uHoleC=NHOLE.uHoleC;sh.fragmentShader=sh.fragmentShader.replace('void main() {','void main() {\n{vec3 w9=cameraPosition+(-vViewPosition)*mat3(viewMatrix);for(int i9=0;i9<8;i9++){vec4 h9=uHole[i9];if(h9.w>.01&&distance((floor(w9/uHoleC)+.5)*uHoleC,h9.xyz)<h9.w)discard;}}').replace('#include <common>','#include <common>\nuniform vec4 uHole[8];uniform float uHoleC;');
   sh.uniforms.uSunV=RIM_U.uSunV;sh.uniforms.uSunC={value:sun.color};sh.uniforms.uCoeur=GFX_U.uCoeur;sh.uniforms.uNearF=GFX_U.uNearF;
   sh.uniforms.uUpV=GFX_U.uUpV;sh.uniforms.uNuSun=GFX_U.uNuSun;sh.uniforms.uNuSky=GFX_U.uNuSky;sh.uniforms.uNuGnd=GFX_U.uNuGnd;sh.uniforms.uDragon=GFX_U.uDragon; // (Dragons) la lumière de peintre // la direction du soleil en espace vue (posée chaque image pour les caisses) et SA couleur de biome
   sh.fragmentShader=sh.fragmentShader.replace('#include <lights_fragment_begin>',LFB_SANS_PL) // (2026-09-26) les nuages ne paient plus les lumières ponctuelles (voir LFB_SANS_PL)
@@ -11544,6 +11549,7 @@ function n8Vap(){ const N=256,A=new Uint8Array(N*N),D=new Uint8Array(N*N*2),rg=m
   const t=new THREE.DataTexture(D,N,N,THREE.LuminanceAlphaFormat);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;return t;}
 const N8_U={uFondu:{value:1},uTps:{value:0},uSunW:{value:SUN_DIR},uNearF:GFX_U.uNearF,uAlb:{value:CLOUD_MAT.color},uSunC:{value:null},uSky:{value:null},uGnd:{value:null},uK:{value:new THREE.Vector4(1,1,1,1)},uR:{value:new THREE.Vector4(-.25,.5,.64,1)}}; // uR : la frontière d'ombre (début, fin en N·L), la clarté du côté ombre, (libre)
 if(N8_VAP){N8_U.uVap={value:null};N8_U.uVapK={value:new THREE.Vector4(1,1,1,1)};} // (coton-blanc) la toile de vapeur et ses doses : x érosion du bord, y grain du cœur, z or du contre-jour, w tout (palier 2)
+N8_U.uHole=NHOLE.uHole;N8_U.uHoleC=NHOLE.uHoleC;
 N8_U.uLav={value:new THREE.Vector3(.72,.78,.97)}; // (2026-10-14, passe graphismes · nuages-jour) la teinte de l'ombre des cumulus (était la constante vec3(.72,.78,.97) du GLSL, un bleu-lavande franc) : un uniforme, posé par ambiance (champ `nuLav`), même valeur par défaut
 /* LES NUAGES SANS COUTURES BLEUES (2026-10-15 soir, Sacha : « les nuages sont encore buggés ») — VU au banc (mer de nuages, rafales de photos) : des
    LISERÉS BLEUS et des trous dans la ouate là où deux cumulus se chevauchent. La cause : le bord d'un nuage est à demi transparent (la silhouette
@@ -11581,8 +11587,9 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       ...(N8_VAP?['  float sc9=length(modelMatrix[0].xyz);','#ifdef USE_INSTANCING','  sc9*=length(c0);','#endif','  vQ=sc9*.077/max(length(cameraPosition-wp.xyz),1.);']:[]), /* (coton-blanc) la taille d une cellule de vapeur à l écran (rad) : sous ~3 px elle s éteint */
       '#include <fog_vertex>',
       '}'].join('\n'),
-    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform vec4 uK,uR;uniform float uFondu;varying vec3 vN,vW,vA,vT;varying float vNvF;',...(N8_VAP?['uniform sampler2D uVap;uniform vec4 uVapK;varying vec3 vP;varying float vQ;','float n8vap(vec3 x){vec3 p=floor(x),f=fract(x);f=f*f*(3.-2.*f);vec2 uv=mod(p.xy+vec2(37.,17.)*p.z,256.)+f.xy;vec2 rg=texture2D(uVap,(uv+.5)/256.).ra;return mix(rg.x,rg.y,f.z);}']:[]),
+    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform vec4 uK,uR;uniform float uFondu;uniform vec4 uHole[8];uniform float uHoleC;varying vec3 vN,vW,vA,vT;varying float vNvF;',...(N8_VAP?['uniform sampler2D uVap;uniform vec4 uVapK;varying vec3 vP;varying float vQ;','float n8vap(vec3 x){vec3 p=floor(x),f=fract(x);f=f*f*(3.-2.*f);vec2 uv=mod(p.xy+vec2(37.,17.)*p.z,256.)+f.xy;vec2 rg=texture2D(uVap,(uv+.5)/256.).ra;return mix(rg.x,rg.y,f.z);}']:[]),
       'void main(){vec3 N=normalize(vN),N0=N,V=normalize(cameraPosition-vW);',
+      '  for(int i9=0;i9<8;i9++){vec4 h9=uHole[i9];if(h9.w>.01&&distance((floor(vW/uHoleC)+.5)*uHoleC,h9.xyz)<h9.w)discard;}',
       /* LE RELIEF DE PRÈS (SON et DEBUGGING, mesuré : en vol, un grand nuage tout proche était un MUR lisse « en plastique ») : sous ~300 m, la
          normale ondule (deux champs de sinus déformés, en espace monde, des bosses de ~50 m) — le mur redevient de la ouate bosselée. Au loin, rien. */
       '  float dd=length(cameraPosition-vW),kd=smoothstep(320.,70.,dd);',
@@ -12240,7 +12247,7 @@ function updateClouds(dt,t){
     if(c.brokenT>0){ // DÉFONCÉ : éclate vite (×.08), reste en miettes, puis se reforme sur la fin
       c.brokenT-=dt;const bt=c.brokenT;
       const sc=bt>4.0?1-(4.5-bt)/0.5*0.92:bt>1.5?0.08:0.08+(1.5-bt)/1.5*0.92;
-      c.g.scale.setScalar(bt<=0?1:Math.max(0.06,sc));
+      if(!NUVIT.vox)c.g.scale.setScalar(bt<=0?1:Math.max(0.06,sc)); // (cubes) le banc ne rétrécit plus : il est TROUÉ (nuCasseBurst) et se referme
     }
     {const ex=camera.position.x-c.g.position.x,ey=camera.position.y-c.g.position.y,ez=camera.position.z-c.g.position.z,
       dc=(ex*ex+ez*ez)/(c.r*c.r)+(ey*ey)/(c.ry*c.ry);if(dc<2.6){const q=Math.min(1,(2.6-dc)/1.6);if(q>prox)prox=q;}
@@ -12256,7 +12263,7 @@ function updateClouds(dt,t){
         c.wasIn=true;
         if(SONV2){if(!(mode==='drive'&&(c.brokenT||0)<=0))sfx('nuage.entre');}else noiseBurst(.5,.10,520); // on plonge dans la ouate (console de son : défoncé au sol, c'est nuage.defonce qui parle)
         /* (2026-09-30, Sacha : « les nuages doivent juste BLOQUER LA VUE, rien d'autre ») plus de budget d'airtime rendu par un banc (1,2 s — à l'ORAGE, un vol bas rechargeait toutes les 2-4 s) */
-        shatterCloud(cp,Math.min(1,k+.35)); // MILLE MORCEAUX au point de contact (où l'on touche le banc)
+        if(NUVIT.vox)nuCasseBurst(cp,Math.min(1,k+.35),c);else shatterCloud(cp,Math.min(1,k+.35)); // MILLE MORCEAUX au point de contact (où l'on touche le banc)
         if(mode==='drive'&&(c.brokenT||0)<=0){c.brokenT=4.5;if(SONV2)sfx('nuage.defonce');else whoosh();addStyle(3);} // la caisse DÉFONCE le banc → il éclate puis se reforme
         if(SENS)try{c.sensT=performance.now();sensNuage(k,mode==='drive'&&c.brokenT===4.5);}catch(e){} // (2026-10-14, sensations) le POUF dans la main, dosé par la profondeur et la vitesse — la caisse, elle, ne sent rien
       }
@@ -12264,6 +12271,7 @@ function updateClouds(dt,t){
          d'air (portance), plus de turbulence (vitesse et vrille chahutées), plus de regain d'airtime ; au sol plus de tangage ni de frein.
          Il reste ce qui se VOIT et s'ENTEND : le voile blanc, la paroi vue de dedans, le son feutré — et la caméra qui tremble à peine. */
       shake=Math.max(shake,(mode==='fall'?.1:.07)*k);
+      if(NUVIT.vox)nuCasseDans(c,k,cp);
       // (zéro particule à la traversée — demande de Sacha : la paroi du mesh fait tout le travail)
     }else if(c.wasIn&&d2>1.3){ // ---- SORTIE ----
       c.wasIn=false;
@@ -12272,6 +12280,7 @@ function updateClouds(dt,t){
       if(c.onRoad&&mode==='drive'&&Math.abs(vA)*3.6*SPD>140)addStyle(7); // percée à l'aveugle
     }
   }
+  if(NUVIT.vox)nuCasseTick(dt,t);
   cloudInS+=(cloudIn-cloudInS)*Math.min(1,dt*(cloudIn>cloudInS?9:3.5));
   if(cloudInS<.004)cloudInS=0;
   {const o9=(cloudInS*.26).toFixed(3);if(updateClouds._o!==o9){updateClouds._o=o9;cloudFxEl.style.opacity=o9;}} // (2026-09-27) écrit seulement quand il change (hors nuage : « 0.000 » à chaque image) // JOUABLE : voile discret (était .92 = white-out aveuglant, puis .40 — encore trop blanc sous le bloom)
@@ -12295,6 +12304,90 @@ function updateClouds(dt,t){
 let cloudNearS=0,GLARE=0;
 window.dbgProgs=function(cles){const P=renderer.info.programs||[];if(cles==='h')return P.map(function(p){const k=p.cacheKey;let h=5381;for(let i=0;i<k.length;i++)h=(h*33+k.charCodeAt(i))|0;return (h>>>0).toString(36)+' '+k.slice(0,40).replace(/\s+/g,' ')+' … '+k.slice(-50).replace(/\s+/g,' ');}); // (banc) chaque programme : une empreinte + son début et sa fin
   if(cles)return P.filter(function(p){return /nuageV\d|globeJourNuit/.test(p.cacheKey);}).map(function(p){return p.cacheKey;});return {n:P.length,ciel:P.filter(function(p){return /nuageV\d|globeJourNuit|an\*5\.-q\.y\*11/.test(p.cacheKey);}).map(function(p){return /nuageV\ddedans/.test(p.cacheKey)?'nuage-dedans':/nuageV\d/.test(p.cacheKey)?'nuage':/globe/.test(p.cacheKey)?'globe':'portail';})};};
+/* ============================== LES NUAGES QUI SE DÉGAGENT (2026-10-20, Léo) ==============================
+   « Ce qui serait cool, c'est qu'ils soient interactifs quand la voiture les touche : ça les dégage. Les plus gros blocs se cassent en petits
+   blocs. Et ils sont fluides, donc ça bouge. » Deux gestes, tous les deux de la matière des cumulus en cubes (voir nuage8Calc, opt.vox) :
+     · LA TROUÉE : à l'entrée dans un banc, puis tous les ~0,22 s tant qu'on y roule, une sphère de monde (NHOLE, huit places) où la ouate est
+       effacée PAR MARCHES DE CUBES ; elle s'ouvre en 0,3 s, tient ~1,4 s, se referme en ~1,2 s (le tunnel derrière la caisse, qui se rebouche) ;
+     · LES BLOCS : une gerbe de cubes (NCB, une seule InstancedMesh, ≤ 420) éclairés comme la ouate (mêmes uniformes N8_U) — les GROS (3-13 m, selon
+       le nuage) éclatent en QUATRE plus petits (×.58) après ~0,35-0,9 s, jusqu'à ~1 m ; chacun tournoie, suit un remous (sinus lents), est tiré dans
+       le sillage de la caisse, puis rétrécit et disparaît. Aucun ne touche au jeu : tout est visuel (la défonce de gameplay, brokenT, n'a pas changé).
+   Le matériau est compilé au menu (la mesh existe, à zéro instance, dès que la matière des nuages existe : count 0 compile quand même). */
+const NCB={cap:420,n:0,mesh:null,P:new Float32Array(420*3),V:new Float32Array(420*3),R:new Float32Array(420*3),W:new Float32Array(420*3),S:new Float32Array(420),A:new Float32Array(420),L:new Float32Array(420),SP:new Float32Array(420),PH:new Float32Array(420),B:new Float32Array(420),
+  lp:new THREE.Vector3(),cv:new THREE.Vector3(),has:false,acc:0,hs:[],hi:0,tm:new THREE.Matrix4(),tq:new THREE.Quaternion(),te:new THREE.Euler(),tp:new THREE.Vector3(),ts:new THREE.Vector3()};
+function nuCasseInit(){
+  if(NCB.mesh||!COTON.mat8||!N8_U.uSunC.value)return;
+  const U=THREE.UniformsUtils.merge([THREE.UniformsLib.fog]);for(const k of ['uSunW','uSunC','uSky','uGnd','uLav','uK','uR'])U[k]=N8_U[k];
+  const m=new THREE.ShaderMaterial({uniforms:U,fog:true,
+    vertexShader:['#include <common>','#include <fog_pars_vertex>','varying vec3 vN,vT;',
+      'void main(){vec3 tr=position;vec3 nn=normal;vT=vec3(1.);',
+      '#ifdef USE_INSTANCING','  nn=mat3(instanceMatrix)*nn;tr=(instanceMatrix*vec4(tr,1.)).xyz;','#endif',
+      '#ifdef USE_INSTANCING_COLOR','  vT=instanceColor;','#endif',
+      '  vN=normalize(mat3(modelMatrix)*nn);vec4 mvPosition=viewMatrix*modelMatrix*vec4(tr,1.);gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n'),
+    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uSunC,uSky,uGnd,uLav;uniform vec4 uK,uR;varying vec3 vN,vT;',
+      'void main(){vec3 N=normalize(vN);float lit=smoothstep(uR.x,uR.y,dot(N,uSunW));', // la lumière de la ouate (nuage8Mat), sans le modelé cuit : un cube = une face
+      '  vec3 sk=mix(vec3(dot(uSky,vec3(.3,.59,.11))),uSky,.6)*vec3(.9,.95,1.05);',
+      '  vec3 ciel=mix(uLav*(.6+.5*dot(uGnd,vec3(.3,.59,.11))),sk,smoothstep(-.35,.8,N.y));',
+      '  vec3 ombre=ciel*uR.z*(.78+.22*max(dot(N,normalize(vec3(-uSunW.x,.55,-uSunW.z))),0.));',
+      '  float ch=clamp((uSunC.r-uSunC.b-.18)*3.5,0.,.45);',
+      '  vec3 soleil=mix(vec3(1.,.99,.975),uSunC/max(uSunC.r,.01),ch)*dot(uSunC,vec3(.3,.59,.11))*uK.y;',
+      '  gl_FragColor=vec4(vT*mix(ombre,soleil,lit),1.);','#include <fog_fragment>','}'].join('\n')});
+  const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),m,NCB.cap);im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(NCB.cap*3).fill(1),3);im.instanceColor.setUsage(THREE.DynamicDrawUsage);
+  im.frustumCulled=false;im.count=0;im.castShadow=im.receiveShadow=false;im.matrixAutoUpdate=false;scene.add(im);NCB.mesh=im;
+  for(let i=0;i<8;i++)NCB.hs.push({t:9,d:1,R:0,x:0,y:0,z:0});}
+function nuCubeNew(x,y,z,vx,vy,vz,s,life,spl,br){ // un bloc de plus ; -1 s'il n'y a plus de place
+  if(NCB.n>=NCB.cap)return -1;const i=NCB.n++,j=i*3;
+  NCB.P[j]=x;NCB.P[j+1]=y;NCB.P[j+2]=z;NCB.V[j]=vx;NCB.V[j+1]=vy;NCB.V[j+2]=vz;
+  NCB.R[j]=Math.random()*6.28;NCB.R[j+1]=Math.random()*6.28;NCB.R[j+2]=Math.random()*6.28;
+  const w=(1.4+Math.random()*2.2)/Math.max(.6,Math.sqrt(s*.35));NCB.W[j]=(Math.random()-.5)*w;NCB.W[j+1]=(Math.random()-.5)*w;NCB.W[j+2]=(Math.random()-.5)*w; // les gros tournent lentement
+  NCB.S[i]=s;NCB.A[i]=0;NCB.L[i]=life;NCB.SP[i]=spl;NCB.PH[i]=Math.random()*6.28;NCB.B[i]=br;return i;}
+function nuCubeOut(i){const l=--NCB.n;if(i===l)return;const a=i*3,b=l*3;
+  for(let k=0;k<3;k++){NCB.P[a+k]=NCB.P[b+k];NCB.V[a+k]=NCB.V[b+k];NCB.R[a+k]=NCB.R[b+k];NCB.W[a+k]=NCB.W[b+k];}
+  NCB.S[i]=NCB.S[l];NCB.A[i]=NCB.A[l];NCB.L[i]=NCB.L[l];NCB.SP[i]=NCB.SP[l];NCB.PH[i]=NCB.PH[l];NCB.B[i]=NCB.B[l];}
+function nuCasseTrouee(x,y,z,R){const h=NCB.hs[NCB.hi=(NCB.hi+1)%8];h.t=0;h.d=2.7;h.R=R;h.x=x;h.y=y;h.z=z;} // une trouée de plus (la plus vieille cède sa place)
+function nuCasseBurst(cp,k,c){ // l'entrée dans un banc : la trouée + la gerbe de blocs
+  if(!NCB.mesh)return;const s0=Math.min(9,Math.max(2.2,c.r*.065)),n0=7+Math.round(7*k),R=Math.min(24,Math.max(8,c.r*.13));
+  nuCasseTrouee(cp.x,cp.y,cp.z,R);
+  for(let q=0;q<n0;q++){const a=Math.random()*6.283,u=Math.random()*2-1,rr=Math.sqrt(1-u*u),sp=7+Math.random()*16*k;
+    nuCubeNew(cp.x+Math.cos(a)*rr*R*.5,cp.y+u*R*.4,cp.z+Math.sin(a)*rr*R*.5,Math.cos(a)*rr*sp+NCB.cv.x*.45,u*sp*.8+NCB.cv.y*.45+2,Math.sin(a)*rr*sp+NCB.cv.z*.45,
+      s0*(.55+Math.random()*.6),2.6+Math.random()*1.2,.3+Math.random()*.55,.9+Math.random()*.1);}}
+function nuCasseDans(c,k,cp){ // on roule DANS le banc : une trouée tous les ~0,22 s (le tunnel), quelques blocs détachés
+  if(!NCB.mesh)return;NCB.acc+=NCB.dtc;if(NCB.acc<.22)return;NCB.acc=0;
+  const R=Math.min(20,Math.max(7,c.r*.11));nuCasseTrouee(cp.x+NCB.cv.x*.08,cp.y+NCB.cv.y*.08,cp.z+NCB.cv.z*.08,R);
+  const s0=Math.min(9,Math.max(2,c.r*.06));
+  for(let q=0;q<2;q++){const a=Math.random()*6.283,sp=5+Math.random()*9;
+    nuCubeNew(cp.x+Math.cos(a)*R*.7,cp.y+(Math.random()-.3)*R*.6,cp.z+Math.sin(a)*R*.7,Math.cos(a)*sp+NCB.cv.x*.4,2+Math.random()*3,Math.sin(a)*sp+NCB.cv.z*.4,s0*(.6+Math.random()*.5),2.2+Math.random(),.3+Math.random()*.5,.9+Math.random()*.1);}}
+function nuCasseTick(dt,t){
+  if(!NCB.mesh){nuCasseInit();return;}
+  NCB.dtc=dt;const cp=carGroup.position;
+  if(NCB.has&&dt>0){NCB.cv.set((cp.x-NCB.lp.x)/dt,(cp.y-NCB.lp.y)/dt,(cp.z-NCB.lp.z)/dt);const l=NCB.cv.length();if(l>140)NCB.cv.multiplyScalar(140/l);} // la vitesse de la caisse, mesurée (jamais une téléportation : bornée)
+  NCB.lp.copy(cp);NCB.has=true;
+  for(const h of NCB.hs){ // les trouées : elles s'ouvrent vite, tiennent, se referment (la ouate revient)
+    let r=0;if(h.t<h.d){h.t+=dt;const u=h.t/h.d,e=function(a){return a*a*(3-2*a);};r=u<.11?h.R*e(u/.11):u<.55?h.R*(1+.05*Math.sin(t*7+h.x)):h.R*(1-e(Math.min(1,(u-.55)/.45)));h.x+=NCB.cv.x*.12*dt;h.z+=NCB.cv.z*.12*dt;} // le remous tire un peu la trouée dans le sillage
+    NCB.hv=NCB.hv||NHOLE.uHole.value;const idx=NCB.hs.indexOf(h);NHOLE.uHole.value[idx].set(h.x,h.y,h.z,r);}
+  const P=NCB.P,V=NCB.V,R=NCB.R,W=NCB.W,m=NCB.tm,q=NCB.tq,e=NCB.te,pp=NCB.tp,ss=NCB.ts,cv=NCB.cv,im=NCB.mesh;
+  for(let i=NCB.n-1;i>=0;i--){const j=i*3;NCB.A[i]+=dt;const age=NCB.A[i],life=NCB.L[i];
+    if(age>=life){nuCubeOut(i);continue;}
+    if(NCB.S[i]>1.15&&age>NCB.SP[i]&&NCB.n+3<NCB.cap){ // LE GROS BLOC SE CASSE : quatre plus petits, chacun sa vitesse
+      const s=NCB.S[i]*.58,x=P[j],y=P[j+1],z=P[j+2],vx=V[j],vy=V[j+1],vz=V[j+2],rem=life-age;NCB.S[i]=0;NCB.L[i]=0; // le parent disparaît
+      for(let c9=0;c9<4;c9++){const a=Math.random()*6.283,sp=2+Math.random()*5.5;nuCubeNew(x+Math.cos(a)*s*.4,y+(Math.random()-.5)*s*.6,z+Math.sin(a)*s*.4,vx+Math.cos(a)*sp,vy+(Math.random()-.4)*sp,vz+Math.sin(a)*sp,s*(.85+Math.random()*.3),Math.max(.9,rem*(.7+Math.random()*.5)),age+.3+Math.random()*.5,.9+Math.random()*.1);}
+      continue;}
+    const dr=Math.exp(-dt*1.25),ph=NCB.PH[i];
+    V[j]=V[j]*dr+(Math.sin(P[j+1]*.23+t*1.4+ph)*7)*dt;V[j+1]=V[j+1]*dr+(Math.sin(P[j+2]*.21-t*1.1+ph*2)*5+1.3)*dt;V[j+2]=V[j+2]*dr+(Math.sin(P[j]*.19+t*.9-ph)*7)*dt; // le remous : des sinus lents, chacun sa phase
+    const dx=P[j]-cp.x,dy=P[j+1]-cp.y,dz=P[j+2]-cp.z,dd=Math.sqrt(dx*dx+dy*dy+dz*dz);
+    if(dd<46){const k=(1-dd/46)*dt*1.3;V[j]+=(cv.x*.6-V[j])*k;V[j+1]+=(cv.y*.6-V[j+1])*k;V[j+2]+=(cv.z*.6-V[j+2])*k;} // le sillage les emporte
+    P[j]+=V[j]*dt;P[j+1]+=V[j+1]*dt;P[j+2]+=V[j+2]*dt;R[j]+=W[j]*dt;R[j+1]+=W[j+1]*dt;R[j+2]+=W[j+2]*dt;}
+  const n=NCB.n;im.count=n;
+  for(let i=0;i<n;i++){const j=i*3,age=NCB.A[i],life=NCB.L[i],cx=P[j]-camera.position.x,cy=P[j+1]-camera.position.y,cz=P[j+2]-camera.position.z,dc=Math.sqrt(cx*cx+cy*cy+cz*cz),fc=Math.min(1,Math.max(0,(dc-3)/9)),sz=NCB.S[i]*Math.min(1,.25+age*8)*Math.min(1,(life-age)/.45)*fc*fc*(3-2*fc); // près de l'objectif un bloc rétrécit (jamais un mur de cube sur l'écran)
+   
+    e.set(R[j],R[j+1],R[j+2]);q.setFromEuler(e);pp.set(P[j],P[j+1],P[j+2]);ss.set(sz,sz,sz);m.compose(pp,q,ss);im.setMatrixAt(i,m);const b=NCB.B[i];im.instanceColor.setXYZ(i,b,b,b);}
+  im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;}
+window.dbgCasse=function(o){o=o||{};nuCasseInit();if(!NCB.mesh)return 'pas prêt'; // (banc) dbgCasse({c:1}) = une trouée + une gerbe devant la caisse
+  if(o.c){const cp=carGroup.position.clone();if(o.d)cp.addScaledVector(new THREE.Vector3(0,0,1).applyQuaternion(carGroup.quaternion),o.d);nuCasseBurst(cp,o.k==null?1:o.k,{r:o.r||120});}
+  if(o.pas)for(let i=0;i<o.pas;i++)nuCasseTick(1/60,performance.now()/1000+i/60); // (banc, en pause) fait avancer la gerbe de o.pas images
+  if(o.sonde){const v=new THREE.Vector3(NCB.P[0],NCB.P[1],NCB.P[2]),w=v.clone().project(camera);return {n:NCB.n,p:v.toArray().map(Math.round),cam:camera.position.toArray().map(Math.round),ecran:[w.x.toFixed(2),w.y.toFixed(2),w.z.toFixed(3)],cnt:NCB.mesh.count,vis:NCB.mesh.visible,par:!!NCB.mesh.parent,progs:renderer.info.programs.length};}
+  return {n:NCB.n,trouees:NCB.hs.map(function(h){return +(h.t<h.d?h.R*(1-h.t/h.d):0).toFixed(1);}),v:NCB.cv.toArray().map(Math.round)};};
 // ---------- PIGEONS RAMIERS : rares traversées d'oiseaux — un peu de vie dans le ciel ----------
 const PIGEONS=[];let pigeonT=12+Math.random()*14;
 const pgBodyM=new THREE.MeshLambertMaterial({color:0x97a2b6});
@@ -62493,13 +62586,18 @@ function cielArcMer(){if(CARC.mer)return CARC.mer.pret?CARC.mer:null;const t=CAR
   t.wrapS=t.wrapT=THREE.RepeatWrapping;t.premultiplyAlpha=false;const im=new Image();im.onload=function(){t.image=im;t.needsUpdate=true;t.pret=true;};im.src='assets/ciel/mer-cumulus.png';return null;}
 if(ARC_ON){cielArcMer();for(const m9 in CIEL_ARC){cielArcTex(CIEL_ARC[m9].f); // chargées dès le départ (≈ 1 Mo en tout) ; la brume des cumulus = l'horizon de la photo
   const S9=SF_CARTES&&SF_CARTES.nuages&&SF_CARTES.nuages.m[m9],B9=S9&&BIOMES[S9.bio];if(B9&&NUF.ap[m9]){B9.fog=CIEL_ARC[m9].h.slice();NUF.ap[m9].fog=B9.fog.slice();}}}
-function cielArcPose(m,k){const U=skyU,A=CIEL_ARC[m],on=ARC_ON&&CARC.force!==0&&A&&k>.001,tp=on&&cielArcTex(A.f),tm=on&&cielArcMer();
+/* (2026-10-20, Léo : « enlever en général le tapis complètement rempli de nuages, l'harmoniser avec la répartition des nuages du premier plan selon la météo ») LE TAPIS CLAIRSEMÉ :
+   la mer de cumulus ne couvre plus tout le dessous — des ÎLOTS (la couverture TAPIS_M : plus c'est haut, moins il y en a), l'air de l'horizon entre eux ; plus dense là où
+   le premier plan l'est (l'orage). `?tapis=0` = le tapis plein d'avant, `?tapis=.5` pour essayer. */
+const TAPIS=(function(){const m=/[?&]tapis=([0-9.]+)/.exec(location.search);return m?+m[1]:1;})(),TAPIS_M={matin:.60,midi:.56,aprem:.52,soir:.54,nuit:.50,orage:.34};
+function tapisPose(m){skyU.uTapis.value=TAPIS?(TAPIS_M[m]||.55)*Math.min(1,TAPIS):0;}
+function cielArcPose(m,k){tapisPose(m);const U=skyU,A=CIEL_ARC[m],on=ARC_ON&&CARC.force!==0&&A&&k>.001,tp=on&&cielArcTex(A.f),tm=on&&cielArcMer();
   if(tp){U.uPhT.value=tp;U.uPh.value.set(k,A.su,A.se*Math.PI/180,A.ex);U.uPh2.value.y=A.ns||0;}else U.uPh.value.x=0;
-  if(tm&&!A.mi){U.uMrT.value=tm;U.uMr.value.x=1;U.uTMerH.value.fromArray(A.mh);U.uTMerO.value.fromArray(A.mo);U.uTSol.value.fromArray(A.s);}else U.uMr.value.x=0;}
+  if(tm&&!A.mi){U.uMrT.value=tm;U.uMr.value.x=1;U.uTMerH.value.fromArray(A.mh);U.uTMerO.value.fromArray(A.mo);U.uTSol.value.fromArray(A.s);for(let i=0;i<3;i++)N8_U.uLav.value.setComponent(i,[.72,.78,.97][i]*.5+Math.min(.97,A.mo[i]*1.4)*.5);}else U.uMr.value.x=0;} /* (2026-10-20, Léo : « les nuages du premier plan et l'arrière-plan n'ont pas la même couleur ») l'ombre des cumulus en cubes prend à moitié celle du TAPIS (mo) : même famille de bleus / mauves, par météo */
 function nuFondPose(P,k){const U=skyU;U.uTi.value.set(k,P.ca,0,P.hz);U.uTi2.value.set(P.tw||0,P.ry||0,P.cr||.35,0);
   U.uTZen.value.fromArray(P.z);U.uTMid.value.fromArray(P.m);U.uTHor.value.fromArray(P.h);U.uTSol.value.fromArray(P.s);U.uTMerH.value.fromArray(P.mh);U.uTMerO.value.fromArray(P.mo);U.uTCir.value.fromArray(P.c);}
 function nuFondTick(dt){ // à chaque image : la mer de nuages en course → le fond peint (il APPARAÎT en 0,7 s au portail) ; ailleurs, éteint
-  if(typeof CHUTE!=='undefined'&&CHUTE.on){skyU.uPh.value.x=0;skyU.uMr.value.x=0;return;} // (le menu peint son ciel lui-même)
+  if(typeof CHUTE!=='undefined'&&CHUTE.on){skyU.uPh.value.x=0;skyU.uMr.value.x=0;tapisPose('menu');return;} // (le menu peint son ciel lui-même)
   const c=LVL&&LVL.cur,T=(NUF.force!==0)&&c&&c.carte==='nuages'&&!PARK.on?NU_FOND[c.meteo]:null;if(T)NUF.T=T;
   NUF.k+=((T?1:0)-NUF.k)*(NUF.force!=null?1:Math.min(1,dt*1.5));
   if(!T&&NUF.k<.002){if(NUF.on){skyU.uTi.value.x=0;NUF.on=false;}NUF.k=0;skyU.uPh.value.x=0;skyU.uMr.value.x=0;return;}

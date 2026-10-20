@@ -80,7 +80,7 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   /* (2026-10-19, essai ARC) LE FOND EN PHOTO + LA MER DE CUMULUS — voir « LE CIEL D'ARC » plus bas. uPh : x la part de la photo, y la colonne (0-1) de son
      soleil, z sa hauteur (rad), w l exposition · uPh2.x le sens du tour · uMr : x la mer de cumulus (0 = la mer peinte d avant), y la profondeur du
      pont de nuages (m sous l œil), z la tuile (m), w la couverture (le seuil des trouées) · uMr2 : x le relief, y la brume (× la tuile). */
-  uPhT:{value:null},uMrT:{value:null},uPh:{value:new THREE.Vector4(0,.6,.1,1)},uPh2:{value:new THREE.Vector4(1,0,0,0)},uMr:{value:new THREE.Vector4(0,900,4200,.12)},uMr2:{value:new THREE.Vector4(1.6,3.6,0,.4)},
+  uTapis:{value:0},uPhT:{value:null},uMrT:{value:null},uPh:{value:new THREE.Vector4(0,.6,.1,1)},uPh2:{value:new THREE.Vector4(1,0,0,0)},uMr:{value:new THREE.Vector4(0,900,4200,.12)},uMr2:{value:new THREE.Vector4(1.6,3.6,0,.4)},
   uTi:{value:new THREE.Vector4(0,0,0,1)},uTi2:{value:new THREE.Vector4(0,0,.35,0)},uTZen:{value:new THREE.Vector3()},uTMid:{value:new THREE.Vector3()},uTHor:{value:new THREE.Vector3()},uTSol:{value:new THREE.Vector3()},uTMerH:{value:new THREE.Vector3()},uTMerO:{value:new THREE.Vector3()},uTCir:{value:new THREE.Vector3()}, // (titre v4) LE CIEL DE L'ÉCRAN TITRE (cielTitre) — uTi.x = 0 hors du titre : rien ne change en course
   uMzA:{value:new THREE.Vector4(760,.8,15,.25)},uMzB:{value:new THREE.Vector4(.20,.16,.26,.8)},uMzT:{value:new THREE.Vector4(0,0,0,0)},uMzO:{value:new THREE.Vector4(0,0,0,0)},uMzH:{value:new THREE.Vector4(0,0,0,0)}, /* ⚠ (0,0,0,0) ÉCRIT : un Vector4() vide vaut (0,0,0,1) — la part 1 peignait toute la mer en NOIR (vu par Léo au menu de sa copie). */ /* (2026-10-03, atelier des nuages : « une fonction pour altérer le ciel en bas ») les COULEURS de la mer de nuages forcées — trous, ombres, dômes : rgb + part (w) ; w = 0 partout = la mer d'avant au bit près */ // (2026-09-30, niveau 1 v2) LA MER SCULPTÉE : échelle des cellules, part « gonflée », franchise de la lumière, remous · couverture, fermeture au loin, creux, clarté des trouées
   uVG:{value:0}, /* (2026-10-01, Sacha : « enlève tous les trucs Van Gogh ») la touche Van Gogh est RETIRÉE du ciel comme des nuages : plus aucun shader ne lit cet uniforme — l'objet reste, inerte, pour qu'un code qui l'écrirait encore ne plante pas */
@@ -119,7 +119,7 @@ const skyDome=(function(){
       /* (2026-10-19, essai ARC) LA PHOTO DU CIEL : un vrai ciel (Poly Haven, CC0), sa moitié haute en équirectangulaire ; son soleil est calé sur
          le nôtre (la colonne tourne avec uSunDir, la hauteur se plie : 0 → le soleil du jeu = 0 → celui de la photo, puis jusqu au zénith).
          Lue avec les dérivées de la plus continue des deux coordonnées (fract et fract + ½) : pas de couture au raccord du tour. */
-      'uniform sampler2D uPhT,uMrT;uniform vec4 uPh,uPh2,uMr2;',
+      'uniform sampler2D uPhT,uMrT;uniform vec4 uPh,uPh2,uMr2;uniform float uTapis;',
       'vec3 phCiel(vec3 d){float H=1.5708,e=asin(clamp(d.y,0.,1.)),eg=max(asin(clamp(uSunDir.y,-1.,1.)),.02),ep=uPh.z;',
       '  float e2=e<eg?e*ep/eg:ep+(H-ep)*(e-eg)/(H-eg);',
       '  float u=uPh.y+uPh2.x*(atan(d.x,-d.z)-atan(uSunDir.x,-uSunDir.z))/6.2832,u1=fract(u),u2=fract(u+.5)-.5;',
@@ -665,7 +665,7 @@ const skyDome=(function(){
       '  vec2 sx=normalize(uSunDir.xz+vec2(1e-4));float tg=(max(uSunDir.y,.04)+.07)/length(uSunDir.xz+vec2(1e-4));',
       '  float sh=1.;for(int i=1;i<4;i++){float fi=float(i)*.028;float hs=texture2D(uMrT,q+sx*fi).r*.7+texture2D(uMrT,q2+R*sx*fi*3.1).r*.3;sh=min(sh,clamp(1.-(hs-h-fi*tg*12.)*7.,0.,1.));}', // l ombre portée des dômes voisins
       '  sh=mix(1.,sh,uMr2.w);float ao=mix(A.a,1.,.2)*mix(B.a,1.,.4);',
-      '  float cov=smoothstep(uMr.w-.07,uMr.w+.05,h),epa=smoothstep(uMr.w,uMr.w+.3,h);',                   // la couverture ; l épaisseur (les bords des trouées s amincissent)
+      '  float cw9=max(uMr.w,uTapis);float cov=smoothstep(cw9-.07,cw9+.05,h),epa=smoothstep(cw9,cw9+.3,h);',                   // la couverture ; l épaisseur (les bords des trouées s amincissent)
       '  vec3 far=uPh.x>.001?phCiel(normalize(vec3(d.x,.008,d.z))):uTHor;',                              // l air : l horizon de la PHOTO, à cette direction
       '  vec3 lit=mix(uTMerO,uTMerH,dif*mix(.3,1.,sh));',
       '  lit*=mix(.7,1.,ao)*mix(.82,1.,epa);',
@@ -704,6 +704,7 @@ const skyDome=(function(){
       '    vec3 m=mix(uTMerO*mix(1.-uTi2.z,1.,creux),uTMerH,lit*.8+top*.2);',
       '    m+=uTMerH*pow(1.-lit,3.)*top*.12;',                                                            // le rebord translucide des sommets à contre-jour
       '    m+=uTSol*pow(sv,3.)*.35*lit;',
+      '    if(uTapis>.001)m=mix(mix(uTMerO*.6,uTHor,.55),m,smoothstep(uTapis-.07,uTapis+.05,h0));',                    // (2026-10-20, Léo : « enlever le tapis complètement rempli ») des îlots de cumulus, l air entre eux
       '    m=mix(m,uTHor,(1.-exp(-t/(9000.*uTi.w)))*.85);',                                               // la perspective aérienne
       '    c=mix(m,c,smoothstep(-.035,0.,y));}',                                                          // la mer REJOINT l horizon (pas de rayure)
       '  col=mix(col,c,uTi.x);}'],

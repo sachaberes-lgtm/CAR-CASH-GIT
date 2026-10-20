@@ -123,13 +123,18 @@ function cielArcMer(){if(CARC.mer)return CARC.mer.pret?CARC.mer:null;const t=CAR
   t.wrapS=t.wrapT=THREE.RepeatWrapping;t.premultiplyAlpha=false;const im=new Image();im.onload=function(){t.image=im;t.needsUpdate=true;t.pret=true;};im.src='assets/ciel/mer-cumulus.png';return null;}
 if(ARC_ON){cielArcMer();for(const m9 in CIEL_ARC){cielArcTex(CIEL_ARC[m9].f); // chargées dès le départ (≈ 1 Mo en tout) ; la brume des cumulus = l'horizon de la photo
   const S9=SF_CARTES&&SF_CARTES.nuages&&SF_CARTES.nuages.m[m9],B9=S9&&BIOMES[S9.bio];if(B9&&NUF.ap[m9]){B9.fog=CIEL_ARC[m9].h.slice();NUF.ap[m9].fog=B9.fog.slice();}}}
-function cielArcPose(m,k){const U=skyU,A=CIEL_ARC[m],on=ARC_ON&&CARC.force!==0&&A&&k>.001,tp=on&&cielArcTex(A.f),tm=on&&cielArcMer();
+/* (2026-10-20, Léo : « enlever en général le tapis complètement rempli de nuages, l'harmoniser avec la répartition des nuages du premier plan selon la météo ») LE TAPIS CLAIRSEMÉ :
+   la mer de cumulus ne couvre plus tout le dessous — des ÎLOTS (la couverture TAPIS_M : plus c'est haut, moins il y en a), l'air de l'horizon entre eux ; plus dense là où
+   le premier plan l'est (l'orage). `?tapis=0` = le tapis plein d'avant, `?tapis=.5` pour essayer. */
+const TAPIS=(function(){const m=/[?&]tapis=([0-9.]+)/.exec(location.search);return m?+m[1]:1;})(),TAPIS_M={matin:.60,midi:.56,aprem:.52,soir:.54,nuit:.50,orage:.34};
+function tapisPose(m){skyU.uTapis.value=TAPIS?(TAPIS_M[m]||.55)*Math.min(1,TAPIS):0;}
+function cielArcPose(m,k){tapisPose(m);const U=skyU,A=CIEL_ARC[m],on=ARC_ON&&CARC.force!==0&&A&&k>.001,tp=on&&cielArcTex(A.f),tm=on&&cielArcMer();
   if(tp){U.uPhT.value=tp;U.uPh.value.set(k,A.su,A.se*Math.PI/180,A.ex);U.uPh2.value.y=A.ns||0;}else U.uPh.value.x=0;
-  if(tm&&!A.mi){U.uMrT.value=tm;U.uMr.value.x=1;U.uTMerH.value.fromArray(A.mh);U.uTMerO.value.fromArray(A.mo);U.uTSol.value.fromArray(A.s);}else U.uMr.value.x=0;}
+  if(tm&&!A.mi){U.uMrT.value=tm;U.uMr.value.x=1;U.uTMerH.value.fromArray(A.mh);U.uTMerO.value.fromArray(A.mo);U.uTSol.value.fromArray(A.s);for(let i=0;i<3;i++)N8_U.uLav.value.setComponent(i,[.72,.78,.97][i]*.5+Math.min(.97,A.mo[i]*1.4)*.5);}else U.uMr.value.x=0;} /* (2026-10-20, Léo : « les nuages du premier plan et l'arrière-plan n'ont pas la même couleur ») l'ombre des cumulus en cubes prend à moitié celle du TAPIS (mo) : même famille de bleus / mauves, par météo */
 function nuFondPose(P,k){const U=skyU;U.uTi.value.set(k,P.ca,0,P.hz);U.uTi2.value.set(P.tw||0,P.ry||0,P.cr||.35,0);
   U.uTZen.value.fromArray(P.z);U.uTMid.value.fromArray(P.m);U.uTHor.value.fromArray(P.h);U.uTSol.value.fromArray(P.s);U.uTMerH.value.fromArray(P.mh);U.uTMerO.value.fromArray(P.mo);U.uTCir.value.fromArray(P.c);}
 function nuFondTick(dt){ // à chaque image : la mer de nuages en course → le fond peint (il APPARAÎT en 0,7 s au portail) ; ailleurs, éteint
-  if(typeof CHUTE!=='undefined'&&CHUTE.on){skyU.uPh.value.x=0;skyU.uMr.value.x=0;return;} // (le menu peint son ciel lui-même)
+  if(typeof CHUTE!=='undefined'&&CHUTE.on){skyU.uPh.value.x=0;skyU.uMr.value.x=0;tapisPose('menu');return;} // (le menu peint son ciel lui-même)
   const c=LVL&&LVL.cur,T=(NUF.force!==0)&&c&&c.carte==='nuages'&&!PARK.on?NU_FOND[c.meteo]:null;if(T)NUF.T=T;
   NUF.k+=((T?1:0)-NUF.k)*(NUF.force!=null?1:Math.min(1,dt*1.5));
   if(!T&&NUF.k<.002){if(NUF.on){skyU.uTi.value.x=0;NUF.on=false;}NUF.k=0;skyU.uPh.value.x=0;skyU.uMr.value.x=0;return;}

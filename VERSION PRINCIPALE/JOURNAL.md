@@ -3,6 +3,13 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES NUAGES QUI SE DÉGAGENT + LE TAPIS CLAIRSEMÉ (2026-10-20 soir, v759, Léo : « plus d'harmonie entre les nuages du premier plan et l'arrière-plan, parfois pas la même couleur, 2-3 nuages devant et tout un tapis derrière » · « enlever le tapis complètement rempli, l'harmoniser avec la répartition du premier plan selon la météo » · « interactifs quand la voiture les touche, les gros blocs se cassent en petits, fluides ») — branche `nuages-refonte`
+- **LE TAPIS** : `uTapis` (scene-ciel.js : merArc ET la mer peinte du titre) = la couverture sous l'horizon ; `TAPIS_M` par météo (matin .60 · midi .56 · aprem .52 · soir .54 · nuit .50 · orage .34 : plus c'est haut, moins il y en a), `tapisPose(m)` (chute-menu.js), l'air de l'horizon entre les îlots. `?tapis=0` = le tapis plein d'avant.
+  Couleur : l'ombre des cumulus en cubes (`N8_U.uLav`) prend à moitié celle du tapis (`CIEL_ARC[m].mo`) : même famille de bleus / mauves par météo.
+- **LES TROUÉES** (`NHOLE`, 8 sphères de monde dans les matières des nuages — nuage8Mat ET nuageShader) : la ouate est effacée PAR MARCHES DE CUBES (`uHoleC` 3,2 m) ; à l'entrée dans un banc puis toutes les ~0,22 s : s'ouvre en 0,3 s, tient ~1,4 s, se referme en ~1,2 s (le tunnel derrière la caisse).
+- **LES BLOCS** (`maps/nuages-casses.js`, `NCB` ≤ 420 cubes, UNE InstancedMesh, mêmes uniformes de lumière que la ouate) : gerbe à l'entrée ; les GROS (2-9 m selon le nuage) se cassent en QUATRE (×.58) après 0,3-0,85 s, jusqu'à ~1 m ; remous (sinus lents), sillage de la caisse, tournoiement, rétrécissent et disparaissent ; rétrécis près de l'objectif. Plus de rétrécissement du banc (brokenT garde son rôle de jeu). Visuel seulement.
+- Hooks : `dbgCasse({c:1,d:30,r:150,k:1,pas:n,sonde:1})`. Limite : on ne touche qu'un banc dont le centre est dans l'ellipsoïde (rare hors bancs de route et vols) ; élargir le déclencheur si Léo veut plus d'interaction.
+
 ## LES NUAGES EN CUBES DE TAILLES VARIABLES (2026-10-20 soir, v758, Léo : « le niveau nuage a l'air déchiqueté, une refonte avec toutes les techniques, entre réalisme et cubes pixel de tailles variantes ») — branche `nuages-refonte`
 - **LE CONSTAT** (captures de la map au matin) : des piliers fondus (cathédrales/champignons du sculpteur v8, érodés par le bruit) saupoudrés de cubes FANTÔMES orange/roses
   au hasard — deux écritures (lisse + poussière) qui se battaient. **LA TECHNIQUE RETENUE** : le corps lisse v8 (mêmes formes, même base plate, même lumière de peintre) est

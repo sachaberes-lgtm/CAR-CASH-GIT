@@ -31,7 +31,11 @@
    et, dans le shader, la LISIÈRE D'ARGENT — face au soleil, le bord de la ouate s'embrase (diffusion avant) — plus un bord
    à peine plus léger. Coût : zéro par image côté CPU, quelques instructions par pixel côté GPU (et deux fois moins de pixels). */
 const GFX_U={uCoeur:{value:1.16},uNearF:{value:new THREE.Vector2(10,40)},uUpV:{value:new THREE.Vector3(0,1,0)},uNuSun:{value:new THREE.Vector3(1.1,.98,.84)},uNuSky:{value:new THREE.Vector3(.9,.98,1.2)},uNuGnd:{value:new THREE.Vector3(.98,.94,1.2)},uDragon:{value:new THREE.Vector3(1,.92,1.08)}}; // uNearF : le fondu des nuages de coton près de l'objectif (m) — 10-40 au sol, 30-110 en vol (posé par la boucle) // (2026-09-28, passe graphismes mobile) le cœur plein des nuages (1 = l'ancienne ouate à 82 % partout) — voir dbgGfx
+/* (2026-10-20, Léo : « ils seraient interactifs quand la voiture les touche : ça les dégage ») LES TROUÉES : huit sphères de monde (xyz, rayon) où la ouate est EFFACÉE, par marches de cubes
+   (la grille `uHoleC` m : le bord d'une trouée est fait de cubes, pas rond) ; posées et animées par nuCasseTick (nuages-casses.js) — un tunnel qui se referme derrière la caisse. */
+const NHOLE={uHole:{value:[0,1,2,3,4,5,6,7].map(function(){return new THREE.Vector4(0,0,0,0);})},uHoleC:{value:3.2}};
 function nuageShader(sh){
+  sh.uniforms.uHole=NHOLE.uHole;sh.uniforms.uHoleC=NHOLE.uHoleC;sh.fragmentShader=sh.fragmentShader.replace('void main() {','void main() {\n{vec3 w9=cameraPosition+(-vViewPosition)*mat3(viewMatrix);for(int i9=0;i9<8;i9++){vec4 h9=uHole[i9];if(h9.w>.01&&distance((floor(w9/uHoleC)+.5)*uHoleC,h9.xyz)<h9.w)discard;}}').replace('#include <common>','#include <common>\nuniform vec4 uHole[8];uniform float uHoleC;');
   sh.uniforms.uSunV=RIM_U.uSunV;sh.uniforms.uSunC={value:sun.color};sh.uniforms.uCoeur=GFX_U.uCoeur;sh.uniforms.uNearF=GFX_U.uNearF;
   sh.uniforms.uUpV=GFX_U.uUpV;sh.uniforms.uNuSun=GFX_U.uNuSun;sh.uniforms.uNuSky=GFX_U.uNuSky;sh.uniforms.uNuGnd=GFX_U.uNuGnd;sh.uniforms.uDragon=GFX_U.uDragon; // (Dragons) la lumière de peintre // la direction du soleil en espace vue (posée chaque image pour les caisses) et SA couleur de biome
   sh.fragmentShader=sh.fragmentShader.replace('#include <lights_fragment_begin>',LFB_SANS_PL) // (2026-09-26) les nuages ne paient plus les lumières ponctuelles (voir LFB_SANS_PL)
