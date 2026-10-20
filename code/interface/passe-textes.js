@@ -234,7 +234,11 @@ function mepRappel(){
 const HAS_D=[['hTp','tPanel',function(e){return e.classList.contains('open');}],['hMisBan','misBan',function(e){return e.classList.contains('on');}],
   ['hCampChip','campChip',function(e){return e.classList.contains('on');}],
   ['hTriade','triade',function(e){return e.classList.contains('on');}],['hAirPie','airPie',function(e){return (e.getAttribute('style')||'').indexOf('block')>=0;}],
-  ['hPwr','pwrChip',function(e){return !!e.querySelector('.pw');}]];
+  ['hPwr','pwrChip',function(e){return !!e.querySelector('.pw');}],
+  /* (2026-10-20, Sacha : « beaucoup de freeze et de latence sur la version vercel ») LA FENÊTRE QUITTER / RECOMMENCER : `html:not(.c6):has(#modale.on)
+     #tPanel` (ux8, 14/10) avait échappé à la passe. MESURÉ en ligne (trace Chrome des invalidations, 25 s de course) : ~60 fois par seconde
+     une classe `on` posée ou ôtée ailleurs dans le HUD relançait l'examen du <html> — tout le document parcouru à chaque image. */
+  ['hModale','modale',function(e){return e.classList.contains('on');}]];
 const HAS_H={k:{},el:{},obs:null};
 function hasMaj(){const b=document.body;if(!b)return;
   if(!HAS_H.obs)HAS_H.obs=new MutationObserver(hasMaj);

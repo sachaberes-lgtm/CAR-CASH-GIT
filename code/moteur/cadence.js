@@ -29,7 +29,21 @@
 /* (2026-10-14, décision de Sacha 3 h 30) ROUVERT (7 h 50) : le choc balayé de DEBUGGING est dans le jeu ; preuve perf/banc/chef/v13.cjs (trafic niv. 19, satellites au sol et en vol, 163 / 400 / 8 010 km/h, plein axe et de biais : 20/20 chocs à 30 i/s, 0 faux positif ; l'ancien code ratait). Avant : interrupteur fermé, à 20-30 i/s la caisse traversait le trafic. `dbgCadence(30)` force toujours au banc. */PAL.B.cadence30=[1,1,0];PAL.B.cadenceDepart=[1,0,0];PAL.B.cadenceTenue=[1000,2000,2000];PAL.B.cadenceMonte=[1,0,1];
 const CAD={ok:PAL.b('cadence30',0)?1:0,on:false,gel:false,force:0,per:1000/30,ecran:1000/60,tol:1000/120,der:0,rp:0,eMin:99,eN:0,
   w:0,wMax:10,wh:0,calT:0,lT:0,vu:0,crs:false,calme:false,essT:0,murT:0,murD:30000,entrees:0,sorties:0};
-let FPS_NEXT=0;const FPS_CAP=!/[?&]fps=0\b/.test(location.search); /* (2026-10-20) le plafond à 60 i/s — voir le début de loop */
+const FPS_CAP=!/[?&]fps=0\b/.test(location.search); /* (2026-10-20) le plafond à 60 i/s — voir le début de loop */
+/* (2026-10-20, Sacha : « beaucoup de freeze et de latence sur la version vercel ») LE PLAFOND EN IMAGES ENTIÈRES. L'horloge cumulée à 1000/60
+   tombait entre deux images d'écran sur un écran qui n'est pas un multiple de 60 Hz — SIMULÉ : 90 Hz → 11 / 22 ms en alternance, 144 Hz →
+   14 / 21 ms, 75 et 100 Hz idem (des à-coups là où l'écran était fluide), et sur un écran à ~61 Hz une image sautée chaque seconde. On saute
+   désormais UNE IMAGE D'ÉCRAN SUR n, n entier = la fréquence ÷ 60 arrondie au-dessous : 120 Hz → 60 i/s, 240 → 60, 144 → 72, toutes à la
+   même cadence ; sous ~110 Hz (60, 75, 90, 100) rien ne se saute. La période d'écran = la MÉDIANE des intervalles entre deux rAF sur 90 (le
+   minimum, lui, sous-estime la période dès que les horodatages tremblent : simulé à 144 Hz ± 0,6 ms, n hésitait entre 2 et 3) ; un jeu qui
+   rame allonge la médiane, n baisse, on saute moins — jamais trop. Le seuil est à mi-chemin entre (n−1) et n images d'écran. */
+const FPS={rp:0,eN:0,n:1,per:1000/60,der:0,a:new Float32Array(90)};
+function fpsSaute(now){ // en tête de loop : rend true si cette image d'écran se saute
+  const d=now-FPS.rp;FPS.rp=now;if(d>2&&d<100)FPS.a[FPS.eN++]=d;
+  if(FPS.eN>=90){FPS.a.sort();FPS.per=FPS.a[45];FPS.n=Math.max(1,Math.floor(1000/FPS.per/60+.2));FPS.eN=0;}
+  if(FPS.n<2)return false;
+  if(now-FPS.der<FPS.per*(FPS.n-.5))return true;
+  FPS.der=now;return false;}
 function cadSaute(now){ // en tête de loop : rend true si cette image d'écran se saute
   const d=now-CAD.rp;CAD.rp=now;if(d>3&&d<CAD.eMin)CAD.eMin=d;
   if(++CAD.eN>=90){const m=CAD.eMin;CAD.eN=0;CAD.eMin=99;CAD.ecran=m<7.7?1000/144:m<9.7?1000/120:m<12.6?1000/90:m<15?1000/75:1000/60;CAD.tol=CAD.ecran*.5;} // 30 Hz imposé (m ≈ 33) : on garde 60, rien ne se saute de toute façon
@@ -55,4 +69,4 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
   else if(CAD.wh>=3||(CAD.murT>0&&now-CAD.murT<CAD.murD)||(QLR.vraiT&&now-QLR.vraiT<20000&&QLR.vrai>13))CAD.calT=now;
   else if(now-CAD.calT>5000){cadPose(false,now);CAD.essT=now;}}
 window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0))?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
-  const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1)};};
+  const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1),plafond:{actif:FPS_CAP,n:FPS.n,ecran:+FPS.per.toFixed(2)}};}; // (2026-10-20) plafond : une image d'écran sur n (fpsSaute)
