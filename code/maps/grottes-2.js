@@ -185,7 +185,11 @@ function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
   GROTTE.n.troncons=V.pool.length;GROTTE.n.air=V.nAir;GROTTE.n.col=GROTTE.col.n;GROTTE.msCreuse=tm.creuse+tm.puits;
   if(performance.now()>JF.lim)yield;t9=performance.now();
   const ord=[];for(let c=0;c<V.pool.length;c++)ord.push(c);ord.sort(function(a,b){return V.chS[a]-V.chS[b];});GROTTE.file=ord;GROTTE.fi=0;
-  while(GROTTE.fi<ord.length){const c=ord[GROTTE.fi];if(direct&&R.S[Math.min(R.n-1,V.chS[c])]>1100)break;grtTroncon(c);GROTTE.fi++;if(performance.now()>JF.lim)yield;}
+  /* (2026-10-20, Sacha : « beaucoup de freeze et de latence sur la version vercel ») « D'UN TRAIT » SE RELIT ICI, PAS SEULEMENT AU DÉBUT. Un pré-bâti
+     pas fini quand vient le JOUER (ou le portail) est fini par prebTravaille(Infinity) : `direct`, lu au début du générateur, valait faux, et
+     TOUTE la grotte restante se maillait dans la même image (MESURÉ en ligne, trace Chrome : 220 ms de grtTroncon/grtMailleNets au JOUER, sur
+     l'ordi). Comme un bâti direct : les 1 100 premiers mètres tout de suite, le reste par les tranches de grotteTick (grtTranches). */
+  while(GROTTE.fi<ord.length){const c=ord[GROTTE.fi];if((direct||JF.lim===Infinity)&&R.S[Math.min(R.n-1,V.chS[c])]>1100)break;grtTroncon(c);GROTTE.fi++;if(performance.now()>JF.lim)yield;}
   GROTTE.pret=GROTTE.fi>=ord.length;tm.mailles=Math.round(performance.now()-t9);
   GROTTE.ms=Math.round(performance.now()-t0);
   grotteMeteo(GROTTE.met,started?bioPortDur():.01);
