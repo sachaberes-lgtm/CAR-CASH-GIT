@@ -168,6 +168,11 @@
         niv=v;dit('chaleur '+r.thermique+[' : le jeu reprend la main',' : jeu calé à 30 images/s',' : calé à 30 + qualité au plus bas'][v]);}catch(e){}};
     try{E.addListener('thermique',thermique);}catch(e){}
     var amorce=function(){if(!window.__gameReady)return setTimeout(amorce,1000);try{E.etat().then(thermique).catch(function(){});}catch(e){}};amorce();
+    /* (2026-10-18, session iPhone) MESURÉ au banc : au « critique », le cran le plus bas posé au menu était PERDU au départ de la course (l'accueil en
+       haute définition rend son cran en partant : `cran:0` tout le long de la course). Tant qu'on est au critique, le cran le plus bas se repose
+       en course toutes les 2 s s'il a été défait. */
+    setInterval(function(){if(niv!==2||typeof window.dbgQual!=='function')return;try{var d=window.dbgState&&window.dbgState();if(!d||!d.started||d.gameOver)return;
+      var b=window.dbgQual();if(b&&b.k<b.kMax)window.dbgQual(b.kMax);}catch(e){}},2000);
   }
 
   /* ---- 9. LE BANC DE MESURE SUR LE VRAI IPHONE (2026-10-14, Sacha : « ultra saccadé quand on va vite ») ----
@@ -212,6 +217,22 @@
         var e=T[nm]||(T[nm]={n:0,r:0,inst:0});e.n++;e.r=Math.max(e.r,Math.round(r));if(o.isInstancedMesh)e.inst+=o.count;});
       var L=Object.keys(T).map(function(k){return [k,T[k]];}).sort(function(x,y){return y[1].n*Math.max(1,y[1].r)-x[1].n*Math.max(1,x[1].r);}).slice(0,14);
       bl('inventaire des transparents :',L.map(function(e){return e[0]+' ×'+e[1].n+(e[1].inst?' (inst '+e[1].inst+')':'')+' r'+e[1].r;}).join(' · '));};
+    /* les variantes de la dissection du HUD : [nom, feuille de style posée en B, fonction posée en B / ôtée en A] */
+    /* DYN : ce que le HUD réécrit en course (relevé à l'observateur de mutations dans Chrome, 18/10) et qui porte un filtre (le contour d'encre). */
+    var DYN='#nxVit b,#nxVit i,#avVal,#avX,#avPts,#popTxt,b.chV,#ajVols b,#moneyTxt,.pw,body>i.p1f,#lvlNom,#slam9 b,#verdHud b,#engBig b';
+    var HUDS={},HUDV=[['sans animations CSS','body *,body *::before,body *::after{animation-play-state:paused!important}'],
+      ['sans la barre de nitro','#nitroWrap{display:none!important}'],
+      ['sans l\'aura','#auraV2{display:none!important}'],
+      ['sans voiles plein écran','#speedFx,#flowGlow,#pwrFx,#cloudFx,#chuteVoile,#flash9,#portC,#flash,#gFade{display:none!important}'],
+      ['sans boutons tactiles','#touchCtl,#tSet{display:none!important}'],
+      ['sans HUD','body>:not(canvas){display:none!important}']];
+    /* L'OCCUPATION DU FIL PRINCIPAL PAR IMAGE (2026-10-19) : du début de l'image (l'horodatage du rAF) au premier message traité APRÈS le rendu
+       (styles, mise en page, peinture, envoi à l'écran) — JavaScript du jeu + rendu de la page. Lisible même quand le jeu tient 60 i/s. */
+    var OCC={canal:null,t:0,v:-1};try{OCC.canal=new MessageChannel();OCC.canal.port1.onmessage=function(){OCC.v=performance.now()-OCC.t;};}catch(e){}
+    var hudvSt=null,hudvFn=null;
+    var hudvPose=function(v){if(hudvSt){hudvSt.remove();hudvSt=null;}if(hudvFn){g(function(){hudvFn(false);});hudvFn=null;}
+      if(!v)return;if(v[1]){hudvSt=document.createElement('style');hudvSt.textContent=v[1];document.head.appendChild(hudvSt);}
+      if(v[2]){hudvFn=v[2];g(function(){v[2](true);});}};
     var mesure=function(){
       g(function(){dbgCout(1);if(window.__ccAppareil.ab)dbgCadence(60);}); // A/B : cadence figée à 60, rien d'autre ne bouge
       bl('palier',JSON.stringify(g(function(){var p=dbgPalier();return {n:p.n,src:p.src};},null)),'carte',JSON.stringify(g(function(){return dbgClassique().niveau;},null)));
@@ -237,19 +258,34 @@
            B = tous les `filter` CSS coupés (hors toile 3D) ; bilan A contre B. */
         /* `-ccAB contour` (2026-10-16, avec la session Chrome DevTools) : le VRAI contour d'encre sans filtre de la page, s'il y est —
            B = window.dbgContour(true) (ou la classe html.contourV2), A = le contour d'aujourd'hui. */
-        if((AB==='filtres'||AB==='contour')&&t>=15){var k=Math.floor((t-15)/5);
+        /* `-ccAB hud` (2026-10-18, session iPhone) : B = toute la page cachée sauf la toile 3D (display:none : ni styles, ni mise en page, ni
+           peinture, ni composition du HUD) — le jeu, lui, continue d'écrire dans son HUD. A contre B = ce que le DOM coûte au téléphone. */
+        if((AB==='filtres'||AB==='contour'||AB==='hud')&&t>=15){var k=Math.floor((t-15)/5);
           if(k!==abK){abK=k;var B9=k%2===1;
-            if(AB==='filtres'){if(!abSt){abSt=document.createElement('style');abSt.textContent='body *:not(canvas),body *::before,body *::after{filter:none!important}';}
+            if(AB==='filtres'||AB==='hud'){if(!abSt){abSt=document.createElement('style');abSt.textContent=AB==='hud'?'body>:not(canvas){display:none!important}':'body *:not(canvas),body *::before,body *::after{filter:none!important}';}
               if(B9&&!abSt.parentNode)document.head.appendChild(abSt);if(!B9&&abSt.parentNode)abSt.remove();}
             else{if(typeof window.dbgContour==='function')g(function(){window.dbgContour(B9);});else document.documentElement.classList.toggle('contourV2',B9);}
-            bl('A/B phase',k,B9?(AB==='filtres'?'B sans filtres':'B contour v2'+(typeof window.dbgContour==='function'?'':' (classe seule : dbgContour absent)')):'A normal');}
+            bl('A/B phase',k,B9?(AB==='filtres'?'B sans filtres':AB==='hud'?'B sans HUD':'B contour v2'+(typeof window.dbgContour==='function'?'':' (classe seule : dbgContour absent)')):'A normal');}
           var q=ABS[k%2===1?'B':'A'];if(t-15-k*5>=1){q.n++;q.dur+=dt;if(dt>34)q.s34++;if(dt>50)q.s50++;}}
         if(!DIS){var w=Math.floor(t/30);if(w!==FEN.w){if(FEN.w>=0&&FEN.n)FENS.push(FEN.w*30+'-'+(FEN.w*30+30)+' s : '+Math.round(FEN.n*1000/FEN.dur)+' i/s, '+FEN.s50+' à-coups > 50 ms, '+FEN.s34+' > 34 ms, calé 30 : '+Math.round(100*FEN.cal/FEN.n)+' %, chaleur '+FEN.ch);FEN={w:w,n:0,dur:0,s34:0,s50:0,cal:0,ch:FEN.ch};}
           FEN.n++;FEN.dur+=dt;if(dt>34)FEN.s34++;if(dt>50)FEN.s50++;if(CADON)FEN.cal++;FEN.ch=TH.thermique!=null?TH.thermique:'?';}
-        if(t<(DIS?15+8*ET.length+1:AB?65:180))requestAnimationFrame(f);
+        /* `-ccAB hudparts` (2026-10-18, session iPhone) : LA DISSECTION DU HUD SUR WEBKIT. Après 15 s, des paires de phases de 4 s — A le jeu
+           tel quel, B une seule famille du HUD coupée — pour chaque variante de HUDV, deux tours. Mesuré sur les 3 dernières secondes de
+           chaque phase. Le bilan dit, variante par variante, A contre B : ce qui coûte au téléphone, et pas seulement à Chrome. */
+        if(AB==='hudparts'&&!hudvPose.perf){hudvPose.perf=document.createElement('style');hudvPose.perf.textContent='#perfMon{display:none!important}';document.head.appendChild(hudvPose.perf);} // le moniteur du banc, caché en A comme en B
+        if(AB==='hudparts'&&t>=15){var kp=Math.floor((t-15)/4),vi=Math.floor(kp/2)%HUDV.length,Bp=kp%2===1;
+          if(kp!==abK){abK=kp;hudvPose(Bp?HUDV[vi]:null);bl('A/B HUD phase',kp,Bp?'B '+HUDV[vi][0]:'A normal');}
+          var HV=HUDS[HUDV[vi][0]]||(HUDS[HUDV[vi][0]]={A:{n:0,dur:0,s34:0,s50:0},B:{n:0,dur:0,s34:0,s50:0}}),q2=HV[Bp?'B':'A'];
+          if(t-15-kp*4>=1){q2.n++;q2.dur+=dt;if(dt>34)q2.s34++;if(dt>50)q2.s50++;if(OCC.v>=0){(q2.occ||(q2.occ=[])).push(OCC.v);}}
+          if(OCC.canal){OCC.v=-1;OCC.t=now;OCC.canal.port2.postMessage(0);}}
+        if(t<(DIS?15+8*ET.length+1:AB==='hudparts'?15+8*HUDV.length*2+1:AB?65:180))requestAnimationFrame(f);
+        else if(AB==='hudparts'){hudvPose(null);g(function(){dbgAuto(0);dbgCout(0);});
+          var r2=function(q){var o=(q.occ||[]).slice().sort(function(x,y){return x-y;}),om=o.length?o[o.length>>1].toFixed(1)+' ms occupé (méd.), '+o[Math.min(o.length-1,(o.length*.9)|0)].toFixed(1)+' (p90)':'';
+            return q.dur?Math.round(q.n*1000/q.dur)+' i/s, '+(q.s34*1000/q.dur).toFixed(1)+' >34ms/s, '+q.s50+' >50ms, '+om:'-';};
+          bl('BILAN DISSECTION DU HUD',HUDV.map(function(v){var H=HUDS[v[0]];return v[0]+' : A '+r2(H.A)+' / B '+r2(H.B);}).join(' || '),'|| chaleur '+(TH.thermique!=null?TH.thermique:'?')+(TH.eco?' ÉCO':''));bl('FIN');}
         else if(AB){if(abSt&&abSt.parentNode)abSt.remove();if(AB==='contour')g(function(){if(window.dbgContour)window.dbgContour(false);else document.documentElement.classList.remove('contourV2');});g(function(){dbgAuto(0);dbgCout(0);});
           var r=function(q){return q.dur?Math.round(q.n*1000/q.dur)+' i/s, '+(q.s34*1000/q.dur).toFixed(1)+' images > 34 ms par s, '+q.s50+' > 50 ms':'-';};
-          bl('BILAN A/B '+AB.toUpperCase(),'A normal : '+r(ABS.A),'|| B '+(AB==='filtres'?'sans filtres':'contour v2')+' : '+r(ABS.B),'|| chaleur '+(TH.thermique!=null?TH.thermique:'?'));bl('FIN');}
+          bl('BILAN A/B '+AB.toUpperCase(),'A normal : '+r(ABS.A),'|| B '+(AB==='filtres'?'sans filtres':AB==='hud'?'sans HUD':'contour v2')+' : '+r(ABS.B),'|| chaleur '+(TH.thermique!=null?TH.thermique:'?'));bl('FIN');}
         else if(!DIS){if(FEN.n)FENS.push(FEN.w*30+'-'+Math.round(t)+' s : '+Math.round(FEN.n*1000/FEN.dur)+' i/s, '+FEN.s50+' à-coups > 50 ms, '+FEN.s34+' > 34 ms, calé 30 : '+Math.round(100*FEN.cal/FEN.n)+' %, chaleur '+FEN.ch);
           g(function(){dbgAuto(0);dbgCout(0);});bl('BILAN ENDURANCE',FENS.join(' || '));bl('FIN');}
         else{cloture();montre();g(function(){dbgAuto(0);dbgCout(0);dbgNet(0);dbgPin(false);});

@@ -141,7 +141,7 @@ une("s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?clien
      ENTRER UN CODE des réglages (Léo, « LE CODE COUSIN ») est masquée, le code n'est plus reconnu, et un `cousin` venu d'une sauvegarde
      restaurée (code de sauvegarde du jeu web) ne débloque rien. */
 une("const TEST_CAISSES=true;","const TEST_CAISSES=false; /* (app iOS) */",'mode TEST des caisses'); // (T4 du 14/10 : plus de POKI dans le jeu)
-une("const TEST_CARRIERE=true;","const TEST_CARRIERE=false; /* (app iOS) */",'mode TEST de la carrière');
+if(h.indexOf("const TEST_CARRIERE=")>=0)une("const TEST_CARRIERE=true;","const TEST_CARRIERE=false; /* (app iOS) */",'mode TEST de la carrière'); // (la carrière est partie du jeu sur main, 18/10 : coupe sans cible)
 une("function carUnlockedVrai(i){",
   "/* (app iOS) le vrai argent passe à l'argent du jeu */CAR_UNLOCK.forEach(function(u,i){if(!u||(u.k!=='premium'&&u.k!=='pubs'&&u.k!=='bientot'))return;const c=CARS[i];"+
   "if(u.k==='bientot'){CAR_UNLOCK[i]={p:(c&&{'REQUIN':6.5e6,'COMÈTE':4.2e6,'LA RAIE':2.5e6}[c.name])||3e6};if(c&&c.rar==='defi')delete c.rar;return;}"+
@@ -149,17 +149,18 @@ une("function carUnlockedVrai(i){",
   "function carUnlockedVrai(i){",'caisses en €'); // (T4 du 14/10 : l'ancrage d'avant, le bloc des prix de l'édition POKI, est parti avec elle)
 /* (l'annonce « BIENTÔT EN DÉTAIL / EN LIGNE » de l'affiche du garage : retirée du jeu lui-même au train T2 du 14/10, coupe ôtée) */
 /* (les blocs « ? — BIENTÔT » de SEE ALL ITEMS : le jeu ne les pose plus sous la charte 6 depuis le train T2 du 14/10, coupe ôtée) */
+if(h.indexOf('doubler une Ferrari')>=0||h.indexOf('passed a Ferrari')>=0){ // (la phrase du MONOSPACE n'est plus dans le jeu sur main, 18/10)
 toutes('on vient de doubler une Ferrari.','on vient de doubler une voiture de course.',2,'phrase « Ferrari » (CARS + clé de traduction)');
-une('we just passed a Ferrari.','we just passed a race car.','phrase « Ferrari » en anglais');
+une('we just passed a Ferrari.','we just passed a race car.','phrase « Ferrari » en anglais');}
 /* (2026-10-14, audit « regard d'Apple » § 1-4 et 1-9, règle 5.2) les noms qui SONT ceux d'un vrai modèle de constructeur, en français ET en
    anglais (la table TR traduit le nom : « THE CHARGER » = la Dodge, mot pour mot), la phrase de LA DOLORÈS qui cite Retour vers le futur
    (« 88 à l'heure »), et l'enseigne MOULIN ROUGE de la carte PARIS (marque du cabaret). Dans l'app seulement. Gardés : ELDORADO (la cité
    d'or, un mot courant), ROSSO 40 (« rouge » en italien), LE DÉFIEUR, ATCHOUM (l'éternuement, la caisse éternue du feu). Chaque nom est
    remplacé PARTOUT (CARS, clés de TR, commentaires) : le compte exact protège d'un nom qui aurait bougé dans le jeu. */
-toutes('LA DAYTONA','LA GRANDE FLÈCHE',4,'nom LA DAYTONA (Ferrari)');une('"THE DAYTONA"','"THE GREAT ARROW"','nom LA DAYTONA en anglais');
+toutes('LA DAYTONA','LA GRANDE FLÈCHE',9,'nom LA DAYTONA (Ferrari)');une('"THE DAYTONA"','"THE GREAT ARROW"','nom LA DAYTONA en anglais');
 toutes('LA STRATOS','LA CALE',6,'nom LA STRATOS (Lancia)');une('"THE STRATOS"','"THE WEDGE"','nom LA STRATOS en anglais');
 toutes('LA VETTE','LA RAPIÈRE',3,'nom LA VETTE (Corvette)');une('"THE VETTE"','"THE RAPIER"','nom LA VETTE en anglais');
-toutes('LE CHARGEUR','LE FORBAN',8,'noms LE CHARGEUR et LE CHARGEUR 69 (Dodge)');toutes('"THE CHARGER','"THE CORSAIR',2,'noms LE CHARGEUR et LE CHARGEUR 69 en anglais');
+toutes('LE CHARGEUR','LE FORBAN',9,'noms LE CHARGEUR et LE CHARGEUR 69 (Dodge)');toutes('"THE CHARGER','"THE CORSAIR',2,'noms LE CHARGEUR et LE CHARGEUR 69 en anglais');
 une("À 88 à l\\'heure elle remonte le temps, paraît-il.","On la dit en avance sur son époque.",'phrase de LA DOLORÈS (CARS)');
 une("À 88 à l'heure elle remonte le temps, paraît-il.","On la dit en avance sur son époque.",'phrase de LA DOLORÈS (clé de traduction)');
 une('At 88 it travels back in time, apparently.','Ahead of its time, they say.','phrase de LA DOLORÈS en anglais');
@@ -196,8 +197,8 @@ une('</head>','<style id="appStore">/* (app iOS) pas de page OFFRES en € : ni 
    Dans l'app plus aucune caisse n'est en € (coupe « caisses en € » plus haut : elles passent à l'argent du jeu et rejoignent le rayon
    VOITURES) : ACHAT serait VIDE. Le rayon n'est pas posé, et l'ancien chemin vers OFFRES ouvre VOITURES. */
 une("const BQ_CATS=[['voiture','VOITURES','voiture'],['achat','ACHAT','panier'],","const BQ_CATS=[['voiture','VOITURES','voiture'],/* (app iOS) pas de rayon ACHAT : aucune caisse en € */",'rayon ACHAT de la boutique');
-une("if(GBQ.ong==='off'){GBQ.ong='cat';GBQ.cat='achat';}","if(GBQ.ong==='off'){GBQ.ong='cat';GBQ.cat='voiture';} /* (app iOS) */",'ancien chemin OFFRES → rayon ACHAT');
-une("const SANS_VOIX=!/[?&]voix=1\\b/.test(location.search);","const SANS_VOIX=true; /* (app iOS) les voix ne sont pas livrées */",'règle SANS_VOIX (les voix ne sont pas livrées)');
+if(h.indexOf("if(GBQ.ong==='off')")>=0)une("if(GBQ.ong==='off'){GBQ.ong='cat';GBQ.cat='achat';}","if(GBQ.ong==='off'){GBQ.ong='cat';GBQ.cat='voiture';} /* (app iOS) */",'ancien chemin OFFRES → rayon ACHAT');
+if(h.indexOf("const SANS_VOIX=")>=0)une("const SANS_VOIX=!/[?&]voix=1\\b/.test(location.search);","const SANS_VOIX=true; /* (app iOS) les voix ne sont pas livrées */",'règle SANS_VOIX (les voix ne sont pas livrées)');
 /* LA CADENCE STABLE AUSSI SUR LES IPHONE RÉCENTS (2026-10-15, mesuré sur l'iPhone 13 Pro de Sacha : « ultra saccadé quand on va vite »).
    Le jeu réserve sa cadence 30 images/s calée (CAD) aux paliers ANCIEN et MOYEN ; au RÉCENT, une course qui manque de marge tombait de 60
    à 40-55 images/s IRRÉGULIÈRES (jusqu'à 63 images en retard en 2 s), puis à 15-30 quand l'iPhone chauffe. Dans l'app, le palier RÉCENT
@@ -222,15 +223,13 @@ for(const[t,quoi]of[['data-m="shop"','la tuile OFFRES de l\'accueil'],['id="mSho
   ["k:'bientot'",'les caisses « DÉFI À VENIR »'],
   /* (le bouton verrouillé « BIENTÔT » du menu du garage : retiré du jeu lui-même sur main, 1b35a2b du 14/10 « Plus de BIENTOT visible », coupe ôtée) */
   ['<div class="mLigne lien" data-m="code">','la ligne ENTRER UN CODE des réglages'],['<div class="mLigne lien" data-m="imp">','la ligne RESTAURER UN CODE des réglages'],
-  ['html.c6.hub:not(.poki) body #mHome.acc2 .mOffres{grid-row:7;grid-column:2}','la carte OFFRES de l\'accueil en 2 × 2 (debout)'],
-  ['html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-row:7;grid-column:1}','la carte GARAGE de l\'accueil en 2 × 2 (debout)'],
-  ['html.c6.hub:not(.poki) body #mHome.acc2 .mOffres{grid-row:7;grid-column:3}','la carte OFFRES de l\'accueil en 2 × 2 (couché)'],
-  ['html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-row:7;grid-column:2}','la carte GARAGE de l\'accueil en 2 × 2 (couché)'],
-  ['html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-columns:repeat(3,minmax(0,1fr));column-gap:10px;','la grille à 3 colonnes de l\'accueil UX 8 (debout)'],
+  /* (les cartes 2 × 2 de la charte 6 : parties du jeu sur main — la charte 6 n'est plus le défaut, ses règles d'accueil ont été ôtées ; 18/10,
+     leurs deux lignes de CSS plus haut ne visent plus rien et restent sans effet) */
+  ['html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-columns:repeat(3,minmax(0,1fr));column-gap:10px','la grille à 3 colonnes de l\'accueil UX 8 (debout)'],
   ['html:not(.c6).hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-row:6;grid-column:1}','la touche GARAGE de l\'accueil UX 8'],
   ['html:not(.c6).hub:not(.poki) body #mHome.acc2 .mOffres{grid-row:6;grid-column:2}','la touche OFFRES de l\'accueil UX 8'],
   ['html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear{grid-row:6;grid-column:3}','la touche RÉGLAGES de l\'accueil UX 8'],
-  ['html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-columns:minmax(0,1fr) repeat(3,minmax(0,112px));','la grille de l\'accueil UX 8 (couché)'],
+  ['html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-columns:minmax(0,1fr) repeat(3,minmax(0,112px))','la grille de l\'accueil UX 8 (couché)'],
   ['html:not(.c6).hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-column:2}\n  html:not(.c6).hub:not(.poki) body #mHome.acc2 .mOffres{grid-column:3}\n  html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear{grid-column:4}',
    'les touches GARAGE · OFFRES · RÉGLAGES de l\'accueil UX 8 (couché)']])
   if(h.indexOf(t)<0)meurt('témoin perdu — '+quoi+' : « '+t+' » n\'existe plus dans le jeu. L\'écran a changé : revoir la coupe de l\'édition App Store.');

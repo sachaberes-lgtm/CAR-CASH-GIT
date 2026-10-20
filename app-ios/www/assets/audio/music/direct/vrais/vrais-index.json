@@ -787,40 +787,6 @@
 ]
 ]
 },
-"fluteStac": {
-"type": "note",
-"notes": [
-[
-69,
-"fluteStac-69.m4a",
-0.768
-],
-[
-76,
-"fluteStac-76.m4a",
-0.945,
-1
-],
-[
-81,
-"fluteStac-81.m4a",
-0.601,
--12
-],
-[
-88,
-"fluteStac-88.m4a",
-0.544,
--16
-],
-[
-93,
-"fluteStac-93.m4a",
-0.505,
-5
-]
-]
-},
 "clarinette": {
 "type": "note",
 "notes": [
@@ -870,53 +836,6 @@
 90,
 "clarinette-90.m4a",
 2.4
-]
-]
-},
-"clarinetteStac": {
-"type": "note",
-"notes": [
-[
-50,
-"clarinetteStac-50.m4a",
-0.576,
--1
-],
-[
-58,
-"clarinetteStac-58.m4a",
-0.587,
--15
-],
-[
-62,
-"clarinetteStac-62.m4a",
-0.572,
--31
-],
-[
-70,
-"clarinetteStac-70.m4a",
-0.656,
--5
-],
-[
-74,
-"clarinetteStac-74.m4a",
-0.663,
--6
-],
-[
-82,
-"clarinetteStac-82.m4a",
-0.643,
--27
-],
-[
-86,
-"clarinetteStac-86.m4a",
-0.575,
--2
 ]
 ]
 },
@@ -1199,26 +1118,6 @@ null,
 ]
 ]
 },
-"caisseRim": {
-"type": "perc",
-"notes": [
-[
-null,
-"caisseRim-x.m4a",
-0.488
-]
-]
-},
-"caisseClic": {
-"type": "perc",
-"notes": [
-[
-null,
-"caisseClic-x.m4a",
-0.257
-]
-]
-},
 "caisse2": {
 "type": "perc",
 "notes": [
@@ -1309,16 +1208,6 @@ null,
 ]
 ]
 },
-"tambourGeant": {
-"type": "perc",
-"notes": [
-[
-null,
-"tambourGeant-x.m4a",
-1.225
-]
-]
-},
 "claves": {
 "type": "perc",
 "notes": [
@@ -1336,16 +1225,6 @@ null,
 null,
 "cloche-x.m4a",
 0.616
-]
-]
-},
-"guiro": {
-"type": "perc",
-"notes": [
-[
-null,
-"guiro-x.m4a",
-1.041
 ]
 ]
 },
@@ -1439,46 +1318,6 @@ null,
 ]
 ]
 },
-"carillon": {
-"type": "perc",
-"notes": [
-[
-null,
-"carillon-x.m4a",
-3.0
-]
-]
-},
-"gong": {
-"type": "perc",
-"notes": [
-[
-null,
-"gong-x.m4a",
-3.0
-]
-]
-},
-"enclume": {
-"type": "perc",
-"notes": [
-[
-null,
-"enclume-x.m4a",
-1.041
-]
-]
-},
-"tambourFrein": {
-"type": "perc",
-"notes": [
-[
-null,
-"tambourFrein-x.m4a",
-0.871
-]
-]
-},
 "timbale1": {
 "type": "perc",
 "notes": [
@@ -1495,16 +1334,6 @@ null,
 [
 null,
 "timbale3-x.m4a",
-3.0
-]
-]
-},
-"timbale5": {
-"type": "perc",
-"notes": [
-[
-null,
-"timbale5-x.m4a",
 3.0
 ]
 ]
@@ -2255,31 +2084,6 @@ null,
 ]
 ]
 },
-"clochesTub": {
-"type": "note",
-"notes": [
-[
-50,
-"clochesTub-50.m4a",
-2.4
-],
-[
-56,
-"clochesTub-56.m4a",
-2.4
-],
-[
-60,
-"clochesTub-60.m4a",
-2.4
-],
-[
-64,
-"clochesTub-64.m4a",
-2.4
-]
-]
-},
 "carillonMain": {
 "type": "note",
 "notes": [
@@ -2513,16 +2317,6 @@ null,
 ]
 ]
 },
-"caisseFant": {
-"type": "perc",
-"notes": [
-[
-null,
-"caisseFant-x.m4a",
-1.2
-]
-]
-},
 "grosseCaisseKit": {
 "type": "perc",
 "notes": [
@@ -2583,16 +2377,6 @@ null,
 ]
 ]
 },
-"tambourin": {
-"type": "perc",
-"notes": [
-[
-null,
-"tambourin-x.m4a",
-0.848
-]
-]
-},
 "tambourinSec": {
 "type": "perc",
 "notes": [
@@ -2623,56 +2407,6 @@ null,
 ]
 ]
 },
-"vibraslap": {
-"type": "perc",
-"notes": [
-[
-null,
-"vibraslap-x.m4a",
-1.2
-]
-]
-},
-"arbreCloches": {
-"type": "perc",
-"notes": [
-[
-null,
-"arbreCloches-x.m4a",
-3.0
-]
-]
-},
-"ocean": {
-"type": "perc",
-"notes": [
-[
-null,
-"ocean-x.m4a",
-3.0
-]
-]
-},
-"sireneVraie": {
-"type": "perc",
-"notes": [
-[
-null,
-"sireneVraie-x.m4a",
-2.088
-]
-]
-},
-"didgeridoo": {
-"type": "perc",
-"notes": [
-[
-null,
-"didgeridoo-x.m4a",
-3.0
-]
-]
-},
 "cymbaleMontee2": {
 "type": "perc",
 "notes": [
@@ -2690,16 +2424,6 @@ null,
 null,
 "cymbaleMontee4-x.m4a",
 3.0
-]
-]
-},
-"cloche2": {
-"type": "perc",
-"notes": [
-[
-null,
-"cloche2-x.m4a",
-0.747
 ]
 ]
 }
