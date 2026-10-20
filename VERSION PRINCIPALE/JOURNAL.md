@@ -19328,3 +19328,11 @@ const CACHE = 'cashcar-v624'; // v624 (2026-10-18, Léo : « plus de gris chelou
 - Banc (scratchpad de la discussion Map) : `ab.py` (avant/après au garage et en course figée, deux serveurs), `tune3.py`/`tune4.py` (réglages à chaud par `dbgRed` + mesure des pixels saturés), `flat.py`
   (classement de toute la gamme), `planche.py` (planche légendée capturée par Chrome).
 
+
+## LES PETITS BUGS QUI TRAÎNAIENT (2026-10-20, séance « finir ce qui n'a pas été travaillé » — Léo coche : « les 3 petits bugs »)
+- LE GARAGE TROP LOURD SUR TÉLÉPHONE : `PAL.B.vhdPx` MOYEN et RÉCENT 1,6 / 3,2 M → 1,4 M de pixels (rendu/nettete-qualite.js). Mesuré sur l'iPhone 15 de Léo le 16/10 : à 3,2 M (densité 3)
+  le garage et la boutique tombaient à 41-58 i/s avec des accrocs de 200-700 ms ; 1,4 M (densité ~2) est le réglage que son appli iPhone appliquait déjà (preparer-www.js : `Math.min(…,1.4e6)`,
+  qui reste valable — la ligne de vhdDpr n'a pas bougé). L'ordinateur garde 8,3 M. `?palier=2` garde le reste du comportement RÉCENT.
+- LES ABEILLES DE LA FORÊT ÉTAIENT MUETTES : `sfx('foret.abeille')` était appelé (abeille à < 10 m de la caisse) mais aucune recette ne le cuisait. Recette `foret.abeille` (atelier-son/recettes.js) :
+  le bourdonnement qui PASSE — harmoniques en 1/k avec un « nez » vers 1,1 kHz, Doppler (plus aigu à l'arrivée, plus grave au départ), d'une oreille à l'autre ; deux variantes (l'ouvrière ~230 Hz,
+  le bourdon ~150 Hz). Cuite en PCM (`PCM=1 node atelier-son/cuire.js foret.abeille` : pas de ffmpeg sur ce Mac) — une cuisson complète avec ffmpeg la repassera en MP3. Banque `?v=34`.
