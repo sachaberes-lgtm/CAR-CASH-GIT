@@ -239,7 +239,7 @@ function menuVitrineFin(){ // on quitte l'accueil : le ciel du niveau reprend la
    (3) Caméras BASSES : moins de bitume, plus de ciel. Et la lampe de vitrine est DOSÉE par plan (`lum`) : pile en face d'un profil,
        à 3,4, elle délavait la carrosserie en rose pâle.
    Hook : `dbgVitrine()` rend aussi le plan en cours et la cible à l'écran ; `dbgVitrine(null,'profil')` force un plan (dev). */
-const MENU_PLANS=[{n:'affiche',t:8,fov:44,lum:3.4},{n:'arriere',t:7,fov:40,lum:2.2},{n:'profil',t:7,fov:30,lum:.45}]; // lum : le PROFIL a le soleil dans le dos (on le garde hors champ) — il éclaire déjà tout le flanc
+const MENU_PLANS=[{n:'affiche',t:8,fov:44,lum:4.4},{n:'arriere',t:7,fov:40,lum:2.9},{n:'profil',t:7,fov:30,lum:.7}]; // lum : le PROFIL a le soleil dans le dos (on le garde hors champ) — il éclaire déjà tout le flanc
 MENUV.pl=0;MENUV.pt=0;MENUV.force=null;MENUV.lum=3.4;MENUV.sd=null;MENUV.cadreT=-1;MENUV.cadre={nx:0,ny:-.1,fr:.6,fh:.4,t:-9e9};
 MENUV.retour=false; // (2026-09-28) vrai entre le bouton MENU de l'écran de mort et le départ suivant (voir accueilRetour)
 function menuZoneSure(){ // les marges d'encoche du moment, en px (--sT/--sB/--sL/--sR : l'iPhone, ou la colonne de l'ordi qui l'imite)

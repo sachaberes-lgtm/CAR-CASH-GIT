@@ -26513,7 +26513,7 @@ function paintEnv(stops,s1,s2){ // stops=[[pos,'#hex'],…] + 2 strips néon [r,
   /* (2026-10-20, Léo : « voiture aussi belle dans le jeu que dans la boutique, et ciel obligé ») LA FINITION EN COURSE : le ciel de CHAQUE niveau (ville,
      orbite, grotte… compris : il y a toujours un ciel à refléter) est repeint en reflets NETS (256², bandes de lumière, voir paintEnvMenu) et la caisse
      prend le vernis profond, dosé par le jour du niveau. REQUIN (FSTU_SANS) et `?finition=ancien` gardent le ciel d'avant. */
-  try{if(FSTU.on&&!garageOn&&!FSTU_SANS[carGroup.userData.shape]){paintEnvMenu({env:stops,eS1:s1,eS2:s2,sunHalo:(BIO&&BIO.to&&BIO.to.sunHalo!=null?BIO.to.sunHalo:1)});finLaque('menu');}else{FSTU.env='ciel';finLaque(false);}}catch(e){try{FSTU.env='ciel';finLaque(false);}catch(e2){}} // (2026-10-20) le ciel d'un niveau ou du menu : la caisse reprend son vernis de course (la finition studio, finition.js, n'est que pour le garage) — au chargement la finition n'existe pas encore : rien à rendre
+  try{if(FSTU.on&&!garageOn&&!FSTU_SANS[carGroup.userData.shape]){paintEnvCiel(stops,s1,s2,(BIO&&BIO.to&&BIO.to.sunHalo!=null?BIO.to.sunHalo:1));finLaque('menu');}else{FSTU.env='ciel';finLaque(false);}}catch(e){try{FSTU.env='ciel';finLaque(false);}catch(e2){}} // (2026-10-20) le ciel d'un niveau ou du menu : la caisse reprend son vernis de course (la finition studio, finition.js, n'est que pour le garage) — au chargement la finition n'existe pas encore : rien à rendre
 }
 /* L'ATELIER DANS LA LAQUE (2026-09-26) — au garage, la carrosserie reflétait le CIEL de la dernière course (un couchant violet dans
    un atelier fermé) : des reflets sans rapport avec la pièce, mous, sans une arête. Le cube est repeint en STUDIO : plafond noir
@@ -41209,7 +41209,7 @@ const FSTU_SANS={requin:1};
    paintEnvMenu). FSTU.env dit quel cube est peint ('ciel', 'atelier', 'studio', 'menu') : on ne repeint que s'il le faut. */
 function finLaque(on){FSTU.garage=on||false;const sans=!!FSTU_SANS[carGroup.userData.shape];
   const w=on==='menu'?FSTU.menuW:1; // (menu ciel) la finition se dose avec le jour : la nuit, un vernis profond ne reflète que du noir et éteint la caisse
-  FSTU.uHdr.value=FSTU.on&&on&&!sans?(on==='menu'?FSTU_MENU_HDR*w:1):0;if(!FSTU.on)return;
+  FSTU.uHdr.value=FSTU.on&&on&&!sans?(on==='menu'?FSTU_MENU_HDR*w*1:1):0;if(!FSTU.on)return;
   const mel=(a,b)=>a.map((v,i)=>v+(b[i]-v)*w);
   if(on===true){try{if(sans){if(FSTU.env!=='atelier')paintEnvAtelier();}else if(FSTU.env!=='studio')paintEnvStudio();}catch(e){}}
   on=!!on&&!sans;
@@ -41262,7 +41262,7 @@ function paintEnvMenu(B){FSTU.env='menu';FSTU.envB=B;FSTU.garage=false; // (gara
        des bandes à la couleur du néon du ciel, plus douces, et pas de soleil */
     jour=(()=>{const h9=(stops.find(s=>s[0]>=.58)||stops[stops.length-1])[1],n9=parseInt(h9.slice(1),16),l9=(.3*(n9>>16&255)+.59*(n9>>8&255)+.11*(n9&255))/255;return Math.min(1,Math.max(0,(l9-.35)/.45));})(),
     mixc=(a,b,t)=>a.map((v,i)=>Math.round(v+(b[i]-v)*t)).join(','),
-    chaud=mixc([s1[0],s1[1],s1[2]],[255,240,220],.45+.5*jour),dore=mixc([s1[0],s1[1],s1[2]],[255,222,170],.6*jour),clair=mixc([s1[0],s1[1],s1[2]],[255,250,242],.5+.45*jour),kA=.6+.4*jour;FSTU.menuW=.3+.7*jour; // (v2) des blancs CHAUDS : la teinte de la laque reste la sienne (un blanc bleuté virait le vert au canard)
+    chaud=mixc([s1[0],s1[1],s1[2]],[255,240,220],.45+.5*jour),dore=mixc([s1[0],s1[1],s1[2]],[255,222,170],.6*jour),clair=mixc([s1[0],s1[1],s1[2]],[255,250,242],.5+.45*jour),kA=.6+.4*jour;FSTU.menuW=.55+.45*jour; // (v2) des blancs CHAUDS : la teinte de la laque reste la sienne (un blanc bleuté virait le vert au canard)
   const bande=(c,y,h,col,a,halo)=>{const g=c.createLinearGradient(0,y-halo,0,y+h+halo);g.addColorStop(0,'rgba('+col+',0)');g.addColorStop(.5,'rgba('+col+','+a+')');g.addColorStop(1,'rgba('+col+',0)');
       c.fillStyle=g;c.fillRect(0,y-halo,S,h+2*halo);c.fillStyle='rgba(255,255,255,'+Math.min(1,a).toFixed(2)+')';c.fillRect(0,y+h*.3,S,Math.max(2,h*.4));};
   envCvs.forEach(function(cv,f){if(cv.width!==S)cv.width=cv.height=S;const c=cv.getContext('2d');c.setTransform(1,0,0,1,0,0);
@@ -41273,11 +41273,66 @@ function paintEnvMenu(B){FSTU.env='menu';FSTU.envB=B;FSTU.garage=false; // (gara
     c.fillStyle='rgba(8,8,18,'+(.2+.35*jour).toFixed(2)+')';c.fillRect(0,0,S,S);                         // le ciel ASSOMBRI : les bandes ressortent (moins la nuit : il l'est déjà)
     bande(c,198,12,chaud,.95*kA,10);                                                                     // la mer de nuages au soleil : les flancs
     bande(c,146,7,dore,.85*kA,8);                                                                        // l'horizon doré : les épaules
-    bande(c,84,6,clair,.6*kA,10);                                                                        // le ciel clair : les capots et les toits en rasant
+    bande(c,84,6,clair,.6*kA,10);
+    if(B.course){bande(c,76,12,clair,.7*kA,12);bande(c,106,6,clair,.5*kA,6);bande(c,166,10,chaud,.65*kA,10);}   // (EN COURSE, 20/10) la caméra voit la caisse de DOS et de dessus : le toit et le capot reflètent le mur d'en face au-dessus de l'horizon (larges bandes claires), l'arrière et le coffre le mur de derrière sous l'horizon                                                                        // le ciel clair : les capots et les toits en rasant
     c.fillStyle='rgba('+s2[0]+','+s2[1]+','+s2[2]+','+(s2[3]*.8).toFixed(2)+')';c.fillRect(0,120,S,4);
     if(f===sunF&&B.sunHalo!==0&&jour>.3){const h=c.createRadialGradient(128,110,0,128,110,34);h.addColorStop(0,'rgba(255,250,236,1)');h.addColorStop(.22,'rgba(255,240,205,.95)');h.addColorStop(.5,'rgba(255,214,150,.35)');h.addColorStop(1,'rgba(255,214,150,0)');
       c.fillStyle=h;c.fillRect(0,0,S,S);}                                                                // le soleil : un disque net, un halo court
   });
+  envTex.needsUpdate=true;}
+/* ===== LE CIEL DE LA MAP DANS LA LAQUE (2026-10-20, Léo : « les reflets dans la map plus cohérents avec le soleil ou la lumière de la map — là c'est un
+   truc de reflet de garage, très répétitif ») EN COURSE, plus de bandes identiques sur chaque mur : le cube est peint PAR DIRECTION du monde (les six
+   faces d'un seul tenant, aucune couture) — dégradé du biome en fonction de la hauteur, le SOLEIL à sa vraie place (disque net + halo chaud, l'éclat
+   que le vernis fait éclater), une brume d'horizon irrégulière (nuages) qui s'allume côté soleil, un ciel plus sombre à l'opposé, le sol qui prend
+   la couleur du biome. La nuit / sans soleil : la même lumière au néon du biome. Convention de lecture : three lit le cube en (−x, y, z) (flipEnvMap)
+   et les faces à la convention OpenGL ; la direction du monde de chaque pixel est calculée une fois (`FSTU_DIR`). ===== */
+let FSTU_DIR=null;
+const FSTU_ECL=[[-.19,.030,3.1,5.3,.4,1.7,.9],[-.08,.022,4.7,7.9,2.1,.6,.8],[.03,.020,2.3,6.1,1.2,3.3,.7],[.14,.026,3.7,9.1,.3,2.4,.7],[.30,.035,2.9,5.7,2.6,.9,.6]]; // [hauteur (sin), demi-épaisseur, fréquence A, fréquence B, phase A, phase B, force]
+function fstuDirs(S){if(FSTU_DIR&&FSTU_DIR.S===S)return FSTU_DIR;
+  const T=[];for(let f=0;f<6;f++){const A=new Float32Array(S*S*3);
+    for(let j=0;j<S;j++)for(let i=0;i<S;i++){const u=(i+.5)/S*2-1,v=(j+.5)/S*2-1;let x,y,z;
+      if(f===0){x=1;y=-v;z=-u;}else if(f===1){x=-1;y=-v;z=u;}else if(f===2){x=u;y=1;z=v;}else if(f===3){x=u;y=-1;z=-v;}else if(f===4){x=u;y=-v;z=1;}else{x=-u;y=-v;z=-1;}
+      const l=Math.hypot(x,y,z),k=(j*S+i)*3;A[k]=-x/l;A[k+1]=y/l;A[k+2]=z/l;}   // (−x : le monde = la lecture à l'envers de flipEnvMap)
+    T.push(A);}
+  return FSTU_DIR={S,T};}
+function paintEnvCiel(stops,s1,s2,sunHalo){FSTU.env='ciel2';FSTU.envB=null;FSTU.garage=false;FSTU.menuW=1;
+  const S=128,D=fstuDirs(S),sd=SUN_DIR,hex=h=>{const n=parseInt(h.slice(1),16);return [n>>16&255,n>>8&255,n&255];},
+    ST=stops.map(s=>[s[0],hex(s[1])]),
+    jour=(()=>{const h9=(stops.find(s=>s[0]>=.58)||stops[stops.length-1])[1],c=hex(h9),l9=(.3*c[0]+.59*c[1]+.11*c[2])/255;return Math.min(1,Math.max(0,(l9-.35)/.45));})(),
+    soleil=sunHalo!==0&&jour>.3,
+    mel=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t],
+    grad=p=>{if(p<=ST[0][0])return ST[0][1];for(let i=1;i<ST.length;i++)if(p<=ST[i][0]){const a=ST[i-1],b=ST[i];return mel(a[1],b[1],(p-a[0])/Math.max(1e-4,b[0]-a[0]));}return ST[ST.length-1][1];},
+    chaud=mel([s1[0],s1[1],s1[2]],[255,236,205],.5+.45*jour),    // la lumière du soleil : blanc chaud (la teinte de la laque reste la sienne)
+    clair=mel([s1[0],s1[1],s1[2]],[255,250,240],.45*jour),
+    sombre=.3+.14*jour,                                           // le ciel assombri : le contraste fait la laque
+    azS=Math.atan2(sd.x,sd.z),hs=Math.hypot(sd.x,sd.z)||1,sdx=sd.x/hs,sdz=sd.z/hs;
+  envCvs.forEach(function(cv,f){if(cv.width!==S)cv.width=cv.height=S;const c=cv.getContext('2d'),im=c.createImageData(S,S),P=im.data,A=D.T[f];
+    for(let q=0;q<S*S;q++){const dx=A[q*3],dy=A[q*3+1],dz=A[q*3+2],hz=Math.hypot(dx,dz)||1e-4,el=dy/hz;       // el = tan(hauteur)
+      const cs=dx*sd.x+dy*sd.y+dz*sd.z,ca=(dx*sdx+dz*sdz)/hz,az=Math.atan2(dx,dz);                          // ca = 1 face au soleil, −1 à l'opposé
+      let col=grad(Math.min(1,Math.max(0,.5-.5*el)));
+      let r=col[0]*sombre,g=col[1]*sombre,b=col[2]*sombre;
+      if(dy<0){const k=.55+.2*Math.max(0,ca);r*=k;g*=k;b*=k;}                                                // le sol, plus sombre ; un peu moins côté soleil
+      // la brume d'horizon : une bande irrégulière (nuages), allumée côté soleil, plus fine et plus sombre à l'opposé
+      const hh=Math.exp(-Math.pow((dy+.015)/.075,2)),nz=.62+.2*Math.sin(az*3+1.3)+.12*Math.sin(az*8.3)*Math.sin(az*2.1+.4)+.06*Math.sin(az*17+2),
+        lit=.18+.82*Math.pow(Math.max(0,(ca+.35)/1.35),1.6),bh=hh*nz*lit*(.35+.5*jour);
+      r+=(chaud[0]-r)*bh;g+=(chaud[1]-g)*bh;b+=(chaud[2]-b)*bh;
+      // un liseré franc sur la ligne d'horizon (la mer de nuages, le bord du monde) — le néon du biome la nuit
+      const li=Math.exp(-Math.pow(dy/.012,2))*(.25+.55*Math.max(0,ca))*(soleil?1:.8);r+=(s1[0]-r)*li*.6;g+=(s1[1]-g)*li*.6;b+=(s1[2]-b)*li*.6;
+      // le soleil : halo large puis disque net ; sans soleil, la source du biome (néon) à la même place, plus douce
+      // LES ÉCLATS (le scintillement) : des tronçons de lumière à bords francs, à des hauteurs de flanc / d'épaule / de toit, de longueurs irrégulières (deux fréquences
+      // qui ne se recoupent jamais : rien ne se répète) — plus vifs côté soleil, comme une mer de nuages dont les crêtes accrochent la lumière ; quand la caisse
+      // tourne ou tangue, ils glissent d'un pan à l'autre et la tôle brille
+      const lt=Math.pow(Math.max(0,(ca+.25)/1.25),1.3),ja=.45+.55*jour;let eb=0;
+      for(let n=0;n<FSTU_ECL.length;n++){const E=FSTU_ECL[n],m=Math.sin(az*E[2]+E[4])+.8*Math.sin(az*E[3]+E[5]);
+        eb+=Math.exp(-Math.pow((dy-E[0])/(E[1]*.6),2))*Math.min(1,Math.max(0,(m-.1)/.2))*E[6];}
+      // le COFFRE et le toit (vus de dos, de dessus) reflètent le ciel devant et au-dessus : un voile de ciel clair CONTINU (jamais vide, quel que soit le cap) sous les éclats
+      const ci=Math.exp(-Math.pow((dy-.28)/.2,2))*(.015+.02*lt)*ja;
+      eb=Math.min(1,eb*(.35+.65*lt)*ja+ci);const wr=(chaud[0]+250)/2,wg=(chaud[1]+246)/2,wb=(chaud[2]+236)/2;r+=(wr-r)*eb;g+=(wg-g)*eb;b+=(wb-b)*eb;
+      const hl=Math.exp((cs-1)*(soleil?16:10))*(soleil?.3:.25),hl2=Math.exp((cs-1)*90)*(soleil?.8:.4);   // (halo resserré : large il faisait une tache sur la lunette arrière)
+      const cc=soleil?chaud:clair;r+=(cc[0]-r)*Math.min(1,hl+hl2);g+=(cc[1]-g)*Math.min(1,hl+hl2);b+=(cc[2]-b)*Math.min(1,hl+hl2);
+      if(soleil){const dk=Math.min(1,Math.max(0,(cs-.99935)/.0004));r+=(255-r)*dk;g+=(250-g)*dk;b+=(238-b)*dk;}
+      P[q*4]=Math.min(255,r);P[q*4+1]=Math.min(255,g);P[q*4+2]=Math.min(255,b);P[q*4+3]=255;}
+    c.putImageData(im,0,0);});
   envTex.needsUpdate=true;}
 /* appelé à chaque image du menu (menuVitrine) : le bon ciel peint, la bonne laque posée — sans rien refaire tant que rien ne change */
 function finMenu(B){if(!FSTU.on)return;const sans=!!FSTU_SANS[carGroup.userData.shape];
@@ -62065,7 +62120,7 @@ function menuVitrineFin(){ // on quitte l'accueil : le ciel du niveau reprend la
    (3) Caméras BASSES : moins de bitume, plus de ciel. Et la lampe de vitrine est DOSÉE par plan (`lum`) : pile en face d'un profil,
        à 3,4, elle délavait la carrosserie en rose pâle.
    Hook : `dbgVitrine()` rend aussi le plan en cours et la cible à l'écran ; `dbgVitrine(null,'profil')` force un plan (dev). */
-const MENU_PLANS=[{n:'affiche',t:8,fov:44,lum:3.4},{n:'arriere',t:7,fov:40,lum:2.2},{n:'profil',t:7,fov:30,lum:.45}]; // lum : le PROFIL a le soleil dans le dos (on le garde hors champ) — il éclaire déjà tout le flanc
+const MENU_PLANS=[{n:'affiche',t:8,fov:44,lum:4.4},{n:'arriere',t:7,fov:40,lum:2.9},{n:'profil',t:7,fov:30,lum:.7}]; // lum : le PROFIL a le soleil dans le dos (on le garde hors champ) — il éclaire déjà tout le flanc
 MENUV.pl=0;MENUV.pt=0;MENUV.force=null;MENUV.lum=3.4;MENUV.sd=null;MENUV.cadreT=-1;MENUV.cadre={nx:0,ny:-.1,fr:.6,fh:.4,t:-9e9};
 MENUV.retour=false; // (2026-09-28) vrai entre le bouton MENU de l'écran de mort et le départ suivant (voir accueilRetour)
 function menuZoneSure(){ // les marges d'encoche du moment, en px (--sT/--sB/--sL/--sR : l'iPhone, ou la colonne de l'ordi qui l'imite)
