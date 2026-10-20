@@ -311,6 +311,7 @@ const landMark=new THREE.Mesh(new THREE.TorusGeometry(3,.35,8,24),
   new THREE.MeshBasicMaterial({color:0x62e062,transparent:true,opacity:.85,depthTest:false}));
 landMark.renderOrder=999; // (2026-09-28, nuit) le VISEUR passe PAR-DESSUS tout : la caméra de vol garde la caisse plus grande (le « bras », voir la caméra de vol) — elle ne doit jamais cacher l'endroit où l'on se pose
 landMark.visible=false;scene.add(landMark);
+const lmP=new THREE.Vector3(); // (2026-10-20) le pas d'AVANT du viseur : c'est lui qui dit de quel côté de la dalle on arrive (voir le viseur de la boucle de vol)
 const LM={a:0,vu:false,c:new THREE.Color()}; // (2026-09-28) le viseur en FONDU : il surgissait à 1,7 s de la pose, clignotait près des bords, sautait d'or à blanc
 const shadow=new THREE.Mesh(new THREE.CircleGeometry(2.4,20),
   new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.28,depthWrite:false}));

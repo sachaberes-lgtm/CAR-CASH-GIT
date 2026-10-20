@@ -33,6 +33,23 @@ function ramD(P,Q,ax,R){ // (2026-10-14, chasse aux bugs) la distance caisse ↔
   let t=((Q.x-A.x)*dx+(Q.y-A.y)*dy+(Q.z-A.z)*dz)/l2;t=t<0?0:t>1?1:t;
   const x=A.x+dx*t-Q.x,y=A.y+dy*t-Q.y,z=A.z+dz*t-Q.z;return Math.min(d0,Math.sqrt(x*x+y*y+z*z));}
 const RAM_K=5.5,RAM_A=30,RAM_T=.5; // l'accroche : tirage de base (/s), sa montée par seconde d'accroche, le filet (s)
+/* LA FACE DU VOL (2026-10-20, Sacha : « la voiture dans les airs, quand on passe près de la route, le jeu n'arrive pas à savoir où est le
+   dessus et le dessous » — il y a toujours une sorte d'aimant bizarre avec la route tordue du niveau NUAGES). MESURÉ au banc (dbgPose + dbgStep) :
+   la face se lisait au seul SIGNE de la hauteur au point de piste le plus proche (`curHOff < −THICK/2`), sans regarder où l'on est : une caisse
+   qui passe à 45 m du bord (demi-route 28) et descend sous le plan de la dalle passait « SOUS la route » à −1,8 m et y restait à −120 m. Chaque
+   passage du plan (une pente, un virage relevé, un saut qui longe la route) retournait la face, et l'aimant / l'accroche prenait les pièces
+   du JUMEAU de l'autre face — à travers le bitume. Désormais UNE face par vol, avec mémoire : elle part de la face du décollage et ne change
+   que si la caisse est vraiment AU-DESSUS ou EN DESSOUS de la dalle (dans sa largeur + VOLF.m), et d'au moins VOLF.h de l'autre côté du plan
+   qu'elle quitte (hystérésis : plus d'aller-retour sur la tranche). Loin sur le côté : on garde la face d'avant. Même notion que `fallUnder`. */
+const VOLF={m:6,h:.8};
+function volFaceTick(){
+  if(RAM.fv===0)RAM.fv=fallStartSide<0?-1:1;
+  if(curNear&&Math.abs(curLatOff)<ROAD_HALF+VOLF.m){
+    if(RAM.fv>0&&curHOff<-THICK-VOLF.h)RAM.fv=-1;
+    else if(RAM.fv<0&&curHOff>VOLF.h)RAM.fv=1;
+  }
+  return RAM.fv;
+}
 function pickupsTick(dt){
   const enVol=(mode==='fall');
   // (LIGNE PARFAITE) le fruit de la file se teste aussi sur le TRAJET de l'image — (2026-09-30) le trajet AU SOL seulement : en vol `s`
@@ -67,7 +84,7 @@ function pickupsTick(dt){
      `side` départage ; en vol rien ne le faisait — sous AIMANT (sphère de 50 m) les deux copies étaient aspirées, l'une À TRAVERS le bitume,
      et les deux encaissées : argent, pièces moteur, séries et nitro des fruits comptés DEUX fois. La face du vol = le côté de la dalle où
      l'on vole (radar de tryLand : sous la dalle → −1, sinon +1). Les grappes du CIEL (`p.air`) n'ont pas de jumeau. (2026-09-30) Sans radar (1re image du vol) : la face du DÉCOLLAGE, plus +1 d'office. */
-  const fV9=enVol?(curNear?(curHOff<-THICK*.5?-1:1):fallStartSide):side;RAM.face=fV9;
+  const fV9=enVol?volFaceTick():(RAM.fv=0,side);RAM.face=fV9; // (2026-10-20) la face du vol : voir VOLF
   for(let i9=0;i9<pickups.length;i9++){
     const p=pickups[i9];
     if(p.taken)continue;

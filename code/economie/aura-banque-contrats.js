@@ -119,7 +119,7 @@ function carUnlockedVrai(i){
    ⚠ Rien ici ne touche au bank-or-bust : la mallette en vol part toujours en fumée.
    ========================================================================== */
 const RUNX={coins:0,fruits:0,perfect:0,t:0,nitro:0,fren:0,frenMax:0}; // ce que `runStats` ne comptait pas (v3 : frénésies de la partie, la plus longue en s)
-const RAM={p0:new THREE.Vector3(),ok:false,face:1,n:[0,0,0,0,0,0,0,0]}; // (2026-09-30) LE RAMASSAGE (pickupsTick) : la caisse à l'image d'avant (un saut décroche) · la face lue · compteurs du banc : pièces/fruits/cristaux au sol, puis en vol, accrochés, filet
+const RAM={p0:new THREE.Vector3(),ok:false,face:1,fv:0,n:[0,0,0,0,0,0,0,0]}; // (2026-09-30) LE RAMASSAGE (pickupsTick) : la caisse à l'image d'avant (un saut décroche) · la face lue · compteurs du banc : pièces/fruits/cristaux au sol, puis en vol, accrochés, filet
 /* LE NITRO SE GAGNE AU STYLE (2026-09-25) : une figure encaissée et un bump rechargent la réserve orange, dans la limite
    du réservoir du moteur. La jauge FLASHE : le joueur doit relier le geste à la récompense. */
 /* LE CHRONO DE VOL v2 (2026-09-25) — « le camembert pixel ne correspond pas au reste ». Après la charte v3 (boutons arrondis,

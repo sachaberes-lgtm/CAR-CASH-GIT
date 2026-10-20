@@ -14107,7 +14107,8 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     {const w9=Math.ceil(Math.max(60,1.1*vC9)/(L/(NP-1))),t9=T[io];let tordu=false;
      for(let k=Math.max(0,io-w9),e=Math.min(NP-1,io+w9);k<=e;k++)if(T[k].dot(t9)<.995){tordu=true;break;}
      if(tordu)continue;}
-    for(const of9 of [1,-1]){ // la MÊME flaque sur les deux faces : zéro dessus-dessous
+    /* (2026-10-20, Sacha : « enlève les taches d'huile sur le sol ») PLUS DE FLAQUES : la liste est vide, les tirages rnd restent consommés (la suite seedée ne bouge pas) */
+    for(const of9 of []){ // la MÊME flaque sur les deux faces : zéro dessus-dessous
       const m=new THREE.Mesh(oilGeo,oilMat);
       m.scale.set(r9*1.35,r9,1);
       m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone(),F.t.clone().negate().multiplyScalar(of9),F.n.clone().multiplyScalar(of9)));
