@@ -118,7 +118,7 @@ function prebChampsDe(piste){ // les champs de module qu'écrit la construction 
   const L9=[[TORD,['on','N','ctrl0','seed','info']],[JADE,['flank','ligne']],[LIGNE_PER,['v']]];
   if(piste==='jade')L9.push([JADE,['Q']]);
   else if(piste==='foret')L9.push([FORET,['Q','plg','boucles','noeuds','pel','plan','axe']]); // (2026-10-19) plan, axe : LA FORÊT AU HASARD
-  else if(piste==='volcan')L9.push([VOLCAN,['K','C','K2','C2','Q','plg','sauts','sSp','ySea','conflits','croise','th0','th1','lac']]);
+  else if(piste==='volcan')L9.push([VOLCAN,['K','C','K2','C2','Q','plg','sauts','sSp','ySea','conflits','croise','th0','th1','lac','hz']]); // (2026-10-20) hz : LE VOLCAN AU HASARD
   else if(piste==='canyon')L9.push([CY,['Q','rmin','sep','hz']]); // (+ hz : LE CANYON AU HASARD)
   else if(piste==='dunes')L9.push([DN,['Q','rmin','sep','hz']]); // (2026-10-18) LES DUNES D'OR (+ hz : LES DUNES AU HASARD)
   else if(piste==='banquise')L9.push([BANQ,['Q','cas','spi','axe','plan','pres','essais']]); // (2026-10-19) axe, plan, pres, essais : LE GLACIER AU HASARD (l'axe tourne les aurores)
