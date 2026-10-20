@@ -26338,7 +26338,7 @@ function paintEnv(stops,s1,s2){ // stops=[[pos,'#hex'],…] + 2 strips néon [r,
     if(f===sunF){const h=c.createRadialGradient(32,27,0,32,27,7);h.addColorStop(0,ecl(1));h.addColorStop(.3,ecl(.62));h.addColorStop(1,ecl(0));c.fillStyle=h;c.fillRect(0,0,64,64);} // le soleil rasant (vague 2 : resserré, teinté par la source du niveau — voir `ecl`) — (2026-09-26) un cœur NET et court : avec le vernis, sur une vitre ou un toit, c'est un ÉCLAT de soleil, plus une tache blanche molle
   });
   envTex.needsUpdate=true;
-  try{finLaque(false);}catch(e){} // (2026-10-20) le ciel d'un niveau ou du menu : la caisse reprend son vernis de course (la finition studio, finition.js, n'est que pour le garage) — au chargement la finition n'existe pas encore : rien à rendre
+  try{FSTU.env='ciel';finLaque(false);}catch(e){} // (2026-10-20) le ciel d'un niveau ou du menu : la caisse reprend son vernis de course (la finition studio, finition.js, n'est que pour le garage) — au chargement la finition n'existe pas encore : rien à rendre
 }
 /* L'ATELIER DANS LA LAQUE (2026-09-26) — au garage, la carrosserie reflétait le CIEL de la dernière course (un couchant violet dans
    un atelier fermé) : des reflets sans rapport avec la pièce, mous, sans une arête. Le cube est repeint en STUDIO : plafond noir
@@ -26346,7 +26346,7 @@ function paintEnv(stops,s1,s2){ // stops=[[pos,'#hex'],…] + 2 strips néon [r,
    la porte relevée sur la nuit et son liseré rose. Ce sont ces arêtes franches qui font lire « laque » sur une facette plane : le
    reflet COURT sur la tôle quand la caméra tourne. Posé à l'entrée (openGarage), le ciel du biome est rendu à la sortie
    (closeGarage). Même coût que paintEnv : 6 canvas 64², une fois. */
-function paintEnvAtelier(){
+function paintEnvAtelier(){try{FSTU.env='atelier';}catch(e){}
   envCvs.forEach(function(cv,f){if(cv.width!==64)cv.width=cv.height=64;
     const c=cv.getContext('2d');
     if(f===2){ // +Y : le plafond et ses tubes (un halo, puis le tube net)
@@ -40851,7 +40851,7 @@ Object.assign(I18N,{
       (`customProgramCacheKey`) : les meubles de l'atelier, qui partagent lpMat, ne la voient pas.
    (ESSAI ÉCARTÉ, gardé derrière `&aretes=1` : un filet de lumière sur chaque arête vive, par barycentres — sur les facettes fines du kit il
    dessinait des dents de scie autour des roues, pas un chanfrein propre. WebGL2 seulement.) */
-const FSTU={on:!/[?&]finition=(ancien|0)/.test(location.search),aretes:/[?&]aretes=1/.test(location.search),garage:false,uArK:{value:1},uHdr:{value:0}};
+const FSTU={on:!/[?&]finition=(ancien|0)/.test(location.search),aretes:/[?&]aretes=1/.test(location.search),garage:false,env:'ciel',menuW:1,uArK:{value:1},uHdr:{value:0}};
 const FSTU_LAQUE={p:[1.35,3.6,1.8,.2,.0],k:[1.3,3.2,1.8,1,.02]}; // (20/10, Léo : « pas assez visible, pousse plus fort ») v2 — v1 : p [.8,3,2,.2,.03], k [.9,2.6,2,1,.05] // [de face, en rasant, dureté, métal, plancher lumineux] (lpMat : p [.25,1.5,3,.2] · .06 ; k [.6,1.8,2.4,1] · .07)
 function finAreteOk(){try{return FSTU.on&&FSTU.aretes&&renderer.capabilities.isWebGL2;}catch(e){return false;}}
 /* les drapeaux d'arête d'une géométrie NON indexée : pour chaque triangle, ses trois côtés (opposés aux sommets 0, 1, 2) — vif si l'angle avec
@@ -40887,21 +40887,26 @@ const FSTU_V='attribute vec4 aArete;varying vec3 vArF;varying vec3 vArB;\n',
    pour elles, au garage, le reflet de l'atelier d'origine (paintEnvAtelier), leur vernis d'origine et pas de reflets qui éclatent. Une seule
    caisse est au garage à la fois : le cube de reflets se repeint quand on passe de l'une à l'autre (64² ↔ 256²). */
 const FSTU_SANS={requin:1};
-function finLaque(on){FSTU.garage=!!on;const sans=!!FSTU_SANS[carGroup.userData.shape];FSTU.uHdr.value=FSTU.on&&on&&!sans?1:0;if(!FSTU.on)return;
-  if(on){try{if(sans){if(envCvs[0].width!==64)paintEnvAtelier();}else if(envCvs[0].width!==256)paintEnvStudio();}catch(e){}}
-  on=on&&!sans;
+/* `on` : false (course, ciel d'un niveau) · true (le GARAGE : la lumière de studio) · 'menu' (LE MENU CIEL : le ciel du menu en reflets nets, voir
+   paintEnvMenu). FSTU.env dit quel cube est peint ('ciel', 'atelier', 'studio', 'menu') : on ne repeint que s'il le faut. */
+function finLaque(on){FSTU.garage=on||false;const sans=!!FSTU_SANS[carGroup.userData.shape];
+  const w=on==='menu'?FSTU.menuW:1; // (menu ciel) la finition se dose avec le jour : la nuit, un vernis profond ne reflète que du noir et éteint la caisse
+  FSTU.uHdr.value=FSTU.on&&on&&!sans?(on==='menu'?FSTU_MENU_HDR*w:1):0;if(!FSTU.on)return;
+  const mel=(a,b)=>a.map((v,i)=>v+(b[i]-v)*w);
+  if(on===true){try{if(sans){if(FSTU.env!=='atelier')paintEnvAtelier();}else if(FSTU.env!=='studio')paintEnvStudio();}catch(e){}}
+  on=!!on&&!sans;
   carGroup.traverse(o=>{const ms=o.isMesh?(Array.isArray(o.material)?o.material:[o.material]):[];
     for(const m of ms){
       /* (2026-10-20, Léo : « d'autres voitures qui manquent la finition ? » — mesuré à l'écran : LA HONTE, REQUIN, ACIDE, LA CAISSE-NUAGE) la tôle des
          matières `rimify` (hors kit) : le même vernis EFFECTIF que la laque du kit (reflet de face .24×1,35, en rasant .24×3,6), ramené à SA réflectivité */
       if(m&&m.userData&&m.userData.uVr&&m.userData.rimK!==0&&m.reflectivity>0){const U=m.userData.uVr.value,L=FSTU_LAQUE.p,r=m.reflectivity;
         if(!m.userData.uVr0)m.userData.uVr0=U.toArray();
-        if(on)U.set(.24*L[0]/r,.24*L[1]/r,L[2],Math.max(.2,m.userData.uVr0[3]));else U.fromArray(m.userData.uVr0);continue;}if(!m||!m.userData||!m.userData.uV)continue;const L=FSTU_LAQUE[m.userData.g==='k'?'k':(m.userData.g==='p'||(typeof m.userData.g==='string'&&m.userData.g.indexOf('pm:')===0))?'p':''];if(!L)continue;
+        if(on)U.fromArray(mel(m.userData.uVr0,[.24*L[0]/r,.24*L[1]/r,L[2],Math.max(.2,m.userData.uVr0[3])]));else U.fromArray(m.userData.uVr0);continue;}if(!m||!m.userData||!m.userData.uV)continue;const L=FSTU_LAQUE[m.userData.g==='k'?'k':(m.userData.g==='p'||(typeof m.userData.g==='string'&&m.userData.g.indexOf('pm:')===0))?'p':''];if(!L)continue;
       if(!m.userData.uV0)m.userData.uV0=[m.userData.uV.value.toArray(),m.userData.uG.value];
-      if(on){m.userData.uV.value.fromArray(L);m.userData.uG.value=L[4];}else{m.userData.uV.value.fromArray(m.userData.uV0[0]);m.userData.uG.value=m.userData.uV0[1];}}});}
+      if(on){m.userData.uV.value.fromArray(mel(m.userData.uV0[0],L.slice(0,4)));m.userData.uG.value=m.userData.uV0[1]+(L[4]-m.userData.uV0[1])*w;}else{m.userData.uV.value.fromArray(m.userData.uV0[0]);m.userData.uG.value=m.userData.uV0[1];}}});}
 /* LA LUMIÈRE DE STUDIO : le cube en 256², murs sombres, des boîtes à lumière NETTES (un cœur blanc, un halo court) à hauteur de flanc,
    deux colonnes verticales (elles balaient la caisse quand elle tourne), un grand panneau au plafond ; la porte garde le bas de ses flammes */
-function paintEnvStudio(){
+function paintEnvStudio(){FSTU.env='studio';
   const S=256;
   envCvs.forEach(function(cv,f){if(cv.width!==S){cv.width=cv.height=S;}const c=cv.getContext('2d');c.setTransform(1,0,0,1,0,0);
     const boite=(x,y,w,h,col,a,halo)=>{const g=c.createLinearGradient(0,y-halo,0,y+h+halo);g.addColorStop(0,'rgba('+col+',0)');g.addColorStop(halo/(h+2*halo),'rgba('+col+','+(a*.35).toFixed(2)+')');
@@ -40926,6 +40931,41 @@ function paintEnvStudio(){
     if(f===4){const n=c.createLinearGradient(0,150,0,256);n.addColorStop(0,'rgba(196,86,26,0)');n.addColorStop(.6,'rgba(196,86,26,.55)');n.addColorStop(1,'rgba(106,22,12,.8)');c.fillStyle=n;c.fillRect(40,150,176,106);} // la porte : le bas de ses flammes
   });
   envTex.needsUpdate=true;}
+/* ===== LE MENU CIEL (2026-10-20, Léo : « fais en sorte que la voiture soit aussi belle dans le menu ciel ») ===== la caisse du menu reflétait le
+   ciel du matin en 64², sans une arête : une laque tiède. Le ciel du menu est repeint en 256², ASSOMBRI (le contraste fait la laque, comme les murs
+   du studio), et porte des bandes de lumière NETTES aux hauteurs que regardent les pans (mesurées à la mire au garage) : la mer de nuages au
+   soleil pour les flancs, l'horizon doré pour les épaules, un voile de ciel clair pour les capots ; le soleil en disque net. Le vernis profond et
+   les reflets qui éclatent (plus doux qu'au garage : FSTU_MENU_HDR) suivent. REQUIN (FSTU_SANS) garde le ciel d'avant. */
+const FSTU_MENU_HDR=1;
+function paintEnvMenu(B){FSTU.env='menu';FSTU.envB=B;FSTU.garage=false; // (garage=false : finMenu repose la laque, au dosage de ce ciel)
+  const S=256,stops=B.env,zen=stops[0][1],sol=stops[stops.length-1][1],s1=B.eS1,s2=B.eS2,
+    sunF=Math.abs(SUN_DIR.x)>Math.abs(SUN_DIR.z)?(SUN_DIR.x>0?0:1):(SUN_DIR.z>0?4:5),
+    /* le jour se lit comme dans paintEnv (la bande d'horizon du ciel) : de jour des bandes blanc chaud et le soleil ; la nuit (les heures du titre)
+       des bandes à la couleur du néon du ciel, plus douces, et pas de soleil */
+    jour=(()=>{const h9=(stops.find(s=>s[0]>=.58)||stops[stops.length-1])[1],n9=parseInt(h9.slice(1),16),l9=(.3*(n9>>16&255)+.59*(n9>>8&255)+.11*(n9&255))/255;return Math.min(1,Math.max(0,(l9-.35)/.45));})(),
+    mixc=(a,b,t)=>a.map((v,i)=>Math.round(v+(b[i]-v)*t)).join(','),
+    chaud=mixc([s1[0],s1[1],s1[2]],[255,240,220],.45+.5*jour),dore=mixc([s1[0],s1[1],s1[2]],[255,222,170],.6*jour),clair=mixc([s1[0],s1[1],s1[2]],[255,250,242],.5+.45*jour),kA=.6+.4*jour;FSTU.menuW=.3+.7*jour; // (v2) des blancs CHAUDS : la teinte de la laque reste la sienne (un blanc bleuté virait le vert au canard)
+  const bande=(c,y,h,col,a,halo)=>{const g=c.createLinearGradient(0,y-halo,0,y+h+halo);g.addColorStop(0,'rgba('+col+',0)');g.addColorStop(.5,'rgba('+col+','+a+')');g.addColorStop(1,'rgba('+col+',0)');
+      c.fillStyle=g;c.fillRect(0,y-halo,S,h+2*halo);c.fillStyle='rgba(255,255,255,'+Math.min(1,a).toFixed(2)+')';c.fillRect(0,y+h*.3,S,Math.max(2,h*.4));};
+  envCvs.forEach(function(cv,f){if(cv.width!==S)cv.width=cv.height=S;const c=cv.getContext('2d');c.setTransform(1,0,0,1,0,0);
+    if(f===2){c.fillStyle=zen;c.fillRect(0,0,S,S);c.fillStyle='rgba(6,6,14,.6)';c.fillRect(0,0,S,S);
+      const g=c.createRadialGradient(128,128,10,128,128,110);g.addColorStop(0,'rgba('+clair+',.75)');g.addColorStop(1,'rgba('+clair+',0)');c.fillStyle=g;c.fillRect(0,0,S,S);return;} // le zénith, un voile clair au milieu (les toits)
+    if(f===3){c.fillStyle=sol;c.fillRect(0,0,S,S);c.fillStyle='rgba(0,0,0,.6)';c.fillRect(0,0,S,S);return;}
+    const gr=c.createLinearGradient(0,0,0,S);for(const st of stops)gr.addColorStop(st[0],st[1]);c.fillStyle=gr;c.fillRect(0,0,S,S);
+    c.fillStyle='rgba(8,8,18,'+(.2+.35*jour).toFixed(2)+')';c.fillRect(0,0,S,S);                         // le ciel ASSOMBRI : les bandes ressortent (moins la nuit : il l'est déjà)
+    bande(c,198,12,chaud,.95*kA,10);                                                                     // la mer de nuages au soleil : les flancs
+    bande(c,146,7,dore,.85*kA,8);                                                                        // l'horizon doré : les épaules
+    bande(c,84,6,clair,.6*kA,10);                                                                        // le ciel clair : les capots et les toits en rasant
+    c.fillStyle='rgba('+s2[0]+','+s2[1]+','+s2[2]+','+(s2[3]*.8).toFixed(2)+')';c.fillRect(0,120,S,4);
+    if(f===sunF&&B.sunHalo!==0&&jour>.3){const h=c.createRadialGradient(128,110,0,128,110,34);h.addColorStop(0,'rgba(255,250,236,1)');h.addColorStop(.22,'rgba(255,240,205,.95)');h.addColorStop(.5,'rgba(255,214,150,.35)');h.addColorStop(1,'rgba(255,214,150,0)');
+      c.fillStyle=h;c.fillRect(0,0,S,S);}                                                                // le soleil : un disque net, un halo court
+  });
+  envTex.needsUpdate=true;}
+/* appelé à chaque image du menu (menuVitrine) : le bon ciel peint, la bonne laque posée — sans rien refaire tant que rien ne change */
+function finMenu(B){if(!FSTU.on)return;const sans=!!FSTU_SANS[carGroup.userData.shape];
+  if(sans){if(FSTU.env!=='ciel')paintEnv(B.env,B.eS1,B.eS2);}else if(FSTU.env!=='menu'||FSTU.envB!==B)paintEnvMenu(B);
+  if(FSTU.garage!=='menu')finLaque('menu');}
+window.dbgMenuPlan=function(n){MENUV.force=n||null;return MENU_PLANS.map(q=>q.n);}; // (banc) forcer un plan du menu : 'affiche', 'arriere', 'profil' ; dbgMenuPlan() rend la main
 window.dbgFinition=function(on){if(on==='mire'){const C=['#ff0000','#ff8800','#ffff00','#00ff00','#00ffff','#0000ff','#ff00ff','#ffffff'];   // (banc) la MIRE : 8 bandes de 32 px sur les murs — on lit la hauteur reflétée à la couleur
     envCvs.forEach(function(cv,f){cv.width=cv.height=256;const c=cv.getContext('2d');if(f===2){c.fillStyle='#808080';c.fillRect(0,0,256,256);return;}if(f===3){c.fillStyle='#000';c.fillRect(0,0,256,256);return;}
       for(let i=0;i<8;i++){c.fillStyle=C[i];c.fillRect(0,i*32,256,32);}});envTex.needsUpdate=true;return 'mire';}
@@ -60864,6 +60904,7 @@ function menuCamera(dt){
 function menuVitrine(dt){
   MENUV.t+=dt;
   if(!MENUV.bio||MENUV.pas!==BIO.pas){if(!MENUV.bio)paintEnv(BIOMES[MENU_BIO].env,BIOMES[MENU_BIO].eS1,BIOMES[MENU_BIO].eS2);MENUV.bio=true;MENUV.pas=BIO.pas;bioApply(BIOMES[MENU_BIO]);} // (bioStep a pu repeindre le ciel du niveau cette image : on repasse derrière)
+  try{finMenu(BIOMES[MENU_BIO]);}catch(e){} // (2026-10-20) la caisse aussi belle qu'au garage : le ciel du menu en reflets nets + le vernis profond (voir finition.js)
   skyU.uMer.value=1; // la mer de nuages sous l'horizon, même si le niveau du dessous (auto-école) a le ciel nu
   if(MENUV.L!==L){menuPlan();MENUV.sd=null;}
   const S9=Math.min(L-10,MENUV.s);frameAt(S9,F);
@@ -62469,7 +62510,8 @@ function chuteRender(dt){
   // LE CIEL DU JOUR DES NUAGES (celui de l'accueil d'avant : MENU_BIO), repeint si le voyage BIO est passé derrière
   {const BT=BIOMES.titre||BIOMES[MENU_BIO]; /* (titre v3) l'ambiance du titre */
    if(!MENUV.bio||CHUTE.bioPas!==BIO.pas||CHUTE.bioT!==BT){if(!MENUV.bio||CHUTE.bioT!==BT)paintEnv(BT.env,BT.eS1,BT.eS2);MENUV.bio=true;CHUTE.bioPas=BIO.pas;CHUTE.bioT=BT;bioApply(BT);
-     if(!(BT.sunHalo>0)){sunSprite.material.opacity=0;horizonGlow.material.opacity=0;for(const r9 of RAYS)r9.material.opacity=0;}}} /* (les heures du titre) la NUIT n'a pas de soleil : bioApply laissait le disque à 15 % */
+     if(!(BT.sunHalo>0)){sunSprite.material.opacity=0;horizonGlow.material.opacity=0;for(const r9 of RAYS)r9.material.opacity=0;}}
+   try{finMenu(BT);}catch(e){}} /* (les heures du titre) la NUIT n'a pas de soleil : bioApply laissait le disque à 15 % — (2026-10-20, Léo : « la voiture aussi belle dans le menu ciel ») le ciel du titre en reflets nets + le vernis profond (voir finition.js) */
   skyU.uMer.value=1;if(P.mzA)skyU.uMzA.value.fromArray(P.mzA);if(P.mzB)skyU.uMzB.value.fromArray(P.mzB);if(P.mzT)skyU.uMzT.value.fromArray(P.mzT);if(P.mzO)skyU.uMzO.value.fromArray(P.mzO);if(P.mzH)skyU.uMzH.value.fromArray(P.mzH);if(P.merLoin)skyU.uMerLoin.value=P.merLoin; /* (titre v3) la mer de nuages du titre (rendue par chuteSort) */
   if(CHUTE.nuM){CHUTE.nuM.uniforms.uK.value.fromArray(P.K);CHUTE.nuM.uniforms.uR.value.fromArray(P.R);}
   /* (2026-09-30) LA BRUME ET L'EXPOSITION DE L'AMBIANCE : seule la course les réécrit (updateClouds) — au menu la brume restait le violet
