@@ -204,6 +204,8 @@ function volcanTick(dt){
   /* LES BANCS DE FUMÉE : où en est-on (la route sous la caisse, en vol aussi) ; la brume se referme DEDANS (FUMEE_K, lu par updateClouds),
      les braises triplent, la cendre s'épaissit — en entrant comme en sortant, en ~0,3 s */
   {const sc=mode==='fall'?lastNearS:s;let f=0;for(const b of VOLCAN.bancs||[]){if(sc<b.s0-80||sc>b.s1+80)continue;f=Math.max(f,b.k*THREE.MathUtils.smoothstep(sc,b.s0-70,b.s0+50)*(1-THREE.MathUtils.smoothstep(sc,b.s1-50,b.s1+70)));}
+   /* (2026-10-20, Sacha : « le filtre de visibilité avec la cendre et la fumée, mais EN PERMANENCE : le challenge de cette map doit être la faible visibilité ») : un voile de fond partout (0,7), les bancs le refermant jusqu'à 1 ; épargné seulement au départ (fondu de 60 à 260 m) pour ne pas cacher le portail */
+   f=Math.max(f,.7*THREE.MathUtils.smoothstep(sc,60,260));
    VOLCAN.fu+=(f*(c.fu||1)-VOLCAN.fu)*Math.min(1,dt*3);if(VOLCAN.fu<.002)VOLCAN.fu=0;FUMEE_K=VOLCAN.fu;FUMEE_F=c.fuF||250;if(c.fuC)FOG_FUMEE.setRGB(c.fuC[0],c.fuC[1],c.fuC[2]);
    U.uBra.value=c.bra*(1+VOLCAN.fu*2.5);U.uCen.value=Math.min(1,c.cen+VOLCAN.fu*.6);}
   fx.bra.visible=U.uBra.value>.01;fx.cen.visible=U.uCen.value>.01;
@@ -284,7 +286,7 @@ window.dbgVolcan=function(k,o){
     else{const C=k==='volcan'?VOLCAN.C:VOLCAN.C2,K9=k==='volcan'?VOLCAN.K:VOLCAN.K2;if(C){i=Math.min(NP-1,Math.round(s/ds)+Math.round(d/ds));cible=[C.x,K9.yP*.6+pts[i].y*.4,C.z];}}
     if(i<0||!cible)return 'rien devant';const j=Math.max(0,i-Math.round(d/ds)),p=pts[j];volcanTick(0);
     return window.dbgVolcan('vue',{p:[p.x,p.y+h,p.z],c:cible,fov:o&&o.fov});}
-  return {on:!!VOLCAN.root,met:VOLCAN.met,ms:VOLCAN.ms,msSol:VOLCAN.msSol,n:VOLCAN.n,col:VOLCAN.gcol&&VOLCAN.gcol.n,sSp:Math.round(VOLCAN.sSp),L:Math.round(L),
+  return {on:!!VOLCAN.root,met:VOLCAN.met,hasard:VOLCAN.Q&&VOLCAN.Q.hasard||null,ms:VOLCAN.ms,msSol:VOLCAN.msSol,n:VOLCAN.n,col:VOLCAN.gcol&&VOLCAN.gcol.n,sSp:Math.round(VOLCAN.sSp),L:Math.round(L),
     sauts:(VOLCAN.sauts||[]).map(function(S){return [Math.round(S.sE),Math.round(S.sS),Math.round(S.yE-S.yS)];}),conflits:VOLCAN.conflits,croise:VOLCAN.croise,ySea:Math.round(VOLCAN.ySea||0),
     erup:{t:+VOLCAN.erup.t.toFixed(1),age:+VOLCAN.erup.age.toFixed(1),n:VOLCAN.erup.n},vit:Math.round(VOLCAN.vit||0),
     pret:!!VOLCAN.pret,fu:+(VOLCAN.fu||0).toFixed(2),bancs:(VOLCAN.bancs||[]).map(function(b){return [Math.round(b.s0),Math.round(b.s1)];}),file:VOLCAN.file?VOLCAN.file.length-VOLCAN.fi:0,msFile:Math.round(VOLCAN.msFile||0),msTot:VOLCAN.msTot,

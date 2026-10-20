@@ -158,7 +158,7 @@ try{Object.assign(I18N,{'PERMIS':'LICENSE','AUTO-ECOLE':'DRIVING SCHOOL','NIVEAU
    ait jamais tenu, relevé à CHAQUE entrée d'argent (fin de partie, défis, permis, partie interrompue) — pas seulement au garage : un achat fait
    juste après une partie ne doit pas l'effacer. `bankMaxVu` = le record que la jauge a déjà montré (pour fêter celui qu'on vient de battre). */
 function bankMaxMaj(){const b=bank();if(b>(SAVE.d.bankMax||0))SAVE.d.bankMax=b;}
-try{Object.assign(I18N,{'SOMMET':'PEAK','RECORD !':'RECORD!','CASH':'CASH','AURA':'AURA','ENCORE':'NEED','A TA PORTEE !':'IT\'S YOURS!','COLLECTION COMPLETE':'FULL COLLECTION','INTOUCHABLE':'UNTOUCHABLE','A TA PORTEE':'AFFORDABLE','VERS':'TO','TOUT EST A TOI':'YOU OWN IT ALL','SOMMET ATTEINT':'TOP RANK','TUNING':'TUNING','SHOP':'SHOP','INVENTAIRE':'INVENTORY','MAINTIENS LA CAISSE':'HOLD YOUR CAR','OBJETS':'ITEMS','OBJET':'ITEM'});}catch(e){}
+try{Object.assign(I18N,{'SOMMET':'PEAK','RECORD !':'RECORD!','CASH':'CASH','AURA':'AURA','ENCORE':'NEED','A TA PORTEE !':'IT\'S YOURS!','COLLECTION COMPLETE':'FULL COLLECTION','INTOUCHABLE':'UNTOUCHABLE','A TA PORTEE':'AFFORDABLE','VERS':'TO','TOUT EST A TOI':'YOU OWN IT ALL','SOMMET ATTEINT':'TOP RANK','TUNING':'TUNING','SHOP':'SHOP','INVENTAIRE':'INVENTORY','MAINTIENS LA CAISSE':'HOLD YOUR CAR','OBJETS':'ITEMS','OBJET':'ITEM','RIEN ICI POUR LE MOMENT':'NOTHING HERE YET'});}catch(e){}
 try{const b9=document.querySelector('#gOutils [data-go="set"]'),s9=b9&&b9.querySelector('.boulon');if(s9)s9.outerHTML=pxi('reglages');}catch(e){} /* (2026-10-06) LE GARAGE DE SACHA : son ⚙ en pixels */
 /* ================= L'INVENTAIRE (2026-10-04, Léo : « quand on maintient sur la voiture, ça active un inventaire comme le shop, mais avec les
    objets possédés, entourés par une lueur de la couleur de leur rareté ») =================
@@ -188,16 +188,23 @@ function invListe(cat){
   const e=shopEqD(cat),L=[];COSM[cat].forEach(function(d,j){if(shopOwned(cat,d.id))L.push({cat:cat,i:j,d:d,r:cosmRar(cat,d),eq:e===d});});
   return L.sort(function(a,b){return (INV_RANG[b.r]-INV_RANG[a.r])||((b.d.p||0)-(a.d.p||0));});
 }
+function invTotal(cat){ // (2026-10-20) tout ce qui existe dans l'onglet (le dénominateur de la progression)
+  if(cat==='voiture'){let n=0;for(let i=0;i<CARS.length;i++)if(!carRetiree(i))n++;return n;}
+  if(cat==='figure')return window.FIG?FIG.liste.length:0;
+  return COSM[cat]?COSM[cat].length:0;}
 function invRgba(hex,a){const n=parseInt(String(hex).slice(1),16)||0;return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a.toFixed(2)+')';}
 function invRender(){
   const g=$('ivGrille');if(!g)return;let tot=0;
   document.querySelectorAll('#gInv .ivTab').forEach(function(b){const c=b.getAttribute('data-c'),on=c===INV.cat,n=invListe(c).length;tot+=n;
     b.classList.toggle('on',on);b.setAttribute('aria-selected',on);const em=b.querySelector('em');if(em&&em.textContent!==String(n))em.textContent=n;});
   const ic=$('ivCompte');if(ic)ic.textContent=tot+' '+TR(tot>1?'OBJETS':'OBJET');
-  const L=invListe(INV.cat),k=INV.cat+':'+L.map(function(o){return o.i;}).join(',')+':'+LANG+(INV.cat==='peinture'?':'+equippedCar():'')+(INV.cat==='figure'?':'+figSlots().join(','):'');
+  const L=invListe(INV.cat);
+  {const T=Math.max(L.length,invTotal(INV.cat)),pb=$('ivProgBarre'),pt=$('ivProgTxt'); /* (2026-10-20) la progression de la collection : possédés / total de l'onglet */
+    if(pb)pb.style.setProperty('--p',T?(L.length/T).toFixed(3):0);if(pt)pt.textContent=L.length+' / '+T;}
+  const k=INV.cat+':'+L.map(function(o){return o.i;}).join(',')+':'+LANG+(INV.cat==='peinture'?':'+equippedCar():'')+(INV.cat==='figure'?':'+figSlots().join(','):'');
   if(g._k!==k){g._k=k;
     const hx=function(c){return '#'+(c>>>0).toString(16).padStart(6,'0');},rg=function(v){return 'rgb('+v.map(function(x){return Math.round(Math.min(1,x/1.45)*255);}).join(',')+')';};
-    g.innerHTML=L.map(function(o,n){const ri=rarInfo(o.r),lu=INV_LUEUR[o.r]||.5;let fig='',nm='';
+    g.innerHTML=!L.length?'<p class="ivVide">'+TR('RIEN ICI POUR LE MOMENT')+'</p>':L.map(function(o,n){const ri=rarInfo(o.r),lu=INV_LUEUR[o.r]||.5;let fig='',nm='';
       if(o.cat==='voiture'){nm=TR(CARS[o.i].name);fig=PHOTO.cache[o.i]?'<img alt="" src="'+PHOTO.cache[o.i]+'">':'<i class="ivPh"></i>';}
       else{const d=o.d;nm=TR(d.n);
         if(o.cat==='peinture'){const c9=d.id==='usine'?CARS[equippedCar()].color:d.c;fig='<i class="ivSw'+cosmSwCl(d)+'" style="background:'+(d.mot?motFond(d):d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(c9))+'"></i>';}
@@ -205,7 +212,7 @@ function invRender(){
         else if(o.cat==='figure')fig='<i class="pxi pxi-rotation ivAile" style="color:'+ri.c+'"></i>';
         else fig='<i class="pxi pxi-aile ivAile" style="color:#dff6ff"></i>';}
       const nmA=sansAcc(String(nm)).replace(/"/g,'');
-      return '<div class="ivT r-'+o.r+'" data-i="'+o.i+'" role="button" tabindex="0" aria-label="'+nmA+' · '+sansAcc(TR(ri.n1))+'" style="--rc:'+ri.c+';--rg:'+invRgba(ri.c,.26+.42*lu)+';--rf:'+invRgba(ri.c,.06+.18*lu)+';--rk:'+lu+';--n:'+n+'">'+fig+'<b>'+nmA+'</b><u>'+(o.cat==='figure'&&FIGV2.on&&o.eq?figSlots().map(function(x,i9){return x===o.d.id?pxi(FIG_FAM[i9][2]):'';}).join(''):pxi('coche'))+'</u></div>';}).join(''); /* (LES FIGURES v2) une figure équipée porte le NUMÉRO de son emplacement (1 · 2 · 3 = les boutons de vol) */
+      return '<div class="ivT r-'+o.r+'" data-i="'+o.i+'" role="button" tabindex="0" aria-label="'+nmA+' · '+sansAcc(TR(ri.n1))+'" style="--rc:'+ri.c+';--rg:'+invRgba(ri.c,.26+.42*lu)+';--rf:'+invRgba(ri.c,.06+.18*lu)+';--rk:'+lu+';--n:'+n+'">'+fig+'<b>'+nmA+'</b><small>'+sansAcc(TR(ri.n1))+'</small><u>'+(o.cat==='figure'&&FIGV2.on&&o.eq?figSlots().map(function(x,i9){return x===o.d.id?pxi(FIG_FAM[i9][2]):'';}).join(''):pxi('coche'))+'</u></div>';}).join(''); /* (LES FIGURES v2) une figure équipée porte le NUMÉRO de son emplacement (1 · 2 · 3 = les boutons de vol) */
     if(INV.cat==='voiture')setTimeout(function(){if(!INV.on)return;g.querySelectorAll('.ivT').forEach(function(el){if(!el.querySelector('.ivPh'))return;const i=+el.getAttribute('data-i');
       photoFile(i,function(url){const v=el.querySelector('.ivPh');if(!v||!el.isConnected)return;const im=document.createElement('img');im.alt='';im.src=url;v.replaceWith(im);});});},420); // les photos manquantes APRÈS l'entrée du tiroir (une photo = deux caisses rebâties : pas pendant qu'il glisse)
   }
