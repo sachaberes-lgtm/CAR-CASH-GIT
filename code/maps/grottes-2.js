@@ -22,8 +22,9 @@ function grtDecors(V,R,fr,MOB){const D=new Map(),T9=[],P9=[],B=V.B,b=R.bornes,RH
   // la paroi la plus proche, à hauteur y, dans la direction latérale sd : [x, z, nx, nz] juste devant elle, ou null
   const paroi=function(q,sd,y,d0,d1){const bx=R.TZ[q]*sd,bz=-R.TX[q]*sd;for(let dd=d0;dd<d1;dd+=2){const x=R.X[q]+bx*dd,z=R.Z[q]+bz*dd;if(grtDensIci(V,x,y,z)<=0){const d2=dd-2.2;return [R.X[q]+bx*d2,R.Z[q]+bz*d2,-bx,-bz,d2];}}return null;};
   // ---- 0 · LA MINE ----
-  if(b.mine!=null&&b.luxe!=null){let n=0,der=-1;
-    for(let q=R.i0;q<R.n-20;q++){const s9=R.S[q];if(s9<b.mine+20||s9>b.luxe-60)continue;const t=Math.floor(s9/32);if(t===der)continue;der=t;
+  const ap=R.apres||{}; // (LES PROFONDEURS AU HASARD) la fin de chaque salle : le début de la suivante, quelle qu'elle soit
+  if(b.mine!=null&&ap.mine!=null){let n=0,der=-1;
+    for(let q=R.i0;q<R.n-20;q++){const s9=R.S[q];if(s9<b.mine+20||s9>ap.mine-60)continue;const t=Math.floor(s9/32);if(t===der)continue;der=t;
       const x=R.X[q],y=R.Y[q],z=R.Z[q],tx=R.TX[q],tz=R.TZ[q],yaw=Math.atan2(tx,tz),la=RHd+7,y0=y-THICK-7,y1=y+27.5;
       for(const sd of [-1,1]){grtBoite(D,V,x+tz*sd*la,(y0+y1)/2,z-tx*sd*la,.9,(y1-y0)/2,.9,GT.BOIS,yaw,'roche');
         grtBoite(D,V,x+tz*sd*(la-3.2),y1-2.4,z-tx*sd*(la-3.2),2.4,.7,.7,GT.BOIS,yaw,'roche');
@@ -41,12 +42,12 @@ function grtDecors(V,R,fr,MOB){const D=new Map(),T9=[],P9=[],B=V.B,b=R.bornes,RH
     lum(w[0],y,w[1],22*(VZ?1.9:1),t===GT.DIAMANT?[.25,.85,1]:[1,.78,.25],.55);n++;}nb.gemmes=n;}
   // ---- 1 · LA GROTTE LUXURIANTE : les lianes à baies, les azalées ----
   {let n=0,na=0;const N=Math.round((VZ?190:110)*MOB),NA=Math.round((VZ?80:46)*MOB),g9=VZ?1.7:1;
-    for(let e=0;e<N*8&&n<N;e++){const q=pris(b.luxe,b.geode);if(q<0)break;const xz=cote(q,RHd+6+fr()*(VZ?R.RH[q]*.72:104)),yc=plafond(xz[0],R.Y[q]+6,xz[1],VZ?R.UP[q]*1.5:120);if(yc==null)continue;
+    for(let e=0;e<N*8&&n<N;e++){const q=pris(b.luxe,ap.luxe);if(q<0)break;const xz=cote(q,RHd+6+fr()*(VZ?R.RH[q]*.72:104)),yc=plafond(xz[0],R.Y[q]+6,xz[1],VZ?R.UP[q]*1.5:120);if(yc==null)continue;
       const Lv=(10+fr()*32)*(VZ?2.4:1),yb=yc-Lv;if(!grtLibre(R,xz[0],xz[1],yb,yc,2*g9))continue;
       grtPrisme(D,V,xz[0],yc+2,xz[1],BAS,4,.4*g9,.25*g9,Lv+2,GT.FEUILLE,fr()*6);
       for(let u=2.5*g9;u<Lv-g9;u+=(2.8+fr()*1.6)*g9)grtOcta(D,V,xz[0]+(fr()<.5?-.6:.6)*g9,yc-u,xz[1]+(fr()-.5)*.7*g9,.62*g9,.75*g9,GT.BAIE,fr()*6);
       lum(xz[0],yc-Lv*.65,xz[1],VZ?50:30,[1,.5,.12],.8);n++;}
-    for(let e=0;e<NA*8&&na<NA;e++){const q=pris(b.luxe,b.geode);if(q<0)break;const xz=cote(q,RHd+10+fr()*(VZ?R.RH[q]*.7:90)),yf=plancher(xz[0],R.Y[q]-THICK-4,xz[1],VZ?R.DN[q]*1.5+20:110);if(yf==null)continue;
+    for(let e=0;e<NA*8&&na<NA;e++){const q=pris(b.luxe,ap.luxe);if(q<0)break;const xz=cote(q,RHd+10+fr()*(VZ?R.RH[q]*.7:90)),yf=plancher(xz[0],R.Y[q]-THICK-4,xz[1],VZ?R.DN[q]*1.5+20:110);if(yf==null)continue;
       const w=(2.6+fr()*2.4)*g9,h=(2.2+fr()*1.8)*g9;if(!grtLibre(R,xz[0],xz[1],yf,yf+2*h,w))continue;
       grtOcta(D,V,xz[0],yf+h,xz[1],w,h*1.05,GT.FEUILLE,fr()*6);grtOcta(D,V,xz[0]+(fr()-.5)*w,yf+h*1.25,xz[1]+(fr()-.5)*w,w*.7,h*.8,GT.FEUILLE,fr()*6);
       for(let k=0;k<4;k++)grtOcta(D,V,xz[0]+(fr()-.5)*w*1.5,yf+h*(1.4+fr()*.5),xz[1]+(fr()-.5)*w*1.5,.55*g9,.55*g9,GT.FLEUR,fr()*6);na++;}
@@ -63,7 +64,7 @@ function grtDecors(V,R,fr,MOB){const D=new Map(),T9=[],P9=[],B=V.B,b=R.bornes,RH
       n++;}}nb.cristaux=n;}
   // ---- 3 · LES STALACTITES : les concrétions, des cônes à six pans ----
   {let n=0;const N=Math.round((VZ?240:140)*MOB),g9=VZ?1.25:1;
-    for(let e=0;e<N*8&&n<N;e++){const q=pris(b.stal,b.lave);if(q<0)break;const xz=cote(q,RHd+8+fr()*(VZ?R.RH[q]*.8:118)),pend=fr()<.55,k=.75+fr()*.5;
+    for(let e=0;e<N*8&&n<N;e++){const q=pris(b.stal,ap.stal);if(q<0)break;const xz=cote(q,RHd+8+fr()*(VZ?R.RH[q]*.8:118)),pend=fr()<.55,k=.75+fr()*.5;
       if(pend){const yc=plafond(xz[0],R.Y[q]+8,xz[1],VZ?R.UP[q]*1.5:150);if(yc==null)continue;const Ld=(8+fr()*38)*(VZ?2.6:1);if(!grtLibre(R,xz[0],xz[1],yc-Ld,yc,5))continue;
         grtPrisme(D,V,xz[0],yc+3,xz[1],BAS,6,3.4*k*(.8+Ld/60)*g9,0,Ld+3,GT.CONCRETION,fr()*6,'roche');}
       else{const yf=plancher(xz[0],R.Y[q]-THICK-3,xz[1],VZ?R.DN[q]*1.5+20:140);if(yf==null)continue;const Hs=(6+fr()*30)*(VZ?2.4:1);if(!grtLibre(R,xz[0],xz[1],yf,yf+Hs,5))continue;
@@ -71,7 +72,7 @@ function grtDecors(V,R,fr,MOB){const D=new Map(),T9=[],P9=[],B=V.B,b=R.bornes,RH
       n++;}nb.concretions=n;}
   // ---- 4 · LE LAC DE LAVE : les chutes de lave ----
   {let n=0;const lac=GROTTE.lac;if(lac){const N=Math.round((VZ?14:9)*MOB),cw=VZ?6:3.4;
-    for(let e=0;e<N*10&&n<N;e++){const q=pris(b.lave,b.abysse);if(q<0)break;const sd=fr()<.5?-1:1,y=R.Y[q]+28,w=paroi(q,sd,y,RHd+30,VZ?Math.min(R.RH[q]*1.45,640):300);if(!w)continue;
+    for(let e=0;e<N*10&&n<N;e++){const q=pris(b.lave,ap.lave);if(q<0)break;const sd=fr()<.5?-1:1,y=R.Y[q]+28,w=paroi(q,sd,y,RHd+30,VZ?Math.min(R.RH[q]*1.45,640):300);if(!w)continue;
       const x=w[0]+w[2]*(VZ?6:3),z=w[1]+w[3]*(VZ?6:3),yc=plafond(x,y,z,VZ?R.UP[q]*1.6:140);if(yc==null)continue; // (5 m devant la paroi, côté route)
       if(!grtLibre(R,x,z,lac.y-4,yc,5))continue;const h=(yc+2-lac.y)/2;grtBoite(D,V,x,lac.y+h,z,cw,h,cw,GT.LAVE,Math.atan2(w[2],w[3]),'lave');
       for(const u of VZ?[.12,.37,.62,.88]:[.2,.55,.88])lum(x,lac.y+2*h*u,z,VZ?120:78,[1,.36,.07],1.35);n++;}}nb.chutes=n;}
@@ -158,7 +159,7 @@ function grtPartObj(){if(GRT_FX.part)return GRT_FX.part;const M=grtMats(),n=Math
 function grotteVide(){
   if(GROTTE.root){GROTTE.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});GROTTE.root=null;}
   GROTTE.V=null;GROTTE.R=null;GROTTE.grp=[];GROTTE.file=null;GROTTE.fi=0;GROTTE.msFile=0;GROTTE.pret=false;GROTTE.col=null;GROTTE.salle=-1;GROTTE.piliers=null;
-  GROTTE.puits=null;GROTTE.lac=null;GROTTE.eau=null;GROTTE.dec=null;GROTTE.LL=null;GROTTE.heurt='';}
+  GROTTE.puits=null;GROTTE.lac=null;GROTTE.lavLum=null;GROTTE.eau=null;GROTTE.dec=null;GROTTE.LL=null;GROTTE.heurt='';}
 function buildGrotte(seed){jadeFini(buildGrotteG(seed));} // d'un trait au passage ; en tranches d'avance (prebDecorG)
 function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au pré-bâti
   grotteVide();
@@ -269,7 +270,7 @@ window.dbgGrotte=function(k,o){
     return window.dbgGrotte('vue',{p:p,c:c,fov:o&&o.fov});}
   return {on:!!GROTTE.root,met:GROTTE.met,salle:GROTTE.salle,ms:GROTTE.ms,msCreuse:GROTTE.msCreuse,msFile:Math.round(GROTTE.msFile||0),pret:GROTTE.pret,tm:GROTTE.tm,
     file:GROTTE.file?GROTTE.file.length-GROTTE.fi:0,n:GROTTE.n,conflits:GROTTE.conflits,croise:GROTTE.croise,L:Math.round(L),
-    salles:GROTTE.R?GROTTE.R.bornes:null,spi:GROTTE.spi&&{R0:Math.round(GROTTE.spi.R0),R1:Math.round(GROTTE.spi.R1),tours:GROTTE.spi.tours,pas:Math.round(GROTTE.spi.pas),descente:Math.round(GROTTE.spi.y0-GROTTE.spi.y1)},
+    salles:GROTTE.R?GROTTE.R.bornes:null,hasard:GROTTE.Q&&GROTTE.Q.hasard||null,spi:GROTTE.spi&&{R0:Math.round(GROTTE.spi.R0),R1:Math.round(GROTTE.spi.R1),tours:GROTTE.spi.tours,pas:Math.round(GROTTE.spi.pas),descente:Math.round(GROTTE.spi.y0-GROTTE.spi.y1)},
     lac:GROTTE.lac&&Math.round(GROTTE.lac.y),eau:GROTTE.eau&&Math.round(GROTTE.eau.y),geode:GROTTE.puits&&Math.round(GROTTE.puits.rg)};};
 /* ---------------- LES AMBIANCES : une par salle et par météo (appelée après les biomes du volcan, une fois BIOMES né) ----------------
    La grammaire des nuits de la bible (deux températures : la brume froide et sombre, la lumière du lieu chaude ou colorée), la brume est la

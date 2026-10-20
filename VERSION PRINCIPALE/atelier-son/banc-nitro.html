@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Banc nitro</title>
+<style>
+:root{--bg:#120a1e;--tx:#f3eaff;--tx2:#b9a8d8;--or:#ffb040;--k:#24163a}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px system-ui,sans-serif;padding:16px}
+h1{font-size:20px;margin:0 0 4px}p{color:var(--tx2);margin:0 0 16px;font-size:14px}
+.g{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+button{background:var(--k);color:var(--tx);border:2px solid #4a3470;border-radius:10px;padding:16px;text-align:left;cursor:pointer;font:inherit;user-select:none;touch-action:none}
+button b{display:block;font-size:18px;color:var(--or);margin-bottom:4px}button span{font-size:13px;color:var(--tx2)}
+button.on{border-color:var(--or);background:#3a2210}
+label{display:block;margin:16px 0;color:var(--tx2);font-size:14px}input{width:100%;max-width:420px}
+</style></head><body>
+<h1>Banc d'écoute — le son du NITRO</h1>
+<p>MAINTIENS un bouton (comme le bouton NITRO) : l'allumage, puis la flamme tenue, puis la fin au lâcher. Dis-moi la lettre que tu préfères.</p>
+<label>Vitesse de la caisse : <b id="vv">50 %</b><br><input id="v" type="range" min="0" max="100" value="50"></label>
+<div class="g" id="g"></div>
+<script>
+let AC,OUT,NZ={};
+function init(){if(AC)return;AC=new (window.AudioContext||window.webkitAudioContext)();
+  const c=AC.createDynamicsCompressor();c.threshold.value=-14;c.ratio.value=4;OUT=AC.createGain();OUT.gain.value=.9;OUT.connect(c);c.connect(AC.destination);}
+function brown(s){if(NZ['b'+s])return NZ['b'+s];const n=AC.sampleRate*s|0,b=AC.createBuffer(1,n,AC.sampleRate),d=b.getChannelData(0);let v=0,m=0;
+  for(let i=0;i<n;i++){v=(v+(Math.random()*2-1)*.02)*.998;d[i]=v;m=Math.max(m,Math.abs(v));}for(let i=0;i<n;i++)d[i]/=m;return NZ['b'+s]=b;}
+function curve(k){const n=1024,c=new Float32Array(n);for(let i=0;i<n;i++){const x=i/(n-1)*2-1;c[i]=Math.tanh(k*x)/Math.tanh(k);}return c;}
+function src(buf){const s=AC.createBufferSource();s.buffer=buf;s.loop=true;s.start();return s;}
+function filt(t,f,q){const b=AC.createBiquadFilter();b.type=t;b.frequency.value=f;b.Q.value=q||.7;return b;}
+function gain(v){const g=AC.createGain();g.gain.value=v;return g;}
+function shaper(k){const w=AC.createWaveShaper();w.curve=curve(k);w.oversample='2x';return w;}
+function chain(...n){for(let i=0;i<n.length-1;i++)n[i].connect(n[i+1]);return n[n.length-1];}
+const V=()=>document.getElementById('v').value/100;
+// un « pop » de flamme grave
+function pop(dest,f,vol,dur){const t=AC.currentTime,s=AC.createBufferSource();s.buffer=brown(1);const l=filt('lowpass',f,1),g=gain(0);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);chain(s,l,g,dest);s.start(t,Math.random()*.5);s.stop(t+dur+.05);}
+function boom(dest,f0,vol){const t=AC.currentTime,o=AC.createOscillator(),g=gain(0);o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f0*.45,t+.35);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+.45);chain(o,g,dest);o.start(t);o.stop(t+.5);}
+
+/* Chaque variante : start() rend {stop(), tick(dt)} */
+const VAR=[
+{k:'A',n:'Rugissement',d:'Brun grave saturé, gros sub, turbulence lente. Un brasier qui gronde.',start(){
+  const m=gain(0),s=src(brown(3)),l1=filt('lowpass',160,.8),pre=gain(4),sh=shaper(6),l2=filt('lowpass',520,.6),turb=gain(1);
+  chain(s,l1,pre,sh,l2,turb,m);m.connect(OUT);
+  const sub=AC.createOscillator();sub.frequency.value=44;const sg=gain(.0);chain(sub,sg,m);sub.start();
+  const t=AC.currentTime;m.gain.setValueAtTime(0,t);m.gain.linearRampToValueAtTime(.55,t+.08);
+  boom(OUT,110,.7);pop(OUT,400,.6,.4);
+  return{tick(dt){const v=V();turb.gain.setTargetAtTime(.75+.5*Math.random(),AC.currentTime,.04);l1.frequency.setTargetAtTime(130+v*120,AC.currentTime,.1);
+      sg.gain.setTargetAtTime(.35+.2*Math.random(),AC.currentTime,.06);if(Math.random()<dt*10)pop(m,180+Math.random()*200,.25+Math.random()*.3,.06+Math.random()*.08);},
+    stop(){const t=AC.currentTime;m.gain.setTargetAtTime(0,t,.12);pop(OUT,300,.5,.3);setTimeout(()=>{s.stop();sub.stop();m.disconnect();},900);}};}},
+{k:'B',n:'Postcombustion',d:'Réacteur d\'avion de chasse : grondement à ton grave qui monte avec la vitesse + brasier.',start(){
+  const m=gain(0);m.connect(OUT);const mixO=gain(1),lo=filt('lowpass',380,1.5),sh=shaper(4);chain(mixO,sh,lo,m);
+  const os=[];for(const [r,dt9] of [[1,0],[1,-14],[2,7],[.5,0]]){const o=AC.createOscillator();o.type='sawtooth';o.detune.value=dt9;const g=gain(r==.5?.6:r==2?.25:.4);chain(o,g,mixO);o.start();os.push([o,r]);}
+  const s=src(brown(3)),bl=filt('lowpass',200,.7),bg=gain(1.2),bs=shaper(5);chain(s,bl,bg,bs,m);
+  const t=AC.currentTime;m.gain.setValueAtTime(0,t);m.gain.linearRampToValueAtTime(.4,t+.12);boom(OUT,90,.8);
+  let f=40;return{tick(dt){const v=V(),fc=38+v*45;f+=(fc-f)*Math.min(1,dt*2);for(const [o,r] of os)o.frequency.setTargetAtTime(f*r,AC.currentTime,.05);
+      lo.frequency.setTargetAtTime(300+v*300,AC.currentTime,.1);bg.gain.setTargetAtTime(1+.5*Math.random(),AC.currentTime,.05);},
+    stop(){const t=AC.currentTime;for(const [o] of os)o.frequency.setTargetAtTime(25,t,.3);m.gain.setTargetAtTime(0,t,.18);setTimeout(()=>{os.forEach(([o])=>o.stop());s.stop();m.disconnect();},1100);}};}},
+{k:'C',n:'Lance-flammes',d:'Flamme qui CLAQUE : battement rapide 18-28 Hz, saturé, crépitements serrés.',start(){
+  const m=gain(0);m.connect(OUT);const s=src(brown(3)),bp=filt('lowpass',260,1),pre=gain(5),sh=shaper(7),lp=filt('lowpass',900,.5),am=gain(.5);
+  chain(s,bp,pre,sh,lp,am,m);const lfo=AC.createOscillator();lfo.frequency.value=22;const lg=gain(.45);chain(lfo,lg,am.gain);lfo.start();
+  const t=AC.currentTime;m.gain.setValueAtTime(0,t);m.gain.linearRampToValueAtTime(.5,t+.05);boom(OUT,120,.6);pop(OUT,500,.7,.25);
+  return{tick(dt){const v=V();lfo.frequency.setTargetAtTime(16+v*14+Math.random()*4,AC.currentTime,.05);if(Math.random()<dt*22)pop(m,200+Math.random()*300,.2+Math.random()*.35,.03+Math.random()*.05);},
+    stop(){const t=AC.currentTime;m.gain.setTargetAtTime(0,t,.1);for(let i=0;i<5;i++)setTimeout(()=>pop(OUT,250+Math.random()*250,.5,.08),i*60+Math.random()*40);setTimeout(()=>{s.stop();lfo.stop();m.disconnect();},900);}};}},
+{k:'D',n:'Fusée',d:'Décollage de fusée : sub énorme, grondement grave qui tremble, presque pas d\'aigu.',start(){
+  const m=gain(0);m.connect(OUT);const s=src(brown(3)),l1=filt('lowpass',90,.9),pre=gain(6),sh=shaper(3),l2=filt('lowpass',300,.5),tr=gain(1);
+  chain(s,l1,pre,sh,l2,tr,m);const sub=AC.createOscillator();sub.type='triangle';sub.frequency.value=36;const sg=gain(.5),ss=shaper(3);chain(sub,ss,sg,m);sub.start();
+  const t=AC.currentTime;m.gain.setValueAtTime(0,t);m.gain.linearRampToValueAtTime(.65,t+.25);boom(OUT,70,.9);
+  return{tick(dt){const v=V();tr.gain.setTargetAtTime(.8+.4*Math.random(),AC.currentTime,.08);sub.frequency.setTargetAtTime(32+v*14+Math.random()*3,AC.currentTime,.1);l1.frequency.setTargetAtTime(80+v*70,AC.currentTime,.1);},
+    stop(){m.gain.setTargetAtTime(0,AC.currentTime,.25);setTimeout(()=>{s.stop();sub.stop();m.disconnect();},1300);}};}},
+];
+const g=document.getElementById('g');let cur=null,raf=0,last=0;
+function loop(t){const dt=Math.min(.05,(t-(last||t))/1000);last=t;if(cur)cur.v.tick(dt);raf=requestAnimationFrame(loop);}
+for(const v of VAR){const b=document.createElement('button');b.innerHTML='<b>'+v.k+' — '+v.n+'</b><span>'+v.d+'</span>';g.appendChild(b);
+  const on=e=>{e.preventDefault();init();AC.resume();if(cur)off();cur={b,v:v.start()};b.classList.add('on');if(!raf)raf=requestAnimationFrame(loop);};
+  const off=()=>{if(!cur)return;cur.v.stop();cur.b.classList.remove('on');cur=null;};
+  b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointerleave',off);b.addEventListener('pointercancel',off);}
+const vv=document.getElementById('v');vv.oninput=()=>document.getElementById('vv').textContent=vv.value+' %';
+</script></body></html>
