@@ -29833,6 +29833,14 @@ const HALO={hM:new THREE.SpriteMaterial({map:lampTex,color:0xffe2a8,transparent:
    à 1 ; null = une caisse aux phares fixes (toutes les autres). La caisse qui a des escamotables le pose chaque image (son `BLING.anim`) ; il
    multiplie le halo des phares, leur nappe au sol (carVit) et leur lumière sur la route (lumTick). buildCar le remet à null. */
 var CAR_PHK=null;
+/* L'ACTION SPÉCIALE DE LA CAISSE (2026-10-20, Léo : « la Cerise, quand elle fait le clin d'œil, c'est une action spéciale ; ce genre d'action
+   sera attribué à quelques voitures, et ça s'activera en cliquant sur la voiture — toutes les caisses, quand tu tapes, ça fait taper ; la
+   Cerise, en plus, ses deux phares se lèvent et se baissent ») : `CAR_ACTION` = la fonction que le gabarit de la caisse équipée a posée
+   (null = une caisse sans action : le tap ne fait que taper). `caisseAction()` la joue — appelée par le TAP du garage (garageImpact) et
+   par le COUP du menu ciel (chuteTape), APRÈS l'effet commun à toutes. buildCar la remet à null. Console : dbgAction(). */
+var CAR_ACTION=null;
+function caisseAction(){if(typeof CAR_ACTION!=='function')return false;try{return CAR_ACTION()!==false;}catch(e){console.warn('caisseAction',e);return false;}}
+window.dbgAction=function(){return caisseAction();};
 /* LE FLOU DE JANTE (2026-09-26) — au-delà de ~20 km/h, cinq rayons tournent plus vite que l'image : l'œil voit la roue
    BÉGAYER, repartir en arrière (effet stroboscopique). Un disque peint par-dessus la jante — ce qu'une photo voit d'une roue
    lancée : moyeu clair, voile gris des rayons moyennés, lèvre brillante, stries concentriques — monte en opacité avec la
@@ -37975,19 +37983,22 @@ SHAPES.mx5na=function(K){
         if(gs[GP])japFusion(gs,{[GP]:g});else gs[GP]=g;}
       for(const g in gs){const m=new THREE.Mesh(gs[g],(K.mats&&K.mats[g])||(typeof lpMat==='function'?lpMat(g):null));m.userData.lp=1;bras.add(m);}   // (pas d'ombre cuite : les sommets sont dans le repère du pivot)
       piv.add(bras);PHG.add(piv);PH.push(bras);}}
-  /* QUAND ILS SE LÈVENT (`MX5PH.mode`) — à choisir par Léo : 'course' (levés en course, baissés au garage et au menu, un clin d'œil à
-     l'arrivée au garage), 'nitro' (baissés, ils se lèvent à la nitro : l'appel de phares), 'toujours'. `dbgPhares(1|0|null)` les force. */
-  {let k=0,t=0,cligne=0,vu=false,vu0=false;const anime=dt=>{dt=Math.min(dt||0,.1);t+=dt;
-      let st=false,ga=false,ni=false;try{st=typeof started!=='undefined'&&started&&!gameOver;ga=typeof garageOn!=='undefined'&&garageOn;ni=typeof nitroOn!=='undefined'&&nitroOn;}catch(_){}
-      const M9=(typeof MX5PH==='object'&&MX5PH)?MX5PH:{mode:'course',force:null};
-      if(ga&&!vu){cligne=1.4;}vu=ga;
+  /* QUAND ILS SE LÈVENT (`MX5PH.mode`) — à choisir par Léo : 'course' (levés en course, baissés au garage et au menu), 'nitro' (baissés,
+     ils se lèvent à la nitro : l'appel de phares), 'toujours'. `dbgPhares(1|0|null)` les force.
+     L'ACTION SPÉCIALE (2026-10-20, Léo) : le clin d'œil ne part plus tout seul à l'arrivée au garage — c'est le TAP sur la caisse qui le
+     déclenche (`CAR_ACTION`, voir caisseAction) : les DEUX phares se lèvent, tiennent, se baissent. Retapée pendant, elle les garde levés. */
+  {let k=0,kG=0,gT=0,vu0=false;const anime=dt=>{dt=Math.min(dt||0,.1);
+      let st=false,ni=false;try{st=typeof started!=='undefined'&&started&&!gameOver;ni=typeof nitroOn!=='undefined'&&nitroOn;}catch(_){}
+      const M9=(typeof MX5PH==='object'&&MX5PH)?MX5PH:{mode:'nitro',force:null};
       let vise=M9.mode==='toujours'?1:M9.mode==='nitro'?(ni?1:0):(st?1:0);
-      let kG=null;if(cligne>0){cligne-=dt;const c=1.4-cligne;kG=c<.45?lis(c/.45):c<.75?1:c<1.2?1-lis((c-.75)/.45):0;}
+      if(gT>0)gT-=dt;const cG=gT>0?1:0;kG+=(cG-kG)*Math.min(1,dt*(cG?9:5.5)); // l'action : montée vive, descente posée, jamais un à-coup si on retape
       if(typeof M9.force==='number')vise=M9.force;
       k+=(vise-k)*Math.min(1,dt*5.5);if(typeof M9.force==='number'&&!vu0){k=M9.force;}vu0=true;
-      const kk=lis(cl(k,0,1));PH[0].rotation.x=-TH*(kG!=null&&M9.force==null?Math.max(kk,kG):kk);PH[1].rotation.x=-TH*kk;};
+      const kk=lis(cl(k,0,1)),kA=M9.force==null?Math.max(kk,lis(cl(kG,0,1))):kk;PH[0].rotation.x=-TH*kA;PH[1].rotation.x=-TH*kA;};
+    const action=()=>{gT=.75;return true;};   // les phares restent levés 0,75 s, puis redescendent
     anime(1/30);
-    PHG.userData.anime=anime;
+    PHG.userData.anime=anime;PHG.userData.action=action;
+    if(typeof CAR_ACTION!=='undefined')CAR_ACTION=action;
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);}
   // ---- LA JANTE « MARGUERITE » (14 pouces) : huit pétales bombés, le gros cache-moyeu, le fond sombre ; le pneu 185/60 ----
   const JW=.19,hw=JW/2,fx=hw-.03,RJ=.178,J=lpKit({k:{g:'m',c:0x161719},a:{g:'s',c:0xaeb2b8},d:{g:'m',c:0x0f1013},b:{g:'m',c:0x34353a}});
@@ -38370,18 +38381,20 @@ SHAPES.ae86=function(K){
       for(const g in gs){const m=new THREE.Mesh(gs[g],(K.mats&&K.mats[g])||(typeof lpMat==='function'?lpMat(g):null));m.userData.lp=1;bras.add(m);}
       piv.add(bras);PHG.add(piv);PH.push(bras);}}
   /* QUAND ILS SE LÈVENT (`AE86PH.mode`) — comme LA CERISE : 'nitro' (le choix de Léo pour elle : baissés, ils se lèvent à la nitro), 'course'
-     (levés en course, un clin d'œil à l'arrivée au garage), 'toujours'. `dbgPhares(1|0|null)` les force (celui de LA CERISE, partagé). */
-  {let k=0,t=0,cligne=0,vu=false,vu0=false;const anime=dt=>{dt=Math.min(dt||0,.1);t+=dt;
-      let st=false,ga=false,ni=false;try{st=typeof started!=='undefined'&&started&&!gameOver;ga=typeof garageOn!=='undefined'&&garageOn;ni=typeof nitroOn!=='undefined'&&nitroOn;}catch(_){}
+     (levés en course), 'toujours'. `dbgPhares(1|0|null)` les force (celui de LA CERISE, partagé).
+     L'ACTION SPÉCIALE (2026-10-20) : comme LA CERISE, le TAP sur la caisse lève les deux phares, qui tiennent puis redescendent (`CAR_ACTION`). */
+  {let k=0,kG=0,gT=0,vu0=false;const anime=dt=>{dt=Math.min(dt||0,.1);
+      let st=false,ni=false;try{st=typeof started!=='undefined'&&started&&!gameOver;ni=typeof nitroOn!=='undefined'&&nitroOn;}catch(_){}
       const M9=(typeof AE86PH==='object'&&AE86PH)?AE86PH:{mode:'nitro',force:null},fo=typeof M9.force==='number'?M9.force:(typeof MX5PH==='object'&&MX5PH&&typeof MX5PH.force==='number')?MX5PH.force:null;
-      if(ga&&!vu){cligne=1.4;}vu=ga;
       let vise=M9.mode==='toujours'?1:M9.mode==='nitro'?(ni?1:0):(st?1:0);
-      let kG=null;if(cligne>0){cligne-=dt;const c=1.4-cligne;kG=c<.45?lis(c/.45):c<.75?1:c<1.2?1-lis((c-.75)/.45):0;}
+      if(gT>0)gT-=dt;const cG=gT>0?1:0;kG+=(cG-kG)*Math.min(1,dt*(cG?9:5.5));
       if(fo!=null)vise=fo;
       k+=(vise-k)*Math.min(1,dt*5.5);if(fo!=null&&!vu0){k=fo;}vu0=true;
-      const kk=lis(cl(k,0,1));PH[0].rotation.x=-TH*(kG!=null&&fo==null?Math.max(kk,kG):kk);PH[1].rotation.x=-TH*kk;};
+      const kk=lis(cl(k,0,1)),kA=fo==null?Math.max(kk,lis(cl(kG,0,1))):kk;PH[0].rotation.x=-TH*kA;PH[1].rotation.x=-TH*kA;};
+    const action=()=>{gT=.75;return true;};
     anime(1/30);
-    PHG.userData.anime=anime;
+    PHG.userData.anime=anime;PHG.userData.action=action;
+    if(typeof CAR_ACTION!=='undefined')CAR_ACTION=action;
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);}
   // ---- LA JANTE À HUIT BÂTONS (13 pouces), BRONZE : les bâtons droits du moyeu au rebord, le rebord poli, le cache-moyeu ; le pneu 185/70 ----
   const JW=.185,hw=JW/2,fx=hw-.03,RJ=.172,J=lpKit({k:{g:'m',c:0x161719},o:{g:'k',c:0x8a5a2c},a:{g:'c',c:0xb9bdc3},d:{g:'m',c:0x0f1013}});
@@ -41264,7 +41277,7 @@ function buildCar(spec){
   ATCH.on=false;ATCH.ph=0;ATCH.k=0;ATCH.t=3+Math.random()*2; // (2026-10-06) ATCHOUM s'allume dans son gabarit
   BLING.s=[];BLING.anim=[]; // (2026-10-10) L'ICEBERG pose ses éclats, LA FOURNAISE son feu, pendant leur gabarit
   WOWT.caisse=false;NYAN.on=false;NYAN.tete=null;NYAN.pattes.length=0;NYAN.queue.length=0;NYAN.feux.length=0;NYAN.roues.length=0;NYAN.rf='';NYAN.pas=-1;NYAN.hb=-1; // (2026-10-06) le chat pop-tart remplit ses pièces animées pendant son gabarit
-  HALO.h.length=0;HALO.t.length=0;ROUES.flou=null;CAR_PHK=null; // (2026-09-26) halos et flou de jante de l'ancienne caisse · (2026-10-18) ses escamotables (voir CAR_PHK)
+  HALO.h.length=0;HALO.t.length=0;ROUES.flou=null;CAR_PHK=null;CAR_ACTION=null; // (2026-09-26) halos et flou de jante de l'ancienne caisse · (2026-10-18) ses escamotables (voir CAR_PHK)
   const lvl=CARS.indexOf(spec),wreck=lvl===0;
   // brillance qui explose avec le niveau — l'épave est mate et rouillée
   // (2026-09-26, audit rendu) PLAFONNÉS : `lvl` est l'INDEX de la caisse (0-65), plus une progression — la formule donnait un reflet à .98
@@ -60552,6 +60565,7 @@ function garageImpact(){
     GAR.impactVel[i].rx=(Math.random()-.5)*9;GAR.impactVel[i].ry=(Math.random()-.5)*9;
   }
   try{if(SONV2)sfx('garage.tole');else{chimeNote(340,0,.05,.10);noiseBurst(.14,.05,1400);}}catch(e){} /* (console de son) le TONK de tôle */
+  try{caisseAction();}catch(e){} // (2026-10-20, Léo) L'ACTION SPÉCIALE de la caisse, s'il y en a une (LA CERISE / LE TOFU : les phares se lèvent) — après le coup commun à toutes
   // LES FLÈCHES SE MONTRENT : discrètes au repos, elles se rappellent au bon souvenir pile quand on
   // vient de toucher la caisse — c'est LE moment où « comment je change de voiture » se pose.
   const gp=$('gPrev'),gn=$('gNext');
@@ -62349,6 +62363,7 @@ function chuteTape(e){ // TAPÉE : le coup
     T.fl=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));
     T.fl.renderOrder=999;T.fl.visible=false;scene.add(T.fl);}
   T.fl.position.copy(h.point).addScaledVector(d,-.15);T.flT=0;T.flS=1.45+.55*(mu-1);T.fl.visible=true;T.fl.material.rotation=Math.random()*3;T.n++;
+  try{caisseAction();}catch(_){} // (2026-10-20, Léo) L'ACTION SPÉCIALE de la caisse tapée (voir caisseAction)
   const P=h.point;richCoup(P,n,d,mu,T.combo); // (2026-10-08) LES ÉTINCELLES v2 et LA PLUIE DE RICHESSE (voir ce bloc) — les gerbes sparkGold/dust d'avant, « brutes, naïves », sont retirées
   chuteDebris();const sp=CARS[garageI]||CARS[0];                                         // LES MORCEAUX DE TÔLE, à ses couleurs
   {const M9=Array.isArray(h.object.material)?h.object.material[0]:h.object.material,G9=h.object.geometry,ca=G9&&G9.attributes&&G9.attributes.color; // la couleur de la PIÈCE touchée (sa couleur de sommet × sa matière)

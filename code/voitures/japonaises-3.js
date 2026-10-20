@@ -364,18 +364,20 @@ SHAPES.ae86=function(K){
       for(const g in gs){const m=new THREE.Mesh(gs[g],(K.mats&&K.mats[g])||(typeof lpMat==='function'?lpMat(g):null));m.userData.lp=1;bras.add(m);}
       piv.add(bras);PHG.add(piv);PH.push(bras);}}
   /* QUAND ILS SE LÈVENT (`AE86PH.mode`) — comme LA CERISE : 'nitro' (le choix de Léo pour elle : baissés, ils se lèvent à la nitro), 'course'
-     (levés en course, un clin d'œil à l'arrivée au garage), 'toujours'. `dbgPhares(1|0|null)` les force (celui de LA CERISE, partagé). */
-  {let k=0,t=0,cligne=0,vu=false,vu0=false;const anime=dt=>{dt=Math.min(dt||0,.1);t+=dt;
-      let st=false,ga=false,ni=false;try{st=typeof started!=='undefined'&&started&&!gameOver;ga=typeof garageOn!=='undefined'&&garageOn;ni=typeof nitroOn!=='undefined'&&nitroOn;}catch(_){}
+     (levés en course), 'toujours'. `dbgPhares(1|0|null)` les force (celui de LA CERISE, partagé).
+     L'ACTION SPÉCIALE (2026-10-20) : comme LA CERISE, le TAP sur la caisse lève les deux phares, qui tiennent puis redescendent (`CAR_ACTION`). */
+  {let k=0,kG=0,gT=0,vu0=false;const anime=dt=>{dt=Math.min(dt||0,.1);
+      let st=false,ni=false;try{st=typeof started!=='undefined'&&started&&!gameOver;ni=typeof nitroOn!=='undefined'&&nitroOn;}catch(_){}
       const M9=(typeof AE86PH==='object'&&AE86PH)?AE86PH:{mode:'nitro',force:null},fo=typeof M9.force==='number'?M9.force:(typeof MX5PH==='object'&&MX5PH&&typeof MX5PH.force==='number')?MX5PH.force:null;
-      if(ga&&!vu){cligne=1.4;}vu=ga;
       let vise=M9.mode==='toujours'?1:M9.mode==='nitro'?(ni?1:0):(st?1:0);
-      let kG=null;if(cligne>0){cligne-=dt;const c=1.4-cligne;kG=c<.45?lis(c/.45):c<.75?1:c<1.2?1-lis((c-.75)/.45):0;}
+      if(gT>0)gT-=dt;const cG=gT>0?1:0;kG+=(cG-kG)*Math.min(1,dt*(cG?9:5.5));
       if(fo!=null)vise=fo;
       k+=(vise-k)*Math.min(1,dt*5.5);if(fo!=null&&!vu0){k=fo;}vu0=true;
-      const kk=lis(cl(k,0,1));PH[0].rotation.x=-TH*(kG!=null&&fo==null?Math.max(kk,kG):kk);PH[1].rotation.x=-TH*kk;};
+      const kk=lis(cl(k,0,1)),kA=fo==null?Math.max(kk,lis(cl(kG,0,1))):kk;PH[0].rotation.x=-TH*kA;PH[1].rotation.x=-TH*kA;};
+    const action=()=>{gT=.75;return true;};
     anime(1/30);
-    PHG.userData.anime=anime;
+    PHG.userData.anime=anime;PHG.userData.action=action;
+    if(typeof CAR_ACTION!=='undefined')CAR_ACTION=action;
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);}
   // ---- LA JANTE À HUIT BÂTONS (13 pouces), BRONZE : les bâtons droits du moyeu au rebord, le rebord poli, le cache-moyeu ; le pneu 185/70 ----
   const JW=.185,hw=JW/2,fx=hw-.03,RJ=.172,J=lpKit({k:{g:'m',c:0x161719},o:{g:'k',c:0x8a5a2c},a:{g:'c',c:0xb9bdc3},d:{g:'m',c:0x0f1013}});
