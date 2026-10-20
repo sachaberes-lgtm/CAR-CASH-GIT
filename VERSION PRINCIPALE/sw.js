@@ -10,7 +10,8 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v762'; // v762 (2026-10-21, Léo : « un point de vue avion vu de haut, trop chaotique ») : le PLAN D'AVION des nuages (couloir libre, quatre rangées au pas régulier) ; la rangée du choix du ciel masquée en course
+const CACHE = 'cashcar-v763'; // v763 (2026-10-21, Léo : « ça doit changer aussi le ciel du menu, les boutons ») : le choix du ciel pose aussi l'heure du ciel du menu
+// const CACHE = 'cashcar-v762'; // v762 (2026-10-21, Léo : « un point de vue avion vu de haut, trop chaotique ») : le PLAN D'AVION des nuages (couloir libre, quatre rangées au pas régulier) ; la rangée du choix du ciel masquée en course
 // const CACHE = 'cashcar-v761'; // v761 (2026-10-21, Léo : « choisir le ciel avant de jouer ») : rangée AUTO · MATIN · MIDI · SOIR · NUIT · PLUIE · ORAGE à l'accueil (la mer de nuages à la météo choisie)
 // const CACHE = 'cashcar-v760'; // v760 (2026-10-21, Léo : « dans le menu ciel nuages fond encore plats ») : seize cumulus en cubes au fond du menu + le tapis clairsemé sur la mer du menu
 // const CACHE = 'cashcar-v759'; // v759 (2026-10-20 soir, Léo : « harmoniser le tapis et les nuages du premier plan · interactifs : les blocs se cassent ») : tapis clairsemé par météo, ombre des cubes accordée au tapis, trouées par marches de cubes + blocs qui se cassent en petits au passage de la caisse

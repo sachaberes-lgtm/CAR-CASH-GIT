@@ -3,6 +3,9 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE CIEL DU MENU SUIT LE CHOIX (2026-10-21, v763, Léo : « ça doit changer aussi le ciel du menu, les boutons » · « garder tous les effets validés, tous les niveaux concernés » · « pas pour le main ») — branche `nuages-refonte`
+- Les touches AUTO · MATIN · MIDI · SOIR · NUIT · PLUIE · ORAGE posent aussi l'heure du titre (`dbgHeure`) : MATIN/MIDI/SOIR/NUIT = leur ciel ; PLUIE → après-midi, ORAGE → soir ; AUTO = l'horloge du téléphone. Vérifié : MIDI → ciel bleu du jour au menu, nuages en cubes devant.
+
 ## LE PLAN D'AVION DES NUAGES (2026-10-21, v762, Léo : « tu te perds un peu, fais un point de vue avion vu de haut ; tu n'arrives pas à bien ranger tout ça ; la voiture se retrouve parfois dans un truc avec que des nuages ; trop chaotique — pour les maps nuages générales ») — branche `nuages-refonte`
 - **L'OUTIL** : `dbgPlanNuages(pas)` (nuages-casses.js) rend la piste et tous les nuages vus de dessus + la part de route DANS un nuage / frôlant un nuage ; planches : `photos-gameplay/nuages-plan-avion-avant.png` / `-apres.png` (tracé maison, scratchpad `plan.py`).
 - **LE CONSTAT** (piste graine 7, matin) : 58 nuages semés au hasard par six couronnes superposées, la route à moins de .4 rayon d'un nuage 18 % du temps.
