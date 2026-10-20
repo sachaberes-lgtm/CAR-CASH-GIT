@@ -9165,7 +9165,7 @@ const FIG_BASE=[ // le catalogue (VERSION PRINCIPALE/figures.js, BASE) : id, dur
    une figure plantee (jusqu'a 160*1.2=192 pts) devient comparable a une vraie coupe de piste
    (goodCuts, ~20-100 pts de gain net) — un motif a decouvrir, pas du bruit. Les CONTROLES ne changent
    pas (toujours le meme double-tap qu'au clavier) : seul le poids de la recompense est touche. */
-const FIG_W_AURA=1.2;
+const FIG_W_AURA=3; // (2026-10-20, 2e passe) 1.2 donnait 1 bot sur 24 qui y arrivait une fois — pas fiable. Monte encore pour que la survie seule ne suffise plus a gagner : il faut aussi tenter
 const FIG_PHY={I:[1,1.12,.46],gyro:.12,tImp:.08,wE:1.7,drag:.05,sub:1/120,eps:.09,finE:.985,
   aUp:.55,aDn:3,aFin:14,ret:{w:7.5,z:.7},retT:.22,stickAng:.45,pd:{w:13,z:.42},aero:{w:3.2,z:.36},ok:.35,wPose:9};
 function figQAxe(ax,ang,o){const l=Math.hypot(ax[0],ax[1],ax[2])||1,s=Math.sin(ang/2)/l;o[0]=ax[0]*s;o[1]=ax[1]*s;o[2]=ax[2]*s;o[3]=Math.cos(ang/2);return o;}
