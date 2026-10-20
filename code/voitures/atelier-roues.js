@@ -191,10 +191,16 @@ function boiteUsee(w,h,d,o){o=o||{};
     if((uy*vz-uz*vy)*dir[0]+(uz*vx-ux*vz)*dir[1]+(ux*vy-uy*vx)*dir[2]<0){const t=b;b=e;e=t;}
     P.push(a[0],a[1],a[2],b[0],b[1],b[2],e[0],e[1],e[2]);for(let n=0;n<3;n++)C.push(k[0],k[1],k[2]);};
   const pt=(ax,va,u,uv,v,vv)=>{const p=[0,0,0];p[ax]=va;p[u]=uv;p[v]=vv;return p;};
+  /* (2026-10-20, LE RELIEF — l'étude de la gamme au garage : LA HONTE n° 5 des plus plates, une épave en aplats dont les coups étaient
+     PEINTS) `cellC` : des cases plus fines sur les deux FLANCS seulement (la grande caisse n'avait qu'une rangée sur sa hauteur : rien à
+     creuser) ; `creux` : de VRAIS COUPS, [{s: côté ±1, y, z: le centre (repère de la boîte), ry, rz: les rayons, p: la profondeur}] — les
+     sommets intérieurs du flanc reculent, les facettes autour penchent et prennent la lumière chacune à leur tour. */
+  const CR=o.creux||[],coup=(s,y,z)=>{let d=0;for(const q of CR){if(q.s!==s)continue;const r=Math.hypot((y-q.y)/q.ry,(z-q.z)/q.rz);if(r<1)d=Math.max(d,q.p*sm(1-r));}return d;};
   // les six faces, rentrées de c, quadrillées en cases d'environ `cell`, les sommets intérieurs creusés (jamais le bord : il touche le chanfrein)
-  for(let ax=0;ax<3;ax++)for(const s of [-1,1]){const u=(ax+1)%3,v=(ax+2)%3,eu=H3[u]-c,ev=H3[v]-c,dir=[0,0,0];dir[ax]=s;
-    const dessous=ax===1&&s<0,nu=dessous?1:Math.max(1,Math.round(2*eu/cs)),nv=dessous?1:Math.max(1,Math.round(2*ev/cs)),f=ax*2+(s>0?1:0);
-    const V=(i,j)=>{const bord=i===0||j===0||i===nu||j===nv;return pt(ax,s*(H3[ax]-(bord?0:de*hh(i*7+f,j*3,f+1))),u,-eu+2*eu*i/nu,v,-ev+2*ev*j/nv);};
+  for(let ax=0;ax<3;ax++)for(const s of [-1,1]){const u=(ax+1)%3,v=(ax+2)%3,eu=H3[u]-c,ev=H3[v]-c,dir=[0,0,0];dir[ax]=s;const cf=ax===0&&o.cellC?o.cellC:cs;
+    const dessous=ax===1&&s<0,nu=dessous?1:Math.max(1,Math.round(2*eu/cf)),nv=dessous?1:Math.max(1,Math.round(2*ev/cf)),f=ax*2+(s>0?1:0);
+    const V=(i,j)=>{const bord=i===0||j===0||i===nu||j===nv,uu=-eu+2*eu*i/nu,vv=-ev+2*ev*j/nv;
+      return pt(ax,s*(H3[ax]-(bord?0:de*hh(i*7+f,j*3,f+1)+(ax===0?coup(s,uu,vv):0))),u,uu,v,vv);};
     for(let i=0;i<nu;i++)for(let j=0;j<nv;j++){const a=V(i,j),b=V(i+1,j),e=V(i+1,j+1),g=V(i,j+1),k=dessous?[.55,.5,.47]:coul(yc+(a[1]+e[1])/2,ax===1?s:0,false,i,j,f);
       tri(a,b,e,k,dir);tri(a,e,g,k,dir);}}
   // les douze chanfreins et les huit coins

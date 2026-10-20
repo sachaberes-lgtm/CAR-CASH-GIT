@@ -8,7 +8,12 @@ const SHAPES={
     const bV=K.body.clone(),aV=K.acc.clone();for(const m of [bV,aV]){m.vertexColors=true;rimify(m,null);}
     bV.shininess=30;bV.specular.setHex(0x8e8e8e);bV.reflectivity=.07;aV.shininess=26;aV.specular.setHex(0x9a9a9a);
     const U=(w,h,d,m,x,y,z,o)=>{const ms=new THREE.Mesh(boiteUsee(w,h,d,Object.assign({yc:y},o)),m);ms.position.set(x,y,z);return K.add(ms);};
-    U(W,H*.62,L,bV,0,y0+H*.31,0,{seed:1,dent:.007,rouille:.10}).rotation.z=.03;
+    /* (2026-10-20, LE RELIEF) de VRAIS COUPS dans la grande caisse (voir boiteUsee `creux`) : la portière gauche enfoncée, l'aile avant
+       droite froissée en deux plis, le coin arrière droit cabossé — chacun loin des plaques de rouille et des lignes de portières */
+    U(W,H*.62,L,bV,0,y0+H*.31,0,{seed:1,dent:.007,rouille:.10,cellC:.14,creux:[
+      {s:-1,y:.01,z:-.20,ry:.22,rz:.42,p:.08},
+      {s:1,y:.05,z:1.42,ry:.20,rz:.28,p:.055},{s:1,y:-.06,z:1.70,ry:.16,rz:.20,p:.04},
+      {s:1,y:.02,z:-1.52,ry:.20,rz:.32,p:.05}]}).rotation.z=.03;
     U(W*.94,H*.272,L*.34,bV,0,y0+H*.64,L*.30,{seed:2,dent:.012,rouille:.08,cell:.3}).rotation.set(.16,0,-.06); // le capot froissé (×,8 de haut, comme avant)
     U(W*.94,H*.36,L*.26,bV,0,y0+H*.65,-L*.34,{seed:3,dent:.008,rouille:.16,cell:.3}).rotation.x=-.09;
     /* (2026-10-15, Léo : « un plafond moins buggé : l'orange se mélange bizarrement à la vitre », puis, la v456 vue : « remets le plafond
