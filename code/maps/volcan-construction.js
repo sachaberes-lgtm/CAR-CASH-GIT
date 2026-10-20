@@ -57,7 +57,7 @@ function* buildVolcanG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
   // ---- 3. LES AIGUILLES D'OBSIDIENNE : à la corde des virages de la plaine, au large des S du flanc, en quinconce sur les droites ----
   const AG=[];
   const aiguille=(i,sg,lat)=>{const p=pts[i],l9=lat9(i),x=p.x+l9[0]*sg*lat,z=p.z+l9[1]*sg*lat;if(!horsArche(x,z,140)||!horsSaut(x,z))return false;
-    const base=Math.min(vlcH(x,z),vlcL(x,z))-4,v=(fr()*3)|0,top=p.y+38+fr()*55,sy=Math.max(.8,(top-base)/100),sxz=Math.min(1.5,Math.max(.7,Math.sqrt(sy)*.85*(.85+fr()*.3)));
+    const base=Math.min(vlcH(x,z),vlcL(x,z))-4,v=(fr()*3)|0,top=p.y+38+fr()*55,sy=Math.max(.8,(top-base)/100),sxz=Math.min(1.5,Math.max(.7,Math.sqrt(sy)*.85*(.85+fr()*.3)))*(VLC5?1.6:1); // (v5) des FLÈCHES de basalte trapues (les lames fines se lisaient comme des antennes noires) — la collision suit (rR, COL)
     const uR=Math.max(0,Math.min(1,(p.y-base+12)/(112*sy))),rR=14*Math.pow(1-uR,1.25)*sxz+4;
     if(lat<ROAD_HALF+rR+7||p.y-base>260)return false; // (pas d'aiguille de 600 m sous la route haute du cratère)
     for(const g of AG)if(Math.hypot(g.x-x,g.z-z)<60)return false;
