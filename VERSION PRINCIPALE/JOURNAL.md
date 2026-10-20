@@ -3,6 +3,7 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE RONRON DU NITRO EST COUPÉ PAR DÉFAUT (2026-10-20 soir, v746 — Léo, en détail : « ça apparaît, ça évolue, puis une trompette horrible qui fait bugger la musique » = ses trois temps ; baissé il restait une trompette → `?ronron=1` le rend régulé, `?ronron=ancien` = v740 ; à trancher Léo/Sacha)
 ## LE RONRON DU NITRO SORT DU SUB (2026-10-20 soir, v745, Léo : « un audio parfois sur mon tel et mon ordi qu'il n'y a pas sur le tel ni l'ordi de Sacha, sur le main — lié au boost, un son qui n'a rien à voir ») — branche `nitro-ronron`
 - **LE SON** : le RONRON de Sacha (v740, le soir même) — deux triangles 44 Hz + quinte + une SOUS-OCTAVE à 22 Hz, hachés à 13 → 28 Hz, vibrato et houles après 2,5 s de tenue.
   MESURÉ au banc muet avec la sauvegarde de Léo (`dbgVu`, tenue de 5 s) : sa chaîne sortait à **−23/−27 dB RMS**, ~10 dB au-dessus de la gorge du nitro (−35) et

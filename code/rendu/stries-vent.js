@@ -173,8 +173,13 @@ function rugPas(dt,o){ // à chaque image : o = {on, air, bleu, v (km/h), dk}
    haut — ne change pas) ; (2) le niveau `rr` ,11 → ,045 : le ronron se range au rang de la gorge (mesuré après : −33/−36 dB), il porte
    encore, il ne couvre plus. Les trois temps, les houles, le vibrato, les crépitements : intacts. `?ronron=ancien` = v740 tel quel ;
    `?ronron=0` = muet (A/B). dbgRonron() rend aussi `hp`. */
-const RR_MODE=(/[?&]ronron=(ancien|0)\b/.exec(location.search)||[])[1]||'';
-const RR_ON=RR_MODE!=='0';
+/* (2026-10-20, plus tard — Léo, en détail : « quand je booste, ça apparaît, ça évolue, puis ça devient une sorte de TROMPETTE horrible qui
+   fait bugger la musique ») = les trois temps du ronron (il s'installe, il monte, puis plein régime : filtre ouvert + vibrato sur des
+   triangles saturés — un timbre de cuivre). Baissé, il restait une trompette. LE RONRON EST COUPÉ PAR DÉFAUT : `?ronron=1` = le ronron
+   régulé (passe-haut + niveau), `?ronron=ancien` = la v740 de Sacha telle quelle. Le reste du FEU QUI RUGIT (gorge, crépitement, pssht,
+   pétarade) joue comme avant. À trancher entre Léo et Sacha. */
+const RR_MODE=(/[?&]ronron=(ancien|0|1)\b/.exec(location.search)||[])[1]||'';
+const RR_ON=RR_MODE==='1'||RR_MODE==='ancien';
 if(RR_MODE!=='ancien')RUG_NIV.rr=.045;
 const RR={pret:false,tH:0,off:0,crT:0,raf:0,ph:0};
 function rrCrac(sr,pop){const R=Math.random,n=Math.round(sr*(pop?.06:.016)),X=new Float32Array(n);
@@ -216,7 +221,7 @@ function rrPas(dt,o,on,b,air,v){
     while(RR.crT>=1){RR.crT-=1+(Math.random()-.5)*.6;const pop=Math.random()<.22;rrCraque(t+Math.random()*.04,pop,RUG_NIV.crac*(pop?.9:.5+.5*Math.random())*o.dk);}
     if(m3>0&&Math.random()<dt*.6*m3){for(let i=0,n=3+(Math.random()*4|0);i<n;i++)rrCraque(t+.02+i*(.025+Math.random()*.03),Math.random()<.3,RUG_NIV.crac*.7*o.dk);}
   }}
-window.dbgRonron=function(){return {pret:RR.pret,mode:RR_MODE||'regle',hp:RR.hp?RR.hp.frequency.value:0,tenu:+RR.tH.toFixed(2),gain:RR.g?+RR.g.gain.value.toFixed(4):null,hz:RR.o?+RR.o[0][0].frequency.value.toFixed(1):null,pulse:RR.pO?+RR.pO.frequency.value.toFixed(1):null};};
+window.dbgRonron=function(){return {pret:RR.pret,on:RR_ON,mode:RR_MODE||'coupe',hp:RR.hp?RR.hp.frequency.value:0,tenu:+RR.tH.toFixed(2),gain:RR.g?+RR.g.gain.value.toFixed(4):null,hz:RR.o?+RR.o[0][0].frequency.value.toFixed(1):null,pulse:RR.pO?+RR.pO.frequency.value.toFixed(1):null};};
 function rugAllume(k,bleu,air){ // LE PSSHT (le reste du coup d'allumage est dans nitroWhoomp)
   if(!RUG.blanc)return false;const ac=RUG.ac,t0=ac.currentTime;
   {const s=ac.createBufferSource();s.buffer=RUG.blanc;const f=ac.createBiquadFilter();f.type='bandpass';f.Q.value=1.3;
