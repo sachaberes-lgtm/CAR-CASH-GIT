@@ -47382,7 +47382,7 @@ function dragonDecorBuild(){
   const m=new THREE.Mesh(FDISC_GEO||(FDISC_GEO=new THREE.PlaneGeometry(1,1)),mat);m.frustumCulled=false;m.renderOrder=-3;m.visible=false;scene.add(m);DRG_DEC={m:m,a:0};
 }
 function dragonDecor(dt){
-  const on=pwrAurT>0&&!(mode==='boom'||gameOver);
+  const on=false&&pwrAurT>0&&!(mode==='boom'||gameOver); /* (2026-10-21, Léo : « enlève le rond chelou transparent ») plus d'oeil dans le ciel */
   if(!DRG_DEC){if(!on)return;dragonDecorBuild();}
   const D=DRG_DEC;D.a+=((on?.5:0)-D.a)*Math.min(1,dt*2.5);D.m.visible=D.a>.01;D.m.material.uniforms.uA.value=D.a;
   if(D.m.visible){camera.getWorldDirection(DRG_V);D.m.position.copy(camera.position).addScaledVector(DRG_V,620);D.m.position.y+=190;D.m.updateMatrixWorld(true);}
@@ -47482,7 +47482,7 @@ function raisinAilesBoom(){ // les ailes explosent en plumes : un flash blanc, u
   RAI.vis=false;if(RAI.wings)RAI.wings.visible=false;
 }
 function raisinTick(dt){
-  const arme=pwrAirT>0&&!TUTO.pa&&!(mode==='boom'||gameOver),vis=arme&&RAI.stage===0;
+  const arme=pwrAirT>0&&!TUTO.pa&&!(mode==='boom'||gameOver),vis=false&&arme&&RAI.stage===0; /* (2026-10-21, Léo : « enlève les ailes sur la voiture ») plus d'ailes visibles : la double jauge reste */
   if(vis||RAI.wings){const g=raisinAiles();if(g.visible!==vis)g.visible=vis;
     if(vis){g.position.copy(carGroup.position);g.quaternion.copy(carGroup.quaternion);const w=Math.sin(FAURAU.t*9)*.06;g.children[0].rotation.z=w*0+0;g.children[0].position.y=.55+Math.sin(FAURAU.t*5)*.05;}}
 }
@@ -56568,7 +56568,7 @@ function fruitCroque(pos,col,power,nom,leger){ // nom : le fruit — chacun a SA
      de poursuite regarde, et le nombre de gerbes suit la rafale : une, puis deux, puis trois. */
   const p2=crV1.copy(pos);p2.y+=1.1;
   juiceSplash(p2,col,Math.min(1.2,power*.9+r*.18));      // la gerbe 3D reste, mais en appoint
-  if(!leger||(fruitRaf&3)===0)juiceScreen(col,power,leger?1:1+Math.min(4,r));                 // …et LE JUS REPEINT L'OBJECTIF : ça, on le voit (un fruit de la file : un sur quatre)
+  juiceScreen(col,power,leger?1:1+Math.min(4,r));                 // …et LE JUS REPEINT L'OBJECTIF : ça, on le voit (un fruit de la file : un sur quatre)
   if(SONV2){sfx(FRUIT_SON[nom]||'fruit.peche',{rate:Math.pow(2,sonFruitSt(fruitRaf-1)/12),vol:nom==='PASTÈQUE'?0:-4});if(r>=3)sfx('fruit.rafale',{st:sonFruitSt(fruitRaf-3),vol:-3});}else crunchSfx(r); /* (2026-10-15, Sacha : « équilibre mieux, que les figures fassent plus de bruit que ce qu'on ramasse ») un fruit sortait à −28, au-dessus d'une figure : −4 (−32), la rafale −3 ; la PASTÈQUE (le graal) garde son niveau */ // (2026-10-14, session SON) la série MONTE en demi-tons de pentatonique (0-2-4-7, puis 4-7…) : avant, +2,5 % par fruit (0,4 demi-ton) noyé sous le hasard de la fiche (rj ±6 %, ±1 demi-ton) ; la rafale (key:1) monte avec /* (débogage son 2026-09-29) le plein de nitro sonne à la pompe, seulement s'il y a eu plein */
   shake=Math.max(shake,Math.min(.55,.18+r*.07));
   if(fruitRaf>=3&&(!leger||fruitRaf%4===0)){          // 3 fruits d'affilée : ce n'est plus un hasard (un fruit de la FILE : une annonce sur quatre, même total d'aura)
@@ -67017,7 +67017,7 @@ function pickupsTick(dt){
         // (2026-09-26, user : « les fruits donnent du nitro BLEU ») : chaque fruit remplit la RÉSERVE BLEUE (la nitro la plus forte : poussée
         // 48 contre 30) de 20 % de la jauge — le bleu se voit sur la barre et sur l'anneau du bouton
         {const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,av9=nitroX;{const g9=p.ligne?(p.don||LIGNE.don):.2*mx9,toR=Math.min(Math.max(0,mx9-nitroR),g9);nitroR+=toR;nitroX=Math.min(2,nitroX+(g9-toR));} /* (2026-10-20, Léo : « jauge pleine, et le surplus passe en réserve bleue ») un fruit remplit d'abord la NITRO NORMALE, le trop-plein file dans la RÉSERVE BLEUE */if(LIVRE.on){livre('n+:'+(p.ligne?'fruit.ligne':'fruit'),nitroX-av9);livre('n0:'+(p.ligne?'fruit.ligne':'fruit'),(p.ligne?LIGNE.don:.2*mx9)-(nitroX-av9));}if(p.ligne)LIGNE.pris[0]++; // (LIGNE PARFAITE) le fruit de la file rend de quoi tenir jusqu'au pad
-         if(nitroX>av9+.01){if(SONV2)sfx('nitro.plein',{t:.14});if(!volgNitro('x',nitroX-av9))nbPrend('x');}}
+         if(nitroX>av9+.01){if(SONV2)sfx('nitro.plein',{t:.14});nbPrend('x');}} /* (2026-10-21, Léo : « on voit directement la barre monter ») le fruit ne vole plus vers la barre : elle monte tout de suite */
         RUNX.fruits++;hap(fd.boost>=1.5?[20,40,30]:11);
         if(SENS&&!REDUCED_MOTION)try{sensCoup(0,-(.45+.6*pw),-(.3+.35*pw));}catch(e){} // (2026-10-14, sensations · passages) LE COUP DE REINS du plein : le fruit rend sa nitro, la caisse S'ASSOIT d'un coup sur son train arrière (nez levé ≈ 1,2° la myrtille → 2,7° la pastèque, ≈ 1 à 2,5 cm) puis se repose — le jus, le croc et la main existaient, la tôle ne bronchait pas. Au sol seulement (sensCoup dort en vol).
         fruitCroque(carGroup.position,fd.jus||0xffd75e,pw,fd.n,!!p.ligne); // ON CROQUE : jus, crunch, et la rafale qui monte
