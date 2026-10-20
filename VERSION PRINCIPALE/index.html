@@ -38299,7 +38299,13 @@ const R=.405,TW=.255,WX=.80,ZF=1.492,ZR=-1.516;
 const ZS0=-2.00,ZS1=.20,NR=10,NF=14;
 const BELT=1.222;
 // la baignoire (sous la ceinture) : [hauteur, demi-largeur] ; le haut (hard-top) se resserre de 0,846 à 0,793
-const SB=[[.60,.845],[.64,.855],[.75,.856],[.88,.856],[1.00,.856],[1.10,.856],[1.18,.855],[1.205,.856],[1.222,.866],[1.24,.853]],
+/* ===== LE RELIEF DU FLANC (2026-10-20, Léo : « le relief visible quand on tourne autour » ; l'étude de la gamme au garage : n° 3 des plus
+   plates, une porte verticale d'un bloc entre les élargisseurs) ===== trois pans au lieu d'une dalle : le BAS de porte qui rentre vers le
+   marchepied (~17°, il regarde le sol), la PORTE presque droite qui bombe jusqu'à l'ARÊTE à hauteur des poignées, l'ÉPAULE qui rentre
+   jusqu'au petit creux sous le jonc de ceinture (~14°, elle regarde le ciel). `SBx(y)` : le flanc à une hauteur (charnières et poignées s'y
+   posent). Avant : toutes les rangées à 0,856 de .64 à 1,18. */
+const SB=[[.60,.800],[.64,.818],[.75,.838],[.88,.856],[1.00,.863],[1.10,.866],[1.18,.848],[1.205,.856],[1.222,.866],[1.24,.853]],
+      SBx=y=>lin(SB,y),
       SH=[1.27,1.32,1.42,1.52,1.62,1.72,1.775];
 const zPB=y=>.648-.804*(y-1.326);                         // le pare-brise (et le montant) vu de côté
 const zHT=y=>-2.149+(y-1.23)*.1956;                       // la lunette du hard-top, couchée vers l'avant
@@ -38413,7 +38419,7 @@ return function(K){
   const AILE=[[.85,1.148],[1.862,1.148],[1.876,1.13],[1.886,1.0],[1.90,.86],[1.887,.826],[1.827,.902],[1.794,.976],[1.534,.979],[1.274,.976],[1.203,.949],[1.129,.872],[1.036,.719],[.930,.522],[.85,.522]],
         ELAV=[[.749,.577],[.938,.856],[1.083,1.023],[1.203,1.055],[1.493,1.066],[1.736,1.053],[1.827,1.009],[1.95,.856],[1.975,.79],[1.975,.70],[1.93,.70],[1.887,.826],[1.827,.902],[1.794,.976],[1.534,.979],[1.274,.976],[1.203,.949],[1.129,.872],[1.036,.719],[.93,.522],[.80,.522]],
         ELAR=[[-2.096,.536],[-2.028,.749],[-1.925,.937],[-1.857,1.039],[-1.737,1.091],[-1.686,1.097],[-1.241,1.097],[-1.173,1.039],[-1.088,.937],[-1.002,.80],[-.916,.663],[-.875,.577],[-.90,.53],[-.968,.526],[-1.002,.613],[-1.105,.749],[-1.207,.919],[-1.310,1.005],[-1.736,1.005],[-1.857,.919],[-1.925,.749],[-1.942,.577],[-2.0,.52]];
-  P.sym(sd=>{P.prism('p',AILE,.20,sd*.76);P.prism('p',ELAV,.112,sd*.891);P.prism('p',ELAR,.112,sd*.891);
+  P.sym(sd=>{P.prism('p',AILE,.20,sd*.76);P.prism('p',ELAV,.147,sd*.8735);P.prism('p',ELAR,.147,sd*.8735);   // (relief) les élargisseurs plus profonds vers la caisse : le bas de porte rentre, rien ne se voit au travers
     // le feu de jour et le clignotant de l'élargisseur : une bande de LED À FLEUR de son arête avant (elle suit le contour, 1 cm de large,
     // 2 mm de relief) — avant, deux bâtonnets posés dessus, qui flottaient au-dessus des roues une fois l'élargisseur couleur caisse
     {const off=(P9,d)=>{const o=[];for(let i=0;i<P9.length;i++){const a=P9[Math.max(0,i-1)],b=P9[Math.min(P9.length-1,i+1)],dz=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dz,dy)||1;o.push([P9[i][0]+dy/l*d,P9[i][1]-dz/l*d]);}return o;},
@@ -38422,8 +38428,8 @@ return function(K){
      P.prism('W',bande(DRL,.008,.018),.004,sd*.949);P.prism('O',bande(CLI,.008,.018),.004,sd*.949);}
     P.box('k',.006,.07,.17,sd*.862,1.00,.98);                                                      // l'ouïe d'aile
     P.box('k',.10,.12,1.61,sd*.85,.51,-.055);P.box('s',.10,.012,1.61,sd*.85,.575,-.055);          // le MARCHEPIED
-    for(const [z,y] of [[.535,1.094],[.535,.766],[-.44,1.094],[-.44,.766]])P.box('p',.035,.065,.075,sd*.872,y,z);   // les charnières (couleur caisse)
-    for(const z of [-.205,-.945])P.box('k',.02,.035,.19,sd*.866,1.105,z);                          // les poignées (noires)
+    for(const [z,y] of [[.535,1.094],[.535,.766],[-.44,1.094],[-.44,.766]])P.box('p',.035,.065,.075,sd*(SBx(y)+.0125),y,z);   // les charnières (couleur caisse) — (relief) posées sur le flanc à leur hauteur
+    for(const z of [-.205,-.945])P.box('k',.02,.035,.19,sd*(SBx(1.105)+.006),1.105,z);              // les poignées (noires), sur l'arête
     // le rétroviseur, sur la portière
     {const a=[sd*.86,1.30,.40],b=[sd*.96,1.37,.41],d=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],l=Math.hypot(d[0],d[1],d[2]);
      const g=new THREE.CylinderGeometry(.016,.016,l,6);g.translate(0,l/2,0);const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3(d[0]/l,d[1]/l,d[2]/l)),e=new THREE.Euler().setFromQuaternion(q);
