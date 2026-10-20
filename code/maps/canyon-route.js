@@ -59,6 +59,17 @@ const CY={Q:null,on:false,ms:{},yMin:-1e4,yMax:1e4,ombre:1,prof:0,mesh:null,mat:
    le soleil de l'heure (`cyA`) reste celui du monde — il ne tombe plus toujours du même côté de la route. `?sans=canyonhasard` = la recette d'avant,
    au tirage près ; `dbgCanyon().hz` = l'axe, la pente, la longueur visée et les pièces dans l'ordre. */
 const CY_HZ={on:!/[?&]sans=([^&]*,)?canyonhasard(,|&|$)/.test(location.search),axe:55,kL:1.34,mod:.6,lien:170,coude:.65,cmax:28};
+/* ===== LE CANYON AU HASARD, SON DÉCOR (2026-10-20, Sacha : « volcan, grotte, dune : ces maps ne sont pas générées aléatoirement, il faut que chaque map soit
+   aléatoire avec des modules et des décors qui changent ») ===== — le tracé changeait déjà (écart de forme 0,29), le DÉCOR jamais : les mêmes strates jaune-rose,
+   les Mitaines et leur mesa, la même station-service à droite à 430 m, la même rivière pleine, les mêmes peupliers, cinq vautours. Chaque canyon tire
+   désormais (`cyTirage`, un flux à lui né de la graine) : la PALETTE des strates (classique, rouge de Sedona, crème de Zion, désert peint lavande, ocre de
+   Bryce), la brume du fond, la rivière (pleine, basse, à sec : un lit de sable), la densité des buttes au loin, les Mitaines (les deux, l'une, aucune ;
+   la mesa ; leur taille), les cheminées de fées (combien), la ripisylve (combien, verte, dorée d'automne, sombre), les éboulis du fond (0 à 400 blocs),
+   les vautours (2 à 9), la mine (présente ou non ; ses filons, ses cadres, ses torches), la Route 67 (la station : là ou pas, à gauche ou à droite, plus ou
+   moins loin ; le panneau ; un MOTEL ; des carcasses de voitures ; des cactus ; des panneaux publicitaires). Aucun programme neuf (la colonne des strates est
+   réécrite dans SA texture ; le reste : des pavés cuits, la matière des arbres). `?sans=canyondecor` = le décor d'avant ; `?sans=canyonmodules` = le paquet
+   de modules d'avant (4 sortes ; 7 désormais) ; `dbgCanyon().deco` = le tirage. */
+const CY_DECO={on:!/[?&]sans=([^&]*,)?canyondecor(,|&|$)/.test(location.search),mods:!/[?&]sans=([^&]*,)?canyonmodules(,|&|$)/.test(location.search)};
 function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main entre deux essais et pendant la mesure des écarts
   CAMPM.length=0;MODMARK.length=0;FILETMARK.length=0;
   const LV=lvPiste(),RS=1.25+.3*(LV-1),LL=1+Math.min(1.3,(LV-1)*.5),SQ=Math.sqrt(LV),g0=(rnd()*4294967296)>>>0;
@@ -104,8 +115,20 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
       for(let k=0;k<n;k++){const lu=(80+rm()*20)*LL,ld=(110+rm()*30)*LL,a=(k?55+rm()*15:30+rm()*8)/57.2958,R=Math.max(RMIN*1.4,(lu+ld)/a),au=lu/R*57.2958,ad=ld/R*57.2958;arc(sg*au,R,.12+rm()*.05);arc(sg*ad,R,-(.38+rm()*.1));sg=-sg;}};
     const cChicane=(p0,p1)=>{const a=30+rm()*10,R=RMIN*(1.1+rm()*.2);cmRe(LIM-a/57.3-.05,cmPe(p0,p1));const sg=phi>0?-1:1;droite(50*LL,cmPe(p0,p1)*.6);
       arc(sg*a,R,cmPe(p0,p1));arc(-sg*2*a,R,cmPe(p0,p1));arc(sg*a,R,cmPe(p0,p1));droite(50*LL,cmPe(p0,p1)*.6);};
-    const cmJ=[cSlalom,cCorde,cWhoops,cChicane];
-    const cmPose=(p0,p1)=>{let m=0;for(let e=0;e<6;e++){if(!cmPaq.length){const t=[0,1,2,3];for(let i=3;i>0;i--){const j=(rm()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}for(const x9 of t)cmPaq.push(x9);}m=cmPaq.shift();if(m!==cmLast)break;}
+    /* (2026-10-20, LE DÉSERT AU HASARD) TROIS MODULES DE PLUS — seulement avec le tracé au hasard (`?sans=canyonhasard` reste la recette d'avant) :
+         cGoulet  · LE GOULET : un S serré qui PLONGE (50-65° puis le double en sens contraire puis 50-65°, à 1,2-1,4 × RMIN, la pente × 1,3)
+         cMesa2   · LES DEUX CORDES : on contourne une mesa par la gauche puis la suivante par la droite (deux appuis de 85-100°, une droite entre)
+         cGradins · LA DESCENTE EN GRADINS : 3 replats (un virage doux, du même côté) et 3 marches raides (−40 à −46 %)
+       Le paquet en compte 8 : la double corde y est DEUX fois (MESURÉ, banc des tracés, 48 graines : sans elle, l'écart de forme tombait de 0,274 à 0,24 —
+       c'est elle qui fait dériver la gorge). */
+    const cGoulet=(p0,p1)=>{const a=50+rm()*15,R=RMIN*(1.2+rm()*.2);cmRe(LIM-a/57.3-.05,cmPe(p0,p1));const sg=phi>0?-1:1;droite(40*LL,cmPe(p0,p1),2);
+      arc(sg*a,R,cmPe(p0,p1)*1.3);arc(-sg*2*a,R*1.1,cmPe(p0,p1)*1.3);droite(40*LL,cmPe(p0,p1)*.8,2);}; /* (il sort du goulet de biais : de a, 50-65°) */
+    const cMesa2=(p0,p1)=>{const T=85+rm()*15,R=RMIN*(1.5+rm()*.3);let sg=phi>0?-1:1;{const d=(-sg*T/2/57.2958-phi)*57.2958;if(Math.abs(d)>3)arc(d,RMIN*(1.8+rm()*.4),cmPe(p0,p1));}
+      arc(sg*T,R,cmPe(p0,p1));droite((40+rm()*30)*LL,cmPe(p0,p1)*.8);arc(-sg*T*.15,R,cmPe(p0,p1));}; /* (on repart de biais : ~T/3, la route a changé de vallée) */
+    const cGradins=(p0,p1)=>{const n=3;cmRe(.45,cmPe(p0,p1));let sg=phi>0?-1:1;
+      for(let k=0;k<n;k++){const a=Math.min(12+rm()*10,Math.max(4,(LIM-sg*phi)*57.2958-4));arc(sg*a,RMIN*(2.4+rm()*.6),-.04);droite((35+rm()*15)*LL,-(.40+rm()*.06),2);if((LIM-sg*phi)*57.2958<16)sg=-sg;}}; /* (les replats tournent du même côté tant que le cap le permet : la descente dérive) */
+    const cmJ=[cSlalom,cCorde,cWhoops,cChicane,cGoulet,cMesa2,cGradins],cmN=CY_HZ.on&&CY_DECO.mods?7:4;
+    const cmPose=(p0,p1)=>{let m=0;for(let e=0;e<6;e++){if(!cmPaq.length){const t=[];for(let i=0;i<cmN;i++)t.push(i);if(cmN>4)t.push(1);for(let i=t.length-1;i>0;i--){const j=(rm()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}for(const x9 of t)cmPaq.push(x9);}m=cmPaq.shift();if(m!==cmLast)break;}
       cmLast=m;const i0=C.length-1;cmJ[m](p0,p1);MM.push({i0:i0,i1:C.length-1});}; // le module suivant du paquet (jamais deux fois le même de suite)
     const lien=(len,p0,p1)=>{const k=cmK++;if(!rm||!cmCase.has(k)){virages(len,p0,p1);return;}cmPose(p0,p1);};  // (2026-10-18) une liaison : des virages… ou un MODULE (voir cSlalom)
     // LA BOUCLE (le raccourci) : approche ~220 m · demi-tour R1 ~135 m · retour · demi-tour SERRÉ R2 = R1 − e/2 (~80 m) · la SORTIE, 94 m à côté
@@ -233,7 +256,17 @@ function cyNz(u,v,c){ // le bruit `CY.nz` lu comme la puce (bilinéaire, répét
    saumon, corail, blanc de calcaire : les falaises) séparés de LITS MINCES (rose, brique, lavande, ocre, magenta : les talus). Le jaune et le
    rose d'abord (Sacha) ; le corail et la brique en accents. sRGB dans la texture (décodé au carré dans le shader) ; A = « massif » (le litage oblique). */
 function cyStrates(){
-  const N=1024,d=new Uint8Array(N*4),r=mulberry32(0x57A7A);
+  const N=1024,d=cyStratesDonnees(new Uint8Array(N*4),null);
+  const t=new THREE.DataTexture(d,1,N,THREE.RGBAFormat,THREE.UnsignedByteType);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;{t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;}t.needsUpdate=true;
+  return t;}
+/* (2026-10-20, LE CANYON AU HASARD, SON DÉCOR) LES PALETTES DES STRATES : mêmes lits, mêmes épaisseurs (le même tirage), la teinte de chaque lit tirée vers celle
+   de la palette À LUMINANCE ÉGALE — m : les grès massifs, n : les lits minces ; [r, g, b, part, gain]. `classique` (null) = les octets d'avant, au bit près. */
+const CY_PALS={classique:null,sedona:{m:[.88,.40,.24,.55,.94],n:[.70,.24,.18,.5,.9]},zion:{m:[1,.93,.82,.55,1.06],n:[.86,.42,.28,.42,.95]},
+  peint:{m:[.94,.64,.54,.35,1],n:[.62,.54,.80,.72,1.02]},bryce:{m:[.99,.62,.30,.5,1],n:[.97,.82,.64,.45,1.05]}};
+function cyStratesTeinte(nm){if(!CY.tStr)return;cyStratesDonnees(CY.tStr.image.data,CY_PALS[nm]||null);CY.tStr.needsUpdate=true;}
+function cyStratesDonnees(d,T){
+  const N=1024,r=mulberry32(0x57A7A),te=(L9,mas)=>{if(!T)return L9;const q=mas?T.m:T.n,l=L9[0]*.3+L9[1]*.55+L9[2]*.15,n=q[0]*.3+q[1]*.55+q[2]*.15,g=l*q[4]/n,k=q[3];
+    return [L9[0]+(q[0]*g-L9[0])*k,L9[1]+(q[1]*g-L9[1])*k,L9[2]+(q[2]*g-L9[2])*k,L9[3],L9[4]];};
   /* (2026-10-17, continuité des maps — « la colorimétrie et les textures ») LA ROCHE EN TERRES : les lits ROSE, MAGENTA et ROSE PÂLE, poussés au fluo par
      la chaîne de saturation (×1,55), faisaient des rayures roses sur toutes les falaises ; ils deviennent VIEUX ROSE, LIE-DE-VIN et PÊCHE, la lavande
      un GRIS-VIOLET froid (l'ombre commune des maps), le corail une TERRE CUITE. Mêmes lits, mêmes épaisseurs (le tirage ne bouge pas). */
@@ -241,13 +274,23 @@ function cyStrates(){
   const MIN=[[208,150,138,3,10],[166,82,62,3,9],[156,148,166,2,7],[214,166,92,3,10],[164,96,90,1,3],[230,170,142,2,6]];
   let y=0,mas=true;
   while(y<N){
-    const L9=mas?MAS[Math.floor(r()*MAS.length)]:MIN[Math.floor(r()*MIN.length)],t=Math.max(!mas?4:0,Math.round(L9[3]+r()*(L9[4]-L9[3]))); // (matière) un lit mince n'est plus un trait de 2 m
+    const L9=te(mas?MAS[Math.floor(r()*MAS.length)]:MIN[Math.floor(r()*MIN.length)],mas),t=Math.max(!mas?4:0,Math.round(L9[3]+r()*(L9[4]-L9[3]))); // (matière) un lit mince n'est plus un trait de 2 m
     const sub=2+Math.floor(r()*3);
     for(let k=0;k<t&&y<N;k++,y++){const v=1+(mas?.04*Math.sin(k/sub*3.1+r()*.6):.03*(r()-.5)),o=y*4;
       d[o]=Math.min(255,Math.round(L9[0]*v));d[o+1]=Math.min(255,Math.round(L9[1]*v));d[o+2]=Math.min(255,Math.round(L9[2]*v));d[o+3]=mas?255:0;}
     mas=mas?false:(r()<.55);} // après une falaise : un ou deux lits minces
-  const t=new THREE.DataTexture(d,1,N,THREE.RGBAFormat,THREE.UnsignedByteType);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;{t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;}t.needsUpdate=true;
-  return t;}
+  return d;}
+/* LE TIRAGE DU DÉCOR DU CANYON (2026-10-20) : des choix INDÉPENDANTS, dans un flux né de la graine de la piste (ni `rnd`, ni `r`, ni le tracé) — un objet simple
+   (il part au travailleur) */
+function cyTirage(seed){const rd=mulberry32(((seed^0xDEC0CA)+0x1B873593)>>>0),ch=(L9,P9)=>{let t=rd()*P9.reduce((a,b)=>a+b,0);for(let i=0;i<L9.length;i++){t-=P9[i];if(t<0)return L9[i];}return L9[L9.length-1];},
+    ent=(a,b)=>a+Math.floor(rd()*(b-a+1)),D={sd:(rd()*4294967296)>>>0};
+  D.strates=ch(['classique','sedona','zion','peint','bryce'],[2.4,1.6,1.3,1.2,1.3]);D.brume=+ch([.4,1,1.7],[1,2,1]).toFixed(2);
+  D.riviere=ch(['pleine','basse','asec'],[2.2,1.3,1.2]);D.eau={pleine:1,basse:.45,asec:0}[D.riviere];D.buttes=+(.55+rd()*1.1).toFixed(2);
+  D.mit={g:rd()<.8,d:rd()<.8,mesa:rd()<.7,k:+(.8+rd()*.45).toFixed(2)};D.chem=+ch([.4,1,1.6],[1,2,1.2]).toFixed(2);
+  D.arbres={k:+ch([.35,1,1.6],[1,2,1.3]).toFixed(2),nm:ch(['vert','automne','sombre'],[2,1.4,1])};D.eboulis=ch([0,120,260,420],[1,1.6,1.4,1]);D.vautours=ent(2,9);
+  D.mine={la:rd()<.82,or:+(.4+rd()*2).toFixed(2),cad:rd()<.6?2:3,tq:rd()<.5?1:2,bois:ch(['clair','sombre','rouge'],[2,1,1])};
+  D.r66={station:rd()<.8,sc:rd()<.5?-1:1,ss:Math.round(330+rd()*240),panneau:rd()<.85,pc:rd()<.5?-1:1,motel:rd()<.5,carcasses:ch([0,1,2,4],[1.2,1.5,1.2,.8]),cactus:ch([0,14,32],[1,1.6,1.4]),pubs:ch([0,1,2],[1.2,1.5,.9])};
+  return D;}
 /* ---- LE MONDE : appelé en fin de buildTrack (no-op hors du canyon) ---- */
 function cyEteindre(){CY.on=false;if(CY.mesh)CY.mesh.visible=false;if(CY.grp)CY.grp.visible=false;}
 /* LA CONSTRUCTION EN DEUX TEMPS (2026-10-14, CANYON) — MESURÉ (banc processeur, piste de 19 km au palier 0) : ~0,65 s de calcul (le
@@ -261,6 +304,7 @@ function buildCanyon(seed){
   if(PARK.on||!LVL.cur||LVL.cur.piste!=='canyon'||!(NP>1)||!CANYON_OK)return;
   const t0=performance.now(),LV=lvPiste(),K=Math.sqrt(LV),r=mulberry32((seed^0xCA4F0A)>>>0);
   cyBruits();cyTerrain();
+  const D9=CY_DECO.on?cyTirage(seed):null;CY.deco=D9;if(D9)cyStratesTeinte(D9.strates); // (2026-10-20) LE DÉCOR TIRÉ : la palette des strates d'abord (le tunnel la relit)
   // ---- 1. LES ÉCHANTILLONS : la route tous les 8 m ----
   const DS=8,NS=Math.max(3,Math.floor(L/DS)+1),st9=L/(NP-1),A=n=>new Float32Array(n);
   const S={n:NS,ds:DS,x:A(NS),z:A(NS),y:A(NS),tx:A(NS),tz:A(NS),wF:A(NS),wW:A(NS),wR:A(NS),H:A(NS),D:A(NS),F:A(NS),R:A(NS),V:A(NS),zS:A(NS),zA:A(NS),zH:A(NS),as:A(NS),aw:A(NS),fo:A(NS),st:A(NS),RE:A(NS)};
@@ -319,10 +363,11 @@ function buildCanyon(seed){
     CY.rac.push(o);}
   CY.cou=(sQ.etroit0!=null&&sQ.etroit1!=null)?[sQ.etroit0,sQ.etroit1]:null;CY.couT=null;
   CY.mine=(sQ.mine0!=null&&sQ.mine1!=null&&sQ.mine1-sQ.mine0>200)?[sQ.mine0,sQ.mine1]:null;CY.mineT=null; // LA MINE abandonnée (cyMine)
+  if(D9&&!D9.mine.la)CY.mine=null; // (2026-10-20) le tirage : parfois la mine n'a jamais été creusée (les deux grandes courbes restent, à ciel ouvert)
   CY.tun=[Math.max(0,L-CY_TUN.l),L+60];CY.tunT=null; // LE TUNNEL d'arrivée : ses derniers mètres de route (et un peu au-delà du bout)
   CY.S=S;CY.ms={ech:Math.round(performance.now()-t0)};
   const bio9=BIOMES[(LVL.cur.bio&&LVL.cur.bio[0])||'canyonSoir']||BIOMES.canyonSoir,cA=bio9.cyA||[6,-110,0,0];
-  const opt={K:K,seed:seed,L:L,RH:ROAD_HALF,sQ:sQ,sun:[cA[0],cA[1]],pal:{cyPlat:PAL.b('cyPlat',64),cyFin:PAL.b('cyFin',12),cyOmbre:PAL.b('cyOmbre',27),cyChem:PAL.b('cyChem',300)}};
+  const opt={K:K,seed:seed,L:L,RH:ROAD_HALF,sQ:sQ,sun:[cA[0],cA[1]],deco:D9,pal:{cyPlat:PAL.b('cyPlat',64),cyFin:PAL.b('cyFin',12),cyOmbre:PAL.b('cyOmbre',27),cyChem:PAL.b('cyChem',300)}};
   CY.t0=t0;
   const W=started&&!/[?&]cyw=0\b/.test(location.search)?cyTravailleur():null;
   if(W){const job=CY.job;CY.attente={job:job,S:S,opt:opt};try{W.postMessage({job:job,S:S,opt:opt,nz:CY.nz,rnd:CY.rnd});return;}catch(e){console.warn('canyon : travailleur',e);CY.attente=null;}}
@@ -360,7 +405,7 @@ function cyMondeCalc(S,opt){
     const hp=S.R[i]-S.F[i],wq=hp<150?0:hp>420?1:(hp-150)/270,Rd=S.R[i]+(150*(cyNz(x/5200,z/5200,0)-.5)+60*(cyNz(x/1700,z/1700,1)-.5))*wq,u=(Rd+STP*.5)/STP,fu=u-Math.floor(u),e=fu<.86?0:(fu-.86)/.14;
     rq[o]=Math.max(S.F[i]+4,Rd+((Math.floor(u)+e*e*(3-2*e))*STP-Rd)*wq); // L'ESCALIER : une marche tous les ~250 m (l'escarpement dans les derniers 14 %), seulement là où les parois sont hautes — la vallée reste plate, le plateau jamais sous la rivière
     zdat[o*4]=rq[o];zdat[o*4+1]=S.F[i]; // (l'ondulation du plateau, ±16 m et ±6 m, est ajoutée au SOMMET et dans cyHauteur : deux lectures de bruit de moins par case)
-    zdat[o*4+2]=S.V[i]*(d>650*K?1:d<330*K?0:(d-330*K)/(320*K))+.07*(d>2400?1:d<1200?0:(d-1200)/1200);if(zdat[o*4]>yMax)yMax=zdat[o*4];}
+    zdat[o*4+2]=(S.V[i]*(d>650*K?1:d<330*K?0:(d-330*K)/(320*K))+.07*(d>2400?1:d<1200?0:(d-1200)/1200))*(opt.deco?opt.deco.buttes:1);if(zdat[o*4]>yMax)yMax=zdat[o*4];} // (2026-10-20) × la densité de buttes tirée
   for(let jz=0;jz<znz;jz++)for(let jx=0;jx<znx;jx++){const o=jz*znx+jx,gx=(rq[jz*znx+Math.min(znx-1,jx+1)]-rq[jz*znx+Math.max(0,jx-1)])/(2*TZ),gz=(rq[Math.min(znz-1,jz+1)*znx+jx]-rq[Math.max(0,jz-1)*znx+jx])/(2*TZ);
     zdat[o*4+3]=Math.min(1,Math.sqrt(gx*gx+gz*gz)/.9);}
   Z.d=zdat;CY.Z=Z;
@@ -385,15 +430,15 @@ function cyMondeCalc(S,opt){
       else if((q2[o]<0||Math.abs(i-q2[o])<LEG||d<d2[o])&&d<d2[o]){q2[o]=i;d2[o]=d;}}}
   const qw=new Float32Array(qnx*qnz);for(let jz=0;jz<qnz;jz++)for(let jx=0;jx<qnx;jx++){const x=F.x0+jx*TQ,z=F.z0+jz*TQ;qw[jz*qnx+jx]=(cyNz(x/260,z/260,1)-.5)*2+(cyNz(x/90,z/90,2)-.5)*.6;}
   CY.qw={d:qw,nx:qnx,nz:qnz,ts:TQ,x0:F.x0,z0:F.z0};
-  const prof={};let nc=0;
+  const prof={},E9=opt.deco?opt.deco.eau:1;let nc=0; // (2026-10-20) E9 : la rivière tirée (pleine 1, basse 0,45, à sec 0 : un lit de sable, plus d'écume)
   for(let jz=0;jz<fnz;jz++)for(let jx=0;jx<fnx;jx++){const qo=Math.min(qnz-1,Math.round(jz*TF/TQ))*qnx+Math.min(qnx-1,Math.round(jx*TF/TQ));
     if(q1[qo]<0)continue;const x=F.x0+jx*TF,z=F.z0+jz*TF;let best=1e9,bo=0,bdep=0,brk=0,bveg=0,bfo=0;
     for(let c=0;c<2;c++){const i0=c?q2[qo]:q1[qo];if(i0<0||(c&&d2[qo]>RE[i0]+48))continue;if(!cyProfil(S,RE,i0,x,z,prof))continue;
       if(prof.C<best){best=prof.C;bo=1;bdep=prof.dep;brk=prof.rk;bveg=prof.veg;bfo=prof.fo;}}
     if(!bo)continue;nc++;const o=jz*fnx+jx;fc[o*2]=best;
-    fm[o*4]=Math.min(255,Math.round(bdep*10));fm[o*4+1]=Math.round(brk*255);fm[o*4+2]=Math.round(bveg*255);fm[o*4+3]=Math.round(bfo*255);}
+    fm[o*4]=Math.min(255,Math.round(bdep*10*E9));fm[o*4+1]=Math.round(brk*255);fm[o*4+2]=Math.round(bveg*255);fm[o*4+3]=Math.round(bfo*255*(E9>0?1:0));}
   F.c=fc;F.m=fm;CY.F=F;ms.fin=Math.round(performance.now()-t2);ms.texels=nc;
-  cyMonuPrevoir(S,sQ,K,r);try{cyMitaines(S,F,sQ,K,r);}catch(e){}
+  cyMonuPrevoir(S,sQ,K,r,opt.deco);try{cyMitaines(S,F,sQ,K,r,opt.deco);}catch(e){}
   // ---- 6. L'OMBRE : la hauteur sous laquelle on est à l'ombre, balayée une fois dans le sens du soleil de l'heure ----
   const t3=performance.now();cyOmbre(opt.sun[0],opt.sun[1]);ms.ombre=Math.round(performance.now()-t3);
   let fMin=1e9;for(let i=0;i<NS;i++)if(S.F[i]<fMin)fMin=S.F[i];
