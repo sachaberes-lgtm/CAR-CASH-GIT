@@ -90,6 +90,7 @@ function garageImpact(){
     GAR.impactVel[i].rx=(Math.random()-.5)*9;GAR.impactVel[i].ry=(Math.random()-.5)*9;
   }
   try{if(SONV2)sfx('garage.tole');else{chimeNote(340,0,.05,.10);noiseBurst(.14,.05,1400);}}catch(e){} /* (console de son) le TONK de tôle */
+  try{caisseAction();}catch(e){} // (2026-10-20, Léo) L'ACTION SPÉCIALE de la caisse, s'il y en a une (LA CERISE / LE TOFU : les phares se lèvent) — après le coup commun à toutes
   // LES FLÈCHES SE MONTRENT : discrètes au repos, elles se rappellent au bon souvenir pile quand on
   // vient de toucher la caisse — c'est LE moment où « comment je change de voiture » se pose.
   const gp=$('gPrev'),gn=$('gNext');

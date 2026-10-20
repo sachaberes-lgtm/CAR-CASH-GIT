@@ -328,8 +328,8 @@ function mkEngine(i){
   return g;
 }
 /* <<<FIN MOTEURS>>> */
-function fruitPick(rnd){ // tirage PONDÉRÉ par la fréquence (un brocoli reste rare, une pomme court les rues)
-  const J=!!((JADE_JEU||(LVL.cur&&LVL.cur.sansFin))&&LVL.cur&&LVL.cur.id==='jade'),CN=!!(LVL.cur&&(LVL.cur.id==='canyon'||LVL.cur.id==='dunes')&&!PARK.on),fq=f=>J?(f.jf||0):CN?(f.cf||0):((f.jf!=null||f.cs)?0:Math.max(0,f.freq)); /* (2026-10-14) au CANYON : SES fruits (la figue, la datte, le melon, la grenade) */ // (2026-10-12) au SOLEIL DE JADE : SES fruits, et seulement eux
+function fruitPick(rnd){ // (2026-10-20, Léo : « je ne vois que des myrtilles ») TOUS LES FRUITS À ÉGALITÉ, sur toutes les maps : les anciennes règles par map (`jf`, `cf`, `cs` : fruits de Jade, du Canyon) ne regardaient que les 7 exotiques, retirés du jeu — sans eux le tirage retombait sur le fruit n°0 (la myrtille) à chaque fois
+  const fq=f=>1;
   let tot=0;for(const f of FRUIT_DEFS)tot+=fq(f);
   if(tot<=0)return 0;
   let r=(rnd?rnd():Math.random())*tot;

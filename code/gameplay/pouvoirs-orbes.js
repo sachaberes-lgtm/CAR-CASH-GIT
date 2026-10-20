@@ -76,8 +76,8 @@ function mkPower(kind,dir){
   if(FRUIT_POW[kind]&&!/[?&]cristaux=1/.test(location.search)){
     const geo=fruitPowGeo(kind);if(!geo.boundingBox)geo.computeBoundingBox();
     const m=new THREE.Mesh(geo,FRUIT_MAT);m.scale.setScalar(4.8);g.add(m); // ×4,8 : les fruits-pouvoirs sont GROS, trois fois les fruits normaux
-    const au=fauraFruit(FRUIT_POW_AURA[kind],geo);if(au.children.length)m.add(au);
-    g.userData.lev=Math.max(2.1,-geo.boundingBox.min.y*4.8+.8); // posé AU-DESSUS du bitume d'après sa vraie taille, comme les fruits (fruitLeve)
+    g.userData.lev=-geo.boundingBox.min.y*4.8+.08; // POSÉ SUR LE BITUME (Léo : « qu'ils ne flottent pas ») : le centre du groupe est à `lev` au-dessus du sol
+    {const sol=fauraSol(FRUIT_POW_AURA[kind]);sol.position.y=-g.userData.lev;g.add(sol);} // l'aura sort du SOL autour du fruit (sans le cacher)
     g.userData.fruit=true;
     return g;
   }

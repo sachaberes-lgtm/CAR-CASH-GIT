@@ -29833,6 +29833,14 @@ const HALO={hM:new THREE.SpriteMaterial({map:lampTex,color:0xffe2a8,transparent:
    à 1 ; null = une caisse aux phares fixes (toutes les autres). La caisse qui a des escamotables le pose chaque image (son `BLING.anim`) ; il
    multiplie le halo des phares, leur nappe au sol (carVit) et leur lumière sur la route (lumTick). buildCar le remet à null. */
 var CAR_PHK=null;
+/* L'ACTION SPÉCIALE DE LA CAISSE (2026-10-20, Léo : « la Cerise, quand elle fait le clin d'œil, c'est une action spéciale ; ce genre d'action
+   sera attribué à quelques voitures, et ça s'activera en cliquant sur la voiture — toutes les caisses, quand tu tapes, ça fait taper ; la
+   Cerise, en plus, ses deux phares se lèvent et se baissent ») : `CAR_ACTION` = la fonction que le gabarit de la caisse équipée a posée
+   (null = une caisse sans action : le tap ne fait que taper). `caisseAction()` la joue — appelée par le TAP du garage (garageImpact) et
+   par le COUP du menu ciel (chuteTape), APRÈS l'effet commun à toutes. buildCar la remet à null. Console : dbgAction(). */
+var CAR_ACTION=null;
+function caisseAction(){if(typeof CAR_ACTION!=='function')return false;try{return CAR_ACTION()!==false;}catch(e){console.warn('caisseAction',e);return false;}}
+window.dbgAction=function(){return caisseAction();};
 /* LE FLOU DE JANTE (2026-09-26) — au-delà de ~20 km/h, cinq rayons tournent plus vite que l'image : l'œil voit la roue
    BÉGAYER, repartir en arrière (effet stroboscopique). Un disque peint par-dessus la jante — ce qu'une photo voit d'une roue
    lancée : moyeu clair, voile gris des rayons moyennés, lèvre brillante, stries concentriques — monte en opacité avec la
@@ -37975,19 +37983,22 @@ SHAPES.mx5na=function(K){
         if(gs[GP])japFusion(gs,{[GP]:g});else gs[GP]=g;}
       for(const g in gs){const m=new THREE.Mesh(gs[g],(K.mats&&K.mats[g])||(typeof lpMat==='function'?lpMat(g):null));m.userData.lp=1;bras.add(m);}   // (pas d'ombre cuite : les sommets sont dans le repère du pivot)
       piv.add(bras);PHG.add(piv);PH.push(bras);}}
-  /* QUAND ILS SE LÈVENT (`MX5PH.mode`) — à choisir par Léo : 'course' (levés en course, baissés au garage et au menu, un clin d'œil à
-     l'arrivée au garage), 'nitro' (baissés, ils se lèvent à la nitro : l'appel de phares), 'toujours'. `dbgPhares(1|0|null)` les force. */
-  {let k=0,t=0,cligne=0,vu=false,vu0=false;const anime=dt=>{dt=Math.min(dt||0,.1);t+=dt;
-      let st=false,ga=false,ni=false;try{st=typeof started!=='undefined'&&started&&!gameOver;ga=typeof garageOn!=='undefined'&&garageOn;ni=typeof nitroOn!=='undefined'&&nitroOn;}catch(_){}
-      const M9=(typeof MX5PH==='object'&&MX5PH)?MX5PH:{mode:'course',force:null};
-      if(ga&&!vu){cligne=1.4;}vu=ga;
+  /* QUAND ILS SE LÈVENT (`MX5PH.mode`) — à choisir par Léo : 'course' (levés en course, baissés au garage et au menu), 'nitro' (baissés,
+     ils se lèvent à la nitro : l'appel de phares), 'toujours'. `dbgPhares(1|0|null)` les force.
+     L'ACTION SPÉCIALE (2026-10-20, Léo) : le clin d'œil ne part plus tout seul à l'arrivée au garage — c'est le TAP sur la caisse qui le
+     déclenche (`CAR_ACTION`, voir caisseAction) : les DEUX phares se lèvent, tiennent, se baissent. Retapée pendant, elle les garde levés. */
+  {let k=0,kG=0,gT=0,vu0=false;const anime=dt=>{dt=Math.min(dt||0,.1);
+      let st=false,ni=false;try{st=typeof started!=='undefined'&&started&&!gameOver;ni=typeof nitroOn!=='undefined'&&nitroOn;}catch(_){}
+      const M9=(typeof MX5PH==='object'&&MX5PH)?MX5PH:{mode:'nitro',force:null};
       let vise=M9.mode==='toujours'?1:M9.mode==='nitro'?(ni?1:0):(st?1:0);
-      let kG=null;if(cligne>0){cligne-=dt;const c=1.4-cligne;kG=c<.45?lis(c/.45):c<.75?1:c<1.2?1-lis((c-.75)/.45):0;}
+      if(gT>0)gT-=dt;const cG=gT>0?1:0;kG+=(cG-kG)*Math.min(1,dt*(cG?9:5.5)); // l'action : montée vive, descente posée, jamais un à-coup si on retape
       if(typeof M9.force==='number')vise=M9.force;
       k+=(vise-k)*Math.min(1,dt*5.5);if(typeof M9.force==='number'&&!vu0){k=M9.force;}vu0=true;
-      const kk=lis(cl(k,0,1));PH[0].rotation.x=-TH*(kG!=null&&M9.force==null?Math.max(kk,kG):kk);PH[1].rotation.x=-TH*kk;};
+      const kk=lis(cl(k,0,1)),kA=M9.force==null?Math.max(kk,lis(cl(kG,0,1))):kk;PH[0].rotation.x=-TH*kA;PH[1].rotation.x=-TH*kA;};
+    const action=()=>{gT=.75;return true;};   // les phares restent levés 0,75 s, puis redescendent
     anime(1/30);
-    PHG.userData.anime=anime;
+    PHG.userData.anime=anime;PHG.userData.action=action;
+    if(typeof CAR_ACTION!=='undefined')CAR_ACTION=action;
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);}
   // ---- LA JANTE « MARGUERITE » (14 pouces) : huit pétales bombés, le gros cache-moyeu, le fond sombre ; le pneu 185/60 ----
   const JW=.19,hw=JW/2,fx=hw-.03,RJ=.178,J=lpKit({k:{g:'m',c:0x161719},a:{g:'s',c:0xaeb2b8},d:{g:'m',c:0x0f1013},b:{g:'m',c:0x34353a}});
@@ -38370,18 +38381,20 @@ SHAPES.ae86=function(K){
       for(const g in gs){const m=new THREE.Mesh(gs[g],(K.mats&&K.mats[g])||(typeof lpMat==='function'?lpMat(g):null));m.userData.lp=1;bras.add(m);}
       piv.add(bras);PHG.add(piv);PH.push(bras);}}
   /* QUAND ILS SE LÈVENT (`AE86PH.mode`) — comme LA CERISE : 'nitro' (le choix de Léo pour elle : baissés, ils se lèvent à la nitro), 'course'
-     (levés en course, un clin d'œil à l'arrivée au garage), 'toujours'. `dbgPhares(1|0|null)` les force (celui de LA CERISE, partagé). */
-  {let k=0,t=0,cligne=0,vu=false,vu0=false;const anime=dt=>{dt=Math.min(dt||0,.1);t+=dt;
-      let st=false,ga=false,ni=false;try{st=typeof started!=='undefined'&&started&&!gameOver;ga=typeof garageOn!=='undefined'&&garageOn;ni=typeof nitroOn!=='undefined'&&nitroOn;}catch(_){}
+     (levés en course), 'toujours'. `dbgPhares(1|0|null)` les force (celui de LA CERISE, partagé).
+     L'ACTION SPÉCIALE (2026-10-20) : comme LA CERISE, le TAP sur la caisse lève les deux phares, qui tiennent puis redescendent (`CAR_ACTION`). */
+  {let k=0,kG=0,gT=0,vu0=false;const anime=dt=>{dt=Math.min(dt||0,.1);
+      let st=false,ni=false;try{st=typeof started!=='undefined'&&started&&!gameOver;ni=typeof nitroOn!=='undefined'&&nitroOn;}catch(_){}
       const M9=(typeof AE86PH==='object'&&AE86PH)?AE86PH:{mode:'nitro',force:null},fo=typeof M9.force==='number'?M9.force:(typeof MX5PH==='object'&&MX5PH&&typeof MX5PH.force==='number')?MX5PH.force:null;
-      if(ga&&!vu){cligne=1.4;}vu=ga;
       let vise=M9.mode==='toujours'?1:M9.mode==='nitro'?(ni?1:0):(st?1:0);
-      let kG=null;if(cligne>0){cligne-=dt;const c=1.4-cligne;kG=c<.45?lis(c/.45):c<.75?1:c<1.2?1-lis((c-.75)/.45):0;}
+      if(gT>0)gT-=dt;const cG=gT>0?1:0;kG+=(cG-kG)*Math.min(1,dt*(cG?9:5.5));
       if(fo!=null)vise=fo;
       k+=(vise-k)*Math.min(1,dt*5.5);if(fo!=null&&!vu0){k=fo;}vu0=true;
-      const kk=lis(cl(k,0,1));PH[0].rotation.x=-TH*(kG!=null&&fo==null?Math.max(kk,kG):kk);PH[1].rotation.x=-TH*kk;};
+      const kk=lis(cl(k,0,1)),kA=fo==null?Math.max(kk,lis(cl(kG,0,1))):kk;PH[0].rotation.x=-TH*kA;PH[1].rotation.x=-TH*kA;};
+    const action=()=>{gT=.75;return true;};
     anime(1/30);
-    PHG.userData.anime=anime;
+    PHG.userData.anime=anime;PHG.userData.action=action;
+    if(typeof CAR_ACTION!=='undefined')CAR_ACTION=action;
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);}
   // ---- LA JANTE À HUIT BÂTONS (13 pouces), BRONZE : les bâtons droits du moyeu au rebord, le rebord poli, le cache-moyeu ; le pneu 185/70 ----
   const JW=.185,hw=JW/2,fx=hw-.03,RJ=.172,J=lpKit({k:{g:'m',c:0x161719},o:{g:'k',c:0x8a5a2c},a:{g:'c',c:0xb9bdc3},d:{g:'m',c:0x0f1013}});
@@ -40172,9 +40185,13 @@ SHAPES.squale=function(K){
       for(const e of [-1,1])quad('K',[e*xc,ya,zf],[e*xc,ya,zb],[e*xc,yb9,zb],[e*xc,yb9,zf]);} // les joues
   }
   // LES CROCS (sous la lèvre) : place, taille, penchant tirés au hasard FIXE
+  /* L'ACTION SPÉCIALE (2026-10-20, Léo : « les dents sortent un peu avec une mécanique brusque et reviennent lentement à leur place ») :
+     les crocs ne sont plus soudés à la caisse — trois kits à part (`DK` : devant, flanc gauche, flanc droit), pliés et mis à l'échelle
+     comme le reste (`pliGs`), posés dans trois groupes qui GLISSENT le long de leur normale (voir après K.commit : `CAR_ACTION`). */
+  const PALD={d:{g:'p',c:0xf5f2ea,f:0},e:{g:'p',c:0xe2d9c4,f:0}},DK=[K.kit(PALD),K.kit(PALD),K.kit(PALD)];
   const hh=(i,k)=>{const v=Math.sin(i*12.9898+k*78.233)*43758.5453;return v-Math.floor(v);};
-  const croc=(k,b0,b1,t,o0,oA)=>{const mx=(b0[0]+b1[0])/2,my=(b0[1]+b1[1])/2,A=srf(mx+(t[0]-mx)*.3,my+(t[1]-my)*.3,oA),B0=srf(b0[0],b0[1],o0),B1=srf(b1[0],b1[1],o0),T9=srf(t[0],t[1],o0+.006);
-    P.tri(k,B0,T9,A);P.tri(k,T9,B1,A);P.tri(k,B1,B0,A);};
+  const croc=(Kq,k,b0,b1,t,o0,oA)=>{const mx=(b0[0]+b1[0])/2,my=(b0[1]+b1[1])/2,A=srf(mx+(t[0]-mx)*.3,my+(t[1]-my)*.3,oA),B0=srf(b0[0],b0[1],o0),B1=srf(b1[0],b1[1],o0),T9=srf(t[0],t[1],o0+.006);
+    Kq.tri(k,B0,T9,A);Kq.tri(k,T9,B1,A);Kq.tri(k,B1,B0,A);};
   const PAS=.13;
   for(let r=0;r<3;r++)for(let i=-11;i<=11;i++)for(const haut of [1,0]){        // (« exagère ») trois rangées · r=0 : les grands crocs devant · r=1 : la rangée de derrière, plus petite, entre eux
     const id=i*6+haut*3+r,big=1,c=(i+(haut?.5:0)+(r===1?.5:r===2?.25:0))*PAS+(hh(id,1)-.5)*.045;let w=(r===0?.085:r===1?.055:.035)*(.8+.45*hh(id,2))*big; // quelques ÉNORMES crocs parmi les autres
@@ -40183,14 +40200,14 @@ SHAPES.squale=function(K){
     if(Math.abs(Math.abs(c)-XF)<w+.03)continue;                                  // (Léo : « une dent chelou sur les côtés ») aucune dent À CHEVAL sur le coin : elle s'y pliait en deux
     const yi=haut?yH(c)-GL:yL(c)+GL,ou=yH(c)-yL(c)-2*GL,L=Math.min(ou*(r===0?(haut?.37:.29):r===1?.22:.13)*(.78+.44*hh(id,3))*big*ec,haut?yi-YS-.008:YS-yi-.008),pen=(hh(id,4)-.5)*w*(ec<1?.4:1.4); // (« ouvre un peu la bouche ») plus courts : la gueule béante entre eux — OUVERTE : les crocs du haut et du bas ne se touchent plus
     const yb=haut?yi+.022:yi-.022,yt=haut?yi-L:yi+L;
-    croc(r?'e':'d',[c-w,yb],[c+w,yb],[c+pen,yt],r===0?.012:r===1?.009:.007,r===0?.046:r===1?.034:.022);} // (« merge ») ils restent DANS la bouche
+    croc(DK[0],r?'e':'d',[c-w,yb],[c+w,yb],[c+pen,yt],r===0?.012:r===1?.009:.007,r===0?.046:r===1?.034:.022);} // (« merge ») ils restent DANS la bouche
   // (Léo : « rajoute des dents sur le côté de la mâchoire ») LES CROCS DU CÔTÉ : une rangée serrée le long des deux bords du flanc, du coin
   //   jusqu'au fond de la gueule, qui raccourcissent avec elle — et une petite rangée derrière ; aucun ne passe la fente (le pli l'étirerait)
   for(const sd of [-1,1])for(let r=0;r<2;r++)for(let k=0;;k++){const c=sd*(XF+.07+(k+(r?.5:0))*.062),a=Math.abs(c);if(a>SM-.04)break;
     for(const haut of [1,0]){const id=900+k*7+haut*3+r+(sd>0?50:0),e9=HB(c)/HB(0),w=(r?.022:.034)*(.85+.3*hh(id,2))*(.7+.3*e9);
       const yi=haut?yH(c)-GL:yL(c)+GL,Lm=haut?yi-YS-.008:YS-yi-.008,L=Math.min(Lm,(r?.07:.13)*(.75+.5*hh(id,3))*(.6+.4*e9));if(L<.02)continue;
       const yb=haut?yi+.022:yi-.022,yt=haut?yi-L:yi+L,pen=-sd*w*.35;              // la pointe couchée vers le fond de la gueule
-      croc(r?'e':'d',[c-w,yb],[c+w,yb],[c+pen,yt],r?.009:.012,r?.034:.046);}}
+      croc(DK[sd<0?1:2],r?'e':'d',[c-w,yb],[c+w,yb],[c+pen,yt],r?.009:.012,r?.034:.046);}}
   // (Léo : « enlève les énormes, gênantes ; la compo de la bouche grande ouverte ; merge voiture ») — plus de sabres ni de crocs géants ;
   //   la bouche se FOND dans la caisse : la lèvre devient un bourrelet de PEAU (le blanc du ventre) qui sort à peine (4,5 cm), cerné d'un
   //   joint sombre affleurant comme une ligne de carrosserie, et la gencive passe EN RETRAIT derrière elle.
@@ -40365,13 +40382,15 @@ SHAPES.squale=function(K){
       fin('p',V(-.016,.219,-1.00),V(-.016,.219,-1.40),V(-.016,.125,-1.50),.032);}                         // la nageoire anale, en quille
     for(const x of [-.40,-.16,.16,.40])fin('k',V(x-.01,.219,-1.53),V(x-.01,.219,-1.87),V(x-.01,.13,-1.87),.02); // le diffuseur : la fourche de la queue
   }
+  let pliGs=null; // le pli + l'échelle, partagés avec les crocs (DK)
   { // LE PLI DE LA MÂCHOIRE : chaque sommet au-dessus de la fente et devant la charnière tourne autour de (YS, ZH), d'autant plus qu'il est près du nez
     const ss=t=>t<=0?0:t>=1?1:t*t*(3-2*t),fin=P.done;
-    P.done=()=>{const gs=fin();for(const k9 in gs){const a=gs[k9].attributes.position.array;
+    pliGs=gs=>{for(const k9 in gs){const a=gs[k9].attributes.position.array;
       for(let i=0;i<a.length;i+=3){const y=a[i+1],z=a[i+2];
         if(y>YS&&z>ZH){const th=TH*ss((z-ZH)/(ZN-ZH)),c9=Math.cos(th),s9=Math.sin(th),dy=y-YS,dz=z-ZH;a[i+1]=YS+dy*c9+dz*s9;a[i+2]=ZH-dy*s9+dz*c9;}
         a[i+2]=MZ(a[i+2]);a[i]*=SC;a[i+1]*=SC;a[i+2]*=SC;}
-      gs[k9].attributes.position.needsUpdate=true;gs[k9].computeVertexNormals();}
+      gs[k9].attributes.position.needsUpdate=true;gs[k9].computeVertexNormals();}};
+    P.done=()=>{const gs=fin();pliGs(gs);
       // (Léo : « la vitre, pas très cohérent ») LA VISIÈRE DU CRÂNE en normales LISSES : à facettes, chaque triangle vrillé de la coque
       // renvoyait le ciel à sa façon — des DENTS de reflets claires sur la vitre noire. Lissée, elle se lit comme UNE vitre. Le kit range
       // par FAMILLE (elle partage le verre des vitres) : on la reconnaît à sa teinte exacte (`V`, sans fondu). Le haut des vitres latérales,
@@ -40385,6 +40404,23 @@ SHAPES.squale=function(K){
       return gs;};
   }
   K.commit(P);
+  { // LES CROCS QUI SORTENT (l'action spéciale) : trois groupes — devant (glisse en +z), flanc gauche (−x), flanc droit (+x) ; au tap,
+    // ils JAILLISSENT d'un coup (une mécanique, ~50 ms, avec un petit rebond de butée) de `OUT`, restent une fraction de seconde, puis
+    // RENTRENT lentement, à vitesse constante (un vérin qui se referme), les derniers millimètres amortis.
+    const GD=[],OUT=.055*SC,lis=t=>t*t*(3-2*t);
+    for(let q=0;q<3;q++){const gs=DK[q].done();pliGs(gs);const g=K.add(new THREE.Group());
+      for(const k in gs){const m=new THREE.Mesh(gs[k],(K.mats&&K.mats[k])||(typeof lpMat==='function'?lpMat(k):null));m.userData.lp=1;g.add(m);}GD.push(g);}
+    let k=0,tA=-1;const anime=dt=>{dt=Math.min(dt||0,.1);if(tA>=0){tA+=dt;
+        if(tA<.05)k=tA/.05;                              // la sortie : sèche
+        else if(tA<.14)k=1+.12*Math.sin((tA-.05)/.09*Math.PI); // la butée : un petit rebond
+        else if(tA<.38)k=1;                              // tenues dehors
+        else{const u=(tA-.38)/1.6;k=u>=1?0:1-(u<.85?u/.85*.9:.9+.1*lis((u-.85)/.15));if(u>=1)tA=-1;}} // le retour : lent, régulier, amorti sur la fin
+      else k=0;
+      GD[0].position.z=OUT*k;GD[1].position.x=-OUT*.8*k;GD[2].position.x=OUT*.8*k;};
+    const action=()=>{tA=0;return true;};
+    anime(0);GD[0].userData.anime=anime;GD[0].userData.action=action;
+    if(typeof CAR_ACTION!=='undefined')CAR_ACTION=action;
+    if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);}
   // LE VERNIS : dur et franc, sur la matière de cette caisse seulement (K.mats)
   {const mP=K.mats&&K.mats.p;if(mP){mP.shininess=86;mP.specular.setHex(0x8c8c8c);mP.reflectivity=.36;
     if(mP.userData.uG)mP.userData.uG.value=.035;if(mP.userData.uV)mP.userData.uV.value.set(.40,1.8,3,.30);}}
@@ -41264,7 +41300,7 @@ function buildCar(spec){
   ATCH.on=false;ATCH.ph=0;ATCH.k=0;ATCH.t=3+Math.random()*2; // (2026-10-06) ATCHOUM s'allume dans son gabarit
   BLING.s=[];BLING.anim=[]; // (2026-10-10) L'ICEBERG pose ses éclats, LA FOURNAISE son feu, pendant leur gabarit
   WOWT.caisse=false;NYAN.on=false;NYAN.tete=null;NYAN.pattes.length=0;NYAN.queue.length=0;NYAN.feux.length=0;NYAN.roues.length=0;NYAN.rf='';NYAN.pas=-1;NYAN.hb=-1; // (2026-10-06) le chat pop-tart remplit ses pièces animées pendant son gabarit
-  HALO.h.length=0;HALO.t.length=0;ROUES.flou=null;CAR_PHK=null; // (2026-09-26) halos et flou de jante de l'ancienne caisse · (2026-10-18) ses escamotables (voir CAR_PHK)
+  HALO.h.length=0;HALO.t.length=0;ROUES.flou=null;CAR_PHK=null;CAR_ACTION=null; // (2026-09-26) halos et flou de jante de l'ancienne caisse · (2026-10-18) ses escamotables (voir CAR_PHK)
   const lvl=CARS.indexOf(spec),wreck=lvl===0;
   // brillance qui explose avec le niveau — l'épave est mate et rouillée
   // (2026-09-26, audit rendu) PLAFONNÉS : `lvl` est l'INDEX de la caisse (0-65), plus une progression — la formule donnait un reflet à .98
@@ -46884,8 +46920,8 @@ function mkEngine(i){
   return g;
 }
 /* <<<FIN MOTEURS>>> */
-function fruitPick(rnd){ // tirage PONDÉRÉ par la fréquence (un brocoli reste rare, une pomme court les rues)
-  const J=!!((JADE_JEU||(LVL.cur&&LVL.cur.sansFin))&&LVL.cur&&LVL.cur.id==='jade'),CN=!!(LVL.cur&&(LVL.cur.id==='canyon'||LVL.cur.id==='dunes')&&!PARK.on),fq=f=>J?(f.jf||0):CN?(f.cf||0):((f.jf!=null||f.cs)?0:Math.max(0,f.freq)); /* (2026-10-14) au CANYON : SES fruits (la figue, la datte, le melon, la grenade) */ // (2026-10-12) au SOLEIL DE JADE : SES fruits, et seulement eux
+function fruitPick(rnd){ // (2026-10-20, Léo : « je ne vois que des myrtilles ») TOUS LES FRUITS À ÉGALITÉ, sur toutes les maps : les anciennes règles par map (`jf`, `cf`, `cs` : fruits de Jade, du Canyon) ne regardaient que les 7 exotiques, retirés du jeu — sans eux le tirage retombait sur le fruit n°0 (la myrtille) à chaque fois
+  const fq=f=>1;
   let tot=0;for(const f of FRUIT_DEFS)tot+=fq(f);
   if(tot<=0)return 0;
   let r=(rnd?rnd():Math.random())*tot;
@@ -46978,8 +47014,8 @@ function mkPower(kind,dir){
   if(FRUIT_POW[kind]&&!/[?&]cristaux=1/.test(location.search)){
     const geo=fruitPowGeo(kind);if(!geo.boundingBox)geo.computeBoundingBox();
     const m=new THREE.Mesh(geo,FRUIT_MAT);m.scale.setScalar(4.8);g.add(m); // ×4,8 : les fruits-pouvoirs sont GROS, trois fois les fruits normaux
-    const au=fauraFruit(FRUIT_POW_AURA[kind],geo);if(au.children.length)m.add(au);
-    g.userData.lev=Math.max(2.1,-geo.boundingBox.min.y*4.8+.8); // posé AU-DESSUS du bitume d'après sa vraie taille, comme les fruits (fruitLeve)
+    g.userData.lev=-geo.boundingBox.min.y*4.8+.08; // POSÉ SUR LE BITUME (Léo : « qu'ils ne flottent pas ») : le centre du groupe est à `lev` au-dessus du sol
+    {const sol=fauraSol(FRUIT_POW_AURA[kind]);sol.position.y=-g.userData.lev;g.add(sol);} // l'aura sort du SOL autour du fruit (sans le cacher)
     g.userData.fruit=true;
     return g;
   }
@@ -47394,6 +47430,82 @@ function fruitsChauffe(){
 }
 setTimeout(fruitsChauffe,9000);
 window.dbgChauffeFruits=function(){fruitsChauffe.ok=false;const n0=renderer.info.programs?renderer.info.programs.length:0;fruitsChauffe();return {avant:n0,apres:renderer.info.programs?renderer.info.programs.length:0};};
+
+/* ===== LES FRUITS-POUVOIRS POSÉS AU SOL (2026-10-20, Léo : « posés par terre, qu'ils ne flottent pas ; l'animation au sol, qui sort un peu du sol autour ; il faut qu'on VOIE le fruit ») =====
+   Le fruit repose sur la route. Autour de lui, SANS le cacher : un CYLINDRE OUVERT (rayon > fruit, 3,4 m de haut) dont le shader dessine l'aura qui sort du sol et se dissout vers le haut
+   (feu, éclairs, bandes hypnotiques, brume, étincelles) + un DISQUE posé sur la route (le Sharingan Genjutsu à plat pour le dragon, un anneau lumineux pour les autres).
+   Les deux ne sont pas mis à l'échelle du fruit (dimensions en mètres) ; leur matière est partagée (`FAURAU.uT`) : zéro travail par fruit. */
+const FSOL_VS=`uniform float uH;varying vec3 vP;varying float vH;varying float vA;
+void main(){vP=position;vH=clamp((position.y+uH*.5)/uH,0.,1.);vA=atan(position.z,position.x);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`;
+const FSOL_FS=`uniform float uT,uKind;varying vec3 vP;varying float vH;varying float vA;
+`+FSH2_NOISE+`
+void main(){float h=vH;vec4 col=vec4(0.);vec3 q=vec3(cos(vA)*2.4,h*2.6-uT*(uKind<.5?2.1:.8),sin(vA)*2.4);
+  float f=n3(q)*.6+n3(q*2.1+7.)*.4;
+  if(uKind<.5){float m=smoothstep(.18,.5,f+(1.-h)*.95-.5);
+    vec3 c=mix(vec3(.85,.1,.04),vec3(1.,.62,.12),smoothstep(.3,.55,f+(1.-h)*.2));c=mix(c,vec3(1.,.96,.66),smoothstep(.62,.85,f+(1.-h)*.25));
+    col=vec4(c,m*(1.-h*h)*.95);}
+  else if(uKind<1.5){float line=pow(1.-abs(2.*f-1.),12.)+.7*pow(1.-abs(2.*n3(q*2.3+3.)-1.),16.);float flick=step(.22,fract(sin(floor(uT*13.)*91.7)*437.5));
+    float a=clamp((line*flick+(1.-h)*.18)*pow(1.-h,1.4)*1.3,0.,1.);col=vec4(mix(vec3(.4,.9,1.),vec3(1.,1.,.8),clamp(line,0.,1.)),a);}
+  else if(uKind<2.5){float b=.5+.5*sin(vA*4.-h*8.+uT*3.2);vec3 c=.55+.45*cos(6.2832*(vec3(0.,.2,.4)+.5*b+uT*.1));c=mix(c,vec3(.9,.1,.35),.4);
+    col=vec4(c,(b*.6+f*.3)*pow(1.-h,1.5)*1.2);}
+  else if(uKind<3.5){col=vec4(1.,.92,.97,f*pow(1.-h,1.6)*.8);}
+  else{float sp=step(.955,n3(q*5.+vec3(0.,floor(uT*6.),0.)));col=vec4(mix(vec3(1.,.78,.25),vec3(1.,.95,.7),sp),clamp((.28*(1.-h)+sp)*pow(1.-h,.8),0.,1.));}
+  if(col.a<.02)discard;gl_FragColor=col;}`;
+const FSOLD_VS=`varying vec2 vUv;void main(){vUv=position.xy*2.;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`;
+const FSOLD_FS=`uniform float uT,uKind;varying vec2 vUv;
+float rn(float x){return fract(sin(x*127.1)*43758.5453);}
+void main(){vec2 p=vUv;float r=length(p);if(r>1.)discard;float a=atan(p.y,p.x);vec4 col=vec4(0.);
+  if(uKind<.5){ // PIMENT : une ÉTOILE DE FLAMMES — huit langues qui ondulent, blanc-jaune au coeur, rouge aux pointes
+    float tip=.5+.5*cos(8.*a+uT*2.2+sin(r*9.-uT*5.)*.5);float rf=.34+.6*pow(tip,2.2);
+    float inside=1.-smoothstep(rf-.03,rf,r);float k=r/max(rf,.01);
+    vec3 c=mix(vec3(1.,.95,.6),vec3(1.,.5,.1),smoothstep(0.,.55,k));c=mix(c,vec3(.8,.08,.03),smoothstep(.6,1.,k));
+    col=vec4(c,inside*.92);}
+  else if(uKind<1.5){ // CITRON : des ÉCLATS DE FOUDRE — six rayons brisés qui claquent, un hexagone qui vibre, un noyau blanc
+    float stp=floor(uT*13.);float aa=a+sin(r*14.+stp*3.1)*.13;
+    float d=abs(fract(aa*6./6.2832+.5)-.5)*6.2832/6.*r;float ray=1.-smoothstep(0.,.05,d);
+    float flick=step(.2,fract(sin(stp*91.7)*437.5));
+    float hex=1.-smoothstep(0.,.035,abs(r-.38-.03*sin(uT*30.)));float core=1.-smoothstep(.12,.19,r);
+    float al=(ray*flick*(.45+.55*r)+hex*.85+core)*(1.-smoothstep(.88,1.,r));
+    col=vec4(mix(vec3(.4,.9,1.),vec3(1.,1.,.85),clamp(ray+core,0.,1.)),clamp(al,0.,1.));}
+  else if(uKind<3.5){ // RAISIN : DEUX AILES déployées de chaque côté — trois paquets de plumes, un point de nacre au centre
+    vec2 q=vec2(abs(p.x)-.1,p.y*1.15);float r2=length(q),a2=atan(q.y,q.x);
+    float L=.92-.4*abs(a2)+.05*sin(a2*20.);
+    float feather=step(.16,fract(a2*3.2+.5))*(1.-smoothstep(L-.035,L,r2))*step(.12,r2)*step(abs(a2),1.15);
+    float body=1.-smoothstep(.07,.13,r);
+    col=vec4(mix(vec3(.86,.78,.96),vec3(1.),r2/L),clamp(feather*.88+body*.5,0.,1.)*(.86+.14*sin(uT*3.+r2*8.)));}
+  else{ // POMME DORÉE : un AIMANT EN FER À CHEVAL d'or, pointes rouge et blanc, des arcs de champ qui se resserrent vers lui
+    vec2 m=vec2(p.x,-p.y);float rr=length(m);
+    float arc=step(0.,m.y)*step(.38,rr)*(1.-smoothstep(.62,.66,rr));
+    float leg=step(.38,abs(m.x))*(1.-smoothstep(.62,.66,abs(m.x)))*step(m.y,0.)*step(-.66,m.y);
+    float body=clamp(arc+leg,0.,1.);float tipz=step(m.y,-.46)*leg;
+    vec3 c=mix(vec3(1.,.74,.2),vec3(1.,.95,.7),smoothstep(.45,.62,rr));c=mix(c,mix(vec3(.9,.12,.12),vec3(.96),step(m.y,-.56)),tipz);
+    float fld=1.-smoothstep(0.,.025,abs(r-(1.-fract(uT*.45))*.92-.06));
+    col=vec4(c,clamp(body*.95+fld*.45*(1.-body),0.,1.));}
+  if(col.a<.02)discard;gl_FragColor=col;}`;
+let FSOL_GEO=null,FSOLD_GEO=null;
+function fauraSol(kind){ // kind : 0 piment · 1 citron · 2 dragon · 3 raisin · 4 pomme dorée — dans le repère de la route : +y = le haut, le sol à y = 0
+  const g=new THREE.Group(),R=5.6,H=3.8;
+  const cm=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uKind:{value:kind},uH:{value:H}},vertexShader:FSOL_VS,fragmentShader:FSOL_FS,transparent:true,depthWrite:false,side:THREE.BackSide}); // BackSide : seule la paroi du FOND est dessinée — l'aura est DERRIÈRE et AUTOUR du fruit, jamais devant (on le voit toujours)
+  const c=new THREE.Mesh(FSOL_GEO||(FSOL_GEO=new THREE.CylinderGeometry(R,R*.86,H,40,1,true)),cm);c.position.y=H*.5;c.renderOrder=21;g.add(c);
+  const dm=kind===2?new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uA:{value:.9}},vertexShader:FSOLD_VS,fragmentShader:FDISC_FS,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3})
+    :new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uKind:{value:kind}},vertexShader:FSOLD_VS,fragmentShader:FSOLD_FS,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3});
+  const d=new THREE.Mesh(FSOLD_GEO||(FSOLD_GEO=new THREE.PlaneGeometry(1,1)),dm);d.rotation.x=-Math.PI/2;d.position.y=.08;d.scale.setScalar(R*2.9);d.renderOrder=20;g.add(d);
+  return g;
+}
+/* banc (dev) : `dbgPwrPhoto(k, t, dist, haut)` — pose le fruit-pouvoir `k` 20 m devant la caisse, EN SITUATION (le vrai mkPower : posé au sol, l'aura qui en sort), place la caméra derrière lui à `dist` m, `haut` m au-dessus,
+   fige l'aura au temps `t` et rend UNE image du vrai jeu (pause). Rend la dataURL. */
+window.dbgPwrPhoto=function(k,t,dist,haut){
+  if(window.__pp){scene.remove(window.__pp);window.__pp=null;}
+  if(started&&!gameOver&&!paused)togglePause();
+  const sp=s+20;frameAt(sp,F);mat4b.makeBasis(F.b,F.n,F.t);
+  const m=mkPower(k,1),lev9=m.userData.lev||2.1;m.position.copy(F.p).addScaledVector(F.n,lev9);m.quaternion.setFromRotationMatrix(mat4b);m.updateMatrix();m.updateMatrixWorld(true);scene.add(m);window.__pp=m;
+  FAURAU.uT.value=t||0;
+  const c=new THREE.Vector3().copy(F.p).addScaledVector(F.t,-(dist||14)).addScaledVector(F.n,haut||4.5).addScaledVector(F.b,2.5);
+  camera.position.copy(c);camera.lookAt(F.p.x+F.n.x*3,F.p.y+F.n.y*3,F.p.z+F.n.z*3);camera.updateMatrixWorld();
+  RIM_U.uSunV.value.copy(RIM_DIR).transformDirection(camera.matrixWorldInverse);
+  if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
+  return renderer.domElement.toDataURL('image/png');
+};
 /* ===== LE FINAL SPIN v2 (2026-10-14 soir — Sacha, sur la v1 : « c'est ÇA la roulette, sérieux ? » ; l'ordre du matin : « le final spin [de
    Jetpack Joyride] … la bonne DA, HUD, lumières, bonnes animations et un vrai niveau de finition ; ça ne doit pas se déclencher à chaque
    partie ») — session IDEE. La v1 (une petite grille d'icônes sur l'écran de mort en transparence) est REFAITE :
@@ -60552,6 +60664,7 @@ function garageImpact(){
     GAR.impactVel[i].rx=(Math.random()-.5)*9;GAR.impactVel[i].ry=(Math.random()-.5)*9;
   }
   try{if(SONV2)sfx('garage.tole');else{chimeNote(340,0,.05,.10);noiseBurst(.14,.05,1400);}}catch(e){} /* (console de son) le TONK de tôle */
+  try{caisseAction();}catch(e){} // (2026-10-20, Léo) L'ACTION SPÉCIALE de la caisse, s'il y en a une (LA CERISE / LE TOFU : les phares se lèvent) — après le coup commun à toutes
   // LES FLÈCHES SE MONTRENT : discrètes au repos, elles se rappellent au bon souvenir pile quand on
   // vient de toucher la caisse — c'est LE moment où « comment je change de voiture » se pose.
   const gp=$('gPrev'),gn=$('gNext');
@@ -62349,6 +62462,7 @@ function chuteTape(e){ // TAPÉE : le coup
     T.fl=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));
     T.fl.renderOrder=999;T.fl.visible=false;scene.add(T.fl);}
   T.fl.position.copy(h.point).addScaledVector(d,-.15);T.flT=0;T.flS=1.45+.55*(mu-1);T.fl.visible=true;T.fl.material.rotation=Math.random()*3;T.n++;
+  try{caisseAction();}catch(_){} // (2026-10-20, Léo) L'ACTION SPÉCIALE de la caisse tapée (voir caisseAction)
   const P=h.point;richCoup(P,n,d,mu,T.combo); // (2026-10-08) LES ÉTINCELLES v2 et LA PLUIE DE RICHESSE (voir ce bloc) — les gerbes sparkGold/dust d'avant, « brutes, naïves », sont retirées
   chuteDebris();const sp=CARS[garageI]||CARS[0];                                         // LES MORCEAUX DE TÔLE, à ses couleurs
   {const M9=Array.isArray(h.object.material)?h.object.material[0]:h.object.material,G9=h.object.geometry,ca=G9&&G9.attributes&&G9.attributes.color; // la couleur de la PIÈCE touchée (sa couleur de sommet × sa matière)
