@@ -154,7 +154,7 @@ void main(){vec3 nv=normalize(vN),vv=normalize(vV);float rim=pow(1.-abs(dot(nv,v
   if(col.a<.02)discard;gl_FragColor=col;}`;
 const FDISC_VS=`uniform float uSize;varying vec2 vUv;
 void main(){vUv=position.xy*2.;vec4 c=modelViewMatrix*vec4(0.,0.,0.,1.);vec4 mv=c+vec4(position.xy*uSize,-1.8,0.);gl_Position=projectionMatrix*mv;}`;
-const FDISC_FS=`uniform float uT;varying vec2 vUv;
+const FDISC_FS=`uniform float uT,uA;varying vec2 vUv;
 mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,-s,s,c);}
 float tomoe(vec2 q){float d=length(q-vec2(.5,0.));float head=1.-smoothstep(.085,.1,d);
   float r=length(q),ph=atan(q.y,q.x);float inArc=step(-1.2,ph)*step(ph,.02);float th=.085*(1.+ph/1.2);
@@ -166,7 +166,7 @@ void main(){vec2 p=vUv;float r=length(p);if(r>1.)discard;float t=uT;float disc=s
   float tm=0.;for(float k=0.;k<3.;k++){vec2 q=rot(t*1.1+k*2.0944)*p;tm=max(tm,tomoe(q));}
   col=mix(col,vec3(1.,.12,.16),tm);a=max(a,tm*.95);
   float pu=1.-smoothstep(.12,.14,r);col=mix(col,vec3(0.),pu);a=max(a,pu*.9);
-  gl_FragColor=vec4(col,a*disc);}`;
+  gl_FragColor=vec4(col,a*disc*uA);}`;
 /* fauraFruit(kind, geo) : le groupe d'aura d'un fruit-pouvoir (kind = 0 piment · 1 citron · 2 dragon · 4 pomme dorée ; 3 raisin = rien) — à ajouter COMME ENFANT du mesh du fruit */
 function fauraFruit(kind,geo){
   const g=new THREE.Group();if(kind===3)return g;
@@ -175,7 +175,7 @@ function fauraFruit(kind,geo){
     const m=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uKind:{value:kind},uS:{value:i}},vertexShader:FSH2_VS,fragmentShader:FSH2_FS,transparent:true,depthWrite:false,side:THREE.DoubleSide});
     const ms=new THREE.Mesh(geo,m);ms.renderOrder=20+i;g.add(ms);}
   if(kind===2){
-    const dm=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uSize:{value:7.5}},vertexShader:FDISC_VS,fragmentShader:FDISC_FS,transparent:true,depthWrite:false});
+    const dm=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uSize:{value:7.5},uA:{value:1}},vertexShader:FDISC_VS,fragmentShader:FDISC_FS,transparent:true,depthWrite:false});
     const d=new THREE.Mesh(FDISC_GEO||(FDISC_GEO=new THREE.PlaneGeometry(1,1)),dm);d.renderOrder=18;d.frustumCulled=false;g.add(d);}
   return g;
 }
@@ -218,3 +218,170 @@ window.dbgPwrDevant=function(k,ds,lat){
   m.position.copy(F.p).addScaledVector(F.b,lat||0).addScaledVector(F.n,lev9);m.quaternion.setFromRotationMatrix(mat4b);m.updateMatrix();m.matrixAutoUpdate=false;scene.add(m);
   pickups.push({s:sp,lat:lat||0,face:1,nitro:false,pow:k,mesh:m,taken:false,ax:F.n.clone()});return sp;
 };
+/* banc (dev) : `dbgLigneFruits()` — l'état de la file de fruits (posés / pris), la nitro (normale, réserve bleue), le nombre de fruits devant la caisse. */
+window.dbgLigneFruits=function(){let ah=0,ap=0;for(const p of pickups)if(!p.taken&&p.ligne&&p.face===1&&p.s>s&&p.s<s+700)ah++;let pw=0,pwp=0;for(const p of pickups)if(p.pow&&p.face===1){pw++;if(p.taken)pwp++;}return {rai:RAI.stage,heat:+NINF.h.toFixed(2),rgb:NINF.rgb,nitroOn:!!nitroOn,pouvoirsPosés:pw,pouvoirsPris:pwp,posés:LIGNE.n.slice(),pris:LIGNE.pris.slice(),devant700m:ah,nitroR:+nitroR.toFixed(2),nitroX:+nitroX.toFixed(2),s:Math.round(s),pads:PADS.length};};
+
+/* ===== LE PIMENT : LA NITRO INFINIE QUI CHAUFFE (2026-10-20, Léo) =====
+   7 s de nitro infinie (au lieu de 9). La couleur du feu ÉVOLUE avec le temps de boost accumulé, dans l'ordre de la TEMPÉRATURE d'une flamme (la chimie) :
+   rouge feu → orange → jaune → blanc → bleu → violet. `NINF.h` (0 → 1) monte pendant qu'on boost (plein régime : ~8 s pour finir violet), redescend doucement
+   sinon, retombe à 0 quand le pouvoir finit. La plume, le cœur, la racine, le ruban (NINF, lus par la boucle) et les BORDS d'ÉCRAN suivent — discrets au début
+   (« un peu enflammés, pas un truc énorme ») et plus forts à mesure que ça chauffe. */
+PWR_DEFS.n.t=7;PWR_DEFS.n.msg='PIMENT — NITRO INFINIE 7 s À FOND !';PWR_DEFS.n.sous='7 S A FOND';
+const NINF_STOPS=[[0,0xff2208],[.2,0xff7a18],[.4,0xffd02a],[.58,0xfff2d8],[.8,0x4f8bff],[1,0x9d4dff]];
+const NINF_C=new THREE.Color(),NINF_A=new THREE.Color(),NINF_B=new THREE.Color(),NINF_W=new THREE.Color(0xffffff);
+NINF.h=0;NINF.rgb=[255,34,8];
+function ninfCouleur(h,out){let i=0;while(i<NINF_STOPS.length-2&&h>NINF_STOPS[i+1][0])i++;const a=NINF_STOPS[i],b=NINF_STOPS[i+1],u=Math.max(0,Math.min(1,(h-a[0])/(b[0]-a[0])));
+  NINF_A.setHex(a[1]);NINF_B.setHex(b[1]);return out.copy(NINF_A).lerp(NINF_B,u);}
+function ninfTick(dt){
+  if(!(pwrNitroT>0)){if(NINF.h!==0){NINF.h=0;NINF.jet=0x9d4dff;NINF.core=0xf3e6ff;NINF.rac=0xd8b8ff;NINF.trail=[.95,.45,1.6];}return;}
+  if(nitroOn)NINF.h=Math.min(1,NINF.h+dt/8);else NINF.h=Math.max(0,NINF.h-dt*.15);
+  ninfCouleur(NINF.h,NINF_C);
+  NINF.jet=NINF_C.getHex();NINF.core=NINF_B.copy(NINF_C).lerp(NINF_W,.62).getHex();NINF.rac=NINF_B.copy(NINF_C).lerp(NINF_W,.35).getHex();
+  NINF.trail=[NINF_C.r*1.25,NINF_C.g*1.25,NINF_C.b*1.25];NINF.rgb=[Math.round(NINF_C.r*255),Math.round(NINF_C.g*255),Math.round(NINF_C.b*255)];
+}
+
+/* ===== LA POMME DORÉE : L'AIMANT À PIÈCES EN SPIRALE (2026-10-20, Léo : « les objets filent en spirale dorée ») =====
+   Seules les PIÈCES sont attirées (voir `gros9` dans ramassage). Chaque pièce attirée tourne autour de la caisse en s'en rapprochant (une composante
+   tangente, dans le plan de la route) et sème une étincelle dorée de temps en temps. La plaque, les bords d'écran et le nom passent à l'OR. */
+const MAGV=new THREE.Vector3(),MAGT=new THREE.Vector3();
+function magSpirale(p,d9,dt){
+  const P=p.mesh.position;MAGV.copy(carGroup.position).sub(P);MAGT.crossVectors(MAGV,p.ax);const l=MAGT.length();if(l<1e-4)return;
+  MAGT.multiplyScalar(Math.min(d9,18)/l*dt*5.5);P.add(MAGT);
+  if(Math.random()<.04)sparkBurst(sparkGold,P,1,2);
+}
+Object.assign(PWR_DEFS.m,{col:0xffd24a,core:0xfff2c8,tint:'#ffd75e',c2:'#e0a010',fx:'rgba(255,210,74,.7)',fx2:'rgba(224,160,16,.25)',msg:'POMME DORÉE — LES PIÈCES VIENNENT À TOI !',sous:'LES PIECES VIENNENT A TOI'});
+{const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.m.bd=f9(PWR_DEFS.m.fx);PWR_DEFS.m.bd2=f9(PWR_DEFS.m.fx2);}
+
+/* ===== LE FRUIT DU DRAGON : AURA ×2 → ×3 · GENJUTSU · JUS (2026-10-20, Léo) =====
+   · ×2, et ×3 tant qu'on ENCHAÎNE (au moins 3 gestes différents dans la chaîne : `CHA.x ≥ 3`) — lu par les trois endroits qui doublaient l'aura (`auraDragonK`).
+   · À CHAQUE TRICK pendant l'effet : le fruit GICLE, jus vert et rose-rouge (le système de jus des fruits : taches à l'écran + gerbe 3D).
+   · GENJUTSU dans le DÉCOR : un immense oeil (le shader du disque : anneaux écarlates, tomoe, pupille) dans le ciel, loin devant, qui apparaît en fondu ;
+     les bords d'écran passent au carmin ; le compteur d'aura devient hypnotique (spirale qui tourne derrière le chiffre, classe `hyp`). */
+function auraDragonK(){return pwrAurT>0?(CHA.x>=3?3:2):1;}
+const DRG={t:0};
+function dragonJus(){
+  const n9=performance.now();if(n9-DRG.t<260)return;DRG.t=n9; // pas plus de ~4 giclées par seconde
+  try{const p2=new THREE.Vector3().copy(carGroup.position);p2.y+=1.1;
+    juiceScreen(0xe0157a,.8,1);juiceScreen(0x7ad040,.55,1);juiceSplash(p2,(n9&1)?0xe0157a:0x7ad040,.85);}catch(e){}
+}
+Object.assign(PWR_DEFS.x,{col:0xe0157a,core:0xffd6ea,tint:'#ff5a9a',c2:'#8a0c4a',fx:'rgba(220,20,90,.8)',fx2:'rgba(120,20,160,.35)',msg:'FRUIT DU DRAGON — AURA ×2 · ×3 SI TU ENCHAÎNES !',sous:'AURA x2, x3 SI TU ENCHAINES'});
+{const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.x.bd=f9(PWR_DEFS.x.fx);PWR_DEFS.x.bd2=f9(PWR_DEFS.x.fx2);}
+let DRG_DEC=null;const DRG_V=new THREE.Vector3(),DRG_EL={e:null};
+function dragonDecor(dt){
+  const on=pwrAurT>0&&!(mode==='boom'||gameOver);
+  if(!DRG_DEC){if(!on)return;
+    const mat=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uSize:{value:300},uA:{value:0}},vertexShader:FDISC_VS,fragmentShader:FDISC_FS,transparent:true,depthWrite:false});
+    const m=new THREE.Mesh(FDISC_GEO||(FDISC_GEO=new THREE.PlaneGeometry(1,1)),mat);m.frustumCulled=false;m.renderOrder=-3;scene.add(m);DRG_DEC={m:m,a:0};}
+  const D=DRG_DEC;D.a+=((on?.5:0)-D.a)*Math.min(1,dt*2.5);D.m.visible=D.a>.01;D.m.material.uniforms.uA.value=D.a;
+  if(D.m.visible){camera.getWorldDirection(DRG_V);D.m.position.copy(camera.position).addScaledVector(DRG_V,620);D.m.position.y+=190;D.m.updateMatrixWorld(true);}
+  // le compteur d'aura hypnotique
+  if(!DRG_EL.e)DRG_EL.e=document.getElementById('auraV2');
+  if(DRG_EL.e){const h9=pwrAurT>0;if(DRG_EL._h!==h9){DRG_EL._h=h9;DRG_EL.e.classList.toggle('hyp',h9);}}
+}
+{const st=document.createElement('style');st.textContent='#auraV2.hyp #avVal{animation:drgHue 1.8s linear infinite}@keyframes drgHue{0%{filter:hue-rotate(0deg) drop-shadow(0 0 6px #e0157a)}50%{filter:hue-rotate(90deg) drop-shadow(0 0 9px #7ad040)}100%{filter:hue-rotate(0deg) drop-shadow(0 0 6px #e0157a)}}';document.head.appendChild(st);}
+
+/* ===== LE CITRON : VITESSE ×2 ÉLECTRIQUE (2026-10-20, Léo) =====
+   Effet de jeu « comme avant » (8 s, l'avance ×2, voir `pwrSpdT`). Visuel : de PETITS ÉCLAIRS vifs qui zappent la carrosserie (rubans brisés toujours de face,
+   calculés dans le vertex shader, repris au hasard 14 fois par seconde — un éclair qui claque, pas qui flotte) + une ONDE DE CHOC (anneau qui s'élargit
+   depuis la caisse) toutes les ~0,55 s + le COMPTEUR km/h qui devient électrique (jaune-cyan, il tremble). Un seul objet partagé, créé au 1er citron. */
+const ZAP_NB=9,ZAP_NS=7;
+const ZAP_VS=`uniform float uT,uOn;attribute vec3 aSeg;varying float vA;varying float vK;
+float h(float x){return fract(sin(x*127.1)*43758.5453);}
+vec3 pt(float bolt,float stp,float t,vec3 S,vec3 d,float L,vec3 pe,vec3 pf){float seg=floor(t*7.+.5);
+  float j1=(h(seg*3.3+bolt+stp*.7)-.5)*.5,j2=(h(seg*7.1+bolt*2.+stp*.9)-.5)*.5;
+  return S+d*L*t+(pe*j1+pf*j2)*sin(t*3.1416)*L*.6;}
+void main(){float bolt=aSeg.x,seg=aSeg.y,corner=aSeg.z;float stp=floor(uT*14.+bolt*3.7);
+  float on=step(.35,h(bolt*17.1+stp*1.3))*uOn;
+  vec3 S=vec3((h(bolt*3.1+stp)-.5)*1.7,.45+h(bolt*5.3+stp*2.)*.9,(h(bolt*7.7+stp*3.)-.5)*4.2);
+  float ang=h(bolt*9.1+stp*1.7)*6.2832,el=(h(bolt*2.3+stp*4.)-.3)*1.2;vec3 d=normalize(vec3(cos(ang)*.9,el+.35,sin(ang)));
+  float L=.9+1.8*h(bolt*4.4+stp*5.);vec3 pe=normalize(cross(d,vec3(0.,1.,.001))),pf=cross(d,pe);
+  float t=seg/7.,t2=min(1.,t+.143);vec3 p=pt(bolt,stp,t,S,d,L,pe,pf),pn=pt(bolt,stp,t2,S,d,L,pe,pf);
+  vec4 mv=modelViewMatrix*vec4(p,1.);vec3 dv=(modelViewMatrix*vec4(pn,1.)).xyz-mv.xyz;
+  vec3 sd=normalize(cross(dv,vec3(0.,0.,1.))+vec3(1e-4));mv.xyz+=sd*corner*(.05*(1.-t*.6));
+  gl_Position=projectionMatrix*mv;vA=on*(1.-t*.45);vK=h(bolt+stp*.37);}`;
+const ZAP_FS=`varying float vA;varying float vK;void main(){if(vA<.01)discard;gl_FragColor=vec4(mix(vec3(.45,.92,1.),vec3(1.,1.,.82),vK),vA);}`;
+const ZAP={grp:null,mat:null,ring:null,rmat:null,on:0,rt:0,age:9};
+function zapBuild(){
+  const nv=ZAP_NB*(ZAP_NS+1)*2,pos=new Float32Array(nv*3),sg=new Float32Array(nv*3),ix=[];let v=0;
+  for(let b=0;b<ZAP_NB;b++){for(let k=0;k<=ZAP_NS;k++)for(const c of [-1,1]){sg[v*3]=b;sg[v*3+1]=k;sg[v*3+2]=c;v++;}
+    const base=b*(ZAP_NS+1)*2;for(let k=0;k<ZAP_NS;k++){const a=base+k*2;ix.push(a,a+1,a+2,a+1,a+3,a+2);}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('aSeg',new THREE.BufferAttribute(sg,3));g.setIndex(ix);
+  ZAP.mat=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uOn:{value:0}},vertexShader:ZAP_VS,fragmentShader:ZAP_FS,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
+  const m=new THREE.Mesh(g,ZAP.mat);m.frustumCulled=false;m.renderOrder=22;
+  ZAP.rmat=new THREE.ShaderMaterial({uniforms:{uA:{value:0}},vertexShader:'void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+    fragmentShader:'uniform float uA;void main(){gl_FragColor=vec4(.55,.95,1.,uA);}',transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
+  const r=new THREE.Mesh(new THREE.RingGeometry(.9,1,64),ZAP.rmat);r.frustumCulled=false;r.renderOrder=22;r.visible=false;
+  const grp=new THREE.Group();grp.add(m);ZAP.grp=grp;ZAP.ring=r;scene.add(grp);scene.add(r);
+}
+function zapTick(dt){
+  const on=pwrSpdT>0&&!(mode==='boom'||gameOver);
+  if(!ZAP.grp){if(!on)return;zapBuild();}
+  ZAP.on+=((on?1:0)-ZAP.on)*Math.min(1,dt*8);ZAP.mat.uniforms.uOn.value=ZAP.on;ZAP.grp.visible=ZAP.on>.02;
+  if(ZAP.grp.visible){ZAP.grp.position.copy(carGroup.position);ZAP.grp.quaternion.copy(carGroup.quaternion);}
+  // l'onde de choc : un anneau qui part de la caisse, toutes les ~0,55 s, face à la caméra
+  if(on){ZAP.rt+=dt;if(ZAP.rt>.55){ZAP.rt=0;ZAP.age=0;}}
+  if(ZAP.age<.5){ZAP.age+=dt;const u=Math.min(1,ZAP.age/.5);ZAP.ring.visible=true;ZAP.ring.position.copy(carGroup.position);ZAP.ring.position.y+=.9;
+    ZAP.ring.quaternion.copy(camera.quaternion);ZAP.ring.scale.setScalar(1.5+9*u);ZAP.rmat.uniforms.uA.value=.5*Math.pow(1-u,1.6);}
+  else ZAP.ring.visible=false;
+  // le compteur km/h électrique
+  const e=ZAP.el||(ZAP.el=document.getElementById('speedo'));if(e&&ZAP._h!==on){ZAP._h=on;e.classList.toggle('elec',on);}
+}
+Object.assign(PWR_DEFS.v,{col:0x7af0ff,core:0xfffbc8,tint:'#7af0ff',c2:'#ffe83a',fx:'rgba(122,240,255,.8)',fx2:'rgba(255,232,58,.35)',msg:'⚡ CITRON — VITESSE ×2 — 8 s !'});
+{const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.v.bd=f9(PWR_DEFS.v.fx);PWR_DEFS.v.bd2=f9(PWR_DEFS.v.fx2);}
+{const st=document.createElement('style');st.textContent='#speedo.elec #speedVal,#speedo.elec #speedUnit{color:#7af0ff!important;text-shadow:0 0 6px #5ee6ff,0 0 2px #fff;animation:elecJit .1s steps(2) infinite}@keyframes elecJit{0%{transform:translate(0,0)}50%{transform:translate(1px,-1px)}100%{transform:translate(-1px,1px)}}';document.head.appendChild(st);}
+
+/* ===== LE RAISIN ANGÉLIQUE : AIRTIME ×2, DOUBLE JAUGE (2026-10-20, Léo) =====
+   Armé (14 s, il s'use au quart au sol : `pwrAirK`) le raisin ne rend plus l'airtime INFINI : il DOUBLE la jauge. Jauge 1 = l'airtime normal (6 s, 10,2 en orbite) ;
+   quand elle est vide, la voiture PERD SES AILES D'ANGE (elles explosent en plumes, la caisse reste en vie) et la jauge 2 démarre, de même durée ; vide à son tour : explosion
+   comme d'habitude. `RAI.stage` : 0 = jauge 1, 1 = jauge 2 (remis à 0 à chaque décollage, startFall). L'airtime PRÊTÉ par l'auto-école (`TUTO.pa`) reste infini.
+   Les ailes blanches (sans halo : verdict de Léo) sont posées sur la caisse tant que le raisin est armé et que les ailes ne sont pas perdues.
+   HUD : la barre du chrono de vol (#airHud) a une 2e barre, plus fine, dessous : la jauge 2. */
+const RAI={stage:0,wings:null,vis:false};
+function airDepasse(){ // la jauge est-elle vide ? (remplace `fallTR>airMax()&&pwrAirT<=0`)
+  if(fallTR<=airMax())return false;
+  if(pwrAirT>0){
+    if(TUTO.pa)return false;                       // l'auto-école : airtime infini
+    if(RAI.stage===0){RAI.stage=1;fallTR=0;airFlash=.6;raisinAilesBoom();return false;} // la 1re jauge est vide : les ailes explosent, la 2e démarre
+  }
+  return true;
+}
+const RAI_PLUME=function(K,sg,bx,by,bz,ang,L,W,cur,k1,k2,kT){
+  const dx=sg*Math.cos(ang),dy=Math.sin(ang),px=-dy,py=dx*sg*sg,NS=7,pts=[],CUP=.42,FOLD=.5;
+  for(let i=0;i<=NS;i++){const u=i/NS,l=L*u,cx=bx+dx*l+px*cur*l*u,cy=by+dy*l+py*cur*l*u,cz=bz+CUP*l*l*.5,hw=W*Math.pow(Math.sin(Math.PI*Math.pow(u,.72)),.62)+.004;
+    pts.push({m:[cx,cy,cz+FOLD*hw*.6],l:[cx-px*hw,cy-py*hw,cz-FOLD*hw*.4],r:[cx+px*hw,cy+py*hw,cz-FOLD*hw*.4]});}
+  for(let i=0;i<NS;i++){const A=pts[i],B=pts[i+1],kk=(i>=NS-2&&kT)?kT:null;
+    K.tri(kk||k1,A.m,A.l,B.l);K.tri(kk||k1,A.m,B.l,B.m);K.tri(kk||k2,A.m,B.m,B.r);K.tri(kk||k2,A.m,B.r,A.r);}
+};
+function raisinAiles(){ // la paire d'ailes (une géométrie, trois rangs de plumes par aile), posée au-dessus des épaules de la caisse
+  if(RAI.wings)return RAI.wings;
+  const K=lpKit(FRUIT_PAL);
+  for(const sg of [1,-1]){const bx=sg*.30,by=.36;
+    for(let i=0;i<6;i++)RAI_PLUME(K,sg,bx,by,.02,.45+i*.2,.26+.03*Math.sin(i*1.3),.10,.10,'wgW','wgw',null);
+    for(let i=0;i<6;i++)RAI_PLUME(K,sg,bx,by+.02,-.02,.35+i*.21,.42+.07*Math.sin(i*.9+.4),.11,.14,'wgW','wgw',null);
+    for(let i=0;i<6;i++)RAI_PLUME(K,sg,bx,by+.04,-.06,.25+i*.22,.62+.12*Math.sin(i*.8+.3),.12,.16,'wgW','wgw','wgG');}
+  const geo=K.done().f;if(!FRUIT_MAT){FRUIT_MAT=lpMat('f');FRUIT_MAT.userData.lp=0;}
+  const m=new THREE.Mesh(geo,FRUIT_MAT);m.scale.setScalar(2.4);m.frustumCulled=false;
+  const g=new THREE.Group();g.add(m);m.position.set(0,.55,-.2);g.visible=false;scene.add(g);RAI.wings=g;return g;
+}
+function raisinAilesBoom(){ // les ailes explosent en plumes : un flash blanc, une secousse, une gerbe qui part des épaules
+  try{shake=Math.max(shake,.9);flashEcran('rgba(255,255,255,.75)');hap([20,40,30]);
+    const p=crV1.copy(carGroup.position);p.y+=1.6;sparkBurst(sparkGold,p,26,13);sparkBurst(sparkBlue,p,16,9);
+    if(SONV2)sfx('pwr.bouclierCasse');}catch(e){}
+  RAI.vis=false;if(RAI.wings)RAI.wings.visible=false;
+}
+function raisinTick(dt){
+  const arme=pwrAirT>0&&!TUTO.pa&&!(mode==='boom'||gameOver),vis=arme&&RAI.stage===0;
+  if(vis||RAI.wings){const g=raisinAiles();if(g.visible!==vis)g.visible=vis;
+    if(vis){g.position.copy(carGroup.position);g.quaternion.copy(carGroup.quaternion);const w=Math.sin(FAURAU.t*9)*.06;g.children[0].rotation.z=w*0+0;g.children[0].position.y=.55+Math.sin(FAURAU.t*5)*.05;}}
+}
+function raisinHud(double,fr2){ // la 2e barre sous le chrono de vol
+  const el=raisinHud.el||(raisinHud.el=document.getElementById('airHud'));if(!el)return;
+  if(!raisinHud.b){const bar=el.querySelector('.ahBar');if(!bar)return;const b2=bar.cloneNode(true);b2.classList.add('ahBar2');bar.after(b2);raisinHud.b=b2;
+    const st=document.createElement('style');st.textContent='#airHud .ahBar2{display:none;height:9px;margin-top:3px;padding:2px}#airHud[data-d="1"] .ahBar2{display:block}#airHud .ahBar2 .ahF{width:calc(var(--a2,1)*100%);background:linear-gradient(90deg,#ff9ec2,#ffffff)}#airHud .ahBar2 .ahF::after{display:none}';document.head.appendChild(st);}
+  const d=double?'1':'0';if(el.dataset.d!==d)el.dataset.d=d;
+  if(double){const q=fr2.toFixed(2);if(raisinHud._q!==q){raisinHud._q=q;el.style.setProperty('--a2',q);}}
+}
+Object.assign(PWR_DEFS.a,{col:0xffffff,core:0xfff4e8,tint:'#ffd6f0',c2:'#d070d0',fx:'rgba(255,214,240,.8)',fx2:'rgba(208,112,208,.3)',msg:'🍇 RAISIN — AIRTIME ×2 : DEUX JAUGES !',sous:'AIRTIME x2, 2 JAUGES'});
+{const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.a.bd=f9(PWR_DEFS.a.fx);PWR_DEFS.a.bd2=f9(PWR_DEFS.a.fx2);}
+/* banc (dev) : `dbgRaisin()` l'état de la double jauge ; `dbgRaisin('vide')` vide la jauge en cours (pour voir les ailes exploser / la 2e jauge démarrer). */
+window.dbgRaisin=function(k){if(k==='vide')fallTR=airMax()+.05;return {stage:RAI.stage,fallTR:+fallTR.toFixed(2),airMax:airMax(),pwrAirT:+pwrAirT.toFixed(2),mode:mode,ailes:!!(RAI.wings&&RAI.wings.visible)};};

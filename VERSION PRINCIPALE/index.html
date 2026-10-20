@@ -14093,6 +14093,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     // (2026-09-25) LE PAD EST UNE CIBLE : il vit sur une VOIE (gauche / axe / droite), déduite de sp — zéro rnd() consommé, la
     // génération en aval ne bouge pas. Avant, il se déclenchait sur toute la largeur : un turbo reçu sans rien faire.
     const pl=[0,-1,1][Math.floor(sp*.0071)%3]*Math.min(ROAD_HALF-2.95,Math.max(4.6,ROAD_HALF*.45)); // (route ÷2) la fenêtre de prise fait 4,1 (pad 2,75 + caisse) : à 0,45×ROAD_HALF la voie de côté tombait à 3,5 m au plancher, et rouler AU CENTRE raflait tous les pads — voie ≥ 4,6 m, et ≤ bord − 2,95 : le pad reste entier sur la dalle
+    if(PADS_OFF)continue; // (2026-10-20, Léo : « les boosts de la route disparaissent ») plus de plaque turbo : le boost se gagne en attrapant des FRUITS (voir la ligne parfaite) — le tirage ci-dessus reste consommé
     PADS.push(sp);PADL.push(pl);
     for(const fy of [1,-1]){
       frameAt(sp,F);
@@ -25263,7 +25264,9 @@ window.dbgVille=function(){const r=renderer.info,d=camera.getWorldDirection(new 
    sans la lâcher, qui en rate voit la jauge baisser. Deux faces (miroir), comme tout le reste. ⚠ Aucun rnd() : le flux seedé ne bouge pas.
    Un objet qui tombe sur un trou, un tremplin, une porte de plots ou une chaîne de néon glisse plus loin ; s'il n'a pas de place il saute,
    et le suivant garde SON type (l'alternance tient). */
-const LIGNE={on:false,dt:1.2,don:1.15,voir:3.5,prochS:0,k:0,pts:[],padI:new Set(),padPris:new Set(),n:[0,0],pris:[0,0],vP:0,acc:0}; // n : posés · pris : ramassés (fruits, pads) — pour le banc
+/* (2026-10-20, Léo : « les boosts de la route disparaissent, on booste non-stop en attrapant des fruits ; des petits fruits qu'on peut mettre partout ») : PLUS DE PLAQUES — la file ne porte que des FRUITS,
+   un toutes les 0,45 s (c'était fruit + plaque toutes les 1,2 s) qui rendent chacun 1,05 × ce qu'on brûle entre deux : qui les prend tous tient la nitro, qui en rate un la voit baisser. */
+const LIGNE={on:false,cnt:0,npow:20,prem:false,dt:.45,don:.48,voir:3.5,prochS:0,k:0,pts:[],padI:new Set(),padPris:new Set(),n:[0,0],pris:[0,0],vP:0,acc:0}; // n : posés · pris : ramassés (fruits, pads) — pour le banc
 const LF0={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},
       LF1={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},
       LF2={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
@@ -25279,6 +25282,7 @@ function ligneBloque(s9,k){
 }
 function ligneOnPour(){return !PARK.on&&!(LVL.cur&&LVL.cur.piste==='tuto')&&!BALADE;} // (LE PRÉ-BÂTI) la règle de LIGNE.on, lue aussi par pisteRoute (sur la map d'en face)
 function ligneRaz(){ // à chaque piste neuve (buildTrack) : la file repart du début
+  LIGNE.cnt=0;LIGNE.npow=16+((Math.random()*8)|0);LIGNE.prem=false; // (fruits-pouvoirs) la file repart : le 1er pouvoir arrive après 16-24 fruits
   LIGNE.pts.length=0;LIGNE.padI.clear();LIGNE.padPris.clear();LIGNE.prochS=240;LIGNE.k=0;LIGNE.n[0]=LIGNE.n[1]=LIGNE.pris[0]=LIGNE.pris[1]=0;LIGNE.vP=0;LIGNE.acc=20;LIGNE.sPk=null;LIGNE.sPd=0; // acc : l'élan d'un départ lancé, supposé d'avance (les premiers objets se posent avant qu'on l'ait mesuré)
   LIGNE.on=ligneOnPour(); // le parc et l'auto-école gardent leur monde — (2026-10-09) la BALADE aussi : rien sur la route
 }
@@ -25291,13 +25295,24 @@ function lignePad(sp,pl){ // un pad d'OR, deux faces (même recette que la boucl
 function ligneFruit(sp,lt){ // un fruit, deux faces (même recette que `place` dans spawnPickups) — il rend LIGNE.don de nitro
   const fi=fruitPick(),lv=fruitLeve(fi);frameAt(sp,F);
   for(const face of [1,-1]){
-    const m=mkFruit(fi);m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?lv:-(THICK+lv));
+    const m=mkFruit(fi);m.scale.setScalar(2.1);const lv2=lv*.78;m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?lv2:-(THICK+lv2)); // plus PETITS (×2,1) : on les sème partout sans gêner la vue
     if(face<0)LM4.makeBasis(LV1.copy(F.b).negate(),LV2.copy(F.n).negate(),F.t);else LM4.makeBasis(F.b,F.n,F.t);
     m.quaternion.setFromRotationMatrix(LM4);m.updateMatrix();m.matrixAutoUpdate=false;scene.add(m);
     pickups.push({s:sp,lat:lt,face:face,nitro:true,fruit:fi,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face),ligne:true});
   }
 }
 const LM4=new THREE.Matrix4(),LV1=new THREE.Vector3(),LV2=new THREE.Vector3();
+/* un FRUIT-POUVOIR au bout de la file (2026-10-20) : même recette que ligneFruit, mais c'est un pouvoir (`pwrPrend` le prend), les deux faces */
+function lignePower(sp,lt,kind){
+  frameAt(sp,F);
+  for(const face of [1,-1]){
+    const m=mkPower(kind,face),lev9=m.userData.lev||2.1;
+    m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?lev9:-(THICK+lev9));
+    if(face<0)LM4.makeBasis(LV1.copy(F.b).negate(),LV2.copy(F.n).negate(),F.t);else LM4.makeBasis(F.b,F.n,F.t);
+    m.quaternion.setFromRotationMatrix(LM4);m.updateMatrix();m.matrixAutoUpdate=false;scene.add(m);
+    pickups.push({s:sp,lat:lt,face:face,nitro:false,pow:kind,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)});
+  }
+}
 function ligneTick(dt){ // chaque image de course : la file s'allonge devant la caisse, au rythme de SA vitesse
   if(!LIGNE.on||!running||gameOver)return;
   const b0=Math.max(30,Math.abs(vA)*SPD),mul=vitMult(),v0=b0*mul,H9=Math.max(4,(ROAD_HALF-3)*.62); // m de piste par seconde : la vraie avance de `s` = la vitesse PHYSIQUE × les multiplicateurs d'avance (NITROOO, VITESSE ×2 — MESURÉ : sans eux la file arrivait 1,5× trop serrée)
@@ -25316,9 +25331,14 @@ function ligneTick(dt){ // chaque image de course : la file s'allonge devant la 
     for(let d=0;d<=160;d+=20){const q=LIGNE.prochS+d;if(q>=L-120)break;if(!ligneBloque(q,LIGNE.k)){s9=q;break;}}
     if(s9<0){LIGNE.prochS+=180;continue;}
     const lt=ligneLat(s9,H9);
-    if(LIGNE.k){if(!(LVL.cur&&LVL.cur.piste==='banquise'))lignePad(s9,lt);}else ligneFruit(s9,lt); // (2026-10-15) LE GLACIER : pas de pad d'or (ses fruits gardent leur cadence)
+    if(LIGNE.k){if(!(LVL.cur&&LVL.cur.piste==='banquise'))lignePad(s9,lt);}
+    else if(PWR_LIGNE&&LIGNE.cnt>=LIGNE.npow){ // le BOUT D'UNE LONGUE FILE : un fruit-pouvoir (le 1er d'un débutant : l'aimant, sans le chercher)
+      let kd='n';if(!LIGNE.prem&&pwrPremier()){kd='m';LIGNE.prem=true;}else kd=pwrTire(Math.random(),pwrPoids());
+      lignePower(s9,kd==='m'&&LIGNE.prem&&LIGNE.cnt===LIGNE.npow?lt*.2:lt,kd);LIGNE.cnt=0;LIGNE.npow=18+((Math.random()*8)|0);
+    }else{ligneFruit(s9,lt);LIGNE.cnt++;} // (2026-10-15) LE GLACIER : pas de pad d'or (ses fruits gardent leur cadence)
     LIGNE.pts.push({s:s9,lat:lt,k:LIGNE.k});LIGNE.n[LIGNE.k]++;if(LIGNE.pts.length>40)LIGNE.pts.shift();
-    LIGNE.k^=1;LIGNE.prochS=s9+Math.max(40,v*LIGNE.dt);
+    if(!PADS_OFF)LIGNE.k^=1; // (plus de plaques : toujours un fruit)
+    LIGNE.prochS=s9+Math.max(12,v*LIGNE.dt);
   }
 }
 function frameAt(s,out){
@@ -43203,6 +43223,11 @@ function fruitPowGeo(k){
   if(!FRUIT_MAT){FRUIT_MAT=lpMat('f');FRUIT_MAT.userData.lp=0;}
   return FRUIT_POW_GEO[k];
 }
+
+const PADS_OFF=!/[?&]pads=1/.test(location.search); // plus de plaques turbo (?pads=1 les rend, pour comparer)
+const PWR_LIGNE=!/[?&]cristaux=1/.test(location.search); // les fruits-pouvoirs tombent au bout de la file de fruits (?cristaux=1 : les anciens cristaux au hasard)
+const PWR_EGAUX=true; // les cinq pouvoirs à la même fréquence
+
 /* ============================================================================
    DÉBLOCAGE DES 24 VOITURES (2026-08-03)
    Le MOTEUR est la progression DANS une partie (il repart à zéro à chaque run) ; la VOITURE est la
@@ -43592,7 +43617,7 @@ function airPieDraw(fr,sec,flash){
   // un bloc du HUD (#airHud) de la main de la jauge NITRO — plus un cadran. On n'écrit que ce qui change : la part restante (--a, au
   // 1/120), les secondes (au dixième), l'état de couleur (data-k : ok cyan · moyen or · urgent rouge · inf = AIRTIME INFINI) et le flash
   // « on regagne du temps ». La cadence d'avant est gardée (les deux seuils tombent sur les mêmes crans).
-  const q=Math.round(fr*120+.5),s10=Math.round(sec*10),k=pwrAirT>0?'inf':fr>.4?'ok':(fr>.2?'moyen':'urgent'),key=q+'|'+s10+'|'+k+'|'+flash;
+  const q=Math.round(fr*120+.5),s10=Math.round(sec*10),k=(pwrAirT>0&&TUTO.pa)?'inf':fr>.4?'ok':(fr>.2?'moyen':'urgent'),key=q+'|'+s10+'|'+k+'|'+flash;
   if(airPieDraw._k===key)return;airPieDraw._k=key;
   const el=airPieDraw.el||(airPieDraw.el=document.getElementById('airHud'));if(!el)return;
   const S=airPieDraw.s||(airPieDraw.s=el.querySelector('.ahS'));
@@ -47093,7 +47118,7 @@ void main(){vec3 nv=normalize(vN),vv=normalize(vV);float rim=pow(1.-abs(dot(nv,v
   if(col.a<.02)discard;gl_FragColor=col;}`;
 const FDISC_VS=`uniform float uSize;varying vec2 vUv;
 void main(){vUv=position.xy*2.;vec4 c=modelViewMatrix*vec4(0.,0.,0.,1.);vec4 mv=c+vec4(position.xy*uSize,-1.8,0.);gl_Position=projectionMatrix*mv;}`;
-const FDISC_FS=`uniform float uT;varying vec2 vUv;
+const FDISC_FS=`uniform float uT,uA;varying vec2 vUv;
 mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,-s,s,c);}
 float tomoe(vec2 q){float d=length(q-vec2(.5,0.));float head=1.-smoothstep(.085,.1,d);
   float r=length(q),ph=atan(q.y,q.x);float inArc=step(-1.2,ph)*step(ph,.02);float th=.085*(1.+ph/1.2);
@@ -47105,7 +47130,7 @@ void main(){vec2 p=vUv;float r=length(p);if(r>1.)discard;float t=uT;float disc=s
   float tm=0.;for(float k=0.;k<3.;k++){vec2 q=rot(t*1.1+k*2.0944)*p;tm=max(tm,tomoe(q));}
   col=mix(col,vec3(1.,.12,.16),tm);a=max(a,tm*.95);
   float pu=1.-smoothstep(.12,.14,r);col=mix(col,vec3(0.),pu);a=max(a,pu*.9);
-  gl_FragColor=vec4(col,a*disc);}`;
+  gl_FragColor=vec4(col,a*disc*uA);}`;
 /* fauraFruit(kind, geo) : le groupe d'aura d'un fruit-pouvoir (kind = 0 piment · 1 citron · 2 dragon · 4 pomme dorée ; 3 raisin = rien) — à ajouter COMME ENFANT du mesh du fruit */
 function fauraFruit(kind,geo){
   const g=new THREE.Group();if(kind===3)return g;
@@ -47114,7 +47139,7 @@ function fauraFruit(kind,geo){
     const m=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uKind:{value:kind},uS:{value:i}},vertexShader:FSH2_VS,fragmentShader:FSH2_FS,transparent:true,depthWrite:false,side:THREE.DoubleSide});
     const ms=new THREE.Mesh(geo,m);ms.renderOrder=20+i;g.add(ms);}
   if(kind===2){
-    const dm=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uSize:{value:7.5}},vertexShader:FDISC_VS,fragmentShader:FDISC_FS,transparent:true,depthWrite:false});
+    const dm=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uSize:{value:7.5},uA:{value:1}},vertexShader:FDISC_VS,fragmentShader:FDISC_FS,transparent:true,depthWrite:false});
     const d=new THREE.Mesh(FDISC_GEO||(FDISC_GEO=new THREE.PlaneGeometry(1,1)),dm);d.renderOrder=18;d.frustumCulled=false;g.add(d);}
   return g;
 }
@@ -47157,6 +47182,173 @@ window.dbgPwrDevant=function(k,ds,lat){
   m.position.copy(F.p).addScaledVector(F.b,lat||0).addScaledVector(F.n,lev9);m.quaternion.setFromRotationMatrix(mat4b);m.updateMatrix();m.matrixAutoUpdate=false;scene.add(m);
   pickups.push({s:sp,lat:lat||0,face:1,nitro:false,pow:k,mesh:m,taken:false,ax:F.n.clone()});return sp;
 };
+/* banc (dev) : `dbgLigneFruits()` — l'état de la file de fruits (posés / pris), la nitro (normale, réserve bleue), le nombre de fruits devant la caisse. */
+window.dbgLigneFruits=function(){let ah=0,ap=0;for(const p of pickups)if(!p.taken&&p.ligne&&p.face===1&&p.s>s&&p.s<s+700)ah++;let pw=0,pwp=0;for(const p of pickups)if(p.pow&&p.face===1){pw++;if(p.taken)pwp++;}return {rai:RAI.stage,heat:+NINF.h.toFixed(2),rgb:NINF.rgb,nitroOn:!!nitroOn,pouvoirsPosés:pw,pouvoirsPris:pwp,posés:LIGNE.n.slice(),pris:LIGNE.pris.slice(),devant700m:ah,nitroR:+nitroR.toFixed(2),nitroX:+nitroX.toFixed(2),s:Math.round(s),pads:PADS.length};};
+
+/* ===== LE PIMENT : LA NITRO INFINIE QUI CHAUFFE (2026-10-20, Léo) =====
+   7 s de nitro infinie (au lieu de 9). La couleur du feu ÉVOLUE avec le temps de boost accumulé, dans l'ordre de la TEMPÉRATURE d'une flamme (la chimie) :
+   rouge feu → orange → jaune → blanc → bleu → violet. `NINF.h` (0 → 1) monte pendant qu'on boost (plein régime : ~8 s pour finir violet), redescend doucement
+   sinon, retombe à 0 quand le pouvoir finit. La plume, le cœur, la racine, le ruban (NINF, lus par la boucle) et les BORDS d'ÉCRAN suivent — discrets au début
+   (« un peu enflammés, pas un truc énorme ») et plus forts à mesure que ça chauffe. */
+PWR_DEFS.n.t=7;PWR_DEFS.n.msg='PIMENT — NITRO INFINIE 7 s À FOND !';PWR_DEFS.n.sous='7 S A FOND';
+const NINF_STOPS=[[0,0xff2208],[.2,0xff7a18],[.4,0xffd02a],[.58,0xfff2d8],[.8,0x4f8bff],[1,0x9d4dff]];
+const NINF_C=new THREE.Color(),NINF_A=new THREE.Color(),NINF_B=new THREE.Color(),NINF_W=new THREE.Color(0xffffff);
+NINF.h=0;NINF.rgb=[255,34,8];
+function ninfCouleur(h,out){let i=0;while(i<NINF_STOPS.length-2&&h>NINF_STOPS[i+1][0])i++;const a=NINF_STOPS[i],b=NINF_STOPS[i+1],u=Math.max(0,Math.min(1,(h-a[0])/(b[0]-a[0])));
+  NINF_A.setHex(a[1]);NINF_B.setHex(b[1]);return out.copy(NINF_A).lerp(NINF_B,u);}
+function ninfTick(dt){
+  if(!(pwrNitroT>0)){if(NINF.h!==0){NINF.h=0;NINF.jet=0x9d4dff;NINF.core=0xf3e6ff;NINF.rac=0xd8b8ff;NINF.trail=[.95,.45,1.6];}return;}
+  if(nitroOn)NINF.h=Math.min(1,NINF.h+dt/8);else NINF.h=Math.max(0,NINF.h-dt*.15);
+  ninfCouleur(NINF.h,NINF_C);
+  NINF.jet=NINF_C.getHex();NINF.core=NINF_B.copy(NINF_C).lerp(NINF_W,.62).getHex();NINF.rac=NINF_B.copy(NINF_C).lerp(NINF_W,.35).getHex();
+  NINF.trail=[NINF_C.r*1.25,NINF_C.g*1.25,NINF_C.b*1.25];NINF.rgb=[Math.round(NINF_C.r*255),Math.round(NINF_C.g*255),Math.round(NINF_C.b*255)];
+}
+
+/* ===== LA POMME DORÉE : L'AIMANT À PIÈCES EN SPIRALE (2026-10-20, Léo : « les objets filent en spirale dorée ») =====
+   Seules les PIÈCES sont attirées (voir `gros9` dans ramassage). Chaque pièce attirée tourne autour de la caisse en s'en rapprochant (une composante
+   tangente, dans le plan de la route) et sème une étincelle dorée de temps en temps. La plaque, les bords d'écran et le nom passent à l'OR. */
+const MAGV=new THREE.Vector3(),MAGT=new THREE.Vector3();
+function magSpirale(p,d9,dt){
+  const P=p.mesh.position;MAGV.copy(carGroup.position).sub(P);MAGT.crossVectors(MAGV,p.ax);const l=MAGT.length();if(l<1e-4)return;
+  MAGT.multiplyScalar(Math.min(d9,18)/l*dt*5.5);P.add(MAGT);
+  if(Math.random()<.04)sparkBurst(sparkGold,P,1,2);
+}
+Object.assign(PWR_DEFS.m,{col:0xffd24a,core:0xfff2c8,tint:'#ffd75e',c2:'#e0a010',fx:'rgba(255,210,74,.7)',fx2:'rgba(224,160,16,.25)',msg:'POMME DORÉE — LES PIÈCES VIENNENT À TOI !',sous:'LES PIECES VIENNENT A TOI'});
+{const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.m.bd=f9(PWR_DEFS.m.fx);PWR_DEFS.m.bd2=f9(PWR_DEFS.m.fx2);}
+
+/* ===== LE FRUIT DU DRAGON : AURA ×2 → ×3 · GENJUTSU · JUS (2026-10-20, Léo) =====
+   · ×2, et ×3 tant qu'on ENCHAÎNE (au moins 3 gestes différents dans la chaîne : `CHA.x ≥ 3`) — lu par les trois endroits qui doublaient l'aura (`auraDragonK`).
+   · À CHAQUE TRICK pendant l'effet : le fruit GICLE, jus vert et rose-rouge (le système de jus des fruits : taches à l'écran + gerbe 3D).
+   · GENJUTSU dans le DÉCOR : un immense oeil (le shader du disque : anneaux écarlates, tomoe, pupille) dans le ciel, loin devant, qui apparaît en fondu ;
+     les bords d'écran passent au carmin ; le compteur d'aura devient hypnotique (spirale qui tourne derrière le chiffre, classe `hyp`). */
+function auraDragonK(){return pwrAurT>0?(CHA.x>=3?3:2):1;}
+const DRG={t:0};
+function dragonJus(){
+  const n9=performance.now();if(n9-DRG.t<260)return;DRG.t=n9; // pas plus de ~4 giclées par seconde
+  try{const p2=new THREE.Vector3().copy(carGroup.position);p2.y+=1.1;
+    juiceScreen(0xe0157a,.8,1);juiceScreen(0x7ad040,.55,1);juiceSplash(p2,(n9&1)?0xe0157a:0x7ad040,.85);}catch(e){}
+}
+Object.assign(PWR_DEFS.x,{col:0xe0157a,core:0xffd6ea,tint:'#ff5a9a',c2:'#8a0c4a',fx:'rgba(220,20,90,.8)',fx2:'rgba(120,20,160,.35)',msg:'FRUIT DU DRAGON — AURA ×2 · ×3 SI TU ENCHAÎNES !',sous:'AURA x2, x3 SI TU ENCHAINES'});
+{const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.x.bd=f9(PWR_DEFS.x.fx);PWR_DEFS.x.bd2=f9(PWR_DEFS.x.fx2);}
+let DRG_DEC=null;const DRG_V=new THREE.Vector3(),DRG_EL={e:null};
+function dragonDecor(dt){
+  const on=pwrAurT>0&&!(mode==='boom'||gameOver);
+  if(!DRG_DEC){if(!on)return;
+    const mat=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uSize:{value:300},uA:{value:0}},vertexShader:FDISC_VS,fragmentShader:FDISC_FS,transparent:true,depthWrite:false});
+    const m=new THREE.Mesh(FDISC_GEO||(FDISC_GEO=new THREE.PlaneGeometry(1,1)),mat);m.frustumCulled=false;m.renderOrder=-3;scene.add(m);DRG_DEC={m:m,a:0};}
+  const D=DRG_DEC;D.a+=((on?.5:0)-D.a)*Math.min(1,dt*2.5);D.m.visible=D.a>.01;D.m.material.uniforms.uA.value=D.a;
+  if(D.m.visible){camera.getWorldDirection(DRG_V);D.m.position.copy(camera.position).addScaledVector(DRG_V,620);D.m.position.y+=190;D.m.updateMatrixWorld(true);}
+  // le compteur d'aura hypnotique
+  if(!DRG_EL.e)DRG_EL.e=document.getElementById('auraV2');
+  if(DRG_EL.e){const h9=pwrAurT>0;if(DRG_EL._h!==h9){DRG_EL._h=h9;DRG_EL.e.classList.toggle('hyp',h9);}}
+}
+{const st=document.createElement('style');st.textContent='#auraV2.hyp #avVal{animation:drgHue 1.8s linear infinite}@keyframes drgHue{0%{filter:hue-rotate(0deg) drop-shadow(0 0 6px #e0157a)}50%{filter:hue-rotate(90deg) drop-shadow(0 0 9px #7ad040)}100%{filter:hue-rotate(0deg) drop-shadow(0 0 6px #e0157a)}}';document.head.appendChild(st);}
+
+/* ===== LE CITRON : VITESSE ×2 ÉLECTRIQUE (2026-10-20, Léo) =====
+   Effet de jeu « comme avant » (8 s, l'avance ×2, voir `pwrSpdT`). Visuel : de PETITS ÉCLAIRS vifs qui zappent la carrosserie (rubans brisés toujours de face,
+   calculés dans le vertex shader, repris au hasard 14 fois par seconde — un éclair qui claque, pas qui flotte) + une ONDE DE CHOC (anneau qui s'élargit
+   depuis la caisse) toutes les ~0,55 s + le COMPTEUR km/h qui devient électrique (jaune-cyan, il tremble). Un seul objet partagé, créé au 1er citron. */
+const ZAP_NB=9,ZAP_NS=7;
+const ZAP_VS=`uniform float uT,uOn;attribute vec3 aSeg;varying float vA;varying float vK;
+float h(float x){return fract(sin(x*127.1)*43758.5453);}
+vec3 pt(float bolt,float stp,float t,vec3 S,vec3 d,float L,vec3 pe,vec3 pf){float seg=floor(t*7.+.5);
+  float j1=(h(seg*3.3+bolt+stp*.7)-.5)*.5,j2=(h(seg*7.1+bolt*2.+stp*.9)-.5)*.5;
+  return S+d*L*t+(pe*j1+pf*j2)*sin(t*3.1416)*L*.6;}
+void main(){float bolt=aSeg.x,seg=aSeg.y,corner=aSeg.z;float stp=floor(uT*14.+bolt*3.7);
+  float on=step(.35,h(bolt*17.1+stp*1.3))*uOn;
+  vec3 S=vec3((h(bolt*3.1+stp)-.5)*1.7,.45+h(bolt*5.3+stp*2.)*.9,(h(bolt*7.7+stp*3.)-.5)*4.2);
+  float ang=h(bolt*9.1+stp*1.7)*6.2832,el=(h(bolt*2.3+stp*4.)-.3)*1.2;vec3 d=normalize(vec3(cos(ang)*.9,el+.35,sin(ang)));
+  float L=.9+1.8*h(bolt*4.4+stp*5.);vec3 pe=normalize(cross(d,vec3(0.,1.,.001))),pf=cross(d,pe);
+  float t=seg/7.,t2=min(1.,t+.143);vec3 p=pt(bolt,stp,t,S,d,L,pe,pf),pn=pt(bolt,stp,t2,S,d,L,pe,pf);
+  vec4 mv=modelViewMatrix*vec4(p,1.);vec3 dv=(modelViewMatrix*vec4(pn,1.)).xyz-mv.xyz;
+  vec3 sd=normalize(cross(dv,vec3(0.,0.,1.))+vec3(1e-4));mv.xyz+=sd*corner*(.05*(1.-t*.6));
+  gl_Position=projectionMatrix*mv;vA=on*(1.-t*.45);vK=h(bolt+stp*.37);}`;
+const ZAP_FS=`varying float vA;varying float vK;void main(){if(vA<.01)discard;gl_FragColor=vec4(mix(vec3(.45,.92,1.),vec3(1.,1.,.82),vK),vA);}`;
+const ZAP={grp:null,mat:null,ring:null,rmat:null,on:0,rt:0,age:9};
+function zapBuild(){
+  const nv=ZAP_NB*(ZAP_NS+1)*2,pos=new Float32Array(nv*3),sg=new Float32Array(nv*3),ix=[];let v=0;
+  for(let b=0;b<ZAP_NB;b++){for(let k=0;k<=ZAP_NS;k++)for(const c of [-1,1]){sg[v*3]=b;sg[v*3+1]=k;sg[v*3+2]=c;v++;}
+    const base=b*(ZAP_NS+1)*2;for(let k=0;k<ZAP_NS;k++){const a=base+k*2;ix.push(a,a+1,a+2,a+1,a+3,a+2);}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('aSeg',new THREE.BufferAttribute(sg,3));g.setIndex(ix);
+  ZAP.mat=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uOn:{value:0}},vertexShader:ZAP_VS,fragmentShader:ZAP_FS,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
+  const m=new THREE.Mesh(g,ZAP.mat);m.frustumCulled=false;m.renderOrder=22;
+  ZAP.rmat=new THREE.ShaderMaterial({uniforms:{uA:{value:0}},vertexShader:'void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+    fragmentShader:'uniform float uA;void main(){gl_FragColor=vec4(.55,.95,1.,uA);}',transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
+  const r=new THREE.Mesh(new THREE.RingGeometry(.9,1,64),ZAP.rmat);r.frustumCulled=false;r.renderOrder=22;r.visible=false;
+  const grp=new THREE.Group();grp.add(m);ZAP.grp=grp;ZAP.ring=r;scene.add(grp);scene.add(r);
+}
+function zapTick(dt){
+  const on=pwrSpdT>0&&!(mode==='boom'||gameOver);
+  if(!ZAP.grp){if(!on)return;zapBuild();}
+  ZAP.on+=((on?1:0)-ZAP.on)*Math.min(1,dt*8);ZAP.mat.uniforms.uOn.value=ZAP.on;ZAP.grp.visible=ZAP.on>.02;
+  if(ZAP.grp.visible){ZAP.grp.position.copy(carGroup.position);ZAP.grp.quaternion.copy(carGroup.quaternion);}
+  // l'onde de choc : un anneau qui part de la caisse, toutes les ~0,55 s, face à la caméra
+  if(on){ZAP.rt+=dt;if(ZAP.rt>.55){ZAP.rt=0;ZAP.age=0;}}
+  if(ZAP.age<.5){ZAP.age+=dt;const u=Math.min(1,ZAP.age/.5);ZAP.ring.visible=true;ZAP.ring.position.copy(carGroup.position);ZAP.ring.position.y+=.9;
+    ZAP.ring.quaternion.copy(camera.quaternion);ZAP.ring.scale.setScalar(1.5+9*u);ZAP.rmat.uniforms.uA.value=.5*Math.pow(1-u,1.6);}
+  else ZAP.ring.visible=false;
+  // le compteur km/h électrique
+  const e=ZAP.el||(ZAP.el=document.getElementById('speedo'));if(e&&ZAP._h!==on){ZAP._h=on;e.classList.toggle('elec',on);}
+}
+Object.assign(PWR_DEFS.v,{col:0x7af0ff,core:0xfffbc8,tint:'#7af0ff',c2:'#ffe83a',fx:'rgba(122,240,255,.8)',fx2:'rgba(255,232,58,.35)',msg:'⚡ CITRON — VITESSE ×2 — 8 s !'});
+{const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.v.bd=f9(PWR_DEFS.v.fx);PWR_DEFS.v.bd2=f9(PWR_DEFS.v.fx2);}
+{const st=document.createElement('style');st.textContent='#speedo.elec #speedVal,#speedo.elec #speedUnit{color:#7af0ff!important;text-shadow:0 0 6px #5ee6ff,0 0 2px #fff;animation:elecJit .1s steps(2) infinite}@keyframes elecJit{0%{transform:translate(0,0)}50%{transform:translate(1px,-1px)}100%{transform:translate(-1px,1px)}}';document.head.appendChild(st);}
+
+/* ===== LE RAISIN ANGÉLIQUE : AIRTIME ×2, DOUBLE JAUGE (2026-10-20, Léo) =====
+   Armé (14 s, il s'use au quart au sol : `pwrAirK`) le raisin ne rend plus l'airtime INFINI : il DOUBLE la jauge. Jauge 1 = l'airtime normal (6 s, 10,2 en orbite) ;
+   quand elle est vide, la voiture PERD SES AILES D'ANGE (elles explosent en plumes, la caisse reste en vie) et la jauge 2 démarre, de même durée ; vide à son tour : explosion
+   comme d'habitude. `RAI.stage` : 0 = jauge 1, 1 = jauge 2 (remis à 0 à chaque décollage, startFall). L'airtime PRÊTÉ par l'auto-école (`TUTO.pa`) reste infini.
+   Les ailes blanches (sans halo : verdict de Léo) sont posées sur la caisse tant que le raisin est armé et que les ailes ne sont pas perdues.
+   HUD : la barre du chrono de vol (#airHud) a une 2e barre, plus fine, dessous : la jauge 2. */
+const RAI={stage:0,wings:null,vis:false};
+function airDepasse(){ // la jauge est-elle vide ? (remplace `fallTR>airMax()&&pwrAirT<=0`)
+  if(fallTR<=airMax())return false;
+  if(pwrAirT>0){
+    if(TUTO.pa)return false;                       // l'auto-école : airtime infini
+    if(RAI.stage===0){RAI.stage=1;fallTR=0;airFlash=.6;raisinAilesBoom();return false;} // la 1re jauge est vide : les ailes explosent, la 2e démarre
+  }
+  return true;
+}
+const RAI_PLUME=function(K,sg,bx,by,bz,ang,L,W,cur,k1,k2,kT){
+  const dx=sg*Math.cos(ang),dy=Math.sin(ang),px=-dy,py=dx*sg*sg,NS=7,pts=[],CUP=.42,FOLD=.5;
+  for(let i=0;i<=NS;i++){const u=i/NS,l=L*u,cx=bx+dx*l+px*cur*l*u,cy=by+dy*l+py*cur*l*u,cz=bz+CUP*l*l*.5,hw=W*Math.pow(Math.sin(Math.PI*Math.pow(u,.72)),.62)+.004;
+    pts.push({m:[cx,cy,cz+FOLD*hw*.6],l:[cx-px*hw,cy-py*hw,cz-FOLD*hw*.4],r:[cx+px*hw,cy+py*hw,cz-FOLD*hw*.4]});}
+  for(let i=0;i<NS;i++){const A=pts[i],B=pts[i+1],kk=(i>=NS-2&&kT)?kT:null;
+    K.tri(kk||k1,A.m,A.l,B.l);K.tri(kk||k1,A.m,B.l,B.m);K.tri(kk||k2,A.m,B.m,B.r);K.tri(kk||k2,A.m,B.r,A.r);}
+};
+function raisinAiles(){ // la paire d'ailes (une géométrie, trois rangs de plumes par aile), posée au-dessus des épaules de la caisse
+  if(RAI.wings)return RAI.wings;
+  const K=lpKit(FRUIT_PAL);
+  for(const sg of [1,-1]){const bx=sg*.30,by=.36;
+    for(let i=0;i<6;i++)RAI_PLUME(K,sg,bx,by,.02,.45+i*.2,.26+.03*Math.sin(i*1.3),.10,.10,'wgW','wgw',null);
+    for(let i=0;i<6;i++)RAI_PLUME(K,sg,bx,by+.02,-.02,.35+i*.21,.42+.07*Math.sin(i*.9+.4),.11,.14,'wgW','wgw',null);
+    for(let i=0;i<6;i++)RAI_PLUME(K,sg,bx,by+.04,-.06,.25+i*.22,.62+.12*Math.sin(i*.8+.3),.12,.16,'wgW','wgw','wgG');}
+  const geo=K.done().f;if(!FRUIT_MAT){FRUIT_MAT=lpMat('f');FRUIT_MAT.userData.lp=0;}
+  const m=new THREE.Mesh(geo,FRUIT_MAT);m.scale.setScalar(2.4);m.frustumCulled=false;
+  const g=new THREE.Group();g.add(m);m.position.set(0,.55,-.2);g.visible=false;scene.add(g);RAI.wings=g;return g;
+}
+function raisinAilesBoom(){ // les ailes explosent en plumes : un flash blanc, une secousse, une gerbe qui part des épaules
+  try{shake=Math.max(shake,.9);flashEcran('rgba(255,255,255,.75)');hap([20,40,30]);
+    const p=crV1.copy(carGroup.position);p.y+=1.6;sparkBurst(sparkGold,p,26,13);sparkBurst(sparkBlue,p,16,9);
+    if(SONV2)sfx('pwr.bouclierCasse');}catch(e){}
+  RAI.vis=false;if(RAI.wings)RAI.wings.visible=false;
+}
+function raisinTick(dt){
+  const arme=pwrAirT>0&&!TUTO.pa&&!(mode==='boom'||gameOver),vis=arme&&RAI.stage===0;
+  if(vis||RAI.wings){const g=raisinAiles();if(g.visible!==vis)g.visible=vis;
+    if(vis){g.position.copy(carGroup.position);g.quaternion.copy(carGroup.quaternion);const w=Math.sin(FAURAU.t*9)*.06;g.children[0].rotation.z=w*0+0;g.children[0].position.y=.55+Math.sin(FAURAU.t*5)*.05;}}
+}
+function raisinHud(double,fr2){ // la 2e barre sous le chrono de vol
+  const el=raisinHud.el||(raisinHud.el=document.getElementById('airHud'));if(!el)return;
+  if(!raisinHud.b){const bar=el.querySelector('.ahBar');if(!bar)return;const b2=bar.cloneNode(true);b2.classList.add('ahBar2');bar.after(b2);raisinHud.b=b2;
+    const st=document.createElement('style');st.textContent='#airHud .ahBar2{display:none;height:9px;margin-top:3px;padding:2px}#airHud[data-d="1"] .ahBar2{display:block}#airHud .ahBar2 .ahF{width:calc(var(--a2,1)*100%);background:linear-gradient(90deg,#ff9ec2,#ffffff)}#airHud .ahBar2 .ahF::after{display:none}';document.head.appendChild(st);}
+  const d=double?'1':'0';if(el.dataset.d!==d)el.dataset.d=d;
+  if(double){const q=fr2.toFixed(2);if(raisinHud._q!==q){raisinHud._q=q;el.style.setProperty('--a2',q);}}
+}
+Object.assign(PWR_DEFS.a,{col:0xffffff,core:0xfff4e8,tint:'#ffd6f0',c2:'#d070d0',fx:'rgba(255,214,240,.8)',fx2:'rgba(208,112,208,.3)',msg:'🍇 RAISIN — AIRTIME ×2 : DEUX JAUGES !',sous:'AIRTIME x2, 2 JAUGES'});
+{const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.a.bd=f9(PWR_DEFS.a.fx);PWR_DEFS.a.bd2=f9(PWR_DEFS.a.fx2);}
+/* banc (dev) : `dbgRaisin()` l'état de la double jauge ; `dbgRaisin('vide')` vide la jauge en cours (pour voir les ailes exploser / la 2e jauge démarrer). */
+window.dbgRaisin=function(k){if(k==='vide')fallTR=airMax()+.05;return {stage:RAI.stage,fallTR:+fallTR.toFixed(2),airMax:airMax(),pwrAirT:+pwrAirT.toFixed(2),mode:mode,ailes:!!(RAI.wings&&RAI.wings.visible)};};
 /* ===== LE FINAL SPIN v2 (2026-10-14 soir — Sacha, sur la v1 : « c'est ÇA la roulette, sérieux ? » ; l'ordre du matin : « le final spin [de
    Jetpack Joyride] … la bonne DA, HUD, lumières, bonnes animations et un vrai niveau de finition ; ça ne doit pas se déclencher à chaque
    partie ») — session IDEE. La v1 (une petite grille d'icônes sur l'écran de mort en transparence) est REFAITE :
@@ -47487,6 +47679,7 @@ function pwrV2Raz(){PWR_V2.bt=null;}
 function pwrPoids(){const W=pwrPoids0();if(LVL.cur&&LVL.cur.id==='canyon'&&!PARK.on&&W.v>0){const k9=1/(1-W.v);W.v=0;for(const q in W)W[q]*=k9;}return W;}
 function pwrPoids0(){
   const runs=(SAVE.d.ex&&SAVE.d.ex.runs)|0;
+  if(PWR_EGAUX)return {n:.2,a:.2,v:.2,m:.2,x:.2}; // (2026-10-20, Léo : « tous les spéciaux apparaissent à la même fréquence ») les cinq fruits-pouvoirs à ÉGALITÉ
   if(runs<8)return {n:.2,a:.22,v:.12,m:.3,x:.16}; // (29/09) les parts du BOUCLIER retiré sont rendues aux autres
   if(runs<30)return {n:.21,a:.19,v:.18,m:.21,x:.21};
   return {n:.21,a:.17,v:.16,m:.19,x:.27}; // (2026-09-30) VITESSE .22 → .16 : chez un vétéran NITROOO passe vite +30 %, et le plafond commun vitMult (×2,6) avale alors le ×2 — ses parts vont à l'AURA ×2 et à l'AIMANT (somme 1, un seul tirage)
@@ -47726,6 +47919,7 @@ function spawnPickups(rnd){
     let kind=pwrTire(rnd(),W9);
     let lt=(rnd()*2-1)*(ROAD_HALF-4);
     if(prem9){kind='m';prem9=false;lt*=.2;} // le 1er AIMANT d'un débutant est posé PRÈS DE L'AXE : il le prend sans le chercher
+    if(PWR_LIGNE)continue; // (2026-10-20) les fruits-pouvoirs ne sont plus semés au hasard : ils tombent AU BOUT D'UNE LONGUE FILE de fruits (ligneTick) — tirages ci-dessus consommés, le flux seedé ne bouge pas
     if(LVL.cur&&LVL.cur.piste==='tuto')continue; // (2026-09-29, audit) PAS DE CRISTAUX À L'ÉCOLE : « AURA ×2 — CHAQUE FIGURE COMPTE DOUBLE » tombait en pleine consigne TOURNE (tirages consommés au-dessus : le flux ne bouge pas)
     frameAt(ss,F);
     mat4b.makeBasis(F.b,F.n,F.t);
@@ -55377,7 +55571,7 @@ function addAura(n,titre,brut){ // brut : n est DÉJÀ multiplié par la vitesse
   // ⚠ RIEN EN FREESTYLE : le parc n'a pas de mort. Une monnaie de panache ne se gagne pas la ou
   // l'on ne risque rien — sinon le mode d'entrainement devient la meilleure facon de monter en rang.
   if(!(n>0)||!running||gameOver||(typeof PARK!=='undefined'&&PARK.on))return;
-  n=(brut?Math.round(n):Math.round(n*auraMultVitesse()))*(pwrAurT>0?2:1); // (pouvoirs v2) AURA ×2
+  n=(brut?Math.round(n):Math.round(n*auraMultVitesse()))*auraDragonK(); // (pouvoirs v2) AURA ×2
   auraRun+=n;livre('a:direct'+(titre?'.'+String(titre).split(' ')[0]:''),n);
   auraPop=Math.min(1,auraPop+n/90);
   if(titre){ // un gain NOMMÉ : il claque à l'écran, avec sa raison
@@ -55464,12 +55658,12 @@ function chaineAuraMuette(nom,base,fam,brut,muet){const s9=CHA.sansPop;CHA.sansP
 function chaineAura(nom,base,fam,brut,muet,rob){ // rob : un ROBINET (récolte, rafale, palier de NITROOO, nage du dauphin) — payé au compteur, hors chaîne · brut : pas de décote de redite (les échelles qui grimpent déjà : vrilles, bumps) · muet : l'appelant sonne déjà (figure en vol, pose)
   if(!(base>0)||!running||gameOver||(typeof PARK!=='undefined'&&PARK.on))return 0;
   if(rob){ /* (2026-10-01) LE ROBINET : au compteur, tel quel — ni chaîne, ni ×, ni horloge (voir LA CHAÎNE SE FERME) */
-    const p=Math.max(1,Math.round(base*(pwrAurT>0?2:1)));auraRun+=p;livre('a:robinet.'+(fam||nom),p);auraPop=Math.min(1,auraPop+p/90);
+    const p=Math.max(1,Math.round(base*auraDragonK()));auraRun+=p;livre('a:robinet.'+(fam||nom),p);auraPop=Math.min(1,auraPop+p/90);
     if(TCTL.on&&!CHA.sansPop)popTexte(sansAcc(TR(nom))+' +'+p,'#ffd75e',0);
     if(!muet)try{chimeNote(noteP(1,1),0,.10,.16);}catch(e){}
     return p;}
   fam=fam||nom;const k=CHA.fam[fam]|0;CHA.fam[fam]=k+1;
-  const p=Math.max(1,Math.round(base*(brut?1:Math.pow(.7,k))*(pwrAurT>0?2:1))); // (pouvoirs v2) AURA ×2
+  const p=Math.max(1,Math.round(base*(brut?1:Math.pow(.7,k))*auraDragonK())); // (pouvoirs v2) AURA ×2
   const x0=CHA.x;if(k===0)CHA.x=Math.min(CHA_XMAX,CHA.x+1);
   if(CHA.x>(runStats.xMax|0))runStats.xMax=CHA.x; // le meilleur × de la partie : l'écran de fin le montre
   if(!CHA.n)CHA.age=0;CHA.pts+=p;CHA.n++;CHA.t=CHA_FEN;livre('ab:'+fam,p);
@@ -55477,6 +55671,7 @@ function chaineAura(nom,base,fam,brut,muet,rob){ // rob : un ROBINET (récolte, 
   chaHud(true,CHA.x>x0);
   if(TCTL.on&&!CHA.sansPop)popTexte(lb9+' +'+p,CHA.x>x0?'#ff9ee6':'#ffd75e',0); // au-dessus de la caisse : le geste ET ce qu'il rapporte — (v5) sauf à la pose du dauphin : son récapitulatif parle seul
   if(!muet&&!(SONV2&&CHA.x>x0&&(CHA.x===5||CHA.x===8||CHA.x===10)))try{if(SONV2){if(mode==='fall')sfx('fig.maillon',{st:echSt()});else sfx('aura.geste',{st:sonPdAR(CHA.x)});}else chimeNote(noteP(Math.min(7,CHA.x),1),0,.10,.16);}catch(e){} // (console) en l'air, le geste prend l'échelle du vol ; au sol, la gamme de l'aura (marimba) — (2026-10-15) sonPdAR : ×10 jouait +24 (deux octaves), l'octave suffit
+  if(pwrAurT>0)try{dragonJus();}catch(e){} // (fruit du dragon) chaque geste fait GICLER le fruit
   return p;
 }
 /* HUD v3 : LA GRANDE ANNONCE qui claque au centre haut (BOOST, pouvoirs, paliers du ×) — une seule à la fois, la dernière gagne */
@@ -56019,19 +56214,19 @@ function juiceScreenTick(dt){
 // le splotch reste un fruit, pas une voix de souris ; la rafale, bases [0], reste sous l'octave même tonalité comprise)
 const SON_FRUIT_ST=[0,2,4,7];
 function sonFruitSt(i){i=Math.max(0,i|0);return i<4?SON_FRUIT_ST[i]:SON_FRUIT_ST[2+(i&1)];}
-function fruitCroque(pos,col,power,nom){ // nom : le fruit — chacun a SA bouche (console de son)
-  fruitRafT=FRUIT_FENETRE;fruitRaf++;
+function fruitCroque(pos,col,power,nom,leger){ // nom : le fruit — chacun a SA bouche (console de son) · leger : un fruit de la FILE (toutes les 0,45 s : jus et rafale adoucis, sinon l'écran serait recouvert)
+  fruitRafT=FRUIT_FENETRE;fruitRaf++;if(leger)power*=.55;
   const r=Math.min(6,fruitRaf);
   /* L'ÉCLABOUSSURE. ⚠ elle partait du CENTRE de la caisse, donc à moitié cachée par la carrosserie —
      d'où « je n'ai pas tellement vu ». Elle part maintenant du NEZ et vers le HAUT, là où la caméra
      de poursuite regarde, et le nombre de gerbes suit la rafale : une, puis deux, puis trois. */
   const p2=crV1.copy(pos);p2.y+=1.1;
   juiceSplash(p2,col,Math.min(1.2,power*.9+r*.18));      // la gerbe 3D reste, mais en appoint
-  juiceScreen(col,power,1+Math.min(4,r));                 // …et LE JUS REPEINT L'OBJECTIF : ça, on le voit
+  if(!leger||(fruitRaf&3)===0)juiceScreen(col,power,leger?1:1+Math.min(4,r));                 // …et LE JUS REPEINT L'OBJECTIF : ça, on le voit (un fruit de la file : un sur quatre)
   if(SONV2){sfx(FRUIT_SON[nom]||'fruit.peche',{rate:Math.pow(2,sonFruitSt(fruitRaf-1)/12),vol:nom==='PASTÈQUE'?0:-4});if(r>=3)sfx('fruit.rafale',{st:sonFruitSt(fruitRaf-3),vol:-3});}else crunchSfx(r); /* (2026-10-15, Sacha : « équilibre mieux, que les figures fassent plus de bruit que ce qu'on ramasse ») un fruit sortait à −28, au-dessus d'une figure : −4 (−32), la rafale −3 ; la PASTÈQUE (le graal) garde son niveau */ // (2026-10-14, session SON) la série MONTE en demi-tons de pentatonique (0-2-4-7, puis 4-7…) : avant, +2,5 % par fruit (0,4 demi-ton) noyé sous le hasard de la fiche (rj ±6 %, ±1 demi-ton) ; la rafale (key:1) monte avec /* (débogage son 2026-09-29) le plein de nitro sonne à la pompe, seulement s'il y a eu plein */
   shake=Math.max(shake,Math.min(.55,.18+r*.07));
   if(fruitRaf>=3){                                    // 3 fruits d'affilée : ce n'est plus un hasard
-    chaineAura('RAFALE ×'+fruitRaf,15+r*6,'rafale',true,SONV2,true); /* (2026-10-01) 40+30r → 15+6r : depuis LA LIGNE PARFAITE un fruit arrive toutes les 2,4 s, la rafale ne retombe plus — 220 points par fruit, le plus gros robinet d'aura de la route (voir LA CHAÎNE SE FERME) */
+    chaineAura('RAFALE ×'+fruitRaf,Math.round((15+r*6)*(leger?.25:1)),'rafale',true,SONV2,true); /* (2026-10-01) 40+30r → 15+6r : depuis LA LIGNE PARFAITE un fruit arrive toutes les 2,4 s, la rafale ne retombe plus — 220 points par fruit, le plus gros robinet d'aura de la route (voir LA CHAÎNE SE FERME) */
     trickMsg('🧃 RAFALE ×'+fruitRaf,r>=5?3:2);
   }
 }
@@ -56463,7 +56658,7 @@ function sensBumpFlanc(b,t,n,sg,impB){
   for(let i=0;i<nb;i++){const a=vt*(.72+Math.random()*.26),l=sg*(2+Math.random()*(4+5*k)),u=-1+Math.random()*3.5,o=(Math.random()-.5)*1.6;
     spawnP(sparkGold,px+t.x*o,py+t.y*o,pz+t.z*o,t.x*a+b.x*l+n.x*u,t.y*a+b.y*l+n.y*u,t.z*a+b.z*l+n.z*u,.2+Math.random()*.25);}
 }
-function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe(); // (2026-10-17) fr9 : une figure SUR LA ROUTE en cours, qui part avec le vol // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
+function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe();RAI.stage=0; // (2026-10-17) fr9 : une figure SUR LA ROUTE en cours, qui part avec le vol // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
   FX2.drift=FIGV2.on&&driftEnCours&&!bord;FX2.driftS=steer>=0?1:-1; // (2026-10-14, LES FIGURES v2) un DRIFT qui décolle part en toupie — lu AVANT la remise à zéro
   if(bord)secBord();m2Saut(); /* (2026-10-16) LES MISSIONS v2 : un saut neuf, des tours neuves à frôler */ // (2026-10-14) LES DÉFIS SECRETS : FANTÔME — sorti par le bord
   const roll0=carRoll9; // (bord v2) le roulis de la carrosserie AVANT la remise à zéro : la bascule part de là
@@ -66374,7 +66569,7 @@ function volFaceTick(){
   return RAM.fv;
 }
 function pickupsTick(dt){
-  fauraGlobalTick(dt); // (2026-10-20) le temps PARTAGÉ des auras des fruits-pouvoirs : une écriture par image pour tous les fruits de la route
+  ninfTick(dt);fauraGlobalTick(dt);dragonDecor(dt);zapTick(dt);raisinTick(dt); // (2026-10-20) le temps PARTAGÉ des auras des fruits-pouvoirs : une écriture par image pour tous les fruits de la route
   const enVol=(mode==='fall');
   // (LIGNE PARFAITE) le fruit de la file se teste aussi sur le TRAJET de l'image — (2026-09-30) le trajet AU SOL seulement : en vol `s`
   // ne décrit plus la caisse ; le balayage repart de zéro au décollage (startFall) et reprend à la pose
@@ -66412,7 +66607,7 @@ function pickupsTick(dt){
   for(let i9=0;i9<pickups.length;i9++){
     const p=pickups[i9];
     if(p.taken)continue;
-    const mag=engTier>=ENG_CAP.aimant?1:0,gros9=MAG9&&!p.pow; // (2026-10-14, chasse aux bugs) RAM.q = l'objet AVANT l'attraction de l'image (ramD) — (OPTIMISATION) copié dans chaque branche APRÈS ses filtres bon marché : ~9 000 copies de moins par image en fin de partie, même valeur là où elle est lue
+    const mag=engTier>=ENG_CAP.aimant?1:0,gros9=MAG9&&!p.pow&&!p.nitro; /* (2026-10-20, Léo : « l'aimant attire les PIÈCES seulement ») la pomme dorée n'attire plus les fruits */ // (2026-10-14, chasse aux bugs) RAM.q = l'objet AVANT l'attraction de l'image (ramD) — (OPTIMISATION) copié dans chaque branche APRÈS ses filtres bon marché : ~9 000 copies de moins par image en fin de partie, même valeur là où elle est lue
     if(p.hk>0){RAM.q.copy(p.mesh.position);if(saut9){p.hk=0;continue;}} // un saut de caisse DÉCROCHE : rien ne traverse la carte pour payer
     else if(enVol){ // EN VOL : le couloir, TA face, pas de jumeau — puis la sphère ACCROCHE
       if(Math.abs(p.s-lastNearS)>(gros9?MAG_R+40:70))continue; // pré-filtre bon marché le long de la piste, AVANT toute distance 3D
@@ -66427,7 +66622,7 @@ function pickupsTick(dt){
       if(Math.abs(p.s-s)>MAG_R+8)continue; // pré-filtre bon marché le long de la piste
       if(p.face!==fV9&&!p.air)continue; // (passe qualité) TA face seulement
       RAM.q.copy(p.mesh.position);const d9=p.mesh.position.distanceTo(carGroup.position);
-      if(d9<MAG_R){const q9=1-d9/MAG_R;p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(5+25*q9*q9)));}
+      if(d9<MAG_R){const q9=1-d9/MAG_R;p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(5+25*q9*q9)));magSpirale(p,d9,dt);}
     }else{
       if(p.face!==side)continue;
       const ds9=Math.abs(p.s-s);
@@ -66441,7 +66636,7 @@ function pickupsTick(dt){
     }
     if(p.hk>0){ // ACCROCHÉ : il file sur la caisse — l'écart fond d'au moins (1−f) par image, quoi que fasse la caisse
       const f9=Math.min(1,dt*(RAM_K+RAM_A*p.hk)),P9=p.mesh.position;p.hk+=dt;
-      P9.lerp(carGroup.position,f9);
+      P9.lerp(carGroup.position,f9);if(MAG9&&!p.nitro&&!p.pow)magSpirale(p,P9.distanceTo(carGroup.position),dt); // (pomme dorée) la pièce accrochée en vol tourne aussi
       const d9=P9.distanceTo(carGroup.position),dM=p.hkD*(1-f9);
       if(d9>dM&&d9>1e-6)P9.lerp(carGroup.position,1-dM/d9); // la caisse le distance : il est tiré sur la ligne qui les relie
       p.hkD=Math.min(d9,dM);
@@ -66458,11 +66653,11 @@ function pickupsTick(dt){
         const fd=FRUIT_DEFS[p.fruit]||FRUIT_DEFS[0],pw=Math.min(1,fd.boost/2);
         // (2026-09-26, user : « les fruits donnent du nitro BLEU ») : chaque fruit remplit la RÉSERVE BLEUE (la nitro la plus forte : poussée
         // 48 contre 30) de 20 % de la jauge — le bleu se voit sur la barre et sur l'anneau du bouton
-        {const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,av9=nitroX;nitroX=Math.min(2,nitroX+(p.ligne?LIGNE.don:.2*mx9));if(LIVRE.on){livre('n+:'+(p.ligne?'fruit.ligne':'fruit'),nitroX-av9);livre('n0:'+(p.ligne?'fruit.ligne':'fruit'),(p.ligne?LIGNE.don:.2*mx9)-(nitroX-av9));}if(p.ligne)LIGNE.pris[0]++; // (LIGNE PARFAITE) le fruit de la file rend de quoi tenir jusqu'au pad
+        {const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,av9=nitroX;{const g9=p.ligne?LIGNE.don:.2*mx9,toR=Math.min(Math.max(0,mx9-nitroR),g9);nitroR+=toR;nitroX=Math.min(2,nitroX+(g9-toR));} /* (2026-10-20, Léo : « jauge pleine, et le surplus passe en réserve bleue ») un fruit remplit d'abord la NITRO NORMALE, le trop-plein file dans la RÉSERVE BLEUE */if(LIVRE.on){livre('n+:'+(p.ligne?'fruit.ligne':'fruit'),nitroX-av9);livre('n0:'+(p.ligne?'fruit.ligne':'fruit'),(p.ligne?LIGNE.don:.2*mx9)-(nitroX-av9));}if(p.ligne)LIGNE.pris[0]++; // (LIGNE PARFAITE) le fruit de la file rend de quoi tenir jusqu'au pad
          if(nitroX>av9+.01){if(SONV2)sfx('nitro.plein',{t:.14});if(!volgNitro('x',nitroX-av9))nbPrend('x');}}
         RUNX.fruits++;hap(fd.boost>=1.5?[20,40,30]:11);
         if(SENS&&!REDUCED_MOTION)try{sensCoup(0,-(.45+.6*pw),-(.3+.35*pw));}catch(e){} // (2026-10-14, sensations · passages) LE COUP DE REINS du plein : le fruit rend sa nitro, la caisse S'ASSOIT d'un coup sur son train arrière (nez levé ≈ 1,2° la myrtille → 2,7° la pastèque, ≈ 1 à 2,5 cm) puis se repose — le jus, le croc et la main existaient, la tôle ne bronchait pas. Au sol seulement (sensCoup dort en vol).
-        fruitCroque(carGroup.position,fd.jus||0xffd75e,pw,fd.n); // ON CROQUE : jus, crunch, et la rafale qui monte
+        fruitCroque(carGroup.position,fd.jus||0xffd75e,pw,fd.n,!!p.ligne); // ON CROQUE : jus, crunch, et la rafale qui monte
         // (le fruit ne touche PAS au moteur : il ne sert qu'au boost — ce sont les pièces qui l'améliorent)
         if(fd.boost>=1.5){ // LE GRAAL : la pastèque, ça se fête
           trickMsg('🍉 '+fd.n+' !',2);sparkBurst(sparkGold,carGroup.position,18,14);shake=Math.max(shake,.3);
@@ -67852,10 +68047,13 @@ function loop(now){
       landMark.material.color.lerp(LM.c,Math.min(1,dt*12));
       // camembert de temps de vol (cyan plein pendant AIRTIME INFINI : c'est le pouvoir qui s'égrène)
       if(airPie.style.display!=='block')airPie.style.display='block'; // (2026-09-27) une fois par vol, plus à chaque image
-      const fr=pwrAirT>0?Math.min(1,pwrAirT/PWR_DEFS.a.t):Math.max(0,1-fallTR/airMax()); // jauge en temps RÉEL : 6 s affichées = 6 s vécues · (pouvoirs v2) sur la durée du pouvoir (14 s)
+      const inf9=pwrAirT>0&&TUTO.pa; // l'airtime PRÊTÉ par l'auto-école reste INFINI ; le RAISIN, lui, DOUBLE la jauge (voir RAI)
+      const fr=inf9?Math.min(1,pwrAirT/PWR_DEFS.a.t):Math.max(0,1-fallTR/airMax()); // jauge en temps RÉEL : 6 s affichées = 6 s vécues
       if(airFlash>0)airFlash=Math.max(0,airFlash-dt);
-      airPieDraw(fr,pwrAirT>0?pwrAirT:Math.max(0,airMax()-fallTR),airFlash>0);
-      {const dg=pwrAirT<=0&&airMax()-fallTR<1.5;if(dg!==loop._pdg){loop._pdg=dg;airPie.classList.toggle('danger',dg);} // (2026-09-26) il TREMBLE sous 1,5 s
+      const dbl9=pwrAirT>0&&!TUTO.pa; // (raisin) DEUX jauges : la 1re, puis — les ailes perdues — la 2e, de même durée
+      airPieDraw(dbl9&&RAI.stage===1?0:fr,inf9?pwrAirT:Math.max(0,airMax()-fallTR),airFlash>0);
+      raisinHud(dbl9,dbl9?(RAI.stage===1?fr:1):0);
+      {const dg=!inf9&&airMax()-fallTR<1.5;if(dg!==loop._pdg){loop._pdg=dg;airPie.classList.toggle('danger',dg);} // (2026-09-26) il TREMBLE sous 1,5 s
        // …et il TIQUE : les yeux sont sur la caisse, pas sur le chrono — un tic dans la tonalité qui accélère, plus une micro-vibration
        if(dg){loop._atk=(loop._atk||0)-dt;if(loop._atk<=0){const r9=Math.max(0,airMax()-fallTR);loop._atk=.09+.25*r9/1.5;try{if(SONV2)sfx(r9<.5?'alerte.tac':'alerte.tic');else chimeNote(noteP(r9<.5?4:2,1),0,.06,.06);}catch(e){} /* (console) un danger sonne en BOIS, jamais en cloche de récompense */hap(5);}}else loop._atk=0;}
       if(TCTL.on&&!TUTO.on&&!(SAVE.d.ast&2)){loop._astV=(loop._astV||0)+dt;if(loop._astV>1){SAVE.d.ast|=2;SAVE.mark(); // ASTUCE (une fois à vie) : l'assiette au pouce
@@ -67872,7 +68070,7 @@ function loop(now){
       else if(CITY.solY!=null&&LVL.cur&&LVL.cur.vitre&&fallPos.y<CITY.solY+1.4){airPie.style.display='none';shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else{impPrep(vitreSolDans,'sol',.6);explode('sol');}} // (2026-10-18) LA VILLE VITRÉE AU SOL : le sol est dur
       else if(CITY.col&&villeHeurt(fallPos)){airPie.style.display='none';shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else{impPrep(villeHeurt,'tour',.9);explode('tour');}} // (2026-10-15) L'IMPACT, le même partout (le cratère propre aux tours, villeImpact, n'est plus appelé : Sacha veut l'explosion de l'airtime sur la ville aussi) // (2026-09-26) DANS UNE TOUR : on meurt
       else if(tryLand(dtF)){airPie.style.display='none';mirPose();} // posé : le total du DAUPHIN se fige et s'encaisse — (v5) et s'ÉCRIT enfin
-      else if((fallTR>airMax()&&pwrAirT<=0&&!BALADE)||jadeVide(fallPos.y)){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(jadeVide(fallPos.y)||MIR.t>2.2?'vide':'air');} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
+      else if((airDepasse()&&!BALADE)||jadeVide(fallPos.y)){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(jadeVide(fallPos.y)||MIR.t>2.2?'vide':'air');} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----
       if(!impCoupTick(dt)){ // (2026-10-15, L'IMPACT) pendant le COUP (0,11 s), la caisse s'écrase contre la paroi : la détonation attend
       boomT+=dt;
@@ -68447,6 +68645,7 @@ function loop(now){
     {const k9=(mode==='boom'||gameOver)?'':pwrNitroT>0?'n':pwrSpdT>0?'v':pwrAurT>0?'x':pwrMagT>0?'m':pwrAirT>0&&!TUTO.on?'a':''; // (HUD v3) les BORDS de l'écran battent à la couleur du pouvoir actif — (2026-09-28) pas l'airtime prêté par l'auto-école · (pouvoirs v2) le plus « chaud » d'abord
      if(k9!==loop._pfx){loop._pfx=k9;let e9=avE('pwrFx');if(!e9){e9=document.createElement('div');e9.id='pwrFx';e9.setAttribute('aria-hidden','true');document.body.appendChild(e9);avEl.pwrFx=e9;}
        if(k9){e9.style.setProperty('--pf',PWR_DEFS[k9].bd||PWR_DEFS[k9].fx);e9.style.setProperty('--pf2',PWR_DEFS[k9].bd2||PWR_DEFS[k9].fx2);} /* (2026-10-14, passe graphismes) bd/bd2 = le voile dosé (÷ 2,5) */e9.classList.toggle('on',!!k9);}}
+    if(pwrNitroT>0&&!(mode==='boom'||gameOver)){const e9=avE('pwrFx');if(e9&&Math.abs(NINF.h-(loop._pfh||0))>.012){loop._pfh=NINF.h;const r9=NINF.rgb;e9.style.setProperty('--pf','rgba('+r9[0]+','+r9[1]+','+r9[2]+','+(.2+.18*NINF.h).toFixed(3)+')');e9.style.setProperty('--pf2','rgba('+r9[0]+','+r9[1]+','+r9[2]+','+(.08+.12*NINF.h).toFixed(3)+')');}} // (2026-10-20, piment) les bords d'écran de la nitro infinie suivent la TEMPÉRATURE du feu : discrets au début, plus forts ensuite
     // JAUGE DE PROGRESSION — elle suivait le cash vers la prochaine VOITURE ; les voitures ne se
     // gagnent plus à l'argent de la partie. Elle suit désormais les PIÈCES vers le prochain MOTEUR,
     // la seule progression qui court pendant une partie. (elCp, le texte, est géré plus haut.)

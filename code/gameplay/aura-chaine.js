@@ -76,12 +76,12 @@ function chaineAuraMuette(nom,base,fam,brut,muet){const s9=CHA.sansPop;CHA.sansP
 function chaineAura(nom,base,fam,brut,muet,rob){ // rob : un ROBINET (récolte, rafale, palier de NITROOO, nage du dauphin) — payé au compteur, hors chaîne · brut : pas de décote de redite (les échelles qui grimpent déjà : vrilles, bumps) · muet : l'appelant sonne déjà (figure en vol, pose)
   if(!(base>0)||!running||gameOver||(typeof PARK!=='undefined'&&PARK.on))return 0;
   if(rob){ /* (2026-10-01) LE ROBINET : au compteur, tel quel — ni chaîne, ni ×, ni horloge (voir LA CHAÎNE SE FERME) */
-    const p=Math.max(1,Math.round(base*(pwrAurT>0?2:1)));auraRun+=p;livre('a:robinet.'+(fam||nom),p);auraPop=Math.min(1,auraPop+p/90);
+    const p=Math.max(1,Math.round(base*auraDragonK()));auraRun+=p;livre('a:robinet.'+(fam||nom),p);auraPop=Math.min(1,auraPop+p/90);
     if(TCTL.on&&!CHA.sansPop)popTexte(sansAcc(TR(nom))+' +'+p,'#ffd75e',0);
     if(!muet)try{chimeNote(noteP(1,1),0,.10,.16);}catch(e){}
     return p;}
   fam=fam||nom;const k=CHA.fam[fam]|0;CHA.fam[fam]=k+1;
-  const p=Math.max(1,Math.round(base*(brut?1:Math.pow(.7,k))*(pwrAurT>0?2:1))); // (pouvoirs v2) AURA ×2
+  const p=Math.max(1,Math.round(base*(brut?1:Math.pow(.7,k))*auraDragonK())); // (pouvoirs v2) AURA ×2
   const x0=CHA.x;if(k===0)CHA.x=Math.min(CHA_XMAX,CHA.x+1);
   if(CHA.x>(runStats.xMax|0))runStats.xMax=CHA.x; // le meilleur × de la partie : l'écran de fin le montre
   if(!CHA.n)CHA.age=0;CHA.pts+=p;CHA.n++;CHA.t=CHA_FEN;livre('ab:'+fam,p);
@@ -89,6 +89,7 @@ function chaineAura(nom,base,fam,brut,muet,rob){ // rob : un ROBINET (récolte, 
   chaHud(true,CHA.x>x0);
   if(TCTL.on&&!CHA.sansPop)popTexte(lb9+' +'+p,CHA.x>x0?'#ff9ee6':'#ffd75e',0); // au-dessus de la caisse : le geste ET ce qu'il rapporte — (v5) sauf à la pose du dauphin : son récapitulatif parle seul
   if(!muet&&!(SONV2&&CHA.x>x0&&(CHA.x===5||CHA.x===8||CHA.x===10)))try{if(SONV2){if(mode==='fall')sfx('fig.maillon',{st:echSt()});else sfx('aura.geste',{st:sonPdAR(CHA.x)});}else chimeNote(noteP(Math.min(7,CHA.x),1),0,.10,.16);}catch(e){} // (console) en l'air, le geste prend l'échelle du vol ; au sol, la gamme de l'aura (marimba) — (2026-10-15) sonPdAR : ×10 jouait +24 (deux octaves), l'octave suffit
+  if(pwrAurT>0)try{dragonJus();}catch(e){} // (fruit du dragon) chaque geste fait GICLER le fruit
   return p;
 }
 /* HUD v3 : LA GRANDE ANNONCE qui claque au centre haut (BOOST, pouvoirs, paliers du ×) — une seule à la fois, la dernière gagne */

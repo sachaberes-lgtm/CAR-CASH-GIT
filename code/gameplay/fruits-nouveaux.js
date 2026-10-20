@@ -249,3 +249,8 @@ function fruitPowGeo(k){
   if(!FRUIT_MAT){FRUIT_MAT=lpMat('f');FRUIT_MAT.userData.lp=0;}
   return FRUIT_POW_GEO[k];
 }
+
+const PADS_OFF=!/[?&]pads=1/.test(location.search); // plus de plaques turbo (?pads=1 les rend, pour comparer)
+const PWR_LIGNE=!/[?&]cristaux=1/.test(location.search); // les fruits-pouvoirs tombent au bout de la file de fruits (?cristaux=1 : les anciens cristaux au hasard)
+const PWR_EGAUX=true; // les cinq pouvoirs à la même fréquence
+

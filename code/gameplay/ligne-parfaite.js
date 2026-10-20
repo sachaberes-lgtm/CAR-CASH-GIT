@@ -98,7 +98,9 @@ window.dbgVille=function(){const r=renderer.info,d=camera.getWorldDirection(new 
    sans la lâcher, qui en rate voit la jauge baisser. Deux faces (miroir), comme tout le reste. ⚠ Aucun rnd() : le flux seedé ne bouge pas.
    Un objet qui tombe sur un trou, un tremplin, une porte de plots ou une chaîne de néon glisse plus loin ; s'il n'a pas de place il saute,
    et le suivant garde SON type (l'alternance tient). */
-const LIGNE={on:false,dt:1.2,don:1.15,voir:3.5,prochS:0,k:0,pts:[],padI:new Set(),padPris:new Set(),n:[0,0],pris:[0,0],vP:0,acc:0}; // n : posés · pris : ramassés (fruits, pads) — pour le banc
+/* (2026-10-20, Léo : « les boosts de la route disparaissent, on booste non-stop en attrapant des fruits ; des petits fruits qu'on peut mettre partout ») : PLUS DE PLAQUES — la file ne porte que des FRUITS,
+   un toutes les 0,45 s (c'était fruit + plaque toutes les 1,2 s) qui rendent chacun 1,05 × ce qu'on brûle entre deux : qui les prend tous tient la nitro, qui en rate un la voit baisser. */
+const LIGNE={on:false,cnt:0,npow:20,prem:false,dt:.45,don:.48,voir:3.5,prochS:0,k:0,pts:[],padI:new Set(),padPris:new Set(),n:[0,0],pris:[0,0],vP:0,acc:0}; // n : posés · pris : ramassés (fruits, pads) — pour le banc
 const LF0={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},
       LF1={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},
       LF2={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
@@ -114,6 +116,7 @@ function ligneBloque(s9,k){
 }
 function ligneOnPour(){return !PARK.on&&!(LVL.cur&&LVL.cur.piste==='tuto')&&!BALADE;} // (LE PRÉ-BÂTI) la règle de LIGNE.on, lue aussi par pisteRoute (sur la map d'en face)
 function ligneRaz(){ // à chaque piste neuve (buildTrack) : la file repart du début
+  LIGNE.cnt=0;LIGNE.npow=16+((Math.random()*8)|0);LIGNE.prem=false; // (fruits-pouvoirs) la file repart : le 1er pouvoir arrive après 16-24 fruits
   LIGNE.pts.length=0;LIGNE.padI.clear();LIGNE.padPris.clear();LIGNE.prochS=240;LIGNE.k=0;LIGNE.n[0]=LIGNE.n[1]=LIGNE.pris[0]=LIGNE.pris[1]=0;LIGNE.vP=0;LIGNE.acc=20;LIGNE.sPk=null;LIGNE.sPd=0; // acc : l'élan d'un départ lancé, supposé d'avance (les premiers objets se posent avant qu'on l'ait mesuré)
   LIGNE.on=ligneOnPour(); // le parc et l'auto-école gardent leur monde — (2026-10-09) la BALADE aussi : rien sur la route
 }
@@ -126,13 +129,24 @@ function lignePad(sp,pl){ // un pad d'OR, deux faces (même recette que la boucl
 function ligneFruit(sp,lt){ // un fruit, deux faces (même recette que `place` dans spawnPickups) — il rend LIGNE.don de nitro
   const fi=fruitPick(),lv=fruitLeve(fi);frameAt(sp,F);
   for(const face of [1,-1]){
-    const m=mkFruit(fi);m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?lv:-(THICK+lv));
+    const m=mkFruit(fi);m.scale.setScalar(2.1);const lv2=lv*.78;m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?lv2:-(THICK+lv2)); // plus PETITS (×2,1) : on les sème partout sans gêner la vue
     if(face<0)LM4.makeBasis(LV1.copy(F.b).negate(),LV2.copy(F.n).negate(),F.t);else LM4.makeBasis(F.b,F.n,F.t);
     m.quaternion.setFromRotationMatrix(LM4);m.updateMatrix();m.matrixAutoUpdate=false;scene.add(m);
     pickups.push({s:sp,lat:lt,face:face,nitro:true,fruit:fi,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face),ligne:true});
   }
 }
 const LM4=new THREE.Matrix4(),LV1=new THREE.Vector3(),LV2=new THREE.Vector3();
+/* un FRUIT-POUVOIR au bout de la file (2026-10-20) : même recette que ligneFruit, mais c'est un pouvoir (`pwrPrend` le prend), les deux faces */
+function lignePower(sp,lt,kind){
+  frameAt(sp,F);
+  for(const face of [1,-1]){
+    const m=mkPower(kind,face),lev9=m.userData.lev||2.1;
+    m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?lev9:-(THICK+lev9));
+    if(face<0)LM4.makeBasis(LV1.copy(F.b).negate(),LV2.copy(F.n).negate(),F.t);else LM4.makeBasis(F.b,F.n,F.t);
+    m.quaternion.setFromRotationMatrix(LM4);m.updateMatrix();m.matrixAutoUpdate=false;scene.add(m);
+    pickups.push({s:sp,lat:lt,face:face,nitro:false,pow:kind,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)});
+  }
+}
 function ligneTick(dt){ // chaque image de course : la file s'allonge devant la caisse, au rythme de SA vitesse
   if(!LIGNE.on||!running||gameOver)return;
   const b0=Math.max(30,Math.abs(vA)*SPD),mul=vitMult(),v0=b0*mul,H9=Math.max(4,(ROAD_HALF-3)*.62); // m de piste par seconde : la vraie avance de `s` = la vitesse PHYSIQUE × les multiplicateurs d'avance (NITROOO, VITESSE ×2 — MESURÉ : sans eux la file arrivait 1,5× trop serrée)
@@ -151,9 +165,14 @@ function ligneTick(dt){ // chaque image de course : la file s'allonge devant la 
     for(let d=0;d<=160;d+=20){const q=LIGNE.prochS+d;if(q>=L-120)break;if(!ligneBloque(q,LIGNE.k)){s9=q;break;}}
     if(s9<0){LIGNE.prochS+=180;continue;}
     const lt=ligneLat(s9,H9);
-    if(LIGNE.k){if(!(LVL.cur&&LVL.cur.piste==='banquise'))lignePad(s9,lt);}else ligneFruit(s9,lt); // (2026-10-15) LE GLACIER : pas de pad d'or (ses fruits gardent leur cadence)
+    if(LIGNE.k){if(!(LVL.cur&&LVL.cur.piste==='banquise'))lignePad(s9,lt);}
+    else if(PWR_LIGNE&&LIGNE.cnt>=LIGNE.npow){ // le BOUT D'UNE LONGUE FILE : un fruit-pouvoir (le 1er d'un débutant : l'aimant, sans le chercher)
+      let kd='n';if(!LIGNE.prem&&pwrPremier()){kd='m';LIGNE.prem=true;}else kd=pwrTire(Math.random(),pwrPoids());
+      lignePower(s9,kd==='m'&&LIGNE.prem&&LIGNE.cnt===LIGNE.npow?lt*.2:lt,kd);LIGNE.cnt=0;LIGNE.npow=18+((Math.random()*8)|0);
+    }else{ligneFruit(s9,lt);LIGNE.cnt++;} // (2026-10-15) LE GLACIER : pas de pad d'or (ses fruits gardent leur cadence)
     LIGNE.pts.push({s:s9,lat:lt,k:LIGNE.k});LIGNE.n[LIGNE.k]++;if(LIGNE.pts.length>40)LIGNE.pts.shift();
-    LIGNE.k^=1;LIGNE.prochS=s9+Math.max(40,v*LIGNE.dt);
+    if(!PADS_OFF)LIGNE.k^=1; // (plus de plaques : toujours un fruit)
+    LIGNE.prochS=s9+Math.max(12,v*LIGNE.dt);
   }
 }
 function frameAt(s,out){

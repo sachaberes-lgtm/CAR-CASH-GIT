@@ -133,19 +133,19 @@ function juiceScreenTick(dt){
 // le splotch reste un fruit, pas une voix de souris ; la rafale, bases [0], reste sous l'octave même tonalité comprise)
 const SON_FRUIT_ST=[0,2,4,7];
 function sonFruitSt(i){i=Math.max(0,i|0);return i<4?SON_FRUIT_ST[i]:SON_FRUIT_ST[2+(i&1)];}
-function fruitCroque(pos,col,power,nom){ // nom : le fruit — chacun a SA bouche (console de son)
-  fruitRafT=FRUIT_FENETRE;fruitRaf++;
+function fruitCroque(pos,col,power,nom,leger){ // nom : le fruit — chacun a SA bouche (console de son) · leger : un fruit de la FILE (toutes les 0,45 s : jus et rafale adoucis, sinon l'écran serait recouvert)
+  fruitRafT=FRUIT_FENETRE;fruitRaf++;if(leger)power*=.55;
   const r=Math.min(6,fruitRaf);
   /* L'ÉCLABOUSSURE. ⚠ elle partait du CENTRE de la caisse, donc à moitié cachée par la carrosserie —
      d'où « je n'ai pas tellement vu ». Elle part maintenant du NEZ et vers le HAUT, là où la caméra
      de poursuite regarde, et le nombre de gerbes suit la rafale : une, puis deux, puis trois. */
   const p2=crV1.copy(pos);p2.y+=1.1;
   juiceSplash(p2,col,Math.min(1.2,power*.9+r*.18));      // la gerbe 3D reste, mais en appoint
-  juiceScreen(col,power,1+Math.min(4,r));                 // …et LE JUS REPEINT L'OBJECTIF : ça, on le voit
+  if(!leger||(fruitRaf&3)===0)juiceScreen(col,power,leger?1:1+Math.min(4,r));                 // …et LE JUS REPEINT L'OBJECTIF : ça, on le voit (un fruit de la file : un sur quatre)
   if(SONV2){sfx(FRUIT_SON[nom]||'fruit.peche',{rate:Math.pow(2,sonFruitSt(fruitRaf-1)/12),vol:nom==='PASTÈQUE'?0:-4});if(r>=3)sfx('fruit.rafale',{st:sonFruitSt(fruitRaf-3),vol:-3});}else crunchSfx(r); /* (2026-10-15, Sacha : « équilibre mieux, que les figures fassent plus de bruit que ce qu'on ramasse ») un fruit sortait à −28, au-dessus d'une figure : −4 (−32), la rafale −3 ; la PASTÈQUE (le graal) garde son niveau */ // (2026-10-14, session SON) la série MONTE en demi-tons de pentatonique (0-2-4-7, puis 4-7…) : avant, +2,5 % par fruit (0,4 demi-ton) noyé sous le hasard de la fiche (rj ±6 %, ±1 demi-ton) ; la rafale (key:1) monte avec /* (débogage son 2026-09-29) le plein de nitro sonne à la pompe, seulement s'il y a eu plein */
   shake=Math.max(shake,Math.min(.55,.18+r*.07));
   if(fruitRaf>=3){                                    // 3 fruits d'affilée : ce n'est plus un hasard
-    chaineAura('RAFALE ×'+fruitRaf,15+r*6,'rafale',true,SONV2,true); /* (2026-10-01) 40+30r → 15+6r : depuis LA LIGNE PARFAITE un fruit arrive toutes les 2,4 s, la rafale ne retombe plus — 220 points par fruit, le plus gros robinet d'aura de la route (voir LA CHAÎNE SE FERME) */
+    chaineAura('RAFALE ×'+fruitRaf,Math.round((15+r*6)*(leger?.25:1)),'rafale',true,SONV2,true); /* (2026-10-01) 40+30r → 15+6r : depuis LA LIGNE PARFAITE un fruit arrive toutes les 2,4 s, la rafale ne retombe plus — 220 points par fruit, le plus gros robinet d'aura de la route (voir LA CHAÎNE SE FERME) */
     trickMsg('🧃 RAFALE ×'+fruitRaf,r>=5?3:2);
   }
 }

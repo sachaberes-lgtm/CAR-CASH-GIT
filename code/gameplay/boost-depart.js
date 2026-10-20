@@ -356,7 +356,7 @@ function addAura(n,titre,brut){ // brut : n est DÉJÀ multiplié par la vitesse
   // ⚠ RIEN EN FREESTYLE : le parc n'a pas de mort. Une monnaie de panache ne se gagne pas la ou
   // l'on ne risque rien — sinon le mode d'entrainement devient la meilleure facon de monter en rang.
   if(!(n>0)||!running||gameOver||(typeof PARK!=='undefined'&&PARK.on))return;
-  n=(brut?Math.round(n):Math.round(n*auraMultVitesse()))*(pwrAurT>0?2:1); // (pouvoirs v2) AURA ×2
+  n=(brut?Math.round(n):Math.round(n*auraMultVitesse()))*auraDragonK(); // (pouvoirs v2) AURA ×2
   auraRun+=n;livre('a:direct'+(titre?'.'+String(titre).split(' ')[0]:''),n);
   auraPop=Math.min(1,auraPop+n/90);
   if(titre){ // un gain NOMMÉ : il claque à l'écran, avec sa raison
