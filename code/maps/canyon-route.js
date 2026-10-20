@@ -261,8 +261,8 @@ function cyStrates(){
   return t;}
 /* (2026-10-20, LE CANYON AU HASARD, SON DÉCOR) LES PALETTES DES STRATES : mêmes lits, mêmes épaisseurs (le même tirage), la teinte de chaque lit tirée vers celle
    de la palette À LUMINANCE ÉGALE — m : les grès massifs, n : les lits minces ; [r, g, b, part, gain]. `classique` (null) = les octets d'avant, au bit près. */
-const CY_PALS={classique:null,sedona:{m:[.88,.40,.24,.55,.94],n:[.70,.24,.18,.5,.9]},zion:{m:[1,.93,.82,.55,1.06],n:[.86,.42,.28,.42,.95]},
-  peint:{m:[.94,.64,.54,.35,1],n:[.62,.54,.80,.72,1.02]},bryce:{m:[.99,.62,.30,.5,1],n:[.97,.82,.64,.45,1.05]}};
+const CY_PALS={classique:null,sedona:{m:[.90,.46,.30,.36,.96],n:[.72,.28,.20,.4,.92]},zion:{m:[1,.93,.82,.55,1.06],n:[.86,.42,.28,.42,.95]},
+  peint:{m:[.94,.64,.54,.35,1],n:[.62,.54,.80,.72,1.02]},bryce:{m:[.99,.66,.36,.38,1],n:[.97,.84,.68,.4,1.05]}};
 function cyStratesTeinte(nm){if(!CY.tStr)return;cyStratesDonnees(CY.tStr.image.data,CY_PALS[nm]||null);CY.tStr.needsUpdate=true;}
 function cyStratesDonnees(d,T){
   const N=1024,r=mulberry32(0x57A7A),te=(L9,mas)=>{if(!T)return L9;const q=mas?T.m:T.n,l=L9[0]*.3+L9[1]*.55+L9[2]*.15,n=q[0]*.3+q[1]*.55+q[2]*.15,g=l*q[4]/n,k=q[3];
