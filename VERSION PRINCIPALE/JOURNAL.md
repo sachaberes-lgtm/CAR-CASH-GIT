@@ -3,6 +3,19 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE RONRON DU NITRO SORT DU SUB (2026-10-20 soir, v743, Léo : « un audio parfois sur mon tel et mon ordi qu'il n'y a pas sur le tel ni l'ordi de Sacha, sur le main — lié au boost, un son qui n'a rien à voir ») — branche `nitro-ronron`
+- **LE SON** : le RONRON de Sacha (v740, le soir même) — deux triangles 44 Hz + quinte + une SOUS-OCTAVE à 22 Hz, hachés à 13 → 28 Hz, vibrato et houles après 2,5 s de tenue.
+  MESURÉ au banc muet avec la sauvegarde de Léo (`dbgVu`, tenue de 5 s) : sa chaîne sortait à **−23/−27 dB RMS**, ~10 dB au-dessus de la gorge du nitro (−35) et
+  12-15 dB au-dessus du grondement (−40/−44), tout entre 22 et 86 Hz. Un haut-parleur de Mac, de PC ou d'iPhone ne rend rien là-dessous (Sacha n'entendait rien
+  de plus sur ses enceintes) ; un CASQUE le rend en plein (Léo) : un bourdon grave qui vrombit, sans rapport avec la flamme. Le « parfois » = la tenue longue
+  (après 2,5 s les houles et le vibrato). C'est pourquoi la différence Léo/Sacha n'était pas une différence de version.
+- **LA RÈGLE** (`RR_MODE`, juste avant `const RR`) : un PASSE-HAUT à 70 Hz sur la chaîne du ronron (la sous-octave et le 44 Hz s'effacent, les harmoniques 88-176 Hz
+  qui font le « ronron » restent ; le téléphone, déjà une octave plus haut, ne change pas) et `RUG_NIV.rr` ,11 → ,045. Mesuré après : **−33/−36 dB**, au rang de la
+  gorge (−32/−38). Trois temps, houles, vibrato, crépitements de bois : intacts. `?ronron=ancien` = la v740 telle quelle · `?ronron=0` = muet. `dbgRonron().hp`.
+- **LA MÉTHODE** (à refaire pour tout « son chelou » que Léo entend et pas Sacha) : Léo joue des COPIES LOCALES complètes du main (appli Mac = `~/Downloads/CASH-CAR-MAIN`
+  servi sur :9400 ; app iPhone = `CAR-app`), Sacha la copie publiée (allégée). Chrome sans fenêtre, sa sauvegarde posée dans localStorage avant le chargement, journal
+  des sources (pile d'appel par son), puis `dbgVu()` toutes les 100 ms pendant une tenue de nitro : on PÈSE chaque chaîne au lieu de deviner.
+
 ## LES FRUITS-POUVOIRS — LA ROUTE SANS BOOSTS (2026-10-20, v742, Léo : « les boosts de la route disparaissent, mais on booste non-stop si on est chaud et qu'on attrape les fruits ») — branche `fruits-boost`
 Plan de Léo (interview, fruit par fruit) ; tout est dans `code/gameplay/fruits-nouveaux.js` et `code/gameplay/fruits-auras.js` (+ petites retouches ailleurs, grep `2026-10-20, Léo`).
 - **LA ROUTE** : plus de plaques turbo (`PADS_OFF`, `?pads=1` = avant) ; la LIGNE PARFAITE de Sacha (ligne-parfaite.js) ne pose plus que des FRUITS, un toutes les 0,45 s (`LIGNE.dt`), ×2,1 (petits),

@@ -54988,6 +54988,19 @@ function rugPas(dt,o){ // à chaque image : o = {on, air, bleu, v (km/h), dk}
    · 1-2,5 s  : il MONTE — la hauteur grimpe (≈ +5 demi-tons), la pulsation accélère, le filtre s'ouvre, le feu prend (crépitements ×2) ;
    · après 2,5 s : PLEIN RÉGIME — de grandes houles lentes (0,3 Hz) qui gonflent et dégonflent, un vibrato, des RAFALES de crépitements.
    La réserve bleue joue une quinte plus haut. Le téléphone (pas de grave sous 150 Hz) joue tout une octave plus haut. */
+/* (2026-10-20 soir, Léo : « un audio parfois sur mon tel et mon ordi, qu'il n'y a pas sur le tel ni l'ordi de Sacha, sur le main — lié au boost,
+   un son qui n'a rien à voir ») LE RONRON NE VIT PLUS DANS LE SUB. MESURÉ au banc muet avec SA sauvegarde (vu-mètre dbgVu, tenue de 5 s) :
+   la chaîne du ronron sortait à −23/−26 dB RMS — ~10 dB AU-DESSUS de la gorge du nitro (−35) et 12-15 dB au-dessus du grondement
+   (−40/−44), aussi fort que tout le moteur — et tout ce niveau tenait entre 22 Hz (la sous-octave `sine ×.5`) et 86 Hz. Un haut-parleur
+   d'ordi ou d'iPhone ne rend rien là-dessous : Sacha, sur ses enceintes, n'entendait rien de plus ; Léo, au casque, recevait un bourdon
+   grave qui vrombit (haché à 13 → 28 Hz, vibrato, houles) sans rapport avec la flamme. Désormais : (1) un passe-haut à 70 Hz sur la chaîne
+   (la sous-octave et le 44 Hz s'effacent, les harmoniques 88-176 Hz qui font le « ronron » restent, le téléphone — déjà une octave plus
+   haut — ne change pas) ; (2) le niveau `rr` ,11 → ,045 : le ronron se range au rang de la gorge (mesuré après : −33/−36 dB), il porte
+   encore, il ne couvre plus. Les trois temps, les houles, le vibrato, les crépitements : intacts. `?ronron=ancien` = v740 tel quel ;
+   `?ronron=0` = muet (A/B). dbgRonron() rend aussi `hp`. */
+const RR_MODE=(/[?&]ronron=(ancien|0)\b/.exec(location.search)||[])[1]||'';
+const RR_ON=RR_MODE!=='0';
+if(RR_MODE!=='ancien')RUG_NIV.rr=.045;
 const RR={pret:false,tH:0,off:0,crT:0,raf:0,ph:0};
 function rrCrac(sr,pop){const R=Math.random,n=Math.round(sr*(pop?.06:.016)),X=new Float32Array(n);
   if(!pop){const bp=rugBq('bp',1300+R()*2200,.9,0,sr),tau=sr*(.0006+R()*.0016);for(let i=0;i<n;i++)X[i]=rugRun(bp,R()*2-1)*Math.exp(-i/tau);}
@@ -55006,14 +55019,15 @@ function rrConstruit(ac,d,sr,mk,pan,kr,o){
   RR.hO=ac.createOscillator();RR.hO.type='sine';RR.hO.frequency.value=.3;RR.hG=ac.createGain();RR.hG.gain.value=0;RR.hO.connect(RR.hG);RR.hG.connect(RR.hl.gain);RR.hO.start();
   RR.vO=ac.createOscillator();RR.vO.frequency.value=4.7;RR.vG=ac.createGain();RR.vG.gain.value=0;RR.vO.connect(RR.vG);for(const [os] of RR.o)RR.vG.connect(os.detune);RR.vO.start();
   RR.g=ac.createGain();RR.g.gain.value=0;
-  mix.connect(sh);sh.connect(RR.lp);RR.lp.connect(RR.am);RR.am.connect(RR.hl);RR.hl.connect(RR.g);RR.g.connect(d);
+  RR.hp=null;if(RR_MODE!=='ancien'){RR.hp=ac.createBiquadFilter();RR.hp.type='highpass';RR.hp.frequency.value=70;RR.hp.Q.value=.7;} /* (2026-10-20 soir) le sub part : voir RR_MODE */
+  mix.connect(sh);sh.connect(RR.lp);RR.lp.connect(RR.am);RR.am.connect(RR.hl);if(RR.hp){RR.hl.connect(RR.hp);RR.hp.connect(RR.g);}else RR.hl.connect(RR.g);RR.g.connect(d);
   if(o.porte)o.porte(RR.g,d);
   RR.tics=[];RR.pops=[];for(let i=0;i<8;i++)RR.tics.push(mk(rrCrac(sr,0)));for(let i=0;i<5;i++)RR.pops.push(mk(rrCrac(sr,1)));
   RR.pan=pan;RR.pret=true;}
 function rrCraque(t,pop,vol){const ac=RUG.ac,s=ac.createBufferSource(),L=pop?RR.pops:RR.tics;s.buffer=L[(Math.random()*L.length)|0];s.playbackRate.value=.85+.3*Math.random();
   const g=ac.createGain();g.gain.value=vol;const p=RR.pan((Math.random()-.5)*1.4);s.connect(g);g.connect(p);p.connect(RUG.d);s.start(t);}
 function rrPas(dt,o,on,b,air,v){
-  if(!RR.pret)return;const t=RUG.ac.currentTime,S=RUG.stt;
+  if(!RR.pret||!RR_ON)return;const t=RUG.ac.currentTime,S=RUG.stt;
   if(on){RR.tH+=dt;RR.off=0;}else{RR.off+=dt;if(RR.off>.35)RR.tH=0;}
   const T=RR.tH,m1=Math.min(1,T/1),m2=Math.max(0,Math.min(1,(T-1)/1.5)),m3=Math.max(0,Math.min(1,(T-2.5)/1.5)); /* les trois temps */
   const oct=RUG.tel?2:1,f=(44*Math.pow(2,(5*m2+1.5*m3)/12)+Math.min(10,v*.012))*(b?1.5:1)*oct;
@@ -55027,7 +55041,7 @@ function rrPas(dt,o,on,b,air,v){
     while(RR.crT>=1){RR.crT-=1+(Math.random()-.5)*.6;const pop=Math.random()<.22;rrCraque(t+Math.random()*.04,pop,RUG_NIV.crac*(pop?.9:.5+.5*Math.random())*o.dk);}
     if(m3>0&&Math.random()<dt*.6*m3){for(let i=0,n=3+(Math.random()*4|0);i<n;i++)rrCraque(t+.02+i*(.025+Math.random()*.03),Math.random()<.3,RUG_NIV.crac*.7*o.dk);}
   }}
-window.dbgRonron=function(){return {pret:RR.pret,tenu:+RR.tH.toFixed(2),gain:RR.g?+RR.g.gain.value.toFixed(4):null,hz:RR.o?+RR.o[0][0].frequency.value.toFixed(1):null,pulse:RR.pO?+RR.pO.frequency.value.toFixed(1):null};};
+window.dbgRonron=function(){return {pret:RR.pret,mode:RR_MODE||'regle',hp:RR.hp?RR.hp.frequency.value:0,tenu:+RR.tH.toFixed(2),gain:RR.g?+RR.g.gain.value.toFixed(4):null,hz:RR.o?+RR.o[0][0].frequency.value.toFixed(1):null,pulse:RR.pO?+RR.pO.frequency.value.toFixed(1):null};};
 function rugAllume(k,bleu,air){ // LE PSSHT (le reste du coup d'allumage est dans nitroWhoomp)
   if(!RUG.blanc)return false;const ac=RUG.ac,t0=ac.currentTime;
   {const s=ac.createBufferSource();s.buffer=RUG.blanc;const f=ac.createBiquadFilter();f.type='bandpass';f.Q.value=1.3;
