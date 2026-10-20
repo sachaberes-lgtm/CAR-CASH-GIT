@@ -48,7 +48,12 @@ const FSTU_V='attribute vec4 aArete;varying vec3 vArF;varying vec3 vArB;\n',
 // le vernis profond : au garage (on) ou rendu à la course (off) — sur les matières de la caisse posée
 function finLaque(on){FSTU.garage=!!on;FSTU.uHdr.value=FSTU.on&&on?1:0;if(!FSTU.on)return;
   carGroup.traverse(o=>{const ms=o.isMesh?(Array.isArray(o.material)?o.material:[o.material]):[];
-    for(const m of ms){if(!m||!m.userData||!m.userData.uV)continue;const L=FSTU_LAQUE[m.userData.g==='k'?'k':(m.userData.g==='p'||(typeof m.userData.g==='string'&&m.userData.g.indexOf('pm:')===0))?'p':''];if(!L)continue;
+    for(const m of ms){
+      /* (2026-10-20, Léo : « d'autres voitures qui manquent la finition ? » — mesuré à l'écran : LA HONTE, REQUIN, ACIDE, LA CAISSE-NUAGE) la tôle des
+         matières `rimify` (hors kit) : le même vernis EFFECTIF que la laque du kit (reflet de face .24×1,35, en rasant .24×3,6), ramené à SA réflectivité */
+      if(m&&m.userData&&m.userData.uVr&&m.userData.rimK!==0&&m.reflectivity>0){const U=m.userData.uVr.value,L=FSTU_LAQUE.p,r=m.reflectivity;
+        if(!m.userData.uVr0)m.userData.uVr0=U.toArray();
+        if(on)U.set(.24*L[0]/r,.24*L[1]/r,L[2],Math.max(.2,m.userData.uVr0[3]));else U.fromArray(m.userData.uVr0);continue;}if(!m||!m.userData||!m.userData.uV)continue;const L=FSTU_LAQUE[m.userData.g==='k'?'k':(m.userData.g==='p'||(typeof m.userData.g==='string'&&m.userData.g.indexOf('pm:')===0))?'p':''];if(!L)continue;
       if(!m.userData.uV0)m.userData.uV0=[m.userData.uV.value.toArray(),m.userData.uG.value];
       if(on){m.userData.uV.value.fromArray(L);m.userData.uG.value=L[4];}else{m.userData.uV.value.fromArray(m.userData.uV0[0]);m.userData.uG.value=m.userData.uV0[1];}}});}
 /* LA LUMIÈRE DE STUDIO : le cube en 256², murs sombres, des boîtes à lumière NETTES (un cœur blanc, un halo court) à hauteur de flanc,

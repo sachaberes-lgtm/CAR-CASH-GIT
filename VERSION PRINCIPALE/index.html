@@ -26318,6 +26318,7 @@ function paintEnv(stops,s1,s2){ // stops=[[pos,'#hex'],…] + 2 strips néon [r,
     if(f===sunF){const h=c.createRadialGradient(32,27,0,32,27,7);h.addColorStop(0,ecl(1));h.addColorStop(.3,ecl(.62));h.addColorStop(1,ecl(0));c.fillStyle=h;c.fillRect(0,0,64,64);} // le soleil rasant (vague 2 : resserré, teinté par la source du niveau — voir `ecl`) — (2026-09-26) un cœur NET et court : avec le vernis, sur une vitre ou un toit, c'est un ÉCLAT de soleil, plus une tache blanche molle
   });
   envTex.needsUpdate=true;
+  try{finLaque(false);}catch(e){} // (2026-10-20) le ciel d'un niveau ou du menu : la caisse reprend son vernis de course (la finition studio, finition.js, n'est que pour le garage) — au chargement la finition n'existe pas encore : rien à rendre
 }
 /* L'ATELIER DANS LA LAQUE (2026-09-26) — au garage, la carrosserie reflétait le CIEL de la dernière course (un couchant violet dans
    un atelier fermé) : des reflets sans rapport avec la pièce, mous, sans une arête. Le cube est repeint en STUDIO : plafond noir
@@ -29509,12 +29510,14 @@ const LFB_CAISSE=(function(){
 // `v` : le vernis (voir ENV_VERNIS) · `rimK` : part du liseré doré (0 = aucun — le verre et le chrome n'en veulent pas)
 function rimify(m,v,rimK,fvK){ // fvK : la part du REFLET DES FEUX (voir FEU_U) — la tôle .2, le verre 1
   const uV={value:new THREE.Vector4().fromArray(v||[1,1,1,0])},uK={value:rimK==null?1:rimK},uF={value:fvK==null?.2:fvK};
+  m.userData.uVr=uV;m.userData.rimK=uK.value; // (2026-10-20) LA FINITION STUDIO (finition.js) règle ce vernis au garage : rimify ne sert qu'aux caisses (LA HONTE, REQUIN, ACIDE, la tôle des gabarits hors kit)
   m.onBeforeCompile=function(sh){
+    sh.uniforms.uStuHdr=FSTU.uHdr; // (2026-10-20) les reflets qui éclatent au garage, comme la tôle du kit (voir finition.js) — 0 en course : rien ne change
     sh.uniforms.uRimC=RIM_U.uRimC;sh.uniforms.uRimStr=RIM_U.uRimStr;sh.uniforms.uRimPow=RIM_U.uRimPow;sh.uniforms.uSunV=RIM_U.uSunV;
     sh.uniforms.uVern=uV;sh.uniforms.uRimK=uK;sh.uniforms.uFvA=FEU_U.uFvA;sh.uniforms.uFvB=FEU_U.uFvB;sh.uniforms.uFvC=FEU_U.uFvC;sh.uniforms.uFvK=uF;
     sh.fragmentShader=sh.fragmentShader
-      .replace('#include <common>','#include <common>\nuniform vec3 uRimC;uniform vec3 uSunV;uniform float uRimStr;uniform float uRimPow;uniform vec4 uVern;uniform float uRimK;\n'+FEU_GLSL)
-      .replace('#include <envmap_fragment>',ENV_VERNIS).replace('#include <lights_fragment_begin>',LFB_CAISSE) // (tour 2) les lampes éteintes sautent (voir LFB_CAISSE)
+      .replace('#include <common>','#include <common>\nuniform vec3 uRimC;uniform vec3 uSunV;uniform float uRimStr;uniform float uRimPow;uniform vec4 uVern;uniform float uRimK;\n'+FEU_GLSL+FSTU_HDR)
+      .replace('#include <envmap_fragment>',ENV_VERNIS.replace('envColor.xyz*mix(vec3(1.),diffuseColor.rgb,uVern.w)','fstuHdr(envColor.xyz)*mix(vec3(1.),diffuseColor.rgb,uVern.w)')).replace('#include <lights_fragment_begin>',LFB_CAISSE) // (tour 2) les lampes éteintes sautent (voir LFB_CAISSE)
       .replace('#include <dithering_fragment>',RIM_GLSL('1.')+ // seulement le flanc au soleil : un liseré, pas un halo cartoon (+ le contre-jour : voir RIM_GLSL)
         'gl_FragColor.rgb+=uRimC*rimF*uRimStr*uRimK;\n'+FEU_APPEL+'#include <dithering_fragment>'); // (2026-10-17) + la lueur des feux arrière (voir FEU_U)
   };
@@ -40862,7 +40865,12 @@ const FSTU_V='attribute vec4 aArete;varying vec3 vArF;varying vec3 vArB;\n',
 // le vernis profond : au garage (on) ou rendu à la course (off) — sur les matières de la caisse posée
 function finLaque(on){FSTU.garage=!!on;FSTU.uHdr.value=FSTU.on&&on?1:0;if(!FSTU.on)return;
   carGroup.traverse(o=>{const ms=o.isMesh?(Array.isArray(o.material)?o.material:[o.material]):[];
-    for(const m of ms){if(!m||!m.userData||!m.userData.uV)continue;const L=FSTU_LAQUE[m.userData.g==='k'?'k':(m.userData.g==='p'||(typeof m.userData.g==='string'&&m.userData.g.indexOf('pm:')===0))?'p':''];if(!L)continue;
+    for(const m of ms){
+      /* (2026-10-20, Léo : « d'autres voitures qui manquent la finition ? » — mesuré à l'écran : LA HONTE, REQUIN, ACIDE, LA CAISSE-NUAGE) la tôle des
+         matières `rimify` (hors kit) : le même vernis EFFECTIF que la laque du kit (reflet de face .24×1,35, en rasant .24×3,6), ramené à SA réflectivité */
+      if(m&&m.userData&&m.userData.uVr&&m.userData.rimK!==0&&m.reflectivity>0){const U=m.userData.uVr.value,L=FSTU_LAQUE.p,r=m.reflectivity;
+        if(!m.userData.uVr0)m.userData.uVr0=U.toArray();
+        if(on)U.set(.24*L[0]/r,.24*L[1]/r,L[2],Math.max(.2,m.userData.uVr0[3]));else U.fromArray(m.userData.uVr0);continue;}if(!m||!m.userData||!m.userData.uV)continue;const L=FSTU_LAQUE[m.userData.g==='k'?'k':(m.userData.g==='p'||(typeof m.userData.g==='string'&&m.userData.g.indexOf('pm:')===0))?'p':''];if(!L)continue;
       if(!m.userData.uV0)m.userData.uV0=[m.userData.uV.value.toArray(),m.userData.uG.value];
       if(on){m.userData.uV.value.fromArray(L);m.userData.uG.value=L[4];}else{m.userData.uV.value.fromArray(m.userData.uV0[0]);m.userData.uG.value=m.userData.uV0[1];}}});}
 /* LA LUMIÈRE DE STUDIO : le cube en 256², murs sombres, des boîtes à lumière NETTES (un cœur blanc, un halo court) à hauteur de flanc,
