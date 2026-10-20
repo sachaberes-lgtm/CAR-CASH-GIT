@@ -86,8 +86,12 @@ function bkSkateRaz(){BKV.t=0;BKV.hors=0;BKV.aura=0;BKV.dix=0;} // (2026-10-15, 
    plus qu'on est loin dans la neige ; la nitro laboure mieux), la neige la remet dans l'axe et la REPOUSSE doucement vers la glace ; le volant y
    mord entier (pas de verglas dans la neige). Jamais de mort, jamais de mur : au bout de la bande, le bourrelet arrête la caisse (lat bornée).
    En vol, la congère prolonge la piste (tryLand s'y pose) et la grille de neige ne joue plus au-dessus de la piste (banqSolVol). */
-const BK_CG={w:16,prof:.38,fr0:.7,fr1:2.4,vMin:.32,pousse:6,redresse:2.2,fx:1},BKB={k:0,enf:0,em:0,dans:false}; // fx : la gerbe (banc : dbgBanq('cg',{fx:0}))
-const BK_CG_X=[-1.5,.4,3,9,16,22,30,36],BK_CG_Y=[-.5,.14,.22,.28,.45,1.4,3.0,-1.5]; // (au banc : .75 m d'enfoncement + .45 de neige, on ne voyait plus la caisse — désormais les roues et le bas de caisse) // le profil : x m au-delà du bord de la glace → hauteur de la neige au-dessus du plan de la piste (le bout plonge sous la grille)
+/* (2026-10-20, Sacha : « quand tu rentres dans la neige, on rentre pas vraiment dedans ») la congère était un ruban de 45 cm au plus avec 38 cm
+   d'enfoncement : on la survolait. Désormais un VRAI banc : 1,3 m à la limite (BK_CG_Y), la caisse s'y enfonce de .95 m, freine plus fort, et la
+   gerbe est jetée plus haut. `?sans=glaceneige` = l'ancien profil. */
+const BK_NEIGE=!/[?&]sans=([^&]*,)?glaceneige(,|&|$)/.test(location.search);
+const BK_CG={w:16,prof:BK_NEIGE?.95:.38,fr0:BK_NEIGE?1.1:.7,fr1:BK_NEIGE?3.4:2.4,vMin:BK_NEIGE?.26:.32,pousse:6,redresse:2.2,fx:1},BKB={k:0,enf:0,em:0,dans:false}; // fx : la gerbe (banc : dbgBanq('cg',{fx:0}))
+const BK_CG_X=[-1.5,.4,3,9,16,22,30,36],BK_CG_Y=BK_NEIGE?[-.5,.2,.5,.85,1.3,2.2,3.4,-1.5]:[-.5,.14,.22,.28,.45,1.4,3.0,-1.5]; // (au banc : .75 m d'enfoncement + .45 de neige, on ne voyait plus la caisse — désormais les roues et le bas de caisse) // le profil : x m au-delà du bord de la glace → hauteur de la neige au-dessus du plan de la piste (le bout plonge sous la grille)
 function bkCgH(x){const X=BK_CG_X,Y=BK_CG_Y;if(x<=X[0])return Y[0];for(let i=1;i<X.length;i++)if(x<=X[i])return Y[i-1]+(Y[i]-Y[i-1])*(x-X[i-1])/(X[i]-X[i-1]);return Y[Y.length-1];}
 function bkCgBord(){return banqOk()?BK_CG.w:0;} // la largeur de neige où l'on peut rouler (et se poser) au-delà de la glace
 function bkCongerePose(root){ // les deux rubans de neige du bord, du départ à l'arrivée (même pas de 4 m que le verglas)
@@ -135,7 +139,7 @@ function bkBecMesh(root,KK){
   g.setIndex(n>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeVertexNormals();g.computeBoundingSphere();
   const m=new THREE.Mesh(g,BANQ.mats.vg);m.name='glacier becs';m.matrixAutoUpdate=false;m.userData.jeter=true;m.renderOrder=1;m.frustumCulled=false;root.add(m);}
 function bkCgEntre(kmh){ // l'entrée dans la neige : le plouf, la gerbe, un coup dans la main
-  const k=Math.min(1,kmh/300);shake=Math.max(shake,.22+.3*k);fovPunch=Math.max(fovPunch,3+5*k);hap(k>.5?[14,22]:[10]);
+  const k=Math.min(1,kmh/300);shake=Math.max(shake,(BK_NEIGE?.4:.22)+.3*k);fovPunch=Math.max(fovPunch,3+5*k);hap(k>.5?[14,22]:[10]);
   try{if(SONV2){if(!(window.CCSON&&window.CCSON.existe('banq.plouf')&&sfx('banq.plouf',{vol:-8+6*k})))sfx('nuage.entre',{vol:-4+4*k});}else noiseBurst(.35,.08+.08*k,700);}catch(e){}
   const fx=BANQ.fx;if(fx&&fx.poudre&&BK_CG.fx>0){const p=carGroup.position,vc=PT_U.uVc.value;for(let i=0;i<10+18*k;i++){const a=Math.random()*6.2832,r=Math.random();
     spawnP(fx.poudre,p.x+(Math.random()-.5)*3,p.y+.3,p.z+(Math.random()-.5)*3,vc.x*.7+Math.cos(a)*(3+r*9),vc.y*.7+5+Math.random()*12*(.5+k),vc.z*.7+Math.sin(a)*(3+r*9),.6+Math.random()*.8);}}}
@@ -149,6 +153,7 @@ function bkCongere(dt){ // la boucle de conduite (glacier v4), chaque image, à 
     lat-=out*BK_CG.pousse*k*dt;                                                                 // le bourrelet REPOUSSE vers la glace
     if(psi*driveDir*out>0)psi*=Math.exp(-dt*BK_CG.redresse*k);                                  // et remet la caisse dans l'axe : elle ne file plus vers l'extérieur
     if(!BKB.dans&&k>.08){BKB.dans=true;bkCgEntre(kmh);}
+    if(BK_NEIGE&&kmh>60)shake=Math.max(shake,.14*k*Math.min(1,kmh/250)); /* la neige profonde secoue la caisse tant qu'on y laboure */
     const fx=BANQ.fx;
     if(fx&&fx.poudre&&kmh>15&&carGroup.visible){const vc=PT_U.uVc.value,w=CARS[level].w*.5,l=CARS[level].l*.4; // LA POUDRE : deux rideaux jetés par les roues, plus hauts loin dans la neige
       BKB.em+=dt*(6+22*k)*Math.min(1,kmh/150)*BK_CG.fx;
