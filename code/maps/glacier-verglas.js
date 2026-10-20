@@ -86,8 +86,12 @@ function bkSkateRaz(){BKV.t=0;BKV.hors=0;BKV.aura=0;BKV.dix=0;} // (2026-10-15, 
    plus qu'on est loin dans la neige ; la nitro laboure mieux), la neige la remet dans l'axe et la REPOUSSE doucement vers la glace ; le volant y
    mord entier (pas de verglas dans la neige). Jamais de mort, jamais de mur : au bout de la bande, le bourrelet arrête la caisse (lat bornée).
    En vol, la congère prolonge la piste (tryLand s'y pose) et la grille de neige ne joue plus au-dessus de la piste (banqSolVol). */
-const BK_CG={w:16,prof:.38,fr0:.7,fr1:2.4,vMin:.32,pousse:6,redresse:2.2,fx:1},BKB={k:0,enf:0,em:0,dans:false}; // fx : la gerbe (banc : dbgBanq('cg',{fx:0}))
-const BK_CG_X=[-1.5,.4,3,9,16,22,30,36],BK_CG_Y=[-.5,.14,.22,.28,.45,1.4,3.0,-1.5]; // (au banc : .75 m d'enfoncement + .45 de neige, on ne voyait plus la caisse — désormais les roues et le bas de caisse) // le profil : x m au-delà du bord de la glace → hauteur de la neige au-dessus du plan de la piste (le bout plonge sous la grille)
+/* (2026-10-20, Sacha : « quand tu rentres dans la neige, on rentre pas vraiment dedans ») la congère était un ruban de 45 cm au plus avec 38 cm
+   d'enfoncement : on la survolait. Désormais un VRAI banc : 1,3 m à la limite (BK_CG_Y), la caisse s'y enfonce de .95 m, freine plus fort, et la
+   gerbe est jetée plus haut. `?sans=glaceneige` = l'ancien profil. */
+const BK_NEIGE=!/[?&]sans=([^&]*,)?glaceneige(,|&|$)/.test(location.search);
+const BK_CG={w:16,prof:BK_NEIGE?.95:.38,fr0:BK_NEIGE?1.1:.7,fr1:BK_NEIGE?3.4:2.4,vMin:BK_NEIGE?.26:.32,pousse:6,redresse:2.2,fx:1},BKB={k:0,enf:0,em:0,dans:false}; // fx : la gerbe (banc : dbgBanq('cg',{fx:0}))
+const BK_CG_X=[-1.5,.4,3,9,16,22,30,36],BK_CG_Y=BK_NEIGE?[-.5,.2,.5,.85,1.3,2.2,3.4,-1.5]:[-.5,.14,.22,.28,.45,1.4,3.0,-1.5]; // (au banc : .75 m d'enfoncement + .45 de neige, on ne voyait plus la caisse — désormais les roues et le bas de caisse) // le profil : x m au-delà du bord de la glace → hauteur de la neige au-dessus du plan de la piste (le bout plonge sous la grille)
 function bkCgH(x){const X=BK_CG_X,Y=BK_CG_Y;if(x<=X[0])return Y[0];for(let i=1;i<X.length;i++)if(x<=X[i])return Y[i-1]+(Y[i]-Y[i-1])*(x-X[i-1])/(X[i]-X[i-1]);return Y[Y.length-1];}
 function bkCgBord(){return banqOk()?BK_CG.w:0;} // la largeur de neige où l'on peut rouler (et se poser) au-delà de la glace
 function bkCongerePose(root){ // les deux rubans de neige du bord, du départ à l'arrivée (même pas de 4 m que le verglas)
@@ -117,47 +121,25 @@ let BK_BEC_TEX=null; // (2026-10-19) sur SA ligne : collée derrière le « // �
    705 m, 450 m au plus jusqu'à 500 km/h), et la figure qui suit un tremplin attend la fin de sa retombée. `?sans=glaceretombe` = avant
    (même graine, même piste). */
 const BK_RETOMBE=!/[?&]sans=([^&]*,)?glaceretombe(,|&|$)/.test(location.search);
-function bkBecTex(){if(BK_BEC_TEX)return BK_BEC_TEX;const c=document.createElement('canvas');c.width=128;c.height=256;const x=c.getContext('2d');
-  const g=x.createLinearGradient(0,256,0,0);g.addColorStop(0,'#a9d8f5');g.addColorStop(.6,'#d6f0ff');g.addColorStop(1,'#ffffff');x.fillStyle=g;x.fillRect(0,0,128,256);
-  /* (2026-10-20, Sacha : « faits de glace, un design plus organique ») plus de chevrons orange : de la GLACE — veines claires, fissures givrées, bulles prises dans la masse */
-  let sd=7;const rn=()=>(sd=(sd*16807)%2147483647)/2147483647;
-  x.lineCap='round';for(let i=0;i<26;i++){let px=rn()*128,py=240*rn()+4;x.strokeStyle='rgba(255,255,255,'+(.35+rn()*.5)+')';x.lineWidth=1+rn()*3;x.beginPath();x.moveTo(px,py);for(let j=0;j<4;j++){px+=(rn()-.5)*34;py-=10+rn()*26;x.lineTo(px,py);}x.stroke();}
-  for(let i=0;i<14;i++){let px=rn()*128,py=240*rn()+4;x.strokeStyle='rgba(60,140,210,'+(.18+rn()*.25)+')';x.lineWidth=1+rn()*1.5;x.beginPath();x.moveTo(px,py);for(let j=0;j<3;j++){px+=(rn()-.5)*30;py-=8+rn()*20;x.lineTo(px,py);}x.stroke();}
-  for(let i=0;i<40;i++){x.fillStyle='rgba(255,255,255,'+(.25+rn()*.4)+')';x.beginPath();x.arc(rn()*128,rn()*236,.8+rn()*2.2,0,6.283);x.fill();}
-  x.fillStyle='#ffffff';x.fillRect(0,244,128,12); /* le bas de l'image : du blanc pur — flancs, lèvre et pointes y prennent leur seule couleur */
-  const t=new THREE.CanvasTexture(c);t.anisotropy=4;return BK_BEC_TEX=t;}
+/* (2026-10-20, Sacha : « exactement la même texture que le verglas, une aspérité de la route, pas un élément greffé dessus ») LE TREMPLIN EST LA ROUTE
+   QUI SE SOULÈVE : la même matière que le verglas (BANQ.mats.vg, texture en coordonnées monde : les fêlures et le ciel reflété passent de la route
+   à la bosse sans couture), aucun flanc, aucune balise, aucun cristal. La surface monte dans la courbe de hopY (la rampe) et se fond dans la route
+   sur les côtés ; la lèvre retombe d'un coup au niveau de la route. Les normales sont calculées : la bosse prend la lumière et le reflet du ciel. */
 function bkBecMesh(root,KK){
-  const P=[],C=[],UV=[],I=[];let n=0;
-  const V=(s9,la,h,r,g,b9,u,v)=>{frameAt(s9,F);P.push(F.p.x+F.b.x*la+F.n.x*h,F.p.y+F.b.y*la+F.n.y*h,F.p.z+F.b.z*la+F.n.z*h);C.push(r,g,b9);UV.push(u,v);return n++;};
-  const hs=(a,b)=>{const t=Math.sin(a*127.1+b*311.7)*43758.5453;return t-Math.floor(t);};
-  const pyr=(s9,la,h,ts,tl,th,rad,c0,c1,N9)=>{const b0=n; /* une POINTE de glace (cristal, stalactite, bosse) : une couronne irrégulière et un sommet */
-    for(let i=0;i<N9;i++){const a=i/N9*6.2832+hs(s9,i)*.5,r9=rad*(.75+.5*hs(la,i+3));V(s9+Math.cos(a)*r9,la+Math.sin(a)*r9,h,c0[0],c0[1],c0[2],.5,.02);}
-    const tp=V(ts,tl,th,c1[0],c1[1],c1[2],.5,.02);for(let i=0;i<N9;i++)I.push(b0+i,b0+(i+1)%N9,tp);};
-  for(const k of KK){const NR=18,NL=14,s0=k.s-k.lg,H=k.h,w=k.l1-k.l0,hR=u=>H*Math.pow(u,1.7)+.06,sd=k.s*.013;
-    const fl=u=>1.1+.9*Math.abs(Math.sin(u*4.2+sd))+.6*u,fr9=u=>1.1+.9*Math.abs(Math.sin(u*3.7+sd*1.7+2))+.6*u; /* la largeur FLOTTE : la glace déborde de la piste, plus ou moins, de chaque côté */
-    const GR=(u,t)=>{const fL=fl(u),fR=fr9(u),L=k.l0-fL,R=k.l1+fR,la=L+(R-L)*t,o=la<k.l0?(k.l0-la)/fL:la>k.l1?(la-k.l1)/fR:0;
-      const bump=.1*u*(.5+.5*Math.sin(la*1.3+sd)*Math.sin((k.s-k.lg*(1-u))*.45+la*.7)),h=(hR(u)+.4)*Math.sqrt(Math.max(0,1-o*o))-.4+(o>0?0:bump);return{la,o,h};}; /* le flanc est un talus ARRONDI, qui s'enfonce dans le sol ; la surface reste au niveau de la rampe (hopY) sur la piste */
-    const ICE=(u,o,j)=>{const a=1-o,m=.35*u+.65*(1-o),k9=.04*j;return[(.78+.22*m)*a+.22*o+k9,(.93+.07*m)*a+.55*o+k9,(1.08)*a+1.0*o+k9];}; /* bleu glace, blanchi vers la lèvre, bleu profond sur les talus */
-    let b0=n;for(let r=0;r<=NR;r++){const u=r/NR;for(let a=0;a<=NL;a++){const q=GR(u,a/NL),c=ICE(u,q.o,hs(r,a)-.5);V(k.s-k.lg*(1-u),q.la,q.h,c[0],c[1],c[2],a/NL,.06+.94*u);}} /* la RAMPE */
+  const P=[],A=[],I=[];let n=0;
+  const V=(s9,la,h,c,sd9)=>{frameAt(s9,F);P.push(F.p.x+F.b.x*la+F.n.x*h,F.p.y+F.b.y*la+F.n.y*h,F.p.z+F.b.z*la+F.n.z*h);A.push(c,.5,sd9,0);return n++;};
+  const ss=x=>x*x*(3-2*x);
+  for(const k of KK){const NR=22,NL=16,s0=k.s-k.lg,H=k.h,w=k.l1-k.l0,hR=u=>H*Math.pow(u,1.7)+.06,sd=k.s*.013,sg=(k.s*.0071)%10,fl=3.2; /* fl : la largeur sur laquelle la bosse se fond dans la route, de chaque côté */
+    const prof=t=>{const la=k.l0-fl+(w+2*fl)*t,o=la<k.l0?(k.l0-la)/fl:la>k.l1?(la-k.l1)/fl:0;return{la:la,f:1-ss(Math.min(1,o))};}; /* f : 1 sur la piste du tremplin, 0 à la route */
+    let b0=n;for(let r=0;r<=NR;r++){const u=r/NR,s9=s0+k.lg*u;for(let a=0;a<=NL;a++){const q=prof(a/NL);V(s9,q.la,.06+(hR(u)-.06)*q.f,0,sg);}} /* la bosse */
     for(let r=0;r<NR;r++)for(let a=0;a<NL;a++){const q=b0+r*(NL+1)+a;I.push(q,q+NL+1,q+1,q+1,q+NL+1,q+NL+2);}
-    const H1=hR(1)+.06,LIP=[[k.s-k.lg*.08,H1+.12,1.35],[k.s-.3,H1+.34,1.75],[k.s+.45,H1+.2,1.6],[k.s+.62,H1-.55,1.15]]; /* la LÈVRE : un rouleau de glace qui déborde et se courbe vers le bas, comme une vague gelée */
-    b0=n;for(const L9 of LIP)for(let a=0;a<=NL;a++){const q=GR(1,a/NL),ro=q.o>0?Math.min(1,q.o):0,wv=.12*Math.sin(a*1.9+sd);V(L9[0],q.la,L9[1]*(1-ro)+(-.4)*ro+wv,L9[2]*(1-ro*.6),L9[2]*(1-ro*.4),Math.min(1.9,L9[2]+.3),.5,.02);}
-    for(let r=0;r<LIP.length-1;r++)for(let a=0;a<NL;a++){const q=b0+r*(NL+1)+a;I.push(q,q+NL+1,q+1,q+1,q+NL+1,q+NL+2);}
-    const b1=n;for(const hh of [[k.s+.62,H1-.55],[k.s+.05,-.3]])for(let a=0;a<=NL;a++){const q=GR(1,a/NL);V(hh[0],q.la,q.o>0?-.4:hh[1],.20,.45,.95,.5,.02);} /* le dessous, creusé sous le rouleau : bleu nuit */
-    for(let a=0;a<NL;a++){const q=b1+a;I.push(q,q+1,q+NL+1,q+1,q+NL+2,q+NL+1);}
-    for(let i=0;i<9;i++){const t=(i+.5+(hs(k.s,i)-.5)*.6)/9,q=GR(1,t);if(q.o>0)continue;const len=1.4+hs(i,k.s)*3.4; /* les STALACTITES sous le rouleau */
-      pyr(k.s+.45,q.la,H1-.52,k.s+.52+hs(i,2)*.2,q.la+(hs(i,5)-.5)*.5,H1-.52-len,.22+.2*hs(i,7),[.55,.82,1.2],[1.5,1.7,1.9],5);}
-    for(const sg of [-1,1]){const lc=sg<0?k.l0-3:k.l1+3,sp0=k.s-3;
-      pyr(sp0,lc,-.3,sp0+(hs(sg,1)-.5)*1.2,lc+sg*2.4,H+BK_BEC.poteau,1.25,[.18,.5,1.05],[1.7,1.85,2],6); /* les deux grands CRISTAUX, hauts, qui annoncent le tremplin de loin */
-      for(let j=0;j<4;j++){const ds=(hs(sg+j,3)-.5)*5,dl=sg*(.8+j*.9)+(hs(j,sg)-.5)*1.2,hh=4+hs(j,sg+7)*7;
-        pyr(sp0+ds,lc+dl,-.3,sp0+ds+(hs(j,9)-.5)*1.8,lc+dl+sg*(.6+hs(j,4)*1.6),hh,.5+.4*hs(j,6),[.25,.58,1.05],[1.3+.3*hs(j,2),1.6,1.85],5);} /* et leur grappe de cristaux plus petits, penchés vers l'extérieur */
-      for(let j=0;j<5;j++){const ss=k.s-k.lg*(.15+.17*j)+(hs(j,sg)-.5)*3,ll=sg<0?k.l0-fl(.3+.15*j)*.7:k.l1+fr9(.3+.15*j)*.7,hh=.9+hs(j,sg+2)*1.4; /* des bosses de glace gelée le long des talus */
-        pyr(ss,ll,-.45,ss+(hs(j,1)-.5)*.8,ll+sg*.3,hh,1.1+.9*hs(j,3),[.5,.78,1.15],[1.25,1.5,1.7],7);}}}
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(UV,2));
-  g.setIndex(n>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeBoundingSphere();
-  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,map:bkBecTex(),side:THREE.DoubleSide,fog:true}));m.name='glacier becs';m.matrixAutoUpdate=false;m.userData.jeter=true;root.add(m);}
+    b0=n;for(const dh of [0,1])for(let a=0;a<=NL;a++){const q=prof(a/NL);V(k.s+.04*dh,q.la,dh?.06:.06+(hR(1)-.06)*q.f,0,sg);} /* la lèvre : la paroi qui retombe sur la route */
+    for(let a=0;a<NL;a++){const q=b0+a;I.push(q,q+1,q+NL+1,q+1,q+NL+2,q+NL+1);}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('aV',new THREE.Float32BufferAttribute(A,4));
+  g.setIndex(n>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeVertexNormals();g.computeBoundingSphere();
+  const m=new THREE.Mesh(g,BANQ.mats.vg);m.name='glacier becs';m.matrixAutoUpdate=false;m.userData.jeter=true;m.renderOrder=1;m.frustumCulled=false;root.add(m);}
 function bkCgEntre(kmh){ // l'entrée dans la neige : le plouf, la gerbe, un coup dans la main
-  const k=Math.min(1,kmh/300);shake=Math.max(shake,.22+.3*k);fovPunch=Math.max(fovPunch,3+5*k);hap(k>.5?[14,22]:[10]);
+  const k=Math.min(1,kmh/300);shake=Math.max(shake,(BK_NEIGE?.4:.22)+.3*k);fovPunch=Math.max(fovPunch,3+5*k);hap(k>.5?[14,22]:[10]);
   try{if(SONV2){if(!(window.CCSON&&window.CCSON.existe('banq.plouf')&&sfx('banq.plouf',{vol:-8+6*k})))sfx('nuage.entre',{vol:-4+4*k});}else noiseBurst(.35,.08+.08*k,700);}catch(e){}
   const fx=BANQ.fx;if(fx&&fx.poudre&&BK_CG.fx>0){const p=carGroup.position,vc=PT_U.uVc.value;for(let i=0;i<10+18*k;i++){const a=Math.random()*6.2832,r=Math.random();
     spawnP(fx.poudre,p.x+(Math.random()-.5)*3,p.y+.3,p.z+(Math.random()-.5)*3,vc.x*.7+Math.cos(a)*(3+r*9),vc.y*.7+5+Math.random()*12*(.5+k),vc.z*.7+Math.sin(a)*(3+r*9),.6+Math.random()*.8);}}}
@@ -171,6 +153,7 @@ function bkCongere(dt){ // la boucle de conduite (glacier v4), chaque image, à 
     lat-=out*BK_CG.pousse*k*dt;                                                                 // le bourrelet REPOUSSE vers la glace
     if(psi*driveDir*out>0)psi*=Math.exp(-dt*BK_CG.redresse*k);                                  // et remet la caisse dans l'axe : elle ne file plus vers l'extérieur
     if(!BKB.dans&&k>.08){BKB.dans=true;bkCgEntre(kmh);}
+    if(BK_NEIGE&&kmh>60)shake=Math.max(shake,.14*k*Math.min(1,kmh/250)); /* la neige profonde secoue la caisse tant qu'on y laboure */
     const fx=BANQ.fx;
     if(fx&&fx.poudre&&kmh>15&&carGroup.visible){const vc=PT_U.uVc.value,w=CARS[level].w*.5,l=CARS[level].l*.4; // LA POUDRE : deux rideaux jetés par les roues, plus hauts loin dans la neige
       BKB.em+=dt*(6+22*k)*Math.min(1,kmh/150)*BK_CG.fx;

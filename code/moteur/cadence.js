@@ -29,6 +29,7 @@
 /* (2026-10-14, décision de Sacha 3 h 30) ROUVERT (7 h 50) : le choc balayé de DEBUGGING est dans le jeu ; preuve perf/banc/chef/v13.cjs (trafic niv. 19, satellites au sol et en vol, 163 / 400 / 8 010 km/h, plein axe et de biais : 20/20 chocs à 30 i/s, 0 faux positif ; l'ancien code ratait). Avant : interrupteur fermé, à 20-30 i/s la caisse traversait le trafic. `dbgCadence(30)` force toujours au banc. */PAL.B.cadence30=[1,1,0];PAL.B.cadenceDepart=[1,0,0];PAL.B.cadenceTenue=[1000,2000,2000];PAL.B.cadenceMonte=[1,0,1];
 const CAD={ok:PAL.b('cadence30',0)?1:0,on:false,gel:false,force:0,per:1000/30,ecran:1000/60,tol:1000/120,der:0,rp:0,eMin:99,eN:0,
   w:0,wMax:10,wh:0,calT:0,lT:0,vu:0,crs:false,calme:false,essT:0,murT:0,murD:30000,entrees:0,sorties:0};
+let FPS_NEXT=0;const FPS_CAP=!/[?&]fps=0\b/.test(location.search); /* (2026-10-20) le plafond à 60 i/s — voir le début de loop */
 function cadSaute(now){ // en tête de loop : rend true si cette image d'écran se saute
   const d=now-CAD.rp;CAD.rp=now;if(d>3&&d<CAD.eMin)CAD.eMin=d;
   if(++CAD.eN>=90){const m=CAD.eMin;CAD.eN=0;CAD.eMin=99;CAD.ecran=m<7.7?1000/144:m<9.7?1000/120:m<12.6?1000/90:m<15?1000/75:1000/60;CAD.tol=CAD.ecran*.5;} // 30 Hz imposé (m ≈ 33) : on garde 60, rien ne se saute de toute façon

@@ -51,6 +51,17 @@ la justesse.**
 | Chaque voiture est notée sur plusieurs pistes distinctes, en moyenne | `check-eval.js` | PASS |
 | La progression **survit** à un redémarrage | `check-persist.js` | PASS, 5 maillons de la chaîne présents |
 | Le comportement en course, en trois chiffres | `check-live.js` | vitesse moyenne · dispersion à 2 s · % sur route à 5 s |
+| Ce que fait **LE CHAMPION** sur des courses entières (finit ? meurt de quoi ? figures ? zigzag ?) | `check-course.js` | 20/10 : le champion d'hier finissait **0 %** des courses |
+
+**⚠ LES TOTAUX D'UN RUN NE DÉCRIVENT PAS LE CHAMPION (leçon du 2026-10-20).** « Record 11746, 1256 arrivées » sont des totaux
+de toute la population sur tout l'entraînement, mutants compris : le champion de ce run ne finissait aucune course. Avant
+d'annoncer ce que « les bots » savent faire, `node check-course.js` sur le champion.
+
+**SYNCHRO AVEC LE JEU (2026-10-20).** `train.html` est une copie du jeu de juillet. Rattrapé ce jour, d'après `code/` : gravité ×1,45
+(`GRAV_K`), route 2 × 14 m et 5,2 m d'épaisseur, et les règles des figures (chute à plus de 52°, rien d'encaissé au crash, figures
+sur la route). Encore différent du jeu, connu : la figure de route qui décolle (perdue ici, finie en vol dans le jeu), le flow et
+les combos, le GLISSER, les largeurs et gravités propres à chaque map, la règle de vol « une face par vol » du 20/10. Toute
+nouvelle règle de conduite du jeu doit être recopiée ici, sinon les bots apprennent un autre jeu.
 
 **Déterminisme.** Pas de temps fixe `1/60 s` + accumulateur, tout l'aléa passe par `TRAIN.rnd`
 (mulberry32 graine). Le headless et le navigateur sortent **les mêmes chiffres** : c'est ce qui

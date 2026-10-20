@@ -164,9 +164,8 @@ function tutoFin(passe){
   if(!passe){const paye=!SAVE.d.permis; // (2026-09-28) la prime du permis ne se verse qu'UNE fois : REVOIR L'AUTO-ÉCOLE ne doit pas devenir un robinet à 500
     if(paye){SAVE.d.permis=1;SAVE.d.bank=Math.min(1e30,bank()+500);gagneAjoute(500);bankMaxMaj();}
     /* (2026-09-29, audit des 10 premières minutes) LE PERMIS SE FÊTE : la grande annonce du centre (tenue 1,6 s, les cartes retenues pendant
-       la leçon attendent derrière), puis — à la 1re fois — ce qui vient de changer : fini l'entraînement où l'on ne pouvait pas mourir. */
+       la leçon attendent derrière). (2026-10-20) La carte ASTUCE « fini l'entraînement : une seule vie » qui suivait est retirée avec toutes les astuces. */
     hautPasse(function(){slamMontre('PERMIS OBTENU !',paye?'+'+fmtC(500):'','#62e062','#ffd75e',40,22);},1900,'slam',3,{min:1600});
-    if(paye)hautPasse(function(){misBanMontre('ASTUCE',TR("Fini l'entraînement : UNE SEULE VIE. En l'air, pose-toi avant la fin du chrono."),'','drapeau');},2800,'mis',3);
     try{if(SONV2)sfx('ui.debloque');else fanfare();}catch(e){}hap([20,60,20,60,60]);}
   SAVE.flush();
   hautArme(); // les cartes retenues pendant la leçon passent maintenant, l'une après l'autre (le permis d'abord)

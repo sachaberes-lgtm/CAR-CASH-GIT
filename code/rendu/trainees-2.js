@@ -84,10 +84,10 @@ const TRX_EMET={
         const sx=Math.random()<.5?-1:1;let bx=B.p[12],by=B.p[13],bz=B.p[14];B.bn=0;
         for(let i=0;i<5;i++){const o=B.bn*3;B.q[o]=bx;B.q[o+1]=by;B.q[o+2]=bz;B.bn++;const dl=.6+Math.random()*.7,dh=-.7-Math.random()*.9;
           bx+=C.R.x*sx*dl+C.U.x*dh;by+=C.R.y*sx*dl+C.U.y*dh;bz+=C.R.z*sx*dl+C.U.z*dh;}}
-      const f=trxNait(1);if(f){f.x=C.P.x+C.U.x*.7;f.y=C.P.y+C.U.y*.7;f.z=C.P.z+C.U.z*.7;trxVit(f,1);f.l=.24;f.w=f.h=C.pv?2.4:3.6;f.c=0;f.cr=1.3;f.cg=1.05;f.cb=2.6;f.fo=.2;}
+      const f=trxNait(1);if(f){f.x=C.P.x+C.U.x*.7;f.y=C.P.y+C.U.y*.7;f.z=C.P.z+C.U.z*.7;trxVit(f,1);f.l=.24;f.w=f.h=C.pv?2.4:3.6;f.c=0;f.cr=1.3;f.cg=1.05;f.cb=2.6;f.fo=.2;f.cu=TC_ON?4:0;}
       for(let q=0;q<(C.pv?10:16);q++){const p=trxNait(1);if(!p)break;const a=Math.random()*6.283,sp=2+Math.random()*3;
         p.x=C.P.x;p.y=C.P.y;p.z=C.P.z;p.vx=C.R.x*Math.cos(a)*sp+C.U.x*(1+Math.random()*2.5)-C.F.x*Math.sin(a)*sp;p.vy=C.R.y*Math.cos(a)*sp+C.U.y*(1+Math.random()*2.5)-C.F.y*Math.sin(a)*sp;p.vz=C.R.z*Math.cos(a)*sp+C.U.z*(1+Math.random()*2.5)-C.F.z*Math.sin(a)*sp;
-        trxVit(p,.9);p.g=-7;p.l=.3+Math.random()*.3;p.w=p.h=.12+Math.random()*.1;p.c=2;p.vr=(Math.random()-.5)*12;p.cr=1.5;p.cg=1.3;p.cb=2.4;p.fo=.15;}}
+        trxVit(p,.9);p.g=-7;p.l=.3+Math.random()*.3;p.w=p.h=.12+Math.random()*.1;p.c=2;p.vr=(Math.random()-.5)*12;p.cr=1.5;p.cg=1.3;p.cb=2.4;p.fo=.15;p.cu=TC_ON?3:0;}}
     if(on){T.boltT-=dt;if(T.boltT<=0){T.boltT=.06+Math.random()*.07;let B=null;for(const b of T.bolts)if(!b.on){B=b;break;}
       if(B){B.on=true;B.a=0;B.l=.1+Math.random()*.08;B.n=0;B.wk=1;const n=10,L=Math.min(9.5,4+6*k);
         for(let i=0;i<=n;i++){trxLe(L*i/n,v,false);const am=i?(.1+.5*i/n)*(C.pv?1:1.9):0,ox=(Math.random()-.5)*2*am,oy=(Math.random()-.5)*1.4*am,o=B.n*3;
@@ -95,11 +95,11 @@ const TRX_EMET={
         const j=3+((Math.random()*5)|0),sx=Math.random()<.5?-1:1;let bx=B.p[j*3],by=B.p[j*3+1],bz=B.p[j*3+2];B.bn=0; // la BRANCHE, d'un coude
         for(let i=0;i<4;i++){const o=B.bn*3;B.q[o]=bx;B.q[o+1]=by;B.q[o+2]=bz;B.bn++;const s=.25+Math.random()*.35,u=(Math.random()-.4)*.5;
           bx+=C.R.x*sx*s+C.U.x*u-C.F.x*.3;by+=C.R.y*sx*s+C.U.y*u-C.F.y*.3;bz+=C.R.z*sx*s+C.U.z*u-C.F.z*.3;}
-        const s=trxNait(1);if(s){s.x=B.p[j*3]+C.P.x;s.y=B.p[j*3+1]+C.P.y;s.z=B.p[j*3+2]+C.P.z;trxVit(s,.5);s.l=.22;s.w=s.h=.35;s.c=2;s.cr=1.2;s.cg=1;s.cb=2.4;s.fo=.15;s.vr=8;}}}
-      trxQ(1,0,C.P.x,C.P.y,C.P.z,0,.55,.55,0,0,0,0,0,.7,.5,2,.6*k);}
+        const s=trxNait(1);if(s){s.x=B.p[j*3]+C.P.x;s.y=B.p[j*3+1]+C.P.y;s.z=B.p[j*3+2]+C.P.z;trxVit(s,.5);s.l=.22;s.w=s.h=.35;s.c=2;s.cr=1.2;s.cg=1;s.cb=2.4;s.fo=.15;s.vr=8;s.cu=TC_ON?3:0;}}}
+      if(TC_ON)tcGlow(C.P.x,C.P.y,C.P.z,.9*k,.7,.5,1.6);else trxQ(1,0,C.P.x,C.P.y,C.P.z,0,.55,.55,0,0,0,0,0,.7,.5,2,.6*k);}
     const wb=C.pv?(silBlanc()?2:1):1.7; // (2026-10-17) en boutique, sur le blanc, un éclair de 5 cm de cœur ne se voyait pas : ×2 ; en course il se noyait dans le ruban violet : ×1,7 et deux fois plus écarté
     for(const B of T.bolts){if(!B.on)continue;B.a+=dt;if(B.a>=B.l){B.on=false;continue;} // chaque éclair vit 0,1-0,18 s : il éclate à sa naissance et vacille
-      const f=(1-B.a/B.l)*(.7+Math.random()*.3);trxBolt(B.p,B.n,f,(B.wk||1)*wb);trxBolt(B.q,B.bn,f*.8,.6*(B.wk||1)*wb);}},
+      const f=(1-B.a/B.l)*(.7+Math.random()*.3);if(TC_ON){tcBolt(B.p,B.n,f,(B.wk||1)*wb);tcBolt(B.q,B.bn,f*.8,.6*(B.wk||1)*wb);}else{trxBolt(B.p,B.n,f,(B.wk||1)*wb);trxBolt(B.q,B.bn,f*.8,.6*(B.wk||1)*wb);}}},
   blocs:function(T,C,k,dt,on,debut){if(!on)return; // PLUIE DE BLOCS — les sept pièces tombent en tournant PAR QUARTS, comme dans le puits
     let nb=0;T.acc+=dt*(C.pv?7:TRX_DENSE?12:8)*k;while(T.acc>=1){T.acc-=1;nb++;}const fan=debut?7:0;nb+=fan; /* (2026-10-17, TRAÎNÉES) à l'appui, les SEPT pièces jaillissent ensemble en éventail, une de chaque couleur */
     for(let q=0;q<nb;q++){const p=trxNait(0);if(!p)return;const fq=q<fan,ang=fq?(q/6-.5)*2.4:0,lat=fq?0:(Math.random()-.5)*1.4,up=fq?.55:.3+Math.random()*.8,sl=fq?Math.sin(ang)*4.2:(Math.random()-.5)*3,su=fq?2.4+Math.cos(ang)*2.6:1.5+Math.random()*2.5;
@@ -112,21 +112,21 @@ const TRX_EMET={
       p.x=C.P.x+C.U.x*.45;p.y=C.P.y+C.U.y*.45;p.z=C.P.z+C.U.z*.45;
       p.vx=C.R.x*ca*sp+C.U.x*(sa*sp+.8)-C.F.x*.6;p.vy=C.R.y*ca*sp+C.U.y*(sa*sp+.8)-C.F.y*.6;p.vz=C.R.z*ca*sp+C.U.z*(sa*sp+.8)-C.F.z*.6;trxVit(p,.95);
       p.g=-1.4;p.dr=1.6;p.sw=.9;p.sf=3+Math.random()*2;p.sx=C.R.x;p.sy=C.R.y;p.sz=C.R.z;p.vr=(Math.random()-.5)*6;p.fl=3+Math.random()*5;
-      p.l=1.6+Math.random()*.7;p.w=p.h=.12+Math.random()*.05;p.c=27+((Math.random()*3)|0);p.fi=.04;p.fo=.6;}}
+      p.l=1.6+Math.random()*.7;p.w=p.h=.12+Math.random()*.05;p.c=27+((Math.random()*3)|0);p.fi=.04;p.fo=.6;p.cu=TC_ON?1:0;}}
     T.acc+=dt*(C.pv?20:TRX_DENSE?50:32)*k; /* (2026-10-15 soir) une vraie pluie de pétales en course */
     while(T.acc>=1){T.acc-=1;const p=trxNait(0);if(!p)return;const lat=(Math.random()-.5)*1.6,up=Math.random()*.9,ar=Math.random()*.5,sl=(Math.random()-.5)*2.6,su=.4+Math.random()*1.4,sa=Math.random()*1.2;
       p.x=C.P.x+C.R.x*lat+C.U.x*up-C.F.x*ar;p.y=C.P.y+C.R.y*lat+C.U.y*up-C.F.y*ar;p.z=C.P.z+C.R.z*lat+C.U.z*up-C.F.z*ar;
       p.vx=C.R.x*sl+C.U.x*su-C.F.x*sa;p.vy=C.R.y*sl+C.U.y*su-C.F.y*sa;p.vz=C.R.z*sl+C.U.z*su-C.F.z*sa;trxVit(p,.88);
       p.g=-1.2;p.dr=.9;p.sw=1.1;p.sf=3+Math.random()*2;p.sx=C.R.x;p.sy=C.R.y;p.sz=C.R.z;p.vr=(Math.random()-.5)*5;p.fl=3+Math.random()*5;
-      p.l=1.8+Math.random()*.9;p.w=p.h=.1+Math.random()*.06;p.c=27+((Math.random()*3)|0);p.fi=.12;p.fo=.6;}},
+      p.l=1.8+Math.random()*.9;p.w=p.h=.1+Math.random()*.06;p.c=27+((Math.random()*3)|0);p.fi=.12;p.fo=.6;p.cu=TC_ON?1:0;}},
   billets:function(T,C,k,dt,on,debut){if(!on)return; // FAIS PLEUVOIR — des billets qui jaillissent, tournoient (recto, verso) et planent
     let nb=0;T.acc+=dt*(C.pv?8:TRX_DENSE?19:12)*k;while(T.acc>=1){T.acc-=1;nb++;}if(debut)nb+=C.pv?10:18;
     for(let q=0;q<nb;q++){const p=trxNait(0);if(!p)return;const lat=(Math.random()-.5)*.8,up=.3+Math.random()*.7,sl=(Math.random()-.5)*7,su=2+Math.random()*3.5,sa=1+Math.random()*2.5;
       p.x=C.P.x+C.R.x*lat+C.U.x*up;p.y=C.P.y+C.R.y*lat+C.U.y*up;p.z=C.P.z+C.R.z*lat+C.U.z*up;
       p.vx=C.R.x*sl+C.U.x*su-C.F.x*sa;p.vy=C.R.y*sl+C.U.y*su-C.F.y*sa;p.vz=C.R.z*sl+C.U.z*su-C.F.z*sa;trxVit(p,.86);
       p.g=-5.5;p.dr=1.4;p.sw=.8;p.sf=4+Math.random()*3;p.sx=C.R.x;p.sy=C.R.y;p.sz=C.R.z;p.vr=(Math.random()-.5)*6;p.fl=6+Math.random()*6;
-      p.l=1.8+Math.random()*.6;p.w=p.h=.3;p.c=30;p.c2=31;p.fo=.5;
-      if(Math.random()<(debut&&q<10?.8:.28)){const s=trxNait(1);if(s){s.x=p.x;s.y=p.y;s.z=p.z;s.vx=p.vx*.6;s.vy=p.vy*.6;s.vz=p.vz*.6;s.dr=1;s.l=.35+Math.random()*.25;s.w=s.h=.16+Math.random()*.08;s.c=2;s.vr=7;s.cr=1.7;s.cg=1.55;s.cb=.7;s.fo=.2;s.tw=14+Math.random()*8;}}}}, /* (2026-10-17, TRAÎNÉES) l'ÉCLAT DE L'ARGENT : un billet sur quatre lâche une étincelle d'or qui scintille (presque tous à l'allumage) */
+      p.l=1.8+Math.random()*.6;p.w=p.h=.3;p.c=30;p.c2=31;p.fo=.5;p.cu=TC_ON?2:0;
+      if(Math.random()<(debut&&q<10?.8:.28)){const s=trxNait(1);if(s){s.x=p.x;s.y=p.y;s.z=p.z;s.vx=p.vx*.6;s.vy=p.vy*.6;s.vz=p.vz*.6;s.dr=1;s.l=.35+Math.random()*.25;s.w=s.h=.16+Math.random()*.08;s.c=2;s.vr=7;s.cr=1.7;s.cg=1.55;s.cb=.7;s.fo=.2;s.tw=14+Math.random()*8;s.cu=TC_ON?3:0;}}}}, /* (2026-10-17, TRAÎNÉES) l'ÉCLAT DE L'ARGENT : un billet sur quatre lâche une étincelle d'or qui scintille (presque tous à l'allumage) */
   /* (2026-10-16, session TRAÎNÉES — Sacha : « il faut qu'elle donne toute envie d'acheter ») LES TROIS RUBANS ONT ENFIN LEUR SIGNATURE.
      En course on voit ~3 m de traînée dans l'axe : MENTHE, ROSE NÉON et POUDRE D'OR n'étaient qu'un fil d'une autre couleur à côté du
      feu orange. Chacun gagne ses éclats, lancés SUR LES CÔTÉS et VERS LE HAUT (là où la caméra de poursuite les voit), élan gardé ~0,93. */
@@ -162,7 +162,7 @@ function trxCoeur(type,k,dt){const T=TRX,C=T.C,t0=performance.now();T.t+=dt;
   if(type!==T.type){if(C.pv){for(const p of T.P)p.v=false;T.kp=0;} /* (2026-10-17, TRAÎNÉES) à l'aperçu, une autre traînée essayée chasse les objets de la précédente (les bulles de MENTHE flottaient encore sur ROSE NÉON) et REJOUE son allumage : on voit le coup de chacune */T.type=type;T.H.n=0;T.gk=0;T.peur=0;T.acc=0;T.dist=0;T.cnt=0;for(const b of T.bolts)b.on=false;T.wl0.copy(C.WL);T.wr0.copy(C.WR);}
   const on=k>.05,debut=on&&T.kp<=.05;if(debut){T.wl0.copy(C.WL);T.wr0.copy(C.WR);T.dist=0;}T.kp=k;
   if(!C.pv&&TRX_HIST[type])trxHist(on?k:0);
-  T.L[0].n=T.L[1].n=0;
+  T.L[0].n=T.L[1].n=0;tcRaz();
   const E=TRX_EMET[type];if(E&&dt>0)E(T,C,k,dt,on,debut);
   const np=trxParts(dt);let nb=0;for(const b of T.bolts)if(b.on)nb++;
   { /* (2026-10-16, TRAÎNÉES) LA SALLE BLANCHE : la lumière additive s'y effaçait (matrice, filés, foudre, néon) — le maillage qui brille
@@ -174,10 +174,11 @@ function trxCoeur(type,k,dt){const T=TRX,C=T.C,t0=performance.now();T.t+=dt;
   {const Yi=T.L[1];if(Yi.mi){const ik=(TRJ.on&&!C.pv&&running&&!garageOn)?(1-LUM.nuit)*TRJ.trx:0;Yi.mi.material.uniforms.uInk.value=ik;Yi.mi.visible=ik>.02;}} // (2026-10-18) LE VOILE DE JOUR de ce qui brille (voir TRJ)
   for(const Y of T.L){const n=Y.n;Y.g.instanceCount=n;Y.m.visible=n>0;
     if(n)for(const nm of ['iP','iA','iB','iC']){const at=Y.g.attributes[nm];at.updateRange.offset=0;at.updateRange.count=n*4;at.needsUpdate=true;}}
+  tcFin();
   T.n=np+T.L[0].n+T.L[1].n+nb+(T.gk>0?1:0); // tant qu'il reste quelque chose (même un mur qui s'éteint), la boucle continue d'appeler
   T.ms=T.ms*.95+(performance.now()-t0)*.05;}
 function trxCoupe(){if(!TRX)return;const T=TRX;for(const p of T.P)p.v=false;for(const b of T.bolts)b.on=false;
-  T.H.n=0;T.gk=0;T.peur=0;T.acc=0;T.dist=0;T.kp=0;T.n=0;for(const Y of T.L){Y.n=0;Y.g.instanceCount=0;Y.m.visible=false;}}
+  T.H.n=0;T.gk=0;T.peur=0;T.acc=0;T.dist=0;T.kp=0;T.n=0;for(const Y of T.L){Y.n=0;Y.g.instanceCount=0;Y.m.visible=false;}tcCoupe();}
 function trxStep(type,k,dt){ // en course (la boucle, à côté de l'arc-en-ciel et de WOW)
   if(!type&&!(TRX&&TRX.n))return;const T=trxBati(),C=T.C;if(T.apercu){T.apercu=false;trxCoupe();}
   C.pv=false;C.F.copy(hsF);C.U.copy(hsU);C.R.copy(hsR);potMonde(CAR_POT_C,C.P).addScaledVector(hsU,.15);C.V.copy(EXV);trxRoues(CARS[level]);
@@ -191,7 +192,7 @@ function trxApercu(dt,type,k9){ // au garage : la caisse est posée, la traîné
   const k=k9==null?1:k9;if(TRX_HIST[type])trxHistApercu(k);
   trxCoeur(type,k,dt);}
 window.dbgTrx=function(t){if(t!==undefined){TRX_FORCE=t||null;return TRX_FORCE;}
-  return TRX?{type:TRX.type,force:TRX_FORCE,vivants:TRX.P.filter(function(p){return p.v;}).length,quads:[TRX.L[0].n,TRX.L[1].n],chemin:TRX.H.n,ms:+TRX.ms.toFixed(3),apercu:TRX.apercu}:null;};
+  return TRX?{type:TRX.type,force:TRX_FORCE,vivants:TRX.P.filter(function(p){return p.v;}).length,quads:[TRX.L[0].n,TRX.L[1].n],cubes:TC?[TC.s.n,TC.o.n,TC.g.n]:null,chemin:TRX.H.n,ms:+TRX.ms.toFixed(3),apercu:TRX.apercu}:null;};
 window.dbgArc=function(q){const R=rainbow;
   if(q==='obj')return R; // (banc) l'objet lui-même
   if(q==='banc'){const T=performance.now.bind(performance),t9=T()*.001;for(let i=0;i<ARC_NS;i++){R.k0[i]=1;R.age[i]=i*.01;}let a9=T();for(let i=0;i<60;i++)arcPose(0,0,1,camera,t9+i*.016,.016);return {pose:(T()-a9)/60,cubes:R.m.count};} // (banc) ms par image, traînée pleine

@@ -300,7 +300,7 @@ function paintEnv(stops,s1,s2){ // stops=[[pos,'#hex'],…] + 2 strips néon [r,
     if(f===sunF){const h=c.createRadialGradient(32,27,0,32,27,7);h.addColorStop(0,ecl(1));h.addColorStop(.3,ecl(.62));h.addColorStop(1,ecl(0));c.fillStyle=h;c.fillRect(0,0,64,64);} // le soleil rasant (vague 2 : resserré, teinté par la source du niveau — voir `ecl`) — (2026-09-26) un cœur NET et court : avec le vernis, sur une vitre ou un toit, c'est un ÉCLAT de soleil, plus une tache blanche molle
   });
   envTex.needsUpdate=true;
-  try{finLaque(false);}catch(e){} // (2026-10-20) le ciel d'un niveau ou du menu : la caisse reprend son vernis de course (la finition studio, finition.js, n'est que pour le garage) — au chargement la finition n'existe pas encore : rien à rendre
+  try{FSTU.env='ciel';finLaque(false);}catch(e){} // (2026-10-20) le ciel d'un niveau ou du menu : la caisse reprend son vernis de course (la finition studio, finition.js, n'est que pour le garage) — au chargement la finition n'existe pas encore : rien à rendre
 }
 /* L'ATELIER DANS LA LAQUE (2026-09-26) — au garage, la carrosserie reflétait le CIEL de la dernière course (un couchant violet dans
    un atelier fermé) : des reflets sans rapport avec la pièce, mous, sans une arête. Le cube est repeint en STUDIO : plafond noir
@@ -308,7 +308,7 @@ function paintEnv(stops,s1,s2){ // stops=[[pos,'#hex'],…] + 2 strips néon [r,
    la porte relevée sur la nuit et son liseré rose. Ce sont ces arêtes franches qui font lire « laque » sur une facette plane : le
    reflet COURT sur la tôle quand la caméra tourne. Posé à l'entrée (openGarage), le ciel du biome est rendu à la sortie
    (closeGarage). Même coût que paintEnv : 6 canvas 64², une fois. */
-function paintEnvAtelier(){
+function paintEnvAtelier(){try{FSTU.env='atelier';}catch(e){}
   envCvs.forEach(function(cv,f){if(cv.width!==64)cv.width=cv.height=64;
     const c=cv.getContext('2d');
     if(f===2){ // +Y : le plafond et ses tubes (un halo, puis le tube net)

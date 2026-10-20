@@ -8,11 +8,24 @@ function bkPisteNue(on){
   for(const m of NEON_RAILS)cache(m);for(const m of NEON_GLOW)cache(m);try{cache(JADE.flank);}catch(e){}
   for(const o of trackMeshes)if(o&&o.traverse)o.traverse(function(c){const mt=c.material;if(!mt||Array.isArray(mt)||c.name==='banquise verglas')return;if((mt.userData&&mt.userData.bitume)||(LIGNE_TEX&&mt.map===LIGNE_TEX))cache(mt);});}
 /* (v4) LES PICS DE LA PISTE, AU SOL : la caisse entre dans un cristal = L'IMPACT (la même animation que tous les obstacles), face = du centre du pic vers la caisse */
+/* (2026-10-20, Sacha : « des fois on traverse le mur ») LE CHOC SUR UN PIC, BALAYÉ ET À LA LARGEUR DE LA CAISSE : avant, un seul point (le centre) était
+   testé, à l'image courante — un pic frôlé par le flanc ne comptait pas, et à grande vitesse (2-3 m par image) la caisse enjambait l'arête d'un pic mince
+   entre deux images. Désormais on teste le centre, les deux flancs, le nez et l'arrière, et chaque point à 3 étapes du chemin parcouru depuis l'image
+   d'avant. `?sans=glacechoc` = avant. */
+const BK_CHOC=!/[?&]sans=([^&]*,)?glacechoc(,|&|$)/.test(location.search),BK_PP={x:0,z:0,ok:false},BK_PT=[[0,0],[1,0],[-1,0],[0,1],[0,-1]];
 function banqPisteHeurt(){
-  if(mode!=='drive'||graceT>0||!BANQ.obst||!BANQ.obst.length||!banqOk())return false;
+  if(mode!=='drive'||!BANQ.obst||!BANQ.obst.length||!banqOk()){BK_PP.ok=false;return false;}
   const P=carGroup.position;
-  for(const o of BANQ.obst){if(Math.abs(o.s-s)>o.r+10)continue;
-    for(const Q of o.L9){const dx=P.x-Q.cx,dz=P.z-Q.cz;if(dx*dx+dz*dz>Q.r2)continue;if(bkPrimH(Q,P.x,P.z)<P.y+.35)continue;
+  if(graceT>0){BK_PP.x=P.x;BK_PP.z=P.z;BK_PP.ok=true;return false;}
+  const ax=BK_PP.ok?BK_PP.x:P.x,az=BK_PP.ok?BK_PP.z:P.z;BK_PP.x=P.x;BK_PP.z=P.z;BK_PP.ok=true;
+  const C=CARS[level]||CARS[0],hw=BK_CHOC?C.w*.5:0,hl=BK_CHOC?C.l*.42:0,fx=F.t.x,fz=F.t.z,rx=-fz,rz=fx; /* (F.t : le sens de la route ; le travers = sa perpendiculaire) */
+  const nE=BK_CHOC&&Math.hypot(P.x-ax,P.z-az)>.8?3:1;
+  for(const o of BANQ.obst){if(Math.abs(o.s-s)>o.r+10+(BK_CHOC?6:0))continue;
+    for(const Q of o.L9){let dx=0,dz=0,hit=false;
+      for(let e=1;e<=nE&&!hit;e++){const u=e/nE,cx=ax+(P.x-ax)*u,cz=az+(P.z-az)*u;
+        for(let q=0;q<(BK_CHOC?5:1)&&!hit;q++){const px=cx+rx*BK_PT[q][0]*hw+fx*BK_PT[q][1]*hl,pz=cz+rz*BK_PT[q][0]*hw+fz*BK_PT[q][1]*hl,ex=px-Q.cx,ez=pz-Q.cz;
+          if(ex*ex+ez*ez>Q.r2)continue;if(bkPrimH(Q,px,pz)<P.y+.35)continue;hit=true;dx=cx-Q.cx;dz=cz-Q.cz;}}
+      if(!hit)continue;
       IMP.frais=-1;try{const V=IMP.d.copy(PT_U.uVc.value);let l=V.length();if(!(l>1)){V.copy(F.t);l=1;}V.multiplyScalar(1/l);IMP.v=Math.min(l,200);
         IMP.n.set(dx,0,dz);if(IMP.n.lengthSq()<1e-4)IMP.n.copy(F.t).multiplyScalar(-1);IMP.n.normalize();IMP.c.copy(P);
         IMP.s.copy(P).addScaledVector(IMP.n,-((CARS[level]||CARS[0]).w*.5+.1));IMP.test=null;IMP.mou=true;IMP.frais=performance.now();}catch(e){IMP.frais=-1;}
