@@ -446,6 +446,11 @@ try{Object.assign(I18N,{"VERS L'ARRIÈRE":'BACKWARD','POUCE EN ARRIÈRE':'THUMB 
 try{Object.assign(I18N,{'ÉQUIPER':'EQUIP','DÉSÉQUIPER':'UNEQUIP','ÉQUIPÉE':'EQUIPPED','ÉQUIPÉ':'EQUIPPED','ACHETER':'BUY','À GAGNER':'TO EARN'});}catch(e){}
 try{Object.assign(I18N,{'CHOISIS UNE OFFRE':'PICK AN OFFER'});}catch(e){} // (2026-10-14, charte 6, boutique P1)
 function garBqChoc(){if(!GBQ.choc)garBqBatit();GBQ.chocT=0;}
+/* (2026-10-20 soir, Léo : « ces trucs marchent dans la boutique aussi ») LE TAP EN BOUTIQUE : la vitrine capte le doigt à part (voir
+   garage-rendu.js), un toucher bref SUR la caisse ne faisait rien. Désormais il fait ce que le garage fait : un petit bond (`GBQ.tapT`, lu
+   par le rendu de la vitrine), le coup de jointure (`garage.tole`), un tic dans le pouce, et L'ACTION SPÉCIALE de la caisse (`caisseAction` :
+   phares de LA CERISE / du TOFU, crocs de LA SQUALE) — la caisse montrée est celle qu'`buildCar` vient de construire, son action est posée. */
+function bqTape(){GBQ.tapT=0;try{if(SONV2)sfx('garage.tole');else{chimeNote(340,0,.05,.10);noiseBurst(.14,.05,1400);}}catch(e){}try{hap([6,12]);}catch(e){}try{caisseAction();}catch(e){}}
 /* LA BOUTIQUE SE PRÉPARE AU MENU (2026-10-16, Léo : « la boutique rame de ouf ») — MESURÉ au banc : à la 1re ouverture, l'image figeait 1,2 s
    (la salle blanche, le trône, les bras d'atelier, les gerbes bâtis au toucher, puis 10 programmes compilés à sa 1re image, 4 autres ensuite).
    Comme l'atelier (atelierChauffe), elle est désormais bâtie CACHÉE au menu et compilée sous le même éclairage (les lumières ne changent que
