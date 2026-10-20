@@ -4958,7 +4958,7 @@ html body #garage.deplie:not(.menu) #gBottom{animation:gDeplie .34s var(--ease,c
 .ivTete small{font-size:var(--f0);letter-spacing:1px;color:var(--tx3)}
 #ivFerme{margin-left:auto;width:44px;min-width:44px;height:44px;min-height:0;padding:0}
 #ivFerme .pxi{--pxs:2}
-.ivTabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:4px;transform:skewX(var(--sk));background:linear-gradient(180deg,#0b0818,#110d22);box-shadow:inset 0 2px 4px rgba(0,0,0,.6),0 0 0 1px var(--fil)}
+.ivTabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;padding:4px;transform:skewX(var(--sk));background:linear-gradient(180deg,#0b0818,#110d22);box-shadow:inset 0 2px 4px rgba(0,0,0,.6),0 0 0 1px var(--fil)}
 .ivTab{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:48px;padding:6px 0 5px;border:0;border-radius:0;cursor:pointer;
   font-family:var(--pix);font-size:var(--f0);letter-spacing:0;color:var(--tx3);background:transparent;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
   transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
@@ -4968,8 +4968,16 @@ html body #garage.deplie:not(.menu) #gBottom{animation:gDeplie .34s var(--ease,c
 .ivTab.on{color:#fff;background:linear-gradient(180deg,rgba(255,62,200,.32),rgba(255,62,200,.12));box-shadow:inset 0 -2px 0 var(--neoM),inset 0 0 0 1px rgba(255,62,200,.5)}
 .ivTab.on .pxi{color:var(--neoM);filter:drop-shadow(0 0 6px var(--neoM))}
 .ivTab.on em{color:#fff}
+.ivTab span{max-width:100%;overflow:hidden;text-overflow:clip;white-space:nowrap;font-size:7px}
+/* LA PROGRESSION (2026-10-20, Sacha : « retravaille et améliore l'inventaire ») : une barre fine sous les onglets, « possédés / total » de l'onglet ouvert */
+.ivProg{display:flex;align-items:center;gap:10px;padding:0 6px}
+.ivProg i{position:relative;flex:1;height:6px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px var(--fil)}
+.ivProg i::before{content:'';position:absolute;left:0;top:0;bottom:0;width:calc(var(--p,0) * 100%);background:linear-gradient(90deg,var(--neoM),#ffd75e);box-shadow:0 0 8px rgba(255,62,200,.6);transition:width .4s var(--ease)}
+.ivProg b{font-weight:400;font-size:var(--f0);letter-spacing:1px;color:#fff;white-space:nowrap}
+.ivVide{grid-column:1/-1;align-self:center;margin:24px 0;text-align:center;font-size:var(--f0);line-height:1.8;color:var(--tx3);letter-spacing:1px}
+.ivT small{display:block;margin-top:2px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:clip;font-size:6px;letter-spacing:1px;color:var(--rc);text-shadow:0 0 6px var(--rg)}
 #ivGrille{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));grid-auto-rows:100px;gap:16px 12px;align-content:start;padding:12px 10px 16px;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));grid-auto-rows:112px;gap:16px 12px;align-content:start;padding:12px 10px 16px;
   scrollbar-width:none;-webkit-mask:linear-gradient(180deg,transparent 0,#000 12px,#000 calc(100% - 14px),transparent);mask:linear-gradient(180deg,transparent 0,#000 12px,#000 calc(100% - 14px),transparent)}
 #ivGrille::-webkit-scrollbar{display:none}
 /* LA TUILE : l'objet, son nom, et la LUEUR de sa rareté (--rc la couleur, --rg la lueur, --rf le fond : posés par invRender, en rgba —
@@ -5014,7 +5022,7 @@ html body #garage.deplie:not(.menu) #gBottom{animation:gDeplie .34s var(--ease,c
   .ivTab{min-height:40px;flex-direction:row;gap:6px}
   .ivTab span{display:none}
   .ivTab em{position:static}
-  #ivGrille{grid-template-columns:repeat(auto-fill,minmax(84px,1fr));grid-auto-rows:94px;gap:12px 10px}
+  #ivGrille{grid-template-columns:repeat(auto-fill,minmax(84px,1fr));grid-auto-rows:104px;gap:12px 10px}
 }
 @media (prefers-reduced-motion:reduce){html body #garage.deplie:not(.menu) #gBottom,#gInv.on,#gInv.on .ivT,.ivT::after,.ivT::before{animation:none!important}}
 #garage.quiet :is(#gInv,#gInvAide,#gInvAnneau),#garage.launching :is(#gInv,#gInvAide,#gInvAnneau),#garage.menu :is(#gInv,#gInvAide){display:none!important}
@@ -5695,7 +5703,14 @@ html:not([lang=fr]) #gBqTete .bqLim::before,html:not([lang=fr]) #gBqNom .bqLim::
 #gBqPan .bqRail .bqSec b{font-weight:400;font-size:9px;letter-spacing:2px;white-space:nowrap}
 #gBqPan .bqRail .bqSec em{margin-left:auto;font-style:normal;font-size:7px;letter-spacing:0;color:#8a929c;white-space:nowrap}
 #gBqPan .bqRail .bqSec.bqRarS .pxi{color:var(--rc);filter:drop-shadow(0 0 0 #14171c) drop-shadow(1px 1px 0 rgba(20,23,28,.55))} /* (2026-10-18) l'intertitre d'une RARETÉ : son logo à sa couleur */
-#gBqPan .bqRail .bqSec.bqRarS{border-bottom:2px solid var(--rc);padding-bottom:5px;margin-bottom:2px}
+#gBqPan .bqRail .bqSec.bqRarS{flex-wrap:nowrap;gap:8px;margin:8px 0 4px;padding:6px 9px 6px 6px;border-radius:8px;background:#f3f5f8;background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 22%,#fff),color-mix(in srgb,var(--rc) 4%,#fff) 78%);box-shadow:inset 3px 0 0 var(--rc),0 1px 0 rgba(20,23,28,.06)} /* (2026-10-20, Sacha : « fais ça joliment ») l'intertitre d'une RARETÉ : un bandeau à sa teinte, le logo dans sa pastille, son nom, un fil, « à toi / total » */
+#gBqPan .bqRail .bqSec.bqRarS:first-child{margin-top:2px}
+#gBqPan .bqRail .bqSec.bqRarS .bqRl{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:7px;background:#14171c;box-shadow:0 0 0 1px var(--rc),0 0 10px -2px var(--rc)}
+#gBqPan .bqRail .bqSec.bqRarS .bqRl .pxi{--pxs:2;color:var(--rc);filter:none}
+#gBqPan .bqRail .bqSec.bqRarS b{font-size:10px;letter-spacing:2.5px;color:#14171c}
+#gBqPan .bqRail .bqSec.bqRarS s{flex:1;height:2px;min-width:8px;border-radius:2px;background:linear-gradient(90deg,var(--rc),transparent)}
+#gBqPan .bqRail .bqSec.bqRarS em{margin-left:0;font-size:8px;letter-spacing:1px;color:#5b6470}
+#gBqPan .bqRail .bqSec.bqRarS em i{font-style:normal;color:#14171c}
 #gBqPan .bqRail .bqSec.bqRarS .pxi[class*="pxi-infini"]{background:linear-gradient(90deg,#ff4d6d,#ffb03a,#ffe85e,#5ee37a,#5ec8ff,#b07dff,#ff8af0)}
 /* LE BOUTON QUI CHANGE (voir bqAction) et RETOUR, plus petit, plus bas */
 #gBqBtn{display:none}
@@ -7778,6 +7793,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
         <button class="ivTab" data-c="trainee" role="tab"><i class="pxi pxi-trainee" aria-hidden="true"></i><span data-fr="TRAÎNÉES">TRAÎNÉES</span><em></em></button>
         <button class="ivTab" data-c="figure" role="tab"><i class="pxi pxi-rotation" aria-hidden="true"></i><span data-fr="FIGURES">FIGURES</span><em></em></button><!-- (2026-10-14) les FIGURES qu'on a (double-tap nitro) -->
       </div>
+      <div class="ivProg" aria-hidden="true"><i id="ivProgBarre"></i><b id="ivProgTxt"></b></div>
       <div id="ivGrille"></div>
     </div>
   </div>
@@ -40984,7 +41000,13 @@ const FSTU_V='attribute vec4 aArete;varying vec3 vArF;varying vec3 vArB;\n',
       FSTU_FM='{vec3 e3=mix(vec3(1.),vArB,step(.5,vArF));float e9=min(e3.x,min(e3.y,e3.z)),w9=fwidth(e9)+1e-5;\n'+
         'float l9=(1.-smoothstep(w9*1.1,w9*2.8,e9))*(1.-smoothstep(.25,.5,w9))*uArK;gl_FragColor.rgb=mix(gl_FragColor.rgb,gl_FragColor.rgb*1.45+vec3(.07),l9);}\n';
 // le vernis profond : au garage (on) ou rendu à la course (off) — sur les matières de la caisse posée
-function finLaque(on){FSTU.garage=!!on;FSTU.uHdr.value=FSTU.on&&on?1:0;if(!FSTU.on)return;
+/* (2026-10-20, Léo, sur la page AVANT | APRÈS de toute la gamme : « juste le requin était mieux ») LES CAISSES QUI GARDENT LE GARAGE D'AVANT :
+   pour elles, au garage, le reflet de l'atelier d'origine (paintEnvAtelier), leur vernis d'origine et pas de reflets qui éclatent. Une seule
+   caisse est au garage à la fois : le cube de reflets se repeint quand on passe de l'une à l'autre (64² ↔ 256²). */
+const FSTU_SANS={requin:1};
+function finLaque(on){FSTU.garage=!!on;const sans=!!FSTU_SANS[carGroup.userData.shape];FSTU.uHdr.value=FSTU.on&&on&&!sans?1:0;if(!FSTU.on)return;
+  if(on){try{if(sans){if(envCvs[0].width!==64)paintEnvAtelier();}else if(envCvs[0].width!==256)paintEnvStudio();}catch(e){}}
+  on=on&&!sans;
   carGroup.traverse(o=>{const ms=o.isMesh?(Array.isArray(o.material)?o.material:[o.material]):[];
     for(const m of ms){
       /* (2026-10-20, Léo : « d'autres voitures qui manquent la finition ? » — mesuré à l'écran : LA HONTE, REQUIN, ACIDE, LA CAISSE-NUAGE) la tôle des
@@ -63030,18 +63052,19 @@ function bqFigHab(k){const o=bqCos(k),d=o.d,hx=function(c9){return '#'+(c9>>>0).
   if(o.cat==='trainee'){const I9=illuTr(d);if(I9)return illuPx(I9,'bqTrIc');} // (2026-10-14) une traînée POP : son pictogramme — (2026-10-16, TRAÎNÉES) TOUTES les traînées, et EN COULEUR (celui de l'inventaire) : en noir sur la salle blanche, SAKURA, MATRICE et LA GRILLE se ressemblaient ; NITRO, MENTHE, ROSE et OR n'étaient qu'un dégradé
   if(o.cat==='trainee')return '<i class="bqRub" style="background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,rgba(255,255,255,0),'+(d.rgb?'rgb('+d.rgb.map(function(v){return Math.round(Math.min(1,v/1.45)*255);}).join(',')+')':'#ff6a14')+' 45%,#fff)')+'"></i>';
   return pxi(d.ico||'aile');}
-function bqPieces(){if(!GBQ.pieces){const L=[],M9=[],S9=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(carRetiree(i))continue;if(u&&u.p>0&&u.k!=='premium')L.push(i);else if(u&&u.k==='mis'){const m9=m2Def(u.id);(m9&&m9.f==='secret'?S9:M9).push(i);}} // les caisses qui s'achètent en PIÈCES, de la moins chère à la plus chère
-  /* (2026-10-18, Léo : « mets avec les communes le scarabée et le camper, organise bien la rareté ») RANGÉES PAR RARETÉ : COMMUNES, RARES,
-     EXOTIQUES, ÉPIQUES… (l'ordre de RARETES) ; dans chaque famille celles qui s'achètent (de la moins chère à la plus chère) PUIS celles des
-     missions ; les secrètes restent à la fin (leur place ne doit pas trahir leur famille). Tri stable : l'ordre des prix est gardé. */
-  const rg9=function(i){const k=RARETES.findIndex(function(x){return x.id===carRar(i);});return k<0?99:k;};
-  GBQ.pieces=L.sort(function(a,b){return (CAR_UNLOCK[a].p-CAR_UNLOCK[b].p)||(a-b);}).concat(M9).sort(function(a,b){return rg9(a)-rg9(b);}).concat(S9);}return GBQ.pieces;}
+function bqPieces(){const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(carRetiree(i))continue;if(u&&u.p>0&&u.k!=='premium')L.push([i,0]);else if(u&&u.k==='mis')L.push([i,1]);} /* les caisses qui s'achètent en PIÈCES (0) et celles des missions (1) */
+  /* (2026-10-20, Sacha : « dans le menu cars du garage c'est le bordel, plusieurs sections de la même rareté : toutes les voitures d'une même rareté dans la même section ») UN SEUL CLASSEMENT, le même
+     que celui des intertitres (bqVoitRail) : RARETÉ (l'ordre de RARETES : COMMUNES, RARES, ÉPIQUES…), puis dans la famille ce qui s'achète (du moins cher au plus cher) AVANT les missions ; les secrètes
+     (m2Secrete, pas encore à toi) en dernier. Plus de liste figée : une secrète qu'on gagne quittait la fin de la liste en gardant sa rareté et rouvrait une 2e section de la même famille. */
+  const g9=function(i){return m2Secrete(i)?99:Math.max(0,RARETES.findIndex(function(x){return x.id===carRar(i);}));};
+  return L.sort(function(a,b){return (g9(a[0])-g9(b[0]))||(a[1]-b[1])||(a[1]?0:CAR_UNLOCK[a[0]].p-CAR_UNLOCK[b[0]].p)||(a[0]-b[0]);}).map(function(e){return e[0];});}
 /* (2026-10-18) l'INTERTITRE de chaque famille dans le rayon VOITURES (comme ceux des figures) : le logo de la rareté à sa couleur, son nom, le
    nombre de caisses ; les missions secrètes ont le leur. `n` = nombre de caisses de la famille dans la liste. */
-function bqRarSec(r,n){if(r==='secret')return '<div class="bqSec bqRarS" data-rar="secret" style="--rc:#ff3ec8">'+pxi('verrou')+'<b>'+sansAcc(TR('MISSIONS SECRÈTES'))+'</b><em>'+n+'</em></div>';
-  const ri=rarInfo(r);return '<div class="bqSec bqRarS" data-rar="'+r+'" style="--rc:'+ri.c+'">'+pxi(RAR_LOGO[r]||'etoile')+'<b>'+sansAcc(TR(ri.n))+'</b><em>'+n+'</em></div>';}
-function bqVoitRail(L){const fam=function(k){const i=+k.slice(2);return m2Secrete(i)?'secret':carRar(i);},nb={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;});
-  return L.map(function(k,n){const f=fam(k);return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f]))+bqCarteHtml(k,n,false);});} /* (2026-10-16) LES MISSIONS v2 : après les caisses à pièces, celles des missions, puis les secrètes en silhouette */
+function bqRarSec(r,n,a){const cpt='<em><i>'+a+'</i>/'+n+'</em>'; /* (2026-10-20) « ceux à toi / le total » de la famille */
+  if(r==='secret')return '<div class="bqSec bqRarS" data-rar="secret" style="--rc:#ff3ec8"><span class="bqRl">'+pxi('verrou')+'</span><b>'+sansAcc(TR('MISSIONS SECRÈTES'))+'</b><s></s>'+cpt+'</div>';
+  const ri=rarInfo(r);return '<div class="bqSec bqRarS" data-rar="'+r+'" style="--rc:'+ri.c+'"><span class="bqRl">'+pxi(RAR_LOGO[r]||'etoile')+'</span><b>'+sansAcc(TR(ri.n))+'</b><s></s>'+cpt+'</div>';}
+function bqVoitRail(L){const fam=function(k){const i=+k.slice(2);return m2Secrete(i)?'secret':carRar(i);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
+  return L.map(function(k,n){const f=fam(k);return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0))+bqCarteHtml(k,n,false);});} /* (2026-10-16) LES MISSIONS v2 : après les caisses à pièces, celles des missions, puis les secrètes en silhouette */
 function bqPxT(v){return fmtSolde(v);} /* (clarté 15/10) les prix de la boutique de Léo au format GTA de GAMEPLAY (chiffres pleins, un seul « $ ») */
 function bqPxLg(t){return String(t).replace(/<[^>]*>/g,'').length>9;} /* un prix long (≥ 1 000 000) passe un corps en dessous : il tient dans sa carte */
 function bqPrixCaisse(i){const u=CAR_UNLOCK[i]||{};if(bqA('v:'+i))return {t:sansAcc(TR('À TOI')),c:'acq'};if(m2Secrete(i))return {t:sansAcc(TR('MISSION SECRÈTE')),c:'defi sec'};if(u.k==='premium')return {t:eurTxt(u.eur),c:'eur'};
@@ -64472,7 +64495,7 @@ try{Object.assign(I18N,{'PERMIS':'LICENSE','AUTO-ECOLE':'DRIVING SCHOOL','NIVEAU
    ait jamais tenu, relevé à CHAQUE entrée d'argent (fin de partie, défis, permis, partie interrompue) — pas seulement au garage : un achat fait
    juste après une partie ne doit pas l'effacer. `bankMaxVu` = le record que la jauge a déjà montré (pour fêter celui qu'on vient de battre). */
 function bankMaxMaj(){const b=bank();if(b>(SAVE.d.bankMax||0))SAVE.d.bankMax=b;}
-try{Object.assign(I18N,{'SOMMET':'PEAK','RECORD !':'RECORD!','CASH':'CASH','AURA':'AURA','ENCORE':'NEED','A TA PORTEE !':'IT\'S YOURS!','COLLECTION COMPLETE':'FULL COLLECTION','INTOUCHABLE':'UNTOUCHABLE','A TA PORTEE':'AFFORDABLE','VERS':'TO','TOUT EST A TOI':'YOU OWN IT ALL','SOMMET ATTEINT':'TOP RANK','TUNING':'TUNING','SHOP':'SHOP','INVENTAIRE':'INVENTORY','MAINTIENS LA CAISSE':'HOLD YOUR CAR','OBJETS':'ITEMS','OBJET':'ITEM'});}catch(e){}
+try{Object.assign(I18N,{'SOMMET':'PEAK','RECORD !':'RECORD!','CASH':'CASH','AURA':'AURA','ENCORE':'NEED','A TA PORTEE !':'IT\'S YOURS!','COLLECTION COMPLETE':'FULL COLLECTION','INTOUCHABLE':'UNTOUCHABLE','A TA PORTEE':'AFFORDABLE','VERS':'TO','TOUT EST A TOI':'YOU OWN IT ALL','SOMMET ATTEINT':'TOP RANK','TUNING':'TUNING','SHOP':'SHOP','INVENTAIRE':'INVENTORY','MAINTIENS LA CAISSE':'HOLD YOUR CAR','OBJETS':'ITEMS','OBJET':'ITEM','RIEN ICI POUR LE MOMENT':'NOTHING HERE YET'});}catch(e){}
 try{const b9=document.querySelector('#gOutils [data-go="set"]'),s9=b9&&b9.querySelector('.boulon');if(s9)s9.outerHTML=pxi('reglages');}catch(e){} /* (2026-10-06) LE GARAGE DE SACHA : son ⚙ en pixels */
 /* ================= L'INVENTAIRE (2026-10-04, Léo : « quand on maintient sur la voiture, ça active un inventaire comme le shop, mais avec les
    objets possédés, entourés par une lueur de la couleur de leur rareté ») =================
@@ -64502,16 +64525,23 @@ function invListe(cat){
   const e=shopEqD(cat),L=[];COSM[cat].forEach(function(d,j){if(shopOwned(cat,d.id))L.push({cat:cat,i:j,d:d,r:cosmRar(cat,d),eq:e===d});});
   return L.sort(function(a,b){return (INV_RANG[b.r]-INV_RANG[a.r])||((b.d.p||0)-(a.d.p||0));});
 }
+function invTotal(cat){ // (2026-10-20) tout ce qui existe dans l'onglet (le dénominateur de la progression)
+  if(cat==='voiture'){let n=0;for(let i=0;i<CARS.length;i++)if(!carRetiree(i))n++;return n;}
+  if(cat==='figure')return window.FIG?FIG.liste.length:0;
+  return COSM[cat]?COSM[cat].length:0;}
 function invRgba(hex,a){const n=parseInt(String(hex).slice(1),16)||0;return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a.toFixed(2)+')';}
 function invRender(){
   const g=$('ivGrille');if(!g)return;let tot=0;
   document.querySelectorAll('#gInv .ivTab').forEach(function(b){const c=b.getAttribute('data-c'),on=c===INV.cat,n=invListe(c).length;tot+=n;
     b.classList.toggle('on',on);b.setAttribute('aria-selected',on);const em=b.querySelector('em');if(em&&em.textContent!==String(n))em.textContent=n;});
   const ic=$('ivCompte');if(ic)ic.textContent=tot+' '+TR(tot>1?'OBJETS':'OBJET');
-  const L=invListe(INV.cat),k=INV.cat+':'+L.map(function(o){return o.i;}).join(',')+':'+LANG+(INV.cat==='peinture'?':'+equippedCar():'')+(INV.cat==='figure'?':'+figSlots().join(','):'');
+  const L=invListe(INV.cat);
+  {const T=Math.max(L.length,invTotal(INV.cat)),pb=$('ivProgBarre'),pt=$('ivProgTxt'); /* (2026-10-20) la progression de la collection : possédés / total de l'onglet */
+    if(pb)pb.style.setProperty('--p',T?(L.length/T).toFixed(3):0);if(pt)pt.textContent=L.length+' / '+T;}
+  const k=INV.cat+':'+L.map(function(o){return o.i;}).join(',')+':'+LANG+(INV.cat==='peinture'?':'+equippedCar():'')+(INV.cat==='figure'?':'+figSlots().join(','):'');
   if(g._k!==k){g._k=k;
     const hx=function(c){return '#'+(c>>>0).toString(16).padStart(6,'0');},rg=function(v){return 'rgb('+v.map(function(x){return Math.round(Math.min(1,x/1.45)*255);}).join(',')+')';};
-    g.innerHTML=L.map(function(o,n){const ri=rarInfo(o.r),lu=INV_LUEUR[o.r]||.5;let fig='',nm='';
+    g.innerHTML=!L.length?'<p class="ivVide">'+TR('RIEN ICI POUR LE MOMENT')+'</p>':L.map(function(o,n){const ri=rarInfo(o.r),lu=INV_LUEUR[o.r]||.5;let fig='',nm='';
       if(o.cat==='voiture'){nm=TR(CARS[o.i].name);fig=PHOTO.cache[o.i]?'<img alt="" src="'+PHOTO.cache[o.i]+'">':'<i class="ivPh"></i>';}
       else{const d=o.d;nm=TR(d.n);
         if(o.cat==='peinture'){const c9=d.id==='usine'?CARS[equippedCar()].color:d.c;fig='<i class="ivSw'+cosmSwCl(d)+'" style="background:'+(d.mot?motFond(d):d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(c9))+'"></i>';}
@@ -64519,7 +64549,7 @@ function invRender(){
         else if(o.cat==='figure')fig='<i class="pxi pxi-rotation ivAile" style="color:'+ri.c+'"></i>';
         else fig='<i class="pxi pxi-aile ivAile" style="color:#dff6ff"></i>';}
       const nmA=sansAcc(String(nm)).replace(/"/g,'');
-      return '<div class="ivT r-'+o.r+'" data-i="'+o.i+'" role="button" tabindex="0" aria-label="'+nmA+' · '+sansAcc(TR(ri.n1))+'" style="--rc:'+ri.c+';--rg:'+invRgba(ri.c,.26+.42*lu)+';--rf:'+invRgba(ri.c,.06+.18*lu)+';--rk:'+lu+';--n:'+n+'">'+fig+'<b>'+nmA+'</b><u>'+(o.cat==='figure'&&FIGV2.on&&o.eq?figSlots().map(function(x,i9){return x===o.d.id?pxi(FIG_FAM[i9][2]):'';}).join(''):pxi('coche'))+'</u></div>';}).join(''); /* (LES FIGURES v2) une figure équipée porte le NUMÉRO de son emplacement (1 · 2 · 3 = les boutons de vol) */
+      return '<div class="ivT r-'+o.r+'" data-i="'+o.i+'" role="button" tabindex="0" aria-label="'+nmA+' · '+sansAcc(TR(ri.n1))+'" style="--rc:'+ri.c+';--rg:'+invRgba(ri.c,.26+.42*lu)+';--rf:'+invRgba(ri.c,.06+.18*lu)+';--rk:'+lu+';--n:'+n+'">'+fig+'<b>'+nmA+'</b><small>'+sansAcc(TR(ri.n1))+'</small><u>'+(o.cat==='figure'&&FIGV2.on&&o.eq?figSlots().map(function(x,i9){return x===o.d.id?pxi(FIG_FAM[i9][2]):'';}).join(''):pxi('coche'))+'</u></div>';}).join(''); /* (LES FIGURES v2) une figure équipée porte le NUMÉRO de son emplacement (1 · 2 · 3 = les boutons de vol) */
     if(INV.cat==='voiture')setTimeout(function(){if(!INV.on)return;g.querySelectorAll('.ivT').forEach(function(el){if(!el.querySelector('.ivPh'))return;const i=+el.getAttribute('data-i');
       photoFile(i,function(url){const v=el.querySelector('.ivPh');if(!v||!el.isConnected)return;const im=document.createElement('img');im.alt='';im.src=url;v.replaceWith(im);});});},420); // les photos manquantes APRÈS l'entrée du tiroir (une photo = deux caisses rebâties : pas pendant qu'il glisse)
   }
