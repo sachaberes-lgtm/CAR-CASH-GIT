@@ -11,21 +11,27 @@ Object.assign(SHAPES,{
   const AR=[[0,2*R+.05],[R*.78,2*R+.03],[R+.10,.22]];
   const zs=[-1.70,-1.66,-1.58,-1.46,-1.08,-1.00,-.26,-.18,.28,.36,.96,1.62,1.70];
   for(const w of [ZF,ZR])for(const d of [R*.78,R+.10])zs.push(w-d,w+d);
-  zs.sort((a,b)=>a-b);
+  zs.push(ZF-.50,ZF+.50,ZR-.50,ZR+.50);zs.sort((a,b)=>a-b);for(let i=zs.length-1;i>0;i--)if(zs[i]-zs[i-1]<.005)zs.splice(i,1); // (relief) le pied des ailes
   const yC=z=>U.lin([[-1.70,.99],[-1.66,1.02],[-1.58,1.39],[-1.46,1.42],[.28,1.42],[.36,1.40],[.96,.95],[1.62,.86],[1.70,.82]],z),
         yB=z=>U.lin([[-1.70,.93],[-1.54,.95],[.96,.93],[1.62,.85],[1.70,.82]],z),
         xW=z=>U.lin([[-1.70,.715],[-1.65,.745],[1.64,.745],[1.70,.715]],z);
+  /* ===== LE RELIEF DU FLANC (2026-10-20, Léo : « le relief visible quand on tourne autour » ; l'étude de la gamme au garage : n° 4 des plus
+     plates, le liseré rouge PEINT sur une dalle) ===== le flanc se PLIE à la moulure : le bas qui rentre vers la jupe grise (il regarde le
+     sol), l'épaule qui rentre jusqu'à la ceinture (elle regarde le ciel), les AILES qui bombent autour des roues ; le liseré devient une
+     vraie MOULURE en relief, chanfreinée dessus (clair) et dessous (sombre). Avant : un flanc vertical de .47 à la ceinture. */
+  const lis=t=>{t=U.cl(t,0,1);return t*t*(3-2*t);},aile=z=>.02*Math.max(lis(1-Math.abs(z-ZF)/.50),lis(1-Math.abs(z-ZR)/.50)),
+        YM0=.78,YM1=.86;                                                       // la bande de la moulure
   P.loft(zs,z=>{
-    const yb=U.arch(z,[ZF,ZR],AR,.22),xw=xW(z),c=yC(z),bl=yB(z);
-    const y3=Math.max(.47,yb+.08),y4=Math.max(bl,y3+.04),y5=y4+.025,y6=Math.max(y5+.004,c-.045),y7=Math.max(y6+.003,c-.01);
-    return [[0,yb],[xw-.05,yb],[xw,yb+.05],[xw,y3],[xw,y4],[xw-.03,y5],[xw-.10,y6],[xw-.18,y7],[0,Math.max(y7+.002,c)]];
+    const yb=U.arch(z,[ZF,ZR],AR,.22),xw=xW(z),c=yC(z),bl=yB(z),f=aile(z);
+    const y3=Math.max(.47,yb+.08),ym0=Math.max(YM0,y3+.02),ym1=Math.max(YM1,ym0+.03),y4=Math.max(bl,ym1+.04),y5=y4+.025,y6=Math.max(y5+.004,c-.045),y7=Math.max(y6+.003,c-.01);
+    return [[0,yb],[xw-.05,yb],[xw-.01+f*.5,yb+.05],[xw-.035+f,y3],[xw+f*.4,ym0],[xw,ym1],[xw-.013,y4],[xw-.04,y5],[xw-.10,y6],[xw-.18,y7],[0,Math.max(y7+.002,c)]];
   },(j,z)=>{
     if(j<0)return 'p';
     if(j===0)return 'n';
     if(j<=2)return 'k';                                                        // bas de caisse gris mat
-    if(j===5&&z>-1.46&&z<.96)return (z>-.26&&z<-.18)?'n':(z>-1.08&&z<-1.00)?'p':'g'; // vitres plates, montant B noir
-    if(j===7&&z>.36&&z<.96)return 'g';                                         // pare-brise plat
-    if(j===7&&z>-1.66&&z<-1.58)return 'g';                                     // lunette du hayon
+    if(j===7&&z>-1.46&&z<.96)return (z>-.26&&z<-.18)?'n':(z>-1.08&&z<-1.00)?'p':'g'; // vitres plates, montant B noir
+    if(j===9&&z>.36&&z<.96)return 'g';                                         // pare-brise plat
+    if(j===9&&z>-1.66&&z<-1.58)return 'g';                                     // lunette du hayon
     return 'p';});
   // LA FACE : pare-chocs gris qui font le tour, calandre-fente décalée, phares rectangulaires
   P.box('k',1.52,.22,.13,0,.35,1.68);P.box('k',1.52,.22,.13,0,.35,-1.68);
@@ -42,7 +48,7 @@ Object.assign(SHAPES,{
     P.box('W',.13,.05,.01,sd*.625,.685,-1.742);P.box('O',.13,.07,.01,sd*.625,.62,-1.742);P.box('L',.13,.06,.01,sd*.625,.545,-1.742);
     for(const y of [.47,.90])P.box('c',.17,.014,.01,sd*.625,y,-1.744);for(const x of [.535,.715])P.box('c',.014,.43,.01,sd*x,.685,-1.744);
     P.box('R',.10,.03,.012,sd*.58,.40,-1.752);                                 // les catadioptres
-    P.box('r',.012,.07,3.28,sd*.748,.82,-.02);                                 // le liseré de livraison
+    P.plate('r',[[.743,.785],[.758,.796],[.758,.849],[.743,.858]].map(q=>[sd*q[0],q[1]]),3.28,-1.66); // le liseré de livraison : (relief) une MOULURE chanfreinée, plus un trait peint
     P.box('n',.03,.10,.05,sd*.76,.99,.86);P.box('n',.08,.09,.12,sd*.80,1.03,.86); // rétro
     P.box('n',.012,.03,.12,sd*.75,.89,-.10);                                    // poignée
     P.box('n',.05,.05,.08,sd*.52,1.445,-.18);P.box('n',.05,.05,.08,sd*.52,1.445,-1.08); // pieds de galerie
