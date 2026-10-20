@@ -8124,7 +8124,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
             <div class="mLigne avecVol" data-m="snd"><i class="pxi pxi-son" aria-hidden="true"></i><span class="tpL">SON</span><b id="mvSnd" class="bascule">ON</b></div>
             <div class="volRow" id="mVolRowSfx"><input type="range" class="volS" id="mVolSfx" min="0" max="100" step="5" value="100" aria-label="Volume du son"><b class="volV" id="mVolSfxV">100%</b></div>
             <div class="mLigne avecVol" data-m="mus"><i class="pxi pxi-musique" aria-hidden="true"></i><span class="tpL">MUSIQUE</span><b id="mvMus" class="bascule">ON</b></div>
-            <div class="volRow" id="mVolRowMus"><input type="range" class="volS" id="mVolMus" min="0" max="100" step="5" value="62" aria-label="Volume de la musique"><b class="volV" id="mVolMusV">62%</b></div>
+            <div class="volRow" id="mVolRowMus"><input type="range" class="volS" id="mVolMus" min="0" max="100" step="5" value="70" aria-label="Volume de la musique"><b class="volV" id="mVolMusV">70%</b></div>
             <div class="mLigne" data-m="vib"><i class="pxi pxi-vibre" aria-hidden="true"></i><span class="tpL">VIBRATIONS</span><b id="mvVib" class="bascule">ON</b></div><!-- (2026-09-28) la charte, règle 8 : SON et VIBRATIONS sont deux interrupteurs -->
           </div>
           <div class="mSec oSauv">SAUVEGARDE</div>
@@ -8170,7 +8170,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
     <div class="setRow" data-tg="sndBtn"><span>Effets sonores</span><b id="tgSnd">ON</b></div>
     <div class="setRow" data-tg="musBtn"><span>Musique</span><b id="tgMus">ON</b></div>
     <div class="setSec">Volumes</div>
-    <div class="setRow volRow" id="volRowMus"><div class="volHd"><span data-fr="Musique">Musique</span><b id="volMusV">62%</b></div><input type="range" class="volS" id="volMus" min="0" max="100" step="5" value="62"></div>
+    <div class="setRow volRow" id="volRowMus"><div class="volHd"><span data-fr="Musique">Musique</span><b id="volMusV">70%</b></div><input type="range" class="volS" id="volMus" min="0" max="100" step="5" value="70"></div>
     <div class="setRow volRow" id="volRowSfx"><div class="volHd"><span data-fr="Effets et moteur">Effets et moteur</span><b id="volSfxV">100%</b></div><input type="range" class="volS" id="volSfx" min="0" max="100" step="5" value="100"></div>
     <div class="setSec">Commandes</div>
     <div class="setKeys" id="setKb">
@@ -18423,45 +18423,23 @@ let BK_BEC_TEX=null; // (2026-10-19) sur SA ligne : collée derrière le « // �
    705 m, 450 m au plus jusqu'à 500 km/h), et la figure qui suit un tremplin attend la fin de sa retombée. `?sans=glaceretombe` = avant
    (même graine, même piste). */
 const BK_RETOMBE=!/[?&]sans=([^&]*,)?glaceretombe(,|&|$)/.test(location.search);
-function bkBecTex(){if(BK_BEC_TEX)return BK_BEC_TEX;const c=document.createElement('canvas');c.width=128;c.height=256;const x=c.getContext('2d');
-  const g=x.createLinearGradient(0,256,0,0);g.addColorStop(0,'#a9d8f5');g.addColorStop(.6,'#d6f0ff');g.addColorStop(1,'#ffffff');x.fillStyle=g;x.fillRect(0,0,128,256);
-  /* (2026-10-20, Sacha : « faits de glace, un design plus organique ») plus de chevrons orange : de la GLACE — veines claires, fissures givrées, bulles prises dans la masse */
-  let sd=7;const rn=()=>(sd=(sd*16807)%2147483647)/2147483647;
-  x.lineCap='round';for(let i=0;i<26;i++){let px=rn()*128,py=240*rn()+4;x.strokeStyle='rgba(255,255,255,'+(.35+rn()*.5)+')';x.lineWidth=1+rn()*3;x.beginPath();x.moveTo(px,py);for(let j=0;j<4;j++){px+=(rn()-.5)*34;py-=10+rn()*26;x.lineTo(px,py);}x.stroke();}
-  for(let i=0;i<14;i++){let px=rn()*128,py=240*rn()+4;x.strokeStyle='rgba(60,140,210,'+(.18+rn()*.25)+')';x.lineWidth=1+rn()*1.5;x.beginPath();x.moveTo(px,py);for(let j=0;j<3;j++){px+=(rn()-.5)*30;py-=8+rn()*20;x.lineTo(px,py);}x.stroke();}
-  for(let i=0;i<40;i++){x.fillStyle='rgba(255,255,255,'+(.25+rn()*.4)+')';x.beginPath();x.arc(rn()*128,rn()*236,.8+rn()*2.2,0,6.283);x.fill();}
-  x.fillStyle='#ffffff';x.fillRect(0,244,128,12); /* le bas de l'image : du blanc pur — flancs, lèvre et pointes y prennent leur seule couleur */
-  const t=new THREE.CanvasTexture(c);t.anisotropy=4;return BK_BEC_TEX=t;}
+/* (2026-10-20, Sacha : « exactement la même texture que le verglas, une aspérité de la route, pas un élément greffé dessus ») LE TREMPLIN EST LA ROUTE
+   QUI SE SOULÈVE : la même matière que le verglas (BANQ.mats.vg, texture en coordonnées monde : les fêlures et le ciel reflété passent de la route
+   à la bosse sans couture), aucun flanc, aucune balise, aucun cristal. La surface monte dans la courbe de hopY (la rampe) et se fond dans la route
+   sur les côtés ; la lèvre retombe d'un coup au niveau de la route. Les normales sont calculées : la bosse prend la lumière et le reflet du ciel. */
 function bkBecMesh(root,KK){
-  const P=[],C=[],UV=[],I=[];let n=0;
-  const V=(s9,la,h,r,g,b9,u,v)=>{frameAt(s9,F);P.push(F.p.x+F.b.x*la+F.n.x*h,F.p.y+F.b.y*la+F.n.y*h,F.p.z+F.b.z*la+F.n.z*h);C.push(r,g,b9);UV.push(u,v);return n++;};
-  const hs=(a,b)=>{const t=Math.sin(a*127.1+b*311.7)*43758.5453;return t-Math.floor(t);};
-  const pyr=(s9,la,h,ts,tl,th,rad,c0,c1,N9)=>{const b0=n; /* une POINTE de glace (cristal, stalactite, bosse) : une couronne irrégulière et un sommet */
-    for(let i=0;i<N9;i++){const a=i/N9*6.2832+hs(s9,i)*.5,r9=rad*(.75+.5*hs(la,i+3));V(s9+Math.cos(a)*r9,la+Math.sin(a)*r9,h,c0[0],c0[1],c0[2],.5,.02);}
-    const tp=V(ts,tl,th,c1[0],c1[1],c1[2],.5,.02);for(let i=0;i<N9;i++)I.push(b0+i,b0+(i+1)%N9,tp);};
-  for(const k of KK){const NR=18,NL=14,s0=k.s-k.lg,H=k.h,w=k.l1-k.l0,hR=u=>H*Math.pow(u,1.7)+.06,sd=k.s*.013;
-    const fl=u=>1.1+.9*Math.abs(Math.sin(u*4.2+sd))+.6*u,fr9=u=>1.1+.9*Math.abs(Math.sin(u*3.7+sd*1.7+2))+.6*u; /* la largeur FLOTTE : la glace déborde de la piste, plus ou moins, de chaque côté */
-    const GR=(u,t)=>{const fL=fl(u),fR=fr9(u),L=k.l0-fL,R=k.l1+fR,la=L+(R-L)*t,o=la<k.l0?(k.l0-la)/fL:la>k.l1?(la-k.l1)/fR:0;
-      const bump=.1*u*(.5+.5*Math.sin(la*1.3+sd)*Math.sin((k.s-k.lg*(1-u))*.45+la*.7)),h=(hR(u)+.4)*Math.sqrt(Math.max(0,1-o*o))-.4+(o>0?0:bump);return{la,o,h};}; /* le flanc est un talus ARRONDI, qui s'enfonce dans le sol ; la surface reste au niveau de la rampe (hopY) sur la piste */
-    const ICE=(u,o,j)=>{const a=1-o,m=.35*u+.65*(1-o),k9=.04*j;return[(.78+.22*m)*a+.22*o+k9,(.93+.07*m)*a+.55*o+k9,(1.08)*a+1.0*o+k9];}; /* bleu glace, blanchi vers la lèvre, bleu profond sur les talus */
-    let b0=n;for(let r=0;r<=NR;r++){const u=r/NR;for(let a=0;a<=NL;a++){const q=GR(u,a/NL),c=ICE(u,q.o,hs(r,a)-.5);V(k.s-k.lg*(1-u),q.la,q.h,c[0],c[1],c[2],a/NL,.06+.94*u);}} /* la RAMPE */
+  const P=[],A=[],I=[];let n=0;
+  const V=(s9,la,h,c,sd9)=>{frameAt(s9,F);P.push(F.p.x+F.b.x*la+F.n.x*h,F.p.y+F.b.y*la+F.n.y*h,F.p.z+F.b.z*la+F.n.z*h);A.push(c,.5,sd9,0);return n++;};
+  const ss=x=>x*x*(3-2*x);
+  for(const k of KK){const NR=22,NL=16,s0=k.s-k.lg,H=k.h,w=k.l1-k.l0,hR=u=>H*Math.pow(u,1.7)+.06,sd=k.s*.013,sg=(k.s*.0071)%10,fl=3.2; /* fl : la largeur sur laquelle la bosse se fond dans la route, de chaque côté */
+    const prof=t=>{const la=k.l0-fl+(w+2*fl)*t,o=la<k.l0?(k.l0-la)/fl:la>k.l1?(la-k.l1)/fl:0;return{la:la,f:1-ss(Math.min(1,o))};}; /* f : 1 sur la piste du tremplin, 0 à la route */
+    let b0=n;for(let r=0;r<=NR;r++){const u=r/NR,s9=s0+k.lg*u;for(let a=0;a<=NL;a++){const q=prof(a/NL);V(s9,q.la,.06+(hR(u)-.06)*q.f,0,sg);}} /* la bosse */
     for(let r=0;r<NR;r++)for(let a=0;a<NL;a++){const q=b0+r*(NL+1)+a;I.push(q,q+NL+1,q+1,q+1,q+NL+1,q+NL+2);}
-    const H1=hR(1)+.06,LIP=[[k.s-k.lg*.08,H1+.12,1.35],[k.s-.3,H1+.34,1.75],[k.s+.45,H1+.2,1.6],[k.s+.62,H1-.55,1.15]]; /* la LÈVRE : un rouleau de glace qui déborde et se courbe vers le bas, comme une vague gelée */
-    b0=n;for(const L9 of LIP)for(let a=0;a<=NL;a++){const q=GR(1,a/NL),ro=q.o>0?Math.min(1,q.o):0,wv=.12*Math.sin(a*1.9+sd);V(L9[0],q.la,L9[1]*(1-ro)+(-.4)*ro+wv,L9[2]*(1-ro*.6),L9[2]*(1-ro*.4),Math.min(1.9,L9[2]+.3),.5,.02);}
-    for(let r=0;r<LIP.length-1;r++)for(let a=0;a<NL;a++){const q=b0+r*(NL+1)+a;I.push(q,q+NL+1,q+1,q+1,q+NL+1,q+NL+2);}
-    const b1=n;for(const hh of [[k.s+.62,H1-.55],[k.s+.05,-.3]])for(let a=0;a<=NL;a++){const q=GR(1,a/NL);V(hh[0],q.la,q.o>0?-.4:hh[1],.20,.45,.95,.5,.02);} /* le dessous, creusé sous le rouleau : bleu nuit */
-    for(let a=0;a<NL;a++){const q=b1+a;I.push(q,q+1,q+NL+1,q+1,q+NL+2,q+NL+1);}
-    for(let i=0;i<9;i++){const t=(i+.5+(hs(k.s,i)-.5)*.6)/9,q=GR(1,t);if(q.o>0)continue;const len=1.4+hs(i,k.s)*3.4; /* les STALACTITES sous le rouleau */
-      pyr(k.s+.45,q.la,H1-.52,k.s+.52+hs(i,2)*.2,q.la+(hs(i,5)-.5)*.5,H1-.52-len,.22+.2*hs(i,7),[.55,.82,1.2],[1.5,1.7,1.9],5);}
-    for(const sg of [-1,1]){const lc=sg<0?k.l0-3:k.l1+3,sp0=k.s-3;
-      pyr(sp0,lc,-.3,sp0+(hs(sg,1)-.5)*1.2,lc+sg*2.4,H+BK_BEC.poteau,1.25,[.18,.5,1.05],[1.7,1.85,2],6); /* les deux grands CRISTAUX, hauts, qui annoncent le tremplin de loin */
-      for(let j=0;j<4;j++){const ds=(hs(sg+j,3)-.5)*5,dl=sg*(.8+j*.9)+(hs(j,sg)-.5)*1.2,hh=4+hs(j,sg+7)*7;
-        pyr(sp0+ds,lc+dl,-.3,sp0+ds+(hs(j,9)-.5)*1.8,lc+dl+sg*(.6+hs(j,4)*1.6),hh,.5+.4*hs(j,6),[.25,.58,1.05],[1.3+.3*hs(j,2),1.6,1.85],5);} /* et leur grappe de cristaux plus petits, penchés vers l'extérieur */
-      for(let j=0;j<5;j++){const ss=k.s-k.lg*(.15+.17*j)+(hs(j,sg)-.5)*3,ll=sg<0?k.l0-fl(.3+.15*j)*.7:k.l1+fr9(.3+.15*j)*.7,hh=.9+hs(j,sg+2)*1.4; /* des bosses de glace gelée le long des talus */
-        pyr(ss,ll,-.45,ss+(hs(j,1)-.5)*.8,ll+sg*.3,hh,1.1+.9*hs(j,3),[.5,.78,1.15],[1.25,1.5,1.7],7);}}}
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(UV,2));
-  g.setIndex(n>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeBoundingSphere();
-  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,map:bkBecTex(),side:THREE.DoubleSide,fog:true}));m.name='glacier becs';m.matrixAutoUpdate=false;m.userData.jeter=true;root.add(m);}
+    b0=n;for(const dh of [0,1])for(let a=0;a<=NL;a++){const q=prof(a/NL);V(k.s+.04*dh,q.la,dh?.06:.06+(hR(1)-.06)*q.f,0,sg);} /* la lèvre : la paroi qui retombe sur la route */
+    for(let a=0;a<NL;a++){const q=b0+a;I.push(q,q+1,q+NL+1,q+1,q+NL+2,q+NL+1);}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('aV',new THREE.Float32BufferAttribute(A,4));
+  g.setIndex(n>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeVertexNormals();g.computeBoundingSphere();
+  const m=new THREE.Mesh(g,BANQ.mats.vg);m.name='glacier becs';m.matrixAutoUpdate=false;m.userData.jeter=true;m.renderOrder=1;m.frustumCulled=false;root.add(m);}
 function bkCgEntre(kmh){ // l'entrée dans la neige : le plouf, la gerbe, un coup dans la main
   const k=Math.min(1,kmh/300);shake=Math.max(shake,.22+.3*k);fovPunch=Math.max(fovPunch,3+5*k);hap(k>.5?[14,22]:[10]);
   try{if(SONV2){if(!(window.CCSON&&window.CCSON.existe('banq.plouf')&&sfx('banq.plouf',{vol:-8+6*k})))sfx('nuage.entre',{vol:-4+4*k});}else noiseBurst(.35,.08+.08*k,700);}catch(e){}
@@ -18897,8 +18875,32 @@ function vlcTrace(rnd,LV){
    Les tours de la spirale sont à ≥ 135 m l'un de l'autre (la règle d'or du terrain les tient : > 120 m). Plus de boucles à raccourci (sauts vide),
    plus de second volcan (K2/C2 null), les coulées partent du cratère et passent sous la spirale (th0/th1 = l'angle qu'elle couvre).
    `?volcan=v4` = la descente emmêlée d'avant (avec ses modules). */
+/* (2026-10-19, session HASARD — Sacha : « vérifie bien que toutes les maps sont générées aléatoirement ») LE ROYAUME AU HASARD.
+   MESURÉ (40 graines, palier 0 ; l'ÉCART DE FORME : les pistes rééchantillonnées en 64 points, départ à l'origine, la distance moyenne entre
+   deux pistes / la longueur moyenne) : 0,085 — la graine changeait à chaque partie, la RECETTE jamais : plein nord, l'arche à 6-10 % du
+   parcours, le lac au milieu, la montée du volcan toujours à 43-49 %. Désormais chaque royaume tire, dans son propre flux (`rh` : un seul
+   tirage `rnd` de plus) :
+   · son AXE (±45° autour du nord, comme la vallée de jade : la butée de cap ±72° et le « devant » du cône se comptent autour de lui) ;
+   · l'ORDRE des tableaux de la balade — l'arche, le lac, un ou deux fumerons, un à trois modules (jamais l'arche juste avant la montée) —,
+     ceux que la longueur visée tient, et la longueur des tronçons de virages qui les séparent ;
+   · un CARACTÈRE par tronçon (`VLC_HUMEURS`), jamais deux fois le même de suite ;
+   · LA MONTÉE : 0,9 à 1,55 tour, ses rayons (le dernier tour 1-1,25 × celui d'avant, ≥ 140 m d'un tour à l'autre), sa pente (5-7 %) — elle
+     prend de ~35 à ~60 % du parcours ; le portail reste là-haut ;
+   · LE COUDE DE LA PLAINE : au milieu de la balade, l'axe tourne une fois de 15-35° d'un côté.
+   Gardés : le rayon tenable (les virages serrés à 1,3-1,5 rM, jamais moins), la butée de cap (la balade ne se recroise jamais), le contrôle
+   des croisements (6 essais), le cône taillé pour la spirale, les décors posés autour de la route. `?sans=hasardvolcan` = le royaume d'avant,
+   tirage pour tirage. */
+const VLC_HASARD=!/[?&]sans=([^&]*,)?hasardvolcan(,|&|$)/.test(location.search);
+const VLC_HUMEURS=[ // a : angle d'un virage (°, minimum + étendue) · t : la part de virages SERRÉS (Rs) · Rk : le rayon des autres (× rM, minimum + étendue ; 0 = Rn) · inv : la chance de changer de côté · dr : [chance d'une droite après, longueur minimum, étendue] (m × KV)
+  {nm:'flammes', a:[36,28],t:.33,Rk:0,        inv:1,  dr:[.2,30,40]},  // la balade d'avant : on louvoie, on revient vers l'axe passé 30°
+  {nm:'serpent', a:[46,26],t:.6, Rk:0,        inv:1,  dr:[.05,20,20]}, // des S serrés, presque sans répit
+  {nm:'courbes', a:[24,22],t:0,  Rk:[2.4,1.6],inv:.7, dr:[.35,50,80]}, // de grandes courbes qui se prennent à fond
+  {nm:'derive',  a:[20,18],t:.15,Rk:[1.8,1.2],inv:.18,dr:[.3,40,70]},  // la plaine part en biais d'un côté, jusqu'à la butée
+  {nm:'balcon',  a:[30,22],t:.2, Rk:0,        inv:.6, dr:[1,110,120]}, // de longues droites cassées de coudes : on voit loin
+  {nm:'chicanes',a:[30,16],t:.7, Rk:0,        inv:1,  dr:[.08,20,30]}];// gauche-droite-gauche, vite
 function vlcTrace3(rnd,LV){
   const vw=70+100*(LV-1),rM=40+.3*vw,KV=Math.sqrt(Math.max(1,vw/78)),ctrl=[],RH=(typeof ROAD_HALF==='number'&&ROAD_HALF>0)?ROAD_HALF:28,DN=[];
+  const H9=VLC_HASARD,rh=H9?mulberry32((rnd()*4294967296)>>>0):null;let phi0=H9?(rh()-.5)*1.5708:0; // (LE ROYAUME AU HASARD) son flux, son axe (qui peut tourner une fois : le coude de la plaine)
   const Rs=()=>rM*(1.30+rnd()*.2),Rn=()=>{const a=rM*1.55,b=Math.max(a+25,200);return a+rnd()*(b-a);},Rl=()=>Math.max(rM*2,200)+rnd()*90;
   // LA PENTE (positive = on descend) : la plaine ondule (± 3 %), le lac presque plat, la spirale grimpe (gF), l'arrivée à plat
   const ph1=rnd()*6.283,ph2=rnd()*6.283;let gF=null,mode=0,gM=null;
@@ -18906,7 +18908,7 @@ function vlcTrace3(rnd,LV){
     let g=mode===2?.008+.015*Math.sin(s9/420*6.283+ph1):mode===3?0:.006+.022*Math.sin(s9/520*6.283+ph1)+.012*Math.sin(s9/230*6.283+ph2);
     if(s9<280)g=.01+(g-.01)*THREE.MathUtils.smoothstep(s9,160,280);
     return Math.max(-.05,Math.min(.06,g))+(gM&&s9>=gM.s0&&s9<gM.s1?gM.f(s9):0);};
-  let P=new THREE.Vector3(0,0,0),phi=0,s=0,y=0;
+  let P=new THREE.Vector3(0,0,0),phi=phi0,s=0,y=0;
   const push=()=>ctrl.push(P.clone());
   const avance=(nx,nz)=>{const dh=Math.hypot(nx-P.x,nz-P.z),n=Math.max(1,Math.ceil(dh/10)),x0=P.x,z0=P.z;
     for(let j=0;j<n;j++){y-=pente(s+dh*(j+.5)/n)*dh/n;DN.push(x0+(nx-x0)*(j+1)/n,y,z0+(nz-z0)*(j+1)/n,s+dh*(j+1)/n);}s+=dh;P.set(nx,y,nz);push();};
@@ -18915,48 +18917,83 @@ function vlcTrace3(rnd,LV){
   const arc=(aDeg,R)=>{const nn=Math.max(3,Math.ceil(Math.abs(aDeg)/7)),a=aDeg*Math.PI/180,st=a/nn,ch=2*R*Math.sin(Math.abs(st)/2);
     for(let k=0;k<nn;k++){phi+=st/2;const nx=P.x+Math.sin(phi)*ch,nz=P.z+Math.cos(phi)*ch;phi+=st/2;avance(nx,nz);}};
   const wrap=a=>{while(a>Math.PI)a-=6.2832;while(a<-Math.PI)a+=6.2832;return a;};
-  const LIM=72,tourne=(aDeg,R)=>{const rel=wrap(phi)*57.2958;let a=aDeg;if(rel+a>LIM)a=LIM-rel;if(rel+a<-LIM)a=-LIM-rel;if(Math.abs(a)>2)arc(a,R);return a;};
-  const vers=(cible,R)=>{const a=wrap(cible*Math.PI/180-phi)*57.2958;if(Math.abs(a)>3)arc(a,R);};
+  const rel9=()=>wrap(phi-phi0)*57.2958; // le cap autour de l'AXE (0 = le nord d'avant)
+  const LIM=72,tourne=(aDeg,R)=>{const rel=rel9();let a=aDeg;if(rel+a>LIM)a=LIM-rel;if(rel+a<-LIM)a=-LIM-rel;if(Math.abs(a)>2)arc(a,R);return a;};
+  const vers=(cible,R)=>{const a=wrap(phi0+cible*Math.PI/180-phi)*57.2958;if(Math.abs(a)>3)arc(a,R);};
   let sg=rnd()<.5?-1:1;
   // LES VIRAGES DE LA BALADE : 36-64°, un sur trois serré, presque jamais une droite (une sur cinq, 30-70 m) ; le cap balaie ± 72° : la route louvoie
-  const virages=n=>{for(let k=0;k<n;k++){const rel=wrap(phi)*57.2958;sg=Math.abs(rel)>30?(rel>0?-1:1):-sg;tourne(sg*(36+rnd()*28),rnd()<.33?Rs():Rn());if(rnd()<.2)droite((30+rnd()*40)*KV);}};
+  const virages=n=>{for(let k=0;k<n;k++){const rel=rel9();sg=Math.abs(rel)>30?(rel>0?-1:1):-sg;tourne(sg*(36+rnd()*28),rnd()<.33?Rs():Rn());if(rnd()<.2)droite((30+rnd()*40)*KV);}};
   // LES MODULES (les mêmes que la descente d'avant — voir vSlalom dans vlcTrace), trois dans la balade
   const rv=mulberry32((rnd()*4294967296)>>>0),MM=[],vmPaq=[];let vmLast=-1;
-  const vAxe=()=>{if(Math.abs(wrap(phi)*57.2958)>20)vers((wrap(phi)>0?1:-1)*12,rM*(1.7+rv()*.3));};
-  const vSlalom=()=>{vAxe();const n=4+((rv()*3)|0),a=30+rv()*14,R=rM*(1.6+rv()*.4);let s9=wrap(phi)>0?-1:1;tourne(s9*a*.5,R);
+  const vAxe=()=>{if(Math.abs(rel9())>20)vers((rel9()>0?1:-1)*12,rM*(1.7+rv()*.3));};
+  const vSlalom=()=>{vAxe();const n=4+((rv()*3)|0),a=30+rv()*14,R=rM*(1.6+rv()*.4);let s9=rel9()>0?-1:1;tourne(s9*a*.5,R);
     for(let k=0;k<n;k++){s9=-s9;tourne(s9*a,R);}tourne(-s9*a*.5,R);};
-  const vCorde=()=>{const T=90+rv()*25,s9=wrap(phi)>0?-1:1,R=rM*(1.6+rv()*.4),a1=T*(.45+rv()*.1);vers(-s9*T/2,rM*(1.7+rv()*.3));droite((30+rv()*30)*KV);
+  const vCorde=()=>{const T=90+rv()*25,s9=rel9()>0?-1:1,R=rM*(1.6+rv()*.4),a1=T*(.45+rv()*.1);vers(-s9*T/2,rM*(1.7+rv()*.3));droite((30+rv()*30)*KV);
     tourne(s9*a1,R);droite((30+rv()*40)*KV);tourne(s9*(T-a1),Math.max(rM*1.4,R*.9));droite((30+rv()*30)*KV);};
-  const vChicane=()=>{vAxe();const a=32+rv()*12,R=rM*(1.3+rv()*.2),s9=wrap(phi)>0?-1:1;droite(40*KV);tourne(s9*a,R);tourne(-s9*2*a,R);tourne(s9*a,R);droite(40*KV);};
+  const vChicane=()=>{vAxe();const a=32+rv()*12,R=rM*(1.3+rv()*.2),s9=rel9()>0?-1:1;droite(40*KV);tourne(s9*a,R);tourne(-s9*2*a,R);tourne(s9*a,R);droite(40*KV);};
   const vHoule=()=>{vAxe();const n=2,lam=(280+rv()*60)*KV,amp=.07+rv()*.03,L9=n*lam,s0=s;
     gM={s0:s0,s1:s0+L9,f:function(s9){const u=(s9-s0)/L9;return amp*Math.sin(u*n*6.2832)*Math.min(1,u*n*2,(1-u)*n*2);}};
-    let s9=wrap(phi)>0?-1:1;tourne(s9*22,lam*.25/(22/57.2958));for(let k=0;k<2*n-1;k++){s9=-s9;const a=44+rv()*12;tourne(s9*a,Math.max(rM*1.55,lam*.5/(a/57.2958)));}tourne(-s9*22,lam*.25/(22/57.2958));gM=null;};
+    let s9=rel9()>0?-1:1;tourne(s9*22,lam*.25/(22/57.2958));for(let k=0;k<2*n-1;k++){s9=-s9;const a=44+rv()*12;tourne(s9*a,Math.max(rM*1.55,lam*.5/(a/57.2958)));}tourne(-s9*22,lam*.25/(22/57.2958));gM=null;};
   const vmJ=[vSlalom,vCorde,vChicane,vHoule];
   const vMod=()=>{let m=0;for(let e=0;e<6;e++){if(!vmPaq.length){const t=[0,1,2,3];for(let i=3;i>0;i--){const j=(rv()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)vmPaq.push(x);}m=vmPaq.shift();if(m!==vmLast)break;}
     vmLast=m;const i0=ctrl.length-1;vmJ[m]();MM.push({i0:i0,i1:ctrl.length-1});};
   // LES FUMERONS : un virage franc dans un banc de fumée (Q.tours : les bancs de buildVolcanG)
-  const tours=[],fumeron=()=>{droite((70+rnd()*50)*KV);const rel=wrap(phi)*57.2958;sg=Math.abs(rel)>12?(rel>0?-1:1):(rnd()<.5?-1:1);const s0=s,a=tourne(sg*(55+rnd()*30),Rs());tours.push({s0:s0,s1:s,a:Math.round(a)});};
+  const tours=[],fumeron=()=>{droite((70+rnd()*50)*KV);const rel=rel9();sg=Math.abs(rel)>12?(rel>0?-1:1):(rnd()<.5?-1:1);const s0=s,a=tourne(sg*(55+rnd()*30),Rs());tours.push({s0:s0,s1:s,a:Math.round(a)});};
   // ================= 1 · LA BALADE =================
   /* (LA DURÉE DES MAPS) au JOUER (LC9 > 0) : la SPIRALE (~1,37 tour, estimée `Lsp9`), l'ARCHE et le LAC restent ; la balade ne garde de ses
      virages, modules et fumerons que ce que la longueur visée tient (`bal` : la part du budget de la balade déjà parcourue) — sinon la map d'avant */
   const LC9=typeof longueurCible==='function'?longueurCible():0,Lsp9=1.37*Math.PI*(Math.max(450,rM*3.8)+Math.max(250,rM*2.4)),B9=Math.max(1200,LC9-Lsp9-300),bal=f=>!LC9||s<B9*f;
+  const lacDe=en=>{mode=2;sL0=s;droite(60*KV);for(let k=0;en(k);k++){const rel=rel9();sg=Math.abs(rel)>20?(rel>0?-1:1):-sg;tourne(sg*(30+rnd()*20),Rl());if(rnd()<.4)droite((30+rnd()*40)*KV);}sL1=s;mode=0;}; // LE LAC DE LAVE : de grandes courbes presque à plat
+  let sL0=0,sL1=0,SP=null,HZ=null;
+  if(!H9){
   push();ici('depart');droite(200*KV);virages(LC9?1:2);
   droite(50*KV);ici('arche0');droite(80*KV);ici('arche');droite(80*KV);ici('arche1'); // L'ARCHE de basalte, tôt : loin de la spirale
   if(bal(.35)){virages(LC9?1:2);vMod();}if(bal(.5)){virages(1);fumeron();}if(bal(.6)){virages(LC9?1:2);vMod();}
-  mode=2;const sL0=s;droite(60*KV);for(let k=0;k<(bal(.75)?4:2);k++){const rel=wrap(phi)*57.2958;sg=Math.abs(rel)>20?(rel>0?-1:1):-sg;tourne(sg*(30+rnd()*20),Rl());if(rnd()<.4)droite((30+rnd()*40)*KV);} // LE LAC DE LAVE
-  const sL1=s;mode=0;
+  lacDe(k=>k<(bal(.75)?4:2)); // (la condition relue à chaque courbe, comme avant)
   if(bal(.85)){virages(LC9?1:2);vMod();}if(bal(.92))fumeron();virages(LC9?1:2);
+  }else{
+  /* LE ROYAUME AU HASARD (voir VLC_HASARD). LA MONTÉE d'abord tirée (sa longueur fixe le budget de la balade) : 0,9 à 1,55 tour, le dernier tour à
+     1-1,25 × le rayon d'avant, le premier à ≥ 140 m par tour au-dessus (l'écart entre les tours tient), jamais plus de 58 % de la longueur visée */
+  SP=(function(){const Rb=Math.max(450,rM*3.8),R1=Math.max(250,rM*2.4)*(1+rh()*.25);let tr=.9+rh()*.65,R0=Math.max(R1+140*tr,Rb*(.9+rh()*.35));
+    if(LC9){const Lx=tr*Math.PI*(R0+R1);if(Lx>.58*LC9){tr=Math.max(.9,tr*.58*LC9/Lx);R0=Math.max(R1+140*tr,Math.min(R0,Rb*1.1));}}
+    return {R0:R0,R1:R1,TH:tr*Math.PI*2,pM:.05+rh()*.02,L:tr*Math.PI*(R0+R1)};})();
+  /* LES TABLEAUX DE LA BALADE, dans un ordre tiré : l'arche, le lac, un fumeron et un module toujours ; puis, si la longueur visée les tient, le
+     2e module, le 3e module, le 2e fumeron (au palier 0 : le plus souvent 1 fumeron et 2 modules, comme avant) ; entre eux (et avant la montée) des
+     tronçons de virages, chacun SON caractère (VLC_HUMEURS) et sa part de la longueur libre */
+  const Bb=LC9?Math.max(1200,LC9-SP.L-300):4500*KV,lib0=Bb-200*KV;let nLac=2+((rh()*3)|0);
+  const E={arche:210*KV,lac:(60+nLac*190)*KV,fum:200*KV,mod:480*KV};
+  let tot=E.arche+E.lac+E.fum+E.mod;if(tot>.95*lib0&&nLac>2){tot-=(nLac-2)*190*KV;nLac=2;} // (serré : le lac en deux courbes)
+  const TB=['arche','lac','fum','mod'];for(const k of ['mod','mod','fum'])if(tot+E[k]<=.95*lib0){TB.push(k);tot+=E[k];}
+  for(let i=TB.length-1;i>0;i--){const j=(rh()*(i+1))|0,x=TB[i];TB[i]=TB[j];TB[j]=x;}
+  if(TB[TB.length-1]==='arche'){const j=(rh()*(TB.length-1))|0;TB[TB.length-1]=TB[j];TB[j]='arche';} // l'arche jamais juste avant la montée
+  const W=[];for(let i=0;i<=TB.length;i++)W.push(.35+rh());const sw=W.reduce(function(a,b){return a+b;},0),free=Math.max(0,lib0-tot),HU=[];
+  let hPrec=-1;const humeur=()=>{let i=(rh()*VLC_HUMEURS.length)|0;if(i===hPrec)i=(i+1+((rh()*(VLC_HUMEURS.length-1))|0))%VLC_HUMEURS.length;hPrec=i;return VLC_HUMEURS[i];}; // jamais deux fois le même de suite
+  const tronH=(len,H)=>{const s0=s,dv=rh()<.5?-1:1;let n=0; // un tronçon de virages au caractère H (la DÉRIVE insiste d'un côté jusqu'à la butée)
+    while((s-s0<len-40*KV||(!n&&len>60*KV))&&n<40){const r=rel9();
+      if(H.nm==='derive')sg=r*dv>LIM-16?-dv:(rh()<H.inv?-dv:dv);else sg=Math.abs(r)>30?(r>0?-1:1):(rh()<H.inv?-sg:sg);
+      const R=rh()<H.t?Rs():H.Rk?rM*(H.Rk[0]+rh()*H.Rk[1]):Rn();tourne(sg*(H.a[0]+rh()*H.a[1]),R);n++;
+      if(rh()<H.dr[0])droite((H.dr[1]+rh()*H.dr[2])*KV);}};
+  /* LE COUDE DE LA PLAINE : une fois, au milieu de la balade, l'axe tourne de 15-35° d'un côté (la butée de cap suit) — ni avant ni après le coude
+     le cap ne s'écarte de plus de 90° de la bissectrice des deux axes : la balade ne se recroise toujours pas */
+  const iC=1+((rh()*Math.max(1,TB.length-1))|0),dC=(rh()<.5?-1:1)*(15+rh()*20)*Math.PI/180;
+  push();ici('depart');droite(200*KV);
+  for(let i=0;i<=TB.length;i++){if(i===iC)phi0+=dC;const H=humeur();HU.push(H.nm);tronH(free*W[i]/sw,H);if(i===TB.length)break;const k=TB[i];
+    if(k==='arche'){droite(50*KV);ici('arche0');droite(80*KV);ici('arche');droite(80*KV);ici('arche1');}
+    else if(k==='lac')lacDe(j=>j<nLac);else if(k==='fum')fumeron();else vMod();}
+  HZ={axe:phi0-(iC<=TB.length?dC:0),coude:Math.round(dC*57.2958),ordre:TB.slice(),humeurs:HU};
+  }
   // ================= 2 · LA MONTÉE DU VOLCAN =================
-  const hv0=rnd(),hv=wrap(phi)>=0?1:-1,R0=Math.max(450,rM*3.8)+rnd()*30,R1=Math.max(250,rM*2.4)+rnd()*20,TH=Math.min((1.3+rnd()*.15)*Math.PI*2,(R0-R1)/135*Math.PI*2),pM=.055+rnd()*.01,
+  const hv0=rnd(),hv=rel9()>=0?1:-1,R0=SP?SP.R0:Math.max(450,rM*3.8)+rnd()*30,R1=SP?SP.R1:Math.max(250,rM*2.4)+rnd()*20,TH=SP?SP.TH:Math.min((1.3+rnd()*.15)*Math.PI*2,(R0-R1)/135*Math.PI*2),pM=SP?SP.pM:.055+rnd()*.01,
     AW=r=>Math.max(0,Math.min(25,(1/(1.5*rM)-1/r)*(r/6)*(r/6))),phW=rnd()*6.2832; // AW(r) : l'ONDULATION de la spirale (6 lobes par tour), plus franche sur les tours larges ; jamais un rayon sous 1,5 rM (d'un tour à l'autre elle change de < 15 m : l'écart entre les tours tient)
   vers(hv*90,Math.max(rM*2,220));droite(60*KV); // on se met EN TRAVERS de l'axe : le cône sera devant la plaine, jamais dessus
-  const cA=new THREE.Vector3(P.x+R0*Math.cos(phi),0,P.z-R0*Math.sin(phi)),cB=new THREE.Vector3(P.x-R0*Math.cos(phi),0,P.z+R0*Math.sin(phi)),C=cA.z>cB.z?cA:cB; // le centre du cône : à R0 de la route, du côté où l'on va
+  const cA=new THREE.Vector3(P.x+R0*Math.cos(phi),0,P.z-R0*Math.sin(phi)),cB=new THREE.Vector3(P.x-R0*Math.cos(phi),0,P.z+R0*Math.sin(phi)),fx9=Math.sin(phi0),fz9=Math.cos(phi0),C=(cA.x*fx9+cA.z*fz9)>(cB.x*fx9+cB.z*fz9)?cA:cB; // le centre du cône : à R0 de la route, du côté où l'on va (DEVANT, le long de l'axe)
   const b0=Math.atan2(P.x-C.x,P.z-C.z),yH0=y,sH0=s;ici('vlc0');
   const Lh=TH*(R0+R1)/2;gF=-pM; // la montée continue (pente négative = on monte)
   { // LA SPIRALE : l'angle autour du cône avance de TH, le rayon se resserre de R0 à R1 ; le sens qui prolonge le cap actuel
     const t0x=Math.sin(phi),t0z=Math.cos(phi),dPos=sb=>[Math.cos(b0)*sb,-Math.sin(b0)*sb]; // d(pos)/dβ au départ (au facteur r près)
     const sgB=(dPos(1)[0]*t0x+dPos(1)[1]*t0z)>0?1:-1,nP=Math.max(60,Math.ceil(Lh/12));
-    for(let k=1;k<=nP;k++){const t=k/nP,b=b0+sgB*TH*t,rL=R0+(R1-R0)*t,r=rL+AW(rL)*Math.sin(6*(b-b0)+phW)*Math.min(1,t*8,(1-t)*8);
+    const t1=.12,eas=SP?(t=>(t<t1?t*t/(2*t1):t>1-t1?1-t1-(1-t)*(1-t)/(2*t1):t-t1/2)/(1-t1)):(t=>t); // (AU HASARD) le rayon se resserre en DOUCEUR à l'entrée et à la sortie : la spirale part et finit en tangente (sans ça, un cran de 4-7° quand elle se resserre vite)
+    for(let k=1;k<=nP;k++){const t=k/nP,b=b0+sgB*TH*t,rL=R0+(R1-R0)*eas(t),r=rL+AW(rL)*Math.sin(6*(b-b0)+phW)*Math.min(1,t*8,(1-t)*8);
       const nx=C.x+Math.sin(b)*r,nz=C.z+Math.cos(b)*r;phi=Math.atan2(nx-P.x,nz-P.z);avance(nx,nz);}
     var bFin=b0+sgB*TH;}
   gF=null;mode=3;const yH1=y,sSp=s;ici('vlc1');
@@ -18975,7 +19012,7 @@ function vlcTrace3(rnd,LV){
   let yMin=1e9;for(const p of ctrl)yMin=Math.min(yMin,p.y);const ySea=yMin-48;
   const rc9=Math.max(110,R1*.42),K=vlc3Cone(R0,yH0-24,R1,yH1-24,yH1-24+1.6*(yH1-yH0)/Math.max(60,R0-R1)*(R1-rc9)+40,rc9,70,ySea);
   const th0=Math.min(b0,bFin),th1=Math.max(b0,bFin);
-  return {ctrl:ctrl,K:K,C:C,K2:null,C2:null,Q:Object.assign(Q,{tours:tours}),plg:[],sauts:[],sSp:sSp,ySea:ySea,conflits:conflits,croise:croise,th0:th0,th1:th1,lac:lac,mods:MM,
+  return {ctrl:ctrl,K:K,C:C,K2:null,C2:null,Q:Object.assign(Q,{tours:tours},HZ?{hasard:HZ}:{}),plg:[],sauts:[],sSp:sSp,ySea:ySea,conflits:conflits,croise:croise,th0:th0,th1:th1,lac:lac,mods:MM,
     spirale:{R0:R0,R1:R1,tours:+(TH/6.2832).toFixed(2),monte:Math.round(yH1-yH0),L:Math.round(Lh)}};
 }
 /* LE CÔNE TAILLÉ POUR LA SPIRALE : le profil de vlcConeY (yB + (yP−yB)·(1−u)^ex au-delà du cratère) qui passe par (rA, yA) — le 1er tour — et
@@ -19694,7 +19731,7 @@ window.dbgVolcan=function(k,o){
     else{const C=k==='volcan'?VOLCAN.C:VOLCAN.C2,K9=k==='volcan'?VOLCAN.K:VOLCAN.K2;if(C){i=Math.min(NP-1,Math.round(s/ds)+Math.round(d/ds));cible=[C.x,K9.yP*.6+pts[i].y*.4,C.z];}}
     if(i<0||!cible)return 'rien devant';const j=Math.max(0,i-Math.round(d/ds)),p=pts[j];volcanTick(0);
     return window.dbgVolcan('vue',{p:[p.x,p.y+h,p.z],c:cible,fov:o&&o.fov});}
-  return {on:!!VOLCAN.root,met:VOLCAN.met,ms:VOLCAN.ms,msSol:VOLCAN.msSol,n:VOLCAN.n,col:VOLCAN.gcol&&VOLCAN.gcol.n,sSp:Math.round(VOLCAN.sSp),L:Math.round(L),
+  return {on:!!VOLCAN.root,met:VOLCAN.met,hasard:VOLCAN.Q&&VOLCAN.Q.hasard||null,ms:VOLCAN.ms,msSol:VOLCAN.msSol,n:VOLCAN.n,col:VOLCAN.gcol&&VOLCAN.gcol.n,sSp:Math.round(VOLCAN.sSp),L:Math.round(L),
     sauts:(VOLCAN.sauts||[]).map(function(S){return [Math.round(S.sE),Math.round(S.sS),Math.round(S.yE-S.yS)];}),conflits:VOLCAN.conflits,croise:VOLCAN.croise,ySea:Math.round(VOLCAN.ySea||0),
     erup:{t:+VOLCAN.erup.t.toFixed(1),age:+VOLCAN.erup.age.toFixed(1),n:VOLCAN.erup.n},vit:Math.round(VOLCAN.vit||0),
     pret:!!VOLCAN.pret,fu:+(VOLCAN.fu||0).toFixed(2),bancs:(VOLCAN.bancs||[]).map(function(b){return [Math.round(b.s0),Math.round(b.s1)];}),file:VOLCAN.file?VOLCAN.file.length-VOLCAN.fi:0,msFile:Math.round(VOLCAN.msFile||0),msTot:VOLCAN.msTot,
@@ -19792,6 +19829,22 @@ const GRT_MET={
    par salle (houle douce), les modules. LE PUITS : on se met en travers de l'axe, le centre est DEVANT ; 1¼ tour (±14°) ramène la route dans
    l'axe ; le rayon se resserre de 34 m par tour (le tour d'en dessous est sous le BORD INTÉRIEUR de celui d'au-dessus : on y tombe en sautant
    vers l'intérieur) ; le PAS (58-64 m par tour) laisse > 50 m d'air entre deux tours. */
+/* (2026-10-19, session HASARD — Sacha : « vérifie bien que toutes les maps sont générées aléatoirement ») LES PROFONDEURS AU HASARD.
+   MESURÉ (40 graines, palier 0, l'écart de forme du ROYAUME AU HASARD — voir VLC_HASARD) : 0,067 — toujours plein nord, toujours la même
+   descente : la mine, la grotte luxuriante, le PUITS à 25-29 % du parcours, les stalactites, la lave, les abysses. Désormais chaque grotte tire,
+   dans son propre flux (`rh` : un seul tirage `rnd` de plus) :
+   · son AXE, dans toutes les directions (sous la terre, aucun soleil ne l'oriente) ;
+   · l'ORDRE des quatre salles du milieu — luxuriante, puits de la géode, stalactites, lave — entre la mine (toujours la 1re : la porte qu'on
+     reconnaît) et les abysses (toujours la dernière : le noir et la salle du portail) ; jamais la lave contre le puits (son lac ne déborde pas
+     dans l'entonnoir : on y saute pour le raccourci), 12 ordres possibles — le puits arrive de ~5 à ~70 % du parcours ;
+   · la LONGUEUR de chaque salle (0,6-1,4 × sa part d'avant, puis le tout ramené à la longueur visée) et un CARACTÈRE par salle (`VLC_HUMEURS`,
+     ceux du volcan ; la salle de lave garde ses grandes courbes) ;
+   · LE PUITS : 1¼ tour ± 0,12 (on en ressort jusqu'à ±43° de l'axe : l'AXE suit, borné à ±40° de celui de l'entrée — la grotte ne revient
+     jamais sur ses pas), son rayon (+0 à 80 m).
+   Le lac de lave ne déborde que dans les stalactites et les abysses (ses voisines d'avant) ; l'eau de la luxuriante, les piliers, les décors
+   et la lumière de la lave suivent les salles VOISINES (`R.apres`, `GROTTE.lavLum`) au lieu de l'ordre fixe. Gardés : la mine, la règle d'or,
+   le rayon tenable, les modules, le contrôle des croisements. `?sans=hasardgrotte` = la grotte d'avant, tirage pour tirage. */
+const GRT_HASARD=!/[?&]sans=([^&]*,)?hasardgrotte(,|&|$)/.test(location.search);
 function* genGrotte(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main entre deux essais
   CAMPM.length=0;MODMARK.length=0;
   const LV=typeof lvPiste==='function'?lvPiste():1,gr=mulberry32((rnd()*4294967296)>>>0);let best=null;
@@ -19801,6 +19854,7 @@ function* genGrotte(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
   return best.ctrl;}
 function grtTrace(rnd,LV){
   const vw=70+100*(LV-1),rM=40+.3*vw,KV=Math.sqrt(Math.max(1,vw/78)),ctrl=[],RH=(typeof ROAD_HALF==='number'&&ROAD_HALF>0)?ROAD_HALF:28,DN=[];
+  const H9=GRT_HASARD,rh=H9?mulberry32((rnd()*4294967296)>>>0):null; // (LES PROFONDEURS AU HASARD) son flux
   const Rs=()=>rM*(1.30+rnd()*.2),Rn=()=>{const a=rM*1.55,b=Math.max(a+25,200);return a+rnd()*(b-a);},Rl=()=>Math.max(rM*2.1,230)+rnd()*110;
   // LA PENTE (positive = on descend) par salle, une houle douce par-dessus ; les 300 premiers mètres en douceur (le portail d'arrivée)
   const PENTE={mine:.032,luxe:.052,geode:.045,stal:.062,lave:.024,abysse:.046};
@@ -19809,7 +19863,7 @@ function grtTrace(rnd,LV){
     let g=PENTE[sa]+(sa==='mine'?0:sa==='lave'?.012*Math.sin(s9/430*6.283+ph1):.024*Math.sin(s9/520*6.283+ph1)+.012*Math.sin(s9/230*6.283+ph2));
     if(s9<300)g=.008+(g-.008)*THREE.MathUtils.smoothstep(s9,170,300);
     return Math.max(-.03,Math.min(.10,g))+(gM&&s9>=gM.s0&&s9<gM.s1?gM.f(s9):0);};
-  let P=new THREE.Vector3(0,0,0),phi=0,s=0,y=0;const axe=0;
+  const axe0=H9?(rh()*2-1)*Math.PI:0;let axe=axe0,P=new THREE.Vector3(0,0,0),phi=axe0,s=0,y=0; // l'AXE (au hasard : toutes les directions ; il peut tourner une fois, à la sortie du puits)
   const push=()=>ctrl.push(P.clone());
   const avance=(nx,nz)=>{const dh=Math.hypot(nx-P.x,nz-P.z),n=Math.max(1,Math.ceil(dh/10)),x0=P.x,z0=P.z;
     for(let j=0;j<n;j++){y-=pente(s+dh*(j+.5)/n)*dh/n;DN.push(x0+(nx-x0)*(j+1)/n,y,z0+(nz-z0)*(j+1)/n,s+dh*(j+1)/n);}s+=dh;P.set(nx,y,nz);push();};
@@ -19822,7 +19876,11 @@ function grtTrace(rnd,LV){
   const LIM=68,tourne=(aDeg,R)=>{const r=rel();let a=aDeg;if(r+a>LIM)a=LIM-r;if(r+a<-LIM)a=-LIM-r;if(Math.abs(a)>2)arc(a,R);return a;};
   const vers=(cible,R)=>{const a=wrap(axe+cible/57.2958-phi)*57.2958;if(Math.abs(a)>3)arc(a,R);};
   let sg=rnd()<.5?-1:1;
-  const virages=n=>{for(let k=0;k<n;k++){const r=rel();sg=Math.abs(r)>30?(r>0?-1:1):-sg;tourne(sg*(36+rnd()*28),rnd()<.33?Rs():Rn());if(rnd()<.2)droite((30+rnd()*40)*KV);}};
+  let HC=null,dvH=1; // (AU HASARD) le CARACTÈRE de la salle (VLC_HUMEURS) et le côté de sa dérive
+  const virages=n=>{for(let k=0;k<n;k++){const r=rel();
+    if(HC){const H=HC;if(H.nm==='derive')sg=r*dvH>LIM-16?-dvH:(rh()<H.inv?-dvH:dvH);else sg=Math.abs(r)>30?(r>0?-1:1):(rh()<H.inv?-sg:sg);
+      tourne(sg*(H.a[0]+rh()*H.a[1]),rh()<H.t?Rs():H.Rk?rM*(H.Rk[0]+rh()*H.Rk[1]):Rn());if(rh()<H.dr[0])droite((H.dr[1]+rh()*H.dr[2])*KV);continue;}
+    sg=Math.abs(r)>30?(r>0?-1:1):-sg;tourne(sg*(36+rnd()*28),rnd()<.33?Rs():Rn());if(rnd()<.2)droite((30+rnd()*40)*KV);}};
   const SL=[],salle=k=>{sa=k;SL.push({k:k,p:P.clone(),s:s});};
   // LES MODULES DES PROFONDEURS (2026-10-18, LES MODULES DE CHAQUE MAP — voir MODC_ON) : les quatre du volcan, cap borné par l'axe, hasard `rv`
   const rv=mulberry32((rnd()*4294967296)>>>0),MM=[],paq=[];let mLast=-1;
@@ -19842,34 +19900,47 @@ function grtTrace(rnd,LV){
      sont fixes ; les quatre autres salles se partagent le reste de la longueur visée (luxuriante 27 %, stalactites 20 %, lave 30 %, abysses 23 %),
      chacune remplie de virages et d'un module quand il tient (au moins un module dans la map). Hors du JOUER : la longueur pleine (~4,2 km × KV). */
   const LC9=(typeof longueurCible==='function'?longueurCible():0)*GRV.long; // (LA GROTTE VASTE, 19/10 : 1,7 × la longueur visée)
-  const R0=Math.max(LC9?205:250,rM*(LC9?1.9:2.7))+rnd()*30,dR=34,TH=(1.25+(rnd()-.5)*.08)*Math.PI*2,R1=R0-dR*TH/(Math.PI*2),PAS=58+rnd()*6;
+  const R0=Math.max(LC9?205:250,rM*(LC9?1.9:2.7))+(H9?rh()*80:rnd()*30),dR=34,TH=(1.25+(H9?(rh()-.5)*.24:(rnd()-.5)*.08))*Math.PI*2,R1=R0-dR*TH/(Math.PI*2),PAS=58+rnd()*6; // (au hasard : 1¼ tour ± 0,12, le rayon + 0-80 m)
   const Lsp=TH*(R0+R1)/2+50*KV+1.6*Math.max(rM*2,220),KM=Math.sqrt(KV),FIXE=170*KM+330*KM+Lsp+80*KV+250*KV,B9=LC9?Math.max(1500,LC9-FIXE):4200*KV*GRV.long;
   let nMod=0;
   const remplir=(len,mods)=>{const s0=s;let m=0;while(s-s0<len-70){const r=len-(s-s0);if(m<mods&&(r>430*KV||nMod===0)){gMod();m++;nMod++;}else virages(1);}};
   // ================= 0 · L'ENTRÉE ET LA MINE =================
   push();salle('mine');ici('depart');droite(170*KM);ici('mine0'); // (la mine ne grandit qu'en √KV : c'est un décor qu'on reconnaît, pas un tronçon de vitesse)
   {const a=sg*(24+rnd()*10);tourne(a,Rn());droite(70*KM);tourne(-a*1.25,Rn());droite(90*KM);tourne(a*.7,Rn());droite(40*KM);}ici('mine1');
+  let C=null,b0=0,yH0=0,sH0=0,yH1=0,sH1=0,sgB=1;
   // ================= 1 · LA GROTTE LUXURIANTE =================
-  salle('luxe');remplir(B9*.27,B9*.27>950*KV?2:1);droite(40*KV);
+  const sLuxe=len=>{salle('luxe');remplir(len,len>950*KV?2:1);droite(40*KV);};
   // ================= 2 · LE PUITS DE LA GÉODE =================
-  salle('geode');
+  const sPuits=()=>{salle('geode');
   const hv=rel()>=0?1:-1;vers(hv*90,Math.max(rM*2,220));droite(50*KV);
   const fx=Math.sin(axe),fz=Math.cos(axe),cA=new THREE.Vector3(P.x+R0*Math.cos(phi),0,P.z-R0*Math.sin(phi)),cB=new THREE.Vector3(P.x-R0*Math.cos(phi),0,P.z+R0*Math.sin(phi));
-  const C=((cA.x-P.x)*fx+(cA.z-P.z)*fz)>((cB.x-P.x)*fx+(cB.z-P.z)*fz)?cA:cB; // le centre DEVANT : 1¼ tour plus tard, la route repart dans l'axe
-  const b0=Math.atan2(P.x-C.x,P.z-C.z),yH0=y,sH0=s;ici('puits0');let sgB=1;
+  C=((cA.x-P.x)*fx+(cA.z-P.z)*fz)>((cB.x-P.x)*fx+(cB.z-P.z)*fz)?cA:cB; // le centre DEVANT : 1¼ tour plus tard, la route repart dans l'axe
+  b0=Math.atan2(P.x-C.x,P.z-C.z);yH0=y;sH0=s;ici('puits0');
   {const t0x=Math.sin(phi),t0z=Math.cos(phi);sgB=(Math.cos(b0)*t0x-Math.sin(b0)*t0z)>0?1:-1;const Lh=TH*(R0+R1)/2,nP=Math.max(60,Math.ceil(Lh/12));
    gF=PAS/(Math.PI*(R0+R1)); // la descente continue (PAS par tour)
    for(let k=1;k<=nP;k++){const t=k/nP,b=b0+sgB*TH*t,r=R0+(R1-R0)*t,nx=C.x+Math.sin(b)*r,nz=C.z+Math.cos(b)*r;phi=Math.atan2(nx-P.x,nz-P.z);avance(nx,nz);}}
-  gF=null;const yH1=y,sH1=s;ici('puits1');
-  droite(80*KV);
+  gF=null;yH1=y;sH1=s;ici('puits1');
+  if(H9)axe=axe0+Math.max(-40,Math.min(40,wrap(phi-axe0)*57.2958))/57.2958; // (AU HASARD) on ressort du puits de biais : l'AXE suit (±40° de celui de l'entrée au plus)
+  droite(80*KV);};
   // ================= 3 · LES STALACTITES =================
-  salle('stal');remplir(B9*.2,1);
+  const sStal=len=>{salle('stal');remplir(len,1);};
   // ================= 4 · LE LAC DE LAVE : de longues courbes au-dessus de la lave =================
-  salle('lave');{const s0=s,len=B9*.3;droite(60*KV);let m=0;
+  const sLave=len=>{salle('lave');{const s0=s;droite(60*KV);let m=0;
     while(s-s0<len-80){const r=len-(s-s0);if(!m&&(nMod<2||r>700*KV)&&r>430*KV){gMod();m=1;nMod++;continue;}
-      const rr=rel();sg=Math.abs(rr)>20?(rr>0?-1:1):-sg;tourne(sg*(30+rnd()*24),Rl());if(rnd()<.45&&r>260)droite((40+rnd()*50)*KV);}}
+      const rr=rel();sg=Math.abs(rr)>20?(rr>0?-1:1):-sg;tourne(sg*(30+rnd()*24),Rl());if(rnd()<.45&&r>260)droite((40+rnd()*50)*KV);}}};
   // ================= 5 · LES ABYSSES =================
-  salle('abysse');remplir(B9*.23,nMod?1:2);if(!nMod){gMod();nMod++;} // (au moins un module dans la map)
+  const sAbysse=len=>{salle('abysse');remplir(len,nMod?1:2);if(!nMod){gMod();nMod++;}}; // (au moins un module dans la map)
+  let HZ=null;
+  if(!H9){sLuxe(B9*.27);sPuits();sStal(B9*.2);sLave(B9*.3);sAbysse(B9*.23);}
+  else{ /* LES PROFONDEURS AU HASARD (voir GRT_HASARD) : l'ordre des quatre salles du milieu (jamais la lave contre le puits), leurs longueurs, leurs caractères */
+    const ORD=['luxe','geode','stal','lave'];for(let e=0;e<60;e++){for(let i=3;i>0;i--){const j=(rh()*(i+1))|0,x=ORD[i];ORD[i]=ORD[j];ORD[j]=x;}if(Math.abs(ORD.indexOf('lave')-ORD.indexOf('geode'))!==1)break;}
+    if(Math.abs(ORD.indexOf('lave')-ORD.indexOf('geode'))===1){ORD.length=0;ORD.push('luxe','geode','stal','lave');} // (filet : l'ordre d'avant)
+    const PART={luxe:.27,stal:.2,lave:.3,abysse:.23};let sp=0;for(const k in PART){PART[k]*=.6+.8*rh();sp+=PART[k];}for(const k in PART)PART[k]/=sp;
+    let hPrec=-1;const humeur=()=>{let i=(rh()*VLC_HUMEURS.length)|0;if(i===hPrec)i=(i+1+((rh()*(VLC_HUMEURS.length-1))|0))%VLC_HUMEURS.length;hPrec=i;return VLC_HUMEURS[i];};
+    const HU={},car=k=>{HC=humeur();dvH=rh()<.5?-1:1;HU[k]=HC.nm;};
+    for(const k of ORD){if(k==='luxe'){car(k);sLuxe(B9*PART.luxe);}else if(k==='geode'){HC=null;sPuits();}else if(k==='stal'){car(k);sStal(B9*PART.stal);}else{HC=null;sLave(B9*PART.lave);}}
+    car('abysse');sAbysse(B9*PART.abysse);HC=null;
+    HZ={axe:axe0,coude:Math.round((axe-axe0)*57.2958),ordre:['mine'].concat(ORD,['abysse']),humeurs:HU,parts:Object.keys(PART).map(function(k){return k+':'+Math.round(PART[k]*100);}).join(' ')};}
   droite(90*KV);ici('fin');SL.push({k:'fin',p:P.clone(),s:s});droite(150*KV); // la salle du portail
   // LE CONTRÔLE DES CROISEMENTS (celui du volcan) : un passage à moins de 2·RH+14 m d'un autre tronçon ; avec moins de 32 m d'air = un CONFLIT
   let conflits=0,croise=0;{const G=new Map(),n=DN.length/4,cle=(x,z)=>Math.floor(x/40)+','+Math.floor(z/40),vu=new Set();
@@ -19878,6 +19949,7 @@ function grtTrace(rnd,LV){
       for(let a9=-2;a9<=2;a9++)for(let b9=-2;b9<=2;b9++){const L9=G.get((bx+a9)+','+(bz+b9));if(!L9)continue;
         for(const j of L9){const sj=DN[j*4+3];if(sj-si<300)continue;const dh=Math.hypot(DN[j*4]-x,DN[j*4+2]-z);if(dh>2*RH+14)continue;
           const t=Math.round(si/150)+':'+Math.round(sj/150);if(vu.has(t))continue;vu.add(t);if(Math.abs(yy-DN[j*4+1])<32)conflits++;else croise++;}}}}
+  if(HZ)Q.hasard=HZ;
   return {ctrl:ctrl,Q:Q,salles:SL,conflits:conflits,croise:croise,mods:MM,
     spi:{cx:C.x,cz:C.z,R0:R0,R1:R1,TH:TH,sgB:sgB,b0:b0,y0:yH0,y1:yH1,s0:sH0,s1:sH1,pas:PAS,tours:+(TH/6.2832).toFixed(3)}};
 }
@@ -19915,8 +19987,9 @@ function grtEchantillons(){
     let b2=bi;for(let i=Math.max(0,bi-4);i<=Math.min(NP-1,bi+4);i++){const q=pts[i],d=(q.x-p.x-ox)**2+(q.y-p.y-oy)**2+(q.z-p.z-oz)**2;if(d<bd){bd=d;b2=i;}}return b2*ds;};
   const F=[{k:'entree',s:-1e9}];for(const b of SL)F.push({k:b.k,s:b.k==='mine'?180:near(b.p)});
   const SI={entree:0,mine:0,luxe:1,geode:2,stal:3,lave:4,abysse:5,fin:5},bornes={};for(let j=1;j<F.length;j++)bornes[F[j].k]=F[j].s;
+  const apres={},voisin={};for(let j=1;j<F.length;j++){apres[F[j].k]=j+1<F.length?F[j+1].s:null;voisin[F[j].k]=[F[j-1].k,j+1<F.length?F[j+1].k:null];} // (LES PROFONDEURS AU HASARD) la fin de chaque salle (= le début de la suivante) et ses voisines : l'ordre n'est plus fixe
   const sm=THREE.MathUtils.smoothstep,ns=Math.floor((NP-1)/st)+1,n=ns+40,R={n:n,X:new Float32Array(n),Y:new Float32Array(n),Z:new Float32Array(n),S:new Float32Array(n),TX:new Float32Array(n),TZ:new Float32Array(n),
-    SAL:new Uint8Array(n),RH:new Float32Array(n),UP:new Float32Array(n),DN:new Float32Array(n),EX:new Float32Array(n),NZ:new Float32Array(n),EXT:new Uint8Array(n),i0:20,bornes:bornes,ds:ds};
+    SAL:new Uint8Array(n),RH:new Float32Array(n),UP:new Float32Array(n),DN:new Float32Array(n),EX:new Float32Array(n),NZ:new Float32Array(n),EXT:new Uint8Array(n),i0:20,bornes:bornes,apres:apres,ds:ds};
   const pose=function(q,x,y,z,tx,tz,s9,ext){R.X[q]=x;R.Y[q]=y;R.Z[q]=z;R.S[q]=s9;const l=Math.hypot(tx,tz)||1;R.TX[q]=tx/l;R.TZ[q]=tz/l;R.EXT[q]=ext;
     let rh=0,up=0,dn=0,ex=0,nz=0,wb=-1,kb=0;
     for(let j=0;j<F.length;j++){const a=j?sm(s9,F[j].s-90,F[j].s+90):1,b=j+1<F.length?sm(s9,F[j+1].s-90,F[j+1].s+90):0,m=a-b;if(m<=0)continue;
@@ -19928,9 +20001,13 @@ function grtEchantillons(){
   for(let k=0;k<20;k++){const d=(k+1)*6;pose(20+ns+k,p1.x+T1.x*d,p1.y+T1.y*d,p1.z+T1.z*d,T1.x,T1.z,L+d,1);}
   // LES LACS : la lave PLATE 48 m sous le point le plus bas de la salle de lave (elle déborde 300 m dans les salles voisines) ; l'eau de la grotte luxuriante
   const yMinDe=function(a,b){let m=1e9;for(let q=0;q<n;q++)if(!R.EXT[q]&&R.S[q]>=a&&R.S[q]<=b)m=Math.min(m,R.Y[q]);return m;};
-  if(bornes.lave!=null&&bornes.abysse!=null){const y9=yMinDe(bornes.lave,bornes.abysse);GROTTE.lac={y:y9-GRV.lacP,s0:bornes.lave-300,s1:bornes.abysse+300};
+  /* (AU HASARD) la lave ne déborde que vers les stalactites et les abysses (ses voisines d'avant) — jamais dans la mine, l'entonnoir du puits ni l'eau
+     de la luxuriante ; sa LUMIÈRE n'éclaire qu'elle et les voisines où elle déborde (`lavLum`, par salle : avant, « sal ≥ 3 » — les mêmes) */
+  const deb9=k=>k==='stal'||k==='abysse'?300:0;GROTTE.lavLum=null;
+  if(bornes.lave!=null&&apres.lave!=null){const y9=yMinDe(bornes.lave,apres.lave),v=voisin.lave;GROTTE.lac={y:y9-GRV.lacP,s0:bornes.lave-deb9(v[0]),s1:apres.lave+deb9(v[1])};
+    GROTTE.lavLum=[0,0,0,0,1,0];for(const k of v)if(deb9(k))GROTTE.lavLum[SI[k]]=1;
     for(let q=0;q<n;q++)if(R.S[q]>=GROTTE.lac.s0&&R.S[q]<=GROTTE.lac.s1)R.DN[q]=Math.max(R.DN[q],R.Y[q]-GROTTE.lac.y+14);}
-  if(bornes.luxe!=null&&bornes.geode!=null){const y9=yMinDe(bornes.luxe,bornes.geode);GROTTE.eau={y:y9-GRV.eauL,s0:bornes.luxe,s1:bornes.geode+120};}
+  if(bornes.luxe!=null&&apres.luxe!=null){const y9=yMinDe(bornes.luxe,apres.luxe);GROTTE.eau={y:y9-GRV.eauL,s0:bornes.luxe,s1:apres.luxe+(voisin.luxe[1]==='lave'?0:120)};}
   // le PUITS dans le repère de la route
   const P=GROTTE.spi;if(P){const rg=Math.min(150,P.R1-ROAD_HALF-52);GROTTE.puits={cx:P.cx+ox,cz:P.cz+oz,y0:P.y0+oy,y1:P.y1+oy,R0:P.R0,R1:P.R1,gy:(P.y0+P.y1)/2+oy,rg:rg,rp:34,
     yB:P.y1+oy-GRV.bassin,yW:P.y1+oy-GRV.eauP,yT:P.y0+oy+GRV.voute,s0:P.s0,s1:P.s1};}
@@ -20001,7 +20078,8 @@ function grtLacs(V,R){const lac=GROTTE.lac,eau=GROTTE.eau,B=V.B,K=GRT.K;if(!lac&
 /* LES PILIERS (après les lacs) : des colonnes de BASALTE qui sortent de la lave jusqu'à la voûte, des COLONNES de concrétion (en sablier) dans la
    cathédrale — loin de toutes les routes (règle d'or), dans l'air de la salle. La densité les refait roche (la physique = l'image). */
 function grtPiliers(V,R,fr){const L9=[],B=V.B,K=GRT.K,b=R.bornes,VZ=GRT_VASTE,H9=VZ?560:260; // (GROTTE VASTE : plus nombreux, plus gros, dans toute la largeur des salles)
-  for(const [k,s0,s1,nb,ra,rb] of VZ?[['stal',b.stal,b.lave,11,14,14],['lave',b.lave,b.abysse,16,18,16]]:[['stal',b.stal,b.lave,6,9,9],['lave',b.lave,b.abysse,9,12,11]]){if(s0==null||s1==null)continue;
+  const ap=R.apres||{}; // (AU HASARD) la fin de la salle = le début de la suivante, quelle qu'elle soit
+  for(const [k,s0,s1,nb,ra,rb] of VZ?[['stal',b.stal,ap.stal,11,14,14],['lave',b.lave,ap.lave,16,18,16]]:[['stal',b.stal,ap.stal,6,9,9],['lave',b.lave,ap.lave,9,12,11]]){if(s0==null||s1==null)continue;
     let n=0;for(let e=0;e<nb*12&&n<nb;e++){const q=R.i0+((fr()*(R.n-R.i0-20))|0);if(R.S[q]<s0+60||R.S[q]>s1-60)continue;
       const sd=fr()<.5?-1:1,lat=ROAD_HALF+48+fr()*(VZ?Math.max(110,R.RH[q]*.75):110),x=R.X[q]+R.TZ[q]*sd*lat,z=R.Z[q]-R.TX[q]*sd*lat,y=R.Y[q],r=ra+fr()*rb;
       if(grtIci(V,x,y,z)!==1||!grtLibre(R,x,z,-1e9,1e9,r+8))continue;
@@ -20028,7 +20106,7 @@ function grtLum(x,y,z,sal,LL,out){
   const a=GRT_AMB[sal]||GRT_AMB[0],ka=sal?GRV.amb:1;let t=0,r=a[0]*ka,g=a[1]*ka,b=a[2]*ka;
   if(LL){for(const o of LL.t){const dx=x-o.x,dy=y-o.y,dz=z-o.z,d2=dx*dx+dy*dy+dz*dz;if(d2<GRV.tR2)t+=1.3/(1+d2/GRV.tF)*(1-d2/GRV.tR2);}
     for(const o of LL.p){const dx=x-o.x,dy=y-o.y,dz=z-o.z,d2=dx*dx+dy*dy+dz*dz;if(d2<o.r2){let k=1-d2/o.r2;k*=k*o.I;r+=o.c[0]*k;g+=o.c[1]*k;b+=o.c[2]*k;}}}
-  const lac=GROTTE.lac;if(lac&&sal>=3&&y>lac.y-8){const k=(sal===4?1.65:.9)*Math.exp(-Math.max(0,y-lac.y)/(sal===4?GRV.lavL:38));r+=1.0*k;g+=.32*k;b+=.055*k;}
+  const lac=GROTTE.lac;if(lac&&(GROTTE.lavLum?GROTTE.lavLum[sal]:sal>=3)&&y>lac.y-8){const k=(sal===4?1.65:.9)*Math.exp(-Math.max(0,y-lac.y)/(sal===4?GRV.lavL:38));r+=1.0*k;g+=.32*k;b+=.055*k;}
   const e=GROTTE.eau;if(e&&sal===1&&y>e.y-8){const k=.6*Math.exp(-Math.max(0,y-e.y)/16);r+=.04*k;g+=.22*k;b+=.26*k;}
   const P=GROTTE.puits;if(P&&sal===2){const dg=Math.hypot(x-P.cx,y-P.gy,z-P.cz)-P.rg,k=1.4*Math.exp(-Math.max(0,dg)/GRV.geoL);r+=.62*k;g+=.28*k;b+=1.0*k;
     const kw=.55*Math.exp(-Math.max(0,y-P.yW)/22);r+=.10*kw;g+=.24*kw;b+=.42*kw;}
@@ -20151,8 +20229,9 @@ function grtDecors(V,R,fr,MOB){const D=new Map(),T9=[],P9=[],B=V.B,b=R.bornes,RH
   // la paroi la plus proche, à hauteur y, dans la direction latérale sd : [x, z, nx, nz] juste devant elle, ou null
   const paroi=function(q,sd,y,d0,d1){const bx=R.TZ[q]*sd,bz=-R.TX[q]*sd;for(let dd=d0;dd<d1;dd+=2){const x=R.X[q]+bx*dd,z=R.Z[q]+bz*dd;if(grtDensIci(V,x,y,z)<=0){const d2=dd-2.2;return [R.X[q]+bx*d2,R.Z[q]+bz*d2,-bx,-bz,d2];}}return null;};
   // ---- 0 · LA MINE ----
-  if(b.mine!=null&&b.luxe!=null){let n=0,der=-1;
-    for(let q=R.i0;q<R.n-20;q++){const s9=R.S[q];if(s9<b.mine+20||s9>b.luxe-60)continue;const t=Math.floor(s9/32);if(t===der)continue;der=t;
+  const ap=R.apres||{}; // (LES PROFONDEURS AU HASARD) la fin de chaque salle : le début de la suivante, quelle qu'elle soit
+  if(b.mine!=null&&ap.mine!=null){let n=0,der=-1;
+    for(let q=R.i0;q<R.n-20;q++){const s9=R.S[q];if(s9<b.mine+20||s9>ap.mine-60)continue;const t=Math.floor(s9/32);if(t===der)continue;der=t;
       const x=R.X[q],y=R.Y[q],z=R.Z[q],tx=R.TX[q],tz=R.TZ[q],yaw=Math.atan2(tx,tz),la=RHd+7,y0=y-THICK-7,y1=y+27.5;
       for(const sd of [-1,1]){grtBoite(D,V,x+tz*sd*la,(y0+y1)/2,z-tx*sd*la,.9,(y1-y0)/2,.9,GT.BOIS,yaw,'roche');
         grtBoite(D,V,x+tz*sd*(la-3.2),y1-2.4,z-tx*sd*(la-3.2),2.4,.7,.7,GT.BOIS,yaw,'roche');
@@ -20170,12 +20249,12 @@ function grtDecors(V,R,fr,MOB){const D=new Map(),T9=[],P9=[],B=V.B,b=R.bornes,RH
     lum(w[0],y,w[1],22*(VZ?1.9:1),t===GT.DIAMANT?[.25,.85,1]:[1,.78,.25],.55);n++;}nb.gemmes=n;}
   // ---- 1 · LA GROTTE LUXURIANTE : les lianes à baies, les azalées ----
   {let n=0,na=0;const N=Math.round((VZ?190:110)*MOB),NA=Math.round((VZ?80:46)*MOB),g9=VZ?1.7:1;
-    for(let e=0;e<N*8&&n<N;e++){const q=pris(b.luxe,b.geode);if(q<0)break;const xz=cote(q,RHd+6+fr()*(VZ?R.RH[q]*.72:104)),yc=plafond(xz[0],R.Y[q]+6,xz[1],VZ?R.UP[q]*1.5:120);if(yc==null)continue;
+    for(let e=0;e<N*8&&n<N;e++){const q=pris(b.luxe,ap.luxe);if(q<0)break;const xz=cote(q,RHd+6+fr()*(VZ?R.RH[q]*.72:104)),yc=plafond(xz[0],R.Y[q]+6,xz[1],VZ?R.UP[q]*1.5:120);if(yc==null)continue;
       const Lv=(10+fr()*32)*(VZ?2.4:1),yb=yc-Lv;if(!grtLibre(R,xz[0],xz[1],yb,yc,2*g9))continue;
       grtPrisme(D,V,xz[0],yc+2,xz[1],BAS,4,.4*g9,.25*g9,Lv+2,GT.FEUILLE,fr()*6);
       for(let u=2.5*g9;u<Lv-g9;u+=(2.8+fr()*1.6)*g9)grtOcta(D,V,xz[0]+(fr()<.5?-.6:.6)*g9,yc-u,xz[1]+(fr()-.5)*.7*g9,.62*g9,.75*g9,GT.BAIE,fr()*6);
       lum(xz[0],yc-Lv*.65,xz[1],VZ?50:30,[1,.5,.12],.8);n++;}
-    for(let e=0;e<NA*8&&na<NA;e++){const q=pris(b.luxe,b.geode);if(q<0)break;const xz=cote(q,RHd+10+fr()*(VZ?R.RH[q]*.7:90)),yf=plancher(xz[0],R.Y[q]-THICK-4,xz[1],VZ?R.DN[q]*1.5+20:110);if(yf==null)continue;
+    for(let e=0;e<NA*8&&na<NA;e++){const q=pris(b.luxe,ap.luxe);if(q<0)break;const xz=cote(q,RHd+10+fr()*(VZ?R.RH[q]*.7:90)),yf=plancher(xz[0],R.Y[q]-THICK-4,xz[1],VZ?R.DN[q]*1.5+20:110);if(yf==null)continue;
       const w=(2.6+fr()*2.4)*g9,h=(2.2+fr()*1.8)*g9;if(!grtLibre(R,xz[0],xz[1],yf,yf+2*h,w))continue;
       grtOcta(D,V,xz[0],yf+h,xz[1],w,h*1.05,GT.FEUILLE,fr()*6);grtOcta(D,V,xz[0]+(fr()-.5)*w,yf+h*1.25,xz[1]+(fr()-.5)*w,w*.7,h*.8,GT.FEUILLE,fr()*6);
       for(let k=0;k<4;k++)grtOcta(D,V,xz[0]+(fr()-.5)*w*1.5,yf+h*(1.4+fr()*.5),xz[1]+(fr()-.5)*w*1.5,.55*g9,.55*g9,GT.FLEUR,fr()*6);na++;}
@@ -20192,7 +20271,7 @@ function grtDecors(V,R,fr,MOB){const D=new Map(),T9=[],P9=[],B=V.B,b=R.bornes,RH
       n++;}}nb.cristaux=n;}
   // ---- 3 · LES STALACTITES : les concrétions, des cônes à six pans ----
   {let n=0;const N=Math.round((VZ?240:140)*MOB),g9=VZ?1.25:1;
-    for(let e=0;e<N*8&&n<N;e++){const q=pris(b.stal,b.lave);if(q<0)break;const xz=cote(q,RHd+8+fr()*(VZ?R.RH[q]*.8:118)),pend=fr()<.55,k=.75+fr()*.5;
+    for(let e=0;e<N*8&&n<N;e++){const q=pris(b.stal,ap.stal);if(q<0)break;const xz=cote(q,RHd+8+fr()*(VZ?R.RH[q]*.8:118)),pend=fr()<.55,k=.75+fr()*.5;
       if(pend){const yc=plafond(xz[0],R.Y[q]+8,xz[1],VZ?R.UP[q]*1.5:150);if(yc==null)continue;const Ld=(8+fr()*38)*(VZ?2.6:1);if(!grtLibre(R,xz[0],xz[1],yc-Ld,yc,5))continue;
         grtPrisme(D,V,xz[0],yc+3,xz[1],BAS,6,3.4*k*(.8+Ld/60)*g9,0,Ld+3,GT.CONCRETION,fr()*6,'roche');}
       else{const yf=plancher(xz[0],R.Y[q]-THICK-3,xz[1],VZ?R.DN[q]*1.5+20:140);if(yf==null)continue;const Hs=(6+fr()*30)*(VZ?2.4:1);if(!grtLibre(R,xz[0],xz[1],yf,yf+Hs,5))continue;
@@ -20200,7 +20279,7 @@ function grtDecors(V,R,fr,MOB){const D=new Map(),T9=[],P9=[],B=V.B,b=R.bornes,RH
       n++;}nb.concretions=n;}
   // ---- 4 · LE LAC DE LAVE : les chutes de lave ----
   {let n=0;const lac=GROTTE.lac;if(lac){const N=Math.round((VZ?14:9)*MOB),cw=VZ?6:3.4;
-    for(let e=0;e<N*10&&n<N;e++){const q=pris(b.lave,b.abysse);if(q<0)break;const sd=fr()<.5?-1:1,y=R.Y[q]+28,w=paroi(q,sd,y,RHd+30,VZ?Math.min(R.RH[q]*1.45,640):300);if(!w)continue;
+    for(let e=0;e<N*10&&n<N;e++){const q=pris(b.lave,ap.lave);if(q<0)break;const sd=fr()<.5?-1:1,y=R.Y[q]+28,w=paroi(q,sd,y,RHd+30,VZ?Math.min(R.RH[q]*1.45,640):300);if(!w)continue;
       const x=w[0]+w[2]*(VZ?6:3),z=w[1]+w[3]*(VZ?6:3),yc=plafond(x,y,z,VZ?R.UP[q]*1.6:140);if(yc==null)continue; // (5 m devant la paroi, côté route)
       if(!grtLibre(R,x,z,lac.y-4,yc,5))continue;const h=(yc+2-lac.y)/2;grtBoite(D,V,x,lac.y+h,z,cw,h,cw,GT.LAVE,Math.atan2(w[2],w[3]),'lave');
       for(const u of VZ?[.12,.37,.62,.88]:[.2,.55,.88])lum(x,lac.y+2*h*u,z,VZ?120:78,[1,.36,.07],1.35);n++;}}nb.chutes=n;}
@@ -20287,7 +20366,7 @@ function grtPartObj(){if(GRT_FX.part)return GRT_FX.part;const M=grtMats(),n=Math
 function grotteVide(){
   if(GROTTE.root){GROTTE.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});GROTTE.root=null;}
   GROTTE.V=null;GROTTE.R=null;GROTTE.grp=[];GROTTE.file=null;GROTTE.fi=0;GROTTE.msFile=0;GROTTE.pret=false;GROTTE.col=null;GROTTE.salle=-1;GROTTE.piliers=null;
-  GROTTE.puits=null;GROTTE.lac=null;GROTTE.eau=null;GROTTE.dec=null;GROTTE.LL=null;GROTTE.heurt='';}
+  GROTTE.puits=null;GROTTE.lac=null;GROTTE.lavLum=null;GROTTE.eau=null;GROTTE.dec=null;GROTTE.LL=null;GROTTE.heurt='';}
 function buildGrotte(seed){jadeFini(buildGrotteG(seed));} // d'un trait au passage ; en tranches d'avance (prebDecorG)
 function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au pré-bâti
   grotteVide();
@@ -20398,7 +20477,7 @@ window.dbgGrotte=function(k,o){
     return window.dbgGrotte('vue',{p:p,c:c,fov:o&&o.fov});}
   return {on:!!GROTTE.root,met:GROTTE.met,salle:GROTTE.salle,ms:GROTTE.ms,msCreuse:GROTTE.msCreuse,msFile:Math.round(GROTTE.msFile||0),pret:GROTTE.pret,tm:GROTTE.tm,
     file:GROTTE.file?GROTTE.file.length-GROTTE.fi:0,n:GROTTE.n,conflits:GROTTE.conflits,croise:GROTTE.croise,L:Math.round(L),
-    salles:GROTTE.R?GROTTE.R.bornes:null,spi:GROTTE.spi&&{R0:Math.round(GROTTE.spi.R0),R1:Math.round(GROTTE.spi.R1),tours:GROTTE.spi.tours,pas:Math.round(GROTTE.spi.pas),descente:Math.round(GROTTE.spi.y0-GROTTE.spi.y1)},
+    salles:GROTTE.R?GROTTE.R.bornes:null,hasard:GROTTE.Q&&GROTTE.Q.hasard||null,spi:GROTTE.spi&&{R0:Math.round(GROTTE.spi.R0),R1:Math.round(GROTTE.spi.R1),tours:GROTTE.spi.tours,pas:Math.round(GROTTE.spi.pas),descente:Math.round(GROTTE.spi.y0-GROTTE.spi.y1)},
     lac:GROTTE.lac&&Math.round(GROTTE.lac.y),eau:GROTTE.eau&&Math.round(GROTTE.eau.y),geode:GROTTE.puits&&Math.round(GROTTE.puits.rg)};};
 /* ---------------- LES AMBIANCES : une par salle et par météo (appelée après les biomes du volcan, une fois BIOMES né) ----------------
    La grammaire des nuits de la bible (deux températures : la brume froide et sombre, la lumière du lieu chaude ou colorée), la brume est la
@@ -44742,7 +44821,6 @@ const COSM={
     {id:'or',      n:'OR MASSIF',         mis:4,   c:0xffc93a,g:'o',d:'Ne s\'achète pas : elle se gagne en relevant des défis.'},
     // (2026-10-14) LES PEINTURES POP — la rareté se lit en couleur (`r`), le prix suit la grille de l'équilibrage (rare 5-12 k · exotique 20-45 k · épique 80-180 k · légendaire 300-500 k)
     {id:'ogre',     n:'VERT OGRE',         p:5000,  r:'rare',      c:0x6f9a2e,g:'s',d:'Le vert des marais. Ça sent un peu, mais c\'est chez toi.'},
-    {id:'herisson', n:'BLEU HÉRISSON',     p:7000,  r:'rare',      c:0x1e50e6,d:'Le bleu d\'un hérisson pressé. Les anneaux sont en option.'},
     {id:'poupee',   n:'ROSE POUPÉE',       p:9000,  r:'rare',      c:0xff5fb0,d:'Rose bonbon, laque parfaite. Tu n\'es pas en plastique, tu es en carbone.'},
     {id:'banana',   n:'BANANA',            p:20000, r:'rare',      grad:[0x2a5cb8,0xffd21f,0xffe45c],d:'Salopette en bas, jaune en haut. Elle dit « banana » à chaque virage.'},
     {id:'gotham',   n:'NUIT DE GOTHAM',    p:32000, r:'rare',      c:0x0d0f15,g:'g',d:'Noir laqué, la ville qui brille dedans. Les toits sont à toi.'},
@@ -44789,8 +44867,8 @@ const COSM={
    qui la portait repart avec celle d'origine. `n` = le nom que dit le message de remboursement. (2026-10-18 soir, Sacha : « supprime block rain »)
    PLUIE DE BLOCS aussi. Leurs émetteurs TRX_EMET (bulles, blocs) restent, sans traînée qui les appelle. (2026-10-18 soir, Sacha : « 88 mph enlève »)
    88 MILES À L'HEURE aussi (140 000 $, épique) : sa ligne et son pictogramme tr_88 sortent ; son émetteur TRX_EMET.retour reste. */
-const HAB_RETIRES={'trainee:menthe':{p:2000,n:'LA TRAÎNÉE MENTHE'},'trainee:blocs':{p:30000,n:'LA TRAÎNÉE PLUIE DE BLOCS'},'trainee:retour':{p:140000,n:'LA TRAÎNÉE 88 MILES À L\'HEURE'}};
-Object.assign(I18N,{"LA TRAÎNÉE 88 MILES À L'HEURE":"THE 88 MPH TRAIL"}); /* le message de remboursement, en anglais */
+const HAB_RETIRES={'peinture:herisson':{p:7000,n:'LA PEINTURE BLEU HÉRISSON'},'peinture:graphite':{p:0},'peinture:petrole':{p:0},'peinture:anglais':{p:0},'peinture:framboise':{p:0},'peinture:bronze':{p:0},'peinture:ecume':{p:0},'peinture:barbapapa':{p:0},'trainee:menthe':{p:2000,n:'LA TRAÎNÉE MENTHE'},'trainee:blocs':{p:30000,n:'LA TRAÎNÉE PLUIE DE BLOCS'},'trainee:retour':{p:140000,n:'LA TRAÎNÉE 88 MILES À L\'HEURE'}};
+Object.assign(I18N,{"LA TRAÎNÉE 88 MILES À L'HEURE":"THE 88 MPH TRAIL","LA PEINTURE BLEU HÉRISSON":"THE HEDGEHOG BLUE PAINT"}); /* le message de remboursement, en anglais */
 /* (2026-10-18 soir, Sacha : « la trainé rainbow doit etre incluse avec le pack nian cat ») LE PACK DU CHAT : l'ARC-EN-CIEL (`pack:'chat'`, voir LES
    MISSIONS v2 — LES HABILLAGES QUI SE GAGNENT) est à toi avec le CHAT POP-TART (shopOwned → m2Chat). La boutique le DIT enfin : sa carte affichait
    « MISSION » (et l'inventaire le prix de la PALETTE) ; elle affiche « PACK CHAT », son bouton AVEC LE CHAT mène à l'offre du chat (rayon ACHAT),
@@ -44806,6 +44884,12 @@ function chatPackI(){for(let i=0;i<CARS.length;i++)if(CARS[i]&&CARS[i].shape==='
 const PALETTE_ON=!/[?&]palette=0\b/.test(location.search);
 const PALETTE_PACK={id:'palette',produit:'cashcar.palette40',eur:'0,99 €',n:'LA PALETTE',ids:[]}; // `produit` = l'identifiant App Store Connect, écrit ICI seulement
 const PAL_MASQUE=0x2a2d36; // la pastille d'une secrète pas encore gagnée : ardoise mate
+/* (2026-10-20, Sacha : « il y a trop de couleurs classiques dans les peintures ; enlève quelques-unes qui se ressemblent, du gris et du gris foncé, pétrole, British
+   Green et Abyss Blue… ») HUIT PEINTURES UNIES EN MOINS, celles qui doublonnaient leur voisine (distance CIEDE2000 ≤ 13 sur ce qu'on VOIT, le métallisé ×1,8) :
+   GRAPHITE (≈ NOIR MAT) · BLEU HÉRISSON (≈ BLEU MINUIT) · FRAMBOISE (≈ BORDEAUX) · BARBE À PAPA (≈ ROSE DRAGÉE) · BLEU PÉTROLE et VERT ANGLAIS (≈ BLEU ABYSSE)
+   · BRONZE (entre CUIVRE et OLIVE) · ÉCUME (≈ MENTHE GLACÉE et VERT AMANDE). Leurs lignes sortent ; l'id sort de `shop.own` au chargement (`HAB_RETIRES`, le prix d'avant
+   en remboursement pour le seul HÉRISSON : les sept de la palette ne s'achetaient qu'en pack ou en €). Le pack compte 33 couleurs. Pour en rendre une : remettre sa
+   ligne dans la liste ci-dessous (le texte est dans le git) ET la sortir de `HAB_RETIRES`. */
 if(PALETTE_ON){
   for(const e of [ // [id, nom, couleur, finition (rien = laque), rareté, description] — rangée par rangée, dans l'ordre de la grille
     /* (planche du 14/10) valeurs MESURÉES à l'écran : sur la tôle éclairée, le MÉTALLISÉ rend ~×1,8-2 plus clair que la laque (le reflet du ciel teinté par la couleur) — ses entrées sont donc ~÷1,8 de la teinte voulue ; les verts et le sarcelle francs saturaient au fluo (canal vert ×1,4) */
@@ -44814,10 +44898,8 @@ if(PALETTE_ON){
     ["vanille","VANILLE",0xfff0a6,null,"rare","Une boule de glace qui ne fond pas \u00e0 1 000 km/h."],
     ["pistache","PISTACHE",0xd6f2a0,null,"rare","Le vert des glaciers italiens. Les pneus, eux, sont chauds."],
     ["amande","VERT AMANDE",0xbfe9c4,null,"rare","Le vert de la voiture de ta grand-m\u00e8re. En plus nerveux."],
-    ["ecume","\u00c9CUME",0xa6ebe2,null,"rare","La mousse sur la vague. La vague, c'est toi."],
     ["piscine","BLEU PISCINE",0xa9d6ff,null,"rare","Le bleu d'une piscine de palace. Plongeoir compris."],
     ["lilas","LILAS",0xd3c2ff,null,"rare","Une fleur de printemps qui double par la droite."],
-    ["barbapapa","BARBE \u00c0 PAPA",0xffc2e4,null,"rare","Sucre fil\u00e9, carrosserie dure. Ne l\u00e8che pas."],
     ["neige","BLANC NEIGE",0xf3f5f7,null,"rare","Propre comme un compte en Suisse."],
     ["bolide","ROUGE BOLIDE",0xe3242b,null,"rare","Le rouge des grandes marques. Sans le cheval, avec l'arrogance."],
     ["emeute","ORANGE \u00c9MEUTE",0xff6b14,null,"rare","Visible depuis l'espace. C'est le but."],
@@ -44831,14 +44913,9 @@ if(PALETTE_ON){
     ["argent","ARGENT BROSS\u00c9",0x8b8f95,"k","rare","M\u00e9tal bross\u00e9, reflet discret. L'argent ne crie pas, il brille."],
     ["bordeaux","BORDEAUX",0x3c0811,"k","rare","Un grand cru, mis en bouteille dans de la t\u00f4le."],
     ["cuivre","CUIVRE",0x5d2810,"k","rare","Le m\u00e9tal des vieux tuyaux. Pass\u00e9 au polish."],
-    ["bronze","BRONZE",0x4e3b13,"k","rare","La troisi\u00e8me marche du podium ? Pas ce soir."],
     ["olive","OLIVE",0x2e330f,"k","rare","Du kaki m\u00e9tallis\u00e9. Une jeep qui serait all\u00e9e \u00e0 l'op\u00e9ra."],
-    ["anglais","VERT ANGLAIS",0x08291a,"k","rare","Le vert des bolides d'avant-guerre. Le th\u00e9 est en option."],
-    ["petrole","BLEU P\u00c9TROLE",0x062b31,"k","rare","Profond comme une nappe de p\u00e9trole. En plus propre."],
     ["abysse","BLEU ABYSSE",0x0c1733,"k","rare","Le bleu du fond des oc\u00e9ans. Personne ne t'y trouve."],
     ["aubergine","AUBERGINE",0x210e2c,"k","rare","Un violet presque noir. Classe sans le faire expr\u00e8s."],
-    ["framboise","FRAMBOISE",0x450a25,"k","rare","Un rouge m\u00fbri au soleil. Sucr\u00e9, pas mou."],
-    ["graphite","GRAPHITE",0x1c1e22,"k","rare","Le gris des voitures de direction. Celles qui ne s'arr\u00eatent jamais."],
   ]){COSM.peinture.push(Object.assign({id:e[0],n:e[1],c:e[2],r:e[4],pack:'palette',d:e[5]},e[3]?{g:e[3]}:{}));PALETTE_PACK.ids.push(e[0]);}
   for(const e of [ // [id, nom, couleur | dégradé [bas, milieu, haut], finition, rareté, description, INDICE]
     ["prisme","PRISME",[0xff4a3a,0xffd23a,0x3a8cff],"c","legendaire","La lumi\u00e8re se casse en trois sur ta carrosserie.","Six en l'air, sans toucher terre."],
@@ -44856,7 +44933,7 @@ if(PALETTE_ON){
       c:{get:function(){return vu()?(gr?undefined:e[2]):PAL_MASQUE;},enumerable:true},grad:{get:function(){return vu()&&gr?e[2]:undefined;},enumerable:true},
       g:{get:function(){return vu()?e[3]:'s';},enumerable:true}});
     COSM.peinture.push(o);PALETTE_PACK.ids.push(e[0]);}
-  Object.assign(I18N,{"LA PALETTE": "THE PALETTE", "COULEUR SECRÈTE": "SECRET COLOUR", "LES 40 COULEURS SONT À TOI": "ALL 40 COLOURS ARE YOURS", "COULEUR": "COLOUR", "ROSE DRAGÉE": "SUGAR PINK", "Le rose des baptêmes. Tu roules quand même à 300.": "Christening pink. You're still doing 300.", "ABRICOT": "APRICOT", "Doux comme un fruit, rapide comme un vol.": "Soft as a fruit, fast as a flight.", "VANILLE": "VANILLA", "Une boule de glace qui ne fond pas à 1 000 km/h.": "A scoop of ice cream that won't melt at 1,000 km/h.", "PISTACHE": "PISTACHIO", "Le vert des glaciers italiens. Les pneus, eux, sont chauds.": "Italian gelato green. The tyres, though, are hot.", "VERT AMANDE": "ALMOND GREEN", "Le vert de la voiture de ta grand-mère. En plus nerveux.": "Your grandma's car green. With more attitude.", "ÉCUME": "SEA FOAM", "La mousse sur la vague. La vague, c'est toi.": "The foam on the wave. You are the wave.", "BLEU PISCINE": "POOL BLUE", "Le bleu d'une piscine de palace. Plongeoir compris.": "Five-star hotel pool blue. Diving board included.", "LILAS": "LILAC", "Une fleur de printemps qui double par la droite.": "A spring flower that overtakes on the right.", "BARBE À PAPA": "CANDY FLOSS", "Sucre filé, carrosserie dure. Ne lèche pas.": "Spun sugar, hard shell. Don't lick it.", "BLANC NEIGE": "SNOW WHITE", "Propre comme un compte en Suisse.": "Clean as a Swiss bank account.", "ROUGE BOLIDE": "RACING RED", "Le rouge des grandes marques. Sans le cheval, avec l'arrogance.": "The red of the big brands. Without the horse, with the arrogance.", "ORANGE ÉMEUTE": "RIOT ORANGE", "Visible depuis l'espace. C'est le but.": "Visible from space. That's the point.", "JAUNE TAXI": "TAXI YELLOW", "Tout le monde te fait signe. Tu ne t'arrêtes pas.": "Everyone waves at you. You don't stop.", "CITRON VERT": "LIME", "Acide. Comme tes dépassements.": "Sour. Like your overtakes.", "VERT BILLET": "CASH GREEN", "La couleur préférée de ton banquier.": "Your banker's favourite colour.", "LAGON": "LAGOON", "L'eau des îles où tu dépenses tes primes.": "The water of the islands where you spend your bonuses.", "AZUR": "AZURE", "Le ciel sans un nuage. Le tien.": "A sky without a single cloud. Yours.", "VIOLET ROYAL": "ROYAL PURPLE", "La couleur des rois. Et de ceux qui roulent comme eux.": "The colour of kings. And of those who drive like them.", "FUCHSIA": "FUCHSIA", "Trop voyant ? Juste assez.": "Too loud? Exactly loud enough.", "ARGENT BROSSÉ": "BRUSHED SILVER", "Métal brossé, reflet discret. L'argent ne crie pas, il brille.": "Brushed metal, quiet shine. Money doesn't shout, it gleams.", "BORDEAUX": "BURGUNDY", "Un grand cru, mis en bouteille dans de la tôle.": "A great vintage, bottled in sheet metal.", "CUIVRE": "COPPER", "Le métal des vieux tuyaux. Passé au polish.": "Old-pipe metal. Freshly polished.", "BRONZE": "BRONZE", "La troisième marche du podium ? Pas ce soir.": "Third step of the podium? Not tonight.", "OLIVE": "OLIVE", "Du kaki métallisé. Une jeep qui serait allée à l'opéra.": "Metallic khaki. A jeep that went to the opera.", "VERT ANGLAIS": "BRITISH GREEN", "Le vert des bolides d'avant-guerre. Le thé est en option.": "Pre-war racing green. Tea is optional.", "BLEU PÉTROLE": "PETROL BLUE", "Profond comme une nappe de pétrole. En plus propre.": "Deep as an oil slick. Only cleaner.", "BLEU ABYSSE": "ABYSS BLUE", "Le bleu du fond des océans. Personne ne t'y trouve.": "Deep-ocean blue. Nobody finds you down there.", "AUBERGINE": "AUBERGINE", "Un violet presque noir. Classe sans le faire exprès.": "Almost-black purple. Classy without trying.", "FRAMBOISE": "RASPBERRY", "Un rouge mûri au soleil. Sucré, pas mou.": "A red that ripened in the sun. Sweet, not soft.", "GRAPHITE": "GRAPHITE", "Le gris des voitures de direction. Celles qui ne s'arrêtent jamais.": "Boardroom grey. Those cars never stop.", "PRISME": "PRISM", "La lumière se casse en trois sur ta carrosserie.": "Light splits in three on your bodywork.", "Six en l'air, sans toucher terre.": "Six in the air, without touching down.", "FANTÔME": "GHOST", "Blanc nacré, presque transparent. Personne ne t'a vu passer.": "Pearl white, almost see-through. Nobody saw you pass.", "Deux minutes. Pas un bord.": "Two minutes. Not one edge.", "OR ROSE": "ROSE GOLD", "L'or des montres dont personne ne regarde l'heure.": "The gold of watches nobody checks the time on.", "Divin, et très, très vite.": "Divine, and very, very fast.", "ÉCLAIR": "LIGHTNING", "Du bleu nuit au blanc électrique : la foudre qui monte.": "From night blue to electric white: lightning on the rise.", "Le compteur a une limite. Pas toi.": "The speedometer has a limit. You don't.", "NACRE": "PEARL", "L'intérieur d'un coquillage, poli par cinq vagues parfaites.": "The inside of a shell, polished by five perfect waves.", "Cinq fois parfait. À la suite.": "Perfect five times. In a row.", "CIEL D'ORAGE": "STORM SKY", "Ardoise en bas, éclair en haut. Le ciel quand il se fâche.": "Slate below, lightning above. The sky when it's angry.", "Sous l'orage, le pied loin du bouton.": "In the storm, keep your foot off the button.", "JADE IMPÉRIAL": "IMPERIAL JADE", "La pierre des empereurs, taillée sur le plus long chemin.": "The emperors' stone, cut on the longest road.", "Les pics gardent le chemin le plus long.": "The peaks guard the longest road.", "LUNAIRE": "LUNAR", "Poussière de cratère, sans un grain d'atmosphère.": "Crater dust, without a grain of atmosphere.", "En orbite, passe la troisième porte.": "In orbit, pass the third gate.", "LAMPADAIRE": "STREETLIGHT", "La nuit en bas, le réverbère sur le toit. La ville t'éclaire.": "Night below, the lamp on the roof. The city lights you up.", "La ville, la nuit, applaudit les acrobates.": "The city, at night, cheers for acrobats.", "CAMÉLÉON": "CHAMELEON", "Vert, bleu, violet : elle change de peau à chaque monde.": "Green, blue, purple: it changes skin in every world.", "Quatre mondes, une seule vie.": "Four worlds, one life."});
+  Object.assign(I18N,{"LA PALETTE": "THE PALETTE", "COULEUR SECRÈTE": "SECRET COLOUR", "LES 33 COULEURS SONT À TOI": "ALL 33 COLOURS ARE YOURS", "COULEUR": "COLOUR", "ROSE DRAGÉE": "SUGAR PINK", "Le rose des baptêmes. Tu roules quand même à 300.": "Christening pink. You're still doing 300.", "ABRICOT": "APRICOT", "Doux comme un fruit, rapide comme un vol.": "Soft as a fruit, fast as a flight.", "VANILLE": "VANILLA", "Une boule de glace qui ne fond pas à 1 000 km/h.": "A scoop of ice cream that won't melt at 1,000 km/h.", "PISTACHE": "PISTACHIO", "Le vert des glaciers italiens. Les pneus, eux, sont chauds.": "Italian gelato green. The tyres, though, are hot.", "VERT AMANDE": "ALMOND GREEN", "Le vert de la voiture de ta grand-mère. En plus nerveux.": "Your grandma's car green. With more attitude.", "ÉCUME": "SEA FOAM", "La mousse sur la vague. La vague, c'est toi.": "The foam on the wave. You are the wave.", "BLEU PISCINE": "POOL BLUE", "Le bleu d'une piscine de palace. Plongeoir compris.": "Five-star hotel pool blue. Diving board included.", "LILAS": "LILAC", "Une fleur de printemps qui double par la droite.": "A spring flower that overtakes on the right.", "BARBE À PAPA": "CANDY FLOSS", "Sucre filé, carrosserie dure. Ne lèche pas.": "Spun sugar, hard shell. Don't lick it.", "BLANC NEIGE": "SNOW WHITE", "Propre comme un compte en Suisse.": "Clean as a Swiss bank account.", "ROUGE BOLIDE": "RACING RED", "Le rouge des grandes marques. Sans le cheval, avec l'arrogance.": "The red of the big brands. Without the horse, with the arrogance.", "ORANGE ÉMEUTE": "RIOT ORANGE", "Visible depuis l'espace. C'est le but.": "Visible from space. That's the point.", "JAUNE TAXI": "TAXI YELLOW", "Tout le monde te fait signe. Tu ne t'arrêtes pas.": "Everyone waves at you. You don't stop.", "CITRON VERT": "LIME", "Acide. Comme tes dépassements.": "Sour. Like your overtakes.", "VERT BILLET": "CASH GREEN", "La couleur préférée de ton banquier.": "Your banker's favourite colour.", "LAGON": "LAGOON", "L'eau des îles où tu dépenses tes primes.": "The water of the islands where you spend your bonuses.", "AZUR": "AZURE", "Le ciel sans un nuage. Le tien.": "A sky without a single cloud. Yours.", "VIOLET ROYAL": "ROYAL PURPLE", "La couleur des rois. Et de ceux qui roulent comme eux.": "The colour of kings. And of those who drive like them.", "FUCHSIA": "FUCHSIA", "Trop voyant ? Juste assez.": "Too loud? Exactly loud enough.", "ARGENT BROSSÉ": "BRUSHED SILVER", "Métal brossé, reflet discret. L'argent ne crie pas, il brille.": "Brushed metal, quiet shine. Money doesn't shout, it gleams.", "BORDEAUX": "BURGUNDY", "Un grand cru, mis en bouteille dans de la tôle.": "A great vintage, bottled in sheet metal.", "CUIVRE": "COPPER", "Le métal des vieux tuyaux. Passé au polish.": "Old-pipe metal. Freshly polished.", "BRONZE": "BRONZE", "La troisième marche du podium ? Pas ce soir.": "Third step of the podium? Not tonight.", "OLIVE": "OLIVE", "Du kaki métallisé. Une jeep qui serait allée à l'opéra.": "Metallic khaki. A jeep that went to the opera.", "VERT ANGLAIS": "BRITISH GREEN", "Le vert des bolides d'avant-guerre. Le thé est en option.": "Pre-war racing green. Tea is optional.", "BLEU PÉTROLE": "PETROL BLUE", "Profond comme une nappe de pétrole. En plus propre.": "Deep as an oil slick. Only cleaner.", "BLEU ABYSSE": "ABYSS BLUE", "Le bleu du fond des océans. Personne ne t'y trouve.": "Deep-ocean blue. Nobody finds you down there.", "AUBERGINE": "AUBERGINE", "Un violet presque noir. Classe sans le faire exprès.": "Almost-black purple. Classy without trying.", "FRAMBOISE": "RASPBERRY", "Un rouge mûri au soleil. Sucré, pas mou.": "A red that ripened in the sun. Sweet, not soft.", "GRAPHITE": "GRAPHITE", "Le gris des voitures de direction. Celles qui ne s'arrêtent jamais.": "Boardroom grey. Those cars never stop.", "PRISME": "PRISM", "La lumière se casse en trois sur ta carrosserie.": "Light splits in three on your bodywork.", "Six en l'air, sans toucher terre.": "Six in the air, without touching down.", "FANTÔME": "GHOST", "Blanc nacré, presque transparent. Personne ne t'a vu passer.": "Pearl white, almost see-through. Nobody saw you pass.", "Deux minutes. Pas un bord.": "Two minutes. Not one edge.", "OR ROSE": "ROSE GOLD", "L'or des montres dont personne ne regarde l'heure.": "The gold of watches nobody checks the time on.", "Divin, et très, très vite.": "Divine, and very, very fast.", "ÉCLAIR": "LIGHTNING", "Du bleu nuit au blanc électrique : la foudre qui monte.": "From night blue to electric white: lightning on the rise.", "Le compteur a une limite. Pas toi.": "The speedometer has a limit. You don't.", "NACRE": "PEARL", "L'intérieur d'un coquillage, poli par cinq vagues parfaites.": "The inside of a shell, polished by five perfect waves.", "Cinq fois parfait. À la suite.": "Perfect five times. In a row.", "CIEL D'ORAGE": "STORM SKY", "Ardoise en bas, éclair en haut. Le ciel quand il se fâche.": "Slate below, lightning above. The sky when it's angry.", "Sous l'orage, le pied loin du bouton.": "In the storm, keep your foot off the button.", "JADE IMPÉRIAL": "IMPERIAL JADE", "La pierre des empereurs, taillée sur le plus long chemin.": "The emperors' stone, cut on the longest road.", "Les pics gardent le chemin le plus long.": "The peaks guard the longest road.", "LUNAIRE": "LUNAR", "Poussière de cratère, sans un grain d'atmosphère.": "Crater dust, without a grain of atmosphere.", "En orbite, passe la troisième porte.": "In orbit, pass the third gate.", "LAMPADAIRE": "STREETLIGHT", "La nuit en bas, le réverbère sur le toit. La ville t'éclaire.": "Night below, the lamp on the roof. The city lights you up.", "La ville, la nuit, applaudit les acrobates.": "The city, at night, cheers for acrobats.", "CAMÉLÉON": "CHAMELEON", "Vert, bleu, violet : elle change de peau à chaque monde.": "Green, blue, purple: it changes skin in every world.", "Quatre mondes, une seule vie.": "Four worlds, one life."});
 }
 /* LES PEINTURES PAR RARETÉ, EN EUROS, ET LES MOTIFS (2026-10-16, Sacha : « toutes les couleurs classiques doivent être en rareté commune ; les
    dégradés de plusieurs couleurs, rare — pareil pour l'or ; les épiques, c'est des motifs : léopard, tigre, fleur… ; enlève la rareté mythique ;
@@ -45006,7 +45083,7 @@ function habPaye(cat,i,bt){const d=COSM[cat]&&COSM[cat][i];if(!d||!d.eur||shopOw
 function palPossede(){const o=SAVE.d.shop.own;return PALETTE_PACK.ids.length>0&&PALETTE_PACK.ids.every(function(id){return o.indexOf('peinture:'+id)>=0;});} // le pack est acquis
 function palDonne(){ // APRÈS le succès de shopPaye('palette') (ou une restauration d'achats) : les 40 dans `own` (Sacha, quiz 14 h 10 : les secrètes sont AUSSI dans le pack ; leur DÉFI reste la voie gratuite), jamais la banque du jeu
   if(!PALETTE_ON)return false;const o=SAVE.d.shop.own;let n9=0;for(const id of PALETTE_PACK.ids)if(o.indexOf('peinture:'+id)<0){o.push('peinture:'+id);n9++;}
-  SAVE.flush();if(n9){toast(pxi('coche')+' '+TR('LA PALETTE')+' — '+TR('LES 40 COULEURS SONT À TOI'),true);try{hap([20,40,20,40,60]);}catch(e){}}return true;}
+  SAVE.flush();if(n9){toast(pxi('coche')+' '+TR('LA PALETTE')+' — '+TR('LES 33 COULEURS SONT À TOI'),true);try{hap([20,40,20,40,60]);}catch(e){}}return true;}
 function secDonne(id){ // GAMEPLAY : un DÉFI (secret) réussi → sa couleur. Rien en balade ni au bac à sable ; rien si elle est déjà à toi
   if(!PALETTE_ON||(typeof BALADE!=='undefined'&&BALADE)||(typeof SANDBOX!=='undefined'&&SANDBOX))return false;
   const d=COSM.peinture.find(function(x){return x.sec===id;});if(!d||shopOwned('peinture',d.id))return false;
@@ -48789,8 +48866,8 @@ let musicMode='none',musicBaseVol=1,musicBoostEnv=0;
    ⚠ `VOL` est un MULTIPLICATEUR sur des niveaux déjà accordés, jamais un remplacement : à 100 %
    chaque famille retrouve exactement le mixage d'origine, et un curseur à fond ne peut donc pas
    faire hurler le jeu. */
-const VOL={mus:.62,sfx:1};
-const SFX_SOUS_MUS=.7; // (2026-10-03, Léo : « les MONSTRE ne doivent pas cacher la musique — ça vaut pour TOUS les effets sonores ») : tous les effets −3 dB sous la musique (curseur EFFETS inchangé, appliqué par-dessus)
+const VOL={mus:.7,sfx:1}; // (2026-10-20, Sacha : « mieux mixer les sons du jeu et la musique ») musique un cran plus haut, effets un cran plus bas
+const SFX_SOUS_MUS=.58; // (2026-10-03, Léo : « les MONSTRE ne doivent pas cacher la musique — ça vaut pour TOUS les effets sonores ») : tous les effets −3 dB sous la musique (curseur EFFETS inchangé, appliqué par-dessus)
 /* (2026-10-14, session SON) SUR IPHONE, LES EFFETS NE RECULENT PLUS SOUS LA MUSIQUE. Le −3 dB de `SFX_SOUS_MUS` a été réglé à l'ordi, où la
    musique joue à `musVol()` × .62-1 (−4 à −8 dB sous son fichier). Sur iPhone le volume d'un <audio> est en lecture seule : la musique y sort
    à 100 % de son fichier — déjà 4 à 8 dB AU-DESSUS du mixage voulu. Lui retirer encore 3 dB aux effets, c'était les noyer deux fois (pièces,
@@ -51556,7 +51633,7 @@ const SAVE={
     /* (2026-10-14, Sacha) le menu DIT le remboursement (`SAVE.remb`, voir cc:revele). (2026-10-18) LA RAIE, remboursée ainsi le 14/10, est REVENUE dans le
        jeu : le remboursement versé reste acquis, et plus aucune caisse en vente ne sort de `owned` (seules les `retire` sortent). */
     {let rb=0;const nm=[];c.owned=c.owned.filter(x=>{if(!CARS[x].retire)return true;const p9=(CAR_UNLOCK[x]&&CAR_UNLOCK[x].p)||0;if(p9){rb+=p9;nm.push(CARS[x].name);}return false;});
-     c.shop.own=c.shop.own.filter(k=>{const h=HAB_RETIRES[k];if(!h)return true;rb+=h.p;nm.push(h.n);return false;}); /* (2026-10-18 soir) LES HABILLAGES RETIRÉS (HAB_RETIRES) : même règle */
+     c.shop.own=c.shop.own.filter(k=>{const h=HAB_RETIRES[k];if(!h)return true;rb+=h.p;if(h.p)nm.push(h.n);return false;}); /* (2026-10-18 soir) LES HABILLAGES RETIRÉS (HAB_RETIRES) : même règle */
      for(const k of ['peinture','aile','trainee'])if(HAB_RETIRES[k+':'+c.shop.eq[k]])c.shop.eq[k]=k==='peinture'?'usine':k==='aile'?'panneaux':'nitro';
      if(rb){c.bank=Math.min(1e30,c.bank+rb);this.remb={n:nm,v:rb};}if(CARS[c.equipped]&&CARS[c.equipped].retire)c.equipped=0;}
     if(d.ai&&typeof d.ai==='object'){const a=d.ai,g=(k,dv,lo,hi)=>THREE.MathUtils.clamp(isFinite(+a[k])?+a[k]:dv,lo,hi);
@@ -53928,7 +54005,7 @@ function nfxVent(dt,dir,kmh){ // `dir` : le sens de la course (cap au sol, vites
    Les gains suivent `dk` (les grands moments creusent le mix) et passent par les PORTES (débranchés hors nitro : coût nul).
    `?nitroson=ancien` = le son d'avant, intact. */
 const RUG_SON=!/[?&]nitroson=ancien/.test(location.search);
-const RUG_NIV={rg:.14,cr:.14,pssht:.05,pap:.15,bang:.2}; // les niveaux (voir le journal : mesurés contre l'ancien au banc)
+const RUG_NIV={rg:.26,cr:.1,pssht:.015,pap:.15,bang:.2}; // (2026-10-20, Sacha : « on dirait juste du vent, je veux des flammes GRAVES ») gorge plus forte (elle est bien plus basse), crépitement et PSSHT blanc baissés // les niveaux (voir le journal : mesurés contre l'ancien au banc)
 /* (2026-10-17, Léo : « dès que j'appuie, ça explose et ça fait un bruit qui n'a aucun rapport avec le boost, qui pourrait détruire les
    oreilles des joueurs — écouteurs », sur iPhone ET sur Mac). MESURÉ au banc muet avec SA sauvegarde : deux sons d'EXPLOSION se mêlaient au boost.
    · LA BOULE DE FEU à chaque appui (un BWOUMF saturé, son coup grave qui plonge 170 → 48 Hz, par-dessus le subBoom) — c'est
@@ -53941,7 +54018,7 @@ const NSEC={sous:false,etage:false}; // sous : la jauge a lâché sous le doigt,
 /* (même jour) LE 2e ÉTAGE NE SE REJOUE PAS EN BOUCLE : un fruit ramassé nitro tenu remplit un peu la jauge, on ressort de la réserve bleue, on y
    retombe une seconde plus tard — et le coup d'allumage du 2e étage repartait à CHAQUE fruit (MESURÉ : 7 à 12 coups en 30 s de nitro tenu).
    Il sonne désormais une fois par appui ; le reste (onde, champ, couleur) suit comme avant. */
-const RUG_CORPS=.7; // le grondement brun d'avant (`jrG`, le corps de la flamme) à 70 % quand la gorge chante : sinon la tenue passait 6 dB au-dessus de l'ancienne
+const RUG_CORPS=1.1; /* (2026-10-20) le grondement brun (grave) remonte */ // le grondement brun d'avant (`jrG`, le corps de la flamme) à 70 % quand la gorge chante : sinon la tenue passait 6 dB au-dessus de l'ancienne
 const RUG={pret:false,ac:null,d:null,tel:false,h:0,k:0,rs:[],cs:[],paps:null,bangs:null,blanc:null,stt:null};
 function rugBq(t,f,q,g,sr){ // les coefficients d'un biquad (RBJ) : 'lp' 'hp' 'bp' 'pk'
   const w=2*Math.PI*Math.min(f,sr*.45)/sr,c=Math.cos(w),s=Math.sin(w),al=s/(2*q),A=Math.pow(10,(g||0)/40);let b0,b1,b2,a0,a1,a2;
@@ -54002,7 +54079,7 @@ function rugTampons(ac,d,o){ // calcule les tampons et branche le graphe, EN MOR
       const b=mk(rugRoar(sr,3.7));
       RUG.rgF=ac.createBiquadFilter();RUG.rgF.type='lowpass';RUG.rgF.frequency.value=650;RUG.rgF.Q.value=.55;kr(RUG.rgF.frequency);
       RUG.rgF2=ac.createBiquadFilter();RUG.rgF2.type='lowpass';RUG.rgF2.frequency.value=850;RUG.rgF2.Q.value=.6;kr(RUG.rgF2.frequency); // deux passe-bas : la pente raide (−24 dB/oct.) — le mordant vient du crépitement, jamais d'un souffle aigu continu (la fatigue vit à 2-4 kHz)
-      const h=ac.createBiquadFilter();h.type='highpass';h.frequency.value=RUG.tel?190:95;h.Q.value=.7; // un téléphone ne rend rien sous 150 Hz : ce grave ne ferait que pomper le compresseur
+      const h=ac.createBiquadFilter();h.type='highpass';h.frequency.value=RUG.tel?150:40;h.Q.value=.7; // un téléphone ne rend rien sous 150 Hz : ce grave ne ferait que pomper le compresseur
       RUG.rgG=ac.createGain();RUG.rgG.gain.value=0;
       for(let c=0;c<2;c++){const s=ac.createBufferSource();s.buffer=b;s.loop=true;const p=pan(c?.55:-.55);s.connect(p);p.connect(RUG.rgF);s.start(0,c?b.duration*.47:0);RUG.rs.push(s);}
       RUG.rgF.connect(RUG.rgF2);RUG.rgF2.connect(h);h.connect(RUG.rgG);RUG.rgG.connect(d);
@@ -54011,7 +54088,7 @@ function rugTampons(ac,d,o){ // calcule les tampons et branche le graphe, EN MOR
       if(o.porte)o.porte(RUG.rgG,d,RUG.thG);},
     function(){ // le CRÉPITEMENT
       const b=mk(rugCrep(sr,3.3));
-      RUG.crF=ac.createBiquadFilter();RUG.crF.type='highpass';RUG.crF.frequency.value=RUG.tel?600:300;RUG.crF.Q.value=.7;
+      RUG.crF=ac.createBiquadFilter();RUG.crF.type='highpass';RUG.crF.frequency.value=RUG.tel?300:120;RUG.crF.Q.value=.7;
       RUG.crG=ac.createGain();RUG.crG.gain.value=0;
       for(let c=0;c<2;c++){const s=ac.createBufferSource();s.buffer=b;s.loop=true;const p=pan(c?.35:-.35);s.connect(p);p.connect(RUG.crF);s.start(0,c?b.duration*.53:0);RUG.cs.push(s);}
       RUG.crF.connect(RUG.crG);RUG.crG.connect(d);
@@ -54029,11 +54106,11 @@ function rugPas(dt,o){ // à chaque image : o = {on, air, bleu, v (km/h), dk}
   RUG.h=on?Math.min(4,RUG.h+dt):Math.max(0,RUG.h-dt*3);const k=RUG.k=1-Math.exp(-RUG.h/.9); // LA MONTÉE : 63 % en 0,9 s, 93 % en 2,4 s — elle continue APRÈS la queue de l'allumage
   const gR=on?RUG_NIV.rg*(.3+.7*k)*(air?.85:1)*(1+.15*b)*o.dk:0;
   S(RUG.rgG.gain,gR,t,on?.06:.14); // coupée : 0,14 s de queue
-  const fc=on?Math.min(3000,700+900*k+v*.9+b*450):380;S(RUG.rgF.frequency,fc,t,on?.09:.12);S(RUG.rgF2.frequency,fc*1.3,t,on?.09:.12); // elle S'OUVRE en montant (700 → 1 800 Hz à 250 km/h) ; coupée, elle se referme — le dernier « whouff »
-  const r=on?.86+.2*k+Math.min(.12,v/3000)+b*.07:.8;S(RUG.rs[0].playbackRate,r,t,.12);S(RUG.rs[1].playbackRate,r*1.013,t,.12); // la hauteur MONTE (≈ +4 demi-tons) et suit la vitesse
+  const fc=on?Math.min(650,240+180*k+v*.12+b*80):150; /* (2026-10-20) GRAVE : la flamme ne s'ouvre plus jusqu'à 3 kHz (c'était le « vent ») */S(RUG.rgF.frequency,fc,t,on?.09:.12);S(RUG.rgF2.frequency,fc*1.3,t,on?.09:.12); // elle S'OUVRE en montant (700 → 1 800 Hz à 250 km/h) ; coupée, elle se referme — le dernier « whouff »
+  const r=on?.62+.12*k+Math.min(.1,v/4000)+b*.05:.55; /* (2026-10-20) la boucle jouée plus lentement : tout le rugissement descend */S(RUG.rs[0].playbackRate,r,t,.12);S(RUG.rs[1].playbackRate,r*1.013,t,.12); // la hauteur MONTE (≈ +4 demi-tons) et suit la vitesse
   S(RUG.thO.frequency,7+12*k,t,.05);S(RUG.thG.gain,on?gR*.45*(1-k):0,t,.06); // la PULSATION accélère et s'efface
   S(RUG.crG.gain,on?RUG_NIV.cr*(.3+.7*k)*(air?.75:1)*o.dk:0,t,on?.06:.1);
-  const rc=on?.88+.3*k+b*.12:.9;S(RUG.cs[0].playbackRate,rc,t,.1);S(RUG.cs[1].playbackRate,rc*.97,t,.1);} // plus chaude, elle crépite plus vite et plus clair
+  const rc=on?.6+.2*k+b*.08:.6; /* (2026-10-20) crépitement plus grave */S(RUG.cs[0].playbackRate,rc,t,.1);S(RUG.cs[1].playbackRate,rc*.97,t,.1);} // plus chaude, elle crépite plus vite et plus clair
 function rugAllume(k,bleu,air){ // LE PSSHT (le reste du coup d'allumage est dans nitroWhoomp)
   if(!RUG.blanc)return false;const ac=RUG.ac,t0=ac.currentTime;
   {const s=ac.createBufferSource();s.buffer=RUG.blanc;const f=ac.createBiquadFilter();f.type='bandpass';f.Q.value=1.3;
@@ -67469,12 +67546,12 @@ function loop(now){
            qui frappe la carrosserie. Sous 500 km/h, rien ne change. */
         {const vg9=spd3<500?spd3*.0001:.05+.025*Math.log(spd3/500)/Math.log(3.6),vC9=Math.max(1,vCroisiere()),rf9=.22*THREE.MathUtils.clamp((spd3-vC9)/vC9,0,1)*(mode==='drive'?1:.5),
                raf9=1+rf9*(.6*Math.sin(t*13.19)+.4*Math.sin(t*20.73+1.7));
-         stt(windG.gain,mode==='boom'?0:Math.min(.075,vg9+(mode==='fall'?.018:0)+.016*SVOL.k+cloudInS*.02)*raf9*dk*(SONV2?1-Math.min(1,LVL.espace):1)*(1-.85*JEAU.k),AC.currentTime,mode==='boom'?.08:rf9>.01?.06:.15);} // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
+         stt(windG.gain,mode==='boom'?0:Math.min(.075,vg9+(mode==='fall'?.018:0)+.016*SVOL.k+cloudInS*.02)*raf9*(nitroOn?.25:1)*dk*(SONV2?1-Math.min(1,LVL.espace):1)*(1-.85*JEAU.k),AC.currentTime,mode==='boom'?.08:rf9>.01?.06:.15);} // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
         stt(windF.frequency,Math.min(16000,(280+spd3*1.25)*(1-.6*cloudInS)+(mode==='fall'?260:0)+340*SVOL.k),AC.currentTime,.15); // (2026-10-14, session SON) +340 Hz × la tension du vol : le vent S'AIGUISE à mesure que le vol dure (et son gain +.016×k au-dessus, sous le plafond .075) ; à la pose k retombe en ~0,2 s — le vent se relâche au lieu de couper // ⚠ plafonné : au-delà de 24 kHz le navigateur crachait un avertissement PAR IMAGE // le nuage étouffe le vent, l'air libre l'aère (coef ÷2 : même pitch au même état-caisse)
       }
       if(whG){ // sifflement d'air : la signature des vitesses folles (>330 km/h)
         // MORT : coupé NET (même piège que le vent : sinon le sifflement reste bloqué à fond après le crash)
-        stt(whG.gain,mode==='boom'?0:(spd3<824?Math.max(0,(spd3-560)/4400):Math.min(.085,.06+.025*Math.log(spd3/824)/Math.log(2.2)))*(1-.7*cloudInS)*(1-.5*nA)*dk*(SONV2?1-Math.min(1,LVL.espace):1),AC.currentTime,mode==='boom'?.08:.12); /* (2026-10-07) le sifflement, saturé à 824 km/h, continue lui aussi (logarithme, .085 à 1 800) */ // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
+        stt(whG.gain,mode==='boom'?0:(spd3<824?Math.max(0,(spd3-560)/4400):Math.min(.085,.06+.025*Math.log(spd3/824)/Math.log(2.2)))*(1-.7*cloudInS)*(1-.9*nA)*dk*(SONV2?1-Math.min(1,LVL.espace):1),AC.currentTime,mode==='boom'?.08:.12); /* (2026-10-07) le sifflement, saturé à 824 km/h, continue lui aussi (logarithme, .085 à 1 800) */ // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
         stt(whF.frequency,2000+spd3*1.2,AC.currentTime,.1); // coef ÷2 : même pitch au même état-caisse
       }
       if(pluieG){ /* (2026-10-14, session SON, audit oreille-neuve §7) LA PLUIE : suit ce que le rideau montre (LVL.pluie, fondu du portail ; la bruine de Paris), se tait à la
@@ -67517,7 +67594,7 @@ function loop(now){
         // PLUS AUCUNE couche de bruit blanc continue : souffle médium coupé, grave blanc réduit
         // à un fond — tout le caractère vient du rumble brown + des pops bruns
         stt(jetG.gain,nOn9&&air9?.01*dk:0,AC.currentTime,.06);
-        stt(jetLowG.gain,TEL_NATIF?0:(nOn9?(air9?.08:.05):0)*JETN.l*dk,AC.currentTime,.07); // téléphone : un grave à 150 Hz inaudible qui ne faisait que pousser le compresseur
+        stt(jetLowG.gain,(nOn9?(air9?.14:.12):0)*(TEL_NATIF?.5:1)*JETN.l*dk,AC.currentTime,.07); // téléphone : un grave à 150 Hz inaudible qui ne faisait que pousser le compresseur
         stt(jetOscG.gain,nOn9&&!air9?.003:0,AC.currentTime,.09); // pointe de turbine au sol
         stt(jcFb.gain,.12,AC.currentTime,.1);stt(jcDep.gain,.0002,AC.currentTime,.12); // peigne+flanger au repos (ils chuintaient)
         if(nOn9){

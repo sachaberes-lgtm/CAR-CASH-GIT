@@ -204,8 +204,32 @@ function vlcTrace(rnd,LV){
    Les tours de la spirale sont à ≥ 135 m l'un de l'autre (la règle d'or du terrain les tient : > 120 m). Plus de boucles à raccourci (sauts vide),
    plus de second volcan (K2/C2 null), les coulées partent du cratère et passent sous la spirale (th0/th1 = l'angle qu'elle couvre).
    `?volcan=v4` = la descente emmêlée d'avant (avec ses modules). */
+/* (2026-10-19, session HASARD — Sacha : « vérifie bien que toutes les maps sont générées aléatoirement ») LE ROYAUME AU HASARD.
+   MESURÉ (40 graines, palier 0 ; l'ÉCART DE FORME : les pistes rééchantillonnées en 64 points, départ à l'origine, la distance moyenne entre
+   deux pistes / la longueur moyenne) : 0,085 — la graine changeait à chaque partie, la RECETTE jamais : plein nord, l'arche à 6-10 % du
+   parcours, le lac au milieu, la montée du volcan toujours à 43-49 %. Désormais chaque royaume tire, dans son propre flux (`rh` : un seul
+   tirage `rnd` de plus) :
+   · son AXE (±45° autour du nord, comme la vallée de jade : la butée de cap ±72° et le « devant » du cône se comptent autour de lui) ;
+   · l'ORDRE des tableaux de la balade — l'arche, le lac, un ou deux fumerons, un à trois modules (jamais l'arche juste avant la montée) —,
+     ceux que la longueur visée tient, et la longueur des tronçons de virages qui les séparent ;
+   · un CARACTÈRE par tronçon (`VLC_HUMEURS`), jamais deux fois le même de suite ;
+   · LA MONTÉE : 0,9 à 1,55 tour, ses rayons (le dernier tour 1-1,25 × celui d'avant, ≥ 140 m d'un tour à l'autre), sa pente (5-7 %) — elle
+     prend de ~35 à ~60 % du parcours ; le portail reste là-haut ;
+   · LE COUDE DE LA PLAINE : au milieu de la balade, l'axe tourne une fois de 15-35° d'un côté.
+   Gardés : le rayon tenable (les virages serrés à 1,3-1,5 rM, jamais moins), la butée de cap (la balade ne se recroise jamais), le contrôle
+   des croisements (6 essais), le cône taillé pour la spirale, les décors posés autour de la route. `?sans=hasardvolcan` = le royaume d'avant,
+   tirage pour tirage. */
+const VLC_HASARD=!/[?&]sans=([^&]*,)?hasardvolcan(,|&|$)/.test(location.search);
+const VLC_HUMEURS=[ // a : angle d'un virage (°, minimum + étendue) · t : la part de virages SERRÉS (Rs) · Rk : le rayon des autres (× rM, minimum + étendue ; 0 = Rn) · inv : la chance de changer de côté · dr : [chance d'une droite après, longueur minimum, étendue] (m × KV)
+  {nm:'flammes', a:[36,28],t:.33,Rk:0,        inv:1,  dr:[.2,30,40]},  // la balade d'avant : on louvoie, on revient vers l'axe passé 30°
+  {nm:'serpent', a:[46,26],t:.6, Rk:0,        inv:1,  dr:[.05,20,20]}, // des S serrés, presque sans répit
+  {nm:'courbes', a:[24,22],t:0,  Rk:[2.4,1.6],inv:.7, dr:[.35,50,80]}, // de grandes courbes qui se prennent à fond
+  {nm:'derive',  a:[20,18],t:.15,Rk:[1.8,1.2],inv:.18,dr:[.3,40,70]},  // la plaine part en biais d'un côté, jusqu'à la butée
+  {nm:'balcon',  a:[30,22],t:.2, Rk:0,        inv:.6, dr:[1,110,120]}, // de longues droites cassées de coudes : on voit loin
+  {nm:'chicanes',a:[30,16],t:.7, Rk:0,        inv:1,  dr:[.08,20,30]}];// gauche-droite-gauche, vite
 function vlcTrace3(rnd,LV){
   const vw=70+100*(LV-1),rM=40+.3*vw,KV=Math.sqrt(Math.max(1,vw/78)),ctrl=[],RH=(typeof ROAD_HALF==='number'&&ROAD_HALF>0)?ROAD_HALF:28,DN=[];
+  const H9=VLC_HASARD,rh=H9?mulberry32((rnd()*4294967296)>>>0):null;let phi0=H9?(rh()-.5)*1.5708:0; // (LE ROYAUME AU HASARD) son flux, son axe (qui peut tourner une fois : le coude de la plaine)
   const Rs=()=>rM*(1.30+rnd()*.2),Rn=()=>{const a=rM*1.55,b=Math.max(a+25,200);return a+rnd()*(b-a);},Rl=()=>Math.max(rM*2,200)+rnd()*90;
   // LA PENTE (positive = on descend) : la plaine ondule (± 3 %), le lac presque plat, la spirale grimpe (gF), l'arrivée à plat
   const ph1=rnd()*6.283,ph2=rnd()*6.283;let gF=null,mode=0,gM=null;
@@ -213,7 +237,7 @@ function vlcTrace3(rnd,LV){
     let g=mode===2?.008+.015*Math.sin(s9/420*6.283+ph1):mode===3?0:.006+.022*Math.sin(s9/520*6.283+ph1)+.012*Math.sin(s9/230*6.283+ph2);
     if(s9<280)g=.01+(g-.01)*THREE.MathUtils.smoothstep(s9,160,280);
     return Math.max(-.05,Math.min(.06,g))+(gM&&s9>=gM.s0&&s9<gM.s1?gM.f(s9):0);};
-  let P=new THREE.Vector3(0,0,0),phi=0,s=0,y=0;
+  let P=new THREE.Vector3(0,0,0),phi=phi0,s=0,y=0;
   const push=()=>ctrl.push(P.clone());
   const avance=(nx,nz)=>{const dh=Math.hypot(nx-P.x,nz-P.z),n=Math.max(1,Math.ceil(dh/10)),x0=P.x,z0=P.z;
     for(let j=0;j<n;j++){y-=pente(s+dh*(j+.5)/n)*dh/n;DN.push(x0+(nx-x0)*(j+1)/n,y,z0+(nz-z0)*(j+1)/n,s+dh*(j+1)/n);}s+=dh;P.set(nx,y,nz);push();};
@@ -222,48 +246,83 @@ function vlcTrace3(rnd,LV){
   const arc=(aDeg,R)=>{const nn=Math.max(3,Math.ceil(Math.abs(aDeg)/7)),a=aDeg*Math.PI/180,st=a/nn,ch=2*R*Math.sin(Math.abs(st)/2);
     for(let k=0;k<nn;k++){phi+=st/2;const nx=P.x+Math.sin(phi)*ch,nz=P.z+Math.cos(phi)*ch;phi+=st/2;avance(nx,nz);}};
   const wrap=a=>{while(a>Math.PI)a-=6.2832;while(a<-Math.PI)a+=6.2832;return a;};
-  const LIM=72,tourne=(aDeg,R)=>{const rel=wrap(phi)*57.2958;let a=aDeg;if(rel+a>LIM)a=LIM-rel;if(rel+a<-LIM)a=-LIM-rel;if(Math.abs(a)>2)arc(a,R);return a;};
-  const vers=(cible,R)=>{const a=wrap(cible*Math.PI/180-phi)*57.2958;if(Math.abs(a)>3)arc(a,R);};
+  const rel9=()=>wrap(phi-phi0)*57.2958; // le cap autour de l'AXE (0 = le nord d'avant)
+  const LIM=72,tourne=(aDeg,R)=>{const rel=rel9();let a=aDeg;if(rel+a>LIM)a=LIM-rel;if(rel+a<-LIM)a=-LIM-rel;if(Math.abs(a)>2)arc(a,R);return a;};
+  const vers=(cible,R)=>{const a=wrap(phi0+cible*Math.PI/180-phi)*57.2958;if(Math.abs(a)>3)arc(a,R);};
   let sg=rnd()<.5?-1:1;
   // LES VIRAGES DE LA BALADE : 36-64°, un sur trois serré, presque jamais une droite (une sur cinq, 30-70 m) ; le cap balaie ± 72° : la route louvoie
-  const virages=n=>{for(let k=0;k<n;k++){const rel=wrap(phi)*57.2958;sg=Math.abs(rel)>30?(rel>0?-1:1):-sg;tourne(sg*(36+rnd()*28),rnd()<.33?Rs():Rn());if(rnd()<.2)droite((30+rnd()*40)*KV);}};
+  const virages=n=>{for(let k=0;k<n;k++){const rel=rel9();sg=Math.abs(rel)>30?(rel>0?-1:1):-sg;tourne(sg*(36+rnd()*28),rnd()<.33?Rs():Rn());if(rnd()<.2)droite((30+rnd()*40)*KV);}};
   // LES MODULES (les mêmes que la descente d'avant — voir vSlalom dans vlcTrace), trois dans la balade
   const rv=mulberry32((rnd()*4294967296)>>>0),MM=[],vmPaq=[];let vmLast=-1;
-  const vAxe=()=>{if(Math.abs(wrap(phi)*57.2958)>20)vers((wrap(phi)>0?1:-1)*12,rM*(1.7+rv()*.3));};
-  const vSlalom=()=>{vAxe();const n=4+((rv()*3)|0),a=30+rv()*14,R=rM*(1.6+rv()*.4);let s9=wrap(phi)>0?-1:1;tourne(s9*a*.5,R);
+  const vAxe=()=>{if(Math.abs(rel9())>20)vers((rel9()>0?1:-1)*12,rM*(1.7+rv()*.3));};
+  const vSlalom=()=>{vAxe();const n=4+((rv()*3)|0),a=30+rv()*14,R=rM*(1.6+rv()*.4);let s9=rel9()>0?-1:1;tourne(s9*a*.5,R);
     for(let k=0;k<n;k++){s9=-s9;tourne(s9*a,R);}tourne(-s9*a*.5,R);};
-  const vCorde=()=>{const T=90+rv()*25,s9=wrap(phi)>0?-1:1,R=rM*(1.6+rv()*.4),a1=T*(.45+rv()*.1);vers(-s9*T/2,rM*(1.7+rv()*.3));droite((30+rv()*30)*KV);
+  const vCorde=()=>{const T=90+rv()*25,s9=rel9()>0?-1:1,R=rM*(1.6+rv()*.4),a1=T*(.45+rv()*.1);vers(-s9*T/2,rM*(1.7+rv()*.3));droite((30+rv()*30)*KV);
     tourne(s9*a1,R);droite((30+rv()*40)*KV);tourne(s9*(T-a1),Math.max(rM*1.4,R*.9));droite((30+rv()*30)*KV);};
-  const vChicane=()=>{vAxe();const a=32+rv()*12,R=rM*(1.3+rv()*.2),s9=wrap(phi)>0?-1:1;droite(40*KV);tourne(s9*a,R);tourne(-s9*2*a,R);tourne(s9*a,R);droite(40*KV);};
+  const vChicane=()=>{vAxe();const a=32+rv()*12,R=rM*(1.3+rv()*.2),s9=rel9()>0?-1:1;droite(40*KV);tourne(s9*a,R);tourne(-s9*2*a,R);tourne(s9*a,R);droite(40*KV);};
   const vHoule=()=>{vAxe();const n=2,lam=(280+rv()*60)*KV,amp=.07+rv()*.03,L9=n*lam,s0=s;
     gM={s0:s0,s1:s0+L9,f:function(s9){const u=(s9-s0)/L9;return amp*Math.sin(u*n*6.2832)*Math.min(1,u*n*2,(1-u)*n*2);}};
-    let s9=wrap(phi)>0?-1:1;tourne(s9*22,lam*.25/(22/57.2958));for(let k=0;k<2*n-1;k++){s9=-s9;const a=44+rv()*12;tourne(s9*a,Math.max(rM*1.55,lam*.5/(a/57.2958)));}tourne(-s9*22,lam*.25/(22/57.2958));gM=null;};
+    let s9=rel9()>0?-1:1;tourne(s9*22,lam*.25/(22/57.2958));for(let k=0;k<2*n-1;k++){s9=-s9;const a=44+rv()*12;tourne(s9*a,Math.max(rM*1.55,lam*.5/(a/57.2958)));}tourne(-s9*22,lam*.25/(22/57.2958));gM=null;};
   const vmJ=[vSlalom,vCorde,vChicane,vHoule];
   const vMod=()=>{let m=0;for(let e=0;e<6;e++){if(!vmPaq.length){const t=[0,1,2,3];for(let i=3;i>0;i--){const j=(rv()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)vmPaq.push(x);}m=vmPaq.shift();if(m!==vmLast)break;}
     vmLast=m;const i0=ctrl.length-1;vmJ[m]();MM.push({i0:i0,i1:ctrl.length-1});};
   // LES FUMERONS : un virage franc dans un banc de fumée (Q.tours : les bancs de buildVolcanG)
-  const tours=[],fumeron=()=>{droite((70+rnd()*50)*KV);const rel=wrap(phi)*57.2958;sg=Math.abs(rel)>12?(rel>0?-1:1):(rnd()<.5?-1:1);const s0=s,a=tourne(sg*(55+rnd()*30),Rs());tours.push({s0:s0,s1:s,a:Math.round(a)});};
+  const tours=[],fumeron=()=>{droite((70+rnd()*50)*KV);const rel=rel9();sg=Math.abs(rel)>12?(rel>0?-1:1):(rnd()<.5?-1:1);const s0=s,a=tourne(sg*(55+rnd()*30),Rs());tours.push({s0:s0,s1:s,a:Math.round(a)});};
   // ================= 1 · LA BALADE =================
   /* (LA DURÉE DES MAPS) au JOUER (LC9 > 0) : la SPIRALE (~1,37 tour, estimée `Lsp9`), l'ARCHE et le LAC restent ; la balade ne garde de ses
      virages, modules et fumerons que ce que la longueur visée tient (`bal` : la part du budget de la balade déjà parcourue) — sinon la map d'avant */
   const LC9=typeof longueurCible==='function'?longueurCible():0,Lsp9=1.37*Math.PI*(Math.max(450,rM*3.8)+Math.max(250,rM*2.4)),B9=Math.max(1200,LC9-Lsp9-300),bal=f=>!LC9||s<B9*f;
+  const lacDe=en=>{mode=2;sL0=s;droite(60*KV);for(let k=0;en(k);k++){const rel=rel9();sg=Math.abs(rel)>20?(rel>0?-1:1):-sg;tourne(sg*(30+rnd()*20),Rl());if(rnd()<.4)droite((30+rnd()*40)*KV);}sL1=s;mode=0;}; // LE LAC DE LAVE : de grandes courbes presque à plat
+  let sL0=0,sL1=0,SP=null,HZ=null;
+  if(!H9){
   push();ici('depart');droite(200*KV);virages(LC9?1:2);
   droite(50*KV);ici('arche0');droite(80*KV);ici('arche');droite(80*KV);ici('arche1'); // L'ARCHE de basalte, tôt : loin de la spirale
   if(bal(.35)){virages(LC9?1:2);vMod();}if(bal(.5)){virages(1);fumeron();}if(bal(.6)){virages(LC9?1:2);vMod();}
-  mode=2;const sL0=s;droite(60*KV);for(let k=0;k<(bal(.75)?4:2);k++){const rel=wrap(phi)*57.2958;sg=Math.abs(rel)>20?(rel>0?-1:1):-sg;tourne(sg*(30+rnd()*20),Rl());if(rnd()<.4)droite((30+rnd()*40)*KV);} // LE LAC DE LAVE
-  const sL1=s;mode=0;
+  lacDe(k=>k<(bal(.75)?4:2)); // (la condition relue à chaque courbe, comme avant)
   if(bal(.85)){virages(LC9?1:2);vMod();}if(bal(.92))fumeron();virages(LC9?1:2);
+  }else{
+  /* LE ROYAUME AU HASARD (voir VLC_HASARD). LA MONTÉE d'abord tirée (sa longueur fixe le budget de la balade) : 0,9 à 1,55 tour, le dernier tour à
+     1-1,25 × le rayon d'avant, le premier à ≥ 140 m par tour au-dessus (l'écart entre les tours tient), jamais plus de 58 % de la longueur visée */
+  SP=(function(){const Rb=Math.max(450,rM*3.8),R1=Math.max(250,rM*2.4)*(1+rh()*.25);let tr=.9+rh()*.65,R0=Math.max(R1+140*tr,Rb*(.9+rh()*.35));
+    if(LC9){const Lx=tr*Math.PI*(R0+R1);if(Lx>.58*LC9){tr=Math.max(.9,tr*.58*LC9/Lx);R0=Math.max(R1+140*tr,Math.min(R0,Rb*1.1));}}
+    return {R0:R0,R1:R1,TH:tr*Math.PI*2,pM:.05+rh()*.02,L:tr*Math.PI*(R0+R1)};})();
+  /* LES TABLEAUX DE LA BALADE, dans un ordre tiré : l'arche, le lac, un fumeron et un module toujours ; puis, si la longueur visée les tient, le
+     2e module, le 3e module, le 2e fumeron (au palier 0 : le plus souvent 1 fumeron et 2 modules, comme avant) ; entre eux (et avant la montée) des
+     tronçons de virages, chacun SON caractère (VLC_HUMEURS) et sa part de la longueur libre */
+  const Bb=LC9?Math.max(1200,LC9-SP.L-300):4500*KV,lib0=Bb-200*KV;let nLac=2+((rh()*3)|0);
+  const E={arche:210*KV,lac:(60+nLac*190)*KV,fum:200*KV,mod:480*KV};
+  let tot=E.arche+E.lac+E.fum+E.mod;if(tot>.95*lib0&&nLac>2){tot-=(nLac-2)*190*KV;nLac=2;} // (serré : le lac en deux courbes)
+  const TB=['arche','lac','fum','mod'];for(const k of ['mod','mod','fum'])if(tot+E[k]<=.95*lib0){TB.push(k);tot+=E[k];}
+  for(let i=TB.length-1;i>0;i--){const j=(rh()*(i+1))|0,x=TB[i];TB[i]=TB[j];TB[j]=x;}
+  if(TB[TB.length-1]==='arche'){const j=(rh()*(TB.length-1))|0;TB[TB.length-1]=TB[j];TB[j]='arche';} // l'arche jamais juste avant la montée
+  const W=[];for(let i=0;i<=TB.length;i++)W.push(.35+rh());const sw=W.reduce(function(a,b){return a+b;},0),free=Math.max(0,lib0-tot),HU=[];
+  let hPrec=-1;const humeur=()=>{let i=(rh()*VLC_HUMEURS.length)|0;if(i===hPrec)i=(i+1+((rh()*(VLC_HUMEURS.length-1))|0))%VLC_HUMEURS.length;hPrec=i;return VLC_HUMEURS[i];}; // jamais deux fois le même de suite
+  const tronH=(len,H)=>{const s0=s,dv=rh()<.5?-1:1;let n=0; // un tronçon de virages au caractère H (la DÉRIVE insiste d'un côté jusqu'à la butée)
+    while((s-s0<len-40*KV||(!n&&len>60*KV))&&n<40){const r=rel9();
+      if(H.nm==='derive')sg=r*dv>LIM-16?-dv:(rh()<H.inv?-dv:dv);else sg=Math.abs(r)>30?(r>0?-1:1):(rh()<H.inv?-sg:sg);
+      const R=rh()<H.t?Rs():H.Rk?rM*(H.Rk[0]+rh()*H.Rk[1]):Rn();tourne(sg*(H.a[0]+rh()*H.a[1]),R);n++;
+      if(rh()<H.dr[0])droite((H.dr[1]+rh()*H.dr[2])*KV);}};
+  /* LE COUDE DE LA PLAINE : une fois, au milieu de la balade, l'axe tourne de 15-35° d'un côté (la butée de cap suit) — ni avant ni après le coude
+     le cap ne s'écarte de plus de 90° de la bissectrice des deux axes : la balade ne se recroise toujours pas */
+  const iC=1+((rh()*Math.max(1,TB.length-1))|0),dC=(rh()<.5?-1:1)*(15+rh()*20)*Math.PI/180;
+  push();ici('depart');droite(200*KV);
+  for(let i=0;i<=TB.length;i++){if(i===iC)phi0+=dC;const H=humeur();HU.push(H.nm);tronH(free*W[i]/sw,H);if(i===TB.length)break;const k=TB[i];
+    if(k==='arche'){droite(50*KV);ici('arche0');droite(80*KV);ici('arche');droite(80*KV);ici('arche1');}
+    else if(k==='lac')lacDe(j=>j<nLac);else if(k==='fum')fumeron();else vMod();}
+  HZ={axe:phi0-(iC<=TB.length?dC:0),coude:Math.round(dC*57.2958),ordre:TB.slice(),humeurs:HU};
+  }
   // ================= 2 · LA MONTÉE DU VOLCAN =================
-  const hv0=rnd(),hv=wrap(phi)>=0?1:-1,R0=Math.max(450,rM*3.8)+rnd()*30,R1=Math.max(250,rM*2.4)+rnd()*20,TH=Math.min((1.3+rnd()*.15)*Math.PI*2,(R0-R1)/135*Math.PI*2),pM=.055+rnd()*.01,
+  const hv0=rnd(),hv=rel9()>=0?1:-1,R0=SP?SP.R0:Math.max(450,rM*3.8)+rnd()*30,R1=SP?SP.R1:Math.max(250,rM*2.4)+rnd()*20,TH=SP?SP.TH:Math.min((1.3+rnd()*.15)*Math.PI*2,(R0-R1)/135*Math.PI*2),pM=SP?SP.pM:.055+rnd()*.01,
     AW=r=>Math.max(0,Math.min(25,(1/(1.5*rM)-1/r)*(r/6)*(r/6))),phW=rnd()*6.2832; // AW(r) : l'ONDULATION de la spirale (6 lobes par tour), plus franche sur les tours larges ; jamais un rayon sous 1,5 rM (d'un tour à l'autre elle change de < 15 m : l'écart entre les tours tient)
   vers(hv*90,Math.max(rM*2,220));droite(60*KV); // on se met EN TRAVERS de l'axe : le cône sera devant la plaine, jamais dessus
-  const cA=new THREE.Vector3(P.x+R0*Math.cos(phi),0,P.z-R0*Math.sin(phi)),cB=new THREE.Vector3(P.x-R0*Math.cos(phi),0,P.z+R0*Math.sin(phi)),C=cA.z>cB.z?cA:cB; // le centre du cône : à R0 de la route, du côté où l'on va
+  const cA=new THREE.Vector3(P.x+R0*Math.cos(phi),0,P.z-R0*Math.sin(phi)),cB=new THREE.Vector3(P.x-R0*Math.cos(phi),0,P.z+R0*Math.sin(phi)),fx9=Math.sin(phi0),fz9=Math.cos(phi0),C=(cA.x*fx9+cA.z*fz9)>(cB.x*fx9+cB.z*fz9)?cA:cB; // le centre du cône : à R0 de la route, du côté où l'on va (DEVANT, le long de l'axe)
   const b0=Math.atan2(P.x-C.x,P.z-C.z),yH0=y,sH0=s;ici('vlc0');
   const Lh=TH*(R0+R1)/2;gF=-pM; // la montée continue (pente négative = on monte)
   { // LA SPIRALE : l'angle autour du cône avance de TH, le rayon se resserre de R0 à R1 ; le sens qui prolonge le cap actuel
     const t0x=Math.sin(phi),t0z=Math.cos(phi),dPos=sb=>[Math.cos(b0)*sb,-Math.sin(b0)*sb]; // d(pos)/dβ au départ (au facteur r près)
     const sgB=(dPos(1)[0]*t0x+dPos(1)[1]*t0z)>0?1:-1,nP=Math.max(60,Math.ceil(Lh/12));
-    for(let k=1;k<=nP;k++){const t=k/nP,b=b0+sgB*TH*t,rL=R0+(R1-R0)*t,r=rL+AW(rL)*Math.sin(6*(b-b0)+phW)*Math.min(1,t*8,(1-t)*8);
+    const t1=.12,eas=SP?(t=>(t<t1?t*t/(2*t1):t>1-t1?1-t1-(1-t)*(1-t)/(2*t1):t-t1/2)/(1-t1)):(t=>t); // (AU HASARD) le rayon se resserre en DOUCEUR à l'entrée et à la sortie : la spirale part et finit en tangente (sans ça, un cran de 4-7° quand elle se resserre vite)
+    for(let k=1;k<=nP;k++){const t=k/nP,b=b0+sgB*TH*t,rL=R0+(R1-R0)*eas(t),r=rL+AW(rL)*Math.sin(6*(b-b0)+phW)*Math.min(1,t*8,(1-t)*8);
       const nx=C.x+Math.sin(b)*r,nz=C.z+Math.cos(b)*r;phi=Math.atan2(nx-P.x,nz-P.z);avance(nx,nz);}
     var bFin=b0+sgB*TH;}
   gF=null;mode=3;const yH1=y,sSp=s;ici('vlc1');
@@ -282,7 +341,7 @@ function vlcTrace3(rnd,LV){
   let yMin=1e9;for(const p of ctrl)yMin=Math.min(yMin,p.y);const ySea=yMin-48;
   const rc9=Math.max(110,R1*.42),K=vlc3Cone(R0,yH0-24,R1,yH1-24,yH1-24+1.6*(yH1-yH0)/Math.max(60,R0-R1)*(R1-rc9)+40,rc9,70,ySea);
   const th0=Math.min(b0,bFin),th1=Math.max(b0,bFin);
-  return {ctrl:ctrl,K:K,C:C,K2:null,C2:null,Q:Object.assign(Q,{tours:tours}),plg:[],sauts:[],sSp:sSp,ySea:ySea,conflits:conflits,croise:croise,th0:th0,th1:th1,lac:lac,mods:MM,
+  return {ctrl:ctrl,K:K,C:C,K2:null,C2:null,Q:Object.assign(Q,{tours:tours},HZ?{hasard:HZ}:{}),plg:[],sauts:[],sSp:sSp,ySea:ySea,conflits:conflits,croise:croise,th0:th0,th1:th1,lac:lac,mods:MM,
     spirale:{R0:R0,R1:R1,tours:+(TH/6.2832).toFixed(2),monte:Math.round(yH1-yH0),L:Math.round(Lh)}};
 }
 /* LE CÔNE TAILLÉ POUR LA SPIRALE : le profil de vlcConeY (yB + (yP−yB)·(1−u)^ex au-delà du cratère) qui passe par (rA, yA) — le 1er tour — et

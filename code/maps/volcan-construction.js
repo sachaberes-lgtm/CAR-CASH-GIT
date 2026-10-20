@@ -286,7 +286,7 @@ window.dbgVolcan=function(k,o){
     else{const C=k==='volcan'?VOLCAN.C:VOLCAN.C2,K9=k==='volcan'?VOLCAN.K:VOLCAN.K2;if(C){i=Math.min(NP-1,Math.round(s/ds)+Math.round(d/ds));cible=[C.x,K9.yP*.6+pts[i].y*.4,C.z];}}
     if(i<0||!cible)return 'rien devant';const j=Math.max(0,i-Math.round(d/ds)),p=pts[j];volcanTick(0);
     return window.dbgVolcan('vue',{p:[p.x,p.y+h,p.z],c:cible,fov:o&&o.fov});}
-  return {on:!!VOLCAN.root,met:VOLCAN.met,ms:VOLCAN.ms,msSol:VOLCAN.msSol,n:VOLCAN.n,col:VOLCAN.gcol&&VOLCAN.gcol.n,sSp:Math.round(VOLCAN.sSp),L:Math.round(L),
+  return {on:!!VOLCAN.root,met:VOLCAN.met,hasard:VOLCAN.Q&&VOLCAN.Q.hasard||null,ms:VOLCAN.ms,msSol:VOLCAN.msSol,n:VOLCAN.n,col:VOLCAN.gcol&&VOLCAN.gcol.n,sSp:Math.round(VOLCAN.sSp),L:Math.round(L),
     sauts:(VOLCAN.sauts||[]).map(function(S){return [Math.round(S.sE),Math.round(S.sS),Math.round(S.yE-S.yS)];}),conflits:VOLCAN.conflits,croise:VOLCAN.croise,ySea:Math.round(VOLCAN.ySea||0),
     erup:{t:+VOLCAN.erup.t.toFixed(1),age:+VOLCAN.erup.age.toFixed(1),n:VOLCAN.erup.n},vit:Math.round(VOLCAN.vit||0),
     pret:!!VOLCAN.pret,fu:+(VOLCAN.fu||0).toFixed(2),bancs:(VOLCAN.bancs||[]).map(function(b){return [Math.round(b.s0),Math.round(b.s1)];}),file:VOLCAN.file?VOLCAN.file.length-VOLCAN.fi:0,msFile:Math.round(VOLCAN.msFile||0),msTot:VOLCAN.msTot,
