@@ -535,8 +535,11 @@ function buildClouds(rr){
   // bancs SUR la route — espacés : on en traverse PARFOIS, jamais en continu. Un MUR intégral (la caisse
   // disparaît dans le blanc) reste l'exception spectaculaire, pas la règle.
   const OR9=!!(LVL.cur&&LVL.cur.id==='orage'); // (2026-09-29) L'ORAGE : « plein de gros nuages sur la route » — le niveau dur se roule À L'AVEUGLE
+  /* (2026-10-21, Léo : « évite de faire des gueules sur la route si tu n'arrives pas à les faire dégager de manière satisfaisante ») PLUS DE BANCS SUR LA ROUTE aux NUAGES (toutes les météos) :
+     la voiture ne s'y noie plus (les nuages de décor restent hors du couloir libre). `?bancs=1` rend les bancs (la règle de Sacha « les nuages cachent les virages »). */
+  const SANS_BANCS=!!(ARC_ON&&LVL.cur&&(LVL.cur.id==='nuages'||LVL.cur.id==='orage')&&!/[?&]bancs=1\b/.test(location.search));
   let cBanc=-1e9;BANC_LOG=[]; // (2026-09-30) le dernier virage caché : deux bancs ne cachent jamais le même
-  for(let sp=(OR9?420:1600)+cr()*(OR9?300:900);sp<L-300;sp+=OR9?300+cr()*300:1900+cr()*1400){ /* (2026-09-30, Sacha : « beaucoup plus de nuages, au point que ça gêne la visibilité ») : à l'ORAGE un banc tous les 300-600 m (560-1180 avant) */ // (2026-09-26, user : « moins de nuages en contact avec la route ») : ~2× plus rares — à l'ORAGE ~3× plus serrés
+  for(let sp=(OR9?420:1600)+cr()*(OR9?300:900);sp<L-300&&!SANS_BANCS;sp+=OR9?300+cr()*300:1900+cr()*1400){ /* (2026-09-30, Sacha : « beaucoup plus de nuages, au point que ça gêne la visibilité ») : à l'ORAGE un banc tous les 300-600 m (560-1180 avant) */ // (2026-09-26, user : « moins de nuages en contact avec la route ») : ~2× plus rares — à l'ORAGE ~3× plus serrés
     if(cr()<(OR9?.06:.4))continue; // 2 bancs sur 5 sautés (orage : ~1 sur 16)
     frameAt(sp,F);
     const mega=cr()<(OR9?.45:.1);

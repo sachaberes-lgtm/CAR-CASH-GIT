@@ -12191,8 +12191,11 @@ function buildClouds(rr){
   // bancs SUR la route — espacés : on en traverse PARFOIS, jamais en continu. Un MUR intégral (la caisse
   // disparaît dans le blanc) reste l'exception spectaculaire, pas la règle.
   const OR9=!!(LVL.cur&&LVL.cur.id==='orage'); // (2026-09-29) L'ORAGE : « plein de gros nuages sur la route » — le niveau dur se roule À L'AVEUGLE
+  /* (2026-10-21, Léo : « évite de faire des gueules sur la route si tu n'arrives pas à les faire dégager de manière satisfaisante ») PLUS DE BANCS SUR LA ROUTE aux NUAGES (toutes les météos) :
+     la voiture ne s'y noie plus (les nuages de décor restent hors du couloir libre). `?bancs=1` rend les bancs (la règle de Sacha « les nuages cachent les virages »). */
+  const SANS_BANCS=!!(ARC_ON&&LVL.cur&&(LVL.cur.id==='nuages'||LVL.cur.id==='orage')&&!/[?&]bancs=1\b/.test(location.search));
   let cBanc=-1e9;BANC_LOG=[]; // (2026-09-30) le dernier virage caché : deux bancs ne cachent jamais le même
-  for(let sp=(OR9?420:1600)+cr()*(OR9?300:900);sp<L-300;sp+=OR9?300+cr()*300:1900+cr()*1400){ /* (2026-09-30, Sacha : « beaucoup plus de nuages, au point que ça gêne la visibilité ») : à l'ORAGE un banc tous les 300-600 m (560-1180 avant) */ // (2026-09-26, user : « moins de nuages en contact avec la route ») : ~2× plus rares — à l'ORAGE ~3× plus serrés
+  for(let sp=(OR9?420:1600)+cr()*(OR9?300:900);sp<L-300&&!SANS_BANCS;sp+=OR9?300+cr()*300:1900+cr()*1400){ /* (2026-09-30, Sacha : « beaucoup plus de nuages, au point que ça gêne la visibilité ») : à l'ORAGE un banc tous les 300-600 m (560-1180 avant) */ // (2026-09-26, user : « moins de nuages en contact avec la route ») : ~2× plus rares — à l'ORAGE ~3× plus serrés
     if(cr()<(OR9?.06:.4))continue; // 2 bancs sur 5 sautés (orage : ~1 sur 16)
     frameAt(sp,F);
     const mega=cr()<(OR9?.45:.1);
@@ -27612,7 +27615,7 @@ window.dbgBio=function(n,d){bioGo(n,d||2);}; // console : dbgBio('nuit') → tes
 const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau dans les nuages en PREMIER, avant la ville » — NUAGES, puis VILLE, puis ORBITE
   // planete 0 aux NUAGES (user : « ne mets pas la Terre dans le niveau dans les nuages ») · route/sheen : clarté et brillance du bitume (routeTick)
   // (2026-09-30) `pr`, la PROMESSE (bannière de niveau, ≤ 32 signes, sans accent) : NUAGES = un nuage traversé en vol te soulève et rend de l'airtime (updateClouds, refT) · VILLE = en vol, une tour tue (villeHeurt → explode('tour'))
-  {id:'nuages',nm:'MER DE NUAGES',        bio:['matin','midi','aprem'],planete:0,   espace:0,pluie:0,cielMusical:false,route:0,  sheen:.06,pr:'LES NUAGES CACHENT LES VIRAGES'}, /* (2026-09-30) plus « TE PORTENT » : Sacha a retiré la portance des nuages (ils ne font que bloquer la vue) et les bancs se posent devant les virages */
+  {id:'nuages',nm:'MER DE NUAGES',        bio:['matin','midi','aprem'],planete:0,   espace:0,pluie:0,cielMusical:false,route:0,  sheen:.06,pr:'MER DE NUAGES'}, /* (2026-09-30) plus « TE PORTENT » : Sacha a retiré la portance des nuages (ils ne font que bloquer la vue) et les bancs se posent devant les virages */
   {id:'ville', nm:'AU-DESSUS DE LA VILLE',bio:['pluie'],               planete:0,   espace:0,pluie:1,cielMusical:true, route:.7, sheen:.12,pr:'LES TOURS NE PARDONNENT PAS'}, // route plus CLAIRE : elle se détache de la ville sombre (user) ; sheen : bitume mouillé par la pluie
   {id:'espace',nm:'EN ORBITE',            bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false,route:.38,sheen:.12}, // (2026-09-27) route .9 → .38 : le SOLEIL de l'orbite éclaire désormais la route (lumière rasante de côté, voir orbiteLumiere) — la clarté ajoutée n'a plus à tout porter. Avant (vague 2) : (2026-09-26, vague 2) route .2 → .9 : la route (#050212 sur du noir) DISPARAISSAIT — MESURÉ : sous le contraste dur de l'orbite (1,28) tout ce qui sort de l'ACES sous ~.11 tombe au noir, .4 ne suffisait pas (#000008) ; à .9 le ruban se lit, encre indigo #0f0737 sur le vide
   {id:'orage', nm:'L\'ORAGE',               bio:['tempete'],             planete:0,   espace:0,pluie:1,cielMusical:false,route:.22,sheen:.16,pr:'LA ROUTE SE CACHE : L\'ECLAIR LA MONTRE'}, // (2026-09-29, Sacha) le 4e : les NUAGES sous l'ORAGE — le niveau DUR (voir « L'ORAGE » : tempete, bancs, plafond, éclairs)
@@ -59583,7 +59586,7 @@ for(const [k,v] of Object.entries({'FAIS-TOI FLASHER':'GET FLASHED','LIS LES FLA
 const CIEL_CH={opts:['auto','matin','midi','soir','nuit','pluie','orage'],v:'auto',el:null};
 try{const v9=localStorage.getItem('cashcarCiel');if(v9&&CIEL_CH.opts.indexOf(v9)>=0)CIEL_CH.v=v9;}catch(e){}
 if(/[?&](carte|meteo)=/.test(location.search))CIEL_CH.v='auto'; /* un lien de test (?carte= ?meteo=) passe avant le choix gardé */
-Object.assign(I18N,{"MATIN":"MORNING","MIDI":"NOON","ORAGE":"STORM","AUTO":"AUTO"});
+Object.assign(I18N,{"MER DE NUAGES":"SEA OF CLOUDS","MATIN":"MORNING","MIDI":"NOON","ORAGE":"STORM","AUTO":"AUTO"});
 function cielChoixImpose(){ // à chaque départ : la map nuages à la météo choisie (sauf si une autre force est déjà posée : lien de test, banc)
   if(CIEL_CH.v==='auto'||SF.force)return;const p=SF.prochain;
   if(p&&SF.prochainDer===SF.der&&p.carte==='nuages'&&p.meteo===CIEL_CH.v)return; // la piste d'avance est déjà la bonne
@@ -62695,6 +62698,12 @@ const NU_FOND={ // z zénith, m milieu, h horizon (et la brume), s lueur du sole
   matin:{tw:.9,ry:.4,cr:.38,z:[.22,.27,.50],m:[.62,.64,.76],h:[1,.88,.76],s:[.74,.48,.26],mh:[1,.92,.82],mo:[.40,.47,.70],c:[1,.94,.88],ca:.42,hz:.75,sat:1.04,con:1.14},
   midi: {tw:.75,ry:.25,cr:.4,z:[.19,.27,.52],m:[.56,.65,.82],h:[.97,.93,.86],s:[.60,.48,.32],mh:[1.02,1,.96],mo:[.46,.55,.76],c:[1,1,1],ca:.36,hz:.8,sat:1.04,con:1.14},
   soir: {tw:1,ry:.75,cr:.34,z:[.12,.16,.40],m:[.56,.48,.60],h:[1,.76,.56],s:[.64,.34,.14],mh:[1,.82,.62],mo:[.40,.34,.52],c:[1,.80,.64],ca:.5,hz:.8,sat:1.22},
+  /* (2026-10-21, Léo : « le ciel noir de l'orage… trop débutant, fais mieux ») L'ORAGE a SON ciel peint (avant : le noir du biome) : un zénith bleu-nuit, un milieu gris-violet meurtri, un horizon mauve où la lumière fuit sous la masse,
+     de longues mèches de cirrus au-dessus, la mer d'ombre violette — des TEINTES de violet, pas un aplat. */
+  /* (2026-10-21, Léo : « la pluie, c'est pareil : peindre un fond, c'est trop monotone ») LA PLUIE a SON ciel peint : un zénith bleu ardoise, un milieu bleu-argent, un horizon gris-lilas qui s'ouvre en
+     pêche vers le soleil bas (l'éclaircie de l'arc-en-ciel), des faisceaux de lumière à travers la couverture, de longues mèches de cirrus, une mer d'ombre bleue éclairée d'argent — plusieurs plans, pas un gris uniforme. */
+  pluie:{tw:.55,ry:.35,cr:.42,z:[.10,.17,.32],m:[.34,.42,.56],h:[.66,.65,.70],s:[.60,.38,.20],mh:[.78,.74,.80],mo:[.28,.35,.52],c:[.80,.82,.90],ca:.5,hz:.7,sat:1.1,con:1.1},
+  orage:{tw:.55,ry:.12,cr:.5,z:[.035,.045,.12],m:[.15,.12,.25],h:[.40,.25,.33],s:[.30,.15,.24],mh:[.34,.29,.46],mo:[.07,.06,.15],c:[.50,.42,.60],ca:.6,hz:.65,sat:1.08,con:1.14},
   /* nuit : PAS de fond peint — la couche du menu la noircissait (le CLAIR DE LUNE bleu-violet de Sacha, 14/10, reste) */};
 const NUF={k:0,on:false,T:null,force:null,av:{},ap:{}};
 for(const m9 in NU_FOND){const S9=SF_CARTES&&SF_CARTES.nuages&&SF_CARTES.nuages.m[m9],B9=S9&&BIOMES[S9.bio],P9=NU_FOND[m9];if(!B9)continue; // la brume des cumulus = l'horizon peint ; l'étalonnage rabattu (le bleu électrique venait AUSSI de là : sat 1,14 · con 1,24)

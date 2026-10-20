@@ -99,6 +99,12 @@ const NU_FOND={ // z zénith, m milieu, h horizon (et la brume), s lueur du sole
   matin:{tw:.9,ry:.4,cr:.38,z:[.22,.27,.50],m:[.62,.64,.76],h:[1,.88,.76],s:[.74,.48,.26],mh:[1,.92,.82],mo:[.40,.47,.70],c:[1,.94,.88],ca:.42,hz:.75,sat:1.04,con:1.14},
   midi: {tw:.75,ry:.25,cr:.4,z:[.19,.27,.52],m:[.56,.65,.82],h:[.97,.93,.86],s:[.60,.48,.32],mh:[1.02,1,.96],mo:[.46,.55,.76],c:[1,1,1],ca:.36,hz:.8,sat:1.04,con:1.14},
   soir: {tw:1,ry:.75,cr:.34,z:[.12,.16,.40],m:[.56,.48,.60],h:[1,.76,.56],s:[.64,.34,.14],mh:[1,.82,.62],mo:[.40,.34,.52],c:[1,.80,.64],ca:.5,hz:.8,sat:1.22},
+  /* (2026-10-21, Léo : « le ciel noir de l'orage… trop débutant, fais mieux ») L'ORAGE a SON ciel peint (avant : le noir du biome) : un zénith bleu-nuit, un milieu gris-violet meurtri, un horizon mauve où la lumière fuit sous la masse,
+     de longues mèches de cirrus au-dessus, la mer d'ombre violette — des TEINTES de violet, pas un aplat. */
+  /* (2026-10-21, Léo : « la pluie, c'est pareil : peindre un fond, c'est trop monotone ») LA PLUIE a SON ciel peint : un zénith bleu ardoise, un milieu bleu-argent, un horizon gris-lilas qui s'ouvre en
+     pêche vers le soleil bas (l'éclaircie de l'arc-en-ciel), des faisceaux de lumière à travers la couverture, de longues mèches de cirrus, une mer d'ombre bleue éclairée d'argent — plusieurs plans, pas un gris uniforme. */
+  pluie:{tw:.55,ry:.35,cr:.42,z:[.10,.17,.32],m:[.34,.42,.56],h:[.66,.65,.70],s:[.60,.38,.20],mh:[.78,.74,.80],mo:[.28,.35,.52],c:[.80,.82,.90],ca:.5,hz:.7,sat:1.1,con:1.1},
+  orage:{tw:.55,ry:.12,cr:.5,z:[.035,.045,.12],m:[.15,.12,.25],h:[.40,.25,.33],s:[.30,.15,.24],mh:[.34,.29,.46],mo:[.07,.06,.15],c:[.50,.42,.60],ca:.6,hz:.65,sat:1.08,con:1.14},
   /* nuit : PAS de fond peint — la couche du menu la noircissait (le CLAIR DE LUNE bleu-violet de Sacha, 14/10, reste) */};
 const NUF={k:0,on:false,T:null,force:null,av:{},ap:{}};
 for(const m9 in NU_FOND){const S9=SF_CARTES&&SF_CARTES.nuages&&SF_CARTES.nuages.m[m9],B9=S9&&BIOMES[S9.bio],P9=NU_FOND[m9];if(!B9)continue; // la brume des cumulus = l'horizon peint ; l'étalonnage rabattu (le bleu électrique venait AUSSI de là : sat 1,14 · con 1,24)

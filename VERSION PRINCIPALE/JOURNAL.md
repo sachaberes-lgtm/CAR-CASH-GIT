@@ -3,6 +3,11 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## CIEL PEINT POUR L'ORAGE ET LA PLUIE, PLUS DE BANCS SUR LA ROUTE (2026-10-21, v767, Léo : « le ciel noir de l'orage, trop débutant, fais mieux » · « la pluie, c'est pareil : peindre un fond, trop monotone » · « évite de faire des gueules sur la route si tu n'arrives pas à les faire dégager ») — branche `nuages-refonte`
+- `NU_FOND.orage` et `NU_FOND.pluie` (chute-menu.js) : la couche peinte du titre (dégradé, lueur, faisceaux, cirrus, mer d'ombre) avec leur palette — orage : zénith bleu-nuit, milieu gris-violet, horizon mauve, mèches violettes ; pluie : ardoise bleue → argent → gris-lilas qui s'ouvre en pêche au soleil bas (l'arc-en-ciel s'y pose, il est dessiné APRÈS).
+- PLUS DE BANCS SUR LA ROUTE aux nuages (toutes météos ; `SANS_BANCS`, nuages-vitrail.js) ; `?bancs=1` les rend. Bannière du niveau : « MER DE NUAGES » (l'ancienne promettait « les nuages cachent les virages »).
+- NON VU à l'œil (Léo a interrompu mes ouvertures du navigateur) : à regarder.
+
 ## PLUIE AVEC ARC-EN-CIEL, ORAGE AVEC FOUDRE DANS LES NUAGES (2026-10-21, v766, Léo : « la pluie, la map plus jolie, un petit arc-en-ciel léger, pas que de la grisaille — il faut créer le décor » · « l'orage doit avoir des teintes de violet, pas être violet ; de la foudre qui traverse les nuages ; parfois ça frappe la route ; checker des images d'éclairs, la vitesse pour un beau rendu ») — branche `nuages-refonte`
 - **PLUIE** (`etalonnage-da.js`) : ciel d'ardoise bleue qui s'éclaircit en pêche vers un soleil bas (sunC chaud, sunTint [1,.86,.66], halo .3, horizon [.74,.70,.66]), nuages plus clairs et bleutés (nuA .92, nuK .98-1.0) — l'ÉCLAIRCIE où naît l'arc.
   **ARC-EN-CIEL** (`cielArcEC`, scene-ciel.js, `uArcE`) : cercle de 42° autour du point opposé au soleil (soleil forcé à ~21° : le sommet de l'arc ~20° quelle que soit l'heure), 7 bandes fondues, enveloppe douce, force .3 (« léger »), ajouté APRÈS le titre et la photo (qui repeignent tout le ciel). Allumé en course sous la pluie, et au menu quand ce ciel est choisi. `dbgArcEC(force, demi-largeur, hauteur)`.
