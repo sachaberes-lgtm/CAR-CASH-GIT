@@ -3,6 +3,23 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE GARAGE TOUT NOIR AVEC UNE CAISSE RETIRÉE (2026-10-20, v712, bug relevé pendant l'étude des feux)
+- **Le symptôme** : au garage, équiper par `dbgEquipe(i)` une des vieilles caisses (SA MAJESTÉ, FORMULE OR, LA DEUCHE, LE LINGOT, LA MERCURE…,
+  30 en tout) mettait toute l'image 3D au NOIR (l'interface restait), avec « computeBoundingSphere : radius is NaN » (go, qn = des
+  ExtrudeGeometry/BoxGeometry de three, pas des noms du jeu). Déjà sur le main avant v711 : rien à voir avec les feux.
+- **La cause** : ce sont les caisses RETIRÉES réduites à `{retire:1,name}` (cars.js, 18/10) — sans `w`, `h`, `l` ni `shape`. Construites quand
+  même, elles tombaient dans le repli `gt` avec une largeur `undefined` : `carProfile` décalait la coque de NaN, toutes les cotes (phares,
+  roues, ancrages) et le GABARIT de la caisse passaient en NaN, le cadrage du garage aussi (`GAR.vD`, `cdx`, `cdy`…) → caméra en NaN, image noire.
+- **Le joueur n'y arrivait pas** (vérifié au banc) : `equippedCar()`, `garageListe()`, l'inventaire, les tuiles et la boutique écartent les
+  retirées ; `san` remet une retirée équipée à 0 ; une course lancée après prend `equippedCar()`. Seuls les crochets de banc y menaient.
+- **Le correctif** (rien du dessin des caisses ne bouge) : `carFicheOk(spec)` en tête de `buildCar` (code/voitures/buildcar.js) — une fiche
+  sans cotes construit LA HONTE à sa place (+ un avertissement dans la console) ; `dbgEquipe` et `dbgBras('caisse',i)` REFUSENT une retirée sans
+  fiche (« … : RETIRÉE (pas de fiche) ») au lieu de la monter. Une retirée qui garde sa fiche (LA POUPÉE, LA DAYTONA, LA COMÈTE) se construit
+  comme avant. ⚠ Pour les bancs qui balaient toute la gamme : sauter ces retours-là.
+- Vérifié : les 30 fiches vides refusées, image intacte, 0 erreur ; `buildCar` forcé dans le jeu sur 5 d'entre elles (point d'arrêt
+  conditionnel) → LA HONTE, garage allumé, 0 erreur ; une course derrière, 0 erreur. Planche :
+  `CAR CAHS V3/photos-gameplay/garage-noir-avant-apres.png` (SA MAJESTÉ, LA DEUCHE, LE LINGOT, LA MERCURE).
+
 ## LES FEUX : LA LUMIÈRE DANS LE PHARE, PLUS DE BOULE (2026-10-20, v711, Léo : « une étude des lumières des voitures, que je trouve encore un peu jaunes et pas très stylées ; inspire-toi des physiques d'ARC Raiders » → au questionnaire : les FEUX, pas la lumière posée sur la caisse → planche de deux lectures → « je dirai 2 » + « intègre la lumière à l'intérieur des phares, efface cette forme de boule » → « oui, mets la colonne de droite dans le jeu »)
 - **D'où venait le jaune (mesuré au pixel, nuit et garage)** : le HALO des phares (`HALO.hM`, sprite crème 0xffe2a8 à ,95 — une boule molle qui
   grossit au bloom : sur LE CAÏD la nuit le cœur du phare sortait #f7bd48), 30 caisses aux phares crème (#fff3d6…), les feux-boîtes des vieux
