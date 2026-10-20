@@ -59,7 +59,7 @@ function chuteSort(ferme){ // on quitte le ciel : l'atelier (boutique, missions)
   trailApercu(0,false);
   if(CHUTE.vent&&AC){try{stt(windG.gain,0,AC.currentTime,.25);stt(whG.gain,0,AC.currentTime,.25);}catch(e){}}CHUTE.vent=false;
   if(ferme)return;
-  MENUV.bio=false;bioApply(BIOMES.atelier);paintEnvAtelier();                    // l'atelier reprend sa lumière et son reflet
+  MENUV.bio=false;bioApply(BIOMES.atelier);if(FSTU.on){paintEnvStudio();finLaque(true);}else paintEnvAtelier();                    // l'atelier reprend sa lumière et son reflet
   if(CHUTE.av){if(acesPass&&CHUTE.av.e!=null)acesPass.uniforms.uExposure.value=CHUTE.av.e;if(scene.fog&&CHUTE.av.n!=null){scene.fog.color.copy(CHUTE.av.c);scene.fog.near=CHUTE.av.n;scene.fog.far=CHUTE.av.f;}} // (2026-09-30) …et son exposition, sa brume
   if(GAR.root)GAR.root.visible=true;
   try{if(SONV2&&!openGarage._amb)openGarage._amb=sfx('garage.ambiance',{loop:true,vol:GAR_AMB_DB});if(SONV2&&!openGarage._feu)openGarage._feu=sfx('garage.feu',{loop:true});}catch(e){}

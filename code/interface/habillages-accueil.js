@@ -55,7 +55,7 @@ function openGarage(quiet){
   if(!GAR.root)buildGarageRoom();   // L'ATELIER se bâtit à la PREMIÈRE visite : zéro coût pour qui n'y entre jamais
   GAR.root.visible=true;
   try{affichesMaj();}catch(e){} // (2026-09-30) les records du mur, à jour (chiffres ET langue)
-  paintEnvAtelier(); // (2026-09-26) la laque reflète l'ATELIER (tubes, clé chaude, contre-jour cyan), plus le ciel de la dernière course
+  if(FSTU.on){paintEnvStudio();finLaque(true);}else paintEnvAtelier(); // (2026-10-20) `?finition=studio` : la lumière de studio et le vernis profond (voir finition.js) — (2026-09-26) la laque reflète l'ATELIER (tubes, clé chaude, contre-jour cyan), plus le ciel de la dernière course
   // (2026-09-26, vague 2) …et l'atelier a SA lumière (biome `atelier`) au lieu du ciel et du soleil de la dernière course. Posée hors
   // du voyage BIO (BIO.cur reste le ciel du niveau) : closeGarage le rend tel quel. Un voyage en cours se termine d'abord, sinon
   // bioStep repeindrait le ciel du biome par-dessus l'atelier à chaque image.
@@ -81,6 +81,7 @@ function closeGarage(){
   trailApercu(0,false);
   if(SHOP.prev||SHOP.tab!=='voiture'){SHOP.prev=null;SHOP.tab='voiture';buildCar(CARS[equippedCar()]);} // l'essai ne sort pas de l'atelier
   paintEnv(BIO.to.env,BIO.to.eS1,BIO.to.eS2); // (2026-09-26) on rend à la laque le ciel du biome (l'atelier l'avait repeint en studio)
+  finLaque(false); // (2026-10-20) le vernis de course (voir finition.js)
   bioApply(BIO.cur); // ⚠ (2026-09-24) le garage/l'étal écrasent le ciel chaque frame (nuit étoilée) : on rend la main au BIOME en sortant, sinon la 1re course gardait leur ciel
   garageOn=false;gEl.classList.remove('on');gEl.classList.remove('quiet');gEl.classList.remove('launching');gEl.classList.remove('missions');GMIS.mk=0;GMIS.e=0;document.body.classList.remove('inGarage');try{hubSync();}catch(e){} // (2026-10-06) la barre du HUB s'en va avec l'atelier
   GAR.affH=null;GAR.dbgAff=null;document.body.style.cursor=''; // (affiches) le curseur main ne survit pas à l'atelier

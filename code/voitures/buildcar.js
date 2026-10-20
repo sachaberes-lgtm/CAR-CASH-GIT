@@ -63,7 +63,7 @@ function buildCar(spec){
   const con=(r,hh,mat,x,y,z,sg)=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,hh,sg||12),mat);m.position.set(x||0,y||0,z||0);return add(m);};
   // L'ATELIER LOW-POLY : `K.kit(pal)` ouvre un chantier (voir lpKit), `K.commit` le pose — une
   // géométrie par matière, et les matières PARTAGÉES par toute la caisse, roues comprises.
-  const lpM={},lpMatC=g=>lpM[g]||(lpM[g]=lpMat(g));
+  const lpM={},lpMatC=g=>lpM[g]||(lpM[g]=lpMat(g,FSTU.on)); // (2026-10-20) `?finition=studio` : la tôle en finition studio (voir finition.js)
   const kit=pal=>lpKit(peintPal(pal)); // la PEINTURE de la boutique passe par la palette (voir `peintPal`)
   const lpPrims=[];let lpZmin=1e9; // (pots) les pièces simples de la caisse et sa poupe réelle, relevées au passage
   const commit=kt=>{const gs=kt.ech?kt.done():echRetire(kt.done(),kt.prims,spec.shape||'gt');for(const g in gs){gs[g].computeBoundingBox();lpZmin=Math.min(lpZmin,gs[g].boundingBox.min.z);
@@ -347,6 +347,8 @@ function buildCar(spec){
   carGroup.add(carBody);carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);carBody.userData.pivY=wheels.length?wheels[wheels.length-1].position.y:.45; // pivot = hauteur des moyeux (⚠ pas de carRoll9=0 ici : buildCar tourne AVANT leur déclaration — zone morte)
   carGroup.traverse(o9=>{if(o9.isMesh&&!o9.userData.noShadow)o9.castShadow=true;}); // toute la caisse porte son ombre LONGUE — sauf la nappe néon (un carré d'ombre, non merci)
   if(bodyM.userData.mot)carGroup.traverse(function(o9){const m9=o9.material;if(o9.isMesh&&m9&&!Array.isArray(m9)&&m9.userData&&m9.userData.mot&&!MOT_FAIT.has(m9))try{motGreffe(m9,m9.userData.mot);}catch(e){}}); // (2026-10-16) un gabarit qui CLONE la tôle (l'épave : K.body.clone()) : le clone garde la couleur blanche, il reprend le motif
+  if(finAreteOk())finCaisse(); // (2026-10-20, FINITION STUDIO) les drapeaux d'arête de la tôle, AVANT la soudure (voir finition.js)
+  if(FSTU.on)finLaque(FSTU.garage); // le vernis profond si on est au garage
   caisseSoude(); // (2026-09-27, passe perf iPhone) ce qui ne bouge jamais est soudé par matière — voir « LA CAISSE EN UN MINIMUM DE DESSINS »
 }
 /* <<<FIN VOITURES>>> */

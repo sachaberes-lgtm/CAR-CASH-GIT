@@ -288,7 +288,7 @@ function paintEnv(stops,s1,s2){ // stops=[[pos,'#hex'],…] + 2 strips néon [r,
     const l9=(.3*(n9>>16&255)+.59*(n9>>8&255)+.11*(n9&255))/255;jour=Math.min(1,Math.max(0,(l9-.35)/.45));}
   const ecl=function(a){const r=Math.round(s1[0]+(255-s1[0])*jour),g=Math.round(s1[1]+(246-s1[1])*jour),b=Math.round(s1[2]+(226-s1[2])*jour);
     return 'rgba('+r+','+g+','+b+','+(a*(.5+.5*jour)).toFixed(3)+')';};
-  envCvs.forEach(function(cv,f){
+  envCvs.forEach(function(cv,f){if(cv.width!==64)cv.width=cv.height=64; // (2026-10-20) le studio (finition.js) le passe en 256²
     const c=cv.getContext('2d');
     if(f===2){c.fillStyle=zen;c.fillRect(0,0,64,64);return;}                                          // +Y : le zénith
     if(f===3){c.fillStyle=sol;c.fillRect(0,0,64,64);c.fillStyle='rgba(0,0,0,.45)';c.fillRect(0,0,64,64);return;} // −Y : le sol, assombri
@@ -308,7 +308,7 @@ function paintEnv(stops,s1,s2){ // stops=[[pos,'#hex'],…] + 2 strips néon [r,
    reflet COURT sur la tôle quand la caméra tourne. Posé à l'entrée (openGarage), le ciel du biome est rendu à la sortie
    (closeGarage). Même coût que paintEnv : 6 canvas 64², une fois. */
 function paintEnvAtelier(){
-  envCvs.forEach(function(cv,f){
+  envCvs.forEach(function(cv,f){if(cv.width!==64)cv.width=cv.height=64;
     const c=cv.getContext('2d');
     if(f===2){ // +Y : le plafond et ses tubes (un halo, puis le tube net)
       c.fillStyle='#06070b';c.fillRect(0,0,64,64);

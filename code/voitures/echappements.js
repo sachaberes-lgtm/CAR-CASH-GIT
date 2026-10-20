@@ -339,7 +339,7 @@ const LP_MAT={p:{sh:44,sp:0x4a4a4a,rf:.24,gl:.06,v:[.25,1.5,3,.2]},   // LAQUE
               k:{sh:90, sp:0x8a8a8a,rf:.34,gl:.07,v:[.6,1.8,2.4,1]},   // (2026-10-14, passe graphismes · palette) MÉTALLISÉ : plus de reflet de face qu'une laque, reflet TEINTÉ À 100 % par la couleur comme le chrome et l'or (à 55 %, le ciel blanc-bleu éclaircissait un BORDEAUX 6c0e1e en fd213b : plus aucune teinte profonde) — même programme que p/c/o/g
               n:{sh:70, sp:0xfff4fa,rf:.30,gl:.12,v:[.4,2.6,1.6,.1]},   // (2026-10-14, passe graphismes · palette) NACRE : un voile de ciel LARGE et doux en rasant (courbe 1,6), à peine teinté — même programme
               f:{sh:34, sp:0x5c5c5c,rf:.12,gl:.32}};// FRUITS : vernis + plancher lumineux haut (lisibles de nuit) — (2026-09-26) reflet adouci : les grosses taches BLANCHES mangeaient les fruits redessinés — (vernis : aucun, les fruits ne sont pas des caisses)
-function lpMat(g){
+function lpMat(g,ar){ // `ar` : (2026-10-20, FINITION STUDIO) une matière de CAISSE en finition studio (reflets qui éclatent, arêtes à l'essai) — voir finition.js
   if(typeof g==='string'&&g.indexOf('pm:')===0){const m=lpMat('p');try{motGreffe(m,g.slice(3));}catch(e){console.warn('motif',e);}return m;} // (2026-10-16) LA TÔLE À MOTIF : la laque, et le motif par-dessus (voir MOTIFS)
   if(g==='l'){const m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide});m.userData.lp=1;return m;}
   const P=LP_MAT[g]||LP_MAT.m;
@@ -347,7 +347,9 @@ function lpMat(g){
   if(P.rf>0){m.envMap=envTex;m.reflectivity=P.rf;m.combine=THREE.MixOperation;}
   const uG={value:P.gl},uV={value:new THREE.Vector4().fromArray(P.v||[1,1,1,0])},uC={value:g==='f'?0:1}, // uC : le contre-jour du liseré (voir RIM_GLSL) — pas sur les fruits
         uF={value:g==='g'?1:g==='c'||g==='o'?.6:g==='k'||g==='n'?.3:g==='m'?.05:g==='f'?0:.2}; // (2026-10-17) la part du REFLET DES FEUX par famille (voir FEU_U)
+  if(ar){m.userData.arete=1;m.customProgramCacheKey=function(){return 'finArete|'+this.onBeforeCompile.toString();};} // un programme à part : les meubles de l'atelier (lpMat aussi) ne le voient pas
   m.onBeforeCompile=function(sh){
+    if(ar&&FSTU.aretes){sh.uniforms.uArK=FSTU.uArK;sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\n'+FSTU_V).replace('#include <begin_vertex>','#include <begin_vertex>\n'+FSTU_VM);}
     sh.uniforms.uGlow=uG;sh.uniforms.uRimC=RIM_U.uRimC;sh.uniforms.uRimStr=RIM_U.uRimStr;sh.uniforms.uRimPow=RIM_U.uRimPow;sh.uniforms.uSunV=RIM_U.uSunV;
     sh.uniforms.uVern=uV;sh.uniforms.uCj=uC;sh.uniforms.uFvA=FEU_U.uFvA;sh.uniforms.uFvB=FEU_U.uFvB;sh.uniforms.uFvC=FEU_U.uFvC;sh.uniforms.uFvK=uF;
     sh.fragmentShader=sh.fragmentShader
@@ -355,6 +357,8 @@ function lpMat(g){
       .replace('#include <envmap_fragment>',ENV_VERNIS).replace('#include <lights_fragment_begin>',LFB_CAISSE) // (tour 2) les lampes éteintes sautent (voir LFB_CAISSE)
       .replace('#include <dithering_fragment>',RIM_GLSL('uCj')+ // le liseré, contre-jour compris (voir RIM_GLSL)
         'gl_FragColor.rgb+=uRimC*rimF*uRimStr*.6+vColor*uGlow;\n'+FEU_APPEL+'#include <dithering_fragment>'); // (2026-10-17) + la lueur des feux arrière (voir FEU_U)
+    if(ar){sh.uniforms.uStuHdr=FSTU.uHdr;sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\n'+FSTU_HDR).replace('envColor.xyz*mix(vec3(1.),diffuseColor.rgb,uVern.w)','fstuHdr(envColor.xyz)*mix(vec3(1.),diffuseColor.rgb,uVern.w)');
+      if(FSTU.aretes)sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\n'+FSTU_F).replace('#include <dithering_fragment>',FSTU_FM+'#include <dithering_fragment>');}
   };
   m.userData.lp=1;m.userData.g=g;m.userData.uG=uG;m.userData.uV=uV;return m; // `g` : la famille de matière (le banc des laques y reconnaît la tôle) · `uG` : le plancher lumineux (l'atelier le relève pour ses meubles)
 }

@@ -26208,7 +26208,7 @@ function paintEnv(stops,s1,s2){ // stops=[[pos,'#hex'],…] + 2 strips néon [r,
     const l9=(.3*(n9>>16&255)+.59*(n9>>8&255)+.11*(n9&255))/255;jour=Math.min(1,Math.max(0,(l9-.35)/.45));}
   const ecl=function(a){const r=Math.round(s1[0]+(255-s1[0])*jour),g=Math.round(s1[1]+(246-s1[1])*jour),b=Math.round(s1[2]+(226-s1[2])*jour);
     return 'rgba('+r+','+g+','+b+','+(a*(.5+.5*jour)).toFixed(3)+')';};
-  envCvs.forEach(function(cv,f){
+  envCvs.forEach(function(cv,f){if(cv.width!==64)cv.width=cv.height=64; // (2026-10-20) le studio (finition.js) le passe en 256²
     const c=cv.getContext('2d');
     if(f===2){c.fillStyle=zen;c.fillRect(0,0,64,64);return;}                                          // +Y : le zénith
     if(f===3){c.fillStyle=sol;c.fillRect(0,0,64,64);c.fillStyle='rgba(0,0,0,.45)';c.fillRect(0,0,64,64);return;} // −Y : le sol, assombri
@@ -26228,7 +26228,7 @@ function paintEnv(stops,s1,s2){ // stops=[[pos,'#hex'],…] + 2 strips néon [r,
    reflet COURT sur la tôle quand la caméra tourne. Posé à l'entrée (openGarage), le ciel du biome est rendu à la sortie
    (closeGarage). Même coût que paintEnv : 6 canvas 64², une fois. */
 function paintEnvAtelier(){
-  envCvs.forEach(function(cv,f){
+  envCvs.forEach(function(cv,f){if(cv.width!==64)cv.width=cv.height=64;
     const c=cv.getContext('2d');
     if(f===2){ // +Y : le plafond et ses tubes (un halo, puis le tube net)
       c.fillStyle='#06070b';c.fillRect(0,0,64,64);
@@ -30399,7 +30399,7 @@ const LP_MAT={p:{sh:44,sp:0x4a4a4a,rf:.24,gl:.06,v:[.25,1.5,3,.2]},   // LAQUE
               k:{sh:90, sp:0x8a8a8a,rf:.34,gl:.07,v:[.6,1.8,2.4,1]},   // (2026-10-14, passe graphismes · palette) MÉTALLISÉ : plus de reflet de face qu'une laque, reflet TEINTÉ À 100 % par la couleur comme le chrome et l'or (à 55 %, le ciel blanc-bleu éclaircissait un BORDEAUX 6c0e1e en fd213b : plus aucune teinte profonde) — même programme que p/c/o/g
               n:{sh:70, sp:0xfff4fa,rf:.30,gl:.12,v:[.4,2.6,1.6,.1]},   // (2026-10-14, passe graphismes · palette) NACRE : un voile de ciel LARGE et doux en rasant (courbe 1,6), à peine teinté — même programme
               f:{sh:34, sp:0x5c5c5c,rf:.12,gl:.32}};// FRUITS : vernis + plancher lumineux haut (lisibles de nuit) — (2026-09-26) reflet adouci : les grosses taches BLANCHES mangeaient les fruits redessinés — (vernis : aucun, les fruits ne sont pas des caisses)
-function lpMat(g){
+function lpMat(g,ar){ // `ar` : (2026-10-20, FINITION STUDIO) une matière de CAISSE en finition studio (reflets qui éclatent, arêtes à l'essai) — voir finition.js
   if(typeof g==='string'&&g.indexOf('pm:')===0){const m=lpMat('p');try{motGreffe(m,g.slice(3));}catch(e){console.warn('motif',e);}return m;} // (2026-10-16) LA TÔLE À MOTIF : la laque, et le motif par-dessus (voir MOTIFS)
   if(g==='l'){const m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide});m.userData.lp=1;return m;}
   const P=LP_MAT[g]||LP_MAT.m;
@@ -30407,7 +30407,9 @@ function lpMat(g){
   if(P.rf>0){m.envMap=envTex;m.reflectivity=P.rf;m.combine=THREE.MixOperation;}
   const uG={value:P.gl},uV={value:new THREE.Vector4().fromArray(P.v||[1,1,1,0])},uC={value:g==='f'?0:1}, // uC : le contre-jour du liseré (voir RIM_GLSL) — pas sur les fruits
         uF={value:g==='g'?1:g==='c'||g==='o'?.6:g==='k'||g==='n'?.3:g==='m'?.05:g==='f'?0:.2}; // (2026-10-17) la part du REFLET DES FEUX par famille (voir FEU_U)
+  if(ar){m.userData.arete=1;m.customProgramCacheKey=function(){return 'finArete|'+this.onBeforeCompile.toString();};} // un programme à part : les meubles de l'atelier (lpMat aussi) ne le voient pas
   m.onBeforeCompile=function(sh){
+    if(ar&&FSTU.aretes){sh.uniforms.uArK=FSTU.uArK;sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\n'+FSTU_V).replace('#include <begin_vertex>','#include <begin_vertex>\n'+FSTU_VM);}
     sh.uniforms.uGlow=uG;sh.uniforms.uRimC=RIM_U.uRimC;sh.uniforms.uRimStr=RIM_U.uRimStr;sh.uniforms.uRimPow=RIM_U.uRimPow;sh.uniforms.uSunV=RIM_U.uSunV;
     sh.uniforms.uVern=uV;sh.uniforms.uCj=uC;sh.uniforms.uFvA=FEU_U.uFvA;sh.uniforms.uFvB=FEU_U.uFvB;sh.uniforms.uFvC=FEU_U.uFvC;sh.uniforms.uFvK=uF;
     sh.fragmentShader=sh.fragmentShader
@@ -30415,6 +30417,8 @@ function lpMat(g){
       .replace('#include <envmap_fragment>',ENV_VERNIS).replace('#include <lights_fragment_begin>',LFB_CAISSE) // (tour 2) les lampes éteintes sautent (voir LFB_CAISSE)
       .replace('#include <dithering_fragment>',RIM_GLSL('uCj')+ // le liseré, contre-jour compris (voir RIM_GLSL)
         'gl_FragColor.rgb+=uRimC*rimF*uRimStr*.6+vColor*uGlow;\n'+FEU_APPEL+'#include <dithering_fragment>'); // (2026-10-17) + la lueur des feux arrière (voir FEU_U)
+    if(ar){sh.uniforms.uStuHdr=FSTU.uHdr;sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\n'+FSTU_HDR).replace('envColor.xyz*mix(vec3(1.),diffuseColor.rgb,uVern.w)','fstuHdr(envColor.xyz)*mix(vec3(1.),diffuseColor.rgb,uVern.w)');
+      if(FSTU.aretes)sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\n'+FSTU_F).replace('#include <dithering_fragment>',FSTU_FM+'#include <dithering_fragment>');}
   };
   m.userData.lp=1;m.userData.g=g;m.userData.uG=uG;m.userData.uV=uV;return m; // `g` : la famille de matière (le banc des laques y reconnaît la tôle) · `uG` : le plancher lumineux (l'atelier le relève pour ses meubles)
 }
@@ -40554,6 +40558,91 @@ Object.assign(I18N,{
   "Quatre voiles irisés qui bourdonnent et sèment de la poussière de fée. Il suffit d'y croire. Et d'un plein de nitro.":"Four shimmering veils that buzz and scatter fairy dust. You just have to believe. And have a full tank of nitro.",
   "Membranes veinées de lave, griffes, grands coups d'aile. Au boost, la lave flambe et crache des braises.":"Lava-veined membranes, claws, mighty wingbeats. When you boost, the lava flares and spits embers.",
   "Des plumes de feu qui battent en semant des étincelles. Tu exploses ? Tu renais de tes cendres. Au prochain run.":"Feathers of fire that beat and scatter sparks. You blow up? You rise from your ashes. Next run."});
+/* ===== LA FINITION STUDIO (2026-10-20, Léo : « une manière plus moderne et plus stylée, plus polie — brillante ET poly — sans te limiter
+   au poly ; garder toute la beauté en ayant l'air solide ; sur toutes les voitures en même temps ») ===== ESSAI, éteint par défaut :
+   `?finition=studio` (ou `dbgFinition(1)` au banc). Trois couches, posées sur TOUTE la gamme sans retoucher un seul dessin :
+   1. LA LUMIÈRE DE STUDIO au garage (`paintEnvStudio`) : le cube de reflets passe de 64² à 256² (des reflets NETS) et porte de longues
+      boîtes à lumière à hauteur de flanc — un peu SOUS l'horizon, là où regarde un flanc vu d'en haut — et de grands panneaux au plafond :
+      quand la caisse tourne, des bandes blanches glissent de pan en pan (avant, les flancs reflétaient un mur terne : d'un bloc).
+   2. LE VERNIS PROFOND au garage (`finLaque`) : la laque montre plus sa couleur de face et devient miroir en rasant ; le plancher
+      lumineux baisse (des ombres plus franches). Rendu à la sortie du garage : en course, la couleur garde sa lisibilité.
+   3. LES REFLETS QUI ÉCLATENT au garage (`fstuHdr`) : un cube de reflets ne monte qu'à 1 (blanc) ; une laque n'en prend que 20 %, une boîte
+      à lumière n'y laissait qu'un voile. Sur la tôle des caisses, ce qui est presque blanc dans le cube compte ×4 (comme une vraie lampe) :
+      une bande NETTE et brillante court sur le pan qui la regarde. Les matières des caisses ont leur clé de programme à elles
+      (`customProgramCacheKey`) : les meubles de l'atelier, qui partagent lpMat, ne la voient pas.
+   (ESSAI ÉCARTÉ, gardé derrière `&aretes=1` : un filet de lumière sur chaque arête vive, par barycentres — sur les facettes fines du kit il
+   dessinait des dents de scie autour des roues, pas un chanfrein propre. WebGL2 seulement.) */
+const FSTU={on:/[?&]finition=(studio|1)/.test(location.search),aretes:/[?&]aretes=1/.test(location.search),garage:false,uArK:{value:1},uHdr:{value:0}};
+const FSTU_LAQUE={p:[.8,3.0,2.0,.2,.03],k:[.9,2.6,2.0,1,.05]}; // [de face, en rasant, dureté, métal, plancher lumineux] (lpMat : p [.25,1.5,3,.2] · .06 ; k [.6,1.8,2.4,1] · .07)
+function finAreteOk(){try{return FSTU.on&&FSTU.aretes&&renderer.capabilities.isWebGL2;}catch(e){return false;}}
+/* les drapeaux d'arête d'une géométrie NON indexée : pour chaque triangle, ses trois côtés (opposés aux sommets 0, 1, 2) — vif si l'angle avec
+   la facette voisine dépasse `deg` ; un côté sans voisine (le bord d'une pièce) ne l'est pas. aArete = (drapeau 0, 1, 2, rang du sommet). */
+function finArete(geo,deg){
+  const P=geo.attributes.position;if(!P||geo.index){finZero(geo);return;}
+  const n=P.count,nt=(n/3)|0,a=P.array,N=new Float32Array(nt*3),cs=Math.cos((deg||24)*Math.PI/180),q=v=>Math.round(v*2000);
+  for(let t=0;t<nt;t++){const i=t*9,ux=a[i+3]-a[i],uy=a[i+4]-a[i+1],uz=a[i+5]-a[i+2],vx=a[i+6]-a[i],vy=a[i+7]-a[i+1],vz=a[i+8]-a[i+2];
+    let x=uy*vz-uz*vy,y=uz*vx-ux*vz,z=ux*vy-uy*vx;const l=Math.hypot(x,y,z)||1;N[t*3]=x/l;N[t*3+1]=y/l;N[t*3+2]=z/l;}
+  const cle=(p,r)=>{const A=q(a[p*3])+','+q(a[p*3+1])+','+q(a[p*3+2]),B=q(a[r*3])+','+q(a[r*3+1])+','+q(a[r*3+2]);return A<B?A+'|'+B:B+'|'+A;};
+  const M=new Map();
+  for(let t=0;t<nt;t++)for(let k=0;k<3;k++){const c=cle(t*3+(k+1)%3,t*3+(k+2)%3);let L=M.get(c);if(!L)M.set(c,L=[]);L.push(t*3+k);}
+  const F=new Float32Array(n*4);
+  for(const L of M.values()){if(L.length!==2)continue;const t0=(L[0]/3)|0,t1=(L[1]/3)|0;
+    if(N[t0*3]*N[t1*3]+N[t0*3+1]*N[t1*3+1]+N[t0*3+2]*N[t1*3+2]>cs)continue;
+    for(const e of L){const t=(e/3)|0,k=e%3;for(let v=0;v<3;v++)F[(t*3+v)*4+k]=1;}}
+  for(let i=0;i<n;i++)F[i*4+3]=i%3;
+  geo.setAttribute('aArete',new THREE.Float32BufferAttribute(F,4));}
+function finZero(geo){const P=geo.attributes.position;if(!P)return;const F=new Float32Array(P.count*4);for(let i=0;i<P.count;i++)F[i*4+3]=i%3;geo.setAttribute('aArete',new THREE.Float32BufferAttribute(F,4));}
+// toutes les pièces de la caisse dont la matière dessine les arêtes : la tôle (laque, métallisé, nacre) calcule ses arêtes, le reste porte des zéros
+function finCaisse(){carGroup.traverse(o=>{if(!o.isMesh||!o.geometry||Array.isArray(o.material)||!o.material||!o.material.userData.arete)return;
+  if(o.geometry.attributes.aArete)return;const g=o.material.userData.g;
+  if(g==='p'||g==='k'||g==='n'||(typeof g==='string'&&g.indexOf('pm:')===0))finArete(o.geometry);else finZero(o.geometry);});}
+// le code des arêtes, greffé dans lpMat (voir lpMat `ar`)
+const FSTU_V='attribute vec4 aArete;varying vec3 vArF;varying vec3 vArB;\n',
+      FSTU_VM='vArF=aArete.xyz;vArB=vec3(step(aArete.w,.5),step(.5,aArete.w)*step(aArete.w,1.5),step(1.5,aArete.w));\n',
+      FSTU_F='varying vec3 vArF;varying vec3 vArB;uniform float uArK;\n',
+      FSTU_HDR='uniform float uStuHdr;vec3 fstuHdr(vec3 e){return e*(1.+uStuHdr*2.4*smoothstep(.55,.95,dot(e,vec3(.299,.587,.114))));}\n',
+      FSTU_FM='{vec3 e3=mix(vec3(1.),vArB,step(.5,vArF));float e9=min(e3.x,min(e3.y,e3.z)),w9=fwidth(e9)+1e-5;\n'+
+        'float l9=(1.-smoothstep(w9*1.1,w9*2.8,e9))*(1.-smoothstep(.25,.5,w9))*uArK;gl_FragColor.rgb=mix(gl_FragColor.rgb,gl_FragColor.rgb*1.45+vec3(.07),l9);}\n';
+// le vernis profond : au garage (on) ou rendu à la course (off) — sur les matières de la caisse posée
+function finLaque(on){FSTU.garage=!!on;FSTU.uHdr.value=FSTU.on&&on?1:0;if(!FSTU.on)return;
+  carGroup.traverse(o=>{const ms=o.isMesh?(Array.isArray(o.material)?o.material:[o.material]):[];
+    for(const m of ms){if(!m||!m.userData||!m.userData.uV)continue;const L=FSTU_LAQUE[m.userData.g==='k'?'k':(m.userData.g==='p'||(typeof m.userData.g==='string'&&m.userData.g.indexOf('pm:')===0))?'p':''];if(!L)continue;
+      if(!m.userData.uV0)m.userData.uV0=[m.userData.uV.value.toArray(),m.userData.uG.value];
+      if(on){m.userData.uV.value.fromArray(L);m.userData.uG.value=L[4];}else{m.userData.uV.value.fromArray(m.userData.uV0[0]);m.userData.uG.value=m.userData.uV0[1];}}});}
+/* LA LUMIÈRE DE STUDIO : le cube en 256², murs sombres, des boîtes à lumière NETTES (un cœur blanc, un halo court) à hauteur de flanc,
+   deux colonnes verticales (elles balaient la caisse quand elle tourne), un grand panneau au plafond ; la porte garde le bas de ses flammes */
+function paintEnvStudio(){
+  const S=256;
+  envCvs.forEach(function(cv,f){if(cv.width!==S){cv.width=cv.height=S;}const c=cv.getContext('2d');c.setTransform(1,0,0,1,0,0);
+    const boite=(x,y,w,h,col,a,halo)=>{const g=c.createLinearGradient(0,y-halo,0,y+h+halo);g.addColorStop(0,'rgba('+col+',0)');g.addColorStop(halo/(h+2*halo),'rgba('+col+','+(a*.35).toFixed(2)+')');
+        g.addColorStop(.5,'rgba('+col+','+a+')');g.addColorStop(1-halo/(h+2*halo),'rgba('+col+','+(a*.35).toFixed(2)+')');g.addColorStop(1,'rgba('+col+',0)');c.fillStyle=g;c.fillRect(x,y-halo,w,h+2*halo);
+        c.fillStyle='rgba(255,255,255,'+Math.min(1,a+.1).toFixed(2)+')';c.fillRect(x+3,y+h*.25,w-6,Math.max(2,h*.5));},
+      colonne=(x,y,w,h,col,a)=>{const g=c.createLinearGradient(x-8,0,x+w+8,0);g.addColorStop(0,'rgba('+col+',0)');g.addColorStop(.5,'rgba('+col+','+a+')');g.addColorStop(1,'rgba('+col+',0)');
+        c.fillStyle=g;c.fillRect(x-8,y,w+16,h);c.fillStyle='rgba(255,255,255,'+a+')';c.fillRect(x+w*.3,y+4,w*.4,h-8);};
+    if(f===2){c.fillStyle='#050608';c.fillRect(0,0,S,S);                                                    // +Y : le plafond noir…
+      const g=c.createRadialGradient(128,128,10,128,128,120);g.addColorStop(0,'rgba(255,248,236,.95)');g.addColorStop(.55,'rgba(255,244,228,.55)');g.addColorStop(1,'rgba(255,244,228,0)');
+      c.fillStyle=g;c.fillRect(0,0,S,S);c.fillStyle='rgba(255,255,255,.92)';c.fillRect(56,84,144,88);                // …et son grand panneau
+      for(const y of [30,226]){c.fillStyle='rgba(255,246,232,.85)';c.fillRect(24,y-2,208,4);}return;}
+    if(f===3){const g=c.createRadialGradient(128,128,8,128,128,150);g.addColorStop(0,'#1a1d24');g.addColorStop(1,'#07080a');c.fillStyle=g;c.fillRect(0,0,S,S);return;} // −Y : le sol
+    const gr=c.createLinearGradient(0,0,0,S);gr.addColorStop(0,'#06070a');gr.addColorStop(.40,'#141821');gr.addColorStop(.50,'#1d222c');gr.addColorStop(.53,'#0e1015');gr.addColorStop(1,'#060708');
+    c.fillStyle=gr;c.fillRect(0,0,S,S);
+    const chaud=(f===0||f===5),col=chaud?'255,236,210':'214,236,255';
+    /* (mesuré à la MIRE, dbgFinition('mire') : un flanc droit vu de la caméra du garage reflète ~30° SOUS l'horizon — rangées 192-223 ;
+       une épaule qui rentre, 128-159 ; un capot ou un toit vus en rasant, 64-95) */
+    boite(8,200,240,10,col,.82,8);                                                                           // LA boîte à lumière des flancs (,82 : à pleine force elle brûlait le bas d'une porte jaune)
+    boite(20,148,216,7,col,.8,7);                                                                            // celle des épaules
+    boite(30,82,196,6,col,.7,6);                                                                             // celle des capots et des toits, en rasant
+    if(f===1||f===5){colonne(54,40,10,170,col,.85);colonne(192,40,10,170,col,.85);}                       // deux colonnes : elles balaient la caisse quand elle tourne
+    if(f===4){const n=c.createLinearGradient(0,150,0,256);n.addColorStop(0,'rgba(196,86,26,0)');n.addColorStop(.6,'rgba(196,86,26,.55)');n.addColorStop(1,'rgba(106,22,12,.8)');c.fillStyle=n;c.fillRect(40,150,176,106);} // la porte : le bas de ses flammes
+  });
+  envTex.needsUpdate=true;}
+window.dbgFinition=function(on){if(on==='mire'){const C=['#ff0000','#ff8800','#ffff00','#00ff00','#00ffff','#0000ff','#ff00ff','#ffffff'];   // (banc) la MIRE : 8 bandes de 32 px sur les murs — on lit la hauteur reflétée à la couleur
+    envCvs.forEach(function(cv,f){cv.width=cv.height=256;const c=cv.getContext('2d');if(f===2){c.fillStyle='#808080';c.fillRect(0,0,256,256);return;}if(f===3){c.fillStyle='#000';c.fillRect(0,0,256,256);return;}
+      for(let i=0;i<8;i++){c.fillStyle=C[i];c.fillRect(0,i*32,256,32);}});envTex.needsUpdate=true;return 'mire';}
+  if(on==='etat'){let n=0,ar=0,fl=0,lq=[];carGroup.traverse(o=>{if(!o.isMesh||!o.material||Array.isArray(o.material))return;const m=o.material;if(m.userData&&m.userData.arete){n++;const a=o.geometry.attributes.aArete;if(a){ar++;for(let i=0;i<a.count;i++)if(a.getX(i)+a.getY(i)+a.getZ(i)>0)fl++;}}
+    if(m.userData&&m.userData.uV)lq.push(m.userData.g+':'+m.userData.uV.value.toArray().map(v=>+v.toFixed(2)).join('/'));});
+  return {env:typeof envCvs!=='undefined'?envCvs[0].width:null,matsArete:n,geoArete:ar,sommetsVifs:fl,laques:lq.slice(0,6),garage:FSTU.garage};}
+  if(on!=null){FSTU.on=!!on;try{if(garageOn){if(FSTU.on)paintEnvStudio();else paintEnvAtelier();}buildCar(CARS[level]);}catch(e){return String(e);}}return {on:FSTU.on,arete:finAreteOk(),garage:FSTU.garage};};
 function buildCar(spec){
   // ⚠ LES PIÈCES LOW-POLY SE LIBÈRENT : chaque caisse a SA géométrie (plusieurs milliers de facettes)
   // et ses matières. Sans ce passage, chaque aller-retour au garage laisserait une caisse en VRAM.
@@ -40619,7 +40708,7 @@ function buildCar(spec){
   const con=(r,hh,mat,x,y,z,sg)=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,hh,sg||12),mat);m.position.set(x||0,y||0,z||0);return add(m);};
   // L'ATELIER LOW-POLY : `K.kit(pal)` ouvre un chantier (voir lpKit), `K.commit` le pose — une
   // géométrie par matière, et les matières PARTAGÉES par toute la caisse, roues comprises.
-  const lpM={},lpMatC=g=>lpM[g]||(lpM[g]=lpMat(g));
+  const lpM={},lpMatC=g=>lpM[g]||(lpM[g]=lpMat(g,FSTU.on)); // (2026-10-20) `?finition=studio` : la tôle en finition studio (voir finition.js)
   const kit=pal=>lpKit(peintPal(pal)); // la PEINTURE de la boutique passe par la palette (voir `peintPal`)
   const lpPrims=[];let lpZmin=1e9; // (pots) les pièces simples de la caisse et sa poupe réelle, relevées au passage
   const commit=kt=>{const gs=kt.ech?kt.done():echRetire(kt.done(),kt.prims,spec.shape||'gt');for(const g in gs){gs[g].computeBoundingBox();lpZmin=Math.min(lpZmin,gs[g].boundingBox.min.z);
@@ -40903,6 +40992,8 @@ function buildCar(spec){
   carGroup.add(carBody);carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);carBody.userData.pivY=wheels.length?wheels[wheels.length-1].position.y:.45; // pivot = hauteur des moyeux (⚠ pas de carRoll9=0 ici : buildCar tourne AVANT leur déclaration — zone morte)
   carGroup.traverse(o9=>{if(o9.isMesh&&!o9.userData.noShadow)o9.castShadow=true;}); // toute la caisse porte son ombre LONGUE — sauf la nappe néon (un carré d'ombre, non merci)
   if(bodyM.userData.mot)carGroup.traverse(function(o9){const m9=o9.material;if(o9.isMesh&&m9&&!Array.isArray(m9)&&m9.userData&&m9.userData.mot&&!MOT_FAIT.has(m9))try{motGreffe(m9,m9.userData.mot);}catch(e){}}); // (2026-10-16) un gabarit qui CLONE la tôle (l'épave : K.body.clone()) : le clone garde la couleur blanche, il reprend le motif
+  if(finAreteOk())finCaisse(); // (2026-10-20, FINITION STUDIO) les drapeaux d'arête de la tôle, AVANT la soudure (voir finition.js)
+  if(FSTU.on)finLaque(FSTU.garage); // le vernis profond si on est au garage
   caisseSoude(); // (2026-09-27, passe perf iPhone) ce qui ne bouge jamais est soudé par matière — voir « LA CAISSE EN UN MINIMUM DE DESSINS »
 }
 /* <<<FIN VOITURES>>> */
@@ -60087,7 +60178,7 @@ function openGarage(quiet){
   if(!GAR.root)buildGarageRoom();   // L'ATELIER se bâtit à la PREMIÈRE visite : zéro coût pour qui n'y entre jamais
   GAR.root.visible=true;
   try{affichesMaj();}catch(e){} // (2026-09-30) les records du mur, à jour (chiffres ET langue)
-  paintEnvAtelier(); // (2026-09-26) la laque reflète l'ATELIER (tubes, clé chaude, contre-jour cyan), plus le ciel de la dernière course
+  if(FSTU.on){paintEnvStudio();finLaque(true);}else paintEnvAtelier(); // (2026-10-20) `?finition=studio` : la lumière de studio et le vernis profond (voir finition.js) — (2026-09-26) la laque reflète l'ATELIER (tubes, clé chaude, contre-jour cyan), plus le ciel de la dernière course
   // (2026-09-26, vague 2) …et l'atelier a SA lumière (biome `atelier`) au lieu du ciel et du soleil de la dernière course. Posée hors
   // du voyage BIO (BIO.cur reste le ciel du niveau) : closeGarage le rend tel quel. Un voyage en cours se termine d'abord, sinon
   // bioStep repeindrait le ciel du biome par-dessus l'atelier à chaque image.
@@ -60113,6 +60204,7 @@ function closeGarage(){
   trailApercu(0,false);
   if(SHOP.prev||SHOP.tab!=='voiture'){SHOP.prev=null;SHOP.tab='voiture';buildCar(CARS[equippedCar()]);} // l'essai ne sort pas de l'atelier
   paintEnv(BIO.to.env,BIO.to.eS1,BIO.to.eS2); // (2026-09-26) on rend à la laque le ciel du biome (l'atelier l'avait repeint en studio)
+  finLaque(false); // (2026-10-20) le vernis de course (voir finition.js)
   bioApply(BIO.cur); // ⚠ (2026-09-24) le garage/l'étal écrasent le ciel chaque frame (nuit étoilée) : on rend la main au BIOME en sortant, sinon la 1re course gardait leur ciel
   garageOn=false;gEl.classList.remove('on');gEl.classList.remove('quiet');gEl.classList.remove('launching');gEl.classList.remove('missions');GMIS.mk=0;GMIS.e=0;document.body.classList.remove('inGarage');try{hubSync();}catch(e){} // (2026-10-06) la barre du HUB s'en va avec l'atelier
   GAR.affH=null;GAR.dbgAff=null;document.body.style.cursor=''; // (affiches) le curseur main ne survit pas à l'atelier
@@ -61920,7 +62012,7 @@ function chuteSort(ferme){ // on quitte le ciel : l'atelier (boutique, missions)
   trailApercu(0,false);
   if(CHUTE.vent&&AC){try{stt(windG.gain,0,AC.currentTime,.25);stt(whG.gain,0,AC.currentTime,.25);}catch(e){}}CHUTE.vent=false;
   if(ferme)return;
-  MENUV.bio=false;bioApply(BIOMES.atelier);paintEnvAtelier();                    // l'atelier reprend sa lumière et son reflet
+  MENUV.bio=false;bioApply(BIOMES.atelier);if(FSTU.on){paintEnvStudio();finLaque(true);}else paintEnvAtelier();                    // l'atelier reprend sa lumière et son reflet
   if(CHUTE.av){if(acesPass&&CHUTE.av.e!=null)acesPass.uniforms.uExposure.value=CHUTE.av.e;if(scene.fog&&CHUTE.av.n!=null){scene.fog.color.copy(CHUTE.av.c);scene.fog.near=CHUTE.av.n;scene.fog.far=CHUTE.av.f;}} // (2026-09-30) …et son exposition, sa brume
   if(GAR.root)GAR.root.visible=true;
   try{if(SONV2&&!openGarage._amb)openGarage._amb=sfx('garage.ambiance',{loop:true,vol:GAR_AMB_DB});if(SONV2&&!openGarage._feu)openGarage._feu=sfx('garage.feu',{loop:true});}catch(e){}
