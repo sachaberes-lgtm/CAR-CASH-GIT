@@ -409,7 +409,7 @@ SHAPES.squale=function(K){
   { // LES CROCS QUI SORTENT (l'action spéciale) : trois groupes — devant (glisse en +z), flanc gauche (−x), flanc droit (+x) ; au tap,
     // ils JAILLISSENT d'un coup (une mécanique, ~50 ms, avec un petit rebond de butée) de `OUT`, restent une fraction de seconde, puis
     // RENTRENT lentement, à vitesse constante (un vérin qui se referme), les derniers millimètres amortis.
-    const GD=[],OUT=.055*SC,lis=t=>t*t*(3-2*t);
+    const GD=[],OUT=.10*SC,lis=t=>t*t*(3-2*t); // (Léo, même soir : « fais-les sortir plus ») 5,5 → 10 cm (×1,2)
     for(let q=0;q<3;q++){const gs=DK[q].done();pliGs(gs);const g=K.add(new THREE.Group());
       for(const k in gs){const m=new THREE.Mesh(gs[k],(K.mats&&K.mats[k])||(typeof lpMat==='function'?lpMat(k):null));m.userData.lp=1;g.add(m);}GD.push(g);}
     let k=0,tA=-1;const anime=dt=>{dt=Math.min(dt||0,.1);if(tA>=0){tA+=dt;
@@ -419,7 +419,7 @@ SHAPES.squale=function(K){
         else{const u=(tA-.38)/1.6;k=u>=1?0:1-(u<.85?u/.85*.9:.9+.1*lis((u-.85)/.15));if(u>=1)tA=-1;}} // le retour : lent, régulier, amorti sur la fin
       else k=0;
       GD[0].position.z=OUT*k;GD[1].position.x=-OUT*.8*k;GD[2].position.x=OUT*.8*k;};
-    const action=()=>{tA=0;return true;};
+    const action=()=>{tA=0;try{if(typeof sfx==='function')sfx('squale.crocs');}catch(_){}return true;}; // (Léo : « clac mécanique quand ça sort ») le son de la session SON, cuit dans la banque
     anime(0);GD[0].userData.anime=anime;GD[0].userData.action=action;
     if(typeof CAR_ACTION!=='undefined')CAR_ACTION=action;
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);}
