@@ -19407,3 +19407,12 @@ const CACHE = 'cashcar-v624'; // v624 (2026-10-18, Léo : « plus de gris chelou
 - LES ABEILLES DE LA FORÊT ÉTAIENT MUETTES : `sfx('foret.abeille')` était appelé (abeille à < 10 m de la caisse) mais aucune recette ne le cuisait. Recette `foret.abeille` (atelier-son/recettes.js) :
   le bourdonnement qui PASSE — harmoniques en 1/k avec un « nez » vers 1,1 kHz, Doppler (plus aigu à l'arrivée, plus grave au départ), d'une oreille à l'autre ; deux variantes (l'ouvrière ~230 Hz,
   le bourdon ~150 Hz). Cuite en PCM (`PCM=1 node atelier-son/cuire.js foret.abeille` : pas de ffmpeg sur ce Mac) — une cuisson complète avec ffmpeg la repassera en MP3. Banque `?v=34`.
+
+## LE DOMPTEUR DE GROSSE CAISSE DE POUCE BLEU (2026-10-20, séance « finir ce qui traîne » — noté le 17/10 : « la grosse caisse de certains morceaux ~18 dB au-dessus du reste »)
+- MESURÉ (banc muet, la chaîne de course : bus des basses → limiteur, 20 morceaux × 11 moteurs ; crête 20 ms de la bande 30-120 Hz contre le RMS 200 Hz-8 kHz) : les sains 5-13 dB ;
+  le générateur fait ENTRER la grosse caisse à plein aux moteurs 2-5 quand le reste n'est qu'un clavier → 17-25 dB (le « ~18 dB » = PLUIE D'ARGENT au moteur 3) ; ASPHALTE
+  D'ÉMERAUDE 14-16 dB partout. Le limiteur du jeu ne travaillait jamais (crêtes ≤ −7,5 dBFS) : un écart, pas un écrêtage.
+- `assets/audio/musique-bus.js`, section 5 : clé `kick: 12` sur les 11 morceaux fautifs — la bande sous ~130 Hz (phase linéaire) passe dans un compresseur rapide dont le seuil
+  SUIT le reste du morceau ; la basse SEULE n'est jamais touchée (`pouce-bleu-jeu.js` : `groupe()` dit au bus si la grosse caisse joue, `PB.niveau` → `bus.tick`). Au-dessus
+  de ~195 Hz rien ne bouge. Après : 11-14 dB à l'entrée de la caisse. Restent hauts, VOULU (c'est leur BASSE, décision de Léo) : CAVALE ULTRA et AVERSE DE CHROME aux moteurs 4-6.
+- Les morceaux sains et la bibliothèque : identiques à l'échantillon près (le dompteur n'est pas construit). `?kick=0` = sans dompteur ; `?basses=brut` = tout le bus d'avant.
