@@ -381,6 +381,8 @@ function grtLacs(V,R){const LA=GROTTE.lacs||[],EA=GROTTE.eaux||[],B=V.B,K=GRT.K;
   for(let c=0;c<V.pool.length;c++){const d=V.cle[c],cj=((d/V.CX)|0)%V.CY,y0=V.oy+cj*16*B;if(y0>yMax)continue;const A=V.pool[c],DN=V.dn[c],SI=V.si[c];
     for(let o=0;o<4096;o++){if(DN[o]<=0)continue;const j=(o>>4)&15,cy=y0+(j+.5)*B,q=SI[((o&15)>>2)|((j>>2)<<2)|(((o>>8)>>2)<<4)];if(q<0)continue;const S=R.S[q];
       let L9=null,lv=false;for(const l of LA)if(S>=l.s0&&S<=l.s1){L9=l;lv=true;break;}if(!L9)for(const l of EA)if(S>=l.s0&&S<=l.s1){L9=l;break;}if(!L9||cy>L9.y+2*B)continue;
+      if(GRT_HZ&&!grtLibre(R,V.ox+(((d%V.CX)*16+(o&15))+.5)*B,V.oz+(((d/(V.CX*V.CY)|0)*16+(o>>8))+.5)*B,cy-B,cy+B,B))continue; /* (AU HASARD, banc du 20/10) une route qui repasse PLUS BAS sous la salle d'un lac
+        (le tire-bouchon, une salle qui revient) : la case la plus proche d'un échantillon d'en haut se remplissait de lave sur elle — jamais près d'une route */
       const dv=Math.max(-127,Math.round((cy-L9.y)*K));if(dv<DN[o])DN[o]=dv;if(cy<L9.y&&A[o]===1){A[o]=lv?4:5;V.nAir--;}}}}
 /* LES PILIERS (après les lacs) : des colonnes de BASALTE qui sortent de la lave jusqu'à la voûte, des COLONNES de concrétion (en sablier) dans la
    cathédrale — loin de toutes les routes (règle d'or), dans l'air de la salle. La densité les refait roche (la physique = l'image). */

@@ -325,6 +325,9 @@ window.dbgGrotte=function(k,o){
     return {roche:roc,decors:dec,ou:ou.join(' ')};}
   if(k==='meteo'){grotteMeteo(o||'nuit',.01);GROTTE.cur=JSON.parse(JSON.stringify(GRT_MET[GROTTE.met]));GROTTE.k=1;const nm=grtBioNom(GROTTE.met,Math.max(0,GROTTE.salle));
     if(BIOMES[nm]){bioGo(nm,.01);BIO.k=0;bioStep(1);}grotteTick(0);return GROTTE.met;} // (tout de suite, même en pause : les photos)
+  if(k==='dens'&&o){const V=GROTTE.V;if(!V)return null;const x=o[0],y=o[1],z=o[2],i=Math.floor((x-V.ox)/V.B),j=Math.floor((y-V.oy)/V.B),kk=Math.floor((z-V.oz)/V.B),c=V.dir[(i>>4)+V.CX*((j>>4)+V.CY*(kk>>4))]; /* (banc) la densité et la case d'un point */
+    let q=-1;if(c>=0)q=V.si[c][((i&15)>>2)|(((j&15)>>2)<<2)|(((kk&15)>>2)<<4)];return {d:+grtDensIci(V,x,y,z).toFixed(1),case:grtIci(V,x,y,z),q:q,S:q>=0?Math.round(GROTTE.R.S[q]):null,sal:q>=0?GROTTE.R.SAL[q]:null,Y:q>=0?Math.round(GROTTE.R.Y[q]):null,
+      lacs:(GROTTE.lacs||[]).map(function(l){return [Math.round(l.y),Math.round(l.s0),Math.round(l.s1)];}),eaux:(GROTTE.eaux||[]).map(function(l){return [Math.round(l.y),Math.round(l.s0),Math.round(l.s1)];})};}
   if(k==='reprend'){if(paused)togglePause();return 'reprise';}
   if(k==='vue'&&o){if(started&&!gameOver&&!paused)togglePause();camera.position.fromArray(o.p);camera.up.set(0,1,0);camera.lookAt(new THREE.Vector3().fromArray(o.c));camera.updateMatrixWorld();
     if(o.fov){camera.fov=o.fov;camera.updateProjectionMatrix();}skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);
@@ -347,7 +350,7 @@ window.dbgGrotte=function(k,o){
     file:GROTTE.file?GROTTE.file.length-GROTTE.fi:0,n:GROTTE.n,conflits:GROTTE.conflits,croise:GROTTE.croise,L:Math.round(L),
     salles:GROTTE.R?GROTTE.R.bornes:null,spi:GROTTE.spi&&{R0:Math.round(GROTTE.spi.R0),R1:Math.round(GROTTE.spi.R1),tours:GROTTE.spi.tours,pas:Math.round(GROTTE.spi.pas),descente:Math.round(GROTTE.spi.y0-GROTTE.spi.y1)},
     lac:GROTTE.lac&&Math.round(GROTTE.lac.y),eau:GROTTE.eau&&Math.round(GROTTE.eau.y),geode:GROTTE.puits&&Math.round(GROTTE.puits.rg),
-    lacs:GROTTE.lacs&&GROTTE.lacs.length,ponts:GROTTE.R&&GROTTE.R.ponts,portes:GROTTE.R&&GROTTE.R.portes,hz:GROTTE.hz||null,deco:grtDecoTexte(GROTTE.deco)};}; /* (20/10) hz : LE TRACÉ AU HASARD · deco : LE DÉCOR AU HASARD */
+    lacs:GROTTE.lacs&&GROTTE.lacs.length,ponts:GROTTE.R&&GROTTE.R.ponts,portes:GROTTE.R&&GROTTE.R.portes,piliers:GROTTE.piliers&&GROTTE.piliers.map(function(c){return [Math.round(c.x),Math.round(c.z),Math.round(c.r),c.k];}),hz:GROTTE.hz||null,deco:grtDecoTexte(GROTTE.deco)};}; /* (20/10) hz : LE TRACÉ AU HASARD · deco : LE DÉCOR AU HASARD */
 /* ---------------- LES AMBIANCES : une par salle et par météo (appelée après les biomes du volcan, une fois BIOMES né) ----------------
    La grammaire des nuits de la bible (deux températures : la brume froide et sombre, la lumière du lieu chaude ou colorée), la brume est la
    couleur de la grotte AU LOIN (jamais un gris : un teal profond, un violet, un ambre, un pourpre, un noir bleuté). Ciel = brume (on ne le voit
