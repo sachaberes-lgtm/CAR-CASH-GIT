@@ -63110,7 +63110,7 @@ function richInit(){
   M.or=metal(richTexUni('#ffb52e'),140);M.lingot=metal(richTexUni('#ffbd3d'),170); // l'or : un jaune profond (F0 de l'or ≈ 1 · .71 · .29), c'est le reflet qui l'éclaire
   M.diamant=richMat(RICH_FS_GEMME,{uTint:{value:new THREE.Color(1,1,1)}});
   RICH.texBillets=RICH_BILLETS.map(richTexBillet);RICH.texBillet=RICH.texBillets[RICH_B100]; // (2026-10-10) la série des sept valeurs ; le 100 (sarcelle) habille aussi la liasse
-  M.billets=RICH_BILLETS.map(function(B,i){return richMat(RICH_FS_SOUPLE,{uMap:{value:RICH.texBillets[i]},uSheen:{value:new THREE.Color(B.sh[0],B.sh[1],B.sh[2])},uSheenK:{value:.5},uBend:{value:.75},uLum:{value:.6}},{SOUPLE:1},THREE.DoubleSide);}); // (même programme : 0 compilé de plus)
+  M.billets=RICH_BILLETS.map(function(B,i){return richMat(RICH_FS_SOUPLE,{uMap:{value:RICH.texBillets[i]},uSheen:{value:new THREE.Color(B.sh[0],B.sh[1],B.sh[2])},uSheenK:{value:.5},uBend:{value:2.3},uLum:{value:.6}},{SOUPLE:1},THREE.DoubleSide);}); // (même programme : 0 compilé de plus)
   M.billet=M.billets[RICH_B100];
   M.trefle=richMat(RICH_FS_SOUPLE,{uMap:{value:richTexTrefle()},uSheen:{value:new THREE.Color(.55,1,.5)},uSheenK:{value:.35},uBend:{value:.7}},{SOUPLE:1},THREE.DoubleSide);
   M.rubis=richMat(RICH_FS_GEMME,{uTint:{value:new THREE.Color(1,.06,.16)}});M.emeraude=richMat(RICH_FS_GEMME,{uTint:{value:new THREE.Color(.08,.9,.38)}}); // les gemmes de couleur : le programme du diamant, teinté
@@ -63119,7 +63119,7 @@ function richInit(){
   M.jetons=[['#c61b2c','5'],['#1d8f3a','25'],['#18181d','100'],['#6a2a9a','500'],['#e09a12','1000']].map(function(J){return richMat(RICH_FS_SOUPLE,{uMap:{value:richTexJeton(J[0],J[1])},uSheen:{value:new THREE.Color(1,1,1)},uSheenK:{value:.28},uBend:{value:0}},{SOUPLE:1},THREE.DoubleSide);}); // la terre cuite des jetons : mate, un peu de lustre
   M.carte=metal(richTexCarte(),130);M.champagne=metal(richTexChampagne(),90);M.vins=[M.champagne].concat(RICH_VINS.map(function(V9){return metal(richTexVin(V9),V9.shin||100);})); // (2026-10-16) les vins : le programme du métal, comme le champagne (0 compilé de plus)M.noir=metal(richTexUni('#16121c'),60);
   M.liasse=richMat(RICH_FS_SOUPLE,{uMap:{value:richTexLiasse()},uSheen:{value:new THREE.Color(.49,1,.62)},uSheenK:{value:.2},uBend:{value:0}},{SOUPLE:1},THREE.DoubleSide); // la liasse ne plie pas
-  Gm.piece=richPiece();Gm.billet=new THREE.PlaneGeometry(1,.46,10,3);Gm.trefle=new THREE.PlaneGeometry(1,1,6,6);
+  Gm.piece=richPiece();Gm.billet=new THREE.PlaneGeometry(1,.46,16,4);Gm.trefle=new THREE.PlaneGeometry(1,1,6,6);
   M.coeur=new THREE.ShaderMaterial({uniforms:Object.assign({},RICH_U,{uRouge:{value:new THREE.Color(.86,.015,.08)},uFuch:{value:new THREE.Color(1,.16,.6)},uBlanc:{value:1},uA:{value:.2},uPop:{value:0}}),vertexShader:RICH_VS_COEUR,fragmentShader:RICH_FS_COEUR,
     transparent:true,depthWrite:false,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor,fog:false,lights:false}); // (2026-10-16) le cœur fantôme (voir RICH_FS_COEUR) : transparent, prémultiplié
   M.fleur=new THREE.ShaderMaterial({uniforms:RICH_U,vertexShader:RICH_VS_FLEUR,fragmentShader:RICH_FS_FLEUR,transparent:true,depthWrite:true,side:THREE.DoubleSide,
