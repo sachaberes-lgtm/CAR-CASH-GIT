@@ -24827,8 +24827,10 @@ function buildVoxCity(seed,accC){
       proches(cx,cz,clr,function(i){const p=pts[i],dx=p.x-cx,dz=p.z-cz;if(dx*dx+dz*dz>c2)return;
         if(p.y>t+60||p.y<b-40)return;ok=false;
         if(p.y>(b+t)*.5)t=Math.min(t,p.y-60);else b=Math.max(b,p.y+44);});
-      if(ok)break;if(t-b<40)return null;}
-    return t-b>=40?[b,t]:null;};
+      if(ok)return t-b>=40?[b,t]:null;if(t-b<40)return null;}
+    return null;}; // (2026-10-20, Sacha : « le sommet des tours traverse la route ») 4 passes sans solution = pas de tour (avant : elle restait, rognée à moitié)
+  const routeAuDessus=(cx,cz,hd,t)=>{let m=1e9;const clr=hd+ROAD_HALF+24,c2=clr*clr; // la route la plus basse au-dessus du toit, sous l'emprise : borne le mât (il montait jusque dans le bitume)
+    proches(cx,cz,clr,function(i){const p=pts[i],dx=p.x-cx,dz=p.z-cz;if(dx*dx+dz*dz<=c2&&p.y>t&&p.y<m)m=p.y;});return m;};
   // LES CELLULES : maille SERRÉE près du ruban (le canyon), lâche au large ; chaque cellule retient le point de piste le plus proche
   const R_CAN=330,R_VIL=IS_MOBILE?1700:2100,SN=IS_MOBILE?66:54,SF=IS_MOBILE?230:200; // (2026-09-26) la forêt va jusqu'au brouillard
   const cellules=(S,R,garde)=>{const m=new Map(),rr=Math.ceil(R/S),pas=Math.max(1,Math.round(S*.6/(L/(NP-1))));
@@ -24907,7 +24909,7 @@ function buildVoxCity(seed,accC){
     }
     // L'ANTENNE et son FEU ROUGE — sinon, parfois, la COURONNE à l'accent de la zone
     if(H>320&&vr()<.5){let ha=24+vr()*56;if(VIt){if(fo===5)ha=0;else{corps.push(cx,yV+ha/2,cz,1.4,ha,1.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,yV+ha,cz,2.2,2.2,2.2);neonC.push(5);tqN.push(cx,km,cz);}} // (VILLE VITRÉE) le mât part du TOIT — pas de mât sur une LAME (son toit est en biais) (il ne traverse plus la tour)
-      else{corps.push(cx,b+(H+ha)/2,cz,2.4,H+ha,2.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,t+ha,cz,4.5,4.5,4.5);neonC.push(5);tqN.push(cx,km,cz);}}
+      else{ha=Math.min(ha,routeAuDessus(cx,cz,hd,t)-t-12);if(ha>=8){corps.push(cx,b+(H+ha)/2,cz,2.4,H+ha,2.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,t+ha,cz,4.5,4.5,4.5);neonC.push(5);tqN.push(cx,km,cz);}}}
     else if(vr()<.32){if(!VIt||(fo===0&&!vitreBiseau(cx,cz))){neon.push(cx,(VIt?yV:t)-1.4,cz,wk/.72*1.05,2.8,pk/.72*1.05);neonC.push(6);tqN.push(cx,km,cz);}} // (VILLE VITRÉE) pas de couronne carrée sur une tour biseautée
     if(VIt)VTW.push([l0/6,corps.length/6,ln/6,neon.length/6,yN,fo,t]); // (VILLE VITRÉE) la tour, pour la forme et pour son reflet au plafond
     // L'ENSEIGNE VERTICALE : le long du canyon, une tour sur deux porte son néon, à hauteur de ROUTE (on la voit passer)
