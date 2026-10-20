@@ -3,6 +3,20 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES FRUITS-POUVOIRS — LA ROUTE SANS BOOSTS (2026-10-20, v742, Léo : « les boosts de la route disparaissent, mais on booste non-stop si on est chaud et qu'on attrape les fruits ») — branche `fruits-boost`
+Plan de Léo (interview, fruit par fruit) ; tout est dans `code/gameplay/fruits-nouveaux.js` et `code/gameplay/fruits-auras.js` (+ petites retouches ailleurs, grep `2026-10-20, Léo`).
+- **LA ROUTE** : plus de plaques turbo (`PADS_OFF`, `?pads=1` = avant) ; la LIGNE PARFAITE de Sacha (ligne-parfaite.js) ne pose plus que des FRUITS, un toutes les 0,45 s (`LIGNE.dt`), ×2,1 (petits),
+  chacun rend `LIGNE.don` 0,48 de nitro (≈ 1,05 × ce qu'on brûle entre deux) : la NITRO NORMALE d'abord, le trop-plein dans la RÉSERVE BLEUE. Le jus à l'écran d'un fruit de la file : un sur quatre ; l'annonce
+  RAFALE : une sur quatre (même total d'aura). Au BOUT d'une longue file (16-26 fruits) tombe un FRUIT-POUVOIR (`PWR_LIGNE`, `?cristaux=1` = les anciens cristaux au hasard), les cinq à égalité (`PWR_EGAUX`).
+- **9 FRUITS NORMAUX** (même nitro) : myrtille, cerise, kiwi, pêche, orange, mangue, pomme, melon, litchi — recettes de l'atelier (`FRN_*`), les 13 anciens (dont les 7 exotiques) rangés dans `FRUIT_EXO`, hors du jeu.
+- **PIMENT = nitro infinie 7 s** : la couleur du feu chauffe avec le temps de boost (rouge → orange → jaune → blanc → bleu → violet, `NINF.h`), plume, traînée et bords d'écran la suivent.
+- **CITRON = vitesse ×2** (comme avant) : éclairs en rubans (`ZAP`), onde de choc, compteur km/h électrique, son `citron.zap` (cuit en PCM : pas de ffmpeg ici). **DRAGON = aura ×2, ×3 si `CHA.x ≥ 3`** (`auraDragonK`), jus vert/rose à chaque geste, disque Genjutsu
+  dans le ciel, compteur d'aura qui change de teinte. **RAISIN = airtime ×2** : DOUBLE JAUGE (`RAI`, `airDepasse`) — la 1re vide, les ailes d'ange explosent, la 2e démarre ; 2e barre sous le chrono de vol.
+  **POMME DORÉE = aimant à PIÈCES seulement**, elles filent en spirale dorée (`magSpirale`). Le bouclier est supprimé.
+- **AURAS EN SHADER** (pas de particules : Léo les trouvait « jeu de con ») : une coque par fruit (`fauraFruit`), un temps partagé (`FAURAU.uT`), chauffée au menu (`fruitsChauffe`, 0 programme compilé en course : mesuré 221 avant/pendant).
+- Hooks de banc : `dbgPwrDevant(k,ds,lat)`, `dbgLigneFruits()`, `dbgRaisin('vide')`, `dbgFruitAura(...)`, `dbgChauffeFruits()`. Testé (pilote auto) sur nuages, jade, canyon, banquise, espace : 0 plaque, files posées et prises, aucune erreur.
+- **RESTE** : les sons des cinq prises sont ceux des anciens pouvoirs (`pwr.n/a/v/m/x`) ; pas de son propre au dragon/aimant ; vérifier à l'oeil le disque Genjutsu et l'onde de choc ; campagne et auto-école non rejouées ; iPhone non mesuré.
+
 ## LES FREEZES ET LA LATENCE DE LA VERSION EN LIGNE — TROIS CAUSES MESURÉES (2026-10-20, v740, session LATENCE — Sacha : « il y a beaucoup de freeze et de latence sur la version vercel, essaye de régler le problème »)
 - **LE BANC** (scratchpad, à refaire si besoin) : la version EN LIGNE (https://car-cash-git.vercel.app/jouer/) pilotée dans Chrome sans fenêtre (téléphone couché émulé, playwright-core
   de `~/.hermes`), une course pilotée par `dbgAuto` (gardé dans la copie allégée), et une TRACE Chrome (`Tracing.start`, catégories devtools.timeline + profileur) analysée en
@@ -34,15 +48,6 @@
   l'essai de résolution échoue, revient (2 réallocations), et recommence après le plafond de 45 s. Et la sonde sans chronomètre de la puce (Safari) : 5 images synchronisées
   toutes les 30 s. Le reste : les animations CSS du HUD tournent sur le fil principal (`.pxBurst`, la barre de nitro pleine, `::before/::after`, `#avX`) — ~12 à 24 éléments
   restylés par image.
-
-## LES AURAS DES FRUITS-POUVOIRS — LE MODULE (2026-10-20, v739, Léo : « piment = aura flamme, citron = électrique, dragon = hypnotique… de vraies auras ») — BANC SEULEMENT
-Plan de Léo : les boosts de la route (plaques turbo, cristaux) deviennent des FRUITS. 9 fruits normaux (même nitro : myrtille, cerise, kiwi coupé en quart, pêche, orange, mangue, pomme, melon coupé, litchi),
-4 fruits-pouvoirs : PIMENT (aura de flammes) = nitro infinie 7 s · CITRON (aura électrique) = vitesse ×2 · FRUIT DU DRAGON (aura hypnotique) = aura ×2 · RAISIN ANGÉLIQUE (ailes blanches, SANS halo,
-vol très près de la route) = airtime ×2 en double jauge · POMME DORÉE = aimant. Bouclier supprimé ; les 7 exotiques restent au cahier des charges, hors du jeu.
-- `code/gameplay/fruits-auras.js` (après pouvoirs-orbes) : UN programme (`FAURA`, `fauraMat`), cinq comportements par `uKind`, points CARRÉS à cœur clair et bord sombre, tout le mouvement dans le vertex shader
-  (`uT` + grain `aSeed`) : zéro travail processeur par image. `fauraNew(kind)` / `fauraTick(grp,t,camera)`. RAISIN = aucune aura (N=0).
-- `dbgFruitAura(kind,t,nom,'course',dist)` : en pause, pose le fruit sur la route devant la caisse et rend UNE image du vrai jeu (bloom compris). ⚠ RIEN n'est appelé en course : aucun effet sur le jeu.
-- Les recettes de fruits (formes) vivent dans l'atelier de Léo (scratchpad), PAS encore dans `pickups-fruits.js`. À faire : formes dans le jeu, route sans plaques/cristaux, nitro par fruit, double jauge du raisin.
 
 ## LE VOL SANS HAUT NI BAS — LE HAUT DU VOL FIGÉ AU DÉCOLLAGE, PLUS D'AIMANT SUR LA MAP NUAGES (2026-10-20, v737, session nuages-haut-bas — Sacha : « il y a toujours des problèmes dans la map nuage : on est aimanté à la route, le jeu a du mal à gérer le haut et le bas… il ne faut plus de haut ni de bas, juste la voiture, elle peut voler naturellement, librement ; quand tu voles près de la route, tu es attiré et ta trajectoire est déviée par le haut et le bas »)
 - **Le constat, mesuré** (3e plainte de suite : 18/10 « le jeu ne sait pas de quel côté on va », 19/10 « ça dévie la trajectoire ») : sur la route sans haut ni bas, le HAUT DU VOL

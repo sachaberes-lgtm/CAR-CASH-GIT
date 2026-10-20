@@ -126,6 +126,7 @@ voitures/plaque.js                   # la plaque d'immatriculation, le profil
 interface/vignette-moteur.js         # vignette moteur, étapes de chauffe
 rendu/ciel2.js                       # le ciel en deux temps (CIEL2)
 gameplay/pickups-fruits.js           # pièces pixel, l'étal de fruits
+gameplay/fruits-nouveaux.js           # les nouveaux fruits : 9 normaux + formes des 5 fruits-pouvoirs, les 13 anciens rangés dans FRUIT_EXO
 voitures/deblocage.js                # moteurs, déblocage, conditions des 50
 missions/table.js                    # missions v2 : la table
 economie/aura-banque-contrats.js     # l'aura et la banque, économie v3 : contrats, objectif
@@ -139,7 +140,7 @@ economie/achat-carte-moteur.js       # carBuy (l'achat), carte moteur, monnaie d
 voitures/matieres-forme.js           # l'atelier de matières, outils de forme, squelette
 voitures/constructeur-moteur.js      # le constructeur (mkEngine)
 gameplay/pouvoirs-orbes.js           # les orbes de pouvoir
-gameplay/fruits-auras.js             # les auras des fruits-pouvoirs (piment, citron, dragon, raisin, pomme dorée) : banc seulement, rien n'est encore appelé en course
+gameplay/fruits-auras.js             # les fruits-pouvoirs : auras en shader, piment (nitro qui chauffe), citron (éclairs), dragon (×3, Genjutsu), raisin (double jauge), pomme dorée (aimant en spirale)
 economie/final-spin.js               # FINAL SPIN : la machine à sous
 gameplay/pouvoirs-grisants.js        # pouvoirs v2, petits trucs grisants, pièces instanciées
 rendu/tirelire-reserves.js           # la tirelire, les réserves (makePool)

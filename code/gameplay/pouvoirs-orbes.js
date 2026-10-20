@@ -67,8 +67,20 @@ for(const k in PWR_DEFS){const d=PWR_DEFS[k];
 // (vague 2) la police pixel est une woff2 locale : si elle n'était pas encore chargée au premier dessin, l'étiquette serait restée en
 // monospace de secours pour toute la partie — on la redessine UNE fois quand la police est prête (un petit canvas, aucun shader).
 try{if(document.fonts&&document.fonts.load)document.fonts.load('13px "Press Start 2P"').then(function(){for(const k in PWR_DEFS)PWR_DEFS[k].icoDessine();}).catch(function(){});}catch(e){}
+/* (2026-10-20, Léo : « les boosts de la route deviennent des FRUITS ») LES CRISTAUX SONT DEVENUS DES FRUITS-POUVOIRS : piment (n, nitro infinie), raisin (a, airtime ×2),
+   citron (v, vitesse ×2), pomme dorée (m, aimant), fruit du dragon (x, aura ×2). Même clé, même minuteur, mêmes plaques : seule l'ENVELOPPE change (forme du fruit
+   `fruitPowGeo`, aura en shader `fauraFruit` — voir fruits-auras.js). Le dessin des cristaux reste dessous, pour `?cristaux=1`. */
+const FRUIT_POW_AURA={n:0,v:1,x:2,a:3,m:4};
 function mkPower(kind,dir){
   const d=PWR_DEFS[kind],g=new THREE.Group();
+  if(FRUIT_POW[kind]&&!/[?&]cristaux=1/.test(location.search)){
+    const geo=fruitPowGeo(kind);if(!geo.boundingBox)geo.computeBoundingBox();
+    const m=new THREE.Mesh(geo,FRUIT_MAT);m.scale.setScalar(3.8);g.add(m);
+    const au=fauraFruit(FRUIT_POW_AURA[kind],geo);if(au.children.length)m.add(au);
+    g.userData.lev=Math.max(2.1,-geo.boundingBox.min.y*3.8+.8); // posé AU-DESSUS du bitume d'après sa vraie taille, comme les fruits (fruitLeve)
+    g.userData.fruit=true;
+    return g;
+  }
   const co=new THREE.Mesh(pwrCoreGeo,d.coreM);co.scale.setScalar(1.3); // (vague 2) le cœur ×1,3 : il perce le verre plus dense
   g.add(co,new THREE.Mesh(pwrGeo,d.glassM));
   const ring=new THREE.Mesh(pwrRingGeo,d.ringM);ring.rotation.x=Math.PI/2;g.add(ring);

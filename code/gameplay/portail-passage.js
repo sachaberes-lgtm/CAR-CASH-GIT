@@ -217,7 +217,7 @@ function sensBumpFlanc(b,t,n,sg,impB){
   for(let i=0;i<nb;i++){const a=vt*(.72+Math.random()*.26),l=sg*(2+Math.random()*(4+5*k)),u=-1+Math.random()*3.5,o=(Math.random()-.5)*1.6;
     spawnP(sparkGold,px+t.x*o,py+t.y*o,pz+t.z*o,t.x*a+b.x*l+n.x*u,t.y*a+b.y*l+n.y*u,t.z*a+b.z*l+n.z*u,.2+Math.random()*.25);}
 }
-function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe(); // (2026-10-17) fr9 : une figure SUR LA ROUTE en cours, qui part avec le vol // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
+function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe();RAI.stage=0; // (2026-10-17) fr9 : une figure SUR LA ROUTE en cours, qui part avec le vol // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
   FX2.drift=FIGV2.on&&driftEnCours&&!bord;FX2.driftS=steer>=0?1:-1; // (2026-10-14, LES FIGURES v2) un DRIFT qui décolle part en toupie — lu AVANT la remise à zéro
   if(bord)secBord();m2Saut(); /* (2026-10-16) LES MISSIONS v2 : un saut neuf, des tours neuves à frôler */ // (2026-10-14) LES DÉFIS SECRETS : FANTÔME — sorti par le bord
   const roll0=carRoll9; // (bord v2) le roulis de la carrosserie AVANT la remise à zéro : la bascule part de là
