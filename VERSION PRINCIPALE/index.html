@@ -62570,7 +62570,7 @@ const RICH_CAP={billet:30,liasse:6,carte:6,trefle:6,jeton:12,montre:4,piece2:8,p
 const RICH_PD=[0,2,4,7,9,12,14,16,19,21],RICH_MEL=[0,2,4,7,9,12,14,16,14,12,9,7,4,2]; // RICH_MEL : la mélodie des cœurs qui éclatent — elle monte puis redescend (un aller-retour, pas une chute)
 function richSon(){const B=window.CCSON_BANQUE;return !!(B&&B.m&&B.m['riche.coup']);} // richSon : la banque a-t-elle les sons de la pluie de richesse ? (sinon, l'ancien jeu de sons)
  // (2026-10-16) la pentatonique en demi-tons (degré → st) : la note du combo, la mélodie des cœurs
-const RICH_NUEE={petit:[.14,3,4],bon:[.24,4,6],gros:[.34,6,8],jackpot:[.55,9,12]}; /* (2026-10-20, Léo : « un peu moins de cœur ») ≈ −35 % : moins souvent (22/35/50/75 % → 14/24/34/55 %) et des nuées plus petites (4-6/6-9/8-12/12-16 → 3-4/4-6/6-8/9-12) */ // (2026-10-16) LA NUÉE DE CŒURS : la chance qu'une gerbe en porte une, combien de petits cœurs (min, max) // (la chaîne : son pool à elle, RICH.ch)
+const RICH_NUEE={petit:[.22,4,6],bon:[.35,6,9],gros:[.5,8,12],jackpot:[.75,12,16]}; // (2026-10-16) LA NUÉE DE CŒURS : la chance qu'une gerbe en porte une, combien de petits cœurs (min, max) // (la chaîne : son pool à elle, RICH.ch)
 /* (2026-10-14, Léo : « diminue la quantité d'objets déversés lors des coups, garde la variété ; vise quelque chose d'addictif qui joue avec le
    besoin d'effort et de récompense ») LES GERBES MAIGRISSENT (≈ ÷2,5 : petit 1-2, bon 3-5, gros 6-9, jackpot 14-19 ; les répliques aussi), les
    MÉLANGES ne bougent pas (la variété reste) — et L'EFFORT DÉCIDE DE LA TAILLE : un coup isolé paie surtout PETIT (le jackpot n'y tombe
