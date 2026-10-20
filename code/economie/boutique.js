@@ -51,10 +51,11 @@ function shopPop(src){
   clearTimeout(SPOP.t);
   const a=carOwned(i),une=!!u.une,im=src.querySelector('.shPhoto img'),ph=PHOTO.cache[i]||(im?im.src:'');
   const RAR={leg:'LÉGENDAIRE',epi:'ÉPIQUE',rar:'RARE'},rar=u.rar||'leg';
-  el.innerHTML='<div class="spCarte '+rar+'" data-car="'+i+'">'
+  const arc=shArcHtml(i,a).replace('class="shArc"','class="shArc spArc"'); // (2026-10-20) le chat : « + TRAÎNÉE ARC-EN-CIEL INCLUSE » sous son nom
+  el.innerHTML='<div class="spCarte '+rar+(arc?' avecArc':'')+'" data-car="'+i+'">'
     +'<span class="spRare">'+sansAcc(TR(RAR[rar]))+'</span>'+''
     +'<div class="shPhoto big">'+(ph?'<img src="'+ph+'" alt="">':'<i class="pxi pxi-voiture shAttente"></i>')+'</div>'
-    +'<b class="spNom" id="spNom">'+insec(TR(CARS[i].name))+'</b>'
+    +'<b class="spNom" id="spNom">'+insec(TR(CARS[i].name))+'</b>'+arc
     +'<span class="spDesc">'+(LANG==='fr'?CARS[i].desc:TR(CARS[i].desc))+'</span>'
     +(a?'<div class="spPrix aToi">'+pxi('coche')+'<b>'+sansAcc(TR('À TOI'))+'</b></div>'
        :'<div class="spPrix">'+'<em>'+eurTxt(u.eur)+'</em></div>')
