@@ -42,6 +42,7 @@
    `node synchro-versions.js` (racine du dépôt) la régénère depuis la principale. Forçages ponctuels : `?tel=1` / `?pc=1`.
    (Déclarée au niveau global — un `const` de script classique est visible du grand script, qui la lit.) */
 const EDITION='mobile';
+if(/[?&]portes=haut\b/.test(location.search))document.documentElement.classList.add('portesHaut'); /* (2026-10-20, Léo : « le mission, le shop, tu remets ça en dessous ») les portes du garage sous le nom (Sacha, 19/10) : seulement avec ?portes=haut */
 if(/[?&]garage=(leo|avant)\b/.test(location.search))document.documentElement.classList.add('garLeo'); /* (2026-10-19, Sacha) LE GARAGE QUI PREND TOUT L'ÉCRAN (la feuille garageHaut) est le défaut ; ?garage=leo (ou =avant) rend le garage d'avant */
 if(/[?&]garjouer=0\b/.test(location.search))document.documentElement.classList.add('sansGarJouer'); /* (2026-10-18) le JOUER de l'inventaire et de la boutique, coupé : voir <style id="jouerGarage"> */
 /* (2026-10-11, Léo : « enlève les intros, tout ça : lance juste la voiture dans la map ») LA BALADE SANS INTRO — la classe est posée
