@@ -149,8 +149,8 @@ void main(){vec3 nv=normalize(vN),vv=normalize(vV);float rim=pow(1.-abs(dot(nv,v
   else if(uKind<2.5){float ang=atan(vP.z,vP.x);float b=.5+.5*sin(ang*3.+vP.y*8.-uT*3.2+uS*2.);
     vec3 c=.55+.45*cos(6.2832*(vec3(0.,.2,.4)+.5*b+uT*.1));c=mix(c,vec3(.9,.1,.35),.4);
     col=vec4(c,(b*.32+rim*.45)*(1.-uS*.3));}
-  else{float sp=step(.965,n3(vP*20.+vec3(0.,floor(uT*7.),0.)));
-    col=vec4(mix(vec3(1.,.78,.25),vec3(1.,.95,.7),sp),clamp(rim*.55+sp*.9,0.,1.)*(1.-uS*.3));}
+  else{float sp=step(.925,n3(vP*18.+vec3(0.,floor(uT*8.),0.)))+step(.97,n3(vP*34.+vec3(floor(uT*11.),0.,3.)));float gl=smoothstep(0.,.1,.5-abs(fract((vP.x+vP.y*.7)*.28-uT*.5)-.5));
+    col=vec4(mix(vec3(1.,.8,.3),vec3(1.,.97,.8),clamp(sp+gl,0.,1.)),clamp(rim*.3+sp*.9+gl*.22,0.,1.)*(1.-uS*.3));}
   if(col.a<.02)discard;gl_FragColor=col;}`;
 const FDISC_VS=`uniform float uSize;varying vec2 vUv;
 void main(){vUv=position.xy*2.;vec4 c=modelViewMatrix*vec4(0.,0.,0.,1.);vec4 mv=c+vec4(position.xy*uSize,-1.8,0.);gl_Position=projectionMatrix*mv;}`;
@@ -180,7 +180,7 @@ function fauraFruit(kind,geo){
   return g;
 }
 let FDISC_GEO=null;
-function fauraGlobalTick(dt){FAURAU.t+=Math.min(dt,.1);FAURAU.uT.value=FAURAU.t;}
+function fauraGlobalTick(dt){FAURAU.t+=Math.min(dt,.1);FAURAU.uT.value=FAURAU.t;if(FAURAU.uPx&&typeof camera!=='undefined'&&renderer)FAURAU.uPx.value=renderer.domElement.height/(2*Math.tan(camera.fov*Math.PI/360));}
 const FAURA_Q=new THREE.Quaternion();
 function fauraTick(grp,t,cam){
   const u=grp.userData.faura;u.pts.material.uniforms.uT.value=t;
@@ -477,3 +477,88 @@ window.dbgPwrPhoto=function(k,t,dist,haut){
   if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
   return renderer.domElement.toDataURL('image/png');
 };
+
+/* ===== LES AURAS EN MINI CUBES, AUTOUR DU FRUIT (2026-10-20, v750, Léo : « utilise des mini cubes… ») =====
+   Le fruit est posé au sol ; l'aura vit AUTOUR de lui (rayon > son encombrement) et ne le cache jamais.
+   · PIMENT : de belles FLAMMES en cubes — huit langues qui dansent autour, blanc-jaune → orange → rouge, dont les cubes se DÉSINTÈGRENT en montant (plus haut, plus de cubes éteints) + des braises qui s'échappent.
+   · CITRON : des ÉCLAIRS DROITS (rubans de segments rectilignes, angles vifs, jamais de courbe) qui TOURNENT autour du fruit puis s'ÉCHAPPENT vers l'extérieur ; ils claquent 13 fois par seconde.
+   · DRAGON : un tourbillon de mini cubes TOUT AUTOUR, qui montent du sol — rouge, violet, rose, vert, bleu (par petits groupes, pas un arc-en-ciel) — et évitent le fruit.
+   · RAISIN : un VENT très léger qui tourne autour (poussière claire et quelques cubes pâles, trajets irréguliers : jamais des lignes ni des formes qui se suivent). Rien au sol.
+   · POMME DORÉE : rien autour ; le fruit lui-même SCINTILLE plus (coque d'étincelles, reflet qui balaie), plus lisse, plus brillant, un peu plus de rouge dans l'or.
+   Matières et géométries PARTAGÉES par pouvoir (un seul exemplaire de chaque, tout le mouvement dans le vertex shader) ; `uG` = la hauteur du sol sous le centre du fruit. */
+FAURAU.uPx={value:700};
+const FCUB_VS=`uniform float uT,uPx,uG,uKind;attribute vec4 aSeed;varying vec4 vCol;varying float vShape;
+float h(float x){return fract(sin(x*127.1)*43758.5453);}
+void main(){vec3 p=vec3(0.);float size=0.;vec4 col=vec4(0.);float shape=0.;vec4 s=aSeed;
+  if(uKind<.5){ // PIMENT
+    if(s.x<1.5){float tg=floor(s.x*8.+.01);float u=s.y;float ang=tg*.7854+h(tg)*.3+sin(uT*.8+tg)*.15;
+      float H=2.4+2.4*(.5+.5*sin(uT*(2.+h(tg+9.)*2.)+tg*2.3));float hh=u*H;
+      float rr=4.5+.5*sin(uT*1.7+tg)+hh*.14*sin(uT*3.+tg*5.+u*4.);float a2=ang+hh*.1*sin(uT*2.+tg);
+      p=vec3(cos(a2)*rr,uG+.2+hh,sin(a2)*rr);
+      float stp=floor(uT*7.+s.z*40.);float alive=step(u*.88,h(s.w*50.+stp)); // la désintégration : plus on monte, moins de cubes restent
+      size=(.78-.5*u)*alive;
+      vec3 c=u<.2?vec3(1.,.97,.7):u<.5?vec3(1.,.62,.14):u<.8?vec3(1.,.3,.06):vec3(.7,.1,.04);col=vec4(c,alive);}
+    else{float life=fract(uT*(.35+.3*s.z)+s.w);float ang=s.y*6.2832+uT*.6;float rr=4.3+s.z*1.5;
+      p=vec3(cos(ang)*rr,uG+life*4.6,sin(ang)*rr);p.x+=sin(uT*3.+s.y*20.)*.3*life;size=.36*(1.-life);col=vec4(mix(vec3(1.,.7,.2),vec3(.8,.12,.05),life),1.-life);}}
+  else if(uKind<2.5){ // DRAGON : le tourbillon
+    float life=fract(uT*(.14+.1*s.z)+s.w);float ang=s.x*6.2832+uT*(.35+.3*s.y)*(s.y<.5?1.:-.6)+life*1.5;
+    float rr=4.4+s.z*2.3+.5*sin(uT*1.3+s.x*30.);p=vec3(cos(ang)*rr,uG+.25+life*5.5,sin(ang)*rr);
+    size=(.5-.3*life)*(.6+.8*s.y);float k=h(s.x*91.);
+    vec3 c=k<.28?vec3(.95,.1,.2):k<.52?vec3(.55,.2,.95):k<.72?vec3(1.,.35,.75):k<.86?vec3(.3,.9,.35):vec3(.25,.5,1.);
+    col=vec4(c,(1.-life*.7)*smoothstep(0.,.08,life));}
+  else{ // RAISIN : le vent léger
+    float life=fract(uT*(.2+.25*s.z)+s.w);float ang=s.x*6.2832+uT*(.5+.5*s.y)+sin(uT*.9+s.x*40.)*.6+life*2.;
+    float rr=4.3+s.z*2.3+.6*sin(uT*1.1+s.y*20.+life*5.);float y=.5+life*3.7+.5*sin(uT*1.7+s.x*50.);
+    p=vec3(cos(ang)*rr,uG+y,sin(ang)*rr);float cube=step(.8,s.y);size=(cube>.5?.2:.5+.5*s.y)*(1.-.4*life);shape=cube>.5?0.:3.;
+    col=vec4(mix(vec3(1.,.97,1.),vec3(.95,.86,1.),s.z),(cube>.5?.8:.34)*sin(life*3.1416));}
+  vCol=col;vShape=shape;vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;
+  if(col.a<.02||size<.01)gl_Position=vec4(9.,9.,9.,1.);
+  gl_PointSize=clamp(size*uPx/max(.1,-mv.z),1.5,70.);}`;
+const FCUB_FS=`varying vec4 vCol;varying float vShape;
+void main(){vec2 c=gl_PointCoord-.5;
+  if(vShape>2.5){float r=length(c)*2.;float al=smoothstep(1.,.2,r)*vCol.a;if(al<.01)discard;gl_FragColor=vec4(vCol.rgb,al);return;}
+  float v=max(abs(c.x),abs(c.y))*2.;vec3 core=min(vCol.rgb*1.2+.1,vec3(1.));vec3 edge=vCol.rgb*vec3(.8,.55,.65);
+  gl_FragColor=vec4(v>.7?edge:core,clamp(vCol.a,0.,1.));}`;
+const FCUB_N={0:190,2:170,3:80},FCUB={mat:{},geo:{}};
+function fcubGeo(kind){
+  if(FCUB.geo[kind])return FCUB.geo[kind];
+  const n=FCUB_N[kind],pos=new Float32Array(n*3),sd=new Float32Array(n*4);let q=kind*4421+31;const r=()=>{q=(q*16807)%2147483647;return q/2147483647;};
+  for(let i=0;i<n;i++){sd[i*4]=r();sd[i*4+1]=r();sd[i*4+2]=r();sd[i*4+3]=r();
+    if(kind===0){if(i<8*14){sd[i*4]=Math.floor(i/14)/8;sd[i*4+1]=(i%14)/13;}else sd[i*4]=2;}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('aSeed',new THREE.BufferAttribute(sd,4));
+  g.boundingSphere=new THREE.Sphere(new THREE.Vector3(0,2,0),12);FCUB.geo[kind]=g;return g;
+}
+function fcubMat(kind,uG){
+  const k=kind+':'+uG.toFixed(2);if(FCUB.mat[k])return FCUB.mat[k];
+  return FCUB.mat[k]=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uPx:FAURAU.uPx,uG:{value:uG},uKind:{value:kind}},vertexShader:FCUB_VS,fragmentShader:FCUB_FS,transparent:true,depthWrite:false});
+}
+/* les ÉCLAIRS DROITS du citron : des rubans de segments RECTILIGNES (angles vifs), autour du fruit puis qui s'échappent */
+const FZ_NB=7,FZ_NS=6;
+const FZ_VS=`uniform float uT,uG,uPx;attribute vec3 aSeg;varying float vA;varying float vK;
+float h(float x){return fract(sin(x*127.1)*43758.5453);}
+vec3 pt(float bolt,float stp,float k){float th0=h(bolt*5.1+stp*.37)*6.2832+uT*.9;float th=th0+k*.34;
+  float zz=(h(k*7.7+bolt*3.3+stp*1.9)-.5);float rr=4.4+zz*1.3+max(0.,k-4.)*1.6;float yy=.7+1.1*k*h(bolt+2.)+(h(k*3.1+bolt*9.+stp)-.5)*1.6;
+  if(k>4.5)yy+=1.6;return vec3(cos(th)*rr,uG+yy,sin(th)*rr);}
+void main(){float bolt=aSeg.x,k=aSeg.y,side=aSeg.z;float stp=floor(uT*13.+bolt*3.7);float on=step(.3,h(bolt*17.1+stp*1.3));
+  vec3 p=pt(bolt,stp,k),pn=pt(bolt,stp,min(5.,k+1.));vec4 mv=modelViewMatrix*vec4(p,1.);vec3 dv=(modelViewMatrix*vec4(pn,1.)).xyz-mv.xyz;
+  vec3 sd=normalize(cross(dv,vec3(0.,0.,1.))+vec3(1e-4));mv.xyz+=sd*side*.1;gl_Position=projectionMatrix*mv;vA=on*(1.-.35*k/5.);vK=h(bolt+stp*.37);}`;
+const FZ_FS=`varying float vA;varying float vK;void main(){if(vA<.01)discard;gl_FragColor=vec4(mix(vec3(.45,.92,1.),vec3(1.,1.,.82),vK),vA);}`;
+let FZ_GEO=null,FZ_MAT={};
+function fzGeo(){
+  if(FZ_GEO)return FZ_GEO;const nv=FZ_NB*(FZ_NS)*2,pos=new Float32Array(nv*3),sg=new Float32Array(nv*3),ix=[];let v=0;
+  for(let b=0;b<FZ_NB;b++){const base=v;for(let k=0;k<FZ_NS;k++)for(const c of [-1,1]){sg[v*3]=b;sg[v*3+1]=k;sg[v*3+2]=c;v++;}
+    for(let k=0;k<FZ_NS-1;k++){const a=base+k*2;ix.push(a,a+1,a+2,a+1,a+3,a+2);}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('aSeg',new THREE.BufferAttribute(sg,3));g.setIndex(ix);
+  g.boundingSphere=new THREE.Sphere(new THREE.Vector3(0,2,0),14);return FZ_GEO=g;
+}
+function fzMat(uG){const k=uG.toFixed(2);return FZ_MAT[k]||(FZ_MAT[k]=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uG:{value:uG},uPx:FAURAU.uPx},vertexShader:FZ_VS,fragmentShader:FZ_FS,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));}
+/* fauraCubes(kind, lev) : l'aura d'un fruit-pouvoir, dans le repère du groupe (centre du fruit) ; `lev` = hauteur du centre au-dessus du sol. kind : 0 piment · 1 citron · 2 dragon · 3 raisin · (4 pomme dorée : voir mkPower) */
+function fauraCubes(kind,lev){
+  const g=new THREE.Group(),uG=-lev;
+  if(kind===1){const m=new THREE.Mesh(fzGeo(),fzMat(uG));m.renderOrder=22;g.add(m);}
+  else if(kind===0||kind===2||kind===3){const m=new THREE.Points(fcubGeo(kind),fcubMat(kind,uG));m.renderOrder=22;g.add(m);}
+  return g;
+}
+
+// la POMME DORÉE : un peu plus de rouge dans l'or (contraste), toujours DORÉE
+FRUIT_PAL.go1={g:'f',c:0xc89012};FRUIT_PAL.go2={g:'f',c:0xf0bc30};FRUIT_PAL.go3={g:'f',c:0x8a3c0c};FRUIT_PAL.goH={g:'f',c:0xfff2b0};
