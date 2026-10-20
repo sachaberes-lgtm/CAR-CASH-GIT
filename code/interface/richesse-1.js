@@ -260,11 +260,11 @@ function richTexUni(c){return richCv(4,4,function(x){x.fillStyle=c;x.fillRect(0,
    au milieu (le filigrane), et la valeur en GRAND au milieu, en lettres carrées (la police pixel du jeu), frappée : ombre d'encre, contour,
    dégradé clair, un fil de lumière. Le 20 a sa tour Eiffel dans la rosace et sa bande BLEU-BLANC-ROUGE ; le 500 est violet et OR. */
 const RICH_BILLETS=[ // (2026-10-20, Léo : « chaque billet une plus belle couleur, un dégradé de DEUX couleurs sur chacun ; le 500 en blanc aussi ») c:[départ, arrivée] = le dégradé en diagonale ; l = la couleur des filets/guilloches ; sh = le reflet qui glisse
-  {v:'10', m:'DIX DOLLARS',       c:['#4c0f2c','#c8405e'],l:[255,170,190],sh:[1,.6,.7]},   // grenat → framboise (peu saturé au départ : l'étalonnage du jeu sature ×1,4)
-  {v:'20', m:'VINGT FRANCS',      c:['#0a2a86','#22b4ea'],l:[150,215,255],sh:[.55,.85,1],fr:1}, // bleu roi → turquoise, à la française
-  {v:'50', m:'CINQUANTE DOLLARS', c:['#a8380a','#eaa530'],l:[255,215,140],sh:[1,.82,.45]},  // orange brûlé → ambre doré
-  {v:'100',m:'CENT DOLLARS',      c:['#0a5a4a','#42d884'],l:[160,255,205],sh:[.5,1,.65]},  // vert sapin → vert menthe
-  {v:'500',m:'CINQ CENTS DOLLARS',c:['#2c0f86','#a64ad0'],l:[225,175,255],sh:[.9,.7,1],or:1}]; // violet → magenta ; les filets restent dorés, le chiffre est BLANC
+  {v:'10', m:'DIX DOLLARS',       c:['#7a0c2c','#ff6a58'],l:[255,170,190],sh:[1,.6,.7]},   // grenat → framboise (peu saturé au départ : l'étalonnage du jeu sature ×1,4)
+  {v:'20', m:'VINGT FRANCS',      c:['#1a2cae','#30d8ff'],l:[150,215,255],sh:[.55,.85,1],fr:1}, // bleu roi → turquoise, à la française
+  {v:'50', m:'CINQUANTE DOLLARS', c:['#d0340a','#ffc83a'],l:[255,215,140],sh:[1,.82,.45]},  // orange brûlé → ambre doré
+  {v:'100',m:'CENT DOLLARS',      c:['#0a6a50','#86ec62'],l:[160,255,205],sh:[.5,1,.65]},  // vert sapin → vert menthe
+  {v:'500',m:'CINQ CENTS DOLLARS',c:['#4a14c4','#ee5ccc'],l:[225,175,255],sh:[.9,.7,1],or:1}]; // violet → magenta ; les filets restent dorés, le chiffre est BLANC
 const RICH_B100=3;
 function richTexBillet(B){return richCv(512,236,function(x,w,h){
   const L=function(k,a){const c=B.l.map(function(v){return Math.round(v+(255-v)*k);});return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')';}, // la couleur des traits, éclaircie de k
@@ -279,12 +279,12 @@ function richTexBillet(B){return richCv(512,236,function(x,w,h){
   if(B.fr){x.fillStyle=L(.6,.85);x.beginPath();x.moveTo(rx-22,ry+40);x.lineTo(rx-6,ry-6);x.lineTo(rx-2,ry-38);x.lineTo(rx,ry-50);x.lineTo(rx+2,ry-38);x.lineTo(rx+6,ry-6);x.lineTo(rx+22,ry+40); // la TOUR EIFFEL
     x.lineTo(rx+12,ry+40);x.quadraticCurveTo(rx,ry+18,rx-12,ry+40);x.closePath();x.fill();x.fillRect(rx-13,ry+14,26,4);x.fillRect(rx-8,ry-10,16,3);x.fillRect(rx-1,ry-58,2,9);}
   else{x.fillStyle=T(.55,.85);x.font='44px '+F;x.textAlign='center';x.textBaseline='middle';x.fillText('$',rx+2,ry+2);}
-  const n=B.v.length,fz=n>2?74:92,cx=w*.555,cy=h*.53;x.font=fz+'px '+F;x.textAlign='center';x.textBaseline='middle'; // LE GRAND CHIFFRE CARRÉ, là où le pose la toile de Léo
+  const n=B.v.length,fz=n>2?90:120,cx=w*.53,cy=h*.53;x.font=fz+'px '+F;x.textAlign='center';x.textBaseline='middle'; // LE GRAND CHIFFRE CARRÉ, là où le pose la toile de Léo
   {const tw=x.measureText(B.v).width,px=cx-tw*.5-16,py=cy-fz*.5-13,pw=tw+32,ph=fz+26;x.fillStyle='rgba(0,0,0,.3)';richRond(x,px,py,pw,ph,10);x.fill(); // (2026-10-16, Léo : « plus visibles les numéros ») un CARTOUCHE sombre sous le chiffre (le voile clair d'avant le noyait)
    x.strokeStyle=T(.45,.4);x.lineWidth=2;richRond(x,px+4,py+4,pw-8,ph-8,7);x.stroke();}
   x.save();x.shadowColor=B.or?'rgba(255,232,170,.55)':'rgba(255,255,255,.55)';x.shadowBlur=28;x.shadowOffsetX=2000;x.fillStyle='#fff';x.fillText(B.v,cx-2000,cy);x.restore(); // (2026-10-20, Léo) LA LUEUR : un halo blanc doux autour du chiffre, peint dans la toile (le chiffre est dessiné hors toile, seule son ombre floue reste) — la lumière qu'il pose sur le papier ; le chiffre lui-même luit dans le programme (uLum)
-  x.fillStyle='rgba(0,0,0,.55)';x.fillText(B.v,cx+6,cy+7);                                                                  // son ombre d'encre
-  x.lineJoin='miter';x.lineWidth=9;x.strokeStyle='rgba(0,0,0,.72)';x.strokeText(B.v,cx,cy);                                  // son contour, épais
+  x.fillStyle='rgba(0,0,0,.22)';x.fillText(B.v,cx+3,cy+4);                                                                  // son ombre d'encre
+  /* (2026-10-20, Léo : « enlève le trait noir autour des chiffres ») plus de contour d'encre : le chiffre blanc se détache du cartouche sombre */                                  // son contour, épais
   const Z=x.createLinearGradient(0,cy-fz*.5,0,cy+fz*.5);if(B.or){Z.addColorStop(0,'#ffffff');Z.addColorStop(.55,'#fffdf5');Z.addColorStop(1,'#f3ead2');}else{Z.addColorStop(0,'#ffffff');Z.addColorStop(.55,L(.88,1));Z.addColorStop(1,L(.7,1));} // (2026-10-20) le 500 aussi en BLANC (chaud à peine)
   x.fillStyle=Z;x.fillText(B.v,cx,cy);x.save();x.beginPath();x.rect(0,cy-fz*.5,w,fz*.16);x.clip();x.fillStyle='rgba(255,255,255,.45)';x.fillText(B.v,cx,cy);x.restore(); // dégradé clair, et le fil de lumière en haut
   x.font='20px '+F;x.fillStyle=B.or?'rgba(255,252,240,.95)':T(.8,.95);x.textAlign='left';x.fillText(B.v,30,42);x.textAlign='right';x.fillText(B.v,w-30,h-38); // les petites valeurs aux coins (un cran plus grandes, plus claires)
