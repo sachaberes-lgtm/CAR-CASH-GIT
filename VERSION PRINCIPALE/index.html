@@ -37030,10 +37030,12 @@ function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
   if(!garAccueil._vu||ecranWipe._on){garAccueil._vu=true;GAR.aMenu=true;openGarage();return;} // le 1er (sous l'écran de démarrage), ou déjà sous un voile
   ecranWipe(function(){if(garageOn||(started&&!gameOver))return;GAR.aMenu=true;openGarage();});
 }
+const MIS_FOCUS_OFF=true;
 {const clicM=function(el,f){if(!el)return;el.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(el);f(el);});
    el.addEventListener('keydown',function(e){if(e.code==='Enter'||e.code==='Space'){e.preventDefault();el.click();}});};
  clicM($('gReglage'),function(){uiClic('nav');ecranWipe(function(){window.__mRetour='set';closeGarage();});});   // les RÉGLAGES (retour : le menu)
  clicM($('gMisBtn'),function(){uiClic('nav');garMode('missions');});    // les MISSIONS : l'écran de l'atelier (voir « LES MISSIONS DANS L'ATELIER »)
+  if(MIS_FOCUS_OFF){const e0=document.getElementById('misFocus');if(e0&&e0._on){e0.classList.remove('on','ok');e0._on=0;}return;} // (2026-10-20, Sacha : « enlève ce truc de mission ») plus aucune mission affichée en course ; mettre MIS_FOCUS_OFF à false pour la rallumer
  clicM(document.querySelector('#gmBas .gmHome'),function(){uiClic('retour');garMode('menu');});             // HOME : le menu
  clicM(document.querySelector('#gmBas .gmJouer'),function(e){CARR.actif=null;garJouer();});                 // JOUER : la partie sans fin, la mission suivie à l'écran
  {const nd=$('gmNoeuds');if(nd)nd.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go)return;
