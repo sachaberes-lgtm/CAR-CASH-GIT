@@ -424,12 +424,34 @@ void main(){float h=vH;vec4 col=vec4(0.);vec3 q=vec3(cos(vA)*2.4,h*2.6-uT*(uKind
   if(col.a<.02)discard;gl_FragColor=col;}`;
 const FSOLD_VS=`varying vec2 vUv;void main(){vUv=position.xy*2.;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`;
 const FSOLD_FS=`uniform float uT,uKind;varying vec2 vUv;
-mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,-s,s,c);}
-void main(){vec2 p=vUv;float r=length(p);if(r>1.)discard;float ring=1.-smoothstep(0.,.05,abs(r-.9)),inner=smoothstep(1.,.55,r);vec4 col=vec4(0.);
-  if(uKind<.5)col=vec4(mix(vec3(.2,.02,.02),vec3(1.,.45,.08),ring),(.4*inner+ring*.95)*(.8+.2*sin(uT*7.+atan(p.y,p.x)*6.)));
-  else if(uKind<1.5)col=vec4(mix(vec3(.2,.5,.8),vec3(.8,1.,1.),ring),(.3*inner+ring*.95)*step(.3,fract(sin(floor(uT*13.)*91.7)*437.5)+.35));
-  else if(uKind<3.5)col=vec4(1.,.92,.97,(.22*inner+ring*.9));
-  else col=vec4(mix(vec3(1.,.7,.2),vec3(1.,.95,.7),ring),.25*inner+ring*.95);
+float rn(float x){return fract(sin(x*127.1)*43758.5453);}
+void main(){vec2 p=vUv;float r=length(p);if(r>1.)discard;float a=atan(p.y,p.x);vec4 col=vec4(0.);
+  if(uKind<.5){ // PIMENT : une ÉTOILE DE FLAMMES — huit langues qui ondulent, blanc-jaune au coeur, rouge aux pointes
+    float tip=.5+.5*cos(8.*a+uT*2.2+sin(r*9.-uT*5.)*.5);float rf=.34+.6*pow(tip,2.2);
+    float inside=1.-smoothstep(rf-.03,rf,r);float k=r/max(rf,.01);
+    vec3 c=mix(vec3(1.,.95,.6),vec3(1.,.5,.1),smoothstep(0.,.55,k));c=mix(c,vec3(.8,.08,.03),smoothstep(.6,1.,k));
+    col=vec4(c,inside*.92);}
+  else if(uKind<1.5){ // CITRON : des ÉCLATS DE FOUDRE — six rayons brisés qui claquent, un hexagone qui vibre, un noyau blanc
+    float stp=floor(uT*13.);float aa=a+sin(r*14.+stp*3.1)*.13;
+    float d=abs(fract(aa*6./6.2832+.5)-.5)*6.2832/6.*r;float ray=1.-smoothstep(0.,.05,d);
+    float flick=step(.2,fract(sin(stp*91.7)*437.5));
+    float hex=1.-smoothstep(0.,.035,abs(r-.38-.03*sin(uT*30.)));float core=1.-smoothstep(.12,.19,r);
+    float al=(ray*flick*(.45+.55*r)+hex*.85+core)*(1.-smoothstep(.88,1.,r));
+    col=vec4(mix(vec3(.4,.9,1.),vec3(1.,1.,.85),clamp(ray+core,0.,1.)),clamp(al,0.,1.));}
+  else if(uKind<3.5){ // RAISIN : DEUX AILES déployées de chaque côté — trois paquets de plumes, un point de nacre au centre
+    vec2 q=vec2(abs(p.x)-.1,p.y*1.15);float r2=length(q),a2=atan(q.y,q.x);
+    float L=.92-.4*abs(a2)+.05*sin(a2*20.);
+    float feather=step(.16,fract(a2*3.2+.5))*(1.-smoothstep(L-.035,L,r2))*step(.12,r2)*step(abs(a2),1.15);
+    float body=1.-smoothstep(.07,.13,r);
+    col=vec4(mix(vec3(.86,.78,.96),vec3(1.),r2/L),clamp(feather*.88+body*.5,0.,1.)*(.86+.14*sin(uT*3.+r2*8.)));}
+  else{ // POMME DORÉE : un AIMANT EN FER À CHEVAL d'or, pointes rouge et blanc, des arcs de champ qui se resserrent vers lui
+    vec2 m=vec2(p.x,-p.y);float rr=length(m);
+    float arc=step(0.,m.y)*step(.38,rr)*(1.-smoothstep(.62,.66,rr));
+    float leg=step(.38,abs(m.x))*(1.-smoothstep(.62,.66,abs(m.x)))*step(m.y,0.)*step(-.66,m.y);
+    float body=clamp(arc+leg,0.,1.);float tipz=step(m.y,-.46)*leg;
+    vec3 c=mix(vec3(1.,.74,.2),vec3(1.,.95,.7),smoothstep(.45,.62,rr));c=mix(c,mix(vec3(.9,.12,.12),vec3(.96),step(m.y,-.56)),tipz);
+    float fld=1.-smoothstep(0.,.025,abs(r-(1.-fract(uT*.45))*.92-.06));
+    col=vec4(c,clamp(body*.95+fld*.45*(1.-body),0.,1.));}
   if(col.a<.02)discard;gl_FragColor=col;}`;
 let FSOL_GEO=null,FSOLD_GEO=null;
 function fauraSol(kind){ // kind : 0 piment · 1 citron · 2 dragon · 3 raisin · 4 pomme dorée — dans le repère de la route : +y = le haut, le sol à y = 0
@@ -438,7 +460,7 @@ function fauraSol(kind){ // kind : 0 piment · 1 citron · 2 dragon · 3 raisin 
   const c=new THREE.Mesh(FSOL_GEO||(FSOL_GEO=new THREE.CylinderGeometry(R,R*.86,H,40,1,true)),cm);c.position.y=H*.5;c.renderOrder=21;g.add(c);
   const dm=kind===2?new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uA:{value:.9}},vertexShader:FSOLD_VS,fragmentShader:FDISC_FS,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3})
     :new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uKind:{value:kind}},vertexShader:FSOLD_VS,fragmentShader:FSOLD_FS,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3});
-  const d=new THREE.Mesh(FSOLD_GEO||(FSOLD_GEO=new THREE.PlaneGeometry(1,1)),dm);d.rotation.x=-Math.PI/2;d.position.y=.08;d.scale.setScalar(R*2.2);d.renderOrder=20;g.add(d);
+  const d=new THREE.Mesh(FSOLD_GEO||(FSOLD_GEO=new THREE.PlaneGeometry(1,1)),dm);d.rotation.x=-Math.PI/2;d.position.y=.08;d.scale.setScalar(R*2.9);d.renderOrder=20;g.add(d);
   return g;
 }
 /* banc (dev) : `dbgPwrPhoto(k, t, dist, haut)` — pose le fruit-pouvoir `k` 20 m devant la caisse, EN SITUATION (le vrai mkPower : posé au sol, l'aura qui en sort), place la caméra derrière lui à `dist` m, `haut` m au-dessus,
