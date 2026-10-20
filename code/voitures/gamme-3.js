@@ -75,7 +75,7 @@
      le grand pare-brise couché, un pavillon court, les arcs-boutants qui encadrent le capot moteur à persiennes, et
      des hanches qui montent derrière la portière. Les phares à cils et les CORNES (Léo, 09/10) ne bougent pas. */
   const U=LPU,R=.33,ZF=1.26,ZR=-1.24,LF=2.18;
-  const P=K.kit({p:{g:'p',c:0xe84800},k:{g:'m',c:0x121317},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},
+  const P=K.kit({p:{g:'p',c:0xaa3a05},k:{g:'m',c:0x121317},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},
     g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   const AR=[[0,2*R+.04],[R*.62,2*R+.02],[R*.98,R*1.18],[R+.12,.22]];
   let zs=[-LF,-2.15,-2.10,-1.95,-1.70,-1.40,-1.10,-.80,-.60,-.46,-.45,-.30,-.05,.30,.50,.55,.56,.80,1.00,1.60,1.80,1.95,2.08,2.14,LF];
@@ -379,7 +379,7 @@
   /* (13/10, « plus ressemblante ») le coupé de Yokohama a un capot LONG et presque à plat (il plongeait en coin vers 0,55),
      les phares au fond de leurs cuvettes au bout des ailes hautes, la bouche sous le nez. */
   const U=LPU,R=.31,ZF=1.19,ZR=-1.115;
-  const P=K.kit({p:{g:'p',c:0xff6a14},k:{g:'m',c:0x131417},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},
+  const P=K.kit({p:{g:'p',c:0xba5213},k:{g:'m',c:0x131417},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},
     g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},
     r:{g:'l',c:0x9a0f1a},w:{g:'l',c:0xd9dce0}}); // (17/10, l'arrière v2) r, w (la plaque éclairée) — aucune famille de plus
   const AR=[[0,2*R+.04],[R*.60,2*R+.01],[R*.98,R*1.14],[R+.12,.27]];

@@ -148,7 +148,7 @@
      couché, une VERRIÈRE étroite posée sur une coque large, l'ÉCOPE qui naît sur le toit et plonge vers le moteur,
      les grandes ouïes derrière les portes, et une poupe droite : grille noire, quatre feux ronds. */
   const U=LPU,R=.33,ZF=1.39,ZR=-1.33,hmp=(z,w,l)=>{const d=Math.abs(z-w)/l;return d>=1?0:1-d*d;};
-  const P=K.kit({p:{g:'p',c:0xff7a10},n:{g:'m',c:0x121316},K:{g:'g',c:0x0b0c10},g:{g:'g',c:0x1c2733},c:{g:'c',c:0xe9ecf0},
+  const P=K.kit({p:{g:'p',c:0xba5d10},n:{g:'m',c:0x121316},K:{g:'g',c:0x0b0c10},g:{g:'g',c:0x1c2733},c:{g:'c',c:0xe9ecf0},
     a:{g:'s',c:0x3a3d44},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   const AR=[[0,2*R+.035],[R*.60,2*R+.01],[R*.95,R*1.20],[R+.10,.20]];
   const ZC=.86,ZE=-.95;                                                          // pied du pare-brise, fin de la verrière

@@ -3,7 +3,7 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
-## LE CAÏD, LE RELIEF DU FLANC QUI SE VOIT EN TOURNANT (2026-10-20, v707, discussion voiture, Léo : « produire le même relief que sur la voiture, dans le style poly, et le rendre visible quand on tourne autour — tourner, bouger la lumière, ça compte beaucoup ; c'est la forme et la propreté qui donnent envie d'acheter »)
+## LE CAÏD, LE RELIEF DU FLANC QUI SE VOIT EN TOURNANT (2026-10-20, v708, discussion voiture, Léo : « produire le même relief que sur la voiture, dans le style poly, et le rendre visible quand on tourne autour — tourner, bouger la lumière, ça compte beaucoup ; c'est la forme et la propreté qui donnent envie d'acheter »)
 - Lu sur sa photo : les PORTES EN CREUX entre deux HANCHES (l'aile avant, le flanc de benne) ; une MARCHE de l'une à l'autre (droite devant,
   inclinée derrière la porte arrière) qui attrape la lumière ; une ARÊTE à hauteur des poignées : dessus le flanc rentre (il regarde le ciel :
   clair), dessous il tombe (plus sombre). En poly, des pans plats et des arêtes franches.
@@ -19337,4 +19337,10 @@ const CACHE = 'cashcar-v624'; // v624 (2026-10-18, Léo : « plus de gris chelou
   POSTER 84 (33 %). Planche : `photos-gameplay/rouges-autres-propositions.png` (dossier de Léo, hors dépôt).
 - Banc (scratchpad de la discussion Map) : `ab.py` (avant/après au garage et en course figée, deux serveurs), `tune3.py`/`tune4.py` (réglages à chaud par `dbgRed` + mesure des pixels saturés), `flat.py`
   (classement de toute la gamme), `planche.py` (planche légendée capturée par Chrome).
+
+## LES ORANGES, MÊME CORRECTION (2026-10-20, discussion Map — Léo : « fais aussi la même correction sur les oranges (TAURINE, TRÔNE CENTRAL, ZED) et montre-moi la comparaison ») — v707
+- Suite des voitures rouges (v706, sur le main) : LA TAURINE, LE TRÔNE CENTRAL et LA ZED sortent aussi en aplat saturé au garage (40-43 % de pixels « plats » : un canal à 255, un autre à 0-40).
+- ESSAYÉ À 55 % (comme les rouges) : du relief au garage, mais en course de jour (NUAGES, midi) l'orange vire au BRUN. À 70 % (c × 0,70 + (8, 8, 5)) : l'orange reste vif, le relief revient.
+  TAURINE e84800 → aa3a05 (gamme-3.js) · ZED ff6a14 → ba5213 (gamme-3.js) · TRÔNE CENTRAL ff7a10 → ba5d10 (gamme-4.js). `CARS[i].color` (vignette de la peinture d'usine) inchangé.
+- Non fait : LE DÉFIEUR (jaune) et POSTER 84 (même défaut, proposés à Léo — le jaune se brunit vite en dessous de ~80 %).
 
