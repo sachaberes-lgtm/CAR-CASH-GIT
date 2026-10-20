@@ -15,6 +15,9 @@ mkdir -p .vercel-static
 cp -R demo/cash-car-demo .vercel-static/demo
 cp demo/cash-car-demo/og.jpg .vercel-static/og.jpg
 cp -R "VERSION PRINCIPALE" .vercel-static/jouer
+# (2026-10-20, Sacha : « donne-moi juste un lien ») /enregistrer/ = la page d enregistrement des parties pour les bots (ml/train : train.html + ses
+# vendor/assets, rien d autre). Lien : /enregistrer/?rec=1 — E demarre/arrete, chaque arret telecharge un demo-*.json (pas de serveur en ligne).
+mkdir -p .vercel-static/enregistrer && cp ml/train/train.html .vercel-static/enregistrer/index.html && cp -R ml/train/vendor ml/train/assets .vercel-static/enregistrer/
 rm -f .vercel-static/jouer/CLAUDE.md .vercel-static/jouer/JOURNAL.md .vercel-static/jouer/README.md .vercel-static/jouer/JOUER.bat
 # (2026-10-07, campagne de debug avant publication) les OUTILS de travail ne partent plus en ligne : le banc d écoute (sons.html), l atelier
 # du son (recettes, scripts) — le jeu n en charge aucun (l atelier des nuages reste : ?nuages=1 le charge en ligne).
