@@ -332,8 +332,9 @@
   `pres`/`essais`). Console : `dbgForet()` et `dbgBanq()` rendent `axe` (°) et `plan` (chaque morceau et sa longueur), `dbgBanq().pres`.
 - Bancs (non commités) : la copie de banc avec `__ev`/`__ctrl` (voir la mémoire « banc des tracés »), l'analyse (écart, écart sans l'axe, repères,
   rayon sur la spline, approche), un plan SVG des 40 tracés par map et palier ; les courses au pilote rechargent la page à chaque course.
-- À trancher par Sacha : l'axe de la forêt tourne sur TOUT le cercle (on peut rouler face au soleil couchant, ses rayons) — le borner comme la jade
-  (±45°) si ça gêne ; au glacier ±90°.
+- TRANCHÉ (2026-10-20, Sacha, entre « tout le cercle », « ±90° » et « ±45° comme la jade ») : on GARDE TOUT LE CERCLE pour l'axe de la forêt
+  (on peut rouler face au soleil couchant). Mesuré avant de choisir, sur les mêmes 40 tracés (paliers 0 / 10 / 25) : écart de forme 0,26 / 0,24 /
+  0,23 sur tout le cercle, 0,22 / 0,20 / 0,18 à ±90°, 0,17 / 0,16 / 0,14 à ±45° (sous l'objectif de 0,2). Au glacier : ±90°, inchangé.
 ## LE BRAS DES FIGURES EN BOUTIQUE (2026-10-19, Léo : « mets aussi les bras robots dans la boutique, onglet FIGURES » · « faut pas qu'il soit orange, faut qu'il soit comme dans la boutique un peu ; travaille un tout petit peu l'animation ; les autres posent la voiture et un autre bras apparaît »)
 - Boutique (salle blanche), catégorie FIGURES (`brasBqVoulu` : GBQ.cat 'figure') : à la 1re figure touchée, les DEUX BRAS D'ARGENT posent la caisse
   sur le plateau et rentrent dans le socle (`BRB.bqK`, lu par `garBqIndus` — la lévitation descend — et `garBqBras` — ils rentrent une fois la
