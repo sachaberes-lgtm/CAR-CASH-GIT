@@ -3,6 +3,36 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE VOL SANS HAUT NI BAS — LE HAUT DU VOL FIGÉ AU DÉCOLLAGE, PLUS D'AIMANT SUR LA MAP NUAGES (2026-10-20, v737, session nuages-haut-bas — Sacha : « il y a toujours des problèmes dans la map nuage : on est aimanté à la route, le jeu a du mal à gérer le haut et le bas… il ne faut plus de haut ni de bas, juste la voiture, elle peut voler naturellement, librement ; quand tu voles près de la route, tu es attiré et ta trajectoire est déviée par le haut et le bas »)
+- **Le constat, mesuré** (3e plainte de suite : 18/10 « le jeu ne sait pas de quel côté on va », 19/10 « ça dévie la trajectoire ») : sur la route sans haut ni bas, le HAUT DU VOL
+  (`VOLR.u`) était recalé à chaque image sur la normale de la dalle la plus proche. La vrille du 19/10 (`VOLR_ROULIS`) ne portait que le ROULIS de la route ; le reste — la route qui
+  plonge, se cabre, vire sous la caisse — tournait encore la gravité, le plané du nitro, l'équilibre de la caisse et de l'écran : près de la route, tout tirait vers « sa » dalle.
+  C'EST l'aimant, et c'est lui qui déviait la trajectoire.
+- **Le correctif** (`VOLR_FIGE`, `camera.js`) : `volrSuit` ne recale plus rien. Au décollage `startFall` pose `VOLR.u = F.n` (la face de la route qu'on quitte) et il ne bouge plus de tout
+  le vol. Gravité, plané du nitro, équilibre (`veqNiveau`), `camUp`, viseur, prédictions des figures, BUMP, plafonds : tout suivait déjà `VOLR.u`, donc tout est cohérent sans autre
+  retouche — un vol est une PARABOLE NETTE dans le repère de la caisse au départ. Deux raccords : (1) `startFall` n'arme plus `TBORD` (la gravité « de la route » pendant 1,1 s après une
+  sortie par le bord : elle suivait la dalle la plus proche, image après image) ; (2) `mirTick` (le MIRACULÉ) mesure la hauteur sous la normale de la dalle la plus proche, orientée sur la face quittée
+  (avant, `VOLR.u` EN ÉTAIT la normale). Aucune aide ajoutée, rien d'enlevé aux autres maps (`VOLR.on` faux : le bas du monde, au chiffre près).
+  **`?sans=volfige` = le haut qui suit la dalle (v689) ; `dbgVolFige(false|true)` le bascule en direct pour les vols suivants.**
+- **MESURÉ — le VRAI jeu** (Chrome sans fenêtre, muet, couché 844 × 390, `?carte=nuages&meteo=midi&pistegraine=12345` puis `777`, l'image par image de `dbgStep`, mêmes points `s` de la
+  piste pour l'ancien et le nouveau vol, décollage `dbgDauphin`, `explode` neutralisé ; « sortie de plan » = de combien la caisse s'écarte du plan (vitesse de départ, haut de départ) que
+  doit garder une parabole pure) :
+  · SANS NITRO, mains libres, 12 points : avant, le haut du vol tourne de 24° en médiane (max 37°) et la caisse sort de son plan de 2,2 m (max 5,7) ; après 0° et 0 m. 12/12 posés des deux
+    côtés, durée médiane 2,35 s → 2,42 s. Avec le pilote de banc (`dbgAuto` vol, 12 points × 2 graines) : 24/24 posés avant ET après.
+  · NITRO TENUE 1,5 s, mains libres, 12 points : avant, le haut tourne de 47° en médiane (max 69°) et la caisse sort de son plan de 36 m (max 60) ; après 0° et 0 m.
+  · NITRO TENUE en continu, mains libres, 7 points : avant, le haut du vol tourne de 92 à 155° et la caisse part de 78 à 375 m sur le côté ; après 0° et 0 m, droite. C'EST ÇA que Sacha sentait.
+  · SAUTS NITRO (1,5 s de nitro, pilote de banc qui ne braque qu'en LACET, 12 points chacun) : impulsion 21 m/s à 60 m/s, graine 12345 → avant 12/12 posés (le haut du vol et la
+    route à la pose à 3° en médiane), après 9/12 ; impulsion 35 m/s à 80 m/s, graine 777 → avant 9/12, après 8/12. L'écart entre le haut du vol et la route à la pose monte à 20° (max 74°)
+    puis 51° (max 69°) en médiane : la route a tourné pendant le vol, la caisse non.
+  · Aucune erreur (`__loopErr`, `__banqErr` vides) ; le haut du vol relevé 6 fois dans un vol à la nitro, en vrai temps réel : IDENTIQUE, couché, debout et dans le cadre de l'ordi.
+- **LE PRIX, dit franchement** : plus rien ne RAMÈNE la caisse vers la route. Un saut normal se pose comme avant ; mais un long vol à la nitro file maintenant droit dans le repère du départ, et
+  sur une route qui vrille il peut la manquer (au banc, 17 sauts nitro posés sur 24 contre 21 avant, avec un pilote qui ne sait pas piquer — un joueur a le manche) ; avant, cette gravité-aimant la rattrapait toute seule.
+  Le viseur de pose, lui, devient exact (il intègre la MÊME gravité que la caisse). Rien n'a été fait pour compenser : ce serait une aide, et la règle est « zéro assistance ».
+- **À trancher (Sacha)** : si les vols à la nitro sont devenus trop durs à poser sur la route des nuages, dis-le — les pistes sont (a) laisser faire, c'est un vol libre ; (b) une route moins
+  vrillée (`NV_CALME`, `TORD_AMP`) ; (c) `?sans=volfige` pour comparer. Pas touché sans toi.
+- **Banc** : `faire-copie.sh` (la copie du jeu avec `window.__ev`, la fermeture du jeu à portée d'`eval`), `banc-vol.mjs` (Node + CDP, décollages appariés), `verif-jeu.mjs` (menu → JOUER →
+  un vol, trois formats d'écran) — dans le scratchpad de la session, pas dans le dépôt.
+
 ## LES TRAÎNÉES EN CUBES — ÉTAPE 1 : SAKURA, BILLETS, FOUDRE DIVINE (2026-10-20, v734, session TRAÎNÉES PIXEL — Sacha : « passer les traînées en un joli jeu de pixels, comme le nitro ou toutes les flammes du jeu ; les billets, les éclairs, tout ça, avec le même style pixel qui bouge ; toutes les traînées du jeu, les feuilles de sakura, les billets, en pixels »)
 - **L'IDÉE** : le feu du nitro, l'arc-en-ciel et la porte sont des CUBES (faces ombrées, couleurs au-delà de 1, halo qui s'accumule) ; les traînées POP (moteur `TRX`)
   étaient des quads lisses peints sur une planche. Elles prennent la même matière. Plan en trois étapes, validé par Sacha (« cubes, étape 1 d'abord ») :
