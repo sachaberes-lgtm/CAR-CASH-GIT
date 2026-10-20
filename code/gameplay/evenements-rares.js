@@ -374,10 +374,12 @@ function vdepPlace(){ // la grille au-dessus de la rangée, les étiquettes au b
 function vdepPlaque(n){ // la plaque du socle : le nom du moteur et son cran, à sa couleur
   const P=VDEP.etal&&VDEP.etal.pl;if(!P)return;const x=P.cv.getContext('2d'),w=P.cv.width,h=P.cv.height,c=vdepCol(n);
   x.clearRect(0,0,w,h);x.fillStyle='#120a1e';x.fillRect(0,0,w,h);x.strokeStyle=c;x.lineWidth=4;x.strokeRect(3,3,w-6,h-6);
-  x.textAlign='center';x.textBaseline='middle';x.fillStyle=c;x.font='14px "Press Start 2P"';x.fillText(sansAcc(TR('VITESSE'))+' '+(n+1),w/2,h*.3);
-  x.fillStyle='#ffffff';let f=22;x.font=f+'px "Press Start 2P"';const nm=vdepNom(n);while(f>10&&x.measureText(nm).width>w-28){f-=2;x.font=f+'px "Press Start 2P"';}
-  x.fillText(nm,w/2,h*.68);P.tx.needsUpdate=true;}
+  x.textAlign='center';x.textBaseline='middle';const fn=vdepFonction(); /* (2026-10-20) avant le palier 30, la vitesse n'existe pas encore : le nom seul */
+  if(fn){x.fillStyle=c;x.font='14px "Press Start 2P"';x.fillText(sansAcc(TR('VITESSE'))+' '+(n+1),w/2,h*.3);}
+  x.fillStyle='#ffffff';let f=fn?22:26;x.font=f+'px "Press Start 2P"';const nm=vdepNom(n);while(f>10&&x.measureText(nm).width>w-28){f-=2;x.font=f+'px "Press Start 2P"';}
+  x.fillText(nm,w/2,fn?h*.68:h*.54);P.tx.needsUpdate=true;}
 function vdepEtal(g){ // (buildGarageRoom) le socle, le vérin, les six moteurs — un seul visible
+  if(ETAL_V){vdepEtal2(g,ETAL_V);return;} // (2026-10-20) les deux propositions du présentoir (?etal=piedestal / ?etal=grue)
   const t0=performance.now(),hd=GAR.D/2,root=new THREE.Group();root.position.set(5.95,0,hd-1.4);root.rotation.y=Math.PI;g.add(root);
   const mS=new THREE.MeshLambertMaterial({color:0x1d1a2a}),mL=new THREE.MeshBasicMaterial({color:0xffffff,fog:false}),mC=M9.inox();
   const socle=new THREE.Mesh(new THREE.BoxGeometry(2.2,.7,1.6),mS);socle.position.y=.35;root.add(socle);
@@ -399,16 +401,98 @@ function vdepEtal(g){ // (buildGarageRoom) le socle, le vérin, les six moteurs 
   vdepEtalTick(1/60,0);VDEP.ms=+(performance.now()-t0).toFixed(1);}
 function vdepEtalTick(dt,t9){ // (garageRender) le moteur descend, change, remonte ; il tourne et respire
   const E=VDEP.etal;if(!E)return;const n=vdepN();
-  if(VDEP.nVu<0){VDEP.nVu=n;VDEP.m[n].visible=true;VDEP.k=1;VDEP.ph=1;vdepPlaque(n);E.fil.material.color.set(vdepCol(n));E.lueur.material.color.set(vdepCol(n));}
+  if(VDEP.nVu<0){VDEP.nVu=n;VDEP.m[n].visible=true;VDEP.k=1;VDEP.ph=1;vdepPlaque(n);vdepEtalCol(E,vdepCol(n));}
   if(n!==VDEP.nVu&&VDEP.ph===1)VDEP.ph=-1; // un cran neuf : on redescend d'abord
   if(VDEP.ph<0){VDEP.k=Math.max(0,VDEP.k-dt/.22);if(VDEP.k<=0){VDEP.m[VDEP.nVu].visible=false;VDEP.nVu=n;VDEP.m[n].visible=true;VDEP.ph=0;vdepPlaque(n);
-    E.fil.material.color.set(vdepCol(n));E.lueur.material.color.set(vdepCol(n));try{if(SONV2)sfx('ui.ok');}catch(_){}}}
+    vdepEtalCol(E,vdepCol(n));try{if(SONV2)sfx('ui.ok');}catch(_){}}}
   else if(VDEP.ph===0){VDEP.k=Math.min(1,VDEP.k+dt/.5);if(VDEP.k>=1)VDEP.ph=1;}
   const k=VDEP.k,q=k-1,e9=VDEP.ph===0?1+2.4*q*q*q+1.4*q*q:k*k; // la montée déborde un poil puis se pose (la descente, en accélérant)
-  const H=VDEP.m[VDEP.nVu],lev=.78+e9*1.05;
+  const H=VDEP.m[VDEP.nVu];if(E.pose){E.pose(H,k,e9,t9,dt);return;}const lev=.78+e9*1.05;
   E.verin.scale.y=Math.max(.02,lev-.78);E.berceau.position.y=lev;H.position.y=lev+.04+Math.sin(t9*1.3)*.03*k;
   H.rotation.y+=dt*.35;H.scale.setScalar(.55+.45*Math.min(1,e9));
   E.lueur.material.opacity=(.22+.14*Math.sin(t9*2.1))*Math.min(1,k*1.4);}
+/* LE PRÉSENTOIR, DEUX PROPOSITIONS (2026-10-20, Léo : « le présentoir, il est vraiment pas très beau » → « le refaire plus beau ») :
+   · `?etal=piedestal` — un SOCLE DE VITRINE octogonal en laque sombre, à facettes (la DA des caisses), ceint d'un liseré néon à la couleur du
+     moteur sous un chapeau doré ; le moteur repose sur un PLATEAU CHROMÉ qui tourne, sous un cône de lumière qui tombe du plafond ; la plaque
+     est sur la facette de devant. Changer de cran : le moteur rétrécit sur le plateau, le suivant en sort.
+   · `?etal=grue` — une GRUE D'ATELIER jaune (pieds à roulettes, mât, flèche, vérin chromé) tient le moteur à la chaîne au-dessus d'une
+     palette ; une baladeuse éclaire d'en haut ; la plaque est vissée sur le mât. Changer de cran : la chaîne le descend sur la palette, le
+     suivant remonte.
+   Sans paramètre : l'étal d'avant. Même contrat que lui (VDEP.etal : root, pl, et ici col(c) et pose(H,k,e9,t9,dt), lus par vdepEtalTick).
+   Matières : celles qui existent déjà au garage (Lambert, Basic, l'inox des moteurs) ; les facettes viennent de la géométrie (non indexée,
+   normales recalculées), pas de flatShading (un #define = un programme de plus). Aucune lumière ajoutée. */
+const ETAL_V=(location.search.match(/[?&]etal=(piedestal|grue)\b/)||[])[1]||'';
+function vdepEtalCol(E,c){if(E.col){E.col(c);return;}E.fil.material.color.set(c);E.lueur.material.color.set(c);}
+function vdepEtal2(g,V){
+  const t0=performance.now(),hd=GAR.D/2,root=new THREE.Group();root.position.set(5.95,0,hd-1.4);root.rotation.y=Math.PI;g.add(root);
+  const L=(c,e)=>new THREE.MeshLambertMaterial({color:c,emissive:e||0}),B=(c,o)=>new THREE.MeshBasicMaterial(Object.assign({color:c,fog:false},o||{}));
+  const plat=geo=>{const n=geo.toNonIndexed();n.computeVertexNormals();geo.dispose();return n;}; // des facettes franches, sans flatShading
+  const oct=(rt,rb,h,mat,y)=>{const geo=plat(new THREE.CylinderGeometry(rt,rb,h,8).rotateY(Math.PI/8)),m=new THREE.Mesh(geo,mat);m.position.y=y;root.add(m);return m;};
+  const boite=(sx,sy,sz,mat,x,y,z,par)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),mat);m.position.set(x,y,z);(par||root).add(m);return m;};
+  const tige=(a,b,r,mat,seg,par)=>{const d=new THREE.Vector3().subVectors(b,a),m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),seg||10),mat);
+    m.position.copy(a).addScaledVector(d,.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());(par||root).add(m);return m;};
+  const poutre=(a,b,w,mat)=>{const d=new THREE.Vector3().subVectors(b,a),m=new THREE.Mesh(new THREE.BoxGeometry(d.length(),w,w),mat); // une poutre carrée de a à b (dans le plan xy)
+    m.position.copy(a).addScaledVector(d,.5);m.rotation.z=Math.atan2(d.y,d.x);root.add(m);return m;};
+  const ad={transparent:true,depthWrite:false,blending:THREE.AdditiveBlending};
+  let gt=VDEP._gt;if(!gt){const cv=document.createElement('canvas');cv.width=cv.height=128;const x=cv.getContext('2d'),gr=x.createRadialGradient(64,64,0,64,64,64);
+    gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.42,'rgba(255,255,255,.42)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,128,128);gt=VDEP._gt=new THREE.CanvasTexture(cv);}
+  const sol=new THREE.Mesh(new THREE.PlaneGeometry(1,1),B(0xffffff,Object.assign({map:gt,opacity:.4},ad)));sol.rotation.x=-Math.PI/2;sol.renderOrder=2;root.add(sol);
+  const cone=(r,h,y,op)=>{const m=new THREE.Mesh(new THREE.ConeGeometry(.5,1,18,1,true),B(0xfff0d6,Object.assign({opacity:op,side:THREE.FrontSide},ad)));m.scale.set(2*r,h,2*r);m.position.y=y;root.add(m);return m;};
+  const plaque=(w,h,x,y,z)=>{const cv=document.createElement('canvas');cv.width=320;cv.height=Math.round(320*h/w);const tx=new THREE.CanvasTexture(cv);
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),B(0xffffff,{map:tx}));m.position.set(x,y,z);root.add(m);return {cv:cv,tx:tx};};
+  const E={root:root,kind:V,sol:sol};let haut=1.7;
+  if(V==='piedestal'){
+    const lac=L(0x15111f,0x050309),neon=B(0xffffff),chrome=M9.inox();
+    oct(1.12,1.16,.08,chrome,.04);                // le pied, chromé (doré, la lumière chaude du garage le rendait orange)
+    oct(1.02,1.02,.025,neon,.095);                // un filet néon au ras du pied
+    oct(1.0,1.0,.86,lac,.51);                     // le fût laqué, presque noir
+    oct(1.015,1.015,.045,neon,.86);               // le liseré néon, à la couleur du moteur
+    oct(1.1,1.04,.09,chrome,.985);                // le chapeau chromé
+    oct(.94,.94,.02,lac,1.04);
+    E.anneau=new THREE.Mesh(new THREE.CylinderGeometry(.9,.9,.02,32),neon);E.anneau.position.y=1.055;root.add(E.anneau);
+    E.plat=new THREE.Mesh(new THREE.CylinderGeometry(.82,.86,.06,32),chrome);E.plat.position.y=1.08;root.add(E.plat); // le plateau qui tourne
+    for(let i=0;i<6;i++){const a=i*Math.PI/3,r=boite(.05,.012,.16,lac,Math.sin(a)*.68,.034,Math.cos(a)*.68,E.plat);r.rotation.y=a;} // ses rainures
+    E.rayon=cone(1.15,3.9,1.11+3.9/2,.055);
+    E.halo=new THREE.Sprite(new THREE.SpriteMaterial(Object.assign({map:lampTex,color:0xffffff,opacity:.22,fog:false},ad)));E.halo.scale.set(3.1,2.7,1);E.halo.position.set(0,2.0,-.35);root.add(E.halo);
+    sol.scale.set(4.2,4.2,1);sol.position.y=.012;
+    E.pl=plaque(.7,.3,0,.52,.93);
+    E.y0=1.11;haut=1.75;
+    E.col=function(c){neon.color.set(c);sol.material.color.set(c);E.halo.material.color.set(c);};
+    E.pose=function(H,k,e9,t9,dt){const s=Math.max(.001,Math.min(1.08,e9));H.position.set(0,E.y0,0);H.scale.setScalar(s);H.rotation.y+=dt*.32;E.plat.rotation.y=H.rotation.y;
+      const f=Math.min(1,k*1.4);sol.material.opacity=(.34+.08*Math.sin(t9*2.1))*f;E.halo.material.opacity=(.26+.06*Math.sin(t9*1.7))*f;E.rayon.material.opacity=.045+.012*Math.sin(t9*1.3);};
+  }else{ // LA GRUE, de profil : le mât à droite, la flèche au-dessus de la palette, le moteur à la chaîne
+    const jaune=L(0xf2b318,0x2e2004),noir=L(0x17181f,0x050507),bois=L(0xa8743e,0x1c1006),acier=L(0x5b6170,0x0d0f14),chrome=M9.inox();
+    const xM=.85,xE=-.7;
+    for(const sz of [-1,1]){boite(2.45,.12,.14,jaune,-.27,.16,sz*.5);for(const x of [-1.42,-1.0])boite(.2,.125,.145,noir,x,.16,sz*.5); // les pieds, rayés au bout
+      for(const x of [xM+.02,-1.42]){const r=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,.07,12),noir);r.rotation.x=Math.PI/2;r.position.set(x,.08,sz*.5);root.add(r);}}
+    boite(.16,.14,1.14,jaune,xM+.02,.16,0);boite(.36,.3,.36,noir,xM,.3,0);
+    boite(.24,3.0,.24,jaune,xM,1.66,0);for(let i=0;i<5;i++)boite(.245,.07,.245,noir,xM,.62+i*.5,0); // le mât et ses bagues
+    const P0=new THREE.Vector3(xM,3.05,0),P1=new THREE.Vector3(xE,3.34,0);poutre(P0,P1,.2,jaune);boite(.24,.24,.24,noir,xE,3.34,0);
+    tige(new THREE.Vector3(xM,3.05,-.17),new THREE.Vector3(xM,3.05,.17),.07,chrome,10); // l'axe de la flèche
+    const A=new THREE.Vector3(xM-.13,1.3,0),Bv=new THREE.Vector3(xM-.85,3.05+.29*.85/1.55-.1,0),Am=A.clone().lerp(Bv,.55);tige(A,Am,.09,noir,10);tige(Am,Bv,.05,chrome,10); // le vérin
+    E.cable=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,1,6),acier);E.cable.position.set(xE,0,0);root.add(E.cable);
+    E.croc=new THREE.Group();root.add(E.croc);
+    const croc=new THREE.Mesh(new THREE.TorusGeometry(.09,.028,6,12,Math.PI*1.5),chrome);croc.position.y=.11;E.croc.add(croc);
+    boite(1.0,.07,.07,chrome,0,0,0,E.croc);
+    for(const sx of [-1,1])tige(new THREE.Vector3(sx*.48,0,0),new THREE.Vector3(sx*.3,-.3,0),.018,acier,6,E.croc);
+    for(const z of [-.5,0,.5])boite(1.15,.1,.12,bois,xE,.05,z);for(let i=0;i<5;i++)boite(.18,.035,1.24,bois,xE-.48+i*.24,.1175,0); // la palette
+    E.rayon=cone(.85,2.9,3.2-2.9/2,.05);E.rayon.position.x=xE;
+    const lampe=new THREE.Mesh(new THREE.ConeGeometry(.17,.22,10,1,true),noir);lampe.position.set(xE,3.12,0);root.add(lampe);
+    sol.scale.set(3.4,3.4,1);sol.position.set(xE,.012,0);
+    E.pl=plaque(.74,.24,xM,1.15,.125);
+    haut=1.5;const top=3.22;
+    E.col=function(c){sol.material.color.set(c);};
+    E.pose=function(H,k,e9,t9,dt){const s=Math.max(.001,.55+.45*Math.min(1.06,e9)),bas=.14+(.66-.14)*Math.min(1,Math.max(0,e9)),h=(H.userData.h||1)*s;
+      H.position.set(xE,bas,0);H.scale.setScalar(s);H.rotation.y+=dt*.22;H.rotation.z=Math.sin(t9*.9)*.025*k;
+      const yc=bas+h+.3;E.croc.position.set(xE,yc,0);E.croc.rotation.y=H.rotation.y;E.cable.position.y=(top+yc+.12)/2;E.cable.scale.y=Math.max(.01,top-(yc+.12));
+      sol.material.opacity=(.3+.07*Math.sin(t9*2.1))*Math.min(1,k*1.4);E.rayon.material.opacity=.04+.01*Math.sin(t9*1.3);};
+  }
+  const bx=new THREE.Box3(),sz=new THREE.Vector3(),ce=new THREE.Vector3();
+  for(let i=0;i<VDEP_PAL.length;i++){const e=mkEngine(VDEP_PAL[i]),h=new THREE.Group();h.add(e);
+    bx.setFromObject(e);bx.getSize(sz);bx.getCenter(ce);const k=haut/Math.max(.01,sz.x,sz.y,sz.z);e.scale.multiplyScalar(k);e.position.set(-ce.x*k,-ce.y*k+sz.y*k/2,-ce.z*k);
+    h.userData.h=sz.y*k;h.visible=false;root.add(h);VDEP.m.push(h);}
+  VDEP.etal=E;VDEP.nVu=-1;VDEP.k=0;VDEP.ph=1;
+  vdepEtalTick(1/60,0);VDEP.ms=+(performance.now()-t0).toFixed(1);}
 window.dbgVdep=function(n){
   if(n==='tout'||n==='rien'){VDEP_TOUT=n==='tout';vdepMaj();return {tout:VDEP_TOUT};}
   if(n!=null){SAVE.d.vdep=Math.max(0,Math.min(5,n|0));vdepMaj();}
