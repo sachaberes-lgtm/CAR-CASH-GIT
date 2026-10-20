@@ -204,6 +204,8 @@ function volcanTick(dt){
   /* LES BANCS DE FUMÉE : où en est-on (la route sous la caisse, en vol aussi) ; la brume se referme DEDANS (FUMEE_K, lu par updateClouds),
      les braises triplent, la cendre s'épaissit — en entrant comme en sortant, en ~0,3 s */
   {const sc=mode==='fall'?lastNearS:s;let f=0;for(const b of VOLCAN.bancs||[]){if(sc<b.s0-80||sc>b.s1+80)continue;f=Math.max(f,b.k*THREE.MathUtils.smoothstep(sc,b.s0-70,b.s0+50)*(1-THREE.MathUtils.smoothstep(sc,b.s1-50,b.s1+70)));}
+   /* (2026-10-20, Sacha : « le filtre de visibilité avec la cendre et la fumée, mais EN PERMANENCE : le challenge de cette map doit être la faible visibilité ») : un voile de fond partout (0,7), les bancs le refermant jusqu'à 1 ; épargné seulement au départ (fondu de 60 à 260 m) pour ne pas cacher le portail */
+   f=Math.max(f,.7*THREE.MathUtils.smoothstep(sc,60,260));
    VOLCAN.fu+=(f*(c.fu||1)-VOLCAN.fu)*Math.min(1,dt*3);if(VOLCAN.fu<.002)VOLCAN.fu=0;FUMEE_K=VOLCAN.fu;FUMEE_F=c.fuF||250;if(c.fuC)FOG_FUMEE.setRGB(c.fuC[0],c.fuC[1],c.fuC[2]);
    U.uBra.value=c.bra*(1+VOLCAN.fu*2.5);U.uCen.value=Math.min(1,c.cen+VOLCAN.fu*.6);}
   fx.bra.visible=U.uBra.value>.01;fx.cen.visible=U.uCen.value>.01;
