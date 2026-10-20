@@ -54266,7 +54266,7 @@ function nfxVent(dt,dir,kmh){ // `dir` : le sens de la course (cap au sol, vites
    Les gains suivent `dk` (les grands moments creusent le mix) et passent par les PORTES (débranchés hors nitro : coût nul).
    `?nitroson=ancien` = le son d'avant, intact. */
 const RUG_SON=!/[?&]nitroson=ancien/.test(location.search);
-const RUG_NIV={rg:.26,cr:.1,pssht:.015,pap:.15,bang:.2}; // (2026-10-20, Sacha : « on dirait juste du vent, je veux des flammes GRAVES ») gorge plus forte (elle est bien plus basse), crépitement et PSSHT blanc baissés // les niveaux (voir le journal : mesurés contre l'ancien au banc)
+const RUG_NIV={rg:.07,cr:.04,rr:.11,crac:.11,pssht:.015,pap:.15,bang:.2}; // (2026-10-20, Sacha : « on dirait juste du vent, je veux des flammes GRAVES ») gorge plus forte (elle est bien plus basse), crépitement et PSSHT blanc baissés // les niveaux (voir le journal : mesurés contre l'ancien au banc)
 /* (2026-10-17, Léo : « dès que j'appuie, ça explose et ça fait un bruit qui n'a aucun rapport avec le boost, qui pourrait détruire les
    oreilles des joueurs — écouteurs », sur iPhone ET sur Mac). MESURÉ au banc muet avec SA sauvegarde : deux sons d'EXPLOSION se mêlaient au boost.
    · LA BOULE DE FEU à chaque appui (un BWOUMF saturé, son coup grave qui plonge 170 → 48 Hz, par-dessus le subBoom) — c'est
@@ -54279,7 +54279,7 @@ const NSEC={sous:false,etage:false}; // sous : la jauge a lâché sous le doigt,
 /* (même jour) LE 2e ÉTAGE NE SE REJOUE PAS EN BOUCLE : un fruit ramassé nitro tenu remplit un peu la jauge, on ressort de la réserve bleue, on y
    retombe une seconde plus tard — et le coup d'allumage du 2e étage repartait à CHAQUE fruit (MESURÉ : 7 à 12 coups en 30 s de nitro tenu).
    Il sonne désormais une fois par appui ; le reste (onde, champ, couleur) suit comme avant. */
-const RUG_CORPS=1.1; /* (2026-10-20) le grondement brun (grave) remonte */ // le grondement brun d'avant (`jrG`, le corps de la flamme) à 70 % quand la gorge chante : sinon la tenue passait 6 dB au-dessus de l'ancienne
+const RUG_CORPS=.45; /* (2026-10-20, Sacha : « on dirait un frottement, plus rond, plus ASMR, qui ronronne ») le bruit brun recule : c'est le RONRON qui porte */ /* (2026-10-20) le grondement brun (grave) remonte */ // le grondement brun d'avant (`jrG`, le corps de la flamme) à 70 % quand la gorge chante : sinon la tenue passait 6 dB au-dessus de l'ancienne
 const RUG={pret:false,ac:null,d:null,tel:false,h:0,k:0,rs:[],cs:[],paps:null,bangs:null,blanc:null,stt:null};
 function rugBq(t,f,q,g,sr){ // les coefficients d'un biquad (RBJ) : 'lp' 'hp' 'bp' 'pk'
   const w=2*Math.PI*Math.min(f,sr*.45)/sr,c=Math.cos(w),s=Math.sin(w),al=s/(2*q),A=Math.pow(10,(g||0)/40);let b0,b1,b2,a0,a1,a2;
@@ -54358,6 +54358,8 @@ function rugTampons(ac,d,o){ // calcule les tampons et branche le graphe, EN MOR
     function(){ // l'allumage
       const w=new Float32Array(Math.round(sr*.3));for(let i=0;i<w.length;i++)w[i]=Math.random()*2-1;RUG.blanc=mk(w);
       },
+    function(){ // (2026-10-20) LE RONRON + LES CRÉPITEMENTS DE BOIS (voir rrPas)
+      rrConstruit(ac,d,sr,mk,pan,kr,o);},
     function(){ // la pétarade
       RUG.paps=[mk(rugPap(sr,0)),mk(rugPap(sr,0)),mk(rugPap(sr,0)),mk(rugPap(sr,0)),mk(rugPap(sr,0))];RUG.bangs=[mk(rugPap(sr,1)),mk(rugPap(sr,1))];}];
   let i=0;const suite=function(){try{etapes[i++]();}catch(e){console.warn('feu qui rugit',e);return;}if(i<etapes.length)setTimeout(suite,o.vite?0:30);};
@@ -54371,7 +54373,58 @@ function rugPas(dt,o){ // à chaque image : o = {on, air, bleu, v (km/h), dk}
   const r=on?.62+.12*k+Math.min(.1,v/4000)+b*.05:.55; /* (2026-10-20) la boucle jouée plus lentement : tout le rugissement descend */S(RUG.rs[0].playbackRate,r,t,.12);S(RUG.rs[1].playbackRate,r*1.013,t,.12); // la hauteur MONTE (≈ +4 demi-tons) et suit la vitesse
   S(RUG.thO.frequency,7+12*k,t,.05);S(RUG.thG.gain,on?gR*.45*(1-k):0,t,.06); // la PULSATION accélère et s'efface
   S(RUG.crG.gain,on?RUG_NIV.cr*(.3+.7*k)*(air?.75:1)*o.dk:0,t,on?.06:.1);
+  rrPas(dt,o,on,b,air,v);
   const rc=on?.6+.2*k+b*.08:.6; /* (2026-10-20) crépitement plus grave */S(RUG.cs[0].playbackRate,rc,t,.1);S(RUG.cs[1].playbackRate,rc*.97,t,.1);} // plus chaude, elle crépite plus vite et plus clair
+/* ===== LE RONRON DU NITRO (2026-10-20, Sacha : « on dirait plus un frottement, essaie plus rond, plus ASMR, qui ronronne, avec des
+   variations : si on appuie longtemps ça change ; il faut qu'il y ait des crépitements et tout ») =====
+   Le cœur du son n'est plus du BRUIT (le frottement) mais un TON grave et rond : deux triangles (fondamentale + octave) et une quinte sinus,
+   saturés doucement, sous un passe-bas — et HACHÉS par une pulsation (le RONRON : 13 → 26 Hz, le grain d'un chat ou d'un V8 au ralenti).
+   Par-dessus, des CRÉPITEMENTS de feu de bois (tics secs + pops boisés, chacun à sa place dans la stéréo) posés un par un.
+   TROIS TEMPS si on tient (RR.tH, le temps tenu, remis à zéro 0,35 s après le lâcher) :
+   · 0-1 s    : le ronron s'installe, lent et doux (44 Hz, pulsation 13 Hz), quelques crépitements ;
+   · 1-2,5 s  : il MONTE — la hauteur grimpe (≈ +5 demi-tons), la pulsation accélère, le filtre s'ouvre, le feu prend (crépitements ×2) ;
+   · après 2,5 s : PLEIN RÉGIME — de grandes houles lentes (0,3 Hz) qui gonflent et dégonflent, un vibrato, des RAFALES de crépitements.
+   La réserve bleue joue une quinte plus haut. Le téléphone (pas de grave sous 150 Hz) joue tout une octave plus haut. */
+const RR={pret:false,tH:0,off:0,crT:0,raf:0,ph:0};
+function rrCrac(sr,pop){const R=Math.random,n=Math.round(sr*(pop?.06:.016)),X=new Float32Array(n);
+  if(!pop){const bp=rugBq('bp',1300+R()*2200,.9,0,sr),tau=sr*(.0006+R()*.0016);for(let i=0;i<n;i++)X[i]=rugRun(bp,R()*2-1)*Math.exp(-i/tau);}
+  else{const lp=rugBq('lp',500+R()*400,.8,0,sr),f0=120+R()*70;let ph=0;for(let i=0;i<n;i++){const t=i/sr,a=1-Math.exp(-t/.0005);ph+=2*Math.PI*(f0*(.6+.4*Math.exp(-t/.02)))/sr;
+    X[i]=(rugRun(lp,R()*2-1)*1.4*Math.exp(-t/.008)+Math.sin(ph)*.8*Math.exp(-t/.018))*a;}}
+  const F=Math.round(.002*sr);for(let i=0;i<F;i++)X[n-1-i]*=i/F;return rugNorme(X,.9);}
+function rrConstruit(ac,d,sr,mk,pan,kr,o){
+  RR.o=[];const mix=ac.createGain();mix.gain.value=1;
+  for(const [ty,m,g] of [['triangle',1,1],['triangle',2,.42],['sine',1.5,.22],['sine',.5,.5]]){const os=ac.createOscillator();os.type=ty;os.frequency.value=44*m;kr(os.frequency);
+    const og=ac.createGain();og.gain.value=g;os.connect(og);og.connect(mix);os.start();RR.o.push([os,m]);}
+  const sh=ac.createWaveShaper(),cv=new Float32Array(512);for(let i=0;i<512;i++){const x=i/511*2-1;cv[i]=Math.tanh(1.8*x)/Math.tanh(1.8);}sh.curve=cv;sh.oversample='2x';
+  RR.lp=ac.createBiquadFilter();RR.lp.type='lowpass';RR.lp.frequency.value=320;RR.lp.Q.value=.9;kr(RR.lp.frequency);
+  RR.am=ac.createGain();RR.am.gain.value=.6; /* le ronron : la pulsation hache le ton */
+  RR.pO=ac.createOscillator();RR.pO.type='sine';RR.pO.frequency.value=13;kr(RR.pO.frequency);RR.pG=ac.createGain();RR.pG.gain.value=.4;RR.pO.connect(RR.pG);RR.pG.connect(RR.am.gain);RR.pO.start();
+  RR.hl=ac.createGain();RR.hl.gain.value=1; /* les houles du plein régime */
+  RR.hO=ac.createOscillator();RR.hO.type='sine';RR.hO.frequency.value=.3;RR.hG=ac.createGain();RR.hG.gain.value=0;RR.hO.connect(RR.hG);RR.hG.connect(RR.hl.gain);RR.hO.start();
+  RR.vO=ac.createOscillator();RR.vO.frequency.value=4.7;RR.vG=ac.createGain();RR.vG.gain.value=0;RR.vO.connect(RR.vG);for(const [os] of RR.o)RR.vG.connect(os.detune);RR.vO.start();
+  RR.g=ac.createGain();RR.g.gain.value=0;
+  mix.connect(sh);sh.connect(RR.lp);RR.lp.connect(RR.am);RR.am.connect(RR.hl);RR.hl.connect(RR.g);RR.g.connect(d);
+  if(o.porte)o.porte(RR.g,d);
+  RR.tics=[];RR.pops=[];for(let i=0;i<8;i++)RR.tics.push(mk(rrCrac(sr,0)));for(let i=0;i<5;i++)RR.pops.push(mk(rrCrac(sr,1)));
+  RR.pan=pan;RR.pret=true;}
+function rrCraque(t,pop,vol){const ac=RUG.ac,s=ac.createBufferSource(),L=pop?RR.pops:RR.tics;s.buffer=L[(Math.random()*L.length)|0];s.playbackRate.value=.85+.3*Math.random();
+  const g=ac.createGain();g.gain.value=vol;const p=RR.pan((Math.random()-.5)*1.4);s.connect(g);g.connect(p);p.connect(RUG.d);s.start(t);}
+function rrPas(dt,o,on,b,air,v){
+  if(!RR.pret)return;const t=RUG.ac.currentTime,S=RUG.stt;
+  if(on){RR.tH+=dt;RR.off=0;}else{RR.off+=dt;if(RR.off>.35)RR.tH=0;}
+  const T=RR.tH,m1=Math.min(1,T/1),m2=Math.max(0,Math.min(1,(T-1)/1.5)),m3=Math.max(0,Math.min(1,(T-2.5)/1.5)); /* les trois temps */
+  const oct=RUG.tel?2:1,f=(44*Math.pow(2,(5*m2+1.5*m3)/12)+Math.min(10,v*.012))*(b?1.5:1)*oct;
+  for(const [os,mm] of RR.o)S(os.frequency,f*mm,t,.18);
+  S(RR.lp.frequency,(260+220*m2+160*m3+(b?120:0))*oct,t,.2);
+  S(RR.pO.frequency,13+8*m2+5*m3+3*Math.sin(t*.9)*m3,t,.15);S(RR.pG.gain,.42-.08*m3,t,.2);
+  S(RR.hG.gain,.32*m3,t,.3);S(RR.vG.gain,9*m3,t,.3);
+  S(RR.g.gain,on?RUG_NIV.rr*(.45+.35*m1+.2*m2)*(air?.85:1)*o.dk:0,t,on?(T<.3?.12:.08):.16); /* lâché : le ronron s'éteint en ~0,4 s */
+  if(on){ /* LES CRÉPITEMENTS : de plus en plus serrés, puis des rafales */
+    const tx=(3+7*m1+8*m2+6*m3)*(air?.7:1);RR.crT+=dt*tx;
+    while(RR.crT>=1){RR.crT-=1+(Math.random()-.5)*.6;const pop=Math.random()<.22;rrCraque(t+Math.random()*.04,pop,RUG_NIV.crac*(pop?.9:.5+.5*Math.random())*o.dk);}
+    if(m3>0&&Math.random()<dt*.6*m3){for(let i=0,n=3+(Math.random()*4|0);i<n;i++)rrCraque(t+.02+i*(.025+Math.random()*.03),Math.random()<.3,RUG_NIV.crac*.7*o.dk);}
+  }}
+window.dbgRonron=function(){return {pret:RR.pret,tenu:+RR.tH.toFixed(2),gain:RR.g?+RR.g.gain.value.toFixed(4):null,hz:RR.o?+RR.o[0][0].frequency.value.toFixed(1):null,pulse:RR.pO?+RR.pO.frequency.value.toFixed(1):null};};
 function rugAllume(k,bleu,air){ // LE PSSHT (le reste du coup d'allumage est dans nitroWhoomp)
   if(!RUG.blanc)return false;const ac=RUG.ac,t0=ac.currentTime;
   {const s=ac.createBufferSource();s.buffer=RUG.blanc;const f=ac.createBiquadFilter();f.type='bandpass';f.Q.value=1.3;

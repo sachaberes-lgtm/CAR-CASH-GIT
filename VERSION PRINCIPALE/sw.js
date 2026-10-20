@@ -10,7 +10,8 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v739'; // v739 (2026-10-20, Léo : « les fruits-pouvoirs avec de vraies auras ») : le MODULE D'AURAS des fruits (piment, citron, dragon, raisin, pomme dorée) — banc seulement (`dbgFruitAura`), rien n'est appelé en course
+const CACHE = 'cashcar-v740'; // v740 (2026-10-20, Sacha : « le nitro, plus rond, ASMR, qui ronronne, des crépitements ») : LE RONRON DU NITRO
+// const CACHE = 'cashcar-v739'; // v739 (2026-10-20, Léo : « les fruits-pouvoirs avec de vraies auras ») : le MODULE D'AURAS des fruits (piment, citron, dragon, raisin, pomme dorée) — banc seulement (`dbgFruitAura`), rien n'est appelé en course
 // const CACHE = 'cashcar-v736'; // v736 (2026-10-20, Sacha : « enlève les pop up astuce, ça sert à rien ») : PLUS D'ASTUCES — la carte ASTUCE (drift, assiette en l'air, figures, fin de l'auto-école) ne s'affiche plus
 // const CACHE = 'cashcar-v735'; // v735 (2026-10-20, Sacha : « les collisions dans la map glacier : on traverse les murs, et la neige on n'y rentre pas vraiment ») : LE GLACIER — choc sur les pics balayé et à la largeur de la caisse (?sans=glacechoc = avant), congère en vrai banc de 1,3 m où la caisse s'enfonce et freine (?sans=glaceneige = avant)
 // const CACHE = 'cashcar-v734'; // v734 (2026-10-20, Sacha : « passer les traînées en un joli jeu de pixels, comme le nitro ou toutes les flammes du jeu : les billets, les éclairs, les feuilles de sakura… ») : TRAÎNÉES EN CUBES, ÉTAPE 1 — SAKURA, BILLETS et FOUDRE DIVINE faites des mêmes cubes que le feu du nitro (moteur TC, code/rendu/trainees-1.js ; ?trainee=lisse = les quads d'avant)
