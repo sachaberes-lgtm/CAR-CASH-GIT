@@ -402,6 +402,9 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `VOLR` — en vol, gravité, plané du nitro, équilibre de la caisse et de l'écran, viseur, BUMP et prédictions des figures suivent la normale de la dalle
   survolée (face quittée) ; on retombe sur sa route qu'elle soit à plat, sur la tranche ou à l'envers. Ailleurs, le bas du monde au chiffre près.
   `?sans=volroute` = avant, `dbgVolRoute(false)` en direct. Banc apparié : `cc-banc/volcote.cjs` (journal).
+  PUIS LE HAUT DU VOL EST FIGÉ (20/10, Sacha : « on est aimanté à la route… plus de haut ni de bas, juste la voiture, elle vole librement ») : `VOLR_FIGE` — `VOLR.u`
+  reste la face de la route QUITTÉE au décollage, la dalle la plus proche ne le recale plus (c'était l'aimant : près de la route la gravité tournait avec elle,
+  jusqu'à 100° en nitro). Un vol est une parabole nette dans le repère du départ. `?sans=volfige` = le haut qui suit la dalle, `dbgVolFige(false)` en direct.
   Et quand la route VRILLE sous la caisse, le vol tourne avec elle (`VOLR_ROULIS`, 19/10, Sacha : « ça dévie la trajectoire ») : élan, repère du
   vol et haut de l'écran suivent le roulis de la route, pas ses plongées — `?sans=volroulis`, `dbgVolRoulis(false)`.
 - LE GLACIER EST UNE PISTE DE GLACE (17/10, Sacha : « plus de route ») : (196 m, pics sur la piste, tremplins pour s'envoler ; plus de lacs gelés ni de stalactites depuis le 18/10 ; depuis le 19/10 la montagne TOURNE d'un axe tiré à ±90° et la descente enchaîne des tronçons tirés — lacets, courbes, traverse, schuss : `BK_HASARD`, `?sans=glacierhasard`). Les satellites de l'orbite FLOTTENT au bord de la route, décor pur (17/10 soir, Sacha : « je voulais juste qu'ils flottent proche de la route » —
@@ -701,6 +704,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « PASSE PERF iPHONE » (27/09) · « PASSE DÉBOGAGE / PERF » (26/09) · « PASSE DE FINITION » (26/09) · « LA SONDE QUI NE FIGE PLUS » (08/10)
 
 **Conduite, vol, caméra**
+- « LE VOL SANS HAUT NI BAS — LE HAUT DU VOL FIGÉ AU DÉCOLLAGE » (20/10) — `VOLR_FIGE`, `?sans=volfige`, `dbgVolFige`, le banc de vol dans le vrai jeu
 - « LA VRILLE PORTE LE VOL — LA ROUTE DES NUAGES NE DÉVIE PLUS LA CAISSE EN L'AIR » (19/10) — `VOLR_ROULIS`, `?sans=volroulis`, le simulateur du vol
 - « LE DÉCOLLAGE AU MANCHE — LA FIGURE SUR LA ROUTE PEUT S'ENVOLER » (19/10, Léo) — `FDC`, `frEnvol`, le geste neuf pendant le bond
 - « LA DERNIÈRE PASSE DE FLUIDITÉ AVANT LE GEL » (17/10) — décollage, pose, réacteur, caméra : ce qui sautait d'une image à l'autre
