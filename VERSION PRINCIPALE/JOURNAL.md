@@ -3,6 +3,31 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES TRAÎNÉES EN CUBES — ÉTAPE 1 : SAKURA, BILLETS, FOUDRE DIVINE (2026-10-20, v734, session TRAÎNÉES PIXEL — Sacha : « passer les traînées en un joli jeu de pixels, comme le nitro ou toutes les flammes du jeu ; les billets, les éclairs, tout ça, avec le même style pixel qui bouge ; toutes les traînées du jeu, les feuilles de sakura, les billets, en pixels »)
+- **L'IDÉE** : le feu du nitro, l'arc-en-ciel et la porte sont des CUBES (faces ombrées, couleurs au-delà de 1, halo qui s'accumule) ; les traînées POP (moteur `TRX`)
+  étaient des quads lisses peints sur une planche. Elles prennent la même matière. Plan en trois étapes, validé par Sacha (« cubes, étape 1 d'abord ») :
+  **1 = SAKURA, BILLETS, FOUDRE** (ici) · 2 = les autres POP (ANNEAUX, BLOCS, GLOUTON, MATRICE, HYPERESPACE, LA GRILLE…) · 3 = les rubans de lumière (le sillage de
+  chaque caisse, MENTHE/ROSE/OR, les traînées rouges des feux arrière) et le texte de WOW. Les étapes 2 et 3 restent À FAIRE.
+- **LE MOTEUR** (`TC`, dans `code/rendu/trainees-1.js`, juste avant `TRX_EMET` ; les émetteurs et `trxParts` : `trainees-2.js`) : trois piscines de cubes — `TC.s` PLEINS (opaques, faces ombrées), `TC.o` CONTOUR (cubes un peu plus gros d'une couleur
+  plate, dont la géométrie a ses faces RETOURNÉES : seul le derrière se dessine, le cube plein le couvre, il reste un liseré — sans `BackSide`, donc sans programme de plus ;
+  un cœur blanc sans contour disparaît sur un ciel de jour et dans la salle blanche), `TC.g` LUEUR (additifs). Mêmes réglages de matière que `NFEU` / l'arc-en-ciel :
+  MESURÉ au banc, `renderer.info.programs` = 216 avec les cubes, 217 avec `?trainee=lisse` (le programme des quads) — **aucun programme compilé en plus en course**.
+  API : `tcBox(Y,x,y,z,sx,sy,sz,r,g,b)` (un cube dans le MONDE), `tcLocal` (dans le repère long/court/épaisseur d'une pièce), `tcGlow` (une lueur = trois cubes emboîtés),
+  `tcPart(p,al,E)` (le dessin d'une particule, `p.cu` : 1 pétale · 2 billet · 3 étincelle · 4 éclair blanc), `tcBolt` (un éclair, case par case).
+- **LE LANGAGE PIXEL** (à reprendre pour les étapes 2 et 3) : des cubes alignés sur la grille du MONDE (`TC_K.pas`) qui sautent de case en case ; jamais de fondu — l'ancienne
+  OPACITÉ devient la TAILLE, qui fond par crans (1 · ,84 · ,68 · ,5, comme la porte), et près de l'objectif aussi (par crans) ; le mouvement est une SUITE d'images (le pétale
+  bascule à plat / debout / à plat tourné / debout de côté, le billet se retourne par quarts de tour : `TC_PERM`, `TC_SEQ`) — jamais une rotation lisse ; des teintes en PALIERS
+  (trois roses, trois verts). Chaque particule GARDE sa physique (`trxParts` : vent, balancement, gravité, élan gardé) : seul son dessin change.
+- **LES TROIS** : SAKURA = un pétale de trois cubes plats (L), trois roses, qui basculent ; BILLETS = un cadre vert, un panneau, un médaillon clair (3 cubes) qui se retourne,
+  et l'étincelle d'or devient une croix de cubes ; FOUDRE DIVINE = la ligne brisée posée case par case (cœur clair, contour violet, aura), la frappe du ciel (14 m) en gros cubes,
+  les étincelles en croix, le halo de la tuyère et l'éclair blanc de la frappe en lueurs à bandes. L'aperçu de l'atelier et de la boutique passent par les mêmes émetteurs.
+- **`?trainee=lisse`** (ou `signal`) = les quads d'avant, intacts. `dbgTrx()` rend aussi `cubes:[pleins, contours, lueurs]`.
+- **Le banc** (nouveau, commité) : `outils/banc-trainees/` — `photos.cjs` (le vrai jeu, sans fenêtre et muet, aucune dépendance : `--ids sakura,billets --mode course|inv|bq
+  --vue "az,d,h" --cond "<expr>" --url "carte=nuages&meteo=midi"`), `sonde.cjs` (évaluer des expressions dans le jeu ; `XU=trainee=lisse` pour l'adresse), `cdp.cjs`.
+  Ports 9731/9732 (sonde 9741/9742) : vérifier qu'ils sont libres. Ne jamais éditer `index.html` pendant un passage (la mise à jour toute seule recharge la page).
+- MESURÉ : sakura ~300 cubes pleins, billets ~120, foudre ~95 pleins + ~80 contours + ~85 lueurs ; `TRX.ms` 0,1-0,2 ms par image au banc (Mac chargé, charge > 100).
+- À TRANCHER (Sacha) : la taille des pétales et des billets (`TC_K.pet`, `TC_K.bil`), et si les éclairs doivent plus zigzaguer vus de derrière (la poursuite les voit de bout).
+
 ## MOINS DE NUAGES SUR LA MAP NUAGES — UNE MASSE CALME, DU CIEL AUTOUR (2026-10-20, v731, Léo : « il y a trop de nuages, c'est un peu vomitif, mais on y est presque ; essaie de trouver des modèles gratuits sur lesquels tu peux t'inspirer — 3D » → « oui, mets les nuages plus légers sur le main »)
 - **Les modèles 3D libres** (poly.pizza) : les cinq « Cloud » de **Quaternius** sont en **domaine public (CC0)** — une masse calme, base plate, un dôme,
   peu de lobes, aucun chou-fleur sur du chou-fleur ; les « Cumulus Clouds » de S. Paul Michael, « Low Poly Cloud » de Louto, « Cloud Set » de
