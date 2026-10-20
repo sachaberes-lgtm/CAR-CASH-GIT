@@ -7,7 +7,7 @@
 /* (généré le 2026-10-20 depuis les recettes de l'atelier de Léo : fruits-v2/v3/v5) */
 const FRUIT_PAL_N={jl1:0x7d1625,jl2:0x903540,jl3:0x530a18,jlP:0x947449,jlT:0x36230e,jlL:0x1c5319,jll:0x103811,jlC:0xa5a09a,jlc:0x968d87,jlN:0x23100a,jk1:0x99490b,jk2:0x996a2c,jk3:0x7e3106,jk4:0x997d43,jkC:0x355019,jkc:0x203d0e,jkT:0x2c1f0b,jp1:0x860d49,jp2:0x992f64,jp3:0x600531,jpS:0x5c8b1d,jpW:0xa8a2a6,jpw:0xa08d9a,jpK:0x100a0e,jm1:0x36102c,jm2:0x531d43,jm3:0x1e0a19,jmC:0x356022,jmc:0x1f4312,jmT:0x362913,jmW:0xa8a5a1,jmw:0x99918f,jmR:0x733a60,cb1:0x780b2c,cb2:0x8f2344,cb3:0x863d12,cb4:0x915c1d,cbS:0xa2945b,cbs:0x6e5c26,cbT:0x401013,cbG:0x2c5318,dt1:0x491d0a,dt2:0x6e3a11,dt3:0x2c1004,dt4:0x866030,dtC:0x826a43,dtB:0x405319,dtb:0x23360e,dtR:0x36230c,me1:0x7e7144,me2:0x5c5c31,me3:0x3a4822,meN:0xa0997c,me4:0x362c13,meF:0x995c26,mef:0x997240,meE:0x6e824d,meG:0xa09874,meL:0x235318,mel:0x123811,ce1:0x6a0a19,ce2:0x861929,ce3:0x3e040d,ceH:0x994950,ceT:0x2c4914,ceL:0x1c5319,cel:0x103811,ki1:0x493619,ki2:0x5c4928,kiS:0x78823e,kiF:0x4a7313,kiG:0x35600c,kiL:0x7b904d,kiW:0xa4a489,kiK:0x100c0a,ma1:0x8b5c0e,ma2:0x92731d,ma3:0x821d11,ma4:0x49651d,maT:0x2c230e,maL:0x1c5319,mal:0x103811,pm1:0x7d1116,pm2:0x902923,pm3:0x53070e,pmY:0x8b6c23,pmT:0x2c1f0c,pmL:0x1c5319,pml:0x103811,pi1:0x7d0a11,pi2:0x902316,pi3:0x490205,pi4:0x994930,piG:0x235c14,pig:0x12400c,ci1:0x907f0c,ci2:0xa8a145,ci3:0x6e5c07,ciT:0x36400e,ciL:0x235c18,cil:0x124011,rg1:0x401965,rg2:0x7d377a,rg3:0x2c0c48,rgH:0xa4779a,rg4:0x601935,rg5:0x56266a,rg6:0x49132b,rgT:0x36230e,rgL:0x235c18,rgl:0x124011,wgW:0xffffff,wgw:0xf2ecdc,wgG:0xffeaa8,go1:0x86600a,go2:0x99822c,go3:0x5c3b02,goH:0xa8a06a,goT:0x402c0a,goL:0x786a1d,gol:0x53490a,piY:0x996e22,piO:0x99490e,piH:0x497d2b,piT:0x234910,piL:0x236219,pil:0x12400e,ciW:0xfcf9de,ciF:0xf2ed7a,ciG:0xc3bf40,ciH:0xfcf9a8,ciD:0xb4ad31,ciK:0x655c26,kiD:0x25530a,kiH:0x6e8e30,jpY:0x82992c,jpM:0x7d0a49};
 function frPomme(K,k){const H=frH(K),T=H.T;
-  const g=H.D(new T.SphereGeometry(1,22,14),v=>{const r=Math.hypot(v.x,v.z),a=Math.atan2(v.z,v.x);
+  const g=H.D(new T.SphereGeometry(1,k[7]||22,k[8]||14),v=>{const r=Math.hypot(v.x,v.z),a=Math.atan2(v.z,v.x);
     let y=v.y*.84,w=.82*(1+.06*v.y)*(1+.03*Math.cos(5*a)*(v.y<-.4?1:0));
     if(v.y>0)y-=.26*Math.exp(-r*r/.07); else y+=.10*Math.exp(-r*r/.05);
     v.set(v.x*w,y,v.z*w);});
@@ -224,7 +224,7 @@ const FRN_RAISIN=function(K){const H=frH(K),T=H.T;
   };
   aile(1);aile(-1);
 };
-const FRN_POMMEDOREE=function(K){frPomme(K,['go1','go2','go3','goH','goT','goL','gol']);};
+const FRN_POMMEDOREE=function(K){frPomme(K,['go1','go2','go3','goH','goT','goL','gol',44,28]);};
 
 for(const k in FRUIT_PAL_N)FRUIT_PAL[k]={g:'f',c:FRUIT_PAL_N[k]};
 const FRUIT_EXO=FRUIT_DEFS.splice(0,FRUIT_DEFS.length); // les 13 d'avant : hors du jeu, au cahier des charges

@@ -9,7 +9,8 @@ const KEYS={L:'ArrowLeft',R:'ArrowRight',U:'ArrowUp',D:'ArrowDown',N:'Space'};
 function evaluer(w,graine,tmax){
   J.lancer(graine);
   const tenu={L:false,R:false,U:false,D:false,N:false};
-  const poser=(k,on)=>{ if(tenu[k]!==on){ tenu[k]=on; J.touche(KEYS[k],on); } };
+  let braq=0, appuisN=0;
+  const poser=(k,on)=>{ if(tenu[k]!==on){ tenu[k]=on; J.touche(KEYS[k],on); if(k==='L'||k==='R') braq++; if(k==='N'&&on) appuisN++; } };
   const trk0=J.g.sandbox.__TRK; const inp=new Float64Array(C.NIN), out=new Float64Array(C.NOUT);
   let e=J.etat(), trk=trk0(), prevS=e.s, dist=0, mort=false, fr=0, immobile=0, vMax=0, air=0, tricks0=e.tricks, nitroFr=0;
   const N=Math.round(tmax*60);
@@ -31,13 +32,14 @@ function evaluer(w,graine,tmax){
   }
   e=J.etat(); if(e.s>=prevS) dist+=Math.max(0,e.s-prevS);
   J.lacher();
-  return {dist:dist, mort:mort, t:fr/60, vMax:vMax, air:air*6/60, tricks:e.tricks-tricks0, nitro:nitroFr*6/Math.max(1,fr)};
+  return {dist:dist, mort:mort, t:fr/60, vMax:vMax, air:air*6/60, tricks:e.tricks-tricks0, nitro:nitroFr*6/Math.max(1,fr), braqParS:braq*60/Math.max(1,fr), appuisNitroParS:appuisN*60/Math.max(1,fr)};
 }
-process.on('message',m=>{
+function evaluerSeul(w,graine,tmax){ if(!J) J=creer({silence:true}); return evaluer(w,graine,tmax); }
+if(process.send) process.on('message',m=>{
   if(!J){ J=creer({silence:true}); }
   if(m.stop) process.exit(0);
   let r; try{ r=evaluer(Float64Array.from(m.w),m.graine,m.tmax); }catch(err){ r={dist:0,mort:true,erreur:String(err&&err.stack||err).slice(0,300)}; }
   process.send({id:m.id,r:r});
 });
-process.send({pret:true});
-module.exports={evaluer:evaluer};
+if(process.send) process.send({pret:true});
+module.exports={evaluer:evaluer,evaluerSeul:evaluerSeul};

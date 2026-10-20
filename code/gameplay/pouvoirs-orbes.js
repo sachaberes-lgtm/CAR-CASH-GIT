@@ -77,7 +77,8 @@ function mkPower(kind,dir){
     const geo=fruitPowGeo(kind);if(!geo.boundingBox)geo.computeBoundingBox();
     const m=new THREE.Mesh(geo,FRUIT_MAT);m.scale.setScalar(4.8);g.add(m); // ×4,8 : les fruits-pouvoirs sont GROS, trois fois les fruits normaux
     g.userData.lev=-geo.boundingBox.min.y*4.8+.08; // POSÉ SUR LE BITUME (Léo : « qu'ils ne flottent pas ») : le centre du groupe est à `lev` au-dessus du sol
-    {const sol=fauraSol(FRUIT_POW_AURA[kind]);sol.position.y=-g.userData.lev;g.add(sol);} // l'aura sort du SOL autour du fruit (sans le cacher)
+    {const au=fauraCubes(FRUIT_POW_AURA[kind],g.userData.lev);if(au.children.length)g.add(au);} // l'aura en MINI CUBES vit AUTOUR du fruit, sans jamais le cacher
+    if(kind==='m'){const sh=fauraFruit(4,geo);if(sh.children.length)m.add(sh);} // la pomme dorée : rien autour, c'est le fruit qui SCINTILLE
     g.userData.fruit=true;
     return g;
   }

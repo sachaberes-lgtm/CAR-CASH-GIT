@@ -52,7 +52,8 @@ function garBqIndus(dt,ay,t9){
   if(!veut){const tg=Math.round(GBQ.yaw/(2*Math.PI))*2*Math.PI;GBQ.yaw+=(tg-GBQ.yaw)*Math.min(1,dt*5);GBQ.yawV=0;GBQ.lan=null;}
   const fl=Math.max(0,Math.min(1,GBQ.lev/.95));
   if(Math.abs(GBQ.lev)>1e-4||Math.abs(GBQ.yaw)>1e-4||Math.abs(GBQ.pit)>1e-4||Math.abs(GBQ.rol||0)>1e-4){
-    {const b9=GBQ.ba||0;GBQ.levB=.38*b9*b9*(3-2*b9);}carGroup.position.y+=GBQ.lev+GBQ.levB+(GBQ.hop||0)+Math.sin(t9*1.6)*.05*fl; // (2026-10-13) +38 cm quand les BRAS la tiennent : la place de les voir
+    {const b9=GBQ.ba||0;GBQ.levB=.38*b9*b9*(3-2*b9);}if(GBQ.tapT<.32)GBQ.tapT+=dt;const tu9=Math.min(1,GBQ.tapT/.32);carGroup.position.y+=GBQ.lev+GBQ.levB+(GBQ.hop||0)+Math.sin(Math.PI*tu9)*.07*(1-tu9)+Math.sin(t9*1.6)*.05*fl; // (2026-10-20) + le bond du TAP (bqTape)
+    // (2026-10-13) +38 cm quand les BRAS la tiennent : la place de les voir
     const cA=garCamA(),q=GBQ._q||(GBQ._q=new THREE.Quaternion()),q2=GBQ._q2||(GBQ._q2=new THREE.Quaternion()),ax=GBQ._ax||(GBQ._ax=new THREE.Vector3()),Y=GBQ._Y||(GBQ._Y=new THREE.Vector3(0,1,0));
     q.setFromAxisAngle(Y,carGroup.rotation.y+GBQ.yaw);ax.set(1,0,0);q2.setFromAxisAngle(ax,GBQ.pit+Math.sin(t9*1.1)*.025*fl);q.multiply(q2);if(GBQ.rol){ax.set(0,0,1);q2.setFromAxisAngle(ax,GBQ.rol);q.multiply(q2);} /* (13/10) le ROULIS : saisie par le flanc, elle bascule vers nous (voir bqPrise) */ /* (2026-10-13, Léo : « penchée vers le bas, capot vers l'avant ») le glissé vertical la fait TANGUER sur son propre axe (l'axe de ses roues : le nez, à +z, plonge quand on tire vers le bas) — avant, elle basculait vers la caméra (de profil : le toit, puis le ventre) */
     ax.set(Math.sin(cA),0,Math.cos(cA));q2.setFromAxisAngle(ax,THREE.MathUtils.clamp(GBQ.yawV*.03,-.12,.12)*fl); /* (2026-10-14, Léo : « un peu penchée ») plus de roulis permanent : elle flotte DROITE */q.premultiply(q2);carGroup.quaternion.copy(q);}

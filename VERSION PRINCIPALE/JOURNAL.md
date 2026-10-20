@@ -3,6 +3,16 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA MONTÉE « GRANDE » DU GÉNÉRATEUR, EN COURSE (2026-10-20 soir, v751, Léo : « quand je booste, ça apparaît, ça évolue, puis ça devient une sorte de trompette horrible qui fait bugger la musique : elle s'arrête, reprend 1-2 s après, et dès que je rappuie sur le boost ça recommence ») — branche `nitro-ronron`
+- **LE SON** n'était pas le nitro : c'est la musique de POUCE BLEU (le générateur `musique-trente-*.js`). Le jeu ne lui passe que le MOTEUR (`setTier`) ;
+  un boost tenu fait monter plusieurs paliers d'un coup, et chaque grand élément qui entre appelle une MONTÉE d'une mesure : un RISER — une fois sur deux
+  « en ton » : trois scies 110 → 440 Hz dans un passe-bas résonant 500 → 6 000 Hz (Q 3, gain jusqu'à 0,6) = la sirène-trompette qui « apparaît, évolue » —,
+  des roulements, une fois sur trois le TROU (la musique à 8 % avant l'arrivée), puis la cymbale et l'impact. Sacha (boost lâché plus tôt, autres tirages) n'y tombait pas.
+- **LA RÈGLE** (`assets/audio/pouce-bleu-jeu.js`, `importeAvance`) : EN COURSE SEULEMENT, le texte du générateur est retouché au chargement (comme l'horloge) :
+  riser = toujours le SOUFFLE (cymbale à l'envers), la montée grande sans trou, le trou retiré du tirage des petites transitions. Les versions figées ne
+  bougent pas sur le disque ; la bibliothèque les charge intactes. `?montee=ancien` = avant (A/B) ; `dbgPouce().montee` = « douce » / « ancienne ».
+- Le RONRON (v745-746) était une fausse piste — réelle au casque (sub à +10 dB), mais pas le son décrit : il reste coupé par défaut (`?ronron=1`).
+
 ## LE RONRON DU NITRO EST COUPÉ PAR DÉFAUT (2026-10-20 soir, v746 — Léo, en détail : « ça apparaît, ça évolue, puis une trompette horrible qui fait bugger la musique » = ses trois temps ; baissé il restait une trompette → `?ronron=1` le rend régulé, `?ronron=ancien` = v740 ; à trancher Léo/Sacha)
 ## LE RONRON DU NITRO SORT DU SUB (2026-10-20 soir, v745, Léo : « un audio parfois sur mon tel et mon ordi qu'il n'y a pas sur le tel ni l'ordi de Sacha, sur le main — lié au boost, un son qui n'a rien à voir ») — branche `nitro-ronron`
 - **LE SON** : le RONRON de Sacha (v740, le soir même) — deux triangles 44 Hz + quinte + une SOUS-OCTAVE à 22 Hz, hachés à 13 → 28 Hz, vibrato et houles après 2,5 s de tenue.
@@ -24,7 +34,8 @@ Plan de Léo (interview, fruit par fruit) ; tout est dans `code/gameplay/fruits-
   RAFALE : une sur quatre (même total d'aura). Au BOUT d'une longue file (16-26 fruits) tombe un FRUIT-POUVOIR (`PWR_LIGNE`, `?cristaux=1` = les anciens cristaux au hasard), les cinq à égalité (`PWR_EGAUX`).
 - **(v743, après l'essai de Léo)** la file ne reste plus en ligne : `ligneGroupe`/`ligneMotif` — des GROUPES TIRÉS AU HASARD (longueur 4-15, forme vague/marches/arc/balayage/S/repos, amplitude, espacement 0,8-1,35×, fruit dominant, un repos 1 fois sur 4), PAS de cycle (v744 : le v743 était un cycle de 9, trop répétitif) ; fruits normaux ×1,6 (`FRUIT_K`), fruits-pouvoirs ×4,8 ; sons `pwr.x` (bol chantant) et `pwr.m` (carillon d'or) refaits.
 - **(v745)** `fruitPick` : tous les fruits à égalité partout (les règles par map `jf`/`cf` ne visaient que les 7 exotiques → à Jade/Canyon/Dunes le tirage retombait sur le fruit 0, la myrtille). Fruits-pouvoirs POSÉS SUR LA ROUTE (`lev` = leur demi-hauteur) ; l'aura sort du sol (`fauraSol` : paroi de FOND d'un cylindre ouvert + disque au sol, `BackSide` : jamais devant le fruit) ; banc `dbgPwrPhoto(k,t,dist,haut)`.
-- **(emblèmes au sol)** le disque au sol de chaque fruit-pouvoir n'est plus un cercle : étoile de flammes, éclats de foudre, Sharingan, deux ailes déployées, aimant en fer à cheval (`FSOLD_FS`, une branche par `uKind`).
+- **(v750, mini cubes — remplace les emblèmes au sol)** `fauraCubes` : l'aura vit AUTOUR du fruit, en mini cubes (shader de points carrés `FCUB_*`) — PIMENT huit langues de cubes qui se désintègrent + braises, CITRON rubans de segments DROITS qui tournent puis s'échappent (`FZ_*`), DRAGON tourbillon rouge/violet/rose/vert/bleu par groupes, RAISIN vent léger (poussière + cubes pâles), POMME DORÉE rien autour : le fruit scintille (coque `uKind` 4, sphère plus fine, plus de rouge dans l'or). `fauraSol`/`fauraFruit` restent pour le banc.
+- **(emblèmes au sol, remplacés)** le disque au sol de chaque fruit-pouvoir n'est plus un cercle : étoile de flammes, éclats de foudre, Sharingan, deux ailes déployées, aimant en fer à cheval (`FSOLD_FS`, une branche par `uKind`).
 - **9 FRUITS NORMAUX** (même nitro) : myrtille, cerise, kiwi, pêche, orange, mangue, pomme, melon, litchi — recettes de l'atelier (`FRN_*`), les 13 anciens (dont les 7 exotiques) rangés dans `FRUIT_EXO`, hors du jeu.
 - **PIMENT = nitro infinie 7 s** : la couleur du feu chauffe avec le temps de boost (rouge → orange → jaune → blanc → bleu → violet, `NINF.h`), plume, traînée et bords d'écran la suivent.
 - **CITRON = vitesse ×2** (comme avant) : éclairs en rubans (`ZAP`), onde de choc, compteur km/h électrique, son `citron.zap` (cuit en PCM : pas de ffmpeg ici). **DRAGON = aura ×2, ×3 si `CHA.x ≥ 3`** (`auraDragonK`), jus vert/rose à chaque geste, disque Genjutsu
