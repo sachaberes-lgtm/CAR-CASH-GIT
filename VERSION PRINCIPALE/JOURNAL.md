@@ -3,6 +3,38 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES FREEZES ET LA LATENCE DE LA VERSION EN LIGNE — TROIS CAUSES MESURÉES (2026-10-20, v740, session LATENCE — Sacha : « il y a beaucoup de freeze et de latence sur la version vercel, essaye de régler le problème »)
+- **LE BANC** (scratchpad, à refaire si besoin) : la version EN LIGNE (https://car-cash-git.vercel.app/jouer/) pilotée dans Chrome sans fenêtre (téléphone couché émulé, playwright-core
+  de `~/.hermes`), une course pilotée par `dbgAuto` (gardé dans la copie allégée), et une TRACE Chrome (`Tracing.start`, catégories devtools.timeline + profileur) analysée en
+  TEMPS CPU (`tdur`) — le Mac était à une charge de 50 à 180 (les autres sessions) : en temps mur la plupart des longues images étaient le fil descendu de la puce, pas le jeu.
+  Plus la catégorie `disabled-by-default-devtools.timeline.invalidationTracking` (QUI est restylé à chaque image, et pourquoi).
+- **CE QUI COÛTE, par image de course** (trace de 100 s, Mac chargé) : `loop` ~8 ms de CPU au médian ; à côté, ~4 ms pour le HUD en HTML (styles 1,7 · peinture, calques, commit
+  ~1,9). Aucune compilation de programme en course. Les à-coups : le départ (le pré-bâti pas fini, voir 2), le passage du portail (~100 ms de `bufferData` : la géométrie de la
+  map neuve envoyée d'un coup — la chauffe la dessine déjà sous le voile), les crans de résolution de l'échelle QL (téléphone, voir plus bas), un GC majeur (~50 ms) de temps en temps.
+- **1. LE PLAFOND À 60 i/s EN IMAGES ENTIÈRES** (`fpsSaute`, `code/moteur/cadence.js`, appelé en tête de `loop`) : l'horloge cumulée à 1000/60 de la v732 tombait entre deux
+  images d'écran sur un écran qui n'est pas un multiple de 60 Hz — SIMULÉ : 90 Hz → 11 / 22 ms en alternance, 144 Hz → 14 / 21 ms, 75 et 100 Hz idem, et à ~61 Hz une image
+  sautée chaque seconde. Désormais une image d'écran sur n, n = fréquence ÷ 60 arrondie au-dessous (médiane des intervalles de rAF sur 90) : 120 et 240 Hz → 60 i/s, 144 → 72,
+  sous ~110 Hz rien ne se saute. `dbgCadence().plafond` = {actif, n, ecran}. `?fps=0` = sans plafond (inchangé).
+- **2. LA GROTTE FINIE « D'UN TRAIT »** (`buildGrotteG`, `code/maps/grottes-2.js`) : le pré-bâti pas fini quand vient le JOUER (ou le portail) est fini par
+  `prebTravaille(Infinity)` ; `direct`, lu au DÉBUT du générateur, valait faux, et toute la grotte restante (la GROTTE VASTE du 19/10) se maillait dans la même image —
+  MESURÉ en ligne : 220 ms de `grtTroncon`/`grtMailleNets` au JOUER. La boucle des tronçons relit `JF.lim===Infinity` : comme un bâti direct, les 1 100 premiers mètres tout
+  de suite, le reste par `grtTranches` (4 ms par image, `grotteTick`). `dbgPrebati().msFin` = le temps de cette fin d'un trait.
+- **3. `:has(#modale.on)` DEVENU UNE CLASSE** (`HAS_D` + `hModale`, `code/interface/passe-textes.js` ; règle `code/css/ux8.css`) : `html:not(.c6):has(#modale.on) #tPanel` (UX 8,
+  14/10) avait échappé à la passe `:has()` du 14/10. Son argument contient `.on` : MESURÉ (trace des invalidations, 25 s de course) ~60 fois par seconde une classe `on` posée
+  ou ôtée ailleurs dans le HUD relançait l'examen du `<html>` (puis `#tPanel`, des `.pxi` restylés). Désormais `.hModale:not(#ccH)` sur le `<body>` : même spécificité (2,2,1).
+- **MESURÉ, A = la version d'avant / B = celle-ci** (deux copies locales servies côte à côte, Chrome sans fenêtre, téléphone couché émulé) :
+  · le micro-banc du 14/10 (une classe `on` posée + un style relu, pages A et B en course, 8 tours alternés) : médiane **853 µs → 177 µs** (÷4,8), B plus bas à chaque tour ;
+  · examens `:has` du `<html>` par image : **1,93 → 0** ; éléments restylés par image 23,4 → 18,7 (trace des invalidations, 15 s aux nuages) ;
+  · en course (2 × 40 s chacune, en alternance, Mac chargé de 5 à 136) : styles par image 3,0 / 4,8 ms (A) → 2,0 / 1,6 ms (B), peinture 2,6 / 4,1 → 2,3 / 1,9 ms ;
+  · la grotte en 1re map, JOUER 2,5 s après le début du pré-bâti (machine calme) : fin d'un trait 622 ms et **image figée de 667 ms (A) → pire image 67 ms (B)**, les 264
+    tronçons restants finis par tranches, 0 erreur. JOUER plus tôt (la grotte pas commencée) : A et B déjà pareils (le générateur part en direct).
+  · la fenêtre QUITTER : `#tPanel` caché fenêtre ouverte, visible avant et après, dans A comme dans B.
+- **PAS TOUCHÉ, À MESURER SUR UN VRAI TÉLÉPHONE** (`…/jouer/?banc=1`) : l'échelle QL change la résolution EN COURSE (`qlPose` → `applyDPR` → `setPixelRatio`) — chaque cran
+  réalloue le canevas et ~13 cibles et attend la puce (trace : `GetGLError` + `CheckFramebufferStatus`, 5 fois en 100 s ici) ; sur un téléphone qui bute sur le PROCESSEUR,
+  l'essai de résolution échoue, revient (2 réallocations), et recommence après le plafond de 45 s. Et la sonde sans chronomètre de la puce (Safari) : 5 images synchronisées
+  toutes les 30 s. Le reste : les animations CSS du HUD tournent sur le fil principal (`.pxBurst`, la barre de nitro pleine, `::before/::after`, `#avX`) — ~12 à 24 éléments
+  restylés par image.
+
 ## LES AURAS DES FRUITS-POUVOIRS — LE MODULE (2026-10-20, v739, Léo : « piment = aura flamme, citron = électrique, dragon = hypnotique… de vraies auras ») — BANC SEULEMENT
 Plan de Léo : les boosts de la route (plaques turbo, cristaux) deviennent des FRUITS. 9 fruits normaux (même nitro : myrtille, cerise, kiwi coupé en quart, pêche, orange, mangue, pomme, melon coupé, litchi),
 4 fruits-pouvoirs : PIMENT (aura de flammes) = nitro infinie 7 s · CITRON (aura électrique) = vitesse ×2 · FRUIT DU DRAGON (aura hypnotique) = aura ×2 · RAISIN ANGÉLIQUE (ailes blanches, SANS halo,
