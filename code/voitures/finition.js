@@ -13,7 +13,7 @@
    (ESSAI ÉCARTÉ, gardé derrière `&aretes=1` : un filet de lumière sur chaque arête vive, par barycentres — sur les facettes fines du kit il
    dessinait des dents de scie autour des roues, pas un chanfrein propre. WebGL2 seulement.) */
 const FSTU={on:/[?&]finition=(studio|1)/.test(location.search),aretes:/[?&]aretes=1/.test(location.search),garage:false,uArK:{value:1},uHdr:{value:0}};
-const FSTU_LAQUE={p:[.8,3.0,2.0,.2,.03],k:[.9,2.6,2.0,1,.05]}; // [de face, en rasant, dureté, métal, plancher lumineux] (lpMat : p [.25,1.5,3,.2] · .06 ; k [.6,1.8,2.4,1] · .07)
+const FSTU_LAQUE={p:[1.35,3.6,1.8,.2,.0],k:[1.3,3.2,1.8,1,.02]}; // (20/10, Léo : « pas assez visible, pousse plus fort ») v2 — v1 : p [.8,3,2,.2,.03], k [.9,2.6,2,1,.05] // [de face, en rasant, dureté, métal, plancher lumineux] (lpMat : p [.25,1.5,3,.2] · .06 ; k [.6,1.8,2.4,1] · .07)
 function finAreteOk(){try{return FSTU.on&&FSTU.aretes&&renderer.capabilities.isWebGL2;}catch(e){return false;}}
 /* les drapeaux d'arête d'une géométrie NON indexée : pour chaque triangle, ses trois côtés (opposés aux sommets 0, 1, 2) — vif si l'angle avec
    la facette voisine dépasse `deg` ; un côté sans voisine (le bord d'une pièce) ne l'est pas. aArete = (drapeau 0, 1, 2, rang du sommet). */
@@ -40,7 +40,7 @@ function finCaisse(){carGroup.traverse(o=>{if(!o.isMesh||!o.geometry||Array.isAr
 const FSTU_V='attribute vec4 aArete;varying vec3 vArF;varying vec3 vArB;\n',
       FSTU_VM='vArF=aArete.xyz;vArB=vec3(step(aArete.w,.5),step(.5,aArete.w)*step(aArete.w,1.5),step(1.5,aArete.w));\n',
       FSTU_F='varying vec3 vArF;varying vec3 vArB;uniform float uArK;\n',
-      FSTU_HDR='uniform float uStuHdr;vec3 fstuHdr(vec3 e){return e*(1.+uStuHdr*2.4*smoothstep(.55,.95,dot(e,vec3(.299,.587,.114))));}\n',
+      FSTU_HDR='uniform float uStuHdr;vec3 fstuHdr(vec3 e){return e*(1.+uStuHdr*4.5*smoothstep(.5,.92,dot(e,vec3(.299,.587,.114))));}\n', // (v2 : ×5,5 — v1 ×3,4)
       FSTU_FM='{vec3 e3=mix(vec3(1.),vArB,step(.5,vArF));float e9=min(e3.x,min(e3.y,e3.z)),w9=fwidth(e9)+1e-5;\n'+
         'float l9=(1.-smoothstep(w9*1.1,w9*2.8,e9))*(1.-smoothstep(.25,.5,w9))*uArK;gl_FragColor.rgb=mix(gl_FragColor.rgb,gl_FragColor.rgb*1.45+vec3(.07),l9);}\n';
 // le vernis profond : au garage (on) ou rendu à la course (off) — sur les matières de la caisse posée
@@ -64,15 +64,15 @@ function paintEnvStudio(){
       c.fillStyle=g;c.fillRect(0,0,S,S);c.fillStyle='rgba(255,255,255,.92)';c.fillRect(56,84,144,88);                // …et son grand panneau
       for(const y of [30,226]){c.fillStyle='rgba(255,246,232,.85)';c.fillRect(24,y-2,208,4);}return;}
     if(f===3){const g=c.createRadialGradient(128,128,8,128,128,150);g.addColorStop(0,'#1a1d24');g.addColorStop(1,'#07080a');c.fillStyle=g;c.fillRect(0,0,S,S);return;} // −Y : le sol
-    const gr=c.createLinearGradient(0,0,0,S);gr.addColorStop(0,'#06070a');gr.addColorStop(.40,'#141821');gr.addColorStop(.50,'#1d222c');gr.addColorStop(.53,'#0e1015');gr.addColorStop(1,'#060708');
+    const gr=c.createLinearGradient(0,0,0,S);gr.addColorStop(0,'#030305');gr.addColorStop(.40,'#0b0d12');gr.addColorStop(.50,'#11141a');gr.addColorStop(.53,'#07080b');gr.addColorStop(1,'#030304'); // (v2 : plus sombres, la lumière ressort)
     c.fillStyle=gr;c.fillRect(0,0,S,S);
     const chaud=(f===0||f===5),col=chaud?'255,236,210':'214,236,255';
     /* (mesuré à la MIRE, dbgFinition('mire') : un flanc droit vu de la caméra du garage reflète ~30° SOUS l'horizon — rangées 192-223 ;
        une épaule qui rentre, 128-159 ; un capot ou un toit vus en rasant, 64-95) */
-    boite(8,200,240,10,col,.82,8);                                                                           // LA boîte à lumière des flancs (,82 : à pleine force elle brûlait le bas d'une porte jaune)
-    boite(20,148,216,7,col,.8,7);                                                                            // celle des épaules
-    boite(30,82,196,6,col,.7,6);                                                                             // celle des capots et des toits, en rasant
-    if(f===1||f===5){colonne(54,40,10,170,col,.85);colonne(192,40,10,170,col,.85);}                       // deux colonnes : elles balaient la caisse quand elle tourne
+    boite(8,198,240,12,col,.92,7);                                                                           // LA boîte à lumière des flancs (v2 ,92 ; v1 ,82 — à 1 elle brûlait le bas d'une porte jaune)
+    boite(16,146,224,9,col,1,6);                                                                             // celle des épaules (v2 plus large et pleine)
+    boite(24,80,208,8,col,.95,6);                                                                            // celle des capots et des toits, en rasant (v2 plus pleine)
+    if(f!==4){colonne(54,40,12,180,col,1);colonne(192,40,12,180,col,1);}                                    // deux colonnes sur chaque mur (v2 : trois murs, pleine force) : elles balaient la caisse quand elle tourne
     if(f===4){const n=c.createLinearGradient(0,150,0,256);n.addColorStop(0,'rgba(196,86,26,0)');n.addColorStop(.6,'rgba(196,86,26,.55)');n.addColorStop(1,'rgba(106,22,12,.8)');c.fillStyle=n;c.fillRect(40,150,176,106);} // la porte : le bas de ses flammes
   });
   envTex.needsUpdate=true;}
