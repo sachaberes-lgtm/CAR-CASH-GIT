@@ -3,6 +3,13 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES PORTES REDESCENDENT (2026-10-20, v709, Léo : « le mission, le shop, tu remets ça en dessous ; tu as déplacé les choses d'une manière bizarre »)
+- INVENTAIRE · MISSIONS · BOUTIQUE retrouvent leur rangée AU-DESSUS DE PLAY, debout comme couché (la place du garage d'avant le 19/10) ; au
+  palier 30 la grille VITESSE se pose juste au-dessus d'elles (vdepPlace). Le ⚙ ajouté par Sacha reste en haut, à côté du trophée.
+- Dans `<style id="garageHaut">` (code/page/ecrans-garage.html), tout ce qui déplaçait les portes (la pente plaque par plaque, la colonne
+  couchée avec l'ŒIL en haut, les portes sous le nom debout, « sans la vitesse ») ne joue plus qu'avec `?portes=haut` (html.portesHaut, posé
+  dans code/page/tete.html) : le rangement de Sacha reste là pour comparer. À dire à Sacha : il voulait ces portes en haut de l'écran.
+- Vérifié au banc (390 × 844, 844 × 390, palier 1 et palier 30+), 0 erreur. Planche : `CAR CAHS V3/photos-gameplay/portes-en-bas-avant-apres.png`.
 ## LE CAÏD, LE RELIEF DU FLANC QUI SE VOIT EN TOURNANT (2026-10-20, v708, discussion voiture, Léo : « produire le même relief que sur la voiture, dans le style poly, et le rendre visible quand on tourne autour — tourner, bouger la lumière, ça compte beaucoup ; c'est la forme et la propreté qui donnent envie d'acheter »)
 - Lu sur sa photo : les PORTES EN CREUX entre deux HANCHES (l'aile avant, le flanc de benne) ; une MARCHE de l'une à l'autre (droite devant,
   inclinée derrière la porte arrière) qui attrape la lumière ; une ARÊTE à hauteur des poignées : dessus le flanc rentre (il regarde le ciel :
