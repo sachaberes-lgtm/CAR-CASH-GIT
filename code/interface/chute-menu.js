@@ -133,7 +133,12 @@ function cielArcPose(m,k){tapisPose(m);const U=skyU,A=CIEL_ARC[m],on=ARC_ON&&CAR
   if(tm&&!A.mi){U.uMrT.value=tm;U.uMr.value.x=1;U.uTMerH.value.fromArray(A.mh);U.uTMerO.value.fromArray(A.mo);U.uTSol.value.fromArray(A.s);for(let i=0;i<3;i++)N8_U.uLav.value.setComponent(i,[.72,.78,.97][i]*.5+Math.min(.97,A.mo[i]*1.4)*.5);}else U.uMr.value.x=0;} /* (2026-10-20, Léo : « les nuages du premier plan et l'arrière-plan n'ont pas la même couleur ») l'ombre des cumulus en cubes prend à moitié celle du TAPIS (mo) : même famille de bleus / mauves, par météo */
 function nuFondPose(P,k){const U=skyU;U.uTi.value.set(k,P.ca,0,P.hz);U.uTi2.value.set(P.tw||0,P.ry||0,P.cr||.35,0);
   U.uTZen.value.fromArray(P.z);U.uTMid.value.fromArray(P.m);U.uTHor.value.fromArray(P.h);U.uTSol.value.fromArray(P.s);U.uTMerH.value.fromArray(P.mh);U.uTMerO.value.fromArray(P.mo);U.uTCir.value.fromArray(P.c);}
-function nuFondTick(dt){ // à chaque image : la mer de nuages en course → le fond peint (il APPARAÎT en 0,7 s au portail) ; ailleurs, éteint
+/* L'ARC-EN-CIEL DE LA PLUIE (2026-10-21) : allumé en douceur quand la météo est la PLUIE (en course, ou — au menu — quand ce ciel est choisi) ; force .3, « léger ». `?arc=...` n'existe pas : `dbgArcEC(x)` pour essayer. */
+const ARCEC={cible:null};
+function arcEcTick(dt){const U=skyU.uArcE.value,c=LVL&&LVL.cur,run=started&&!gameOver&&c&&c.carte==='nuages';
+  let t=run?(c.meteo==='pluie'?.3:0):((typeof CIEL_CH!=='undefined'&&CIEL_CH.v==='pluie')?.3:0);if(ARCEC.cible!=null)t=ARCEC.cible;U.x+=(t-U.x)*Math.min(1,dt*1.6);if(U.x<.002&&t===0)U.x=0;}
+window.dbgArcEC=function(x,l,h){ARCEC.cible=x==null?null:+x;if(l!=null)skyU.uArcE.value.y=+l;if(h!=null)skyU.uArcE.value.z=+h;return skyU.uArcE.value.toArray();}; // (banc) x force · l demi-largeur (rad) · h hauteur du soleil forcée (rad)
+function nuFondTick(dt){arcEcTick(dt); // à chaque image : la mer de nuages en course → le fond peint (il APPARAÎT en 0,7 s au portail) ; ailleurs, éteint
   if(typeof CHUTE!=='undefined'&&CHUTE.on){skyU.uPh.value.x=0;skyU.uMr.value.x=0;tapisPose('menu');return;} // (le menu peint son ciel lui-même)
   const c=LVL&&LVL.cur,T=(NUF.force!==0)&&c&&c.carte==='nuages'&&!PARK.on?NU_FOND[c.meteo]:null;if(T)NUF.T=T;
   NUF.k+=((T?1:0)-NUF.k)*(NUF.force!=null?1:Math.min(1,dt*1.5));

@@ -8486,7 +8486,7 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   /* (2026-10-19, essai ARC) LE FOND EN PHOTO + LA MER DE CUMULUS — voir « LE CIEL D'ARC » plus bas. uPh : x la part de la photo, y la colonne (0-1) de son
      soleil, z sa hauteur (rad), w l exposition · uPh2.x le sens du tour · uMr : x la mer de cumulus (0 = la mer peinte d avant), y la profondeur du
      pont de nuages (m sous l œil), z la tuile (m), w la couverture (le seuil des trouées) · uMr2 : x le relief, y la brume (× la tuile). */
-  uTapis:{value:0},uPhT:{value:null},uMrT:{value:null},uPh:{value:new THREE.Vector4(0,.6,.1,1)},uPh2:{value:new THREE.Vector4(1,0,0,0)},uMr:{value:new THREE.Vector4(0,900,4200,.12)},uMr2:{value:new THREE.Vector4(1.6,3.6,0,.4)},
+  uTapis:{value:0},uArcE:{value:new THREE.Vector4(0,.045,.36,0)},uPhT:{value:null},uMrT:{value:null},uPh:{value:new THREE.Vector4(0,.6,.1,1)},uPh2:{value:new THREE.Vector4(1,0,0,0)},uMr:{value:new THREE.Vector4(0,900,4200,.12)},uMr2:{value:new THREE.Vector4(1.6,3.6,0,.4)},
   uTi:{value:new THREE.Vector4(0,0,0,1)},uTi2:{value:new THREE.Vector4(0,0,.35,0)},uTZen:{value:new THREE.Vector3()},uTMid:{value:new THREE.Vector3()},uTHor:{value:new THREE.Vector3()},uTSol:{value:new THREE.Vector3()},uTMerH:{value:new THREE.Vector3()},uTMerO:{value:new THREE.Vector3()},uTCir:{value:new THREE.Vector3()}, // (titre v4) LE CIEL DE L'ÉCRAN TITRE (cielTitre) — uTi.x = 0 hors du titre : rien ne change en course
   uMzA:{value:new THREE.Vector4(760,.8,15,.25)},uMzB:{value:new THREE.Vector4(.20,.16,.26,.8)},uMzT:{value:new THREE.Vector4(0,0,0,0)},uMzO:{value:new THREE.Vector4(0,0,0,0)},uMzH:{value:new THREE.Vector4(0,0,0,0)}, /* ⚠ (0,0,0,0) ÉCRIT : un Vector4() vide vaut (0,0,0,1) — la part 1 peignait toute la mer en NOIR (vu par Léo au menu de sa copie). */ /* (2026-10-03, atelier des nuages : « une fonction pour altérer le ciel en bas ») les COULEURS de la mer de nuages forcées — trous, ombres, dômes : rgb + part (w) ; w = 0 partout = la mer d'avant au bit près */ // (2026-09-30, niveau 1 v2) LA MER SCULPTÉE : échelle des cellules, part « gonflée », franchise de la lumière, remous · couverture, fermeture au loin, creux, clarté des trouées
   uVG:{value:0}, /* (2026-10-01, Sacha : « enlève tous les trucs Van Gogh ») la touche Van Gogh est RETIRÉE du ciel comme des nuages : plus aucun shader ne lit cet uniforme — l'objet reste, inerte, pour qu'un code qui l'écrirait encore ne plante pas */
@@ -8525,7 +8525,7 @@ const skyDome=(function(){
       /* (2026-10-19, essai ARC) LA PHOTO DU CIEL : un vrai ciel (Poly Haven, CC0), sa moitié haute en équirectangulaire ; son soleil est calé sur
          le nôtre (la colonne tourne avec uSunDir, la hauteur se plie : 0 → le soleil du jeu = 0 → celui de la photo, puis jusqu au zénith).
          Lue avec les dérivées de la plus continue des deux coordonnées (fract et fract + ½) : pas de couture au raccord du tour. */
-      'uniform sampler2D uPhT,uMrT;uniform vec4 uPh,uPh2,uMr2;uniform float uTapis;',
+      'uniform sampler2D uPhT,uMrT;uniform vec4 uPh,uPh2,uMr2;uniform float uTapis;uniform vec4 uArcE;',
       'vec3 phCiel(vec3 d){float H=1.5708,e=asin(clamp(d.y,0.,1.)),eg=max(asin(clamp(uSunDir.y,-1.,1.)),.02),ep=uPh.z;',
       '  float e2=e<eg?e*ep/eg:ep+(H-ep)*(e-eg)/(H-eg);',
       '  float u=uPh.y+uPh2.x*(atan(d.x,-d.z)-atan(uSunDir.x,-uSunDir.z))/6.2832,u1=fract(u),u2=fract(u+.5)-.5;',
@@ -9130,6 +9130,17 @@ const skyDome=(function(){
          le terme d'origine vaut 0 (smoothstep saturé, step) : l'image est la même au pixel près. Pour la lune et les deux cœurs du
          soleil (des `pow` qui ne s'annulent jamais tout à fait), la borne est prise là où l'apport tombe sous 1e-5 — 400× sous le
          pas d'un niveau de couleur. `atan` (l'azimut) n'est calculé que si une couche qui le lit est allumée sur ce pixel. */
+      /* (2026-10-21, Léo : « petit arc-en-ciel, léger, pas juste grisaille ; il faut créer le décor avec ») L'ARC-EN-CIEL : un cercle de 42° autour du point opposé au soleil (le soleil forcé à ~22° de haut :
+         le sommet de l'arc à ~20°, quelle que soit l'heure du jeu), sept bandes (rouge dehors, violet dedans) fondues, une enveloppe douce, un fondu vers l'horizon ; uArcE : x force (0 = éteint),
+         y demi-largeur (rad), z hauteur du soleil forcée (rad). Ajouté, jamais plein : la lumière, pas un dessin. */
+      'void cielArcEC(inout vec3 col,vec3 d,float y){',
+      '  if(uArcE.x<.001||y<.0)return;',
+      '  vec2 h=normalize(uSunDir.xz+vec2(1e-4));float ce=cos(uArcE.z),se=sin(uArcE.z);vec3 A=vec3(-h.x*ce,-se,-h.y*ce);',
+      '  float th=acos(clamp(dot(d,A),-1.,1.)),t=(th-(.7330-uArcE.y))/(2.*uArcE.y);',        // .7330 rad = 42° : t = 1 au bord rouge (dehors), 0 au bord violet (dedans)
+      '  if(t<=0.||t>=1.)return;',
+      '  float hu=(1.-t)*.76;vec3 rgb=clamp(abs(mod(hu*6.+vec3(0.,4.,2.),6.)-3.)-1.,0.,1.);',
+      '  float env=pow(sin(3.14159*t),1.4)*smoothstep(0.,.14,y)*uArcE.x;',
+      '  col+=rgb*env*(.55+.45*dot(col,vec3(.33)));}',
       'void cielSoleil(inout vec3 col,float sd){',
       '  float sd2=sd*sd;col+=uSunTint*(sd2*sd2)*.45*uSunHalo;',
       '  if(sd>.62){col+=vec3(1.,.60,.36)*pow(sd,32.)*.9*uSunHalo;',        // .62^32 = 2e-7
@@ -9341,6 +9352,7 @@ const skyDome=(function(){
       '  if(uTi.x>.001)cielTitre(col,vDir,y,sd);', // (titre v4) le ciel de l écran titre
       '  if(uPh.x>.001&&y>-.006)col=mix(col,phCiel(vDir),uPh.x*smoothstep(-.006,.004,y));', // (essai ARC) la photo
       '  if(uParis>.001)parisCiel(col,vDir,y,sd);', // PARIS AU SOL : le ciel de l heure
+      '  cielArcEC(col,vDir,y);', // (2026-10-21) l arc-en-ciel de la pluie : APRÈS le titre et la photo, qui repeignent tout le ciel
       '  bool gOn=cielGOn(y,sd),sOn=cielSOn(y,sd);',
       '  float az=0.;if(gOn||sOn||uLvl>.001||uVille>.001)az=atan(vDir.x,-vDir.z);',
       '  if(gOn)cielGuirlande(col,y,az,sd);',
@@ -9362,7 +9374,7 @@ const skyDome=(function(){
     basN:[LECT_TR,
       'void main(){',
       '  float y=vDir.y;vec3 col=cielFond(y);if(uSpace*uNeb>.001)cielEspace(col);float sd=max(dot(vDir,uSunDir),0.);', // (2026-10-15) + l espace profond
-      '  cielMer(col,y,sd);cielJour(col,y,sd);cielSoleil(col,sd);if(uTi.x>.001)cielTitre(col,vDir,y,sd);if(uParis>.001)parisCiel(col,vDir,y,sd);',
+      '  cielMer(col,y,sd);cielJour(col,y,sd);cielSoleil(col,sd);if(uTi.x>.001)cielTitre(col,vDir,y,sd);if(uParis>.001)parisCiel(col,vDir,y,sd);cielArcEC(col,vDir,y);',
       '  if(cielGOn(y,sd))cielGuirlande(col,y,atan(vDir.x,-vDir.z),sd);',
       '  cielVoile(col,y);',
       '  gl_FragColor=vec4(cielSat(col)+vec3(cielTrame()*uBasTr),1.);}'],
@@ -27323,7 +27335,7 @@ Object.assign(BIOMES.midi,{rtK:.9,sat:1.14,con:1.18,expo:.96,jZen:[.13,.40,.84],
 Object.assign(BIOMES.nuagesSoir,{expo:.97,hemiI:.6,jSol:[.9,.5,.24],sunHalo:.9,sunC:[1,.78,.6],volSky:[.56,.5,.68],volGnd:[.34,.27,.34],vigC:[.07,.05,.08],env:[[0,'#3C4C8C'],[.3,'#8C7CAA'],[.48,'#FFB98A'],[.58,'#FFD6A8'],[.66,'#A88A94'],[1,'#6A6080']]}); // (2026-10-14, passe graphismes) SOIR : sat/con 1,25/1,25 (≤1,30), pêche → mauve doux (plus de violet vif ni d'orange fluo), clé pêche (#FFC79A) ADOUCIE après contrôle (sunI 1,7 → 1,15, hemi .55 → .6 : au soleil de face le béton virait au saumon L* 65, sat .5 — non revérifié à l'image), ombres prune, cumulus pêche (ventres moins noirs), halo du soleil .9, vignette neutre (plus de rose)
 Object.assign(BIOMES.nuagesSoir,{sunI:1.25}); // (2026-10-14, passe graphismes · hasard-beaute) NUAGES SOIR : béton plus lisible et moins violet-sombre (rtK .83 → 1,05, rebond sol plus chaud, clé 1,15 → 1,25) ; vu au vrai tirage
 Object.assign(BIOMES.nuagesNuit,{expo:1.0,fogN:600,fogF:4000}); // (2026-10-14, passe graphismes) NUIT : sat/con 1,12/1,21 (≤1,15/1,25) ; lumière qui éclaire le béton remontée (hemi .5 → .58, lune .75 → .8 en #B3C2E6, fill .22 → .26, expo .92 → 1,0) : béton L* 18-34 mesuré selon l'angle avec .65/.9/.3 (avant : trou noir), puis allégé d'un cran — non revérifié, ciel linéaire charte #0B1230 → #1E2A52 (plus sombre que la route), brume bleu sombre = horizon. Reste : la mer de nuages (GLSL merZ) garde des sommets blancs
-Object.assign(BIOMES.nuagesPluie,{sat:.96,con:1.10,expo:.97,sunC:[.84,.87,.92],hemiG:[.26,.29,.38],jZen:[.2,.24,.3],jMid:[.3,.34,.4],jHor:[.42,.45,.5],fog:[.46,.5,.56],fogIn:[.5,.53,.58],fogCj:[.46,.48,.54],vigK:.3,vigC:[.05,.06,.09]}); // (2026-10-14, passe graphismes) PLUIE : sat/con 1,04/1,17 (≤1,05/1,18), gris perle (ciel et brume du même gris-bleu, plus de pervenche clair), clé diffuse #D5DEEA, la route mouillée garde le spectacle
+Object.assign(BIOMES.nuagesPluie,{sat:1.06,con:1.10,expo:1.0,sunC:[1,.9,.74],hemiG:[.28,.32,.42],jZen:[.17,.25,.40],jMid:[.32,.42,.58],jHor:[.74,.70,.66],fog:[.52,.56,.63],fogIn:[.56,.59,.65],fogCj:[.62,.58,.56],vigK:.28,vigC:[.05,.06,.10],sunTint:[1,.86,.66],sunHalo:.3}); // (2026-10-14, passe graphismes) PLUIE : sat/con 1,04/1,17 (≤1,05/1,18), gris perle (ciel et brume du même gris-bleu, plus de pervenche clair), clé diffuse #D5DEEA, la route mouillée garde le spectacle
 Object.assign(BIOMES.matin,{nuLav:[.82,.89,.95],nuR:[-.3,.45,.78,1],nuK:[1,1.15,1,1],volSun:[2.75,2.7,2.65]}); // (2026-10-14, passe graphismes · nuages-jour) MATIN : les cumulus ne sont plus gris-lavande. Cause : l'ombre des cumulus (GLSL nuage8Mat) était un bleu-lavande FIGÉ vec3(.72,.78,.97) × .64 ; elle devient un bleu-gris clair vert-bleuté (L* ventre ~65 au lieu de ~55, plus de teinte 280°), frontière d'ombre plus douce (pas de liseré), soleil ×1,15 et albédo ~1 (sommets L* ~88-90). Valeurs seulement. (Le fond de dalle ne s'estompe pas par fogN/fogF : la route a sa propre brume, essayé 200/1100 → 320/1900, sans effet à l'horizon.)
 Object.assign(BIOMES.midi,{nuLav:[.80,.89,.97],nuR:[-.3,.45,.78,1],nuK:[1,1.08,1,1],volSun:[2.7,2.7,2.65]}); // (2026-10-14, passe graphismes · nuages-jour) MIDI : cumulus BLANCS au soleil (sommets L* ~90, soleil ×1,08 pour garder le modelé ; ventres bleu-gris clair (L* ~60-65, ex. lavande L* ~45-55 d'orage), ombre douce sans liseré ; même mécanisme que le matin
 Object.assign(BIOMES.nuagesSoir,{jHor:[.95,.70,.58],volSun:[2.5,2.25,2.0],hemiS:[.76,.69,.8]}); // (2026-10-14, passe graphismes · nuages-jour) SOIR (course) : même famille que le titre SOIR/GOLDEN (zénith mauve doux [.14,.14,.42], horizon pêche [.95,.70,.58], sat 1,08 / con 1,14) ; cumulus pêche crème, ventres prune rosée désaturée (nuLav), lisière de contre-jour adoucie (nuK.z .5), plus de galets orange-mauve ; hemiS un peu moins bleu (le dessus des cumulus à l'ombre). N'écrit QUE nuagesSoir (copie figée de titreGolden au chargement : le titre ne bouge pas)
@@ -27343,9 +27355,9 @@ Object.assign(BIOMES.aurore,{jour:1,daHi:0,sh:[-.006,.008,.03],hi:[0,0,0],sat:1.
  BIOMES.nuagesMatinCC=bioMet(BIOMES.matin,{sat:1.14,con:1.22,jZen:[.10,.30,.66],jMid:[.40,.60,.86],fog:[.70,.74,.84],fogIn:[.88,.90,.96],kickC:[1,.38,.66],kickI:.2,nuLav:[.70,.80,.98],nuR:[-.3,.45,.64,1],mzH:[1,.92,.82,.5],mzO:[.50,.62,.86,.5],vigC:[.05,.06,.14]});
  BIOMES.nuagesMidiCC=bioMet(BIOMES.midi,{nm:'MIDI',con:1.24,jZen:[.08,.28,.68],jMid:[.34,.58,.90],fog:[.66,.74,.88],fogIn:[.86,.90,.96],kickC:[1,.38,.68],kickI:.18,nuLav:[.70,.80,.98],nuR:[-.3,.45,.64,1],mzH:[1,.95,.88,.45],mzO:[.50,.62,.88,.5],vigC:[.05,.06,.14]});
 }
-Object.assign(BIOMES.nuagesPluie,{nuLav:[.40,.46,.56],nuR:[-.1,.55,.5,1],nuK:[.92,.85,.6,1],nuA:[.86,.87,.9],volSun:[.95,1.0,1.1]}); // (2026-10-14, passe graphismes · cumnuit) PLUIE : cumulus gris perle → ardoise, plus laiteux. Avant : albédo 1, ombre lavande .64, soleil 1,15-1,32 (blancs lumineux) ; après : albédo ×(.86,.87,.9) et ×.92, ombre ardoise [.40,.46,.56] à .5, clé diffuse .95-1,1 ×.85, lisière .6
+Object.assign(BIOMES.nuagesPluie,{nuLav:[.44,.50,.66],nuR:[-.1,.55,.52,1],nuK:[.98,1.0,.66,1],nuA:[.92,.92,.94],volSun:[1.1,1.04,1.04]}); // (2026-10-14, passe graphismes · cumnuit) PLUIE : cumulus gris perle → ardoise, plus laiteux. Avant : albédo 1, ombre lavande .64, soleil 1,15-1,32 (blancs lumineux) ; après : albédo ×(.86,.87,.9) et ×.92, ombre ardoise [.40,.46,.56] à .5, clé diffuse .95-1,1 ×.85, lisière .6
 Object.assign(BIOMES.tempete,{nuR:[-.05,.5,.5,1],nuK:[1,1.5,.5,1]}); // (2026-10-14, passe graphismes · cumnuit) ORAGE : cumulus ardoise sombre à ventre noir-bleu. Avant : ombre lavande .64 (ventre presque aussi clair que le dessus) ; après : ombre ardoise-encre [.14,.19,.30] à .5, éclair/clé ×1,5 sur les faces éclairées pour garder un sommet lisible, lisière .5
-Object.assign(BIOMES.tempete,{jZen:[.02,.018,.08],jMid:[.05,.034,.13],jHor:[.15,.08,.24],fog:[.17,.16,.33],fogIn:[.3,.28,.48],fogCj:[.32,.24,.46],hemiS:[.42,.40,.62],kickC:[.62,.42,1],kickI:.3,volSky:[.24,.2,.44],nuLav:[.2,.16,.42],mzH:[.11,.09,.26,.8],mzO:[.035,.025,.085,.8],nuA:[.58,.56,.78]}); // (2026-10-15, Sacha : « l'orage de la mer de nuages, beaucoup trop gris ») l'ardoise vire à l'ORAGE ÉLECTRIQUE : ciel indigo-violet, brume violette, ventres pourpres, kick violet néon
+Object.assign(BIOMES.tempete,{jZen:[.02,.018,.08],jMid:[.05,.034,.13],jHor:[.15,.08,.24],fog:[.17,.16,.33],fogIn:[.3,.28,.48],fogCj:[.32,.24,.46],hemiS:[.42,.40,.62],kickC:[.62,.42,1],kickI:.3,volSky:[.24,.2,.44],nuLav:[.25,.23,.42],mzH:[.11,.09,.26,.8],mzO:[.035,.025,.085,.8],nuA:[.64,.62,.78]}); // (2026-10-15, Sacha : « l'orage de la mer de nuages, beaucoup trop gris ») l'ardoise vire à l'ORAGE ÉLECTRIQUE : ciel indigo-violet, brume violette, ventres pourpres, kick violet néon
 /* (2026-10-14, Sacha : « trop gris, trop triste ; rajoute des couleurs pures, bleu ou violet, une ambiance CLAIR DE LUNE » — passe graphismes · clairdelune) LA MER DE
    NUAGES DE NUIT = CLAIR DE LUNE (la bible : la nuit = bleu et violet PURS, jamais gris). Ciel bleu profond saturé → indigo → horizon violet (linéaire), étoiles et lune
    plus fortes ; mer de nuages bleu nuit LUMINEUSE ; cumulus aux sommets argent-bleu (la lune) et aux ventres VIOLETS ; lumière : lune bleutée, remplissage violet,
@@ -59175,8 +59187,8 @@ function campCourbure(){ // la courbure LATÉRALE de la piste en chaque point (1
 }
 function portailVisible(v){for(const o of [portalMesh,PORTAL.noy,PORTAL.halo])if(o)o.visible=v;if(PCUBE.on){PCUBE.grp.visible=v;PCUBE.halo.visible=v;}if(PORTAL.lum)PORTAL.lum.intensity=v?(PCUBE.on?1.1:1.6):0;}
 // ============ L'ORAGE : l'éclair RÉVÈLE, le tonnerre suit ============
-const ECL=(function(){
-  const N=34,pos=new Float32Array(N*12),col=new Float32Array(N*12),uv=new Float32Array(N*8),idx=[];
+function eclFab(N){ // (2026-10-21) UN jeu d'éclairs : une mesh de rubans additifs (N segments × 2 : halo violet + coeur blanc-bleu)
+  const pos=new Float32Array(N*12),col=new Float32Array(N*12),uv=new Float32Array(N*8),idx=[];
   for(let i=0;i<N;i++){const o=i*4;idx.push(o,o+1,o+2,o+2,o+1,o+3);uv.set([0,0,1,0,0,1,1,1],i*8);}
   for(let i=0;i<N*4;i++)pos[i*3+1]=-99999;
   const g=new THREE.BufferGeometry();
@@ -59184,13 +59196,16 @@ const ECL=(function(){
   const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:TRAIL_TEX,vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.DoubleSide}));
   m.frustumCulled=false;m.renderOrder=2;scene.add(m);
   const P=[];for(let i=0;i<N+2;i++)P.push(new THREE.Vector3());
-  return {m:m,pos:pos,col:col,N:N,P:P,seg:[],t:4,k:0,vie:0,tonT:-1,ton:0,dernier:false,viv:true};
-})();
-function eclVide(){ECL.vie=0;ECL.k=0;ECL.seg.length=0;ECL.tonT=-1;ECL.viv=true;eclEcrit();CAMP_FLASH=0;CAMP_FOG=0;
+  return {m:m,pos:pos,col:col,N:N,P:P,seg:[],t:4,k:0,vie:0,dur:.34,tonT:-1,ton:0,dernier:false,viv:true};
+}
+const ECL=eclFab(70),ECL2=eclFab(60); // ECL : le COUP (du ciel au sol) · ECL2 : l'éclair DANS les nuages
+function eclVide(){ECL.vie=0;ECL.k=0;ECL.seg.length=0;ECL.tonT=-1;ECL.viv=true;ECL2.vie=0;ECL2.k=0;ECL2.seg.length=0;ECL2.viv=true;eclEcrit(ECL);eclEcrit(ECL2);CAMP_FLASH=0;CAMP_FOG=0;
   if(acesPass)acesPass.uniforms.uExposure.value=POST_EXPO;if(scene.fog){scene.fog.near=FOG_N;scene.fog.far=FOG_F;}} // (2026-09-29, audit GAMEPLAY) l'exposition et la brume ne sont réécrites qu'en course : sans ça, l'écran de fin gardait le flash (×1,8) ou la brume du banc
 function eclFrappe(){
   const fin=s>L-1700&&!ECL.dernier;
   if(fin){ECL.dernier=true;frameAt(Math.max(0,L-60),GF);const l=Math.hypot(GF.t.x,GF.t.z)||1;CV1.set(PORTAL.c.x+GF.t.z/l*150,PORTAL.c.y-140,PORTAL.c.z-GF.t.x/l*150);} // le DERNIER éclair tombe à côté du portail
+  else if(Math.random()<.3){const sT=Math.min(L-10,s+300+Math.random()*260);frameAt(sT,GF);const l=Math.hypot(GF.t.x,GF.t.z)||1,d=(Math.random()-.5)*ROAD_HALF*1.2; // (2026-10-21, Léo : « parfois ça frappe la route ») le coup tombe SUR le ruban : gerbe d'étincelles bleues, visuel seulement
+    CV1.set(GF.p.x+GF.t.z/l*d,GF.p.y+1,GF.p.z-GF.t.x/l*d);ECL.sol=true;}
   else{const sT=Math.min(L-10,s+380+Math.random()*520);frameAt(sT,GF);const l=Math.hypot(GF.t.x,GF.t.z)||1,d=(Math.random()<.5?-1:1)*(ROAD_HALF+90+Math.random()*420);
     CV1.set(GF.p.x+GF.t.z/l*d,GF.p.y-150,GF.p.z-GF.t.x/l*d);}
   // le tronc : 16 segments du ciel jusque sous la route, brisés ; deux branches
@@ -59201,32 +59216,48 @@ function eclFrappe(){
   for(const [from,len] of [[5,6],[10,5]]){let prev=from;const ang=Math.random()*6.283;
     for(let k=1;k<=len&&q<P.length;k++){P[q].set(P[prev].x+Math.cos(ang)*28*k/len*3+(Math.random()-.5)*22,P[prev].y-34,P[prev].z+Math.sin(ang)*28*k/len*3+(Math.random()-.5)*22);
       ECL.seg.push(prev,q,4.2);prev=q;q++;}}
-  ECL.vie=.34;ECL.k=1;
+  ECL.vie=ECL.dur=.34;ECL.k=1;if(ECL.sol){ECL.sol=false;try{sparkBurst(sparkBlue,CV1,34,16);sparkBurst(sparkGold,CV1,10,9);}catch(e9){}shake=Math.max(shake,.3);}
   const dd=CV2.subVectors(CV1,carGroup.position).length();
   ECL.tonT=.25+dd/1400;ECL.ton=Math.max(.25,1-dd/1400);if(SONV2)sfx('foudre.eclair',{vol:-14+14*ECL.ton}); // le tonnerre arrive après, et plus fort quand c'est près
   if(dd<700)hap(12);
 }
-function eclEcrit(){
-  const P=ECL.pos,C=ECL.col,cam=camera.position,on=ECL.vie>0;let n=0;
-  if(on){const fl=ECL.vie>.2?1:.2+.8*(ECL.vie/.2); /* (2026-10-14, WCAG 2.3.1) fondu continu : l'alternance à 14 Hz faisait 3 flashs en 0,2 s */ // il claque, puis vacille
-    for(let j=0;j<ECL.seg.length&&n<ECL.N;j+=3,n++){const a=ECL.P[ECL.seg[j]],b=ECL.P[ECL.seg[j+1]],w=ECL.seg[j+2],o=n*12;
-      CV3.subVectors(b,a);CV4.subVectors(cam,a);CV4.crossVectors(CV3,CV4);const l=CV4.length();if(l>1e-6)CV4.multiplyScalar(w/l);
-      P[o]=a.x-CV4.x;P[o+1]=a.y-CV4.y;P[o+2]=a.z-CV4.z;P[o+3]=a.x+CV4.x;P[o+4]=a.y+CV4.y;P[o+5]=a.z+CV4.z;
-      P[o+6]=b.x-CV4.x;P[o+7]=b.y-CV4.y;P[o+8]=b.z-CV4.z;P[o+9]=b.x+CV4.x;P[o+10]=b.y+CV4.y;P[o+11]=b.z+CV4.z;
-      const f=fl*(w>6?1.5:1.05);for(let k=0;k<4;k++){C[o+k*3]=.95*f;C[o+k*3+1]=.97*f;C[o+k*3+2]=1.18*f;}}} // (2026-10-14, neon-residuel) l'éclair : blanc-bleu (la charte), plus lilas
-  for(let i=n;i<ECL.N;i++){const o=i*12;if(P[o+1]===-99999)continue;for(let k=0;k<4;k++){P[o+k*3+1]=-99999;C[o+k*3]=C[o+k*3+1]=C[o+k*3+2]=0;}}
-  if(on||ECL.viv){const at=ECL.m.geometry.attributes;at.position.needsUpdate=true;at.color.needsUpdate=true;}
-  ECL.viv=on;
+function eclNuage(){ // (2026-10-21, Léo : « il faut de la foudre qui traverse les nuages ») un éclair DANS un nuage : il rampe à l'intérieur (une marche brisée), se ramifie, allume son nuage de l'intérieur
+  if(!(COTON.n>0))return;const I=COTON.I,cp=carGroup.position;let best=-1,bs=1e9;
+  for(let t=0;t<14;t++){const j=(Math.random()*COTON.n)|0,o=j*COTON_ST,r=I[o+3];if(r<60)continue;const dx=I[o]-cp.x,dz=I[o+2]-cp.z,d=Math.sqrt(dx*dx+dz*dz);if(d<220||d>1500)continue;
+    const sc=d+Math.random()*300-r*.4;if(sc<bs){bs=sc;best=j;}} // plutôt les gros, plutôt proches, jamais sous la caisse
+  if(best<0)return;const o=best*COTON_ST,r=I[o+3],S=COTON.S[I[o+5]],rx=r*I[o+8]*.8,ry=Math.max(20,(S.top-S.base)*r*I[o+9]*.45),cx=I[o],cy=I[o+1]+S.base*r*I[o+9]+I[o+7]*.5,cz=I[o+2],E=ECL2,P=E.P;
+  E.seg.length=0;const a0=Math.random()*6.283;let x=cx-Math.cos(a0)*rx*.9,y=cy+(Math.random()-.3)*ry*.8,z=cz-Math.sin(a0)*rx*.9,q=0;P[q++].set(x,y,z);
+  const n=11+((Math.random()*5)|0),ste=rx*1.8/n;
+  for(let k=1;k<=n&&q<P.length;k++){x+=Math.cos(a0)*ste+(Math.random()-.5)*ste*.9;y+=(Math.random()-.55)*ste*.9;z+=Math.sin(a0)*ste+(Math.random()-.5)*ste*.9;P[q].set(x,y,z);E.seg.push(q-1,q,Math.max(2.4,r*.045));q++;}
+  for(let b=0;b<2&&q<P.length-4;b++){const from=2+((Math.random()*(n-4))|0),ang=Math.random()*6.283;let prev=from;
+    for(let k=1;k<=3&&q<P.length;k++){P[q].set(P[prev].x+Math.cos(ang)*ste*.7+(Math.random()-.5)*ste*.5,P[prev].y+(Math.random()-.5)*ste*.8,P[prev].z+Math.sin(ang)*ste*.7+(Math.random()-.5)*ste*.5);E.seg.push(prev,q,Math.max(1.6,r*.025));prev=q;q++;}}
+  E.vie=E.dur=.26;E.k=1;
 }
+function eclEcrit(E){ // (2026-10-21) les rubans d'un jeu d'éclairs : halo violet (large, doux) + coeur blanc-bleu ; l'enveloppe est UN fondu à deux lobes (le coup, un creux à 55 %, le retour) — jamais une alternance
+  E=E||ECL;const P=E.pos,C=E.col,cam=camera.position,on=E.vie>0;let n=0;
+  if(on){const u=1-E.vie/E.dur,fl=u<.1?1:u<.2?1-.45*((u-.1)/.1):u<.3?.55+.45*((u-.2)/.1):Math.max(0,1-(u-.3)/.7)*1;
+    for(let j=0;j<E.seg.length&&n+1<E.N;j+=3){const a=E.P[E.seg[j]],b=E.P[E.seg[j+1]],w0=E.seg[j+2];
+      for(let h=0;h<2;h++,n++){const w=h?w0:w0*4.6,o=n*12;
+        CV3.subVectors(b,a);CV4.subVectors(cam,a);CV4.crossVectors(CV3,CV4);const l=CV4.length();if(l>1e-6)CV4.multiplyScalar(w/l);
+        P[o]=a.x-CV4.x;P[o+1]=a.y-CV4.y;P[o+2]=a.z-CV4.z;P[o+3]=a.x+CV4.x;P[o+4]=a.y+CV4.y;P[o+5]=a.z+CV4.z;
+        P[o+6]=b.x-CV4.x;P[o+7]=b.y-CV4.y;P[o+8]=b.z-CV4.z;P[o+9]=b.x+CV4.x;P[o+10]=b.y+CV4.y;P[o+11]=b.z+CV4.z;
+        const f=fl*(w0>6?1.4:1),r9=h?.95*f:.34*f,g9=h?.97*f:.2*f,b9=h?1.18*f:.62*f;for(let k=0;k<4;k++){C[o+k*3]=r9;C[o+k*3+1]=g9;C[o+k*3+2]=b9;}}}}
+  for(let i=n;i<E.N;i++){const o=i*12;if(P[o+1]===-99999)continue;for(let k=0;k<4;k++){P[o+k*3+1]=-99999;C[o+k*3]=C[o+k*3+1]=C[o+k*3+2]=0;}}
+  if(on||E.viv){const at=E.m.geometry.attributes;at.position.needsUpdate=true;at.color.needsUpdate=true;}
+  E.viv=on;
+}
+window.dbgEclair=function(k){ // (banc, 2026-10-21) déclenche un éclair tout de suite : 'nuage' (dans un nuage) · 'coup' (du ciel au sol) · 'route' (SUR la route)
+  if(k==='nuage')eclNuage();else if(k==='route'){const r=Math.random;Math.random=function(){return .1;};try{eclFrappe();}finally{Math.random=r;}}else eclFrappe();return {coup:ECL.vie,nuage:ECL2.vie};};
 function orageTick(dt){
   ECL.t-=dt;if(ECL.t<=0){eclFrappe();ECL.t=3.4+Math.random()*4;}
-  if(ECL.vie>0)ECL.vie-=dt;
-  ECL.k=Math.max(0,ECL.k-dt*1.9);
-  const e=ECL.k*ECL.k;
-  CAMP_FLASH=.8*e; /* (2026-10-14, chasse aux bugs · WCAG 2.3.1) plus de vacillation à 11 Hz pendant la vie de l'éclair (plage des crises d'épilepsie, motif de refus Apple) : UN flash qui s'éteint en douceur */ // le ciel s'allume (et vacille avec l'éclair)
-  CAMP_FOG=1900*e;                                            // …et le brouillard recule : la route, le portail se montrent
-  eclEcrit();
-  if(ECL.tonT>=0){ECL.tonT-=dt;if(ECL.tonT<0){try{if(SONV2)sfx('tonnerre',{vol:-10+10*ECL.ton});else{subBoom(.14+.16*ECL.ton);noiseBurst(1.5,.07+.1*ECL.ton,150);noiseBurst(.35,.05*ECL.ton,900);}}catch(e){}if(ECL.ton>.7)shake=Math.max(shake,.25);}}
+  ECL2.t-=dt;if(ECL2.t<=0){eclNuage();ECL2.t=.9+Math.random()*1.7;} // les éclairs dans les nuages : bien plus souvent que les coups
+  if(ECL.vie>0)ECL.vie-=dt;if(ECL2.vie>0)ECL2.vie-=dt;
+  ECL.k=Math.max(0,ECL.k-dt*1.9);ECL2.k=Math.max(0,ECL2.k-dt*3.2);
+  const e=ECL.k*ECL.k,e2=ECL2.k*ECL2.k;
+  CAMP_FLASH=Math.max(.8*e,.34*e2); /* (2026-10-14, WCAG 2.3.1) UN flash qui s'éteint en douceur par éclair ; (2026-10-21) l'éclair de nuage éclaire à .34 : les cumulus s'allument de l'intérieur sans blanchir l'écran */
+  CAMP_FOG=1900*e;
+  eclEcrit(ECL);eclEcrit(ECL2);
+  if(ECL.tonT>=0){ECL.tonT-=dt;if(ECL.tonT<0){try{if(SONV2)sfx('tonnerre',{vol:-10+10*ECL.ton});else{subBoom(.14+.16*ECL.ton);noiseBurst(1.5,.07+.1*ECL.ton,150);noiseBurst(.35,.05*ECL.ton,900);}}catch(e9){}if(ECL.ton>.7)shake=Math.max(shake,.25);}}
 }
 // ============ LA CAISSE-NUAGE (la caisse du garage, et l'ÉVÉNEMENT RARE) ============
 // La même ouate que le ciel (mergeSpheres : ventre lavande, sommet blanc, creux ombrés ; la matière des nuages et sa lisière d'argent),
@@ -62698,7 +62729,12 @@ function cielArcPose(m,k){tapisPose(m);const U=skyU,A=CIEL_ARC[m],on=ARC_ON&&CAR
   if(tm&&!A.mi){U.uMrT.value=tm;U.uMr.value.x=1;U.uTMerH.value.fromArray(A.mh);U.uTMerO.value.fromArray(A.mo);U.uTSol.value.fromArray(A.s);for(let i=0;i<3;i++)N8_U.uLav.value.setComponent(i,[.72,.78,.97][i]*.5+Math.min(.97,A.mo[i]*1.4)*.5);}else U.uMr.value.x=0;} /* (2026-10-20, Léo : « les nuages du premier plan et l'arrière-plan n'ont pas la même couleur ») l'ombre des cumulus en cubes prend à moitié celle du TAPIS (mo) : même famille de bleus / mauves, par météo */
 function nuFondPose(P,k){const U=skyU;U.uTi.value.set(k,P.ca,0,P.hz);U.uTi2.value.set(P.tw||0,P.ry||0,P.cr||.35,0);
   U.uTZen.value.fromArray(P.z);U.uTMid.value.fromArray(P.m);U.uTHor.value.fromArray(P.h);U.uTSol.value.fromArray(P.s);U.uTMerH.value.fromArray(P.mh);U.uTMerO.value.fromArray(P.mo);U.uTCir.value.fromArray(P.c);}
-function nuFondTick(dt){ // à chaque image : la mer de nuages en course → le fond peint (il APPARAÎT en 0,7 s au portail) ; ailleurs, éteint
+/* L'ARC-EN-CIEL DE LA PLUIE (2026-10-21) : allumé en douceur quand la météo est la PLUIE (en course, ou — au menu — quand ce ciel est choisi) ; force .3, « léger ». `?arc=...` n'existe pas : `dbgArcEC(x)` pour essayer. */
+const ARCEC={cible:null};
+function arcEcTick(dt){const U=skyU.uArcE.value,c=LVL&&LVL.cur,run=started&&!gameOver&&c&&c.carte==='nuages';
+  let t=run?(c.meteo==='pluie'?.3:0):((typeof CIEL_CH!=='undefined'&&CIEL_CH.v==='pluie')?.3:0);if(ARCEC.cible!=null)t=ARCEC.cible;U.x+=(t-U.x)*Math.min(1,dt*1.6);if(U.x<.002&&t===0)U.x=0;}
+window.dbgArcEC=function(x,l,h){ARCEC.cible=x==null?null:+x;if(l!=null)skyU.uArcE.value.y=+l;if(h!=null)skyU.uArcE.value.z=+h;return skyU.uArcE.value.toArray();}; // (banc) x force · l demi-largeur (rad) · h hauteur du soleil forcée (rad)
+function nuFondTick(dt){arcEcTick(dt); // à chaque image : la mer de nuages en course → le fond peint (il APPARAÎT en 0,7 s au portail) ; ailleurs, éteint
   if(typeof CHUTE!=='undefined'&&CHUTE.on){skyU.uPh.value.x=0;skyU.uMr.value.x=0;tapisPose('menu');return;} // (le menu peint son ciel lui-même)
   const c=LVL&&LVL.cur,T=(NUF.force!==0)&&c&&c.carte==='nuages'&&!PARK.on?NU_FOND[c.meteo]:null;if(T)NUF.T=T;
   NUF.k+=((T?1:0)-NUF.k)*(NUF.force!=null?1:Math.min(1,dt*1.5));

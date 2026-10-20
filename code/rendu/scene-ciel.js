@@ -80,7 +80,7 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   /* (2026-10-19, essai ARC) LE FOND EN PHOTO + LA MER DE CUMULUS — voir « LE CIEL D'ARC » plus bas. uPh : x la part de la photo, y la colonne (0-1) de son
      soleil, z sa hauteur (rad), w l exposition · uPh2.x le sens du tour · uMr : x la mer de cumulus (0 = la mer peinte d avant), y la profondeur du
      pont de nuages (m sous l œil), z la tuile (m), w la couverture (le seuil des trouées) · uMr2 : x le relief, y la brume (× la tuile). */
-  uTapis:{value:0},uPhT:{value:null},uMrT:{value:null},uPh:{value:new THREE.Vector4(0,.6,.1,1)},uPh2:{value:new THREE.Vector4(1,0,0,0)},uMr:{value:new THREE.Vector4(0,900,4200,.12)},uMr2:{value:new THREE.Vector4(1.6,3.6,0,.4)},
+  uTapis:{value:0},uArcE:{value:new THREE.Vector4(0,.045,.36,0)},uPhT:{value:null},uMrT:{value:null},uPh:{value:new THREE.Vector4(0,.6,.1,1)},uPh2:{value:new THREE.Vector4(1,0,0,0)},uMr:{value:new THREE.Vector4(0,900,4200,.12)},uMr2:{value:new THREE.Vector4(1.6,3.6,0,.4)},
   uTi:{value:new THREE.Vector4(0,0,0,1)},uTi2:{value:new THREE.Vector4(0,0,.35,0)},uTZen:{value:new THREE.Vector3()},uTMid:{value:new THREE.Vector3()},uTHor:{value:new THREE.Vector3()},uTSol:{value:new THREE.Vector3()},uTMerH:{value:new THREE.Vector3()},uTMerO:{value:new THREE.Vector3()},uTCir:{value:new THREE.Vector3()}, // (titre v4) LE CIEL DE L'ÉCRAN TITRE (cielTitre) — uTi.x = 0 hors du titre : rien ne change en course
   uMzA:{value:new THREE.Vector4(760,.8,15,.25)},uMzB:{value:new THREE.Vector4(.20,.16,.26,.8)},uMzT:{value:new THREE.Vector4(0,0,0,0)},uMzO:{value:new THREE.Vector4(0,0,0,0)},uMzH:{value:new THREE.Vector4(0,0,0,0)}, /* ⚠ (0,0,0,0) ÉCRIT : un Vector4() vide vaut (0,0,0,1) — la part 1 peignait toute la mer en NOIR (vu par Léo au menu de sa copie). */ /* (2026-10-03, atelier des nuages : « une fonction pour altérer le ciel en bas ») les COULEURS de la mer de nuages forcées — trous, ombres, dômes : rgb + part (w) ; w = 0 partout = la mer d'avant au bit près */ // (2026-09-30, niveau 1 v2) LA MER SCULPTÉE : échelle des cellules, part « gonflée », franchise de la lumière, remous · couverture, fermeture au loin, creux, clarté des trouées
   uVG:{value:0}, /* (2026-10-01, Sacha : « enlève tous les trucs Van Gogh ») la touche Van Gogh est RETIRÉE du ciel comme des nuages : plus aucun shader ne lit cet uniforme — l'objet reste, inerte, pour qu'un code qui l'écrirait encore ne plante pas */
@@ -119,7 +119,7 @@ const skyDome=(function(){
       /* (2026-10-19, essai ARC) LA PHOTO DU CIEL : un vrai ciel (Poly Haven, CC0), sa moitié haute en équirectangulaire ; son soleil est calé sur
          le nôtre (la colonne tourne avec uSunDir, la hauteur se plie : 0 → le soleil du jeu = 0 → celui de la photo, puis jusqu au zénith).
          Lue avec les dérivées de la plus continue des deux coordonnées (fract et fract + ½) : pas de couture au raccord du tour. */
-      'uniform sampler2D uPhT,uMrT;uniform vec4 uPh,uPh2,uMr2;uniform float uTapis;',
+      'uniform sampler2D uPhT,uMrT;uniform vec4 uPh,uPh2,uMr2;uniform float uTapis;uniform vec4 uArcE;',
       'vec3 phCiel(vec3 d){float H=1.5708,e=asin(clamp(d.y,0.,1.)),eg=max(asin(clamp(uSunDir.y,-1.,1.)),.02),ep=uPh.z;',
       '  float e2=e<eg?e*ep/eg:ep+(H-ep)*(e-eg)/(H-eg);',
       '  float u=uPh.y+uPh2.x*(atan(d.x,-d.z)-atan(uSunDir.x,-uSunDir.z))/6.2832,u1=fract(u),u2=fract(u+.5)-.5;',
@@ -724,6 +724,17 @@ const skyDome=(function(){
          le terme d'origine vaut 0 (smoothstep saturé, step) : l'image est la même au pixel près. Pour la lune et les deux cœurs du
          soleil (des `pow` qui ne s'annulent jamais tout à fait), la borne est prise là où l'apport tombe sous 1e-5 — 400× sous le
          pas d'un niveau de couleur. `atan` (l'azimut) n'est calculé que si une couche qui le lit est allumée sur ce pixel. */
+      /* (2026-10-21, Léo : « petit arc-en-ciel, léger, pas juste grisaille ; il faut créer le décor avec ») L'ARC-EN-CIEL : un cercle de 42° autour du point opposé au soleil (le soleil forcé à ~22° de haut :
+         le sommet de l'arc à ~20°, quelle que soit l'heure du jeu), sept bandes (rouge dehors, violet dedans) fondues, une enveloppe douce, un fondu vers l'horizon ; uArcE : x force (0 = éteint),
+         y demi-largeur (rad), z hauteur du soleil forcée (rad). Ajouté, jamais plein : la lumière, pas un dessin. */
+      'void cielArcEC(inout vec3 col,vec3 d,float y){',
+      '  if(uArcE.x<.001||y<.0)return;',
+      '  vec2 h=normalize(uSunDir.xz+vec2(1e-4));float ce=cos(uArcE.z),se=sin(uArcE.z);vec3 A=vec3(-h.x*ce,-se,-h.y*ce);',
+      '  float th=acos(clamp(dot(d,A),-1.,1.)),t=(th-(.7330-uArcE.y))/(2.*uArcE.y);',        // .7330 rad = 42° : t = 1 au bord rouge (dehors), 0 au bord violet (dedans)
+      '  if(t<=0.||t>=1.)return;',
+      '  float hu=(1.-t)*.76;vec3 rgb=clamp(abs(mod(hu*6.+vec3(0.,4.,2.),6.)-3.)-1.,0.,1.);',
+      '  float env=pow(sin(3.14159*t),1.4)*smoothstep(0.,.14,y)*uArcE.x;',
+      '  col+=rgb*env*(.55+.45*dot(col,vec3(.33)));}',
       'void cielSoleil(inout vec3 col,float sd){',
       '  float sd2=sd*sd;col+=uSunTint*(sd2*sd2)*.45*uSunHalo;',
       '  if(sd>.62){col+=vec3(1.,.60,.36)*pow(sd,32.)*.9*uSunHalo;',        // .62^32 = 2e-7
@@ -935,6 +946,7 @@ const skyDome=(function(){
       '  if(uTi.x>.001)cielTitre(col,vDir,y,sd);', // (titre v4) le ciel de l écran titre
       '  if(uPh.x>.001&&y>-.006)col=mix(col,phCiel(vDir),uPh.x*smoothstep(-.006,.004,y));', // (essai ARC) la photo
       '  if(uParis>.001)parisCiel(col,vDir,y,sd);', // PARIS AU SOL : le ciel de l heure
+      '  cielArcEC(col,vDir,y);', // (2026-10-21) l arc-en-ciel de la pluie : APRÈS le titre et la photo, qui repeignent tout le ciel
       '  bool gOn=cielGOn(y,sd),sOn=cielSOn(y,sd);',
       '  float az=0.;if(gOn||sOn||uLvl>.001||uVille>.001)az=atan(vDir.x,-vDir.z);',
       '  if(gOn)cielGuirlande(col,y,az,sd);',
@@ -956,7 +968,7 @@ const skyDome=(function(){
     basN:[LECT_TR,
       'void main(){',
       '  float y=vDir.y;vec3 col=cielFond(y);if(uSpace*uNeb>.001)cielEspace(col);float sd=max(dot(vDir,uSunDir),0.);', // (2026-10-15) + l espace profond
-      '  cielMer(col,y,sd);cielJour(col,y,sd);cielSoleil(col,sd);if(uTi.x>.001)cielTitre(col,vDir,y,sd);if(uParis>.001)parisCiel(col,vDir,y,sd);',
+      '  cielMer(col,y,sd);cielJour(col,y,sd);cielSoleil(col,sd);if(uTi.x>.001)cielTitre(col,vDir,y,sd);if(uParis>.001)parisCiel(col,vDir,y,sd);cielArcEC(col,vDir,y);',
       '  if(cielGOn(y,sd))cielGuirlande(col,y,atan(vDir.x,-vDir.z),sd);',
       '  cielVoile(col,y);',
       '  gl_FragColor=vec4(cielSat(col)+vec3(cielTrame()*uBasTr),1.);}'],
