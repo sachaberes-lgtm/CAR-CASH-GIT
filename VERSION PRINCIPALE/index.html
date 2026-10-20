@@ -3022,6 +3022,7 @@ html.misS #gmHead small{line-height:1.6}
 #misFocus u{position:absolute;left:0;bottom:0;height:2px;background:#ffd75e;width:0;transition:width .3s linear}
 #misFocus.ok{color:#d9ffe3;box-shadow:inset 0 0 0 1px rgba(94,227,122,.7)}#misFocus.ok i,#misFocus.ok u{background:#5ee37a;box-shadow:0 0 6px #5ee37a}#misFocus.ok b{color:#5ee37a}
 body:not(.play) #misFocus{display:none!important}
+#misFocus,#misFocus.on{display:none!important} /* (2026-10-20, Sacha : « enlève la petite ligne de la mission sélectionnée en bas ») — la mission reste suivie, sa ligne ne s'affiche plus */
 /* debout, le bas est à NITRO (droite) et au volant (gauche) : la ligne se range sur la marge gauche de la grille du HUD (hudOrdre, --hudG),
    juste au-dessus de la consigne du volant, et s'arrête avant NITRO */
 @media (orientation:portrait){#misFocus{left:var(--hudG,16px);transform:none;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 40px);max-width:calc(100vw - var(--hudG,16px) - var(--hudD,16px) - 118px)}}

@@ -9,6 +9,792 @@ ordre des opérations. Toute divergence rend l'apprentissage nul.
 
 ---
 
+## VERDICT — passage 2026-10-06 (171e)
+
+🔴 **STATU QUO INTÉGRAL — 5e passage du 06/10. Rien n'a bougé.** Re-vérifié à l'instant (grep constantes + HEAD + mtimes + champion.json + process) :
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT — bloqueur n°1.** `grep -c vitMult` → **0** dans `ml/train/train.html` vs **18** dans `VERSION PRINCIPALE/index.html`. Éjection bot ×1 vs joueur ×2,6, inchangée.
+- **#60 intact** : `SPD` **0.5** (train l.8463) vs **0.48** (jeu l.28493) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (jeu l.28642) ; `ASSIST_VIRAGE`/`CAP_YAW` **absents** de la sim.
+- **#61 intact** : rampe `car.airRate=clamp(1+max(0,|v|*3.6*SPD-450)/1800,1,1.35)` (train l.8873) vs jeu **gelé** `AIR_RATE=1` (jeu l.31131).
+- `train.html` mtime **09-21 17:56:46** (figé) ; `VERSION PRINCIPALE/index.html` mtime **10-05 18:25:32** (inchangé) ; `HEAD` **`2292911`**.
+
+📌 **Seule évolution : `origin/main` est désormais 42 commits devant (ex 39 au 170e).** Les 3 nouveaux sont 100 % cosmétiques — `fad5e05` Playgama+CrazyGames, `3f4e57a` ROBLOX (menus refaits), `8d51ae8` encoche iPhone. Le diff `HEAD..origin/main` sur `VERSION PRINCIPALE/index.html` ne contient **aucun token physique** (vitMult/SPD/AIR_ASSIST/AIR_RATE/startFall/TURN_HS) — seule la ligne de commentaire graphique `villeImpact` matche. Le divorce sim↔jeu n'est ni aggravé ni résorbé.
+
+🟠 **Atelier STALLÉ au gen 1.** `champion.json` inchangé `{gen:1, note:20, record:208}` (2026-10-04T12:31:55Z) ; **220** champions ; `evolution.log` **absent** ; **aucun** `node.exe`.
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf — la physique OBSOLÈTE (09-21) reste celle que tout redémarrage apprendrait.**
+
+---
+
+## VERDICT — passage 2026-10-06 (170e)
+
+🔴 **STATU QUO INTÉGRAL — 4e passage du 06/10. Rien n'a bougé côté physique ni atelier.** Re-vérifié à l'instant (grep vitMult + constantes + HEAD + mtimes + champion.json + process) :
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT — bloqueur n°1.** `vitMult` → **0** dans `ml/train/train.html` vs **18** dans `VERSION PRINCIPALE/index.html`. Éjection bot ×1 vs joueur ×2,6, inchangée.
+- **#60 intact** : `SPD` **0.5** (train l.8463) vs **0.48** (jeu l.28493) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (jeu l.28642) ; `ASSIST_VIRAGE`/`CAP_YAW` **absents** de la sim.
+- **#61 intact** : rampe `car.airRate=clamp(1+max(0,|v|*3.6*SPD-450)/1800,1,1.35)` (train l.8873) vs jeu **gelé** `AIR_RATE=1`.
+- `train.html` mtime **09-21 17:56:46** (figé, donc octets identiques aux 15+ passages précédents) ; `VERSION PRINCIPALE/index.html` mtime **10-05 18:25:32** (inchangé) ; `HEAD` **`2292911`**.
+
+📌 **Seule évolution : `origin/main` est désormais 39 commits devant (ex 37 au 169e).** Les 2 nouveaux sont 100 % cosmétiques (`6f8d003` version du cache, un revert intro/musique). Le diff `HEAD..origin/main` sur `VERSION PRINCIPALE/index.html` ne contient **aucun token physique** (vitMult/SPD/AIR_ASSIST/AIR_RATE/startFall/fallVel/TURN_HS) — seule une ligne de commentaire graphique `villeImpact`. Le divorce sim↔jeu n'est ni aggravé ni résorbé.
+
+🟠 **Atelier STALLÉ au gen 1.** `champion.json` inchangé `{gen:1, note:20, record:208}` (2026-10-04T12:31:55Z) ; **220** champions ; `evolution.log` **absent** ; **aucun** `node.exe` (confirmé `tasklist //FI "IMAGENAME eq node.exe"`).
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf — la physique OBSOLÈTE (09-21) reste celle que tout redémarrage apprendrait.**
+
+---
+
+## VERDICT — passage 2026-10-06 (169e)
+
+🔴 **STATU QUO INTÉGRAL — 3e passage du 06/10. Rien n'a bougé côté physique, atelier toujours gelé au gen 1.** Re-vérifié à l'instant (grep constantes + HEAD + mtimes + champion.json + process) :
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT — bloqueur n°1.** `grep -c vitMult` → **0** dans `ml/train/train.html` vs **18** dans `VERSION PRINCIPALE/index.html`. Éjection bot ×1 vs joueur ×2,6, inchangée.
+- **#60 intact** : `SPD` **0.5** (train l.8463) vs **0.48** (jeu l.28493) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (jeu l.28642) ; `ASSIST_VIRAGE=0`/`CAP_YAW=1.6,CAP_RET=2` **absents** de la sim (jeu l.28602/28615). `GRAV=9.8*.55`/`FALL_G=33`/`TURN_HS=.0035` identiques des deux côtés (train l.8457/8464, jeu l.28463/28603).
+- **#61 intact** : rampe `car.airRate=clamp(1+max(0,|v|*3.6*SPD-450)/1800,1,1.35)` (train l.8873) vs jeu **gelé** `AIR_RATE=1` (jeu l.28490/31131, « startFall ne le re-pilote plus »).
+- `train.html` mtime **09-21 17:56:46** (figé) ; `VERSION PRINCIPALE/index.html` mtime **10-05 18:25:32** (inchangé du 168e) ; `HEAD` **`2292911`**.
+
+📌 **Seule évolution : `origin/main` est désormais 37 commits devant (ex 25 au 168e).** Les 12 nouveaux commits sont 100 % cosmétiques — LES HEURES DU TITRE, intro/sans musique, VILLE niveaux 6-10 retirés/rétablis, vitrine/garage, CRAZYGAMES, ITCH.IO. **Aucun ne touche la physique v6 ni `vitMult`** : le divorce sim↔jeu n'est ni aggravé ni résorbé.
+
+🟠 **Atelier STALLÉ au gen 1.** `champion.json` inchangé `{gen:1, note:20, record:208}` (2026-10-04T12:31:55Z) ; **220** champions ; `evolution.log` **absent** ; **aucun** `node.exe`. Reset toujours non-committé (`M results/champion.json`, `M results/champions/gen00001-note20.json`).
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf — la physique OBSOLÈTE (09-21) reste celle que tout redémarrage apprendrait.**
+
+---
+
+## VERDICT — passage 2026-10-06 (168e)
+
+🔴 **STATU QUO INTÉGRAL — 2e passage du 06/10, rien n'a bougé depuis le 167e.** Re-vérifié à l'instant (grep + constantes + HEAD + champion.json + process) :
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT — bloqueur n°1.** `grep -c vitMult` → **0** dans `train.html` vs **18** dans `VERSION PRINCIPALE/index.html`. Éjection bot ×1 vs joueur ×2,6, inchangée.
+- **#60 intact** : `SPD` **0.5** (l.8463) vs **0.48** (jeu l.28493) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (jeu l.28642) ; `ASSIST_VIRAGE`/`CAP_YAW` **absents** de la sim (0 occurrence vs 6 côté jeu).
+- **#61 intact** : rampe `car.airRate=clamp(1+max(0,|v|*3.6*SPD-450)/1800,1,1.35)` (train l.8873) vs jeu **gelé** `AIR_RATE=1` (jeu l.31131). Commentaire identique des deux côtés, mais la sim RE-pilote toujours le tempo, le jeu non.
+- `HEAD` **`2292911`** inchangé (25 derrière `origin/main`) ; `train.html` mtime **09-21 17:56:46** ; `VERSION PRINCIPALE/index.html` mtime **10-05 18:25:32**.
+
+🟠 **Atelier STALLÉ au gen 1.** `champion.json` inchangé `{gen:1, note:20, record:208}` (2026-10-04T12:31:55Z) ; **220** champions ; `evolution.log` **absent** ; **aucun** `node.exe`. Reset toujours non-committé (`M results/champion.json`, `M results/champions/gen00001-note20.json`).
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf — la physique OBSOLÈTE (09-21) reste celle que tout redémarrage apprendrait.**
+
+---
+
+## VERDICT — passage 2026-10-06 (167e)
+
+🔴 **STATU QUO INTÉGRAL — 1er passage du 06/10, rien n'a bougé depuis le 166e.** Re-vérifié à l'instant (grep + constantes + HEAD + champion.json + process) :
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT — bloqueur n°1.** `grep -c vitMult` → **0** dans `train.html` vs **18** dans `VERSION PRINCIPALE/index.html`. Éjection bot ×1 vs joueur ×2,6, inchangée.
+- **#60 intact** : `SPD` **0.5** (l.8463) vs **0.48** (jeu l.28493) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (jeu l.28642) ; `ASSIST_VIRAGE`/`CAP_YAW` **absents** de la sim (0 occurrence, confirmé au `grep -c`).
+- **#61 intact** : rampe `car.airRate=clamp(1+max(0,|v|*3.6*SPD-450)/1800,1,1.35)` (train l.8873) vs jeu **gelé** `AIR_RATE=1` (jeu l.31131, `dtF=dt*AIR_RATE` l.38103). Commentaire identique des deux côtés (l.8460 vs l.28490) mais la formule du train RE-pilote encore le tempo, le jeu ne le fait plus.
+- `HEAD` **`2292911`** inchangé (25 derrière `origin/main`) ; `train.html` mtime **09-21 17:56:46** ; `VERSION PRINCIPALE/index.html` mtime **10-05 18:25:32**.
+
+🟠 **Atelier STALLÉ au gen 1.** `champion.json` inchangé `{gen:1, note:20, record:208}` (2026-10-04T12:31:55Z) ; **220** champions ; `evolution.log` **absent** ; **aucun** `node.exe`. Reset toujours non-committé (`M results/champion.json`, `M results/champions/gen00001-note20.json`).
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf — la physique OBSOLÈTE (09-21) reste celle que tout redémarrage apprendrait.**
+
+---
+
+## VERDICT — passage 2026-10-05 (166e)
+
+🔴 **STATU QUO INTÉGRAL — 14e passage du 05/10. Rien n'a bougé depuis le 165e.** Re-vérifié à l'instant, bit-à-bit (grep + constantes + mtimes + champion.json + processus) :
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT — bloqueur n°1.** `grep -c vitMult` → **0** dans `ml/train/train.html` vs **18** dans `VERSION PRINCIPALE/index.html` (définition l.30514, éjection l.31144). Éjection bot ×1 vs joueur ×2,6.
+- **#60 intact** : `SPD` **0.5** (l.8463) vs **0.48** (jeu l.28493) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (jeu l.28642) ; `ASSIST_VIRAGE=0`/`CAP_YAW=1.6, CAP_RET=2` **absents** de la sim (0 occurrence vs l.28602/28615 jeu). `GRAV=9.8*.55`/`FALL_G=33`/`TURN_HS=.0035` identiques (l.8457 vs l.28463).
+- **#61 intact** : rampe `car.airRate=clamp(1+…/1800,1,1.35)` (train l.8873) vs jeu **gelé** `AIR_RATE=1` (l.31131).
+- `HEAD` **`2292911`** (25 derrière `origin/main`) ; `train.html` mtime **09-21 17:56** ; `VERSION PRINCIPALE/index.html` mtime **10-05 18:25**.
+
+🟠 **Atelier STALLÉ au gen 1.** `champion.json` inchangé `{gen:1, note:20, record:208}` (2026-10-04T12:31:55Z) ; **220** champions ; `evolution.log` **absent** ; **aucun** `node.exe`. Reset non-committé (`M results/champion.json`, `M results/champions/gen00001-note20.json`).
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-10-05 (165e)
+
+🔴 **STATU QUO INTÉGRAL — 13e passage du 05/10. Rien n'a bougé depuis le 164e.** Re-vérifié à l'instant, bit-à-bit :
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT — bloqueur n°1.** `grep -c vitMult` → **0** dans `ml/train/train.html` vs **18** dans `VERSION PRINCIPALE/index.html`. Éjection bot ×1 vs joueur ×2,6.
+- **#60 intact** : `SPD` **0.5** (l.8463) vs **0.48** (jeu l.28493) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (jeu l.28642) ; `ASSIST_VIRAGE`/`CAP_YAW`/`CAP_RET` **absents** de la sim (0 occurrence vs l.28602/28615 jeu).
+- **#61 intact** : rampe `car.airRate=clamp(1+…/1800,1,1.35)` (train l.8873) vs jeu **gelé** `AIR_RATE=1` (jeu l.31131).
+- `HEAD` **`2292911`** (25 derrière `origin/main`) ; `train.html` mtime **09-21 17:56:46** ; `VERSION PRINCIPALE/index.html` mtime **10-05 18:25:32**.
+
+🟠 **Atelier STALLÉ au gen 1.** `champion.json` inchangé `{gen:1, note:20, record:208}` (2026-10-04T12:31:55Z) ; **220** champions ; `evolution.log` **absent** ; aucun `node.exe`. Reset non-committé (`M results/champion.json`, `M results/champions/gen00001-note20.json`).
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-10-05 (164e)
+
+🔴 **STATU QUO PHYSIQUE — 12e passage du 05/10. Aucun changement sur la physique bot↔joueur.** Constantes re-vérifiées à l'instant, bit-à-bit identiques.
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT — bloqueur n°1.** `grep -c vitMult` → **0** dans `ml/train/train.html` vs **18** dans `VERSION PRINCIPALE/index.html`. Éjection bot ×1 vs joueur ×2,6, inchangée (`fallVel` sim l.8882 sans `vm9` ; jeu l.31145 `·vm9`).
+- **#60 intact** : `SPD` **0.5** (train l.8463) vs **0.48** (jeu l.28493) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (jeu l.28642) ; `ASSIST_VIRAGE`/`CAP_YAW`/`CAP_RET` **absents** de la sim (0 occurrence vs 6 côté jeu).
+- **#61 intact** : rampe `car.airRate=clamp(1+…/1800,1,1.35)` (train l.8873) vs jeu **gelé** `AIR_RATE=1` (jeu l.31131).
+- `GRAV=9.8*.55`/`FALL_G=33`/`TURN_HS=.0035` identiques des deux côtés (train l.8457/8464, jeu l.28463/28603).
+
+📌 **Le seul mouvement du jour est NON-physique :** le JEU a été republié auj. **18:25:32** (`VERSION PRINCIPALE/index.html` mtime, ex 10-04 15:01). `HEAD` local passé `1e6c7e0`→`**2292911**`, désormais **25 commits derrière `origin/main`** (ex 29). Les 25 commits en attente sont tous **cosmétiques/éditions** : LES HEURES DU TITRE, CrazyGames, Itch.io, Poki, vitrine/garage, ROBLOX. **Aucun ne touche la physique v6 ni `vitMult`** — le divorce sim↔jeu (#60/#61/#62) n'est ni aggravé ni résorbé.
+
+🟠 **Atelier STALLÉ au gen 1, aucun `node.exe`.** `champion.json` inchangé `{gen:1, note:20, record:208, date:2026-10-04T12:31:55Z}`. `evolution.log` **absent**. 220 champions. `train.html` figé **09-21 17:56:46** (toujours la physique OBSOLÈTE qu'un éventuel redémarrage apprendrait). Reset non-committé (`M results/champion.json`, `M results/champions/gen00001-note20.json`).
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf côté physique.**
+
+---
+
+## VERDICT — passage 2026-10-05 (163e)
+
+🔴 **STATU QUO INTÉGRAL — 11e passage du 05/10, rien n'a bougé depuis le 162e.** Tout re-vérifié à l'instant (grep vitMult + constantes + mtimes + champion.json + process) : constantes identiques bit-à-bit, atelier toujours gelé au gen 1.
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT — bloqueur n°1.** `grep -c vitMult` → **0** dans `ml/train/train.html` vs **18** dans `VERSION PRINCIPALE/index.html`. Éjection bot ×1 vs joueur ×2,6, inchangée.
+- **#60 intact** : `SPD` **0.5** (train l.8463) vs **0.48** (jeu l.28498) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (jeu l.28647) ; `ASSIST_VIRAGE=0`/`CAP_YAW=1.6,CAP_RET=2` toujours **absents** (0 occurrence). `GRAV=9.8*.55`/`FALL_G=33`/`TURN_HS=.0035` identiques des deux côtés.
+- **#61 intact** : rampe `car.airRate=clamp(...)` (train l.8873) vs jeu **gelé** `AIR_RATE=1` (jeu l.31122).
+- `HEAD` **`1e6c7e0`**, toujours **29 commits derrière `origin/main`** ; `train.html` mtime **09-21 17:56:46** ; `VERSION PRINCIPALE/index.html` mtime **10-04 15:01:48**.
+
+🟠 **Atelier STALLÉ au gen 1, aucun `node.exe`.** `champion.json` inchangé `{gen:1, note:20, record:208, date:2026-10-04T12:31:55Z}`. `evolution.log` **absent**. 220 champions. Reset non-committé (`M results/champion.json`, `M results/champions/gen00001-note20.json`).
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-10-05 (162e)
+
+🔴 **STATU QUO PHYSIQUE — 10e passage du 05/10, constantes re-vérifiées bit-à-bit à l'instant. Aucun changement sur la physique bot↔joueur.** `grep -c vitMult` → **0** dans `ml/train/train.html` vs **18** dans `VERSION PRINCIPALE/index.html` (mtime inchangé **09-21 17:56:46** vs **10-04 15:01:48**).
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT — bloqueur n°1.** Éjection bot ×1 vs joueur ×2,6, inchangée.
+- **#60 intact** : `SPD` **0.5** (l.8463) vs **0.48** ; `AIR_ASSIST` **1.0** (l.8465) vs **0** ; `ASSIST_VIRAGE`/`CAP_YAW` absents. **#61 intact** : rampe `car.airRate=clamp(.../1800,1,1.35)` (l.8873) vs jeu gelé `AIR_RATE=1`.
+- `HEAD` local **`1e6c7e0`**, mais **29 commits derrière `origin/main`** (nouveau) : la branche locale n'a pas été `git pull`. Les 29 commits sont **tous musique/visuel/ROBLOX/SKY HIGH** (CIEL niveaux 6-10 retirés, garage, ville GLASSY PLUCKS, mix NITROOO). **Aucun ne touche la physique** (`vitMult`/`SPD`/`AIR_ASSIST`/`startFall`) — le divorce sim↔jeu n'est ni aggravé ni résorbé.
+
+🟠 **Atelier STALLÉ au gen 1, aucun `node.exe`.** `champion.json` inchangé `{gen:1, note:20, record:208, date:2026-10-04T12:31:55Z}`. `evolution.log` **absent**. 220 champions. Reset non-committé (`M results/champion.json`, `M results/champions/gen00001-note20.json`).
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf côté physique. Seule évolution du jour : le repo local traîne 29 commits de retard (cosmétiques/musique), à pull avant de re-differ proprement.**
+
+---
+
+## VERDICT — passage 2026-10-05 (161e)
+
+🔴 **STATU QUO INTÉGRAL — 9e passage du 05/10. Rien n'a bougé depuis le 160e.** Tout re-vérifié à l'instant (grep vitMult + constantes + mtimes + champion.json + process) : constantes identiques bit-à-bit, atelier toujours gelé au gen 1.
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT — bloqueur n°1.** `grep -c vitMult` → **0** dans `ml/train/train.html` vs **18** dans `VERSION PRINCIPALE/index.html`. Éjection bot ×1 vs joueur ×2,6, inchangée.
+- **#60 intact** : `SPD` **0.5** (train l.8463) vs **0.48** (jeu l.28498) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (jeu l.28647) ; `ASSIST_VIRAGE=0` / `CAP_YAW=1.6, CAP_RET=2` toujours **absents** (0 occurrence).
+- **#61 intact** : rampe `car.airRate=clamp(1+max(0,|v|*3.6*SPD-450)/1800,1,1.35)` (train l.8873) vs jeu **gelé** `AIR_RATE=1` (jeu l.31122).
+- `HEAD` **`1e6c7e0`** ; `train.html` mtime **09-21 17:56:46** ; `VERSION PRINCIPALE/index.html` mtime **10-04 15:01:48** ; `champion.json` mtime **10-04 14:31:55**.
+
+🟠 **Atelier STALLÉ au gen 1, aucun `node.exe`.** `champion.json` inchangé `{gen:1, note:20, record:208, date:2026-10-04T12:31:55Z}`. `evolution.log` **absent**. 220 champions. Reset non-committé (`M results/champion.json`, `M results/champions/gen00001-note20.json`).
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf. La physique OBSOLÈTE (09-21) reste celle que tout redémarrage apprendrait — apprendre dessus aujourd'hui serait apprendre un jeu qui n'existe plus.**
+
+---
+
+## VERDICT — passage 2026-10-05 (160e)
+
+🔴 **STATU QUO INTÉGRAL — 8e passage du 05/10. Rien n'a bougé depuis le 159e.** Tout re-vérifié à l'instant (grep vitMult + constantes + mtimes + champion.json + process) : constantes identiques bit-à-bit, atelier toujours gelé au gen 1.
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT — bloqueur n°1.** `grep -c vitMult` → **0** dans `ml/train/train.html` vs **18** dans `VERSION PRINCIPALE/index.html`. Éjection confirmée l.8880–8882 : `fallVel = F.t·(v·driveDir·(impF||1)) + F.b·(vL·driveDir) + F.n·(impU||.9)` — **aucun `vitMult`**. Éjection bot ×1 vs joueur ×2,6, inchangée.
+- **#60 intact** : `SPD` **0.5** (train l.8463) vs **0.48** (jeu l.28498) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (jeu l.28647) ; `ASSIST_VIRAGE=0` / `CAP_YAW=1.6, CAP_RET=2` toujours **absents** (0 occurrence).
+- **#61 intact** : rampe `car.airRate=THREE.MathUtils.clamp(1+max(0,|v|*3.6*SPD-450)/1800,1,1.35)` (train l.8873) vs jeu **gelé** `AIR_RATE=1` (jeu l.31122).
+- `HEAD` **`1e6c7e0`** ; `train.html` mtime **09-21 17:56:46** ; `VERSION PRINCIPALE/index.html` mtime **10-04 15:01:48** ; `champion.json` mtime **10-04 14:31:55**.
+
+🟠 **Atelier STALLÉ au gen 1, aucun `node.exe`.** `champion.json` inchangé `{gen:1, note:20, record:208, date:2026-10-04T12:31:55Z}`. `evolution.log` **absent**. 220 champions. Reset non-committé (`M results/champion.json`, `M results/champions/gen00001-note20.json`).
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf. La physique OBSOLÈTE (09-21) reste celle que tout redémarrage apprendrait — apprendre dessus aujourd'hui serait apprendre un jeu qui n'existe plus.**
+
+---
+
+## VERDICT — passage 2026-10-05 (159e)
+
+🔴 **STATU QUO INTÉGRAL — 7e passage du 05/10. Rien n'a bougé depuis le 158e.** Tout re-vérifié à l'instant (grep vitMult + constantes + mtimes + champion.json + process) : constantes identiques bit-à-bit, atelier toujours gelé au gen 1.
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT — bloqueur n°1.** `grep -c vitMult` → **0** dans `ml/train/train.html` vs **18** dans `VERSION PRINCIPALE/index.html`. Éjection bot ×1 vs joueur ×2,6, inchangée.
+- **#60 intact** : `SPD` **0.5** (train l.8463) vs **0.48** (jeu l.28498) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (jeu l.28647) ; `ASSIST_VIRAGE=0` / `CAP_YAW=1.6, CAP_RET=2` toujours **absents** de la sim.
+- **#61 intact** : rampe `car.airRate=clamp(1+max(0,|v|*3.6*SPD-450)/1800,1,1.35)` (train l.8873) vs jeu **gelé** `AIR_RATE=1` (jeu l.31122).
+- `HEAD` **`1e6c7e0`** ; `train.html` mtime **09-21 17:56:46** ; `VERSION PRINCIPALE/index.html` mtime **10-04 15:01:48** ; `champion.json` mtime **10-04 14:31:55**.
+
+🟠 **Atelier STALLÉ au gen 1, aucun `node.exe`.** `champion.json` inchangé `{gen:1, note:20, record:208, date:2026-10-04T12:31:55Z}`. `evolution.log` **absent**. 220 champions. Reset non-committé (`M results/champion.json`, `M results/champions/gen00001-note20.json`).
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf. La physique OBSOLÈTE (09-21) reste celle que tout redémarrage apprendrait — apprendre dessus aujourd'hui serait apprendre un jeu qui n'existe plus.**
+
+---
+
+## VERDICT — passage 2026-10-05 (158e)
+
+🔴 **STATU QUO INTÉGRAL — 6e passage du 05/10. Rien n'a bougé depuis le 157e.** Tout re-vérifié à l'instant (grep + mtimes + champion.json + process) : constantes identiques bit-à-bit, atelier toujours gelé au gen 1.
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT — bloqueur n°1.** Confirmation de la formule exacte des deux côtés :
+  · **train.html `carStartFall` (l.8880–8882)** : `fallVel = F.t·(v·driveDir·(impF||1)) + F.b·(vL·driveDir) + F.n·(impU||.9)` — **aucun `vitMult`** (0 occurrence dans tout le fichier).
+  · **jeu `startFall` (l.31136)** : `fallVel = F.t·(vA·driveDir·(impF||1)·**vm9**) + F.b·(vL·driveDir·**vm9**) + F.n·(impU==null?.9:impU)`, avec `vm9=vitMult()` (l.31135) et `vitMult()=min(1+NTR_BOOST_MAX, (pwrSpdT>0?2:1)·(1+NTR.boost))` (l.30506) → éjection joueur jusqu'à **×2,6**, bot **×1**.
+- **#60 intact** : `SPD` **0.5** (train l.8463) vs **0.48** (jeu l.28498) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (jeu l.28647) ; `ASSIST_VIRAGE=0` / `CAP_YAW=1.6, CAP_RET=2` toujours **absents** de la sim.
+- **#61 intact** : rampe `car.airRate=clamp(1+max(0,|v|·3.6·SPD-450)/1800,1,1.35)` (train l.8873) vs jeu **gelé** `AIR_RATE=1` (jeu l.31122).
+- `HEAD` **`1e6c7e0`** ; `train.html` mtime **09-21 17:56:46** ; `VERSION PRINCIPALE/index.html` mtime **10-04 15:01** ; `champion.json` mtime **10-04 14:31:55**.
+
+🟠 **Atelier STALLÉ au gen 1, aucun `node.exe`.** `champion.json` inchangé `{gen:1, note:20, record:208, date:2026-10-04T12:31:55Z}`. `evolution.log` **absent**. 220 champions. Reset non-committé (`M results/champion.json`, `M results/champions/gen00001-note20.json`).
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf. La physique OBSOLÈTE (09-21) reste celle que tout redémarrage apprendrait — apprendre dessus aujourd'hui serait apprendre un jeu qui n'existe plus.**
+
+---
+
+## VERDICT — passage 2026-10-05 (157e)
+
+🔴 **STATU QUO INTÉGRAL — 5e passage du 05/10. Rien n'a bougé depuis le 156e.** Tout re-vérifié à l'instant (grep + mtimes + champion.json + process).
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT — bloqueur n°1.** `grep -c vitMult` → **0** dans `ml/train/train.html` vs **18** dans `VERSION PRINCIPALE/index.html`. Éjection bot ×1 vs joueur ×2,6, inchangée.
+- **#60 intact** : `SPD` **0.5** (train l.8463) vs **0.48** (jeu l.28498) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (jeu l.28647) ; `ASSIST_VIRAGE=0` / `CAP_YAW=1.6, CAP_RET=2` toujours **absents** de la sim (0 vs 6 occurrences).
+- **#61 intact** : rampe `car.airRate=clamp(1+max(0,|v|*3.6*SPD-450)/1800,1,1.35)` (train l.8873) vs jeu **gelé** `AIR_RATE=1` (jeu l.31122).
+- `HEAD` **`1e6c7e0`** ; `train.html` mtime **09-21 17:56:46** ; `VERSION PRINCIPALE/index.html` mtime **10-04 15:01:48** ; `champion.json` mtime **10-04 14:31:55**.
+
+🟠 **Atelier STALLÉ au gen 1, aucun `node.exe`.** `champion.json` inchangé `{gen:1, note:20, record:208, date:2026-10-04T12:31:55Z}`. `evolution.log` **absent**. 220 champions. Reset non-committé (`M results/champion.json`, `M results/champions/gen00001-note20.json`).
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf. La physique OBSOLÈTE (09-21) reste celle que tout redémarrage apprendrait — apprendre dessus aujourd'hui serait apprendre un jeu qui n'existe plus.**
+
+---
+
+## VERDICT — passage 2026-10-05 (156e)
+
+🔴 **STATU QUO INTÉGRAL — 4e passage du 05/10. Rien n'a bougé depuis le 155e.** Tout re-vérifié à l'instant (grep + mtimes + champion.json + process).
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT — bloqueur n°1.** `grep -c vitMult` → **0** dans `ml/train/train.html` vs **18** dans `VERSION PRINCIPALE/index.html`. Éjection bot ×1 vs joueur ×2,6, inchangée.
+- **#60 intact** : `SPD` **0.5** (train l.8463) vs **0.48** (jeu l.28498) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (jeu l.28647) ; `ASSIST_VIRAGE=0` (jeu l.28607) / `CAP_YAW=1.6, CAP_RET=2` (jeu l.28620) toujours **absents** de la sim.
+- **#61 intact** : rampe `car.airRate=clamp(1+max(0,|v|*3.6*SPD-450)/1800,1,1.35)` (train l.8873) vs jeu **gelé** `AIR_RATE=1` (jeu l.31122). Consommée l.9116 `dtF=dt*car.airRate`.
+- `HEAD` **`1e6c7e0`** ; `train.html` mtime **09-21 17:56:46** ; `VERSION PRINCIPALE/index.html` mtime **10-04 15:01:48** ; `champion.json` mtime **10-04 14:31:55**.
+
+🟠 **Atelier STALLÉ au gen 1, aucun `node.exe`.** `champion.json` inchangé `{gen:1, note:20, record:208, date:2026-10-04T12:31:55Z}`. `evolution.log` **absent**. 220 champions. Reset non-committé (`M results/champion.json`, `M results/champions/gen00001-note20.json`).
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf. La physique OBSOLÈTE (09-21) reste celle que tout redémarrage apprendrait — apprendre dessus aujourd'hui serait apprendre un jeu qui n'existe plus.**
+
+---
+
+## VERDICT — passage 2026-10-05 (155e)
+
+🔴 **STATU QUO INTÉGRAL — 3e passage du 05/10, tout re-vérifié à l'instant. Rien n'a bougé depuis le 154e.**
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT.** `vitMult` = **0** occurrence dans `train.html` vs **18** dans `VERSION PRINCIPALE` (dont la définition l.30506 et l'éjection l.31135). Éjection bot ×1 vs joueur ×2,6 — **bloqueur n°1**.
+- **#60 intact** : `SPD` **0.5** (train l.8463) vs **0.48** (jeu l.28498) ; `AIR_ASSIST` **1.0** (train l.8465) vs **0** (jeu l.28647) ; `ASSIST_VIRAGE=0` (jeu l.28607) / `CAP_YAW=1.6, CAP_RET=2` (jeu l.28620) toujours **absents** de la sim.
+- **#61 intact** : rampe `car.airRate=clamp(1+…/1800,1,1.35)` (train l.8873) vs jeu **gelé** `AIR_RATE=1` (jeu l.31122).
+- `HEAD` **`1e6c7e0`** ; `train.html` mtime **09-21 17:56:46** ; `VERSION PRINCIPALE` mtime **10-04 15:01:48** ; `champion.json` mtime **10-04 14:31:55**.
+
+🟠 **Atelier STALLÉ au gen 1, aucun `node.exe`.** `champion.json` inchangé `{gen:1, note:20, record:208, date:2026-10-04T12:31:55Z}`. `evolution.log` **absent**. Reset non-committé (`M results/champion.json`, `M results/champions/gen00001-note20.json`).
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf. La physique OBSOLÈTE (09-21) reste celle que tout redémarrage apprendrait.**
+
+---
+
+## VERDICT — passage 2026-10-05 (154e)
+
+🔴 **STATU QUO INTÉGRAL — 2e passage du 05/10, re-vérifié bit-à-bit à l'instant. Rien n'a bougé depuis le 153e.**
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT.** `grep -c vitMult` → **0** dans `ml/train/train.html` vs **18** dans `VERSION PRINCIPALE/index.html`. Éjection bot ×1 vs joueur ×2,6 — **bloqueur n°1**.
+- **#60 intact** : `SPD` **0.5** (train l.8463) vs **0.48** (jeu l.28498) ; `AIR_ASSIST` **1.0** (train l.8465) vs **0** (jeu l.28647) ; `ASSIST_VIRAGE=0` (jeu l.28607) / `CAP_YAW=1.6, CAP_RET=2` (jeu l.28620) toujours **absents** de la sim.
+- **#61 intact** : rampe `car.airRate=clamp(1+Math.max(0,|v|*3.6*SPD-450)/1800,1,1.35)` (train l.8873) vs jeu **gelé** `AIR_RATE=1;` (l.31122, « vol en temps réel, compressé jusqu'à ×1,35 » retiré). Le commentaire des deux fichiers est identique (l.8460 vs l.28495) mais la formule du jeu a été vidée : la sim est EN AVANCE sur le jeu ici, divergence inversée.
+- `HEAD` **`1e6c7e0`** ; `train.html` mtime **09-21 17:56:46** ; `VERSION PRINCIPALE/index.html` mtime **10-04 15:01:48** ; `champion.json` mtime **10-04 14:31:55**.
+
+🟠 **Atelier STALLÉ au gen 1, aucun `node.exe`.** `champion.json` inchangé `{v:1,in:15,hid:16,out:4,size:324,gen:1,note:20,record:208,date:2026-10-04T12:31:55Z}`. `evolution.log` **absent**. Reset non-committé (`M results/champion.json`, `M results/champions/gen00001-note20.json`).
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf. La physique OBSOLÈTE (09-21, en avance sur le jeu pour #61, en retard pour #60/#62) reste celle que tout redémarrage apprendrait — apprendre dessus aujourd'hui serait apprendre sur un jeu qui n'existe plus.**
+
+---
+
+## VERDICT — passage 2026-10-05 (153e)
+
+🔴 **STATU QUO INTÉGRAL — 1er passage du 05/10, tout re-vérifié bit-à-bit à l'instant. Rien n'a bougé.**
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT.** `vitMult` = **0** occurrence dans `train.html` vs **18** dans `VERSION PRINCIPALE/index.html` (recompté au `grep -c`). Éjection bot ×1 vs joueur ×2,6 — **bloqueur n°1**.
+- **#60 intact** : `SPD` **0.5** (train l.8463) vs **0.48** (jeu l.28498) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (jeu l.28647) ; `ASSIST_VIRAGE=0` (l.28607) / `CAP_YAW=1.6` (l.28620) toujours absents de la sim.
+- **#61 intact** : rampe `car.airRate=clamp(1+…/1800,1,1.35)` (train l.8873) vs jeu gelé à 1. Lecture confirmée l.8873 + consommation `dtF=dt*car.airRate` l.9116.
+- `HEAD` **`1e6c7e0`** inchangé ; `train.html` mtime **09-21 17:56:46** ; `VERSION PRINCIPALE/index.html` mtime **15:01** (10-04).
+
+🟠 **Atelier STALLÉ au gen 1, aucun `node.exe`.** `champion.json` inchangé `{v:1, in:15, hid:16, out:4, gen:1, note:20, record:208, date:2026-10-04T12:31:55.181Z}`. `evolution.log` **absent**. Reset non-committé (`M results/champion.json`, `M results/champions/gen00001-note20.json`).
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf depuis le 152e — rien ne tourne, et la physique OBSOLÈTE (09-21) reste celle que tout redémarrage apprendrait.**
+
+---
+
+## VERDICT — passage 2026-10-04 (152e)
+
+🔴 **STATU QUO INTÉGRAL — 5e passage consécutif, re-vérifié bit-à-bit à l'instant. Rien n'a bougé.**
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT.** `vitMult` = **0** dans `train.html` vs **18** dans `VERSION PRINCIPALE/index.html` (recompté). Éjection bot ×1 vs joueur ×2,6 — **bloqueur n°1**.
+- **#60 intact** : `SPD` **0.5** (train l.8463) vs **0.48** (jeu l.28498) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (l.28647) ; `ASSIST_VIRAGE=0` (l.28607) / `CAP_YAW=1.6` (l.28620) toujours absents de la sim.
+- **#61 intact** : rampe `car.airRate=clamp(1+…/1800,1,1.35)` (train l.8873) vs jeu gelé à 1 (l.31122).
+- `HEAD` **`1e6c7e0`** inchangé ; `train.html` mtime **09-21 17:56:46** ; `VERSION PRINCIPALE/index.html` mtime **15:01**.
+
+🟠 **Atelier STALLÉ au gen 1, aucun `node.exe`.** `champion.json` inchangé `{gen:1, note:20, record:208}` (mtime **14:31**). `evolution.log` **absent**. 220 champions. Reset non-committé (`M results/champion.json`, `M results/champions/gen00001-note20.json`).
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf — toujours rien qui tourne, et la physique OBSOLÈTE (09-21) reste celle sur laquelle tout redémarrage apprendrait.**
+
+---
+
+## VERDICT — passage 2026-10-04 (151e)
+
+🔴 **STATU QUO INTÉGRAL — 4e passage consécutif, tout re-vérifié bit-à-bit à l'instant. Rien n'a bougé.**
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT.** `vitMult` = **0** occurrence dans `train.html` vs **18** dans `VERSION PRINCIPALE/index.html`. Éjection bot ×1 vs joueur ×2,6 — **bloqueur n°1**.
+- **#60 intact** : `SPD` **0.5** (train l.8463) vs **0.48** (jeu l.28498) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (jeu l.28647) ; `ASSIST_VIRAGE`/`CAP_YAW` toujours absents de la sim.
+- **#61 intact** : rampe `car.airRate=clamp(1+.../1800,1,1.35)` (train l.8873) vs jeu gelé à 1.
+- `HEAD` **`1e6c7e0`** inchangé ; `train.html` mtime **09-21 17:56:46** ; `VERSION PRINCIPALE/index.html` mtime **15:01:48**.
+
+🟠 **Atelier STALLÉ au gen 1, aucun `node.exe`.** `champion.json` inchangé `{gen:1, note:20, record:208, date:2026-10-04T12:31:55Z}` (mtime **14:31:55**). `evolution.log` **absent**. 220 champions, dernier écrit `gen00001-note20`. Reset non-committé (`M results/champion.json`, `M results/champions/gen00001-note20.json`).
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf — aucun entraînement ne tourne, et la physique OBSOLÈTE (09-21) reste celle sur laquelle tout redémarrage apprendrait.**
+
+---
+
+## VERDICT — passage 2026-10-04 (150e)
+
+🔴 **STATU QUO INTÉGRAL — 3e passage consécutif sans le moindre mouvement, re-vérifié à l'instant.** Rien n'a bougé depuis le 149e :
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT.** `vitMult` = **0** occurrence dans `train.html` vs **18** dans `VERSION PRINCIPALE/index.html` (recompté au `grep -c`). Divergence d'éjection (bot ×1 vs joueur ×2,6) inchangée — **bloqueur n°1**.
+- **#60 intact** : `SPD` **0.5** (train l.8463) ; `AIR_ASSIST` **1.0** (train l.8465) ; `ASSIST_VIRAGE`/`CAP_YAW` toujours absents. **#61 intact** : `car.airRate=clamp(1+.../1800,1,1.35)` (train l.8873) vs jeu gelé à 1.
+- `HEAD` **`1e6c7e0`** inchangé ; `train.html` mtime **09-21 17:56:46** ; `VERSION PRINCIPALE/index.html` mtime **15:01:48**.
+
+🟠 **Atelier STALLÉ au gen 1, aucun `node.exe`.** `champion.json` inchangé `{gen:1, note:20, record:208}` (mtime **14:31:55**). `evolution.log` **absent**. Reset non-committé : `M results/champion.json`, `M results/champions/gen00001-note20.json`.
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf — toujours rien qui tourne depuis le 145e. À ce stade le rapport ne décrit plus des bugs nouveaux mais un blocage organisationnel : la physique OBSOLÈTE (09-21) est toujours celle sur laquelle un éventuel redémarrage apprendrait.**
+
+---
+
+## VERDICT — passage 2026-10-04 (149e)
+
+🔴 **STATU QUO INTÉGRAL — 2e passage consécutif sans le moindre mouvement, re-vérifié à l'instant.** Rien n'a bougé depuis le 148e :
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT.** `vitMult` = **0** occurrence dans `train.html` vs **18** dans `VERSION PRINCIPALE/index.html` (recompté au `grep`). Divergence d'éjection (bot ×1 vs joueur ×2,6) inchangée — **bloqueur n°1**.
+- **#60** : `SPD` 0.5 (train l.8463) vs 0.48 (jeu) ; `AIR_ASSIST` 1.0 (l.8465) vs 0 ; `ASSIST_VIRAGE`/`CAP_YAW` absents. **#61** : rampe `airRate` jusqu'à 1,35 (l.8873) vs jeu gelé à 1.
+- `HEAD` **`1e6c7e0`** inchangé ; `train.html` figé **09-21 17:56** ; `VERSION PRINCIPALE` mtime **15:01**.
+
+🟠 **Atelier STALLÉ au gen 1, aucun `node.exe`.** `champion.json` inchangé `{gen:1, note:20, record:208}` (mtime **14:31:55**). `evolution.log` **absent**. Le reset d'entraînement traîne **non-committé** dans l'arbre (`M results/champion.json`, `M results/champions/gen00001-note20.json`).
+
+**Défauts ouverts : #62 (priorité absolue), #61, #60, #58, #57, #59, réserves #35/#40/#44. Rien de neuf — toujours rien qui tourne depuis le 145e.**
+
+---
+
+## VERDICT — passage 2026-10-04 (148e)
+
+🔴 **STATU QUO INTÉGRAL — rien n'a bougé depuis le 147e.** Re-vérifié à l'instant, constantes et mtimes :
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT.** `vitMult` = **0** occurrence dans `train.html` vs **18** dans `VERSION PRINCIPALE/index.html`. La divergence d'éjection (bot ×1 vs joueur ×2,6) reste le **bloqueur n°1** de l'isomorphisme.
+- **#60 intact** : `SPD` **0.5** (train l.8463) vs **0.48** (jeu l.28498) ; `AIR_ASSIST` **1.0** (train l.8465) vs **0** (jeu l.28647) ; `ASSIST_VIRAGE`/`CAP_YAW` absents de la sim.
+- **#61 intact** : rampe de vol `car.airRate=clamp(1+.../1800,1,1.35)` (train l.8873) vs jeu `AIR_RATE` gelé à **1**.
+
+📌 **Jeu & atelier figés** : `HEAD` **`1e6c7e0`** inchangé, `VERSION PRINCIPALE/index.html` mtime **15:01**, `train.html` mtime **09-21 17:56**.
+
+🟠 **Atelier STALLÉ au gen 1** : `results/champion.json` inchangé `{gen:1, note:20, record:208, date:2026-10-04T12:31:55Z}`, mtime **14:31:55** (= 147e), **220** champions (jusqu'à gen00080), `evolution.log` **absent**, **aucun** `node.exe` vivant.
+
+**Défauts ouverts : #62 (vitMult, priorité absolue), #61 (tempo de vol), #60 (phys v6), #58, #57, #59, réserves #35/#40/#44. Rien de neuf — toujours rien qui tourne depuis le 145e.**
+
+---
+
+## VERDICT — passage 2026-10-04 (147e)
+
+🔴 **STATU QUO INTÉGRAL — rien n'a bougé depuis le 146e.** Re-vérifié à l'instant, bit-à-bit :
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT.** `vitMult` = **0** occurrence dans `train.html` vs **18** dans `VERSION PRINCIPALE`. Divergence d'éjection (bot ×1 vs joueur ×2,6) inchangée.
+- **#60 intact** : `SPD` **0.5** (sim l.8463) vs **0.48** (jeu l.28498) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (l.28647) ; `ASSIST_VIRAGE`/`CAP_YAW` **absents** de la sim (0 occurrence).
+- **#61 intact** : rampe de vol `car.airRate=clamp(1+.../1800,1,1.35)` (l.8873) vs jeu `AIR_RATE` gelé à 1 (l.31122).
+
+📌 **Le JEU n'a pas avancé non plus** : `HEAD` **`1e6c7e0`** inchangé, `VERSION PRINCIPALE/index.html` mtime **15:01** aujourd'hui (= 146e). `train.html` figé **09-21 17:56:46**.
+
+🟠 **Atelier TOUJOURS STALLÉ au gen 1.** `champion.json` **inchangé** `{gen:1, note:20, record:208}` (date interne 2026-10-04T12:31:55Z, mtime 14:31:55 local — identique au 146e). 220 champions. `evolution.log` **absent**. Aucun `node.exe`.
+
+**Défauts ouverts : #62 (vitMult absent, priorité absolue), #61 (tempo de vol), #60 (phys v6), #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-10-04 (146e)
+
+🔴 **STATU QUO INTÉGRAL — rien n'a bougé depuis le 145e.** Re-vérifié bit-à-bit à l'instant :
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT.** `vitMult` = **0** occurrence dans `train.html` vs **18** dans `VERSION PRINCIPALE`. Divergence d'éjection (bot ×1 vs joueur ×2,6) inchangée.
+- **#60 intact** : `SPD` **0.5** (sim l.8463) vs **0.48** (jeu l.28498) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (l.28647) ; `ASSIST_VIRAGE`/`CAP_YAW` **absents** de la sim (0 occurrence).
+- **#61 intact** : rampe de vol `car.airRate=clamp(1+.../1800,1,1.35)` (l.8873) vs jeu `AIR_RATE` gelé à 1.
+
+📌 **Le JEU n'a pas avancé non plus** : `HEAD` **`1e6c7e0`** inchangé, `VERSION PRINCIPALE/index.html` mtime **15:01** aujourd'hui (= 145e). `train.html` figé **09-21 17:56:46**.
+
+🟠 **Atelier TOUJOURS STALLÉ au gen 1.** `champion.json` **inchangé** `{gen:1, note:20, record:208}` (2026-10-04T12:31:55Z). 220 champions. `evolution.log` **absent**. Aucun `node.exe`.
+
+**Défauts ouverts : #62 (vitMult absent, priorité absolue), #61 (tempo de vol), #60 (phys v6), #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-10-04 (145e)
+
+🔴 **STATU QUO INTÉGRAL — rien n'a bougé depuis le 144e.** Re-vérifié à l'instant, bit-à-bit :
+
+- **#62 (vitMult absent) : TOUJOURS OUVERT.** `vitMult` = **0** occurrence dans `train.html` vs **18** dans `VERSION PRINCIPALE`. La divergence d'éjection (bot ×1 vs joueur ×2,6) reste LE trou.
+- **#60 intact** : `SPD` **0.5** (sim l.8463) vs **0.48** (jeu l.28498) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (l.28647).
+- **#61 intact** : `AIR_RATE` sim **rampe jusqu'à 1,35** (`airRate=clamp(...)` l.8873, base 1 l.8460) vs jeu **gelé à 1** (`AIR_RATE=1` l.31122).
+
+📌 **Le JEU n'a pas avancé non plus** : `HEAD` **`1e6c7e0`** inchangé, `VERSION PRINCIPALE/index.html` mtime **15:01** aujourd'hui (= 144e). `train.html` mtime figé **09-21 17:56:46**.
+
+🟠 **Atelier TOUJOURS STALLÉ au gen 1.** `champion.json` **inchangé** `{gen:1, note:20, record:208}` (2026-10-04T12:31:55Z). 220 champions (dernier écrit `gen00001-note20`). `evolution.log` **absent**. Aucun `node.exe`. Le redémarrage vu au 143e n'a toujours pas dépassé la 1re génération.
+
+**Défauts ouverts : #62 (vitMult absent, priorité absolue), #61 (tempo de vol), #60 (phys v6), #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-10-04 (144e)
+
+🔴 **STATU QUO — #62 (vitMult absent) toujours OUVERT, entraînement gelé au gen 1.** Re-vérifié à l'instant, bit-à-bit :
+- `vitMult` : **0 occurrence** dans `train.html` (sim) vs **18** dans `VERSION PRINCIPALE` (jeu). La divergence d'éjection (bot ×1 vs joueur ×2,6) reste LE trou.
+- `SPD` **0.5** (sim l.8463) vs **0.48** (jeu l.28498) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (l.28647). Inchange.
+- `train.html` mtime **09-21 17:56** figé ; `VERSION PRINCIPALE/index.html` mtime **15:01** aujourd'hui.
+
+📌 **Le JEU a encore avancé (non-physique) :** `HEAD` **`1e6c7e0`** (ex `efad5fa`) — commits POKI (`1e6c7e0`), ROBLOX la roue (`0ab1585`), missions (`167660d`), musique (`5808349`). Aucun ne touche la physique v6 ni `vitMult` : le divorce #62 reste exactement au même point, ni aggravé ni résorbé.
+
+🟠 **Atelier STALLÉ au gen 1.** `champion.json` **inchangé** `{gen:1, note:20, record:208}` (2026-10-04T12:31:55Z) — identique au 143e. Aucun `node.exe`. `results/champions/` = 220 fichiers (dernier `gen00001-note20`, plus `gen00070-*`). `evolution.log` absent. Le « redémarrage » vu au 143e n'a PAS dépassé la 1re génération : soit tourné en navigateur et abandonné, soit mort après 1 gen.
+
+**Défauts ouverts : #62 (vitMult absent, priorité absolue — relance sur physique OBSOLÈTE), #61 (tempo de vol), #60 (phys v6), #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-10-04 (143e)
+
+🔴🔴 **NOUVEAU BUG #62 — `vitMult()` ABSENT DE LA SIM : le décollage du JOUEUR a été refondu (30/09) et la sim est restée dessus. C'est LA divergence la plus grave depuis #60, car elle casse l'éjection elle-même.** L'entraînement vient de **REDÉMARRER** (`champion.json` reset `{gen:1, note:20, record:208}` daté 2026-10-04T12:31:55Z) sur une physique OBSOLÈTE.
+
+**#62 — le facteur `vitMult()` (NITROOO ×2,6 + VITESSE ×2) multiplie la vitesse de décollage du joueur, absent de la sim :**
+
+| formule | `train.html` (sim, figée 09-21) | `VERSION PRINCIPALE` (jeu, 30/09) |
+|---|---|---|
+| `fallVel` (décollage) | `F.t·v·dir·(impF‖1) + F.b·vL·dir + F.n·(impU‖.9)` (l.8882) | `F.t·vA·dir·(impF‖1)·**vitMult()** + F.b·vL·dir·**vitMult()** + F.n·(impU==null?.9:impU)` (l.30972) |
+| `vitMult()` | **n'existe pas** | `min(1+NTR_BOOST_MAX, (pwrSpdT>0?2:1)·(1+NTR.boost))` → **jusqu'à ×2,6** (l.30342) |
+| impulsion bord | `impU‖.9` (0 → .9) | `impU==null?.9:impU` (le bord passe bien **0**) |
+| `spdMult` (avance au sol) | `pwrSpdT>0?1.6:1` (l.8997) | `vitMult()` (l.37347, ×2,6 max) |
+
+**Conséquence :** pour le MÊME geste, un bot décolle à `vA` brut (×1) alors qu'un joueur NITROOO décolle jusqu'à **×2,6**. Toute la voltige aérienne apprise (couper entre routes croisées, plongée, cabrage) se cale sur une vitesse d'éjection **2,6× trop faible**. Le réseau apprend à franchir des gaps à la portée d'un non-boosté, qu'un joueur boosté traverse 2,6× plus vite — ou rate d'une toute autre façon. C'est exactement le divorce isomorphe qui rend l'apprentissage nul.
+
+**Correction :** reporter `vitMult()` dans la sim — (a) définir `vitMult()` identique et multiplier les deux termes horizontaux de `fallVel` (l.8882) ; (b) aligner `spdMult` (l.8997) sur `vitMult()` ; (c) remplacer `impU||.9` par `impU==null?.9:impU` (l.8882). Sans ça, tout nouvel entraînement (le gen 1 qui tourne) apprend une physique qui n'existe pas.
+
+🔴 **L'entraînement a REDÉMARRÉ** : `champion.json` passé de `{gen:70, note:22, record:11226}` à **`{gen:1, note:20, record:208}`** (2026-10-04T12:31:55Z, un seul nouveau champion `gen00001-note20.json`). Aucun `node.exe` au moment du relevé — soit il tourne en navigateur, soit il s'est arrêté après 1 gen. **Mais il tourne sur `train.html` figé au 09-21**, donc sur la physique OBSOLÈTE (#60 + #61 + #62).
+
+🟠 **#60 et #61 toujours actifs, re-vérifiés :** `SPD` **0.5** (sim l.8463) vs **0.48** (jeu l.28341) ; `AIR_ASSIST` **1.0** (l.8465) vs **0** (l.28490) ; `ASSIST_VIRAGE`/`CAP_YAW` **absents** de la sim vs **0**/`1.6` (jeu l.28450/28463). `AIR_RATE` : sim **rampe jusqu'à 1,35** (l.8873) vs jeu **gelé à 1** (l.30958). Aucune des deux n'a bougé.
+
+📌 Le jeu a continué d'évoluer (`HEAD` `58fd808`→`efad5fa`, commits ROBLOX + musique ; `VERSION PRINCIPALE/index.html` mtime 14:30 aujourd'hui). Le clone `CCG-gfxmob` est apparu (46 clones `CCG-*`). Le divorce sim↔jeu **s'aggrave à chaque refonte** (30/09 : NITROOO, vitMult, décollage réel) pendant que `ml/train/train.html` reste figé au 21/09.
+
+**Défauts ouverts : #62 (NOUVEAU, vitMult absent), #61 (tempo de vol), #60 (priorité absolue, phys v6), #58, #57, #59, réserves #35/#40/#44.**
+
+---
+
+## VERDICT — passage 2026-10-04 (142e)
+
+🔴 **STATU QUO INTÉGRAL — 10e passage du jour, rien n'a bougé depuis le 141e.** `HEAD` **`58fd808`**, `git status` = `CRITIC-REPORT.md` seul. mtimes inchangés : `train.html` **09-21 17:56:46**, `VERSION PRINCIPALE/index.html` **09-28 17:51:35`. Constantes re-lues à l'instant, bit-à-bit identiques :
+
+| constante | `train.html` (sim) | `VERSION PRINCIPALE` | écart |
+|---|---|---|---|
+| `SPD` | **0.5** (l.8463) | **0.48** (l.22789) | −4 % |
+| `AIR_ASSIST` | **1.0** (l.8465) | **0** (l.22876) | aimant vol entier → nul |
+| `ASSIST_VIRAGE` / `CAP_YAW` | **absent** | `0` (l.22848) / `1.6` (l.22861) | modèle v6 absent de la sim |
+| tempo de vol `airRate` | **rampe jusqu'à 1.35** (l.8873) | **gelé à 1** (l.24239) | **#61 toujours actif** |
+
+🟠 **Atelier À L'ARRÊT.** `champion.json` inchangé `{gen:70, note:22, record:11226}` (16:25:21Z), 220 champions, `evolution.log` absent, aucun `node.exe`. Toujours **45 clones `CCG-*`**, aucun nouveau (derniers : `CCG-roblox`, `CCG-cyber`, `CCG-son`).
+
+**Défauts ouverts : #61 (tempo de vol), #60 (priorité absolue, phys v6), #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-10-04 (141e)
+
+🔴 **STATU QUO INTÉGRAL — 9e passage du jour, rien n'a bougé depuis le 140e.** `HEAD` **`58fd808`**, `git status` = `CRITIC-REPORT.md` seul. mtimes inchangés : `train.html` **09-21 17:56:46**, `VERSION PRINCIPALE/index.html` **09-28 17:51:35`. Constantes re-lues à l'instant, bit-à-bit identiques :
+
+| constante | `train.html` (sim) | `VERSION PRINCIPALE` | écart |
+|---|---|---|---|
+| `SPD` | **0.5** (l.8463) | **0.48** (l.22789) | −4 % |
+| `AIR_ASSIST` | **1.0** (l.8465) | **0** (l.22876) | aimant vol entier → nul |
+| `ASSIST_VIRAGE` / `CAP_YAW` | **absent** | `0` (l.22848) / `1.6` (l.22861) | modèle v6 absent de la sim |
+| tempo de vol `airRate` | **rampe jusqu'à 1.35** (l.8873) | **gelé à 1** (l.24239) | **#61 toujours actif** |
+
+🟠 **Atelier À L'ARRÊT.** `champion.json` inchangé `{gen:70, note:22, record:11226}` (16:25:21Z), 220 champions, `evolution.log` absent, aucun `node.exe`. Toujours **45 clones `CCG-*`**, aucun nouveau (derniers : `CCG-roblox`, `CCG-cyber`, `CCG-son`).
+
+**Défauts ouverts : #61 (tempo de vol), #60 (priorité absolue, phys v6), #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-10-04 (140e)
+
+🔴 **STATU QUO INTÉGRAL — 8e passage du jour, rien n'a bougé depuis le 139e.** `HEAD` **`58fd808`**, `git status` = `CRITIC-REPORT.md` seul. mtimes inchangés : `train.html` **09-21 17:56:46**, `VERSION PRINCIPALE/index.html` **09-28 17:51:35`. Constantes re-lues à l'instant, bit-à-bit identiques (SPD **.5** l.8463, AIR_ASSIST **1.0** l.8465, AIR_RATE base 1 l.8460 rampe l.8873, pas de ASSIST_VIRAGE/CAP_YAW).
+
+🟠 **Atelier À L'ARRÊT.** `champion.json` inchangé `{gen:70, note:22, record:11226}` (16:25:21Z), 220 champions, `evolution.log` absent, aucun `node.exe`. Toujours **45 clones `CCG-*`**, aucun nouveau (derniers : `CCG-roblox`, `CCG-cyber`, `CCG-son`).
+
+**Défauts ouverts : #61 (tempo de vol), #60 (priorité absolue, phys v6), #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-10-04 (139e)
+
+🔴 **STATU QUO INTÉGRAL — 7e passage du jour, rien n'a bougé depuis le 138e.** `HEAD` **`58fd808`**, `git status` = `CRITIC-REPORT.md` seul. mtimes inchangés : `train.html` **09-21 17:56:46**, `VERSION PRINCIPALE/index.html` **09-28 17:51:35`. Constantes re-lues à l'instant, bit-à-bit identiques (SPD **.5** l.8463, AIR_ASSIST **1.0** l.8465, AIR_RATE base 1 l.8460 rampe l.8873, pas de ASSIST_VIRAGE/CAP_YAW).
+
+🟠 **Atelier À L'ARRÊT.** `champion.json` inchangé `{gen:70, note:22, record:11226}` (16:25:21Z), 220 champions, `evolution.log` absent, aucun `node.exe`. Toujours **45 clones `CCG-*`**, aucun nouveau (derniers : `CCG-roblox`, `CCG-cyber`).
+
+**Défauts ouverts : #61 (tempo de vol), #60 (priorité absolue, phys v6), #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-10-04 (138e)
+
+🔴 **STATU QUO INTÉGRAL — 6e passage du jour, rien n'a bougé depuis le 137e.** `HEAD` **`58fd808`**, `git status` = `CRITIC-REPORT.md` seul. mtimes inchangés : `train.html` **09-21 17:56:46**, `VERSION PRINCIPALE/index.html` **09-28 17:51:35`. Constantes re-lues à l'instant, bit-à-bit identiques :
+
+| constante | `train.html` (sim) | `VERSION PRINCIPALE` | écart |
+|---|---|---|---|
+| `SPD` | **0.5** (l.8463) | **0.48** (l.22789) | −4 % |
+| `AIR_ASSIST` | **1.0** (l.8465) | **0** (l.22876) | aimant vol entier → nul |
+| `ASSIST_VIRAGE` / `CAP_YAW` | **absent** | `0` (l.22848) / `1.6` (l.22861) | modèle v6 absent de la sim |
+| tempo de vol `airRate` | **rampe jusqu'à 1.35** (l.8873) | **gelé à 1** (l.24239) | **#61 toujours actif** |
+
+🟠 **Atelier À L'ARRÊT.** `champion.json` inchangé `{gen:70, note:22, record:11226}` (16:25:21Z), 220 champions, `evolution.log` absent, aucun `node.exe`. Aucun nouveau clone `CCG-*` (derniers : `CCG-roblox` 03/10, `CCG-cyber` 02/10).
+
+**Défauts ouverts : #61 (tempo de vol), #60 (priorité absolue, phys v6), #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-10-04 (137e)
+
+🔴 **STATU QUO INTÉGRAL — 5e passage du jour (1er du 04/10), rien n'a bougé depuis le 136e.** `HEAD` **`58fd808`**, `git status` = `CRITIC-REPORT.md` seul. mtimes inchangés : `train.html` **09-21 17:56:46**, `VERSION PRINCIPALE/index.html` **09-28 17:51:35`. Constantes re-lues à l'instant, bit-à-bit identiques :
+
+| constante | `train.html` (sim) | `VERSION PRINCIPALE` | écart |
+|---|---|---|---|
+| `SPD` | **0.5** (l.8463) | **0.48** (l.22789) | −4 % |
+| `AIR_ASSIST` | **1.0** (l.8465) | **0** (l.22876) | aimant vol entier → nul |
+| `ASSIST_VIRAGE` / `CAP_YAW` | **absent** | `0` (l.22848) / `1.6` (l.22861) | modèle v6 absent de la sim |
+| tempo de vol `airRate` | **rampe jusqu'à 1.35** (l.8873) | **gelé à 1** (l.24239) | **#61 toujours actif** |
+
+🟠 **Atelier À L'ARRÊT.** `champion.json` inchangé `{gen:70, note:22, record:11226}` (16:25:21Z), 220 champions, `evolution.log` absent, aucun `node.exe`. Clones `CCG-*` inchangés (derniers : `CCG-roblox`, `CCG-cyber`, `CCG-son`).
+
+**Défauts ouverts : #61 (tempo de vol), #60 (priorité absolue, phys v6), #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-10-03 (136e)
+
+🔴 **STATU QUO INTÉGRAL — 4e passage du jour, rien n'a bougé depuis le 135e.** `HEAD` **`58fd808`**, `git status` = `CRITIC-REPORT.md` seul. mtimes inchangés : `train.html` **09-21 17:56:46**, `VERSION PRINCIPALE/index.html` **09-28 17:51:35`. Constantes re-lues à l'instant, bit-à-bit identiques :
+
+| constante | `train.html` (sim) | `VERSION PRINCIPALE` | écart |
+|---|---|---|---|
+| `SPD` | **0.5** (l.8463) | **0.48** (l.22789) | −4 % |
+| `AIR_ASSIST` | **1.0** (l.8465) | **0** (l.22876) | aimant vol entier → nul |
+| `ASSIST_VIRAGE` / `CAP_YAW` | **absent** | `0` (l.22848) / `1.6` (l.22861) | modèle v6 absent de la sim |
+| tempo de vol `airRate` | **rampe jusqu'à 1.35** (l.8873) | **gelé à 1** (l.24239) | **#61 toujours actif** |
+
+🟠 **Atelier À L'ARRÊT.** `champion.json` inchangé `{gen:70, note:22, record:11226}` (16:25:21Z), 220 champions, `evolution.log` absent, aucun `node.exe`. Clones `CCG-*` inchangés (dernier `CCG-son`).
+
+**Défauts ouverts : #61 (tempo de vol), #60 (priorité absolue, phys v6), #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-10-03 (135e)
+
+🔴 **STATU QUO INTÉGRAL — 3e passage du jour, rien n'a bougé depuis le 134e.** `HEAD` **`58fd808`**, `git status` = `CRITIC-REPORT.md` seul. mtimes **inchangés** : `train.html` **09-21 17:56:46**, `VERSION PRINCIPALE/index.html` **09-28 17:51:35`. Constantes re-lues à l'instant, bit-à-bit identiques.
+
+**Confirmation #61 toujours actif côté sim :** la rampe de tempo de vol existe **toujours** — `let AIR_RATE=1` (l.8460) est **re-piloté** à `car.airRate=clamp(1+max(0,|v|*3.6*SPD-450)/1800,1,1.35)` (l.8873), et consommé via `dtF=dt*car.airRate` (l.9116, l.2058). Le jeu (`VERSION PRINCIPALE`) a, lui, gelé `AIR_RATE=1` en v6. La divergence de tempo de vol (sim jusqu'à ×1,35) reste donc ouverte. **#60 intact** (`SPD` .5↔.48, `AIR_ASSIST` 1.0↔0, `ASSIST_VIRAGE`/`CAP_YAW` absents↔0/1.6).
+
+🟠 **Atelier À L'ARRÊT.** `champion.json` **inchangé** `{gen:70, note:22, record:11226}` (2026-09-21T16:25:21Z), `results/champions/` = **220 fichiers**, dernier `gen00070-note22`. `evolution.log` **absent**. Aucun `node.exe`. **45 clones `CCG-*`** dans `~/Documents/GitHub/` (plus récents : `CCG-cyber`, `CCG-roblox`, `CCG-son`) — aucun n'a rebasculé dans `CAR-CASH-GIT`, le `train.html` canonique reste figé. Aucun doute méthode nouveau → pas de recherche web.
+
+**Défauts ouverts : #61 (tempo de vol), #60 (priorité absolue, phys v6), #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-10-03 (134e)
+
+🔴 **NOUVEAU BUG #61 — divergence de TEMPO DE VOL (`AIR_RATE`) : la sim vole jusqu'à ×1,35 plus vite que la vraie course.** C'est une NOUVELLE facette du divorce #60, passée inaperçue jusque-là car les passages précédents ne comparaient que `SPD`/`AIR_ASSIST`/`ASSIST_VIRAGE`/`CAP_YAW`.
+
+- **`train.html` (sim, figée au 09-21)** — `carStartFall` l.8873 pose un tempo de vol **dépendant de la vitesse** : `car.airRate=clamp(1+max(0,|v|*3.6*SPD-450)/1800, 1, 1.35)` → `dtF=dt*airRate` (l.2058, l.9121 `fallT+=dtF`), donc au-delà de 450 km/h affichés le vol avale **jusqu'à 1,35 s de sim par seconde réelle**.
+- **`VERSION PRINCIPALE/index.html` (jeu, actif)** — `startFall` l.24239 a **gelé `AIR_RATE=1`** (« vol v6, 2026-09-25 : le vol se joue en TEMPS RÉEL, comme la route — il était compressé jusqu'à ×1,35 »). Le jeu n'a **plus aucune** rampe : `dtF=dt`.
+
+**Conséquence sur l'apprentissage :** la trajectoire spatiale (parabole `fallVel.y-=FALL_G*dtF`, `fallPos+=fallVel*dtF*SPD`) est invariante en temps-sim, DONC le réseau apprend la même géométrie — MAIS la jauge de mort `car.fallTR>AIR_MAX` (l.9193) est comptée en **temps réel** (`fallTR+=dt`, l.9121, identique au jeu l.29119). Résultat : pour les **mêmes 6 s réelles** d'airtime, un bot de la sim couvre **jusqu'à 35 % de trajectoire en plus** (plus loin, plongée plus profonde) que la vraie caisse. Les décisions d'atterrissage apprises (quand plonger, quand cabrer) se calent sur un rapport distance/airtime qui **n'existe pas en course**. C'est exactement le genre de « facteur `dtF` oublié » que je traque : ici le facteur n'est pas oublié, il a été **supprimé côté jeu** sans être reporté côté sim.
+
+**Correction :** aligner `train.html` sur le jeu — soit supprimer la rampe (`car.airRate=1` l.8873), soit si le jeu rallume un jour un `AIR_RATE` dynamique (le clone `CCG-amel-vol-newton` y travaille activement, voir plus bas), reporter la **même** formule. En l'état, une seule ligne : réécrire l.8873 en `car.airRate=1`.
+
+📌 **Churn actif sur `AIR_RATE` dans les clones (à surveiller).** `CCG-amel-vol-newton/AUTRE VERSION/CLAUDE.md:135` documente une **3e** formule, encore dynamique et différente — `AIR_RATE=clamp(.95+kmhAffichés/420*.55, 1, 2.3)` — sur une base encore **v2** (`SPD=.48`, `AIR_ASSIST=.2`, `ASSIST_VIRAGE=.78`, donc PAS le v6 du jeu). Deux clones (`vol-newton`, `vol-rapide`) explorent le vol newtonien avec collisions balayées `prevH/prevL`, `BUMPS`, `SNAKE LOOP`, plongeon fatal `trackMinY-120`. La décision « tempo de vol » n'est **pas tranchée** : canono =1, sim = rampe 1.35, clone = rampe 2.3. Tant que ce n'est pas figé, #61 restera mouvant.
+
+🟠 **Le reste est inchangé** : `HEAD` `58fd808`, `git status` = `CRITIC-REPORT.md` seul. mtimes figés (`train.html` 09-21 17:56, `VERSION PRINCIPALE` 09-28 17:51). `champion.json` inchangé `{gen:70, note:22, record:11226}` (09-21 16:25:21Z), 220 champions, `evolution.log` absent, aucun `node.exe` de training. **#60 intact** (`SPD` .5↔.48, `AIR_ASSIST` 1.0↔0, `ASSIST_VIRAGE`/`CAP_YAW` absents↔0/1.6), **#58/#57/#59 inscrits** ci-dessous.
+
+**Défauts ouverts : #61 (NOUVEAU, tempo de vol), #60 (priorité absolue, phys v6), #58, #57, #59, réserves #35/#40/#44.**
+
+---
+
+## VERDICT — passage 2026-10-03 (133e)
+
+🔴 **STATU QUO INTÉGRAL — 2e passage du jour, rien n'a bougé depuis le 132e.** `HEAD` **`58fd808`**, `git status` = `CRITIC-REPORT.md` seul. mtimes **inchangés** : `train.html` **09-21 17:56:46**, `VERSION PRINCIPALE/index.html` **09-28 17:51:35`. Constantes re-lues à l'instant, bit-à-bit identiques :
+
+| constante | `train.html` (sim) | `VERSION PRINCIPALE` | écart |
+|---|---|---|---|
+| `SPD` | **0.5** (l.8463) | **0.48** (l.22789) | −4 % |
+| `AIR_ASSIST` | **1.0** (l.8465) | **0** (l.22876) | aimant vol entier → nul |
+| `ASSIST_VIRAGE` / `CAP_YAW` | **absent** | `0` (l.22848) / `1.6` (l.22861) | modèle v6 absent de la sim |
+
+🟠 **Atelier À L'ARRÊT.** `champion.json` **inchangé** `{gen:70, note:22, record:11226}` (2026-09-21T16:25:21Z). `results/champions/` = **220 fichiers**, dernier `gen00070-note22`. `evolution.log` **absent**. Aucun `node.exe`. Pas de nouveau clone `CCG-*` (dernier : `CCG-cyber` 02/10 20:26) — la dérive du jeu réel hors-repo n'a pas encore rebasculé dans `CAR-CASH-GIT`.
+
+**Défauts ouverts : #60 (priorité absolue, inchangé), #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-10-03 (132e)
+
+🔴 **STATU QUO INTÉGRAL — 8e jour consécutif, rien n'a bougé.** `HEAD` toujours **`58fd808`**, `git status` ne montre que `CRITIC-REPORT.md`. mtimes **inchangés** : `train.html` **09-21 17:56:46**, `VERSION PRINCIPALE/index.html` **09-28 17:51:35`. Constantes re-lues à l'instant, bit-à-bit identiques :
+
+| constante | `train.html` (sim) | `VERSION PRINCIPALE` | écart |
+|---|---|---|---|
+| `SPD` | **0.5** (l.8463) | **0.48** (l.22789) | −4 % |
+| `AIR_ASSIST` | **1.0** (l.8465) | **0** (l.22876) | aimant vol entier → nul |
+| `ASSIST_VIRAGE` / `CAP_YAW` | **absent** | `0` (l.22848) / `1.6` (l.22861) | modèle v6 absent de la sim |
+
+(`GRAV=9.8*.55`, `FALL_G=33`, `TURN_HS=.0035` identiques des deux côtés — l.8457/8464 vs l.22849.)
+
+🟠 **Atelier À L'ARRÊT.** `champion.json` **inchangé** `{gen:70, note:22, record:11226}` (2026-09-21T16:25:21Z). `results/champions/` = **220 fichiers**, dernier `gen00070-note22`. `evolution.log` **absent**. Aucun `node.exe`.
+
+📌 **Observation nouvelle (périphérique) :** le développement du jeu continue **activement ailleurs** que dans ce repo — ~50 clones/worktrees `CCG-*` créés dans `~/Documents/GitHub/` entre le 30/09 et le 02/10 (`CCG-cyber`, `CCG-roblox`, `CCG-gameplay`, `CCG-vol-rapide`, etc.). Aucun ne touche au `ml/train/train.html` canonique (toujours figé au 09-21), mais ils risquent de faire évoluer la physique du vol récente (dossiers « vol-newton », « vol-rapide »), ce qui creuserait encore le divorce #60 si la sim n'est pas resynchronisée. À surveiller : dès qu'un de ces clones rebascule dans `CAR-CASH-GIT`, re-differ la physique joueur.
+
+**Défauts ouverts : #60 (priorité absolue, inchangé), #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-10-01 (131e)
+
+🔴 **STATU QUO INTÉGRAL — 6e jour consécutif, rien n'a bougé.** `HEAD` toujours **`58fd808`**, `git status` ne montre que `CRITIC-REPORT.md`. mtimes **inchangés** : `train.html` **09-21 17:56:46**, `VERSION PRINCIPALE/index.html` **09-28 17:51:35**, `AUTRE VERSION/index.html` **09-25 15:01**. Constantes re-lues à l'instant, bit-à-bit identiques :
+
+| constante | `train.html` (sim) | `VERSION PRINCIPALE` | écart |
+|---|---|---|---|
+| `SPD` | **0.5** (l.8463) | **0.48** (l.22789) | −4 % |
+| `AIR_ASSIST` | **1.0** (l.8465) | **0** (l.22876) | aimant vol entier → nul |
+| `ASSIST_VIRAGE` / `CAP_YAW` | **absent** | `0` (l.22848) / `1.6` (l.22861) | modèle v6 absent de la sim |
+
+(`GRAV=9.8*.55`, `FALL_G=33`, `TURN_HS=.0035` identiques des deux côtés — l.8457/8464 vs jeu.)
+
+Moteur **unique** `stepCar` l.9197 (joueur + bots) intact → isomorphisme joueur↔bot **interne toujours sain** ; le divorce `train.html` ↔ jeu réel (conduite v6, aimant vol → 0) est figé, **#60 intact**.
+
+🟠 **Atelier À L'ARRÊT.** `champion.json` **inchangé** `{gen:70, note:22, record:11226}` (16:25:21Z). `results/champions/` = **220 fichiers**, dernier `gen00070-note22`. `evolution.log` **absent**. Aucun `node.exe`. Aucun doute méthode nouveau → pas de recherche web.
+
+**Défauts ouverts : #60 (priorité absolue, inchangé), #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-09-29 (130e)
+
+🔴 **STATU QUO INTÉGRAL — 5e jour consécutif, rien n'a bougé depuis le 128e.** `HEAD` toujours **`58fd808`**, `git status` ne montre que `CRITIC-REPORT.md`. mtimes **inchangés** : `train.html` **09-21 17:56:46**, `VERSION PRINCIPALE/index.html` **09-28 17:51:35**, `AUTRE VERSION/index.html` **09-25 15:01**. Constantes re-lues à l'instant, bit-à-bit identiques :
+
+| constante | `train.html` (sim) | `VERSION PRINCIPALE` | écart |
+|---|---|---|---|
+| `SPD` | **0.5** (l.8463) | **0.48** (l.22789) | −4 % |
+| `AIR_ASSIST` | **1.0** (l.8465) | **0** (l.22876) | aimant vol entier → nul |
+| `ASSIST_VIRAGE` / `CAP_YAW` | **absent** | `0` (l.22848) / `1.6` (l.22861) | modèle v6 absent de la sim |
+
+(`GRAV=9.8*.55`, `FALL_G=33`, `TURN_HS=.0035` identiques des deux côtés — l.8457/8464 vs jeu.)
+
+🟠 **Atelier À L'ARRÊT.** `champion.json` **inchangé** `{gen:70, note:22, record:11226}` (16:25:21Z), mtime **09-21 18:25**. `evolution.log` **absent**. Aucun entraînement actif (`champion.json`/`results/` figés au 09-21). Aucun doute méthode nouveau → pas de recherche web.
+
+**Défauts ouverts : #60 (priorité absolue, inchangé), #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-09-29 (129e)
+
+🔴 **STATU QUO INTÉGRAL — 4e jour consécutif, rien n'a bougé depuis le 128e.** `HEAD` toujours **`58fd808`**, `git status` ne montre que `CRITIC-REPORT.md`. mtimes **inchangés** : `train.html` **09-21 17:56:46**, `VERSION PRINCIPALE/index.html` **09-28 17:51:35**, `AUTRE VERSION/index.html` **09-25 15:01**. Constantes re-vérifiées à l'instant, bit-à-bit identiques :
+
+| constante | `train.html` (sim) | `VERSION PRINCIPALE` | écart |
+|---|---|---|---|
+| `SPD` | **0.5** (l.8463) | **0.48** (l.22789) | −4 % |
+| `AIR_ASSIST` | **1.0** (l.8465) | **0** (l.22876) | aimant vol entier → nul |
+| `ASSIST_VIRAGE` / `CAP_YAW` | **absent** | `0` (l.22848) / `1.6` (l.22861) | modèle v6 absent de la sim |
+
+🟠 **Atelier À L'ARRÊT.** `champion.json` **inchangé** `{gen:70, note:22, record:11226}`. `results/champions/` = **220 fichiers**, dernier `gen00070-note22`. `evolution.log` **absent**. Le seul `node.exe` (PID 9776) est le scratchpad Hermes, pas l'entraînement. Aucun doute méthode nouveau → pas de recherche web.
+
+**Défauts ouverts : #60 (priorité absolue, inchangé), #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-09-29 (128e)
+
+🔴 **STATU QUO INTÉGRAL — 3e jour consécutif sans le moindre mouvement.** `HEAD` toujours `58fd808` (aucun commit). `train.html` mtime **09-21 17:56:46** inchangé ; `VERSION PRINCIPALE/index.html` mtime **09-28 17:51:35** inchangé ; `AUTRE VERSION/index.html` **09-25 15:01**. Constantes re-vérifiées à l'instant, bit-à-bit identiques aux trois derniers passages :
+
+| constante | `train.html` (sim) | `VERSION PRINCIPALE` | écart |
+|---|---|---|---|
+| `SPD` | **0.5** (l.8463) | **0.48** (l.22789) | −4 % |
+| `AIR_ASSIST` | **1.0** (l.8465) | **0** (l.22876) | aimant vol entier → nul |
+| `ASSIST_VIRAGE` / `CAP_YAW` | **absent** | `0` (l.22848) / `1.6` (l.22861) | modèle v6 absent de la sim |
+
+Moteur **unique** `stepCar` l.9197 (joueur l.10989 + bots l.12714), `carStartFall` 8868 / `carTryLand` 8896 / `carDrive` 8954 / `carFall` 9115 / `carPitch` 9097 / `carBrainInput` 9263 intactes ; `TRAIN.brainInput` l.12765 délègue à `carBrainInput`. Isomorphisme joueur↔bot **interne sain** ; le divorce `train.html` ↔ jeu réel est inchangé.
+
+🟠 **Atelier À L'ARRÊT.** `champion.json` **inchangé** `{gen:70, note:22, record:11226}` (16:25:21Z). `results/champions/` dernier `gen00070-note22`. `evolution.log` **absent**. Aucun `node.exe`. Aucun doute méthode nouveau → pas de recherche web.
+
+**Défauts ouverts : #60 (priorité absolue), #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-09-29 (127e)
+
+🔴 **STATU QUO INTÉGRAL — 2e jour consécutif sans le moindre mouvement, #60 figé.** `HEAD` toujours **`58fd808`** (aucun commit depuis le 126e), `git status` ne montre que `CRITIC-REPORT.md`. mtimes inchangés : `train.html` **09-21 17:56:46**, `VERSION PRINCIPALE/index.html` **09-28 17:51:35**. Re-vérifié à l'instant, constantes identiques aux 125e/126e :
+
+| constante | `train.html` (sim) | `VERSION PRINCIPALE` | écart |
+|---|---|---|---|
+| `SPD` | **0.5** (l.8463) | **0.48** (l.22789) | −4 % |
+| `AIR_ASSIST` | **1.0** (l.8465) | **0** (l.22876) | aimant vol entier → nul |
+| `ASSIST_VIRAGE` / `CAP_YAW` | **absent** | `0` (l.22848) / `1.6` (l.22861) | modèle v6 absent de la sim |
+
+Isomorphisme joueur↔bot **interne** toujours sain (`stepCar` unique), mais le divorce `train.html` ↔ jeu réel n'a pas bougé. 🔴 **#60 reste la priorité absolue** : gen 70 apprend sur une physique (SPD .5, aimant vol 1.0, autotournant .78) refondue il y a 8 jours et qui n'existe plus en course.
+
+🟠 **Atelier À L'ARRÊT.** `champion.json` **inchangé** `{gen:70, note:22, record:11226}` (16:25:21Z), **220 fichiers** `results/champions/`, dernier `gen00070-note22`. `evolution.log` **absent**. Aucun `node.exe` de training. Aucun doute méthode nouveau → pas de recherche web.
+
+**Défauts ouverts : #60 (priorité absolue, inchangé), #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-09-28 (126e)
+
+🔴 **STATU QUO INTÉGRAL — le divorce sim↔course (#60) est figé, rien n'a bougé depuis le 125e.** `HEAD` toujours `58fd808` (aucun commit neuf). `train.html` mtime **17:56:46** (figé au 09-21 `c14ba2a`) ; `VERSION PRINCIPALE/index.html` mtime **17:51** (inchangé). Constantes re-vérifiées à l'instant, identiques aux deux derniers passages :
+
+| constante | `train.html` (sim) | `VERSION PRINCIPALE` | écart |
+|---|---|---|---|
+| `SPD` | **0.5** (l.8463) | **0.48** (l.22789) | −4 % |
+| `AIR_ASSIST` | **1.0** (l.8465) | **0** (l.22876) | aimant vol entier → nul |
+| `ASSIST_VIRAGE` / `CAP_YAW` | **absent** | `0` (l.22848) / `1.6` (l.22861) | modèle v6 absent de la sim |
+
+Moteur : `stepCar` **unique** l.9197 dans `train.html` (joueur + bots) → isomorphisme joueur↔bot **interne toujours sain** ; le divorce est `train.html` ↔ jeu réel, inchangé. 🔴 **#60 reste la priorité absolue** : gen 70 apprend sur une physique (SPD .5, aimant vol 1.0, autotournant .78) refondue il y a 7 jours et qui n'existe plus en course.
+
+🟠 **Atelier À L'ARRÊT.** `champion.json` inchangé `{gen:70, note:22, record:11226}` (16:25:21Z) → #58 intact (−575 m sous `maxTotD:11801`). `results/champions/` = **220 fichiers**. `evolution.log` absent. Aucun `node.exe` de training. Aucun doute méthode nouveau → pas de recherche web.
+
+**Défauts ouverts : #60 (priorité absolue), #58, #57, #59, réserves #35/#40/#44. Rien de neuf.**
+
+---
+
+## VERDICT — passage 2026-09-28 (125e)
+
+🔴 **ISOMORPHISME SIM↔RACE TOUJOURS ROMPU — valeurs inchangées (#60), mais le JEU continue d'avancer pendant que `train.html` pourrit.** Depuis le 124e, la divergence PHYSIQUE est **gelée** (aucune des 4 constantes ne bouge), MAIS le jeu a encaissé **7 nouveaux commits** alors que la sim est figée au 09-21. Le divorce de codebase s'aggrave à vue, pas par la physique mais par la maturité : le champion reste entraîné sur un jeu qui n'existe plus.
+
+**train.html — FROZEN (mtime 2026-09-21 17:56:46, aucun commit depuis `c14ba2a`)** :
+- `SPD=0.5` (l.8463) · `AIR_ASSIST=1.0` (l.8465) · **pas** de `ASSIST_VIRAGE` ni `CAP_YAW`.
+- Moteur **unique** `stepCar` l.9197 (joueur l.10989 + bots l.12714) → isomorphisme **joueur↔bot INTERNE toujours sain** (rien n'a bougé, la sim est cohérente avec elle-même).
+
+**Jeu `VERSION PRINCIPALE/index.html` — ACTIVE (HEAD `58fd808` ex `6541278`, mtime aujourd'hui 17:51)** :
+- Constantes **inchangées vs 124e** : `SPD=0.48` (l.22789) · `ASSIST_VIRAGE=0` (l.22848) · `CAP_YAW=1.6` (l.22861) · `AIR_ASSIST=0` (l.22876).
+- Les **7 commits** (`3d6c4c2`, `97af315`, `7ee99d5`, `8de2704`, `ff494c7` + merges `e04fe7c`/`58fd808`) sont **NON-physique** : auto-école, carrière, son, VHD, texture. La physique v6 n'a pas bougé — **mais la distance avec la sim non plus ne se résorbe pas**.
+
+🟠 **Atelier À L'ARRÊT — rien de neuf.** `champion.json` **inchangé** `{gen:70, note:22, record:11226}` (16:25:21Z). Le `node.exe` présent (PID **9776**) est le **scratchpad Hermes** (`hermes/node/node.exe srv.js CCG-transitions`), **pas** l'entraînement. `evolution.log` toujours absent. `results/champions/` = **220 fichiers**, dernier `gen00070-note22`. Aucun doute méthode nouveau (le problème reste physique, pas algorithmique) → pas de recherche web.
+
+**Défauts ouverts : #60 (priorité absolue, inchangé), #58 (record volatile + verrou d'onglet), #57 (gate bench.js), #59 (veille), réserves #35/#40/#44.**
+
+**Correction (inchangée, désormais urgente par attrition) :** décider QUELLE version est la référence, puis **reporter dans `ml/train/train.html` le modèle v6** (`SPD=0.48`, `AIR_ASSIST=0`, `ASSIST_VIRAGE=0`, direction pouce→lacet `CAP_YAW=1.6`) AVANT tout relancement. Chaque jour qui passe sans ça creuse l'obsolescence du champion : gen 70 apprend sur un jeu (SPD .5, aimant vol 1.0, autotournant .78) qui a été refondu il y a 7 jours et n'existe plus en course.
+
+---
+
+## VERDICT — passage 2026-09-28 (124e)
+
+🔴🔴 **ISOMORPHISME ROMPU — BIEN PIRE QUE PRÉVU : le jeu a subi un REFONTE COMPLÈTE de la conduite (« conduite v6 », commit `e01a282` du 25/09 21:58) que `train.html` ne contient PAS du tout. Ce n'est plus une affaire de constantes à resynchroniser (#60) : c'est un DIVORCE DE MODÈLE.** `train.html` est figé sur une physique OBSOLÈTE (mtime 17:56:46, aucun commit sur `ml/train`) pendant que `VERSION PRINCIPALE/index.html` a été refaite en profondeur.
+
+**Les TROIS fichiers divergent désormais entre eux** (triple divergence) :
+
+| constante / modèle | `train.html` (sim) | `VERSION PRINCIPALE` | `AUTRE VERSION` |
+|---|---|---|---|
+| `SPD` | **0.5** (l.8463) | **0.48** (l.22789) | **0.48** (l.11936) |
+| `AIR_ASSIST` | **1.0** (l.8465) | **0** (l.22876) | **.2** (l.11940) |
+| `ASSIST_VIRAGE` | **absent** | **0** (l.22848) | **.78** (l.11938) |
+| moteur partagé | `stepCar` unique (l.9197) | **pas de `stepCar`** | **pas de `stepCar`** |
+| modèle de direction | ancien (`(dn?1.3:1)`, l.8993) | **v6** (pouce→lacet, `CAP_YAW=1.6` l.22861) | v2 (`ASSIST_VIRAGE=.78`) |
+
+**Le pire : `AIR_ASSIST` est passé de `1.0` (train) → `.2` → **`0`** (`VERSION PRINCIPALE`, « règle n°1 : aucun recentrage, en vol non plus — était .2 »).** La neuroévolution apprend la voltige aérienne en s'appuyant sur un aimant de recentrage `1.0` en plein vol ; dans la vraie course il n'y a **plus AUCUN centrage** en vol. Le champion appris ne pourra rigoureusement pas reproduire ses coupures aériennes : tout son signal d'apprentissage (l'attraction vers l'axe) a disparu du jeu. **C'est ± l'équivalent d'apprendre le diagonal cut sur un terrain magnétisé puis de le jouer sur un terrain sans aimant.**
+
+**Second choc : `ASSIST_VIRAGE` et le modèle « conduite v6 ».** `VERSION PRINCIPALE` a supprimé l'aide au virage (`.78→0`) et changé le PARADIGME de direction (pouce = vitesse de lacet avec inertie 0,1 s ; pouce lâché = cap conservé ; drift = geste explicite ; retrait du crabe au boost et du roulis). `train.html` n'a ni `ASSIST_VIRAGE`, ni `CAP_YAW`, ni ce modèle — il tourne sur l'ancien `stepCar` avec `(dn?1.3:1)` (l.8993). Le JOUEUR simulé dans l'entraînement ne conduit plus DU TOUT comme le joueur de la vraie course.
+
+**Précision (pour ne pas sur-vendre) :** la formule de conduite du BOT lui-même (`b.phi` l.10139) est **identique** dans les trois fichiers (`VERSION PRINCIPALE` l.25305, `AUTRE VERSION` l.13437). Le bot ne se conduit pas différemment ; c'est l'ENVIRONNEMENT (route, aimants, `SPD`) et le JOUEUR de référence qui ont divergé.
+
+🟠 **Atelier toujours À L'ARRÊT — statu quo intégral.** Aucun `node.exe` de training (le seul `node.exe` n'apparaît même plus au `tasklist`). `champion.json` **inchangé** `{gen:70, note:22, record:11226}` (16:25:21Z) → toujours **−575 m** sous `maxTotD:11801`. `results/champions/` = **220 fichiers**, dernier `gen00070-note22`. `evolution.log` absent. Aucun doute méthode nouveau (le problème est physique, pas algorithmique) → pas de recherche web.
+
+**Défauts ouverts : #60 (priorité absolue, désormais MASSIF — refonte v6 + AIR_ASSIST 1.0→0 + ASSIST_VIRAGE 0 + SPD 0.48), #58 (record volatile + verrou d'onglet), #57 (gate bench.js), #59 (veille), réserves #35/#40/#44.**
+
+**Correction (2 branches) :** (a) soit **reporter dans `ml/train/train.html`** l'intégralité du modèle v6 (SPD, AIR_ASSIST=0, ASSIST_VIRAGE=0, direction pouce→lacet, drift-geste) avant TOUT nouvel entraînement ; (b) soit, si l'objectif n'est QUE la voltige aérienne, au minimum **`SPD=0.48`** et **`AIR_ASSIST=0`** dans la sim, sinon le champion appris vole avec un aimant qui n'existe plus. Surtout : **décider QUELLE version est la référence** (AUTRE VERSION est encore en v2/`.78` — les deux dossiers se sont désolidarisés).
+
+---
+
 ## VERDICT — passage 2026-09-25 (123e)
 
 🔴 **ISOMORPHISME SIM↔RACE ROMPU — la physique du JEU a divergé de train.html, l'entraînement apprend sur une physique qui n'existe plus dans la course.** Depuis le 122e, le jeu a été refondu en **deux** dossiers (`HEAD` **`6541278`**, commits 09-24/09-25) : `VERSION PRINCIPALE/index.html` (mobile) et `AUTRE VERSION/index.html` (PC), **physique identique entre eux**. Deux constantes ont bougé, **train.html reste figé sur l'ancienne valeur** (mtime **17:56:46**, aucun commit sur ml/train depuis `c14ba2a`) :
