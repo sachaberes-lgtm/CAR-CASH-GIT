@@ -111,7 +111,7 @@ function feuxCartes(V,sens,mat){ /* (lecture 3) les triangles regroupés par lam
       for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(let dz=-1;dz<=1;dz++){const kk=(a[0]+dx)+'|'+(a[1]+dy)+'|'+(a[2]+dz);if(cas.has(kk)&&!vu.has(kk)){vu.add(kk);pile.push(kk);}}}
     let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9,z0=1e9,z1=-1e9;
     for(const t of T)for(let j=0;j<3;j++){const o=t*9+j*3;x0=Math.min(x0,V[o]);x1=Math.max(x1,V[o]);y0=Math.min(y0,V[o+1]);y1=Math.max(y1,V[o+1]);z0=Math.min(z0,V[o+2]);z1=Math.max(z1,V[o+2]);}
-    const cx=(x0+x1)/2,cy=(y0+y1)/2,cz=(z0+z1)/2,m=Math.min(.12,.04+.3*Math.min(x1-x0,y1-y0)),sg=function(d,e){return d>e?1:d<-e?-1:0;};
+    const cx=(x0+x1)/2,cy=(y0+y1)/2,cz=(z0+z1)/2,m=Math.min(.12,.04+.3*Math.min(x1-x0,y1-y0))*((z1-z0)>.12?.22:1) /* un feu BOMBÉ (épais en z : LA BÊTE, LA DOLCE VITA, LA GRANDE ANGLAISE…) : coques collées à sa forme, poussées de 12 cm elles faisaient une boule */,sg=function(d,e){return d>e?1:d<-e?-1:0;};
     for(const [f,v] of COU){const mm=m*f;
       for(const t of T)for(let j=0;j<3;j++){const o=t*9+j*3,x=V[o],y=V[o+1],z=V[o+2];
         P.push(x+sg(x-cx,.004)*mm,y+sg(y-cy,.004)*mm,z+sg(z-cz,.004)*mm*.5+sens*mm*.35);Cc.push(v,v,v);}}}
