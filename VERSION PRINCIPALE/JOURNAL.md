@@ -3,6 +3,100 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## MOINS DE NUAGES SUR LA MAP NUAGES — UNE MASSE CALME, DU CIEL AUTOUR (2026-10-20, v731, Léo : « il y a trop de nuages, c'est un peu vomitif, mais on y est presque ; essaie de trouver des modèles gratuits sur lesquels tu peux t'inspirer — 3D » → « oui, mets les nuages plus légers sur le main »)
+- **Les modèles 3D libres** (poly.pizza) : les cinq « Cloud » de **Quaternius** sont en **domaine public (CC0)** — une masse calme, base plate, un dôme,
+  peu de lobes, aucun chou-fleur sur du chou-fleur ; les « Cumulus Clouds » de S. Paul Michael, « Low Poly Cloud » de Louto, « Cloud Set » de
+  Matt Schaefer sont CC-BY (inspiration seulement). Aucun fichier n'entre dans le jeu : on en garde la LEÇON (une masse, de l'air autour).
+- **Ce qui a changé** (que sur la map NUAGES et les gabarits de cumulus ; ?arc=0 rend le main d'avant la mer de nuages) :
+  · `CDENS` .3 (`?cdens=`, 1 = avant) : le semis de décor — couronne proche, au-dessus/en dessous, milieu, haute, lointain, sphère de la route
+    sans haut ni bas, satellites — passe de 224 à 75 nuages (les cathédrales, massifs, titans et tours héroïques de `okG` ne bougent pas) ;
+  · `KIDS_ARC` .55 (`?kids=`) : le chou-fleur des gabarits (`cumulus8` → `enfants`) ×0,55 : des masses plus lisibles ;
+  · `NUVIT.mix` 2 400 (`?mix=`, 6 500 avant) : les cubes éparpillés autour du vitrail en verre — moins de poussière.
+- **Mesuré** (banc Chrome sans fenêtre muet, 844 × 390, même piste `pistegraine=777`) : 0 programme compilé en course (217 → 217) ; rendu
+  synchronisé 11,8 → 8,8 ms (Mac) ; triangles des nuages 2 041 k → ~500 k. Les cartes postales des six météos de la map refaites
+  (`assets/portail/nuages-*.webp`, piste 42, 1er point de vue). Planches : `photos-gameplay/mer-nuages-moins-avant-apres.png` (CAR CAHS V3).
+- ⚠ Banc : les grandes taches de couleur sur les vues en course = le JUS des fruits (pas des nuages) ; `dbgNuVue('nuageN')` prend le N-ième plus
+  gros nuage : avec une autre densité ce n'est plus le même nuage (comparer des vues EN COURSE au même instant plutôt).
+
+## HUIT PEINTURES UNIES EN MOINS (2026-10-20, v729, Sacha : « il y a trop de couleurs classiques dans les peintures ; essaye d'en enlever quelques-unes qui se ressemblent, genre du gris et du gris foncé ; il y a trop pétrole, British Green et Abyss Blue, ça se ressemble trop »)
+- **Le constat, mesuré** : l'inventaire montrait 42 pastilles unies. Distance de couleur CIEDE2000 entre toutes les peintures unies, sur ce qu'on VOIT (le MÉTALLISÉ
+  rend ~×1,8 plus clair que sa valeur écrite, voir la note de la planche du 14/10) : les paires les plus proches étaient GRAPHITE ≈ NOIR MAT (4), BLEU HÉRISSON ≈ BLEU MINUIT (6),
+  BORDEAUX ≈ FRAMBOISE (8), ROSE DRAGÉE ≈ BARBE À PAPA (10), VERT AMANDE ≈ ÉCUME ≈ MENTHE GLACÉE (11-12), PÉTROLE ≈ ANGLAIS ≈ ABYSSE (12-13), BRONZE entre CUIVRE et OLIVE (13-16).
+  La rangée métallisée sombre (10 teintes) se lisait comme un bloc de quasi-noirs.
+- **Retirées (8)** : GRAPHITE, BLEU HÉRISSON, FRAMBOISE, BARBE À PAPA, BLEU PÉTROLE, VERT ANGLAIS, BRONZE, ÉCUME. **Gardées** de chaque groupe : NOIR MAT (et NUIT DE GOTHAM, laqué : autre
+  fini), BLEU MINUIT, BORDEAUX, ROSE DRAGÉE, BLEU ABYSSE (le seul bleu sombre), VERT AMANDE et MENTHE GLACÉE, CUIVRE et OLIVE. Résultat : 34 pastilles unies, la rangée sombre à 6
+  teintes distinctes (ARGENT, BORDEAUX, CUIVRE, OLIVE, ABYSSE, AUBERGINE). Les secrètes et les motifs ne bougent pas.
+- **Le code** : les sept lignes de la palette sortent de la liste (comme le HÉRISSON de `COSM.peinture`) ; `HAB_RETIRES` les porte (`peinture:<id>`) : au chargement l'id sort de
+  `shop.own` et la peinture portée repart en D'ORIGINE. Remboursement du seul HÉRISSON (7 000, son prix d'avant le 16/10, message « LA PEINTURE BLEU HÉRISSON EST PARTIE ») : les sept de la
+  palette ne s'achetaient qu'en pack ou en €, `p:0`. Le remboursement ne nomme plus que ce qu'il rembourse (`if(h.p)nm.push`). `PALETTE_PACK.ids` se déduit de la liste : le pack
+  donne 33 couleurs (texte « LES 33 COULEURS SONT À TOI » ; l'identifiant App Store `cashcar.palette40` ne bouge pas, ce n'est qu'un nom). Les traductions des sept noms restent dans
+  `I18N`, inertes.
+- **Vérifié** (Chrome sans fenêtre, muet) : l'inventaire montre 49 peintures au lieu de 57 ; une VIEILLE sauvegarde qui possédait graphite + hérisson + écume + minuit et portait le
+  hérisson ressort avec `own=[minuit]`, `eq=usine`, 1 000 → 8 000 $ ; syntaxe, `garde-burnout.sh` et `garde-charte.sh` OK.
+- **Rendre une peinture** : remettre sa ligne dans la liste de la palette (le texte est dans le git, commit de cette section) ET la sortir de `HAB_RETIRES`.
+- **À trancher (Sacha)** : BLANC NEIGE, CHROME MIROIR et FANTÔME (secrète) se lisent comme UN seul blanc dans la liste (3 à 15 de distance) ; leurs finis diffèrent sur la caisse, je n'y ai pas touché.
+
+## LE ROYAUME DE FEU ET LES PROFONDEURS AU HASARD — L'AXE, L'ORDRE, LES CARACTÈRES, LA MONTÉE ET LE PUITS TIRÉS (2026-10-19 → 20, v727, session HASARD — Sacha : « vérifie bien que toutes les maps sont générées aléatoirement »)
+- **Le constat, mesuré** (banc Node sur les vrais générateurs, 40 graines, palier 0 ; l'ÉCART DE FORME = les pistes rééchantillonnées en 64 points
+  par fraction de longueur, départ à l'origine, distance moyenne entre deux pistes / longueur moyenne — la jade refaite le 18/10 : 0,226) : le TIRAGE
+  de la map et de la graine était bon, mais deux maps suivaient toujours la même RECETTE. LE ROYAUME DE FEU : 0,085 — plein nord, l'arche à 6-10 %
+  du parcours, le lac au milieu, la montée du volcan toujours à 43-49 %. LES PROFONDEURS : 0,067 — plein nord, mine → luxuriante → PUITS (à 25-29 %)
+  → stalactites → lave → abysses, toujours.
+- **LE ROYAUME AU HASARD** (`vlcTrace3`, `VLC_HASARD`, `VLC_HUMEURS` ; son flux `rh`, un seul tirage `rnd` de plus) — chaque royaume tire :
+  · son AXE (±45° autour du nord, comme la jade : la butée de cap ±72° et le « devant » du cône se comptent autour de lui) et LE COUDE DE LA PLAINE
+    (au milieu de la balade, l'axe tourne une fois de 15-35° : jamais plus de 90° de la bissectrice — la balade ne se recroise toujours pas) ;
+  · l'ORDRE des tableaux de la balade : l'arche, le lac (2 à 4 courbes), un fumeron et un module toujours ; le 2e module, le 3e, le 2e fumeron si la
+    longueur visée les tient ; jamais l'arche juste avant la montée ;
+  · un CARACTÈRE par tronçon de virages (`VLC_HUMEURS` : flammes = la balade d'avant, serpent, courbes, dérive, balcon, chicanes ; jamais deux fois
+    le même de suite) et la part de chaque tronçon ;
+  · LA MONTÉE : 0,9 à 1,55 tour (avant 1,3-1,45), le dernier tour à 1-1,25 × le rayon d'avant, ≥ 140 m d'un tour à l'autre, 5-7 % ; jamais plus de
+    58 % de la longueur visée. Le rayon s'y resserre EN DOUCEUR à l'entrée et à la sortie (sinon, quand il se resserre vite, un cran de 4-7° à
+    l'entrée : un « virage » de 116 m au palier 25, banc). Le portail reste là-haut.
+- **LES PROFONDEURS AU HASARD** (`grtTrace`, `GRT_HASARD` ; flux `rh`) — chaque grotte tire :
+  · son AXE dans TOUTES les directions (sous la terre aucun soleil ne l'oriente) ;
+  · l'ORDRE des quatre salles du milieu (luxuriante, puits de la géode, stalactites, lave) entre la MINE (toujours la 1re : la porte qu'on
+    reconnaît) et les ABYSSES (toujours la dernière : le noir et la salle du portail) — jamais la lave contre le puits (son lac déborderait dans
+    l'entonnoir où l'on saute pour le raccourci) : 12 ordres, le puits arrive de ~6 à ~70 % du parcours ;
+  · la longueur de chaque salle (0,6-1,4 × sa part d'avant, puis ramenées à la longueur visée) et un CARACTÈRE par salle (ceux du volcan ; la
+    salle de lave garde ses grandes courbes) ;
+  · LE PUITS : 1¼ tour ± 0,12 (avant ± 0,04) et son rayon (+0-80 m, avant +0-30) ; on en ressort jusqu'à ±43° de biais et L'AXE SUIT (borné à ±40°
+    de celui de l'entrée : avant comme après le puits, le cap reste à moins de 90° de la bissectrice — la grotte ne revient pas sur ses pas) ;
+  · ce qui supposait l'ordre fixe suit maintenant les salles VOISINES (`R.apres`, `voisin` dans `grtEchantillons`) : le lac de lave ne déborde
+    (300 m) que dans les stalactites et les abysses — ses voisines d'avant —, jamais dans la mine, le puits ni la luxuriante ; l'eau de la
+    luxuriante, les piliers (`grtPiliers`), les décors par salle (`grtDecors` : mine, luxuriante, stalactites, lave) ; la lumière de la lave
+    n'éclaire qu'elle et les voisines où elle déborde (`GROTTE.lavLum` — avant « salle ≥ 3 », les mêmes dans l'ordre d'avant).
+- **`?sans=hasardvolcan`, `?sans=hasardgrotte` = les maps d'avant, AU BIT PRÈS** (banc `identite.cjs` : 240 pistes sur 240 identiques à main pour
+  chacune — 40 graines × paliers 0/10/25 × au JOUER et hors du JOUER). Le tirage se lit dans `dbgVolcan().hasard` et `dbgGrotte().hasard`
+  (axe, coude, ordre, caractères, parts) ; il est rangé dans `Q.hasard` (le pré-bâti l'échange avec Q).
+- **MESURÉ** (avant → après, 40 graines) :
+  ÉCARTS, ROYAUME : 0,085 → 0,23 (paliers 0, 10, 25 : 0,23 · 0,23 · 0,25 ; sans compter la rotation — la FORME seule, Procrustes autour du départ :
+  0,05 → 0,08) · PROFONDEURS : 0,067 → 0,49 (sans la rotation : 0,037 → 0,08 ; la jade : 0,23 et 0,10).
+  REPÈRES, ROYAUME : l'arche de 6 à 46 % du parcours (avant 6-10), la montée de 36 à 63 % (43-49), le lac à toutes les places de la balade ;
+  PROFONDEURS : le puits de 10 à 67 % (27-31), 11 des 12 ordres de salles sur 40 graines (avant : un seul), le puits à 1,14-1,36 tour (1,21-1,29). Longueurs inchangées (royaume 5,5-6,6 km au palier 0, avant 5,9-6,6 ; grotte 8,8-9,6, avant 8,9-9,5), 0 conflit de
+  croisement, le rayon le plus serré au même endroit qu'avant (le dernier tour de la spirale : 73-74 m au palier 0, avant 77 ; au palier 25 152 m,
+  avant 151), dénivelé du royaume 121-223 m (174-223), de la grotte 362-427 (380-423). Génération 3-15 ms.
+  EN JEU (banc Chrome sans fenêtre, muet) : 10 constructions par map (`dbgTrace({carte,graine})`) sans erreur JS, règle d'or `dbgVolcan('test')` /
+  `dbgGrotte('test')` à 0 partout. Coût de construction INCHANGÉ — compté (les temps, avec des charges de 3 à 90 ce jour-là, ne se comparent pas) :
+  grotte 734 → 744 tronçons, 341 k → 341 k triangles ; royaume 118 k → 120 k cases de relief, mêmes aiguilles, orgues, coulées.
+  COURSES au pilote (`dbgAuto`, jusqu'au 1er portail, le Mac chargé de 3 à 100 par d'autres bancs — les secondes réelles ne se comparent pas) :
+  royaume 3 sur 3 et profondeurs 3 sur 3 au portail, aucune mort, aucune erreur JS (la version d'avant, dans les mêmes conditions : 3 sur 3 et 2 sur 3,
+  une mort au pilote dans la grotte sous une charge de ~90). Couché (844 × 390), debout (390 × 844) et dans le cadre de l'ordi : menu → JOUER →
+  course sur les deux maps, sans erreur. Photos avant/après (`photos.py`, les vues « vers le volcan », le puits et les salles, trois graines).
+- **Les bancs** (pas commités, `banc-traces/` à côté du dépôt dans le worktree de la session) : `charge.cjs` extrait les VRAIS générateurs
+  d'index.html (genVolcan, vlcTrace3, vlc3Cone, genGrotte, grtTrace, genJade…) et les fait tourner dans Node avec three et des valeurs mesurées
+  (longueurCible, lvPiste au palier) — il redonne les chiffres du jeu (0,085, l'arche à 6-10 %…) en 0,3 s pour 40 pistes ; `mesure.cjs` (écarts,
+  repères, rayons, conflits), `identite.cjs` (l'interrupteur coupé = main au bit près), `rmin.cjs` (le rayon le plus serré sur la courbe du jeu),
+  `plans.cjs` (les plans vus de dessus), `jeu.cjs` (le vrai jeu par CDP : constructions, courses au pilote, photos).
+- **À trancher par Sacha** : la grotte part dans toutes les directions (le volcan reste à ±45° du nord : son soleil bas) ; la montée reste la FIN du
+  royaume (le portail là-haut, la demande du 18/10) — un volcan AU MILIEU de la map (monter une corniche puis redescendre) serait une autre map,
+  à proposer. La session « Refonte map volcan » (obstacles, spec seulement) bâtira par-dessus : elle n'a rien codé dans `vlcTrace3`/`grtTrace`.
+- **Rebâti le 20/10 sur le DÉCOUPAGE** (le travail du 19/10 attendait l'accord de Sacha ; main avait pris 94 commits, dont `code/`) : le même diff, rejoué
+  sur main v723 sans un conflit, puis rangé par `node code/assembler.cjs` — `code/maps/volcan-route.js` (VLC_HASARD, VLC_HUMEURS, vlcTrace3),
+  `volcan-construction.js` (dbgVolcan), `grottes-1.js` (GRT_HASARD, grtTrace, grtEchantillons, grtPiliers, grtLum), `grottes-2.js` (grtDecors,
+  grotteVide, dbgGrotte). L'aspect v5 du volcan (même jour) ne touche pas la route : les deux se cumulent. REVÉRIFIÉ sur cette base : identité
+  `?sans=` au bit près (240/240 chaque map), les mêmes écarts et repères, 10 + 10 constructions sans erreur et règle d'or à 0, une course au
+  pilote par map jusqu'au portail, couché / debout / cadre sans erreur.
+
 ## LE ROYAUME DE FEU, L'ASPECT REFAIT — LAVE EN PLAQUES, ROCHE EN FACETTES, CIELS ET FUMÉE (2026-10-20, v716, session VOLCAN5 — Sacha : « la map volcan est la plus moche, lance une grosse refonte »)
 - **Ce qui ne bouge pas** : la ROUTE (la balade puis la montée du volcan, `vlcTrace3`, ou `?volcan=v4`), les collisions ('lave' / 'roche'), la physique, la
   caméra, les sons, les tirages `rnd`/`fr` (chaque tirage supprimé est GARDÉ : le décor en aval ne se décale pas). Tout ce qu'on VOIT est refait,

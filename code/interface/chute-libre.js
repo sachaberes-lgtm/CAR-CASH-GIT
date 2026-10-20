@@ -96,7 +96,8 @@ function chuteRender(dt){
   // LE CIEL DU JOUR DES NUAGES (celui de l'accueil d'avant : MENU_BIO), repeint si le voyage BIO est passé derrière
   {const BT=BIOMES.titre||BIOMES[MENU_BIO]; /* (titre v3) l'ambiance du titre */
    if(!MENUV.bio||CHUTE.bioPas!==BIO.pas||CHUTE.bioT!==BT){if(!MENUV.bio||CHUTE.bioT!==BT)paintEnv(BT.env,BT.eS1,BT.eS2);MENUV.bio=true;CHUTE.bioPas=BIO.pas;CHUTE.bioT=BT;bioApply(BT);
-     if(!(BT.sunHalo>0)){sunSprite.material.opacity=0;horizonGlow.material.opacity=0;for(const r9 of RAYS)r9.material.opacity=0;}}} /* (les heures du titre) la NUIT n'a pas de soleil : bioApply laissait le disque à 15 % */
+     if(!(BT.sunHalo>0)){sunSprite.material.opacity=0;horizonGlow.material.opacity=0;for(const r9 of RAYS)r9.material.opacity=0;}}
+   try{finMenu(BT);}catch(e){}} /* (les heures du titre) la NUIT n'a pas de soleil : bioApply laissait le disque à 15 % — (2026-10-20, Léo : « la voiture aussi belle dans le menu ciel ») le ciel du titre en reflets nets + le vernis profond (voir finition.js) */
   skyU.uMer.value=1;if(P.mzA)skyU.uMzA.value.fromArray(P.mzA);if(P.mzB)skyU.uMzB.value.fromArray(P.mzB);if(P.mzT)skyU.uMzT.value.fromArray(P.mzT);if(P.mzO)skyU.uMzO.value.fromArray(P.mzO);if(P.mzH)skyU.uMzH.value.fromArray(P.mzH);if(P.merLoin)skyU.uMerLoin.value=P.merLoin; /* (titre v3) la mer de nuages du titre (rendue par chuteSort) */
   if(CHUTE.nuM){CHUTE.nuM.uniforms.uK.value.fromArray(P.K);CHUTE.nuM.uniforms.uR.value.fromArray(P.R);}
   /* (2026-09-30) LA BRUME ET L'EXPOSITION DE L'AMBIANCE : seule la course les réécrit (updateClouds) — au menu la brume restait le violet

@@ -1565,7 +1565,7 @@ function updateContactShadow(){ // appelée juste avant le rendu
 
 // ---------- GÉNÉRATEUR (45°, patterns pensés pour l'airtime) ----------
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
-const ROAD_HALF=14, THICK=2.6;
+const ROAD_HALF0=14, ROAD_HALF=ROAD_HALF0*2.0, THICK=5.2; /* (2026-10-20, SYNCHRO AVEC LE JEU : code/rendu/triptyque-bloom.js:643-644 et code/maps/continuite.js LARGEUR=[2.0]) la route du jeu fait 2 x 14 m de demi-largeur depuis le 26/09 et 5,2 m d'epaisseur depuis le 15/10 — le simulateur etait reste a 14 m et 2,6 m */
 let pts=[],T=[],Nn=[],B=[],L=0,NP=0,trackMinY=-1e9; // trackMinY : plancher du monde (référence du plongeon fatal)
 /* NÉON RÉACTIF (2026-08-07) : on garde une poignée sur les matériaux des rails et de leur nappe
    pour les faire COGNER au beat. ⚠ ce sont des MATÉRIAUX, pas des meshes : la piste est rebâtie à
@@ -8454,7 +8454,8 @@ addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDow
   start();});
 addEventListener('keyup',e=>{keys[e.code]=false;});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;}); // alt-tab : aucune touche ne reste coincée
-const GRAV=9.8*.55,FALL_G=33,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
+const GRAV_K=1.45; /* (2026-10-20, SYNCHRO AVEC LE JEU : code/son/curseurs.js:211-212, « la caisse plus lourde » du 15/10) la gravite du vol et des bonds x1,45 — le simulateur volait encore a 33 */
+const GRAV=9.8*.55,FALL_G=33*GRAV_K,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
 // AIR_RATE : le vol se joue PLUS VITE en temps réel — la parabole dans l'espace est identique
 // (viseur d'atterrissage + seuils de figures inchangés), mais on passe moins de temps à flotter.
 let AIR_RATE=1; // base V1 (temps réel) — startFall le RE-pilote depuis 2026-07-20 : =1 sous 450 km/h affichés, puis rampe douce jusqu'au cap 1.35 (l'ancienne ère 2.3 COMPENSAIT SPD=.25 ; ici c'est un dosage de tempo, pas une compensation).
@@ -8856,6 +8857,7 @@ function makeCar(){
     // (pas de prefixe _ : ce sont des valeurs simples, pas des temporaires pre-alloues — TRAIN.resetBot
     // doit les remettre a zero comme le reste, sinon figTapT perime d'une manche declenche une figure a tort)
     figBody:new FigBody(), figQuat:new THREE.Quaternion(), figNitroPrev:false, figTapT:-999,
+    figClk:0, figRoute:new FigBody(), frOn:false, frT:0, frTot:0, /* (2026-10-20) l'horloge du double-tap + la FIGURE SUR LA ROUTE (son corps a elle, comme FR.C) */
     // ---- temporaires PRIVES ----
     _F:{p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},
     _a:new THREE.Vector3(),_b:new THREE.Vector3(),_c:new THREE.Vector3(),_d:new THREE.Vector3(),
@@ -8865,7 +8867,7 @@ function makeCar(){
 // LA MORT : la physique la DECLARE (mode='boom' tout de suite, comme explode() cote joueur — les
 // gardes mode==='drive' en dessous doivent voir le changement dans la MEME frame), et elle dit
 // d'ou elle vient (from) : le bank-or-bust ne perd la chaine que si l'on mourait EN VOL.
-function carBoom(car,w,why){ car.figBody.pose();car.figBody.vide(); carEv(w,'boom',{why:why,from:car.mode}); car.mode='boom'; }
+function carBoom(car,w,why){ car.figBody.aura-=car.figBody.auraVol;car.figBody.vide(); /* (2026-10-20) le crash ne juge rien : les figures du vol sont perdues (jeu : figures-physique.js:122, C.vide() sans pose) — avant, le simulateur les payait */ carEv(w,'boom',{why:why,from:car.mode}); car.mode='boom'; }
 
 /* ---------- LE NEZ DE LA CAISSE : d'ou part l'anti-blocage aerien ----------
    Le joueur le lisait sur carGroup.quaternion, les bots sur un cap fige au decollage : deux
@@ -9082,7 +9084,7 @@ function carDrive(car,input,dt,w){
     }
   }
   if(car.hopY>0||car.hopV!==0){
-    car.hopY+=car.hopV*dt;car.hopV-=26*dt;
+    car.hopY+=car.hopV*dt;car.hopV-=26*GRAV_K*dt; /* comme le jeu : code/moteur/boucle-2-conduite.js:179 */
     if(car.hopY<=0){car.hopY=0;car.hopV=0;carEv(w,'hopland',{});} // SPLAT.
   }
   // plots orange : les percuter les envoie valser
@@ -9175,8 +9177,8 @@ function figVNorm(a){const l=Math.hypot(a[0],a[1],a[2])||1;return [a[0]/l,a[1]/l
 function figVDot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
 function figQExpMul(q,w,h){const ang=Math.hypot(w[0],w[1],w[2])*h;if(ang<1e-9)return;const s=Math.sin(ang/2)/(ang/h),b=[w[0]*s,w[1]*s,w[2]*s,Math.cos(ang/2)];figQMul(q,b,FIG_T1);const l=Math.hypot(FIG_T1[0],FIG_T1[1],FIG_T1[2],FIG_T1[3])||1;q[0]=FIG_T1[0]/l;q[1]=FIG_T1[1]/l;q[2]=FIG_T1[2]/l;q[3]=FIG_T1[3]/l;}
 function figRetour(q,o){let x=-q[0],y=-q[1],z=-q[2],w=q[3];if(w<0){x=-x;y=-y;z=-z;w=-w;}const s=Math.hypot(x,y,z);o.phi=2*Math.atan2(s,w);if(s<1e-9){o.n[0]=1;o.n[1]=0;o.n[2]=0;}else{o.n[0]=x/s;o.n[1]=y/s;o.n[2]=z/s;}return o;}
-function FigBody(){this.q=[0,0,0,1];this.w=[0,0,0];this.figs=[];this.mode='aero';this.budget=Infinity;this.r={n:[1,0,0],phi:0};this.aF=0;this.aura=0;}
-FigBody.prototype.vide=function(){this.q[0]=this.q[1]=this.q[2]=0;this.q[3]=1;this.w[0]=this.w[1]=this.w[2]=0;this.figs.length=0;this.mode='aero';this.aF=0;}; // l'aura NE se remet PAS a zero : elle cumule sur toute la manche (la fitness)
+function FigBody(){this.q=[0,0,0,1];this.w=[0,0,0];this.figs=[];this.mode='aero';this.budget=Infinity;this.r={n:[1,0,0],phi:0};this.aF=0;this.aura=0;this.auraVol=0;this.nVol=0;this.nBank=0;this.chutes=0;}
+FigBody.prototype.vide=function(){this.q[0]=this.q[1]=this.q[2]=0;this.q[3]=1;this.w[0]=this.w[1]=this.w[2]=0;this.figs.length=0;this.mode='aero';this.aF=0;this.auraVol=0;this.nVol=0;}; // l'aura NE se remet PAS a zero : elle cumule sur toute la manche (la fitness)
 FigBody.prototype.ecart=function(){return 2*Math.acos(Math.min(1,Math.abs(this.q[3])));};
 // LANCER une figure (le double-tap) : ses explosions partent tout de suite, s'AJOUTENT a ce qui tourne deja
 FigBody.prototype.lance=function(f,sens,D){
@@ -9201,12 +9203,15 @@ FigBody.prototype.lance=function(f,sens,D){
   this.figs.push(r);return r;
 };
 FigBody.prototype.paye=function(r){r.paye=true;
-  if(!r.mv.length){r.reps=1;this.aura+=r.f.aura;return;}
+  if(!r.mv.length){r.reps=1;this.gagne(r);return;}
   let mm=r.mv[0];for(let j=1;j<r.mv.length;j++)if(r.mv[j].tours>mm.tours)mm=r.mv[j];
   const x=mm.th/(6.2832*mm.tours);r.reps=Math.max(1,Math.floor(mm.th/(6.2832*(r.base||mm.tours))+.3));
   if(r.force&&x<(r.supp?.45:.7))return; // relayee/annulee par une figure contraire : ne paie pas
-  this.aura+=r.f.aura*r.reps;
+  this.gagne(r);
 };
+/* (2026-10-20) LA PAIE DU JEU (code/gameplay/figures-physique.js:235, figPaye) : aura x(1 + 1,25 par repetition en plus) — et elle reste
+   EN JEU le temps du vol (auraVol) : posee proprement elle est encaissee (pose), ratee ou crashee elle repart (figChute, carBoom) */
+FigBody.prototype.gagne=function(r){const reps=Math.max(1,r.reps|0),g=Math.round((r.f.aura||60)*(reps>1?1+(reps-1)*1.25:1));this.aura+=g;this.auraVol+=g;this.nVol++;};
 // un pas de simulation (le gros de FIG.Corps.pas, sans boums/empile/redresse/tiens)
 FigBody.prototype.pas=function(h){
   const w=this.w,F=this.figs,P=FIG_PHY,I=P.I;let i,j,r,m;
@@ -9264,11 +9269,17 @@ FigBody.prototype.reste=function(){let t=0;const W=[this.w[0],this.w[1],this.w[2
     if(r.fini)continue;
     for(let j=0;j<r.mv.length;j++){const m=r.mv[j],rE=Math.max(0,m.tours*6.2832*FIG_PHY.finE-m.th),ti=rE>0?Math.max(.05,r.D-r.t)*1.1:0;t=Math.max(t,ti);}}
   return any?t+FIG_PHY.retT:0;};
-FigBody.prototype.pose=function(){const a=this.ecart(),sp=Math.hypot(this.w[0],this.w[1],this.w[2]);
+FigBody.prototype.pose=function(){const a=this.ecart(),sp=Math.hypot(this.w[0],this.w[1],this.w[2]);let rat=false;
   for(let i=0;i<this.figs.length;i++){const r=this.figs[i];if(r.paye)continue;
     if(!r.mv.length){if(r.t>=r.D*.6&&a<FIG_PHY.ok)this.paye(r);continue;}
     let x=1;for(let j=0;j<r.mv.length;j++)x=Math.min(x,r.mv[j].th/(6.2832*r.mv[j].tours));
-    if(a<FIG_PHY.ok&&x>.75&&sp<FIG_PHY.wPose){r.force=false;this.paye(r);}}
+    if(a<FIG_PHY.ok&&x>.75&&sp<FIG_PHY.wPose){r.force=false;this.paye(r);}
+    else if((a>.9||sp>=FIG_PHY.wPose)&&!r.douce)rat=true;}
+  /* LA CHUTE (2026-10-20, comme le jeu : VERSION PRINCIPALE/figures.js:316-323 + figChute) : posee a plus de 52° ou en tournant encore a
+     toute vitesse, les figures de CE vol ne sont pas gagnees. Avant, le simulateur ne rendait aucun verdict : se poser a l'envers en plein
+     salto ne coutait rien au bot — une capacite que le joueur n'a pas. */
+  if(rat){this.aura-=this.auraVol;this.chutes++;}else this.nBank+=this.nVol;
+  this.auraVol=0;this.nVol=0;return rat;
 };
 // LE DECLENCHEMENT : double-tap NITRO (<280ms, meme regle que code/son/curseurs.js au clavier) ;
 // la DIRECTION vient du manche au moment du 2e tap — pitch pour avant/arriere, steer pour cote —
@@ -9291,6 +9302,17 @@ function figTenteDecl(car,input,w){
   car.figBody.lance(f,sens,f.D);
   if(car.nitroR>=cout)car.nitroR-=cout;else{car.nitroX=Math.max(0,car.nitroX-(cout-car.nitroR));car.nitroR=0;}
 }
+/* LA FIGURE SUR LA ROUTE (2026-10-20, portage de code/gameplay/figures-route.js:frLance) : meme prix qu'en vol (20 % de la jauge), la
+   figure de la direction tenue, une a la fois, duree 65 % du catalogue bornee a [0,4 ; 0,72] s, le bond = D x 1,12 + le plante + 0,08 s */
+function figRouteLance(car,input,w){
+  if(car.frOn)return;
+  const NRMAX=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,cout=NRMAX*.2;
+  if(car.nitroR+car.nitroX<cout)return;
+  const f=figChoisit(figDirection(input),w&&w.rnd),sens=input.steer<0?-1:1,D=Math.min(.72,Math.max(.4,f.D*.65)),C=car.figRoute;
+  C.vide();C.budget=9;const r=C.lance(f,sens,D);if(!r)return;r.douce=true;
+  if(car.nitroR>=cout)car.nitroR-=cout;else{car.nitroX=Math.max(0,car.nitroX-(cout-car.nitroR));car.nitroR=0;}
+  car.frOn=true;car.frT=0;car.frTot=D*1.12+FIG_PHY.retT+.08;
+}
 function carFall(car,input,dt,w){
   const dtF=dt*car.airRate; // temps de vol accelere : meme arc dans l'espace, moins de temps a flotter
   car.dtF=dtF;
@@ -9299,10 +9321,7 @@ function carFall(car,input,dt,w){
   car.rdNear=car.curNear;car.rdHOff=car.curHOff;car.rdLatOff=car.curLatOff;car.curNear=false;
   car.fallT+=dtF;car.fallTR+=dt; // fallT = temps-sim (figures/paiements) · fallTR = temps REEL (jauge)
   if(car.nitroOn)car.nitroAirT+=dtF;
-  // LES FIGURES : double-tap NITRO (<280ms, horloge reelle = car.fallTR, meme regle qu'au clavier)
-  {const edge=input.nitro&&!car.figNitroPrev;
-   if(edge){ if(car.fallTR-car.figTapT<.28) figTenteDecl(car,input,w); car.figTapT=car.fallTR; }
-   car.figNitroPrev=!!input.nitro;}
+  /* LES FIGURES : le double-tap NITRO se lit dans stepCar (au sol ET en vol, une seule horloge) */
   car.figBody.budget=Math.max(.05,AIR_MAX-car.fallTR);
   car.figBody.tick(dtF);
   V.y-=FALL_G*dtF;
@@ -9401,8 +9420,21 @@ function stepCar(car,input,dt,world){
   car.steer+=(input.steer-car.steer)*Math.min(1,dt*18);
   car.graceT=Math.max(0,car.graceT-dt);
   car.sideCd=Math.max(0,car.sideCd-dt);
+  /* LE DOUBLE-TAP NITRO (<280 ms, comme au clavier : code/son/curseurs.js — une horloge continue, performance.now() chez le joueur) :
+     en vol une figure du vol, au sol une FIGURE SUR LA ROUTE (2026-10-20, comme code/gameplay/figures-route.js depuis le 17/10) */
+  car.figClk+=dt;
+  {const edge=input.nitro&&!car.figNitroPrev;car.figNitroPrev=!!input.nitro;
+   if(edge){if(car.figClk-car.figTapT<.28){if(car.mode==='fall')figTenteDecl(car,input,w);else if(car.mode==='drive')figRouteLance(car,input,w);}car.figTapT=car.figClk;}}
   if(car.mode==='drive')carDrive(car,input,dt,w);
   else if(car.mode==='fall')carFall(car,input,dt,w);
+  /* LA FIGURE SUR LA ROUTE : la physique n'en voit rien (mode 'drive' inchange), seule la carrosserie tourne, dans son corps a elle ;
+     le bond fini elle se juge (douce : jamais de chute) et s'encaisse. Decollage ou crash en pleine figure : perdue
+     (approximation : le jeu la fait finir en vol, frVersVol). */
+  if(car.frOn){
+    if(car.mode!=='drive'){car.figRoute.aura=0;car.figRoute.vide();car.frOn=false;}
+    else{car.frT+=dt;car.figRoute.tick(dt);
+      if(car.frT>=car.frTot){car.figRoute.pose();car.figBody.aura+=car.figRoute.aura;car.figRoute.aura=0;car.figRoute.vide();car.frOn=false;}}
+  }
   return w.ev;
 }
 /* ================================================================================================
@@ -13150,6 +13182,7 @@ TRAIN.W_CUT=3;      // recompense de COUPE : +W_CUT point par METRE de raccourci
 TRAIN.W_CTRL=1.0;   // un metre au centre vaut deux metres au bord
 // retire de la fitness 2026-09-09 (objectif = totD + arrivee)
 TRAIN.W_OUT=120;    // ce que coute une sortie de route
+TRAIN.ROAD_HALF=ROAD_HALF; /* (2026-10-20) lu par check-course.js : la largeur de route n'est pas visible hors du script */
 TRAIN.W_FIN=3000;   // franchir la ligne
 TRAIN.W_TEMPS=40;   // ...et chaque seconde gagnee pour le faire
 TRAIN.W_DEATH=2500; // pénalité de MORT (mode boom) : casser le local optimum « couper fort, mourir tard »

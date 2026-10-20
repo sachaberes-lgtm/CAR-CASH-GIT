@@ -321,6 +321,7 @@ function menuCamera(dt){
 function menuVitrine(dt){
   MENUV.t+=dt;
   if(!MENUV.bio||MENUV.pas!==BIO.pas){if(!MENUV.bio)paintEnv(BIOMES[MENU_BIO].env,BIOMES[MENU_BIO].eS1,BIOMES[MENU_BIO].eS2);MENUV.bio=true;MENUV.pas=BIO.pas;bioApply(BIOMES[MENU_BIO]);} // (bioStep a pu repeindre le ciel du niveau cette image : on repasse derrière)
+  try{finMenu(BIOMES[MENU_BIO]);}catch(e){} // (2026-10-20) la caisse aussi belle qu'au garage : le ciel du menu en reflets nets + le vernis profond (voir finition.js)
   skyU.uMer.value=1; // la mer de nuages sous l'horizon, même si le niveau du dessous (auto-école) a le ciel nu
   if(MENUV.L!==L){menuPlan();MENUV.sd=null;}
   const S9=Math.min(L-10,MENUV.s);frameAt(S9,F);
