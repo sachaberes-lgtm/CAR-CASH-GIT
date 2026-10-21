@@ -251,6 +251,7 @@ function buildVoxCity(seed,accC){
     for(let i=0;i<n9;i++){const o=i*6;Qp.setFromAxisAngle(Ay,pubs[o+3]);Pp.set(pubs[o],pubs[o+1],pubs[o+2]);Sp.set(pubs[o+4],pubs[o+5],1);M.compose(Pp,Qp,Sp);imP.setMatrixAt(i,M);}
     imP.instanceMatrix.needsUpdate=true;imP.frustumCulled=false;imP.renderOrder=3;root.add(imP);trackMeshes.push(imP);}
   if(CR)cryptoBatit(root); // (CRYPTOCITY) les taureaux, le graphique, les pièces, les diamants, les dirigeables
+  if(!VI&&!CR)try{villeRais(root,seed,corps,genre,NEON);}catch(e9){console.warn('rais',e9);} /* (2026-10-20, VILLE EMBELLIE) les rais de projecteur — hasard LOCAL (voir ville-embellie.js), aucun tirage `vr` ni `rnd` */
   CITY.n={pubs:pubs.length/6,tours:nT,volumes:corps.length/6,neons:neon.length/6,routeY:[Math.round(yMin),Math.round(yMax)],ms:Math.round(performance.now()-t00),L:Math.round(L),cellsC:CITY.nC,cellsF:CITY.nF};
 }
 for(const f of [villeMatTours,villeMatNeon,villeMatToursLoin,villeMatNeonLoin])f().dispose=function(){}; // partagés sur toute la partie : le rebuild ne les jette pas

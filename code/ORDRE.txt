@@ -70,6 +70,7 @@ maps/ville-v3.js                     # la ville v3 (canyon du village de la plui
 maps/cryptocity.js                   # CRYPTOCITY : plan, matières, réclames
 maps/cryptocity-taureau.js           # cryptocity : le taureau, objets du ciel
 maps/ville-verre.js                  # la ville vitrée, néon et verre, le dirigeable
+maps/ville-embellie.js               # la ville embellie : rais de projecteur, écho des néons dans le verre, étages techniques, l'or
 maps/pluie-argent.js                 # la pluie d'argent v2 (PLA)
 maps/paris.js                        # PARIS au sol, ses matières
 maps/paris-monuments.js              # Paris : les monuments, la figure SLIDE

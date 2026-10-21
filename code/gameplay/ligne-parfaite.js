@@ -11,6 +11,7 @@ function villeChauffe(){ // une instance de chaque, compilée hors écran puis r
   for(const m of [villeMatTours(),villeMatToursLoin()].concat(vv9,[villeMatNeon(),villeMatNeonLoin(),villeMatPub()])){const im=new THREE.InstancedMesh(m===vv9[0]?vitreGeo():geo,m,1);im.setMatrixAt(0,new THREE.Matrix4());if(m===CITY.matT||m===CITY.matN||vv9.indexOf(m)>=0)im.setColorAt(0,c);g.add(im);}
   // (passe perf) les deux matières NUES n'ont pas de couleur par instance. ⚠ L'ORDRE DE COMPILATION fait l'ordre de dessin (three trie les opaques par
   // numéro de programme) : TOUTES les tours avant TOUS les néons, comme avant — le dessus d'une couronne est au ras du toit, à égalité c'est le néon qui gagne.
+  g.add(villeRaisChauffe()); /* (2026-10-20, VILLE EMBELLIE) le programme des rais, compilé au menu avec les autres */
   scene.add(g);try{renderer.compile(scene,camera);}catch(e){}scene.remove(g);geo.dispose();
 }
 /* (2026-09-28, passe perf iPhone) LE TRI PAR QUARTIERS — chaîné sur scene.onBeforeRender (après pisteLoin : caméra et lumières
