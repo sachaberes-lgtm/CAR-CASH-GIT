@@ -648,6 +648,9 @@ const VLC_SOL_FS5=[FG_BRUIT,VLC_LUM,VLC_VOR,'varying vec3 vW,vN;varying vec4 vS;
   '  alb=mix(alb,vec3(.15,.055,.05)*(.85+.3*fv),smoothstep(.58,.80,cn)*(1.-plat*.5));',                       // l'OXYDE : une bande sous le sommet (partout, le cône virait au ROUGE sur ciel orange)
   '  alb=mix(alb,vec3(.42,.27,.06)*(.85+.3*fv),smoothstep(.86,.97,cn)*.85);',                                 // la lèvre de SOUFRE
   '  alb=mix(alb,vec3(.020,.014,.020),smoothstep(8.,1.,ab));',                                                // la rive : verre noir
+  /* (2026-10-21, embellissement) LES STRATES : les flancs des cônes et des crêtes se lisent en COUCHES (des coulées empilées, ~12 m), un liseré clair-sombre qui épouse le relief ;
+     seulement sur la pente et de près (la bande se mesure en pixels : plus rien ne crépite au loin) */
+  '  {float ys=vW.y*.085+n2*2.6+n1*5.,fwy=fwidth(ys),ban=smoothstep(.10,.32,cn)*(1.-plat)*(1.-smoothstep(.05,.28,fwy))*(1.-loin);alb*=1.+ban*(.30*sin(ys*6.2832)+.14*sin(ys*18.85+n2*5.));}',
   '  float dif=clamp((dot(N,uSunDir)+.10)/1.10,0.,1.);',
   '  vec3 col=alb*(uSky*(1.+.45*N.y)+uGnd*(.30-.18*N.y)+uSunC*dif*.85+uFillC*max(dot(N,-uFillD),0.)*.45);',      // (le ciel froid remplit les ombres : l'ombre est indigo, jamais un aplat noir — mesuré : le flanc du grand volcan sortait NOIR PUR au soir, l'étalonnage écrase les sombres)
   '  float bas=smoothstep(60.,0.,ab)*(.45+.55*(1.-N.y));',
@@ -710,6 +713,11 @@ const VLC_LAVE_FS5=[FG_BRUIT,VLC_LUM,VLC_VOR,'varying vec3 vW;varying vec4 vV;',
   '  float pul=.88+.12*sin(t*1.1+vo.z*20.+h*6.);',
   '  vec3 em=(liq*(1.-pl)*pul+vec3(1.,.26,.04)*bord*.30)*uLav*(1.9+(uErupt+uErupt2)*.6);',                    // assez fort pour que la bloom s'en empare
   '  em=mix(em,liq*uLav*1.9*(.09+.08*smoothstep(.4,.8,h)),loin*.8);',                                       // au loin : une lueur basse — l'orange vif reste aux rivières et aux lacs proches
+  /* (2026-10-21, embellissement) DES RIVIÈRES DE FEU À L'HORIZON : la mer lointaine n'était qu'une bande rose plate ; de grands méandres de lave vive (deux bruits lents, des lignes d'iso-valeur)
+     la sillonnent au-delà de ~500 m ; leur largeur suit la taille d'un pixel (fwidth) et elles s'éteignent quand la mer rase se tasse (aucun scintillement) */
+  '  float rv=abs(fn2(q*.00125+vec2(7.1,3.3))*.7+fn2(q*.0042+vec2(1.7,9.2))*.3-.5),fwr=fwidth(rv);',
+  '  float riv=chute?0.:(1.-smoothstep(0.,.022+fwr*1.5,rv))*smoothstep(450.,1500.,dist)*(1.-smoothstep(.03,.09,fwr));',
+  '  em+=vec3(1.,.40,.07)*uLav*riv*1.1*(.8+.2*sin(t*.9+q.x*.004));',
   '  em=vTeinte(em);','  #ifdef USE_FOG','  float ff=smoothstep(fogNear,fogFar,fogDepth);col=mix(col,fogColor,ff)+em*(1.-ff*.78)*(1.-smoothstep(fogFar*.9,fogFar*1.7,fogDepth));','  #else','  col+=em;','  #endif',
   '  gl_FragColor=vec4(col,1.);}'].join('\n');
 /* LA ROCHE TAILLÉE (aiguilles, orgues, hornitos, l'arche) : le maillage de l'atelier des arbres (aA = partie, occlusion, hasard, hauteur
@@ -754,20 +762,32 @@ const VLC_FUM_FS=[FG_BRUIT,'uniform vec3 uFumC,uSunC,uSky,fogColor,uLavT;uniform
   '  float er=vK<.5?uErupt:vK<1.5?uErupt2:0.,bas=1.-smoothstep(0.,.32,vU);',
   '  vec3 c=uFumC*(uSky*.6+uSunC*.32*(.55+.9*clamp(q.y+.5,0.,1.)))*(.7+.6*n);',
   '  vec3 t9=vec3(1.,.30,.07);t9=mix(t9,dot(t9,vec3(.55,.35,.10))*uLavT*1.45,uLavK);c+=t9*(bas*(.18+er*1.6)*uLue+er*.18*(1.-vU));',
+  /* (2026-10-21, embellissement) DEUX TEMPÉRATURES DANS LE PANACHE : le pied est chaud (la braise du cratère, au-dessus), le haut prend le froid du ciel (lavande, bleu) — la colonne
+     se détache du ciel orange au lieu de s'y fondre en tube rouge, et elle sépare les plans */
+  '  c=mix(c,c*vec3(.72,.86,1.30)+uSky*.08,smoothstep(.40,.95,vU)*(1.-clamp(er,0.,1.)*.8)*step(vK,2.5));',
   '  if(vK>2.5)c=uFumC*(uSky*.5+uSunC*.22*clamp(q.y+.5,0.,1.))*(.75+.5*n)+vec3(1.,.28,.06)*uLue*.07*clamp(.5-q.y,0.,1.);', // le plafond : le dessous rougeoie
   '  if(vK>3.5){c=fogColor*(.82+.36*n)+vec3(1.,.30,.07)*uLue*(.05+.10*clamp(.5-q.y,0.,1.))*(.6+.4*n);a*=.8*smoothstep(35.,130.,vD);}', // un BANC : (v3) LA COULEUR DE LA BRUME, le ventre à peine rougi (les cartes noir-violet tachaient l'image en plaques) ; il s'efface loin devant l'objectif, la brume prend le relais
   '  c=mix(c,fogColor,smoothstep(fogNear,fogFar*3.,vD)*.55);',
   '  gl_FragColor=vec4(c,a);}'].join('\n');
 /* LES BRAISES (uK 0 : elles montent, vacillent, orange) et LA CENDRE (uK 1 : des flocons gris qui tombent) — une boîte qui suit la caisse */
-const VLC_PART_VS=['attribute vec4 aR;uniform float uTime,uBra,uCen,uPx,uK,uLavK;uniform vec3 uBoxC,uLavT;varying vec3 vC;varying float vA;',
+const VLC_PART_VS=['attribute vec4 aR;uniform float uTime,uBra,uCen,uPx,uK,uLavK,uLue;uniform vec3 uBoxC,uLavT,uCarP,uCarF,uSky,uSunC,uFumC;varying vec3 vC;varying float vA,vG;',
   'void main(){vec3 B=vec3(240.,110.,280.);',
   '  vec3 pa=uK<.5?vec3(sin(uTime*.4+aR.y*9.)*7.,uTime*(5.+aR.x*6.),cos(uTime*.33+aR.z*7.)*7.):vec3(sin(uTime*.6+aR.y*9.)*4.+uTime*2.5,-uTime*(3.+aR.x*2.),cos(uTime*.5+aR.z*6.)*4.);',
   '  vec3 rel=mod(aR.xyz*B+pa-uBoxC+B*.5,B)-B*.5,pos=uBoxC+rel;float e=min(min(.5-abs(rel.x)/B.x,.5-abs(rel.y)/B.y),.5-abs(rel.z)/B.z);',
   '  float fl=.5+.5*sin(uTime*(6.+aR.w*9.)+aR.x*40.);',
   '  vA=smoothstep(0.,.08,e)*(uK<.5?uBra*(.35+.65*fl):uCen*(.55+.45*aR.w));',
   '  vC=uK<.5?mix(vec3(1.,.22,.02),vec3(1.,.72,.22),aR.y)*2.2:vec3(.11,.10,.095);if(uK<.5)vC=mix(vC,dot(vC,vec3(.55,.35,.10))*uLavT*1.45,uLavK);',
-  '  vec4 mv=viewMatrix*vec4(pos,1.);gl_Position=projectionMatrix*mv;gl_PointSize=vA<.003?0.:(uK<.5?'+('.75+aR.z*.6')+':2.2+aR.z*1.2)*uPx*300./max(1.,-mv.z);'+(VLC5?'gl_PointSize=min(gl_PointSize,(uK<.5?4.5:7.)*uPx);':'')+'}'].join('\n'); // (continuité) des ÉTINCELLES, plus des pastilles orange plein écran
-const VLC_PART_FS=['uniform float uK;varying vec3 vC;varying float vA;void main(){float d=length(gl_PointCoord-.5);float a=smoothstep(.5,0.,d);a*=a;if(vA*a<.004)discard;',
+  /* (2026-10-21, embellissement) LA CENDRE ÉCLAIRÉE : des flocons NOIRS sur un ciel clair se lisaient comme de la crasse sur l'objectif ; ils prennent la lumière du ciel,
+     du soleil bas et de la lave (gris mauve, un peu plus sombres que l'air) — du pur noir ne reste qu'un fond. */
+  '  if(uK>.5){vec3 lit=uFumC*(uSky*.85+uSunC*.14+vec3(.55,.18,.08)*uLue*.12)*.82;vC=mix(vC,lit,.72);}',
+  /* LES ÉTINCELLES D'OR (le clin d'œil CASH, ~3,5 % des braises) : une braise sur trente est une étincelle dorée à quatre rais qui scintille — jamais dans le couloir
+     (elles s'éteignent à moins de 26-42 m de l'axe de la caisse : elles dansent au-dessus du vide), toujours l'or de la marque, quelle que soit la lave tirée */
+  '  float g9=0.;if(uK<.5&&aR.w>.965){vec2 f9=normalize(uCarF.xz+vec2(1e-4,0.)),d9=pos.xz-uCarP.xz;g9=smoothstep(26.,42.,abs(d9.x*f9.y-d9.y*f9.x));}',
+  '  if(g9>.01){vC=vec3(1.,.80,.30)*2.7;vA=smoothstep(0.,.08,e)*(.40+.60*pow(.5+.5*sin(uTime*(5.+aR.w*40.)+aR.x*50.),2.))*max(uBra,.6)*g9;}vG=g9;',
+  '  vec4 mv=viewMatrix*vec4(pos,1.);gl_Position=projectionMatrix*mv;gl_PointSize=vA<.003?0.:(uK<.5?(.75+aR.z*.6)*(1.+g9*1.8):2.2+aR.z*1.2)*uPx*300./max(1.,-mv.z);'+(VLC5?'gl_PointSize=min(gl_PointSize,(uK<.5?(g9>.01?10.:4.5):7.)*uPx);':'')+'}'].join('\n'); // (continuité) des ÉTINCELLES, plus des pastilles orange plein écran
+const VLC_PART_FS=['uniform float uK;varying vec3 vC;varying float vA,vG;void main(){float d=length(gl_PointCoord-.5);float a=smoothstep(.5,0.,d);a*=a;',
+  '  if(vG>.01){vec2 q9=abs(gl_PointCoord-.5);float st=max(max(0.,1.-q9.x*13.)*max(0.,1.-q9.y*2.3),max(0.,1.-q9.y*13.)*max(0.,1.-q9.x*2.3));a=max(a,st*st*1.3);}', // les quatre rais de l'étincelle d'or
+  '  if(vA*a<.004)discard;',
   '  if(uK<.5)gl_FragColor=vec4(vC*vA*a,1.);else gl_FragColor=vec4(vC,min(1.,vA*a*1.6));}'].join('\n');
 /* LES GEYSERS DE LAVE (et la FONTAINE du cratère à l'éruption) : chaque goutte vit sa parabole dans le shader ; aG = (période, phase,
    vitesse de jet, taille) — période < 0 : la fontaine d'un cratère (−1 le grand, −2 le second), allumée par l'éruption. */

@@ -66,6 +66,7 @@ maps/glacier-construction.js         # glacier : construction, volant en l'air
 maps/glacier-verglas.js              # glacier : verglas, retombée des tremplins, console
 maps/volcan-route.js                 # LE ROYAUME DE FEU : routes v4 et v5, bruit du relief
 maps/volcan-construction.js          # volcan : construction, console
+maps/volcan-embelli.js               # volcan embelli : les crêtes du loin (couronne de silhouettes dans la brume)
 maps/grottes-1.js                    # LES PROFONDEURS : route, surface à facettes
 maps/grottes-2.js                    # grottes : décors, lumières, rendu, construction, ambiances
 maps/ville-v3.js                     # la ville v3 (canyon du village de la pluie), panneaux holographiques

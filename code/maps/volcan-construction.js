@@ -201,6 +201,7 @@ function* buildVolcanG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
 
   // ---- 7. LES VOLCANS DU LOIN, LES PANACHES ----
   vlcTache(function(){vlcLoin(root,fr);vlcPanaches(root,fr);});
+  vlcTache(function(){vlcCretes(root,seed);}); // (2026-10-21, embellissement) LES CRÊTES DU LOIN : un flux de hasard à elles (volcan-embelli.js) — ni `fr` ni le `rnd` de la route
   // ---- 8. LES COLLISIONS en grille de 120 m ----
   vlcTache(function(){
   {const CG=120,Gc=new Map();for(const c of COL){const r=c.r+2,i0=Math.floor((Math.min(c.a[0],c.b[0])-r)/CG),i1=Math.floor((Math.max(c.a[0],c.b[0])+r)/CG),j0=Math.floor((Math.min(c.a[2],c.b[2])-r)/CG),j1=Math.floor((Math.max(c.a[2],c.b[2])+r)/CG);
@@ -386,4 +387,3 @@ window.dbgVolcan=function(k,o){
     erup:{t:+VOLCAN.erup.t.toFixed(1),age:+VOLCAN.erup.age.toFixed(1),n:VOLCAN.erup.n},vit:Math.round(VOLCAN.vit||0),
     hz:VOLCAN.hz||null,deco:VOLCAN.deco||null,arches:(VOLCAN.arches||[]).length,pret:!!VOLCAN.pret,fu:+(VOLCAN.fu||0).toFixed(2),bancs:(VOLCAN.bancs||[]).map(function(b){return [Math.round(b.s0),Math.round(b.s1)];}),file:VOLCAN.file?VOLCAN.file.length-VOLCAN.fi:0,msFile:Math.round(VOLCAN.msFile||0),msTot:VOLCAN.msTot,
     cur:VOLCAN.cur&&{lue:+VOLCAN.cur.lue.toFixed(2),lav:+VOLCAN.cur.lav.toFixed(2),cen:+VOLCAN.cur.cen.toFixed(2)}};};
-/* <<<FIN VOLCAN>>> */
