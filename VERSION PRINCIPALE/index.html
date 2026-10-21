@@ -52173,7 +52173,7 @@ function blip(){
 /* LES POUVOIRS ONT LEUR SIGNATURE (2026-09-26, audit son) : ils se ramassaient avec le souffle d'un pad et s'éteignaient en silence.
    Deux notes à eux par-dessus le souffle (dans la tonalité), et une tierce qui descend quand le minuteur s'épuise. */
 const PWR_NOTE={n:[2,5],a:[4,7],v:[3,6],m:[0,4],x:[4,9]}; // (2026-09-28, pouvoirs v2) m aimant · x aura ×2
-function pwrPrisSnd(k){if(SONV2){sfx(window.CCSON.existe('pwr.'+k)?'pwr.'+k:'pwr.autre');return;}const N=PWR_NOTE[k]||PWR_NOTE.n;try{chimeNote(noteP(N[0],1),.05,.1,.22);chimeNote(noteP(N[1],1),.13,.1,.32);}catch(e){}}
+function pwrPrisSnd(k){if(SONV2){sfx(window.CCSON.existe('pwr.'+k)?'pwr.'+k:'pwr.autre',{vol:6,force:true}); /* (2026-10-21, Sacha : « il y a pas de son quand on ramasse un power up ») +6 dB et jamais retenu par le délai minimal : le fruit-pouvoir se disait à −17 dBFS de crête, noyé sous le nitro */return;}const N=PWR_NOTE[k]||PWR_NOTE.n;try{chimeNote(noteP(N[0],1),.05,.1,.22);chimeNote(noteP(N[1],1),.13,.1,.32);}catch(e){}}
 function pwrFinSnd(k){if(SONV2){sfx('pwr.fin');return;}try{chimeNote(noteP(5,1),0,.07,.18);chimeNote(noteP(2,1),.1,.07,.28);}catch(e){}}
 function boostSnd(k){
   if(!sfxOk())return;k=k||1;
