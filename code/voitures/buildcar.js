@@ -30,7 +30,7 @@ function buildCar(spec){
   ATCH.on=false;ATCH.ph=0;ATCH.k=0;ATCH.t=3+Math.random()*2; // (2026-10-06) ATCHOUM s'allume dans son gabarit
   BLING.s=[];BLING.anim=[]; // (2026-10-10) L'ICEBERG pose ses éclats, LA FOURNAISE son feu, pendant leur gabarit
   WOWT.caisse=false;NYAN.on=false;NYAN.tete=null;NYAN.pattes.length=0;NYAN.queue.length=0;NYAN.feux.length=0;NYAN.roues.length=0;NYAN.rf='';NYAN.pas=-1;NYAN.hb=-1; // (2026-10-06) le chat pop-tart remplit ses pièces animées pendant son gabarit
-  HALO.h.length=0;HALO.t.length=0;ROUES.flou=null;CAR_PHK=null; // (2026-09-26) halos et flou de jante de l'ancienne caisse · (2026-10-18) ses escamotables (voir CAR_PHK)
+  HALO.h.length=0;HALO.t.length=0;ROUES.flou=null;CAR_PHK=null;CAR_ACTION=null; // (2026-09-26) halos et flou de jante de l'ancienne caisse · (2026-10-18) ses escamotables (voir CAR_PHK)
   const lvl=CARS.indexOf(spec),wreck=lvl===0;
   // brillance qui explose avec le niveau — l'épave est mate et rouillée
   // (2026-09-26, audit rendu) PLAFONNÉS : `lvl` est l'INDEX de la caisse (0-65), plus une progression — la formule donnait un reflet à .98

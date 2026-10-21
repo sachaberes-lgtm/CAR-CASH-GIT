@@ -19,6 +19,7 @@ function pwrV2Raz(){PWR_V2.bt=null;}
 function pwrPoids(){const W=pwrPoids0();if(LVL.cur&&LVL.cur.id==='canyon'&&!PARK.on&&W.v>0){const k9=1/(1-W.v);W.v=0;for(const q in W)W[q]*=k9;}return W;}
 function pwrPoids0(){
   const runs=(SAVE.d.ex&&SAVE.d.ex.runs)|0;
+  if(PWR_EGAUX)return {n:.2,a:.2,v:.2,m:.2,x:.2}; // (2026-10-20, Léo : « tous les spéciaux apparaissent à la même fréquence ») les cinq fruits-pouvoirs à ÉGALITÉ
   if(runs<8)return {n:.2,a:.22,v:.12,m:.3,x:.16}; // (29/09) les parts du BOUCLIER retiré sont rendues aux autres
   if(runs<30)return {n:.21,a:.19,v:.18,m:.21,x:.21};
   return {n:.21,a:.17,v:.16,m:.19,x:.27}; // (2026-09-30) VITESSE .22 → .16 : chez un vétéran NITROOO passe vite +30 %, et le plafond commun vitMult (×2,6) avale alors le ×2 — ses parts vont à l'AURA ×2 et à l'AIMANT (somme 1, un seul tirage)
@@ -258,13 +259,15 @@ function spawnPickups(rnd){
     let kind=pwrTire(rnd(),W9);
     let lt=(rnd()*2-1)*(ROAD_HALF-4);
     if(prem9){kind='m';prem9=false;lt*=.2;} // le 1er AIMANT d'un débutant est posé PRÈS DE L'AXE : il le prend sans le chercher
+    if(PWR_LIGNE)continue; // (2026-10-20) les fruits-pouvoirs ne sont plus semés au hasard : ils tombent AU BOUT D'UNE LONGUE FILE de fruits (ligneTick) — tirages ci-dessus consommés, le flux seedé ne bouge pas
     if(LVL.cur&&LVL.cur.piste==='tuto')continue; // (2026-09-29, audit) PAS DE CRISTAUX À L'ÉCOLE : « AURA ×2 — CHAQUE FIGURE COMPTE DOUBLE » tombait en pleine consigne TOURNE (tirages consommés au-dessus : le flux ne bouge pas)
     frameAt(ss,F);
     mat4b.makeBasis(F.b,F.n,F.t);
     for(const face of [1,-1]){
-      const m=mkPower(kind,face);
-      m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?2.1:-(THICK+2.1));
-      m.quaternion.setFromRotationMatrix(mat4b);
+      const m=mkPower(kind,face),lev9=m.userData.lev||2.1;
+      m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?lev9:-(THICK+lev9));
+      if(face<0&&m.userData.fruit){mat4b.makeBasis(FLIP_B.copy(F.b).negate(),FLIP_N.copy(F.n).negate(),F.t);m.quaternion.setFromRotationMatrix(mat4b);mat4b.makeBasis(F.b,F.n,F.t);} // SOUS la route le fruit est RETOURNÉ (comme les fruits)
+      else m.quaternion.setFromRotationMatrix(mat4b);
       m.updateMatrix();m.matrixAutoUpdate=false; // (perf) gelé, comme les pièces
       scene.add(m);
       pickups.push({s:ss,lat:lt,face:face,nitro:false,pow:kind,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)});

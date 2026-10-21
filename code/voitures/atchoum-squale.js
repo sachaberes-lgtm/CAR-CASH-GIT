@@ -187,9 +187,20 @@ SHAPES.squale=function(K){
       for(const e of [-1,1])quad('K',[e*xc,ya,zf],[e*xc,ya,zb],[e*xc,yb9,zb],[e*xc,yb9,zf]);} // les joues
   }
   // LES CROCS (sous la lèvre) : place, taille, penchant tirés au hasard FIXE
+  /* L'ACTION SPÉCIALE (2026-10-20, Léo : « les dents sortent un peu avec une mécanique brusque et reviennent lentement à leur place ») :
+     les crocs ne sont plus soudés à la caisse — trois kits à part (`DK` : devant, flanc gauche, flanc droit), pliés et mis à l'échelle
+     comme le reste (`pliGs`), posés dans trois groupes qui GLISSENT le long de leur normale (voir après K.commit : `CAR_ACTION`). */
+  const PALD={d:{g:'p',c:0xf5f2ea,f:0},e:{g:'p',c:0xe2d9c4,f:0}},DK=[K.kit(PALD),K.kit(PALD),K.kit(PALD)];
   const hh=(i,k)=>{const v=Math.sin(i*12.9898+k*78.233)*43758.5453;return v-Math.floor(v);};
-  const croc=(k,b0,b1,t,o0,oA)=>{const mx=(b0[0]+b1[0])/2,my=(b0[1]+b1[1])/2,A=srf(mx+(t[0]-mx)*.3,my+(t[1]-my)*.3,oA),B0=srf(b0[0],b0[1],o0),B1=srf(b1[0],b1[1],o0),T9=srf(t[0],t[1],o0+.006);
-    P.tri(k,B0,T9,A);P.tri(k,T9,B1,A);P.tri(k,B1,B0,A);};
+  /* (2026-10-20 soir, Léo : « chaque dent doit aller un peu à l'endroit où elle est orientée, pas juste tomber vers le bas ; et le bas des
+     dents apparaît invisible ») chaque croc est désormais un tétraèdre FERMÉ (le dos B0-B1-T9 aussi : ouvert, il laissait voir au travers
+     dès que le croc quittait la gencive) et NOTE sa direction (de sa base vers sa pointe) et ses triangles (`Kq.dents`) : l'action le
+     fait glisser le long de cette direction, chacun la sienne (voir après K.commit). */
+  const croc=(Kq,k,b0,b1,t,o0,oA)=>{const mx=(b0[0]+b1[0])/2,my=(b0[1]+b1[1])/2,A=srf(mx+(t[0]-mx)*.3,my+(t[1]-my)*.3,oA),B0=srf(b0[0],b0[1],o0),B1=srf(b1[0],b1[1],o0),T9=srf(t[0],t[1],o0+.006);
+    const n0=Kq.nTri||0;let nb=0;
+    for(const f of [[B0,T9,A],[T9,B1,A],[B1,B0,A],[B0,B1,T9]]){const [a,b,c]=f,ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2],
+        nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;if(nx*nx+ny*ny+nz*nz<1e-12)continue;Kq.tri(k,a,b,c);nb++;} // (le même tri des dégénérés que le kit : les comptes restent justes)
+    Kq.nTri=n0+nb;(Kq.dents||(Kq.dents=[])).push({i0:n0,n:nb,d:[T9[0]-(B0[0]+B1[0])/2,T9[1]-(B0[1]+B1[1])/2,T9[2]-(B0[2]+B1[2])/2],y:(B0[1]+B1[1])/2,z:(B0[2]+B1[2])/2});};
   const PAS=.13;
   for(let r=0;r<3;r++)for(let i=-11;i<=11;i++)for(const haut of [1,0]){        // (« exagère ») trois rangées · r=0 : les grands crocs devant · r=1 : la rangée de derrière, plus petite, entre eux
     const id=i*6+haut*3+r,big=1,c=(i+(haut?.5:0)+(r===1?.5:r===2?.25:0))*PAS+(hh(id,1)-.5)*.045;let w=(r===0?.085:r===1?.055:.035)*(.8+.45*hh(id,2))*big; // quelques ÉNORMES crocs parmi les autres
@@ -198,14 +209,14 @@ SHAPES.squale=function(K){
     if(Math.abs(Math.abs(c)-XF)<w+.03)continue;                                  // (Léo : « une dent chelou sur les côtés ») aucune dent À CHEVAL sur le coin : elle s'y pliait en deux
     const yi=haut?yH(c)-GL:yL(c)+GL,ou=yH(c)-yL(c)-2*GL,L=Math.min(ou*(r===0?(haut?.37:.29):r===1?.22:.13)*(.78+.44*hh(id,3))*big*ec,haut?yi-YS-.008:YS-yi-.008),pen=(hh(id,4)-.5)*w*(ec<1?.4:1.4); // (« ouvre un peu la bouche ») plus courts : la gueule béante entre eux — OUVERTE : les crocs du haut et du bas ne se touchent plus
     const yb=haut?yi+.022:yi-.022,yt=haut?yi-L:yi+L;
-    croc(r?'e':'d',[c-w,yb],[c+w,yb],[c+pen,yt],r===0?.012:r===1?.009:.007,r===0?.046:r===1?.034:.022);} // (« merge ») ils restent DANS la bouche
+    croc(DK[0],r?'e':'d',[c-w,yb],[c+w,yb],[c+pen,yt],r===0?.012:r===1?.009:.007,r===0?.046:r===1?.034:.022);} // (« merge ») ils restent DANS la bouche
   // (Léo : « rajoute des dents sur le côté de la mâchoire ») LES CROCS DU CÔTÉ : une rangée serrée le long des deux bords du flanc, du coin
   //   jusqu'au fond de la gueule, qui raccourcissent avec elle — et une petite rangée derrière ; aucun ne passe la fente (le pli l'étirerait)
   for(const sd of [-1,1])for(let r=0;r<2;r++)for(let k=0;;k++){const c=sd*(XF+.07+(k+(r?.5:0))*.062),a=Math.abs(c);if(a>SM-.04)break;
     for(const haut of [1,0]){const id=900+k*7+haut*3+r+(sd>0?50:0),e9=HB(c)/HB(0),w=(r?.022:.034)*(.85+.3*hh(id,2))*(.7+.3*e9);
       const yi=haut?yH(c)-GL:yL(c)+GL,Lm=haut?yi-YS-.008:YS-yi-.008,L=Math.min(Lm,(r?.07:.13)*(.75+.5*hh(id,3))*(.6+.4*e9));if(L<.02)continue;
       const yb=haut?yi+.022:yi-.022,yt=haut?yi-L:yi+L,pen=-sd*w*.35;              // la pointe couchée vers le fond de la gueule
-      croc(r?'e':'d',[c-w,yb],[c+w,yb],[c+pen,yt],r?.009:.012,r?.034:.046);}}
+      croc(DK[sd<0?1:2],r?'e':'d',[c-w,yb],[c+w,yb],[c+pen,yt],r?.009:.012,r?.034:.046);}}
   // (Léo : « enlève les énormes, gênantes ; la compo de la bouche grande ouverte ; merge voiture ») — plus de sabres ni de crocs géants ;
   //   la bouche se FOND dans la caisse : la lèvre devient un bourrelet de PEAU (le blanc du ventre) qui sort à peine (4,5 cm), cerné d'un
   //   joint sombre affleurant comme une ligne de carrosserie, et la gencive passe EN RETRAIT derrière elle.
@@ -380,13 +391,15 @@ SHAPES.squale=function(K){
       fin('p',V(-.016,.219,-1.00),V(-.016,.219,-1.40),V(-.016,.125,-1.50),.032);}                         // la nageoire anale, en quille
     for(const x of [-.40,-.16,.16,.40])fin('k',V(x-.01,.219,-1.53),V(x-.01,.219,-1.87),V(x-.01,.13,-1.87),.02); // le diffuseur : la fourche de la queue
   }
+  let pliGs=null; // le pli + l'échelle, partagés avec les crocs (DK)
   { // LE PLI DE LA MÂCHOIRE : chaque sommet au-dessus de la fente et devant la charnière tourne autour de (YS, ZH), d'autant plus qu'il est près du nez
     const ss=t=>t<=0?0:t>=1?1:t*t*(3-2*t),fin=P.done;
-    P.done=()=>{const gs=fin();for(const k9 in gs){const a=gs[k9].attributes.position.array;
+    pliGs=gs=>{for(const k9 in gs){const a=gs[k9].attributes.position.array;
       for(let i=0;i<a.length;i+=3){const y=a[i+1],z=a[i+2];
         if(y>YS&&z>ZH){const th=TH*ss((z-ZH)/(ZN-ZH)),c9=Math.cos(th),s9=Math.sin(th),dy=y-YS,dz=z-ZH;a[i+1]=YS+dy*c9+dz*s9;a[i+2]=ZH-dy*s9+dz*c9;}
         a[i+2]=MZ(a[i+2]);a[i]*=SC;a[i+1]*=SC;a[i+2]*=SC;}
-      gs[k9].attributes.position.needsUpdate=true;gs[k9].computeVertexNormals();}
+      gs[k9].attributes.position.needsUpdate=true;gs[k9].computeVertexNormals();}};
+    P.done=()=>{const gs=fin();pliGs(gs);
       // (Léo : « la vitre, pas très cohérent ») LA VISIÈRE DU CRÂNE en normales LISSES : à facettes, chaque triangle vrillé de la coque
       // renvoyait le ciel à sa façon — des DENTS de reflets claires sur la vitre noire. Lissée, elle se lit comme UNE vitre. Le kit range
       // par FAMILLE (elle partage le verre des vitres) : on la reconnaît à sa teinte exacte (`V`, sans fondu). Le haut des vitres latérales,
@@ -400,6 +413,36 @@ SHAPES.squale=function(K){
       return gs;};
   }
   K.commit(P);
+  { // LES CROCS QUI SORTENT (l'action spéciale) : trois groupes — devant (glisse en +z), flanc gauche (−x), flanc droit (+x) ; au tap,
+    // ils JAILLISSENT d'un coup (une mécanique, ~50 ms, avec un petit rebond de butée) de `OUT`, restent une fraction de seconde, puis
+    // RENTRENT lentement, à vitesse constante (un vérin qui se referme), les derniers millimètres amortis.
+    const GD=[],OUT=.10*SC,lis=t=>t*t*(3-2*t),ssq=t=>t<=0?0:t>=1?1:t*t*(3-2*t); // (Léo, même soir : « fais-les sortir plus ») 5,5 → 10 cm (×1,2)
+    /* (Léo : « chaque dent va à l'endroit où elle est orientée ») CHAQUE CROC SA DIRECTION : la direction notée par `croc` (base → pointe)
+       subit le même pli que ses sommets (la rotation de la mâchoire à la hauteur de sa base, puis l'étirement MZ en z), puis chaque sommet
+       du croc glisse de `OUT × k` le long d'elle — les crocs du haut descendent dans la gueule, ceux du bas montent, ceux des flancs
+       suivent leur penchant. Positions de repos gardées (`P0`), direction par sommet (`DIR`), récrites seulement quand k bouge. */
+    const SOM=[]; // [{att, P0, DIR}] par géométrie
+    for(let q=0;q<3;q++){const gs=DK[q].done();pliGs(gs);const g=K.add(new THREE.Group());
+      for(const k in gs){const m=new THREE.Mesh(gs[k],(K.mats&&K.mats[k])||(typeof lpMat==='function'?lpMat(k):null));m.userData.lp=1;g.add(m);
+        const att=gs[k].attributes.position,P0=Float32Array.from(att.array),DIR=new Float32Array(att.array.length);
+        for(const t of (DK[q].dents||[])){let [dx,dy,dz]=t.d;
+          if(t.y>YS&&t.z>ZH){const th=TH*ssq((t.z-ZH)/(ZN-ZH)),c9=Math.cos(th),s9=Math.sin(th),vy=dy*c9+dz*s9,vz=-dy*s9+dz*c9;dy=vy;dz=vz;} // le pli de la mâchoire
+          if(t.z>Z0)dz*=KZ;                                                                                                          // l'étirement MZ
+          const l=Math.hypot(dx,dy,dz)||1;dx/=l;dy/=l;dz/=l;
+          for(let i=t.i0*9;i<Math.min(DIR.length,(t.i0+t.n)*9);i+=3){DIR[i]=dx;DIR[i+1]=dy;DIR[i+2]=dz;}}
+        SOM.push({att:att,P0:P0,DIR:DIR});}
+      GD.push(g);}
+    let k=0,tA=-1;const anime=dt=>{dt=Math.min(dt||0,.1);if(tA>=0){tA+=dt;
+        if(tA<.05)k=tA/.05;                              // la sortie : sèche
+        else if(tA<.14)k=1+.12*Math.sin((tA-.05)/.09*Math.PI); // la butée : un petit rebond
+        else if(tA<.38)k=1;                              // tenues dehors
+        else{const u=(tA-.38)/1.6;k=u>=1?0:1-(u<.85?u/.85*.9:.9+.1*lis((u-.85)/.15));if(u>=1)tA=-1;}} // le retour : lent, régulier, amorti sur la fin
+      else k=0;
+      if(k!==anime.k9){anime.k9=k;const o=OUT*k;for(const S of SOM){const a=S.att.array,P0=S.P0,D=S.DIR;for(let i=0;i<a.length;i++)a[i]=P0[i]+D[i]*o;S.att.needsUpdate=true;}}};
+    const action=()=>{tA=0;try{if(typeof sfx==='function')sfx('squale.crocs');}catch(_){}return true;}; // (Léo : « clac mécanique quand ça sort ») le son de la session SON, cuit dans la banque
+    anime(0);GD[0].userData.anime=anime;GD[0].userData.action=action;
+    if(typeof CAR_ACTION!=='undefined')CAR_ACTION=action;
+    if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);}
   // LE VERNIS : dur et franc, sur la matière de cette caisse seulement (K.mats)
   {const mP=K.mats&&K.mats.p;if(mP){mP.shininess=86;mP.specular.setHex(0x8c8c8c);mP.reflectivity=.36;
     if(mP.userData.uG)mP.userData.uG.value=.035;if(mP.userData.uV)mP.userData.uV.value.set(.40,1.8,3,.30);}}

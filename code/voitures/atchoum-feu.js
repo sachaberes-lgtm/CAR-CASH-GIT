@@ -307,6 +307,14 @@ const HALO={hM:new THREE.SpriteMaterial({map:lampTex,color:0xffe2a8,transparent:
    à 1 ; null = une caisse aux phares fixes (toutes les autres). La caisse qui a des escamotables le pose chaque image (son `BLING.anim`) ; il
    multiplie le halo des phares, leur nappe au sol (carVit) et leur lumière sur la route (lumTick). buildCar le remet à null. */
 var CAR_PHK=null;
+/* L'ACTION SPÉCIALE DE LA CAISSE (2026-10-20, Léo : « la Cerise, quand elle fait le clin d'œil, c'est une action spéciale ; ce genre d'action
+   sera attribué à quelques voitures, et ça s'activera en cliquant sur la voiture — toutes les caisses, quand tu tapes, ça fait taper ; la
+   Cerise, en plus, ses deux phares se lèvent et se baissent ») : `CAR_ACTION` = la fonction que le gabarit de la caisse équipée a posée
+   (null = une caisse sans action : le tap ne fait que taper). `caisseAction()` la joue — appelée par le TAP du garage (garageImpact) et
+   par le COUP du menu ciel (chuteTape), APRÈS l'effet commun à toutes. buildCar la remet à null. Console : dbgAction(). */
+var CAR_ACTION=null;
+function caisseAction(){if(typeof CAR_ACTION!=='function')return false;try{return CAR_ACTION()!==false;}catch(e){console.warn('caisseAction',e);return false;}}
+window.dbgAction=function(){return caisseAction();};
 /* LE FLOU DE JANTE (2026-09-26) — au-delà de ~20 km/h, cinq rayons tournent plus vite que l'image : l'œil voit la roue
    BÉGAYER, repartir en arrière (effet stroboscopique). Un disque peint par-dessus la jante — ce qu'une photo voit d'une roue
    lancée : moyeu clair, voile gris des rayons moyennés, lèvre brillante, stries concentriques — monte en opacité avec la

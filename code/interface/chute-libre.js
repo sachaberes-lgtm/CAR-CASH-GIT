@@ -328,7 +328,7 @@ function garGabarit(){
    · le doigt sur la scène TOURNE la caisse dans tous les sens (lacet libre avec élan, tangage ±60° qui revient doucement) ;
    · la caisse est plus petite à l'écran (les colonnes d'étiquettes la cadrent au milieu, la caméra recule).
    RETOUR : le glitch, l'atelier revient, la caisse se repose. Banc : dbgBqIndus(). */
-var GBQ={veut:false,on:false,t:9,bascule:true,k:0,kv:0,lev:0,levV:0,coupT:-1,boum:0,yaw:0,yawV:0,pit:0,pitV:0,grp:null,drag:null,cartesOn:false,ck:'',zone:null,hebdo:null,chocT:9,lay:'',pose:false,platK:1}; // (2026-10-15) pose/platK : LA POSE TENUE (voir bqPoseLache)
+var GBQ={veut:false,on:false,t:9,bascule:true,k:0,kv:0,lev:0,levV:0,coupT:-1,boum:0,yaw:0,yawV:0,pit:0,pitV:0,grp:null,drag:null,cartesOn:false,ck:'',zone:null,hebdo:null,chocT:9,tapT:9,lay:'',pose:false,platK:1}; // (2026-10-15) pose/platK : LA POSE TENUE (voir bqPoseLache)
 function bqSem(){return Math.floor((Math.floor(Date.now()/864e5)+3)/7);} // les semaines commencent le LUNDI (UTC) — le 1er janvier 1970 était un jeudi
 function bqHebdoReste(){const ms=Math.max(0,((bqSem()+1)*7-3)*864e5-Date.now()),t=Math.floor(ms/1000),d=Math.floor(t/86400),d2=function(n){return (n<10?'0':'')+n;};
   return (d>0?d+(LANG==='fr'?'J ':'D '):'')+d2(Math.floor(t/3600)%24)+':'+d2(Math.floor(t/60)%60)+':'+d2(t%60);}

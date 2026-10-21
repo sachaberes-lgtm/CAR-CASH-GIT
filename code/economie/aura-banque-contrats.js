@@ -132,7 +132,7 @@ function airPieDraw(fr,sec,flash){
   // un bloc du HUD (#airHud) de la main de la jauge NITRO — plus un cadran. On n'écrit que ce qui change : la part restante (--a, au
   // 1/120), les secondes (au dixième), l'état de couleur (data-k : ok cyan · moyen or · urgent rouge · inf = AIRTIME INFINI) et le flash
   // « on regagne du temps ». La cadence d'avant est gardée (les deux seuils tombent sur les mêmes crans).
-  const q=Math.round(fr*120+.5),s10=Math.round(sec*10),k=pwrAirT>0?'inf':fr>.4?'ok':(fr>.2?'moyen':'urgent'),key=q+'|'+s10+'|'+k+'|'+flash;
+  const q=Math.round(fr*120+.5),s10=Math.round(sec*10),k=(pwrAirT>0&&TUTO.pa)?'inf':fr>.4?'ok':(fr>.2?'moyen':'urgent'),key=q+'|'+s10+'|'+k+'|'+flash;
   if(airPieDraw._k===key)return;airPieDraw._k=key;
   const el=airPieDraw.el||(airPieDraw.el=document.getElementById('airHud'));if(!el)return;
   const S=airPieDraw.s||(airPieDraw.s=el.querySelector('.ahS'));

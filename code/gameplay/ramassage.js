@@ -51,6 +51,7 @@ function volFaceTick(){
   return RAM.fv;
 }
 function pickupsTick(dt){
+  ninfTick(dt);fauraGlobalTick(dt);dragonDecor(dt);zapTick(dt);raisinTick(dt); // (2026-10-20) le temps PARTAGÉ des auras des fruits-pouvoirs : une écriture par image pour tous les fruits de la route
   const enVol=(mode==='fall');
   // (LIGNE PARFAITE) le fruit de la file se teste aussi sur le TRAJET de l'image — (2026-09-30) le trajet AU SOL seulement : en vol `s`
   // ne décrit plus la caisse ; le balayage repart de zéro au décollage (startFall) et reprend à la pose
@@ -88,7 +89,7 @@ function pickupsTick(dt){
   for(let i9=0;i9<pickups.length;i9++){
     const p=pickups[i9];
     if(p.taken)continue;
-    const mag=engTier>=ENG_CAP.aimant?1:0,gros9=MAG9&&!p.pow; // (2026-10-14, chasse aux bugs) RAM.q = l'objet AVANT l'attraction de l'image (ramD) — (OPTIMISATION) copié dans chaque branche APRÈS ses filtres bon marché : ~9 000 copies de moins par image en fin de partie, même valeur là où elle est lue
+    const mag=engTier>=ENG_CAP.aimant?1:0,gros9=MAG9&&!p.pow&&!p.nitro; /* (2026-10-20, Léo : « l'aimant attire les PIÈCES seulement ») la pomme dorée n'attire plus les fruits */ // (2026-10-14, chasse aux bugs) RAM.q = l'objet AVANT l'attraction de l'image (ramD) — (OPTIMISATION) copié dans chaque branche APRÈS ses filtres bon marché : ~9 000 copies de moins par image en fin de partie, même valeur là où elle est lue
     if(p.hk>0){RAM.q.copy(p.mesh.position);if(saut9){p.hk=0;continue;}} // un saut de caisse DÉCROCHE : rien ne traverse la carte pour payer
     else if(enVol){ // EN VOL : le couloir, TA face, pas de jumeau — puis la sphère ACCROCHE
       if(Math.abs(p.s-lastNearS)>(gros9?MAG_R+40:70))continue; // pré-filtre bon marché le long de la piste, AVANT toute distance 3D
@@ -103,7 +104,7 @@ function pickupsTick(dt){
       if(Math.abs(p.s-s)>MAG_R+8)continue; // pré-filtre bon marché le long de la piste
       if(p.face!==fV9&&!p.air)continue; // (passe qualité) TA face seulement
       RAM.q.copy(p.mesh.position);const d9=p.mesh.position.distanceTo(carGroup.position);
-      if(d9<MAG_R){const q9=1-d9/MAG_R;p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(5+25*q9*q9)));}
+      if(d9<MAG_R){const q9=1-d9/MAG_R;p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(5+25*q9*q9)));magSpirale(p,d9,dt);}
     }else{
       if(p.face!==side)continue;
       const ds9=Math.abs(p.s-s);
@@ -117,7 +118,7 @@ function pickupsTick(dt){
     }
     if(p.hk>0){ // ACCROCHÉ : il file sur la caisse — l'écart fond d'au moins (1−f) par image, quoi que fasse la caisse
       const f9=Math.min(1,dt*(RAM_K+RAM_A*p.hk)),P9=p.mesh.position;p.hk+=dt;
-      P9.lerp(carGroup.position,f9);
+      P9.lerp(carGroup.position,f9);if(MAG9&&!p.nitro&&!p.pow)magSpirale(p,P9.distanceTo(carGroup.position),dt); // (pomme dorée) la pièce accrochée en vol tourne aussi
       const d9=P9.distanceTo(carGroup.position),dM=p.hkD*(1-f9);
       if(d9>dM&&d9>1e-6)P9.lerp(carGroup.position,1-dM/d9); // la caisse le distance : il est tiré sur la ligne qui les relie
       p.hkD=Math.min(d9,dM);
@@ -134,11 +135,11 @@ function pickupsTick(dt){
         const fd=FRUIT_DEFS[p.fruit]||FRUIT_DEFS[0],pw=Math.min(1,fd.boost/2);
         // (2026-09-26, user : « les fruits donnent du nitro BLEU ») : chaque fruit remplit la RÉSERVE BLEUE (la nitro la plus forte : poussée
         // 48 contre 30) de 20 % de la jauge — le bleu se voit sur la barre et sur l'anneau du bouton
-        {const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,av9=nitroX;nitroX=Math.min(2,nitroX+(p.ligne?LIGNE.don:.2*mx9));if(LIVRE.on){livre('n+:'+(p.ligne?'fruit.ligne':'fruit'),nitroX-av9);livre('n0:'+(p.ligne?'fruit.ligne':'fruit'),(p.ligne?LIGNE.don:.2*mx9)-(nitroX-av9));}if(p.ligne)LIGNE.pris[0]++; // (LIGNE PARFAITE) le fruit de la file rend de quoi tenir jusqu'au pad
-         if(nitroX>av9+.01){if(SONV2)sfx('nitro.plein',{t:.14});if(!volgNitro('x',nitroX-av9))nbPrend('x');}}
+        {const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,av9=nitroX;nitroX=Math.min(2,nitroX+(p.ligne?(p.don||LIGNE.don):.2*mx9)); /* (2026-10-21, Sacha : « l'ancien système ») comme avant : le fruit remplit la RÉSERVE BLEUE */if(LIVRE.on){livre('n+:'+(p.ligne?'fruit.ligne':'fruit'),nitroX-av9);livre('n0:'+(p.ligne?'fruit.ligne':'fruit'),(p.ligne?LIGNE.don:.2*mx9)-(nitroX-av9));}if(p.ligne)LIGNE.pris[0]++; // (LIGNE PARFAITE) le fruit de la file rend de quoi tenir jusqu'au pad
+         if(nitroX>av9+.01){if(SONV2)sfx('nitro.plein',{t:.14});nbPrend('x');}} /* (2026-10-21, Léo : « on voit directement la barre monter ») le fruit ne vole plus vers la barre : elle monte tout de suite */
         RUNX.fruits++;hap(fd.boost>=1.5?[20,40,30]:11);
         if(SENS&&!REDUCED_MOTION)try{sensCoup(0,-(.45+.6*pw),-(.3+.35*pw));}catch(e){} // (2026-10-14, sensations · passages) LE COUP DE REINS du plein : le fruit rend sa nitro, la caisse S'ASSOIT d'un coup sur son train arrière (nez levé ≈ 1,2° la myrtille → 2,7° la pastèque, ≈ 1 à 2,5 cm) puis se repose — le jus, le croc et la main existaient, la tôle ne bronchait pas. Au sol seulement (sensCoup dort en vol).
-        fruitCroque(carGroup.position,fd.jus||0xffd75e,pw,fd.n); // ON CROQUE : jus, crunch, et la rafale qui monte
+        fruitCroque(carGroup.position,fd.jus||0xffd75e,pw,fd.n,!!p.ligne&&PADS_OFF); // ON CROQUE : jus, crunch, et la rafale qui monte
         // (le fruit ne touche PAS au moteur : il ne sert qu'au boost — ce sont les pièces qui l'améliorent)
         if(fd.boost>=1.5){ // LE GRAAL : la pastèque, ça se fête
           trickMsg('🍉 '+fd.n+' !',2);sparkBurst(sparkGold,carGroup.position,18,14);shake=Math.max(shake,.3);

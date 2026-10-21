@@ -260,6 +260,7 @@ function chuteTape(e){ // TAPÉE : le coup
     T.fl=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));
     T.fl.renderOrder=999;T.fl.visible=false;scene.add(T.fl);}
   T.fl.position.copy(h.point).addScaledVector(d,-.15);T.flT=0;T.flS=1.45+.55*(mu-1);T.fl.visible=true;T.fl.material.rotation=Math.random()*3;T.n++;
+  try{caisseAction();}catch(_){} // (2026-10-20, Léo) L'ACTION SPÉCIALE de la caisse tapée (voir caisseAction)
   const P=h.point;richCoup(P,n,d,mu,T.combo); // (2026-10-08) LES ÉTINCELLES v2 et LA PLUIE DE RICHESSE (voir ce bloc) — les gerbes sparkGold/dust d'avant, « brutes, naïves », sont retirées
   chuteDebris();const sp=CARS[garageI]||CARS[0];                                         // LES MORCEAUX DE TÔLE, à ses couleurs
   {const M9=Array.isArray(h.object.material)?h.object.material[0]:h.object.material,G9=h.object.geometry,ca=G9&&G9.attributes&&G9.attributes.color; // la couleur de la PIÈCE touchée (sa couleur de sommet × sa matière)

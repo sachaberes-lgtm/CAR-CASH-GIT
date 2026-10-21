@@ -88,7 +88,9 @@ function sonTonSuit(){
   try{const el=musicEl;if(SND.music&&el&&el.src){for(const k in SON_TON)if(el.src.indexOf(k)>=0){t=SON_TON[k];break;}if(FRENM.surm)t+=1;}}catch(e){}
   if(t!==sonTonSuit._t){sonTonSuit._t=t;window.CCSON.ton(t);}
 }
-const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':'fruit.grenade','ORANGE':'fruit.orange','MYRTILLE':'fruit.myrtille','PASTÈQUE':'fruit.pasteque'};
+const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':'fruit.grenade','ORANGE':'fruit.orange','MYRTILLE':'fruit.myrtille','PASTÈQUE':'fruit.pasteque',
+  /* (2026-10-20, les nouveaux fruits) chacun reprend la bouche d'un fruit voisin : la hauteur monte à chaque fruit d'une rafale (sonFruitSt) — la file sonne comme une gamme */
+  'PÊCHE':'fruit.peche','CERISE':'fruit.myrtille','KIWI':'fruit.orange','MANGUE':'fruit.banane','POMME':'fruit.peche','MELON':'fruit.banane','LITCHI':'fruit.myrtille'};
 function figSnd(id){ // chaque figure a SA matière, posée sur l'échelle du vol — (2026-10-14, session SON) une figure du catalogue FINIE (`fig_*`, lecteur `?fig=script`) sonne le MAILLON, comme le tour complet d'une figure libre : elle rejouait la vrille de son départ (veqFigure), deux fois le même son par figure
   if(!SONV2){trickPop(chain);return;}
   if(id.indexOf('fig_combo_')===0)return; /* (2026-10-14, session SON) le COMBO a SA signature (sonCombo, appelée par comboNote) : pas le maillon par-dessus */

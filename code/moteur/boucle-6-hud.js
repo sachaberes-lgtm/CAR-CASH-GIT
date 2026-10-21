@@ -97,6 +97,7 @@
     {const k9=(mode==='boom'||gameOver)?'':pwrNitroT>0?'n':pwrSpdT>0?'v':pwrAurT>0?'x':pwrMagT>0?'m':pwrAirT>0&&!TUTO.on?'a':''; // (HUD v3) les BORDS de l'écran battent à la couleur du pouvoir actif — (2026-09-28) pas l'airtime prêté par l'auto-école · (pouvoirs v2) le plus « chaud » d'abord
      if(k9!==loop._pfx){loop._pfx=k9;let e9=avE('pwrFx');if(!e9){e9=document.createElement('div');e9.id='pwrFx';e9.setAttribute('aria-hidden','true');document.body.appendChild(e9);avEl.pwrFx=e9;}
        if(k9){e9.style.setProperty('--pf',PWR_DEFS[k9].bd||PWR_DEFS[k9].fx);e9.style.setProperty('--pf2',PWR_DEFS[k9].bd2||PWR_DEFS[k9].fx2);} /* (2026-10-14, passe graphismes) bd/bd2 = le voile dosé (÷ 2,5) */e9.classList.toggle('on',!!k9);}}
+    if(pwrNitroT>0&&!(mode==='boom'||gameOver)){const e9=avE('pwrFx');if(e9&&Math.abs(NINF.h-(loop._pfh||0))>.012){loop._pfh=NINF.h;const r9=NINF.rgb;e9.style.setProperty('--pf','rgba('+r9[0]+','+r9[1]+','+r9[2]+','+(.2+.18*NINF.h).toFixed(3)+')');e9.style.setProperty('--pf2','rgba('+r9[0]+','+r9[1]+','+r9[2]+','+(.08+.12*NINF.h).toFixed(3)+')');}} // (2026-10-20, piment) les bords d'écran de la nitro infinie suivent la TEMPÉRATURE du feu : discrets au début, plus forts ensuite
     // JAUGE DE PROGRESSION — elle suivait le cash vers la prochaine VOITURE ; les voitures ne se
     // gagnent plus à l'argent de la partie. Elle suit désormais les PIÈCES vers le prochain MOTEUR,
     // la seule progression qui court pendant une partie. (elCp, le texte, est géré plus haut.)
