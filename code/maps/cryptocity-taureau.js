@@ -227,6 +227,7 @@ function cryptoBatit(root){
       for(const s of [-1,1]){const e=new THREE.Mesh(G.plan,CRYPTO.mat.ecran);e.position.set(s*16.4,1,2);e.rotation.y=s*Math.PI/2;e.scale.set(56,9,1);g.add(e);} // les écrans du cours
       root.add(g);CRYPTO.dirig.push({g:g,y:d.y,ph:d.ph});}}
   CRYPTO.ath.t=22;CRYPTO.fusT=3;CRYPTO.feuT=2;
+  crhBatit(); /* (2026-10-21) l'horizon du bull run et les projecteurs de la nuit : voir cryptocity-embellie */
 }
 function cryptoMatPiece(){
   if(CRYPTO.mat.piece)return CRYPTO.mat.piece;
@@ -310,7 +311,7 @@ function cryptoAth(){ // LE NOUVEL ATH : le cours grimpe, la pluie redouble, le 
 }
 function cryptoTick(dt,sim){
   const on=cryptoOn()&&!!CRYPTO.root;
-  if(!on){if(CRYPTO.lune&&CRYPTO.lune.visible){CRYPTO.lune.visible=false;CRYPTO.feux.visible=false;for(const f of CRYPTO.fus){f.on=false;f.g.visible=f.tr.visible=false;}}return;}
+  if(!on){crhTick(0,false);if(CRYPTO.lune&&CRYPTO.lune.visible){CRYPTO.lune.visible=false;CRYPTO.feux.visible=false;for(const f of CRYPTO.fus){f.on=false;f.g.visible=f.tr.visible=false;}}return;}
   const d=sim?dt:0,cam=camera.position;CRYPTO.uT.value+=d;const t=CRYPTO.uT.value;CRYPTO.uSun.value.copy(SUN_DIR);CRYPTO.uNuit.value=LVL.nuit||0;
   // la lune ₿
   {const L9=CRYPTO.lune;L9.visible=true;L9.position.copy(cam).addScaledVector(MOON_DIR,5200);L9.scale.setScalar(5200*.16);L9.material.rotation=Math.sin(t*.25)*.12;}
@@ -324,6 +325,7 @@ function cryptoTick(dt,sim){
     im.instanceMatrix.needsUpdate=true;}
   for(const b of CRYPTO.dirig){b.g.position.y=b.y+Math.sin(t*.4+b.ph)*3;b.g.rotation.z=Math.sin(t*.3+b.ph)*.03;}
   if(CRYPTO.mat.tick)CRYPTO.mat.tick.offset.x=(t*.045)%1;
+  crhTick(t,true);
   // les yeux laser balaient le ciel ; le ruban du taureau le plus proche se pose à la hauteur de la route
   let bd=1e18;for(const b of CRYPTO.taureaux){for(let i=0;i<2;i++){const L9=b.lasers[i];L9.rotation.set(-.32-.12*Math.sin(t*.37+b.ph),.22*Math.sin(t*.5+b.ph+i*.4)+(i?-.06:.06),0);}
     const dd=(b.x-cam.x)*(b.x-cam.x)+(b.z-cam.z)*(b.z-cam.z);if(dd<bd){bd=dd;CRYPTO.mat.taureau.userData.uBand.value=b.y+78*b.k;}}
@@ -351,7 +353,7 @@ function cryptoChauffe(){ // au menu (chauffeDivers) : chaque matière de CRYPTO
   {const im=new THREE.InstancedMesh(G.piece,cryptoMatPiece(),1);im.setMatrixAt(0,CRYPTO.m4.identity());add(im);}
   {const im=new THREE.InstancedMesh(G.diam,M.diam,1);im.setMatrixAt(0,CRYPTO.m4.identity());add(im);}
   add(new THREE.Mesh(G.cube,cryptoMatTaureau()));for(const k of ['corne','oeil','laser','laserC','anneau','ballon','or','fusee','fuseeR'])add(new THREE.Mesh(G.cube,M[k]));
-  cryptoTickerTex();add(new THREE.Mesh(G.plan,CRYPTO.mat.ecran));
+  cryptoTickerTex();add(new THREE.Mesh(G.plan,CRYPTO.mat.ecran));crhChauffe(add);
   for(const o of [CRYPTO.lune,CRYPTO.feux,PLA.mB,PLA.mP])if(o){o.visible=true;L9.push(o);}
   for(const f of CRYPTO.fus){f.g.visible=f.tr.visible=true;L9.push(f.g,f.tr);}
   try{chauffeRendu(L9);}catch(e){}

@@ -69,6 +69,7 @@ maps/grottes-2.js                    # grottes : décors, lumières, rendu, cons
 maps/ville-v3.js                     # la ville v3 (canyon du village de la pluie), panneaux holographiques
 maps/cryptocity.js                   # CRYPTOCITY : plan, matières, réclames
 maps/cryptocity-taureau.js           # cryptocity : le taureau, objets du ciel
+maps/cryptocity-embellie.js          # cryptocity : l'horizon du bull run (tours et bougies lointaines), les projecteurs de la nuit
 maps/ville-verre.js                  # la ville vitrée, néon et verre, le dirigeable
 maps/pluie-argent.js                 # la pluie d'argent v2 (PLA)
 maps/paris.js                        # PARIS au sol, ses matières

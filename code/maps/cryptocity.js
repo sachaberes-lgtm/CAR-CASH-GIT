@@ -39,13 +39,14 @@ function cryptoVide(){ // (buildVoxCity, à chaque piste) ce que la ville d'avan
   for(const f of CRYPTO.fus){f.on=false;f.g.visible=false;f.tr.visible=false;}
   if(CRYPTO.feux){CRYPTO.feux.visible=false;for(let k=0;k<CRYPTO.feux.userData.K;k++)CRYPTO.feux.material.uniforms.uO.value[k].w=-99;}
   if(CRYPTO.lune)CRYPTO.lune.visible=false;
+  crhVide(); // (2026-10-21) l'horizon et les projecteurs de la ville d'avant s'en vont aussi
 }
 /* LE PLAN — appelé par buildVoxCity AVANT les tours (`proches` = sa grille de la piste) : où vont les taureaux, les bougies, les pièces,
    les diamants et les dirigeables. Chaque site vérifie qu'aucun étage de la route ne le traverse (`libre`) et se RÉSERVE : les tours qui
    tomberaient dessus sont bâties puis retirées (leurs tirages ont eu lieu : la ville d'à côté ne bouge pas). */
 function cryptoPlace(seed,proches){
   const cr=mulberry32(seed^0xB0117A11),S={taureaux:[],bougies:[],pieces:[],diam:[],dirig:[]},dS=L/(NP-1),iE=CITY.entree?CITY.entree[1]:0;
-  CRYPTO.res.length=0;CRYPTO.rf=mulberry32(seed^0xF0E57B0);
+  CRYPTO.res.length=0;CRYPTO.rf=mulberry32(seed^0xF0E57B0);CRYPTO.sd=seed;
   const libre=function(x,z,R,y0,y1){let ok=true;proches(x,z,R,function(i){if(!ok)return;const p=pts[i],dx=p.x-x,dz=p.z-z;if(dx*dx+dz*dz<R*R&&p.y>y0-45&&p.y<y1+45)ok=false;});return ok;};
   const dessous=function(x,z,R,y){let h=-1e9;proches(x,z,R,function(i){const p=pts[i],dx=p.x-x,dz=p.z-z;if(dx*dx+dz*dz<R*R&&p.y<y&&p.y>h)h=p.y;});return h;};
   const cadre=function(i){const T9=T[i],hl=Math.hypot(T9.x,T9.z)||1;return {px:-T9.z/hl,pz:T9.x/hl,tx:T9.x/hl,tz:T9.z/hl};};
@@ -104,6 +105,14 @@ function cryptoColBougies(){ // les bougies sont DURES, comme les tours (villeHe
   return X;
 }
 /* ---- LES MATIÈRES (partagées, jamais disposées ; compilées au menu par cryptoChauffe) ---- */
+/* ===== LES FAÇADES DU BULL RUN VIVENT (2026-10-21, Sacha : « amélioration visuelle des maps », passe CRYPTO CITY) =====
+   Le ciel REFLÉTÉ n'était qu'une couleur par tour (le reflet d'une façade verticale ne dépend que du regard) : plates, de près comme de loin.
+   Maintenant, dans le même shader (aucun programme de plus) : (1) le reflet CHANGE DE FACE — chaud côté soleil, froid à l'opposé ;
+   (2) il change D'ÉTAGE — l'horizon d'or en bas, l'azur en haut — et la façade s'assombrit, se réchauffe au pied, se refroidit au sommet ;
+   (3) de larges BANDES de reflet (un nuage, la tour d'en face) glissent en diagonale ; (4) un COUP DE LUMIÈRE balaie une tour de temps en temps
+   (un uniform de temps, ~25 s par tour, chacune à sa phase ; rose la nuit : le clin d'œil CASH) — absent au palier ancien ;
+   (5) la nuit les bureaux ne sont plus tous or : un sur huit rose, un sur sept cyan (le trio de la marque), et un toit sur sept s'allume en rose. */
+PAL.B.cryptoReflets=[0,1,1];
 // LES TOURS DE VERRE — la tour de la ville (même sommet : tri hors champ, portée des lampes, pied noyé), une autre façade : le jour.
 const CRYPTO_VERRE=
   '{vec3 an=abs(vNrm9);float fv=step(an.y,.5)*step(9.,min(vSc9.x,vSc9.z));'+
@@ -113,8 +122,13 @@ const CRYPTO_VERRE=
   'float ux=(an.x>an.z?vLoc9.z*sign(vNrm9.x):-vLoc9.x*sign(vNrm9.z)),fu=max(fwidth(ux),1e-4);'+ // le long de la façade, pour le bandeau
   '\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nbool VIS9=fogDepth<fogFar;\n#else\nbool VIS9=true;\n#endif\n'+
   'if(VIS9){vec3 V9=normalize(vW9-cameraPosition);'+
-  ' if(fv>0.){vec3 N9=normalize(vec3(vNrm9.x,0.,vNrm9.z)),R9=reflect(V9,N9);float ry=R9.y;'+
+  ' if(fv>0.){vec3 N9=normalize(vec3(vNrm9.x,0.,vNrm9.z)),R9=reflect(V9,N9);float ry=R9.y,hh9=clamp(vB9/max(vSc9.y,1.),0.,1.);'+
+  '  gl_FragColor.rgb*=mix(vec3(.98,.88,.77),vec3(1.01,1.04,1.11),smoothstep(.04,.85,hh9));'+ // la façade : le pied chaud et sombre (le rebond de l'or du sol), le sommet clair et froid (le ciel)
   '  vec3 sky=ry>0.?mix(mix(uHor9,uMid9,smoothstep(0.,.16,ry)),uZen9,smoothstep(.12,.92,ry)):mix(uHor9*.72,vec3(.12,.11,.09),smoothstep(0.,-.28,ry));'+ // en dessous : la ville et sa brume, sombres
+  '  {vec2 hz=R9.xz/max(length(R9.xz),1e-3),sz=uSun9.xz/max(length(uSun9.xz),1e-3);float sd2=dot(hz,sz)*.5+.5;'+
+  '   sky=mix(sky*vec3(.88,.95,1.08),sky*vec3(1.2,1.02,.8),sd2);'+ // le ciel reflété change de FACE : chaud du côté du soleil, froid à l'opposé
+  '   sky=mix(sky,mix(uHor9*1.15,uZen9*1.6+.04,smoothstep(.12,.95,hh9)),.38);'+ // …et d'ÉTAGE : l'horizon d'or en bas, l'azur en haut
+  '   sky*=.86+.3*(.5+.5*sin(ux*.052+vB9*.024+s2*6.28));}'+ // …et de larges BANDES de reflet glissent en diagonale (un nuage, la tour d'en face)
   '  float lu=dot(sky,vec3(.3,.59,.11)),sd=max(dot(R9,uSun9),0.),or9=step(.5,sty)*step(sty,1.5),ag9=step(1.5,sty)*step(sty,2.5),mt9=step(2.5,sty)*step(sty,3.5),bl9=step(3.5,sty);'+
   '  float gl=mix(pow(sd,220.)*5.+pow(sd,14.)*.25,pow(sd,36.)*1.7+pow(sd,7.)*.3,mt9);'+ // l'éclat du soleil : une pointe sur le verre, une traînée large sur le métal brossé
   '  float fr=clamp((.50+.50*pow(1.-abs(dot(V9,N9)),5.))*(1.+.4*or9+.6*ag9+.25*mt9),0.,1.);vec3 rf=mix(sky,vec3(lu),.4-.28*ag9+.35*or9+.38*mt9);'+ // FRESNEL : de face l'intérieur, de biais le ciel ; l'or renvoie la LUMIÈRE du ciel ; l'ARGENT est un miroir (il garde le bleu) ; le MÉTAL brouille son reflet
@@ -122,8 +136,11 @@ const CRYPTO_VERRE=
   '  vec2 f=fract(uv),hw=vec2(mix(.41,.47,s2),mix(.40,.46,s1));if(bl9>0.)hw*=vec2(.56,.78);if(mt9>0.)hw.x*=.4;'+ // le BLANC : une résille de céramique autour de baies étroites ; le MÉTAL : des lames verticales
   '  vec2 dd=(hw-abs(f-.5))/fw;float far=smoothstep(.3,.75,max(fw.x,fw.y)),pane=mix(clamp(dd.x+.5,0.,1.)*clamp(dd.y+.5,0.,1.),4.*hw.x*hw.y,far);'+
   '  float ph=fract(sin(dot(floor(uv)+vSeed9*31.,vec2(12.9898,78.233)))*43758.5453);'+
-  '  vec3 ins=tint*(.055+.05*or9+.07*ag9)*(.7+.6*ph)+uNuit9*vec3(1.,.80,.50)*step(.45,ph)*(.3+.5*ph)*(1.-.45*far);'+ // l'intérieur, sombre (un bureau derrière une vitre teintée) — la NUIT, les bureaux restent allumés (la ville ne dort pas pendant un bull run)
+  '  float pk=fract(ph*13.7+s4*5.3);vec3 wc=pk<.12?vec3(1.,.36,.66):pk<.27?vec3(.38,.92,1.):vec3(1.,.80,.50);'+ // les bureaux de la nuit : l'or, un peu de cyan, un peu de rose (le trio)
+  '  vec3 ins=tint*(.055+.05*or9+.07*ag9)*(.7+.6*ph)+uNuit9*wc*step(.45,ph)*(.3+.5*ph)*(1.-.45*far);'+ // l'intérieur, sombre (un bureau derrière une vitre teintée) — la NUIT, les bureaux restent allumés (la ville ne dort pas pendant un bull run)
   '  vec3 glass=mix(ins,rf*tint*1.08,clamp(fr*(.82+.36*ph*(1.-far)),0.,1.))+gl*vec3(1.,.95,.8)+vec3(1.,.8,.5)*.2*step(.972,ph)*(1.-far);'+
+  (PAL.b('cryptoReflets',1)?'  {float q9=ux*.5+vB9*.85,qc=-140.+fract(uT9*.038+s2*7.3+s1*3.)*(vSc9.y*.85+280.),gb=smoothstep(30.,0.,abs(q9-qc));gb*=gb;'+
+  '   glass+=gb*mix(vec3(1.,.9,.7),vec3(1.,.42,.78),uNuit9)*(.45+.55*or9+.45*ag9)*(1.-.5*far);}'+'\n':'')+ // LE COUP DE LUMIÈRE : une bande diagonale qui monte le long de la tour (rose la nuit)
   '  gl_FragColor.rgb=mix(gl_FragColor.rgb,glass,pane*.93);'+
   // LE BANDEAU DE COURS : sur une tour haute sur deux, à mi-hauteur, des chiffres verts et des ▲ qui défilent
   '  if(s4>.5&&vSc9.y>150.){float bh=6.5+s2*3.,yb=vSc9.y*(.56+.24*s1),yy=vB9-yb;'+
@@ -136,7 +153,7 @@ const CRYPTO_VERRE=
   '    gl_FragColor.rgb=mix(gl_FragColor.rgb,led+cad*vec3(1.,.78,.32)*.9,max(fl,cad));}}'+
   ' }'+
   // LES TOITS : le parapet allumé (menthe sur le verre, or sur l'or, blanc chaud sur l'argent, le métal et le blanc)
-  ' if(tt>0.&&fe<1.4){vec3 rc=sty<.5?vec3(.3,1.,.8):sty<1.5?vec3(1.,.78,.3):vec3(1.,.95,.86);gl_FragColor.rgb+=rc*tt*(1.-smoothstep(.55,.55+fe*1.5,de))*(1.-smoothstep(.5,1.4,fe))*.75;}'+
+  ' if(tt>0.&&fe<1.4){vec3 rc=sty<.5?vec3(.3,1.,.8):sty<1.5?vec3(1.,.78,.3):vec3(1.,.95,.86);if(fract(s1*17.3+s4*3.1)<.14)rc=vec3(1.,.32,.64);gl_FragColor.rgb+=rc*tt*(1.-smoothstep(.55,.55+fe*1.5,de))*(1.-smoothstep(.5,1.4,fe))*.75;}'+
   '}}\n';
 function cryptoPied(){const s9=villePied(function(c){return c;});return s9.split('uPiedC9*uPied9').join('vec3(.05,.04,0.)').split('vec3(.16,.04,.2)*uPied9').join('vec3(.05,.04,0.)').split('vec3(.16,.04,.2)').join('vec3(.05,.04,0.)');} // le pied dans la brume d'or (la lueur violette des rues de la ville la nuit n'a rien à faire ici)
 function cryptoMatToursLoin(){ // la tour AU LOIN (voir villeMatToursLoin) : la couleur de la brume, le pied doré
