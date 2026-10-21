@@ -169,7 +169,8 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi
 #gBqPan .bqK .bqKp.eur{color:#3d4bff}
 #gBqPan .bqK .bqKp:is(.acq,.defi){color:#8a929c}
 #gBqPan .bqK .bqKl{position:absolute;top:6px;left:6px;padding:4px 6px;background:#3d4bff;color:#fff;font-size:8px;letter-spacing:1px}
-#gBqPan .bqK .bqKl.arc{background:linear-gradient(90deg,#ff4a4a,#ffa024 22%,#ffe23a 40%,#46f07a 60%,#3bb4ff 80%,#a066ff);color:#14171c;max-width:calc(100% - 12px);white-space:nowrap;overflow:hidden} /* (2026-10-18 soir) le CHAT POP-TART : + ARC-EN-CIEL (voir chatPackI) */
+#gBqPan .bqK .bqKl.arc{position:static;margin:0;max-width:none;white-space:normal;overflow:visible;text-align:center;line-height:1.35;letter-spacing:0;padding:3px 4px 2px;background:linear-gradient(90deg,#ff4a4a,#ffa024 22%,#ffe23a 40%,#46f07a 60%,#3bb4ff 80%,#a066ff);color:#14171c} /* (2026-10-18 soir) le CHAT POP-TART : + ARC-EN-CIEL (voir chatPackI) ; (2026-10-20, Sacha : « plus clair que Pop-Tart-Cat est vendu avec la traînée arc-en-ciel ») elle était posée en haut à gauche, SOUS l'étiquette de rareté (LÉGENDAIRE : z-index 1, même coin) : on n'en voyait que les bords. Elle est maintenant une BANDE dans le flux, sous la photo, sur deux lignes : « + TRAÎNÉE / ARC-EN-CIEL » */
+html:not(.c6):not(.ux8g) #gBqPan .bqK .bqKl.arc{font-size:7px}
 #gBqPan .bqK.off{width:148px}
 #gBqPan .bqK.off .bqKph{height:84px}
 #gBqPan.cote .bqK,#gBqPan.cote .bqK.off{width:calc((100% - 20px) / 3)}

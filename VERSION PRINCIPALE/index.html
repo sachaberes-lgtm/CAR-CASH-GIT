@@ -4223,8 +4223,8 @@ html[data-reduced-motion="1"] body.touch #airPie,html[data-reduced-motion="1"] b
 @keyframes spSort{0%{transform:translate(var(--dx,0),var(--dy,0)) scale(var(--s,1))}100%{transform:none}}
 @keyframes spRentre{0%{transform:none}100%{transform:translate(var(--dx,0),var(--dy,0)) scale(var(--s,1))}}
 /* ce que la vignette n'avait pas arrive après le trajet, et s'efface d'abord au retour */
-#shPop.on :is(.spRare,.spRemise,.spDesc,.spBtns,.spNote){animation:spApres var(--t-slow) var(--ease) both;animation-delay:calc(var(--t-slow) * .5)}
-#shPop.sortant :is(.spRare,.spRemise,.spDesc,.spBtns,.spNote){animation:k4VoileOut var(--t-fast) var(--ease) forwards}
+#shPop.on :is(.spRare,.spArc,.spRemise,.spDesc,.spBtns,.spNote){animation:spApres var(--t-slow) var(--ease) both;animation-delay:calc(var(--t-slow) * .5)}
+#shPop.sortant :is(.spRare,.spArc,.spRemise,.spDesc,.spBtns,.spNote){animation:k4VoileOut var(--t-fast) var(--ease) forwards}
 @keyframes spApres{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:none}}
 /* la vignette partie : sa place reste vide dans la grille */
 .shCase.spParti,.shUne.spParti{visibility:hidden}
@@ -4264,8 +4264,20 @@ html[data-reduced-motion="1"] body.touch #airPie,html[data-reduced-motion="1"] b
   .spNote{grid-area:note}
   .spPrix em{font-size:var(--f6)}
 }
-@media (prefers-reduced-motion:reduce){#shPop.on .spCarte,#shPop.sortant .spCarte,#shPop.on :is(.spRare,.spRemise,.spDesc,.spBtns,.spNote){animation:none}}
+@media (prefers-reduced-motion:reduce){#shPop.on .spCarte,#shPop.sortant .spCarte,#shPop.on :is(.spRare,.spArc,.spRemise,.spDesc,.spBtns,.spNote){animation:none}}
 html[data-reduced-motion="1"] #shPop.on .spCarte,html[data-reduced-motion="1"] #shPop.sortant .spCarte{animation:none}
+/* LA PASTILLE ARC-EN-CIEL (2026-10-20, Sacha : « il faut que ça soit plus clair que Pop-Tart-Cat est vendu avec la traînée arc-en-ciel ») : le CHAT POP-TART s'achète
+   AVEC sa traînée ; la pastille porte les couleurs de la traînée (le dégradé de la carte du garage, `.bqKl.arc`) et dit « INCLUSE » (JS : shArcHtml). Elle se coupe
+   en deux lignes dans la colonne étroite de l'écran couché plutôt que de déborder. */
+.shArc{align-self:flex-start;display:block;max-width:100%;box-sizing:border-box;padding:5px 8px 4px;font-family:var(--pix);font-style:normal;font-weight:400;font-size:var(--f0);line-height:1.5;letter-spacing:1px;text-wrap:balance;color:#14171c;
+  background:linear-gradient(90deg,#ff4a4a,#ffa024 22%,#ffe23a 40%,#46f07a 60%,#3bb4ff 80%,#a066ff);box-shadow:0 0 14px rgba(255,170,60,.35)}
+.spArc{margin-top:-2px}
+#gBqNom .shArc{display:inline-block} /* la boutique du garage : sous le nom de la caisse (la place de « SE DÉBLOQUE »), centrée comme lui */
+@media (orientation:landscape) and (max-height:540px){
+  .spCarte.avecArc{grid-template-areas:"photo rare" "photo nom" "photo arc" "photo desc" "photo prix" "btns btns" "note note";row-gap:6px}
+  .spCarte.avecArc .spDesc{font-size:12px;line-height:1.5}
+  .spArc{grid-area:arc;justify-self:start}
+}
 </style>
 <style id="pouvoirsV2">
 /* POUVOIRS v2 (2026-09-28, session GAMEPLAY) — six pouvoirs, cumulables. Trois plaques et plus à la fois : elles se SERRENT (la colonne
@@ -5748,7 +5760,8 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi
 #gBqPan .bqK .bqKp.eur{color:#3d4bff}
 #gBqPan .bqK .bqKp:is(.acq,.defi){color:#8a929c}
 #gBqPan .bqK .bqKl{position:absolute;top:6px;left:6px;padding:4px 6px;background:#3d4bff;color:#fff;font-size:8px;letter-spacing:1px}
-#gBqPan .bqK .bqKl.arc{background:linear-gradient(90deg,#ff4a4a,#ffa024 22%,#ffe23a 40%,#46f07a 60%,#3bb4ff 80%,#a066ff);color:#14171c;max-width:calc(100% - 12px);white-space:nowrap;overflow:hidden} /* (2026-10-18 soir) le CHAT POP-TART : + ARC-EN-CIEL (voir chatPackI) */
+#gBqPan .bqK .bqKl.arc{position:static;margin:0;max-width:none;white-space:normal;overflow:visible;text-align:center;line-height:1.35;letter-spacing:0;padding:3px 4px 2px;background:linear-gradient(90deg,#ff4a4a,#ffa024 22%,#ffe23a 40%,#46f07a 60%,#3bb4ff 80%,#a066ff);color:#14171c} /* (2026-10-18 soir) le CHAT POP-TART : + ARC-EN-CIEL (voir chatPackI) ; (2026-10-20, Sacha : « plus clair que Pop-Tart-Cat est vendu avec la traînée arc-en-ciel ») elle était posée en haut à gauche, SOUS l'étiquette de rareté (LÉGENDAIRE : z-index 1, même coin) : on n'en voyait que les bords. Elle est maintenant une BANDE dans le flux, sous la photo, sur deux lignes : « + TRAÎNÉE / ARC-EN-CIEL » */
+html:not(.c6):not(.ux8g) #gBqPan .bqK .bqKl.arc{font-size:7px}
 #gBqPan .bqK.off{width:148px}
 #gBqPan .bqK.off .bqKph{height:84px}
 #gBqPan.cote .bqK,#gBqPan.cote .bqK.off{width:calc((100% - 20px) / 3)}
@@ -26617,7 +26630,7 @@ const CARS=[
   desc:'Elle a pris froid au dernier tour : depuis, elle éternue du feu. Ne reste jamais devant elle.'},
  // (2026-10-08) LE SQUALE — Léo : la voiture au sourire de requin de son sketch du garage, bleu clair, sportive, carrée aux angles
  // arrondis, les phares en yeux (voir SHAPES.squale). Ajoutée EN DERNIER (les index de sauvegarde ne bougent pas).
- {name:'SQUALE',shape:'squale',color:0x5e666d,accent:0x2a3036,maxKmh:340,accel:40,turn:2.7,h:1.66,w:2.52,l:4.5,spoiler:0,rar:'epique', // (2026-10-09, Léo, fiche de la salle blanche) RARE → ÉPIQUE
+ {name:'SQUALE',shape:'squale',color:0x5e666d,accent:0x2a3036,maxKmh:340,accel:40,turn:2.7,h:1.66,w:2.52,l:4.5,spoiler:0,rar:'legendaire', // (2026-10-21, Sacha) ÉPIQUE → LÉGENDAIRE : elle est en boutique payante, où toutes les caisses le sont (carRar lit cette fiche avant le prix) — (2026-10-09, Léo, fiche de la salle blanche) RARE → ÉPIQUE
   fx:{jet:0xbfe4ff,core:0xffffff,trail:[.75,.85,.95],light:0xcfe8ff},
   desc:'Toujours le sourire. Surtout quand elle te double.'},
  // (2026-10-09, Léo : « fais-en une hyper abstraite mais travaillée, concept, ajoute-la à la liste ») L'ABSTRAITE (voir SHAPES.abstraite). Ajoutée EN DERNIER (les index de sauvegarde ne bougent pas).
@@ -44565,7 +44578,7 @@ const CAR_UNLOCK=[
   {p:2200000,exK:'carrV',exV:5}, // LE LINGOT — (2026-10-18) idem : les 5 niveaux de la VILLE gagnés = il est à toi
   {p:1200000}, // (2026-10-02) L'ORIGAMI — ÉPIQUE, à l'argent : entre LA DÉESSE et L'AIGLE DE FEU
   {p:900000}, // (2026-10-06) ATCHOUM — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 900 000 : entre LA STRATOS et L'ORIGAMI, l'ordre de la fiche
-  {k:'premium',eur:'1,61 €',rar:'leg'}, // (2026-10-21, Sacha : « remplace le shark par l'autre requin de Léo, à 1,61 € ») LE SQUALE passe en boutique, ex-700 000 ; (2026-10-08) LE SQUALE — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 700 000 : entre LA TAURINE et ACIDE, l'ordre de la fiche
+  {k:'premium',eur:'1,61 €',rar:'leg'}, // (2026-10-21, Sacha : « remplace le shark par l'autre requin de Léo, à 1,61 € ») LE SQUALE passe en boutique, ex-700 000 (la mission secrète `abysse` ne le donne plus : elle paie de l'argent, voir missions/table.js — sinon le patch des missions le remettait en `k:'mis'` et il disparaissait de la boutique) ; (2026-10-08) LE SQUALE — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 700 000 : entre LA TAURINE et ACIDE, l'ordre de la fiche
   {p:3000000}, // (2026-10-09, Léo : « fais-en une hyper abstraite mais travaillée, concept, ajoute-la à la liste ») L'ABSTRAITE — ÉPIQUE, la plus chère des épiques (juste après ROSSO 40)
   {p:3200000}, // (2026-10-10, Léo : « une nouvelle abstraite, en glace, genre iceberg ») L'ICEBERG — ÉPIQUE, juste après L'ABSTRAITE
   {p:3400000}, // (2026-10-10, Léo : « une voiture flamme ») LA FOURNAISE — ÉPIQUE, juste après L'ICEBERG
@@ -44681,7 +44694,7 @@ const M2=[
   {id:'cratere',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA FOURNAISE'},t:'MEURS AU-DESSUS DU CRATÈRE DU VOLCAN',en:'DIE ABOVE THE VOLCANO CRATER'},
   {id:'lave',f:'secret',k:'flag',v:1,u:'b',r:{car:'L\'AIGLE DE FEU'},t:'ROULE DANS LA LAVE',en:'DRIVE INTO THE LAVA'},
   {id:'geyser',f:'secret',k:'flag',v:1,u:'b',r:{car:'ATCHOUM'},t:'TRAVERSE UN GEYSER',en:'FLY THROUGH A GEYSER'},
-  {id:'abysse',f:'secret',k:'prof',v:'prof',u:'',r:{car:'SQUALE'},t:'DESCENDS AU FOND DE LA MER DE JADE',en:'DIVE TO THE BOTTOM OF THE JADE SEA'},
+  {id:'abysse',f:'secret',k:'prof',v:'prof',u:'',r:{cash:15000},t:'DESCENDS AU FOND DE LA MER DE JADE',en:'DIVE TO THE BOTTOM OF THE JADE SEA'}, // (2026-10-20, Sacha : LE SQUALE passe à la boutique payante, 1,61 €) avant : LE SQUALE — il ne se gagne plus, l'argent à la place (15 000 $ : comme LE GLACIER et LA DEUCHE, À VALIDER PAR SACHA)
   {id:'nuage30',f:'secret',k:'vol',v:30,u:'s',r:{car:'LA CAISSE-NUAGE'},t:'RESTE {v} S EN L\'AIR AU-DESSUS DES NUAGES',en:'STAY {v} S IN THE AIR ABOVE THE CLOUDS'},
   {id:'terre',f:'secret',k:'flag',v:1,u:'b',r:{car:'COMÈTE'},t:'FAIS UN SALTO DEVANT LA TERRE',en:'FLIP IN FRONT OF THE EARTH'},
   {id:'lac10',f:'secret',k:'lac',v:10,u:'s',r:{cash:15000},t:'GLISSE {v} S SUR UN LAC GELÉ',en:'SLIDE {v} S ON A FROZEN LAKE'}, // (2026-10-19, Sacha) avant : LE GLACIER — absente du garage, l'argent à la place
@@ -46354,6 +46367,10 @@ window.dbgEssaiCaisse=function(src,fiche,vues){
   }
   return out;
 };
+/* (2026-10-20, Sacha : « il faut que ça soit plus clair que Pop-Tart-Cat est vendu avec la traînée arc-en-ciel ») LA PASTILLE ARC-EN-CIEL : le CHAT POP-TART
+   s'achète AVEC la traînée arc-en-ciel (voir chatPackI) ; la vitrine et la fenêtre d'achat le disent par une pastille aux couleurs de la traînée, « INCLUSE »
+   (le prix couvre les deux). Rien tant qu'on a déjà le chat. Le style : `.shArc` dans <style id="achatPop">. */
+function shArcHtml(i,a){return (i===chatPackI()&&!a)?'<i class="shArc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL INCLUSE')))+'</i>':'';}
 // LA VITRINE : l'offre à la une (la premium marquée `une`) et la grille des autres, par rareté
 function shopRender(){
   const une=document.getElementById('shUne'),gr=document.getElementById('shGrille');if(!une||!gr)return;
@@ -46362,7 +46379,7 @@ function shopRender(){
     const ph=PHOTO.cache[i],img=ph?'<img src="'+ph+'" alt="">':'<i class="pxi pxi-voiture shAttente"></i>',a=carOwned(i);if(!ph)shopPhotoVeut(i); // (revue GAMEPLAY) plus de carPhoto EN SYNCHRONE : 13 photos d'un bloc = 1,1 s de gel sur PC (2-3 s sur iPhone) à la 1re ouverture
     if(u.une&&!hU&&!a){ // (charte v4) la VITRINE DE LÉGENDE : cadre d'or qui scintille autour (`.shUne`), le décor dedans (`.shUneCadre`)
       hU='<div class="shUneCadre"><div class="shPhoto big">'+img+'</div>'
-        +'<div class="shUneTx"><b>'+insec(TR(CARS[i].name))+'</b></div>' /* (2026-10-15 soir, Sacha : « enlève le texte super long au-dessous de CHAT POP-TART, ça sert à rien ») plus de phrase sous le nom : la fenêtre d'achat la garde */
+        +'<div class="shUneTx"><b>'+insec(TR(CARS[i].name))+'</b>'+shArcHtml(i,a)+'</div>' /* (2026-10-15 soir, Sacha : « enlève le texte super long au-dessous de CHAT POP-TART, ça sert à rien ») plus de phrase sous le nom : la fenêtre d'achat la garde */
         +'<div class="shUneBas"><em>'+eurTxt(u.eur)+'</em><span class="shBtn'+(a?' aToi':'')+'">'+pxi(a?'coche':'panier')+TR(a?'À TOI':'ACHETER')+'</span></div></div>';
       une.setAttribute('data-car',i);continue;}
     hG+='<div class="shCase '+(u.rar||'rar')+'" data-m="shopSoon" data-car="'+i+'" role="button"><span class="shRare">'+TR(RAR[u.rar||'rar'])+'</span>'
@@ -46423,10 +46440,11 @@ function shopPop(src){
   clearTimeout(SPOP.t);
   const a=carOwned(i),une=!!u.une,im=src.querySelector('.shPhoto img'),ph=PHOTO.cache[i]||(im?im.src:'');
   const RAR={leg:'LÉGENDAIRE',epi:'ÉPIQUE',rar:'RARE'},rar=u.rar||'leg';
-  el.innerHTML='<div class="spCarte '+rar+'" data-car="'+i+'">'
+  const arc=shArcHtml(i,a).replace('class="shArc"','class="shArc spArc"'); // (2026-10-20) le chat : « + TRAÎNÉE ARC-EN-CIEL INCLUSE » sous son nom
+  el.innerHTML='<div class="spCarte '+rar+(arc?' avecArc':'')+'" data-car="'+i+'">'
     +'<span class="spRare">'+sansAcc(TR(RAR[rar]))+'</span>'+''
     +'<div class="shPhoto big">'+(ph?'<img src="'+ph+'" alt="">':'<i class="pxi pxi-voiture shAttente"></i>')+'</div>'
-    +'<b class="spNom" id="spNom">'+insec(TR(CARS[i].name))+'</b>'
+    +'<b class="spNom" id="spNom">'+insec(TR(CARS[i].name))+'</b>'+arc
     +'<span class="spDesc">'+(LANG==='fr'?CARS[i].desc:TR(CARS[i].desc))+'</span>'
     +(a?'<div class="spPrix aToi">'+pxi('coche')+'<b>'+sansAcc(TR('À TOI'))+'</b></div>'
        :'<div class="spPrix">'+'<em>'+eurTxt(u.eur)+'</em></div>')
@@ -56009,7 +56027,7 @@ function m2Secrete(i){const m=m2DeCaisse(i);return !!(m&&m.f==='secret'&&!carUnl
 Object.assign(I18N,{'SE DÉBLOQUE':'UNLOCKS','VOIR LA MISSION':'SEE THE MISSION','RÉCUPÈRE DANS MISSIONS':'CLAIM IT IN MISSIONS',
   "Ne s'achète pas : elle se gagne par une mission.":'Not for sale: it is earned through a mission.',
   "Ne s'achète pas : elle vient avec le CHAT POP-TART.":'Not for sale: it comes with the POP-TART CAT.',
-  'PACK CHAT':'CAT PACK','AVEC LE CHAT':'WITH THE CAT','+ ARC-EN-CIEL':'+ RAINBOW'}); // (2026-10-18 soir) le pack du chat (voir chatPackI)
+  'PACK CHAT':'CAT PACK','AVEC LE CHAT':'WITH THE CAT','+ ARC-EN-CIEL':'+ RAINBOW','+ TRAÎNÉE ARC-EN-CIEL':'+ RAINBOW TRAIL','+ TRAÎNÉE ARC-EN-CIEL INCLUSE':'+ RAINBOW TRAIL INCLUDED'}); // (2026-10-18 soir) le pack du chat (voir chatPackI) ; (2026-10-20) la pastille de la vitrine (voir shArcHtml)
 function m2DebloqueHtml(m,sansBouton){if(!m)return '';const s=m2Etat(),ok=s.ok.indexOf(m.id)>=0;let v=0;try{v=m2Val(m);}catch(e){}const t=m2Seuil(m),p=ok?1:m2Frac(m,v,t);
   return '<span class="m2Deb"><span class="m2DebT">'+pxi('cible')+' '+sansAcc(TR('SE DÉBLOQUE'))+' : '+m2TxtH(m)+'</span>'
     +'<span class="m2DebB"><u><em style="width:'+Math.round(p*100)+'%"></em></u><b>'+(ok?sansAcc(TR('RÉCUPÈRE DANS MISSIONS')):m2Prog(m,v,t))+'</b></span>'
@@ -65718,7 +65736,7 @@ function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?n
   else if(a){px=sansAcc(TR('À TOI'));c='acq';}else if(d.pack==='chat'){px=sansAcc(TR('PACK CHAT'));c='eur';}else if(d.eur){px=eurTxt(d.eur);c='eur';}else if(d.p){px=pxi('piece')+bqPxT(d.p);c='pc';}else{px=sansAcc(TR('MISSION'));c='defi';} /* (2026-10-18 soir) l'ARC-EN-CIEL : PACK CHAT (voir chatPackI) */
   if(bqPxLg(px))c+=' lg';
   return '<div class="bqK'+(sec9?' m2sec':'')+(lim?' off':'')+(vo?'':' hab')+'" data-k="'+k+'"'+(dir!=null?' data-dir="'+dir+'"':'')+' role="button" style="--rc:'+ri.c+';--i:'+Math.min(n,8)+'" aria-label="'+String(nom).replace(/"/g,'')+'">'
-    +(vo?'<span class="bqKph" data-ph="'+i+'"></span>':o.cat==='aile'?'<span class="bqKph c-aile" data-pha="'+d.id+'"></span>':o.cat==='figure'?'<span class="bqKph c-figure" data-phf="'+d.id+'|'+FIG_DIR[dir!=null?dir:figPeut(d.id)[0]]+'">'+bqFigHab(k)+'</span>':'<span class="bqKph c-'+o.cat+'">'+bqFigHab(k)+'</span>')+(lim&&!(vo&&CAR_UNLOCK[i]&&CAR_UNLOCK[i].une)?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')+(vo&&!a&&i===chatPackI()?'<span class="bqKl arc">'+sansAcc(TR('+ ARC-EN-CIEL'))+'</span>':'')
+    +(vo?'<span class="bqKph" data-ph="'+i+'"></span>':o.cat==='aile'?'<span class="bqKph c-aile" data-pha="'+d.id+'"></span>':o.cat==='figure'?'<span class="bqKph c-figure" data-phf="'+d.id+'|'+FIG_DIR[dir!=null?dir:figPeut(d.id)[0]]+'">'+bqFigHab(k)+'</span>':'<span class="bqKph c-'+o.cat+'">'+bqFigHab(k)+'</span>')+(lim&&!(vo&&CAR_UNLOCK[i]&&CAR_UNLOCK[i].une)?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')+(vo&&!a&&i===chatPackI()?'<span class="bqKl arc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL')))+'</span>':'')
     +'<span class="bqKr'+(sansAcc(TR(ri.n1)).length>8?' lg':'')+'">'+sansAcc(TR(ri.n1))+'</span><span class="bqKn">'+sansAcc(String(nom))+'</span><span class="bqKp '+c+'">'+px+'</span></div>';} /* (clarté 14/10) la RARETÉ s'écrit sur la carte */
 /* LES PHOTOS DES DEUX BOUTIQUES (2026-10-14, session OPTIMISATION — PILOTAGE : « les photos des cartes de la boutique du jour ne s'affichent
    plus »). `bqPhotos` était déclarée DEUX fois : celle des cartes du bandeau de l'atelier (`.fnC` + `.fnPh`, OFFRES ÉPHÉMÈRES / DU JOUR) et
@@ -65781,13 +65799,14 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
      coloris — de la voiture, pareil pour les ailes et les traînées ; pour l'instant ORIGINAL partout ») : #gBqNom suit la caisse (projeté au-
      dessus d'elle chaque image) ; #gBqSkins, sous elle, liste les COLORIS de l'objet (bqSkins) — une peinture n'en a pas : c'est un coloris. */
   const i=garageI,cur=bqCourant(),lim=false,te=document.getElementById('gBqTete'),nm=document.getElementById('gBqNom'),sk=document.getElementById('gBqSkins');
-  const vu9=cur+(String(cur).indexOf('figure:')===0&&GBQ.figDir!=null?'@'+GBQ.figDir:''); // (2026-10-15) une figure à deux sens a deux cartes : la direction touchée fait partie de ce qu'on regarde (le cadre .sel suit la bonne)
+  const vu9=cur+(String(cur).indexOf('figure:')===0&&GBQ.figDir!=null?'@'+GBQ.figDir:'')+(cur==='v:'+chatPackI()&&carUnlockedVrai(chatPackI())?'*':''); // (2026-10-15) une figure à deux sens a deux cartes : la direction touchée fait partie de ce qu'on regarde (le cadre .sel suit la bonne)
   if(GBQ.vu!==vu9){GBQ.vu=vu9;let ri,nom;
     if(cur[0]==='v'){const iv=+cur.slice(2);if(m2Secrete(iv)){ri={c:'#ff3ec8',n1:'MISSION SECRÈTE'};nom='? ? ?';}else{ri=rarInfo(carRar(iv));nom=TR(CARS[iv].name);}}else{const o=bqCos(cur);ri=rarInfo(cosmRar(o.cat,o.d));nom=o.d?TR(o.d.n):'';}
     nm.style.setProperty('--rc',ri.c);nm.classList.toggle('lim',lim);
     nm.querySelector('.bqRar').textContent=sansAcc(TR(ri.n1));nm.querySelector('.bqNom').textContent=sansAcc(String(nom));
     {let mt=nm.querySelector('.bqM2');if(!mt){mt=document.createElement('span');mt.className='bqM2';nm.appendChild(mt);} /* (2026-10-16) SE DÉBLOQUE : la mission, sa jauge — une secrète : rien (son étiquette dit déjà MISSION SECRÈTE) */
-      let h9='';if(cur[0]==='v'){const iv=+cur.slice(2),m9=m2DeCaisse(iv);if(m9&&!carUnlockedVrai(iv))h9=m9.f==='secret'?'':m2DebloqueHtml(m9,true);}
+      let h9='';if(cur[0]==='v'){const iv=+cur.slice(2),m9=m2DeCaisse(iv);if(m9&&!carUnlockedVrai(iv))h9=m9.f==='secret'?'':m2DebloqueHtml(m9,true);
+        if(!h9)h9=shArcHtml(iv,carUnlockedVrai(iv));} /* (2026-10-20, Sacha) le CHAT POP-TART : « + TRAÎNÉE ARC-EN-CIEL INCLUSE » sous son nom (voir shArcHtml) */
       else{const o9=bqCos(cur),m9=o9&&o9.d&&m2DeHab(o9.cat,o9.d);if(m9&&!shopOwned(o9.cat,o9.d.id))h9=m2DebloqueHtml(m9,true);}
       mt.innerHTML=h9;mt.hidden=!h9;}
     {const L9=bqSkins(cur);sk.classList.toggle('vide',!L9.length);sk.querySelector('.bqSk').innerHTML=L9.map(function(x,n){return '<button class="bqS'+(n===0?' on':'')+'" data-s="'+x.id+'" style="--sc:'+x.c+'"><i></i><span>'+sansAcc(TR(x.n))+'</span></button>';}).join('');}

@@ -23,8 +23,8 @@
 @keyframes spSort{0%{transform:translate(var(--dx,0),var(--dy,0)) scale(var(--s,1))}100%{transform:none}}
 @keyframes spRentre{0%{transform:none}100%{transform:translate(var(--dx,0),var(--dy,0)) scale(var(--s,1))}}
 /* ce que la vignette n'avait pas arrive après le trajet, et s'efface d'abord au retour */
-#shPop.on :is(.spRare,.spRemise,.spDesc,.spBtns,.spNote){animation:spApres var(--t-slow) var(--ease) both;animation-delay:calc(var(--t-slow) * .5)}
-#shPop.sortant :is(.spRare,.spRemise,.spDesc,.spBtns,.spNote){animation:k4VoileOut var(--t-fast) var(--ease) forwards}
+#shPop.on :is(.spRare,.spArc,.spRemise,.spDesc,.spBtns,.spNote){animation:spApres var(--t-slow) var(--ease) both;animation-delay:calc(var(--t-slow) * .5)}
+#shPop.sortant :is(.spRare,.spArc,.spRemise,.spDesc,.spBtns,.spNote){animation:k4VoileOut var(--t-fast) var(--ease) forwards}
 @keyframes spApres{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:none}}
 /* la vignette partie : sa place reste vide dans la grille */
 .shCase.spParti,.shUne.spParti{visibility:hidden}
@@ -64,8 +64,20 @@
   .spNote{grid-area:note}
   .spPrix em{font-size:var(--f6)}
 }
-@media (prefers-reduced-motion:reduce){#shPop.on .spCarte,#shPop.sortant .spCarte,#shPop.on :is(.spRare,.spRemise,.spDesc,.spBtns,.spNote){animation:none}}
+@media (prefers-reduced-motion:reduce){#shPop.on .spCarte,#shPop.sortant .spCarte,#shPop.on :is(.spRare,.spArc,.spRemise,.spDesc,.spBtns,.spNote){animation:none}}
 html[data-reduced-motion="1"] #shPop.on .spCarte,html[data-reduced-motion="1"] #shPop.sortant .spCarte{animation:none}
+/* LA PASTILLE ARC-EN-CIEL (2026-10-20, Sacha : « il faut que ça soit plus clair que Pop-Tart-Cat est vendu avec la traînée arc-en-ciel ») : le CHAT POP-TART s'achète
+   AVEC sa traînée ; la pastille porte les couleurs de la traînée (le dégradé de la carte du garage, `.bqKl.arc`) et dit « INCLUSE » (JS : shArcHtml). Elle se coupe
+   en deux lignes dans la colonne étroite de l'écran couché plutôt que de déborder. */
+.shArc{align-self:flex-start;display:block;max-width:100%;box-sizing:border-box;padding:5px 8px 4px;font-family:var(--pix);font-style:normal;font-weight:400;font-size:var(--f0);line-height:1.5;letter-spacing:1px;text-wrap:balance;color:#14171c;
+  background:linear-gradient(90deg,#ff4a4a,#ffa024 22%,#ffe23a 40%,#46f07a 60%,#3bb4ff 80%,#a066ff);box-shadow:0 0 14px rgba(255,170,60,.35)}
+.spArc{margin-top:-2px}
+#gBqNom .shArc{display:inline-block} /* la boutique du garage : sous le nom de la caisse (la place de « SE DÉBLOQUE »), centrée comme lui */
+@media (orientation:landscape) and (max-height:540px){
+  .spCarte.avecArc{grid-template-areas:"photo rare" "photo nom" "photo arc" "photo desc" "photo prix" "btns btns" "note note";row-gap:6px}
+  .spCarte.avecArc .spDesc{font-size:12px;line-height:1.5}
+  .spArc{grid-area:arc;justify-self:start}
+}
 </style>
 <style id="pouvoirsV2">
 /* POUVOIRS v2 (2026-09-28, session GAMEPLAY) — six pouvoirs, cumulables. Trois plaques et plus à la fois : elles se SERRENT (la colonne

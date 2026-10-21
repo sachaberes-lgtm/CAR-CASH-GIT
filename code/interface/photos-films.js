@@ -347,6 +347,10 @@ window.dbgEssaiCaisse=function(src,fiche,vues){
   }
   return out;
 };
+/* (2026-10-20, Sacha : « il faut que ça soit plus clair que Pop-Tart-Cat est vendu avec la traînée arc-en-ciel ») LA PASTILLE ARC-EN-CIEL : le CHAT POP-TART
+   s'achète AVEC la traînée arc-en-ciel (voir chatPackI) ; la vitrine et la fenêtre d'achat le disent par une pastille aux couleurs de la traînée, « INCLUSE »
+   (le prix couvre les deux). Rien tant qu'on a déjà le chat. Le style : `.shArc` dans <style id="achatPop">. */
+function shArcHtml(i,a){return (i===chatPackI()&&!a)?'<i class="shArc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL INCLUSE')))+'</i>':'';}
 // LA VITRINE : l'offre à la une (la premium marquée `une`) et la grille des autres, par rareté
 function shopRender(){
   const une=document.getElementById('shUne'),gr=document.getElementById('shGrille');if(!une||!gr)return;
@@ -355,7 +359,7 @@ function shopRender(){
     const ph=PHOTO.cache[i],img=ph?'<img src="'+ph+'" alt="">':'<i class="pxi pxi-voiture shAttente"></i>',a=carOwned(i);if(!ph)shopPhotoVeut(i); // (revue GAMEPLAY) plus de carPhoto EN SYNCHRONE : 13 photos d'un bloc = 1,1 s de gel sur PC (2-3 s sur iPhone) à la 1re ouverture
     if(u.une&&!hU&&!a){ // (charte v4) la VITRINE DE LÉGENDE : cadre d'or qui scintille autour (`.shUne`), le décor dedans (`.shUneCadre`)
       hU='<div class="shUneCadre"><div class="shPhoto big">'+img+'</div>'
-        +'<div class="shUneTx"><b>'+insec(TR(CARS[i].name))+'</b></div>' /* (2026-10-15 soir, Sacha : « enlève le texte super long au-dessous de CHAT POP-TART, ça sert à rien ») plus de phrase sous le nom : la fenêtre d'achat la garde */
+        +'<div class="shUneTx"><b>'+insec(TR(CARS[i].name))+'</b>'+shArcHtml(i,a)+'</div>' /* (2026-10-15 soir, Sacha : « enlève le texte super long au-dessous de CHAT POP-TART, ça sert à rien ») plus de phrase sous le nom : la fenêtre d'achat la garde */
         +'<div class="shUneBas"><em>'+eurTxt(u.eur)+'</em><span class="shBtn'+(a?' aToi':'')+'">'+pxi(a?'coche':'panier')+TR(a?'À TOI':'ACHETER')+'</span></div></div>';
       une.setAttribute('data-car',i);continue;}
     hG+='<div class="shCase '+(u.rar||'rar')+'" data-m="shopSoon" data-car="'+i+'" role="button"><span class="shRare">'+TR(RAR[u.rar||'rar'])+'</span>'
