@@ -351,6 +351,7 @@ function dalleProche(x,y,z,pas,bd0,graine){
     const lb=dalleLb(X,b,x,y,z);if(lb>lim||lb>=bd)continue; // ni ce casier ni aucun de ses points ne peut battre le candidat
     const i1=Math.min(NP,b*DALLE_K+DALLE_K);
     for(let i=b*DALLE_K;i<i1;i+=pas){
+      if(TROU&&TROU[i]&&(i<1||TROU[i-1]))continue; // (LES TROUS) pas de dalle au-dessus du vide : on ne s'y pose pas
       const p=pts[i],dx=x-p.x,dy=y-p.y,dz=z-p.z,dd=dx*dx+dy*dy+dz*dz;
       if(dd<bd){bd=dd;bi=i;}
     }

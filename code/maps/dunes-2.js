@@ -108,22 +108,21 @@ function dunesTick(dt){
   DN.ombre+=(ombre-DN.ombre)*Math.min(1,dt*5);dnPartTick(dt,c);
   if(k>.001||DN.ecrit){const e=DN.on?k:0;sun.intensity=c.sunI*(1-.62*(1-DN.ombre)*e);DN.ecrit=e>.001;}
   dnCaravane(dt);}
-/* LES LÈVRES DES VAGUES (2026-10-19, Sacha : « je veux qu'on décolle sur les vagues des dunes même sans nitro, de crête en crête ») — au sol la caisse
-   reste COLLÉE au ruban (elle ne quitte la route que par le bord, le saut nitro, une figure ou un tremplin) : MESURÉ au pilote, aucune cassure de
-   pente ne la faisait décoller. La crête de chaque vague est donc une LÈVRE, comme les tremplins du glacier : franchie en roulant (dans le sens de
-   la course, sur la dalle, au-dessus de 70 km/h), elle lance la caisse juste ce qu'il faut pour retomber sur SA face d'avalanche, vers 72 % de sa
-   longueur, à n'importe quelle vitesse : t = 0,72 × la face / la vitesse (entre 0,9 et 2,4 s), la montée = ½ g t − la pente × la vitesse (g monde
-   ~23 m/s², FALL_G × SPD), moins ce que la crête (+4 %) donne déjà. rampCd : une lèvre à la fois. DN.sauts = le compte (banc). */
+/* LES LÈVRES (2026-10-20, Sacha : « refonte totale de la map Dune » — v4 : LE SURF). Une lèvre = le bout d'un segment de route : au-delà, plus de dalle (voir TROUS).
+   Au sol la caisse reste COLLÉE au ruban : franchie en roulant (la route finit, la caisse ne peut que s'envoler), la lèvre lance la caisse JUSTE ce qu'il faut pour retomber
+   sur le segment d'en face (DN.lev[k].aim : la distance visée depuis la lèvre), à n'importe quelle vitesse — t = aim / la vitesse (entre 0,6 et 2,6 s), la montée =
+   ½ g t − la descente à franchir / t, moins ce que la pente de la lèvre donne déjà (MESURÉ au pilote, v1-v3 des vagues : « la pose se déclare dès 0,35 s si la caisse est
+   à moins de 3 m du bitume » : on garde la caisse à plus de 4 m du ruban au bout de 0,35 s). g monde ~23 m/s² (FALL_G × SPD). On décolle TOUJOURS, même au pas : un segment
+   qu'on n'a pas lancé assez vite se rate (le sable est dessous), il ne se roule pas. Pas de recharge (rampCd) : les îlots se suivent à 1 s. Si la lèvre a été manquée
+   d'une image (rampe, replacement), la caisse déjà au-dessus du vide est lancée de là où elle est. DN.sauts = le compte (banc). */
 const DN_LF={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
-function dnLevre(s0){if(rampCd>0||side<0||introD||driveDir<0)return;const a=Math.min(s0,s),b=Math.max(s0,s);
-  for(const k of DN.lev){if(k.s<a||k.s>b)continue;if(Math.abs(lat)>ROAD_HALF)return;const vm=vitMult(),vx=Math.abs(vA)*SPD*vm;if(vx*3.6<70)return; /* au pas : on roule sur la crête */
-    /* (v2, MESURÉ au pilote : à l'élan de la pente MOYENNE, la caisse ne volait que 0,3-0,5 s — juste après la crête le ruban lissé descend encore à peine,
-       et la pose se déclare dès 0,35 s si la caisse est à moins de 3 m du bitume) : la face est relue dans la route (DN.S) — l'élan qui pose la caisse à
-       72 % de la face, et au moins celui qui la tient à plus de 4 m du bitume au bout de 0,35 s */
-    const S9=DN.S,yAt=q=>{const f=Math.max(0,Math.min(S9.n-1.001,q/S9.ds)),i=Math.floor(f);return S9.y[i]+(S9.y[i+1]-S9.y[i])*(f-i);},g2=FALL_G*SPD*.5,y0=yAt(k.s);
-    const t=Math.max(.9,Math.min(2.6,.72*Math.max(40,k.e-k.s)/Math.max(1,vx))),D=y0-yAt(k.s+vx*t),d35=y0-yAt(k.s+vx*.35);
-    frameAt(k.s,DN_LF);const ty=DN_LF.t.y; /* (v3) la pente RÉELLE du ruban à la lèvre : lissée, elle plonge déjà un peu — compter +4 % retirait jusqu'à 7 m/s à l'élan */
-    const vy=Math.min(24,Math.max((g2*t*t-D)/t,(4+g2*.1225-d35)/.35)),u=THREE.MathUtils.clamp(vy/SPD-ty*Math.abs(vA)*vm,0,60);DN.dbgLev={vx:+vx.toFixed(1),vy:+vy.toFixed(1),u:+u.toFixed(1),ty:+ty.toFixed(3),t:+t.toFixed(2),D:+D.toFixed(1),d35:+d35.toFixed(1)};
+function dnLevre(s0){if(side<0||introD||driveDir<0)return;const a=Math.min(s0,s),b=Math.max(s0,s);
+  for(const k of DN.lev){if(b<k.s||a>=k.e-2)continue;if(!(k.s>=a-.01&&k.s<=b+.01)&&!(s>k.s&&s<k.e-2))continue;if(Math.abs(lat)>ROAD_HALF)return;
+    const vm=vitMult(),vx=Math.max(12,Math.abs(vA)*SPD*vm);
+    const S9=DN.S,yAt=q=>{const f=Math.max(0,Math.min(S9.n-1.001,q/S9.ds)),i=Math.floor(f);return S9.y[i]+(S9.y[i+1]-S9.y[i])*(f-i);},g2=FALL_G*SPD*.5,sb=Math.max(s,k.s),y0=yAt(sb);
+    const t=Math.max(.6,Math.min(2.6,Math.max(30,k.s+k.aim-sb)/vx)),D=y0-yAt(sb+vx*t),d35=y0-yAt(sb+vx*.35);
+    frameAt(sb,DN_LF);const ty=DN_LF.t.y;
+    const vy=Math.min(24,Math.max((g2*t*t-D)/t,(4+g2*.1225-d35)/.35)),u=THREE.MathUtils.clamp(vy/SPD-ty*Math.abs(vA)*vm,0,60);DN.dbgLev={vx:+vx.toFixed(1),vy:+vy.toFixed(1),u:+u.toFixed(1),ty:+ty.toFixed(3),t:+t.toFixed(2),D:+D.toFixed(1),d35:+d35.toFixed(1),k:DN.lev.indexOf(k),tag:k.tag};
     rampCd=1.2;startFall(u,1);shake=Math.max(shake,.35);try{hap([8,14]);}catch(e){}DN.sauts=(DN.sauts|0)+1;return;}}
 /* EN VOL : le sable, l'eau de l'oasis, les obélisques et la pyramide tuent (5 points de caisse) — renvoie la cause, ou '' */
 const DN_H9={};
@@ -132,7 +131,7 @@ function dunesHeurt(p){if(!DN.on||!DN.Z)return '';
   return dnMonuHeurt(p);}
 function dnMonuHeurt(p){
   for(const b of DN.ob){const dx=p.x-b.x,dz=p.z-b.z,t=Math.max(0,Math.min(1,(p.y-b.y)/b.h)),rr=b.r*(1.35-.69*t)+1.2;if(dx*dx+dz*dz<rr*rr&&p.y>b.y-2&&p.y<b.y+b.h+1)return 'obelisque';}
-  const P=DN.pyr;if(P){const dx=p.x-P.x,dz=p.z-P.z,ca=Math.cos(P.a),sa=Math.sin(P.a),e=Math.max(Math.abs(dx*ca-dz*sa),Math.abs(dx*sa+dz*ca));
+  for(const P of DN.pyrs||[]){const dx=p.x-P.x,dz=p.z-P.z,ca=Math.cos(P.a),sa=Math.sin(P.a),e=Math.max(Math.abs(dx*ca-dz*sa),Math.abs(dx*sa+dz*ca));
     if(p.y>P.y-20&&p.y<P.y+P.h+1&&e<P.hw*(1-(p.y-P.y)/P.h)+1.5)return 'pyramide';}
   return '';}
 /* ---- LES DÉCORS (low-poly à facettes : une face, une normale) — la même lumière que le sable et la même ombre (DN_MVS lit la grille de l'ombre) ---- */
@@ -189,7 +188,7 @@ function dnMonuments(seed){
   // LES OBÉLISQUES et leurs pyramidions
   {const L9=DN.ob.map(function(b){return [b.x,b.y,b.z,b.r,b.a,b.h,b.r];});inst(G9.ob,M9.t,L9,'obélisques');inst(G9.obOr,M9.g,L9,'pyramidions');}
   // LA GRANDE PYRAMIDE
-  if(DN.pyr){const P=DN.pyr,L9=[[P.x,P.y,P.z,P.hw,P.a,P.h,P.hw]];inst(G9.pyr,M9.t,L9,'pyramide');inst(G9.pyrOr,M9.g,L9,'coiffe');}
+  if(DN.pyrs&&DN.pyrs.length){const L9=DN.pyrs.map(function(P){return [P.x,P.y,P.z,P.hw,P.a,P.h,P.hw];});inst(G9.pyr,M9.t,L9,'pyramides');inst(G9.pyrOr,M9.g,L9,'coiffes');}
   // LES ACACIAS MORTS de la vallée (sur l'argile, sous la route)
   {const L9=[],N9=PAL.b('dnArbres',140),a0=DN.sQ.vlei0,a1=DN.sQ.vlei1,o9={};
    if(S&&a0!=null&&a1!=null)for(let k=0;k<N9*8&&L9.length<N9;k++){const s0=a0-200+rg()*(a1-a0+400),i=Math.max(0,Math.min(S.n-1,Math.round(s0/S.ds))),sg=rg()<.5?-1:1,lat=ROAD_HALF+14+rg()*rg()*380*K;
@@ -248,14 +247,16 @@ window.dbgDunes=function(k,a,b,c,d){
       if(h>y-THICK-1.5){dessous++;if(ou.length<40)ou.push('D'+s9+(lt?(lt>0?'d':'g'):'c')+'('+(y-THICK-h).toFixed(1)+')');}if(h>y+1.5){dessus++;if(ou.length<40)ou.push(s9+(lt?(lt>0?'d':'g'):'c'));}pire=Math.min(pire,y-THICK-h);}}
     let mo=0;for(let s9=0;s9<L;s9+=10){frameAt(s9,F9);for(const lt of [-ROAD_HALF,0,ROAD_HALF]){F9.p.addScaledVector(F9.b,lt);F9.p.y+=1;if(dnMonuHeurt(F9.p))mo++;F9.p.y-=1;F9.p.addScaledVector(F9.b,-lt);}}
     return {dessus:dessus,dessous:dessous,margeMin:+pire.toFixed(1),decorsSurLaRoute:mo,sep:DN.sep,ou:ou.join(' ')};}
-  if(k==='raccourcis')return DN.rac||[];
+  if(k==='sauts')return (DN.lev||[]).map(function(v,j){return {n:j,tag:v.tag,lip:Math.round(v.s),pose:Math.round(v.e),vide:Math.round(v.e-v.s),visee:Math.round(v.aim),segment:v.seg,dy:DN.S?Math.round(DN.S.y[Math.min(DN.S.n-1,Math.round(v.s/DN.S.ds))]-DN.S.y[Math.min(DN.S.n-1,Math.round(v.e/DN.S.ds))]):0};});
+  if(k==='tp'){if(!started||gameOver||mode!=='drive')return 'pas au sol';s=Math.max(0,Math.min(L-30,+a||0));lat=0;if(b!=null)vA=+b/SPD;return {s:Math.round(s),vA:+vA.toFixed(1)};} /* (banc) la caisse posée à l'abscisse a, à la vitesse monde b (m/s) */
+  if(k==='marge'){if(!DN.on)return 'pas de dunes';const S9=DN.S,o=[];for(let q=+a||0;q<=(+b||L);q+=(+c||10)){const i=Math.min(S9.n-1,Math.round(q/S9.ds));o.push(Math.round(q)+':'+(S9.y[i]-dnHauteur(S9.x[i],S9.z[i])).toFixed(0)+'/D'+S9.D[i].toFixed(0)+'/z'+S9.zC[i].toFixed(1));}return o.join(' ');} /* (banc) la hauteur de la ligne de route au-dessus du sable, de a à b tous les c m */
   if(k==='reprendre'){if(paused)togglePause();return 'ok';}
   if(k==='vue'||k==='vueA'){if(!DN.on)return 'pas de dunes';if(started&&!gameOver&&!paused)togglePause();const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
     frameAt(Math.max(0,Math.min(L-1,(k==='vueA'?0:s)+(a||0))),F9);const cap=(c||0)*Math.PI/180,dx=F9.t.x*Math.cos(cap)-F9.t.z*Math.sin(cap),dz=F9.t.z*Math.cos(cap)+F9.t.x*Math.sin(cap);
     camera.position.set(F9.p.x,F9.p.y+(b||12),F9.p.z);camera.up.set(0,1,0);camera.lookAt(F9.p.x+dx*200,F9.p.y+(b||12)-200*(d!=null?d:.12),F9.p.z+dz*200);camera.updateMatrixWorld();
     skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return {cam:camera.position.toArray().map(Math.round),noeuds:DN.n};}
   return {on:DN.on,ms:DN.ms,noeuds:DN.n,sep:DN.sep,rmin:DN.rmin,F:DN.F?[DN.F.nx,DN.F.nz,DN.F.ts]:null,Z:DN.Z?[DN.Z.nx,DN.Z.nz,DN.Z.ts]:null,O:DN.O?[DN.O.nx,DN.O.nz,DN.O.ts]:null,
-    ciel:CIEL2.mode,attente:!!DN.attente,sQ:DN.sQ,L:Math.round(L),obelisques:DN.ob.length,pyramide:!!DN.pyr,acacias:DN.nArb|0,palmiers:DN.nPal|0,caravanes:DN.car.length,oasis:DN.oa?{r:Math.round(DN.oa.r),y:Math.round(DN.oa.y)}:null,
+    ciel:CIEL2.mode,attente:!!DN.attente,sQ:DN.sQ,L:Math.round(L),obelisques:DN.ob.length,pyramides:(DN.pyrs||[]).length,acacias:DN.nArb|0,palmiers:DN.nPal|0,caravanes:DN.car.length,oasis:DN.oa?{r:Math.round(DN.oa.r),y:Math.round(DN.oa.y)}:null,
     hz:DN.hz||null,levres:(DN.lev||[]).length,sauts:DN.sauts|0,levre:DN.dbgLev||null,vent:DN.vent.map(v=>+v.toFixed(2)),lam:Math.round(DN.lam),soleil:SUN_DIR.toArray().map(v=>+v.toFixed(3)),ombre:+DN.ombre.toFixed(2),dunes:+(LVL.dunes||0).toFixed(2),canyon:+(LVL.canyon||0).toFixed(2),
     carHaut:DN.on?+(carGroup.position.y-dnHauteur(carGroup.position.x,carGroup.position.z)).toFixed(1):null};};
 /* <<<FIN DUNES>>> */
