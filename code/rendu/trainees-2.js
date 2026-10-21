@@ -162,7 +162,7 @@ function trxCoeur(type,k,dt){const T=TRX,C=T.C,t0=performance.now();T.t+=dt;
   if(type!==T.type){if(C.pv){for(const p of T.P)p.v=false;T.kp=0;} /* (2026-10-17, TRAÎNÉES) à l'aperçu, une autre traînée essayée chasse les objets de la précédente (les bulles de MENTHE flottaient encore sur ROSE NÉON) et REJOUE son allumage : on voit le coup de chacune */T.type=type;T.H.n=0;T.gk=0;T.peur=0;T.acc=0;T.dist=0;T.cnt=0;for(const b of T.bolts)b.on=false;T.wl0.copy(C.WL);T.wr0.copy(C.WR);}
   const on=k>.05,debut=on&&T.kp<=.05;if(debut){T.wl0.copy(C.WL);T.wr0.copy(C.WR);T.dist=0;}T.kp=k;
   if(!C.pv&&TRX_HIST[type])trxHist(on?k:0);
-  T.L[0].n=T.L[1].n=0;tcRaz();
+  T.L[0].n=T.L[1].n=0;tcOn();
   const E=TRX_EMET[type];if(E&&dt>0)E(T,C,k,dt,on,debut);
   const np=trxParts(dt);let nb=0;for(const b of T.bolts)if(b.on)nb++;
   { /* (2026-10-16, TRAÎNÉES) LA SALLE BLANCHE : la lumière additive s'y effaçait (matrice, filés, foudre, néon) — le maillage qui brille
@@ -174,8 +174,7 @@ function trxCoeur(type,k,dt){const T=TRX,C=T.C,t0=performance.now();T.t+=dt;
   {const Yi=T.L[1];if(Yi.mi){const ik=(TRJ.on&&!C.pv&&running&&!garageOn)?(1-LUM.nuit)*TRJ.trx:0;Yi.mi.material.uniforms.uInk.value=ik;Yi.mi.visible=ik>.02;}} // (2026-10-18) LE VOILE DE JOUR de ce qui brille (voir TRJ)
   for(const Y of T.L){const n=Y.n;Y.g.instanceCount=n;Y.m.visible=n>0;
     if(n)for(const nm of ['iP','iA','iB','iC']){const at=Y.g.attributes[nm];at.updateRange.offset=0;at.updateRange.count=n*4;at.needsUpdate=true;}}
-  tcFin();
-  T.n=np+T.L[0].n+T.L[1].n+nb+(T.gk>0?1:0); // tant qu'il reste quelque chose (même un mur qui s'éteint), la boucle continue d'appeler
+  T.n=np+T.L[0].n+T.L[1].n+nb+(T.gk>0?1:0)+(TC_ON?TC.s.n+TC.g.n:0); // tant qu'il reste quelque chose (même un mur qui s'éteint), la boucle continue d'appeler
   T.ms=T.ms*.95+(performance.now()-t0)*.05;}
 function trxCoupe(){if(!TRX)return;const T=TRX;for(const p of T.P)p.v=false;for(const b of T.bolts)b.on=false;
   T.H.n=0;T.gk=0;T.peur=0;T.acc=0;T.dist=0;T.kp=0;T.n=0;for(const Y of T.L){Y.n=0;Y.g.instanceCount=0;Y.m.visible=false;}tcCoupe();}
