@@ -217,9 +217,9 @@ function banqFx(){const fx=BANQ.fx;if(fx.flo)return fx;const M=banqMats(),R=mulb
   fx.eclat=makePool(PAL_BK('banqEclat',700),.8,0x8fe4ff,1,true,{a:[.02,.35,1,.35],pr:[1.2,3.5,30,90],etire:true,str:.05,v:.6}); /* cyan glacier : blanc sur la glace blanche, on ne les voyait pas — (2026-10-15 soir) ce commentaire en // avalait la suite (drag, acc, nom) : rendu */fx.eclat.drag=1.4;fx.eclat.acc=14;fx.eclat.mesh.name='banquise eclats';
   fx.brume=makePool(PAL_BK('banqBrume',220),3.4,0xe2f2ff,.5,true,{a:[.10,.75,.45,1.7],pr:[2.5,7,120,0]}); // (plafond 120 px : à 46, le voile n'était qu'un point blanc sur la glace blanche)fx.brume.drag=2.4;fx.brume.mesh.name='banquise brume';
   fx.eclat.mesh.renderOrder=fx.brume.mesh.renderOrder=9; // ⚠ APRÈS la plaque de verglas (renderOrder 1, transparente) et les traces (2) : dessinées avant, elles étaient repeintes par la glace — invisibles au banc
-  bkTraceMesh();
+  bkTraceMesh();bkCretes(fx); /* (2026-10-21, LE GLACIER EMBELLI) les crêtes lointaines et leurs panaches : voir glacier-embelli.js */
   return fx;}
-function banqFxCache(){if(BKV.t>0)bkSkateRaz();BKV.sur=false;BKV.yaw=0;BKV.gl=0;BKV.gk=0;const fx=BANQ.fx;if(!fx.flo||!fx.on)return;fx.on=false;fx.flo.visible=fx.dd.visible=fx.aur.visible=false;if(BK_TR.mesh)BK_TR.mesh.visible=false;
+function banqFxCache(){if(BKV.t>0)bkSkateRaz();BKV.sur=false;BKV.yaw=0;BKV.gl=0;BKV.gk=0;const fx=BANQ.fx;if(!fx.flo||!fx.on)return;fx.on=false;fx.flo.visible=fx.dd.visible=fx.aur.visible=false;bkCretesCache(fx);if(BK_TR.mesh)BK_TR.mesh.visible=false;
   try{updatePool(fx.poudre,10,0);updatePool(fx.givre,10,0);updatePool(fx.eclat,10,0);updatePool(fx.brume,10,0);}catch(e){}
   for(const k in BANQ.boucles)if(BANQ.boucles[k]&&BANQ.boucles[k].stop){try{BANQ.boucles[k].stop(.5);}catch(e){}BANQ.boucles[k]=null;}
   BANQ.sur=0;BANQ.glisse=false;BANQ.pou=false;}
@@ -256,6 +256,7 @@ function banqTick(dt){
   {camera.getWorldDirection(BK_V);U.uBoxC.value.copy(camera.position).addScaledVector(BK_V,22);}
   fx.flo.visible=c.neige>.01;fx.dd.visible=U.uDD.value>.01&&c.neige<.2;
   fx.aur.visible=c.aur>.01;if(fx.aur.visible){fx.aur.position.copy(camera.position);fx.aur.rotation.y=BANQ.axe||0; /* (2026-10-19) les aurores tournent avec la montagne (LE GLACIER AU HASARD) */fx.aur.updateMatrix();fx.aur.updateMatrixWorld(true);}
+  bkCretesTick(fx);
   if(BK_TR.mesh)BK_TR.mesh.visible=true;
   if(BANQ.solM){const ff=(scene.fog&&scene.fog.far)||6000,cp=camera.position;for(const m of BANQ.solM){const b=m.geometry.boundingSphere,v=cp.distanceTo(b.center)-b.radius<ff+60;if(m.visible!==v)m.visible=v;}}
   if(BANQ.picM){const ff=(scene.fog&&scene.fog.far)||6000,cp=camera.position;for(const m of BANQ.picM){const b=m.geometry.boundingSphere,v=cp.distanceTo(b.center)-b.radius<ff+60;if(m.visible!==v)m.visible=v;}}
@@ -318,7 +319,7 @@ function banqChauffe(){
     for(const k in at)g.setAttribute(k,new THREE.Float32BufferAttribute(new Float32Array(3*at[k]),at[k]));return g;};
   L9.push(new THREE.Mesh(tri({aS:2}),M.sol),new THREE.Mesh(tri({aB:3,aP:4}),M.pic),new THREE.Mesh(tri({aB:3,aP:4}),M.loin),new THREE.Mesh(tri({aT:4}),M.tr),new THREE.Mesh(tri({aV:4}),M.vg));
   for(const o of L9)o.frustumCulled=false;
-  const ex=[fx.flo,fx.dd,fx.aur,BK_TR.mesh,fx.poudre.mesh,fx.givre.mesh,fx.eclat.mesh,fx.brume.mesh],vus=ex.map(function(o){return [o,o.visible];});
+  const ex=[fx.flo,fx.dd,fx.aur,BK_TR.mesh,fx.poudre.mesh,fx.givre.mesh,fx.eclat.mesh,fx.brume.mesh].concat(bkCretesChauffe(fx)),vus=ex.map(function(o){return [o,o.visible];});
   for(const v of vus)v[0].visible=true;
   const g=new THREE.Group();for(const o of L9)g.add(o);scene.add(g);
   try{chauffeRendu([g].concat(ex));}finally{scene.remove(g);for(const v of vus)v[0].visible=v[1];for(const o of L9)o.geometry.dispose();}
@@ -341,6 +342,7 @@ window.dbgBanq=function(k,o){
       for(const P of A9){if(ob.has(P)||(x-P.cx)*(x-P.cx)+(z-P.cz)*(z-P.cz)>P.r2)continue;const h=bkPrimH(P,x,z),m=h-(p.y-THICK-5);if(m>pire)pire=m;if(m>0){n++;if(ex.length<6)ex.push([Math.round(i*ds),+q.toFixed(2),Math.round(m),P.fam]);}}}}
     return {essais:t,percees:n,pire:Math.round(pire),ex:ex};}
   if(k==='meteo'){banqMeteo(o||'nuit',.01);return BANQ.met;}
+  if(k==='embelli'){const fx=BANQ.fx;return {on:BK_EMB,cre:!!fx.cre,cN:fx.cN||null,graine:fx.cG,progs:renderer.info.programs?renderer.info.programs.length:-1};} /* (2026-10-21, banc) LE GLACIER EMBELLI : les comptes de l'anneau de crêtes */
   if(k==='phys'&&o){Object.assign(BK_PH,o);return BK_PH;}
   if(k==='cg'){if(o)Object.assign(BK_CG,o);return {cg:BK_CG,k:+BKB.k.toFixed(2),enf:+BKB.enf.toFixed(2),dans:BKB.dans,lat:+lat.toFixed(1),kmh:Math.round(Math.abs(vA)*3.6*SPD),p:carGroup.position.toArray().map(function(v){return +v.toFixed(1);}),t:F.t.toArray().map(function(v){return +v.toFixed(3);}),b:F.b.toArray().map(function(v){return +v.toFixed(3);}),n:F.n.toArray().map(function(v){return +v.toFixed(3);}),mort:mortCause,pq:BANQ.pourquoi||'',latOff:+curLatOff.toFixed(1),hOff:+curHOff.toFixed(1)};} // (banc, 2026-10-18) LA CONGÈRE : réglages et état
   if(k==='vue'&&o){if(started&&!gameOver&&!paused)togglePause();camera.position.fromArray(o.p);camera.up.set(0,1,0);camera.lookAt(new THREE.Vector3().fromArray(o.c));camera.updateMatrixWorld();
