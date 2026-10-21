@@ -33,6 +33,9 @@
 const GFX_U={uCoeur:{value:1.16},uNearF:{value:new THREE.Vector2(10,40)},uUpV:{value:new THREE.Vector3(0,1,0)},uNuSun:{value:new THREE.Vector3(1.1,.98,.84)},uNuSky:{value:new THREE.Vector3(.9,.98,1.2)},uNuGnd:{value:new THREE.Vector3(.98,.94,1.2)},uDragon:{value:new THREE.Vector3(1,.92,1.08)}}; // uNearF : le fondu des nuages de coton près de l'objectif (m) — 10-40 au sol, 30-110 en vol (posé par la boucle) // (2026-09-28, passe graphismes mobile) le cœur plein des nuages (1 = l'ancienne ouate à 82 % partout) — voir dbgGfx
 /* (2026-10-20, Léo : « ils seraient interactifs quand la voiture les touche : ça les dégage ») LES TROUÉES : huit sphères de monde (xyz, rayon) où la ouate est EFFACÉE, par marches de cubes
    (la grille `uHoleC` m : le bord d'une trouée est fait de cubes, pas rond) ; posées et animées par nuCasseTick (nuages-casses.js) — un tunnel qui se referme derrière la caisse. */
+/* (2026-10-21, Léo : « c'est pas tout le nuage qui flashe, c'est en fonction de où la lumière va ») LES LUMIÈRES D'ÉCLAIR : douze points de monde (xyz, intensité w) posés le long des fils et des coups ; la ouate s'éclaire
+   AUTOUR d'eux (gaussienne de rayon uBoltR), pas en bloc. */
+const NBOLT={uBolt:{value:[0,1,2,3,4,5,6,7,8,9,10,11].map(function(){return new THREE.Vector4(0,0,0,0);})},uBoltR:{value:95}};
 const NHOLE={uHole:{value:[0,1,2,3,4,5,6,7].map(function(){return new THREE.Vector4(0,0,0,0);})},uHoleC:{value:3.2}};
 function nuageShader(sh){
   sh.uniforms.uHole=NHOLE.uHole;sh.uniforms.uHoleC=NHOLE.uHoleC;sh.fragmentShader=sh.fragmentShader.replace('void main() {','void main() {\n{vec3 w9=cameraPosition+(-vViewPosition)*mat3(viewMatrix);for(int i9=0;i9<8;i9++){vec4 h9=uHole[i9];if(h9.w>.01&&distance((floor(w9/uHoleC)+.5)*uHoleC,h9.xyz)<h9.w)discard;}}').replace('#include <common>','#include <common>\nuniform vec4 uHole[8];uniform float uHoleC;');

@@ -103,7 +103,7 @@ const NU_FOND={ // z zénith, m milieu, h horizon (et la brume), s lueur du sole
      de longues mèches de cirrus au-dessus, la mer d'ombre violette — des TEINTES de violet, pas un aplat. */
   /* (2026-10-21, Léo : « la pluie, c'est pareil : peindre un fond, c'est trop monotone ») LA PLUIE a SON ciel peint : un zénith bleu ardoise, un milieu bleu-argent, un horizon gris-lilas qui s'ouvre en
      pêche vers le soleil bas (l'éclaircie de l'arc-en-ciel), des faisceaux de lumière à travers la couverture, de longues mèches de cirrus, une mer d'ombre bleue éclairée d'argent — plusieurs plans, pas un gris uniforme. */
-  pluie:{tw:.55,ry:.35,cr:.42,z:[.10,.17,.32],m:[.34,.42,.56],h:[.66,.65,.70],s:[.60,.38,.20],mh:[.78,.74,.80],mo:[.28,.35,.52],c:[.80,.82,.90],ca:.5,hz:.7,sat:1.1,con:1.1},
+  pluie:{tw:.6,ry:.4,cr:.45,z:[.20,.17,.27],m:[.42,.32,.43],h:[.80,.58,.58],s:[.72,.42,.30],mh:[.88,.68,.72],mo:[.34,.28,.40],c:[.95,.78,.80],ca:.5,hz:.7,sat:1.05,con:1.08}, // (2026-10-21, Léo : « tout l'écran est bleu, c'est nul » → l'APRÈS-PLUIE ROSE-MAUVE) gris-mauve en haut, rose-pêche en bas, le bleu seulement par touches
   orage:{tw:.55,ry:.12,cr:.5,z:[.035,.045,.12],m:[.15,.12,.25],h:[.40,.25,.33],s:[.30,.15,.24],mh:[.34,.29,.46],mo:[.07,.06,.15],c:[.50,.42,.60],ca:.6,hz:.65,sat:1.08,con:1.14},
   /* nuit : PAS de fond peint — la couche du menu la noircissait (le CLAIR DE LUNE bleu-violet de Sacha, 14/10, reste) */};
 const NUF={k:0,on:false,T:null,force:null,av:{},ap:{}};
@@ -111,7 +111,7 @@ const NUF={k:0,on:false,T:null,force:null,av:{},ap:{}};
    couleurs, mêmes cirrus, même mer d'ombre) avec l'éclairage de la caisse d'un temps couvert (calé sur l'après-midi) / d'une nuit d'orage (calé sur la nuit). Les touches PLUIE et ORAGE de l'accueil les posent (CIEL_MENU). */
 {const cl=function(o){return JSON.parse(JSON.stringify(o));},cp=function(src){const o={};for(const k of ['tw','ry','cr','z','m','h','s','mh','mo','c','ca','hz'])o[k]=cl(src[k]);return o;};
   TITRE_CIEL.pluie=cp(NU_FOND.pluie);TITRE_CIEL.orage=cp(NU_FOND.orage);
-  BIOMES.titrePluie=bioMet(BIOMES.titreAprem,{nm:'TITRE · PLUIE',jZen:NU_FOND.pluie.z,jMid:NU_FOND.pluie.m,jHor:NU_FOND.pluie.h,sunTint:[1,.86,.66],sunHalo:.35,sunI:(BIOMES.titreAprem.sunI||1)*.7,hemiI:(BIOMES.titreAprem.hemiI||1)*.92});
+  BIOMES.titrePluie=bioMet(BIOMES.titreAprem,{nm:'TITRE · PLUIE',jZen:NU_FOND.pluie.z,jMid:NU_FOND.pluie.m,jHor:NU_FOND.pluie.h,sunTint:[1,.78,.68],sunHalo:.4,sunI:(BIOMES.titreAprem.sunI||1)*.7,hemiI:(BIOMES.titreAprem.hemiI||1)*.92});
   BIOMES.titreOrage=bioMet(BIOMES.titreNuit,{nm:'TITRE · ORAGE',jZen:NU_FOND.orage.z,jMid:NU_FOND.orage.m,jHor:NU_FOND.orage.h,stars:0,moon:0,sunHalo:0});
   const pa=cl(TITRE_H.aprem.P),pn=cl(TITRE_H.nuit.P);pa.mzO=[NU_FOND.pluie.mo[0],NU_FOND.pluie.mo[1],NU_FOND.pluie.mo[2],.8];pa.mzH=[NU_FOND.pluie.mh[0],NU_FOND.pluie.mh[1],NU_FOND.pluie.mh[2],.8];
   pn.mzO=[NU_FOND.orage.mo[0],NU_FOND.orage.mo[1],NU_FOND.orage.mo[2],.85];pn.mzH=[NU_FOND.orage.mh[0],NU_FOND.orage.mh[1],NU_FOND.orage.mh[2],.85];
@@ -153,10 +153,11 @@ const ARCEC={cible:null};
 function arcEcTick(dt){const U=skyU.uArcE.value,c=LVL&&LVL.cur,run=started&&!gameOver&&c&&c.carte==='nuages';
   let t=run?(c.meteo==='pluie'?.3:0):((typeof CIEL_CH!=='undefined'&&CIEL_CH.v==='pluie')?.3:0);if(ARCEC.cible!=null)t=ARCEC.cible;U.x+=(t-U.x)*Math.min(1,dt*1.6);if(U.x<.002&&t===0)U.x=0;}
 window.dbgArcEC=function(x,l,h){ARCEC.cible=x==null?null:+x;if(l!=null)skyU.uArcE.value.y=+l;if(h!=null)skyU.uArcE.value.z=+h;return skyU.uArcE.value.toArray();}; // (banc) x force · l demi-largeur (rad) · h hauteur du soleil forcée (rad)
-/* L'ORAGE AU MENU : les cumulus du titre luisent de l'intérieur (violet) et s'éclairent d'un flash doux toutes les 2-5 s (même enveloppe que la course : un fondu, pas une alternance) */
-const MENU_ECL={t:2,k:0};
-function menuEclTick(dt){if(started&&!gameOver)return;const o=(typeof TITRE_HF!=='undefined'&&TITRE_HF.h==='orage'),U=N8_U;
-  if(o){MENU_ECL.t-=dt;if(MENU_ECL.t<=0){MENU_ECL.k=1;MENU_ECL.t=2+Math.random()*3;}MENU_ECL.k=Math.max(0,MENU_ECL.k-dt*2.4);U.uMood.value.set(1,.5,.5*MENU_ECL.k*MENU_ECL.k,0);U.uInC.value.set(.62,.5,1);MENU_ECL.on=true;}else if(MENU_ECL.on){MENU_ECL.on=false;U.uMood.value.set(1,0,0,0);}}
+/* L'ORAGE AU MENU / EN COURSE : les FILS d'électricité dans les nuages (filTick, zones-caisses.js) — sur la map orage, en course et au menu quand ce ciel est choisi ; les cumulus luisent d'un violet sourd. */
+const MENU_ECL={on:false};
+function menuEclTick(dt){const c=LVL&&LVL.cur,run=started&&!gameOver,o=run?!!(c&&c.carte==='nuages'&&c.meteo==='orage'&&mode!=='boom'):(typeof TITRE_HF!=='undefined'&&TITRE_HF.h==='orage'),U=N8_U;
+  filTick(dt,o);
+  if(!run){if(o){U.uMood.value.set(1,.4,0,0);U.uInC.value.set(.62,.5,1);MENU_ECL.on=true;}else if(MENU_ECL.on){MENU_ECL.on=false;U.uMood.value.set(1,0,0,0);}}}
 function nuFondTick(dt){arcEcTick(dt);menuEclTick(dt); // à chaque image : la mer de nuages en course → le fond peint (il APPARAÎT en 0,7 s au portail) ; ailleurs, éteint
   if(typeof CHUTE!=='undefined'&&CHUTE.on){skyU.uPh.value.x=0;skyU.uMr.value.x=0;tapisPose('menu');return;} // (le menu peint son ciel lui-même)
   const c=LVL&&LVL.cur,T=(NUF.force!==0)&&c&&c.carte==='nuages'&&!PARK.on?NU_FOND[c.meteo]:null;if(T)NUF.T=T;

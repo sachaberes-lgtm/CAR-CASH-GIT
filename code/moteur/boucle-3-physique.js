@@ -631,6 +631,7 @@
     updatePool(spray,dt,9);   // ⚠ gravité POSITIVE : l'eau retombe (c'est tout ce qui la sépare d'une étincelle)
     updatePool(foam,dt,2.4);
     updatePool(cloudBits,dt,-2.2); // les morceaux de nuage retombent doucement
+    updatePool(gouttes,dt,9); // (2026-10-21) les gouttelettes de la pluie sur la caisse retombent
     updatePool(juicePool,dt,-16);  // le jus retombe VITE : c'est lourd, une goutte
     updatePool(boomTom,dt,-22);
     updatePool(boomEmbR,dt,1.2);
