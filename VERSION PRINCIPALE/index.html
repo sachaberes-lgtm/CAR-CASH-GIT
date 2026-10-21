@@ -17799,7 +17799,8 @@ const BK_DF=1000;
    · la ROCHE noire des pentes raides (le shader de la neige) commençait vers 45° : la pente même de la montagne, partout en taches noires.
    Désormais : la neige proche se cale sur le PLAN de la piste au pied du point le plus proche (sa pente et son dévers, fondu à 130 m), la sûreté
    aussi ; plus de `YM` ; chaque sommet de base d'un cristal descend sous la neige qu'il touche (au-delà de la neige : d'un rayon de base plus bas,
-   dans la brume) ; la roche ne vient qu'au-delà de ~55°. `?sans=glacedecor` = avant (même graine, même piste). */
+   dans la brume) ; la roche ne vient qu'au-delà de ~55°. `?sans=glacedecor` = avant (même graine : même piste ; les cristaux, eux, tombent ailleurs —
+   libre() ne refuse plus les mêmes grappes, et chaque essai refusé consomme le tirage). */
 const BK_DECOR=typeof location==='undefined'||!/[?&]sans=([^&]*,)?glacedecor(,|&|$)/.test(location.search);
 function bkProfil(x,z,d,ys,sd9){
   const W9=70+50*forBruit(x*.43,z*.43,sd9+3);let h;
@@ -17880,7 +17881,7 @@ function bkPrim(x,z,yb,H,R,n,lx,lz,rot,rg,fam,prof){
   for(let i=0;i<n;i++){const th=rot+(i+(rg()-.5)*.38)/n*6.2832;V.push([x+Math.cos(th)*Rb,by,z+Math.sin(th)*Rb]);}
   /* (2026-10-20, LE DÉCOR RECALÉ) chaque sommet de base descend SOUS LA NEIGE QU'IL TOUCHE (6 m), et le milieu de chaque arête de base aussi : la base
      suit la pente (à 45°, le côté aval d'une base plate flottait) ; hors de la neige (les géants de l'horizon), un rayon de base plus bas, dans la brume.
-     Aucun tirage de plus : la graine pose les mêmes cristaux. La facette aval devient plus raide — la physique lit les mêmes plans (F, by). */
+     Aucun tirage de plus dans le cristal. La facette aval devient plus raide — la physique lit les mêmes plans (F, by). */
   let bm=by;
   if(BK_DECOR&&BANQ.sol){const MG=BANQ.sol.MARG,sous=(x9,z9)=>bkSolD(x9,z9)<MG?bkSolH(x9,z9)-6:null;
     for(const v of V){const h9=sous(v[0],v[2]);v[1]=Math.min(by,h9!=null?h9:by-Rb);}
