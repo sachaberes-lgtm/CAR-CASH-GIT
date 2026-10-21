@@ -59,6 +59,7 @@ maps/foret-construction.js           # forêt : construction, boucle, console
 maps/canyon-route.js                 # LE CANYON DES GÉANTS : route, construction, monde, pose
 maps/canyon-relief.js                # canyon : relief, monuments, voûte, lumière cuite
 maps/canyon-mine.js                  # canyon : la mine abandonnée, la route 66
+maps/canyon-embellie.js               # canyon : la poussière dorée (détail vivant, une instance)
 maps/dunes-1.js                      # LES DUNES D'OR : route, monde, construction
 maps/dunes-2.js                      # dunes : sable à la puce, décors, sable qui vole
 maps/glacier-route.js                # LA BANQUISE / LE GLACIER v4 : route, manteau de neige
