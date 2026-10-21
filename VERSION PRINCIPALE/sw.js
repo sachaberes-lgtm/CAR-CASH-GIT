@@ -10,7 +10,8 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v771'; // v771 (2026-10-21, Léo : « cherche la plaque de son pays et ajoute les plaques de pays ») : 52 plaques du monde dans l'atelier de la plaque, celle du pays de l'appareil proposée au premier accueil
+const CACHE = 'cashcar-v772'; /* v772 (2026-10-21, Sacha : le décor et les modules au hasard — volcan, dunes, canyon, forêt, glacier, jade) */
+// const CACHE = 'cashcar-v771';
 // const CACHE = 'cashcar-v770'; // v770 (2026-10-21, Sacha : REQUIN retiré de la boutique, LE SQUALE à 1,61 €, LE DRAGON D'OR et LE BLINDÉ NOIR à 1,61 €)
 // const CACHE = 'cashcar-v769';
 // const CACHE = 'cashcar-v770'; // v770 (2026-10-21, Léo : « cherche la plaque de son pays et ajoute les plaques de pays ») : 58 plaques du monde dans l'atelier de la plaque, la plaque du pays de l'appareil proposée au premier accueil
