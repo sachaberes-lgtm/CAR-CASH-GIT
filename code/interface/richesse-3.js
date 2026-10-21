@@ -331,7 +331,7 @@ const CHUTE_NU=[
    les 96 finesses du ciel de coton (cotonInit, au premier newTrack) — sinon elles attendaient 10 à 15 s derrière elles, et le titre
    montrait pendant ce temps des ÉBAUCHES en grappes de boules. Aucune ébauche ici : un cumulus du titre n'existe à l'image que fini. */
 function chuteFormes(){
-  if(CHUTE.geo)return;const rg=mulberry32(0xC4A5),G9=[['mediocris',3],['humilis',3],['humilis',2],['mediocris',2],['congestus',3],['mediocris',3],['congestus',3]],geo=[];
+  if(CHUTE.geo)return;const rg=mulberry32(0xC4A5),G9=[['mediocris',2],['humilis',2],['humilis',1],['mediocris',1],['congestus',2],['mediocris',2],['congestus',2]],geo=[];
   for(const q of G9){const S=cumulus8(q[0],rg);S.seed=Math.floor(rg()*997);const dyU=-(S.base+S.top)*.5,e={g:null};geo.push(e);
     nuage8Async(S,N8_FIN[q[1]],function(r9){const g2=cotonBuf(r9);g2.translate(0,dyU,0);g2.computeBoundingSphere();e.g=g2;
       if(r9.skin&&NUSKIN.on)e.skg=nuSkinGeo(r9.skin,dyU); // (2026-10-21) la PEAU transparente des cumulus du titre aussi

@@ -96,14 +96,14 @@ function titreCiel(on){const U=skyU,T=TITRE_CIEL[TITRE_HF.h]||TITRE_CIEL.matin;U
    un zénith profond mais rabattu, jamais cobalt) — et la BRUME des cumulus prend la couleur de cet horizon (sinon les lointains se découpent).
    Que des uniforms (le même programme du ciel) : 0 compilé. La nuit (clair de lune), la pluie et l'orage gardent leur ciel. `dbgNuFond(0|1)`. */
 const NU_FOND={ // z zénith, m milieu, h horizon (et la brume), s lueur du soleil, mh/mo la mer au soleil/à l'ombre, c les cirrus, ca leur part, hz la distance de l'air, tw/ry/cr les rayons
-  matin:{tw:.9,ry:.4,cr:.38,z:[.22,.27,.50],m:[.62,.64,.76],h:[1,.88,.76],s:[.74,.48,.26],mh:[1,.92,.82],mo:[.40,.47,.70],c:[1,.94,.88],ca:.42,hz:.75,sat:1.04,con:1.14},
-  midi: {tw:.75,ry:.25,cr:.4,z:[.19,.27,.52],m:[.56,.65,.82],h:[.97,.93,.86],s:[.60,.48,.32],mh:[1.02,1,.96],mo:[.46,.55,.76],c:[1,1,1],ca:.36,hz:.8,sat:1.04,con:1.14},
-  soir: {tw:1,ry:.75,cr:.34,z:[.12,.16,.40],m:[.56,.48,.60],h:[1,.76,.56],s:[.64,.34,.14],mh:[1,.82,.62],mo:[.40,.34,.52],c:[1,.80,.64],ca:.5,hz:.8,sat:1.22},
+  matin:{tw:.9,ry:.4,cr:.38,z:[.22,.27,.50],m:[.62,.64,.76],h:[1,.88,.76],s:[.74,.48,.26],mh:[1,.92,.82],mo:[.60,.65,.86],c:[1,.94,.88],ca:.42,hz:.75,sat:1.04,con:1.14},
+  midi: {tw:.75,ry:.25,cr:.4,z:[.19,.27,.52],m:[.56,.65,.82],h:[.97,.93,.86],s:[.60,.48,.32],mh:[1.02,1,.96],mo:[.64,.72,.90],c:[1,1,1],ca:.36,hz:.8,sat:1.04,con:1.14},
+  soir: {tw:1,ry:.75,cr:.34,z:[.12,.16,.40],m:[.56,.48,.60],h:[1,.76,.56],s:[.64,.34,.14],mh:[1,.82,.62],mo:[.58,.47,.66],c:[1,.80,.64],ca:.5,hz:.8,sat:1.22},
   /* (2026-10-21, Léo : « le ciel noir de l'orage… trop débutant, fais mieux ») L'ORAGE a SON ciel peint (avant : le noir du biome) : un zénith bleu-nuit, un milieu gris-violet meurtri, un horizon mauve où la lumière fuit sous la masse,
      de longues mèches de cirrus au-dessus, la mer d'ombre violette — des TEINTES de violet, pas un aplat. */
   /* (2026-10-21, Léo : « la pluie, c'est pareil : peindre un fond, c'est trop monotone ») LA PLUIE a SON ciel peint : un zénith bleu ardoise, un milieu bleu-argent, un horizon gris-lilas qui s'ouvre en
      pêche vers le soleil bas (l'éclaircie de l'arc-en-ciel), des faisceaux de lumière à travers la couverture, de longues mèches de cirrus, une mer d'ombre bleue éclairée d'argent — plusieurs plans, pas un gris uniforme. */
-  pluie:{tw:.6,ry:.4,cr:.45,z:[.20,.17,.27],m:[.42,.32,.43],h:[.80,.58,.58],s:[.72,.42,.30],mh:[.88,.68,.72],mo:[.34,.28,.40],c:[.95,.78,.80],ca:.5,hz:.7,sat:1.05,con:1.08}, // (2026-10-21, Léo : « tout l'écran est bleu, c'est nul » → l'APRÈS-PLUIE ROSE-MAUVE) gris-mauve en haut, rose-pêche en bas, le bleu seulement par touches
+  pluie:{tw:.6,ry:.4,cr:.45,z:[.20,.17,.27],m:[.42,.32,.43],h:[.80,.58,.58],s:[.72,.42,.30],mh:[.88,.68,.72],mo:[.52,.42,.54],c:[.95,.78,.80],ca:.5,hz:.7,sat:1.05,con:1.08}, // (2026-10-21, Léo : « tout l'écran est bleu, c'est nul » → l'APRÈS-PLUIE ROSE-MAUVE) gris-mauve en haut, rose-pêche en bas, le bleu seulement par touches
   orage:{tw:.55,ry:.12,cr:.5,z:[.035,.045,.12],m:[.15,.12,.25],h:[.40,.25,.33],s:[.30,.15,.24],mh:[.34,.29,.46],mo:[.07,.06,.15],c:[.50,.42,.60],ca:.6,hz:.65,sat:1.08,con:1.14},
   /* nuit : PAS de fond peint — la couche du menu la noircissait (le CLAIR DE LUNE bleu-violet de Sacha, 14/10, reste) */};
 const NUF={k:0,on:false,T:null,force:null,av:{},ap:{}};

@@ -250,7 +250,8 @@ function cotonVide(){COTON.n=0;if(COTON.root){COTON.root.visible=false;for(const
 // classique · bas · tour · flocon · banc · double | (v4) humilis ×2 · mediocris ×2 · congestus ×2 · castellanus · fractus
 const COTON_POIDS=(function(){ // (v6) près · milieu · loin — les classiques pèsent moins (on les revoyait à chaque partie), chaque genre a sa distance
   const C={pres:[2,1,.3,2,.8,1.2],mil:[1.4,1,1,1,1,1.4],loin:[1,1.2,2,.4,1.2,1]},W={humilis:[2.2,1,.8],mediocris:[1.6,1.4,1.2],congestus:[.3,1.3,2.2],castellanus:[.8,1.2,1],fractus:[1.6,.6,.2],
-    stratocumulus:[.8,1.3,1.6],altocumulus:[1.2,1.4,.6],cisaille:[.3,1,1.4],champignon:[.1,.6,1.6]},o={pres:[],mil:[],loin:[]};
+    stratocumulus:[.8,1.3,1.6],altocumulus:[1.2,1.4,.6],cisaille:[.3,1,1.4],champignon:[.1,.6,1.6],
+    arche:[.35,1,1.5],meduse:[.5,1.3,.9],anneau:[.35,1,1.3],spirale:[.25,.9,1.6],gateau:[.4,1.1,1.3],vague:[.3,1,1.5]},o={pres:[],mil:[],loin:[]};
   ['pres','mil','loin'].forEach(function(q,j){for(let k=0;k<6;k++)o[q].push(C[q][k]*.55);for(const g of COTON_GENRES)o[q].push(W[g][j]);});return o;})();
 function cotonKind(cr,w){let s=0;for(const x of w)s+=x;let u=cr()*s;for(let k=0;k<w.length;k++){u-=w[k];if(u<=0)return k;}return 0;}
 function cotonJade(cr){ // (2026-10-14, passe graphismes) le coton des PICS DE JADE — tiré sur `cr` (le flux des nuages : la piste et la vallée ne bougent pas)

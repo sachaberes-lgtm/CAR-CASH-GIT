@@ -252,9 +252,43 @@ function nuage8Calc(B, base, top, N, opt) {
    puis le CHOU-FLEUR : chaque lobe du haut porte 2-3 enfants ronds posés sur sa calotte, vers le haut et le dehors, et les enfants du sommet
    leurs petits-enfants. 70 lobes au plus. Fonction pure : la surface (nuage8Calc) les fond ensuite en une seule masse. */
 function cumulus8(genre, rng) {
-  const B = [], base = -.35, U = function (a, b) { return a + (b - a) * rng(); }, MAXB = 70;
+  const B = [], U = function (a, b) { return a + (b - a) * rng(); }, MAXB = 70; let base = -.35;
   const add = function (x, y, z, r, fy) { if (B.length < MAXB) B.push([x, y, z, r, fy || 1]); return B.length - 1; };
   let d = .7, H = .55, n0 = 9, rb = .3, tour = 0, enclume = 0, cis = 0, kidsK = 1;
+  /* (2026-10-21, Léo : « donne des formes encore plus originales à tes nuages ») SIX FORMES D'AUTEUR, en plus des cumulus : chacune est une silhouette qu'on reconnaît de loin et qui reste un nuage (lobes ronds qui se soudent,
+     base plate sauf la méduse) — ARCHE (une porte de ouate), MÉDUSE (un dôme et ses filaments qui pendent), ANNEAU (un beignet), SPIRALE (une vis qui monte et s'amincit), GÂTEAU (des étages qui rétrécissent), VAGUE (une crête qui déferle). */
+  if (genre === 'arche') { // deux piliers et une voûte : on voit le ciel dans le trou
+    for (const sd of [-1, 1]) for (let i = 0; i < 4; i++) for (const z of [-.14, .14]) add(sd * .64 + U(-.03, .03), base + .22 + i * .26, z + U(-.04, .04), .3 - i * .012, 1);
+    for (let i = 0; i <= 8; i++) { const t = i / 8 * Math.PI; for (const z of [-.13, .13]) add(Math.cos(t) * .64, base + 1.0 + Math.sin(t) * .36, z + U(-.04, .04), .27 + Math.sin(t) * .04, 1); }
+    enfants(B.length, .4); return fin();
+  }
+  if (genre === 'meduse') { // un dôme bombé, et dessous des filaments qui pendent et ondulent
+    base = -.95;
+    add(0, base + 1.18, 0, .5, .8);
+    for (let i = 0; i < 7; i++) { const a = i / 7 * 6.283 + U(-.2, .2); add(Math.cos(a) * .5, base + 1.0 + U(-.05, .05), Math.sin(a) * .42, .34, .7); }
+    for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283 + U(-.3, .3), ox = Math.cos(a) * .42, oz = Math.sin(a) * .36, sw = U(-.12, .12);
+      for (let k = 0; k < 4; k++) add(ox + sw * k, base + .74 - k * .17, oz + sw * k * .6, .12 - k * .012, 1); }
+    enfants(8, .5); return fin();
+  }
+  if (genre === 'anneau') { // un beignet de ouate : le ciel passe au milieu
+    for (let i = 0; i < 14; i++) { const a = i / 14 * 6.283; add(Math.cos(a) * .74, base + .34 + U(-.04, .06), Math.sin(a) * .62, .26 + U(-.02, .03), 1); }
+    for (let i = 0; i < 7; i++) { const a = (i + .5) / 7 * 6.283; add(Math.cos(a) * .74, base + .6, Math.sin(a) * .62, .2, 1); }
+    enfants(B.length, .5); return fin();
+  }
+  if (genre === 'spirale') { // une vis qui monte en s'amincissant
+    for (let i = 0; i < 19; i++) { const t = i / 18, a = t * 3.4 * Math.PI, r = .62 * (1 - .62 * t); add(Math.cos(a) * r, base + .24 + t * 1.75, Math.sin(a) * r * .8, .31 * (1 - .5 * t) + .04, 1); }
+    enfants(B.length, .35); return fin();
+  }
+  if (genre === 'gateau') { // des étages de ouate, de plus en plus petits
+    for (let t = 0; t < 3; t++) { const R = .92 - t * .27, y = base + .26 + t * .44, n = 9 - t * 2, rr = .31 - t * .06;
+      add(0, y, 0, rr * 1.4, .7); for (let i = 0; i < n; i++) { const a = i / n * 6.283 + t * .4; add(Math.cos(a) * R, y, Math.sin(a) * R * .8, rr, .62); } }
+    enfants(B.length, .4); return fin();
+  }
+  if (genre === 'vague') { // une crête qui monte et déferle vers l'avant
+    for (let i = 0; i < 8; i++) { const t = i / 7; for (const z of [-.2, .2]) add(-.95 + i * .25, base + .25 + Math.pow(t, 1.6) * .8, z + U(-.04, .04), .3 - t * .02, 1); }
+    for (let k = 0; k < 4; k++) for (const z of [-.18, .18]) add(.82 + k * .12, base + 1.12 - k * .14, z + U(-.04, .04), .22 - k * .02, 1);
+    enfants(B.length, .45); return fin();
+  }
   if (genre === 'humilis') { d = U(.55, .8); H = U(.28, .42); n0 = 11; rb = U(.22, .3); kidsK = .8; }
   else if (genre === 'mediocris') { d = U(.6, .8); H = U(.5, .7); n0 = 10; rb = U(.27, .34); }
   else if (genre === 'congestus') { d = U(.65, .85); H = U(.55, .75); n0 = 9; rb = U(.3, .36); tour = U(.9, 1.5); }

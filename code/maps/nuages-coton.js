@@ -205,8 +205,8 @@ function cotonBlobs(k,rng){ // un gabarit : [x,y,z,rayon,aplatissement] en unit�
   let top=base;for(const b of B)top=Math.max(top,b[1]+b[3]*b[4]);
   return {B:B,base:base,top:top};
 }
-const COTON_GENRES=['humilis','humilis','mediocris','mediocris','mediocris','congestus','congestus','congestus','castellanus','castellanus','fractus',
-  'stratocumulus','stratocumulus','altocumulus','altocumulus','cisaille','cisaille','champignon']; // (v6) les 18 gabarits tirés (indices 6 à 23)
+const COTON_GENRES=['humilis','meduse','mediocris','mediocris','mediocris','congestus','congestus','congestus','castellanus','spirale','arche',
+  'stratocumulus','gateau','altocumulus','anneau','cisaille','vague','champignon']; // (2026-10-21) six FORMES D'AUTEUR prennent la place de six gabarits tirés (voir cumulus8) : // (v6) les 18 gabarits tirés (indices 6 à 23)
 function cotonGenre(k){return k<6?'classique':COTON_GENRES[k-6];}
 function cotonDe(cr,gs){const L9=[];for(const g of gs){if(typeof g==='number')L9.push(g);else for(let k=0;k<COTON_GENRES.length;k++)if(COTON_GENRES[k]===g)L9.push(6+k);}return L9[cr()*L9.length|0];} // un gabarit parmi ces genres (ou ces classiques)
 function cotonR(cr,a,b,p){return a*Math.pow(b/a,Math.pow(cr(),p||1.7));} // une TAILLE en loi de puissance : beaucoup de petits, quelques géants

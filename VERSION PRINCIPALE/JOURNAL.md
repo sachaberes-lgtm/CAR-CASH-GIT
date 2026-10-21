@@ -3,6 +3,12 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## v774 — FORMES D'AUTEUR, MER MOINS GRISE, TITRE PLUS DOUX (2026-10-21, branche nuages-refonte, pas pour le main)
+Léo : « formes encore plus originales » ; « le bas est trop gris, un peu lumineux » ; « au menu ciel ils sont beaucoup trop définis ».
+- Six nouveaux gabarits dans `cumulus8` : ARCHE, MÉDUSE (filaments qui pendent), ANNEAU, SPIRALE, GÂTEAU (étages), VAGUE ; ils prennent la place de six gabarits tirés (`COTON_GENRES`) + poids `COTON_POIDS`.
+- `NU_FOND` : l'ombre de la mer (`mo`) éclaircie pour matin/midi/soir/pluie (le bas n'est plus gris).
+- Cumulus du titre : finesse d'un cran plus grossière (`chuteFormes`) = moins de détail net.
+
 ## LA PEAU COLLÉE AUX CUBES + LE NUAGE QUI FLOTTE (2026-10-21, v773, Léo : « couche par-dessus les cubes, pas gonflé, embrasse la forme des cubes » · « dans l'air aussi, des petits cubes qui se promènent comme des particules ; le nuage qui flotte ») — branche `nuages-refonte`
 - **LA PEAU** : plus de surface lisse gonflée. Ce sont les MÊMES faces que les cubes, décalées de 7 % de cube le long de leur normale de face (`VX.skin` .07) : une pellicule transparente collée sur chaque marche, qui en épouse tous les angles, avec les normales lissées du corps (elle luit comme un vernis). La surface lisse n'est plus calculée du tout (le calcul en est plus léger).
 - **LE NUAGE QUI FLOTTE** (`nuPouTick`, nuages-casses.js) : 240 petits cubes (1-5 m) blancs en suspension autour de la caisse (en course sur la map nuages, au titre devant l'objectif) : ils dérivent, tournent lentement, ondulent, montent un peu ; ceux qui passent derrière ou trop loin renaissent devant (60-430 m), fondus. `?air=0` = sans.
