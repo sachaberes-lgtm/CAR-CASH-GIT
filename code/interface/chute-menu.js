@@ -107,6 +107,15 @@ const NU_FOND={ // z zénith, m milieu, h horizon (et la brume), s lueur du sole
   orage:{tw:.55,ry:.12,cr:.5,z:[.035,.045,.12],m:[.15,.12,.25],h:[.40,.25,.33],s:[.30,.15,.24],mh:[.34,.29,.46],mo:[.07,.06,.15],c:[.50,.42,.60],ca:.6,hz:.65,sat:1.08,con:1.14},
   /* nuit : PAS de fond peint — la couche du menu la noircissait (le CLAIR DE LUNE bleu-violet de Sacha, 14/10, reste) */};
 const NUF={k:0,on:false,T:null,force:null,av:{},ap:{}};
+/* (2026-10-21, Léo : « montre directement les maps pluie et orage sur le menu, comme ça je peux examiner ») DEUX « HEURES » DE PLUS AU TITRE : PLUIE et ORAGE — le ciel peint de la map (NU_FOND.pluie / .orage : mêmes
+   couleurs, mêmes cirrus, même mer d'ombre) avec l'éclairage de la caisse d'un temps couvert (calé sur l'après-midi) / d'une nuit d'orage (calé sur la nuit). Les touches PLUIE et ORAGE de l'accueil les posent (CIEL_MENU). */
+{const cl=function(o){return JSON.parse(JSON.stringify(o));},cp=function(src){const o={};for(const k of ['tw','ry','cr','z','m','h','s','mh','mo','c','ca','hz'])o[k]=cl(src[k]);return o;};
+  TITRE_CIEL.pluie=cp(NU_FOND.pluie);TITRE_CIEL.orage=cp(NU_FOND.orage);
+  BIOMES.titrePluie=bioMet(BIOMES.titreAprem,{nm:'TITRE · PLUIE',jZen:NU_FOND.pluie.z,jMid:NU_FOND.pluie.m,jHor:NU_FOND.pluie.h,sunTint:[1,.86,.66],sunHalo:.35,sunI:(BIOMES.titreAprem.sunI||1)*.7,hemiI:(BIOMES.titreAprem.hemiI||1)*.92});
+  BIOMES.titreOrage=bioMet(BIOMES.titreNuit,{nm:'TITRE · ORAGE',jZen:NU_FOND.orage.z,jMid:NU_FOND.orage.m,jHor:NU_FOND.orage.h,stars:0,moon:0,sunHalo:0});
+  const pa=cl(TITRE_H.aprem.P),pn=cl(TITRE_H.nuit.P);pa.mzO=[NU_FOND.pluie.mo[0],NU_FOND.pluie.mo[1],NU_FOND.pluie.mo[2],.8];pa.mzH=[NU_FOND.pluie.mh[0],NU_FOND.pluie.mh[1],NU_FOND.pluie.mh[2],.8];
+  pn.mzO=[NU_FOND.orage.mo[0],NU_FOND.orage.mo[1],NU_FOND.orage.mo[2],.85];pn.mzH=[NU_FOND.orage.mh[0],NU_FOND.orage.mh[1],NU_FOND.orage.mh[2],.85];
+  TITRE_H.pluie={bio:'titrePluie',P:pa,v:cl(TITRE_H.aprem.v),t:[.94,.96,1]};TITRE_H.orage={bio:'titreOrage',P:pn,v:cl(TITRE_H.nuit.v),t:[.86,.86,1]};}
 for(const m9 in NU_FOND){const S9=SF_CARTES&&SF_CARTES.nuages&&SF_CARTES.nuages.m[m9],B9=S9&&BIOMES[S9.bio],P9=NU_FOND[m9];if(!B9)continue; // la brume des cumulus = l'horizon peint ; l'étalonnage rabattu (le bleu électrique venait AUSSI de là : sat 1,14 · con 1,24)
   NUF.av[m9]={fog:B9.fog.slice(),sat:B9.sat,con:B9.con};B9.fog=P9.h.slice();(NUF.ap0=NUF.ap0||{})[m9]=P9.h.slice();if(P9.sat)B9.sat=P9.sat;if(P9.con)B9.con=P9.con;NUF.ap[m9]={fog:B9.fog.slice(),sat:B9.sat,con:B9.con};}
 /* LE CIEL D'ARC (2026-10-19, essai — Léo : « le ciel dans ARC Raiders est hyper bien fait ; prends les images pour faire un fond plus réaliste
@@ -144,7 +153,11 @@ const ARCEC={cible:null};
 function arcEcTick(dt){const U=skyU.uArcE.value,c=LVL&&LVL.cur,run=started&&!gameOver&&c&&c.carte==='nuages';
   let t=run?(c.meteo==='pluie'?.3:0):((typeof CIEL_CH!=='undefined'&&CIEL_CH.v==='pluie')?.3:0);if(ARCEC.cible!=null)t=ARCEC.cible;U.x+=(t-U.x)*Math.min(1,dt*1.6);if(U.x<.002&&t===0)U.x=0;}
 window.dbgArcEC=function(x,l,h){ARCEC.cible=x==null?null:+x;if(l!=null)skyU.uArcE.value.y=+l;if(h!=null)skyU.uArcE.value.z=+h;return skyU.uArcE.value.toArray();}; // (banc) x force · l demi-largeur (rad) · h hauteur du soleil forcée (rad)
-function nuFondTick(dt){arcEcTick(dt); // à chaque image : la mer de nuages en course → le fond peint (il APPARAÎT en 0,7 s au portail) ; ailleurs, éteint
+/* L'ORAGE AU MENU : les cumulus du titre luisent de l'intérieur (violet) et s'éclairent d'un flash doux toutes les 2-5 s (même enveloppe que la course : un fondu, pas une alternance) */
+const MENU_ECL={t:2,k:0};
+function menuEclTick(dt){if(started&&!gameOver)return;const o=(typeof TITRE_HF!=='undefined'&&TITRE_HF.h==='orage'),U=N8_U;
+  if(o){MENU_ECL.t-=dt;if(MENU_ECL.t<=0){MENU_ECL.k=1;MENU_ECL.t=2+Math.random()*3;}MENU_ECL.k=Math.max(0,MENU_ECL.k-dt*2.4);U.uMood.value.set(1,.5,.5*MENU_ECL.k*MENU_ECL.k,0);U.uInC.value.set(.62,.5,1);MENU_ECL.on=true;}else if(MENU_ECL.on){MENU_ECL.on=false;U.uMood.value.set(1,0,0,0);}}
+function nuFondTick(dt){arcEcTick(dt);menuEclTick(dt); // à chaque image : la mer de nuages en course → le fond peint (il APPARAÎT en 0,7 s au portail) ; ailleurs, éteint
   if(typeof CHUTE!=='undefined'&&CHUTE.on){skyU.uPh.value.x=0;skyU.uMr.value.x=0;tapisPose('menu');return;} // (le menu peint son ciel lui-même)
   const c=LVL&&LVL.cur,T=(NUF.force!==0)&&c&&c.carte==='nuages'&&!PARK.on?NU_FOND[c.meteo]:null;if(T)NUF.T=T;
   NUF.k+=((T?1:0)-NUF.k)*(NUF.force!=null?1:Math.min(1,dt*1.5));

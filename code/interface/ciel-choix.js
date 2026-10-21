@@ -11,8 +11,8 @@ function cielChoixImpose(){ // à chaque départ : la map nuages à la météo c
   if(p&&SF.prochainDer===SF.der&&p.carte==='nuages'&&p.meteo===CIEL_CH.v)return; // la piste d'avance est déjà la bonne
   SF.force={carte:'nuages',meteo:CIEL_CH.v};}
 /* LE CIEL DU MENU SUIT (2026-10-21, Léo : « ça doit changer aussi le ciel du menu, les boutons ») : la touche choisie pose AUSSI l'heure du titre (TITRE_HF.force, via dbgHeure) ;
-   PLUIE → l'après-midi (le plus gris des ciels du titre), ORAGE → le soir (le plus sombre) ; AUTO rend la main à l'horloge du téléphone. */
-const CIEL_MENU={matin:'matin',midi:'midi',soir:'soir',nuit:'nuit',pluie:'aprem',orage:'soir',auto:null};
+   PLUIE et ORAGE → leur ciel peint de la map ; AUTO rend la main à l'horloge du téléphone. */
+const CIEL_MENU={matin:'matin',midi:'midi',soir:'soir',nuit:'nuit',pluie:'pluie',orage:'orage',auto:null}; /* PLUIE et ORAGE ont leur vrai ciel au menu (TITRE_H.pluie / .orage, chute-menu.js) */
 function cielChoixMenu(){try{if(typeof window.dbgHeure==='function')window.dbgHeure(CIEL_MENU[CIEL_CH.v]);}catch(e){}}
 function cielChoixPlace(){const e=CIEL_CH.el;if(!e)return;const h=document.getElementById('mHome');let r=null;if(h)for(const q of h.querySelectorAll('[data-m="garage"],[data-m="shop"],[data-m="set"],.mOutils')){const t=q.getBoundingClientRect();if(t.height>2&&(!r||t.top<r.top))r=t;}if(!r)return; /* la plus haute des touches de la barre de l'accueil visibles */e.style.top=Math.max(0,Math.round(r.top-30-10))+'px';}
 function cielChoixMaj(){const e=CIEL_CH.el;if(!e)return;

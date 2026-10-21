@@ -10,7 +10,8 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v767'; // v767 (2026-10-21, Léo : « le ciel noir de l'orage trop débutant ; la pluie, peindre un fond ; pas de gueules sur la route ») : ciel peint pour l'orage et la pluie, plus de bancs de nuage sur la route
+const CACHE = 'cashcar-v768'; // v768 (2026-10-21, Léo : « montre directement les maps pluie et orage sur le menu ») : les touches PLUIE et ORAGE de l'accueil montrent le vrai ciel peint de la map
+// const CACHE = 'cashcar-v767'; // v767 (2026-10-21, Léo : « le ciel noir de l'orage trop débutant ; la pluie, peindre un fond ; pas de gueules sur la route ») : ciel peint pour l'orage et la pluie, plus de bancs de nuage sur la route
 // const CACHE = 'cashcar-v766'; // v766 (2026-10-21, Léo : « la pluie plus jolie avec un petit arc-en-ciel ; l'orage violet nuancé, la foudre qui traverse les nuages, parfois sur la route ») : arc-en-ciel léger sous la pluie, éclairs dans les nuages et sur la route, halo violet
 // const CACHE = 'cashcar-v765'; // v765 (2026-10-21, Léo : « flouter les nuages, pas transparents ; propulsés et dispersés au contact, brusque ») : nuages opaques et adoucis, le coup brusque, contact avec les nuages de décor
 // const CACHE = 'cashcar-v764'; // v764 (2026-10-21, Léo : « chaque nuage adapté à sa météo, transparence façon forêt ») : humeurs des cumulus (trame transparente + lumière intérieure, éclairs) pour pluie, orage, nuit, soir ; le lien de test passe avant le ciel choisi

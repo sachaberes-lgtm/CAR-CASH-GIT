@@ -3,6 +3,11 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES MAPS PLUIE ET ORAGE DIRECTEMENT AU MENU (2026-10-21, v768, Léo : « montre sur les menus les options que tu as fabriquées, directement les maps rain et storm, comme ça je peux examiner ») — branche `nuages-refonte`
+- Deux « heures » de plus au titre (chute-menu.js, après `NUF`) : `TITRE_H.pluie` / `.orage`, `TITRE_CIEL`, `BIOMES.titrePluie` / `.titreOrage` — le ciel peint de la map (`NU_FOND`) + l'éclairage de la caisse d'un temps couvert / d'une nuit d'orage. Les touches PLUIE / ORAGE de l'accueil les posent (`CIEL_MENU`), avec les cumulus en cubes du titre.
+- Au menu, l'ORAGE fait luire les cumulus de l'intérieur (violet) et les éclaire d'un flash doux toutes les 2-5 s (`menuEclTick`). Pas d'éclair tracé au menu (ils naissent dans les nuages de la piste, absents du titre).
+- Vérifié à l'œil : PLUIE = argent bleuté, éclaircie pêche et faisceaux en haut à droite ; ORAGE = dégradé mauve-violet, nuages sombres.
+
 ## CIEL PEINT POUR L'ORAGE ET LA PLUIE, PLUS DE BANCS SUR LA ROUTE (2026-10-21, v767, Léo : « le ciel noir de l'orage, trop débutant, fais mieux » · « la pluie, c'est pareil : peindre un fond, trop monotone » · « évite de faire des gueules sur la route si tu n'arrives pas à les faire dégager ») — branche `nuages-refonte`
 - `NU_FOND.orage` et `NU_FOND.pluie` (chute-menu.js) : la couche peinte du titre (dégradé, lueur, faisceaux, cirrus, mer d'ombre) avec leur palette — orage : zénith bleu-nuit, milieu gris-violet, horizon mauve, mèches violettes ; pluie : ardoise bleue → argent → gris-lilas qui s'ouvre en pêche au soleil bas (l'arc-en-ciel s'y pose, il est dessiné APRÈS).
 - PLUS DE BANCS SUR LA ROUTE aux nuages (toutes météos ; `SANS_BANCS`, nuages-vitrail.js) ; `?bancs=1` les rend. Bannière du niveau : « MER DE NUAGES » (l'ancienne promettait « les nuages cachent les virages »).
