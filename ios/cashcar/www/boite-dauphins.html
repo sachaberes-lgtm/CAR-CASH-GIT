@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Boîte à dauphins — CASH CAR</title>
+<style>
+  :root{
+    --encre:#1d1d1f;--gris:#6e6e73;--gris2:#a1a1a6;
+    --sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{color:var(--encre);font-family:var(--sys);overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;
+    background:radial-gradient(ellipse 90% 75% at 50% 42%,#ffffff 0%,#f4f4f2 58%,#e8e8e5 100%)}
+  button{font:inherit;color:inherit}
+  body.reve{background:radial-gradient(ellipse 60% 45% at 50% 38%,#ffffff 0%,rgba(255,255,255,0) 70%),
+    linear-gradient(115deg,#ffb8e2 0%,#d9b8ff 24%,#a9d4ff 48%,#b9f3e6 70%,#fff2b3 86%,#ffc9e6 100%)}
+  body.reve #marque span,body.reve #etat,body.reve #aide{color:rgba(29,29,31,.55)}
+  #cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab;filter:saturate(1.4)} /* la saturation de l'étalonnage du jeu (POST_SAT 1,4) : ce qu'on voit ici, c'est ce qui sort en course */
+  #cv.tient{cursor:grabbing}
+
+  #marque{position:fixed;left:28px;top:24px;pointer-events:none}
+  #marque b{display:block;font-size:11px;letter-spacing:.24em;font-weight:600}
+  #marque span{display:block;font-size:11px;letter-spacing:.12em;color:var(--gris2);margin-top:4px}
+
+  #outils{position:fixed;right:20px;top:20px;display:flex;gap:8px}
+  .rond{width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.78);cursor:pointer;
+    box-shadow:0 1px 2px rgba(0,0,0,.06),0 0 0 .5px rgba(0,0,0,.07);display:grid;place-items:center;
+    -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);transition:background .2s}
+  .rond:hover{background:#fff}
+  .rond svg{width:16px;height:16px;stroke:var(--encre);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .rond.on{background:var(--encre)}.rond.on svg{stroke:#fff}
+
+  /* en bas : le choix de la vue, puis les interrupteurs */
+  #bas{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;
+    width:max-content;max-width:calc(100% - 32px)}
+  .seg{display:flex;padding:3px;border-radius:999px;background:rgba(0,0,0,.055);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+  .seg button{border:0;background:transparent;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:500;cursor:pointer;
+    color:var(--gris);transition:background .2s,color .2s,box-shadow .2s;white-space:nowrap}
+  .seg button.on{background:#fff;color:var(--encre);box-shadow:0 1px 3px rgba(0,0,0,.1),0 0 0 .5px rgba(0,0,0,.05)}
+  .opts{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+  .pil{border:0;border-radius:999px;padding:7px 13px;font-size:12px;cursor:pointer;background:rgba(255,255,255,.7);color:var(--gris);
+    box-shadow:0 0 0 .5px rgba(0,0,0,.09);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);transition:background .2s,color .2s,opacity .2s;white-space:nowrap}
+  .pil:hover{color:var(--encre)}
+  .pil.on{background:var(--encre);color:#fff;box-shadow:none}
+  .pil[hidden]{display:none}
+
+  #etat{position:fixed;left:28px;bottom:28px;font-size:11px;color:var(--gris2);letter-spacing:.03em;pointer-events:none;line-height:1.6}
+  #etat b{font-weight:500;color:var(--gris)}
+  #neuf{position:fixed;left:50%;top:22px;transform:translate(-50%,-8px);background:var(--encre);color:#fff;font-size:12px;letter-spacing:.04em;
+    padding:9px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}
+  #neuf.on{opacity:1;transform:translate(-50%,0)}
+  #neuf.err{background:#c4302b}
+  #aide{position:fixed;right:28px;bottom:30px;font-size:11px;color:var(--gris2);letter-spacing:.03em;pointer-events:none;transition:opacity .8s}
+  #aide.cache{opacity:0}
+  #charge{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;font-size:12px;color:var(--gris);letter-spacing:.08em}
+  #charge.fini{display:none}
+  #charge.erreur{pointer-events:auto;color:#c4302b;text-align:center;line-height:1.7;padding:24px}
+
+  @media (max-width:760px){
+    #marque{left:18px;top:16px}#outils{right:14px;top:14px}
+    #etat{left:50%;transform:translateX(-50%);bottom:auto;top:62px;text-align:center;white-space:nowrap}
+    #aide{display:none}#bas{bottom:18px}
+  }
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="marque"><b>BOÎTE À DAUPHINS</b><span>CASH CAR</span></div>
+<div id="outils">
+  <button class="rond on" id="bTourne" title="Tourner tout seul"><svg viewBox="0 0 16 16"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.6 2.2v2.6H11"/></svg></button>
+  <button class="rond" id="bCadre" title="Recadrer (R)"><svg viewBox="0 0 16 16"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/></svg></button>
+</div>
+<div id="bas">
+  <div class="seg" id="vue"><button data-v="un" class="on">Un dauphin</button><button data-v="banc">Le banc</button></div>
+  <div class="opts">
+    <button class="pil" id="oSurf" title="Ils sortent de l'eau : la surface les coupe, comme en jeu">Surface</button>
+    <button class="pil" id="oRas" title="Au ras de la route et vite : le liseré néon s'allume, le banc s'emballe">Au ras</button>
+    <button class="pil" id="oNoir" title="La robe de la frénésie DARK TRIAD">Dark triad</button>
+    <button class="pil" id="oLent" title="Tout au quart de la vitesse">Ralenti</button>
+    <button class="pil" id="oFige" title="Fige la nage (Espace)">Figé</button>
+    <button class="pil" id="oReve" title="Le fond pastel de ta référence : la nacre, le liseré et les étoiles y brillent comme en jeu">Ciel rêve</button>
+  </div>
+</div>
+<div id="etat"></div>
+<div id="neuf"></div>
+<div id="aide">glisse pour tourner · molette pour zoomer · 1 · 2 la vue</div>
+<div id="charge">Ouverture de la boîte…</div>
+
+<script src="vendor/three.min.js"></script>
+<script>
+'use strict';
+/* =====================================================================================================================
+   LA BOÎTE À DAUPHINS (2026-10-09, Léo : « retouchons les dauphins, envoie-moi dans une boîte blanche avec les dauphins,
+   on va les design »).
+   ⚠ RIEN N'EST RECOPIÉ DU DESSIN : la page LIT index.html (à côté d'elle) et exécute le VRAI bloc des dauphins du jeu — de
+   `const DOL_L=` jusqu'à `const dolphinRig=` (profil, robe, géométrie, nageoires, matière et son shader, gabarits du banc).
+   Elle le RELIT toute seule (≈ 1 fois/s) : une retouche du dauphin dans index.html apparaît ici sans recharger la page.
+   Ce qui vit ICI seulement : la salle (fond, lumières, ombre au sol), la caméra, et la chorégraphie du banc — recopiée de
+   `updateDolphins` (bonds, cap, cambrure, queue qui pompe, surface, gerbes, sillage), sans la caisse ni la route.
+   Sur fond blanc, les gerbes et le sillage du jeu (additifs, presque blancs) seraient invisibles : ils sont peints ici en
+   couleur pleine (eau cyan, sillage rose).
+   ===================================================================================================================== */
+const $=id=>document.getElementById(id);
+const JOURNAL=[]; // les erreurs (un shader qui ne compile pas, une exception) s'affichent dans la boîte : on voit tout de suite ce qui casse
+{const ce=console.error.bind(console);console.error=(...a)=>{JOURNAL.push(a.map(String).join(' ').slice(0,1200));ce(...a);};
+  addEventListener('error',e=>{JOURNAL.push(String(e.message)+' @'+e.lineno);try{etat();}catch(_){}});}
+const PREF=(()=>{try{return JSON.parse(localStorage.getItem('boiteDauphins')||'{}')||{};}catch(e){return {};}})();
+const ST=Object.assign({vue:'un',tourne:true,surf:true,ras:false,noir:false,lent:false,fige:false,reve:false},PREF);
+{const q=new URLSearchParams(location.search);if(q.get('vue'))ST.vue=q.get('vue')==='banc'?'banc':'un';for(const k of ['surf','ras','noir','lent','fige','tourne','reve'])if(q.has(k))ST[k]=q.get(k)!=='0';} // ?vue=banc&noir=1 : une vue d'entrée
+const garde=()=>{try{localStorage.setItem('boiteDauphins',JSON.stringify(ST));}catch(e){}};
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   1. LIRE LE JEU — le bloc des dauphins par le DÉBUT de ses lignes (les numéros bougent à chaque commit)
+   --------------------------------------------------------------------------------------------------------------------- */
+let JEU=null,BLOC='',LU='',ERR='',VERSION=0;
+async function lireBloc(){
+  // ⚠ le service worker du jeu répond à `index.html` depuis SON cache : une requête à part y échappe
+  const r=await fetch('index.html?boite='+Date.now(),{cache:'no-store'});
+  if(!r.ok)throw new Error('index.html : '+r.status);
+  const L=(await r.text()).split('\n');
+  let a=-1,b=-1;
+  for(let i=0;i<L.length;i++){if(a<0&&L[i].startsWith('const DOL_L='))a=i;else if(a>=0&&L[i].startsWith('const dolphinRig=')){b=i;break;}}
+  if(a<0||b<0)throw new Error('bloc des dauphins introuvable dans index.html');
+  return L.slice(a,b).join('\n');
+}
+function executer(bloc,dolphins,dolTrail,dolSplash){
+  // le bloc appelle triNoir/dolphins/dolTrail/dolSplash dans dolNoirMaj : on lui prête les nôtres
+  return new Function('THREE','triNoir','dolphins','dolTrail','dolSplash',bloc+
+    '\nreturn {DOL_L,DOL_GEO,DOL_U,DOL_BANC,mkDauphin,dolNoirMaj:typeof dolNoirMaj==="function"?dolNoirMaj:null,DOL_ETOILE:typeof DOL_ETOILE!=="undefined"?DOL_ETOILE:null};')
+    (THREE,()=>ST.noir,dolphins,dolTrail,dolSplash);
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   2. LA SALLE — fond transparent (le blanc est celui de la page), deux lumières de studio, une ombre douce au sol
+   --------------------------------------------------------------------------------------------------------------------- */
+const cv=$('cv');
+const renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
+renderer.setClearColor(0xffffff,0);
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12; // le jeu étalonne en ACES (sa passe de post) : les hautes lumières roulent au lieu de brûler
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(36,1,.1,400);
+scene.add(new THREE.HemisphereLight(0xffffff,0xd9d4e6,.7));
+const cle=new THREE.DirectionalLight(0xffffff,.8);cle.position.set(4,9,5);scene.add(cle);
+const contre=new THREE.DirectionalLight(0xf0ecff,.35);contre.position.set(-6,2,-7);scene.add(contre);
+
+const sol=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');
+  const g=x.createRadialGradient(64,64,2,64,64,62);g.addColorStop(0,'rgba(40,30,70,.30)');g.addColorStop(.45,'rgba(40,30,70,.12)');g.addColorStop(1,'rgba(40,30,70,0)');
+  x.fillStyle=g;x.fillRect(0,0,128,128);
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false}));
+  m.rotation.x=-Math.PI/2;m.renderOrder=-1;return m;})(); // le gabarit : ses copies (une par dauphin) vont en scène
+
+// la goutte : celle du jeu (sparkTex), un disque au cœur plein et au bord fondu
+const goutte=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');
+  const g=x.createRadialGradient(32,32,1,32,32,30);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.3,'rgba(255,255,255,.9)');
+  g.addColorStop(.6,'rgba(255,255,255,.35)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.beginPath();x.arc(32,32,30,0,7);x.fill();
+  return new THREE.CanvasTexture(c);})();
+const PX={value:600};
+function mkPool(n,size,col){ // les particules : vie, gravité et repli comme les pools du jeu — en couleur PLEINE (fond blanc)
+  const g=new THREE.BufferGeometry(),pos=new Float32Array(n*3),fa=new Float32Array(n),sz=new Float32Array(n);
+  for(let i=0;i<n;i++){pos[i*3+1]=-99999;sz[i]=.7+Math.random()*.6;}
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('aF',new THREE.BufferAttribute(fa,1));g.setAttribute('aS',new THREE.BufferAttribute(sz,1));
+  const m=new THREE.ShaderMaterial({uniforms:{uC:{value:new THREE.Color(col)},uMap:{value:goutte},uSize:{value:size},uPx:PX},transparent:true,depthWrite:false,
+    vertexShader:'attribute float aF;attribute float aS;varying float vF;uniform float uSize;uniform float uPx;\n'+
+      'void main(){vF=aF;vec4 mv=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*mv;gl_PointSize=uSize*aS*uPx/max(.1,-mv.z)*(.45+.55*aF);}',
+    fragmentShader:'uniform vec3 uC;uniform sampler2D uMap;varying float vF;\n'+
+      'void main(){float a=texture2D(uMap,gl_PointCoord).a*smoothstep(0.,.35,vF)*.9;if(a<.02)discard;gl_FragColor=vec4(uC,a);}'});
+  m.color=m.uniforms.uC.value; // dolNoirMaj du jeu écrit `mesh.material.color`
+  const mesh=new THREE.Points(g,m);mesh.frustumCulled=false;scene.add(mesh);
+  return {n,pos,fa,mesh,vel:new Float32Array(n*3),life:new Float32Array(n),l0:new Float32Array(n),i:0,col0:col};
+}
+function spawnP(p,x,y,z,vx,vy,vz,l){const i=p.i;p.i=(p.i+1)%p.n;
+  p.pos[i*3]=x;p.pos[i*3+1]=y;p.pos[i*3+2]=z;p.vel[i*3]=vx;p.vel[i*3+1]=vy;p.vel[i*3+2]=vz;p.life[i]=p.l0[i]=l;p.fa[i]=1;}
+function poolStep(p,dt,g){let viv=false; // dolPoolStep du jeu
+  for(let i=0;i<p.n;i++){if(p.life[i]>0){viv=true;p.life[i]-=dt;p.vel[i*3+1]-=g*dt;
+    p.pos[i*3]+=p.vel[i*3]*dt;p.pos[i*3+1]+=p.vel[i*3+1]*dt;p.pos[i*3+2]+=p.vel[i*3+2]*dt;
+    p.fa[i]=p.life[i]>0?p.life[i]/p.l0[i]:0;if(p.life[i]<=0)p.pos[i*3+1]=-99999;}}
+  if(viv||p._v){const at=p.mesh.geometry.attributes;at.position.needsUpdate=true;at.aF.needsUpdate=true;}p._v=viv;}
+const dolTrail=mkPool(260,.5,0x9d8cff),dolSplash=mkPool(480,.42,0x8ccff0); // sur blanc : étoiles lavande ; au ciel rêve : blanches, en lumière (fondJeu)
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   3. LES DAUPHINS — six maillages du jeu ; l'état de la chorégraphie vit à part (il survit à un nouveau dessin)
+   --------------------------------------------------------------------------------------------------------------------- */
+const dolphins=[],ombres=[],ETAT=[];
+for(let i=0;i<6;i++){ETAT.push({p:0,tailPh:i*1.7,roll:i*2.3,up:false,vr:0});
+  const o=sol.clone();o.material=sol.material;scene.add(o);ombres.push(o);}
+function monter(bloc){
+  const ancien=dolphins.splice(0);
+  let J;try{J=executer(bloc,dolphins,dolTrail,dolSplash);}catch(e){dolphins.push(...ancien);throw e;}
+  for(const d of ancien){scene.remove(d);d.material.dispose();}
+  if(JEU&&JEU.DOL_GEO!==J.DOL_GEO)JEU.DOL_GEO.dispose();
+  const cle=(J.mkDauphin().material.customProgramCacheKey()||'dauphin')+'-boite'+(++VERSION);
+  for(let i=0;i<J.DOL_BANC.length&&i<6;i++){const d=J.mkDauphin();d.material.customProgramCacheKey=()=>cle;d.userData.b=J.DOL_BANC[i];scene.add(d);dolphins.push(d);}
+  dolTrail.mesh.material.uniforms.uMap.value=J.DOL_ETOILE||goutte;
+  JEU=J;BLOC=bloc;noirFait=null;
+  for(let i=0;i<dolphins.length;i++)ETAT[i].p=J.DOL_BANC[i].p0;
+}
+let noirFait=null;
+function noirMaj(){ // la robe noire : la fonction du jeu elle-même ; au retour, on remet NOS couleurs d'eau (les siennes sont blanches)
+  if(noirFait===ST.noir||!JEU)return;noirFait=ST.noir;
+  if(JEU.dolNoirMaj)JEU.dolNoirMaj();
+  if(!ST.noir){dolTrail.mesh.material.color.setHex(ST.reve?0xffe6fb:dolTrail.col0);dolSplash.mesh.material.color.setHex(ST.reve?0xd6faff:0x8ccff0);}
+}
+function gerbe(x,y,z,power,k,nM){ // dolGerbe du jeu
+  const nA=Math.round(18*(nM||1)),nB=Math.round(14*(nM||1));
+  for(let n=0;n<nA;n++){const a=Math.random()*6.28,sp=(.7+Math.random()*1.3)*power*k;
+    spawnP(dolSplash,x,y,z,Math.cos(a)*sp*.55,(1.1+Math.random()*1.4)*power*k,Math.sin(a)*sp*.55,.6+Math.random()*.45);}
+  for(let n=0;n<nB;n++){const a=n/nB*6.28+Math.random()*.3,sp=(1.5+Math.random()*.7)*power*k;
+    spawnP(dolSplash,x,y,z,Math.cos(a)*sp,1.35*k,Math.sin(a)*sp,.4+Math.random()*.15);}
+  for(let n=0;n<3;n++)spawnP(dolSplash,x+(Math.random()-.5)*.3*k,y,z+(Math.random()-.5)*.3*k,0,(2.3+Math.random()*1.2)*power*k,0,.8+Math.random()*.3);
+}
+
+// UN DAUPHIN : le premier gabarit, à l'échelle 1, qui nage sur place (la queue pompe, il respire de haut en bas)
+const SOL_Y=-1.05;
+function animUn(dt,t){
+  const d=dolphins[0],u=ETAT[0];if(!d)return;
+  for(let i=1;i<dolphins.length;i++){dolphins[i].visible=false;ombres[i].visible=false;}
+  d.visible=true;d.scale.setScalar(1);
+  const y=.09*Math.sin(t*1.25);d.position.set(0,y,0);
+  d.rotation.set(.07*Math.sin(t*.8),0,.06*Math.cos(t*1.25));
+  u.tailPh+=dt*(7.5+.3*8);
+  const m=d.material.userData;m.uDol.value.set(ST.fige?0:.14,u.tailPh,2.3,0);m.uSurf.value.set(0,1,0,-1e9);
+  JEU.DOL_U.uRimK.value=ST.ras?4:1.5;JEU.DOL_U.uEcume.value=.2;
+  if(dt>0&&Math.random()<dt*14){const q=JEU.DOL_L*.5*(.8-2*Math.random());spawnP(dolTrail,q+(Math.random()-.5)*.5,y+(Math.random()-.5)*.9,(Math.random()-.5)*.9,-1.4,.05,0,.7+Math.random()*.5);}
+  const o=ombres[0];o.visible=true;o.position.set(-.2,SOL_Y,0);o.scale.set(3.9,1,1.5);o.material.opacity=1-.25*(y+.09);
+}
+
+// LE BANC : updateDolphins du jeu, tel quel, dans le repère du banc (x = la traversée, y = le haut, z = la profondeur) — k 1, W 8
+const BK=1,BW=8,BDIR=1;
+function animBanc(dt){
+  const k=BK,W=BW,dir=BDIR,rK=ST.ras?1:0,tempo=1+.5*rK,gK=1+rK;
+  JEU.DOL_U.uEcume.value=.2*k;JEU.DOL_U.uRimK.value=1.5+2.5*rK*rK;
+  for(let i9=0;i9<dolphins.length;i9++){const d=dolphins[i9],u=ETAT[i9],b=d.userData.b;ombres[i9].visible=false;
+    u.p+=dt*b.speed*b.speed*8.8*tempo;
+    if(u.p>1.2){u.p=-(.2+Math.random()*.3);u.vr=Math.random()<.34?(Math.random()<.5?1:-1):0;}
+    const p=u.p,vis=p>-.18&&p<1.18;d.visible=vis;
+    const arc=Math.sin(p*Math.PI),amp=b.amp*k,base=b.base*k,x=dir*W*(2*p-1),y=base+arc*amp,z=-b.z*k;
+    const above=y>base+.15*k&&p>0&&p<1;
+    if(above!==u.up){if(ST.surf)gerbe(x,base+.05*k,z,(above?1.2:.9)*b.scale,k,gK);u.up=above;}
+    if(!vis)continue;
+    const s=k*b.scale;d.scale.setScalar(s);d.position.set(x,y,z);
+    const pitch=Math.atan2(Math.cos(p*Math.PI)*amp*Math.PI,2*W*.8);
+    u.roll+=dt*1.3;
+    d.rotation.set(Math.sin(u.roll)*.12+u.vr*6.2832*THREE.MathUtils.smoothstep(p,.12,.88),dir>0?0:Math.PI,pitch);
+    u.tailPh+=dt*(7.5+b.speed*8);const hors=Math.max(0,arc);
+    const mu=d.material.userData;
+    mu.uDol.value.set(ST.fige?0:.11+.22*(1-hors)*(1-hors),u.tailPh,2.3,Math.min(.1,.5*Math.PI*Math.PI*amp/(4*W*W)*s*1.4));
+    mu.uSurf.value.set(0,1,0,ST.surf?base:-1e9);
+    if(ST.surf){const sp9=Math.sin(pitch),t9=Math.abs(sp9)>.12?(base-y)/sp9:99;
+      if(Math.abs(t9)<JEU.DOL_L*.5*s&&Math.random()<dt*42*gK){const x9=x+dir*Math.cos(pitch)*t9;
+        spawnP(dolSplash,x9+(Math.random()-.5)*.35*k,base+.04*k,z+(Math.random()-.5)*.35*k,(Math.random()-.5)*1.2*k,(1+Math.random()*1.3)*k,(Math.random()-.5)*1.2*k,.3+Math.random()*.25);}}
+    if(above&&Math.random()<dt*55){const q=JEU.DOL_L*.5*s*(.8-2*Math.random());
+      spawnP(dolTrail,x+dir*Math.cos(pitch)*q+(Math.random()-.5)*.6*k,y+Math.sin(pitch)*q+(Math.random()-.5)*.6*k,z+(Math.random()-.5)*.6*k,0,0,0,.55+Math.random()*.35);}
+  }
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   4. LA CAMÉRA — une orbite à inertie autour de la cible ; « tourner » la fait glisser seule quand le doigt la lâche
+   --------------------------------------------------------------------------------------------------------------------- */
+const CADRES={un:{cx:-.15,cy:.05,cz:0,yaw:.62,pitch:.2,dist:6.4},banc:{cx:0,cy:.3,cz:-.8,yaw:Math.PI-.18,pitch:.12,dist:18}};
+const CAM={cx:0,cy:0,cz:0,yaw:0,pitch:0,dist:8,vy:0,vp:0,lache:9,vise:null};
+function recadre(dur){const c=CADRES[ST.vue];CAM.vise={a:{cx:CAM.cx,cy:CAM.cy,cz:CAM.cz,yaw:CAM.yaw,pitch:CAM.pitch,dist:CAM.dist},b:c,t:0,d:dur||0};
+  // le lacet le plus court
+  const dy=((c.yaw-CAM.yaw)%(2*Math.PI)+3*Math.PI)%(2*Math.PI)-Math.PI;CAM.vise.b=Object.assign({},c,{yaw:CAM.yaw+dy});
+  if(!dur){Object.assign(CAM,CAM.vise.b);CAM.vise=null;}CAM.vy=CAM.vp=0;}
+function camTick(dt){
+  if(CAM.vise){const v=CAM.vise;v.t=Math.min(1,v.t+dt/v.d);const e=v.t<.5?4*v.t*v.t*v.t:1-Math.pow(-2*v.t+2,3)/2;
+    for(const k in v.b)CAM[k]=v.a[k]+(v.b[k]-v.a[k])*e;if(v.t>=1)CAM.vise=null;}
+  else{CAM.lache+=dt;
+    if(!tient){CAM.yaw+=CAM.vy*dt;CAM.pitch+=CAM.vp*dt;const f=Math.exp(-dt*3.2);CAM.vy*=f;CAM.vp*=f;
+      if(ST.tourne&&CAM.lache>1.6)CAM.yaw+=dt*.22*Math.min(1,(CAM.lache-1.6)/1.2);}
+    CAM.pitch=Math.max(-.55,Math.min(1.25,CAM.pitch));}
+  const cp=Math.cos(CAM.pitch);
+  camera.position.set(CAM.cx+CAM.dist*Math.sin(CAM.yaw)*cp,CAM.cy+CAM.dist*Math.sin(CAM.pitch),CAM.cz+CAM.dist*Math.cos(CAM.yaw)*cp);
+  camera.lookAt(CAM.cx,CAM.cy,CAM.cz);
+}
+let tient=false,px0=0,py0=0,pid=null,pinc=null;const doigts=new Map();
+cv.addEventListener('pointerdown',e=>{doigts.set(e.pointerId,{x:e.clientX,y:e.clientY});cv.setPointerCapture(e.pointerId);
+  if(doigts.size===1){tient=true;pid=e.pointerId;px0=e.clientX;py0=e.clientY;CAM.vy=CAM.vp=0;CAM.vise=null;cv.classList.add('tient');$('aide').classList.add('cache');}
+  else if(doigts.size===2){const [a,b]=[...doigts.values()];pinc={d:Math.hypot(a.x-b.x,a.y-b.y),dist:CAM.dist};}});
+cv.addEventListener('pointermove',e=>{if(!doigts.has(e.pointerId))return;doigts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pinc&&doigts.size>=2){const [a,b]=[...doigts.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);CAM.dist=Math.max(3,Math.min(40,pinc.dist*pinc.d/Math.max(1,d)));return;}
+  if(!tient||e.pointerId!==pid)return;
+  const dx=e.clientX-px0,dy=e.clientY-py0;px0=e.clientX;py0=e.clientY;const k=3.4/Math.max(320,cv.clientHeight);
+  CAM.yaw-=dx*k;CAM.pitch+=dy*k;CAM.vy=-dx*k*60;CAM.vp=dy*k*60;CAM.lache=0;});
+const lache=e=>{doigts.delete(e.pointerId);if(doigts.size<2)pinc=null;
+  if(e.pointerId===pid){tient=false;pid=null;CAM.lache=0;cv.classList.remove('tient');}};
+cv.addEventListener('pointerup',lache);cv.addEventListener('pointercancel',lache);
+cv.addEventListener('wheel',e=>{e.preventDefault();CAM.vise=null;CAM.dist=Math.max(3,Math.min(40,CAM.dist*Math.exp(e.deltaY*.0012)));},{passive:false});
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   5. L'INTERFACE
+   --------------------------------------------------------------------------------------------------------------------- */
+function peindre(){
+  for(const b of $('vue').children)b.classList.toggle('on',b.dataset.v===ST.vue);
+  $('bTourne').classList.toggle('on',ST.tourne);
+  $('oSurf').hidden=ST.vue!=='banc';
+  for(const [id,k] of [['oSurf','surf'],['oRas','ras'],['oNoir','noir'],['oLent','lent'],['oFige','fige'],['oReve','reve']])$(id).classList.toggle('on',!!ST[k]);
+  fondJeu();
+}
+function fondJeu(){ // au CIEL RÊVE, les étoiles redeviennent de la lumière (additives, blanches) comme en jeu ; sur blanc, de la couleur
+  document.body.classList.toggle('reve',!!ST.reve);const m=dolTrail.mesh.material;
+  m.blending=ST.reve?THREE.AdditiveBlending:THREE.NormalBlending;if(!ST.noir)m.uniforms.uC.value.setHex(ST.reve?0xffe6fb:0x9d8cff);m.needsUpdate=true;
+  const g=dolSplash.mesh.material;g.blending=m.blending;if(!ST.noir)g.uniforms.uC.value.setHex(ST.reve?0xd6faff:0x8ccff0);g.needsUpdate=true;} // les gerbes aussi : de l'écume blanche en lumière au ciel rêve, un cyan doux sur blanc
+function vue(v){if(v===ST.vue)return;ST.vue=v;garde();peindre();recadre(.9);
+  for(const p of [dolTrail,dolSplash])for(let i=0;i<p.n;i++){p.life[i]=0;p.pos[i*3+1]=-99999;}
+  if(JEU)for(let i=0;i<dolphins.length;i++){ETAT[i].p=JEU.DOL_BANC[i].p0;ETAT[i].up=false;}}
+$('vue').addEventListener('click',e=>{const b=e.target.closest('button');if(b)vue(b.dataset.v);});
+$('bTourne').onclick=()=>{ST.tourne=!ST.tourne;garde();peindre();};
+$('bCadre').onclick=()=>recadre(.8);
+for(const [id,k] of [['oSurf','surf'],['oRas','ras'],['oNoir','noir'],['oLent','lent'],['oFige','fige'],['oReve','reve']])
+  $(id).onclick=()=>{ST[k]=!ST[k];garde();peindre();};
+addEventListener('keydown',e=>{if(e.key==='1')vue('un');else if(e.key==='2')vue('banc');else if(e.key==='r'||e.key==='R')recadre(.8);
+  else if(e.key===' '){e.preventDefault();ST.fige=!ST.fige;garde();peindre();}});
+
+const heure=()=>new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+function etat(){const g=JEU&&JEU.DOL_GEO,n=g?(g.index?g.index.count:g.attributes.position.count)/3:0;
+  $('etat').innerHTML='<b>Le dauphin du jeu</b> · '+n+' facettes · lu à '+LU+(ERR?'<br><span style="color:#c4302b">'+ERR+'</span>':'')+(JOURNAL.length?'<br><span id="journal" style="color:#c4302b">'+JOURNAL[0].replace(/</g,'&lt;').slice(0,300)+'</span>':'');}
+let neufT=0;
+function annonce(txt,err){const el=$('neuf');el.textContent=txt;el.classList.toggle('err',!!err);el.classList.add('on');clearTimeout(neufT);neufT=setTimeout(()=>el.classList.remove('on'),err?5000:2600);}
+
+// LA RELECTURE : index.html changé (en-tête Last-Modified / taille) → on relit le bloc ; changé → nouveau dessin
+let signe='',signeBoite=null;
+async function veille(){
+  try{const rb=await fetch('boite-dauphins.html?v='+Date.now(),{method:'HEAD',cache:'no-store'}); // la BOÎTE elle-même a changé (lumières, vues, boutons) : on recharge la page — réglages et vue sont gardés
+    const sb=(rb.headers.get('last-modified')||'')+'|'+(rb.headers.get('content-length')||'');if(signeBoite===null)signeBoite=sb;else if(sb!==signeBoite){location.reload();return;}}catch(e){}
+  try{const r=await fetch('index.html?boite-v='+Date.now(),{method:'HEAD',cache:'no-store'});
+    const s=(r.headers.get('last-modified')||'')+'|'+(r.headers.get('content-length')||'');
+    if(s!==signe){signe=s;const bloc=await lireBloc();
+      if(bloc!==BLOC){try{monter(bloc);ERR='';LU=heure();annonce('Nouveau dessin · '+LU);}
+        catch(e){ERR='le dessin a une erreur : '+e.message+' — on garde le précédent';annonce('Erreur dans le dessin',true);}
+        etat();}}}
+  catch(e){}
+  setTimeout(veille,900);
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   6. LA BOUCLE
+   --------------------------------------------------------------------------------------------------------------------- */
+function taille(){const w=innerWidth,h=innerHeight,pr=Math.min(devicePixelRatio||1,2);
+  renderer.setPixelRatio(pr);renderer.setSize(w,h,false);camera.aspect=w/h;
+  camera.fov=w<h?48:36;camera.updateProjectionMatrix();PX.value=h*pr/(2*Math.tan(camera.fov*Math.PI/360));}
+addEventListener('resize',taille);
+let t0=performance.now(),T=0;const VD=new THREE.Vector3();
+function boucle(now){
+  const dtR=Math.min(.05,(now-t0)/1000);t0=now;
+  const dt=ST.fige?0:dtR*(ST.lent?.25:1);T+=dt;
+  if(JEU){noirMaj();if(ST.vue==='un')animUn(dt,T);else animBanc(dt);}
+  poolStep(dolTrail,dt,0);poolStep(dolSplash,dt,6*BK);
+  camTick(dtR);
+  if(JEU&&JEU.DOL_U.uLum){camera.getWorldDirection(VD);JEU.DOL_U.uLum.value.set(0,1,0).addScaledVector(VD,-.4).normalize();} // comme updateDolphins : sa lumière vient d'en haut, un peu de face
+  renderer.render(scene,camera);
+  if(JOURNAL.length!==boucle.nj){boucle.nj=JOURNAL.length;etat();}
+  requestAnimationFrame(boucle);
+}
+(async()=>{
+  try{const bloc=await lireBloc();monter(bloc);LU=heure();
+    const r=await fetch('index.html?boite-v='+Date.now(),{method:'HEAD',cache:'no-store'});signe=(r.headers.get('last-modified')||'')+'|'+(r.headers.get('content-length')||'');}
+  catch(e){const c=$('charge');c.classList.add('erreur');c.innerHTML='La boîte n\'a pas pu lire le jeu.<br>'+e.message+
+    '<br><br>Ouvre-la par le serveur du dossier (http://localhost:…/boite-dauphins.html), pas en double-clic.';return;}
+  $('charge').classList.add('fini');
+  taille();peindre();recadre(0);etat();
+  {const q=new URLSearchParams(location.search);for(const k of ['yaw','pitch','dist','cx','cy','cz'])if(q.has(k))CAM[k]=+q.get(k);} // ?yaw=1.57&dist=4 : un angle d'entrée (photos)
+  requestAnimationFrame(boucle);setTimeout(veille,900);
+})();
+</script>
+</body>
+</html>

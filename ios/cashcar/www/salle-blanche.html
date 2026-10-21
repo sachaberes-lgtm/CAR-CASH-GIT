@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Salle blanche — CASH CAR</title>
+<style>
+  :root{
+    --fond:#f1f1ef;          /* le blanc de la salle — le même que le ciel de la scène 3D (BG plus bas) */
+    --encre:#1d1d1f;--gris:#6e6e73;--gris2:#a1a1a6;--trait:rgba(0,0,0,.07);
+    --carte:#f1f1ef;          /* le fond des vignettes : celui de leur photo, pour qu'elles se fondent */
+    --panneau:372px;
+    --sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--fond);color:var(--encre);font-family:var(--sys);overflow:hidden;
+    -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+  button,input,textarea{font:inherit;color:inherit}
+
+  /* ---------- LA SALLE ---------- */
+  #salle{position:fixed;left:0;top:0;bottom:0;right:var(--panneau)}
+  #salle canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+  #salle canvas.tient{cursor:grabbing}
+  #marque{position:absolute;left:28px;top:24px;pointer-events:none}
+  #marque b{display:block;font-size:11px;letter-spacing:.24em;font-weight:600}
+  #marque span{display:block;font-size:11px;letter-spacing:.12em;color:var(--gris2);margin-top:4px}
+  #outils{position:absolute;right:20px;top:20px;display:flex;gap:8px}
+  .rond{width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.75);cursor:pointer;
+    box-shadow:0 1px 2px rgba(0,0,0,.06),0 0 0 .5px rgba(0,0,0,.06);display:grid;place-items:center;
+    -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);transition:background .2s}
+  .rond:hover{background:#fff}
+  .rond svg{width:16px;height:16px;stroke:var(--encre);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .rond.on{background:var(--encre)}.rond.on svg{stroke:#fff}
+  #aide{position:absolute;left:50%;top:34px;transform:translateX(-50%);font-size:11px;color:var(--gris2);
+    letter-spacing:.04em;pointer-events:none;transition:opacity .8s;white-space:nowrap}
+  #aide.cache{opacity:0}
+
+  /* la fiche de la voiture, en bas à gauche de la salle */
+  #fiche{position:absolute;left:28px;bottom:26px;width:min(420px,calc(100% - 56px))}
+  #fNom{font-size:34px;font-weight:600;letter-spacing:.02em;line-height:1.05}
+  #fLigne{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:10px;font-size:12px;color:var(--gris);letter-spacing:.04em}
+  .pastille{display:inline-flex;align-items:center;gap:6px;font-weight:600;color:var(--encre);letter-spacing:.1em;font-size:11px}
+  .point{width:8px;height:8px;border-radius:50%;flex:0 0 8px;background:var(--c,#999)}
+  #fAvant{color:var(--gris2)}
+  #fCote{color:var(--gris2)}
+  .champ{display:block;margin-top:14px}
+  .champ i{display:block;font-style:normal;font-size:10px;letter-spacing:.14em;color:var(--gris2);margin-bottom:5px;text-transform:uppercase}
+  #fPrix{width:100%;border:0;border-bottom:1px solid transparent;background:transparent;font-size:15px;font-weight:500;padding:2px 0;
+    outline:none;transition:border-color .2s}
+  #fPrix:hover{border-bottom-color:var(--trait)}#fPrix:focus{border-bottom-color:var(--encre)}
+  #fPrix.change{color:#0a63d6}
+  #fNote{width:100%;min-height:64px;max-height:180px;resize:none;border:0;border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.45;
+    background:rgba(255,255,255,.72);box-shadow:0 0 0 .5px rgba(0,0,0,.08),0 6px 24px rgba(0,0,0,.04);outline:none;
+    -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+  #fNote:focus{background:#fff;box-shadow:0 0 0 1px var(--encre),0 6px 24px rgba(0,0,0,.06)}
+  #fNote::placeholder,#gNote::placeholder{color:var(--gris2)}
+
+  #charge{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;font-size:12px;color:var(--gris);letter-spacing:.08em}
+  #charge.fini{display:none}
+  #charge.erreur{pointer-events:auto;color:#c4302b;text-align:center;line-height:1.7;padding:24px}
+  #charge code{display:inline-block;margin-top:8px;padding:8px 12px;background:#fff;border-radius:8px;color:var(--encre);font-size:12px}
+
+  /* ---------- LA RANGÉE ---------- */
+  #rangee{position:fixed;right:0;top:0;bottom:0;width:var(--panneau);display:flex;flex-direction:column;
+    background:rgba(255,255,255,.66);border-left:.5px solid rgba(0,0,0,.08);
+    -webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px)}
+  #rTete{padding:22px 22px 12px}
+  #rTete h1{font-size:13px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:baseline}
+  #rTete h1 span{font-size:11px;font-weight:400;letter-spacing:.06em;color:var(--gris2);text-transform:none}
+  #rTete p{font-size:11px;color:var(--gris2);margin-top:6px;letter-spacing:.02em}
+  #couloirs{flex:1;overflow-y:auto;padding:4px 14px 18px;scrollbar-width:thin}
+  .fam{margin-top:14px}
+  .fam h2{display:flex;align-items:center;gap:8px;font-size:10.5px;font-weight:600;letter-spacing:.16em;padding:0 8px 7px}
+  .fam h2 em{font-style:normal;font-weight:400;color:var(--gris2);letter-spacing:.04em;margin-left:auto}
+  .lane{display:flex;flex-wrap:wrap;gap:6px;min-height:72px;padding:6px;border-radius:14px;background:rgba(0,0,0,.028);
+    transition:background .18s,box-shadow .18s}
+  .lane.vise{background:color-mix(in srgb,var(--c) 14%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 55%,transparent)}
+  .lane:empty::before{content:"Glisse une voiture ici";margin:auto;font-size:11px;color:var(--gris2);letter-spacing:.02em}
+  .fam.retire h2{color:var(--gris)}
+  .fam.retire .lane{background:transparent;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);border-radius:14px}
+  .fam.retire .lane:empty::before{content:"Glisse ici ce qu’on enlève"}
+
+  .vig{position:relative;width:76px;border-radius:10px;background:var(--carte);cursor:grab;user-select:none;-webkit-user-select:none;
+    box-shadow:0 0 0 .5px rgba(0,0,0,.05);transition:box-shadow .15s,transform .15s,opacity .15s;touch-action:none}
+  .vig:hover{box-shadow:0 0 0 .5px rgba(0,0,0,.12),0 4px 12px rgba(0,0,0,.06)}
+  .vig canvas{display:block;width:76px;height:46px;border-radius:10px 10px 0 0}
+  .vig b{display:block;font-size:8.5px;font-weight:500;letter-spacing:.03em;color:var(--gris);text-align:center;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:1px 5px 5px}
+  .vig.sel{box-shadow:0 0 0 2px var(--encre)}
+  .vig.sel b{color:var(--encre)}
+  .vig .bouge{position:absolute;right:5px;top:5px;width:6px;height:6px;border-radius:50%;background:var(--c0);display:none;
+    box-shadow:0 0 0 1.5px var(--carte)}
+  .vig.bouge .bouge{display:block}
+  .vig .dit{position:absolute;left:5px;top:4px;width:9px;height:9px;display:none}
+  .vig.dit .dit{display:block}
+  .vig .dit svg{width:9px;height:9px;fill:var(--encre)}
+  .vig.place{opacity:.28;box-shadow:inset 0 0 0 1px var(--encre)}
+  #fantome{position:fixed;left:0;top:0;z-index:50;pointer-events:none;width:76px;border-radius:10px;background:var(--carte);
+    box-shadow:0 14px 34px rgba(0,0,0,.18),0 0 0 .5px rgba(0,0,0,.1);transform-origin:50% 50%;display:none}
+  #fantome canvas{display:block;width:76px;height:46px}
+  #insere{position:fixed;left:0;top:0;z-index:49;width:3px;border-radius:2px;pointer-events:none;display:none;
+    box-shadow:0 0 0 1.5px #fff,0 0 10px rgba(0,0,0,.15)}
+  #fantome b{display:block;font-size:8.5px;color:var(--encre);text-align:center;padding:1px 5px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  #rPied{border-top:.5px solid rgba(0,0,0,.08);padding:12px 18px 18px}
+  #gNote{width:100%;height:58px;resize:none;border:0;border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.4;
+    background:rgba(0,0,0,.035);outline:none}
+  #gNote:focus{background:#fff;box-shadow:0 0 0 1px var(--encre)}
+  #rPied .lbl{display:block;font-size:10px;letter-spacing:.14em;color:var(--gris2);margin:0 2px 6px;text-transform:uppercase}
+  .actions{display:flex;gap:8px;margin-top:12px;align-items:center}
+  .btn{border:0;border-radius:999px;padding:10px 16px;font-size:12.5px;font-weight:500;cursor:pointer;letter-spacing:.01em;
+    background:rgba(0,0,0,.06);transition:background .15s,transform .1s}
+  .btn:hover{background:rgba(0,0,0,.1)}.btn:active{transform:scale(.97)}
+  .btn.noir{background:var(--encre);color:#fff;flex:1}.btn.noir:hover{background:#000}
+  .lien{border:0;background:none;font-size:11px;color:var(--gris2);cursor:pointer;margin-top:10px;letter-spacing:.02em}
+  .lien:hover{color:var(--encre)}
+  #bilan{font-size:11px;color:var(--gris);margin-top:8px;letter-spacing:.02em;min-height:14px}
+  #toast{position:fixed;left:50%;top:22px;transform:translate(-50%,-8px);z-index:60;background:var(--encre);color:#fff;font-size:12px;
+    padding:9px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+  #toast.on{opacity:1;transform:translate(-50%,0)}
+
+  /* ---------- DEBOUT (téléphone, fenêtre étroite) : la rangée passe en bas ---------- */
+  @media (max-aspect-ratio:1/1){
+    #salle{right:0;bottom:46vh}
+    #rangee{left:0;top:auto;width:auto;height:46vh;border-left:0;border-top:.5px solid rgba(0,0,0,.08)}
+    #fiche{left:16px;bottom:10px;width:calc(100% - 32px)}#fNom{font-size:22px}#fLigne{margin-top:6px}
+    .champ{margin-top:6px}.champ i{display:none}#fPrix{font-size:13px}
+    #fNote{min-height:36px;height:36px;padding:8px 12px;font-size:12px;border-radius:12px}
+    #marque{left:16px;top:14px}#outils{right:12px;top:12px}#aide{display:none}
+    #rTete{padding:12px 18px 2px}#rTete p{display:none}#couloirs{padding-top:0}.fam{margin-top:10px}
+    #rPied{padding:8px 14px 10px}#rPied .lbl{display:none}#gNote{height:34px;padding:8px 12px}
+    .actions{margin-top:8px}.btn{padding:8px 14px}#bilan{margin-top:5px;min-height:0}.lien{margin-top:4px}
+  }
+</style>
+</head>
+<body>
+<div id="salle">
+  <canvas id="cv"></canvas>
+  <div id="marque"><b>SALLE BLANCHE</b><span>CASH CAR</span></div>
+  <div id="outils">
+    <button class="rond on" id="bTourne" title="Tourner tout seul"><svg viewBox="0 0 16 16"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.6 2.2v2.6H11"/></svg></button>
+    <button class="rond" id="bCadre" title="Recadrer"><svg viewBox="0 0 16 16"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/></svg></button>
+  </div>
+  <div id="fiche">
+    <div id="fNom">—</div>
+    <div id="fLigne"><span class="pastille" id="fRar"><i class="point"></i><span></span></span><span id="fAvant"></span><span id="fCote"></span></div>
+    <label class="champ"><i>Prix · condition</i><input id="fPrix" spellcheck="false" autocomplete="off"></label>
+    <label class="champ"><i>Ce qu'on en dit</i><textarea id="fNote" placeholder="Écris ce que tu penses de cette voiture…"></textarea></label>
+  </div>
+  <div id="aide">glisse pour tourner · molette pour zoomer · ← → voiture suivante</div>
+  <div id="charge">Ouverture du garage…</div>
+</div>
+
+<aside id="rangee">
+  <div id="rTete">
+    <h1>La gamme <span id="compte"></span></h1>
+    <p>Glisse une voiture d'une rareté à l'autre. Touche-la pour la voir en grand.</p>
+  </div>
+  <div id="couloirs"></div>
+  <div id="rPied">
+    <span class="lbl">Notes générales</span>
+    <textarea id="gNote" placeholder="Ce qu'on veut changer dans la gamme, en général…"></textarea>
+    <div class="actions">
+      <button class="btn noir" id="bTele">Télécharger la fiche</button>
+      <button class="btn" id="bCopie">Copier</button>
+    </div>
+    <div id="bilan"></div>
+    <button class="lien" id="bZero">Revenir à la gamme du jeu</button>
+  </div>
+</aside>
+<div id="insere"></div>
+<div id="fantome"><canvas width="152" height="92"></canvas><b></b></div>
+<div id="toast"></div>
+
+<script src="vendor/three.min.js"></script>
+<script>
+'use strict';
+/* =====================================================================================================================
+   LA SALLE BLANCHE (2026-10-09, Léo : « une sublime voiture dans une salle blanche, que je peux tourner, avec à côté une petite
+   rangée minimaliste de toutes les voitures qu'on a — pas celles qu'on a enlevées — qu'on glisse dans différentes raretés pour créer
+   un nouvel ordre ; et pouvoir télécharger une liste écrite avec tout ce qu'on a dit dessus »).
+   ⚠ RIEN N'EST RECOPIÉ : la page LIT index.html (à côté d'elle) et exécute les VRAIS constructeurs des caisses (CARS, SHAPES, lpKit,
+   lpWheel…), assemblés comme le fait `ROBLOX/outils/cuire-caisses.js` (même liste de blocs : quand une caisse change dans le jeu, elle
+   change ici). Seules les MATIÈRES sont refaites, en PBR de studio (laque vernie, chrome, verre) sous la lumière d'une salle blanche.
+   Ce qu'on écrit (familles, ordre, prix, notes) vit dans le navigateur (localStorage) et sort en FICHE texte, au format de
+   `fiche-voitures-cash-car.txt` (6/10), pour être appliqué au jeu.
+   ===================================================================================================================== */
+const $=id=>document.getElementById(id);
+const BG=new THREE.Color(0xf1f1ef); // ⚠ = --fond : le fond de la salle ET la brume du sol (la brume se mêle APRÈS le tonemapping en r128)
+const FAMS=[ // l'ordre des couloirs ; `retire` = la corbeille (ce qu'on propose d'enlever du jeu)
+  {id:'commun',n:'COMMUNES',n1:'COMMUNE',c:'#a9b4c6',sous:'Argent du jeu'},
+  {id:'rare',n:'RARES',n1:'RARE',c:'#3aa8f5',sous:'Argent du jeu'},
+  {id:'epique',n:'ÉPIQUES',n1:'ÉPIQUE',c:'#b46cf5',sous:'Argent du jeu'},
+  {id:'legendaire',n:'LÉGENDAIRES',n1:'LÉGENDAIRE',c:'#f2b81c',sous:'Boutique, vrai argent'},
+  {id:'defi',n:'DÉFIS',n1:'DÉFI',c:'#3ccf62',sous:'À gagner, pas à vendre'},
+  {id:'retire',n:'À RETIRER',n1:'À RETIRER',c:'#8e8e93',sous:'proposées à la suppression'}];
+const famDe=id=>FAMS.find(f=>f.id===id)||FAMS[0];
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   1. LIRE LE JEU — les blocs du jeu par leur DÉBUT de ligne (les numéros bougent à chaque commit), comme cuire-caisses.js
+   --------------------------------------------------------------------------------------------------------------------- */
+let G=null; // ce que le jeu nous prête : CARS, CAR_UNLOCK, carRar, carOrdre, SHAPES, lpKit, lpWheel…
+async function lireJeu(){
+  // ⚠ le service worker du jeu répond à `index.html` depuis SON cache : une requête à part y échappe
+  const r=await fetch('index.html?salle='+Date.now(),{cache:'no-store'});
+  if(!r.ok)throw new Error('index.html : '+r.status);
+  const SRC=await r.text(),L=SRC.split('\n');
+  const ligne=(debut,apres)=>{for(let i=apres||0;i<L.length;i++)if(L[i].startsWith(debut))return i;throw new Error('introuvable dans index.html : '+debut);};
+  const bloc=(debut,fin,comprise)=>{const a=ligne(debut);let b=a+1;while(b<L.length&&!L[b].startsWith(fin))b++;return L.slice(a,comprise?b+1:b).join('\n');};
+  const blocs=[
+    'const IS_MOBILE=false,IS_LOW_END=false,POKI=false;const sphere9=g=>g.computeBoundingSphere();',
+    bloc('const MATV={','const SPH9=',false),                // les vraies peaux peintes (paillettes, pop-tart, requin…)
+    bloc('const CLOUD_SPH=','/* LE CIEL DE COTON',false),
+    bloc('const CARS=[','];',true),
+    bloc('const CAR_UNLOCK=[','/* ==========',false),
+    bloc('const AURA_RANKS=','function auraRank',false),
+    bloc('const RARETES=[','function rarListe',false),       // RARETES + carRar + carOrdre
+    bloc('const SPH9=','/* ---- LE KIT LOW-POLY',false),
+    bloc('const LPU={','/* ---- LES 6 SILHOUETTES',false),
+    bloc('const SHAPES={','/* ===== LA GAMME DES 50 — FIN',false),
+    bloc('const FACET_SHAPES=','function facetteCaisse',false),
+    bloc('const NUAGE_BLOBS=','const GH=',false),
+    L[ligne('function lingotGeo(')],
+    bloc('SHAPES.lingot=','};',true),
+    bloc('SHAPES.origami=','};',true),
+    bloc('SHAPES.atchoum=','};',true),
+    bloc('SHAPES.squale=','};',true),
+    bloc('const NY_U=','const SHAPES={',false),
+    L[ligne('const ATCH=')],
+    'return {CARS,CAR_UNLOCK,carRar,carOrdre,AURA_RANKS,SHAPES,lpKit,lpWheel,lpOmbre,carProfile,SPH9,FACET_SHAPES,geoFacette,monte:function(g){carGroup=g;}};'];
+  const stubs={envTex:null,carFins:[],rimify:()=>{},lpGrad:()=>{},nuageShader:()=>{},vMat:m=>m,lampTex:null,
+    LINGOT_MAT:(()=>{const m=new THREE.MeshPhongMaterial({color:0xc08a1c});m.userData.g='o';return m;})(),
+    LINGOT_PL:(()=>{const m=new THREE.MeshPhongMaterial({color:0xd99a1c});m.userData.g='o';return m;})(),
+    RIM_U:{},ENV_VERNIS:'',LFB_CAISSE:'',RIM_GLSL:()=>'',I18N:{},LANG:'fr',TR:s=>s};
+  G=new Function('THREE',...Object.keys(stubs),'let carGroup=null;\n'+blocs.join('\n'))(THREE,...Object.values(stubs));
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   2. ASSEMBLER UNE CAISSE — buildCar, tel que cuire-caisses.js le refait (aileron, bandes, propulseurs, roues, feux, pots…)
+   --------------------------------------------------------------------------------------------------------------------- */
+function assemble(i){
+  const {CARS,SHAPES,lpKit,lpWheel,lpOmbre,carProfile,SPH9,FACET_SHAPES,geoFacette}=G;
+  const spec=CARS[i],wreck=i===0,grp=new THREE.Group();G.monte(grp);
+  const tag=(m,g)=>{m.userData.g=g;return m;};
+  const bodyM=tag(new THREE.MeshPhongMaterial({color:spec.color}),'p'),accM=tag(new THREE.MeshPhongMaterial({color:spec.accent}),'p'),
+    glassM=tag(new THREE.MeshPhongMaterial({color:0x0d1620}),'g'),chromeM=tag(new THREE.MeshPhongMaterial({color:0xe8ecf0}),'c'),
+    darkM=tag(new THREE.MeshPhongMaterial({color:0x14161a}),'m'),rustM=tag(new THREE.MeshPhongMaterial({color:0x5a3a20}),'m');
+  const y0=.35,W9=spec.w,H9=spec.h,L9=spec.l;
+  const add=m=>{grp.add(m);return m;};
+  const box=(w,h,d,mat,x,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x||0,y||0,z||0);return add(m);};
+  const prof=(pts,w,mat,yy)=>{const m=new THREE.Mesh(carProfile(pts,w),mat);m.position.y=(yy===undefined?y0:yy);return add(m);};
+  const cyl=(rt,rb,hh,mat,x,y,z,sg)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,hh,sg||12),mat);m.position.set(x||0,y||0,z||0);return add(m);};
+  const sph=(sx,sy,sz,mat,x,y,z)=>{const m=new THREE.Mesh(SPH9,mat);m.scale.set(sx,sy,sz);m.position.set(x||0,y||0,z||0);return add(m);};
+  const con=(r,hh,mat,x,y,z,sg)=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,hh,sg||12),mat);m.position.set(x||0,y||0,z||0);return add(m);};
+  // ⚠ les pièces du kit sont peintes DES DEUX CÔTÉS, comme dans le jeu (lpMat : DoubleSide) — sinon une face retournée devient un trou
+  //   (le SQUALE montrait des « transparences » partout, Léo 9/10)
+  const lpM={},lpMatC=g=>lpM[g]||(lpM[g]=tag(new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide}),g)),kitM=m=>{m.userData.kit=1;return m;};
+  const commit=kt=>{const gs=kt.done();for(const g in gs){if(g!=='l')lpOmbre(gs[g],H9);add(new THREE.Mesh(gs[g],kitM(lpMatC(g))));}};
+  const K={W:W9,H:H9,L:L9,y0,spec,wreck,add,box,prof,cyl,sph,con,kit:pal=>lpKit(pal),commit,
+    body:bodyM,acc:accM,glass:glassM,chrome:chromeM,dark:darkM,rust:rustM};
+  const A=Object.assign({hl:[W9*.32,y0+H9*.50,L9/2+.16],tl:[W9*.30,y0+H9*.55,-L9/2-.10],wr:1,wx:W9/2,wz:L9/2-.75,wy:0,
+    glowX:W9/2+.02,glowY:y0+H9*.42,glowL:L9*.82,glowF:1,sp:1,skirt:1,split:1,doors:0,slats:0,wings:'panel'},SHAPES[spec.shape](K)||{});
+  if(A.lpw)Object.assign(A,{lamps:0,pipes:0,sp:0,split:0,doors:0,slats:0});
+  if(spec.spoiler&&A.sp){box(W9*.98,.09,.5,accM,0,y0+H9+.42,-L9/2+.12);for(const sd of[-1,1])box(.09,.34,.12,darkM,sd*W9*.36,y0+H9+.22,-L9/2+.12);}
+  if(spec.glow){const gm=tag(new THREE.MeshBasicMaterial({color:spec.glow}),'l');
+    for(const sd of[-1,1])box(.05,.06,A.glowL,gm,sd*A.glowX,A.glowY,0);if(A.glowF)box(W9*.7,.06,.05,gm,0,y0+H9*.5,L9/2+.02);}
+  if(spec.rocket){const bm=tag(new THREE.MeshPhongMaterial({color:0x3a3f48}),'c'),nm=tag(new THREE.MeshBasicMaterial({color:spec.glow||0x66c8ff}),'l');
+    for(const sd of[-1,1]){cyl(.24,.3,.9,bm,sd*W9*.26,y0+H9*.55,-L9/2-.32,10).rotation.x=Math.PI/2;cyl(.16,.2,.1,nm,sd*W9*.26,y0+H9*.55,-L9/2-.82,10).rotation.x=Math.PI/2;}}
+  // LES ROUES : une géométrie dans son repère (essieu = X), posée quatre fois (miroir à gauche pour le kit) — EXACTEMENT comme buildCar,
+  // fiche comprise : `wxF` (voie avant), `wRF` (échelle avant), `w1F`/`lpwF` (UNE roue avant au milieu, le SQUALE : ses deux roues avant
+  // perçaient les nageoires dans la salle, Léo 9/10)
+  const roue=new THREE.Group(),roues=[];
+  if(A.lpw){const W9=A.lpw,gs=lpWheel(W9),gs1=A.w1F?lpWheel(Object.assign({},W9,A.lpwF||{},{deux:1})):null;
+    for(const[sx,sz]of[[-1,1],[1,1],[-1,-1],[1,-1]]){const seule=gs1&&sz>0;if(seule&&sx<0)continue;
+      const g9=seule?gs1:gs,kF=sz>0&&A.wRF?A.wRF:1,w=new THREE.Group();for(const g in g9)w.add(new THREE.Mesh(g9[g],kitM(lpMatC(g))));
+      w.scale.set((sx<0&&!seule?-1:1)*kF,kF,kF);
+      w.position.set(seule?0:sx*(sz>0&&A.wxF!=null?A.wxF:A.wx),W9.R*kF+A.wy,sz>0?(A.wzF!=null?A.wzF:A.wz):-(A.wzR!=null?A.wzR:A.wz));grp.add(w);}
+  }else{const R9=.40*A.wr,w=new THREE.Group();
+    w.add(new THREE.Mesh(new THREE.CylinderGeometry(R9,R9,.32*A.wr,14),darkM));
+    w.add(new THREE.Mesh(new THREE.CylinderGeometry(R9*.6,R9*.6,.34*A.wr,10),wreck?darkM:chromeM));
+    for(let k=0;k<5;k++){const s=new THREE.Mesh(new THREE.BoxGeometry(R9*1.05,R9*.9,.05),wreck?darkM:chromeM);s.rotation.y=k*Math.PI*2/5;w.add(s);}
+    w.add(new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.37*A.wr,8),wreck?rustM:chromeM));
+    w.rotation.z=Math.PI/2;roue.add(w);
+    for(const[sx,sz]of[[-1,1],[1,1],[-1,-1],[1,-1]])roues.push({x:sx*A.wx,y:R9+A.wy,z:sz*A.wz,miroir:false});}
+  const hlM=tag(new THREE.MeshBasicMaterial({color:0xfff6c8}),'l'),tlM=tag(new THREE.MeshBasicMaterial({color:0xff2a2a}),'l');
+  for(const sd of[-1,1]){
+    if(A.lamps!==0){box(.30,.13,.06,(wreck&&sd>0)?darkM:hlM,sd*A.hl[0],A.hl[1],A.hl[2]);box(.34,.10,.05,tlM,sd*A.tl[0],A.tl[1],A.tl[2]);}
+    if(A.pipes!==0)cyl(.09,.11,.34,wreck?rustM:chromeM,sd*W9*.22,y0+.08,-L9/2-.14,10).rotation.x=Math.PI/2;}
+  if(A.doors){const sm=tag(new THREE.MeshBasicMaterial({color:0x0a0c10}),'m');
+    for(const sd of[-1,1]){for(const zz of[L9*.07,-L9*.17])box(.012,H9*.5,.03,sm,sd*(W9/2+.005),y0+H9*.45,zz);box(.03,.035,.16,wreck?rustM:chromeM,sd*(W9/2+.02),y0+H9*.66,L9*.01);}}
+  if(A.split){box(W9*.96,.05,.3,darkM,0,y0+H9*.04,L9/2+.12);box(W9*.86,.09,.26,darkM,0,y0+H9*.06,-L9/2-.10);for(const fx of[-1,0,1])box(.03,.13,.24,darkM,fx*W9*.26,y0+H9*.10,-L9/2-.10);}
+  if(A.slats)for(const gy of[-1,1])box(W9*.5,.02,.02,chromeM,0,y0+H9*.42+gy*.045,L9/2+.145);
+  if(FACET_SHAPES[spec.shape])for(const racine of[grp,roue])racine.traverse(o=>{
+    if(!o.isMesh||!o.geometry||(o.material.userData&&o.material.userData.kit))return;
+    const f=geoFacette(o.geometry);if(f)o.geometry=f;});
+  for(const r of roues){const w=roue.clone();w.position.set(r.x,r.y,r.z);if(r.miroir)w.scale.x=-1;grp.add(w);}
+  return studio(grp); // la caisse posée dans sa BOÎTE (centrée, au sol) : c'est elle qu'on fait tourner
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   3. LES MATIÈRES DU STUDIO — la famille de chaque matière (`userData.g` du jeu : p laque · c chrome · o or · s satiné · m mat ·
+   g verre · l lumière) devient une matière physique. Couleurs du jeu (sRGB) passées en linéaire : l'image sort en sRGB.
+   --------------------------------------------------------------------------------------------------------------------- */
+const MATS=new Map();
+const REGLE={
+  p:{t:'phys',roughness:.34,metalness:.08,clearcoat:1,clearcoatRoughness:.06},
+  c:{t:'std',roughness:.13,metalness:1},
+  o:{t:'std',roughness:.22,metalness:1},
+  s:{t:'std',roughness:.46,metalness:.22},
+  m:{t:'std',roughness:.82,metalness:0},
+  g:{t:'phys',roughness:.05,metalness:0,clearcoat:1,clearcoatRoughness:.02,envMapIntensity:1.35},
+  l:{t:'basic'}};
+function linGeo(geo){ // les couleurs de sommets du kit, en linéaire — une fois par géométrie (les roues partagent la leur)
+  if(geo.userData.lin||!geo.attributes.color)return;geo.userData.lin=1;
+  const a=geo.attributes.color.array;for(let k=0;k<a.length;k++){const c=a[k];a[k]=c<.04045?c/12.92:Math.pow((c+.055)/1.055,2.4);}
+  geo.attributes.color.needsUpdate=true;}
+function studioMat(m){
+  if(Array.isArray(m))return m.map(studioMat);
+  let g=(m.userData&&m.userData.g)||(m.isMeshBasicMaterial?'l':'s');if(!REGLE[g])g='s';
+  const map=(m.map&&m.map.image)?m.map:null;
+  const cle=g+'|'+(m.color?m.color.getHexString():'x')+'|'+(m.vertexColors?1:0)+'|'+(map?map.uuid:'')+'|'+(m.transparent?1:0)+'|'+m.side+'|'+(m.opacity!=null?m.opacity:1);
+  if(MATS.has(cle))return MATS.get(cle);
+  const R=REGLE[g],o={vertexColors:!!m.vertexColors,side:m.side,transparent:!!m.transparent,opacity:m.opacity!=null?m.opacity:1};
+  if(map){map.encoding=THREE.sRGBEncoding;map.needsUpdate=true;o.map=map;}
+  if(m.transparent&&map)o.alphaTest=.02;
+  let n;
+  if(R.t==='basic')n=new THREE.MeshBasicMaterial(Object.assign(o,{toneMapped:false}));
+  else{const p=Object.assign({},R);delete p.t;Object.assign(o,p);
+    n=R.t==='phys'?new THREE.MeshPhysicalMaterial(o):new THREE.MeshStandardMaterial(o);}
+  if(m.color)n.color.copy(m.color).convertSRGBToLinear();
+  n.userData.g=g;MATS.set(cle,n);return n;}
+function studio(grp){
+  grp.traverse(o=>{if(!o.isMesh)return;
+    o.material=studioMat(o.material);if(o.geometry)linGeo(o.geometry);
+    const g=(Array.isArray(o.material)?o.material[0]:o.material).userData.g;
+    o.castShadow=g!=='l';o.receiveShadow=g!=='l'&&g!=='g';});
+  // posée au sol, centrée sur la longueur
+  const b=new THREE.Box3().setFromObject(grp),c=b.getCenter(new THREE.Vector3());
+  grp.position.set(-c.x,-b.min.y,-c.z);
+  const boite=new THREE.Group();boite.add(grp);boite.userData.taille=b.getSize(new THREE.Vector3());return boite;}
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   4. LA SALLE — fond blanc infini (le sol se fond dans la brume, de la couleur du fond), une boîte à lumière au plafond et des
+   bandeaux sur les côtés (dans la carte d'environnement : c'est eux qu'on voit glisser sur la laque), ombre douce + ombre de contact.
+   --------------------------------------------------------------------------------------------------------------------- */
+const cv=$('cv');
+const R=new THREE.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance'});
+R.setPixelRatio(Math.min(devicePixelRatio||1,2));
+// ⚠ tonemapping LINÉAIRE et non ACES : l'ACES décolore les laques vives (le rouge de ROSSO 40 sortait saumon) — mesuré en planche A/B
+R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.LinearToneMapping;
+R.shadowMap.enabled=true;R.shadowMap.type=THREE.VSMShadowMap;R.setClearColor(BG,1); // ombre de studio : douce (VSM floutée), pas le bord net du PCF
+
+/* ⚠ LE DOSAGE : une salle blanche « vraie » (murs aussi clairs que le sol) noie les laques dans un voile blanc — le rouge de
+   ROSSO 40 sortait saumon. Comme dans un vrai studio photo, les MURS restent gris moyen et ce sont les BOÎTES À LUMIÈRE (très
+   fortes) qui font les reflets : la laque garde sa couleur, et les reflets dessinent ses arêtes. Le blanc de la salle, c'est le
+   SOL et le FOND (brume) qu'on voit, pas ce que la carrosserie reflète. */
+const LUM={murs:.36,sol:.3,haut:9,gauche:6,droite:4.8,fond:4,face:2.6,hemi:.26,cle:1.4,ret:.38,expo:.8,solEnv:.9};
+function salleEnv(){ // la salle vue par la laque : murs gris, plafond-boîte à lumière, deux bandeaux, sol
+  const s=new THREE.Scene(),mb=(c)=>new THREE.MeshBasicMaterial({color:c,side:THREE.BackSide});
+  const murs=new THREE.Mesh(new THREE.BoxGeometry(24,12,24),mb(new THREE.Color(LUM.murs,LUM.murs,LUM.murs)));murs.position.y=6;s.add(murs);
+  const pan=(w,h,x,y,z,rx,ry,k)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:new THREE.Color(k,k,k),side:THREE.DoubleSide}));
+    m.position.set(x,y,z);m.rotation.set(rx,ry,0);s.add(m);};
+  pan(12,6,0,11.8,0,Math.PI/2,0,LUM.haut);       // la grande boîte à lumière du plafond
+  pan(2.2,7,-11.8,5,-2,0,Math.PI/2,LUM.gauche);   // bandeau gauche
+  pan(2.2,7,11.8,5,3,0,-Math.PI/2,LUM.droite);    // bandeau droit
+  pan(14,1.4,0,6.5,-11.8,0,0,LUM.fond);           // filet du fond
+  pan(10,1.2,0,4.5,11.8,0,Math.PI,LUM.face);      // filet de face
+  const sol=new THREE.Mesh(new THREE.PlaneGeometry(24,24),new THREE.MeshBasicMaterial({color:new THREE.Color(LUM.sol,LUM.sol,LUM.sol*.98)}));
+  sol.rotation.x=-Math.PI/2;sol.position.y=.01;s.add(sol);
+  const pm=new THREE.PMREMGenerator(R),t=pm.fromScene(s,.035).texture;pm.dispose();return t;}
+let ENV=salleEnv();
+
+function ombreTex(){ // l'ombre de contact : l'empreinte de la caisse (rectangle arrondi) noyée dans un flou — nulle au bord de la toile
+  const c=document.createElement('canvas');c.width=128;c.height=256;const x=c.getContext('2d');
+  x.filter='blur(13px)';x.fillStyle='rgba(0,0,0,.55)';
+  const r=(a,b,w,h,k)=>{x.beginPath();x.moveTo(a+k,b);x.arcTo(a+w,b,a+w,b+h,k);x.arcTo(a+w,b+h,a,b+h,k);x.arcTo(a,b+h,a,b,k);x.arcTo(a,b,a+w,b,k);x.fill();};
+  r(34,40,60,176,18);x.filter='blur(5px)';x.fillStyle='rgba(0,0,0,.35)';r(42,52,44,152,12);
+  return new THREE.CanvasTexture(c);}
+const OMBRE_T=ombreTex();
+function plateau(scene,ombreGrande){ // sol + lumières d'une scène (la salle, ou le petit studio des vignettes)
+  scene.background=null;scene.environment=ENV;scene.fog=new THREE.Fog(BG,16,48);
+  const sol=new THREE.Mesh(new THREE.PlaneGeometry(400,400),new THREE.MeshStandardMaterial({color:0xffffff,roughness:1,metalness:0,envMapIntensity:LUM.solEnv}));
+  sol.rotation.x=-Math.PI/2;sol.receiveShadow=true;scene.add(sol);
+  const hemi=new THREE.HemisphereLight(0xffffff,0xdedcd8,LUM.hemi);scene.add(hemi);
+  const cle=new THREE.DirectionalLight(0xffffff,LUM.cle);cle.position.set(-2.6,9,3.4);cle.castShadow=true;
+  const sc=cle.shadow.camera;sc.left=sc.bottom=-4.2;sc.right=sc.top=4.2;sc.near=1;sc.far=22;
+  cle.shadow.mapSize.set(1024,1024);cle.shadow.bias=-.0006;cle.shadow.normalBias=.02;cle.shadow.radius=ombreGrande?14:9;
+  scene.add(cle,cle.target);
+  const ret=new THREE.DirectionalLight(0xfffaf2,LUM.ret);ret.position.set(5,3,-6);scene.add(ret);
+  const o={scene,sol,hemi,cle,ret};PLATEAUX.push(o);return o;}
+const PLATEAUX=[];
+function reglerLum(p){ // console : dbgSalle.lum({murs:.4,haut:10,…}) — la même image, réglée à chaud
+  Object.assign(LUM,p||{});R.toneMappingExposure=LUM.expo;
+  if(p&&['murs','sol','haut','gauche','droite','fond','face'].some(k=>k in p)){const old=ENV;ENV=salleEnv();for(const q of PLATEAUX)q.scene.environment=ENV;old.dispose();}
+  for(const q of PLATEAUX){q.hemi.intensity=LUM.hemi;q.cle.intensity=LUM.cle;q.ret.intensity=LUM.ret;q.sol.material.envMapIntensity=LUM.solEnv;}
+  for(const q of PLATEAUX)q.sol.material.color.setRGB(CAL.k,CAL.k,CAL.k*.995);
+  CAL.ok=false;CAL.n=0;V.besoin=true;return LUM;}
+
+const SC=new THREE.Scene();const PL=plateau(SC,true);
+const TOUR=new THREE.Group();SC.add(TOUR);            // le plateau tournant (invisible) : on fait tourner la CAISSE, la salle reste
+const OMBRE=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:OMBRE_T,transparent:true,depthWrite:false,toneMapped:false}));
+OMBRE.rotation.x=-Math.PI/2;OMBRE.position.y=.004;OMBRE.renderOrder=1;TOUR.add(OMBRE);
+const CAM=new THREE.PerspectiveCamera(28,1,.1,200);
+
+// le petit studio des vignettes (même salle, sa propre lumière), rendu dans un coin de la toile puis recopié
+const BGV=BG; // les vignettes ont le fond de la salle (= --carte)
+const SCV=new THREE.Scene();plateau(SCV,false);SCV.fog.color.copy(BGV);
+const OMBV=OMBRE.clone();SCV.add(OMBV);
+const CAMV=new THREE.PerspectiveCamera(24,152/92,.1,200);
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   5. LA VUE — la caisse tourne sous le doigt (avec son élan), le regard monte et descend, la molette rapproche
+   --------------------------------------------------------------------------------------------------------------------- */
+const V={yaw:-.62,yawV:0,el:.2,elC:.2,dist:10,distC:10,distBase:10,tourne:true,touche:false,besoin:true,car:null,ty:.6};
+function cadrer(boite,anime){
+  const t=boite.userData.taille,rayon=Math.hypot(t.x,t.y,t.z)/2;
+  const asp=Math.max(.5,cv.clientWidth/Math.max(1,cv.clientHeight)),fv=CAM.fov*Math.PI/360,fh=Math.atan(Math.tan(fv)*asp);
+  V.distBase=rayon/Math.sin(Math.min(fv,fh))*1.08+1.2;V.distC=V.distBase;if(!anime)V.dist=V.distC;
+  V.ty=t.y*.42;V.elC=.2;if(!anime)V.el=V.elC;
+  OMBRE.scale.set(t.x*2.05,t.z*1.42,1);V.besoin=true;}
+function placeCam(cam,dist,el,ty){
+  const y=ty+Math.sin(el)*dist,h=Math.cos(el)*dist;cam.position.set(0,y,h);cam.lookAt(0,ty*.9,0);}
+function taille(){
+  const w=cv.clientWidth,h=cv.clientHeight;R.setSize(w,h,false);CAM.aspect=w/Math.max(1,h);
+  // la fiche du bas mange le bas de l'image : la caisse remonte un peu dans la salle
+  CAM.setViewOffset(w,h,0,h*(h>w*.75?.17:.06),w,h); /* debout, la fiche prend plus de place : la caisse monte plus */CAM.updateProjectionMatrix();if(V.car)cadrer(V.car,true);V.besoin=true;}
+addEventListener('resize',taille);
+
+const doigts=new Map();let pince0=0,distPince=0;
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);doigts.set(e.pointerId,{x:e.clientX,y:e.clientY,t:performance.now()});
+  if(doigts.size===2){const[a,b]=[...doigts.values()];pince0=Math.hypot(a.x-b.x,a.y-b.y);distPince=V.distC;}
+  V.yawV=0;cv.classList.add('tient');aideVue();if(V.tourne)basculeTourne(false);});
+cv.addEventListener('pointermove',e=>{const d=doigts.get(e.pointerId);if(!d)return;
+  if(doigts.size===2){d.x=e.clientX;d.y=e.clientY;const[a,b]=[...doigts.values()];const p=Math.hypot(a.x-b.x,a.y-b.y);
+    if(pince0>0)V.distC=bornerDist(distPince*pince0/p);V.besoin=true;return;}
+  const dx=e.clientX-d.x,dy=e.clientY-d.y,now=performance.now(),dt=Math.max(1,now-d.t);
+  V.yaw+=dx*.0085;V.yawV=dx*.0085/(dt/1000)*.9;V.elC=Math.max(.02,Math.min(1.25,V.elC+dy*.005));
+  d.x=e.clientX;d.y=e.clientY;d.t=now;V.besoin=true;});
+const lache=e=>{const d=doigts.get(e.pointerId);doigts.delete(e.pointerId);if(doigts.size<2)pince0=0;
+  if(!doigts.size){cv.classList.remove('tient');if(d&&performance.now()-d.t>80)V.yawV=0;}};
+cv.addEventListener('pointerup',lache);cv.addEventListener('pointercancel',lache);
+cv.addEventListener('wheel',e=>{e.preventDefault();V.distC=bornerDist(V.distC*Math.exp(e.deltaY*.0012));V.besoin=true;aideVue();},{passive:false});
+cv.addEventListener('dblclick',()=>{if(V.car)cadrer(V.car,true);});
+const bornerDist=d=>Math.max(V.distBase*.38,Math.min(V.distBase*2.2,d));
+function basculeTourne(on){V.tourne=on;$('bTourne').classList.toggle('on',on);V.besoin=true;}
+$('bTourne').onclick=()=>basculeTourne(!V.tourne);
+$('bCadre').onclick=()=>{if(V.car){V.yaw=-.62;V.yawV=0;cadrer(V.car,true);}};
+let aideT=0;function aideVue(){if(aideT)return;aideT=setTimeout(()=>$('aide').classList.add('cache'),1500);}
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   6. LES CAISSES — construites une fois (une par image), photographiées pour la rangée, gardées pour la salle
+   --------------------------------------------------------------------------------------------------------------------- */
+const CAISSES=new Map(),RATEES=new Set(),FILE=[];
+function caisse(i){
+  if(CAISSES.has(i))return CAISSES.get(i);if(RATEES.has(i))return null;
+  try{const b=assemble(i);CAISSES.set(i,b);return b;}catch(e){console.warn('caisse '+i+' ('+G.CARS[i].name+') :',e);RATEES.add(i);return null;}}
+function montrer(i){
+  const b=caisse(i);if(V.car&&V.car!==b){TOUR.remove(V.car);}
+  V.car=b;if(b){TOUR.add(b);cadrer(b,false);}V.besoin=true;}
+function photo(i){ // une vignette : la caisse de trois quarts avant, dans le petit studio, recopiée depuis un coin de la toile
+  const b=caisse(i),vg=VIG.get(i);if(!vg)return;const ctx=vg.cv.getContext('2d');
+  if(!b){ctx.fillStyle='#f1f1ef';ctx.fillRect(0,0,152,92);ctx.fillStyle='#a1a1a6';ctx.font='600 20px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText('?',76,54);return;}
+  const parent=b.parent;if(parent)parent.remove(b);
+  b.rotation.y=-.72;SCV.add(b);const t=b.userData.taille;OMBV.scale.set(t.x*2.05,t.z*1.42,1);OMBV.rotation.set(-Math.PI/2,0,-.72);OMBV.position.y=.004;
+  const rayon=Math.hypot(t.x,t.y,t.z)/2,fv=CAMV.fov*Math.PI/360,fh=Math.atan(Math.tan(fv)*CAMV.aspect);
+  const d=rayon/Math.sin(Math.min(fv,fh))*.96;placeCam(CAMV,d,.3,t.y*.36);SCV.fog.near=d+3;SCV.fog.far=d+26;
+  const pr=R.getPixelRatio(),w=152/pr,h=92/pr,H=R.domElement.height;
+  R.setScissorTest(true);R.setViewport(0,0,w,h);R.setScissor(0,0,w,h);R.setClearColor(BGV,1);
+  R.render(SCV,CAMV);
+  ctx.drawImage(R.domElement,0,H-92,152,92,0,0,152,92);
+  R.setScissorTest(false);R.setViewport(0,0,cv.clientWidth,cv.clientHeight);R.setClearColor(BG,1);
+  SCV.remove(b);b.rotation.y=0;if(parent)parent.add(b);V.besoin=true;}
+
+/* L'ÉTALONNAGE DU SOL : le sol est plat et toutes les lumières sont à l'infini — il a donc partout la même valeur hors des ombres.
+   On la MESURE (un pixel du coin bas-gauche, juste après le rendu) et on règle son albédo pour qu'il sorte exactement du blanc du
+   fond : plus de ligne d'horizon, la salle est infinie. Rejoué quand la lumière change (dbgSalle.lum). */
+const CAL={k:.4,n:0,ok:false,px:new Uint8Array(4)};
+const lin8=v=>{v/=255;return v<.04045?v/12.92:Math.pow((v+.055)/1.055,2.4);};
+function etalonne(){
+  const gl=R.getContext();gl.readPixels(3,3,1,1,gl.RGBA,gl.UNSIGNED_BYTE,CAL.px);
+  const m=(CAL.px[0]+CAL.px[1]+CAL.px[2])/3,cible=(BG.r+BG.g+BG.b)/3*255;CAL.n++;
+  if(Math.abs(m-cible)<=.8||CAL.n>12){CAL.ok=true;return;}
+  CAL.k*=m>=254.5?.6:lin8(cible)/Math.max(1e-4,lin8(m));
+  for(const q of PLATEAUX)q.sol.material.color.setRGB(CAL.k,CAL.k,CAL.k*.995);V.besoin=true;}
+function boucle(){
+  requestAnimationFrame(boucle);
+  const now=performance.now(),dt=Math.min(.05,(now-(boucle.t||now))/1000);boucle.t=now;
+  let bouge=false;
+  // une vignette par image (la caisse affichée d'abord, puis l'ordre de la rangée)
+  if(FILE.length&&CAL.ok){photo(FILE.shift());bouge=true;}
+  if(V.tourne&&!doigts.size){V.yaw+=dt*.16;bouge=true;}
+  if(!doigts.size&&Math.abs(V.yawV)>.002){V.yaw+=V.yawV*dt;V.yawV*=Math.exp(-dt*2.6);bouge=true;}
+  const k=1-Math.exp(-dt*10);
+  if(Math.abs(V.dist-V.distC)>.001){V.dist+=(V.distC-V.dist)*k;bouge=true;}
+  if(Math.abs(V.el-V.elC)>.0005){V.el+=(V.elC-V.el)*k;bouge=true;}
+  if(!bouge&&!V.besoin)return;V.besoin=false;
+  TOUR.rotation.y=V.yaw;placeCam(CAM,V.dist,V.el,V.ty);SC.fog.near=V.dist+4;SC.fog.far=V.dist+38;
+  R.render(SC,CAM);if(!CAL.ok)etalonne();}
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   7. LA GAMME — ce qu'on écrit (familles, ordre, prix, notes) ; l'état du JEU sert de référence aux changements
+   --------------------------------------------------------------------------------------------------------------------- */
+const CLE='cashcar.salleBlanche.v1';
+let JEU=null,ETAT=null; // JEU = {fam:{id:[i…]}, rar:{i:id}, prix:{i:txt}} ; ETAT = {lanes:{id:[i…]}, prix:{i:txt}, notes:{i:txt}, general, sel}
+const sp=n=>String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+function prixJeu(i){
+  const u=G.CAR_UNLOCK[i];if(!u)return 'gratuite (voiture de départ)';
+  if(u.p)return sp(u.p)+' $';
+  const v=u.v;
+  switch(u.k){
+    case 'premium':return u.eur||'boutique';
+    case 'carnet':return 'Défis des missions n° '+v;
+    case 'aura':{const a=G.AURA_RANKS[v];return a?"Rang d'aura "+a.n+' ('+sp(a.v)+" d'aura)":"Rang d'aura "+v;}
+    case 'carrN':return 'Finir les '+v+' niveaux de SKY HIGH';
+    case 'carrV':return 'Finir les '+v+' niveaux de la VILLE';
+    case 'bientot':return 'À définir';
+    case 'pubs':return v+' pubs';
+    default:return u.k+(v!=null?' '+v:'');}}
+function lireJeuGamme(){
+  const fam={},rar={},prix={};for(const f of FAMS)fam[f.id]=[];
+  for(let i=0;i<G.CARS.length;i++){const c=G.CARS[i];if(c.retire)continue;
+    let r=G.carRar(i);if(!fam[r]||r==='retire')r='commun';fam[r].push(i);rar[i]=r;prix[i]=prixJeu(i);}
+  for(const id in fam)fam[id].sort((a,b)=>G.carOrdre(a)-G.carOrdre(b)||a-b);
+  JEU={fam,rar,prix};}
+function neuf(){const lanes={};for(const f of FAMS)lanes[f.id]=JEU.fam[f.id].slice();return {v:1,lanes,prix:{},notes:{},general:'',sel:JEU.fam.commun[0]||0};}
+function charger(){
+  let e=null;try{e=JSON.parse(localStorage.getItem(CLE)||'null');}catch(_){}
+  if(!e||!e.lanes){ETAT=neuf();return;}
+  // réconcilier avec le jeu d'aujourd'hui : une caisse retirée du jeu depuis disparaît, une nouvelle rejoint sa famille
+  const vues=new Set(),lanes={};
+  for(const f of FAMS)lanes[f.id]=(e.lanes[f.id]||[]).filter(i=>JEU.rar[i]!=null&&!vues.has(i)&&vues.add(i));
+  for(const i in JEU.rar)if(!vues.has(+i))lanes[JEU.rar[i]].push(+i);
+  ETAT={v:1,lanes,prix:e.prix||{},notes:e.notes||{},general:e.general||'',sel:JEU.rar[e.sel]!=null?e.sel:(JEU.fam.commun[0]||0)};}
+let sauveT=0;function sauver(){clearTimeout(sauveT);sauveT=setTimeout(()=>{try{localStorage.setItem(CLE,JSON.stringify(ETAT));}catch(_){}},250);bilan();}
+const famDeCaisse=i=>{for(const f of FAMS)if(ETAT.lanes[f.id].includes(i))return f.id;return JEU.rar[i];};
+const prixDe=i=>(ETAT.prix[i]!=null&&ETAT.prix[i].trim()!=='')?ETAT.prix[i].trim():JEU.prix[i];
+const nom=i=>G.CARS[i].name;
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   8. LA RANGÉE — une vignette par caisse (créée une fois, DÉPLACÉE d'un couloir à l'autre : sa photo la suit)
+   --------------------------------------------------------------------------------------------------------------------- */
+const VIG=new Map(),LANE={};
+const BULLE='<svg viewBox="0 0 10 10"><path d="M1 1.5h8v5.2H4.2L2 8.6V6.7H1z"/></svg>';
+function construireRangee(){
+  const box=$('couloirs');box.innerHTML='';
+  for(const f of FAMS){
+    const s=document.createElement('section');s.className='fam'+(f.id==='retire'?' retire':'');
+    s.innerHTML='<h2><i class="point" style="--c:'+f.c+'"></i>'+f.n+'<em></em></h2>';
+    const l=document.createElement('div');l.className='lane';l.dataset.fam=f.id;l.style.setProperty('--c',f.c);
+    s.appendChild(l);box.appendChild(s);LANE[f.id]=l;}
+  for(const i in JEU.rar){
+    const el=document.createElement('div');el.className='vig';el.dataset.i=i;
+    const c=document.createElement('canvas');c.width=152;c.height=92;
+    const x=c.getContext('2d');x.fillStyle='#f1f1ef';x.fillRect(0,0,152,92);
+    el.appendChild(c);
+    const b=document.createElement('b');b.textContent=nom(+i);el.appendChild(b);
+    el.insertAdjacentHTML('beforeend','<span class="bouge"></span><span class="dit">'+BULLE+'</span>');
+    el.title=nom(+i);el.style.setProperty('--c0',famDe(JEU.rar[i]).c);
+    VIG.set(+i,{el,cv:c});brancherGlisse(el,+i);}
+  ranger();}
+function ranger(){ // pose chaque vignette dans son couloir, dans l'ordre de l'état
+  for(const f of FAMS){const l=LANE[f.id];for(const i of ETAT.lanes[f.id]){const v=VIG.get(i);if(v)l.appendChild(v.el);}}
+  marques();}
+function marques(){
+  for(const f of FAMS)LANE[f.id].parentNode.querySelector('em').textContent=ETAT.lanes[f.id].length;
+  for(const[i,v]of VIG){const fa=famDeCaisse(i);
+    v.el.classList.toggle('bouge',fa!==JEU.rar[i]);
+    v.el.classList.toggle('dit',!!(ETAT.notes[i]&&ETAT.notes[i].trim()));
+    v.el.classList.toggle('sel',i===ETAT.sel);}
+  let n=0;for(const f of FAMS)if(f.id!=='retire')n+=ETAT.lanes[f.id].length;
+  $('compte').textContent=n+' voitures';}
+function lireDOM(){ // l'ordre affiché devient l'état
+  for(const f of FAMS)ETAT.lanes[f.id]=[...LANE[f.id].querySelectorAll('.vig')].map(e=>+e.dataset.i);}
+
+/* le GLISSER : la vraie vignette devient la PLACE (elle se range en direct dans le couloir visé), un fantôme suit le doigt */
+let glisse=null;
+/* ⚠ le glissé s'écoute sur la FENÊTRE : la vignette qu'on traîne change de place dans la page à chaque pas (c'est elle qui montre
+   où elle tombera), et un élément déplacé dans le DOM perd la capture du pointeur — ses propres pointermove/pointerup se taisaient. */
+function brancherGlisse(el,i){
+  el.addEventListener('pointerdown',e=>{if(e.button||glisse)return;e.preventDefault();
+    glisse={i,el,id:e.pointerId,x0:e.clientX,y0:e.clientY,on:false,dx:0,dy:0};
+    addEventListener('pointermove',glisseBouge);addEventListener('pointerup',glisseFin);addEventListener('pointercancel',glisseFin);});}
+function glisseBouge(e){const g=glisse;if(!g||e.pointerId!==g.id)return;
+  if(!g.on){if(Math.hypot(e.clientX-g.x0,e.clientY-g.y0)<6)return;demarre(e);}
+  suit(e);}
+function glisseFin(e){const g=glisse;if(!g||e.pointerId!==g.id)return;glisse=null;
+  removeEventListener('pointermove',glisseBouge);removeEventListener('pointerup',glisseFin);removeEventListener('pointercancel',glisseFin);
+  if(!g.on){if(e.type==='pointerup')choisir(g.i);return;}
+  g.el.classList.remove('place');$('fantome').style.display='none';$('insere').style.display='none';
+  for(const f of FAMS)LANE[f.id].classList.remove('vise');
+  if(g.lane&&e.type==='pointerup'&&g.avant!==g.el)g.lane.insertBefore(g.el,g.avant);
+  lireDOM();marques();sauver();majFiche();
+  const fa=famDeCaisse(g.i);if(fa!==g.fam0)toast(nom(g.i)+' → '+famDe(fa).n1);}
+/* ⚠ pendant le glissé RIEN ne bouge dans la rangée : la vignette reste à sa place (pâlie) et un TRAIT montre où elle tombera.
+   (Essayé d'abord : la vignette qui se range en direct — chaque couloir traversé grandissait d'une rangée et poussait la cible
+   sous le doigt : on visait les ÉPIQUES, on tombait dans les RARES.) */
+function demarre(e){
+  const g=glisse,r=g.el.getBoundingClientRect();g.on=true;g.dx=e.clientX-r.left;g.dy=e.clientY-r.top;g.fam0=famDeCaisse(g.i);g.lane=null;g.avant=null;
+  const f=$('fantome');f.querySelector('canvas').getContext('2d').drawImage(VIG.get(g.i).cv,0,0);
+  f.querySelector('b').textContent=nom(g.i);f.style.display='block';g.el.classList.add('place');}
+function suit(e){
+  const g=glisse,f=$('fantome'),ins=$('insere');
+  f.style.transform='translate('+(e.clientX-g.dx)+'px,'+(e.clientY-g.dy)+'px) rotate(-3deg) scale(1.06)';
+  const sous=document.elementFromPoint(e.clientX,e.clientY);
+  let l=sous&&sous.closest('.lane');
+  if(!l){const s=sous&&sous.closest('.fam');if(s)l=s.querySelector('.lane');}
+  for(const id in LANE)LANE[id].classList.toggle('vise',LANE[id]===l);
+  if(l){g.lane=l;g.avant=placeAvant(l,e.clientX,e.clientY,g.el);
+    const autres=[...l.querySelectorAll('.vig')].filter(k=>k!==g.el),rl=l.getBoundingClientRect();let x,y,h;
+    if(g.avant){const r=g.avant.getBoundingClientRect();x=r.left-4.5;y=r.top;h=r.height;}
+    else if(autres.length){const r=autres[autres.length-1].getBoundingClientRect();x=r.right+1.5;y=r.top;h=r.height;}
+    else{x=rl.left+6;y=rl.top+8;h=rl.height-16;}
+    ins.style.display='block';ins.style.transform='translate('+x+'px,'+y+'px)';ins.style.height=h+'px';
+    ins.style.background=getComputedStyle(l).getPropertyValue('--c')||'#1d1d1f';}
+  else ins.style.display='none';
+  // le couloir défile tout seul quand on approche de ses bords
+  const c=$('couloirs'),rc=c.getBoundingClientRect();
+  if(e.clientY<rc.top+40)c.scrollTop-=12;else if(e.clientY>rc.bottom-40)c.scrollTop+=12;}
+function placeAvant(l,x,y,moi){
+  for(const k of l.querySelectorAll('.vig')){if(k===moi)continue;const r=k.getBoundingClientRect();
+    if(y<r.top)return k;if(y<=r.bottom&&x<r.left+r.width/2)return k;}
+  return null;}
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   9. LA FICHE DE LA VOITURE — nom, famille (et d'où elle vient), prix modifiable, ce qu'on en dit
+   --------------------------------------------------------------------------------------------------------------------- */
+function choisir(i){
+  if(ETAT.sel===i&&V.car)return;ETAT.sel=i;sauver();marques();majFiche();montrer(i);
+  const v=VIG.get(i);if(v)v.el.scrollIntoView({block:'nearest',behavior:'smooth'});}
+function majFiche(){
+  const i=ETAT.sel,c=G.CARS[i];if(!c)return;
+  $('fNom').textContent=c.name;
+  const fa=famDe(famDeCaisse(i)),f0=famDe(JEU.rar[i]);
+  const p=$('fRar');p.querySelector('.point').style.setProperty('--c',fa.c);p.querySelector('span').textContent=fa.n1;
+  $('fAvant').textContent=fa.id!==f0.id?'· était '+f0.n1:'';
+  $('fCote').textContent='· '+c.maxKmh+' km/h · '+String(c.l).replace('.',',')+' m';
+  const ip=$('fPrix');if(document.activeElement!==ip)ip.value=prixDe(i);ip.placeholder=JEU.prix[i];
+  ip.classList.toggle('change',prixDe(i)!==JEU.prix[i]);
+  const tn=$('fNote');if(document.activeElement!==tn)tn.value=ETAT.notes[i]||'';
+  if(RATEES.has(i))$('fCote').textContent='· (modèle introuvable dans le jeu)';}
+$('fPrix').addEventListener('input',e=>{const i=ETAT.sel,v=e.target.value;
+  if(v.trim()===''||v.trim()===JEU.prix[i])delete ETAT.prix[i];else ETAT.prix[i]=v;
+  e.target.classList.toggle('change',prixDe(i)!==JEU.prix[i]);sauver();});
+$('fPrix').addEventListener('blur',()=>majFiche());
+$('fPrix').addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur();});
+$('fNote').addEventListener('input',e=>{const i=ETAT.sel;if(e.target.value.trim())ETAT.notes[i]=e.target.value;else delete ETAT.notes[i];
+  e.target.style.height='auto';e.target.style.height=Math.min(180,e.target.scrollHeight+2)+'px';marques();sauver();});
+$('gNote').addEventListener('input',e=>{ETAT.general=e.target.value;sauver();});
+addEventListener('keydown',e=>{
+  if(/INPUT|TEXTAREA/.test(document.activeElement.tagName)){if(e.key==='Escape')document.activeElement.blur();return;}
+  if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;
+  const tout=[];for(const f of FAMS)tout.push(...ETAT.lanes[f.id]);const k=tout.indexOf(ETAT.sel);
+  if(k<0)return;e.preventDefault();choisir(tout[(k+(e.key==='ArrowRight'?1:tout.length-1))%tout.length]);});
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   10. LA FICHE ÉCRITE — ce qu'on télécharge : la gamme dans son nouvel ordre, les notes, et ce qui change par rapport au jeu
+   --------------------------------------------------------------------------------------------------------------------- */
+function changements(){
+  const L=[];
+  for(const f of FAMS)for(const i of ETAT.lanes[f.id]){
+    const a=JEU.rar[i],b=f.id,pa=JEU.prix[i],pb=prixDe(i);if(a===b&&pa===pb)continue;
+    const g=famDe(a).n1+' · '+pa,d=b==='retire'?'SUPPRIMÉE':famDe(b).n1+' · '+pb;L.push(nom(i)+' : '+g+'  →  '+d);}
+  const ordres=[];
+  for(const f of FAMS){if(f.id==='retire')continue;
+    const ici=ETAT.lanes[f.id].filter(i=>JEU.rar[i]===f.id),jeu=JEU.fam[f.id].filter(i=>ici.includes(i));
+    const neuves=ETAT.lanes[f.id].some(i=>JEU.rar[i]!==f.id);
+    if(ici.join()!==jeu.join()||(neuves&&ETAT.lanes[f.id].join()!==JEU.fam[f.id].join()))ordres.push(f.n);}
+  return {L,ordres};}
+function fiche(){
+  const pad=(n,p)=>'  '+n+' '+'.'.repeat(Math.max(3,35-n.length))+' '+p;
+  const note=t=>t.trim().split(/\n+/).map(l=>'        » '+l.trim()).join('\n');
+  const d=new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+  let nJ=0;for(const f of FAMS)if(f.id!=='retire')nJ+=ETAT.lanes[f.id].length;
+  const nR=ETAT.lanes.retire.length,o=[];
+  o.push('CASH CAR — FICHE DES VOITURES');
+  o.push(d+' · '+nJ+' voitures'+(nR?' (+ '+nR+' à retirer)':'')+' · faite dans la salle blanche');
+  o.push('');
+  for(const f of FAMS){const l=ETAT.lanes[f.id];if(f.id==='retire'&&!l.length)continue;
+    o.push((f.id==='retire'?'À RETIRER':f.n)+' ('+l.length+') — '+f.sous);
+    if(!l.length)o.push('  (aucune)');
+    for(const i of l){
+      const pb=prixDe(i),fa=JEU.rar[i];let x=pad(nom(i),f.id==='retire'?'était '+famDe(fa).n1+' · '+JEU.prix[i]:pb);
+      if(f.id!=='retire'&&fa!==f.id)x+='   (était '+famDe(fa).n1+')';
+      o.push(x);if(ETAT.notes[i]&&ETAT.notes[i].trim())o.push(note(ETAT.notes[i]));}
+    o.push('');}
+  if(ETAT.general&&ETAT.general.trim()){o.push('NOTES GÉNÉRALES');o.push(ETAT.general.trim().split('\n').map(l=>'  '+l).join('\n'));o.push('');}
+  const ch=changements();
+  o.push('CHANGEMENTS PAR RAPPORT AU JEU ('+ch.L.length+')');
+  if(!ch.L.length)o.push('  aucun changement de famille ni de prix');
+  for(const l of ch.L)o.push('  '+l);
+  if(ch.ordres.length)o.push('  ORDRE CHANGÉ dans : '+ch.ordres.join(', ')+' (l\'ordre de la liste ci-dessus est le nouvel ordre)');
+  const nN=Object.keys(ETAT.notes).filter(i=>ETAT.notes[i].trim()).length;
+  if(nN)o.push('  NOTES écrites sur '+nN+' voiture'+(nN>1?'s':''));
+  return o.join('\n')+'\n';}
+function bilan(){
+  if(!JEU)return;const ch=changements(),nN=Object.keys(ETAT.notes).filter(i=>ETAT.notes[i].trim()).length;
+  const b=[];if(ch.L.length)b.push(ch.L.length+' changement'+(ch.L.length>1?'s':''));if(ch.ordres.length)b.push('ordre modifié');
+  if(nN)b.push(nN+' note'+(nN>1?'s':''));if(ETAT.general.trim())b.push('notes générales');
+  $('bilan').textContent=b.length?b.join(' · '):'Rien de changé : c\'est la gamme du jeu.';}
+$('bTele').onclick=()=>{
+  const t=fiche(),a=document.createElement('a'),j=new Date();
+  a.href=URL.createObjectURL(new Blob(['﻿'+t],{type:'text/plain;charset=utf-8'}));
+  a.download='fiche-voitures-cash-car-'+j.getFullYear()+'-'+String(j.getMonth()+1).padStart(2,'0')+'-'+String(j.getDate()).padStart(2,'0')+'.txt';
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);toast('Fiche téléchargée');};
+$('bCopie').onclick=async()=>{try{await navigator.clipboard.writeText(fiche());toast('Fiche copiée');}
+  catch(_){const t=document.createElement('textarea');t.value=fiche();document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();toast('Fiche copiée');}};
+$('bZero').onclick=()=>{if(!confirm('Revenir à la gamme du jeu ? Les familles, l\'ordre, les prix ET les notes écrites ici seront effacés.'))return;
+  ETAT=neuf();$('gNote').value='';ranger();sauver();choisir(ETAT.sel);majFiche();toast('Gamme du jeu remise');};
+let toastT=0;function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('on'),1600);}
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   11. DÉPART
+   --------------------------------------------------------------------------------------------------------------------- */
+(async()=>{
+  try{await lireJeu();}
+  catch(e){const c=$('charge');c.classList.add('erreur');
+    c.innerHTML=(location.protocol==='file:'?'La salle lit les voitures directement dans le jeu : il faut l\'ouvrir par un petit serveur.<br>Dans le dossier VERSION PRINCIPALE :<br><code>python3 -m http.server 8975</code><br>puis http://localhost:8975/salle-blanche.html'
+      :'Impossible de lire les voitures dans index.html.<br><small>'+String(e.message||e)+'</small>');console.error(e);return;}
+  lireJeuGamme();charger();construireRangee();$('gNote').value=ETAT.general;
+  taille();montrer(ETAT.sel);majFiche();bilan();$('charge').classList.add('fini');
+  // les vignettes : la rangée dans l'ordre affiché
+  for(const f of FAMS)for(const i of ETAT.lanes[f.id])FILE.push(i);
+  requestAnimationFrame(boucle);
+  reglerLum();
+  window.dbgSalle={lum:reglerLum,MATS,G,V,ETAT:()=>ETAT,JEU:()=>JEU,fiche,choisir,ratees:()=>[...RATEES].map(i=>i+' '+G.CARS[i].name),R};
+})();
+</script>
+</body>
+</html>
