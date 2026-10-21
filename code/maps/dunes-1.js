@@ -33,7 +33,7 @@
    `dbgDunes('vueA',s,h,cap,pente)` (à l'abscisse s) · `dbgDunes('raccourcis')` · `?carte=dunes&meteo=soir`. */
 const NIV_DUNES={id:'dunes',nm:"LES DUNES D'OR",bio:['dunesSoir'],planete:0,espace:0,pluie:0,cielMusical:false,route:.30,sheen:.12,piste:'dunes',pr:'DE CRETE EN CRETE'};
 const DUNES_OK=CANYON_OK; // les mêmes besoins que le canyon : textures de données en flottants, lecture de textures au sommet
-PAL.B.dnFin=[16,14,12];PAL.B.dnPlat=[96,80,64];PAL.B.dnOmbre=[60,52,44];PAL.B.dnGrille=[16,16,32];PAL.B.dnR0=[85,100,118];PAL.B.dnArbres=[50,90,140];PAL.B.dnPalmes=[22,34,48];PAL.B.dnPart=[600,1100,1600]; // la finesse par palier [ancien, moyen, récent]
+PAL.B.dnFin=[16,14,12];PAL.B.dnPlat=[96,80,64];PAL.B.dnOmbre=[60,52,44];PAL.B.dnGrille=[16,16,32];PAL.B.dnR0=[85,100,118];PAL.B.dnArbres=[50,90,140];PAL.B.dnPalmes=[22,34,48];PAL.B.dnPart=[600,1100,1600];PAL.B.dnMat=[0,.5,1];PAL.B.dnTors=[10,18,28];PAL.B.dnTouffes=[30,70,120];PAL.B.dnMorts=[8,18,28]; // la finesse par palier [ancien, moyen, récent] ; (2026-10-21, embellissement) dnMat = le grain / les crêtes qui filent / les étincelles (0 = aucune lecture de plus) ; dnTors, dnTouffes, dnMorts = le nombre de buttes, de touffes et d'arbres morts du plan moyen
 const DN={Q:null,on:false,ms:{},yMin:-1e4,yMax:1e4,mesh:null,mat:null,geo:null,aN:null,maxN:900,G:32,S0:64,R0:118,lods:7,
   F:null,Z:null,O:null,fr:new THREE.Frustum(),pm:new THREE.Matrix4(),box:new THREE.Box3(),n:0,S:null,job:0,attente:null,grp:null,
   ombre:1,ecrit:false,ob:[],pyr:null,oa:null,rac:[],vent:[1,0,1,0],lam:560,car:[],sep:0,rmin:0}; // (les textes : avec les ambiances des dunes, I18N n'existe pas encore ici)
