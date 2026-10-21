@@ -3,6 +3,21 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'ÉCRAN DE FIN COUCHÉ — ⌂ · REJOUER RENTRENT DANS LA GRILLE (2026-10-20 → 21, v771, Sacha, capture d'une fin avec records : « bug de bouton ici à corriger »)
+- **Le symptôme** (téléphone couché, 844 × 390) : la ⌂ mordait sur le coin de la carte MOTEUR, et un pan vert dépassait entre ⌂ et REJOUER —
+  la plaque ×2 · PUB (#mDouble), passée DERRIÈRE REJOUER, donc intouchable.
+- **La cause** (ux8.css, bloc « vu à la fumée ») : couché, `.mFin` était un `position:fixed` de `min(368px,44vw)` hors de la grille. 368 px,
+  plus que les 324 px de la colonne de droite → la ⌂ débordait de 44 px à gauche. Et la grille, qui ne réservait plus sa place, faisait 427 px de haut
+  pour 390 (l'écran défilait) : avec les badges RECORD et deux missions, la case `row` (×2, NON MERCI) tombait sous la rangée figée.
+- **Le correctif** (CSS seul, couché seulement) : la rangée revient dans sa case `rej` ; l'écran de fin fait la hauteur EXACTE du téléphone
+  (`#overlay[data-ecran="dead"]>#mob` et `#mDead.on` en `flex:1 1 0`, pas de `:has()` — cf. v740) ; la rangée du milieu passe en
+  `minmax(0,1fr)` et prend ce qui reste ; la plaque des chiffres (`container-type:size`) se tasse en deux crans (≤ 74 px, ≤ 63 px) quand la
+  place manque. CONTINUER (seconde chance) prend la case `rej` dans le flux, comme REJOUER.
+- **Vérifié** dans le cadre de l'ordi (844 × 390, vraie mort, puis le contenu de la capture : RECORD ×3, deux missions, ×2) et en 667 × 375 :
+  plus de défilement, ⌂ · REJOUER à la largeur de la colonne, ×2 au-dessus, chaque bouton reçoit son toucher. À 667 px, « NIVEAU FRENESIE »
+  collés et « MOTEUR ATTEINT » plus large que sa carte existaient déjà avant. (Chrome garde ~18 px de défilement tant que l'entrée de REJOUER,
+  qui monte de 26 px, n'a pas été suivie d'une remise en page — sans effet visible.)
+
 ## LA MONTÉE « GRANDE » DU GÉNÉRATEUR, EN COURSE (2026-10-20 soir, v751, Léo : « quand je booste, ça apparaît, ça évolue, puis ça devient une sorte de trompette horrible qui fait bugger la musique : elle s'arrête, reprend 1-2 s après, et dès que je rappuie sur le boost ça recommence ») — branche `nitro-ronron`
 - **LE SON** n'était pas le nitro : c'est la musique de POUCE BLEU (le générateur `musique-trente-*.js`). Le jeu ne lui passe que le MOTEUR (`setTier`) ;
   un boost tenu fait monter plusieurs paliers d'un coup, et chaque grand élément qui entre appelle une MONTÉE d'une mesure : un RISER — une fois sur deux

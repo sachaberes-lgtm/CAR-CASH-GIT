@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v770'; // v770 (2026-10-21, Sacha : REQUIN retiré de la boutique, LE SQUALE à 1,61 €, LE DRAGON D'OR et LE BLINDÉ NOIR à 1,61 €)
+const CACHE = 'cashcar-v771'; // v771 (2026-10-21, Sacha : « bug de bouton ici à corriger ») : l'écran de fin couché — ⌂ · REJOUER rentrent dans la grille, la plaque ×2 ne passe plus dessous
 // const CACHE = 'cashcar-v769';
 // const CACHE = 'cashcar-v768'; // v768 (2026-10-21, Sacha : « la map neige est en dessous des autres, rajoute une montagne au milieu qui sépare la route en deux ») : glacier, LE MASSIF (crête de 30-80 m dans l'axe, deux couloirs, tremplin à la sortie du large)
 // const CACHE = 'cashcar-v767'; // v767 (2026-10-21, Sacha : capture du garage, le bandeau de rareté « COMMONS 7/7 » dépassait à droite : border-box) ; v766 (2026-10-21, Sacha : les montagnes de Jade qui tombent gardent leur hitbox) ; v765 (2026-10-21, Sacha : « garde les nouveaux designs de power-up de Léo mais remets l'ancien système avec les boosts au sol et des fruits plus rares qui rapportent plus de nitro ») : plaques turbo + fruit/plaque en file revenus, fruits-pouvoirs semés au hasard, fruits rares (melon, mangue, litchi) ; ?pads=0 et ?fruitpow=1 = le système de Léo

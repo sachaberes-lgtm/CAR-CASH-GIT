@@ -197,18 +197,26 @@ html:not(.c6) body.chOffre #mDead #mChanceNon:not([hidden]){animation:u8ChMonte 
   /* couché : la rangée OFFRES · RÉGLAGES s'efface le temps de l'offre, NON MERCI prend sa case, CONTINUER l'ancre de REJOUER (en bas à droite) */
   html:not(.c6) body.chOffre #mDead>.mRow{display:none}
   html:not(.c6) body.chOffre #mDead #mChanceNon:not([hidden]){grid-area:row;margin:0;min-height:44px}
-  html:not(.c6) body.chOffre #mDead #mChance:not([hidden]){position:fixed;z-index:6;right:calc(var(--sR) + 24px);bottom:calc(var(--sB) + 8px);
-    width:min(368px,44vw);margin:0;min-height:58px}}
+  html:not(.c6) body.chOffre #mDead #mChance:not([hidden]){grid-area:rej;align-self:end;margin:0;min-height:58px}}
 @keyframes u8ChMonte{from{translate:0 24px;opacity:0}to{translate:0 0;opacity:1}}
 @keyframes u8ChBar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 @media (prefers-reduced-motion:reduce){html:not(.c6) #mDead #mChance.chOn{animation:none}}
 /* (vu à la fumée, 844×390, une fin AVEC record) le badge RECORD et « ENCORE 2 PIÈCES POUR… » grandissaient la carte MOTEUR, la grille étirait toute
    la rangée, et ⌂ · REJOUER passaient SOUS le bord de l'écran. Couché : l'indice part (la place est rare), les cartes ne s'étirent plus, et la rangée
-   d'action (+ la seconde chance) reste ancrée en bas de la colonne de droite quoi qu'il arrive — une décision ne sort jamais de l'écran. */
+   d'action (+ la seconde chance) reste ancrée en bas de la colonne de droite quoi qu'il arrive — une décision ne sort jamais de l'écran.
+   (2026-10-20, Sacha : « bug de bouton ici à corriger ») l'ancre était un position:fixed de 368 px HORS de la grille : plus large que la colonne
+   (324 px à 844 × 390), la ⌂ mordait sur la carte MOTEUR ; et la grille, plus haute que l'écran (427 px), défilait SOUS la rangée — la plaque ×2
+   de la case `row` passait derrière REJOUER, intouchable. La rangée revient dans sa case `rej` : l'écran de fin fait la hauteur EXACTE du
+   téléphone, la rangée du milieu (cartes | chiffres) prend ce qui reste, et la plaque des chiffres se tasse quand la place manque. */
 @media (orientation:landscape) and (max-height:540px){
-  html:not(.c6) #mDead{align-items:start;align-content:start;padding-bottom:calc(var(--sB) + 76px)}
+  html:not(.c6) body.touch #overlay[data-ecran="dead"]>#mob{flex:1 1 0;min-height:0} /* data-ecran plutôt qu'un :has() (v740 : le :has se payait à chaque image) */
+  html:not(.c6) #mDead.on{flex:1 1 0;min-height:0;grid-template-rows:auto auto minmax(0,1fr) auto auto}
+  html:not(.c6) #mDead{align-items:start;align-content:start;padding-bottom:calc(var(--sB) + 8px)}
   html:not(.c6) #mDead .hNx{display:none}
-  html:not(.c6) #mDead .mFin{position:fixed;z-index:6;right:calc(var(--sR) + 24px);bottom:calc(var(--sB) + 8px);width:min(368px,44vw);margin:0}
+  html:not(.c6) #mDead .mStats{container-type:size} /* sa hauteur vient de la grille, plus de son contenu : elle se lit ci-dessous */
+  @container (max-height:74px){html:not(.c6) #mDead .mStat{padding:4px;gap:4px}}
+  @container (max-height:63px){html:not(.c6) #mDead .mStat{padding:2px 4px;gap:3px}html:not(.c6) #mDead .mStat b{font-size:var(--f5)}
+    html:not(.c6) #mDead .mStat span{line-height:1.2}}
 }
 </style>
 <style id="pubRecompense">
