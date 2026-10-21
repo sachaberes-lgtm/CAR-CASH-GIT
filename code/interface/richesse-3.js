@@ -334,9 +334,11 @@ function chuteFormes(){
   if(CHUTE.geo)return;const rg=mulberry32(0xC4A5),G9=[['mediocris',3],['humilis',3],['humilis',2],['mediocris',2],['congestus',3],['mediocris',3],['congestus',3]],geo=[];
   for(const q of G9){const S=cumulus8(q[0],rg);S.seed=Math.floor(rg()*997);const dyU=-(S.base+S.top)*.5,e={g:null};geo.push(e);
     nuage8Async(S,N8_FIN[q[1]],function(r9){const g2=cotonBuf(r9);g2.translate(0,dyU,0);g2.computeBoundingSphere();e.g=g2;
-      if(CHUTE.nu)for(const c of CHUTE.nu)if(c.e===e)c.m.geometry=g2;});}
+      if(r9.skin&&NUSKIN.on)e.skg=nuSkinGeo(r9.skin,dyU); // (2026-10-21) la PEAU transparente des cumulus du titre aussi
+      if(CHUTE.nu)for(const c of CHUTE.nu)if(c.e===e){c.m.geometry=g2;if(e.skg)chuteSkinPose(c);}});}
   CHUTE.geo=geo;CHUTE.rg=rg;
 }
+function chuteSkinPose(c){if(c.sk||!c.e.skg)return;const sk=new THREE.Mesh(c.e.skg,nuSkinMat());sk.renderOrder=1;sk.frustumCulled=false;sk.castShadow=sk.receiveShadow=false;c.m.add(sk);c.sk=sk;}
 function chuteCumulus(){
   if(CHUTE.nu)return;chuteFormes();const geo=CHUTE.geo,rg=CHUTE.rg,vide=new THREE.BufferGeometry();
   /* LEUR MATIÈRE : celle des nuages v8 (même programme, déjà compilé), avec SES réglages de lumière (uK : albédo, soleil, lisière, vapeur ·
@@ -347,18 +349,20 @@ function chuteCumulus(){
   for(const d of CHUTE_NU){if(d[6])for(let k9=0;k9<d[6];k9++)rg(); /* (7e champ) des tirages sautés : voir les tours de l'horizon */
     const e=geo[d[3]],m=new THREE.Mesh(e.g||vide,mT);m.visible=false;m.castShadow=false;m.receiveShadow=false;
     m.scale.set(d[2],d[2],d[2]);m.rotation.y=rg()*6.2832;scene.add(m);const dd=Math.hypot(d[0],d[1]);
-    N.push({m:m,e:e,a:d[0],b:d[1],r:d[2],v:d[4],y:d[5],lo:-(1.2*dd+1.3*d[2]),hi:.1*dd+1.3*d[2]});}
+    {const c9={m:m,e:e,a:d[0],b:d[1],r:d[2],v:d[4],y:d[5],lo:-(1.2*dd+1.3*d[2]),hi:.1*dd+1.3*d[2]};N.push(c9);if(e.skg)chuteSkinPose(c9);}}
   CHUTE.nu=N;
 }
 try{if(CHUTE_OK)chuteFormes();}catch(e){} /* (titre v3) au chargement : les formes du titre passent AVANT celles du ciel de coton dans la file de l'ouvrier */
+const CHUTE_RONDS=/[?&]ronds=1\b/.test(location.search); // `?ronds=1` rend les bancs de brume ronds du titre
 function chuteMonte(){ // les bancs de nuage et les filets de vent (une fois)
   chuteCumulus();
   const tex=chuteNuageTex(),W=[];
-  for(let i=0;i<16;i++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:0,depthWrite:false,fog:false}));
+  /* (2026-10-21, Léo : « enlève tous les ronds qui n'ont plus rien à voir avec les nouveaux nuages ») plus de bancs de brume RONDS (16 sprites) ni de nappes rondes (30) au titre : les nuages du titre sont les cumulus en cubes */
+  for(let i=0;i<(CHUTE_RONDS?16:0);i++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:0,depthWrite:false,fog:false}));
     sp.visible=false;sp.renderOrder=4;scene.add(sp);W.push({sp:sp,x:0,y:0,z:0,s:1,v:1,r:0});}
   for(const w of W)chuteNuageNeuf(w,true);
   CHUTE.w=W;
-  const SOL=[];for(let i=0;i<30;i++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:.95,depthWrite:false,fog:false}));
+  const SOL=[];for(let i=0;i<(CHUTE_RONDS?30:0);i++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:.95,depthWrite:false,fog:false}));
     sp.visible=false;sp.renderOrder=-3;scene.add(sp);SOL.push(sp);}
   CHUTE.sol=SOL;
   const N=46,g=new THREE.BufferGeometry(),pos=new Float32Array(N*4*3),col=new Float32Array(N*4*3),idx=[];

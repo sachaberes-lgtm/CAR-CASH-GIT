@@ -3,6 +3,11 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA PEAU TRANSPARENTE ET PLUS DE RONDS (2026-10-21, v772, Léo : « enlève tous les ronds qui n'ont plus rien à voir avec les nouveaux nuages » · « une couche transparente épaisse qui va permettre de polir le tout ») — branche `nuages-refonte`
+- **LA PEAU** : l'ouvrier calcule en plus des cubes la surface LISSE du même champ (`skin`, gonflée de ~1,2 cube le long de sa normale) ; un maillage transparent par lot (`COTON.skin`, mêmes instances que le corps), pour les nuages seuls (child du mesh) et ceux du titre (`chuteSkinPose`). Matière (`nuSkinMat`, nuages-casses.js) : surtout blanche (lumière à 30 %), plus épaisse au bord (Fresnel), fondue comme le corps entre finesses (`instanceMatrix[0][3]`) et près de l'objectif, trouée par les impacts (NHOLE). Réglable : `dbgSkin(base .2, bord .45, voile .06)` ; `?peau=0` = sans. Premier essai trop BLEU (la lumière du ciel à 100 %) → blanc.
+- **LES RONDS RETIRÉS** : (1) les BOULES provisoires (ébauche en sphères) des lots, des nuages seuls et des coussins → `nuVide()` (un nuage n'existe à l'image que fini) ; (2) les bancs de brume ROND du titre (16 sprites) et les nappes rondes (30) → `CHUTE_RONDS` faux (`?ronds=1` les rend). Les ronds ne sont plus créés dans les nuages de la map nuages.
+- Vu à l'œil en course (matin) : nuages blancs polis, cubes lisibles dessous.
+
 ## LES FILS SE PROMÈNENT, EN PETIT NOMBRE (2026-10-21, v771, Léo : « les traits électriques doivent embrasser les courbes, pas qu'une ligne ; ils se promènent — regarde les images sur Internet ; là t'en as trop mis, c'est même plus réaliste ») — branche `nuages-refonte`
 - Photos regardées (Wikimedia Commons, « intracloud lightning ») : UN canal fin qui serpente en longues courbes douces + fines dentelures, deux-trois branches qui s'effilent, parfois une boucle ; un ou deux à la fois.
 - `filNeuf` : plus de fractale droite — une MARCHE À CAP PERSISTANT sur la face visible du nuage (le cap tourne doucement, ondule à basse fréquence, est rappelé vers le centre près du bord : le fil épouse le bombé), 26 pas, deux branches courtes qui s'amincissent.

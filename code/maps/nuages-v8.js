@@ -45,6 +45,7 @@ function nuage8Calc(B, base, top, N, opt) {
      « patch » si le voisin change de taille (jamais de trou entre un gros et un petit cube). La LUMIÈRE reste celle du nuage lisse : la normale
      d'un cube = sa face mêlée au gradient du champ (opt.vox.kn), le modelé cuit (creux, ombre des bourgeons du haut, hauteur) est lu en son
      centre, et chaque cube a SA nuance (opt.vox.jit) : c'est elle qui fait lire la mosaïque. Aucun fantôme, aucune poussière : un seul objet opaque. */
+  let voxOut = null;
   if (opt.vox) {
     const VX = opt.vox, hv = ext / (N * (VX.k || 1.5) * (N > 40 ? (VX.kf || .75) : 1)), RG = hv * 4, kn = VX.kn == null ? .5 : VX.kn, jit = VX.jit == null ? .16 : VX.jit;
     const gx0 = Math.floor(x0 / RG) * RG, gz0 = Math.floor(z0 / RG) * RG, gy0 = base - RG; // la base du nuage sur une frontière de région : le dessous est PLAT
@@ -94,7 +95,7 @@ function nuage8Calc(B, base, top, N, opt) {
           if (nex === m * m) quad(cx, cy, cz, ax, sg, s * .5, 0, 0, s * .5, s * .5, nn, dat.md);
           else { const hp = s / m * .5; let ii = 0; for (let q = 0; q < m; q++) for (let p = 0; p < m; p++, ii++) if (ex[ii]) quad(cx, cy, cz, ax, sg, s * .5, ((p + .5) / m - .5) * s, ((q + .5) / m - .5) * s, hp, hp, nn, dat.md); } } } }
     const nvv = VP.length / 3;
-    return { pos: new Float32Array(VP), nor: new Float32Array(VN), col: new Float32Array(VC), idx: nvv < 65535 ? new Uint16Array(VI) : new Uint32Array(VI), vit: null, fant: null };
+    voxOut = { pos: new Float32Array(VP), nor: new Float32Array(VN), col: new Float32Array(VC), idx: nvv < 65535 ? new Uint16Array(VI) : new Uint32Array(VI), hv: hv }; // (2026-10-21) on continue : la surface LISSE du même champ devient la PEAU transparente qui enrobe les cubes
   }
   // les coins
   const NX = nx + 1, NY = ny + 1, NZ = nz + 1, V = new Float32Array(NX * NY * NZ);
@@ -239,6 +240,11 @@ function nuage8Calc(B, base, top, N, opt) {
     const fin = function (A9, k) { return A9.subarray(0, q * k); };
     fant = { pos: fin(FP, 3), nor: fin(FN, 3), col: fin(FC, 3), q: fin(FQ, 4), k: sz * 3 }; // k : de combien le CORPS du nuage rentre (les fantômes du dessus se voient)
   }
+  if (voxOut) { // LA PEAU (Léo : « une couche transparente épaisse qui va permettre de polir le tout ») : la surface lisse, gonflée de ~1,2 cube le long de sa normale (elle recouvre les marches), portée à part des cubes
+    const off = voxOut.hv * (opt.vox.skin == null ? 1.2 : opt.vox.skin), sp = new Float32Array(pos.length);
+    for (let i = 0; i < pos.length; i++) sp[i] = pos[i] + nor[i] * off;
+    return { pos: voxOut.pos, nor: voxOut.nor, col: voxOut.col, idx: voxOut.idx, vit: null, fant: null, skin: { pos: sp, nor: nor, idx: idx } };
+  }
   return { pos: pos, nor: nor, col: col, idx: idx, vit: vit, fant: fant };
 }
 /* LE SCULPTEUR DE CUMULUS v8 — les FORMES refaites (les gabarits v4-v7 étaient des piles de bourgeons étroites : au banc, des « fantômes »).
@@ -325,7 +331,7 @@ function cotonGeo(S,sph){ // les bourgeons fusionnés, en unités du nuage : mod
 const COTON_OUV={w:null,ko:false,id:0,att:new Map(),file:[],t:0};
 function cotonOuvrier(){
   if(COTON_OUV.w||COTON_OUV.ko)return COTON_OUV.w;
-  try{const src='const cotonCalc='+cotonCalc.toString()+';const nuage8Calc='+nuage8Calc.toString()+';self.onmessage=function(e){const q=e.data,r=q.n8?nuage8Calc(q.B,q.base,q.top,q.n8,q.o8):cotonCalc(q.B,q.base,q.top,q.sp,q.sn,q.si,q.CH);self.postMessage({id:q.id,r:r},[r.pos.buffer,r.nor.buffer,r.col.buffer,r.idx.buffer]);};';
+  try{const src='const cotonCalc='+cotonCalc.toString()+';const nuage8Calc='+nuage8Calc.toString()+';self.onmessage=function(e){const q=e.data,r=q.n8?nuage8Calc(q.B,q.base,q.top,q.n8,q.o8):cotonCalc(q.B,q.base,q.top,q.sp,q.sn,q.si,q.CH);self.postMessage({id:q.id,r:r},[r.pos.buffer,r.nor.buffer,r.col.buffer,r.idx.buffer].concat(r.skin?[r.skin.pos.buffer,r.skin.nor.buffer,r.skin.idx.buffer]:[]));};';
     const w=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));
     w.onmessage=function(e){const a=COTON_OUV.att.get(e.data.id);if(!a)return;COTON_OUV.att.delete(e.data.id);a.cb(e.data.r);};
     w.onerror=function(ev){try{ev.preventDefault();}catch(e9){}cotonOuvrierKo();};COTON_OUV.w=w;

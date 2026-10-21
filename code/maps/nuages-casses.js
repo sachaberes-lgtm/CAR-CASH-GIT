@@ -109,3 +109,40 @@ function nuCasseDecor(){
   for(let j=0;j<COTON.n;j++){const o=j*COTON_ST,r=I[o+3];if(r<20)continue;const S=COTON.S[I[o+5]],rx=r*I[o+8]*1.02,ry=Math.max(8,(S.top-S.base)*r*I[o+9]*.5)*1.02,
       dx=cp.x-I[o],dz=cp.z-I[o+2],dy=cp.y-(I[o+1]+S.base*r*I[o+9]+I[o+7]*.5);if(Math.abs(dx)>rx||Math.abs(dz)>rx||Math.abs(dy)>ry)continue;
     const d2=(dx*dx+dz*dz)/(rx*rx)+dy*dy/(ry*ry);if(d2>=1)continue;const t0=NCB.ct.get(j);if(t0!==undefined&&now-t0<3000)continue;NCB.ct.set(j,now);nuCasseBurst(cp,Math.min(1,.55+(1-Math.sqrt(d2))),{r:rx});}}
+/* ============================== LA PEAU (2026-10-21, Léo : « enlève tous les ronds qui n'ont plus rien à voir avec les nouveaux nuages » · « appliquer une couche transparente épaisse qui va permettre de polir le tout ») ==============================
+   Sur les nuages en cubes : une COUCHE TRANSPARENTE ÉPAISSE — la surface lisse du MÊME champ (calculée dans l'ouvrier avec les cubes), gonflée d'environ 1,2 cube, qui recouvre les marches comme un vernis de verre : on voit les cubes à travers,
+   mais leurs arêtes sont polies, la silhouette adoucie. Matière : la lumière de la ouate (mêmes uniformes), un voile blanc-lavande (`uSk.z`), plus opaque sur le bord (Fresnel `uSk.y`), fondue comme le corps entre deux finesses (`instanceMatrix[0][3]`)
+   et près de l'objectif, trouée là où la voiture a frappé (NHOLE). Un maillage par lot (mêmes instances que le corps : `COTON.skin`). `?peau=0` = sans ; `dbgSkin(base, bord, voile)` pour régler. */
+const NUSKIN={on:!/[?&]peau=0\b/.test(location.search),uSk:{value:new THREE.Vector4(.2,.45,.06,0)},mat:null};
+function nuVide(){ // un triangle dégénéré : une géométrie qui ne dessine rien (le nuage arrive fini ; plus de boules provisoires)
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(9),3));g.setAttribute('normal',new THREE.BufferAttribute(new Float32Array([0,1,0,0,1,0,0,1,0]),3));
+  g.setAttribute('color',new THREE.BufferAttribute(new Float32Array(9).fill(1),3));g.setIndex(new THREE.BufferAttribute(new Uint16Array([0,1,2]),1));return g;}
+function nuSkinGeo(sk,dy){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(sk.pos,3));g.setAttribute('normal',new THREE.BufferAttribute(sk.nor,3));g.setIndex(new THREE.BufferAttribute(sk.idx,1));if(dy)g.translate(0,dy,0);g.computeBoundingSphere();return g;}
+function nuSkinMat(){
+  if(NUSKIN.mat)return NUSKIN.mat;const U=THREE.UniformsUtils.merge([THREE.UniformsLib.fog]);
+  for(const k of ['uSunW','uSunC','uSky','uGnd','uLav','uK','uR','uHole','uHoleC','uNearF'])U[k]=N8_U[k];U.uSk=NUSKIN.uSk;
+  NUSKIN.mat=new THREE.ShaderMaterial({uniforms:U,fog:true,transparent:true,depthWrite:false,
+    vertexShader:['#include <common>','#include <fog_pars_vertex>','varying vec3 vN,vW;varying float vF;',
+      'void main(){vec3 tr=position;vec3 nn=normal;vF=0.;',
+      '#ifdef USE_INSTANCING','  vF=instanceMatrix[0][3];nn=mat3(instanceMatrix)*nn;tr=(instanceMatrix*vec4(tr,1.)).xyz;','#endif',
+      '  vec4 wp=modelMatrix*vec4(tr,1.);vW=wp.xyz;vN=normalize(mat3(modelMatrix)*nn);vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n'),
+    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uSunC,uSky,uGnd,uLav;uniform vec4 uK,uR,uSk,uHole[8];uniform vec2 uNearF;uniform float uHoleC;varying vec3 vN,vW;varying float vF;',
+      'void main(){',
+      '  for(int i9=0;i9<8;i9++){vec4 h9=uHole[i9];if(h9.w>.01&&distance((floor(vW/uHoleC)+.5)*uHoleC,h9.xyz)<h9.w)discard;}',
+      '  vec3 N=normalize(vN),V=normalize(cameraPosition-vW);float lit=smoothstep(uR.x,uR.y,dot(N,uSunW));',
+      '  vec3 sk=mix(vec3(dot(uSky,vec3(.3,.59,.11))),uSky,.6)*vec3(.9,.95,1.05);',
+      '  vec3 ciel=mix(uLav*(.6+.5*dot(uGnd,vec3(.3,.59,.11))),sk,smoothstep(-.35,.8,N.y));',
+      '  vec3 ombre=ciel*uR.z*(.78+.22*max(dot(N,normalize(vec3(-uSunW.x,.55,-uSunW.z))),0.));',
+      '  float ch=clamp((uSunC.r-uSunC.b-.18)*3.5,0.,.45);',
+      '  vec3 soleil=mix(vec3(1.,.99,.975),uSunC/max(uSunC.r,.01),ch)*dot(uSunC,vec3(.3,.59,.11))*uK.y;',
+      '  vec3 col=mix(vec3(1.,.985,.96)*(.8+.2*lit),mix(ombre,soleil,lit),.3)+vec3(.9,.92,1.)*uSk.z;', // le voile laiteux du verre : surtout BLANC (la lumière à 30 % seulement) — plus de voile bleu
+      '  float fr=1.-abs(dot(N,V));float a=uSk.x+uSk.y*pow(fr,2.2);',                               // plus épais sur le bord : un vernis, pas un brouillard
+      '  a*=(vF<0.?-vF:1.-vF)*smoothstep(uNearF.x,uNearF.y,length(vW-cameraPosition));',            // fondue comme le corps entre deux finesses, et près de l objectif
+      '  gl_FragColor=vec4(col,clamp(a,0.,.85));','#include <fog_fragment>','}'].join('\n')});
+  return NUSKIN.mat;}
+function nuSkinPose(k,f,sk){ // une finesse arrive : sa peau pour SON lot et les lots plus fins encore en attente
+  if(!NUSKIN.on||!COTON.root)return;const g=nuSkinGeo(sk,0),m9=nuSkinMat();COTON.skin=COTON.skin||[];
+  for(let f2=f;f2<4;f2++){const j=k*4+f2;if(f2>f&&COTON.pret[j])break;const im=COTON.im[j];if(!im)continue;let S=COTON.skin[j];
+    if(!S){const m=new THREE.InstancedMesh(g,m9,COTON.cap);m.instanceMatrix=im.instanceMatrix;m.instanceColor=im.instanceColor;m.frustumCulled=false;m.count=0;m.renderOrder=1;m.castShadow=m.receiveShadow=false;m.matrixAutoUpdate=false;COTON.root.add(m);COTON.skin[j]=S={m:m};}
+    else S.m.geometry=g;}}
+window.dbgSkin=function(a,b,c){const u=NUSKIN.uSk.value;if(a!=null)u.x=+a;if(b!=null)u.y=+b;if(c!=null)u.z=+c;return u.toArray();}; // (banc) base · bord · voile ; dbgSkin(0,0,0) = invisible
