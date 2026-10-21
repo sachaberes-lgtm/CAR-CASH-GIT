@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v776'; // v776 (2026-10-21, Léo : L'ŒUF D'OR façon Fabergé dans la pluie de richesse, après la bague, le crâne réaliste et la montre argentée)
+const CACHE = 'cashcar-v777'; // v777 (2026-10-21, Léo : l'œuf d'or retiré de la pluie de richesse — trop peu « mainstream »)
 // const CACHE = 'cashcar-v763'; // v763 (2026-10-21, Léo : « c'est le nitro ») : ?nitro=ancien = le nitro d'avant le 20/10 16h35 (A/B du bug audio, rien ne change par défaut) ; montées 'filtre'/'dub' de Pouce bleu = montée simple en course ; + phares au faisceau progressif (v761 de main)
 // const CACHE = 'cashcar-v759'; // v759 (2026-10-21, Léo : « le toit de LA HONTE avec un peu de taches comme le reste de la voiture, pas trop ») : la dalle du toit devient une boîte usée (plaques de rouille, arêtes usées)
 // const CACHE = 'cashcar-v758'; // v758 (2026-10-20, Léo : « les phares rouges de certaines voitures buguent, comme la boule des phares v1 ») : les feux arrière BOMBÉS (LA BÊTE, DOLCE VITA, GRANDE ANGLAISE…) gardent leur lueur collée à leur forme, plus de boule
