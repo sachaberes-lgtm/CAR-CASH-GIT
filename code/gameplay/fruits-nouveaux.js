@@ -229,16 +229,17 @@ const FRN_POMMEDOREE=function(K){frPomme(K,['go1','go2','go3','goH','goT','goL',
 for(const k in FRUIT_PAL_N)FRUIT_PAL[k]={g:'f',c:FRUIT_PAL_N[k]};
 const FRUIT_EXO=FRUIT_DEFS.splice(0,FRUIT_DEFS.length); // les 13 d'avant : hors du jeu, au cahier des charges
 const FRN_ANC=n=>FRUIT_EXO.find(f=>f.n===n);
+/* (2026-10-21, Sacha : « des fruits plus rares qui rapportent plus ») les NOUVEAUX dessins, les ANCIENS réglages : communs et petits (myrtille, orange…) jusqu'au rare qui claque (mangue, melon) */
 FRUIT_DEFS.push(
-  Object.assign({},FRN_ANC('MYRTILLE'),{boost:.6,freq:10}),
-  {n:'CERISE',boost:.6,freq:10,jus:0xd01030,lp:FRN_CERISE},
-  {n:'KIWI',boost:.6,freq:10,jus:0x7cc020,lp:FRN_KIWI},
+  Object.assign({},FRN_ANC('MYRTILLE'),{boost:.35,freq:26}),
+  {n:'CERISE',boost:.5,freq:14,jus:0xd01030,lp:FRN_CERISE},
+  {n:'KIWI',boost:.6,freq:11,jus:0x7cc020,lp:FRN_KIWI},
   Object.assign({},FRN_ANC('PÊCHE PLATE'),{n:'PÊCHE',boost:.6,freq:10}),
-  Object.assign({},FRN_ANC('ORANGE'),{boost:.6,freq:10}),
-  {n:'MANGUE',boost:.6,freq:10,jus:0xf4b030,lp:FRN_MANGUE},
-  {n:'POMME',boost:.6,freq:10,jus:0xe02a2a,lp:FRN_POMME},
-  {n:'MELON',boost:.6,freq:10,jus:0xf0a050,lp:FRN_MELON},
-  {n:'LITCHI',boost:.6,freq:10,jus:0xf6e6ee,lp:FRN_LITCHI}
+  Object.assign({},FRN_ANC('ORANGE'),{boost:.5,freq:11}),
+  {n:'POMME',boost:.7,freq:8,jus:0xe02a2a,lp:FRN_POMME},
+  {n:'LITCHI',boost:1,freq:4,jus:0xf6e6ee,lp:FRN_LITCHI},
+  {n:'MANGUE',boost:1.2,freq:3,jus:0xf4b030,lp:FRN_MANGUE},
+  {n:'MELON',boost:2,freq:1,jus:0xf0a050,lp:FRN_MELON}
 );
 /* LES FORMES DES FRUITS-POUVOIRS : une géométrie par pouvoir, coulée à la 1re demande (comme fruitGeo) et partagée */
 const FRUIT_POW={n:{n:'PIMENT',lp:FRN_PIMENT,jus:0xff3a10},v:{n:'CITRON',lp:FRN_CITRON,jus:0xfff060},x:{n:'FRUIT DU DRAGON',lp:FRN_DRAGON,jus:0xe0157a},
@@ -250,7 +251,7 @@ function fruitPowGeo(k){
   return FRUIT_POW_GEO[k];
 }
 
-const PADS_OFF=!/[?&]pads=1/.test(location.search); // plus de plaques turbo (?pads=1 les rend, pour comparer)
-const PWR_LIGNE=!/[?&]cristaux=1/.test(location.search); // les fruits-pouvoirs tombent au bout de la file de fruits (?cristaux=1 : les anciens cristaux au hasard)
-const PWR_EGAUX=true; // les cinq pouvoirs à la même fréquence
+const PADS_OFF=/[?&]pads=0/.test(location.search); /* (2026-10-21, Sacha : « garde les nouveaux designs de Léo mais remets l'ancien système avec les boosts au sol ») les plaques turbo sont REVENUES (?pads=0 : sans, le système de Léo) */
+const PWR_LIGNE=/[?&]fruitpow=1/.test(location.search); /* (2026-10-21) les fruits-pouvoirs sont de nouveau semés au hasard sur la piste (?fruitpow=1 : au bout de la file, le système de Léo) */ // // les fruits-pouvoirs tombent au bout de la file de fruits (?cristaux=1 : les anciens cristaux au hasard)
+const PWR_EGAUX=PWR_LIGNE; // les cinq pouvoirs à la même fréquence
 

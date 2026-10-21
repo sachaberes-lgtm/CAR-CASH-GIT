@@ -307,7 +307,7 @@ function paintEnv(stops,s1,s2){ // stops=[[pos,'#hex'],…] + 2 strips néon [r,
   /* (2026-10-20, Léo : « voiture aussi belle dans le jeu que dans la boutique, et ciel obligé ») LA FINITION EN COURSE : le ciel de CHAQUE niveau (ville,
      orbite, grotte… compris : il y a toujours un ciel à refléter) est repeint en reflets NETS (256², bandes de lumière, voir paintEnvMenu) et la caisse
      prend le vernis profond, dosé par le jour du niveau. REQUIN (FSTU_SANS) et `?finition=ancien` gardent le ciel d'avant. */
-  try{if(FSTU.on&&!garageOn&&!FSTU_SANS[carGroup.userData.shape]){paintEnvMenu({env:stops,eS1:s1,eS2:s2,sunHalo:(BIO&&BIO.to&&BIO.to.sunHalo!=null?BIO.to.sunHalo:1)});finLaque('menu');}else{FSTU.env='ciel';finLaque(false);}}catch(e){try{FSTU.env='ciel';finLaque(false);}catch(e2){}} // (2026-10-20) le ciel d'un niveau ou du menu : la caisse reprend son vernis de course (la finition studio, finition.js, n'est que pour le garage) — au chargement la finition n'existe pas encore : rien à rendre
+  try{if(FSTU.on&&!garageOn&&!FSTU_SANS[carGroup.userData.shape]){paintEnvCiel(stops,s1,s2,(BIO&&BIO.to&&BIO.to.sunHalo!=null?BIO.to.sunHalo:1));finLaque('menu');}else{FSTU.env='ciel';finLaque(false);}}catch(e){try{FSTU.env='ciel';finLaque(false);}catch(e2){}} // (2026-10-20) le ciel d'un niveau ou du menu : la caisse reprend son vernis de course (la finition studio, finition.js, n'est que pour le garage) — au chargement la finition n'existe pas encore : rien à rendre
 }
 /* L'ATELIER DANS LA LAQUE (2026-09-26) — au garage, la carrosserie reflétait le CIEL de la dernière course (un couchant violet dans
    un atelier fermé) : des reflets sans rapport avec la pièce, mous, sans une arête. Le cube est repeint en STUDIO : plafond noir

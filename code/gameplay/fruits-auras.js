@@ -272,7 +272,7 @@ function dragonDecorBuild(){
   const m=new THREE.Mesh(FDISC_GEO||(FDISC_GEO=new THREE.PlaneGeometry(1,1)),mat);m.frustumCulled=false;m.renderOrder=-3;m.visible=false;scene.add(m);DRG_DEC={m:m,a:0};
 }
 function dragonDecor(dt){
-  const on=pwrAurT>0&&!(mode==='boom'||gameOver);
+  const on=false&&pwrAurT>0&&!(mode==='boom'||gameOver); /* (2026-10-21, Léo : « enlève le rond chelou transparent ») plus d'oeil dans le ciel */
   if(!DRG_DEC){if(!on)return;dragonDecorBuild();}
   const D=DRG_DEC;D.a+=((on?.5:0)-D.a)*Math.min(1,dt*2.5);D.m.visible=D.a>.01;D.m.material.uniforms.uA.value=D.a;
   if(D.m.visible){camera.getWorldDirection(DRG_V);D.m.position.copy(camera.position).addScaledVector(DRG_V,620);D.m.position.y+=190;D.m.updateMatrixWorld(true);}
@@ -372,7 +372,7 @@ function raisinAilesBoom(){ // les ailes explosent en plumes : un flash blanc, u
   RAI.vis=false;if(RAI.wings)RAI.wings.visible=false;
 }
 function raisinTick(dt){
-  const arme=pwrAirT>0&&!TUTO.pa&&!(mode==='boom'||gameOver),vis=arme&&RAI.stage===0;
+  const arme=pwrAirT>0&&!TUTO.pa&&!(mode==='boom'||gameOver),vis=false&&arme&&RAI.stage===0; /* (2026-10-21, Léo : « enlève les ailes sur la voiture ») plus d'ailes visibles : la double jauge reste */
   if(vis||RAI.wings){const g=raisinAiles();if(g.visible!==vis)g.visible=vis;
     if(vis){g.position.copy(carGroup.position);g.quaternion.copy(carGroup.quaternion);const w=Math.sin(FAURAU.t*9)*.06;g.children[0].rotation.z=w*0+0;g.children[0].position.y=.55+Math.sin(FAURAU.t*5)*.05;}}
 }

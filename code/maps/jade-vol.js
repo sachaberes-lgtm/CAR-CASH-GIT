@@ -251,6 +251,10 @@ function jadeHeurt(p){
     const a=C.g.get(Math.floor(x/C.CG)+','+Math.floor(z/C.CG));
     if(a)for(let j=0;j<a.length;j++){if(C.mort&&C.mort.has(a[j]))continue;const q=C.P[a[j]];if(p.y<q[3]-1||p.y>q[4]+1)continue;const dx=x-q[0],dz=z-q[1];if(dx*dx+dz*dz>(q[2]+1)*(q[2]+1))continue;
       if(jadePilierDans(q,x,p.y,z))return true;}
+    /* (2026-10-21, Léo : « on traverse les montagnes qui tombent ») les montagnes en chute gardent leur hitbox : le point est ramené dans leur repère d'origine */
+    for(const c of JCH.L){if(!c.t0||c.fin||!c.inv)continue;const q=c.q;V9J.set(x,p.y,z).applyMatrix4(c.inv);
+      if(V9J.y<q[3]-1||V9J.y>q[4]+1)continue;const dx=V9J.x-q[0],dz=V9J.z-q[1];if(dx*dx+dz*dz>(q[2]+1)*(q[2]+1))continue;
+      if(jadePilierDans(q,V9J.x,V9J.y,V9J.z))return true;}
     V9J.set(x,p.y,z);
     if(JADE.porte&&jadeDansGrille(JADE.porte,V9J))return true;
     if(JADE.pont&&jadeDansGrille(JADE.pont,V9J))return true;}
@@ -351,9 +355,12 @@ window.dbgAppels=function(n){ // (2026-10-14, banc) QUI fait les appels de dessi
   try{renderer.render(scene,camera);}finally{renderer.renderBufferDirect=o;}
   const L=Object.keys(C).map(function(k){return [C[k].n,Math.round(C[k].tri/1000)+'k',k];}).sort(function(a,b){return b[0]-a[0];});
   return {appels:tot,triangles:Math.round(tri/1000)+'k',liste:L.slice(0,n||40)};};
+window.dbgJadeRegle=function(){if(!JADE.root)return null;const ds=L/(NP-1),st=Math.max(1,Math.round(5/ds)),V9=new THREE.Vector3();let n=0,t=0;const ex=[]; /* (2026-10-20, banc) LA RÈGLE D'OR : aucun pilier ni rocher sur la route — la caisse tous les 5 m, à 3 places de la largeur, à 0,5 et 3 m */
+  for(let i=0;i<NP;i+=st)for(const f of [-.9,0,.9])for(const h of [.5,3]){V9.copy(pts[i]).addScaledVector(B[i],f*ROAD_HALF).addScaledVector(Nn[i],h);t++;if(jadeHeurt(V9)){n++;if(ex.length<6)ex.push([Math.round(i*ds),f,h]);}}
+  return {essais:t,heurts:n,ex:ex};};
 window.dbgJade=function(){let tri=0;for(const F of JADE.fam)tri+=F.im.count*F.tri;
   let triF=0;for(const FF of FIN.fam)if(FF)triF+=FF.im.count*FF.tri;
-  return Object.assign({},JADE.n,{fins:FIN.dans.size,triFins:Math.round(triF),finPrets:JADE.geos?JADE.geos.p.filter(function(T9){return T9.fin;}).length+'/'+JADE.geos.p.length:0,finMs:JADE.geos&&JADE.geos.p.map(function(T9){return T9.finMs||0;}),triFinGab:JADE.geos&&JADE.geos.p.map(function(T9){return T9.fin?T9.fin.index.count/3:0;}),triangles:Math.round(tri+triF)+(JADE.porte?JADE.porte.tri:0)+(JADE.pont?JADE.pont.tri:0),porteFin:JADE.porte&&JADE.porte.triF,nuTri:JADE.nuTri,msPorte:JADE.msPorte,tPorte:JADE.tPorte,msPont:JADE.msPont,pontFin:JADE.pont&&JADE.pont.triF,appels:JADE.fam.filter(function(F){return F.im.count>0;}).length,
+  return Object.assign({},JADE.n,{deco:JADE.deco||null,mods:JADE.mk||null,fins:FIN.dans.size,triFins:Math.round(triF),finPrets:JADE.geos?JADE.geos.p.filter(function(T9){return T9.fin;}).length+'/'+JADE.geos.p.length:0,finMs:JADE.geos&&JADE.geos.p.map(function(T9){return T9.finMs||0;}),triFinGab:JADE.geos&&JADE.geos.p.map(function(T9){return T9.fin?T9.fin.index.count/3:0;}),triangles:Math.round(tri+triF)+(JADE.porte?JADE.porte.tri:0)+(JADE.pont?JADE.pont.tri:0),porteFin:JADE.porte&&JADE.porte.triF,nuTri:JADE.nuTri,msPorte:JADE.msPorte,tPorte:JADE.tPorte,msPont:JADE.msPont,pontFin:JADE.pont&&JADE.pont.triF,appels:JADE.fam.filter(function(F){return F.im.count>0;}).length,
     tri:{ms:JT.n?+(JT.ms/JT.n).toFixed(3):0,envois:JT.up},garde:{reprises:JADE_GARDE.reprises,msReprise:JADE_GARDE.ms,rangee:!!JADE_GARDE.m},grues:GRUE.L.length,balade:BALADE,niveau:LVL.cur&&LVL.cur.id,err:window.__jadeErr?String(window.__jadeErr):null});};
 window.dbgJadeAller=function(k,d){if(typeof k==='number'){if(!started||gameOver)return 'non';if(paused)togglePause();s=Math.max(0,Math.min(L-40,k));lat=0;psi=0;prevTvalid=false;mode='drive';return Math.round(s);} // (v14) un nombre : la caisse à s m
   const P=k==='pont'?JADE.pont:JADE.porte;if(!P||!started||gameOver)return 'non';if(paused)togglePause(); // (dev) la caisse d m avant un monument, sur la route
@@ -362,7 +369,8 @@ window.dbgJadeAller=function(k,d){if(typeof k==='number'){if(!started||gameOver)
 window.dbgJadeVue=function(k,d,h,cap){if(!JADE.root)return 'pas de map';
   if(started&&!gameOver&&!paused)togglePause();JADE.photo=true;
   const C=new THREE.Vector3(),V=new THREE.Vector3();
-  if((k==='porte'&&JADE.porte)||(k==='pont'&&JADE.pont)){const P=k==='porte'?JADE.porte:JADE.pont,sP=P.i/(NP-1)*L; // depuis la ROUTE, d m avant le monument
+  if(k&&typeof k==='object'&&k.p){C.fromArray(k.p);V.fromArray(k.c);if(k.fov){camera.fov=k.fov;camera.updateProjectionMatrix();}} /* (2026-10-20, banc) un cadrage donné : {p, c, fov} (les photos du décor au hasard) */
+  else if((k==='porte'&&JADE.porte)||(k==='pont'&&JADE.pont)){const P=k==='porte'?JADE.porte:JADE.pont,sP=P.i/(NP-1)*L; // depuis la ROUTE, d m avant le monument
     frameAt(Math.max(0,sP-(d||600)),F);C.copy(F.p).addScaledVector(F.n,h||12);V.copy(P.c);V.y+=k==='porte'?110:90;}
   else if(k==='grue'&&GRUE.L.length){const g=GRUE.L[0].g.position;V.copy(g);C.copy(g).addScaledVector(GRUE.L[0].v.clone().normalize(),-(d||120));C.y+=(h||25);}
   else if(k==='pres'&&JADE.col){frameAt(Math.min(L-10,s),F);const o9=F.p;let bq=null,bd=1e9;for(const q of JADE.col.P){if(q[5]>=JADE_NTPL)continue;const e=Math.hypot(q[0]-o9.x,q[1]-o9.z)-q[2];if(e<bd&&o9.y>q[3]+20&&o9.y<q[4]-10){bd=e;bq=q;}} // (dev) la montagne la plus proche de la route, de près

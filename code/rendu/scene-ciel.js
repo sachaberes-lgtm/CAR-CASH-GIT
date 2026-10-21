@@ -575,8 +575,7 @@ const skyDome=(function(){
          tout le ciel prenait la couleur du disque (crème ×uCyN.z, jusqu'à ×4) et l'ACES l'écrasait en blanc crème, au matin, à midi comme au soir (sonde : masquer le dôme
          = noir, ses uniformes étaient justes). `ds=smoothstep(…)` : 1 sur le disque, 0 ailleurs. */
       /* (2026-10-18) LES DUNES D'OR : l'horizon de mesas devient un horizon de DUNES (deux houles) et trois PYRAMIDES au loin — mélangé par uCyDn (0 ailleurs : le canyon au bit près) */
-'vec2 dnHorizon(float az,float y){float t1=.0075+.0085*(.5+.5*sin(az*6.+1.7))*(.55+.45*sin(az*15.+.4))+.0022*sin(az*37.+2.),t0=.0035+.0055*(.5+.5*sin(az*9.+4.1))*(.5+.5*sin(az*23.+2.2)),pm=0.;',
-      '  for(int k=0;k<3;k++){float fk=float(k),a0=2.10+fk*.072,h=.031-.0075*fk,da=abs(mod(az-a0+3.14159265,6.2831853)-3.14159265),top=h-da*1.25;pm=max(pm,step(0.,top)*(1.-smoothstep(top-.001,top+.001,y)));}',
+'vec2 dnHorizon(float az,float y){float t1=.0075+.0085*(.5+.5*sin(az*6.+1.7))*(.55+.45*sin(az*15.+.4))+.0022*sin(az*37.+2.),t0=.0035+.0055*(.5+.5*sin(az*9.+4.1))*(.5+.5*sin(az*23.+2.2)),pm=0.;', /* (2026-10-20, LE SURF) les trois pyramides PEINTES de l'horizon sont retirées (pm reste 0) : les vraies se dressent au bout de la route, autour du portail */
       '  float m1=1.-smoothstep(t1-.0012,t1+.0012,y),m0=1.-smoothstep(t0-.0012,t0+.0012,y);vec2 o=vec2(m1,1.);if(pm>m1*.5)o=vec2(max(m1,pm),.6);if(m0>.01)o=vec2(max(o.x,m0),mix(o.y,0.,m0));return o*step(-.03,y);}',
       'vec3 canyonCiel(vec3 d){d=normalize(d);float y=d.y,yy=max(y,0.),az=atan(d.x,-d.z),sd=dot(d,uSunDir),sdp=max(sd,0.);',
       '  vec3 c=mix(uCyH,uCyM,smoothstep(0.,.20,yy));c=mix(c,uCyZ,smoothstep(.12,.85,yy));',

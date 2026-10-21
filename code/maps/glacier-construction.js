@@ -35,14 +35,53 @@ function banqVide(){
   bkPisteNue(false);BANQ.obst=[];BANQ.kick=[]; // (v4) la route revient aux autres maps ; les pics et les becs partent avec leur piste
   BANQ.sol=null;BANQ.solM=[];BANQ.pics=[];BANQ.picG=null;BANQ.picM=[];BANQ.loinM=[];BANQ.file=[];BANQ.fi=0;BANQ.msFile=0;
   if(BANQ.root){BANQ.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});BANQ.root=null;}
-  BANQ.glisse=false;BANQ.pou=false;BANQ.sur=0;BANQ.mort='';BANQ.dNow=9;bkTraceVide();BANQ.verg=[];BKV.sur=false;BKV.yaw=0;BKV.gl=0;BKV.gk=0;bkSkateRaz();BKB.k=0;BKB.enf=0;BKB.dans=false;
+  BANQ.dz=null;BANQ.deco=null;BANQ.glisse=false;BANQ.pou=false;BANQ.sur=0;BANQ.mort='';BANQ.dNow=9;bkTraceVide();BANQ.verg=[];BKV.sur=false;BKV.yaw=0;BKV.gl=0;BKV.gk=0;bkSkateRaz();BKB.k=0;BKB.enf=0;BKB.dans=false;
 }
+/* ======================= LE DÉCOR AU HASARD (2026-10-20, Sacha : « chaque map doit être aléatoire avec des modules et des décors qui changent, TOUTES LES MAPS ») =======================
+   MESURÉ AVANT : le tracé du glacier change depuis le 19/10 (l'axe, les tronçons), pas son décor — la même glace bleue, les mêmes densités de pics,
+   de séracs et d'aiguilles, l'amphithéâtre de 7 géants, les aurores vert-violet. Désormais, par piste, un TIRAGE DE DÉCOR dans un flux à lui (`dr`,
+   né de la graine du décor), treize choix indépendants (`BANQ.dz`, lisible dans `dbgBanq().deco`) ; les pièces neuves se placent dans `dz2` :
+   · LA GLACE (`glace`) : azur (celle d'avant), turquoise, saphir, vert d'eau, laiteuse — l'uniform uIceT multiplié (pics, géants, verglas) : mêmes programmes ;
+   · LES PICS OÙ L'ON GLISSE (`pic`) : ×0,6 / 1 / 1,45 et leur hauteur ×0,8-1,3 ;
+   · LES SÉRACS (`ser`) : ×0,5 / 1 / 1,8 ;
+   · LES AIGUILLES (`aig`) : ×0,5 / 1 / 1,6 et leur hauteur ×0,8-1,35 ;
+   · LES GÉANTS DE L'HORIZON (`gea`) : bas / avant / hauts (×0,75-1,3), plus ou moins serrés ;
+   · L'AMPHITHÉÂTRE (`amph`) : 4, 7 (avant) ou 11 géants au bout de la descente, plus près ou plus loin ;
+   · LE MONUMENT (`mon`, NEUF) : rien, un CIRQUE (8-14 aiguilles en couronne autour d'un vide) ou une CATHÉDRALE (3-5 flèches de 450-900 m serrées) ;
+   · LES ORGUES DE GLACE (`org`, NEUF) : 0-2 rangées de colonnes fines (40-95 m) le long de la piste, à ROAD_HALF + 120-170 m ;
+   · LES PORTES DE GLACE (`porte`, NEUF) : 0-3 arches en A (deux lames penchées qui se touchent) à 180-320 m de la piste ;
+   · LES AURORES (`aur`) : vert-violet (avant), rose-bleu, or-vert, cyan-magenta, et leur force ×0,7-1,5 (uAurC, uAurC2, uAur) ;
+   · LA BRUME DE VALLÉE (`brume`) : ×0,6 / 1 / 1,45 (uMistK) ;
+   · LA POUDRE DE DIAMANT (`dd`) : ×0,4 / 1 / 2 ;
+   · L'ALPENGLOW (`alp`) : ×0,5 / 1 / 1,5, rose ou orangé.
+   Rien ne touche la piste : les pièces neuves passent par `libre` (5 m d'air sous la dalle et ses bords) et restent loin d'elle (bkSolD). `?sans=glacierdecor`
+   = le décor d'avant, au tirage près (aucun tirage de plus dans `fr`). */
+const BK_GLACES=[['azur',1.2,[1,1,1]],['turquoise',1,[.74,1.14,.92]],['saphir',1,[.72,.8,1.32]],['vert d\'eau',.8,[.86,1.2,.78]],['laiteuse',.8,[1.6,1.3,1.12]]];
+const BK_AURS=[['vert-violet',1.2,[.25,1,.62],[.75,.30,1]],['rose-bleu',1,[1,.35,.72],[.3,.5,1]],['or-vert',1,[1,.82,.3],[.3,1,.5]],['cyan-magenta',1,[.2,.95,1],[1,.25,.85]]];
+function bkDecoTire(seed){
+  const dr=mulberry32((seed^0xDEC0B4)>>>0),ch=a=>a[(dr()*a.length)|0],pds=L9=>{let t=0;for(const e of L9)t+=e[1];let u=dr()*t;for(const e of L9){u-=e[1];if(u<=0)return e;}return L9[0];};
+  const D={},li=[];
+  {const g=pds(BK_GLACES);D.glace=g[2];li.push('glace '+g[0]);}
+  {const n=ch([.6,1,1.45]),h=.8+dr()*.5;D.pic={n:n,h:h};li.push('pics ×'+n+' h×'+h.toFixed(2));}
+  D.ser=ch([.5,1,1.8]);li.push('séracs ×'+D.ser);
+  {const n=ch([.5,1,1.6]),h=.8+dr()*.55;D.aig={n:n,h:h};li.push('aiguilles ×'+n+' h×'+h.toFixed(2));}
+  {const g=ch([[.75,1.3,'bas'],[1,1,'comme avant'],[1.3,.85,'hauts']]);D.gea={h:g[0],pas:g[1]};li.push('géants '+g[2]);}
+  {const n=ch([4,7,11]),d=ch([.8,1,1.2]);D.amph={n:n,d:d};li.push('amphithéâtre de '+n+(d<1?' (près)':d>1?' (loin)':''));}
+  D.mon=pds([['rien',1],['cirque',1.2],['cathédrale',1]])[0];li.push('monument : '+D.mon);
+  D.org=pds([[0,1],[1,1.2],[2,.7]])[0];li.push(D.org+' orgue'+(D.org>1?'s':'')+' de glace');
+  D.porte=(dr()*4)|0;li.push(D.porte+' porte'+(D.porte>1?'s':'')+' de glace');
+  {const a=pds(BK_AURS),k=ch([.7,1,1.5]);D.aur={c:a[2],c2:a[3],k:k};li.push('aurores '+a[0]+' ×'+k);}
+  D.brume=ch([.6,1,1.45]);li.push('brume ×'+D.brume);
+  D.dd=ch([.4,1,2]);li.push('poudre de diamant ×'+D.dd);
+  {const k=ch([.5,1,1.5]),c=dr()<.5?null:[1,.55,.28];D.alp={k:k,c:c};li.push('alpenglow ×'+k+(c?' orangé':''));}
+  D.li=li;return D;}
 function buildBanq(seed){jadeFini(buildBanqG(seed));} // (2026-10-17, LE PRÉ-BÂTI) d'un trait au passage ; en tranches d'avance (prebDecorG)
 function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au pré-bâti
   banqVide();
   if(PARK.on||!LVL.cur||LVL.cur.id!=='banquise'||!(NP>1))return;
   const t0=performance.now(),M=banqMats(),fr=mulberry32((seed^0xB4A9C)>>>0),ds=L/(NP-1),KP=PAL_BK('banqPics',1)*(TEL_NATIF?.85:1);
   BANQ.graine=(seed>>>0)%100000;BANQ.met=LVL.cur.meteo||'midi';BANQ.n={};
+  const DZ=BK_DECOR?bkDecoTire(seed):null,dz2=mulberry32((seed^0xB4DEC)>>>0);BANQ.dz=DZ;BANQ.deco=DZ?DZ.li:null; /* (LE DÉCOR AU HASARD) le tirage, et le flux des pièces neuves */
   const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);BANQ.root=root;trackMeshes.push(root);
   const TP=BANQ.tp={},tp=k=>{const n=performance.now();TP[k]=Math.round((n-(tp.t||t0))*10)/10;tp.t=n;};
   banqSol();tp('sol');if(performance.now()>JF.lim)yield;const tS=performance.now();
@@ -64,33 +103,48 @@ function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au
   const pose=(L9,phys,loin)=>{for(const P of L9){const C=loin?1500:600,k=cle(P.cx,P.cz,C),D9=loin?KF:KN;(D9[k]||(D9[k]={L:[],x:(Math.floor(P.cx/C)+.5)*C,z:(Math.floor(P.cz/C)+.5)*C,r:C*.71})).L.push(P);if(phys)PH.push(P);}};
   // ---- 1. LES PICS OÙ L'ON GLISSE : des dômes et des pyramides de glace au bord de la route (pente ≤ 1 : 45° au plus) ----
   let nG=0,nS=0,nA=0,nL=0;
-  {let sd=fr()<.5?-1:1;for(let s9=380+fr()*120;s9<L-220;s9+=(105+fr()*115)/KP){const i=Math.round(s9/ds);if(fr()<.7)sd=-sd;
-    let H=34+fr()*96;const pente=.55+fr()*.40,nv=1+((fr()*3)|0),lat=ROAD_HALF+24+H/pente*.5+fr()*120,l9=lat9(i),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;
+  {let sd=fr()<.5?-1:1;for(let s9=380+fr()*120;s9<L-220;s9+=(105+fr()*115)/KP/(DZ?DZ.pic.n:1)){const i=Math.round(s9/ds);if(fr()<.7)sd=-sd;
+    let H=(34+fr()*96)*(DZ?DZ.pic.h:1);const pente=.55+fr()*.40,nv=1+((fr()*3)|0),lat=ROAD_HALF+24+H/pente*.5+fr()*120,l9=lat9(i),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;
     for(let e=0;e<3;e++){const L9=bkGrappe(x,z,bkSolH(x,z)-1.5,H,pente,nv,fr,0);if(libre(L9)){pose(L9,true,false);nG++;break;}H*=.68;}}}
   if(performance.now()>JF.lim)yield;
   // ---- 2. LES SÉRACS : des éclats de glace semés sur la neige, quelques-uns SOUS la route (on les frôle en plongeant) ----
-  for(let s9=300+fr()*60;s9<L-150;s9+=(44+fr()*56)/KP){const i=Math.round(s9/ds),sd=fr()<.5?-1:1,sous=fr()<.25,lat=sous?fr()*ROAD_HALF:ROAD_HALF+10+fr()*170,l9=lat9(i),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;
+  for(let s9=300+fr()*60;s9<L-150;s9+=(44+fr()*56)/KP/(DZ?DZ.ser:1)){const i=Math.round(s9/ds),sd=fr()<.5?-1:1,sous=fr()<.25,lat=sous?fr()*ROAD_HALF:ROAD_HALF+10+fr()*170,l9=lat9(i),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;
     const H=sous?3+fr()*7:4+fr()*13,L9=bkGrappe(x,z,bkSolH(x,z)-.8,H,.6+fr()*.55,(fr()*3)|0,fr,0);if(libre(L9)){pose(L9,true,false);nS++;}}
   if(performance.now()>JF.lim)yield;
   // ---- 3. LES AIGUILLES : des flèches de 110 à 420 m, trop raides pour y glisser (on y meurt) ----
-  {let sd=fr()<.5?-1:1;for(let s9=200+fr()*200;s9<L;s9+=(115+fr()*120)/KP){const i=Math.min(NP-1,Math.round(s9/ds));sd=-sd;
-    const H=110+fr()*310,lat=230+fr()*640,l9=lat9(i),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;if(bkSolD(x,z)<200)continue;
+  {let sd=fr()<.5?-1:1;for(let s9=200+fr()*200;s9<L;s9+=(115+fr()*120)/KP/(DZ?DZ.aig.n:1)){const i=Math.min(NP-1,Math.round(s9/ds));sd=-sd;
+    const H=(110+fr()*310)*(DZ?DZ.aig.h:1),lat=230+fr()*640,l9=lat9(i),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;if(bkSolD(x,z)<200)continue;
     const L9=bkGrappe(x,z,bkSolH(x,z)-6,H,2.2+fr()*1.8,3+((fr()*5)|0),fr,1);if(libre(L9)){pose(L9,true,false);nA++;}}}
   if(performance.now()>JF.lim)yield;
   // ---- 4. LES GÉANTS : l'horizon de glace (400 m à 1,3 km de haut, de 1,1 à 3,6 km de la route) — décor, sans physique ----
-  {const KL=PAL_BK('banqLoin',1);for(let s9=0;s9<L+600;s9+=230/KL){const i=Math.min(NP-1,Math.round(s9/ds));for(const sd of [-1,1]){if(fr()<.12)continue;
+  {const KL=PAL_BK('banqLoin',1);for(let s9=0;s9<L+600;s9+=230/KL*(DZ?DZ.gea.pas:1)){const i=Math.min(NP-1,Math.round(s9/ds));for(const sd of [-1,1]){if(fr()<.12)continue;
     const lat=1100+fr()*2500,l9=lat9(i),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;if(bkSolD(x,z)<900)continue;
-    const H=380+fr()*920;pose(bkGrappe(x,z,bkSolH(x,z)-20,H,1.4+fr()*1.5,3+((fr()*5)|0),fr,2,420),false,true);nL++;}}
+    const H=(380+fr()*920)*(DZ?DZ.gea.h:1);pose(bkGrappe(x,z,bkSolH(x,z)-20,H,1.4+fr()*1.5,3+((fr()*5)|0),fr,2,420),false,true);nL++;}}
    // l'avant et l'arrière de la descente : le grand amphithéâtre au loin, dans l'axe
    for(const fin of [0,1]){const i=fin?NP-1:0,t=T[i],hl=Math.hypot(t.x,t.z)||1,dx=t.x/hl*(fin?1:-1),dz=t.z/hl*(fin?1:-1);
-     for(let k=0;k<7;k++){const a=(k-3)*.32+(fr()-.5)*.2,c=Math.cos(a),s9=Math.sin(a),d=2400+fr()*1800,x=pts[i].x+(dx*c-dz*s9)*d,z=pts[i].z+(dz*c+dx*s9)*d;
+     const nA9=DZ?DZ.amph.n:7;for(let k=0;k<nA9;k++){const a=(DZ?(k-(nA9-1)/2)*2.24/nA9:(k-3)*.32)+(fr()-.5)*.2,c=Math.cos(a),s9=Math.sin(a),d=(2400+fr()*1800)*(DZ?DZ.amph.d:1),x=pts[i].x+(dx*c-dz*s9)*d,z=pts[i].z+(dz*c+dx*s9)*d;
        const H=600+fr()*900;pose(bkGrappe(x,z,bkSolH(x,z)-40,H,1.5+fr()*1.2,4+((fr()*4)|0),fr,2,520),false,true);nL++;}}}
+  if(performance.now()>JF.lim)yield;
+  /* ---- 4 ter (2026-10-20, LE DÉCOR AU HASARD) LES PIÈCES NEUVES : le monument, les orgues, les portes de glace (le flux dz2 ; mêmes cristaux, même matière) ---- */
+  let nM9=0;
+  if(DZ){const lieu=(f,lat0,lat1,dMin,e9)=>{for(let e=0;e<(e9||20);e++){const i=Math.max(0,Math.min(NP-1,Math.round((f+(e?(dz2()-.5)*.3:0))*(NP-1)))),l9=lat9(i),sd=dz2()<.5?-1:1,lat=lat0+dz2()*(lat1-lat0),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;if(bkSolD(x,z)>=dMin)return [x,z,i,sd];}return null;};
+    if(DZ.mon==='cirque'){const o=lieu(.25+dz2()*.5,620,900,480);if(o){const R9=130+dz2()*60,n=8+((dz2()*7)|0),a0=dz2()*6.283;
+      for(let k=0;k<n;k++){const an=a0+k/n*6.2832,x=o[0]+Math.cos(an)*R9,z=o[1]+Math.sin(an)*R9;if(bkSolD(x,z)<300)continue;const L9=bkGrappe(x,z,bkSolH(x,z)-6,(160+dz2()*220)*(.8+.4*Math.abs(Math.sin(an*1.5))),2.6+dz2()*1.4,2+((dz2()*3)|0),dz2,1);if(libre(L9)){pose(L9,true,false);nM9++;}}}}
+    else if(DZ.mon==='cathédrale'){const o=lieu(.2+dz2()*.6,800,1150,650);if(o){const n=3+((dz2()*3)|0);
+      for(let k=0;k<n;k++){const an=dz2()*6.283,r9=k?60+dz2()*90:0,x=o[0]+Math.cos(an)*r9,z=o[1]+Math.sin(an)*r9;const L9=bkGrappe(x,z,bkSolH(x,z)-10,(k?450:700)+dz2()*250,3+dz2()*1.5,3+((dz2()*3)|0),dz2,1);if(libre(L9)){pose(L9,true,false);nM9++;}}}}
+    for(let r=0;r<DZ.org;r++){const f0=.12+dz2()*.7,sd=dz2()<.5?-1:1,lg=300+dz2()*220,i0=Math.round(f0*(NP-1)),lat=ROAD_HALF+120+dz2()*50;
+      for(let s9=i0*ds;s9<Math.min(L-200,i0*ds+lg);s9+=30+dz2()*16){const i=Math.round(s9/ds),l9=lat9(i),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;if(bkSolD(x,z)<ROAD_HALF+100)continue;
+        const L9=bkGrappe(x,z,bkSolH(x,z)-3,40+dz2()*55,5+dz2()*2,(dz2()*2)|0,dz2,1);if(libre(L9)){pose(L9,true,false);nM9++;}}}
+    for(let k=0;k<DZ.porte;k++){const o=lieu(.1+dz2()*.8,180,320,160);if(!o)continue;const t9=T[o[2]],hl=Math.hypot(t9.x,t9.z)||1,ux=t9.x/hl,uz=t9.z/hl,H=60+dz2()*55,w=H*(.55+dz2()*.25),yb=bkSolH(o[0],o[1])-4,L9=[];
+      for(const sg of [-1,1])L9.push(bkPrim(o[0]+ux*sg*w,o[1]+uz*sg*w,yb,H,H/4.2,6,-ux*sg*w*.92,-uz*sg*w*.92,dz2()*6.28,dz2,1)); /* deux lames penchées l'une vers l'autre (sommet décalé de lx, lz) : elles se touchent en haut */
+      if(libre(L9)){pose(L9,true,false);nM9++;}}}
+  BANQ.n.decoNeuf=nM9;
   if(performance.now()>JF.lim)yield;
   // ---- 4 bis (v4). LA PISTE : LES BECS DE GLACE, puis LES PICS SUR LA PISTE, en figures ----
   BANQ.obst=[];BANQ.kick=[];
   {const RH=ROAD_HALF,kRH=RH/61.6,O=BANQ.obst,KK=BANQ.kick,ou=(s9,la)=>{const i=Math.max(0,Math.min(NP-1,Math.round(s9/ds))),p=pts[i],b=B[i];return [p.x+b.x*la,p.y+b.y*la,p.z+b.z*la];};
-    const libreK=(s9,la,r)=>{for(const k of KK){if(s9>k.s-k.lg-60&&s9<k.s+260&&la+r>k.l0-8&&la-r<k.l1+8)return false;if(BK_RETOMBE&&s9+r>k.s&&s9-r<k.s+BK_BEC.retombe)return false;} /* (2026-10-18) 60 m d'approche dégagés devant la rampe (au banc, on percutait un pic en visant le tremplin), et sa retombée : 260 m (à 45°, on vole loin) — (2026-10-19) puis BK_BEC.retombe m sur TOUTE la largeur (voir BK_RETOMBE) */for(const o of O)if(Math.abs(o.s-s9)<o.r+r+8&&Math.abs(o.lat-la)<o.r+r+8)return false;return true;}; // ni sur un bec ni dans sa retombée, ni collé à un autre pic
-    const pic=(s9,la,H,pente)=>{{const i=Math.max(3,Math.min(NP-4,Math.round(s9/ds))),a=pts[i-3],c=pts[i+3];pente+=Math.max(0,(a.y-c.y)/Math.max(1,Math.hypot(a.x-c.x,a.z-c.z)));} /* (2026-10-18) + la PENTE de la piste : à 45°, le flanc aval d'un pic à 55° (1,4) devenait presque parallèle à la glace — une lame basse de 30 à 50 m qu'on croyait franchir et qui tuait (« des problèmes de collision avec la glace ») ; sa face aval garde désormais, par rapport à la piste, la raideur qu'elle aurait sur le plat */const R=H/pente;if(Math.abs(la)>RH-R*.35-3||!libreK(s9,la,R))return false;const q=ou(s9,la);
+    const libreK=(s9,la,r,ov)=>{for(const k of KK){if(s9>k.s-k.lg-60&&s9<k.s+260&&la+r>k.l0-8&&la-r<k.l1+8)return false;if(BK_RETOMBE&&s9+r>k.s&&s9-r<k.s+BK_BEC.retombe)return false;} /* (2026-10-18) 60 m d'approche dégagés devant la rampe (au banc, on percutait un pic en visant le tremplin), et sa retombée : 260 m (à 45°, on vole loin) — (2026-10-19) puis BK_BEC.retombe m sur TOUTE la largeur (voir BK_RETOMBE) */if(!ov)for(const o of O)if(Math.abs(o.s-s9)<o.r+r+8&&Math.abs(o.lat-la)<o.r+r+8)return false;return true;}; // ni sur un bec ni dans sa retombée, ni collé à un autre pic
+    const pic=(s9,la,H,pente,ov)=>{{const i=Math.max(3,Math.min(NP-4,Math.round(s9/ds))),a=pts[i-3],c=pts[i+3];pente+=Math.max(0,(a.y-c.y)/Math.max(1,Math.hypot(a.x-c.x,a.z-c.z)));} /* (2026-10-18) + la PENTE de la piste : à 45°, le flanc aval d'un pic à 55° (1,4) devenait presque parallèle à la glace — une lame basse de 30 à 50 m qu'on croyait franchir et qui tuait (« des problèmes de collision avec la glace ») ; sa face aval garde désormais, par rapport à la piste, la raideur qu'elle aurait sur le plat */const R=H/pente;if(Math.abs(la)>RH-R*.35-3||!libreK(s9,la,R,ov))return false;const q=ou(s9,la);
       const L9=bkGrappe(q[0],q[2],q[1]-.4,H,pente,(fr()*3)|0,fr,1.4,Math.max(9,R*1.1)); /* (pied profond : sur la pente raide, le côté aval ne flotte pas) fam 1,4 : une aiguille pour la physique, mais COIFFÉE DE NEIGE (BK_PIC_FS) */pose(L9,true,false);let r=0;for(const P of L9)r=Math.max(r,Math.hypot(P.cx-q[0],P.cz-q[2])+P.r);
       O.push({s:s9,lat:la,L9:L9,r:r,x:q[0],z:q[2]});return true;};
     const bec=(s9,c,w)=>{{const cap9=s=>{const t0=T[Math.min(NP-1,Math.round((s+BK_BEC.lg)/ds))],t1=T[Math.min(NP-1,Math.round((s+BK_BEC.lg+BK_BEC.droit)/ds))];return Math.abs(Math.atan2(t0.x*t1.z-t0.z*t1.x,t0.x*t1.x+t0.z*t1.z));};
@@ -101,11 +155,19 @@ function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au
     let sp=560+fr()*120;
     while(sp<L-380){const f=fr();
       if(fr()<.65){const k9=bec(sp,(fr()*2-1)*RH*.45,36+fr()*22),j9=BK_BEC.lg+100+fr()*30;sp=k9!=null&&BK_RETOMBE?Math.max(sp+j9,k9+BK_BEC.retombe):sp+j9;} // un TREMPLIN, le plus souvent juste avant une figure : on peut la survoler — (2026-10-19) elle attend la fin de sa retombée (BK_RETOMBE)
-      if(f<.25){const c=(fr()-.5)*14,n=3+((fr()*3)|0),pas=34+fr()*16; // LA FOURCHE : une arête au milieu, deux couloirs
+      if(f<.18){ /* (2026-10-21, Sacha : « rajoute des éléments sur la piste, comme une montagne au milieu qui sépare la route en deux ») LE MASSIF : une vraie montagne de 30 à 80 m
+         dans l'axe de la piste, une crête de pics soudés (nez bas, sommet au milieu, queue qui retombe) ; on choisit son COULOIR — la voie large à gauche, le
+         raccourci étroit à droite, ou l'inverse — et à la sortie du couloir large un TREMPLIN lance vers la suite (la montagne ne se franchit pas : on la contourne, ou on la grimpe en glissant sur ses flancs doux) */
+        const c=(fr()-.5)*34,n=6+((fr()*3)|0),pas=34+fr()*8;
+        for(let j=0;j<n;j++){const u=j/(n-1);pic(sp+j*pas,c+(fr()-.5)*7,(24+54*Math.sin(Math.PI*(.1+.8*u)))*(.92+fr()*.16),1.3+fr()*.45,true);}
+        sp+=(n-1)*pas+80;
+        {const wL=c-42+RH,wR=RH-c-42,cl=wL>wR?(-RH+(c-42))/2:(RH+(c+42))/2,wl=Math.max(wL,wR); // le couloir le plus large reçoit le tremplin de sortie
+          if(wl>46&&fr()<.8){const k9=bec(sp,cl,Math.min(52,wl-14));if(k9!=null)sp=BK_RETOMBE?Math.max(sp,k9+BK_BEC.retombe):k9+120;}}}
+      else if(f<.26){const c=(fr()-.5)*14,n=3+((fr()*3)|0),pas=34+fr()*16; // LA FOURCHE : une arête au milieu, deux couloirs
         for(let j=0;j<n;j++)pic(sp+j*pas,c+(fr()-.5)*8,12+fr()*14,1.7+fr()*.8);sp+=n*pas;}
-      else if(f<.55){const lg=140+fr()*80,n=Math.round((4+((fr()*3)|0))*kRH*.75); // LE CHAMP : des pics semés, des trouées — (kRH : la largeur ÷ celle de 123 m) — (2026-10-18) 5-7 pics, au lieu de 11-18
+      else if(f<.56){const lg=140+fr()*80,n=Math.round((4+((fr()*3)|0))*kRH*.75); // LE CHAMP : des pics semés, des trouées — (kRH : la largeur ÷ celle de 123 m) — (2026-10-18) 5-7 pics, au lieu de 11-18
         for(let j=0,e=0;j<n&&e<n*4;e++){if(pic(sp+fr()*lg,(fr()*2-1)*(RH-10),6+fr()*14,1.4+fr()*1.2))j++;}sp+=lg;}
-      else if(f<.75){const gw=26+fr()*12,g=(fr()*2-1)*(RH*.45); // LA PORTE : deux géants, une trouée à viser
+      else if(f<.76){const gw=26+fr()*12,g=(fr()*2-1)*(RH*.45); // LA PORTE : deux géants, une trouée à viser
         for(const sg of [-1,1]){const H=26+fr()*14,pe=1.8+fr()*.6;pic(sp+(fr()-.5)*6,g+sg*(gw/2+H/pe*.85),H,pe);}sp+=40;}
       else{const sg=fr()<.5?-1:1,n=2+((fr()*2)|0); // L'ÎLOT : un massif d'un côté, le large de l'autre
         for(let j=0;j<n;j++)pic(sp+fr()*70,sg*(RH*.35+fr()*RH*.4),10+fr()*16,1.5+fr()*.9);sp+=70;}

@@ -94,7 +94,9 @@ function PAL_BK(k,d){return PAL_B9(k,d);}
    lissée aux raccords, la piste fait 43° de moyenne et 49-50° au plus (mesuré sur 16 pistes ; avant : 33° et 40°). LEN ×,75 (au lieu de ,89) :
    la même longueur de course en 3D (~9,5-10,5 km). */
 const BK_LARG4=7,BK_PENTE4=[.92,.12,1.05,.17,.90,.72];
-const BK_HASARD=typeof location==='undefined'||!/[?&]sans=([^&]*,)?glacierhasard(,|&|$)/.test(location.search); // (2026-10-19) LE GLACIER AU HASARD (voir genBanq) — `?sans=glacierhasard` = la descente d'avant, à l'identique
+const BK_HASARD=typeof location==='undefined'||!/[?&]sans=([^&]*,)?glacierhasard(,|&|$)/.test(location.search);
+const BK_MODULES=typeof location==='undefined'||!/[?&]sans=([^&]*,)?glaciermodules(,|&|$)/.test(location.search); /* (2026-10-20) SIX MODULES (voir bkGodille) — `?sans=glaciermodules` = le paquet d'avant (slalom, grand S, double) */
+const BK_DECOR=typeof location==='undefined'||!/[?&]sans=([^&]*,)?glacierdecor(,|&|$)/.test(location.search); /* (2026-10-20) LE DÉCOR AU HASARD (voir bkDecoTire) — `?sans=glacierdecor` = le décor d'avant, au tirage près */ // (2026-10-19) LE GLACIER AU HASARD (voir genBanq) — `?sans=glacierhasard` = la descente d'avant, à l'identique
 function genBanq(rnd){
   const ctrl=[];CAMPM.length=0;MODMARK.length=0;
   ROAD_HALF=ROAD_HALF0*BK_LARG4; // la PISTE : 123 m, puis 196 m (« beaucoup plus large »)
@@ -129,8 +131,18 @@ function genBanq(rnd){
   const bkEsse=()=>{const a=Math.min(60+rm()*20,70+Math.abs(Math.atan2(Math.sin(phi),Math.cos(phi)))*57.2958),R=bkR(240+rm()*60),s9=phi>0?-1:1;A(s9*a,R,bkGV());D(30+rm()*30,bkGD());A(-s9*a,R,bkGV());D(60+rm()*60,bkGD());};
   const bkDouble=()=>{const T=95+rm()*25,s9=phi>0?-1:1,a1=T*(.5+rm()*.1),R=bkR(260+rm()*50);bkVers(-s9*T/2/57.2958); // on part du bord opposé
     A(s9*a1,R,bkGV());D(20+rm()*20,bkGD());A(s9*(T-a1),Math.max(ROAD_HALF*2.6,R*.85),bkGV());D(60+rm()*60,bkGD());};
-  const bkJ=[bkSlalom,bkEsse,bkDouble],bkPaq=[];let bkLast=-1,bkNext=700+(rm?rm()*300:0);
-  const bkTire=()=>{for(let e=0;e<6;e++){if(!bkPaq.length){const t=[0,1,2];for(let i=2;i>0;i--){const j=(rm()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)bkPaq.push(x);}
+  /* ===== TROIS MODULES DE PLUS (2026-10-20, Sacha : « chaque map doit être aléatoire avec des modules et des décors qui changent, TOUTES LES MAPS ») =====
+     Le paquet passe de 3 à 6 sortes, toujours du ski (même tirage `rm`, mélangé, jamais deux fois de suite) — `?sans=glaciermodules` = le paquet d'avant :
+       bkGodille · LA GODILLE : 6-8 petits virages alternés de 22-32°, sans une droite — le rythme, pas l'appui
+       bkBosses  · LES BOSSES : dans la ligne de pente, 4-6 creux et bosses (la pente alterne 0,55-0,65 / 1,25-1,35 tous les 45-65 m) — on s'allège
+       bkCrochet · LE CROCHET : une longue traversée en biais (50-65°, 120-200 m), puis un seul virage SERRÉ (rayon plancher) de 95-120° vers l'autre bord
+     Le cap reste dans LIB (le crochet finit à moins de 70° de la pente), les pentes ne remontent jamais, les rayons ≥ 2 demi-largeurs. */
+  const bkGodille=()=>{const n=6+((rm()*3)|0),a=22+rm()*10,R=bkR(200+rm()*30);if(Math.abs(phi)>LIB-a/57.3)bkVers(0);let s9=phi>0?-1:1;A(s9*a*.5,R,bkGV());
+    for(let k=0;k<n;k++){s9=-s9;A(s9*a,R,bkGV());}s9=-s9;A(s9*a*.5,R,bkGV());D(40+rm()*40,bkGD());};
+  const bkBosses=()=>{bkVers((rm()-.5)*.3);const n=4+((rm()*3)|0);for(let k=0;k<n;k++){D(45+rm()*20,.55+rm()*.1);D(45+rm()*20,1.25+rm()*.1);}D(40+rm()*30,bkGD());};
+  const bkCrochet=()=>{const s9=phi>0?-1:1,a0=50+rm()*15;bkVers(s9*a0/57.2958);D(120+rm()*80,bkGD());A(-s9*Math.min(95+rm()*25,a0+62),bkR(150),bkGV());D(60+rm()*60,bkGD());};
+  const bkJ=BK_MODULES?[bkSlalom,bkEsse,bkDouble,bkGodille,bkBosses,bkCrochet]:[bkSlalom,bkEsse,bkDouble],bkPaq=[];let bkLast=-1,bkNext=700+(rm?rm()*300:0);
+  const bkTire=()=>{for(let e=0;e<6;e++){if(!bkPaq.length){const t=bkJ.map(function(_,i){return i;});for(let i=t.length-1;i>0;i--){const j=(rm()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)bkPaq.push(x);}
     const m=bkPaq.shift();if(m===bkLast)continue;return m;}return 0;};
   let AXE=0;const PLAN=[];
   if(!rh){ // la descente d'avant (`?sans=glacierhasard`), à l'identique — au hasard : plus bas

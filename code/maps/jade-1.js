@@ -25,7 +25,9 @@ const NIV_VITRE={id:'ville',vitre:1,nm:'VILLE VITRÉE',bio:['vitreMidi'],planete
 const JADE={root:null,Q:null,fam:[],col:null,porte:null,pont:null,brume:null,n:{},ms:0,merY:-420,t:0,sig:0,geos:null,cl:null};
 const JADE_U={uSunDir:{value:SUN_DIR},uSunC:{value:new THREE.Color()},uSky:{value:new THREE.Color()},uGnd:{value:new THREE.Color()},
   uFillD:{value:new THREE.Vector3(0,-1,0)},uFillC:{value:new THREE.Color()},uMist:{value:new THREE.Color(.86,.87,.82)},
-  uMerY:{value:-420},uSous:{value:0},uEauT:skyU.uEauT,uTime:{value:0},uCam:{value:new THREE.Vector3()},uY0:{value:0},uYH:{value:1},uGhost:{value:new THREE.Color(.70,.92,1.)}};
+  uMerY:{value:-420},uSous:{value:0},uEauT:skyU.uEauT,uTime:{value:0},uCam:{value:new THREE.Vector3()},uY0:{value:0},uYH:{value:1},uGhost:{value:new THREE.Color(.70,.92,1.)},uRocT:{value:new THREE.Vector3(1,1,1)},uVerT:{value:new THREE.Vector3(1,1,1)}}; /* (2026-10-20, LE DÉCOR AU HASARD) uRocT, uVerT : la teinte de la roche et des verts de CETTE vallée (1 = celles d'avant) */
+const JADE_MODULES=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jademodules(,|&|$)/.test(location.search); /* (2026-10-20) SIX MODULES (voir jCorniche) — `?sans=jademodules` = le paquet d'avant (lacets, épingle, double sommet) */
+const JADE_DECOR=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadedecor(,|&|$)/.test(location.search); /* (2026-10-20) LE DÉCOR AU HASARD (voir jadeDecoTire) — `?sans=jadedecor` = la vallée d'avant, au tirage près */
 /* LA ROUTE — même outillage que genParis (droites, arcs ≤ 9° par point), mais tirée à la graine de la piste : chaque vallée est neuve.
    Le cap reste dans ±85° de l'axe de départ (aucun retour sur ses pas : la route ne recroise jamais un de ses tronçons).
    (2026-10-18, Sacha : « la génération de map dans les montagnes chinoises est toujours la même, rends-la plus aléatoire ») MESURÉ (les plans
@@ -86,15 +88,23 @@ function genJade(rnd){
        jSommet  · LE DOUBLE SOMMET : deux grands appuis du même côté (145-165° en tout, R 250-300) et une droite entre — on contourne un pic
      Le cap reste dans ± LIM de l'axe : la vallée ne se recroise jamais ; rien ne change au relief (il se lit sur la longueur) ; le module prend sa longueur
      sur celle du tronçon (sans ça la vallée s'allongeait de moitié : banc). */
-  const rj=MODC_ON?mulberry32((rnd()*4294967296)>>>0):null,jmPaq=[0,1,2],jRm=Math.max(170,1.4*(typeof rayonPalier==='function'?rayonPalier():63));
-  if(rj)for(let i=2;i>0;i--){const j=(rj()*(i+1))|0,x9=jmPaq[i];jmPaq[i]=jmPaq[j];jmPaq[j]=x9;}
+  const rj=MODC_ON?mulberry32((rnd()*4294967296)>>>0):null,jmPaq=JADE_MODULES?[0,1,2,3,4,5]:[0,1,2],jRm=Math.max(170,1.4*(typeof rayonPalier==='function'?rayonPalier():63));
+  if(rj)for(let i=jmPaq.length-1;i>0;i--){const j=(rj()*(i+1))|0,x9=jmPaq[i];jmPaq[i]=jmPaq[j];jmPaq[j]=x9;} /* (2026-10-20) six sortes : le paquet de six, mélangé, en donne trois différentes (jamais deux fois la même) */
   const jCap=h=>{const d=(h-phi)*57.2958;if(Math.abs(d)>3)arc(d,Math.max(300,Math.min(520,Math.abs(d)*6)));}; // se mettre au cap h (radians)
   const jLacets=()=>{const n=5+((rj()*3)|0),a=34+rj()*15,R=Math.max(jRm,190+rj()*60);if(Math.abs(phi-phi0)>LIM-a/57.3*.6)jCap(phi0);let sg=phi-phi0>0?-1:1;arc(sg*a*.5,R);
     for(let k=0;k<n;k++){sg=-sg;arc(sg*a,R);}arc(-sg*a*.5,R);};
   const jEpingle=()=>{const s9=phi-phi0>0?-1:1,a=150+rj()*16,R=Math.max(jRm,200+rj()*40);jCap(phi0-s9*a/2/57.2958);droite(80+rj()*60);arc(s9*a,R);droite(100+rj()*80);};
   const jSommet=()=>{const s9=phi-phi0>0?-1:1,T=145+rj()*20,a1=T*(.45+rj()*.1),R=Math.max(jRm,250+rj()*50);jCap(phi0-s9*T/2/57.2958);arc(s9*a1,R);droite(80+rj()*60);arc(s9*(T-a1),R*(.9+rj()*.15));};
-  const jmJ=[jLacets,jEpingle,jSommet];
-  let jmK=0;const tronc=(len,H)=>{if(!rj||jmK>=jmN){virages(len,H);return;}jmK++;const f=.4+rj()*.2;virages(len*f,H);const i0=ctrl.length-1;jmJ[jmPaq.shift()]();MODMARK.push({i0:i0,i1:ctrl.length-1});
+  /* ===== TROIS MODULES DE PLUS (2026-10-20, Sacha : « chaque map doit être aléatoire avec des modules et des décors qui changent, TOUTES LES MAPS ») =====
+       jCorniche · LA CORNICHE : une grande courbe rapide de 55-80° (R 480-640 m, ≥ 1,6 × le rayon tenable), une droite, un contre-appui de 60 % — à fond
+       jChicane  · LA CHICANE DU COL : gauche-droite-gauche (28 / 56 / 28° à 180-210 m), une courte droite, la même en miroir — la main, vite
+       jDragon   · LE GRAND S DU DRAGON : trois arcs (+a, −2a, +a ; a = 60-75° à 220-260 m), pris dans l'axe de la vallée — on balance de tout son poids
+     Le cap reste dans ± LIM de l'axe (chaque module s'y remet avant de partir si besoin) : la vallée ne se recroise jamais. */
+  const jCorniche=()=>{if(Math.abs(phi-phi0)>LIM*.5)jCap(phi0);const s9=phi-phi0>0?-1:1,a=55+rj()*25,R=Math.max(jRm*1.6,480+rj()*160);arc(s9*a,R);droite(60+rj()*60);arc(-s9*a*.6,R*.9);};
+  const jChicane=()=>{if(Math.abs(phi-phi0)>LIM-.6)jCap(phi0);const sg=phi-phi0>0?-1:1,R=Math.max(jRm,180+rj()*30);arc(sg*28,R);arc(-sg*56,R);arc(sg*28,R);droite(60+rj()*50);arc(-sg*28,R);arc(sg*56,R);arc(-sg*28,R);};
+  const jDragon=()=>{jCap(phi0);const sg=rj()<.5?-1:1,a=60+rj()*15,R=Math.max(jRm,220+rj()*40);arc(sg*a,R);arc(-sg*2*a,R*1.05);arc(sg*a,R);};
+  const jmJ=[jLacets,jEpingle,jSommet,jCorniche,jChicane,jDragon],JM_NOM=['lacets','épingle','sommet','corniche','chicane','dragon'],MK9=[];
+  let jmK=0;const tronc=(len,H)=>{if(!rj||jmK>=jmN){virages(len,H);return;}jmK++;const f=.4+rj()*.2;virages(len*f,H);const i0=ctrl.length-1;const m9=jmPaq.shift();jmJ[m9]();MK9.push(JM_NOM[m9]);MODMARK.push({i0:i0,i1:ctrl.length-1});
     let lm=0;for(let k=i0+1;k<ctrl.length;k++)lm+=ctrl[k].distanceTo(ctrl[k-1]);virages(Math.max(0,len*(1-f)-lm),H);}; // le module prend SA longueur sur le tronçon : la vallée garde la sienne
   push();ici('depart');
   droite(rj?220:380,4); // (2e tour) le départ plus court avec les modules
@@ -115,7 +125,7 @@ function genJade(rnd){
     ctrl[k].y=y;}
   adoucirPentes(ctrl,JADE_PENTE); // les rampes vers les monuments (et les crêtes des ondes) ramenées vers ~10° — les paliers restent à plat
   for(const k in Q){const o=Q[k];let bi=0,bd=1e18;for(let j=0;j<ctrl.length;j++){const d=ctrl[j].distanceToSquared(o.p);if(d<bd){bd=d;bi=j;}}o.p.y=ctrl[bi].y;}
-  JADE.Q=Q;
+  JADE.Q=Q;JADE.mk=MK9; /* (2026-10-20) les modules de cette vallée (dbgJade().mods) */
   return ctrl;
 }
 // les petits volumes colorés (pins, pavillons) : un tableau de sommets + une couleur par sommet, sans index (facettes)

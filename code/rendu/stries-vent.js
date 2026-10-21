@@ -44,7 +44,9 @@ function nfxVent(dt,dir,kmh){ // `dir` : le sens de la course (cap au sol, vites
    Les gains suivent `dk` (les grands moments creusent le mix) et passent par les PORTES (débranchés hors nitro : coût nul).
    `?nitroson=ancien` = le son d'avant, intact. */
 const RUG_SON=!/[?&]nitroson=ancien/.test(location.search);
+const NIT_ANC=/[?&]nitro=ancien\b/.test(location.search); // (2026-10-21, Léo : « c'est le nitro ») A/B : le nitro d'AVANT le 20/10 16h35 (gorge .14, grave de la flamme, vent, sifflement, grave du téléphone)
 const RUG_NIV={rg:.07,cr:.04,rr:.11,crac:.11,pssht:.015,pap:.15,bang:.2}; // (2026-10-20, Sacha : « on dirait juste du vent, je veux des flammes GRAVES ») gorge plus forte (elle est bien plus basse), crépitement et PSSHT blanc baissés // les niveaux (voir le journal : mesurés contre l'ancien au banc)
+if(NIT_ANC)Object.assign(RUG_NIV,{rg:.14,cr:.14,pssht:.05});
 /* (2026-10-17, Léo : « dès que j'appuie, ça explose et ça fait un bruit qui n'a aucun rapport avec le boost, qui pourrait détruire les
    oreilles des joueurs — écouteurs », sur iPhone ET sur Mac). MESURÉ au banc muet avec SA sauvegarde : deux sons d'EXPLOSION se mêlaient au boost.
    · LA BOULE DE FEU à chaque appui (un BWOUMF saturé, son coup grave qui plonge 170 → 48 Hz, par-dessus le subBoom) — c'est
@@ -57,7 +59,7 @@ const NSEC={sous:false,etage:false}; // sous : la jauge a lâché sous le doigt,
 /* (même jour) LE 2e ÉTAGE NE SE REJOUE PAS EN BOUCLE : un fruit ramassé nitro tenu remplit un peu la jauge, on ressort de la réserve bleue, on y
    retombe une seconde plus tard — et le coup d'allumage du 2e étage repartait à CHAQUE fruit (MESURÉ : 7 à 12 coups en 30 s de nitro tenu).
    Il sonne désormais une fois par appui ; le reste (onde, champ, couleur) suit comme avant. */
-const RUG_CORPS=.45; /* (2026-10-20, Sacha : « on dirait un frottement, plus rond, plus ASMR, qui ronronne ») le bruit brun recule : c'est le RONRON qui porte */ /* (2026-10-20) le grondement brun (grave) remonte */ // le grondement brun d'avant (`jrG`, le corps de la flamme) à 70 % quand la gorge chante : sinon la tenue passait 6 dB au-dessus de l'ancienne
+const RUG_CORPS=NIT_ANC?.7:.45; /* (2026-10-20, Sacha : « on dirait un frottement, plus rond, plus ASMR, qui ronronne ») le bruit brun recule : c'est le RONRON qui porte */ /* (2026-10-20) le grondement brun (grave) remonte */ // le grondement brun d'avant (`jrG`, le corps de la flamme) à 70 % quand la gorge chante : sinon la tenue passait 6 dB au-dessus de l'ancienne
 const RUG={pret:false,ac:null,d:null,tel:false,h:0,k:0,rs:[],cs:[],paps:null,bangs:null,blanc:null,stt:null};
 function rugBq(t,f,q,g,sr){ // les coefficients d'un biquad (RBJ) : 'lp' 'hp' 'bp' 'pk'
   const w=2*Math.PI*Math.min(f,sr*.45)/sr,c=Math.cos(w),s=Math.sin(w),al=s/(2*q),A=Math.pow(10,(g||0)/40);let b0,b1,b2,a0,a1,a2;
@@ -118,7 +120,7 @@ function rugTampons(ac,d,o){ // calcule les tampons et branche le graphe, EN MOR
       const b=mk(rugRoar(sr,3.7));
       RUG.rgF=ac.createBiquadFilter();RUG.rgF.type='lowpass';RUG.rgF.frequency.value=650;RUG.rgF.Q.value=.55;kr(RUG.rgF.frequency);
       RUG.rgF2=ac.createBiquadFilter();RUG.rgF2.type='lowpass';RUG.rgF2.frequency.value=850;RUG.rgF2.Q.value=.6;kr(RUG.rgF2.frequency); // deux passe-bas : la pente raide (−24 dB/oct.) — le mordant vient du crépitement, jamais d'un souffle aigu continu (la fatigue vit à 2-4 kHz)
-      const h=ac.createBiquadFilter();h.type='highpass';h.frequency.value=RUG.tel?150:40;h.Q.value=.7; // un téléphone ne rend rien sous 150 Hz : ce grave ne ferait que pomper le compresseur
+      const h=ac.createBiquadFilter();h.type='highpass';h.frequency.value=NIT_ANC?(RUG.tel?190:95):(RUG.tel?150:40);h.Q.value=.7; // un téléphone ne rend rien sous 150 Hz : ce grave ne ferait que pomper le compresseur
       RUG.rgG=ac.createGain();RUG.rgG.gain.value=0;
       for(let c=0;c<2;c++){const s=ac.createBufferSource();s.buffer=b;s.loop=true;const p=pan(c?.55:-.55);s.connect(p);p.connect(RUG.rgF);s.start(0,c?b.duration*.47:0);RUG.rs.push(s);}
       RUG.rgF.connect(RUG.rgF2);RUG.rgF2.connect(h);h.connect(RUG.rgG);RUG.rgG.connect(d);
@@ -127,7 +129,7 @@ function rugTampons(ac,d,o){ // calcule les tampons et branche le graphe, EN MOR
       if(o.porte)o.porte(RUG.rgG,d,RUG.thG);},
     function(){ // le CRÉPITEMENT
       const b=mk(rugCrep(sr,3.3));
-      RUG.crF=ac.createBiquadFilter();RUG.crF.type='highpass';RUG.crF.frequency.value=RUG.tel?300:120;RUG.crF.Q.value=.7;
+      RUG.crF=ac.createBiquadFilter();RUG.crF.type='highpass';RUG.crF.frequency.value=NIT_ANC?(RUG.tel?600:300):(RUG.tel?300:120);RUG.crF.Q.value=.7;
       RUG.crG=ac.createGain();RUG.crG.gain.value=0;
       for(let c=0;c<2;c++){const s=ac.createBufferSource();s.buffer=b;s.loop=true;const p=pan(c?.35:-.35);s.connect(p);p.connect(RUG.crF);s.start(0,c?b.duration*.53:0);RUG.cs.push(s);}
       RUG.crF.connect(RUG.crG);RUG.crG.connect(d);
@@ -147,12 +149,12 @@ function rugPas(dt,o){ // à chaque image : o = {on, air, bleu, v (km/h), dk}
   RUG.h=on?Math.min(4,RUG.h+dt):Math.max(0,RUG.h-dt*3);const k=RUG.k=1-Math.exp(-RUG.h/.9); // LA MONTÉE : 63 % en 0,9 s, 93 % en 2,4 s — elle continue APRÈS la queue de l'allumage
   const gR=on?RUG_NIV.rg*(.3+.7*k)*(air?.85:1)*(1+.15*b)*o.dk:0;
   S(RUG.rgG.gain,gR,t,on?.06:.14); // coupée : 0,14 s de queue
-  const fc=on?Math.min(650,240+180*k+v*.12+b*80):150; /* (2026-10-20) GRAVE : la flamme ne s'ouvre plus jusqu'à 3 kHz (c'était le « vent ») */S(RUG.rgF.frequency,fc,t,on?.09:.12);S(RUG.rgF2.frequency,fc*1.3,t,on?.09:.12); // elle S'OUVRE en montant (700 → 1 800 Hz à 250 km/h) ; coupée, elle se referme — le dernier « whouff »
-  const r=on?.62+.12*k+Math.min(.1,v/4000)+b*.05:.55; /* (2026-10-20) la boucle jouée plus lentement : tout le rugissement descend */S(RUG.rs[0].playbackRate,r,t,.12);S(RUG.rs[1].playbackRate,r*1.013,t,.12); // la hauteur MONTE (≈ +4 demi-tons) et suit la vitesse
+  const fc=NIT_ANC?(on?Math.min(3000,700+900*k+v*.9+b*450):380):(on?Math.min(650,240+180*k+v*.12+b*80):150); /* (2026-10-20) GRAVE : la flamme ne s'ouvre plus jusqu'à 3 kHz (c'était le « vent ») */S(RUG.rgF.frequency,fc,t,on?.09:.12);S(RUG.rgF2.frequency,fc*1.3,t,on?.09:.12); // elle S'OUVRE en montant (700 → 1 800 Hz à 250 km/h) ; coupée, elle se referme — le dernier « whouff »
+  const r=NIT_ANC?(on?.86+.2*k+Math.min(.12,v/3000)+b*.07:.8):(on?.62+.12*k+Math.min(.1,v/4000)+b*.05:.55); /* (2026-10-20) la boucle jouée plus lentement : tout le rugissement descend */S(RUG.rs[0].playbackRate,r,t,.12);S(RUG.rs[1].playbackRate,r*1.013,t,.12); // la hauteur MONTE (≈ +4 demi-tons) et suit la vitesse
   S(RUG.thO.frequency,7+12*k,t,.05);S(RUG.thG.gain,on?gR*.45*(1-k):0,t,.06); // la PULSATION accélère et s'efface
   S(RUG.crG.gain,on?RUG_NIV.cr*(.3+.7*k)*(air?.75:1)*o.dk:0,t,on?.06:.1);
   rrPas(dt,o,on,b,air,v);
-  const rc=on?.6+.2*k+b*.08:.6; /* (2026-10-20) crépitement plus grave */S(RUG.cs[0].playbackRate,rc,t,.1);S(RUG.cs[1].playbackRate,rc*.97,t,.1);} // plus chaude, elle crépite plus vite et plus clair
+  const rc=NIT_ANC?(on?.88+.3*k+b*.12:.9):(on?.6+.2*k+b*.08:.6); /* (2026-10-20) crépitement plus grave */S(RUG.cs[0].playbackRate,rc,t,.1);S(RUG.cs[1].playbackRate,rc*.97,t,.1);} // plus chaude, elle crépite plus vite et plus clair
 /* ===== LE RONRON DU NITRO (2026-10-20, Sacha : « on dirait plus un frottement, essaie plus rond, plus ASMR, qui ronronne, avec des
    variations : si on appuie longtemps ça change ; il faut qu'il y ait des crépitements et tout ») =====
    Le cœur du son n'est plus du BRUIT (le frottement) mais un TON grave et rond : deux triangles (fondamentale + octave) et une quinte sinus,

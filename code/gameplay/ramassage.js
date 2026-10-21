@@ -135,11 +135,11 @@ function pickupsTick(dt){
         const fd=FRUIT_DEFS[p.fruit]||FRUIT_DEFS[0],pw=Math.min(1,fd.boost/2);
         // (2026-09-26, user : « les fruits donnent du nitro BLEU ») : chaque fruit remplit la RÉSERVE BLEUE (la nitro la plus forte : poussée
         // 48 contre 30) de 20 % de la jauge — le bleu se voit sur la barre et sur l'anneau du bouton
-        {const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,av9=nitroX;{const g9=p.ligne?(p.don||LIGNE.don):.2*mx9,toR=Math.min(Math.max(0,mx9-nitroR),g9);nitroR+=toR;nitroX=Math.min(2,nitroX+(g9-toR));} /* (2026-10-20, Léo : « jauge pleine, et le surplus passe en réserve bleue ») un fruit remplit d'abord la NITRO NORMALE, le trop-plein file dans la RÉSERVE BLEUE */if(LIVRE.on){livre('n+:'+(p.ligne?'fruit.ligne':'fruit'),nitroX-av9);livre('n0:'+(p.ligne?'fruit.ligne':'fruit'),(p.ligne?LIGNE.don:.2*mx9)-(nitroX-av9));}if(p.ligne)LIGNE.pris[0]++; // (LIGNE PARFAITE) le fruit de la file rend de quoi tenir jusqu'au pad
-         if(nitroX>av9+.01){if(SONV2)sfx('nitro.plein',{t:.14});if(!volgNitro('x',nitroX-av9))nbPrend('x');}}
+        {const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,av9=nitroX;nitroX=Math.min(2,nitroX+(p.ligne?(p.don||LIGNE.don):.2*mx9)); /* (2026-10-21, Sacha : « l'ancien système ») comme avant : le fruit remplit la RÉSERVE BLEUE */if(LIVRE.on){livre('n+:'+(p.ligne?'fruit.ligne':'fruit'),nitroX-av9);livre('n0:'+(p.ligne?'fruit.ligne':'fruit'),(p.ligne?LIGNE.don:.2*mx9)-(nitroX-av9));}if(p.ligne)LIGNE.pris[0]++; // (LIGNE PARFAITE) le fruit de la file rend de quoi tenir jusqu'au pad
+         if(nitroX>av9+.01){if(SONV2)sfx('nitro.plein',{t:.14});nbPrend('x');}} /* (2026-10-21, Léo : « on voit directement la barre monter ») le fruit ne vole plus vers la barre : elle monte tout de suite */
         RUNX.fruits++;hap(fd.boost>=1.5?[20,40,30]:11);
         if(SENS&&!REDUCED_MOTION)try{sensCoup(0,-(.45+.6*pw),-(.3+.35*pw));}catch(e){} // (2026-10-14, sensations · passages) LE COUP DE REINS du plein : le fruit rend sa nitro, la caisse S'ASSOIT d'un coup sur son train arrière (nez levé ≈ 1,2° la myrtille → 2,7° la pastèque, ≈ 1 à 2,5 cm) puis se repose — le jus, le croc et la main existaient, la tôle ne bronchait pas. Au sol seulement (sensCoup dort en vol).
-        fruitCroque(carGroup.position,fd.jus||0xffd75e,pw,fd.n,!!p.ligne); // ON CROQUE : jus, crunch, et la rafale qui monte
+        fruitCroque(carGroup.position,fd.jus||0xffd75e,pw,fd.n,!!p.ligne&&PADS_OFF); // ON CROQUE : jus, crunch, et la rafale qui monte
         // (le fruit ne touche PAS au moteur : il ne sert qu'au boost — ce sont les pièces qui l'améliorent)
         if(fd.boost>=1.5){ // LE GRAAL : la pastèque, ça se fête
           trickMsg('🍉 '+fd.n+' !',2);sparkBurst(sparkGold,carGroup.position,18,14);shake=Math.max(shake,.3);
