@@ -139,7 +139,7 @@ const CRYPTO_VERRE=
   '  float pk=fract(ph*13.7+s4*5.3);vec3 wc=pk<.12?vec3(1.,.36,.66):pk<.27?vec3(.38,.92,1.):vec3(1.,.80,.50);'+ // les bureaux de la nuit : l'or, un peu de cyan, un peu de rose (le trio)
   '  vec3 ins=tint*(.055+.05*or9+.07*ag9)*(.7+.6*ph)+uNuit9*wc*step(.45,ph)*(.3+.5*ph)*(1.-.45*far);'+ // l'intérieur, sombre (un bureau derrière une vitre teintée) — la NUIT, les bureaux restent allumés (la ville ne dort pas pendant un bull run)
   '  vec3 glass=mix(ins,rf*tint*1.08,clamp(fr*(.82+.36*ph*(1.-far)),0.,1.))+gl*vec3(1.,.95,.8)+vec3(1.,.8,.5)*.2*step(.972,ph)*(1.-far);'+
-  (PAL.b('cryptoReflets',1)?'  {float q9=ux*.5+vB9*.85,qc=-140.+fract(uT9*.038+s2*7.3+s1*3.)*(vSc9.y*.85+280.),gb=smoothstep(30.,0.,abs(q9-qc));gb*=gb;'+
+  (PAL.b('cryptoReflets',1)?'  {float q9=ux*.5+vB9*.85,qc=-140.+fract(uT9*.038+s2*7.3+s1*3.)*(vSc9.y*.85+280.),gb=1.-smoothstep(0.,30.,abs(q9-qc));gb*=gb;'+
   '   glass+=gb*mix(vec3(1.,.9,.7),vec3(1.,.42,.78),uNuit9)*(.45+.55*or9+.45*ag9)*(1.-.5*far);}'+'\n':'')+ // LE COUP DE LUMIÈRE : une bande diagonale qui monte le long de la tour (rose la nuit)
   '  gl_FragColor.rgb=mix(gl_FragColor.rgb,glass,pane*.93);'+
   // LE BANDEAU DE COURS : sur une tour haute sur deux, à mi-hauteur, des chiffres verts et des ▲ qui défilent

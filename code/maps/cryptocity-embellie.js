@@ -12,8 +12,8 @@
      sur leur largeur et sur leur longueur dans le shader, additifs, derrière tout le reste ; visibles la nuit seulement (`uNuit`).
    Tout se tire dans un générateur LOCAL (`mulberry32(seed ^ …)`, la graine de la piste est `CRYPTO.sd`) : la piste ne bouge pas d'un bit.
    Paliers (`PAL.B`) : tours [36, 72, 110] · bougies par graphique [10, 16, 24] · projecteurs [0, 5, 9] (aucun au palier ancien).
-   Crochets : `dbgCrypto('horizon')` (état), `dbgCrypto('masque','horizon'|'faisceaux')`, `dbgCrypto('route',{f,h,av,fov,cap})` (la caméra posée sur la route :
-   `f` la part de la piste, `h` la hauteur, `av` m en arrière, `cap` rad de rotation vers la droite) et `dbgCrypto('cout')` (appels/triangles d'UNE image). */
+   Crochets : `dbgCrypto('horizon')` (état), `dbgCrypto('masque','horizon'|'faisceaux')`, `dbgCrypto('route',{f,h,av,fov,cap,pitch,sec})` (la caméra posée sur la route :
+   `f` la part de la piste, `h` la hauteur, `av` m en arrière, `cap` rad de rotation vers la droite, `sec` : rend les coordonnées sans dessiner) et `dbgCrypto('cout')` (appels/triangles d'UNE image). */
 PAL.B.cryptoHor=[36,72,110];
 PAL.B.cryptoBoug=[10,16,24];
 PAL.B.cryptoFais=[0,5,9];
@@ -98,7 +98,8 @@ function crhChauffe(add){ /* au menu : le programme (opaque et additif) compilé
     if(k==='masque'&&(v==='horizon'||v==='faisceaux')){const o=v==='horizon'?CRH.tours:CRH.fais;if(o)o.userData.cache=!o.userData.cache;if(o)o.layers.mask=o.userData.cache?0:1;if(POST_ON&&composer)composer.render();return v;}
     if(k==='route'){ /* la caméra sur la route, à la part f de la piste, à h m au-dessus, av m en arrière, tournée de cap rad vers la droite */
       v=v||{};const i=Math.max(2,Math.min(NP-3,Math.floor((v.f==null?.3:v.f)*NP))),p=pts[i],q=pts[Math.min(NP-1,i+3)],tx=q.x-p.x,tz=q.z-p.z,tl=Math.hypot(tx,tz)||1,ux=tx/tl,uz=tz/tl,cap=v.cap||0,c=Math.cos(cap),s=Math.sin(cap),fx=ux*c-uz*s,fz=ux*s+uz*c,av=v.av==null?10:v.av;
-      return d0('photo',{p:[p.x-ux*av,p.y+(v.h==null?5:v.h),p.z-uz*av],c:[p.x-ux*av+fx*100,p.y+(v.h==null?5:v.h)+100*Math.tan(v.pitch||0),p.z-uz*av+fz*100],fov:v.fov||70});}
+      const V9={p:[p.x-ux*av,p.y+(v.h==null?5:v.h),p.z-uz*av],c:[p.x-ux*av+fx*100,p.y+(v.h==null?5:v.h)+100*Math.tan(v.pitch||0),p.z-uz*av+fz*100],fov:v.fov||70};
+      return v.sec?V9:d0('photo',V9);} /* v.sec : rend les coordonnées sans dessiner (le banc les rejoue sur l'ancienne version) */
     if(k==='cout'){const r=renderer.info;r.autoReset=false;r.reset();if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);const o={appels:r.render.calls,triangles:r.render.triangles,programmes:r.programs?r.programs.length:null,textures:r.memory.textures,geometries:r.memory.geometries};r.autoReset=true;return o;}
     return d0(k,v);};
 })();
