@@ -278,7 +278,7 @@ function profBranche(){const el=$p('prof');if(!el||el._b)return;el._b=1;
       if(a==='ret'){uiClic('retour');hap(6);profFerme();}else if(a==='plaque'){uiClic('');hap(10);uiPop(b);plqOuvre('profil');}};
     b.addEventListener('click',go);b.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go(e);}});});
   addEventListener('keydown',function(e){if(!PLQ.prof||PLQ.on)return;if(e.code==='Escape'){e.preventDefault();e.stopImmediatePropagation();profFerme();}},true);
-  const g=$p('gProf');if(g){const go=function(e){e.stopPropagation();if(!garageOn||(GAR&&GAR.go)||ecranWipe._on)return;uiClic('nav');hap(8);uiPop(g);profOuvre();};
+  /* (2026-10-20) le trophée de la rangée du bas (#gvTro) ouvre le profil comme #gProf */ for(const g of [$p('gProf'),$p('gvTro')])if(g){const go=function(e){e.stopPropagation();if(!garageOn||(GAR&&GAR.go)||ecranWipe._on)return;uiClic('nav');hap(8);uiPop(g);profOuvre();};
     g.addEventListener('click',go);g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go(e);}});}
 }
 /* l'horloge du compte : cinq secondes de plus toutes les cinq secondes où le jeu est à l'écran (SAVE.mark : c'est le filet des 30 s qui écrit) */
@@ -291,7 +291,7 @@ function plqGarage(){const g=$p('gProf');if(!g)return;let on=false;
   try{if(garageOn&&!(GAR&&GAR.go)&&!(INV&&INV.on)&&!PLQ.prof&&!PLQ.on&&gEl&&!gEl.classList.contains('vueSeule')&&!gEl.classList.contains('menu')&&!gEl.classList.contains('atelierInv')&&!gEl.classList.contains('shopRet')){const j=$p('gJouer'); /* (2026-10-18) JOUER vit aussi dans l'inventaire et la boutique : ce ne sont pas la vue principale */
     if(j&&j.getClientRects().length&&getComputedStyle(j).visibility!=='hidden')on=true;}}catch(e){}
   if(g.classList.contains('on')!==on)g.classList.toggle('on',on);
-  if(on&&!g.matches(':active,.appui'))try{const c=$p('gCompteur'),r=c&&c.getBoundingClientRect();
+  if(on&&g.getClientRects().length&&!g.matches(':active,.appui'))try{const c=$p('gCompteur'),r=c&&c.getBoundingClientRect();
     if(r&&r.width>8&&r.bottom>0){const b=g.getBoundingClientRect(),dx=Math.round((innerWidth-r.left)-b.right),dy=Math.round((r.top+r.height/2)-(b.top+b.height/2));
       if(dx||dy){g.style.left=(g.offsetLeft+dx)+'px';g.style.top=(g.offsetTop+dy)+'px';}}}catch(e){}}
 function plqDemarre(){try{plqBranche();profBranche();}catch(e){console.warn('plaque',e);}

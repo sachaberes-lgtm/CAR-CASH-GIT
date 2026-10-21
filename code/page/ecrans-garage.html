@@ -50,11 +50,11 @@
      d'écran, la grille VITESSE passe en fixed avec elles) ; la rangée ACCUEIL · JOUER ▸▸▸ · ŒIL reste au pied.
    ?garage=leo (ou ?garage=avant) : html.garLeo, le garage d'avant tel quel. Pas de Poki. */
 html:not(.garLeo):not(.poki) body #garage#garage#garage.on{--ghR:calc(var(--sR) + 14px);--ghL:calc(var(--sL) + 14px);--ghB:calc(var(--sB) + 12px);--ghC:50px;--ghH:46px;--ghG:8px;--ghTx:calc(var(--sR) + 86px);--ghTy:calc(var(--sT) + 33px)}
-/* — LE ⚙ : à gauche du trophée, centré sur lui — */
-html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gTop #gOutils{position:fixed!important;top:calc(var(--ghTy) - var(--ghH) / 2)!important;right:var(--ghTx)!important;left:auto!important;bottom:auto!important;width:auto!important;height:auto!important;margin:0!important;display:flex!important;gap:var(--ghG);z-index:4;pointer-events:auto}
-html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gTop #gOutils>[data-go="set"]{display:flex!important;align-items:center;justify-content:center;width:var(--ghC)!important;min-width:var(--ghC)!important;height:var(--ghH)!important;min-height:var(--ghH)!important;padding:0!important;--nc:#ffd75e;color:#ffd75e}
-html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gTop #gOutils>[data-go="set"] .pxi{--pxs:3;filter:drop-shadow(0 0 6px rgba(255,215,94,.55))}
-html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gTop #gOutils>:not([data-go="set"]){display:none!important}
+/* — LE ⚙ : à gauche du trophée, centré sur lui — (2026-10-20 : seulement avec ?portes=haut ; par défaut le ⚙ et le trophée sont dans la rangée du bas, voir <style id="garageOutilsBas">) */
+html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gTop #gOutils{position:fixed!important;top:calc(var(--ghTy) - var(--ghH) / 2)!important;right:var(--ghTx)!important;left:auto!important;bottom:auto!important;width:auto!important;height:auto!important;margin:0!important;display:flex!important;gap:var(--ghG);z-index:4;pointer-events:auto}
+html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gTop #gOutils>[data-go="set"]{display:flex!important;align-items:center;justify-content:center;width:var(--ghC)!important;min-width:var(--ghC)!important;height:var(--ghH)!important;min-height:var(--ghH)!important;padding:0!important;--nc:#ffd75e;color:#ffd75e}
+html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gTop #gOutils>[data-go="set"] .pxi{--pxs:3;filter:drop-shadow(0 0 6px rgba(255,215,94,.55))}
+html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gTop #gOutils>:not([data-go="set"]){display:none!important}
 /* (2026-10-20, Léo : « le mission, le shop, tu remets ça en dessous ») LES PORTES REDESCENDENT : INVENTAIRE · MISSIONS · BOUTIQUE (et la VITESSE
    au palier 30) retrouvent leur rangée au-dessus de PLAY, debout comme couché — la place du garage d'avant. Le ⚙ de Sacha reste en haut, à
    côté du trophée (ci-dessus). Tout ce qui suit (la pente plaque par plaque, la colonne couchée, les portes sous le nom, « sans la vitesse »)
@@ -97,6 +97,32 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
 @media (orientation:portrait){
   html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee.sansVdep:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvCof,html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee.sansVdep:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvMis,html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee.sansVdep:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gShopBas{top:calc(var(--sT) + 174px)!important}
 }
+</style>
+<style id="garageOutilsBas">
+/* ===== LA RANGÉE DU BAS SANS INVENTAIRE : RÉGLAGES · TROPHÉE EN BAS, L'ŒIL EN HAUT À DROITE (2026-10-20, Sacha : « enlève le bouton inventaire
+   du garage et remplace-le par les boutons réglage et trophée, mets le bouton œil en haut à droite ») =====
+   · INVENTAIRE (#gvCof) disparaît de la vue principale : masqué, gardé pour le câblage (atelier.js, garage-lacher.js). ⚠ La borne 3D
+     (bouton-rouge.js) est éteinte depuis le 10/10 : l'inventaire n'a plus que la touche I (clavier) ; la BOUTIQUE montre les objets ACQUIS.
+   · À sa place (la case de gauche de la 1re rangée, colonnes 1/8) la paire #gvReg ⚙ · #gvTro 🏆 : mêmes touches que MISSIONS / BOUTIQUE (verre,
+     filet de couleur dessous), l'or pour les réglages, l'orange du trophée. #gvReg a data-go="set" (même câblage que l'ancien ⚙ d'en haut,
+     garage-cadrage.js) ; #gvTro ouvre le profil comme #gProf (plaque.js). Les anciens #gOutils et #gProf restent dans la page, masqués.
+   · L'ŒIL monte dans le coin haut-droit (la place qu'avaient ⚙ et trophée) : même marge au bord que le compte en miroir à gauche.
+   Seulement la vue du garage de tous les jours : ?garage=leo, ?portes=haut et Poki gardent leurs places d'avant. */
+#gvOutils{display:none}
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvCof{display:none!important}
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvOutils{grid-row:1!important;grid-column:1/8!important;display:flex;gap:7px;align-self:stretch;min-width:0;margin:0;padding:0}
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gvOutils>button{flex:1 1 0;min-width:0;min-height:0;height:auto;margin:0;padding:0;--nc:var(--pc);color:#fff;
+  background:linear-gradient(115deg,rgba(255,255,255,.10) 0 18%,transparent 18% 100%),linear-gradient(180deg,rgba(38,30,72,.96),rgba(14,11,30,.98));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),inset 0 -3px 0 var(--pc),0 0 0 1px rgba(7,5,15,.95),0 7px 16px -9px var(--pc)}
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gvOutils>button .pxi{--pxs:3;color:var(--pc);filter:drop-shadow(0 0 5px var(--pc))}
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gvOutils>button:is(:active,.appui){translate:0 2px}
+#gvReg{--pc:#ffd75e}
+#gvTro{--pc:#ff9d2e}
+/* le trophée et le ⚙ d'en haut : remplacés par la paire du bas */
+html:not(.garLeo):not(.poki):not(.portesHaut) body #gProf#gProf{display:none!important}
+/* l'ŒIL : le coin haut-droit (même marge au bord que #gCompteur à gauche) ; la case penchée du bas devient une petite case d'angle */
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct#gAct #gRang1>#gOeil{position:fixed!important;top:calc(var(--sT) + 8px)!important;right:calc(var(--sR) + 22px)!important;bottom:auto!important;left:auto!important;
+  grid-row:auto!important;grid-column:auto!important;width:64px!important;min-width:0!important;height:48px!important;min-height:0!important;margin:0!important;padding:0!important;z-index:5}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -184,6 +210,8 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
         <button id="gvMis" class="pbtn" aria-label="Missions"><s class="gvFx" aria-hidden="true"></s><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="gvPips" aria-hidden="true"><u></u><u></u><u></u></b></button>
         <!-- (2026-10-05, Léo : « l'inventaire va être ajouté à côté du bouton jouer ») le COFFRE : l'inventaire (le doigt tenu sur la caisse lance désormais le BURN-OUT) -->
         <button id="gvCof" class="pbtn" aria-label="Inventaire"><i class="pxi pxi-coffre" aria-hidden="true"></i><span data-fr="INVENTAIRE">INVENTAIRE</span></button>
+        <!-- (2026-10-20, Sacha : « enlève le bouton inventaire du garage et remplace-le par les boutons réglage et trophée, mets le bouton œil en haut à droite ») la paire RÉGLAGES · TROPHÉE prend la place d'INVENTAIRE (masqué, gardé pour le câblage : l'inventaire n'a plus que la touche I ; la borne 3D est éteinte depuis le 10/10, bouton-rouge.js) — voir <style id="garageOutilsBas"> -->
+        <div id="gvOutils"><button id="gvReg" class="pbtn" data-go="set" aria-label="Réglages"><i class="pxi pxi-reglages" aria-hidden="true"></i></button><button id="gvTro" class="pbtn" aria-label="Profil"><i class="pxi pxi-trophee" aria-hidden="true"></i></button></div>
       </div>
       <!-- (2026-10-19, Léo) LA VITESSE DE DÉPART : six crans posés au-dessus de la rangée INVENTAIRE · MISSIONS · BOUTIQUE (placés par vdepPlace) ;
            l'étiquette du moteur choisi se colle au bord haut du PLAY. Remplis par vdepMaj. -->
