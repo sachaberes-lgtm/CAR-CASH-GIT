@@ -10,7 +10,8 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v772'; /* v772 (2026-10-21, Sacha : le décor et les modules au hasard — volcan, dunes, canyon, forêt, glacier, jade) */
+const CACHE = 'cashcar-v773'; // v773 (2026-10-21, Sacha : « refonte totale de la map Dune : des petits segments de route posés sur les dunes, on surfe de dune en dune ; le portail au loin entre trois pyramides ») : LES DUNES D'OR en SURF — des îles de route séparées par des sauts (les trous du ruban : TROU/TROUS), la lèvre lance toujours la caisse sur le segment d'en face, cuvettes de sable sous les sauts, départ en belvédère, trois pyramides autour du portail ; le décor au hasard de v7xx est gardé
+// const CACHE = 'cashcar-v772'; /* v772 (2026-10-21, Sacha : le décor et les modules au hasard — volcan, dunes, canyon, forêt, glacier, jade) */
 // const CACHE = 'cashcar-v771';
 // const CACHE = 'cashcar-v770'; // v770 (2026-10-21, Sacha : REQUIN retiré de la boutique, LE SQUALE à 1,61 €, LE DRAGON D'OR et LE BLINDÉ NOIR à 1,61 €)
 // const CACHE = 'cashcar-v769';
