@@ -62,7 +62,7 @@ function eclFrappe(){
    Sur la map ORAGE (en course, et au menu quand ce ciel est choisi) : jusqu'à 3 FILS à la fois, chacun une ligne fine et brisée (fractale, 16 segments + 2 petites branches) qui traverse UN gros nuage de bout en bout
    et vit 0,55-1,05 s (montée rapide, longue traîne douce, un léger frémissement) ; ils posent chacun TROIS LUMIÈRES de monde (NBOLT) le long d'eux : la ouate s'éclaire AUTOUR (violet, blanc au plus près),
    le reste du nuage reste sombre. Largeur : jamais sous 0,22 % de la distance (le fil se lit de loin). */
-const FIL={act:[],t:.5,max:3,lit:false};
+const FIL={act:[],t:.5,max:2,lit:false};
 function filSources(){ // les nuages où un fil peut naître : en course, ceux du ciel de coton ; au menu, les cumulus du titre
   const out=[],cam=camera.position;
   if(started&&!gameOver&&COTON.n>0&&COTON.I){const I=COTON.I;
@@ -78,19 +78,34 @@ function filNeuf(){
   const cle=function(q){return Math.round(q.x/40)+','+Math.round(q.y/40)+','+Math.round(q.z/40);};FIL.rec=FIL.rec||[];
   {const L9=S.filter(function(q){return FIL.rec.indexOf(cle(q))<0;});if(L9.length)S=L9;}
   const c0=S[(Math.random()*S.length)|0];let c=c0;FIL.rec.push(cle(c0));if(FIL.rec.length>4)FIL.rec.shift();
-  const P=[];for(let i=0;i<27;i++)P.push(new THREE.Vector3());const a0=Math.random()*6.283,ca=Math.cos(a0),sa=Math.sin(a0),R=c.rx*.88,seg=[];
-  const cam9=camera.position;CV4.set(cam9.x-c.x,cam9.y-c.y,cam9.z-c.z).normalize(); // (« jvois pas ») le nuage est OPAQUE : un fil à l'intérieur est caché par sa propre paroi → le fil court sur la FACE tournée vers nous (décalé de ~.9 rayon vers la caméra)
-  const ox=CV4.x*c.rx*.9,oy=CV4.y*c.rx*.9,oz=CV4.z*c.rx*.9;c={x:c.x+ox,y:c.y+oy,z:c.z+oz,rx:c.rx,ry:c.ry,d:c.d};
-  const nT=eclFrac(P,0,c.x-ca*R,c.y+(Math.random()-.3)*c.ry*.7,c.z-sa*R,c.x+ca*R+(Math.random()-.5)*R*.3,c.y+(Math.random()-.6)*c.ry*.8,c.z+sa*R+(Math.random()-.5)*R*.3,4,R*.55);
-  for(let i=0;i<nT-1;i++)seg.push(i,i+1,1.05);
-  let q=nT;for(let b=0;b<2;b++){const k=3+((Math.random()*10)|0),o=P[k],a9=Math.random()*6.283,nb=eclFrac(P,q,o.x,o.y,o.z,o.x+Math.cos(a9)*R*.3,o.y+(Math.random()-.5)*c.ry*.3,o.z+Math.sin(a9)*R*.3,2,R*.12);
-    for(let i=0;i<nb-1;i++)seg.push(q+i,q+i+1,.62);q+=nb;}
-  FIL.act.push({P:P,seg:seg,age:0,dur:.8+Math.random()*.7,seed:Math.random()*6.28,lu:[P[3],P[8],P[13]]});}
+  /* (2026-10-21, Léo : « les traits électriques doivent embrasser les courbes, pas qu'une ligne et trajectoire ; ils se promènent — regarde les images sur Internet ; là t'en as trop mis ») VUS SUR PHOTOS (éclairs dans
+     et entre les nuages) : UN canal fin qui SERPENTE en longues courbes douces, de fines dentelures, deux-trois branches qui s'effilent, parfois une boucle — et un ou deux à la fois. Ici : une MARCHE À CAP PERSISTANT sur la face du nuage
+     (le cap tourne doucement, ondule à basse fréquence, et est rappelé vers le centre quand il approche du bord : le fil épouse le bombé du nuage au lieu de le traverser en droite), 26 pas ; deux branches courtes qui s'amincissent. */
+  const R=c.rx*.88,seg=[],NP9=26,ps=Math.random()*6.283;
+  const cam9=camera.position;CV4.set(cam9.x-c.x,cam9.y-c.y,cam9.z-c.z).normalize(); // vers la caméra (le nuage est OPAQUE : le fil court sur la face qu'on voit)
+  const vx=CV4.x,vy=CV4.y,vz=CV4.z;let rx9=vz,ry9=0,rz9=-vx;{const l9=Math.hypot(rx9,rz9);if(l9<1e-4){rx9=1;rz9=0;}else{rx9/=l9;rz9/=l9;}}
+  const uxx=vy*rz9-vz*ry9,uyy=vz*rx9-vx*rz9,uzz=vx*ry9-vy*rx9; // le « haut » du plan du nuage (v × droite)
+  const cx9=c.x+vx*c.rx*.9,cy9=c.y+vy*c.rx*.9,cz9=c.z+vz*c.rx*.9;
+  const P=[];for(let i=0;i<44;i++)P.push(new THREE.Vector3());const TH=[];
+  const pose=function(i,u,w,d){P[i].set(cx9+rx9*u+uxx*w+vx*d,cy9+ry9*u+uyy*w+vy*d,cz9+rz9*u+uzz*w+vz*d);};
+  const wrap=function(a){while(a>3.1416)a-=6.2832;while(a<-3.1416)a+=6.2832;return a;};
+  const a0=Math.random()*6.283;let u=Math.cos(a0)*R*.78,w=Math.sin(a0)*R*.55,th=a0+3.1416+(Math.random()-.5)*1.1;pose(0,u,w,0);TH[0]=th;
+  for(let i=1;i<=NP9;i++){let turn=(Math.random()-.5)*.42+.3*Math.sin(i*.42+ps); // des dentelures fines + une ondulation lente
+    const dist=Math.hypot(u,w);if(dist>R*.75){turn+=wrap(Math.atan2(-w,-u)-th)*.3;} // près du bord : rappelé vers le centre, il épouse le contour
+    th+=turn;const step=R*.072*(.8+Math.random()*.4);u+=Math.cos(th)*step;w+=Math.sin(th)*step;pose(i,u,w,Math.sin(i*.3+ps)*R*.05);TH[i]=th;
+    seg.push(i-1,i,1.0);}
+  let q=NP9+1;
+  for(const k of [5+((Math.random()*4)|0),14+((Math.random()*5)|0)]){ // deux branches courtes qui s'effilent
+    const o=P[k];let bth=TH[k]+(Math.random()<.5?-1:1)*(.55+Math.random()*.5),bu=0,bw=0,prev=k;
+    // la branche repart du point k, dans le plan : on reprend (u,w) du point par projection
+    const dx=o.x-cx9,dy=o.y-cy9,dz=o.z-cz9;bu=dx*rx9+dy*ry9+dz*rz9;bw=dx*uxx+dy*uyy+dz*uzz;
+    for(let i=1;i<=7&&q<P.length;i++,q++){bth+=(Math.random()-.5)*.5;const st=R*.06*(1-i*.09);bu+=Math.cos(bth)*st;bw+=Math.sin(bth)*st;pose(q,bu,bw,0);seg.push(prev,q,Math.max(.32,.62-i*.05));prev=q;}}
+  FIL.act.push({P:P,seg:seg,age:0,dur:.9+Math.random()*.6,seed:Math.random()*6.28,lu:[P[5],P[12],P[20]]});}
 window.dbgFil=function(){const S=filSources(),U=NBOLT.uBolt.value;const f0=FIL.act[0],nd=f0?[0,8,16].map(function(k){CV3.copy(f0.P[k]).project(camera);return [+CV3.x.toFixed(2),+CV3.y.toFixed(2),+CV3.z.toFixed(3)];}):null,dist=f0?+f0.P[8].distanceTo(camera.position).toFixed(0):null,w0=f0?f0.seg[2]:null;return {ndc:nd,dist:dist,fils:FIL.act.length,sources:S.length,lit:FIL.lit,lum:U.map(function(v){return +v.w.toFixed(2);}),quads:ECL2.m.geometry.attributes.position.array.reduce(function(a,v,i){return a+((i%3===1&&v>-99999)?1:0);},0)/4,visible:ECL2.m.visible,t:FIL.t};}; // (banc)
 function filTick(dt,on){
   const U=NBOLT.uBolt.value;
   if(!on){if(FIL.lit||FIL.act.length){FIL.act.length=0;FIL.lit=false;for(let i=0;i<9;i++)U[i].w=0;eclEcrit(ECL2);}return;}
-  FIL.t-=dt;if(FIL.t<=0){if(FIL.act.length<FIL.max)filNeuf();FIL.t=.18+Math.random()*.32;}
+  FIL.t-=dt;if(FIL.t<=0){if(FIL.act.length<FIL.max)filNeuf();FIL.t=1.1+Math.random()*2.2; /* peu : un ou deux à la fois (les vraies photos) */}
   const P9=ECL2.pos,C9=ECL2.col,cam=camera.position;let n=0;
   for(let i=FIL.act.length-1;i>=0;i--){const f=FIL.act[i];f.age+=dt;if(f.age>=f.dur){FIL.act.splice(i,1);}}
   for(let i=0;i<3;i++){const f=FIL.act[i];if(!f){for(let k=0;k<3;k++)U[i*3+k].w=0;continue;}

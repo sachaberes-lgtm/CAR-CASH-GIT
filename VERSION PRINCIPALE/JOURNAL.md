@@ -3,6 +3,12 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES FILS SE PROMÈNENT, EN PETIT NOMBRE (2026-10-21, v771, Léo : « les traits électriques doivent embrasser les courbes, pas qu'une ligne ; ils se promènent — regarde les images sur Internet ; là t'en as trop mis, c'est même plus réaliste ») — branche `nuages-refonte`
+- Photos regardées (Wikimedia Commons, « intracloud lightning ») : UN canal fin qui serpente en longues courbes douces + fines dentelures, deux-trois branches qui s'effilent, parfois une boucle ; un ou deux à la fois.
+- `filNeuf` : plus de fractale droite — une MARCHE À CAP PERSISTANT sur la face visible du nuage (le cap tourne doucement, ondule à basse fréquence, est rappelé vers le centre près du bord : le fil épouse le bombé), 26 pas, deux branches courtes qui s'amincissent.
+- Rareté : 2 fils au plus, un toutes les 1,1-3,3 s (avant : 3, toutes les 0,18-0,5 s), 0,9-1,5 s chacun.
+- Vu à l'œil au menu STORM : un fil violet qui serpente sur le bord d'un nuage, lueur autour.
+
 ## CORRECTIFS « JVOIS PAS » (2026-10-21, v770, Léo : « jvois pas » ; « un nuage est allumé presque constamment en violet ») — branche `nuages-refonte`
 - **Fils invisibles** : le nuage est OPAQUE, un fil à l'intérieur était caché par sa propre paroi → le fil court désormais sur la FACE tournée vers la caméra (décalé de ~.9 rayon) ; naît seulement dans un nuage VISIBLE (`filVu`) ; plus souvent (0,18-0,5 s), plus longs (0,8-1,5 s), plus larges (0,34 % de la distance).
 - **Nuage allumé en permanence** : le choix favorisait toujours le plus gros nuage proche → toujours le même ; désormais au hasard parmi les nuages visibles, jamais l'un des 4 derniers (`FIL.rec`). La lueur de fond baisse (orage .5 → .14, pluie/nuit .1, menu .1) et les petits éclairs de quartier s'affinent (puissance 14 → 40).
