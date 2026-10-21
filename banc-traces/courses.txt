@@ -1,0 +1,30 @@
+volcan AVANT portail 44.4s L0 5872 v 132 mort: null err [] loop null 
+volcan APRÈS portail 68.5s L0 5958 v 87 mort: null err [] loop null {"axe":0.0023013218119740664,"coude":-32,"ordre":["arche","mod","fum","lac"],"humeurs":["balcon","derive","courbes","chi
+grotte AVANT portail 113.9s L0 9139 v 80 mort: null err [] loop null 
+grotte APRÈS portail 78.5s L0 9136 v 116 mort: null err [] loop null {"axe":-2.874366994934206,"coude":3,"ordre":["mine","luxe","geode","stal","lave","abysse"],"humeurs":{"luxe":"balcon","s
+volcan AVANT portail 61s L0 6334 v 104 mort: null err [] loop null 
+volcan APRÈS portail 52.3s L0 5964 v 114 mort: null err [] loop null {"axe":-0.28792846751734613,"coude":-25,"ordre":["fum","arche","fum","mod","lac"],"humeurs":["courbes","flammes","courbe
+grotte AVANT portail 74.5s L0 9186 v 123 mort: null err [] loop null 
+grotte APRÈS portail 80.5s L0 9211 v 114 mort: null err [] loop null {"axe":-1.6505766066723555,"coude":-15,"ordre":["mine","geode","stal","luxe","lave","abysse"],"humeurs":{"stal":"flammes
+volcan AVANT portail 53s L0 6132 v 116 mort: null err [] loop null 
+volcan APRÈS portail 53.5s L0 5512 v 103 mort: null err [] loop null {"axe":-0.3663128478529863,"coude":34,"ordre":["fum","mod","arche","mod","lac","mod"],"humeurs":["derive","chicanes","de
+grotte AVANT mort 80.1s L0 9449 v 118 mort: PERDU
+AURA
+0
+MEILLEUR
+3 399
+MOTEUR ATTEINT
+PALIER
+10
+RECORD !
+ENCORE 5 PIECES POUR
+ V8 ATMO
+VERSES AU COMPTE
+$ 0
+COMPTE : $ 2 613
+×2 DU JOUR
+×5
+MULTI MAX
+941
+KM err [] loop null 
+grotte APRÈS portail 88.6s L0 9325 v 105 mort: null err [] loop null {"axe":-2.6288133967669274,"coude":31,"ordre":["mine","lave","stal","luxe","geode","abysse"],"humeurs":{"stal":"serpent"

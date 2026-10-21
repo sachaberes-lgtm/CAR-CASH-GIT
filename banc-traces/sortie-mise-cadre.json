@@ -1,0 +1,23 @@
+{
+ "tache": "mise",
+ "args": [
+  "cadre",
+  "grotte",
+  "matin",
+  "mise/cadre-grotte.jpg"
+ ],
+ "res": {
+  "mode": "cadre",
+  "carte": "grotte",
+  "depart": true,
+  "etat": {
+   "started": true,
+   "go": false,
+   "mode": "drive",
+   "s": 777,
+   "niv": "grotte",
+   "loop": null
+  },
+  "erreurs": []
+ }
+}

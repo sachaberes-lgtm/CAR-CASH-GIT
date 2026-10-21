@@ -1,0 +1,11 @@
+{
+ "tache": "page",
+ "args": [
+  "planche-hasard.html",
+  "mise/planche"
+ ],
+ "res": {
+  "h": 8100,
+  "imgs": 0
+ }
+}

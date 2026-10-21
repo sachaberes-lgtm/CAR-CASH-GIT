@@ -1,0 +1,23 @@
+{
+ "tache": "mise",
+ "args": [
+  "debout",
+  "grotte",
+  "matin",
+  "mise/debout-grotte.jpg"
+ ],
+ "res": {
+  "mode": "debout",
+  "carte": "grotte",
+  "depart": true,
+  "etat": {
+   "started": true,
+   "go": false,
+   "mode": "drive",
+   "s": 859,
+   "niv": "grotte",
+   "loop": null
+  },
+  "erreurs": []
+ }
+}

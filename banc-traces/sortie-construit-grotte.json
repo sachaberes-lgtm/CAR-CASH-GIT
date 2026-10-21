@@ -1,0 +1,196 @@
+{
+ "tache": "construit",
+ "args": [
+  "grotte",
+  "2",
+  "0"
+ ],
+ "res": [
+  {
+   "graine": 8919,
+   "trace": {
+    "ms": 808,
+    "L": 8999,
+    "niv": {
+     "carte": "grotte",
+     "meteo": "nuit",
+     "teinte": null,
+     "ciel": "grt-nuit-mine",
+     "pluie": 0,
+     "nuit": 1,
+     "orage": false
+    }
+   },
+   "decor": {
+    "pret": true,
+    "ms": 653,
+    "msCreuse": 433,
+    "msFile": 400,
+    "tm": {
+     "ech": 12,
+     "creuse": 363,
+     "puits": 70,
+     "lacs": 39,
+     "decors": 28,
+     "mailles": 140
+    },
+    "n": {
+     "torches": 112,
+     "cadres": 10,
+     "gemmes": 62,
+     "lianes": 190,
+     "azalees": 56,
+     "cristaux": 170,
+     "concretions": 240,
+     "chutes": 14,
+     "capteurs": 90,
+     "piliersCite": 28,
+     "lumieres": 426,
+     "piliers": 24,
+     "troncons": 751,
+     "air": 794396,
+     "col": 360,
+     "triangles": 338692,
+     "decors": 4175
+    },
+    "hasard": {
+     "axe": -2.0613414334304467,
+     "coude": 0,
+     "ordre": [
+      "mine",
+      "lave",
+      "luxe",
+      "geode",
+      "stal",
+      "abysse"
+     ],
+     "humeurs": {
+      "luxe": "derive",
+      "stal": "flammes",
+      "abysse": "balcon"
+     },
+     "parts": "luxe:24 stal:15 lave:34 abysse:27"
+    },
+    "salles": {
+     "mine": 180,
+     "lave": 568.0171204640478,
+     "luxe": 2620.0789711545867,
+     "geode": 4111.123912372713,
+     "stal": 6164.185793204913,
+     "abysse": 7058.212739850792,
+     "fin": 8849.266723567534
+    },
+    "spi": {
+     "R0": 243,
+     "R1": 201,
+     "tours": 1.25,
+     "pas": 60,
+     "descente": 75
+    },
+    "lac": -131,
+    "eau": -198
+   },
+   "test": {
+    "roche": 0,
+    "decors": 0,
+    "ou": ""
+   },
+   "loopErr": null,
+   "erreurs": [],
+   "s": 5.4
+  },
+  {
+   "graine": 16838,
+   "trace": {
+    "ms": 567,
+    "L": 9196,
+    "niv": {
+     "carte": "grotte",
+     "meteo": "soir",
+     "teinte": null,
+     "ciel": "grt-soir-mine",
+     "pluie": 0,
+     "nuit": 1,
+     "orage": false
+    }
+   },
+   "decor": {
+    "pret": true,
+    "ms": 426,
+    "msCreuse": 325,
+    "msFile": 424,
+    "tm": {
+     "ech": 3,
+     "creuse": 280,
+     "puits": 45,
+     "lacs": 14,
+     "decors": 17,
+     "mailles": 68
+    },
+    "n": {
+     "torches": 101,
+     "cadres": 11,
+     "gemmes": 57,
+     "lianes": 190,
+     "azalees": 62,
+     "cristaux": 170,
+     "concretions": 240,
+     "chutes": 14,
+     "capteurs": 90,
+     "piliersCite": 28,
+     "lumieres": 421,
+     "piliers": 27,
+     "troncons": 767,
+     "air": 812427,
+     "col": 365,
+     "triangles": 342696,
+     "decors": 4270
+    },
+    "hasard": {
+     "axe": -1.3300103932771306,
+     "coude": 20,
+     "ordre": [
+      "mine",
+      "lave",
+      "luxe",
+      "stal",
+      "geode",
+      "abysse"
+     ],
+     "humeurs": {
+      "luxe": "balcon",
+      "stal": "courbes",
+      "abysse": "serpent"
+     },
+     "parts": "luxe:23 stal:22 lave:30 abysse:25"
+    },
+    "salles": {
+     "mine": 180,
+     "lave": 604.911153927555,
+     "luxe": 2412.491950038779,
+     "stal": 3850.177749998357,
+     "geode": 5270.49279047015,
+     "abysse": 7409.139826230914,
+     "fin": 9046.078455609197
+    },
+    "spi": {
+     "R0": 235,
+     "R1": 191,
+     "tours": 1.304,
+     "pas": 58,
+     "descente": 76
+    },
+    "lac": -126,
+    "eau": -193
+   },
+   "test": {
+    "roche": 0,
+    "decors": 0,
+    "ou": ""
+   },
+   "loopErr": null,
+   "erreurs": [],
+   "s": 2.7
+  }
+ ]
+}

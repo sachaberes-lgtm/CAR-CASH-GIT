@@ -1,0 +1,23 @@
+{
+ "tache": "mise",
+ "args": [
+  "couche",
+  "grotte",
+  "matin",
+  "mise/couche-grotte.jpg"
+ ],
+ "res": {
+  "mode": "couche",
+  "carte": "grotte",
+  "depart": true,
+  "etat": {
+   "started": true,
+   "go": false,
+   "mode": "drive",
+   "s": 656,
+   "niv": "grotte",
+   "loop": null
+  },
+  "erreurs": []
+ }
+}

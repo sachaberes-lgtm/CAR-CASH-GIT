@@ -1,0 +1,47 @@
+{
+ "tache": "vue",
+ "args": [
+  "volcan",
+  "soir",
+  "photos/vue-apres-volcan-303",
+  "303"
+ ],
+ "res": {
+  "info": "{\"axe\":-0.49643124351790174,\"coude\":28,\"ordre\":[\"lac\",\"fum\",\"fum\",\"mod\",\"arche\",\"mod\"],\"humeurs\":[\"courbes\",\"serpent\",\"balcon\",\"derive\",\"flammes\",\"derive\",\"flammes\"]}",
+  "vues": {
+   "volcan": "ok"
+  },
+  "erreurs": [
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "WARNING THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+   "LOG Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216. http://127.0.0.1:9611/index.html?colonne=0&simu=1&carte=volcan&meteo=soir&pistegraine=303",
+   "LOG Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216. http://127.0.0.1:9611/index.html?colonne=0&simu=1&carte=volcan&meteo=soir&pistegraine=303",
+   "LOG Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216. http://127.0.0.1:9611/index.html?colonne=0&simu=1&carte=volcan&meteo=soir&pistegraine=303",
+   "LOG Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216. http://127.0.0.1:9611/index.html?colonne=0&simu=1&carte=volcan&meteo=soir&pistegraine=303",
+   "LOG Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216. http://127.0.0.1:9611/index.html?colonne=0&simu=1&carte=volcan&meteo=soir&pistegraine=303",
+   "LOG Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216. http://127.0.0.1:9611/index.html?colonne=0&simu=1&carte=volcan&meteo=soir&pistegraine=303",
+   "LOG Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216. http://127.0.0.1:9611/index.html?colonne=0&simu=1&carte=volcan&meteo=soir&pistegraine=303"
+  ]
+ }
+}

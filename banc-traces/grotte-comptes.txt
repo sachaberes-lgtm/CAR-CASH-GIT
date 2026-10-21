@@ -1,0 +1,2 @@
+AVANT tronçons [718,734,734,725,728,742,711,734,751,735] méd 734 | triangles méd 341256 max 346256 | air méd 793134 | col méd 370 | err 0
+APRÈS tronçons [751,767,764,764,733,723,744,741,703,727] méd 744 | triangles méd 340724 max 344096 | air méd 797061 | col méd 365 | err 0
