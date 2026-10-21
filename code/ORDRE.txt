@@ -30,7 +30,6 @@ css/ux8.css                          # ux8 (menus, partie, mouvement), clarté d
 css/accueil-boutique.css             # accueilDoigt, bqFigHex, policeUnique
 css/missions.css                     # missionsV2 (l'écran des missions)
 css/garage-jouer.css                 # uiRevue, jouerGarage, garShop
-css/ciel-choix.css                   # le choix du ciel avant de jouer (rangée AUTO · MATIN · … · ORAGE)
 page/ecrans-garage.html              # HTML : accueil, garage, atelier, inventaire, voile du départ, compteur, dark triad, niveaux
 css/plaque.css                       # <style id="plaque"> (plaque d'immatriculation)
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
@@ -181,7 +180,6 @@ gameplay/seconde-chance.js           # la pub qui ressuscite, la seconde chance,
 interface/menu-logo.js               # le menu : le logo qu'on casse
 rendu/kit-lumiere.js                 # le kit lumière des autres caisses
 gameplay/zones-caisses.js            # systèmes de zone, orage, caisse-nuage, aiguillage, lingot
-interface/ciel-choix.js              # le choix du ciel avant de jouer (météo de la mer de nuages)
 gameplay/evenements-rares.js         # les événements rares, le guide du jeu
 economie/argent-atelier.js           # l'argent de l'atelier
 interface/garage-salle.js            # buildGarageRoom : la salle du garage

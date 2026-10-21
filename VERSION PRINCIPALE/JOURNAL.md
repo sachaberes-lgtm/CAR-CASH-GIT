@@ -3,6 +3,14 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE CHOIX DU CIEL RETIRÉ DE L'ACCUEIL (2026-10-21, v782, Léo : « enlève le choix du ciel dans le menu ciel, ça s'adapte à l'heure »)
+- La rangée AUTO · MATIN · MIDI · SOIR · NUIT · PLUIE · ORAGE (v761 → v768) n'est plus à l'accueil : `interface/ciel-choix.js` et `css/ciel-choix.css` supprimés (`ORDRE.txt` −2 lignes, 213 morceaux) et l'appel `cielChoixImpose` de
+  `classiqueJouer` (zones-caisses.js) aussi. Le ciel du menu ne reçoit plus d'ordre : il suit l'horloge du téléphone (`titreHeureDe`, relue toutes les 20 s) ; JOUER retrouve le tirage au hasard du mode classique.
+- La clé `localStorage.cashcarCiel` des appareils qui avaient choisi n'est plus lue (inoffensive, rien à nettoyer).
+- GARDÉ pour examiner (dev, rien d'autre ne les pose) : le ciel PLUIE / ORAGE du menu (`TITRE_H.pluie` / `.orage`, flash d'orage `menuEclTick`) par `?heure=pluie` / `?heure=orage` ou `dbgHeure('pluie')` ; la météo de la mer de nuages
+  à jouer par `?carte=nuages&meteo=pluie` (ou `orage`, `nuit`…). `arcEcTick` (chute-menu.js) : l'arc-en-ciel du menu se règle sur `TITRE_HF.h==='pluie'` au lieu de `CIEL_CH`.
+- Pour RETROUVER la rangée : l'ancien code = commits b3040eaf, 1a262e07, 0d0cbcbb, 37257b60, 2f785a61 (v761 → v768) ; la branche `nuages-refonte` la garde tant qu'elle ne fusionne pas ce main.
+
 ## LA BOUTIQUE PAYANTE : LE SQUALE VRAIMENT VENDU, LA TRAÎNÉE DU CHAT DITE (2026-10-21, v781, Sacha : « supprime la voiture Shark à 10 euros, remplace-la par la Squall que Léo a faite, à 1,61 € ; Black Armor et Golden Dragon à 1,61 € ; plus clair que Pop-Tart-Cat est vendu avec la traînée arc-en-ciel »)
 - **À VALIDER PAR SACHA** (choix par défaut livrés) : (1) la mission secrète `abysse` (« DESCENDS AU FOND DE LA MER DE JADE ») paie **15 000 $** au lieu du SQUALE (valeur posée par Claude, comme
   LE GLACIER / LA DEUCHE le 19/10) ; (2) « Squall » = LE SQUALE (confirmé par « l'autre requin de Léo » dans la demande du v770).

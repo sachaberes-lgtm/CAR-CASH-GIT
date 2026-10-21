@@ -108,7 +108,7 @@ const NU_FOND={ // z zénith, m milieu, h horizon (et la brume), s lueur du sole
   /* nuit : PAS de fond peint — la couche du menu la noircissait (le CLAIR DE LUNE bleu-violet de Sacha, 14/10, reste) */};
 const NUF={k:0,on:false,T:null,force:null,av:{},ap:{}};
 /* (2026-10-21, Léo : « montre directement les maps pluie et orage sur le menu, comme ça je peux examiner ») DEUX « HEURES » DE PLUS AU TITRE : PLUIE et ORAGE — le ciel peint de la map (NU_FOND.pluie / .orage : mêmes
-   couleurs, mêmes cirrus, même mer d'ombre) avec l'éclairage de la caisse d'un temps couvert (calé sur l'après-midi) / d'une nuit d'orage (calé sur la nuit). Les touches PLUIE et ORAGE de l'accueil les posent (CIEL_MENU). */
+   couleurs, mêmes cirrus, même mer d'ombre) avec l'éclairage de la caisse d'un temps couvert (calé sur l'après-midi) / d'une nuit d'orage (calé sur la nuit). Plus de touches à l'accueil (retirées le 2026-10-21, le ciel suit l'heure) : `?heure=pluie` / `?heure=orage` ou `dbgHeure('pluie')` pour les examiner. */
 {const cl=function(o){return JSON.parse(JSON.stringify(o));},cp=function(src){const o={};for(const k of ['tw','ry','cr','z','m','h','s','mh','mo','c','ca','hz'])o[k]=cl(src[k]);return o;};
   TITRE_CIEL.pluie=cp(NU_FOND.pluie);TITRE_CIEL.orage=cp(NU_FOND.orage);
   BIOMES.titrePluie=bioMet(BIOMES.titreAprem,{nm:'TITRE · PLUIE',jZen:NU_FOND.pluie.z,jMid:NU_FOND.pluie.m,jHor:NU_FOND.pluie.h,sunTint:[1,.78,.68],sunHalo:.4,sunI:(BIOMES.titreAprem.sunI||1)*.7,hemiI:(BIOMES.titreAprem.hemiI||1)*.92});
@@ -151,7 +151,7 @@ function nuFondPose(P,k){const U=skyU;U.uTi.value.set(k,P.ca,0,P.hz);U.uTi2.valu
 /* L'ARC-EN-CIEL DE LA PLUIE (2026-10-21) : allumé en douceur quand la météo est la PLUIE (en course, ou — au menu — quand ce ciel est choisi) ; force .3, « léger ». `?arc=...` n'existe pas : `dbgArcEC(x)` pour essayer. */
 const ARCEC={cible:null};
 function arcEcTick(dt){const U=skyU.uArcE.value,c=LVL&&LVL.cur,run=started&&!gameOver&&c&&c.carte==='nuages';
-  let t=run?(c.meteo==='pluie'?.3:0):((typeof CIEL_CH!=='undefined'&&CIEL_CH.v==='pluie')?.3:0);if(ARCEC.cible!=null)t=ARCEC.cible;U.x+=(t-U.x)*Math.min(1,dt*1.6);if(U.x<.002&&t===0)U.x=0;}
+  let t=run?(c.meteo==='pluie'?.3:0):((typeof TITRE_HF!=='undefined'&&TITRE_HF.h==='pluie')?.3:0);if(ARCEC.cible!=null)t=ARCEC.cible;U.x+=(t-U.x)*Math.min(1,dt*1.6);if(U.x<.002&&t===0)U.x=0;}
 window.dbgArcEC=function(x,l,h){ARCEC.cible=x==null?null:+x;if(l!=null)skyU.uArcE.value.y=+l;if(h!=null)skyU.uArcE.value.z=+h;return skyU.uArcE.value.toArray();}; // (banc) x force · l demi-largeur (rad) · h hauteur du soleil forcée (rad)
 /* L'ORAGE AU MENU / EN COURSE : les FILS d'électricité dans les nuages (filTick, zones-caisses.js) — sur la map orage, en course et au menu quand ce ciel est choisi ; les cumulus luisent d'un violet sourd. */
 const MENU_ECL={on:false};
