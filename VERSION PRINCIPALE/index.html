@@ -56476,7 +56476,84 @@ slCv.width=innerWidth;slCv.height=innerHeight;if(juiceCv){juiceCv.width=innerWid
    Quand la vitesse retombe, les filés en vol finissent leur course au lieu de disparaître d'un coup. */
 const SLN=44,SL={a:new Float32Array(SLN),r:new Float32Array(SLN),v:new Float32Array(SLN),t:new Float32Array(SLN),T:new Float32Array(SLN),
   w:new Float32Array(SLN),l:new Float32Array(SLN),al:new Float32Array(SLN),vivants:0};
-function drawSpeedLines(kmh,nitro,dt){ // speed lines façon anime : traits radiaux fuyant le centre
+/* LE VENT (2026-10-21, Léo : « les traits de vitesse font encore un peu enfantin, fais-moi un truc mieux, adapté à notre gameplay ») :
+   les filés d'anime (44 bâtons qui jaillissent du CENTRE DE L'ÉCRAN) sont remplacés par des particules d'AIR posées dans le MONDE.
+   Elles ne bougent pas : c'est la caméra qui les traverse, donc vraie perspective (fines au loin, elles s'étirent et accélèrent en
+   passant), vraie parallaxe, et le point de fuite est la DIRECTION RÉELLE du vol (en l'air, il suit la trajectoire, pas le milieu de
+   l'écran). Chaque trait va du point d'air à sa position d'il y a τ secondes : sa longueur dit la vitesse. Fins, comète lumineuse à tête
+   franche ; couleur = état de la caisse (air froid · or au-delà de la croisière · feu nitro · bleu réserve · violet nitro infinie · rouge
+   frénésie), choisie à la NAISSANCE du trait (la teinte change en ~0,5 s, sans à-coup). Le milieu de l'écran reste net (on vise) et un
+   masque épargne la caisse. L'allumage de la nitro = une SURVITESSE (`VENT.pic`) au lieu de la gerbe radiale. Même canvas 2D, zéro
+   programme GPU, zéro allocation. `?vent=ancien` ou `dbgVent(false)` = les anciens filés. */
+const VENT_N=64,VENT={ancien:false,pic:0,wx:new Float32Array(VENT_N*3),pal:new Uint8Array(VENT_N),lg:new Float32Array(VENT_N),ep:new Float32Array(VENT_N),
+  pxP:0,pyP:0,pzP:0,vx:0,vy:0,vz:0,init:false,vivants:0,sp:null};
+try{if(new URLSearchParams(location.search).get('vent')==='ancien')VENT.ancien=true;}catch(e){}
+window.dbgVent=function(on){if(on===undefined)return {ancien:VENT.ancien,vitesse:Math.hypot(VENT.vx,VENT.vy,VENT.vz),pic:VENT.pic};VENT.ancien=!on;if(on)VENT.init=false;return !VENT.ancien;};
+function ventSprites(){ // 6 comètes cuites UNE fois : queue transparente → corps teinté → tête presque blanche → bord net ; profil doux en travers
+  const mk=function(c,h){const cv=document.createElement('canvas');cv.width=256;cv.height=8;const x=cv.getContext('2d');
+    const g=x.createLinearGradient(0,0,256,0),q='rgba('+c+',',t='rgba('+h+',';
+    g.addColorStop(0,q+'0)');g.addColorStop(.5,q+'.28)');g.addColorStop(.84,q+'.8)');g.addColorStop(.94,t+'1)');g.addColorStop(.995,t+'.9)');g.addColorStop(1,t+'0)');
+    x.fillStyle=g;x.fillRect(0,0,256,8);x.globalCompositeOperation='destination-in';
+    const v=x.createLinearGradient(0,0,0,8);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(.38,'rgba(0,0,0,.85)');v.addColorStop(.5,'rgba(0,0,0,1)');v.addColorStop(.62,'rgba(0,0,0,.85)');v.addColorStop(1,'rgba(0,0,0,0)');
+    x.fillStyle=v;x.fillRect(0,0,256,8);return cv;};
+  return [mk('176,194,255','255,255,255'),mk('255,214,120','255,250,226'),mk('255,122,36','255,236,200'),mk('91,125,255','214,226,255'),mk('157,77,255','243,230,255'),mk('255,42,61','255,206,210')];
+}
+function ventPose(i,loin){ // (re)nait un trait : un point de l'écran (loin du centre) à une profondeur, posé dans le monde
+  const tf=Math.tan(camera.fov*.0087266),as=camera.aspect,e=camera.matrixWorld.elements;
+  const a=Math.random()*6.2832,rf=.36+.82*Math.pow(Math.random(),.8),d=loin?(34+Math.random()*42):(8+Math.random()*68);
+  const nx=Math.cos(a)*rf,ny=Math.sin(a)*rf,xv=nx*d*tf*as,yv=ny*d*tf,zv=-d;
+  VENT.wx[i*3]=e[0]*xv+e[4]*yv+e[8]*zv+e[12];VENT.wx[i*3+1]=e[1]*xv+e[5]*yv+e[9]*zv+e[13];VENT.wx[i*3+2]=e[2]*xv+e[6]*yv+e[10]*zv+e[14];
+  VENT.lg[i]=.55+Math.random()*.9;VENT.ep[i]=.7+Math.random()*.8;
+}
+function ventDessine(kmh,nitro,dt){
+  const W=slCv.width,H=slCv.height;dt=Math.min(dt||.016,.05);
+  const vcL=vCroisiere();
+  let k=Math.max(0,(kmh-vcL*.6)/vcL)+(nitro?.6:0);if(mode==='boom'||gameOver)k=0;
+  VENT.pic=Math.max(0,VENT.pic-dt*2.6);
+  slCtx.setTransform(1,0,0,1,0,0);
+  // la vitesse de la CAMÉRA dans le monde (c'est elle qui traverse l'air), lissée ; une téléportation (portail, replacement) remet l'air à neuf
+  camera.updateMatrixWorld();camera.matrixWorldInverse.copy(camera.matrixWorld).invert();
+  const P=camera.position,jump=Math.hypot(P.x-VENT.pxP,P.y-VENT.pyP,P.z-VENT.pzP);
+  if(!VENT.init||jump>160){VENT.init=true;for(let i=0;i<VENT_N;i++){ventPose(i,false);VENT.pal[i]=0;}VENT.vx=VENT.vy=VENT.vz=0;}
+  else if(dt>0){const g=1-Math.exp(-dt*10);VENT.vx+=((P.x-VENT.pxP)/dt-VENT.vx)*g;VENT.vy+=((P.y-VENT.pyP)/dt-VENT.vy)*g;VENT.vz+=((P.z-VENT.pzP)/dt-VENT.vz)*g;}
+  VENT.pxP=P.x;VENT.pyP=P.y;VENT.pzP=P.z;
+  k=Math.min(1.35,k);const cible=Math.min(VENT_N,k*46+(VENT.pic>0?VENT.pic*18:0));
+  if(cible<=.05&&!VENT.vivants){if(drawSpeedLines._had){slCtx.clearRect(0,0,W,H);drawSpeedLines._had=false;slCv.style.visibility='hidden';}return;}
+  slCtx.clearRect(0,0,W,H);if(!drawSpeedLines._had){drawSpeedLines._had=true;slCv.style.visibility='visible';}
+  const spr=VENT.sp||(VENT.sp=ventSprites());
+  const pal=nitro?(nitroBlue?3:(pwrNitroT>0?4:2)):(FLOW.lv===4?5:(k>.95?1:0));
+  const m=camera.matrixWorldInverse.elements,tf=Math.tan(camera.fov*.0087266),as=W/H,foc=H*.5/tf;
+  // la vitesse dans le repère de la caméra : de combien l'air a glissé il y a τ secondes
+  const vvx=m[0]*VENT.vx+m[4]*VENT.vy+m[8]*VENT.vz,vvy=m[1]*VENT.vx+m[5]*VENT.vy+m[9]*VENT.vz,vvz=m[2]*VENT.vx+m[6]*VENT.vy+m[10]*VENT.vz;
+  const tau=(.04+.05*Math.min(1,k))*(1+VENT.pic*1.4),capPx=Math.min(W,H)*.62;
+  // la caisse à l'écran : rien ne passe SUR elle
+  const cg=carGroup.position,cxw=m[0]*cg.x+m[4]*cg.y+m[8]*cg.z+m[12],cyw=m[1]*cg.x+m[5]*cg.y+m[9]*cg.z+m[13],czw=m[2]*cg.x+m[6]*cg.y+m[10]*cg.z+m[14];
+  let carX=-9e3,carY=-9e3,carR=1;if(czw<-.5){carX=(.5+cxw/(-czw)/(tf*as)*.5)*W;carY=(.5-cyw/(-czw)/tf*.5)*H;carR=Math.max(40,foc*2.6/(-czw));}
+  slCtx.globalCompositeOperation='lighter';let viv=0;
+  for(let i=0;i<VENT_N;i++){
+    const x=VENT.wx[i*3],y=VENT.wx[i*3+1],z=VENT.wx[i*3+2];
+    const xv=m[0]*x+m[4]*y+m[8]*z+m[12],yv=m[1]*x+m[5]*y+m[9]*z+m[13],zv=m[2]*x+m[6]*y+m[10]*z+m[14];
+    const d=-zv,inv=d>.01?1/d:0;let nxs=xv*inv/(tf*as),nys=yv*inv/tf;
+    if(d<1.6||Math.abs(nxs)>2.1||Math.abs(nys)>2.1||d>96){ventPose(i,true);VENT.pal[i]=pal;continue;} // passé derrière, sorti du champ : il renaît loin devant, à la teinte du moment
+    if(i>=cible)continue; // les traits en trop attendent (ils vivent quand même : l'air est là, on ne l'éclaire pas)
+    viv++;
+    const tx=xv+vvx*tau*VENT.lg[i],ty=yv+vvy*tau*VENT.lg[i],tz=zv+vvz*tau*VENT.lg[i];
+    if(tz>-.4)continue;
+    const hx=(.5+nxs*.5)*W,hy=(.5-nys*.5)*H,ti=1/(-tz),qx=(.5+tx*ti/(tf*as)*.5)*W,qy=(.5-ty*ti/tf*.5)*H;
+    let dx=hx-qx,dy=hy-qy,L=Math.hypot(dx,dy);if(L<5)continue;
+    if(L>capPx){const c=capPx/L;dx*=c;dy*=c;L=capPx;}
+    const ddx=hx-carX,ddy=hy-carY,mk=Math.sqrt(ddx*ddx*.8+ddy*ddy)/carR;if(mk<1.25){ if(mk<.7)continue; }
+    const fl=Math.min(1,(cible-i)),eloin=d>46?Math.max(0,(78-d)/32):1,epr=Math.min(1,(d-1.6)/5),
+      cen=Math.min(1,Math.hypot(nxs,nys)*1.5-.35); // le milieu de l'écran reste net : on y vise
+    let a=.5*fl*eloin*epr*Math.max(0,cen)*Math.min(1,k+.3);if(mk<1.25)a*=(mk-.7)/.55;if(a<.02)continue;
+    const w=Math.max(.9,Math.min(3.2,.036*foc*VENT.ep[i]*inv))*2.4;
+    slCtx.globalAlpha=Math.min(.95,a);const ang=Math.atan2(dy,dx),co=Math.cos(ang),si=Math.sin(ang);
+    slCtx.setTransform(co,si,-si,co,qx,qy);slCtx.drawImage(spr[VENT.pal[i]],0,-w*.5,L,w);
+  }
+  VENT.vivants=viv;slCtx.setTransform(1,0,0,1,0,0);slCtx.globalAlpha=1;slCtx.globalCompositeOperation='source-over';
+}
+function drawSpeedLines(kmh,nitro,dt){ // speed lines façon anime : traits radiaux fuyant le centre — (2026-10-21) remplacées par LE VENT ci-dessus, sauf ?vent=ancien
+  if(!VENT.ancien){ventDessine(kmh,nitro,dt);return;}
   const W=slCv.width,H=slCv.height;dt=dt||.016;
   const vcL=vCroisiere();
   let k=Math.max(0,(kmh-vcL*.6)/vcL)+(nitro?.6:0); // (2026-09-25) « un peu » en croisière, beaucoup plus au momentum, au boost, en nitro
@@ -56516,6 +56593,7 @@ const NFX_FN=18,NFX_FIL={a:new Float32Array(NFX_FN),r:new Float32Array(NFX_FN),v
   T:new Float32Array(NFX_FN).fill(1),l:new Float32Array(NFX_FN),w:new Float32Array(NFX_FN),arme:false};
 function nfxFiles(dt){
   const S=NFX_FIL,spr=drawSpeedLines.spr;
+  if(!VENT.ancien){if(S.arme){S.arme=false;VENT.pic=1;}return;} // LE VENT : l'allumage = une survitesse de l'air, plus une gerbe radiale
   if(S.arme){S.arme=false;const m9=Math.min(slCv.width,slCv.height),k=NFX.ignK;
     for(let i=0;i<NFX_FN;i++){S.a[i]=nfxR()*6.2832;S.r[i]=m9*(.12+nfxR()*.22);S.v[i]=m9*(2.2+nfxR()*1.6)*(.7+.3*k);
       S.t[i]=-nfxR()*.1;S.T[i]=.2+nfxR()*.16;S.l[i]=(180+nfxR()*260)*(.6+.4*k);S.w[i]=.8+nfxR()*1.1;}}
