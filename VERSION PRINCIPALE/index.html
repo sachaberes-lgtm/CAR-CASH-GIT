@@ -63493,6 +63493,7 @@ const RICH_T={
   or:{kd:.5,fl:0,s:[.11,.21],w:[3,9],v:[5,9],vie:[2.4,3.4],nl:RICH_OR_NL},                   // pépites de 1 à 3 cm → 0,23 à 0,42 m
   lingot:{kd:.55,fl:0,s:[.56,.88],w:[3,7],v:[4,8],vie:[2.4,3.4],nl:RICH_OR_NL},              // de 100 g (5 cm) à 1 kg (11,6 cm)
   chaine:{kd:1.1,s:[1.3,1.45],v:[4,7],vie:[2.8,3.6]},                                        // le collier de 50 cm, plafonné (s = sa longueur)
+  oeuf:{kd:.7,fl:0,s:[.2,.23],w:[2,5],v:[4,8],vie:[2.8,3.6],nl:RICH_GEM_NL,gem:1,gc:[1,.95,.8]}, // (2026-10-21, Léo : « un autre objet symbole de richesse, intelligent et original ») L'ŒUF D'OR façon Fabergé : or à facettes, trois ceintures, diamants et rubis sertis, une pointe au sommet ; ~6 cm → 0,4 m
   bague:{kd:.8,fl:0,s:[.3,.34],w:[3,7],v:[4,8],vie:[2.6,3.4],nl:RICH_GEM_NL,gem:1,gc:[.97,.97,1]}, // (2026-10-21, Léo : « ajoute une bague ») un solitaire : jonc d'or + diamant taille brillant ; ~2 cm de diamètre → 0,3 m
   diamant:{kd:.55,fl:0,s:[.08,.13],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:RICH_GEM_NL,gem:1,gc:[.95,.97,1]}, // 5 à 12 mm → 0,16 à 0,26 m
   rubis:{kd:.55,fl:0,s:[.085,.13],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:RICH_GEM_NL,gem:1,gc:[1,.5,.58]},
@@ -63502,7 +63503,7 @@ const RICH_T={
   coeur:{kd:1.25,fl:1.1,s:[.17,.25],w:[1.1,2.4],v:[2.5,6.5],vie:[2.4,3.4],face:1,bat:1,pop:1,nl:[[.32,.55,.77],[-.32,.55,.77],[0,.15,1]],gp:40,gs:1.15,gc:[1,.8,.93]}, // (2026-10-15, Léo) le PETIT CŒUR (s = sa largeur ; 2026-10-16, Léo : « plus petits, plus nombreux, et ils explosent — pas tous en même temps » : 17-25 cm, ils viennent en NUÉE (RICH_NUEE) et chacun ÉCLATE à son heure, pop) : léger, il flotte et papillonne un peu, se balance face à toi et BAT (bat, voir richTick), fait de minuscules cubes qu'on voit au travers (richCoeurCubes, RICH_FS_COEUR), et ses lobes scintillent doucement (gp : un éclat large, gs : une étoile à sa taille)
   fleur:{kd:1.3,fl:1.2,s:[.42,.6],w:[1,2],v:[3,6],vie:[3,3.8],fleur:1,nl:[[0,1,0]],gp:22,gs:.9,gc:[1,.92,.96]}, // (2026-10-16, Léo) une PETITE FLEUR (s = sa taille, 42-60 cm) : hibiscus, rose, lilas, lotus, lys ou tulipe — légère, elle flotte, se tourne de trois quarts vers toi et tourne lentement sur sa tige (richTick)
   fruit:{kd:1,fl:.4,s:[.94,1.06],w:[3,7],v:[3,6],vie:[2.4,3.2]}}; // fruit : s = un écart autour de SON rayon (RICH_FRUIT_R, par nom : la règle de taille donne rayon = 0,525 m × (diamètre en cm ÷ 15,6)^0,55 — cerise 2,2 cm, kiwi 6,5, pêche 7, orange 8, mangue 11, pomme 8, melon 15, litchi 3,5)
-const RICH_CAP={billet:30,liasse:6,carte:6,trefle:6,jeton:12,montre:4,bague:6,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:18,rubis:12,emeraude:12,champagne:8,crane:6,coeur:22,fleur:12,fruit:8};
+const RICH_CAP={billet:30,liasse:6,carte:6,trefle:6,jeton:12,montre:4,bague:6,oeuf:5,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:18,rubis:12,emeraude:12,champagne:8,crane:6,coeur:22,fleur:12,fruit:8};
 const RICH_PD=[0,2,4,7,9,12,14,16,19,21],RICH_MEL=[0,2,4,7,9,12,14,16,14,12,9,7,4,2]; // RICH_MEL : la mélodie des cœurs qui éclatent — elle monte puis redescend (un aller-retour, pas une chute)
 function richSon(){const B=window.CCSON_BANQUE;return !!(B&&B.m&&B.m['riche.coup']);} // richSon : la banque a-t-elle les sons de la pluie de richesse ? (sinon, l'ancien jeu de sons)
  // (2026-10-16) la pentatonique en demi-tons (degré → st) : la note du combo, la mélodie des cœurs
@@ -63513,9 +63514,9 @@ const RICH_NUEE={petit:[.22,4,6],bon:[.35,6,9],gros:[.5,8,12],jackpot:[.75,12,16
    presque jamais), la RAFALE (le combo) fait monter gros et jackpot (voir richTire). La rareté rend le gros lot lisible : il se MÉRITE. */
 const RICH_TIER={ // la taille de la gerbe : combien, et quoi (poids)
   petit:  {n:[1,2],  fl:.75,w:{billet:22,piece2:11,piece1:11,piece50:10,jeton:9,fruit:17,trefle:7,or:10,carte:4,rubis:6,emeraude:6,diamant:5,liasse:4,montre:1,fleur:9,champagne:2}},
-  bon:    {n:[3,5],  fl:1,  w:{bague:2,jeton:9,montre:3,billet:26,piece2:7,piece1:7,piece50:5,or:15,lingot:4,fruit:8,trefle:4,btc:6,diamant:9,rubis:9,emeraude:9,carte:6,liasse:6,champagne:7,chaine:3,fleur:9}},
-  gros:   {n:[6,9],  fl:1.3,w:{bague:4,jeton:8,montre:5,billet:20,or:16,lingot:6,piece2:5,piece1:5,piece50:3,btc:10,diamant:18,rubis:13,emeraude:13,carte:7,liasse:8,champagne:9,chaine:6,crane:2,trefle:3,fruit:3,fleur:9}},
-  jackpot:{n:[14,19],fl:1.8,w:{bague:6,jeton:8,montre:6,billet:20,or:15,lingot:7,diamant:24,rubis:16,emeraude:16,btc:10,carte:6,liasse:8,champagne:11,chaine:6,crane:4,piece2:4,piece1:4,piece50:2,trefle:4,fruit:3,fleur:11}}}; // (2026-10-15) + les petits cœurs rouges, dans les quatre tailles · (2026-10-16, Léo : « plus de pierres précieuses en général ») diamants, rubis, émeraudes ≈ ×1,6 (et le diamant entre dans la petite gerbe) ; + les petites fleurs ; (2026-10-16) + les vins chers (le champagne a quatre cousins, plus souvent) ; les cœurs ne sont plus tirés ici : ils viennent en NUÉE (RICH_NUEE)
+  bon:    {n:[3,5],  fl:1,  w:{oeuf:1,bague:2,jeton:9,montre:3,billet:26,piece2:7,piece1:7,piece50:5,or:15,lingot:4,fruit:8,trefle:4,btc:6,diamant:9,rubis:9,emeraude:9,carte:6,liasse:6,champagne:7,chaine:3,fleur:9}},
+  gros:   {n:[6,9],  fl:1.3,w:{oeuf:3,bague:4,jeton:8,montre:5,billet:20,or:16,lingot:6,piece2:5,piece1:5,piece50:3,btc:10,diamant:18,rubis:13,emeraude:13,carte:7,liasse:8,champagne:9,chaine:6,crane:2,trefle:3,fruit:3,fleur:9}},
+  jackpot:{n:[14,19],fl:1.8,w:{oeuf:5,bague:6,jeton:8,montre:6,billet:20,or:15,lingot:7,diamant:24,rubis:16,emeraude:16,btc:10,carte:6,liasse:8,champagne:11,chaine:6,crane:4,piece2:4,piece1:4,piece50:2,trefle:4,fruit:3,fleur:11}}}; // (2026-10-15) + les petits cœurs rouges, dans les quatre tailles · (2026-10-16, Léo : « plus de pierres précieuses en général ») diamants, rubis, émeraudes ≈ ×1,6 (et le diamant entre dans la petite gerbe) ; + les petites fleurs ; (2026-10-16) + les vins chers (le champagne a quatre cousins, plus souvent) ; les cœurs ne sont plus tirés ici : ils viennent en NUÉE (RICH_NUEE)
 
 // ---- LES PROGRAMMES ----
 const RICH_VS=['varying vec3 vN;varying vec3 vP;varying vec2 vUv;uniform float uT;uniform float uBend;',
@@ -63764,6 +63765,16 @@ function richBagueGeo(){ // (2026-10-21, Léo) LA BAGUE : un jonc d'or (tore à 
     [new THREE.CylinderGeometry(.2,.1,.2,8),M(0,.6,0)]];                                                // le chaton : évasé vers le haut
   for(let k=0;k<4;k++){const a=k*Math.PI/2+Math.PI/4;L.push([new THREE.CylinderGeometry(.028,.045,.3,5),M(Math.cos(a)*.18,.8,Math.sin(a)*.18,Math.sin(a)*.18,0,-Math.cos(a)*.18)]);} // les griffes
   return richFusion(L);}
+function richOeufGeo(){ // (2026-10-21, Léo) L'ŒUF D'OR façon Fabergé : un œuf à facettes (profil plus large en bas), trois ceintures d'or, dix diamants à l'équateur, huit rubis plus haut, une pointe au sommet. Rend {or, diam, rub} : trois maillages, trois matières
+  const R=function(y){return .72*Math.sqrt(Math.max(0,1-y*y))*(1-.22*y);};
+  const pts=[];for(let i=0;i<=16;i++){const y=-1+2*i/16;pts.push(new THREE.Vector2(Math.max(.001,R(y)),y));}
+  const M=function(x,y,z,rx,ry,rz,k){return new THREE.Matrix4().compose(new THREE.Vector3(x,y,z),new THREE.Quaternion().setFromEuler(new THREE.Euler(rx||0,ry||0,rz||0)),new THREE.Vector3(k||1,k||1,k||1));};
+  const or=[[new THREE.LatheGeometry(pts,14),new THREE.Matrix4()]],diam=[],rub=[];
+  for(const y of [-.62,-.1,.46])or.push([new THREE.TorusGeometry(R(y)+.012,.034,5,24),M(0,y,0,Math.PI/2)]); // les trois ceintures
+  or.push([new THREE.SphereGeometry(.07,6,4),M(0,1.03,0)]);or.push([new THREE.ConeGeometry(.05,.2,5),M(0,1.12,0)]); // la pointe
+  for(let k=0;k<10;k++){const a=k/10*6.2832,r=R(-.1)+.035;diam.push([new THREE.IcosahedronGeometry(.075,0),M(Math.cos(a)*r,-.1,Math.sin(a)*r)]);} // les diamants de l'équateur
+  for(let k=0;k<8;k++){const a=(k+.5)/8*6.2832,r=R(.46)+.035;rub.push([new THREE.OctahedronGeometry(.085,0),M(Math.cos(a)*r,.46,Math.sin(a)*r,0,a,0)]);} // les rubis d'en haut
+  return {or:richFusion(or),diam:richFusion(diam),rub:richFusion(rub)};}
 function richDiamant(){ // la taille BRILLANT : la table, la couronne (8 + 16 facettes), le rondiste, la culasse jusqu'à la pointe
   const T=[],G=[],P=[],tY=.3,tR=.54,n=8;
   for(let i=0;i<n;i++){const a=i/n*6.2832;T.push([Math.cos(a)*tR,tY,Math.sin(a)*tR]);}
@@ -64075,11 +64086,13 @@ function richInit(){
   M.aura=new THREE.SpriteMaterial({map:richCv(64,64,function(x){const G=x.createRadialGradient(32,32,0,32,32,32);G.addColorStop(0,'rgba(255,215,228,.46)');G.addColorStop(.42,'rgba(255,170,200,.2)');G.addColorStop(1,'rgba(255,140,180,0)');x.fillStyle=G;x.fillRect(0,0,64,64);}),
     transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}); // l'aura des cœurs : un halo blanc rosé additif (2026-10-16 : rouge ET blanc) (le programme des éclats : 0 compilé de plus)
   Gm.carte=richCarteGeo();Gm.liasse=richLiasseGeo();Gm.champagne=richChampagneGeo();Gm.vins=[Gm.champagne].concat(RICH_VINS.map(function(V9){return richVinGeo(V9.p);}));Gm.emeraude=richEmeraude();Gm.crane=richCraneGeo();Gm.montre=richMontreGeo();Gm.jeton=richJetonGeo();Gm.coeur=richCoeurCubes();Gm.fleurs=richFleurs();
-  Gm.or=[richPepite(1),richPepite(2),richPepite(3)];Gm.lingot=richLingot();Gm.diamant=richDiamant();Gm.bague=richBagueGeo();
+  Gm.or=[richPepite(1),richPepite(2),richPepite(3)];Gm.lingot=richLingot();Gm.diamant=richDiamant();Gm.bague=richBagueGeo();Gm.oeuf=richOeufGeo();
   RICH.M=M;RICH.G=Gm;
   for(const k9 in M)for(const m9 of [].concat(M[k9]))if(m9&&m9.uniforms)for(const u9 in m9.uniforms){const v9=m9.uniforms[u9].value;if(v9&&v9.isCanvasTexture)texLibere(v9);} // (2026-10-14, passe perf mobile) les ~30 toiles de la pluie de richesse (pièces, billets, jetons, carte, montre, liasse : ~14 Mo), peintes UNE fois ici et plus jamais relues (la liasse a déjà recopié son billet) : rendues après l'envoi (paliers 0-1)
   for(const t in RICH_CAP){RICH.libres[t]=[];for(let i=0;i<RICH_CAP[t];i++){let m;
       if(t==='fruit'){const fg=fruitGeo(i%FRUIT_DEFS.length);m=new THREE.Mesh(fg,FRUIT_MAT);} // les fruits de la piste, leur matière (déjà compilée)
+      else if(t==='oeuf'){m=new THREE.Group();m.add(new THREE.Mesh(Gm.oeuf.or,M.or),new THREE.Mesh(Gm.oeuf.diam,M.diamant),new THREE.Mesh(Gm.oeuf.rub,M.rubis)); // l'œuf : l'or, ses diamants, ses rubis
+        m.traverse(function(c){c.frustumCulled=false;c.castShadow=c.receiveShadow=false;});}
       else if(t==='bague'){m=new THREE.Group();const dm=new THREE.Mesh(Gm.diamant,M.diamant);dm.position.set(0,.72,0);dm.scale.setScalar(.4);const bd=new THREE.Mesh(Gm.bague,M.or);bd.position.y=-.38;m.add(bd,dm); // la bague : l'or et le diamant
         m.traverse(function(c){c.frustumCulled=false;c.castShadow=c.receiveShadow=false;});}
       else if(t==='crane'){m=new THREE.Group();m.add(new THREE.Mesh(Gm.crane.or,M.cranes[i%M.cranes.length]),new THREE.Mesh(Gm.crane.noir,M.noir)); // le crâne : les os (pastel), les creux (sombres)
@@ -64270,7 +64283,7 @@ function richCoup(P,n,d,mu,combo){
     richFlamme(P9,n9,T9.fl,r==='jackpot'||r==='gros');richEtincelles(P9,n9,d9,Math.round(12*T9.fl),1);
     const nb=T9.n[0]+Math.floor(Math.random()*(T9.n[1]-T9.n[0]+1)),etal=r==='jackpot'?.38:r==='gros'?.22:.12;
     const M9=RICH.mat9={g:0,v:0,f:0};for(let i=0;i<nb;i++){const ty=richPioche(T9.w),D9=RICH_T[ty]||{},lourd=D9.flip==='y'||ty==='or'||ty==='lingot'; // (2026-10-10) LA GERBE EN DEUX TEMPS : le métal part d'abord, sec ; le papier suit et s'étale
-      if(ty==='diamant'||ty==='rubis'||ty==='emeraude'||ty==='bague')M9.g=1;else if(ty==='champagne')M9.v=1;else if(ty==='fleur')M9.f=1; // (les matières de la gerbe, pour ses sons)
+      if(ty==='diamant'||ty==='rubis'||ty==='emeraude'||ty==='bague'||ty==='oeuf')M9.g=1;else if(ty==='champagne')M9.v=1;else if(ty==='fleur')M9.f=1; // (les matières de la gerbe, pour ses sons)
       richLance(ty,P9,n9,d9,lourd?Math.random()*etal*.55:D9.papier||ty==='liasse'?.05+Math.random()*etal*1.25:Math.random()*etal,r==='jackpot'?1.2:1);}
     if(Math.random()<.04)richLance('crane',P9,n9,d9,etal*.5,1); // de temps en temps, un CRÂNE pastel
     {const NU=RICH_NUEE[r];if(NU&&Math.random()<NU[0]){RICH.popI=0;const nc=NU[1]+Math.floor(Math.random()*(NU[2]-NU[1]+1));let t9=.03;for(let i=0;i<nc;i++){t9+=.03+Math.pow(Math.random(),2.2)*.38; // (2026-10-16) LA NUÉE : de petits cœurs, en plus de la gerbe, qui éclatent un à un — et (Léo : « plus irréguliers, on les voit trop en groupe ») ils s'ÉCHAPPENT un par un, à intervalles irréguliers (parfois deux d'affilée, parfois un silence), chacun sa vitesse, sa direction et son point de départ autour de la caisse
