@@ -45,6 +45,7 @@ maps/nuages-coton.js                 # nuages : mesh simples, brillance, finesse
 maps/nuages-v8.js                    # nuages v8 : une seule matière, sculpteur de cumulus, sans coutures
 maps/nuages-vitrail.js               # nuages en vitrail (Léo)
 maps/pigeons.js                      # pigeons ramiers, pigeons de Paris
+maps/nuages-embellie.js              # nuages : l'embellissement (poussières de lumière, oiseaux lointains, éclats rose et or)
 gameplay/route-sans-haut.js          # la route sans haut ni bas, vitesse réelle
 maps/ville-entree.js                 # l'entrée dans la ville
 rendu/bitume-beton.js                # bitume v2, béton brut, lumières de la caisse v2, bitume mouillé, bords en béton
