@@ -172,7 +172,7 @@ function spawnPickups(rnd){
   };
   // pose UNE pièce (mirroir deux faces, saute les trous, s'écarte des obstacles, clamp sur la route)
   const place=(sp,lt,isN)=>{
-    if(sp<120||sp>L-50)return;
+    if(sp<120||sp>L-50||enTrou(sp,6))return; // (LES TROUS) pas de pièce dans le vide entre deux segments
     frameAt(sp,F);mat4b.makeBasis(F.b,F.n,F.t);
     const cl=dodge(sp,lt);
     const fi=isN?fruitPick():-1; // MÊME fruit sur les deux faces (miroir strict) — tiré hors du rnd seedé

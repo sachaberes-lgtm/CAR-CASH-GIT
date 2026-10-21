@@ -136,6 +136,7 @@ function ligneMotif(base,H9){ // la position latérale du prochain fruit (+ son 
   LIGNE.prevLat=lt;return lt;
 }
 function ligneBloque(s9,k){
+  if(enTrou(s9,8))return true; // (LES TROUS) jamais un fruit ni un pad dans le vide entre deux segments de route
   for(const o of OILS)if(o.face===1&&Math.abs(o.s-s9)<(o.r||4)+7)return true; // jamais dans une flaque
   if(BANQ.obst&&LVL.cur&&LVL.cur.id==='banquise')for(const o of BANQ.obst)if(Math.abs(o.s-s9)<o.r+12)return true; // (2026-10-17) ni dans un pic de la piste du glacier
   return false;

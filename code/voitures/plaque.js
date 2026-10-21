@@ -24,6 +24,47 @@
 var PLQ={cv:null,ctx:null,tex:null,matF:null,matC:null,pos:{},ray:null,on:false,mode:'',m:'fr',x:'',iv:0,t0:0,fait:false,prof:false};
 const PLQ_MOD=[{id:'fr',n:'FRANCE'},{id:'retro',n:'RETRO'},{id:'uk',n:'U.K.'},{id:'us',n:'USA'},{id:'course',n:'COURSE'},
   {id:'billet',n:'BILLET'},{id:'lingot',n:'LINGOT'},{id:'neon',n:'NEON'},{id:'arcade',n:'ARCADE'}];
+/* ---- LES PLAQUES DU MONDE (2026-10-21, Léo : « cherche la plaque de son pays, ajoute les plaques de pays, tous ceux qui sont différents ») ----
+   Une table : id = code ISO en minuscules (le Royaume-Uni garde `uk`). Chaque fiche : n (nom, traduit par I18N) · bg (fond) · bd (filet noir du bord) ·
+   tx (couleur des signes) · g / d (bande à GAUCHE / à DROITE : [couleur ou rayures, code, couleur du code, étoiles 0/1, 'croix' = croix suisse]) ·
+   h (bandeau du HAUT : [texte, fond, couleur]) · fil (liseré intérieur). Peinte par `plqPays` : même toile que les autres modèles. */
+const PLQ_UE=['#1d3fae'];
+const PLQ_PAYS={
+  de:{n:'ALLEMAGNE',g:['#1d3fae','D','#fff',1]},es:{n:'ESPAGNE',g:['#1d3fae','E','#fff',1]},
+  it:{n:'ITALIE',g:['#1d3fae','I','#fff',1],d:['#1d3fae','','#fff',0]},pt:{n:'PORTUGAL',g:['#1d3fae','P','#fff',1]},
+  nl:{n:'PAYS-BAS',bg:'#f7c600',g:['#1d3fae','NL','#fff',1]},be:{n:'BELGIQUE',tx:'#c8102e',g:['#1d3fae','B','#fff',1]},
+  lu:{n:'LUXEMBOURG',g:['#1d3fae','L','#fff',1]},at:{n:'AUTRICHE',g:['#1d3fae','A','#fff',1],fil:'#d52b1e'},
+  pl:{n:'POLOGNE',g:['#1d3fae','PL','#fff',1]},cz:{n:'TCHEQUIE',g:['#1d3fae','CZ','#fff',1]},
+  sk:{n:'SLOVAQUIE',g:['#1d3fae','SK','#fff',1]},hu:{n:'HONGRIE',g:['#1d3fae','H','#fff',1]},
+  ro:{n:'ROUMANIE',g:['#1d3fae','RO','#fff',1]},bg:{n:'BULGARIE',g:['#1d3fae','BG','#fff',1]},
+  gr:{n:'GRECE',g:['#1d3fae','GR','#fff',1]},hr:{n:'CROATIE',g:['#1d3fae','HR','#fff',1]},
+  si:{n:'SLOVENIE',g:['#1d3fae','SLO','#fff',1]},se:{n:'SUEDE',g:['#1d3fae','S','#fff',1]},
+  dk:{n:'DANEMARK',g:['#1d3fae','DK','#fff',1]},fi:{n:'FINLANDE',g:['#1d3fae','FIN','#fff',1]},
+  ie:{n:'IRLANDE',g:['#1d3fae','IRL','#fff',1]},lt:{n:'LITUANIE',g:['#1d3fae','LT','#fff',1]},
+  lv:{n:'LETTONIE',g:['#1d3fae','LV','#fff',1]},ee:{n:'ESTONIE',g:['#1d3fae','EST','#fff',1]},
+  ch:{n:'SUISSE',g:['#d52b1e','','#fff',0,'croix'],d:['#d52b1e','','#fff',0,'croix']},
+  no:{n:'NORVEGE',g:['#1d3fae','N','#fff',0]},is:{n:'ISLANDE',g:['#1d3fae','IS','#fff',0]},
+  tr:{n:'TURQUIE',g:['#1d3fae','TR','#fff',0]},ua:{n:'UKRAINE',g:[['#1d3fae','#ffd400'],'UA','#fff',0]},
+  ru:{n:'RUSSIE',d:[['#f4f5f8','#0039a6','#d52b1e'],'RUS','#121418',0]},
+  il:{n:'ISRAEL',bg:'#f7c600',g:['#1d3fae','IL','#fff',0]},
+  jp:{n:'JAPON',bd:'#0b6b3a',tx:'#0b6b3a',fil:'#0b6b3a'},kr:{n:'COREE',bg:'#1f7a4a',bd:'#e8eee9',tx:'#fff'},
+  cn:{n:'CHINE',bg:'#0a3d9c',bd:'#e9eef7',tx:'#fff',fil:'#e9eef7'},vn:{n:'VIETNAM',bg:'#1544a8',tx:'#fff'},
+  id:{n:'INDONESIE',bg:'#0e0e10',bd:'#d9d9d9',tx:'#f5f5f5'},sg:{n:'SINGAPOUR',bg:'#0e0e10',bd:'#d9d9d9',tx:'#ffe14a',h:['SINGAPORE','#0e0e10','#ffe14a']},
+  in:{n:'INDE',g:['#0a3d9c','IND','#fff',0]},th:{n:'THAILANDE',h:['THAILAND','#f4f5f8','#555']},
+  au:{n:'AUSTRALIE',tx:'#0a3d9c',h:['AUSTRALIA','#ffc72a','#0a3d9c']},ca:{n:'CANADA',tx:'#0a3d9c',h:['CANADA','#d52b1e','#fff']},
+  mx:{n:'MEXIQUE',h:['MEXICO','#0b7a3b','#fff']},br:{n:'BRESIL',h:['BRASIL','#0a3d9c','#fff']},
+  ar:{n:'ARGENTINE',h:['ARGENTINA','#3a8fd8','#fff']},cl:{n:'CHILI',tx:'#0a3d9c',fil:'#d52b1e',h:['CHILE','#f4f5f8','#d52b1e']},
+  co:{n:'COLOMBIE',bg:'#f7c600',h:['COLOMBIA','#f7c600','#1d3fae']},za:{n:'AFRIQUE DU SUD',bg:'#f7c600',d:['#1d3fae','ZA','#fff',0]},
+  eg:{n:'EGYPTE',h:['EGYPT','#d52b1e','#fff']},ma:{n:'MAROC',g:['#d52b1e','MA','#fff',0]},
+  sa:{n:'ARABIE SAOUDITE',d:['#0b7a3b','KSA','#fff',0]},ae:{n:'EMIRATS',h:['UAE','#d52b1e','#fff']},
+  ng:{n:'NIGERIA',h:['NIGERIA','#0b7a3b','#fff']}
+};
+for(const k in PLQ_PAYS)PLQ_MOD.push({id:k,n:PLQ_PAYS[k].n,pays:1});
+Object.assign(I18N,{'ALLEMAGNE':'GERMANY','ESPAGNE':'SPAIN','ITALIE':'ITALY','PAYS-BAS':'NETHERLANDS','BELGIQUE':'BELGIUM','AUTRICHE':'AUSTRIA','POLOGNE':'POLAND','TCHEQUIE':'CZECHIA','SLOVAQUIE':'SLOVAKIA','HONGRIE':'HUNGARY','ROUMANIE':'ROMANIA','BULGARIE':'BULGARIA','GRECE':'GREECE','CROATIE':'CROATIA','SLOVENIE':'SLOVENIA','SUEDE':'SWEDEN','DANEMARK':'DENMARK','FINLANDE':'FINLAND','IRLANDE':'IRELAND','LITUANIE':'LITHUANIA','LETTONIE':'LATVIA','ESTONIE':'ESTONIA','SUISSE':'SWITZERLAND','NORVEGE':'NORWAY','ISLANDE':'ICELAND','TURQUIE':'TURKEY','UKRAINE':'UKRAINE','RUSSIE':'RUSSIA','ISRAEL':'ISRAEL','JAPON':'JAPAN','COREE':'KOREA','CHINE':'CHINA','INDONESIE':'INDONESIA','SINGAPOUR':'SINGAPORE','INDE':'INDIA','THAILANDE':'THAILAND','AUSTRALIE':'AUSTRALIA','MEXIQUE':'MEXICO','BRESIL':'BRAZIL','ARGENTINE':'ARGENTINA','CHILI':'CHILE','COLOMBIE':'COLOMBIA','AFRIQUE DU SUD':'SOUTH AFRICA','EGYPTE':'EGYPT','MAROC':'MOROCCO','ARABIE SAOUDITE':'SAUDI ARABIA','EMIRATS':'EMIRATES','PORTUGAL':'PORTUGAL','LUXEMBOURG':'LUXEMBOURG','VIETNAM':'VIETNAM','NIGERIA':'NIGERIA','CANADA':'CANADA'});
+function plqPaysLocal(){ /* la plaque du pays de l'appareil (langue du navigateur : « fr-CA » → CA), sinon la française */
+  try{const L=(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||'']);
+    for(const l of L){const r=String(l).split(/[-_]/)[1];if(!r)continue;const c=r.toLowerCase(),id=c==='gb'?'uk':c;if(plqModOk(id)===id)return id;}}catch(e){}
+  return 'fr';}
 const PLQ_MAX=9;
 function plqModOk(m){for(const o of PLQ_MOD)if(o.id===m)return m;return 'fr';}
 function plqNet(s){ // le texte tel qu'il peut se peindre : capitales, sans accent, 9 signes, rien que la police sache dessiner
@@ -33,9 +74,30 @@ function plqNet(s){ // le texte tel qu'il peut se peindre : capitales, sans acce
 function plqHasard(){const L='ABCDEFGHJKLMNPQRSTVWXYZ',c=function(){return L[Math.random()*L.length|0];},n=function(){return String(Math.random()*10|0);};
   return c()+c()+'-'+n()+n()+n()+'-'+c()+c();} // le format d'une vraie plaque française (sans I, O ni U, comme la vraie)
 function plqEtat(){try{const p=SAVE.d&&SAVE.d.plq;if(p&&typeof p==='object')return p;}catch(e){} // (1er buildCar : SAVE n'existe pas encore)
-  return PLQ.def||(PLQ.def={m:'fr',x:plqHasard(),ok:0});}
+  return PLQ.def||(PLQ.def={m:plqPaysLocal(),x:plqHasard(),ok:0});}
 /* ---- LE PEINTRE : une plaque dans un contexte 2D de W × H (rapport 4:1). `fond` : la couleur des coins coupés (la texture 3D les
    remplit de la couleur du cadre ; les aperçus de l'écran les laissent transparents). */
+function plqPays(x,P){ /* une plaque du monde (voir PLQ_PAYS) : renvoie la zone du texte */
+  const oct=function(i,c){const a=Math.max(2,10-i*.5);x.beginPath();x.moveTo(i+a,i);x.lineTo(512-i-a,i);x.lineTo(512-i,i+a);x.lineTo(512-i,128-i-a);
+    x.lineTo(512-i-a,128-i);x.lineTo(i+a,128-i);x.lineTo(i,128-i-a);x.lineTo(i,i+a);x.closePath();if(c){x.fillStyle=c;x.fill();}};
+  const mot=function(s,px,cx,cy,c){x.font=px+'px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillStyle=c;x.fillText(s,cx,cy+px*.06);};
+  const bg=P.bg||'#f4f5f8';oct(0,P.bd||'#16181d');oct(4,bg);
+  x.save();oct(4);x.clip();
+  const bande=function(b,x0){const c=b[0],lw=62;
+    if(Array.isArray(c)){if(c.length>2){for(let i=0;i<3;i++){x.fillStyle=c[i];x.fillRect(x0,72+i*16,lw,16);}}
+      else{x.fillStyle=c[0];x.fillRect(x0,0,lw,64);x.fillStyle=c[1];x.fillRect(x0,64,lw,64);}
+      if(b[1])mot(b[1],16,x0+lw/2,c.length>2?44:64,b[2]);return;}
+    x.fillStyle=c;x.fillRect(x0,0,lw,128);
+    if(b[4]==='croix'){const cx=x0+lw/2;x.fillStyle='#fff';x.fillRect(cx-5,34,10,60);x.fillRect(cx-20,59,40,10);return;}
+    if(b[3]){x.fillStyle='#ffd400';for(let i=0;i<12;i++){const a=i/12*Math.PI*2;x.fillRect(Math.round(x0+lw/2+Math.cos(a)*17)-2,Math.round(42+Math.sin(a)*17)-2,4,4);}}
+    if(b[1])mot(b[1],16,x0+lw/2,b[3]?94:64,b[2]);};
+  if(P.g)bande(P.g,0);if(P.d)bande(P.d,450);
+  let zy=64,cap=56;
+  if(P.h){x.fillStyle=P.h[1];x.fillRect(0,0,512,30);mot(P.h[0],12,256,17,P.h[2]);zy=80;cap=48;}
+  x.restore();
+  if(P.fil){if(!P.h){x.strokeStyle=P.fil;x.lineWidth=3;oct(10);x.stroke();}}
+  const gl=P.g?66:20,dr=P.d?66:20;
+  return {zx:gl+(P.g?4:8),zw:512-gl-dr-(P.g?4:8)-(P.d?0:8),zy:zy,col:P.tx||'#121418',cap:cap};}
 function plqPeint(x,W,H,m,t,fond){
   const k=W/512;x.save();x.setTransform(k,0,0,H/128,0,0);x.clearRect(0,0,512,128);
   if(fond){x.fillStyle=fond;x.fillRect(0,0,512,128);}
@@ -81,7 +143,9 @@ function plqPeint(x,W,H,m,t,fond){
       x.fillStyle='rgba(255,255,255,.12)';x.fillRect(12,8,488,3);x.fillStyle='rgba(0,0,0,.4)';x.fillRect(12,117,488,3);
       x.fillStyle='#ff3ec8';x.fillRect(24,106,190,6);x.fillStyle='#00eaff';x.fillRect(236,106,96,6);x.fillStyle='#ffc72a';x.fillRect(354,106,134,6);
       col='#ffd75e';omb='#7a4400';ombY=4;zx=36;zw=440;zy=58;cap=48;break;
-    default: // 'fr'
+    default:
+      if(PLQ_PAYS[m]){const r=plqPays(x,PLQ_PAYS[m]);zx=r.zx;zw=r.zw;zy=r.zy;col=r.col;cap=r.cap;break;}
+      /* 'fr' */
       oct(0,'#16181d');oct(4,'#f4f5f8');
       x.save();oct(4);x.clip();x.fillStyle='#1d3fae';x.fillRect(0,0,62,128);x.fillRect(450,0,62,128);x.restore();
       x.fillStyle='#ffd400';for(let i=0;i<12;i++){const a=i/12*Math.PI*2;x.fillRect(Math.round(33+Math.cos(a)*17)-2,Math.round(42+Math.sin(a)*17)-2,4,4);}
@@ -183,11 +247,12 @@ function plqMods(){const box=$p('plqMods');if(!box)return;
     const b=el.querySelector('b');const n9=sansAcc(TR((PLQ_MOD.find(function(o){return o.id===m;})||{}).n||''));if(b.textContent!==n9)b.textContent=n9;});}
 function plqVue(){plqApercu($p('plqCv'),PLQ.m,PLQ.x.trim());plqMods();}
 function plqOuvre(mode){ // mode : 'premier' (le début du jeu, à valider) · 'profil' (depuis le profil, RETOUR annule)
-  const el=$p('plq');if(!el||PLQ.on)return;const e=plqEtat();PLQ.on=true;PLQ.mode=mode||'profil';PLQ.m=plqModOk(e.m);PLQ.x=plqNet(e.x)||plqHasard();
+  const el=$p('plq');if(!el||PLQ.on)return;const e=plqEtat();PLQ.on=true;PLQ.mode=mode||'profil';PLQ.m=(PLQ.mode==='premier'&&!e.ok)?plqPaysLocal():plqModOk(e.m);PLQ.x=plqNet(e.x)||plqHasard();
   el.classList.toggle('premier',PLQ.mode==='premier');
   el.classList.remove('clavier');el.style.top=el.style.height='';PLQ.kb=false;PLQ.kbFaux=0;PLQ.h0=plqH0(); /* (2026-10-18) la pose du clavier repart de zéro */
   const tx=$p('plqTx');if(tx){tx.value=PLQ.x;tx.setAttribute('aria-label',TR('Le texte de ta plaque'));}
   plqVue();feuilleOuvre(el,'on');try{chuteDoigtMontre(false);}catch(_){}
+  try{const bx=$p('plqMods'),on=bx&&bx.querySelector('.plMod.on');if(bx&&on)bx.scrollTop=Math.max(0,on.offsetTop-bx.offsetTop-8);}catch(_){}
 }
 /* (2026-10-18) LE CLAVIER DU TÉLÉPHONE (voir #plq.clavier) : iOS et Android posent le clavier PAR-DESSUS la page — seule la partie visible
    (visualViewport) rétrécit, la mise en page ne bouge pas. Tant que le champ a le focus et que la partie visible a perdu plus de 90 px,
