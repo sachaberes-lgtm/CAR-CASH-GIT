@@ -93,8 +93,8 @@ window.dbgPlanNuages=function(pas){ // (banc, 2026-10-21) LE PLAN D'AVION : la p
 /* (2026-10-21, Léo : « chaque nuage adapté à sa météo ; le matin est le plus réussi, pars de lui ») LES HUMEURS DES CUMULUS : le MATIN est la référence (rien ne change). Pour les autres météos de la map, deux
    réglages de la matière (voir nuage8Mat : uMood, uInC) — la TRANSPARENCE en trame (x : part opaque) et la LUMIÈRE DE L'INTÉRIEUR (y, de la couleur uInC ; z monte aux éclairs). Lissés d'une image à l'autre. */
 const NU_MOOD={ // [part opaque, lumière intérieure, couleur]
-  matin:[1,0,[.8,.85,1]],midi:[1,0,[.8,.88,1]],aprem:[1,0,[1,.9,.75]],soir:[1,.06,[1,.62,.55]],nuit:[1,.16,[.45,.6,1]],
-  pluie:[1,.22,[.55,.72,.98]],orage:[1,.5,[.62,.72,1]]}; /* (2026-10-21, Léo : « flouter les nuages, pas trop, ne pas les rendre transparents ») plus de trame : TOUS opaques (part 1) — l'humeur ne garde que la lumière de l'intérieur */
+  matin:[1,0,[.8,.85,1]],midi:[1,0,[.8,.88,1]],aprem:[1,0,[1,.9,.75]],soir:[1,.06,[1,.62,.55]],nuit:[1,.1,[.45,.6,1]],
+  pluie:[1,.1,[.55,.72,.98]],orage:[1,.14,[.62,.55,1]]}; /* (2026-10-21, « un nuage est allumé presque constamment en violet ») la lueur de fond baisse (.5 → .14) : la lumière vient des fils et des coups, localement */ /* (2026-10-21, Léo : « flouter les nuages, pas trop, ne pas les rendre transparents ») plus de trame : TOUS opaques (part 1) — l'humeur ne garde que la lumière de l'intérieur */
 const NU_MOOD_S={x:1,y:0,c:new THREE.Vector3(.8,.85,1),f:0};
 function nuMoodTick(dt){
   const c=LVL&&LVL.cur,k=c&&(c.carte==='nuages'||c.id==='orage')&&started&&!gameOver&&mode!=='boom'?(c.carte==='nuages'?c.meteo:'orage'):null,M=NU_MOOD[k]||[1,0,NU_MOOD.matin[2]],S=NU_MOOD_S,e=Math.min(1,dt*2.2),U=N8_U;

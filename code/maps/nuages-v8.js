@@ -432,7 +432,7 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       N8_VAP?'  col+=alb*vec3(dot(soleil,vec3(.3,.59,.11)))*pow(fr,2.)*.16*(1.-bk)*(.4+.6*lit);':'  col+=alb*soleil*pow(fr,2.)*.16*(1.-bk)*(.4+.6*lit);',                                     /* de face, le bord qui tourne s ALLÈGE (la vapeur mince diffuse la lumière) */
       /* (2026-10-21, Léo : « utilise la technique de la forêt, la transparence, pour que chaque nuage soit adapté à sa météo ») L'HUMEUR : un souffle de lumière DE L'INTÉRIEUR (uInC × uMood.y), qui monte aux éclairs (uMood.z)
          et ne se voit que dans l'ombre et les creux — la ouate devient un verre dépoli éclairé du dedans, comme la peau du vitrail de la forêt ; + de petits éclairs lointains propres à chaque quartier de ciel. */
-      '  {float ob=1.-lit*.8,cr9=.3+.7*(1.-ao),lo9=pow(.5+.5*sin(uTps*.9+dot(floor(vW/190.),vec3(1.7,2.3,3.1))),14.);col+=uInC*uMood.y*(.35+uMood.z*1.7+lo9*.9)*ob*cr9;}',
+      '  {float ob=1.-lit*.8,cr9=.3+.7*(1.-ao),lo9=pow(.5+.5*sin(uTps*.9+dot(floor(vW/190.),vec3(1.7,2.3,3.1))),40.);col+=uInC*uMood.y*(.35+uMood.z*1.7+lo9*.5)*ob*cr9;}',
       '  {vec3 bl=vec3(0.);float R2=uBoltR*uBoltR;for(int i9=0;i9<12;i9++){vec4 b=uBolt[i9];if(b.w>.01){vec3 dv=vW-b.xyz;float g=b.w*exp(-dot(dv,dv)/R2);bl+=vec3(.55,.44,1.)*g+vec3(.5)*g*g;}}col+=bl*(.55+.45*(1.-lit))*1.15;}', /* la ouate s éclaire AUTOUR des fils : violet, blanc au plus près (g²) */
       '  float a=(1.-pow(fr,6.)*.45*uK.w)*uFondu;',
       ...(N8_VAP?['  col*=mix(1.,.955+.09*nz,kq*uVapK.y*(1.-e9));','  a*=mix(1.,smoothstep(e9*.9-.15,e9*.9+.15,nz),e9*uVapK.x);']:[]), /* (coton-blanc) le grain du cœur (±4,5 %), puis le bord qui s effiloche : plus on va vers la silhouette, plus la vapeur doit être dense pour rester */

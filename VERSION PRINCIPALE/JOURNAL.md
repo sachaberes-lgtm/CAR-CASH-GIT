@@ -3,6 +3,12 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## CORRECTIFS « JVOIS PAS » (2026-10-21, v770, Léo : « jvois pas » ; « un nuage est allumé presque constamment en violet ») — branche `nuages-refonte`
+- **Fils invisibles** : le nuage est OPAQUE, un fil à l'intérieur était caché par sa propre paroi → le fil court désormais sur la FACE tournée vers la caméra (décalé de ~.9 rayon) ; naît seulement dans un nuage VISIBLE (`filVu`) ; plus souvent (0,18-0,5 s), plus longs (0,8-1,5 s), plus larges (0,34 % de la distance).
+- **Nuage allumé en permanence** : le choix favorisait toujours le plus gros nuage proche → toujours le même ; désormais au hasard parmi les nuages visibles, jamais l'un des 4 derniers (`FIL.rec`). La lueur de fond baisse (orage .5 → .14, pluie/nuit .1, menu .1) et les petits éclairs de quartier s'affinent (puissance 14 → 40).
+- Vérifié à l'œil au menu STORM : filaments violets avec lueur AUTOUR sur de petits nuages, qui changent d'une image à l'autre.
+- `dbgFil()` : fils actifs, sources, lumières, projection à l'écran.
+
 ## FILS D'ÉLECTRICITÉ, FOUDRE EN ARBRE, PLUIE QUI ÉCLABOUSSE, APRÈS-PLUIE ROSE-MAUVE (2026-10-21, v769, Léo) — branche `nuages-refonte`
 - **FILS DANS LES NUAGES** (« des petits fils d'électricité qui passent dans le nuage et qui éclairent un peu autour ; c'est pas tout le nuage qui flashe ») : `filTick`/`filNeuf` (zones-caisses.js) — jusqu'à 3 fils fractals (16 segments + 2 branches) qui traversent UN gros nuage, 0,55-1,05 s, halo violet + cœur blanc-bleu, largeur ≥ 0,22 % de la distance. Chacun pose 3 LUMIÈRES de monde (`NBOLT`, 12 emplacements, `uBolt`/`uBoltR` dans `nuage8Mat`) : la ouate s'éclaire AUTOUR (gaussienne 95 m, violet puis blanc au plus près). Plus de flash global des nuages (`uMood.z` ×.12). Sur la map orage, en course et au menu (touche STORM).
 - **FOUDRE EN ARBRE** (« ta foudre n'est pas encore assez belle ») : tronc fractal de 32 segments (`eclFrac`, déplacement des milieux), 4 branches de 8 segments dont 2 re-divisées, halo ×5,2 ; le coup pose 3 lumières le long du tronc ; largeur minimale 0,16 % de la distance.

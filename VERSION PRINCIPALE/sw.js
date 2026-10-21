@@ -10,7 +10,8 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v769'; // v769 (2026-10-21, Léo) : fils d'électricité dans les nuages (éclairage local), foudre fractale, pluie qui éclabousse la caisse, après-pluie rose-mauve
+const CACHE = 'cashcar-v770'; // v770 (2026-10-21, Léo : « jvois pas ; un nuage est allumé constamment en violet ») : les fils d'électricité courent sur la face visible des nuages, répartis sur tous les nuages ; lueur de fond baissée
+// const CACHE = 'cashcar-v769'; // v769 (2026-10-21, Léo) : fils d'électricité dans les nuages (éclairage local), foudre fractale, pluie qui éclabousse la caisse, après-pluie rose-mauve
 // const CACHE = 'cashcar-v768'; // v768 (2026-10-21, Léo : « montre directement les maps pluie et orage sur le menu ») : les touches PLUIE et ORAGE de l'accueil montrent le vrai ciel peint de la map
 // const CACHE = 'cashcar-v767'; // v767 (2026-10-21, Léo : « le ciel noir de l'orage trop débutant ; la pluie, peindre un fond ; pas de gueules sur la route ») : ciel peint pour l'orage et la pluie, plus de bancs de nuage sur la route
 // const CACHE = 'cashcar-v766'; // v766 (2026-10-21, Léo : « la pluie plus jolie avec un petit arc-en-ciel ; l'orage violet nuancé, la foudre qui traverse les nuages, parfois sur la route ») : arc-en-ciel léger sous la pluie, éclairs dans les nuages et sur la route, halo violet

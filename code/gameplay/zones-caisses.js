@@ -71,26 +71,33 @@ function filSources(){ // les nuages où un fil peut naître : en course, ceux d
   else if(typeof CHUTE!=='undefined'&&CHUTE.nu){for(const c of CHUTE.nu){const m=c.m;if(!m.visible||c.r<50)continue;const dx=m.position.x-cam.x,dy=m.position.y-cam.y,dz=m.position.z-cam.z,d=Math.sqrt(dx*dx+dy*dy+dz*dz);if(d<100||d>9000)continue;
     out.push({x:m.position.x,y:m.position.y,z:m.position.z,rx:c.r*.75,ry:c.r*.35,d:d});}}
   return out;}
+function filVu(q){CV3.set(q.x,q.y,q.z).project(camera);return CV3.z<1&&Math.abs(CV3.x)<1.15&&Math.abs(CV3.y)<1.15;} // le centre du nuage est (à peu près) dans l'image
 function filNeuf(){
-  const S=filSources();if(!S.length)return;let c=null,bs=1e9;
-  for(let t=0;t<6;t++){const q=S[(Math.random()*S.length)|0],sc=q.d*(.6+Math.random()*.8)-q.rx*.8;if(sc<bs){bs=sc;c=q;}} // plutôt gros, plutôt proche
+  let S=filSources();if(!S.length)return;{const V=S.filter(filVu);if(V.length)S=V;} // (2026-10-21, « jvois pas ») un fil naît dans un nuage QU'ON VOIT — pas dans un nuage derrière soi ou hors champ
+  /* (« un nuage est allumé presque constamment en violet ») le choix favorisait toujours le plus gros nuage proche : c'était TOUJOURS le même. Désormais : au hasard parmi les nuages visibles, jamais l'un des 4 derniers. */
+  const cle=function(q){return Math.round(q.x/40)+','+Math.round(q.y/40)+','+Math.round(q.z/40);};FIL.rec=FIL.rec||[];
+  {const L9=S.filter(function(q){return FIL.rec.indexOf(cle(q))<0;});if(L9.length)S=L9;}
+  const c0=S[(Math.random()*S.length)|0];let c=c0;FIL.rec.push(cle(c0));if(FIL.rec.length>4)FIL.rec.shift();
   const P=[];for(let i=0;i<27;i++)P.push(new THREE.Vector3());const a0=Math.random()*6.283,ca=Math.cos(a0),sa=Math.sin(a0),R=c.rx*.88,seg=[];
+  const cam9=camera.position;CV4.set(cam9.x-c.x,cam9.y-c.y,cam9.z-c.z).normalize(); // (« jvois pas ») le nuage est OPAQUE : un fil à l'intérieur est caché par sa propre paroi → le fil court sur la FACE tournée vers nous (décalé de ~.9 rayon vers la caméra)
+  const ox=CV4.x*c.rx*.9,oy=CV4.y*c.rx*.9,oz=CV4.z*c.rx*.9;c={x:c.x+ox,y:c.y+oy,z:c.z+oz,rx:c.rx,ry:c.ry,d:c.d};
   const nT=eclFrac(P,0,c.x-ca*R,c.y+(Math.random()-.3)*c.ry*.7,c.z-sa*R,c.x+ca*R+(Math.random()-.5)*R*.3,c.y+(Math.random()-.6)*c.ry*.8,c.z+sa*R+(Math.random()-.5)*R*.3,4,R*.55);
   for(let i=0;i<nT-1;i++)seg.push(i,i+1,1.05);
   let q=nT;for(let b=0;b<2;b++){const k=3+((Math.random()*10)|0),o=P[k],a9=Math.random()*6.283,nb=eclFrac(P,q,o.x,o.y,o.z,o.x+Math.cos(a9)*R*.3,o.y+(Math.random()-.5)*c.ry*.3,o.z+Math.sin(a9)*R*.3,2,R*.12);
     for(let i=0;i<nb-1;i++)seg.push(q+i,q+i+1,.62);q+=nb;}
-  FIL.act.push({P:P,seg:seg,age:0,dur:.55+Math.random()*.5,seed:Math.random()*6.28,lu:[P[3],P[8],P[13]]});}
+  FIL.act.push({P:P,seg:seg,age:0,dur:.8+Math.random()*.7,seed:Math.random()*6.28,lu:[P[3],P[8],P[13]]});}
+window.dbgFil=function(){const S=filSources(),U=NBOLT.uBolt.value;const f0=FIL.act[0],nd=f0?[0,8,16].map(function(k){CV3.copy(f0.P[k]).project(camera);return [+CV3.x.toFixed(2),+CV3.y.toFixed(2),+CV3.z.toFixed(3)];}):null,dist=f0?+f0.P[8].distanceTo(camera.position).toFixed(0):null,w0=f0?f0.seg[2]:null;return {ndc:nd,dist:dist,fils:FIL.act.length,sources:S.length,lit:FIL.lit,lum:U.map(function(v){return +v.w.toFixed(2);}),quads:ECL2.m.geometry.attributes.position.array.reduce(function(a,v,i){return a+((i%3===1&&v>-99999)?1:0);},0)/4,visible:ECL2.m.visible,t:FIL.t};}; // (banc)
 function filTick(dt,on){
   const U=NBOLT.uBolt.value;
   if(!on){if(FIL.lit||FIL.act.length){FIL.act.length=0;FIL.lit=false;for(let i=0;i<9;i++)U[i].w=0;eclEcrit(ECL2);}return;}
-  FIL.t-=dt;if(FIL.t<=0){if(FIL.act.length<FIL.max)filNeuf();FIL.t=.28+Math.random()*.6;}
+  FIL.t-=dt;if(FIL.t<=0){if(FIL.act.length<FIL.max)filNeuf();FIL.t=.18+Math.random()*.32;}
   const P9=ECL2.pos,C9=ECL2.col,cam=camera.position;let n=0;
   for(let i=FIL.act.length-1;i>=0;i--){const f=FIL.act[i];f.age+=dt;if(f.age>=f.dur){FIL.act.splice(i,1);}}
   for(let i=0;i<3;i++){const f=FIL.act[i];if(!f){for(let k=0;k<3;k++)U[i*3+k].w=0;continue;}
     const u=f.age/f.dur,env=(u<.14?u/.14:Math.pow(1-(u-.14)/.86,1.5))*(.88+.12*Math.sin(f.age*26+f.seed)); // monte vite, longue traîne, frémit (faiblement)
     for(let k=0;k<3;k++){const l=f.lu[k];U[i*3+k].set(l.x,l.y,l.z,env*1.15);}
     for(let j=0;j<f.seg.length&&n+1<ECL2.N;j+=3){const a=f.P[f.seg[j]],b=f.P[f.seg[j+1]],w0=f.seg[j+2],dc=Math.sqrt((a.x-cam.x)*(a.x-cam.x)+(a.y-cam.y)*(a.y-cam.y)+(a.z-cam.z)*(a.z-cam.z));
-      for(let h=0;h<2;h++,n++){const w=Math.max(w0,dc*.0022)*(h?1:4.2),o=n*12;
+      for(let h=0;h<2;h++,n++){const w=Math.max(w0,dc*.0034)*(h?1:4.6),o=n*12;
         CV3.subVectors(b,a);CV4.subVectors(cam,a);CV4.crossVectors(CV3,CV4);const l=CV4.length();if(l>1e-6)CV4.multiplyScalar(w/l);
         P9[o]=a.x-CV4.x;P9[o+1]=a.y-CV4.y;P9[o+2]=a.z-CV4.z;P9[o+3]=a.x+CV4.x;P9[o+4]=a.y+CV4.y;P9[o+5]=a.z+CV4.z;
         P9[o+6]=b.x-CV4.x;P9[o+7]=b.y-CV4.y;P9[o+8]=b.z-CV4.z;P9[o+9]=b.x+CV4.x;P9[o+10]=b.y+CV4.y;P9[o+11]=b.z+CV4.z;
