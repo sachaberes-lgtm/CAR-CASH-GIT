@@ -206,6 +206,14 @@ const FILETMARK=[];
    virage rapide puis son filet — buildTrack les traduit en tronçons `s` (MODS) où ni plot ni huile ne sont tirés au hasard : ils
    tombaient pile au bord où le voltigeur sort, sur la crête où il décolle. Zéro tirage `rnd` : on lit ctrl.length, rien d'autre. */
 const MODMARK=[];
+/* (2026-10-20, Sacha : « refonte totale de la map Dune : des petits segments de route posés sur les dunes, on surfe de dune en dune ») LES TROUS DE LA ROUTE.
+   La piste reste UNE courbe (la caisse, la caméra, la distance, le portail la lisent comme avant) ; mais genDunes y note, comme les modules, des TROUS
+   {i0,i1} (index de points de contrôle : le bout d'un segment de route, le début du suivant). buildTrack les traduit en lignes de `pts` : `TROU[k]` = 1
+   quand le ruban n'existe PAS entre le point k et le suivant (aucun triangle : pisteTranches, pisteMaigre) ; `TROUS` = {s0,s1,a,b} (abscisses et lignes
+   de pts du vide). Une dalle absente ne reçoit rien : ni pad, ni pièce, ni atterrissage (dalleProche). null = aucune map à trous. */
+const TROUMARK=[];
+let TROUS=[],TROU=null;
+function enTrou(s9,marge){if(!TROUS.length)return false;marge=marge||0;for(const t of TROUS)if(s9>t.s0-marge&&s9<t.s1+marge)return true;return false;} // l'abscisse s est-elle au-dessus d'un vide (à `marge` m près) ?
 let FILETS=[],MODS=[]; // les filets de la piste courante, en distance le long de la piste : {sC0,sC1 (le virage), sN0,sN1 (le filet), cote (−1/+1 : le côté du vide)}
 function filetDe(s0,s1){for(const q of FILETS)if(s0>q.sC0-80&&s0<q.sC1+60&&s1>q.sN0-160&&s1<q.sN1+260)return q;return null;} // un vol parti de ce virage et posé dans son filet ?
 /* LES PLAQUES TURBO EN INSTANCES (2026-09-27, passe perf iPhone) — recensement des appels de dessin au sol : 82 pour les seules

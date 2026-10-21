@@ -136,12 +136,14 @@ function ligneMotif(base,H9){ // la position latérale du prochain fruit (+ son 
   LIGNE.prevLat=lt;return lt;
 }
 function ligneBloque(s9,k){
+  if(enTrou(s9,8))return true; // (LES TROUS) jamais un fruit ni un pad dans le vide entre deux segments de route
   for(const o of OILS)if(o.face===1&&Math.abs(o.s-s9)<(o.r||4)+7)return true; // jamais dans une flaque
   if(BANQ.obst&&LVL.cur&&LVL.cur.id==='banquise')for(const o of BANQ.obst)if(Math.abs(o.s-s9)<o.r+12)return true; // (2026-10-17) ni dans un pic de la piste du glacier
   return false;
 }
 function ligneOnPour(){return !PARK.on&&!(LVL.cur&&LVL.cur.piste==='tuto')&&!BALADE;} // (LE PRÉ-BÂTI) la règle de LIGNE.on, lue aussi par pisteRoute (sur la map d'en face)
 function ligneRaz(){ // à chaque piste neuve (buildTrack) : la file repart du début
+  LIGNE.dt=PADS_OFF?.45:1.2;LIGNE.don=PADS_OFF?.48:1.15; /* (2026-10-21, Sacha) l'ancien système : fruit, plaque, fruit, plaque… toutes les 1,2 s, 1,15 de nitro chacun (?pads=0 : les fruits serrés de Léo) */
   LIGNE.cnt=0;LIGNE.npow=14+((Math.random()*20)|0);LIGNE.prem=false;LIGNE.grp=null;LIGNE.prevLat=null;LIGNE.repos=false; // (fruits-pouvoirs) la file repart : le 1er pouvoir arrive après 16-24 fruits
   LIGNE.pts.length=0;LIGNE.padI.clear();LIGNE.padPris.clear();LIGNE.prochS=240;LIGNE.k=0;LIGNE.n[0]=LIGNE.n[1]=LIGNE.pris[0]=LIGNE.pris[1]=0;LIGNE.vP=0;LIGNE.acc=20;LIGNE.sPk=null;LIGNE.sPd=0; // acc : l'élan d'un départ lancé, supposé d'avance (les premiers objets se posent avant qu'on l'ait mesuré)
   LIGNE.on=ligneOnPour(); // le parc et l'auto-école gardent leur monde — (2026-10-09) la BALADE aussi : rien sur la route
@@ -190,7 +192,7 @@ function ligneTick(dt){ // chaque image de course : la file s'allonge devant la 
     let s9=-1;
     for(let d=0;d<=160;d+=20){const q=LIGNE.prochS+d;if(q>=L-120)break;if(!ligneBloque(q,LIGNE.k)){s9=q;break;}}
     if(s9<0){LIGNE.prochS+=180;continue;}
-    const lt=ligneMotif(ligneLat(s9,H9),H9);
+    const lt=PADS_OFF?ligneMotif(ligneLat(s9,H9),H9):ligneLat(s9,H9); // (2026-10-21) l'ancien système : sur la corde, sans les groupes de Léo
     if(LIGNE.k){if(!(LVL.cur&&LVL.cur.piste==='banquise'))lignePad(s9,lt);}
     else if(PWR_LIGNE&&LIGNE.cnt>=LIGNE.npow){ // le BOUT D'UNE LONGUE FILE : un fruit-pouvoir (le 1er d'un débutant : l'aimant, sans le chercher)
       let kd='n';if(!LIGNE.prem&&pwrPremier()){kd='m';LIGNE.prem=true;}else kd=pwrTire(Math.random(),pwrPoids());
@@ -198,8 +200,8 @@ function ligneTick(dt){ // chaque image de course : la file s'allonge devant la 
     }else{ligneFruit(s9,lt);LIGNE.cnt++;} // (2026-10-15) LE GLACIER : pas de pad d'or (ses fruits gardent leur cadence)
     LIGNE.pts.push({s:s9,lat:lt,k:LIGNE.k});LIGNE.n[LIGNE.k]++;if(LIGNE.pts.length>40)LIGNE.pts.shift();
     if(!PADS_OFF)LIGNE.k^=1; // (plus de plaques : toujours un fruit)
-    LIGNE.prochS=s9+Math.max(12,v*LIGNE.dt*((LIGNE.grp&&LIGNE.grp.mult)||1));
-    if(LIGNE.repos){LIGNE.repos=false;LIGNE.prochS+=Math.max(30,v*(1.2+Math.random()*1.4));} // un REPOS : un à deux secondes de route vide
+    LIGNE.prochS=s9+Math.max(PADS_OFF?12:40,v*LIGNE.dt*((PADS_OFF&&LIGNE.grp&&LIGNE.grp.mult)||1));
+    if(PADS_OFF&&LIGNE.repos){LIGNE.repos=false;LIGNE.prochS+=Math.max(30,v*(1.2+Math.random()*1.4));} // un REPOS : un à deux secondes de route vide
   }
 }
 function frameAt(s,out){
