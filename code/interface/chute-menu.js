@@ -158,7 +158,8 @@ const MENU_ECL={on:false};
 function menuEclTick(dt){const c=LVL&&LVL.cur,run=started&&!gameOver,o=run?!!(c&&c.carte==='nuages'&&c.meteo==='orage'&&mode!=='boom'):(typeof TITRE_HF!=='undefined'&&TITRE_HF.h==='orage'),U=N8_U;
   filTick(dt,o);
   if(!run){if(o){U.uMood.value.set(1,.1,0,0);U.uInC.value.set(.62,.5,1);MENU_ECL.on=true;}else if(MENU_ECL.on){MENU_ECL.on=false;U.uMood.value.set(1,0,0,0);}}}
-function nuFondTick(dt){arcEcTick(dt);menuEclTick(dt); // à chaque image : la mer de nuages en course → le fond peint (il APPARAÎT en 0,7 s au portail) ; ailleurs, éteint
+function nuFondTick(dt){arcEcTick(dt);menuEclTick(dt);if(!(started&&!gameOver)&&typeof nuPouTick==='function')nuPouTick(dt,performance.now()*.001); // le nuage qui flotte au titre
+  // à chaque image : la mer de nuages en course → le fond peint (il APPARAÎT en 0,7 s au portail) ; ailleurs, éteint
   if(typeof CHUTE!=='undefined'&&CHUTE.on){skyU.uPh.value.x=0;skyU.uMr.value.x=0;tapisPose('menu');return;} // (le menu peint son ciel lui-même)
   const c=LVL&&LVL.cur,T=(NUF.force!==0)&&c&&c.carte==='nuages'&&!PARK.on?NU_FOND[c.meteo]:null;if(T)NUF.T=T;
   NUF.k+=((T?1:0)-NUF.k)*(NUF.force!=null?1:Math.min(1,dt*1.5));

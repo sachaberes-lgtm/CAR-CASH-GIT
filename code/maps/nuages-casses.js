@@ -54,7 +54,7 @@ function nuCasseDans(c,k,cp){ // on roule DANS le banc : une trouée tous les ~0
     nuCubeNew(cp.x+Math.cos(a)*R*.7,cp.y+(Math.random()-.3)*R*.6,cp.z+Math.sin(a)*R*.7,Math.cos(a)*sp+NCB.cv.x*.4,2+Math.random()*3,Math.sin(a)*sp+NCB.cv.z*.4,s0*(.6+Math.random()*.5),2.2+Math.random(),.3+Math.random()*.5,.9+Math.random()*.1);}}
 function nuCasseTick(dt,t){
   if(!NCB.mesh){nuCasseInit();return;}
-  NCB.dtc=dt;const cp=carGroup.position;
+  NCB.dtc=dt;const cp=carGroup.position;nuPouTick(dt,t);
   if(NCB.has&&dt>0){NCB.cv.set((cp.x-NCB.lp.x)/dt,(cp.y-NCB.lp.y)/dt,(cp.z-NCB.lp.z)/dt);const l=NCB.cv.length();if(l>140)NCB.cv.multiplyScalar(140/l);} // la vitesse de la caisse, mesurée (jamais une téléportation : bornée)
   NCB.lp.copy(cp);NCB.has=true;
   for(const h of NCB.hs){ // les trouées : elles s'ouvrent vite, tiennent, se referment (la ouate revient)
@@ -146,3 +146,31 @@ function nuSkinPose(k,f,sk){ // une finesse arrive : sa peau pour SON lot et les
     if(!S){const m=new THREE.InstancedMesh(g,m9,COTON.cap);m.instanceMatrix=im.instanceMatrix;m.instanceColor=im.instanceColor;m.frustumCulled=false;m.count=0;m.renderOrder=1;m.castShadow=m.receiveShadow=false;m.matrixAutoUpdate=false;COTON.root.add(m);COTON.skin[j]=S={m:m};}
     else S.m.geometry=g;}}
 window.dbgSkin=function(a,b,c){const u=NUSKIN.uSk.value;if(a!=null)u.x=+a;if(b!=null)u.y=+b;if(c!=null)u.z=+c;return u.toArray();}; // (banc) base · bord · voile ; dbgSkin(0,0,0) = invisible
+/* ============================== LE NUAGE QUI FLOTTE (2026-10-21, Léo : « dans l'air aussi, peut-être ajouter des petits cubes qui se promènent, comme des particules ; le nuage qui flotte ») ==============================
+   Sur la map nuages (en course et au titre) : ~240 PETITS CUBES (0,5-2,3 m, blancs, éclairés comme la ouate — la matière des blocs de la collision, une seule InstancedMesh) en suspension dans l'air autour de la caisse :
+   ils dérivent au vent, tournent lentement, ondulent (sinus à phases propres), montent un peu ; ceux qui passent derrière ou trop loin renaissent devant, à 60-420 m, fondus (taille 0 → pleine) pour ne jamais « apparaître ».
+   `?air=0` = sans. */
+const NPOU={n:240,mesh:null,on:!/[?&]air=0\b/.test(location.search),P:new Float32Array(240*3),V:new Float32Array(240*3),R:new Float32Array(240*3),W:new Float32Array(240*3),S:new Float32Array(240),PH:new Float32Array(240),B:new Float32Array(240),init:false,
+  f:new THREE.Vector3(0,0,1),c:new THREE.Vector3(),rt:new THREE.Vector3()};
+function nuPouInit(){
+  if(NPOU.mesh)return;if(!NCB.mesh)nuCasseInit();if(!NCB.mesh)return;const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),NCB.mesh.material,NPOU.n);im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(NPOU.n*3).fill(1),3);im.instanceColor.setUsage(THREE.DynamicDrawUsage);im.frustumCulled=false;im.count=0;im.castShadow=im.receiveShadow=false;im.matrixAutoUpdate=false;scene.add(im);NPOU.mesh=im;
+  for(let i=0;i<NPOU.n;i++){NPOU.S[i]=1+Math.pow(Math.random(),1.8)*4.2;NPOU.PH[i]=Math.random()*6.28;NPOU.B[i]=.82+Math.random()*.18;const j=i*3;for(let k=0;k<3;k++){NPOU.R[j+k]=Math.random()*6.28;NPOU.W[j+k]=(Math.random()-.5)*.9;}}}
+function nuPouTick(dt,t){
+  if(!NPOU.on)return;if(!NPOU.mesh){nuPouInit();if(!NPOU.mesh)return;}
+  const c9=LVL&&LVL.cur,run=started&&!gameOver,actif=run?!!(c9&&c9.carte==='nuages'&&mode!=='boom'):(typeof CHUTE!=='undefined'&&CHUTE.on&&!garageOn),im=NPOU.mesh;
+  if(!actif){im.count=0;NPOU.init=false;return;}
+  const F=NPOU.f,C=NPOU.c,RT=NPOU.rt;
+  if(run){C.copy(carGroup.position);if(NCB.cv.lengthSq()>25)F.copy(NCB.cv).normalize();else F.set(0,0,1).applyQuaternion(carGroup.quaternion);}
+  else{camera.getWorldDirection(F);C.copy(camera.position).addScaledVector(F,160);} // au titre : devant l'objectif
+  F.y=run?F.y*.3:F.y*.5;F.normalize();RT.set(F.z,0,-F.x);{const l=Math.hypot(RT.x,RT.z)||1;RT.x/=l;RT.z/=l;}
+  const P=NPOU.P,V=NPOU.V,R=NPOU.R,W=NPOU.W,m=NCB.tm,q=NCB.tq,e=NCB.te,pp=NCB.tp,ss=NCB.ts,cam=camera.position,reach=run?430:520;
+  for(let i=0;i<NPOU.n;i++){const j=i*3;let dx=P[j]-C.x,dy=P[j+1]-C.y,dz=P[j+2]-C.z;const ahead=dx*F.x+dy*F.y+dz*F.z,dd=Math.sqrt(dx*dx+dy*dy+dz*dz);
+    if(!NPOU.init||dd>reach||(run&&ahead<-120)){ // renaît devant, dans un volume large autour de la route
+      const a=60+Math.random()*(reach-120),lat=(Math.random()-.5)*(run?520:700),up=(Math.random()-.4)*(run?240:320);P[j]=C.x+F.x*a+RT.x*lat;P[j+1]=C.y+F.y*a+up;P[j+2]=C.z+F.z*a+RT.z*lat;
+      V[j]=(Math.random()-.5)*3;V[j+1]=.4+Math.random()*1.4;V[j+2]=(Math.random()-.5)*3;NPOU.b0=(NPOU.b0||0);NPOU.PH[i]=Math.random()*6.28;dx=P[j]-C.x;dy=P[j+1]-C.y;dz=P[j+2]-C.z;}
+    const ph=NPOU.PH[i];V[j]+=(Math.sin(P[j+1]*.021+t*.5+ph)*1.6)*dt;V[j+1]+=(Math.sin(P[j+2]*.019-t*.4+ph*2)*1.1)*dt;V[j+2]+=(Math.sin(P[j]*.017+t*.45-ph)*1.6)*dt;
+    const dr=Math.exp(-dt*.35);V[j]*=dr;V[j+1]*=dr;V[j+2]*=dr;P[j]+=V[j]*dt;P[j+1]+=V[j+1]*dt;P[j+2]+=V[j+2]*dt;R[j]+=W[j]*dt;R[j+1]+=W[j+1]*dt;R[j+2]+=W[j+2]*dt;
+    const cx=P[j]-cam.x,cy=P[j+1]-cam.y,cz=P[j+2]-cam.z,dc=Math.sqrt(cx*cx+cy*cy+cz*cz),fn=Math.min(1,Math.max(0,(dc-25)/55)),ff=Math.min(1,Math.max(0,(reach-dd)/90)),sc=NPOU.S[i]*fn*fn*ff;
+    e.set(R[j],R[j+1],R[j+2]);q.setFromEuler(e);pp.set(P[j],P[j+1],P[j+2]);ss.set(sc,sc,sc);m.compose(pp,q,ss);im.setMatrixAt(i,m);const b=NPOU.B[i];im.instanceColor.setXYZ(i,b,b,b);}
+  NPOU.init=true;im.count=NPOU.n;im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;}

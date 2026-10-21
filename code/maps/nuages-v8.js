@@ -45,7 +45,6 @@ function nuage8Calc(B, base, top, N, opt) {
      « patch » si le voisin change de taille (jamais de trou entre un gros et un petit cube). La LUMIÈRE reste celle du nuage lisse : la normale
      d'un cube = sa face mêlée au gradient du champ (opt.vox.kn), le modelé cuit (creux, ombre des bourgeons du haut, hauteur) est lu en son
      centre, et chaque cube a SA nuance (opt.vox.jit) : c'est elle qui fait lire la mosaïque. Aucun fantôme, aucune poussière : un seul objet opaque. */
-  let voxOut = null;
   if (opt.vox) {
     const VX = opt.vox, hv = ext / (N * (VX.k || 1.5) * (N > 40 ? (VX.kf || .75) : 1)), RG = hv * 4, kn = VX.kn == null ? .5 : VX.kn, jit = VX.jit == null ? .16 : VX.jit;
     const gx0 = Math.floor(x0 / RG) * RG, gz0 = Math.floor(z0 / RG) * RG, gy0 = base - RG; // la base du nuage sur une frontière de région : le dessous est PLAT
@@ -70,9 +69,9 @@ function nuage8Calc(B, base, top, N, opt) {
       if (i < 0 || j < 0 || k < 0 || i >= NRX || j >= NRY || k >= NRZ) return false;
       const st = rstate(i, j, k); if (st === 1) return false; if (st === 2) return true;
       const l = RL[i + NRX * (j + NRY * k)], s = hv * (1 << l); return cellSolid(l, Math.floor((x - gx0) / s), Math.floor((y - gy0) / s), Math.floor((z - gz0) / s)); };
-    const VP = [], VN = [], VC = [], VI = [], DIRS = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]], QQ = [[-1, -1], [1, -1], [1, 1], [-1, 1]], eps = hv * .25;
+    const VP = [], VN = [], VC = [], VI = [], VQ = [], DIRS = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]], QQ = [[-1, -1], [1, -1], [1, 1], [-1, 1]], eps = hv * .25;
     const quad = function (cx, cy, cz, ax, sg, hs9, cu, cw, hu, hw, nn, md) { const u = (ax + 1) % 3, w = (ax + 2) % 3, b0 = VP.length / 3;
-      for (const q of QQ) { const P = [cx, cy, cz]; P[ax] += sg * hs9; P[u] += cu + q[0] * hu; P[w] += cw + q[1] * hw; VP.push(P[0], P[1], P[2]); VN.push(nn[0], nn[1], nn[2]); VC.push(md[0], md[1], md[2]); }
+      for (const q of QQ) { const P = [cx, cy, cz]; P[ax] += sg * hs9; P[u] += cu + q[0] * hu; P[w] += cw + q[1] * hw; VP.push(P[0], P[1], P[2]); VN.push(nn[0], nn[1], nn[2]); VC.push(md[0], md[1], md[2]); VQ.push(ax, sg); }
       if (sg > 0) VI.push(b0, b0 + 1, b0 + 2, b0, b0 + 2, b0 + 3); else VI.push(b0, b0 + 2, b0 + 1, b0, b0 + 3, b0 + 2); };
     const e1 = hv * .6;
     for (let k = 0; k < NRZ; k++) for (let j = 0; j < NRY; j++) for (let i = 0; i < NRX; i++) {
@@ -94,8 +93,12 @@ function nuage8Calc(B, base, top, N, opt) {
           const nn = [d[0] * (1 - kn) + dat.g[0] * kn, d[1] * (1 - kn) + dat.g[1] * kn, d[2] * (1 - kn) + dat.g[2] * kn], nl = Math.hypot(nn[0], nn[1], nn[2]) || 1; nn[0] /= nl; nn[1] /= nl; nn[2] /= nl;
           if (nex === m * m) quad(cx, cy, cz, ax, sg, s * .5, 0, 0, s * .5, s * .5, nn, dat.md);
           else { const hp = s / m * .5; let ii = 0; for (let q = 0; q < m; q++) for (let p = 0; p < m; p++, ii++) if (ex[ii]) quad(cx, cy, cz, ax, sg, s * .5, ((p + .5) / m - .5) * s, ((q + .5) / m - .5) * s, hp, hp, nn, dat.md); } } } }
-    const nvv = VP.length / 3;
-    voxOut = { pos: new Float32Array(VP), nor: new Float32Array(VN), col: new Float32Array(VC), idx: nvv < 65535 ? new Uint16Array(VI) : new Uint32Array(VI), hv: hv }; // (2026-10-21) on continue : la surface LISSE du même champ devient la PEAU transparente qui enrobe les cubes
+    const nvv = VP.length / 3, idxv = nvv < 65535 ? new Uint16Array(VI) : new Uint32Array(VI);
+    /* (2026-10-21, Léo : « couche par-dessus les cubes, pas gonflé, embrasse la forme des cubes ») LA PEAU : les MÊMES faces que les cubes, décalées de 7 % de cube le long de leur normale de face (une pellicule collée sur chaque marche,
+       qui en épouse tous les angles), avec les normales lissées du corps (elle luit comme un vernis) — plus de surface lisse gonflée */
+    const off = hv * (VX.skin == null ? .07 : VX.skin), sp = new Float32Array(VP.length);
+    for (let i = 0; i < nvv; i++) { const ax = VQ[i * 2], sg = VQ[i * 2 + 1]; sp[i * 3] = VP[i * 3]; sp[i * 3 + 1] = VP[i * 3 + 1]; sp[i * 3 + 2] = VP[i * 3 + 2]; sp[i * 3 + ax] += sg * off; }
+    return { pos: new Float32Array(VP), nor: new Float32Array(VN), col: new Float32Array(VC), idx: idxv, vit: null, fant: null, skin: { pos: sp, nor: new Float32Array(VN), idx: idxv.slice() } };
   }
   // les coins
   const NX = nx + 1, NY = ny + 1, NZ = nz + 1, V = new Float32Array(NX * NY * NZ);
@@ -239,11 +242,6 @@ function nuage8Calc(B, base, top, N, opt) {
       q++; }
     const fin = function (A9, k) { return A9.subarray(0, q * k); };
     fant = { pos: fin(FP, 3), nor: fin(FN, 3), col: fin(FC, 3), q: fin(FQ, 4), k: sz * 3 }; // k : de combien le CORPS du nuage rentre (les fantômes du dessus se voient)
-  }
-  if (voxOut) { // LA PEAU (Léo : « une couche transparente épaisse qui va permettre de polir le tout ») : la surface lisse, gonflée de ~1,2 cube le long de sa normale (elle recouvre les marches), portée à part des cubes
-    const off = voxOut.hv * (opt.vox.skin == null ? 1.2 : opt.vox.skin), sp = new Float32Array(pos.length);
-    for (let i = 0; i < pos.length; i++) sp[i] = pos[i] + nor[i] * off;
-    return { pos: voxOut.pos, nor: voxOut.nor, col: voxOut.col, idx: voxOut.idx, vit: null, fant: null, skin: { pos: sp, nor: nor, idx: idx } };
   }
   return { pos: pos, nor: nor, col: col, idx: idx, vit: vit, fant: fant };
 }
