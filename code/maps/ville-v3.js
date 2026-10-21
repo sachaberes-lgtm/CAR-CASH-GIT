@@ -152,7 +152,7 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
   const Q=c=>ancien?'true':c; // (passe perf) chaque saut de calcul : `true` sur l'ANCIEN chemin (le banc compare au même code)
   m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;sh.uniforms.uWet9=ROAD_U.uWet;sh.uniforms.uCour9=CITY.uC;sh.uniforms.uPied9=CITY.uPied;sh.uniforms.uPiedC9=CITY.uPiedC;if(!ancien){sh.uniforms.uLum9=CITY.uL;}
     {sh.uniforms.uJ9=CITY.uJ;sh.uniforms.uJHor9=skyU.uJHor;sh.uniforms.uJMid9=skyU.uJMid;} // le jour, et le ciel que le verre renvoie
-    if(GTA9)sh.uniforms.uGta9=CITY.uGta;
+    if(GTA9){sh.uniforms.uGta9=CITY.uGta;sh.uniforms.uAcc9=VV.uAcc;sh.uniforms.uCamE9=VIT.uCam;sh.uniforms.uEmb9=CITY.uEmb;} // (2026-10-20, VILLE EMBELLIE) l'accent de la teinte, l'œil, l'interrupteur des ajouts (voir ville-embellie.js)
     sh.vertexShader=(ancien?'':'#undef USE_SHADOWMAP\n')+sh.vertexShader.replace('#include <common>','#include <common>\n'+DECL+(ancien?'':'\nuniform vec4 uLum9[4];\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nuniform float fogFar;\n#endif\n'))
       .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n'+
         'vec3 sc9=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));'+
@@ -164,7 +164,7 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
         'for(int i=0;i<4;i++)if(distance(w9,uLum9[i].xyz)<uLum9[i].w+r9)proche9=true;}\n#else\nbool proche9=true;\n#endif\n'))
       .replace('#include <lights_lambert_vertex>',ancien?'#include <lights_lambert_vertex>':'vLightFront=vec3(0.);vIndirectFront=vec3(0.);\nif(!loin9){\n'+VILLE_LLV+'\n}');
     if(!ancien)sh.fragmentShader='#undef USE_SHADOWMAP\n'+sh.fragmentShader;
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uCour9,uPied9;uniform vec3 uPiedC9;'+DECL+('uniform float uJ9;uniform vec3 uJHor9,uJMid9;')+(GTA9?'uniform float uGta9;':''))
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uCour9,uPied9;uniform vec3 uPiedC9;'+DECL+('uniform float uJ9;uniform vec3 uJHor9,uJMid9;')+(GTA9?'uniform float uGta9,uEmb9;uniform vec3 uAcc9,uCamE9;':''))
       .replace('#include <fog_fragment>',
         /* LES FENÊTRES v2 (2026-09-26) — chaque tour a sa PERSONNALITÉ, tirée de sa graine : travée 2,6-4,4 m, étage 3,5-4,4 m, taux
            d'allumage 22-62 %, habitation (ambre chaud) ou bureaux (blanc-cyan froid, fenêtres en BANDEAU allumées par plateaux entiers).
@@ -195,7 +195,7 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
           'float F9=min(.04+.96*pow(1.-max(dot(N9,V9),0.),5.),.5);vec3 R9=reflect(-V9,N9);'+ // (GTA) le VERRE : Fresnel de Schlick
           'vec3 sk9=mix(fo9*1.1+uPiedC9*1.4*uPied9,fo9*.3,smoothstep(-.05,.45,R9.y));'+ // ce qu'il renvoie : la lueur de la ville sur l'horizon, le ciel sombre au-dessus
           'sk9=mix(sk9,fo9*.55+uPiedC9*2.6*uPied9,smoothstep(0.,-.35,R9.y));'+ // … et la rue violette en dessous
-          'vec3 gl9=mix(vec3(.010,.012,.020)*(1.+bur),sk9*.5,F9);float sl9=0.,pr9=1.;':'')+ // pr9 : chaque carreau un peu de travers (le reflet varie) // le verre teinté (les bureaux un peu plus clairs) ; sl9 : la ligne de dalle
+          'vec3 gl9=mix(vec3(.010,.012,.020)*(1.+bur),sk9*.5,F9);'+(PAL.n>=1?VEMB_ECHO:'')+'float sl9=0.,pr9=1.;':'')+ /* (2026-10-20, VILLE EMBELLIE) l'écho des néons dans le verre éteint — paliers MOYEN et RÉCENT (voir VEMB_ECHO) */ // pr9 : chaque carreau un peu de travers (le reflet varie) // le verre teinté (les bureaux un peu plus clairs) ; sl9 : la ligne de dalle
         'if('+Q('fv>0.')+'){vec2 hw='+(GTA9?'mix(vec2(mix(.3,.46,bur),.26),mix(vec2(.32,.28),vec2(.46,.40),bur),G9);':'vec2(mix(.3,.46,bur),.26);')+ // (GTA) logements : le carreau un peu plus grand ; bureaux : le verre de dalle à dalle
         'float tx=.55+.1*s2,far=smoothstep(.3,.75,max(fw.x,fw.y)),avg=tx*4.*hw.x*hw.y;vec3 wv=mix(dom,aut,.2)*avg*1.05;'+ // wv : la lueur MOYENNE (le lointain)
         (GTA9?'wv=mix(wv,vec3(.66,.84,1.)*avg*.62,bur*G9);':'')+ // (GTA) au loin, les bureaux gardent la couleur de leur néon (et leurs 40 % allumés)
