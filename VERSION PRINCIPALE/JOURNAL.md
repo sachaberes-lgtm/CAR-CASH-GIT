@@ -3,6 +3,21 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA BOUTIQUE PAYANTE : LE SQUALE VRAIMENT VENDU, LA TRAÎNÉE DU CHAT DITE (2026-10-21, v781, Sacha : « supprime la voiture Shark à 10 euros, remplace-la par la Squall que Léo a faite, à 1,61 € ; Black Armor et Golden Dragon à 1,61 € ; plus clair que Pop-Tart-Cat est vendu avec la traînée arc-en-ciel »)
+- **À VALIDER PAR SACHA** (choix par défaut livrés) : (1) la mission secrète `abysse` (« DESCENDS AU FOND DE LA MER DE JADE ») paie **15 000 $** au lieu du SQUALE (valeur posée par Claude, comme
+  LE GLACIER / LA DEUCHE le 19/10) ; (2) « Squall » = LE SQUALE (confirmé par « l'autre requin de Léo » dans la demande du v770).
+- **Déjà livré avant, par une autre session (v770, 4c4641d)** : REQUIN retiré (`{retire:1,name:'REQUIN'}`), LE SQUALE en `{k:'premium',eur:'1,61 €'}`, LE BLINDÉ NOIR et LE DRAGON D'OR à 1,61 €.
+- **Le défaut que v770 laissait** : LE SQUALE était toujours la récompense de la mission `abysse` ; le patch des missions (`table.js`, « LES CAISSES QUI SE GAGNENT PAR MISSION ») réécrit
+  `CAR_UNLOCK[i]={k:'mis',…}` au chargement, donc il quittait la boutique payante (la boutique ne liste que `k==='premium'`). `abysse` paie maintenant de l'argent ; `CARS.rar` du SQUALE ÉPIQUE →
+  LÉGENDAIRE (comme toutes les caisses payantes : `carRar` lit la fiche avant le prix). Qui a déjà LE SQUALE le garde ; qui avait fini `abysse` n'est pas payé de nouveau.
+- **La traînée arc-en-ciel du chat, dite** (`shArcHtml`, `.shArc`) : la pastille « + ARC-EN-CIEL » de la carte du chat au garage (18/10) était posée en haut à gauche SOUS l'étiquette de rareté
+  (z-index 1, même coin, 113 px : on n'en voyait que les bords) et la page ACHAT n'en disait rien (le texte sous le nom a été retiré le 15/10). Maintenant : une BANDE arc-en-ciel dans le flux sous la
+  photo de la carte du garage (« + TRAÎNÉE / ARC-EN-CIEL »), « + TRAÎNÉE ARC-EN-CIEL INCLUSE » sous le nom dans la fiche du garage, sur la carte à la une de la page ACHAT et dans la fenêtre d'achat
+  (couché : une rangée de plus dans la grille, la phrase à 12 px). Rien une fois le chat acheté. EN : « + RAINBOW TRAIL » / « + RAINBOW TRAIL INCLUDED ».
+- **Vérifié** (Chrome sans fenêtre sous le verrou commun, couché 844×390 ET debout 390×844, code fusionné sur v780) : les six caisses de la boutique payante (CHAT POP-TART 4,20 €, FÉLINE, BLINDÉ NOIR,
+  DRAGON D'OR, SQUALE 1,61 €, PIZZA EXPRESS 161 €) dans la page ACHAT et le rayon ACHAT du garage ; pastille présente partout ; `abysse` → `{cash:15000}` ; course lancée, `__loopErr` / `__banqErr` vides,
+  0 erreur JS. Gardes burn-out et charte : OK.
+
 ## v774 — FORMES D'AUTEUR, MER MOINS GRISE, TITRE PLUS DOUX (2026-10-21, branche nuages-refonte, pas pour le main)
 Léo : « formes encore plus originales » ; « le bas est trop gris, un peu lumineux » ; « au menu ciel ils sont beaucoup trop définis ».
 - Six nouveaux gabarits dans `cumulus8` : ARCHE, MÉDUSE (filaments qui pendent), ANNEAU, SPIRALE, GÂTEAU (étages), VAGUE ; ils prennent la place de six gabarits tirés (`COTON_GENRES`) + poids `COTON_POIDS`.
