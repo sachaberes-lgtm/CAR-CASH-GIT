@@ -37804,6 +37804,7 @@ function chaHud(fort,monte){
 }
 /* `dbgHud(k,n)` — (HUD v4) forcer un état du tableau de bord pour le juger sur capture : 'flow' n · 'idle' s · 'chaine' n ·
    'encaisse' · 'perdue' · 'record' v · 'pwr' · 'slam' txt. Sans argument : l'état lu. */
+window.dbgHudGros=function(m,a){if(!started||gameOver)return null;if(m!=null)money=+m;if(a!=null)auraRun=+a;return {money:money,aura:Math.round(auraRun)};}; // banc ux-course (2026-10-13, passe de sortie) : les GROS nombres du HUD (argent, aura) sans jouer 20 min
 window.dbgHud=function(k,n){
   if(k==='flow'){flowAdd(n==null?30:n);return {v:FLOW.v,lv:FLOW.lv};}
   if(k==='idle'){FLOW.idle=n==null?2.5:n;return FLOW.idle;}
