@@ -11,7 +11,7 @@
      (grille fine F : [hauteur, poids]).
    · LES TREMPLINS : une caisse qui franchit l'apex à plus de 90 km/h est lancée pour retomber SUR la route de la descente ; en l'air, le pouce vers le bas pique, sinon on plane.
    Console : `dbgDunes()` (état) · `dbgDunes('test')` (le sable sous le bitume ?) · `dbgDunes('ech', s0, s1)` (le terrain prescrit) · `dbgDunes('sauts')` · `dbgDunes('vueA', s, h, cap, pente)` (photo figée) · `?carte=dunes&meteo=soir`. */
-const NIV_DUNES={id:'dunes',nm:"LES DUNES D'OR",bio:['dunesSoir'],planete:0,espace:0,pluie:0,cielMusical:false,route:.30,sheen:.12,piste:'dunes',pr:'DE DUNE EN DUNE'};
+const NIV_DUNES={id:'dunes',nm:"LES DUNES D'OR",bio:['dunesSoir'],planete:0,espace:0,pluie:0,cielMusical:false,route:.30,sheen:.12,piste:'dunes',pr:'DE CRETE EN CRETE'};
 const DUNES_OK=CANYON_OK; // les mêmes besoins que le canyon : textures de données en flottants, lecture de textures au sommet
 PAL.B.dnFin=[16,14,12];PAL.B.dnPlat=[96,80,64];PAL.B.dnOmbre=[60,52,44];PAL.B.dnGrille=[16,16,32];PAL.B.dnR0=[85,100,118];PAL.B.dnArbres=[50,90,140];PAL.B.dnPalmes=[22,34,48];PAL.B.dnPart=[600,1100,1600];PAL.B.dnMo=[0,.75,1];PAL.B.dnRuines=[.35,.7,1]; // (2026-10-22) la mosaïque du sable et des pierres (0 = éteinte sur les vieux téléphones) · le nombre de ruines éparses // la finesse par palier [ancien, moyen, récent]
 const DN={Q:null,on:false,ms:{},yMin:-1e4,yMax:1e4,mesh:null,mat:null,geo:null,aN:null,maxN:900,G:32,S0:64,R0:118,lods:7,
@@ -32,7 +32,7 @@ const DN={Q:null,on:false,ms:{},yMin:-1e4,yMax:1e4,mesh:null,mat:null,geo:null,a
    `?sans=dunesdecor` = le décor d'avant ; `?sans=dunesmodules` = le paquet d'avant (4 sortes) ; `dbgDunes().deco` = le tirage. */
 const DN_DECO={on:!/[?&]sans=([^&]*,)?dunesdecor(,|&|$)/.test(location.search),mods:!/[?&]sans=([^&]*,)?dunesmodules(,|&|$)/.test(location.search)};
 const DN_MOSA=!/[?&]mosaique=0\b/.test(location.search),DN_BUTTES=!/[?&]buttes=0\b/.test(location.search); // (2026-10-22) `?mosaique=0` : le sable et la pierre sans mosaïque · `?buttes=0` : sans les buttes de grès (banc : ce que coûte chaque matière)
-const DN_HZ={axe:20,kL:.92,lim:64},DN_SEG={D:2.6,H:34,A:150,haut:260}; // DN_SEG : la profondeur de la mer de dunes sous la route, sa hauteur, et `haut` : de combien le désert lointain est plus bas au départ (m)
+const DN_HZ={axe:20,kL:.94,lim:64},DN_SEG={D:2.6,H:34,A:150,haut:260}; // DN_SEG : la profondeur de la mer de dunes sous la route, sa hauteur, et `haut` : de combien le désert lointain est plus bas au départ (m)
 /* (2026-10-22, Léo : « les routes qui font sauter embrassent une haute colline de sable… le joueur peut piquer en bas ou décoller… je veux niveau 100 » — LA ROUTE CONTINUE) Plus de trou, plus de lèvre coupée :
    la route est UN ruban, posé sur de grosses dunes. Chaque VAGUE : la MONTÉE (un arc qui ENLACE une colline : le sable monte au-dedans, tombe au-dehors), la CRÊTE (la courbe verticale
    s'arrondit, l'apex est le tremplin — `dnLevre`), la DESCENTE (une droite sur l'éperon, l'avalanche de chaque côté : on s'y pose), le CREUX (on y tourne, entre deux collines). La pente est la
@@ -44,7 +44,7 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
   const VW=typeof vPalier==='function'?vPalier():70+(LV-1)*100,RMIN=1.08*(typeof rayonPalier==='function'?rayonPalier():40+.3*VW);DN.rmin=Math.round(RMIN);
   const LC9=typeof longueurCible==='function'?longueurCible():0;
   const r=mulberry32(g0),C=[],U=[],Q={},FE=[],GN=[],P=new THREE.Vector3(0,0,0),LIM=DN_HZ.lim*Math.PI/180;let phi=0,uh=0,gP=-.04;
-  const push=()=>{C.push(P.clone());U.push(uh);},ici=k=>{Q[k]={p:P.clone(),phi:phi};},lib=sg=>(LIM-sg*phi)*57.2958,gn=(u,g)=>GN.push([u,g]);
+  const push=()=>{C.push(P.clone());U.push(uh);},ici=k=>{Q[k]={p:P.clone(),phi:phi,i:C.length-1};},lib=sg=>(LIM-sg*phi)*57.2958,gn=(u,g)=>GN.push([u,g]);
   const droite=(l,n)=>{n=n||Math.max(2,Math.round(l/34));for(let k=0;k<n;k++){P.x+=Math.sin(phi)*l/n;P.z+=Math.cos(phi)*l/n;uh+=l/n;push();}};
   const arc=(aDeg,R)=>{R=Math.max(R,RMIN);const n=Math.max(3,Math.ceil(Math.abs(aDeg)/7)),st=aDeg*Math.PI/180/n,ch=2*R*Math.sin(Math.abs(st)/2);
     for(let k=0;k<n;k++){phi+=st/2;P.x+=Math.sin(phi)*ch;P.z+=Math.cos(phi)*ch;uh+=ch;phi+=st/2;push();}};
@@ -58,11 +58,11 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
     else droite((100+r()*60)*LL);};
   // le fond d'une vague : on tourne, ou (l'allée, la cuvette d'argile) on roule droit entre deux rangées de décors
   const valle=fe=>{const u0=uh;
-    if(fe.sp==='avenue'){recentre();ici('obel0');droite((400+r()*70)*LL);ici('obel1');}
-    else if(fe.sp==='plaza'){recentre();droite((380+r()*80)*LL);}
+    if(fe.sp==='avenue'){recentre();ici('obel0');droite((340+r()*60)*LL);ici('obel1');}
+    else if(fe.sp==='plaza'){recentre();droite((400+r()*70)*LL);}
     else if(fe.sp==='rythme'){recentre();droite(84*LL);const nH=4+((r()*2)|0),W=(100+r()*22)*LL,gH=.20+r()*.05,uS=uh;ici('w'+fe.n+'a');
       gn(uS-30,fe.gv);for(let j=0;j<=2*nH;j++)gn(uS+j*W/2,(j&1?-1:1)*gH);                       // LE RYTHME : une onde triangulaire de pente ±gH (les crêtes arrondies par le ruban lui-même) — chaque bosse est un petit tremplin
-      droite(W/4);for(let k=0;k<nH;k++){ici('w'+fe.n+'_'+k);droite(k<nH-1?W:W*.75);}ici('w'+fe.n+'b');gn(uh+34,fe.gv);droite(46*LL);fe.nh=nH;}
+      droite(W/4);for(let k=0;k<nH;k++){ici('w'+fe.n+'_'+k);droite(k<nH-1?W:W*.75);}ici('w'+fe.n+'b');gn(uh+30,fe.gv);droite(70*LL);fe.nh=nH;}
     else if(fe.sp==='vlei'){ici('vlei0');creux('balayage');recentre();droite((60+r()*40)*LL);ici('vlei1');}
     else{creux(fe.vt);recentre();}
     if(uh-u0<150*LL)droite(150*LL-(uh-u0));};
@@ -80,13 +80,13 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
     if(o.fin){ici('oasis0');creux('S');recentre();droite(240*LL+(o.xtra||0)*.5);ici('fin');droite(150,2);}
     else valle(fe);
     sgC=r()<.75?-sgC:sgC;};
-  const B=LC9?LC9*DN_HZ.kL*(.92+r()*.16):5300*LL,FIN=1340*LL,LEN9={'':806,avenue:1219,vlei:760,plaza:1160,rythme:1130}; // FIN : la dernière vague (l'oasis) et la route d'après · LEN9 : la longueur d'une vague selon son lieu (mesurée au banc)
+  const B=LC9?LC9*DN_HZ.kL*(.92+r()*.16):5300*LL,FIN=1340*LL,LEN9={'':806,avenue:1150,vlei:760,plaza:1200,rythme:1130}; // FIN : la dernière vague (l'oasis) et la route d'après · LEN9 : la longueur d'une vague selon son lieu (mesurée au banc)
   // LE DÉPART : le belvédère, tout en haut — une droite pour s'élancer, un virage, puis la 1re colline
-  push();ici('depart');gn(0,gP);droite(220*LL);creux(r()<.5?'S':'balayage');recentre();ici('erg0');
+  push();ici('depart');gn(0,gP);droite(160*LL);creux('balayage');recentre();ici('erg0'); // (l'ouverture est DOUCE : un seul grand balayage — la caisse part très vite)
   /* LES LIEUX : des creux LONGS (la place où se posent les scènes) — l'allée des obélisques, la cuvette d'argile, la place des colosses —, tirés dans l'ordre ; le premier creux reste calme */
-  const plan=['avenue','vlei','plaza','rythme'];for(let i=plan.length-1;i>0;i--){const j=(r()*(i+1))|0,x9=plan[i];plan[i]=plan[j];plan[j]=x9;}plan.unshift('');
+  const plan=['avenue','vlei','rythme','rythme'];for(let i=plan.length-1;i>0;i--){const j=(r()*(i+1))|0,x9=plan[i];plan[i]=plan[j];plan[j]=x9;}plan.unshift('plaza');plan.unshift(''); // (la PLACE des colosses : toujours le 1er lieu — la signature de la map ; les autres lieux sont tirés)
   const grande=1+((r()*2)|0);let nv=0;
-  while(nv<9&&(nv<2||B-(uh+FIN)>LEN9[plan[nv]||'']*LL*.5)){vague({sp:plan[nv]||'',big:nv===grande});nv++;yield;}
+  while(nv<9&&(nv<2||B-(uh+FIN)>LEN9[plan[nv]||'']*LL*.32)){vague({sp:plan[nv]||'',big:nv===grande});nv++;yield;}
   vague({fin:true,xtra:Math.max(0,Math.min(500,B-(uh+FIN)))}); // (le reste du budget de longueur va à la descente finale et à la droite d'arrivée)
   // LES ALTITUDES : GN = (u, pente), linéaire entre deux nœuds (des raccords PARABOLIQUES : crêtes et creux arrondis) ; y est l'intégrale de la pente le long de la route
   {const gAt=u=>{if(u<=GN[0][0])return GN[0][1];for(let k=1;k<GN.length;k++)if(u<=GN[k][0]){const a=GN[k-1],b=GN[k],t=(u-a[0])/Math.max(1e-6,b[0]-a[0]);return a[1]+(b[1]-a[1])*t;}return GN[GN.length-1][1];};
@@ -94,7 +94,7 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
   // l'AXE : toute la route tournée autour du départ (le soleil de l'heure, lui, reste celui du monde)
   const ax=(r()-.5)*2*DN_HZ.axe/57.2958,ca=Math.cos(ax),sa=Math.sin(ax),tr=v=>{const x=v.x;v.x=x*ca+v.z*sa;v.z=v.z*ca-x*sa;};
   for(const v of C)tr(v);for(const k in Q){tr(Q[k].p);Q[k].phi+=ax;}
-  for(const k in Q){const o=Q[k];let bi=0,bd=1e18;for(let j=0;j<C.length;j++){const d=C[j].distanceToSquared(o.p);if(d<bd){bd=d;bi=j;}}o.p.copy(C[bi]);}
+  for(const k in Q){const o=Q[k];o.p.copy(C[Math.max(0,Math.min(C.length-1,o.i))]);} // (le repère = le point de contrôle où il a été posé : l'index, pas la plus proche distance — le y du repère n'était pas tenu)
   DN.Q=Q;DN.fe=FE;DN.gp=[];DN.sep=0;DN.hz={axe:Math.round(ax*57.2958),B:Math.round(B),LL:+LL.toFixed(2),RMIN:Math.round(RMIN),VN:Math.round(1.35*VW),sauts:FE.length,vagues:FE.length,pieces:FE.map(function(f){return f.sp||(f.big?'grande':f.fin?'fin':'vague');})};
   return C;
 }
@@ -129,7 +129,7 @@ function dnHauteur(x,z,o){const F=DN.F;o=o||DN_O9;let h=dnFar(x,z,o);
    arrive à Hh à Wh mètres (la crête), puis retombe à 31° vers le désert ; Hh < 0 : l'ÉPERON — il tombe de |Hh| (17° puis 33°) jusqu'à la mer ; Dn : la profondeur de la mer sous la berme. */
 function dnPf(dd,Hh,Wh,Dn){if(dd<=0)return 0;
   if(Hh>0){const t=dd/Wh;if(t<1)return Hh*(.45*t+.275*(1-Math.cos(Math.PI*t)));const q=Hh-.60*(dd-Wh),k=16,hh=Math.max(k-Math.abs(q+Dn),0)/k;return Math.max(q,-Dn)+hh*hh*k/4;}
-  const F=-Hh,dr=.30*dd+.36*(dd>26?dd-26:0),k=14,hh=Math.max(k-Math.abs(dr-F),0)/k;return -(Math.min(dr,F)-hh*hh*k/4);}
+  const F=-Hh,dr=.30*dd+.36*(dd>26?dd-26:0),k=14,hh=Math.max(k-Math.abs(dr-F),0)/k;return -(Math.min(dr,F)-hh*hh*k/4*(dd<10?dd/10:1));}
 /* le terrain PRESCRIT d'UN bras de route, vu depuis l'échantillon i0 (affiné ±4) : o.H = sa hauteur, o.d = la distance à l'axe, o.w = son poids contre le désert — faux hors de portée.
    La berme : le sable se tient 1,6 m sous le bitume sur 10 m au-delà du bord (la caisse qui décolle ne le voit pas, la dalle n'a qu'un liseré de tranche), puis le profil du côté (hP/wP, hM/wM). */
 function dnProfil(S,RE,i0,x,z,o,RH,TH){

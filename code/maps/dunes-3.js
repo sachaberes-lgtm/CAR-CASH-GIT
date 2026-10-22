@@ -73,8 +73,8 @@ function dnKit(sd0){
       for(let r=0;r<R;r++)for(let c=0;c<Cn;c++)Nn2[r][c]=nz(Nn2[r][c]);
       for(let r=0;r<R-1;r++)for(let c=0;c<Cn;c++){const c2=(c+1)%Cn,f=jf(.03),cc=Array.isArray(col[0])?col[r%col.length]:col,kr=Array.isArray(k)?k[r%k.length]:(k||0);
         tri(Pp[r][c],Pp[r][c2],Pp[r+1][c2],cc,kr,f,null,[Nn2[r][c],Nn2[r][c2],Nn2[r+1][c2]]);tri(Pp[r][c],Pp[r+1][c2],Pp[r+1][c],cc,kr,f,null,[Nn2[r][c],Nn2[r+1][c2],Nn2[r+1][c]]);}
-      const bout=(r,o)=>{const cc=Array.isArray(col[0])?col[0]:col,f=jf(.03);for(let c=0;c<Cn;c++){const c2=(c+1)%Cn;tri(cen[r],Pp[r][c],Pp[r][c2],cc,k||0,f,o);}};
-      if(cap&1)bout(0,cen[1]);if(cap&2)bout(R-1,cen[R-2]);},
+      const bout=(r,o,kk)=>{const cc=Array.isArray(col[0])?col[0]:col,f=jf(.03);for(let c=0;c<Cn;c++){const c2=(c+1)%Cn;tri(cen[r],Pp[r][c],Pp[r][c2],cc,kk||0,f,o);}};
+      if(cap&1)bout(0,cen[1],Array.isArray(k)?k[0]:k);if(cap&2)bout(R-1,cen[R-2],Array.isArray(k)?k[k.length-1]:k);},
     fin:()=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(Nm,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));
       g.setAttribute('aK',new THREE.Float32BufferAttribute(K,1));g.computeBoundingSphere();return g;},
     n:()=>P.length/3
@@ -118,7 +118,7 @@ const DN_MOD={
   // LE PYLÔNE (une tour de temple, h = 30, base 14 × 9) : murs en fruit, corniche à gorge, quatre mortaises de mâts, un cartouche gravé
   pylone:function(){const g=dnKit(23),C=DN_COL,h=30,w0=14,d0=9,w1=11.4,d1=7;g.box(0,0,0,w0*1.12,1.1,d0*1.14,C.gres2,1,1);g.frus(0,1.1,0,w0,d0,w1,d1,h-1.1,C.gres,1,0,0,0,.05);
     g.box(0,h-.2,0,w1*1.1,1.6,d1*1.14,C.gres2,1);g.box(0,h+1.3,0,w1*1.16,.7,d1*1.2,C.or,3);
-    for(const sx of [-1,1]){g.box(sx*4.2,3,-d0/2+.1,.9,h*.62,.3,C.noir,0);g.tube([sx*4.2,.5,-d0/2-.5],[sx*4.2,h*.98,-d0/2-.5],.30,.24,6,C.noir,0);g.sph(sx*4.2,h*.98+.3,-d0/2-.5,.4,.4,.4,3,6,C.or,3);dnFlag(g,sx*4.2+.3,h*.98-3.2,-d0/2-.5,8,3.2,[C.terre,C.or,C.azur,C.or],8);}
+    for(const sx of [-1,1]){g.box(sx*4.2,3,-d0/2+.1,.8,h*.62,.3,[.40,.27,.20],0);g.tube([sx*4.2,.5,-d0/2-.5],[sx*4.2,h*.98,-d0/2-.5],.30,.24,6,C.noir,0);g.sph(sx*4.2,h*.98+.3,-d0/2-.5,.4,.4,.4,3,6,C.or,3);dnFlag(g,sx*4.2+.3,h*.98-3.2,-d0/2-.5,8,3.2,[C.terre,C.or,C.azur,C.or],8);}
     g.box(0,h*.42,-d0/2+.05+(d0-d1)*.5*.42,6.4,h*.26,.4,C.gres,4);g.box(0,h*.42+.2,-d0/2+.06+(d0-d1)*.5*.42,6.0,.5,.45,C.or,3);g.box(0,h*.42+h*.26-.7,-d0/2+.06+(d0-d1)*.5*.42,6.0,.5,.45,C.lapis,3);return g.fin();},
   // LA COLONNE (h = 22, rayon 2,3) : base, fût qui se resserre, collier d'or, chapiteau en bouton de papyrus, abaque
   colonne:function(){const g=dnKit(31),C=DN_COL,h=22,r=2.3;g.box(0,0,0,r*3,.5,r*3,C.gres2,1,1);

@@ -37,7 +37,7 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
      côté ombre, un SATIN sur les crêtes de rides et des ÉCLATS qui scintillent quand l'œil bouge. Chaque octave s'efface avant de tomber sous ~3 px (fwidth : jamais de moiré). */
   '  float rm=(1.-.85*pan)*(1.-veg)*(1.-wat)*(1.-smoothstep(.22,.42,stp0))*uK.y,rv=0.;',
   '  if(rm>.001&&uMo.z>.001){float rot=(n0.r-.5)*.8+(n1.g-.5)*.6;vec2 d=vec2(Wd.x*cos(rot)-Wd.y*sin(rot),Wd.x*sin(rot)+Wd.y*cos(rot));',
-  '    float wp=2.6*(n2.r-.5)+1.3*(n2.g-.5);',
+  '    float wp=1.5*(n2.r-.5)+.75*(n2.g-.5);',
   '    float k1=(1.-smoothstep(.16,.42,fp/.62))*step(.6,uMo.z),k2=(1.-smoothstep(.16,.42,fp/3.1))*step(.2,uMo.z),k3=1.-smoothstep(.16,.42,fp/13.);',
   '    float a1=.20*k1*(1.-smoothstep(30.,95.,dist)),a2=.13*k2*(1.-smoothstep(300.,900.,dist)),a3=.09*k3*(1.-smoothstep(1000.,2600.,dist));',
   '    float s1=cos(6.2832*(dot(pp,d)/.62+wp)),s2=cos(6.2832*(dot(pp,d)/3.1+.8*wp+n2.r*1.5)),s3=cos(6.2832*(dot(pp,d)/13.+.5*wp+1.2*n1.r));',
@@ -46,11 +46,11 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   '  float st9=.5;if(uMo.z>.001)st9=texture2D(uNZ,vec2(dot(pp,Wd)/90.,dot(pp,vec2(-Wd.y,Wd.x))/15.)).g;', // les traînées longues, dans le sens du vent
   '  float tn=clamp(.5+(n0.r-.5)*1.7+(n1.g-.5)*.8+(st9-.5)*.55,0.,1.);vec3 sa=mix(uSaA,uSaB,tn)*(.96+.08*n2.b)*(1.+rv*.55);',
   '  sa=mix(sa,uSaL,smoothstep(.80,1.,du)*.40);', // la crête, plus claire
-  '  float cr=pan>.01?texture2D(uNZ,vW.xz/14.).r:.5,cl=pan*smoothstep(.16,.05,stp);vec3 clay=uClay*(.90+.12*n2.g)*(1.-.30*smoothstep(.465,.5,cr)*smoothstep(.535,.5,cr));', // l'argile blanche et ses craquelures
-  '  vec3 gv=uVeg*(.74+.38*n2.g)*(.90+.20*(veg>.01?texture2D(uNZ,pp/1.9).b:.5));gv=mix(gv,gv*vec3(1.30,1.12,.62),smoothstep(.55,.80,n1.r)*.8);vec3 col=mix(sa,clay,cl);col=mix(col,gv,veg);',
+  '  float cr=texture2D(uNZ,vW.xz/14.).r,cl=pan*smoothstep(.16,.05,stp);vec3 clay=uClay*(.90+.12*n2.g)*(1.-.30*smoothstep(.465,.5,cr)*smoothstep(.535,.5,cr));', // l'argile blanche et ses craquelures
+  '  vec3 gv=uVeg*(.74+.38*n2.g)*(.90+.20*texture2D(uNZ,pp/1.9).b);gv=mix(gv,gv*vec3(1.30,1.12,.62),smoothstep(.55,.80,n1.r)*.8);vec3 col=mix(sa,clay,cl);col=mix(col,gv,veg);',
   /* LA ROCHE (2026-10-22) : les flancs raides — des buttes de grès — se couvrent de STRATES (des lits de ~20 m, du terracotta sombre à la crème, ondulés par le bruit, un joint sombre entre deux lits) ; sur le plateau, le sable reste */
   '  float rk=clamp(vB.y,0.,1.)*smoothstep(.08,.24,stp);', // (la roche : les BUTTES seulement — les parois de sable restent du sable)
-  '  if(rk>.01){float yy=vW.y*.07+.9*n1.r+.35*n2.g,id=floor(yy),fb=fract(yy),h1=dh2(vec2(id,3.7)),h2=dh2(vec2(id,9.1));',
+  '  if(rk>.01){float yy=vW.y*.07+.42*n1.r+.12*n2.g,id=floor(yy),fb=fract(yy),h1=dh2(vec2(id,3.7)),h2=dh2(vec2(id,9.1));',
   '    vec3 rc=mix(uSaB*.74,uSaL*.98,h1*h1)*(.82+.36*h2)*(1.-.22*(1.-smoothstep(0.,.07,fb)));',
   '    float ve=texture2D(uNZ,vec2(dot(vW.xz,vec2(.7071,.7071))/11.,vW.y/70.)).g;rc*=.84+.32*ve;', // les cannelures verticales de l'érosion
   '    col=mix(col,rc,rk);}',
@@ -470,7 +470,7 @@ function dnPartTick(dt,c){const k9=DN.on&&started?Math.max(c.dnQ?c.dnQ[2]:0,DN.d
 function dunesChauffe(){ // au menu (chauffeDivers) : le sable et les décors compilés et dessinés une fois hors écran — 0 programme en course
   if(!DUNES_OK)return;dnTerrain();const m=DN.mesh,v=m.visible,n=DN.geo.instanceCount;DN.geo.instanceCount=1;DN.aN.array[2]=64;m.visible=true;
   const M9=dnMats(),g9=new THREE.Group(),bx9=new THREE.BoxGeometry(1,1,1),c9=new Float32Array(bx9.attributes.position.count*3).fill(1);bx9.setAttribute('color',new THREE.BufferAttribute(c9,3));bx9.setAttribute('aK',new THREE.BufferAttribute(new Float32Array(bx9.attributes.position.count),1));
-  for(const mt of [M9.t,M9.g]){g9.add(new THREE.Mesh(bx9,mt));const im=new THREE.InstancedMesh(bx9,mt,1);im.setMatrixAt(0,new THREE.Matrix4());g9.add(im);}
+  for(const mt of [M9.t,M9.g,M9.d]){g9.add(new THREE.Mesh(bx9,mt));const im=new THREE.InstancedMesh(bx9,mt,1);im.setMatrixAt(0,new THREE.Matrix4());g9.add(im);}
   g9.traverse(function(o){o.frustumCulled=false;});scene.add(g9);const P9=dnPart(),pv=P9.visible;P9.visible=true;
   try{chauffeRendu([m,g9,P9]);}finally{m.visible=v;DN.geo.instanceCount=n;scene.remove(g9);bx9.dispose();P9.visible=pv;}}
 window.dbgDunes=function(k,a,b,c,d){
@@ -481,6 +481,9 @@ window.dbgDunes=function(k,a,b,c,d){
     return {dessus:dessus,dessusOu:od.join(' '),margeMin:+pire.toFixed(1),decorsSurLaRoute:mo,sep:DN.sep};}
   if(k==='ech'){if(!DN.on||!DN.S)return 'pas de dunes';const S9=DN.S,o=[];for(let q=+a||0;q<=(+b||+a||0);q+=(+c||8)){const i=Math.max(0,Math.min(S9.n-1,Math.round(q/S9.ds))),f=function(v){return +v[i].toFixed(1);}; /* (banc) les paramètres du terrain prescrit à l'abscisse q : route, mer, côtés (h = la colline ou l'éperon, w = sa largeur) */
       o.push({s:Math.round(q),y:f(S9.y),B:f(S9.B),hP:f(S9.hP),wP:f(S9.wP),hM:f(S9.hM),wM:f(S9.wM),RE:Math.round(S9.RE[i]),pw:f(S9.pw),pan:f(S9.pan)});}return o;}
+  if(k==='suit'){if(!started||gameOver)return 'pas de course';if(!paused)togglePause();const q=carGroup.position,f=DN_V.set(0,0,1).applyQuaternion(carGroup.quaternion); /* (banc) gèle la course et pose la caméra derrière la caisse : a = recul (m), b = hauteur, c = champ */
+    camera.position.set(q.x-f.x*(a||14),q.y+(b||5),q.z-f.z*(a||14));camera.up.set(0,1,0);camera.lookAt(q.x+f.x*8,q.y+1,q.z+f.z*8);if(c)camera.fov=c;camera.updateProjectionMatrix();camera.updateMatrixWorld();
+    skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return {car:q.toArray().map(Math.round),s:Math.round(s),mode:mode};}
   if(k==='sauts')return (DN.lev||[]).map(function(v,j){return {n:j,tag:v.tag,lip:Math.round(v.s),pose:Math.round(v.e),vide:Math.round(v.e-v.s),visee:Math.round(v.aim),segment:v.seg,dy:DN.S?Math.round(DN.S.y[Math.min(DN.S.n-1,Math.round(v.s/DN.S.ds))]-DN.S.y[Math.min(DN.S.n-1,Math.round(v.e/DN.S.ds))]):0};});
   if(k==='tp'){if(!started||gameOver||mode!=='drive')return 'pas au sol';s=Math.max(0,Math.min(L-30,+a||0));lat=0;if(b!=null)vA=+b/SPD;return {s:Math.round(s),vA:+vA.toFixed(1)};} /* (banc) la caisse posée à l'abscisse a, à la vitesse monde b (m/s) */
   if(k==='marge'){if(!DN.on)return 'pas de dunes';const S9=DN.S,o=[];for(let q=+a||0;q<=(+b||L);q+=(+c||10)){const i=Math.min(S9.n-1,Math.round(q/S9.ds));o.push(Math.round(q)+':'+(S9.y[i]-dnHauteur(S9.x[i],S9.z[i])).toFixed(0)+'/D'+S9.D[i].toFixed(0)+'/z'+S9.zC[i].toFixed(1));}return o.join(' ');} /* (banc) la hauteur de la ligne de route au-dessus du sable, de a à b tous les c m */
