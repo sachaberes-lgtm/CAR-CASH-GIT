@@ -26521,7 +26521,7 @@ const CARS=[
  {name:'LE CAÏD',         shape:'caid',    color:0xd2d5d9,accent:0x16171b,maxKmh:275,accel:31,turn:2.7, h:2.01,w:2.20,l:5.51,spoiler:0, /* (2026-10-19, Léo : « sans le toit, comme sur la photo exactement ») le pick-up blanc nacré de sa photo (avant : 0x7cb83f, le SUV 1,98 × 5,00) */
   desc:'Trois tonnes de cube. Personne ne t\'a jamais demandé de te pousser.'},
  {retire:1,name:'SA MAJESTÉ'},
- {name:'ROSSO 40',        shape:'rosso',   color:0xe8121c,accent:0x131417,maxKmh:420,accel:48,turn:3.05,h:1.12,w:1.98,l:4.36,spoiler:0,
+ {name:'ROSSO 40',        shape:'rosso',   color:0xe8121c,accent:0x131417,maxKmh:420,accel:48,turn:3.05,h:1.12,w:1.98,l:4.36,spoiler:0,rar:'epique', /* (2026-10-22, Sacha : « tableau des voitures » ROSSO 40 épique à 400 000 $ : sans cette ligne le prix la ferait RARE) */
   desc:'Rouge course, aileron plateau. La caisse de rêve : 1,5 million, et chaque dollar se voit.'},
  {name:'POSTER 84',       shape:'poster',  color:0xffc414,accent:0x131417,maxKmh:480,accel:55,turn:3.15,h:1.07,w:2.00,l:4.14,spoiler:0,
   desc:'Elle était punaisée au mur de ta chambre. Maintenant, c\'est toi qui la conduis.'},
@@ -26614,8 +26614,7 @@ const CARS=[
  {retire:1,name:'LA DÉESSE'},
  {name:'L\'AIGLE DE FEU',color:0x0f0f11,accent:0xd9a520,maxKmh:340,accel:38,turn:2.6,h:1.25,w:1.85,l:5.1,spoiler:0,shape:'e_aigle',rar:'rare', // (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE → RARE
   desc:'Un oiseau d\'or sur le capot, un shérif dans le rétro. Le shérif n\'a jamais rattrapé l\'oiseau.'},
- {name:'LA ZED',color:0xff6a14,accent:0x131417,maxKmh:330,accel:37,turn:2.9,h:1.28,w:1.63,l:4.14,spoiler:0,shape:'e_zed',rar:'epique', /* (2026-10-18, Léo) ÉPIQUE : à 1,6 M$ elle était la rare la plus chère, plus chère que des épiques */
-  desc:'Six cylindres, un capot d\'un kilomètre et des rétros sur les ailes : le samouraï a troqué le sabre.'},
+ {retire:1,name:'LA ZED'}, /* (2026-10-22, Sacha : « tableau des voitures » : à supprimer) RETIRÉE ; sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement */
  {name:'LA FÉLINE',color:0xeee3c6,accent:0xe9ecf0,maxKmh:320,accel:36,turn:2.8,h:1.22,w:1.66,l:4.45,spoiler:0,shape:'e_feline',rar:'legendaire',
   desc:'Un capot si long qu\'il arrive au virage avant toi. Élue plus belle du monde, et elle le sait.'},
  {name:'LA RAIE',color:0xc4161c,accent:0x131417,maxKmh:360,accel:40,turn:2.7,h:1.21,w:1.75,l:4.64,spoiler:0,shape:'e_raie',rar:'epique', // (2026-10-18, Sacha) REMISE dans le jeu (retirée le 14/10) : épique à 2,5 M, comme avant le 6/10
@@ -26637,8 +26636,7 @@ const CARS=[
  {retire:1,name:'LA GROUPE B'}, /* (2026-10-18 soir, Sacha : « enlève la groupe B ») RETIRÉE : sa ligne reste (index de sauvegarde), qui l'avait est remboursé par `san` ; son gabarit b_groupeb reste dans SHAPES */
  {name:'LE HOT ROD',color:0xc8141c,accent:0xe9ecf0,maxKmh:380,accel:42,turn:2.5,h:1.4,w:1.7,l:3.9,spoiler:0,shape:'c_hotrod',rar:'defi',
   desc:'Un capot ? Pour cacher un compresseur pareil ? Tu rigoles. Même les flammes sont d’époque.'},
- {name:'LA PUCE',color:0xc8141e,accent:0xf4f4f0,maxKmh:320,accel:36,turn:3.2,h:1.35,w:1.41,l:3.05,spoiler:0,shape:'d_puce',rar:'defi',
-  desc:'Trois mètres, quatre phares, zéro complexe. Elle a battu des monstres sur la neige : toi, c\'est l\'apéro.'},
+ {retire:1,name:'LA PUCE'}, /* (2026-10-22, Sacha : « tableau des voitures » : à supprimer) RETIRÉE ; sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement */
 /* ===== LES FICHES DES 50 — FIN ===== */
  // (2026-09-27) LA CAISSE-NUAGE — la récompense de la CAMPAGNE NUAGES : un petit cumulus monté comme une vraie voiture (châssis, roues,
  // feux sobres), taillé dans la même ouate que le ciel. Elle ne s'achète pas : on la CHASSE au niveau 10 (voir fantomeTick) et elle
@@ -26744,8 +26742,7 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LE TOFU',shape:'ae86',color:0xf2f2ee,accent:0x141414,maxKmh:280,accel:32,turn:3.1,h:1.28,w:1.68,l:4.22,spoiler:0,rar:'rare', // 86 — discussion JAPONAISES : le petit coupé à hayon de 1983 (la ligne de la Toyota Sprinter Trueno AE86, 3 portes GT-APEX), livrée panda, phares escamotables (SHAPES.ae86)
-  desc:'Livreur de tofu au petit matin, roi de la descente la nuit. Le verre d\'eau posé sur le tableau de bord ne se renverse jamais.'},
+ {retire:1,name:'LE TOFU'}, /* (2026-10-22, Sacha : « tableau des voitures » : à supprimer) RETIRÉE ; sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement */
  /* · */
  /* · */
  /* · */
@@ -44546,10 +44543,10 @@ const CAR_UNLOCK=[
      automatique (`dbgAuto`, aucune figure, aucun nitro) encaisse ~2 600 $ en une minute avant de tomber ;
      un débutant fait 200 à 1 000 $. L'ancien 25 000 $ demandait donc ~30 parties pour la 1re caisse :
      un mur. Cible : la 1re caisse en 10-15 min de jeu (parties + primes de contrat), puis ×6-7 par marche. */
-  {p:40e3},             // ELDORADO — (2026-10-17, Sacha : « pas 3 000 dollars, elle doit coûter 40 000 dollars » — 3 000 → 40 000, juste sous LE CAÏD (50 000) ; le même jour LE CHARGEUR (60 000), LA BAVAROISE (100 000) et LE DÉFIEUR (120 000) montent aussi : l'ELDORADO reste la 1re caisse à l'argent) — (2026-10-14 soir, Sacha : option A de passation/ECONOMIE.md — 10 000 → 3 000 : la 1re caisse en 3-4 parties de joueur moyen, aucun gain ne change) — (2026-10-14, équilibrage : 24 000 → 10 000 — la 1re caisse à l'argent depuis le retrait des communes : un débutant l'avait en ~58 parties, ~22 désormais) — (2026-09-26) RARE : les 14 COMMUNES (1 500 → 15 000 $) prennent le rôle de « première caisse »
-  {p:180e3},            // LE CAÏD — RARE (2026-10-06 : 60 000 → 50 000) ; 50 000 → 180 000 : c'est le HUMMER EV désormais ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
+  {p:50e3},/* (2026-10-22, Sacha : « tableau des voitures » 40 000 → 50 000) */// ELDORADO — (2026-10-17, Sacha : « pas 3 000 dollars, elle doit coûter 40 000 dollars » — 3 000 → 40 000, juste sous LE CAÏD (50 000) ; le même jour LE CHARGEUR (60 000), LA BAVAROISE (100 000) et LE DÉFIEUR (120 000) montent aussi : l'ELDORADO reste la 1re caisse à l'argent) — (2026-10-14 soir, Sacha : option A de passation/ECONOMIE.md — 10 000 → 3 000 : la 1re caisse en 3-4 parties de joueur moyen, aucun gain ne change) — (2026-10-14, équilibrage : 24 000 → 10 000 — la 1re caisse à l'argent depuis le retrait des communes : un débutant l'avait en ~58 parties, ~22 désormais) — (2026-09-26) RARE : les 14 COMMUNES (1 500 → 15 000 $) prennent le rôle de « première caisse »
+  {p:60e3},/* (2026-10-22, Sacha : « tableau des voitures » 180 000 → 60 000) */ // LE CAÏD — RARE (2026-10-06 : 60 000 → 50 000) ; 50 000 → 180 000 : c'est le HUMMER EV désormais ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
   {p:180e3},            // (2026-10-06 : RETIRÉE, le prix sert au remboursement) SA MAJESTÉ — RARE, la plus chère des rares : l'argent achète la Rolls, c'est même à ça qu'il sert
-  {p:4e6},              // (2026-10-19 : 2,5 M → 4 M, la plus chère des caisses à l'argent du jeu ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) (2026-10-06 : 1,5 M → 2,5 M) ROSSO 40 — (2026-09-25 : le mode Survivant est retiré, un seul mode de jeu) la caisse de RÊVE, à 1,5 M
+  {p:400e3},/* (2026-10-22, Sacha : « tableau des voitures » 4 000 000 → 400 000) */ // (2026-10-19 : 2,5 M → 4 M, la plus chère des caisses à l'argent du jeu ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) (2026-10-06 : 1,5 M → 2,5 M) ROSSO 40 — (2026-09-25 : le mode Survivant est retiré, un seul mode de jeu) la caisse de RÊVE, à 1,5 M
   {k:'aura',  v:6},     // POSTER 84 — le poster se mérite au style : rang MYTHE, l'argent n'y peut rien
   {k:'carnet',v:1},     // LA BULLE — contrat n° 1
   {k:'carnet',v:2},     // LE COMBI — contrat n° 2
@@ -44587,10 +44584,10 @@ const CAR_UNLOCK=[
   {p:85000}, // LE TRIDENT — (2026-10-06) RETIRÉE
   {p:100000}, // LA HUIT — (2026-10-06) RETIRÉE
   {p:120000}, // LE SAMOURAÏ
-  {p:140000}, // LA VETTE
+  {p:90000},/* (2026-10-22, Sacha : « tableau des voitures » 140 000 → 90 000) */ // LA VETTE
   {p:160000}, // LE CHÂTELAIN — (2026-10-06) RETIRÉE
-  {p:200000}, // LA GRANDE ANGLAISE
-  {p:300000}, // LE CHARGEUR 69
+  {p:130000},/* (2026-10-22, Sacha : « tableau des voitures » 200 000 → 130 000) */ // LA GRANDE ANGLAISE
+  {p:70000},/* (2026-10-22, Sacha : « tableau des voitures » 300 000 → 70 000) */ // LE CHARGEUR 69
   {p:380000}, // L'ÉTALON — (2026-10-06) RETIRÉE
   {p:800000}, // LA QUEUE DE CANARD — (2026-10-19) 550 000 → 800 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) — (2026-10-18, Léo) 460 000 → 550 000 : épique, elle passe au-dessus des exotiques (LA GROUPE B 500 000)
   {p:550000}, // LA DAYTONA
@@ -44602,7 +44599,7 @@ const CAR_UNLOCK=[
   {p:800000}, // L'AIGLE DE FEU (2026-10-06 : 1,3 M → 1 M) (2026-10-09, Léo, fiche de la salle blanche) RARE à 800 000 : entre LA QUEUE DE CANARD et LA NOCTAMBULE (ex-LA CHAUVE-SOURIS), l'ordre de la fiche
   {p:600000}, // (2026-10-19) 1 600 000 → 600 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) — // LA ZED
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LA FÉLINE — (2026-10-06) LÉGENDAIRE en boutique (était épique, 2 M)
-  {p:2500000}, // LA RAIE — (2026-10-18, Sacha) REMISE dans le jeu : épique à 2,5 M, comme avant le 6/10 (« DÉFI À VENIR » du 6 au 14/10, retirée ensuite)
+  {p:260000},/* (2026-10-22, Sacha : « tableau des voitures » 2 500 000 → 260 000) */ // LA RAIE — (2026-10-18, Sacha) REMISE dans le jeu : épique à 2,5 M, comme avant le 6/10 (« DÉFI À VENIR » du 6 au 14/10, retirée ensuite)
   {k:'runs',v:100}, // L'ÉTERNELLE — (2026-10-14, PILOTAGE) DÉFI : 100 PARTIES jouées (`ex.runs`, déjà compté : les parties passées valent) — c'était 100 pubs, impossible depuis qu'il n'y a plus de pubs — (2026-10-06) DÉFI : 100 pubs (était en boutique, 9,99 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE TRÔNE CENTRAL (2026-10-06 : 7,99 → 1,61 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE SPECTRE (2026-10-06 : 7,99 → 1,61 €)
@@ -44626,7 +44623,7 @@ const CAR_UNLOCK=[
   {p:3800000}, // (2026-10-11, Léo : « génère-la en 3D dans mon jeu ») LA MERCURE — ÉPIQUE, juste après LA DÉFERLANTE
   {p:4000000}, // (2026-10-14, Léo : « fais une voiture tête de doge ») LE DOGE — ÉPIQUE, juste après LA MERCURE
   {p:4200000}, // (2026-10-16, Léo : « une belle Porsche Cayenne rose Barbie ») LA POUPÉE — ÉPIQUE, juste après LE DOGE
-  {p:2000000}, // (2026-10-19) 4 400 000 → 2 000 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) (2026-10-16, Léo : « Taycan 4S », blanche, « la perle ») LA PERLE — ÉPIQUE, juste après LA POUPÉE
+  {p:240000},/* (2026-10-22, Sacha : « tableau des voitures » 2 000 000 → 240 000) */ // (2026-10-19) 4 400 000 → 2 000 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) (2026-10-16, Léo : « Taycan 4S », blanche, « la perle ») LA PERLE — ÉPIQUE, juste après LA POUPÉE
   /* LES NOUVELLES VOITURES (2026-10-18) — prix provisoires (réglables dans la salle blanche) : communes 2 500 → 8 000 $, rares 25 000 → 50 000 $ */
   /* · */
   /* · */
@@ -44655,7 +44652,7 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {p:50000}, // 85 — RARE : Mazda MX-5 RF (2016), argent
+  {p:80000},/* (2026-10-22, Sacha : « tableau des voitures » 50 000 → 80 000) */ // 85 — RARE : Mazda MX-5 RF (2016), argent
   /* · */
   /* · */
   /* · */
@@ -44663,7 +44660,7 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {p:1500000}, // 87 — ÉPIQUE : Peugeot 208 T16 Pikes Peak (2013), LA BÊTE — (2026-10-19) 1 000 000 → 1 500 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
+  {p:220000},/* (2026-10-22, Sacha : « tableau des voitures » 1 500 000 → 220 000) */ // 87 — ÉPIQUE : Peugeot 208 T16 Pikes Peak (2013), LA BÊTE — (2026-10-19) 1 000 000 → 1 500 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
   /* · */
   /* · */
   /* · */
@@ -44687,7 +44684,7 @@ const M2=[
   {id:'parf10',f:'exploit',k:'parf',v:10,u:'',r:{car:'LE COMBI'},t:'FAIS {v} POSES PARFAITES D\'AFFILÉE',en:'LAND {v} PERFECTS IN A ROW'},
   {id:'fren',f:'exploit',k:'fren',v:1,u:'b',r:{cash:10000},t:'ATTEINS LA FRÉNÉSIE',en:'REACH FRENZY'},
   {id:'fren30',f:'exploit',k:'frenT',v:30,u:'s',r:{cash:25000},t:'TIENS LA FRÉNÉSIE {v} S',en:'HOLD FRENZY FOR {v} S'}, // (2026-10-19, Sacha) avant : traînée sang — absente du garage, l'argent à la place
-  {id:'kmh1000',f:'exploit',k:'kmh',v:1000,u:'kmh',r:{car:'LA DOLORÈS'},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
+  {id:'kmh1000',f:'exploit',k:'kmh',v:1000,u:'kmh',r:{cash:20000},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
   {id:'vie5min',f:'exploit',k:'vie',v:300,u:'mn',r:{cash:30000},t:'TIENS 5 MIN SANS MOURIR',en:'SURVIVE 5 MIN WITHOUT DYING'}, // (2026-10-19, Sacha) avant : LA JEEP — absente du garage, l'argent à la place
   {id:'tours5',f:'exploit',k:'tours',v:5,u:'',r:{cash:20000},t:'FRÔLE {v} TOURS DANS UN SEUL SAUT (LA VILLE)',en:'SKIM {v} TOWERS IN ONE JUMP (THE CITY)'}, // (2026-10-19, Sacha) avant : LE TAXI JAUNE — absente du garage, l'argent à la place
   {id:'parfmaps',f:'exploit',k:'cartesP',v:'tot',u:'',r:{car:'LA STRATOS'},t:'POSE-TOI EN PARFAIT SUR CHAQUE MAP',en:'LAND A PERFECT ON EVERY MAP'}, // (proposition de la demande : LA STRATOS, à valider par Sacha)
@@ -44709,6 +44706,10 @@ const M2=[
   {id:'car10',f:'collection',k:'cars',v:10,u:'',r:{cash:150000},t:'COLLECTE {v} VOITURES',en:'COLLECT {v} CARS'},
   {id:'car20',f:'collection',k:'cars',v:20,u:'',r:{cash:300000},t:'COLLECTE {v} VOITURES',en:'COLLECT {v} CARS'},
   {id:'carall',f:'collection',k:'carsT',v:'tot',u:'',r:{car:'LE TRÔNE CENTRAL'},t:'COLLECTE TOUTES LES VOITURES',en:'COLLECT EVERY CAR'},
+  /* (2026-10-22, Sacha : « tableau des voitures ») LA DOLORÈS : « débloque toutes les voitures rares » (celles qui s'achètent : les rares gagnées par mission ne comptent pas, sinon elle se bloquerait elle-même) ; l'ancienne mission « DÉPASSE 1000 KM/H » paie 20 000 $ à la place (À VALIDER PAR SACHA) */
+  {id:'rares',f:'collection',k:'raresT',v:'tot',u:'',r:{car:'LA DOLORÈS'},t:'DÉBLOQUE TOUTES LES VOITURES RARES',en:'UNLOCK EVERY RARE CAR'},
+  /* (2026-10-22, Sacha) LE CHARGEUR : « réussir 10 missions » — secrète, comme dans le tableau */
+  {id:'mis10',f:'secret',k:'misok',v:10,u:'',r:{car:'LE CHARGEUR'},t:'RÉUSSIS {v} MISSIONS',en:'COMPLETE {v} MISSIONS'},
   {id:'col5',f:'collection',k:'peint',v:5,u:'',r:{cash:10000},t:'COLLECTE {v} COULEURS',en:'COLLECT {v} PAINTS'},
   {id:'col10',f:'collection',k:'peint',v:10,u:'',r:{cash:10000},t:'COLLECTE {v} COULEURS',en:'COLLECT {v} PAINTS'},
   {id:'colall',f:'collection',k:'peintT',v:'tot',u:'',r:{cat:'peinture',id:'guerrier'},t:'COLLECTE TOUTES LES COULEURS',en:'COLLECT EVERY PAINT'},
@@ -44724,6 +44725,8 @@ const M2=[
   {id:'toutall',f:'collection',k:'toutT',v:'tot',u:'',r:{cash:500000},t:'COLLECTE TOUS LES OBJETS DU JEU',en:'COLLECT EVERYTHING IN THE GAME'}, // (2026-10-19, Sacha) avant : {vide:1}, la récompense à définir — c'est l'argent
   // EXPLORATION
   {id:'maps',f:'exploration',k:'cartes',v:'tot',u:'',r:{car:'L\'ORIGAMI'},t:'JOUE SUR CHAQUE MAP AU MOINS UNE FOIS',en:'PLAY EVERY MAP AT LEAST ONCE'},
+  /* (2026-10-22, Sacha : « tableau des voitures ») LE ROUGE-GORGE : « avoir exploré chaque map » — même mesure que L'ORIGAMI (à confirmer : deux missions identiques) */
+  {id:'maps2',f:'exploration',k:'cartes',v:'tot',u:'',r:{car:'LE ROUGE-GORGE'},t:'AVOIR EXPLORÉ CHAQUE MAP',en:'HAVE EXPLORED EVERY MAP'},
   // SECRÈTES — invisibles tant qu'elles ne sont pas trouvées ; chacune donne une caisse, montrée en silhouette noire à la boutique (2026-10-19 : six d'entre elles donnent de l'ARGENT, leur caisse n'étant plus au garage — une secrète en argent n'a pas de scène de révélation, elle se RÉCUPÈRE comme les autres)
   {id:'morts100',f:'secret',k:'morts',v:100,u:'',r:{car:'LE CORBILLARD'},t:'MEURS {v} FOIS',en:'DIE {v} TIMES'},
   {id:'mort3s',f:'secret',k:'flag',v:1,u:'b',r:{cash:5000},t:'MEURS DANS LES 3 PREMIÈRES SECONDES',en:'DIE IN THE FIRST 3 SECONDS'}, // (2026-10-19, Sacha) avant : LA SANS-PERMIS — absente du garage, l'argent à la place
@@ -55696,6 +55699,8 @@ function m2Col(cat){const R=m2Reco();let n=0,tot=0,nT=0;
   if(cat==='voiture'){for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const a=m2CarAMoi(i);if(a)n++;if(!R.car[CARS[i].name]){tot++;if(a)nT++;}}}
   else{const L=COSM[cat]||[];for(const d of L){const a=m2HabAMoi(cat,d);if(a)n++;if(!m2HabReco(cat,d)){tot++;if(a)nT++;}}}
   return {n:n,tot:tot,nT:nT};}
+/* (2026-10-22) LES RARES À TOI : celles qui s'achètent (les rares gagnées par mission ne comptent pas — LA DOLORÈS se débloque en les ayant toutes) */
+function m2Rares(){const R=m2Reco();let n=0,tot=0;for(let i=0;i<CARS.length;i++){if(carRetiree(i)||carRar(i)!=='rare'||R.car[CARS[i].name])continue;tot++;if(m2CarAMoi(i))n++;}return {n:n,tot:tot};}
 function m2Tout(){let tot=0,nT=0;for(const c of ['voiture','peinture','aile','trainee','figure']){const o=m2Col(c);tot+=o.tot;nT+=o.nT;}return {tot:tot,nT:nT};}
 /* (M2_COLK est déclarée plus haut, à côté de M2K : voir là) */
 /* LA VALEUR D'UNE MISSION, maintenant (les records de la partie en cours compris) */
@@ -55722,10 +55727,12 @@ function m2Val(m){const d=SAVE.d,s=m2Etat(),r=s.r,c=s.c,ex=d.ex||{},enC=m2EnC();
     case 'prof':return r.prof||0;
     case 'flag':return s.fl.indexOf(m.id)>=0?1:0;
     case 'toutT':return m2Tout().nT;
+    case 'raresT':return m2Rares().n;
+    case 'misok':return s.ok.length;
   }
   const t=/T$/.test(m.k),o=m2Col(M2_COLK[t?m.k.slice(0,-1):m.k]);return t?o.nT:o.n;}
 function m2Seuil(m){if(m.v==='prof')return M2K.prof;if(m.v!=='tot')return m.v;
-  if(m.k==='cartes'||m.k==='cartesP')return m2Cartes().length;if(m.k==='toutT')return m2Tout().tot;
+  if(m.k==='cartes'||m.k==='cartesP')return m2Cartes().length;if(m.k==='raresT')return m2Rares().tot;if(m.k==='toutT')return m2Tout().tot;
   return m2Col(M2_COLK[m.k.slice(0,-1)]).tot;}
 function m2Txt(m){const s=String(LANG==='fr'?m.t:m.en),v=m2Seuil(m);
   return s.replace('{v}',m.u==='$'?fmtSolde(v):m.u==='s'?String(v):Math.round(v).toLocaleString(typeof LOC==='function'?LOC():'fr').replace(/[  ]/g,' '));} // « 1 000 KM/H », « 10 000 D'AURA »

@@ -3,6 +3,12 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE TABLEAU DES VOITURES, PREMIÈRE VAGUE : PRIX, RARETÉS, RETRAITS (2026-10-22, v784, Sacha : « fais ces modifications-là, supprime celles où j'ai mis de les supprimer »)
+- **Prix** (deblocage.js) : ELDORADO 50 000 · LE CAÏD 60 000 · ROSSO 40 400 000 · LA VETTE 90 000 · LA GRANDE ANGLAISE 130 000 · LE CHARGEUR 69 70 000 · LA LAME 80 000 · LA BÊTE 220 000 · LA PERLE 240 000 · LA RAIE 260 000. ROSSO 40 reçoit `rar:'epique'` (à 400 000 le prix la ferait RARE).
+- **Retirées** (`{retire:1,name}`, leur ligne reste : index de sauvegarde ; le prix de CAR_UNLOCK sert au remboursement) : LA ZED, LA PUCE, LE TOFU. (REQUIN l'était déjà.)
+- **Missions de caisse** (missions/table.js, defis-moteur.js) : LA DOLORÈS = `rares` (débloque toutes les rares qui s'achètent ; `m2Rares`, `k:'raresT'`) — l'ancienne « DÉPASSE 1000 KM/H » paie 20 000 $ ; LE CHARGEUR = `mis10` (secrète : réussis 10 missions, `k:'misok'`) ; LE ROUGE-GORGE = `maps2` (explorer chaque map, même mesure que L'ORIGAMI).
+- **Pas fait, à décider ou à écrire** : ACIDE (« 20000 $ » : 200 000 ?), LE SQUALE (le tableau le passe en défi, la boutique le vend 1,61 € depuis le 21/10), et les défis qui demandent une détection neuve (power-ups, nitro, 500 figures, temps en l'air, revives, glace, musiques).
+
 ## LA LUNE RETIRÉE DE L'ORBITE, LES ÉTOILES EN PROFONDEUR (2026-10-22, v783, Léo : « la lune qui suit dans la planète espace, on va la mettre ailleurs ; pour l'instant on l'enlève, on laisse juste la grande planète, et la voiture se promène » · « travaille un tout petit peu les étoiles pour créer un peu de profondeur, là c'est un peu tout noir ; des petites étoiles et des étoiles un peu moins petites ; travaille la répartition, observe des images »)
 - **La lune (le troll qui suivait la caisse) n'est plus dans l'orbite.** `LUNE_ON` (orbite-1.js, faux sauf `?lune=ancien`) : la lune n'est ni posée dans la scène, ni peinte au menu (plus de pinceau 140 ms ni de 6 Mo de toiles), ni compilée. Tout son code reste en place pour la reprendre
   et la poser ailleurs ; `?lune=ancien` la rend telle qu'avant. Sa DIRECTION continue de piloter la clé froide (`kick`) : dans `orbiteTick`, `lunOk` (la lune est « dans le niveau ») remplace `LUNE.visible` pour les deux sorties anticipées, la caisse est éclairée comme avant.

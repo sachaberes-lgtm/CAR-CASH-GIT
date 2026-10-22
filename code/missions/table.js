@@ -16,7 +16,7 @@ const M2=[
   {id:'parf10',f:'exploit',k:'parf',v:10,u:'',r:{car:'LE COMBI'},t:'FAIS {v} POSES PARFAITES D\'AFFILÉE',en:'LAND {v} PERFECTS IN A ROW'},
   {id:'fren',f:'exploit',k:'fren',v:1,u:'b',r:{cash:10000},t:'ATTEINS LA FRÉNÉSIE',en:'REACH FRENZY'},
   {id:'fren30',f:'exploit',k:'frenT',v:30,u:'s',r:{cash:25000},t:'TIENS LA FRÉNÉSIE {v} S',en:'HOLD FRENZY FOR {v} S'}, // (2026-10-19, Sacha) avant : traînée sang — absente du garage, l'argent à la place
-  {id:'kmh1000',f:'exploit',k:'kmh',v:1000,u:'kmh',r:{car:'LA DOLORÈS'},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
+  {id:'kmh1000',f:'exploit',k:'kmh',v:1000,u:'kmh',r:{cash:20000},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
   {id:'vie5min',f:'exploit',k:'vie',v:300,u:'mn',r:{cash:30000},t:'TIENS 5 MIN SANS MOURIR',en:'SURVIVE 5 MIN WITHOUT DYING'}, // (2026-10-19, Sacha) avant : LA JEEP — absente du garage, l'argent à la place
   {id:'tours5',f:'exploit',k:'tours',v:5,u:'',r:{cash:20000},t:'FRÔLE {v} TOURS DANS UN SEUL SAUT (LA VILLE)',en:'SKIM {v} TOWERS IN ONE JUMP (THE CITY)'}, // (2026-10-19, Sacha) avant : LE TAXI JAUNE — absente du garage, l'argent à la place
   {id:'parfmaps',f:'exploit',k:'cartesP',v:'tot',u:'',r:{car:'LA STRATOS'},t:'POSE-TOI EN PARFAIT SUR CHAQUE MAP',en:'LAND A PERFECT ON EVERY MAP'}, // (proposition de la demande : LA STRATOS, à valider par Sacha)
@@ -38,6 +38,10 @@ const M2=[
   {id:'car10',f:'collection',k:'cars',v:10,u:'',r:{cash:150000},t:'COLLECTE {v} VOITURES',en:'COLLECT {v} CARS'},
   {id:'car20',f:'collection',k:'cars',v:20,u:'',r:{cash:300000},t:'COLLECTE {v} VOITURES',en:'COLLECT {v} CARS'},
   {id:'carall',f:'collection',k:'carsT',v:'tot',u:'',r:{car:'LE TRÔNE CENTRAL'},t:'COLLECTE TOUTES LES VOITURES',en:'COLLECT EVERY CAR'},
+  /* (2026-10-22, Sacha : « tableau des voitures ») LA DOLORÈS : « débloque toutes les voitures rares » (celles qui s'achètent : les rares gagnées par mission ne comptent pas, sinon elle se bloquerait elle-même) ; l'ancienne mission « DÉPASSE 1000 KM/H » paie 20 000 $ à la place (À VALIDER PAR SACHA) */
+  {id:'rares',f:'collection',k:'raresT',v:'tot',u:'',r:{car:'LA DOLORÈS'},t:'DÉBLOQUE TOUTES LES VOITURES RARES',en:'UNLOCK EVERY RARE CAR'},
+  /* (2026-10-22, Sacha) LE CHARGEUR : « réussir 10 missions » — secrète, comme dans le tableau */
+  {id:'mis10',f:'secret',k:'misok',v:10,u:'',r:{car:'LE CHARGEUR'},t:'RÉUSSIS {v} MISSIONS',en:'COMPLETE {v} MISSIONS'},
   {id:'col5',f:'collection',k:'peint',v:5,u:'',r:{cash:10000},t:'COLLECTE {v} COULEURS',en:'COLLECT {v} PAINTS'},
   {id:'col10',f:'collection',k:'peint',v:10,u:'',r:{cash:10000},t:'COLLECTE {v} COULEURS',en:'COLLECT {v} PAINTS'},
   {id:'colall',f:'collection',k:'peintT',v:'tot',u:'',r:{cat:'peinture',id:'guerrier'},t:'COLLECTE TOUTES LES COULEURS',en:'COLLECT EVERY PAINT'},
@@ -53,6 +57,8 @@ const M2=[
   {id:'toutall',f:'collection',k:'toutT',v:'tot',u:'',r:{cash:500000},t:'COLLECTE TOUS LES OBJETS DU JEU',en:'COLLECT EVERYTHING IN THE GAME'}, // (2026-10-19, Sacha) avant : {vide:1}, la récompense à définir — c'est l'argent
   // EXPLORATION
   {id:'maps',f:'exploration',k:'cartes',v:'tot',u:'',r:{car:'L\'ORIGAMI'},t:'JOUE SUR CHAQUE MAP AU MOINS UNE FOIS',en:'PLAY EVERY MAP AT LEAST ONCE'},
+  /* (2026-10-22, Sacha : « tableau des voitures ») LE ROUGE-GORGE : « avoir exploré chaque map » — même mesure que L'ORIGAMI (à confirmer : deux missions identiques) */
+  {id:'maps2',f:'exploration',k:'cartes',v:'tot',u:'',r:{car:'LE ROUGE-GORGE'},t:'AVOIR EXPLORÉ CHAQUE MAP',en:'HAVE EXPLORED EVERY MAP'},
   // SECRÈTES — invisibles tant qu'elles ne sont pas trouvées ; chacune donne une caisse, montrée en silhouette noire à la boutique (2026-10-19 : six d'entre elles donnent de l'ARGENT, leur caisse n'étant plus au garage — une secrète en argent n'a pas de scène de révélation, elle se RÉCUPÈRE comme les autres)
   {id:'morts100',f:'secret',k:'morts',v:100,u:'',r:{car:'LE CORBILLARD'},t:'MEURS {v} FOIS',en:'DIE {v} TIMES'},
   {id:'mort3s',f:'secret',k:'flag',v:1,u:'b',r:{cash:5000},t:'MEURS DANS LES 3 PREMIÈRES SECONDES',en:'DIE IN THE FIRST 3 SECONDS'}, // (2026-10-19, Sacha) avant : LA SANS-PERMIS — absente du garage, l'argent à la place
