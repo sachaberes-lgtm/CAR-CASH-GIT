@@ -63,6 +63,9 @@ la pluie de débris de l'orbite — plus de `?snake=1`, `?nitrooo=1`, `?meteore=
    remplace ce jeton par le commit publié et pose `version.json` à côté du jeu. Le jeu compare les deux et se recharge tout seul
    s'il est en retard (voir « LA MISE À JOUR TOUTE SEULE », près du service worker). En copie locale le jeton reste tel quel : rien ne se vérifie. */
 const CC_BUILD='__CC_BUILD__';
+/* (2026-10-22, piste « démarrage », profil au CPU ×4 : les photos des caisses se refaisaient à CHAQUE publication — 3 à 4 s de fil principal) L'EMPREINTE DES PHOTOS : `vercel-build.sh` grave ici le hachage des seuls fichiers qui changent l'IMAGE d'une photo de caisse
+   (voitures/, rendu/, le studio, les constantes de cadrage). Les photos gardées (IndexedDB `ccPhotos`) survivent donc aux publications qui n'y touchent pas. Copie locale : jeton intact, rien n'est gardé (voir phdbSig). */
+const CC_PHOTOS='__CC_PHOTOS__';
 const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b/.test(location.search)?' · SANS CIEL':'');
 (function(){
   var q=location.search,M=window.matchMedia;
@@ -47262,16 +47265,22 @@ const PHOTO={cache:{},rt:null,scene:null,cam:null};
    navigateur (IndexedDB `ccPhotos`) avec sa SIGNATURE : la version publiée (CC_BUILD) et la peinture portée (elle colore toute caisse bâtie).
    Au lancement, celles de cette version et de cette peinture reviennent dans PHOTO.cache (adresses blob:, rien à recalculer) ; les autres
    versions s'effacent. Copie locale (jeton CC_BUILD non gravé) : rien n'est gardé — les caisses y changent sans changer de version. */
-const PHDB={db:null,n:0};
-function phdbSig(){let p='';try{const d=cosmSur('peinture');p=d&&d.id||'';}catch(e){}return CC_BUILD+'|'+p;}
-function phdbOuvre(){if(PHDB.db!==null)return;PHDB.db=false;if(/^__/.test(CC_BUILD)||!window.indexedDB||!window.URL||!URL.createObjectURL)return;
+const PHDB={db:null,n:0,lu:false,t0:0}; /* lu : la base est lue (ou inutilisable) — voir phdbAttend */
+/* (2026-10-22, piste « démarrage ») LA VERSION DES PHOTOS n'est plus la version publiée : c'est CC_PHOTOS, l'empreinte des fichiers qui dessinent une photo (vercel-build.sh) — une publication qui ne touche ni les caisses, ni le rendu, ni le studio garde toutes les photos (MESURÉ au profil : 3,3 à 4,4 s de fil principal à CPU ×4 pour les refaire). Jeton non gravé : on retombe sur CC_BUILD (rien n'est gardé en local). La PEINTURE entre en entier (couleurs comprises), pas seulement son id : une teinte retouchée refait les photos. */
+function phdbVer(){return /^__/.test(CC_PHOTOS)?CC_BUILD:CC_PHOTOS;}
+function phdbSig(){let p='';try{const d=cosmSur('peinture');if(d){const j=JSON.stringify(d);let h=2166136261;for(let i=0;i<j.length;i++){h^=j.charCodeAt(i);h=Math.imul(h,16777619);}p=(d.id||'')+':'+(h>>>0).toString(36);}}catch(e){try{p=cosmSur('peinture').id||'';}catch(e2){}}return phdbVer()+'|'+p;} /* la peinture en entier, résumée en 6 lettres (FNV-1a) : la signature se range avec CHAQUE photo */
+function phdbOuvre(){if(PHDB.db!==null)return;PHDB.db=false;PHDB.t0=performance.now();if(/^__/.test(CC_BUILD)||!window.indexedDB||!window.URL||!URL.createObjectURL){PHDB.lu=true;return;}
   try{const r=indexedDB.open('ccPhotos',1);r.onupgradeneeded=function(){try{r.result.createObjectStore('p');}catch(e){}};
-    r.onsuccess=function(){PHDB.db=r.result;phdbLit();};r.onerror=function(){PHDB.db=false;};}catch(e){PHDB.db=false;}}
-function phdbLit(){try{const sig=phdbSig(),st=PHDB.db.transaction('p','readwrite').objectStore('p'),q=st.openCursor();
-  q.onsuccess=function(){const cu=q.result;if(!cu)return;const v=cu.value,k=cu.key;
-    if(!v||String(v.s).split('|')[0]!==CC_BUILD)cu.delete();
-    else if(v.s===sig&&v.b&&!PHOTO.cache[k]){try{PHOTO.cache[k]=URL.createObjectURL(v.b);PHDB.n++;}catch(e){}}
-    cu.continue();};}catch(e){}}
+    r.onsuccess=function(){PHDB.db=r.result;phdbLit();};r.onerror=function(){PHDB.db=false;PHDB.lu=true;};}catch(e){PHDB.db=false;PHDB.lu=true;}}
+function phdbLit(){try{const sig=phdbSig(),st=PHDB.db.transaction('p','readwrite').objectStore('p'),ks=st.getAllKeys(),vs=st.getAll(); /* (2026-10-22) UNE lecture groupée au lieu d'un curseur : le curseur rendait la main à CHAQUE ligne, et sous le démarrage (CPU ×4) 7 lignes prenaient 5 s */
+  vs.onerror=ks.onerror=function(){PHDB.lu=true;};
+  vs.onsuccess=function(){try{const K=ks.result||[],V=vs.result||[];
+    for(let i=0;i<V.length;i++){const v=V[i],k=K[i];
+      if(!v||String(v.s).split('|')[0]!==phdbVer()){try{st.delete(k);}catch(e){}}
+      else if(v.s===sig&&v.b&&!PHOTO.cache[k]){try{PHOTO.cache[k]=URL.createObjectURL(v.b);PHDB.n++;}catch(e){}}}
+  }catch(e){}PHDB.lu=true;};}catch(e){PHDB.lu=true;}}
+/* (2026-10-22, piste « démarrage ») LA FILE DES PHOTOS ATTEND LA BASE : sa lecture part 700 ms après le chargement, mais sur un téléphone le fil est pris par le démarrage bien plus longtemps — MESURÉ (CPU ×4) : la file prenait ses premières photos 8 à 18 s avant que la base ne soit lue, et refaisait donc celles qu'elle gardait déjà. Tant que la base n'est pas lue, photoTour et photoRafale attendent (avant que la lecture ne soit lancée, sans limite — son minuteur est posé ; ensuite au plus 4 s : une base muette ne bloque pas les vignettes). */
+function phdbAttend(){return !PHDB.lu&&(!PHDB.t0||performance.now()-PHDB.t0<4000);}
 function phdbEcrit(ck,b,sig){if(!PHDB.db||!b)return;try{PHDB.db.transaction('p','readwrite').objectStore('p').put({s:sig,b:b},String(ck));}catch(e){}}
 setTimeout(function(){try{phdbOuvre();}catch(e){}},700);
 // une photo de STUDIO : ailes de vol rentrées, ni halos, ni flaques de phares, ni plumes de réacteur — la carrosserie, les roues, point
@@ -64308,14 +64317,14 @@ function photoPrends(it){const u=PHOTO.cache[it[0]];
 function photoTour(){
   if(!PHQ.q.length||!garageOn||gEl.classList.contains('quiet')){PHQ.on=false;return;} // (2026-09-26) garage fermé : la file attend le prochain passage (openGarage la relance) — (2026-09-28, chasse aux gels) et le garage du JOUER (`quiet`) n'affiche aucune vignette : MESURÉ, il y prenait 2 à 3 photos pendant le fondu (chacune reconstruit deux caisses, ~200 ms et 4 programmes) pour une bande que personne ne voit
   requestAnimationFrame(photoTour);
-  if(GAR.sw||GAR.go)return;
+  if(GAR.sw||GAR.go||phdbAttend())return;
   const t=performance.now();if(t<PHQ.pret||!photoCalme())return;
   const j=photoChoix(false);if(j<0){PHQ.pret=t+200;return;} // que des vignettes hors de vue : on regarde de nouveau dans 200 ms (pas de mesure de la page à chaque image)
   const it=PHQ.q.splice(j,1)[0];photoPrends(it);const d=performance.now()-t;PHQ.pret=performance.now()+Math.min(400,Math.max(150,d*2));
 }
 /* LA RAFALE SOUS LE VOILE : `ms` de photos d'affilée (les caisses en vue), la caisse regardée rebâtie une seule fois à la fin */
 const PHOTO_RAFALE_MS=300;
-function photoRafale(ms){if(!PHQ.q.length||(started&&!gameOver))return 0;
+function photoRafale(ms){if(!PHQ.q.length||(started&&!gameOver)||phdbAttend())return 0;
   const t0=performance.now(),av=carGroup.userData.lvl;let n=0;PHOTO.chaine=true;PHOTO.avant=av;
   try{while(performance.now()-t0<ms){const j=photoChoix(true);if(j<0)break;const it=PHQ.q.splice(j,1)[0];
       if(PHOTO.cache[it[0]]){it[1](PHOTO.cache[it[0]]);continue;}
