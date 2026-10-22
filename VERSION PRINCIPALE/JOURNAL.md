@@ -3,6 +3,37 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE GARAGE : TAIL WHIP AU SOL, ŒIL ET RÉGLAGE ÉCHANGÉS, LE BAS REPRIS (2026-10-22 soir, v803, Sacha : « le tail whip à l'inventaire, la caisse décolle : il faut que ça reste sur le sol, avec une trace de pneus comme les donuts » ; « l'œil à la place du cadenas » ; « retravaille tous les boutons »)
+- **Figure à plat = caisse posée** (`garFigEssai` → `GFIG.plat`, boutique-scene-1.js) : une figure dont tous les axes sont verticaux (tail whip, toupie) ne soulève plus la caisse (le saut `1,5·sin` ne vaut que pour les autres) ; `garFigGomme` (burn-out-1.js) dépose la gomme des QUATRE pneus sur la même toile que le donut (`BURN.gom`), de point en point.
+- **Œil ⇄ réglage** (boutons-flottants.css) : le haut droit lit ŒIL · ⚙ · 🏆 (écart --fg 8 px). Lu « cadenas » = le ⚙ doré : à redire si c'était le trophée.
+- **Le bas** : INVENTAIRE / MISSIONS à 9 px, pictogrammes 27 px ; la BOUTIQUE en L a un reflet qui passe et un panier qui rebondit (coupés en mouvement réduit).
+Pas vérifié : le bras des figures (`?bras=1`) garde sa levée.
+
+## JADE PLUS LÉGER — SON CIEL DANS UN PROGRAMME À LUI, LES PEAUX VIDES, LES SINGES ÉTEINTS (2026-10-22, v798, Léo : « enlève les singes de la map jade ou rends-les plus légers, et rends la map plus légère au code : sur la map grotte ça bugue moins et pourtant c'est aussi joli »)
+Banc : Chrome sans fenêtre (profil iPhone 390 × 844, NETTE), images FIGÉES à des endroits fixes de la vallée, mesures ENTRELACÉES (A, B, A, B…) dans la même page —
+la machine était à une charge de 30-80 (le Mac de Léo aussi, côté app Claude) : aucun chiffre en ms n'est fiable seul, seuls comptent les compteurs et les A/B de la même page.
+MESURÉ, la grotte (310 k triangles, ~200 appels, 3-4 ms de scène) contre les Pics de Jade (0,8-1,1 M triangles, ~310 appels de `renderBufferDirect`, 9-13 ms) :
+- **LE CIEL DE JADE** (`MAIN.jd`, `C.jd`, `cielDeuxTemps`, `cielChauffe`) : le dôme (le rouleau peint, la mer en cubes de 4 m en 48 pas de DDA par pixel, le lointain en
+  cinq chaînes, les kasumi) tournait dans le programme PLEIN — celui qui porte aussi la ville, l'orbite, les nuages et le fond musical. Même sur sa branche courte
+  (`uJade>.9999 → jadeCiel`), la puce réserve les registres du programme ENTIER pour chaque pixel. Le canyon avait déjà « son ciel seul » (`C.cy`) ; Jade a le sien :
+  `jd = src(TETE, VILLE, K.jade, K.trame, MAIN.jd)`, le MÊME appel (`jadeSous`/`jadeCiel` + la trame). Image identique AU BIT PRÈS : 0 pixel de différence sur 5 bandes de l'écran
+  × 3 endroits de la vallée (horloge `performance.now`/`Date.now` GELÉE pendant les rendus : le ciel dépend du temps, sans ça deux rendus du MÊME programme diffèrent déjà de 3-5 % des pixels).
+  Image de scène (sans post, figée) : 9,1 → 5,8 · 14,9 → 9,3 · 13,2 → 7,7 ms ; le dôme ne coûte plus que ~0,5 ms (éteint tout à fait : 5,1 · 8,7 · 7,1). `?ciel=plein` = avant. Programme chauffé
+  au chargement avec les autres (0 compilation en course : 223 programmes au menu comme après 14 s de Jade).
+- **LES PEAUX DE COTON VIDES** (`cotonTick`, `COTON.skin`) : la peau des nuages (v773, Sacha) restait VISIBLE à zéro exemplaire — 92 des 316 appels de dessin d'une image n'étaient que
+  des peaux vides (three prépare programme, uniformes et tampons pour ne rien dessiner : la même fuite que les familles vides de `jadeTri`, v17). `visible = root.visible && count>0` : ~310 → ~160 appels.
+  Vaut aussi pour la MER DE NUAGES (même coton).
+- **LES SINGES SONT ÉTEINTS** (`JSG_ON`, `?singes=1` ou `?singesjade=1` les rend, tels quels) : plus d'ouvriers au menu (3,5 s de calcul des quatre formes vitrail), plus de programmes
+  compilés ni de géométries en mémoire, plus de `creatures/singe.js` chargé (19 Ko, 2 ms d'évaluation à chaque lancement de TOUTES les maps — la balise est écrite à la demande dans
+  `page/bibliotheques.html`). MESURÉ : un singe à l'écran ne coûtait que 19 k triangles et 3 appels — c'est son démarrage, pas sa présence, qui pesait ; s'il revient « plus léger »
+  il faudra un singe SANS vitrail (pas de calcul au menu), donc un autre dessin : à valider avec Léo.
+- Crochets de banc ajoutés : `dbgJadePoste('gros'[,seuil])` (les plus gros objets visibles, leur parent), `('monu')` (Porte et Pont : maillages, tailles, lequel est dessiné), `('temps',n)` et
+  `dbgTemps(n)` (ms d'une image de scène, la puce attendue par une lecture d'un pixel — n'importe quelle map), `('coton'|'singes'|'monuments', on)`.
+- RESTE (non fait, à proposer) : la PORTE est UN maillage de 159 k triangles (r = 634 m), dessiné dès 2,6 km de la brume (1 passe) et en TROIS passes de verre sous 450 m (477 k) ;
+  `jadeMonuLoin` (le maillage allégé de loin) est éteint au palier récent. Le ciel de Jade en deux temps (passe lisse à demi-résolution, comme les nuages et la ville) gagnerait encore ~0,5 ms.
+  `foretTri` et les autres tris de quartiers tournent à chaque image même quand leur map n'est que PRÉ-BÂTIE (invisible) : un garde `root.visible` les coupe.
+  ⚠ Banc : depuis v789 (web sans sauvegarde) il faut `&garde=1` dans l'URL, sinon le compte est neuf à chaque ouverture et le banc reste sur l'accueil.
+
 ## L'ANNEAU DE FUSION AUTOUR DE LA PLANÈTE DE L'ORBITE (2026-10-22, v792, Léo : « ajoute un anneau de fusion autour de la planète, stylé · récupère ça quelque part et rends-le pixel, en cohérence avec le jeu »)
 - **D'où il vient** : le CŒUR À FUSION, moteur 25 (`case 24` de `voitures/constructeur-moteur.js`, la carte `tore · bobinesD`) — un tokamak : une petite étoile, un tore de plasma qui la
   traverse, huit bobines de cristal passées autour du tube. Palette de la fiche du moteur (`col` 0xd8ff60 · `flam` 0xf0ff90) : le citron acide, complémentaire exact du bleu de la Terre.
@@ -35,9 +66,23 @@
 - ⚠ **LE PIÈGE** (déjà dans le guide de l'assembleur) : une retouche faite dans index.html SEUL disparaît au prochain réassemblage depuis les morceaux. Après une fusion,
   `node code/assembler.cjs --verifier` d'abord ; s'il dit ≠, ranger la page dans les morceaux (`--depuis-index`), jamais l'inverse à l'aveugle.
 
+## DEUX PEINTURES SECRÈTES AJUSTÉES (2026-10-22, v802, Sacha : « oui » aux points de la revue)
+- **MENTHE GLACÉE** compte la neige ET le blizzard du glacier (neige seule : un niveau sur 66). **CHROME MIROIR** : cinq niveaux sur la mer de nuages (un seul l'ouvrait à la 1re course) ; indice « Cinq niveaux dans les nuages. » (anglais : « Five levels in the clouds. »).
+
+## LES CORRECTIFS DE LA REVUE (2026-10-22, v799, Sacha : « corrige ATCHOUM, traduis les indices, ne rembourse que ce qui a été acheté »)
+- **ATCHOUM** n'a plus qu'UNE mission (`figs500`) : `geyser` paie 15 000 $ (À VALIDER) — l'`av` imbriqué de CAR_UNLOCK[69] disparaît.
+- **Indices des peintures secrètes** : dix-huit traductions anglaises (`I18N`, boutique.js, juste sous `peintSecrete`).
+- **Remboursement des caisses retirées** (`san`, sauvegarde.js) : une caisse GAGNÉE par sa mission (LA CAISSE-NUAGE : `nuage30` · LA FOURNAISE : `cratere`, dans `d.m2.ok`) sort de `owned` sans remboursement. Banc : sans mission 8 870 000 $ rendus ; avec `cratere` et `nuage30` réussies, 3 670 000 $ (ZED, PUCE, TOFU, ABSTRAITE). Limite connue : LA PUCE (30 000 $) était aussi un contrat gagné gratuitement ; elle reste remboursée.
+
+## LA MAP VOLCAN D'APRÈS PHOTOS + LES PEINTURES SECRÈTES (2026-10-22, v795, Sacha : « reprends ces images pour refaire la map volcan » · « d'abord les prix et les retraits, puis les défis un par un »)
+- **Volcan v6** (maps/volcan-route.js, `VLC6`, `?volcan=avant6` = la v5) : quatre photos de coulées (croûte noir-bleu vitreuse et plissée, roche grise argentée, lave orange à cœur jaune, lac de lave). Seuls les SHADERS changent — `VLC_SOL_FS6` (croûte plissée ardoise, cendre argentée, ombres froides, reflet de verre, fissures rouge→jaune), `VLC_LAVE_FS6` (peau cordée, orange→jaune→blanc verdâtre aux points chauds, plus de lumière), `V6` dans `VLC_ROC_FS` (arche et aiguilles plus claires, fissures fines). Route, relief, collisions : intacts. Les six photos de la galerie (`repertoire-maps/img/volcan-*.jpg`) sont refaites.
+- **Peintures secrètes** (economie/boutique.js `PEINT_DEFIS`, `peintSecrete` ; détection dans missions/defis-moteur.js `m2Niveau`, `m2Fruit`, `m2Pu`, `m2Cpt`) : MENTHE (10 niveaux sous la neige), BLEU MINUIT (10 de nuit), ROSE DRAGÉE (10 le matin), ABRICOT (10 en plein jour), BLANC NEIGE (10 sur le glacier), VERT OGRE (10 dans la forêt), NUIT DE GOTHAM (10 dans la ville), CIEL D'ORAGE (10 sous la pluie), LUNAIRE (10 dans l'espace), CHROME MIROIR (traverser les nuages), ROUGE BOLIDE / ORANGE ÉMEUTE / AZUR (50 cerises / oranges / myrtilles), JAUNE TAXI / VIOLET ROYAL / FUCHSIA (50 citrons / raisins / fruits du dragon), MONDE À L'ENVERS (100 km sous la dalle), SUPER GUERRIER (palier 24). BANANA reste en vente : il n'y a plus de banane dans le jeu. Les compteurs sont dans `SAVE.d.m2.c.sc`. Le pack compte 35 couleurs.
+- **⚠ La sauvegarde (san) bornait `m2.c` à une liste** : les compteurs à vie des missions de caisse (pu, nitS, nmaxS, figs, airS, kmTot, verglasKm, met) et des peintures (sc) sautaient au rechargement (app iPhone ; le web repart à neuf sauf `?garde=1`). Ajoutés à la liste (sauvegarde.js). Vérifié : un rechargement garde tout.
+- **Bancs** : `?garde=1` est NÉCESSAIRE aux bancs (le web repart d'un compte neuf à chaque ouverture : sans lui la sauvegarde posée est ignorée et l'auto-école démarre) ; `photos.py` le passe désormais.
+
 ## LE TABLEAU DES PEINTURES, 1re ÉTAPE : PRIX EN EUROS ET RETRAITS (2026-10-22, v793, Sacha : « d'abord les prix en euros et les 8 retraits, puis les défis un par un »)
 - **Prix** (`PEINT_EUR_ID`, economie/boutique.js, par-dessus `PEINT_EUR` de la rareté) : 0,50 € NOIR MAT, ROSE POUPÉE, VANILLE, PISTACHE, VERT AMANDE, BLEU PISCINE, LILAS, VERT BILLET, LAGON, CUIVRE, GRIS NARDO · 1 € COUCHER DE SOLEIL, VAPORWAVE, LAVE, HOLOGRAMME, FANTÔME, NACRE, LAMPADAIRE, CAMÉLÉON, GALAXIE, PLEIN AUX AS et les quatre de la série · 2 € LÉOPARD, TIGRE, ZÈBRE, VACHE, FLOWER POWER, CAMOUFLAGE, COCCINELLE.
-- **Retirées** (`HAB_RETIRES`, p:0) : CITRON VERT, ARGENT BROSSÉ, BORDEAUX, OLIVE, BLEU ABYSSE, AUBERGINE, DAMIER, PEAU DE DRAGON. Le pack compte 28 couleurs.
+- **Retirées** (`HAB_RETIRES`, p:0) : CITRON VERT, ARGENT BROSSÉ, BORDEAUX, OLIVE, BLEU ABYSSE, AUBERGINE, DAMIER, PEAU DE DRAGON. Le pack compte 28 couleurs (35 avec les secrètes passées à l’achat plus tard).
 - **Passent à l'achat** : FANTÔME, NACRE, LAMPADAIRE, CAMÉLÉON (`PEINT_ACHAT` : plus de défi) ; VAPORWAVE, LAVE, HOLOGRAMME (leurs missions d'argent paient 10 000 / 25 000 / 50 000 $ — À VALIDER) ; BRAISE FIDÈLE, AURORE BORÉALE, LAGON INTERDIT, NUIT ÉTOILÉE (le 7e jour de la série ne donne plus que le plein de jetons).
 - **À venir, un par un** : les défis secrets de la colonne Condition du panneau des peintures.
 

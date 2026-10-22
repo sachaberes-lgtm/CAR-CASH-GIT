@@ -435,6 +435,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   haut → 5-6 m ; `?singetaille=` pour essayer) ; chaque rencontre TIRE sa réaction (`JSG_ACT`) : SUIT (galope à côté de la caisse, un peu
   devant), SAUTE (bond par-dessus la caisse, d'un bord à l'autre), PLONGE (dans le vide), RESTE ; celui de la montagne saute jusque sur la
   route puis suit. Balistique dans le repère de la route (`jsgBouge`, `jsgReveil`). `dbgJadeSinges('mangue','saute')`.
+  22/10 (Léo : « enlève les singes de la map jade ou rends-les plus légers ») : les SINGES SONT ÉTEINTS par défaut (`JSG_ON` ; `?singes=1` ou `?singesjade=1` les rend, `creatures/singe.js` n'est alors chargé que sur ce lien) — voir « JADE PLUS LÉGER » au JOURNAL.
 - Textes au centre de l'écran rayés par Sacha (VIRAGE SERRÉ, FRÔLÉ, PORTE, RASE-BORD, MINI/SUPER/ULTRA TURBO, pastilles sous
   le verdict ; le 15/10 : « +X AURA » de la chaîne, « ×5 EN FEU / ×8 / ×10 », le « ★ +N AURA » du dauphin, « FIGURE +N » sur la caisse) : on ne les rallume pas ; un nouveau texte au centre se propose d'abord.
 - HUD de course allégé par Sacha (15/10, `<style id="hudAllege">`) : plus de jauge d'aura « MOY » (retirée le 18/10 avec `?jauge=1`), plus de

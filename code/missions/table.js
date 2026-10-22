@@ -56,7 +56,7 @@ const M2=[
   {id:'mis10',f:'exploration',k:'misok',v:10,u:'',r:{car:'LE CHARGEUR'},t:'RÉUSSIS {v} MISSIONS',en:'COMPLETE {v} MISSIONS'},
   {id:'col5',f:'collection',k:'peint',v:5,u:'',r:{cash:10000},t:'COLLECTE {v} COULEURS',en:'COLLECT {v} PAINTS'},
   {id:'col10',f:'collection',k:'peint',v:10,u:'',r:{cash:10000},t:'COLLECTE {v} COULEURS',en:'COLLECT {v} PAINTS'},
-  {id:'colall',f:'collection',k:'peintT',v:'tot',u:'',r:{cat:'peinture',id:'guerrier'},t:'COLLECTE TOUTES LES COULEURS',en:'COLLECT EVERY PAINT'},
+  {id:'colall',f:'collection',k:'peintT',v:'tot',u:'',r:{cash:50000},t:'COLLECTE TOUTES LES COULEURS',en:'COLLECT EVERY PAINT'}, /* (2026-10-22, Sacha : « tableau des peintures ») SUPER GUERRIER devient une peinture secrète (palier 24) ; la collection paie de l'argent — À VALIDER */
   {id:'tr5',f:'collection',k:'trainee',v:5,u:'',r:{cash:3000},t:'COLLECTE {v} TRAÎNÉES',en:'COLLECT {v} TRAILS'},
   {id:'tr10',f:'collection',k:'trainee',v:10,u:'',r:{cash:10000},t:'COLLECTE {v} TRAÎNÉES',en:'COLLECT {v} TRAILS'},
   {id:'trall',f:'collection',k:'traineeT',v:'tot',u:'',r:{cash:50000},t:'COLLECTE TOUTES LES TRAÎNÉES',en:'COLLECT EVERY TRAIL'},
@@ -80,7 +80,7 @@ const M2=[
   {id:'kmh2000',f:'secret',k:'kmh',v:2000,u:'kmh',r:{cash:25000},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'}, /* (2026-10-22, Sacha : « tableau des voitures » : LE MUR DU SON passe en boutique ; avant : LE MUR DU SON — À VALIDER */
   {id:'cratere',f:'secret',k:'flag',v:1,u:'b',r:{cash:20000},t:'MEURS AU-DESSUS DU CRATÈRE DU VOLCAN',en:'DIE ABOVE THE VOLCANO CRATER'}, /* (2026-10-22, Sacha : « tableau des voitures » : LA FOURNAISE retirée ; avant : LA FOURNAISE — À VALIDER */
   {id:'lave',f:'secret',k:'flag',v:1,u:'b',r:{car:'L\'AIGLE DE FEU'},t:'ROULE DANS LA LAVE',en:'DRIVE INTO THE LAVA'},
-  {id:'geyser',f:'secret',k:'flag',v:1,u:'b',r:{car:'ATCHOUM'},t:'TRAVERSE UN GEYSER',en:'FLY THROUGH A GEYSER'},
+  {id:'geyser',f:'secret',k:'flag',v:1,u:'b',r:{cash:15000},t:'TRAVERSE UN GEYSER',en:'FLY THROUGH A GEYSER'}, /* (2026-10-22, Sacha : « corrige ATCHOUM, traduis les indices, ne rembourse que ce qui a été acheté ») ATCHOUM n'a plus qu'UNE mission (figs500) : le geyser paie 15 000 $ — À VALIDER */
   {id:'abysse',f:'secret',k:'prof',v:'prof',u:'',r:{cash:15000},t:'DESCENDS AU FOND DE LA MER DE JADE',en:'DIVE TO THE BOTTOM OF THE JADE SEA'}, // (2026-10-20, Sacha : LE SQUALE passe à la boutique payante, 1,61 €) avant : LE SQUALE — il ne se gagne plus, l'argent à la place (15 000 $ : comme LE GLACIER et LA DEUCHE, À VALIDER PAR SACHA)
   {id:'nuage30',f:'secret',k:'vol',v:30,u:'s',r:{cash:20000},t:'RESTE {v} S EN L\'AIR AU-DESSUS DES NUAGES',en:'STAY {v} S IN THE AIR ABOVE THE CLOUDS'}, /* (2026-10-22, Sacha : « tableau des voitures » : LA CAISSE-NUAGE retirée ; avant : LA CAISSE-NUAGE — À VALIDER */
   {id:'terre',f:'secret',k:'flag',v:1,u:'b',r:{car:'COMÈTE'},t:'FAIS UN SALTO DEVANT LA TERRE',en:'FLIP IN FRONT OF THE EARTH'},
@@ -103,7 +103,7 @@ let M2_RECO=null;
 /* l'état de la partie en cours (jamais sauvegardé) : ctl = secondes de conduite (sans le largage), vie = depuis la dernière (re)naissance,
    parf = poses parfaites d'affilée, lac = glisse tenue sur un lac gelé, tourV = les tours frôlées pendant CE saut, run = missions
    réussies pendant cette partie (l'écran de mort), deb = la partie a été comptée (jour, heure). */
-const M2R={sonne:false,ctl:0,vie:0,parf:0,lac:0,tourV:[],run:[],t:0,deb:false,figV:0,volT:0,figMax:0,airPm:0}; // figV/volT : les figures et la durée VÉCUE (hors de l'eau) du saut en cours — le bump retranche du temps à fallT, pas à volT
+const M2R={lv:'',sonne:false,ctl:0,vie:0,parf:0,lac:0,tourV:[],run:[],t:0,deb:false,figV:0,volT:0,figMax:0,airPm:0}; // figV/volT : les figures et la durée VÉCUE (hors de l'eau) du saut en cours — le bump retranche du temps à fallT, pas à volT
 /* LES CAISSES QUI SE GAGNENT PAR MISSION : leur condition devient la mission (`k:'mis'`), l'ancienne reste dans `av` — la migration de
    la sauvegarde (m2Migre) la relit pour rendre à chacun ce qu'il avait déjà (une mise à jour ne confisque rien) ; une caisse qui se
    vendait (à l'argent du jeu ou en euros) ne s'achète plus. Les caisses RETIRÉES ne reviennent qu'avec leur gabarit (SHAPES). */

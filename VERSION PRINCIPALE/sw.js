@@ -10,8 +10,11 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v794'; // v794 (2026-10-22, Sacha : « le bouton du boost et la flamme en rouge vif ») : palette violette de la nitro infinie, dégradé de la flamme et feu de pixels passent au rouge vif
-// const CACHE = 'cashcar-v793'; // v793 (2026-10-22, Sacha : « tableau des peintures » — prix en euros, huit peintures retirées, quatre secrètes à l'achat)
+const CACHE = 'cashcar-v805'; // v804 (2026-10-22, Sacha : « l'onglet missions est très mal géré ») : missions en deux colonnes, AUJOURD'HUI + SUIVIES à gauche, filtres + liste à droite
+// const CACHE = 'cashcar-v802'; // v802 (2026-10-22, Sacha : CHROME MIROIR cinq niveaux dans les nuages, MENTHE compte le blizzard)
+// const CACHE = 'cashcar-v799'; // v799 (2026-10-22, Sacha : ATCHOUM une seule mission, indices des peintures traduits, remboursements = achats seulement)
+// const CACHE = 'cashcar-v798'; // v798 (2026-10-22, Léo : « enlève les singes de la map jade ou rends-les plus légers, et rends la map plus légère : sur la grotte ça bugue moins et c'est aussi joli ») : le ciel de Jade dans un programme à lui (même image au bit près, ~40 % d'image de scène en moins), les peaux de coton vides ne se dessinent plus (−150 appels), les singes éteints (?singes=1 les rend)
+// const CACHE = 'cashcar-v795'; // v795 (2026-10-22, Sacha : peintures secrètes, compteurs sauvegardés, refonte du volcan d'après photos)
 // const CACHE = 'cashcar-v789'; // v789 (2026-10-22, Sacha : « enlève le système de sauvegarde du lien Vercel, dès qu'on se connecte on arrive sur un nouveau compte ») : sur le web plus rien n'est lu ni écrit (compte neuf à chaque ouverture), ?garde=1 pour garder ; l'appli native garde la sienne
 // const CACHE = 'cashcar-v788'; // v788 (2026-10-22, Sacha : « HOT ROD : atteindre le palier 10 du moteur avec la musique activée »)
 // const CACHE = 'cashcar-v786'; // v786 (2026-10-22, Sacha : « oui, livre les 4 chantiers sûrs ») : le décor du glacier recalé sur la pente à 45° (?sans=glacerecale = avant) ; l'écran de fin couché, ⌂ · REJOUER dans la grille ; le SALTO AVANT offert aux joueurs neufs ; la vitesse de départ de Léo seulement au palier 30 (plus par le code cousin)

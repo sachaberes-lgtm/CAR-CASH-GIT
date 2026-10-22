@@ -423,6 +423,7 @@ function figEqToast(id,c){const f=window.FIG&&FIG.par[id];if(!f)return;const r=f
   else{uiClic('nav');toast(pxi('rotation')+' '+sansAcc(TR(f.n))+' · '+sansAcc(TR('ÉQUIPÉE'))+' · '+fam);}} // déjà là : une par direction, toujours — on en change en équipant une autre de cette direction
 function figEquipee(id){return figSlots().indexOf(id);} // son 1er emplacement (0 avant · 1 arrière · 2 côté), −1 sinon
 function garFigEssai(id,c,libre){let f=window.FIG&&FIG.par[id];if(!f)return;if(c!=null&&c<2&&FIG.oriente)f=FIG.oriente(f,FIG_DIR[c]);
+  GFGOM.p=null;GFIG.plat=!!(f.m&&f.m.length&&f.m.every(function(m){return m.a&&Math.abs(+m.a[1]||0)>.9;})); /* (2026-10-22, Sacha : « le tail whip à l'inventaire, la caisse décolle ; il faut que ça reste sur le sol, avec une trace de pneus comme les donuts ») une figure À PLAT (tail whip, toupie) reste POSÉE : pas de saut, et les pneus marquent le plateau */
   if(!libre&&!BRAS_FIG&&(brasVoulu()||brasBqVoulu())&&!figPosee()){if(GFIG.corps)GFIG.corps.vide();if(GFIG.lect)GFIG.lect.vide();GFIG.D=0;BRB.libre={id:id,c:c,t:.5};return;} // (19/10 soir) pas encore posée (pinces, bras d'argent qui rentrent) : elle la fera dès qu'elle l'est (brasTick)
   if(!libre&&BRAS_FIG&&(brasVoulu()||brasBqVoulu())){if(brasBqVoulu())BRB.bqVeut=true;if(GFIG.corps)GFIG.corps.vide();if(GFIG.lect)GFIG.lect.vide();GFIG.D=0;const r9=brasFigure(f);if(r9===true)return;if(r9==='libre'){BRB.libre={id:id,c:c,t:.5};return;}} // (2026-10-19) à l'inventaire, LE BRAS DES FIGURES la fait (sans plan sûr : il se range d'abord, puis elle la fait seule) // (2026-10-15) la caisse la fait dans le sens de la carte (le rodéo avant ≠ le rodéo arrière)
   if(FIGV2.on&&FIG.Corps){if(!GFIG.corps)GFIG.corps=new FIG.Corps();const C=GFIG.corps;C.vide();C.lance(f,1,f.D*1.2);C.evts.length=0;GFIG.t=0;GFIG.D=f.D*1.2*(FIG.PHY.elan?1:1/.85)+.6; /* (2026-10-15 soir) le coup net : la figure en f.D × 1,2, puis le planté */
@@ -432,15 +433,17 @@ function garFigEssai(id,c,libre){let f=window.FIG&&FIG.par[id];if(!f)return;if(c
 function garFigTick(dt){
   if(brasTick(dt))return; // (2026-10-19) LE BRAS DES FIGURES tient la caisse
   if(GFIG.corps&&GFIG.D>0){const C=GFIG.corps,d9=Math.min(dt,.05);GFIG.t+=d9;C.budget=Math.max(0,GFIG.D-GFIG.t);C.tick(d9);C.evts.length=0; // (LES FIGURES v2)
-    const x=Math.min(1,GFIG.t/GFIG.D),hc=(CARS[equippedCar()].h||1.3)*.5,q=C.q;carGroup.position.y+=1.5*Math.sin(Math.PI*x);
+    const x=Math.min(1,GFIG.t/GFIG.D),hc=(CARS[equippedCar()].h||1.3)*.5,q=C.q;if(!GFIG.plat)carGroup.position.y+=1.5*Math.sin(Math.PI*x);
     VEQ.pv.set(0,hc,0).applyQuaternion(carGroup.quaternion);VEQ.qr.set(q[0],q[1],q[2],q[3]);carGroup.quaternion.multiply(VEQ.qr);
     VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);
+    if(GFIG.plat)try{garFigGomme(d9,true);}catch(e){}
     if(x>=1&&!C.occupe()&&C.ecart()<.01){C.vide();GFIG.D=0;}return;}
   const L9=GFIG.lect;if(!L9||!L9.occupe())return;L9.tick(Math.min(dt,.05));GFIG.t+=Math.min(dt,.05);
-  const x=Math.min(1,GFIG.t/GFIG.D),hc=(CARS[equippedCar()].h||1.3)*.5,lev=1.5*Math.sin(Math.PI*x); // elle saute du plateau, tourne, se repose
+  const x=Math.min(1,GFIG.t/GFIG.D),hc=(CARS[equippedCar()].h||1.3)*.5,lev=GFIG.plat?0:1.5*Math.sin(Math.PI*x); // elle saute du plateau, tourne, se repose
   carGroup.position.y+=lev;VEQ.pv.set(0,hc,0).applyQuaternion(carGroup.quaternion);
   VEQ.qr.set(L9.q[0],L9.q[1],L9.q[2],L9.q[3]);carGroup.quaternion.multiply(VEQ.qr);
-  VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);}
+  VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);
+  if(GFIG.plat)try{garFigGomme(Math.min(dt,.05),true);}catch(e){}}
 function bqBoutonMaj(){const bt=document.getElementById('gBqBtn');if(!bt)return;const s=bqEtat(),cle=s?s.e+'|'+s.t+'|'+(s.p||'')+'|'+(s.j!=null?Math.round(s.j*100):'')+'|'+LANG:'';if(bt._k===cle)return;bt._k=cle;
   bt.dataset.e=s?s.e:'';bt.innerHTML=s?('<span>'+sansAcc(TR(s.t))+'</span>'+(s.p?'<b'+(bqPxLg(s.p)?' class="lg"':'')+'>'+String(s.p).replace(/</g,'')+'</b>':'')+(s.e==='eq'?pxi('coche'):(s.e==='mis'||s.e==='chat')?pxi('droite'):s.e==='sec'?pxi('oeil'):'')+(s.e==='manque'?'<i class="bqJ" style="--v:'+s.j.toFixed(2)+'"></i>':'')):'';}
 try{Object.assign(I18N,{"VERS L'ARRIÈRE":'BACKWARD','POUCE EN ARRIÈRE':'THUMB BACK',"VERS L'AVANT":'FORWARD','SUR LES CÔTÉS':'SIDEWAYS','POUCE EN AVANT':'THUMB FORWARD','POUCE À GAUCHE OU À DROITE':'THUMB LEFT OR RIGHT'});}catch(e){} // (2026-10-15) les deux familles de figures

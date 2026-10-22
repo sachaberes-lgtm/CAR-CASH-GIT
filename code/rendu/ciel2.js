@@ -36,6 +36,10 @@ function cielDeuxTemps(r9,cam){
     if(U.uVille.value<=.001&&U.uLvl.value<=.001)md='N';                  // NUAGES, ORBITE (et leur fondu) : ni ville, ni fond musical
     else if(U.uVille.value>.9999&&U.uPluie.value>.9999)md='V';}           // VILLE sous la pluie (le raccourci d'avant : la ville seule)
   if(U.uJade.value>.001||U.uCanyon.value>.001)md=''; // (PICS DE JADE) le rouleau peint vit dans le programme PLEIN · (CANYON) son fondu aussi
+  /* (2026-10-22, Léo : « la map jade bugue, la grotte non ») LES PICS DE JADE SEULS : leur ciel (le rouleau peint, la mer en cubes) dans un programme à lui, comme le canyon.
+     MESURÉ : le dôme coûtait à lui seul 40 à 50 % d'une image de Jade (sans lui : 8,5 → 5 ms) — il tournait dans le programme PLEIN, qui porte aussi la ville, l'orbite, les nuages et
+     le fond musical : la puce y réserve les registres du programme ENTIER pour chaque pixel, même sur la branche courte. Le MÊME calcul, sans le reste. `?ciel=plein` = avant. */
+  if(CIEL2.on&&U.uJade.value>.9999&&C.jd&&skyDome.visible&&!cielHorsCourse()){CIEL2.mode='J';if(skyDome.material!==C.jd)skyDome.material=C.jd;return;}
   if(U.uCanyon.value>.9999&&C.cy&&skyDome.visible&&!cielHorsCourse()){CIEL2.mode='C';if(skyDome.material!==C.cy)skyDome.material=C.cy;return;} // (2026-10-14) LE CANYON SEUL : son programme à lui
   CIEL2.mode=md;
   if(!md){if(skyDome.material!==C.plein)skyDome.material=C.plein;return;}
@@ -53,7 +57,7 @@ function cielChauffe(){ if(!CIEL2.on)return; try{
   const C=skyDome.userData.ciel,a=cielCible(8,8,false),b=cielCible(8,8,true),sc=new THREE.Scene(),me=new THREE.Mesh(skyDome.geometry,C.plein);
   me.frustumCulled=false;sc.add(me);const cible=renderer.getRenderTarget(),t0=skyU.uBasTex.value;skyU.uBasTex.value=a.texture;
   renderer.setRenderTarget(a);for(const k of ['basN','basV']){me.material=C[k];renderer.render(sc,camera);}
-  renderer.setRenderTarget(b);for(const k of ['netN','netV','plein','cy']){me.material=C[k];renderer.render(sc,camera);}
+  renderer.setRenderTarget(b);for(const k of ['netN','netV','plein','cy','jd']){me.material=C[k];renderer.render(sc,camera);}
   renderer.setRenderTarget(cible);skyU.uBasTex.value=t0;a.dispose();b.dispose(); // (les matières restent : leurs programmes vivent)
 }catch(e){console.warn('cielChauffe',e);} }
 cielChauffe();

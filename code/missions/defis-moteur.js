@@ -24,7 +24,7 @@ function secTick(dt,kmh){ // chaque image de course (après la vitesse affichée
   if(k.c&&!SEC.cartes[k.c]){SEC.cartes[k.c]=1;SEC.nCartes++;if(SEC.nCartes>=SEC_K.cameleon)secGagne('cameleon');}
   if(kmh>=SEC_K.eclair)secGagne('eclair');
   if(mode==='drive'&&Math.abs(lat)>ROAD_HALF*.8)SEC.bordT=0;else{SEC.bordT+=dt;if(SEC.bordT>=SEC_K.fantome)secGagne('fantome');}
-  if(k.c==='nuages'&&k.m==='orage'){if(nitroOn)SEC.sansNit=0;else{SEC.sansNit+=d;if(SEC.sansNit>=SEC_K.orage)secGagne('orage');}}else SEC.sansNit=0;
+  /* (2026-10-22) CIEL D'ORAGE : dix niveaux sous la pluie (m2Niveau) — l'ancien « 3 km sans nitro sous l'orage » n'ouvre plus rien */
   if(k.c==='jade'){SEC.jadeD+=d;if(SEC.jadeD>=SEC_K.jade)secGagne('jadeimperial');}
 }
 function secBord(){SEC.bordT=0;} // le bord touché (sortie par le côté, bump, lèvre)
@@ -34,7 +34,7 @@ function secPose(g,ratee,vol,kmh){ // au verdict d'une pose : g = 1,5 PARFAIT ·
   if(vol>.7){if(!ratee&&g>=1.5){SEC.parf++;if(SEC.parf>=SEC_K.nacre)secGagne('nacre');}else SEC.parf=0;}
 }
 function secFig(){const k=secCarte();if(k.c==='ville'&&k.m==='nuit'){SEC.villeFig++;if(SEC.villeFig>=SEC_K.lampadaire)secGagne('lampadaire');}} // une figure (addTrick)
-function secPorte(){const k=secCarte();if(k.c==='espace'&&(runStats.zones|0)>=SEC_K.lunaire)secGagne('lunaire');} // un portail franchi (après le compte)
+function secPorte(){} /* (2026-10-22) LUNAIRE : dix niveaux dans l'espace (m2Niveau) — l'ancien « 3e portail » n'ouvre plus rien ; */ // un portail franchi (après le compte)
 window.dbgSec=function(a){if(a==='raz'){secReset();return 'remis à zéro';}const k=secCarte();
   return {actif:secOk(),secDonne:typeof secDonne==='function',carte:k.c,meteo:k.m,sansBord:+SEC.bordT.toFixed(1),parfaitsDeSuite:SEC.parf,sansNitroOrage:Math.round(SEC.sansNit),
     jade:Math.round(SEC.jadeD),villeNuitFigures:SEC.villeFig,cartes:Object.keys(SEC.cartes),portails:runStats.zones|0,gagnesCettePartie:Object.keys(SEC.dits),seuils:SEC_K};};
@@ -206,7 +206,7 @@ function m2Dispo(m){if(!M2DISPO)return true;const r=(m&&m.r)||{};if(r.vide)retur
 function m2Pret(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.pr.indexOf(id)>=0)return false;const r=m.r||{};
   if(r.vide)return false;if(r.car){const i=m2CarIdx(r.car);return i>=0&&!carRetiree(i);}if(r.cat)return !!(COSM[r.cat]||[]).find(function(x){return x.id===r.id;});return true;}
 /* ---- LES BRANCHEMENTS DE LA COURSE ---- */
-function m2Raz(){M2R.sonne=false;M2R.ctl=0;M2R.vie=0;M2R.parf=0;M2R.lac=0;M2R.tourV.length=0;M2R.run.length=0;M2R.t=0;M2R.deb=false;M2R.figV=0;M2R.volT=0;M2R.figMax=0;M2R.airPm=0;}
+function m2Raz(){M2R.lv='';M2R.sonne=false;M2R.ctl=0;M2R.vie=0;M2R.parf=0;M2R.lac=0;M2R.tourV.length=0;M2R.run.length=0;M2R.t=0;M2R.deb=false;M2R.figV=0;M2R.volT=0;M2R.figMax=0;M2R.airPm=0;}
 function m2Debut(){const s=m2Etat(),c=s.c,j=m2Jour();M2R.deb=true; // la 1re image de la partie qui compte : le jour, l'heure
   if(c.jd!==j){c.jd=j;c.jours=(c.jours|0)+1;SAVE.mark();}
   if(new Date().getHours()===3)m2Flag('nuit3h');}
@@ -214,7 +214,11 @@ function m2Tick(dt,kmh){if(!m2Ok()||paused)return;const s=m2Etat(),r=s.r;if(!M2R
   if(!introD&&(mode==='drive'||mode==='fall'))M2R.ctl+=dt;
   if(mode!=='boom'){M2R.vie+=dt;if(M2R.vie>(r.vie||0))r.vie=M2R.vie;}
   if(kmh>(r.kmh||0))r.kmh=Math.round(kmh);
-  if(mode==='drive'||mode==='fall'){s.c.kmTot=(s.c.kmTot||0)+kmh*dt/3600;if(SND.sfx||SND.music)M2R.sonne=true;if(SND.music&&((engTier|0)+1)>=10)m2Flag('palier10');} /* (2026-10-22) les kilomètres à vie (LA QUEUE DE CANARD) ; SND : la partie a-t-elle eu du son ou de la musique (LA SILENCIEUSE) */
+  if(mode==='drive'||mode==='fall'){s.c.kmTot=(s.c.kmTot||0)+kmh*dt/3600;if(SND.sfx||SND.music)M2R.sonne=true;if(SND.music&&((engTier|0)+1)>=10)m2Flag('palier10');}
+  {const k9=secCarte(),sg=k9.c+'/'+k9.m+'/'+(runStats.zones|0);if(M2R.lv!==sg){M2R.lv=sg;m2Niveau(k9);}} /* (2026-10-22, Sacha : « tableau des peintures ») un niveau entré */
+  if(mode==='drive'&&side<0)m2Cpt('envers',kmh*dt/3600,100,'envers'); /* MONDE À L'ENVERS : 100 km sous la dalle (side < 0) */
+  if(((engTier|0)+1)>=24)secGagne('guerrier'); /* SUPER GUERRIER : le palier 24 */
+ /* (2026-10-22) les kilomètres à vie (LA QUEUE DE CANARD) ; SND : la partie a-t-elle eu du son ou de la musique (LA SILENCIEUSE) */
   if(nitroOn&&(mode==='drive'||mode==='fall')){s.c.nitS=(s.c.nitS||0)+dt;if(pwrNitroT>0)s.c.nmaxS=(s.c.nmaxS||0)+dt;SAVE.mark();} /* (2026-10-22) les secondes de nitro, et celles brûlées pendant une NITRO MAX */
   if(FLOW.lv===4){r.frenN=1;if(FREN.t>(r.frenT||0))r.frenT=FREN.t;}
   const k=secCarte().c;if(k&&s.c.cartes.indexOf(k)<0){s.c.cartes.push(k);SAVE.mark();}
@@ -226,7 +230,15 @@ function m2Tick(dt,kmh){if(!m2Ok()||paused)return;const s=m2Etat(),r=s.r;if(!M2R
   try{djTick(dt);}catch(e){} /* (2026-10-20) LE DÉFI DU JOUR (missions/aujourdhui.js) */
   M2R.t-=dt;if(M2R.t<=0){M2R.t=.25;m2Verifie(true);try{m2FocusMaj();}catch(e){}}}
 /* (2026-10-22) un POWER-UP ramassé (pwrPrend) */
-function m2Pu(){if(!m2Ok())return;const c=m2Etat().c;c.pu=(c.pu|0)+1;SAVE.mark();}
+function m2Pu(k){if(!m2Ok())return;const c=m2Etat().c;c.pu=(c.pu|0)+1;SAVE.mark();const T={v:['citron','taxi'],a:['raisin','royal'],x:['dragon','fuchsia']}[k];if(T)m2Cpt(T[0],1,50,T[1]);} /* (2026-10-22, Sacha : « tableau des peintures ») les fruits-pouvoirs : CITRON (v), RAISIN (a), FRUIT DU DRAGON (x) — 50 chacun pour leur peinture */
+/* UN COMPTEUR À VIE DE PEINTURE SECRÈTE : `c.sc[k]` += v ; au seuil, la peinture `id` (secGagne → secDonne) */
+function m2Cpt(k,v,seuil,id){if(!m2Ok())return;const c=m2Etat().c,S=c.sc||(c.sc={});S[k]=(S[k]||0)+v;if(S[k]>=seuil)secGagne(id);SAVE.mark();}
+function m2Fruit(nom){const T={CERISE:['cerise','bolide'],ORANGE:['orange','emeute'],MYRTILLE:['myrtille','azur']}[nom];if(T)m2Cpt(T[0],1,50,T[1]);} /* un fruit croqué (ramassage.js) */
+/* UN NIVEAU ENTRÉ (le portail franchi, ou le départ) : dix par temps / par map pour les peintures secrètes */
+function m2Niveau(k){const m=k.m,c=k.c;
+  if(m==='neige'||m==='blizzard')m2Cpt('neige',1,10,'menthe');if(m==='nuit')m2Cpt('nuit',1,10,'minuit');if(m==='matin')m2Cpt('matin',1,10,'dragee');if(m==='midi')m2Cpt('midi',1,10,'abricot');
+  if(c==='banquise')m2Cpt('glacier',1,10,'neige');if(c==='foret')m2Cpt('foret',1,10,'ogre');if(c==='ville'||c==='crypto'||c==='vitree')m2Cpt('ville',1,10,'gotham');
+  if(m==='pluie'||m==='orage')m2Cpt('pluie',1,10,'orage');if(c==='espace')m2Cpt('espace',1,10,'lunaire');if(c==='nuages')m2Cpt('nuages',1,5,'chrome');} /* (2026-10-22, Sacha : « oui » aux deux points de la revue) MENTHE compte aussi le blizzard (le glacier en neige seule : un niveau sur 66) ; CHROME MIROIR : cinq niveaux sur la mer de nuages (un seul l'ouvrait dès la 1re course) */
 function m2Saut(){M2R.tourV.length=0;M2R.figV=0;M2R.volT=0;} // startFall : un saut neuf (le bump n'en est pas un : il prolonge le saut)
 /* FRÔLER UNE TOUR (la ville) : passer à moins de M2K.frole m d'un flanc, à hauteur de la tour, sans la toucher — la même grille que
    villeHeurt (CITY.col : boîtes x,y,z,l,h,p), les huit cases voisines comprises. Une tour = son décalage dans la grille. */
