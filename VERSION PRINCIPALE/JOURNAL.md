@@ -60,6 +60,9 @@ MESURÉ, la grotte (310 k triangles, ~200 appels, 3-4 ms de scène) contre les P
 - ⚠ **LE PIÈGE** (déjà dans le guide de l'assembleur) : une retouche faite dans index.html SEUL disparaît au prochain réassemblage depuis les morceaux. Après une fusion,
   `node code/assembler.cjs --verifier` d'abord ; s'il dit ≠, ranger la page dans les morceaux (`--depuis-index`), jamais l'inverse à l'aveugle.
 
+## DEUX PEINTURES SECRÈTES AJUSTÉES (2026-10-22, v802, Sacha : « oui » aux points de la revue)
+- **MENTHE GLACÉE** compte la neige ET le blizzard du glacier (neige seule : un niveau sur 66). **CHROME MIROIR** : cinq niveaux sur la mer de nuages (un seul l'ouvrait à la 1re course) ; indice « Cinq niveaux dans les nuages. » (anglais : « Five levels in the clouds. »).
+
 ## LES CORRECTIFS DE LA REVUE (2026-10-22, v799, Sacha : « corrige ATCHOUM, traduis les indices, ne rembourse que ce qui a été acheté »)
 - **ATCHOUM** n'a plus qu'UNE mission (`figs500`) : `geyser` paie 15 000 $ (À VALIDER) — l'`av` imbriqué de CAR_UNLOCK[69] disparaît.
 - **Indices des peintures secrètes** : dix-huit traductions anglaises (`I18N`, boutique.js, juste sous `peintSecrete`).
