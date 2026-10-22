@@ -16,6 +16,17 @@
 - **Crochets de banc** (`dbgDunes`) : `('test')` · `('ech', s0, s1, pas)` (le terrain prescrit) · `('sauts')` · `('vueA', s, haut, cap, pente)` · `('cam', œil, cible, champ)` · `('galerie', s, [modèles])` · `('modele', nom)` · `('shader', 'sable'|'t'|'g', ancien, neuf)` · `('const')` · `('gpu')`. Pour un palier moteur donné : `dbgTrace({carte:'dunes', meteo:'midi', graine:n, palier:p})`. Piège zsh : `${=var}` pour découper une chaîne.
 - Fichiers : `maps/dunes-1.js` (route, terrain, construction), `dunes-2.js` (sable, tremplins, matière des décors, crochets), `dunes-3.js` (boîte à outils, modèles), `dunes-4.js` (scènes) ; `biomes.js` ; `moteur/piste-prebati.js` (+ `'fe'`) ; `ORDRE.txt`.
 
+## LE SCAN DE LA STRATOS — UN TAP SUR LA CAISSE LANCE LA STATION MÉTÉO (2026-10-22, v809, Léo : « Oui, fais le SCAN au tap sur la Stratos »)
+C'est l'ACTION SPÉCIALE de la caisse (`CAR_ACTION`, atchoum-feu.js — posée par `stratosMeteo`, comme LA CERISE, LE TOFU et LE SQUALE) : le TAP sur la caisse au garage (`garageImpact`), au menu ciel (`chuteTape`) et en boutique
+(`bqTape`) ; rien en course (`caisseAction` n'y est pas appelée). `dbgAction()` la joue ; `dbgStratos({scan:t})` fige un instant du scan pour les photos. Tout est fonction du TEMPS DU SCAN (`scanT`), 3 s :
+- **la charge** (0-0,45 s) : radars ×7, anneaux ×4,5, coupelles +14 rad/s, la manche à air se tend, le scanner du bouclier ×3, la barre défile plus vite ;
+- **le balayage** (0-1,05 s) : une crête blanche court sur les 21 barres — elles montent d'un coup devant elle, retombent en traînée derrière ;
+- **trois arcs** (0,55 · 1,10 · 1,65 s) : les pointes des paratonnerres claquent avec, et le gyroscope gonfle de 20 % à chaque coup (pas d'arc au hasard pendant le scan) ;
+- **l'icône** défile toutes les 0,17 s puis se FIGE à 1,4 s sur un résultat tiré au hasard (jamais celle de départ) et claque (×1,32) ; **la retombée** de 1,5 à 3 s, puis le carrousel reprend depuis le résultat. Retapé en route : il repart à 0,9 s.
+- Pas de son ajouté (le coup de tôle du tap suffit ; la bibliothèque n'a pas de recette « zap » : à cuire si Léo en veut un). 0 dessin et 0 programme de plus : le scan réécrit les mêmes tampons.
+- Vérifié : le scan déroulé image par image à la main, puis dans la VRAIE boucle (`dbgStep`) : 0 → 3 s puis −1, arcs aux bons instants, icône figée à 1,44 s, 0 avertissement ; photos des instants (studio). ⚠ Pas vu au doigt dans le vrai garage (le volet intégré était masqué) :
+  la planche est faite d'images figées, le mouvement reste à regarder à l'œil.
+
 ## LA STRATOS, STATION MÉTÉO — DES GADGETS CYBER-FUTURISTES DE PRÉDICTION MÉTÉO, MOITIÉ TECHNIQUE, MOITIÉ ABSTRAIT (2026-10-22, v806, Léo : « retouche stratos : ajoute plusieurs gadgets cyber-futuristes de prédiction météorologique sur la voiture, répartition abstrait / technique, voiture épique » · « design cohérent à la Stratos » · le oui de Léo après la planche : « Oui, pousse la Stratos station météo sur le main »)
 « Stratos » vient de la STRATOSPHÈRE : la berlinette lit le ciel. La caisse n'est pas touchée (livrée, jantes, phares de rallye, feux, profil, lamelles du capot) : on lui pose du matériel dans SA langue — même palette
 (blanc, vert et rouge de la livrée, or des jantes, noir mat, chrome, blanc chaud des phares), mêmes facettes, même montage que la rampe de phares (une platine noire, un collier d'or, la pièce par-dessus).
