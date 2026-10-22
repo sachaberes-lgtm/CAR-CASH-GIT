@@ -62,6 +62,7 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
   // le fond d'une vague : on tourne, ou (l'allée, la cuvette d'argile) on roule droit entre deux rangées de décors
   const valle=fe=>{const u0=uh;
     if(fe.sp==='avenue'){recentre();ici('obel0');droite((400+r()*70)*LL);ici('obel1');}
+    else if(fe.sp==='plaza'){recentre();droite((380+r()*80)*LL);}
     else if(fe.sp==='vlei'){ici('vlei0');creux('balayage');recentre();droite((60+r()*40)*LL);ici('vlei1');}
     else{creux(fe.vt);recentre();}
     if(uh-u0<150*LL)droite(150*LL-(uh-u0));};
@@ -75,19 +76,18 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
     else{const a=34+r()*22,R=RMIN*(1.5+r()*.5),s1=vir(sgC,a,R);droite((16+r()*20)*LL);ici('m'+n+'s');const s2=vir(-s1,a*(.8+r()*.4),RMIN*(1.5+r()*.6));fe.sg=-s1;fe.sg2=-s2;}
     ici('m'+n+'b');
     droite(26*LL+fe.Lc/2);ici('c'+n);{const uA=uh;gn(uA-fe.Lc/2,fe.gm);gn(uA+fe.Lc/2,-fe.gl);}                         // l'apex, au milieu de sa courbe verticale
-    droite((o.fin?330+r()*60:225+r()*60)*LL*kb);ici('d'+n);{const uL=uh,gv=o.fin?-.015:fe.gv;gn(uL-50,-fe.gl);gn(uL+50,gv);gP=gv;}
-    if(o.fin){ici('oasis0');creux('S');recentre();droite(240*LL);ici('fin');droite(150,2);}
+    droite((o.fin?330+r()*60+(o.xtra||0)*.5:225+r()*60)*LL*kb);ici('d'+n);{const uL=uh,gv=o.fin?-.015:fe.gv;gn(uL-50,-fe.gl);gn(uL+50,gv);gP=gv;}
+    if(o.fin){ici('oasis0');creux('S');recentre();droite(240*LL+(o.xtra||0)*.5);ici('fin');droite(150,2);}
     else valle(fe);
     sgC=r()<.75?-sgC:sgC;};
-  const B=LC9?LC9*DN_HZ.kL*(.92+r()*.16):5300*LL,FIN=1350*LL,DEP=470*LL,CY=800*LL;
+  const B=LC9?LC9*DN_HZ.kL*(.92+r()*.16):5300*LL,FIN=1340*LL,LEN9={'':806,avenue:1219,vlei:760,plaza:1160}; // FIN : la dernière vague (l'oasis) et la route d'après · LEN9 : la longueur d'une vague selon son lieu (mesurée au banc)
   // LE DÉPART : le belvédère, tout en haut — une droite pour s'élancer, un virage, puis la 1re colline
   push();ici('depart');gn(0,gP);droite(220*LL);creux(r()<.5?'S':'balayage');recentre();ici('erg0');
-  const nc=Math.max(3,Math.min(9,Math.round((B-FIN-DEP)/CY))),spec=[];{const L9=['vlei','avenue'];for(let i=L9.length-1;i>0;i--){const j=(r()*(i+1))|0,x9=L9[i];L9[i]=L9[j];L9[j]=x9;}
-    const lib9=[];for(let k=1;k<nc-1;k++)lib9.push(k);for(let i=lib9.length-1;i>0;i--){const j=(r()*(i+1))|0,x9=lib9[i];lib9[i]=lib9[j];lib9[j]=x9;}
-    for(let k=0;k<L9.length&&k<lib9.length;k++)spec[lib9[k]]=L9[k];}
-  const grande=1+((r()*Math.max(1,nc-1))|0);
-  for(let k=0;k<nc;k++){vague({sp:spec[k]||'',big:k===grande});yield;}
-  vague({fin:true});
+  /* LES LIEUX : des creux LONGS (la place où se posent les scènes) — l'allée des obélisques, la cuvette d'argile, la place des colosses —, tirés dans l'ordre ; le premier creux reste calme */
+  const plan=['avenue','vlei','plaza'];for(let i=plan.length-1;i>0;i--){const j=(r()*(i+1))|0,x9=plan[i];plan[i]=plan[j];plan[j]=x9;}plan.unshift('');
+  const grande=1+((r()*2)|0);let nv=0;
+  while(nv<9&&(nv<2||B-(uh+FIN)>LEN9[plan[nv]||'']*LL*.5)){vague({sp:plan[nv]||'',big:nv===grande});nv++;yield;}
+  vague({fin:true,xtra:Math.max(0,Math.min(500,B-(uh+FIN)))}); // (le reste du budget de longueur va à la descente finale et à la droite d'arrivée)
   // LES ALTITUDES : GN = (u, pente), linéaire entre deux nœuds (des raccords PARABOLIQUES : crêtes et creux arrondis) ; y est l'intégrale de la pente le long de la route
   {const gAt=u=>{if(u<=GN[0][0])return GN[0][1];for(let k=1;k<GN.length;k++)if(u<=GN[k][0]){const a=GN[k-1],b=GN[k],t=(u-a[0])/Math.max(1e-6,b[0]-a[0]);return a[1]+(b[1]-a[1])*t;}return GN[GN.length-1][1];};
    C[0].y=0;for(let k=1;k<C.length;k++){const a=U[k-1],b=U[k],du=b-a;C[k].y=C[k-1].y+du*(gAt(a)+4*gAt(a+du/2)+gAt(b))/6;}}

@@ -31,42 +31,39 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   'void main(){vec3 N=normalize(vN),Vv=uCam-vW;float dist=length(Vv);vec3 V=Vv/max(dist,.001);',
   '  float wat=vA.x,dep=vA.y,du=clamp(vA.z,0.,1.),lit=clamp(vA.w,0.,1.),pan=clamp(vB.x,0.,1.),veg=clamp(vB.w,0.,1.)*(1.-wat);',
   '  vec4 n0=texture2D(uNZ,vW.xz/1900.),n1=texture2D(uNZ,vW.xz/260.),n2=texture2D(uNZ,vW.xz/37.);',
-  /* LA MOSAÏQUE (le sable en MINI-CUBES — la touche de la forêt et de jade) : la case du pixel suit la distance (uMo.y de case par mètre, au moins uMo.x de près), deux
-     niveaux voisins (×2) fondus l'un dans l'autre ; chaque case a sa nuance, sa facette et son joint ; elle s'efface quand elle tombe sous ~2 px (fwidth) */
-  '  float stp0=clamp(1.-N.y,0.,1.),rA=.5,rB=.5,jt=0.,kf=0.;',
-  '  if(uMo.z>.001){vec2 uvm=stp0>.30?(abs(N.x)>abs(N.z)?vec2(vW.z,vW.y):vec2(vW.x,vW.y)):vW.xz;', // (sur un flanc raide la case se lit dans le plan du mur · branche UNIFORME : à force 0 (vieux téléphones) rien de tout cela ne coûte)
-  '    float Lg=log2(max(dist*uMo.y,uMo.x)/uMo.x),l0=floor(Lg),wl=Lg-l0,cs0=uMo.x*exp2(l0);vec2 q0=uvm/cs0,q1=q0*.5;float fw0=length(fwidth(q0));',
-  '    kf=(1.-smoothstep(.22,.70,fw0*mix(1.,.5,wl)))*uMo.z*(1.-smoothstep(4000.,7000.,dist))*(1.-wat);',
-  '    vec2 ic0=floor(q0),ic1=floor(q1),fr0=fract(q0),fr1=fract(q1);',
-  '    rA=mix(dh2(ic0+l0*7.31),dh2(ic1+l0*7.31+31.7),wl);rB=mix(dh2(ic0+19.1+l0*3.7),dh2(ic1+53.3+l0*3.7),wl);',
-  '    vec2 ed0=min(fr0,1.-fr0),ed1=min(fr1,1.-fr1);jt=mix(1.-smoothstep(0.,.07,min(ed0.x,ed0.y)),1.-smoothstep(0.,.07,min(ed1.x,ed1.y)),wl);}',
-  /* LES RIDES DU VENT : la normale ondule en travers du vent (aucune géométrie), de près, sur le sable seulement */
-  '  if(dist<70.&&wat<.5){float kr=(1.-smoothstep(25.,70.,dist))*(1.-.85*pan)*(1.-veg)*(1.-smoothstep(.20,.40,stp0))*uK.y;float ph=dot(vW.xz,uW.xy)*3.1+4.*n2.r+1.6*texture2D(uNZ,vW.xz/9.).g;',
-  '    N=normalize(N-vec3(uW.x,0.,uW.y)*cos(ph)*.12*kr);}', /* (de près seulement : au-delà de 70 m, la ride de 2 m crénelait en damier — MESURÉ à la photo) */
-  /* LA HOULE MOYENNE : des rides de ~11 m, larges, qui tiennent jusqu'à ~1 km — le sable ne devient plus du papier à 100 m */
-  '  if(wat<.5&&uMo.z>.001){float k2=smoothstep(55.,150.,dist)*(1.-smoothstep(500.,1500.,dist))*(1.-.85*pan)*(1.-veg)*(1.-smoothstep(.20,.40,stp0))*uK.y;float p2=dot(vW.xz,uW.xy)*.57+3.*n1.r+1.5*n2.g;N=normalize(N-vec3(uW.x,0.,uW.y)*cos(p2)*.075*k2);}',
+  '  float stp0=clamp(1.-N.y,0.,1.);vec2 pp=vW.xz,Wd=normalize(uW.xy+vec2(1e-4));float fp=length(fwidth(pp));',
+  /* (2026-10-22, Léo : « la texture du sable, j'aime pas, pas très beau ») LE SABLE FAÇON JOURNEY — plus de mosaïque de cubes : des RIDES DU VENT en trois octaves (62 cm de près, 3 m, 13 m : la normale
+     ondule en travers du vent, les crêtes serpentent et se fourchent, le vent tourne un peu d'un endroit à l'autre), des traînées longues dans le sens du vent, une lumière chaude côté soleil et froide
+     côté ombre, un SATIN sur les crêtes de rides et des ÉCLATS qui scintillent quand l'œil bouge. Chaque octave s'efface avant de tomber sous ~3 px (fwidth : jamais de moiré). */
+  '  float rm=(1.-.85*pan)*(1.-veg)*(1.-wat)*(1.-smoothstep(.22,.42,stp0))*uK.y,rv=0.;',
+  '  if(rm>.001){float rot=(texture2D(uNZ,pp/310.).b-.5)*.9;vec2 d=vec2(Wd.x*cos(rot)-Wd.y*sin(rot),Wd.x*sin(rot)+Wd.y*cos(rot));',
+  '    float wp=2.6*(texture2D(uNZ,pp/23.).r-.5)+1.3*(texture2D(uNZ,pp/5.3).g-.5);',
+  '    float k1=1.-smoothstep(.16,.42,fp/.62),k2=1.-smoothstep(.16,.42,fp/3.1),k3=1.-smoothstep(.16,.42,fp/13.);',
+  '    float a1=.20*k1*(1.-smoothstep(30.,95.,dist)),a2=.13*k2*(1.-smoothstep(300.,900.,dist)),a3=.09*k3*(1.-smoothstep(1000.,2600.,dist));',
+  '    float s1=cos(6.2832*(dot(pp,d)/.62+wp)),s2=cos(6.2832*(dot(pp,d)/3.1+.8*wp+n2.r*1.5)),s3=cos(6.2832*(dot(pp,d)/13.+.5*wp+1.2*n1.r));',
+  '    float amp=(.55+.9*n1.g)*rm;N=normalize(N-vec3(d.x,0.,d.y)*(a1*s1+a2*s2+a3*s3)*amp);rv=(a1*s1*.8+a2*s2*.55+a3*s3*.4)*amp;}',
   '  float stp=clamp(1.-N.y,0.,1.);',
-  '  N=normalize(N+vec3(rA-.5,0.,rB-.5)*.20*kf);', // la FACETTE de la case : chaque cube sa pente
-  '  float kT=kf*(1.-.9*smoothstep(40.,260.,dist));float tn=clamp(.5+(n0.r-.5)*1.7+(n1.g-.5)*.8+(rA-.5)*.55*kT,0.,1.);vec3 sa=mix(uSaA,uSaB,tn)*(.96+.08*n2.b)*(1.+(rB-.5)*.16*kT);',
+  '  float st9=texture2D(uNZ,vec2(dot(pp,Wd)/90.,dot(pp,vec2(-Wd.y,Wd.x))/15.)).g;', // les traînées longues, dans le sens du vent
+  '  float tn=clamp(.5+(n0.r-.5)*1.7+(n1.g-.5)*.8+(st9-.5)*.55,0.,1.);vec3 sa=mix(uSaA,uSaB,tn)*(.96+.08*n2.b)*(1.+rv*.55);',
   '  sa=mix(sa,uSaL,smoothstep(.80,1.,du)*.40);', // la crête, plus claire
-  '  float cr=texture2D(uNZ,vW.xz/14.).r,cl=pan*smoothstep(.16,.05,stp);vec3 clay=uClay*(.90+.12*n2.g)*(1.-.30*smoothstep(.465,.5,cr)*smoothstep(.535,.5,cr))*(1.+(rB-.5)*.14*kf);', // l'argile blanche et ses craquelures
-  '  vec3 col=mix(sa,clay,cl);col=mix(col,uVeg*(.80+.35*n2.g)*(1.+(rB-.5)*.2*kf),veg);',
-  /* LA ROCHE (2026-10-22) : les flancs raides — des buttes de grès — se couvrent de STRATES (des lits de ~20 m, du terracotta sombre à la crème, ondulés par le bruit, un joint sombre entre deux lits)
-     et de blocs (la même mosaïque) ; sur le plateau, le sable reste */
-  '  float rk=clamp(vB.y,0.,1.)*smoothstep(.08,.24,stp);', // (la roche : les BUTTES seulement — les parois de sable sous les sauts restent du sable, sans cannelures)
+  '  float cr=texture2D(uNZ,vW.xz/14.).r,cl=pan*smoothstep(.16,.05,stp);vec3 clay=uClay*(.90+.12*n2.g)*(1.-.30*smoothstep(.465,.5,cr)*smoothstep(.535,.5,cr));', // l'argile blanche et ses craquelures
+  '  vec3 col=mix(sa,clay,cl);col=mix(col,uVeg*(.80+.35*n2.g),veg);',
+  /* LA ROCHE (2026-10-22) : les flancs raides — des buttes de grès — se couvrent de STRATES (des lits de ~20 m, du terracotta sombre à la crème, ondulés par le bruit, un joint sombre entre deux lits) ; sur le plateau, le sable reste */
+  '  float rk=clamp(vB.y,0.,1.)*smoothstep(.08,.24,stp);', // (la roche : les BUTTES seulement — les parois de sable restent du sable)
   '  if(rk>.01){float yy=vW.y*.07+.9*n1.r+.35*n2.g,id=floor(yy),fb=fract(yy),h1=dh2(vec2(id,3.7)),h2=dh2(vec2(id,9.1));',
   '    vec3 rc=mix(uSaB*.74,uSaL*.98,h1*h1)*(.82+.36*h2)*(1.-.22*(1.-smoothstep(0.,.07,fb)));',
   '    float ve=texture2D(uNZ,vec2(dot(vW.xz,vec2(.7071,.7071))/11.,vW.y/70.)).g;rc*=.84+.32*ve;', // les cannelures verticales de l'érosion
-  '    col=mix(col,rc*(1.+(rB-.5)*.30*kf*(1.-smoothstep(60.,300.,dist))),rk);}',
-  '  col*=1.-jt*.15*kf;', // le JOINT de la case
+  '    col=mix(col,rc,rk);}',
   '  vec3 Ls=normalize(vec3(uSunD.x,min(uSunD.y,uK.w),uSunD.z));float ndl=dot(N,Ls),wr=clamp((ndl+uK.z)/(1.+uK.z),0.,1.);', // (uK.w : le soleil de midi est abaissé pour le RELIEF — la lumière de forme ; l'ombre, elle, reste celle du vrai soleil)
   '  float ao=mix(.80,1.,smoothstep(0.,.45,du));', // le creux d'une dune reçoit moins de ciel
   '  vec3 Lc=uSunC*wr*lit+mix(uGnd,uSky,N.y*.5+.5)*1.15*ao+uFillC*max(dot(N,uFillD),0.)*.5+uSunC*(.10+.16*rk)*(1.-lit)*(.6+.4*N.y)+uGnd*.28*rk;', /* + le REBOND : le sable à l'ombre reçoit la lumière des dunes au soleil (jamais de creux noir) */
   '  vec3 c=col*Lc;',
   '  c=mix(c,c*uShd,(1.-lit*clamp(ndl*2.5+.2,0.,1.))*.45);', // l'ombre du sable tire au VIOLET (la bible)
   '  float fr=pow(1.-max(dot(N,V),0.),4.);c+=(uSky*.22+uSunC*.16*max(ndl,0.)*lit)*fr*uK.x*(1.-wat);', // le SATIN du sable au rasant
-  '  if(dist<80.&&wat<.5){vec2 ce=floor(vW.xz*2.6);float hh=fract(sin(dot(ce,vec2(12.9898,78.233)))*43758.5453);vec3 R9=reflect(-uSunD,N);',
-  '    c+=uSunC*pow(max(dot(R9,V),0.),50.)*step(.982,hh)*lit*uQ.w*(1.-smoothstep(30.,80.,dist))*3.;}', // les PAILLETTES
+  '  vec3 Hh=normalize(Ls+V);',
+  '  if(wat<.5){c+=uSunC*pow(max(dot(N,Hh),0.),26.)*lit*(.05+.55*rm*abs(rv))*(1.-smoothstep(200.,900.,dist));}', // le LUSTRE des crêtes de rides (sur la ride seulement)
+  '  if(dist<115.&&wat<.5){vec2 gc=floor(pp*11.);float g1=dh2(gc),g2=dh2(gc+17.3),g3=dh2(gc+41.9);vec3 Nc=normalize(N+vec3(g1-.5,g3*.3,g2-.5)*.9);',
+  '    c+=uSunC*pow(max(dot(Nc,Hh),0.),520.)*step(.55,g3)*lit*uQ.w*(1.-smoothstep(40.,115.,dist))*6.;}', // les ÉCLATS : une facette de 9 cm au hasard, juste quand elle renvoie le soleil vers l'œil
   '  if(wat>.01){vec4 nw=texture2D(uNZ,mat2(.8,.6,-.6,.8)*vW.xz/57.+uTime*vec2(.006,.010)),nw2=texture2D(uNZ,vW.xz/143.-uTime*vec2(.004,.002));', /* (des bruits LARGES et tournés : à 18 m la tuile du bruit se répétait en grille sur le lac) */
   '    vec3 Nw=normalize(vec3(0.,6.,0.)+vec3(nw.r+nw2.g-1.,0.,nw.g+nw2.r-1.));vec3 wc=mix(uWS,uWD,1.-exp(-dep/4.));',
   '    float f9=.02+.98*pow(1.-max(dot(V,Nw),0.),5.);vec3 R=reflect(-V,Nw),sk=mix(uSkH,uSkZ,smoothstep(0.,.5,R.y));',
@@ -476,5 +473,5 @@ window.dbgDunes=function(k,a,b,c,d){
     skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return {cam:camera.position.toArray().map(Math.round),noeuds:DN.n};}
   return {on:DN.on,ms:DN.ms,noeuds:DN.n,sep:DN.sep,rmin:DN.rmin,F:DN.F?[DN.F.nx,DN.F.nz,DN.F.ts]:null,Z:DN.Z?[DN.Z.nx,DN.Z.nz,DN.Z.ts]:null,O:DN.O?[DN.O.nx,DN.O.nz,DN.O.ts]:null,
     ciel:CIEL2.mode,attente:!!DN.attente,sQ:DN.sQ,L:Math.round(L),obelisques:DN.ob.length,pyramide:!!DN.pyr,acacias:DN.nArb|0,palmiers:DN.nPal|0,caravanes:DN.car.length,oasis:DN.oa?{r:Math.round(DN.oa.r),y:Math.round(DN.oa.y)}:null,
-    hz:DN.hz||null,deco:DN.deco?Object.assign({},DN.deco,{pose:DN.decoN,pyramides:DN.pyrs.map(function(p){return p.st+':'+Math.round(p.hw*2)+'m';}),monuments:DN.mo.map(function(m){return m.k;})}):null,levres:(DN.lev||[]).length,sauts:DN.sauts|0,levre:DN.dbgLev||null,vent:DN.vent.map(v=>+v.toFixed(2)),lam:Math.round(DN.lam),soleil:SUN_DIR.toArray().map(v=>+v.toFixed(3)),ombre:+DN.ombre.toFixed(2),dunes:+(LVL.dunes||0).toFixed(2),canyon:+(LVL.canyon||0).toFixed(2),
+    hz:DN.hz||null,deco:DN.deco?Object.assign({},DN.deco,{pose:DN.decoN,pyramides:DN.pyrs.map(function(p){return p.st+':'+Math.round(p.hw*2)+'m';}),monuments:DN.mo.map(function(m){return m.k;})}):null,levres:(DN.lev||[]).length,scenes:DN.scn||null,heurt:DN.heurt||'',sauts:DN.sauts|0,levre:DN.dbgLev||null,vent:DN.vent.map(v=>+v.toFixed(2)),lam:Math.round(DN.lam),soleil:SUN_DIR.toArray().map(v=>+v.toFixed(3)),ombre:+DN.ombre.toFixed(2),dunes:+(LVL.dunes||0).toFixed(2),canyon:+(LVL.canyon||0).toFixed(2),
     carHaut:DN.on?+(carGroup.position.y-dnHauteur(carGroup.position.x,carGroup.position.z)).toFixed(1):null};};
