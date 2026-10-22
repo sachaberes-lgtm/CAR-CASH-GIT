@@ -80,7 +80,7 @@ const M2=[
   {id:'kmh2000',f:'secret',k:'kmh',v:2000,u:'kmh',r:{cash:25000},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'}, /* (2026-10-22, Sacha : « tableau des voitures » : LE MUR DU SON passe en boutique ; avant : LE MUR DU SON — À VALIDER */
   {id:'cratere',f:'secret',k:'flag',v:1,u:'b',r:{cash:20000},t:'MEURS AU-DESSUS DU CRATÈRE DU VOLCAN',en:'DIE ABOVE THE VOLCANO CRATER'}, /* (2026-10-22, Sacha : « tableau des voitures » : LA FOURNAISE retirée ; avant : LA FOURNAISE — À VALIDER */
   {id:'lave',f:'secret',k:'flag',v:1,u:'b',r:{car:'L\'AIGLE DE FEU'},t:'ROULE DANS LA LAVE',en:'DRIVE INTO THE LAVA'},
-  {id:'geyser',f:'secret',k:'flag',v:1,u:'b',r:{car:'ATCHOUM'},t:'TRAVERSE UN GEYSER',en:'FLY THROUGH A GEYSER'},
+  {id:'geyser',f:'secret',k:'flag',v:1,u:'b',r:{cash:15000},t:'TRAVERSE UN GEYSER',en:'FLY THROUGH A GEYSER'}, /* (2026-10-22, Sacha : « corrige ATCHOUM, traduis les indices, ne rembourse que ce qui a été acheté ») ATCHOUM n'a plus qu'UNE mission (figs500) : le geyser paie 15 000 $ — À VALIDER */
   {id:'abysse',f:'secret',k:'prof',v:'prof',u:'',r:{cash:15000},t:'DESCENDS AU FOND DE LA MER DE JADE',en:'DIVE TO THE BOTTOM OF THE JADE SEA'}, // (2026-10-20, Sacha : LE SQUALE passe à la boutique payante, 1,61 €) avant : LE SQUALE — il ne se gagne plus, l'argent à la place (15 000 $ : comme LE GLACIER et LA DEUCHE, À VALIDER PAR SACHA)
   {id:'nuage30',f:'secret',k:'vol',v:30,u:'s',r:{cash:20000},t:'RESTE {v} S EN L\'AIR AU-DESSUS DES NUAGES',en:'STAY {v} S IN THE AIR ABOVE THE CLOUDS'}, /* (2026-10-22, Sacha : « tableau des voitures » : LA CAISSE-NUAGE retirée ; avant : LA CAISSE-NUAGE — À VALIDER */
   {id:'terre',f:'secret',k:'flag',v:1,u:'b',r:{car:'COMÈTE'},t:'FAIS UN SALTO DEVANT LA TERRE',en:'FLIP IN FRONT OF THE EARTH'},
