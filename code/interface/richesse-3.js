@@ -22,6 +22,7 @@ function richLance(t,P,n,d,delai,kv,mat){ // (rend l'objet lancé ; mat : la mat
   const o=richSort(t);if(!o)return null;const D=RICH_T[t],rr=(a)=>a[0]+Math.random()*(a[1]-a[0]),m=o.m;
   if(t==='fruit'){const k9=richFruitK(),g9=fruitGeo(k9);if(!g9.boundingSphere)g9.computeBoundingSphere();m.geometry=g9;o.fr=(RICH_FRUIT_R[FRUIT_DEFS[k9].n]||.35)/Math.max(.05,g9.boundingSphere.radius);}else o.fr=1; // chaque fruit à SA taille
   if(t==='jeton')m.material=RICH.M.jetons[Math.floor(Math.random()*RICH.M.jetons.length)]; // une couleur, une valeur
+  const montreArg=t==='montre'&&Math.random()<.5;m.material=t==='montre'?(montreArg?RICH.M.montreArg:RICH.M.montre):m.material; // la dorée ou l'argentée
   if(t==='champagne'){const k9=Math.floor(Math.random()*RICH.G.vins.length);m.geometry=RICH.G.vins[k9];m.material=RICH.M.vins[k9];} // (2026-10-16) le champagne ou l'un de ses quatre cousins
   if(t==='fleur'){m.geometry=RICH.G.fleurs[Math.floor(Math.random()*RICH.G.fleurs.length)];o.A=(.5+Math.random()*1.1)*(Math.random()<.5?-1:1);} // (2026-10-16) une des six fleurs ; o.A : sa vitesse de rotation sur sa tige
   if(t==='billet')m.material=mat||RICH.M.billets[Math.floor(Math.random()*RICH.M.billets.length)]; // (2026-10-10) une valeur, une couleur
@@ -40,6 +41,7 @@ function richLance(t,P,n,d,delai,kv,mat){ // (rend l'objet lancé ; mat : la mat
   if(D.pop){o.pt=Math.max(.45,o.vie*(.3+Math.random()*.55));o.vie=o.pt+.34;o.fv=.05;o.popS=0;m.material.uniforms.uPop.value=0;if(m.children[0])m.children[0].scale.setScalar(2.2);} // (2026-10-16) le cœur ÉCLATERA à son heure (o.pt), chacun la sienne
   // les facettes qui peuvent renvoyer le soleil (repère de l'objet)
   o.nl=D.nl||null;let gc=D.gc||[1,.9,.68];
+  if(montreArg)gc=[.9,.95,1]; // l'éclat de l'acier : blanc-bleu
   if(t==='crane'){const mc=RICH.M.cranes[Math.floor(Math.random()*RICH.M.cranes.length)];m.children[0].material=mc;gc=mc.userData.gc;} // un pastel au hasard, son éclat à sa teinte
   if(o.nl&&!o.gl){for(const g of RICH.gl)if(!g.o){g.o=o;o.gl=g;break;}}
   if(o.gl){o.gl.s.material.rotation=Math.random()*3;o.gl.s.material.color.setRGB(gc[0],gc[1],gc[2]);}
@@ -148,7 +150,7 @@ function richCoup(P,n,d,mu,combo){
     richFlamme(P9,n9,T9.fl,r==='jackpot'||r==='gros');richEtincelles(P9,n9,d9,Math.round(12*T9.fl),1);
     const nb=T9.n[0]+Math.floor(Math.random()*(T9.n[1]-T9.n[0]+1)),etal=r==='jackpot'?.38:r==='gros'?.22:.12;
     const M9=RICH.mat9={g:0,v:0,f:0};for(let i=0;i<nb;i++){const ty=richPioche(T9.w),D9=RICH_T[ty]||{},lourd=D9.flip==='y'||ty==='or'||ty==='lingot'; // (2026-10-10) LA GERBE EN DEUX TEMPS : le métal part d'abord, sec ; le papier suit et s'étale
-      if(ty==='diamant'||ty==='rubis'||ty==='emeraude')M9.g=1;else if(ty==='champagne')M9.v=1;else if(ty==='fleur')M9.f=1; // (les matières de la gerbe, pour ses sons)
+      if(ty==='diamant'||ty==='rubis'||ty==='emeraude'||ty==='bague')M9.g=1;else if(ty==='champagne')M9.v=1;else if(ty==='fleur')M9.f=1; // (les matières de la gerbe, pour ses sons)
       richLance(ty,P9,n9,d9,lourd?Math.random()*etal*.55:D9.papier||ty==='liasse'?.05+Math.random()*etal*1.25:Math.random()*etal,r==='jackpot'?1.2:1);}
     if(Math.random()<.04)richLance('crane',P9,n9,d9,etal*.5,1); // de temps en temps, un CRÂNE pastel
     {const NU=RICH_NUEE[r];if(NU&&Math.random()<NU[0]){RICH.popI=0;const nc=NU[1]+Math.floor(Math.random()*(NU[2]-NU[1]+1));let t9=.03;for(let i=0;i<nc;i++){t9+=.03+Math.pow(Math.random(),2.2)*.38; // (2026-10-16) LA NUÉE : de petits cœurs, en plus de la gerbe, qui éclatent un à un — et (Léo : « plus irréguliers, on les voit trop en groupe ») ils s'ÉCHAPPENT un par un, à intervalles irréguliers (parfois deux d'affilée, parfois un silence), chacun sa vitesse, sa direction et son point de départ autour de la caisse
