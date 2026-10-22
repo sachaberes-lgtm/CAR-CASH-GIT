@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v804'; // v804 (2026-10-22, Sacha : « l'onglet missions est très mal géré ») : missions en deux colonnes, AUJOURD'HUI + SUIVIES à gauche, filtres + liste à droite
+const CACHE = 'cashcar-v805'; // v804 (2026-10-22, Sacha : « l'onglet missions est très mal géré ») : missions en deux colonnes, AUJOURD'HUI + SUIVIES à gauche, filtres + liste à droite
 // const CACHE = 'cashcar-v802'; // v802 (2026-10-22, Sacha : CHROME MIROIR cinq niveaux dans les nuages, MENTHE compte le blizzard)
 // const CACHE = 'cashcar-v799'; // v799 (2026-10-22, Sacha : ATCHOUM une seule mission, indices des peintures traduits, remboursements = achats seulement)
 // const CACHE = 'cashcar-v798'; // v798 (2026-10-22, Léo : « enlève les singes de la map jade ou rends-les plus légers, et rends la map plus légère : sur la grotte ça bugue moins et c'est aussi joli ») : le ciel de Jade dans un programme à lui (même image au bit près, ~40 % d'image de scène en moins), les peaux de coton vides ne se dessinent plus (−150 appels), les singes éteints (?singes=1 les rend)
