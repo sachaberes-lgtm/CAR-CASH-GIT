@@ -58,10 +58,10 @@ maps/foret-construction.js           # forêt : construction, boucle, console
 maps/canyon-route.js                 # LE CANYON DES GÉANTS : route, construction, monde, pose
 maps/canyon-relief.js                # canyon : relief, monuments, voûte, lumière cuite
 maps/canyon-mine.js                  # canyon : la mine abandonnée, la route 66
-maps/dunes-1.js                      # LES DUNES D'OR : route, monde, construction
-maps/dunes-2.js                      # dunes : sable à la puce, décors, sable qui vole
-maps/dunes-3.js                      # dunes : la boîte à outils des décors, les modèles (obélisque, pylône, colonne, sphinx…)
-maps/dunes-4.js                      # dunes : les scènes le long de la route (colonnade, allée des sphinx, colosses, porte, ruines)
+maps/dunes-1.js                      # LES DUNES D'OR : la route CONTINUE (vagues, tremplins de crête), le terrain prescrit, la construction
+maps/dunes-2.js                      # dunes : sable à la puce (rides façon Journey), matière des décors, hiéroglyphes, tremplins, sable qui vole
+maps/dunes-3.js                      # dunes : la boîte à outils des décors (loft, oriflammes), les modèles (pharaon assis, pyramides de Gizeh, obélisque, pylône, sphinx, felouque…)
+maps/dunes-4.js                      # dunes : les scènes le long de la route (colonnade, allée des sphinx, colosses, porte, portes du ciel, braseros, ruines)
 maps/glacier-route.js                # LA BANQUISE / LE GLACIER v4 : route, manteau de neige
 maps/glacier-construction.js         # glacier : construction, volant en l'air
 maps/glacier-verglas.js              # glacier : verglas, retombée des tremplins, console

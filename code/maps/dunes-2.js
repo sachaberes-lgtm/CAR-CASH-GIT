@@ -36,14 +36,14 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
      ondule en travers du vent, les crêtes serpentent et se fourchent, le vent tourne un peu d'un endroit à l'autre), des traînées longues dans le sens du vent, une lumière chaude côté soleil et froide
      côté ombre, un SATIN sur les crêtes de rides et des ÉCLATS qui scintillent quand l'œil bouge. Chaque octave s'efface avant de tomber sous ~3 px (fwidth : jamais de moiré). */
   '  float rm=(1.-.85*pan)*(1.-veg)*(1.-wat)*(1.-smoothstep(.22,.42,stp0))*uK.y,rv=0.;',
-  '  if(rm>.001){float rot=(texture2D(uNZ,pp/310.).b-.5)*.9;vec2 d=vec2(Wd.x*cos(rot)-Wd.y*sin(rot),Wd.x*sin(rot)+Wd.y*cos(rot));',
+  '  if(rm>.001&&uMo.z>.001){float rot=(texture2D(uNZ,pp/310.).b-.5)*.9;vec2 d=vec2(Wd.x*cos(rot)-Wd.y*sin(rot),Wd.x*sin(rot)+Wd.y*cos(rot));',
   '    float wp=2.6*(texture2D(uNZ,pp/23.).r-.5)+1.3*(texture2D(uNZ,pp/5.3).g-.5);',
-  '    float k1=1.-smoothstep(.16,.42,fp/.62),k2=1.-smoothstep(.16,.42,fp/3.1),k3=1.-smoothstep(.16,.42,fp/13.);',
+  '    float k1=(1.-smoothstep(.16,.42,fp/.62))*step(.6,uMo.z),k2=(1.-smoothstep(.16,.42,fp/3.1))*step(.2,uMo.z),k3=1.-smoothstep(.16,.42,fp/13.);',
   '    float a1=.20*k1*(1.-smoothstep(30.,95.,dist)),a2=.13*k2*(1.-smoothstep(300.,900.,dist)),a3=.09*k3*(1.-smoothstep(1000.,2600.,dist));',
   '    float s1=cos(6.2832*(dot(pp,d)/.62+wp)),s2=cos(6.2832*(dot(pp,d)/3.1+.8*wp+n2.r*1.5)),s3=cos(6.2832*(dot(pp,d)/13.+.5*wp+1.2*n1.r));',
   '    float amp=(.55+.9*n1.g)*rm;N=normalize(N-vec3(d.x,0.,d.y)*(a1*s1+a2*s2+a3*s3)*amp);rv=(a1*s1*.8+a2*s2*.55+a3*s3*.4)*amp;}',
   '  float stp=clamp(1.-N.y,0.,1.);',
-  '  float st9=texture2D(uNZ,vec2(dot(pp,Wd)/90.,dot(pp,vec2(-Wd.y,Wd.x))/15.)).g;', // les traînées longues, dans le sens du vent
+  '  float st9=.5;if(uMo.z>.001)st9=texture2D(uNZ,vec2(dot(pp,Wd)/90.,dot(pp,vec2(-Wd.y,Wd.x))/15.)).g;', // les traînées longues, dans le sens du vent
   '  float tn=clamp(.5+(n0.r-.5)*1.7+(n1.g-.5)*.8+(st9-.5)*.55,0.,1.);vec3 sa=mix(uSaA,uSaB,tn)*(.96+.08*n2.b)*(1.+rv*.55);',
   '  sa=mix(sa,uSaL,smoothstep(.80,1.,du)*.40);', // la crête, plus claire
   '  float cr=texture2D(uNZ,vW.xz/14.).r,cl=pan*smoothstep(.16,.05,stp);vec3 clay=uClay*(.90+.12*n2.g)*(1.-.30*smoothstep(.465,.5,cr)*smoothstep(.535,.5,cr));', // l'argile blanche et ses craquelures
@@ -62,7 +62,7 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   '  float fr=pow(1.-max(dot(N,V),0.),4.);c+=(uSky*.22+uSunC*.16*max(ndl,0.)*lit)*fr*uK.x*(1.-wat);', // le SATIN du sable au rasant
   '  vec3 Hh=normalize(Ls+V);',
   '  if(wat<.5){c+=uSunC*pow(max(dot(N,Hh),0.),26.)*lit*(.05+.55*rm*abs(rv))*(1.-smoothstep(200.,900.,dist));}', // le LUSTRE des crêtes de rides (sur la ride seulement)
-  '  if(dist<115.&&wat<.5){vec2 gc=floor(pp*11.);float g1=dh2(gc),g2=dh2(gc+17.3),g3=dh2(gc+41.9);vec3 Nc=normalize(N+vec3(g1-.5,g3*.3,g2-.5)*.9);',
+  '  if(dist<115.&&wat<.5&&uMo.z>.9){vec2 gc=floor(pp*11.);float g1=dh2(gc),g2=dh2(gc+17.3),g3=dh2(gc+41.9);vec3 Nc=normalize(N+vec3(g1-.5,g3*.3,g2-.5)*.9);',
   '    c+=uSunC*pow(max(dot(Nc,Hh),0.),520.)*step(.55,g3)*lit*uQ.w*(1.-smoothstep(40.,115.,dist))*6.;}', // les ÉCLATS : une facette de 9 cm au hasard, juste quand elle renvoie le soleil vers l'œil
   '  if(wat>.01){vec4 nw=texture2D(uNZ,mat2(.8,.6,-.6,.8)*vW.xz/57.+uTime*vec2(.006,.010)),nw2=texture2D(uNZ,vW.xz/143.-uTime*vec2(.004,.002));', /* (des bruits LARGES et tournés : à 18 m la tuile du bruit se répétait en grille sur le lac) */
   '    vec3 Nw=normalize(vec3(0.,6.,0.)+vec3(nw.r+nw2.g-1.,0.,nw.g+nw2.r-1.));vec3 wc=mix(uWS,uWD,1.-exp(-dep/4.));',
@@ -73,8 +73,32 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   '  {float mi=uQ.y*smoothstep(800.,3200.,dist)*(1.-smoothstep(.02,.10,abs(V.y)))*(1.-smoothstep(.06,.25,stp));',
   '   float sh=texture2D(uNZ,vec2(vW.x/260.+uTime*.04,vW.z/260.-uTime*.03)).r;c=mix(c,mix(uSkH,uSkZ,.25)*(.92+.16*sh),mi*(.55+.45*sh));}',
   '  c=mix(c,uHaze,uQ.x*smoothstep(150.,4500.,dist)*.65);', // la poussière en suspension
+  '  c=mix(c,uHaze,uQ.z*smoothstep(8.,500.,dist)*.5);', // (le vent de sable et la tempête : la poussière est DANS l'air tout près — le sable proche n'est plus net)
   '  c+=uFlash*col*vec3(.75,.78,1.)*(.35+.65*max(N.y,0.));',
   '  gl_FragColor=vec4(c,1.);','#include <fog_fragment>','}'].join('\n');
+/* LES HIÉROGLYPHES (2026-10-22, Léo : « construis ta connaissance culture générale Égypte ») — un atlas de 16 signes de 64 px dessinés au trait (blanc sur noir) : ânkh, œil oudjat, eau, roseau, plume de Maât, hibou, disque solaire, scarabée, papyrus,
+   cobra, faucon, sceptre ouas, pilier djed, pain, panier, caille. La pierre gravée (aK 4 : obélisques, pylônes, frises) les lit par rangées (DN_AFS, uGl), assez grands pour se lire de ~60 m, jamais plus fins que ~3 px. */
+function dnGlyphes(){if(DN.glT)return DN.glT;const cv=document.createElement('canvas');cv.width=cv.height=256;const x=cv.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,256,256);x.strokeStyle='#fff';x.fillStyle='#fff';x.lineWidth=5;x.lineCap='round';x.lineJoin='round';
+  const G=[
+   function(){x.beginPath();x.ellipse(32,17,9,12,0,0,6.283);x.stroke();x.beginPath();x.moveTo(32,29);x.lineTo(32,58);x.moveTo(18,36);x.lineTo(46,36);x.stroke();},                                  // ânkh
+   function(){x.beginPath();x.moveTo(8,32);x.quadraticCurveTo(30,10,54,30);x.quadraticCurveTo(30,44,8,32);x.stroke();x.beginPath();x.arc(31,30,6,0,6.283);x.fill();x.beginPath();x.moveTo(14,20);x.quadraticCurveTo(30,8,50,18);x.moveTo(30,42);x.lineTo(34,56);x.quadraticCurveTo(46,58,48,48);x.stroke();}, // œil oudjat
+   function(){x.beginPath();for(let r=0;r<3;r++){const y=16+r*14;x.moveTo(8,y);x.lineTo(20,y-7);x.lineTo(32,y);x.lineTo(44,y-7);x.lineTo(56,y);}x.stroke();},                                       // l'eau
+   function(){x.beginPath();x.moveTo(32,58);x.quadraticCurveTo(14,32,32,6);x.quadraticCurveTo(50,32,32,58);x.stroke();x.beginPath();x.moveTo(32,58);x.lineTo(32,18);x.stroke();},               // le roseau
+   function(){x.beginPath();x.moveTo(32,60);x.lineTo(32,8);x.stroke();x.beginPath();x.ellipse(32,30,10,24,0,0,6.283);x.stroke();for(let i=0;i<5;i++){x.beginPath();x.moveTo(32,16+i*8);x.lineTo(24,22+i*8);x.moveTo(32,16+i*8);x.lineTo(40,22+i*8);x.stroke();}}, // la plume de Maât
+   function(){x.beginPath();x.ellipse(32,34,13,20,0,0,6.283);x.stroke();x.beginPath();x.arc(26,26,4,0,6.283);x.arc(38,26,4,0,6.283);x.fill();x.beginPath();x.moveTo(32,30);x.lineTo(32,36);x.moveTo(22,44);x.lineTo(42,44);x.moveTo(26,56);x.lineTo(26,62);x.moveTo(38,56);x.lineTo(38,62);x.stroke();}, // le hibou
+   function(){x.beginPath();x.arc(32,32,18,0,6.283);x.stroke();x.beginPath();x.arc(32,32,6,0,6.283);x.fill();for(let i=0;i<8;i++){const a=i*.785;x.moveTo(32+Math.cos(a)*22,32+Math.sin(a)*22);x.lineTo(32+Math.cos(a)*28,32+Math.sin(a)*28);}x.stroke();}, // le disque solaire
+   function(){x.beginPath();x.ellipse(32,34,12,17,0,0,6.283);x.stroke();x.beginPath();x.moveTo(32,17);x.lineTo(32,51);x.moveTo(22,28);x.lineTo(8,22);x.moveTo(22,40);x.lineTo(8,46);x.moveTo(42,28);x.lineTo(56,22);x.moveTo(42,40);x.lineTo(56,46);x.stroke();x.beginPath();x.arc(32,12,5,0,6.283);x.stroke();}, // le scarabée
+   function(){x.beginPath();x.moveTo(32,60);x.lineTo(32,24);x.stroke();for(let i=-2;i<=2;i++){x.beginPath();x.moveTo(32,24);x.quadraticCurveTo(32+i*8,12,32+i*11,6);x.stroke();}x.beginPath();x.moveTo(20,50);x.lineTo(44,50);x.stroke();}, // le papyrus
+   function(){x.beginPath();x.moveTo(20,58);x.quadraticCurveTo(46,52,34,36);x.quadraticCurveTo(22,22,32,12);x.stroke();x.beginPath();x.ellipse(32,14,9,7,0,0,6.283);x.stroke();x.beginPath();x.arc(36,11,2,0,6.283);x.fill();}, // le cobra
+   function(){x.beginPath();x.moveTo(14,56);x.lineTo(24,30);x.quadraticCurveTo(26,16,38,14);x.lineTo(46,18);x.lineTo(40,24);x.quadraticCurveTo(38,36,40,56);x.stroke();x.beginPath();x.arc(36,20,2.5,0,6.283);x.fill();x.beginPath();x.moveTo(24,40);x.lineTo(56,34);x.stroke();}, // le faucon
+   function(){x.beginPath();x.moveTo(32,6);x.lineTo(32,56);x.moveTo(32,56);x.lineTo(22,62);x.moveTo(32,56);x.lineTo(42,62);x.stroke();x.beginPath();x.moveTo(24,8);x.quadraticCurveTo(32,2,40,8);x.stroke();}, // le sceptre ouas
+   function(){x.beginPath();x.moveTo(32,6);x.lineTo(32,60);x.stroke();for(let i=0;i<4;i++){x.beginPath();x.moveTo(18,16+i*9);x.lineTo(46,16+i*9);x.stroke();}x.beginPath();x.moveTo(24,8);x.lineTo(40,8);x.stroke();}, // le pilier djed
+   function(){x.beginPath();x.moveTo(8,46);x.quadraticCurveTo(32,6,56,46);x.closePath();x.stroke();},                                                                                                   // le pain
+   function(){x.beginPath();x.moveTo(10,20);x.lineTo(54,20);x.lineTo(46,54);x.lineTo(18,54);x.closePath();x.stroke();x.beginPath();x.moveTo(14,32);x.lineTo(50,32);x.moveTo(16,44);x.lineTo(48,44);x.stroke();}, // le panier
+   function(){x.beginPath();x.ellipse(30,38,17,13,0,0,6.283);x.stroke();x.beginPath();x.arc(44,26,7,0,6.283);x.stroke();x.beginPath();x.moveTo(50,24);x.lineTo(58,26);x.moveTo(26,50);x.lineTo(24,60);x.moveTo(36,50);x.lineTo(38,60);x.stroke();} // la caille
+  ];
+  for(let i=0;i<16;i++){x.save();x.translate((i%4)*64,Math.floor(i/4)*64);try{G[i]();}catch(e){}x.restore();}
+  const tx=new THREE.CanvasTexture(cv);tx.generateMipmaps=true;tx.minFilter=THREE.LinearMipmapLinearFilter;tx.magFilter=THREE.LinearFilter;tx.wrapS=tx.wrapT=THREE.ClampToEdgeWrapping;tx.anisotropy=4;tx.needsUpdate=true;DN.glT=tx;return tx;}
 function dnTerrain(){ if(DN.mesh)return;
   cyBruits();
   const G=PAL.b('dnGrille',32),P=new Float32Array((G+1)*(G+1)*3),I=[];DN.G=G;DN.R0=PAL.b('dnR0',118);
@@ -85,7 +109,7 @@ function dnTerrain(){ if(DN.mesh)return;
   g.boundingSphere=new THREE.Sphere(new THREE.Vector3(),1e7);DN.geo=g;
   const z1=new THREE.DataTexture(new Float32Array([0,0,0,0]),1,1,THREE.RGBAFormat,THREE.FloatType);z1.needsUpdate=true;
   const C3=()=>({value:new THREE.Color()});
-  const U=Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),{uTC:{value:z1},uTZ:{value:z1},uTS:{value:z1},uNZ:{value:CY.tNz},
+  const U=Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),{uTC:{value:z1},uTZ:{value:z1},uTS:{value:z1},uNZ:{value:CY.tNz},uGl:{value:dnGlyphes()},
     uFD:{value:new THREE.Vector4(0,0,1,1)},uZD:{value:new THREE.Vector4(0,0,1,1)},uSD:{value:new THREE.Vector4(0,0,1,1)},uFN:{value:new THREE.Vector2(1,1)},uZN:{value:new THREE.Vector2(1,1)},uSN:{value:new THREE.Vector2(1,1)},
     uOA:{value:new THREE.Vector4(0,0,0,0)},uW:{value:new THREE.Vector4(1,0,1,0)},uLam:{value:560},
     uCam:{value:new THREE.Vector3()},uG:{value:G},uR0:{value:DN.R0},uTime:{value:0},uFlash:{value:0},uSunD:{value:SUN_DIR},
@@ -135,22 +159,21 @@ function dunesTick(dt){
   DN.ombre+=(ombre-DN.ombre)*Math.min(1,dt*5);dnPartTick(dt,c);
   if(k>.001||DN.ecrit){const e=DN.on?k:0;sun.intensity=c.sunI*(1-.62*(1-DN.ombre)*e);DN.ecrit=e>.001;}
   dnCaravane(dt);dnTornades(dt);dnVautours(dt);}
-/* LES LÈVRES (2026-10-20, Sacha : « refonte totale de la map Dune » — v4 : LE SURF). Une lèvre = le bout d'un segment de route : au-delà, plus de dalle (voir TROUS).
-   Au sol la caisse reste COLLÉE au ruban : franchie en roulant (la route finit, la caisse ne peut que s'envoler), la lèvre lance la caisse JUSTE ce qu'il faut pour retomber
-   sur le segment d'en face (DN.lev[k].aim : la distance visée depuis la lèvre), à n'importe quelle vitesse — t = aim / la vitesse (entre 0,6 et 2,6 s), la montée =
-   ½ g t − la descente à franchir / t, moins ce que la pente de la lèvre donne déjà (MESURÉ au pilote, v1-v3 des vagues : « la pose se déclare dès 0,35 s si la caisse est
-   à moins de 3 m du bitume » : on garde la caisse à plus de 4 m du ruban au bout de 0,35 s). g monde ~23 m/s² (FALL_G × SPD). On décolle TOUJOURS, même au pas : un segment
-   qu'on n'a pas lancé assez vite se rate (le sable est dessous), il ne se roule pas. Pas de recharge (rampCd) : les îlots se suivent à 1 s. Si la lèvre a été manquée
-   d'une image (rampe, replacement), la caisse déjà au-dessus du vide est lancée de là où elle est. DN.sauts = le compte (banc). */
+/* LES TREMPLINS DE CRÊTE (2026-10-22, Léo : « les routes qui font sauter embrassent une haute colline de sable… le joueur peut piquer en bas ou décoller »). La route est CONTINUE : chaque vague a son apex (DN.lev[k].s,
+   le haut de la crête), et derrière lui la route redescend sur l'éperon. Une caisse qui y passe VITE (≥ 90 km/h) est lancée JUSTE ce qu'il faut pour retomber SUR la route de la descente (DN.lev[k].aim : la distance
+   visée depuis l'apex), à n'importe quelle vitesse — t = aim / la vitesse (entre 0,6 et 2,6 s), la montée = ½ g t − la descente à franchir / t, moins ce que la pente de l'apex donne déjà (MESURÉ au pilote : « la pose
+   se déclare dès 0,35 s si la caisse est à moins de 3 m du bitume » : on garde la caisse à plus de 4 m du ruban au bout de 0,35 s). En l'air le joueur choisit : PIQUER (le pouce vers le bas : la caisse se pose plus tôt,
+   sur la pente) ou DÉCOLLER pour de bon (planer, des figures, se poser plus loin). Plus lente que 90 km/h, la caisse ne décolle pas : elle roule par-dessus la crête et DESCEND avec la route. g monde ~23 m/s²
+   (FALL_G × SPD). Pas de recharge (rampCd). DN.sauts = le compte (banc). */
 const DN_LF={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
 function dnLevre(s0){if(side<0||introD||driveDir<0)return;const a=Math.min(s0,s),b=Math.max(s0,s);
   for(const k of DN.lev){if(b<k.s||a>=k.e-2)continue;if(!(k.s>=a-.01&&k.s<=b+.01)&&!(s>k.s&&s<k.e-2))continue;if(Math.abs(lat)>ROAD_HALF)return;
-    const vm=vitMult(),vx=Math.max(12,Math.abs(vA)*SPD*vm);
+    const vm=vitMult(),vx=Math.max(12,Math.abs(vA)*SPD*vm);if(vx*3.6<90)return; /* (trop lent : il roule par-dessus la crête) */
     const S9=DN.S,yAt=q=>{const f=Math.max(0,Math.min(S9.n-1.001,q/S9.ds)),i=Math.floor(f);return S9.y[i]+(S9.y[i+1]-S9.y[i])*(f-i);},g2=FALL_G*SPD*.5,sb=Math.max(s,k.s),y0=yAt(sb);
     const t=Math.max(.6,Math.min(2.6,Math.max(30,k.s+k.aim-sb)/vx)),D=y0-yAt(sb+vx*t),d35=y0-yAt(sb+vx*.35);
     frameAt(sb,DN_LF);const ty=DN_LF.t.y;
     const vy=Math.min(24,Math.max((g2*t*t-D)/t,(4+g2*.1225-d35)/.35)),u=THREE.MathUtils.clamp(vy/SPD-ty*Math.abs(vA)*vm,0,60);DN.dbgLev={vx:+vx.toFixed(1),vy:+vy.toFixed(1),u:+u.toFixed(1),ty:+ty.toFixed(3),t:+t.toFixed(2),D:+D.toFixed(1),d35:+d35.toFixed(1),k:DN.lev.indexOf(k),tag:k.tag};
-    rampCd=1.2;startFall(u,1);shake=Math.max(shake,.35);try{hap([8,14]);}catch(e){}DN.sauts=(DN.sauts|0)+1;return;}}
+    rampCd=1.2;startFall(u,1);shake=Math.max(shake,.42);fovPunch=Math.max(fovPunch,9);try{hap([8,14]);}catch(e){}DN.sauts=(DN.sauts|0)+1;return;}} // (le coup de tremplin : un coup de grand-angle et une secousse)
 /* EN VOL : le sable, l'eau de l'oasis, les obélisques et la pyramide tuent (5 points de caisse) — renvoie la cause, ou '' */
 const DN_H9={};
 function dunesHeurt(p){if(!DN.on||!DN.Z)return '';
@@ -165,29 +188,32 @@ function dnMonuHeurt(p){
   for(const m of DN.mo){const dx=p.x-m.x,dz=p.z-m.z;if(dx*dx+dz*dz<(m.r+1.2)*(m.r+1.2)&&p.y>m.y-2&&p.y<m.y+m.h+1)return 'roche';} // les grands monuments (sphinx, colosses, temple, portes)
   return '';}
 /* ---- LES DÉCORS (low-poly à facettes : une face, une normale) — la même lumière que le sable et la même ombre (DN_MVS lit la grille de l'ombre) ---- */
-const DN_MVS=['attribute float aK;uniform sampler2D uTS;uniform vec4 uSD;uniform vec2 uSN;varying vec3 vW,vN,vCol;varying float vLit,vK;','#include <fog_pars_vertex>',DN_TB,
+const DN_MVS=['attribute float aK;uniform float uTime;uniform sampler2D uTS;uniform vec4 uSD;uniform vec2 uSN;varying vec3 vW,vN,vCol;varying float vLit,vK;','#include <fog_pars_vertex>',DN_TB,
   'void main(){','#ifdef USE_INSTANCING','  mat4 mw=modelMatrix*instanceMatrix;','#else','  mat4 mw=modelMatrix;','#endif',
-  '  vec4 wp=mw*vec4(position,1.);vW=wp.xyz;vN=normalize(mat3(mw)*normal);',
+  '  vec4 wp=mw*vec4(position,1.);if(aK>19.5&&aK<21.5){float u=clamp(aK-20.,0.,1.);wp.y+=sin(uTime*3.1+wp.x*.21+wp.z*.17+u*7.)*.55*u;wp.z+=cos(uTime*2.3+wp.x*.19+u*6.)*1.0*u;wp.x+=sin(uTime*2.7+u*5.)*.35*u;}vW=wp.xyz;vN=normalize(mat3(mw)*normal);',
   '#ifdef USE_COLOR','  vCol=color;','#else','  vCol=vec3(1.);','#endif',
   '  vK=aK;float lit=1.;vec2 sp=(wp.xz-uSD.xy)*uSD.zw;if(sp.x>0.&&sp.y>0.&&sp.x<1.&&sp.y<1.){float hs=tB(uTS,sp*uSN,uSN).r;lit=smoothstep(hs-3.,hs+8.,wp.y);}vLit=lit;',
   '  vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
 /* (2026-10-22, Léo : « le niveau dune n'est pas au niveau ») LA MATIÈRE DES DÉCORS, REFAITE — par SOMMET (aK) : 0 peint (feuillage, toile, bois : lisse) · 1 ASSISES de pierre (rangées, joints décalés, la taille suit
-   la distance : jamais plus fine que ~6 px) · 2 ROCHE (assises + lits) · 3 OR (brille) · 4 pierre GRAVÉE (assises + des glyphes, de près) ; chaque bloc sa nuance et sa facette, son joint un peu sombre ; elles s'effacent sous ~2 px */
-const DN_AFS=['uniform vec3 uSunD,uSunC,uSky,uGnd,uShd,uFillC,uFillD;uniform float uFlash;uniform vec4 uMo;uniform sampler2D uNZ;varying vec3 vW,vN,vCol;varying float vLit,vK;','#include <fog_pars_fragment>',
+   la distance : jamais plus fine que ~6 px) · 2 ROCHE (assises + lits) · 3 OR (brille) · 4 pierre GRAVÉE (assises + des glyphes, de près) · 5 GRÈS LISSE (la statue : une pierre d'une pièce, patinée) ; chaque bloc sa nuance et sa facette, son joint un peu sombre ; elles s'effacent sous ~2 px */
+const DN_AFS=['uniform vec3 uSunD,uSunC,uSky,uGnd,uShd,uFillC,uFillD;uniform float uFlash,uTime;uniform vec4 uMo;uniform sampler2D uNZ,uGl;varying vec3 vW,vN,vCol;varying float vLit,vK;','#include <fog_pars_fragment>',
   'float dh3(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}',
   'vec4 blk(vec2 uv,float ch,float sd){float row=floor(uv.y/ch),off=mod(row,2.)*.5;vec2 q=vec2(uv.x/(2.*ch)+off,uv.y/ch),ic=floor(q),fr=fract(q),e=min(fr,1.-fr);',
   '  float r=dh3(vec3(ic,sd)),r2=dh3(vec3(ic+7.7,sd+3.1)),j=1.-smoothstep(0.,.07,min(e.x*2.,e.y));vec2 g=(fr-.5)*vec2(1.6,1.);',
   '  float gl=step(abs(g.x),.5)*step(abs(g.y),.36)*step(.5,fract(g.y*3.4+r*6.))*step(.45,r2)*(1.-j);return vec4(r,j,r2,gl);}',
-  'void main(){vec3 N=normalize(vN);if(!gl_FrontFacing)N=-N;float dist=length(cameraPosition-vW);vec3 c=vCol*vCol;float kk=vK,isB=step(.5,kk)*step(kk,1.5)+step(3.5,kk)*step(kk,4.5),isR=step(1.5,kk)*step(kk,2.5),isG=step(2.5,kk)*step(kk,3.5),pierre=min(1.,isB+isR);c=max(mix(vec3(dot(c,vec3(.3,.55,.15))),c,mix(1.25,1.0,pierre)),0.);',
-  '  vec3 aN=abs(N);vec2 uv=aN.y>max(aN.x,aN.z)?vW.xz:(aN.x>aN.z?vW.zy:vW.xy);',
+  'void main(){vec3 N=normalize(vN);if(!gl_FrontFacing)N=-N;float dist=length(cameraPosition-vW);vec3 c=vCol*vCol;float kk=vK,isB=step(.5,kk)*step(kk,1.5)+step(3.5,kk)*step(kk,4.5),isR=step(1.5,kk)*step(kk,2.5),isG=step(2.5,kk)*step(kk,3.5),isS=step(4.5,kk)*step(kk,5.5),pierre=min(1.,isB+isR+isS);c=max(mix(vec3(dot(c,vec3(.3,.55,.15))),c,mix(1.25,1.0,pierre)),0.);',
+  '  vec3 aN=abs(N);vec2 tg=normalize(vec2(-N.z,N.x)+vec2(1e-5));vec2 uv=aN.y>.88?vW.xz:vec2(dot(vW.xz,tg),vW.y);', // (les assises SUIVENT la face : le long de sa tangente horizontale et de la hauteur — plus de tuiles en biais sur les flancs inclinés d'une pyramide, plus de couture entre deux axes)
   '  float Lg=log2(max(dist*.011,.75)/.75),l0=floor(Lg),wl=Lg-l0,ch=.75*exp2(l0),kf=(1.-smoothstep(.45,1.1,length(fwidth(uv))/ch))*uMo.z;',
   '  if(isB+isR>.5&&uMo.z>.001){vec4 b=mix(blk(uv,ch,l0),blk(uv,ch*2.,l0+1.),wl);c*=(1.+(b.x-.5)*.42*kf)*(1.-b.y*(.20+.06*isB)*kf)*(1.+.10*pierre);N=normalize(N+(vec3(b.x,b.z,fract(b.x*7.31))-.5)*.22*kf);',
-  '    c*=1.-b.w*.34*step(3.5,kk)*kf*(1.-smoothstep(60.,170.,dist));}',
+  '    if(kk>3.5){float gs=max(ch*1.7,.9),kg=1.-smoothstep(.20,.55,length(fwidth(uv))/gs);vec2 gq=uv/gs,gc=floor(gq),gf=fract(gq);float hr=dh3(vec3(gc.y,3.3,1.)),hc=dh3(vec3(gc,5.5)),ok=step(.20,hr)*step(.10,hc)*step(.07,gf.x)*step(gf.x,.93)*step(.07,gf.y)*step(gf.y,.93);float ix=floor(hc*16.);',
+  '      float gly=texture2D(uGl,(vec2(mod(ix,4.),floor(ix/4.))+gf*.84+.08)/4.).r;c*=1.-.46*gly*ok*kg;}}',
   '  if(isR>.5){vec2 nq=vec2(dot(vW.xz,vec2(.7071,.7071))/9.,vW.y/60.);float nr=texture2D(uNZ,nq).g;c*=.80+.40*nr;}',
+  '  if(isS>.5){float nq=texture2D(uNZ,vW.xz/5.+vec2(vW.y/7.,vW.y/11.)).g,nb=texture2D(uNZ,vW.xz/1.3+vec2(vW.y/1.7,0.)).r;c*=(.82+.34*nq)*(.94+.12*nb);}',
   '  float ndl=max(dot(N,uSunD),0.);',
   '  vec3 L=uSunC*ndl*vLit*mix(1.,.78,pierre)+mix(uGnd,uSky,N.y*.5+.5)+uGnd*.45*pierre*(1.-abs(N.y))+uFillC*max(dot(N,uFillD),0.)*.5;vec3 o=c*L;o=mix(o,o*uShd,(1.-vLit*min(1.,ndl*3.))*.45);',
-  '  if(isG>.5){vec3 V=normalize(cameraPosition-vW),R=reflect(-uSunD,N);o+=c*uSunC*pow(max(dot(R,V),0.),22.)*1.5*vLit+c*mix(uGnd,uSky,.6)*.3*pow(1.-max(dot(N,V),0.),2.);}',
+  '  if(isG>.5){vec3 V=normalize(cameraPosition-vW),R=reflect(-uSunD,N);o+=c*uSunC*pow(max(dot(R,V),0.),22.)*1.5*vLit+c*mix(uGnd,uSky,.6)*.3*pow(1.-max(dot(N,V),0.),2.)+c*.34;}',
   '#ifdef DN_OR','  {vec3 V=normalize(cameraPosition-vW),R=reflect(-uSunD,N);o+=c*uSunC*pow(max(dot(R,V),0.),24.)*1.8*vLit+c*mix(uGnd,uSky,.6)*.4*pow(1.-max(dot(N,V),0.),2.);}','#endif',
+  '  if(kk>21.5&&kk<22.5)o=c*(2.3+.7*sin(uTime*11.+vW.x*2.3+vW.z*3.1));', // (la flamme : lumineuse de l'intérieur, elle vacille)
   '  o+=uFlash*c*.4;gl_FragColor=vec4(o,1.);','#include <fog_fragment>','}'].join('\n');
 function dnMats(){if(DN.mm)return DN.mm;const U=DN.mat.uniforms;
   const mk=or=>{const m=new THREE.ShaderMaterial({uniforms:U,vertexShader:DN_MVS,fragmentShader:DN_AFS,fog:true,vertexColors:true,side:THREE.DoubleSide});if(or)m.defines={DN_OR:''};m.dispose=function(){};return m;};
@@ -327,7 +353,7 @@ function dnMonumentsTires(seed){
       const y=Math.min(dnHauteur(x0,z0),dnHauteur((x0+x1)/2,(z0+z1)/2),dnHauteur(x1,z1))+b.r*.25;if(dnPresRoute(x1,z1,RH+b.r+6,y+b.r)||dnPresRoute((x0+x1)/2,(z0+z1)/2,RH+b.r+6,y+b.r))continue;
       cuis(MO,x0,y,z0,b.r*.85/4,fl/64,b.r*.85/4,an,Math.PI/2,0);N.troncons=(N.troncons|0)+1;}}
   // LES PYRAMIDES : à gradins, lisses de calcaire, à degrés — pierre en assises, coiffe d'or, une porte sombre au pied
-  for(const P of DN.pyrs)cuis(dnMod(P.st==='lisse'?'pyrLisse':P.st==='etagee'?'pyrDegres':'pyrGradins'),P.x,P.y,P.z,P.hw,P.h,P.hw,P.a);
+  for(const P of DN.pyrs)cuis(dnMod(P.st==='giza'?'pyrGiza':P.st==='cap'?'pyrCap':P.st==='rouge'?'pyrRouge':P.st==='lisse'?'pyrLisse':P.st==='etagee'?'pyrDegres':'pyrGradins'),P.x,P.y,P.z,P.hw,P.h,P.hw,P.a);
   // LES GRANDS MONUMENTS : le sphinx, les colosses et la porte regardent la route ; le temple s'aligne sur elle (colonnes, architraves, tambours tombés)
   for(const m of DN.mo){
     if(m.k==='sphinx'){const l=m.r/.55;cuis(dnMod('sphinx'),m.x,m.y,m.z,l,l,l,m.a);}
@@ -365,6 +391,14 @@ function dnMonumentsTires(seed){
    for(let g9=0;g9<D.flore.palmeraies;g9++){const c=site(50,220,30,25,50,.05,.9);if(!c)continue;const n=10+((rg()*16)|0);
      for(let k=0;k<n*3&&n>0;k++){const an=rg()*6.28,d=rg()*45*K,x=c.x+Math.sin(an)*d,z=c.z+Math.cos(an)*d,h=dnHauteur(x,z,o9),ht=(11+rg()*10)*(1+.2*rg());if(o9.eau||dnPresRoute(x,z,RH+10,h+ht+3))continue;L9.push([x,h-.5,z,ht,rg()*6.28]);}}
    inst(dnMod('palmier'),M9.t,L9,'palmiers');DN.nPal=L9.length;}
+  // L'OASIS VIVANTE (2026-10-22) : des touffes de PAPYRUS au bord de l'eau, des LOTUS BLEUS qui flottent, des FELOUQUES sur le lac
+  {const A9=DN.oa;if(A9){const Lp=[],Ll=[],nP=Math.round(70*Math.min(1.5,D.oasis.k)),nL=Math.round(26*Math.min(1.5,D.oasis.k));
+    for(let k=0;k<nP*14&&Lp.length<nP;k++){const an=rg()*6.2832,rr=(.94+rg()*.16)*A9.r,x=A9.x+Math.cos(an)*rr,z=A9.z+Math.sin(an)*rr,h=dnHauteur(x,z,o9),d=h-A9.y,ht=1.8+rg()*1.9;
+      if(d<-.6||d>2.2||dnPresRoute(x,z,RH+12,h+ht+2))continue;Lp.push([x,Math.max(h,A9.y)-.1,z,ht,rg()*6.28]);}
+    for(let k=0;k<nL*14&&Ll.length<nL;k++){const an=rg()*6.2832,rr=Math.sqrt(rg())*.9*A9.r,x=A9.x+Math.cos(an)*rr,z=A9.z+Math.sin(an)*rr;dnHauteur(x,z,o9);if(!o9.eau)continue;const sc=1.4+rg()*1.2;Ll.push([x,A9.y+.05,z,sc,rg()*6.28]);}
+    inst(dnMod('papyrus'),M9.t,Lp,'papyrus');inst(dnMod('lotus'),M9.t,Ll,'lotus');N.papyrus=Lp.length;N.lotus=Ll.length;
+    const nb=1+((rg()*2.4)|0);N.bateaux=0;for(let k=0;k<nb*8&&N.bateaux<nb;k++){const an=rg()*6.2832,rr=(.25+rg()*.5)*A9.r,x=A9.x+Math.cos(an)*rr,z=A9.z+Math.sin(an)*rr;dnHauteur(x,z,o9);if(!o9.eau)continue;
+      const l=(9+rg()*5)*Math.min(1.3,K);cuis(dnMod('felouque'),x,A9.y-.35*l*.2,z,l,l,l,rg()*6.28);N.bateaux++;}}}
   N.touffes=0;for(let k=0;k<D.flore.touffes*2&&N.touffes<D.flore.touffes;k++){const i=Math.floor(rg()*(S.n-1)),sg=rg()<.5?-1:1,lat=RH+6+rg()*rg()*150*K,x=S.x[i]-S.tz[i]*sg*lat,z=S.z[i]+S.tx[i]*sg*lat,h=dnHauteur(x,z,o9),ht=1.3+rg()*1.6;
     if(o9.eau||S.gd[i]>.01||dnPresRoute(x,z,RH+4,h+ht+1))continue;cuis(G2.touffe,x,h-.2,z,ht*1.4,ht,ht*1.4,rg()*6.28,0,0,tch([1,1,1],.12));N.touffes++;}
   N.cactus=0;for(let k=0;k<D.flore.cactus;k++){const c=site(10,220,8,14,4,.03,.97);if(!c)continue;const ht=(6+rg()*7)*K;cuis(G2.cactus,c.x,c.h-.3,c.z,ht,ht,ht,rg()*6.28);N.cactus++;}

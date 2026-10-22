@@ -1,19 +1,16 @@
 /* <<<DUNES>>> */
-/* =========================== LES DUNES D'OR — LE SURF (2026-10-20, Sacha : « refonte totale de la map Dune : plein de petits segments de route posés sur les dunes,
-   on surfe de dune en dune ; on démarre en haut, sur de grosses collines, et on descend peu à peu ; le portail se voit au loin entre trois pyramides ») ===========================
-   LE CONCEPT : il n'y a plus UNE route continue. Un désert de dunes géantes, vallonné ; des ÎLES DE ROUTE (des segments de 100 à 500 m) posées sur le dos des dunes, séparées
-   par des SAUTS : on roule une face d'avalanche (on s'y pose), un creux (on y tourne), la face au vent qui remonte, et la LÈVRE de la crête — où la route s'arrête net.
-   On décolle (toujours, même sans nitro : `dnLevre`), on survole une cuvette de sable, et on se pose sur le segment de la dune d'en face, plus bas. Départ tout en haut
-   (de grosses collines, le portail et ses trois pyramides AU LOIN), arrivée en bas, à l'oasis.
-   · LA ROUTE (`genDunes`) reste UNE courbe (la caisse, la caméra, la distance, le pilote la lisent comme avant) ; les sauts y sont des TROUS (TROUMARK → TROU/TROUS dans
-     buildTrack : le ruban n'a aucun triangle entre la lèvre et le segment suivant, la dalle absente ne reçoit ni pad ni pièce ni atterrissage — `dalleProche`).
-     Un saut est une DROITE descendante (12 à 19 %) entre deux droites : la lèvre et le début de la face d'atterrissage sont sur le MÊME cap (rien à braquer en l'air) ;
-     sa longueur = la vitesse de croisière × ~1,2 à 1,6 s (VN = 1,35 × vPalier : la longueur suit le moteur, comme les virages).
-   · LES PIÈCES (mélangées, jamais deux fois de suite) : LA DUNE (face, creux en virage, remontée, lèvre), LES PAS JAPONAIS (3 à 5 îlots de ~90 m, un saut court entre chacun :
-     le rythme), LE GRAND SAUT (une cuvette d'argile blanche et ses acacias morts, 2 s de vol), L'ALLÉE DES OBÉLISQUES (un long segment droit), LA CRÊTE (la caravane,
-     un long segment en S) ; entre elles, des dunes. Le DÉPART (le belvédère) en tête, L'OASIS (le portail au-dessus de l'eau, entre les trois pyramides) en queue.
-   Console : `dbgDunes()` (état, temps, sauts) · `dbgDunes('test')` · `dbgDunes('vue',d,h,cap,pente)` (photo figée, d m devant la caisse) · `dbgDunes('vueA',s,h,cap,pente)` ·
-   `dbgDunes('sauts')` · `?carte=dunes&meteo=soir`. */
+/* =========================== LES DUNES D'OR — LA ROUTE CONTINUE (2026-10-22, Léo : « les sauts sont ignobles, la route se coupe comme avec un ciseau digital — j'aimerais que les routes qui font sauter EMBRASSENT
+   une haute colline de sable, et le joueur peut à la fois piquer en bas ou décoller… je veux niveau 100 ») ===========================
+   (Avant : le SURF de Sacha, 2026-10-20 — des îlots de route séparés par des sauts, des trous dans le ruban.) LE CONCEPT : UN RUBAN CONTINU, posé sur de grosses dunes. Un désert de dunes géantes ; la route y est une suite de
+   VAGUES. Chaque vague : la MONTÉE (un arc qui ENLACE une colline — le sable monte au-dedans de l'arc, il tombe au-dehors), la CRÊTE (la courbe verticale s'arrondit ; l'APEX est le tremplin, `dnLevre`), la DESCENTE (une droite
+   sur l'ÉPERON, l'avalanche de chaque côté), le CREUX (on y tourne, entre deux collines ; les LIEUX : l'allée des obélisques, la cuvette d'argile, la place des colosses). Départ tout en haut (le belvédère), arrivée à l'oasis,
+   le portail se voit au loin entre les trois pyramides de Gizeh.
+   · LA ROUTE (`genDunes`) : UNE courbe (la caisse, la caméra, la distance, le pilote la lisent comme avant), sans aucun TROU. La pente est la courbe `GN` (u → pente, linéaire entre ses nœuds : des raccords PARABOLIQUES, jamais
+     d'angle) ; l'altitude en est l'intégrale. `DN.fe` = les vagues, `DN.Q` = leurs repères (voir buildDunes).
+   · LE TERRAIN (`buildDunes`, `dnProfil`) : le sable est PRESCRIT près de la route (une berme plate 1,6 m sous le bitume, puis la colline, l'encoche de la crête ou l'éperon qui tombe jusqu'à la mer), fondu dans le désert
+     (grille fine F : [hauteur, poids]).
+   · LES TREMPLINS : une caisse qui franchit l'apex à plus de 90 km/h est lancée pour retomber SUR la route de la descente ; en l'air, le pouce vers le bas pique, sinon on plane.
+   Console : `dbgDunes()` (état) · `dbgDunes('test')` (le sable sous le bitume ?) · `dbgDunes('ech', s0, s1)` (le terrain prescrit) · `dbgDunes('sauts')` · `dbgDunes('vueA', s, h, cap, pente)` (photo figée) · `?carte=dunes&meteo=soir`. */
 const NIV_DUNES={id:'dunes',nm:"LES DUNES D'OR",bio:['dunesSoir'],planete:0,espace:0,pluie:0,cielMusical:false,route:.30,sheen:.12,piste:'dunes',pr:'DE DUNE EN DUNE'};
 const DUNES_OK=CANYON_OK; // les mêmes besoins que le canyon : textures de données en flottants, lecture de textures au sommet
 PAL.B.dnFin=[16,14,12];PAL.B.dnPlat=[96,80,64];PAL.B.dnOmbre=[60,52,44];PAL.B.dnGrille=[16,16,32];PAL.B.dnR0=[85,100,118];PAL.B.dnArbres=[50,90,140];PAL.B.dnPalmes=[22,34,48];PAL.B.dnPart=[600,1100,1600];PAL.B.dnMo=[0,.75,1];PAL.B.dnRuines=[.35,.7,1]; // (2026-10-22) la mosaïque du sable et des pierres (0 = éteinte sur les vieux téléphones) · le nombre de ruines éparses // la finesse par palier [ancien, moyen, récent]
@@ -277,7 +274,7 @@ function dnTirage(seed){let h9=Math.imul((seed^0xDEC0D5)>>>0,0x9E3779B1);h9^=h9>
   D.vent={a:+((rd()-.5)*2.4).toFixed(2),b:+(.3+rd()*.7).toFixed(2),lamK:+(.78+rd()*.55).toFixed(2),rides:+(.6+rd()*1).toFixed(2),vole:rd()<.3?+(.22+rd()*.3).toFixed(2):0};
   D.allee={mode:ch(['paires','gauche','droite','alternee','brisee'],[3,1.2,1.2,1.5,1.6]),pas:Math.round(90+rd()*80),hK:+(.7+rd()*.65).toFixed(2),rK:+(.85+rd()*.35).toFixed(2)};
   D.epars={k:+ch([0,.5,1,1.8],[1,1.5,2,1.2]).toFixed(2),br:+(rd()*.6).toFixed(2)};
-  {const n=ch([0,1,2,3],[1.2,3.5,2.6,1.4]);D.pyr=[];for(let k=0;k<n;k++)D.pyr.push({st:ch(['gradins','lisse','etagee'],[2,1.6,1.2]),k:+(k?.38+rd()*.55:.6+rd()*.55).toFixed(2),ou:k===0&&rd()<.7?'oasis':'route'});}
+  {D.pyr=[];for(let k=0;k<3;k++)D.pyr.push({st:k===0?ch(['cap','gradins','lisse','etagee'],[6,1.4,1.2,.8]):k===1?ch(['rouge','gradins','lisse','etagee'],[6,1.4,1.2,.8]):ch(['giza','lisse','gradins','etagee'],[7,1.4,1.4,1]),k:+(k?.38+rd()*.55:.6+rd()*.55).toFixed(2),ou:k===0&&rd()<.7?'oasis':'route'});} // (2026-10-22) le TRIO : Khéphren (le haut blanc), Mykérinos (la base rouge), Khéops (le parement lisse et l'électrum) — le tirage en garde d'autres de temps en temps
   D.sphinx=rd()<.45;D.colosses=ch([0,1,2],[2,1.4,.8]);D.temple=rd()<.45;D.portes=ch([0,1,2],[2,1.3,.6]);D.village=rd()<.38;
   D.camps=ch([0,1,2,3],[1.4,2,1.3,.6]);
   {const n=ch([1,2,3,4],[1.6,2,1.4,.8]);D.caravanes=[];for(let k=0;k<n;k++)D.caravanes.push({n:ent(4,11),k:+(.8+rd()*.5).toFixed(2),v:+(.8+rd()*.7).toFixed(2)});}
