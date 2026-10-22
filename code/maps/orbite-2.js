@@ -161,6 +161,7 @@ function orbiteTick(t){ // chaque image : lumière, visibilité, place et regard
   const ok=LVL.espace>.01&&!garageOn&&!stallOn&&!MENUV.bio,vr=ok&&ORB.actif; // les satellites partent avec leur piste ; la lune, elle, s'efface avec le fondu du niveau
   for(let i=0;i<SATS.length;i++)SATS[i].visible=vr&&SATS[i].count>0;
   GLINT.visible=vr&&GLINT.count>0;
+  plxTick(t,dt9,ok); /* (2026-10-22, Sacha : « plusieurs planètes de tailles différentes ») les autres planètes du ciel : maps/orbite-planetes.js */
   const lunOk=ok&&ORB.lune; // (2026-10-22, la lune retirée du ciel : LUNE_ON) elle reste « dans le niveau » : sa direction (ORB.dm) pilote toujours la clé froide, la caisse est éclairée comme avant
   LUNE.visible=lunOk&&LUNE_ON;
   if(!lunOk&&!vr)return;
