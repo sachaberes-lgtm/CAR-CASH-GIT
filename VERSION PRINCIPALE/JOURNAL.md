@@ -20088,3 +20088,14 @@ const CACHE = 'cashcar-v624'; // v624 (2026-10-18, Léo : « plus de gris chelou
   SUIT le reste du morceau ; la basse SEULE n'est jamais touchée (`pouce-bleu-jeu.js` : `groupe()` dit au bus si la grosse caisse joue, `PB.niveau` → `bus.tick`). Au-dessus
   de ~195 Hz rien ne bouge. Après : 11-14 dB à l'entrée de la caisse. Restent hauts, VOULU (c'est leur BASSE, décision de Léo) : CAVALE ULTRA et AVERSE DE CHROME aux moteurs 4-6.
 - Les morceaux sains et la bibliothèque : identiques à l'échantillon près (le dompteur n'est pas construit). `?kick=0` = sans dompteur ; `?basses=brut` = tout le bus d'avant.
+
+## L'ÉCRAN MISSIONS ÉPURÉ (2026-10-22, v811 — Sacha : « enlève le défi du jour, enlève toutes les catégories en haut, c'est trop compliqué ; mets-toi dans la peau d'un designer UX/UI senior : plus simple, plus beau, chaque bouton mieux placé »)
+- RETIRÉ : le DÉFI DU JOUR (`DJ.on` faux sauf `?defijour=1` : plus de tirage, de ligne ni de jeton ; le moteur reste dans `missions/aujourdhui.js`), les FILTRES de famille (`m2Chips`, `M2E.f`),
+  les trois emplacements « SUIVIES » de la colonne de gauche, le bloc « AUJOURD'HUI ». Les missions suivies (3 au plus) reviennent DANS la liste, en or, sous « À RÉCUPÉRER ».
+- LA MISE EN PAGE (couché, `#gMis.m2land` posé par `gmPlaceL`, tout en CSS) : une grille à deux colonnes pour le haut et le bas. GAUCHE (`--m2Gl` = 27 vw entre 188 et 236 px) : le titre, le compte
+  « n / 50 » et sa jauge (`--m2P`), la consigne en or (tant qu'aucune mission n'est suivie), la carte de la SÉRIE de sept jours (titre, sept cases, une phrase), RETOUR en bas. DROITE : UNE liste sans cadre,
+  deux fondus (haut et bas) disent qu'elle défile, qui court du haut de l'écran jusqu'à 8 px au-dessus de JOUER. RETOUR et JOUER ont la même hauteur (`--m2Bh` = 56 px) et la même ligne, au ras des marges
+  de l'iPhone : plus rien ne passe SOUS un bouton, et la liste montre ~4,5 missions au lieu de ~3. Les titres de groupe (À RÉCUPÉRER · SUIVIES n / 3 · MISSIONS) n'apparaissent que s'il y a plusieurs groupes.
+  Chaque ligne porte la couleur de sa famille en liseré à gauche (plus de filtres : la couleur dit ce que c'est). Debout : le même panneau qu'avant (la carte, puis la liste, un seul défilement).
+- MESURÉ au banc `outils/banc-missions/missions.mjs` (Chrome sans fenêtre, marges iPhone 47/21 px posées par `Emulation.setSafeAreaInsetsOverride`) : 844 × 390, 932 × 430, 667 × 375 et 390 × 844 — rien ne déborde,
+  la carte de la série ne passe jamais sous RETOUR ; récupérer une récompense, déplier TERMINÉES, toucher la série : sans erreur de page.
