@@ -25,9 +25,9 @@ const M2=[
   {id:'aura20k',f:'aura',k:'aura',v:20000,u:'aura',r:{cash:30000},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
   {id:'aura50k',f:'aura',k:'aura',v:50000,u:'aura',r:{cat:'aile',id:'phenix'},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
   // ARGENT — le total ACCUMULÉ depuis le début (pas le solde en banque)
-  {id:'cash100k',f:'argent',k:'gagne',v:100000,u:'$',r:{cat:'peinture',id:'vaporwave'},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'},
-  {id:'cash500k',f:'argent',k:'gagne',v:500000,u:'$',r:{cat:'peinture',id:'lave'},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'},
-  {id:'cash1m',f:'argent',k:'gagne',v:1000000,u:'$',r:{cat:'peinture',id:'holo'},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'},
+  {id:'cash100k',f:'argent',k:'gagne',v:100000,u:'$',r:{cash:10000},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'}, /* (2026-10-22, Sacha : « tableau des peintures ») la peinture passe à l'achat (1 €), la mission paie de l'argent — À VALIDER */
+  {id:'cash500k',f:'argent',k:'gagne',v:500000,u:'$',r:{cash:25000},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'}, /* (2026-10-22, Sacha : « tableau des peintures ») la peinture passe à l'achat (1 €), la mission paie de l'argent — À VALIDER */
+  {id:'cash1m',f:'argent',k:'gagne',v:1000000,u:'$',r:{cash:50000},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'}, /* (2026-10-22, Sacha : « tableau des peintures ») la peinture passe à l'achat (1 €), la mission paie de l'argent — À VALIDER */
   {id:'cash2m',f:'argent',k:'gagne',v:2000000,u:'$',r:{cat:'peinture',id:'or'},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'},
   // MOTEUR — le record d'une partie (le palier affiché = index + 1)
   {id:'eng10',f:'moteur',k:'eng',v:10,u:'',r:{cash:5000},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},

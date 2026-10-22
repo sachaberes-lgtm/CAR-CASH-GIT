@@ -35,6 +35,12 @@
 - ⚠ **LE PIÈGE** (déjà dans le guide de l'assembleur) : une retouche faite dans index.html SEUL disparaît au prochain réassemblage depuis les morceaux. Après une fusion,
   `node code/assembler.cjs --verifier` d'abord ; s'il dit ≠, ranger la page dans les morceaux (`--depuis-index`), jamais l'inverse à l'aveugle.
 
+## LE TABLEAU DES PEINTURES, 1re ÉTAPE : PRIX EN EUROS ET RETRAITS (2026-10-22, v793, Sacha : « d'abord les prix en euros et les 8 retraits, puis les défis un par un »)
+- **Prix** (`PEINT_EUR_ID`, economie/boutique.js, par-dessus `PEINT_EUR` de la rareté) : 0,50 € NOIR MAT, ROSE POUPÉE, VANILLE, PISTACHE, VERT AMANDE, BLEU PISCINE, LILAS, VERT BILLET, LAGON, CUIVRE, GRIS NARDO · 1 € COUCHER DE SOLEIL, VAPORWAVE, LAVE, HOLOGRAMME, FANTÔME, NACRE, LAMPADAIRE, CAMÉLÉON, GALAXIE, PLEIN AUX AS et les quatre de la série · 2 € LÉOPARD, TIGRE, ZÈBRE, VACHE, FLOWER POWER, CAMOUFLAGE, COCCINELLE.
+- **Retirées** (`HAB_RETIRES`, p:0) : CITRON VERT, ARGENT BROSSÉ, BORDEAUX, OLIVE, BLEU ABYSSE, AUBERGINE, DAMIER, PEAU DE DRAGON. Le pack compte 28 couleurs.
+- **Passent à l'achat** : FANTÔME, NACRE, LAMPADAIRE, CAMÉLÉON (`PEINT_ACHAT` : plus de défi) ; VAPORWAVE, LAVE, HOLOGRAMME (leurs missions d'argent paient 10 000 / 25 000 / 50 000 $ — À VALIDER) ; BRAISE FIDÈLE, AURORE BORÉALE, LAGON INTERDIT, NUIT ÉTOILÉE (le 7e jour de la série ne donne plus que le plein de jetons).
+- **À venir, un par un** : les défis secrets de la colonne Condition du panneau des peintures.
+
 ## LA PEINTURE GRIS NARDO (2026-10-22, v791, Sacha : « rajoute une couleur gris nardo »)
 - `nardo` (economie/boutique.js, la liste de la PALETTE, laque 0x74777b) : le pack compte 34 couleurs (textes « LES 34 COULEURS SONT À TOI »). En anglais NARDO GREY.
 
