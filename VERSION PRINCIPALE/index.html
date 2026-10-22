@@ -4306,7 +4306,7 @@ html body.touch #pwrChip .pw.cumul u{height:5px;box-shadow:0 0 12px var(--pc),0 
   --jEncre:#170f55;--jFond:#0d0a2a;--jInk:#1c0430;--jCurs:#fff6d8;             /* la jauge : cadre, fond, encre des textes, curseur */
   --nL:#ffd58f;--nP:#ff8d2e;--nS:#ff7415;--nO:#ad4200;--nEcl:#ffb81f;--nEclC:#fff3c4;--nEclS:#e07a00;   /* la NITRO (orange) et son éclair */
   --bL:#b5c4ff;--bP:#4a68f0;--bS:#2a44c8;--bO:#16247a;                        /* la réserve BLEUE */
-  --vL:#f1dcff;--vP:#b06bff;--vS:#8a3dff;--vO:#3e1287;--vG:rgba(164,92,255,.9); /* la NITRO INFINIE : VIOLET */
+  --vL:#ffd9d4;--vP:#ff2b2b;--vS:#e00d0d;--vO:#6e0505;--vG:rgba(255,40,40,.9); /* la NITRO INFINIE : ROUGE VIF (2026-10-22, Sacha) */
   --aL:#d8fbff;--aP:#5ee6ff;--aS:#18b0e2;--aO:#0b4f7a;                        /* l'AIR : cyan (la couleur du pouvoir AIRTIME) */
   --oL:#fff0b8;--oP:#ffc93a;--oS:#f29a00;--oO:#7a4200;                        /* l'or : le temps qui presse */
   --rL:#ffd0d6;--rP:#ff5a6e;--rS:#e0203c;--rO:#6e0014;                        /* le rouge : il ne reste plus rien */
@@ -31508,7 +31508,7 @@ const NFEU_B10=[.06,.14,.24,.35,.47,.59,.71,.82,.9],NFEU_T10=[.88,.96,1,1,1,.96,
    #6526c6 → --vO #3e1287. La fumée (10e nuance) reste celle de Léo. */
 const NFEU_P10={f:[[2.95,2.87,2.58],[2.3,2.03,1.51],[1.91,1.53,.99],[1.82,1.25,.68],[1.55,.88,.49],[1.99,1.06,.52],[1.7,.78,.4],[.43,.27,.14],[.32,.2,.12],[.2,.17,.17]],
   b:[[2.63,2.67,2.67],[1.89,2.02,2.37],[.67,.74,1],[.48,.54,.8],[.35,.4,.66],[.28,.32,.51],[.22,.23,.38],[.16,.15,.22],[.12,.11,.15],[.17,.17,.22]],
-  v:[[2.81,2.78,2.78],[2.85,2.72,2.92],[1.68,1.4,1.92],[1.05,.79,1.34],[.79,.58,1.07],[.94,.61,1.53],[.57,.36,.86],[.28,.21,.38],[.13,.087,.16],[.2,.16,.22]],
+  v:[[2.9,2.5,2.45],[2.8,1.5,1.4],[2.4,.62,.5],[2.1,.3,.22],[1.8,.16,.1],[1.9,.2,.12],[1.5,.12,.08],[.5,.08,.06],[.2,.05,.04],[.2,.16,.16]],
   m:[[1.5,1.75,2.5],[2.2,1.95,1.5],[2.3,1.55,.6],[2.15,1.05,.22],[1.95,.78,.12],[1.85,.6,.08],[1.62,.42,.06],[1.3,.24,.04],[.7,.1,.03],[.2,.17,.17]]}; // m : le feu du MOTEUR — un pied BLEUTÉ, comme un vrai échappement, puis l'orange (qui tient : un retour de flamme est orange, pas rouge)
 const NFEU_FIN={taille:.73,taux:1.7,pas:0},NFEU_SOL={det:.45,vent:.9};
 /* (2026-10-15 soir, Sacha : « retravaille toutes les traînées, il faut qu'elles soient toutes désirables ») LE FEU À LA COULEUR DE LA TRAÎNÉE — VU au
@@ -48483,7 +48483,7 @@ Object.assign(PWR_DEFS.n,{col:0xa45cff,core:0xf1e2ff,tint:'#b06bff',c2:'#7b34f0'
    (9 captures sur 24 à l'audit) : la palette de la météo disparaissait. Leur force (l'alpha) est divisée par 2,5 dans une copie `bd`/`bd2`,
    lue seulement par les bords TENUS ; l'éclair bref du ramassage (`flashEcran(d.fx)`) garde la sienne. Revenir : PWR_BORD_K=1. */
 const PWR_BORD_K=1/2.5;for(const k9 in PWR_DEFS){const d9=PWR_DEFS[k9],f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};d9.bd=f9(d9.fx);d9.bd2=f9(d9.fx2);}
-const NINF={jet:0x9d4dff,core:0xf3e6ff,rac:0xd8b8ff,trail:[.95,.45,1.6]}; // la nitro infinie dans le monde : plume, cœur, racine du brûleur, ruban
+const NINF={jet:0xff2208,core:0xffb8a8,rac:0xff6a58,trail:[1.6,.18,.08]}; // la nitro infinie dans le monde : plume, cœur, racine du brûleur, ruban
 for(const k in PWR_DEFS){const d=PWR_DEFS[k];
   d.glassM=new THREE.MeshPhongMaterial({color:d.col,emissive:d.col,emissiveIntensity:.9,shininess:260,specular:0xffffff,envMap:envTex,reflectivity:.6,transparent:true,opacity:.78,depthWrite:false,flatShading:true});
   d.coreM=new THREE.MeshBasicMaterial({color:d.core});
@@ -48766,13 +48766,13 @@ window.dbgLigneFruits=function(){let ah=0,ap=0;for(const p of pickups)if(!p.take
    sinon, retombe à 0 quand le pouvoir finit. La plume, le cœur, la racine, le ruban (NINF, lus par la boucle) et les BORDS d'ÉCRAN suivent — discrets au début
    (« un peu enflammés, pas un truc énorme ») et plus forts à mesure que ça chauffe. */
 PWR_DEFS.n.t=7;PWR_DEFS.n.msg='PIMENT — NITRO INFINIE 7 s À FOND !';PWR_DEFS.n.sous='7 S A FOND';
-const NINF_STOPS=[[0,0xff2208],[.2,0xff7a18],[.4,0xffd02a],[.58,0xfff2d8],[.8,0x4f8bff],[1,0x9d4dff]];
+const NINF_STOPS=[[0,0xff2208],[1,0xff1a0a]]; /* (2026-10-22, Sacha : « la flamme et le bouton du boost en rouge vif ») plus de dégradé orange → blanc → bleu → violet : la flamme reste rouge vif */
 const NINF_C=new THREE.Color(),NINF_A=new THREE.Color(),NINF_B=new THREE.Color(),NINF_W=new THREE.Color(0xffffff);
 NINF.h=0;NINF.rgb=[255,34,8];
 function ninfCouleur(h,out){let i=0;while(i<NINF_STOPS.length-2&&h>NINF_STOPS[i+1][0])i++;const a=NINF_STOPS[i],b=NINF_STOPS[i+1],u=Math.max(0,Math.min(1,(h-a[0])/(b[0]-a[0])));
   NINF_A.setHex(a[1]);NINF_B.setHex(b[1]);return out.copy(NINF_A).lerp(NINF_B,u);}
 function ninfTick(dt){
-  if(!(pwrNitroT>0)){if(NINF.h!==0){NINF.h=0;NINF.jet=0x9d4dff;NINF.core=0xf3e6ff;NINF.rac=0xd8b8ff;NINF.trail=[.95,.45,1.6];}return;}
+  if(!(pwrNitroT>0)){if(NINF.h!==0){NINF.h=0;NINF.jet=0xff2208;NINF.core=0xffb8a8;NINF.rac=0xff6a58;NINF.trail=[1.6,.18,.08];}return;}
   if(nitroOn)NINF.h=Math.min(1,NINF.h+dt/8);else NINF.h=Math.max(0,NINF.h-dt*.15);
   ninfCouleur(NINF.h,NINF_C);
   NINF.jet=NINF_C.getHex();NINF.core=NINF_B.copy(NINF_C).lerp(NINF_W,.62).getHex();NINF.rac=NINF_B.copy(NINF_C).lerp(NINF_W,.35).getHex();
@@ -68835,8 +68835,8 @@ const NX3_PAL={
   or:  ['#fff3b8','#ffc21f','#ffe680','#e07a00','#b45200','#6e2a00','#ff8d2e','#1c0430'],
   feu: ['#ffffff','#fff0a0','#ffffff','#ffb02a','#ff7a1a','#b83e00','#ffb347','#1c0430'],
   bleu:['#ffffff','#b5c4ff','#e8edff','#4a68f0','#2a44c8','#16247a','#4a68f0','#0b0a2e'],
-  vio: ['#f4e6ff','#b06bff','#dcb8ff','#8a3dff','#5a1fc2','#3e1287','#b06bff','#1c0430'],
-  vioF:['#ffffff','#e6ccff','#ffffff','#b06bff','#8a3dff','#3e1287','#b06bff','#1c0430'],
+  vio: ['#ffe0dc','#ff4a3a','#ffb0a8','#ff1a0a','#c40a00','#6e0500','#ff4a3a','#1c0430'],
+  vioF:['#ffffff','#ffc8c0','#ffffff','#ff4a3a','#ff1a0a','#6e0500','#ff4a3a','#1c0430'],
   sec: ['#a49cc4','#6e6890','#8a84aa','#4a4468','#332e50','#211d38','#ff5a6e','#1c0430']};
 const NX3_RGB={};function nx3Rgb(h){let v=NX3_RGB[h];if(v==null){const n=parseInt(h.slice(1),16);v=NX3_RGB[h]=(255<<24|(n&255)<<16|(n>>8&255)<<8|n>>16)>>>0;}return v;} // ABGR (petit-boutiste)
 function nx3Monte(){

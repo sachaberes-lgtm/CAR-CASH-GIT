@@ -42,8 +42,8 @@ const NX3_PAL={
   or:  ['#fff3b8','#ffc21f','#ffe680','#e07a00','#b45200','#6e2a00','#ff8d2e','#1c0430'],
   feu: ['#ffffff','#fff0a0','#ffffff','#ffb02a','#ff7a1a','#b83e00','#ffb347','#1c0430'],
   bleu:['#ffffff','#b5c4ff','#e8edff','#4a68f0','#2a44c8','#16247a','#4a68f0','#0b0a2e'],
-  vio: ['#f4e6ff','#b06bff','#dcb8ff','#8a3dff','#5a1fc2','#3e1287','#b06bff','#1c0430'],
-  vioF:['#ffffff','#e6ccff','#ffffff','#b06bff','#8a3dff','#3e1287','#b06bff','#1c0430'],
+  vio: ['#ffe0dc','#ff4a3a','#ffb0a8','#ff1a0a','#c40a00','#6e0500','#ff4a3a','#1c0430'],
+  vioF:['#ffffff','#ffc8c0','#ffffff','#ff4a3a','#ff1a0a','#6e0500','#ff4a3a','#1c0430'],
   sec: ['#a49cc4','#6e6890','#8a84aa','#4a4468','#332e50','#211d38','#ff5a6e','#1c0430']};
 const NX3_RGB={};function nx3Rgb(h){let v=NX3_RGB[h];if(v==null){const n=parseInt(h.slice(1),16);v=NX3_RGB[h]=(255<<24|(n&255)<<16|(n>>8&255)<<8|n>>16)>>>0;}return v;} // ABGR (petit-boutiste)
 function nx3Monte(){
