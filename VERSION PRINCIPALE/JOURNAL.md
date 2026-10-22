@@ -144,6 +144,25 @@ Léo : « formes encore plus originales » ; « le bas est trop gris, un peu lum
 - **COÛT** (mesuré, Mac) : prêt en ~6-9 s contre 8,3 s (finesse 48 : cubes ×.75, `kf`), triangles par gabarit ×~1,5 (≤ 18 k), 60 i/s sur matin/midi/soir/orage. Les piliers du
   sculpteur restent ce qu'ils étaient (forme) ; seule la matière change. Touche TOUS les cumulus v8 (aussi ceux des Pics de Jade).
 
+## LE DÉCOR DU GLACIER RECALÉ SUR LA PENTE À 45° (2026-10-21, livré le 2026-10-22 en v784, Sacha : « la map montagne neige est super buggée, genre le décor, les montagnes et tout ») — branche `neige-decor`
+- **LA CAUSE** : le manteau de neige et les cristaux (`code/maps/glacier-route.js`) datent de la descente à 7-14 % ; le 3e tour (18/10) a mis la piste à 40-50°
+  (mesuré : 103 % de pente moyenne, ~4 km de dénivelé sur 5-6 km) et trois règles « au plus bas dans un rayon » sont devenues des trous de la taille du rayon :
+  la SÛRETÉ (neige jamais au-dessus de la glace) prenait le point de piste le plus bas à 98 m, `YM` (« sous le plus bas des tours superposés », du temps des
+  spirales) celui à 120 m ; le DÉVERS de la piste (le repère roule dans les virages : 7,5° de médiane, 26° au plus, ±40 m aux bords) était ignoré ; les
+  cristaux enterraient leur base d'une profondeur fixe sous leur centre ; la « roche noire » du shader commençait vers 45°, la pente même de la montagne.
+  À l'écran : murs bleu nuit striés de noir, fosses le long de la piste, dalles de glace et aiguilles qui flottent, géants à dessous plat.
+- **LA RÈGLE** (`BK_RECALE` — à ne pas confondre avec `BK_DECOR`, le décor au hasard de v771) : la neige proche se cale sur le PLAN de la piste au pied du point le plus proche (pente + dévers, fondu de 82 à 130 m du bord ;
+  T et B penchent tous deux : on résout le 2 × 2, pas des produits scalaires), la sûreté aussi ; plus de `YM` ; chaque sommet de base d'un cristal (et le
+  milieu de chaque arête de base) descend 6 m sous la neige qu'il touche, hors de la neige d'un rayon de base plus bas ; roche au-delà de ~55°.
+  `?sans=glacerecale` = avant (même piste ; les cristaux tombent ailleurs, libre() ne refusant plus les mêmes grappes).
+- **MESURÉ** (même graine `?pistegraine=4242`, avant → après) : neige sous la glace −98 → −2 m ; au bord de la glace −95…+22 → −9…+1 m ; dans la congère
+  −82…+51 → −11…+2 m ; cristaux qui flottent (> 5 m) : dômes 54/62 → 0, aiguilles 104/172 → 0, pics de piste 23/23 → 0, géants sur la neige 60 → 0.
+  Construction 86 ms avant et après (la sûreté 4,7 → 0,8 ms). Le MASSIF (v766) passe par `pic()` → `bkPrim` : posé lui aussi.
+- **LE BANC** : Chrome sans fenêtre + `window.__ev` dans une copie d'index.html ; `dbgBanq('verglas',{s})` pour poser la caisse, `explode` neutralisé pour
+  photographier sans mourir ; vues fixes « caméra de course » roulées avec la piste (Nn en haut) aux 15-90 % de la piste ; un rayon (Raycaster) dit QUEL
+  maillage est sous un pixel (`banquise neige`, `banquise pics`, `banquise géants`, `glacier congere`). ⚠ `banqTick` remet la visibilité des morceaux :
+  cacher un maillage APRÈS avoir posé la vue.
+
 ## LA MONTÉE « GRANDE » DU GÉNÉRATEUR, EN COURSE (2026-10-20 soir, v751, Léo : « quand je booste, ça apparaît, ça évolue, puis ça devient une sorte de trompette horrible qui fait bugger la musique : elle s'arrête, reprend 1-2 s après, et dès que je rappuie sur le boost ça recommence ») — branche `nitro-ronron`
 - **LE SON** n'était pas le nitro : c'est la musique de POUCE BLEU (le générateur `musique-trente-*.js`). Le jeu ne lui passe que le MOTEUR (`setTier`) ;
   un boost tenu fait monter plusieurs paliers d'un coup, et chaque grand élément qui entre appelle une MONTÉE d'une mesure : un RISER — une fois sur deux
