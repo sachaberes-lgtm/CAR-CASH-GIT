@@ -144,7 +144,7 @@ Léo : « formes encore plus originales » ; « le bas est trop gris, un peu lum
 - **COÛT** (mesuré, Mac) : prêt en ~6-9 s contre 8,3 s (finesse 48 : cubes ×.75, `kf`), triangles par gabarit ×~1,5 (≤ 18 k), 60 i/s sur matin/midi/soir/orage. Les piliers du
   sculpteur restent ce qu'ils étaient (forme) ; seule la matière change. Touche TOUS les cumulus v8 (aussi ceux des Pics de Jade).
 
-## LE DÉCOR DU GLACIER RECALÉ SUR LA PENTE À 45° (2026-10-21, livré le 2026-10-22 en v784, Sacha : « la map montagne neige est super buggée, genre le décor, les montagnes et tout ») — branche `neige-decor`
+## LE DÉCOR DU GLACIER RECALÉ SUR LA PENTE À 45° (2026-10-21, livré le 2026-10-22 en v785, Sacha : « la map montagne neige est super buggée, genre le décor, les montagnes et tout ») — branche `neige-decor`
 - **LA CAUSE** : le manteau de neige et les cristaux (`code/maps/glacier-route.js`) datent de la descente à 7-14 % ; le 3e tour (18/10) a mis la piste à 40-50°
   (mesuré : 103 % de pente moyenne, ~4 km de dénivelé sur 5-6 km) et trois règles « au plus bas dans un rayon » sont devenues des trous de la taille du rayon :
   la SÛRETÉ (neige jamais au-dessus de la glace) prenait le point de piste le plus bas à 98 m, `YM` (« sous le plus bas des tours superposés », du temps des
@@ -163,7 +163,7 @@ Léo : « formes encore plus originales » ; « le bas est trop gris, un peu lum
   maillage est sous un pixel (`banquise neige`, `banquise pics`, `banquise géants`, `glacier congere`). ⚠ `banqTick` remet la visibilité des morceaux :
   cacher un maillage APRÈS avoir posé la vue.
 
-## L'ÉCRAN DE FIN COUCHÉ — ⌂ · REJOUER RENTRENT DANS LA GRILLE (2026-10-20 → 21, livré le 2026-10-22 en v784, Sacha, capture d'une fin avec records : « bug de bouton ici à corriger »)
+## L'ÉCRAN DE FIN COUCHÉ — ⌂ · REJOUER RENTRENT DANS LA GRILLE (2026-10-20 → 21, livré le 2026-10-22 en v785, Sacha, capture d'une fin avec records : « bug de bouton ici à corriger »)
 - **Le symptôme** (téléphone couché, 844 × 390) : la ⌂ mordait sur le coin de la carte MOTEUR, et un pan vert dépassait entre ⌂ et REJOUER —
   la plaque ×2 · PUB (#mDouble), passée DERRIÈRE REJOUER, donc intouchable.
 - **La cause** (ux8.css, bloc « vu à la fumée ») : couché, `.mFin` était un `position:fixed` de `min(368px,44vw)` hors de la grille. 368 px,
@@ -415,7 +415,7 @@ Plan de Léo (interview, fruit par fruit) ; tout est dans `code/gameplay/fruits-
   `?sans=` au bit près (240/240 chaque map), les mêmes écarts et repères, 10 + 10 constructions sans erreur et règle d'or à 0, une course au
   pilote par map jusqu'au portail, couché / debout / cadre sans erreur.
 
-## LE SALTO AVANT OFFERT AUX JOUEURS NEUFS (2026-10-20, livré le 2026-10-22 en v784, Sacha : « quand un nouveau joueur se connecte pour la première fois, il faut pas qu'il ait la figure tonneau, il faut qu'il ait la figure salto avant, de base »)
+## LE SALTO AVANT OFFERT AUX JOUEURS NEUFS (2026-10-20, livré le 2026-10-22 en v785, Sacha : « quand un nouveau joueur se connecte pour la première fois, il faut pas qu'il ait la figure tonneau, il faut qu'il ait la figure salto avant, de base »)
 - **LE CONSTAT** : un joueur neuf n'avait pas le tonneau (il s'achète) mais le TAIL WHIP offert, sur le geste « côté », et l'emplacement AVANT vide : le premier
   double-tap NITRO (auto-école comprise) lançait un tail whip — c'est ce que Sacha appelait « le tonneau ».
 - **LA RÈGLE** (`code/sauvegarde.js`, champ `figS`) : un profil neuf reçoit le SALTO AVANT (`saltov`) OFFERT, en plus du tail whip. Neuf = aucune partie finie, rien
@@ -425,7 +425,7 @@ Plan de Léo (interview, fruit par fruit) ; tout est dans `code/gameplay/fruits-
 - **VÉRIFIÉ** (session salto-depart, 20/10) : profil vierge → figures `tailwhip`, `saltov`, emplacements `[saltov, —, tailwhip]`, tonneau non possédé ; profil qui a
   déjà joué (3 parties, 1 200 en banque) → inchangé. Livraison du 22/10 : course sans erreur sur la version fusionnée (couché, debout, cadre de l'ordi).
 
-## LA VITESSE DE DÉPART : SEUL LE PALIER 30 L'OUVRE, PLUS LE CODE COUSIN (2026-10-20, livré le 2026-10-22 en v784, Sacha : « tu peux laisser le truc de Léo, mais c'est seulement quand t'as passé le moteur 30 au moins une fois ; et même avec le code cousin, ça marche pas »)
+## LA VITESSE DE DÉPART : SEUL LE PALIER 30 L'OUVRE, PLUS LE CODE COUSIN (2026-10-20, livré le 2026-10-22 en v785, Sacha : « tu peux laisser le truc de Léo, mais c'est seulement quand t'as passé le moteur 30 au moins une fois ; et même avec le code cousin, ça marche pas »)
 - **À MONTRER À LÉO** : Sacha a changé une règle de sa fonction. Ancienne condition (pour revenir en arrière, une seule ligne, `vdepFonction` dans
   code/gameplay/pickups-fruits.js) : `return VDEP_TOUT||cousin()||((SAVE.d.ex&&SAVE.d.ex.eng)|0)>=ENGINE_TIERS.length-1;` — le code cousin l'ouvrait aussi.
   Nouvelle : `return VDEP_TOUT||((SAVE.d.ex&&SAVE.d.ex.eng)|0)>=ENGINE_TIERS.length-1;`. (Remettre aussi `+','+cousin()` dans `sg` de `vdepInit`, evenements-rares.js.)
