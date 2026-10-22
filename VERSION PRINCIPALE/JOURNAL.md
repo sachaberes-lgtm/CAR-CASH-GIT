@@ -3,6 +3,26 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES DUNES D'OR AU NIVEAU DE JADE, DE LA GROTTE ET DE LA FORÊT (2026-10-22, Léo : « le niveau dune n'est pas au niveau, observe map jade cave et forêt pour voir le niveau que j'attends »)
+- **À VALIDER PAR LÉO (c'est un LOOK : planche AVANT | APRÈS d'abord, le main ensuite)** — branche locale `dunes-niveau` (partie d'origin/main v782), PAS poussée. Le SURF de Sacha (segments, sauts, lèvres, oasis, trois pyramides, décor tiré au hasard) est GARDÉ tel quel.
+- **Le diagnostic** (mesuré sur des PNG sans le ciel, banc Chrome sans fenêtre, même graine `?pistegraine=4242`) : jade et la forêt tiennent ~1 % de pixels écrêtés et un histogramme étalé, avec des SILHOUETTES HAUTES près de la route (piliers, géants) ; les dunes : 20-28 % de pixels à 255, le cadre de
+  course = 55 % de ciel + 35 % de route grise + une mince bande de sable lisse, et des décors de 7 000 sommets en prismes lisses. Rien ne se dressait au bord de la route : une map-désert « vide ».
+- **Les BUTTES de grès** (`dnMesa`, dunes-1.js — la MÊME fonction en GLSL dans `DN_VS` et dans le travailleur) : des plateaux à flancs raides de 70 à 180 m, loin de la route (rien à moins de 260 m, plein à 520 m) et loin de l'arrivée (1,8-3 km : pyramides, oasis, portail) ; le sable ne s'y pose pas, la roche se
+  couvre de STRATES (lits ondulés, du terracotta sombre à la crème). `?buttes=0` = sans.
+- **Le SABLE en mosaïque de mini-cubes** (la touche de jade et de la forêt : 0,8 m de près, deux niveaux fondus, une nuance et une facette par cube, un joint doux ; elle s'efface sous ~2 px) + une houle moyenne (rides de 11 m jusqu'à ~1 km) ; branche UNIFORME : `PAL.B.dnMo=[0,.75,1]` (rien sur les vieux
+  téléphones). `?mosaique=0` = sans.
+- **Les DÉCORS neufs** (dunes-3.js : `dnKit`, une boîte à outils à pile de transformations, normales plates ou lisses, matière PAR SOMMET `aK` : 0 peint · 1 assises · 2 roche · 3 or · 4 gravé) : obélisque (fût de lapis, bandeaux et pyramidion d'or), pylône, porte double, colonne à chapiteau, sphinx, colosse assis, chameau,
+  palmier, vautour, trois pyramides (à gradins en 20 assises, lisse de calcaire, à degrés), tambour, tête tombée, bloc. La PIERRE est en assises (rangées de ~1 m, joints décalés, taille qui suit la distance : jamais plus fine que ~6 px) ; ne plus la changer en carrelage trop sombre : joints à 20-26 %.
+  `dnCuiseur` (tableaux typés) fond tout en UNE géométrie (1 appel de dessin) ; 50 000 à 90 000 sommets contre 7 500 avant.
+- **Les SCÈNES** (dunes-4.js, tirées par tronçon de route dans le flux `D.sd`) : la PORTE du départ (deux pylônes de 38-46 m), l'ALLÉE DES SPHINX (paires de 34-44 m + obélisques), la RANGÉE DE COLOSSES (quatre pharaons de 46-56 m), la COLONNADE géante qui mène aux pyramides, des RUINES éparses. Chaque scène a son PLATEAU
+  (`S.pw`, lu par `dnProfil` : le sable s'y tient à plat à 1,6 m sous la dalle, il monte et s'élargit en douceur sur 120 m) et ses OMBRES (`pv.sv` → `dnOmbre` dans le travailleur) ; colonnes, sphinx, colosses, pylônes TUENT en vol (`DN.mo`). `?sans=dunesscenes` = sans.
+- **La lumière de midi** (`biomes.js`) : soleil 50°, `sunI` 1,35, sable moins saturé (`dnA/dnB/dnL/dnS`), `dnK.w` = soleil de forme plafonné pour le relief ; le SABLE QUI VOLE devient de fins grains dorés dans une couche posée sur le sable (plus de grosses boules dans le ciel) ; trois à sept VAUTOURS qui planent (la recette du canyon) ;
+  les caravanes sont plus grosses (`DN_CAM` 5,2 m).
+- **Mesuré** : GPU +~10 % sur image figée 720p (6,6-7,6 → 7,3-8,4 ms, `dbgDunes('gpu')`) dont 0,4 ms pour la mosaïque ; pose des décors au 1er tirage 5 → 12 ms sur le fil principal (le travailleur 110 → 125-145 ms) ; `dbgDunes('test')` : sable au-dessus de la dalle 0 et décors sur la route 0 sur 14 graines ; travailleur et fil principal (`?dnw=0`)
+  donnent les mêmes grilles ; 0 erreur console sur les six météos ; la course automatique va aussi loin qu'avant.
+- **Crochets de banc** (`dbgDunes`) : `('cam', œil, cible, champ)` · `('vueL', s, côté, haut, cap, pente)` · `('profil', s, largeur, pas)` · `('galerie', s, [modèles])` · `('modele', nom)` · `('shader', 'sable'|'t'|'g', ancien, neuf)` (retouche à chaud) · `('uni')` · `('decors')` · `('gpu', n, fois)`.
+- Fichiers : `maps/dunes-1.js` (buttes, plateau, ombres, tirage), `dunes-2.js` (sable, matière des décors, poussière, vautours, crochets), NEUFS `dunes-3.js` (boîte à outils, modèles), `dunes-4.js` (scènes) ; `biomes.js` ; `ORDRE.txt` +2.
+
 ## LE CHOIX DU CIEL RETIRÉ DE L'ACCUEIL (2026-10-21, v782, Léo : « enlève le choix du ciel dans le menu ciel, ça s'adapte à l'heure »)
 - La rangée AUTO · MATIN · MIDI · SOIR · NUIT · PLUIE · ORAGE (v761 → v768) n'est plus à l'accueil : `interface/ciel-choix.js` et `css/ciel-choix.css` supprimés (`ORDRE.txt` −2 lignes, 213 morceaux) et l'appel `cielChoixImpose` de
   `classiqueJouer` (zones-caisses.js) aussi. Le ciel du menu ne reçoit plus d'ordre : il suit l'horloge du téléphone (`titreHeureDe`, relue toutes les 20 s) ; JOUER retrouve le tirage au hasard du mode classique.

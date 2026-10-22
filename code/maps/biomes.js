@@ -190,7 +190,7 @@ const BIO_ETAL0={wb:[1,1,1],sh:[0,.004,.03],hi:[.024,.014,-.008],con:1.16,bloomS
 const MN_T9=new THREE.Color();
 Object.assign(BIO_ETAL0,{mzH:[1,.985,.96,0],mzO:[.4,.5,.66,0],nuA:[1,1,1]}); // rgb = la teinte d'avant (le fondu d'un portail glisse vers elle), w 0 = inerte · nuA = l'albédo des nuages × 1 (inchangé)
 Object.assign(BIO_ETAL0,{nuLav:[.72,.78,.97],nuR:[-.25,.5,.64,1],nuK:[1,1,1,1]}); // (2026-10-14, passe graphismes · nuages-jour) LA MATIÈRE DES CUMULUS PAR AMBIANCE : nuLav = la teinte de l'ombre (GLSL uLav), nuR = uR (frontière d'ombre, clarté de l'ombre), nuK = uK (albédo, soleil, lisière, bord) ; les défauts = les valeurs d'avant, inertes
-Object.assign(BIO_ETAL0,{dnA:[.95,.56,.26],dnB:[.88,.36,.17],dnL:[1,.78,.52],dnS:[.62,.62,.95],dnC:[.93,.86,.78],dnV:[.22,.42,.10],dnH:[.9,.7,.5],dnQ:[0,0,0,0],dnK:[.5,1,.25,1],dnW:[.10,.66,.62],dnX:[.02,.26,.36]}); // (2026-10-18) LES DUNES D'OR : le sable de leurs six temps (lus seulement là-bas : dunesTick)
+Object.assign(BIO_ETAL0,{dnA:[.95,.56,.26],dnB:[.88,.36,.17],dnL:[1,.78,.52],dnS:[.62,.62,.95],dnC:[.93,.86,.78],dnV:[.22,.42,.10],dnH:[.9,.7,.5],dnQ:[0,0,0,0],dnK:[.5,1,.25,1],dnM:[.8,.010,1,0],dnW:[.10,.66,.62],dnX:[.02,.26,.36]}); // (2026-10-18) LES DUNES D'OR : le sable de leurs six temps (lus seulement là-bas : dunesTick)
 // (vague 3) ETAL_JOUR retiré : le jour des NUAGES reprend l'étalonnage d'origine (BIO_ETAL0), voir le haut de BIOMES
 Object.assign(BIOMES.pluie,{rimS:.55}); // VILLE : l'étalonnage d'avant (déjà au niveau) — le liseré vient du NÉON de contre-jour
 Object.assign(BIOMES.espace,{fog:[.016,.02,.055],wb:[.98,1,1.04],rimS:.62}); // ORBITE : le vide NOIR et froid, un contraste dur ; la brume n'est plus le noir absolu mais le noir bleuté #04050e de la bible (le lointain de la route s'y fond, et la brillance d'horizon du bitume, qui en prend la couleur, n'est plus nulle)
@@ -416,11 +416,11 @@ BIOMES.jadeOrage=bioMet(BIOMES.jadePluie,{nm:'JADE · ORAGE',fogN:90,fogF:1150,s
    cyK:[.12,.45,0,0],cyN:[.9,.9,1.3,0],cyA:[10,68,0,0],
    dnA:[1,.64,.40],dnB:[.94,.42,.30],dnL:[1,.80,.62],dnS:[.56,.58,1.04],dnC:[.98,.88,.84],dnV:[.24,.46,.16],dnH:[.98,.76,.68],dnQ:[.30,.20,0,.6],dnK:[.55,1,.25,1],dnW:[.14,.64,.66],dnX:[.03,.24,.36]});
  BIOMES.dunesMidi=dnB('canyonMidi',{nm:'DUNES · MIDI',jZen:[.02,.20,.66],jMid:[.12,.48,.86],jHor:[.92,.80,.62],jSol:[.36,.30,.18],
-   fog:[.90,.80,.64],fogN:900,fogF:9800,fogCj:[1,.86,.64],fogIn:[.96,.92,.84],hemiS:[.40,.62,1.0],hemiG:[.82,.56,.36],hemiI:.64,sunC:[1,.94,.82],sunI:1.7,fillC:[.44,.62,.95],fillI:.22,
+   fog:[.90,.80,.64],fogN:900,fogF:9800,fogCj:[1,.86,.64],fogIn:[.96,.92,.84],hemiS:[.40,.62,1.0],hemiG:[.82,.56,.36],hemiI:.52,sunC:[1,.94,.82],sunI:1.35,fillC:[.44,.62,.95],fillI:.18,
    env:[[0,'#2F86E0'],[.3,'#6CC2EE'],[.48,'#E6E2D6'],[.58,'#FFF6E6'],[.66,'#EAB27E'],[1,'#A8643C']],
    cyZ:[.02,.20,.66],cyM:[.12,.48,.86],cyH:[.92,.80,.62],cyS:[1,.95,.86],cyB:[.72,.70,.78],cyC:[1,1,.98],cyD:[.56,.64,.78],cyR:[.94,.72,.52],
-   cyK:[.18,.12,0,0],cyN:[0,.6,1.8,0],cyA:[64,200,0,0],
-   dnA:[1,.68,.32],dnB:[.96,.46,.20],dnL:[1,.86,.62],dnS:[.62,.66,1.06],dnC:[1,.94,.86],dnV:[.20,.46,.12],dnH:[.96,.86,.68],dnQ:[.22,1,0,1],dnK:[.45,1,.2,1],dnW:[.10,.72,.70],dnX:[.02,.30,.40]});
+   cyK:[.36,.34,0,0],cyN:[0,.6,1.8,0],cyA:[50,205,0,0],
+   dnA:[.86,.64,.40],dnB:[.80,.44,.26],dnL:[.98,.84,.62],dnS:[.50,.52,.94],dnC:[1,.94,.86],dnV:[.20,.46,.12],dnH:[.96,.86,.68],dnQ:[.22,1,0,1],dnK:[.45,1,.2,.62],dnW:[.10,.72,.70],dnX:[.02,.30,.40]});
  BIOMES.dunesSoir=dnB('canyonSoir',{nm:'DUNES · SOIR',jZen:[.08,.10,.40],jMid:[.50,.30,.46],jHor:[1,.48,.22],jSol:[1,.44,.14],
    fog:[.96,.52,.30],fogN:700,fogF:8200,fogCj:[1,.60,.32],fogIn:[1,.82,.70],hemiS:[.42,.40,.76],hemiG:[.64,.30,.16],hemiI:.62,sunC:[1,.46,.18],sunI:1.7,fillC:[.42,.44,.95],fillI:.36,
    env:[[0,'#4A4FA6'],[.3,'#B0749A'],[.48,'#FFB27E'],[.58,'#FFC88C'],[.66,'#E0663A'],[1,'#74301C']],

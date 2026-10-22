@@ -60,6 +60,8 @@ maps/canyon-relief.js                # canyon : relief, monuments, voûte, lumi�
 maps/canyon-mine.js                  # canyon : la mine abandonnée, la route 66
 maps/dunes-1.js                      # LES DUNES D'OR : route, monde, construction
 maps/dunes-2.js                      # dunes : sable à la puce, décors, sable qui vole
+maps/dunes-3.js                      # dunes : la boîte à outils des décors, les modèles (obélisque, pylône, colonne, sphinx…)
+maps/dunes-4.js                      # dunes : les scènes le long de la route (colonnade, allée des sphinx, colosses, porte, ruines)
 maps/glacier-route.js                # LA BANQUISE / LE GLACIER v4 : route, manteau de neige
 maps/glacier-construction.js         # glacier : construction, volant en l'air
 maps/glacier-verglas.js              # glacier : verglas, retombée des tremplins, console

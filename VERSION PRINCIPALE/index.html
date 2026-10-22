@@ -17460,7 +17460,7 @@ window.dbgCanyon=function(k,a,b,c){
    `dbgDunes('sauts')` · `?carte=dunes&meteo=soir`. */
 const NIV_DUNES={id:'dunes',nm:"LES DUNES D'OR",bio:['dunesSoir'],planete:0,espace:0,pluie:0,cielMusical:false,route:.30,sheen:.12,piste:'dunes',pr:'DE DUNE EN DUNE'};
 const DUNES_OK=CANYON_OK; // les mêmes besoins que le canyon : textures de données en flottants, lecture de textures au sommet
-PAL.B.dnFin=[16,14,12];PAL.B.dnPlat=[96,80,64];PAL.B.dnOmbre=[60,52,44];PAL.B.dnGrille=[16,16,32];PAL.B.dnR0=[85,100,118];PAL.B.dnArbres=[50,90,140];PAL.B.dnPalmes=[22,34,48];PAL.B.dnPart=[600,1100,1600]; // la finesse par palier [ancien, moyen, récent]
+PAL.B.dnFin=[16,14,12];PAL.B.dnPlat=[96,80,64];PAL.B.dnOmbre=[60,52,44];PAL.B.dnGrille=[16,16,32];PAL.B.dnR0=[85,100,118];PAL.B.dnArbres=[50,90,140];PAL.B.dnPalmes=[22,34,48];PAL.B.dnPart=[600,1100,1600];PAL.B.dnMo=[0,.75,1];PAL.B.dnRuines=[.35,.7,1]; // (2026-10-22) la mosaïque du sable et des pierres (0 = éteinte sur les vieux téléphones) · le nombre de ruines éparses // la finesse par palier [ancien, moyen, récent]
 const DN={Q:null,on:false,ms:{},yMin:-1e4,yMax:1e4,mesh:null,mat:null,geo:null,aN:null,maxN:900,G:32,S0:64,R0:118,lods:7,
   F:null,Z:null,O:null,fr:new THREE.Frustum(),pm:new THREE.Matrix4(),box:new THREE.Box3(),n:0,S:null,job:0,attente:null,grp:null,
   ombre:1,ecrit:false,ob:[],pyr:null,pyrs:[],gp:[],lev:[],mo:[],deco:null,tor:[],oa:null,rac:[],vent:[1,0,1,0],lam:560,car:[],sep:0,rmin:0}; // (les textes : avec les ambiances des dunes, I18N n'existe pas encore ici)
@@ -17478,6 +17478,7 @@ const DN={Q:null,on:false,ms:{},yMin:-1e4,yMax:1e4,mesh:null,mat:null,geo:null,a
    matière des décors : aucun programme neuf). Et les MODULES : trois de plus (dCreteS, dToboggan, dGue) — 7 sortes dans le paquet.
    `?sans=dunesdecor` = le décor d'avant ; `?sans=dunesmodules` = le paquet d'avant (4 sortes) ; `dbgDunes().deco` = le tirage. */
 const DN_DECO={on:!/[?&]sans=([^&]*,)?dunesdecor(,|&|$)/.test(location.search),mods:!/[?&]sans=([^&]*,)?dunesmodules(,|&|$)/.test(location.search)};
+const DN_MOSA=!/[?&]mosaique=0\b/.test(location.search),DN_BUTTES=!/[?&]buttes=0\b/.test(location.search); // (2026-10-22) `?mosaique=0` : le sable et la pierre sans mosaïque · `?buttes=0` : sans les buttes de grès (banc : ce que coûte chaque matière)
 const DN_HZ={axe:20,kL:.92,lim:40},DN_SEG={D:2.6,H:26,A:150,haut:260}; // DN_SEG : le sable sous un segment (air sous la dalle, profondeur et hauteur des dunes) · `haut` : de combien le désert lointain est plus bas au départ (m)
 function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : il rend la main entre deux étapes
   CAMPM.length=0;MODMARK.length=0;FILETMARK.length=0;TROUMARK.length=0;
@@ -17549,10 +17550,17 @@ function dnDune(x,z,W,lam,o){ /* (le bruit lu aux SEULES grandes échelles, cana
   if(o)o.du=p*m;return p*m+.08*p2*(1-.75*p);}
 /* LA HAUTEUR DU SABLE — la même que la puce (dnHt), lue dans les mêmes données : le fond B, l'amplitude A, la cuvette `pan` (grille de 64 m),
    le plafond C et le plancher G (grille fine), l'oasis. `o` (facultatif) reçoit eau (0/1). */
+/* LES BUTTES (2026-10-22, Léo : « le niveau dune n'est pas au niveau — regarde jade, la grotte, la forêt » : des masses qui dressent l'horizon, comme les pics de jade) — des plateaux de grès à flancs raides, ajoutés
+   au sable LOIN de la route (dr = la distance à la route, 260 m → rien, 520 m → plein) : le masque est un seuil du bruit (canal 1, tuile de 6 km), le haut (70 à 180 m) un autre bruit (canal 2). Même
+   fonction dans le GLSL de la puce (dnMesa de DN_VS) : toute retouche ici se refait là-bas. */
+function dnMesa(x,z,dr){if(DN.sb)return 0;const n=cyNz(x/6000+.21,z/6000+.73,1),e=Math.max(0,Math.min(1,(n-.60)/.012)),m0=e*e*(3-2*e);if(m0<=0)return 0;
+  const t=cyNz(x/1700+.5,z/1700+.1,2),f=Math.max(0,Math.min(1,(dr-260)/260)),w=f*f*(3-2*f),F9=DN.fin;let fe=1;if(F9){const q=Math.max(0,Math.min(1,(Math.hypot(x-F9.x,z-F9.z)-1800)/1200));fe=q*q*(3-2*q);} // (aucune butte autour de l'arrivée : les pyramides, l'oasis, le portail)
+  return m0*w*fe*(70+110*t);}
 const DN_O9={};
 function dnHauteur(x,z,o){const Z=DN.Z,F=DN.F;o=o||DN_O9;
   const zx=(x-(Z.x0-Z.ts*.5))/Z.ts,zz=(z-(Z.z0-Z.ts*.5))/Z.ts,B=cyBil(Z.d,Z.nx,Z.nz,4,0,zx,zz),A=cyBil(Z.d,Z.nx,Z.nz,4,2,zx,zz),pan=cyBil(Z.d,Z.nx,Z.nz,4,3,zx,zz);
-  let h=B+A*(dnDune(x,z,DN.vent,DN.lam)-.35)*(1-.85*pan);
+  const me=dnMesa(x,z,cyBil(Z.d,Z.nx,Z.nz,4,1,zx,zz)),mk=Math.max(0,Math.min(1,me/20)); // la butte : son haut est plat (les dunes s'effacent dessus)
+  let h=B+A*(dnDune(x,z,DN.vent,DN.lam)-.35)*(1-.85*pan)*(1-.92*mk)+me;
   const fx=(x-(F.x0-F.ts*.5))/(F.nx*F.ts),fz=(z-(F.z0-F.ts*.5))/(F.nz*F.ts);
   if(fx>0&&fz>0&&fx<1&&fz<1){const px=fx*F.nx,pz=fz*F.nz,c=cyBil(F.c,F.nx,F.nz,2,0,px,pz),g=cyBil(F.c,F.nx,F.nz,2,1,px,pz);h=Math.min(Math.max(h,g),c);}
   o.eau=0;const A9=DN.oa;if(A9){const rr=Math.hypot(x-A9.x,z-A9.z)/A9.r;if(rr<2.4){const q=rr<1?A9.y-12*(1-rr*rr):A9.y+(rr-1)*A9.r*.2;if(q<h)h=q;if(h<A9.y-.05){h=A9.y;o.eau=1;}}}
@@ -17566,6 +17574,9 @@ function dnProfil(S,RE,i0,x,z,o,RH,TH){
   const v=1-u,y=S.y[j]*v+S.y[j1]*u,D=S.D[j]*v+S.D[j1]*u,zC=S.zC[j]*v+S.zC[j1]*u,gd=S.gd[j]*v+S.gd[j1]*u,top=y-TH-D,sl=.75-.63*gd;
   o.C=top+Math.max(0,d-(RH+6))*sl;                                                       // le sable au repos (37°) — presque plat dans les boucles
   o.G=zC>.01?top-1-Math.max(0,d-8)*.40-Math.max(0,d-(RH+3))*.24-(1-zC)*300:-1e5;          // la dune qui porte la route : une crête sous l'axe, ses flancs à 22° puis 32°
+  /* LE PLATEAU DE LA SCÈNE (2026-10-22) : sur une scène (colonnade, allée…) le sable s'étend à plat jusqu'à pw (m depuis l'axe), à 1,6 m sous la dalle, puis retombe comme avant ; le plateau monte en douceur (tp) */
+  const pw=S.pw?(S.pw[j]*v+S.pw[j1]*u)*zC:0;if(pw>2){const bw=Math.min(1,pw/(RH*.7)),yP=(top-1)+((y-1.6)-(top-1))*bw,dg=Math.max(0,d-Math.max(pw,8)),Gp=yP-dg*.40-Math.max(0,dg-(RH-5))*.24,Cp=yP+.7+Math.max(0,d-Math.max(pw,RH+6))*sl;
+    if(zC>.01){o.G+=(Gp-o.G)*bw;}o.C+=(Cp-o.C)*bw;}
   return true;}
 /* LES DÉCORS QUI COMPTENT POUR L'OMBRE ET LA COLLISION (ici ou dans le travailleur) : les obélisques et la grande pyramide — jamais près d'une route */
 /* LES TROIS PYRAMIDES (2026-10-20, Sacha : « on voit le portail au loin, entre trois pyramides ») : au bout de la route, derrière le portail — deux grandes de chaque
@@ -17575,12 +17586,13 @@ function dnPyr3(S,K,RH,r,sts){
   const pyrs=[],iE=S.n-1,i1=Math.max(0,iE-18);let hx=S.x[iE]-S.x[i1],hz=S.z[iE]-S.z[i1];const hl=Math.hypot(hx,hz)||1;hx/=hl;hz/=hl;const Ex=S.x[iE],Ez=S.z[iE]; // le cap d'arrivée (les 150 derniers mètres)
   const def=[[(370+r()*60)*K,-1,1.25,150+r()*80],[(400+r()*60)*K,1,1.25,330+r()*120],[(560+r()*60)*K,0,0,1500+r()*300]]; // [demi-base, côté, écart latéral en demi-bases, recul derrière le portail]
   def.forEach(function(d,k){const hw=d[0],lat=d[1]?d[1]*(hw*d[2]+RH+80+r()*40):(r()-.5)*70,x=Ex+hx*d[3]-hz*lat,z=Ez+hz*d[3]+hx*lat,a=Math.atan2(hx,hz)+(r()-.5)*.5,st=sts&&sts[k]?sts[k]:'';
-    let y=1e9;for(const q of [[0,0],[1,1],[1,-1],[-1,1],[-1,-1]])y=Math.min(y,dnHauteur(x+q[0]*hw*.9,z+q[1]*hw*.9));
-    pyrs.push({x:x,z:z,y:y-14,hw:hw,h:hw*(st==='etagee'?.95:1.27),a:a,st:st});});
+    let y=1e9,X=x,Z9=z;for(let t9=0;t9<10;t9++){let bute=false;for(const q of [[0,0],[1,1],[1,-1],[-1,1],[-1,-1]])if(dnMesa(X+q[0]*hw*1.1,Z9+q[1]*hw*1.1,1e9)>1.5)bute=true;if(!bute)break;X+=hx*hw*.5;Z9+=hz*hw*.5;} // (une butte sous une pyramide : on la repousse derrière)
+    for(const q of [[0,0],[1,1],[1,-1],[-1,1],[-1,-1]])y=Math.min(y,dnHauteur(X+q[0]*hw*.9,Z9+q[1]*hw*.9));
+    pyrs.push({x:X,z:Z9,y:y-14,hw:hw,h:hw*(st==='etagee'?.95:1.27),a:a,st:st});});
   return pyrs;}
 function dnPrevoir(S,sQ,K,RH,r,D){
   if(D)return dnPrevoirDeco(S,sQ,K,RH,D);
-  const ob=[],L9=(S.n-1)*S.ds,pres=(x,z,lim)=>{for(let i=0;i<S.n;i+=2){const dx=S.x[i]-x,dz=S.z[i]-z;if(dx*dx+dz*dz<lim*lim)return true;}return false;};
+  const ob=[],L9=(S.n-1)*S.ds,pres=(x,z,lim)=>{if(dnMesa(x,z,1e9)>1.5)return true;for(let i=0;i<S.n;i+=2){const dx=S.x[i]-x,dz=S.z[i]-z;if(dx*dx+dz*dz<lim*lim)return true;}return false;};
   const a0=sQ.obel0,a1=sQ.obel1;
   if(a0!=null&&a1!=null)for(let s9=a0+40;s9<a1-20;s9+=120*K){const i=Math.min(S.n-1,Math.round(s9/S.ds));  // L'ALLÉE : une paire tous les ~120 m
     for(const sg of [-1,1]){const lat=RH+(26+r()*6)*K,x=S.x[i]-S.tz[i]*sg*lat,z=S.z[i]+S.tx[i]*sg*lat,rr=(4.2+r()*.8)*K;
@@ -17594,7 +17606,7 @@ function dnPrevoir(S,sQ,K,RH,r,D){
    alternée, brisée), les épars, 0 à 3 pyramides, les grands monuments `mo` (sphinx, colosses, temple, portes : un cylindre pour la collision et l'ombre).
    Rien à moins de RH + rayon + 28 m d'une route (les deux bras d'une boucle compris), rien sur la garde des raccourcis. Son hasard : `D.sd`. */
 function dnPrevoirDeco(S,sQ,K,RH,D){
-  const rp=mulberry32((D.sd^0x0B5E11)>>>0),ob=[],pyrs=[],mo=[],L9=(S.n-1)*S.ds,pres=(x,z,lim)=>{for(let i=0;i<S.n;i+=2){const dx=S.x[i]-x,dz=S.z[i]-z;if(dx*dx+dz*dz<lim*lim)return true;}return false;};
+  const rp=mulberry32((D.sd^0x0B5E11)>>>0),ob=[],pyrs=[],mo=[],L9=(S.n-1)*S.ds,pres=(x,z,lim)=>{if(dnMesa(x,z,1e9)>1.5)return true;for(let i=0;i<S.n;i+=2){const dx=S.x[i]-x,dz=S.z[i]-z;if(dx*dx+dz*dz<lim*lim)return true;}return false;};
   const loin=(x,z,rr)=>{for(const p of pyrs)if(Math.hypot(p.x-x,p.z-z)<p.hw*1.5+rr+40)return false;for(const m of mo)if(Math.hypot(m.x-x,m.z-z)<m.r+rr+40)return false;return true;};
   const ou=(s9,sg,lat)=>{const i=Math.max(0,Math.min(S.n-1,Math.round(s9/S.ds)));return {i:i,x:S.x[i]-S.tz[i]*sg*lat,z:S.z[i]+S.tx[i]*sg*lat};};
   const A=D.allee,a0=sQ.obel0,a1=sQ.obel1;                                                                     // L'ALLÉE
@@ -17609,10 +17621,10 @@ function dnPrevoirDeco(S,sQ,K,RH,D){
       const sg=rp()<.5?-1:1,q=ou(s9,sg,RH+r9+(lat0+rp()*(lat1-lat0))*K);if(pres(q.x,q.z,RH+r9+28)||!loin(q.x,q.z,r9))continue;
       let y=1e9;for(const o of [[0,0],[1,0],[-1,0],[0,1],[0,-1]])y=Math.min(y,dnHauteur(q.x+o[0]*r9*.8,q.z+o[1]*r9*.8));
       mo.push({k:k,x:q.x,z:q.z,y:y-2,r:r9,h:h9,a:Math.atan2(S.x[q.i]-q.x,S.z[q.i]-q.z),t:Math.atan2(S.tx[q.i],S.tz[q.i])});return;}};
-  if(D.sphinx){const l=(56+rp()*26)*K;poser('sphinx',l*.55,l*.34,40,140);}                                          // il regarde la route
+  if(D.sphinx){const l=(56+rp()*26)*K;poser('sphinx',l*.55,l*.5,40,140);}                                          // il regarde la route
   for(let k=0;k<D.colosses;k++){const h=(30+rp()*22)*K;poser('colosse',h*.4,h,30,120);}
   if(D.temple){const l=(46+rp()*20)*K;poser('temple',l*.62,(15+rp()*6)*K,35,130);}
-  for(let k=0;k<D.portes;k++){const h=(20+rp()*12)*K;poser('porte',h*1.1,h,25,90);}
+  for(let k=0;k<D.portes;k++){const h=(20+rp()*12)*K;poser('porte',h*.8,h,25,90);}
   return {ob:ob,pyr:pyrs[0]||null,pyrs:pyrs,mo:mo};}
 /* L'OMBRE (grille de 44-60 m, le domaine fin + 1,4 km) : hS(p) = max(H, hS) relu 2 cases plus près du soleil − 2 cases × tan(hauteur), comme cyOmbre —
    les obélisques et la pyramide lèvent la hauteur (ils ombrent le sable) */
@@ -17623,6 +17635,7 @@ function dnOmbre(elDeg,azDeg,pv){const F=DN.F,TS=PAL.b('dnOmbre',44),M9=1400,x0=
     for(let jz=j0;jz<=j1;jz++)for(let jx=i0;jx<=i1;jx++){const dx=x0+jx*TS-x,dz=z0+jz*TS-z;if(dx*dx+dz*dz<=rr*rr){const o=jz*nx+jx;if(y>H[o])H[o]=y;}}};
   for(const b of pv.ob)lever(b.x,b.z,Math.max(TS*.6,b.r),b.y+b.h);
   for(const m of pv.mo||[])lever(m.x,m.z,Math.max(TS*.6,m.r*.7),m.y+m.h); // (2026-10-20) les grands monuments du tirage
+  for(const m of pv.sv||[])lever(m.x,m.z,Math.max(TS*.6,m.r*.8),dnHauteur(m.x,m.z)+m.h); // (2026-10-22) les scènes (colonnade, allée des sphinx, colosses, porte) : leurs volumes ombrent le sable (dunes-4.js)
   for(const P of pv.pyrs||(pv.pyr?[pv.pyr]:[])){const ca=Math.cos(P.a),sa=Math.sin(P.a),R9=P.hw*1.45,i0=Math.max(0,Math.floor((P.x-R9-x0)/TS)),i1=Math.min(nx-1,Math.ceil((P.x+R9-x0)/TS)),j0=Math.max(0,Math.floor((P.z-R9-z0)/TS)),j1=Math.min(nz-1,Math.ceil((P.z+R9-z0)/TS));
     for(let jz=j0;jz<=j1;jz++)for(let jx=i0;jx<=i1;jx++){const dx=x0+jx*TS-P.x,dz=z0+jz*TS-P.z,u=Math.abs(dx*ca-dz*sa),w=Math.abs(dx*sa+dz*ca),e=Math.max(u,w)/P.hw; /* (le repère de la pyramide : l'inverse de sa rotation three autour de y) */
       if(e<1){const o=jz*nx+jx,y=P.y+P.h*(1-e);if(y>H[o])H[o]=y;}}}
@@ -17636,7 +17649,7 @@ function dnOmbre(elDeg,azDeg,pv){const F=DN.F,TS=PAL.b('dnOmbre',44),M9=1400,x0=
 /* LE MONDE (ici ou dans le travailleur) : n'utilise que CY.nz, ses arguments et les fonctions recopiées — rend tout ce que la pose et la collision lisent */
 function dnMondeCalc(S,opt){
   const K=opt.K,NS=S.n,x0=S.bb[0],x1=S.bb[1],z0=S.bb[2],z1=S.bb[3],RE=S.RE,ms={},r=mulberry32((opt.seed^0x51ED7A)>>>0),RH=opt.RH,TH=opt.TH;
-  DN.vent=opt.vent;DN.lam=opt.lam;DN.oa=opt.oa;
+  DN.vent=opt.vent;DN.lam=opt.lam;DN.oa=opt.oa;DN.fin=opt.fin;DN.sb=opt.sb;
   // ---- 4. LE FOND (grille de 64 m, jusqu'à 7 km) : le plus proche échantillon de la route (propagé), le fond B, l'amplitude A, la cuvette, puis adouci ----
   const t1=performance.now(),TZ=PAL.b('dnPlat',64),MZ=7000;
   const Z={ts:TZ,x0:x0-MZ,z0:z0-MZ},znx=Math.ceil((x1-x0+2*MZ)/TZ)+1,znz=Math.ceil((z1-z0+2*MZ)/TZ)+1;Z.nx=znx;Z.nz=znz;
@@ -17679,7 +17692,7 @@ function dnMondeCalc(S,opt){
   F.c=fc;DN.F=F;ms.fin=Math.round(performance.now()-t2);ms.texels=nc;
   const pv=dnPrevoir(S,opt.sQ,K,RH,r,opt.deco);DN.ob=pv.ob;DN.pyr=pv.pyr;
   // ---- 6. L'OMBRE : balayée une fois dans le sens du soleil de l'heure ----
-  const t3=performance.now();dnOmbre(opt.sun[0],opt.sun[1],pv);ms.ombre=Math.round(performance.now()-t3);
+  pv.sv=opt.vol||[];const t3=performance.now();dnOmbre(opt.sun[0],opt.sun[1],pv);ms.ombre=Math.round(performance.now()-t3);
   let yMax=-1e9,yMin=1e9;for(let o=0;o<znx*znz;o++){const b=zdat[o*4],a=zdat[o*4+2];if(b+a>yMax)yMax=b+a;if(b-a*.4<yMin)yMin=b-a*.4;}
   if(pv.pyr)yMax=Math.max(yMax,pv.pyr.y+pv.pyr.h);for(const b of pv.ob)yMax=Math.max(yMax,b.y+b.h);
   for(const b of pv.pyrs||[])yMax=Math.max(yMax,b.y+b.h);for(const b of pv.mo||[])yMax=Math.max(yMax,b.y+b.h);
@@ -17711,7 +17724,7 @@ function buildDunes(seed){
   cyBruits();dnTerrain();
   // ---- 1. LES ÉCHANTILLONS : la route tous les 8 m ----
   const DS=8,NS=Math.max(3,Math.floor(L/DS)+1),st9=L/(NP-1),A9=n=>new Float32Array(n);
-  const S={n:NS,ds:DS,x:A9(NS),z:A9(NS),y:A9(NS),tx:A9(NS),tz:A9(NS),H:A9(NS),A:A9(NS),D:A9(NS),zC:A9(NS),pan:A9(NS),ob:A9(NS),gd:A9(NS),B:A9(NS),Yf:A9(NS),RE:A9(NS)};
+  const S={n:NS,ds:DS,x:A9(NS),z:A9(NS),y:A9(NS),tx:A9(NS),tz:A9(NS),H:A9(NS),A:A9(NS),D:A9(NS),zC:A9(NS),pan:A9(NS),ob:A9(NS),gd:A9(NS),B:A9(NS),Yf:A9(NS),RE:A9(NS),pw:A9(NS)};
   let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;
   for(let i=0;i<NS;i++){const s9=Math.min(L,i*DS),f=s9/st9,k=Math.min(NP-2,Math.floor(f)),u=f-k,a=pts[k],b=pts[k+1];
     S.x[i]=a.x+(b.x-a.x)*u;S.y[i]=a.y+(b.y-a.y)*u;S.z[i]=a.z+(b.z-a.z)*u;const tx=b.x-a.x,tz=b.z-a.z,tl=Math.hypot(tx,tz)||1;S.tx[i]=tx/tl;S.tz[i]=tz/tl;
@@ -17761,16 +17774,17 @@ function buildDunes(seed){
      d'en face (60 m au plus) : la caisse s'y pose, à n'importe quelle vitesse (voir dnLevre) */
   DN.lev=[];TV.forEach(function(t,j){const sN=j+1<TV.length?TV[j+1].s0:L,seg=Math.max(30,sN-t.s1);DN.lev.push({s:t.s0,e:t.s1,aim:(t.s1-t.s0)+Math.min(60,seg*.3),seg:Math.round(seg),tag:(gp[j]&&gp[j].tag)||'saut'});});
   DN.S=S;DN.ms={ech:Math.round(performance.now()-t0)};
+  dnPlanScenes(S,K,RH,D9);for(let i=0;i<NS;i++)if(S.pw[i]>0)S.RE[i]=Math.min(900*K,S.RE[i]+S.pw[i]+120); // (2026-10-22) les scènes : leurs plateaux entrent dans le profil de la route (dunes-4.js)
   const bio9=BIOMES[(LVL.cur.bio&&LVL.cur.bio[0])||'dunesSoir']||BIOMES.dunesSoir,cA=bio9.cyA||[6,-110,0,0];
-  const opt={K:K,seed:seed,RH:RH,TH:TH,sQ:sQ,sun:[cA[0],cA[1]],vent:DN.vent,lam:DN.lam,oa:oa,Af:150*K,deco:D9,pal:{dnPlat:PAL.b('dnPlat',64),dnFin:PAL.b('dnFin',12),dnOmbre:PAL.b('dnOmbre',44)}};
-  DN.oa=oa;DN.t0=t0;
+  const opt={K:K,seed:seed,RH:RH,TH:TH,sQ:sQ,sun:[cA[0],cA[1]],vent:DN.vent,lam:DN.lam,oa:oa,fin:{x:S.x[NS-1],z:S.z[NS-1]},sb:!DN_BUTTES,vol:DN.scnV||[],Af:150*K,deco:D9,pal:{dnPlat:PAL.b('dnPlat',64),dnFin:PAL.b('dnFin',12),dnOmbre:PAL.b('dnOmbre',44)}};
+  DN.oa=oa;DN.fin=opt.fin;DN.sb=opt.sb;DN.t0=t0;
   const W=started&&!/[?&]dnw=0\b/.test(location.search)?dnTravailleur():null;
   if(W){const job=DN.job;DN.attente={job:job,S:S,opt:opt};try{W.postMessage({job:job,S:S,opt:opt,nz:CY.nz});return;}catch(e){console.warn('dunes : travailleur',e);DN.attente=null;}}
   dnMondePose(dnMondeCalc(S,opt));
 }
 /* le travailleur : les fonctions du MONDE recopiées par leur source (une seule écriture : elles servent aussi ici, à la collision) */
 function dnTravailleur(){if(DN.w!==undefined)return DN.w;
-  try{const fns=[mulberry32,cyNz,cyBil,dnDune,dnHauteur,dnProfil,dnPyr3,dnPrevoir,dnPrevoirDeco,dnOmbre,dnMondeCalc].map(function(f){return f.toString();}).join('\n');
+  try{const fns=[mulberry32,cyNz,cyBil,dnDune,dnMesa,dnHauteur,dnProfil,dnPyr3,dnPrevoir,dnPrevoirDeco,dnOmbre,dnMondeCalc].map(function(f){return f.toString();}).join('\n');
     const code="'use strict';var CY={},DN={},DN_O9={},PAL={B:{},b:function(k,d){return PAL.B[k]!=null?PAL.B[k]:d;}};\n"+fns+
       "\nonmessage=function(e){var m=e.data;CY={nz:m.nz};DN={};PAL.B=m.opt.pal;var R=dnMondeCalc(m.S,m.opt);R.job=m.job;"+
       "postMessage(R,[R.Z.d.buffer,R.F.c.buffer,R.O.h.buffer]);};";
@@ -17792,23 +17806,26 @@ function dnMondePose(R){
   U.uFD.value.set(F.x0-F.ts*.5,F.z0-F.ts*.5,1/(F.nx*F.ts),1/(F.nz*F.ts));U.uFN.value.set(F.nx,F.nz);
   U.uZD.value.set(Z.x0-Z.ts*.5,Z.z0-Z.ts*.5,1/(Z.nx*Z.ts),1/(Z.nz*Z.ts));U.uZN.value.set(Z.nx,Z.nz);
   U.uSD.value.set(O.x0-O.ts*.5,O.z0-O.ts*.5,1/(O.nx*O.ts),1/(O.nz*O.ts));U.uSN.value.set(O.nx,O.nz);
-  U.uW.value.fromArray(DN.vent);U.uLam.value=DN.lam;const oa=DN.oa;if(oa)U.uOA.value.set(oa.x,oa.z,oa.r,oa.y);else U.uOA.value.set(0,0,0,0);
+  U.uW.value.fromArray(DN.vent);U.uLam.value=DN.lam;if(DN.fin)U.uFin.value.set(DN.fin.x,DN.fin.z,0,DN.sb?1:0);const oa=DN.oa;if(oa)U.uOA.value.set(oa.x,oa.z,oa.r,oa.y);else U.uOA.value.set(0,0,0,0);
   DN.on=true;DN.mesh.visible=true;
   try{dnMonuments(DN.job);}catch(e){console.warn('dunes : décors',e);}
   DN.ms.pose=Math.round(performance.now()-t4);DN.ms.total=Math.round(performance.now()-(DN.t0||t4));
 }
 /* ---- LE SABLE À LA PUCE : la grille (G × G cases), ses instances (x0, z0, taille, niveau), sa matière ---- */
 const DN_TB='vec4 tB(sampler2D t,vec2 p,vec2 N){vec2 q=p-.5,i=floor(q),f=q-i,a=(i+.5)/N,e=1./N;return mix(mix(texture2D(t,a),texture2D(t,a+vec2(e.x,0.)),f.x),mix(texture2D(t,a+vec2(0.,e.y)),texture2D(t,a+e),f.x),f.y);}';
-const DN_VS=['attribute vec4 aN;uniform sampler2D uTC,uTZ,uTS,uNZ;uniform vec4 uFD,uZD,uSD,uOA,uW;uniform vec2 uFN,uZN,uSN;uniform vec3 uCam;uniform float uG,uR0,uLam;',
+const DN_VS=['attribute vec4 aN;uniform sampler2D uTC,uTZ,uTS,uNZ;uniform vec4 uFD,uZD,uSD,uOA,uW,uFin;uniform vec2 uFN,uZN,uSN;uniform vec3 uCam;uniform float uG,uR0,uLam;',
   'varying vec3 vW,vN;varying vec4 vA,vB;','#include <fog_pars_vertex>',DN_TB,
-  'float gU,gP,gV;',
+  'float gU,gP,gV,gM;',
   'float dnDune(vec2 x){vec2 W=uW.xy;float u=dot(x,W)/uLam,v=dot(x,vec2(-W.y,W.x)),w1=texture2D(uNZ,x/30000.).r-.5,w2=texture2D(uNZ,x/11000.+vec2(.37,.61)).r-.5,w3=texture2D(uNZ,x/5200.+vec2(.83,.17)).r-.5;',
   '  float a=u+1.4*w1+1.05*w2+.34*w3,f=fract(a);',
   '  float p=f<.72?pow(max(f/.72,1e-5),1.5):pow(max((1.-f)/.28,1e-5),1.15),m=.30+.70*clamp((texture2D(uNZ,vec2(v/9000.+.13,a*.13+.5)).r-.22)*1.9,0.,1.);',
   '  float a2=dot(x,uW.zw)/(uLam*.40)+1.6*w2+.5*w3,f2=fract(a2);',
   '  float p2=f2<.68?pow(max(f2/.68,1e-5),1.4):pow(max((1.-f2)/.32,1e-5),1.1);',
   '  gU=p*m;return p*m+.08*p2*(1.-.75*p);}',
-  'vec4 dnHt(vec2 x){vec4 Z=tB(uTZ,(x-uZD.xy)*uZD.zw*uZN,uZN);float h=Z.r+Z.b*(dnDune(x)-.35)*(1.-.85*Z.a);gP=Z.a;gV=0.;',
+  /* LES BUTTES : la même fonction que dnMesa (dunes-1.js) — un seuil du bruit (canal g), le haut par un autre (canal b), rien près de la route (Z.g = la distance à la route) */
+  'float dnMesa(vec2 x,float dr){if(uFin.w>.5)return 0.;float n=texture2D(uNZ,x/6000.+vec2(.21,.73)).g,e=clamp((n-.60)/.012,0.,1.),m0=e*e*(3.-2.*e);if(m0<=0.)return 0.;',
+  '  float t=texture2D(uNZ,x/1700.+vec2(.5,.1)).b,f=clamp((dr-260.)/260.,0.,1.),q=clamp((length(x-uFin.xy)-1800.)/1200.,0.,1.);return m0*f*f*(3.-2.*f)*q*q*(3.-2.*q)*(70.+110.*t);}',
+  'vec4 dnHt(vec2 x){vec4 Z=tB(uTZ,(x-uZD.xy)*uZD.zw*uZN,uZN);float me=dnMesa(x,Z.g),mk=clamp(me/20.,0.,1.);float h=Z.r+Z.b*(dnDune(x)-.35)*(1.-.85*Z.a)*(1.-.92*mk)+me;gP=Z.a;gM=mk;gV=0.;',
   '  vec2 fp=(x-uFD.xy)*uFD.zw;if(fp.x>0.&&fp.y>0.&&fp.x<1.&&fp.y<1.){vec4 C=tB(uTC,fp*uFN,uFN);h=min(max(h,C.g),C.r);}',
   '  float w=0.,dep=0.;if(uOA.z>0.){float rr=length(x-uOA.xy)/uOA.z;if(rr<2.4){float o=rr<1.?uOA.w-12.*(1.-rr*rr):uOA.w+(rr-1.)*uOA.z*.2;h=min(h,o);',
   '    gV=smoothstep(.95,1.06,rr)*(1.-smoothstep(1.30,1.62,rr));if(h<uOA.w-.05){dep=uOA.w-h;h=uOA.w;w=1.;}}}',
@@ -17816,26 +17833,48 @@ const DN_VS=['attribute vec4 aN;uniform sampler2D uTC,uTZ,uTS,uNZ;uniform vec4 u
   'void main(){float S=aN.z;vec2 gp=position.xz,p0=aN.xy+gp*(S/uG);',
   '  float mE=uR0*exp2(aN.w),mS=mE*.72,k=clamp((length(p0-uCam.xz)-mS)/(mE-mS),0.,1.);',
   '  vec2 x=aN.xy+(gp-fract(gp*.5)*2.*k)*(S/uG);',
-  '  vec4 A=dnHt(x);float pu=gU,pa=gP,vg=gV,e=S/uG*(1.+k)*2.2;',
+  '  vec4 A=dnHt(x);float pu=gU,pa=gP,pm=gM,vg=gV,e=S/uG*(1.+k)*2.2;',
   '  float hx=dnHt(x+vec2(e,0.)).x,hz=dnHt(x+vec2(0.,e)).x;vN=normalize(vec3(A.x-hx,e,A.x-hz));vW=vec3(x.x,A.x,x.y);',
   '  float lit=1.;vec2 sp=(x-uSD.xy)*uSD.zw;if(sp.x>0.&&sp.y>0.&&sp.x<1.&&sp.y<1.){float hs=tB(uTS,sp*uSN,uSN).r;lit=smoothstep(hs-3.,hs+8.,A.x);}',
-  '  vA=vec4(A.y,A.z,pu,lit);vB=vec4(pa,0.,0.,vg);',
+  '  vA=vec4(A.y,A.z,pu,lit);vB=vec4(pa,pm,0.,vg);',
   '  vec4 mvPosition=viewMatrix*vec4(vW,1.);gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
-const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uSaA,uSaB,uSaL,uShd,uClay,uVeg,uHaze,uSkH,uSkZ,uWS,uWD,uPhP,uPhD,uPhC;uniform vec4 uQ,uK,uW;uniform float uTime,uFlash;',
+const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uSaA,uSaB,uSaL,uShd,uClay,uVeg,uHaze,uSkH,uSkZ,uWS,uWD,uPhP,uPhD,uPhC;uniform vec4 uQ,uK,uW,uMo;uniform float uTime,uFlash;',
   'varying vec3 vW,vN;varying vec4 vA,vB;','#include <fog_pars_fragment>',
+  'float dh2(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}',
   'void main(){vec3 N=normalize(vN),Vv=uCam-vW;float dist=length(Vv);vec3 V=Vv/max(dist,.001);',
   '  float wat=vA.x,dep=vA.y,du=clamp(vA.z,0.,1.),lit=clamp(vA.w,0.,1.),pan=clamp(vB.x,0.,1.),veg=clamp(vB.w,0.,1.)*(1.-wat);',
   '  vec4 n0=texture2D(uNZ,vW.xz/1900.),n1=texture2D(uNZ,vW.xz/260.),n2=texture2D(uNZ,vW.xz/37.);',
+  /* LA MOSAÏQUE (le sable en MINI-CUBES — la touche de la forêt et de jade) : la case du pixel suit la distance (uMo.y de case par mètre, au moins uMo.x de près), deux
+     niveaux voisins (×2) fondus l'un dans l'autre ; chaque case a sa nuance, sa facette et son joint ; elle s'efface quand elle tombe sous ~2 px (fwidth) */
+  '  float stp0=clamp(1.-N.y,0.,1.),rA=.5,rB=.5,jt=0.,kf=0.;',
+  '  if(uMo.z>.001){vec2 uvm=stp0>.30?(abs(N.x)>abs(N.z)?vec2(vW.z,vW.y):vec2(vW.x,vW.y)):vW.xz;', // (sur un flanc raide la case se lit dans le plan du mur · branche UNIFORME : à force 0 (vieux téléphones) rien de tout cela ne coûte)
+  '    float Lg=log2(max(dist*uMo.y,uMo.x)/uMo.x),l0=floor(Lg),wl=Lg-l0,cs0=uMo.x*exp2(l0);vec2 q0=uvm/cs0,q1=q0*.5;float fw0=length(fwidth(q0));',
+  '    kf=(1.-smoothstep(.22,.70,fw0*mix(1.,.5,wl)))*uMo.z*(1.-smoothstep(4000.,7000.,dist))*(1.-wat);',
+  '    vec2 ic0=floor(q0),ic1=floor(q1),fr0=fract(q0),fr1=fract(q1);',
+  '    rA=mix(dh2(ic0+l0*7.31),dh2(ic1+l0*7.31+31.7),wl);rB=mix(dh2(ic0+19.1+l0*3.7),dh2(ic1+53.3+l0*3.7),wl);',
+  '    vec2 ed0=min(fr0,1.-fr0),ed1=min(fr1,1.-fr1);jt=mix(1.-smoothstep(0.,.07,min(ed0.x,ed0.y)),1.-smoothstep(0.,.07,min(ed1.x,ed1.y)),wl);}',
   /* LES RIDES DU VENT : la normale ondule en travers du vent (aucune géométrie), de près, sur le sable seulement */
-  '  if(dist<70.&&wat<.5){float kr=(1.-smoothstep(25.,70.,dist))*(1.-.85*pan)*(1.-veg)*uK.y;float ph=dot(vW.xz,uW.xy)*3.1+4.*n2.r+1.6*texture2D(uNZ,vW.xz/9.).g;',
+  '  if(dist<70.&&wat<.5){float kr=(1.-smoothstep(25.,70.,dist))*(1.-.85*pan)*(1.-veg)*(1.-smoothstep(.20,.40,stp0))*uK.y;float ph=dot(vW.xz,uW.xy)*3.1+4.*n2.r+1.6*texture2D(uNZ,vW.xz/9.).g;',
   '    N=normalize(N-vec3(uW.x,0.,uW.y)*cos(ph)*.12*kr);}', /* (de près seulement : au-delà de 70 m, la ride de 2 m crénelait en damier — MESURÉ à la photo) */
+  /* LA HOULE MOYENNE : des rides de ~11 m, larges, qui tiennent jusqu'à ~1 km — le sable ne devient plus du papier à 100 m */
+  '  if(wat<.5&&uMo.z>.001){float k2=smoothstep(55.,150.,dist)*(1.-smoothstep(500.,1500.,dist))*(1.-.85*pan)*(1.-veg)*(1.-smoothstep(.20,.40,stp0))*uK.y;float p2=dot(vW.xz,uW.xy)*.57+3.*n1.r+1.5*n2.g;N=normalize(N-vec3(uW.x,0.,uW.y)*cos(p2)*.075*k2);}',
   '  float stp=clamp(1.-N.y,0.,1.);',
-  '  vec3 sa=mix(uSaA,uSaB,clamp(.5+(n0.r-.5)*1.5+(n1.g-.5)*.6,0.,1.))*(.96+.08*n2.b);',
+  '  N=normalize(N+vec3(rA-.5,0.,rB-.5)*.20*kf);', // la FACETTE de la case : chaque cube sa pente
+  '  float kT=kf*(1.-.9*smoothstep(40.,260.,dist));float tn=clamp(.5+(n0.r-.5)*1.7+(n1.g-.5)*.8+(rA-.5)*.55*kT,0.,1.);vec3 sa=mix(uSaA,uSaB,tn)*(.96+.08*n2.b)*(1.+(rB-.5)*.16*kT);',
   '  sa=mix(sa,uSaL,smoothstep(.80,1.,du)*.40);', // la crête, plus claire
-  '  float cr=texture2D(uNZ,vW.xz/14.).r,cl=pan*smoothstep(.16,.05,stp);vec3 clay=uClay*(.90+.12*n2.g)*(1.-.30*smoothstep(.465,.5,cr)*smoothstep(.535,.5,cr));', // l'argile blanche et ses craquelures
-  '  vec3 col=mix(sa,clay,cl);col=mix(col,uVeg*(.80+.35*n2.g),veg);',
-  '  float ndl=dot(N,uSunD),wr=clamp((ndl+uK.z)/(1.+uK.z),0.,1.);',
-  '  vec3 Lc=uSunC*wr*lit+mix(uGnd,uSky,N.y*.5+.5)*1.15+uFillC*max(dot(N,uFillD),0.)*.5+uSunC*.10*(1.-lit)*(.6+.4*N.y);', /* + le REBOND : le sable à l'ombre reçoit la lumière des dunes au soleil (jamais de creux noir) */
+  '  float cr=texture2D(uNZ,vW.xz/14.).r,cl=pan*smoothstep(.16,.05,stp);vec3 clay=uClay*(.90+.12*n2.g)*(1.-.30*smoothstep(.465,.5,cr)*smoothstep(.535,.5,cr))*(1.+(rB-.5)*.14*kf);', // l'argile blanche et ses craquelures
+  '  vec3 col=mix(sa,clay,cl);col=mix(col,uVeg*(.80+.35*n2.g)*(1.+(rB-.5)*.2*kf),veg);',
+  /* LA ROCHE (2026-10-22) : les flancs raides — des buttes de grès — se couvrent de STRATES (des lits de ~20 m, du terracotta sombre à la crème, ondulés par le bruit, un joint sombre entre deux lits)
+     et de blocs (la même mosaïque) ; sur le plateau, le sable reste */
+  '  float rk=clamp(vB.y,0.,1.)*smoothstep(.08,.24,stp);', // (la roche : les BUTTES seulement — les parois de sable sous les sauts restent du sable, sans cannelures)
+  '  if(rk>.01){float yy=vW.y*.07+.9*n1.r+.35*n2.g,id=floor(yy),fb=fract(yy),h1=dh2(vec2(id,3.7)),h2=dh2(vec2(id,9.1));',
+  '    vec3 rc=mix(uSaB*.74,uSaL*.98,h1*h1)*(.82+.36*h2)*(1.-.22*(1.-smoothstep(0.,.07,fb)));',
+  '    float ve=texture2D(uNZ,vec2(dot(vW.xz,vec2(.7071,.7071))/11.,vW.y/70.)).g;rc*=.84+.32*ve;', // les cannelures verticales de l'érosion
+  '    col=mix(col,rc*(1.+(rB-.5)*.30*kf*(1.-smoothstep(60.,300.,dist))),rk);}',
+  '  col*=1.-jt*.15*kf;', // le JOINT de la case
+  '  vec3 Ls=normalize(vec3(uSunD.x,min(uSunD.y,uK.w),uSunD.z));float ndl=dot(N,Ls),wr=clamp((ndl+uK.z)/(1.+uK.z),0.,1.);', // (uK.w : le soleil de midi est abaissé pour le RELIEF — la lumière de forme ; l'ombre, elle, reste celle du vrai soleil)
+  '  float ao=mix(.80,1.,smoothstep(0.,.45,du));', // le creux d'une dune reçoit moins de ciel
+  '  vec3 Lc=uSunC*wr*lit+mix(uGnd,uSky,N.y*.5+.5)*1.15*ao+uFillC*max(dot(N,uFillD),0.)*.5+uSunC*(.10+.16*rk)*(1.-lit)*(.6+.4*N.y)+uGnd*.28*rk;', /* + le REBOND : le sable à l'ombre reçoit la lumière des dunes au soleil (jamais de creux noir) */
   '  vec3 c=col*Lc;',
   '  c=mix(c,c*uShd,(1.-lit*clamp(ndl*2.5+.2,0.,1.))*.45);', // l'ombre du sable tire au VIOLET (la bible)
   '  float fr=pow(1.-max(dot(N,V),0.),4.);c+=(uSky*.22+uSunC*.16*max(ndl,0.)*lit)*fr*uK.x*(1.-wat);', // le SATIN du sable au rasant
@@ -17867,7 +17906,7 @@ function dnTerrain(){ if(DN.mesh)return;
     uOA:{value:new THREE.Vector4(0,0,0,0)},uW:{value:new THREE.Vector4(1,0,1,0)},uLam:{value:560},
     uCam:{value:new THREE.Vector3()},uG:{value:G},uR0:{value:DN.R0},uTime:{value:0},uFlash:{value:0},uSunD:{value:SUN_DIR},
     uSunC:C3(),uSky:C3(),uGnd:C3(),uFillC:C3(),uFillD:{value:new THREE.Vector3(0,-1,0)},uSaA:C3(),uSaB:C3(),uSaL:C3(),uShd:C3(),uClay:C3(),uVeg:C3(),uHaze:C3(),uSkH:C3(),uSkZ:C3(),uWS:C3(),uWD:C3(),
-    uQ:{value:new THREE.Vector4()},uK:{value:new THREE.Vector4(.5,1,.25,1)},uPhP:{value:new THREE.Vector3()},uPhD:{value:new THREE.Vector3(0,0,1)},uPhC:{value:new THREE.Color(0,0,0)}});
+    uQ:{value:new THREE.Vector4()},uFin:{value:new THREE.Vector4(0,0,0,0)},uK:{value:new THREE.Vector4(.5,1,.25,1)},uMo:{value:new THREE.Vector4(.8,.010,1,0)},uPhP:{value:new THREE.Vector3()},uPhD:{value:new THREE.Vector3(0,0,1)},uPhC:{value:new THREE.Color(0,0,0)}});
   DN.mat=new THREE.ShaderMaterial({uniforms:U,vertexShader:DN_VS,fragmentShader:DN_FS,fog:true});DN.mat.dispose=function(){};
   const m=new THREE.Mesh(g,DN.mat);m.frustumCulled=false;m.matrixAutoUpdate=false;m.visible=false;m.name='dunes';m.renderOrder=-1;scene.add(m);DN.mesh=m;
   const gr=new THREE.Group();gr.matrixAutoUpdate=false;gr.visible=false;scene.add(gr);DN.grp=gr;
@@ -17902,7 +17941,7 @@ function dunesTick(dt){
     const f=(u,k9)=>{const a=c[k9];if(a)u.value.fromArray(a);};
     f(U.uSaA,'dnA');f(U.uSaB,'dnB');f(U.uSaL,'dnL');f(U.uShd,'dnS');f(U.uClay,'dnC');f(U.uVeg,'dnV');f(U.uHaze,'dnH');f(U.uWS,'dnW');f(U.uWD,'dnX');f(U.uSkH,'cyH');f(U.uSkZ,'cyZ');
     const D9=DN.deco,T9=D9&&DN_SAB[D9.sable];if(T9){dnTeinte(U.uSaA.value,T9);dnTeinte(U.uSaB.value,T9);dnTeinte(U.uSaL.value,T9);} // (2026-10-20) LA COULEUR DU SABLE tirée (relue chaque image : rien ne s'accumule)
-    const Q9=c.dnQ||[0,0,0,0],K9=c.dnK||[.5,1,.25,1];U.uQ.value.set(Q9[0],Q9[1],Q9[2],Q9[3]);U.uK.value.set(K9[0],K9[1]*(D9?D9.vent.rides:1),K9[2],K9[3]);
+    const Q9=c.dnQ||[0,0,0,0],K9=c.dnK||[.5,1,.25,1];U.uQ.value.set(Q9[0],Q9[1],Q9[2],Q9[3]);U.uK.value.set(K9[0],K9[1]*(D9?D9.vent.rides:1),K9[2],K9[3]);{const M9=c.dnM||[.8,.010,1,0];U.uMo.value.set(M9[0],M9[1],QUAL_LOW||!DN_MOSA?0:M9[2]*PAL.b('dnMo',1),M9[3]);} /* (2026-10-22, Léo : « le niveau dune n'est pas au niveau — regarde jade, la grotte, la forêt ») LA MOSAÏQUE du sable : [case de près (m), case par mètre de distance, force, —] */
     U.uFlash.value=CAMP_FLASH||0;skyU.uCyF.value=U.uFlash.value;
     {const nu=(LVL.nuit||0)*(mode==='boom'?0:1),sh=c.sunI<.9?1-c.sunI/.9:0,k9=Math.max(nu,sh*.6)*2.4;U.uPhC.value.copy(headSpot.color).multiplyScalar(k9); // les phares, la nuit et dans la tempête
      if(k9>.001){U.uPhP.value.copy(carGroup.position);U.uPhP.value.y+=1.2;U.uPhD.value.set(0,0,1).applyQuaternion(carGroup.quaternion);U.uPhD.value.y-=.08;U.uPhD.value.normalize();}}}
@@ -17911,7 +17950,7 @@ function dunesTick(dt){
     if(px>0&&pz>0&&px<O.nx&&pz<O.nz){const hs=cyBil(O.h,O.nx,O.nz,1,0,px,pz);ombre=Math.max(0,Math.min(1,(p.y-hs+3)/12));}}
   DN.ombre+=(ombre-DN.ombre)*Math.min(1,dt*5);dnPartTick(dt,c);
   if(k>.001||DN.ecrit){const e=DN.on?k:0;sun.intensity=c.sunI*(1-.62*(1-DN.ombre)*e);DN.ecrit=e>.001;}
-  dnCaravane(dt);dnTornades(dt);}
+  dnCaravane(dt);dnTornades(dt);dnVautours(dt);}
 /* LES LÈVRES (2026-10-20, Sacha : « refonte totale de la map Dune » — v4 : LE SURF). Une lèvre = le bout d'un segment de route : au-delà, plus de dalle (voir TROUS).
    Au sol la caisse reste COLLÉE au ruban : franchie en roulant (la route finit, la caisse ne peut que s'envoler), la lèvre lance la caisse JUSTE ce qu'il faut pour retomber
    sur le segment d'en face (DN.lev[k].aim : la distance visée depuis la lèvre), à n'importe quelle vitesse — t = aim / la vitesse (entre 0,6 et 2,6 s), la montée =
@@ -17942,15 +17981,28 @@ function dnMonuHeurt(p){
   for(const m of DN.mo){const dx=p.x-m.x,dz=p.z-m.z;if(dx*dx+dz*dz<(m.r+1.2)*(m.r+1.2)&&p.y>m.y-2&&p.y<m.y+m.h+1)return 'roche';} // les grands monuments (sphinx, colosses, temple, portes)
   return '';}
 /* ---- LES DÉCORS (low-poly à facettes : une face, une normale) — la même lumière que le sable et la même ombre (DN_MVS lit la grille de l'ombre) ---- */
-const DN_MVS=['uniform sampler2D uTS;uniform vec4 uSD;uniform vec2 uSN;varying vec3 vW,vN,vCol;varying float vLit;','#include <fog_pars_vertex>',DN_TB,
+const DN_MVS=['attribute float aK;uniform sampler2D uTS;uniform vec4 uSD;uniform vec2 uSN;varying vec3 vW,vN,vCol;varying float vLit,vK;','#include <fog_pars_vertex>',DN_TB,
   'void main(){','#ifdef USE_INSTANCING','  mat4 mw=modelMatrix*instanceMatrix;','#else','  mat4 mw=modelMatrix;','#endif',
   '  vec4 wp=mw*vec4(position,1.);vW=wp.xyz;vN=normalize(mat3(mw)*normal);',
   '#ifdef USE_COLOR','  vCol=color;','#else','  vCol=vec3(1.);','#endif',
-  '  float lit=1.;vec2 sp=(wp.xz-uSD.xy)*uSD.zw;if(sp.x>0.&&sp.y>0.&&sp.x<1.&&sp.y<1.){float hs=tB(uTS,sp*uSN,uSN).r;lit=smoothstep(hs-3.,hs+8.,wp.y);}vLit=lit;',
+  '  vK=aK;float lit=1.;vec2 sp=(wp.xz-uSD.xy)*uSD.zw;if(sp.x>0.&&sp.y>0.&&sp.x<1.&&sp.y<1.){float hs=tB(uTS,sp*uSN,uSN).r;lit=smoothstep(hs-3.,hs+8.,wp.y);}vLit=lit;',
   '  vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
-const DN_AFS=['uniform vec3 uSunD,uSunC,uSky,uGnd,uShd,uFillC,uFillD;uniform float uFlash;varying vec3 vW,vN,vCol;varying float vLit;','#include <fog_pars_fragment>',
-  'void main(){vec3 N=normalize(vN);if(!gl_FrontFacing)N=-N;float ndl=max(dot(N,uSunD),0.);vec3 c=vCol*vCol;c=max(mix(vec3(dot(c,vec3(.3,.55,.15))),c,1.25),0.);',
-  '  vec3 L=uSunC*ndl*vLit+mix(uGnd,uSky,N.y*.5+.5)+uFillC*max(dot(N,uFillD),0.)*.5;vec3 o=c*L;o=mix(o,o*uShd,(1.-vLit*min(1.,ndl*3.))*.45);',
+/* (2026-10-22, Léo : « le niveau dune n'est pas au niveau ») LA MATIÈRE DES DÉCORS, REFAITE — par SOMMET (aK) : 0 peint (feuillage, toile, bois : lisse) · 1 ASSISES de pierre (rangées, joints décalés, la taille suit
+   la distance : jamais plus fine que ~6 px) · 2 ROCHE (assises + lits) · 3 OR (brille) · 4 pierre GRAVÉE (assises + des glyphes, de près) ; chaque bloc sa nuance et sa facette, son joint un peu sombre ; elles s'effacent sous ~2 px */
+const DN_AFS=['uniform vec3 uSunD,uSunC,uSky,uGnd,uShd,uFillC,uFillD;uniform float uFlash;uniform vec4 uMo;uniform sampler2D uNZ;varying vec3 vW,vN,vCol;varying float vLit,vK;','#include <fog_pars_fragment>',
+  'float dh3(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}',
+  'vec4 blk(vec2 uv,float ch,float sd){float row=floor(uv.y/ch),off=mod(row,2.)*.5;vec2 q=vec2(uv.x/(2.*ch)+off,uv.y/ch),ic=floor(q),fr=fract(q),e=min(fr,1.-fr);',
+  '  float r=dh3(vec3(ic,sd)),r2=dh3(vec3(ic+7.7,sd+3.1)),j=1.-smoothstep(0.,.07,min(e.x*2.,e.y));vec2 g=(fr-.5)*vec2(1.6,1.);',
+  '  float gl=step(abs(g.x),.5)*step(abs(g.y),.36)*step(.5,fract(g.y*3.4+r*6.))*step(.45,r2)*(1.-j);return vec4(r,j,r2,gl);}',
+  'void main(){vec3 N=normalize(vN);if(!gl_FrontFacing)N=-N;float dist=length(cameraPosition-vW);vec3 c=vCol*vCol;float kk=vK,isB=step(.5,kk)*step(kk,1.5)+step(3.5,kk)*step(kk,4.5),isR=step(1.5,kk)*step(kk,2.5),isG=step(2.5,kk)*step(kk,3.5),pierre=min(1.,isB+isR);c=max(mix(vec3(dot(c,vec3(.3,.55,.15))),c,mix(1.25,1.0,pierre)),0.);',
+  '  vec3 aN=abs(N);vec2 uv=aN.y>max(aN.x,aN.z)?vW.xz:(aN.x>aN.z?vW.zy:vW.xy);',
+  '  float Lg=log2(max(dist*.011,.75)/.75),l0=floor(Lg),wl=Lg-l0,ch=.75*exp2(l0),kf=(1.-smoothstep(.45,1.1,length(fwidth(uv))/ch))*uMo.z;',
+  '  if(isB+isR>.5&&uMo.z>.001){vec4 b=mix(blk(uv,ch,l0),blk(uv,ch*2.,l0+1.),wl);c*=(1.+(b.x-.5)*.42*kf)*(1.-b.y*(.20+.06*isB)*kf)*(1.+.10*pierre);N=normalize(N+(vec3(b.x,b.z,fract(b.x*7.31))-.5)*.22*kf);',
+  '    c*=1.-b.w*.34*step(3.5,kk)*kf*(1.-smoothstep(60.,170.,dist));}',
+  '  if(isR>.5){vec2 nq=vec2(dot(vW.xz,vec2(.7071,.7071))/9.,vW.y/60.);float nr=texture2D(uNZ,nq).g;c*=.80+.40*nr;}',
+  '  float ndl=max(dot(N,uSunD),0.);',
+  '  vec3 L=uSunC*ndl*vLit*mix(1.,.78,pierre)+mix(uGnd,uSky,N.y*.5+.5)+uGnd*.45*pierre*(1.-abs(N.y))+uFillC*max(dot(N,uFillD),0.)*.5;vec3 o=c*L;o=mix(o,o*uShd,(1.-vLit*min(1.,ndl*3.))*.45);',
+  '  if(isG>.5){vec3 V=normalize(cameraPosition-vW),R=reflect(-uSunD,N);o+=c*uSunC*pow(max(dot(R,V),0.),22.)*1.5*vLit+c*mix(uGnd,uSky,.6)*.3*pow(1.-max(dot(N,V),0.),2.);}',
   '#ifdef DN_OR','  {vec3 V=normalize(cameraPosition-vW),R=reflect(-uSunD,N);o+=c*uSunC*pow(max(dot(R,V),0.),24.)*1.8*vLit+c*mix(uGnd,uSky,.6)*.4*pow(1.-max(dot(N,V),0.),2.);}','#endif',
   '  o+=uFlash*c*.4;gl_FragColor=vec4(o,1.);','#include <fog_fragment>','}'].join('\n');
 function dnMats(){if(DN.mm)return DN.mm;const U=DN.mat.uniforms;
@@ -17962,7 +18014,7 @@ function dnGeo(){const P=[],C=[];
   // un tronc de prisme à n pans : du rayon r0 (hauteur y0, centre o0) au rayon r1 (y1, o1) — r1 = 0 : une pointe
   const prisme=(n,y0,y1,r0,r1,col,o0,o1,rot)=>{o0=o0||[0,0];o1=o1||o0;rot=rot||0;const p=(a,y,r,o)=>[o[0]+Math.cos(a)*r,y,o[1]+Math.sin(a)*r];
     for(let k=0;k<n;k++){const a1=rot+k/n*6.2832,a2=rot+(k+1)/n*6.2832;if(r1>0)quad(p(a1,y0,r0,o0),p(a1,y1,r1,o1),p(a2,y1,r1,o1),p(a2,y0,r0,o0),col);else tri(p(a1,y0,r0,o0),[o1[0],y1,o1[1]],p(a2,y0,r0,o0),col);}};
-  const fin=()=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.computeVertexNormals();return g;};
+  const fin=()=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.computeVertexNormals();g.setAttribute('aK',new THREE.Float32BufferAttribute(new Float32Array(P.length/3),1));return g;}; // (aK = 0 : peint)
   return {tri:tri,quad:quad,prisme:prisme,fin:fin};}
 function dnGeos(){if(DN.geos)return DN.geos;const G9={};
   {const g=dnGeo(),pi4=Math.PI/4,pierre=[.30,.44,.78],sombre=[1,.80,.34]; /* (MESURÉ à la photo : en grès, l'obélisque se perdait dans le sable — LAPIS-LAZULI cerclé d'or : le teal contre l'or de la DA) */g.prisme(4,0,.04,1.42,1.36,sombre,null,null,pi4);     // L'OBÉLISQUE (r = 1, h = 1) : le socle, le fût en trois tambours
@@ -18073,7 +18125,7 @@ function dnMonuments(seed){
    instance, M9.t) : un seul appel de dessin de plus, aucun programme neuf. Son hasard : `D.sd` (rien de `rnd`, rien du tracé). */
 function dnMonumentsTires(seed){
   const D=DN.deco,M9=dnMats(),G9=dnGeos(),G2=dnGeos2(),S=DN.S,K=Math.sqrt(lvPiste()),RH=ROAD_HALF,t0=performance.now(),rg=mulberry32((D.sd^0x7A55D)>>>0),o9={},N={};
-  const mt=new THREE.Matrix4(),q9=new THREE.Quaternion(),e9=new THREE.Euler(0,0,0,'YXZ'),v9=new THREE.Vector3(),s9=new THREE.Vector3(),ax=new THREE.Vector3(0,1,0),CU=decoCuiseur();DN.grp.visible=true;
+  const mt=new THREE.Matrix4(),q9=new THREE.Quaternion(),e9=new THREE.Euler(0,0,0,'YXZ'),v9=new THREE.Vector3(),s9=new THREE.Vector3(),ax=new THREE.Vector3(0,1,0),CU=dnCuiseur();DN.grp.visible=true;
   const cuis=(geo,x,y,z,sx,sy,sz,ry,tx,tz,te)=>{e9.set(tx||0,ry||0,tz||0);q9.setFromEuler(e9);mt.compose(v9.set(x,y,z),q9,s9.set(sx,sy,sz));CU.ajoute(geo,mt,te);};
   const inst=(geo,mat,L9,nom)=>{if(!L9.length)return null;const im=new THREE.InstancedMesh(geo,mat,L9.length);
     L9.forEach(function(a,k){q9.setFromAxisAngle(ax,a[4]);mt.compose(v9.set(a[0],a[1],a[2]),q9,s9.set(a[3],a[5]!=null?a[5]:a[3],a[6]!=null?a[6]:a[3]));im.setMatrixAt(k,mt);});
@@ -18084,41 +18136,39 @@ function dnMonumentsTires(seed){
       const sg=rg()<.5?-1:1,lat=RH+(lat0+rg()*(lat1-lat0))*K,x=S.x[i]-S.tz[i]*sg*lat,z=S.z[i]+S.tx[i]*sg*lat,h=dnHauteur(x,z,o9);
       if(o9.eau||!libre(x,z,r)||dnPresRoute(x,z,RH+clear,h+top))continue;return {x:x,z:z,h:h,i:i,t:Math.atan2(S.tx[i],S.tz[i])};}return null;};
   const tch=(c,k)=>[c[0]*(1-k+2*k*rg()),c[1]*(1-k+2*k*rg()),c[2]*(1-k+2*k*rg())];
-  // LES OBÉLISQUES : le brisé perd son pyramidion, son tronçon tombé gît à côté
-  {const L9=DN.ob.map(function(b){return [b.x,b.y,b.z,b.r,b.a,b.h,b.r];});inst(G9.ob,M9.t,L9,'obélisques');
-   inst(G9.obOr,M9.g,DN.ob.filter(function(b){return !b.br;}).map(function(b){return [b.x,b.y,b.z,b.r,b.a,b.h,b.r];}),'pyramidions');
+  // LES OBÉLISQUES (le modèle neuf : fût de lapis gravé, bandeaux et pyramidion d'or) : le brisé n'a plus de pointe (un fût en dents de scie), son tronçon tombé gît à côté
+  {const MO=dnMod('obelisque'),MB=dnMod('obeliskTronc');
+   for(const b of DN.ob)cuis(b.br?MB:MO,b.x,b.y,b.z,b.r/4,b.h/(b.br?55:64),b.r/4,b.a);
    for(const b of DN.ob){if(!b.br)continue;const an=rg()*6.28,fl=(30+rg()*26)*K*.7,x0=b.x+Math.sin(an)*b.r*1.8,z0=b.z+Math.cos(an)*b.r*1.8,x1=x0+Math.sin(an)*fl,z1=z0+Math.cos(an)*fl;
-     const y=Math.min(dnHauteur(x0,z0),dnHauteur((x0+x1)/2,(z0+z1)/2),dnHauteur(x1,z1))+b.r*.25;if(dnPresRoute(x1,z1,RH+b.r+6,y+b.r)||dnPresRoute((x0+x1)/2,(z0+z1)/2,RH+b.r+6,y+b.r))continue;
-     cuis(G9.ob,x0,y,z0,b.r*.85,fl,b.r*.85,an,Math.PI/2,0);N.troncons=(N.troncons|0)+1;}}
-  // LES PYRAMIDES : à gradins (la pièce d'avant), lisses de calcaire, à degrés — la coiffe d'or sur les deux premières
-  {const Lg=[],Lor=[];for(const P of DN.pyrs){const A=[P.x,P.y,P.z,P.hw,P.a,P.h,P.hw];if(P.st==='lisse'){cuis(G2.pyrL,P.x,P.y,P.z,P.hw,P.h,P.hw,P.a);Lor.push(A);}
-     else if(P.st==='etagee')cuis(G2.pyrE,P.x,P.y,P.z,P.hw,P.h,P.hw,P.a);else{Lg.push(A);Lor.push(A);}}
-   inst(G9.pyr,M9.t,Lg,'pyramides');inst(G9.pyrOr,M9.g,Lor,'coiffes');}
+      const y=Math.min(dnHauteur(x0,z0),dnHauteur((x0+x1)/2,(z0+z1)/2),dnHauteur(x1,z1))+b.r*.25;if(dnPresRoute(x1,z1,RH+b.r+6,y+b.r)||dnPresRoute((x0+x1)/2,(z0+z1)/2,RH+b.r+6,y+b.r))continue;
+      cuis(MO,x0,y,z0,b.r*.85/4,fl/64,b.r*.85/4,an,Math.PI/2,0);N.troncons=(N.troncons|0)+1;}}
+  // LES PYRAMIDES : à gradins, lisses de calcaire, à degrés — pierre en assises, coiffe d'or, une porte sombre au pied
+  for(const P of DN.pyrs)cuis(dnMod(P.st==='lisse'?'pyrLisse':P.st==='etagee'?'pyrDegres':'pyrGradins'),P.x,P.y,P.z,P.hw,P.h,P.hw,P.a);
   // LES GRANDS MONUMENTS : le sphinx, les colosses et la porte regardent la route ; le temple s'aligne sur elle (colonnes, architraves, tambours tombés)
   for(const m of DN.mo){
-    if(m.k==='sphinx'){const l=m.r/.55;cuis(G2.sphinx,m.x,m.y,m.z,l,l,l,m.a);}
-    else if(m.k==='colosse')cuis(G2.colosse,m.x,m.y,m.z,m.h,m.h,m.h,m.a);
-    else if(m.k==='porte')cuis(G2.porte,m.x,m.y,m.z,m.h,m.h,m.h,m.a);
+    if(m.k==='sphinx'){const l=m.r/.55;cuis(dnMod('sphinx'),m.x,m.y,m.z,l,l,l,m.a);}
+    else if(m.k==='colosse')cuis(dnMod('colosse'),m.x,m.y,m.z,m.h,m.h,m.h,m.a);
+    else if(m.k==='porte'){const sc=m.h/30;cuis(dnMod('porte'),m.x,m.y,m.z,sc,sc,sc,m.a);}
     else if(m.k==='temple'){const l=m.r/.62,H=m.h,ct=Math.cos(m.t),st=Math.sin(m.t),W=(lx,lz)=>[m.x+lx*ct+lz*st,m.z-lx*st+lz*ct],nc=5+((rg()*3)|0),y0=m.y+3.5;
-      {const p=W(0,0);cuis(G2.boite,p[0],m.y,p[1],l*.5,3.5,l*1.0,m.t,0,0,[.90,.84,.72]);}
+      {const p=W(0,0);cuis(dnMod('bloc'),p[0],m.y,p[1],l*.5,3.5,l*1.0,m.t,0,0,[.90,.84,.72]);}
       for(const sx of [-1,1]){let prec=null;for(let k=0;k<nc;k++){const lz=-l*.42+k*l*.84/(nc-1),p=W(sx*l*.19,lz),br=rg()<.35,hy=br?H*(.25+rg()*.45):H;
-        cuis(G2.colonne,p[0],y0,p[1],H,hy,H,m.t);
-        if(br&&rg()<.6){const an=rg()*6.28,d=H*.3+rg()*H*.4,q=[p[0]+Math.sin(an)*d,p[1]+Math.cos(an)*d];cuis(G2.colonne,q[0],dnHauteur(q[0],q[1])+H*.05,q[1],H*.9,H*(.2+rg()*.25),H*.9,an,Math.PI/2,0);}
-        if(!br&&prec!=null){const zm=(prec+lz)/2,c=W(sx*l*.19,zm);cuis(G2.boite,c[0],y0+H,c[1],H*.3,H*.11,lz-prec+H*.28,m.t,0,0,[.93,.88,.78]);}prec=br?null:lz;}}}}
+        cuis(dnMod('colonne'),p[0],y0,p[1],H/22,hy/22,H/22,m.t);
+        if(br&&rg()<.6){const an=rg()*6.28,d=H*.3+rg()*H*.4,q=[p[0]+Math.sin(an)*d,p[1]+Math.cos(an)*d];cuis(dnMod('colonne'),q[0],dnHauteur(q[0],q[1])+H*.05,q[1],H*.9/22,H*(.2+rg()*.25)/22,H*.9/22,an,Math.PI/2,0);}
+        if(!br&&prec!=null){const zm=(prec+lz)/2,c=W(sx*l*.19,zm);cuis(dnMod('bloc'),c[0],y0+H,c[1],H*.3,H*.11,lz-prec+H*.28,m.t,0,0,[.93,.88,.78]);}prec=br?null:lz;}}}}
   // LE VILLAGE DE TERRE en ruine : des maisons cubes, des murs bas
   if(D.village){const c=site(70,210,50,10,60,.08,.9);if(c){const n=8+((rg()*8)|0);N.maisons=0;
     for(let k=0;k<n+4;k++){const an=rg()*6.28,d=rg()*48*K,x=c.x+Math.sin(an)*d,z=c.z+Math.cos(an)*d,h0=dnHauteur(x,z,o9),mur=k>=n,w=mur?(12+rg()*18):(5+rg()*5),dp=mur?.9:(5+rg()*5),hh=mur?(1.4+rg()*1.6):(rg()<.35?1.2+rg()*1.5:3+rg()*3);
-      if(o9.eau||dnPresRoute(x,z,RH+10,h0+hh+2))continue;cuis(G2.boite,x,h0-.8,z,w,hh+.8,dp,c.t+(rg()<.6?0:Math.PI/2)+(rg()-.5)*.2,0,0,tch([.82,.60,.42],.08));N.maisons++;}}}
+      if(o9.eau||dnPresRoute(x,z,RH+10,h0+hh+2))continue;cuis(dnMod('bloc'),x,h0-.8,z,w,hh+.8,dp,c.t+(rg()<.6?0:Math.PI/2)+(rg()-.5)*.2,0,0,tch([.82,.60,.42],.08));N.maisons++;}}}
   // LES CAMPEMENTS : des tentes en rond, le feu au milieu, des chameaux couchés
   N.camps=0;for(let k=0;k<D.camps;k++){const c=site(40,170,30,6,30,.05,.92);if(!c)continue;N.camps++;const nt=3+((rg()*4)|0);
     for(let j=0;j<nt;j++){const an=j/nt*6.28+rg()*.5,d=(10+rg()*10)*K,x=c.x+Math.sin(an)*d,z=c.z+Math.cos(an)*d,w=(8+rg()*4)*K;cuis(G2.tente,x,dnHauteur(x,z)-.3,z,w,w*(.8+rg()*.4),w*(.7+rg()*.3),an+Math.PI/2,0,0,tch([1,1,1],.1));}
     cuis(G2.feu,c.x,c.h-.1,c.z,2.4*K,2.6*K,2.4*K,rg()*6);
-    for(let j=0;j<2+((rg()*4)|0);j++){const an=rg()*6.28,d=(22+rg()*14)*K,x=c.x+Math.sin(an)*d,z=c.z+Math.cos(an)*d;cuis(G9.cha,x,dnHauteur(x,z)-1.75,z,3.4,3.4,3.4,rg()*6.28);}}
+    for(let j=0;j<2+((rg()*4)|0);j++){const an=rg()*6.28,d=(22+rg()*14)*K,x=c.x+Math.sin(an)*d,z=c.z+Math.cos(an)*d;cuis(dnMod('chameau'),x,dnHauteur(x,z)-1.75,z,3.4,3.4,3.4,rg()*6.28);}}
   // LES CARAVANES : 1 à 4, de 4 à 11 bêtes, sur une crête tirée, dans un sens tiré
   DN.car=[];DN.carIm=null;
-  {const L9=[];for(const C9 of D.caravanes){const c=site(70,170,60,8,10,.04,.9);if(!c)continue;const dir=c.t+(rg()<.5?0:Math.PI)+(rg()-.5)*.8;
-     DN.car.push({x:c.x,z:c.z,a:dir,t:rg()*60,n:C9.n,k:C9.k,v:C9.v});for(let k=0;k<C9.n;k++)L9.push([c.x,0,c.z,3.4*C9.k,dir]);}
-   if(L9.length){DN.carIm=inst(G9.cha,M9.t,L9,'caravanes');if(DN.carIm){DN.carIm.instanceMatrix.setUsage(THREE.DynamicDrawUsage);DN.carT=0;dnCaravane(0,true);}}}
+  {const L9=[];for(const C9 of D.caravanes){const c=site(46,120,40,8,12,.04,.9);if(!c)continue;const dir=c.t+(rg()<.5?0:Math.PI)+(rg()-.5)*.8;
+     DN.car.push({x:c.x,z:c.z,a:dir,t:rg()*60,n:C9.n,k:C9.k,v:C9.v});for(let k=0;k<C9.n;k++)L9.push([c.x,0,c.z,DN_CAM*C9.k,dir]);}
+   if(L9.length){DN.carIm=inst(dnMod('chameau'),M9.t,L9,'caravanes');if(DN.carIm){DN.carIm.instanceMatrix.setUsage(THREE.DynamicDrawUsage);DN.carT=0;dnCaravane(0,true);}}}
   // LA FLORE : les acacias morts (la vallée, et épars), les palmiers (l'oasis, les palmeraies), les touffes, les cactus
   {const L9=[],N9=Math.round(PAL.b('dnArbres',140)*D.flore.acacias),a0=DN.sQ.vlei0,a1=DN.sQ.vlei1;
    if(a0!=null&&a1!=null)for(let k=0;k<N9*8&&L9.length<N9;k++){const s0=a0-200+rg()*(a1-a0+400),i=Math.max(0,Math.min(S.n-1,Math.round(s0/S.ds))),sg=rg()<.5?-1:1,lat=RH+14+rg()*rg()*380*K;
@@ -18130,7 +18180,7 @@ function dnMonumentsTires(seed){
      if(o9.eau||dnPresRoute(x,z,RH+10,h+ht+3))continue;L9.push([x,h-.5,z,ht,rg()*6.28]);}}
    for(let g9=0;g9<D.flore.palmeraies;g9++){const c=site(50,220,30,25,50,.05,.9);if(!c)continue;const n=10+((rg()*16)|0);
      for(let k=0;k<n*3&&n>0;k++){const an=rg()*6.28,d=rg()*45*K,x=c.x+Math.sin(an)*d,z=c.z+Math.cos(an)*d,h=dnHauteur(x,z,o9),ht=(11+rg()*10)*(1+.2*rg());if(o9.eau||dnPresRoute(x,z,RH+10,h+ht+3))continue;L9.push([x,h-.5,z,ht,rg()*6.28]);}}
-   inst(G9.pal,M9.t,L9,'palmiers');DN.nPal=L9.length;}
+   inst(dnMod('palmier'),M9.t,L9,'palmiers');DN.nPal=L9.length;}
   N.touffes=0;for(let k=0;k<D.flore.touffes*2&&N.touffes<D.flore.touffes;k++){const i=Math.floor(rg()*(S.n-1)),sg=rg()<.5?-1:1,lat=RH+6+rg()*rg()*150*K,x=S.x[i]-S.tz[i]*sg*lat,z=S.z[i]+S.tx[i]*sg*lat,h=dnHauteur(x,z,o9),ht=1.3+rg()*1.6;
     if(o9.eau||S.gd[i]>.01||dnPresRoute(x,z,RH+4,h+ht+1))continue;cuis(G2.touffe,x,h-.2,z,ht*1.4,ht,ht*1.4,rg()*6.28,0,0,tch([1,1,1],.12));N.touffes++;}
   N.cactus=0;for(let k=0;k<D.flore.cactus;k++){const c=site(10,220,8,14,4,.03,.97);if(!c)continue;const ht=(6+rg()*7)*K;cuis(G2.cactus,c.x,c.h-.3,c.z,ht,ht,ht,rg()*6.28);N.cactus++;}
@@ -18142,33 +18192,49 @@ function dnMonumentsTires(seed){
   N.os=0;for(let k=0;k<D.os;k++){const c=site(15,110,10,3,15,.05,.95);if(!c)continue;const l=(16+rg()*24)*K;cuis(G2.os,c.x,c.h-.6,c.z,l,l,l,rg()*6.28,(rg()-.5)*.1);N.os++;}
   if(D.avion){const c=site(40,160,25,12,25,.05,.9);if(c){const l=(30+rg()*10)*K;cuis(G2.avion,c.x,c.h-.03*l,c.z,l,l,l,rg()*6.28,.16+rg()*.1,.25);N.avion=1;}}
   if(D.bateau){const c=site(40,170,25,12,25,.05,.9);if(c){const l=(24+rg()*12)*K;cuis(G2.bateau,c.x,c.h-.06*l,c.z,l,l,l,rg()*6.28,-.06,.28);N.bateau=1;}}
+  try{dnScenes({rg:rg,cuis:cuis,K:K,RH:RH,N:N});}catch(e){console.warn('dunes : scènes',e);} // (2026-10-22) les scènes le long de la route (dunes-4.js)
   if(CU.n()){const g=CU.fin(),im=new THREE.InstancedMesh(g,M9.t,1);im.setMatrixAt(0,mt.identity());im.instanceMatrix.needsUpdate=true;im.matrixAutoUpdate=false;im.updateMatrix();im.frustumCulled=false;
     im.userData.jeter=1;im.name='dunes décor tiré';DN.grp.add(im);N.sommets=CU.n();}
   DN.grp.updateMatrixWorld(true);N.ms=Math.round(performance.now()-t0);DN.decoN=N;}
+const DN_CAM=5.2; // la haute des chameaux d'une caravane (m)
+const DN_VAU={n:5,im:null,L:[],m4:new THREE.Matrix4(),q:new THREE.Quaternion(),e:new THREE.Euler(0,0,0,'YXZ'),v:new THREE.Vector3(),sc:new THREE.Vector3()};
+/* LES VAUTOURS (2026-10-22, la recette du canyon) : de 3 à 7 oiseaux qui planent, par grands cercles, devant la caisse (350-1250 m), à 25-120 m au-dessus de la dalle ; l'un qui retombe derrière est reposé devant */
+function dnVautours(dt){const V=DN_VAU,on=DN.on&&started&&!gameOver&&mode!=='boom'&&!!DN.S;
+  if(!V.im){if(!on)return;V.im=new THREE.InstancedMesh(dnMod('vautour'),dnMats().t,9);V.im.frustumCulled=false;V.im.matrixAutoUpdate=false;V.im.count=0;scene.add(V.im);}
+  V.im.visible=!!on;if(!on){V.L.length=0;return;}
+  const S=DN.S,cp=carGroup.position,i0=Math.max(0,Math.min(S.n-1,Math.round(s/S.ds)));V.n=3+(((DN.deco?DN.deco.sd:0)>>>5)%5);
+  for(let k=0;k<V.n;k++){let b=V.L[k];
+    if(!b||cp.distanceTo(V.v.set(b.cx,b.cy,b.cz))>1900){const i=Math.min(S.n-1,i0+Math.round((350+Math.random()*900)/S.ds)),lat=(Math.random()-.5)*480;
+      b=V.L[k]={cx:S.x[i]-S.tz[i]*lat,cz:S.z[i]+S.tx[i]*lat,cy:S.y[i]+25+Math.random()*95,r:45+Math.random()*85,a:Math.random()*6.28,w:(.14+Math.random()*.12)*(Math.random()<.5?-1:1),k:5.5+Math.random()*3};}
+    if(!paused)b.a+=b.w*dt;const x=b.cx+Math.cos(b.a)*b.r,z=b.cz+Math.sin(b.a)*b.r,y=b.cy+Math.sin(b.a*2.3)*5;
+    V.e.set(Math.sin(b.a*1.7)*.05,b.w>0?-b.a:Math.PI-b.a,b.w>0?.32:-.32);V.q.setFromEuler(V.e);V.m4.compose(V.v.set(x,y,z),V.q,V.sc.set(b.k,b.k,b.k));V.im.setMatrixAt(k,V.m4);}
+  V.im.count=V.n;V.im.instanceMatrix.needsUpdate=true;}
 /* LES DIABLES DE SABLE tournent sur eux-mêmes et errent un peu (rien d'alloué ; seulement si l'on est assez près) */
 function dnTornades(dt){const im=DN.torIm;if(!im||!DN.on||paused||!DN.tor.length)return;const p=carGroup.position;let pres=false;for(const c of DN.tor)if(Math.abs(p.x-c.x)+Math.abs(p.z-c.z)<4000)pres=true;if(!pres)return;
   const mt=DN_CT.m,q9=DN_CT.q,e9=DN_CT.e,v9=DN_CT.v,s9=DN_CT.s;let k=0;
   for(const c of DN.tor){c.a=(c.a+dt*c.w)%6.2832;c.p=(c.p+dt*.05)%6.2832;e9.set(Math.sin(c.p*3)*.04,c.a,Math.cos(c.p*2)*.04);q9.setFromEuler(e9);
     mt.compose(v9.set(c.x+Math.sin(c.p)*30,c.y,c.z+Math.cos(c.p)*30),q9,s9.set(c.h*.45,c.h,c.h*.45));im.setMatrixAt(k++,mt);}
   im.instanceMatrix.needsUpdate=true;}
-function dnPresRoute(x,z,lat,y){const S=DN.S;if(!S)return false;for(let i=0;i<S.n;i+=2){const dx=S.x[i]-x,dz=S.z[i]-z;if(dx*dx+dz*dz<lat*lat&&y>S.y[i]-THICK-60)return true;}return false;} // un décor trop près d'une dalle (et pas loin dessous)
+function dnPresRoute(x,z,lat,y){const S=DN.S;if(!S)return false;if(dnMesa(x,z,1e9)>1.5)return true; /* (une butte : rien ne s'y pose) */for(let i=0;i<S.n;i+=2){const dx=S.x[i]-x,dz=S.z[i]-z;if(dx*dx+dz*dz<lat*lat&&y>S.y[i]-THICK-60)return true;}return false;} // un décor trop près d'une dalle (et pas loin dessous)
 /* LES CARAVANES marchent (1,3 m/s, un pas qui balance) : la hauteur du sable relue chaque image pour les quatorze bêtes — seulement si on est assez près */
 const DN_CT={m:new THREE.Matrix4(),q:new THREE.Quaternion(),e:new THREE.Euler(0,0,0,'YXZ'),v:new THREE.Vector3(),s:new THREE.Vector3(3.4,3.4,3.4)}; // (rien d'alloué dans la boucle)
 function dnCaravane(dt,force){const im=DN.carIm;if(!im||!DN.on||!DN.Z)return;
   if(!force){if(paused)return;const p=carGroup.position;let pres=false;for(const c of DN.car)if(Math.abs(p.x-c.x)+Math.abs(p.z-c.z)<2200)pres=true;if(!pres)return;}
   const mt=DN_CT.m,q9=DN_CT.q,e9=DN_CT.e,v9=DN_CT.v,s9=DN_CT.s;let k=0;
-  for(const c of DN.car){c.t=(c.t+dt*1.3*(c.v||1))%140;const ca=Math.sin(c.a),cz=Math.cos(c.a);s9.setScalar(3.4*(c.k||1)); /* (2026-10-20) la taille et le pas de CHAQUE caravane (le tirage) */
-    for(let j=0;j<c.n;j++){const d=c.t-j*8.5,x=c.x+ca*d,z=c.z+cz*d,ph=(c.t+j*2.3)*2.2,h=dnHauteur(x,z);
+  for(const c of DN.car){c.t=(c.t+dt*1.3*(c.v||1))%140;const ca=Math.sin(c.a),cz=Math.cos(c.a);s9.setScalar(DN_CAM*(c.k||1)); /* (2026-10-20) la taille et le pas de CHAQUE caravane (le tirage) */
+    for(let j=0;j<c.n;j++){const d=c.t-j*DN_CAM*2.4,x=c.x+ca*d,z=c.z+cz*d,ph=(c.t+j*2.3)*2.2,h=dnHauteur(x,z);
       e9.set(Math.sin(ph)*.035,c.a,Math.sin(ph*.5)*.03);q9.setFromEuler(e9);mt.compose(v9.set(x,h-.15+Math.abs(Math.sin(ph))*.12,z),q9,s9);im.setMatrixAt(k++,mt);}}
   im.instanceMatrix.needsUpdate=true;}
 /* LE SABLE QUI VOLE (le VENT DE SABLE, la TEMPÊTE) : des grains dans une boîte de 260 m qui suit la caméra, poussés par le vent de la map (DN.vent), qui
    tourbillonnent un peu — leur force est dnQ.z de l'ambiance (0 ailleurs : invisibles). Une instance, le mouvement dans le sommet, aucune allocation. */
+/* (2026-10-22, Léo : « le niveau dune n'est pas au niveau ») LE SABLE QUI VOLE, REFAIT : de grosses boules floues dans tout le ciel (neige, bulles) → de FINS GRAINS dorés dans une couche
+   mince posée sur le sable (uBoxC.y suit le sol sous la caméra), qui filent avec le vent : de la poussière, plus de ciel étoilé de jour */
 const DN_PART_VS=['attribute vec4 aR;uniform float uTime,uK,uPx;uniform vec3 uBoxC,uVent,uCol;varying float vA;varying vec3 vC;',
-  'void main(){vec3 B=vec3(260.,70.,260.);',
-  '  vec3 pa=uVent*uTime*(.7+.6*aR.w)+vec3(sin(uTime*1.3+aR.y*9.)*3.,sin(uTime*.9+aR.x*7.)*2.5,cos(uTime*1.1+aR.z*8.)*3.);',
+  'void main(){float sk=smoothstep(.25,.9,uK);vec3 B=vec3(240.,20.+75.*sk,240.);', // (la couche s'épaissit avec le vent : fine un jour calme, un vrai brouillard de sable dans la tempête)
+  '  vec3 pa=uVent*uTime*(.7+.6*aR.w)+vec3(sin(uTime*1.3+aR.y*9.)*2.,sin(uTime*.9+aR.x*7.)*.9,cos(uTime*1.1+aR.z*8.)*2.);',
   '  vec3 rel=mod(aR.xyz*B+pa-uBoxC+B*.5,B)-B*.5,pos=uBoxC+rel;float e=min(min(.5-abs(rel.x)/B.x,.5-abs(rel.y)/B.y),.5-abs(rel.z)/B.z);',
   '  vA=smoothstep(0.,.10,e)*uK*(.35+.65*aR.w);vC=uCol*(.8+.4*aR.z);',
-  '  vec4 mv=viewMatrix*vec4(pos,1.);gl_Position=projectionMatrix*mv;gl_PointSize=vA<.003?0.:(1.4+aR.z*1.8)*uPx*300./max(1.,-mv.z);}'].join('\n');
+  '  vec4 mv=viewMatrix*vec4(pos,1.);gl_Position=projectionMatrix*mv;gl_PointSize=vA<.003?0.:clamp((.26+aR.z*.45)*(1.+1.6*sk)*uPx*300./max(1.,-mv.z),1.2*uPx,(5.+5.*sk)*uPx);}'].join('\n');
 const DN_PART_FS=['varying vec3 vC;varying float vA;void main(){float d=length(gl_PointCoord-.5);float a=smoothstep(.5,0.,d);if(vA*a<.004)discard;gl_FragColor=vec4(vC,min(1.,vA*a*1.4));}'].join('\n');
 const DN_V=new THREE.Vector3();
 function dnPart(){if(DN.part)return DN.part;const n=PAL.b('dnPart',1600),R=mulberry32(0x5AB1E),g=new THREE.BufferGeometry(),aR=new Float32Array(n*4);for(let k=0;k<n*4;k++)aR[k]=R();
@@ -18176,26 +18242,44 @@ function dnPart(){if(DN.part)return DN.part;const n=PAL.b('dnPart',1600),R=mulbe
   const m=new THREE.ShaderMaterial({uniforms:{uTime:{value:0},uK:{value:0},uPx:{value:1},uBoxC:{value:new THREE.Vector3()},uVent:{value:new THREE.Vector3(1,0,0)},uCol:{value:new THREE.Color()}},
     vertexShader:DN_PART_VS,fragmentShader:DN_PART_FS,transparent:true,depthWrite:false});m.dispose=function(){};
   const p=new THREE.Points(g,m);p.name='dunes sable';p.frustumCulled=false;p.matrixAutoUpdate=false;p.visible=false;p.renderOrder=8;scene.add(p);return DN.part=p;}
-function dnPartTick(dt,c){const k9=DN.on&&started?Math.max(c.dnQ?c.dnQ[2]:0,DN.deco?DN.deco.vent.vole:0):0; /* (2026-10-20) + le sable qui vole du tirage (un jour de vent) */if(!(k9>.01)&&!(DN.part&&DN.part.visible))return;
+function dnPartTick(dt,c){const k9=DN.on&&started?Math.max(c.dnQ?c.dnQ[2]:0,DN.deco?DN.deco.vent.vole:0,.16):0; /* (2026-10-20) + le sable qui vole du tirage (un jour de vent) */if(!(k9>.01)&&!(DN.part&&DN.part.visible))return;
   const P9=dnPart(),u=P9.material.uniforms;P9.visible=k9>.01;if(!P9.visible)return;u.uK.value=k9;if(!paused)u.uTime.value=(u.uTime.value+dt)%600;u.uPx.value=renderer.getPixelRatio();
-  camera.getWorldDirection(DN_V);u.uBoxC.value.copy(camera.position).addScaledVector(DN_V,60);u.uVent.value.set(DN.vent[0],-.04,DN.vent[1]).multiplyScalar(14+24*k9);if(c.dnH)u.uCol.value.fromArray(c.dnH).multiplyScalar(1.3);}
+  camera.getWorldDirection(DN_V);u.uBoxC.value.copy(camera.position).addScaledVector(DN_V,60);
+  try{const g9=dnHauteur(u.uBoxC.value.x,u.uBoxC.value.z);const hB=20+75*Math.min(1,Math.max(0,(k9-.25)/.65));u.uBoxC.value.y=Math.max(camera.position.y-40,Math.min(camera.position.y+2,g9+Math.max(6,hB*.32)));}catch(e){} // la couche de grains : 6 m au-dessus du sable sous la caméra (jamais plus de 30 m sous elle, jamais au-dessus)
+ u.uVent.value.set(DN.vent[0],-.04,DN.vent[1]).multiplyScalar(14+24*k9);if(c.dnH)u.uCol.value.fromArray(c.dnH).multiplyScalar(1.3);}
 function dunesChauffe(){ // au menu (chauffeDivers) : le sable et les décors compilés et dessinés une fois hors écran — 0 programme en course
   if(!DUNES_OK)return;dnTerrain();const m=DN.mesh,v=m.visible,n=DN.geo.instanceCount;DN.geo.instanceCount=1;DN.aN.array[2]=64;m.visible=true;
-  const M9=dnMats(),g9=new THREE.Group(),bx9=new THREE.BoxGeometry(1,1,1),c9=new Float32Array(bx9.attributes.position.count*3).fill(1);bx9.setAttribute('color',new THREE.BufferAttribute(c9,3));
+  const M9=dnMats(),g9=new THREE.Group(),bx9=new THREE.BoxGeometry(1,1,1),c9=new Float32Array(bx9.attributes.position.count*3).fill(1);bx9.setAttribute('color',new THREE.BufferAttribute(c9,3));bx9.setAttribute('aK',new THREE.BufferAttribute(new Float32Array(bx9.attributes.position.count),1));
   for(const mt of [M9.t,M9.g]){g9.add(new THREE.Mesh(bx9,mt));const im=new THREE.InstancedMesh(bx9,mt,1);im.setMatrixAt(0,new THREE.Matrix4());g9.add(im);}
   g9.traverse(function(o){o.frustumCulled=false;});scene.add(g9);const P9=dnPart(),pv=P9.visible;P9.visible=true;
   try{chauffeRendu([m,g9,P9]);}finally{m.visible=v;DN.geo.instanceCount=n;scene.remove(g9);bx9.dispose();P9.visible=pv;}}
 window.dbgDunes=function(k,a,b,c,d){
-  if(k==='test'){if(!DN.on)return 'pas de dunes';let dessus=0,dessous=0,pire=1e9,ou=[];const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
+  if(k==='test'){if(!DN.on)return 'pas de dunes';let dessus=0,dessous=0,pire=1e9,ou=[],od=[];const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
     for(let s9=0;s9<L;s9+=6){frameAt(s9,F9);for(const lt of [-ROAD_HALF,0,ROAD_HALF]){const x=F9.p.x+F9.b.x*lt,z=F9.p.z+F9.b.z*lt,y=F9.p.y+F9.b.y*lt,h=dnHauteur(x,z);
-      if(h>y-THICK-1.5){dessous++;if(ou.length<40)ou.push('D'+s9+(lt?(lt>0?'d':'g'):'c')+'('+(y-THICK-h).toFixed(1)+')');}if(h>y+1.5){dessus++;if(ou.length<40)ou.push(s9+(lt?(lt>0?'d':'g'):'c'));}pire=Math.min(pire,y-THICK-h);}}
+      if(h>y-THICK-1.5){dessous++;if(ou.length<40)ou.push('D'+s9+(lt?(lt>0?'d':'g'):'c')+'('+(y-THICK-h).toFixed(1)+')');}if(h>y+1.5){dessus++;od.push(s9+(lt?(lt>0?'d':'g'):'c')+'('+(h-y).toFixed(1)+')');}pire=Math.min(pire,y-THICK-h);}}
     let mo=0;for(let s9=0;s9<L;s9+=10){frameAt(s9,F9);for(const lt of [-ROAD_HALF,0,ROAD_HALF]){F9.p.addScaledVector(F9.b,lt);F9.p.y+=1;if(dnMonuHeurt(F9.p))mo++;F9.p.y-=1;F9.p.addScaledVector(F9.b,-lt);}}
-    return {dessus:dessus,dessous:dessous,margeMin:+pire.toFixed(1),decorsSurLaRoute:mo,sep:DN.sep,ou:ou.join(' ')};}
+    return {dessus:dessus,dessusOu:od.slice(0,30).join(' '),dessous:dessous,margeMin:+pire.toFixed(1),decorsSurLaRoute:mo,sep:DN.sep,ou:ou.join(' ')};}
   if(k==='sauts')return (DN.lev||[]).map(function(v,j){return {n:j,tag:v.tag,lip:Math.round(v.s),pose:Math.round(v.e),vide:Math.round(v.e-v.s),visee:Math.round(v.aim),segment:v.seg,dy:DN.S?Math.round(DN.S.y[Math.min(DN.S.n-1,Math.round(v.s/DN.S.ds))]-DN.S.y[Math.min(DN.S.n-1,Math.round(v.e/DN.S.ds))]):0};});
   if(k==='tp'){if(!started||gameOver||mode!=='drive')return 'pas au sol';s=Math.max(0,Math.min(L-30,+a||0));lat=0;if(b!=null)vA=+b/SPD;return {s:Math.round(s),vA:+vA.toFixed(1)};} /* (banc) la caisse posée à l'abscisse a, à la vitesse monde b (m/s) */
   if(k==='marge'){if(!DN.on)return 'pas de dunes';const S9=DN.S,o=[];for(let q=+a||0;q<=(+b||L);q+=(+c||10)){const i=Math.min(S9.n-1,Math.round(q/S9.ds));o.push(Math.round(q)+':'+(S9.y[i]-dnHauteur(S9.x[i],S9.z[i])).toFixed(0)+'/D'+S9.D[i].toFixed(0)+'/z'+S9.zC[i].toFixed(1));}return o.join(' ');} /* (banc) la hauteur de la ligne de route au-dessus du sable, de a à b tous les c m */
   if(k==='raccourcis')return DN.rac||[];
+  if(k==='gpu'){const gl=renderer.getContext(),ext=gl.getExtension('EXT_disjoint_timer_query_webgl2');if(!ext)return 'pas de chrono';const n=a||20,reps=b||5; /* (banc) le coût GPU d'une image FIGÉE (la caméra de dbgDunes('vueA'…)) : n rendus d'affilée chronométrés par la puce, reps fois — {min, med} en ms par image */
+    return (async function(){const all=[];for(let rep=0;rep<reps;rep++){const q=gl.createQuery();gl.beginQuery(ext.TIME_ELAPSED_EXT,q);for(let i=0;i<n;i++){if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);}gl.endQuery(ext.TIME_ELAPSED_EXT);const t0=performance.now();while(!gl.getQueryParameter(q,gl.QUERY_RESULT_AVAILABLE)&&performance.now()-t0<4000)await new Promise(function(r){setTimeout(r,5);});const ok=!gl.getParameter(ext.GPU_DISJOINT_EXT),v=gl.getQueryParameter(q,gl.QUERY_RESULT)/1e6/n;gl.deleteQuery(q);if(ok)all.push(v);}all.sort(function(x,y){return x-y;});return all.length?{min:+all[0].toFixed(2),med:+all[all.length>>1].toFixed(2)}:null;})();}
+  if(k==='profil'){if(!DN.on)return 'pas de dunes';const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},r=[];frameAt(Math.max(0,Math.min(L-1,+a||0)),F9);for(let lt=-(b||80);lt<=(b||80);lt+=(c||8)){const x=F9.p.x+F9.b.x*lt,z=F9.p.z+F9.b.z*lt;r.push(lt+':'+(dnHauteur(x,z)-F9.p.y).toFixed(1));}return r.join(' ');} /* (banc) le sable (m, par rapport à la dalle) en travers de la route à l'abscisse a, de -b à +b tous les c m */
+  if(k==='galerie')return dnGalerie(a,b,c,d,arguments[5]);
+  if(k==='modele'){const g=dnMod(a),p=g.attributes.position,n=g.attributes.normal;g.computeBoundingBox();const bb=g.boundingBox;let pos=0,neg=0,nan=0;const c=bb.getCenter(new THREE.Vector3());for(let j=0;j<p.count;j++){const dx=p.getX(j)-c.x,dz=p.getZ(j)-c.z,l=Math.hypot(dx,dz)||1,d=(dx*n.getX(j)+dz*n.getZ(j))/l;if(d>0)pos++;else neg++;if(!isFinite(n.getX(j)+n.getY(j)+n.getZ(j)))nan++;}
+    return {sommets:p.count,triangles:p.count/3,bb:[bb.min.toArray().map(function(v){return +v.toFixed(2);}),bb.max.toArray().map(function(v){return +v.toFixed(2);})],normalesVersLexterieur:pos,vers_linterieur:neg,nan:nan};} /* (banc) un modèle : sa taille, ses sommets, le sens de ses normales */
+  if(k==='shader'){const m=a==='sable'?DN.mat:(DN.mm&&DN.mm[a]);if(!m)return 'pas de matière';const f0=m.fragmentShader;m.fragmentShader=f0.split(b).join(c);m.needsUpdate=true;return {change:f0!==m.fragmentShader};} /* (banc) retouche la matière à chaud : a = sable | t | g, b = le texte à remplacer, c = son remplaçant */
+  if(k==='uni'){const U=DN.mat&&DN.mat.uniforms;if(!U)return 'pas de matière';return {mo:U.uMo.value.toArray(),k:U.uK.value.toArray(),q:U.uQ.value.toArray(),fs:DN.mat.fragmentShader.length,mosaique:DN.mat.fragmentShader.indexOf('uMo')>=0,decor:DN.mm?{t:DN.mm.t.fragmentShader.indexOf('blk(')>=0,g:DN.mm.g.fragmentShader.indexOf('blk(')>=0}:null};} /* (banc) les réglages de la matière du sable */
   if(k==='reprendre'){if(paused)togglePause();return 'ok';}
+  if(k==='cam'){if(!DN.on)return 'pas de dunes';if(started&&!gameOver&&!paused)togglePause();const P=a||[0,0,0],T=b||[0,0,1]; /* (banc) la caméra où l'on veut : a = [x,y,z] de l'œil, b = [x,y,z] de la cible, c = le champ (degrés) */
+    camera.position.set(P[0],P[1],P[2]);camera.up.set(0,1,0);camera.lookAt(T[0],T[1],T[2]);if(c){camera.fov=c;camera.updateProjectionMatrix();}camera.updateMatrixWorld();
+    skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return {cam:camera.position.toArray().map(Math.round),noeuds:DN.n};}
+  if(k==='vueL'){if(!DN.on)return 'pas de dunes';if(started&&!gameOver&&!paused)togglePause();const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}; /* (banc) la caméra à l'abscisse a, décalée de b m sur le côté (+ = à droite), à c m de haut, cap d° ; e = la pente du regard */
+    frameAt(Math.max(0,Math.min(L-1,a||0)),F9);const lt=b||0,cap=(d||0)*Math.PI/180,dx=F9.t.x*Math.cos(cap)-F9.t.z*Math.sin(cap),dz=F9.t.z*Math.cos(cap)+F9.t.x*Math.sin(cap),pe=arguments[5]!=null?arguments[5]:.06;
+    camera.position.set(F9.p.x+F9.b.x*lt,F9.p.y+(c||8),F9.p.z+F9.b.z*lt);camera.up.set(0,1,0);camera.lookAt(camera.position.x+dx*200,camera.position.y-200*pe,camera.position.z+dz*200);if(arguments[6]){camera.fov=arguments[6];camera.updateProjectionMatrix();}camera.updateMatrixWorld();
+    skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return {cam:camera.position.toArray().map(Math.round)};}
+  if(k==='decors'){const r=function(o){return o.map(function(q){return {x:Math.round(q.x),y:Math.round(q.y),z:Math.round(q.z),h:Math.round(q.h||0),k:q.k||q.st||''};});};return {ob:r(DN.ob||[]),pyrs:r(DN.pyrs||[]),mo:r(DN.mo||[]),oasis:DN.oa?{x:Math.round(DN.oa.x),z:Math.round(DN.oa.z),r:Math.round(DN.oa.r)}:null,n:DN.decoN||null};} /* (banc) où sont les décors */
   if(k==='vue'||k==='vueA'){if(!DN.on)return 'pas de dunes';if(started&&!gameOver&&!paused)togglePause();const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
     frameAt(Math.max(0,Math.min(L-1,(k==='vueA'?0:s)+(a||0))),F9);const cap=(c||0)*Math.PI/180,dx=F9.t.x*Math.cos(cap)-F9.t.z*Math.sin(cap),dz=F9.t.z*Math.cos(cap)+F9.t.x*Math.sin(cap);
     camera.position.set(F9.p.x,F9.p.y+(b||12),F9.p.z);camera.up.set(0,1,0);camera.lookAt(F9.p.x+dx*200,F9.p.y+(b||12)-200*(d!=null?d:.12),F9.p.z+dz*200);camera.updateMatrixWorld();
@@ -18204,6 +18288,262 @@ window.dbgDunes=function(k,a,b,c,d){
     ciel:CIEL2.mode,attente:!!DN.attente,sQ:DN.sQ,L:Math.round(L),obelisques:DN.ob.length,pyramide:!!DN.pyr,acacias:DN.nArb|0,palmiers:DN.nPal|0,caravanes:DN.car.length,oasis:DN.oa?{r:Math.round(DN.oa.r),y:Math.round(DN.oa.y)}:null,
     hz:DN.hz||null,deco:DN.deco?Object.assign({},DN.deco,{pose:DN.decoN,pyramides:DN.pyrs.map(function(p){return p.st+':'+Math.round(p.hw*2)+'m';}),monuments:DN.mo.map(function(m){return m.k;})}):null,levres:(DN.lev||[]).length,sauts:DN.sauts|0,levre:DN.dbgLev||null,vent:DN.vent.map(v=>+v.toFixed(2)),lam:Math.round(DN.lam),soleil:SUN_DIR.toArray().map(v=>+v.toFixed(3)),ombre:+DN.ombre.toFixed(2),dunes:+(LVL.dunes||0).toFixed(2),canyon:+(LVL.canyon||0).toFixed(2),
     carHaut:DN.on?+(carGroup.position.y-dnHauteur(carGroup.position.x,carGroup.position.z)).toFixed(1):null};};
+/* ===== LES DÉCORS DES DUNES, REFAITS (2026-10-22, Léo : « le niveau dune n'est pas au niveau — observe jade, la grotte et la forêt pour voir le niveau que j'attends ») =====
+   LA BOÎTE À OUTILS (`dnKit`) : un constructeur à PILE DE TRANSFORMATIONS (déplacer, tourner, mettre à l'échelle, puis poser des boîtes, des troncs de pyramide, des cylindres et surfaces
+   de révolution LISSES, des sphères aplaties, des tubes), des normales explicites (plates sur la pierre, lisses sur les fûts), une teinte par face (un peu bruitée : jamais deux faces
+   pareilles) et une MATIÈRE par sommet (aK : 0 peint · 1 assises de pierre · 2 roche · 3 or · 4 pierre gravée de glyphes). Les modèles sont cachés dans DN.kit (une fois par session, comme DN.geos).
+   Tout est dessiné par la matière des décors (DN_AFS) : la pierre y est en ASSISES (rangées, joints décalés, taille qui suit la distance), les glyphes ne se lisent que de près.
+   Console : `dbgDunes('galerie')` pose tous les modèles en rang devant la caméra (banc). */
+function dnKit(sd0){
+  const P=[],C=[],Nm=[],K=[],cur=new THREE.Matrix4(),stk=[],v=new THREE.Vector3(),n9=new THREE.Vector3(),m=new THREE.Matrix4(),e1=new THREE.Vector3(),e2=new THREE.Vector3(),e3=new THREE.Vector3();
+  let sd=(sd0||12345)|0;const rnd=()=>(sd=(Math.imul(sd,1103515245)+12345)&0x7fffffff)/0x7fffffff;
+  const pt=(p,n,c,k,f)=>{v.set(p[0],p[1],p[2]).applyMatrix4(cur);P.push(v.x,v.y,v.z);n9.set(n[0],n[1],n[2]).transformDirection(cur);Nm.push(n9.x,n9.y,n9.z);C.push(c[0]*f,c[1]*f,c[2]*f);K.push(k);};
+  // un triangle : la normale plate est tournée vers l'EXTÉRIEUR du solide (o = un point dedans) ; nn = trois normales lisses (sinon plate)
+  const tri=(a,b,c,col,k,f,o,nn)=>{e1.set(b[0]-a[0],b[1]-a[1],b[2]-a[2]);e2.set(c[0]-a[0],c[1]-a[1],c[2]-a[2]);e3.crossVectors(e1,e2);const l=e3.length();if(l<1e-9)return;e3.multiplyScalar(1/l);
+    let sg=1;if(nn){const sx=nn[0][0]+nn[1][0]+nn[2][0],sy=nn[0][1]+nn[1][1]+nn[2][1],sz=nn[0][2]+nn[1][2]+nn[2][2];if(e3.x*sx+e3.y*sy+e3.z*sz<0)sg=-1;}
+    else if(o){const cx=(a[0]+b[0]+c[0])/3-o[0],cy=(a[1]+b[1]+c[1])/3-o[1],cz=(a[2]+b[2]+c[2])/3-o[2];if(e3.x*cx+e3.y*cy+e3.z*cz<0)sg=-1;}
+    const n=nn?null:[e3.x*sg,e3.y*sg,e3.z*sg];
+    if(sg>0){pt(a,nn?nn[0]:n,col,k,f);pt(b,nn?nn[1]:n,col,k,f);pt(c,nn?nn[2]:n,col,k,f);}else{pt(a,nn?nn[0]:n,col,k,f);pt(c,nn?nn[2]:n,col,k,f);pt(b,nn?nn[1]:n,col,k,f);}};
+  const jf=j=>1-(j==null?.05:j)+2*(j==null?.05:j)*rnd();
+  const quad=(a,b,c,d,col,k,o,j)=>{const f=jf(j);tri(a,b,c,col,k||0,f,o);tri(a,c,d,col,k||0,f,o);};
+  const K9={
+    push:()=>{stk.push(cur.clone());},pop:()=>{cur.copy(stk.pop());},
+    T:(x,y,z)=>{cur.multiply(m.makeTranslation(x,y,z));},Ry:a=>{cur.multiply(m.makeRotationY(a));},Rx:a=>{cur.multiply(m.makeRotationX(a));},Rz:a=>{cur.multiply(m.makeRotationZ(a));},Sc:s=>{cur.multiply(m.makeScale(s,s,s));},
+    reset:()=>{cur.identity();stk.length=0;},
+    tri:tri,quad:quad,
+    // une boîte posée : centre (cx, cz), de y0 à y0+sy ; fond facultatif
+    box:(cx,y0,cz,sx,sy,sz,col,k,bas,j)=>{const x0=cx-sx/2,x1=cx+sx/2,y1=y0+sy,z0=cz-sz/2,z1=cz+sz/2,o=[cx,y0+sy/2,cz],A=[x0,y0,z0],B=[x1,y0,z0],Cc=[x1,y0,z1],D=[x0,y0,z1],E=[x0,y1,z0],F=[x1,y1,z0],G=[x1,y1,z1],H=[x0,y1,z1];
+      quad(A,B,F,E,col,k,o,j);quad(B,Cc,G,F,col,k,o,j);quad(Cc,D,H,G,col,k,o,j);quad(D,A,E,H,col,k,o,j);quad(E,F,G,H,col,k,o,j);if(bas)quad(A,D,Cc,B,col,k,o,j);},
+    // un tronc de pyramide rectangulaire : base w0 × d0 en y0 (centre cx, cz), sommet w1 × d1 décalé de (ox, oz) en y0+h ; w1 = 0 : pointe
+    frus:(cx,y0,cz,w0,d0,w1,d1,h,col,k,ox,oz,bas,j)=>{ox=ox||0;oz=oz||0;const y1=y0+h,o=[cx+ox/2,y0+h/2,cz+oz/2],
+      a=[cx-w0/2,y0,cz-d0/2],b=[cx+w0/2,y0,cz-d0/2],c=[cx+w0/2,y0,cz+d0/2],d=[cx-w0/2,y0,cz+d0/2],
+      e=[cx+ox-w1/2,y1,cz+oz-d1/2],f=[cx+ox+w1/2,y1,cz+oz-d1/2],g=[cx+ox+w1/2,y1,cz+oz+d1/2],hh=[cx+ox-w1/2,y1,cz+oz+d1/2];
+      if(w1<=0||d1<=0){const t=[cx+ox,y1,cz+oz],f9=jf(j);tri(a,b,t,col,k||0,f9,o);tri(b,c,t,col,k||0,f9,o);tri(c,d,t,col,k||0,f9,o);tri(d,a,t,col,k||0,f9,o);}
+      else{quad(a,b,f,e,col,k,o,j);quad(b,c,g,f,col,k,o,j);quad(c,d,hh,g,col,k,o,j);quad(d,a,e,hh,col,k,o,j);quad(e,f,g,hh,col,k,o,j);}
+      if(bas)quad(a,d,c,b,col,k,o,j);},
+    // un tronc de cône à n pans, flancs LISSES : rayon r0 en y0, r1 en y0+h (r1 = 0 : pointe), centre (cx, cz) ; le dessus plat ; col peut être une liste (une teinte par pan)
+    cyl:(cx,y0,cz,r0,r1,h,n,col,k,rot,bas)=>{rot=rot||0;const y1=y0+h,o=[cx,y0+h/2,cz],sl=(r0-r1)/Math.max(h,1e-6);
+      for(let i=0;i<n;i++){const a1=rot+i/n*6.28319,a2=rot+(i+1)/n*6.28319,c1=Math.cos(a1),s1=Math.sin(a1),c2=Math.cos(a2),s2=Math.sin(a2),cc=Array.isArray(col[0])?col[i%col.length]:col,f=jf(.04),
+          n1=[c1,sl,s1],n2=[c2,sl,s2],p1=[cx+c1*r0,y0,cz+s1*r0],p2=[cx+c2*r0,y0,cz+s2*r0],q1=[cx+c1*r1,y1,cz+s1*r1],q2=[cx+c2*r1,y1,cz+s2*r1];
+        tri(p1,p2,q2,cc,k||0,f,null,[n1,n2,n2]);if(r1>0){tri(p1,q2,q1,cc,k||0,f,null,[n1,n2,n1]);tri(q1,q2,[cx,y1,cz],cc,k||0,f,[cx,y1-1,cz]);}
+        if(bas)tri(p1,[cx,y0,cz],p2,cc,k||0,f,[cx,y0+1,cz]);}},
+    // une surface de révolution : prof = [[r, y], …] de bas en haut, flancs lisses (la normale suit la pente du profil)
+    lathe:(cx,cz,prof,n,col,k,rot)=>{rot=rot||0;
+      for(let j=0;j<prof.length-1;j++){const r0=prof[j][0],y0=prof[j][1],r1=prof[j+1][0],y1=prof[j+1][1],dr=r1-r0,dy=y1-y0,nl=Math.hypot(dr,dy)||1,nr=dy/nl,ny=-dr/nl;
+        for(let i=0;i<n;i++){const a1=rot+i/n*6.28319,a2=rot+(i+1)/n*6.28319,c1=Math.cos(a1),s1=Math.sin(a1),c2=Math.cos(a2),s2=Math.sin(a2),cc=Array.isArray(col[0])?col[(i+j)%col.length]:col,f=jf(.03),
+            n1=[c1*nr,ny,s1*nr],n2=[c2*nr,ny,s2*nr],p1=[cx+c1*r0,y0,cz+s1*r0],p2=[cx+c2*r0,y0,cz+s2*r0],q1=[cx+c1*r1,y1,cz+s1*r1],q2=[cx+c2*r1,y1,cz+s2*r1];
+          if(r0>1e-6)tri(p1,p2,q2,cc,k||0,f,null,[n1,n2,n2]);if(r1>1e-6)tri(p1,q2,q1,cc,k||0,f,null,[n1,n2,n1]);}}},
+    // une sphère aplatie (ellipsoïde) : centre, rayons rx ry rz, nlat bandes de latitude, nlon pans
+    sph:(cx,cy,cz,rx,ry,rz,nlat,nlon,col,k)=>{const q=(i,j)=>{const t=-Math.PI/2+i/nlat*Math.PI,a=j/nlon*6.28319,ct=Math.cos(t),st=Math.sin(t);return {p:[cx+ct*Math.cos(a)*rx,cy+st*ry,cz+ct*Math.sin(a)*rz],n:[ct*Math.cos(a)/rx,st/ry,ct*Math.sin(a)/rz]};};
+      for(let i=0;i<nlat;i++)for(let j=0;j<nlon;j++){const A=q(i,j),B=q(i,j+1),Cc=q(i+1,j+1),D=q(i+1,j),f=jf(.04);
+        if(i>0)tri(A.p,B.p,Cc.p,col,k||0,f,null,[A.n,B.n,Cc.n]);if(i<nlat-1)tri(A.p,Cc.p,D.p,col,k||0,f,null,[A.n,Cc.n,D.n]);}},
+    // un tube de A à B (rayons r0, r1), n pans, lisse
+    tube:(A,B,r0,r1,n,col,k,bout)=>{const ax=new THREE.Vector3(B[0]-A[0],B[1]-A[1],B[2]-A[2]),l=ax.length()||1;ax.multiplyScalar(1/l);const up=Math.abs(ax.y)<.9?new THREE.Vector3(0,1,0):new THREE.Vector3(1,0,0),
+      u=new THREE.Vector3().crossVectors(ax,up).normalize(),w=new THREE.Vector3().crossVectors(ax,u).normalize(),sl=(r0-r1)/l;
+      const P2=(O,r,t)=>[O[0]+(u.x*Math.cos(t)+w.x*Math.sin(t))*r,O[1]+(u.y*Math.cos(t)+w.y*Math.sin(t))*r,O[2]+(u.z*Math.cos(t)+w.z*Math.sin(t))*r],
+        N2=t=>[u.x*Math.cos(t)+w.x*Math.sin(t)+ax.x*sl,u.y*Math.cos(t)+w.y*Math.sin(t)+ax.y*sl,u.z*Math.cos(t)+w.z*Math.sin(t)+ax.z*sl];
+      for(let i=0;i<n;i++){const t1=i/n*6.28319,t2=(i+1)/n*6.28319,f=jf(.04),p1=P2(A,r0,t1),p2=P2(A,r0,t2),q1=P2(B,r1,t1),q2=P2(B,r1,t2),n1=N2(t1),n2=N2(t2);
+        tri(p1,p2,q2,col,k||0,f,null,[n1,n2,n2]);if(r1>0)tri(p1,q2,q1,col,k||0,f,null,[n1,n2,n1]);
+        if(bout){tri(q1,q2,B,col,k||0,f,[(A[0]+B[0])/2,(A[1]+B[1])/2,(A[2]+B[2])/2]);}}},
+    // un prisme extrudé : un contour [[x, z], …] entre y0 et y1 (côtés plats + dessus)
+    ext:(poly,y0,y1,col,k,j)=>{let cx=0,cz=0;for(const q of poly){cx+=q[0];cz+=q[1];}cx/=poly.length;cz/=poly.length;const o=[cx,(y0+y1)/2,cz];
+      for(let i=0;i<poly.length;i++){const a=poly[i],b=poly[(i+1)%poly.length];quad([a[0],y0,a[1]],[b[0],y0,b[1]],[b[0],y1,b[1]],[a[0],y1,a[1]],col,k,o,j);tri([cx,y1,cz],[a[0],y1,a[1]],[b[0],y1,b[1]],col,k||0,jf(j),[cx,y1-1,cz]);}},
+    fin:()=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(Nm,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));
+      g.setAttribute('aK',new THREE.Float32BufferAttribute(K,1));g.computeBoundingSphere();return g;},
+    n:()=>P.length/3
+  };
+  return K9;}
+/* LE CUISEUR DES DÉCORS (celui du canyon, avec les normales et la matière) : des géométries posées par une matrice, fondues en UNE (un seul appel de dessin) — te : teinte facultative [r, g, b] */
+function dnCuiseur(){let cap=1<<15,n=0,P=new Float32Array(cap*3),Nm=new Float32Array(cap*3),C=new Float32Array(cap*3),K=new Float32Array(cap);const m3=new THREE.Matrix3(); // (des tableaux typés qui grandissent par doublement : 50 000 sommets en ~3 ms, sans un seul objet alloué par sommet)
+  const grow=need=>{if(n+need<=cap)return;while(n+need>cap)cap*=2;const g=(a,m)=>{const b=new Float32Array(cap*m);b.set(a.subarray(0,n*m));return b;};P=g(P,3);Nm=g(Nm,3);C=g(C,3);K=g(K,1);};
+  return {ajoute:function(g,mt,te){const cnt=g.attributes.position.count,p=g.attributes.position.array,c=g.attributes.color.array,nn=g.attributes.normal.array,k=g.attributes.aK?g.attributes.aK.array:null,r=te?te[0]:1,gg=te?te[1]:1,b=te?te[2]:1,e=mt.elements;m3.getNormalMatrix(mt);const f=m3.elements;grow(cnt);
+      for(let j=0;j<cnt;j++){const o=(n+j)*3,j3=j*3,x=p[j3],y=p[j3+1],z=p[j3+2],nx=nn[j3],ny=nn[j3+1],nz=nn[j3+2];
+        P[o]=e[0]*x+e[4]*y+e[8]*z+e[12];P[o+1]=e[1]*x+e[5]*y+e[9]*z+e[13];P[o+2]=e[2]*x+e[6]*y+e[10]*z+e[14];
+        const X=f[0]*nx+f[3]*ny+f[6]*nz,Y=f[1]*nx+f[4]*ny+f[7]*nz,Z=f[2]*nx+f[5]*ny+f[8]*nz,l=1/(Math.sqrt(X*X+Y*Y+Z*Z)||1);Nm[o]=X*l;Nm[o+1]=Y*l;Nm[o+2]=Z*l;
+        C[o]=c[j3]*r;C[o+1]=c[j3+1]*gg;C[o+2]=c[j3+2]*b;K[n+j]=k?k[j]:0;}
+      n+=cnt;},
+    n:function(){return n;},
+    fin:function(){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P.slice(0,n*3),3));g.setAttribute('normal',new THREE.BufferAttribute(Nm.slice(0,n*3),3));g.setAttribute('color',new THREE.BufferAttribute(C.slice(0,n*3),3));
+      g.setAttribute('aK',new THREE.BufferAttribute(K.slice(0,n),1));g.computeBoundingSphere();return g;}};}
+/* LES COULEURS DE LA DA : le grès chaud, le lapis (le teal contre l'or), l'or, la terre cuite, la faïence turquoise */
+const DN_COL={gres:[.95,.83,.66],gres2:[.87,.71,.53],cre:[.98,.92,.80],lapis:[.26,.40,.80],or:[1,.80,.34],terre:[.74,.38,.24],turq:[.22,.70,.70],noir:[.12,.10,.10],sable:[.96,.78,.50],os:[.96,.93,.84]};
+/* LES MODÈLES (hauteur et largeurs en mètres, à poser tels quels ou à l'échelle UNIFORME) — `dnMod(nom)` rend la géométrie (cachée) */
+const DN_MOD={
+  // L'OBÉLISQUE : le socle à deux marches, le fût de lapis qui s'affine, des bandeaux d'or, le pyramidion d'or (h = 64, base 8 m)
+  obelisque:function(){const g=dnKit(11),b=4,h=64,C=DN_COL;g.box(0,0,0,4.6*b,.7*b,4.6*b,C.gres2,1,1);g.box(0,.7*b,0,3.5*b,.6*b,3.5*b,C.gres,1);
+    const y0=1.3*b,hs=h*.86-y0,w0=2*b,w1=1.58*b,fw=f=>w0+(w1-w0)*f;g.frus(0,y0,0,w0,w0,w1,w1,hs,C.lapis,4,0,0,0,.03);
+    for(const f of [.10,.34,.58,.82]){const yy=y0+hs*f,ww=fw(f);g.frus(0,yy,0,ww*1.035,ww*1.035,ww*1.035,ww*1.035,h*.014,C.or,3);}
+    g.frus(0,y0+hs,0,w1*1.06,w1*1.06,w1*1.06,w1*1.06,h*.012,C.or,3);g.frus(0,y0+hs+h*.012,0,w1,w1,0,0,h-(y0+hs+h*.012),C.or,3);return g.fin();},
+  // LE PYLÔNE (une tour de temple, h = 30, base 14 × 9) : murs en fruit, corniche à gorge, quatre mortaises de mâts, un cartouche gravé
+  pylone:function(){const g=dnKit(23),C=DN_COL,h=30,w0=14,d0=9,w1=11.4,d1=7;g.box(0,0,0,w0*1.12,1.1,d0*1.14,C.gres2,1,1);g.frus(0,1.1,0,w0,d0,w1,d1,h-1.1,C.gres,1,0,0,0,.05);
+    g.box(0,h-.2,0,w1*1.1,1.6,d1*1.14,C.gres2,1);g.box(0,h+1.3,0,w1*1.16,.7,d1*1.2,C.or,3);
+    for(const sx of [-1,1])for(const sy of [0]){g.box(sx*4.2,3,-d0/2+.1,.9,h*.62,.3,C.noir,0);}
+    g.box(0,h*.42,-d0/2+.05+(d0-d1)*.5*.42,6.4,h*.26,.4,C.gres,4);g.box(0,h*.42+.2,-d0/2+.06+(d0-d1)*.5*.42,6.0,.5,.45,C.or,3);g.box(0,h*.42+h*.26-.7,-d0/2+.06+(d0-d1)*.5*.42,6.0,.5,.45,C.lapis,3);return g.fin();},
+  // LA COLONNE (h = 22, rayon 2,3) : base, fût qui se resserre, collier d'or, chapiteau en bouton de papyrus, abaque
+  colonne:function(){const g=dnKit(31),C=DN_COL,h=22,r=2.3;g.box(0,0,0,r*3,.5,r*3,C.gres2,1,1);
+    g.lathe(0,0,[[1.35*r,.5],[1.2*r,.9],[r,1.2],[.86*r,h*.72],[.82*r,h*.80],[.95*r,h*.82],[.86*r,h*.835]],12,C.gres,1);
+    g.lathe(0,0,[[.86*r,h*.835],[1.12*r,h*.86],[1.5*r,h*.92],[1.38*r,h*.965],[1.1*r,h*.975]],12,[C.gres,C.cre],1);
+    g.cyl(0,h*.80,0,.88*r,.88*r,.7,12,C.or,3);g.cyl(0,h*.88,0,1.3*r,1.3*r,.5,12,C.lapis,3);g.box(0,h*.975,0,r*3,h*.035,r*3,C.gres2,1);return g.fin();}
+  ,
+  // LE SPHINX (long 1, face à +z, haut ~ .46) : socle, croupe, dos, poitrail, pattes avant, queue, cou, nemès à lappets rayés lapis/or, visage, barbe, uræus
+  sphinx:function(){const g=dnKit(41),C=DN_COL,gr=C.gres,g2=C.gres2;g.box(0,0,.02,.46,.028,1.08,g2,1,1);
+    g.box(0,.028,-.30,.31,.22,.28,gr,1);g.box(0,.028,-.04,.23,.18,.24,gr,1);g.frus(0,.028,.14,.23,.20,.20,.15,.20,gr,1,0,.02);
+    g.box(-.095,.028,.34,.078,.07,.40,gr,1);g.box(.095,.028,.34,.078,.07,.40,gr,1);g.box(-.095,.028,.55,.09,.052,.10,g2,1);g.box(.095,.028,.55,.09,.052,.10,g2,1);
+    g.tube([.15,.07,-.43],[.20,.10,-.50],.014,.010,5,gr,1,1);g.box(0,.20,.21,.13,.17,.10,gr,1);
+    g.frus(0,.30,.21,.30,.19,.24,.15,.19,C.lapis,3,0,0,0,.02);g.frus(0,.47,.21,.24,.15,.20,.13,.04,C.or,3);
+    for(const sx of [-1,1])for(let i=0;i<5;i++)g.box(sx*.14,.20+i*.022,.225,.04,.021,.12,i&1?C.or:C.lapis,3);
+    g.box(0,.31,.285,.115,.16,.075,C.cre,1);g.box(0,.35,.325,.032,.052,.03,C.cre,1);g.box(-.03,.385,.322,.025,.012,.012,C.noir,0);g.box(.03,.385,.322,.025,.012,.012,C.noir,0);g.box(0,.318,.322,.05,.008,.012,C.noir,0);
+    g.box(0,.245,.30,.034,.07,.04,C.lapis,3);g.box(0,.47,.30,.022,.04,.022,C.or,3);return g.fin();},
+  // LE COLOSSE ASSIS (h = 1, face à +z) : socle, trône à dossier, jambes, torse en fruit, bras sur les cuisses, collier d'or et de lapis, tête au nemès, couronne
+  colosse:function(){const g=dnKit(53),C=DN_COL,gr=C.gres,g2=C.gres2;g.box(0,0,.02,.58,.05,.66,g2,1,1);g.box(0,.05,-.02,.50,.34,.46,gr,1);g.box(0,.39,-.22,.46,.32,.08,gr,1);
+    for(const sx of [-1,1]){g.box(sx*.115,.39,.12,.15,.085,.36,gr,1);g.box(sx*.115,.05,.28,.14,.34,.13,gr,1);g.box(sx*.115,.05,.41,.15,.05,.19,g2,1);}
+    g.frus(0,.39,-.09,.35,.20,.30,.16,.30,gr,1,0,0,0,.03);for(const sx of [-1,1]){g.box(sx*.21,.43,-.09,.075,.26,.11,gr,1);g.box(sx*.19,.47,.09,.07,.065,.31,gr,1);}
+    g.box(0,.64,-.09,.40,.045,.19,C.lapis,3);g.box(0,.675,-.09,.34,.025,.17,C.or,3);
+    g.box(0,.69,-.07,.13,.145,.12,C.cre,1);g.box(0,.725,-.065,.215,.165,.15,C.lapis,3);for(const sx of [-1,1])for(let i=0;i<4;i++)g.box(sx*.11,.60+i*.035,-.05,.04,.034,.10,i&1?C.or:C.lapis,3);
+    g.box(0,.74,.005,.10,.14,.06,C.cre,1);g.box(0,.78,.04,.03,.045,.03,C.cre,1);g.box(-.028,.80,.038,.022,.011,.01,C.noir,0);g.box(.028,.80,.038,.022,.011,.01,C.noir,0);g.box(0,.70,.04,.03,.06,.03,C.lapis,3);
+    g.frus(0,.805,-.07,.15,.13,.10,.10,.14,C.cre,1);g.frus(0,.945,-.07,.10,.10,.06,.06,.03,C.terre,1);return g.fin();},
+  // LE CHAMEAU (long 1, haut ~ .88, vers +z) : corps et bosse lisses, cou en deux tubes, tête, quatre jambes à genou, queue ; `bl` = la couleur de la couverture
+  chameau:function(bl){const g=dnKit(61),ro=[.80,.60,.38],ro2=[.68,.48,.30],C=DN_COL;bl=bl||C.terre;g.sph(0,.55,0,.115,.135,.30,6,10,ro,0);g.sph(0,.73,-.05,.08,.11,.11,5,8,ro2,0);
+    g.tube([0,.62,.22],[0,.80,.33],.062,.044,8,ro,0);g.sph(0,.86,.39,.048,.05,.09,5,8,ro,0);g.sph(0,.84,.47,.03,.03,.045,4,6,ro2,0);
+    for(const [x,z] of [[.065,.20],[-.065,.20],[.065,-.20],[-.065,-.20]]){const f=z>0?1:-1;g.tube([x,.48,z],[x,.25,z+.03*f],.042,.03,6,ro,0);g.tube([x,.25,z+.03*f],[x,.015,z],.03,.022,6,ro2,0);g.box(x,0,z,.05,.02,.07,C.noir,0);}
+    g.tube([0,.58,-.30],[0,.40,-.36],.014,.008,5,ro2,0,1);g.box(0,.675,.02,.25,.05,.30,bl,0);g.box(.135,.58,.02,.04,.15,.22,C.lapis,0);g.box(-.135,.58,.02,.04,.15,.22,C.lapis,0);return g.fin();},
+  // LE PALMIER (h = 1) : le fût qui penche, anneaux, sept palmes arquées à folioles, un régime de dattes
+  palmier:function(){const g=dnKit(71),b1=[.50,.36,.22],b2=[.42,.30,.18];let px=0;const hh=[0,.16,.33,.50,.67,.83,.92];
+    for(let i=0;i<6;i++){const x0=px;px+=.012+i*.007;g.tube([x0,hh[i],0],[px,hh[i+1],0],.038-i*.0035,.034-i*.0035,7,i&1?b1:b2,0,i===5);}
+    const top=[px,.93,0],ve=[.24,.52,.16],v2=[.30,.60,.20];
+    for(let k=0;k<9;k++){const a=k/9*6.28319+.3,ca=Math.cos(a),sa=Math.sin(a),L=.40+.06*((k*7)%3),w=.065;
+      const pr=[top,[top[0]+ca*L*.34,top[1]+.075,top[2]+sa*L*.34],[top[0]+ca*L*.68,top[1]+.07,top[2]+sa*L*.68],[top[0]+ca*L,top[1]-.08,top[2]+sa*L]];
+      for(let i=0;i<3;i++){const A=pr[i],B=pr[i+1],px2=-sa*w*(1-i*.28),pz2=ca*w*(1-i*.28),qx=-sa*w*(1-(i+1)*.28),qz=ca*w*(1-(i+1)*.28);
+        g.quad([A[0]+px2,A[1],A[2]+pz2],[A[0]-px2,A[1],A[2]-pz2],[B[0]-qx,B[1],B[2]-qz],[B[0]+qx,B[1],B[2]+qz],k&1?ve:v2,0,null,.04);}}
+    for(let i=0;i<4;i++){g.sph(top[0]+(i-1.5)*.012,.89,.012*(i&1?1:-1),.014,.02,.014,3,5,[.62,.34,.12],0);}return g.fin();},
+  // LES PYRAMIDES (demi-base 1, h 1) : à GRADINS (assises en retrait), LISSE (parement de calcaire), À DEGRÉS (Djoser) — pierre en assises, coiffe d'or, une porte sombre au pied
+  pyrGradins:function(){const g=dnKit(81),C=DN_COL,N=20;g.box(0,0,0,2.7,.012,2.7,C.gres2,1,1);for(let i=0;i<N;i++){const y0=i/N*.97+.012,y1=(i+1)/N*.97+.012,r0=(1-i/N)*1,r1=r0-.0035;g.frus(0,y0,0,r0*2,r0*2,r1*2,r1*2,y1-y0,i&1?C.gres:[.94,.78,.55],1,0,0,0,.04);
+      if(i<N-1){const rn=(1-(i+1)/N)*1;g.frus(0,y1,0,r1*2,r1*2,rn*2,rn*2,.0008,C.gres2,1);}}
+    g.frus(0,.97,0,.10,.10,0,0,.04,C.or,3);g.box(0,.012,-.995,.12,.10,.03,C.noir,0);return g.fin();},
+  pyrLisse:function(){const g=dnKit(83),C=DN_COL;g.box(0,0,0,2.7,.012,2.7,C.gres2,1,1);g.frus(0,.012,0,2,2,.14,.14,.93,C.cre,1,0,0,0,.025);g.frus(0,.942,0,.14,.14,0,0,.058,C.or,3);g.box(0,.012,-.995,.14,.11,.03,C.noir,0);return g.fin();},
+  pyrDegres:function(){const g=dnKit(85),C=DN_COL,N=6;g.box(0,0,0,2.7,.012,2.7,C.gres2,1,1);for(let i=0;i<N;i++){const y0=i/N*.96+.012,y1=(i+1)/N*.96+.012,r0=1-i/(N+.6),r1=1-(i+1)/(N+.6);g.frus(0,y0,0,r0*2,r0*2,r0*1.97,r0*1.97,y1-y0-.004,i&1?C.gres:C.cre,1,0,0,0,.04);g.frus(0,y1-.004,0,r0*1.97,r0*1.97,r1*2,r1*2,.004,C.gres2,1);}
+    g.frus(0,.972,0,.12,.12,0,0,.03,C.or,3);return g.fin();}
+  ,
+  // le fût seul (l'obélisque BRISÉ : le dessus en dents de scie) et ses blocs
+  obeliskTronc:function(){const g=dnKit(13),b=4,h=64,C=DN_COL;g.box(0,0,0,4.6*b,.7*b,4.6*b,C.gres2,1,1);g.box(0,.7*b,0,3.5*b,.6*b,3.5*b,C.gres,1);const y0=1.3*b,hs=h*.86-y0,w0=2*b,w1=1.58*b;
+    g.frus(0,y0,0,w0,w0,w1,w1,hs,C.lapis,4,0,0,0,.03);for(const f of [.10,.34,.58,.82]){const ww=w0+(w1-w0)*f;g.frus(0,y0+hs*f,0,ww*1.035,ww*1.035,ww*1.035,ww*1.035,h*.014,C.or,3);}
+    for(let k=0;k<5;k++){const a=k/5*6.28319,x=Math.cos(a)*w1*.3,z=Math.sin(a)*w1*.3;g.frus(x,y0+hs-1,z,w1*.42,w1*.42,w1*.2,w1*.2,2+((k*7)%3),C.lapis,4);}return g.fin();},
+  // LA PORTE (un pylône double, h = 30 : deux tours en fruit de 14 × 9 de part et d'autre d'une baie de 12 m, un linteau gravé, une corniche, des mâts, des marches)
+  porte:function(){const g=dnKit(27),C=DN_COL,h=30,w0=14,d0=9,w1=11.4,d1=7,gap=12;
+    for(const sx of [-1,1]){g.push();g.T(sx*(gap/2+w0/2),0,0);g.box(0,0,0,w0*1.12,1.1,d0*1.14,C.gres2,1,1);g.frus(0,1.1,0,w0,d0,w1,d1,h-1.1,C.gres,1,0,0,0,.05);g.box(0,h-.2,0,w1*1.1,1.6,d1*1.14,C.gres2,1);g.box(0,h+1.3,0,w1*1.16,.7,d1*1.2,C.or,3);
+      g.box(0,h*.40,-d0/2+.03,6.4,h*.28,.5,C.gres,4);g.box(0,h*.40+.2,-d0/2+.04,6.0,.5,.55,C.or,3);g.box(0,h*.40+h*.28-.7,-d0/2+.04,6.0,.5,.55,C.lapis,3);
+      for(const tx of [-1,1]){g.tube([tx*3.6,.5,-d0/2-.4],[tx*3.6,h*.86,-d0/2-.4],.32,.26,6,C.noir,0);g.box(tx*3.6,h*.86,-d0/2-.4,1.6,1.8,.3,C.terre,0);}g.pop();}
+    g.box(0,h*.66,0,gap+3,5,d1*1.05,C.gres,4);g.box(0,h*.66+4.7,0,gap+3.6,1.4,d1*1.2,C.gres2,1);g.box(0,h*.66+.3,-d0/2+.5,gap+.5,.5,.3,C.or,3);g.box(0,0,-d0/2-1.5,gap+6,.6,3,C.gres2,1,1);return g.fin();},
+  // LE BLOC : un cube posé (centre en x et z, de 0 à 1) — assises de pierre, teinté à la pose ; la MAISON de terre en est faite
+  bloc:function(){const g=dnKit(5);g.box(0,0,0,1,1,1,[1,1,1],1,1);return g.fin();},
+  blocPlein:function(){const g=dnKit(6);g.box(0,0,0,1,1,1,[1,1,1],0,1);return g.fin();}
+  ,
+  // LE TAMBOUR (un morceau de colonne tombé : rayon 1,15, haut 1) et LA TÊTE (un fragment de colosse : nemès de lapis, visage de pierre lisse, uræus d'or ; haut ~ 1)
+  tambour:function(){const g=dnKit(7),C=DN_COL;g.cyl(0,0,0,1.15,1.15,1,12,C.gres,1,0,1);g.cyl(0,.98,0,1.0,1.0,.06,12,C.gres2,1);return g.fin();},
+  tete:function(){const g=dnKit(9),C=DN_COL,cre=[.95,.84,.66]; // LA TÊTE d'un colosse tombé (haut ~ 1,3, regarde +z) : un dôme de nemès à bandes lapis/or, un visage ovoïde de pierre lisse (nez, yeux de khôl, bouche), l'uræus d'or — tout lisse (matière 0), les assises ne vont pas aux courbes
+    const R=.66;for(let k=0;k<7;k++){const y0=.02+k*.16,y1=y0+.16,r=y=>R*Math.sqrt(Math.max(.03,1-Math.pow((y-.62)/.74,2)));g.lathe(0,-.08,[[r(y0),y0],[r(y1),y1]],14,k&1?C.or:C.lapis,0);}
+    g.sph(0,.58,.40,.40,.54,.30,5,12,cre,0);                                                                                       // le visage
+    g.frus(0,.44,.66,.12,.16,.06,.07,.30,cre,0);                                                                                    // le nez
+    g.box(-.19,.70,.66,.20,.07,.06,C.noir,0);g.box(.19,.70,.66,.20,.07,.06,C.noir,0);g.box(0,.26,.64,.26,.05,.06,C.noir,0);         // les yeux, la bouche
+    g.frus(0,.98,.62,.10,.08,.04,.04,.22,C.or,3);                                                                                   // l'uræus
+    return g.fin();}
+  ,
+  // LE VAUTOUR (envergure 6,6, vers +z) : corps, cou, tête nue rose, queue, deux ailes arquées à longues rémiges écartées — il plane (aucun battement), les ailes un peu relevées
+  vautour:function(){const g=dnKit(91),nr=[.20,.15,.12],br=[.34,.26,.20],pl=[.52,.42,.32],ro=[.74,.40,.36],bk=[.10,.08,.07];
+    g.sph(0,0,.12,.20,.17,.72,5,8,nr,0);g.tube([0,.06,.72],[0,.15,1.0],.085,.06,6,br,0);g.sph(0,.17,1.07,.075,.065,.11,4,6,ro,0);g.frus(0,.15,1.16,.05,.04,.02,.015,.10,bk,0,0,0);
+    g.quad([-.18,0,-.45],[.18,0,-.45],[.13,.01,-1.05],[-.13,.01,-1.05],br,0);
+    for(const sd of [-1,1]){const W=[[sd*.14,.04,.38],[sd*1.5,.28,.52],[sd*2.65,.36,.22],[sd*3.25,.18,-.12],[sd*1.7,.20,-.45],[sd*.14,.02,-.30]];
+      g.tri(W[0],W[1],W[5],nr,0,.06);g.tri(W[1],W[4],W[5],br,0,.06);g.tri(W[1],W[2],W[4],nr,0,.06);g.tri(W[2],W[3],W[4],pl,0,.06);
+      for(let k=0;k<5;k++){const z=.26-k*.09,x0=sd*(2.62+k*.02),x1=sd*(3.55+.07*(k&1)),y9=.34-k*.06;g.tri([x0,y9,z],[x1,y9-.10,z-.04],[x0,y9,z-.09],k&1?nr:br,0,.05);}}return g.fin();}
+};
+function dnMod(nom){if(!DN.kit)DN.kit={};if(!DN.kit[nom])DN.kit[nom]=DN_MOD[nom]();return DN.kit[nom];}
+/* LA GALERIE (banc) : tous les modèles (ou la liste `noms`) posés en rang sur le sable, à 150 m de la route à l'abscisse `s`, et la caméra devant eux — pour juger la forme et la matière */
+const DN_ECH={sphinx:40,colosse:30,chameau:12,palmier:18,pyrGradins:30,pyrLisse:30,pyrDegres:30,tete:8,tambour:5,vautour:14,bloc:6,blocPlein:6}; // la taille d'affichage des modèles unitaires (m) — la galerie seulement
+function dnGalerie(s,noms,cap,haut,recul){
+  if(!DN.on||!DN.S)return 'pas de dunes';const M9=dnMats(),S=DN.S,i=Math.max(0,Math.min(S.n-1,Math.round((s||300)/S.ds)));
+  if(DN.gal){scene.remove(DN.gal);DN.gal.traverse(function(o){if(o.geometry)o.geometry.dispose();});}
+  const grp=new THREE.Group(),nm=noms&&noms.length?noms:Object.keys(DN_MOD),tx=S.tx[i],tz=S.tz[i],lx=-tz,lz=tx,bx=S.x[i]+lx*150,bz=S.z[i]+lz*150,out=[];let off=0,ymax=-1e9;
+  const tot=nm.map(function(n){const g=dnMod(n),ec=DN_ECH[n]||1;g.computeBoundingBox();return Math.max(g.boundingBox.max.x-g.boundingBox.min.x,g.boundingBox.max.z-g.boundingBox.min.z)*ec+12;}).reduce(function(a,b){return a+b;},0);
+  for(let u=-60;u<=tot+60;u+=10)for(let w=-120;w<=120;w+=20)ymax=Math.max(ymax,dnHauteur(bx+tx*u+lx*w,bz+tz*u+lz*w));
+  const y0=ymax+6; // un plateau plat de sable, posé au-dessus du relief : on juge les formes et la matière sous la lumière du jeu, sans le sable autour
+  const pg=dnGeo();{const R=Math.max(200,tot);const A=[bx-tx*60-lx*R,y0,bz-tz*60-lz*R],B=[bx-tx*60+lx*R,y0,bz-tz*60+lz*R],Cc=[bx+tx*(tot+R)+lx*R,y0,bz+tz*(tot+R)+lz*R],D=[bx+tx*(tot+R)-lx*R,y0,bz+tz*(tot+R)-lz*R];pg.quad(A,B,Cc,D,[.96,.80,.52]);}
+  const gm=pg.fin();grp.add(Object.assign(new THREE.Mesh(gm,M9.t),{frustumCulled:false}));
+  for(const n of nm){const g=dnMod(n),ec=DN_ECH[n]||1;g.computeBoundingBox();const bb=g.boundingBox,w=(bb.max.x-bb.min.x)*ec,d=(bb.max.z-bb.min.z)*ec,w9=Math.max(w,d)+12;off+=w9/2;
+    const x=bx+tx*off,z=bz+tz*off,me=new THREE.Mesh(g,M9.t);me.position.set(x,y0,z);me.scale.setScalar(ec);me.frustumCulled=false;me.matrixAutoUpdate=false;me.updateMatrix();grp.add(me);out.push({n:n,x:Math.round(x),y:Math.round(y0),z:Math.round(z),w:Math.round(w9)});off+=w9/2;}
+  scene.add(grp);grp.updateMatrixWorld(true);DN.gal=grp;
+  const mx=bx+tx*off/2,mz=bz+tz*off/2,R=recul==null?Math.max(120,off*.9):recul;
+  return {modeles:out,largeur:Math.round(off),y:Math.round(y0),centre:[Math.round(mx),Math.round(y0),Math.round(mz)],oeil:[Math.round(mx-lx*R),Math.round(y0+(haut==null?14:haut)),Math.round(mz-lz*R)],tangente:[+tx.toFixed(3),+tz.toFixed(3)],lateral:[+lx.toFixed(3),+lz.toFixed(3)]};}
+/* ===== LES SCÈNES DES DUNES (2026-10-22, Léo : « le niveau dune n'est pas au niveau — observe jade, la grotte et la forêt ») =====
+   Une MAP A DES LIEUX : jade a ses piliers, la forêt ses géants, la grotte ses salles. Les dunes en ont désormais — chaque tronçon de route (entre deux sauts) peut recevoir une SCÈNE, tirée
+   dans le flux du décor (`D.sd`) : LA PORTE DU DÉPART (deux pylônes de part et d'autre de la route, les mâts et leurs oriflammes), L'ALLÉE DES SPHINX (des paires qui regardent la route, des
+   obélisques entre elles), LA RANGÉE DE COLOSSES (quatre pharaons assis, façon Abou Simbel), LA COLONNADE (deux files de géants à architraves, certains brisés, des tambours à terre : elle
+   mène aux pyramides) et LES RUINES éparses. Le sable tombait trop vite au bord de la route (une crête, des flancs à 22-32°) pour qu'on y pose quoi que ce soit : chaque scène a son PLATEAU
+   (S.pw : sa demi-largeur depuis l'axe, qui monte et s'élargit en douceur sur 120 m avant la scène, dnProfil le lit) — le sable s'y tient à hauteur de la dalle. Les colonnes, colosses,
+   sphinx et pylônes TUENT en vol (ils entrent dans DN.mo). `?sans=dunesscenes` = sans elles. */
+const DN_SCN={on:!/[?&]sans=([^&]*,)?dunesscenes(,|&|$)/.test(location.search)};
+function dnPos(S,s,lat){const i=Math.max(0,Math.min(S.n-1,Math.round(s/S.ds)));return {x:S.x[i]-S.tz[i]*lat,z:S.z[i]+S.tx[i]*lat,yr:S.y[i],t:Math.atan2(S.tx[i],S.tz[i]),i:i};}
+// les tronçons de route (hors sauts) : [{a, b, courbe}] — `courbe` = le cap total tourné (rad) : une longue droite = une scène de monuments
+function dnTroncons(){const S=DN.S,out=[];if(!S)return out;let a=0;const cut=(a9,b9)=>{if(b9-a9<150)return;let tot=0,p=null;for(let s9=a9;s9<=b9;s9+=24){const i=Math.max(0,Math.min(S.n-1,Math.round(s9/S.ds))),h=Math.atan2(S.tx[i],S.tz[i]);if(p!=null){let d=h-p;while(d>Math.PI)d-=6.2832;while(d<-Math.PI)d+=6.2832;tot+=Math.abs(d);}p=h;}out.push({a:a9,b:b9,courbe:tot});};
+  for(const v of DN.lev||[]){cut(a,v.s);a=v.e;}cut(a,L);return out;}
+/* LE PLAN DES SCÈNES (dans buildDunes, avant le monde : les plateaux entrent dans la route) : DN.scn = [{k, a, b, pw, …}] et S.pw (la demi-largeur du plateau, par échantillon) */
+function dnPlanScenes(S,K,RH,D){
+  DN.scn=[];DN.scnV=[];S.pw.fill(0);if(!DN_SCN.on||!D)return;const seg=dnTroncons();if(!seg.length)return;
+  const rs=mulberry32((D.sd^0x5CE9E)>>>0),R=()=>rs(),Kc=Math.min(1.3,K),Kd=Math.min(1.25,K);
+  /* LES OMBRES : chaque scène donne ses volumes (x, z, rayon, hauteur) à la grille d'ombre du travailleur (dnOmbre) — les mêmes positions que le placement, au hasard près (±3 m : sous une case de 44 m) */
+  DN.scnV=[];const vol=(c)=>{const RH9=RH;
+    if(c.k==='colonnade'){const sc=c.H/22,pas=26*sc*1.05,lat=RH9+8+3.8*sc+1.5;for(let s9=c.a;s9<=c.b;s9+=pas)for(const sg of [-1,1]){const q=dnPos(S,s9,sg*lat);DN.scnV.push({x:q.x,z:q.z,r:3.9*sc,h:c.H});}}
+    else if(c.k==='allee'){const lat=RH9+c.len*.5+8,pas=c.len*2.2;for(let s9=c.a+c.len;s9<=c.b-c.len;s9+=pas)for(const sg of [-1,1]){const q=dnPos(S,s9,sg*lat);DN.scnV.push({x:q.x,z:q.z,r:c.len*.5,h:c.len*.5});}}
+    else if(c.k==='colosses'){for(const sg of [-1,1])for(let k=0;k<2;k++){const q=dnPos(S,c.a+k*c.H*1.9,sg*(RH9+c.H*.29+9));DN.scnV.push({x:q.x,z:q.z,r:c.H*.34,h:c.H});}}
+    else if(c.k==='porte'){const sc=c.H/30;for(const sg of [-1,1]){const q=dnPos(S,(c.a+c.b)/2,sg*(RH9+7*sc+8));DN.scnV.push({x:q.x,z:q.z,r:c.H*.3,h:c.H});}}};
+  const ajoute=(k,a,b,pw,ex)=>{DN.scn.push(Object.assign({k:k,a:Math.round(a),b:Math.round(b),pw:Math.round(pw)},ex||{}));vol(DN.scn[DN.scn.length-1]);
+    for(let i=0;i<S.n;i++){const s9=i*S.ds,u=Math.max(0,Math.min(1,(s9-(a-120))/120))*Math.max(0,Math.min(1,((b+120)-s9)/120));if(u>0){const e=u*u*(3-2*u);if(S.pw[i]<pw*e)S.pw[i]=pw*e;}}};
+  const faire=function(k,q){const L9=q.b-q.a;
+    if(k==='porte'){const H=(38+R()*8)*Kd,sc=H/30,a=Math.max(q.a+40,Math.min(q.b-60,q.a+170+R()*Math.max(0,L9-340)));ajoute('porte',a-20,a+20,RH+22*sc+8,{H:H});return true;}
+    if(k==='allee'){const len=(34+R()*10)*Kd,a=q.a+50,b=Math.min(q.b-40,a+380+R()*160);if(b-a>len*3.4){ajoute('allee',a,b,RH+len*1.0+16,{len:len});return true;}return false;}
+    if(k==='colonnade'){const Hc=(36+R()*10)*Kc,sc=Hc/22,a=q.a+70,b=Math.min(q.b-40,a+360+R()*170);if(b-a>sc*26*5){ajoute('colonnade',a,b,RH+8+3.8*sc*2.2+10,{H:Hc});return true;}return false;}
+    if(k==='colosses'){const H=(46+R()*10)*Kd,a=q.a+90+R()*Math.max(0,L9-H*3.4-180),b=a+H*1.9+40;if(b<q.b-40){ajoute('colosses',a,b,RH+H*.6+16,{H:H});return true;}return false;}
+    return false;};
+  // le DÉPART a sa porte ; l'ARRIVÉE sa colonnade (4 fois sur 5, sinon une allée) ; le milieu : l'allée, les colosses, parfois une 2e porte, parfois une 2e colonnade — dans un ordre tiré
+  faire('porte',seg[0]);
+  const dern=seg.length>1?seg[seg.length-1]:null;if(dern){if(R()<.8){if(!faire('colonnade',dern))faire('allee',dern);}else faire('allee',dern);}
+  const mid=seg.slice(1,Math.max(1,seg.length-1)),kinds=['allee','colosses'];if(R()<.5)kinds.push('porte');if(R()<.4)kinds.push('colonnade');
+  for(let i=kinds.length-1;i>0;i--){const j=(R()*(i+1))|0,t=kinds[i];kinds[i]=kinds[j];kinds[j]=t;}
+  // « l'avenue » du tirage (les obélisques) porte une allée si elle existe
+  const av=DN.sQ&&DN.sQ.obel0!=null?mid.findIndex(function(q){return DN.sQ.obel0>=q.a-20&&DN.sQ.obel0<=q.b;}):-1;if(av>=0){const k=kinds.indexOf('allee');if(k>=0){kinds.splice(k,1);}faire('allee',mid[av]);mid.splice(av,1);}
+  for(let i=0;i<mid.length&&i<kinds.length;i++)faire(kinds[i],mid[i]);}
+// un décor posé à (x, z) : le plateau le tient à la hauteur de la dalle ; sinon un PODIUM de pierre rattrape le sable (jamais plus de 26 m) — rend la hauteur de la base
+const o9s={};
+function dnAssise(cuis,x,z,yr,larg,rot){const h=dnHauteur(x,z,o9s);if(o9s.eau)return null;const yb=Math.max(h-.3,yr-1.2);if(yb-h>26)return null;
+  if(yb-h>1.2){const w9=larg*1.15+(yb-h)*.12;cuis(dnMod('bloc'),x,h-2,z,w9,yb-h+2,w9,rot,0,0,[.90,.80,.62]);cuis(dnMod('bloc'),x,yb-.5,z,w9*1.08,.9,w9*1.08,rot,0,0,[.96,.86,.68]);}return yb;}
+function dnScenes(X){
+  if(!DN_SCN.on||!DN.S||!DN.scn||!DN.scn.length)return;const S=DN.S,rg=X.rg,cuis=X.cuis,K=X.K,RH=X.RH,N=X.N,mo=DN.mo,M=n=>dnMod(n);N.sc=[];
+  const kill=(k,x,y,z,r,h)=>{mo.push({k:k,x:x,y:y,z:z,r:r,h:h,a:0,t:0});};
+  // LA COLONNADE : deux files de colonnes (une tous les ~26 m × l'échelle), un architrave entre deux colonnes voisines, des brisées, des tambours à terre
+  const colonnade=(a,b,H)=>{const sc=H/22,pas=26*sc*1.05,lat=RH+8+3.8*sc+rg()*3;let n=0;
+    for(let s=a;s<=b;s+=pas){for(const sg of [-1,1]){const q=dnPos(S,s,sg*lat);if(S.gd[q.i]>.01)continue;
+        const yb=dnAssise(cuis,q.x,q.z,q.yr,9*sc,q.t);if(yb==null)continue;const br=rg()<.18,hy=br?H*(.35+rg()*.4):H;
+        cuis(M('colonne'),q.x,yb,q.z,sc,hy/22,sc,q.t);kill('colonne',q.x,yb,q.z,3.9*sc,hy);n++;
+        if(br){const an=rg()*6.28,d=H*.25+rg()*H*.3,x2=q.x+Math.sin(an)*d,z2=q.z+Math.cos(an)*d;cuis(M('tambour'),x2,dnHauteur(x2,z2)+.6*sc,z2,2.3*sc,2.6*sc,2.3*sc,an,Math.PI/2*(rg()<.5?1:0),rg()*2);}
+        else{const nx=dnPos(S,s+pas,sg*lat);if(nx.i!==q.i&&s+pas<=b){const ln=Math.hypot(nx.x-q.x,nx.z-q.z);cuis(M('bloc'),(q.x+nx.x)/2,yb+H*1.01,(q.z+nx.z)/2,3.4*sc,H*.07,ln,Math.atan2(nx.x-q.x,nx.z-q.z),0,0,[.94,.84,.66]);}}}}
+    N.colonnade=n;N.sc.push(['colonnade',Math.round(a),Math.round(b)]);};
+  // L'ALLÉE DES SPHINX : des paires tous les ~2,2 longueurs (un sphinx de chaque côté, le regard vers la route), un obélisque entre deux paires
+  const allee=(a,b,len)=>{const lat=RH+len*.5+8,pas=len*2.2;let n=0;
+    for(let s=a+len;s<=b-len;s+=pas){for(const sg of [-1,1]){const q=dnPos(S,s,sg*lat);if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,len*.55,q.t);if(yb==null)continue;
+        const ar=Math.atan2(S.x[q.i]-q.x,S.z[q.i]-q.z);cuis(M('sphinx'),q.x,yb,q.z,len,len,len,ar);kill('sphinx',q.x,yb,q.z,len*.5,len*.5);n++;}
+      const m=dnPos(S,s+pas/2,(rg()<.5?-1:1)*(RH+len*.55+10));if(S.gd[m.i]<=.01){const yb=dnAssise(cuis,m.x,m.z,m.yr,8,m.t);if(yb!=null){const hs=26+rg()*12;cuis(M('obelisque'),m.x,yb,m.z,hs/64*1.1,hs/64,hs/64*1.1,m.t);kill('obelisque',m.x,yb,m.z,4.4,hs);}}}
+    N.allee=n;N.sc.push(['allee',Math.round(a),Math.round(b)]);};
+  // LA RANGÉE DE COLOSSES : quatre pharaons assis (deux de chaque côté) qui regardent la route
+  const colosses=(a,H)=>{let n=0;for(const sg of [-1,1])for(let k=0;k<2;k++){const q=dnPos(S,a+k*H*1.9,sg*(RH+H*.29+9));if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,H*.7,q.t);if(yb==null)continue;
+      const ar=Math.atan2(S.x[q.i]-q.x,S.z[q.i]-q.z);cuis(M('colosse'),q.x,yb,q.z,H,H,H,ar);kill('colosse',q.x,yb,q.z,H*.34,H);n++;}N.colosses=n;N.sc.push(['colosses',Math.round(a),Math.round(a+H*1.9)]);};
+  // LA PORTE : deux pylônes de part et d'autre de la route, la baie le long d'elle
+  const porte=(a,H)=>{const sc=H/30;for(const sg of [-1,1]){const q=dnPos(S,a,sg*(RH+7*sc+8));if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,H*.6,q.t);if(yb==null)continue;
+      cuis(M('pylone'),q.x,yb,q.z,sc,sc,sc,q.t);kill('pylone',q.x,yb,q.z,H*.3,H);}N.portes=(N.portes|0)+1;N.sc.push(['porte',Math.round(a),Math.round(a)]);};
+  for(const c of DN.scn){if(c.k==='porte')porte((c.a+c.b)/2,c.H);else if(c.k==='allee')allee(c.a,c.b,c.len);else if(c.k==='colonnade')colonnade(c.a,c.b,c.H);else if(c.k==='colosses')colosses(c.a,c.H);}
+  // LES RUINES : des tambours, des têtes, des blocs, de part et d'autre, à 10-70 m du bord, sur chaque tronçon
+  const seg=dnTroncons();let nr=0;for(const q of seg){const n9=Math.round((q.b-q.a)/38*PAL.b('dnRuines',1));for(let k=0;k<n9;k++){const s=q.a+rg()*(q.b-q.a),sg=rg()<.5?-1:1,lat=RH+10+rg()*rg()*60,p=dnPos(S,s,sg*lat);if(S.gd[p.i]>.01)continue;const g=dnHauteur(p.x,p.z,o9s);if(o9s.eau)continue;
+      const r=rg();if(r<.45){const sc=(1.4+rg()*1.6)*K*.8;cuis(M('tambour'),p.x,g+.25*sc,p.z,sc,sc*(1.2+rg()*.8),sc,rg()*6.28,Math.PI/2,rg()*2);}
+      else if(r<.62){const sc=(4+rg()*5)*K*.8;cuis(M('tete'),p.x,g-sc*.42,p.z,sc,sc,sc,Math.atan2(S.x[p.i]-p.x,S.z[p.i]-p.z)+(rg()-.5)*.8,(rg()-.5)*.5,(rg()-.4)*.4);}
+      else{const sc=(2+rg()*4)*K*.8;cuis(M('bloc'),p.x,g-.4,p.z,sc*(1+rg()),sc*(.6+rg()*.6),sc*(1+rg()),rg()*6.28,(rg()-.5)*.4,(rg()-.5)*.4,[.88,.76,.58]);}nr++;}}N.ruines=nr;}
 /* <<<FIN DUNES>>> */
 /* <<<BANQUISE>>> */
 /* ======================= LA BANQUISE — LA DESCENTE DES PICS DE GLACE (2026-10-14, Sacha : « fais une nouvelle map en mode banquise, mais
@@ -27765,7 +28105,7 @@ const BIO_ETAL0={wb:[1,1,1],sh:[0,.004,.03],hi:[.024,.014,-.008],con:1.16,bloomS
 const MN_T9=new THREE.Color();
 Object.assign(BIO_ETAL0,{mzH:[1,.985,.96,0],mzO:[.4,.5,.66,0],nuA:[1,1,1]}); // rgb = la teinte d'avant (le fondu d'un portail glisse vers elle), w 0 = inerte · nuA = l'albédo des nuages × 1 (inchangé)
 Object.assign(BIO_ETAL0,{nuLav:[.72,.78,.97],nuR:[-.25,.5,.64,1],nuK:[1,1,1,1]}); // (2026-10-14, passe graphismes · nuages-jour) LA MATIÈRE DES CUMULUS PAR AMBIANCE : nuLav = la teinte de l'ombre (GLSL uLav), nuR = uR (frontière d'ombre, clarté de l'ombre), nuK = uK (albédo, soleil, lisière, bord) ; les défauts = les valeurs d'avant, inertes
-Object.assign(BIO_ETAL0,{dnA:[.95,.56,.26],dnB:[.88,.36,.17],dnL:[1,.78,.52],dnS:[.62,.62,.95],dnC:[.93,.86,.78],dnV:[.22,.42,.10],dnH:[.9,.7,.5],dnQ:[0,0,0,0],dnK:[.5,1,.25,1],dnW:[.10,.66,.62],dnX:[.02,.26,.36]}); // (2026-10-18) LES DUNES D'OR : le sable de leurs six temps (lus seulement là-bas : dunesTick)
+Object.assign(BIO_ETAL0,{dnA:[.95,.56,.26],dnB:[.88,.36,.17],dnL:[1,.78,.52],dnS:[.62,.62,.95],dnC:[.93,.86,.78],dnV:[.22,.42,.10],dnH:[.9,.7,.5],dnQ:[0,0,0,0],dnK:[.5,1,.25,1],dnM:[.8,.010,1,0],dnW:[.10,.66,.62],dnX:[.02,.26,.36]}); // (2026-10-18) LES DUNES D'OR : le sable de leurs six temps (lus seulement là-bas : dunesTick)
 // (vague 3) ETAL_JOUR retiré : le jour des NUAGES reprend l'étalonnage d'origine (BIO_ETAL0), voir le haut de BIOMES
 Object.assign(BIOMES.pluie,{rimS:.55}); // VILLE : l'étalonnage d'avant (déjà au niveau) — le liseré vient du NÉON de contre-jour
 Object.assign(BIOMES.espace,{fog:[.016,.02,.055],wb:[.98,1,1.04],rimS:.62}); // ORBITE : le vide NOIR et froid, un contraste dur ; la brume n'est plus le noir absolu mais le noir bleuté #04050e de la bible (le lointain de la route s'y fond, et la brillance d'horizon du bitume, qui en prend la couleur, n'est plus nulle)
@@ -27991,11 +28331,11 @@ BIOMES.jadeOrage=bioMet(BIOMES.jadePluie,{nm:'JADE · ORAGE',fogN:90,fogF:1150,s
    cyK:[.12,.45,0,0],cyN:[.9,.9,1.3,0],cyA:[10,68,0,0],
    dnA:[1,.64,.40],dnB:[.94,.42,.30],dnL:[1,.80,.62],dnS:[.56,.58,1.04],dnC:[.98,.88,.84],dnV:[.24,.46,.16],dnH:[.98,.76,.68],dnQ:[.30,.20,0,.6],dnK:[.55,1,.25,1],dnW:[.14,.64,.66],dnX:[.03,.24,.36]});
  BIOMES.dunesMidi=dnB('canyonMidi',{nm:'DUNES · MIDI',jZen:[.02,.20,.66],jMid:[.12,.48,.86],jHor:[.92,.80,.62],jSol:[.36,.30,.18],
-   fog:[.90,.80,.64],fogN:900,fogF:9800,fogCj:[1,.86,.64],fogIn:[.96,.92,.84],hemiS:[.40,.62,1.0],hemiG:[.82,.56,.36],hemiI:.64,sunC:[1,.94,.82],sunI:1.7,fillC:[.44,.62,.95],fillI:.22,
+   fog:[.90,.80,.64],fogN:900,fogF:9800,fogCj:[1,.86,.64],fogIn:[.96,.92,.84],hemiS:[.40,.62,1.0],hemiG:[.82,.56,.36],hemiI:.52,sunC:[1,.94,.82],sunI:1.35,fillC:[.44,.62,.95],fillI:.18,
    env:[[0,'#2F86E0'],[.3,'#6CC2EE'],[.48,'#E6E2D6'],[.58,'#FFF6E6'],[.66,'#EAB27E'],[1,'#A8643C']],
    cyZ:[.02,.20,.66],cyM:[.12,.48,.86],cyH:[.92,.80,.62],cyS:[1,.95,.86],cyB:[.72,.70,.78],cyC:[1,1,.98],cyD:[.56,.64,.78],cyR:[.94,.72,.52],
-   cyK:[.18,.12,0,0],cyN:[0,.6,1.8,0],cyA:[64,200,0,0],
-   dnA:[1,.68,.32],dnB:[.96,.46,.20],dnL:[1,.86,.62],dnS:[.62,.66,1.06],dnC:[1,.94,.86],dnV:[.20,.46,.12],dnH:[.96,.86,.68],dnQ:[.22,1,0,1],dnK:[.45,1,.2,1],dnW:[.10,.72,.70],dnX:[.02,.30,.40]});
+   cyK:[.36,.34,0,0],cyN:[0,.6,1.8,0],cyA:[50,205,0,0],
+   dnA:[.86,.64,.40],dnB:[.80,.44,.26],dnL:[.98,.84,.62],dnS:[.50,.52,.94],dnC:[1,.94,.86],dnV:[.20,.46,.12],dnH:[.96,.86,.68],dnQ:[.22,1,0,1],dnK:[.45,1,.2,.62],dnW:[.10,.72,.70],dnX:[.02,.30,.40]});
  BIOMES.dunesSoir=dnB('canyonSoir',{nm:'DUNES · SOIR',jZen:[.08,.10,.40],jMid:[.50,.30,.46],jHor:[1,.48,.22],jSol:[1,.44,.14],
    fog:[.96,.52,.30],fogN:700,fogF:8200,fogCj:[1,.60,.32],fogIn:[1,.82,.70],hemiS:[.42,.40,.76],hemiG:[.64,.30,.16],hemiI:.62,sunC:[1,.46,.18],sunI:1.7,fillC:[.42,.44,.95],fillI:.36,
    env:[[0,'#4A4FA6'],[.3,'#B0749A'],[.48,'#FFB27E'],[.58,'#FFC88C'],[.66,'#E0663A'],[1,'#74301C']],
