@@ -697,6 +697,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LA FORÊT NOIRE EN VITRAIL — PONTS, MOUSSE, PLEUREURS (+ LA VILLE AUX FAÇADES GTA) » (17/10, Léo) — `PLEUR`, `FOR_ARB_FS` (le slalom `forZigzag` et la mousse ont été retirés le 18/10)
 
 **Débogage, perf, bancs**
+- « LA GRANDE SÉANCE DE DÉBOGAGE DES MAPS — 17 BUGS CORRIGÉS SUR 9 MAPS, LES 11 VÉRIFIÉES » (22/10) — ville (verre dur selon sa forme), volcan, forêt, canyon, nuages (peau), orage, Crypto City, glacier, dunes (seconde chance), grottes (concrétions) ; le banc sous verrou et l'attente de la chauffe du menu
 - « LA PASSE PERF DU 18/10 — PLUS AUCUN PROGRAMME COMPILÉ EN COURSE (CANYON, APRÈS LE GLACIER) + LE CLASSEMENT DES POSTES » (18/10) — `PISTE_GARDE`, `canyonChauffe`, le banc ×4, ce qui reste (JOUER, portails, puce)
 - « LES PIXELS QUI SE RÉPÈTENT — LE FLOU DE VITESSE SANS MOTIF » (15/10) — `FLOU_MIPS`, `flouMips`, `?flou=ancien` (compose avec `FLOU_V2`) ; le BANC WEBKIT
 - « LA PASSE MOBILE — DÉBOGAGE ET FLUIDITÉ EN NETTE » (14/10) · « LA PASSE QUALITÉ AVANT SORTIE » (12/10)
