@@ -97,6 +97,7 @@ voitures/atchoum-feu.js              # Atchoum : le feu
 voitures/feux-led.js                 # les feux en LED : l'étude (?feux=1|2), relue après buildCar
 voitures/nitro-feu.js                # le moteur qui avance, le nitro en feu de pixels, matières génératives (MATV)
 voitures/echappements.js             # les pots d'échappement
+voitures/facettes-larges.js          # les facettes larges : la grille d'un loft retaillée sans toucher au dessin (?facettes=ancien, ?fl=2)
 voitures/atelier-roues.js            # l'atelier lpKit, les roues
 voitures/silhouettes.js              # les 6 silhouettes, laque du chat Pop-Tart, l'ouvrier du Doge
 voitures/shapes-1.js                 # SHAPES (dessins) : épave, eldorado, caïd, rosso, poster, bulle, combi, dolores, gt, proto

@@ -107,9 +107,9 @@ SHAPES.corolla=function(K){
   const xBord=(P9,y)=>{let m=0;for(let i=0;i<P9.length;i++){const a=P9[i],b=P9[(i+1)%P9.length];if((a[1]-y)*(b[1]-y)<=0&&a[1]!==b[1]){const x=a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);if(x>m)m=x;}}return m;};
   const ZN={
     face:japZones([
-      {k:'K',p:PH,gate:av},{k:'h',p:rentre9(PH,.006),gate:av},{k:'K',p:BANDE,gate:av},                         // le PHARE : son cerclage noir, le fond chromé, la bande noire du haut…
-      {k:'c',p:japRuban(decale(PHbas,.015),.009),gate:av,axe:false},{k:'W',p:japRuban(F9.phareHaut,.012),gate:av,axe:false},   // …le jonc chromé du bas, le crochet de LED…
-      {k:'c',p:japRect(.636,.635,.714,.7,.012,3),gate:av},{k:'K',p:japRect(.645,.643,.705,.692,.009,3),gate:av},   // …le projecteur, carré, cerclé de chrome
+      /* (22/10, Léo, sur le recadrage du phare : « tu n'arrives pas à dessiner et modeler en même temps — fabrique, colle, ajuste sur la voiture ») LE PHARE
+         n'est plus DESSINÉ dans la tôle (cerclage, fond chromé, crochet de LED, projecteur : un dessin plat mal recopié) — il est FABRIQUÉ et POSÉ plus bas
+         (voir « LES PHARES » : des blocs de verre fumé qui suivent le coin du nez, une lame de LED), comme les rectangles plats de LA HONTE. */
       {k:'K',p:F9.grilleHaut,gate:av},{k:'c',p:japRuban(F9.joncHaut,.013),gate:av,axe:false},                   // la CALANDRE HAUTE noire, bordée de chrome (il file dans les phares)…
       {k:'c',p:japRuban(F9.joncV,.011),gate:av,axe:false},{k:'c',p:F9.logo,gate:av},                            // …le V chromé et le logo
       {k:'K',p:F9.grille,creux:.026,gate:av},                                                                    // la GRANDE BOUCHE, creusée (ses lames sont posées devant, plus bas)
@@ -119,7 +119,7 @@ SHAPES.corolla=function(K){
     cote:japZones([
       {k:'K',p:C9.cadre,gate:cs},{k:'g',p:C9.vitre,gate:cs},{k:'K',p:C9.montantB,gate:cs},{k:'K',p:C9.montantC,gate:cs},{k:'K',p:C9.ecoinc,gate:cs},
       {k:'c',p:C9.poigneeAr,gate:cs},{k:'c',p:C9.poigneeAv,gate:cs},{k:'K',p:C9.creuxAr,creux:.008,gate:cs},{k:'K',p:C9.creuxAv,creux:.008,gate:cs},
-      {k:'r',p:C9.feu.map(p=>[p[0]<-2.12?p[0]-.07:p[0],p[1]]),gate:(x,y,z,nx,ny,nz)=>z<-1.6},COIN,{k:'K',p:C9.phare,gate:(x,y,z,nx,ny,nz)=>z>1.6},{k:'h',p:rentre9(C9.phare,.006),gate:(x,y,z,nx,ny,nz)=>z>1.6}]),
+      {k:'r',p:C9.feu.map(p=>[p[0]<-2.12?p[0]-.07:p[0],p[1]]),gate:(x,y,z,nx,ny,nz)=>z<-1.6},COIN,]),   /* (le contour du phare vu de côté : retiré, le phare est posé) */
     dos:japZones([
       {k:'r',p:FEU,gate:ar},COIN,{k:'L',p:japRuban(D9.feuLigne,.016),gate:ar,axe:false},{k:'p',p:japDemi(.37,.904,.936,.003,1),gate:ar},
       {k:'c',p:D9.logo,gate:ar},{k:'r',p:japRect(.56,.252,.80,.274,.006,2),gate:ar}]),   // le logo ; les catadioptres, couchés au pied du bouclier (comme sur la vraie)
@@ -146,7 +146,7 @@ SHAPES.corolla=function(K){
       const zFace=(x,y)=>{let a=1.9,b=ZE;for(let k=0;k<20;k++){const m=(a+b)/2;if(xAt(m,y)>x)a=m;else b=m;}return (a+b)/2;};
       const L9=[];for(let k=0;k<11;k++){const y=.274+k*.0275,xe=xBord(F9.grille,y)-.016;if(xe<.05)continue;const r=[];for(let i=0;i<=12;i++){const x=xe*i/12;r.push([x,zFace(x,y)]);}L9.push([y,r]);}
       const x0=.725,y0=.298,F0=[zFace(x0,y0),(zFace(x0+.01,y0)-zFace(x0-.01,y0))/.02,(zFace(x0,y0+.01)-zFace(x0,y0-.01))/.02];
-      const o={lames:L9,anti:F0};if(MEM)MEM._prof=o;return o;})();
+      const o={lames:L9,anti:F0,zf:zFace};if(MEM)MEM._prof=o;return o;})();   // (`zf` : la profondeur de la tôle en (x, y), pour poser les phares)
   K.commit(PL);if(K.muet)return {};
   // la hauteur de la tôle (le dessus) en (x, z)
   const ZS9=zs,SC9=ZS9.map(z=>S(z)),T=z=>{let i=0,j=ZS9.length-1;if(z<=ZS9[0])return SC9[0];if(z>=ZS9[j])return SC9[j];while(j-i>1){const m=(i+j)>>1;if(ZS9[m]<=z)i=m;else j=m;}
@@ -154,6 +154,24 @@ SHAPES.corolla=function(K){
   const yDessus=(x,z)=>{const s=T(z);for(let i=s.length-1;i>0;i--){const a=s[i],b=s[i-1];if((a[0]-x)*(b[0]-x)<=0&&a[0]!==b[0])return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}return s[s.length-1][1];};
   // ---- LES DÉTAILS ----
   const P=K.kit(PAL);
+  /* LES PHARES (22/10, Léo : « fabrique, colle, ajuste sur la voiture ») — fabriqués puis collés : un PLATEAU noir mat en relief (1,4 cm), tendu sur la tôle
+     réelle du nez (`PROF.zf`) et fermé par des flancs verticaux, qui reprend le contour du plan ; sur son bord bas, une LAME DE LED blanche en rectangles plats.
+     Plus rien n'est peint dans la tôle : le phare est une pièce, avec une épaisseur et une ombre. */
+  {const zf=PROF.zf,HR=.026,pts=(()=>{const o=[];for(let i=0;i<PH.length;i++){const a=PH[i],b=PH[(i+1)%PH.length],n=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.025));for(let k=0;k<n;k++)o.push([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n]);}return o;})(),   // (le contour, coupé tous les 2,5 cm : chaque triangle reste près de la tôle)
+       cen=[pts.reduce((a,p)=>a+p[0],0)/pts.length,pts.reduce((a,p)=>a+p[1],0)/pts.length];
+   const idx=THREE.ShapeUtils.triangulateShape(pts.map(p=>new THREE.Vector2(p[0],p[1])),[]);
+   const V=(p,h)=>[p[0],p[1],zf(p[0],p[1])+h];
+   const tri3=(k,sd,a,b,c)=>{const A=[sd*a[0],a[1],a[2]],B=[sd*b[0],b[1],b[2]],C=[sd*c[0],c[1],c[2]],nz=(B[0]-A[0])*(C[1]-A[1])-(B[1]-A[1])*(C[0]-A[0]);if(nz<0)P.tri(k,A,C,B);else P.tri(k,A,B,C);};
+   const mur=(k,sd,a,b,d0,d1)=>{const A=[sd*a[0],a[1],a[2]+d1],B=[sd*b[0],b[1],b[2]+d1],C=[sd*b[0],b[1],b[2]+d0],D=[sd*a[0],a[1],a[2]+d0],
+       mx=(A[0]+B[0])/2-sd*cen[0],my=(A[1]+B[1])/2-cen[1],ex=B[0]-A[0],ey=B[1]-A[1],nx=ey,ny=-ex;   // (la normale du flanc, à plat : elle doit regarder hors du phare)
+       if(nx*mx+ny*my<0){P.tri(k,A,C,B);P.tri(k,A,D,C);}else{P.tri(k,A,B,C);P.tri(k,A,C,D);}};
+   for(const sd of [1,-1]){
+     for(const f of idx)tri3('k',sd,V(pts[f[0]],HR),V(pts[f[1]],HR),V(pts[f[2]],HR));                                   // le dessus du plateau
+     for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length];mur('k',sd,[a[0],a[1],zf(a[0],a[1])],[b[0],b[1],zf(b[0],b[1])],-.012,HR);}   // ses flancs
+     // la lame de LED : le long du bord bas, de l'intérieur vers l'extérieur
+     const yl=x=>x<.462?.621+(.634-.621)*(x-.274)/(.462-.274):.634+(.652-.634)*(x-.462)/(.626-.462),X=Array.from({length:14},(_,i)=>.30+(.625-.30)*i/13);
+     for(let i=0;i<X.length-1;i++){const x0=X[i],x1=X[i+1],q=[[x0,yl(x0)+.010],[x1,yl(x1)+.010],[x1,yl(x1)+.026],[x0,yl(x0)+.026]].map(p=>V(p,HR+.008));
+       tri3('W',sd,q[0],q[1],q[2]);tri3('W',sd,q[0],q[2],q[3]);}}}
   // LES RÉTROVISEURS (relevés sur les trois vues) : la coque à la couleur de la caisse, la glace vers l'arrière, le répétiteur orange devant
   P.sym(sd=>{P.box('k',.10,.035,.10,sd*.80,.885,.745,0,0,0);                              // le pied, sur la portière
     const cx=sd*.94,cy=.995,cz=.71;

@@ -32039,6 +32039,88 @@ function lpMat(g,ar){ // `ar` : (2026-10-20, FINITION STUDIO) une matière de CA
   };
   m.userData.lp=1;m.userData.g=g;m.userData.uG=uG;m.userData.uV=uV;return m; // `g` : la famille de matière (le banc des laques y reconnaît la tôle) · `uG` : le plancher lumineux (l'atelier le relève pour ses meubles)
 }
+/* ===== LES FACETTES LARGES (2026-10-22, Léo : « les facettes scintillantes sont magnifiques mais certaines ont des facettes trop petites — la queue de canard, la dolce vita, la fidèle, la Mazda, le GMC… un peu trop réaliste : rends-les comme la Rosso, le hot rod, le shark, le trône central, en gardant le charme ; je ne veux pas que tu les changes, il faut juste traduire : des facettes plus larges, mieux calculées, pour éviter les amas de petits pixels de lumière ») =====
+   Les caisses « au plan » posent une tranche tous les 2 à 8 cm (jusqu'à 170 tranches de 25 points) : chaque case de tôle ne mesure que 6 cm de côté et sa lumière
+   devient un grain (un damier de petits points clairs sur l'aile et la portière). `lpLarges` RETAILLE la grille d'un loft sans toucher au dessin :
+   · une rangée (une tranche) ne reste que si, ôtée, la tôle bouge de plus de `e` mètres par rapport à la droite tendue entre ses voisines — la facette
+     s'allonge où la ligne est droite (pavillon, capot, flanc) et se resserre dans les courbes (nez, hanches, pare-brise) : « mieux calculées » ;
+   · une colonne (un point de section) de même ; l'épaule, la ceinture, l'arête du toit, le plancher — là où la section plie — restent d'elles-mêmes ;
+   · une rangée ou une colonne où la MATIÈRE change (`paint`) est toujours gardée : aucune arête de peinture ne se déplace ; les caps (le nez, la poupe) sont gardés.
+   Rien n'est modifié dans les gabarits : `lpKit.loft` passe ici tout seul quand le gabarit est dans `LP_LARGES` (`K.forme` = son nom, posé par buildCar) ;
+   les roues, les détails et les gabarits hors du tableau gardent leurs facettes. `?facettes=ancien` rend la grille d'avant ; `?fl=2` règle la tolérance
+   à 2 cm pour toutes les caisses du tableau (banc) ; `dbgLarges()` lit ce qui a été retaillé (rangées et colonnes, avant → après). */
+var FACETTES_LARGES=true,FL_FORCE=0;try{if(/[?&]facettes=ancien/.test(location.search))FACETTES_LARGES=false;const m9=/[?&]fl=([0-9.]+)/.exec(location.search);if(m9)FL_FORCE=+m9[1]/100;}catch(e){}
+var LP_LARGES={ /* gabarit : {e : tolérance (m) · ec : tolérance des colonnes si autre · eo : tolérance vers l'EXTÉRIEUR (m, 4 mm) · fin : [d1 (m), coefficient, d2 (m)] tolérance × coefficient sur les d1 premiers mètres des deux bouts, rampe jusqu'à d2 (0 = non) · hi : [hauteur (m) ou null, tolérance (m)] au-dessus de cette hauteur, dans la cabine (les vitres : la découpe y est exigeante), la tolérance ne dépasse pas la valeur — 0 : la cabine garde toutes ses tranches (hi:0 = aucune protection) · col : [indices de colonnes à garder : une arête de couleur dessinée à la main] · L : longueur maximale d'une facette (m)} */
+  corolla:{e:.05},cinq:{e:.05,hi:[null,.004],fin:[.3,.35,.7]},b_canard:{e:.05},mx5na:{e:.05},mx5rf:{e:.05,hi:[null,.004]},ae86:{e:.05,col:[3,4,5]},pikes:{e:.05},robin:{e:.05},bulle:{e:.05},e_anglaise:{e:.05}};
+var LP_LARGES_BILAN={};
+function lpLarges(zs,sec,paint,o){
+  const M=zs.length,N=sec[0].length;if(M<6||N<5)return null;
+  for(const s of sec)if(s.length!==N)return null;   /* (un loft dont les sections n'ont pas toutes le même nombre de points : on n'y touche pas) */
+  let yMax=0;for(const s of sec)for(const q of s)if(q[1]>yMax)yMax=q[1];
+  const e=FL_FORCE||o.e,eC=FL_FORCE||o.ec||e,Lmax=o.L||.6,z0=zs[0],z1=zs[M-1],
+    fin=o.fin===0?null:o.fin||[.45,.2,.9],                          /* (les bouts : les 45 cm du nez et de la poupe à 20 % de la tolérance, puis la rampe jusqu'à 90 cm) */
+    yH=o.hi===0?1e9:o.hi&&o.hi[0]!=null?o.hi[0]:.62*yMax,eH=o.hi&&o.hi[1]!=null?o.hi[1]:.012;     /* (la cabine : au-dessus de 62 % de la hauteur, la tolérance ne dépasse pas 1,2 cm) */
+  const eo=o.eo||Math.min(e,.01);   /* (la tolérance vers l'EXTÉRIEUR : 1 cm au plus — la tôle retaillée ne déborde jamais de plus de 1 cm de la vraie, aucune pièce posée dessus, essuie-glaces, lamelles, optiques, ne s'enterre ; vers l'intérieur elle peut rentrer jusqu'à `e`) */
+  const nrm=sec.map(s=>s.map((q,j)=>{const a=s[Math.max(0,j-1)],b=s[Math.min(N-1,j+1)],dx=b[0]-a[0],dy=b[1]-a[1],l=Math.sqrt(dx*dx+dy*dy);return l>1e-9?[dy/l,-dx/l]:[0,0];}));   /* (la normale SORTANTE de la demi-section : à droite du sens de marche, du dessous vers le toit) */
+  const tolZ=z=>{if(!fin)return 1;const d=Math.min(z-z0,z1-z);return d<=fin[0]?fin[1]:d>=fin[2]?1:fin[1]+(1-fin[1])*(d-fin[0])/(fin[2]-fin[0]);};   /* (nez et poupe : c'est là que les phares, la calandre et les feux, découpés dans la tôle, s'appuient sur ses facettes) */
+  const cab=[];for(let i=0;i<M;i++){let t=0;for(const q of sec[i])if(q[1]>t)t=q[1];cab.push(t>yH+.2);}   /* (les tranches de la CABINE : leur haut dépasse la ceinture de 20 cm — le capot et la malle n'en sont pas) */
+  const cabM=cab.map((c,i)=>{if(c)return true;for(let k=i-1;k>=0&&zs[i]-zs[k]<.15;k--)if(cab[k])return true;for(let k=i+1;k<M&&zs[k]-zs[i]<.15;k++)if(cab[k])return true;return false;});
+  const tolY=(y,i)=>y>yH&&cabM[i]?Math.min(1,eH/e):1;   /* (au-dessus de `hi`, dans la cabine seulement — les vitres, les montants, le pavillon, dont la découpe en dépend — la tolérance ne dépasse pas `eH`) */
+  // la CLÉ DE PEINTURE de chaque case d'origine (rangée i entre les tranches i et i+1, colonne j entre les points j et j+1)
+  const K0=[];for(let i=0;i<M-1;i++){const A=sec[i],C=sec[i+1],r=[];
+    for(let j=0;j<N-1;j++){const a=A[j],b=A[j+1],c=C[j+1],d=C[j];r.push(paint(j,(zs[i]+zs[i+1])/2,(a[1]+b[1]+c[1]+d[1])/4,(a[0]+b[0]+c[0]+d[0])/4));}K0.push(r);}
+  const crit=new Array(M).fill(false);   /* (une tranche où une matière change de l'une à l'autre case : sa frontière doit rester là) */
+  for(let i=1;i<M-1;i++)for(let j=0;j<N-1;j++)if(K0[i-1][j]!==K0[i][j]){crit[i]=true;break;}
+  // ---- LES RANGÉES : coupe récursive (Douglas-Peucker) de la suite des sections, l'écart se lit sur le point de section qui bouge le plus
+  const garde=new Array(M).fill(false);garde[0]=garde[M-1]=true;
+  const ecart=(a,b,i)=>{const t=(zs[i]-zs[a])/((zs[b]-zs[a])||1),A=sec[a],B=sec[b],C=sec[i],kz=tolZ(zs[i]);let m=0;   /* (l'écart de chaque point est rapporté à SA tolérance : 1 = la limite) */
+    for(let j=0;j<N;j++){const dx=C[j][0]-(A[j][0]+(B[j][0]-A[j][0])*t),dy=C[j][1]-(A[j][1]+(B[j][1]-A[j][1])*t),n=nrm[i][j],sg=dx*n[0]+dy*n[1],   /* sg > 0 : la tôle retaillée rentre ; sg < 0 : elle déborde */
+        d=sg>=0?sg/(e*kz*tolY(C[j][1],i)):-sg/(eo*kz);if(d>m)m=d;}return m;};
+  const coupe=(a,b)=>{if(b-a<2)return;let bi=-1,bd=-1;
+    for(let i=a+1;i<b;i++){if(crit[i]){bi=i;bd=1e9;break;}const d=ecart(a,b,i);if(d>bd){bd=d;bi=i;}}
+    if(bd>1||zs[b]-zs[a]>Lmax){garde[bi]=true;coupe(a,bi);coupe(bi,b);}};
+  coupe(0,M-1);
+  const rows=[];for(let i=0;i<M;i++)if(garde[i])rows.push(i);
+  // ---- LES COLONNES : on retire, une à une, celle qui coûte le moins, tant que la tôle reste à `eC` près et que la matière est la même des deux côtés
+  const seg=(P,A,B,n)=>{const dx=B[0]-A[0],dy=B[1]-A[1],l2=dx*dx+dy*dy;let t=l2>1e-12?((P[0]-A[0])*dx+(P[1]-A[1])*dy)/l2:0;t=t<0?0:t>1?1:t;
+    const ex=P[0]-A[0]-t*dx,ey=P[1]-A[1]-t*dy;return ex*n[0]+ey*n[1];};   /* (l'écart du point P à la corde AB, lu sur la normale sortante n : > 0 la corde rentre, < 0 elle déborde) */
+  const meme=(l,r)=>{for(let q=0;q+1<rows.length;q++){const k0=K0[rows[q]][l];for(let j=l+1;j<r;j++)if(K0[rows[q]][j]!==k0)return false;}return true;};
+  const cout=(l,r)=>{let m=0;for(let k=l+1;k<r;k++)for(const i of rows){const sg=seg(sec[i][k],sec[i][l],sec[i][r],nrm[i][k]),kz=tolZ(zs[i]),d=sg>=0?sg/(eC*kz*tolY(sec[i][k][1],i)):-sg/(eo*kz);if(d>m)m=d;}return m;};   /* (rapporté à la tolérance du point : 1 = la limite) */
+  const tient=o.col||[];
+  const cols=[];for(let j=0;j<N;j++)cols.push(j);
+  for(;;){let bc=-1,bv=1e9;
+    for(let c=1;c<cols.length-1;c++){if(tient.indexOf(cols[c])>=0)continue;const l=cols[c-1],r=cols[c+1];if(!meme(l,r))continue;const v=cout(l,r);if(v<=1&&v<bv){bv=v;bc=c;}}
+    if(bc<0)break;cols.splice(bc,1);}
+  return {zs:rows.map(i=>zs[i]),sec:rows.map(i=>cols.map(k=>sec[i][k])),
+          paint:(j,z,y,x)=>j<0?paint(j,z,y,x):paint(cols[j],z,y,x),   /* (la bande j de la nouvelle grille porte la clé de la bande d'origine qu'elle commence) */
+          bilan:[M,N,rows.length,cols.length]};
+}
+/* LA MÊME RETAILLE POUR LES CAISSES EN GRILLE (le Caïd, le Combi : `G[c][j]` = le point [x, y, z] de la colonne c — le long de la caisse — et de la rangée j —
+   la hauteur). Une rangée ou une colonne ne reste que si, ôtée, ses points bougent de plus de `e` mètres par rapport à la droite tendue entre ses voisines
+   (distance du point à la corde, en 3D) ; `jtient` : les rangées à garder (le dessous, repéré par son indice), `ctient(c)` : les colonnes à garder (le nez et la
+   poupe, où la découpe au plan s'appuie sur la tôle). Rend {G, js, cs} : la grille retaillée et les indices d'origine des rangées et des colonnes gardées. */
+var LP_GRILLES={caid:{e:.012,jtient:[0,1,2]},combi:{e:.012,jtient:[0,1,2]}};
+function lpGrilleLarge(G,o){
+  const NC=G.length,NR=G[0].length,e=FL_FORCE||o.e;if(NC<4||NR<4)return null;
+  const d3=(P,A,B)=>{const dx=B[0]-A[0],dy=B[1]-A[1],dz=B[2]-A[2],l2=dx*dx+dy*dy+dz*dz;let t=l2>1e-12?((P[0]-A[0])*dx+(P[1]-A[1])*dy+(P[2]-A[2])*dz)/l2:0;t=t<0?0:t>1?1:t;
+    const ex=P[0]-A[0]-t*dx,ey=P[1]-A[1]-t*dy,ez=P[2]-A[2]-t*dz;return Math.sqrt(ex*ex+ey*ey+ez*ez);};
+  const gj=new Array(NR).fill(false),gc=new Array(NC).fill(false);gj[0]=gj[NR-1]=gc[0]=gc[NC-1]=true;
+  for(const j of o.jtient||[])if(j<NR)gj[j]=true;
+  if(o.ctient)for(let c=0;c<NC;c++)if(o.ctient(c))gc[c]=true;
+  const rj=(a,b)=>{if(b-a<2)return;let bi=-1,bd=-1;
+    for(let j=a+1;j<b;j++){if(gj[j]){bi=j;bd=1e9;break;}let m=0;for(let c=0;c<NC;c++){const d=d3(G[c][j],G[c][a],G[c][b]);if(d>m)m=d;}if(m>bd){bd=m;bi=j;}}
+    if(bd>e){gj[bi]=true;rj(a,bi);rj(bi,b);}};
+  rj(0,NR-1);
+  const js=[];for(let j=0;j<NR;j++)if(gj[j])js.push(j);
+  const cc=(a,b)=>{if(b-a<2)return;let bi=-1,bd=-1;
+    for(let c=a+1;c<b;c++){if(gc[c]){bi=c;bd=1e9;break;}let m=0;for(const j of js){const d=d3(G[c][j],G[a][j],G[b][j]);if(d>m)m=d;}if(m>bd){bd=m;bi=c;}}
+    if(bd>e){gc[bi]=true;cc(a,bi);cc(bi,b);}};
+  cc(0,NC-1);
+  const cs=[];for(let c=0;c<NC;c++)if(gc[c])cs.push(c);
+  return {G:cs.map(c=>js.map(j=>G[c][j])),js:js,cs:cs,bilan:[NC,NR,cs.length,js.length]};
+}
+window.dbgLarges=function(o){if(o)for(const k in o){const T=k.charAt(0)==='_'?LP_GRILLES:LP_LARGES,n=k.charAt(0)==='_'?k.slice(1):k;if(o[k]===null)delete T[n];else T[n]=o[k];}   /* (« _caid » règle la grille du Caïd) */   /* (banc : dbgLarges({corolla:{e:.03,hi:[.9,.4]}}) règle à chaud, puis refaire la caisse) */
+  return {actif:FACETTES_LARGES,force:FL_FORCE,bilan:LP_LARGES_BILAN,gabarits:LP_LARGES,grilles:LP_GRILLES};};
 /* L'ATELIER. `pal` : clé → {g: matière, c: couleur, f: 0 pour couper le fondu vertical}.
    Toutes les pièces sont versées dans des tampons par matière, à facettes (non indexé) ; `done()`
    rend {matière: BufferGeometry} avec des normales PAR FACE. */
@@ -32095,7 +32177,9 @@ function lpKit(pal){
        du bas-centre au haut-centre, TOUJOURS le même nombre. `paint(j,z,y,x)` : clé de la facette —
        j = n° de bande (0 = plancher … N-2 = toit), −1 bouchon avant, −2 bouchon arrière. */
     loft(zs,S,paint){
-      const sec=zs.map(z=>S(z)),N=sec[0].length;
+      let sec=zs.map(z=>S(z)),N=sec[0].length;
+      const lg=FACETTES_LARGES&&K.forme&&LP_LARGES[K.forme];   /* (2026-10-22, les facettes larges : la grille retaillée, le dessin intact — voir facettes-larges.js) */
+      if(lg){const r=lpLarges(zs,sec,paint,lg);if(r){zs=r.zs;sec=r.sec;paint=r.paint;N=sec[0].length;(LP_LARGES_BILAN[K.forme]||(LP_LARGES_BILAN[K.forme]=[])).push(r.bilan);}}
       for(let i=0;i<zs.length-1;i++){const z0=zs[i],z1=zs[i+1],A=sec[i],C=sec[i+1];
         for(let j=0;j<N-1;j++){const a=A[j],b=A[j+1],c=C[j+1],d=C[j];
           const k=paint(j,(z0+z1)/2,(a[1]+b[1]+c[1]+d[1])/4,(a[0]+b[0]+c[0]+d[0])/4);
@@ -38382,9 +38466,9 @@ SHAPES.corolla=function(K){
   const xBord=(P9,y)=>{let m=0;for(let i=0;i<P9.length;i++){const a=P9[i],b=P9[(i+1)%P9.length];if((a[1]-y)*(b[1]-y)<=0&&a[1]!==b[1]){const x=a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);if(x>m)m=x;}}return m;};
   const ZN={
     face:japZones([
-      {k:'K',p:PH,gate:av},{k:'h',p:rentre9(PH,.006),gate:av},{k:'K',p:BANDE,gate:av},                         // le PHARE : son cerclage noir, le fond chromé, la bande noire du haut…
-      {k:'c',p:japRuban(decale(PHbas,.015),.009),gate:av,axe:false},{k:'W',p:japRuban(F9.phareHaut,.012),gate:av,axe:false},   // …le jonc chromé du bas, le crochet de LED…
-      {k:'c',p:japRect(.636,.635,.714,.7,.012,3),gate:av},{k:'K',p:japRect(.645,.643,.705,.692,.009,3),gate:av},   // …le projecteur, carré, cerclé de chrome
+      /* (22/10, Léo, sur le recadrage du phare : « tu n'arrives pas à dessiner et modeler en même temps — fabrique, colle, ajuste sur la voiture ») LE PHARE
+         n'est plus DESSINÉ dans la tôle (cerclage, fond chromé, crochet de LED, projecteur : un dessin plat mal recopié) — il est FABRIQUÉ et POSÉ plus bas
+         (voir « LES PHARES » : des blocs de verre fumé qui suivent le coin du nez, une lame de LED), comme les rectangles plats de LA HONTE. */
       {k:'K',p:F9.grilleHaut,gate:av},{k:'c',p:japRuban(F9.joncHaut,.013),gate:av,axe:false},                   // la CALANDRE HAUTE noire, bordée de chrome (il file dans les phares)…
       {k:'c',p:japRuban(F9.joncV,.011),gate:av,axe:false},{k:'c',p:F9.logo,gate:av},                            // …le V chromé et le logo
       {k:'K',p:F9.grille,creux:.026,gate:av},                                                                    // la GRANDE BOUCHE, creusée (ses lames sont posées devant, plus bas)
@@ -38394,7 +38478,7 @@ SHAPES.corolla=function(K){
     cote:japZones([
       {k:'K',p:C9.cadre,gate:cs},{k:'g',p:C9.vitre,gate:cs},{k:'K',p:C9.montantB,gate:cs},{k:'K',p:C9.montantC,gate:cs},{k:'K',p:C9.ecoinc,gate:cs},
       {k:'c',p:C9.poigneeAr,gate:cs},{k:'c',p:C9.poigneeAv,gate:cs},{k:'K',p:C9.creuxAr,creux:.008,gate:cs},{k:'K',p:C9.creuxAv,creux:.008,gate:cs},
-      {k:'r',p:C9.feu.map(p=>[p[0]<-2.12?p[0]-.07:p[0],p[1]]),gate:(x,y,z,nx,ny,nz)=>z<-1.6},COIN,{k:'K',p:C9.phare,gate:(x,y,z,nx,ny,nz)=>z>1.6},{k:'h',p:rentre9(C9.phare,.006),gate:(x,y,z,nx,ny,nz)=>z>1.6}]),
+      {k:'r',p:C9.feu.map(p=>[p[0]<-2.12?p[0]-.07:p[0],p[1]]),gate:(x,y,z,nx,ny,nz)=>z<-1.6},COIN,]),   /* (le contour du phare vu de côté : retiré, le phare est posé) */
     dos:japZones([
       {k:'r',p:FEU,gate:ar},COIN,{k:'L',p:japRuban(D9.feuLigne,.016),gate:ar,axe:false},{k:'p',p:japDemi(.37,.904,.936,.003,1),gate:ar},
       {k:'c',p:D9.logo,gate:ar},{k:'r',p:japRect(.56,.252,.80,.274,.006,2),gate:ar}]),   // le logo ; les catadioptres, couchés au pied du bouclier (comme sur la vraie)
@@ -38421,7 +38505,7 @@ SHAPES.corolla=function(K){
       const zFace=(x,y)=>{let a=1.9,b=ZE;for(let k=0;k<20;k++){const m=(a+b)/2;if(xAt(m,y)>x)a=m;else b=m;}return (a+b)/2;};
       const L9=[];for(let k=0;k<11;k++){const y=.274+k*.0275,xe=xBord(F9.grille,y)-.016;if(xe<.05)continue;const r=[];for(let i=0;i<=12;i++){const x=xe*i/12;r.push([x,zFace(x,y)]);}L9.push([y,r]);}
       const x0=.725,y0=.298,F0=[zFace(x0,y0),(zFace(x0+.01,y0)-zFace(x0-.01,y0))/.02,(zFace(x0,y0+.01)-zFace(x0,y0-.01))/.02];
-      const o={lames:L9,anti:F0};if(MEM)MEM._prof=o;return o;})();
+      const o={lames:L9,anti:F0,zf:zFace};if(MEM)MEM._prof=o;return o;})();   // (`zf` : la profondeur de la tôle en (x, y), pour poser les phares)
   K.commit(PL);if(K.muet)return {};
   // la hauteur de la tôle (le dessus) en (x, z)
   const ZS9=zs,SC9=ZS9.map(z=>S(z)),T=z=>{let i=0,j=ZS9.length-1;if(z<=ZS9[0])return SC9[0];if(z>=ZS9[j])return SC9[j];while(j-i>1){const m=(i+j)>>1;if(ZS9[m]<=z)i=m;else j=m;}
@@ -38429,6 +38513,24 @@ SHAPES.corolla=function(K){
   const yDessus=(x,z)=>{const s=T(z);for(let i=s.length-1;i>0;i--){const a=s[i],b=s[i-1];if((a[0]-x)*(b[0]-x)<=0&&a[0]!==b[0])return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}return s[s.length-1][1];};
   // ---- LES DÉTAILS ----
   const P=K.kit(PAL);
+  /* LES PHARES (22/10, Léo : « fabrique, colle, ajuste sur la voiture ») — fabriqués puis collés : un PLATEAU noir mat en relief (1,4 cm), tendu sur la tôle
+     réelle du nez (`PROF.zf`) et fermé par des flancs verticaux, qui reprend le contour du plan ; sur son bord bas, une LAME DE LED blanche en rectangles plats.
+     Plus rien n'est peint dans la tôle : le phare est une pièce, avec une épaisseur et une ombre. */
+  {const zf=PROF.zf,HR=.026,pts=(()=>{const o=[];for(let i=0;i<PH.length;i++){const a=PH[i],b=PH[(i+1)%PH.length],n=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.025));for(let k=0;k<n;k++)o.push([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n]);}return o;})(),   // (le contour, coupé tous les 2,5 cm : chaque triangle reste près de la tôle)
+       cen=[pts.reduce((a,p)=>a+p[0],0)/pts.length,pts.reduce((a,p)=>a+p[1],0)/pts.length];
+   const idx=THREE.ShapeUtils.triangulateShape(pts.map(p=>new THREE.Vector2(p[0],p[1])),[]);
+   const V=(p,h)=>[p[0],p[1],zf(p[0],p[1])+h];
+   const tri3=(k,sd,a,b,c)=>{const A=[sd*a[0],a[1],a[2]],B=[sd*b[0],b[1],b[2]],C=[sd*c[0],c[1],c[2]],nz=(B[0]-A[0])*(C[1]-A[1])-(B[1]-A[1])*(C[0]-A[0]);if(nz<0)P.tri(k,A,C,B);else P.tri(k,A,B,C);};
+   const mur=(k,sd,a,b,d0,d1)=>{const A=[sd*a[0],a[1],a[2]+d1],B=[sd*b[0],b[1],b[2]+d1],C=[sd*b[0],b[1],b[2]+d0],D=[sd*a[0],a[1],a[2]+d0],
+       mx=(A[0]+B[0])/2-sd*cen[0],my=(A[1]+B[1])/2-cen[1],ex=B[0]-A[0],ey=B[1]-A[1],nx=ey,ny=-ex;   // (la normale du flanc, à plat : elle doit regarder hors du phare)
+       if(nx*mx+ny*my<0){P.tri(k,A,C,B);P.tri(k,A,D,C);}else{P.tri(k,A,B,C);P.tri(k,A,C,D);}};
+   for(const sd of [1,-1]){
+     for(const f of idx)tri3('k',sd,V(pts[f[0]],HR),V(pts[f[1]],HR),V(pts[f[2]],HR));                                   // le dessus du plateau
+     for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length];mur('k',sd,[a[0],a[1],zf(a[0],a[1])],[b[0],b[1],zf(b[0],b[1])],-.012,HR);}   // ses flancs
+     // la lame de LED : le long du bord bas, de l'intérieur vers l'extérieur
+     const yl=x=>x<.462?.621+(.634-.621)*(x-.274)/(.462-.274):.634+(.652-.634)*(x-.462)/(.626-.462),X=Array.from({length:14},(_,i)=>.30+(.625-.30)*i/13);
+     for(let i=0;i<X.length-1;i++){const x0=X[i],x1=X[i+1],q=[[x0,yl(x0)+.010],[x1,yl(x1)+.010],[x1,yl(x1)+.026],[x0,yl(x0)+.026]].map(p=>V(p,HR+.008));
+       tri3('W',sd,q[0],q[1],q[2]);tri3('W',sd,q[0],q[2],q[3]);}}}
   // LES RÉTROVISEURS (relevés sur les trois vues) : la coque à la couleur de la caisse, la glace vers l'arrière, le répétiteur orange devant
   P.sym(sd=>{P.box('k',.10,.035,.10,sd*.80,.885,.745,0,0,0);                              // le pied, sur la portière
     const cx=sd*.94,cy=.995,cz=.71;
@@ -39656,15 +39758,15 @@ return function(K){
   let C9=CACHE[YEUX?1:0];
   if(!C9){
     // ---- LA GRILLE : les points, puis les facettes (les deux flancs) ----
-    const G=COL.map(c=>ROWS.map((r,j)=>point(c,j))),TR=[];
+    const G0=COL.map(c=>ROWS.map((r,j)=>point(c,j))),TR=[],LG0=FACETTES_LARGES&&LP_GRILLES.combi?lpGrilleLarge(G0,{e:LP_GRILLES.combi.e,jtient:LP_GRILLES.combi.jtient,ctient:c=>COL[c].k!=='s'}):null,G=LG0?LG0.G:G0;   /* (les facettes larges : la grille retaillée, le nez et la poupe gardés — voir facettes-larges.js) */
     const ref=(c)=>[0,1.05,cl(c[2],-1.5,1.3)];
     const tri=(a,b,c,k)=>{const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2],nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;
       if(nx*nx+ny*ny+nz*nz<1e-12)return;const m=[(a[0]+b[0]+c[0])/3,(a[1]+b[1]+c[1])/3,(a[2]+b[2]+c[2])/3],r=ref(m);
       if(nx*(m[0]-r[0])+ny*(m[1]-r[1])+nz*(m[2]-r[2])<0)TR.push([a,c,b,k]);else TR.push([a,b,c,k]);};
     const M=p=>[-p[0],p[1],p[2]];
-    for(let c=0;c<COL.length-1;c++)for(let j=0;j<ROWS.length-1;j++){
+    for(let c=0;c<G.length-1;c++)for(let j=0;j<G[0].length-1;j++){
       const A=G[c][j],B=G[c+1][j],C=G[c+1][j+1],D=G[c][j+1];
-      let k=j<=1?23:0;if(!k&&A[1]<=YB(A[2])+.001&&B[1]<=YB(B[2])+.001&&C[1]<=YB(C[2])+.001&&D[1]<=YB(D[2])+.001)k=23; // (le plafond des passages de roue)
+      let k=(LG0?LG0.js[j]:j)<=1?23:0;if(!k&&A[1]<=YB(A[2])+.001&&B[1]<=YB(B[2])+.001&&C[1]<=YB(C[2])+.001&&D[1]<=YB(D[2])+.001)k=23; // (le plafond des passages de roue)
       for(const s of [1,-1]){const f=s>0?(p=>p):M;tri(f(A),f(B),f(C),k);tri(f(A),f(C),f(D),k);}}
     // ---- LES CONTOURS (vues du plan) ----
     const ZO={cote:[],face:[],dos:[],dessus:[]},LG={cote:[],face:[],dos:[],dessus:[]};
@@ -40750,10 +40852,10 @@ const cuire=()=>{let C9=CACHE[0];if(C9)return C9;
       if(nx*nx+ny*ny+nz*nz<1e-12)return;const m=[(a[0]+b[0]+c[0])/3,(a[1]+b[1]+c[1])/3,(a[2]+b[2]+c[2])/3],r=ref(m);
       if(nx*(m[0]-r[0])+ny*(m[1]-r[1])+nz*(m[2]-r[2])<0)TR.push([a,c,b,k]);else TR.push([a,b,c,k]);};
     const M=p=>[-p[0],p[1],p[2]];
-    for(const [D,bas] of [[BAS,1],[SERRE,0]]){const g=grille(D),G=g.G;
-      for(let c=0;c<g.COL.length-1;c++)for(let j=0;j<g.ROWS.length-1;j++){
-        const A=G[c][j],B=G[c+1][j],C=G[c+1][j+1],E=G[c][j+1];let k;
-        if(bas){k=j<=1?23:0;if(!k&&A[1]<=YBb(A[2])+.001&&B[1]<=YBb(B[2])+.001&&C[1]<=YBb(C[2])+.001&&E[1]<=YBb(E[2])+.001)k=23;}
+    for(const [D,bas] of [[BAS,1],[SERRE,0]]){const g=grille(D),LG0=FACETTES_LARGES&&LP_GRILLES.caid?lpGrilleLarge(g.G,{e:LP_GRILLES.caid.e,jtient:LP_GRILLES.caid.jtient,ctient:c=>g.COL[c].k!=='s'}):null,G=LG0?LG0.G:g.G;   /* (les facettes larges : la grille retaillée, le nez et la poupe gardés — voir facettes-larges.js) */
+      for(let c=0;c<G.length-1;c++)for(let j=0;j<G[0].length-1;j++){
+        const A=G[c][j],B=G[c+1][j],C=G[c+1][j+1],E=G[c][j+1];let k;const jo=LG0?LG0.js[j]:j;
+        if(bas){k=jo<=1?23:0;if(!k&&A[1]<=YBb(A[2])+.001&&B[1]<=YBb(B[2])+.001&&C[1]<=YBb(C[2])+.001&&E[1]<=YBb(E[2])+.001)k=23;}
         else{const mx=(A[0]+B[0]+C[0]+E[0])/4,mz=(A[2]+B[2]+C[2]+E[2])/4,my=(A[1]+B[1]+C[1]+E[1])/4;k=(mx>.70&&mz<-.80&&my<1.935)?0:26;}  // les ailerons couleur caisse, le reste de la cabine noir
         for(const f of [p=>p,M]){tri(f(A),f(B),f(C),k);tri(f(A),f(C),f(E),k);}}}
     // ---- LES CONTOURS ----
@@ -42496,7 +42598,7 @@ function buildCar(spec){
   // L'ATELIER LOW-POLY : `K.kit(pal)` ouvre un chantier (voir lpKit), `K.commit` le pose — une
   // géométrie par matière, et les matières PARTAGÉES par toute la caisse, roues comprises.
   const lpM={},lpMatC=g=>lpM[g]||(lpM[g]=lpMat(g,FSTU.on)); // (2026-10-20) `?finition=studio` : la tôle en finition studio (voir finition.js)
-  const kit=pal=>lpKit(peintPal(pal)); // la PEINTURE de la boutique passe par la palette (voir `peintPal`)
+  const kit=pal=>{const k9=lpKit(peintPal(pal));k9.forme=spec.shape||'gt';return k9;}; // la PEINTURE de la boutique passe par la palette (voir `peintPal`) · `forme` : le gabarit qui tient le chantier (les facettes larges, voir facettes-larges.js)
   const lpPrims=[];let lpZmin=1e9; // (pots) les pièces simples de la caisse et sa poupe réelle, relevées au passage
   const commit=kt=>{const gs=kt.ech?kt.done():echRetire(kt.done(),kt.prims,spec.shape||'gt');for(const g in gs){gs[g].computeBoundingBox();lpZmin=Math.min(lpZmin,gs[g].boundingBox.min.z);
     if(g!=='l')lpOmbre(gs[g],H9); // (2026-09-26, vague 2) l'ombre cuite (voir lpOmbre) — les feux émettent, ils n'en prennent pas
@@ -46370,11 +46472,11 @@ window.dbgEssaiObjets=function(){
 };
 window.dbgEssaiCaisse=function(src,fiche,vues){
   if(started&&!gameOver)return {err:'en course : essai refusé'};
-  const nom='__essai',W=720,H=440;let f;
+  const nom='__essai',W=window.__essaiW||720,H=window.__essaiH||440;let f;   /* (banc : `window.__essaiW/H` agrandit la photo — fixés avant le 1er essai) */
   if(typeof src==='string'&&SHAPES[src])f=SHAPES[src];
   else{try{f=(new Function('LPU','THREE','lpKit','return ('+src+');'))(LPU,THREE,lpKit);}catch(e){return {err:'SYNTAXE : '+e.message};}}
   if(typeof f!=='function')return {err:'le source ne rend pas une fonction'};
-  SHAPES[nom]=f;if(fiche&&fiche.pot&&ECH_POTS[fiche.pot])ECH_POTS[nom]=ECH_POTS[fiche.pot]; /* (2026-10-17, banc) `fiche.pot` : l'essai porte LE POT d'un gabarit existant (sans lui, le pot générique) */
+  SHAPES[nom]=f;if(fiche&&fiche.pot&&ECH_POTS[fiche.pot])ECH_POTS[nom]=ECH_POTS[fiche.pot];if(fiche&&fiche.pot&&LP_LARGES[fiche.pot])LP_LARGES[nom]=LP_LARGES[fiche.pot]; /* (facettes larges : l'essai prend la tolérance de son gabarit) */ /* (2026-10-17, banc) `fiche.pot` : l'essai porte LE POT d'un gabarit existant (sans lui, le pot générique) */
   const sp=Object.assign({name:'ESSAI',color:0xffffff,accent:0x222222,maxKmh:300,accel:30,turn:2.6,h:1.3,w:1.9,l:4.5,spoiler:0,desc:''},fiche||{});sp.shape=nom;
   CARS.push(sp);const i=CARS.length-1,out={photos:[]};
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible;
@@ -46401,7 +46503,7 @@ window.dbgEssaiCaisse=function(src,fiche,vues){
       x.putImageData(im,0,0);out.photos.push(cv.toDataURL('image/png'));
     }
   }finally{
-    CARS.pop();delete SHAPES[nom];delete ECH_POTS[nom];
+    CARS.pop();delete SHAPES[nom];delete ECH_POTS[nom];delete LP_LARGES[nom];
     if(par)par.add(carGroup);carGroup.position.copy(pos);carGroup.rotation.copy(rot);carGroup.scale.copy(sc);carGroup.visible=vis;
     try{buildCar(CARS[equippedCar()]);}catch(e){}
   }
