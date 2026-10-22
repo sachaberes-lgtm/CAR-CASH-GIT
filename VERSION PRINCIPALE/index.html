@@ -38528,11 +38528,11 @@ SHAPES.corolla=function(K){
        if(nx*mx+ny*my<0){P.tri(k,A,C,B);P.tri(k,A,D,C);}else{P.tri(k,A,B,C);P.tri(k,A,C,D);}}};
    const yl=x=>x<.462?.621+(.634-.621)*(x-.274)/(.462-.274):.634+(.652-.634)*(x-.462)/(.626-.462);
    const VERRE=rentre9(PH,.022),LED=[[.30,yl(.30)+.020],[.60,yl(.60)+.020],[.60,yl(.60)+.040],[.30,yl(.30)+.040]],OEIL=japRect(.655,.66,.725,.715,.006,2);
+   let VP='d';try{const m=/[?&]phare=([bcd])/.exec(location.search);if(m)VP=m[1];}catch(e){}   // (22/10, banc : `?phare=b|c|d` — trois relevés du phare, Léo choisit)
    for(const sd of [1,-1]){
-     piece('k',PH,.032,-.012,sd);          // 1. le boîtier
-     piece('g',VERRE,.052,.024,sd);        // 2. le verre fumé (brillant), rentré
-     piece('W',LED,.064,.044,sd);          // 3. la lame de LED, sur le verre
-     piece('c',OEIL,.074,.030,sd);}}       // 4. l'oeil chromé en saillie
+     if(VP==='b'){piece('k',PH,.012,-.012,sd);piece('W',LED,.020,.008,sd);}                                   // b : UN plateau mince + sa lame de LED
+     else if(VP==='c'){piece('k',PH,.014,-.012,sd);piece('g',VERRE,.022,.010,sd);piece('W',LED,.028,.018,sd);}   // c : boîtier, verre brillant, LED — sans l'oeil, bas
+     else{piece('k',PH,.032,-.012,sd);piece('g',VERRE,.052,.024,sd);piece('W',LED,.064,.044,sd);piece('c',OEIL,.074,.030,sd);}}}   // d : les quatre étages (v. précédente)
   // LES RÉTROVISEURS (relevés sur les trois vues) : la coque à la couleur de la caisse, la glace vers l'arrière, le répétiteur orange devant
   P.sym(sd=>{P.box('k',.10,.035,.10,sd*.80,.885,.745,0,0,0);                              // le pied, sur la portière
     const cx=sd*.94,cy=.995,cz=.71;
