@@ -159,7 +159,6 @@ function orbiteTick(t){ // chaque image : lumière, visibilité, place et regard
   orbiteLumiere(dt9);
   skyU.uEtK.value=renderer.getPixelRatio(); // (2026-10-22) les étoiles se comptent en pixels CSS : voir `pous` (la voûte profonde)
   const ok=LVL.espace>.01&&!garageOn&&!stallOn&&!MENUV.bio,vr=ok&&ORB.actif; // les satellites partent avec leur piste ; la lune, elle, s'efface avec le fondu du niveau
-  anneauTick(t,dt9,ok); // (2026-10-22) l'anneau de fusion autour de la planète (maps/orbite-anneau.js) : visible avec la planète, recalé sur l'œil
   for(let i=0;i<SATS.length;i++)SATS[i].visible=vr&&SATS[i].count>0;
   GLINT.visible=vr&&GLINT.count>0;
   const lunOk=ok&&ORB.lune; // (2026-10-22, la lune retirée du ciel : LUNE_ON) elle reste « dans le niveau » : sa direction (ORB.dm) pilote toujours la clé froide, la caisse est éclairée comme avant
