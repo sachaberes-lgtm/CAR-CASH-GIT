@@ -3,6 +3,28 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA STRATOS, STATION MÉTÉO — DES GADGETS CYBER-FUTURISTES DE PRÉDICTION MÉTÉO, MOITIÉ TECHNIQUE, MOITIÉ ABSTRAIT (2026-10-22, v806, Léo : « retouche stratos : ajoute plusieurs gadgets cyber-futuristes de prédiction météorologique sur la voiture, répartition abstrait / technique, voiture épique » · « design cohérent à la Stratos » · le oui de Léo après la planche : « Oui, pousse la Stratos station météo sur le main »)
+« Stratos » vient de la STRATOSPHÈRE : la berlinette lit le ciel. La caisse n'est pas touchée (livrée, jantes, phares de rallye, feux, profil, lamelles du capot) : on lui pose du matériel dans SA langue — même palette
+(blanc, vert et rouge de la livrée, or des jantes, noir mat, chrome, blanc chaud des phares), mêmes facettes, même montage que la rampe de phares (une platine noire, un collier d'or, la pièce par-dessus).
+- **Code** : `code/voitures/stratos-meteo.js` (nouveau, avant `buildcar.js` dans ORDRE.txt) ; `gamme-3.js` : deux lignes dans `c_stratos` (la palette reçoit `stratosPal()`, et `stratosMeteo(K,P,{yT,LF})` est appelée avant
+  `K.commit(P)`, sous try/catch : une erreur laisse la Stratos d'avant). `?stratos=ancien` = la Stratos d'avant. `dbgStratos({ancien,t,vit,icone,eclair,arc,avance,course})` fige un état au banc (LA STRATOS = `dbgEquipe(48)`).
+- **TECHNIQUE** (du vrai matériel) : l'ANÉMOMÈTRE à trois coupelles blanche / verte / rouge (mât de gauche) et la MANCHE À AIR tricolore (mât de droite), deux mâts rayés vert / blanc / rouge sur les bouts de l'aileron de toit ;
+  deux RADARS DOPPLER qui tournent en sens contraire sur la plage arrière ; deux PARATONNERRES aux bouts du becquet ; deux CADRANS (baromètre, hygromètre) au bout de la rampe de phares ; l'ABRI À PERSIENNES (les persiennes du
+  capot moteur, en blanc) qui porte le gyroscope.
+- **ABSTRAIT** (de la lumière) : le GYROSCOPE (trois anneaux d'or qui basculent sur trois axes, billes verte / blanche / rouge, et l'ICÔNE météo au centre — soleil, nuage, pluie, orage ; carrousel au garage, EN COURSE la météo de
+  la zone : `LVL.pluie`, `LVL.brume`, `LVL.mer`, `LVL.nuit`) ; la BARRE DE PRÉVISION du becquet (21 barres, une courbe de pression qui défile, vert → or → rouge) ; le SCANNER sous le bouclier avant ; l'ARC qui claque d'un
+  paratonnerre à l'autre (tous les 4-9 s, plus souvent à la nitro).
+- **Ce qui bouge** : un seul groupe dans `BLING.anim` (`userData.anime` pour la salle blanche) ; l'allure (arrêt → course → nitro) accélère radars, anneaux, coupelles, barre. 10 dessins de plus (le fixe est versé dans le kit de la
+  caisse : zéro) ; les quatre pictogrammes sont UNE géométrie dont on ne dessine qu'une plage (`setDrawRange`) ; 0 programme compilé de plus (`dbgProgs().n` 16 → 16) ; 0,06 ms par image en JS, AUCUNE allocation par image (tampons
+  préparés une fois, `stratosBoite` réécrit les sommets en place).
+- ⚠ **Piège : la passe des feux LED** (`feuxCaisse`, feux-led.js) relit les couleurs des pièces `l` (matière avec `userData.lp`) aux deux bouts de la caisse et en tire des coques de lueur FIXES — sur des barres qui montent et
+  descendent elles resteraient en l'air. Les pièces lumineuses qui bougent ont donc leur matière à elles (`stratosLampe()`, Basic + couleurs de sommets, SANS `lp`, `plq` : jamais libérée) ; les graduations des cadrans (le seul
+  blanc posé à l'avant) sont en or. Relevé `dbgFeuxLed()` avant / après : 2 coques / 2 coques, rouge 480 / 480.
+- Vérifié (banc d'atelier, 720×440, `dbgEssaiCaisse`) : 0 erreur ni avertissement, ailes de la boutique (X-wing, dragon, phénix, plumes, hélices, monarque) sans collision avec le matériel, peintures de la boutique (noir, or, camo)
+  sans erreur, la caisse équipée se reconstruit 50 fois sans erreur. Puis dans le VRAI jeu (volet intégré affiché) : le garage (planche AVANT | APRÈS dans sa vraie lumière), la tombée de l'écran titre, une course sur le glacier
+  (54 i/s, l'animation tourne dans la vraie boucle) ; garage ancien / nouveau 17-20 ms contre 17-19 ms par image : dans le bruit. En course la caméra est loin : la station se lit surtout au garage. Pas vu sur un vrai téléphone.
+  Planches : `photos-gameplay/stratos-meteo-avant-apres.png` et `stratos-meteo-details.png` (CAR CAHS V3). Reste possible, non fait : au tap sur la caisse, un SCAN (`CAR_ACTION` : radars à fond, arc, éclair).
+
 ## LE GARAGE : TAIL WHIP AU SOL, ŒIL ET RÉGLAGE ÉCHANGÉS, LE BAS REPRIS (2026-10-22 soir, v803, Sacha : « le tail whip à l'inventaire, la caisse décolle : il faut que ça reste sur le sol, avec une trace de pneus comme les donuts » ; « l'œil à la place du cadenas » ; « retravaille tous les boutons »)
 - **Figure à plat = caisse posée** (`garFigEssai` → `GFIG.plat`, boutique-scene-1.js) : une figure dont tous les axes sont verticaux (tail whip, toupie) ne soulève plus la caisse (le saut `1,5·sin` ne vaut que pour les autres) ; `garFigGomme` (burn-out-1.js) dépose la gomme des QUATRE pneus sur la même toile que le donut (`BURN.gom`), de point en point.
 - **Œil ⇄ réglage** (boutons-flottants.css) : le haut droit lit ŒIL · ⚙ · 🏆 (écart --fg 8 px). Lu « cadenas » = le ⚙ doré : à redire si c'était le trophée.
