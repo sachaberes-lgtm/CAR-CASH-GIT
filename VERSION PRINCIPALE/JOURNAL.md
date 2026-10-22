@@ -3,6 +3,25 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'ANNEAU DE FUSION AUTOUR DE LA PLANÈTE DE L'ORBITE (2026-10-22, v792, Léo : « ajoute un anneau de fusion autour de la planète, stylé · récupère ça quelque part et rends-le pixel, en cohérence avec le jeu »)
+- **D'où il vient** : le CŒUR À FUSION, moteur 25 (`case 24` de `voitures/constructeur-moteur.js`, la carte `tore · bobinesD`) — un tokamak : une petite étoile, un tore de plasma qui la
+  traverse, huit bobines de cristal passées autour du tube. Palette de la fiche du moteur (`col` 0xd8ff60 · `flam` 0xf0ff90) : le citron acide, complémentaire exact du bleu de la Terre.
+  Ici la planète est l'étoile et l'anneau l'enserre.
+- **Rendu en pixels** (`maps/orbite-anneau.js`, nouveau morceau après `orbite-2.js`) : le vocabulaire du vitrail et des nuages — de loin lisse et brillant, de près des cubes et leurs joints de lumière.
+  Le tube = 8 cubes par pas autour d'un cœur de cubes blanc-citron qui se touchent (le fil du plasma), à 88 % de leur taille (entre eux passent les joints) ; huit bobines = des cadres de cubes sombres,
+  coins en cristal, dont les joints s'allument à tour de rôle (un chenillard autour de l'anneau) ; une onde lente, trois paquets de plasma qui tournent, des étincelles, le pouls de la musique et le nitro
+  qui l'embrase. De loin : une coque additive qui lie les pixels, puis le bloom. ≈ 4 144 cubes (432 pas), deux appels de dessin (cubes + halo), tout calculé dans le sommet (4 nombres par cube).
+- **Le globe le cache à la main** : la planète se peint sur le plan lointain sans écrire de profondeur (`planetGroup`) — la moitié de l'anneau qui passe DERRIÈRE elle serait dessinée devant.
+  Chaque fragment teste donc son rayon œil → fragment contre la sphère du globe (`uPC`, `uPR`) et part s'il est derrière.
+- **Placement MESURÉ en course** (planches du 22/10, Terre, Mars, Jupiter) : rayon 2250 (×1,44 celui de la planète), axe incliné de ,75 sur la visée et recalé sur l'œil à chaque image (`anneauTick`, appelé
+  par `orbiteTick`) : la même vue à chaque virage, un arc qui enjambe la planète sans écraser le ciel, dans le cadre pendant environ le quart de la course (champ de vision ~120°). Rayon 2750 : sort du cadre ;
+  inclinaison 1,2 : passe à 500 unités de l'œil.
+- **Vie** : enfant de `planetGroup` (il suit sa place, son échelle, son fondu), créé à l'init, caché hors de l'orbite et au garage (`LVL.planete`), pris par `renderer.compile` avec le reste (il parcourt aussi le caché) :
+  trois programmes de plus au menu (228 contre 225 avec `?anneau=0`), aucun de plus en course. 60 i/s au banc. L'allègement de la copie en ligne n'y touche pas (`dbgAnneau` part avec les autres `dbg*`).
+- **Réglage** : `?anneau=0` = la planète seule, comme en v791. Banc : `dbgAnneau({tilt,R,S,fill,seam,halo,hot,core,coil,corner,off})` (`off:true` : la paire AVANT | APRÈS dans une même image).
+- **Vérifié sur le code fusionné avec main v791** : course de l'orbite au pilote automatique (4 400 m) avec et sans l'anneau, `__orbErr` / `__loopErr` / `__banqErr` vides, nombre de programmes compilés inchangé en course.
+- **À valider par Léo (le look)** : la couleur citron, l'épaisseur du tube, la taille de l'arc ; « c bof » → `?anneau=0` est l'avant, un commit de retour est trivial.
+
 ## LA PLUIE DE RICHESSE DE LÉO REMISE (2026-10-22, v790, Sacha : « oui, remets sur main la pluie de richesse de Léo perdue à la fusion du 21/10 »)
 - **CE QUI ÉTAIT PERDU** : la fusion `f456df2f` (« Fusion origin/main (v779) : nuages en cubes, v780 », 21/10 3 h 23) a réassemblé index.html depuis des
   morceaux qui n'avaient jamais reçu la pluie de richesse v766-v778 (faite dans index.html seul). Treize blocs, tous dans richesse-1/2/3 : la BAGUE
