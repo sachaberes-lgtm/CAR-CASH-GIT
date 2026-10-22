@@ -35,64 +35,67 @@ const DN={Q:null,on:false,ms:{},yMin:-1e4,yMax:1e4,mesh:null,mat:null,geo:null,a
    `?sans=dunesdecor` = le décor d'avant ; `?sans=dunesmodules` = le paquet d'avant (4 sortes) ; `dbgDunes().deco` = le tirage. */
 const DN_DECO={on:!/[?&]sans=([^&]*,)?dunesdecor(,|&|$)/.test(location.search),mods:!/[?&]sans=([^&]*,)?dunesmodules(,|&|$)/.test(location.search)};
 const DN_MOSA=!/[?&]mosaique=0\b/.test(location.search),DN_BUTTES=!/[?&]buttes=0\b/.test(location.search); // (2026-10-22) `?mosaique=0` : le sable et la pierre sans mosaïque · `?buttes=0` : sans les buttes de grès (banc : ce que coûte chaque matière)
-const DN_HZ={axe:20,kL:.92,lim:40},DN_SEG={D:2.6,H:26,A:150,haut:260}; // DN_SEG : le sable sous un segment (air sous la dalle, profondeur et hauteur des dunes) · `haut` : de combien le désert lointain est plus bas au départ (m)
+const DN_HZ={axe:20,kL:.92,lim:64},DN_SEG={D:2.6,H:34,A:150,haut:260}; // DN_SEG : la profondeur de la mer de dunes sous la route, sa hauteur, et `haut` : de combien le désert lointain est plus bas au départ (m)
+/* (2026-10-22, Léo : « les routes qui font sauter embrassent une haute colline de sable… le joueur peut piquer en bas ou décoller… je veux niveau 100 » — LA ROUTE CONTINUE) Plus de trou, plus de lèvre coupée :
+   la route est UN ruban, posé sur de grosses dunes. Chaque VAGUE : la MONTÉE (un arc qui ENLACE une colline : le sable monte au-dedans, tombe au-dehors), la CRÊTE (la courbe verticale
+   s'arrondit, l'apex est le tremplin — `dnLevre`), la DESCENTE (une droite sur l'éperon, l'avalanche de chaque côté : on s'y pose), le CREUX (on y tourne, entre deux collines). La pente est la
+   COURBE `GN` (u → pente, linéaire entre ses nœuds : des raccords PARABOLIQUES, jamais d'angle) ; l'altitude en est l'intégrale. Les caractéristiques de chaque vague (`DN.fe`) disent à buildDunes
+   où le sable monte, de quel côté, de combien. */
 function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : il rend la main entre deux étapes
-  CAMPM.length=0;MODMARK.length=0;FILETMARK.length=0;TROUMARK.length=0;
+  CAMPM.length=0;MODMARK.length=0;FILETMARK.length=0;TROUMARK.length=0; /* (aucun TROU : la route est continue) */
   const LV=lvPiste(),LL=1+Math.min(1.3,(LV-1)*.5),g0=(rnd()*4294967296)>>>0;
   const VW=typeof vPalier==='function'?vPalier():70+(LV-1)*100,RMIN=1.08*(typeof rayonPalier==='function'?rayonPalier():40+.3*VW);DN.rmin=Math.round(RMIN);
-  const VN=1.35*VW,LC9=typeof longueurCible==='function'?longueurCible():0;
-  const r=mulberry32(g0),C=[],Q={},GP=[],P=new THREE.Vector3(0,0,0),LIM=DN_HZ.lim*Math.PI/180;let phi=0;
-  const push=()=>C.push(P.clone()),ici=k=>{Q[k]={p:P.clone(),phi:phi};},lib=sg=>(LIM-sg*phi)*57.2958,fait=()=>{let a=0;for(let k=1;k<C.length;k++)a+=Math.hypot(C[k].x-C[k-1].x,C[k].z-C[k-1].z);return a;};
-  const droite=(l,pe,n)=>{n=n||Math.max(2,Math.round(l/60));for(let k=0;k<n;k++){P.x+=Math.sin(phi)*l/n;P.z+=Math.cos(phi)*l/n;P.y+=pe*l/n;push();}};
-  const arc=(aDeg,R,pe)=>{R=Math.max(R,RMIN);const n=Math.max(3,Math.ceil(Math.abs(aDeg)/8)),st=aDeg*Math.PI/180/n,ch=2*R*Math.sin(Math.abs(st)/2);
-    for(let k=0;k<n;k++){phi+=st/2;P.x+=Math.sin(phi)*ch;P.z+=Math.cos(phi)*ch;P.y+=pe*ch;phi+=st/2;push();}};
-  const vir=(sg,a,R,pe)=>{let l9=lib(sg);if(l9<12){sg=-sg;l9=lib(sg);}arc(sg*Math.max(6,Math.min(a,l9)),R,pe);return sg;}; // un virage, jamais au-delà de la butée du cap ; rend le sens pris
-  const recentre=pe=>{if(Math.abs(phi)>.10)arc(-phi*57.2958,RMIN*(2.2+r()*.6),pe);};
-  // LE CREUX d'une dune : là où l'on tourne (la face et la remontée, elles, sont droites)
-  const creux=(t,pe)=>{
-    if(t==='S'){const a=26+r()*20,R=RMIN*(1.45+r()*.7);const sg=vir(r()<.5?-1:1,a,R,pe);vir(-sg,a*(.85+r()*.35),R,pe);}
-    else if(t==='balayage'){const a=42+r()*28,R=RMIN*(2.1+r()*.8);vir(r()<.5?-1:1,a,R,pe);}
-    else if(t==='serpent'){let sg=r()<.5?-1:1;for(let k=0;k<3;k++){const a=24+r()*14;sg=vir(sg,a,RMIN*(1.3+r()*.4),pe);sg=-sg;}}
-    else droite((90+r()*60)*LL,pe);};
-  // UN SAUT : une droite sans route (TROUMARK) — T = le temps de vol visé (s) à la vitesse de conception, pe = la pente (la face d'en face la prolonge)
-  let nTr=0;
-  const trou=(tag,o)=>{o=o||{};const T=o.T!=null?o.T:1.25+r()*.4,pe=o.pe!=null?o.pe:.12+r()*.07,len=Math.max(70,VN*T*.80*(o.k||1)),iA=C.length-1;
-    droite(len,-pe,Math.max(3,Math.round(len/55)));GP.push({i0:iA,i1:C.length-1,len:Math.round(len),pe:+pe.toFixed(3),tag:tag||'saut'});nTr++;};
-  // UN SEGMENT : la face d'avalanche (droite : on s'y pose), le creux, la face au vent (droite, remonte), la LÈVRE (droite : on y décolle)
-  const face=(l,sf)=>droite(l*LL,-sf),levre=(l,sm)=>{droite(l*LL,sm);droite(46*LL,.012,1);};
-  const segment=(kind)=>{
-    if(kind==='ilot'){face(38+r()*10,.13);droite((40+r()*12)*LL,.03,1);return;}                                           // un îlot : ~90 m, on s'y pose et on repart
-    if(kind==='avenue'){face(80+r()*30,.12);ici('obel0');droite((440+r()*80)*LL,-.045);ici('obel1');levre(60,.05);return;}  // l'allée : un long segment droit
-    if(kind==='crete'){face(80+r()*30,.12);ici('cr2a');{let sg=r()<.5?-1:1,f9=0;const L9=(360+r()*90)*LL;while(f9<L9){const a=24+r()*16,R=RMIN*(1.8+r()*.9);sg=vir(sg,a,R,-.03);sg=-sg;f9+=R*a/57.2958;}}ici('cr2b');recentre(-.03);levre(56,.055);return;}
-    face(84+r()*44,.11+r()*.07);creux(['S','S','balayage','serpent','droit'][(r()*5)|0],-.03-r()*.02);recentre(-.03);levre(96+r()*56,.05+r()*.04);};
-  // LES PIÈCES : chacune se pose APRÈS un saut (le précédent finit sur une lèvre)
-  const PC={
-    dune:()=>{trou('saut');segment('dune');},
-    ilots:()=>{const i0=C.length-1,n=3+((r()*3)|0);for(let k=0;k<n;k++){trou('ilot',{T:.95+r()*.2,pe:.10+r()*.04});segment('ilot');}MODMARK.push({i0:i0,i1:C.length-1});},
-    vlei:()=>{recentre(-.04);ici('vlei0');trou('vlei',{T:2.0+r()*.25,pe:.085+r()*.02});ici('vlei1');segment('dune');},
-    avenue:()=>{recentre(-.04);const i0=C.length-1;trou('saut');segment('avenue');MODMARK.push({i0:i0,i1:C.length-1});},
-    crete:()=>{recentre(-.04);const i0=C.length-1;trou('saut');segment('crete');MODMARK.push({i0:i0,i1:C.length-1});}};
-  const mel=a=>{for(let i=a.length-1;i>0;i--){const j=(r()*(i+1))|0,x9=a[i];a[i]=a[j];a[j]=x9;}return a;};
-  const B=LC9?LC9*DN_HZ.kL*(.92+r()*.16):5300*LL,FIN=1000*LL,pieces=[];
-  // LE DÉPART : le belvédère, tout en haut — une droite pour s'élancer, un virage, la remontée, la première lèvre
-  push();ici('depart');droite(190*LL,-.035,3);ici('erg0');creux(r()<.5?'S':'balayage',-.035);recentre(-.035);levre(110,.055);
-  // le jeu : le grand saut, les pas japonais, un décor, puis des dunes — l'ordre est tiré ; la longueur visée dit combien en entrent
-  const ess=mel(['vlei','ilots',r()<.5?'avenue':'crete']);
-  const jeu=['dune'];for(const p of ess){jeu.push(p);const n=1+((r()*2)|0);for(let k=0;k<n;k++)jeu.push('dune');} // (une première dune d'abord : le départ domine, la vallée morte ne vient pas en tête)
-  jeu.push(r()<.5?'crete':'avenue');if(r()<.6)jeu.push('dune');
-  const vus={};
-  for(const p of jeu){if(fait()>B-FIN-120&&pieces.length>=3)break;if((p==='crete'||p==='avenue')&&vus[p])continue;vus[p]=1;PC[p]();pieces.push(p);yield;}
-  for(let k=0;k<12&&fait()<B-FIN-480;k++){PC.dune();pieces.push('dune');}
-  // L'OASIS : la dernière face, une longue descente, deux virages, la droite d'arrivée
-  recentre(-.05);trou('fin',{T:1.35,pe:.13});face(130+r()*30,.12);droite(300*LL,-.05);
-  ici('oasis0');{const sg=r()<.5?-1:1;vir(sg,30+r()*14,RMIN*(2.4+r()*.5),-.05);vir(-sg,22+r()*10,RMIN*(2.7+r()*.4),-.04);}ici('fin');droite(150,-.02,2);
+  const LC9=typeof longueurCible==='function'?longueurCible():0;
+  const r=mulberry32(g0),C=[],U=[],Q={},FE=[],GN=[],P=new THREE.Vector3(0,0,0),LIM=DN_HZ.lim*Math.PI/180;let phi=0,uh=0,gP=-.04;
+  const push=()=>{C.push(P.clone());U.push(uh);},ici=k=>{Q[k]={p:P.clone(),phi:phi};},lib=sg=>(LIM-sg*phi)*57.2958,gn=(u,g)=>GN.push([u,g]);
+  const droite=(l,n)=>{n=n||Math.max(2,Math.round(l/34));for(let k=0;k<n;k++){P.x+=Math.sin(phi)*l/n;P.z+=Math.cos(phi)*l/n;uh+=l/n;push();}};
+  const arc=(aDeg,R)=>{R=Math.max(R,RMIN);const n=Math.max(3,Math.ceil(Math.abs(aDeg)/7)),st=aDeg*Math.PI/180/n,ch=2*R*Math.sin(Math.abs(st)/2);
+    for(let k=0;k<n;k++){phi+=st/2;P.x+=Math.sin(phi)*ch;P.z+=Math.cos(phi)*ch;uh+=ch;phi+=st/2;push();}};
+  const vir=(sg,a,R)=>{let l9=lib(sg);if(l9<12){sg=-sg;l9=lib(sg);}arc(sg*Math.max(6,Math.min(a,l9)),R);return sg;}; // un virage, jamais au-delà de la butée du cap ; rend le sens pris
+  const recentre=()=>{if(Math.abs(phi)>.10)arc(-phi*57.2958,RMIN*(2.1+r()*.6));};
+  // LE CREUX d'une vague : là où l'on tourne (la descente et la montée, elles, sont des arcs et des droites posés)
+  const creux=t=>{
+    if(t==='S'){const a=26+r()*22,R=RMIN*(1.45+r()*.7);const sg=vir(r()<.5?-1:1,a,R);vir(-sg,a*(.85+r()*.35),R);}
+    else if(t==='balayage'){const a=42+r()*26,R=RMIN*(2.0+r()*.8);vir(r()<.5?-1:1,a,R);}
+    else if(t==='serpent'){let sg=r()<.5?-1:1;for(let k=0;k<3;k++){const a=24+r()*14;sg=vir(sg,a,RMIN*(1.3+r()*.4));sg=-sg;}}
+    else droite((100+r()*60)*LL);};
+  // le fond d'une vague : on tourne, ou (l'allée, la cuvette d'argile) on roule droit entre deux rangées de décors
+  const valle=fe=>{const u0=uh;
+    if(fe.sp==='avenue'){recentre();ici('obel0');droite((400+r()*70)*LL);ici('obel1');}
+    else if(fe.sp==='vlei'){ici('vlei0');creux('balayage');recentre();droite((60+r()*40)*LL);ici('vlei1');}
+    else{creux(fe.vt);recentre();}
+    if(uh-u0<150*LL)droite(150*LL-(uh-u0));};
+  // UNE VAGUE : montée (le chemin enlace une colline), crête (l'apex = le tremplin), descente (l'éperon), puis le creux — `o.sg` : le côté où tourne l'arc, `o.fin` : la dernière (l'oasis)
+  let sgC=r()<.5?-1:1;
+  const vague=o=>{const n=FE.length,kb=o.big?1.3:1,fe={n:n,S:r()<.30,notch:r()<.5,ferme:r()<.6,gm:.074+r()*.034,gl:.150+r()*.040,Lc:(72+r()*30)*LL,gv:-(.020+r()*.028),
+      vt:['S','S','balayage','serpent','droit'][(r()*5)|0],sp:o.sp||'',big:o.big?1:0,fin:o.fin?1:0,sg:0,sg2:0,K:kb};FE.push(fe);
+    ici('m'+n+'a');{const uM=uh;gn(uM-40,gP);gn(uM+40,fe.gm);}
+    droite((30+r()*40)*LL*kb);
+    if(!fe.S){const a=44+r()*26,R=RMIN*(1.55+r()*.8)*kb,s9=vir(sgC,a,R);fe.sg=-s9;}                                   // l'arc : la colline est AU-DEDANS (le côté σ = −signe du virage)
+    else{const a=34+r()*22,R=RMIN*(1.5+r()*.5),s1=vir(sgC,a,R);droite((16+r()*20)*LL);ici('m'+n+'s');const s2=vir(-s1,a*(.8+r()*.4),RMIN*(1.5+r()*.6));fe.sg=-s1;fe.sg2=-s2;}
+    ici('m'+n+'b');
+    droite(26*LL+fe.Lc/2);ici('c'+n);{const uA=uh;gn(uA-fe.Lc/2,fe.gm);gn(uA+fe.Lc/2,-fe.gl);}                         // l'apex, au milieu de sa courbe verticale
+    droite((o.fin?330+r()*60:225+r()*60)*LL*kb);ici('d'+n);{const uL=uh,gv=o.fin?-.015:fe.gv;gn(uL-50,-fe.gl);gn(uL+50,gv);gP=gv;}
+    if(o.fin){ici('oasis0');creux('S');recentre();droite(240*LL);ici('fin');droite(150,2);}
+    else valle(fe);
+    sgC=r()<.75?-sgC:sgC;};
+  const B=LC9?LC9*DN_HZ.kL*(.92+r()*.16):5300*LL,FIN=1350*LL,DEP=470*LL,CY=800*LL;
+  // LE DÉPART : le belvédère, tout en haut — une droite pour s'élancer, un virage, puis la 1re colline
+  push();ici('depart');gn(0,gP);droite(220*LL);creux(r()<.5?'S':'balayage');recentre();ici('erg0');
+  const nc=Math.max(3,Math.min(9,Math.round((B-FIN-DEP)/CY))),spec=[];{const L9=['vlei','avenue'];for(let i=L9.length-1;i>0;i--){const j=(r()*(i+1))|0,x9=L9[i];L9[i]=L9[j];L9[j]=x9;}
+    const lib9=[];for(let k=1;k<nc-1;k++)lib9.push(k);for(let i=lib9.length-1;i>0;i--){const j=(r()*(i+1))|0,x9=lib9[i];lib9[i]=lib9[j];lib9[j]=x9;}
+    for(let k=0;k<L9.length&&k<lib9.length;k++)spec[lib9[k]]=L9[k];}
+  const grande=1+((r()*Math.max(1,nc-1))|0);
+  for(let k=0;k<nc;k++){vague({sp:spec[k]||'',big:k===grande});yield;}
+  vague({fin:true});
+  // LES ALTITUDES : GN = (u, pente), linéaire entre deux nœuds (des raccords PARABOLIQUES : crêtes et creux arrondis) ; y est l'intégrale de la pente le long de la route
+  {const gAt=u=>{if(u<=GN[0][0])return GN[0][1];for(let k=1;k<GN.length;k++)if(u<=GN[k][0]){const a=GN[k-1],b=GN[k],t=(u-a[0])/Math.max(1e-6,b[0]-a[0]);return a[1]+(b[1]-a[1])*t;}return GN[GN.length-1][1];};
+   C[0].y=0;for(let k=1;k<C.length;k++){const a=U[k-1],b=U[k],du=b-a;C[k].y=C[k-1].y+du*(gAt(a)+4*gAt(a+du/2)+gAt(b))/6;}}
   // l'AXE : toute la route tournée autour du départ (le soleil de l'heure, lui, reste celui du monde)
   const ax=(r()-.5)*2*DN_HZ.axe/57.2958,ca=Math.cos(ax),sa=Math.sin(ax),tr=v=>{const x=v.x;v.x=x*ca+v.z*sa;v.z=v.z*ca-x*sa;};
   for(const v of C)tr(v);for(const k in Q){tr(Q[k].p);Q[k].phi+=ax;}
-  lisserRaccords(C);adoucirCretes(C,1);
   for(const k in Q){const o=Q[k];let bi=0,bd=1e18;for(let j=0;j<C.length;j++){const d=C[j].distanceToSquared(o.p);if(d<bd){bd=d;bi=j;}}o.p.copy(C[bi]);}
-  for(const g of GP)TROUMARK.push({i0:g.i0,i1:g.i1});
-  DN.Q=Q;DN.gp=GP;DN.sep=0;DN.hz={axe:Math.round(ax*57.2958),B:Math.round(B),LL:+LL.toFixed(2),RMIN:Math.round(RMIN),VN:Math.round(VN),sauts:nTr,pieces:pieces};
+  DN.Q=Q;DN.fe=FE;DN.gp=[];DN.sep=0;DN.hz={axe:Math.round(ax*57.2958),B:Math.round(B),LL:+LL.toFixed(2),RMIN:Math.round(RMIN),VN:Math.round(1.35*VW),sauts:FE.length,vagues:FE.length,pieces:FE.map(function(f){return f.sp||(f.big?'grande':f.fin?'fin':'vague');})};
   return C;
 }
 /* LA DUNE — la même fonction que la puce (dnDune du GLSL), lue dans le même bruit (cyNz) : W = [vent x, vent z, houle x, houle z], lam = la longueur
@@ -104,8 +107,6 @@ function dnDune(x,z,W,lam,o){ /* (le bruit lu aux SEULES grandes échelles, cana
   const a2=(x*W[2]+z*W[3])/(lam*.40)+1.6*w2+.5*w3,f2=a2-Math.floor(a2);
   const p2=f2<.68?Math.pow(Math.max(f2/.68,1e-5),1.4):Math.pow(Math.max((1-f2)/.32,1e-5),1.1);              // la houle en biais, dans les creux surtout
   if(o)o.du=p*m;return p*m+.08*p2*(1-.75*p);}
-/* LA HAUTEUR DU SABLE — la même que la puce (dnHt), lue dans les mêmes données : le fond B, l'amplitude A, la cuvette `pan` (grille de 64 m),
-   le plafond C et le plancher G (grille fine), l'oasis. `o` (facultatif) reçoit eau (0/1). */
 /* LES BUTTES (2026-10-22, Léo : « le niveau dune n'est pas au niveau — regarde jade, la grotte, la forêt » : des masses qui dressent l'horizon, comme les pics de jade) — des plateaux de grès à flancs raides, ajoutés
    au sable LOIN de la route (dr = la distance à la route, 260 m → rien, 520 m → plein) : le masque est un seuil du bruit (canal 1, tuile de 6 km), le haut (70 à 180 m) un autre bruit (canal 2). Même
    fonction dans le GLSL de la puce (dnMesa de DN_VS) : toute retouche ici se refait là-bas. */
@@ -113,27 +114,34 @@ function dnMesa(x,z,dr){if(DN.sb)return 0;const n=cyNz(x/6000+.21,z/6000+.73,1),
   const t=cyNz(x/1700+.5,z/1700+.1,2),f=Math.max(0,Math.min(1,(dr-260)/260)),w=f*f*(3-2*f),F9=DN.fin;let fe=1;if(F9){const q=Math.max(0,Math.min(1,(Math.hypot(x-F9.x,z-F9.z)-1800)/1200));fe=q*q*(3-2*q);} // (aucune butte autour de l'arrivée : les pyramides, l'oasis, le portail)
   return m0*w*fe*(70+110*t);}
 const DN_O9={};
-function dnHauteur(x,z,o){const Z=DN.Z,F=DN.F;o=o||DN_O9;
+function dnFar(x,z,o){const Z=DN.Z;o=o||DN_O9;
   const zx=(x-(Z.x0-Z.ts*.5))/Z.ts,zz=(z-(Z.z0-Z.ts*.5))/Z.ts,B=cyBil(Z.d,Z.nx,Z.nz,4,0,zx,zz),A=cyBil(Z.d,Z.nx,Z.nz,4,2,zx,zz),pan=cyBil(Z.d,Z.nx,Z.nz,4,3,zx,zz);
   const me=dnMesa(x,z,cyBil(Z.d,Z.nx,Z.nz,4,1,zx,zz)),mk=Math.max(0,Math.min(1,me/20)); // la butte : son haut est plat (les dunes s'effacent dessus)
-  let h=B+A*(dnDune(x,z,DN.vent,DN.lam)-.35)*(1-.85*pan)*(1-.92*mk)+me;
+  const dun=A*(dnDune(x,z,DN.vent,DN.lam)-.35)*(1-.85*pan)*(1-.92*mk)+me;o.dun=dun;o.B=B;return B+dun;}
+/* LA HAUTEUR DU SABLE (2026-10-22, LA ROUTE CONTINUE) — la même que la puce (dnHt) : le DÉSERT (dnFar : le fond B, l'amplitude A, la cuvette `pan`, les buttes — grille de 64 m) et le TERRAIN PRESCRIT près de la
+   route (grille fine : Hn = la hauteur voulue, w = son poids) : h = désert + w × (Hn − désert). Plus de plafond ni de plancher : la route porte son sable, il l'enlace. `o` (facultatif) reçoit eau (0/1), dun, B. */
+function dnHauteur(x,z,o){const F=DN.F;o=o||DN_O9;let h=dnFar(x,z,o);
   const fx=(x-(F.x0-F.ts*.5))/(F.nx*F.ts),fz=(z-(F.z0-F.ts*.5))/(F.nz*F.ts);
-  if(fx>0&&fz>0&&fx<1&&fz<1){const px=fx*F.nx,pz=fz*F.nz,c=cyBil(F.c,F.nx,F.nz,2,0,px,pz),g=cyBil(F.c,F.nx,F.nz,2,1,px,pz);h=Math.min(Math.max(h,g),c);}
+  if(fx>0&&fz>0&&fx<1&&fz<1){const px=fx*F.nx,pz=fz*F.nz,w=cyBil(F.c,F.nx,F.nz,2,1,px,pz);if(w>0)h+=(cyBil(F.c,F.nx,F.nz,2,0,px,pz)-h)*w;}
   o.eau=0;const A9=DN.oa;if(A9){const rr=Math.hypot(x-A9.x,z-A9.z)/A9.r;if(rr<2.4){const q=rr<1?A9.y-12*(1-rr*rr):A9.y+(rr-1)*A9.r*.2;if(q<h)h=q;if(h<A9.y-.05){h=A9.y;o.eau=1;}}}
   return h;}
-/* le profil en travers d'UN bras de route, vu depuis l'échantillon i0 (affiné ±4) : o.C = le plafond, o.G = le plancher — faux hors de portée */
+/* LE PROFIL EN TRAVERS : à dd mètres du bord de la berme, de combien le sable est au-dessus (ou au-dessous : négatif) du niveau de la berme. Hh > 0 : une COLLINE — le sable monte (~10° au bord, 25° au plus),
+   arrive à Hh à Wh mètres (la crête), puis retombe à 31° vers le désert ; Hh < 0 : l'ÉPERON — il tombe de |Hh| (17° puis 33°) jusqu'à la mer ; Dn : la profondeur de la mer sous la berme. */
+function dnPf(dd,Hh,Wh,Dn){if(dd<=0)return 0;
+  if(Hh>0){const t=dd/Wh;if(t<1)return Hh*(.45*t+.275*(1-Math.cos(Math.PI*t)));const q=Hh-.60*(dd-Wh),k=16,hh=Math.max(k-Math.abs(q+Dn),0)/k;return Math.max(q,-Dn)+hh*hh*k/4;}
+  const F=-Hh,dr=.30*dd+.36*(dd>26?dd-26:0),k=14,hh=Math.max(k-Math.abs(dr-F),0)/k;return -(Math.min(dr,F)-hh*hh*k/4);}
+/* le terrain PRESCRIT d'UN bras de route, vu depuis l'échantillon i0 (affiné ±4) : o.H = sa hauteur, o.d = la distance à l'axe, o.w = son poids contre le désert — faux hors de portée.
+   La berme : le sable se tient 1,6 m sous le bitume sur 10 m au-delà du bord (la caisse qui décolle ne le voit pas, la dalle n'a qu'un liseré de tranche), puis le profil du côté (hP/wP, hM/wM). */
 function dnProfil(S,RE,i0,x,z,o,RH,TH){
   let bd=1e18,bj=-1,bu=0;const a=Math.max(0,i0-4),b=Math.min(S.n-2,i0+4);
   for(let j=a;j<=b;j++){const ax=S.x[j],az=S.z[j],dx=S.x[j+1]-ax,dz=S.z[j+1]-az,l2=dx*dx+dz*dz||1;let u=((x-ax)*dx+(z-az)*dz)/l2;u=u<0?0:u>1?1:u;
     const px=ax+dx*u-x,pz=az+dz*u-z,d=px*px+pz*pz;if(d<bd){bd=d;bj=j;bu=u;}}
   if(bj<0)return false;const j=bj,u=bu,j1=j+1,d=Math.sqrt(bd);if(d>RE[j]+20)return false;
-  const v=1-u,y=S.y[j]*v+S.y[j1]*u,D=S.D[j]*v+S.D[j1]*u,zC=S.zC[j]*v+S.zC[j1]*u,gd=S.gd[j]*v+S.gd[j1]*u,top=y-TH-D,sl=.75-.63*gd;
-  o.C=top+Math.max(0,d-(RH+6))*sl;                                                       // le sable au repos (37°) — presque plat dans les boucles
-  o.G=zC>.01?top-1-Math.max(0,d-8)*.40-Math.max(0,d-(RH+3))*.24-(1-zC)*300:-1e5;          // la dune qui porte la route : une crête sous l'axe, ses flancs à 22° puis 32°
-  /* LE PLATEAU DE LA SCÈNE (2026-10-22) : sur une scène (colonnade, allée…) le sable s'étend à plat jusqu'à pw (m depuis l'axe), à 1,6 m sous la dalle, puis retombe comme avant ; le plateau monte en douceur (tp) */
-  const pw=S.pw?(S.pw[j]*v+S.pw[j1]*u)*zC:0;if(pw>2){const bw=Math.min(1,pw/(RH*.7)),yP=(top-1)+((y-1.6)-(top-1))*bw,dg=Math.max(0,d-Math.max(pw,8)),Gp=yP-dg*.40-Math.max(0,dg-(RH-5))*.24,Cp=yP+.7+Math.max(0,d-Math.max(pw,RH+6))*sl;
-    if(zC>.01){o.G+=(Gp-o.G)*bw;}o.C+=(Cp-o.C)*bw;}
-  return true;}
+  const v=1-u,qx=x-(S.x[j]*v+S.x[j1]*u),qz=z-(S.z[j]*v+S.z[j1]*u),sg=(qz*(S.tx[j]*v+S.tx[j1]*u)-qx*(S.tz[j]*v+S.tz[j1]*u))>=0?1:-1, // le côté : le décalage (−tz, tx) est le côté +1
+    yb=S.y[j]*v+S.y[j1]*u-1.6,Dn=Math.max(2,yb-(S.B[j]*v+S.B[j1]*u)),Wf=Math.max(0,S.pw[j]*v+S.pw[j1]*u-RH-10),
+    Hh=sg>0?S.hP[j]*v+S.hP[j1]*u:S.hM[j]*v+S.hM[j1]*u,Wh=Math.max(24,sg>0?S.wP[j]*v+S.wP[j1]*u:S.wM[j]*v+S.wM[j1]*u);
+  const p=dnPf(Math.max(0,d-RH-10-Wf),Hh,Wh,Dn),rc=RH+10+Wf+(Hh>0?Wh+Hh/.6:-Hh/.34)+40,t9=Math.max(0,Math.min(1,(d-rc)/200)); // rc : où le profil a fini de dire son mot, puis 200 m de fondu vers le désert
+  o.H=yb+p;o.d=d;o.w=1-t9*t9*(3-2*t9);return true;}
 /* LES DÉCORS QUI COMPTENT POUR L'OMBRE ET LA COLLISION (ici ou dans le travailleur) : les obélisques et la grande pyramide — jamais près d'une route */
 /* LES TROIS PYRAMIDES (2026-10-20, Sacha : « on voit le portail au loin, entre trois pyramides ») : au bout de la route, derrière le portail — deux grandes de chaque
    côté du cap d'arrivée (le portail passe entre elles), la plus haute au fond, dans l'axe : du départ, le portail se lit devant la grande, entre les deux. `st` : le style tiré
@@ -232,7 +240,7 @@ function dnMondeCalc(S,opt){
   // ---- 5. LA GRILLE FINE (12 m) : le plafond et le plancher, des deux bras de route les plus proches ----
   const t2=performance.now(),TF=PAL.b('dnFin',12);let reach=0;for(let i=0;i<NS;i++)if(RE[i]>reach)reach=RE[i];const ME=reach+80;
   const F={ts:TF,x0:x0-ME,z0:z0-ME},fnx=Math.ceil((x1-x0+2*ME)/TF)+1,fnz=Math.ceil((z1-z0+2*ME)/TF)+1;F.nx=fnx;F.nz=fnz;
-  const fc=new Float32Array(fnx*fnz*2);for(let o=0;o<fnx*fnz;o++){fc[o*2]=1e5;fc[o*2+1]=-1e5;}
+  const fc=new Float32Array(fnx*fnz*2);
   const TQ=32,qnx=Math.ceil((fnx*TF)/TQ)+1,qnz=Math.ceil((fnz*TF)/TQ)+1,q1=new Int32Array(qnx*qnz).fill(-1),q2=new Int32Array(qnx*qnz).fill(-1),d1=new Float32Array(qnx*qnz).fill(1e9),d2=new Float32Array(qnx*qnz).fill(1e9),LEG=Math.round(560/S.ds);
   for(let i=0;i<NS;i+=4){const cx=(S.x[i]-F.x0)/TQ,cz=(S.z[i]-F.z0)/TQ,R9=RE[i]+48,rr=Math.ceil(R9/TQ);
     for(let jz=Math.max(0,Math.floor(cz-rr));jz<=Math.min(qnz-1,Math.ceil(cz+rr));jz++)for(let jx=Math.max(0,Math.floor(cx-rr));jx<=Math.min(qnx-1,Math.ceil(cx+rr));jx++){
@@ -240,16 +248,20 @@ function dnMondeCalc(S,opt){
       if(q1[o]<0||Math.abs(i-q1[o])<LEG){if(d<d1[o]){d1[o]=d;q1[o]=i;}}
       else if(d<d1[o]){q2[o]=q1[o];d2[o]=d1[o];q1[o]=i;d1[o]=d;}
       else if((q2[o]<0||Math.abs(i-q2[o])<LEG||d<d2[o])&&d<d2[o]){q2[o]=i;d2[o]=d;}}}
-  const pf={};let nc=0;
-  for(let jz=0;jz<fnz;jz++)for(let jx=0;jx<fnx;jx++){const qo=Math.min(qnz-1,Math.round(jz*TF/TQ))*qnx+Math.min(qnx-1,Math.round(jx*TF/TQ));
-    if(q1[qo]<0)continue;const x=F.x0+jx*TF,z=F.z0+jz*TF;let C9=1e5,G9=-1e5,bo=0;
-    for(let c=0;c<2;c++){const i0=c?q2[qo]:q1[qo];if(i0<0||(c&&d2[qo]>RE[i0]+48))continue;if(!dnProfil(S,RE,i0,x,z,pf,RH,TH))continue;bo=1;if(pf.C<C9)C9=pf.C;if(pf.G>G9)G9=pf.G;}
-    if(!bo)continue;nc++;const o=jz*fnx+jx;fc[o*2]=C9;fc[o*2+1]=G9;}
+  /* (2026-10-22, LA ROUTE CONTINUE) Hn : la hauteur PRESCRITE (la berme, la colline, l'éperon, plus un peu du relief du désert qui revient avec la distance), w : son poids contre le désert — le
+     désert lui-même (dnFar) PARTOUT ailleurs, pour que l'interpolation de Hn ne mélange jamais une case prescrite à une case sans valeur */
+  const pf={},fo={};let nc=0,fymax=-1e9;
+  for(let jz=0;jz<fnz;jz++)for(let jx=0;jx<fnx;jx++){const o=jz*fnx+jx,x=F.x0+jx*TF,z=F.z0+jz*TF;fc[o*2]=dnFar(x,z,fo);fc[o*2+1]=0;
+    const qo=Math.min(qnz-1,Math.round(jz*TF/TQ))*qnx+Math.min(qnx-1,Math.round(jx*TF/TQ));
+    if(q1[qo]<0)continue;let sa=0,sh=0,w9=0,d9=1e9;
+    for(let c=0;c<2;c++){const i0=c?q2[qo]:q1[qo];if(i0<0||(c&&d2[qo]>RE[i0]+48))continue;if(!dnProfil(S,RE,i0,x,z,pf,RH,TH)||pf.w<=0)continue;
+      const a9=pf.w*Math.exp(-pf.d/14);sa+=a9;sh+=a9*pf.H;if(pf.w>w9)w9=pf.w;if(pf.d<d9)d9=pf.d;} /* (deux bras proches : leur terrain se MÊLE, le plus proche l'emporte — jamais le plus haut : une colline ne doit pas enterrer la route d'à côté) */
+    if(w9<=0||sa<=0)continue;const H9=sh/sa;nc++;const rp=Math.max(0,Math.min(1,(d9-RH-20)/90)),rr=rp*rp*(3-2*rp),hn=H9+.40*rr*fo.dun;fc[o*2]=hn;fc[o*2+1]=w9;if(hn>fymax)fymax=hn;}
   F.c=fc;DN.F=F;ms.fin=Math.round(performance.now()-t2);ms.texels=nc;
   const pv=dnPrevoir(S,opt.sQ,K,RH,r,opt.deco);DN.ob=pv.ob;DN.pyr=pv.pyr;
   // ---- 6. L'OMBRE : balayée une fois dans le sens du soleil de l'heure ----
   pv.sv=opt.vol||[];const t3=performance.now();dnOmbre(opt.sun[0],opt.sun[1],pv);ms.ombre=Math.round(performance.now()-t3);
-  let yMax=-1e9,yMin=1e9;for(let o=0;o<znx*znz;o++){const b=zdat[o*4],a=zdat[o*4+2];if(b+a>yMax)yMax=b+a;if(b-a*.4<yMin)yMin=b-a*.4;}
+  let yMax=-1e9,yMin=1e9;for(let o=0;o<znx*znz;o++){const b=zdat[o*4],a=zdat[o*4+2];if(b+a>yMax)yMax=b+a;if(b-a*.4<yMin)yMin=b-a*.4;}if(fymax>yMax)yMax=fymax;
   if(pv.pyr)yMax=Math.max(yMax,pv.pyr.y+pv.pyr.h);for(const b of pv.ob)yMax=Math.max(yMax,b.y+b.h);
   for(const b of pv.pyrs||[])yMax=Math.max(yMax,b.y+b.h);for(const b of pv.mo||[])yMax=Math.max(yMax,b.y+b.h);
   if(opt.oa)yMin=Math.min(yMin,opt.oa.y-20);
@@ -280,57 +292,58 @@ function buildDunes(seed){
   cyBruits();dnTerrain();
   // ---- 1. LES ÉCHANTILLONS : la route tous les 8 m ----
   const DS=8,NS=Math.max(3,Math.floor(L/DS)+1),st9=L/(NP-1),A9=n=>new Float32Array(n);
-  const S={n:NS,ds:DS,x:A9(NS),z:A9(NS),y:A9(NS),tx:A9(NS),tz:A9(NS),H:A9(NS),A:A9(NS),D:A9(NS),zC:A9(NS),pan:A9(NS),ob:A9(NS),gd:A9(NS),B:A9(NS),Yf:A9(NS),RE:A9(NS),pw:A9(NS)};
+  const S={n:NS,ds:DS,x:A9(NS),z:A9(NS),y:A9(NS),tx:A9(NS),tz:A9(NS),H:A9(NS),A:A9(NS),D:A9(NS),zC:A9(NS),pan:A9(NS),ob:A9(NS),gd:A9(NS),B:A9(NS),Yf:A9(NS),RE:A9(NS),pw:A9(NS),hP:A9(NS),wP:A9(NS),hM:A9(NS),wM:A9(NS)};
   let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;
   for(let i=0;i<NS;i++){const s9=Math.min(L,i*DS),f=s9/st9,k=Math.min(NP-2,Math.floor(f)),u=f-k,a=pts[k],b=pts[k+1];
     S.x[i]=a.x+(b.x-a.x)*u;S.y[i]=a.y+(b.y-a.y)*u;S.z[i]=a.z+(b.z-a.z)*u;const tx=b.x-a.x,tz=b.z-a.z,tl=Math.hypot(tx,tz)||1;S.tx[i]=tx/tl;S.tz[i]=tz/tl;
     if(S.x[i]<x0)x0=S.x[i];if(S.x[i]>x1)x1=S.x[i];if(S.z[i]<z0)z0=S.z[i];if(S.z[i]>z1)z1=S.z[i];}
-  S.bb=[x0,x1,z0,z1];
-  // ---- 2. LES SECTIONS : par échantillon, H = la profondeur de la mer de dunes sous la route, A = la hauteur des dunes, D = l'air sous la dalle, zC = la dune qui porte
-  //      la route, pan = la cuvette d'argile, ob = l'allée. LES SEGMENTS sont POSÉS sur le sable (D ~ 2,6 m : une dune sous la dalle) ; sous chaque SAUT (TROUS) la mer de dunes
-  //      descend en cuvette (D jusqu'à 22-52 m sous la ligne de vol), le sable ne porte plus rien : la caisse la survole ----
+  S.bb=[x0,x1,z0,z1];S.zC.fill(1);
+  // ---- 2. LES SECTIONS : par échantillon, H = la profondeur de la mer de dunes sous la route, A = la hauteur des dunes, pan = la cuvette d'argile, ob = l'allée. (Plus de segments ni de saut : le sable
+  //      porte la route d'un bout à l'autre, voir les COLLINES plus bas.) ----
   const sQ={};if(DN.Q)for(const k in DN.Q){const p=DN.Q[k].p;let bi=0,bd=1e18;for(let i=0;i<NS;i++){const d=(S.x[i]-p.x)**2+(S.y[i]-p.y)**2+(S.z[i]-p.z)**2;if(d<bd){bd=d;bi=i;}}sQ[k]=bi*DS;}
-  DN.sQ=sQ;const gp=DN.gp||[],TV=TROUS||[],sm=(a9,b9,x)=>{const t=Math.max(0,Math.min(1,(x-a9)/(b9-a9)));return t*t*(3-2*t);};
-  const SEG9={D:DN_SEG.D,H:DN_SEG.H,A:DN_SEG.A*K};
-  {const ph=[r()*6.28,r()*6.28,r()*6.28],so=sQ.oasis0!=null?sQ.oasis0:L-420,ob0=sQ.obel0,ob1=sQ.obel1;
-   for(let i=0;i<NS;i++){const s9=i*DS;let ej=-1,dOut=1e9,jn=-1;
-     for(let j=0;j<TV.length;j++){const t=TV[j];if(s9>=t.s0&&s9<=t.s1){ej=Math.min(s9-t.s0,t.s1-s9);jn=j;dOut=0;break;}const d=s9<t.s0?t.s0-s9:s9-t.s1;if(d<dOut){dOut=d;jn=j;}}
-     const dedans=ej>=0,g=jn>=0?gp[jn]||{}:{},tag=g.tag||'saut',len=jn>=0?TV[jn].s1-TV[jn].s0:100,
-       w=dedans?1:1-sm(0,110,dOut),                                        // la cuvette se devine avant la lèvre
-       bump=dedans?sm(6,Math.max(20,Math.min(95,len*.45)),ej):0,           // 0 aux deux bouts (la lèvre, la pose), 1 au milieu
-       Dv=tag==='vlei'?52:tag==='ilot'?22:tag==='fin'?30:36,Hv=tag==='vlei'?96:tag==='ilot'?40:56,Av=tag==='vlei'?90:130*K;
-     let H=SEG9.H+(Hv-SEG9.H)*w,A=SEG9.A+(Av-SEG9.A)*w,D=SEG9.D+(Dv-SEG9.D)*bump,pan=tag==='vlei'?w:0,zC=dedans?1-sm(0,46,ej):1;
-     const dep=1-sm(300,1000,s9);H+=46*dep;A=Math.max(70*K,A-60*K*dep);        // LE DÉPART : le belvédère — la route domine les collines, la vue s'ouvre sur le désert d'en bas
-     const wo=sm(so-220,so+120,s9);if(wo>0){H+=(38-H)*wo;A+=(90*K-A)*wo;D+=(14-D)*wo;pan=pan+(.5-pan)*wo;zC*=1-wo*.35;} // L'OASIS : la cuvette sous les derniers mètres
-     S.H[i]=H*(1+.10*Math.sin(s9/870+ph[0]));S.A[i]=A*(1+.12*Math.sin(s9/610+ph[1]));S.D[i]=D;S.zC[i]=zC;S.pan[i]=Math.min(1,pan);S.gd[i]=0;
+  DN.sQ=sQ;const sm=(a9,b9,x)=>{const t=Math.max(0,Math.min(1,(x-a9)/(b9-a9)));return t*t*(3-2*t);};
+  const SEG9={H:DN_SEG.H,A:DN_SEG.A*K};
+  {const ph=[r()*6.28,r()*6.28,r()*6.28],so=sQ.oasis0!=null?sQ.oasis0:L-420,ob0=sQ.obel0,ob1=sQ.obel1,v0=sQ.vlei0,v1=sQ.vlei1;
+   for(let i=0;i<NS;i++){const s9=i*DS;let H=SEG9.H,A=SEG9.A,pan=0;
+     if(v0!=null&&v1!=null)pan=sm(v0-80,v0+70,s9)*(1-sm(v1-70,v1+90,s9));                                  // la cuvette d'argile (le grand saut d'avant : la route la traverse maintenant)
+     const dep=1-sm(300,1000,s9);H+=46*dep;A=Math.max(70*K,A-60*K*dep);                                        // LE DÉPART : le belvédère — la route domine les collines, la vue s'ouvre sur le désert d'en bas
+     const wo=sm(so-220,so+120,s9);if(wo>0){H+=(22-H)*wo;A+=(90*K-A)*wo;pan=pan+(.5-pan)*wo;}                   // L'OASIS : la plaine sous les derniers mètres
+     S.H[i]=H*(1+.10*Math.sin(s9/870+ph[0]));S.A[i]=A*(1+.12*Math.sin(s9/610+ph[1]));S.pan[i]=Math.min(1,pan);S.gd[i]=0;
      S.ob[i]=(ob0!=null&&ob1!=null&&s9>=ob0-120&&s9<=ob1+120)?1:0;}}
   // le FOND : la route lissée sur ±300 m, moins la profondeur ; au loin, une mer plus haute (90 m sous la route, bien plus bas au départ : on domine le désert) et plus calme
   {const w=Math.round(300/DS),c=new Float64Array(NS+1);for(let i=0;i<NS;i++)c[i+1]=c[i]+S.y[i];
    for(let i=0;i<NS;i++){const a9=Math.max(0,i-w),b9=Math.min(NS,i+w+1),ys=(c[b9]-c[a9])/(b9-a9);S.B[i]=ys-S.H[i];S.Yf[i]=ys-90-DN_SEG.haut*(1-sm(0,2600,i*DS));}}
-  // la PORTÉE de chaque échantillon : jusqu'où le plafond ou le plancher a encore un mot à dire
-  const RH=ROAD_HALF,TH=THICK;
-  for(let i=0;i<NS;i++){const top=S.y[i]-TH-S.D[i],Pm=S.B[i]+S.A[i]*.9*(1-.85*S.pan[i]),Pn=S.B[i]-S.A[i]*.35,sl=.75-.63*S.gd[i]; // (la dune monte jusqu'à 0,82 A : marge)
-    let re=RH+6+Math.max(0,Pm+20-top)/sl;if(S.zC[i]>.01)re=Math.max(re,RH+3+Math.max(0,top-1-Pn-.40*(RH-5))/.64);
-    S.RE[i]=Math.min(900*K,Math.max(re,RH+40)+30);}
-  // L'OASIS : un lac sous les derniers mètres de la route, 16 m sous la dalle au plus bas
-  let oa=null;{const sC=Math.max(0,L-200*K),iC=Math.min(NS-1,Math.round(sC/DS));let yb=1e9;for(let i=Math.max(0,Math.round((L-700*K)/DS));i<NS;i++)yb=Math.min(yb,S.y[i]-TH-16);
-    oa={x:S.x[iC],z:S.z[iC],r:210*K,y:yb-2};}
+  // ---- 3. LES COLLINES (2026-10-22, LA ROUTE CONTINUE) : de chaque côté de la route, le sable — l'ÉPERON (il tombe jusqu'à la mer) partout, sauf où la vague veut une COLLINE : au DEDANS de l'arc de la
+  //      montée, aux deux flancs de l'encoche de la crête, aux murs du creux. hP/wP : le côté +1 (le décalage (−tz, tx)), hM/wM : le côté −1 ; h > 0 : la colline (sa crête au-dessus de la berme), w : sa largeur ----
+  for(let i=0;i<NS;i++){S.hP[i]=S.hM[i]=-Math.max(5,S.y[i]-1.6-S.B[i]);S.wP[i]=S.wM[i]=0;}
+  {const rf=mulberry32((seed^0x7E11A5)>>>0),mur=(sd,i,h,w,t)=>{if(t<=0)return;const A=sd>0?S.hP:S.hM,W=sd>0?S.wP:S.wM;A[i]+=(h-A[i])*t;W[i]+=(w-W[i])*t;};
+   (DN.fe||[]).forEach(function(fe,n){
+     const sA=sQ['m'+n+'a'],sB=sQ['m'+n+'b'],sS=sQ['m'+n+'s'],sC=sQ['c'+n],sD=sQ['d'+n],sN=sQ['m'+(n+1)+'a']!=null?sQ['m'+(n+1)+'a']:(sQ.fin!=null?sQ.fin:L);
+     if(sA==null||sB==null||sC==null||sD==null)return;
+     const kb=fe.K||1,Hc=(46+34*rf())*K*kb,Wc=Hc*(2.7+.8*rf()),Hn=(18+12*rf())*K*kb,Hv=(14+14*rf())*K,vs=rf()<.5?1:-1,closed=fe.ferme||fe.sp==='avenue'||fe.sp==='vlei';
+     for(let i=0;i<NS;i++){const s9=i*DS;
+       if(fe.S&&sS!=null){mur(fe.sg,i,Hc,Wc,sm(sA-30,sA+50,s9)*(1-sm(sS-10,sS+30,s9)));mur(fe.sg2,i,Hc*.75,Wc*.8,sm(sS-30,sS+10,s9)*(1-sm(sB-20,sB+60,s9)));} // la colline de la montée : le dedans de l'arc (deux arcs : une colline chacun)
+       else mur(fe.sg,i,Hc,Wc,sm(sA-30,sA+50,s9)*(1-sm(sB-20,sB+60,s9)));
+       if(fe.notch){const t=sm(sB-10,sB+50,s9)*(1-sm(sC+10,sC+80,s9));mur(1,i,Hn,Hn*2.9,t);mur(-1,i,Hn,Hn*2.9,t);}                                           // l'encoche de la crête : un mur de chaque côté, il retombe derrière l'apex
+       const tv=sm(sD+30,sD+120,s9)*(1-sm(sN-120,sN-30,s9)),hv=fe.sp==='avenue'?Hv*.55:fe.sp==='vlei'?Hv*.4:Hv;                                              // les murs du creux
+       if(closed){mur(1,i,hv,hv*3,tv);mur(-1,i,hv,hv*3,tv);}else mur(vs,i,hv,hv*3,tv);}});
+   if(sQ.erg0!=null&&sQ.erg0>420)for(let i=0;i<NS;i++){const s9=i*DS,t=sm(250,360,s9)*(1-sm(sQ.erg0-120,sQ.erg0-30,s9));mur(1,i,18*K,54*K,t);mur(-1,i,18*K,54*K,t);}} // le départ : le premier creux, entre le belvédère et la 1re colline
   const D9=DN_DECO.on?dnTirage(seed):null;DN.deco=D9; // (2026-10-20) LE DÉSERT AU HASARD : le tirage du décor (son flux à lui)
-  if(D9){if(D9.oasis.k>0)oa.r*=D9.oasis.k;else oa=null;}                                    // l'oasis : petite, grande… ou un mirage (pas d'eau)
-  // LES RACCOURCIS (pour le banc) : la zone de saut et la sortie, l'écart, la chute
-  DN.rac=[];for(const nm of Object.keys(sQ).filter(function(k){return /^rac[A-Z]0$/.test(k);}).map(function(k){return k.slice(0,4);}).sort()){const a0=sQ[nm+'0'],a1=sQ[nm+'1'],b0=sQ[nm+'2'],b1=sQ[nm+'3'];if(a0==null||a1==null||b0==null||b1==null)continue;
-    const o={nm:nm,haut:[a0,a1],bas:[b0,b1],gain:Math.round(b0-a1),dh:1e9,lat:0};
-    for(let s9=a0;s9<=a1;s9+=40){const i=Math.min(NS-1,Math.round(s9/DS));let bj=-1,bd=1e18;for(let j=Math.round(b0/DS);j<=Math.min(NS-1,Math.round(b1/DS));j++){const d=(S.x[j]-S.x[i])**2+(S.z[j]-S.z[i])**2;if(d<bd){bd=d;bj=j;}}
-      if(bj<0)continue;const lat=Math.sqrt(bd),dh=S.y[i]-S.y[bj];if(lat<120&&dh<o.dh){o.dh=Math.round(dh);o.lat=Math.round(lat);}}
-    DN.rac.push(o);}
+  // L'OASIS : un lac AU BORD de la dernière droite — la route le longe, la berge descend en pente douce, 15 m sous la dalle ; petite, grande… ou un MIRAGE (pas d'eau)
+  let oa=null;{const s0=sQ.oasis0!=null?sQ.oasis0:L-700,s1=sQ.fin!=null?sQ.fin:L-150,iL=Math.min(NS-1,Math.round(Math.max(0,(s0+s1)/2)/DS)),sd=r()<.5?-1:1,rl=210*K*(D9?D9.oasis.k:1);
+    if(rl>0)oa={x:S.x[iL]-S.tz[iL]*sd*(rl+62),z:S.z[iL]+S.tx[iL]*sd*(rl+62),r:rl,y:S.y[iL]-15};}
+  DN.rac=[];
   // LE VENT de la map : il souffle à peu près dans l'axe de la descente (les crêtes coupent la route en travers), à ±35°
   {const dx=S.x[NS-1]-S.x[0],dz=S.z[NS-1]-S.z[0],a=Math.atan2(dx,dz)+(r()-.5)*1.2,b=a+.49;DN.vent=[Math.sin(a),Math.cos(a),Math.sin(b),Math.cos(b)];DN.lam=(520+r()*90)*K;
    if(D9){const a2=Math.atan2(dx,dz)+D9.vent.a,b2=a2+D9.vent.b;DN.vent=[Math.sin(a2),Math.cos(a2),Math.sin(b2),Math.cos(b2)];DN.lam*=D9.vent.lamK;}} // (2026-10-20) le vent TIRÉ : sa direction, la houle en biais, la longueur des dunes (les rides suivent)
-  /* LES LÈVRES (une par saut) : s = la lèvre (la dernière dalle du segment), e = la première dalle du suivant, aim = la distance visée depuis la lèvre — le saut + 30 % du segment
-     d'en face (60 m au plus) : la caisse s'y pose, à n'importe quelle vitesse (voir dnLevre) */
-  DN.lev=[];TV.forEach(function(t,j){const sN=j+1<TV.length?TV[j+1].s0:L,seg=Math.max(30,sN-t.s1);DN.lev.push({s:t.s0,e:t.s1,aim:(t.s1-t.s0)+Math.min(60,seg*.3),seg:Math.round(seg),tag:(gp[j]&&gp[j].tag)||'saut'});});
+  /* LES TREMPLINS (un par vague) : s = l'APEX (le haut de la crête), e = s + 6, aim = la distance visée depuis l'apex — le vol dure ~1,6 s à la vitesse de conception, jamais plus de 60 % de la descente : la
+     caisse retombe SUR la route (la descente, juste derrière), à n'importe quelle vitesse (voir dnLevre) */
+  DN.lev=[];(DN.fe||[]).forEach(function(fe,n){const sC=sQ['c'+n],sD=sQ['d'+n];if(sC==null||sD==null)return;const ll=sD-sC;DN.lev.push({s:sC,e:sC+6,aim:Math.min(ll*.6,1.15*((DN.hz&&DN.hz.VN)||105)),seg:Math.round(ll),tag:fe.big?'grande':'crete'});});
   DN.S=S;DN.ms={ech:Math.round(performance.now()-t0)};
-  dnPlanScenes(S,K,RH,D9);for(let i=0;i<NS;i++)if(S.pw[i]>0)S.RE[i]=Math.min(900*K,S.RE[i]+S.pw[i]+120); // (2026-10-22) les scènes : leurs plateaux entrent dans le profil de la route (dunes-4.js)
+  dnPlanScenes(S,K,ROAD_HALF,D9);
+  // la PORTÉE de chaque échantillon : jusqu'où le profil (la berme, la colline ou l'éperon, puis 200 m de fondu) a encore un mot à dire
+  const RH=ROAD_HALF,TH=THICK;
+  for(let i=0;i<NS;i++){const Wf=Math.max(0,S.pw[i]-RH-10),rc=(h,w)=>RH+10+Wf+(h>0?w+h/.6:-h/.34)+40;S.RE[i]=Math.min(900*K,Math.max(rc(S.hP[i],S.wP[i]),rc(S.hM[i],S.wM[i]))+210);}
   const bio9=BIOMES[(LVL.cur.bio&&LVL.cur.bio[0])||'dunesSoir']||BIOMES.dunesSoir,cA=bio9.cyA||[6,-110,0,0];
   const opt={K:K,seed:seed,RH:RH,TH:TH,sQ:sQ,sun:[cA[0],cA[1]],vent:DN.vent,lam:DN.lam,oa:oa,fin:{x:S.x[NS-1],z:S.z[NS-1]},sb:!DN_BUTTES,vol:DN.scnV||[],Af:150*K,deco:D9,pal:{dnPlat:PAL.b('dnPlat',64),dnFin:PAL.b('dnFin',12),dnOmbre:PAL.b('dnOmbre',44)}};
   DN.oa=oa;DN.fin=opt.fin;DN.sb=opt.sb;DN.t0=t0;
@@ -340,7 +353,7 @@ function buildDunes(seed){
 }
 /* le travailleur : les fonctions du MONDE recopiées par leur source (une seule écriture : elles servent aussi ici, à la collision) */
 function dnTravailleur(){if(DN.w!==undefined)return DN.w;
-  try{const fns=[mulberry32,cyNz,cyBil,dnDune,dnMesa,dnHauteur,dnProfil,dnPyr3,dnPrevoir,dnPrevoirDeco,dnOmbre,dnMondeCalc].map(function(f){return f.toString();}).join('\n');
+  try{const fns=[mulberry32,cyNz,cyBil,dnDune,dnMesa,dnFar,dnHauteur,dnPf,dnProfil,dnPyr3,dnPrevoir,dnPrevoirDeco,dnOmbre,dnMondeCalc].map(function(f){return f.toString();}).join('\n');
     const code="'use strict';var CY={},DN={},DN_O9={},PAL={B:{},b:function(k,d){return PAL.B[k]!=null?PAL.B[k]:d;}};\n"+fns+
       "\nonmessage=function(e){var m=e.data;CY={nz:m.nz};DN={};PAL.B=m.opt.pal;var R=dnMondeCalc(m.S,m.opt);R.job=m.job;"+
       "postMessage(R,[R.Z.d.buffer,R.F.c.buffer,R.O.h.buffer]);};";
