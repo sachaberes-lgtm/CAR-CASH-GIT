@@ -113,13 +113,16 @@ SHAPES.corolla=function(K){
       {k:'K',p:F9.grilleHaut,gate:av},{k:'c',p:japRuban(F9.joncHaut,.013),gate:av,axe:false},                   // la CALANDRE HAUTE noire, bordée de chrome (il file dans les phares)…
       {k:'c',p:japRuban(F9.joncV,.011),gate:av,axe:false},{k:'c',p:F9.logo,gate:av},                            // …le V chromé et le logo
       {k:'K',p:F9.grille,creux:.026,gate:av},                                                                    // la GRANDE BOUCHE, creusée (ses lames sont posées devant, plus bas)
+      /* (22/10, Léo : « le relief oui, mais le phare, ça va pas ») LE PHARE redevient SIMPLE ET À PLAT, un seul aplat noir au contour du plan et sa lame de LED
+         blanche — plus de jonc, de crochet ni de projecteur dessinés, plus d'étages en relief. */
+      {k:'K',p:PH,gate:av},{k:'W',p:[[.30,.650],[.62,.676],[.62,.690],[.30,.664]],gate:av},
       /* (22/10) la PRISE EN L n'est plus dessinée : un bloc noir et son jonc chromé sont posés en relief (voir « LES PHARES ») */
       {k:'K',p:japOvale(.725,.298,.05,.046,18),creux:.022,gate:av},                                             // la coupelle de l'antibrouillard (l'optique est posée dedans, plus bas)
       {k:'c',p:japRuban([[0,.234],[.30,.234],[.60,.238]],.012),creux:-.003,gate:av,axe:false}]),               // le jonc chromé sous la bouche, qui rejoint le pied du L
     cote:japZones([
       {k:'K',p:C9.cadre,gate:cs},{k:'g',p:C9.vitre,gate:cs},{k:'K',p:C9.montantB,gate:cs},{k:'K',p:C9.montantC,gate:cs},{k:'K',p:C9.ecoinc,gate:cs},
       {k:'c',p:C9.poigneeAr,gate:cs},{k:'c',p:C9.poigneeAv,gate:cs},{k:'K',p:C9.creuxAr,creux:.008,gate:cs},{k:'K',p:C9.creuxAv,creux:.008,gate:cs},
-      {k:'r',p:C9.feu.map(p=>[p[0]<-2.12?p[0]-.07:p[0],p[1]]),gate:(x,y,z,nx,ny,nz)=>z<-1.6},COIN,]),   /* (le contour du phare vu de côté : retiré, le phare est posé) */
+      {k:'r',p:C9.feu.map(p=>[p[0]<-2.12?p[0]-.07:p[0],p[1]]),gate:(x,y,z,nx,ny,nz)=>z<-1.6},COIN,{k:'K',p:C9.phare,gate:(x,y,z,nx,ny,nz)=>z>1.6}]),   /* (le phare vu de côté : un aplat noir, comme de face) */
     dos:japZones([
       {k:'r',p:FEU,gate:ar},COIN,{k:'L',p:japRuban(D9.feuLigne,.016),gate:ar,axe:false},{k:'p',p:japDemi(.37,.904,.936,.003,1),gate:ar},
       {k:'c',p:D9.logo,gate:ar},{k:'r',p:japRect(.56,.252,.80,.274,.006,2),gate:ar}]),   // le logo ; les catadioptres, couchés au pied du bouclier (comme sur la vraie)
@@ -169,11 +172,12 @@ SHAPES.corolla=function(K){
        if(nx*mx+ny*my<0){P.tri(k,A,C,B);P.tri(k,A,D,C);}else{P.tri(k,A,B,C);P.tri(k,A,C,D);}}};
    const yl=x=>x<.462?.621+(.634-.621)*(x-.274)/(.462-.274):.634+(.652-.634)*(x-.462)/(.626-.462);
    const VERRE=rentre9(PH,.022),LED=[[.30,yl(.30)+.020],[.60,yl(.60)+.020],[.60,yl(.60)+.040],[.30,yl(.30)+.040]],OEIL=japRect(.655,.66,.725,.715,.006,2);
-   let VP='b';try{const m=/[?&]phare=([bcd])/.exec(location.search);if(m)VP=m[1];}catch(e){}   // (22/10, banc : `?phare=b|c|d` — trois relevés du phare, Léo choisit)
+   let VP='a';try{const m=/[?&]phare=([abcd])/.exec(location.search);if(m)VP=m[1];}catch(e){}   // (22/10, banc : `?phare=b|c|d` — trois relevés du phare, Léo choisit)
    for(const sd of [1,-1]){
      piece('k',F9.prise,.016,-.012,sd);                                  // la prise d'air du bouclier : un bloc noir en relief…
      piece('c',japRuban(JONC_L,.022),.026,.008,sd);                      // …et son jonc chromé, posé dessus au bord haut
-     if(VP==='b'){piece('k',PH,.012,-.012,sd);piece('W',LED,.020,.008,sd);}                                   // b : UN plateau mince + sa lame de LED
+     if(VP==='a'){}                                                       // a : plat, sans pièce (le phare est un aplat de la tôle)
+     else if(VP==='b'){piece('k',PH,.012,-.012,sd);piece('W',LED,.020,.008,sd);}                                   // b : UN plateau mince + sa lame de LED
      else if(VP==='c'){piece('k',PH,.014,-.012,sd);piece('g',VERRE,.022,.010,sd);piece('W',LED,.028,.018,sd);}   // c : boîtier, verre brillant, LED — sans l'oeil, bas
      else{piece('k',PH,.032,-.012,sd);piece('g',VERRE,.052,.024,sd);piece('W',LED,.064,.044,sd);piece('c',OEIL,.074,.030,sd);}}}   // d : les quatre étages (v. précédente)
   // LES RÉTROVISEURS (relevés sur les trois vues) : la coque à la couleur de la caisse, la glace vers l'arrière, le répétiteur orange devant
