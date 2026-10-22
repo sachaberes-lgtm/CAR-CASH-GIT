@@ -38530,16 +38530,19 @@ SHAPES.corolla=function(K){
        if(nx*mx+ny*my<0){P.tri(k,A,C,B);P.tri(k,A,D,C);}else{P.tri(k,A,B,C);P.tri(k,A,C,D);}}};
    const yl=x=>x<.462?.621+(.634-.621)*(x-.274)/(.462-.274):.634+(.652-.634)*(x-.462)/(.626-.462);
    const VERRE=rentre9(PH,.022),LED=[[.30,yl(.30)+.020],[.60,yl(.60)+.020],[.60,yl(.60)+.040],[.30,yl(.30)+.040]],OEIL=japRect(.655,.66,.725,.715,.006,2);
-   const NET=[[.274,.621],[.462,.634],[.626,.652],[.70,.640],[.745,.662],[.762,.72],[.755,.79],[.72,.775],[.641,.744],[.488,.707],[.294,.675]],LED2=[[.31,yl(.31)+.014],[.60,yl(.60)+.014],[.60,yl(.60)+.028],[.31,yl(.31)+.028]];   // (le contour net du phare : un pan de 11 points, sans le crochet du plan)
+   const NET=[[.30,.624],[.462,.634],[.626,.652],[.70,.642],[.745,.662],[.762,.72],[.755,.79],[.72,.775],[.641,.744],[.488,.707],[.30,.672]],
+        VNET=[[.34,.638],[.462,.646],[.62,.663],[.69,.654],[.73,.672],[.744,.72],[.738,.768],[.714,.758],[.64,.732],[.488,.697],[.34,.665]],
+        ONET=[[.655,.672],[.715,.672],[.715,.722],[.655,.722]],LED2=[[.36,yl(.36)+.012],[.60,yl(.60)+.012],[.60,yl(.60)+.026],[.36,yl(.36)+.026]];   // (le contour net du phare : un pan de 11 points, sans le crochet du plan)
    let VP='d';try{const m=/[?&]phare=([abcde])/.exec(location.search);if(m)VP=m[1];}catch(e){}   // (22/10, banc : `?phare=b|c|d` — trois relevés du phare, Léo choisit)
    for(const sd of [1,-1]){
+     piece('d',[[0,.222],[.66,.222],[.78,.238],[.78,.262],[0,.262]],.034,-.010,sd);   // la LAME de bouclier : un patin noir en saillie sur toute la largeur du bas
      piece('k',F9.prise,.016,-.012,sd);                                  // la prise d'air du bouclier : un bloc noir en relief…
      piece('c',japRuban(JONC_L,.022),.026,.008,sd);                      // …et son jonc chromé, posé dessus au bord haut
      if(VP==='e'){piece('k',NET,.010,-.012,sd);piece('W',LED2,.017,.004,sd);}   // e : UNE pièce découpée net (sans la pointe basse) + sa lame de LED, collées par-dessus
      else if(VP==='a'){}                                                       // a : plat, sans pièce (le phare est un aplat de la tôle)
      else if(VP==='b'){piece('k',PH,.012,-.012,sd);piece('W',LED,.020,.008,sd);}                                   // b : UN plateau mince + sa lame de LED
      else if(VP==='c'){piece('k',PH,.014,-.012,sd);piece('g',VERRE,.022,.010,sd);piece('W',LED,.028,.018,sd);}   // c : boîtier, verre brillant, LED — sans l'oeil, bas
-     else{piece('k',PH,.032,-.012,sd);piece('h',VERRE,.052,.024,sd);piece('W',LED,.064,.044,sd);piece('c',OEIL,.074,.030,sd);}}}   // d : les quatre étages (v. précédente)
+     else{piece('k',NET,.032,-.012,sd);piece('h',VNET,.052,.024,sd);piece('W',LED2,.064,.044,sd);piece('c',ONET,.074,.040,sd);}}}   // d : les quatre étages (v. précédente)
   // LES RÉTROVISEURS (relevés sur les trois vues) : la coque à la couleur de la caisse, la glace vers l'arrière, le répétiteur orange devant
   P.sym(sd=>{P.box('k',.10,.035,.10,sd*.80,.885,.745,0,0,0);                              // le pied, sur la portière
     const cx=sd*.94,cy=.995,cz=.71;
