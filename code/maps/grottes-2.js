@@ -156,6 +156,17 @@ function grtPartObj(){if(GRT_FX.part)return GRT_FX.part;const M=grtMats(),n=Math
    1 · les échantillons de route, la boîte, la grille ; 2 · CREUSER (en tranches au pré-bâti) ; 3 · le puits, les lacs, les piliers ; 4 · les
    décors et leurs lumières ; 5 · les MAILLES, tronçon par tronçon, du départ vers l'arrivée — au pré-bâti, toutes ; en direct (le premier
    portail, un rejouer), les 1 100 premiers mètres tout de suite et le reste quelques millisecondes par image (grotteTick). */
+/* (2026-10-22, DEBUGGING : un TROU NOIR dans la paroi du puits — graine 3333, 24 × 48 m, à ~260 m de la route) LES TRONÇONS QUI FERMENT LA ROCHE.
+   La facette d'une arête qui traverse la paroi est posée par le tronçon du côté BAS de l'arête (x, y ou z) ; si ce tronçon n'a jamais été
+   alloué (aucun creusement n'y est passé), l'air d'à côté reste ouvert : on voit le vide à travers une roche qui tue (grtD : -127). Le puits
+   coupe son entonnoir au cylindre Rmax, que le bruit et le haut de l'entonnoir dépassent parfois. Chaque tronçon qui a de l'air sur une face basse
+   reçoit son voisin manquant (de la roche pleine, maillé dans le même ordre) : la densité, donc la collision, ne change pas. */
+function grtBouche(V){const n0=V.pool.length;let n=0;
+  for(let c=0;c<n0;c++){const d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V.CY,ck=(d/(V.CX*V.CY))|0,DN=V.dn[c];
+    for(let ax=0;ax<3;ax++){const a=ci-(ax===0?1:0),b=cj-(ax===1?1:0),e=ck-(ax===2?1:0);if(a<0||b<0||e<0||V.dir[a+V.CX*(b+V.CY*e)]>=0)continue;
+      let air=false;for(let u=0;u<16&&!air;u++)for(let w=0;w<16;w++)if(DN[ax===0?(u<<4)|(w<<8):ax===1?u|(w<<8):u|(w<<4)]>0){air=true;break;}
+      if(air){const c2=grtCh(V,a,b,e);V.chS[c2]=Math.min(V.chS[c2],V.chS[c]);n++;}}}
+  return n;}
 function grotteVide(){
   if(GROTTE.root){GROTTE.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});GROTTE.root=null;}
   GROTTE.V=null;GROTTE.R=null;GROTTE.grp=[];GROTTE.file=null;GROTTE.fi=0;GROTTE.msFile=0;GROTTE.pret=false;GROTTE.col=null;GROTTE.salle=-1;GROTTE.piliers=null;
@@ -179,7 +190,7 @@ function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
   for(let q=0,ac=1e9,nq=0;q<R.n;q++){ac+=6;if(ac<Math.max(6,R.RH[q]/3.2)&&!R.EXT[q])continue;ac=0;grtCreuse1(V,R,q);if((++nq&7)===7&&performance.now()>JF.lim)yield;}
   tm.creuse=Math.round(performance.now()-t9);t9=performance.now();
   grtPuits(V,R);tm.puits=Math.round(performance.now()-t9);if(performance.now()>JF.lim)yield;
-  t9=performance.now();grtLacs(V,R);GROTTE.piliers=grtPiliers(V,R,fr);V.nzc=null;tm.lacs=Math.round(performance.now()-t9);if(performance.now()>JF.lim)yield; // (le cache du bruit ne sert plus)
+  t9=performance.now();grtLacs(V,R);GROTTE.piliers=grtPiliers(V,R,fr);GROTTE.n.bouche=grtBouche(V);V.nzc=null;tm.lacs=Math.round(performance.now()-t9);if(performance.now()>JF.lim)yield; // (le cache du bruit ne sert plus)
   t9=performance.now();const dec=grtDecors(V,R,fr,MOB);tm.decors=Math.round(performance.now()-t9);GROTTE.tm=tm;
   GROTTE.dec=dec.D;GROTTE.LL=grtLumListes(V,dec.T,dec.P);Object.assign(GROTTE.n,dec.n);GROTTE.n.lumieres=dec.P.length;GROTTE.n.piliers=GROTTE.piliers.length;
   GROTTE.n.troncons=V.pool.length;GROTTE.n.air=V.nAir;GROTTE.n.col=GROTTE.col.n;GROTTE.msCreuse=tm.creuse+tm.puits;
@@ -234,11 +245,13 @@ function grotteTick(dt){
    u.uBoxC.value.copy(camera.position);P.visible=u.uK.value>.01;}
 }
 /* ---------------- CE QUI TUE EN VOL : la roche (la densité au point, la surface qu'on voit), la lave, l'eau, et les gros décors (boîtes orientées) ---------------- */
+function grtDansCone(q,p){const dx=p.x-q[0],dy=p.y-q[1],dz=p.z-q[2],t=dx*q[3]+dy*q[4]+dz*q[5];if(t<-1||t>q[8]+1)return false; /* (2026-10-22, DEBUGGING) dans le prisme d'une concrétion (base q0-2, axe q3-5, rayon q6 → q7 sur q8 m), avec la marge d'1 m des boîtes */
+  const r=q[6]+(q[7]-q[6])*Math.max(0,Math.min(1,t/q[8]))+1;return dx*dx+dy*dy+dz*dz-t*t<r*r;}
 function grotteHeurt(p){const V=GROTTE.V;if(!V)return '';
-  if(grtDensIci(V,p.x,p.y,p.z)<=0){const a=grtIci(V,p.x,p.y,p.z),b=grtIci(V,p.x,p.y-4,p.z);return a===4||b===4?'lave':a===5||b===5?'eau':'roche';}
+  if(grtDensIci(V,p.x,p.y,p.z)<=0){const a=grtIci(V,p.x,p.y,p.z),b=grtIci(V,p.x,p.y-V.B*.5,p.z); /* (2026-10-22, DEBUGGING : « 4 m plus bas » datait des cases de 8 m — avec celles de 12 m (LA GROTTE VASTE), quand un centre de case tombe 0 à 2 m au-dessus de la surface d'un lac, le point et ses 4 m plus bas restaient dans cette case non marquée : toute chute dans CE lac (lave, eau, bassin du puits) se lisait « roche » ; une demi-case plus bas est toujours sous la surface) */return a===4||b===4?'lave':a===5||b===5?'eau':'roche';}
   const G=GROTTE.col;if(G){const a=G.G.get(Math.floor(p.x/64)+','+Math.floor(p.z/64));
     if(a)for(let i=0;i<a.length;i++){const o=a[i],dx=p.x-o.x,dz=p.z-o.z,lx=dx*o.c-dz*o.s,lz=dx*o.s+dz*o.c;
-      if(Math.abs(lx)<o.hx+1&&Math.abs(p.y-o.y)<o.hy+1&&Math.abs(lz)<o.hz+1)return o.k;}}
+      if(Math.abs(lx)<o.hx+1&&Math.abs(p.y-o.y)<o.hy+1&&Math.abs(lz)<o.hz+1&&(!o.cone||grtDansCone(o.cone,p)))return o.k;}}
   return '';}
 /* ---------------- LA CHAUFFE AU MENU : la roche et les poussières ---------------- */
 function grotteChauffe(){const M=grtMats(),g9=new THREE.BufferGeometry();
