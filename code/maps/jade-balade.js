@@ -123,7 +123,7 @@ function buildVoxCity(seed,accC){
          caché DANS un autre, dessiné après lui, perçait sa façade par bandes (mesuré au rayon : le mât à 12 m derrière le verre). Même silhouette. */
       if(VIt&&fo>0){h0=H;yV=t;} // une tour de forme : un seul volume (ci-dessous) — les tirages des retraits ont lieu quand même
       else if(VIt){const y1=b+H*fr;if(y1>yV+1){corps.push(cx,(yV+y1)/2,cz,wk,y1-yV,pk);genre.push(0);tqC.push(cx,km,cz);}if(k===0)h0=H*fr;yV=Math.max(yV,y1);}
-      else{corps.push(cx,b+H*fr/2,cz,wk,H*fr,pk);genre.push(0);tqC.push(cx,km,cz);}
+      else{corps.push(cx,b+H*fr/2,cz,wk,H*fr,pk);genre.push(0);tqC.push(cx,km,cz);yV=Math.max(yV,b+H*fr);} /* (2026-10-18, DEBUGGING : ville) yV = le VRAI toit de la tour de béton : quand le dernier retrait est trop fin (19,2 m → 12,8 → 6,4 : break), elle s'arrête vers 0,74 H, pas à t */
       wk=snap(wk*.72);pk=snap(pk*.72);if(wk<VOX_CITY*2||pk<VOX_CITY*2)break;
     }
     if(VIt&&fo>0){corps.push(cx,km,cz,w,H,p);genre.push(0);tqC.push(cx,km,cz);}
@@ -137,8 +137,8 @@ function buildVoxCity(seed,accC){
     }
     // L'ANTENNE et son FEU ROUGE — sinon, parfois, la COURONNE à l'accent de la zone
     if(H>320&&vr()<.5){let ha=24+vr()*56;if(VIt){if(fo===5)ha=0;else{corps.push(cx,yV+ha/2,cz,1.4,ha,1.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,yV+ha,cz,2.2,2.2,2.2);neonC.push(5);tqN.push(cx,km,cz);}} // (VILLE VITRÉE) le mât part du TOIT — pas de mât sur une LAME (son toit est en biais) (il ne traverse plus la tour)
-      else{ha=Math.min(ha,routeAuDessus(cx,cz,hd,t)-t-12);if(ha>=8){corps.push(cx,b+(H+ha)/2,cz,2.4,H+ha,2.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,t+ha,cz,4.5,4.5,4.5);neonC.push(5);tqN.push(cx,km,cz);}}}
-    else if(vr()<.32){if(!VIt||(fo===0&&!vitreBiseau(cx,cz))){neon.push(cx,(VIt?yV:t)-1.4,cz,wk/.72*1.05,2.8,pk/.72*1.05);neonC.push(6);tqN.push(cx,km,cz);}} // (VILLE VITRÉE) pas de couronne carrée sur une tour biseautée
+      else{ha=Math.min(ha,routeAuDessus(cx,cz,hd,t)-t-12);if(ha>=8){corps.push(cx,(b+yV+ha)/2,cz,2.4,yV-b+ha,2.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,yV+ha,cz,4.5,4.5,4.5) /* (DEBUGGING : ville) au bout du mât posé sur le vrai toit */;neonC.push(5);tqN.push(cx,km,cz);}}}
+    else if(vr()<.32){if(!VIt||(fo===0&&!vitreBiseau(cx,cz))){neon.push(cx,yV-1.4,cz, /* (2026-10-18, DEBUGGING : ville) la COURONNE sur le vrai toit : à t, 5 à 15 % d'entre elles flottaient 95 à 256 m au-dessus de la tour (banc, 16 villes) */wk/.72*1.05,2.8,pk/.72*1.05);neonC.push(6);tqN.push(cx,km,cz);}} // (VILLE VITRÉE) pas de couronne carrée sur une tour biseautée
     if(VIt)VTW.push([l0/6,corps.length/6,ln/6,neon.length/6,yN,fo,t]); // (VILLE VITRÉE) la tour, pour la forme et pour son reflet au plafond
     // L'ENSEIGNE VERTICALE : le long du canyon, une tour sur deux porte son néon, à hauteur de ROUTE (on la voit passer)
     if(vr()<(canyon?.5:.18)){
@@ -194,10 +194,11 @@ function buildVoxCity(seed,accC){
   // (2026-09-26, user : « enlève les carrés qui bougent en l'air ») : la CIRCULATION VOLANTE est retirée
   // LES TOURS SONT DURES (2026-09-26, user : « si le joueur entre en collision avec un immeuble, il meurt ») : chaque volume est rangé
   // dans une grille de 60 m ; la boucle de vol demande `villeHeurt(position)` — quelques boîtes testées par image, rien de plus.
-  {const CG=60,g9=new Map(),cc=CR?corps.concat(cryptoColBougies()):corps; // (CRYPTO CITY) les bougies sont dures aussi
-   for(let k=0;k<cc.length/6;k++){if(k<genre.length&&genre[k]>=2)continue;const o=k*6,x0=cc[o]-cc[o+3]/2,x1=cc[o]+cc[o+3]/2,z0=cc[o+2]-cc[o+5]/2,z1=cc[o+2]+cc[o+5]/2;
+  {const CG=60,g9=new Map(),cc=CR?corps.concat(cryptoColBougies()):corps,fo9=new Uint8Array(cc.length/6); /* (2026-10-18, DEBUGGING : ville) fo9 : la FORME de chaque volume de verre (1 + vitreForme ; 0 = une boîte), lue par villeForme */ // (CRYPTO CITY) les bougies sont dures aussi
+   for(let k=0;k<cc.length/6;k++){if(k<genre.length&&genre[k]>=2)continue;const f9=k<nBas&&genre[k]===0&&(VI||verreV[k])?formV[k]+1:0,E9=f9===3?1.42:f9===4?1.17:1;fo9[k]=f9; /* la vrillée tourne, le fuseau s'enfle : leur verre déborde de la boîte */
+     const o=k*6,x0=cc[o]-cc[o+3]/2*E9,x1=cc[o]+cc[o+3]/2*E9,z0=cc[o+2]-cc[o+5]/2*E9,z1=cc[o+2]+cc[o+5]/2*E9;
      for(let gx=Math.floor(x0/CG);gx<=Math.floor(x1/CG);gx++)for(let gz=Math.floor(z0/CG);gz<=Math.floor(z1/CG);gz++){const kk=gx+','+gz;let a=g9.get(kk);if(!a)g9.set(kk,a=[]);a.push(o);}}
-   CITY.col={g:g9,CG:CG,c:Float32Array.from(cc)};}
+   CITY.col={g:g9,CG:CG,c:Float32Array.from(cc),f:fo9};}
   // ---- LA POSE (2026-09-28, passe perf iPhone) : par QUARTIERS, en deux vitesses — voir villeTri ----
   const CUBE=new THREE.BoxGeometry(1,1,1),M=new THREE.Matrix4();
   const col=new THREE.Color(),colT=new Float32Array(genre.length*3),colN=new Float32Array(neonC.length*3);

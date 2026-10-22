@@ -528,7 +528,7 @@ function volcanSol(){
   let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(let i=0;i<NP;i+=6){const p=pts[i];if(p.x<x0)x0=p.x;if(p.x>x1)x1=p.x;if(p.z<z0)z0=p.z;if(p.z>z1)z1=p.z;}
   for(const c of [[VC,K],[VC2,K2]])if(c[0]){x0=Math.min(x0,c[0].x-900);x1=Math.max(x1,c[0].x+900);z0=Math.min(z0,c[0].z-900);z1=Math.max(z1,c[0].z+900);}
   x0-=MARG;x1+=MARG;z0-=MARG;z1+=MARG;
-  const nx=Math.ceil((x1-x0)/C)+1,nz=Math.ceil((z1-z0)/C)+1,N=nx*nz,D=new Float32Array(N).fill(1e9),YN=new Float32Array(N),YM=new Float32Array(N).fill(1e9);
+  const nx=Math.ceil((x1-x0)/C)+1,nz=Math.ceil((z1-z0)/C)+1,N=nx*nz,D=new Float32Array(N).fill(1e9),YN=new Float32Array(N),YM=new Float32Array(N).fill(1e9),EV=new Float32Array(N).fill(1e9),EVon=!(VOLCAN.sauts&&VOLCAN.sauts.length); /* (2026-10-18, DEBUGGING : la spirale) EV = le COULOIR DE CHAQUE ROUTE (le plafond du sol sous chacune, voir le rabot plus bas) ; EVon : la balade (vlcTrace3, sans raccourci) — la descente v4 garde la dalle la plus basse */
   const RS=[],pas=Math.max(1,Math.round(12/(L/(NP-1))));for(let i=0;i<NP;i+=pas)RS.push(i);
   const CG=C*4,gx=Math.ceil((x1-x0)/CG)+1,gz=Math.ceil((z1-z0)/CG)+1,GD=new Float32Array(gx*gz);
   for(let j=0;j<gz;j++)for(let i=0;i<gx;i++){const x=x0+i*CG,z=z0+j*CG;let bd=1e18;for(let k=0;k<RS.length;k+=6){const p=pts[RS[k]],d=(p.x-x)*(p.x-x)+(p.z-z)*(p.z-z);if(d<bd)bd=d;}GD[i+j*gx]=Math.sqrt(bd);} // (la distance lointaine ne sert qu'au tri des morceaux : un point de route sur 6 suffit)
@@ -538,7 +538,7 @@ function volcanSol(){
   for(const ri of RS){const p=pts[ri],ci=Math.round((p.x-x0)/C),cj=Math.round((p.z-z0)/C);
     for(let b=-rC;b<=rC;b++){const j=cj+b;if(j<0||j>=nz)continue;const z=z0+j*C,dz=z-p.z;
       for(let a=-rC;a<=rC;a++){const i=ci+a;if(i<0||i>=nx)continue;const x=x0+i*C,dx=x-p.x,d2=dx*dx+dz*dz;if(d2>R1*R1)continue;const k=i+j*nx;
-        if(d2<D[k]){D[k]=d2;YN[k]=p.y;}if(d2<RY*RY&&p.y<YM[k])YM[k]=p.y;}}}
+        if(d2<D[k]){D[k]=d2;YN[k]=p.y;}if(d2<RY*RY&&p.y<YM[k])YM[k]=p.y;if(EVon){const e9=p.y-16+Math.max(0,Math.sqrt(d2)-ROAD_HALF-10)*1.2;if(e9<EV[k])EV[k]=e9;}}}}
   /* LES CASES, EN TRANCHES (14/10 au soir, règle de PILOTAGE : « construction en tranches < 60 ms ») : ~200 ms de calcul case par case. `S.rangee(j0,j1)`
      calcule des rangées (ou un rectangle de cases) ; buildVolcan fait tout de suite les morceaux du départ, les autres partent dans la file (`vlcTache`) du plus proche au plus loin.
      Une rangée pas encore calculée vaut la MER (H sous ySea, YL = ySea) : jamais de mort sur un sol qui n'existe pas encore. */
@@ -559,9 +559,9 @@ function volcanSol(){
     {const c1=cone(K,VC,x,z),c2=VC2?cone(K2,VC2,x,z):-1e9,cc=Math.max(c1,c2); // (v5) CF : la part du CÔNE et la hauteur sur lui (0 la mer → 1 le sommet), lue par la roche en facettes
      if(VLC5&&cc>h-6){const K9=c1>=c2?K:K2;CF[k]=Math.max(.02,Math.min(1,(cc-yS)/Math.max(1,K9.yP-yS)));}h=Math.max(h,cc);}
     if(IL9){const r=Math.hypot(x-IL9.x,z-IL9.z);if(r<IL9.R*2.4)h=Math.max(h,IL9.y-Math.max(0,r-IL9.R)*1.6+2.5*vlcB(x/30,z/30,sd9+43,2));} // (LE DÉCOR AU HASARD) l'île plate du monument
-    h=Math.min(h,ym-16+Math.max(0,d-ROAD_HALF-10)*1.2);                                                                       // jamais sous la dalle (la plus basse)
+    const cl=EV[k]<1e8?EV[k]:ym-16+Math.max(0,d-ROAD_HALF-10)*1.2;h=Math.min(h,cl); /* (2026-10-18, DEBUGGING : « la spirale sur des falaises ») sur la spirale, `ym` (la dalle la plus basse à moins de 120 m) prenait le TOUR D'EN DESSOUS dès 15-45 m du tour d'au-dessus : le cône taillé pour elle était raboté jusqu'à 16 m sous le tour du bas — des falaises de 110-250 m sous la moitié extérieure de la route, 54-142 marches de plus de 60 m d'une case à l'autre. Chaque route garde son couloir (EV) : le sol reste sous TOUTES les routes, le flanc reste sous la spirale */                                                                       // jamais sous la dalle (la plus basse)
     H[k]=h;let yl=yS;
-    for(const c of [[VC,K],[VC2,K2]])if(c[0]){const r=Math.hypot(x-c[0].x,z-c[0].z);if(r<c[1].rc)yl=Math.max(yl,c[1].yP-c[1].cr*.55);} // le LAC DU CRATÈRE
+    for(const c of [[VC,K],[VC2,K2]])if(c[0]){const r=Math.hypot(x-c[0].x,z-c[0].z);if(r<c[1].rc)yl=Math.max(yl,Math.min(c[1].yP-c[1].cr*.55,cl-2));} /* (2026-10-18, DEBUGGING : « une boîte de lave sur le volcan ») le couloir du dernier tour rabote la lèvre du cratère côté route ; le lac, lui, restait à la hauteur du cratère d'origine : il FLOTTAIT 56-320 m au-dessus de la roche, un couvercle de lave posé sur des rideaux verticaux de 400-750 m (visibles de toute la balade). Le lac ne monte plus au-dessus du sol raboté : là où la lèvre est coupée, il déborde en pente */ // le LAC DU CRATÈRE
     YL[k]=yl;HT[k]=Math.max(0,Math.min(1,(yl+16-h)/16));}};
   return VOLCAN.sol={x0:x0,z0:z0,C:C,nx:nx,nz:nz,h:H,d:D,yn:YN,yl:YL,ht:HT,cf:CF,riv:new Uint8Array(N),MARG:MARG,fait:FAIT,rangee:rangee,gd:function(x,z){return gBil(GD,x,z);}};
 }
