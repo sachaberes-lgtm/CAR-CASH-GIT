@@ -3,6 +3,31 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA PLUIE DE RICHESSE DE LÉO REMISE (2026-10-22, v790, Sacha : « oui, remets sur main la pluie de richesse de Léo perdue à la fusion du 21/10 »)
+- **CE QUI ÉTAIT PERDU** : la fusion `f456df2f` (« Fusion origin/main (v779) : nuages en cubes, v780 », 21/10 3 h 23) a réassemblé index.html depuis des
+  morceaux qui n'avaient jamais reçu la pluie de richesse v766-v778 (faite dans index.html seul). Treize blocs, tous dans richesse-1/2/3 : la BAGUE
+  (`richBagueGeo`, v775), le CIGARE et le TROUSSEAU de clés (`richCigareGeo`, `richClesGeo`, v778), le VRAI CRÂNE scanné (`richCraneGeo`, v766, plus petit en v767),
+  la MONTRE ARGENTÉE une sur deux (`richTexMontreArg`, v767), leurs quotas (`RICH_CAP`) et leurs poids dans les gerbes (`RICH_TIER`). L'œuf d'or reste retiré (v777).
+  Rien d'autre de cette fusion n'a été perdu (comparaison ligne à ligne : 273 blocs gardés, 13 perdus, tous ici).
+- **D'OÙ ILS REVIENNENT** : le commit `06c4f800` (branche `neige-decor`) avait rangé ces v766-v778 dans les morceaux. Ses trois morceaux sont appliqués en trois voies :
+  les nuages du titre (richesse-3, v760-v774) restent ceux de main. Le crâne est logé dans le code (int16 en base64) : aucun fichier à ajouter.
+- **VÉRIFIÉ** (vrai jeu, Chrome sans fenêtre) : deux jackpots forcés sur l'écran titre, sans erreur ; bague, cigare, clés et crâne sortent chacun en groupe 3D,
+  une montre sur quatre en acier (tirage une sur deux). Course sans erreur couché, debout et dans le cadre de l'ordi.
+- ⚠ **LE PIÈGE** (déjà dans le guide de l'assembleur) : une retouche faite dans index.html SEUL disparaît au prochain réassemblage depuis les morceaux. Après une fusion,
+  `node code/assembler.cjs --verifier` d'abord ; s'il dit ≠, ranger la page dans les morceaux (`--depuis-index`), jamais l'inverse à l'aveugle.
+
+## LA PEINTURE GRIS NARDO (2026-10-22, v791, Sacha : « rajoute une couleur gris nardo »)
+- `nardo` (economie/boutique.js, la liste de la PALETTE, laque 0x74777b) : le pack compte 34 couleurs (textes « LES 34 COULEURS SONT À TOI »). En anglais NARDO GREY.
+
+## LE HOT ROD : LE PALIER 10 AVEC LA MUSIQUE (2026-10-22, v788, Sacha : « HOT ROD : atteindre le palier 10 du moteur avec la musique activée ; SQUALE reste en boutique ; TRÔNE CENTRAL reste un défi »)
+- Mission secrète `palier10` (missions/table.js) : `m2Tick` pose le drapeau quand `engTier + 1 ≥ 10` ET `SND.music` est allumé. LE HOT ROD n'est plus à l'argent (les joueurs qui l'avaient le gardent). LE SQUALE reste en boutique à 1,61 € ; LE TRÔNE CENTRAL reste « collecte toutes les voitures ».
+
+## LE TABLEAU DES VOITURES, DEUXIÈME VAGUE : DÉFIS À COMPTEUR, PRIX, RETRAITS (2026-10-22, v787, Sacha : « pousse tout »)
+- **Compteurs à vie** (`SAVE.d.m2.c`, missions/defis-moteur.js : m2Tick, m2Fig, pwrPrend → m2Pu) : `pu` power-ups · `nitS` / `nmaxS` secondes de nitro / de nitro max · `figs` figures · `airS` secondes en l'air · `kmTot` kilomètres · `verglasKm` km sur le verglas du glacier (`BANQ.sur>0`) · `met` les temps joués par map (`m2Meteo`, LA STRATOS) · `M2R.sonne` (aucun son ni musique de toute la partie → drapeau `silence`).
+- **Missions** : LE DÉFIEUR `pu100` · LE SAMOURAÏ `nmax100` · ATCHOUM `figs500` · LA TAURINE `nit2000` · LE MASTODONTE `air1000` · LA QUEUE DE CANARD `km100k` (100 000 km) · L'ICEBERG `verglas100` · LA STRATOS `meteo` · LA SILENCIEUSE `silence` (secrète) · LE CHARGEUR `mis10` · LE CORBILLARD `morts100` (visibles désormais). Les récompenses qui ne donnent plus une caisse paient de l'argent (À VALIDER : L'ORIGAMI 30 000, LE SPECTRE 20 000, LE MUR DU SON 25 000, LA FOURNAISE et LA CAISSE-NUAGE 20 000, L'ÉTERNELLE 25 000, ex-STRATOS 15 000, ex-SILENCIEUSE 10 000).
+- **Prix / boutique** : ACIDE 200 000 · L'ORIGAMI 280 000 · LE SPECTRE 420 000 (épique) · L'ÉTERNELLE, LE MUR DU SON, POSTER 84 en boutique à 1,61 € (légendaires).
+- **Retirées** : LA CAISSE-NUAGE, L'ABSTRAITE, LA FOURNAISE (remboursement au prix de CAR_UNLOCK).
+- **Laissés tels quels, à décider** : LE HOT ROD (« toutes les musiques jusqu'au palier 10 » : sens à préciser), LE SQUALE (reste en boutique à 1,61 €).
 ## LA GRANDE SÉANCE DE DÉBOGAGE DES MAPS — 17 BUGS CORRIGÉS SUR 9 MAPS, LES 11 VÉRIFIÉES (2026-10-22, v787, Sacha, session DEBUGGING : « lance une immense session de debugging surtout centré sur les map, lance autant de sous-agents que tu veux, qu'il n'y ait aucun bug »)
 Deux vagues d'agents (18-19/10 : un par map + portails, mort/reprise, météos ; 22/10 : grottes, dunes, décor au hasard + nuages en cubes,
 transitions), chacun sur sa copie, au banc CDP sous le verrou commun ; les correctifs de la 1re vague (scratchpad effacé au redémarrage du Mac)
