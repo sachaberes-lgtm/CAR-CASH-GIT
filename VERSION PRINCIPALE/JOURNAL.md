@@ -3,6 +3,62 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'ANNEAU DE FUSION AUTOUR DE LA PLANÈTE DE L'ORBITE (2026-10-22, v792, Léo : « ajoute un anneau de fusion autour de la planète, stylé · récupère ça quelque part et rends-le pixel, en cohérence avec le jeu »)
+- **D'où il vient** : le CŒUR À FUSION, moteur 25 (`case 24` de `voitures/constructeur-moteur.js`, la carte `tore · bobinesD`) — un tokamak : une petite étoile, un tore de plasma qui la
+  traverse, huit bobines de cristal passées autour du tube. Palette de la fiche du moteur (`col` 0xd8ff60 · `flam` 0xf0ff90) : le citron acide, complémentaire exact du bleu de la Terre.
+  Ici la planète est l'étoile et l'anneau l'enserre.
+- **Rendu en pixels** (`maps/orbite-anneau.js`, nouveau morceau après `orbite-2.js`) : le vocabulaire du vitrail et des nuages — de loin lisse et brillant, de près des cubes et leurs joints de lumière.
+  Le tube = 8 cubes par pas autour d'un cœur de cubes blanc-citron qui se touchent (le fil du plasma), à 88 % de leur taille (entre eux passent les joints) ; huit bobines = des cadres de cubes sombres,
+  coins en cristal, dont les joints s'allument à tour de rôle (un chenillard autour de l'anneau) ; une onde lente, trois paquets de plasma qui tournent, des étincelles, le pouls de la musique et le nitro
+  qui l'embrase. De loin : une coque additive qui lie les pixels, puis le bloom. ≈ 4 144 cubes (432 pas), deux appels de dessin (cubes + halo), tout calculé dans le sommet (4 nombres par cube).
+- **Le globe le cache à la main** : la planète se peint sur le plan lointain sans écrire de profondeur (`planetGroup`) — la moitié de l'anneau qui passe DERRIÈRE elle serait dessinée devant.
+  Chaque fragment teste donc son rayon œil → fragment contre la sphère du globe (`uPC`, `uPR`) et part s'il est derrière.
+- **Placement MESURÉ en course** (planches du 22/10, Terre, Mars, Jupiter) : rayon 2250 (×1,44 celui de la planète), axe incliné de ,75 sur la visée et recalé sur l'œil à chaque image (`anneauTick`, appelé
+  par `orbiteTick`) : la même vue à chaque virage, un arc qui enjambe la planète sans écraser le ciel, dans le cadre pendant environ le quart de la course (champ de vision ~120°). Rayon 2750 : sort du cadre ;
+  inclinaison 1,2 : passe à 500 unités de l'œil.
+- **Vie** : enfant de `planetGroup` (il suit sa place, son échelle, son fondu), créé à l'init, caché hors de l'orbite et au garage (`LVL.planete`), pris par `renderer.compile` avec le reste (il parcourt aussi le caché) :
+  trois programmes de plus au menu (228 contre 225 avec `?anneau=0`), aucun de plus en course. 60 i/s au banc. L'allègement de la copie en ligne n'y touche pas (`dbgAnneau` part avec les autres `dbg*`).
+- **Réglage** : `?anneau=0` = la planète seule, comme en v791. Banc : `dbgAnneau({tilt,R,S,fill,seam,halo,hot,core,coil,corner,off})` (`off:true` : la paire AVANT | APRÈS dans une même image).
+- **Vérifié sur le code fusionné avec main v791** : course de l'orbite au pilote automatique (4 400 m) avec et sans l'anneau, `__orbErr` / `__loopErr` / `__banqErr` vides, nombre de programmes compilés inchangé en course.
+- **À valider par Léo (le look)** : la couleur citron, l'épaisseur du tube, la taille de l'arc ; « c bof » → `?anneau=0` est l'avant, un commit de retour est trivial.
+
+## LA PLUIE DE RICHESSE DE LÉO REMISE (2026-10-22, v790, Sacha : « oui, remets sur main la pluie de richesse de Léo perdue à la fusion du 21/10 »)
+- **CE QUI ÉTAIT PERDU** : la fusion `f456df2f` (« Fusion origin/main (v779) : nuages en cubes, v780 », 21/10 3 h 23) a réassemblé index.html depuis des
+  morceaux qui n'avaient jamais reçu la pluie de richesse v766-v778 (faite dans index.html seul). Treize blocs, tous dans richesse-1/2/3 : la BAGUE
+  (`richBagueGeo`, v775), le CIGARE et le TROUSSEAU de clés (`richCigareGeo`, `richClesGeo`, v778), le VRAI CRÂNE scanné (`richCraneGeo`, v766, plus petit en v767),
+  la MONTRE ARGENTÉE une sur deux (`richTexMontreArg`, v767), leurs quotas (`RICH_CAP`) et leurs poids dans les gerbes (`RICH_TIER`). L'œuf d'or reste retiré (v777).
+  Rien d'autre de cette fusion n'a été perdu (comparaison ligne à ligne : 273 blocs gardés, 13 perdus, tous ici).
+- **D'OÙ ILS REVIENNENT** : le commit `06c4f800` (branche `neige-decor`) avait rangé ces v766-v778 dans les morceaux. Ses trois morceaux sont appliqués en trois voies :
+  les nuages du titre (richesse-3, v760-v774) restent ceux de main. Le crâne est logé dans le code (int16 en base64) : aucun fichier à ajouter.
+- **VÉRIFIÉ** (vrai jeu, Chrome sans fenêtre) : deux jackpots forcés sur l'écran titre, sans erreur ; bague, cigare, clés et crâne sortent chacun en groupe 3D,
+  une montre sur quatre en acier (tirage une sur deux). Course sans erreur couché, debout et dans le cadre de l'ordi.
+- ⚠ **LE PIÈGE** (déjà dans le guide de l'assembleur) : une retouche faite dans index.html SEUL disparaît au prochain réassemblage depuis les morceaux. Après une fusion,
+  `node code/assembler.cjs --verifier` d'abord ; s'il dit ≠, ranger la page dans les morceaux (`--depuis-index`), jamais l'inverse à l'aveugle.
+
+## LA MAP VOLCAN D'APRÈS PHOTOS + LES PEINTURES SECRÈTES (2026-10-22, v795, Sacha : « reprends ces images pour refaire la map volcan » · « d'abord les prix et les retraits, puis les défis un par un »)
+- **Volcan v6** (maps/volcan-route.js, `VLC6`, `?volcan=avant6` = la v5) : quatre photos de coulées (croûte noir-bleu vitreuse et plissée, roche grise argentée, lave orange à cœur jaune, lac de lave). Seuls les SHADERS changent — `VLC_SOL_FS6` (croûte plissée ardoise, cendre argentée, ombres froides, reflet de verre, fissures rouge→jaune), `VLC_LAVE_FS6` (peau cordée, orange→jaune→blanc verdâtre aux points chauds, plus de lumière), `V6` dans `VLC_ROC_FS` (arche et aiguilles plus claires, fissures fines). Route, relief, collisions : intacts. Les six photos de la galerie (`repertoire-maps/img/volcan-*.jpg`) sont refaites.
+- **Peintures secrètes** (economie/boutique.js `PEINT_DEFIS`, `peintSecrete` ; détection dans missions/defis-moteur.js `m2Niveau`, `m2Fruit`, `m2Pu`, `m2Cpt`) : MENTHE (10 niveaux sous la neige), BLEU MINUIT (10 de nuit), ROSE DRAGÉE (10 le matin), ABRICOT (10 en plein jour), BLANC NEIGE (10 sur le glacier), VERT OGRE (10 dans la forêt), NUIT DE GOTHAM (10 dans la ville), CIEL D'ORAGE (10 sous la pluie), LUNAIRE (10 dans l'espace), CHROME MIROIR (traverser les nuages), ROUGE BOLIDE / ORANGE ÉMEUTE / AZUR (50 cerises / oranges / myrtilles), JAUNE TAXI / VIOLET ROYAL / FUCHSIA (50 citrons / raisins / fruits du dragon), MONDE À L'ENVERS (100 km sous la dalle), SUPER GUERRIER (palier 24). BANANA reste en vente : il n'y a plus de banane dans le jeu. Les compteurs sont dans `SAVE.d.m2.c.sc`. Le pack compte 35 couleurs.
+- **⚠ La sauvegarde (san) bornait `m2.c` à une liste** : les compteurs à vie des missions de caisse (pu, nitS, nmaxS, figs, airS, kmTot, verglasKm, met) et des peintures (sc) sautaient au rechargement (app iPhone ; le web repart à neuf sauf `?garde=1`). Ajoutés à la liste (sauvegarde.js). Vérifié : un rechargement garde tout.
+- **Bancs** : `?garde=1` est NÉCESSAIRE aux bancs (le web repart d'un compte neuf à chaque ouverture : sans lui la sauvegarde posée est ignorée et l'auto-école démarre) ; `photos.py` le passe désormais.
+
+## LE TABLEAU DES PEINTURES, 1re ÉTAPE : PRIX EN EUROS ET RETRAITS (2026-10-22, v793, Sacha : « d'abord les prix en euros et les 8 retraits, puis les défis un par un »)
+- **Prix** (`PEINT_EUR_ID`, economie/boutique.js, par-dessus `PEINT_EUR` de la rareté) : 0,50 € NOIR MAT, ROSE POUPÉE, VANILLE, PISTACHE, VERT AMANDE, BLEU PISCINE, LILAS, VERT BILLET, LAGON, CUIVRE, GRIS NARDO · 1 € COUCHER DE SOLEIL, VAPORWAVE, LAVE, HOLOGRAMME, FANTÔME, NACRE, LAMPADAIRE, CAMÉLÉON, GALAXIE, PLEIN AUX AS et les quatre de la série · 2 € LÉOPARD, TIGRE, ZÈBRE, VACHE, FLOWER POWER, CAMOUFLAGE, COCCINELLE.
+- **Retirées** (`HAB_RETIRES`, p:0) : CITRON VERT, ARGENT BROSSÉ, BORDEAUX, OLIVE, BLEU ABYSSE, AUBERGINE, DAMIER, PEAU DE DRAGON. Le pack compte 28 couleurs (35 avec les secrètes passées à l’achat plus tard).
+- **Passent à l'achat** : FANTÔME, NACRE, LAMPADAIRE, CAMÉLÉON (`PEINT_ACHAT` : plus de défi) ; VAPORWAVE, LAVE, HOLOGRAMME (leurs missions d'argent paient 10 000 / 25 000 / 50 000 $ — À VALIDER) ; BRAISE FIDÈLE, AURORE BORÉALE, LAGON INTERDIT, NUIT ÉTOILÉE (le 7e jour de la série ne donne plus que le plein de jetons).
+- **À venir, un par un** : les défis secrets de la colonne Condition du panneau des peintures.
+
+## LA PEINTURE GRIS NARDO (2026-10-22, v791, Sacha : « rajoute une couleur gris nardo »)
+- `nardo` (economie/boutique.js, la liste de la PALETTE, laque 0x74777b) : le pack compte 34 couleurs (textes « LES 34 COULEURS SONT À TOI »). En anglais NARDO GREY.
+
+## LE HOT ROD : LE PALIER 10 AVEC LA MUSIQUE (2026-10-22, v788, Sacha : « HOT ROD : atteindre le palier 10 du moteur avec la musique activée ; SQUALE reste en boutique ; TRÔNE CENTRAL reste un défi »)
+- Mission secrète `palier10` (missions/table.js) : `m2Tick` pose le drapeau quand `engTier + 1 ≥ 10` ET `SND.music` est allumé. LE HOT ROD n'est plus à l'argent (les joueurs qui l'avaient le gardent). LE SQUALE reste en boutique à 1,61 € ; LE TRÔNE CENTRAL reste « collecte toutes les voitures ».
+
+## LE TABLEAU DES VOITURES, DEUXIÈME VAGUE : DÉFIS À COMPTEUR, PRIX, RETRAITS (2026-10-22, v787, Sacha : « pousse tout »)
+- **Compteurs à vie** (`SAVE.d.m2.c`, missions/defis-moteur.js : m2Tick, m2Fig, pwrPrend → m2Pu) : `pu` power-ups · `nitS` / `nmaxS` secondes de nitro / de nitro max · `figs` figures · `airS` secondes en l'air · `kmTot` kilomètres · `verglasKm` km sur le verglas du glacier (`BANQ.sur>0`) · `met` les temps joués par map (`m2Meteo`, LA STRATOS) · `M2R.sonne` (aucun son ni musique de toute la partie → drapeau `silence`).
+- **Missions** : LE DÉFIEUR `pu100` · LE SAMOURAÏ `nmax100` · ATCHOUM `figs500` · LA TAURINE `nit2000` · LE MASTODONTE `air1000` · LA QUEUE DE CANARD `km100k` (100 000 km) · L'ICEBERG `verglas100` · LA STRATOS `meteo` · LA SILENCIEUSE `silence` (secrète) · LE CHARGEUR `mis10` · LE CORBILLARD `morts100` (visibles désormais). Les récompenses qui ne donnent plus une caisse paient de l'argent (À VALIDER : L'ORIGAMI 30 000, LE SPECTRE 20 000, LE MUR DU SON 25 000, LA FOURNAISE et LA CAISSE-NUAGE 20 000, L'ÉTERNELLE 25 000, ex-STRATOS 15 000, ex-SILENCIEUSE 10 000).
+- **Prix / boutique** : ACIDE 200 000 · L'ORIGAMI 280 000 · LE SPECTRE 420 000 (épique) · L'ÉTERNELLE, LE MUR DU SON, POSTER 84 en boutique à 1,61 € (légendaires).
+- **Retirées** : LA CAISSE-NUAGE, L'ABSTRAITE, LA FOURNAISE (remboursement au prix de CAR_UNLOCK).
+- **Laissés tels quels, à décider** : LE HOT ROD (« toutes les musiques jusqu'au palier 10 » : sens à préciser), LE SQUALE (reste en boutique à 1,61 €).
 ## LA GRANDE SÉANCE DE DÉBOGAGE DES MAPS — 17 BUGS CORRIGÉS SUR 9 MAPS, LES 11 VÉRIFIÉES (2026-10-22, v787, Sacha, session DEBUGGING : « lance une immense session de debugging surtout centré sur les map, lance autant de sous-agents que tu veux, qu'il n'y ait aucun bug »)
 Deux vagues d'agents (18-19/10 : un par map + portails, mort/reprise, météos ; 22/10 : grottes, dunes, décor au hasard + nuages en cubes,
 transitions), chacun sur sa copie, au banc CDP sous le verrou commun ; les correctifs de la 1re vague (scratchpad effacé au redémarrage du Mac)

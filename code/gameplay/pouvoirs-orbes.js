@@ -36,7 +36,7 @@ Object.assign(PWR_DEFS.n,{col:0xa45cff,core:0xf1e2ff,tint:'#b06bff',c2:'#7b34f0'
    (9 captures sur 24 à l'audit) : la palette de la météo disparaissait. Leur force (l'alpha) est divisée par 2,5 dans une copie `bd`/`bd2`,
    lue seulement par les bords TENUS ; l'éclair bref du ramassage (`flashEcran(d.fx)`) garde la sienne. Revenir : PWR_BORD_K=1. */
 const PWR_BORD_K=1/2.5;for(const k9 in PWR_DEFS){const d9=PWR_DEFS[k9],f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};d9.bd=f9(d9.fx);d9.bd2=f9(d9.fx2);}
-const NINF={jet:0x9d4dff,core:0xf3e6ff,rac:0xd8b8ff,trail:[.95,.45,1.6]}; // la nitro infinie dans le monde : plume, cœur, racine du brûleur, ruban
+const NINF={jet:0xff2208,core:0xffb8a8,rac:0xff6a58,trail:[1.6,.18,.08]}; // la nitro infinie dans le monde : plume, cœur, racine du brûleur, ruban
 for(const k in PWR_DEFS){const d=PWR_DEFS[k];
   d.glassM=new THREE.MeshPhongMaterial({color:d.col,emissive:d.col,emissiveIntensity:.9,shininess:260,specular:0xffffff,envMap:envTex,reflectivity:.6,transparent:true,opacity:.78,depthWrite:false,flatShading:true});
   d.coreM=new THREE.MeshBasicMaterial({color:d.core});

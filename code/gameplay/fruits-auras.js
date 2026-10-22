@@ -227,13 +227,13 @@ window.dbgLigneFruits=function(){let ah=0,ap=0;for(const p of pickups)if(!p.take
    sinon, retombe à 0 quand le pouvoir finit. La plume, le cœur, la racine, le ruban (NINF, lus par la boucle) et les BORDS d'ÉCRAN suivent — discrets au début
    (« un peu enflammés, pas un truc énorme ») et plus forts à mesure que ça chauffe. */
 PWR_DEFS.n.t=7;PWR_DEFS.n.msg='PIMENT — NITRO INFINIE 7 s À FOND !';PWR_DEFS.n.sous='7 S A FOND';
-const NINF_STOPS=[[0,0xff2208],[.2,0xff7a18],[.4,0xffd02a],[.58,0xfff2d8],[.8,0x4f8bff],[1,0x9d4dff]];
+const NINF_STOPS=[[0,0xff2208],[1,0xff1a0a]]; /* (2026-10-22, Sacha : « la flamme et le bouton du boost en rouge vif ») plus de dégradé orange → blanc → bleu → violet : la flamme reste rouge vif */
 const NINF_C=new THREE.Color(),NINF_A=new THREE.Color(),NINF_B=new THREE.Color(),NINF_W=new THREE.Color(0xffffff);
 NINF.h=0;NINF.rgb=[255,34,8];
 function ninfCouleur(h,out){let i=0;while(i<NINF_STOPS.length-2&&h>NINF_STOPS[i+1][0])i++;const a=NINF_STOPS[i],b=NINF_STOPS[i+1],u=Math.max(0,Math.min(1,(h-a[0])/(b[0]-a[0])));
   NINF_A.setHex(a[1]);NINF_B.setHex(b[1]);return out.copy(NINF_A).lerp(NINF_B,u);}
 function ninfTick(dt){
-  if(!(pwrNitroT>0)){if(NINF.h!==0){NINF.h=0;NINF.jet=0x9d4dff;NINF.core=0xf3e6ff;NINF.rac=0xd8b8ff;NINF.trail=[.95,.45,1.6];}return;}
+  if(!(pwrNitroT>0)){if(NINF.h!==0){NINF.h=0;NINF.jet=0xff2208;NINF.core=0xffb8a8;NINF.rac=0xff6a58;NINF.trail=[1.6,.18,.08];}return;}
   if(nitroOn)NINF.h=Math.min(1,NINF.h+dt/8);else NINF.h=Math.max(0,NINF.h-dt*.15);
   ninfCouleur(NINF.h,NINF_C);
   NINF.jet=NINF_C.getHex();NINF.core=NINF_B.copy(NINF_C).lerp(NINF_W,.62).getHex();NINF.rac=NINF_B.copy(NINF_C).lerp(NINF_W,.35).getHex();

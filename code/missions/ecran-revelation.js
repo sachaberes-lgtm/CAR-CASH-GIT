@@ -24,7 +24,7 @@ function m2ValCourse(m){try{switch(m.k){case 'aura':return Math.round(auraRun)||
   case 'tours':return M2R.tourV.length;case 'airP':return M2R.airPm;}}catch(e){}return m2Val(m);}
 function m2Frac(m,v,t){return t>0?Math.max(0,Math.min(1,v/t)):0;}
 function m2Prog(m,v,t){v=Math.min(v,t); // « 3 / 5 », « 42 000 / 100 000 $ », « 4,2 / 5 S », « 1:12 / 5:00 »
-  switch(m.u){case 's':return decFr(Math.floor(v*10)/10,1)+' / '+t+' S';case 'kmh':return m2Nb(v)+' / '+m2Nb(t)+' KM/H';
+  switch(m.u){case 's':return decFr(Math.floor(v*10)/10,1)+' / '+t+' S';case 'kmh':return m2Nb(v)+' / '+m2Nb(t)+' KM/H';case 'km':return m2Nb(Math.floor(v))+' / '+m2Nb(t)+' KM';
     case '$':return m2Nb(v)+' / '+m2Nb(t)+' $';case 'aura':return fmtAura(v)+' / '+fmtAura(t);case 'mn':return m2Mn(v)+' / '+m2Mn(t);
     case 'b':return v>=t?TR('FAIT'):TR('PAS ENCORE');}
   return m2Nb(v)+' / '+m2Nb(t);}
