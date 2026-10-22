@@ -54,6 +54,7 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   uSkyMul:{value:new THREE.Vector3(1,1,1)},uSkyLift:{value:new THREE.Vector3(0,0,0)},
   uSunTint:{value:new THREE.Vector3(1,.40,.28)},uSunHalo:{value:1},uCity:{value:1},uStars:{value:1},uMoon:{value:1},uRose:{value:0},
   uNeb:{value:1}, // (2026-10-15) LES NÉBULEUSES de l'orbite (× uSpace) : 0 = le noir complet d'avant
+  uEtK:{value:1.5}, // (2026-10-22) pixels de rendu par pixel CSS (`renderer.getPixelRatio()`, posé par orbiteTick) : les étoiles de l'orbite gardent la même taille sur tous les téléphones
   uSpace:{value:0}, // NIVEAU ORBITE (2026-09-24) : 0 = le ciel de toujours AU PIXEL PRÈS, 1 = le noir étoilé (piloté par lvlStep)
   uPulse:{value:0}, // MUSIQUE : le ciel respire en rythme (piloté par l'analyseur audio, 0 = neutre = rendu d'origine)
   /* ---- LE FOND DU NIVEAU (2026-08-08) : le décor JOUE la musique, façon Geometry Dash / Super Hexagon.
@@ -128,7 +129,7 @@ const skyDome=(function(){
       '  return textureGrad(uPhT,uv,dx,dy).rgb*uPh.w;}',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse,uRose;', // grade biome (identité par défaut) + uPulse musique
       'uniform vec3 uFd[8];uniform vec3 uVc[6];', // (2026-10-16) LES TEINTES DE LA VILLE : les couleurs fixes du dégradé et du ciel de la ville (valeurs d'origine hors ville teintée)
-      'uniform float uSpace,uNeb;', // NIVEAU ORBITE : 0 = aucun effet · uNeb : les nébuleuses (2026-10-15)
+      'uniform float uSpace,uNeb,uEtK;', // NIVEAU ORBITE : 0 = aucun effet · uNeb : les nébuleuses (2026-10-15) · uEtK : pixels de rendu par pixel CSS, pour la taille des étoiles (2026-10-22)
       'uniform float uJour,uMerLoin,uCiel2;uniform vec3 uJZen,uJMid,uJHor,uJSol;uniform vec4 uMzA,uMzB,uMzT,uMzO,uMzH;', // (2026-09-30) LE JOUR D ALTITUDE : 0 = le ciel d avant, au bit près
       'uniform float uLvl,uSpin,uBeatK,uFlip,uBar,uHi,uWave,uHueAmp;uniform vec3 uAcc,uAcc2;uniform vec4 uRingR,uRingA;', // LE FOND DU NIVEAU
       'float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
@@ -403,6 +404,7 @@ const skyDome=(function(){
       '  m=mix(mix(F,creux,.4),m,exp(-t/9000.));',                       // la perspective aérienne : le lointain bleuit
       '  return mix(m,F,smoothstep(-.055,-.004,y));}',                   // …et SEULE la ligne d horizon rejoint la brume
   ];
+  const ETO_ANC=/[?&]etoiles=ancien\b/.test(location.search); // (2026-10-22) `?etoiles=ancien` : le ciel étoilé de l'orbite d'avant (grains d'un pixel, une seule taille) — pour comparer ; voir `pous`
   const COUCHES={
     /* PARIS AU SOL (2026-09-28, Léo : « un ciel travaillé ») — le ciel de TROIS HEURES (uParisT : 0 dorée · 1 bleue · 2 nuit, fondu
        sur la distance parcourue) : dégradé de chaque heure, une couche d altocumulus ÉCLAIRÉS PAR EN DESSOUS (or et argent face au
@@ -745,7 +747,7 @@ const skyDome=(function(){
       'bool cielGOn(float y,float sd){return abs(y+.03)<.13&&sd<.75&&uCity*(1.-uSpace)>0.&&(uVille<.999||y>-.03);}', // la bande de la guirlande (cband > 0, loin du soleil) ; en VILLE, sous -.03 l abime la remplace
     ],
     son:[
-      'bool cielSOn(float y,float sd){return uStars>0.&&(y>.10||uSpace>0.)&&sd<.8;}', // la voûte des étoiles (hors orbite : au-dessus de .10)
+      'bool cielSOn(float y,float sd){return uStars>0.&&(y>.10||uSpace>0.)&&sd<.8'+(ETO_ANC?'':'&&uSpace<.999')+';}', // la voûte des étoiles (hors orbite : au-dessus de .10) — (2026-10-22) en orbite, ce sont celles de `pous` (la voûte profonde)
     ],
     guirl:[
       'void cielGuirlande(inout vec3 col,float y,float az,float sd){',
@@ -836,7 +838,7 @@ const skyDome=(function(){
       '  float sr=length(vec2((sfr.x-stp.x)*.0982*sqrt(max(0.,1.-y*y)),(sfr.y-stp.y)*.04545));',
       '  float st=(1.-smoothstep(0.,.0026+.0022*fract(h*7.7),sr))*step(.76,h);',
       '  st*=.55+.45*sin(uTime*(1.2+h*2.6)+h*44.);',
-      '  col+=mix(vec3(.80,.88,1.),vec3(1.,.86,.70),step(.8,fract(h*3.31)))*st*mix(smoothstep(.10,.42,y),1.,uSpace)*(1.-smoothstep(.25,.8,sd))*.9*uStars*(1.+uSpace*.5)*(1.+uPulse*1.3);}}', // elles descendent plus bas : le haut du cadre est habité — MINUIT les multiplie, l aube les éteint ; elles palpitent au beat
+      '  col+=mix(vec3(.80,.88,1.),vec3(1.,.86,.70),step(.8,fract(h*3.31)))*st*mix(smoothstep(.10,.42,y),1.,uSpace)*(1.-smoothstep(.25,.8,sd))*.9*uStars*'+(ETO_ANC?'(1.+uSpace*.5)':'(1.-uSpace)')+'*(1.+uPulse*1.3);}}', // elles descendent plus bas : le haut du cadre est habité — MINUIT les multiplie, l aube les éteint ; elles palpitent au beat
     ],
     espace:[
       /* (2026-10-15) LE CIEL PROFOND DE L ORBITE — une couche LISSE (passe à demi-résolution) : la VOIE LACTÉE et les NÉBULEUSES.
@@ -862,17 +864,49 @@ const skyDome=(function(){
       '  col+=(mw*glow*.58+neb*.26*(1.-.55*dust))*uSpace*uNeb;}',
     ],
     pous:[
-      /* (2026-10-15) LA POUSSIÈRE D ÉTOILES de l orbite — passe NETTE (des points au pixel). 180 cellules par tour : des étoiles d un
-         pixel, bleues, blanches ou mauves, rares hors de la voie lactée et serrées dedans. */
+      /* ===== LA VOÛTE PROFONDE (2026-10-22, Léo : « travaille un tout petit peu les étoiles pour créer un peu de profondeur, là c'est un peu tout noir ;
+         des petites étoiles et des étoiles un peu moins petites ; travaille la répartition, observe des images ») =====
+         (Remplace la poussière d'étoiles du 15/10 — des grains d'un pixel, tous pareils, jetés au hasard ; `?etoiles=ancien` la rend.) Passe NETTE.
+         QUATRE CLASSES, de la plus fine à la plus grosse, comme sur une vraie photo du ciel : un VOILE de grains très faibles, des PETITES, des MOYENNES à
+         peine plus grosses, quelques BRILLANTES à halo (qui font fleurir le bloom). Chaque classe a sa grille (`voute` : une étoile au plus par cellule, des
+         ceintures de même AIRE — pas de pincement au pôle), sa taille EN PIXELS CSS (`uEtK`, celle d'un objectif : elle ne bouge ni avec le champ de vision, qui
+         s'élargit avec la vitesse — c'est la densité qui monte —, ni avec la résolution du téléphone), son éclat (beaucoup de faibles, peu de fortes : `q*q`) et sa
+         teinte (bleutées, blanches, orangées — plus franche chez les grosses). Les étoiles sont RONDES partout (la distance se compte en pixels via les dérivées de
+         la direction ; l'ancienne voûte les mesurait en angle sans le cosinus de la latitude et les étirait en ovales, puis en tirets vers le haut du cadre).
+         La RÉPARTITION n'est pas uniforme : la bande de la voie lactée les serre (3 à 4 fois plus), de larges PLAGES de ~20° sont plus ou moins peuplées (deux
+         champs lents, `c1` et `c2`, jamais les mêmes d'une classe à l'autre), les brillantes sont semées sans règle ; chaque étoile se pose où elle veut dans sa
+         cellule et le voile a DEUX grilles de pas différents (sinon des rangées et des colonnes se voient là où il est dense — mesuré à 100° de champ).
+         Hors orbite (uSpace = 0) cette couche ne tourne pas : les autres ciels sont inchangés au bit près. Coût : une graine de hasard par pixel et par classe,
+         le reste seulement dans une cellule habitée. */
+      'vec3 vouteTeinte(float t,float s){', // la teinte d'une étoile, tirée au hasard (t) : bleutée, blanche ou orangée ; s = à quel point elle se voit
+      '  vec3 c=mix(vec3(.68,.78,1.),vec3(1.,.97,.92),smoothstep(.04,.34,t));',   // un quart bleutées (pâles : jamais des diodes), le gros blanc
+      '  c=mix(c,vec3(1.,.76,.52),smoothstep(.62,1.,t));',                          // et plus du tiers qui chauffe vers l orangé
+      '  return mix(vec3(1.),c,s);}',
+      // UNE classe : A = (rangées par unité de y, graine, part des cellules habitées, rayon du cœur en pixels CSS) · B = (éclat min, éclat max, halo, échelle du halo en pixels CSS) · C = (teinte, scintillement, pouls, marge)
+      'vec3 voute(float y,float u0,float pa,vec4 A,vec4 B,vec4 C){',
+      '  float row=floor(y*A.x),yc=(row+.5)/A.x,cc=sqrt(max(1.-yc*yc,.02));',      // la rangée, et le cosinus de sa latitude
+      '  float M=max(3.,floor(6.2832*A.x*cc*cc+.5)),u=u0*M,ci=floor(u);',          // les cellules de la rangée : de même aire d une rangée à l autre
+      '  vec2 id=vec2(row,ci)+A.y;',
+      '  if(hash21(id)>A.z)return vec3(0.);',                                      // cellule vide
+      '  vec2 f=vec2(fract(u)-(C.w+(1.-2.*C.w)*hash21(id+17.3)),fract(y*A.x)-(C.w+(1.-2.*C.w)*hash21(id+29.1)));', // l étoile se pose où elle veut dans la cellule, à une marge du bord près (large pour les grosses, qu un bord couperait) : sinon des rangées et des colonnes se voient
+      '  float r=length(vec2(f.x*6.2832/M*cc,f.y/(A.x*cc)))/pa;',                 // sa distance au pixel, EN PIXELS de rendu
+      '  float sg=max(A.w*uEtK,.6),hs=B.w*uEtK;',                                  // le cœur et le halo se comptent en pixels CSS (même taille sur tous les téléphones) ; jamais sous ~½ pixel : il scintillerait
+      '  if(r>3.2*sg+3.*hs)return vec3(0.);',
+      '  float q=hash21(id+41.7),ph=hash21(id+53.9);',
+      '  float k=exp(-.5*r*r/(sg*sg))+B.z*exp(-r/max(hs,.001));',                  // le cœur, et son halo
+      '  return vouteTeinte(hash21(id+7.9),C.x)*mix(B.x,B.y,q*q)*k*(1.+C.y*sin(uTime*(.45+ph*1.1)+ph*40.))*(1.+uPulse*C.z);}',
       'void cielPoussiere(inout vec3 col,float y,float az){',
-      '  float b=dot(vDir,normalize(vec3(.78,.38,-.50))),band=exp(-b*b*36.);',
-      '  vec2 sg=vec2(az*28.6479,y*60.),sid=floor(sg),sfr=fract(sg);float h=hash21(sid+71.3);',
-      '  if(h<.935-.16*band)return;',
-      '  vec2 stp=vec2(fract(h*23.7),fract(h*41.3))*.7+.15;',
-      '  float sr=length(vec2((sfr.x-stp.x)*.0349*sqrt(max(0.,1.-y*y)),(sfr.y-stp.y)*.01667));',
-      '  float st=1.-smoothstep(0.,.0016,sr),k=fract(h*5.13);',
-      '  vec3 c=k<.4?vec3(.66,.76,1.):k<.75?vec3(1.,.96,.92):vec3(.86,.62,1.);',
-      '  col+=c*st*(.55+.65*band)*(.7+.3*sin(uTime*(.8+h*2.)+h*31.))*uSpace*uNeb;}',
+      '  float pa=max(sqrt(length(cross(dFdx(vDir),dFdy(vDir)))),1e-5),u0=az*.159155+.5;',    // l angle que couvre un pixel
+      '  vec3 d=vDir;float b=dot(d,normalize(vec3(.78,.38,-.50))),bl=exp(-b*b*9.),bc=exp(-b*b*55.);', // la bande de la voie lactée : large, et son cœur
+      '  float c1=sin(d.x*8.3+d.z*6.1+1.7)*sin(d.y*9.7-d.x*5.1+.6)+.7*sin(d.z*13.1+d.y*7.3-1.1)*sin(d.x*11.3+d.z*8.1+2.4);', // des plages plus ou moins peuplées
+      '  float c2=sin(d.x*10.7-d.y*6.1+.3)*sin(d.z*9.3+d.y*11.9+1.9)+.7*sin(d.y*14.1+d.x*7.7+2.2)*sin(d.z*12.1-d.x*9.9-.5);',
+      '  float fa=.8+.8*bl+.6*bc;',
+      '  vec3 s=voute(y,u0,pa,vec4(50.,3.1,min(.9,.22*fa*exp(c1*.40)),.45),vec4(.10,.36,0.,0.),vec4(.35,0.,0.,.04));',                 // le voile : des grains très faibles, sur DEUX grilles de pas différents (une seule laisse voir ses rangées là où elle est dense)
+      '  s+=voute(y,u0,pa,vec4(33.,5.3,min(.9,.20*fa*exp(c2*.40)),.45),vec4(.10,.36,0.,0.),vec4(.35,0.,0.,.04));',
+      '  s+=voute(y,u0,pa,vec4(22.,7.7,min(.9,.38*(.9+.7*bl+.4*bc)*exp(c2*.35)),.52),vec4(.28,.75,0.,0.),vec4(.55,.06,.3,.06));',       // les petites
+      '  s+=voute(y,u0,pa,vec4(11.,11.3,min(.9,.42*(1.+.4*bl)*exp((c1+c2)*.18)),.68),vec4(.60,1.15,.14,1.7),vec4(.8,.10,.7,.15));',   // les moyennes
+      '  s+=voute(y,u0,pa,vec4(5.4,19.9,.55,.95),vec4(1.2,2.,.20,3.),vec4(1.,.10,1.,.22));',                                         // les brillantes
+      '  col+=s*uSpace*uNeb;}',
     ],
     lune:[
       // LUNE pâle à l opposé du couchant — le témoin du presque-nuit
@@ -921,6 +955,17 @@ const skyDome=(function(){
     trame:[
       'float cielTrame(){return (fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5)/160.;}', // la trame (dither) : TOUJOURS à pleine résolution, dans la passe qui écrit l écran
     ]};
+  if(ETO_ANC)COUCHES.pous=[ // (2026-10-22) `?etoiles=ancien` : la poussière d'étoiles du 15/10, telle quelle (180 cellules par tour, des grains d'un pixel bleus, blancs ou mauves, serrés dans la voie lactée)
+      'void cielPoussiere(inout vec3 col,float y,float az){',
+      '  float b=dot(vDir,normalize(vec3(.78,.38,-.50))),band=exp(-b*b*36.);',
+      '  vec2 sg=vec2(az*28.6479,y*60.),sid=floor(sg),sfr=fract(sg);float h=hash21(sid+71.3);',
+      '  if(h<.935-.16*band)return;',
+      '  vec2 stp=vec2(fract(h*23.7),fract(h*41.3))*.7+.15;',
+      '  float sr=length(vec2((sfr.x-stp.x)*.0349*sqrt(max(0.,1.-y*y)),(sfr.y-stp.y)*.01667));',
+      '  float st=1.-smoothstep(0.,.0016,sr),k=fract(h*5.13);',
+      '  vec3 c=k<.4?vec3(.66,.76,1.):k<.75?vec3(1.,.96,.92):vec3(.86,.62,1.);',
+      '  col+=c*st*(.55+.65*band)*(.7+.3*sin(uTime*(.8+h*2.)+h*31.))*uSpace*uNeb;}',
+  ];
   const LECT='uniform sampler2D uBasTex;uniform vec2 uBasInv;',LECT_TR='uniform float uBasTr;'; // (passes NETTES) la passe lisse, relue au pixel de l'écran · (passes LISSES) leur trame 8 bits
   const MAIN={
     plein:[
