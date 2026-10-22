@@ -16,6 +16,9 @@
 - ⚠ **LE PIÈGE** (déjà dans le guide de l'assembleur) : une retouche faite dans index.html SEUL disparaît au prochain réassemblage depuis les morceaux. Après une fusion,
   `node code/assembler.cjs --verifier` d'abord ; s'il dit ≠, ranger la page dans les morceaux (`--depuis-index`), jamais l'inverse à l'aveugle.
 
+## LA PEINTURE GRIS NARDO (2026-10-22, v791, Sacha : « rajoute une couleur gris nardo »)
+- `nardo` (economie/boutique.js, la liste de la PALETTE, laque 0x74777b) : le pack compte 34 couleurs (textes « LES 34 COULEURS SONT À TOI »). En anglais NARDO GREY.
+
 ## LE HOT ROD : LE PALIER 10 AVEC LA MUSIQUE (2026-10-22, v788, Sacha : « HOT ROD : atteindre le palier 10 du moteur avec la musique activée ; SQUALE reste en boutique ; TRÔNE CENTRAL reste un défi »)
 - Mission secrète `palier10` (missions/table.js) : `m2Tick` pose le drapeau quand `engTier + 1 ≥ 10` ET `SND.music` est allumé. LE HOT ROD n'est plus à l'argent (les joueurs qui l'avaient le gardent). LE SQUALE reste en boutique à 1,61 € ; LE TRÔNE CENTRAL reste « collecte toutes les voitures ».
 
