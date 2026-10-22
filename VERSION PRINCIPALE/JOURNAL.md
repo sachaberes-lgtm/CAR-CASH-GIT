@@ -3,6 +3,31 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## JADE PLUS LÉGER — SON CIEL DANS UN PROGRAMME À LUI, LES PEAUX VIDES, LES SINGES ÉTEINTS (2026-10-22, v797, Léo : « enlève les singes de la map jade ou rends-les plus légers, et rends la map plus légère au code : sur la map grotte ça bugue moins et pourtant c'est aussi joli »)
+Banc : Chrome sans fenêtre (profil iPhone 390 × 844, NETTE), images FIGÉES à des endroits fixes de la vallée, mesures ENTRELACÉES (A, B, A, B…) dans la même page —
+la machine était à une charge de 30-80 (le Mac de Léo aussi, côté app Claude) : aucun chiffre en ms n'est fiable seul, seuls comptent les compteurs et les A/B de la même page.
+MESURÉ, la grotte (310 k triangles, ~200 appels, 3-4 ms de scène) contre les Pics de Jade (0,8-1,1 M triangles, ~310 appels de `renderBufferDirect`, 9-13 ms) :
+- **LE CIEL DE JADE** (`MAIN.jd`, `C.jd`, `cielDeuxTemps`, `cielChauffe`) : le dôme (le rouleau peint, la mer en cubes de 4 m en 48 pas de DDA par pixel, le lointain en
+  cinq chaînes, les kasumi) tournait dans le programme PLEIN — celui qui porte aussi la ville, l'orbite, les nuages et le fond musical. Même sur sa branche courte
+  (`uJade>.9999 → jadeCiel`), la puce réserve les registres du programme ENTIER pour chaque pixel. Le canyon avait déjà « son ciel seul » (`C.cy`) ; Jade a le sien :
+  `jd = src(TETE, VILLE, K.jade, K.trame, MAIN.jd)`, le MÊME appel (`jadeSous`/`jadeCiel` + la trame). Image identique AU BIT PRÈS : 0 pixel de différence sur 5 bandes de l'écran
+  × 3 endroits de la vallée (horloge `performance.now`/`Date.now` GELÉE pendant les rendus : le ciel dépend du temps, sans ça deux rendus du MÊME programme diffèrent déjà de 3-5 % des pixels).
+  Image de scène (sans post, figée) : 9,1 → 5,8 · 14,9 → 9,3 · 13,2 → 7,7 ms ; le dôme ne coûte plus que ~0,5 ms (éteint tout à fait : 5,1 · 8,7 · 7,1). `?ciel=plein` = avant. Programme chauffé
+  au chargement avec les autres (0 compilation en course : 223 programmes au menu comme après 14 s de Jade).
+- **LES PEAUX DE COTON VIDES** (`cotonTick`, `COTON.skin`) : la peau des nuages (v773, Sacha) restait VISIBLE à zéro exemplaire — 92 des 316 appels de dessin d'une image n'étaient que
+  des peaux vides (three prépare programme, uniformes et tampons pour ne rien dessiner : la même fuite que les familles vides de `jadeTri`, v17). `visible = root.visible && count>0` : ~310 → ~160 appels.
+  Vaut aussi pour la MER DE NUAGES (même coton).
+- **LES SINGES SONT ÉTEINTS** (`JSG_ON`, `?singes=1` ou `?singesjade=1` les rend, tels quels) : plus d'ouvriers au menu (3,5 s de calcul des quatre formes vitrail), plus de programmes
+  compilés ni de géométries en mémoire, plus de `creatures/singe.js` chargé (19 Ko, 2 ms d'évaluation à chaque lancement de TOUTES les maps — la balise est écrite à la demande dans
+  `page/bibliotheques.html`). MESURÉ : un singe à l'écran ne coûtait que 19 k triangles et 3 appels — c'est son démarrage, pas sa présence, qui pesait ; s'il revient « plus léger »
+  il faudra un singe SANS vitrail (pas de calcul au menu), donc un autre dessin : à valider avec Léo.
+- Crochets de banc ajoutés : `dbgJadePoste('gros'[,seuil])` (les plus gros objets visibles, leur parent), `('monu')` (Porte et Pont : maillages, tailles, lequel est dessiné), `('temps',n)` et
+  `dbgTemps(n)` (ms d'une image de scène, la puce attendue par une lecture d'un pixel — n'importe quelle map), `('coton'|'singes'|'monuments', on)`.
+- RESTE (non fait, à proposer) : la PORTE est UN maillage de 159 k triangles (r = 634 m), dessiné dès 2,6 km de la brume (1 passe) et en TROIS passes de verre sous 450 m (477 k) ;
+  `jadeMonuLoin` (le maillage allégé de loin) est éteint au palier récent. Le ciel de Jade en deux temps (passe lisse à demi-résolution, comme les nuages et la ville) gagnerait encore ~0,5 ms.
+  `foretTri` et les autres tris de quartiers tournent à chaque image même quand leur map n'est que PRÉ-BÂTIE (invisible) : un garde `root.visible` les coupe.
+  ⚠ Banc : depuis v789 (web sans sauvegarde) il faut `&garde=1` dans l'URL, sinon le compte est neuf à chaque ouverture et le banc reste sur l'accueil.
+
 ## L'ANNEAU DE FUSION AUTOUR DE LA PLANÈTE DE L'ORBITE (2026-10-22, v792, Léo : « ajoute un anneau de fusion autour de la planète, stylé · récupère ça quelque part et rends-le pixel, en cohérence avec le jeu »)
 - **D'où il vient** : le CŒUR À FUSION, moteur 25 (`case 24` de `voitures/constructeur-moteur.js`, la carte `tore · bobinesD`) — un tokamak : une petite étoile, un tore de plasma qui la
   traverse, huit bobines de cristal passées autour du tube. Palette de la fiche du moteur (`col` 0xd8ff60 · `flam` 0xf0ff90) : le citron acide, complémentaire exact du bleu de la Terre.
