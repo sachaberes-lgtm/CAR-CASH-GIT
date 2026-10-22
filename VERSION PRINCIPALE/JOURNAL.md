@@ -3,6 +3,13 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE TABLEAU DES VOITURES, DEUXIÈME VAGUE : DÉFIS À COMPTEUR, PRIX, RETRAITS (2026-10-22, v786, Sacha : « pousse tout »)
+- **Compteurs à vie** (`SAVE.d.m2.c`, missions/defis-moteur.js : m2Tick, m2Fig, pwrPrend → m2Pu) : `pu` power-ups · `nitS` / `nmaxS` secondes de nitro / de nitro max · `figs` figures · `airS` secondes en l'air · `kmTot` kilomètres · `verglasKm` km sur le verglas du glacier (`BANQ.sur>0`) · `met` les temps joués par map (`m2Meteo`, LA STRATOS) · `M2R.sonne` (aucun son ni musique de toute la partie → drapeau `silence`).
+- **Missions** : LE DÉFIEUR `pu100` · LE SAMOURAÏ `nmax100` · ATCHOUM `figs500` · LA TAURINE `nit2000` · LE MASTODONTE `air1000` · LA QUEUE DE CANARD `km100k` (100 000 km) · L'ICEBERG `verglas100` · LA STRATOS `meteo` · LA SILENCIEUSE `silence` (secrète) · LE CHARGEUR `mis10` · LE CORBILLARD `morts100` (visibles désormais). Les récompenses qui ne donnent plus une caisse paient de l'argent (À VALIDER : L'ORIGAMI 30 000, LE SPECTRE 20 000, LE MUR DU SON 25 000, LA FOURNAISE et LA CAISSE-NUAGE 20 000, L'ÉTERNELLE 25 000, ex-STRATOS 15 000, ex-SILENCIEUSE 10 000).
+- **Prix / boutique** : ACIDE 200 000 · L'ORIGAMI 280 000 · LE SPECTRE 420 000 (épique) · L'ÉTERNELLE, LE MUR DU SON, POSTER 84 en boutique à 1,61 € (légendaires).
+- **Retirées** : LA CAISSE-NUAGE, L'ABSTRAITE, LA FOURNAISE (remboursement au prix de CAR_UNLOCK).
+- **Laissés tels quels, à décider** : LE HOT ROD (« toutes les musiques jusqu'au palier 10 » : sens à préciser), LE SQUALE (reste en boutique à 1,61 €).
+
 ## LE TABLEAU DES VOITURES, PREMIÈRE VAGUE : PRIX, RARETÉS, RETRAITS (2026-10-22, v785, Sacha : « fais ces modifications-là, supprime celles où j'ai mis de les supprimer »)
 - **Prix** (deblocage.js) : ELDORADO 50 000 · LE CAÏD 60 000 · ROSSO 40 400 000 · LA VETTE 90 000 · LA GRANDE ANGLAISE 130 000 · LE CHARGEUR 69 70 000 · LA LAME 80 000 · LA BÊTE 220 000 · LA PERLE 240 000 · LA RAIE 260 000. ROSSO 40 reçoit `rar:'epique'` (à 400 000 le prix la ferait RARE).
 - **Retirées** (`{retire:1,name}`, leur ligne reste : index de sauvegarde ; le prix de CAR_UNLOCK sert au remboursement) : LA ZED, LA PUCE, LE TOFU. (REQUIN l'était déjà.)

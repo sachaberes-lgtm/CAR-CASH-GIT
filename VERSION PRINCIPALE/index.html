@@ -26621,11 +26621,11 @@ const CARS=[
   desc:'Un capot si long qu\'il arrive au virage avant toi. Élue plus belle du monde, et elle le sait.'},
  {name:'LA RAIE',color:0xc4161c,accent:0x131417,maxKmh:360,accel:40,turn:2.7,h:1.21,w:1.75,l:4.64,spoiler:0,shape:'e_raie',rar:'epique', // (2026-10-18, Sacha) REMISE dans le jeu (retirée le 14/10) : épique à 2,5 M, comme avant le 6/10
   desc:'Une taille de guêpe, des hanches de starlette et un V8 sous le capot. Hollywood a pris la route.'},
- {name:'L\'ÉTERNELLE',color:0x1d4fd8,accent:0x121418,maxKmh:620,accel:69,turn:3,h:1.21,w:2.04,l:4.54,spoiler:0,shape:'a_eternelle',rar:'defi',
+ {name:'L\'ÉTERNELLE',color:0x1d4fd8,accent:0x121418,maxKmh:620,accel:69,turn:3,h:1.21,w:2.04,l:4.54,spoiler:0,shape:'a_eternelle',rar:'legendaire',
   desc:'Seize cylindres, quatre turbos, zéro remords. Le temps, lui, attend qu\'elle passe.'},
  {name:'LE TRÔNE CENTRAL',color:0xff7a10,accent:0x121316,maxKmh:560,accel:62,turn:3,h:1.14,w:1.82,l:4.29,spoiler:0,shape:'b_trone',rar:'legendaire',
   desc:'Un seul siège, au milieu. Les passagers regardent de côté : ils ne sont pas là pour conduire.'},
- {name:'LE SPECTRE',color:0x1a1d22,accent:0x5cff1e,maxKmh:560,accel:62,turn:3,h:1.13,w:2,l:4.5,spoiler:0,shape:'c_spectre',rar:'legendaire',
+ {name:'LE SPECTRE',color:0x1a1d22,accent:0x5cff1e,maxKmh:560,accel:62,turn:3,h:1.13,w:2,l:4.5,spoiler:0,shape:'c_spectre',rar:'epique',
   desc:'Tu l’as vu passer ? Non. Personne ne l’a jamais vu passer. D’où le nom.'},
  {name:'LE BLINDÉ NOIR',color:0x17181b,accent:0x4a4e56,maxKmh:520,accel:58,turn:2.6,h:1.6,w:2.6,l:4.6,spoiler:0,shape:'d_chevalier',rar:'legendaire',
   desc:'Pas de capot, pas de pitié, pas de feu rouge. Quand il passe, la rue se range toute seule.'},
@@ -26643,9 +26643,7 @@ const CARS=[
  // (2026-09-27) LA CAISSE-NUAGE — la récompense de la CAMPAGNE NUAGES : un petit cumulus monté comme une vraie voiture (châssis, roues,
  // feux sobres), taillé dans la même ouate que le ciel. Elle ne s'achète pas : on la CHASSE au niveau 10 (voir fantomeTick) et elle
  // devient à toi quand tu tiens son sillage une seconde. Ajoutée APRÈS le bloc généré des 50 : aucun index existant ne bouge.
- {name:'LA CAISSE-NUAGE',shape:'nuage',color:0xfff6ee,accent:0xffd9b8,maxKmh:360,accel:40,turn:2.9,h:1.3,w:2.1,l:4.1,spoiler:0,rar:'defi',
-  fx:{jet:0xfff0f6,core:0xffffff,trail:[1.25,1.05,.9],light:0xffe6f2},
-  desc:'Douce comme un nuage, elle file comme un orage. Un coucher de soleil, rien que pour toi.'},
+ {retire:1,name:'LA CAISSE-NUAGE'}, /* (2026-10-22, Sacha : « tableau des voitures » : à supprimer) RETIRÉE ; sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement */
  // (2026-09-27) LE LINGOT — la récompense de la CAMPAGNE VILLE : un lingot d'or de 1 kg (poinçon 999,9) monté sur roues. Il ne s'achète
  // pas : on le GAGNE en battant le banquier au portail du niveau 10 (voir banquierTick). Ajouté en dernier : aucun index ne bouge.
  {retire:1,name:'LE LINGOT'}, /* (2026-10-18 soir, Sacha : « enlève la gold bar ») RETIRÉ : sa ligne reste (index de sauvegarde), qui l'avait est remboursé par `san` ; son gabarit `lingot` reste dans SHAPES */
@@ -26666,17 +26664,13 @@ const CARS=[
   fx:{jet:0xbfe4ff,core:0xffffff,trail:[.75,.85,.95],light:0xcfe8ff},
   desc:'Toujours le sourire. Surtout quand elle te double.'},
  // (2026-10-09, Léo : « fais-en une hyper abstraite mais travaillée, concept, ajoute-la à la liste ») L'ABSTRAITE (voir SHAPES.abstraite). Ajoutée EN DERNIER (les index de sauvegarde ne bougent pas).
- {name:'L\'ABSTRAITE',shape:'abstraite',color:0xf2f2ee,accent:0x2b2e34,maxKmh:420,accel:48,turn:3.0,h:1.18,w:2.0,l:4.74,spoiler:0,rar:'epique',
-  fx:{jet:0xffd36a,core:0xfff6d8,trail:[1.4,1.0,.35],light:0xffc84a},
-  desc:'Trois lames qui flottent l\'une sur l\'autre, quatre disques, un anneau d\'or qu\'elle traverse sans le toucher. Personne ne sait où est le moteur. Elle non plus.'},
+ {retire:1,name:'L\'ABSTRAITE'}, /* (2026-10-22, Sacha : « tableau des voitures » : à supprimer) RETIRÉE ; sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement */
  // (2026-10-10, Léo : « une nouvelle abstraite, en glace, genre iceberg, stylisée, dynamique ») L'ICEBERG (voir SHAPES.iceberg). Ajoutée EN DERNIER (les index de sauvegarde ne bougent pas).
  {name:'L\'ICEBERG',shape:'iceberg',color:0x52c8f0,accent:0xf4faff,maxKmh:415,accel:49,turn:3.1,h:1.15,w:2.1,l:4.75,spoiler:0,rar:'epique',
   fx:{jet:0x9fe8ff,core:0xffffff,trail:[.75,1.15,1.45],light:0x8fe0ff},
   desc:'Un iceberg fendu en trois : deux blocs de glace sur les roues, une bulle au milieu pour un seul pilote. Le vent passe entre.'},
  // (2026-10-10, Léo : « une voiture flamme — dur, vas-y dur ; une autre technique ; une forme de voiture originale, associée au feu ») LA FOURNAISE (voir SHAPES.fournaise). Ajoutée EN DERNIER.
- {name:'LA FOURNAISE',shape:'fournaise',color:0x241a16,accent:0xff6a1a,maxKmh:425,accel:50,turn:3.0,h:1.2,w:1.95,l:4.72,spoiler:0,rar:'epique',
-  fx:{jet:0xff7a24,core:0xffe0a0,trail:[1.5,.7,.25],light:0xff6a1a},
-  desc:'Une croûte de basalte qui se fend sur un cœur de lave, le feu qui coule dans chaque joint. Ne la touche pas.'},
+ {retire:1,name:'LA FOURNAISE'}, /* (2026-10-22, Sacha : « tableau des voitures » : à supprimer) RETIRÉE ; sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement */
  // (2026-10-10, Léo : « une abstraite type EAU — l'élément, pas une bouteille ; quelque chose de vraiment méchant ») LA DÉFERLANTE. RETIRÉE le 2026-10-15 (Sacha : « elle ne respecte pas les règles du low-poly », comme LA MERCURE) : son gabarit est effacé, la ligne reste pour les index.
  {retire:1,name:'LA DÉFERLANTE'},
  // (2026-10-11, Léo, « retoucheur de voitures » : la planche générée, « génère la mercure », « génère-la en 3D dans mon jeu ») LA MERCURE
@@ -44549,7 +44543,7 @@ const CAR_UNLOCK=[
   {p:60e3},/* (2026-10-22, Sacha : « tableau des voitures » 180 000 → 60 000) */ // LE CAÏD — RARE (2026-10-06 : 60 000 → 50 000) ; 50 000 → 180 000 : c'est le HUMMER EV désormais ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
   {p:180e3},            // (2026-10-06 : RETIRÉE, le prix sert au remboursement) SA MAJESTÉ — RARE, la plus chère des rares : l'argent achète la Rolls, c'est même à ça qu'il sert
   {p:400e3},/* (2026-10-22, Sacha : « tableau des voitures » 4 000 000 → 400 000) */ // (2026-10-19 : 2,5 M → 4 M, la plus chère des caisses à l'argent du jeu ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) (2026-10-06 : 1,5 M → 2,5 M) ROSSO 40 — (2026-09-25 : le mode Survivant est retiré, un seul mode de jeu) la caisse de RÊVE, à 1,5 M
-  {k:'aura',  v:6},     // POSTER 84 — le poster se mérite au style : rang MYTHE, l'argent n'y peut rien
+  {k:'premium',eur:'1,61 €',rar:'leg'},/* (2026-10-22, Sacha : « tableau des voitures » : POSTER 84 en boutique à 1,61 €, légendaire ; avant : rang d'aura MYTHE) */ // POSTER 84 — le poster se mérite au style : rang MYTHE, l'argent n'y peut rien
   {k:'carnet',v:1},     // LA BULLE — contrat n° 1
   {k:'carnet',v:2},     // LE COMBI — contrat n° 2
   {k:'carnet',v:3},     // LA DOLORÈS — contrat n° 3
@@ -44560,7 +44554,7 @@ const CAR_UNLOCK=[
   {k:'premium',eur:'4,99 €',rar:'leg'},       // FORMULE OR — (2026-10-06) RETIRÉE
   {k:'premium',eur:'2,99 €',rar:'leg'},       // LE MANS 24 — (2026-10-06) RETIRÉE
   {k:'premium',eur:'2,99 €',rar:'leg'},       // EL PATRON — (2026-10-06) RETIRÉE
-  {p:550000},                                 // (2026-10-19 : 750 000 → 550 000, la plus abordable des épiques ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) ACIDE — (2026-10-06) ÉPIQUE à l'argent du jeu (était en boutique, 1,99 €)
+  {p:200000},/* (2026-10-22, Sacha : « tableau des voitures » 550 000 → 200 000) */ // (2026-10-19 : 750 000 → 550 000, la plus abordable des épiques ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) ACIDE — (2026-10-06) ÉPIQUE à l'argent du jeu (était en boutique, 1,99 €)
 /* ===== LES CONDITIONS DES 50 — DÉBUT ===== */
   {p:1500}, // LA POSTIÈRE — (2026-10-06) RETIRÉE
   {p:2000}, // LA DEUCHE — (2026-10-06) RETIRÉE
@@ -44602,11 +44596,11 @@ const CAR_UNLOCK=[
   {p:600000}, // (2026-10-19) 1 600 000 → 600 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) — // LA ZED
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LA FÉLINE — (2026-10-06) LÉGENDAIRE en boutique (était épique, 2 M)
   {p:260000},/* (2026-10-22, Sacha : « tableau des voitures » 2 500 000 → 260 000) */ // LA RAIE — (2026-10-18, Sacha) REMISE dans le jeu : épique à 2,5 M, comme avant le 6/10 (« DÉFI À VENIR » du 6 au 14/10, retirée ensuite)
-  {k:'runs',v:100}, // L'ÉTERNELLE — (2026-10-14, PILOTAGE) DÉFI : 100 PARTIES jouées (`ex.runs`, déjà compté : les parties passées valent) — c'était 100 pubs, impossible depuis qu'il n'y a plus de pubs — (2026-10-06) DÉFI : 100 pubs (était en boutique, 9,99 €)
+  {k:'premium',eur:'1,61 €',rar:'leg'},/* (2026-10-22, Sacha : « tableau des voitures » : L'ÉTERNELLE en boutique à 1,61 €, légendaire ; avant : 100 parties) */ // L'ÉTERNELLE — (2026-10-14, PILOTAGE) DÉFI : 100 PARTIES jouées (`ex.runs`, déjà compté : les parties passées valent) — c'était 100 pubs, impossible depuis qu'il n'y a plus de pubs — (2026-10-06) DÉFI : 100 pubs (était en boutique, 9,99 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE TRÔNE CENTRAL (2026-10-06 : 7,99 → 1,61 €)
-  {k:'premium',eur:'1,61 €',rar:'leg'}, // LE SPECTRE (2026-10-06 : 7,99 → 1,61 €)
+  {p:420000},/* (2026-10-22, Sacha : « tableau des voitures » : LE SPECTRE à l'argent, 420 000 $, épique ; avant : 1,61 €) */ // LE SPECTRE (2026-10-06 : 7,99 → 1,61 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE BLINDÉ NOIR (2026-10-21, Sacha : 9,99 → 1,61 €) (ex-LE CHEVALIER NOIR — renommé le 2026-10-14, Sacha : nom trop proche de Batman pour la revue App Store)
-  {k:'premium',eur:'0,99 €',rar:'leg'}, // LE MUR DU SON (2026-10-06 : 6,99 → 0,99 €)
+  {k:'premium',eur:'1,61 €',rar:'leg'},/* (2026-10-22, Sacha : « tableau des voitures » : 0,99 → 1,61 €) */ // LE MUR DU SON (2026-10-06 : 6,99 → 0,99 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE DRAGON D'OR (2026-10-21, Sacha : 9,99 → 1,61 €)
   {k:'carnet',v:9}, // LE MASTODONTE
   {k:'carnet',v:7}, // LA GROUPE B
@@ -44615,7 +44609,7 @@ const CAR_UNLOCK=[
 /* ===== LES CONDITIONS DES 50 — FIN ===== */
   {p:1800000,exK:'carrN',exV:5}, // LA CAISSE-NUAGE — (2026-10-18) la carrière retirée : à l'argent du jeu (le prix de l'ancienne édition Poki, depuis le 14/10) ; exK/exV : la condition d'avant (les 5 niveaux de SKY HIGH), gagnée = la caisse est à toi (voir la migration après SAVE.load)
   {p:2200000,exK:'carrV',exV:5}, // LE LINGOT — (2026-10-18) idem : les 5 niveaux de la VILLE gagnés = il est à toi
-  {p:1200000}, // (2026-10-02) L'ORIGAMI — ÉPIQUE, à l'argent : entre LA DÉESSE et L'AIGLE DE FEU
+  {p:280000},/* (2026-10-22, Sacha : « tableau des voitures » : L'ORIGAMI à l'argent, 280 000 $ ; avant : mission « joue sur chaque map ») */ // (2026-10-02) L'ORIGAMI — ÉPIQUE, à l'argent : entre LA DÉESSE et L'AIGLE DE FEU
   {p:900000}, // (2026-10-06) ATCHOUM — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 900 000 : entre LA STRATOS et L'ORIGAMI, l'ordre de la fiche
   {k:'premium',eur:'1,61 €',rar:'leg'}, // (2026-10-21, Sacha : « remplace le shark par l'autre requin de Léo, à 1,61 € ») LE SQUALE passe en boutique, ex-700 000 (la mission secrète `abysse` ne le donne plus : elle paie de l'argent, voir missions/table.js — sinon le patch des missions le remettait en `k:'mis'` et il disparaissait de la boutique) ; (2026-10-08) LE SQUALE — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 700 000 : entre LA TAURINE et ACIDE, l'ordre de la fiche
   {p:3000000}, // (2026-10-09, Léo : « fais-en une hyper abstraite mais travaillée, concept, ajoute-la à la liste ») L'ABSTRAITE — ÉPIQUE, la plus chère des épiques (juste après ROSSO 40)
@@ -44689,7 +44683,7 @@ const M2=[
   {id:'kmh1000',f:'exploit',k:'kmh',v:1000,u:'kmh',r:{cash:20000},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
   {id:'vie5min',f:'exploit',k:'vie',v:300,u:'mn',r:{cash:30000},t:'TIENS 5 MIN SANS MOURIR',en:'SURVIVE 5 MIN WITHOUT DYING'}, // (2026-10-19, Sacha) avant : LA JEEP — absente du garage, l'argent à la place
   {id:'tours5',f:'exploit',k:'tours',v:5,u:'',r:{cash:20000},t:'FRÔLE {v} TOURS DANS UN SEUL SAUT (LA VILLE)',en:'SKIM {v} TOWERS IN ONE JUMP (THE CITY)'}, // (2026-10-19, Sacha) avant : LE TAXI JAUNE — absente du garage, l'argent à la place
-  {id:'parfmaps',f:'exploit',k:'cartesP',v:'tot',u:'',r:{car:'LA STRATOS'},t:'POSE-TOI EN PARFAIT SUR CHAQUE MAP',en:'LAND A PERFECT ON EVERY MAP'}, // (proposition de la demande : LA STRATOS, à valider par Sacha)
+  {id:'parfmaps',f:'exploit',k:'cartesP',v:'tot',u:'',r:{cash:15000},t:'POSE-TOI EN PARFAIT SUR CHAQUE MAP',en:'LAND A PERFECT ON EVERY MAP'}, // (proposition de la demande : LA STRATOS, à valider par Sacha) /* (2026-10-22, Sacha : « tableau des voitures » : LA STRATOS a sa nouvelle mission (météo) ; avant : LA STRATOS — À VALIDER */
   // AURA — le record d'une partie
   {id:'aura10k',f:'aura',k:'aura',v:10000,u:'aura',r:{cash:15000},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
   {id:'aura20k',f:'aura',k:'aura',v:20000,u:'aura',r:{cash:30000},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
@@ -44711,7 +44705,17 @@ const M2=[
   /* (2026-10-22, Sacha : « tableau des voitures ») LA DOLORÈS : « débloque toutes les voitures rares » (celles qui s'achètent : les rares gagnées par mission ne comptent pas, sinon elle se bloquerait elle-même) ; l'ancienne mission « DÉPASSE 1000 KM/H » paie 20 000 $ à la place (À VALIDER PAR SACHA) */
   {id:'rares',f:'collection',k:'raresT',v:'tot',u:'',r:{car:'LA DOLORÈS'},t:'DÉBLOQUE TOUTES LES VOITURES RARES',en:'UNLOCK EVERY RARE CAR'},
   /* (2026-10-22, Sacha) LE CHARGEUR : « réussir 10 missions » — secrète, comme dans le tableau */
-  {id:'mis10',f:'secret',k:'misok',v:10,u:'',r:{car:'LE CHARGEUR'},t:'RÉUSSIS {v} MISSIONS',en:'COMPLETE {v} MISSIONS'},
+  /* (2026-10-22, Sacha : « tableau des voitures ») les caisses à compteur À VIE (m2Val : pu, nitS, nmaxS, figs, airS, revives, glace) */
+  {id:'pu100',f:'exploit',k:'pu',v:100,u:'',r:{car:'LE DÉFIEUR'},t:'RAMASSE {v} POWER-UPS',en:'PICK UP {v} POWER-UPS'},
+  {id:'nmax100',f:'exploit',k:'nmaxS',v:100,u:'s',r:{car:'LE SAMOURAÏ'},t:'BRÛLE {v} S DE NITRO EN MODE NITRO MAX',en:'BURN {v} S OF NITRO IN NITRO MAX MODE'},
+  {id:'figs500',f:'exploit',k:'figs',v:500,u:'',r:{car:'ATCHOUM'},t:'FAIS {v} FIGURES',en:'LAND {v} TRICKS'},
+  {id:'nit2000',f:'exploit',k:'nitS',v:2000,u:'s',r:{car:'LA TAURINE'},t:'BRÛLE {v} S DE NITRO',en:'BURN {v} S OF NITRO'},
+  {id:'air1000',f:'exploit',k:'airS',v:1000,u:'s',r:{car:'LE MASTODONTE'},t:'PASSE {v} S EN L\'AIR',en:'SPEND {v} S IN THE AIR'},
+  {id:'verglas100',f:'exploit',k:'verglasKm',v:100,u:'km',r:{car:'L\'ICEBERG'},t:'PARCOURS {v} KM SUR LE VERGLAS (LE GLACIER)',en:'DRIVE {v} KM ON THE BLACK ICE (THE GLACIER)'},
+  {id:'km100k',f:'exploit',k:'kmTot',v:100000,u:'km',r:{car:'LA QUEUE DE CANARD'},t:'ROULE {v} KM',en:'DRIVE {v} KM'},
+  {id:'meteo',f:'exploration',k:'meteoMap',v:'tot',u:'',r:{car:'LA STRATOS'},t:'JOUE UNE MAP SOUS TOUTES SES MÉTÉOS ET TOUS SES MOMENTS DE LA JOURNÉE',en:'PLAY ONE MAP IN EVERY WEATHER AND TIME OF DAY'},
+  {id:'silence',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA SILENCIEUSE'},t:'FAIS UNE PARTIE ENTIÈRE SANS SON NI MUSIQUE (RÉGLAGES)',en:'PLAY A WHOLE RUN WITH SOUND AND MUSIC OFF (SETTINGS)'},
+  {id:'mis10',f:'exploration',k:'misok',v:10,u:'',r:{car:'LE CHARGEUR'},t:'RÉUSSIS {v} MISSIONS',en:'COMPLETE {v} MISSIONS'},
   {id:'col5',f:'collection',k:'peint',v:5,u:'',r:{cash:10000},t:'COLLECTE {v} COULEURS',en:'COLLECT {v} PAINTS'},
   {id:'col10',f:'collection',k:'peint',v:10,u:'',r:{cash:10000},t:'COLLECTE {v} COULEURS',en:'COLLECT {v} PAINTS'},
   {id:'colall',f:'collection',k:'peintT',v:'tot',u:'',r:{cat:'peinture',id:'guerrier'},t:'COLLECTE TOUTES LES COULEURS',en:'COLLECT EVERY PAINT'},
@@ -44726,29 +44730,29 @@ const M2=[
   {id:'figall',f:'collection',k:'figureT',v:'tot',u:'',r:{cash:50000},t:'COLLECTE TOUTES LES FIGURES',en:'COLLECT EVERY TRICK'},
   {id:'toutall',f:'collection',k:'toutT',v:'tot',u:'',r:{cash:500000},t:'COLLECTE TOUS LES OBJETS DU JEU',en:'COLLECT EVERYTHING IN THE GAME'}, // (2026-10-19, Sacha) avant : {vide:1}, la récompense à définir — c'est l'argent
   // EXPLORATION
-  {id:'maps',f:'exploration',k:'cartes',v:'tot',u:'',r:{car:'L\'ORIGAMI'},t:'JOUE SUR CHAQUE MAP AU MOINS UNE FOIS',en:'PLAY EVERY MAP AT LEAST ONCE'},
+  {id:'maps',f:'exploration',k:'cartes',v:'tot',u:'',r:{cash:30000},t:'JOUE SUR CHAQUE MAP AU MOINS UNE FOIS',en:'PLAY EVERY MAP AT LEAST ONCE'}, /* (2026-10-22, Sacha : « tableau des voitures » : L'ORIGAMI passe à l'argent ; avant : L\'ORIGAMI — À VALIDER */
   /* (2026-10-22, Sacha : « tableau des voitures ») LE ROUGE-GORGE : « avoir exploré chaque map » — même mesure que L'ORIGAMI (à confirmer : deux missions identiques) */
   {id:'maps2',f:'exploration',k:'cartes',v:'tot',u:'',r:{car:'LE ROUGE-GORGE'},t:'AVOIR EXPLORÉ CHAQUE MAP',en:'HAVE EXPLORED EVERY MAP'},
   // SECRÈTES — invisibles tant qu'elles ne sont pas trouvées ; chacune donne une caisse, montrée en silhouette noire à la boutique (2026-10-19 : six d'entre elles donnent de l'ARGENT, leur caisse n'étant plus au garage — une secrète en argent n'a pas de scène de révélation, elle se RÉCUPÈRE comme les autres)
-  {id:'morts100',f:'secret',k:'morts',v:100,u:'',r:{car:'LE CORBILLARD'},t:'MEURS {v} FOIS',en:'DIE {v} TIMES'},
+  {id:'morts100',f:'exploit',k:'morts',v:100,u:'',r:{car:'LE CORBILLARD'},t:'MEURS {v} FOIS',en:'DIE {v} TIMES'},
   {id:'mort3s',f:'secret',k:'flag',v:1,u:'b',r:{cash:5000},t:'MEURS DANS LES 3 PREMIÈRES SECONDES',en:'DIE IN THE FIRST 3 SECONDS'}, // (2026-10-19, Sacha) avant : LA SANS-PERMIS — absente du garage, l'argent à la place
   {id:'arret',f:'secret',k:'flag',v:1,u:'b',r:{cash:5000},t:'RESTE À L\'ARRÊT JUSQU\'À EXPLOSER',en:'STAND STILL UNTIL YOU BLOW UP'}, // (2026-10-19, Sacha) avant : LE GRILLE-PAIN — absente du garage, l'argent à la place
   {id:'nitplein',f:'secret',k:'flag',v:1,u:'b',r:{cash:10000},t:'MEURS LA JAUGE DE NITRO PLEINE',en:'DIE WITH A FULL NITRO TANK'}, // (2026-10-19, Sacha) avant : LA BOULE — absente du garage, l'argent à la place
-  {id:'air0',f:'secret',k:'flag',v:1,u:'b',r:{car:'LE SPECTRE'},t:'MEURS PILE À 0 S DE VOL RESTANT',en:'DIE WITH EXACTLY 0 S OF AIRTIME LEFT'},
-  {id:'kmh2000',f:'secret',k:'kmh',v:2000,u:'kmh',r:{car:'LE MUR DU SON'},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
-  {id:'cratere',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA FOURNAISE'},t:'MEURS AU-DESSUS DU CRATÈRE DU VOLCAN',en:'DIE ABOVE THE VOLCANO CRATER'},
+  {id:'air0',f:'secret',k:'flag',v:1,u:'b',r:{cash:20000},t:'MEURS PILE À 0 S DE VOL RESTANT',en:'DIE WITH EXACTLY 0 S OF AIRTIME LEFT'}, /* (2026-10-22, Sacha : « tableau des voitures » : LE SPECTRE passe à l'argent ; avant : LE SPECTRE — À VALIDER */
+  {id:'kmh2000',f:'secret',k:'kmh',v:2000,u:'kmh',r:{cash:25000},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'}, /* (2026-10-22, Sacha : « tableau des voitures » : LE MUR DU SON passe en boutique ; avant : LE MUR DU SON — À VALIDER */
+  {id:'cratere',f:'secret',k:'flag',v:1,u:'b',r:{cash:20000},t:'MEURS AU-DESSUS DU CRATÈRE DU VOLCAN',en:'DIE ABOVE THE VOLCANO CRATER'}, /* (2026-10-22, Sacha : « tableau des voitures » : LA FOURNAISE retirée ; avant : LA FOURNAISE — À VALIDER */
   {id:'lave',f:'secret',k:'flag',v:1,u:'b',r:{car:'L\'AIGLE DE FEU'},t:'ROULE DANS LA LAVE',en:'DRIVE INTO THE LAVA'},
   {id:'geyser',f:'secret',k:'flag',v:1,u:'b',r:{car:'ATCHOUM'},t:'TRAVERSE UN GEYSER',en:'FLY THROUGH A GEYSER'},
   {id:'abysse',f:'secret',k:'prof',v:'prof',u:'',r:{cash:15000},t:'DESCENDS AU FOND DE LA MER DE JADE',en:'DIVE TO THE BOTTOM OF THE JADE SEA'}, // (2026-10-20, Sacha : LE SQUALE passe à la boutique payante, 1,61 €) avant : LE SQUALE — il ne se gagne plus, l'argent à la place (15 000 $ : comme LE GLACIER et LA DEUCHE, À VALIDER PAR SACHA)
-  {id:'nuage30',f:'secret',k:'vol',v:30,u:'s',r:{car:'LA CAISSE-NUAGE'},t:'RESTE {v} S EN L\'AIR AU-DESSUS DES NUAGES',en:'STAY {v} S IN THE AIR ABOVE THE CLOUDS'},
+  {id:'nuage30',f:'secret',k:'vol',v:30,u:'s',r:{cash:20000},t:'RESTE {v} S EN L\'AIR AU-DESSUS DES NUAGES',en:'STAY {v} S IN THE AIR ABOVE THE CLOUDS'}, /* (2026-10-22, Sacha : « tableau des voitures » : LA CAISSE-NUAGE retirée ; avant : LA CAISSE-NUAGE — À VALIDER */
   {id:'terre',f:'secret',k:'flag',v:1,u:'b',r:{car:'COMÈTE'},t:'FAIS UN SALTO DEVANT LA TERRE',en:'FLIP IN FRONT OF THE EARTH'},
   {id:'lac10',f:'secret',k:'lac',v:10,u:'s',r:{cash:15000},t:'GLISSE {v} S SUR UN LAC GELÉ',en:'SLIDE {v} S ON A FROZEN LAKE'}, // (2026-10-19, Sacha) avant : LE GLACIER — absente du garage, l'argent à la place
-  {id:'sansnit',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA SILENCIEUSE'},t:'FAIS UNE PARTIE ENTIÈRE SANS TOUCHER NITRO',en:'PLAY A WHOLE RUN WITHOUT TOUCHING NITRO'},
+  {id:'sansnit',f:'secret',k:'flag',v:1,u:'b',r:{cash:10000},t:'FAIS UNE PARTIE ENTIÈRE SANS TOUCHER NITRO',en:'PLAY A WHOLE RUN WITHOUT TOUCHING NITRO'}, /* (2026-10-22, Sacha : « tableau des voitures » : LA SILENCIEUSE a sa nouvelle mission (silence) ; avant : LA SILENCIEUSE — À VALIDER */
   {id:'sanspiece',f:'secret',k:'flag',v:1,u:'b',r:{cash:15000},t:'FAIS UNE PARTIE SANS RAMASSER UNE SEULE PIÈCE',en:'PLAY A WHOLE RUN WITHOUT PICKING UP A COIN'}, // (2026-10-19, Sacha) avant : LA DEUCHE — absente du garage, l'argent à la place
   {id:'rejoue10',f:'secret',k:'rejoue',v:10,u:'',r:{car:'LE DOGE'},t:'REJOUE {v} FOIS DE SUITE SANS REVENIR AU MENU',en:'REPLAY {v} TIMES IN A ROW WITHOUT THE MENU'},
   {id:'nuit3h',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA NOCTAMBULE'},t:'JOUE À 3 H DU MATIN',en:'PLAY AT 3 AM'},
   {id:'jours7',f:'secret',k:'jours',v:7,u:'',r:{cash:25000},t:'JOUE {v} JOURS DIFFÉRENTS',en:'PLAY ON {v} DIFFERENT DAYS'}, // (2026-10-19, Sacha) avant : LA DÉESSE — absente du garage, l'argent à la place
-  {id:'jours30',f:'secret',k:'jours',v:30,u:'',r:{car:'L\'ÉTERNELLE'},t:'JOUE {v} JOURS DIFFÉRENTS',en:'PLAY ON {v} DIFFERENT DAYS'}];
+  {id:'jours30',f:'secret',k:'jours',v:30,u:'',r:{cash:25000},t:'JOUE {v} JOURS DIFFÉRENTS',en:'PLAY ON {v} DIFFERENT DAYS'}]; /* (2026-10-22, Sacha : « tableau des voitures » : L'ÉTERNELLE passe en boutique ; avant : L\'ÉTERNELLE — À VALIDER */
 /* les réglages des détections (mesurés : voir le journal) — `partie` : une « partie entière » dure au moins ça (s de conduite), sinon trois
    caisses tombaient en mourant à la 2e seconde ; `frole` : la distance (m) d'un flanc de tour qui compte comme frôlé ; `prof` : le fond de
    la mer de Jade (m sous la surface) — EAU.fond n'est jamais atteint (la poussée ramène avant), le seuil est le fond qu'on atteint vraiment. */
@@ -44761,7 +44765,7 @@ let M2_RECO=null;
 /* l'état de la partie en cours (jamais sauvegardé) : ctl = secondes de conduite (sans le largage), vie = depuis la dernière (re)naissance,
    parf = poses parfaites d'affilée, lac = glisse tenue sur un lac gelé, tourV = les tours frôlées pendant CE saut, run = missions
    réussies pendant cette partie (l'écran de mort), deb = la partie a été comptée (jour, heure). */
-const M2R={ctl:0,vie:0,parf:0,lac:0,tourV:[],run:[],t:0,deb:false,figV:0,volT:0,figMax:0,airPm:0}; // figV/volT : les figures et la durée VÉCUE (hors de l'eau) du saut en cours — le bump retranche du temps à fallT, pas à volT
+const M2R={sonne:false,ctl:0,vie:0,parf:0,lac:0,tourV:[],run:[],t:0,deb:false,figV:0,volT:0,figMax:0,airPm:0}; // figV/volT : les figures et la durée VÉCUE (hors de l'eau) du saut en cours — le bump retranche du temps à fallT, pas à volT
 /* LES CAISSES QUI SE GAGNENT PAR MISSION : leur condition devient la mission (`k:'mis'`), l'ancienne reste dans `av` — la migration de
    la sauvegarde (m2Migre) la relit pour rendre à chacun ce qu'il avait déjà (une mise à jour ne confisque rien) ; une caisse qui se
    vendait (à l'argent du jeu ou en euros) ne s'achète plus. Les caisses RETIRÉES ne reviennent qu'avec leur gabarit (SHAPES). */
@@ -49176,7 +49180,7 @@ function pwrPrend(k,pos){
   if(!SONV2)boostSnd();pwrPrisSnd(k); // (console) chaque pouvoir a sa signature entière : plus le souffle d'un pad dessous
  shake=Math.max(shake,.35);flashEcran(d.fx);hap([14,40,24]);
   sparkBurst(d.sp==='bleu'?sparkBlue:d.sp==='rose'?sparkPink:sparkGold,pos,14,9); // là où le cristal éclate
-  addStyle(10);RUNX.pwr=(RUNX.pwr|0)+1;
+  addStyle(10);RUNX.pwr=(RUNX.pwr|0)+1;try{m2Pu();}catch(e){}
   if(autres>=1){ // DEUX POUVOIRS À LA FOIS : la chasse aux cristaux paie
     const tri=autres>=2;
     chaineAuraMuette(tri?'TRIPLE POUVOIR':'DOUBLE POUVOIR',tri?150:70,'pwrCombo',true,SONV2); // (2026-09-29, Sacha) l'aura compte, rien ne s'écrit
@@ -55703,6 +55707,8 @@ function m2Col(cat){const R=m2Reco();let n=0,tot=0,nT=0;
   return {n:n,tot:tot,nT:nT};}
 /* (2026-10-22) LES RARES À TOI : celles qui s'achètent (les rares gagnées par mission ne comptent pas — LA DOLORÈS se débloque en les ayant toutes) */
 function m2Rares(){const R=m2Reco();let n=0,tot=0;for(let i=0;i<CARS.length;i++){if(carRetiree(i)||carRar(i)!=='rare'||R.car[CARS[i].name])continue;tot++;if(m2CarAMoi(i))n++;}return {n:n,tot:tot};}
+/* (2026-10-22) LA MÉTÉO D'UNE MAP (LA STRATOS) : pour chaque map, les temps (SF_CARTES[k].m : matin, midi, soir, nuit, pluie, orage…) déjà joués ; la meilleure map compte (n joués sur tot) */
+function m2Meteo(){const c=m2Etat().c,H=c.met||{};let n=0,tot=0,f=-1;for(const k of m2Cartes()){const L=Object.keys((SF_CARTES[k]&&SF_CARTES[k].m)||{});if(!L.length)continue;let j=0;for(const x of L)if((H[k]||[]).indexOf(x)>=0)j++;if(j/L.length>f||(j/L.length===f&&L.length>tot)){f=j/L.length;n=j;tot=L.length;}}return {n:n,tot:tot};}
 function m2Tout(){let tot=0,nT=0;for(const c of ['voiture','peinture','aile','trainee','figure']){const o=m2Col(c);tot+=o.tot;nT+=o.nT;}return {tot:tot,nT:nT};}
 /* (M2_COLK est déclarée plus haut, à côté de M2K : voir là) */
 /* LA VALEUR D'UNE MISSION, maintenant (les records de la partie en cours compris) */
@@ -55730,11 +55736,15 @@ function m2Val(m){const d=SAVE.d,s=m2Etat(),r=s.r,c=s.c,ex=d.ex||{},enC=m2EnC();
     case 'flag':return s.fl.indexOf(m.id)>=0?1:0;
     case 'toutT':return m2Tout().nT;
     case 'raresT':return m2Rares().n;
+    /* (2026-10-22, Sacha : « tableau des voitures ») les compteurs À VIE des nouvelles missions de caisse : ramassés / secondes de nitro / de nitro max / figures / secondes en l'air / revives par pub / morts contre la glace */
+    case 'pu':case 'nitS':case 'nmaxS':case 'figs':case 'airS':case 'verglasKm':return c[m.k]||0;
+    case 'kmTot':return Math.floor(c.kmTot||0);
+    case 'meteoMap':return m2Meteo().n;
     case 'misok':return s.ok.length;
   }
   const t=/T$/.test(m.k),o=m2Col(M2_COLK[t?m.k.slice(0,-1):m.k]);return t?o.nT:o.n;}
 function m2Seuil(m){if(m.v==='prof')return M2K.prof;if(m.v!=='tot')return m.v;
-  if(m.k==='cartes'||m.k==='cartesP')return m2Cartes().length;if(m.k==='raresT')return m2Rares().tot;if(m.k==='toutT')return m2Tout().tot;
+  if(m.k==='cartes'||m.k==='cartesP')return m2Cartes().length;if(m.k==='raresT')return m2Rares().tot;if(m.k==='meteoMap')return m2Meteo().tot;if(m.k==='toutT')return m2Tout().tot;
   return m2Col(M2_COLK[m.k.slice(0,-1)]).tot;}
 function m2Txt(m){const s=String(LANG==='fr'?m.t:m.en),v=m2Seuil(m);
   return s.replace('{v}',m.u==='$'?fmtSolde(v):m.u==='s'?String(v):Math.round(v).toLocaleString(typeof LOC==='function'?LOC():'fr').replace(/[  ]/g,' '));} // « 1 000 KM/H », « 10 000 D'AURA »
@@ -55824,7 +55834,7 @@ function m2Dispo(m){if(!M2DISPO)return true;const r=(m&&m.r)||{};if(r.vide)retur
 function m2Pret(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.pr.indexOf(id)>=0)return false;const r=m.r||{};
   if(r.vide)return false;if(r.car){const i=m2CarIdx(r.car);return i>=0&&!carRetiree(i);}if(r.cat)return !!(COSM[r.cat]||[]).find(function(x){return x.id===r.id;});return true;}
 /* ---- LES BRANCHEMENTS DE LA COURSE ---- */
-function m2Raz(){M2R.ctl=0;M2R.vie=0;M2R.parf=0;M2R.lac=0;M2R.tourV.length=0;M2R.run.length=0;M2R.t=0;M2R.deb=false;M2R.figV=0;M2R.volT=0;M2R.figMax=0;M2R.airPm=0;}
+function m2Raz(){M2R.sonne=false;M2R.ctl=0;M2R.vie=0;M2R.parf=0;M2R.lac=0;M2R.tourV.length=0;M2R.run.length=0;M2R.t=0;M2R.deb=false;M2R.figV=0;M2R.volT=0;M2R.figMax=0;M2R.airPm=0;}
 function m2Debut(){const s=m2Etat(),c=s.c,j=m2Jour();M2R.deb=true; // la 1re image de la partie qui compte : le jour, l'heure
   if(c.jd!==j){c.jd=j;c.jours=(c.jours|0)+1;SAVE.mark();}
   if(new Date().getHours()===3)m2Flag('nuit3h');}
@@ -55832,13 +55842,19 @@ function m2Tick(dt,kmh){if(!m2Ok()||paused)return;const s=m2Etat(),r=s.r;if(!M2R
   if(!introD&&(mode==='drive'||mode==='fall'))M2R.ctl+=dt;
   if(mode!=='boom'){M2R.vie+=dt;if(M2R.vie>(r.vie||0))r.vie=M2R.vie;}
   if(kmh>(r.kmh||0))r.kmh=Math.round(kmh);
+  if(mode==='drive'||mode==='fall'){s.c.kmTot=(s.c.kmTot||0)+kmh*dt/3600;if(SND.sfx||SND.music)M2R.sonne=true;} /* (2026-10-22) les kilomètres à vie (LA QUEUE DE CANARD) ; SND : la partie a-t-elle eu du son ou de la musique (LA SILENCIEUSE) */
+  if(nitroOn&&(mode==='drive'||mode==='fall')){s.c.nitS=(s.c.nitS||0)+dt;if(pwrNitroT>0)s.c.nmaxS=(s.c.nmaxS||0)+dt;SAVE.mark();} /* (2026-10-22) les secondes de nitro, et celles brûlées pendant une NITRO MAX */
   if(FLOW.lv===4){r.frenN=1;if(FREN.t>(r.frenT||0))r.frenT=FREN.t;}
   const k=secCarte().c;if(k&&s.c.cartes.indexOf(k)<0){s.c.cartes.push(k);SAVE.mark();}
-  if(mode==='fall'){if(!JEAU.dans)M2R.volT+=dt;if(k==='nuages'&&M2R.volT>(r.vol||0))r.vol=M2R.volT;if(k==='ville')m2Tours(r);else if(k==='volcan')m2Geyser();}
+  {const k9=secCarte();if(k9.c&&k9.m){const H=s.c.met||(s.c.met={}),L=H[k9.c]||(H[k9.c]=[]);if(L.indexOf(k9.m)<0){L.push(k9.m);SAVE.mark();}}} /* (2026-10-22) les temps joués, map par map (LA STRATOS) */
+  if(k==='banquise'&&BANQ.sur>0){s.c.verglasKm=(s.c.verglasKm||0)+kmh*dt/3600;} /* (2026-10-22) les km sur le verglas du glacier (L'ICEBERG) */
+  if(mode==='fall'){if(!JEAU.dans){M2R.volT+=dt;s.c.airS=(s.c.airS||0)+dt;SAVE.mark();}if(k==='nuages'&&M2R.volT>(r.vol||0))r.vol=M2R.volT;if(k==='ville')m2Tours(r);else if(k==='volcan')m2Geyser();}
   if(k==='banquise'&&BANQ.glisse&&BANQ.sur===2){M2R.lac+=dt;if(M2R.lac>(r.lac||0))r.lac=M2R.lac;}else M2R.lac=0;
   if(k==='jade'&&JEAU.dans&&JEAU.prof>(r.prof||0))r.prof=JEAU.prof;
   try{djTick(dt);}catch(e){} /* (2026-10-20) LE DÉFI DU JOUR (missions/aujourdhui.js) */
   M2R.t-=dt;if(M2R.t<=0){M2R.t=.25;m2Verifie(true);try{m2FocusMaj();}catch(e){}}}
+/* (2026-10-22) un POWER-UP ramassé (pwrPrend) */
+function m2Pu(){if(!m2Ok())return;const c=m2Etat().c;c.pu=(c.pu|0)+1;SAVE.mark();}
 function m2Saut(){M2R.tourV.length=0;M2R.figV=0;M2R.volT=0;} // startFall : un saut neuf (le bump n'en est pas un : il prolonge le saut)
 /* FRÔLER UNE TOUR (la ville) : passer à moins de M2K.frole m d'un flanc, à hauteur de la tour, sans la toucher — la même grille que
    villeHeurt (CITY.col : boîtes x,y,z,l,h,p), les huit cases voisines comprises. Une tour = son décalage dans la grille. */
@@ -55853,7 +55869,7 @@ function m2Geyser(){const G=VOLCAN.gey;if(!G||!G.length)return;let t=0;try{t=VLC
     const tE=(((t/g.per+g.ph)%1+1)%1)*g.per,h=g.v*g.v/(2*9.8);if(tE<2*g.v/9.8&&p.y>g.y-2&&p.y<g.y+h){m2Flag('geyser');return;}}}
 function m2Fig(id){if(!m2Ok())return;const s=m2Etat(),r=s.r;
   /* UNE FIGURE = une figure à bouton (fig_<id>, pas le bonus fig_combo_) ou le BUMP (Sacha, 15/10 : « bump doit compter comme une figure ») */
-  if((/^fig_/.test(id)&&!/^fig_combo_/.test(id))||id==='bump'){M2R.figV++;if(M2R.figV>M2R.figMax)M2R.figMax=M2R.figV;if(M2R.figV>(r.fig|0))r.fig=M2R.figV;}
+  if((/^fig_/.test(id)&&!/^fig_combo_/.test(id))||id==='bump'){M2R.figV++;s.c.figs=(s.c.figs|0)+1;SAVE.mark();if(M2R.figV>M2R.figMax)M2R.figMax=M2R.figV;if(M2R.figV>(r.fig|0))r.fig=M2R.figV;}
   /* LE SALTO DEVANT LA TERRE : une figure qui passe par l'avant ou l'arrière (un salto), en orbite, la Terre dans le champ */
   if(/^fig_/.test(id)&&secCarte().c==='espace'&&typeof planetGroup!=='undefined'&&planetGroup&&planetGroup.visible&&LVL.cur&&LVL.cur.meteo==='matin'){
     try{const f=FIG.liste.find(function(x){return 'fig_'+x.id===id;}),D=f?FIG.dirs(f):[];
@@ -55871,7 +55887,7 @@ function m2Mort(cause){if(!m2Ok())return;const s=m2Etat();s.c.morts=(s.c.morts|0
   m2Verifie(true);SAVE.mark();}
 function m2Fin(){ // endGame (une mort, ou QUITTER) : la partie entière se juge ici
   try{if(BALADE||SANDBOX||(PARK&&PARK.on)||TUTO.on||TUTO.quitte)return;}catch(e){return;}
-  if(mortCause&&M2R.ctl>=M2K.partie){if(!(RUNX.nitro>0))m2Flag('sansnit');if(!(RUNX.coins>0))m2Flag('sanspiece');}
+  if(mortCause&&M2R.ctl>=M2K.partie){if(!(RUNX.nitro>0))m2Flag('sansnit');if(!(RUNX.coins>0))m2Flag('sanspiece');if(!M2R.sonne)m2Flag('silence');}
   m2Verifie(false);{const s9=m2Etat();s9.su=s9.su.filter(function(id){return s9.ok.indexOf(id)<0;});} /* une suivie réussie se récupère : elle quitte le suivi */SAVE.flush();}
 function m2Rejoue(){const s=m2Etat();s.c.rejoue=(s.c.rejoue|0)+1;if(s.c.rejoue>(s.r.rejoue|0))s.r.rejoue=s.c.rejoue;SAVE.mark();}
 function m2Menu(){const s=m2Etat();if(s.c.rejoue){s.c.rejoue=0;SAVE.mark();}}
@@ -55918,7 +55934,7 @@ function m2ValCourse(m){try{switch(m.k){case 'aura':return Math.round(auraRun)||
   case 'tours':return M2R.tourV.length;case 'airP':return M2R.airPm;}}catch(e){}return m2Val(m);}
 function m2Frac(m,v,t){return t>0?Math.max(0,Math.min(1,v/t)):0;}
 function m2Prog(m,v,t){v=Math.min(v,t); // « 3 / 5 », « 42 000 / 100 000 $ », « 4,2 / 5 S », « 1:12 / 5:00 »
-  switch(m.u){case 's':return decFr(Math.floor(v*10)/10,1)+' / '+t+' S';case 'kmh':return m2Nb(v)+' / '+m2Nb(t)+' KM/H';
+  switch(m.u){case 's':return decFr(Math.floor(v*10)/10,1)+' / '+t+' S';case 'kmh':return m2Nb(v)+' / '+m2Nb(t)+' KM/H';case 'km':return m2Nb(Math.floor(v))+' / '+m2Nb(t)+' KM';
     case '$':return m2Nb(v)+' / '+m2Nb(t)+' $';case 'aura':return fmtAura(v)+' / '+fmtAura(t);case 'mn':return m2Mn(v)+' / '+m2Mn(t);
     case 'b':return v>=t?TR('FAIT'):TR('PAS ENCORE');}
   return m2Nb(v)+' / '+m2Nb(t);}

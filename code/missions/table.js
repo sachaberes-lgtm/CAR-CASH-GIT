@@ -19,7 +19,7 @@ const M2=[
   {id:'kmh1000',f:'exploit',k:'kmh',v:1000,u:'kmh',r:{cash:20000},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
   {id:'vie5min',f:'exploit',k:'vie',v:300,u:'mn',r:{cash:30000},t:'TIENS 5 MIN SANS MOURIR',en:'SURVIVE 5 MIN WITHOUT DYING'}, // (2026-10-19, Sacha) avant : LA JEEP — absente du garage, l'argent à la place
   {id:'tours5',f:'exploit',k:'tours',v:5,u:'',r:{cash:20000},t:'FRÔLE {v} TOURS DANS UN SEUL SAUT (LA VILLE)',en:'SKIM {v} TOWERS IN ONE JUMP (THE CITY)'}, // (2026-10-19, Sacha) avant : LE TAXI JAUNE — absente du garage, l'argent à la place
-  {id:'parfmaps',f:'exploit',k:'cartesP',v:'tot',u:'',r:{car:'LA STRATOS'},t:'POSE-TOI EN PARFAIT SUR CHAQUE MAP',en:'LAND A PERFECT ON EVERY MAP'}, // (proposition de la demande : LA STRATOS, à valider par Sacha)
+  {id:'parfmaps',f:'exploit',k:'cartesP',v:'tot',u:'',r:{cash:15000},t:'POSE-TOI EN PARFAIT SUR CHAQUE MAP',en:'LAND A PERFECT ON EVERY MAP'}, // (proposition de la demande : LA STRATOS, à valider par Sacha) /* (2026-10-22, Sacha : « tableau des voitures » : LA STRATOS a sa nouvelle mission (météo) ; avant : LA STRATOS — À VALIDER */
   // AURA — le record d'une partie
   {id:'aura10k',f:'aura',k:'aura',v:10000,u:'aura',r:{cash:15000},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
   {id:'aura20k',f:'aura',k:'aura',v:20000,u:'aura',r:{cash:30000},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
@@ -41,7 +41,17 @@ const M2=[
   /* (2026-10-22, Sacha : « tableau des voitures ») LA DOLORÈS : « débloque toutes les voitures rares » (celles qui s'achètent : les rares gagnées par mission ne comptent pas, sinon elle se bloquerait elle-même) ; l'ancienne mission « DÉPASSE 1000 KM/H » paie 20 000 $ à la place (À VALIDER PAR SACHA) */
   {id:'rares',f:'collection',k:'raresT',v:'tot',u:'',r:{car:'LA DOLORÈS'},t:'DÉBLOQUE TOUTES LES VOITURES RARES',en:'UNLOCK EVERY RARE CAR'},
   /* (2026-10-22, Sacha) LE CHARGEUR : « réussir 10 missions » — secrète, comme dans le tableau */
-  {id:'mis10',f:'secret',k:'misok',v:10,u:'',r:{car:'LE CHARGEUR'},t:'RÉUSSIS {v} MISSIONS',en:'COMPLETE {v} MISSIONS'},
+  /* (2026-10-22, Sacha : « tableau des voitures ») les caisses à compteur À VIE (m2Val : pu, nitS, nmaxS, figs, airS, revives, glace) */
+  {id:'pu100',f:'exploit',k:'pu',v:100,u:'',r:{car:'LE DÉFIEUR'},t:'RAMASSE {v} POWER-UPS',en:'PICK UP {v} POWER-UPS'},
+  {id:'nmax100',f:'exploit',k:'nmaxS',v:100,u:'s',r:{car:'LE SAMOURAÏ'},t:'BRÛLE {v} S DE NITRO EN MODE NITRO MAX',en:'BURN {v} S OF NITRO IN NITRO MAX MODE'},
+  {id:'figs500',f:'exploit',k:'figs',v:500,u:'',r:{car:'ATCHOUM'},t:'FAIS {v} FIGURES',en:'LAND {v} TRICKS'},
+  {id:'nit2000',f:'exploit',k:'nitS',v:2000,u:'s',r:{car:'LA TAURINE'},t:'BRÛLE {v} S DE NITRO',en:'BURN {v} S OF NITRO'},
+  {id:'air1000',f:'exploit',k:'airS',v:1000,u:'s',r:{car:'LE MASTODONTE'},t:'PASSE {v} S EN L\'AIR',en:'SPEND {v} S IN THE AIR'},
+  {id:'verglas100',f:'exploit',k:'verglasKm',v:100,u:'km',r:{car:'L\'ICEBERG'},t:'PARCOURS {v} KM SUR LE VERGLAS (LE GLACIER)',en:'DRIVE {v} KM ON THE BLACK ICE (THE GLACIER)'},
+  {id:'km100k',f:'exploit',k:'kmTot',v:100000,u:'km',r:{car:'LA QUEUE DE CANARD'},t:'ROULE {v} KM',en:'DRIVE {v} KM'},
+  {id:'meteo',f:'exploration',k:'meteoMap',v:'tot',u:'',r:{car:'LA STRATOS'},t:'JOUE UNE MAP SOUS TOUTES SES MÉTÉOS ET TOUS SES MOMENTS DE LA JOURNÉE',en:'PLAY ONE MAP IN EVERY WEATHER AND TIME OF DAY'},
+  {id:'silence',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA SILENCIEUSE'},t:'FAIS UNE PARTIE ENTIÈRE SANS SON NI MUSIQUE (RÉGLAGES)',en:'PLAY A WHOLE RUN WITH SOUND AND MUSIC OFF (SETTINGS)'},
+  {id:'mis10',f:'exploration',k:'misok',v:10,u:'',r:{car:'LE CHARGEUR'},t:'RÉUSSIS {v} MISSIONS',en:'COMPLETE {v} MISSIONS'},
   {id:'col5',f:'collection',k:'peint',v:5,u:'',r:{cash:10000},t:'COLLECTE {v} COULEURS',en:'COLLECT {v} PAINTS'},
   {id:'col10',f:'collection',k:'peint',v:10,u:'',r:{cash:10000},t:'COLLECTE {v} COULEURS',en:'COLLECT {v} PAINTS'},
   {id:'colall',f:'collection',k:'peintT',v:'tot',u:'',r:{cat:'peinture',id:'guerrier'},t:'COLLECTE TOUTES LES COULEURS',en:'COLLECT EVERY PAINT'},
@@ -56,29 +66,29 @@ const M2=[
   {id:'figall',f:'collection',k:'figureT',v:'tot',u:'',r:{cash:50000},t:'COLLECTE TOUTES LES FIGURES',en:'COLLECT EVERY TRICK'},
   {id:'toutall',f:'collection',k:'toutT',v:'tot',u:'',r:{cash:500000},t:'COLLECTE TOUS LES OBJETS DU JEU',en:'COLLECT EVERYTHING IN THE GAME'}, // (2026-10-19, Sacha) avant : {vide:1}, la récompense à définir — c'est l'argent
   // EXPLORATION
-  {id:'maps',f:'exploration',k:'cartes',v:'tot',u:'',r:{car:'L\'ORIGAMI'},t:'JOUE SUR CHAQUE MAP AU MOINS UNE FOIS',en:'PLAY EVERY MAP AT LEAST ONCE'},
+  {id:'maps',f:'exploration',k:'cartes',v:'tot',u:'',r:{cash:30000},t:'JOUE SUR CHAQUE MAP AU MOINS UNE FOIS',en:'PLAY EVERY MAP AT LEAST ONCE'}, /* (2026-10-22, Sacha : « tableau des voitures » : L'ORIGAMI passe à l'argent ; avant : L\'ORIGAMI — À VALIDER */
   /* (2026-10-22, Sacha : « tableau des voitures ») LE ROUGE-GORGE : « avoir exploré chaque map » — même mesure que L'ORIGAMI (à confirmer : deux missions identiques) */
   {id:'maps2',f:'exploration',k:'cartes',v:'tot',u:'',r:{car:'LE ROUGE-GORGE'},t:'AVOIR EXPLORÉ CHAQUE MAP',en:'HAVE EXPLORED EVERY MAP'},
   // SECRÈTES — invisibles tant qu'elles ne sont pas trouvées ; chacune donne une caisse, montrée en silhouette noire à la boutique (2026-10-19 : six d'entre elles donnent de l'ARGENT, leur caisse n'étant plus au garage — une secrète en argent n'a pas de scène de révélation, elle se RÉCUPÈRE comme les autres)
-  {id:'morts100',f:'secret',k:'morts',v:100,u:'',r:{car:'LE CORBILLARD'},t:'MEURS {v} FOIS',en:'DIE {v} TIMES'},
+  {id:'morts100',f:'exploit',k:'morts',v:100,u:'',r:{car:'LE CORBILLARD'},t:'MEURS {v} FOIS',en:'DIE {v} TIMES'},
   {id:'mort3s',f:'secret',k:'flag',v:1,u:'b',r:{cash:5000},t:'MEURS DANS LES 3 PREMIÈRES SECONDES',en:'DIE IN THE FIRST 3 SECONDS'}, // (2026-10-19, Sacha) avant : LA SANS-PERMIS — absente du garage, l'argent à la place
   {id:'arret',f:'secret',k:'flag',v:1,u:'b',r:{cash:5000},t:'RESTE À L\'ARRÊT JUSQU\'À EXPLOSER',en:'STAND STILL UNTIL YOU BLOW UP'}, // (2026-10-19, Sacha) avant : LE GRILLE-PAIN — absente du garage, l'argent à la place
   {id:'nitplein',f:'secret',k:'flag',v:1,u:'b',r:{cash:10000},t:'MEURS LA JAUGE DE NITRO PLEINE',en:'DIE WITH A FULL NITRO TANK'}, // (2026-10-19, Sacha) avant : LA BOULE — absente du garage, l'argent à la place
-  {id:'air0',f:'secret',k:'flag',v:1,u:'b',r:{car:'LE SPECTRE'},t:'MEURS PILE À 0 S DE VOL RESTANT',en:'DIE WITH EXACTLY 0 S OF AIRTIME LEFT'},
-  {id:'kmh2000',f:'secret',k:'kmh',v:2000,u:'kmh',r:{car:'LE MUR DU SON'},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
-  {id:'cratere',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA FOURNAISE'},t:'MEURS AU-DESSUS DU CRATÈRE DU VOLCAN',en:'DIE ABOVE THE VOLCANO CRATER'},
+  {id:'air0',f:'secret',k:'flag',v:1,u:'b',r:{cash:20000},t:'MEURS PILE À 0 S DE VOL RESTANT',en:'DIE WITH EXACTLY 0 S OF AIRTIME LEFT'}, /* (2026-10-22, Sacha : « tableau des voitures » : LE SPECTRE passe à l'argent ; avant : LE SPECTRE — À VALIDER */
+  {id:'kmh2000',f:'secret',k:'kmh',v:2000,u:'kmh',r:{cash:25000},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'}, /* (2026-10-22, Sacha : « tableau des voitures » : LE MUR DU SON passe en boutique ; avant : LE MUR DU SON — À VALIDER */
+  {id:'cratere',f:'secret',k:'flag',v:1,u:'b',r:{cash:20000},t:'MEURS AU-DESSUS DU CRATÈRE DU VOLCAN',en:'DIE ABOVE THE VOLCANO CRATER'}, /* (2026-10-22, Sacha : « tableau des voitures » : LA FOURNAISE retirée ; avant : LA FOURNAISE — À VALIDER */
   {id:'lave',f:'secret',k:'flag',v:1,u:'b',r:{car:'L\'AIGLE DE FEU'},t:'ROULE DANS LA LAVE',en:'DRIVE INTO THE LAVA'},
   {id:'geyser',f:'secret',k:'flag',v:1,u:'b',r:{car:'ATCHOUM'},t:'TRAVERSE UN GEYSER',en:'FLY THROUGH A GEYSER'},
   {id:'abysse',f:'secret',k:'prof',v:'prof',u:'',r:{cash:15000},t:'DESCENDS AU FOND DE LA MER DE JADE',en:'DIVE TO THE BOTTOM OF THE JADE SEA'}, // (2026-10-20, Sacha : LE SQUALE passe à la boutique payante, 1,61 €) avant : LE SQUALE — il ne se gagne plus, l'argent à la place (15 000 $ : comme LE GLACIER et LA DEUCHE, À VALIDER PAR SACHA)
-  {id:'nuage30',f:'secret',k:'vol',v:30,u:'s',r:{car:'LA CAISSE-NUAGE'},t:'RESTE {v} S EN L\'AIR AU-DESSUS DES NUAGES',en:'STAY {v} S IN THE AIR ABOVE THE CLOUDS'},
+  {id:'nuage30',f:'secret',k:'vol',v:30,u:'s',r:{cash:20000},t:'RESTE {v} S EN L\'AIR AU-DESSUS DES NUAGES',en:'STAY {v} S IN THE AIR ABOVE THE CLOUDS'}, /* (2026-10-22, Sacha : « tableau des voitures » : LA CAISSE-NUAGE retirée ; avant : LA CAISSE-NUAGE — À VALIDER */
   {id:'terre',f:'secret',k:'flag',v:1,u:'b',r:{car:'COMÈTE'},t:'FAIS UN SALTO DEVANT LA TERRE',en:'FLIP IN FRONT OF THE EARTH'},
   {id:'lac10',f:'secret',k:'lac',v:10,u:'s',r:{cash:15000},t:'GLISSE {v} S SUR UN LAC GELÉ',en:'SLIDE {v} S ON A FROZEN LAKE'}, // (2026-10-19, Sacha) avant : LE GLACIER — absente du garage, l'argent à la place
-  {id:'sansnit',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA SILENCIEUSE'},t:'FAIS UNE PARTIE ENTIÈRE SANS TOUCHER NITRO',en:'PLAY A WHOLE RUN WITHOUT TOUCHING NITRO'},
+  {id:'sansnit',f:'secret',k:'flag',v:1,u:'b',r:{cash:10000},t:'FAIS UNE PARTIE ENTIÈRE SANS TOUCHER NITRO',en:'PLAY A WHOLE RUN WITHOUT TOUCHING NITRO'}, /* (2026-10-22, Sacha : « tableau des voitures » : LA SILENCIEUSE a sa nouvelle mission (silence) ; avant : LA SILENCIEUSE — À VALIDER */
   {id:'sanspiece',f:'secret',k:'flag',v:1,u:'b',r:{cash:15000},t:'FAIS UNE PARTIE SANS RAMASSER UNE SEULE PIÈCE',en:'PLAY A WHOLE RUN WITHOUT PICKING UP A COIN'}, // (2026-10-19, Sacha) avant : LA DEUCHE — absente du garage, l'argent à la place
   {id:'rejoue10',f:'secret',k:'rejoue',v:10,u:'',r:{car:'LE DOGE'},t:'REJOUE {v} FOIS DE SUITE SANS REVENIR AU MENU',en:'REPLAY {v} TIMES IN A ROW WITHOUT THE MENU'},
   {id:'nuit3h',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA NOCTAMBULE'},t:'JOUE À 3 H DU MATIN',en:'PLAY AT 3 AM'},
   {id:'jours7',f:'secret',k:'jours',v:7,u:'',r:{cash:25000},t:'JOUE {v} JOURS DIFFÉRENTS',en:'PLAY ON {v} DIFFERENT DAYS'}, // (2026-10-19, Sacha) avant : LA DÉESSE — absente du garage, l'argent à la place
-  {id:'jours30',f:'secret',k:'jours',v:30,u:'',r:{car:'L\'ÉTERNELLE'},t:'JOUE {v} JOURS DIFFÉRENTS',en:'PLAY ON {v} DIFFERENT DAYS'}];
+  {id:'jours30',f:'secret',k:'jours',v:30,u:'',r:{cash:25000},t:'JOUE {v} JOURS DIFFÉRENTS',en:'PLAY ON {v} DIFFERENT DAYS'}]; /* (2026-10-22, Sacha : « tableau des voitures » : L'ÉTERNELLE passe en boutique ; avant : L\'ÉTERNELLE — À VALIDER */
 /* les réglages des détections (mesurés : voir le journal) — `partie` : une « partie entière » dure au moins ça (s de conduite), sinon trois
    caisses tombaient en mourant à la 2e seconde ; `frole` : la distance (m) d'un flanc de tour qui compte comme frôlé ; `prof` : le fond de
    la mer de Jade (m sous la surface) — EAU.fond n'est jamais atteint (la poussée ramène avant), le seuil est le fond qu'on atteint vraiment. */
@@ -91,7 +101,7 @@ let M2_RECO=null;
 /* l'état de la partie en cours (jamais sauvegardé) : ctl = secondes de conduite (sans le largage), vie = depuis la dernière (re)naissance,
    parf = poses parfaites d'affilée, lac = glisse tenue sur un lac gelé, tourV = les tours frôlées pendant CE saut, run = missions
    réussies pendant cette partie (l'écran de mort), deb = la partie a été comptée (jour, heure). */
-const M2R={ctl:0,vie:0,parf:0,lac:0,tourV:[],run:[],t:0,deb:false,figV:0,volT:0,figMax:0,airPm:0}; // figV/volT : les figures et la durée VÉCUE (hors de l'eau) du saut en cours — le bump retranche du temps à fallT, pas à volT
+const M2R={sonne:false,ctl:0,vie:0,parf:0,lac:0,tourV:[],run:[],t:0,deb:false,figV:0,volT:0,figMax:0,airPm:0}; // figV/volT : les figures et la durée VÉCUE (hors de l'eau) du saut en cours — le bump retranche du temps à fallT, pas à volT
 /* LES CAISSES QUI SE GAGNENT PAR MISSION : leur condition devient la mission (`k:'mis'`), l'ancienne reste dans `av` — la migration de
    la sauvegarde (m2Migre) la relit pour rendre à chacun ce qu'il avait déjà (une mise à jour ne confisque rien) ; une caisse qui se
    vendait (à l'argent du jeu ou en euros) ne s'achète plus. Les caisses RETIRÉES ne reviennent qu'avec leur gabarit (SHAPES). */

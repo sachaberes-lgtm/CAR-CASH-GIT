@@ -35,7 +35,7 @@ const CAR_UNLOCK=[
   {p:60e3},/* (2026-10-22, Sacha : « tableau des voitures » 180 000 → 60 000) */ // LE CAÏD — RARE (2026-10-06 : 60 000 → 50 000) ; 50 000 → 180 000 : c'est le HUMMER EV désormais ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
   {p:180e3},            // (2026-10-06 : RETIRÉE, le prix sert au remboursement) SA MAJESTÉ — RARE, la plus chère des rares : l'argent achète la Rolls, c'est même à ça qu'il sert
   {p:400e3},/* (2026-10-22, Sacha : « tableau des voitures » 4 000 000 → 400 000) */ // (2026-10-19 : 2,5 M → 4 M, la plus chère des caisses à l'argent du jeu ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) (2026-10-06 : 1,5 M → 2,5 M) ROSSO 40 — (2026-09-25 : le mode Survivant est retiré, un seul mode de jeu) la caisse de RÊVE, à 1,5 M
-  {k:'aura',  v:6},     // POSTER 84 — le poster se mérite au style : rang MYTHE, l'argent n'y peut rien
+  {k:'premium',eur:'1,61 €',rar:'leg'},/* (2026-10-22, Sacha : « tableau des voitures » : POSTER 84 en boutique à 1,61 €, légendaire ; avant : rang d'aura MYTHE) */ // POSTER 84 — le poster se mérite au style : rang MYTHE, l'argent n'y peut rien
   {k:'carnet',v:1},     // LA BULLE — contrat n° 1
   {k:'carnet',v:2},     // LE COMBI — contrat n° 2
   {k:'carnet',v:3},     // LA DOLORÈS — contrat n° 3
@@ -46,7 +46,7 @@ const CAR_UNLOCK=[
   {k:'premium',eur:'4,99 €',rar:'leg'},       // FORMULE OR — (2026-10-06) RETIRÉE
   {k:'premium',eur:'2,99 €',rar:'leg'},       // LE MANS 24 — (2026-10-06) RETIRÉE
   {k:'premium',eur:'2,99 €',rar:'leg'},       // EL PATRON — (2026-10-06) RETIRÉE
-  {p:550000},                                 // (2026-10-19 : 750 000 → 550 000, la plus abordable des épiques ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) ACIDE — (2026-10-06) ÉPIQUE à l'argent du jeu (était en boutique, 1,99 €)
+  {p:200000},/* (2026-10-22, Sacha : « tableau des voitures » 550 000 → 200 000) */ // (2026-10-19 : 750 000 → 550 000, la plus abordable des épiques ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) ACIDE — (2026-10-06) ÉPIQUE à l'argent du jeu (était en boutique, 1,99 €)
 /* ===== LES CONDITIONS DES 50 — DÉBUT ===== */
   {p:1500}, // LA POSTIÈRE — (2026-10-06) RETIRÉE
   {p:2000}, // LA DEUCHE — (2026-10-06) RETIRÉE
@@ -88,11 +88,11 @@ const CAR_UNLOCK=[
   {p:600000}, // (2026-10-19) 1 600 000 → 600 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) — // LA ZED
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LA FÉLINE — (2026-10-06) LÉGENDAIRE en boutique (était épique, 2 M)
   {p:260000},/* (2026-10-22, Sacha : « tableau des voitures » 2 500 000 → 260 000) */ // LA RAIE — (2026-10-18, Sacha) REMISE dans le jeu : épique à 2,5 M, comme avant le 6/10 (« DÉFI À VENIR » du 6 au 14/10, retirée ensuite)
-  {k:'runs',v:100}, // L'ÉTERNELLE — (2026-10-14, PILOTAGE) DÉFI : 100 PARTIES jouées (`ex.runs`, déjà compté : les parties passées valent) — c'était 100 pubs, impossible depuis qu'il n'y a plus de pubs — (2026-10-06) DÉFI : 100 pubs (était en boutique, 9,99 €)
+  {k:'premium',eur:'1,61 €',rar:'leg'},/* (2026-10-22, Sacha : « tableau des voitures » : L'ÉTERNELLE en boutique à 1,61 €, légendaire ; avant : 100 parties) */ // L'ÉTERNELLE — (2026-10-14, PILOTAGE) DÉFI : 100 PARTIES jouées (`ex.runs`, déjà compté : les parties passées valent) — c'était 100 pubs, impossible depuis qu'il n'y a plus de pubs — (2026-10-06) DÉFI : 100 pubs (était en boutique, 9,99 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE TRÔNE CENTRAL (2026-10-06 : 7,99 → 1,61 €)
-  {k:'premium',eur:'1,61 €',rar:'leg'}, // LE SPECTRE (2026-10-06 : 7,99 → 1,61 €)
+  {p:420000},/* (2026-10-22, Sacha : « tableau des voitures » : LE SPECTRE à l'argent, 420 000 $, épique ; avant : 1,61 €) */ // LE SPECTRE (2026-10-06 : 7,99 → 1,61 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE BLINDÉ NOIR (2026-10-21, Sacha : 9,99 → 1,61 €) (ex-LE CHEVALIER NOIR — renommé le 2026-10-14, Sacha : nom trop proche de Batman pour la revue App Store)
-  {k:'premium',eur:'0,99 €',rar:'leg'}, // LE MUR DU SON (2026-10-06 : 6,99 → 0,99 €)
+  {k:'premium',eur:'1,61 €',rar:'leg'},/* (2026-10-22, Sacha : « tableau des voitures » : 0,99 → 1,61 €) */ // LE MUR DU SON (2026-10-06 : 6,99 → 0,99 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE DRAGON D'OR (2026-10-21, Sacha : 9,99 → 1,61 €)
   {k:'carnet',v:9}, // LE MASTODONTE
   {k:'carnet',v:7}, // LA GROUPE B
@@ -101,7 +101,7 @@ const CAR_UNLOCK=[
 /* ===== LES CONDITIONS DES 50 — FIN ===== */
   {p:1800000,exK:'carrN',exV:5}, // LA CAISSE-NUAGE — (2026-10-18) la carrière retirée : à l'argent du jeu (le prix de l'ancienne édition Poki, depuis le 14/10) ; exK/exV : la condition d'avant (les 5 niveaux de SKY HIGH), gagnée = la caisse est à toi (voir la migration après SAVE.load)
   {p:2200000,exK:'carrV',exV:5}, // LE LINGOT — (2026-10-18) idem : les 5 niveaux de la VILLE gagnés = il est à toi
-  {p:1200000}, // (2026-10-02) L'ORIGAMI — ÉPIQUE, à l'argent : entre LA DÉESSE et L'AIGLE DE FEU
+  {p:280000},/* (2026-10-22, Sacha : « tableau des voitures » : L'ORIGAMI à l'argent, 280 000 $ ; avant : mission « joue sur chaque map ») */ // (2026-10-02) L'ORIGAMI — ÉPIQUE, à l'argent : entre LA DÉESSE et L'AIGLE DE FEU
   {p:900000}, // (2026-10-06) ATCHOUM — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 900 000 : entre LA STRATOS et L'ORIGAMI, l'ordre de la fiche
   {k:'premium',eur:'1,61 €',rar:'leg'}, // (2026-10-21, Sacha : « remplace le shark par l'autre requin de Léo, à 1,61 € ») LE SQUALE passe en boutique, ex-700 000 (la mission secrète `abysse` ne le donne plus : elle paie de l'argent, voir missions/table.js — sinon le patch des missions le remettait en `k:'mis'` et il disparaissait de la boutique) ; (2026-10-08) LE SQUALE — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 700 000 : entre LA TAURINE et ACIDE, l'ordre de la fiche
   {p:3000000}, // (2026-10-09, Léo : « fais-en une hyper abstraite mais travaillée, concept, ajoute-la à la liste ») L'ABSTRAITE — ÉPIQUE, la plus chère des épiques (juste après ROSSO 40)
