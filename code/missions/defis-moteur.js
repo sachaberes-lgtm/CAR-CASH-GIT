@@ -214,7 +214,7 @@ function m2Tick(dt,kmh){if(!m2Ok()||paused)return;const s=m2Etat(),r=s.r;if(!M2R
   if(!introD&&(mode==='drive'||mode==='fall'))M2R.ctl+=dt;
   if(mode!=='boom'){M2R.vie+=dt;if(M2R.vie>(r.vie||0))r.vie=M2R.vie;}
   if(kmh>(r.kmh||0))r.kmh=Math.round(kmh);
-  if(mode==='drive'||mode==='fall'){s.c.kmTot=(s.c.kmTot||0)+kmh*dt/3600;if(SND.sfx||SND.music)M2R.sonne=true;} /* (2026-10-22) les kilomètres à vie (LA QUEUE DE CANARD) ; SND : la partie a-t-elle eu du son ou de la musique (LA SILENCIEUSE) */
+  if(mode==='drive'||mode==='fall'){s.c.kmTot=(s.c.kmTot||0)+kmh*dt/3600;if(SND.sfx||SND.music)M2R.sonne=true;if(SND.music&&((engTier|0)+1)>=10)m2Flag('palier10');} /* (2026-10-22) les kilomètres à vie (LA QUEUE DE CANARD) ; SND : la partie a-t-elle eu du son ou de la musique (LA SILENCIEUSE) */
   if(nitroOn&&(mode==='drive'||mode==='fall')){s.c.nitS=(s.c.nitS||0)+dt;if(pwrNitroT>0)s.c.nmaxS=(s.c.nmaxS||0)+dt;SAVE.mark();} /* (2026-10-22) les secondes de nitro, et celles brûlées pendant une NITRO MAX */
   if(FLOW.lv===4){r.frenN=1;if(FREN.t>(r.frenT||0))r.frenT=FREN.t;}
   const k=secCarte().c;if(k&&s.c.cartes.indexOf(k)<0){s.c.cartes.push(k);SAVE.mark();}

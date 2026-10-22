@@ -3,6 +3,9 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE HOT ROD : LE PALIER 10 AVEC LA MUSIQUE (2026-10-22, v788, Sacha : « HOT ROD : atteindre le palier 10 du moteur avec la musique activée ; SQUALE reste en boutique ; TRÔNE CENTRAL reste un défi »)
+- Mission secrète `palier10` (missions/table.js) : `m2Tick` pose le drapeau quand `engTier + 1 ≥ 10` ET `SND.music` est allumé. LE HOT ROD n'est plus à l'argent (les joueurs qui l'avaient le gardent). LE SQUALE reste en boutique à 1,61 € ; LE TRÔNE CENTRAL reste « collecte toutes les voitures ».
+
 ## LE TABLEAU DES VOITURES, DEUXIÈME VAGUE : DÉFIS À COMPTEUR, PRIX, RETRAITS (2026-10-22, v787, Sacha : « pousse tout »)
 - **Compteurs à vie** (`SAVE.d.m2.c`, missions/defis-moteur.js : m2Tick, m2Fig, pwrPrend → m2Pu) : `pu` power-ups · `nitS` / `nmaxS` secondes de nitro / de nitro max · `figs` figures · `airS` secondes en l'air · `kmTot` kilomètres · `verglasKm` km sur le verglas du glacier (`BANQ.sur>0`) · `met` les temps joués par map (`m2Meteo`, LA STRATOS) · `M2R.sonne` (aucun son ni musique de toute la partie → drapeau `silence`).
 - **Missions** : LE DÉFIEUR `pu100` · LE SAMOURAÏ `nmax100` · ATCHOUM `figs500` · LA TAURINE `nit2000` · LE MASTODONTE `air1000` · LA QUEUE DE CANARD `km100k` (100 000 km) · L'ICEBERG `verglas100` · LA STRATOS `meteo` · LA SILENCIEUSE `silence` (secrète) · LE CHARGEUR `mis10` · LE CORBILLARD `morts100` (visibles désormais). Les récompenses qui ne donnent plus une caisse paient de l'argent (À VALIDER : L'ORIGAMI 30 000, LE SPECTRE 20 000, LE MUR DU SON 25 000, LA FOURNAISE et LA CAISSE-NUAGE 20 000, L'ÉTERNELLE 25 000, ex-STRATOS 15 000, ex-SILENCIEUSE 10 000).

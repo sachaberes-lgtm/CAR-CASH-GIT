@@ -51,6 +51,8 @@ const M2=[
   {id:'km100k',f:'exploit',k:'kmTot',v:100000,u:'km',r:{car:'LA QUEUE DE CANARD'},t:'ROULE {v} KM',en:'DRIVE {v} KM'},
   {id:'meteo',f:'exploration',k:'meteoMap',v:'tot',u:'',r:{car:'LA STRATOS'},t:'JOUE UNE MAP SOUS TOUTES SES MÉTÉOS ET TOUS SES MOMENTS DE LA JOURNÉE',en:'PLAY ONE MAP IN EVERY WEATHER AND TIME OF DAY'},
   {id:'silence',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA SILENCIEUSE'},t:'FAIS UNE PARTIE ENTIÈRE SANS SON NI MUSIQUE (RÉGLAGES)',en:'PLAY A WHOLE RUN WITH SOUND AND MUSIC OFF (SETTINGS)'},
+  /* (2026-10-22, Sacha : « HOT ROD : atteindre le palier 10 du moteur avec la musique activée ») secrète : `m2Tick` pose le drapeau `palier10` (engTier + 1 ≥ 10, SND.music allumé) */
+  {id:'palier10',f:'secret',k:'flag',v:1,u:'b',r:{car:'LE HOT ROD'},t:'ATTEINS LE PALIER 10 DU MOTEUR, MUSIQUE ACTIVÉE',en:'REACH ENGINE TIER 10 WITH THE MUSIC ON'},
   {id:'mis10',f:'exploration',k:'misok',v:10,u:'',r:{car:'LE CHARGEUR'},t:'RÉUSSIS {v} MISSIONS',en:'COMPLETE {v} MISSIONS'},
   {id:'col5',f:'collection',k:'peint',v:5,u:'',r:{cash:10000},t:'COLLECTE {v} COULEURS',en:'COLLECT {v} PAINTS'},
   {id:'col10',f:'collection',k:'peint',v:10,u:'',r:{cash:10000},t:'COLLECTE {v} COULEURS',en:'COLLECT {v} PAINTS'},
