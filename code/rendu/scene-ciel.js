@@ -1028,6 +1028,8 @@ const skyDome=(function(){
     // PASSE LISSE — VILLE sous la pluie : le plafond, la brume du bas et la lueur des quartiers
     basV:[LECT_TR,'void main(){gl_FragColor=vec4(villeLisse(vDir,vec3(0.))+vec3(cielTrame()*uBasTr),1.);}'],
     // PASSE NETTE — VILLE sous la pluie : la passe lisse relue, + les lumières fines de l'abîme, la skyline, la trame
+    // (2026-10-22) LES PICS DE JADE SEULS : le MÊME ciel que la branche `uJade>.9999` du programme plein (le rouleau peint, ou le dessous de la mer), sans le reste
+    jd:['void main(){gl_FragColor=vec4((uSous>.5?jadeSous(vDir):jadeCiel(vDir))+vec3(cielTrame()),1.);}'],
     // (2026-10-14) LE CANYON DES GÉANTS SEUL : son ciel, les étoiles de sa nuit, la trame
     cy:['void main(){vec3 c=canyonCiel(vDir);float y=vDir.y,sd=max(dot(vDir,uSunDir),0.);if(cielSOn(y,sd))cielEtoiles(c,y,atan(vDir.x,-vDir.z),sd);c=cielSat(c);c+=vec3(cielTrame());gl_FragColor=vec4(c,1.);}'],
     netV:[LECT,
@@ -1055,7 +1057,8 @@ const skyDome=(function(){
     netN:mk(src(TETE,K.son,K.etoiles,K.pous,K.lune,K.trame,MAIN.netN)),
     basV:mk(src(TETE,VILLE,VILLE_CIEL,K.trame,MAIN.basV),true),
     netV:mk(src(TETE,VILLE,VILLE_CIEL,K.trame,MAIN.netV)),
-    cy:mk(src(TETE,VILLE,K.son,K.etoiles,K.canyon,K.trame,MAIN.cy))}; // (2026-10-14) LE CANYON DES GÉANTS : son ciel seul
+    cy:mk(src(TETE,VILLE,K.son,K.etoiles,K.canyon,K.trame,MAIN.cy)), // (2026-10-14) LE CANYON DES GÉANTS : son ciel seul
+    jd:mk(src(TETE,VILLE,K.jade,K.trame,MAIN.jd))}; // (2026-10-22) LES PICS DE JADE : son ciel seul
   m.frustumCulled=false;m.renderOrder=20;scene.add(m);return m;
 })();
 let FOG_N=420,FOG_F=2600; // near/far pilotés par les BIOMES (le lerp cloudInS les relit chaque frame)

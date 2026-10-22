@@ -8248,7 +8248,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
 </div>
 <script src="vendor/three.min.js"></script>
 <script src="figures.js?v=9"></script>
-<script src="creatures/vitrail.js?v=1"></script><script src="creatures/singe.js?v=2"></script><script src="creatures/dauphin.js?v=2"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html -->
+<script src="creatures/vitrail.js?v=1"></script><script>if(/[?&]singes(jade)?=1\b/.test(location.search))document.write('<script src="creatures/singe.js?v=2"><\/script>');</script><script src="creatures/dauphin.js?v=2"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html — (2026-10-22) le singe n'est chargé que sur `?singes=1` : les singes sont éteints par défaut (voir JSG_ON) -->
 <script src="assets/audio/musique-bus.js?v=6"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
 <script src="assets/audio/pouce-bleu-jeu.js?v=5"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
@@ -9444,6 +9444,8 @@ const skyDome=(function(){
     // PASSE LISSE — VILLE sous la pluie : le plafond, la brume du bas et la lueur des quartiers
     basV:[LECT_TR,'void main(){gl_FragColor=vec4(villeLisse(vDir,vec3(0.))+vec3(cielTrame()*uBasTr),1.);}'],
     // PASSE NETTE — VILLE sous la pluie : la passe lisse relue, + les lumières fines de l'abîme, la skyline, la trame
+    // (2026-10-22) LES PICS DE JADE SEULS : le MÊME ciel que la branche `uJade>.9999` du programme plein (le rouleau peint, ou le dessous de la mer), sans le reste
+    jd:['void main(){gl_FragColor=vec4((uSous>.5?jadeSous(vDir):jadeCiel(vDir))+vec3(cielTrame()),1.);}'],
     // (2026-10-14) LE CANYON DES GÉANTS SEUL : son ciel, les étoiles de sa nuit, la trame
     cy:['void main(){vec3 c=canyonCiel(vDir);float y=vDir.y,sd=max(dot(vDir,uSunDir),0.);if(cielSOn(y,sd))cielEtoiles(c,y,atan(vDir.x,-vDir.z),sd);c=cielSat(c);c+=vec3(cielTrame());gl_FragColor=vec4(c,1.);}'],
     netV:[LECT,
@@ -9471,7 +9473,8 @@ const skyDome=(function(){
     netN:mk(src(TETE,K.son,K.etoiles,K.pous,K.lune,K.trame,MAIN.netN)),
     basV:mk(src(TETE,VILLE,VILLE_CIEL,K.trame,MAIN.basV),true),
     netV:mk(src(TETE,VILLE,VILLE_CIEL,K.trame,MAIN.netV)),
-    cy:mk(src(TETE,VILLE,K.son,K.etoiles,K.canyon,K.trame,MAIN.cy))}; // (2026-10-14) LE CANYON DES GÉANTS : son ciel seul
+    cy:mk(src(TETE,VILLE,K.son,K.etoiles,K.canyon,K.trame,MAIN.cy)), // (2026-10-14) LE CANYON DES GÉANTS : son ciel seul
+    jd:mk(src(TETE,VILLE,K.jade,K.trame,MAIN.jd))}; // (2026-10-22) LES PICS DE JADE : son ciel seul
   m.frustumCulled=false;m.renderOrder=20;scene.add(m);return m;
 })();
 let FOG_N=420,FOG_F=2600; // near/far pilotés par les BIOMES (le lerp cloudInS les relit chaque frame)
@@ -12155,7 +12158,7 @@ function cotonTick(cam){ // à chaque rendu de la scène : ce qui est dans le ch
     const fa9=!!V9.fan;V9.c.count=V9.o.count=V9.p.count=V9.b.count=V9.g.count=m;V9.c.visible=V9.o.visible=V9.p.visible=!fa9&&m>0;V9.b.visible=fa9&&m>0;V9.g.visible=(fa9||!!V9.gOk)&&m>0; // (fantôme) le corps rentré + les cubes fantômes
     if(m){V9.A.updateRange.offset=0;V9.A.updateRange.count=m*16;V9.A.needsUpdate=true;V9.C.updateRange.offset=0;V9.C.updateRange.count=m*3;V9.C.needsUpdate=true;}
     tri+=m*V9.tri;}
-  if(COTON.skin)for(let q=0;q<COTON.skin.length;q++){const S9=COTON.skin[q];if(S9){S9.m.count=COTON.im[q].count;S9.m.visible=COTON.root.visible;}} // la peau suit son lot (mêmes instances)
+  if(COTON.skin)for(let q=0;q<COTON.skin.length;q++){const S9=COTON.skin[q];if(S9){S9.m.count=COTON.im[q].count;S9.m.visible=COTON.root.visible&&S9.m.count>0;}} // la peau suit son lot (mêmes instances) — (2026-10-22) VIDE = INVISIBLE : MESURÉ aux Pics de Jade, 92 des 316 appels de dessin d'une image étaient des peaux à ZÉRO nuage (three prépare programme, uniformes et tampons pour ne rien dessiner)
   COTON.nN=nN;COTON.nF=nF;COTON.tri=tri;COTON.ms=COTON.ms*.95+(performance.now()-t00)*.05;
 }
 {const ob9=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt){ob9.call(this,r9,s9,cam,rt);cotonTick(cam);};} // CHAÎNÉ (jamais réassigné)
@@ -25996,6 +25999,15 @@ window.dbgJadePoste=function(k,on){if(!JADE.root)return 'pas de map';on=!!on;
   if(k==='ramasse'){const o={pieces:0,fruits:{},pouvoirs:0};for(const p of pickups){if(p.pow)o.pouvoirs++;else if(p.nitro){const n9=(FRUIT_DEFS[p.fruit]||{}).n||'?';o.fruits[n9]=(o.fruits[n9]||0)+1;}else o.pieces++;}o.pads=PADS.length;o.flaques=OILS.length;o.coinIM=coinIM.count;o.fruitsS=pickups.filter(function(p){return p.nitro&&p.face===1;}).map(function(p){return [Math.round(p.s),+p.lat.toFixed(1),(FRUIT_DEFS[p.fruit]||{}).n];});o.coinVis=coinIM.visible;o.s=Math.round(s);o.prochaines=pickups.filter(function(p){return p.s>s;}).slice(0,4).map(function(p){const m=p.mesh;return {s:Math.round(p.s),lat:+p.lat.toFixed(1),vis:m&&m.visible,par:!!(m&&m.parent),y:m?Math.round(m.position.y):null,sc:m?+m.scale.x.toFixed(2):null};});const P9=new THREE.Vector3();frameAt(s,F);o.routeY=Math.round(F.p.y);return o;}
   if(k==='bitume'){scene.traverse(function(o){if(o.isMesh&&o.material&&o.material.userData&&o.material.userData.bitume)o.visible=on;});return 'bitume '+on;}
   if(k==='lod'){JADE_LOD.r0=+arguments[1];JADE.sig=0;return JADE_LOD.r0;}
+  if(k==='gros'){const o=[],seuil=+arguments[1]||20000;scene.traverse(function(x){if(!(x.isMesh||x.isPoints||x.isLine)||!x.geometry)return; // (banc, 2026-10-22) les plus gros objets VISIBLES de la scène : triangles, nom, genre, matière, parent
+    let v=true,p=x;while(p){if(!p.visible){v=false;break;}p=p.parent;}if(!v)return;const g=x.geometry,n=(g.index?g.index.count:(g.attributes.position?g.attributes.position.count:0))/3*(x.isInstancedMesh?x.count:1);if(n<seuil)return;
+    o.push([Math.round(n/1000)+'k',x.name||'',x.type+(x.isInstancedMesh?'[I'+x.count+']':''),x.material&&(x.material.type+(x.material.name?':'+x.material.name:'')),x.parent===scene?'scène':x.parent===JADE.root?'jade':(x.parent&&x.parent.name)||'sous',x.frustumCulled?'cull':'-',x.castShadow?'ombre':'',(function(){const ch=[];let q=x.parent;while(q&&q!==scene){ch.push((q.name||q.type)+(q.children?'('+q.children.length+')':''));q=q.parent;}return ch.join('<');})(),Object.keys(x.userData||{}).join(','),x.geometry.attributes?Object.keys(x.geometry.attributes).join(','):'',x.geometry.boundingSphere?Math.round(x.geometry.boundingSphere.radius):'',[x.position.x,x.position.y,x.position.z].map(Math.round).join(','),x.renderOrder]);});
+    o.sort(function(a,b){return parseFloat(b[0])-parseFloat(a[0]);});return o.slice(0,40);}
+  if(k==='temps'){const n=+arguments[1]||20,gl=renderer.getContext(),px=new Uint8Array(4); // (banc, 2026-10-22) ms d'une image de la scène (sans post), la puce attendue par une lecture d'un pixel : à faire sur une image figée, un poste éteint puis rallumé
+    renderer.render(scene,camera);gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);const t0=performance.now();for(let i=0;i<n;i++)renderer.render(scene,camera);gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);return +((performance.now()-t0)/n).toFixed(2);}
+  if(k==='monu'){const t9=function(m){return m&&m.geometry?Math.round((m.geometry.index?m.geometry.index.count:m.geometry.attributes.position.count)/3/1000)+'k'+(m.visible?'+':'-'):'∅';},d9=function(o){return o?Math.round(camera.position.distanceTo(o.c)):null;}; // (banc, 2026-10-22) la Porte et le Pont : leurs maillages, leur taille, lequel est dessiné
+    return {monu:(JADE.monu||[]).map(function(o){return {d:Math.round(camera.position.distanceTo(o.c)),g:o.g.visible,loin:!!o.loin,L:o.L&&o.L.map(t9),lo:o.lo?t9(o.lo):null,r:Math.round(o.r||0)};}),
+      porte:JADE.porte&&{d:d9(JADE.porte),pres:!!JADE.porte.pres,mL:(JADE.porte.mL||[]).map(t9),mF:(JADE.porte.mF||[]).map(t9)},pont:JADE.pont&&{d:d9(JADE.pont),pres:!!JADE.pont.pres,mL:(JADE.pont.mL||[]).map(t9),mF:(JADE.pont.mF||[]).map(t9)}};}
   if(k==='liste'){const o=[];JADE.root.traverse(function(x){if(!x.visible||!x.isMesh||x.isInstancedMesh)return;const g=x.geometry;const n=(g.index?g.index.count:g.attributes.position.count)/3;if(n>5000)o.push([x.name||(x.material&&x.material.type),Math.round(n/1000)+'k',x.frustumCulled,x.parent===JADE.root?'root':'sous',JADE.porte&&JADE.porte.mF&&JADE.porte.mF.indexOf(x)>=0?'porteF':JADE.porte&&JADE.porte.mL&&JADE.porte.mL.indexOf(x)>=0?'porteL':JADE.pont&&JADE.pont.mF&&JADE.pont.mF.indexOf(x)>=0?'pontF':JADE.pont&&JADE.pont.mL&&JADE.pont.mL.indexOf(x)>=0?'pontL':'']);});return o;}
   if(k==='scene'){const o={};scene.traverse(function(x){if(!x.visible||!(x.isMesh||x.isPoints||x.isLine))return;const g=x.geometry;if(!g)return;const n=(g.index?g.index.count:(g.attributes.position?g.attributes.position.count:0))/3*(x.isInstancedMesh?x.count:1);const kk=(x.material&&x.material.type)+(x.isInstancedMesh?'I':'')+(x.parent===JADE.root?'J':'');o[kk]=(o[kk]||0)+n;});for(const kk in o)o[kk]=Math.round(o[kk]/1000)+'k';return o;}
   if(k==='cout'){const r=renderer.info;r.autoReset=false;r.reset();renderer.render(scene,camera);r.autoReset=true;return [r.render.calls,r.render.triangles];}
@@ -26009,7 +26021,12 @@ window.dbgJadePoste=function(k,on){if(!JADE.root)return 'pas de map';on=!!on;
   else if(k==='brume'){if(JADE.brume)JADE.brume.visible=on;}
   else if(k==='rayons'||k==='chutes'){const M=k==='rayons'?JADE_RAYON_M:JADE_CHUTE_M;JADE.root.children.forEach(function(o){if(o.material===M)o.visible=on;});}
   else if(k==='esprits'){JADE_ESPRITS.material.visible=on;}
+  else if(k==='monuments'){for(const o of JADE.monu||[])o.g.visible=on;} // (banc) la Porte et le Pont (jadeTick les remet à chaque image : éteindre et mesurer dans le même appel)
+  else if(k==='coton'){if(typeof COTON!=='undefined'&&COTON.root)COTON.root.visible=on;} // (banc) le coton des nuages
+  else if(k==='singes'){JSG.node.visible=on&&!!JSG.cur;} // (banc) la rencontre de singe en cours
   return k+' '+on;};
+window.dbgTemps=function(n){const gl=renderer.getContext(),px=new Uint8Array(4);n=n||20; // (banc, 2026-10-22) ms d'une image de la scène (sans post), la puce attendue par une lecture d'un pixel : à faire sur une image figée (n'importe quelle map)
+  renderer.render(scene,camera);gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);const t0=performance.now();for(let i=0;i<n;i++)renderer.render(scene,camera);gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);return +((performance.now()-t0)/n).toFixed(2);};
 window.dbgAppels=function(n){ // (2026-10-14, banc) QUI fait les appels de dessin d'une image : chaque appel compté par objet (nom, matière, parent) — n = combien en rendre
   const o=renderer.renderBufferDirect,C={};let tot=0,tri=0;
   renderer.renderBufferDirect=function(cam,sc,geo,mat,obj,grp){tot++;const g=geo.index?geo.index.count:(geo.attributes.position?geo.attributes.position.count:0);const t=g/3*(obj.isInstancedMesh?obj.count:1);tri+=t;
@@ -43569,6 +43586,10 @@ function cielDeuxTemps(r9,cam){
     if(U.uVille.value<=.001&&U.uLvl.value<=.001)md='N';                  // NUAGES, ORBITE (et leur fondu) : ni ville, ni fond musical
     else if(U.uVille.value>.9999&&U.uPluie.value>.9999)md='V';}           // VILLE sous la pluie (le raccourci d'avant : la ville seule)
   if(U.uJade.value>.001||U.uCanyon.value>.001)md=''; // (PICS DE JADE) le rouleau peint vit dans le programme PLEIN · (CANYON) son fondu aussi
+  /* (2026-10-22, Léo : « la map jade bugue, la grotte non ») LES PICS DE JADE SEULS : leur ciel (le rouleau peint, la mer en cubes) dans un programme à lui, comme le canyon.
+     MESURÉ : le dôme coûtait à lui seul 40 à 50 % d'une image de Jade (sans lui : 8,5 → 5 ms) — il tournait dans le programme PLEIN, qui porte aussi la ville, l'orbite, les nuages et
+     le fond musical : la puce y réserve les registres du programme ENTIER pour chaque pixel, même sur la branche courte. Le MÊME calcul, sans le reste. `?ciel=plein` = avant. */
+  if(CIEL2.on&&U.uJade.value>.9999&&C.jd&&skyDome.visible&&!cielHorsCourse()){CIEL2.mode='J';if(skyDome.material!==C.jd)skyDome.material=C.jd;return;}
   if(U.uCanyon.value>.9999&&C.cy&&skyDome.visible&&!cielHorsCourse()){CIEL2.mode='C';if(skyDome.material!==C.cy)skyDome.material=C.cy;return;} // (2026-10-14) LE CANYON SEUL : son programme à lui
   CIEL2.mode=md;
   if(!md){if(skyDome.material!==C.plein)skyDome.material=C.plein;return;}
@@ -43586,7 +43607,7 @@ function cielChauffe(){ if(!CIEL2.on)return; try{
   const C=skyDome.userData.ciel,a=cielCible(8,8,false),b=cielCible(8,8,true),sc=new THREE.Scene(),me=new THREE.Mesh(skyDome.geometry,C.plein);
   me.frustumCulled=false;sc.add(me);const cible=renderer.getRenderTarget(),t0=skyU.uBasTex.value;skyU.uBasTex.value=a.texture;
   renderer.setRenderTarget(a);for(const k of ['basN','basV']){me.material=C[k];renderer.render(sc,camera);}
-  renderer.setRenderTarget(b);for(const k of ['netN','netV','plein','cy']){me.material=C[k];renderer.render(sc,camera);}
+  renderer.setRenderTarget(b);for(const k of ['netN','netV','plein','cy','jd']){me.material=C[k];renderer.render(sc,camera);}
   renderer.setRenderTarget(cible);skyU.uBasTex.value=t0;a.dispose();b.dispose(); // (les matières restent : leurs programmes vivent)
 }catch(e){console.warn('cielChauffe',e);} }
 cielChauffe();
@@ -50867,6 +50888,10 @@ function pluieCaisseTick(dt){
    compilées une fois hors écran : en course, rien ne se construit ni ne se compile. Console : `dbgJadeSinges()` (le plan, la rencontre en
    cours), `dbgJadeSinges('bonjour'|'mangue'|'course'|'bord')` (une rencontre, tout de suite). */
 const JSG_ESSAI=/[?&]singesjade=1\b/.test(location.search);
+/* (2026-10-22, Léo : « enlève les singes de la map jade, ou rends-les plus légers — sur la map grotte ça bugue moins et c'est aussi joli ») LES SINGES SONT ÉTEINTS :
+   plus d'ouvriers au menu (3,5 s de calcul des quatre formes vitrail), plus de programmes à compiler, plus de géométries en mémoire, plus de rencontre à animer.
+   Le code reste, intact : `?singes=1` (ou `?singesjade=1`) les rend, tels qu'ils étaient. */
+const JSG_ON=JSG_ESSAI||/[?&]singes=1\b/.test(location.search);
 const JSG_N=4,JSG_AV={bonjour:240,mangue:170,course:150,bord:170},JSG_ECH={bonjour:11,mangue:8.5,course:7.5,bord:8.5}; // (mesuré au banc) à 6 m de haut, ils restaient cachés derrière la caisse jusqu'à 40 m : des singes GÉANTS, du décor de dessin animé
 /* (2026-10-17) PLUS PETITS ET IMPRÉVISIBLES (Léo : « rends-les plus petits, c'est un peu trop grand ; c'est imprévisible : ils peuvent soit te
    suivre, soit sauter, soit… »). MESURÉ : le singe de la route faisait 11 à 14 m de haut, neuf fois la caisse — `JSG_TAILLE` les ramène à
@@ -50999,6 +51024,7 @@ function jsgAtelier(){JSG.at=null;try{if(typeof Worker!=='function'||location.pr
       try{W.terminate();}catch(e){}if(--reste===0){JSG.at='fini';JSG.atW=null;}};
     W.postMessage({formes:lot});}}catch(e){jsgAtelierRepli();}}
 function jsgTick(dt){
+  if(!JSG_ON)return; // (2026-10-22) éteints : rien ne se fabrique, rien ne se dessine
   // LA FABRIQUE : les quatre formes, tranche par tranche (≤ 5 ms par image), puis UNE compilation hors écran au menu
   if(typeof singePoseForme!=='function')return; // (creatures/singe.js absent : pas de singes)
   if(!JSG.pret){if(JSG.at===undefined)jsgAtelier(); // (2026-10-15) L'ATELIER d'abord : un Worker calcule les formes hors du fil du jeu
