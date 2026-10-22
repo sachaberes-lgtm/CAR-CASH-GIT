@@ -24,7 +24,7 @@ const CARS=[
  {name:'LE CAÏD',         shape:'caid',    color:0xd2d5d9,accent:0x16171b,maxKmh:275,accel:31,turn:2.7, h:2.01,w:2.20,l:5.51,spoiler:0, /* (2026-10-19, Léo : « sans le toit, comme sur la photo exactement ») le pick-up blanc nacré de sa photo (avant : 0x7cb83f, le SUV 1,98 × 5,00) */
   desc:'Trois tonnes de cube. Personne ne t\'a jamais demandé de te pousser.'},
  {retire:1,name:'SA MAJESTÉ'},
- {name:'ROSSO 40',        shape:'rosso',   color:0xe8121c,accent:0x131417,maxKmh:420,accel:48,turn:3.05,h:1.12,w:1.98,l:4.36,spoiler:0,
+ {name:'ROSSO 40',        shape:'rosso',   color:0xe8121c,accent:0x131417,maxKmh:420,accel:48,turn:3.05,h:1.12,w:1.98,l:4.36,spoiler:0,rar:'epique', /* (2026-10-22, Sacha : « tableau des voitures » ROSSO 40 épique à 400 000 $ : sans cette ligne le prix la ferait RARE) */
   desc:'Rouge course, aileron plateau. La caisse de rêve : 1,5 million, et chaque dollar se voit.'},
  {name:'POSTER 84',       shape:'poster',  color:0xffc414,accent:0x131417,maxKmh:480,accel:55,turn:3.15,h:1.07,w:2.00,l:4.14,spoiler:0,
   desc:'Elle était punaisée au mur de ta chambre. Maintenant, c\'est toi qui la conduis.'},
@@ -117,8 +117,7 @@ const CARS=[
  {retire:1,name:'LA DÉESSE'},
  {name:'L\'AIGLE DE FEU',color:0x0f0f11,accent:0xd9a520,maxKmh:340,accel:38,turn:2.6,h:1.25,w:1.85,l:5.1,spoiler:0,shape:'e_aigle',rar:'rare', // (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE → RARE
   desc:'Un oiseau d\'or sur le capot, un shérif dans le rétro. Le shérif n\'a jamais rattrapé l\'oiseau.'},
- {name:'LA ZED',color:0xff6a14,accent:0x131417,maxKmh:330,accel:37,turn:2.9,h:1.28,w:1.63,l:4.14,spoiler:0,shape:'e_zed',rar:'epique', /* (2026-10-18, Léo) ÉPIQUE : à 1,6 M$ elle était la rare la plus chère, plus chère que des épiques */
-  desc:'Six cylindres, un capot d\'un kilomètre et des rétros sur les ailes : le samouraï a troqué le sabre.'},
+ {retire:1,name:'LA ZED'}, /* (2026-10-22, Sacha : « tableau des voitures » : à supprimer) RETIRÉE ; sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement */
  {name:'LA FÉLINE',color:0xeee3c6,accent:0xe9ecf0,maxKmh:320,accel:36,turn:2.8,h:1.22,w:1.66,l:4.45,spoiler:0,shape:'e_feline',rar:'legendaire',
   desc:'Un capot si long qu\'il arrive au virage avant toi. Élue plus belle du monde, et elle le sait.'},
  {name:'LA RAIE',color:0xc4161c,accent:0x131417,maxKmh:360,accel:40,turn:2.7,h:1.21,w:1.75,l:4.64,spoiler:0,shape:'e_raie',rar:'epique', // (2026-10-18, Sacha) REMISE dans le jeu (retirée le 14/10) : épique à 2,5 M, comme avant le 6/10
@@ -140,8 +139,7 @@ const CARS=[
  {retire:1,name:'LA GROUPE B'}, /* (2026-10-18 soir, Sacha : « enlève la groupe B ») RETIRÉE : sa ligne reste (index de sauvegarde), qui l'avait est remboursé par `san` ; son gabarit b_groupeb reste dans SHAPES */
  {name:'LE HOT ROD',color:0xc8141c,accent:0xe9ecf0,maxKmh:380,accel:42,turn:2.5,h:1.4,w:1.7,l:3.9,spoiler:0,shape:'c_hotrod',rar:'defi',
   desc:'Un capot ? Pour cacher un compresseur pareil ? Tu rigoles. Même les flammes sont d’époque.'},
- {name:'LA PUCE',color:0xc8141e,accent:0xf4f4f0,maxKmh:320,accel:36,turn:3.2,h:1.35,w:1.41,l:3.05,spoiler:0,shape:'d_puce',rar:'defi',
-  desc:'Trois mètres, quatre phares, zéro complexe. Elle a battu des monstres sur la neige : toi, c\'est l\'apéro.'},
+ {retire:1,name:'LA PUCE'}, /* (2026-10-22, Sacha : « tableau des voitures » : à supprimer) RETIRÉE ; sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement */
 /* ===== LES FICHES DES 50 — FIN ===== */
  // (2026-09-27) LA CAISSE-NUAGE — la récompense de la CAMPAGNE NUAGES : un petit cumulus monté comme une vraie voiture (châssis, roues,
  // feux sobres), taillé dans la même ouate que le ciel. Elle ne s'achète pas : on la CHASSE au niveau 10 (voir fantomeTick) et elle
@@ -247,8 +245,7 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LE TOFU',shape:'ae86',color:0xf2f2ee,accent:0x141414,maxKmh:280,accel:32,turn:3.1,h:1.28,w:1.68,l:4.22,spoiler:0,rar:'rare', // 86 — discussion JAPONAISES : le petit coupé à hayon de 1983 (la ligne de la Toyota Sprinter Trueno AE86, 3 portes GT-APEX), livrée panda, phares escamotables (SHAPES.ae86)
-  desc:'Livreur de tofu au petit matin, roi de la descente la nuit. Le verre d\'eau posé sur le tableau de bord ne se renverse jamais.'},
+ {retire:1,name:'LE TOFU'}, /* (2026-10-22, Sacha : « tableau des voitures » : à supprimer) RETIRÉE ; sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement */
  /* · */
  /* · */
  /* · */

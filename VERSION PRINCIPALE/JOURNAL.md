@@ -3,6 +3,12 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE TABLEAU DES VOITURES, PREMIÈRE VAGUE : PRIX, RARETÉS, RETRAITS (2026-10-22, v785, Sacha : « fais ces modifications-là, supprime celles où j'ai mis de les supprimer »)
+- **Prix** (deblocage.js) : ELDORADO 50 000 · LE CAÏD 60 000 · ROSSO 40 400 000 · LA VETTE 90 000 · LA GRANDE ANGLAISE 130 000 · LE CHARGEUR 69 70 000 · LA LAME 80 000 · LA BÊTE 220 000 · LA PERLE 240 000 · LA RAIE 260 000. ROSSO 40 reçoit `rar:'epique'` (à 400 000 le prix la ferait RARE).
+- **Retirées** (`{retire:1,name}`, leur ligne reste : index de sauvegarde ; le prix de CAR_UNLOCK sert au remboursement) : LA ZED, LA PUCE, LE TOFU. (REQUIN l'était déjà.)
+- **Missions de caisse** (missions/table.js, defis-moteur.js) : LA DOLORÈS = `rares` (débloque toutes les rares qui s'achètent ; `m2Rares`, `k:'raresT'`) — l'ancienne « DÉPASSE 1000 KM/H » paie 20 000 $ ; LE CHARGEUR = `mis10` (secrète : réussis 10 missions, `k:'misok'`) ; LE ROUGE-GORGE = `maps2` (explorer chaque map, même mesure que L'ORIGAMI).
+- **Pas fait, à décider ou à écrire** : ACIDE (« 20000 $ » : 200 000 ?), LE SQUALE (le tableau le passe en défi, la boutique le vend 1,61 € depuis le 21/10), et les défis qui demandent une détection neuve (power-ups, nitro, 500 figures, temps en l'air, revives, glace, musiques).
+
 ## LA LUNE RETIRÉE DE L'ORBITE, LES ÉTOILES EN PROFONDEUR (2026-10-22, v783, Léo : « la lune qui suit dans la planète espace, on va la mettre ailleurs ; pour l'instant on l'enlève, on laisse juste la grande planète, et la voiture se promène » · « travaille un tout petit peu les étoiles pour créer un peu de profondeur, là c'est un peu tout noir ; des petites étoiles et des étoiles un peu moins petites ; travaille la répartition, observe des images »)
 - **La lune (le troll qui suivait la caisse) n'est plus dans l'orbite.** `LUNE_ON` (orbite-1.js, faux sauf `?lune=ancien`) : la lune n'est ni posée dans la scène, ni peinte au menu (plus de pinceau 140 ms ni de 6 Mo de toiles), ni compilée. Tout son code reste en place pour la reprendre
   et la poser ailleurs ; `?lune=ancien` la rend telle qu'avant. Sa DIRECTION continue de piloter la clé froide (`kick`) : dans `orbiteTick`, `lunOk` (la lune est « dans le niveau ») remplace `LUNE.visible` pour les deux sorties anticipées, la caisse est éclairée comme avant.
@@ -144,7 +150,7 @@ Léo : « formes encore plus originales » ; « le bas est trop gris, un peu lum
 - **COÛT** (mesuré, Mac) : prêt en ~6-9 s contre 8,3 s (finesse 48 : cubes ×.75, `kf`), triangles par gabarit ×~1,5 (≤ 18 k), 60 i/s sur matin/midi/soir/orage. Les piliers du
   sculpteur restent ce qu'ils étaient (forme) ; seule la matière change. Touche TOUS les cumulus v8 (aussi ceux des Pics de Jade).
 
-## LE DÉCOR DU GLACIER RECALÉ SUR LA PENTE À 45° (2026-10-21, livré le 2026-10-22 en v785, Sacha : « la map montagne neige est super buggée, genre le décor, les montagnes et tout ») — branche `neige-decor`
+## LE DÉCOR DU GLACIER RECALÉ SUR LA PENTE À 45° (2026-10-21, livré le 2026-10-22 en v786, Sacha : « la map montagne neige est super buggée, genre le décor, les montagnes et tout ») — branche `neige-decor`
 - **LA CAUSE** : le manteau de neige et les cristaux (`code/maps/glacier-route.js`) datent de la descente à 7-14 % ; le 3e tour (18/10) a mis la piste à 40-50°
   (mesuré : 103 % de pente moyenne, ~4 km de dénivelé sur 5-6 km) et trois règles « au plus bas dans un rayon » sont devenues des trous de la taille du rayon :
   la SÛRETÉ (neige jamais au-dessus de la glace) prenait le point de piste le plus bas à 98 m, `YM` (« sous le plus bas des tours superposés », du temps des
@@ -163,7 +169,7 @@ Léo : « formes encore plus originales » ; « le bas est trop gris, un peu lum
   maillage est sous un pixel (`banquise neige`, `banquise pics`, `banquise géants`, `glacier congere`). ⚠ `banqTick` remet la visibilité des morceaux :
   cacher un maillage APRÈS avoir posé la vue.
 
-## L'ÉCRAN DE FIN COUCHÉ — ⌂ · REJOUER RENTRENT DANS LA GRILLE (2026-10-20 → 21, livré le 2026-10-22 en v785, Sacha, capture d'une fin avec records : « bug de bouton ici à corriger »)
+## L'ÉCRAN DE FIN COUCHÉ — ⌂ · REJOUER RENTRENT DANS LA GRILLE (2026-10-20 → 21, livré le 2026-10-22 en v786, Sacha, capture d'une fin avec records : « bug de bouton ici à corriger »)
 - **Le symptôme** (téléphone couché, 844 × 390) : la ⌂ mordait sur le coin de la carte MOTEUR, et un pan vert dépassait entre ⌂ et REJOUER —
   la plaque ×2 · PUB (#mDouble), passée DERRIÈRE REJOUER, donc intouchable.
 - **La cause** (ux8.css, bloc « vu à la fumée ») : couché, `.mFin` était un `position:fixed` de `min(368px,44vw)` hors de la grille. 368 px,
@@ -415,7 +421,7 @@ Plan de Léo (interview, fruit par fruit) ; tout est dans `code/gameplay/fruits-
   `?sans=` au bit près (240/240 chaque map), les mêmes écarts et repères, 10 + 10 constructions sans erreur et règle d'or à 0, une course au
   pilote par map jusqu'au portail, couché / debout / cadre sans erreur.
 
-## LE SALTO AVANT OFFERT AUX JOUEURS NEUFS (2026-10-20, livré le 2026-10-22 en v785, Sacha : « quand un nouveau joueur se connecte pour la première fois, il faut pas qu'il ait la figure tonneau, il faut qu'il ait la figure salto avant, de base »)
+## LE SALTO AVANT OFFERT AUX JOUEURS NEUFS (2026-10-20, livré le 2026-10-22 en v786, Sacha : « quand un nouveau joueur se connecte pour la première fois, il faut pas qu'il ait la figure tonneau, il faut qu'il ait la figure salto avant, de base »)
 - **LE CONSTAT** : un joueur neuf n'avait pas le tonneau (il s'achète) mais le TAIL WHIP offert, sur le geste « côté », et l'emplacement AVANT vide : le premier
   double-tap NITRO (auto-école comprise) lançait un tail whip — c'est ce que Sacha appelait « le tonneau ».
 - **LA RÈGLE** (`code/sauvegarde.js`, champ `figS`) : un profil neuf reçoit le SALTO AVANT (`saltov`) OFFERT, en plus du tail whip. Neuf = aucune partie finie, rien
@@ -425,7 +431,7 @@ Plan de Léo (interview, fruit par fruit) ; tout est dans `code/gameplay/fruits-
 - **VÉRIFIÉ** (session salto-depart, 20/10) : profil vierge → figures `tailwhip`, `saltov`, emplacements `[saltov, —, tailwhip]`, tonneau non possédé ; profil qui a
   déjà joué (3 parties, 1 200 en banque) → inchangé. Livraison du 22/10 : course sans erreur sur la version fusionnée (couché, debout, cadre de l'ordi).
 
-## LA VITESSE DE DÉPART : SEUL LE PALIER 30 L'OUVRE, PLUS LE CODE COUSIN (2026-10-20, livré le 2026-10-22 en v785, Sacha : « tu peux laisser le truc de Léo, mais c'est seulement quand t'as passé le moteur 30 au moins une fois ; et même avec le code cousin, ça marche pas »)
+## LA VITESSE DE DÉPART : SEUL LE PALIER 30 L'OUVRE, PLUS LE CODE COUSIN (2026-10-20, livré le 2026-10-22 en v786, Sacha : « tu peux laisser le truc de Léo, mais c'est seulement quand t'as passé le moteur 30 au moins une fois ; et même avec le code cousin, ça marche pas »)
 - **À MONTRER À LÉO** : Sacha a changé une règle de sa fonction. Ancienne condition (pour revenir en arrière, une seule ligne, `vdepFonction` dans
   code/gameplay/pickups-fruits.js) : `return VDEP_TOUT||cousin()||((SAVE.d.ex&&SAVE.d.ex.eng)|0)>=ENGINE_TIERS.length-1;` — le code cousin l'ouvrait aussi.
   Nouvelle : `return VDEP_TOUT||((SAVE.d.ex&&SAVE.d.ex.eng)|0)>=ENGINE_TIERS.length-1;`. (Remettre aussi `+','+cousin()` dans `sg` de `vdepInit`, evenements-rares.js.)

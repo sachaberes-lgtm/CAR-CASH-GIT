@@ -77,6 +77,8 @@ function m2Col(cat){const R=m2Reco();let n=0,tot=0,nT=0;
   if(cat==='voiture'){for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const a=m2CarAMoi(i);if(a)n++;if(!R.car[CARS[i].name]){tot++;if(a)nT++;}}}
   else{const L=COSM[cat]||[];for(const d of L){const a=m2HabAMoi(cat,d);if(a)n++;if(!m2HabReco(cat,d)){tot++;if(a)nT++;}}}
   return {n:n,tot:tot,nT:nT};}
+/* (2026-10-22) LES RARES À TOI : celles qui s'achètent (les rares gagnées par mission ne comptent pas — LA DOLORÈS se débloque en les ayant toutes) */
+function m2Rares(){const R=m2Reco();let n=0,tot=0;for(let i=0;i<CARS.length;i++){if(carRetiree(i)||carRar(i)!=='rare'||R.car[CARS[i].name])continue;tot++;if(m2CarAMoi(i))n++;}return {n:n,tot:tot};}
 function m2Tout(){let tot=0,nT=0;for(const c of ['voiture','peinture','aile','trainee','figure']){const o=m2Col(c);tot+=o.tot;nT+=o.nT;}return {tot:tot,nT:nT};}
 /* (M2_COLK est déclarée plus haut, à côté de M2K : voir là) */
 /* LA VALEUR D'UNE MISSION, maintenant (les records de la partie en cours compris) */
@@ -103,10 +105,12 @@ function m2Val(m){const d=SAVE.d,s=m2Etat(),r=s.r,c=s.c,ex=d.ex||{},enC=m2EnC();
     case 'prof':return r.prof||0;
     case 'flag':return s.fl.indexOf(m.id)>=0?1:0;
     case 'toutT':return m2Tout().nT;
+    case 'raresT':return m2Rares().n;
+    case 'misok':return s.ok.length;
   }
   const t=/T$/.test(m.k),o=m2Col(M2_COLK[t?m.k.slice(0,-1):m.k]);return t?o.nT:o.n;}
 function m2Seuil(m){if(m.v==='prof')return M2K.prof;if(m.v!=='tot')return m.v;
-  if(m.k==='cartes'||m.k==='cartesP')return m2Cartes().length;if(m.k==='toutT')return m2Tout().tot;
+  if(m.k==='cartes'||m.k==='cartesP')return m2Cartes().length;if(m.k==='raresT')return m2Rares().tot;if(m.k==='toutT')return m2Tout().tot;
   return m2Col(M2_COLK[m.k.slice(0,-1)]).tot;}
 function m2Txt(m){const s=String(LANG==='fr'?m.t:m.en),v=m2Seuil(m);
   return s.replace('{v}',m.u==='$'?fmtSolde(v):m.u==='s'?String(v):Math.round(v).toLocaleString(typeof LOC==='function'?LOC():'fr').replace(/[  ]/g,' '));} // « 1 000 KM/H », « 10 000 D'AURA »
