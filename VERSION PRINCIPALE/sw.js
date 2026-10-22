@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v796'; // v796 (2026-10-22, Sacha : « enlève l'anneau de la planète ») : l'anneau de fusion de l'orbite retiré
+const CACHE = 'cashcar-v797'; // v796 (2026-10-22, Sacha : « enlève l'anneau de la planète ») : l'anneau de fusion de l'orbite retiré
 // const CACHE = 'cashcar-v795'; // v795 (2026-10-22, Sacha : peintures secrètes, compteurs sauvegardés, refonte du volcan d'après photos)
 // const CACHE = 'cashcar-v789'; // v789 (2026-10-22, Sacha : « enlève le système de sauvegarde du lien Vercel, dès qu'on se connecte on arrive sur un nouveau compte ») : sur le web plus rien n'est lu ni écrit (compte neuf à chaque ouverture), ?garde=1 pour garder ; l'appli native garde la sienne
 // const CACHE = 'cashcar-v788'; // v788 (2026-10-22, Sacha : « HOT ROD : atteindre le palier 10 du moteur avec la musique activée »)
