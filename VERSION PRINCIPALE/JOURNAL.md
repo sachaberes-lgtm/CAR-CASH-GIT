@@ -415,6 +415,26 @@ Plan de Léo (interview, fruit par fruit) ; tout est dans `code/gameplay/fruits-
   `?sans=` au bit près (240/240 chaque map), les mêmes écarts et repères, 10 + 10 constructions sans erreur et règle d'or à 0, une course au
   pilote par map jusqu'au portail, couché / debout / cadre sans erreur.
 
+## LE SALTO AVANT OFFERT AUX JOUEURS NEUFS (2026-10-20, livré le 2026-10-22 en v784, Sacha : « quand un nouveau joueur se connecte pour la première fois, il faut pas qu'il ait la figure tonneau, il faut qu'il ait la figure salto avant, de base »)
+- **LE CONSTAT** : un joueur neuf n'avait pas le tonneau (il s'achète) mais le TAIL WHIP offert, sur le geste « côté », et l'emplacement AVANT vide : le premier
+  double-tap NITRO (auto-école comprise) lançait un tail whip — c'est ce que Sacha appelait « le tonneau ».
+- **LA RÈGLE** (`code/sauvegarde.js`, champ `figS`) : un profil neuf reçoit le SALTO AVANT (`saltov`) OFFERT, en plus du tail whip. Neuf = aucune partie finie, rien
+  acheté, aucune figure que le tail whip. Il prend l'emplacement AVANT (celui du pouce au repos) : `figSlots` remplit les cases vides avec les figures possédées,
+  et le saut NITRO prend la première. Une sauvegarde qui a déjà joué ne change pas. Le tail whip reste sur « côté ».
+- **L'ÉCONOMIE** : comme le tail whip, ce salto offert n'est pas un achat (`ecoDebutAchat` dans eco-vague3.js, `m2GagneEstime` dans defis-moteur.js).
+- **VÉRIFIÉ** (session salto-depart, 20/10) : profil vierge → figures `tailwhip`, `saltov`, emplacements `[saltov, —, tailwhip]`, tonneau non possédé ; profil qui a
+  déjà joué (3 parties, 1 200 en banque) → inchangé. Livraison du 22/10 : course sans erreur sur la version fusionnée (couché, debout, cadre de l'ordi).
+
+## LA VITESSE DE DÉPART : SEUL LE PALIER 30 L'OUVRE, PLUS LE CODE COUSIN (2026-10-20, livré le 2026-10-22 en v784, Sacha : « tu peux laisser le truc de Léo, mais c'est seulement quand t'as passé le moteur 30 au moins une fois ; et même avec le code cousin, ça marche pas »)
+- **À MONTRER À LÉO** : Sacha a changé une règle de sa fonction. Ancienne condition (pour revenir en arrière, une seule ligne, `vdepFonction` dans
+  code/gameplay/pickups-fruits.js) : `return VDEP_TOUT||cousin()||((SAVE.d.ex&&SAVE.d.ex.eng)|0)>=ENGINE_TIERS.length-1;` — le code cousin l'ouvrait aussi.
+  Nouvelle : `return VDEP_TOUT||((SAVE.d.ex&&SAVE.d.ex.eng)|0)>=ENGINE_TIERS.length-1;`. (Remettre aussi `+','+cousin()` dans `sg` de `vdepInit`, evenements-rares.js.)
+- `vdepFonction` (code/gameplay/pickups-fruits.js) ne lit plus `cousin()` : la fonction (les six crans de départ, l'étal/la grue, l'étiquette du PLAY)
+  s'ouvre UNIQUEMENT quand `SAVE.d.ex.eng` ≥ 29 (le TROU NOIR, palier 30, atteint au moins une fois en course). Le code cousin ouvre toujours les
+  caisses, figures et habillages, mais PLUS cette fonction. Une sauvegarde qui avait un cran choisi grâce au cousin sans palier 30 retombe au cran 1
+  (`vdepN` ramène au plus haut cran ouvert, donc 0 ; `SAVE.d.vdep` reste sur le disque, inoffensif).
+- Le reste de la fonction de Léo est INCHANGÉ (cadenas avant le palier 30, toast « VITESSE DE DÉPART DÉBLOQUÉE », grue d'atelier). Le crochet de banc
+  `dbgVdep('tout')` (console seulement) ouvre toujours tout le temps d'une page.
 ## LE ROYAUME DE FEU, L'ASPECT REFAIT — LAVE EN PLAQUES, ROCHE EN FACETTES, CIELS ET FUMÉE (2026-10-20, v716, session VOLCAN5 — Sacha : « la map volcan est la plus moche, lance une grosse refonte »)
 - **Ce qui ne bouge pas** : la ROUTE (la balade puis la montée du volcan, `vlcTrace3`, ou `?volcan=v4`), les collisions ('lave' / 'roche'), la physique, la
   caméra, les sons, les tirages `rnd`/`fr` (chaque tirage supprimé est GARDÉ : le décor en aval ne se décale pas). Tout ce qu'on VOIT est refait,
@@ -796,7 +816,7 @@ Plan de Léo (interview, fruit par fruit) ; tout est dans `code/gameplay/fruits-
 - **Six crans** (`VDEP_PAL` = index 0 · 5 · 10 · 15 · 20 · 25 = paliers 1 · 6 · 11 · 16 · 21 · 26) : 1 = le départ normal. LA FONCTION S'OUVRE AU PALIER 30
   (Léo : « seulement quand on a atteint le palier trente ») : le TROU NOIR atteint une fois (`SAVE.d.ex.eng`, versé à la fin de chaque partie,
   `vdepFonction`) ouvre les six crans d'un coup, toast « VITESSE DE DÉPART DÉBLOQUÉE » ; avant, les six cases sont visibles sous CADENAS (son
-  choix) et disent « ATTEINS LE PALIER 30 ». Le code cousin ouvre tout. Choix : `SAVE.d.vdep` (0-5, `san`).
+  choix) et disent « ATTEINS LE PALIER 30 ». ~~Le code cousin ouvre tout.~~ **Depuis le 20/10 (Sacha), le code cousin n'ouvre PLUS rien ici** (voir la section du dessus). Choix : `SAVE.d.vdep` (0-5, `san`).
 - **Au départ** : `vdepPose()` remplace la remise à zéro du moteur dans `resetGame`, et tourne dans `sous9` / `jadeJouer` au 1er JOUER (avant la piste) —
   pièces du palier comptées, nitro pleine. `prebDepCible` bâtit le DÉPART D'AVANCE au palier `vdepPal()` (mesuré : « pris au départ », 0 programme
   compilé). Auto-école, parc, balade, joueur sans permis : toujours le cran 1.
