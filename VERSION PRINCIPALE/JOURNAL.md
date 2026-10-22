@@ -3,7 +3,7 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
-## JADE PLUS LÉGER — SON CIEL DANS UN PROGRAMME À LUI, LES PEAUX VIDES, LES SINGES ÉTEINTS (2026-10-22, v797, Léo : « enlève les singes de la map jade ou rends-les plus légers, et rends la map plus légère au code : sur la map grotte ça bugue moins et pourtant c'est aussi joli »)
+## JADE PLUS LÉGER — SON CIEL DANS UN PROGRAMME À LUI, LES PEAUX VIDES, LES SINGES ÉTEINTS (2026-10-22, v798, Léo : « enlève les singes de la map jade ou rends-les plus légers, et rends la map plus légère au code : sur la map grotte ça bugue moins et pourtant c'est aussi joli »)
 Banc : Chrome sans fenêtre (profil iPhone 390 × 844, NETTE), images FIGÉES à des endroits fixes de la vallée, mesures ENTRELACÉES (A, B, A, B…) dans la même page —
 la machine était à une charge de 30-80 (le Mac de Léo aussi, côté app Claude) : aucun chiffre en ms n'est fiable seul, seuls comptent les compteurs et les A/B de la même page.
 MESURÉ, la grotte (310 k triangles, ~200 appels, 3-4 ms de scène) contre les Pics de Jade (0,8-1,1 M triangles, ~310 appels de `renderBufferDirect`, 9-13 ms) :
