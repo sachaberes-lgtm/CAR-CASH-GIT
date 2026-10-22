@@ -10,7 +10,8 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v789'; // v789 (2026-10-22, Sacha : « enlève le système de sauvegarde du lien Vercel, dès qu'on se connecte on arrive sur un nouveau compte ») : sur le web plus rien n'est lu ni écrit (compte neuf à chaque ouverture), ?garde=1 pour garder ; l'appli native garde la sienne
+const CACHE = 'cashcar-v790'; // v790 (2026-10-22, Sacha : « oui, remets la pluie de richesse de Léo ») : bague, cigare, trousseau de clés, vrai crâne scanné, montre argentée (v766-v778) de retour — la fusion f456df2f du 21/10 les avait effacés
+// const CACHE = 'cashcar-v789'; // v789 (2026-10-22, Sacha : « enlève le système de sauvegarde du lien Vercel, dès qu'on se connecte on arrive sur un nouveau compte ») : sur le web plus rien n'est lu ni écrit (compte neuf à chaque ouverture), ?garde=1 pour garder ; l'appli native garde la sienne
 // const CACHE = 'cashcar-v788'; // v788 (2026-10-22, Sacha : « HOT ROD : atteindre le palier 10 du moteur avec la musique activée »)
 // const CACHE = 'cashcar-v786'; // v786 (2026-10-22, Sacha : « oui, livre les 4 chantiers sûrs ») : le décor du glacier recalé sur la pente à 45° (?sans=glacerecale = avant) ; l'écran de fin couché, ⌂ · REJOUER dans la grille ; le SALTO AVANT offert aux joueurs neufs ; la vitesse de départ de Léo seulement au palier 30 (plus par le code cousin)
 // const CACHE = 'cashcar-v785'; // v785 (2026-10-22, Sacha : « tableau des voitures » — prix, raretés, trois caisses retirées, trois missions de caisse)
