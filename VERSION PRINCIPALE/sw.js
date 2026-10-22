@@ -10,7 +10,14 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v729'; // v729 (2026-10-20, Sacha : « il y a trop de couleurs classiques dans les peintures ») : HUIT peintures unies en moins (graphite, hérisson, framboise, barbe à papa, pétrole, vert anglais, bronze, écume), le pack en compte 33
+const CACHE = 'cashcar-v737'; // v737 (2026-10-22, Sacha : « l'onglet missions est très mal géré, la moitié gauche ne sert à rien ») : refonte en deux colonnes — AUJOURD'HUI + SUIVIES à gauche, filtres de famille + liste à droite
+// const CACHE = 'cashcar-v735'; // v735 (2026-10-22, Sacha : maison de la mort vers le garage, onglet mission tassé, stats allongées)
+// const CACHE = 'cashcar-v734'; // v734 (2026-10-22, Sacha : « rajoute une plaque palestine ») : dixième modèle de plaque, PALESTINE
+// const CACHE = 'cashcar-v733'; // v733 (2026-10-22, Sacha : « les photos de lave pour la map volcan ») : roche et croûte bleu acier, rides de corde, cœur des fentes jaune pâle, rouge qui filtre entre les rides
+// const CACHE = 'cashcar-v732'; // v732 (2026-10-22, Sacha : « enlève le système de sauvegarde du lien Vercel, dès qu'on se connecte on arrive sur un nouveau compte ») : sur le web plus rien n'est lu ni écrit (compte neuf à chaque ouverture), ?garde=1 pour garder ; l'appli native garde la sienne
+// const CACHE = 'cashcar-v731'; // v731 (2026-10-22, Sacha : « pour les nouveaux joueurs on doit donner la figure salto avant ») : les sauvegardes neuves reçoivent le SALTO AVANT en cadeau, avec le tail whip (figS0)
+// const CACHE = 'cashcar-v730'; // v730 (2026-10-22, Sacha : « le boost de Nitro, il doit mettre la barre en rouge vif, pas en violet ») : la barre en nitro infinie passe ROUGE VIF
+// const CACHE = 'cashcar-v729'; // v729 (2026-10-20, Sacha : « il y a trop de couleurs classiques dans les peintures ») : HUIT peintures unies en moins (graphite, hérisson, framboise, barbe à papa, pétrole, vert anglais, bronze, écume), le pack en compte 33
 // const CACHE = 'cashcar-v728'; // v728 (2026-10-20, Sacha : « on dirait juste du vent, je veux des flammes graves ») : le nitro rugit GRAVE, vent coupé pendant le nitro, musique 70 % par défaut
 // const CACHE = 'cashcar-v727'; // v727 (2026-10-20, Sacha : « vérifie bien que toutes les maps sont générées aléatoirement ») : LE ROYAUME DE FEU ET LES PROFONDEURS AU HASARD — axe, ordre, caractères, montée et puits tirés (?sans=hasardvolcan, ?sans=hasardgrotte = avant)
 // const CACHE = 'cashcar-v726'; // v726 (2026-10-20, Sacha : « dans le menu cars du garage c'est le bordel, plusieurs sections de la même rareté — toutes les voitures d'une même rareté dans la même section, joliment ») : la boutique VOITURES range tout par rareté d'un seul tenant (plus de 2e section quand une secrète est gagnée), intertitres en bandeaux à la couleur de la rareté avec « à toi / total »
