@@ -11,7 +11,7 @@
      du milieu d'avant. ?portes=haut, ?garage=leo et Poki gardent leurs places (mêmes garde-fous que garageHaut). */
 #gAct{--bh1:56px;--bh2:66px;--bg:8px}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){#gAct{--bh1:48px;--bh2:56px;--bg:6px}}
-#garage{--fw:58px;--fh:54px;--fg:4px}
+#garage{--fw:58px;--fh:54px;--fg:8px}
 
 /* — LA BOUTIQUE EN L — */
 html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct:not(:has(>#gEquip.achat))>#gShopBas#gShopBas{
@@ -35,12 +35,12 @@ html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#
   align-items:center!important;justify-content:center!important;width:var(--fw)!important;min-width:0!important;height:var(--fh)!important;min-height:0!important;margin:0!important;padding:0!important;
   background:none!important;box-shadow:none!important;border:0!important;clip-path:none!important;transform:none!important;outline:0!important;filter:none!important;animation:none!important;overflow:visible;pointer-events:auto;-webkit-tap-highlight-color:transparent}
 html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage.on.consoleCachee #gOutils>[data-go="set"]{position:relative}
-/* ⚙ : à gauche de l'œil ; l'œil : à gauche du trophée (fixed : #garage couvre l'écran) */
+/* l'œil : à gauche du ⚙ ; le ⚙ : à gauche du trophée (2026-10-22 soir, Sacha : « l'œil à la place du cadenas » — l'œil et le réglage échangent leur place ; fixed : #garage couvre l'écran) */
 html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gTop #gOutils#gOutils{
-  right:calc(var(--ghTx) + var(--fw) + var(--fg) + var(--fg))!important;top:calc(var(--ghTy) - var(--fh) / 2)!important}
+  right:calc(var(--ghTx) + var(--fg))!important;top:calc(var(--ghTy) - var(--fh) / 2)!important}
 html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gAct#gAct#gAct #gRang1>#gOeil#gOeil#gOeil{
   position:fixed!important;grid-row:auto!important;grid-column:auto!important;bottom:auto!important;left:auto!important;
-  right:calc(var(--ghTx) + var(--fg))!important;top:calc(var(--ghTy) - var(--fh) / 2)!important;z-index:5;display:flex!important}
+  right:calc(var(--ghTx) + var(--fw) + 2 * var(--fg))!important;top:calc(var(--ghTy) - var(--fh) / 2)!important;z-index:5;display:flex!important}
 /* l'ombre au sol, qui se resserre quand le pictogramme monte */
 html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) :is(#gOutils>[data-go="set"],#gOeil#gOeil#gOeil,#gProf#gProf)::after{
   content:'';display:block!important;position:absolute;left:50%;bottom:-3px;width:46%;height:6px;margin-left:-23%;border-radius:50%;background:radial-gradient(ellipse at center,rgba(5,3,14,.55),transparent 72%);
@@ -82,4 +82,16 @@ html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#
 @keyframes bfEtincelle{0%,60%,100%{opacity:0;scale:.3}72%{opacity:1;scale:1}86%{opacity:0;scale:.5}}
 @media (prefers-reduced-motion:reduce){html body #garage#garage#garage#garage#garage :is(#gOutils>[data-go="set"],#gOeil,#gProf) .pxi,html body #garage#garage#garage#garage#garage :is(#gOutils>[data-go="set"],#gOeil,#gProf)::after{animation:none!important}html body #garage#garage#garage#garage#garage #gProf::before{animation:none!important;opacity:0}}
 html[data-reduced-motion="1"] body #garage#garage#garage#garage#garage :is(#gOutils>[data-go="set"],#gOeil,#gProf) .pxi,html[data-reduced-motion="1"] body #garage#garage#garage#garage#garage :is(#gOutils>[data-go="set"],#gOeil,#gProf)::after{animation:none!important}
+/* — LE BAS, REPRIS (2026-10-22 soir, Sacha : « mets-toi dans la peau d'un vrai designer UI/UX, prends tous les éléments cliquables et mets-les de la meilleure manière ») —
+   mêmes plaques penchées partout, des mots lisibles (9 px au lieu de 8) sur des pictogrammes plus gros (27 px), et la BOUTIQUE en L qui BRILLE :
+   un reflet la traverse de temps en temps, le panier rebondit à peine. */
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct>:is(#gvCof,#gvMis){font-size:9px!important;letter-spacing:0!important;gap:4px!important}
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct>:is(#gvCof,#gvMis) .pxi{--pxs:3!important}
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct>:is(#gvCof,#gvMis) span{font-size:9px!important}
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct>#gShopBas#gShopBas{font-size:12px!important;letter-spacing:3px!important}
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct>#gShopBas#gShopBas::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 0 42%,rgba(255,255,255,.5) 48% 52%,transparent 58% 100%) -160% 0/260% 100% no-repeat;animation:dkBrille 5.2s ease-in-out infinite}
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct>#gShopBas#gShopBas .pxi{animation:dkPanier 2.6s ease-in-out infinite}
+@keyframes dkBrille{0%,62%{background-position:-160% 0}88%,100%{background-position:160% 0}}
+@keyframes dkPanier{0%,100%{translate:0 0}50%{translate:0 -2px}}
+@media (prefers-reduced-motion:reduce){html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct>#gShopBas#gShopBas::after,html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct>#gShopBas#gShopBas .pxi{animation:none!important}}
 </style>

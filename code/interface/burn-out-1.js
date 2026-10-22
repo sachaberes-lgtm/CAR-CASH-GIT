@@ -147,6 +147,20 @@ function burnGommeInit(){
   m.rotation.x=-Math.PI/2;m.position.y=GAR.POD+.004;m.renderOrder=1;GAR.pod.add(m);
   BURN.gom={cv:cv,x:x,tex:tex,m:m,N:N,sale:false,tF:0};
 }
+/* LA GOMME DU TAIL WHIP (2026-10-22, Sacha : « une trace de pneus sur le sol, comme pour les donuts ») : l'essai d'une figure À PLAT à l'inventaire pose la
+   caisse sur le plateau ; les QUATRE pneus y laissent la même gomme que le donut (même toile), d'un point à l'autre (rien ne saute quand ça va vite). */
+const GFGOM={p:null};
+function garFigGomme(dt,marque){
+  if(!GAR.pod)return;if(!BURN.gom)burnGommeInit();const G=BURN.gom;if(!G)return;
+  if(!marque){GFGOM.p=null;return;}
+  GAR.pod.updateMatrixWorld();const L=[];
+  for(const w of wheels){if(!w||!w.position)continue;const R=w.userData.R||.4,v=new THREE.Vector3(w.position.x,w.position.y-R+.02,w.position.z);carGroup.localToWorld(v);GAR.pod.worldToLocal(v);L.push([v.x,v.z,Math.max(2,Math.round((w.userData.large||.3)/.069))]);}
+  const P=GFGOM.p;GFGOM.p=L;
+  G.x.fillStyle='rgba(12,9,14,.42)';
+  for(let i=0;i<L.length;i++){const a=P&&P.length===L.length?P[i]:L[i],b=L[i],n=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.05));
+    for(let k=1;k<=n;k++){const t=k/n,px=((a[0]+(b[0]-a[0])*t)/8.8+.5)*G.N,py=((a[1]+(b[1]-a[1])*t)/8.8+.5)*G.N;G.x.fillRect(Math.round(px-b[2]/2),Math.round(py-b[2]/2),b[2],b[2]);}}
+  G.sale=true;G.tex.needsUpdate=true;
+}
 function burnGomme(dt){
   const G=BURN.gom;if(!G)return;
   if(BURN.k>.25&&!GAR.go&&BURN.roues.length){GAR.pod.updateMatrixWorld();
