@@ -7305,7 +7305,7 @@ html.misV2 #gmSous{font-size:var(--f3);line-height:1.5;letter-spacing:2px;color:
 html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!important}
 #gmListe.m2 .glA{padding-bottom:8px}
 .m2L{position:relative;display:flex;align-items:center;gap:10px;min-height:60px;box-sizing:border-box;padding:9px 10px 9px 9px;margin-bottom:6px;cursor:pointer;
-  --fc:var(--neoC);--bc:var(--fc);background:#0f2747;box-shadow:inset 0 0 0 1px rgba(95,240,255,.18);
+  --fc:var(--neoC);--bc:var(--fc);background:linear-gradient(90deg,#112b4f,#0d2244);box-shadow:inset 3px 0 0 var(--fc),inset 0 0 0 1px rgba(95,240,255,.16);
   transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease);animation:gmIn .4s var(--ease) backwards;animation-delay:calc(var(--i,0)*45ms + 220ms)}
 .m2L:active{transform:translateY(2px)}
 .m2F-exploit{--fc:var(--neoC)}.m2F-aura{--fc:var(--aura)}.m2F-argent{--fc:var(--cash)}.m2F-moteur{--fc:var(--neoA)}
@@ -7481,68 +7481,67 @@ html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-lef
 #m2Rev.fin .m2RvBloc{opacity:0;transform:scale(1.06)}#m2Rev.fin .m2RvFond,#m2Rev.fin .m2RvRayons{opacity:0}
 @media (orientation:landscape) and (max-height:540px){.m2RvPh{width:min(44vw,300px)}.m2RvNom{font-size:var(--f6)}.m2RvBloc{gap:5px}.m2RvTx{min-height:2.4em}}
 @media (prefers-reduced-motion:reduce){.m2RvRayons{animation:none}.m2RvBloc,.m2RvNom,.m2RvBt,.m2RvRar,.m2RvPh img.n,.m2RvFond,.m2RvRayons{transition:none}#m2Rev.plein .m2RvLigne{animation:none}}
-/* (2026-10-20, Léo) AUJOURD'HUI — en tête de la liste : le DÉFI DU JOUR (une ligne de mission, liseré cyan, son jeton) et la SÉRIE DE SEPT
-   JOURS (sept cases : cochées en vert, celle du jour qui bat en or — l'or = ce qu'on vise, comme une mission suivie —, DEMAIN annoncé,
-   la 7e case = la peinture exclusive, son nuancier). Rien ne bouge en continu sauf la case du jour. */
-.m2Auj{margin:0 0 10px;padding:0 0 8px;box-shadow:0 1px 0 rgba(95,240,255,.14)}
-.m2Auj h4{margin:2px 0 6px;font-weight:400;font-size:var(--f0);letter-spacing:2px;color:var(--neoC)}
-.m2Tag{font-style:normal;display:inline-block;padding:2px 4px 1px;margin-right:3px;background:var(--neoC);color:#06142b;font-size:var(--f0);line-height:1.3;letter-spacing:1px;vertical-align:1px}
-.m2Dj{background:#0c2a4d;box-shadow:inset 0 0 0 2px rgba(95,240,255,.42)}
-.m2Dj.ok{background:#0b2a1c;box-shadow:inset 0 0 0 1px #5ee37a}.m2Dj.ok .m2Tag{background:#5ee37a}
-.m2Jt{width:56px;gap:4px}.m2Auj .spIco{display:inline-block;flex:none;background-size:contain;background-repeat:no-repeat;background-position:center;image-rendering:pixelated}.m2Jt .spIco{width:30px;height:30px}.m2Jt b{font-weight:400;font-size:var(--f1);color:var(--au1)}
-.m2Serie{position:relative;box-sizing:border-box;padding:8px 9px 9px;background:#0f2747;box-shadow:inset 0 0 0 1px rgba(95,240,255,.18);cursor:pointer;
-  animation:gmIn .4s var(--ease) backwards;animation-delay:260ms}
-.m2Serie>b{display:flex;align-items:center;gap:6px;font-weight:400;font-size:var(--f0);letter-spacing:1px;line-height:1.4;color:#cfe3f2;margin-bottom:7px}
-.m2Serie>b .pxi{--pxs:1;color:var(--neoA)}
-.srL{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.srC{position:relative;font-style:normal;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;min-width:0;height:54px;padding:4px 1px 3px;
+/* (2026-10-20, Léo) LA SÉRIE DE SEPT JOURS — sept cases : cochées en vert, celle du jour qui bat en or (l'or = ce qu'on vise, comme une mission suivie), DEMAIN
+   annoncé, la 7e case = la peinture exclusive, son nuancier. (2026-10-22, Sacha : « enlève le défi du jour ») le défi et son bloc AUJOURD'HUI sont partis :
+   la série tient dans une carte (.m2Serie) — titre, sept cases, une phrase. Rien ne bouge en continu sauf la case du jour. */
+.m2Serie .spIco{display:inline-block;flex:none;background-size:contain;background-repeat:no-repeat;background-position:center;image-rendering:pixelated}
+.m2Serie{position:relative;box-sizing:border-box;padding:10px 8px 11px;cursor:pointer;background:linear-gradient(180deg,#10294b,#0a1b36);
+  box-shadow:inset 0 0 0 1px rgba(95,240,255,.24),0 8px 22px rgba(0,0,0,.38);animation:gmIn .4s var(--ease) backwards;animation-delay:260ms}
+.m2Serie>b{display:flex;align-items:center;gap:7px;font-weight:400;font-size:var(--f1);letter-spacing:1px;line-height:1.4;color:#fff;margin-bottom:9px}
+.m2Serie>b .pxi{--pxs:2;color:var(--neoA)}
+.m2Serie>small{display:block;margin-top:9px;font-size:var(--f0);line-height:1.55;letter-spacing:.5px;color:#8fb8c8}
+.srL{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.srC{position:relative;font-style:normal;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;min-width:0;height:54px;padding:5px 0 3px;
   box-sizing:border-box;background:#06142b;box-shadow:inset 0 0 0 1px rgba(95,240,255,.16);clip-path:polygon(4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px),0 4px)}
-.srC>em{font-style:normal;font-size:var(--f0);letter-spacing:1px;color:#6f93a6;white-space:nowrap}
-.srC .m2Cash{font-size:var(--f0);letter-spacing:0;line-height:22px}
+.srC>em{font-style:normal;font-size:var(--f0);letter-spacing:0;color:#6f93a6;white-space:nowrap}
+.srC .m2Cash{font-size:var(--f0);letter-spacing:-1px;line-height:22px}
 .srC .spIco{width:22px;height:22px}.srC>b{font-weight:400;font-size:var(--f0);color:var(--au1)}
-.srSw{display:block;width:28px;height:22px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),0 0 8px rgba(255,120,200,.35)}
+.srSw{display:block;width:80%;max-width:24px;height:22px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),0 0 8px rgba(255,120,200,.35)}
 .srC.fait{background:#0a2418;box-shadow:inset 0 0 0 1px rgba(94,227,122,.55)}.srC.fait>*:not(s):not(em){visibility:hidden}.srC.fait>em{color:#5ee37a}
 .srC>s{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#5ee37a;text-decoration:none}.srC>s .pxi{--pxs:2}
 .srC.auj{background:#2b240c;box-shadow:inset 0 0 0 2px var(--au2);animation:srBat 1.1s var(--ease) infinite alternate}.srC.auj>em{color:var(--au1)}
 @keyframes srBat{to{box-shadow:inset 0 0 0 2px var(--au2),0 0 14px rgba(255,201,58,.45)}}
 .srC.dem{box-shadow:inset 0 0 0 1px var(--au2)}.srC.dem>em{color:var(--au1)}
 .srC.ex:not(.fait){background:linear-gradient(180deg,#1a0f3a,#06142b)}
-@media (orientation:landscape) and (max-height:540px){.srC{height:46px}.m2Auj{margin-bottom:8px}}
 @media (prefers-reduced-motion:reduce){.srC.auj{animation:none}}
-/* (2026-10-22, Sacha : « refonte totale de l'onglet missions : la moitié gauche de l'écran sert à rien ; facile, lisible, bien organisé ») DEUX COLONNES.
-   Couché : à gauche AUJOURD'HUI + SUIVIES (.glB), à droite les filtres de famille + la liste (.glA) au-dessus de JOUER, qui s'élargit à la colonne.
-   Debout : les deux panneaux se suivent dans le même défilement. */
-#gmListe.land>.glB{position:absolute;box-sizing:border-box;padding:12px 12px 10px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;pointer-events:auto;
-  background:linear-gradient(180deg,#0b1e39,#060e21);box-shadow:inset 0 0 0 1px rgba(95,240,255,.32),0 0 28px rgba(95,240,255,.10);animation:gmIn .45s var(--ease) backwards .1s}
+/* (2026-10-22, Sacha : « enlève le défi du jour, enlève toutes les catégories en haut, c'est trop compliqué… mets-toi dans la peau d'un designer UX/UI senior : un truc beau,
+   plus simple, chaque bouton mieux placé, plus ergonomique ») L'ÉCRAN MISSIONS ÉPURÉ.
+   COUCHÉ (#gMis.m2land, posé par gmPlaceL) : UNE grille à deux colonnes pour le haut comme pour le bas. À gauche (--m2Gl) : le titre, le compte et sa jauge, la carte de la
+   série, et RETOUR en bas sous le pouce gauche. À droite : UNE liste, sans cadre, ses bords fondus, qui court jusqu'à JOUER (sous le pouce droit). RETOUR et JOUER : même hauteur
+   (--m2Bh), même ligne, au ras des marges de l'iPhone — plus rien ne passe SOUS un bouton. DEBOUT : le même panneau qu'avant (la carte, puis la liste, un seul défilement). */
+html.misV2 #gMis{--m2Gl:clamp(188px,27vw,236px);--m2Gp:16px;--m2Bh:56px}
+/* l'en-tête : le titre, le compte, sa jauge (--m2P posée par m2Render), puis la consigne en or */
+html.misV2 #gmHead small{order:1}
+html.misV2 #gmHead::after{content:'';order:2;display:block;width:min(100%,260px);height:6px;margin-top:-1px;background:linear-gradient(90deg,var(--neoC) var(--m2P,0%),#030914 0);
+  box-shadow:0 0 0 1px rgba(95,240,255,.28),0 0 12px rgba(95,240,255,.18)}
+html.misV2 #gmHead em{order:3}
+#gMis.m2land #gmHead{width:var(--m2Gl);max-width:var(--m2Gl)}
+#gMis.m2land #gmHead::after{width:100%}
+/* la barre du bas : RETOUR sous la colonne de gauche, JOUER sous la liste */
+#gMis.m2land #gmBas{left:calc(var(--sL) + var(--gut));right:calc(var(--sR) + var(--gut));width:auto;transform:none;bottom:calc(var(--sB) + 14px);gap:var(--m2Gp)}
+#gMis.m2land #gmBas .pbtn{min-height:0;height:var(--m2Bh)}
+#gMis.m2land #gmBas .gmHome{flex:none;width:var(--m2Gl);min-width:0;flex-direction:row;justify-content:center;gap:10px;padding:0 10px;font-size:var(--f1)}
+#gMis.m2land #gmBas .gmJouer{flex:1;min-width:0;font-size:var(--f6)}
+/* la colonne de gauche : la carte de la série, posée sous l'en-tête (le haut est mesuré par gmPlaceL) */
+#gmListe.land>.glB{position:absolute;box-sizing:border-box;left:calc(var(--sL) + var(--gut));width:var(--m2Gl);padding:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;pointer-events:auto;background:none;box-shadow:none;animation:none}
 #gmListe.land>.glB::-webkit-scrollbar{display:none}
-#gmListe.land.vu>.glB{animation:none}
-@media (orientation:landscape){#gmBas,html.hubOn #gmBas{left:auto;right:calc(var(--sR) + var(--gut));transform:none;width:min(58vw,560px)}}
 #gmListe:not(.land)>.glB{margin-bottom:10px}
-.m2B .m2Auj{margin:0 0 8px;padding:0 0 8px}
-.m2Sui h4,.m2Hd{display:flex;align-items:center;gap:6px;margin:2px 0 6px;font-weight:400;font-size:var(--f0);letter-spacing:2px;color:var(--au1)}
-.m2Sui h4 b,.m2Hd b{margin-left:auto;font-weight:400;color:#8fb8c8;letter-spacing:1px}
-.m2Hd{margin-top:10px;color:#8fb8c8}.m2Hd .pxi{--pxs:1}
-.m2Hd.vert{color:var(--cash)}
-.m2Sui .m2L{min-height:50px;padding:6px 8px 6px 7px;margin-bottom:5px}.m2Sui .m2R{width:60px;height:38px}
-.m2Sui .m2L .glTx b{font-size:var(--f0);line-height:1.35}.m2Sui .m2L u{margin:4px 0 3px}
-.m2Slot{display:flex;align-items:center;gap:10px;min-height:50px;box-sizing:border-box;margin-bottom:5px;padding:6px 10px;color:#5f7f96;font-size:var(--f0);letter-spacing:1px;line-height:1.4;
-  background:rgba(6,20,43,.55);box-shadow:inset 0 0 0 1px rgba(95,240,255,.14);border:1px dashed rgba(95,240,255,.28)}
-.m2Slot i{flex:none;line-height:0;opacity:.7}.m2Slot .pxi{--pxs:2}
-/* les filtres : collés en haut du panneau de droite, l'or dit celui qu'on regarde */
-.m2Chs{position:sticky;top:-12px;z-index:2;display:flex;gap:5px;margin:-12px -12px 8px;padding:10px 12px 8px;background:#0b1e39;box-shadow:0 1px 0 rgba(95,240,255,.18)}
-#gmListe:not(.land) .m2Chs{top:-12px}
-.m2Ch{position:relative;flex:1 1 0;min-width:0;min-height:36px;display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;color:var(--fc,var(--neoC));
-  background:#06142b;box-shadow:inset 0 0 0 1px rgba(95,240,255,.18);font-size:var(--f0);letter-spacing:1px;transition:transform var(--t-fast) var(--ease)}
-.m2Ch:active{transform:translateY(2px)}.m2Ch .pxi{--pxs:2}.m2Ch b{font-weight:400;color:#dfeeff;font-size:var(--f0)}
-.m2Ch>span{color:#dfeeff}
-.m2Ch.on{background:#2b240c;box-shadow:inset 0 0 0 2px var(--au2)}.m2Ch.on b,.m2Ch.on>span{color:var(--au1)}
-.m2ChPt{position:absolute;top:2px;right:2px;width:7px;height:7px;background:var(--cash);box-shadow:0 0 0 1px var(--k0),0 0 8px var(--cash)}
-@media (orientation:landscape) and (max-height:540px){.m2Ch{min-height:32px}.m2Ch .pxi{--pxs:1}.m2B .m2Serie{padding:6px 7px 7px}.m2B .srC{height:44px}.m2Sui .m2L,.m2Slot{min-height:46px}}
-/* la liste : la jauge et son chiffre sur UNE ligne (une mission tient dans ~56 px au lieu de ~70) */
+/* la liste : à droite, du haut de l'écran jusqu'au-dessus de JOUER ; pas de cadre, deux fondus (du haut et du bas) disent qu'elle défile */
+#gMis.m2land #gmListe>.glA{position:absolute;box-sizing:border-box;left:calc(var(--sL) + var(--gut) + var(--m2Gl) + var(--m2Gp));right:calc(var(--sR) + var(--gut));top:calc(var(--sT) + 6px);
+  bottom:calc(var(--sB) + 14px + var(--m2Bh) + 8px);padding:12px 4px 22px 0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;pointer-events:auto;background:none;box-shadow:none;animation:none;
+  -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 14px,#000 calc(100% - 26px),transparent 100%);mask-image:linear-gradient(180deg,transparent 0,#000 14px,#000 calc(100% - 26px),transparent 100%)}
+#gMis.m2land #gmListe>.glA::-webkit-scrollbar{display:none}
+/* les titres de groupe (seulement quand il y en a plusieurs) */
+.m2Hd{display:flex;align-items:center;gap:6px;margin:12px 0 7px;font-weight:400;font-size:var(--f0);letter-spacing:2px;color:#8fb8c8}
+.m2Hd:first-child{margin-top:0}
+.m2Hd b{margin-left:auto;font-weight:400;color:#8fb8c8;letter-spacing:1px}.m2Hd .pxi{--pxs:1}
+.m2Hd.vert{color:var(--cash)}.m2Hd.or{color:var(--au1)}
+/* une ligne : la jauge et son chiffre sur UNE ligne ; la famille en liseré à gauche (plus de filtres : la couleur dit ce que c'est) */
 .m2A .m2L:not(.pret):not(.ok) .glTx{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:8px;align-items:center}
 .m2A .m2L:not(.pret):not(.ok) .glTx>b{grid-column:1/-1}
 .m2A .m2L:not(.pret):not(.ok) .glTx>u{margin:5px 0 0}.m2A .m2L:not(.pret):not(.ok) .glTx>small{margin-top:5px;white-space:nowrap}
-@media (orientation:landscape) and (max-height:540px){.m2A .m2L{min-height:48px;padding:6px 9px 6px 8px;margin-bottom:5px}.m2A .m2R{width:72px;height:40px}.m2Slot{min-height:40px}.m2Sui .m2L{min-height:44px}}
+.m2A .m2L{min-height:56px;margin-bottom:6px}
+@media (orientation:landscape) and (max-height:540px){.m2A .m2L{min-height:54px;padding:6px 9px 6px 8px;margin-bottom:6px}.m2A .m2R{width:74px;height:40px}.m2Serie{padding:9px 8px 10px}.srC{height:52px}.m2Pr{min-height:26px;margin-top:5px}}
 #gmListe.m2.vu .m2Serie{animation:none}
 </style>
 <style id="uiRevue">
@@ -56729,41 +56728,29 @@ function m2LignePal(d){ // une couleur secrète de la palette, trouvée : son in
   const j=COSM.peinture.indexOf(d);return '<div class="m2L m2F-secret ok" data-pal="'+d.id+'"><span class="m2Ic">'+pxi('coche')+'</span>'
     +'<div class="glTx"><b><i class="m2Sec">'+TR('SECRÈTE')+'</i> '+sansAcc(TR(d.ind||'')).toUpperCase()+'</b><small>'+TR('RÉUSSIE')+'</small></div>'
     +'<div class="m2R voir">'+objFig({cat:'peinture',i:j})+'</div></div>';}
-/* (2026-10-22, Sacha : « cet onglet missions est très mal géré, la moitié gauche de l'écran sert à rien : refonte totale, facile, lisible, bien organisé »)
-   Deux colonnes. À GAUCHE (.glB) : AUJOURD'HUI (la série de sept jours) puis SUIVIES — trois emplacements fixes, les vides disent « touche une mission ».
-   À DROITE (.glA) : des FILTRES par famille (le point vert = une récompense attend), À RÉCUPÉRER, puis les missions de la famille choisie. Debout : les deux se suivent. */
-const M2_FILTRES=['tout','exploit','aura','moteur','exploration','argent','collection'];
-M2E.f='tout';
-Object.assign(I18N,{'SUIVIES':'TRACKED','TOUCHE UNE MISSION':'TAP A MISSION','AUCUNE MISSION ICI':'NO MISSION HERE'});
-function m2Chips(L){let h='<div class="m2Chs" role="tablist">';
-  for(const f of M2_FILTRES){const ls=L.filter(function(x){return x.rg!==1&&x.rg!==9&&(f==='tout'||x.m.f===f);}),n=ls.length,pr=ls.some(function(x){return x.rg===0;});
-    if(f!=='tout'&&!L.some(function(x){return x.m.f===f&&x.rg!==9;}))continue;
-    h+='<div class="m2Ch'+(M2E.f===f?' on':'')+(f!=='tout'?' m2F-'+f:'')+'" data-f="'+f+'" role="tab" tabindex="0" aria-selected="'+(M2E.f===f)+'" aria-label="'+sansAcc(TR(f.toUpperCase()))+'">'
-      +(f==='tout'?'<span>'+sansAcc(TR('TOUT'))+'</span>':pxi(M2_FAM[f].ic))+'<b>'+n+'</b>'+(pr?'<i class="m2ChPt"></i>':'')+'</div>';}
-  return h+'</div>';}
+/* (2026-10-22, Sacha : « enlève le défi du jour, enlève toutes les catégories en haut, c'est trop compliqué : plus simple, plus beau, chaque bouton mieux placé »)
+   Deux colonnes, rien d'autre. À GAUCHE (.glB) : la carte de la SÉRIE de sept jours (sous le titre et le compte, RETOUR en bas).
+   À DROITE (.glA) : UNE liste, triée — À RÉCUPÉRER (elles brillent), SUIVIES (filet or, 3 au plus), puis les autres, les exploits d'abord —
+   au-dessus de JOUER. Les titres de groupe n'apparaissent que s'il y a plusieurs groupes. Plus de défi du jour, plus de filtres de famille. */
+Object.assign(I18N,{'SUIVIES':'TRACKED'});
+const M2_GROUPES=[[0,'À RÉCUPÉRER','vert','cadeau'],[1,'SUIVIES','or','cible'],[2,'MISSIONS','','']];
 function m2Render(vu){
   const el=$('gmNoeuds'),sv=$('gmFils');if(!el)return;if(sv)sv.innerHTML='';
   const old=$('gmListe'),sc0=old?old.scrollTop:0,a0=old&&old.querySelector('.glA'),sc1=a0?a0.scrollTop:0,b0=old&&old.querySelector('.glB'),sc2=b0?b0.scrollTop:0;
-  const s=m2Etat(),L=m2Lignes(),pal=m2SecPal();let k=0,hb='<div class="glB m2B">',h='<div class="glA m2A">';
-  try{hb+=aujHtml();}catch(e){console.warn('aujHtml',e);} /* AUJOURD'HUI : la série de sept jours (missions/aujourdhui.js) */
-  const su=L.filter(function(x){return x.rg===1;});
-  hb+='<div class="m2Sui"><h4>'+sansAcc(TR('SUIVIES'))+' <b>'+su.length+' / 3</b></h4>';
-  for(let i=0;i<3;i++)hb+=su[i]?m2Ligne(su[i],k++,s):'<div class="m2Slot"><i>'+pxi('cible')+'</i><span>'+sansAcc(TR('TOUCHE UNE MISSION'))+'</span></div>';
-  hb+='</div></div>';
-  if(M2_FILTRES.indexOf(M2E.f)<0||(M2E.f!=='tout'&&!L.some(function(x){return x.m.f===M2E.f&&x.rg!==9;})))M2E.f='tout';
-  h+=m2Chips(L);
-  const R=L.filter(function(x){return x.rg!==1&&x.rg<9&&(M2E.f==='tout'||x.m.f===M2E.f);}),pr=R.filter(function(x){return x.rg===0;}),ot=R.filter(function(x){return x.rg===2;});
-  if(pr.length){h+='<h4 class="m2Hd vert">'+pxi('cadeau')+' '+sansAcc(TR('À RÉCUPÉRER'))+' <b>'+pr.length+'</b></h4>';for(const x of pr)h+=m2Ligne(x,k++,s);}
-  if(ot.length){if(pr.length)h+='<h4 class="m2Hd">'+sansAcc(TR('MISSIONS'))+' <b>'+ot.length+'</b></h4>';for(const x of ot)h+=m2Ligne(x,k++,s);}
-  const fin=L.filter(function(x){return x.rg===9&&(M2E.f==='tout'||x.m.f===M2E.f);}),pf=M2E.f==='tout'?pal:[],nf=fin.length+pf.length;
+  const s=m2Etat(),L=m2Lignes(),pal=m2SecPal();let k=0,hb='',h='<div class="glA m2A">';
+  try{hb=serieHtml();}catch(e){console.warn('serieHtml',e);} /* la série de sept jours (missions/aujourdhui.js) */
+  const gr=M2_GROUPES.map(function(g){return {g:g,ls:L.filter(function(x){return x.rg===g[0];})};}).filter(function(o){return o.ls.length;});
+  for(const o of gr){if(gr.length>1)h+='<h4 class="m2Hd'+(o.g[2]?' '+o.g[2]:'')+'">'+(o.g[3]?pxi(o.g[3])+' ':'')+sansAcc(TR(o.g[1]))+' <b>'+(o.g[0]===1?o.ls.length+' / 3':o.ls.length)+'</b></h4>';
+    for(const x of o.ls)h+=m2Ligne(x,k++,s);}
+  const fin=L.filter(function(x){return x.rg===9;}),nf=fin.length+pal.length;
   if(nf){h+='<div class="m2Fin'+(M2E.fin?' on':'')+'" role="button" tabindex="0" aria-expanded="'+M2E.fin+'">'+pxi('coche')+'<span>'+sansAcc(TR('TERMINÉES'))+' ('+nf+')</span>'+pxi(M2E.fin?'haut':'bas')+'</div>';
-    if(M2E.fin){h+='<div class="m2FinL">';fin.forEach(function(x,j){h+=m2Ligne(x,j,s);});pf.forEach(function(d){h+=m2LignePal(d);});h+='</div>';}}
-  if(!pr.length&&!ot.length&&!nf)h+='<div class="m2Rien">'+sansAcc(TR('AUCUNE MISSION ICI'))+'</div>';
+    if(M2E.fin){h+='<div class="m2FinL">';fin.forEach(function(x,j){h+=m2Ligne(x,j,s);});pal.forEach(function(d){h+=m2LignePal(d);});h+='</div>';}}
+  if(!k&&!nf)h+='<div class="m2Rien">'+TR('TOUTES LES MISSIONS')+'</div>';
   h+='</div>';
-  el.innerHTML='<div id="gmListe" class="m2'+(vu?' vu':'')+'">'+hb+h+'</div>';
+  el.innerHTML='<div id="gmListe" class="m2'+(vu?' vu':'')+'">'+(hb?'<div class="glB m2B">'+hb+'</div>':'')+h+'</div>';
   GMIS.cards=[];GMIS.pts=[];GMIS.paths=[];GMIS.last=null;GMIS.lw=0;
-  const c=m2Compte(),sous=$('gmSous');if(sous)sous.textContent=c.ok+' / '+c.tot;
-  const aide=$('gmAide');if(aide)aide.textContent=''; /* (2026-10-22) la consigne vit dans les emplacements vides de SUIVIES */
+  const c=m2Compte(),sous=$('gmSous'),hd=$('gmHead');if(sous)sous.textContent=c.ok+' / '+c.tot;if(hd)hd.style.setProperty('--m2P',Math.round(100*c.ok/Math.max(1,c.tot))+'%'); /* le compte, et sa jauge sous le titre */
+  const aide=$('gmAide');if(aide)aide.textContent=s.su.length?'':sansAcc(TR('TOUCHE UNE MISSION POUR LA SUIVRE · 3 AU PLUS'));
   try{gmPlaceL(VP.w,VP.h);}catch(e){}
   const nl=$('gmListe');if(nl){nl.scrollTop=sc0;const a1=nl.querySelector('.glA'),b1=nl.querySelector('.glB');if(a1)a1.scrollTop=sc1;if(b1)b1.scrollTop=sc2;}
   if(typeof GAR!=='undefined'&&GAR.aMisId){const id9=GAR.aMisId;GAR.aMisId=null;setTimeout(function(){const r9=document.querySelector('#gmListe .m2L[data-m2="'+id9+'"]');if(r9){try{r9.scrollIntoView({block:'center'});}catch(e){}r9.classList.add('flash');}},REDUCED_MOTION?0:380);} // VOIR LA MISSION hors du garage
@@ -56790,8 +56777,7 @@ function m2Recupere(id,row){
   try{gBankPaint();}catch(e){}try{m2Portes();}catch(e){}
   setTimeout(function(){if(garageOn&&gEl&&gEl.classList.contains('missions'))m2Render(true);else m2Portes();},REDUCED_MOTION?0:560);}
 function m2Clic(e){const t=e.target;if(!t||!t.closest)return;
-  const ch=t.closest('.m2Ch');if(ch){const f=ch.getAttribute('data-f');if(f&&f!==M2E.f){M2E.f=f;uiClic('nav');hap(8);m2Render(true);}return;} /* (2026-10-22) le filtre de famille */
-  if(t.closest('.m2Auj')){aujClic(t);return;} /* (2026-10-20) le bloc AUJOURD'HUI dit ce qu'il donne */
+  if(t.closest('.m2Serie')){aujClic(t);return;} /* (2026-10-20) la carte de la série dit ce qu'elle donne */
   const fin=t.closest('.m2Fin');if(fin){M2E.fin=!M2E.fin;uiClic(M2E.fin?'on':'off');hap(8);m2Render(true);
     if(M2E.fin){const f2=document.querySelector('#gmListe .m2Fin');if(f2&&f2.scrollIntoView)try{f2.scrollIntoView({block:'start',behavior:REDUCED_MOTION?'auto':'smooth'});}catch(x){}}return;}
   const pal=t.closest('[data-pal]');if(pal){const j=COSM.peinture.findIndex(function(d){return d.id===pal.getAttribute('data-pal');});if(j<0)return;uiClic('nav');
@@ -56988,9 +56974,10 @@ const NFX={ign:0,ignK:1,air:false,off:0,t0:-9,sT:-9,len:0,edge:0,col:new THREE.C
         ~90 % pour le reste ; un plancher de débutant (2 figures, 3 s de vol, 45 s, 250 km/h, 1 500 d'aura, 2 poses, 8 s de frénésie).
       · Il se joue EN UNE PARTIE (les mesures de la course : m2ValCourse) ; réussi → +1 JETON tout de suite et la ligne du bas en course
         (« DÉFI DU JOUR RÉUSSI · +1 JETON ») — la machine FINAL SPIN s'ouvre à l'écran de fin. Rien en balade, bac à sable, parc ni auto-école.
-   L'AFFICHAGE : un bloc AUJOURD'HUI en tête de la liste des missions (m2Render) — la ligne du défi (la même main que les missions : icône,
-   consigne, jauge du meilleur essai du jour, « NOUVEAU DÉFI DANS 7 H ») et la rangée des sept cases (cochées, celle d'aujourd'hui qui bat,
-   DEMAIN annoncé quand la case du jour est prise). L'écran de fin dit ce que la série a donné (jourFinTexte).
+   L'AFFICHAGE : la carte de la série (serieHtml, colonne de gauche de l'écran MISSIONS) — le titre (la série en cours), les sept cases (cochées, celle d'aujourd'hui
+   qui bat, DEMAIN annoncé quand la case du jour est prise) et une phrase. L'écran de fin dit ce que la série a donné (jourFinTexte).
+   (2026-10-22, Sacha : « enlève le défi du jour, je t'avais dit de l'enlever ») LE DÉFI DU JOUR EST ÉTEINT : `DJ.on` faux sauf `?defijour=1` — plus de tirage, de ligne
+   ni de jeton ; le moteur (djTire, djTick…) reste là, intact, pour le rallumer. Seule la série de sept jours garde son affichage.
    Console : dbgSerie() · dbgSerie('jour',n) (pose la série à n jours, prise hier) · dbgDefiJour() · ('force','fig') · ('reussi') · ('demain'). */
 const SERIE7={on:!/[?&]serie=ancien\b/.test(location.search),
   lots:[{cash:150},{cash:250},{jeton:1},{cash:400},{cash:600},{jeton:1},{exclu:1}],
@@ -57020,7 +57007,7 @@ function serieVue(){ /* l'état du calendrier pour l'affichage : {c : la case du
   return {c:serieCase(e.n),pris:true,faits:serieCase(e.n),n:e.n,casse:false};}
 
 /* ---- LE DÉFI DU JOUR ---- */
-const DJ={on:!/[?&]defijour=0\b/.test(location.search),t:0,
+const DJ={on:/[?&]defijour=1\b/.test(location.search),t:0, /* (2026-10-22, Sacha : « enlève le défi du jour, je t'avais dit de l'enlever ») éteint : ni tirage, ni ligne, ni jeton ; ?defijour=1 le rallume */
   fam:[{k:'fig',  u:'',    ref:4,    min:2,   K:1,   t:'FAIS {v} FIGURES DANS UN SEUL SAUT',en:'LAND {v} TRICKS IN A SINGLE JUMP'},
        {k:'airP', u:'s',   ref:5,    min:3,   K:.9,  t:'TIENS {v} S EN L\'AIR ET POSE-TOI PROPREMENT',en:'STAY {v} S IN THE AIR AND LAND CLEAN'},
        {k:'vie',  u:'mn',  ref:120,  min:45,  K:.9,  t:'SURVIS {v} EN UNE PARTIE',en:'SURVIVE {v} IN ONE RUN'},
@@ -57054,32 +57041,24 @@ function djTick(dt){ /* m2Tick (chaque image de course, missions allumées) : le
 function djReste(){const t=new Date(),m=new Date(t.getFullYear(),t.getMonth(),t.getDate()+1);return Math.max(0,m-t);} /* ms jusqu'à minuit (l'appareil) */
 function djResteTxt(){const mn=Math.max(1,Math.ceil(djReste()/6e4)),h=Math.floor(mn/60);return h?h+' H':mn+' MIN';}
 
-/* ---- LE BLOC AUJOURD'HUI, en tête de la liste des missions ---- */
-function aujHtml(){
-  let h='';
-  const D=djEtat();
-  if(D){const m=djM(D),ok=!!D.ok,w=Math.round(100*Math.max(0,Math.min(1,D.b/D.v)));try{spinSprites();}catch(e){}
-    h+='<div class="m2L m2F-exploit m2Dj'+(ok?' ok':'')+'" data-aj="dj" role="button" tabindex="0">'
-      +'<span class="m2Ic">'+pxi(ok?'coche':'cible')+'</span>'
-      +'<div class="glTx"><b><i class="m2Tag">'+sansAcc(TR('DÉFI DU JOUR'))+'</i> '+sansAcc(djTxt(D))+'</b>'
-      +(ok?'':'<u><em style="width:'+w+'%"></em></u>')
-      +'<small>'+(ok?sansAcc(TR('RÉUSSI')+' · +1 '+TR('JETON')+' · '+TR('NOUVEAU DANS')+' '+djResteTxt()):m2Prog(m,D.b,D.v)+' · '+sansAcc(TR('NOUVEAU DANS'))+' '+djResteTxt())+'</small></div>'
-      +'<div class="m2R m2Jt">'+(typeof spinIco==='function'?spinIco(5):'')+'<b>+1</b></div></div>';}
-  const S=SERIE7.on?serieVue():null;
-  if(S){let cs='';
-    for(let c=1;c<=7;c++){const L=serieLot(c),fait=c<=S.faits,auj=c===S.c,dem=S.pris&&c===serieCase(S.c+1)&&c!==S.c;
-      let ico;if(L.cash)ico='<b class="m2Cash">'+m2Nb(L.cash)+'</b>'; /* le chiffre seul : le vert dit déjà l'argent du jeu (« $ 150 » ne tenait pas dans la case) */else if(L.jeton)ico=(typeof spinIco==='function'?spinIco(5):'')+(L.jeton>1?'<b>×'+L.jeton+'</b>':'');
-      else{const d=COSM.peinture.find(function(x){return x.id===L.exclu;}),hx=function(c){return '#'+((c>>>0)&0xffffff).toString(16).padStart(6,'0');};
-        ico=d?'<b class="srSw" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0))+'"></b>':pxi('etoile');}
-      cs+='<i class="srC'+(fait?' fait':'')+(auj&&!S.pris?' auj':'')+(dem?' dem':'')+(L.exclu?' ex':'')+'" style="--i:'+c+'"><em>'+(LANG==='en'?'D':'J')+c+'</em>'+ico+(fait?'<s>'+pxi('coche')+'</s>':'')+'</i>';}
-    const tit=S.pris?TR('SÉRIE')+' '+S.n+' '+TR(S.n>1?'JOURS':'JOUR')+' · '+TR('DEMAIN')+' : '+serieLotTxt(serieLot(serieCase(S.c+1))):S.casse?TR('SÉRIE PERDUE · ON REPART AU 1ER JOUR'):
-      (S.n?TR('SÉRIE')+' '+S.n+' '+TR(S.n>1?'JOURS':'JOUR')+' · ':'')+TR('JOUE UNE PARTIE POUR LA CASE DU JOUR');
-    h+='<div class="m2Serie" data-aj="serie" role="button" tabindex="0"><b>'+pxi('flamme')+' '+sansAcc(tit)+'</b><div class="srL">'+cs+'</div></div>';}
-  return h?'<div class="m2Auj"><h4>'+sansAcc(TR('AUJOURD\'HUI'))+'</h4>'+h+'</div>':'';}
+/* ---- LA SÉRIE DE SEPT JOURS, en carte à côté de la liste des missions ---- */
+/* (2026-10-22, Sacha : « enlève le défi du jour… plus simple ») plus de bloc AUJOURD'HUI ni de ligne de défi : une carte — le titre (la série en
+   cours), les sept cases, une phrase (ce qui attend demain, ou comment gagner la case du jour). */
+function serieHtml(){
+  const S=SERIE7.on?serieVue():null;if(!S)return '';
+  try{spinSprites();}catch(e){}
+  let cs='';
+  for(let c=1;c<=7;c++){const L=serieLot(c),fait=c<=S.faits,auj=c===S.c,dem=S.pris&&c===serieCase(S.c+1)&&c!==S.c;
+    let ico;if(L.cash)ico='<b class="m2Cash">'+m2Nb(L.cash)+'</b>'; /* le chiffre seul : le vert dit déjà l'argent du jeu (« $ 150 » ne tenait pas dans la case) */else if(L.jeton)ico=(typeof spinIco==='function'?spinIco(5):'')+(L.jeton>1?'<b>×'+L.jeton+'</b>':'');
+    else{const d=COSM.peinture.find(function(x){return x.id===L.exclu;}),hx=function(c){return '#'+((c>>>0)&0xffffff).toString(16).padStart(6,'0');};
+      ico=d?'<b class="srSw" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0))+'"></b>':pxi('etoile');}
+    cs+='<i class="srC'+(fait?' fait':'')+(auj&&!S.pris?' auj':'')+(dem?' dem':'')+(L.exclu?' ex':'')+'" style="--i:'+c+'"><em>'+(LANG==='en'?'D':'J')+c+'</em>'+ico+(fait?'<s>'+pxi('coche')+'</s>':'')+'</i>';}
+  const tit=S.n&&!S.casse?TR('SÉRIE')+' '+S.n+' '+TR(S.n>1?'JOURS':'JOUR'):TR('SÉRIE'),
+    bas=S.pris?TR('DEMAIN')+' : '+serieLotTxt(serieLot(serieCase(S.c+1))):S.casse?TR('SÉRIE PERDUE · ON REPART AU 1ER JOUR'):TR('JOUE UNE PARTIE POUR LA CASE DU JOUR');
+  return '<div class="m2Serie" data-aj="serie" role="button" tabindex="0"><b>'+pxi('flamme')+' '+sansAcc(tit)+'</b><div class="srL">'+cs+'</div><small>'+sansAcc(bas)+'</small></div>';}
 function aujClic(t){const a=t.closest&&t.closest('[data-aj]');if(!a)return false;
-  const k=a.getAttribute('data-aj');try{uiClic('nav');}catch(e){}try{hap(8);}catch(e){}
-  if(k==='dj'){const D=djEtat();if(D)try{toast(pxi('cible')+' '+(D.ok?TR('DÉFI DU JOUR RÉUSSI')+' · '+TR('NOUVEAU DÉFI DANS')+' '+djResteTxt():TR('UNE PARTIE POUR LE RÉUSSIR')+' · +1 '+TR('JETON')+' FINAL SPIN'));}catch(e){}}
-  else{const S=serieVue();if(S)try{const L=serieLot(S.pris?serieCase(S.c+1):S.c);toast(pxi('flamme')+' '+(S.pris?TR('DEMAIN')+' : ':TR('AUJOURD\'HUI')+' : ')+serieLotTxt(L));}catch(e){}}
+  try{uiClic('nav');}catch(e){}try{hap(8);}catch(e){}
+  const S=serieVue();if(S)try{const L=serieLot(S.pris?serieCase(S.c+1):S.c);toast(pxi('flamme')+' '+(S.pris?TR('DEMAIN')+' : ':TR('AUJOURD\'HUI')+' : ')+serieLotTxt(L));}catch(e){}
   return true;}
 Object.assign(I18N,{'DÉFI DU JOUR':'DAILY CHALLENGE','DÉFI DU JOUR RÉUSSI':'DAILY CHALLENGE DONE','JETON':'TOKEN','JETONS':'TOKENS','RÉUSSI':'DONE','MEILLEUR ESSAI':'BEST TRY',
   'NOUVEAU DÉFI DANS':'NEW CHALLENGE IN','NOUVEAU DANS':'NEW IN','AUJOURD\'HUI':'TODAY','DEMAIN':'TOMORROW','REVIENS DEMAIN':'COME BACK TOMORROW','JOUR':'DAY',
@@ -68812,15 +68791,15 @@ function gmRender(vu){ // vu : l'écran est déjà là (un défi coché) — les
 function gmSuit(){return gmSuitS();} // chaque image : le panneau MISSIONS se recale, les hologrammes suivent l'orientation
 function gmHoloPlace(land){ // (2026-09-30) les hologrammes suivent l'ancre de l'orientation (voir `pp`)
   for(const h of GMIS.holo){const q=(!land&&h.a.pp)||h.a.p;h.beam.scale.set(.5,q[1]+.5,1);h.beam.position.set(q[0],(q[1]+.5)/2,q[2]);if(h.ring)h.ring.position.set(q[0],.05,q[2]);}}
-function gmPlaceL(W,H){ // debout : UN panneau entre le titre et JOUER ; couché : DEUX — les missions dans la colonne de JOUER, au-dessus de lui ; la récompense et la suite à gauche, sous le titre
-  const L=$('gmListe');if(!L)return;const hd=$('gmHead'),bs=$('gmBas'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect(),land=W>H*1.25;
+function gmPlaceL(W,H){ // couché : DEUX colonnes — la carte de la série à gauche sous le titre, la liste à droite au-dessus de JOUER (le CSS les pose : voir « L'ÉCRAN MISSIONS ÉPURÉ ») ; debout : UN panneau entre le titre et la barre du bas
+  const L=$('gmListe');if(!L)return;const hd=$('gmHead'),bs=$('gmBas'),gm=$('gMis'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect(),land=W>H*1.25;
   const bt=rb&&rb.height?rb.top:H-90,g0=rh&&rh.width?rh.left:16,A=L.querySelector('.glA'),Bk=L.querySelector('.glB'),px=function(v){return Math.round(v)+'px';};
-  L.classList.toggle('land',land);
-  if(hd)hd.style.maxWidth=land&&rb&&rb.width?px(Math.max(160,rb.left-g0-14)):''; // (2026-10-17, Sacha) couché, l'en-tête s'arrête avant le panneau : la consigne et la ligne du cadeau (jusqu'à 420 px de large) passaient DESSOUS
-  if(land){const tp=rh&&rh.height?rh.top:12,l=rb&&rb.width?rb.left:W*.5,r=rb&&rb.width?W-rb.right:g0,bB=H-(rb&&rb.height?H-rb.bottom:14);
+  L.classList.toggle('land',land);if(gm)gm.classList.toggle('m2land',land);
+  if(hd)hd.style.maxWidth=''; // (2026-10-22) la largeur de l'en-tête vient du CSS (la colonne de gauche couché)
+  if(land){
     L.style.left=L.style.top='0px';L.style.right='0px';L.style.maxHeight='none';
-    if(A){A.style.left=px(l);A.style.right=px(r);A.style.top=px(tp);A.style.maxHeight=px(Math.max(100,bt-12-tp));}
-    if(Bk){const t2=(rh&&rh.height?rh.bottom:80)+12;Bk.style.left=px(g0);Bk.style.width=px(Math.max(200,Math.min(420,l-g0-16)));Bk.style.top=px(t2);Bk.style.maxHeight=px(Math.max(90,bB-t2));}
+    if(A)A.style.left=A.style.right=A.style.top=A.style.maxHeight='';
+    if(Bk){const t2=(rh&&rh.height?rh.bottom:80)+12;Bk.style.left=Bk.style.width='';Bk.style.top=px(t2);Bk.style.maxHeight=px(Math.max(90,bt-12-t2));}
     return;}
   [A,Bk].forEach(function(e){if(e)e.style.left=e.style.right=e.style.top=e.style.width=e.style.maxHeight='';});
   const tp=(rh&&rh.height?rh.bottom:60)+10;
@@ -68854,7 +68833,7 @@ function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
  clicM(document.querySelector('#gmBas .gmJouer'),function(e){garJouer();});                 // JOUER : la map des PLAY (voir « LE NIVEAU DES PLAY » ; la partie sans fin hors du hub), la mission suivie à l'écran
  {const nd=$('gmNoeuds');if(nd)nd.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go)return;
    m2Clic(e);}); /* (2026-10-16) LES MISSIONS v2 : suivre, récupérer, voir, TERMINÉES */
-   nd.addEventListener('keydown',function(e){if((e.code==='Enter'||e.code==='Space')&&e.target.closest&&e.target.closest('.m2L,.m2Fin,.m2Ch')){e.preventDefault();e.stopPropagation();e.target.click();}});}
+   nd.addEventListener('keydown',function(e){if((e.code==='Enter'||e.code==='Space')&&e.target.closest&&e.target.closest('.m2L,.m2Fin')){e.preventDefault();e.stopPropagation();e.target.click();}});}
 }
 
 function gSecoue(b){b.classList.remove('secoue');void b.offsetWidth;b.classList.add('secoue');hap([8,40,8]);} // le NON du garage : ça bouge, ça vibre, et un toast dit pourquoi

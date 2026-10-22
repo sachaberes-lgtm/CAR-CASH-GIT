@@ -170,7 +170,7 @@ gameplay/figures-route.js            # figures sur la route
 interface/hud-figures.js             # HUD des figures (v3 à v5)
 missions/defis-moteur.js             # défis secrets, missions v2 : le moteur
 missions/ecran-revelation.js         # missions v2 : l'écran, la vignette, boutique et garage, la révélation
-missions/aujourdhui.js               # aujourd'hui : la série de sept jours et le défi du jour (Léo, 20/10)
+missions/aujourdhui.js               # la série de sept jours (carte de l'écran MISSIONS) ; le défi du jour, éteint depuis le 22/10 (Léo, 20/10)
 rendu/stries-vent.js                 # les stries de vent
 gameplay/boost-depart.js             # le ting, le boost de départ
 gameplay/aura-chaine.js              # l'aura v2 (la chaîne), le train de boosts

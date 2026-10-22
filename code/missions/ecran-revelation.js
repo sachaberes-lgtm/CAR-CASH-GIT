@@ -68,41 +68,29 @@ function m2LignePal(d){ // une couleur secrète de la palette, trouvée : son in
   const j=COSM.peinture.indexOf(d);return '<div class="m2L m2F-secret ok" data-pal="'+d.id+'"><span class="m2Ic">'+pxi('coche')+'</span>'
     +'<div class="glTx"><b><i class="m2Sec">'+TR('SECRÈTE')+'</i> '+sansAcc(TR(d.ind||'')).toUpperCase()+'</b><small>'+TR('RÉUSSIE')+'</small></div>'
     +'<div class="m2R voir">'+objFig({cat:'peinture',i:j})+'</div></div>';}
-/* (2026-10-22, Sacha : « cet onglet missions est très mal géré, la moitié gauche de l'écran sert à rien : refonte totale, facile, lisible, bien organisé »)
-   Deux colonnes. À GAUCHE (.glB) : AUJOURD'HUI (la série de sept jours) puis SUIVIES — trois emplacements fixes, les vides disent « touche une mission ».
-   À DROITE (.glA) : des FILTRES par famille (le point vert = une récompense attend), À RÉCUPÉRER, puis les missions de la famille choisie. Debout : les deux se suivent. */
-const M2_FILTRES=['tout','exploit','aura','moteur','exploration','argent','collection'];
-M2E.f='tout';
-Object.assign(I18N,{'SUIVIES':'TRACKED','TOUCHE UNE MISSION':'TAP A MISSION','AUCUNE MISSION ICI':'NO MISSION HERE'});
-function m2Chips(L){let h='<div class="m2Chs" role="tablist">';
-  for(const f of M2_FILTRES){const ls=L.filter(function(x){return x.rg!==1&&x.rg!==9&&(f==='tout'||x.m.f===f);}),n=ls.length,pr=ls.some(function(x){return x.rg===0;});
-    if(f!=='tout'&&!L.some(function(x){return x.m.f===f&&x.rg!==9;}))continue;
-    h+='<div class="m2Ch'+(M2E.f===f?' on':'')+(f!=='tout'?' m2F-'+f:'')+'" data-f="'+f+'" role="tab" tabindex="0" aria-selected="'+(M2E.f===f)+'" aria-label="'+sansAcc(TR(f.toUpperCase()))+'">'
-      +(f==='tout'?'<span>'+sansAcc(TR('TOUT'))+'</span>':pxi(M2_FAM[f].ic))+'<b>'+n+'</b>'+(pr?'<i class="m2ChPt"></i>':'')+'</div>';}
-  return h+'</div>';}
+/* (2026-10-22, Sacha : « enlève le défi du jour, enlève toutes les catégories en haut, c'est trop compliqué : plus simple, plus beau, chaque bouton mieux placé »)
+   Deux colonnes, rien d'autre. À GAUCHE (.glB) : la carte de la SÉRIE de sept jours (sous le titre et le compte, RETOUR en bas).
+   À DROITE (.glA) : UNE liste, triée — À RÉCUPÉRER (elles brillent), SUIVIES (filet or, 3 au plus), puis les autres, les exploits d'abord —
+   au-dessus de JOUER. Les titres de groupe n'apparaissent que s'il y a plusieurs groupes. Plus de défi du jour, plus de filtres de famille. */
+Object.assign(I18N,{'SUIVIES':'TRACKED'});
+const M2_GROUPES=[[0,'À RÉCUPÉRER','vert','cadeau'],[1,'SUIVIES','or','cible'],[2,'MISSIONS','','']];
 function m2Render(vu){
   const el=$('gmNoeuds'),sv=$('gmFils');if(!el)return;if(sv)sv.innerHTML='';
   const old=$('gmListe'),sc0=old?old.scrollTop:0,a0=old&&old.querySelector('.glA'),sc1=a0?a0.scrollTop:0,b0=old&&old.querySelector('.glB'),sc2=b0?b0.scrollTop:0;
-  const s=m2Etat(),L=m2Lignes(),pal=m2SecPal();let k=0,hb='<div class="glB m2B">',h='<div class="glA m2A">';
-  try{hb+=aujHtml();}catch(e){console.warn('aujHtml',e);} /* AUJOURD'HUI : la série de sept jours (missions/aujourdhui.js) */
-  const su=L.filter(function(x){return x.rg===1;});
-  hb+='<div class="m2Sui"><h4>'+sansAcc(TR('SUIVIES'))+' <b>'+su.length+' / 3</b></h4>';
-  for(let i=0;i<3;i++)hb+=su[i]?m2Ligne(su[i],k++,s):'<div class="m2Slot"><i>'+pxi('cible')+'</i><span>'+sansAcc(TR('TOUCHE UNE MISSION'))+'</span></div>';
-  hb+='</div></div>';
-  if(M2_FILTRES.indexOf(M2E.f)<0||(M2E.f!=='tout'&&!L.some(function(x){return x.m.f===M2E.f&&x.rg!==9;})))M2E.f='tout';
-  h+=m2Chips(L);
-  const R=L.filter(function(x){return x.rg!==1&&x.rg<9&&(M2E.f==='tout'||x.m.f===M2E.f);}),pr=R.filter(function(x){return x.rg===0;}),ot=R.filter(function(x){return x.rg===2;});
-  if(pr.length){h+='<h4 class="m2Hd vert">'+pxi('cadeau')+' '+sansAcc(TR('À RÉCUPÉRER'))+' <b>'+pr.length+'</b></h4>';for(const x of pr)h+=m2Ligne(x,k++,s);}
-  if(ot.length){if(pr.length)h+='<h4 class="m2Hd">'+sansAcc(TR('MISSIONS'))+' <b>'+ot.length+'</b></h4>';for(const x of ot)h+=m2Ligne(x,k++,s);}
-  const fin=L.filter(function(x){return x.rg===9&&(M2E.f==='tout'||x.m.f===M2E.f);}),pf=M2E.f==='tout'?pal:[],nf=fin.length+pf.length;
+  const s=m2Etat(),L=m2Lignes(),pal=m2SecPal();let k=0,hb='',h='<div class="glA m2A">';
+  try{hb=serieHtml();}catch(e){console.warn('serieHtml',e);} /* la série de sept jours (missions/aujourdhui.js) */
+  const gr=M2_GROUPES.map(function(g){return {g:g,ls:L.filter(function(x){return x.rg===g[0];})};}).filter(function(o){return o.ls.length;});
+  for(const o of gr){if(gr.length>1)h+='<h4 class="m2Hd'+(o.g[2]?' '+o.g[2]:'')+'">'+(o.g[3]?pxi(o.g[3])+' ':'')+sansAcc(TR(o.g[1]))+' <b>'+(o.g[0]===1?o.ls.length+' / 3':o.ls.length)+'</b></h4>';
+    for(const x of o.ls)h+=m2Ligne(x,k++,s);}
+  const fin=L.filter(function(x){return x.rg===9;}),nf=fin.length+pal.length;
   if(nf){h+='<div class="m2Fin'+(M2E.fin?' on':'')+'" role="button" tabindex="0" aria-expanded="'+M2E.fin+'">'+pxi('coche')+'<span>'+sansAcc(TR('TERMINÉES'))+' ('+nf+')</span>'+pxi(M2E.fin?'haut':'bas')+'</div>';
-    if(M2E.fin){h+='<div class="m2FinL">';fin.forEach(function(x,j){h+=m2Ligne(x,j,s);});pf.forEach(function(d){h+=m2LignePal(d);});h+='</div>';}}
-  if(!pr.length&&!ot.length&&!nf)h+='<div class="m2Rien">'+sansAcc(TR('AUCUNE MISSION ICI'))+'</div>';
+    if(M2E.fin){h+='<div class="m2FinL">';fin.forEach(function(x,j){h+=m2Ligne(x,j,s);});pal.forEach(function(d){h+=m2LignePal(d);});h+='</div>';}}
+  if(!k&&!nf)h+='<div class="m2Rien">'+TR('TOUTES LES MISSIONS')+'</div>';
   h+='</div>';
-  el.innerHTML='<div id="gmListe" class="m2'+(vu?' vu':'')+'">'+hb+h+'</div>';
+  el.innerHTML='<div id="gmListe" class="m2'+(vu?' vu':'')+'">'+(hb?'<div class="glB m2B">'+hb+'</div>':'')+h+'</div>';
   GMIS.cards=[];GMIS.pts=[];GMIS.paths=[];GMIS.last=null;GMIS.lw=0;
-  const c=m2Compte(),sous=$('gmSous');if(sous)sous.textContent=c.ok+' / '+c.tot;
-  const aide=$('gmAide');if(aide)aide.textContent=''; /* (2026-10-22) la consigne vit dans les emplacements vides de SUIVIES */
+  const c=m2Compte(),sous=$('gmSous'),hd=$('gmHead');if(sous)sous.textContent=c.ok+' / '+c.tot;if(hd)hd.style.setProperty('--m2P',Math.round(100*c.ok/Math.max(1,c.tot))+'%'); /* le compte, et sa jauge sous le titre */
+  const aide=$('gmAide');if(aide)aide.textContent=s.su.length?'':sansAcc(TR('TOUCHE UNE MISSION POUR LA SUIVRE · 3 AU PLUS'));
   try{gmPlaceL(VP.w,VP.h);}catch(e){}
   const nl=$('gmListe');if(nl){nl.scrollTop=sc0;const a1=nl.querySelector('.glA'),b1=nl.querySelector('.glB');if(a1)a1.scrollTop=sc1;if(b1)b1.scrollTop=sc2;}
   if(typeof GAR!=='undefined'&&GAR.aMisId){const id9=GAR.aMisId;GAR.aMisId=null;setTimeout(function(){const r9=document.querySelector('#gmListe .m2L[data-m2="'+id9+'"]');if(r9){try{r9.scrollIntoView({block:'center'});}catch(e){}r9.classList.add('flash');}},REDUCED_MOTION?0:380);} // VOIR LA MISSION hors du garage
@@ -129,8 +117,7 @@ function m2Recupere(id,row){
   try{gBankPaint();}catch(e){}try{m2Portes();}catch(e){}
   setTimeout(function(){if(garageOn&&gEl&&gEl.classList.contains('missions'))m2Render(true);else m2Portes();},REDUCED_MOTION?0:560);}
 function m2Clic(e){const t=e.target;if(!t||!t.closest)return;
-  const ch=t.closest('.m2Ch');if(ch){const f=ch.getAttribute('data-f');if(f&&f!==M2E.f){M2E.f=f;uiClic('nav');hap(8);m2Render(true);}return;} /* (2026-10-22) le filtre de famille */
-  if(t.closest('.m2Auj')){aujClic(t);return;} /* (2026-10-20) le bloc AUJOURD'HUI dit ce qu'il donne */
+  if(t.closest('.m2Serie')){aujClic(t);return;} /* (2026-10-20) la carte de la série dit ce qu'elle donne */
   const fin=t.closest('.m2Fin');if(fin){M2E.fin=!M2E.fin;uiClic(M2E.fin?'on':'off');hap(8);m2Render(true);
     if(M2E.fin){const f2=document.querySelector('#gmListe .m2Fin');if(f2&&f2.scrollIntoView)try{f2.scrollIntoView({block:'start',behavior:REDUCED_MOTION?'auto':'smooth'});}catch(x){}}return;}
   const pal=t.closest('[data-pal]');if(pal){const j=COSM.peinture.findIndex(function(d){return d.id===pal.getAttribute('data-pal');});if(j<0)return;uiClic('nav');
