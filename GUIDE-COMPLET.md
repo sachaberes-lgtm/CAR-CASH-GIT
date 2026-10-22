@@ -748,6 +748,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LES LUMIÈRES DE LA CAISSE v2 — PHARES, FEUX, NITRO ET TRAÎNÉES ÉCLAIRENT LA ROUTE » (17/10) — `LUM_GLSL`, `lumTick`/`lumVue`, `FEU_U`, `LUMK`
 
 **Caisses, boutique, habillages**
+- « LA STRATOS, STATION MÉTÉO — DES GADGETS CYBER-FUTURISTES DE PRÉDICTION MÉTÉO, MOITIÉ TECHNIQUE, MOITIÉ ABSTRAIT » (22/10) — retoucher une caisse en POSANT du matériel sans toucher à sa forme : `code/voitures/stratos-meteo.js`, `stratosMeteo`, `stratosLampe` (la matière des pièces lumineuses qui bougent, hors de la passe des feux), `dbgStratos`, `?stratos=ancien`
 - « LES AILES VIVANTES — QUATORZE AILES, CHACUNE SON GESTE » (16/10) — les ailes en X au boost, battements, la soudure qui les figeait
 - « LES GESTES DES AILES ONT LEUR SON — … » (16/10) — `ailSon`, `ailes.xwing`/`xwingFerme`/`dragon`/`pigeon`, rangés en PCM
 - « LE FILM D'UNE FIGURE — UNE MINI ANIMATION AU RALENTI PAR CARTE » (18/10) — remplace la photo-séquence du 15/10 (`figFilm`, `filmPose`/`filmJoue`, `FILM_FIG`)

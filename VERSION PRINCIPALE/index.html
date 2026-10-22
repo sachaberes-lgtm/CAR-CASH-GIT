@@ -13000,7 +13000,7 @@ const TORD_AMP=1.1;
    dévers, au plus un demi-tour en 4 s) et sa pente revient doucement à celle de la piste d'origine — comme avant le portail. `?nuages=tordu` = avant. */
 const NV_CALME=!/[?&]nuages=tordu\b/.test(location.search);
 const TORD_W=[1,0,1.8,2,.5,1.8,.25,.2,2.2,.9,1,0,0]; // [loop,hélice,ÉPINGLE,ESSES,vague,VIRAGE,plongeon,droite,CHICANE,balayage,gap,tire-bouchon,entrelacs] — multiplie les poids de l'archétype
-const TORD_DEVERS={max:50/57.3,k:.75,g:23,lis:.9,vmax:30/57.3,roulis:62/57.3}; // max : l'angle plafond · k : la part du virage relevé physique (atan v²/gR) · g : la gravité MONDE (FALL_G×SPD) · lis : le lissage (s de croisière) · vmax : le roulis du dévers seul au plus (rad/s) · roulis : le roulis TOTAL au plus, vrilles + dévers (rad/s)
+const TORD_DEVERS={max:50/57.3,k:.75,g:23,lis:.9,vmax:30/57.3,roulis:62/57.3,fig:125/57.3}; // max : l'angle plafond · k : la part du virage relevé physique (atan v²/gR) · g : la gravité MONDE (FALL_G×SPD) · lis : le lissage (s de croisière) · vmax : le roulis du dévers seul au plus (rad/s) · roulis : le roulis TOTAL au plus, vrilles + dévers (rad/s) · fig : le roulis au plus DANS une figure dessinée (tonneau, à l'envers, mur : rad/s)
 const TORD={on:false,N:null,info:null};
 /* LA DURÉE DES MAPS (2026-10-18, Léo : « trouve la longueur parfaite des maps — sur téléphone, ni trop courte pour être digérable, ni trop longue ;
    et plus la vitesse va vite, plus on doit avoir l'impression de traverser plein de dimensions ») — v644, essayée sur un lien à part puis validée.
@@ -13026,6 +13026,16 @@ function longueurCible(){const d=dureeCible();if(!d)return 0;const c=LVL.cur.car
 const DUREE_NOTE={};
 window.dbgDuree=function(){const z=runStats.zones|0;return {on:!!DUREE,reglage:DUREE,zone:z,vise:DUREE_NOTE[z]||null,L:Math.round(L),s:Math.round(s),palier:engTier,suivante:DUREE_NOTE[z+1]||null};}; // (banc) la durée visée de la map en cours, sa longueur réelle
 function hautOn(){const c=LVL.cur;return !PARK.on&&!!c&&(c.id==='nuages'||c.id==='orage')&&!c.sansNuages&&!c.piste&&(started||SF.pret);}
+/* ===== LA ROUTE LIBRE (2026-10-22, Sacha : « dans l'espace et dans les nuages il n'y a ni haut ni bas : retravaille la route pour qu'elle soit plus fun et plus jouable,
+   rajoute des modules, des raccourcis, des passages à l'endroit et à l'envers, garde les spirales mais gère-les bien ») =====
+   Les NUAGES avaient une piste plane ré-enroulée au hasard (pisteTord) ; l'ORBITE, une piste plane qui descendait en houle, sans une vrille. Désormais LES DEUX passent par
+   pisteTord, et genCtrl y pose des FIGURES dessinées (voir « LES FIGURES » dans ville-entree.js) : le LOOPING, le TONNEAU, le PASSAGE À L'ENVERS, le MUR et le PUITS (une
+   spirale propre dont on saute par l'intérieur). Une figure est un module dont le roulis est SCRIPTÉ (MODMARK.f = [[i0,i1,roulis]…]) et dont la forme est protégée des lissages
+   (MODMARK.g) : pisteTord ne tire aucune vrille au hasard dedans, ramène la dalle À L'ENDROIT avant d'y entrer, et laisse le roulis monter jusqu'à `fig` rad/s.
+   `?sans=routelibre` rend les routes d'avant (nuages : 5 modules, orbite : plate) · `?sans=figures` garde l'orbite tordue mais sans les figures dessinées. */
+const ROUTE_LIBRE=!/[?&]sans=([^&]*,)?routelibre(,|&|$)/.test(location.search);
+const ROUTE_FIGURES=ROUTE_LIBRE&&!/[?&]sans=([^&]*,)?figures(,|&|$)/.test(location.search);
+function espTordOn(){const c=LVL.cur;return ROUTE_LIBRE&&!PARK.on&&!!c&&c.id==='espace'&&!c.piste&&!c.camp&&!window.dbgEspOff&&(started||SF.pret);} // (2026-10-22) l'ORBITE en course : sa route aussi se roule dans l'espace
 function hautPente(){return TORD.on?0:1;}
 function pisteTord(ctrl,seed,sansVrille,essai){ // essai : (2026-10-18) le n° de tirage des vrilles — 0 = celui d'origine ; buildTrack en rejoue un autre quand la route se touche (voir tordContacts)
   const q=new THREE.Quaternion(),up=new THREE.Vector3(),c9=new THREE.Vector3();
@@ -13053,23 +13063,37 @@ function pisteTord(ctrl,seed,sansVrille,essai){ // essai : (2026-10-18) le n° d
      des virages pris sur la tranche, tout le repère a tourné — seul un rappel vers la verticale remet la route à l'endroit. Le DÉPART,
      lui, n'a rien à corriger : la route d'origine y est déjà droite, on la reprend telle quelle. */
   const rg=mulberry32((seed^0x70D5E11A^(essai?Math.imul(essai,0x9E3779B1):0))>>>0),vC=Math.max(70,70+(lvPiste()-1)*100),seg=[],TOUR=Math.PI*2;
-  const s0=Math.max(500,3*vC),fin=Lc-Math.max(1200*lvPiste(),6*vC); // (EN GRAND) plus de vrille dans le geste de fin AGRANDI (un virage de fin fait ~1,1 km) : on se redresse AVANT lui, sinon il part à la verticale et le rappel n'y peut rien (mesuré : portail à 45-50°)
+  const s0=ROUTE_LIBRE?Math.max(450,1.8*vC):Math.max(500,3*vC),fin=Lc-Math.max((ROUTE_LIBRE?700:1200)*lvPiste(),6*vC); // (EN GRAND) plus de vrille dans le geste de fin AGRANDI (un virage de fin fait ~1,1 km) : on se redresse AVANT lui, sinon il part à la verticale et le rappel n'y peut rien (mesuré : portail à 45-50°)
   let s=s0,rho=0;seg.push({s0:0,s1:s0,r0:0,r1:0});
+  /* LES FIGURES DESSINÉES (ROUTE LIBRE) : les zones {a,b} (abscisses en m) des modules marqués `g` ou `f` par genCtrl, avec leurs roulis scriptés {a,b,amt}. La route y est tenue
+     (aucune vrille au hasard) ; `lead` m avant la zone, la dalle est ramenée À L'ENDROIT — on entre dans un looping debout. Une zone trop près du départ ou du portail est laissée à
+     la route ordinaire (la figure plate reste une courbe). */
+  const FZ=[],ZDBG=[],lead=Math.max(520,5*vC);let fi=0;
+  if(!sansVrille&&ROUTE_LIBRE){const lg=cv.getLengths(),nC=Math.max(1,ctrl.length-1),dv=lg.length-1,sOf=function(j){const f=Math.max(0,Math.min(nC,j))/nC*dv,k=Math.min(dv-1,Math.floor(f));return lg[k]+(lg[k+1]-lg[k])*(f-k);};
+    for(const m of MODMARK)if(m.g||m.f){const a=sOf(m.i0),b=sOf(m.i1);ZDBG.push([m.fig||'?',Math.round(a),Math.round(b),Math.round(s0),Math.round(fin),b>fin-40||a<s0+60?0:1]);if(b>fin-40||a<s0+60)continue;
+      FZ.push({a:a,b:b,ev:(m.f||[]).map(function(e){return {a:sOf(e[0]),b:sOf(e[1]),amt:e[2]};})});}
+    FZ.sort(function(x,y){return x.a-y.a;});}
   while(!sansVrille&&s<fin-120){
+    if(fi<FZ.length&&FZ[fi].a-lead-s<60){const z=FZ[fi++];
+      if(z.a>s+1){const w=Math.atan2(Math.sin(rho),Math.cos(rho));seg.push({s0:s,s1:z.a,r0:rho,r1:rho-w});rho-=w;} // à l'endroit avant la figure (le plus court)
+      let c=Math.max(s,z.a);for(const e of z.ev){if(e.a>c+1)seg.push({s0:c,s1:e.a,r0:rho,r1:rho});seg.push({s0:e.a,s1:e.b,r0:rho,r1:rho+e.amt,fig:1});rho+=e.amt;c=e.b;}
+      if(z.b>c+1)seg.push({s0:c,s1:z.b,r0:rho,r1:rho});s=Math.max(s,z.b);continue;}
+    const lim=fi<FZ.length?FZ[fi].a-lead:fin; // la route ordinaire s'arrête `lead` m avant la prochaine figure
     const r=rg();let len,amt=0;
     if(NV_CALME){const w=Math.atan2(Math.sin(rho),Math.cos(rho)); // (MOINS TORDUE, voir NV_CALME) w : le roulis ramené entre −π et π (0 = à l'endroit)
       if(Math.abs(w)>.3){if(r<.35)len=Math.max(250,vC*(2+rg()*2)); // là-haut (couchée, retournée) : 2-4 s de tenue, une fois sur trois…
         else{amt=-w;len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));}} // …puis on revient à l'endroit, par le plus court
-      else if(r<.6){len=Math.max(450,vC*(6+rg()*6));const v9=len;len=Math.min(len,fin-s);if(len<60)break;seg.push({s0:s,s1:s+len,r0:rho,r1:rho,calme:1});s+=len;continue;} // à l'endroit : une longue tenue, 6-12 s — CALME : la dalle y est rappelée vers le ciel (voir plus bas)
+      else if(r<.6){len=Math.max(450,vC*(6+rg()*6));const v9=len;len=Math.min(len,lim-s);if(len<60)break;seg.push({s0:s,s1:s+len,r0:rho,r1:rho,calme:1});s+=len;continue;} // à l'endroit : une longue tenue, 6-12 s — CALME : la dalle y est rappelée vers le ciel (voir plus bas)
       else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<.6?Math.PI/2:k<.95?Math.PI:TOUR);len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));}}
     else if(r<.4)len=Math.max(400,vC*(4+rg()*5)); // une tenue : la dalle reste où elle est (couchée, retournée…) 4-9 s — de quoi respirer entre deux vrilles
     else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<.45?Math.PI/2:k<.9?Math.PI:TOUR);len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));} // (EN GRAND) ~3× plus lentes qu'au premier jet, le tour complet rare
-    const veut=len;len=Math.min(len,fin-s);if(len<60)break;
+    const veut=len;len=Math.min(len,lim-s);if(len<60)break;
     if(amt&&len<veut*.7)amt=0; // pas la place de la vrille entière avant le portail : on tient, on ne la serre pas
     seg.push({s0:s,s1:s+len,r0:rho,r1:rho+amt});s+=len;rho+=amt;}
   const rhoAt=function(x){for(const g of seg)if(x<=g.s1){if(x<=g.s0)return g.r0;const u=(x-g.s0)/(g.s1-g.s0);return g.r0+(g.r1-g.r0)*u*u*(3-2*u);}return rho;};
   const droit=new Uint8Array(n1+1);
   if(!sansVrille){const mk=function(x0,x1){for(let i=Math.max(0,Math.floor(x0/h));i<=Math.min(n1,Math.ceil(x1/h));i++)droit[i]=1;};mk(fin,Lc+h);}
+  const figI=new Uint8Array(n1+1);for(const g of seg)if(g.fig)for(let i=Math.max(0,Math.floor(g.s0/h));i<=Math.min(n1,Math.ceil(g.s1/h));i++)figI[i]=1; // les pas où une figure roule la dalle (plafond de roulis plus haut)
   const calme=new Uint8Array(n1+1);if(!sansVrille&&NV_CALME)for(const g of seg)if(g.calme)for(let i=Math.max(0,Math.ceil(g.s0/h));i<=Math.min(n1,Math.floor(g.s1/h));i++)calme[i]=1; // (MOINS TORDUE) les tenues à l'endroit
   /* 2 bis) LE DÉVERS (2026-10-18) : dans chaque virage la dalle se couche vers l'INTÉRIEUR, de l'angle qu'aurait un virage relevé pris
      à la croisière (atan v²/gR, plafonné) — l'épingle se prend presque sur la tranche, le grand balayage à peine penché. Le lacet est relevé dans le
@@ -13096,7 +13120,7 @@ function pisteTord(ctrl,seed,sansVrille,essai){ // essai : (2026-10-18) le n° d
       c9.set(0,0,0).addScaledVector(N2,an).addScaledVector(B2,ab).addScaledVector(T2,at).normalize();q.setFromAxisAngle(c9,Math.atan2(sn,cs));T2.applyQuaternion(q);N2.applyQuaternion(q);}
     T2.normalize();N2.addScaledVector(T2,-N2.dot(T2)).normalize();
     const rN=rhoAt((i+1)*h)+dev[i+1];let rl; // (2026-10-18) + le DÉVERS (2 bis)
-    {const mR=TORD_DEVERS.roulis/vC*h,dR=THREE.MathUtils.clamp(rN-rhoP,-mR,mR);rl=om[i]+dR;rhoP+=dR;} // (2026-10-18) le roulis TOTAL borné (vrille + dévers qui s'ajoutent) : le retard se rattrape dans la tenue qui suit
+    {const mR=(figI[i+1]?TORD_DEVERS.fig:TORD_DEVERS.roulis)/vC*h,dR=THREE.MathUtils.clamp(rN-rhoP,-mR,mR);rl=om[i]+dR;rhoP+=dR;} // (2026-10-18) le roulis TOTAL borné (vrille + dévers qui s'ajoutent) : le retard se rattrape dans la tenue qui suit
     if(calme[i+1]&&!droit[i+1]){const ty=Math.abs(T2.y);if(ty<.95){up.set(-T2.x*T2.y,1-T2.y*T2.y,-T2.z*T2.y);if(up.lengthSq()>1e-8){up.normalize();up.applyAxisAngle(T2,dev[i+1]); // (MOINS TORDUE) le ciel, penché du dévers
       const th=Math.atan2(c9.crossVectors(N2,up).dot(T2),N2.dot(up)),mx=Math.min(.05,Math.PI/(4*vC))*h*Math.min(1,(.95-ty)/.25);rl=THREE.MathUtils.clamp(th,-mx,mx);rhoP=rN;}}} // au plus un demi-tour en 4 s de croisière : la route se REMET à l'endroit pendant la tenue
     if(droit[i+1]){rl=0;const ty=Math.abs(T2.y);if(ty<.95){up.set(-T2.x*T2.y,1-T2.y*T2.y,-T2.z*T2.y);if(up.lengthSq()>1e-8){up.normalize(); // le rappel vers le ciel, sans la condition « pas à l'envers » — (EN GRAND) et jusque dans les montées raides (.7 → .95) : un rappel plus doux doit pouvoir agir partout
@@ -13115,7 +13139,7 @@ function pisteTord(ctrl,seed,sansVrille,essai){ // essai : (2026-10-18) le n° d
    for(const m of MODMARK){m.i0=ix(m.i0);m.i1=ix(m.i1);}}
   FILETMARK.length=0;
   TORD.info={L:Math.round(Lc),vrilles:seg.filter(function(g){return g.r1!==g.r0;}).length,portailNy:+NN[n1-1].y.toFixed(2),tours:+(seg.reduce(function(a,g){return a+Math.abs(g.r1-g.r0);},0)/(Math.PI*2)).toFixed(2),rMaxDegM:+(rMax*57.3).toFixed(2),
-    ecartFin:Math.round(Q[n1-1].distanceTo(P[n1-1])),deversMaxDeg:Math.round(devMax*57.3)};
+    ecartFin:Math.round(Q[n1-1].distanceTo(P[n1-1])),deversMaxDeg:Math.round(devMax*57.3),figures:FZ.length,zones:ZDBG,figuresMarquees:MODMARK.filter(function(m){return m.fig;}).length};
   return {ctrl:out,N:outN};
 }
 /* LA ROUTE QUI NE SE TOUCHE PAS (2026-10-18, avec LES VIRAGES DE COURSE). Plus serrée, la piste enroulée dans l'espace repasse
@@ -13221,10 +13245,10 @@ const ESP_ROUTE={lv:1.3,w:[1,1,.35,1,.5,1,.5,1.2,.5,1,1,1,1],wm:[1,1,1,1.6,.4,1,
    identiques au tirage près) ; `VILLE_ENTREE` garde les deux points de contrôle (fin de la droite, pied de la rampe) pour la ville. */
 const VILLE_ENTREE_R={droite:420,rampe:520,chute:220,toit:22,etage:120}; // toit/etage : sous la droite, les toits de 22 à 142 m sous la route
 let VILLE_ENTREE=null;
-function adoucirPentes(P,o){
+function adoucirPentes(P,o,prot){ /* prot : (ROUTE LIBRE) les points d'une figure dessinée (looping, puits…) gardent leur pente telle qu'elle est */
   const y0=P.map(function(p){return p.y;});
   for(let i=1;i<P.length;i++){const h=Math.hypot(P[i].x-P[i-1].x,P[i].z-P[i-1].z),dy=y0[i]-y0[i-1],g=h>.5?Math.abs(dy)/h:0;
-    P[i].y=P[i-1].y+(g>o.seuil?Math.sign(dy)*(o.seuil+(g-o.seuil)*o.garde)*h:dy);}
+    P[i].y=P[i-1].y+(g>o.seuil&&!(prot&&prot[i])?Math.sign(dy)*(o.seuil+(g-o.seuil)*o.garde)*h:dy);}
 }
 const CAMPM=[]; // (2026-10-18) les repères de la piste de campagne (genCampagne, retirée avec la carrière) : toujours vide — les générateurs le vident encore, le pré-bâti l'échange (PREB_TAB)
 /* <<<MODCARTES>>> LES MODULES DE CHAQUE MAP (2026-10-18, Sacha : « dans les générations de map il n'y a pas beaucoup de modules ; rajoute des
@@ -13300,7 +13324,8 @@ function genCtrl(rnd,startPos,startPhi){
   // sortaient statistiquement jumelles (« on a l'impression que la génération est toujours pareille »).
   // On secoue les poids à CHAQUE zone : celle-ci sera obsédée par les esses, la suivante par les
   // tire-bouchons. Le CARACTÈRE de l'archétype tient (un 0 reste un 0), seule l'humeur change.
-  const TORDU=hautOn(),TW=TORDU; // TW : (2026-10-18) LES VIRAGES DE COURSE sur la route tordue des nuages
+  const ESPT=ESPON&&espTordOn(),TORDU=hautOn(),TW=TORDU,FIGON=ROUTE_FIGURES&&(TORDU||ESPT); // (2026-10-22, LA ROUTE LIBRE) ESPT : l'orbite aussi est ré-enroulée (pisteTord) · FIGON : les figures dessinées (looping, tonneau, à l'envers, mur, puits)
+  // TW : (2026-10-18) LES VIRAGES DE COURSE sur la route tordue des nuages
   const W=((ESPON?AR.wv.map(function(v,k){return v*(MC?ESP_ROUTE.wm:ESP_ROUTE.w)[k];}):AR.w)).map(v=>v*(0.35+rnd()*1.7)).map(function(v,k){return TW?v*TORD_W[k]:v;}).map(function(v,k){return MC&&!ESPON?v*VILLE_WM[k]:v;}); // (vague 3) la VILLE a ses poids à grands virages (voir `wv`) · (2026-10-18) la route tordue, les siens (TORD_W) — même nombre de tirages
   const wsum=W.reduce((a,b)=>a+b,0);
   const pick=()=>{let x=rnd()*wsum;for(let k=0;k<13;k++){x-=W[k];if(x<0)return k;}return 5;};
@@ -13327,8 +13352,8 @@ function genCtrl(rnd,startPos,startPhi){
   const MODT=FILON&&TW; // (2026-10-18) la route TORDUE a ses modules de COURSE (voir plus bas) : ceux d'ici vivent de la gravité, qu'elle n'a plus
   const MODON=FILON&&LVL.cur.id==='nuages'&&!MODT;
   const modPaq=[];let modNext=1000*LV,modLast=-1;
-  const modTire=()=>{for(let e=0;e<12;e++){if(!modPaq.length){const t=[0,1,2,3,4];for(let i=4;i>0;i--){const j=(rf()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)modPaq.push(x);}
-    const m=modPaq.shift();if(m===modLast||(m===0&&filN>=filMax))continue;return m;}return 3;};
+  const modTire=()=>{for(let e=0;e<12;e++){if(!modPaq.length){const t=[0,1,2,3,4].concat(MODT&&FIGON?[5,6,7,8,9,5,9]:[]); /* le looping (5) et le puits (9) comptent double : ce sont LES raccourcis */for(let i=t.length-1;i>0;i--){const j=(rf()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)modPaq.push(x);}
+    const m=modPaq.shift();if(m===modLast||(m===0&&filN>=filMax)||(m>=5&&modLast>=5))continue;return m;}return 3;};
   const lacets=()=>{const n=2+(rf()<.5?1:0),sg0=rf()<.5?1:-1,R=(62+rf()*20)*RS,leg=(150+rf()*80)*LV,drop=(34+rf()*10)*LV,aE=172/Math.max(1,Math.sqrt(LV*.7));
     straight(90*LV,-6*LV,2); // l'approche : on voit la première épingle venir
     for(let k=0;k<n;k++){const sg=k%2?-sg0:sg0;straight(leg,-drop*.55,3);arc(sg*aE,R,8,-drop*.45);}
@@ -13385,10 +13410,59 @@ function genCtrl(rnd,startPos,startPhi){
   const mFronde=()=>{const sg=rf()<.5+hand*.22?1:-1,R=(1.9+rf()*.5)*rP,a=200+rf()*60;straight(90*LV,-4*LV,2);arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.04);straight(150*LV,-6*LV,2);};
   const mHoule=()=>{const n=3+(rf()<.5?1:0),R=(2+rf()*.4)*rP;let sg=rf()<.5?1:-1;straight(80*LV,-3*LV,1); // chaque vague = un virage de 50-70° : on monte dans sa première moitié, on plonge dans la seconde
     for(let k=0;k<n;k++){const a=50+rf()*20,h=(10+rf()*6)*LV;arc(sg*a*.5,R,Math.ceil(a/20),h);arc(sg*a*.5,R,Math.ceil(a/20),-(h+(6+rf()*4)*LV));sg=-sg;}straight(90*LV,-4*LV,1);};
-  const MCJ=!MC?null:MC==='crypto'?[mBougie,mDents,tSlalom,tEpingle]:MC==='vitree'?[mTour,mAngles,tSlalom,tEsses]:MC==='espace'?[mFronde,mHoule,tSlalom,tCorde,tEsses]:[mAngles,mBretelle,tSlalom,tCorde];
-  const mcPaq=[];let mcLast=-1,mcNext=Math.min(700*LV,LEN*.15); // (LA DURÉE DES MAPS) une map courte garde au moins un module
+  /* ===== LES FIGURES (2026-10-22, LA ROUTE LIBRE — Sacha : « retravaille la route de l'espace et des nuages : plus fun, plus jouable, des modules, des raccourcis, passer à
+     l'endroit et à l'envers ; garde les spirales mais gère-les bien ») ===== NUAGES et ORBITE, là où la route se roule dans l'espace (pisteTord), tirent aussi dans cinq figures
+     DESSINÉES : leur forme est protégée des lissages (MODMARK.g) et leur roulis est SCRIPTÉ (MODMARK.f = [[i0,i1,rad]…] : pisteTord n'y tire aucune vrille, y laisse la dalle rouler
+     jusqu'à TORD_DEVERS.fig, et la ramène à l'endroit avant d'y entrer). Les durées se comptent en SECONDES de croisière (vD = la croisière de conception du palier) : une figure
+     dure autant à 78 m/s qu'à 340. Au plus une figure à la suite d'une autre jamais (modTire, mcTire).
+       fBoucle  · LE LOOPING : un cercle vertical de ~0,85·vD m de rayon (110-520), décalé de côté d'une largeur de route + 44 m pour que la sortie ne retombe pas sur l'entrée
+       fTonneau · LE TONNEAU : 7-8 s de route presque droite (deux S doux) pendant lesquelles la dalle fait UN tour complet sur elle-même
+       fEnvers  · LE PASSAGE À L'ENVERS : un demi-tour de roulis (3,6 s), 3-4 esses PLAFOND, un autre demi-tour pour revenir (la route sous la tête, la planète au-dessus)
+       fMur     · LE MUR : la dalle se couche d'un quart de tour dans un grand virage de 95-140° (on rase la paroi), puis se redresse
+       fPuits   · LE PUITS : une spirale de ~1,25 tour, rayon large resserré aux deux bouts (entrée et sortie en douceur), qui descend de D m par tour — le RACCOURCI : sauter
+                  par l'intérieur retombe sur le tour d'en dessous, ~1 tour plus loin (voir D et le banc raccourcis) */
+  const vD=70+((typeof lvPiste==='function'?lvPiste():1)-1)*100; // la croisière de conception (m/s) — celle de pisteTord
+  const LVf=Math.min(LV,2.2); // les approches et sorties des figures : jamais plus de 2,2 × (à haut palier LV gonflait chaque entrée à 300-400 m)
+  const kT=Math.max(.4,Math.min(1,LEN/(vD*24))); // la part de temps qu'une figure peut prendre : à haut palier la map ne dure que ~13 s de croisière de conception, les figures raccourcissent (jamais sous 40 %)
+  const fS=function(l,dy,n){straight(l*Z,dy*Z,n||1);},fA=function(a,R,n,dy){arc(a,R*Z,n||Math.ceil(Math.abs(a)/10),(dy||0)*Z);}; // à la VRAIE taille (le zoom des nuages les agrandit de TORD_AMP)
+  const fBoucle=function(){
+    const sg=rf()<.5?1:-1,Rl=Math.max(110,Math.min(520,(.85*vD+40)*kT))*Z,W=(2*ROAD_HALF+44)*Z,n=40;
+    fS(100*LVf,-3*LVf,1);const O=P.clone(),d=dir(),r=new THREE.Vector3(Math.cos(phi),0,-Math.sin(phi));
+    const Dl=56*Z; // le looping DESCEND d'une hauteur de dalle et demie : la sortie est plus bas que l'entrée — sauter par le côté au pied du looping retombe sur la piste de sortie (le RACCOURCI)
+    for(let k=1;k<=n;k++){const a=2*Math.PI*k/n;P.copy(O).addScaledVector(d,Rl*Math.sin(a)).addScaledVector(r,sg*W*(a-Math.sin(a))/(2*Math.PI));P.y=O.y+Rl*(1-Math.cos(a))-Dl*a/(2*Math.PI);push();}
+    approx+=2*Math.PI*Rl;fS(Math.max(120*LVf,(ESPT?3.8:3)*vD*kT),-3*LVf,2); /* la piste de sortie, longue : on la voit passer sous soi au pied du looping */
+    return {g:1,fig:'boucle'};};
+  const fTonneau=function(){
+    const sg=rf()<.5?1:-1,R=Math.max(3.1*rP,.9*vD)*(.9+rf()*.3),Tt=vD*kT*(6.2+rf()*1.6),ra=rf()<.5?1:-1,a1=14+rf()*14;
+    fS(100*LVf,-3*LVf,1);const ia=ctrl.length-1;
+    fS(.2*Tt,-2*LVf,2);fA(sg*a1,R);fS(.3*Tt,-2*LVf,3);fA(-sg*a1*.9,R);fS(.2*Tt,-2*LVf,2);
+    const ib=ctrl.length-1;fS(110*LVf,-3*LVf,1);
+    return {g:1,fig:'tonneau',f:[[ia,ib,ra*2*Math.PI]]};};
+  const fEnvers=function(){
+    const sg=rf()<.5?1:-1,R=(1.9+rf()*.5)*rP,nE=kT<.7?2:3+(rf()<.5?1:0),ra=rf()<.5?1:-1,rb=rf()<.5?1:-1;let sj=sg;
+    fS(80*LVf,-3*LVf,1);const ia=ctrl.length-1;fS(vD*2.8*kT,-3*LVf,3);const ib=ctrl.length-1;
+    for(let k=0;k<nE;k++){fA(sj*(50+rf()*22),R,0,-3*LVf);sj=-sj;if(k<nE-1)fS(40*LVf,0,1);}
+    const ic=ctrl.length-1;fS(vD*2.8*kT,-3*LVf,3);const id=ctrl.length-1;fS(80*LVf,-3*LVf,1);
+    return {g:1,fig:'envers',f:[[ia,ib,ra*Math.PI],[ic,id,rb*Math.PI]]};};
+  const fMur=function(){
+    const sg=rf()<.5?1:-1,R=Math.max(2.6*rP,.8*vD)*(.9+rf()*.3),a=95+rf()*45;
+    fS(70*LVf,-3*LVf,1);const ia=ctrl.length-1;fS(vD*3*kT,-2*LVf,3);const ib=ctrl.length-1;
+    fA(sg*a,R,0,-a/57.3*R*.04);const ic=ctrl.length-1;fS(vD*3*kT,-2*LVf,3);const id=ctrl.length-1;fS(70*LVf,-3*LVf,1);
+    return {g:1,fig:'mur',f:[[ia,ib,-sg*Math.PI/2],[ic,id,sg*Math.PI/2]]};};
+  const PUITS_D=function(Rh){const o=window.dbgPuits||{};return o.D!=null?o.D:56;}; // (m par tour) calé au banc raccourcis — voir outils/banc-routes/raccourcis.cjs · `window.dbgPuits={D,R}` : le banc balaie D et le rayon
+  const fPuits=function(){
+    const sg=rf()<.5+hand*.22?1:-1,Rh=(window.dbgPuits&&window.dbgPuits.R||1)*Math.max(2.2*rP,1.5*vD),th=420+rf()*60,D=PUITS_D(Rh);
+    if(8*Rh*Z>LEN*.42)return tEsses(); // la map est trop courte pour un puits de cette taille : une route ordinaire
+    fS(110*LVf,-4*LVf,1);
+    fA(sg*40,Rh*1.7,0,-D*40/360);fA(sg*(th-80),Rh,0,-D*(th-80)/360);fA(sg*40,Rh*1.7,0,-D*40/360); // entrée et sortie en douceur : le rayon se resserre vers le puits
+    fS(130*LVf,-4*LVf,1);
+    return {g:1,fig:'puits'};};
+  const FIGF=FIGON?[fBoucle,fTonneau,fEnvers,fMur,fPuits]:[];
+  const MODTJ=[tSlalom,tEpingle,tCorde,tEsses,tRusses].concat(FIGF);
+  const MCJ=!MC?null:MC==='crypto'?[mBougie,mDents,tSlalom,tEpingle]:MC==='vitree'?[mTour,mAngles,tSlalom,tEsses]:MC==='espace'?[mFronde,mHoule,tSlalom,tCorde,tEsses].concat(FIGF,FIGON?[fBoucle,fPuits]:[]):[mAngles,mBretelle,tSlalom,tCorde];
+  const mcPaq=[];let mcLast=-1,mcNext=Math.max(Math.min(700*LV,LEN*.15),FIGON?Math.max(450,1.8*vD)+90:0); // (LA DURÉE DES MAPS) une map courte garde au moins un module
   const mcTire=()=>{for(let e=0;e<8;e++){if(!mcPaq.length){const t=MCJ.map(function(_,i){return i;});for(let i=t.length-1;i>0;i--){const j=(rf()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)mcPaq.push(x);}
-    const m=mcPaq.shift();if(m===mcLast)continue;return m;}return 0;};
+    const m=mcPaq.shift();if(m===mcLast||(FIGF.indexOf(MCJ[m])>=0&&FIGF.indexOf(MCJ[mcLast])>=0))continue;return m;}return 0;};
   const filet=()=>{
     const sg=rf()<.5+hand*.22?1:-1,R=(95+rf()*45)*RS,th=(55+rf()*20)*Math.PI/180,Re=R+ROAD_HALF;
     const vN=FILET.kv*(70+(LV-1)*100),g=FALL_G*SPD,k0=FILET.kick,iM0=ctrl.length-1; // iM0 : début du module (MODMARK)
@@ -13435,14 +13509,15 @@ function genCtrl(rnd,startPos,startPhi){
     if(MC)courbe(E9.rampe*LV,-E9.chute*LV,(rf()<.5?1:-1)*(48+rf()*14),6);else // (2e tour) avec les modules, la grande rampe plonge EN VIRAGE (48-62°)
     straight(E9.rampe*LV,-E9.chute*LV,6);VILLE_ENTREE={pA:ctrl[iA9],pB:ctrl[ctrl.length-1]}; // (les points eux-mêmes : les adoucissements les déplacent, la ville lit leur place FINALE)
   }else straight(110*LV,-70*LV,2); // DÉPART : ligne droite, rallongée avec la vitesse (était 170 m + la caisse)
-  if(MODT)modNext=Math.min(900*LV*Z,LEN*.18); // (LA DURÉE DES MAPS) une map courte garde au moins un module // (2026-10-18) le 1er module de course ~900 m après le départ (VRAIS mètres : la zone est tirée au 1/AMP)
+  if(MODT)modNext=Math.max(Math.min((FIGON?300:900)*LV*Z,LEN*(FIGON?.08:.18)),FIGON?(Math.max(450,1.8*vD)+90)/AMP:0); // (ROUTE LIBRE) pas avant la fin du départ tenu de pisteTord : une figure y serait perdue // (LA DURÉE DES MAPS) une map courte garde au moins un module // (2026-10-18) le 1er module de course ~900 m après le départ (VRAIS mètres : la zone est tirée au 1/AMP)
+  if(FIGON&&MODT&&approx<modNext)straight(modNext-approx,-2*LV,2); // (ROUTE LIBRE) le départ tenu rejoint le 1er module : pas un motif de plus, qui à haut palier prend 1 à 3 km
+  if(FIGON&&MC&&approx<mcNext)straight(mcNext-approx,-2*LV,2);
   while(approx<LEN){
     if(MC&&approx>mcNext&&approx<LEN-Math.min(600*LV,LEN*.3)){const m=mcTire(),iM9=ctrl.length-1;mcLast=m; // (2e tour) jusqu'à 0,6 km du bout : le dernier 1,5 km faisait de longues droites // (2026-10-18) LES MODULES DE CHAQUE MAP (voir mAngles…)
-      MCJ[m]();MODMARK.push({i0:iM9,i1:ctrl.length-1});mcNext=approx+(MC==='espace'?300+rf()*300:300+rf()*250)*LV;continue;} // (2e tour) un module tous les 0,3-0,6 km × LV
-    if(MODT&&approx>modNext&&approx<LEN-Math.min(1500*LV*Z,LEN*.3)){const m=modTire(),iM9=ctrl.length-1;modLast=m; // (2026-10-18) LES MODULES DE COURSE (voir tSlalom…) — même paquet, même hasard `rf`
-      if(m===0)tSlalom();else if(m===1)tEpingle();else if(m===2)tCorde();else if(m===3)tEsses();else tRusses();
-      MODMARK.push({i0:iM9,i1:ctrl.length-1});
-      modNext=approx+(500+rf()*400)*LV*Z;continue;}
+      {const fm9=MCJ[m]();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));}mcNext=approx+(MC==='espace'?(FIGON?40+rf()*200:300+rf()*300):300+rf()*250)*LV;continue;} // (2e tour) un module tous les 0,3-0,6 km × LV
+    if(MODT&&approx>modNext&&approx<LEN-Math.min((FIGON?900:1500)*LV*Z,LEN*(FIGON?.2:.3))){const m=modTire(),iM9=ctrl.length-1;modLast=m; // (2026-10-18) LES MODULES DE COURSE (voir tSlalom…) — même paquet, même hasard `rf`
+      {const fm9=MODTJ[m]();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));}
+      modNext=approx+(FIGON?40+rf()*140:500+rf()*400)*LV*Z;continue;}
     if(MODON&&approx>modNext&&approx<LEN-2600*LV){const m=modTire(),iM9=ctrl.length-1;modLast=m; // (2026-09-30) LES MODULES DU 1er NIVEAU (voir plus haut)
       if(m===0){filet();filN++;}else if(m===1)lacets();else if(m===2)russes();else if(m===3)plongeonG();else chameau();
       if(m!==0)MODMARK.push({i0:iM9,i1:ctrl.length-1}); // (revue PISTE) le module entier (le filet pose ses deux tronçons lui-même)
@@ -13495,7 +13570,7 @@ function genCtrl(rnd,startPos,startPhi){
     straight(0,0,0);{const l9=(50+rnd()*40)*LV,a9=16+rnd()*20;arc(sgn()*a9,l9/(a9*Math.PI/180),4,-(8+rnd()*8)*LV);} // (route v3c) 16-36° : la liaison TOURNE // (piste v6/v7) la RESPIRATION est un virage de liaison (60-110 m, 8-22°, 4 points : 35 m sur 2 points faisait un coude)
   }
   // SIGNATURE DE FIN : chaque archétype clôt SA zone par SON geste — la zone se retient
-  if(MC){const m=mcTire(),iM9=ctrl.length-1;mcLast=m;MCJ[m]();MODMARK.push({i0:iM9,i1:ctrl.length-1});} // (2e tour) avec les modules, la zone se clôt par un MODULE (les signatures FLOW, ALPIN… étaient de grandes courbes ou des droites)
+  if(MC){const m=mcTire(),iM9=ctrl.length-1;mcLast=m;{const fn9=FIGF.indexOf(MCJ[m])>=0?tEsses:MCJ[m],fm9=fn9();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));}} // (2e tour) avec les modules, la zone se clôt par un MODULE (les signatures FLOW, ALPIN… étaient de grandes courbes ou des droites)
   else if(AR.nm==='VOLTIGE'){straight(120,-30,2);}
   else if(AR.nm==='ALPIN'){straight(90,-50);straight(80,26);droiteM();} // ALPIN se clôt sur une droite de momentum avant le portail
   else if(AR.nm==='FLOW'){arc(sgn()*110,220*Math.min(2,LV),6,-160);}
@@ -13503,10 +13578,11 @@ function genCtrl(rnd,startPos,startPhi){
   else{const sg=sgn();arc(sg*100,170*RS,5,-(100*Math.PI/180*170*RS*.3));} // (route v3) un grand virage de fin, plus la spirale de 420°
   straight(110*LV,-66*LV,2); // ARRIVÉE : ligne droite claire vers le portail
    // (vague 3) en VILLE l'altitude ne vient plus des motifs : un PROGRAMME 40 % descente · 30 % montée · 30 % plat (NUAGES et ORBITE : la pente d'avant, voir `wv`)
+  const prot=FIGON?new Uint8Array(ctrl.length):null;if(prot)for(const m of MODMARK)if(m.g)for(let i=m.i0+1;i<=m.i1&&i<ctrl.length;i++)prot[i]=1; // (LA ROUTE LIBRE) la forme des figures n'est pas lissée
   if(sansLoop)adoucirPentes(ctrl,VILLE_PENTE); // (vague 3) la VILLE descend moins raide — AVANT les lissages, qui arrondissent le résultat
-  lisserRaccords(ctrl);   // (route v3b) plus de cassure de pente d'un motif à l'autre
-  if(ESPON)adoucirPentes(ctrl,ESP_ROUTE.pente); // (2026-09-30) l'ESPACE en houle : les pentes raides comprimées (AVANT les lissages)
-  adoucirCretes(ctrl,ESPON?ESP_ROUTE.cretes:1);    // plus de crête AVEUGLE (voir la fonction) — en ESPACE, arrondies 2,5× plus
+  lisserRaccords(ctrl,prot);   // (route v3b) plus de cassure de pente d'un motif à l'autre
+  if(ESPON)adoucirPentes(ctrl,ESP_ROUTE.pente,prot); // (2026-09-30) l'ESPACE en houle : les pentes raides comprimées (AVANT les lissages)
+  adoucirCretes(ctrl,ESPON?ESP_ROUTE.cretes:1,prot);    // plus de crête AVEUGLE (voir la fonction) — en ESPACE, arrondies 2,5× plus
   if(sansLoop&&LVL.cur.vitre&&VIT_SOL)vitreAplanir(ctrl); // (2026-10-18) LA VILLE VITRÉE AU SOL : la route ne descend plus, des ponts où elle se recroise (voir VIT_SOL)
   if(AMP!==1){const o=ctrl[0].clone(),vu=new Set(),zoom=function(v){if(v&&v.isVector3&&!vu.has(v)){vu.add(v);v.sub(o).multiplyScalar(AMP).add(o);}}; // LE ZOOM, autour du départ : mêmes formes, mêmes pentes, AMP fois plus grandes
     for(const c of ctrl)zoom(c);for(const f of FILETMARK)for(const k in f)zoom(f[k]);}
@@ -13527,17 +13603,19 @@ function genCtrl(rnd,startPos,startPhi){
    Chaque motif pose SA pente (un plongeon à −30 %, puis un grand virage à −12 %, puis une bosse à +40 %…) : au point de jonction la
    pente CASSE d'un coup — une marche dans le ruban, la caisse tape ou décolle sans raison. Trois passes d'un filtre [¼ ½ ¼] sur
    l'altitude seule (le tracé en plan ne bouge pas), pondéré par la longueur des segments. */
-function lisserRaccords(P){
+function lisserRaccords(P,prot){
   for(let pass=0;pass<3;pass++){const y=P.map(function(p){return p.y;});
     for(let i=1;i<P.length-1;i++){
+      if(prot&&prot[i])continue;
       const a=P[i-1],b=P[i],c=P[i+1],h1=Math.max(1,Math.hypot(b.x-a.x,b.z-a.z)),h2=Math.max(1,Math.hypot(c.x-b.x,c.z-b.z));
       const yl=y[i-1]+(y[i+1]-y[i-1])*h1/(h1+h2); // l'altitude qu'aurait une pente CONTINUE à cet endroit
       P[i].y=y[i]*.5+yl*.5;}}
 }
-function adoucirCretes(P,k){ // k : l'exigence (1 = la règle d'origine ; .4 en ESPACE : une cassure de pente 2,5× plus douce)
+function adoucirCretes(P,k,prot){ // k : l'exigence (1 = la règle d'origine ; .4 en ESPACE : une cassure de pente 2,5× plus douce)
   k=k||1;
   for(let pass=0;pass<6;pass++){let bouge=false;
     for(let i=1;i<P.length-1;i++){
+      if(prot&&prot[i])continue;
       const a=P[i-1],b=P[i],c=P[i+1],h1=Math.hypot(b.x-a.x,b.z-a.z),h2=Math.hypot(c.x-b.x,c.z-b.z);
       if(h1<4||h2<4)continue;
       const g1=(b.y-a.y)/h1,g2=(c.y-b.y)/h2,seuil=(g1>-.05?.30:.45)*k; // crête franche : 0,30 · lèvre d'une descente qui s'accentue : 0,45
@@ -14403,7 +14481,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   THICK=THICK_ROUTE; /* (2026-10-13) la route normale reprend ses 2,6 m — 3,9 depuis le 2026-10-15, 5,2 le soir (THICK_ROUTE) */const JADE9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!JADE_JEU&&!LVL.cur.sansFin); /* (2026-10-13) au mode classique aussi, la jade est un vrai niveau */const BANQ9=!!(LVL.cur&&LVL.cur.piste==='banquise'&&!PARK.on); /* (2026-10-15, Sacha : « pas besoin de mettre les mêmes modules que dans les nuages ») LE GLACIER : une route nue, comme la jade — ses pièges à lui sont le VERGLAS (bkVerglas) */ // (2026-10-09) LES PICS DE JADE : une route nue (ni pad, ni flaque, ni plot)
   // (l'entrée surélevée n'existe que si genCtrl la pose : niveau VILLE généré) · (les modules aussi : le parc, l'école et la campagne n'en ont pas)
   let ctrl=(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='paris')?genParis():(LVL.cur&&LVL.cur.piste==='jade')?genJade(rnd):(LVL.cur&&LVL.cur.piste==='foret')?(yield* genForet(rnd)):(LVL.cur&&LVL.cur.piste==='volcan')?(yield* genVolcan(rnd)):(LVL.cur&&LVL.cur.piste==='canyon')?(yield* genCanyon(rnd)):(LVL.cur&&LVL.cur.piste==='dunes')?(yield* genDunes(rnd)):(LVL.cur&&LVL.cur.piste==='banquise')?genBanq(rnd):(LVL.cur&&LVL.cur.piste==='grotte')?(yield* genGrotte(rnd)):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
-  TORD.on=false;TORD.N=null;if(hautOn()){TORD.ctrl0=ctrl;TORD.seed=seed|0;const h9=pisteTordPropre(ctrl,seed|0);ctrl=h9.ctrl;TORD.N=h9.N;TORD.on=true;} // (2026-10-15) LA ROUTE SANS HAUT NI BAS : la piste des NUAGES ré-enroulée dans l'espace (voir pisteTord)
+  TORD.on=false;TORD.N=null;if(hautOn()||espTordOn()){TORD.ctrl0=ctrl;TORD.seed=seed|0;const h9=pisteTordPropre(ctrl,seed|0);ctrl=h9.ctrl;TORD.N=h9.N;TORD.on=true;} // (2026-10-15) LA ROUTE SANS HAUT NI BAS : la piste des NUAGES ré-enroulée dans l'espace (voir pisteTord) — (2026-10-22) et celle de l'ORBITE (voir ROUTE_LIBRE)
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'centripetal'); // (piste v7) centripète : l'uniforme faisait des COUDES entre points inégalement espacés (liaison courte après une grande figure)
   /* (2026-09-30, revue PISTE) LE PAS DE LA PISTE. Tout le jeu suppose `pts` ÉQUIDISTANTS (frameAt : f = s/L·(NP−1) ; s avance en mètres).
      Or three r128 ne mesure la longueur qu'en 200 tronçons (`arcLengthDivisions`) pour les 450-550 points de contrôle de genCtrl : entre
@@ -35116,9 +35194,9 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
      et un nez arrondi vu de dessus, autour de la visière. */
   const hmp=(z,w,r)=>{const d=Math.abs(z-w)/r;return d>=1?0:1-d*d;};
   const U=LPU,R=.33,ZF=1.07,ZR=-1.11,LF=1.855;
-  const P=K.kit({p:{g:'p',c:0xe9eae4,grad:[0xa7aab0,0xdcded9,0xf4f4f0]},v:{g:'p',c:0x006b2c,f:0},r:{g:'p',c:0xc4000e,f:0},
+  const P=K.kit(Object.assign({p:{g:'p',c:0xe9eae4,grad:[0xa7aab0,0xdcded9,0xf4f4f0]},v:{g:'p',c:0x006b2c,f:0},r:{g:'p',c:0xc4000e,f:0},
     k:{g:'m',c:0x121317},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1c2733},
-    W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},Y:{g:'l',c:0xffe08a}});
+    W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},Y:{g:'l',c:0xffe08a}},(STRATOS_METEO&&typeof stratosPal==='function')?stratosPal():{})); // (22/10) + l'or et les lueurs verte et dorée de la STATION MÉTÉO (stratos-meteo.js)
   const AR=[[0,2*R+.05],[R*.70,2*R+.04],[R+.04,R*1.15],[R+.14,.24]];
   const zs=[-LF,-1.848,-1.835,-1.81,-1.77,-1.66,-1.30,-.80,-.26,-.12,.15,.55,.97,1.40,1.62,1.72,1.76,1.80,LF];   // (affinement) -1,83 et -1,76 : la poupe tourne ses coins
   for(const w of [ZF,ZR])for(const d of [R*.70,R+.04,R+.14])zs.push(w-d,w+d);
@@ -35166,6 +35244,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   P.box('k',1.34,.26,.02,0,.62,-LF-.004);                                      // la face arrière noire (1,34 : la poupe arrondie ne la laisse plus déborder)
   P.cyl('c',.05,.10,8,-.30,.38,-LF-.01,'z');P.cyl('c',.05,.10,8,.30,.38,-LF-.01,'z');
   P.box('k',1.30,.06,.03,0,.30,LF-.005);
+  if(STRATOS_METEO&&typeof stratosMeteo==='function'){try{stratosMeteo(K,P,{yT:yT,LF:LF});}catch(e){console.warn('LA STRATOS, la station météo :',e);}} // (22/10) LA STATION MÉTÉO : voir stratos-meteo.js (?stratos=ancien = sans)
   K.commit(P);
   return {hl:[.36,1.02,1.37],tl:[.56,.66,-1.87],wx:.78,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.30,style:'rayons',n:5,jante:0xe0b84a,accent:0xe0b84a,branches:1}};
@@ -42821,6 +42900,231 @@ window.dbgFinition=function(on){if(on==='mire'){const C=['#ff0000','#ff8800','#f
     if(m.userData&&m.userData.uV)lq.push(m.userData.g+':'+m.userData.uV.value.toArray().map(v=>+v.toFixed(2)).join('/'));});
   return {env:typeof envCvs!=='undefined'?envCvs[0].width:null,matsArete:n,geoArete:ar,sommetsVifs:fl,laques:lq.slice(0,6),garage:FSTU.garage};}
   if(on!=null){FSTU.on=!!on;try{if(garageOn){if(FSTU.on)paintEnvStudio();else paintEnvAtelier();}buildCar(CARS[level]);}catch(e){return String(e);}}return {on:FSTU.on,arete:finAreteOk(),garage:FSTU.garage};};
+/* ===== LA STRATOS, STATION MÉTÉO (2026-10-22, Léo : « retouche stratos : ajoute plusieurs gadgets cyber-futuristes de prédiction météorologique sur la voiture, répartition abstrait / technique, voiture épique » · puis « design cohérent à la Stratos ») =====
+   « Stratos » vient de la STRATOSPHÈRE : la berlinette lit le ciel. La caisse ne bouge pas (ni livrée, ni feux, ni jantes, ni profil) : on lui POSE du matériel dans SA langue — même palette (le blanc, le
+   vert et le rouge de la livrée, l'or des jantes, le noir mat, le chrome, le blanc chaud des phares), mêmes facettes (cylindres à 8-12 pans, boîtes), même montage que la rampe de phares : une platine
+   noire, un collier d'or, la pièce par-dessus. Deux moitiés :
+   · LA TECHNIQUE (du vrai matériel, dur et lisible) : l'ANÉMOMÈTRE à trois coupelles blanche / verte / rouge (mât de gauche), la MANCHE À AIR tricolore (mât de droite) — deux mâts rayés vert / blanc /
+     rouge, comme la livrée —, les deux RADARS DOPPLER qui tournent en sens contraire sur la plage arrière, les deux PARATONNERRES aux bouts du becquet, les deux CADRANS (baromètre, hygromètre) au bout
+     de la rampe de phares, et l'ABRI À PERSIENNES (les persiennes du capot moteur) qui porte le gyroscope ;
+   · L'ABSTRAIT (de la lumière) : le GYROSCOPE (trois anneaux d'or qui basculent sur trois axes, billes verte / blanche / rouge, et l'ICÔNE du jour au centre : soleil, nuage, pluie, orage — un carrousel
+     au garage, la vraie météo de la zone en course : `LVL.pluie`, `LVL.brume`, `LVL.mer`, `LVL.nuit`), la BARRE DE PRÉVISION du becquet (une courbe de pression qui défile, vert → or → rouge), le
+     SCANNER sous les phares et l'ARC qui claque d'un paratonnerre à l'autre.
+   Tout le fixe est versé dans le kit de la caisse (zéro dessin de plus) ; ce qui BOUGE vit dans UN groupe (`BLING.anim`, voir ailes.js ; `userData.anime` pour la salle blanche) : dix dessins de plus,
+   et aucune allocation par image (tampons préparés une fois : les pièces qui changent de forme réécrivent leurs sommets en place).
+   `?stratos=ancien` = la Stratos d'avant · `dbgStratos({t,icone,vit,eclair,arc,avance,course,ancien})` fige un état pour les photos (rend l'état courant). */
+var STRATOS_METEO=!/[?&]stratos=ancien\b/.test(location.search);
+const STRATOS_M={force:{},etat:{t:0,vit:0,icone:0,k0:0,k1:0,arc:0}};
+window.dbgStratos=function(o){if(o){if(o.ancien!=null)STRATOS_METEO=!o.ancien;Object.assign(STRATOS_M.force,o);}const e=STRATOS_M.etat,r=x=>Math.round(x*100)/100;return {meteo:STRATOS_METEO,t:r(e.t),vit:r(e.vit),icone:e.icone,eclair:[r(e.k0),r(e.k1)],arc:r(e.arc)};}; // {ancien:1} : la Stratos d'avant, à chaud (le banc AVANT | APRÈS)
+function stratosPal(){return {
+  o:{g:'c',c:0xe0b84a},                       // l'or des jantes
+  V:{g:'l',c:0x20e06c},                       // le vert de la livrée, allumé
+  A:{g:'l',c:0xffc02e},                       // l'or, allumé
+  w:{g:'l',c:0xfff6dc},                       // le blanc chaud des phares, à blanc
+  d:{g:'p',c:0x1b1c20,f:0},                   // laque noire (les pièces qui tournent)
+  y:{g:'p',c:0xe0b84a,f:0}};}                 // laque dorée
+var STRATOS_LAMPE=null;
+function stratosLampe(){ /* la matière des pièces lumineuses qui BOUGENT : une lampe comme les autres (Basic, couleurs de sommets), mais SANS `userData.lp` — la passe des feux (feux-led.js) relit les couleurs des pièces « l » aux deux bouts de la caisse et en tire des coques de lueur FIXES : sur des barres qui montent et descendent, elles resteraient en l'air · `plq` : partagée, jamais libérée (voir buildCar) */
+  if(!STRATOS_LAMPE){STRATOS_LAMPE=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide});STRATOS_LAMPE.userData.plq=1;}return STRATOS_LAMPE;}
+const STRATOS_Y=new THREE.Vector3(0,1,0),STRATOS_Z=new THREE.Vector3(0,0,1),STRATOS_Q=new THREE.Quaternion(),STRATOS_E=new THREE.Euler(),STRATOS_V=new THREE.Vector3(),STRATOS_M4=new THREE.Matrix4();
+function stratosOrient(dx,dy,dz){ // les angles qui couchent un objet d'axe y sur (dx,dy,dz)
+  STRATOS_Q.setFromUnitVectors(STRATOS_Y,STRATOS_V.set(dx,dy,dz).normalize());STRATOS_E.setFromQuaternion(STRATOS_Q,'XYZ');return [STRATOS_E.x,STRATOS_E.y,STRATOS_E.z];}
+function stratosSegment(Q,k,a,b,w){ // une baguette carrée de a à b
+  const dx=b[0]-a[0],dy=b[1]-a[1],dz=b[2]-a[2],l=Math.hypot(dx,dy,dz);if(l<1e-6)return;
+  STRATOS_Q.setFromUnitVectors(STRATOS_Z,STRATOS_V.set(dx,dy,dz).normalize());STRATOS_E.setFromQuaternion(STRATOS_Q,'XYZ');
+  Q.put(k,new THREE.BoxGeometry(w,w,l),(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2,STRATOS_E.x,STRATOS_E.y,STRATOS_E.z);}
+function stratosFacettes(Q,geo,tons,x,y,z,rx,ry,rz,s){ // une pièce THREE versée en facettes LUISANTES, ombrées à la main (4 teintes selon l'inclinaison : rien n'éclaire une matière « l »)
+  STRATOS_M4.compose(STRATOS_V.set(x||0,y||0,z||0),STRATOS_Q.setFromEuler(STRATOS_E.set(rx||0,ry||0,rz||0)),new THREE.Vector3(s||1,s||1,s||1));
+  const g=geo.index?geo.toNonIndexed():geo;g.applyMatrix4(STRATOS_M4);const p=g.attributes.position.array;
+  for(let i=0;i<p.length;i+=9){const a=[p[i],p[i+1],p[i+2]],b=[p[i+3],p[i+4],p[i+5]],c=[p[i+6],p[i+7],p[i+8]];
+    const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2];
+    let nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;const nl=Math.hypot(nx,ny,nz)||1;nx/=nl;ny/=nl;nz/=nl;
+    const l=(nx*.42+ny*.74+nz*.52)*.5+.5,j=Math.max(0,Math.min(tons.length-1,Math.floor(l*tons.length)));
+    Q.tri(tons[j],a,b,c);}
+  g.dispose();if(g!==geo)geo.dispose();}
+/* une boîte (douze triangles) écrite en place dans un tampon de sommets (P : positions, C : couleurs), au rang `o` ; rend le rang suivant. Aucune allocation : appelée à chaque image. */
+const STRATOS_CX=[0,1,1,0,0,1,1,0],STRATOS_CY=[0,0,0,0,1,1,1,1],STRATOS_CZ=[0,0,1,1,0,0,1,1];          // les huit coins : 0-3 en bas, 4-7 en haut
+const STRATOS_TRI=[0,1,2,0,2,3, 4,7,6,4,6,5, 0,4,5,0,5,1, 1,5,6,1,6,2, 2,6,7,2,7,3, 3,7,4,3,4,0];     // six faces, deux triangles chacune
+function stratosBoite(P,C,o,xa,xb,ya,yb,za,zb,r,g,b){
+  for(let k=0;k<36;k++){const c=STRATOS_TRI[k];
+    P[o]=STRATOS_CX[c]?xb:xa;P[o+1]=STRATOS_CY[c]?yb:ya;P[o+2]=STRATOS_CZ[c]?zb:za;C[o]=r;C[o+1]=g;C[o+2]=b;o+=3;}
+  return o;}
+const STRATOS_VR=[1.1,-1.55,2.2],STRATOS_KI=[1.2,1.55,1.55,1.2];                                      // la vitesse de chaque anneau ; la taille de chaque pictogramme
+const STRATOS_DIR=[1,0,0,-1,0,0,0,1,0,0,-1,0,.7,.7,0,-.7,.7,0];                                      // les six branches d'une étincelle
+function stratosMeteo(K,P,G){
+  const yT=G.yT,PI=Math.PI,F0=STRATOS_M.force;
+  const zF=-.32,yF=yT(-.28)+.06+.0125;                                       // le centre et le dessus de l'aileron de toit
+  const yP=yF+.30,yG=yF+.34;                                                  // le haut des mâts, le centre du gyroscope
+  const PA=Object.assign({p:{g:'p',c:0xe9eae4,grad:[0xa7aab0,0xdcded9,0xf4f4f0]},v:{g:'p',c:0x006b2c,f:0},r:{g:'p',c:0xc4000e,f:0},
+    k:{g:'m',c:0x121317},c:{g:'c',c:0xe9ecf0}},stratosPal());
+  /* ————— LA TECHNIQUE, FIXE (dans le kit de la caisse) ————— */
+  for(const sd of [-1,1]){const x=sd*.46;                                     // les deux mâts : sur les bouts de l'aileron de toit, au droit de ses jambes
+    P.cyl('k',.055,.03,8,x,yF+.015,zF);P.cyl('V',.058,.004,10,x,yF+.0295,zF);P.cyl('o',.063,.012,8,x,yF+.036,zF);   // la platine noire, son filet vert allumé, son collier d'or
+    P.cyl('v',.019,.088,6,x,yF+.086,zF);P.cyl('p',.019,.088,6,x,yF+.174,zF);P.cyl('r',.019,.088,6,x,yF+.262,zF);     // le mât rayé vert / blanc / rouge, comme la livrée
+    P.cyl('o',.027,.014,6,x,yP-.004,zF);}                                     // et son chapeau d'or
+  {const x=.46;P.cyl('o',.008,.09,6,x,yP,zF-.045,'z');                        // la manche à air : un bras et un cerceau d'or
+   P.lathe('o',[[.064,-.006],[.078,-.006],[.078,.006],[.064,.006],[.064,-.006]],12,x,yP,zF-.09,'z');}
+  P.box('p',.28,.085,.21,0,yF+.0425,zF);                                      // l'ABRI À PERSIENNES : un caisson blanc, des fentes noires comme sur le capot moteur
+  for(let i=0;i<3;i++){const y=yF+.019+i*.024;
+    for(const sd of [-1,1]){P.box('k',.006,.011,.17,sd*.14,y,zF);P.box('k',.22,.011,.006,0,y,zF+sd*.105);}}
+  P.box('o',.29,.01,.22,0,yF+.09,zF);                                         // son chapeau d'or
+  P.cyl('c',.032,.045,10,0,yF+.1175,zF,'y',.052);P.cyl('V',.055,.006,12,0,yF+.14,zF);   // le berceau du gyroscope et son anneau vert allumé
+  P.cyl('A',.0035,.075,6,0,yG+.2225,zF);P.put('w',new THREE.OctahedronGeometry(.017,0),0,yG+.28,zF);   // l'antenne polaire : une pointe allumée
+  P.box('V',1.02,.007,.007,0,yF-.005,zF-.105);                                // le filet vert sous le bord arrière de l'aileron de toit
+  for(const sd of [-1,1]){const x=sd*.52,z=-1.42;                             // les pieds des radars, sur la plage arrière
+    P.cyl('k',.058,.07,8,x,.935,z);P.cyl('V',.07,.005,12,x,.968,z);P.cyl('o',.066,.012,8,x,.977,z);P.cyl('k',.028,.05,8,x,1.005,z);}
+  for(const sd of [-1,1]){const x=sd*.745,z=-1.84;                            // les paratonnerres : une platine, trois isolateurs chromés, une tige d'or, une pointe allumée
+    P.box('k',.07,.035,.07,x,.915,z);for(let i=0;i<3;i++)P.cyl('c',.028-i*.002,.012,8,x,.945+i*.03,z);
+    P.cyl('o',.012,.34,6,x,1.06,z);P.put('w',new THREE.OctahedronGeometry(.026,0),x,1.245,z);}
+  P.sym(sd=>{const x=sd*.585,y=.83,z=1.33;                                    // les deux CADRANS, au bout de la rampe de phares : même lunette chrome, plus petits
+    P.box('k',.15,.035,.06,sd*.575,.761,1.30);P.box('k',.03,.08,.04,x,yT(1.30)+.03,1.30);P.box('k',.06,.03,.05,x,.79,1.32);
+    P.cyl('c',.058,.05,12,x,y,z,'z');P.cyl('K',.048,.012,12,x,y,z+.028,'z');
+    for(let i=0;i<7;i++){const a=(-120+i*40)*PI/180;P.box('A',.007,.011,.005,x+Math.sin(a)*.036,y+Math.cos(a)*.036,z+.036,0,0,-a);}   // les graduations, en or : un blanc pur à l'avant ferait des coques de lueur la nuit (feux-led.js)
+    const an=sd>0?.62:-.95;P.box('A',.006,.034,.004,x+Math.sin(an)*.016,y+Math.cos(an)*.016,z+.0375,0,0,-an);P.cyl('A',.006,.005,6,x,y,z+.0385,'z');});  // l'aiguille : beau temps à droite, humide à gauche
+  /* ————— LE QUI BOUGE : un seul groupe ————— */
+  const MG=K.add(new THREE.Group());MG.userData.bouge=1;
+  const mat=g=>{if(g==='l')return stratosLampe();const L=K.mats||(K.mats={});return L[g]||(L[g]=lpMat(g,typeof FSTU==='object'&&FSTU?FSTU.on:undefined));};
+  const verse=(Q,g9)=>{const gs=Q.done();for(const g in gs){const m=new THREE.Mesh(gs[g],mat(g));m.userData.lp=1;g9.add(m);}};
+  // l'ANÉMOMÈTRE (mât de gauche) : un moyeu, trois bras, trois coupelles — blanche, verte, rouge
+  const AN=new THREE.Group();AN.position.set(-.46,yP+.03,zF);MG.add(AN);
+  {const Q=K.kit(PA);Q.cyl('d',.03,.06,8,0,0,0);Q.cyl('y',.016,.03,6,0,.04,0);
+   for(let i=0;i<3;i++){const a=i/3*PI*2,c=Math.cos(a),s=Math.sin(a),e=stratosOrient(s,0,c);
+     Q.box('d',.15,.014,.016,c*.075,0,-s*.075,0,a,0);
+     Q.put(['p','v','r'][i],new THREE.CylinderGeometry(.05,.02,.085,8),c*.19,0,-s*.19,e[0],e[1],e[2]);}   // la coupelle, ouverte à l'envers de son mouvement
+   verse(Q,AN);}
+  // la MANCHE À AIR (mât de droite) : cinq bandes vert / blanc / rouge / blanc / vert, qui flotte ou pend selon l'allure
+  const SK=new THREE.Group();SK.position.set(.46,yP,zF-.09);MG.add(SK);
+  const NS=8,NR=6,skR=[.07,.062,.054,.046,.038,.03],skZ=[0,-.07,-.14,-.21,-.28,-.35];
+  const skPos=new Float32Array((NR-1)*NS*6*3),skCol=new Float32Array((NR-1)*NS*6*3),skGeo=new THREE.BufferGeometry(),skC=new THREE.Color();
+  const skCs=new Float32Array(NS),skSn=new Float32Array(NS),skX=new Float32Array(NR),skY=new Float32Array(NR),skW=new Float32Array(NR);
+  for(let s=0;s<NS;s++){skCs[s]=Math.cos(s/NS*PI*2);skSn[s]=Math.sin(s/NS*PI*2);}
+  {const bandes=[0x0b7a35,0xeeeee8,0xcc0a18,0xeeeee8,0x0b7a35];
+   for(let b=0;b<NR-1;b++){skC.setHex(bandes[b]);for(let j=0;j<NS*6;j++){const o=(b*NS*6+j)*3;skCol[o]=skC.r;skCol[o+1]=skC.g;skCol[o+2]=skC.b;}}
+   skGeo.setAttribute('position',new THREE.BufferAttribute(skPos,3));skGeo.setAttribute('color',new THREE.BufferAttribute(skCol,3));
+   const sock=new THREE.Mesh(skGeo,mat('p'));sock.userData.lp=1;sock.frustumCulled=false;SK.add(sock);}
+  const skPut=(o,r,s)=>{skPos[o]=skX[r]+skCs[s]*skR[r];skPos[o+1]=skY[r]+skSn[s]*skR[r];skPos[o+2]=skW[r];return o+3;};
+  const skPose=(t,v)=>{ // v : 0 (arrêt, garage : elle ondule à peine) → 1 (en course : elle se tend et claque)
+    const tend=.72+.28*v;
+    for(let r=0;r<NR;r++){skX[r]=Math.sin(t*(2.6+5*v)-r*.95)*.011*r*(.5+v);
+      skY[r]=-(1-tend)*.012*r*r+Math.sin(t*(2.1+4*v)-r*.75+1.3)*.009*r*(.5+v);skW[r]=skZ[r]*(.9+.1*tend);}
+    let o=0;
+    for(let b=0;b<NR-1;b++)for(let s=0;s<NS;s++){const s1=(s+1)%NS;
+      o=skPut(o,b,s);o=skPut(o,b+1,s);o=skPut(o,b+1,s1);o=skPut(o,b,s);o=skPut(o,b+1,s1);o=skPut(o,b,s1);}
+    skGeo.attributes.position.needsUpdate=true;skGeo.computeVertexNormals();};
+  // les deux RADARS DOPPLER : une cuvette blanche (creux sombre, lèvre d'or), trois haubans, un cornet ; elle tourne, se penche de 32° vers le ciel
+  const RD=[];
+  for(const sd of [-1,1]){const g9=new THREE.Group();g9.position.set(sd*.52,1.03,-1.42);g9.rotation.y=PI-sd*.5;MG.add(g9);RD.push(g9);
+    const Q=K.kit(PA),th=PI/2-32*PI/180,O=[0,.075,.045],Tr=(x,y,z)=>{const c=Math.cos(th),s=Math.sin(th);return [O[0]+x,O[1]+y*c-z*s,O[2]+y*s+z*c];};
+    const ext=[[0,0],[.035,.004],[.07,.015],[.105,.033],[.13,.054],[.145,.074]],int=ext.map(p=>[p[0],p[1]+.02]);
+    Q.box('d',.07,.035,.06,0,.0175,0);                                         // le palier
+    Q.put('p',new THREE.LatheGeometry(ext.map(p=>new THREE.Vector2(p[0],p[1])),12),O[0],O[1],O[2],th,0,0);   // la cuvette
+    Q.put('d',new THREE.LatheGeometry(int.map(p=>new THREE.Vector2(p[0],p[1])),12),O[0],O[1],O[2],th,0,0);   // son creux sombre
+    Q.put('y',new THREE.LatheGeometry([new THREE.Vector2(.146,.074),new THREE.Vector2(.146,.094)],12),O[0],O[1],O[2],th,0,0);   // la lèvre d'or
+    stratosSegment(Q,'d',[0,.035,0],Tr(0,-.012,0),.018);                       // la chape, du palier au dos de la cuvette
+    for(let i=0;i<3;i++){const a=i/3*PI*2+PI/2;stratosSegment(Q,'d',Tr(Math.cos(a)*.146,.094,Math.sin(a)*.146),Tr(0,.145,0),.007);}   // les trois haubans
+    {const p=Tr(0,.13,0);Q.put('y',new THREE.CylinderGeometry(.006,.017,.034,8),p[0],p[1],p[2],th,0,0);} // le cornet
+    verse(Q,g9);}
+  // le GYROSCOPE : trois anneaux d'or qui basculent chacun sur son axe (x, y, z), deux billes par anneau (vert, blanc, rouge) ; l'icône du jour au centre
+  const GY=new THREE.Group();GY.position.set(0,yG,zF);MG.add(GY);
+  const anneaux=[];
+  for(const def of [{R:.17,ax:'y',bille:'V',bx:[0,0,1],tourne:'x'},{R:.145,ax:'z',bille:'w',bx:[1,0,0],tourne:'y'},{R:.12,ax:'x',bille:'L',bx:[0,1,0],tourne:'z'}]){
+    const rg=new THREE.Group();GY.add(rg);const Q=K.kit(Object.assign({L:{g:'l',c:0xff2a3a}},PA));
+    Q.lathe('A',[[def.R-.013,-.010],[def.R+.013,-.010],[def.R+.013,.010],[def.R-.013,.010],[def.R-.013,-.010]],18,0,0,0,def.ax);
+    for(const sg of [-1,1])Q.put(def.bille,new THREE.OctahedronGeometry(.03,0),def.bx[0]*def.R*sg,def.bx[1]*def.R*sg,def.bx[2]*def.R*sg);
+    verse(Q,rg);anneaux.push({g:rg,ax:def.tourne});}
+  // l'ICÔNE : quatre pictogrammes versés dans UNE géométrie ; on n'en dessine qu'un (drawRange), qui pousse, tient, rentre
+  const PI9={s0:0xb86a10,s1:0xe89a1c,s2:0xffc02e,s3:0xffe58a,n0:0x8fa3c8,n1:0xc3d0e8,n2:0xe9f0fb,n3:0xffffff,g0:0x0d7a3a,g1:0x15b455,g2:0x20e06c,g3:0x9bffc0,r0:0x8a0a16,r1:0xcc1424,r2:0xff2a3a,r3:0xff9aa0};
+  const palI={};for(const k in PI9)palI[k]={g:'l',c:PI9[k]};
+  const plages=[];let icone;
+  {const Q=K.kit(palI),n9=()=>{const gs=Q.done();const n=gs.l?gs.l.attributes.position.count:0;for(const g in gs)gs[g].dispose();return n;};
+   const TS=['s0','s1','s2','s3'],TN=['n0','n1','n2','n3'],TG=['g0','g1','g2','g3'],TR=['r0','r1','r2','r3'];
+   let p0=0;
+   stratosFacettes(Q,new THREE.IcosahedronGeometry(.036,0),TS);                                  // LE SOLEIL : un noyau, six rayons, huit petits
+   for(const d of [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]){const e=stratosOrient(d[0],d[1],d[2]);stratosFacettes(Q,new THREE.ConeGeometry(.017,.055,5),TS,d[0]*.062,d[1]*.062,d[2]*.062,e[0],e[1],e[2]);}
+   for(const sx of [-1,1])for(const sy of [-1,1])for(const sz of [-1,1]){const e=stratosOrient(sx,sy,sz);stratosFacettes(Q,new THREE.ConeGeometry(.011,.034,4),TS,sx*.047,sy*.047,sz*.047,e[0],e[1],e[2]);}
+   let p1=n9();plages.push([p0,p1-p0]);p0=p1;
+   for(const b of [[-.04,-.012,0,.030],[0,.012,0,.042],[.044,-.006,0,.033],[.012,-.022,.014,.028],[-.016,-.018,-.016,.027]])stratosFacettes(Q,new THREE.IcosahedronGeometry(1,0),TN,b[0],b[1],b[2],0,0,0,b[3]);   // LE NUAGE : cinq bulles
+   p1=n9();plages.push([p0,p1-p0]);p0=p1;
+   stratosFacettes(Q,new THREE.IcosahedronGeometry(1,1),TG,0,-.018,0,0,0,0,.034);stratosFacettes(Q,new THREE.ConeGeometry(.0295,.062,7),TG,0,.030,0);   // LA PLUIE : une goutte et deux petites
+   for(const sx of [-1,1]){stratosFacettes(Q,new THREE.IcosahedronGeometry(1,1),TG,sx*.056,-.042,0,0,0,0,.016);stratosFacettes(Q,new THREE.ConeGeometry(.0142,.03,6),TG,sx*.056,-.027,0);}
+   p1=n9();plages.push([p0,p1-p0]);p0=p1;
+   {const sh=new THREE.Shape();[[-.010,.085],[.040,.085],[.012,.022],[.048,.022],[-.036,-.088],[-.006,-.008],[-.046,-.008]].forEach((p,i)=>i?sh.lineTo(p[0],p[1]):sh.moveTo(p[0],p[1]));
+    const g=new THREE.ExtrudeGeometry(sh,{depth:.032,bevelEnabled:false});g.translate(0,0,-.016);stratosFacettes(Q,g,TR);}                    // L'ORAGE : l'éclair, et deux étincelles
+   for(const sx of [-1,1])stratosFacettes(Q,new THREE.OctahedronGeometry(.014,0),['n2','n3','n3','n3'],sx*.066,.05*sx,0);
+   p1=n9();plages.push([p0,p1-p0]);
+   const gs=Q.done();icone=new THREE.Mesh(gs.l,mat('l'));icone.userData.lp=1;icone.frustumCulled=false;GY.add(icone);}
+  // la BARRE DE PRÉVISION : vingt et une barres sur le becquet, une courbe de pression qui défile
+  const BR=new THREE.Group();BR.position.set(0,.88,-1.84);BR.rotation.x=-.30;MG.add(BR);
+  const NB=21,PB=.0605,WB=.042,brPos=new Float32Array(NB*36*3),brCol=new Float32Array(NB*36*3),brGeo=new THREE.BufferGeometry();
+  brGeo.setAttribute('position',new THREE.BufferAttribute(brPos,3));brGeo.setAttribute('color',new THREE.BufferAttribute(brCol,3));
+  {const m=new THREE.Mesh(brGeo,mat('l'));m.userData.lp=1;m.frustumCulled=false;BR.add(m);}
+  const CV=new THREE.Color(0x20e06c),CA=new THREE.Color(0xffc02e),CR=new THREE.Color(0xff2a3a),CB=new THREE.Color(),CW=new THREE.Color(0xfff6dc);
+  const brPose=(t,v)=>{let o=0;const sc=(.5+.5*Math.sin(t*1.1*(1+v)))*(NB-1);
+    for(let i=0;i<NB;i++){
+      const w=.5+.5*Math.sin(i*.55-t*(1.5+2.5*v)),u=.5+.5*Math.sin(i*.21+t*.7),h=.018+.062*w*(.55+.45*u),x0=(i-(NB-1)/2)*PB;
+      const q=Math.max(0,Math.min(1,(h-.018)/.062));if(q<.5)CB.copy(CV).lerp(CA,q*2);else CB.copy(CA).lerp(CR,(q-.5)*2);
+      CB.lerp(CW,.55*Math.exp(-((i-sc)*(i-sc))/6));
+      o=stratosBoite(brPos,brCol,o,x0-WB/2,x0+WB/2,.02,.02+h,-WB*.45,WB*.45,CB.r,CB.g,CB.b);}
+    brGeo.attributes.position.needsUpdate=true;brGeo.attributes.color.needsUpdate=true;};
+  // les ÉTINCELLES des paratonnerres (deux étoiles à six branches qui claquent à tour de rôle), l'ARC qui saute de l'un à l'autre et le SCANNER du bouclier avant : sinon invisibles (réduits à un point)
+  const NA=10,NC=11,OA=2*6*2*3*3,OC=OA+NA*2*6*3;                                                     // l'arc : deux rubans de dix tronçons ; OC : où commencent les cellules du scanner dans le tampon
+  const EG=new THREE.BufferGeometry(),ePos=new Float32Array(OC+NC*36*3),eCol=new Float32Array(ePos.length);
+  EG.setAttribute('position',new THREE.BufferAttribute(ePos,3));EG.setAttribute('color',new THREE.BufferAttribute(eCol,3));
+  {const m=new THREE.Mesh(EG,mat('l'));m.userData.lp=1;m.frustumCulled=false;MG.add(m);}
+  const aJ0=new Float32Array(NA+1),aJ1=new Float32Array(NA+1),aX=new Float32Array(NA+1),aY=new Float32Array(NA+1),aZ=new Float32Array(NA+1),CS=new THREE.Color(),CD=new THREE.Color(0x06271a);
+  const sPose=(t,v)=>{let o=OC;const sp=(.5+.5*Math.sin(t*1.7*(1+v)))*(NC-1);                       // un point de lumière qui va et vient sous les phares, comme un balayage de radar
+    for(let i=0;i<NC;i++){const b=Math.exp(-((i-sp)*(i-sp))/1.3),x0=(i-(NC-1)/2)*.12;
+      CS.copy(CD).lerp(CV,b).lerp(CW,b*b*.55);
+      o=stratosBoite(ePos,eCol,o,x0-.047,x0+.047,.292,.308,G.LF+.012,G.LF+.02,CS.r,CS.g,CS.b);}};
+  const eTri=(o,ax,ay,az,bx,by,bz,cx,cy,cz,r,g,b)=>{ePos[o]=ax;ePos[o+1]=ay;ePos[o+2]=az;ePos[o+3]=bx;ePos[o+4]=by;ePos[o+5]=bz;ePos[o+6]=cx;ePos[o+7]=cy;ePos[o+8]=cz;
+    for(let j=0;j<9;j+=3){eCol[o+j]=r;eCol[o+j+1]=g;eCol[o+j+2]=b;}return o+9;};
+  let tqArc=-1;
+  const ePose=(k0,k1,ka,tq)=>{let o=0;
+    for(let s=0;s<2;s++){const k=s?k1:k0,cx=(s?1:-1)*.745,cy=1.245,cz=-1.84,L=.14*k,W=.014*k;
+      for(let j=0;j<6;j++){const dx=STRATOS_DIR[j*3],dy=STRATOS_DIR[j*3+1],dz=STRATOS_DIR[j*3+2],px=-dy,py=dx;                // une pointe : un triangle de chaque côté de l'axe, vu de face et de profil
+        o=eTri(o,cx+dx*L,cy+dy*L,cz+dz*L,cx+px*W,cy+py*W,cz,cx-px*W,cy-py*W,cz,1,.96,.78);
+        o=eTri(o,cx+dx*L,cy+dy*L,cz+dz*L,cx,cy,cz+W,cx,cy,cz-W,1,.96,.78);}}
+    if(ka>0&&tq!==tqArc){tqArc=tq;for(let i=0;i<=NA;i++){aJ0[i]=(Math.random()-.5)*.13;aJ1[i]=(Math.random()-.5)*.09;}}   // l'arc change de chemin 25 fois par seconde
+    for(let j=0;j<=NA;j++){const u=j/NA,e=Math.sin(u*PI);aX[j]=-.745+1.49*u;aY[j]=1.245+(aJ0[j]+.04)*e*ka;aZ[j]=-1.84+aJ1[j]*e*ka;}
+    const w=.016*ka;                                                                                   // l'arc : deux rubans en croix (vus de derrière et de dessus), du bout gauche au bout droit
+    for(let i=0;i<NA;i++){const ax=aX[i],ay=aY[i],az=aZ[i],bx=aX[i+1],by=aY[i+1],bz=aZ[i+1];
+      o=eTri(o,ax,ay-w,az,bx,by-w,bz,bx,by+w,bz,1,.95,.7);o=eTri(o,ax,ay-w,az,bx,by+w,bz,ax,ay+w,az,1,.95,.7);}
+    for(let i=0;i<NA;i++){const ax=aX[i],ay=aY[i],az=aZ[i],bx=aX[i+1],by=aY[i+1],bz=aZ[i+1];
+      o=eTri(o,ax,ay,az-w,bx,by,bz-w,bx,by,bz+w,1,.95,.7);o=eTri(o,ax,ay,az-w,bx,by,bz+w,ax,ay,az+w,1,.95,.7);}
+    EG.attributes.position.needsUpdate=true;EG.attributes.color.needsUpdate=true;};
+  // L'ANIMATION : une horloge, une allure (arrêt → course → nitro), l'icône du jour, les étincelles et l'arc
+  const E=STRATOS_M.etat;
+  let T=F0.t!=null?F0.t:0,vit=F0.vit!=null?F0.vit:0,ic=F0.icone!=null?F0.icone%4:0,tIc=.35,tE0=1.2+Math.random()*2,tE1=2.5+Math.random()*3,tA=3+Math.random()*3,k0=0,k1=0,ka=0;
+  const rouleur=()=>{if(STRATOS_M.force.course!=null)return !!STRATOS_M.force.course;try{return !!(started&&!gameOver&&!garageOn);}catch(e){return false;}};   /* (banc) dbgStratos({course:1}) : comme en course */
+  const nitro=()=>{try{return !!nitroOn;}catch(e){return false;}};
+  const kmh=()=>{try{return Math.min(1.4,(loop._spK||0)/800);}catch(e){return 0;}};
+  const ease=u=>u<=0?0:u>=1?1:1-Math.pow(1-u,3);                                                   // sortie douce
+  const anime=dt=>{dt=Math.min(dt||0,.1);const F=STRATOS_M.force;T+=dt;
+    const cible=F.vit!=null?F.vit:rouleur()?.35+.5*kmh()+(nitro()?.35:0):0;vit+=(cible-vit)*Math.min(1,dt*2.5);if(F.vit!=null)vit=F.vit;
+    const v=Math.min(1,vit),a=1+vit*2.4;
+    AN.rotation.y+=dt*(1.7+9*vit);
+    RD[0].rotation.y+=dt*1.2*a;RD[1].rotation.y-=dt*1.2*a;
+    for(let i=0;i<3;i++)anneaux[i].g.rotation[anneaux[i].ax]+=dt*STRATOS_VR[i]*a;
+    // l'icône. EN COURSE : la météo de la zone (pluie → goutte, pluie de nuit → orage, brume ou mer de nuages → nuage, sinon soleil) ; elle pousse quand la zone change.
+    // AU GARAGE : un carrousel, 2,4 s chacune — elle pousse, tient (elle tourne, elle ondule), rentre ; l'allure l'accélère
+    let veut=-1;if(F.icone==null&&rouleur()){try{veut=LVL.pluie>.35?(LVL.nuit>.5?3:2):(LVL.brume>.35||LVL.mer>.35)?1:0;}catch(e){veut=-1;}}
+    if(F.icone!=null)ic=F.icone%4;
+    else if(veut>=0){if(ic!==veut){ic=veut;tIc=0;}tIc=Math.min(tIc+dt,1);}
+    else{if(tIc>2.4)tIc%=2.4;tIc+=dt*(1+.6*vit);if(tIc>=2.4){tIc-=2.4;ic=(ic+1)%4;}}
+    const u=F.icone!=null?1:veut>=0?Math.min(1,tIc/.3):Math.min(1,tIc/.3)*Math.min(1,(2.4-tIc)/.3);
+    icone.geometry.setDrawRange(plages[ic][0],plages[ic][1]);icone.scale.setScalar(Math.max(.001,(F.icone!=null?1:ease(u))*STRATOS_KI[ic]));icone.rotation.y=T*1.3;icone.position.y=Math.sin(T*2.2)*.004;
+    skPose(T,v);brPose(T,v);
+    // les étincelles : un claquement bref, une retombée (0,22 s), puis un long silence ; l'arc : tous les 4 à 9 s, 0,22 s, les deux pointes claquent avec lui
+    if(F.eclair!=null||F.arc!=null){k0=k1=F.eclair!=null?F.eclair:0;ka=F.arc!=null?F.arc:0;}else{
+      tE0-=dt;tE1-=dt;tA-=dt;k0=Math.max(0,k0-dt/.22);k1=Math.max(0,k1-dt/.22);ka=Math.max(0,ka-dt/.22);
+      if(tE0<=0){k0=1;tE0=1.4+Math.random()*3.2-vit*.8;}if(tE1<=0){k1=1;tE1=1.4+Math.random()*3.2-vit*.8;}
+      if(tA<=0){ka=1;k0=k1=1;tA=4+Math.random()*5-vit*1.5;}}
+    ePose(k0*k0,k1*k1,ka>0?Math.min(1,ka*3):0,Math.floor(T*25));sPose(T,v);
+    E.t=T;E.vit=vit;E.icone=ic;E.k0=k0;E.k1=k1;E.arc=ka;};
+  anime(0);MG.userData.anime=anime;
+  if(F0.avance){for(let i=0,n=Math.round(F0.avance*30);i<n;i++)anime(1/30);}                        // (banc) dbgStratos({avance:s}) : la caisse naît s secondes plus tard
+  if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
+}
 // (2026-10-20) UNE FICHE SANS COTES NE SE CONSTRUIT PAS. Les caisses retirées sont réduites à `{retire:1,name}` (voir cars.js) : montées
 // quand même (dbgEquipe des bancs), le repli `gt` recevait une largeur `undefined` — coque, ancrages et gabarit en NaN, le cadrage du
 // garage (GAR.vD, cdx…) passait en NaN et toute l'image 3D sortait NOIRE. Le joueur n'y arrive pas (equippedCar, garageListe et
