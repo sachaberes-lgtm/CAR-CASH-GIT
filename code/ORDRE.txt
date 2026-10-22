@@ -122,6 +122,7 @@ voitures/atchoum-squale.js           # Atchoum, le Squale
 voitures/caisse-pieces.js            # la caisse en un minimum de dessins
 voitures/ailes.js                    # les ailes
 voitures/finition.js                 # la finition studio (dans le jeu ; ?finition=ancien = avant) : lumière de studio, vernis profond, reflets qui éclatent
+voitures/stratos-meteo.js            # LA STRATOS, station météo : anémomètre, manche à air, radars Doppler, gyroscope, barre de prévision (?stratos=ancien)
 voitures/buildcar.js                 # buildCar : construire une voiture
 voitures/plaque.js                   # la plaque d'immatriculation, le profil
 interface/vignette-moteur.js         # vignette moteur, étapes de chauffe

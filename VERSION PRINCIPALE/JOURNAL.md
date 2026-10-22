@@ -3,6 +3,27 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA STRATOS, STATION MÉTÉO — DES GADGETS CYBER-FUTURISTES DE PRÉDICTION MÉTÉO, MOITIÉ TECHNIQUE, MOITIÉ ABSTRAIT (2026-10-22, v788, Léo : « retouche stratos : ajoute plusieurs gadgets cyber-futuristes de prédiction météorologique sur la voiture, répartition abstrait / technique, voiture épique » · « design cohérent à la Stratos » — branche `caisse-stratos-meteo`, EN ATTENTE DU OUI DE LÉO)
+« Stratos » vient de la STRATOSPHÈRE : la berlinette lit le ciel. La caisse n'est pas touchée (livrée, jantes, phares de rallye, feux, profil, lamelles du capot) : on lui pose du matériel dans SA langue — même palette
+(blanc, vert et rouge de la livrée, or des jantes, noir mat, chrome, blanc chaud des phares), mêmes facettes, même montage que la rampe de phares (une platine noire, un collier d'or, la pièce par-dessus).
+- **Code** : `code/voitures/stratos-meteo.js` (nouveau, avant `buildcar.js` dans ORDRE.txt) ; `gamme-3.js` : deux lignes dans `c_stratos` (la palette reçoit `stratosPal()`, et `stratosMeteo(K,P,{yT,LF})` est appelée avant
+  `K.commit(P)`, sous try/catch : une erreur laisse la Stratos d'avant). `?stratos=ancien` = la Stratos d'avant. `dbgStratos({ancien,t,vit,icone,eclair,arc,avance,course})` fige un état au banc (LA STRATOS = `dbgEquipe(48)`).
+- **TECHNIQUE** (du vrai matériel) : l'ANÉMOMÈTRE à trois coupelles blanche / verte / rouge (mât de gauche) et la MANCHE À AIR tricolore (mât de droite), deux mâts rayés vert / blanc / rouge sur les bouts de l'aileron de toit ;
+  deux RADARS DOPPLER qui tournent en sens contraire sur la plage arrière ; deux PARATONNERRES aux bouts du becquet ; deux CADRANS (baromètre, hygromètre) au bout de la rampe de phares ; l'ABRI À PERSIENNES (les persiennes du
+  capot moteur, en blanc) qui porte le gyroscope.
+- **ABSTRAIT** (de la lumière) : le GYROSCOPE (trois anneaux d'or qui basculent sur trois axes, billes verte / blanche / rouge, et l'ICÔNE météo au centre — soleil, nuage, pluie, orage ; carrousel au garage, EN COURSE la météo de
+  la zone : `LVL.pluie`, `LVL.brume`, `LVL.mer`, `LVL.nuit`) ; la BARRE DE PRÉVISION du becquet (21 barres, une courbe de pression qui défile, vert → or → rouge) ; le SCANNER sous le bouclier avant ; l'ARC qui claque d'un
+  paratonnerre à l'autre (tous les 4-9 s, plus souvent à la nitro).
+- **Ce qui bouge** : un seul groupe dans `BLING.anim` (`userData.anime` pour la salle blanche) ; l'allure (arrêt → course → nitro) accélère radars, anneaux, coupelles, barre. 10 dessins de plus (le fixe est versé dans le kit de la
+  caisse : zéro) ; les quatre pictogrammes sont UNE géométrie dont on ne dessine qu'une plage (`setDrawRange`) ; 0 programme compilé de plus (`dbgProgs().n` 16 → 16) ; 0,06 ms par image en JS, AUCUNE allocation par image (tampons
+  préparés une fois, `stratosBoite` réécrit les sommets en place).
+- ⚠ **Piège : la passe des feux LED** (`feuxCaisse`, feux-led.js) relit les couleurs des pièces `l` (matière avec `userData.lp`) aux deux bouts de la caisse et en tire des coques de lueur FIXES — sur des barres qui montent et
+  descendent elles resteraient en l'air. Les pièces lumineuses qui bougent ont donc leur matière à elles (`stratosLampe()`, Basic + couleurs de sommets, SANS `lp`, `plq` : jamais libérée) ; les graduations des cadrans (le seul
+  blanc posé à l'avant) sont en or. Relevé `dbgFeuxLed()` avant / après : 2 coques / 2 coques, rouge 480 / 480.
+- Vérifié (banc d'atelier, 720×440, `dbgEssaiCaisse`) : 0 erreur ni avertissement, ailes de la boutique (X-wing, dragon, phénix, plumes, hélices, monarque) sans collision avec le matériel, la caisse équipée se reconstruit 50 fois sans
+  erreur. ⚠ PAS vu au garage ni en course réels (le Mac était saturé — charge 40, swap plein : le Chrome sans fenêtre ne répondait plus) : le rendu avec bloom, le recul de la caméra de poursuite et le nombre d'images par seconde
+  restent à regarder à l'œil. Planches : `planche-stratos-meteo.png` (AVANT | APRÈS) et `planche-stratos-details.png`.
+
 ## LA GRANDE SÉANCE DE DÉBOGAGE DES MAPS — 17 BUGS CORRIGÉS SUR 9 MAPS, LES 11 VÉRIFIÉES (2026-10-22, v787, Sacha, session DEBUGGING : « lance une immense session de debugging surtout centré sur les map, lance autant de sous-agents que tu veux, qu'il n'y ait aucun bug »)
 Deux vagues d'agents (18-19/10 : un par map + portails, mort/reprise, météos ; 22/10 : grottes, dunes, décor au hasard + nuages en cubes,
 transitions), chacun sur sa copie, au banc CDP sous le verrou commun ; les correctifs de la 1re vague (scratchpad effacé au redémarrage du Mac)
