@@ -128,7 +128,8 @@ const SAVE={
        confisque pas — et elle sort de `owned` (le remboursement ne joue donc qu'une fois) ; qui roulait avec repart en LA HONTE. */
     /* (2026-10-14, Sacha) le menu DIT le remboursement (`SAVE.remb`, voir cc:revele). (2026-10-18) LA RAIE, remboursée ainsi le 14/10, est REVENUE dans le
        jeu : le remboursement versé reste acquis, et plus aucune caisse en vente ne sort de `owned` (seules les `retire` sortent). */
-    {let rb=0;const nm=[];c.owned=c.owned.filter(x=>{if(!CARS[x].retire)return true;const p9=(CAR_UNLOCK[x]&&CAR_UNLOCK[x].p)||0;if(p9){rb+=p9;nm.push(CARS[x].name);}return false;});
+    /* (2026-10-22, Sacha : « corrige ATCHOUM, traduis les indices, ne rembourse que ce qui a été acheté ») LE REMBOURSEMENT NE RENDS QUE CE QUI S'ACHETAIT : une caisse GAGNÉE par sa mission (LA CAISSE-NUAGE : `nuage30` · LA FOURNAISE : `cratere`, réussie dans `d.m2.ok`) sort de `owned` sans remboursement — sans quoi qui l'avait gagnée touchait 1,8 M ou 3,4 M $ */
+    {let rb=0;const nm=[],GAG={'LA CAISSE-NUAGE':'nuage30','LA FOURNAISE':'cratere'},ok2=(d.m2&&Array.isArray(d.m2.ok))?d.m2.ok:[];c.owned=c.owned.filter(x=>{if(!CARS[x].retire)return true;let p9=(CAR_UNLOCK[x]&&CAR_UNLOCK[x].p)||0;if(p9&&GAG[CARS[x].name]&&ok2.indexOf(GAG[CARS[x].name])>=0)p9=0;if(p9){rb+=p9;nm.push(CARS[x].name);}return false;});
      c.shop.own=c.shop.own.filter(k=>{const h=HAB_RETIRES[k];if(!h)return true;rb+=h.p;if(h.p)nm.push(h.n);return false;}); /* (2026-10-18 soir) LES HABILLAGES RETIRÉS (HAB_RETIRES) : même règle */
      for(const k of ['peinture','aile','trainee'])if(HAB_RETIRES[k+':'+c.shop.eq[k]])c.shop.eq[k]=k==='peinture'?'usine':k==='aile'?'panneaux':'nitro';
      if(rb){c.bank=Math.min(1e30,c.bank+rb);this.remb={n:nm,v:rb};}if(CARS[c.equipped]&&CARS[c.equipped].retire)c.equipped=0;}
