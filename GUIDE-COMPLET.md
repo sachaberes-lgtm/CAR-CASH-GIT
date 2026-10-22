@@ -748,6 +748,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LES LUMIÈRES DE LA CAISSE v2 — PHARES, FEUX, NITRO ET TRAÎNÉES ÉCLAIRENT LA ROUTE » (17/10) — `LUM_GLSL`, `lumTick`/`lumVue`, `FEU_U`, `LUMK`
 
 **Caisses, boutique, habillages**
+- « LE SCAN DE LA STRATOS — UN TAP SUR LA CAISSE LANCE LA STATION MÉTÉO » (22/10) — une ACTION SPÉCIALE de plus (`CAR_ACTION`) : 3 s tout en fonction du temps du scan (`scanT`), `dbgAction()`, `dbgStratos({scan:t})`
 - « LA STRATOS, STATION MÉTÉO — DES GADGETS CYBER-FUTURISTES DE PRÉDICTION MÉTÉO, MOITIÉ TECHNIQUE, MOITIÉ ABSTRAIT » (22/10) — retoucher une caisse en POSANT du matériel sans toucher à sa forme : `code/voitures/stratos-meteo.js`, `stratosMeteo`, `stratosLampe` (la matière des pièces lumineuses qui bougent, hors de la passe des feux), `dbgStratos`, `?stratos=ancien`
 - « LES AILES VIVANTES — QUATORZE AILES, CHACUNE SON GESTE » (16/10) — les ailes en X au boost, battements, la soudure qui les figeait
 - « LES GESTES DES AILES ONT LEUR SON — … » (16/10) — `ailSon`, `ailes.xwing`/`xwingFerme`/`dragon`/`pigeon`, rangés en PCM
