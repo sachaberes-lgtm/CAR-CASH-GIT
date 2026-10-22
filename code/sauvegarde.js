@@ -175,10 +175,13 @@ const SAVE={
      c.prof=p9?{ne:Math.min(Date.now(),n9(p9.ne,1e15)||Date.now()),tA:Math.round(n9(p9.tA,1e9)),dMax:Math.round(n9(p9.dMax,1e6)*10)/10}:{ne:Date.now(),tA:Math.round(tc9),dMax:0};}
     return c;
   },
+  /* ===== SANS SAUVEGARDE SUR LE LIEN WEB (2026-10-22, Sacha : « enlève le système de sauvegarde du lien Vercel, dès qu'on se connecte on arrive sur un nouveau compte ») =====
+     Sur le web (pas Capacitor) chaque ouverture démarre un compte NEUF : on ne lit rien, on n'écrit rien. `?garde=1` rend la sauvegarde locale (bancs, essais). L'appli native garde la sienne. */
+  neuf:!(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences)&&!/[?&]garde=1/.test(location.search),
   load(){
     let d=null;
-    try{d=JSON.parse(localStorage[this.K]||'null');}catch(e){}
-    if(!d){ // première fois (ou clé rongée) : on ramasse l'ancien monde éparpillé
+    if(!this.neuf)try{d=JSON.parse(localStorage[this.K]||'null');}catch(e){}
+    if(!d&&!this.neuf){ // première fois (ou clé rongée) : on ramasse l'ancien monde éparpillé
       try{d={best:+localStorage.rrBest5||0,
         leaders:JSON.parse(localStorage.rrLeaders5||'[]'),
         bestCar:+localStorage.rrBestCar5||0,
@@ -205,7 +208,7 @@ const SAVE={
   },
   mark(){this.dirty=true;},
   natif:0, // (2026-09-30) le miroir natif : 0 libre · 1 suspendu (on attend la lecture du secours) · 2 restauration en cours, plus AUCUNE écriture (voir plus bas)
-  flush(){if(this.natif===2)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;}catch(e){} /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
+  flush(){if(this.natif===2||this.neuf)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;}catch(e){} /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
     // P0-03 : miroir natif sous Capacitor — NSUserDefaults (Preferences) survit aux purges WKWebView.
     // Le web n'a pas ce plugin : la garde saute et on reste sur localStorage seul.
     if(this.natif===0&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences){try{window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}}
