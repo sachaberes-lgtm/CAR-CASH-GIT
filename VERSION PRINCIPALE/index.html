@@ -7014,18 +7014,26 @@ html:not(.c6) body.chOffre #mDead #mChanceNon:not([hidden]){animation:u8ChMonte 
   /* couché : la rangée OFFRES · RÉGLAGES s'efface le temps de l'offre, NON MERCI prend sa case, CONTINUER l'ancre de REJOUER (en bas à droite) */
   html:not(.c6) body.chOffre #mDead>.mRow{display:none}
   html:not(.c6) body.chOffre #mDead #mChanceNon:not([hidden]){grid-area:row;margin:0;min-height:44px}
-  html:not(.c6) body.chOffre #mDead #mChance:not([hidden]){position:fixed;z-index:6;right:calc(var(--sR) + 24px);bottom:calc(var(--sB) + 8px);
-    width:min(368px,44vw);margin:0;min-height:58px}}
+  html:not(.c6) body.chOffre #mDead #mChance:not([hidden]){grid-area:rej;align-self:end;margin:0;min-height:58px}}
 @keyframes u8ChMonte{from{translate:0 24px;opacity:0}to{translate:0 0;opacity:1}}
 @keyframes u8ChBar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 @media (prefers-reduced-motion:reduce){html:not(.c6) #mDead #mChance.chOn{animation:none}}
 /* (vu à la fumée, 844×390, une fin AVEC record) le badge RECORD et « ENCORE 2 PIÈCES POUR… » grandissaient la carte MOTEUR, la grille étirait toute
    la rangée, et ⌂ · REJOUER passaient SOUS le bord de l'écran. Couché : l'indice part (la place est rare), les cartes ne s'étirent plus, et la rangée
-   d'action (+ la seconde chance) reste ancrée en bas de la colonne de droite quoi qu'il arrive — une décision ne sort jamais de l'écran. */
+   d'action (+ la seconde chance) reste ancrée en bas de la colonne de droite quoi qu'il arrive — une décision ne sort jamais de l'écran.
+   (2026-10-20, Sacha : « bug de bouton ici à corriger ») l'ancre était un position:fixed de 368 px HORS de la grille : plus large que la colonne
+   (324 px à 844 × 390), la ⌂ mordait sur la carte MOTEUR ; et la grille, plus haute que l'écran (427 px), défilait SOUS la rangée — la plaque ×2
+   de la case `row` passait derrière REJOUER, intouchable. La rangée revient dans sa case `rej` : l'écran de fin fait la hauteur EXACTE du
+   téléphone, la rangée du milieu (cartes | chiffres) prend ce qui reste, et la plaque des chiffres se tasse quand la place manque. */
 @media (orientation:landscape) and (max-height:540px){
-  html:not(.c6) #mDead{align-items:start;align-content:start;padding-bottom:calc(var(--sB) + 76px)}
+  html:not(.c6) body.touch #overlay[data-ecran="dead"]>#mob{flex:1 1 0;min-height:0} /* data-ecran plutôt qu'un :has() (v740 : le :has se payait à chaque image) */
+  html:not(.c6) #mDead.on{flex:1 1 0;min-height:0;grid-template-rows:auto auto minmax(0,1fr) auto auto}
+  html:not(.c6) #mDead{align-items:start;align-content:start;padding-bottom:calc(var(--sB) + 8px)}
   html:not(.c6) #mDead .hNx{display:none}
-  html:not(.c6) #mDead .mFin{position:fixed;z-index:6;right:calc(var(--sR) + 24px);bottom:calc(var(--sB) + 8px);width:min(368px,44vw);margin:0}
+  html:not(.c6) #mDead .mStats{container-type:size} /* sa hauteur vient de la grille, plus de son contenu : elle se lit ci-dessous */
+  @container (max-height:74px){html:not(.c6) #mDead .mStat{padding:4px;gap:4px}}
+  @container (max-height:63px){html:not(.c6) #mDead .mStat{padding:2px 4px;gap:3px}html:not(.c6) #mDead .mStat b{font-size:var(--f5)}
+    html:not(.c6) #mDead .mStat span{line-height:1.2}}
 }
 </style>
 <style id="pubRecompense">
@@ -18494,6 +18502,23 @@ function genBanq(rnd){
    points de route) ; le bruit seulement là où il compte (D0 sous 540 m, les arêtes au-delà de 420 m, les bosses sous 1 km) ; au-delà de
    `BK_DF` = 1 km, la neige vient de la grille grossière (le loin, sous la brume). Mesuré : 86-133 → voir JOURNAL. */
 const BK_DF=1000;
+/* ===== LE DÉCOR DU GLACIER, RECALÉ SUR LA PENTE À 45° (2026-10-20, Sacha : « la map montagne neige est super buggée, genre le décor, les montagnes et tout ») =====
+   Le manteau de neige et les cristaux dataient de la descente à 7-14 % ; le 3e tour (18/10) l'a mise à 40-50° (mesuré : 103 % de moyenne,
+   ~4 km de dénivelé) et trois règles « au plus bas dans un rayon » sont devenues des trous de la hauteur du rayon. MESURÉ au banc (piste de 6 km) :
+   · LA SÛRETÉ (la neige jamais au-dessus de la glace) prenait le point de piste le plus BAS à moins de 98 m : la neige sous la glace était à −97 m
+     (au lieu de −1,5), et au bord de −60 à +35 m — des fosses et des murs, rendus en roche noire ;
+   · `YM` (la neige sous le PLUS BAS des tours superposés, du temps des spirales ôtées le 15/10) abaissait les flancs de ~110 m : une falaise à 228 m
+     de l'axe ;
+   · le DÉVERS de la piste (le repère de buildTrack roule dans les virages : 7,5° de médiane, 26° au plus, ±40 m aux bords d'une piste de 196 m)
+     était ignoré : la neige suivait l'axe, la congère et la glace suivaient le dévers ;
+   · les CRISTAUX (bkPrim) enterraient leur base d'une profondeur fixe sous leur CENTRE : côté aval, la base flottait — 43 dômes sur 61, 77 aiguilles
+     sur 161, tous les pics de la piste, jusqu'à 360 m de vide ; les géants de l'horizon, au-delà de la neige, montraient leur dessous plat ;
+   · la ROCHE noire des pentes raides (le shader de la neige) commençait vers 45° : la pente même de la montagne, partout en taches noires.
+   Désormais : la neige proche se cale sur le PLAN de la piste au pied du point le plus proche (sa pente et son dévers, fondu à 130 m), la sûreté
+   aussi ; plus de `YM` ; chaque sommet de base d'un cristal descend sous la neige qu'il touche (au-delà de la neige : d'un rayon de base plus bas,
+   dans la brume) ; la roche ne vient qu'au-delà de ~55°. `?sans=glacerecale` = avant (même graine : même piste ; les cristaux, eux, tombent ailleurs —
+   libre() ne refuse plus les mêmes grappes, et chaque essai refusé consomme le tirage). */
+const BK_RECALE=typeof location==='undefined'||!/[?&]sans=([^&]*,)?glacerecale(,|&|$)/.test(location.search);
 function bkProfil(x,z,d,ys,sd9){
   const W9=70+50*forBruit(x*.43,z*.43,sd9+3);let h;
   if(d<540)h=ys+13+(W9-13)*Math.pow(THREE.MathUtils.smoothstep(d,ROAD_HALF+46,520),1.3); // le BOURRELET puis les flancs : plus de combe sous la piste
@@ -18505,7 +18530,7 @@ function banqSol(){
   const C=PAL_BK('banqSolC',26),MARG=PAL_BK('banqMarge',2200),R1=380,sd9=BANQ.graine*.001,T0=performance.now(),TQ=BANQ.tq={};let tq=T0;const tqm=k=>{const n=performance.now();TQ[k]=Math.round((n-tq)*10)/10;tq=n;};
   let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(let i=0;i<NP;i+=6){const p=pts[i];if(p.x<x0)x0=p.x;if(p.x>x1)x1=p.x;if(p.z<z0)z0=p.z;if(p.z>z1)z1=p.z;}
   x0-=MARG;x1+=MARG;z0-=MARG;z1+=MARG;
-  const nx=Math.ceil((x1-x0)/C)+1,nz=Math.ceil((z1-z0)/C)+1,N=nx*nz,D=new Float32Array(N).fill(1e9),WS=new Float32Array(N),YS=new Float32Array(N),YM=new Float32Array(N).fill(1e9),YN=new Float32Array(N).fill(-1e9); // YN (v4) : la hauteur du point de piste le plus proche
+  const nx=Math.ceil((x1-x0)/C)+1,nz=Math.ceil((z1-z0)/C)+1,N=nx*nz,D=new Float32Array(N).fill(1e9),WS=new Float32Array(N),YS=new Float32Array(N),YM=new Float32Array(N).fill(1e9),YN=new Float32Array(N).fill(-1e9),YI=new Int32Array(N).fill(-1); // YN (v4) : la hauteur du point de piste le plus proche ; YI (2026-10-20) : son indice (le plan de la piste à son pied)
   const RS=[],pas=Math.max(1,Math.round(12/(L/(NP-1))));for(let i=0;i<NP;i+=pas)RS.push(i);
   // 1. LA GRILLE GROSSIÈRE (4 C) : la transformée de distance — chaque case garde le point de route le plus proche (GI) ; on le propage
   const CG=C*4,gx=Math.ceil((x1-x0)/CG)+1,gz=Math.ceil((z1-z0)/CG)+1,G=gx*gz,GD=new Float32Array(G).fill(1e18),GY=new Float32Array(G),GI=new Int32Array(G).fill(-1);
@@ -18527,19 +18552,24 @@ function banqSol(){
   for(const ri of RS){const p=pts[ri],ci=Math.round((p.x-x0)/C),cj=Math.round((p.z-z0)/C);
     for(let b=-rC;b<=rC;b++){const j=cj+b;if(j<0||j>=nz)continue;const z=z0+j*C,dz=z-p.z;
       for(let a=-rC;a<=rC;a++){const i=ci+a;if(i<0||i>=nx)continue;const x=x0+i*C,dx=x-p.x,d2=dx*dx+dz*dz;if(d2>R1*R1)continue;const k=i+j*nx;
-        if(d2<D[k]){D[k]=d2;YN[k]=p.y;}const u=1-d2*iR,w=u*u*u;WS[k]+=w;YS[k]+=w*p.y;if(d2<14400&&p.y<YM[k])YM[k]=p.y;}}}
+        if(d2<D[k]){D[k]=d2;YN[k]=p.y;YI[k]=ri;}const u=1-d2*iR,w=u*u*u;WS[k]+=w;YS[k]+=w*p.y;if(d2<14400&&p.y<YM[k])YM[k]=p.y;}}}
   tqm('noyau');
   // 3. chaque case fine
   const H=new Float32Array(N);
+  // (2026-10-20, LE DÉCOR RECALÉ) la hauteur du PLAN de la piste au pied du point le plus proche : sa pente (le long) et son dévers (en travers, borné au
+  // bord de la congère, fondu par fd) — et non plus la hauteur de son axe (à 45°, le bord d'une piste couchée de 26° est à ±40 m de l'axe). Le point
+  // (x, z) = p + T·a + B·l : vus d'en haut, T et B ne sont PAS perpendiculaires (tous deux penchent) — on résout le 2 × 2, pas des produits scalaires
+  const plan=(k,x,z,fd)=>{const r=YI[k],p=pts[r],t=T[r],b=B[r],ex=x-p.x,ez=z-p.z,dt=t.x*b.z-t.z*b.x;if(Math.abs(dt)<1e-4)return p.y;
+    const a=(ex*b.z-ez*b.x)/dt,l=(t.x*ez-t.z*ex)/dt,lm=ROAD_HALF+40;return p.y+a*t.y+THREE.MathUtils.clamp(l,-lm,lm)*b.y*fd;};
   for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const k=i+j*nx,x=x0+i*C,z=z0+j*C;let d,ys;
-    if(D[k]<1e8){d=Math.sqrt(D[k]);const yc=gBil(GY,x,z),w0=.02;ys=(YS[k]+yc*w0)/(WS[k]+w0);if(YM[k]<1e8)ys=Math.min(ys,YM[k]+12);}else{d=Math.max(R1,gBil(GD,x,z));ys=gBil(GY,x,z);} // (le GLACIER) sous des tours superposés, la neige se cale sous le PLUS BAS
+    if(D[k]<1e8){d=Math.sqrt(D[k]);const yc=gBil(GY,x,z),w0=.02;ys=(YS[k]+yc*w0)/(WS[k]+w0);if(!BK_RECALE&&YM[k]<1e8)ys=Math.min(ys,YM[k]+12);}else{ /* (2026-10-20) YM : plus de tours superposés depuis le 15/10 — à 45°, « le plus bas à 120 m » abaissait les flancs de ~110 m */d=Math.max(R1,gBil(GD,x,z));ys=gBil(GY,x,z);} // (le GLACIER) sous des tours superposés, la neige se cale sous le PLUS BAS
     D[k]=d;
     if(d>=BK_DF){H[k]=gBil(HF,x,z);continue;}
     let h=bkProfil(x,z,d,ys,sd9);
     if(d<ROAD_HALF+130&&YN[k]>-1e8){ // LA PISTE : la neige se cale au RAS de la glace (le point de piste le plus proche, pas la moyenne), puis le BOURRELET
       // (2026-10-18) le bourrelet part après la CONGÈRE (bkCongerePose : la bande de neige où l'on roule, 36 m) : jusque-là la grille reste SOUS le ruban — en cases
       // de 34-40 m, sa pente montait jusque dans la piste et y crevait la glace par endroits
-      const y0=YN[k]-.9,hb=y0+THREE.MathUtils.smoothstep(d,ROAD_HALF+34,ROAD_HALF+82)*(13+6*forBruit(x*.5,z*.5,sd9+9));
+      const y0=(BK_RECALE&&YI[k]>=0?plan(k,x,z,1-THREE.MathUtils.smoothstep(d,ROAD_HALF+82,ROAD_HALF+130)):YN[k])-.9,hb=y0+THREE.MathUtils.smoothstep(d,ROAD_HALF+34,ROAD_HALF+82)*(13+6*forBruit(x*.5,z*.5,sd9+9));
       h=d<ROAD_HALF+1?y0-.6:d<ROAD_HALF+82?hb:hb+(Math.max(hb,h)-hb)*THREE.MathUtils.smoothstep(d,ROAD_HALF+82,ROAD_HALF+130);}
     if(d>BK_DF-200)h+=(gBil(HF,x,z)-h)*THREE.MathUtils.smoothstep(d,BK_DF-200,BK_DF);                 // le raccord avec le loin
     const kb=1-THREE.MathUtils.smoothstep(d,700,BK_DF-200);
@@ -18547,7 +18577,9 @@ function banqSol(){
     H[k]=h;}
   tqm('cases');
   // LA SÛRETÉ : jamais moins de 7 m d'air sous la dalle (ni sous ses bords, ni sous la caméra qui suit à 14 m)
-  {const W9=ROAD_HALF+.5,rr=Math.ceil(W9/C);for(let ii=0;ii<NP;ii+=Math.max(1,Math.round(6/(L/(NP-1))))){const p=pts[ii],ci=Math.round((p.x-x0)/C),cj=Math.round((p.z-z0)/C),lim=p.y-.8; // sous la glace : juste sous la surface (la piste EST le sol)
+  if(BK_RECALE){const W9=ROAD_HALF+.5;for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const k=i+j*nx;if(D[k]>=W9||YI[k]<0)continue; // (2026-10-20) sous la glace : le PLAN de la piste au pied, pas le point le plus bas à 98 m (à 45° : 97 m de fosse sous la glace)
+    const lim=plan(k,x0+i*C,z0+j*C,1)-.8;if(H[k]>lim)H[k]=lim;}}
+  else{const W9=ROAD_HALF+.5,rr=Math.ceil(W9/C);for(let ii=0;ii<NP;ii+=Math.max(1,Math.round(6/(L/(NP-1))))){const p=pts[ii],ci=Math.round((p.x-x0)/C),cj=Math.round((p.z-z0)/C),lim=p.y-.8; // sous la glace : juste sous la surface (la piste EST le sol)
     for(let b=-rr;b<=rr;b++)for(let a=-rr;a<=rr;a++){const i=ci+a,j=cj+b;if(i<0||j<0||i>=nx||j>=nz)continue;const x=x0+i*C,z=z0+j*C;if((x-p.x)**2+(z-p.z)**2>W9*W9)continue;const k=i+j*nx;if(H[k]>lim)H[k]=lim;}}}
   tqm('surete');
   return BANQ.sol={x0:x0,z0:z0,C:C,nx:nx,nz:nz,h:H,d:D,MARG:MARG,gBil:gBil,GY:GY,GD:GD};
@@ -18564,11 +18596,19 @@ function bkSolD(x,z){const S=BANQ.sol;if(!S)return 1e9;const fx=(x-S.x0)/S.C,fz=
 function bkPrim(x,z,yb,H,R,n,lx,lz,rot,rg,fam,prof){
   const ay=yb+H,by=yb-(prof||Math.max(8,R*.35)),Rb=R*(ay-by)/H,ax=x+lx,az=z+lz,V=[];
   for(let i=0;i<n;i++){const th=rot+(i+(rg()-.5)*.38)/n*6.2832;V.push([x+Math.cos(th)*Rb,by,z+Math.sin(th)*Rb]);}
+  /* (2026-10-20, LE DÉCOR RECALÉ) chaque sommet de base descend SOUS LA NEIGE QU'IL TOUCHE (6 m), et le milieu de chaque arête de base aussi : la base
+     suit la pente (à 45°, le côté aval d'une base plate flottait) ; hors de la neige (les géants de l'horizon), un rayon de base plus bas, dans la brume.
+     Aucun tirage de plus dans le cristal. La facette aval devient plus raide — la physique lit les mêmes plans (F, by). */
+  let bm=by;
+  if(BK_RECALE&&BANQ.sol){const MG=BANQ.sol.MARG,sous=(x9,z9)=>bkSolD(x9,z9)<MG?bkSolH(x9,z9)-6:null;
+    for(const v of V){const h9=sous(v[0],v[2]);v[1]=Math.min(by,h9!=null?h9:by-Rb);}
+    for(let e=0;e<2;e++)for(let i=0;i<n;i++){const a=V[i],b=V[(i+1)%n],h9=sous((a[0]+b[0])/2,(a[2]+b[2])/2);if(h9==null)continue;const ex=(a[1]+b[1])/2-h9;if(ex>0){a[1]-=ex;b[1]-=ex;}}
+    for(const v of V)if(v[1]<bm)bm=v[1];}
   const F=new Float32Array(n*4);
   for(let i=0;i<n;i++){const a=V[i],b=V[(i+1)%n];const ux=a[0]-ax,uy=a[1]-ay,uz=a[2]-az,vx=b[0]-ax,vy=b[1]-ay,vz=b[2]-az;
     let nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;if(ny<0){nx=-nx;ny=-ny;nz=-nz;}const l=Math.hypot(nx,ny,nz)||1;nx/=l;ny/=l;nz/=l;
     F[i*4]=nx;F[i*4+1]=ny;F[i*4+2]=nz;F[i*4+3]=nx*ax+ny*ay+nz*az;}
-  return {A:[ax,ay,az],V:V,F:F,n:n,by:by,yb:yb,H:H,cx:x,cz:z,r:Rb+Math.hypot(lx,lz),r2:(Rb+Math.hypot(lx,lz))**2,fam:fam,sd:rg()};}
+  return {A:[ax,ay,az],V:V,F:F,n:n,by:bm,yb:yb,H:H,cx:x,cz:z,r:Rb+Math.hypot(lx,lz),r2:(Rb+Math.hypot(lx,lz))**2,fam:fam,sd:rg()};}
 function bkPrimH(P,x,z){const F=P.F;let hm=1e9;for(let q=0;q<F.length;q+=4){const y=(F[q+3]-F[q]*x-F[q+2]*z)/F[q+1];if(y<hm)hm=y;}return hm>P.by?hm:-1e9;}
 // UNE GRAPPE : `pente` = H/R du cristal principal (≤ 1 : on y glisse ; 2-4 : une aiguille) — des voisins plus petits, penchés vers l'extérieur
 function bkGrappe(x,z,yb,H,pente,nv,rg,fam,prof){
@@ -18600,7 +18640,7 @@ const BK_SOL_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN;varying vec2 vS;','#include
   '  vec2 W=vec2(.83,.56);float ph=dot(q,W)*.85+fn2(q*.045)*7.;gr+=W*cos(ph)*.24*(1.-smoothstep(25.,95.,dist))*(.45+.55*fn2(q*.017));',
   '  if(f2>0.){float g0=fn2(q*.75);gr+=vec2(fn2((q+vec2(.25,0.))*.75)-g0,fn2((q+vec2(0.,.25))*.75)-g0)*1.6*f2;}',
   '  vec3 Np=normalize(N-vec3(gr.x,0.,gr.y));',
-  '  float n1=fn2(q*.019),n2=fn2(q*.083),sl=1.-N.y,roc=smoothstep(.40,.56,sl+(n1-.5)*.22);',
+  '  float n1=fn2(q*.019),n2=fn2(q*.083),sl=1.-N.y,roc=smoothstep('+(BK_RECALE?'.52,.68':'.40,.56')+',sl+(n1-.5)*.22);', // (2026-10-20) la roche au-delà de ~55° : 45°, c'est la pente même de la montagne
   '  vec3 neige=mix(vec3(.76,.82,.93),vec3(.66,.74,.90),smoothstep(.45,.75,fn2(q*.012)));',                  // la neige soufflée, plus tassée, plus bleue
   '  vec3 pierre=vec3(.065,.075,.12)*(.65+.7*n2);pierre=mix(pierre,neige*.9,smoothstep(.58,.80,fn2(q*vec2(.05,.21)+n1*2.))*.75);',
   '  vec3 alb=mix(neige,pierre,roc);',
@@ -26880,7 +26920,7 @@ const ECO_ANCIEN=/[?&]eco=ancien\b/.test(location.search); // `?eco=ancien` : EC
 const ECOD={coup:1.5,k:1,raison:'depart'}; // coup : LE réglage · k : ce que la partie en cours applique · raison : pourquoi (actif · achat · assez · cousin · ancien · erreur)
 function ecoDebutPrix(){let m=1e30;for(const x of COSM.peinture)if(x.p>0&&x.p<m&&!x.sec&&!x.mis&&!x.retire&&!x.eur)m=x.p;return m;} // la peinture la moins chère EN VENTE, LUE sur COSM : si les prix changent, le seuil suit — (GAMEPLAY, relecture) ni les couleurs SECRÈTES (gagnées par un DÉFI ou le pack), ni celles d'un carnet, ni les retirées, ni celles en euros
 function ecoDebutAchat(){ // vrai dès qu'UN achat a été fait : caisse (owned), figure (figs — le TAIL WHIP est offert ; le TONNEAU l'était avant le 15/10), habillage payant (shop.own — ceux d'un carnet n'ont pas de `p`)
-  const d=SAVE.d;if(d.owned&&d.owned.length)return true;if(d.figs&&d.figs.some(function(id){return id!=='tailwhip'&&!(id==='tonneau'&&d.figT0);}))return true; // (2026-10-15) le TAIL WHIP offert, et le tonneau offert des sauvegardes d'avant, ne sont pas des achats
+  const d=SAVE.d;if(d.owned&&d.owned.length)return true;if(d.figs&&d.figs.some(function(id){return id!=='tailwhip'&&!(id==='tonneau'&&d.figT0)&&!(id==='saltov'&&d.figS);}))return true; // (2026-10-15) le TAIL WHIP offert, et le tonneau offert des sauvegardes d'avant, ne sont pas des achats
   const o=d.shop&&d.shop.own;if(o)for(let i=0;i<o.length;i++){const a=String(o[i]).split(':'),l=COSM[a[0]],x=l&&l.find(function(y){return y.id===a[1];});if(x&&x.p>0)return true;}
   return false;
 }
@@ -44295,14 +44335,14 @@ const ENG_CAP={billets:12,aimant:15,comete:27};
    SIX CRANS : 1 = le départ normal (MOTEUR ROUILLÉ), puis les paliers 6 · 11 · 16 · 21 · 26 (index 5 · 10 · 15 · 20 · 25). LA FONCTION
    S'OUVRE AU PALIER 30 (Léo, même jour : « on débloque cette fonction seulement quand on a atteint le palier trente ») : le TROU NOIR atteint
    une fois en course (`SAVE.d.ex.eng`, le record de palier, versé à la fin de chaque partie) ouvre les six crans d'un coup ; avant, les six
-   cases sont visibles sous CADENAS (son choix : « le joueur sait que ça existe »). Le code cousin ouvre tout. Le choix vit dans `SAVE.d.vdep` (0-5) ; il se pose au départ de chaque partie (resetGame, sous9 du 1er JOUER, la
+   cases sont visibles sous CADENAS (son choix : « le joueur sait que ça existe »). Le code cousin ne l'ouvre PAS (Sacha, 20/10 : seul le palier 30 atteint, pour de vrai, la débloque). Le choix vit dans `SAVE.d.vdep` (0-5) ; il se pose au départ de chaque partie (resetGame, sous9 du 1er JOUER, la
    jade) À LA PLACE du moteur remis à zéro — pièces du palier comptées, réservoir de nitro plein —, AVANT que la piste se bâtisse : la 1re map
    a l'échelle de la vitesse choisie, et le DÉPART D'AVANCE se bâtit au même palier (prebDepCible). L'auto-école, le parc, la balade et le
    tout premier joueur (pas encore de permis) partent toujours du cran 1. Le moteur monte ensuite comme d'habitude. La grille (6 cases
    au-dessus du PLAY du garage) et l'étal du moteur soulevé (à gauche de la porte) : voir « LA VITESSE DE DÉPART AU GARAGE ». */
 const VDEP_PAL=[0,5,10,15,20,25];
 let VDEP_TOUT=false; // (banc) dbgVdep('tout') : tous les crans ouverts le temps d'une page, rien de sauvé
-function vdepFonction(){try{return VDEP_TOUT||cousin()||((SAVE.d.ex&&SAVE.d.ex.eng)|0)>=ENGINE_TIERS.length-1;}catch(e){return false;}} // (Léo, même jour : « on débloque cette fonction seulement quand on a atteint le palier trente ») le TROU NOIR atteint une fois → les six crans d'un coup
+function vdepFonction(){try{return VDEP_TOUT||((SAVE.d.ex&&SAVE.d.ex.eng)|0)>=ENGINE_TIERS.length-1;}catch(e){return false;}} // (Léo, même jour : « on débloque cette fonction seulement quand on a atteint le palier trente ») le TROU NOIR atteint une fois → les six crans d'un coup · (2026-10-20, Sacha) et RIEN d'autre : le code cousin ne l'ouvre plus
 function vdepOuvert(n){if(!(n>0))return true;if(n>=VDEP_PAL.length)return false;return vdepFonction();}
 function vdepN(){let n=0;try{n=SAVE.d.vdep|0;}catch(e){}n=Math.max(0,Math.min(VDEP_PAL.length-1,n));while(n>0&&!vdepOuvert(n))n--;return n;} // un cran fermé (sauvegarde importée…) retombe sur le plus haut ouvert
 function vdepPal(){try{if(TUTO.on||PARK.on||BALADE||!(SAVE.d.tuto||SAVE.d.permis))return 0;}catch(e){return 0;}return VDEP_PAL[vdepN()];}
@@ -53919,7 +53959,7 @@ const SAVE={
        `aura` : le total à vie de style. Elle ne s'achète rien — elle donne un RANG, et le rang ouvre
        les caisses que l'argent ne peut pas acheter.
        `owned` : les index des caisses ACHETÉES. Séparé des exploits : un achat n'est pas un exploit. */
-    mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, figs:['tailwhip'], figT0:0, figEq:[], pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
+    mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, figs:['tailwhip','saltov'], figS:1, figT0:0, figEq:[], pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
     bank:0, aura:0, owned:[], auraMax:0, gamme:3, eco:3, frenRec:0, // `frenRec` : la plus longue FRÉNÉSIE jamais tenue (s) // `eco` : échelle de l'argent de course (vague 3, voir la migration des records en fin de san) // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
     jour:{d:'',n:0},cad:{t:0},dj:{d:'',k:'',v:0,b:0,ok:0,y:''}, // (2026-10-14, GAMEPLAY) LE RETOUR DU JOUR : `d` = la date locale de la dernière partie COMPTÉE ('AAAA-MM-JJ'), `n` = la série à cette date · LE CADEAU : `t` = l'heure (ms) du dernier cadeau ouvert, 0 = jamais (voir JOUR / CAD)
     m2:m2Vierge(), // (2026-10-16) LES MISSIONS v2 : réussies, prises, suivies, records, compteurs à vie (voir m2Etat)
@@ -53999,6 +54039,7 @@ const SAVE={
       if(d.shop.eq&&typeof d.shop.eq==='object')for(const k of ['peinture','aile','trainee'])if(typeof d.shop.eq[k]==='string'&&/^[a-z]{2,12}$/.test(d.shop.eq[k]))c.shop.eq[k]=d.shop.eq[k];}
     if(Array.isArray(d.figs))c.figs=[...new Set(['tailwhip'].concat(d.figs.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k))))].slice(0,80); // (2026-10-14) LES FIGURES possédées — (2026-10-15) le TAIL WHIP offert ; le TONNEAU, offert jusque-là, reste dans la liste des sauvegardes d'avant (il s'achète désormais)
     else if((+d.best>0)||(+d.bank>0)||(+d.aura>0))c.figs=['tailwhip','tonneau']; // une sauvegarde d'avant les figures (sans liste) qui a déjà joué : elle avait le tonneau, elle le garde
+    c.figS=(d.figS===1||(c.ex.runs===0&&!(+d.best>0)&&!(+d.bank>0)&&!(+d.aura>0)&&!(Array.isArray(d.owned)&&d.owned.length)&&c.figs.every(function(k){return k==='tailwhip'||k==='saltov';})))?1:0;if(c.figS&&c.figs.indexOf('saltov')<0)c.figs.push('saltov'); // (2026-10-20, Sacha : « un nouveau joueur ne doit pas avoir le tonneau, il doit avoir le salto avant, de base ») figS : le SALTO AVANT est OFFERT — à tout profil qui n'a encore fini aucune partie ni rien acheté ; il prend l'emplacement AVANT (le double-tap pouce au repos, donc aussi la figure de l'auto-école) ; une sauvegarde qui a déjà joué ne change pas
     c.figT0=(d.figT0===1||(d.figT0===undefined&&c.figs.indexOf('tonneau')>=0))?1:0; // figT0 : ce tonneau-là était OFFERT (sauvegarde d'avant le tail whip) — pas un achat (ecoDebutAchat)
     if(d.combos&&typeof d.combos==='object'){c.combos={};for(const k of Object.keys(d.combos).slice(0,40))if(/^[MPST]{3}$/.test(k))c.combos[k]=Math.min(1e6,Math.max(0,Math.round(+d.combos[k])||0));} // (2026-10-14) LE CARNET DES COMBOS À TROIS
     if(Array.isArray(d.figEq))c.figEq=[...new Set(d.figEq.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)))].slice(0,2); // (2026-10-14, LES FIGURES v2) les emplacements — (2026-10-15, Sacha : « seulement 2 figures à la fois, pas 3 ») DEUX
@@ -55826,7 +55867,7 @@ function m2MigreV2(s,rep){const d=SAVE.d;s.vc=1;s.vr=1; /* posés d'abord : m2Va
   SAVE.mark();}
 function m2GagneEstime(){const d=SAVE.d;let t=bank();
   try{for(const i of (d.owned||[])){const u=CAR_UNLOCK[i];const o=u&&u.k==='mis'?u.av:u;if(o&&o.p)t+=o.p;}}catch(e){}
-  try{const F=(window.FIG&&FIG.liste)||[];for(const id of (d.figs||[])){if(id==='tailwhip'||(id==='tonneau'&&d.figT0))continue;const f=F.find(function(x){return x.id===id;});if(f&&f.p)t+=f.p;}}catch(e){}
+  try{const F=(window.FIG&&FIG.liste)||[];for(const id of (d.figs||[])){if(id==='tailwhip'||(id==='tonneau'&&d.figT0)||(id==='saltov'&&d.figS))continue;const f=F.find(function(x){return x.id===id;});if(f&&f.p)t+=f.p;}}catch(e){}
   try{for(const k of (d.shop&&d.shop.own)||[]){const p=k.split(':'),h=(COSM[p[0]]||[]).find(function(x){return x.id===p[1];});if(h&&h.p)t+=h.p;}}catch(e){}
   return Math.max(t,d.bankMax||0);}
 /* ---- LA VÉRIFICATION : une mission tombe dès que sa valeur passe le seuil (en course : 4 fois par seconde, sans la collection) ---- */
@@ -61102,8 +61143,8 @@ function vdepInit(){
     if(n===vdepN())return;
     SAVE.d.vdep=n;SAVE.mark();try{uiClic('onglet');}catch(_){}try{hap(8);}catch(_){}vdepMaj();});
   vdepMaj();
-  setInterval(function(){try{ // (la grille et les étiquettes suivent leurs boutons ; un record de moteur, le code cousin, la langue : les crans se redisent)
-    const sg=((SAVE.d.ex&&SAVE.d.ex.eng)|0)+','+cousin()+','+(SAVE.d.vdep|0)+','+VDEP_TOUT+','+(typeof LANG!=='undefined'?LANG:'');
+  setInterval(function(){try{ // (la grille et les étiquettes suivent leurs boutons ; un record de moteur, la langue : les crans se redisent)
+    const sg=((SAVE.d.ex&&SAVE.d.ex.eng)|0)+','+(SAVE.d.vdep|0)+','+VDEP_TOUT+','+(typeof LANG!=='undefined'?LANG:'');
     if(sg!==VDEP.sig){VDEP.sig=sg;vdepMaj();if(VDEP.etal&&VDEP.nVu>=0)vdepPlaque(VDEP.nVu);}else vdepPlace();}catch(e){}},250);
 }
 function vdepMaj(){
