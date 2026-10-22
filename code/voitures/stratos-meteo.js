@@ -10,10 +10,12 @@
      SCANNER sous les phares et l'ARC qui claque d'un paratonnerre à l'autre.
    Tout le fixe est versé dans le kit de la caisse (zéro dessin de plus) ; ce qui BOUGE vit dans UN groupe (`BLING.anim`, voir ailes.js ; `userData.anime` pour la salle blanche) : dix dessins de plus,
    et aucune allocation par image (tampons préparés une fois : les pièces qui changent de forme réécrivent leurs sommets en place).
-   `?stratos=ancien` = la Stratos d'avant · `dbgStratos({t,icone,vit,eclair,arc,avance,course,ancien})` fige un état pour les photos (rend l'état courant). */
+   LE SCAN (2026-10-22, Léo : « oui, fais le SCAN au tap sur la Stratos ») : c'est l'ACTION SPÉCIALE de la caisse (`CAR_ACTION`, voir atchoum-feu.js) — le tap au garage, au menu ciel et en boutique lance 3 s :
+   les radars, les anneaux et les coupelles s'emballent, une crête blanche balaie la barre de prévision, trois arcs claquent entre les paratonnerres (le gyroscope encaisse), l'icône défile puis se fige sur un résultat.
+   `?stratos=ancien` = la Stratos d'avant · `dbgStratos({t,icone,vit,eclair,arc,scan,avance,course,ancien})` fige un état pour les photos (rend l'état courant) · `dbgAction()` joue le SCAN. */
 var STRATOS_METEO=!/[?&]stratos=ancien\b/.test(location.search);
-const STRATOS_M={force:{},etat:{t:0,vit:0,icone:0,k0:0,k1:0,arc:0}};
-window.dbgStratos=function(o){if(o){if(o.ancien!=null)STRATOS_METEO=!o.ancien;Object.assign(STRATOS_M.force,o);}const e=STRATOS_M.etat,r=x=>Math.round(x*100)/100;return {meteo:STRATOS_METEO,t:r(e.t),vit:r(e.vit),icone:e.icone,eclair:[r(e.k0),r(e.k1)],arc:r(e.arc)};}; // {ancien:1} : la Stratos d'avant, à chaud (le banc AVANT | APRÈS)
+const STRATOS_M={force:{},etat:{t:0,vit:0,icone:0,k0:0,k1:0,arc:0,scan:-1}};
+window.dbgStratos=function(o){if(o){if(o.ancien!=null)STRATOS_METEO=!o.ancien;Object.assign(STRATOS_M.force,o);}const e=STRATOS_M.etat,r=x=>Math.round(x*100)/100;return {meteo:STRATOS_METEO,t:r(e.t),vit:r(e.vit),icone:e.icone,eclair:[r(e.k0),r(e.k1)],arc:r(e.arc),scan:r(e.scan)};}; // {ancien:1} : la Stratos d'avant, à chaud (le banc AVANT | APRÈS)
 function stratosPal(){return {
   o:{g:'c',c:0xe0b84a},                       // l'or des jantes
   V:{g:'l',c:0x20e06c},                       // le vert de la livrée, allumé
@@ -157,11 +159,13 @@ function stratosMeteo(K,P,G){
   brGeo.setAttribute('position',new THREE.BufferAttribute(brPos,3));brGeo.setAttribute('color',new THREE.BufferAttribute(brCol,3));
   {const m=new THREE.Mesh(brGeo,mat('l'));m.userData.lp=1;m.frustumCulled=false;BR.add(m);}
   const CV=new THREE.Color(0x20e06c),CA=new THREE.Color(0xffc02e),CR=new THREE.Color(0xff2a3a),CB=new THREE.Color(),CW=new THREE.Color(0xfff6dc);
-  const brPose=(t,v)=>{let o=0;const sc=(.5+.5*Math.sin(t*1.1*(1+v)))*(NB-1);
+  const brPose=(t,v,sw,bz)=>{let o=0;const sc=(.5+.5*Math.sin(t*1.1*(1+v)))*(NB-1);                    // sw, bz : le balayage du SCAN (la position de la crête en barres, sa force ; 0 = aucun)
     for(let i=0;i<NB;i++){
-      const w=.5+.5*Math.sin(i*.55-t*(1.5+2.5*v)),u=.5+.5*Math.sin(i*.21+t*.7),h=.018+.062*w*(.55+.45*u),x0=(i-(NB-1)/2)*PB;
-      const q=Math.max(0,Math.min(1,(h-.018)/.062));if(q<.5)CB.copy(CV).lerp(CA,q*2);else CB.copy(CA).lerp(CR,(q-.5)*2);
-      CB.lerp(CW,.55*Math.exp(-((i-sc)*(i-sc))/6));
+      const w=.5+.5*Math.sin(i*.55-t*(1.5+2.5*v)),u=.5+.5*Math.sin(i*.21+t*.7),x0=(i-(NB-1)/2)*PB;let h=.018+.062*w*(.55+.45*u);
+      let q=Math.max(0,Math.min(1,(h-.018)/.062)),bl=.55*Math.exp(-((i-sc)*(i-sc))/6);
+      if(bz>0){const d=i-sw,g=(d<0?Math.exp(d/5):Math.exp(-d*d/3))*bz;h+=(.088-h)*g;q=Math.max(q,g);bl=Math.min(1,bl+.9*bz*Math.exp(-d*d/2));}   // devant la crête les barres montent d'un coup, derrière elle retombent en traînée, et la crête est blanche
+      if(q<.5)CB.copy(CV).lerp(CA,q*2);else CB.copy(CA).lerp(CR,(q-.5)*2);
+      CB.lerp(CW,bl);
       o=stratosBoite(brPos,brCol,o,x0-WB/2,x0+WB/2,.02,.02+h,-WB*.45,WB*.45,CB.r,CB.g,CB.b);}
     brGeo.attributes.position.needsUpdate=true;brGeo.attributes.color.needsUpdate=true;};
   // les ÉTINCELLES des paratonnerres (deux étoiles à six branches qui claquent à tour de rôle), l'ARC qui saute de l'un à l'autre et le SCANNER du bouclier avant : sinon invisibles (réduits à un point)
@@ -193,33 +197,47 @@ function stratosMeteo(K,P,G){
   // L'ANIMATION : une horloge, une allure (arrêt → course → nitro), l'icône du jour, les étincelles et l'arc
   const E=STRATOS_M.etat;
   let T=F0.t!=null?F0.t:0,vit=F0.vit!=null?F0.vit:0,ic=F0.icone!=null?F0.icone%4:0,tIc=.35,tE0=1.2+Math.random()*2,tE1=2.5+Math.random()*3,tA=3+Math.random()*3,k0=0,k1=0,ka=0;
+  let scanT=F0.scan!=null?F0.scan:-1,scanIc0=0,scanIcR=F0.scan!=null?3:0;                              // LE SCAN : le temps écoulé depuis le tap (−1 : au repos), l'icône de départ, celle qui reste (l'orage pour les photos)
   const rouleur=()=>{if(STRATOS_M.force.course!=null)return !!STRATOS_M.force.course;try{return !!(started&&!gameOver&&!garageOn);}catch(e){return false;}};   /* (banc) dbgStratos({course:1}) : comme en course */
   const nitro=()=>{try{return !!nitroOn;}catch(e){return false;}};
   const kmh=()=>{try{return Math.min(1.4,(loop._spK||0)/800);}catch(e){return 0;}};
   const ease=u=>u<=0?0:u>=1?1:1-Math.pow(1-u,3);                                                   // sortie douce
+  const lisse=u=>u<=0?0:u>=1?1:u*u*(3-2*u);
+  const arcK=d=>d<0||d>=.22?0:1-d/.22;                                                             // un claquement : plein au départ, éteint 0,22 s plus tard
   const anime=dt=>{dt=Math.min(dt||0,.1);const F=STRATOS_M.force;T+=dt;
+    // LE SCAN (le TAP sur la caisse, `CAR_ACTION`) : 3 s — la CHARGE (0-0,45 s : tout s'emballe), le BALAYAGE de la barre (0-1,05 s), trois ARCS (0,55 · 1,10 · 1,65 s),
+    // l'icône qui DÉFILE puis se FIGE sur un résultat (1,4 s), la RETOMBÉE (1,5-3 s). Tout est fonction du temps du scan : `dbgStratos({scan:t})` le fige pour les photos.
+    if(F.scan!=null)scanT=F.scan;else if(scanT>=0){scanT+=dt;if(scanT>=3){scanT=-1;tIc=.35;}}
+    const sc=scanT<0?0:Math.min(ease(scanT/.45),1-lisse((scanT-1.5)/1.5)),enScan=scanT>=0&&F.icone==null;
     const cible=F.vit!=null?F.vit:rouleur()?.35+.5*kmh()+(nitro()?.35:0):0;vit+=(cible-vit)*Math.min(1,dt*2.5);if(F.vit!=null)vit=F.vit;
-    const v=Math.min(1,vit),a=1+vit*2.4;
-    AN.rotation.y+=dt*(1.7+9*vit);
-    RD[0].rotation.y+=dt*1.2*a;RD[1].rotation.y-=dt*1.2*a;
-    for(let i=0;i<3;i++)anneaux[i].g.rotation[anneaux[i].ax]+=dt*STRATOS_VR[i]*a;
+    const v=Math.min(1,Math.max(vit,sc)),a=1+vit*2.4;
+    AN.rotation.y+=dt*(1.7+9*vit+14*sc);
+    const rr=1+6*sc;RD[0].rotation.y+=dt*1.2*a*rr;RD[1].rotation.y-=dt*1.2*a*rr;
+    for(let i=0;i<3;i++)anneaux[i].g.rotation[anneaux[i].ax]+=dt*STRATOS_VR[i]*a*(1+3.5*sc);
     // l'icône. EN COURSE : la météo de la zone (pluie → goutte, pluie de nuit → orage, brume ou mer de nuages → nuage, sinon soleil) ; elle pousse quand la zone change.
-    // AU GARAGE : un carrousel, 2,4 s chacune — elle pousse, tient (elle tourne, elle ondule), rentre ; l'allure l'accélère
-    let veut=-1;if(F.icone==null&&rouleur()){try{veut=LVL.pluie>.35?(LVL.nuit>.5?3:2):(LVL.brume>.35||LVL.mer>.35)?1:0;}catch(e){veut=-1;}}
+    // AU GARAGE : un carrousel, 2,4 s chacune — elle pousse, tient (elle tourne, elle ondule), rentre ; l'allure l'accélère. AU SCAN : elle défile à 0,17 s, puis reste sur son résultat
+    let veut=-1;if(F.icone==null&&scanT<0&&rouleur()){try{veut=LVL.pluie>.35?(LVL.nuit>.5?3:2):(LVL.brume>.35||LVL.mer>.35)?1:0;}catch(e){veut=-1;}}
     if(F.icone!=null)ic=F.icone%4;
+    else if(enScan)ic=scanT<1.4?(scanIc0+1+Math.floor(scanT/.17))%4:scanIcR;
     else if(veut>=0){if(ic!==veut){ic=veut;tIc=0;}tIc=Math.min(tIc+dt,1);}
     else{if(tIc>2.4)tIc%=2.4;tIc+=dt*(1+.6*vit);if(tIc>=2.4){tIc-=2.4;ic=(ic+1)%4;}}
-    const u=F.icone!=null?1:veut>=0?Math.min(1,tIc/.3):Math.min(1,tIc/.3)*Math.min(1,(2.4-tIc)/.3);
-    icone.geometry.setDrawRange(plages[ic][0],plages[ic][1]);icone.scale.setScalar(Math.max(.001,(F.icone!=null?1:ease(u))*STRATOS_KI[ic]));icone.rotation.y=T*1.3;icone.position.y=Math.sin(T*2.2)*.004;
-    skPose(T,v);brPose(T,v);
+    const u=(F.icone!=null||enScan)?1:veut>=0?Math.min(1,tIc/.3):Math.min(1,tIc/.3)*Math.min(1,(2.4-tIc)/.3);
+    const pop=!enScan?1:scanT<1.4?.82+.18*((scanT%.17)/.17):1+.32*Math.exp(-((scanT-1.4)*(scanT-1.4))/.015);   // chaque pictogramme qui défile « tourne la page » ; le résultat claque
+    icone.geometry.setDrawRange(plages[ic][0],plages[ic][1]);icone.scale.setScalar(Math.max(.001,((F.icone!=null||enScan)?1:ease(u))*STRATOS_KI[ic]*pop));icone.rotation.y=T*1.3;icone.position.y=Math.sin(T*2.2)*.004;
+    const d1=scanT-.55,d2=scanT-1.10,d3=scanT-1.65;GY.scale.setScalar(scanT<0?1:1+.2*Math.min(1,Math.exp(-d1*d1/.006)+Math.exp(-d2*d2/.006)+Math.exp(-d3*d3/.006)));   // le gyroscope encaisse chaque arc
+    skPose(T,v);brPose(T,v,scanT<0?-99:Math.min(scanT/1.05,1.25)*(NB+8)-4,scanT<0?0:scanT<1.05?1:Math.max(0,1-(scanT-1.05)/.5));
     // les étincelles : un claquement bref, une retombée (0,22 s), puis un long silence ; l'arc : tous les 4 à 9 s, 0,22 s, les deux pointes claquent avec lui
-    if(F.eclair!=null||F.arc!=null){k0=k1=F.eclair!=null?F.eclair:0;ka=F.arc!=null?F.arc:0;}else{
+    if(F.eclair!=null||F.arc!=null){k0=k1=F.eclair!=null?F.eclair:0;ka=F.arc!=null?F.arc:0;}else if(F.scan!=null){k0=k1=ka=0;}else{
       tE0-=dt;tE1-=dt;tA-=dt;k0=Math.max(0,k0-dt/.22);k1=Math.max(0,k1-dt/.22);ka=Math.max(0,ka-dt/.22);
+      if(scanT>=0){tA=Math.max(tA,2);tE0=Math.max(tE0,1);tE1=Math.max(tE1,1);}                       // pendant le SCAN, pas d'arc au hasard : les siens suffisent
       if(tE0<=0){k0=1;tE0=1.4+Math.random()*3.2-vit*.8;}if(tE1<=0){k1=1;tE1=1.4+Math.random()*3.2-vit*.8;}
       if(tA<=0){ka=1;k0=k1=1;tA=4+Math.random()*5-vit*1.5;}}
-    ePose(k0*k0,k1*k1,ka>0?Math.min(1,ka*3):0,Math.floor(T*25));sPose(T,v);
-    E.t=T;E.vit=vit;E.icone=ic;E.k0=k0;E.k1=k1;E.arc=ka;};
-  anime(0);MG.userData.anime=anime;
+    if(scanT>=0){const ks=Math.max(arcK(d1),arcK(d2),arcK(d3));if(ks>ka)ka=ks;if(ks>k0)k0=k1=ks;}
+    ePose(k0*k0,k1*k1,ka>0?Math.min(1,ka*3):0,Math.floor(T*25));sPose(T,Math.max(v,2*sc));
+    E.t=T;E.vit=vit;E.icone=ic;E.k0=k0;E.k1=k1;E.arc=ka;E.scan=scanT;};
+  const action=()=>{if(scanT<0){scanIc0=ic;scanT=0;}else scanT=Math.min(scanT,.9);scanIcR=(ic+1+Math.floor(Math.random()*3))%4;return true;};   // le tap : le SCAN part ; retapé en route, il reprend à la décharge
+  anime(0);MG.userData.anime=anime;MG.userData.action=action;
+  if(typeof CAR_ACTION!=='undefined')CAR_ACTION=action;
   if(F0.avance){for(let i=0,n=Math.round(F0.avance*30);i<n;i++)anime(1/30);}                        // (banc) dbgStratos({avance:s}) : la caisse naît s secondes plus tard
   if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
 }

@@ -62,7 +62,14 @@ node outils/publie-allege.cjs .vercel-static/jouer || echo "⚠ publie-allege : 
 SHA="${VERCEL_GIT_COMMIT_SHA:-$(git rev-parse HEAD 2>/dev/null || date +%s)}"
 JEU=$(cd .vercel-static/jouer && find . -type f ! -name version.json -print0 | LC_ALL=C sort -z | xargs -0 sha1sum | sha1sum | cut -c1-40)
 [ -n "$JEU" ] || JEU="$SHA"
-sed "s/__CC_BUILD__/$JEU/" .vercel-static/jouer/index.html > .vercel-static/jouer/index.tmp && mv .vercel-static/jouer/index.tmp .vercel-static/jouer/index.html
+# (2026-10-22, piste « démarrage ») L'EMPREINTE DES PHOTOS : les photos de caisses gardées par le navigateur (IndexedDB) étaient jetées à CHAQUE
+# publication (leur signature portait l'empreinte du jeu entier) et refaites au garage : 3 à 4 s de fil principal à CPU ×4. On grave à part
+# l'empreinte des SEULS fichiers qui changent l'image d'une photo : les caisses (voitures/), le rendu (rendu/), le studio et ses constantes
+# de cadrage (photos-films.js, frole-contrats.js), la boucle des photos (atelier-ferme.js). ⚠ Un nouveau fichier qui change l'image d'une
+# photo doit entrer dans cette liste, sinon ses photos restent périmées jusqu'à la prochaine publication qui touche un fichier listé.
+PHOTOS=$(find code/voitures code/rendu code/interface/photos-films.js code/gameplay/frole-contrats.js code/interface/atelier-ferme.js -type f -print0 2>/dev/null | LC_ALL=C sort -z | xargs -0 sha1sum | sha1sum | cut -c1-40)
+[ -n "$PHOTOS" ] || PHOTOS="$JEU"
+sed "s/__CC_BUILD__/$JEU/;s/__CC_PHOTOS__/$PHOTOS/" .vercel-static/jouer/index.html > .vercel-static/jouer/index.tmp && mv .vercel-static/jouer/index.tmp .vercel-static/jouer/index.html
 printf '{"v":"%s","commit":"%s"}\n' "$JEU" "$SHA" > .vercel-static/jouer/version.json
 # (2026-10-14, Sacha : « publie ») LES DEUX PAGES QUE L'APP STORE EXIGE, à la racine du site : /confidentialite.html et /assistance.html
 # (dossier pages-app/ ; leur source est app-ios/fiche/ sur la branche ios-capacitor). Rien du jeu n'en dépend.
