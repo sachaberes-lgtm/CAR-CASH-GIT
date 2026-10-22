@@ -113,7 +113,7 @@ SHAPES.corolla=function(K){
       {k:'K',p:F9.grilleHaut,gate:av},{k:'c',p:japRuban(F9.joncHaut,.013),gate:av,axe:false},                   // la CALANDRE HAUTE noire, bordée de chrome (il file dans les phares)…
       {k:'c',p:japRuban(F9.joncV,.011),gate:av,axe:false},{k:'c',p:F9.logo,gate:av},                            // …le V chromé et le logo
       {k:'K',p:F9.grille,creux:.026,gate:av},                                                                    // la GRANDE BOUCHE, creusée (ses lames sont posées devant, plus bas)
-      {k:'c',p:japRuban(JONC_L,.025),creux:-.004,gate:av,axe:false},{k:'K',p:japRuban(CREUX_L,.017),creux:.012,gate:av,axe:false},   // la PRISE EN L : le jonc chromé en relief, son creux noir
+      /* (22/10) la PRISE EN L n'est plus dessinée : un bloc noir et son jonc chromé sont posés en relief (voir « LES PHARES ») */
       {k:'K',p:japOvale(.725,.298,.05,.046,18),creux:.022,gate:av},                                             // la coupelle de l'antibrouillard (l'optique est posée dedans, plus bas)
       {k:'c',p:japRuban([[0,.234],[.30,.234],[.60,.238]],.012),creux:-.003,gate:av,axe:false}]),               // le jonc chromé sous la bouche, qui rejoint le pied du L
     cote:japZones([
@@ -169,8 +169,10 @@ SHAPES.corolla=function(K){
        if(nx*mx+ny*my<0){P.tri(k,A,C,B);P.tri(k,A,D,C);}else{P.tri(k,A,B,C);P.tri(k,A,C,D);}}};
    const yl=x=>x<.462?.621+(.634-.621)*(x-.274)/(.462-.274):.634+(.652-.634)*(x-.462)/(.626-.462);
    const VERRE=rentre9(PH,.022),LED=[[.30,yl(.30)+.020],[.60,yl(.60)+.020],[.60,yl(.60)+.040],[.30,yl(.30)+.040]],OEIL=japRect(.655,.66,.725,.715,.006,2);
-   let VP='d';try{const m=/[?&]phare=([bcd])/.exec(location.search);if(m)VP=m[1];}catch(e){}   // (22/10, banc : `?phare=b|c|d` — trois relevés du phare, Léo choisit)
+   let VP='b';try{const m=/[?&]phare=([bcd])/.exec(location.search);if(m)VP=m[1];}catch(e){}   // (22/10, banc : `?phare=b|c|d` — trois relevés du phare, Léo choisit)
    for(const sd of [1,-1]){
+     piece('k',F9.prise,.016,-.012,sd);                                  // la prise d'air du bouclier : un bloc noir en relief…
+     piece('c',japRuban(JONC_L,.022),.026,.008,sd);                      // …et son jonc chromé, posé dessus au bord haut
      if(VP==='b'){piece('k',PH,.012,-.012,sd);piece('W',LED,.020,.008,sd);}                                   // b : UN plateau mince + sa lame de LED
      else if(VP==='c'){piece('k',PH,.014,-.012,sd);piece('g',VERRE,.022,.010,sd);piece('W',LED,.028,.018,sd);}   // c : boîtier, verre brillant, LED — sans l'oeil, bas
      else{piece('k',PH,.032,-.012,sd);piece('g',VERRE,.052,.024,sd);piece('W',LED,.064,.044,sd);piece('c',OEIL,.074,.030,sd);}}}   // d : les quatre étages (v. précédente)
