@@ -435,6 +435,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   haut → 5-6 m ; `?singetaille=` pour essayer) ; chaque rencontre TIRE sa réaction (`JSG_ACT`) : SUIT (galope à côté de la caisse, un peu
   devant), SAUTE (bond par-dessus la caisse, d'un bord à l'autre), PLONGE (dans le vide), RESTE ; celui de la montagne saute jusque sur la
   route puis suit. Balistique dans le repère de la route (`jsgBouge`, `jsgReveil`). `dbgJadeSinges('mangue','saute')`.
+  22/10 (Léo : « enlève les singes de la map jade ou rends-les plus légers ») : les SINGES SONT ÉTEINTS par défaut (`JSG_ON` ; `?singes=1` ou `?singesjade=1` les rend, `creatures/singe.js` n'est alors chargé que sur ce lien) — voir « JADE PLUS LÉGER » au JOURNAL.
 - Textes au centre de l'écran rayés par Sacha (VIRAGE SERRÉ, FRÔLÉ, PORTE, RASE-BORD, MINI/SUPER/ULTRA TURBO, pastilles sous
   le verdict ; le 15/10 : « +X AURA » de la chaîne, « ×5 EN FEU / ×8 / ×10 », le « ★ +N AURA » du dauphin, « FIGURE +N » sur la caisse) : on ne les rallume pas ; un nouveau texte au centre se propose d'abord.
 - HUD de course allégé par Sacha (15/10, `<style id="hudAllege">`) : plus de jauge d'aura « MOY » (retirée le 18/10 avec `?jauge=1`), plus de
@@ -697,6 +698,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LA FORÊT NOIRE EN VITRAIL — PONTS, MOUSSE, PLEUREURS (+ LA VILLE AUX FAÇADES GTA) » (17/10, Léo) — `PLEUR`, `FOR_ARB_FS` (le slalom `forZigzag` et la mousse ont été retirés le 18/10)
 
 **Débogage, perf, bancs**
+- « LA GRANDE SÉANCE DE DÉBOGAGE DES MAPS — 17 BUGS CORRIGÉS SUR 9 MAPS, LES 11 VÉRIFIÉES » (22/10) — ville (verre dur selon sa forme), volcan, forêt, canyon, nuages (peau), orage, Crypto City, glacier, dunes (seconde chance), grottes (concrétions) ; le banc sous verrou et l'attente de la chauffe du menu
 - « LA PASSE PERF DU 18/10 — PLUS AUCUN PROGRAMME COMPILÉ EN COURSE (CANYON, APRÈS LE GLACIER) + LE CLASSEMENT DES POSTES » (18/10) — `PISTE_GARDE`, `canyonChauffe`, le banc ×4, ce qui reste (JOUER, portails, puce)
 - « LES PIXELS QUI SE RÉPÈTENT — LE FLOU DE VITESSE SANS MOTIF » (15/10) — `FLOU_MIPS`, `flouMips`, `?flou=ancien` (compose avec `FLOU_V2`) ; le BANC WEBKIT
 - « LA PASSE MOBILE — DÉBOGAGE ET FLUIDITÉ EN NETTE » (14/10) · « LA PASSE QUALITÉ AVANT SORTIE » (12/10)
@@ -746,6 +748,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LES LUMIÈRES DE LA CAISSE v2 — PHARES, FEUX, NITRO ET TRAÎNÉES ÉCLAIRENT LA ROUTE » (17/10) — `LUM_GLSL`, `lumTick`/`lumVue`, `FEU_U`, `LUMK`
 
 **Caisses, boutique, habillages**
+- « LA STRATOS, STATION MÉTÉO — DES GADGETS CYBER-FUTURISTES DE PRÉDICTION MÉTÉO, MOITIÉ TECHNIQUE, MOITIÉ ABSTRAIT » (22/10) — retoucher une caisse en POSANT du matériel sans toucher à sa forme : `code/voitures/stratos-meteo.js`, `stratosMeteo`, `stratosLampe` (la matière des pièces lumineuses qui bougent, hors de la passe des feux), `dbgStratos`, `?stratos=ancien`
 - « LES AILES VIVANTES — QUATORZE AILES, CHACUNE SON GESTE » (16/10) — les ailes en X au boost, battements, la soudure qui les figeait
 - « LES GESTES DES AILES ONT LEUR SON — … » (16/10) — `ailSon`, `ailes.xwing`/`xwingFerme`/`dragon`/`pigeon`, rangés en PCM
 - « LE FILM D'UNE FIGURE — UNE MINI ANIMATION AU RALENTI PAR CARTE » (18/10) — remplace la photo-séquence du 15/10 (`figFilm`, `filmPose`/`filmJoue`, `FILM_FIG`)

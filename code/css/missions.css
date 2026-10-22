@@ -213,4 +213,39 @@ html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-lef
 .srC.ex:not(.fait){background:linear-gradient(180deg,#1a0f3a,#06142b)}
 @media (orientation:landscape) and (max-height:540px){.srC{height:46px}.m2Auj{margin-bottom:8px}}
 @media (prefers-reduced-motion:reduce){.srC.auj{animation:none}}
+/* (2026-10-22, Sacha : « refonte totale de l'onglet missions : la moitié gauche de l'écran sert à rien ; facile, lisible, bien organisé ») DEUX COLONNES.
+   Couché : à gauche AUJOURD'HUI + SUIVIES (.glB), à droite les filtres de famille + la liste (.glA) au-dessus de JOUER, qui s'élargit à la colonne.
+   Debout : les deux panneaux se suivent dans le même défilement. */
+#gmListe.land>.glB{position:absolute;box-sizing:border-box;padding:12px 12px 10px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;pointer-events:auto;
+  background:linear-gradient(180deg,#0b1e39,#060e21);box-shadow:inset 0 0 0 1px rgba(95,240,255,.32),0 0 28px rgba(95,240,255,.10);animation:gmIn .45s var(--ease) backwards .1s}
+#gmListe.land>.glB::-webkit-scrollbar{display:none}
+#gmListe.land.vu>.glB{animation:none}
+@media (orientation:landscape){#gmBas,html.hubOn #gmBas{left:auto;right:calc(var(--sR) + var(--gut));transform:none;width:min(58vw,560px)}}
+#gmListe:not(.land)>.glB{margin-bottom:10px}
+.m2B .m2Auj{margin:0 0 8px;padding:0 0 8px}
+.m2Sui h4,.m2Hd{display:flex;align-items:center;gap:6px;margin:2px 0 6px;font-weight:400;font-size:var(--f0);letter-spacing:2px;color:var(--au1)}
+.m2Sui h4 b,.m2Hd b{margin-left:auto;font-weight:400;color:#8fb8c8;letter-spacing:1px}
+.m2Hd{margin-top:10px;color:#8fb8c8}.m2Hd .pxi{--pxs:1}
+.m2Hd.vert{color:var(--cash)}
+.m2Sui .m2L{min-height:50px;padding:6px 8px 6px 7px;margin-bottom:5px}.m2Sui .m2R{width:60px;height:38px}
+.m2Sui .m2L .glTx b{font-size:var(--f0);line-height:1.35}.m2Sui .m2L u{margin:4px 0 3px}
+.m2Slot{display:flex;align-items:center;gap:10px;min-height:50px;box-sizing:border-box;margin-bottom:5px;padding:6px 10px;color:#5f7f96;font-size:var(--f0);letter-spacing:1px;line-height:1.4;
+  background:rgba(6,20,43,.55);box-shadow:inset 0 0 0 1px rgba(95,240,255,.14);border:1px dashed rgba(95,240,255,.28)}
+.m2Slot i{flex:none;line-height:0;opacity:.7}.m2Slot .pxi{--pxs:2}
+/* les filtres : collés en haut du panneau de droite, l'or dit celui qu'on regarde */
+.m2Chs{position:sticky;top:-12px;z-index:2;display:flex;gap:5px;margin:-12px -12px 8px;padding:10px 12px 8px;background:#0b1e39;box-shadow:0 1px 0 rgba(95,240,255,.18)}
+#gmListe:not(.land) .m2Chs{top:-12px}
+.m2Ch{position:relative;flex:1 1 0;min-width:0;min-height:36px;display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;color:var(--fc,var(--neoC));
+  background:#06142b;box-shadow:inset 0 0 0 1px rgba(95,240,255,.18);font-size:var(--f0);letter-spacing:1px;transition:transform var(--t-fast) var(--ease)}
+.m2Ch:active{transform:translateY(2px)}.m2Ch .pxi{--pxs:2}.m2Ch b{font-weight:400;color:#dfeeff;font-size:var(--f0)}
+.m2Ch>span{color:#dfeeff}
+.m2Ch.on{background:#2b240c;box-shadow:inset 0 0 0 2px var(--au2)}.m2Ch.on b,.m2Ch.on>span{color:var(--au1)}
+.m2ChPt{position:absolute;top:2px;right:2px;width:7px;height:7px;background:var(--cash);box-shadow:0 0 0 1px var(--k0),0 0 8px var(--cash)}
+@media (orientation:landscape) and (max-height:540px){.m2Ch{min-height:32px}.m2Ch .pxi{--pxs:1}.m2B .m2Serie{padding:6px 7px 7px}.m2B .srC{height:44px}.m2Sui .m2L,.m2Slot{min-height:46px}}
+/* la liste : la jauge et son chiffre sur UNE ligne (une mission tient dans ~56 px au lieu de ~70) */
+.m2A .m2L:not(.pret):not(.ok) .glTx{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:8px;align-items:center}
+.m2A .m2L:not(.pret):not(.ok) .glTx>b{grid-column:1/-1}
+.m2A .m2L:not(.pret):not(.ok) .glTx>u{margin:5px 0 0}.m2A .m2L:not(.pret):not(.ok) .glTx>small{margin-top:5px;white-space:nowrap}
+@media (orientation:landscape) and (max-height:540px){.m2A .m2L{min-height:48px;padding:6px 9px 6px 8px;margin-bottom:5px}.m2A .m2R{width:72px;height:40px}.m2Slot{min-height:40px}.m2Sui .m2L{min-height:44px}}
+#gmListe.m2.vu .m2Serie{animation:none}
 </style>

@@ -47,7 +47,7 @@ const TORD_AMP=1.1;
    dévers, au plus un demi-tour en 4 s) et sa pente revient doucement à celle de la piste d'origine — comme avant le portail. `?nuages=tordu` = avant. */
 const NV_CALME=!/[?&]nuages=tordu\b/.test(location.search);
 const TORD_W=[1,0,1.8,2,.5,1.8,.25,.2,2.2,.9,1,0,0]; // [loop,hélice,ÉPINGLE,ESSES,vague,VIRAGE,plongeon,droite,CHICANE,balayage,gap,tire-bouchon,entrelacs] — multiplie les poids de l'archétype
-const TORD_DEVERS={max:50/57.3,k:.75,g:23,lis:.9,vmax:30/57.3,roulis:62/57.3}; // max : l'angle plafond · k : la part du virage relevé physique (atan v²/gR) · g : la gravité MONDE (FALL_G×SPD) · lis : le lissage (s de croisière) · vmax : le roulis du dévers seul au plus (rad/s) · roulis : le roulis TOTAL au plus, vrilles + dévers (rad/s)
+const TORD_DEVERS={max:50/57.3,k:.75,g:23,lis:.9,vmax:30/57.3,roulis:62/57.3,fig:125/57.3}; // max : l'angle plafond · k : la part du virage relevé physique (atan v²/gR) · g : la gravité MONDE (FALL_G×SPD) · lis : le lissage (s de croisière) · vmax : le roulis du dévers seul au plus (rad/s) · roulis : le roulis TOTAL au plus, vrilles + dévers (rad/s) · fig : le roulis au plus DANS une figure dessinée (tonneau, à l'envers, mur : rad/s)
 const TORD={on:false,N:null,info:null};
 /* LA DURÉE DES MAPS (2026-10-18, Léo : « trouve la longueur parfaite des maps — sur téléphone, ni trop courte pour être digérable, ni trop longue ;
    et plus la vitesse va vite, plus on doit avoir l'impression de traverser plein de dimensions ») — v644, essayée sur un lien à part puis validée.
@@ -73,6 +73,16 @@ function longueurCible(){const d=dureeCible();if(!d)return 0;const c=LVL.cur.car
 const DUREE_NOTE={};
 window.dbgDuree=function(){const z=runStats.zones|0;return {on:!!DUREE,reglage:DUREE,zone:z,vise:DUREE_NOTE[z]||null,L:Math.round(L),s:Math.round(s),palier:engTier,suivante:DUREE_NOTE[z+1]||null};}; // (banc) la durée visée de la map en cours, sa longueur réelle
 function hautOn(){const c=LVL.cur;return !PARK.on&&!!c&&(c.id==='nuages'||c.id==='orage')&&!c.sansNuages&&!c.piste&&(started||SF.pret);}
+/* ===== LA ROUTE LIBRE (2026-10-22, Sacha : « dans l'espace et dans les nuages il n'y a ni haut ni bas : retravaille la route pour qu'elle soit plus fun et plus jouable,
+   rajoute des modules, des raccourcis, des passages à l'endroit et à l'envers, garde les spirales mais gère-les bien ») =====
+   Les NUAGES avaient une piste plane ré-enroulée au hasard (pisteTord) ; l'ORBITE, une piste plane qui descendait en houle, sans une vrille. Désormais LES DEUX passent par
+   pisteTord, et genCtrl y pose des FIGURES dessinées (voir « LES FIGURES » dans ville-entree.js) : le LOOPING, le TONNEAU, le PASSAGE À L'ENVERS, le MUR et le PUITS (une
+   spirale propre dont on saute par l'intérieur). Une figure est un module dont le roulis est SCRIPTÉ (MODMARK.f = [[i0,i1,roulis]…]) et dont la forme est protégée des lissages
+   (MODMARK.g) : pisteTord ne tire aucune vrille au hasard dedans, ramène la dalle À L'ENDROIT avant d'y entrer, et laisse le roulis monter jusqu'à `fig` rad/s.
+   `?sans=routelibre` rend les routes d'avant (nuages : 5 modules, orbite : plate) · `?sans=figures` garde l'orbite tordue mais sans les figures dessinées. */
+const ROUTE_LIBRE=!/[?&]sans=([^&]*,)?routelibre(,|&|$)/.test(location.search);
+const ROUTE_FIGURES=ROUTE_LIBRE&&!/[?&]sans=([^&]*,)?figures(,|&|$)/.test(location.search);
+function espTordOn(){const c=LVL.cur;return ROUTE_LIBRE&&!PARK.on&&!!c&&c.id==='espace'&&!c.piste&&!c.camp&&!window.dbgEspOff&&(started||SF.pret);} // (2026-10-22) l'ORBITE en course : sa route aussi se roule dans l'espace
 function hautPente(){return TORD.on?0:1;}
 function pisteTord(ctrl,seed,sansVrille,essai){ // essai : (2026-10-18) le n° de tirage des vrilles — 0 = celui d'origine ; buildTrack en rejoue un autre quand la route se touche (voir tordContacts)
   const q=new THREE.Quaternion(),up=new THREE.Vector3(),c9=new THREE.Vector3();
@@ -100,23 +110,37 @@ function pisteTord(ctrl,seed,sansVrille,essai){ // essai : (2026-10-18) le n° d
      des virages pris sur la tranche, tout le repère a tourné — seul un rappel vers la verticale remet la route à l'endroit. Le DÉPART,
      lui, n'a rien à corriger : la route d'origine y est déjà droite, on la reprend telle quelle. */
   const rg=mulberry32((seed^0x70D5E11A^(essai?Math.imul(essai,0x9E3779B1):0))>>>0),vC=Math.max(70,70+(lvPiste()-1)*100),seg=[],TOUR=Math.PI*2;
-  const s0=Math.max(500,3*vC),fin=Lc-Math.max(1200*lvPiste(),6*vC); // (EN GRAND) plus de vrille dans le geste de fin AGRANDI (un virage de fin fait ~1,1 km) : on se redresse AVANT lui, sinon il part à la verticale et le rappel n'y peut rien (mesuré : portail à 45-50°)
+  const s0=ROUTE_LIBRE?Math.max(450,1.8*vC):Math.max(500,3*vC),fin=Lc-Math.max((ROUTE_LIBRE?700:1200)*lvPiste(),6*vC); // (EN GRAND) plus de vrille dans le geste de fin AGRANDI (un virage de fin fait ~1,1 km) : on se redresse AVANT lui, sinon il part à la verticale et le rappel n'y peut rien (mesuré : portail à 45-50°)
   let s=s0,rho=0;seg.push({s0:0,s1:s0,r0:0,r1:0});
+  /* LES FIGURES DESSINÉES (ROUTE LIBRE) : les zones {a,b} (abscisses en m) des modules marqués `g` ou `f` par genCtrl, avec leurs roulis scriptés {a,b,amt}. La route y est tenue
+     (aucune vrille au hasard) ; `lead` m avant la zone, la dalle est ramenée À L'ENDROIT — on entre dans un looping debout. Une zone trop près du départ ou du portail est laissée à
+     la route ordinaire (la figure plate reste une courbe). */
+  const FZ=[],ZDBG=[],lead=Math.max(520,5*vC);let fi=0;
+  if(!sansVrille&&ROUTE_LIBRE){const lg=cv.getLengths(),nC=Math.max(1,ctrl.length-1),dv=lg.length-1,sOf=function(j){const f=Math.max(0,Math.min(nC,j))/nC*dv,k=Math.min(dv-1,Math.floor(f));return lg[k]+(lg[k+1]-lg[k])*(f-k);};
+    for(const m of MODMARK)if(m.g||m.f){const a=sOf(m.i0),b=sOf(m.i1);ZDBG.push([m.fig||'?',Math.round(a),Math.round(b),Math.round(s0),Math.round(fin),b>fin-40||a<s0+60?0:1]);if(b>fin-40||a<s0+60)continue;
+      FZ.push({a:a,b:b,ev:(m.f||[]).map(function(e){return {a:sOf(e[0]),b:sOf(e[1]),amt:e[2]};})});}
+    FZ.sort(function(x,y){return x.a-y.a;});}
   while(!sansVrille&&s<fin-120){
+    if(fi<FZ.length&&FZ[fi].a-lead-s<60){const z=FZ[fi++];
+      if(z.a>s+1){const w=Math.atan2(Math.sin(rho),Math.cos(rho));seg.push({s0:s,s1:z.a,r0:rho,r1:rho-w});rho-=w;} // à l'endroit avant la figure (le plus court)
+      let c=Math.max(s,z.a);for(const e of z.ev){if(e.a>c+1)seg.push({s0:c,s1:e.a,r0:rho,r1:rho});seg.push({s0:e.a,s1:e.b,r0:rho,r1:rho+e.amt,fig:1});rho+=e.amt;c=e.b;}
+      if(z.b>c+1)seg.push({s0:c,s1:z.b,r0:rho,r1:rho});s=Math.max(s,z.b);continue;}
+    const lim=fi<FZ.length?FZ[fi].a-lead:fin; // la route ordinaire s'arrête `lead` m avant la prochaine figure
     const r=rg();let len,amt=0;
     if(NV_CALME){const w=Math.atan2(Math.sin(rho),Math.cos(rho)); // (MOINS TORDUE, voir NV_CALME) w : le roulis ramené entre −π et π (0 = à l'endroit)
       if(Math.abs(w)>.3){if(r<.35)len=Math.max(250,vC*(2+rg()*2)); // là-haut (couchée, retournée) : 2-4 s de tenue, une fois sur trois…
         else{amt=-w;len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));}} // …puis on revient à l'endroit, par le plus court
-      else if(r<.6){len=Math.max(450,vC*(6+rg()*6));const v9=len;len=Math.min(len,fin-s);if(len<60)break;seg.push({s0:s,s1:s+len,r0:rho,r1:rho,calme:1});s+=len;continue;} // à l'endroit : une longue tenue, 6-12 s — CALME : la dalle y est rappelée vers le ciel (voir plus bas)
+      else if(r<.6){len=Math.max(450,vC*(6+rg()*6));const v9=len;len=Math.min(len,lim-s);if(len<60)break;seg.push({s0:s,s1:s+len,r0:rho,r1:rho,calme:1});s+=len;continue;} // à l'endroit : une longue tenue, 6-12 s — CALME : la dalle y est rappelée vers le ciel (voir plus bas)
       else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<.6?Math.PI/2:k<.95?Math.PI:TOUR);len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));}}
     else if(r<.4)len=Math.max(400,vC*(4+rg()*5)); // une tenue : la dalle reste où elle est (couchée, retournée…) 4-9 s — de quoi respirer entre deux vrilles
     else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<.45?Math.PI/2:k<.9?Math.PI:TOUR);len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));} // (EN GRAND) ~3× plus lentes qu'au premier jet, le tour complet rare
-    const veut=len;len=Math.min(len,fin-s);if(len<60)break;
+    const veut=len;len=Math.min(len,lim-s);if(len<60)break;
     if(amt&&len<veut*.7)amt=0; // pas la place de la vrille entière avant le portail : on tient, on ne la serre pas
     seg.push({s0:s,s1:s+len,r0:rho,r1:rho+amt});s+=len;rho+=amt;}
   const rhoAt=function(x){for(const g of seg)if(x<=g.s1){if(x<=g.s0)return g.r0;const u=(x-g.s0)/(g.s1-g.s0);return g.r0+(g.r1-g.r0)*u*u*(3-2*u);}return rho;};
   const droit=new Uint8Array(n1+1);
   if(!sansVrille){const mk=function(x0,x1){for(let i=Math.max(0,Math.floor(x0/h));i<=Math.min(n1,Math.ceil(x1/h));i++)droit[i]=1;};mk(fin,Lc+h);}
+  const figI=new Uint8Array(n1+1);for(const g of seg)if(g.fig)for(let i=Math.max(0,Math.floor(g.s0/h));i<=Math.min(n1,Math.ceil(g.s1/h));i++)figI[i]=1; // les pas où une figure roule la dalle (plafond de roulis plus haut)
   const calme=new Uint8Array(n1+1);if(!sansVrille&&NV_CALME)for(const g of seg)if(g.calme)for(let i=Math.max(0,Math.ceil(g.s0/h));i<=Math.min(n1,Math.floor(g.s1/h));i++)calme[i]=1; // (MOINS TORDUE) les tenues à l'endroit
   /* 2 bis) LE DÉVERS (2026-10-18) : dans chaque virage la dalle se couche vers l'INTÉRIEUR, de l'angle qu'aurait un virage relevé pris
      à la croisière (atan v²/gR, plafonné) — l'épingle se prend presque sur la tranche, le grand balayage à peine penché. Le lacet est relevé dans le
@@ -143,7 +167,7 @@ function pisteTord(ctrl,seed,sansVrille,essai){ // essai : (2026-10-18) le n° d
       c9.set(0,0,0).addScaledVector(N2,an).addScaledVector(B2,ab).addScaledVector(T2,at).normalize();q.setFromAxisAngle(c9,Math.atan2(sn,cs));T2.applyQuaternion(q);N2.applyQuaternion(q);}
     T2.normalize();N2.addScaledVector(T2,-N2.dot(T2)).normalize();
     const rN=rhoAt((i+1)*h)+dev[i+1];let rl; // (2026-10-18) + le DÉVERS (2 bis)
-    {const mR=TORD_DEVERS.roulis/vC*h,dR=THREE.MathUtils.clamp(rN-rhoP,-mR,mR);rl=om[i]+dR;rhoP+=dR;} // (2026-10-18) le roulis TOTAL borné (vrille + dévers qui s'ajoutent) : le retard se rattrape dans la tenue qui suit
+    {const mR=(figI[i+1]?TORD_DEVERS.fig:TORD_DEVERS.roulis)/vC*h,dR=THREE.MathUtils.clamp(rN-rhoP,-mR,mR);rl=om[i]+dR;rhoP+=dR;} // (2026-10-18) le roulis TOTAL borné (vrille + dévers qui s'ajoutent) : le retard se rattrape dans la tenue qui suit
     if(calme[i+1]&&!droit[i+1]){const ty=Math.abs(T2.y);if(ty<.95){up.set(-T2.x*T2.y,1-T2.y*T2.y,-T2.z*T2.y);if(up.lengthSq()>1e-8){up.normalize();up.applyAxisAngle(T2,dev[i+1]); // (MOINS TORDUE) le ciel, penché du dévers
       const th=Math.atan2(c9.crossVectors(N2,up).dot(T2),N2.dot(up)),mx=Math.min(.05,Math.PI/(4*vC))*h*Math.min(1,(.95-ty)/.25);rl=THREE.MathUtils.clamp(th,-mx,mx);rhoP=rN;}}} // au plus un demi-tour en 4 s de croisière : la route se REMET à l'endroit pendant la tenue
     if(droit[i+1]){rl=0;const ty=Math.abs(T2.y);if(ty<.95){up.set(-T2.x*T2.y,1-T2.y*T2.y,-T2.z*T2.y);if(up.lengthSq()>1e-8){up.normalize(); // le rappel vers le ciel, sans la condition « pas à l'envers » — (EN GRAND) et jusque dans les montées raides (.7 → .95) : un rappel plus doux doit pouvoir agir partout
@@ -162,7 +186,7 @@ function pisteTord(ctrl,seed,sansVrille,essai){ // essai : (2026-10-18) le n° d
    for(const m of MODMARK){m.i0=ix(m.i0);m.i1=ix(m.i1);}}
   FILETMARK.length=0;
   TORD.info={L:Math.round(Lc),vrilles:seg.filter(function(g){return g.r1!==g.r0;}).length,portailNy:+NN[n1-1].y.toFixed(2),tours:+(seg.reduce(function(a,g){return a+Math.abs(g.r1-g.r0);},0)/(Math.PI*2)).toFixed(2),rMaxDegM:+(rMax*57.3).toFixed(2),
-    ecartFin:Math.round(Q[n1-1].distanceTo(P[n1-1])),deversMaxDeg:Math.round(devMax*57.3)};
+    ecartFin:Math.round(Q[n1-1].distanceTo(P[n1-1])),deversMaxDeg:Math.round(devMax*57.3),figures:FZ.length,zones:ZDBG,figuresMarquees:MODMARK.filter(function(m){return m.fig;}).length};
   return {ctrl:out,N:outN};
 }
 /* LA ROUTE QUI NE SE TOUCHE PAS (2026-10-18, avec LES VIRAGES DE COURSE). Plus serrée, la piste enroulée dans l'espace repasse

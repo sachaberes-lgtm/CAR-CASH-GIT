@@ -32,6 +32,7 @@ css/missions.css                     # missionsV2 (l'écran des missions)
 css/garage-jouer.css                 # uiRevue, jouerGarage, garShop
 page/ecrans-garage.html              # HTML : accueil, garage, atelier, inventaire, voile du départ, compteur, dark triad, niveaux
 css/plaque.css                       # <style id="plaque"> (plaque d'immatriculation)
+css/boutons-flottants.css           # <style id="boutonsFlottants"> : ⚙ · œil · trophée flottants en haut à droite, BOUTIQUE en L (touche entrée)
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
 page/bibliotheques.html              # <script src> : three.js, figures, sons, post-traitement — et l'ouverture du <script> du jeu
 interface/icones-fenetre.js          # ouverture du jeu (function, 'use strict'), icônes pixel, la fenêtre du jeu
@@ -93,6 +94,7 @@ maps/niveaux.js                      # les niveaux, le mode classique au hasard,
 maps/continuite.js                   # continuité des maps, la planète du niveau
 maps/orbite-1.js                     # L'ORBITE : la lune, les Starlink, les variantes empilées
 maps/orbite-2.js                     # orbite : le soleil hors cadre, la pose des tranches
+maps/orbite-planetes.js             # les autres planètes du ciel d'orbite : Jupiter, Mars, Saturne, Neptune, Mercure
 rendu/trainees-1.js                  # traînées pop : la planche
 rendu/trainees-2.js                  # traînées pop : les dix traînées
 voitures/atchoum-feu.js              # Atchoum : le feu
@@ -124,6 +126,7 @@ voitures/atchoum-squale.js           # Atchoum, le Squale
 voitures/caisse-pieces.js            # la caisse en un minimum de dessins
 voitures/ailes.js                    # les ailes
 voitures/finition.js                 # la finition studio (dans le jeu ; ?finition=ancien = avant) : lumière de studio, vernis profond, reflets qui éclatent
+voitures/stratos-meteo.js            # LA STRATOS, station météo : anémomètre, manche à air, radars Doppler, gyroscope, barre de prévision (?stratos=ancien)
 voitures/buildcar.js                 # buildCar : construire une voiture
 voitures/plaque.js                   # la plaque d'immatriculation, le profil
 interface/vignette-moteur.js         # vignette moteur, étapes de chauffe

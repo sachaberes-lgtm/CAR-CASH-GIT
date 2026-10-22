@@ -175,6 +175,11 @@ function dnLevre(s0){if(side<0||introD||driveDir<0)return;const a=Math.min(s0,s)
     const vy=Math.min(24,Math.max((g2*t*t-D)/t,(4+g2*.1225-d35)/.35)),u=THREE.MathUtils.clamp(vy/SPD-ty*Math.abs(vA)*vm,0,60);DN.dbgLev={vx:+vx.toFixed(1),vy:+vy.toFixed(1),u:+u.toFixed(1),ty:+ty.toFixed(3),t:+t.toFixed(2),D:+D.toFixed(1),d35:+d35.toFixed(1),k:DN.lev.indexOf(k),tag:k.tag};
     rampCd=1.2;startFall(u,1);shake=Math.max(shake,.42);fovPunch=Math.max(fovPunch,9);try{hap([8,14]);}catch(e){}DN.sauts=(DN.sauts|0)+1;return;}} // (le coup de tremplin : un coup de grand-angle et une secousse)
 /* EN VOL : le sable, l'eau de l'oasis, les obélisques et la pyramide tuent (5 points de caisse) — renvoie la cause, ou '' */
+/* LA CAISSE REPLACÉE REPART LANCÉE (2026-10-22, DEBUGGING : la seconde chance des dunes) — respawn() repose la caisse 8 m avant safeS, à vA 26 (~45 km/h). Dans les
+   dunes, la dernière dalle roulée avant une chute est la LÈVRE : la caisse replacée y arrive au pas, dnLevre la lance à ~23 m/s, 2,6 s de vol font ~60 m au-dessus d'un
+   vide de 70 à 200 m → ENSEVELI DANS LE SABLE à coup sûr (MESURÉ : la reprise gagnée d'une pub re-meurt sur la même lèvre ; sous le bouclier, chaque chute la replace
+   au même endroit). Sur une map à trous, la caisse replacée repart à la croisière du palier (vPalier) : la lèvre suivante la pose comme d'habitude. */
+function dnRelance(){if(!DN.on||!TROUS.length||mode!=='drive')return;const v9=vPalier()/(SPD*vitMult());if(Math.abs(vA)<v9){vA=v9;DN.relance=(DN.relance|0)+1;}}
 const DN_H9={};
 function dunesHeurt(p){if(!DN.on||!DN.Z)return '';
   for(const o of JH){const x=p.x+o[0],z=p.z+o[1],h=dnHauteur(x,z,DN_H9);if(p.y<h+.7)return DN_H9.eau?'oasis':'sable';}

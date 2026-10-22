@@ -24,13 +24,13 @@
    Console : dbgSerie() · dbgSerie('jour',n) (pose la série à n jours, prise hier) · dbgDefiJour() · ('force','fig') · ('reussi') · ('demain'). */
 const SERIE7={on:!/[?&]serie=ancien\b/.test(location.search),
   lots:[{cash:150},{cash:250},{jeton:1},{cash:400},{cash:600},{jeton:1},{exclu:1}],
-  exclu:['srBraise','srAurore','srLagon','srEtoile'],plein:{jeton:2}};
+  exclu:[],plein:{jeton:2}}; /* (2026-10-22, Sacha : « tableau des peintures ») les quatre peintures de la série passent à l'achat (1 €) : le 7e jour ne donne plus que le plein de jetons */
 /* LES QUATRE PEINTURES DE LA SÉRIE — `serie:1` : ni prix, ni mission ; shopOwned / m2HabAMoi ne les donnent qu'une fois gagnées ; hors des lots « toutes » des missions (m2HabReco) */
 COSM.peinture.push(
-  {id:'srBraise',n:'BRAISE FIDÈLE',serie:1,r:'epique',g:'o',grad:[0xb3141c,0xff5a1c,0xffc23a],d:'Ne s\'achète pas : le 7e jour de ta série. Sept jours d\'affilée sur l\'asphalte, la laque en garde la chaleur.'},
-  {id:'srAurore',n:'AURORE BORÉALE',serie:1,r:'epique',g:'c',grad:[0x3cffc0,0x6fb8ff,0xc77dff],d:'Ne s\'achète pas : le 7e jour de ta série. Le ciel du Grand Nord, pour ceux qui reviennent chaque jour.'},
-  {id:'srLagon',n:'LAGON INTERDIT',serie:1,r:'epique',g:'g',grad:[0x01404f,0x00b3c7,0x9ff7ff],d:'Ne s\'achète pas : le 7e jour de ta série. Une eau que personne n\'a le droit de voir. Toi si.'},
-  {id:'srEtoile',n:'NUIT ÉTOILÉE',serie:1,r:'epique',g:'c',grad:[0x2a1f8f,0x8f5bff,0xff7ad9],d:'Ne s\'achète pas : le 7e jour de ta série. La nuit entière sur ta carrosserie, une semaine de plus.'});
+  {id:'srBraise',n:'BRAISE FIDÈLE',eur:'1 €',r:'epique',g:'o',grad:[0xb3141c,0xff5a1c,0xffc23a],d:'Sept jours d\'affilée sur l\'asphalte, la laque en garde la chaleur.'},
+  {id:'srAurore',n:'AURORE BORÉALE',eur:'1 €',r:'epique',g:'c',grad:[0x3cffc0,0x6fb8ff,0xc77dff],d:'Le ciel du Grand Nord, pour ceux qui reviennent chaque jour.'},
+  {id:'srLagon',n:'LAGON INTERDIT',eur:'1 €',r:'epique',g:'g',grad:[0x01404f,0x00b3c7,0x9ff7ff],d:'Une eau que personne n\'a le droit de voir. Toi si.'},
+  {id:'srEtoile',n:'NUIT ÉTOILÉE',eur:'1 €',r:'epique',g:'c',grad:[0x2a1f8f,0x8f5bff,0xff7ad9],d:'La nuit entière sur ta carrosserie, une semaine de plus.'});
 function serieCase(n){return ((Math.max(1,n|0)-1)%7)+1;} /* le jour de série n → sa case du calendrier (1 … 7) */
 function serieLot(c){const L=SERIE7.lots[c-1]||SERIE7.lots[0];if(!L.exclu)return L;const id=serieExclu();return id?{exclu:id}:SERIE7.plein;}
 function serieExclu(){const o=(SAVE.d.shop&&SAVE.d.shop.own)||[];for(const id of SERIE7.exclu)if(o.indexOf('peinture:'+id)<0)return id;return '';} /* la prochaine peinture pas encore à toi */

@@ -310,7 +310,7 @@ function cryptoAth(){ // LE NOUVEL ATH : le cours grimpe, la pluie redouble, le 
 }
 function cryptoTick(dt,sim){
   const on=cryptoOn()&&!!CRYPTO.root;
-  if(!on){if(CRYPTO.lune&&CRYPTO.lune.visible){CRYPTO.lune.visible=false;CRYPTO.feux.visible=false;for(const f of CRYPTO.fus){f.on=false;f.g.visible=f.tr.visible=false;}}return;}
+  if(!on){if(CRYPTO.lune&&(CRYPTO.lune.visible||CRYPTO.feux.visible)){CRYPTO.lune.visible=false;CRYPTO.feux.visible=false; /* (2026-10-18, DEBUGGING : les gerbes du NOUVEL ATH partent en setTimeout jusqu'à 1 s après lui — un ATH juste avant le portail rallumait les FEUX dans la map suivante, où la lune est déjà cachée : ils restaient dans la scène toute la map, un appel de dessin de 1 200 points. Mesuré : ATH à 60 m du portail → feux visibles sur toute la MER DE NUAGES suivante) */for(const f of CRYPTO.fus){f.on=false;f.g.visible=f.tr.visible=false;}}return;}
   const d=sim?dt:0,cam=camera.position;CRYPTO.uT.value+=d;const t=CRYPTO.uT.value;CRYPTO.uSun.value.copy(SUN_DIR);CRYPTO.uNuit.value=LVL.nuit||0;
   // la lune ₿
   {const L9=CRYPTO.lune;L9.visible=true;L9.position.copy(cam).addScaledVector(MOON_DIR,5200);L9.scale.setScalar(5200*.16);L9.material.rotation=Math.sin(t*.25)*.12;}

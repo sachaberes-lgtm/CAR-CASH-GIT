@@ -328,8 +328,8 @@ function vdepInit(){
     if(n===vdepN())return;
     SAVE.d.vdep=n;SAVE.mark();try{uiClic('onglet');}catch(_){}try{hap(8);}catch(_){}vdepMaj();});
   vdepMaj();
-  setInterval(function(){try{ // (la grille et les étiquettes suivent leurs boutons ; un record de moteur, le code cousin, la langue : les crans se redisent)
-    const sg=((SAVE.d.ex&&SAVE.d.ex.eng)|0)+','+cousin()+','+(SAVE.d.vdep|0)+','+VDEP_TOUT+','+(typeof LANG!=='undefined'?LANG:'');
+  setInterval(function(){try{ // (la grille et les étiquettes suivent leurs boutons ; un record de moteur, la langue : les crans se redisent)
+    const sg=((SAVE.d.ex&&SAVE.d.ex.eng)|0)+','+(SAVE.d.vdep|0)+','+VDEP_TOUT+','+(typeof LANG!=='undefined'?LANG:'');
     if(sg!==VDEP.sig){VDEP.sig=sg;vdepMaj();if(VDEP.etal&&VDEP.nVu>=0)vdepPlaque(VDEP.nVu);}else vdepPlace();}catch(e){}},250);
 }
 function vdepMaj(){
