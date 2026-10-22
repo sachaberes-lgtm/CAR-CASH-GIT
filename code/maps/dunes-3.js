@@ -93,7 +93,7 @@ function dnCuiseur(){let cap=1<<15,n=0,P=new Float32Array(cap*3),Nm=new Float32A
     fin:function(){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P.slice(0,n*3),3));g.setAttribute('normal',new THREE.BufferAttribute(Nm.slice(0,n*3),3));g.setAttribute('color',new THREE.BufferAttribute(C.slice(0,n*3),3));
       g.setAttribute('aK',new THREE.BufferAttribute(K.slice(0,n),1));g.computeBoundingSphere();return g;}};}
 /* LES COULEURS DE LA DA : le grès chaud, le lapis (le teal contre l'or), l'or, la terre cuite, la faïence turquoise */
-const DN_COL={gres:[.95,.83,.66],gres2:[.87,.71,.53],cre:[.98,.92,.80],lapis:[.26,.40,.80],azur:[.30,.54,.98],or:[1,.80,.34],terre:[.74,.38,.24],turq:[.22,.70,.70],noir:[.12,.10,.10],sable:[.96,.78,.50],os:[.96,.93,.84]};
+const DN_COL={gres:[.95,.83,.66],gres2:[.87,.71,.53],cre:[.98,.92,.80],lapis:[.18,.32,.66],azur:[.26,.48,.88],granit:[.72,.49,.45],or:[1,.80,.34],terre:[.74,.38,.24],turq:[.22,.70,.70],noir:[.12,.10,.10],sable:[.96,.78,.50],os:[.96,.93,.84]};
 /* LES MODÈLES (hauteur et largeurs en mètres, à poser tels quels ou à l'échelle UNIFORME) — `dnMod(nom)` rend la géométrie (cachée) */
 /* LES PYRAMIDES DE GIZEH (2026-10-22, Léo : « des pyramides plus belles ») — demi-base 1, haut ~ 1 : v0 KHÉOPS (le parement de calcaire de Tura, crème et poli, l'ÉLECTRUM du pyramidion qui flambe au soleil), v1 KHÉPHREN (le haut a gardé
    son parement blanc — « un second sommet » —, le bas est nu, en assises), v2 MYKÉRINOS (les assises du bas en GRANIT ROUGE d'Assouan, le haut en calcaire). Des assises de calcaire tout du long (le dégradé : plus chaud au pied, plus blanc au sommet) */
@@ -112,7 +112,7 @@ function dnFlag(g,x,y,z,L,Hh,cols,n){n=n||8;for(let i=0;i<n;i++){const u0=i/n,u1
 const DN_MOD={
   // L'OBÉLISQUE : le socle à deux marches, le fût de lapis qui s'affine, des bandeaux d'or, le pyramidion d'or (h = 64, base 8 m)
   obelisque:function(){const g=dnKit(11),b=4,h=64,C=DN_COL;g.box(0,0,0,4.6*b,.7*b,4.6*b,C.gres2,1,1);g.box(0,.7*b,0,3.5*b,.6*b,3.5*b,C.gres,1);
-    const y0=1.3*b,hs=h*.86-y0,w0=2*b,w1=1.58*b,fw=f=>w0+(w1-w0)*f;g.frus(0,y0,0,w0,w0,w1,w1,hs,C.lapis,4,0,0,0,.03);
+    const y0=1.3*b,hs=h*.86-y0,w0=2*b,w1=1.58*b,fw=f=>w0+(w1-w0)*f;g.frus(0,y0,0,w0,w0,w1,w1,hs,C.granit,4,0,0,0,.03);
     for(const f of [.10,.34,.58,.82]){const yy=y0+hs*f,ww=fw(f);g.frus(0,yy,0,ww*1.035,ww*1.035,ww*1.035,ww*1.035,h*.014,C.or,3);}
     g.frus(0,y0+hs,0,w1*1.06,w1*1.06,w1*1.06,w1*1.06,h*.012,C.or,3);g.frus(0,y0+hs+h*.012,0,w1,w1,0,0,h-(y0+hs+h*.012),C.or,3);return g.fin();},
   // LE PYLÔNE (une tour de temple, h = 30, base 14 × 9) : murs en fruit, corniche à gorge, quatre mortaises de mâts, un cartouche gravé
@@ -215,8 +215,8 @@ const DN_MOD={
   ,
   // le fût seul (l'obélisque BRISÉ : le dessus en dents de scie) et ses blocs
   obeliskTronc:function(){const g=dnKit(13),b=4,h=64,C=DN_COL;g.box(0,0,0,4.6*b,.7*b,4.6*b,C.gres2,1,1);g.box(0,.7*b,0,3.5*b,.6*b,3.5*b,C.gres,1);const y0=1.3*b,hs=h*.86-y0,w0=2*b,w1=1.58*b;
-    g.frus(0,y0,0,w0,w0,w1,w1,hs,C.lapis,4,0,0,0,.03);for(const f of [.10,.34,.58,.82]){const ww=w0+(w1-w0)*f;g.frus(0,y0+hs*f,0,ww*1.035,ww*1.035,ww*1.035,ww*1.035,h*.014,C.or,3);}
-    for(let k=0;k<5;k++){const a=k/5*6.28319,x=Math.cos(a)*w1*.3,z=Math.sin(a)*w1*.3;g.frus(x,y0+hs-1,z,w1*.42,w1*.42,w1*.2,w1*.2,2+((k*7)%3),C.lapis,4);}return g.fin();},
+    g.frus(0,y0,0,w0,w0,w1,w1,hs,C.granit,4,0,0,0,.03);for(const f of [.10,.34,.58,.82]){const ww=w0+(w1-w0)*f;g.frus(0,y0+hs*f,0,ww*1.035,ww*1.035,ww*1.035,ww*1.035,h*.014,C.or,3);}
+    for(let k=0;k<5;k++){const a=k/5*6.28319,x=Math.cos(a)*w1*.3,z=Math.sin(a)*w1*.3;g.frus(x,y0+hs-1,z,w1*.42,w1*.42,w1*.2,w1*.2,2+((k*7)%3),C.granit,4);}return g.fin();},
   // LA PORTE (un pylône double, h = 30 : deux tours en fruit de 14 × 9 de part et d'autre d'une baie de 12 m, un linteau gravé, une corniche, des mâts, des marches)
   porte:function(){const g=dnKit(27),C=DN_COL,h=30,w0=14,d0=9,w1=11.4,d1=7,gap=12;
     for(const sx of [-1,1]){g.push();g.T(sx*(gap/2+w0/2),0,0);g.box(0,0,0,w0*1.12,1.1,d0*1.14,C.gres2,1,1);g.frus(0,1.1,0,w0,d0,w1,d1,h-1.1,C.gres,1,0,0,0,.05);g.box(0,h-.2,0,w1*1.1,1.6,d1*1.14,C.gres2,1);g.box(0,h+1.3,0,w1*1.16,.7,d1*1.2,C.or,3);

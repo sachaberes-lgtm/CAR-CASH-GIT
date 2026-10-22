@@ -107,7 +107,7 @@ function dnDune(x,z,W,lam,o){ /* (le bruit lu aux SEULES grandes échelles, cana
 /* LES BUTTES (2026-10-22, Léo : « le niveau dune n'est pas au niveau — regarde jade, la grotte, la forêt » : des masses qui dressent l'horizon, comme les pics de jade) — des plateaux de grès à flancs raides, ajoutés
    au sable LOIN de la route (dr = la distance à la route, 260 m → rien, 520 m → plein) : le masque est un seuil du bruit (canal 1, tuile de 6 km), le haut (70 à 180 m) un autre bruit (canal 2). Même
    fonction dans le GLSL de la puce (dnMesa de DN_VS) : toute retouche ici se refait là-bas. */
-function dnMesa(x,z,dr){if(DN.sb)return 0;const n=cyNz(x/6000+.21,z/6000+.73,1),e=Math.max(0,Math.min(1,(n-.60)/.012)),m0=e*e*(3-2*e);if(m0<=0)return 0;
+function dnMesa(x,z,dr){if(DN.sb)return 0;const n=cyNz(x/11000+.21,z/11000+.73,1),e=Math.max(0,Math.min(1,(n-.58)/.14)),m0=e*e*(3-2*e);if(m0<=0)return 0;
   const t=cyNz(x/1700+.5,z/1700+.1,2),f=Math.max(0,Math.min(1,(dr-260)/260)),w=f*f*(3-2*f),F9=DN.fin;let fe=1;if(F9){const q=Math.max(0,Math.min(1,(Math.hypot(x-F9.x,z-F9.z)-1800)/1200));fe=q*q*(3-2*q);} // (aucune butte autour de l'arrivée : les pyramides, l'oasis, le portail)
   return m0*w*fe*(70+110*t);}
 const DN_O9={};
