@@ -3,6 +3,12 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE GARAGE : TAIL WHIP AU SOL, ŒIL ET RÉGLAGE ÉCHANGÉS, LE BAS REPRIS (2026-10-22 soir, v803, Sacha : « le tail whip à l'inventaire, la caisse décolle : il faut que ça reste sur le sol, avec une trace de pneus comme les donuts » ; « l'œil à la place du cadenas » ; « retravaille tous les boutons »)
+- **Figure à plat = caisse posée** (`garFigEssai` → `GFIG.plat`, boutique-scene-1.js) : une figure dont tous les axes sont verticaux (tail whip, toupie) ne soulève plus la caisse (le saut `1,5·sin` ne vaut que pour les autres) ; `garFigGomme` (burn-out-1.js) dépose la gomme des QUATRE pneus sur la même toile que le donut (`BURN.gom`), de point en point.
+- **Œil ⇄ réglage** (boutons-flottants.css) : le haut droit lit ŒIL · ⚙ · 🏆 (écart --fg 8 px). Lu « cadenas » = le ⚙ doré : à redire si c'était le trophée.
+- **Le bas** : INVENTAIRE / MISSIONS à 9 px, pictogrammes 27 px ; la BOUTIQUE en L a un reflet qui passe et un panier qui rebondit (coupés en mouvement réduit).
+Pas vérifié : le bras des figures (`?bras=1`) garde sa levée.
+
 ## JADE PLUS LÉGER — SON CIEL DANS UN PROGRAMME À LUI, LES PEAUX VIDES, LES SINGES ÉTEINTS (2026-10-22, v798, Léo : « enlève les singes de la map jade ou rends-les plus légers, et rends la map plus légère au code : sur la map grotte ça bugue moins et pourtant c'est aussi joli »)
 Banc : Chrome sans fenêtre (profil iPhone 390 × 844, NETTE), images FIGÉES à des endroits fixes de la vallée, mesures ENTRELACÉES (A, B, A, B…) dans la même page —
 la machine était à une charge de 30-80 (le Mac de Léo aussi, côté app Claude) : aucun chiffre en ms n'est fiable seul, seuls comptent les compteurs et les A/B de la même page.
@@ -59,6 +65,9 @@ MESURÉ, la grotte (310 k triangles, ~200 appels, 3-4 ms de scène) contre les P
   une montre sur quatre en acier (tirage une sur deux). Course sans erreur couché, debout et dans le cadre de l'ordi.
 - ⚠ **LE PIÈGE** (déjà dans le guide de l'assembleur) : une retouche faite dans index.html SEUL disparaît au prochain réassemblage depuis les morceaux. Après une fusion,
   `node code/assembler.cjs --verifier` d'abord ; s'il dit ≠, ranger la page dans les morceaux (`--depuis-index`), jamais l'inverse à l'aveugle.
+
+## DEUX PEINTURES SECRÈTES AJUSTÉES (2026-10-22, v802, Sacha : « oui » aux points de la revue)
+- **MENTHE GLACÉE** compte la neige ET le blizzard du glacier (neige seule : un niveau sur 66). **CHROME MIROIR** : cinq niveaux sur la mer de nuages (un seul l'ouvrait à la 1re course) ; indice « Cinq niveaux dans les nuages. » (anglais : « Five levels in the clouds. »).
 
 ## LES CORRECTIFS DE LA REVUE (2026-10-22, v799, Sacha : « corrige ATCHOUM, traduis les indices, ne rembourse que ce qui a été acheté »)
 - **ATCHOUM** n'a plus qu'UNE mission (`figs500`) : `geyser` paie 15 000 $ (À VALIDER) — l'`av` imbriqué de CAR_UNLOCK[69] disparaît.
