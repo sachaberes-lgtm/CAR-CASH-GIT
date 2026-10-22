@@ -3,12 +3,53 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
-## LE TABLEAU DES VOITURES, DEUXIÈME VAGUE : DÉFIS À COMPTEUR, PRIX, RETRAITS (2026-10-22, v786, Sacha : « pousse tout »)
+## LE TABLEAU DES VOITURES, DEUXIÈME VAGUE : DÉFIS À COMPTEUR, PRIX, RETRAITS (2026-10-22, v787, Sacha : « pousse tout »)
 - **Compteurs à vie** (`SAVE.d.m2.c`, missions/defis-moteur.js : m2Tick, m2Fig, pwrPrend → m2Pu) : `pu` power-ups · `nitS` / `nmaxS` secondes de nitro / de nitro max · `figs` figures · `airS` secondes en l'air · `kmTot` kilomètres · `verglasKm` km sur le verglas du glacier (`BANQ.sur>0`) · `met` les temps joués par map (`m2Meteo`, LA STRATOS) · `M2R.sonne` (aucun son ni musique de toute la partie → drapeau `silence`).
 - **Missions** : LE DÉFIEUR `pu100` · LE SAMOURAÏ `nmax100` · ATCHOUM `figs500` · LA TAURINE `nit2000` · LE MASTODONTE `air1000` · LA QUEUE DE CANARD `km100k` (100 000 km) · L'ICEBERG `verglas100` · LA STRATOS `meteo` · LA SILENCIEUSE `silence` (secrète) · LE CHARGEUR `mis10` · LE CORBILLARD `morts100` (visibles désormais). Les récompenses qui ne donnent plus une caisse paient de l'argent (À VALIDER : L'ORIGAMI 30 000, LE SPECTRE 20 000, LE MUR DU SON 25 000, LA FOURNAISE et LA CAISSE-NUAGE 20 000, L'ÉTERNELLE 25 000, ex-STRATOS 15 000, ex-SILENCIEUSE 10 000).
 - **Prix / boutique** : ACIDE 200 000 · L'ORIGAMI 280 000 · LE SPECTRE 420 000 (épique) · L'ÉTERNELLE, LE MUR DU SON, POSTER 84 en boutique à 1,61 € (légendaires).
 - **Retirées** : LA CAISSE-NUAGE, L'ABSTRAITE, LA FOURNAISE (remboursement au prix de CAR_UNLOCK).
 - **Laissés tels quels, à décider** : LE HOT ROD (« toutes les musiques jusqu'au palier 10 » : sens à préciser), LE SQUALE (reste en boutique à 1,61 €).
+## LA GRANDE SÉANCE DE DÉBOGAGE DES MAPS — 17 BUGS CORRIGÉS SUR 9 MAPS, LES 11 VÉRIFIÉES (2026-10-22, v787, Sacha, session DEBUGGING : « lance une immense session de debugging surtout centré sur les map, lance autant de sous-agents que tu veux, qu'il n'y ait aucun bug »)
+Deux vagues d'agents (18-19/10 : un par map + portails, mort/reprise, météos ; 22/10 : grottes, dunes, décor au hasard + nuages en cubes,
+transitions), chacun sur sa copie, au banc CDP sous le verrou commun ; les correctifs de la 1re vague (scratchpad effacé au redémarrage du Mac)
+ont été repêchés dans les transcriptions et reportés sur le code découpé. Chaque correction : prouvée au banc avant/après, puis les 11 maps
+(+ tel, debout, cadre) et une chaîne par le vrai portail, chauffe du menu attendue : 0 erreur, 0 programme compilé en course.
+- **LA VILLE** (`villeForme`, `villeSFj`, `villeSS`, `CITY.col.f`, `villeHeurt`) : les géantes de verre étaient dures selon leur BOÎTE — mort en vol
+  contre l'air jusqu'à 31 m à côté du verre (100 % des tours effilées/rondes/lames), le fuseau traversable. Dures selon leur forme visible
+  (mêmes anneaux que `vitreGeoFab`, biseau, toit de lame) ; béton et Crypto City inchangés. Et dans `batir`, `yV` suit le VRAI toit des tours de
+  béton (un retrait sauté par le `break`) : couronnes au néon, mâts et feux d'antenne ne flottent plus 95-256 m au-dessus (7-26 par ville → 0).
+- **LE VOLCAN** (le rabot du sol, `EV`/`EVon`) : sur la spirale de `vlcTrace3`, la dalle la plus basse à 120 m prenait le tour d'EN DESSOUS —
+  falaises de 110-250 m sous la moitié de la route et un lac de cratère qui FLOTTAIT en couvercle sur des rideaux de lave. Chaque route garde son
+  couloir ; le lac ne monte plus au-dessus de la lèvre rabotée. `dbgVolcan('test')` : 0/0 avant et après (photos même `pistegraine`).
+- **LA FORÊT** (`buildForetG`) : le fût d'un géant devenu saule/hêtre PLEUREUR mordait la route (32 géants sur 15 graines, jusqu'à 4 m) — testé
+  contre la chaussée (l'autre pleureur, sinon la clairière vide ; tirages inchangés). `FORET.yRaz` enfin posé (la brume du fond glissait 2 s).
+- **LE CANYON** (`cyCouloirHeurt`) : la bande des Étroits et du tunnel est bornée en long — plus de mort « encastré dans la paroi » contre rien,
+  jusqu'à 85 m avant la bouche du tunnel et après la sortie des Étroits.
+- **LES NUAGES** : `mkCloud` reteste la garde du ruban avec la VRAIE hauteur des nuages v8 (une tour sur ~450 laissait passer la route dedans).
+  La PEAU d'un nuage seul (v773, `nuSkinGeo`, `mesh.userData.peau`) est libérée par `disposeClouds` : 43 créées / 0 libérées → 38 / 38.
+  L'ORAGE des nuages (niveau d'id `'orage'`) entre dans `contiMap` et `routeSig` : bitume commun, ciel continu, ligne centrale OR — ⚠ le rendu
+  de l'orage change un peu (route plus neutre, ciel plus saturé) : à juger à l'œil, deux entrées à retirer si non.
+- **CRYPTO CITY** (`cryptoTick`) : les gerbes d'un NOUVEL ATH tiré juste avant le portail (setTimeout jusqu'à 1 s) restaient allumées toute la map suivante.
+- **LE GLACIER** : un `//` en milieu de ligne avalait le frein du voile de givre (`fx.brume.drag`) et son nom. La section 4 bis de `buildBanqG`
+  (tremplins, massif, fourche, champ, porte, îlot) prend son PROPRE flux (`seed^0xB0B57AC`) : le décor au hasard rebattait les pics de la piste
+  (16 contre 14 avec/sans décor, même graine) — la disposition des pics change donc par rapport à v785, toujours au hasard.
+- **LES DUNES** (`dnRelance`, dans `chanceRepart` et `chanceProtege`) : la SECONDE CHANCE reposait la caisse au pas 8 m avant la lèvre ratée →
+  ensevelie 6-7 s plus tard, 3 cas sur 3 (la pub regardée pour rien). Sur une map à trous, la caisse replacée repart à la croisière du palier.
+- **LES PROFONDEURS** : (1) mort en vol dans l'AIR autour des stalactites et stalagmites — leur boîte de collision (0,8 × le rayon de la base + 1 m,
+  au-delà de la pointe) : `grtPrisme` accroche son cône à la boîte (`grtCol` la rend), `grotteHeurt` teste `grtDansCone` (graine 1111 : 806 → 33
+  au-delà de la pointe). (2) `grtBouche` : un trou NOIR dans la paroi d'un puits (tronçon voisin jamais alloué) refermé, collision inchangée.
+  (3) la chute dans un lac lue « roche » (cases de 12 m) : `grtIci` une demi-case plus bas.
+- **Vérifié sain** : l'orbite (aucune pluie/orage/nuage, planètes repeintes, satellites hors route), le jade (56 vallées : aucun virage sous le
+  rayon tenable), les météos (aucune fuite d'une map à l'autre, `dbgEtat` ~300 valeurs), le tirage et les 69 cartes postales, le pré-bâti
+  (identique au bâti d'un trait : dunes, grottes), 3 parties de suite, la pause au portail, la mémoire sur 14 portails (géométries 585 → 725, stables).
+- **Faux positif levé** : « un programme compilé en course » au 1er palier venait du BANC qui touchait JOUER avant la fin de la chauffe du menu
+  (~10 s) — après la chauffe : 0 sur toutes les maps.
+- **Écarté, non prouvé** : le renvoi du coup d'épaule contre le bourrelet du glacier sur la TRAJECTOIRE (`PARIS.psiR = BKV.gl−(psi−BKV.gl)×0,3`).
+- **À TRANCHER (Sacha / Léo)** : en ORBITE, la mort en l'air au-dessus de SA route (5 s d'airtime, gravité ½, plongée de 27°) ; la durée de
+  l'orbite (8,3-8,8 km pour 45 s) ; les singes du `?play=jade` qui ne reviennent pas au 2e tour (`JSG.cle`) ; dans la ville, `cameraPosition`
+  vaut 0 dans les Lambert (la profondeur de la pluie et les reflets GTA comptés depuis l'origine — changerait l'aspect de la pluie) ; l'entonnoir
+  du puits des grottes élargi à sa vraie forme ; la caisse replacée dans les dunes décolle aussitôt (la replacer au début du segment ?).
+- Bancs (locaux, non suivis) : `debug-maps/.banc-debug/` (banc.mjs sous `verrou-banc.sh`, scénarios JSON, `--attente` = chauffe du menu finie).
 
 ## LE TABLEAU DES VOITURES, PREMIÈRE VAGUE : PRIX, RARETÉS, RETRAITS (2026-10-22, v785, Sacha : « fais ces modifications-là, supprime celles où j'ai mis de les supprimer »)
 - **Prix** (deblocage.js) : ELDORADO 50 000 · LE CAÏD 60 000 · ROSSO 40 400 000 · LA VETTE 90 000 · LA GRANDE ANGLAISE 130 000 · LE CHARGEUR 69 70 000 · LA LAME 80 000 · LA BÊTE 220 000 · LA PERLE 240 000 · LA RAIE 260 000. ROSSO 40 reçoit `rar:'epique'` (à 400 000 le prix la ferait RARE).
@@ -156,6 +197,40 @@ Léo : « formes encore plus originales » ; « le bas est trop gris, un peu lum
   `?vkn=` (lissage des normales), `?vjit=` (nuance par cube).
 - **COÛT** (mesuré, Mac) : prêt en ~6-9 s contre 8,3 s (finesse 48 : cubes ×.75, `kf`), triangles par gabarit ×~1,5 (≤ 18 k), 60 i/s sur matin/midi/soir/orage. Les piliers du
   sculpteur restent ce qu'ils étaient (forme) ; seule la matière change. Touche TOUS les cumulus v8 (aussi ceux des Pics de Jade).
+
+## LE DÉCOR DU GLACIER RECALÉ SUR LA PENTE À 45° (2026-10-21, livré le 2026-10-22 en v786, Sacha : « la map montagne neige est super buggée, genre le décor, les montagnes et tout ») — branche `neige-decor`
+- **LA CAUSE** : le manteau de neige et les cristaux (`code/maps/glacier-route.js`) datent de la descente à 7-14 % ; le 3e tour (18/10) a mis la piste à 40-50°
+  (mesuré : 103 % de pente moyenne, ~4 km de dénivelé sur 5-6 km) et trois règles « au plus bas dans un rayon » sont devenues des trous de la taille du rayon :
+  la SÛRETÉ (neige jamais au-dessus de la glace) prenait le point de piste le plus bas à 98 m, `YM` (« sous le plus bas des tours superposés », du temps des
+  spirales) celui à 120 m ; le DÉVERS de la piste (le repère roule dans les virages : 7,5° de médiane, 26° au plus, ±40 m aux bords) était ignoré ; les
+  cristaux enterraient leur base d'une profondeur fixe sous leur centre ; la « roche noire » du shader commençait vers 45°, la pente même de la montagne.
+  À l'écran : murs bleu nuit striés de noir, fosses le long de la piste, dalles de glace et aiguilles qui flottent, géants à dessous plat.
+- **LA RÈGLE** (`BK_RECALE` — à ne pas confondre avec `BK_DECOR`, le décor au hasard de v771) : la neige proche se cale sur le PLAN de la piste au pied du point le plus proche (pente + dévers, fondu de 82 à 130 m du bord ;
+  T et B penchent tous deux : on résout le 2 × 2, pas des produits scalaires), la sûreté aussi ; plus de `YM` ; chaque sommet de base d'un cristal (et le
+  milieu de chaque arête de base) descend 6 m sous la neige qu'il touche, hors de la neige d'un rayon de base plus bas ; roche au-delà de ~55°.
+  `?sans=glacerecale` = avant (même piste ; les cristaux tombent ailleurs, libre() ne refusant plus les mêmes grappes).
+- **MESURÉ** (même graine `?pistegraine=4242`, avant → après) : neige sous la glace −98 → −2 m ; au bord de la glace −95…+22 → −9…+1 m ; dans la congère
+  −82…+51 → −11…+2 m ; cristaux qui flottent (> 5 m) : dômes 54/62 → 0, aiguilles 104/172 → 0, pics de piste 23/23 → 0, géants sur la neige 60 → 0.
+  Construction 86 ms avant et après (la sûreté 4,7 → 0,8 ms). Le MASSIF (v766) passe par `pic()` → `bkPrim` : posé lui aussi.
+- **LE BANC** : Chrome sans fenêtre + `window.__ev` dans une copie d'index.html ; `dbgBanq('verglas',{s})` pour poser la caisse, `explode` neutralisé pour
+  photographier sans mourir ; vues fixes « caméra de course » roulées avec la piste (Nn en haut) aux 15-90 % de la piste ; un rayon (Raycaster) dit QUEL
+  maillage est sous un pixel (`banquise neige`, `banquise pics`, `banquise géants`, `glacier congere`). ⚠ `banqTick` remet la visibilité des morceaux :
+  cacher un maillage APRÈS avoir posé la vue.
+
+## L'ÉCRAN DE FIN COUCHÉ — ⌂ · REJOUER RENTRENT DANS LA GRILLE (2026-10-20 → 21, livré le 2026-10-22 en v786, Sacha, capture d'une fin avec records : « bug de bouton ici à corriger »)
+- **Le symptôme** (téléphone couché, 844 × 390) : la ⌂ mordait sur le coin de la carte MOTEUR, et un pan vert dépassait entre ⌂ et REJOUER —
+  la plaque ×2 · PUB (#mDouble), passée DERRIÈRE REJOUER, donc intouchable.
+- **La cause** (ux8.css, bloc « vu à la fumée ») : couché, `.mFin` était un `position:fixed` de `min(368px,44vw)` hors de la grille. 368 px,
+  plus que les 324 px de la colonne de droite → la ⌂ débordait de 44 px à gauche. Et la grille, qui ne réservait plus sa place, faisait 427 px de haut
+  pour 390 (l'écran défilait) : avec les badges RECORD et deux missions, la case `row` (×2, NON MERCI) tombait sous la rangée figée.
+- **Le correctif** (CSS seul, couché seulement) : la rangée revient dans sa case `rej` ; l'écran de fin fait la hauteur EXACTE du téléphone
+  (`#overlay[data-ecran="dead"]>#mob` et `#mDead.on` en `flex:1 1 0`, pas de `:has()` — cf. v740) ; la rangée du milieu passe en
+  `minmax(0,1fr)` et prend ce qui reste ; la plaque des chiffres (`container-type:size`) se tasse en deux crans (≤ 74 px, ≤ 63 px) quand la
+  place manque. CONTINUER (seconde chance) prend la case `rej` dans le flux, comme REJOUER.
+- **Vérifié** dans le cadre de l'ordi (844 × 390, vraie mort, puis le contenu de la capture : RECORD ×3, deux missions, ×2) et en 667 × 375 :
+  plus de défilement, ⌂ · REJOUER à la largeur de la colonne, ×2 au-dessus, chaque bouton reçoit son toucher. À 667 px, « NIVEAU FRENESIE »
+  collés et « MOTEUR ATTEINT » plus large que sa carte existaient déjà avant. (Chrome garde ~18 px de défilement tant que l'entrée de REJOUER,
+  qui monte de 26 px, n'a pas été suivie d'une remise en page — sans effet visible.)
 
 ## LA MONTÉE « GRANDE » DU GÉNÉRATEUR, EN COURSE (2026-10-20 soir, v751, Léo : « quand je booste, ça apparaît, ça évolue, puis ça devient une sorte de trompette horrible qui fait bugger la musique : elle s'arrête, reprend 1-2 s après, et dès que je rappuie sur le boost ça recommence ») — branche `nitro-ronron`
 - **LE SON** n'était pas le nitro : c'est la musique de POUCE BLEU (le générateur `musique-trente-*.js`). Le jeu ne lui passe que le MOTEUR (`setTier`) ;
@@ -394,6 +469,26 @@ Plan de Léo (interview, fruit par fruit) ; tout est dans `code/gameplay/fruits-
   `?sans=` au bit près (240/240 chaque map), les mêmes écarts et repères, 10 + 10 constructions sans erreur et règle d'or à 0, une course au
   pilote par map jusqu'au portail, couché / debout / cadre sans erreur.
 
+## LE SALTO AVANT OFFERT AUX JOUEURS NEUFS (2026-10-20, livré le 2026-10-22 en v786, Sacha : « quand un nouveau joueur se connecte pour la première fois, il faut pas qu'il ait la figure tonneau, il faut qu'il ait la figure salto avant, de base »)
+- **LE CONSTAT** : un joueur neuf n'avait pas le tonneau (il s'achète) mais le TAIL WHIP offert, sur le geste « côté », et l'emplacement AVANT vide : le premier
+  double-tap NITRO (auto-école comprise) lançait un tail whip — c'est ce que Sacha appelait « le tonneau ».
+- **LA RÈGLE** (`code/sauvegarde.js`, champ `figS`) : un profil neuf reçoit le SALTO AVANT (`saltov`) OFFERT, en plus du tail whip. Neuf = aucune partie finie, rien
+  acheté, aucune figure que le tail whip. Il prend l'emplacement AVANT (celui du pouce au repos) : `figSlots` remplit les cases vides avec les figures possédées,
+  et le saut NITRO prend la première. Une sauvegarde qui a déjà joué ne change pas. Le tail whip reste sur « côté ».
+- **L'ÉCONOMIE** : comme le tail whip, ce salto offert n'est pas un achat (`ecoDebutAchat` dans eco-vague3.js, `m2GagneEstime` dans defis-moteur.js).
+- **VÉRIFIÉ** (session salto-depart, 20/10) : profil vierge → figures `tailwhip`, `saltov`, emplacements `[saltov, —, tailwhip]`, tonneau non possédé ; profil qui a
+  déjà joué (3 parties, 1 200 en banque) → inchangé. Livraison du 22/10 : course sans erreur sur la version fusionnée (couché, debout, cadre de l'ordi).
+
+## LA VITESSE DE DÉPART : SEUL LE PALIER 30 L'OUVRE, PLUS LE CODE COUSIN (2026-10-20, livré le 2026-10-22 en v786, Sacha : « tu peux laisser le truc de Léo, mais c'est seulement quand t'as passé le moteur 30 au moins une fois ; et même avec le code cousin, ça marche pas »)
+- **À MONTRER À LÉO** : Sacha a changé une règle de sa fonction. Ancienne condition (pour revenir en arrière, une seule ligne, `vdepFonction` dans
+  code/gameplay/pickups-fruits.js) : `return VDEP_TOUT||cousin()||((SAVE.d.ex&&SAVE.d.ex.eng)|0)>=ENGINE_TIERS.length-1;` — le code cousin l'ouvrait aussi.
+  Nouvelle : `return VDEP_TOUT||((SAVE.d.ex&&SAVE.d.ex.eng)|0)>=ENGINE_TIERS.length-1;`. (Remettre aussi `+','+cousin()` dans `sg` de `vdepInit`, evenements-rares.js.)
+- `vdepFonction` (code/gameplay/pickups-fruits.js) ne lit plus `cousin()` : la fonction (les six crans de départ, l'étal/la grue, l'étiquette du PLAY)
+  s'ouvre UNIQUEMENT quand `SAVE.d.ex.eng` ≥ 29 (le TROU NOIR, palier 30, atteint au moins une fois en course). Le code cousin ouvre toujours les
+  caisses, figures et habillages, mais PLUS cette fonction. Une sauvegarde qui avait un cran choisi grâce au cousin sans palier 30 retombe au cran 1
+  (`vdepN` ramène au plus haut cran ouvert, donc 0 ; `SAVE.d.vdep` reste sur le disque, inoffensif).
+- Le reste de la fonction de Léo est INCHANGÉ (cadenas avant le palier 30, toast « VITESSE DE DÉPART DÉBLOQUÉE », grue d'atelier). Le crochet de banc
+  `dbgVdep('tout')` (console seulement) ouvre toujours tout le temps d'une page.
 ## LE ROYAUME DE FEU, L'ASPECT REFAIT — LAVE EN PLAQUES, ROCHE EN FACETTES, CIELS ET FUMÉE (2026-10-20, v716, session VOLCAN5 — Sacha : « la map volcan est la plus moche, lance une grosse refonte »)
 - **Ce qui ne bouge pas** : la ROUTE (la balade puis la montée du volcan, `vlcTrace3`, ou `?volcan=v4`), les collisions ('lave' / 'roche'), la physique, la
   caméra, les sons, les tirages `rnd`/`fr` (chaque tirage supprimé est GARDÉ : le décor en aval ne se décale pas). Tout ce qu'on VOIT est refait,
@@ -775,7 +870,7 @@ Plan de Léo (interview, fruit par fruit) ; tout est dans `code/gameplay/fruits-
 - **Six crans** (`VDEP_PAL` = index 0 · 5 · 10 · 15 · 20 · 25 = paliers 1 · 6 · 11 · 16 · 21 · 26) : 1 = le départ normal. LA FONCTION S'OUVRE AU PALIER 30
   (Léo : « seulement quand on a atteint le palier trente ») : le TROU NOIR atteint une fois (`SAVE.d.ex.eng`, versé à la fin de chaque partie,
   `vdepFonction`) ouvre les six crans d'un coup, toast « VITESSE DE DÉPART DÉBLOQUÉE » ; avant, les six cases sont visibles sous CADENAS (son
-  choix) et disent « ATTEINS LE PALIER 30 ». Le code cousin ouvre tout. Choix : `SAVE.d.vdep` (0-5, `san`).
+  choix) et disent « ATTEINS LE PALIER 30 ». ~~Le code cousin ouvre tout.~~ **Depuis le 20/10 (Sacha), le code cousin n'ouvre PLUS rien ici** (voir la section du dessus). Choix : `SAVE.d.vdep` (0-5, `san`).
 - **Au départ** : `vdepPose()` remplace la remise à zéro du moteur dans `resetGame`, et tourne dans `sous9` / `jadeJouer` au 1er JOUER (avant la piste) —
   pièces du palier comptées, nitro pleine. `prebDepCible` bâtit le DÉPART D'AVANCE au palier `vdepPal()` (mesuré : « pris au départ », 0 programme
   compilé). Auto-école, parc, balade, joueur sans permis : toujours le cran 1.
