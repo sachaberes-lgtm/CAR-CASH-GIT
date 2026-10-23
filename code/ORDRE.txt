@@ -64,6 +64,7 @@ maps/dunes-1.js                      # LES DUNES D'OR : la route CONTINUE (vague
 maps/dunes-2.js                      # dunes : sable à la puce (rides façon Journey), matière des décors, hiéroglyphes, tremplins, sable qui vole
 maps/dunes-3.js                      # dunes : la boîte à outils des décors (loft, oriflammes), les modèles (pharaon assis, pyramides de Gizeh, obélisque, pylône, sphinx, felouque…)
 maps/dunes-dieux.js                  # dunes : les DIEUX À TÊTE D'ANIMAL (faucon, chacal, ibis, bélier, lionne, crocodile — assis sur le corps du pharaon), le SPHINX-CHAT (trois livrées, queue à gauche ou à droite) et leur tirage (colosses, porte, allée)
+maps/dunes-gizeh.js                  # dunes : le GRAND SPHINX de Gizeh (150-200 m, dans sa fosse) et ses pyramides en série
 maps/dunes-4.js                      # dunes : les scènes le long de la route (colonnade, allée des sphinx, colosses, porte, portes du ciel, braseros, ruines)
 maps/glacier-route.js                # LA BANQUISE / LE GLACIER v4 : route, manteau de neige
 maps/glacier-construction.js         # glacier : construction, volant en l'air
@@ -94,6 +95,7 @@ maps/biomes.js                       # biomes : le cycle du ciel
 rendu/etalonnage-da.js               # étalonnage par map × météo, la couche DA
 maps/niveaux.js                      # les niveaux, le mode classique au hasard, les planètes
 maps/continuite.js                   # continuité des maps, la planète du niveau
+maps/audit-placement.js              # dbgAudit : l'audit des décors posés au sol (pics flottants…)
 maps/orbite-1.js                     # L'ORBITE : la lune, les Starlink, les variantes empilées
 maps/orbite-2.js                     # orbite : le soleil hors cadre, la pose des tranches
 rendu/trainees-1.js                  # traînées pop : la planche
@@ -102,6 +104,7 @@ voitures/atchoum-feu.js              # Atchoum : le feu
 voitures/feux-led.js                 # les feux en LED : l'étude (?feux=1|2), relue après buildCar
 voitures/nitro-feu.js                # le moteur qui avance, le nitro en feu de pixels, matières génératives (MATV)
 voitures/echappements.js             # les pots d'échappement
+voitures/facettes-larges.js          # les facettes larges : la grille d'un loft retaillée sans toucher au dessin (?facettes=ancien, ?fl=2)
 voitures/atelier-roues.js            # l'atelier lpKit, les roues
 voitures/silhouettes.js              # les 6 silhouettes, laque du chat Pop-Tart, l'ouvrier du Doge
 voitures/shapes-1.js                 # SHAPES (dessins) : épave, eldorado, caïd, rosso, poster, bulle, combi, dolores, gt, proto
@@ -127,6 +130,9 @@ voitures/atchoum-squale.js           # Atchoum, le Squale
 voitures/caisse-pieces.js            # la caisse en un minimum de dessins
 voitures/ailes.js                    # les ailes
 voitures/finition.js                 # la finition studio (dans le jeu ; ?finition=ancien = avant) : lumière de studio, vernis profond, reflets qui éclatent
+voitures/travail-caisse.js           # le travail d'une caisse : laque qui coule (lisseDiffuse), patine par sommet (patineGeo), pneu sculpté (pneuTravaille) — la Zagaie et le Loup
+voitures/zagato.js                   # la Zagaie : la 5-95 de Zagato (gueule creuse, vitrage noir, nacelle, queue coupée)
+voitures/countach.js                 # le Loup : la Countach blanche du film (coin à arêtes vives, aileron, portes à ciseaux, l'épave)
 voitures/stratos-meteo.js            # LA STRATOS, station météo : anémomètre, manche à air, radars Doppler, gyroscope, barre de prévision (?stratos=ancien)
 voitures/buildcar.js                 # buildCar : construire une voiture
 voitures/plaque.js                   # la plaque d'immatriculation, le profil
@@ -221,6 +227,7 @@ moteur/boucle-4-effets.js            # loop() — LOD, phares, reflets, plume du
 moteur/boucle-5-sons.js              # loop() — sons continus
 moteur/boucle-6-hud.js               # loop() — HUD, jauge de progression, fin de la boucle
 moteur/init.js                       # init, intro du studio 1.61
+moteur/intro-161.js                  # l'intro du studio 1.61, version console : blips, noir, gros logo qui casse l'écran
 moteur/mobile-tactile.js             # mobile, tactile, pause, PWA
 moteur/desktop-banc.js               # ⚙ du desktop, le banc du téléphone, démarrage (requestAnimationFrame), fin du jeu
 page/fin.html                        # </script></body></html>

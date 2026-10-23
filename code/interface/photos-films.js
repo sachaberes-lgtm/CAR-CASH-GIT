@@ -310,11 +310,11 @@ window.dbgEssaiObjets=function(){
 };
 window.dbgEssaiCaisse=function(src,fiche,vues){
   if(started&&!gameOver)return {err:'en course : essai refusé'};
-  const nom='__essai',W=720,H=440;let f;
+  const nom='__essai',W=window.__essaiW||720,H=window.__essaiH||440;let f;   /* (banc : `window.__essaiW/H` agrandit la photo — fixés avant le 1er essai) */
   if(typeof src==='string'&&SHAPES[src])f=SHAPES[src];
   else{try{f=(new Function('LPU','THREE','lpKit','return ('+src+');'))(LPU,THREE,lpKit);}catch(e){return {err:'SYNTAXE : '+e.message};}}
   if(typeof f!=='function')return {err:'le source ne rend pas une fonction'};
-  SHAPES[nom]=f;if(fiche&&fiche.pot&&ECH_POTS[fiche.pot])ECH_POTS[nom]=ECH_POTS[fiche.pot]; /* (2026-10-17, banc) `fiche.pot` : l'essai porte LE POT d'un gabarit existant (sans lui, le pot générique) */
+  SHAPES[nom]=f;if(fiche&&fiche.pot&&ECH_POTS[fiche.pot])ECH_POTS[nom]=ECH_POTS[fiche.pot];if(fiche&&fiche.pot&&LP_LARGES[fiche.pot])LP_LARGES[nom]=LP_LARGES[fiche.pot]; /* (facettes larges : l'essai prend la tolérance de son gabarit) */ /* (2026-10-17, banc) `fiche.pot` : l'essai porte LE POT d'un gabarit existant (sans lui, le pot générique) */
   const sp=Object.assign({name:'ESSAI',color:0xffffff,accent:0x222222,maxKmh:300,accel:30,turn:2.6,h:1.3,w:1.9,l:4.5,spoiler:0,desc:''},fiche||{});sp.shape=nom;
   CARS.push(sp);const i=CARS.length-1,out={photos:[]};
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible;
@@ -341,7 +341,7 @@ window.dbgEssaiCaisse=function(src,fiche,vues){
       x.putImageData(im,0,0);out.photos.push(cv.toDataURL('image/png'));
     }
   }finally{
-    CARS.pop();delete SHAPES[nom];delete ECH_POTS[nom];
+    CARS.pop();delete SHAPES[nom];delete ECH_POTS[nom];delete LP_LARGES[nom];
     if(par)par.add(carGroup);carGroup.position.copy(pos);carGroup.rotation.copy(rot);carGroup.scale.copy(sc);carGroup.visible=vis;
     try{buildCar(CARS[equippedCar()]);}catch(e){}
   }

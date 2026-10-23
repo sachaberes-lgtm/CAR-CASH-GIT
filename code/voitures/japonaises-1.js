@@ -17,7 +17,7 @@ SHAPES.corolla=function(K){
   const ARGENT=0x9fa3a9;   // (un argent moyen, celui des photos : en argent clair la laque sortait blanc rosé au studio des vignettes, comme la RF)
   const PAL={p:{g:'p',c:ARGENT},k:{g:'m',c:0x121214},K:{g:'g',c:0x0b0b0e},g:{g:'g',c:0x141c26},s:{g:'s',c:0x2a2b30},b:{g:'s',c:0x151518},
     W:{g:'l',c:0xf2f6ff},L:{g:'l',c:0xd0101e},c:{g:'c',c:0xd4d8de},O:{g:'g',c:0xe08414},q:{g:'g',c:0xd9dde2},d:{g:'m',c:0x0d0e11},
-    n:{g:'g',c:0x101013},Q:{g:'l',c:0xe6e6e6}};
+    n:{g:'g',c:0x101013},Q:{g:'l',c:0xe6e6e6},h:{g:'g',c:0x6d7886}};   /* h : le verre GRIS des phares (22/10, Léo : « gris transparent comme avant, en 4 pièces empilées ») */
   const PLAN={"face":{"phare":[[0.759,0.808],[0.769,0.762],[0.772,0.723],[0.769,0.683],[0.759,0.645],[0.745,0.618],[0.724,0.594],[0.698,0.576],[0.663,0.558],[0.648,0.553],[0.641,0.555],[0.636,0.641],[0.633,0.649],[0.626,0.652],[0.462,0.634],[0.274,0.621],[0.294,0.675],[0.488,0.707],[0.641,0.744],[0.686,0.758],[0.722,0.773],[0.747,0.792],[0.757,0.804],[0.763,0.819]],"phareHaut":[[0.674,0.594],[0.694,0.606],[0.712,0.622],[0.721,0.634],[0.73,0.656],[0.737,0.686],[0.738,0.71],[0.731,0.732],[0.724,0.734],[0.519,0.686],[0.412,0.667],[0.342,0.658]],"projo":[[0.647,0.667],[0.651,0.682],[0.656,0.688],[0.669,0.695],[0.677,0.696],[0.691,0.69],[0.697,0.685],[0.703,0.671],[0.703,0.663],[0.697,0.65],[0.691,0.644],[0.677,0.639],[0.669,0.64],[0.656,0.647],[0.651,0.653]],"grilleHaut":[[0.274,0.621],[0.124,0.613],[0.103,0.604],[0.077,0.564],[0.066,0.553],[0.043,0.548],[0.004,0.547],[0.004,0.664],[0.177,0.666],[0.294,0.675]],"logo":[[0.067,0.617],[0.062,0.632],[0.051,0.643],[0.029,0.652],[0.002,0.656],[0.025,0.653],[0.047,0.645],[0.059,0.635],[0.066,0.621],[0.064,0.606],[0.047,0.59],[0.025,0.581],[0.002,0.579],[0.029,0.582],[0.051,0.592],[0.062,0.603]],"grille":[[0.0,0.249],[0.365,0.251],[0.46,0.255],[0.498,0.262],[0.52,0.272],[0.531,0.282],[0.535,0.305],[0.526,0.335],[0.504,0.377],[0.395,0.54],[0.38,0.558],[0.367,0.567],[0.345,0.574],[0.313,0.577],[0.0,0.578]],"prise":[[0.603,0.531],[0.522,0.501],[0.516,0.496],[0.513,0.489],[0.516,0.482],[0.578,0.401],[0.601,0.381],[0.638,0.368],[0.738,0.347],[0.767,0.336],[0.776,0.324],[0.784,0.278],[0.784,0.255],[0.778,0.25],[0.592,0.23]],"joncHaut":[[0.656,0.748],[0.488,0.707],[0.31,0.677],[0.185,0.666],[0.004,0.664]],"joncV":[[0.124,0.613],[0.103,0.604],[0.077,0.564],[0.066,0.553],[0.043,0.548],[0.004,0.547]],"joncPrise":[[0.603,0.531],[0.522,0.501],[0.516,0.496],[0.513,0.489],[0.521,0.475],[0.583,0.395],[0.601,0.381],[0.638,0.368],[0.738,0.347],[0.767,0.336],[0.772,0.331],[0.778,0.317],[0.786,0.262],[0.784,0.255],[0.778,0.25],[0.763,0.247],[0.592,0.23]],"capot":[[0.48,0.705],[0.228,0.718],[0.0,0.722]],"lignes":{"j":[[[0.889,0.668],[0.832,0.709],[0.772,0.743]]],"h":[[[0.611,0.629],[0.468,0.591],[0.399,0.576]]]}},"dos":{"feu":[[0.0,0.903],[0.307,0.902],[0.354,0.9],[0.369,0.896],[0.39,0.885],[0.458,0.832],[0.48,0.825],[0.511,0.823],[0.621,0.83],[0.691,0.844],[0.727,0.858],[0.754,0.874],[0.77,0.891],[0.773,0.907],[0.764,0.937],[0.746,0.962],[0.725,0.972],[0.694,0.975],[0.466,0.974],[0.427,0.967],[0.345,0.939],[0.291,0.932],[0.0,0.929]],"feuLigne":[[0.685,0.869],[0.664,0.9],[0.651,0.908],[0.636,0.912],[0.59,0.915],[0.397,0.916]],"logo":[[0.0,0.937],[0.03,0.943],[0.044,0.951],[0.053,0.963],[0.056,0.971],[0.053,0.986],[0.037,1.002],[0.023,1.008],[0.0,1.012],[0.023,1.008],[0.037,1.002],[0.049,0.992],[0.056,0.978],[0.053,0.963],[0.044,0.951],[0.023,0.941]],"plaque":[[0.0,0.666],[0.341,0.666],[0.364,0.672],[0.374,0.684],[0.374,0.692],[0.359,0.728],[0.321,0.796],[0.298,0.828],[0.274,0.848],[0.251,0.854],[0.228,0.856],[0.0,0.856]],"bas":[[0,0.512],[0.425,0.509],[0.503,0.504],[0.55,0.494],[0.577,0.478],[0.601,0.447],[0.692,0.255],[0.704,0.245],[0.735,0.241],[0.735,0.2],[0,0.2]],"catadi":[[0.65,0.512],[0.751,0.511],[0.767,0.508],[0.773,0.504],[0.777,0.489],[0.78,0.45],[0.779,0.349],[0.776,0.326],[0.769,0.323],[0.754,0.326],[0.75,0.34],[0.746,0.48],[0.747,0.496],[0.751,0.511]],"lignes":{"j":[[[0.0,1.089],[0.613,1.089],[0.617,1.074],[0.572,0.81],[0.559,0.749],[0.548,0.719],[0.537,0.698],[0.523,0.679],[0.506,0.663],[0.486,0.651],[0.464,0.643],[0.401,0.633],[0.268,0.629],[0.0,0.628]],[[0.809,0.294],[0.807,0.601],[0.81,0.812]]],"h":[[[0.0,0.529],[0.576,0.529],[0.552,0.55],[0.532,0.562],[0.51,0.569],[0.471,0.575],[0.377,0.578],[0.0,0.579]],[[0.0,1.037],[0.287,1.036],[0.609,1.022],[0.632,1.024],[0.655,1.03],[0.676,1.042],[0.694,1.057],[0.0,1.057]]]}},"cote":{"cadre":[[0.691,0.913],[0.542,0.917],[-0.582,0.986],[-1.061,1.02],[-1.178,1.032],[-1.31,1.054],[-1.347,1.066],[-1.358,1.077],[-1.36,1.085],[-1.36,1.093],[-1.352,1.106],[-1.327,1.125],[-1.231,1.178],[-1.131,1.226],[-1.052,1.26],[-0.956,1.296],[-0.873,1.321],[-0.804,1.336],[-0.672,1.356],[-0.499,1.368],[-0.255,1.369],[-0.019,1.357],[0.09,1.344],[0.215,1.323],[0.337,1.294],[0.435,1.264],[0.552,1.219],[0.718,1.147],[0.868,1.076],[0.964,1.022],[1.009,0.991],[1.038,0.964],[1.048,0.943],[1.045,0.936],[1.038,0.932],[1.015,0.926],[0.945,0.921]],"vitre":[[0.791,0.934],[0.957,0.941],[1.011,0.946],[1.024,0.949],[0.996,0.976],[0.95,1.007],[0.882,1.046],[0.804,1.084],[0.56,1.194],[0.45,1.238],[0.376,1.262],[0.254,1.294],[0.153,1.314],[0.052,1.329],[-0.065,1.34],[-0.27,1.349],[-0.506,1.348],[-0.67,1.336],[-0.803,1.316],[-0.872,1.301],[-0.94,1.28],[-1.094,1.221],[-1.187,1.178],[-1.284,1.127],[-1.325,1.103],[-1.331,1.089],[-1.327,1.082],[-1.314,1.075],[-1.236,1.061],[-1.104,1.044],[-0.955,1.031],[0.53,0.938],[0.64,0.933]],"montantB":[[-0.283,0.988],[-0.311,1.35],[-0.189,1.347],[-0.099,0.977]],"montantC":[[-0.867,1.024],[-0.894,1.294],[-0.87,1.301],[-0.841,1.023]],"ecoinc":[[0.854,1.083],[0.937,1.039],[1.003,0.996],[1.027,0.976],[1.043,0.958],[1.048,0.943],[1.045,0.936],[1.031,0.929],[1.015,0.926],[0.85,0.916],[0.868,0.937],[0.835,1.069]],"poigneeAr":[[-0.811,0.888],[-0.821,0.898],[-0.859,0.908],[-1.031,0.916],[-1.045,0.91],[-1.051,0.896],[-1.046,0.882],[-1.039,0.878],[-1.016,0.876],[-0.984,0.875],[-0.962,0.879],[-0.93,0.879],[-0.899,0.877],[-0.876,0.871],[-0.861,0.872],[-0.822,0.878]],"poigneeAv":[[0.106,0.827],[0.095,0.837],[0.057,0.847],[-0.115,0.855],[-0.129,0.849],[-0.135,0.835],[-0.133,0.827],[-0.122,0.817],[-0.076,0.814],[-0.029,0.819],[0.056,0.811],[0.095,0.817]],"creuxAr":[[-0.976,0.876],[-0.97,0.862],[-0.959,0.851],[-0.944,0.846],[-0.921,0.845],[-0.905,0.846],[-0.891,0.853],[-0.878,0.872]],"creuxAv":[[-0.06,0.815],[-0.053,0.801],[-0.042,0.79],[-0.027,0.785],[-0.012,0.784],[0.004,0.784],[0.019,0.788],[0.031,0.797],[0.038,0.811]],"feu":[[-1.728,0.892],[-2.146,0.821],[-2.154,0.822],[-2.166,0.832],[-2.209,0.906],[-2.215,0.911],[-2.23,0.914],[-2.235,0.92],[-2.236,0.928],[-2.235,0.936],[-2.229,0.94],[-2.206,0.945],[-2.183,0.966],[-2.161,0.973],[-2.074,0.976],[-1.933,0.972],[-1.855,0.963],[-1.802,0.949],[-1.761,0.925]],"phare":[[2.011,0.619],[1.989,0.641],[1.976,0.66],[1.963,0.688],[1.962,0.703],[2.008,0.697],[2.19,0.659],[2.262,0.652],[2.257,0.609],[2.158,0.633],[2.057,0.648],[2.034,0.645],[2.029,0.639],[2.03,0.623]],"lignes":{"j":[[[-1.174,1.052],[-1.188,1.006],[-1.192,0.983],[-1.186,0.961],[-1.175,0.94],[-0.956,0.595],[-0.823,0.363],[-0.793,0.327],[-0.759,0.306],[-0.73,0.296],[-0.691,0.288],[-0.582,0.28],[0.778,0.251],[0.817,0.253],[0.84,0.259],[0.853,0.268],[0.867,0.286],[0.879,0.315],[0.891,0.361],[0.912,0.517],[0.927,0.705],[0.927,0.783],[0.918,0.83],[0.856,1.081]],[[-0.171,0.273],[-0.156,0.539],[-0.156,0.648],[-0.16,0.75],[-0.171,0.851],[-0.25,1.369]],[[-1.728,0.892],[-1.524,0.63]],[[1.579,0.632],[1.639,0.681],[1.726,0.743]]],"h":[[[-1.893,0.999],[-1.562,0.995],[-1.24,0.984],[-0.942,0.969],[-0.581,0.945],[-0.205,0.914],[0.249,0.871],[1.304,0.756]],[[-0.815,0.408],[-0.787,0.422],[-0.749,0.431],[-0.702,0.436],[-0.639,0.438],[0.502,0.419],[0.612,0.411],[0.697,0.394],[0.771,0.367],[0.855,0.325]],[[1.899,0.25],[1.752,0.518],[1.727,0.558],[1.696,0.594],[1.644,0.641],[1.584,0.679],[1.519,0.706],[1.45,0.722],[1.372,0.725],[1.294,0.713],[1.257,0.701],[1.214,0.683],[1.147,0.642],[1.089,0.589],[1.059,0.553],[1.038,0.52],[1.005,0.449],[0.986,0.372]],[[-1.762,0.312],[-1.738,0.419],[-1.725,0.464],[-1.698,0.52],[-1.669,0.566],[-1.628,0.614],[-1.581,0.655],[-1.528,0.689],[-1.471,0.715],[-1.411,0.733],[-1.349,0.743],[-1.287,0.744],[-1.217,0.735],[-1.149,0.715],[-1.093,0.689],[-1.04,0.655],[-0.993,0.614]]]}},"dessus":{"parebrise":[[1.185,0.0],[1.178,0.204],[1.169,0.298],[1.154,0.4],[1.128,0.523],[1.114,0.576],[1.095,0.611],[1.072,0.631],[1.051,0.641],[1.028,0.646],[0.996,0.646],[0.957,0.641],[0.466,0.529],[0.444,0.522],[0.432,0.512],[0.428,0.505],[0.428,0.489],[0.456,0.366],[0.479,0.195],[0.487,0.181],[0.494,0.177],[0.561,0.156],[0.574,0.147],[0.579,0.141],[0.588,0.086],[0.591,0.0]],"cadrePB":[[0.427,0.0],[1.185,0.0],[1.178,0.204],[1.169,0.298],[1.154,0.4],[1.13,0.515],[1.114,0.576],[1.095,0.611],[1.072,0.631],[1.051,0.641],[1.02,0.647],[0.973,0.644],[0.934,0.636],[0.466,0.529],[0.437,0.517],[0.432,0.512],[0.427,0.497]],"lunetteK":[[-1.221,0.0],[-1.869,0.0],[-1.863,0.22],[-1.856,0.291],[-1.841,0.376],[-1.82,0.452],[-1.795,0.518],[-1.76,0.58],[-1.735,0.609],[-1.709,0.627],[-1.671,0.638],[-1.624,0.643],[-1.561,0.64],[-1.444,0.627],[-1.312,0.603],[-1.229,0.582],[-1.215,0.574],[-1.203,0.563],[-1.195,0.542],[-1.194,0.518],[-1.216,0.299]],"lunette":[[-1.818,0.0],[-1.286,0.0],[-1.282,0.22],[-1.266,0.448],[-1.271,0.486],[-1.282,0.507],[-1.307,0.526],[-1.359,0.542],[-1.452,0.559],[-1.584,0.577],[-1.631,0.58],[-1.663,0.576],[-1.692,0.565],[-1.717,0.546],[-1.741,0.515],[-1.762,0.473],[-1.781,0.422],[-1.795,0.36],[-1.804,0.306],[-1.812,0.22]],"auvent":[[1.276,0.004],[1.272,0.2],[1.253,0.371],[1.238,0.448],[1.218,0.532],[1.162,0.711],[1.012,0.647],[1.004,0.647],[1.02,0.647],[0.996,0.646],[1.028,0.646],[0.988,0.646],[1.035,0.645],[0.973,0.644],[1.043,0.643],[0.965,0.643],[1.051,0.641],[0.957,0.641],[1.058,0.639],[1.072,0.631],[1.09,0.617],[1.104,0.598],[1.114,0.576],[1.147,0.438],[1.167,0.314],[1.18,0.173],[1.185,0.0]],"lignes":{"j":[[[1.197,0.477],[0.504,0.481],[0.009,0.491],[0.235,0.502],[0.352,0.516]],[[1.229,0.697],[1.317,0.73],[1.385,0.749],[1.455,0.762],[1.526,0.766],[1.644,0.762],[1.831,0.742],[1.909,0.727],[1.951,0.707],[1.976,0.688],[2.003,0.659],[2.072,0.563],[2.169,0.401],[2.235,0.276],[2.247,0.239],[2.257,0.177],[2.265,0.09],[2.267,0.004]],[[-2.29,0.004],[-2.282,0.232],[-2.262,0.435],[-2.254,0.474],[-2.243,0.503],[-2.228,0.531],[-2.209,0.556],[-2.186,0.577],[-2.158,0.592],[-2.12,0.602],[-2.066,0.609],[-1.799,0.624],[-1.768,0.62],[-1.741,0.603]],[[1.608,0.889],[1.681,0.818],[1.718,0.776]],[[1.743,0.78],[1.661,0.823],[1.556,0.889]]],"h":[[[1.328,0.617],[1.39,0.558],[1.422,0.535],[1.458,0.518],[1.503,0.504],[1.619,0.484],[1.749,0.457],[1.87,0.424],[1.944,0.398],[2.031,0.361],[2.206,0.273]]]}}};
   // ---- LES COTES DU PLAN (mètres) ----
   const XM=[[ZB,.40],[-2.30,.46],[-2.28,.499],[-2.24,.582],[-2.20,.632],[-2.16,.678],[-2.12,.722],[-2.08,.762],[-2.04,.794],[-2.0,.809],[-1.96,.818],[-1.92,.826],
@@ -83,9 +83,69 @@ SHAPES.corolla=function(K){
     2.271,2.275,2.285,2.294,2.30,2.306,2.311,ZE-.003,ZE];
   for(const [w,a] of [[ZF,.326],[ZR,.33]])for(const f of [0,.2,.4,.55,.7,.8,.88,.95,.99,1])zs0.push(w-a*f,w+a*f);
   zs0.sort((a,b)=>a-b);const zs=zs0.filter((z,i)=>i===0||z-zs0[i-1]>.002);
-  const peint=(j,z)=>j===0&&z<2.24&&z>-2.25?'k':'p';   // (aux deux bouts, la bande du plancher monte et devient le bas de la face : de la tôle, que la découpe habille)
+  let HB=false;try{HB=!/[?&]honte=0/.test(location.search);}catch(e){}   /* (23/10) EN MARCHE par défaut : LA FIDÈLE EN COUCHES (la version « sans traits noirs » de Léo) ; `?honte=0` = la Fidèle d'avant */   // (`?honte=1` : dalles ; `?honte=2` : l'ENTRE-DEUX, briques + couches plates)
+  const peint=(j,z)=>j===0&&z<2.24&&z>-2.25?'k':(HB&&z<1.26&&z>-1.87&&((j>=11&&j<=12)||(j>=13&&(z>.3||z<-1.2))))?'g':'p';   // (aux deux bouts, la bande du plancher monte et devient le bas de la face : de la tôle, que la découpe habille)
   const EP=(typeof peintPal==='function'?peintPal(PAL):PAL).p,GP=EP.g;
-  const PL=K.kit(PAL);PL.loft(zs,S,peint);
+  /* (23/10, Léo : « traduis dans le style de LA HONTE, fidèle à la Fidèle ») `?honte=1` : la VRAIE forme (les sections du plan) taillée en quelques GROS pans — une tranche par grand changement
+     de ligne —, sans découpe au plan ; les vitres, les phares, la bouche sont des pièces posées. */
+  const zsB=[ZB,-2.28,-2.236,-2.0,-1.87,-1.36,-1.10,-.50,.30,.50,1.05,1.26,1.60,2.0,2.24,2.28,ZE,ZF-.36,ZF-.18,ZF+.18,ZF+.36,ZR-.36,ZR-.18,ZR+.18,ZR+.36].sort((a,b)=>a-b).filter((z,i,a)=>i===0||z-a[i-1]>.003);
+  /* EN BRIQUES (`?honte=1`) : chaque tranche est une section de 6 points, des BRIQUES — le dessous, le flanc DROIT, l'épaulement plat, la cabine à flancs droits, le toit —, mesurées sur la vraie section (largeur, hauteur de l'épaule, du toit, du bord de verre) :
+     la forme de La Fidèle, taillée comme les caisses de LA HONTE, mais proprement (peu de plis, aucune diagonale parasite). */
+  const SB=z=>{const s=S(z),xm=s[1][0]+.10*Math.min(1,s[1][0]/.62),yb=s[0][1],yt=s[NC][1],yc=s[s.length-1][1],cab=z<=ZW&&z>=ZHT,xr=cab?s[NC+3][0]:xm*.93,yr=cab?s[NC+3][1]:yt;
+    const sx=z>=ZE-1e-6||z<=ZB+1e-6?.02:1;return [[0,yb],[xm*sx,yb],[xm*sx,yt],[xr*sx,yt],[xr*sx,Math.max(yr,yt+.01)],[0,yc]];};
+  const peintB=(j,z)=>j===0?'k':(j===3&&z<1.0&&z>-1.3)?'g':(j===4&&z<1.26&&z>-1.87&&(z>.3||z<-1.2))?'g':'p';
+  const PL=K.kit(PAL);let HB2=false;try{HB2=/[?&]honte=2/.test(location.search);}catch(e){}
+  let HB3=false,HB4=false;try{HB3=!/[?&]honte=[012]/.test(location.search);HB4=!/[?&]honte=[0123]/.test(location.search);}catch(e){}   // (`?honte=4` : l'ENTRE-DEUX du 2 et du 3 — flancs en petits blocs de 8 cm, cabine en briques lisses, couches de base et de ceinture)
+  if(HB3){   /* LE MÉLANGE (23/10, Léo : « un mélange technique des deux : répartition stratégique de la taille des cubes ») — de GROS blocs là où la tôle est plate (les flancs : 13 cm d'épaisseur, longs), des couches TRÈS FINES
+     (4 cm, tronçons de 6 cm) là où la forme se complique (le nez, la poupe, le capot, la cabine et le toit). Les passages de roue restent des vides en marches. */
+    const xAt=(sc,y)=>{let m=0;for(let i=1;i<sc.length;i++){const a=sc[i-1],b=sc[i];if((a[1]-y)*(b[1]-y)<=0&&a[1]!==b[1]){const x=a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);if(x>m)m=x;}}return m;};
+    const ZA=-1.85,ZBm=1.75,YM=1.00,Sz=z=>S(Math.max(ZB+.001,Math.min(ZE-.001,z)));
+    const rangee=(yc,dy,dz,q,zA,zB,kf)=>{let run=null;const flush=z1=>{if(run&&run.w>.02)PL.box(run.k,2*run.w,dy+.002,z1-run.z0,0,yc,(run.z0+z1)/2);run=null;};
+      for(let z=zA+dz/2;z<zB;z+=dz){const w=Math.round(xAt(Sz(z),yc)/q)*q,k=kf(z,yc);if(!run||run.w!==w||run.k!==k){flush(z-dz/2);run={w:w,k:k,z0:z-dz/2};}}flush(zB);};
+    // 1. les GROS blocs : le flanc entre la poupe et le nez, sous la ceinture
+    const DYF=HB4?.08:.13;for(let yc=.22+DYF/2;yc<YM-.001;yc+=DYF)rangee(yc,DYF,.12,HB4?.03:.04,ZA,ZBm,()=>'p');
+    // 2. les COUCHES FINES : le nez et la poupe sur toute la hauteur, tout le reste au-dessus de la ceinture
+    const verre=(z,y)=>(y>1.0&&y<1.40&&z<ZW-.02&&z>ZHT+.02&&xAt(Sz(z),y)<.72)?'g':'p';
+    for(let yc=.22+.02;yc<1.43;yc+=.04){
+      if(yc>=YM&&!HB4)rangee(yc,.04,.06,.02,ZB,ZE,verre);}
+    /* LES PORTES (23/10, Léo : « aussi les portes ») deux panneaux de porte par flanc, en RELIEF de 1,6 cm de la couleur de la caisse, séparés par un joint qui laisse voir le fond sombre ; chaque porte porte sa poignée chromée
+       en bloc et un filet chromé sous la vitre. Le panneau suit la largeur réelle de la caisse à mi-hauteur. */
+    for(const sd of [1,-1])for(const [z0,z1] of [[.70,-.12],[-.22,-1.00]]){const zc=(z0+z1)/2,L=Math.abs(z0-z1),xw=xAt(Sz(zc),.64)+.002;
+      PL.box('p',.05,.58,L,sd*(xw+.012),.64,zc);                              // le panneau de porte, en relief de 3,7 cm
+      PL.box('c',.05,.034,.22,sd*(xw+.045),.84,zc+(z0>z1?.20:-.20));          // la poignée : un bloc chromé, bien saillant
+      PL.box('c',.022,.014,L*.94,sd*(xw+.03),.915,zc);}                       // le filet chromé sous la vitre
+    if(HB4){   // la cabine : des BRIQUES lisses (le loft rectangulaire du 2), rentrées de 1,5 cm sous les blocs ; les couches de base et de ceinture du 2
+      PL.loft(zsB.filter(z=>z>=ZA-.001&&z<=ZBm+.001),z=>{const q=SB(z);for(let i=1;i<=3;i++)q[i]=[Math.max(0,q[i][0]-.015),q[i][1]];return q;},peintB);
+      const couche=(y,h,k,grow,zA,zB)=>{let run=null;const flush=z1=>{if(run&&run.w>.02)PL.box(k,2*run.w,h,z1-run.z0,0,y,(run.z0+z1)/2);run=null;};
+        for(let z=zA+.045;z<zB;z+=.09){const w=Math.round((xAt(Sz(z),y)+grow)/.03)*.03;if(!run||run.w!==w){flush(z-.045);run={w:w,z0:z-.045};}}flush(zB);};
+      couche(.985,.022,'c',.012,-2.0,1.0);}
+    /* LE MUSEAU ET LA POUPE en POLY ARRONDI (Léo : « il faut que ce soit beau, tu peux faire des formes poly arrondies ») : un loft à 7 points — le dessous, un chanfrein bas, le flanc, un chanfrein haut, l'épaule qui s'arrondit
+       vers le capot — sur 6 tranches, mesuré sur la vraie section ; il remplace les marches sous la ceinture. */
+    const SR=z=>{const s=S(z),xm=s[1][0]+.10*Math.min(1,s[1][0]/.62),yb=s[0][1],yt=s[NC][1],yc=s[s.length-1][1],sx=z>=ZE-1e-6||z<=ZB+1e-6?.02:1;
+      return [[0,yb],[(xm-.16)*sx,yb],[xm*sx,yb+.13],[xm*sx,Math.max(yb+.14,yt-.10)],[(xm-.07)*sx,yt+(yc-yt)*.25],[xm*.55*sx,Math.max(yt+.02,yc-.015)],[0,yc]];};
+    // (« le museau doit être plus fidèle à la Fidèle ») : le nez et la poupe reprennent les VRAIES sections du plan (S), une tranche sur deux — la forme exacte, taillée en larges facettes
+    const zN=zs.filter(z=>z>=ZBm-.001),zT=zs.filter(z=>z<=ZA+.001).filter((z,i)=>i%2===0||z<-2.2);
+    PL.loft(zN,S,j=>j===0?'k':'p');PL.loft(zT,S,j=>j===0?'k':'p');
+  }else if(HB&&HB2){   /* L'ENTRE-DEUX (23/10, Léo : « fais un entre-deux ») : la caisse en BRIQUES (sections rectangulaires, peu de plis), plus quelques COUCHES TRÈS PLATES empilées aux endroits qui
+     portent le dessin — la base noire (2 couches), la ceinture, la dalle du toit (2 couches), la couche du capot. */
+    PL.loft(zsB,SB,peintB);
+    const xAt=(sc,y)=>{let m=0;for(let i=1;i<sc.length;i++){const a=sc[i-1],b=sc[i];if((a[1]-y)*(b[1]-y)<=0&&a[1]!==b[1]){const x=a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);if(x>m)m=x;}}return m;};
+    const couche=(y,h,k,grow,zA,zB)=>{let run=null;const flush=z1=>{if(run&&run.w>.02)PL.box(k,2*run.w,h,z1-run.z0,0,y,(run.z0+z1)/2);run=null;};
+      for(let z=zA+.045;z<zB;z+=.09){const w=Math.round((xAt(S(Math.max(ZB+.001,Math.min(ZE-.001,z))),y)+grow)/.03)*.03;if(!run||run.w!==w){flush(z-.045);run={w:w,z0:z-.045};}}flush(zB);};
+    couche(.245,.03,'d',.02,ZB+.2,ZE-.2);couche(.275,.03,'d',.015,ZB+.2,ZE-.2);          // la base : deux couches noires, plus larges
+    couche(.985,.022,'c',.012,-2.0,1.0);                                                   // la ceinture : un filet chromé
+    couche(.62,.03,'d',.012,-1.1,1.0);                                                     // le bas des portières : un liseré noir, par-dessus la ceinture basse
+  }else if(HB){   /* (23/10, Léo : « empiler des formes TRÈS PLATES pour construire, comme LA HONTE, mais avec plus de couches ») LA FIDÈLE EN DALLES : la vraie silhouette taillée en TRANCHES HORIZONTALES de 5 cm ;
+     dans chaque tranche, des dalles (une par tronçon de même largeur, mesurée sur la vraie section à cette hauteur) — le bas, la caisse, la ceinture, la cabine de verre, le toit : un empilement, des marches, comme un modèle en briques. */
+    const xAt=(sc,y)=>{let m=0;for(let i=1;i<sc.length;i++){const a=sc[i-1],b=sc[i];if((a[1]-y)*(b[1]-y)<=0&&a[1]!==b[1]){const x=a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);if(x>m)m=x;}}return m;};
+    const DY=.05,Y0=.22,Y1=1.43,DZ=.09;
+    for(let yc=Y0+DY/2;yc<Y1;yc+=DY){const top=yc+DY>Y1-.001;let run=null;
+      const flush=z1=>{if(run&&run.w>.02){const L=z1-run.z0;PL.box(run.k,2*run.w,DY+.002,L,0,yc,(run.z0+z1)/2);}run=null;};
+      for(let z=ZB+DZ/2;z<ZE;z+=DZ){const sc=S(Math.max(ZB+.001,Math.min(ZE-.001,z))),w=Math.round(xAt(sc,yc)/.03)*.03,
+          k=(!top&&yc>1.00&&z<ZW-.02&&z>ZHT+.02&&w<.72)?'g':'p';
+        if(!run||run.w!==w||run.k!==k){flush(z-DZ/2);run={w:w,k:k,z0:z-DZ/2};}}
+      flush(ZE);}
+  }else PL.loft(zs,S,peint);
   // ---- LA DÉCOUPE AU PLAN (`japDecoupe`) ----
   const MEM=(typeof SHAPES==='object'&&SHAPES.corolla)||null;
   const av=(x,y,z,nx,ny,nz)=>z>2.0&&nz>.2,ar=(x,y,z,nx,ny,nz)=>z<-2.0&&nz<-.2,cs=(x,y,z,nx,ny,nz)=>Math.abs(nx)>.5;
@@ -107,19 +167,21 @@ SHAPES.corolla=function(K){
   const xBord=(P9,y)=>{let m=0;for(let i=0;i<P9.length;i++){const a=P9[i],b=P9[(i+1)%P9.length];if((a[1]-y)*(b[1]-y)<=0&&a[1]!==b[1]){const x=a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);if(x>m)m=x;}}return m;};
   const ZN={
     face:japZones([
-      {k:'K',p:PH,gate:av},{k:'h',p:rentre9(PH,.006),gate:av},{k:'K',p:BANDE,gate:av},                         // le PHARE : son cerclage noir, le fond chromé, la bande noire du haut…
-      {k:'c',p:japRuban(decale(PHbas,.015),.009),gate:av,axe:false},{k:'W',p:japRuban(F9.phareHaut,.012),gate:av,axe:false},   // …le jonc chromé du bas, le crochet de LED…
-      {k:'c',p:japRect(.636,.635,.714,.7,.012,3),gate:av},{k:'K',p:japRect(.645,.643,.705,.692,.009,3),gate:av},   // …le projecteur, carré, cerclé de chrome
+      /* (22/10, Léo, sur le recadrage du phare : « tu n'arrives pas à dessiner et modeler en même temps — fabrique, colle, ajuste sur la voiture ») LE PHARE
+         n'est plus DESSINÉ dans la tôle (cerclage, fond chromé, crochet de LED, projecteur : un dessin plat mal recopié) — il est FABRIQUÉ et POSÉ plus bas
+         (voir « LES PHARES » : des blocs de verre fumé qui suivent le coin du nez, une lame de LED), comme les rectangles plats de LA HONTE. */
       {k:'K',p:F9.grilleHaut,gate:av},{k:'c',p:japRuban(F9.joncHaut,.013),gate:av,axe:false},                   // la CALANDRE HAUTE noire, bordée de chrome (il file dans les phares)…
       {k:'c',p:japRuban(F9.joncV,.011),gate:av,axe:false},{k:'c',p:F9.logo,gate:av},                            // …le V chromé et le logo
       {k:'K',p:F9.grille,creux:.026,gate:av},                                                                    // la GRANDE BOUCHE, creusée (ses lames sont posées devant, plus bas)
-      {k:'c',p:japRuban(JONC_L,.025),creux:-.004,gate:av,axe:false},{k:'K',p:japRuban(CREUX_L,.017),creux:.012,gate:av,axe:false},   // la PRISE EN L : le jonc chromé en relief, son creux noir
+      /* (22/10, Léo : « le relief oui, mais le phare, ça va pas ») LE PHARE redevient SIMPLE ET À PLAT, un seul aplat noir au contour du plan et sa lame de LED
+         blanche — plus de jonc, de crochet ni de projecteur dessinés, plus d'étages en relief. */
+      /* (22/10) la PRISE EN L n'est plus dessinée : un bloc noir et son jonc chromé sont posés en relief (voir « LES PHARES ») */
       {k:'K',p:japOvale(.725,.298,.05,.046,18),creux:.022,gate:av},                                             // la coupelle de l'antibrouillard (l'optique est posée dedans, plus bas)
       {k:'c',p:japRuban([[0,.234],[.30,.234],[.60,.238]],.012),creux:-.003,gate:av,axe:false}]),               // le jonc chromé sous la bouche, qui rejoint le pied du L
     cote:japZones([
       {k:'K',p:C9.cadre,gate:cs},{k:'g',p:C9.vitre,gate:cs},{k:'K',p:C9.montantB,gate:cs},{k:'K',p:C9.montantC,gate:cs},{k:'K',p:C9.ecoinc,gate:cs},
       {k:'c',p:C9.poigneeAr,gate:cs},{k:'c',p:C9.poigneeAv,gate:cs},{k:'K',p:C9.creuxAr,creux:.008,gate:cs},{k:'K',p:C9.creuxAv,creux:.008,gate:cs},
-      {k:'r',p:C9.feu.map(p=>[p[0]<-2.12?p[0]-.07:p[0],p[1]]),gate:(x,y,z,nx,ny,nz)=>z<-1.6},COIN,{k:'K',p:C9.phare,gate:(x,y,z,nx,ny,nz)=>z>1.6},{k:'h',p:rentre9(C9.phare,.006),gate:(x,y,z,nx,ny,nz)=>z>1.6}]),
+      {k:'r',p:C9.feu.map(p=>[p[0]<-2.12?p[0]-.07:p[0],p[1]]),gate:(x,y,z,nx,ny,nz)=>z<-1.6},COIN,]),
     dos:japZones([
       {k:'r',p:FEU,gate:ar},COIN,{k:'L',p:japRuban(D9.feuLigne,.016),gate:ar,axe:false},{k:'p',p:japDemi(.37,.904,.936,.003,1),gate:ar},
       {k:'c',p:D9.logo,gate:ar},{k:'r',p:japRect(.56,.252,.80,.274,.006,2),gate:ar}]),   // le logo ; les catadioptres, couchés au pied du bouclier (comme sur la vraie)
@@ -132,7 +194,7 @@ SHAPES.corolla=function(K){
     dos:japLignes([].concat(D9.lignes.j.map(p=>({k:'j',p:p,gate:ar})),D9.lignes.h.map(p=>({k:'h',p:p,gate:ar})),[{k:'j',p:D9.plaque,gate:ar},{k:'h',p:bas.slice(0,-2),gate:ar}])),dessus:LG('dessus')};
   const CODES={p:{g:GP},gap:{g:GP,c:0x26282c},K:{g:'g',c:PAL.K.c,lisse:1},g:{g:'g',c:PAL.g.c,lisse:1},c:{g:'c',c:0xd4d8de},W:{g:'l',c:0xf2f6ff},
     h:{g:'g',c:0x2e323a,lisse:1},l2:{g:'c',c:0x9aa0a8},L:{g:'l',c:0xd8101e},r:{g:'l',c:0x7a0a14}   /* (le corps des feux : rouge sombre émissif — en verre, une grande facette du coin renvoyait le ciel en blanc) */,b:{g:'s',c:0x151518},O:{g:'g',c:PAL.O.c,lisse:1}};
-  {const f2=PL.done;PL.done=()=>{const gs=f2(),G=gs[GP];if(!G)return gs;
+  if(!HB){const f2=PL.done;PL.done=()=>{const gs=f2(),G=gs[GP];if(!G)return gs;
     const out=japDecoupe(G,{zones:ZN,lignes:LGN,codes:CODES,ns:()=>japLisse(G,32),GP:GP,colP:japColP(EP),cache:MEM,
       vue:(x,y,z,ax,ay,az,nx,ny,nz)=>{if(z>2.0&&nz>.2&&ny<.92&&y<.84)return 'face';   // (le bouclier en flèche : toute sa face est lue vue de face — sinon les zones s'y posaient en damier)if(z<-1.95&&y>.80&&y<1.0&&Math.abs(x)>.5)return -nz>Math.abs(nx)?'dos':'cote';   // (le coin des feux : jamais vu de dessus, il est vu de dos ou de côté)
         if(z<-2.15&&nz<-.3&&ny<.75&&y<1.05)return 'dos';
@@ -146,7 +208,7 @@ SHAPES.corolla=function(K){
       const zFace=(x,y)=>{let a=1.9,b=ZE;for(let k=0;k<20;k++){const m=(a+b)/2;if(xAt(m,y)>x)a=m;else b=m;}return (a+b)/2;};
       const L9=[];for(let k=0;k<11;k++){const y=.274+k*.0275,xe=xBord(F9.grille,y)-.016;if(xe<.05)continue;const r=[];for(let i=0;i<=12;i++){const x=xe*i/12;r.push([x,zFace(x,y)]);}L9.push([y,r]);}
       const x0=.725,y0=.298,F0=[zFace(x0,y0),(zFace(x0+.01,y0)-zFace(x0-.01,y0))/.02,(zFace(x0,y0+.01)-zFace(x0,y0-.01))/.02];
-      const o={lames:L9,anti:F0};if(MEM)MEM._prof=o;return o;})();
+      const o={lames:L9,anti:F0,zf:zFace};if(MEM)MEM._prof=o;return o;})();   // (`zf` : la profondeur de la tôle en (x, y), pour poser les phares)
   K.commit(PL);if(K.muet)return {};
   // la hauteur de la tôle (le dessus) en (x, z)
   const ZS9=zs,SC9=ZS9.map(z=>S(z)),T=z=>{let i=0,j=ZS9.length-1;if(z<=ZS9[0])return SC9[0];if(z>=ZS9[j])return SC9[j];while(j-i>1){const m=(i+j)>>1;if(ZS9[m]<=z)i=m;else j=m;}
@@ -154,6 +216,53 @@ SHAPES.corolla=function(K){
   const yDessus=(x,z)=>{const s=T(z);for(let i=s.length-1;i>0;i--){const a=s[i],b=s[i-1];if((a[0]-x)*(b[0]-x)<=0&&a[0]!==b[0])return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}return s[s.length-1][1];};
   // ---- LES DÉTAILS ----
   const P=K.kit(PAL);
+  /* LES PHARES (22/10, Léo : « les pièces doivent être bien séparées : des blocs modelés sur mesure puis collés, entassés, comme LA HONTE ») — QUATRE PIÈCES
+     EMPILÉES sur la tôle réelle du nez (`PROF.zf`), chacune avec son relief, ses flancs et sa couleur, donc des étages qu'on VOIT :
+     1. le BOÎTIER noir mat (le contour du plan, 2,2 cm) · 2. le VERRE fumé, rentré de 1,2 cm, brillant (+1,6 cm de plus) · 3. la LAME DE LED blanche, posée sur le verre
+     le long du bord bas (+1 cm) · 4. l'OEIL : le projecteur carré, un bloc chromé en saillie au coin. Chaque pièce est un plateau tendu sur la tôle (contour densifié
+     tous les 2,5 cm pour épouser le bombé) fermé par des flancs verticaux — un bloc, pas un dessin. */
+  if(!HB||(typeof HB3!=='undefined'&&HB3)){const zf=PROF.zf,dens=Q=>{const o=[];for(let i=0;i<Q.length;i++){const a=Q[i],b=Q[(i+1)%Q.length],n=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.02));for(let k=0;k<n;k++)o.push([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n]);}return o;};
+   const tri3=(k,sd,a,b,c)=>{const A=[sd*a[0],a[1],a[2]],B=[sd*b[0],b[1],b[2]],C=[sd*c[0],c[1],c[2]],nz=(B[0]-A[0])*(C[1]-A[1])-(B[1]-A[1])*(C[0]-A[0]);if(nz<0)P.tri(k,A,C,B);else P.tri(k,A,B,C);};
+   const piece=(k,poly,top,bot,sd)=>{const pts=dens(poly),cen=[pts.reduce((a,p)=>a+p[0],0)/pts.length,pts.reduce((a,p)=>a+p[1],0)/pts.length];
+     const V=(p,h)=>[p[0],p[1],zf(p[0],p[1])+h];
+     for(const f of THREE.ShapeUtils.triangulateShape(pts.map(p=>new THREE.Vector2(p[0],p[1])),[]))tri3(k,sd,V(pts[f[0]],top),V(pts[f[1]],top),V(pts[f[2]],top));
+     for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length],A=[sd*a[0],a[1],zf(a[0],a[1])+top],B=[sd*b[0],b[1],zf(b[0],b[1])+top],
+         C=[sd*b[0],b[1],zf(b[0],b[1])+bot],D=[sd*a[0],a[1],zf(a[0],a[1])+bot],nx=B[1]-A[1],ny=-(B[0]-A[0]),mx=(A[0]+B[0])/2-sd*cen[0],my=(A[1]+B[1])/2-cen[1];
+       if(nx*mx+ny*my<0){P.tri(k,A,C,B);P.tri(k,A,D,C);}else{P.tri(k,A,B,C);P.tri(k,A,C,D);}}};
+   const yl=x=>x<.462?.621+(.634-.621)*(x-.274)/(.462-.274):.634+(.652-.634)*(x-.462)/(.626-.462);
+   const VERRE=rentre9(PH,.022),LED=[[.30,yl(.30)+.020],[.60,yl(.60)+.020],[.60,yl(.60)+.040],[.30,yl(.30)+.040]],OEIL=japRect(.655,.66,.725,.715,.006,2);
+   const NET=[[.30,.624],[.462,.634],[.626,.652],[.70,.642],[.745,.662],[.762,.72],[.755,.79],[.72,.775],[.641,.744],[.488,.707],[.30,.672]],
+        VNET=[[.34,.638],[.462,.646],[.62,.663],[.69,.654],[.73,.672],[.744,.72],[.738,.768],[.714,.758],[.64,.732],[.488,.697],[.34,.665]],
+        ONET=[[.655,.672],[.715,.672],[.715,.722],[.655,.722]],LED2=[[.36,yl(.36)+.012],[.60,yl(.60)+.012],[.60,yl(.60)+.026],[.36,yl(.36)+.026]];   // (le contour net du phare : un pan de 11 points, sans le crochet du plan)
+   let VP='d';try{const m=/[?&]phare=([abcde])/.exec(location.search);if(m)VP=m[1];}catch(e){}   // (22/10, banc : `?phare=b|c|d` — trois relevés du phare, Léo choisit)
+   for(const sd of [1,-1]){
+     piece('d',[[0,.222],[.66,.222],[.78,.238],[.78,.262],[0,.262]],.034,-.010,sd);   // la LAME de bouclier : un patin noir en saillie sur toute la largeur du bas
+     if(HB3){   /* LA CALANDRE SPORTIVE (23/10, Léo : « quelque chose de plus beau, sportif ») une BOUCHE large et basse en trois étages — le cadre chromé, le fond noir, puis un NID D'ABEILLES de petits plots gris posés en quinconce */
+       piece('c',F9.grille,.022,-.010,sd);piece('k',rentre9(F9.grille,.016),.030,.004,sd);
+       const dedansP=(Pt,x,y)=>{let c=false;const n=Pt.length;for(let i=0,j=n-1;i<n;j=i++){const a=Pt[i],b=Pt[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])c=!c;}return c;};
+       const G2=F9.grille.concat(F9.grille.slice(1,-1).reverse().map(p=>[-p[0],p[1]])),inner=rentre9(F9.grille,.034).concat(rentre9(F9.grille,.034).slice(1,-1).reverse().map(p=>[-p[0],p[1]]));
+       for(let r=0;r<9;r++){const y=.29+r*.027;for(let c=0;c<26;c++){const x=(c-12.5)*.034+(r%2?.017:0);if(x<0&&sd>0||x>0&&sd<0)continue;if(!dedansP(inner,x,y))continue;
+         P.box('h',.018,.016,.018,sd*Math.abs(x),y,zf(Math.abs(x),y)+.034);}}}
+     piece('k',F9.prise,.016,-.012,sd);                                  // la prise d'air du bouclier : un bloc noir en relief…
+     piece('c',japRuban(JONC_L,.022),.026,.008,sd);                      // …et son jonc chromé, posé dessus au bord haut
+     if(VP==='e'){piece('k',NET,.010,-.012,sd);piece('W',LED2,.017,.004,sd);}   // e : UNE pièce découpée net (sans la pointe basse) + sa lame de LED, collées par-dessus
+     else if(VP==='a'){}                                                       // a : plat, sans pièce (le phare est un aplat de la tôle)
+     else if(VP==='b'){piece('k',PH,.012,-.012,sd);piece('W',LED,.020,.008,sd);}                                   // b : UN plateau mince + sa lame de LED
+     else if(VP==='c'){piece('k',PH,.014,-.012,sd);piece('g',VERRE,.022,.010,sd);piece('W',LED,.028,.018,sd);}   // c : boîtier, verre brillant, LED — sans l'oeil, bas
+     else{piece('k',NET,.032,-.012,sd);piece('h',VNET,.052,.024,sd);piece('W',LED2,.064,.044,sd);piece('c',ONET,.074,.040,sd);}}}   // d : les quatre étages (v. précédente)
+  if(HB)for(const sd of [1,-1]){   // (23/10) LES PHARES, empilés sur la face avant (z = ZE) : une plaque noire, le verre gris, la lame de LED ; les feux : une plaque noire et le bloc rouge ; sur chaque roue, DEUX couches de bavolet
+    const xA=(sc,y)=>{let m=0;for(let i=1;i<sc.length;i++){const a=sc[i-1],b=sc[i];if((a[1]-y)*(b[1]-y)<=0&&a[1]!==b[1]){const x=a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);if(x>m)m=x;}}return m;},
+      zAv=(x,y)=>{for(let z=ZE-.003;z>0;z-=.01)if(xA(S(z),y)>=x)return z;return 2.2;},zAr=(x,y)=>{for(let z=ZB+.003;z<0;z+=.01)if(xA(S(z),y)>=x)return z;return -2.2;};
+    const plaque=(k,x0,x1,y,h,e,dep,av)=>{const n=4,w=(x1-x0)/n;for(let i=0;i<n;i++){const xc=x0+w*(i+.5),z=(av?zAv:zAr)(xc+w/2,y);P.box(k,w+.004,h,.022,sd*xc,y,z+(av?1:-1)*(e+dep));}};   // une plaque en 4 tronçons, chacun posé sur SA marche de la face
+    plaque('k',.28,.72,.93,.12,0,.010,false);plaque('L',.30,.70,.935,.07,0,.028,false);
+    for(const z of [ZF,ZR]){const n=22,y0=.32;   /* LES PASSAGES DE ROUE EN RELIEF (23/10, Léo : « la c'est plat au niveau des roues ; protège-les de manière cool ») un BOMBÉ d'aile en trois couches qui sortent de plus en plus : le bavolet noir épais (6 cm), l'aile de la couleur de la caisse par-dessus (3 cm de plus, rayon plus grand), le filet chromé tout au bord. */
+      for(const [r,xx,w,h,k] of [[.345,.884,.05,.034,'d'],[.375,.905,.075,.05,'d'],[.405,.915,.065,.045,'p'],[.428,.936,.016,.016,'c']])for(let i=0;i<n;i++){const a0=Math.PI*(.07+.86*i/n),a1=Math.PI*(.07+.86*(i+1)/n),am=(a0+a1)/2,L=2*r*Math.sin((a1-a0)/2)+.012;
+        P.box(k,w,h,L,sd*xx,y0+Math.sin(am)*r,z+Math.cos(am)*r,Math.PI/2-am,0,0);}}
+  }
+  if(HB){   /* L'AILERON TUNING (23/10) : une lame sur deux jambes, posée sur la malle, le bord relevé — noir mat, avec sa lèvre chromée */
+   const yt=yDessus(0,-1.98);P.box('d',1.46,.034,.27,0,yt+.15,-2.05,.10,0,0);P.box('c',1.46,.012,.02,0,yt+.172,-2.17,.10,0,0);
+   for(const sd of [1,-1]){P.box('d',.03,.11,.28,sd*.73,yt+.15,-2.05,.10,0,0);P.box('d',.045,.15,.05,sd*.45,yt+.07,-2.02);}
+  }
   // LES RÉTROVISEURS (relevés sur les trois vues) : la coque à la couleur de la caisse, la glace vers l'arrière, le répétiteur orange devant
   P.sym(sd=>{P.box('k',.10,.035,.10,sd*.80,.885,.745,0,0,0);                              // le pied, sur la portière
     const cx=sd*.94,cy=.995,cz=.71;
@@ -165,7 +274,7 @@ SHAPES.corolla=function(K){
   {const g=new THREE.CylinderGeometry(.018,.03,.13,6);g.rotateX(Math.PI/2);P.put('n',g,0,yDessus(0,-1.08)+.03,-1.08,.12,0,0,1,1.2,1);}
   // LES LAMES DE LA BOUCHE : onze barres chromées sur la tôle d'origine, devant le fond noir creusé — elles suivent le nez en flèche (`zFace` : la
   // profondeur de la tôle en (x, y), cherchée tranche à tranche) ; l'OPTIQUE de l'antibrouillard, posée au fond de sa coupelle
-  {const LA=K.kit({c:{g:'c',c:0xc7ccd3},q:{g:'g',c:0xd9dde2},K:{g:'g',c:0x0b0b0e}}),h=.0036,ep=.018;
+  if(!HB3){const LA=K.kit({c:{g:'c',c:0xc7ccd3},q:{g:'g',c:0xd9dde2},K:{g:'g',c:0x0b0b0e}}),h=.0036,ep=.018;
    for(const [y,r] of PROF.lames)for(const sd of [1,-1]){let pv=null;for(const [x,z] of r){const p=[sd*x,y,z+.004];
        if(pv){LA.tri('c',[pv[0],y-h,pv[2]],[p[0],y-h,p[2]],[p[0],y+h,p[2]]);LA.tri('c',[pv[0],y-h,pv[2]],[p[0],y+h,p[2]],[pv[0],y+h,pv[2]]);
          LA.tri('c',[pv[0],y+h,pv[2]],[p[0],y+h,p[2]],[p[0],y+h,p[2]-ep]);LA.tri('c',[pv[0],y+h,pv[2]],[p[0],y+h,p[2]-ep],[pv[0],y+h,pv[2]-ep]);}
@@ -193,10 +302,21 @@ SHAPES.corolla=function(K){
   J.lathe('k',[[RJ,-hw],[R*.92,-hw],[R,-hw*.62],[R,hw*.62],[R*.92,hw],[RJ,hw]],24,0,0,0,'x');
   J.lathe('a',[[RJ,fx-.012],[RJ+.004,fx+.002],[RJ-.01,fx+.006],[RJ-.018,fx-.006]],24,0,0,0,'x');
   J.lathe('d',[[RJ-.02,-hw+.02],[RJ-.02,fx-.02],[.06,fx-.035],[0,fx-.035]],20,0,0,0,'x');
+  if(HB4){   /* (23/10, Léo : « montre ce que tu peux faire ») LA JANTE EN COUCHES PLIÉES : le fond sombre, un disque d'acier, CINQ bras en deux étages (une plaque noire large, une plaque chromée plus étroite et plus haute, chacune
+       coudée vers le moyeu), un anneau de rebord, cinq boulons — chaque pièce a sa matière et son épaisseur. */
+    J.lathe('s',[[.19,fx-.03],[.19,fx-.012],[.06,fx-.012],[.06,fx-.03]],20,0,0,0,'x');             // le disque d'acier
+    const bras=(w0,w1,w2,r0,r1,r2,dep,xx,k)=>{const sh=new THREE.Shape();sh.moveTo(-w0,r0);sh.lineTo(w0,r0);sh.lineTo(w1,r1);sh.lineTo(w2,r2);sh.lineTo(-w2,r2);sh.lineTo(-w1,r1);sh.lineTo(-w0,r0);
+      for(let q=0;q<5;q++){const g=new THREE.ExtrudeGeometry(sh,{depth:dep,bevelEnabled:false});g.rotateY(-Math.PI/2);g.rotateX(q/5*Math.PI*2);g.translate(xx,0,0);J.put(k,g,0,0,0);}};
+    bras(.034,.030,.044,.06,.12,.19,.012,fx-.012,'k');                                             // étage 1 : la plaque noire, large, coudée
+    bras(.020,.018,.030,.07,.12,.186,.012,fx+.002,'a');                                            // étage 2 : la plaque chromée, plus étroite, par-dessus
+    for(let q=0;q<5;q++){const a=q/5*Math.PI*2+Math.PI/5;J.put('a',new THREE.CylinderGeometry(.009,.009,.014,6),fx+.012,Math.cos(a)*.085,Math.sin(a)*.085,0,0,Math.PI/2);}   // cinq boulons
+    J.lathe('a',[[.20,fx-.006],[.206,fx+.004],[.19,fx+.01],[.186,fx+.002]],24,0,0,0,'x');           // l'anneau de rebord
+  }else{
   {const sh=new THREE.Shape();sh.moveTo(-.0075,.06);sh.lineTo(.0075,.06);sh.lineTo(.005,.194);sh.lineTo(-.005,.194);sh.lineTo(-.0075,.06);
    for(let q=0;q<20;q++){const g=new THREE.ExtrudeGeometry(sh,{depth:.018,bevelEnabled:true,bevelThickness:.003,bevelSize:.002,bevelSegments:1,curveSegments:1});
      g.rotateY(-Math.PI/2);g.rotateX(Math.floor(q/2)/10*Math.PI*2+(q%2?.075:-.075));g.translate(fx-.004,0,0);J.put('s',g,0,0,0);   // (le flanc anthracite…)
      const f=new THREE.ShapeGeometry(sh);f.rotateY(Math.PI/2);f.rotateX(Math.floor(q/2)/10*Math.PI*2+(q%2?.075:-.075));f.translate(fx+.0175,0,0);J.put('a',f,0,0,0);}}   // (…et la face usinée)
+  }
   J.lathe('s',[[.064,fx-.03],[.062,fx+.004],[.05,fx+.012],[0,fx+.014]],16,0,0,0,'x');
   J.lathe('a',[[.034,fx+.012],[.03,fx+.022],[0,fx+.025]],12,0,0,0,'x');
   const JG=J.done();
@@ -267,7 +387,26 @@ SHAPES.pikes=function(K){
   zs0.sort((a,b)=>a-b);const zs=zs0.filter((z,i)=>i===0||z-zs0[i-1]>.002);
   const peint=(j,z)=>j===0&&z<2.10&&z>-1.96?'k':'p';
   const EP=(typeof peintPal==='function'?peintPal(PAL):PAL).p,GP=EP.g;
-  const PL=K.kit(PAL);PL.loft(zs,S,peint);
+  /* (23/10, Léo : « traduis dans le style de LA HONTE, fidèle à la Fidèle ») `?honte=1` : la VRAIE forme (les sections du plan) taillée en quelques GROS pans — une tranche par grand changement
+     de ligne —, sans découpe au plan ; les vitres, les phares, la bouche sont des pièces posées. */
+  const zsB=[ZB,-2.28,-2.236,-2.0,-1.87,-1.36,-1.10,-.50,.30,.50,1.05,1.26,1.60,2.0,2.24,2.28,ZE,ZF-.36,ZF-.18,ZF+.18,ZF+.36,ZR-.36,ZR-.18,ZR+.18,ZR+.36].sort((a,b)=>a-b).filter((z,i,a)=>i===0||z-a[i-1]>.003);
+  /* EN BRIQUES (`?honte=1`) : chaque tranche est une section de 6 points, des BRIQUES — le dessous, le flanc DROIT, l'épaulement plat, la cabine à flancs droits, le toit —, mesurées sur la vraie section (largeur, hauteur de l'épaule, du toit, du bord de verre) :
+     la forme de La Fidèle, taillée comme les caisses de LA HONTE, mais proprement (peu de plis, aucune diagonale parasite). */
+  const SB=z=>{const s=S(z),xm=s[1][0]+.10*Math.min(1,s[1][0]/.62),yb=s[0][1],yt=s[NC][1],yc=s[s.length-1][1],cab=z<=ZW&&z>=ZHT,xr=cab?s[NC+3][0]:xm*.93,yr=cab?s[NC+3][1]:yt;
+    const sx=z>=ZE-1e-6||z<=ZB+1e-6?.02:1;return [[0,yb],[xm*sx,yb],[xm*sx,yt],[xr*sx,yt],[xr*sx,Math.max(yr,yt+.01)],[0,yc]];};
+  const peintB=(j,z)=>j===0?'k':(j===3&&z<1.0&&z>-1.3)?'g':(j===4&&z<1.26&&z>-1.87&&(z>.3||z<-1.2))?'g':'p';
+  const PL=K.kit(PAL);
+  if(HB){   /* (23/10, Léo : « empiler des formes TRÈS PLATES pour construire, comme LA HONTE, mais avec plus de couches ») LA FIDÈLE EN DALLES : la vraie silhouette taillée en TRANCHES HORIZONTALES de 5 cm ;
+     dans chaque tranche, des dalles (une par tronçon de même largeur, mesurée sur la vraie section à cette hauteur) — le bas, la caisse, la ceinture, la cabine de verre, le toit : un empilement, des marches, comme un modèle en briques. */
+    const xAt=(sc,y)=>{let m=0;for(let i=1;i<sc.length;i++){const a=sc[i-1],b=sc[i];if((a[1]-y)*(b[1]-y)<=0&&a[1]!==b[1]){const x=a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);if(x>m)m=x;}}return m;};
+    const DY=.05,Y0=.22,Y1=1.43,DZ=.09;
+    for(let yc=Y0+DY/2;yc<Y1;yc+=DY){const top=yc+DY>Y1-.001;let run=null;
+      const flush=z1=>{if(run&&run.w>.02){const L=z1-run.z0;PL.box(run.k,2*run.w,DY+.002,L,0,yc,(run.z0+z1)/2);}run=null;};
+      for(let z=ZB+DZ/2;z<ZE;z+=DZ){const sc=S(Math.max(ZB+.001,Math.min(ZE-.001,z))),w=Math.round(xAt(sc,yc)/.03)*.03,
+          k=(!top&&yc>1.00&&z<ZW-.02&&z>ZHT+.02&&w<.72)?'g':'p';
+        if(!run||run.w!==w||run.k!==k){flush(z-DZ/2);run={w:w,k:k,z0:z-DZ/2};}}
+      flush(ZE);}
+  }else PL.loft(zs,S,peint);
   // ---- LA DÉCOUPE AU PLAN (`japDecoupe`) ----
   const MEM=(typeof SHAPES==='object'&&SHAPES.pikes)||null;
   const av=(x,y,z,nx,ny,nz)=>z>1.95&&nz>.2,ar=(x,y,z,nx,ny,nz)=>z<-1.8&&nz<-.2,cs=(x,y,z,nx,ny,nz)=>Math.abs(nx)>.45;
@@ -323,7 +462,7 @@ SHAPES.pikes=function(K){
     face:japLignes([]),dos:japLignes([{k:'j',p:[[0,.88],[.62,.88],[.72,.92]],gate:ar}])};
   const CODES={p:{g:GP},gap:{g:GP,c:0x202228},K:{g:'g',c:PAL.K.c,lisse:1},g:{g:'g',c:PAL.g.c,lisse:1},n:{g:'g',c:PAL.n.c},W:{g:'l',c:0xf2f6ff},
     L:{g:'l',c:0xc80c1c},a:{g:'k',c:ARG},R:{g:'p',c:ROUGE},Y:{g:'p',c:JAUNE},N:{g:'s',c:NUIT},B:{g:'p',c:0x1e78d8}};
-  {const f2=PL.done;PL.done=()=>{const gs=f2(),G=gs[GP];if(!G)return gs;
+  if(!HB){const f2=PL.done;PL.done=()=>{const gs=f2(),G=gs[GP];if(!G)return gs;
     const out=japDecoupe(G,{zones:ZN,lignes:LGN,codes:CODES,ns:()=>japLisse(G,32),GP:GP,colP:japColP(EP),cache:MEM,
       vue:(x,y,z,ax,ay,az,nx,ny,nz)=>{if(z>2.0&&nz>.3&&ny<.85&&y<.80)return 'face';
         if(z<-.95&&y>.86&&nz<-.1){const s9=S(z);if(Math.abs(x)<s9[NC+3][0]-.004)return 'dos';}   // (le hayon : la lunette est lue de dos)
