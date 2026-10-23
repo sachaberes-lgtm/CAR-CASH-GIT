@@ -312,8 +312,17 @@ function bkSolD(x,z){const S=BANQ.sol;if(!S)return 1e9;const fx=(x-S.x0)/S.C,fz=
    (enterrés), chaque facette (A, Vi, Vi+1) un plan ; la hauteur du cristal en (x, z) = le MIN des plans de ses facettes (le dessus d'un
    polyèdre convexe), la grappe = le MAX de ses cristaux. La physique lit exactement ce que l'on voit : une facette pas trop raide se
    glisse, son arête est un tremplin. */
+/* (2026-10-24, Sacha : « des pics de glace mal imbriqués dans le sol, qui dépassent ») L'ANCRAGE : le plus bas des nœuds de la grille sous un disque de rayon r —
+   le maillage de la neige est fait de triangles entre ces nœuds, il ne descend jamais plus bas. Un pic dont le pied (le cercle de base, enterré) restait AU-DESSUS
+   de ce plancher pendait dans le vide (mesuré au rayon vertical sur le vrai maillage : 7 pics sur 441 flottaient de 1 à 14 m, au bord de la piste et sur les flancs raides). */
+function bkSolMin(x,z,r){const S=BANQ.sol;if(!S)return -1e9;let m=1e9;const i0=Math.max(0,Math.floor((x-r-S.x0)/S.C)),i1=Math.min(S.nx-1,Math.ceil((x+r-S.x0)/S.C)),j0=Math.max(0,Math.floor((z-r-S.z0)/S.C)),j1=Math.min(S.nz-1,Math.ceil((z+r-S.z0)/S.C)),r2=(r+S.C)*(r+S.C);
+  for(let j=j0;j<=j1;j++){const dz=S.z0+j*S.C-z;for(let i=i0;i<=i1;i++){const dx=S.x0+i*S.C-x;if(dx*dx+dz*dz>r2)continue;const h=S.h[i+j*S.nx];if(h<m)m=h;}}
+  return m>1e8?-1e9:m;}
+const BK_ANCRE=typeof location==='undefined'||!/[?&]sans=([^&]*,)?glacierancre(,|&|$)/.test(location.search);
 function bkPrim(x,z,yb,H,R,n,lx,lz,rot,rg,fam,prof){
-  const ay=yb+H,by=yb-(prof||Math.max(8,R*.35)),Rb=R*(ay-by)/H,ax=x+lx,az=z+lz,V=[];
+  const ay=yb+H;let by=yb-(prof||Math.max(8,R*.35)),Rb=R*(ay-by)/H;
+  if(BK_ANCRE&&BANQ.sol){for(let it=0;it<6;it++){const g=bkSolMin(x,z,Rb);if(g<-1e8||by<=g-3)break;by=Math.max(g-4,yb-H*4-20);Rb=R*(ay-by)/H;}} /* le pied descend sous le point le plus bas de son emprise (au plus 4 H + 20 m plus bas) ; la pente du cône ne change pas */
+  const ax=x+lx,az=z+lz,V=[];
   for(let i=0;i<n;i++){const th=rot+(i+(rg()-.5)*.38)/n*6.2832;V.push([x+Math.cos(th)*Rb,by,z+Math.sin(th)*Rb]);}
   /* (2026-10-20, LE DÉCOR RECALÉ) chaque sommet de base descend SOUS LA NEIGE QU'IL TOUCHE (6 m), et le milieu de chaque arête de base aussi : la base
      suit la pente (à 45°, le côté aval d'une base plate flottait) ; hors de la neige (les géants de l'horizon), un rayon de base plus bas, dans la brume.
