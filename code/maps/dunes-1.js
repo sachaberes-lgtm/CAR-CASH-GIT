@@ -414,9 +414,18 @@ function dnTravailleur(){if(DN.w!==undefined)return DN.w;
   return DN.w;}
 /* LA POSE : les données du monde dans DN (la collision), à la puce (trois textures), les décors — et le sable s'allume */
 const DN_SOL=!/[?&]sans=([^&]*,)?dunessoleil(,|&|$)/.test(location.search);
+/* (2026-10-24, Sacha : « pareil dans les dunes » — les décors mal imbriqués dans le sol) L'ANCRAGE DES MONUMENTS : ils étaient posés à la hauteur du sable de LEUR CENTRE ; sur une
+   dune en pente, leur côté bas pendait dans le vide (mesuré : la grande pyramide, 443 m de demi-base, flottait de 21 m ; un obélisque de 8 m). Le pied descend sous le point le plus
+   bas de son emprise (au plus 40 % de la hauteur pour un obélisque, 25 % pour une pyramide). `?sans=dunesancre` = comme avant. */
+const DN_ANCRE=typeof location==='undefined'||!/[?&]sans=([^&]*,)?dunesancre(,|&|$)/.test(location.search);
+function dnPlancher(x,z,r){let lo=1e9;for(const f of [0,.5,1])for(let a=0;a<(f?16:1);a++){const th=a/16*6.2832,g=dnHauteur(x+Math.cos(th)*r*f,z+Math.sin(th)*r*f);if(g<lo)lo=g;}return lo;}
+function dnAncreDecors(){if(!DN_ANCRE||!DN.Z||!DN.F)return;
+  for(const b of DN.ob||[]){const lo=dnPlancher(b.x,b.z,b.r*1.42);if(b.y>lo-.6)b.y=Math.max(lo-.6,b.y-Math.max(6,b.h*.4));}
+  for(const P of DN.pyrs||[]){const lo=dnPlancher(P.x,P.z,P.hw*1.4142);if(P.y>lo-3)P.y=Math.max(lo-3,P.y-P.h*.25);}
+  for(const m of DN.mo||[]){const lo=dnPlancher(m.x,m.z,m.r);if(m.y>lo-1)m.y=Math.max(lo-1,m.y-Math.max(6,m.h*.3));}}
 function dnMondePose(R){
   if(!DN.mat||!(LVL.cur&&LVL.cur.piste==='dunes'))return;const t4=performance.now();
-  DN.Z=R.Z;DN.F=R.F;DN.O=R.O;DN.ob=R.ob||[];DN.pyr=R.pyr||null;DN.pyrs=R.pyrs||(DN.pyr?[DN.pyr]:[]);DN.mo=R.mo||[];DN.yMin=R.yMin;DN.yMax=R.yMax;Object.assign(DN.ms,R.ms);
+  DN.Z=R.Z;DN.F=R.F;DN.O=R.O;DN.ob=R.ob||[];DN.pyr=R.pyr||null;DN.pyrs=R.pyrs||(DN.pyr?[DN.pyr]:[]);DN.mo=R.mo||[];DN.yMin=R.yMin;DN.yMax=R.yMax;Object.assign(DN.ms,R.ms);dnAncreDecors();
   const F=R.F,Z=R.Z,O=R.O;
   const dt=(d,w,h,fmt,typ,inf)=>{const t=new THREE.DataTexture(d,w,h,fmt,typ);if(inf)t.internalFormat=inf;t.magFilter=t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.needsUpdate=true;return t;};
   for(const k of ['tC','tZ','tS'])if(DN[k])DN[k].dispose();

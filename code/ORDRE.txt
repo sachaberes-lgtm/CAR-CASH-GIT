@@ -95,6 +95,7 @@ maps/biomes.js                       # biomes : le cycle du ciel
 rendu/etalonnage-da.js               # étalonnage par map × météo, la couche DA
 maps/niveaux.js                      # les niveaux, le mode classique au hasard, les planètes
 maps/continuite.js                   # continuité des maps, la planète du niveau
+maps/audit-placement.js              # dbgAudit : l'audit des décors posés au sol (pics flottants…)
 maps/orbite-1.js                     # L'ORBITE : la lune, les Starlink, les variantes empilées
 maps/orbite-2.js                     # orbite : le soleil hors cadre, la pose des tranches
 rendu/trainees-1.js                  # traînées pop : la planche

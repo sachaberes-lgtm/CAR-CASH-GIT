@@ -26,7 +26,7 @@
 - **LES PICS DU GLACIER À DISTANCE DE VUE** (v845, `buildBanqG`, `code/maps/glacier-construction.js`) : c'est la map qui pose ses obstacles SUR la route ; la 1re figure
   tombait à 560-680 m du départ quel que soit le palier — 1,2 à 2 s après le portail à 300-470 m/s, le voile compris. Elle part désormais à 3 s de croisière du palier au
   moins (`3 × (70 + (lvPiste() − 1) × 100)`, la croisière de conception de la piste) ; au palier de départ rien ne change (210 m < 560). Les tirages `fr` sont les mêmes.
-- **LA GROTTE SANS GEL D'UNE SALLE À L'AUTRE** (v846, `grotteTick`) : le profil d'une course dans la grotte montrait `grotteTick → bioGo → paintEnv` à 120-210 ms
+- **LA GROTTE SANS GEL D'UNE SALLE À L'AUTRE** (v847, `grotteTick`) : le profil d'une course dans la grotte montrait `grotteTick → bioGo → paintEnv` à 120-210 ms
   par entrée de salle — EN PLEINE COURSE (chaque salle a son ciel `grt-<temps>-<salle>`, et la grotte change aussi de temps en route : 4 × 6 = 24 ciels). Ils partent
   tous au travailleur dès le pré-bâti (`prebPart`) et, en filet, à la 1re image de chaque grotte (`GROTTE.envPret`) ; le cache passe à 32 ciels (~13 Mo).
   MESURÉ (40 s de grotte, palier 6, 357 m/s de médiane, pointes à 526 m/s) : 0 tâche longue, 0 image > 50 ms, la pire 39,5 ms ; `dbgEnvCiel()` : 24 ciels livrés par
