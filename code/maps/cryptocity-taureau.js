@@ -331,8 +331,9 @@ function cryptoTick(dt,sim){
   for(const f of CRYPTO.fus)if(f.on&&d>0)cryptoFuseeTick(f,d);
   if(CRYPTO.feux){const U=CRYPTO.feux.material.uniforms;U.uT.value+=d;U.uPx.value=(renderer.domElement.height||600)*.5*camera.projectionMatrix.elements[5];}
   if(sim&&started&&!gameOver){
-    CRYPTO.fusT-=d;if(CRYPTO.fusT<=0){CRYPTO.fusT=5+Math.random()*5;cryptoFusee();}
-    CRYPTO.feuT-=d;if(CRYPTO.feuT<=0){CRYPTO.feuT=1.6+Math.random()*2.6;cryptoFeuDevant();}
+    const DZ9=CITY.dz&&CITY.dz.genre==='crypto'?CITY.dz:null; // (2026-10-20, LE DÉCOR AU HASARD) la cadence des fusées et des feux tirée
+    CRYPTO.fusT-=d*(DZ9?DZ9.fus:1);if(CRYPTO.fusT<=0){CRYPTO.fusT=5+Math.random()*5;cryptoFusee();}
+    CRYPTO.feuT-=d*(DZ9?DZ9.feu:1);if(CRYPTO.feuT<=0){CRYPTO.feuT=1.6+Math.random()*2.6;cryptoFeuDevant();}
     CRYPTO.ath.t-=d;if(CRYPTO.ath.t<=0&&mode!=='boom'){CRYPTO.ath.t=32+Math.random()*14;cryptoAth();}}
 }
 function cryptoJackpot(p){ // traverser une pièce ₿ géante en vol
@@ -399,6 +400,6 @@ window.dbgCrypto=function(k,v){ // console : l'état de CRYPTOCITY · ('ath') un
     pix:PLA.texB?Array.from(PLA.texB.image.getContext('2d').getImageData(256,128,1,1).data):null,pixP:PLA.texP?Array.from(PLA.texP.image.getContext('2d').getImageData(128,122,1,1).data):null,inst:PLA.mB.geometry.instanceCount,max:PLA.mB.geometry._maxInstanceCount};
   if(k==='sites'){const S=CRYPTO.sites;return S?{bougies:S.bougies.slice(0,40).map(function(b){return [Math.round(b.x),Math.round(b.y0),Math.round(b.z),Math.round(b.y1-b.y0)];}),pieces:S.pieces.map(function(p){return [Math.round(p.x),Math.round(p.y),Math.round(p.z),Math.round(p.r)];}),dirig:S.dirig.map(function(d){return [Math.round(d.x),Math.round(d.y),Math.round(d.z)];})}:null;}
   if(k==='taureaux')return CRYPTO.taureaux.map(function(b){return {x:Math.round(b.x),y:Math.round(b.y),z:Math.round(b.z),cap:+Math.atan2(b.si,b.co).toFixed(2),s:Math.round(b.s),pied:Math.round(b.pl*b.k)};});
-  const S=CRYPTO.sites;return {on:cryptoOn(),ville:!!CITY.root,taureaux:CRYPTO.taureaux.length,bougies:S?S.bougies.length:0,pieces:CRYPTO.pInfo.length,diamants:CRYPTO.dInfo.length,
+  const S=CRYPTO.sites;return {on:cryptoOn(),ville:!!CITY.root,deco:CITY.dz&&CITY.dz.genre==='crypto'?CITY.deco:null,taureaux:CRYPTO.taureaux.length,bougies:S?S.bougies.length:0,pieces:CRYPTO.pInfo.length,diamants:CRYPTO.dInfo.length,
     dirigeables:CRYPTO.dirig.length,toits:CRYPTO.toits.length/3,reserve:CRYPTO.res.length/3,fusees:CRYPTO.fus.filter(function(f){return f.on;}).length,
     ath:{dans:+CRYPTO.ath.t.toFixed(1),n:CRYPTO.ath.n,prix:CRYPTO.ath.prix},pluie:{dens:+PLA.dens.toFixed(2),surge:+PLA.surge.toFixed(1),n:PLA.N,np:PLA.NP},ville9:CITY.n};};

@@ -116,7 +116,7 @@ function plaInit(){
 function plaSurge(s){plaInit();PLA.surge=Math.max(PLA.surge,s||4);}
 function plaTick(dt,sim){
   if(!PLA.mB){if(!(PLA.surge>0)&&!cryptoOn())return;plaInit();}
-  const cr9=cryptoOn()&&started&&!gameOver,cible=PLA.surge>0?1:cr9?.5:0;
+  const cr9=cryptoOn()&&started&&!gameOver,cible=PLA.surge>0?1:cr9?(CITY.dz&&CITY.dz.genre==='crypto'?CITY.dz.pluie:.5):0; /* (2026-10-20, LE DÉCOR AU HASARD) la pluie de fond tirée : fine, normale, averse */
   if(sim){PLA.surge=Math.max(0,PLA.surge-dt);PLA.dens+=(cible-PLA.dens)*Math.min(1,dt*(cible>PLA.dens?2.2:.9));PLA.u.uT9.value+=dt;}
   if(!started||gameOver&&PLA.surge<=0)PLA.dens=Math.max(0,PLA.dens-dt*.8);
   const vis=PLA.dens>.004&&!PLA.off;PLA.mB.visible=PLA.mP.visible=vis;if(!vis)return; // PLA.off : le banc la coupe (dbgCrypto('sansPluie'))
