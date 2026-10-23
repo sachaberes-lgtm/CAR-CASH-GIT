@@ -1,0 +1,14 @@
+<style id="palierLeger">
+/* ===== LE CSS PAR PALIER (2026-10-23, audit mobile, Sacha : « une version mobile fluide sans que ça baisse trop en qualité ») =====
+   `html[data-palier]` était écrit par PAL mais aucune règle ne le lisait : un iPhone 7 repeignait les mêmes balayages décoratifs en boucle qu'un
+   iPhone 15, en plus de la 3D. Ici (ANCIEN = 0 et MOYEN = 1, le palier 2 ne change PAS) : les mouvements purement décoratifs de l'atelier se
+   figent (balayage et trame de l'hologramme des missions, reflet du rappel, flux des fils, respiration de l'inventaire, flottement des photos).
+   Ni le HUD de course, ni les boutons, ni les compteurs ne sont touchés. Le flou plein écran des réglages saute sur tout tactile. */
+html[data-palier="0"] #gMis::after,html[data-palier="1"] #gMis::after,
+html[data-palier="0"] #gMis::before,html[data-palier="1"] #gMis::before,
+html[data-palier="0"] #gRappel::after,html[data-palier="1"] #gRappel::after,
+html[data-palier="0"] #gmFils path,html[data-palier="1"] #gmFils path,
+html[data-palier="0"] #gInv.on .ivT:not(.flash)::after,html[data-palier="1"] #gInv.on .ivT:not(.flash)::after,
+html[data-palier="0"] .shPhoto img,html[data-palier="1"] .shPhoto img{animation:none!important}
+body.touch #settings{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(6,8,18,.88)} /* un flou de 18 px sur tout l'écran, par-dessus une 3D qui tourne */
+</style>

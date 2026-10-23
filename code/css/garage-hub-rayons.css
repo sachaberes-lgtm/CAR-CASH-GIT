@@ -169,7 +169,8 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi
 #gBqPan .bqK .bqKp.eur{color:#3d4bff}
 #gBqPan .bqK .bqKp:is(.acq,.defi){color:#8a929c}
 #gBqPan .bqK .bqKl{position:absolute;top:6px;left:6px;padding:4px 6px;background:#3d4bff;color:#fff;font-size:8px;letter-spacing:1px}
-#gBqPan .bqK .bqKl.arc{background:linear-gradient(90deg,#ff4a4a,#ffa024 22%,#ffe23a 40%,#46f07a 60%,#3bb4ff 80%,#a066ff);color:#14171c;max-width:calc(100% - 12px);white-space:nowrap;overflow:hidden} /* (2026-10-18 soir) le CHAT POP-TART : + ARC-EN-CIEL (voir chatPackI) */
+#gBqPan .bqK .bqKl.arc{position:static;margin:0;max-width:none;white-space:normal;overflow:visible;text-align:center;line-height:1.35;letter-spacing:0;padding:3px 4px 2px;background:linear-gradient(90deg,#ff4a4a,#ffa024 22%,#ffe23a 40%,#46f07a 60%,#3bb4ff 80%,#a066ff);color:#14171c} /* (2026-10-18 soir) le CHAT POP-TART : + ARC-EN-CIEL (voir chatPackI) ; (2026-10-20, Sacha : « plus clair que Pop-Tart-Cat est vendu avec la traînée arc-en-ciel ») elle était posée en haut à gauche, SOUS l'étiquette de rareté (LÉGENDAIRE : z-index 1, même coin) : on n'en voyait que les bords. Elle est maintenant une BANDE dans le flux, sous la photo, sur deux lignes : « + TRAÎNÉE / ARC-EN-CIEL » */
+html:not(.c6):not(.ux8g) #gBqPan .bqK .bqKl.arc{font-size:7px}
 #gBqPan .bqK.off{width:148px}
 #gBqPan .bqK.off .bqKph{height:84px}
 #gBqPan.cote .bqK,#gBqPan.cote .bqK.off{width:calc((100% - 20px) / 3)}
@@ -203,7 +204,7 @@ html body #garage:is(.consoleCachee,.modeInv):not(.menu):not(.vitrine):not(.quie
 #gRappel .grT i:not(.pxi){font-style:normal;font-variant-numeric:tabular-nums}
 #gRappel>.pxi:last-child{--pxs:1;color:#ff8ad8}
 #gRappel::after{content:'';position:absolute;top:0;bottom:0;left:-40%;width:30%;pointer-events:none;background:linear-gradient(100deg,transparent,rgba(255,240,200,.28),transparent);animation:grReflet 4.2s ease-in-out infinite}
-@keyframes grReflet{0%,62%{left:-40%}100%{left:120%}}
+@keyframes grReflet{0%,62%{transform:translateX(0)}100%{transform:translateX(533.3%)}} /* (2026-10-23, audit mobile) transform au lieu de left : -40% → 120% du parent = 160 % / 30 % de sa largeur */
 #gRappel:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
 @media (prefers-reduced-motion:reduce){#gRappel::after{animation:none;display:none}}
 html[data-reduced-motion="1"] #gRappel::after{animation:none;display:none}

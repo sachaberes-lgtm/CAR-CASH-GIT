@@ -36,6 +36,7 @@ function pisteMaigre(att,c,lz){ // la tranche lointaine : mêmes attributs, une 
     for(let b=0;b<nb;b++)for(let k=0;k<nR;k++)for(let j=0;j<nc;j++){const s0=((b*NP+R[k])*pr+cols[j])*sz;for(let q=0;q<sz;q++)B9[w++]=A[s0+q];}
     g.setAttribute(nm,new THREE.BufferAttribute(B9,sz));}
   for(let b=0;b<nb;b++){const inv=lz.inv&&lz.inv[b];for(let k=0;k<nR-1;k++){
+    if(TROU&&TROU[R[k]])continue; // (LES TROUS) le vide entre deux segments de route : aucun triangle
     for(let j=0;j<nc-1;j++){const a2=(b*nR+k)*nc+j,b2=a2+1,c2=a2+nc,d2=c2+1;if(inv)ix.push(a2,b2,c2,b2,d2,c2);else ix.push(a2,c2,b2,b2,c2,d2);}}} // `inv` : le bloc retourné (voir BITUME)
   if(!ix.length)return null;
   g.setIndex(ix);sphere9(g);return g;
@@ -64,14 +65,16 @@ function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée
     const ns=r1-r0;
     const li=nv>65535?new Uint32Array(ns*nq*6*lay.blocs):new Uint16Array(ns*nq*6*lay.blocs);let w=0;
     for(let b=0;b<lay.blocs;b++){const inv=lay.inv&&lay.inv[b];for(let k=r0;k<r1;k++){
+      if(TROU&&TROU[k*lay.pas])continue; // (LES TROUS) le vide entre deux segments de route : aucun triangle (le ruban existe d'une ligne de pts à la suivante, sauf là)
       for(let j=0,a2=(b*nr+k-r0)*pr;j<nq;j++,a2++){const c2=a2+pr; // `inv` : le bloc retourné (sens inverse — voir BITUME)
         if(inv){li[w++]=a2;li[w++]=a2+1;li[w++]=c2;li[w++]=a2+1;li[w++]=c2+1;li[w++]=c2;}
         else{li[w++]=a2;li[w++]=c2;li[w++]=a2+1;li[w++]=a2+1;li[w++]=c2;li[w++]=c2+1;}}}}
+    if(TROU&&!w)continue; // (LES TROUS) une tranche entièrement au-dessus du vide n'existe pas
     const g=new THREE.BufferGeometry();
     for(const nm of noms){const A=att[nm][0],sz=att[nm][1],B9=new Float32Array(nv*sz);
       for(let b=0;b<lay.blocs;b++)B9.set(A.subarray((b*np+r0)*pr*sz,(b*np+r1+1)*pr*sz),b*nr*pr*sz);
       g.setAttribute(nm,new THREE.BufferAttribute(B9,sz));}
-    g.setIndex(new THREE.BufferAttribute(li,1));
+    g.setIndex(new THREE.BufferAttribute(w<li.length?li.subarray(0,w):li,1));
     sphere9(g);if(o.marge)g.boundingSphere.radius+=o.marge; // (chasse aux gels) sphere9 = computeBoundingSphere, au flottant près
     const m=new THREE.Mesh(g,mat);if(o.ombre)m.receiveShadow=true;if(o.ordre)m.renderOrder=o.ordre;
     m.updateMatrix();m.matrixAutoUpdate=false; // sommets en coordonnées MONDE : la tranche ne bouge jamais
@@ -112,21 +115,20 @@ const PREB={on:!/[?&]prebati=0\b/.test(location.search),W:null,g:null,fait:false
   tNeuf:0,t0:0,tFin:0,cpu:0,img:0,jadeM:null,non:null,echecs:0,pris:0,finis:0,annules:0,der:'',msFin:0,
   dep:false,ctx:null,depPorte:false,fin0:0,ntLeger:false,cam:false,depPris:0,legers:0}; // (LE DÉPART D'AVANCE, voir prebDepTick)
 const PREB_V=new THREE.Vector3();
-const PREB_TAB=['trackMeshes','PISTE_LOD','NEON_RAILS','NEON_GLOW','PAD_MATS','MODMARK','FILETMARK','CAMPM'];
-function prebTabDe(k){return k==='trackMeshes'?trackMeshes:k==='PISTE_LOD'?PISTE_LOD:k==='NEON_RAILS'?NEON_RAILS:k==='NEON_GLOW'?NEON_GLOW:k==='PAD_MATS'?PAD_MATS:k==='MODMARK'?MODMARK:k==='FILETMARK'?FILETMARK:CAMPM;}
+const PREB_TAB=['trackMeshes','PISTE_LOD','NEON_RAILS','NEON_GLOW','PAD_MATS','MODMARK','FILETMARK','CAMPM','TROUMARK'];
+function prebTabDe(k){return k==='trackMeshes'?trackMeshes:k==='PISTE_LOD'?PISTE_LOD:k==='NEON_RAILS'?NEON_RAILS:k==='NEON_GLOW'?NEON_GLOW:k==='PAD_MATS'?PAD_MATS:k==='MODMARK'?MODMARK:k==='FILETMARK'?FILETMARK:k==='TROUMARK'?TROUMARK:CAMPM;}
 function prebChampsDe(piste){ // les champs de module qu'écrit la construction de la route : toutes les maps, plus ceux de la génération de CETTE map
   const L9=[[TORD,['on','N','ctrl0','seed','info']],[JADE,['flank','ligne']],[LIGNE_PER,['v']]];
-  if(piste==='jade')L9.push([JADE,['Q']]);
+  if(piste==='jade')L9.push([JADE,['Q','mk']]); /* (2026-10-20) mk : les modules de la vallée */
   else if(piste==='foret')L9.push([FORET,['Q','plg','boucles','noeuds','pel','plan','axe']]); // (2026-10-19) plan, axe : LA FORÊT AU HASARD
-  else if(piste==='volcan')L9.push([VOLCAN,['K','C','K2','C2','Q','plg','sauts','sSp','ySea','conflits','croise','th0','th1','lac']]);
+  else if(piste==='volcan')L9.push([VOLCAN,['K','C','K2','C2','Q','plg','sauts','sSp','ySea','conflits','croise','th0','th1','lac','hz']]); // (2026-10-20) hz : LE VOLCAN AU HASARD
   else if(piste==='canyon')L9.push([CY,['Q','rmin','sep','hz']]); // (+ hz : LE CANYON AU HASARD)
-  else if(piste==='dunes')L9.push([DN,['Q','rmin','sep','hz']]); // (2026-10-18) LES DUNES D'OR (+ hz : LES DUNES AU HASARD)
+  else if(piste==='dunes')L9.push([DN,['Q','rmin','sep','hz','gp','fe']]); // (2026-10-18) LES DUNES D'OR (+ hz : LES DUNES AU HASARD · + fe : les vagues de LA ROUTE CONTINUE)
   else if(piste==='banquise')L9.push([BANQ,['Q','cas','spi','axe','plan','pres','essais']]); // (2026-10-19) axe, plan, pres, essais : LE GLACIER AU HASARD (l'axe tourne les aurores)
   else if(piste==='grotte')L9.push([GROTTE,['Q','salles','spi','conflits','croise']]); // (2026-10-18) LES PROFONDEURS
-  else if(piste==='paris')L9.push([PARIS,['Q']]);
   return L9;}
 function pisteTravail(c){ // l'état de travail d'une route : celle d'en face (c, le pré-bâti), ou celle que newTrack vient de choisir (null, d'un trait)
-  const W={pts:[],T:[],Nn:[],B:[],L:0,NP:0,trackMinY:-1e9,FILETS:[],MODS:[],PADS:[],PADL:[],OILS:[],
+  const W={pts:[],T:[],Nn:[],B:[],L:0,NP:0,trackMinY:-1e9,FILETS:[],MODS:[],TROUS:[],TROU:null,PADS:[],PADL:[],OILS:[],
     VILLE_ENTREE:null,THICK:THICK,ROAD_HALF:ROAD_HALF,KAPB:KAPB,zoneArch:zoneArch,tab:{},
     cur:LVL.cur,n:LVL.n,zones:runStats.zones,eng:engTier,F:{p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},jade:null,jadeFait:false};
   if(c){W.cur=sfNiveau(c.t.carte,c.t.meteo,c.t.teinte);W.n=c.zn+1;W.zones=c.z;W.ROAD_HALF=ROAD_HALF0*LARGEUR[Math.min(LARGEUR.length-1,c.z)];W.KAPB=new Float32Array(1);
@@ -138,7 +140,7 @@ function pisteTravail(c){ // l'état de travail d'une route : celle d'en face (c
 function prebEchange(W,entrees){ // l'état de la piste vivante ⇄ celui du travail W (deux appels se défont) · entrees : aussi la map choisie, le portail franchi, F (le temps d'une tranche)
   let x;
   x=pts;pts=W.pts;W.pts=x;x=T;T=W.T;W.T=x;x=Nn;Nn=W.Nn;W.Nn=x;x=B;B=W.B;W.B=x;x=L;L=W.L;W.L=x;x=NP;NP=W.NP;W.NP=x;x=trackMinY;trackMinY=W.trackMinY;W.trackMinY=x;
-  x=FILETS;FILETS=W.FILETS;W.FILETS=x;x=MODS;MODS=W.MODS;W.MODS=x;x=PADS;PADS=W.PADS;W.PADS=x;x=PADL;PADL=W.PADL;W.PADL=x;
+  x=FILETS;FILETS=W.FILETS;W.FILETS=x;x=MODS;MODS=W.MODS;W.MODS=x;x=TROUS;TROUS=W.TROUS;W.TROUS=x;x=TROU;TROU=W.TROU;W.TROU=x;x=PADS;PADS=W.PADS;W.PADS=x;x=PADL;PADL=W.PADL;W.PADL=x;
   x=OILS;OILS=W.OILS;W.OILS=x;
   x=VILLE_ENTREE;VILLE_ENTREE=W.VILLE_ENTREE;W.VILLE_ENTREE=x;x=THICK;THICK=W.THICK;W.THICK=x;
   x=ROAD_HALF;ROAD_HALF=W.ROAD_HALF;W.ROAD_HALF=x;x=KAPB;KAPB=W.KAPB;W.KAPB=x;x=zoneArch;zoneArch=W.zoneArch;W.zoneArch=x;

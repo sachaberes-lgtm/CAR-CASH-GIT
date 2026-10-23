@@ -78,7 +78,7 @@ function banqVerglas(dt){ // la boucle de conduite, chaque image, après les fla
 function bkSkateRaz(){BKV.t=0;BKV.hors=0;BKV.aura=0;BKV.dix=0;} // (2026-10-15, Sacha : « enlève la figure ICE SKATE ») la figure est partie ; ses remises à zéro restent, inertes
 /* ---------------- LA CONGÈRE : LA NEIGE PROFONDE DU BORD (2026-10-18) ----------------
    (Sacha : « quand on touche le bord on y reste collé » puis « quand on touche le bord on doit pas mourir : on s'enfonce dans la neige, ce qui
-   ralentit beaucoup, mais ça tue pas ».) Le bord de la piste était le MUR des couloirs du canyon (parisMur : coup d'épaule, mort au-delà de 30°
+   ralentit beaucoup, mais ça tue pas ».) Le bord de la piste était le MUR des couloirs du canyon (murCote : coup d'épaule, mort au-delà de 30°
    et 200 km/h) ; et sur la glace la caisse part vers l'extérieur des virages (banqVerglas) : elle y revenait à chaque image, collée au mur.
    Désormais, au-delà de la glace, une bande de NEIGE PROFONDE de `BK_CG.w` m de chaque côté — un ruban posé sur le repère de la piste
    (`bkCongerePose`), car la grille de neige, en cases de 34-40 m, ne savait pas dessiner un bord net (et passait par endroits AU-DESSUS de la
@@ -215,7 +215,7 @@ function banqFx(){const fx=BANQ.fx;if(fx.flo)return fx;const M=banqMats(),R=mulb
   fx.givre=makePool(240,1.1,0xe4fbff,1,true,{a:[.02,.3,.6,1],pr:[2,6,26,0]});fx.givre.drag=2.4;fx.givre.acc=9;fx.givre.mesh.name='banquise givre';
   // (2026-10-15 soir) LA GLISSE SUR LE VERGLAS : des éclats ÉTIRÉS (le trait suit leur vitesse, voir ptShader) et un voile de givre qui gonfle en s'effaçant
   fx.eclat=makePool(PAL_BK('banqEclat',700),.8,0x8fe4ff,1,true,{a:[.02,.35,1,.35],pr:[1.2,3.5,30,90],etire:true,str:.05,v:.6}); /* cyan glacier : blanc sur la glace blanche, on ne les voyait pas — (2026-10-15 soir) ce commentaire en // avalait la suite (drag, acc, nom) : rendu */fx.eclat.drag=1.4;fx.eclat.acc=14;fx.eclat.mesh.name='banquise eclats';
-  fx.brume=makePool(PAL_BK('banqBrume',220),3.4,0xe2f2ff,.5,true,{a:[.10,.75,.45,1.7],pr:[2.5,7,120,0]}); // (plafond 120 px : à 46, le voile n'était qu'un point blanc sur la glace blanche)fx.brume.drag=2.4;fx.brume.mesh.name='banquise brume';
+  fx.brume=makePool(PAL_BK('banqBrume',220),3.4,0xe2f2ff,.5,true,{a:[.10,.75,.45,1.7],pr:[2.5,7,120,0]}); /* (plafond 120 px : à 46, le voile n'était qu'un point blanc sur la glace blanche) — (2026-10-18, DEBUGGING : ce commentaire en // avalait la suite : le voile de givre filait avec la caisse, sans frein) */fx.brume.drag=2.4;fx.brume.mesh.name='banquise brume';
   fx.eclat.mesh.renderOrder=fx.brume.mesh.renderOrder=9; // ⚠ APRÈS la plaque de verglas (renderOrder 1, transparente) et les traces (2) : dessinées avant, elles étaient repeintes par la glace — invisibles au banc
   bkTraceMesh();
   return fx;}
@@ -245,12 +245,16 @@ function banqTick(dt){
   {const cg=carGroup;U.uCarP.value.copy(cg.position);U.uCarF.value.set(0,0,1).applyQuaternion(cg.quaternion);}
   U.uPhare.value=c.phare*(mode==='boom'||!carGroup.visible?0:1);U.uFlash.value=(LVL.cur&&LVL.cur.orage)?(CAMP_FLASH||0):0;
   U.uSpark.value=c.spark;U.uAlp.value=c.alp;U.uAlpC.value.setRGB(c.alpC[0],c.alpC[1],c.alpC[2]);U.uAur.value=c.aur;U.uIceT.value.set(c.ice[0],c.ice[1],c.ice[2]);
-  U.uMistK.value=c.mist;U.uMistC.value.setRGB(c.mC[0],c.mC[1],c.mC[2]);if(scene.fog)U.uMistC.value.lerp(scene.fog.color,.3);
+  U.uMistK.value=c.mist;
+  {const Z=BANQ.dz; /* (2026-10-20, LE DÉCOR AU HASARD) la glace, les aurores, la brume, l'alpenglow de CETTE piste (sans tirage : les valeurs d'avant) */
+   if(Z){U.uIceT.value.x*=Z.glace[0];U.uIceT.value.y*=Z.glace[1];U.uIceT.value.z*=Z.glace[2];U.uAur.value=c.aur*Z.aur.k;U.uMistK.value=c.mist*Z.brume;U.uAlp.value=c.alp*Z.alp.k;if(Z.alp.c)U.uAlpC.value.setRGB(Z.alp.c[0],Z.alp.c[1],Z.alp.c[2]);
+     U.uAurC.value.setRGB(Z.aur.c[0],Z.aur.c[1],Z.aur.c[2]);U.uAurC2.value.setRGB(Z.aur.c2[0],Z.aur.c2[1],Z.aur.c2[2]);}
+   else{U.uAurC.value.setRGB(.25,1,.62);U.uAurC2.value.setRGB(.75,.30,1);}}U.uMistC.value.setRGB(c.mC[0],c.mC[1],c.mC[2]);if(scene.fog)U.uMistC.value.lerp(scene.fog.color,.3);
   {const i=Math.max(0,Math.min(NP-1,Math.round(s/Math.max(1,L)*(NP-1))));const y9=pts[i]?pts[i].y:0;U.uMistY.value+=(y9-U.uMistY.value)*Math.min(1,dt*1.5+(BANQ.yRaz?1:0));BANQ.yRaz=false;}
-  U.uNeige.value=c.neige;U.uDD.value=c.dd;U.uVent.value=c.vent;U.uPx.value=renderer.getPixelRatio();
+  U.uNeige.value=c.neige;U.uDD.value=c.dd*(BANQ.dz?BANQ.dz.dd:1);U.uVent.value=c.vent;U.uPx.value=renderer.getPixelRatio();
   {const ff=(scene.fog&&scene.fog.far)||5000;if(scene.fog)U.uHazeC.value.copy(scene.fog.color);U.uHazeK.value=1.6/Math.max(600,ff);U.uHazeM.value=c.neige>.3?.82+.15*Math.min(1,c.neige):.80;}
   {camera.getWorldDirection(BK_V);U.uBoxC.value.copy(camera.position).addScaledVector(BK_V,22);}
-  fx.flo.visible=c.neige>.01;fx.dd.visible=c.dd>.01&&c.neige<.2;
+  fx.flo.visible=c.neige>.01;fx.dd.visible=U.uDD.value>.01&&c.neige<.2;
   fx.aur.visible=c.aur>.01;if(fx.aur.visible){fx.aur.position.copy(camera.position);fx.aur.rotation.y=BANQ.axe||0; /* (2026-10-19) les aurores tournent avec la montagne (LE GLACIER AU HASARD) */fx.aur.updateMatrix();fx.aur.updateMatrixWorld(true);}
   if(BK_TR.mesh)BK_TR.mesh.visible=true;
   if(BANQ.solM){const ff=(scene.fog&&scene.fog.far)||6000,cp=camera.position;for(const m of BANQ.solM){const b=m.geometry.boundingSphere,v=cp.distanceTo(b.center)-b.radius<ff+60;if(m.visible!==v)m.visible=v;}}
@@ -331,6 +335,11 @@ window.dbgBanq=function(k,o){
   if(k==='verglas'){const V9=(BANQ.verg||[]).map(function(v){return [Math.round(v.a),Math.round(v.b)];});
     if(o&&(o.s!=null||o.n!=null)){safeS=o.s!=null?o.s:600+(o.n|0)*800;respawn();graceT=0;if(o.v)vA=o.v/(3.6*SPD);}
     return {plaques:V9,sur:BKV.sur,yaw:+BKV.yaw.toFixed(3),gl:+BKV.gl.toFixed(3),gk:+BKV.gk.toFixed(2),ecl:bkVie(BANQ.fx.eclat),bru:bkVie(BANQ.fx.brume),t:+BKV.t.toFixed(2),aura:Math.round(BKV.aura),s:Math.round(s),lat:+lat.toFixed(2),psi:+psi.toFixed(3),kmh:Math.round(Math.abs(vA)*3.6*SPD),mode:mode};}
+  if(k==='regle'){if(!BANQ.root)return null;const ob=new Set();for(const o9 of BANQ.obst||[])for(const P of o9.L9)ob.add(P); /* (2026-10-20, banc) LA RÈGLE D'OR : aucun cristal du DÉCOR (hors des pics de la piste) ne crève la glace, ses bords, ni l'air de la caméra (14 m de chaque côté) */
+    const ds=L/(NP-1),st=Math.max(1,Math.round(6/ds));let n=0,t=0,pire=-1e9;const ex=[];
+    for(let i=0;i<NP;i+=st){const p=pts[i],b=B[i];for(let q=-1;q<=1;q+=.25){const la=q*(ROAD_HALF+14),x=p.x+b.x*la,z=p.z+b.z*la;t++;const G=BANQ.picG,A9=G&&G.G.get(Math.floor(x/G.CG)*100003+Math.floor(z/G.CG));if(!A9)continue;
+      for(const P of A9){if(ob.has(P)||(x-P.cx)*(x-P.cx)+(z-P.cz)*(z-P.cz)>P.r2)continue;const h=bkPrimH(P,x,z),m=h-(p.y-THICK-5);if(m>pire)pire=m;if(m>0){n++;if(ex.length<6)ex.push([Math.round(i*ds),+q.toFixed(2),Math.round(m),P.fam]);}}}}
+    return {essais:t,percees:n,pire:Math.round(pire),ex:ex};}
   if(k==='meteo'){banqMeteo(o||'nuit',.01);return BANQ.met;}
   if(k==='phys'&&o){Object.assign(BK_PH,o);return BK_PH;}
   if(k==='cg'){if(o)Object.assign(BK_CG,o);return {cg:BK_CG,k:+BKB.k.toFixed(2),enf:+BKB.enf.toFixed(2),dans:BKB.dans,lat:+lat.toFixed(1),kmh:Math.round(Math.abs(vA)*3.6*SPD),p:carGroup.position.toArray().map(function(v){return +v.toFixed(1);}),t:F.t.toArray().map(function(v){return +v.toFixed(3);}),b:F.b.toArray().map(function(v){return +v.toFixed(3);}),n:F.n.toArray().map(function(v){return +v.toFixed(3);}),mort:mortCause,pq:BANQ.pourquoi||'',latOff:+curLatOff.toFixed(1),hOff:+curHOff.toFixed(1)};} // (banc, 2026-10-18) LA CONGÈRE : réglages et état
@@ -363,7 +372,7 @@ window.dbgBanq=function(k,o){
   if(k==='fini'){const t=performance.now(),n=bkTranches(1e9);return {taches:n,ms:Math.round(performance.now()-t)};}
   if(k==='ramene'){if(mode==='fall')banqRamene();return mode;}
   const triM=function(L9){return (L9||[]).reduce(function(a,m){return a+(m.geometry.index?m.geometry.index.count:m.geometry.attributes.position.count)/3;},0);};
-  return {on:!!BANQ.root,met:BANQ.met,ms:BANQ.ms,msSol:BANQ.msSol,tp:BANQ.tp,axe:BANQ.axe!=null?Math.round(BANQ.axe*57.3):null,plan:BANQ.plan||null,pres:BANQ.pres,essais:BANQ.essais, /* (2026-10-19) LE GLACIER AU HASARD : l'axe (°), les tronçons, le plus près que la piste passe d'elle-même */file:{reste:BANQ.file.length-BANQ.fi,total:BANQ.nFile,ms:Math.round(BANQ.msFile||0)},tri:{sol:triM(BANQ.solM),pics:triM(BANQ.picM),loin:triM(BANQ.loinM)},n:BANQ.n,cas:BANQ.cas.map(function(x){return Math.round(x);}),
+  return {on:!!BANQ.root,deco:BANQ.deco||null,met:BANQ.met,ms:BANQ.ms,msSol:BANQ.msSol,tp:BANQ.tp,axe:BANQ.axe!=null?Math.round(BANQ.axe*57.3):null,plan:BANQ.plan||null,pres:BANQ.pres,essais:BANQ.essais, /* (2026-10-19) LE GLACIER AU HASARD : l'axe (°), les tronçons, le plus près que la piste passe d'elle-même */file:{reste:BANQ.file.length-BANQ.fi,total:BANQ.nFile,ms:Math.round(BANQ.msFile||0)},tri:{sol:triM(BANQ.solM),pics:triM(BANQ.picM),loin:triM(BANQ.loinM)},n:BANQ.n,cas:BANQ.cas.map(function(x){return Math.round(x);}),
     sol:BANQ.sol&&{nx:BANQ.sol.nx,nz:BANQ.sol.nz,C:BANQ.sol.C,morceaux:BANQ.solM&&BANQ.solM.length,vus:BANQ.solM&&BANQ.solM.filter(function(m){return m.visible;}).length},
     cur:BANQ.cur&&{aur:+BANQ.cur.aur.toFixed(2),neige:+BANQ.cur.neige.toFixed(2),alp:+BANQ.cur.alp.toFixed(2)},L:Math.round(L),yMin:Math.round(trackMinY),y0:pts[0]&&Math.round(pts[0].y)};};
 

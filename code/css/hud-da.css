@@ -23,8 +23,8 @@
 @keyframes spSort{0%{transform:translate(var(--dx,0),var(--dy,0)) scale(var(--s,1))}100%{transform:none}}
 @keyframes spRentre{0%{transform:none}100%{transform:translate(var(--dx,0),var(--dy,0)) scale(var(--s,1))}}
 /* ce que la vignette n'avait pas arrive après le trajet, et s'efface d'abord au retour */
-#shPop.on :is(.spRare,.spRemise,.spDesc,.spBtns,.spNote){animation:spApres var(--t-slow) var(--ease) both;animation-delay:calc(var(--t-slow) * .5)}
-#shPop.sortant :is(.spRare,.spRemise,.spDesc,.spBtns,.spNote){animation:k4VoileOut var(--t-fast) var(--ease) forwards}
+#shPop.on :is(.spRare,.spArc,.spRemise,.spDesc,.spBtns,.spNote){animation:spApres var(--t-slow) var(--ease) both;animation-delay:calc(var(--t-slow) * .5)}
+#shPop.sortant :is(.spRare,.spArc,.spRemise,.spDesc,.spBtns,.spNote){animation:k4VoileOut var(--t-fast) var(--ease) forwards}
 @keyframes spApres{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:none}}
 /* la vignette partie : sa place reste vide dans la grille */
 .shCase.spParti,.shUne.spParti{visibility:hidden}
@@ -64,8 +64,20 @@
   .spNote{grid-area:note}
   .spPrix em{font-size:var(--f6)}
 }
-@media (prefers-reduced-motion:reduce){#shPop.on .spCarte,#shPop.sortant .spCarte,#shPop.on :is(.spRare,.spRemise,.spDesc,.spBtns,.spNote){animation:none}}
+@media (prefers-reduced-motion:reduce){#shPop.on .spCarte,#shPop.sortant .spCarte,#shPop.on :is(.spRare,.spArc,.spRemise,.spDesc,.spBtns,.spNote){animation:none}}
 html[data-reduced-motion="1"] #shPop.on .spCarte,html[data-reduced-motion="1"] #shPop.sortant .spCarte{animation:none}
+/* LA PASTILLE ARC-EN-CIEL (2026-10-20, Sacha : « il faut que ça soit plus clair que Pop-Tart-Cat est vendu avec la traînée arc-en-ciel ») : le CHAT POP-TART s'achète
+   AVEC sa traînée ; la pastille porte les couleurs de la traînée (le dégradé de la carte du garage, `.bqKl.arc`) et dit « INCLUSE » (JS : shArcHtml). Elle se coupe
+   en deux lignes dans la colonne étroite de l'écran couché plutôt que de déborder. */
+.shArc{align-self:flex-start;display:block;max-width:100%;box-sizing:border-box;padding:5px 8px 4px;font-family:var(--pix);font-style:normal;font-weight:400;font-size:var(--f0);line-height:1.5;letter-spacing:1px;text-wrap:balance;color:#14171c;
+  background:linear-gradient(90deg,#ff4a4a,#ffa024 22%,#ffe23a 40%,#46f07a 60%,#3bb4ff 80%,#a066ff);box-shadow:0 0 14px rgba(255,170,60,.35)}
+.spArc{margin-top:-2px}
+#gBqNom .shArc{display:inline-block} /* la boutique du garage : sous le nom de la caisse (la place de « SE DÉBLOQUE »), centrée comme lui */
+@media (orientation:landscape) and (max-height:540px){
+  .spCarte.avecArc{grid-template-areas:"photo rare" "photo nom" "photo arc" "photo desc" "photo prix" "btns btns" "note note";row-gap:6px}
+  .spCarte.avecArc .spDesc{font-size:12px;line-height:1.5}
+  .spArc{grid-area:arc;justify-self:start}
+}
 </style>
 <style id="pouvoirsV2">
 /* POUVOIRS v2 (2026-09-28, session GAMEPLAY) — six pouvoirs, cumulables. Trois plaques et plus à la fois : elles se SERRENT (la colonne
@@ -94,7 +106,7 @@ html body.touch #pwrChip .pw.cumul u{height:5px;box-shadow:0 0 12px var(--pc),0 
   --jEncre:#170f55;--jFond:#0d0a2a;--jInk:#1c0430;--jCurs:#fff6d8;             /* la jauge : cadre, fond, encre des textes, curseur */
   --nL:#ffd58f;--nP:#ff8d2e;--nS:#ff7415;--nO:#ad4200;--nEcl:#ffb81f;--nEclC:#fff3c4;--nEclS:#e07a00;   /* la NITRO (orange) et son éclair */
   --bL:#b5c4ff;--bP:#4a68f0;--bS:#2a44c8;--bO:#16247a;                        /* la réserve BLEUE */
-  --vL:#f1dcff;--vP:#b06bff;--vS:#8a3dff;--vO:#3e1287;--vG:rgba(164,92,255,.9); /* la NITRO INFINIE : VIOLET */
+  --vL:#ffd9d4;--vP:#ff2b2b;--vS:#e00d0d;--vO:#6e0505;--vG:rgba(255,40,40,.9); /* la NITRO INFINIE : ROUGE VIF (2026-10-22, Sacha) */
   --aL:#d8fbff;--aP:#5ee6ff;--aS:#18b0e2;--aO:#0b4f7a;                        /* l'AIR : cyan (la couleur du pouvoir AIRTIME) */
   --oL:#fff0b8;--oP:#ffc93a;--oS:#f29a00;--oO:#7a4200;                        /* l'or : le temps qui presse */
   --rL:#ffd0d6;--rP:#ff5a6e;--rS:#e0203c;--rO:#6e0014;                        /* le rouge : il ne reste plus rien */
@@ -148,6 +160,8 @@ html body.touch #tNitro.inf>.nxJauge{background-image:repeating-linear-gradient(
 @keyframes daFile{to{background-position:-13px 0,0 0}}
 /* l'anneau de l'auto-école (« appuie ici ») épouse la plaque */
 /* ---- 2. LA BARRE NITRO EN NITRO INFINIE : violette (elle brûlait or, comme la nitro ordinaire — on ne voyait pas le pouvoir) ---- */
+/* (2026-10-22, Sacha : « le boost de Nitro, il doit mettre la barre en rouge vif, pas en violet ») — la barre seule passe au ROUGE VIF */
+html body.touch #nitroBar.inf{--vL:#ffd9d4;--vP:#ff2b2b;--vS:#e00d0d;--vO:#6e0505;--vG:rgba(255,40,40,.9)}
 html body.touch #nitroBar.inf{box-shadow:inset 0 0 0 3px var(--vL),0 4px 0 var(--jEncre),0 0 24px var(--vG),0 0 44px color-mix(in srgb,var(--vS) 55%,transparent)!important}
 html body.touch #nitroBar.inf #nitroR::after{box-shadow:0 0 10px var(--vP),0 0 18px var(--vS)!important}
 html body.touch #nitroBar.inf::before{background:linear-gradient(var(--bandes4),#fff 0 24%,var(--vL) 24% 60%,var(--vP) 60%)!important;filter:drop-shadow(0 0 8px var(--vP))!important}

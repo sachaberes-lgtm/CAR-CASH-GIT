@@ -33,15 +33,15 @@ function gmRender(vu){ // vu : l'écran est déjà là (un défi coché) — les
 function gmSuit(){return gmSuitS();} // chaque image : le panneau MISSIONS se recale, les hologrammes suivent l'orientation
 function gmHoloPlace(land){ // (2026-09-30) les hologrammes suivent l'ancre de l'orientation (voir `pp`)
   for(const h of GMIS.holo){const q=(!land&&h.a.pp)||h.a.p;h.beam.scale.set(.5,q[1]+.5,1);h.beam.position.set(q[0],(q[1]+.5)/2,q[2]);if(h.ring)h.ring.position.set(q[0],.05,q[2]);}}
-function gmPlaceL(W,H){ // debout : UN panneau entre le titre et JOUER ; couché : DEUX — les missions dans la colonne de JOUER, au-dessus de lui ; la récompense et la suite à gauche, sous le titre
-  const L=$('gmListe');if(!L)return;const hd=$('gmHead'),bs=$('gmBas'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect(),land=W>H*1.25;
+function gmPlaceL(W,H){ // couché : DEUX colonnes — la carte de la série à gauche sous le titre, la liste à droite au-dessus de JOUER (le CSS les pose : voir « L'ÉCRAN MISSIONS ÉPURÉ ») ; debout : UN panneau entre le titre et la barre du bas
+  const L=$('gmListe');if(!L)return;const hd=$('gmHead'),bs=$('gmBas'),gm=$('gMis'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect(),land=W>H*1.25;
   const bt=rb&&rb.height?rb.top:H-90,g0=rh&&rh.width?rh.left:16,A=L.querySelector('.glA'),Bk=L.querySelector('.glB'),px=function(v){return Math.round(v)+'px';};
-  L.classList.toggle('land',land);
-  if(hd)hd.style.maxWidth=land&&rb&&rb.width?px(Math.max(160,rb.left-g0-14)):''; // (2026-10-17, Sacha) couché, l'en-tête s'arrête avant le panneau : la consigne et la ligne du cadeau (jusqu'à 420 px de large) passaient DESSOUS
-  if(land){const tp=rh&&rh.height?rh.top:12,l=rb&&rb.width?rb.left:W*.5,r=rb&&rb.width?W-rb.right:g0,bB=H-(rb&&rb.height?H-rb.bottom:14);
+  L.classList.toggle('land',land);if(gm)gm.classList.toggle('m2land',land);
+  if(hd)hd.style.maxWidth=''; // (2026-10-22) la largeur de l'en-tête vient du CSS (la colonne de gauche couché)
+  if(land){
     L.style.left=L.style.top='0px';L.style.right='0px';L.style.maxHeight='none';
-    if(A){A.style.left=px(l);A.style.right=px(r);A.style.top=px(tp);A.style.maxHeight=px(Math.max(100,bt-12-tp));}
-    if(Bk){const t2=(rh&&rh.height?rh.bottom:80)+12;Bk.style.left=px(g0);Bk.style.width=px(Math.max(200,Math.min(420,l-g0-16)));Bk.style.top=px(t2);Bk.style.maxHeight=px(Math.max(90,bB-t2));}
+    if(A)A.style.left=A.style.right=A.style.top=A.style.maxHeight='';
+    if(Bk){const t2=(rh&&rh.height?rh.bottom:80)+12;Bk.style.left=Bk.style.width='';Bk.style.top=px(t2);Bk.style.maxHeight=px(Math.max(90,bt-12-t2));}
     return;}
   [A,Bk].forEach(function(e){if(e)e.style.left=e.style.right=e.style.top=e.style.width=e.style.maxHeight='';});
   const tp=(rh&&rh.height?rh.bottom:60)+10;
@@ -151,6 +151,7 @@ $('gBuy').addEventListener('click',e=>{e.stopPropagation();
   }
   garEquipeCaisse(garageI); /* (2026-10-11) achetée = équipée : plus de bouton ÉQUIPER */
   garageShow(garageI);{const be=$('gEquip');if(be){be.classList.add('arme');clearTimeout(be._armT);be._armT=setTimeout(function(){be.classList.remove('arme');},420);}} // ÉQUIPER apparaît à la place d'ACHETER : il s'arme d'abord
+  try{feteCaisse(garageI);}catch(err){} /* (2026-10-23) la fête, à la mesure de la rareté */
   pixBurst($('gCard'),26);hap([10,30,20,30,40]);gTampon(TR('À TOI !')); // le bouton disparaît, le compte se met à jour — et ça se FÊTE (tampon + « −$ » du compteur : plus de toast qui le redit)
   try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}else fanfare();}catch(err){} /* (console de son) ACHAT : tiroir-caisse + tampon « À TOI ! » */
 });

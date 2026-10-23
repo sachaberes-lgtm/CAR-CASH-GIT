@@ -248,7 +248,7 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
 window.dbgVilleGta=function(k,a,d,h){CITY.uGta.value=k==null?1:+k;
   if(a!=null){const f=new THREE.Vector3(0,0,1).applyQuaternion(carGroup.getWorldQuaternion(new THREE.Quaternion()));window.dbgView(Math.atan2(-f.x,-f.z)+a,d,h);}
   else if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
-  return {k:CITY.uGta.value};};
+  return {k:CITY.uGta.value,deco:CITY.deco||null};}; /* (2026-10-20) + le tirage du décor (LES VILLES AU HASARD) */
 function villeMatNeon(ancien){ // enseignes, couronnes, feux d'antenne — ils RESPIRENT, quelques-uns clignotent, une poignée grésille
   const K=ancien?'matN0':'matN';if(CITY[K])return CITY[K];
   const Q=c=>ancien?'true':c; // (passe perf) voir villeMatTours
@@ -354,3 +354,65 @@ function villeMatPub(){
       .replace('#include <fog_fragment>','gl_FragColor.rgb*=(.78+.22*step(.5,fract(gl_FragCoord.y*.25-uT9*6.)))*(.85+.15*sin(uT9*(3.+vS9*4.)))*uCour9;\n#include <fog_fragment>');};
   m.dispose=function(){};CITY.matP=m;return m;
 }
+/* ===== LES VILLES AU HASARD — LE DÉCOR (2026-10-20, Sacha : « chaque map doit être aléatoire avec des modules et des décors qui changent, TOUTES LES MAPS ») =====
+   MESURÉ AVANT : la graine déplaçait les tours (le flux `vr`), jamais la COMPOSITION — même hauteur de skyline, même densité, mêmes enseignes, mêmes
+   réclames, mêmes couronnes ; à CRYPTO CITY toujours deux taureaux à 30 et 70 %, trois rangées de bougies à 13/50/88 %, douze pièces, huit diamants,
+   trois dirigeables ; à la VILLE VITRÉE les mêmes formes aux mêmes places (elles naissent de la POSITION de la tour). Désormais, par piste, un TIRAGE DE
+   DÉCOR (`villeDecoTire`) dans un flux à lui (né de la graine, brassée : jamais `vr`, jamais `rnd`), lu par buildVoxCity, cryptoPlace, vitreTick, plaTick :
+   · COMMUN : la SKYLINE (basse ×0,72 · moyenne · haute ×1,3 : la hauteur des murs du canyon au-dessus de la route), la DENSITÉ des rangs et de la forêt,
+     0-3 PLACES (trouées de 180-340 m où les deux premiers rangs s'effacent, d'un côté ou des deux : la vue s'ouvre sur la ville), 0-3 TOURS REPÈRES
+     (des géantes de 400 à 700 m au-dessus de la route — 1,3 à 1,8 km à la vitrée —, mât et feu d'obstacle, parfois une couronne), les ANTENNES,
+     les COURONNES, les TUYAUX ;
+   · LA VILLE (et MINUIT) : les ENSEIGNES verticales (rares · normales · partout), les RÉCLAMES (×0,4 · ×1 · ×1,9), la PALETTE des néons (magenta et cyan ·
+     tout magenta · cyan froid · rouge et or — que la teinte de la ville remappe ensuite), le BÉTON (gris-bleu · acier · brique sombre · bleu nuit),
+     la part de GÉANTES DE VERRE (peu · normale · beaucoup) et lesquelles ;
+   · CRYPTO CITY : 1 à 3 TAUREAUX (à des abscisses tirées), 2 à 5 rangées de BOUGIES (longueur, abscisses, et le marché : bull pur · normal · volatil),
+     les PIÈCES ₿ géantes (6 · 12 · 20), les DIAMANTS (3 · 8 · 14), les DIRIGEABLES (1 · 3 · 5), les bougies du lointain, la PLUIE D'ARGENT (fine · normale ·
+     averse), la cadence des FUSÉES et des FEUX, la palette des néons (comme avant · tout or · vert profit · orange bitcoin) ;
+   · LA VILLE VITRÉE : les FORMES des géantes (mixte · vrillées · lames · sobres · rondes — et lesquelles : la graine de position décalée), les MONTANTS
+     (alu · champagne · graphite), le DIRIGEABLE (aucun · comme avant · haut · rasant), les NUAGES (dégagé · comme avant · couvert).
+   Que des pièces déjà là (le cube des tours, ses matières, les néons, les instances de crypto) : 0 programme de plus. Rien sur la route : les places
+   retirent des tours, les repères passent par la règle d'or (tourLibre / routePres, chev, la réserve de crypto). `CITY.dz` (le tirage), `CITY.deco`
+   (lisible) : `dbgVilleDeco()`, `dbgCrypto().deco`, `dbgVitre().deco`, `dbgVilleGta().deco`. `?sans=villedecor`, `?sans=cryptodecor`, `?sans=vitreedecor` =
+   le décor d'avant, au tirage près. */
+const VILLE_DECOR=!/[?&]sans=([^&]*,)?villedecor(,|&|$)/.test(location.search);
+const CRYPTO_DECOR=!/[?&]sans=([^&]*,)?cryptodecor(,|&|$)/.test(location.search);
+const VITREE_DECOR=!/[?&]sans=([^&]*,)?vitreedecor(,|&|$)/.test(location.search);
+function villeDecoGraine(seed,k){let h=Math.imul(((seed>>>0)^k)>>>0,0x85EBCA6B);h^=h>>>13;h=Math.imul(h,0xC2B2AE35);h^=h>>>16;return mulberry32(h>>>0);} // la graine BRASSÉE (des graines voisines ne tirent pas les mêmes choix)
+function villeDecoTire(seed,genre){ // genre : 'ville' (et minuit) · 'crypto' · 'vitree' — null : le décor d'avant
+  if(genre==='ville'?!VILLE_DECOR:genre==='crypto'?!CRYPTO_DECOR:!VITREE_DECOR)return null;
+  const dr=villeDecoGraine(seed,0xDEC0C17E),ch=a=>a[(dr()*a.length)|0],D={genre:genre},li=[],pc=x=>Math.round(x*100)+' %';
+  {const h=ch([[.72,'basse'],[1,'moyenne'],[1.3,'haute']]);D.haut=h[0];li.push('skyline '+h[1]);}
+  {const d=ch([[.7,'aérée'],[1,'normale'],[1.18,'serrée']]);D.dens=d[0];li.push('densité '+d[1]);}
+  {const n=(dr()*4)|0,T9=[];for(let k=0;k<n;k++)T9.push({f:.14+dr()*.76,l:180+dr()*160,c:ch([-1,1,0])});D.trou=T9;
+   li.push(n?n+' place'+(n>1?'s':'')+' : '+T9.map(function(t){return pc(t.f)+(t.c<0?' à gauche':t.c>0?' à droite':' des deux côtés');}).join(', '):'pas de place');}
+  {const n=(dr()*4)|0,R=[];for(let k=0;k<n;k++)R.push({f:.12+dr()*.78,sg:dr()<.5?-1:1,lat:dr(),h:dr(),cour:dr()<.6});D.rep=R;
+   li.push(n?n+' tour'+(n>1?'s':'')+' repère'+(n>1?'s':'')+' : '+R.map(function(r){return pc(r.f)+(r.sg<0?' g':' d');}).join(', '):'pas de tour repère');}
+  {const a=ch([[.25,'rares'],[.5,'normales'],[.8,'nombreuses']]);D.ant=a[0];li.push('antennes '+a[1]);}
+  {const c=ch([[.12,'rares'],[.32,'normales'],[.6,'partout']]);D.cour=c[0];li.push('couronnes '+c[1]);}
+  D.tuy=ch([.5,1,1.3]);li.push('tuyaux ×'+D.tuy);
+  if(genre==='ville'){
+    {const e=ch([[.35,'rares'],[1,'normales'],[1.7,'partout']]);D.ens=e[0];li.push('enseignes '+e[1]);}
+    {const p=ch([[.4,'rares'],[1,'normales'],[1.9,'partout']]);D.pub=p[0];li.push('réclames '+p[1]);}
+    {const n=ch([['magenta et cyan',null],['tout magenta',[0xff3ec8,0xff6ad5,0xff4f9e,0xff2e8e,0xff3ec8]],['cyan froid',[0x3ee8ff,0x52c8ff,0x8fd8ff,0x3ee8ff,0xff3ec8]],['rouge et or',[0xff3b5c,0xffb04a,0xff4f9e,0xffd75e,0xff3b5c]]]);D.neon=n[1];li.push('néons '+n[0]);}
+    {const b=ch([['gris-bleu',null],['acier',[.19,.21,.23]],['brique sombre',[.25,.20,.19]],['bleu nuit',[.15,.18,.28]]]);D.bet=b[1];li.push('béton '+b[0]);}
+    {const v=ch([[.5,'peu'],[1,'normal'],[1.7,'beaucoup']]);D.verre={k:v[0],ox:dr()*97,oz:dr()*89};li.push('géantes de verre : '+v[1]);}}
+  else if(genre==='crypto'){D.ens=1;D.pub=ch([.5,1,1.6]);li.push('réclames ×'+D.pub);
+    {const n=dr()<.25?1:dr()<.7?2:3,T9=[];for(let k=0;k<n;k++)T9.push(n===1?.3+dr()*.4:(k+.2+dr()*.6)/n);D.tau=T9;li.push(n+' taureau'+(n>1?'x':'')+' : '+T9.map(pc).join(', '));}
+    {const n=2+((dr()*4)|0),B9=[];for(let k=0;k<n;k++)B9.push({f:(k+.1+dr()*.8)/n,n:7+((dr()*10)|0)});D.boug=B9;
+     const m=ch([[0,'bull pur'],[1,'normal'],[2,'volatil']]);D.rouge=m[0];li.push(n+' rangées de bougies ('+B9.map(function(b){return b.n;}).join('/')+'), marché '+m[1]);}
+    D.pie=ch([6,12,20]);D.diam=ch([3,8,14]);D.dir=ch([1,3,5]);li.push(D.pie+' pièces ₿, '+D.diam+' diamants, '+D.dir+' dirigeable'+(D.dir>1?'s':''));
+    D.bfo=ch([.05,.13,.26]);li.push('bougies au loin ×'+(D.bfo/.13).toFixed(1));
+    {const p=ch([[.25,'fine'],[.5,'normale'],[.85,'averse']]);D.pluie=p[0];li.push('pluie d’argent '+p[1]);}
+    D.fus=ch([.6,1,1.7]);D.feu=ch([.6,1,1.7]);li.push('fusées ×'+D.fus+', feux ×'+D.feu);
+    {const n=ch([['comme avant',null],['tout or',[0xffd23e,0xffc63a,0xfff2c8,0xf7931a,0xffd23e]],['vert profit',[0x2bff88,0x6dffc8,0x3dff9a,0xffd23e,0x2bff88]],['orange bitcoin',[0xf7931a,0xffb04a,0xffd23e,0xf7931a,0xfff2c8]]]);D.neon=n[1];li.push('néons '+n[0]);}}
+  else{
+    {const f=ch([['mixte',[.28,.46,.60,.71,.86]],['vrillées',[.14,.26,.52,.72,.86]],['lames',[.18,.30,.40,.48,.62]],['sobres',[.5,.7,.76,.82,.94]],['rondes',[.2,.32,.42,.52,.86]]]);D.fo={s:f[1],ox:dr()*97,oz:dr()*89};li.push('formes '+f[0]);}
+    {const m=ch([['alu',null],['champagne',[1.05,.97,.82]],['graphite',[.5,.52,.56]]]);D.mont=m[1];li.push('montants '+m[0]);}
+    {const d=ch([['aucun',null],['comme avant',[200,0]],['haut',[260,190]],['rasant',[140,-60]]]);D.dir=d[1];li.push('dirigeable '+d[0]);}
+    {const n=ch([[.1,'dégagé'],[0,'comme avant'],[-.1,'couvert']]);D.nu=n[0];li.push('nuages '+n[1]);}}
+  D.li=li;return D;}
+window.dbgVilleDeco=function(k,v){
+  if(k==='vue'){if(started&&!gameOver&&!paused)togglePause();if(acesPass)acesPass.uniforms.uSpeed.value=0;camera.position.fromArray(v.p);camera.lookAt(v.c[0],v.c[1],v.c[2]);if(v.fov){camera.fov=v.fov;camera.updateProjectionMatrix();}camera.updateMatrixWorld(); // (banc) la caméra en p, qui regarde c
+    try{if(CITY.dz&&CITY.dz.genre==='crypto'){plaTick(0,false);cryptoTick(0,false);}if(LVL.cur&&LVL.cur.vitre)vitreTick(0,false);}catch(e){}if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return 'vue';}
+  return {pret:!!CITY.root,genre:CITY.dz?CITY.dz.genre:null,deco:CITY.deco||null,reperes:CITY.n&&CITY.n.reperes,places:CITY.n&&CITY.n.places,ville9:CITY.n};}; // (banc) le tirage du décor de la ville en cours
