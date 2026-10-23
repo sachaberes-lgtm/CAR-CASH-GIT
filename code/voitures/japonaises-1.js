@@ -133,7 +133,12 @@ SHAPES.corolla=function(K){
     if(HB4){   /* LE DEVANT EN COUCHES (23/10, Léo : « j'aimais bien cet effet — refais le devant un peu comme ça ») l'aile, le capot et le museau, à partir du pied du pare-brise, sont des COUCHES de 4 cm empilées, en tronçons de 6 cm
        (la largeur mesurée sur la vraie section à chaque hauteur) : l'effet de marches, comme des briques fines ; l'ouverture de roue reste un vide en marches. */
       PL.loft(zN,z=>S(z).map(p=>[p[0]*.985,p[1]]),j=>j===0?'k':'p');   // dessous : la vraie forme lisse (rentrée de 1,5 %), pour qu'aucun vide ne s'ouvre entre les couches
-      for(let yc=.22+.0125;yc<1.0;yc+=.025)rangee(yc,.025,.04,.008,ZBm,ZE,verre);   // dessus : couches de 2,5 cm, tronçons de 4 cm, largeur à 8 mm près — plus précis, et l'effet s'étend vers la partie lisse (dès z = 1,05)
+      /* (Léo : « moins régulier, plus intelligent, artistique ») l'épaisseur des couches et la longueur des tronçons SUIVENT la forme : fines et courtes là où la ligne tourne (l'épaulement de l'aile, le bord du capot, l'arrondi du nez, le haut des passages de roue),
+         épaisses et longues là où elle est plate (le flanc bas, le milieu du capot) — et un rythme irrégulier, jamais deux couches voisines identiques. */
+      const al=(k)=>{const t=Math.sin(k*12.9898)*43758.5453;return t-Math.floor(t);};
+      let yc=.22,k=0;while(yc<1.0){const hh=yc<.42?.07+al(k)*.03:yc<.70?.032+al(k)*.016:yc<.86?.024+al(k)*.010:.034+al(k)*.012;   // épaisseur : large en bas, fine à l'épaule (.70–.86), moyenne au capot
+        const dz=hh>.05?.12+al(k+7)*.05:hh<.03?.04+al(k+3)*.02:.06+al(k+5)*.03;                                                  // tronçon : long sur le plat, court sur la courbe
+        rangee(yc+hh/2,hh,dz,hh>.05?.04:.012,ZBm,ZE,verre);yc+=hh;k++;}
     }else PL.loft(zN,S,j=>j===0?'k':'p');
   }else if(HB&&HB2){   /* L'ENTRE-DEUX (23/10, Léo : « fais un entre-deux ») : la caisse en BRIQUES (sections rectangulaires, peu de plis), plus quelques COUCHES TRÈS PLATES empilées aux endroits qui
      portent le dessin — la base noire (2 couches), la ceinture, la dalle du toit (2 couches), la couche du capot. */
