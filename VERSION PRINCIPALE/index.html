@@ -38453,7 +38453,18 @@ SHAPES.corolla=function(K){
   const SB=z=>{const s=S(z),xm=s[1][0]+.10*Math.min(1,s[1][0]/.62),yb=s[0][1],yt=s[NC][1],yc=s[s.length-1][1],cab=z<=ZW&&z>=ZHT,xr=cab?s[NC+3][0]:xm*.93,yr=cab?s[NC+3][1]:yt;
     const sx=z>=ZE-1e-6||z<=ZB+1e-6?.02:1;return [[0,yb],[xm*sx,yb],[xm*sx,yt],[xr*sx,yt],[xr*sx,Math.max(yr,yt+.01)],[0,yc]];};
   const peintB=(j,z)=>j===0?'k':(j===3&&z<1.0&&z>-1.3)?'g':(j===4&&z<1.26&&z>-1.87&&(z>.3||z<-1.2))?'g':'p';
-  const PL=K.kit(PAL);if(HB)PL.loft(zsB,SB,peintB);else PL.loft(zs,S,peint);
+  const PL=K.kit(PAL);
+  if(HB){   /* (23/10, Léo : « empiler des formes TRÈS PLATES pour construire, comme LA HONTE, mais avec plus de couches ») LA FIDÈLE EN DALLES : la vraie silhouette taillée en TRANCHES HORIZONTALES de 5 cm ;
+     dans chaque tranche, des dalles (une par tronçon de même largeur, mesurée sur la vraie section à cette hauteur) — le bas, la caisse, la ceinture, la cabine de verre, le toit : un empilement, des marches, comme un modèle en briques. */
+    const xAt=(sc,y)=>{let m=0;for(let i=1;i<sc.length;i++){const a=sc[i-1],b=sc[i];if((a[1]-y)*(b[1]-y)<=0&&a[1]!==b[1]){const x=a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);if(x>m)m=x;}}return m;};
+    const DY=.05,Y0=.22,Y1=1.43,DZ=.09;
+    for(let yc=Y0+DY/2;yc<Y1;yc+=DY){const top=yc+DY>Y1-.001;let run=null;
+      const flush=z1=>{if(run&&run.w>.02){const L=z1-run.z0;PL.box(run.k,2*run.w,DY+.002,L,0,yc,(run.z0+z1)/2);}run=null;};
+      for(let z=ZB+DZ/2;z<ZE;z+=DZ){const sc=S(Math.max(ZB+.001,Math.min(ZE-.001,z))),w=Math.round(xAt(sc,yc)/.03)*.03,
+          k=(!top&&yc>1.00&&z<ZW-.02&&z>ZHT+.02&&w<.72)?'g':'p';
+        if(!run||run.w!==w||run.k!==k){flush(z-DZ/2);run={w:w,k:k,z0:z-DZ/2};}}
+      flush(ZE);}
+  }else PL.loft(zs,S,peint);
   // ---- LA DÉCOUPE AU PLAN (`japDecoupe`) ----
   const MEM=(typeof SHAPES==='object'&&SHAPES.corolla)||null;
   const av=(x,y,z,nx,ny,nz)=>z>2.0&&nz>.2,ar=(x,y,z,nx,ny,nz)=>z<-2.0&&nz<-.2,cs=(x,y,z,nx,ny,nz)=>Math.abs(nx)>.5;
@@ -38529,7 +38540,7 @@ SHAPES.corolla=function(K){
      1. le BOÎTIER noir mat (le contour du plan, 2,2 cm) · 2. le VERRE fumé, rentré de 1,2 cm, brillant (+1,6 cm de plus) · 3. la LAME DE LED blanche, posée sur le verre
      le long du bord bas (+1 cm) · 4. l'OEIL : le projecteur carré, un bloc chromé en saillie au coin. Chaque pièce est un plateau tendu sur la tôle (contour densifié
      tous les 2,5 cm pour épouser le bombé) fermé par des flancs verticaux — un bloc, pas un dessin. */
-  {const zf=PROF.zf,dens=Q=>{const o=[];for(let i=0;i<Q.length;i++){const a=Q[i],b=Q[(i+1)%Q.length],n=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.02));for(let k=0;k<n;k++)o.push([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n]);}return o;};
+  if(!HB){const zf=PROF.zf,dens=Q=>{const o=[];for(let i=0;i<Q.length;i++){const a=Q[i],b=Q[(i+1)%Q.length],n=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.02));for(let k=0;k<n;k++)o.push([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n]);}return o;};
    const tri3=(k,sd,a,b,c)=>{const A=[sd*a[0],a[1],a[2]],B=[sd*b[0],b[1],b[2]],C=[sd*c[0],c[1],c[2]],nz=(B[0]-A[0])*(C[1]-A[1])-(B[1]-A[1])*(C[0]-A[0]);if(nz<0)P.tri(k,A,C,B);else P.tri(k,A,B,C);};
    const piece=(k,poly,top,bot,sd)=>{const pts=dens(poly),cen=[pts.reduce((a,p)=>a+p[0],0)/pts.length,pts.reduce((a,p)=>a+p[1],0)/pts.length];
      const V=(p,h)=>[p[0],p[1],zf(p[0],p[1])+h];
@@ -38552,6 +38563,7 @@ SHAPES.corolla=function(K){
      else if(VP==='b'){piece('k',PH,.012,-.012,sd);piece('W',LED,.020,.008,sd);}                                   // b : UN plateau mince + sa lame de LED
      else if(VP==='c'){piece('k',PH,.014,-.012,sd);piece('g',VERRE,.022,.010,sd);piece('W',LED,.028,.018,sd);}   // c : boîtier, verre brillant, LED — sans l'oeil, bas
      else{piece('k',NET,.032,-.012,sd);piece('h',VNET,.052,.024,sd);piece('W',LED2,.064,.044,sd);piece('c',ONET,.074,.040,sd);}}}   // d : les quatre étages (v. précédente)
+  if(HB)for(const sd of [1,-1]){P.box('h',.36,.05,.04,sd*.50,.80,2.235);P.box('W',.30,.014,.03,sd*.50,.76,2.245);P.box('k',.46,.10,.03,sd*.38,.58,2.255);P.box('L',.40,.07,.04,sd*.52,.93,-2.24);}   // phares, lame de LED, bouche, feux : des dalles posées
   // LES RÉTROVISEURS (relevés sur les trois vues) : la coque à la couleur de la caisse, la glace vers l'arrière, le répétiteur orange devant
   P.sym(sd=>{P.box('k',.10,.035,.10,sd*.80,.885,.745,0,0,0);                              // le pied, sur la portière
     const cx=sd*.94,cy=.995,cz=.71;
@@ -38673,7 +38685,18 @@ SHAPES.pikes=function(K){
   const SB=z=>{const s=S(z),xm=s[1][0]+.10*Math.min(1,s[1][0]/.62),yb=s[0][1],yt=s[NC][1],yc=s[s.length-1][1],cab=z<=ZW&&z>=ZHT,xr=cab?s[NC+3][0]:xm*.93,yr=cab?s[NC+3][1]:yt;
     const sx=z>=ZE-1e-6||z<=ZB+1e-6?.02:1;return [[0,yb],[xm*sx,yb],[xm*sx,yt],[xr*sx,yt],[xr*sx,Math.max(yr,yt+.01)],[0,yc]];};
   const peintB=(j,z)=>j===0?'k':(j===3&&z<1.0&&z>-1.3)?'g':(j===4&&z<1.26&&z>-1.87&&(z>.3||z<-1.2))?'g':'p';
-  const PL=K.kit(PAL);if(HB)PL.loft(zsB,SB,peintB);else PL.loft(zs,S,peint);
+  const PL=K.kit(PAL);
+  if(HB){   /* (23/10, Léo : « empiler des formes TRÈS PLATES pour construire, comme LA HONTE, mais avec plus de couches ») LA FIDÈLE EN DALLES : la vraie silhouette taillée en TRANCHES HORIZONTALES de 5 cm ;
+     dans chaque tranche, des dalles (une par tronçon de même largeur, mesurée sur la vraie section à cette hauteur) — le bas, la caisse, la ceinture, la cabine de verre, le toit : un empilement, des marches, comme un modèle en briques. */
+    const xAt=(sc,y)=>{let m=0;for(let i=1;i<sc.length;i++){const a=sc[i-1],b=sc[i];if((a[1]-y)*(b[1]-y)<=0&&a[1]!==b[1]){const x=a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);if(x>m)m=x;}}return m;};
+    const DY=.05,Y0=.22,Y1=1.43,DZ=.09;
+    for(let yc=Y0+DY/2;yc<Y1;yc+=DY){const top=yc+DY>Y1-.001;let run=null;
+      const flush=z1=>{if(run&&run.w>.02){const L=z1-run.z0;PL.box(run.k,2*run.w,DY+.002,L,0,yc,(run.z0+z1)/2);}run=null;};
+      for(let z=ZB+DZ/2;z<ZE;z+=DZ){const sc=S(Math.max(ZB+.001,Math.min(ZE-.001,z))),w=Math.round(xAt(sc,yc)/.03)*.03,
+          k=(!top&&yc>1.00&&z<ZW-.02&&z>ZHT+.02&&w<.72)?'g':'p';
+        if(!run||run.w!==w||run.k!==k){flush(z-DZ/2);run={w:w,k:k,z0:z-DZ/2};}}
+      flush(ZE);}
+  }else PL.loft(zs,S,peint);
   // ---- LA DÉCOUPE AU PLAN (`japDecoupe`) ----
   const MEM=(typeof SHAPES==='object'&&SHAPES.pikes)||null;
   const av=(x,y,z,nx,ny,nz)=>z>1.95&&nz>.2,ar=(x,y,z,nx,ny,nz)=>z<-1.8&&nz<-.2,cs=(x,y,z,nx,ny,nz)=>Math.abs(nx)>.45;
