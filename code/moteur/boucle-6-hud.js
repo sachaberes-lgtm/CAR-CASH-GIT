@@ -132,7 +132,7 @@
   try{atchTick(dt);}catch(e){loopWarn(4096,'atchoum',e);} // (2026-10-06) ATCHOUM crache et éternue (voir atchTick) // (2026-10-06) le pas du GIF et l'arc-en-ciel du chat (voir nyanTick)
   skyDome.position.copy(camera.position);
   skyU.uTime.value=t;
-  skyU.uVille.value=LVL.ville;skyU.uParis.value=LVL.paris;skyU.uPluie.value=Math.max(LVL.pluie,LVL.brume);skyU.uFogCol.value.copy(scene.fog.color);skyU.uCam.value.copy(camera.position); // LE CIEL DE LA VILLE
+  skyU.uVille.value=LVL.ville;skyU.uPluie.value=Math.max(LVL.pluie,LVL.brume);skyU.uFogCol.value.copy(scene.fog.color);skyU.uCam.value.copy(camera.position); // LE CIEL DE LA VILLE
   if(!nuageChaud&&t>2.6)nuageChauffe(); // (2026-09-26) les deux programmes de nuage (endroit / dedans) compilés au menu
   {const rY9=CITY.n&&CITY.n.routeY,vy9=rY9?Math.max(-.3,Math.min(.12,((rY9[0]+rY9[1])*.5-70-camera.position.y)/3500)):skyU.uVilleY.value;skyU.uVilleY.value+=(vy9-skyU.uVilleY.value)*Math.min(1,dt*2);} // (2026-09-26) la skyline peinte suit l'altitude des toits (voir villeCiel)
   // (2026-09-26) éteints = plus dessinés : le sprite additif du soleil couvre 2 000 unités, même à opacité nulle il se paie (garage et étal gardent la main)
@@ -272,7 +272,6 @@
      mortS9 toujours faux, dtA9 = dt — rien ne change. */
   let dtA9=dt;if(mortS9)MORT_IMG.dt=Math.min(.1,MORT_IMG.dt+dt);else if(MORT_IMG.dt>0){dtA9=Math.min(.1,MORT_IMG.dt+dt);MORT_IMG.dt=0;}
   try{updateBoomArt(dt);}catch(e){loopWarn(16,'boule de feu',e);}
-  if(PARIS.meshes.length&&!mortS9)parisTick(dtA9);
   if(JADE.root&&!mortS9){jadeTick(dtA9);try{jadeSousTick(dtA9);}catch(e){loopWarn(16384,'sous la mer',e);}} // (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
   try{jsgTick(dt);}catch(e){loopWarn(64,'singes de jade',e);}
   try{jdmTick(dt);}catch(e){loopWarn(1<<22,'dauphins de la mer',e);} // (2026-10-15, Léo) LES DAUPHINS DE LA MER DE JADE (au bout de 5 s dans l'eau ; sautent avec la caisse une fois sur deux) // (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE (décor : coucou, mangue, course, au bord)
@@ -291,6 +290,7 @@
   if(PCV.fen&&PORTV.att&&!PCV.copie){}else // (2026-10-17, 3e tour) l'image d'attente du passage : l'écran est COUVERT par la fenêtre recopiée — on ne dessine pas l'ancien monde pour rien
   if(POST_ON&&composer)composer.render(); // ACES + bloom
   else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
+  if(window.__introPrise){const f9=window.__introPrise;window.__introPrise=null;try{f9(renderer.domElement);}catch(e){}} // (2026-10-22) l'intro du studio demande une photo de la scène 3D, prise ici, juste après son rendu (le tampon est encore plein) : les éclats de l'écran en font des loupes — voir moteur/intro-161.js
   if(PCV.copie&&!mortS9)pcCopie(); // (2026-10-17) LE PASSAGE PAR LA FENÊTRE : l'image qu'on traverse, recopiée APRÈS ce rendu (pas de rendu en plus)
   try{if(!mortS9)homeCielPrise(now);}catch(e){} // (2026-10-11) le CIEL DU MENU, recopié en vignette pour le HOME du garage (voir homeCielPrise)
   matSursisTick(); // (perf) les matières de la piste d'avant partent une fois la neuve rendue

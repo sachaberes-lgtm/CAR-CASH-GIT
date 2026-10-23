@@ -30,13 +30,13 @@ const PWR_DEFS={ // n = nitro infinie · a = airtime infini · v = vitesse ×2 �
    #ffb040 se confondait avec la nitro ordinaire (orange) — on ne voyait pas qu'on avait le pouvoir. Un VIOLET électrique, loin du magenta de
    VITESSE ×2 : le cristal, la plaque du HUD, les bords d'écran, la jauge et son feu, la plume, la traînée et le reflet de la caisse le portent
    tous (`NINF`, lu par la boucle). Une ligne à part : l'objet ci-dessus appartient à la logique des pouvoirs. */
-Object.assign(PWR_DEFS.n,{col:0xa45cff,core:0xf1e2ff,tint:'#b06bff',c2:'#7b34f0',fx:'rgba(164,92,255,.85)',fx2:'rgba(123,52,240,.35)'});
+Object.assign(PWR_DEFS.n,{col:0xff2a10,core:0xffd8cc,tint:'#ff4a2a',c2:'#c01808',fx:'rgba(255,40,20,.85)',fx2:'rgba(200,20,8,.35)'}); /* (2026-10-23, Sacha : « la fenêtre power up nitro infini doit être rouge, pas violet ») la carte, le cristal, la plaque et les bords du pouvoir au ROUGE du départ du feu de piment */
 /* (2026-10-14, passe graphismes · étalonnage commun) LE VOILE DES BONUS, DOSÉ : les bords d'écran qui battent pendant TOUT le pouvoir (#pwrFx :
    deux ombres internes `fx` 50 px + `fx2` 150 px) recoloraient les coins et la moitié de l'image — vert sous l'aimant, magenta sous la vitesse ×2
    (9 captures sur 24 à l'audit) : la palette de la météo disparaissait. Leur force (l'alpha) est divisée par 2,5 dans une copie `bd`/`bd2`,
    lue seulement par les bords TENUS ; l'éclair bref du ramassage (`flashEcran(d.fx)`) garde la sienne. Revenir : PWR_BORD_K=1. */
 const PWR_BORD_K=1/2.5;for(const k9 in PWR_DEFS){const d9=PWR_DEFS[k9],f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};d9.bd=f9(d9.fx);d9.bd2=f9(d9.fx2);}
-const NINF={jet:0x9d4dff,core:0xf3e6ff,rac:0xd8b8ff,trail:[.95,.45,1.6]}; // la nitro infinie dans le monde : plume, cœur, racine du brûleur, ruban
+const NINF={jet:0xff2208,core:0xffb8a8,rac:0xff6a58,trail:[1.6,.18,.08]}; // la nitro infinie dans le monde : plume, cœur, racine du brûleur, ruban
 for(const k in PWR_DEFS){const d=PWR_DEFS[k];
   d.glassM=new THREE.MeshPhongMaterial({color:d.col,emissive:d.col,emissiveIntensity:.9,shininess:260,specular:0xffffff,envMap:envTex,reflectivity:.6,transparent:true,opacity:.78,depthWrite:false,flatShading:true});
   d.coreM=new THREE.MeshBasicMaterial({color:d.core});

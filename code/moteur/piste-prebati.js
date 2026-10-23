@@ -123,10 +123,9 @@ function prebChampsDe(piste){ // les champs de module qu'écrit la construction 
   else if(piste==='foret')L9.push([FORET,['Q','plg','boucles','noeuds','pel','plan','axe']]); // (2026-10-19) plan, axe : LA FORÊT AU HASARD
   else if(piste==='volcan')L9.push([VOLCAN,['K','C','K2','C2','Q','plg','sauts','sSp','ySea','conflits','croise','th0','th1','lac','hz']]); // (2026-10-20) hz : LE VOLCAN AU HASARD
   else if(piste==='canyon')L9.push([CY,['Q','rmin','sep','hz']]); // (+ hz : LE CANYON AU HASARD)
-  else if(piste==='dunes')L9.push([DN,['Q','rmin','sep','hz','gp']]); // (2026-10-18) LES DUNES D'OR (+ hz : LES DUNES AU HASARD)
+  else if(piste==='dunes')L9.push([DN,['Q','rmin','sep','hz','gp','fe']]); // (2026-10-18) LES DUNES D'OR (+ hz : LES DUNES AU HASARD · + fe : les vagues de LA ROUTE CONTINUE)
   else if(piste==='banquise')L9.push([BANQ,['Q','cas','spi','axe','plan','pres','essais']]); // (2026-10-19) axe, plan, pres, essais : LE GLACIER AU HASARD (l'axe tourne les aurores)
   else if(piste==='grotte')L9.push([GROTTE,['Q','salles','spi','conflits','croise']]); // (2026-10-18) LES PROFONDEURS
-  else if(piste==='paris')L9.push([PARIS,['Q']]);
   return L9;}
 function pisteTravail(c){ // l'état de travail d'une route : celle d'en face (c, le pré-bâti), ou celle que newTrack vient de choisir (null, d'un trait)
   const W={pts:[],T:[],Nn:[],B:[],L:0,NP:0,trackMinY:-1e9,FILETS:[],MODS:[],TROUS:[],TROU:null,PADS:[],PADL:[],OILS:[],

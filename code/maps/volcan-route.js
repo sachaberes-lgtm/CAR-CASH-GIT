@@ -33,10 +33,14 @@
    collisions et le gameplay ne bougent pas ; tout ce qu'on VOIT est refait — la lave en plaques (VLC_LAVE_FS5), la roche en facettes (VLC_SOL_FS5),
    les ciels, la fumée, les braises. `?volcan=avant5` = l'aspect d'avant (la ROUTE, elle, se choisit avec `?volcan=v4`). */
 const VLC5=!/[?&]volcan=avant5/.test(location.search);
+/* (v6, 2026-10-22 — Sacha : « reprends ces images pour refaire la map volcan » : quatre photos de coulées, la croûte NOIR-BLEU vitreuse et plissée, la roche grise argentée, la lave orange à cœur jaune) LA REFONTE D'APRÈS PHOTOS : seuls les SHADERS de la roche, de la lave et de la roche taillée changent (VLC_SOL_FS6, VLC_LAVE_FS6, V6 dans VLC_ROC_FS) ; la route, le relief et le gameplay ne bougent pas. `?volcan=avant6` = l'aspect de la v5. */
+const VLC6=VLC5&&!/[?&]volcan=avant6(&|$)/.test(location.search);
 /* (2026-10-20, Sacha : « volcan, grotte, dune : ces maps ne sont pas générées aléatoirement, il faut que chaque map soit aléatoire avec des modules et des
    décors qui changent ») LE VOLCAN AU HASARD (vlcTraceH) et LE DÉCOR AU HASARD (vlcDecoTire) — `?sans=volcanhasard` = la route d'avant au point près,
    `?sans=volcandecor` = le décor d'avant au tirage près. */
 const VLC_HZ=!/[?&]sans=([^&]*,)?volcanhasard(,|&|$)/.test(location.search),VLC_DECOR=!/[?&]sans=([^&]*,)?volcandecor(,|&|$)/.test(location.search);
+/* (2026-10-23, Sacha : « refonte totale du système de route et de génération de map du volcan : aléatoire, plusieurs modules, la route monte et descend, plus de virages et d'exploration » · « plus de cendre pour challenger par la visibilité ») VLC_MODS : quatre modules qui font MONTER et DESCENDRE la route (rampe, lacets, détour, rouleaux) et les TEMPÊTES DE CENDRE ; `?sans=volcanmods` = avant */
+const VLC_MODS=!/[?&]sans=([^&]*,)?volcanmods(,|&|$)/.test(location.search);
 const NIV_VOLCAN={id:'volcan',nm:'LE ROYAUME DE FEU',bio:['volcanSoir'],planete:0,espace:0,pluie:0,cielMusical:false,route:.26,sheen:.14,piste:'volcan',pr:'LA LAVE NE PARDONNE PAS'};
 const VOLCAN={root:null,Q:null,C:null,K:null,C2:null,K2:null,hand:1,sSp:0,plg:[],sol:null,solM:null,aig:[],arche:null,gcol:null,
   met:'soir',cur:null,de:null,to:null,k:1,dur:1,ms:0,n:{},fx:{},mats:null,graine:0,erup:{t:7,age:-1,n:0,b:0},son:{k:{}},loin:[]};
@@ -54,6 +58,7 @@ const VLC_MET={
    où les bords néon et la ligne or se lisent encore ; la brume basse des lacs, moins rouge aussi. Les braises et la cendre un cran plus rares. */
 if(VLC5){const F9={matin:[.24,.14,.20],midi:[.32,.27,.29],soir:[.20,.08,.14],nuit:[.08,.04,.11],pluie:[.21,.16,.17],orage:[.10,.06,.12]};
   for(const k in F9){VLC_MET[k].fuC=F9[k];VLC_MET[k].bra*=.7;VLC_MET[k].cen*=.8;}
+  if(VLC_MODS)for(const k in F9)VLC_MET[k].cen=Math.min(1,VLC_MET[k].cen*2.2+.2);
   /* la BRUME BASSE (celle qui stagne sous la route, sur les lacs) passait TOUT ce qui est en contrebas au rouge-brun : la plaine devenait une boue
      rouge ; elle s'allège de moitié et prend le violet de l'air */
   const B9={matin:[.18,[.30,.18,.26]],midi:[.10,[.34,.28,.30]],soir:[.16,[.24,.08,.16]],nuit:[.34,[.16,.05,.12]],pluie:[.40,[.24,.19,.20]],orage:[.45,[.14,.07,.14]]};
@@ -64,7 +69,7 @@ const VLC_U={uSunDir:{value:new THREE.Vector3(0,1,0)},uSunC:{value:new THREE.Col
   uFillC:{value:new THREE.Color()},uFillD:{value:new THREE.Vector3(0,-1,0)},uCam:{value:new THREE.Vector3()},uCarP:{value:new THREE.Vector3(0,-1e5,0)},
   uCarF:{value:new THREE.Vector3(0,0,1)},uTime:{value:0},uPhare:{value:0},uFlash:{value:0},uLue:{value:1},uLav:{value:1},uErupt:{value:0},
   uCrat:{value:new THREE.Vector3(0,-1e5,0)},uBruC:{value:new THREE.Color(.8,.4,.3)},uBruK:{value:.5},uBruY:{value:0},uFumC:{value:new THREE.Color(.4,.2,.15)},uFum:{value:1},
-  uCen:{value:0},uBra:{value:0},uBoxC:{value:new THREE.Vector3()},uPx:{value:1},uGey:{value:1},uVent:{value:new THREE.Vector2(1,.3)},uErupt2:{value:0},
+  uCen:{value:0},uBra:{value:0},uBoxC:{value:new THREE.Vector3()},uPx:{value:1},uGey:{value:1},uVent:{value:new THREE.Vector2(1,.3)},uErupt2:{value:0},uCenS:{value:0},
   uLavT:{value:new THREE.Color(1,.42,.08)},uLavK:{value:0}}; // (2026-10-20, LE DÉCOR AU HASARD) LA PALETTE DE LA LAVE : la teinte (uLavT) et sa part (uLavK : 0 = l'orange d'avant, au bit près)
 /* LES BUDGETS PAR PALIER (PAL : [ANCIEN, MOYEN, RÉCENT]) : maille et portée du relief, braises et cendres, bouffées du panache, geysers, orgues, coulées */
 try{Object.assign(PAL.B,{volcanSolC:[34,30,26],volcanMarge:[1500,1900,2300],volcanPart:[350,650,1000],volcanFumee:[40,58,80],volcanGey:[6,9,12],volcanOrgues:[22,36,52],volcanRiv:[6,8,10]});}catch(e){}
@@ -92,7 +97,7 @@ function* genVolcan(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
   const LV=typeof lvPiste==='function'?lvPiste():1,gr=mulberry32((rnd()*4294967296)>>>0);
   let best=null;
   const V3=MODC_ON&&VLC_BALADE; // (2026-10-18, 2e tour) LA BALADE DES FLAMMES ET LA MONTÉE DU VOLCAN (voir vlcTrace3) ; `?volcan=v4` ou `?sans=modcartes` = avant
-  for(let e=0;e<6;e++){if(e)yield;const r=V3&&VLC_HZ?vlcTraceH(gr,LV):V3?vlcTrace3(gr,LV):vlcTrace(gr,LV);if(!best||r.conflits<best.conflits)best=r;if(!r.conflits)break;}
+  for(let e=0;e<6;e++){if(e)yield;const r=V3&&VLC_ACTES?vlcTraceA(gr,LV):V3&&VLC_HZ?vlcTraceH(gr,LV):V3?vlcTrace3(gr,LV):vlcTrace(gr,LV);if(!best||r.conflits<best.conflits)best=r;if(!r.conflits)break;}
   for(const k of ['K','C','K2','C2','Q','plg','sauts','sSp','ySea','conflits','croise','th0','th1','lac','hz'])VOLCAN[k]=best[k];
   if(VOLCAN.Q)VOLCAN.Q.c2=!!best.C2; // (LE DÉCOR AU HASARD) la route a-t-elle son second volcan à elle (v4) ? sinon le décor peut en poser un
   for(const m of best.mods||[])MODMARK.push(m); // (2026-10-18) LES MODULES DE CHAQUE MAP : ceux de l'essai gardé (voir vSlalom)
@@ -393,9 +398,9 @@ function vlcTraceH(rnd,LV){
   const Rs=()=>rM*(1.30+rh()*.2),Rn=()=>{const a=rM*1.55,b=Math.max(a+25,200);return a+rh()*(b-a);},Rl=()=>Math.max(rM*2,200)+rh()*90;
   const ph1=rh()*6.283,ph2=rh()*6.283,kP=.8+rh()*.5;let gF=null,gR=null,mode=0,gM=null;
   const pente=s9=>{if(gF!=null)return gR!=null?gF*Math.min(1,Math.max(.15,(s9-gR)/120)):gF;
-    let g=mode===2?.008+.015*Math.sin(s9/420*6.283+ph1):mode===3?0:(.006+.022*Math.sin(s9/520*6.283+ph1)+.012*Math.sin(s9/230*6.283+ph2))*kP;
+    let g=mode===2?.008+.015*Math.sin(s9/420*6.283+ph1):mode===3?0:(.006+(.022*Math.sin(s9/520*6.283+ph1)+.012*Math.sin(s9/230*6.283+ph2)+(VLC_MODS?.045*Math.sin(s9/900*6.283+ph2*1.7):0))*(VLC_MODS?1.5:1))*kP;
     if(s9<280)g=.01+(g-.01)*THREE.MathUtils.smoothstep(s9,160,280);
-    return Math.max(-.05,Math.min(.06,g))+(gM&&s9>=gM.s0&&s9<gM.s1?gM.f(s9):0);};
+    const r9=Math.max(-.05,Math.min(VLC_MODS?.10:.06,g))+(gM&&s9>=gM.s0&&s9<gM.s1?gM.f(s9):0);return VLC_MODS?Math.max(-.15,Math.min(.15,r9)):r9;};
   let P=new THREE.Vector3(0,0,0),phi=0,s=0,y=0;
   const push=()=>ctrl.push(P.clone());
   const avance=(nx,nz)=>{const dh=Math.hypot(nx-P.x,nz-P.z),n=Math.max(1,Math.ceil(dh/10)),x0=P.x,z0=P.z;
@@ -437,8 +442,24 @@ function vlcTraceH(rnd,LV){
     let s9=rel()>0?-1:1;for(let k=0;k<n;k++){const a=24+rv()*12;tourne(s9*a,Math.max(rM*2,l9/n/(a/57.2958)*.7));s9=-s9;}const res=s0+l9-s;if(res>10)droite(res);gM=null;};
   const vGeysers=()=>{vAxe();const s0=s,a=48+rv()*16,R=rM*(1.7+rv()*.3),s9=rel()>0?-1:1;droite(30*KV);tourne(s9*a,R);droite((30+rv()*20)*KV);tourne(-s9*a,R);droite(40*KV);geyS.push([s0,s]);};
   const vCrochet=()=>{const s9=rel()>0?-1:1;vers(-s9*(44+rv()*10),rM*(1.8+rv()*.3));droite((40+rv()*30)*KV);tourne(s9*(112+rv()*20),rM*(1.45+rv()*.25));droite((50+rv()*30)*KV);};
+  /* (2026-10-23) QUATRE MODULES QUI FONT MONTER ET DESCENDRE : la pente (A > 0 = on descend) est une enveloppe posée sur la longueur prévue ; l'ALTITUDE se pilote
+       vRampe    · 450-800 m × KV à 7,5-13 % (monte ou descend), en virages de liaison
+       vLacets   · 2 ou 4 ÉPINGLES à 178° (1,5-1,9 rM) sur 8-13 % : la paroi en zigzag, le cap revient dans l'axe
+       vDetour   · une EXCURSION : 100-130° hors de l'axe, une droite de 120-300 m, on revient — sur une pente douce
+       vRouleaux · 2-3 BOSSES de ± 9-13 % en slalom (le voltigeur décolle aux crêtes) */
+  const profil=(L9,A)=>{const s0=s;gM={s0:s0,s1:s0+L9,f:function(s9){const u=(s9-s0)/L9;return A*Math.min(1,u*4,(1-u)*4);}};};
+  const dirAlt=()=>y>70?1:y<-230?-1:(rv()<.5?1:-1); // 1 = descendre : au-dessus de +70 m du départ on descend, sous −230 m on monte
+  const vRampe=()=>{vAxe();const L9=(450+rv()*350)*KV,s0=s;profil(L9,dirAlt()*(.075+rv()*.055));for(let n=0;s-s0<L9-60*KV&&n<30;n++){const sb=s;liaison(1);if(s-sb<5)droite(80*KV);}gM=null;};
+  const vLacets=()=>{vAxe();const n=2*(1+((rv()*2)|0)),R=rM*(1.5+rv()*.4),leg=(70+rv()*80)*KV;let sd=rel()>0?-1:1;
+    profil(n*Math.PI*R+(n+1)*leg,dirAlt()*(.08+rv()*.05));droite(leg);for(let k=0;k<n;k++){arc(sd*178,R);droite(leg);sd=-sd;}gM=null;vers(0,R*1.4);};
+  const vDetour=()=>{vAxe();const a=100+rv()*30,R=rM*(2.2+rv()*.8),sd=rel()>0?-1:1,dl=(120+rv()*180)*KV;
+    profil(2*a/57.2958*R+dl,dirAlt()*(.03+rv()*.04));arc(sd*a,R);droite(dl);arc(-sd*a,R*(.9+rv()*.3));gM=null;vers(0,rM*2);};
+  const vRouleaux=()=>{vAxe();const n=2+((rv()*2)|0),lam=(230+rv()*70)*KV,amp=.09+rv()*.04,L9=n*lam,s0=s;
+    gM={s0:s0,s1:s0+L9,f:function(s9){const u=(s9-s0)/L9;return amp*Math.sin(u*n*6.2832)*Math.min(1,u*n*2,(1-u)*n*2);}};
+    let s9=rel()>0?-1:1;tourne(s9*22,lam*.25/(22/57.2958));for(let k=0;k<2*n-1;k++){s9=-s9;const a=44+rv()*12;tourne(s9*a,Math.max(rM*1.55,lam*.5/(a/57.2958)));}tourne(-s9*22,lam*.25/(22/57.2958));gM=null;};
   const vmJ=[vSlalom,vCorde,vChicane,vHoule,vPont,vCoulee,vGeysers,vCrochet],vmN=['slalom','corde','chicane','houle','pont','coulee','geysers','crochet'];
-  const vMod=()=>{let m=0;for(let e=0;e<6;e++){if(!vmPaq.length){const t=[0,1,2,3,4,5,6,7];for(let i=7;i>0;i--){const j=(rv()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)vmPaq.push(x);}m=vmPaq.shift();if(m!==vmLast)break;}
+  if(VLC_MODS){vmJ.push(vRampe,vLacets,vDetour,vRouleaux,vRampe,vLacets);vmN.push('rampe','lacets','detour','rouleaux','rampe','lacets');} /* (la rampe et les lacets : deux jetons dans le paquet — la route monte et descend plus souvent) */
+  const vMod=()=>{let m=0;for(let e=0;e<6;e++){if(!vmPaq.length){const t=vmJ.map(function(_,i){return i;});for(let i=t.length-1;i>0;i--){const j=(rv()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)vmPaq.push(x);}m=vmPaq.shift();if(m!==vmLast)break;}
     vmLast=m;const i0=ctrl.length-1;vmJ[m]();MM.push({i0:i0,i1:ctrl.length-1});return vmN[m];};
   // LES PIÈCES
   const tours=[],fumeron=()=>{droite((70+rh()*50)*KV);const r9=rel();sg=Math.abs(r9)>12?(r9>0?-1:1):(rh()<.5?-1:1);const s0=s,a=tourne(sg*(55+rh()*30),Rs());tours.push({s0:s0,s1:s,a:Math.round(a)});};
@@ -463,12 +484,12 @@ function vlcTraceH(rnd,LV){
     th0=Math.min(b0,r.bF);th1=Math.max(b0,r.bF);AX0=AX=r.bF;vers(r.sgB*38,rM*2.2);droite(80*KV);}
   else droite((140+rh()*120)*KV);
   // LE PLAN DE LA BALADE : les pièces mélangées (jamais deux lacs de suite), chacune derrière sa liaison
-  const PCS=['arche','lac'];if(rh()<.33)PCS.push('arche');if(rh()<.25)PCS.push('lac2');{const nf=1+((rh()*3)|0),nm=2+((rh()*3)|0);for(let k=0;k<nf;k++)PCS.push('fum');for(let k=0;k<nm;k++)PCS.push('mod');}
+  const PCS=['arche','lac'];if(rh()<.33)PCS.push('arche');if(rh()<.25)PCS.push('lac2');{const nf=1+((rh()*3)|0),nm=(VLC_MODS?4:2)+((rh()*3)|0);for(let k=0;k<nf;k++)PCS.push('fum');for(let k=0;k<nm;k++)PCS.push('mod');}
   for(let i=PCS.length-1;i>0;i--){const j=(rh()*(i+1))|0,x=PCS[i];PCS[i]=PCS[j];PCS[j]=x;}
   for(let i=1;i<PCS.length;i++)if(PCS[i][0]==='l'&&PCS[i-1][0]==='l'){const j=(i+1)%PCS.length;const x=PCS[i];PCS[i]=PCS[j];PCS[j]=x;}
   if(recette==='corniche')PCS.splice(1+((rh()*Math.max(1,PCS.length-2))|0),0,'corniche');
   const Lcor=recette==='corniche'?(Math.max(560,rM*3.2)+60)*1.75:0,B9=LC9?Math.max(1200,LC9-(recette==='montee'?Lsp9:0)-300):4300*KV+(recette==='descente'?Lsp9:0),
-    EST={arche:260*KV,lac:750*KV,lac2:520*KV,fum:220*KV,mod:430*KV,mod1:430*KV,corniche:Lcor+260*KV},OBL={arche:1,lac:1,corniche:1};
+    EST={arche:260*KV,lac:750*KV,lac2:520*KV,fum:220*KV,mod:(VLC_MODS?560:430)*KV,mod1:(VLC_MODS?560:430)*KV,corniche:Lcor+260*KV},OBL={arche:1,lac:1,corniche:1};
   {let n9=0;for(let i=0;i<PCS.length&&n9<2;i++)if(PCS[i]==='mod'){PCS[i]='mod1';n9++;}} // (deux modules au moins, comme avant : ils passent avant les fumerons)
   if(B9-s-(recette==='corniche'?EST.corniche:0)>1600*KV)OBL.mod1=1; // (deux modules sûrs si la longueur les tient ; aux hauts paliers la longueur passe d'abord, comme avant)
   const reste=i=>{let r=0;for(let j=i+1;j<PCS.length;j++)if(OBL[PCS[j]]&&!(PCS[j]==='arche'&&arches.length))r+=EST[PCS[j]]+90*KV;return r;};
@@ -528,7 +549,7 @@ function volcanSol(){
   let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(let i=0;i<NP;i+=6){const p=pts[i];if(p.x<x0)x0=p.x;if(p.x>x1)x1=p.x;if(p.z<z0)z0=p.z;if(p.z>z1)z1=p.z;}
   for(const c of [[VC,K],[VC2,K2]])if(c[0]){x0=Math.min(x0,c[0].x-900);x1=Math.max(x1,c[0].x+900);z0=Math.min(z0,c[0].z-900);z1=Math.max(z1,c[0].z+900);}
   x0-=MARG;x1+=MARG;z0-=MARG;z1+=MARG;
-  const nx=Math.ceil((x1-x0)/C)+1,nz=Math.ceil((z1-z0)/C)+1,N=nx*nz,D=new Float32Array(N).fill(1e9),YN=new Float32Array(N),YM=new Float32Array(N).fill(1e9);
+  const nx=Math.ceil((x1-x0)/C)+1,nz=Math.ceil((z1-z0)/C)+1,N=nx*nz,D=new Float32Array(N).fill(1e9),YN=new Float32Array(N),YM=new Float32Array(N).fill(1e9),EV=new Float32Array(N).fill(1e9),EVon=!(VOLCAN.sauts&&VOLCAN.sauts.length); /* (2026-10-18, DEBUGGING : la spirale) EV = le COULOIR DE CHAQUE ROUTE (le plafond du sol sous chacune, voir le rabot plus bas) ; EVon : la balade (vlcTrace3, sans raccourci) — la descente v4 garde la dalle la plus basse */
   const RS=[],pas=Math.max(1,Math.round(12/(L/(NP-1))));for(let i=0;i<NP;i+=pas)RS.push(i);
   const CG=C*4,gx=Math.ceil((x1-x0)/CG)+1,gz=Math.ceil((z1-z0)/CG)+1,GD=new Float32Array(gx*gz);
   for(let j=0;j<gz;j++)for(let i=0;i<gx;i++){const x=x0+i*CG,z=z0+j*CG;let bd=1e18;for(let k=0;k<RS.length;k+=6){const p=pts[RS[k]],d=(p.x-x)*(p.x-x)+(p.z-z)*(p.z-z);if(d<bd)bd=d;}GD[i+j*gx]=Math.sqrt(bd);} // (la distance lointaine ne sert qu'au tri des morceaux : un point de route sur 6 suffit)
@@ -538,7 +559,7 @@ function volcanSol(){
   for(const ri of RS){const p=pts[ri],ci=Math.round((p.x-x0)/C),cj=Math.round((p.z-z0)/C);
     for(let b=-rC;b<=rC;b++){const j=cj+b;if(j<0||j>=nz)continue;const z=z0+j*C,dz=z-p.z;
       for(let a=-rC;a<=rC;a++){const i=ci+a;if(i<0||i>=nx)continue;const x=x0+i*C,dx=x-p.x,d2=dx*dx+dz*dz;if(d2>R1*R1)continue;const k=i+j*nx;
-        if(d2<D[k]){D[k]=d2;YN[k]=p.y;}if(d2<RY*RY&&p.y<YM[k])YM[k]=p.y;}}}
+        if(d2<D[k]){D[k]=d2;YN[k]=p.y;}if(d2<RY*RY&&p.y<YM[k])YM[k]=p.y;if(EVon){const e9=p.y-16+Math.max(0,Math.sqrt(d2)-ROAD_HALF-10)*1.2;if(e9<EV[k])EV[k]=e9;}}}}
   /* LES CASES, EN TRANCHES (14/10 au soir, règle de PILOTAGE : « construction en tranches < 60 ms ») : ~200 ms de calcul case par case. `S.rangee(j0,j1)`
      calcule des rangées (ou un rectangle de cases) ; buildVolcan fait tout de suite les morceaux du départ, les autres partent dans la file (`vlcTache`) du plus proche au plus loin.
      Une rangée pas encore calculée vaut la MER (H sous ySea, YL = ySea) : jamais de mort sur un sol qui n'existe pas encore. */
@@ -559,9 +580,9 @@ function volcanSol(){
     {const c1=cone(K,VC,x,z),c2=VC2?cone(K2,VC2,x,z):-1e9,cc=Math.max(c1,c2); // (v5) CF : la part du CÔNE et la hauteur sur lui (0 la mer → 1 le sommet), lue par la roche en facettes
      if(VLC5&&cc>h-6){const K9=c1>=c2?K:K2;CF[k]=Math.max(.02,Math.min(1,(cc-yS)/Math.max(1,K9.yP-yS)));}h=Math.max(h,cc);}
     if(IL9){const r=Math.hypot(x-IL9.x,z-IL9.z);if(r<IL9.R*2.4)h=Math.max(h,IL9.y-Math.max(0,r-IL9.R)*1.6+2.5*vlcB(x/30,z/30,sd9+43,2));} // (LE DÉCOR AU HASARD) l'île plate du monument
-    h=Math.min(h,ym-16+Math.max(0,d-ROAD_HALF-10)*1.2);                                                                       // jamais sous la dalle (la plus basse)
+    const cl=EV[k]<1e8?EV[k]:ym-16+Math.max(0,d-ROAD_HALF-10)*1.2;h=Math.min(h,cl); /* (2026-10-18, DEBUGGING : « la spirale sur des falaises ») sur la spirale, `ym` (la dalle la plus basse à moins de 120 m) prenait le TOUR D'EN DESSOUS dès 15-45 m du tour d'au-dessus : le cône taillé pour elle était raboté jusqu'à 16 m sous le tour du bas — des falaises de 110-250 m sous la moitié extérieure de la route, 54-142 marches de plus de 60 m d'une case à l'autre. Chaque route garde son couloir (EV) : le sol reste sous TOUTES les routes, le flanc reste sous la spirale */                                                                       // jamais sous la dalle (la plus basse)
     H[k]=h;let yl=yS;
-    for(const c of [[VC,K],[VC2,K2]])if(c[0]){const r=Math.hypot(x-c[0].x,z-c[0].z);if(r<c[1].rc)yl=Math.max(yl,c[1].yP-c[1].cr*.55);} // le LAC DU CRATÈRE
+    for(const c of [[VC,K],[VC2,K2]])if(c[0]){const r=Math.hypot(x-c[0].x,z-c[0].z);if(r<c[1].rc)yl=Math.max(yl,Math.min(c[1].yP-c[1].cr*.55,cl-2));} /* (2026-10-18, DEBUGGING : « une boîte de lave sur le volcan ») le couloir du dernier tour rabote la lèvre du cratère côté route ; le lac, lui, restait à la hauteur du cratère d'origine : il FLOTTAIT 56-320 m au-dessus de la roche, un couvercle de lave posé sur des rideaux verticaux de 400-750 m (visibles de toute la balade). Le lac ne monte plus au-dessus du sol raboté : là où la lèvre est coupée, il déborde en pente */ // le LAC DU CRATÈRE
     YL[k]=yl;HT[k]=Math.max(0,Math.min(1,(yl+16-h)/16));}};
   return VOLCAN.sol={x0:x0,z0:z0,C:C,nx:nx,nz:nz,h:H,d:D,yn:YN,yl:YL,ht:HT,cf:CF,riv:new Uint8Array(N),MARG:MARG,fait:FAIT,rangee:rangee,gd:function(x,z){return gBil(GD,x,z);}};
 }
@@ -663,6 +684,39 @@ const VLC_SOL_FS5=[FG_BRUIT,VLC_LUM,VLC_VOR,'varying vec3 vW,vN;varying vec4 vS;
   '  if(vS.w>1.5)em+=vec3(1.,.28,.04)*uLue*smoothstep(.55,1.,ht)*1.4;',                                      // les coulées des volcans du loin
   '  em=vTeinte(em);','  #ifdef USE_FOG','  float ff=smoothstep(fogNear,fogFar,fogDepth);col=mix(col,fogColor,ff)+em*(1.-ff*.65);','  #else','  col+=em;','  #endif',
   '  gl_FragColor=vec4(col,1.);}'].join('\n');
+/* (v6) LA ROCHE D'APRÈS PHOTOS : une croûte de verre noir-bleu ardoise, PLISSÉE en arcs parallèles (la lave cordée), une cendre grise argentée sur les plats,
+   un reflet froid de verre (le ciel y glisse en bleu), la lave qui éclaire par en dessous en ORANGE vif, et des fissures qui couvent jusqu'au jaune. */
+const VLC_SOL_FS6=[FG_BRUIT,VLC_LUM,VLC_VOR,'varying vec3 vW,vN;varying vec4 vS;','#include <fog_pars_fragment>',
+  'void main(){vec3 Ns=normalize(vN),Nf=normalize(cross(dFdx(vW),dFdy(vW)));if(dot(Nf,Ns)<0.)Nf=-Nf;',
+  '  vec3 V=uCam-vW;float dist=length(V);V/=max(dist,.001);vec2 q=vW.xz;float loin=smoothstep(280.,1000.,dist);',
+  '  vec3 N=normalize(mix(Nf,Ns,.22+.6*loin));',
+  '  float ht=clamp(vS.y,0.,1.),ab=vS.z,cn=vS.w>1.5?.55:clamp(vS.w,0.,1.);',
+  '  float n1=fn2(q*.0042),n2=fn2(q*.016),fv=fh3(floor(Nf*6.)+floor(vW*.019));',
+  '  float pw=fn2(q*.05+vec2(fn2(q*.021)*3.,0.));float pli=.5+.5*sin(pw*16.+n2*5.),pli2=.5+.5*sin(fn2(q*.11+9.)*14.);float fad=smoothstep(30.,200.,dist);pli=mix(pli,.5,fad);pli2=mix(pli2,.5,fad);',          // les PLIS : des arcs parallèles tordus par du bruit
+  '  vec3 alb=vec3(.064,.070,.096)*(.78+.44*fv)*(.72+.50*pli);',                                                  // la CROÛTE : verre noir-bleu, plissé
+  '  float plat=smoothstep(.80,.96,N.y);',
+  '  alb=mix(alb,vec3(.20,.205,.236)*(.85+.3*fv)*(.78+.44*pli2),plat*smoothstep(.40,.66,n1+.14*n2)*(1.-smoothstep(.15,.45,cn)));', // la CENDRE grise, argentée
+  '  alb=mix(alb,vec3(.13,.055,.050)*(.85+.3*fv),smoothstep(.62,.82,cn)*(1.-plat*.5)*.8);',
+  '  alb=mix(alb,vec3(.40,.27,.07)*(.85+.3*fv),smoothstep(.88,.97,cn)*.8);',
+  '  alb=mix(alb,vec3(.010,.012,.024),smoothstep(8.,1.,ab));',
+  '  float dif=clamp((dot(N,uSunDir)+.10)/1.10,0.,1.);',
+  '  vec3 col=alb*(uSky*(.55+.30*N.y)+uGnd*(.30-.18*N.y)+uSunC*dif*.85+uFillC*max(dot(N,-uFillD),0.)*.45);',
+  '  col+=alb*vec3(.20,.27,.46)*(.40+.60*N.y)*.55;',                                                                         // le remplissage FROID du ciel : l'ombre est bleue, comme sur les photos
+  '  vec3 Rf=reflect(-V,N);float sp=pow(max(dot(Rf,uSunDir),0.),16.);col+=uSunC*sp*.40*(1.-plat)*(.45+.55*pli);',              // le brillant du verre
+  '  float bas=smoothstep(60.,0.,ab)*(.45+.55*(1.-N.y));',
+  '  col+=alb*vTeinte(vec3(1.,.34,.08))*uLue*(bas*2.4+ht*1.0);',
+  '  col+=vTeinte(vec3(1.,.40,.10))*uLue*bas*.20*(.4+.6*pli);',                                                              // le rougeoiement des rives, sans dépendre de l'albédo
+  '  col+=alb*(vPhare(vW,N)+vErupt(vW,N)*3.+uFlash*vec3(.8,.82,1.)*1.3);',
+  '  float fre=pow(clamp(1.-dot(N,V),0.,1.),3.);col+=vec3(.20,.30,.55)*alb*2.2*fre+uSky*alb*1.2*fre;',                         // le liseré froid (bleu de verre)
+  '  col=mix(col,uBruC,vBrume(vW,dist));',
+  '  float pres=1.-smoothstep(220.,480.,dist),fis=0.,aq=length(fwidth(q))/23.;',
+  '  if(pres>.01){vec3 vo=vlcVor(q/23.+(vec2(fn2(q*.03),fn2(q*.03+5.))-.5)*.8);float e=vo.y-vo.x;',
+  '    fis=(1.-smoothstep(0.,.08+aq*2.4,e))*clamp(ht*1.5+smoothstep(20.,0.,ab)*.8,0.,1.)*pres;}',
+  '  vec3 feu=mix(vec3(1.,.17,.015),vec3(1.,.62,.13),fn2(q*.07+uTime*.15));feu=mix(feu,vec3(1.,.90,.45),fis*fis*.6);',        // les fissures : du rouge au jaune
+  '  vec3 em=feu*uLue*(fis*(1.55+.5*sin(uTime*1.6+n2*14.))+ht*.12*loin+.06*smoothstep(4.,0.,ab));',
+  '  if(vS.w>1.5)em+=vec3(1.,.30,.05)*uLue*smoothstep(.55,1.,ht)*1.4;',
+  '  em=vTeinte(em);','  #ifdef USE_FOG','  float ff=smoothstep(fogNear,fogFar,fogDepth);col=mix(col,fogColor,ff)+em*(1.-ff*.65);','  #else','  col+=em;','  #endif',
+  '  gl_FragColor=vec4(col,1.);}'].join('\n');
 /* LA LAVE : aV = (sens de l'écoulement x, z — sa longueur est la vitesse —, profondeur sous la surface (la rive fige), genre) */
 const VLC_LAVE_VS=['attribute vec4 aV;varying vec3 vW;varying vec4 vV;','#include <fog_pars_vertex>',
   'void main(){vec4 wp=modelMatrix*vec4(position,1.);vW=wp.xyz;vV=aV;vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
@@ -712,6 +766,36 @@ const VLC_LAVE_FS5=[FG_BRUIT,VLC_LUM,VLC_VOR,'varying vec3 vW;varying vec4 vV;',
   '  em=mix(em,liq*uLav*1.9*(.09+.08*smoothstep(.4,.8,h)),loin*.8);',                                       // au loin : une lueur basse — l'orange vif reste aux rivières et aux lacs proches
   '  em=vTeinte(em);','  #ifdef USE_FOG','  float ff=smoothstep(fogNear,fogFar,fogDepth);col=mix(col,fogColor,ff)+em*(1.-ff*.78)*(1.-smoothstep(fogFar*.9,fogFar*1.7,fogDepth));','  #else','  col+=em;','  #endif',
   '  gl_FragColor=vec4(col,1.);}'].join('\n');
+/* (v6) LA LAVE D'APRÈS PHOTOS : une peau cordée (arcs allongés dans le sens du courant) noir-bleu, la lave vive orange qui monte au JAUNE puis au blanc
+   verdâtre dans les fentes et les bassins (les points chauds de la photo du lac) — beaucoup plus de lumière qu'en v5. */
+const VLC_LAVE_FS6=[FG_BRUIT,VLC_LUM,VLC_VOR,'varying vec3 vW;varying vec4 vV;','#include <fog_pars_fragment>',
+  'void main(){vec3 V=uCam-vW;float dist=length(V);V/=max(dist,.001);float t=uTime;bool chute=vV.w>1.5;',
+  '  vec2 q=chute?vec2((vW.x+vW.z)*2.2,vW.y+t*9.):vW.xz;',
+  '  vec2 fl=chute?vec2(0.):vV.xy;float fk=length(fl);vec2 fd=fk>.02?fl/fk:vec2(.7,.7),pd=vec2(-fd.y,fd.x);',
+  '  vec2 p=(q-fl*t*.9-vec2(t*.45,-t*.3))/(chute?60.:40.);',
+  '  p+=(vec2(fn2(q*.011+3.1),fn2(q*.011+7.7))-.5)*1.5;',
+  '  float loin=smoothstep(320.,1100.,dist);vec3 vo=vec3(.45,.75,.5);',
+  '  if(loin<.995)vo=vlcVor(p);float e=vo.y-vo.x,aa=fwidth(e);',
+  '  float ouv=step(.74,vo.z);',
+  '  float fente=1.-smoothstep(0.,.15+aa*1.6,e);',
+  '  float pl=(1.-ouv)*smoothstep(.09,.21+aa*1.6,e);',
+  '  pl=max(pl,smoothstep(3.2,.4,vV.z)*.96);pl=mix(pl,.9,loin);',
+  '  float h=fn2(q*.006+vec2(t*.008,0.))*.65+fn2(q*.021-vec2(0.,t*.015))*.35;',
+  '  float cor=.5+.5*sin((dot(q,fd)*.55+fn2(q*.035)*7.-t*.4)*2.4+dot(q,pd)*.05);',                                         // la PEAU CORDÉE : des arcs en travers du courant
+  '  float hot=fente*(1.-ouv)*.85+ouv*(1.-smoothstep(.04,.60,vo.x))*.90;',
+  '  vec3 liq=mix(vec3(1.,.15,.02),vec3(1.,.46,.07),smoothstep(.25,.75,h));',
+  '  liq=mix(liq,vec3(1.,.80,.30),clamp(hot,0.,1.)*.85);',                                                                 // ambre puis jaune dans les fentes et les bassins
+  '  liq=mix(liq,vec3(.92,1.,.58),pow(clamp(hot,0.,1.),3.)*.55*(.6+.4*fn2(q*.09+t*.2)));',                               // le CŒUR : blanc jaune-vert, le point chaud de la photo
+  '  float bord=smoothstep(.34,.12,e)*pl;',
+  '  vec3 cru=mix(vec3(.056,.064,.092),vec3(.085,.095,.130),vo.z)*(.74+.52*mix(cor,.5,smoothstep(40.,260.,dist)))*(.85+.3*fn2(q*.05));',                   // la croûte : verre noir-bleu cordé
+  '  vec3 R=reflect(-V,vec3(0.,1.,0.));float fr=.04+.96*pow(clamp(1.-V.y,0.,1.),5.);',
+  '  vec3 col=cru*(uSky*.55+uGnd*.35+vec3(.20,.27,.46)*.55+uFlash*1.2+vPhare(vW,vec3(0.,1.,0.)))+mix(uGnd,vec3(.30,.45,.95),clamp(R.y*.5+.5,0.,1.))*fr*.20*pl+uSunC*pow(max(dot(R,uSunDir),0.),60.)*.18*pl;',
+  '  col=mix(col,uBruC,vBrume(vW,dist)*.25);',
+  '  float pul=.88+.12*sin(t*1.1+vo.z*20.+h*6.);',
+  '  vec3 em=(liq*(1.-pl)*pul+vec3(1.,.30,.05)*bord*.45)*uLav*(2.3+(uErupt+uErupt2)*.6);',
+  '  em=mix(em,liq*uLav*2.3*(.10+.09*smoothstep(.4,.8,h)),loin*.8);',
+  '  em=vTeinte(em);','  #ifdef USE_FOG','  float ff=smoothstep(fogNear,fogFar,fogDepth);col=mix(col,fogColor,ff)+em*(1.-ff*.78)*(1.-smoothstep(fogFar*.9,fogFar*1.7,fogDepth));','  #else','  col+=em;','  #endif',
+  '  gl_FragColor=vec4(col,1.);}'].join('\n');
 /* LA ROCHE TAILLÉE (aiguilles, orgues, hornitos, l'arche) : le maillage de l'atelier des arbres (aA = partie, occlusion, hasard, hauteur
    relative ; aC = albédo) ; aI = (hasard, —, pied dans la lave, —). Parties : 0 basalte · 1 OBSIDIENNE (verre noir, veines de feu) ·
    2 orgue · 3 roche chaude (fissures qui luisent). */
@@ -723,11 +807,11 @@ const VLC_ROC_FS=[FG_BRUIT,VLC_LUM,VLC_VOR,'varying vec3 vW,vN,vO,vC;varying vec
   'void main(){float part=floor(vA.x+.5);vec3 N=normalize(vN);vec3 V=uCam-vW;float dist=length(V);V/=max(dist,.001);vec3 o=vO;',
   '#ifdef V5','  vec3 Nf=normalize(cross(dFdx(vW),dFdy(vW)));if(dot(Nf,N)<0.)Nf=-Nf;N=normalize(mix(Nf,N,.3));','#endif', // (v5) les facettes, comme la roche
   '  vec3 alb=vC*(.72+.56*fn3(o*.35));float ao=vA.y,gl=0.;',
-  '#ifdef V5','  alb*=vec3(1.45,1.25,2.05);','#endif',                                                              // (v5) le basalte tiré vers l'indigo commun, une ardoise (l'arche sortait en aplat NOIR au matin)
+  '#ifdef V5','  alb*='+(VLC6?'vec3(1.95,2.05,2.7)':'vec3(1.45,1.25,2.05)')+';','#endif',                                                              // (v5) le basalte tiré vers l'indigo commun, une ardoise (l'arche sortait en aplat NOIR au matin)
   '  if(part<.5)alb*=.75+.5*fn3(o*vec3(.5,.12,.5));',
   '  else if(part<1.5){alb='+(VLC5?'vec3(.075,.058,.115)':'vec3(.016,.013,.02)')+'*(.8+.4*fn3(o*.4));float vn=abs(fn3(o*.21)-.5)+abs(fn3(o*.57)-.5)*.6;gl=smoothstep(.055,0.,vn)*(.35+.65*smoothstep(.45,0.,vA.w));}',
   '  else if(part<2.5)alb*=.8+.35*fn3(o*.9);',
-  '  else{'+(VLC5?'vec3 vo=vlcVor(vec2(o.x+o.z*.7,o.y)/6.5);gl=(1.-smoothstep(0.,.07,vo.y-vo.x))*.85;ao=max(ao,.6);':'float vn=abs(fn3(o*.33)-.5);gl=smoothstep(.06,0.,vn)*.85;')+'}',  // (v5) la roche chaude FENDUE en plaques (les cellules de la lave) : les veines en boucles faisaient une peau de léopard sur l'arche
+  '  else{'+(VLC5?'vec3 vo=vlcVor(vec2(o.x+o.z*.7,o.y)/6.5);gl=(1.-smoothstep(0.,'+(VLC6?'.042':'.07')+',vo.y-vo.x))*.85;ao=max(ao,.6);':'float vn=abs(fn3(o*.33)-.5);gl=smoothstep(.06,0.,vn)*.85;')+'}',  // (v5) la roche chaude FENDUE en plaques (les cellules de la lave) : les veines en boucles faisaient une peau de léopard sur l'arche
   '  float dif=clamp((dot(N,uSunDir)+.12)/1.12,0.,1.);',
   '  vec3 col=alb*(uSky*('+(VLC5?'.85+.40':'.42+.36')+'*N.y)*ao+uGnd*(.32-.24*N.y)*ao+uSunC*dif*mix(.5,.92,ao)+uFillC*max(dot(N,-uFillD),0.)*.4);', // (v5 : le ciel remplit les ombres, comme la roche)
   '  if(part>.5&&part<1.5){vec3 H=normalize(uSunDir+V);col+=uSunC*pow(max(dot(N,H),0.),80.)*.8;float fr=pow(1.-max(dot(N,V),0.),4.);col+=mix(uGnd,uSky,clamp(reflect(-V,N).y*.5+.5,0.,1.))*fr*'+(VLC5?'.55':'.30')+';}', // le VERRE NOIR (v5 : un verre violet qui prend le ciel — l'obsidienne noire sur brume sombre ne se lisait plus)
@@ -759,14 +843,14 @@ const VLC_FUM_FS=[FG_BRUIT,'uniform vec3 uFumC,uSunC,uSky,fogColor,uLavT;uniform
   '  c=mix(c,fogColor,smoothstep(fogNear,fogFar*3.,vD)*.55);',
   '  gl_FragColor=vec4(c,a);}'].join('\n');
 /* LES BRAISES (uK 0 : elles montent, vacillent, orange) et LA CENDRE (uK 1 : des flocons gris qui tombent) — une boîte qui suit la caisse */
-const VLC_PART_VS=['attribute vec4 aR;uniform float uTime,uBra,uCen,uPx,uK,uLavK;uniform vec3 uBoxC,uLavT;varying vec3 vC;varying float vA;',
+const VLC_PART_VS=['attribute vec4 aR;uniform float uTime,uBra,uCen,uPx,uK,uLavK,uCenS;uniform vec3 uBoxC,uLavT;varying vec3 vC;varying float vA;',
   'void main(){vec3 B=vec3(240.,110.,280.);',
   '  vec3 pa=uK<.5?vec3(sin(uTime*.4+aR.y*9.)*7.,uTime*(5.+aR.x*6.),cos(uTime*.33+aR.z*7.)*7.):vec3(sin(uTime*.6+aR.y*9.)*4.+uTime*2.5,-uTime*(3.+aR.x*2.),cos(uTime*.5+aR.z*6.)*4.);',
   '  vec3 rel=mod(aR.xyz*B+pa-uBoxC+B*.5,B)-B*.5,pos=uBoxC+rel;float e=min(min(.5-abs(rel.x)/B.x,.5-abs(rel.y)/B.y),.5-abs(rel.z)/B.z);',
   '  float fl=.5+.5*sin(uTime*(6.+aR.w*9.)+aR.x*40.);',
   '  vA=smoothstep(0.,.08,e)*(uK<.5?uBra*(.35+.65*fl):uCen*(.55+.45*aR.w));',
   '  vC=uK<.5?mix(vec3(1.,.22,.02),vec3(1.,.72,.22),aR.y)*2.2:vec3(.11,.10,.095);if(uK<.5)vC=mix(vC,dot(vC,vec3(.55,.35,.10))*uLavT*1.45,uLavK);',
-  '  vec4 mv=viewMatrix*vec4(pos,1.);gl_Position=projectionMatrix*mv;gl_PointSize=vA<.003?0.:(uK<.5?'+('.75+aR.z*.6')+':2.2+aR.z*1.2)*uPx*300./max(1.,-mv.z);'+(VLC5?'gl_PointSize=min(gl_PointSize,(uK<.5?4.5:7.)*uPx);':'')+'}'].join('\n'); // (continuité) des ÉTINCELLES, plus des pastilles orange plein écran
+  '  vec4 mv=viewMatrix*vec4(pos,1.);gl_Position=projectionMatrix*mv;gl_PointSize=vA<.003?0.:(uK<.5?'+('.75+aR.z*.6')+':(2.2+aR.z*1.2)*(1.+uCenS*.9))*uPx*300./max(1.,-mv.z);'+(VLC5?'gl_PointSize=min(gl_PointSize,(uK<.5?4.5:7.+uCenS*4.)*uPx);':'')+'}'].join('\n'); // (continuité) des ÉTINCELLES, plus des pastilles orange plein écran
 const VLC_PART_FS=['uniform float uK;varying vec3 vC;varying float vA;void main(){float d=length(gl_PointCoord-.5);float a=smoothstep(.5,0.,d);a*=a;if(vA*a<.004)discard;',
   '  if(uK<.5)gl_FragColor=vec4(vC*vA*a,1.);else gl_FragColor=vec4(vC,min(1.,vA*a*1.6));}'].join('\n');
 /* LES GEYSERS DE LAVE (et la FONTAINE du cratère à l'éruption) : chaque goutte vit sa parabole dans le shader ; aG = (période, phase,
@@ -783,8 +867,8 @@ const VLC_GEY_FS=['varying vec3 vC;varying float vA;void main(){float d=length(g
 function volcanMats(){if(VOLCAN.mats)return VOLCAN.mats;const U=VLC_U,F=THREE.UniformsLib.fog;
   const sm=(vs,fs,o)=>{const m=new THREE.ShaderMaterial(Object.assign({uniforms:Object.assign(THREE.UniformsUtils.clone(F),U,o&&o.u||{}),vertexShader:vs,fragmentShader:fs,fog:true},o&&o.m||{}));m.dispose=function(){};return m;}; // jamais libérées : un seul jeu pour tous les volcans
   const M={};
-  M.sol=VLC5?sm(VLC_SOL_VS,VLC_SOL_FS5,{m:{extensions:{derivatives:true}}}):sm(VLC_SOL_VS,VLC_SOL_FS);
-  M.lave=VLC5?sm(VLC_LAVE_VS,VLC_LAVE_FS5,{m:{extensions:{derivatives:true}}}):sm(VLC_LAVE_VS,VLC_LAVE_FS);
+  M.sol=VLC6?sm(VLC_SOL_VS,VLC_SOL_FS6,{m:{extensions:{derivatives:true}}}):VLC5?sm(VLC_SOL_VS,VLC_SOL_FS5,{m:{extensions:{derivatives:true}}}):sm(VLC_SOL_VS,VLC_SOL_FS);
+  M.lave=VLC6?sm(VLC_LAVE_VS,VLC_LAVE_FS6,{m:{extensions:{derivatives:true}}}):VLC5?sm(VLC_LAVE_VS,VLC_LAVE_FS5,{m:{extensions:{derivatives:true}}}):sm(VLC_LAVE_VS,VLC_LAVE_FS);
   M.roc=VLC5?sm(VLC_ROC_VS,VLC_ROC_FS,{m:{extensions:{derivatives:true},defines:{V5:1}}}):sm(VLC_ROC_VS,VLC_ROC_FS);
   M.fum=sm(VLC_FUM_VS,VLC_FUM_FS,{m:{transparent:true,depthWrite:false}});
   M.bra=sm(VLC_PART_VS,VLC_PART_FS,{u:{uK:{value:0}},m:{transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}});

@@ -10,6 +10,10 @@
    compilées une fois hors écran : en course, rien ne se construit ni ne se compile. Console : `dbgJadeSinges()` (le plan, la rencontre en
    cours), `dbgJadeSinges('bonjour'|'mangue'|'course'|'bord')` (une rencontre, tout de suite). */
 const JSG_ESSAI=/[?&]singesjade=1\b/.test(location.search);
+/* (2026-10-22, Léo : « enlève les singes de la map jade, ou rends-les plus légers — sur la map grotte ça bugue moins et c'est aussi joli ») LES SINGES SONT ÉTEINTS :
+   plus d'ouvriers au menu (3,5 s de calcul des quatre formes vitrail), plus de programmes à compiler, plus de géométries en mémoire, plus de rencontre à animer.
+   Le code reste, intact : `?singes=1` (ou `?singesjade=1`) les rend, tels qu'ils étaient. */
+const JSG_ON=JSG_ESSAI||/[?&]singes=1\b/.test(location.search);
 const JSG_N=4,JSG_AV={bonjour:240,mangue:170,course:150,bord:170},JSG_ECH={bonjour:11,mangue:8.5,course:7.5,bord:8.5}; // (mesuré au banc) à 6 m de haut, ils restaient cachés derrière la caisse jusqu'à 40 m : des singes GÉANTS, du décor de dessin animé
 /* (2026-10-17) PLUS PETITS ET IMPRÉVISIBLES (Léo : « rends-les plus petits, c'est un peu trop grand ; c'est imprévisible : ils peuvent soit te
    suivre, soit sauter, soit… »). MESURÉ : le singe de la route faisait 11 à 14 m de haut, neuf fois la caisse — `JSG_TAILLE` les ramène à
@@ -142,6 +146,7 @@ function jsgAtelier(){JSG.at=null;try{if(typeof Worker!=='function'||location.pr
       try{W.terminate();}catch(e){}if(--reste===0){JSG.at='fini';JSG.atW=null;}};
     W.postMessage({formes:lot});}}catch(e){jsgAtelierRepli();}}
 function jsgTick(dt){
+  if(!JSG_ON)return; // (2026-10-22) éteints : rien ne se fabrique, rien ne se dessine
   // LA FABRIQUE : les quatre formes, tranche par tranche (≤ 5 ms par image), puis UNE compilation hors écran au menu
   if(typeof singePoseForme!=='function')return; // (creatures/singe.js absent : pas de singes)
   if(!JSG.pret){if(JSG.at===undefined)jsgAtelier(); // (2026-10-15) L'ATELIER d'abord : un Worker calcule les formes hors du fil du jeu

@@ -63,6 +63,9 @@ la pluie de débris de l'orbite — plus de `?snake=1`, `?nitrooo=1`, `?meteore=
    remplace ce jeton par le commit publié et pose `version.json` à côté du jeu. Le jeu compare les deux et se recharge tout seul
    s'il est en retard (voir « LA MISE À JOUR TOUTE SEULE », près du service worker). En copie locale le jeton reste tel quel : rien ne se vérifie. */
 const CC_BUILD='__CC_BUILD__';
+/* (2026-10-22, piste « démarrage », profil au CPU ×4 : les photos des caisses se refaisaient à CHAQUE publication — 3 à 4 s de fil principal) L'EMPREINTE DES PHOTOS : `vercel-build.sh` grave ici le hachage des seuls fichiers qui changent l'IMAGE d'une photo de caisse
+   (voitures/, rendu/, le studio, les constantes de cadrage). Les photos gardées (IndexedDB `ccPhotos`) survivent donc aux publications qui n'y touchent pas. Copie locale : jeton intact, rien n'est gardé (voir phdbSig). */
+const CC_PHOTOS='__CC_PHOTOS__';
 const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b/.test(location.search)?' · SANS CIEL':'');
 (function(){
   var q=location.search,M=window.matchMedia;
