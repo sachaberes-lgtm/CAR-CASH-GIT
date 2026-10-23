@@ -30112,7 +30112,7 @@ const SHAPES={
     K.sph(W*.30,H*.52,L*.20,K.glass,0,y0+H*.42,L*.02);
     B(.04,H*.42,L*.30,K.acc,0,y0+H*.62,-L*.34);
     for(const sd of [-1,1])B(.06,H*.20,L*.24,K.dark,sd*(W/2+.01),y0+H*.28,-L*.14);
-    return {hl:[W*.30,y0+H*.30,L*.44],tl:[W*.30,y0+H*.44,-L/2-.06]};
+    return {hl:[.49,.53,2.52],tl:[.54,.55,-3.37]}; /* (2026-10-18, VOITURES-REVUE) LA COMÈTE seule : les halos sur ses phares longue portée (ils étaient 32 cm dans le nez) ; ses feux rouges sont cachés derrière les deux cloches des pots — la traînée de lumière sort des CLOCHES */
   },
   /* ============================================================================================
      LES TROIS FANTASTIQUES — d'après les planches de référence. Matières GÉNÉRATIVES (`MATV`).
@@ -33149,7 +33149,7 @@ Object.assign(SHAPES,{
     anime(1/30);
     g.userData.anime=anime;
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
-    return {hl:[.32,1.1,1.05],tl:[.30,.70,-.90],lamps:0,halos:0,wx:.82,wzF:ZF,wzR:-ZR,pots:[[.24,.42,-.89],[-.24,.42,-.89]],
+    return {hl:[.32,1.1,1.05],tl:[.30,.70,-.42],lamps:0,halos:0, /* (2026-10-18, VOITURES-REVUE) tl sur la nuque : il n'a pas de feux, la traînée naissait 48 cm derrière, dans le vide */wx:.82,wzF:ZF,wzR:-ZR,pots:[[.24,.42,-.89],[-.24,.42,-.89]],
             lpw:{R:R,w:.34,style:'rayons',n:5,jante:0xffc42e,accent:0xffc42e,pneu:0x141118}};   // (« un peu plus jaune le truc au milieu du pneu »)
   }
 });
@@ -33813,7 +33813,7 @@ SHAPES.perle=function(K){
    const g=new THREE.ExtrudeGeometry(sh,{depth:.022,bevelEnabled:false,curveSegments:1});g.rotateY(-Math.PI/2);g.translate(fx+.016,0,0);J.put('c',g,0,0,0);
    const m=new THREE.Shape(D.moyeu.map(V)),gm=new THREE.ExtrudeGeometry(m,{depth:.012,bevelEnabled:false,curveSegments:1});gm.rotateY(-Math.PI/2);gm.translate(fx+.026,0,0);J.put('n',gm,0,0,0);}
   const JG=J.done();
-  return {hl:[.74,.71,2.30],tl:[.80,.84,-2.42],wx:.83,wzF:ZF,wzR:-ZR,
+  return {hl:[.74,.71,2.30],tl:[.72,.86,-2.24],wx:.83,wzF:ZF,wzR:-ZR, /* (2026-10-18, VOITURES-REVUE) recalé au banc dbgAncrages : tl sur les bouts du bandeau des feux, plus 14 cm derrière la tôle */
           roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],K.mats[g]||K.mats.c);m.userData.lp=1;w.add(m);}},
           lpw:{R:R,w:JW,style:'nyan',jante:0xd9dde3}};
 };
@@ -34356,7 +34356,7 @@ SHAPES.cinq=function(K){
   J.lathe('d',[[.214,-hw+.02],[.214,fx-.04],[0,fx-.04]],20,0,0,0,'x');
   J.lathe('c',[[.104,fx+.019],[.10,fx+.028],[.088,fx+.037],[.066,fx+.043],[.036,fx+.047],[0,fx+.048]],22,0,0,0,'x');   // le moyeu chromé bombé (sans logo)
   const JG=J.done();
-  return {hl:[.56,.70,1.66],tl:[.60,.82,-1.68],wx:.70,wzF:ZF,wzR:-ZR,
+  return {hl:[.56,.70,1.66],tl:[.55,.75,-1.63],wx:.70,wzF:ZF,wzR:-ZR, /* (2026-10-18, VOITURES-REVUE) recalé au banc dbgAncrages : sur ses feux, plus 10 cm derrière la tôle */
           roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],K.mats[g]||K.mats.c);m.userData.lp=1;w.add(m);}},
           lpw:{R:R,w:JW,style:'nyan',jante:0xe4e8ed}};
 };
@@ -34679,7 +34679,7 @@ SHAPES.b_canard=function(K){
   for(let i=0;i<5;i++){const a=i*2*Math.PI/5,pt=(r,d)=>[r*Math.cos(a+d),r*Math.sin(a+d)];
     J.prism('c',[pt(.068,-.30),pt(.12,-.24),pt(.178,-.215),pt(.178,.215),pt(.12,.24),pt(.068,.30)],.022,fx-.004);}   // les cinq branches
   const JG=J.done();
-  return {hl:[.615,.745,1.79],tl:[.52,.61,-2.01],wx:.69,wzF:ZF,wzR:-ZR,
+  return {hl:[.615,.745,1.79],tl:[.36,.62,-1.97],wx:.69,wzF:ZF,wzR:-ZR, /* (2026-10-18, VOITURES-REVUE) recalé au banc dbgAncrages : la traînée part du feu ROUGE, plus du clignotant orange */
           roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],K.mats[g]||K.mats.c);m.userData.lp=1;w.add(m);}},
           lpw:{R:R,w:JW,style:'nyan',jante:0xe4e8ed}};
 };
@@ -34887,7 +34887,7 @@ SHAPES.e_anglaise=function(K){
   for(let i=0;i<6;i++){const a=i*Math.PI/3,pt=(r,d)=>[r*Math.cos(a+d),r*Math.sin(a+d)];
     J.prism('s',[pt(.06,-.20),pt(.12,-.13),pt(.19,-.03),pt(.215,.04),pt(.215,.22),pt(.17,.17),pt(.11,.10),pt(.06,.20)],.03,fx-.012);}   // les six branches en hélice
   const JG=J.done();
-  return {hl:[.565,.685,2.33],tl:[.66,.84,-2.32],wx:.80,wzF:ZF,wzR:-ZR,
+  return {hl:[.57,.69,2.22],tl:[.62,.84,-2.18],wx:.80,wzF:ZF,wzR:-ZR, /* (2026-10-18, VOITURES-REVUE) recalé au banc dbgAncrages : les feux ovales (ils flottaient 15 cm derrière) et les phares (11 cm devant) */
           roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],K.mats[g]||K.mats.c);m.userData.lp=1;w.add(m);}},
           lpw:{R:R,w:JW,style:'nyan',jante:0xe4e8ed}};
 };
@@ -35091,7 +35091,7 @@ SHAPES.corolla=function(K){
   J.lathe('s',[[.064,fx-.03],[.062,fx+.004],[.05,fx+.012],[0,fx+.014]],16,0,0,0,'x');
   J.lathe('a',[[.034,fx+.012],[.03,fx+.022],[0,fx+.025]],12,0,0,0,'x');
   const JG=J.done();
-  return {hl:[.60,.65,2.20],tl:[.62,.93,-2.23],wx:.765,wzF:ZF,wzR:-ZR,pots:pots,lamps:0, /* (2026-10-18, VOITURES-REVUE) plus de halos:0 : ses phares FIXES éclairent la route la nuit et ses feux ont leur halo, comme toutes les caisses */
+  return {hl:[.60,.65,2.20],tl:[.52,.91,-2.17],wx:.765,wzF:ZF,wzR:-ZR,pots:pots,lamps:0, /* (2026-10-18, VOITURES-REVUE) plus de halos:0 : ses phares FIXES éclairent la route la nuit et ses feux ont leur halo, comme toutes les caisses */
           roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],(K.mats&&K.mats[g])||(typeof lpMat==='function'?lpMat(g):null));m.userData.lp=1;w.add(m);}},
           lpw:{R:R,w:JW,style:'nyan',jante:0xc4c8ce}};
 };
@@ -35271,7 +35271,7 @@ SHAPES.pikes=function(K){
   J.lathe('s',[[.066,fx-.03],[.064,fx+.004],[.05,fx+.012],[0,fx+.014]],16,0,0,0,'x');
   J.lathe('o',[[.036,fx+.012],[.034,fx+.03],[.02,fx+.036],[0,fx+.036]],6,0,0,0,'x');   // l'écrou central, hexagonal, doré
   const JG=J.done();
-  return {hl:[.74,.70,2.07],tl:[.74,.73,-1.93],wx:.82,wzF:ZF,wzR:-ZR,pots:pots,lamps:0,halos:0,
+  return {hl:[.74,.70,2.07],tl:[.74,.73,-1.93],wx:.82,wzF:ZF,wzR:-ZR,pots:pots,lamps:0,feux:[[-.73,.63,-1.97],[.73,.63,-1.97]], /* (2026-10-18, VOITURES-REVUE) plus de halos:0 (ses phares fixes) ; `feux` : ses deux feux — le relevé ne voyait que celui de l'aileron, une seule traînée au milieu du toit */
           roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],(K.mats&&K.mats[g])||(typeof lpMat==='function'?lpMat(g):null));m.userData.lp=1;w.add(m);}},
           lpw:{R:R,w:JW,style:'nyan',jante:0xc0c4cb}};
 };
@@ -35636,7 +35636,8 @@ SHAPES.mx5na=function(K){
       let kG=null;if(cligne>0){cligne-=dt;const c=1.4-cligne;kG=c<.45?lis(c/.45):c<.75?1:c<1.2?1-lis((c-.75)/.45):0;}
       if(typeof M9.force==='number')vise=M9.force;
       k+=(vise-k)*Math.min(1,dt*5.5);if(typeof M9.force==='number'&&!vu0){k=M9.force;}vu0=true;
-      const kk=lis(cl(k,0,1));PH[0].rotation.x=-TH*(kG!=null&&M9.force==null?Math.max(kk,kG):kk);PH[1].rotation.x=-TH*kk;};
+      const kk=lis(cl(k,0,1));PH[0].rotation.x=-TH*(kG!=null&&M9.force==null?Math.max(kk,kG):kk);PH[1].rotation.x=-TH*kk;
+      if(typeof CAR_PHK!=='undefined')CAR_PHK=kk;}; /* (2026-10-18, VOITURES-REVUE) baissés, ils n'éclairent pas ; levés (la nitro), halos et lumière sur la route — voir CAR_PHK */
     anime(1/30);
     PHG.userData.anime=anime;
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);}
@@ -35651,7 +35652,7 @@ SHAPES.mx5na=function(K){
      g.rotateY(-Math.PI/2);g.rotateX(q/8*Math.PI*2);g.translate(fx+.004,0,0);J.put('a',g,0,0,0);}}
   J.lathe('a',[[.068,fx+.004],[.064,fx+.016],[.045,fx+.026],[0,fx+.03]],16,0,0,0,'x');             // le cache-moyeu
   const JG=J.done();
-  return {hl:[.52,.66,1.62],tl:[.47,.62,-1.89],wx:.70,wzF:ZF,wzR:-ZR,pots:pots,lamps:0,halos:0,
+  return {hl:[.52,.66,1.62],tl:[.47,.62,-1.89],wx:.70,wzF:ZF,wzR:-ZR,pots:pots,lamps:0, /* (2026-10-18) plus de halos:0 : ses feux ont leur halo, ses phares le leur une fois LEVÉS (CAR_PHK) */
           roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],(K.mats&&K.mats[g])||(typeof lpMat==='function'?lpMat(g):null));m.userData.lp=1;w.add(m);}},
           lpw:{R:R,w:JW,style:'nyan',jante:0xc5c9cf}};
 };
@@ -36030,7 +36031,8 @@ SHAPES.ae86=function(K){
       let kG=null;if(cligne>0){cligne-=dt;const c=1.4-cligne;kG=c<.45?lis(c/.45):c<.75?1:c<1.2?1-lis((c-.75)/.45):0;}
       if(fo!=null)vise=fo;
       k+=(vise-k)*Math.min(1,dt*5.5);if(fo!=null&&!vu0){k=fo;}vu0=true;
-      const kk=lis(cl(k,0,1));PH[0].rotation.x=-TH*(kG!=null&&fo==null?Math.max(kk,kG):kk);PH[1].rotation.x=-TH*kk;};
+      const kk=lis(cl(k,0,1));PH[0].rotation.x=-TH*(kG!=null&&fo==null?Math.max(kk,kG):kk);PH[1].rotation.x=-TH*kk;
+      if(typeof CAR_PHK!=='undefined')CAR_PHK=kk;}; /* (2026-10-18, VOITURES-REVUE) comme LA CERISE : éclairés seulement levés */
     anime(1/30);
     PHG.userData.anime=anime;
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);}
@@ -36046,7 +36048,7 @@ SHAPES.ae86=function(K){
   J.lathe('o',[[.062,fx-.03],[.06,fx+.004],[.05,fx+.012],[0,fx+.014]],16,0,0,0,'x');               // le moyeu
   J.lathe('a',[[.03,fx+.012],[.026,fx+.022],[0,fx+.025]],12,0,0,0,'x');                            // le cache-moyeu
   const JG=J.done();
-  return {hl:[.53,.76,2.03],tl:[.52,.68,-2.06],wx:.685,wzF:ZF,wzR:-ZR,pots:pots,lamps:0,halos:0,
+  return {hl:[.53,.76,2.03],tl:[.52,.68,-2.06],wx:.685,wzF:ZF,wzR:-ZR,pots:pots,lamps:0, /* (2026-10-18) plus de halos:0 : ses feux ont leur halo, ses phares le leur une fois LEVÉS (CAR_PHK) */
           roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],(K.mats&&K.mats[g])||(typeof lpMat==='function'?lpMat(g):null));m.userData.lp=1;w.add(m);}},
           lpw:{R:R,w:JW,style:'nyan',jante:0x8a5a2c}};
 };
@@ -38815,14 +38817,16 @@ function buildCar(spec){
   }
   { // (2026-10-15) LES FEUX ARRIÈRE : d'où partent les TRAÎNÉES DE LUMIÈRE (voir CAR_FEUX)
     CAR_FEUX.length=0;CAR_FEUX_SRC='gabarit';
+    if(Array.isArray(A.feux)&&A.feux.length){for(const q of A.feux)CAR_FEUX.push(new THREE.Vector3(q[0],q[1],q[2]));CAR_FEUX_SRC='fiche';} /* (2026-10-18, VOITURES-REVUE) la fiche DÉCLARE ses feux (`feux:[[x,y,z],…]`) quand le relevé se trompe (LA BÊTE) : c'est le dernier mot */
     const rouge=c=>{if(c==null)return false;const r=c>>16&255,g=c>>8&255,b=c&255;return r>=130&&g<=110&&b<=120&&r>=g*1.9;}; // rouge feu : ni l'ambre des clignotants, ni le blanc des phares, ni le rose néon
     const g9=[],d9=[],c9=[];
-    for(const p of lpPrims){if(p.g!=='l'||!rouge(p.c)||p.z>0)continue;
+    if(CAR_FEUX_SRC!=='fiche')for(const p of lpPrims){if(p.g!=='l'||!rouge(p.c)||p.z>0)continue;
       const zr=p.t==='box'?p.z-p.d/2:(p.ax==='z'?p.z0:p.z);if(zr>zPoupe+.9)continue; // un rouge sur le flanc avant ou sur le toit n'est pas un feu arrière
       (p.x<-.05?g9:p.x>.05?d9:c9).push([p.x,p.y,zr,p.t==='box'?p.w:0]);}
     const moy=a=>{let zm=1e9;for(const q of a)zm=Math.min(zm,q[2]);const o=new THREE.Vector3();let n=0; // les pièces les plus en arrière du côté
       for(const q of a)if(q[2]<zm+.3){o.x+=q[0];o.y+=q[1];o.z+=q[2];n++;}return o.multiplyScalar(1/n);};
-    if(g9.length&&d9.length){CAR_FEUX.push(moy(g9),moy(d9));CAR_FEUX_SRC='releve';}
+    if(CAR_FEUX_SRC==='fiche'){}
+    else if(g9.length&&d9.length){CAR_FEUX.push(moy(g9),moy(d9));CAR_FEUX_SRC='releve';}
     else if(g9.length||d9.length){const m=moy(g9.length?g9:d9);CAR_FEUX.push(m.clone().setX(-Math.abs(m.x)),m.setX(Math.abs(m.x)));CAR_FEUX_SRC='releve';} // un seul côté relevé : la caisse est symétrique
     else if(c9.length){const m=moy(c9);let w=0;for(const q of c9)w=Math.max(w,q[3]);CAR_FEUX_SRC='releve';
       if(w>.5)CAR_FEUX.push(m.clone().setX(-w*.38),m.setX(w*.38));else CAR_FEUX.push(m);} // une RAMPE d'un seul tenant : ses deux bouts ; un feu central : un seul trait
@@ -38855,7 +38859,7 @@ function buildCar(spec){
       hg.scale.set(.85,.85,1);hg.userData.k=.85;hg.position.set(sd*hlX,hlY,hlZ+.08);carGroup.add(hg);HALO.h.push(hg); // les halos suivent les phares du gabarit
     }
     const tg=new THREE.Sprite(HALO.tM);
-    tg.scale.set(.62,.62,1);tg.userData.k=.62;tg.position.set(sd*tlX,tlY,tlZ-.06);if(CAR_FEUX_SRC==='releve'&&CAR_FEUX.length===2)tg.position.copy(CAR_FEUX[sd<0?0:1]).z-=.04;carGroup.add(tg);HALO.t.push(tg); // (2026-10-15) le halo sur le VRAI feu, là où naît la traînée
+    tg.scale.set(.62,.62,1);tg.userData.k=.62;tg.position.set(sd*tlX,tlY,tlZ-.06);if((CAR_FEUX_SRC==='releve'||CAR_FEUX_SRC==='fiche')&&CAR_FEUX.length===2)tg.position.copy(CAR_FEUX[sd<0?0:1]).z-=.04;carGroup.add(tg);HALO.t.push(tg); // (2026-10-15) le halo sur le VRAI feu, là où naît la traînée
   }
     // FLAQUES DE LUMIÈRE AU SOL — la caisse ÉCLAIRE la route (même recette que le néon : plan additif qui épouse le bitume).
   // Le SpotLight/PointLight font répondre le spéculaire ; ces flaques garantissent la LECTURE, même sur bitume mat ou au loin.
@@ -63678,7 +63682,7 @@ function loop(now){
         if(jOn&&sl9&&sl9.dOk){JET_V.set(sl9.dX,sl9.dY,sl9.dZ).applyQuaternion(JET_QI);
           if(JET_V.z>-.34){const q9=Math.sqrt((1-.34*.34)/Math.max(1e-6,JET_V.x*JET_V.x+JET_V.y*JET_V.y));JET_V.x*=q9;JET_V.y*=q9;JET_V.z=-.34;}}
         else JET_V.copy(JET_NZ);
-        {const pd9=POT_DIR_ON?CAR_POT_DIR[i9]:null;if(pd9&&pd9.z>-.95)JET_V.addScaledVector(pd9,1.25).normalize();} /* (2026-10-18) un pot latéral ou dressé : son AXE mène, le vent (la ligne du sillage) la couche — elle ne traverse plus la roue ni le pare-brise */
+        {const pd9=POT_DIR_ON?CAR_POT_DIR[i9]:null;if(pd9&&pd9.z>-.95){JET_V.x+=pd9.x*.5;JET_V.y+=pd9.y*.9;JET_V.z+=pd9.z*.5;JET_V.normalize();}} /* (2026-10-18) un pot latéral ou dressé : son AXE l'ouvre, le vent (la ligne du sillage) la couche — ~27° de côté (le feu ne s'étale pas sur trois largeurs de caisse en poursuite), ~33° vers le haut (les collecteurs du HOT ROD : il passe au-dessus du toit au lieu de traverser le pare-brise) */
         dl9.lerp(JET_V,Math.min(1,dt*16)).normalize();
         m9.quaternion.setFromUnitVectors(JET_NZ,dl9).multiply(JET_QS.setFromAxisAngle(JET_Z,t*7.3)); // (plume v2) l'enveloppe TOURNE sur son axe
         if(c9){c9.visible=jOn&&!ecl9;c9.scale.set(jr*.48*(FM9?rr9:1),jr*.48*(FM9?rr9:1),jl*.72*(FM9?f9:.9+.1*f9));c9.quaternion.setFromUnitVectors(JET_NZ,dl9);}}
