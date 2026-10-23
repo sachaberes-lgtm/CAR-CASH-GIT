@@ -96,7 +96,6 @@ maps/niveaux.js                      # les niveaux, le mode classique au hasard,
 maps/continuite.js                   # continuité des maps, la planète du niveau
 maps/orbite-1.js                     # L'ORBITE : la lune, les Starlink, les variantes empilées
 maps/orbite-2.js                     # orbite : le soleil hors cadre, la pose des tranches
-maps/orbite-planetes.js             # les autres planètes du ciel d'orbite : Jupiter, Mars, Saturne, Neptune, Mercure
 rendu/trainees-1.js                  # traînées pop : la planche
 rendu/trainees-2.js                  # traînées pop : les dix traînées
 voitures/atchoum-feu.js              # Atchoum : le feu
