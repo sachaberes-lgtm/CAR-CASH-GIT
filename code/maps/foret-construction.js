@@ -38,10 +38,10 @@ window.dbgPleureurs=function(k){PLEUR.on=k==null?true:!!k;if(FORET.seed==null)re
    · LES RONDS DE SORCIÈRES (`ama`) : 0, 2-3 (avant), 5-8 ; leurs amanites ×1-1,8, plus près de la route ;
    · LES FLEURS (`fl`) : la fleur des prairies (digitales pourpres, coquelicots, marguerites, boutons d'or, ou le mélange d'avant), leur densité ;
    · LES CLAIRIÈRES (`clair`, NEUF) : 0-3 trous dans la forêt au bord de la route, fleuris, sans arbre ni géant ;
-   · LE CERCLE DE PIERRES (`crom`, NEUF) : 0-2 cromlechs de menhirs (le rocher du loup, à 1/6 d'échelle), dans une clairière ou à 60-120 m ;
+   · LE CERCLE DE PIERRES (`crom`, NEUF) : 0-2 cromlechs de 7-12 menhirs de 16-22 m (le rocher du loup à 1/3, un de 29 m au milieu une fois sur deux), dans leur clairière à 80-150 m de la route ;
    · LA BRUME (`brume`) : légère / avant / épaisse — ses nappes et l'uniform uMistK ;
    · LES RAYONS ET LES YEUX (`ray`, `yeux`) : la densité des rayons de soleil, le nombre d'yeux la nuit.
-   Rien ne touche la route : les menhirs gardent ROAD_HALF + 25 m et leurs gélules entrent dans les collisions ; les clairières ne font que retirer
+   Rien ne touche la route : les menhirs gardent ROAD_HALF + 40 m (et 20 m de toute autre route) et leurs gélules entrent dans les collisions ; les clairières ne font que retirer
    des arbres. `?sans=foretdecor` = le décor d'avant, au tirage près (aucun tirage de plus dans `fr` ni `fw`). */
 const FOR_ESS={ // [près (< 175 m), milieu (< 620 m), loin] : des seuils cumulés sur r
   'résineux':[[[.35,'epicea'],[.62,'sapin'],[.8,'pin'],[.9,'bouleau'],[1,'hetre']],[[.5,'epicea'],[.8,'sapin'],[.95,'pin'],[1,'hetre']],[[.5,'epicea'],[.85,'sapin'],[1,'pin']]],
@@ -53,7 +53,7 @@ function forDecoTire(seed){
   const D={},li=[];
   D.ess=pds([['mêlée',1.2],['résineux',1],['hêtraie',1],['boulaie',.8],['pinède',.8]])[0];li.push('forêt '+D.ess);
   {const p=pds([['peu de saules',1,[.35,.3,.15]],['saules',1.2,[.9,.75,.45]],['saules partout',.8,[1,.92,.6]]]);D.pleur=p[2];li.push(p[0]);}
-  {const s=pds([['été',1.2,0,0,[1,1,1]],['automne',1,.42,.15,[1.04,.98,.86]],['printemps',1,.02,.35,[1.06,1.1,.9]],['sombre',.8,0,-.3,[.84,.92,1.02]]]);D.sais={nom:s[0],or:s[2],dt:s[3],leaf:s[4]};li.push('saison '+s[0]);}
+  {const s=pds([['été',1.2,0,0,[1,1,1]],['automne',1,.42,.15,[1.2,.98,.68]],['printemps',1,.02,.35,[1.08,1.12,.84]],['sombre',.8,0,-.3,[.8,.9,1.05]]]);D.sais={nom:s[0],or:s[2],dt:s[3],leaf:s[4]};li.push('saison '+s[0]);}
   {const d=ch([[.75,'clairsemée'],[1,'normale'],[1.1,'dense']]);D.dens=d[0];li.push('densité '+d[1]);}
   {const c=ch([[.72,'serrée'],[1,'normale'],[1.6,'clairsemée']]),v=dr()<.4;D.gea={col:c[0],vieux:v};li.push('colonnade '+c[1]+(v?', vieux chênes':', géants pleureurs'));}
   {const r=pds([['aucun rocher',.5,0],['rochers rares',1,1.8],['rochers',1,1],['rochers nombreux',1,.55]]);D.rocs={pas:r[2],sc:.8+dr()*.5};li.push(r[0]+(r[2]?' ×'+D.rocs.sc.toFixed(2):''));}
@@ -95,7 +95,7 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
     for(const k of meta.S||[]){const a=tr(k[0],k[1],k[2]);COL.push({g:0,a:a,r:k[3]*rr});}};
   /* (2026-10-20, LE DÉCOR AU HASARD) LES CLAIRIÈRES (et celles des cercles de pierres) : un trou dans la forêt au bord de la route (ni arbre ni géant),
      fleuri plus bas — loin de toute AUTRE route (à plus de 500 m de piste de celle qui la longe) */
-  const CLR=[];if(DZ)for(let k=0;k<DZ.clair+DZ.crom;k++){const cr9=k>=DZ.clair;for(let e=0;e<10;e++){const f=.08+dz2()*.84,i=Math.round(f*(NP-1)),l9=lat9(i),sd=dz2()<.5?-1:1,R=cr9?30+dz2()*10:48+dz2()*32,lat=ROAD_HALF+R+(cr9?35+dz2()*55:6+dz2()*40),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;
+  const CLR=[];if(DZ)for(let k=0;k<DZ.clair+DZ.crom;k++){const cr9=k>=DZ.clair;for(let e=0;e<10;e++){const f=.08+dz2()*.84,i=Math.round(f*(NP-1)),l9=lat9(i),sd=dz2()<.5?-1:1,R=cr9?42+dz2()*12:48+dz2()*32,lat=ROAD_HALF+R+(cr9?35+dz2()*55:6+dz2()*40),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;
     let ok=true;for(const c of CLR)if(Math.hypot(c[0]-x,c[1]-z)<c[2]+R+60)ok=false;proches(x,z,R+ROAD_HALF+20,function(j){if(ok&&Math.abs(j-i)*ds>500&&Math.hypot(pts[j].x-x,pts[j].z-z)<R+ROAD_HALF+20)ok=false;});
     if(!ok)continue;CLR.push([x,z,R,i,cr9?1:0]);zone(x,z,R);break;}}
   FORET.clr=CLR;
@@ -209,10 +209,10 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
     ext(q,g.x,g.y,Math.max(g.top,g.y+meta.h*g.sy),g.z,Math.max(g.cr,meta.cr*g.sxz));colPose(meta,g.x,g.y,g.z,g.ry,g.sxz,g.sy);} // (pas de tampon de canopée : la case de 26 m déborderait sur la route — les gélules et sphères suffisent)
   // les rochers : une famille aussi
   const ROI=[];for(const r of RO){const q=qDe(r.x,r.z);ROI.push({q:q,m:mat(r.x,r.y,r.z,r.ry,r.sxz,r.sy,r.sxz),j:[fr(),0,0,0]});ext(q,r.x,r.y,r.top,r.z,20*r.sxz);canTampon(r.x,r.z,16*r.sxz,r.top-6);}
-  /* (LE DÉCOR AU HASARD) LE CERCLE DE PIERRES : 7-11 menhirs (le rocher du loup à ~1/6) en anneau au cœur de sa clairière, un plus grand au milieu une fois sur deux */
-  let nMen=0;for(const c of CLR){if(!c[4])continue;const n=7+((dz2()*5)|0),Rr=c[2]*(.5+dz2()*.15),a0=dz2()*6.283,pts9=[];for(let k=0;k<n;k++){const an=a0+k/n*6.2832;pts9.push([c[0]+Math.cos(an)*Rr,c[1]+Math.sin(an)*Rr,.13+dz2()*.06]);}
-    if(dz2()<.5)pts9.push([c[0],c[1],.24]);
-    for(const m of pts9){const x=m[0],z=m[1],sy=m[2],sxz=.22+sy*.6,y=solH(x,z)-1,q=qDe(x,z);ROI.push({q:q,m:mat(x,y,z,dz2()*6.283,sxz,sy,sxz),j:[dz2(),0,0,0]});ext(q,x,y,y+52*sy,z,20*sxz);COL.push({g:1,a:[x,y,z],b:[x,y+46*sy,z],r:9*sxz});nMen++;}}
+  /* (LE DÉCOR AU HASARD) LE CERCLE DE PIERRES : 7-11 menhirs (le rocher du loup à ~1/3 : 16-22 m) en anneau au cœur de sa clairière, un de 29 m au milieu une fois sur deux */
+  let nMen=0;for(const c of CLR){if(!c[4])continue;const n=7+((dz2()*5)|0),Rr=c[2]*(.55+dz2()*.15),a0=dz2()*6.283,pts9=[];for(let k=0;k<n;k++){const an=a0+k/n*6.2832;pts9.push([c[0]+Math.cos(an)*Rr,c[1]+Math.sin(an)*Rr,.3+dz2()*.12]);}
+    if(dz2()<.5)pts9.push([c[0],c[1],.55]);
+    for(const m of pts9){const x=m[0],z=m[1],sy=m[2],sxz=.2+sy*.5,y=solH(x,z)-1,q=qDe(x,z);ROI.push({q:q,m:mat(x,y,z,dz2()*6.283,sxz,sy,sxz),j:[dz2(),0,0,0]});ext(q,x,y,y+52*sy,z,20*sxz);COL.push({g:1,a:[x,y,z],b:[x,y+46*sy,z],r:9*sxz});nMen++;}}
   FORET.n.menhirs=nMen;
   if(performance.now()>JF.lim)yield;
   // ---- 6. LES AMANITES (des ronds de sorcières au fond), LES FLEURS DU BORD, LES PLANTES DU FOND, LE LIERRE ----
@@ -237,8 +237,8 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
      let t=pr>.3&&fr()<.7?[0,2,3,4,2][(fr()*5)|0]:fr()<.72?5:fr()<.55?0:fr()<.85?4:7;if(DZ&&DZ.fl.dom>=0&&pr>.3&&dz2()<.65)t=DZ.fl.dom;const h=(t===5?4.2:t===7?2.2:2.8)*(.75+fr()*.5),y=solH(x,z)-.3,q=qDe(x,z);
      V3.set(x,y,z);FLE.push({q:q,m:pose(V3,UP,vx.set(1,0,0),fr()*6.28,[]),j:[t,h*.6,h,fr()]});ext(q,x,y,y+h,z,4);}}
   /* (LE DÉCOR AU HASARD) les CLAIRIÈRES en fleurs (la fleur tirée, ou le mélange), un rond d'amanites une fois sur deux */
-  for(const c of CLR){const n=c[4]?18:Math.round(c[2]*c[2]/45);for(let k=0;k<n;k++){const a=dz2()*6.2832,r=Math.sqrt(dz2())*c[2]*.95,x=c[0]+Math.cos(a)*r,z=c[1]+Math.sin(a)*r,y=solH(x,z)-.3,q=qDe(x,z);
-      if(c[4]&&r<c[2]*.4)continue;const t=DZ.fl.dom>=0&&dz2()<.7?DZ.fl.dom:[0,1,2,3,4][(dz2()*5)|0],h=(t===0?3.1:2.2)*(.8+dz2()*.6);V3.set(x,y,z);FLE.push({q:q,m:pose(V3,UP,vx.set(1,0,0),dz2()*6.28,[]),j:[t,h*.6,h,dz2()]});ext(q,x,y,y+h,z,4);}
+  for(const c of CLR){const n=c[4]?40:Math.round(c[2]*c[2]/12);for(let k=0;k<n;k++){const a=dz2()*6.2832,r=Math.sqrt(dz2())*c[2]*.95,x=c[0]+Math.cos(a)*r,z=c[1]+Math.sin(a)*r,y=solH(x,z)-.3,q=qDe(x,z);
+      if(c[4]&&r<c[2]*.4)continue;const t=DZ.fl.dom>=0&&dz2()<.7?DZ.fl.dom:[0,1,2,3,4][(dz2()*5)|0],h=(t===0?3.1:2.2)*(1.2+dz2()*.8);V3.set(x,y,z);FLE.push({q:q,m:pose(V3,UP,vx.set(1,0,0),dz2()*6.28,[]),j:[t,h*.6,h,dz2()]});ext(q,x,y,y+h,z,4);}
     if(!c[4]&&dz2()<.5){const cx=c[0]+(dz2()-.5)*c[2],cz=c[1]+(dz2()-.5)*c[2],nn=9+((dz2()*5)|0),R9=6+dz2()*4;for(let j=0;j<nn;j++){const an=j/nn*6.283,x=cx+Math.cos(an)*R9,z=cz+Math.sin(an)*R9,s9=1.2+dz2()*1.2,y=solH(x,z)-.2,q=qDe(x,z);CHI.push({q:q,m:mat(x,y,z,dz2()*6.28,s9,s9,s9),j:[dz2(),0,0,0]});ext(q,x,y,y+5*s9,z,3*s9);}}}
   FORET.n.fleurs=FLE.length;FORET.n.lierre=LIE.length;FORET.n.clairieres=CLR.length;
   if(performance.now()>JF.lim)yield;
@@ -496,6 +496,8 @@ function foretChauffe(){
 /* ---------------- LA CONSOLE ---------------- */
 window.dbgForet=function(k,o){
   if(k==='meteo'){foretMeteo(o||'nuit',.01);return FORET.met;}
+  if(k==='clairiere'){const c=FORET.clr&&FORET.clr[(o&&o.n)|0];if(!c)return 'pas de clairière';const ds=L/(NP-1),j=Math.max(0,c[3]-Math.round(((o&&o.d)||90)/ds)),q=pts[j]; /* (2026-10-20, banc) la photo d'une clairière (o.n : laquelle) depuis la route, o.d m avant */
+    return window.dbgForet('vue',{p:[q.x,q.y+((o&&o.h)||25),q.z],c:[c[0],solH(c[0],c[1])+4,c[1]],fov:(o&&o.fov)||60});}
   if(k==='regle'){if(!FORET.root)return null;const ds=L/(NP-1),st=Math.max(1,Math.round(4/ds)),V9=new THREE.Vector3();let n=0,t=0;const ex=[]; /* (2026-10-20, banc) LA RÈGLE D'OR : rien du décor sur la route — la caisse posée tous les 4 m, à 5 places de la largeur, à 1,5 et 4 m */
     for(let i=Math.round(30/ds);i<NP-Math.round(30/ds);i+=st)for(const f of [-.95,-.5,0,.5,.95])for(const h of [1.5,4]){V9.copy(pts[i]).addScaledVector(B[i],f*ROAD_HALF).addScaledVector(Nn[i],h);t++;const r=foretHeurt(V9);if(r){n++;if(ex.length<6)ex.push([Math.round(i*ds),f,h,r]);}}
     return {essais:t,heurts:n,ex:ex};}
