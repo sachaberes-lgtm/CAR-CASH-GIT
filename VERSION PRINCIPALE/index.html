@@ -6924,12 +6924,24 @@ html:not(.c6) #tPanel #tpIn .tp.rouge{--nc:var(--neoR);min-height:48px;margin:0 
 html:not(.c6) #tPanel #tpIn .tp.rouge:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px);box-shadow:inset 0 0 0 2px var(--neoR),inset 0 0 26px rgba(255,74,100,.45)}
 html:not(.c6) #tPanel #tpIn>.tpRow>.tp{flex:1 1 0;min-height:52px;margin:0} /* les deux plaques de LA PARTIE : même largeur, même hauteur */
 @media (orientation:landscape) and (max-height:540px){
-  html:not(.c6) #tPanel #tpIn>.tpH:nth-child(1){grid-column:1;grid-row:1}
-  html:not(.c6) #tPanel #tpIn>.tpResume{grid-column:1;grid-row:2;margin:8px 0 0}
+  /* (2026-10-23, Sacha : « des vides à gauche et à droite, replace correctement, ajoute quelques réglages, que l'écran soit parfait ») LA PAUSE EN PAYSAGE
+     remplit tout l'écran : deux colonnes qui prennent la largeur (marges d'encoche comprises), le titre en haut, REPRENDRE et RECOMMENCER/QUITTER sur la
+     MÊME ligne de pied, les réglages en grille 2 colonnes (SON, MUSIQUE, IMAGE, POUCE HAUT, FIGURES + TOUS LES REGLAGES) qui s'étire sur la hauteur libre. */
+  html:not(.c6) #tPanel #tpIn{max-width:1240px;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);grid-template-rows:auto minmax(0,1fr) auto;column-gap:clamp(20px,3.4vw,44px);row-gap:12px}
+  html:not(.c6) #tPanel #tpIn>.tpH:nth-child(1){grid-column:1;grid-row:1;margin:0}
+  html:not(.c6) #tPanel #tpIn>.tpResume{grid-column:1;grid-row:2;margin:0;align-self:stretch;align-items:center;min-height:0}
+  html:not(.c6) #tPanel #tpIn>.tpResume .mStat{min-height:0;height:100%;gap:12px}
+  html:not(.c6) #tPanel #tpIn>.tpResume .mStat b{font-size:var(--f6,var(--f5))}
   html:not(.c6) #tPanel #tpIn>.tpHR{display:none}
-  html:not(.c6) #tPanel #tpIn>.tpPanel{grid-column:2;grid-row:1/span 2;align-self:start}
-  html:not(.c6) #tPanel #tpIn>.tpRow{grid-column:2;grid-row:3;align-self:start;margin:4px 0 0;padding:0}
-  html:not(.c6) #tPanel #tpIn>.tp.go{grid-column:1;grid-row:3/span 3;align-self:end;margin:0 0 6px}
+  html:not(.c6) #tPanel #tpIn>.tpPanel{grid-column:2;grid-row:1/span 2;align-self:stretch;display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:minmax(48px,1fr)}
+  html:not(.c6) #tPanel #tpIn>.tpPanel>.tp.ligne{min-height:0;border-top:1px solid var(--fil)}
+  html:not(.c6) #tPanel #tpIn>.tpPanel>.tp.ligne:nth-child(-n+2){border-top:0}
+  html:not(.c6) #tPanel #tpIn>.tpPanel>.tp.ligne:nth-child(even){border-left:1px solid var(--fil)}
+  html:not(.c6) #tPanel #tpIn>.tpPanel>.tp.ligne[data-a="q"],html:not(.c6) #tPanel #tpIn>.tpPanel>.tp.ligne[data-a="volh"],html:not(.c6) #tPanel #tpIn>.tpPanel>.tp.ligne[data-a="figg"]{display:flex}
+  html:not(.c6) #tPanel #tpIn>.tpPanel>.tp[data-a="tous"],html:not(.c6) #tPanel #tpIn>.tpPanel>.tp[data-a="figg"]{grid-column:1/-1;min-height:0;border-left:0}
+  html:not(.c6) #tPanel #tpIn>.tpRow{grid-column:2;grid-row:3;align-self:stretch;margin:0;padding:0}
+  html:not(.c6) #tPanel #tpIn>.tpRow>.tp{min-height:64px}
+  html:not(.c6) #tPanel #tpIn>.tp.go{grid-column:1;grid-row:3;align-self:stretch;margin:0}
 }
 /* ===== 1 bis. RÉGLAGES OUVERTS DEPUIS LA PAUSE — la page passe AU-DESSUS (l'overlay est à z-index 5, le panneau de pause à 9 : sans ceci les deux se lisaient l'un à travers l'autre) ===== */
 html:not(.c6) body.setPause #overlay{z-index:12}
