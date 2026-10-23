@@ -38458,7 +38458,7 @@ SHAPES.corolla=function(K){
   if(HB3){   /* LE MÉLANGE (23/10, Léo : « un mélange technique des deux : répartition stratégique de la taille des cubes ») — de GROS blocs là où la tôle est plate (les flancs : 13 cm d'épaisseur, longs), des couches TRÈS FINES
      (4 cm, tronçons de 6 cm) là où la forme se complique (le nez, la poupe, le capot, la cabine et le toit). Les passages de roue restent des vides en marches. */
     const xAt=(sc,y)=>{let m=0;for(let i=1;i<sc.length;i++){const a=sc[i-1],b=sc[i];if((a[1]-y)*(b[1]-y)<=0&&a[1]!==b[1]){const x=a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);if(x>m)m=x;}}return m;};
-    const ZA=-1.85,ZBm=1.75,YM=1.00,Sz=z=>S(Math.max(ZB+.001,Math.min(ZE-.001,z)));
+    const ZA=-1.85,ZBm=HB4?1.05:1.75,YM=1.00,Sz=z=>S(Math.max(ZB+.001,Math.min(ZE-.001,z)));
     const rangee=(yc,dy,dz,q,zA,zB,kf)=>{let run=null;const flush=z1=>{if(run&&run.w>.02)PL.box(run.k,2*run.w,dy+.002,z1-run.z0,0,yc,(run.z0+z1)/2);run=null;};
       for(let z=zA+dz/2;z<zB;z+=dz){const w=Math.round(xAt(Sz(z),yc)/q)*q,k=kf(z,yc);if(!run||run.w!==w||run.k!==k){flush(z-dz/2);run={w:w,k:k,z0:z-dz/2};}}flush(zB);};
     // 1. les GROS blocs : le flanc entre la poupe et le nez, sous la ceinture
@@ -38488,7 +38488,12 @@ SHAPES.corolla=function(K){
       return [[0,yb],[(xm-.16)*sx,yb],[xm*sx,yb+.13],[xm*sx,Math.max(yb+.14,yt-.10)],[(xm-.07)*sx,yt+(yc-yt)*.25],[xm*.55*sx,Math.max(yt+.02,yc-.015)],[0,yc]];};
     // (« le museau doit être plus fidèle à la Fidèle ») : le nez et la poupe reprennent les VRAIES sections du plan (S), une tranche sur deux — la forme exacte, taillée en larges facettes
     const zN=zs.filter(z=>z>=ZBm-.001),zT=zs.filter(z=>z<=ZA+.001).filter((z,i)=>i%2===0||z<-2.2);
-    PL.loft(zN,S,j=>j===0?'k':'p');PL.loft(zT,S,j=>j===0?'k':'p');
+    PL.loft(zT,S,j=>j===0?'k':'p');
+    if(HB4){   /* LE DEVANT EN COUCHES (23/10, Léo : « j'aimais bien cet effet — refais le devant un peu comme ça ») l'aile, le capot et le museau, à partir du pied du pare-brise, sont des COUCHES de 4 cm empilées, en tronçons de 6 cm
+       (la largeur mesurée sur la vraie section à chaque hauteur) : l'effet de marches, comme des briques fines ; l'ouverture de roue reste un vide en marches. */
+      PL.loft(zN,z=>S(z).map(p=>[p[0]*.985,p[1]]),j=>j===0?'k':'p');   // dessous : la vraie forme lisse (rentrée de 1,5 %), pour qu'aucun vide ne s'ouvre entre les couches
+      for(let yc=.22+.0125;yc<1.0;yc+=.025)rangee(yc,.025,.04,.008,ZBm,ZE,verre);   // dessus : couches de 2,5 cm, tronçons de 4 cm, largeur à 8 mm près — plus précis, et l'effet s'étend vers la partie lisse (dès z = 1,05)
+    }else PL.loft(zN,S,j=>j===0?'k':'p');
   }else if(HB&&HB2){   /* L'ENTRE-DEUX (23/10, Léo : « fais un entre-deux ») : la caisse en BRIQUES (sections rectangulaires, peu de plis), plus quelques COUCHES TRÈS PLATES empilées aux endroits qui
      portent le dessin — la base noire (2 couches), la ceinture, la dalle du toit (2 couches), la couche du capot. */
     PL.loft(zsB,SB,peintB);
