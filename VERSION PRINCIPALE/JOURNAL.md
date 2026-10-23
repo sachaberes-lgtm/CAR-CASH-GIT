@@ -15,13 +15,17 @@
   MESURÉ (palier 8, caisse posée à 9 s du portail) : `canyon.on` au même instant que la fin de la construction (avant : ~0,6 s après sur PC), monde prêt 2,1 s
   après le début du pré-bâti, pose 121 ms. Même graine + même palier = même canyon (`cyCle`). `?cyw=0` = sans travailleur (rien d'avance, comme avant) ;
   `dbgCanyon().ms.avance` = 'pret' (posé au passage) ou 'en vol' (le travailleur n'avait pas fini : attendu comme avant).
-- **LE CIEL DES REFLETS D'AVANCE** (v843, `envCielCalc`/`envPrepare`/`ENVC`, `code/voitures/finition.js` ; appelé par `prebPart`) : le profil du passage (4 maps) disait
+- **LE CIEL DES REFLETS D'AVANCE** (v844 — v843 était pris par l'étalonnage, `envCielCalc`/`envPrepare`/`ENVC`, `code/voitures/finition.js` ; appelé par `prebPart`) : le profil du passage (4 maps) disait
   94 % de `newTrack0` dans `bioGo` → `paintEnv` → `paintEnvCiel` : le cube des reflets de la carrosserie (6 × 128² pixels, exponentielles, sinus et la boucle des
   éclats pour chaque pixel) recalculé en JS à CHAQUE changement de ciel (deux fois aux dunes) — ~180 ms sur PC, une seconde et plus sur téléphone, image figée au portail.
   Le calcul est une fonction PURE : le pré-bâti envoie le ciel de la map d'en face à un travailleur, le passage ne fait plus que `putImageData`, et les ciels déjà vus
   restent en cache (12 au plus). La clé porte le dégradé, les néons, le halo et la direction EXACTE du soleil (le canyon la tourne) : vérifié en Node, l'ancien et le
   nouveau calcul donnent les mêmes octets (2 ciels × 6 faces). MESURÉ (banc du portail, palier 6) : construction du passage ville 179 → 27 ms, volcan 179 → 7 ms,
   dunes 23 ms ; `bioGo` 736 → 4 ms sur l'ensemble. `?envav=0` = sans travailleur ni cache (avant) · `dbgEnvCiel()` = cache, calculs, temps du dernier.
+  Re-mesuré avec les deux : passage vers la VILLE, construction 38 ms, et plus AUCUNE image > 50 ms dans les 4 s qui suivent (la pire 49 ms ; avant 186 ms et 7 > 50 ms).
+- **LES PICS DU GLACIER À DISTANCE DE VUE** (v845, `buildBanqG`, `code/maps/glacier-construction.js`) : c'est la map qui pose ses obstacles SUR la route ; la 1re figure
+  tombait à 560-680 m du départ quel que soit le palier — 1,2 à 2 s après le portail à 300-470 m/s, le voile compris. Elle part désormais à 3 s de croisière du palier au
+  moins (`3 × (70 + (lvPiste() − 1) × 100)`, la croisière de conception de la piste) ; au palier de départ rien ne change (210 m < 560). Les tirages `fr` sont les mêmes.
 
 ## LA FIDÈLE EN COUCHES EMPILÉES (2026-10-23, v839, Léo : « traduis ce modèle dans le style de La Honte… push-la dans le main »)
 - **Méthode** : la vraie silhouette (sections du plan) taillée en briques et en couches plates dont la taille suit la forme — flancs galbés en facettes larges, toit et vitres en briques lisses, devant (aile, capot, museau) en couches fines à épaisseur et rythme irréguliers ; chaque détail est une PIÈCE posée, jamais un dessin dans la tôle.
