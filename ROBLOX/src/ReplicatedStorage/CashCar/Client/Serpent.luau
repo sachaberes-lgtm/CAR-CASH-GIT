@@ -62,6 +62,10 @@ local function batir()
 	for i = 1, NSEG do
 		S.corps[i] = ruban(i, 0)    -- le corps néon
 		S.ventre[i] = ruban(i, 0.1) -- l'arête claire, par-dessus : le tube prend du volume
+		-- (12/10, « améliore les shaders ») l'arête en DÉGRADÉ (le reflet d'un tube s'efface vers ses bords) : une bande claire tranchée
+		-- net faisait un ruban plat posé sur un ruban ; fondue, c'est la lumière qui roule sur un tube de verre — d'où la largeur × 1,6
+		S.ventre[i].Texture = "rbxasset://textures/gradient.png"
+		S.ventre[i].TextureMode = Enum.TextureMode.Stretch
 	end
 end
 
@@ -138,7 +142,7 @@ local function tick(dt: number)
 		b.Width0, b.Width1 = l0, l1
 		b.Enabled = true
 		local v: Beam = S.ventre[i]
-		v.Width0, v.Width1 = l0 * 0.36, l1 * 0.36
+		v.Width0, v.Width1 = l0 * 0.58, l1 * 0.58
 		v.Enabled = true
 		l0 = l1
 	end

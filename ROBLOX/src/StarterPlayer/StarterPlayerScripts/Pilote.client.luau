@@ -42,6 +42,9 @@ KA.Impact = require(CL:WaitForChild("Impact"))
 KA.Recyclage = require(CL:WaitForChild("Recyclage"))
 KA.Revenus = require(CL:WaitForChild("Revenus")) -- (cadeaux, le cœur à la mort, ×2 ARGENT : voir Client/Revenus)
 KA.Roue = require(CL:WaitForChild("Roue")) -- (LA ROUE, à la place des missions et de la carrière : voir Client/Roue)
+-- (12/10) LA COURSE DU WEEK-END (voir Client/Weekend) : KA.wkGraine = la graine de la semaine quand la route EN COURS est la sienne
+KA.Weekend = require(CL:WaitForChild("Weekend"))
+KA.wkGraine = nil :: number?
 -- (le tapotement de la caisse au titre : le « toc » de tôle de l'atelier et une vibration)
 KA.Titre.surTape = function() Sons.vrai("garageTole", nil, nil, "poseChoc", 1.5, 0.35) Hud.vibre(14) end
 
@@ -219,6 +222,9 @@ local function preparer(z: number, depart: CFrame?): Zone
 	if ZONES[z] then return ZONES[z] end
 	local e: Zone = { z = z, pret = false }
 	ZONES[z] = e
+	-- (12/10) LA GRAINE DE CETTE ROUTE : celle de la semaine pour LA COURSE DU WEEK-END, sinon celle du serveur (l'école garde la sienne)
+	;(e :: any).graine = (z ~= 0 and KA.wkGraine) or graine
+	;(e :: any).wk = z ~= 0 and KA.wkGraine ~= nil
 	task.spawn(function()
 		local function ceder() task.wait() end
 		-- (lvPiste, L28402) l'échelle des virages se calcule sur le MOTEUR : la croisière du palier +2 (on monte pendant la zone). La
@@ -232,7 +238,11 @@ local function preparer(z: number, depart: CFrame?): Zone
 			local t1 = math.min(#MOT - 1, t0 + ((z <= 1) and 0 or 1))
 			moteur = { lv = 1 + math.clamp((vw - 70) / 140 * 1.4, 0, 3.4), str = math.clamp(math.sqrt(MOT[t1 + 1][2] * late9(t1)), 1, 2.1) }
 		end
-		local p = Piste.generer(graine, math.max(1, z), depart, ceder, z == 0, (profil.stats and profil.stats.parties) or nil, moteur)
+		-- (12/10) LA COURSE DU WEEK-END : la MÊME route pour tous — ni le moteur ni l'expérience de chacun ne la tordent (l'échelle des
+		-- virages suit le numéro de zone, les cristaux sont ceux d'un vétéran)
+		local gr, nP = (e :: any).graine, (profil.stats and profil.stats.parties) or nil
+		if (e :: any).wk then nP, moteur = nil, nil end
+		local p = Piste.generer(gr, math.max(1, z), depart, ceder, z == 0, nP, moteur)
 		if workspace:GetAttribute("DbgQA") then pcall(KA.qaPiste, p, z, ceder) end -- (banc : les croisements de la piste)
 		local d = Instance.new("Folder")
 		d.Name = "Zone" .. z
@@ -246,14 +256,14 @@ local function preparer(z: number, depart: CFrame?): Zone
 		ciel.Name = "Nuages"
 		ciel.Parent = d
 		if p.niveau == "nuages" then
-			local okN, resN = pcall(KA.Nuages.batir, p, ciel, graine + z * 31, ceder, z == 0)
+			local okN, resN = pcall(KA.Nuages.batir, p, ciel, gr + z * 31, ceder, z == 0)
 			if okN then nuages = resN else warn("[CashCar] nuages : " .. tostring(resN)) end
 		elseif p.niveau == "ville" then
 			-- LA VILLE : le canyon de tours, la forêt du village, les néons — et la grille de collision (en vol, une tour tue)
-			local okV, resV = pcall(KA.Ville.batir, p, ciel, graine + z * 31, ceder)
+			local okV, resV = pcall(KA.Ville.batir, p, ciel, gr + z * 31, ceder)
 			if okV then (e :: any).ville = resV else warn("[CashCar] ville : " .. tostring(resV)) end
 		elseif p.niveau == "espace" then
-			local okE, resE = pcall(KA.Espace.batir, p, ciel, graine + z * 31, ceder)
+			local okE, resE = pcall(KA.Espace.batir, p, ciel, gr + z * 31, ceder)
 			if okE then (e :: any).sats = resE else warn("[CashCar] espace : " .. tostring(resE)) end -- (sats : les obstacles de la PLUIE DE SATELLITES)
 		end
 		-- LE BANC NE CACHE PLUS DE PIÈGE (buildTrack du web, L10320). Un banc posé SUR la route se traverse à l'aveugle — c'est le jeu,
@@ -2527,7 +2537,7 @@ local function activer(e: Zone)
 	-- (CHUTE_P.coton = 0 dans le jeu web) au menu, les nuages du niveau passaient devant la caisse : la mer de nuages suffit
 	if e.ciel then e.ciel.Parent = (mode ~= "menu" and mode ~= "garage" and mode ~= "charge") and e.dossier or nil end
 	oi = 1
-	evEtat:FireServer("zone", e.z)
+	evEtat:FireServer("zone", e.z + ((e :: any).wk and 500 or 0)) -- (la route du WEEK-END n'est pas celle du serveur : ses zones à part)
 	-- LA VILLE SE GAGNE SUR LA ROUTE (flowLieu, L21007 — appelé par newTrack, L30919) : entre les tours on saute peu, le SUPER/ULTRA
 	-- TURBO et le raccourci y font partir la frénésie armée, la vitesse tenue au sol paie plus. (Avant le 2/10 soir ce réglage
 	-- existait mais n'était jamais posé : les deux niveaux de ville se jouaient aux règles des nuages.)
@@ -3400,10 +3410,63 @@ local function allerMenu()
 	evEtat:FireServer("course", false)
 end
 
+-- (12/10) LA BONNE ROUTE AVANT DE PARTIR. La course du week-end roule sur la graine de la SEMAINE (KA.wkGraine), une partie normale sur
+-- celle du serveur. Les zones gardées d'une partie à l'autre (la 1 et la 2) sont celles de la DERNIÈRE route courue : changer de route
+-- les rebâtit, derrière l'écran de chargement, une fois (rejouer la même course ne rebâtit rien). Le week-end fini pendant la partie :
+-- REJOUER repart sur la route du serveur. Rend faux si une construction est déjà en cours (un second appui ne lance rien).
+function G.wkPreparer(): boolean
+	if KA.wkGraine and not KA.Weekend.ouvert() then KA.wkGraine = nil end
+	if KA.wkGraine and KA.Weekend.graine() then KA.wkGraine = KA.Weekend.graine() end
+	local voulu = KA.wkGraine or graine
+	local z1: any = ZONES[1]
+	if z1 and z1.graine == voulu and z1.wk == (KA.wkGraine ~= nil) then return true end
+	if G.wkBatit then return false end
+	G.wkBatit = true
+	local avant = mode
+	mode = "charge" -- (la boucle dort : rien ne lit la route qu'on démonte)
+	Hud.ecran("charge")
+	E.chargeLogo.Visible, E.chargeBloc.Visible, E.chargeTxt.Visible = true, true, true
+	local t0 = os.clock()
+	local function points() E.chargeTxt.Text = T.chargement .. string.rep(".", math.floor((os.clock() - t0) * 3) % 4) end
+	-- (une zone en chantier finit d'abord : abandonnée en pleine construction, elle garderait ses maillages pour toujours)
+	while os.clock() - t0 < 25 do
+		local enCours = false
+		for z9, x in ZONES do
+			if z9 ~= 0 and not x.pret then enCours = true end
+		end
+		if not enCours then break end
+		points()
+		task.wait(0.1)
+	end
+	for z9, x in ZONES do
+		if z9 ~= 0 then
+			if x.dossier then KA.Recyclage.rendre(x.dossier) end
+			ZONES[z9] = nil
+		end
+	end
+	local n1 = preparer(1, nil)
+	while not n1.pret do
+		points()
+		task.wait(0.1)
+	end
+	activer(n1)
+	pcall(KA.Titre.plan, n1.piste) -- (la caisse du titre retombe au-dessus de CETTE route)
+	preparer(2, Piste.suite(n1.piste :: Piste.Piste))
+	if KA.wkGraine then KA.Weekend.empreinte(n1.piste, 1) end -- (banc : la preuve que tout le monde a la même route)
+	if RunService:IsStudio() then warn(string.format("[weekend] route %s bâtie en %.1f s (graine %d)", KA.wkGraine and "du WEEK-END" or "du serveur", os.clock() - t0, voulu)) end
+	E.chargeLogo.Visible, E.chargeBloc.Visible, E.chargeTxt.Visible = false, false, false
+	mode = avant
+	G.wkBatit = false
+	return true
+end
+
 local function nouvellePartie()
+	-- (12/10) la route de CETTE partie : celle du week-end ou celle du serveur (voir G.wkPreparer)
+	if not G.wkPreparer() then return end
 	-- la leçon tant qu'elle n'a pas été passée (ou sautée) : la piste d'école est la zone 0. (3/10) Si elle n'est pas encore bâtie — un
 	-- JOUER très rapide sur un compte neuf, ou REVOIR L'AUTO-ÉCOLE — on l'ATTEND (quelques secondes au plus) au lieu de la sauter en silence.
-	if profil.reglages ~= nil and profil.reglages.tuto == false then
+	-- (12/10 : la course du WEEK-END n'est jamais une leçon — c'est un choix du joueur, la leçon l'attend à sa prochaine partie normale)
+	if profil.reglages ~= nil and profil.reglages.tuto == false and not KA.wkGraine then
 		if not ZONES[0] then preparer(0, nil) end
 		if ZONES[0] and not ZONES[0].pret then
 			if G.lanceAttend then return end -- (un second appui pendant l'attente ne lance pas une seconde partie)
@@ -3414,7 +3477,7 @@ local function nouvellePartie()
 			if mode ~= "menu" and mode ~= "mort" then return end -- (le joueur est parti ailleurs entre-temps)
 		end
 	end
-	local ecole = profil.reglages ~= nil and profil.reglages.tuto == false and ZONES[0] ~= nil and ZONES[0].pret
+	local ecole = not KA.wkGraine and profil.reglages ~= nil and profil.reglages.tuto == false and ZONES[0] ~= nil and ZONES[0].pret
 	TU.on = ecole
 	TU.vers(1)
 	TU.rates, TU.pause, TU.msg, TU.msgT, TU.vraiment = 0, 0, nil, 0, 0
@@ -3461,7 +3524,7 @@ local function nouvellePartie()
 	montrerCaisse(true)
 	enPause = false
 	Hud.ecran("course")
-	evEtat:FireServer("course", true)
+	evEtat:FireServer("course", true, KA.wkGraine) -- (la graine du WEEK-END quand c'est elle : le serveur la vérifie à sa montre)
 	-- LE DÉPART POSÉ (10/10, Sacha : « sur Roblox les premières minutes de jeu sont importantes ; quand on lance la partie la voiture
 	-- apparaît dans les airs et met quelques longues secondes à atterrir sur la route — fais-la apparaître direct sur la route ») : plus
 	-- de chute de 220 m depuis la pose du menu, la caisse est POSÉE sur la route au point de départ et la course part aussitôt — avec
@@ -3630,8 +3693,10 @@ E.btPasser.Activated:Connect(function()
 end)
 E.btFacileOui.Activated:Connect(function() choisir(true) end)
 E.btFacileNon.Activated:Connect(function() choisir(false) end)
-function G.jouerMenu()
+function G.jouerMenu(wk: any)
 	if mode ~= "menu" or KA.Titre.enPique() then return end
+	-- (12/10) `wk` : la graine de LA COURSE DU WEEK-END (G.wkJouer) ; JOUER tout court (le bouton passe son InputObject) = la route du serveur
+	KA.wkGraine = (type(wk) == "number") and wk or nil
 	jouer(function()
 		if not KA.Titre.pret then
 			nouvellePartie()
@@ -3644,6 +3709,18 @@ function G.jouerMenu()
 	end)
 end
 E.btJouer.Activated:Connect(G.jouerMenu)
+-- JOUER LA COURSE (la fenêtre du week-end, ou la carte de l'écran de fin) : depuis l'accueil, le vrai JOUER (le piqué du titre) ; depuis
+-- l'écran de fin, tout de suite
+function G.wkJouer()
+	local g = KA.Weekend.graine()
+	if not KA.Weekend.ouvert() or not g then return end
+	if mode == "menu" then
+		G.jouerMenu(g)
+	elseif mode == "mort" then
+		KA.wkGraine = g
+		nouvellePartie()
+	end
+end
 -- ── LE GARAGE : parcourir, acheter, équiper (voir Client/Garage) ──
 local function ouvrirGarage()
 	if mode ~= "menu" then return end
@@ -3671,6 +3748,7 @@ Garage.init({
 	surJouer = function()
 		Garage.fermer()
 		allerMenu()
+		KA.wkGraine = nil -- (JOUER du garage : une partie normale, sur la route du serveur)
 		jouer(nouvellePartie)
 	end,
 	surReglages = function() Hud.ecran("reglages") end,
@@ -3733,6 +3811,11 @@ KA.Revenus.init({
 		end
 		G.boutique.ouvrir("menu")
 	end,
+})
+-- (12/10) LA COURSE DU WEEK-END : le bandeau de l'accueil, sa fenêtre, le rappel en course, sa carte à l'écran de fin (voir Client/Weekend)
+KA.Weekend.init({
+	jouer = function() G.wkJouer() end,
+	enCourse = function() return zone ~= nil and (zone :: any).wk == true end, -- (la route EN COURS est-elle celle de la semaine ?)
 })
 -- LE CŒUR CHOISI À LA MORT (5/10 : UTILISER UN COEUR de la réserve, ou un cœur ACHETÉ sur la carte — ou simulé au banc) : on le
 -- DÉPENSE — la caisse repart là où elle a explosé : sa partie, son argent, son moteur ; la chaîne ouverte, elle, est partie avec
@@ -3983,8 +4066,8 @@ E.btRecom.Activated:Connect(function()
 	enPause = false
 	Score.fin(false)
 	-- (7/10) le serveur repart de zéro lui aussi : sa montre (le plafond anti-triche) et l'état « sans aide » du TOP 10 — sans ce mot,
-	-- la partie neuve héritait de l'heure et des aides de celle qu'on abandonne
-	evEtat:FireServer("recommence")
+	-- la partie neuve héritait de l'heure et des aides de celle qu'on abandonne (12/10 : et la course du WEEK-END reste la sienne)
+	evEtat:FireServer("recommence", nil, (KA.wkGraine and KA.Weekend.ouvert()) and KA.wkGraine or nil)
 	nouvellePartie()
 end)
 function G.quitterPause() -- (nommée : le banc la presse aussi, « DbgOuvre quitter » deux fois = la question puis la confirmation)
@@ -4193,7 +4276,8 @@ function G.tourDoubles()
 				doubles[m] = nil
 				continue
 			end
-			local voir = m:GetAttribute("EnCourse") == true and (m:GetAttribute("Zone") or 1) == zoneN
+			-- (12/10 : sur la course du WEEK-END on ne croise que ceux qui la courent — même route, mêmes zones + 500)
+			local voir = m:GetAttribute("EnCourse") == true and (m:GetAttribute("Zone") or 1) == zoneN + ((zone and (zone :: any).wk) and 500 or 0)
 			if d.vu ~= voir then
 				d.vu = voir
 				for _, p in d.c:GetDescendants() do

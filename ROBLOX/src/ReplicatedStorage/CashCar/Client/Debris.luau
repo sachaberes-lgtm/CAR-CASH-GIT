@@ -75,6 +75,10 @@ local function batir()
 		b.Transparency = t
 		b.LightEmission = 1
 		b.LightInfluence = 0
+		-- (12/10, « améliore les shaders ») les bords s'effacent en dégradé : une traîne de feu et un faisceau de LUMIÈRE, plus deux
+		-- bandes tranchées net — d'où les largeurs × 1,35 plus bas
+		b.Texture = "rbxasset://textures/gradient.png"
+		b.TextureMode = Enum.TextureMode.Stretch
 		b.Parent = ancre
 		return b, a0, a1
 	end
@@ -152,7 +156,7 @@ function Debris.tick(dt: number, camCF: CFrame): boolean
 	V.tete.CFrame = CFrame.new(pos)
 	V.t0.WorldPosition = pos
 	V.t1.WorldPosition = pos + V.dir * ((120 + u * 150) * M)
-	V.traine.Width0, V.traine.Width1 = math.clamp(dC * 0.03, 3.5, 20) * M, 0
+	V.traine.Width0, V.traine.Width1 = math.clamp(dC * 0.03, 3.5, 20) * 1.35 * M, 0
 	-- LA CIBLE : l'anneau se resserre en battant, le disque se remplit ; SOUS L'ŒIL (la caméra survole la cible) tout s'efface
 	local R = D.R * (1 + 1.3 * (1 - u))
 	local pul = 0.55 + 0.45 * math.sin(D.t * (10 + 26 * u))
@@ -164,7 +168,7 @@ function Debris.tick(dt: number, camCF: CFrame): boolean
 	V.disque.Size = UDim2.fromScale(r9 / RMAX, r9 / RMAX)
 	V.disque.BackgroundTransparency = 1 - (0.2 + 0.36 * u) * kO
 	V.f1.WorldPosition = D.p1 + D.n * ((34 + u * 20) * M)
-	V.faisceau.Width0, V.faisceau.Width1 = (2.2 + u * 1.6) * M, (2.2 + u * 1.6) * M * 0.4
+	V.faisceau.Width0, V.faisceau.Width1 = (2.2 + u * 1.6) * 1.35 * M, (2.2 + u * 1.6) * 1.35 * M * 0.4
 	-- (sous l'œil, le faisceau s'efface lui aussi : il rougissait la moitié de l'écran quand la caisse passait dessus)
 	local op = (0.55 + 0.4 * u) * (0.2 + 0.8 * kO)
 	V.faisceau.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1 - op), NumberSequenceKeypoint.new(0.35, 1 - op * 0.5), NumberSequenceKeypoint.new(1, 1) })

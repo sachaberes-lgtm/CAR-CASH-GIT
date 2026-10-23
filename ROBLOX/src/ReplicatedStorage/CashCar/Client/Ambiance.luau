@@ -102,6 +102,10 @@ HEURES.tempete = {
 	brume = RGB(160, 96, 124), loin = RGB(96, 60, 88), eclat = 0, voile = 10, densite = 0.3,
 	soleil = Color3.new(0.66, 0.70, 0.92), ext = RGB(170, 166, 210), teinte = Color3.new(1, 1, 1), sat = 0.1, con = 0.24, expo = 0.15,
 	S = V3(214, 208, 238), OH = V3(120, 118, 166), OB = V3(62, 58, 98), mer = Color3.new(0.42, 0.40, 0.56),
+	-- (12/10, Sacha : « améliore les shaders ») l'orage gardait le bloom du JOUR (seuil 1,5) : dans le noir, les rails violets, les feux
+	-- de la caisse et le sillage restaient des traits secs sur un aplat d'ardoise. Le bloom de la nuit (celui de MINUIT) : tout ce qui
+	-- est néon s'auréole dans la tempête, l'éclair compris — le reste ne bouge pas
+	bloom = { 0.6, 30, 1.2 },
 }
 -- ── MINUIT (BIOMES.nuitNoire, L13175) : la PLUIE NÉON trois heures plus tard. Le ciel presque noir, quelques étoiles, une brume
 -- noire-bleue ; les lumières d'ambiance au plancher : ce qui éclaire la route, ce sont les PHARES.

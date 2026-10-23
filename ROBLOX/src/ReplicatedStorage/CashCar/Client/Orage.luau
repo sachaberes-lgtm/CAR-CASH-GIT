@@ -21,6 +21,7 @@ local N = 27 -- 16 segments de tronc, 6 + 5 de branches
 local E: any = { traits = nil, gui = nil, seg = {}, P = {}, t = 4, k = 0, vie = 0, tonT = -1, ton = 0, dernier = false, pisteVue = nil, allume = false }
 local COULEUR = Color3.fromRGB(240, 228, 255)
 local HALO = Color3.fromRGB(176, 150, 255)
+local HALO_K = 2.2 -- (le halo en dégradé : plus large que l'aplat d'avant, voir reserve)
 
 local function reserve()
 	if E.traits then return end
@@ -38,10 +39,18 @@ local function reserve()
 		halo.BackgroundTransparency = 1
 		halo.BorderSizePixel = 0
 		halo.Parent = gui
+		-- (12/10, « améliore les shaders ») LE HALO S'ÉVAPORE : en aplat, chaque segment était une règle violette tranchée net — un
+		-- éclair de papier découpé. Un dégradé en travers du trait : opaque au milieu, nul aux bords ; deux fois plus large (HALO_K),
+		-- la lueur garde son poids et fond dans le ciel. Le cœur, lui, reste un fil net (sa largeur rapportée d'autant).
+		local fondu = Instance.new("UIGradient")
+		fondu.Rotation = 90
+		fondu.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.3, 0.72), NumberSequenceKeypoint.new(0.5, 0),
+			NumberSequenceKeypoint.new(0.7, 0.72), NumberSequenceKeypoint.new(1, 1) })
+		fondu.Parent = halo
 		local coeur = Instance.new("Frame")
 		coeur.AnchorPoint = Vector2.new(0.5, 0.5)
 		coeur.Position = UDim2.fromScale(0.5, 0.5)
-		coeur.Size = UDim2.new(1, 0, 0.3, 0)
+		coeur.Size = UDim2.new(1, 0, 0.3 / HALO_K, 0)
 		coeur.BackgroundColor3 = COULEUR
 		coeur.BackgroundTransparency = 1
 		coeur.BorderSizePixel = 0
@@ -120,9 +129,9 @@ local function dessiner(fl: number)
 				-- (w = la demi-largeur du ruban du web, en mètres ; jamais moins de 5 pixels de halo)
 				local w = math.max(5, sg[3] * 2 * M / math.max(1, (a.Z + b.Z) * 0.5) * focale)
 				halo.Position = UDim2.fromOffset((a.X + b.X) * 0.5, (a.Y + b.Y) * 0.5)
-				halo.Size = UDim2.fromOffset(l + w * 0.5, w)
+				halo.Size = UDim2.fromOffset(l + w * 0.5, w * HALO_K)
 				halo.Rotation = math.deg(math.atan2(dy, dx))
-				halo.BackgroundTransparency = 1 - 0.34 * fl
+				halo.BackgroundTransparency = 1 - 0.5 * fl
 				coeur.BackgroundTransparency = 1 - fl
 				vu = true
 			end

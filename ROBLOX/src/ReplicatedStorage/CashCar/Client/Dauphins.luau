@@ -43,9 +43,18 @@ local function ss(x: number, a: number, b: number): number
 	return t * t * (3 - 2 * t)
 end
 
+-- (12/10) la goutte est un cœur de lumière DENSE, l'étoile d'avant n'était que des rayons : à taille égale elle pesait trois fois
+-- plus lourd — elle garde 65 % de la taille d'avant (la même mesure que les petites gerbes de Client/Effets)
+local GOUTTE_K = 0.65
 local function emetteur(parent: Instance, couleur: Color3, taille: number, vie0: number, vie1: number, v0: number, v1: number, cone: number, g: number): ParticleEmitter
 	local e = Instance.new("ParticleEmitter")
-	e.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+	-- (12/10, « améliore les particules ») des GOUTTES, plus des étoiles à huit branches : le point de lumière de l'implosion, étiré
+	-- dans sa course quand il file (la gerbe, l'écume) ; rond dans le sillage, qui flotte
+	e.Texture = "rbxasset://textures/particles/explosion01_implosion_main.dds"
+	if v1 > 1 then
+		e.Orientation = Enum.ParticleOrientation.VelocityParallel
+		e.Squash = NumberSequence.new(1.1, 0.3)
+	end
 	e.Color = ColorSequence.new(couleur)
 	e.LightEmission = 1
 	e.LightInfluence = 0
@@ -115,12 +124,12 @@ local function gerbe(u: any, pos: Vector3, haut: CFrame, puissance: number, k: n
 	local e: ParticleEmitter = u.gerbe
 	e.Speed = NumberRange.new(4 * puissance * k * M * 0.4, 9 * puissance * k * M * 0.4)
 	e.Acceleration = haut.UpVector * (-6 * k * M)
-	e.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.5 * k * M * 0.5), NumberSequenceKeypoint.new(1, 0.15 * k * M * 0.5) })
+	e.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.5 * k * M * 0.5 * GOUTTE_K), NumberSequenceKeypoint.new(1, 0.15 * k * M * 0.5 * GOUTTE_K) })
 	e:Emit(math.floor(18 * nM + 0.5))
 	local a: ParticleEmitter = u.ecume
 	a.Speed = NumberRange.new(1.5 * puissance * k * M, 2.2 * puissance * k * M)
 	a.Acceleration = haut.UpVector * (-6 * k * M)
-	a.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.4 * k * M * 0.5), NumberSequenceKeypoint.new(1, 0.1 * k * M * 0.5) })
+	a.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.4 * k * M * 0.5 * GOUTTE_K), NumberSequenceKeypoint.new(1, 0.1 * k * M * 0.5 * GOUTTE_K) })
 	a:Emit(math.floor(14 * nM + 0.5))
 end
 
@@ -289,7 +298,7 @@ local function tick(dt: number)
 		sl.Enabled = dessus
 		if dessus then
 			sl.Rate = 55 * Perf.part(Perf.F.particules)
-			sl.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.24 * k * M * 0.6), NumberSequenceKeypoint.new(1, 0.05 * k * M) })
+			sl.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.24 * k * M * 0.6 * GOUTTE_K), NumberSequenceKeypoint.new(1, 0.05 * k * M * GOUTTE_K) })
 			sl.Color = ColorSequence.new(noir and Color3.fromRGB(255, 26, 48) or Color3.fromRGB(255, 106, 214))
 		end
 	end

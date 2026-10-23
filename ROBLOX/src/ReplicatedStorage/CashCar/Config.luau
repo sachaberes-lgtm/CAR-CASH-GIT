@@ -339,6 +339,25 @@ Config.REVENUS = {
 	tempsJeu = { { 5, 300 }, { 15, 800 }, { 30, 1500 }, { 60, 3000 } }, -- { minutes dans la session, $ } — puis 3 000 $ chaque heure
 }
 
+-- ── LA COURSE DU WEEK-END (12/10, Sacha : « fais un événement Course du week-end que tu peux annoncer sur tes réseaux ») — voir
+-- ServerScriptService/Weekend et Client/Weekend. Chaque week-end, la MÊME PISTE pour tout le monde (une graine tirée du numéro de la
+-- semaine), son propre CLASSEMENT (les parties SANS AIDE, comme le TOP 10 : ni cœur, ni nitro infinie, ni mode facile), l'argent
+-- multiplié, un bonus à la première course, un prix pour le podium versé au retour du joueur la semaine suivante. Rien ne s'achète :
+-- ni Robux, ni produit. L'heure est celle du SERVEUR, en UTC (Paris = UTC + 2 l'été, UTC + 1 l'hiver : samedi 00:00 UTC = 01:00 ou
+-- 02:00 à Paris). Le jeu le lance de lui-même chaque semaine : rien à faire le samedi. ──
+Config.WEEKEND = {
+	actif = true,      -- l'interrupteur : false = plus de bandeau, plus de course, plus de classement (rien d'autre à toucher)
+	jour = 6,          -- le jour où elle OUVRE : 1 lundi, 2 mardi … 6 samedi, 7 dimanche
+	heure = 0,         -- … à cette heure-là (UTC, 0 à 23)
+	dureeH = 48,       -- elle dure tant d'heures : 48 = samedi 00:00 → dimanche 23:59
+	sel = 161,         -- le grain de sel de la graine : le changer donne une AUTRE piste (toujours la même pour tous) — jamais en plein week-end
+	argent = 2,        -- l'argent d'une course du week-end est multiplié par ça (en plus du passe x2 ARGENT et de Premium)
+	bonus = 2000,      -- la PREMIÈRE course terminée du week-end (au moins `dureeMin` secondes de course) rapporte ça, une fois par week-end
+	dureeMin = 20,
+	prix = { 30000, 20000, 10000 }, -- le PODIUM (1er, 2e, 3e, sans aide) : versé une fois, au premier retour du joueur après le week-end
+	marge = 15,        -- (minutes) le podium se lit ce temps-là après la fin : les courses parties à 23:59 ont le temps de se poser
+}
+
 -- ── LE MODE « APPAREIL FAIBLE » (voir Client/Perf ; 9/10, avant les annonces) : un téléphone n'a ni la carte graphique ni le
 -- processeur d'un PC. Il s'allume TOUT SEUL sur un appareil tactile sans clavier, ou en course si l'image reste sous `seuilIps`
 -- pendant `duree` secondes d'affilée (bascule à sens unique pour la session). Il n'allège que le DÉCOR et les EFFETS : la piste,

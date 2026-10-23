@@ -465,7 +465,9 @@ function Ville.pluie(actif: boolean, camCF: CFrame, taux: number?, vent: boolean
 		p.Transparency = 1
 		p.Size = Vector3.new(46 * M, 1, 46 * M)
 		local e = Instance.new("ParticleEmitter")
-		e.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+		-- (12/10, « améliore les particules ») l'étoile à huit branches, étirée, dessinait des CROIX scintillantes : de la neige de
+		-- Noël dans une nuit de néon. Le point de lumière de l'implosion, étiré, c'est une GOUTTE qui file — un trait net, sans bras
+		e.Texture = "rbxasset://textures/particles/explosion01_implosion_main.dds"
 		e.EmissionDirection = Enum.NormalId.Bottom
 		e.Orientation = Enum.ParticleOrientation.FacingCameraWorldUp
 		e.Rate = 520

@@ -53,6 +53,10 @@ function Profils.neuf(): Profil
 		-- LA ROUE : les tours en réserve, l'heure (os.time) du dernier tour gratuit, les parties vers le prochain tour offert, la caisse
 		-- qui vient d'être gagnée et qu'on peut encore préférer en argent (-1 : aucune)
 		roue = { n = 0, libre = 0, parties = 0, attente = -1 },
+		-- LA COURSE DU WEEK-END (12/10, voir Weekend) : la dernière semaine courue (w, comptée depuis 1970) et le meilleur score SANS AIDE
+		-- de cette semaine-là, la semaine dont le bonus de participation est pris, la dernière semaine dont le PODIUM a été lu (payé ou
+		-- non : jamais deux fois), la place qui a été payée
+		wk = { w = 0, best = 0, part = 0, prix = 0, rang = 0 },
 	}
 end
 
@@ -61,7 +65,7 @@ local function sain(p: any): Profil
 	local n = Profils.neuf()
 	if type(p) ~= "table" then return n end
 	for k, v in n do
-		if k == "reglages" or k == "porte" or k == "roue" then
+		if k == "reglages" or k == "porte" or k == "roue" or k == "wk" then
 			-- (clé par clé : un vieux profil n'a pas les réglages ajoutés depuis)
 			if type(p[k]) == "table" then
 				for rk, rv in v do
@@ -80,6 +84,9 @@ local function sain(p: any): Profil
 	for _, k in { "n", "libre", "parties" } do
 		local v = n.roue[k]
 		if v ~= v or v < 0 or v > 1e12 then n.roue[k] = 0 end
+	end
+	for k, v in n.wk do
+		if v ~= v or v < 0 or v > 1e15 then n.wk[k] = 0 else n.wk[k] = math.floor(v) end
 	end
 	for _, k in { "compte", "record", "recordPur", "auraMeilleur", "aura", "frenRec", "moteurMax", "kmhMax", "jour", "serie", "invite", "coeurs" } do
 		if n[k] ~= n[k] or n[k] < 0 or n[k] > 1e18 then n[k] = 0 end
@@ -194,6 +201,11 @@ function Profils.sauver(p: Player): boolean
 			prof.auraMeilleur = math.max(prof.auraMeilleur, a.auraMeilleur)
 			prof.moteurMax = math.max(prof.moteurMax, a.moteurMax)
 			prof.kmhMax = math.max(prof.kmhMax, a.kmhMax)
+			-- (12/10) LE WEEK-END non plus : un bonus pris, un podium lu ne redeviennent jamais « à prendre », un meilleur score de la même
+			-- semaine ne redescend pas (deux serveurs qui se croisent ne paient pas deux fois)
+			local wa, wp = a.wk, prof.wk
+			wp.part, wp.prix = math.max(wp.part, wa.part), math.max(wp.prix, wa.prix)
+			if wa.w == wp.w then wp.best = math.max(wp.best, wa.best) elseif wa.w > wp.w then wp.w, wp.best = wa.w, wa.best end
 			return prof
 		end)
 	end)

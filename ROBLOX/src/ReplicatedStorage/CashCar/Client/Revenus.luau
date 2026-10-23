@@ -768,12 +768,30 @@ function Revenus.finEcran(badge: TextLabel, rec: boolean, gains: number, lecon: 
 	U.finies += 1 -- (une partie finie, leçon comprise : le joueur n'est plus un nouveau venu, l'accueil peut lui parler)
 	local m = lecon and 1 or Revenus.mult()
 	local mention = (not lecon) and Revenus.mention() or nil
+	-- (12/10) LA COURSE DU WEEK-END compte double — le même calcul que le serveur (Weekend.mult), et la mention le dit
+	local wk = (not lecon and Revenus.wkMult) and Revenus.wkMult() or 1
+	if wk > 1 then
+		m *= wk
+		mention = (mention and (mention .. " ") or "") .. "x" .. wk .. tr(" WEEK-END", " WEEKEND")
+	end
 	if mention then
 		badge.Text = rec and (tr("RECORD ! ", "RECORD! ") .. mention) or mention
 		badge.Visible = true
 	end
 	-- (la police pixel est à chasse fixe : le cadre prend la largeur de son texte, 190 au moins)
-	badge.Size = UDim2.fromOffset(math.max(190, math.floor(utf8.len(badge.Text) * badge.TextSize * CH + 32)), badge.Size.Y.Offset)
+	-- (12/10) …mesurée par Roblox lui-même (AutomaticSize, 16 px de marge de chaque côté) : au banc du week-end, « x2 ARGENT x2 WEEK-END »
+	-- sortait dans un cadre de 16 caractères, le début du texte rogné — le calcul à la main ne tenait pas sur ce cadre-là
+	if not U.badgeAuto then
+		U.badgeAuto = true
+		badge.AutomaticSize = Enum.AutomaticSize.X
+		inst("UIPadding", { PaddingLeft = UDim.new(0, 16), PaddingRight = UDim.new(0, 16) }, badge)
+	end
+	badge.Size = UDim2.fromOffset(190, badge.Size.Y.Offset)
+	if workspace:GetAttribute("DbgWeekend") ~= nil then
+		task.delay(0.6, function()
+			warn(string.format("[revenus] mention « %s » corps %d : cadre %.0f px, texte %.0f px", badge.Text, badge.TextSize, badge.AbsoluteSize.X, badge.TextBounds.X))
+		end)
+	end
 	if not U.offre then
 		local b = K.tuile(badge.Parent :: Instance, " ", OR1, UDim2.fromOffset(540, 44), badge.Position + UDim2.fromOffset(0, -4), badge.AnchorPoint, 22, "piece", "g")
 		local bo = b.Parent.Parent :: Frame
@@ -791,8 +809,9 @@ function Revenus.finEcran(badge: TextLabel, rec: boolean, gains: number, lecon: 
 		U.offre, U.offreBoite = b, bo
 	end
 	-- l'offre : le passe existe, on ne l'a pas, pas de record à montrer, une vraie partie qui a rapporté quelque chose
+	-- (la course du week-end est un événement SANS Robux : pas d'offre sur son écran de fin, sa mention x2 reste lisible)
 	local montre = (idDe(R.passes, "argent2") > 0 or workspace:GetAttribute("DbgSeconde") ~= nil)
-		and not attr("Argent2") and not rec and not lecon and gains > 0
+		and not attr("Argent2") and not rec and not lecon and gains > 0 and wk <= 1
 	U.offreBoite.Visible = montre
 	if montre then
 		U.offre.Text = tr("x2 ARGENT : CA FAISAIT ", "x2 CASH: THAT WAS ") .. Hud.argent(gains * 2) .. "  >"
@@ -831,12 +850,18 @@ local function annonce(quoi: string, montant: number?, txt: string?)
 		local f = Catalogue[tonumber(txt) or -1]
 		local nom = f and Hud.sansAccent(string.upper(FR and f.nom or (f.en or f.nom))) or "?"
 		libelles.caisse = nom .. tr(" EST A TOI : ELLE T'ATTEND AU GARAGE", " IS YOURS: IT'S WAITING IN THE GARAGE")
+	elseif quoi == "weekend" then
+		-- (12/10) LA COURSE DU WEEK-END : le bonus de la première course ; le PODIUM de la semaine passée (txt = la place)
+		libelles.weekend = tr("COURSE DU WEEK-END : BONUS  ", "WEEKEND RACE: BONUS  ") .. a
+	elseif quoi == "weekendPrix" then
+		libelles.weekendPrix = tr("PODIUM DU WEEK-END : " .. (txt or "?") .. (txt == "1" and "ER  " or "E  "), "WEEKEND PODIUM: #" .. (txt or "?") .. "  ") .. a
 	end
 	-- (un cœur acheté sur la carte de la mort est dépensé aussitôt : le pilote le dit lui-même, pas de bandeau par-dessus)
 	if quoi == "coeur" and Revenus.secondeOuverte() then return end
-	local ico = (quoi == "passe" or quoi == "caisse") and "etoile" or ((quoi == "coeur") and "coeur" or ((quoi == "argent") and "piece" or "cadeau"))
+	local ico = (quoi == "passe" or quoi == "caisse") and "etoile" or ((quoi == "coeur") and "coeur" or ((quoi == "argent") and "piece"
+		or ((quoi == "weekend" or quoi == "weekendPrix") and "drapeau" or "cadeau")))
 	Hud.toast(libelles[quoi] or a, (quoi == "coeur") and C.rouge or ((quoi == "argent") and C.menthe or OR1), ico)
-	Sons.jouer((quoi == "passe" or quoi == "coeur" or quoi == "caisse" or quoi == "kit") and "record" or "encaisse")
+	Sons.jouer((quoi == "passe" or quoi == "coeur" or quoi == "caisse" or quoi == "kit" or quoi == "weekendPrix") and "record" or "encaisse")
 	Hud.vibre(30)
 end
 
@@ -882,6 +907,12 @@ local function brancherNitroReglage()
 	joueur:GetAttributeChangedSignal("NitroInfini"):Connect(majNitroReglage)
 	majNitroReglage()
 end
+
+-- (12/10) LE KIT DES FENÊTRES, prêté à LA COURSE DU WEEK-END (Client/Weekend) : la même plaque de laque, le même titre, les mêmes
+-- pastilles et médailles — sa fenêtre est la sœur du TOP 10, pas une copie. `wkMult` : ce que vaut la partie qui finit (x2 le week-end)
+Revenus.kit = { fenetre = fenetre, ouvrir = ouvrir, fermer = fermer, titre = titre, pastille = pastille, ecrirePastille = ecrirePastille,
+	bandes = bandes, MEDAILLE = MEDAILLE, TEINTE = TEINTE }
+Revenus.wkMult = nil :: (() -> number)?
 
 -- ════════ le branchement ════════
 -- c = { action = function(nom, ...) → ok, msg ; occupe = function() → vrai si l'accueil n'est pas vraiment là (intro, garage…) ;

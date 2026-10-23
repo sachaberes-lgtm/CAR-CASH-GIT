@@ -17,6 +17,15 @@ local M = Config.M
 local Caisse = {}
 Caisse.Catalogue = Catalogue
 
+-- LES IMAGES DU FEU (12/10, Sacha : « améliore les particules, les shaders et tout le reste ») — des fichiers livrés avec Roblox :
+--   · TEX_BORD : une bande blanche dont l'opacité monte en pente douce des bords vers le milieu. Posée sur la plume et les sillages,
+--     elle efface leurs bords : un ruban de lumière, plus une bande de plastique tranchée net. Elle mange ~40 % de la largeur
+--     visible : les rubans s'élargissent de BORD_K pour garder leur poids à l'écran.
+--   · TEX_DARD : le point de lumière de l'implosion (blanc, cœur dense) — étiré dans sa course, un dard de feu.
+local TEX_BORD = "rbxasset://textures/gradient.png"
+local TEX_DARD = "rbxasset://textures/particles/explosion01_implosion_main.dds"
+local BORD_K = 1.35
+
 -- comment chaque matière du jeu web répond à la lumière de Roblox
 local MATIERES = {
 	p = { Enum.Material.SmoothPlastic, 0.15 }, -- LAQUE (4/10 : 0,10 → 0,15 — la peinture renvoie le ciel, la caisse brille)
@@ -260,7 +269,12 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 		a.Parent = r
 		local f = Instance.new("ParticleEmitter")
 		f.Name = "Flamme"
-		f.Texture = "rbxasset://textures/particles/fire_main.dds"
+		-- (12/10, « améliore les particules ») la flamme de Roblox (fire_main) est une image SOMBRE : en additif, les braises de la plume
+		-- sortaient brunes. Le point de lumière de l'implosion, ÉTIRÉ dans sa course : des dards de feu blancs au cœur, à la couleur du
+		-- jet au bout — même débit, même durée
+		f.Texture = TEX_DARD
+		f.Orientation = Enum.ParticleOrientation.VelocityParallel
+		f.Squash = NumberSequence.new(1.6, 0.5)
 		f.LightEmission = 1
 		f.LightInfluence = 0
 		f.Rate = 0
@@ -268,8 +282,8 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 		f.Speed = NumberRange.new(36, 58)
 		f.SpreadAngle = Vector2.new(5, 5)
 		f.EmissionDirection = Enum.NormalId.Back
-		f.Brightness = 1.6
-		f.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.7), NumberSequenceKeypoint.new(1, 0.1) })
+		f.Brightness = 2.4
+		f.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.6), NumberSequenceKeypoint.new(1, 0.1) })
 		f.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.1), NumberSequenceKeypoint.new(1, 1) })
 		f.Color = ColorSequence.new(Color3.fromRGB(255, 220, 140), cJet)
 		f.Parent = a
@@ -292,6 +306,9 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 			bm.LightInfluence = 0
 			bm.Brightness = 2
 			bm.ZOffset = q[2]
+			-- (12/10) un aplat de lumière tranché net se lisait comme un cornet de plastique : le bord s'efface en dégradé (voir TEX_BORD)
+			bm.Texture = TEX_BORD
+			bm.TextureMode = Enum.TextureMode.Stretch
 			bm.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.05), NumberSequenceKeypoint.new(0.6, 0.45), NumberSequenceKeypoint.new(1, 1) })
 			bm.Enabled = false
 			bm.Parent = r;
@@ -306,7 +323,7 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 	local wu = (np == 1) and 1.4 or ((np >= 3) and 0.85 or 1)
 	for i, pot in fiche.pots do
 		if i > 4 then break end
-		for _, couche in { { "Halo", 0.42 * wu, 1.7, 1 }, { "Coeur", 0.15 * wu, 0.7, 1 } } do -- (2e retour : à 0,56 × 2,6 et 0,21, deux cônes BLANCS larges comme la caisse — le web trace deux rubans fins, de la couleur du feu) -- (vu dans Studio a 1,5 / 3,2 : en vol, la camera dans l axe, tout l ecran partait au blanc)
+		for _, couche in { { "Halo", 0.42 * wu * BORD_K, 1.7, 1 }, { "Coeur", 0.15 * wu * BORD_K, 0.7, 1 } } do -- (2e retour : à 0,56 × 2,6 et 0,21, deux cônes BLANCS larges comme la caisse — le web trace deux rubans fins, de la couleur du feu) -- (vu dans Studio a 1,5 / 3,2 : en vol, la camera dans l axe, tout l ecran partait au blanc)
 			local demi = couche[2] * 0.5 * M
 			local a0 = Instance.new("Attachment")
 			a0.Name = "Sillage" .. couche[1] .. "H" .. i
@@ -327,6 +344,9 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 			t.LightInfluence = 0
 			t.Brightness = couche[4]
 			t.FaceCamera = true
+			-- (12/10) le ruban s'efface vers ses bords (TEX_BORD) : une traînée de LUMIÈRE, plus une bande de plastique tranchée net
+			t.Texture = TEX_BORD
+			t.TextureMode = Enum.TextureMode.Stretch
 			t.WidthScale = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, couche[3]) })
 			-- la queue s'éteint sur le dernier quart (24 m sur 100)
 			t.Transparency = (couche[1] == "Halo")
@@ -370,8 +390,8 @@ function Caisse.feu(poignees: any, on: boolean, debit: number, c: Color3, arc: C
 				local jl = math.max(0.03, 0.62 * k * 2.1 * fl * long) * f9
 				local jr = (0.09 + 0.07 * k + (nitro and 0.05 or 0)) * (1.1 - 0.1 * f9)
 				p.bout.Position = p.z0 + Vector3.new(0, 0, jl * M)
-				p.coque.Width0, p.coque.Width1 = jr * 2.3 * M, jr * 0.5 * M
-				p.coeur.Width0, p.coeur.Width1 = jr * 1.1 * M, jr * 0.12 * M
+				p.coque.Width0, p.coque.Width1 = jr * 2.3 * BORD_K * M, jr * 0.5 * BORD_K * M
+				p.coeur.Width0, p.coeur.Width1 = jr * 1.1 * BORD_K * M, jr * 0.12 * BORD_K * M
 				p.coque.Color = ColorSequence.new(coque, coque:Lerp(BRAISE, 0.35))
 				p.coeur.Color = ColorSequence.new(coeur)
 			end

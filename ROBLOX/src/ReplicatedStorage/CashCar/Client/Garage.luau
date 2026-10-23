@@ -1710,10 +1710,13 @@ local function apercuTrainee(on: boolean, t: number)
 			a0.Parent, a1.Parent = racine, racine
 			local b = Instance.new("Beam")
 			b.Attachment0, b.Attachment1 = a0, a1
-			b.Width0, b.Width1 = 0.47 * M, 0.07 * M
+			b.Width0, b.Width1 = 0.47 * 1.35 * M, 0.07 * 1.35 * M
 			b.Segments = 24
 			b.LightEmission, b.LightInfluence = 1, 0
 			b.FaceCamera = true
+			-- (12/10) le bord s'efface en dégradé, comme le vrai sillage en course (Caisse : TEX_BORD) — d'où la largeur × 1,35
+			b.Texture = "rbxasset://textures/gradient.png"
+			b.TextureMode = Enum.TextureMode.Stretch
 			b.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.55), NumberSequenceKeypoint.new(0.1, 0.25), NumberSequenceKeypoint.new(1, 1) })
 			b.Parent = racine
 			TRPV.r[k] = { a0 = a0, a1 = a1, b = b, sd = sd }

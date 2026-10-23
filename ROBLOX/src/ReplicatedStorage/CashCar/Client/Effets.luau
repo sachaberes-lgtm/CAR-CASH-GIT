@@ -31,9 +31,18 @@ local rnd = Random.new()
 local function r(a: number, b: number): number return a + rnd:NextNumber() * (b - a) end
 local function hex(h: number): Color3 return Color3.fromRGB(bit32.rshift(h, 16), bit32.band(bit32.rshift(h, 8), 255), bit32.band(h, 255)) end
 
-local TEX_BRAISE = "rbxasset://textures/particles/sparkles_main.dds" -- le cœur brûlant (sparkTex)
-local TEX_FEU = "rbxasset://textures/particles/fire_main.dds"
 local TEX_FUMEE = "rbxasset://textures/particles/smoke_main.dds"      -- le disque mou (puffTex)
+-- LES IMAGES DES PARTICULES v2 (12/10, Sacha : « améliore les particules, les shaders et tout le reste ») — mesuré sur les fichiers
+-- livrés avec Roblox :
+--   · l'ÉTOILE à huit branches (sparkles_main) faisait TOUTES les étincelles : une pièce, une explosion, un drift, c'était un semis
+--     d'étoiles de clip-art plantées dans l'air, qui ne disaient pas où elles allaient ;
+--   · la FLAMME de Roblox (fire_main) est une image SOMBRE (67,53,43 en moyenne) : en additif elle ne pouvait que salir — les
+--     langues de l'explosion, son cœur blanc et la bouffée de la nitro sortaient brun-gris.
+-- LA LUEUR (le point de lumière de l'implosion : blanc, cœur dense, bord gaussien) les remplace : ÉTIRÉE dans sa vitesse
+-- (VelocityParallel + Squash), c'est un trait d'étincelle qui file et se ramasse en ralentissant ; ronde, une braise. Le FEU, c'est
+-- le disque mou en additif, qui tourne sur lui-même. (Les deux images sont celles de l'objet Explosion : sur tous les appareils.)
+local TEX_LUEUR = "rbxasset://textures/particles/explosion01_implosion_main.dds"
+local TEX_FEU = TEX_FUMEE
 
 local OR, BLEU, ROSE = hex(0xffd75e), hex(0x5ee6ff), hex(0xff3ec8)
 local ENCRE = hex(0x1c0430)
@@ -61,12 +70,33 @@ local cam = workspace.CurrentCamera
 -- c = la couleur (ou un ColorSequence) · t = la taille (m) · a = { fonduEntree, fonduSortie, tailleNaissance, tailleMort }
 -- (en parts de vie, comme fx.a) · op = l'opacité · add = additif · acc = la vraie gravité (m/s²) · frein = la traînée ·
 -- etire = une étincelle qui file le long de sa vitesse · caisse = le bassin part avec la caisse
+-- (v2, 12/10) sq = l'étirement d'une étincelle { à la naissance, à la mort } (Squash : elle naît longue, se ramasse en ralentissant)
+-- · chaud = elle naît BLANCHE et prend sa couleur en refroidissant (le métal chauffé : c'est ce qui la fait briller sans la grossir)
+-- · tourne = un nuage, une flamme, qui roule sur lui-même (degrés par seconde, dans un sens ou dans l'autre)
+-- · z = le plan de dessin (ZOffset, studs) : l'encre DERRIÈRE l'or — la fumée noire de l'explosion dessinée devant la boule de feu en
+--   faisait un TROU NOIR au milieu de l'image ; reculée, elle la cerne
+-- · lk = la mesure de CE bassin s'il est en lueur (voir LUEUR_K) : les petites gerbes — une pièce, un fruit, une goutte — restent
+--   plus grosses que les éclats de l'explosion, sinon elles disparaissaient à 15 m de la caméra
 type Regle = { tex: string, c: any, t: number, a: { number }, op: number, add: boolean, acc: number?, frein: number?, etire: boolean?,
-	caisse: boolean?, vie: { number }, nb: number?, eclat: number? }
-type Bassin = { e: { ParticleEmitter }, a: { Attachment }, i: number, vie: NumberRange }
+	caisse: boolean?, vie: { number }, nb: number?, eclat: number?, sq: { number }?, chaud: boolean?, tourne: number?, z: number?, lk: number? }
+local SQ_ETINCELLE = { 1.7, 0.6 }
+-- LA MESURE DE LA LUEUR (réglée au banc) : l'étoile ne remplissait son carré que de rayons fins ; la lueur est un cœur DENSE — à taille
+-- égale elle pesait trois fois plus lourd à l'écran (une explosion qui ne laissait plus rien voir, des braises en boules de bokeh).
+-- Un trait d'étincelle garde `etire` de la taille d'avant, une braise ronde `rond` (mesuré au banc, quatre mesures sur la même
+-- explosion : à 1 l'image partait au BLANC, à 0,3 la gerbe s'émiettait en paillettes ; 0,45 / 0,4 = une boule de feu et ses traits).
+local LUEUR_K = { etire = 0.45, rond = 0.4 }
+local function tailleDe(g: Regle): NumberSequence
+	local t = g.t * M * ((g.tex == TEX_LUEUR) and (g.lk or (g.etire and LUEUR_K.etire or LUEUR_K.rond)) or 1)
+	return NumberSequence.new({ NumberSequenceKeypoint.new(0, t * g.a[3], t * g.a[3] * 0.22), NumberSequenceKeypoint.new(1, t * g.a[4], t * g.a[4] * 0.22) })
+end
+local function braiseChaude(c: Color3): ColorSequence
+	return ColorSequence.new({ ColorSequenceKeypoint.new(0, c:Lerp(Color3.new(1, 1, 1), 0.72)), ColorSequenceKeypoint.new(0.22, c:Lerp(Color3.new(1, 1, 1), 0.18)),
+		ColorSequenceKeypoint.new(1, c) })
+end
+type Bassin = { e: { ParticleEmitter }, a: { Attachment }, i: number, vie: NumberRange, g: Regle }
 local BASSINS: { [string]: Bassin } = {}
 local function bassin(nom: string, g: Regle)
-	local b: Bassin = { e = {}, a = {}, i = 0, vie = NumberRange.new(g.vie[1], g.vie[2]) }
+	local b: Bassin = { e = {}, a = {}, i = 0, vie = NumberRange.new(g.vie[1], g.vie[2]), g = g }
 	for k = 1, g.nb or 4 do
 		local a = Instance.new("Attachment")
 		a.Name = nom .. k
@@ -76,12 +106,11 @@ local function bassin(nom: string, g: Regle)
 		e.Enabled = false
 		e.Rate = 0
 		e.Texture = g.tex
-		e.Color = (typeof(g.c) == "ColorSequence") and g.c or ColorSequence.new(g.c)
+		e.Color = (typeof(g.c) == "ColorSequence") and g.c or (g.chaud and braiseChaude(g.c) or ColorSequence.new(g.c))
 		e.LightEmission = g.add and 1 or 0
 		e.LightInfluence = g.add and 0 or 0.35
 		e.Brightness = g.eclat or (g.add and 2 or 1)
-		local t = g.t * M
-		e.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, t * g.a[3], t * g.a[3] * 0.22), NumberSequenceKeypoint.new(1, t * g.a[4], t * g.a[4] * 0.22) })
+		e.Size = tailleDe(g)
 		local tr0 = 1 - g.op
 		local fi, fo = math.clamp(g.a[1], 0, 0.45), math.clamp(g.a[2], 0.05, 0.5)
 		local cles = {}
@@ -100,9 +129,14 @@ local function bassin(nom: string, g: Regle)
 		e.EmissionDirection = Enum.NormalId.Top
 		e.Rotation = NumberRange.new(0, 360)
 		e.LockedToPart = g.caisse == true
+		e.ZOffset = g.z or 0
 		if g.etire then
 			e.Orientation = Enum.ParticleOrientation.VelocityParallel
 			e.Rotation = NumberRange.new(0, 0)
+			local sq = g.sq or SQ_ETINCELLE
+			e.Squash = NumberSequence.new(sq[1], sq[2])
+		elseif g.tourne then
+			e.RotSpeed = NumberRange.new(-g.tourne, g.tourne)
 		end
 		e.Parent = a
 		table.insert(b.a, a)
@@ -1313,40 +1347,55 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 	voile.ZIndex = 0
 	voile.Parent = gui
 	-- les bassins (la table des pools du jeu web, L23474-24235). Le suffixe C = le même, qui part avec la caisse.
+	-- (v2, 12/10 — voir TEX_LUEUR : les étincelles sont des TRAITS chauffés à blanc, les braises des points de lumière, le feu et la
+	-- fumée roulent sur eux-mêmes. Mêmes nombres de grains, mêmes vitesses, mêmes durées : la gerbe garde sa forme et son coût)
 	local etinc = { 0, 0.45, 1, 0.5 }
 	for _, c in { { "or", OR, 16 }, { "bleu", BLEU, 12 }, { "rose", ROSE, 12 } } do
 		for _, verrou in { false, true } do
-			bassin(c[1] .. (verrou and "C" or ""), { tex = TEX_BRAISE, c = c[2], t = 0.55, a = etinc, op = 1, add = true, acc = c[3], etire = true,
-				caisse = verrou, vie = { 0.28, 0.5 }, nb = 6, eclat = 3 })
+			bassin(c[1] .. (verrou and "C" or ""), { tex = TEX_LUEUR, c = c[2], t = 0.55, a = etinc, op = 1, add = true, acc = c[3], etire = true,
+				chaud = true, caisse = verrou, vie = { 0.28, 0.5 }, nb = 6, eclat = 3, lk = 0.65 })
 		end
 	end
-	bassin("jus", { tex = TEX_BRAISE, c = JUS[1], t = 0.62, a = { 0, 0.45, 1, 0.6 }, op = 1, add = true, acc = 55, etire = true, caisse = true, vie = { 0.22, 0.48 }, nb = 3, eclat = 2.5 })
+	-- (le jus : des GOUTTES, pas des étoiles — elles s'étirent à peine)
+	bassin("jus", { tex = TEX_LUEUR, c = JUS[1], t = 0.62, a = { 0, 0.45, 1, 0.6 }, op = 1, add = true, acc = 55, etire = true, sq = { 1, 0.3 }, caisse = true,
+		vie = { 0.22, 0.48 }, nb = 3, eclat = 2.5, lk = 0.8 })
 	for _, verrou in { false, true } do
 		bassin("poussiere" .. (verrou and "C" or ""), { tex = TEX_FUMEE, c = hex(0x9d95b6), t = 0.55, a = { 0.2, 0.5, 0.55, 2.6 }, op = 0.3, add = false,
-			caisse = verrou, vie = { 0.4, 0.75 }, nb = 4 })
+			caisse = verrou, vie = { 0.4, 0.75 }, nb = 4, tourne = 50 })
 	end
-	bassin("flammeC", { tex = TEX_FEU, c = hex(0xff9030), t = 1.4, a = { 0, 0.5, 1, 0.35 }, op = 0.8, add = true, caisse = true, vie = { 0.1, 0.18 }, nb = 2 })
-	bassin("braiseOC", { tex = TEX_BRAISE, c = hex(0xff8a20), t = 0.5, a = { 0.05, 0.45, 1, 0.5 }, op = 1, add = true, acc = 13, etire = true, caisse = true, vie = { 0.2, 0.48 }, nb = 4, eclat = 3 })
+	-- (la bouffée de la nitro qu'on lâche : blanche au cœur, orange, puis rouge en mourant)
+	bassin("flammeC", { tex = TEX_FEU, c = ColorSequence.new({ ColorSequenceKeypoint.new(0, hex(0xfff0c0)), ColorSequenceKeypoint.new(0.3, hex(0xff9030)),
+		ColorSequenceKeypoint.new(1, hex(0xff3b2a)) }), t = 1.4, a = { 0, 0.5, 1, 0.35 }, op = 0.8, add = true, caisse = true, vie = { 0.1, 0.18 }, nb = 2, eclat = 2.4, tourne = 160 })
+	bassin("braiseOC", { tex = TEX_LUEUR, c = hex(0xff8a20), t = 0.5, a = { 0.05, 0.45, 1, 0.5 }, op = 1, add = true, acc = 13, etire = true, chaud = true, caisse = true,
+		vie = { 0.2, 0.48 }, nb = 4, eclat = 3, lk = 0.6 })
 	-- l'explosion
+	-- (12/10, mesuré au banc) entre 0,6 et 1,2 s la boule restait un DISQUE ROUGE plat de 15 m, sans relief, qui mangeait l'écran : elle
+	-- passe par la braise sombre plus tôt et finit à l'encre (« L'ENCRE ET L'OR » du web : l'or d'abord, l'encre ensuite)
 	local feu = ColorSequence.new({
 		ColorSequenceKeypoint.new(0, hex(0xfff4d0)), ColorSequenceKeypoint.new(0.08, hex(0xffc640)), ColorSequenceKeypoint.new(0.22, hex(0xff7a24)),
-		ColorSequenceKeypoint.new(0.66, hex(0xb3160c)), ColorSequenceKeypoint.new(0.81, hex(0x2e2428)), ColorSequenceKeypoint.new(1, hex(0x2e2428)) })
-	bassin("volute", { tex = TEX_FUMEE, c = feu, t = 7.6, a = { 0.05, 0.38, 0.55, 1 }, op = 0.96, add = false, vie = { 1.05, 1.75 }, nb = 1, eclat = 2.2 })
-	bassin("voluteCouronne", { tex = TEX_FUMEE, c = feu, t = 5.6, a = { 0.05, 0.38, 0.5, 1 }, op = 0.94, add = false, vie = { 1.05, 1.75 }, nb = 6, eclat = 2 })
-	bassin("coeurBlanc", { tex = TEX_FEU, c = Color3.new(1, 0.95, 0.8), t = 4.2, a = { 0, 0.5, 0.6, 1.2 }, op = 0.9, add = true, vie = { 0.25, 0.4 }, nb = 1, eclat = 4 })
-	bassin("dard", { tex = TEX_BRAISE, c = hex(0xffd08a), t = 2.2, a = { 0, 0.5, 0.6, 1.3 }, op = 0.95, add = true, etire = true, vie = { 0.26, 0.46 }, nb = 1, eclat = 4 })
-	bassin("langue", { tex = TEX_FEU, c = hex(0xff7a24), t = 1.3, a = { 0, 0.5, 1, 0.45 }, op = 1, add = true, etire = true, vie = { 0.4, 1.1 }, nb = 4 })
-	bassin("eclatRouge", { tex = TEX_BRAISE, c = hex(0xff3b2a), t = 0.9, a = { 0.03, 0.5, 1, 0.5 }, op = 1, add = true, etire = true, vie = { 0.5, 1.3 }, nb = 6, eclat = 3 })
+		ColorSequenceKeypoint.new(0.48, hex(0xd2301a)), ColorSequenceKeypoint.new(0.64, hex(0x6e1a18)), ColorSequenceKeypoint.new(0.8, hex(0x2e2428)),
+		ColorSequenceKeypoint.new(1, hex(0x2e2428)) })
+	bassin("volute", { tex = TEX_FUMEE, c = feu, t = 7.6, a = { 0.05, 0.38, 0.55, 1 }, op = 0.96, add = false, vie = { 1.05, 1.75 }, nb = 1, eclat = 2.2, tourne = 30, z = -2 })
+	bassin("voluteCouronne", { tex = TEX_FUMEE, c = feu, t = 5.6, a = { 0.05, 0.38, 0.5, 1 }, op = 0.94, add = false, vie = { 1.05, 1.75 }, nb = 6, eclat = 2, tourne = 40, z = -2 })
+	-- (le cœur blanc : l'éclair de la déflagration — une boule de lumière qui aveugle, plus une flamme brune)
+	bassin("coeurBlanc", { tex = TEX_LUEUR, c = Color3.new(1, 0.95, 0.8), t = 4.2, a = { 0, 0.5, 0.6, 1.2 }, op = 0.9, add = true, vie = { 0.25, 0.4 }, nb = 1, eclat = 4 })
+	bassin("dard", { tex = TEX_LUEUR, c = hex(0xffd08a), t = 2.2, a = { 0, 0.5, 0.6, 1.3 }, op = 0.95, add = true, etire = true, sq = { 2.4, 1.2 }, chaud = true,
+		vie = { 0.26, 0.46 }, nb = 1, eclat = 4 })
+	-- (les langues de feu : des bouffées additives étirées dans leur course — une flamme qui lèche, plus une tache sombre)
+	bassin("langue", { tex = TEX_FEU, c = ColorSequence.new({ ColorSequenceKeypoint.new(0, hex(0xffe9a8)), ColorSequenceKeypoint.new(0.25, hex(0xff7a24)),
+		ColorSequenceKeypoint.new(1, hex(0xd3261a)) }), t = 1.3, a = { 0, 0.5, 1, 0.45 }, op = 1, add = true, etire = true, sq = { 1, 0.3 }, vie = { 0.4, 1.1 }, nb = 4, eclat = 2.2 })
+	bassin("eclatRouge", { tex = TEX_LUEUR, c = hex(0xff3b2a), t = 0.9, a = { 0.03, 0.5, 1, 0.5 }, op = 1, add = true, etire = true, chaud = true, vie = { 0.5, 1.3 }, nb = 6, eclat = 3 })
 	-- la GERBE D'EAU du requin (`spray`, L37723) : des gouttes claires qui filent et retombent
-	bassin("eau", { tex = TEX_BRAISE, c = hex(0xbfeaff), t = 0.55, a = { 0, 0.5, 1, 0.55 }, op = 0.9, add = true, acc = 16, etire = true, vie = { 0.22, 0.48 }, nb = 2, eclat = 2 })
-	bassin("eclatJaune", { tex = TEX_BRAISE, c = hex(0xffd94a), t = 1.05, a = { 0, 0.5, 1, 0.5 }, op = 1, add = true, etire = true, vie = { 0.3, 0.85 }, nb = 6, eclat = 3 })
-	bassin("sang", { tex = TEX_BRAISE, c = hex(0xa31212), t = 0.85, a = { 0, 0.4, 1, 0.8 }, op = 1, add = false, acc = 22, etire = true, vie = { 0.5, 1.7 }, nb = 3 })
-	bassin("braiseR", { tex = TEX_BRAISE, c = hex(0xff3818), t = 0.7, a = { 0.05, 0.45, 1, 0.5 }, op = 1, add = true, vie = { 1, 2.2 }, nb = 2, eclat = 3 })
-	bassin("braiseO", { tex = TEX_BRAISE, c = hex(0xff8a20), t = 0.5, a = { 0.05, 0.45, 1, 0.5 }, op = 1, add = true, acc = 13, vie = { 0.8, 1.8 }, nb = 3, eclat = 3 })
-	bassin("braiseJ", { tex = TEX_BRAISE, c = hex(0xffd840), t = 0.36, a = { 0.05, 0.45, 1, 0.5 }, op = 1, add = true, acc = 16, vie = { 0.6, 1.5 }, nb = 2, eclat = 3 })
+	bassin("eau", { tex = TEX_LUEUR, c = hex(0xbfeaff), t = 0.55, a = { 0, 0.5, 1, 0.55 }, op = 0.9, add = true, acc = 16, etire = true, sq = { 1.2, 0.4 }, vie = { 0.22, 0.48 }, nb = 2, eclat = 2, lk = 0.65 })
+	bassin("eclatJaune", { tex = TEX_LUEUR, c = hex(0xffd94a), t = 1.05, a = { 0, 0.5, 1, 0.5 }, op = 1, add = true, etire = true, chaud = true, vie = { 0.3, 0.85 }, nb = 6, eclat = 3 })
+	bassin("sang", { tex = TEX_LUEUR, c = hex(0xa31212), t = 0.85, a = { 0, 0.4, 1, 0.8 }, op = 1, add = false, acc = 22, etire = true, sq = { 1, 0.3 }, vie = { 0.5, 1.7 }, nb = 3 })
+	-- (les braises : des points de lumière qui tombent en refroidissant)
+	bassin("braiseR", { tex = TEX_LUEUR, c = hex(0xff3818), t = 0.7, a = { 0.05, 0.45, 1, 0.5 }, op = 1, add = true, chaud = true, vie = { 1, 2.2 }, nb = 2, eclat = 3 })
+	bassin("braiseO", { tex = TEX_LUEUR, c = hex(0xff8a20), t = 0.5, a = { 0.05, 0.45, 1, 0.5 }, op = 1, add = true, acc = 13, chaud = true, vie = { 0.8, 1.8 }, nb = 3, eclat = 3 })
+	bassin("braiseJ", { tex = TEX_LUEUR, c = hex(0xffd840), t = 0.36, a = { 0.05, 0.45, 1, 0.5 }, op = 1, add = true, acc = 16, chaud = true, vie = { 0.6, 1.5 }, nb = 2, eclat = 3 })
 	-- les miettes de ouate (cloudBits) : un banc qu'on perce part en mille morceaux
-	bassin("ouate", { tex = TEX_FUMEE, c = hex(0xdff6ff), t = 2.8, a = { 0.06, 0.5, 0.75, 1.35 }, op = 0.9, add = false, acc = 2.2, vie = { 0.5, 1.35 }, nb = 2 })
-	bassin("fumee", { tex = TEX_FUMEE, c = hex(0x2e2428), t = 3.4, a = { 0.14, 0.5, 0.6, 1.7 }, op = 0.5, add = false, frein = 1.6, vie = { 0.9, 2.1 }, nb = 4 })
+	bassin("ouate", { tex = TEX_FUMEE, c = hex(0xdff6ff), t = 2.8, a = { 0.06, 0.5, 0.75, 1.35 }, op = 0.9, add = false, acc = 2.2, vie = { 0.5, 1.35 }, nb = 2, tourne = 60 })
+	bassin("fumee", { tex = TEX_FUMEE, c = hex(0x2e2428), t = 3.4, a = { 0.14, 0.5, 0.6, 1.7 }, op = 0.5, add = false, frein = 1.6, vie = { 0.9, 2.1 }, nb = 4, tourne = 35, z = -6 })
 
 	-- ── les écoutes ──
 	-- (à CHAQUE image, quel que soit le mode : l'explosion et ses billets vivent après la mort de la caisse)
@@ -1446,7 +1495,7 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 			flashBords(Color3.fromRGB(140, 210, 255), 0.85, 0.6)
 		end
 	end)
-	-- (mise au point, depuis la console de Studio) workspace:SetAttribute("DbgFx", "boom") — ou moteur7, pluie, cratere, jus3 —
+	-- (mise au point, depuis la console de Studio) workspace:SetAttribute("DbgFx", "boom") — ou moteur7, pluie, cratere, jus3, piece (12/10 : la gerbe d'une pièce ramassée) —
 	-- rejoue un effet sur la caisse, sans attendre que la partie le provoque. Suivi d'un chiffre au besoin, pour le relancer.
 	workspace:GetAttributeChangedSignal("DbgFx"):Connect(function()
 		local v = tostring(workspace:GetAttribute("DbgFx") or "")
@@ -1458,7 +1507,28 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		elseif string.find(v, "pluie") then pluieLance()
 		elseif string.find(v, "cratere") then cratere()
 		elseif string.find(v, "jus") then croque(math.clamp(n or 1, 1, 6), etat.carCF.Position, Config.FRUITS[math.clamp(n or 1, 1, 6)])
+		elseif string.find(v, "piece") then Bus.emit("piece", 1, 1)
 		end
+	end)
+	-- (banc, 12/10) workspace:SetAttribute("DbgLueur", "0.45,0.4,1.7,0.6") : la mesure de la lueur (traits, braises rondes) et
+	-- l'étirement par défaut des étincelles (naissance, mort), réappliqués à tous les bassins — pour la régler sans reconstruire
+	workspace:GetAttributeChangedSignal("DbgLueur"):Connect(function()
+		local v = string.split(tostring(workspace:GetAttribute("DbgLueur") or ""), ",")
+		local n = {}
+		for i, x in v do n[i] = tonumber(x) end
+		if not (n[1] and n[2]) then return end
+		LUEUR_K.etire, LUEUR_K.rond = n[1], n[2]
+		if n[3] and n[4] then SQ_ETINCELLE[1], SQ_ETINCELLE[2] = n[3], n[4] end
+		for _, b in BASSINS do
+			for _, e in b.e do
+				e.Size = tailleDe(b.g)
+				if b.g.etire then
+					local sq = b.g.sq or SQ_ETINCELLE
+					e.Squash = NumberSequence.new(sq[1], sq[2])
+				end
+			end
+		end
+		warn(string.format("[CashCar] LUEUR traits %.2f · rondes %.2f · étirement %.1f → %.1f", LUEUR_K.etire, LUEUR_K.rond, SQ_ETINCELLE[1], SQ_ETINCELLE[2]))
 	end)
 	Bus.on("partie", function()
 		pluie.seuil, pluie.t = 1000, 0

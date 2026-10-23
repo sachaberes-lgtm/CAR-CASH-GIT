@@ -35,6 +35,8 @@ local RO = Config.ROUE
 
 local Revenus = {}
 local ctx: any = nil
+-- (12/10) qui écoute le verdict « aidée » de chaque fin de partie (la COURSE DU WEEK-END se branche ici, voir Weekend.init)
+Revenus.surFinAide = nil :: ((Player, any, boolean, number?, any) -> ())?
 -- (payes : les passes achetés PENDANT la session — Roblox garde en cache la réponse de UserOwnsGamePassAsync, qui peut encore dire
 -- « non » juste après l'achat : un passe payé ici ne se reperd pas)
 local droits: { [number]: { argent2: boolean, nitroInfini: boolean, vip: boolean, premium: boolean, payes: { [string]: boolean } } } = {}
@@ -112,6 +114,7 @@ local evRevivre: RemoteEvent? = nil -- (la carte de la mort attend son cœur ach
 local function dire(p: Player, quoi: string, montant: number?, txt: string?)
 	if evRevenu then evRevenu:FireClient(p, quoi, montant, txt) end
 end
+Revenus.dire = dire -- (12/10 : la COURSE DU WEEK-END parle par le même bandeau — voir Weekend)
 local function crediter(p: Player, prof: any, montant: number)
 	prof.compte += math.floor(montant)
 	An.argent(p, math.floor(montant), prof.compte, An.T.jeu, "invitation")
@@ -344,6 +347,7 @@ local function nomDe(id: number): string
 	noms[id] = (ok and n) or "?"
 	return noms[id]
 end
+Revenus.nomDe = nomDe -- (le classement du WEEK-END écrit les mêmes noms, du même carnet)
 local function rafraichir()
 	if not classement then return end
 	local ok, page = pcall(function() return classement:GetSortedAsync(false, 10):GetCurrentPage() end)
@@ -630,6 +634,8 @@ function Revenus.surFin(p: Player, prof: any, stats: any, aura: number?, montant
 	local rg = prof.reglages
 	local aidee = (se and se.aide) or p:GetAttribute("NitroInfini") == true or (type(rg) == "table" and rg.facile == true)
 	if not aidee and type(montant) == "number" and montant > prof.recordPur then prof.recordPur = montant end
+	-- (12/10) LA COURSE DU WEEK-END suit le MÊME jugement, au même instant (voir Weekend.surFin) : sans aide, elle entre au classement
+	if Revenus.surFinAide then pcall(Revenus.surFinAide, p, prof, aidee == true, montant, stats) end
 	if se then se.aide = false end
 	inscrire(p, prof.recordPur)
 end

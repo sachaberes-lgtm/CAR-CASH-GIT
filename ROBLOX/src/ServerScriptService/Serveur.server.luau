@@ -49,6 +49,7 @@ local evProfil = remote("ProfilMaj")                  -- le serveur pousse le pr
 Profils.pousser = function(p: Player) evProfil:FireClient(p, Profils.de(p)) end
 -- LES REVENUS : cadeaux, badges, classement, passes, cœurs (voir Revenus)
 local Revenus = require(script.Parent:WaitForChild("Revenus"))
+local Weekend = require(script.Parent:WaitForChild("Weekend")) -- (LA COURSE DU WEEK-END : sa piste, son classement, ses prix — voir Weekend)
 local Analytique = require(script.Parent:WaitForChild("Analytique")) -- (les statistiques Roblox : entonnoir, économie)
 Profils.surHabit = function(p: Player) -- la peinture, les ailes, la traînée : les autres doivent les voir
 	local m = dossier:FindFirstChild(p.Name)
@@ -118,6 +119,7 @@ local function arrivee(p: Player)
 		evRecord:FireClient(p, prof.record, prof.compte)
 		Profils.pousser(p)
 		Revenus.arrivee(p, prof)
+		Weekend.arrivee(p, prof)
 		Analytique.arrivee(p, prof)
 	end)
 end
@@ -128,6 +130,7 @@ end
 local debutCourse: { [number]: number } = {}
 Players.PlayerAdded:Connect(arrivee)
 Revenus.init({ Profils = Profils, remote = remote, compte = function(p: Player, prof: any) evRecord:FireClient(p, prof.record, prof.compte) end })
+Weekend.init({ Profils = Profils, Revenus = Revenus, compte = function(p: Player, prof: any) evRecord:FireClient(p, prof.record, prof.compte) end })
 -- en test dans Studio, le joueur peut être entré AVANT que ce script écoute : on le rattrape
 for _, p in Players:GetPlayers() do task.spawn(arrivee, p) end
 
@@ -139,6 +142,7 @@ Players.PlayerRemoving:Connect(function(p)
 	local m = dossier:FindFirstChild(p.Name)
 	if m then m:Destroy() end
 	Revenus.depart(p)
+	Weekend.depart(p)
 end)
 
 -- (à l'arrêt d'un serveur, Roblox laisse 30 s : toutes les sauvegardes partent EN MÊME TEMPS, pas l'une après l'autre)
@@ -156,16 +160,18 @@ game:BindToClose(function()
 end)
 
 -- ce que les AUTRES doivent savoir de ma caisse : est-ce que je roule, dans quelle zone, nitro allumée ?
-evEtat.OnServerEvent:Connect(function(p, quoi, valeur)
+evEtat.OnServerEvent:Connect(function(p, quoi, valeur, wk)
 	if quoi == "course" and valeur == true and not debutCourse[p.UserId] then
 		debutCourse[p.UserId] = os.clock()
 		Revenus.debut(p) -- (la partie part-elle SANS AIDE ? le TOP 10 n'inscrit que celles-là)
+		Weekend.debut(p, wk) -- (`wk` : la graine de la COURSE DU WEEK-END quand c'est elle — le serveur la vérifie à sa montre)
 		Analytique.debut(p)
 	elseif quoi == "recommence" and debutCourse[p.UserId] then
 		-- RECOMMENCER (pause) : la partie abandonnée ne verse rien et n'envoie pas de fin — la montre et l'état « sans aide » repartent
 		-- ici. (Un tricheur qui en abuserait ne ferait que raccourcir sa propre montre, donc baisser son plafond.)
 		debutCourse[p.UserId] = os.clock()
 		Revenus.debut(p)
+		Weekend.debut(p, wk)
 	end
 	local m = dossier:FindFirstChild(p.Name)
 	if not m then return end
@@ -216,8 +222,9 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 		montant = plafond
 	end
 	local prof = Profils.de(p)
-	-- on ne verse que les GAINS, jamais la mise de 1,61 $ — multipliés par les droits du joueur (passe ×2 ARGENT, Premium +10 %)
-	local gain = math.max(0, montant - Config.CASH_DEPART) * Revenus.multiplicateur(p)
+	-- on ne verse que les GAINS, jamais la mise de 1,61 $ — multipliés par les droits du joueur (passe ×2 ARGENT, Premium +10 %) et par
+	-- la COURSE DU WEEK-END (×2, voir Weekend)
+	local gain = math.max(0, montant - Config.CASH_DEPART) * Revenus.multiplicateur(p) * Weekend.mult(p)
 	prof.compte += gain
 	Analytique.argent(p, gain, prof.compte, Analytique.T.jeu, "course")
 	Analytique.fin(p, montant, stats, duree)
