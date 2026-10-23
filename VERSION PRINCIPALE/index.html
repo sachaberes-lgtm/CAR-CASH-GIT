@@ -18080,7 +18080,7 @@ function buildDunes(seed){
      if(v0!=null&&v1!=null)pan=sm(v0-80,v0+70,s9)*(1-sm(v1-70,v1+90,s9));                                  // la cuvette d'argile (le grand saut d'avant : la route la traverse maintenant)
      const dep=1-sm(300,1000,s9);H+=46*dep;A=Math.max(70*K,A-60*K*dep);                                        // LE DÉPART : le belvédère — la route domine les collines, la vue s'ouvre sur le désert d'en bas
      const wo=sm(so-220,so+120,s9);if(wo>0){H+=(22-H)*wo;A+=(90*K-A)*wo;pan=pan+(.5-pan)*wo;}                   // L'OASIS : la plaine sous les derniers mètres
-     S.H[i]=H*(1+.10*Math.sin(s9/870+ph[0]));S.A[i]=A*(1+.12*Math.sin(s9/610+ph[1]));S.pan[i]=Math.min(1,pan);S.gd[i]=0;
+     S.H[i]=H*(1+.10*Math.sin(s9/870+ph[0]));S.A[i]=A*1.4*(1+.12*Math.sin(s9/610+ph[1]));S.pan[i]=Math.min(1,pan);S.gd[i]=0;
      S.ob[i]=(ob0!=null&&ob1!=null&&s9>=ob0-120&&s9<=ob1+120)?1:0;}}
   // le FOND : la route lissée sur ±300 m, moins la profondeur ; au loin, une mer plus haute (90 m sous la route, bien plus bas au départ : on domine le désert) et plus calme
   {const w=Math.round(300/DS),c=new Float64Array(NS+1);for(let i=0;i<NS;i++)c[i+1]=c[i]+S.y[i];
@@ -18120,7 +18120,7 @@ function buildDunes(seed){
   const RH=ROAD_HALF,TH=THICK;
   for(let i=0;i<NS;i++){const Wf=Math.max(0,S.pw[i]-RH-10),rc=(h,w)=>RH+10+Wf+(h>0?w+h/.6:-h/.34)+40;S.RE[i]=Math.min(900*K,Math.max(rc(S.hP[i],S.wP[i]),rc(S.hM[i],S.wM[i]))+210);}
   const bio9=BIOMES[(LVL.cur.bio&&LVL.cur.bio[0])||'dunesSoir']||BIOMES.dunesSoir,cA=bio9.cyA||[6,-110,0,0];
-  const opt={K:K,seed:seed,RH:RH,TH:TH,sQ:sQ,sun:[cA[0],cA[1]],vent:DN.vent,lam:DN.lam,oa:oa,fin:{x:S.x[NS-1],z:S.z[NS-1]},sb:!DN_BUTTES,vol:DN.scnV||[],Af:150*K,deco:D9,pal:{dnPlat:PAL.b('dnPlat',64),dnFin:PAL.b('dnFin',12),dnOmbre:PAL.b('dnOmbre',44)}};
+  const opt={K:K,seed:seed,RH:RH,TH:TH,sQ:sQ,sun:[cA[0],cA[1]],vent:DN.vent,lam:DN.lam,oa:oa,fin:{x:S.x[NS-1],z:S.z[NS-1]},sb:!DN_BUTTES,vol:DN.scnV||[],Af:210*K,deco:D9,pal:{dnPlat:PAL.b('dnPlat',64),dnFin:PAL.b('dnFin',12),dnOmbre:PAL.b('dnOmbre',44)}};
   DN.oa=oa;DN.fin=opt.fin;DN.sb=opt.sb;DN.t0=t0;
   const W=started&&!/[?&]dnw=0\b/.test(location.search)?dnTravailleur():null;
   if(W){const job=DN.job;DN.attente={job:job,S:S,opt:opt};try{W.postMessage({job:job,S:S,opt:opt,nz:CY.nz});return;}catch(e){console.warn('dunes : travailleur',e);DN.attente=null;}}
@@ -18326,7 +18326,7 @@ function dnSelect(cam){const M=DN.mesh;if(!M||!M.visible)return;
    CAISSE (la clé baisse quand on passe à l'ombre d'une dune : seul écrit du soleil hors de bioApply, et seulement ici — comme canyonTick, qu'il suit) */
 /* (2026-10-20, LE DÉSERT AU HASARD) LES PALETTES DU SABLE : la teinte de l'ambiance tirée vers une autre teinte À LUMINANCE ÉGALE (la nuit reste la nuit) —
    [r, g, b de la teinte, part, gain de luminance] ; l'or = le sable d'avant */
-const DN_SAB={or:null,rouge:[.82,.28,.15,.62,.92],blanc:[1,.95,.86,.78,1.2],rose:[.96,.60,.58,.6,1.06]};
+const DN_SAB={or:null,rouge:[.74,.40,.24,.5,.88],blanc:[1,.95,.86,.78,1.2],rose:[.96,.60,.58,.6,1.06]};
 function dnTeinte(c,T){const l=c.r*.3+c.g*.55+c.b*.15,n=T[0]*.3+T[1]*.55+T[2]*.15,g=l*T[4]/n,k=T[3];c.r+=(T[0]*g-c.r)*k;c.g+=(T[1]*g-c.g)*k;c.b+=(T[2]*g-c.b)*k;}
 function dunesTick(dt){
   if(!DN.mat)return;const U=DN.mat.uniforms,c=BIO.cur,k=LVL.dunes||0;

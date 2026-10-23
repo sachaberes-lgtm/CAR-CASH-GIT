@@ -169,7 +169,7 @@ function dnSelect(cam){const M=DN.mesh;if(!M||!M.visible)return;
    CAISSE (la clé baisse quand on passe à l'ombre d'une dune : seul écrit du soleil hors de bioApply, et seulement ici — comme canyonTick, qu'il suit) */
 /* (2026-10-20, LE DÉSERT AU HASARD) LES PALETTES DU SABLE : la teinte de l'ambiance tirée vers une autre teinte À LUMINANCE ÉGALE (la nuit reste la nuit) —
    [r, g, b de la teinte, part, gain de luminance] ; l'or = le sable d'avant */
-const DN_SAB={or:null,rouge:[.82,.28,.15,.62,.92],blanc:[1,.95,.86,.78,1.2],rose:[.96,.60,.58,.6,1.06]};
+const DN_SAB={or:null,rouge:[.74,.40,.24,.5,.88],blanc:[1,.95,.86,.78,1.2],rose:[.96,.60,.58,.6,1.06]};
 function dnTeinte(c,T){const l=c.r*.3+c.g*.55+c.b*.15,n=T[0]*.3+T[1]*.55+T[2]*.15,g=l*T[4]/n,k=T[3];c.r+=(T[0]*g-c.r)*k;c.g+=(T[1]*g-c.g)*k;c.b+=(T[2]*g-c.b)*k;}
 function dunesTick(dt){
   if(!DN.mat)return;const U=DN.mat.uniforms,c=BIO.cur,k=LVL.dunes||0;
