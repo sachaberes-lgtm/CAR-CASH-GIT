@@ -430,9 +430,10 @@ function garFigEssai(id,c,libre){let f=window.FIG&&FIG.par[id];if(!f)return;if(c
     try{if(SONV2){sfx('turbo.mini',{vol:-6});GSON9=true;}}catch(e){}return;} // (LES FIGURES v2) la caisse fait la figure en vraie physique : explosion, élan, planté
   if(!GFIG.lect)GFIG.lect=new FIG.Lecteur();GFIG.lect.vide();GFIG.lect.lance(f,1,f.D*1.25);GFIG.t=0;GFIG.D=f.D*1.25;
   try{if(SONV2){sfx('fig.vrille',{st:2});GSON9=true;}}catch(e){}}
-function garFigTick(dt){
+function garFigTick(dt){garFigPas(dt);try{figOmbre();}catch(e){if(!garFigTick._w){garFigTick._w=1;console.warn('figOmbre',e);}}} // (2026-10-23) chaque image du garage : la figure, puis l'ombre de la caisse là où elle est (voir garage-ombre.js)
+function garFigPas(dt){
   if(brasTick(dt))return; // (2026-10-19) LE BRAS DES FIGURES tient la caisse
-  if(GFIG.corps&&GFIG.D>0){const C=GFIG.corps,d9=Math.min(dt,.05);GFIG.t+=d9;C.budget=Math.max(0,GFIG.D-GFIG.t);C.tick(d9);C.evts.length=0; // (LES FIGURES v2)
+  if(GFIG.corps&&GFIG.D>0){const C=GFIG.corps,d9=GFIG.gel!=null?Math.max(0,Math.min(dt,.05,GFIG.gel-GFIG.t)):Math.min(dt,.05);GFIG.t+=d9;C.budget=Math.max(0,GFIG.D-GFIG.t);C.tick(d9);C.evts.length=0; // (LES FIGURES v2) — (banc) GFIG.gel : l'horloge s'arrête à cet instant (voir dbgFigGel)
     const x=Math.min(1,GFIG.t/GFIG.D),hc=(CARS[equippedCar()].h||1.3)*.5,q=C.q;if(!GFIG.plat)carGroup.position.y+=1.5*Math.sin(Math.PI*x);
     VEQ.pv.set(0,hc,0).applyQuaternion(carGroup.quaternion);VEQ.qr.set(q[0],q[1],q[2],q[3]);carGroup.quaternion.multiply(VEQ.qr);
     VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);
@@ -444,6 +445,11 @@ function garFigTick(dt){
   VEQ.qr.set(L9.q[0],L9.q[1],L9.q[2],L9.q[3]);carGroup.quaternion.multiply(VEQ.qr);
   VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);
   if(GFIG.plat)try{garFigGomme(Math.min(dt,.05),true);}catch(e){}}
+/* (banc, 2026-10-23) LES CROCHETS DE LA FIGURE DU GARAGE : `dbgFigEssai(id,c)` la lance (c : 0 avant · 1 arrière · 2 côté) et rend sa durée ; `dbgFigEtat()`
+   dit où elle en est (horloge du jeu, pas celle du mur) ; `dbgFigGel(t)` arrête son horloge à t s (null = elle repart) pour photographier un instant exact. */
+window.dbgFigEssai=function(id,c){garFigEssai(id,c==null?-1:c);return {D:+GFIG.D.toFixed(3),plat:!!GFIG.plat};};
+window.dbgFigEtat=function(){const o=GBQ.omb;return {t:+GFIG.t.toFixed(3),D:+GFIG.D.toFixed(3),plat:!!GFIG.plat,gel:GFIG.gel==null?null:GFIG.gel,omb:o?{vis:!!(o.visible&&GBQ.grp&&GBQ.grp.visible),y:+o.position.y.toFixed(3),x:+o.position.x.toFixed(3),z:+o.position.z.toFixed(3),s:[+o.scale.x.toFixed(2),+o.scale.y.toFixed(2)],o:+o.material.opacity.toFixed(2)}:null};};
+window.dbgFigGel=function(t){GFIG.gel=t==null?null:+t;return GFIG.gel;};
 function bqBoutonMaj(){const bt=document.getElementById('gBqBtn');if(!bt)return;const s=bqEtat(),cle=s?s.e+'|'+s.t+'|'+(s.p||'')+'|'+(s.j!=null?Math.round(s.j*100):'')+'|'+LANG:'';if(bt._k===cle)return;bt._k=cle;
   bt.dataset.e=s?s.e:'';bt.innerHTML=s?('<span>'+sansAcc(TR(s.t))+'</span>'+(s.p?'<b'+(bqPxLg(s.p)?' class="lg"':'')+'>'+String(s.p).replace(/</g,'')+'</b>':'')+(s.e==='eq'?pxi('coche'):(s.e==='mis'||s.e==='chat')?pxi('droite'):s.e==='sec'?pxi('oeil'):'')+(s.e==='manque'?'<i class="bqJ" style="--v:'+s.j.toFixed(2)+'"></i>':'')):'';}
 try{Object.assign(I18N,{"VERS L'ARRIÈRE":'BACKWARD','POUCE EN ARRIÈRE':'THUMB BACK',"VERS L'AVANT":'FORWARD','SUR LES CÔTÉS':'SIDEWAYS','POUCE EN AVANT':'THUMB FORWARD','POUCE À GAUCHE OU À DROITE':'THUMB LEFT OR RIGHT'});}catch(e){} // (2026-10-15) les deux familles de figures

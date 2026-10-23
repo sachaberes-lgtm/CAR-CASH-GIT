@@ -200,6 +200,7 @@ interface/richesse-3.js              # la pluie de richesse : tirage, chaque ima
 interface/chute-libre.js             # chute libre douce et réaliste
 interface/boutique-scene-1.js        # boutique 3D : blanc laqué, son, aimant
 interface/boutique-scene-2.js        # boutique 3D : lancer dosé, bras, gestes
+interface/garage-ombre.js            # l'ombre de la caisse qui saute : empreinte sur le plateau, hauteur, emprise (garage et boutique)
 interface/garage-rendu.js            # le doigt sur la scène, garageRender
 interface/garage-cadrage.js          # cadrage mesuré, lampes de l'atelier
 interface/garage-menu-inventaire.js  # le garage est le menu, hub, accueil du ciel, l'inventaire
