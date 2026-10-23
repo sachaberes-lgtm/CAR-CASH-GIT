@@ -410,6 +410,9 @@ function dnMonumentsTires(seed){
       cuis(MO,x0,y,z0,b.r*.85/4,fl/64,b.r*.85/4,an,Math.PI/2,0);N.troncons=(N.troncons|0)+1;}}
   // LES PYRAMIDES : à gradins, lisses de calcaire, à degrés — pierre en assises, coiffe d'or, une porte sombre au pied
   for(const P of DN.pyrs)cuis(dnMod(P.st==='giza'?'pyrGiza':P.st==='cap'?'pyrCap':P.st==='rouge'?'pyrRouge':P.st==='lisse'?'pyrLisse':P.st==='etagee'?'pyrDegres':'pyrGradins'),P.x,P.y,P.z,P.hw,P.h,P.hw,P.a);
+  // LES PYRAMIDES DES REINES (2026-10-23, Léo : « des séries de pyramides, comme la photo ») : trois petites pyramides à gradins alignées au pied de chacune des deux premières grandes
+  if(DN_ACTES.on)for(let k=0;k<Math.min(2,DN.pyrs.length);k++){const P=DN.pyrs[k],ca=Math.cos(P.a),sa=Math.sin(P.a);for(let j=0;j<3;j++){const hq=P.hw*(.15-.025*j),lx=P.hw*(1.32+.12*j),lz=(j-1)*P.hw*.62,x=P.x+ca*lx+sa*lz,z=P.z-sa*lx+ca*lz,h0=dnHauteur(x,z,o9);
+    if(o9.eau||dnPresRoute(x,z,RH+hq*1.4+10,h0+hq*1.2))continue;cuis(dnMod('pyrGradins'),x,h0-2,z,hq,hq*1.15,hq,P.a+(j-1)*.05);N.reines=(N.reines|0)+1;}}
   // LES GRANDS MONUMENTS : le sphinx, les colosses et la porte regardent la route ; le temple s'aligne sur elle (colonnes, architraves, tambours tombés)
   for(const m of DN.mo){
     if(m.k==='sphinx'){const l=m.r/.55;cuis(dnMod(dnLegNom(m)),m.x,m.y,m.z,l,l,l,m.a);}
