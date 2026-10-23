@@ -48780,7 +48780,7 @@ const PWR_DEFS={ // n = nitro infinie · a = airtime infini · v = vitesse ×2 �
    #ffb040 se confondait avec la nitro ordinaire (orange) — on ne voyait pas qu'on avait le pouvoir. Un VIOLET électrique, loin du magenta de
    VITESSE ×2 : le cristal, la plaque du HUD, les bords d'écran, la jauge et son feu, la plume, la traînée et le reflet de la caisse le portent
    tous (`NINF`, lu par la boucle). Une ligne à part : l'objet ci-dessus appartient à la logique des pouvoirs. */
-Object.assign(PWR_DEFS.n,{col:0xa45cff,core:0xf1e2ff,tint:'#b06bff',c2:'#7b34f0',fx:'rgba(164,92,255,.85)',fx2:'rgba(123,52,240,.35)'});
+Object.assign(PWR_DEFS.n,{col:0xff2a10,core:0xffd8cc,tint:'#ff4a2a',c2:'#c01808',fx:'rgba(255,40,20,.85)',fx2:'rgba(200,20,8,.35)'}); /* (2026-10-23, Sacha : « la fenêtre power up nitro infini doit être rouge, pas violet ») la carte, le cristal, la plaque et les bords du pouvoir au ROUGE du départ du feu de piment */
 /* (2026-10-14, passe graphismes · étalonnage commun) LE VOILE DES BONUS, DOSÉ : les bords d'écran qui battent pendant TOUT le pouvoir (#pwrFx :
    deux ombres internes `fx` 50 px + `fx2` 150 px) recoloraient les coins et la moitié de l'image — vert sous l'aimant, magenta sous la vitesse ×2
    (9 captures sur 24 à l'audit) : la palette de la météo disparaissait. Leur force (l'alpha) est divisée par 2,5 dans une copie `bd`/`bd2`,
