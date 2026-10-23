@@ -165,9 +165,14 @@ function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au
           if(wl>46&&fr()<.8){const k9=bec(sp,cl,Math.min(52,wl-14));if(k9!=null)sp=BK_RETOMBE?Math.max(sp,k9+BK_BEC.retombe):k9+120;}}}
       else if(f<.26){const c=(fr()-.5)*14,n=3+((fr()*3)|0),pas=34+fr()*16; // LA FOURCHE : une arête au milieu, deux couloirs
         for(let j=0;j<n;j++)pic(sp+j*pas,c+(fr()-.5)*8,12+fr()*14,1.7+fr()*.8);sp+=n*pas;}
-      else if(f<.56){const lg=140+fr()*80,n=Math.round((4+((fr()*3)|0))*kRH*.75); // LE CHAMP : des pics semés, des trouées — (kRH : la largeur ÷ celle de 123 m) — (2026-10-18) 5-7 pics, au lieu de 11-18
+      else if(f<.38){ /* (2026-10-23, Sacha : « ajoute d'autres éléments de gameplay sur le glacier ») LE SLALOM : des pics en quinconce, un à gauche puis un à droite de l'axe, assez
+         serrés pour qu'il faille vraiment zigzaguer — la caisse qui glisse sur la glace se balance d'une trouée à l'autre, un rythme à prendre */
+        const c=(fr()-.5)*20,n=6+((fr()*3)|0),pas=70+fr()*20,am=15+fr()*5,sg0=fr()<.5?-1:1;
+        for(let j=0;j<n;j++)pic(sp+j*pas,c+sg0*(j%2?1:-1)*am,15+fr()*8,1.7+fr()*.5);
+        sp+=n*pas;}
+      else if(f<.62){const lg=140+fr()*80,n=Math.round((4+((fr()*3)|0))*kRH*.75); // LE CHAMP : des pics semés, des trouées — (kRH : la largeur ÷ celle de 123 m) — (2026-10-18) 5-7 pics, au lieu de 11-18
         for(let j=0,e=0;j<n&&e<n*4;e++){if(pic(sp+fr()*lg,(fr()*2-1)*(RH-10),6+fr()*14,1.4+fr()*1.2))j++;}sp+=lg;}
-      else if(f<.76){const gw=26+fr()*12,g=(fr()*2-1)*(RH*.45); // LA PORTE : deux géants, une trouée à viser
+      else if(f<.80){const gw=26+fr()*12,g=(fr()*2-1)*(RH*.45); // LA PORTE : deux géants, une trouée à viser
         for(const sg of [-1,1]){const H=26+fr()*14,pe=1.8+fr()*.6;pic(sp+(fr()-.5)*6,g+sg*(gw/2+H/pe*.85),H,pe);}sp+=40;}
       else{const sg=fr()<.5?-1:1,n=2+((fr()*2)|0); // L'ÎLOT : un massif d'un côté, le large de l'autre
         for(let j=0;j<n;j++)pic(sp+fr()*70,sg*(RH*.35+fr()*RH*.4),10+fr()*16,1.5+fr()*.9);sp+=70;}
