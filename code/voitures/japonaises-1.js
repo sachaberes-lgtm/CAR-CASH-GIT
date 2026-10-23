@@ -184,25 +184,6 @@ SHAPES.corolla=function(K){
      else if(VP==='b'){piece('k',PH,.012,-.012,sd);piece('W',LED,.020,.008,sd);}                                   // b : UN plateau mince + sa lame de LED
      else if(VP==='c'){piece('k',PH,.014,-.012,sd);piece('g',VERRE,.022,.010,sd);piece('W',LED,.028,.018,sd);}   // c : boîtier, verre brillant, LED — sans l'oeil, bas
      else{piece('k',NET,.032,-.012,sd);piece('h',VNET,.052,.024,sd);piece('W',LED2,.064,.044,sd);piece('c',ONET,.074,.040,sd);}}}   // d : les quatre étages (v. précédente)
-  /* LA FIDÈLE EN MODE TUNING (22/10, Léo : « fais-la un peu en mode tuning, comme un gars qui aurait cette voiture et voudrait la tuner ») — des pièces
-     FABRIQUÉES puis COLLÉES, chacune un bloc bien distinct, empilées comme sur LA HONTE : le becquet de pare-chocs (deux étages), les bas de caisse, le
-     diffuseur à ailettes, le becquet de malle sur deux jambes, deux prises d'air noires sur le capot. `?tuning=0` = la Fidèle d'usine. */
-  if(!(typeof location!=='undefined'&&/[?&]tuning=0/.test(location.search))){
-   const yD=(x,z)=>yDessus(x,z);
-   // devant : le becquet (une lame noire large + sa lèvre saillante), et les deux ailettes de côté
-   P.box('d',1.74,.045,.20,0,.205,2.25);P.box('q',1.70,.012,.05,0,.178,2.36);
-   for(const sd of [1,-1]){P.box('d',.05,.11,.26,sd*.84,.235,2.17,0,sd*.25,0);}
-   // les flancs : deux jupes noires (un bloc bas, une baguette claire dessus)
-   for(const sd of [1,-1]){P.box('d',.07,.10,2.12,sd*.895,.265,.04);P.box('q',.012,.014,2.12,sd*.934,.318,.04);}
-   // derrière : le diffuseur (un bloc + quatre ailettes) et la lèvre
-   P.box('d',1.30,.10,.14,0,.36,-2.29);for(const x of [-.45,-.15,.15,.45])P.box('d',.03,.13,.16,x,.33,-2.33);
-   P.box('d',1.78,.04,.12,0,.25,-2.26);
-   // la malle : le becquet sur deux jambes (la lame, deux flancs, deux montants)
-   {const yt=yD(0,-1.98);P.box('d',1.46,.035,.30,0,yt+.14,-2.04,.10,0,0);
-    for(const sd of [1,-1]){P.box('d',.03,.10,.30,sd*.73,yt+.15,-2.04,.10,0,0);P.box('d',.045,.16,.045,sd*.45,yt+.06,-2.00);}}
-   // le capot : deux prises d'air noires, à l'oblique
-   for(const sd of [1,-1]){const x=sd*.40,z=1.62,y=yD(.40,z);P.box('d',.34,.018,.30,x,y+.006,z,-.26,sd*.35,0);P.box('q',.30,.006,.012,x,y+.018,z-.10,-.26,sd*.35,0);}
-  }
   // LES RÉTROVISEURS (relevés sur les trois vues) : la coque à la couleur de la caisse, la glace vers l'arrière, le répétiteur orange devant
   P.sym(sd=>{P.box('k',.10,.035,.10,sd*.80,.885,.745,0,0,0);                              // le pied, sur la portière
     const cx=sd*.94,cy=.995,cz=.71;
