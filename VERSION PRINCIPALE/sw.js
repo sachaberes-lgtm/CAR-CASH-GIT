@@ -10,7 +10,8 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v827'; /* v827 (2026-10-23, Sacha : « la route est trop plate, montagne russe sur les collines de sable ») : dunes, pentes x1,3 et creux qui ondulent */
+const CACHE = 'cashcar-v828'; /* v828 (2026-10-23, Sacha : glacier, la courbe de difficulté — figures faciles au départ, grosses figures et rythme serré en fin de descente) */
+// const CACHE = 'cashcar-v827'; /* v827 (2026-10-23, Sacha : « la route est trop plate, montagne russe sur les collines de sable ») : dunes, pentes x1,3 et creux qui ondulent */
 // const CACHE = 'cashcar-v820'; /* v820 (2026-10-23, Sacha : glacier, plus de traversée de pic — le balayage du choc suit la vitesse) */
 // const CACHE = 'cashcar-v819'; /* v819 (2026-10-23, Sacha : « enlève les vautours ») : dunes, plus de vautours */
 // const CACHE = 'cashcar-v817'; /* v817 (2026-10-23, Sacha : « dune encore plus vallonnée, bosses plus profondes · ce rouge est mal géré ») : dunes amplitude x1,4 ; sable rouge en terre cuite moins saturé */
