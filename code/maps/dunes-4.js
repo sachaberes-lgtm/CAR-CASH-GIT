@@ -23,6 +23,8 @@ function dnPlanScenes(S,K,RH,D){
     if(c.k==='colonnade'){const sc=c.H/22,pas=26*sc*1.05,lat=RH9+8+3.8*sc+1.5;for(let s9=c.a;s9<=c.b;s9+=pas)for(const sg of [-1,1]){const q=dnPos(S,s9,sg*lat);DN.scnV.push({x:q.x,z:q.z,r:3.9*sc,h:c.H});}}
     else if(c.k==='allee'){const lat=RH9+c.len*.5+8,pas=c.len*2.2;for(let s9=c.a+c.len;s9<=c.b-c.len;s9+=pas)for(const sg of [-1,1]){const q=dnPos(S,s9,sg*lat);DN.scnV.push({x:q.x,z:q.z,r:c.len*.5,h:c.len*.5});}}
     else if(c.k==='colosses'){for(const sg of [-1,1])for(let k=0;k<2;k++){const q=dnPos(S,c.a+k*c.H*1.9,sg*(RH9+c.H*.40+8));DN.scnV.push({x:q.x,z:q.z,r:c.H*.40,h:c.H});}}
+    else if(c.k==='sphinx'){for(const f of [-.3,0,.3]){const q=dnPos(S,c.sc+f*c.L,c.sg*c.lat);DN.scnV.push({x:q.x,z:q.z,r:c.L*.15,h:c.L*.30});}
+      const P=c.py;if(P)for(const f of [.1,.3,.5,.7,.9])DN.scnV.push({x:P.x,z:P.z,r:P.hw*(1-f)*1.5,h:P.hw*1.27*f});}
     else if(c.k==='porte'){const sc=c.H/30;for(const sg of [-1,1]){const q=dnPos(S,(c.a+c.b)/2,sg*(RH9+7*sc+8));DN.scnV.push({x:q.x,z:q.z,r:c.H*.3,h:c.H});}}};
   const ajoute=(k,a,b,pw,ex)=>{DN.scn.push(Object.assign({k:k,a:Math.round(a),b:Math.round(b),pw:Math.round(pw)},ex||{}));vol(DN.scn[DN.scn.length-1]);
     for(let i=0;i<S.n;i++){const s9=i*S.ds,u=Math.max(0,Math.min(1,(s9-(a-120))/120))*Math.max(0,Math.min(1,((b+120)-s9)/120));if(u>0){const e=u*u*(3-2*u);if(S.pw[i]<pw*e)S.pw[i]=pw*e;}}};
@@ -30,9 +32,21 @@ function dnPlanScenes(S,K,RH,D){
     if(k==='porte'){const H=(38+R()*8)*Kd,sc=H/30,a=Math.max(q.a+40,Math.min(q.b-60,q.a+170+R()*Math.max(0,L9-340)));ajoute('porte',a-20,a+20,RH+22*sc+8,{H:H});return true;}
     if(k==='allee'){const len=(34+R()*10)*Kd,a=q.a+50,b=Math.min(q.b-40,a+380+R()*160);if(b-a>len*3.4){ajoute('allee',a,b,RH+len*1.0+16,{len:len});return true;}return false;}
     if(k==='colonnade'){const Hc=(36+R()*10)*Kc,sc=Hc/22,a=q.a+70,b=Math.min(q.b-40,a+360+R()*170);if(b-a>sc*26*5){ajoute('colonnade',a,b,RH+8+3.8*sc*2.2+10,{H:Hc});return true;}return false;}
+    if(k==='sphinx'){const Ls=Math.min((190+R()*60)*Kd,(L9-60)/1.25),lat=RH+36+.46*Ls,sg=R()<.5?-1:1,hw=(200+R()*80)*Kd,sc=Math.max(q.a+Ls*.6+30,q.a+L9*.42);
+      if(Ls<150||sc+Ls*.6>q.b-20)return false;const sH=sc-Ls*.3,H=dnPos(S,sH,sg*lat),dd=Math.hypot(330,lat),d0=330/dd,d1=sg*lat/dd,dist=hw*1.4+80;
+      let ps=sH+d0*dist,pl=sg*lat+d1*dist;const minL=RH+hw*1.1+40;if(Math.abs(pl)<minL)pl=sg*minL;const Pp=dnPos(S,ps,pl);
+      ajoute('sphinx',sc-Ls*.6,sc+Ls*.6,lat+.46*Ls+20,{L:Ls,lat:lat,sg:sg,sc:sc,py:{x:Pp.x,z:Pp.z,hw:hw,t:Pp.t}});return true;}
     if(k==='colosses'){const H=(50+R()*12)*Kd,a=q.a+60+R()*Math.max(0,L9-H*3.4-120),b=a+H*1.9+40;if(b<q.b-30){ajoute('colosses',a,b,RH+H*.8+18,{H:H});return true;}return false;}
     return false;};
-  // UN LIEU, UNE SCÈNE : le DÉPART a sa porte ; l'ARRIVÉE sa colonnade (4 fois sur 5, sinon une allée) ; l'ALLÉE des obélisques porte l'allée des sphinx ; la PLACE, les colosses (ou une colonnade) ; les autres creux, parfois une porte
+  // LES ACTES (2026-10-23, Léo : « brouillon : l'organisation et l'harmonie ») : UN décor par lieu, du VIDE entre les actes. I le désert nu (le départ, la 1re vague : rien près de la route) · II LA PLACE : le GRAND SPHINX et sa pyramide ·
+  // III L'ALLÉE : les sphinx-chats et les obélisques · IV LA VALLÉE D'ARGILE : la rangée des dieux · V la fin : l'oasis (rien près de la route) puis les pyramides au loin. `?sans=dunesactes` : le plan d'avant.
+  if(DN_ACTES.on){const vlei=seg.some(function(q){return q.sp==='vlei';});
+    for(const q of seg){if(q.sp==='plaza'){if(!faire('sphinx',q))faire('colosses',q);}
+      else if(q.sp==='avenue'){if(!faire('allee',q))faire('colosses',q);}
+      else if(q.sp==='vlei')faire('colosses',q);}
+    if(!vlei){const ry=seg.filter(function(q){return q.sp==='rythme';});for(const q of ry)if(faire('colosses',q))break;} /* pas de vallée d'argile : les dieux prennent un creux de bosses (jamais l'oasis) */
+    return;}
+  // UN LIEU, UNE SCÈNE (le plan d'avant) : le DÉPART a sa porte ; l'ARRIVÉE sa colonnade (4 fois sur 5, sinon une allée) ; l'ALLÉE des obélisques porte l'allée des sphinx ; la PLACE, les colosses (ou une colonnade) ; les autres creux, parfois une porte
   for(const q of seg){if(q.k==='depart')faire('porte',q);
     else if(q.k==='fin'){if(R()<.8){if(!faire('colonnade',q))faire('allee',q);}else faire('allee',q);}
     else if(q.sp==='avenue'){if(!faire('allee',q))faire('colosses',q);}
@@ -63,6 +77,12 @@ function dnScenes(X){
   // LA RANGÉE DE COLOSSES : quatre statues assises (deux de chaque côté) qui regardent la route — des dieux à tête d'animal, ou le pharaon (dunes-dieux.js : dnDieuxTirage)
   const colosses=(a,H)=>{let n=0;for(const sg of [-1,1])for(let k=0;k<2;k++){const q=dnPos(S,a+k*H*1.9,sg*(RH+H*.40+8));if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,H*.8,q.t);if(yb==null)continue;
       const ar=Math.atan2(S.x[q.i]-q.x,S.z[q.i]-q.z);cuis(M(dnColosseNom((sg<0?0:2)+k)),q.x,yb,q.z,H,H,H,ar);kill('colosse',q.x,yb,q.z,H*.40,H*1.32);n++;}N.colosses=n;N.sc.push(['colosses',Math.round(a),Math.round(a+H*1.9)]);};
+  // LE GRAND SPHINX (dunes-gizeh.js) : au bord de la place, le regard tourné vers les voitures qui arrivent (et un peu vers la route), sa grande pyramide DERRIÈRE lui dans l'axe de la vue
+  const sphinx=(c)=>{const L9=c.L,q=dnPos(S,c.sc,c.sg*c.lat),yb=dnAssise(cuis,q.x,q.z,q.yr,L9*.6,q.t);if(yb==null)return;const ar=q.t+Math.PI-c.sg*.26,ca=Math.sin(ar),sa=Math.cos(ar);
+    cuis(M('sphinxGrand'),q.x,yb,q.z,L9,L9,L9,ar);for(const f of [-.3,0,.3])kill('sphinx',q.x+ca*f*L9,yb,q.z+sa*f*L9,L9*.15,L9*.40);N.sphinx=Math.round(L9);
+    const P=c.py;if(P){const y9=Math.min(dnHauteur(P.x+P.hw*.8,P.z+P.hw*.8),dnHauteur(P.x-P.hw*.8,P.z-P.hw*.8),dnHauteur(P.x+P.hw*.8,P.z-P.hw*.8),dnHauteur(P.x-P.hw*.8,P.z+P.hw*.8));
+      cuis(M(c.sg<0?'pyrCap':'pyrGiza'),P.x,y9-14,P.z,P.hw,P.hw*1.27,P.hw,P.t+.35);N.pyrSphinx=Math.round(P.hw);}
+    N.sc.push(['sphinx',Math.round(c.sc-L9*.6),Math.round(c.sc+L9*.6)]);};
   // LA PORTE : deux pylônes de part et d'autre de la route, la baie le long d'elle
   const porte=(a,H)=>{const sc=H/30;for(const sg of [-1,1]){const q=dnPos(S,a,sg*(RH+7*sc+8));if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,H*.6,q.t);if(yb==null)continue;
       cuis(M('pylone'),q.x,yb,q.z,sc,sc,sc,q.t);kill('pylone',q.x,yb,q.z,H*.3,H);}
@@ -73,11 +93,11 @@ function dnScenes(X){
   const braise=(s,lat0,h)=>{for(const sg of [-1,1]){const q=dnPos(S,s,sg*lat0);if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,h*.5,q.t);if(yb==null)continue;cuis(M('brasero'),q.x,yb,q.z,h,h,h,q.t);N.braseros=(N.braseros|0)+1;}};
   // LES PORTES DU CIEL (2026-10-22, Léo : « le joueur peut piquer en bas ou décoller ») : à chaque crête, deux obélisques de part et d'autre de la route, juste avant l'apex — le tremplin se lit de loin (l'Akhet, le signe de
   // l'horizon : le soleil se lève entre deux monts)
-  {let n=0;for(const v of DN.lev||[]){if(v.tag==='bosse')continue;for(const sg of [-1,1]){const q=dnPos(S,v.s-12,sg*(RH+8));if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,9,q.t);if(yb==null)continue;
+  {let n=0;for(const v of DN.lev||[]){if(v.tag==='bosse')continue;if(DN_ACTES.on&&v.tag!=='grande'){braise(v.s-40,RH+5,3.4);continue;}for(const sg of [-1,1]){const q=dnPos(S,v.s-12,sg*(RH+8));if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,9,q.t);if(yb==null)continue;
       const hs=(26+rg()*8)*Math.min(1.2,K);cuis(M('obelisque'),q.x,yb,q.z,hs/64*1.1,hs/64,hs/64*1.1,q.t);kill('obelisque',q.x,yb,q.z,4.6,hs);n++;}braise(v.s-40,RH+5,3.4);braise(v.s+30,RH+5,3.4);}N.portiques=n;}
-  for(const c of DN.scn){if(c.k==='porte')porte((c.a+c.b)/2,c.H);else if(c.k==='allee')allee(c.a,c.b,c.len);else if(c.k==='colonnade')colonnade(c.a,c.b,c.H);else if(c.k==='colosses')colosses(c.a,c.H);}
+  for(const c of DN.scn){if(c.k==='porte')porte((c.a+c.b)/2,c.H);else if(c.k==='allee')allee(c.a,c.b,c.len);else if(c.k==='colonnade')colonnade(c.a,c.b,c.H);else if(c.k==='colosses')colosses(c.a,c.H);else if(c.k==='sphinx')sphinx(c);}
   // LES RUINES : des tambours, des têtes, des blocs, de part et d'autre, à 10-70 m du bord, sur chaque tronçon
-  const seg=dnTroncons();let nr=0;for(const q of seg){const n9=Math.round((q.b-q.a)/38*PAL.b('dnRuines',1));for(let k=0;k<n9;k++){const s=q.a+rg()*(q.b-q.a),sg=rg()<.5?-1:1,lat=RH+10+rg()*rg()*60,p=dnPos(S,s,sg*lat);if(S.gd[p.i]>.01)continue;const g=dnHauteur(p.x,p.z,o9s);if(o9s.eau)continue;
+  const seg=dnTroncons();let nr=0;for(const q of seg){const n9=Math.round((q.b-q.a)/38*PAL.b('dnRuines',1)*(DN_ACTES.on?((q.sp==='vlei'||q.sp==='avenue')?.6:0):1));for(let k=0;k<n9;k++){const s=q.a+rg()*(q.b-q.a),sg=rg()<.5?-1:1,lat=RH+10+rg()*rg()*60,p=dnPos(S,s,sg*lat);if(S.gd[p.i]>.01)continue;const g=dnHauteur(p.x,p.z,o9s);if(o9s.eau)continue;
       const r=rg();if(r<.45){const sc=(1.4+rg()*1.6)*K*.8;cuis(M('tambour'),p.x,g+.25*sc,p.z,sc,sc*(1.2+rg()*.8),sc,rg()*6.28,Math.PI/2,rg()*2);}
       else if(r<.62){const sc=(4+rg()*5)*K*.8;cuis(M(dnTeteNom(p)),p.x,g-sc*.42,p.z,sc,sc,sc,Math.atan2(S.x[p.i]-p.x,S.z[p.i]-p.z)+(rg()-.5)*.8,(rg()-.5)*.5,(rg()-.4)*.4);}
       else{const sc=(2+rg()*4)*K*.8;cuis(M('bloc'),p.x,g-.4,p.z,sc*(1+rg()),sc*(.6+rg()*.6),sc*(1+rg()),rg()*6.28,(rg()-.5)*.4,(rg()-.5)*.4,[.88,.76,.58]);}nr++;}}N.ruines=nr;}

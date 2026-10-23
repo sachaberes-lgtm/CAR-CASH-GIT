@@ -17857,6 +17857,7 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
 }
 /* LA DUNE — la même fonction que la puce (dnDune du GLSL), lue dans le même bruit (cyNz) : W = [vent x, vent z, houle x, houle z], lam = la longueur
    d'onde (m). Rend la hauteur relative (0 au creux, ~1 au sommet) ; o.du (facultatif) = le profil de la grande dune seule (1 sur la crête). */
+const DN_ACTES={on:!/[?&]sans=([^&]*,)?dunesactes(,|&|$)/.test(location.search)}; /* (2026-10-23, Léo : « brouillon… l'organisation et l'harmonie » → un VOYAGE EN ACTES) `?sans=dunesactes` = le tirage d'avant (un peu de tout partout) */
 const DN_STAR=!/[?&]sans=([^&]*,)?dunesetoile(,|&|$)/.test(location.search); /* `?sans=dunesetoile` : le désert d'avant (crêtes parallèles partout) */
 function dnDune(x,z,W,lam,o){ /* (le bruit lu aux SEULES grandes échelles, canal 0 : la 1re version lisait les canaux fins — 3 à 100 m — et faisait de la roche, MESURÉ au relief ombré hors GPU) */
   const u=(x*W[0]+z*W[1])/lam,v=-x*W[1]+z*W[0],w1=cyNz(x/30000,z/30000,0)-.5,w2=cyNz(x/11000+.37,z/11000+.61,0)-.5,w3=cyNz(x/5200+.83,z/5200+.17,0)-.5;
@@ -18055,6 +18056,10 @@ function dnTirage(seed){let h9=Math.imul((seed^0xDEC0D5)>>>0,0x9E3779B1);h9^=h9>
   D.flore={acacias:+ch([0,.5,1,1.6],[.8,1.5,2,1.2]).toFixed(2),epars:ch([0,12,30],[1.5,1.5,1]),palmeraies:ch([0,1,2],[1.4,1.6,.8]),touffes:ch([0,90,220],[1,1.6,1.4]),cactus:rd()<.22?ent(10,30):0};
   D.oasis={nm:ch(['normale','petite','grande','mirage'],[2,1.3,1.3,1]),k:1};D.oasis.k={normale:1,petite:.62,grande:1.4,mirage:0}[D.oasis.nm];
   D.tornades=ch([0,1,2,3],[1.6,1.4,1,.6]);D.tempete=rd()<.3?{a:+(rd()*6.28).toFixed(2)}:null;D.os=ch([0,1,3,5],[1.4,1.5,1.2,.7]);D.avion=rd()<.25;D.bateau=rd()<.25;
+  /* LES ACTES : un décor DOMINANT par lieu (dunes-4.js, dnPlanScenes : le grand sphinx sur la place, l'allée, les dieux dans la vallée d'argile…) ; ici on retire l'éparpillement — plus de grands monuments isolés (les scènes les remplacent), ni village,
+     campements, obélisques épars, os, épave, cactus, palmeraies éparses ; UN seul élément d'ambiance par map (une caravane au loin OU un diable de sable, ou rien : tiré par D.sd) */
+  if(DN_ACTES.on){D.sphinx=false;D.colosses=0;D.temple=false;D.portes=0;D.village=false;D.camps=0;D.epars={k:0,br:0};D.os=0;D.avion=false;D.bateau=false;
+    const am=D.sd%3;D.caravanes=am===0&&D.caravanes.length?[D.caravanes[0]]:[];D.tornades=am===1?1:0;D.flore.epars=0;D.flore.cactus=0;D.flore.palmeraies=0;D.flore.acacias=Math.min(D.flore.acacias,.5);}
   return D;}
 function buildDunes(seed){
   dnEteindre();DN.job=(DN.job||0)+1;
@@ -18567,6 +18572,9 @@ function dnMonumentsTires(seed){
       cuis(MO,x0,y,z0,b.r*.85/4,fl/64,b.r*.85/4,an,Math.PI/2,0);N.troncons=(N.troncons|0)+1;}}
   // LES PYRAMIDES : à gradins, lisses de calcaire, à degrés — pierre en assises, coiffe d'or, une porte sombre au pied
   for(const P of DN.pyrs)cuis(dnMod(P.st==='giza'?'pyrGiza':P.st==='cap'?'pyrCap':P.st==='rouge'?'pyrRouge':P.st==='lisse'?'pyrLisse':P.st==='etagee'?'pyrDegres':'pyrGradins'),P.x,P.y,P.z,P.hw,P.h,P.hw,P.a);
+  // LES PYRAMIDES DES REINES (2026-10-23, Léo : « des séries de pyramides, comme la photo ») : trois petites pyramides à gradins alignées au pied de chacune des deux premières grandes
+  if(DN_ACTES.on)for(let k=0;k<Math.min(2,DN.pyrs.length);k++){const P=DN.pyrs[k],ca=Math.cos(P.a),sa=Math.sin(P.a);for(let j=0;j<3;j++){const hq=P.hw*(.15-.025*j),lx=P.hw*(1.32+.12*j),lz=(j-1)*P.hw*.62,x=P.x+ca*lx+sa*lz,z=P.z-sa*lx+ca*lz,h0=dnHauteur(x,z,o9);
+    if(o9.eau||dnPresRoute(x,z,RH+hq*1.4+10,h0+hq*1.2))continue;cuis(dnMod('pyrGradins'),x,h0-2,z,hq,hq*1.15,hq,P.a+(j-1)*.05);N.reines=(N.reines|0)+1;}}
   // LES GRANDS MONUMENTS : le sphinx, les colosses et la porte regardent la route ; le temple s'aligne sur elle (colonnes, architraves, tambours tombés)
   for(const m of DN.mo){
     if(m.k==='sphinx'){const l=m.r/.55;cuis(dnMod(dnLegNom(m)),m.x,m.y,m.z,l,l,l,m.a);}
@@ -19121,6 +19129,35 @@ function dnNomDieu(k){return DN_DIEUX.nom[k]||'pharaon';}
 function dnColosseNom(i){return DN_DIEUX.on?dnNomDieu(dnDieuxTirage().col[i&3]):'pharaon';}
 function dnSphinxNom(i,sg){if(!DN_DIEUX.on)return 'sphinx';const T=dnDieuxTirage();return 'sphinxChat'+T.sph[i%T.sph.length]+(sg<0?'g':'d');}
 function dnLegNom(m){if(!DN_DIEUX.on)return m.k==='sphinx'?'sphinx':'colosse';const T=dnDieuxTirage();if(m.k==='sphinx')return 'sphinxChat'+T.sphD[0]+(Math.sin(m.t-m.a)<0?'g':'d');return dnNomDieu(T.leg[(Math.abs(Math.round(m.x*.37+m.z*.61)))%T.leg.length]);}
+/* ===== LE GRAND SPHINX ET LES PYRAMIDES EN SÉRIE (2026-10-23, Léo : « je veux un sphinx comme ça qui prend BEAUCOUP de place · des séries de pyramides · un voyage en actes ») =====
+   `sphinxGrand` : le vrai Sphinx de Gizeh (corps de lion couché en assises de calcaire, croupe, dos, poitrail, pattes avant tendues à doigts, queue sur le flanc ; tête au némès rayé, visage de face au nez
+   abîmé, yeux et bouche sombres, oreilles, uræus brisé) dans sa fosse de calcaire, avec son petit temple entre les pattes. Long 1, face à +z, haut ~ .39 : la scène l'agrandit à 150-200 m (dunes-4.js, scène
+   `sphinx`) — il se pose au bord de la place, le regard vers la route, et sa grande pyramide DERRIÈRE lui. Facettes franches (boîtes et troncs de pyramide : la matière des décors les éclaire à plat).
+   `?sans=dunesactes` rend le tirage d'avant (dunes-1.js dnTirage, dunes-4.js dnPlanScenes). Console : `dbgDunes('galerie', s, ['sphinxGrand'])`. */
+function dnSphinxGrand(){const g=dnKit(77),C=DN_COL,gr=[1,.91,.75],g2=[.95,.81,.64],cal=[1,.96,.84],cal2=[.96,.90,.74],face=[1,.89,.75],noir=[.20,.12,.10];
+  // la fosse : le fond, trois murs bas à gradins, le petit temple entre les pattes (marches, cella dorée)
+  g.box(0,0,.02,.62,.014,1.18,cal2,1,1);g.box(-.30,.014,.02,.03,.075,1.18,cal,1);g.box(.30,.014,.02,.03,.075,1.18,cal,1);g.box(0,.014,-.57,.62,.075,.03,cal,1);g.box(-.30,.089,.02,.034,.02,1.18,cal2,1);g.box(.30,.089,.02,.034,.02,1.18,cal2,1);
+  g.box(0,.014,.60,.20,.03,.16,cal,1);g.box(0,.044,.60,.15,.03,.12,cal2,1);g.box(0,.074,.60,.09,.034,.07,[.96,.74,.30],3);
+  // le corps : trois masses (croupe, dos, poitrail) en troncs de pyramide, des assises sur les flancs (une ligne sombre tous les .03)
+  const st=(cz,d0,w0,n,dw,col,y0)=>{for(let i=0;i<n;i++)g.box(0,(y0==null?.014:y0)+i*.03,cz,w0-dw*i,.03,d0-dw*i*.7,i&1?col[1]:col[0],1,i===0);};
+  st(-.35,.30,.31,9,.012,[gr,g2]);st(-.08,.34,.29,8,.010,[g2,gr]);st(.12,.26,.27,9,.011,[gr,g2]);
+  for(let i=0;i<8;i++){const y=.03+i*.03;for(const sx of [-1,1]){g.box(sx*.140-sx*.006*i,y+.02,-.33,.008,.006,.26,[.62,.48,.36],0);g.box(sx*.128-sx*.005*i,y+.02,-.07,.008,.006,.30,[.62,.48,.36],0);}}
+  g.tube([.11,.05,-.49],[.17,.07,-.39],.018,.014,5,gr,1,1);g.tube([.17,.07,-.39],[.16,.17,-.30],.014,.010,5,gr,1,1);       // la queue, enroulée sur la hanche
+  // les pattes avant : deux avant-bras, le poignet, trois doigts chacune
+  for(const sx of [-1,1]){g.box(sx*.082,.014,.32,.064,.052,.40,gr,1);g.box(sx*.082,.066,.22,.060,.022,.22,g2,1);g.box(sx*.082,.014,.55,.066,.040,.10,g2,1);
+    for(let j=-1;j<=1;j++)g.box(sx*.082+j*.022,.014,.615,.020,.030,.05,gr,1);g.box(sx*.082,.014,.575,.070,.012,.012,noir,0);}
+  // le cou et la tête : le némès (assises alternées, lappets sur les épaules), la face, le nez abîmé, les yeux, la bouche, l'oreille, l'uræus brisé
+  g.box(0,.27,.17,.13,.05,.12,gr,1);
+  g.push();g.T(0,.045,0);
+  for(let i=0;i<7;i++)g.box(0,.27+i*.0215,.17,.158-.0045*i,.0215,.128-.002*i,i&1?gr:g2,1);
+  g.box(0,.42,.17,.12,.014,.105,g2,1);g.box(0,.434,.185,.03,.022,.03,[.70,.52,.36],1);
+  for(const sx of [-1,1]){g.box(sx*.089,.205,.19,.032,.135,.10,g2,1);g.box(sx*.093,.205,.245,.026,.11,.03,gr,1);g.box(sx*.058,.335,.205,.016,.05,.024,gr,1);}
+  g.box(0,.285,.238,.088,.125,.052,face,5);g.box(0,.33,.266,.074,.05,.012,face,5);g.box(0,.298,.268,.024,.045,.026,face,5);g.box(0,.288,.282,.016,.016,.012,noir,0);       // le visage, le front, l'arête du nez, le trou du nez abîmé
+  for(const sx of [-1,1]){g.box(sx*.025,.328,.275,.024,.010,.008,noir,0);g.box(sx*.040,.338,.272,.020,.006,.008,[.60,.40,.30],0);g.box(sx*.042,.298,.262,.018,.034,.010,[.80,.62,.50],5);}
+  g.box(0,.27,.272,.044,.007,.008,noir,0);g.box(0,.262,.268,.036,.012,.012,[.80,.62,.50],5);
+  g.pop();return g.fin();}
+Object.assign(DN_MOD,{sphinxGrand:function(){return dnSphinxGrand();}});
+Object.assign(DN_ECH,{sphinxGrand:60});
 /* ===== LES SCÈNES DES DUNES (2026-10-22, Léo : « le niveau dune n'est pas au niveau — observe jade, la grotte et la forêt ») =====
    Une MAP A DES LIEUX : jade a ses piliers, la forêt ses géants, la grotte ses salles. Les dunes en ont désormais — chaque tronçon calme de la route (le départ, un creux entre deux vagues, la dernière droite) peut recevoir une SCÈNE, tirée
    dans le flux du décor (`D.sd`) : LA PORTE DU DÉPART (deux pylônes de part et d'autre de la route, les mâts et leurs oriflammes), L'ALLÉE DES SPHINX (des paires qui regardent la route, des
@@ -19146,6 +19183,8 @@ function dnPlanScenes(S,K,RH,D){
     if(c.k==='colonnade'){const sc=c.H/22,pas=26*sc*1.05,lat=RH9+8+3.8*sc+1.5;for(let s9=c.a;s9<=c.b;s9+=pas)for(const sg of [-1,1]){const q=dnPos(S,s9,sg*lat);DN.scnV.push({x:q.x,z:q.z,r:3.9*sc,h:c.H});}}
     else if(c.k==='allee'){const lat=RH9+c.len*.5+8,pas=c.len*2.2;for(let s9=c.a+c.len;s9<=c.b-c.len;s9+=pas)for(const sg of [-1,1]){const q=dnPos(S,s9,sg*lat);DN.scnV.push({x:q.x,z:q.z,r:c.len*.5,h:c.len*.5});}}
     else if(c.k==='colosses'){for(const sg of [-1,1])for(let k=0;k<2;k++){const q=dnPos(S,c.a+k*c.H*1.9,sg*(RH9+c.H*.40+8));DN.scnV.push({x:q.x,z:q.z,r:c.H*.40,h:c.H});}}
+    else if(c.k==='sphinx'){for(const f of [-.3,0,.3]){const q=dnPos(S,c.sc+f*c.L,c.sg*c.lat);DN.scnV.push({x:q.x,z:q.z,r:c.L*.15,h:c.L*.30});}
+      const P=c.py;if(P)for(const f of [.1,.3,.5,.7,.9])DN.scnV.push({x:P.x,z:P.z,r:P.hw*(1-f)*1.5,h:P.hw*1.27*f});}
     else if(c.k==='porte'){const sc=c.H/30;for(const sg of [-1,1]){const q=dnPos(S,(c.a+c.b)/2,sg*(RH9+7*sc+8));DN.scnV.push({x:q.x,z:q.z,r:c.H*.3,h:c.H});}}};
   const ajoute=(k,a,b,pw,ex)=>{DN.scn.push(Object.assign({k:k,a:Math.round(a),b:Math.round(b),pw:Math.round(pw)},ex||{}));vol(DN.scn[DN.scn.length-1]);
     for(let i=0;i<S.n;i++){const s9=i*S.ds,u=Math.max(0,Math.min(1,(s9-(a-120))/120))*Math.max(0,Math.min(1,((b+120)-s9)/120));if(u>0){const e=u*u*(3-2*u);if(S.pw[i]<pw*e)S.pw[i]=pw*e;}}};
@@ -19153,9 +19192,21 @@ function dnPlanScenes(S,K,RH,D){
     if(k==='porte'){const H=(38+R()*8)*Kd,sc=H/30,a=Math.max(q.a+40,Math.min(q.b-60,q.a+170+R()*Math.max(0,L9-340)));ajoute('porte',a-20,a+20,RH+22*sc+8,{H:H});return true;}
     if(k==='allee'){const len=(34+R()*10)*Kd,a=q.a+50,b=Math.min(q.b-40,a+380+R()*160);if(b-a>len*3.4){ajoute('allee',a,b,RH+len*1.0+16,{len:len});return true;}return false;}
     if(k==='colonnade'){const Hc=(36+R()*10)*Kc,sc=Hc/22,a=q.a+70,b=Math.min(q.b-40,a+360+R()*170);if(b-a>sc*26*5){ajoute('colonnade',a,b,RH+8+3.8*sc*2.2+10,{H:Hc});return true;}return false;}
+    if(k==='sphinx'){const Ls=Math.min((190+R()*60)*Kd,(L9-60)/1.25),lat=RH+36+.46*Ls,sg=R()<.5?-1:1,hw=(200+R()*80)*Kd,sc=Math.max(q.a+Ls*.6+30,q.a+L9*.42);
+      if(Ls<150||sc+Ls*.6>q.b-20)return false;const sH=sc-Ls*.3,H=dnPos(S,sH,sg*lat),dd=Math.hypot(330,lat),d0=330/dd,d1=sg*lat/dd,dist=hw*1.4+80;
+      let ps=sH+d0*dist,pl=sg*lat+d1*dist;const minL=RH+hw*1.1+40;if(Math.abs(pl)<minL)pl=sg*minL;const Pp=dnPos(S,ps,pl);
+      ajoute('sphinx',sc-Ls*.6,sc+Ls*.6,lat+.46*Ls+20,{L:Ls,lat:lat,sg:sg,sc:sc,py:{x:Pp.x,z:Pp.z,hw:hw,t:Pp.t}});return true;}
     if(k==='colosses'){const H=(50+R()*12)*Kd,a=q.a+60+R()*Math.max(0,L9-H*3.4-120),b=a+H*1.9+40;if(b<q.b-30){ajoute('colosses',a,b,RH+H*.8+18,{H:H});return true;}return false;}
     return false;};
-  // UN LIEU, UNE SCÈNE : le DÉPART a sa porte ; l'ARRIVÉE sa colonnade (4 fois sur 5, sinon une allée) ; l'ALLÉE des obélisques porte l'allée des sphinx ; la PLACE, les colosses (ou une colonnade) ; les autres creux, parfois une porte
+  // LES ACTES (2026-10-23, Léo : « brouillon : l'organisation et l'harmonie ») : UN décor par lieu, du VIDE entre les actes. I le désert nu (le départ, la 1re vague : rien près de la route) · II LA PLACE : le GRAND SPHINX et sa pyramide ·
+  // III L'ALLÉE : les sphinx-chats et les obélisques · IV LA VALLÉE D'ARGILE : la rangée des dieux · V la fin : l'oasis (rien près de la route) puis les pyramides au loin. `?sans=dunesactes` : le plan d'avant.
+  if(DN_ACTES.on){const vlei=seg.some(function(q){return q.sp==='vlei';});
+    for(const q of seg){if(q.sp==='plaza'){if(!faire('sphinx',q))faire('colosses',q);}
+      else if(q.sp==='avenue'){if(!faire('allee',q))faire('colosses',q);}
+      else if(q.sp==='vlei')faire('colosses',q);}
+    if(!vlei){const ry=seg.filter(function(q){return q.sp==='rythme';});for(const q of ry)if(faire('colosses',q))break;} /* pas de vallée d'argile : les dieux prennent un creux de bosses (jamais l'oasis) */
+    return;}
+  // UN LIEU, UNE SCÈNE (le plan d'avant) : le DÉPART a sa porte ; l'ARRIVÉE sa colonnade (4 fois sur 5, sinon une allée) ; l'ALLÉE des obélisques porte l'allée des sphinx ; la PLACE, les colosses (ou une colonnade) ; les autres creux, parfois une porte
   for(const q of seg){if(q.k==='depart')faire('porte',q);
     else if(q.k==='fin'){if(R()<.8){if(!faire('colonnade',q))faire('allee',q);}else faire('allee',q);}
     else if(q.sp==='avenue'){if(!faire('allee',q))faire('colosses',q);}
@@ -19186,6 +19237,12 @@ function dnScenes(X){
   // LA RANGÉE DE COLOSSES : quatre statues assises (deux de chaque côté) qui regardent la route — des dieux à tête d'animal, ou le pharaon (dunes-dieux.js : dnDieuxTirage)
   const colosses=(a,H)=>{let n=0;for(const sg of [-1,1])for(let k=0;k<2;k++){const q=dnPos(S,a+k*H*1.9,sg*(RH+H*.40+8));if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,H*.8,q.t);if(yb==null)continue;
       const ar=Math.atan2(S.x[q.i]-q.x,S.z[q.i]-q.z);cuis(M(dnColosseNom((sg<0?0:2)+k)),q.x,yb,q.z,H,H,H,ar);kill('colosse',q.x,yb,q.z,H*.40,H*1.32);n++;}N.colosses=n;N.sc.push(['colosses',Math.round(a),Math.round(a+H*1.9)]);};
+  // LE GRAND SPHINX (dunes-gizeh.js) : au bord de la place, le regard tourné vers les voitures qui arrivent (et un peu vers la route), sa grande pyramide DERRIÈRE lui dans l'axe de la vue
+  const sphinx=(c)=>{const L9=c.L,q=dnPos(S,c.sc,c.sg*c.lat),yb=dnAssise(cuis,q.x,q.z,q.yr,L9*.6,q.t);if(yb==null)return;const ar=q.t+Math.PI-c.sg*.26,ca=Math.sin(ar),sa=Math.cos(ar);
+    cuis(M('sphinxGrand'),q.x,yb,q.z,L9,L9,L9,ar);for(const f of [-.3,0,.3])kill('sphinx',q.x+ca*f*L9,yb,q.z+sa*f*L9,L9*.15,L9*.40);N.sphinx=Math.round(L9);
+    const P=c.py;if(P){const y9=Math.min(dnHauteur(P.x+P.hw*.8,P.z+P.hw*.8),dnHauteur(P.x-P.hw*.8,P.z-P.hw*.8),dnHauteur(P.x+P.hw*.8,P.z-P.hw*.8),dnHauteur(P.x-P.hw*.8,P.z+P.hw*.8));
+      cuis(M(c.sg<0?'pyrCap':'pyrGiza'),P.x,y9-14,P.z,P.hw,P.hw*1.27,P.hw,P.t+.35);N.pyrSphinx=Math.round(P.hw);}
+    N.sc.push(['sphinx',Math.round(c.sc-L9*.6),Math.round(c.sc+L9*.6)]);};
   // LA PORTE : deux pylônes de part et d'autre de la route, la baie le long d'elle
   const porte=(a,H)=>{const sc=H/30;for(const sg of [-1,1]){const q=dnPos(S,a,sg*(RH+7*sc+8));if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,H*.6,q.t);if(yb==null)continue;
       cuis(M('pylone'),q.x,yb,q.z,sc,sc,sc,q.t);kill('pylone',q.x,yb,q.z,H*.3,H);}
@@ -19196,11 +19253,11 @@ function dnScenes(X){
   const braise=(s,lat0,h)=>{for(const sg of [-1,1]){const q=dnPos(S,s,sg*lat0);if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,h*.5,q.t);if(yb==null)continue;cuis(M('brasero'),q.x,yb,q.z,h,h,h,q.t);N.braseros=(N.braseros|0)+1;}};
   // LES PORTES DU CIEL (2026-10-22, Léo : « le joueur peut piquer en bas ou décoller ») : à chaque crête, deux obélisques de part et d'autre de la route, juste avant l'apex — le tremplin se lit de loin (l'Akhet, le signe de
   // l'horizon : le soleil se lève entre deux monts)
-  {let n=0;for(const v of DN.lev||[]){if(v.tag==='bosse')continue;for(const sg of [-1,1]){const q=dnPos(S,v.s-12,sg*(RH+8));if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,9,q.t);if(yb==null)continue;
+  {let n=0;for(const v of DN.lev||[]){if(v.tag==='bosse')continue;if(DN_ACTES.on&&v.tag!=='grande'){braise(v.s-40,RH+5,3.4);continue;}for(const sg of [-1,1]){const q=dnPos(S,v.s-12,sg*(RH+8));if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,9,q.t);if(yb==null)continue;
       const hs=(26+rg()*8)*Math.min(1.2,K);cuis(M('obelisque'),q.x,yb,q.z,hs/64*1.1,hs/64,hs/64*1.1,q.t);kill('obelisque',q.x,yb,q.z,4.6,hs);n++;}braise(v.s-40,RH+5,3.4);braise(v.s+30,RH+5,3.4);}N.portiques=n;}
-  for(const c of DN.scn){if(c.k==='porte')porte((c.a+c.b)/2,c.H);else if(c.k==='allee')allee(c.a,c.b,c.len);else if(c.k==='colonnade')colonnade(c.a,c.b,c.H);else if(c.k==='colosses')colosses(c.a,c.H);}
+  for(const c of DN.scn){if(c.k==='porte')porte((c.a+c.b)/2,c.H);else if(c.k==='allee')allee(c.a,c.b,c.len);else if(c.k==='colonnade')colonnade(c.a,c.b,c.H);else if(c.k==='colosses')colosses(c.a,c.H);else if(c.k==='sphinx')sphinx(c);}
   // LES RUINES : des tambours, des têtes, des blocs, de part et d'autre, à 10-70 m du bord, sur chaque tronçon
-  const seg=dnTroncons();let nr=0;for(const q of seg){const n9=Math.round((q.b-q.a)/38*PAL.b('dnRuines',1));for(let k=0;k<n9;k++){const s=q.a+rg()*(q.b-q.a),sg=rg()<.5?-1:1,lat=RH+10+rg()*rg()*60,p=dnPos(S,s,sg*lat);if(S.gd[p.i]>.01)continue;const g=dnHauteur(p.x,p.z,o9s);if(o9s.eau)continue;
+  const seg=dnTroncons();let nr=0;for(const q of seg){const n9=Math.round((q.b-q.a)/38*PAL.b('dnRuines',1)*(DN_ACTES.on?((q.sp==='vlei'||q.sp==='avenue')?.6:0):1));for(let k=0;k<n9;k++){const s=q.a+rg()*(q.b-q.a),sg=rg()<.5?-1:1,lat=RH+10+rg()*rg()*60,p=dnPos(S,s,sg*lat);if(S.gd[p.i]>.01)continue;const g=dnHauteur(p.x,p.z,o9s);if(o9s.eau)continue;
       const r=rg();if(r<.45){const sc=(1.4+rg()*1.6)*K*.8;cuis(M('tambour'),p.x,g+.25*sc,p.z,sc,sc*(1.2+rg()*.8),sc,rg()*6.28,Math.PI/2,rg()*2);}
       else if(r<.62){const sc=(4+rg()*5)*K*.8;cuis(M(dnTeteNom(p)),p.x,g-sc*.42,p.z,sc,sc,sc,Math.atan2(S.x[p.i]-p.x,S.z[p.i]-p.z)+(rg()-.5)*.8,(rg()-.5)*.5,(rg()-.4)*.4);}
       else{const sc=(2+rg()*4)*K*.8;cuis(M('bloc'),p.x,g-.4,p.z,sc*(1+rg()),sc*(.6+rg()*.6),sc*(1+rg()),rg()*6.28,(rg()-.5)*.4,(rg()-.5)*.4,[.88,.76,.58]);}nr++;}}N.ruines=nr;}
