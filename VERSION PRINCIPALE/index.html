@@ -19768,7 +19768,7 @@ function banqPisteHeurt(){
   if(graceT>0){BK_PP.x=P.x;BK_PP.z=P.z;BK_PP.ok=true;return false;}
   const ax=BK_PP.ok?BK_PP.x:P.x,az=BK_PP.ok?BK_PP.z:P.z;BK_PP.x=P.x;BK_PP.z=P.z;BK_PP.ok=true;
   const C=CARS[level]||CARS[0],hw=BK_CHOC?C.w*.5:0,hl=BK_CHOC?C.l*.42:0,fx=F.t.x,fz=F.t.z,rx=-fz,rz=fx; /* (F.t : le sens de la route ; le travers = sa perpendiculaire) */
-  const nE=BK_CHOC&&Math.hypot(P.x-ax,P.z-az)>.8?3:1;
+  const dEc=Math.hypot(P.x-ax,P.z-az),nE=BK_CHOC&&dEc>.8?Math.min(16,Math.max(3,Math.ceil(dEc/1.2))):1; /* (2026-10-23, Sacha : « je traverse un pic sans mourir ») le pas du balayage : 3 étapes fixes = 2,2 m entre deux tests à 200 m/s et 30 i/s, 3,5 m à 20 i/s — un pic mince (rayon 5 m au sol) passait entre deux ; désormais un test tous les 1,2 m, quelle que soit la cadence */
   for(const o of BANQ.obst){if(Math.abs(o.s-s)>o.r+10+(BK_CHOC?6:0))continue;
     for(const Q of o.L9){let dx=0,dz=0,hit=false;
       for(let e=1;e<=nE&&!hit;e++){const u=e/nE,cx=ax+(P.x-ax)*u,cz=az+(P.z-az)*u;
