@@ -38470,12 +38470,15 @@ SHAPES.corolla=function(K){
     /* LES PORTES (23/10, Léo : « aussi les portes ») deux panneaux de porte par flanc, en RELIEF de 1,6 cm de la couleur de la caisse, séparés par un joint qui laisse voir le fond sombre ; chaque porte porte sa poignée chromée
        en bloc et un filet chromé sous la vitre. Le panneau suit la largeur réelle de la caisse à mi-hauteur. */
     for(const sd of [1,-1])for(const [z0,z1] of [[.70,-.12],[-.22,-1.00]]){const zc=(z0+z1)/2,L=Math.abs(z0-z1),xw=xAt(Sz(zc),.64)+.002;
-      PL.box('p',.05,.58,L,sd*(xw+.012),.64,zc);                              // le panneau de porte, en relief de 3,7 cm
-      PL.box('c',.05,.034,.22,sd*(xw+.045),.84,zc+(z0>z1?.20:-.20));          // la poignée : un bloc chromé, bien saillant
-      PL.box('c',.022,.014,L*.94,sd*(xw+.03),.915,zc);}                       // le filet chromé sous la vitre
+      {const R=.07,pts=[];const zA=Math.min(z0,z1),zB=Math.max(z0,z1),yA=.36,yB=.93,cr=[[zB-R,yB-R,0],[zA+R,yB-R,1],[zA+R,yA+R,2],[zB-R,yA+R,3]];
+        for(const [cz,cy,q] of cr)for(let i=0;i<=4;i++){const t=(q*90+i*22.5)*Math.PI/180;pts.push([cz+Math.cos(t)*R,cy+Math.sin(t)*R]);}
+        PL.prism('p',pts,.026,sd*(xw+.002));}                                    // le panneau de porte : fin (2,6 cm), les quatre coins arrondis
+      PL.box('c',.026,.03,.20,sd*(xw+.026),.84,zc+(z0>z1?.20:-.20));          // la poignée : un bloc chromé, bien saillant
+      PL.box('c',.016,.012,L*.90,sd*(xw+.02),.915,zc);}                       // le filet chromé sous la vitre
     if(HB4){   // la cabine : des BRIQUES lisses (le loft rectangulaire du 2), rentrées de 1,5 cm sous les blocs ; les couches de base et de ceinture du 2
-      // (« c'est un peu carré encore, inspire-toi du vrai ») le milieu de la caisse reprend les VRAIES sections du plan (flancs galbés, épaule, vitres rentrées), en facettes larges ; les verres sont des bandes de la section
-      PL.loft(zs.filter(z=>z>=ZA-.001&&z<=ZBm+.001),S,(j,z)=>j===0?'k':((j>=11&&j<=12)||(j>=13&&(z>.3||z<-1.2)))&&z<1.26&&z>-1.87?'g':'p');
+      // (« c'est un peu carré encore » puis « toit inacceptable ») le BAS de la caisse reprend les vraies sections jusqu'à l'épaule (flancs galbés), fermé à plat ; le HAUT — le toit, les vitres — reste des briques lisses, sans plis parasites
+      PL.loft(zs.filter(z=>z>=ZA-.001&&z<=ZBm+.001),z=>{const q=S(z).slice(0,NC+1);q.push([0,q[q.length-1][1]]);return q;},j=>j===0?'k':'p');
+      PL.loft(zsB.filter(z=>z>=ZA-.001&&z<=ZBm+.001),z=>{const q=SB(z);for(let i=1;i<=3;i++)q[i]=[Math.max(0,q[i][0]-.015),q[i][1]];return q;},peintB);
       const couche=(y,h,k,grow,zA,zB)=>{let run=null;const flush=z1=>{if(run&&run.w>.02)PL.box(k,2*run.w,h,z1-run.z0,0,y,(run.z0+z1)/2);run=null;};
         for(let z=zA+.045;z<zB;z+=.09){const w=Math.round((xAt(Sz(z),y)+grow)/.03)*.03;if(!run||run.w!==w){flush(z-.045);run={w:w,z0:z-.045};}}flush(zB);};
       couche(.985,.022,'c',.012,-2.0,1.0);}
