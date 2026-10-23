@@ -17,7 +17,7 @@ const DN_VS=['attribute vec4 aN;uniform sampler2D uTC,uTZ,uTS,uNZ;uniform vec4 u
   '  float p2=f2<.68?pow(max(f2/.68,1e-5),1.4):pow(max((1.-f2)/.32,1e-5),1.1);',
   '  gU=p*m;float h=p*m+.08*p2*(1.-.75*p);',
   /* LES DUNES ÉTOILÉES : la même fonction que dnDune (dunes-1.js) */
-  ...(DN_STAR?['  float ts0=(texture2D(uNZ,x/16000.+vec2(.71,.29)).r-.5-.10)/.18,ts=clamp(ts0,0.,1.);ts=ts*ts*(3.-2.*ts);',
+  ...(DN_STAR?['  float ts0=(texture2D(uNZ,x/16000.+vec2(.71,.29)).r-.5-.20)/.14,ts=clamp(ts0,0.,1.);ts=ts*ts*(3.-2.*ts);',
   '  if(ts>0.){float k=6.2832/(uLam*1.9);vec2 d2=vec2(-.5*W.x-.866*W.y,.866*W.x-.5*W.y),d3=vec2(-.5*W.x+.866*W.y,-.866*W.x-.5*W.y);',
   '    float s1=cos(k*dot(x,W)+9.*w3+5.*w1),s2=cos(k*dot(x,d2)+8.*w2+4.*w3),s3=cos(k*dot(x,d3)+7.*w3+5.*w2);float st=clamp((s1+s2+s3+1.5)/4.5,0.,1.);st=pow(st,2.2);',
   '    float hs=st*.95+.05*p2*(1.-.5*st);h+=(hs-h)*ts;gU+=(st-gU)*ts;}']:[]),

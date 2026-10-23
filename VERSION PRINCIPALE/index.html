@@ -17867,7 +17867,7 @@ function dnDune(x,z,W,lam,o){ /* (le bruit lu aux SEULES grandes échelles, cana
   let h=p*m+.08*p2*(1-.75*p),du=p*m;
   /* LES DUNES ÉTOILÉES (2026-10-23, Léo : « les dunes sont trop répétitives ») — par plaques (un bruit de 16 km, ~30 % du désert) les crêtes parallèles cèdent la place à des PYRAMIDES de sable : trois houles à 120° dont les crêtes se croisent
      (la même fonction dans le GLSL de la puce : toute retouche ici se refait là-bas), les phases bougées par le bruit pour que le réseau ne se lise pas. */
-  if(DN_STAR){const ts0=(cyNz(x/16000+.71,z/16000+.29,0)-.5-.10)/.18,ts=ts0<=0?0:ts0>=1?1:ts0*ts0*(3-2*ts0);
+  if(DN_STAR){const ts0=(cyNz(x/16000+.71,z/16000+.29,0)-.5-.20)/.14,ts=ts0<=0?0:ts0>=1?1:ts0*ts0*(3-2*ts0);
     if(ts>0){const k=6.2832/(lam*1.9),d2x=-.5*W[0]-.866*W[1],d2z=.866*W[0]-.5*W[1],d3x=-.5*W[0]+.866*W[1],d3z=-.866*W[0]-.5*W[1];
       const s1=Math.cos(k*(x*W[0]+z*W[1])+9*w3+5*w1),s2=Math.cos(k*(x*d2x+z*d2z)+8*w2+4*w3),s3=Math.cos(k*(x*d3x+z*d3z)+7*w3+5*w2);
       let st=(s1+s2+s3+1.5)/4.5;st=st<=0?0:st>=1?1:st;st=Math.pow(st,2.2);const hs=st*.95+.05*p2*(1-.5*st);h+=(hs-h)*ts;du+=(st-du)*ts;}}
@@ -18092,8 +18092,8 @@ function buildDunes(seed){
    (DN.fe||[]).forEach(function(fe,n){
      const sA=sQ['m'+n+'a'],sB=sQ['m'+n+'b'],sS=sQ['m'+n+'s'],sC=sQ['c'+n],sD=sQ['d'+n],sN=sQ['m'+(n+1)+'a']!=null?sQ['m'+(n+1)+'a']:(sQ.fin!=null?sQ.fin:L);
      if(sA==null||sB==null||sC==null||sD==null)return;
-     hsW=rf()<.5?.65+rf()*.35:rf()*.3; /* la FORME des collines de cette vague : crête (pointue) ou dôme (rond) */
-     const kb=fe.K||1,pk=fe.pt?.62:1,Hc=(46+34*rf())*K*kb*pk,Wc=Hc*(2.5+1.3*rf()),Hn=(18+12*rf())*K*kb*pk,Hv=(14+14*rf())*K*pk,vs=rf()<.5?1:-1,closed=fe.ferme||fe.sp==='avenue'||fe.sp==='vlei'||fe.sp==='rythme';
+     hsW=rf()*.22; /* (2026-10-23, Léo : « brouillon… l'harmonie ») un seul langage de collines : des dômes doux, plus de crêtes pointues */ /* la FORME des collines de cette vague : crête (pointue) ou dôme (rond) */
+     const kb=fe.K||1,pk=fe.pt?.62:1,Hc=(46+34*rf())*K*kb*pk,Wc=Hc*(2.9+.6*rf()),Hn=(18+12*rf())*K*kb*pk,Hv=(14+14*rf())*K*pk,vs=rf()<.5?1:-1,closed=fe.ferme||fe.sp==='avenue'||fe.sp==='vlei'||fe.sp==='rythme';
      for(let i=0;i<NS;i++){const s9=i*DS;
        if(fe.S&&sS!=null){mur(fe.sg,i,Hc,Wc,sm(sA-30,sA+50,s9)*(1-sm(sS-10,sS+30,s9)));mur(fe.sg2,i,Hc*.75,Wc*.8,sm(sS-30,sS+10,s9)*(1-sm(sB-20,sB+60,s9)));} // la colline de la montée : le dedans de l'arc (deux arcs : une colline chacun)
        else mur(fe.sg,i,Hc,Wc,sm(sA-30,sA+50,s9)*(1-sm(sB-20,sB+60,s9)));
@@ -18174,7 +18174,7 @@ const DN_VS=['attribute vec4 aN;uniform sampler2D uTC,uTZ,uTS,uNZ;uniform vec4 u
   '  float p2=f2<.68?pow(max(f2/.68,1e-5),1.4):pow(max((1.-f2)/.32,1e-5),1.1);',
   '  gU=p*m;float h=p*m+.08*p2*(1.-.75*p);',
   /* LES DUNES ÉTOILÉES : la même fonction que dnDune (dunes-1.js) */
-  ...(DN_STAR?['  float ts0=(texture2D(uNZ,x/16000.+vec2(.71,.29)).r-.5-.10)/.18,ts=clamp(ts0,0.,1.);ts=ts*ts*(3.-2.*ts);',
+  ...(DN_STAR?['  float ts0=(texture2D(uNZ,x/16000.+vec2(.71,.29)).r-.5-.20)/.14,ts=clamp(ts0,0.,1.);ts=ts*ts*(3.-2.*ts);',
   '  if(ts>0.){float k=6.2832/(uLam*1.9);vec2 d2=vec2(-.5*W.x-.866*W.y,.866*W.x-.5*W.y),d3=vec2(-.5*W.x+.866*W.y,-.866*W.x-.5*W.y);',
   '    float s1=cos(k*dot(x,W)+9.*w3+5.*w1),s2=cos(k*dot(x,d2)+8.*w2+4.*w3),s3=cos(k*dot(x,d3)+7.*w3+5.*w2);float st=clamp((s1+s2+s3+1.5)/4.5,0.,1.);st=pow(st,2.2);',
   '    float hs=st*.95+.05*p2*(1.-.5*st);h+=(hs-h)*ts;gU+=(st-gU)*ts;}']:[]),
