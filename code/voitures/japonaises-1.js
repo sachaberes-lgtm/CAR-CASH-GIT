@@ -285,10 +285,21 @@ SHAPES.corolla=function(K){
   J.lathe('k',[[RJ,-hw],[R*.92,-hw],[R,-hw*.62],[R,hw*.62],[R*.92,hw],[RJ,hw]],24,0,0,0,'x');
   J.lathe('a',[[RJ,fx-.012],[RJ+.004,fx+.002],[RJ-.01,fx+.006],[RJ-.018,fx-.006]],24,0,0,0,'x');
   J.lathe('d',[[RJ-.02,-hw+.02],[RJ-.02,fx-.02],[.06,fx-.035],[0,fx-.035]],20,0,0,0,'x');
+  if(HB4){   /* (23/10, Léo : « montre ce que tu peux faire ») LA JANTE EN COUCHES PLIÉES : le fond sombre, un disque d'acier, CINQ bras en deux étages (une plaque noire large, une plaque chromée plus étroite et plus haute, chacune
+       coudée vers le moyeu), un anneau de rebord, cinq boulons — chaque pièce a sa matière et son épaisseur. */
+    J.lathe('s',[[.19,fx-.03],[.19,fx-.012],[.06,fx-.012],[.06,fx-.03]],20,0,0,0,'x');             // le disque d'acier
+    const bras=(w0,w1,w2,r0,r1,r2,dep,xx,k)=>{const sh=new THREE.Shape();sh.moveTo(-w0,r0);sh.lineTo(w0,r0);sh.lineTo(w1,r1);sh.lineTo(w2,r2);sh.lineTo(-w2,r2);sh.lineTo(-w1,r1);sh.lineTo(-w0,r0);
+      for(let q=0;q<5;q++){const g=new THREE.ExtrudeGeometry(sh,{depth:dep,bevelEnabled:false});g.rotateY(-Math.PI/2);g.rotateX(q/5*Math.PI*2);g.translate(xx,0,0);J.put(k,g,0,0,0);}};
+    bras(.034,.030,.044,.06,.12,.19,.012,fx-.012,'k');                                             // étage 1 : la plaque noire, large, coudée
+    bras(.020,.018,.030,.07,.12,.186,.012,fx+.002,'a');                                            // étage 2 : la plaque chromée, plus étroite, par-dessus
+    for(let q=0;q<5;q++){const a=q/5*Math.PI*2+Math.PI/5;J.put('a',new THREE.CylinderGeometry(.009,.009,.014,6),fx+.012,Math.cos(a)*.085,Math.sin(a)*.085,0,0,Math.PI/2);}   // cinq boulons
+    J.lathe('a',[[.20,fx-.006],[.206,fx+.004],[.19,fx+.01],[.186,fx+.002]],24,0,0,0,'x');           // l'anneau de rebord
+  }else{
   {const sh=new THREE.Shape();sh.moveTo(-.0075,.06);sh.lineTo(.0075,.06);sh.lineTo(.005,.194);sh.lineTo(-.005,.194);sh.lineTo(-.0075,.06);
    for(let q=0;q<20;q++){const g=new THREE.ExtrudeGeometry(sh,{depth:.018,bevelEnabled:true,bevelThickness:.003,bevelSize:.002,bevelSegments:1,curveSegments:1});
      g.rotateY(-Math.PI/2);g.rotateX(Math.floor(q/2)/10*Math.PI*2+(q%2?.075:-.075));g.translate(fx-.004,0,0);J.put('s',g,0,0,0);   // (le flanc anthracite…)
      const f=new THREE.ShapeGeometry(sh);f.rotateY(Math.PI/2);f.rotateX(Math.floor(q/2)/10*Math.PI*2+(q%2?.075:-.075));f.translate(fx+.0175,0,0);J.put('a',f,0,0,0);}}   // (…et la face usinée)
+  }
   J.lathe('s',[[.064,fx-.03],[.062,fx+.004],[.05,fx+.012],[0,fx+.014]],16,0,0,0,'x');
   J.lathe('a',[[.034,fx+.012],[.03,fx+.022],[0,fx+.025]],12,0,0,0,'x');
   const JG=J.done();
