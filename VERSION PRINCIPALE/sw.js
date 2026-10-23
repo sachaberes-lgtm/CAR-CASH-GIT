@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v818'; /* v818 (2026-10-23, Sacha : glacier, LA BIFURCATION — deux couloirs à choisir — et plus d'obstacles) */
+const CACHE = 'cashcar-v819'; /* v819 (2026-10-23, Sacha : « enlève les vautours ») : dunes, plus de vautours */
 // const CACHE = 'cashcar-v817'; /* v817 (2026-10-23, Sacha : « dune encore plus vallonnée, bosses plus profondes · ce rouge est mal géré ») : dunes amplitude x1,4 ; sable rouge en terre cuite moins saturé */
 // const CACHE = 'cashcar-v815'; // v815 (2026-10-23, Léo : « oui, pousse les dunes sur le main ») : LES DUNES D'OR, 2e passe — route haute et penchée, épaule où l'on se pose (+ vitesse), facettes poly VITRAIL, dieux à têtes d'animaux et sphinx-chat, voir le journal
 // const CACHE = 'cashcar-v814'; // v814 (2026-10-23, Léo : « travailler la physique des tricks dans le garage et la boutique… quand la voiture atterrit, un petit effet ») : le VRAI SAUT des figures — parabole, rotation gouvernée (plus rien ne traverse le plateau), ressort, poussière et son à la pose ; ?saut=ancien rend l'ancien, voir le journal

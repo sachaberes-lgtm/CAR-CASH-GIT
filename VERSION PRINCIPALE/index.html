@@ -18630,7 +18630,7 @@ function dnMonumentsTires(seed){
 const DN_CAM=5.2; // la haute des chameaux d'une caravane (m)
 const DN_VAU={n:5,im:null,L:[],m4:new THREE.Matrix4(),q:new THREE.Quaternion(),e:new THREE.Euler(0,0,0,'YXZ'),v:new THREE.Vector3(),sc:new THREE.Vector3()};
 /* LES VAUTOURS (2026-10-22, la recette du canyon) : de 3 à 7 oiseaux qui planent, par grands cercles, devant la caisse (350-1250 m), à 25-120 m au-dessus de la dalle ; l'un qui retombe derrière est reposé devant */
-function dnVautours(dt){const V=DN_VAU,on=DN.on&&started&&!gameOver&&mode!=='boom'&&!!DN.S;
+function dnVautours(dt){return; /* (2026-10-23, Sacha : « enlève les vautours ») */ const V=DN_VAU,on=DN.on&&started&&!gameOver&&mode!=='boom'&&!!DN.S;
   if(!V.im){if(!on)return;V.im=new THREE.InstancedMesh(dnMod('vautour'),dnMats().t,9);V.im.frustumCulled=false;V.im.matrixAutoUpdate=false;V.im.count=0;scene.add(V.im);}
   V.im.visible=!!on;if(!on){V.L.length=0;return;}
   const S=DN.S,cp=carGroup.position,i0=Math.max(0,Math.min(S.n-1,Math.round(s/S.ds)));V.n=3+(((DN.deco?DN.deco.sd:0)>>>5)%5);
