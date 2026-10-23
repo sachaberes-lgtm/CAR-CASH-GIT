@@ -3,6 +3,26 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES TRAÎNÉES EN CUBES — OBJETS 3D EN GROS PIXELS, LES ANNEAUX EN VOLUME, LA MATRICE À L'HORIZONTALE (2026-10-18 soir, session PIXTRAIL — Sacha : « fait une refont des trainé en adoptant un style plus ressemblant a la da actuelle du jeu notament avec des objet 3D pixel » · « fait une truc beau et pixel » · « donne du vollume aux gold ring » · « matrix doit sortir horizontal pas vertical comme ca »)
+- LE PARTI : la DA « pixel 3D » du jeu existe déjà dans les cubes de l'arc-en-ciel du chat et du feu de la porte (faces ombrées comme un jeu de
+  cubes, couleurs au-delà de 1 que le halo du post attrape). Les OBJETS des traînées pop — jusque-là des images plates (quads face caméra) —
+  deviennent des objets EN CUBES de cette matière-là. Ce qui est de la LUMIÈRE (lueurs, étincelles, filés, foudre, mur de LA GRILLE, rubans)
+  reste comme avant.
+- LE MOTEUR (`TRX.V`, bâti avec TRX) : `voxGeo(W,H,D,cell)` extrude un dessin pixel par pixel en cubes (seules les faces qui donnent sur le vide ;
+  ombrage dessus 1,15 · vers l'objectif 1 · flancs ,8 · revers ,7 · dessous ,48), normalisé à ±1 ; `voxDessin` lit un dessin en lignes de
+  caractères. `TRXV_MOD` : anneau (12 × 12 × 3), 8 glyphes (5 × 7 × 2), 2 pétales, billet, cœur d'enseigne, cube, 4 fantômes + l'apeuré.
+  Un InstancedMesh par modèle, MÊME matière que les cubes de l'arc-en-ciel (MeshBasicMaterial à couleurs de sommets et d'instance, sans
+  brouillard ni tone mapping) : aucun programme de plus. Une particule porte un modèle par `vm` (−1 = quad ; avec `cn` le modèle suit le
+  code qui change) ; `bb` = tournée vers l'objectif puis ses angles r2/r3/r (vr2/vr3/vr) ; pas de transparence : elle apparaît et s'en va par
+  CRANS de taille (quarts), le clignotement saute des images, le néon qui grésille aussi ; `dl` = retard d'apparition. `trxVoxQ` pose un objet
+  tel quel (les fantômes). `trxVm(nom)` = −1 quand les cubes sont coupés : chaque émetteur garde son quad d'avant en repli.
+- PAR TRAÎNÉE : ANNEAUX D'OR = anneaux épais de trois cubes qui TOURNENT sur eux-mêmes (on voit leur tranche) ; MATRICE = des LIGNES de code
+  à l'HORIZONTALE (avant : des colonnes qui tombaient) qui se TAPENT caractère après caractère de la poupe vers le côté, une à gauche, une à
+  droite, tête blanche au bout, glyphes en cubes qui changent en route ; SAKURA = pétales en cubes qui volettent en tournant ; FAIS PLEUVOIR
+  = billets en cubes qui basculent ; ROSE NÉON = cœurs d'enseigne en tube de cubes qui grésillent ; POUDRE D'OR = paillettes en petits cubes
+  qui tournent et scintillent ; GLOUTON = pastilles en cubes et fantômes en cubes (bleus quand on lâche la nitro).
+- `?trainee=plat` = les images plates d'avant ; `dbgTrxVox(0|1)` (banc) bascule les nouveaux objets, `dbgTrxVox()` = l'état par modèle.
+
 ## LA TRAÎNÉE 88 MILES À L'HEURE RETIRÉE (2026-10-18 soir, session RETRAIT-88MPH — Sacha : « 88 mph enlève ») — v668
 - « 88 MPH » = le nom anglais de la traînée **88 MILES À L'HEURE** (id `retour`, 140 000 $, épique) ; aucun autre objet ne porte ce nom.
 - Même méthode que MENTHE et PLUIE DE BLOCS (section ci-dessous) : sa ligne sort de `COSM.trainee`, son pictogramme `tr_88` de l'atlas, et
