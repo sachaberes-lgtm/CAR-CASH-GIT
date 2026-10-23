@@ -38447,8 +38447,13 @@ SHAPES.corolla=function(K){
   const EP=(typeof peintPal==='function'?peintPal(PAL):PAL).p,GP=EP.g;
   /* (23/10, Léo : « traduis dans le style de LA HONTE, fidèle à la Fidèle ») `?honte=1` : la VRAIE forme (les sections du plan) taillée en quelques GROS pans — une tranche par grand changement
      de ligne —, sans découpe au plan ; les vitres, les phares, la bouche sont des pièces posées. */
-  const zsB=[ZB,-2.28,-2.236,-2.0,-1.87,-1.36,-1.10,-.50,.30,.50,1.05,1.26,1.60,2.0,2.24,2.28,ZE].filter((z,i,a)=>i===0||z-a[i-1]>.003);
-  const PL=K.kit(PAL);PL.loft(HB?zsB:zs,S,peint);
+  const zsB=[ZB,-2.28,-2.236,-2.0,-1.87,-1.36,-1.10,-.50,.30,.50,1.05,1.26,1.60,2.0,2.24,2.28,ZE,ZF-.36,ZF-.18,ZF+.18,ZF+.36,ZR-.36,ZR-.18,ZR+.18,ZR+.36].sort((a,b)=>a-b).filter((z,i,a)=>i===0||z-a[i-1]>.003);
+  /* EN BRIQUES (`?honte=1`) : chaque tranche est une section de 6 points, des BRIQUES — le dessous, le flanc DROIT, l'épaulement plat, la cabine à flancs droits, le toit —, mesurées sur la vraie section (largeur, hauteur de l'épaule, du toit, du bord de verre) :
+     la forme de La Fidèle, taillée comme les caisses de LA HONTE, mais proprement (peu de plis, aucune diagonale parasite). */
+  const SB=z=>{const s=S(z),xm=s[1][0]+.10*Math.min(1,s[1][0]/.62),yb=s[0][1],yt=s[NC][1],yc=s[s.length-1][1],cab=z<=ZW&&z>=ZHT,xr=cab?s[NC+3][0]:xm*.93,yr=cab?s[NC+3][1]:yt;
+    const sx=z>=ZE-1e-6||z<=ZB+1e-6?.02:1;return [[0,yb],[xm*sx,yb],[xm*sx,yt],[xr*sx,yt],[xr*sx,Math.max(yr,yt+.01)],[0,yc]];};
+  const peintB=(j,z)=>j===0?'k':(j===3&&z<1.0&&z>-1.3)?'g':(j===4&&z<1.26&&z>-1.87&&(z>.3||z<-1.2))?'g':'p';
+  const PL=K.kit(PAL);if(HB)PL.loft(zsB,SB,peintB);else PL.loft(zs,S,peint);
   // ---- LA DÉCOUPE AU PLAN (`japDecoupe`) ----
   const MEM=(typeof SHAPES==='object'&&SHAPES.corolla)||null;
   const av=(x,y,z,nx,ny,nz)=>z>2.0&&nz>.2,ar=(x,y,z,nx,ny,nz)=>z<-2.0&&nz<-.2,cs=(x,y,z,nx,ny,nz)=>Math.abs(nx)>.5;
@@ -38662,8 +38667,13 @@ SHAPES.pikes=function(K){
   const EP=(typeof peintPal==='function'?peintPal(PAL):PAL).p,GP=EP.g;
   /* (23/10, Léo : « traduis dans le style de LA HONTE, fidèle à la Fidèle ») `?honte=1` : la VRAIE forme (les sections du plan) taillée en quelques GROS pans — une tranche par grand changement
      de ligne —, sans découpe au plan ; les vitres, les phares, la bouche sont des pièces posées. */
-  const zsB=[ZB,-2.28,-2.236,-2.0,-1.87,-1.36,-1.10,-.50,.30,.50,1.05,1.26,1.60,2.0,2.24,2.28,ZE].filter((z,i,a)=>i===0||z-a[i-1]>.003);
-  const PL=K.kit(PAL);PL.loft(HB?zsB:zs,S,peint);
+  const zsB=[ZB,-2.28,-2.236,-2.0,-1.87,-1.36,-1.10,-.50,.30,.50,1.05,1.26,1.60,2.0,2.24,2.28,ZE,ZF-.36,ZF-.18,ZF+.18,ZF+.36,ZR-.36,ZR-.18,ZR+.18,ZR+.36].sort((a,b)=>a-b).filter((z,i,a)=>i===0||z-a[i-1]>.003);
+  /* EN BRIQUES (`?honte=1`) : chaque tranche est une section de 6 points, des BRIQUES — le dessous, le flanc DROIT, l'épaulement plat, la cabine à flancs droits, le toit —, mesurées sur la vraie section (largeur, hauteur de l'épaule, du toit, du bord de verre) :
+     la forme de La Fidèle, taillée comme les caisses de LA HONTE, mais proprement (peu de plis, aucune diagonale parasite). */
+  const SB=z=>{const s=S(z),xm=s[1][0]+.10*Math.min(1,s[1][0]/.62),yb=s[0][1],yt=s[NC][1],yc=s[s.length-1][1],cab=z<=ZW&&z>=ZHT,xr=cab?s[NC+3][0]:xm*.93,yr=cab?s[NC+3][1]:yt;
+    const sx=z>=ZE-1e-6||z<=ZB+1e-6?.02:1;return [[0,yb],[xm*sx,yb],[xm*sx,yt],[xr*sx,yt],[xr*sx,Math.max(yr,yt+.01)],[0,yc]];};
+  const peintB=(j,z)=>j===0?'k':(j===3&&z<1.0&&z>-1.3)?'g':(j===4&&z<1.26&&z>-1.87&&(z>.3||z<-1.2))?'g':'p';
+  const PL=K.kit(PAL);if(HB)PL.loft(zsB,SB,peintB);else PL.loft(zs,S,peint);
   // ---- LA DÉCOUPE AU PLAN (`japDecoupe`) ----
   const MEM=(typeof SHAPES==='object'&&SHAPES.pikes)||null;
   const av=(x,y,z,nx,ny,nz)=>z>1.95&&nz>.2,ar=(x,y,z,nx,ny,nz)=>z<-1.8&&nz<-.2,cs=(x,y,z,nx,ny,nz)=>Math.abs(nx)>.45;
