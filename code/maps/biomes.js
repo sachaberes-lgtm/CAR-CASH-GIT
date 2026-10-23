@@ -117,42 +117,6 @@ const BIOMES={
     // brume VIOLETTE (était .12/.14/.19, bleu-noir) : la ville se FOND dans l'horizon au lieu d'y trancher
     volAmb:.44,
     eS2:[80,230,255,.35]},
-  // ---- PARIS LA NUIT (2026-09-28, Léo : « une map ville à Paris », « Paris la nuit ») : le 4e monde ----
-  // Le COUPLE COMPLÉMENTAIRE de la nuit parisienne : un ciel BLEU MARINE (lune, quelques étoiles) sur une ville ORANGE-OR (lampadaires au
-  // sodium, façades éclairées, la tour dorée). La lumière vient d'EN BAS (hemiG chaud, `fill` ambré) et du clair de lune d'en haut.
-  paris:{ nm:'PARIS LA NUIT', skyMul:[.40,.46,.78],skyLift:[.015,.012,.03],sunTint:[.62,.55,.72],sunHalo:.08,city:.30,stars:.55,moon:1.45,
-    fog:[.10,.10,.20],fogN:420,fogF:2800,
-    hemiS:[.30,.36,.58],hemiG:[.20,.13,.07],hemiI:.42, sunC:[.62,.70,.95],sunI:.70,
-    fillC:[1,.64,.32],fillI:.30, kickC:[1,.80,.45],kickI:.16,
-    volSun:[1.0,1.0,1.3],volSky:[.16,.18,.36],volGnd:[.10,.07,.05],volAmb:.42,
-    expo:.78,sat:1.30,
-    env:[[0,'#0a1030'],[.3,'#18224c'],[.48,'#3a3a6a'],[.58,'#b06a36'],[.66,'#261c36'],[1,'#07081a']],eS1:[255,200,130,.5],eS2:[140,170,255,.3],
-    wb:[1.02,.99,.96],sh:[.004,.008,.03],hi:[.05,.03,0],con:1.12,bloomS:.62,bloomT:.86,vigK:.40,vigC:[.05,.04,.12],rimK:.2},
-  // ---- PARIS AU SOL (2026-09-28) : trois heures, fondues d'un quartier à l'autre par parisTick (le ciel, lui, suit uParisT) ----
-  parisOr:{ nm:'PARIS — HEURE DORÉE', skyMul:[1,1,1],skyLift:[0,0,0],sunTint:[1,.62,.30],sunHalo:.3,city:0,stars:0,moon:0,
-    fog:[.86,.67,.54],fogN:420,fogF:3400,
-    hemiS:[.62,.70,.95],hemiG:[.36,.27,.2],hemiI:.62, sunC:[1,.72,.42],sunI:1.6,
-    fillC:[.45,.52,.8],fillI:.22, kickC:[1,.6,.4],kickI:.12,
-    volSun:[2,1.3,.8],volSky:[.5,.46,.6],volGnd:[.24,.18,.18],volAmb:.6,
-    expo:.95,sat:1.2,
-    env:[[0,'#5a7ab8'],[.3,'#c8a080'],[.48,'#f2b870'],[.58,'#ffcf80'],[.66,'#7a6a68'],[1,'#3a3a4e']],eS1:[255,214,150,.5],eS2:[255,180,110,.3],
-    wb:[1.03,1,.96],sh:[.01,.015,.04],hi:[.04,.02,0],con:1.06,bloomS:.5,bloomT:.9,vigK:.3,vigC:[.10,.06,.08],rimK:.2,rimS:.5},
-  parisBleu:{ nm:'PARIS — HEURE BLEUE', skyMul:[1,1,1],skyLift:[0,0,0],sunTint:[.9,.5,.5],sunHalo:.05,city:0,stars:.25,moon:.4,
-    fog:[.30,.32,.52],fogN:360,fogF:3200,
-    hemiS:[.40,.50,.85],hemiG:[.2,.14,.10],hemiI:.5, sunC:[.85,.62,.62],sunI:.5,
-    fillC:[1,.66,.36],fillI:.34, kickC:[.6,.7,1],kickI:.14,
-    volSun:[1.2,.9,1],volSky:[.26,.32,.62],volGnd:[.1,.1,.18],volAmb:.5,
-    expo:.86,sat:1.26,
-    env:[[0,'#101a40'],[.3,'#26346a'],[.48,'#5a5a90'],[.58,'#c07a5a'],[.66,'#2a2a52'],[1,'#0c1028']],eS1:[255,190,130,.45],eS2:[120,170,255,.3],
-    wb:[.99,.99,1.03],sh:[.0,.01,.05],hi:[.05,.03,0],con:1.08,bloomS:.6,bloomT:.86,vigK:.36,vigC:[.04,.04,.12],rimK:.3,rimS:.45},
-  parisNuit:{ nm:'PARIS — LA NUIT', skyMul:[1,1,1],skyLift:[0,0,0],sunTint:[.5,.4,.5],sunHalo:0,city:0,stars:.8,moon:1.1,
-    fog:[.07,.07,.13],fogN:300,fogF:3000,
-    hemiS:[.22,.28,.5],hemiG:[.24,.14,.07],hemiI:.4, sunC:[.5,.56,.8],sunI:.28,
-    fillC:[1,.62,.3],fillI:.42, kickC:[.7,.8,1],kickI:.14,
-    volSun:[.9,.9,1.2],volSky:[.14,.16,.34],volGnd:[.1,.07,.05],volAmb:.4,
-    expo:.8,sat:1.3,
-    env:[[0,'#0a1030'],[.3,'#18224c'],[.48,'#3a3a6a'],[.58,'#b06a36'],[.66,'#261c36'],[1,'#07081a']],eS1:[255,200,130,.5],eS2:[140,170,255,.3],
-    wb:[1.02,.99,.96],sh:[.004,.008,.03],hi:[.05,.03,0],con:1.12,bloomS:.64,bloomT:.84,vigK:.4,vigC:[.05,.04,.12],rimK:.2},
   // ---- L'ATELIER (2026-09-26, vague 2) : l'ambiance du GARAGE — jamais tirée, posée par openGarage, rendue à la fermeture ----
   // MESURÉ avant : saturation .42-.56, les caisses blanches BRÛLÉES — l'atelier héritait du ciel et du SOLEIL de la dernière course
   // (plein midi : `hemiI` .95 + soleil 1,42 à travers les murs) EN PLUS de ses deux lampes et de ses cônes additifs. Un atelier, c'est

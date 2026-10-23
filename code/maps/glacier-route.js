@@ -76,7 +76,7 @@ function PAL_BK(k,d){return PAL_B9(k,d);}
      ni rails, ni nappe, ni ligne, ni tranche (`bkPisteNue`) : seule la GLACE (le verglas de bkVerglasPose, opaque, sur toute la largeur, sa frange de
      givre fondue dans la neige). Plus raide (58-88 %, ~70 % de moyenne — « beaucoup plus pentue », Sacha, deux fois : voir BK_PENTE4) et à grands rayons (≥ 2,6 demi-largeurs : le bord intérieur ne se replie jamais).
    · SES BORDS : la neige se cale AU RAS de la glace puis monte en BOURRELET (13-19 m sur 45 m) — on ne tombe plus de la piste, on COGNE la neige :
-     le mur des couloirs du canyon (`parisMur`, coup d'épaule ; mort au-delà de ~30° et 200 km/h). Plus de lacs (ils creusaient la piste).
+     le mur des couloirs du canyon (`murCote`, coup d'épaule ; mort au-delà de ~30° et 200 km/h). Plus de lacs (ils creusaient la piste).
      (2026-10-18) PLUS DE MUR : LA CONGÈRE — 16 m de neige profonde où l'on s'enfonce et ralentit, sans mourir (voir bkCongere).
    · LES PICS SUR LA PISTE (`BANQ.obst`) : des cristaux de glace coiffés de neige, en QUATRE FIGURES qui ouvrent des chemins — la FOURCHE (une arête au
      milieu : deux couloirs), le CHAMP (des pics semés), la PORTE (deux géants, une trouée), l'ÎLOT (un massif d'un côté, le large de l'autre). Au sol,

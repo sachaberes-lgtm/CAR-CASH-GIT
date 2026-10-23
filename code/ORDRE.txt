@@ -77,8 +77,7 @@ maps/cryptocity.js                   # CRYPTOCITY : plan, matières, réclames
 maps/cryptocity-taureau.js           # cryptocity : le taureau, objets du ciel
 maps/ville-verre.js                  # la ville vitrée, néon et verre, le dirigeable
 maps/pluie-argent.js                 # la pluie d'argent v2 (PLA)
-maps/paris.js                        # PARIS au sol, ses matières
-maps/paris-monuments.js              # Paris : les monuments, la figure SLIDE
+maps/murs-slide.js                   # la figure SLIDE (frotter le bord) et le coup d'épaule des parois (murCote)
 maps/jade-1.js                       # LES PICS DE JADE : route, maillage glouton, montagnes en cubes
 maps/jade-2.js                       # jade : la matière des cubes, construction
 maps/jade-3.js                       # jade : la construction en générateur, surface de la physique

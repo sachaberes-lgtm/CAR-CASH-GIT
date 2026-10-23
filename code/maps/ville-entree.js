@@ -50,7 +50,7 @@ function genCtrl(rnd,startPos,startPhi){
   // (route v3c) une « droite » qui n'en est pas une : un arc léger de a° sur l mètres — la piste ne va plus jamais tout droit
   const courbe=(l,dy,aDeg,n)=>{const a=Math.max(4,Math.abs(aDeg)),s9=aDeg<0?-1:1;arc(s9*a,l/(a*Math.PI/180),n||2,dy);};
   // (2026-09-26, user : « enlève les loopings » dans la VILLE) : le niveau ville n'en a plus aucun (motif ET signature de fin)
-  const sansLoop=typeof LVL!=='undefined'&&LVL.cur&&(LVL.cur.id==='ville'||LVL.cur.id==='paris'); // (Paris : on survole les toits, pas de looping)
+  const sansLoop=typeof LVL!=='undefined'&&LVL.cur&&LVL.cur.id==='ville';
   // ---- ADN DE PISTE : chaque zone tire une PERSONNALITÉ — fini le shuffle statistiquement identique ----
   // LV : la vitesse de la caisse élargit TOUS les rayons (praticable même à 1500 km/h) et allonge les respirations.
   const ESPON=typeof LVL!=='undefined'&&LVL.cur&&LVL.cur.id==='espace'&&!(typeof PARK!=='undefined'&&PARK.on)&&!window.dbgEspOff; // (2026-09-30) L'AUTOROUTE ORBITALE (voir ESP_ROUTE) — `dbgEspOff=true` : l'ancien terrain, pour comparer au banc

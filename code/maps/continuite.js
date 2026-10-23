@@ -199,7 +199,7 @@ function sfImpose(prev){ // le couple imposé (lien de test, banc) s'il existe �
 function sfPlayOk(){return SF.on&&!PARK.on&&!SURV.armed&&!!SAVE.d.tuto;} // le JOUER lance le mode classique au hasard (un joueur neuf, ou qui a demandé à revoir l'auto-école, passe d'abord par elle : l'ancien chemin)
 window.dbgClassique=function(c,m,te){if(c){SF.force={carte:c,meteo:m||null,teinte:te||null};if(started&&!gameOver&&PCUBE.on&&SF.on){const zn=Math.max(0,(runStats.zones|0)-(LVL.tutoZ|0));SF.tirage[zn+1]=sfImpose(SF.tirage[zn]||null);pcubeDest();}} /* (2026-10-17) le portail de cubes tire la suite d'avance : on remplace celle qu'il montre */return {on:SF.on,pret:SF.pret,tirage:SF.tirage.slice(),force:SF.force,niveau:LVL.cur?{carte:LVL.cur.carte||LVL.cur.id,meteo:LVL.cur.meteo||null,teinte:LVL.cur.teinte||null,ciel:BIO.name,pluie:+LVL.pluie.toFixed(2),nuit:+LVL.nuit.toFixed(2),orage:!!(LVL.cur.orage||LVL.cur.id==='orage')}:null,
   cartes:Object.keys(SF_CARTES).map(function(k){return k+' : '+Object.keys(SF_CARTES[k].m).join(', ');})};};
-const LVL={cur:null,n:0,k:1,dur:4,paris:0,parisDe:0,parisA:0, // paris : le CIEL DE PARIS (toits bas, lueur d'or) — fondu comme la ville
+const LVL={cur:null,n:0,k:1,dur:4,
  
   espace:0,espaceDe:0,espaceA:0,       // uSpace : 0 = le ciel de toujours, 1 = le noir étoilé de l'orbite
   planete:1,planeteDe:1,planeteA:1,    // échelle de la planète (1 = sa taille historique)
@@ -243,7 +243,7 @@ function lvlBiome(){ // le ciel du niveau : tiré dans SA liste, jamais deux foi
 }
 function lvlGo(dur){ // les deux leviers HORS biome (uSpace, taille de planète) suivent le même fondu que le ciel
   const c=LVL.cur;
-  LVL.espaceDe=LVL.espace;LVL.planeteDe=LVL.planete;LVL.pluieDe=LVL.pluie;LVL.villeDe=LVL.ville;LVL.villeA=c&&c.id==='ville'&&!c.crypto&&!c.vitre?1:0;LVL.cryptoDe=LVL.crypto;LVL.cryptoA=c&&(c.crypto||c.vitre)?1:0;LVL.nuitDe=LVL.nuit;LVL.parisDe=LVL.paris;LVL.parisA=c&&c.id==='paris'?1:0;LVL.nuitA=c&&c.nuit?1:0;LVL.jadeDe=LVL.jade;LVL.jadeA=c&&c.id==='jade'?1:0;LVL.canyonDe=LVL.canyon;LVL.canyonA=c&&(c.id==='canyon'||c.id==='dunes')?1:0;LVL.dunesDe=LVL.dunes;LVL.dunesA=c&&c.id==='dunes'?1:0;LVL.grotteDe=LVL.grotte;LVL.grotteA=c&&c.id==='grotte'?1:0;LVL.merDe=LVL.mer;LVL.merA=c&&(c.id==='nuages'||c.id==='orage'||c.crypto||c.vitre)&&!c.sansNuages?1:0;LVL.routeDe=LVL.route;LVL.sheenDe=LVL.sheen;
+  LVL.espaceDe=LVL.espace;LVL.planeteDe=LVL.planete;LVL.pluieDe=LVL.pluie;LVL.villeDe=LVL.ville;LVL.villeA=c&&c.id==='ville'&&!c.crypto&&!c.vitre?1:0;LVL.cryptoDe=LVL.crypto;LVL.cryptoA=c&&(c.crypto||c.vitre)?1:0;LVL.nuitDe=LVL.nuit;LVL.nuitA=c&&c.nuit?1:0;LVL.jadeDe=LVL.jade;LVL.jadeA=c&&c.id==='jade'?1:0;LVL.canyonDe=LVL.canyon;LVL.canyonA=c&&(c.id==='canyon'||c.id==='dunes')?1:0;LVL.dunesDe=LVL.dunes;LVL.dunesA=c&&c.id==='dunes'?1:0;LVL.grotteDe=LVL.grotte;LVL.grotteA=c&&c.id==='grotte'?1:0;LVL.merDe=LVL.mer;LVL.merA=c&&(c.id==='nuages'||c.id==='orage'||c.crypto||c.vitre)&&!c.sansNuages?1:0;LVL.routeDe=LVL.route;LVL.sheenDe=LVL.sheen;
   LVL.brumeDe=LVL.brume;LVL.brumeA=c&&c.brume?c.brume:0;vtGo(); // (2026-10-16) le brouillard de la ville et les couleurs fixes de sa teinte suivent le même fondu
   LVL.espaceA=c?c.espace:0;LVL.planeteA=c?c.planete:0;LVL.pluieA=c?c.pluie:0;LVL.routeA=c&&c.route!=null?c.route:0;LVL.sheenA=c&&c.sheen!=null?c.sheen:.1; // (planète : 0 par défaut — plus de Terre là où le niveau ne la demande pas)
   LVL.symDe=LVL.sym||0;LVL.symA=hautOn()?1:0; // (2026-10-15) LE CIEL SANS DESSOUS : la map NUAGES en course (voir hautOn, uSym)
@@ -256,7 +256,7 @@ function lvlStep(dt){
   const e=LVL.k*LVL.k*(3-2*LVL.k); // même smoothstep que bioStep : les deux basculent d'un seul mouvement
   LVL.espace=LVL.espaceDe+(LVL.espaceA-LVL.espaceDe)*e;
   LVL.planete=LVL.planeteDe+(LVL.planeteA-LVL.planeteDe)*e;
-  LVL.pluie=LVL.pluieDe+(LVL.pluieA-LVL.pluieDe)*e;LVL.brume=LVL.brumeDe+(LVL.brumeA-LVL.brumeDe)*e;vtPose(e);LVL.ville=LVL.villeDe+(LVL.villeA-LVL.villeDe)*e;LVL.nuit=LVL.nuitDe+(LVL.nuitA-LVL.nuitDe)*e;LVL.paris=LVL.parisDe+(LVL.parisA-LVL.parisDe)*e;
+  LVL.pluie=LVL.pluieDe+(LVL.pluieA-LVL.pluieDe)*e;LVL.brume=LVL.brumeDe+(LVL.brumeA-LVL.brumeDe)*e;vtPose(e);LVL.ville=LVL.villeDe+(LVL.villeA-LVL.villeDe)*e;LVL.nuit=LVL.nuitDe+(LVL.nuitA-LVL.nuitDe)*e;
   LVL.route=LVL.routeDe+(LVL.routeA-LVL.routeDe)*e;LVL.sheen=LVL.sheenDe+(LVL.sheenA-LVL.sheenDe)*e;
   LVL.jade=LVL.jadeDe+(LVL.jadeA-LVL.jadeDe)*e;skyU.uJade.value=LVL.jade;LVL.crypto=LVL.cryptoDe+(LVL.cryptoA-LVL.cryptoDe)*e;LVL.canyon=LVL.canyonDe+(LVL.canyonA-LVL.canyonDe)*e;LVL.grotte=LVL.grotteDe+(LVL.grotteA-LVL.grotteDe)*e;skyU.uCanyon.value=LVL.canyon;LVL.dunes=LVL.dunesDe+(LVL.dunesA-LVL.dunesDe)*e;skyU.uCyDn.value=LVL.dunes;
   LVL.mer=LVL.merDe+(LVL.merA-LVL.merDe)*e;skyU.uMer.value=LVL.mer;
@@ -292,7 +292,7 @@ function lvlNuageOk(o){ // quelles familles de nuages chaque monde garde (lu par
   if(c.id==='jade')return false; // (2026-10-09) LES PICS DE JADE : leur brume est à eux (buildJade)
   if(c.id==='canyon'||c.id==='dunes')return false; // (2026-10-14) LE CANYON DES GÉANTS : ses nuages sont dans son ciel (canyonCiel)
   if(c.id==='espace')return false; // (2026-09-26, user : « pas de nuage dans l'espace ») — même plus les coussins de vol
-  if(c.id==='ville'||c.id==='paris')return false; // (2026-09-28) PARIS : un ciel de nuit dégagé, on voit les toits                                        // la VILLE n'a AUCUN nuage (user, 2026-09-25) : on la voit de haut en bas, jusqu'à l'horizon
+  if(c.id==='ville')return false; // (2026-09-28) PARIS : un ciel de nuit dégagé, on voit les toits                                        // la VILLE n'a AUCUN nuage (user, 2026-09-25) : on la voit de haut en bas, jusqu'à l'horizon
   return true;
 }
 let lvlBanT=0;
@@ -369,12 +369,12 @@ const PLUIE=(function(){
   scene.add(l);return l;
 })();
 function pluieTick(t){ // appelée par la boucle : suit la caméra, suit le fondu — et ne dessine RIEN hors de la ville
-  const u=PLUIE.material.uniforms,U=PLUIE.userData,or9=LVL.cur&&(LVL.cur.id==='orage'||LVL.cur.orage)?1:0;u.uOp.value=Math.max(LVL.pluie*(1+.3*or9),parisPluie());u.uDens.value=1-.5*LVL.paris;u.uOr.value=LVL.paris;u.uTime.value=t;
+  const u=PLUIE.material.uniforms,U=PLUIE.userData,or9=LVL.cur&&(LVL.cur.id==='orage'||LVL.cur.orage)?1:0;u.uOp.value=LVL.pluie*(1+.3*or9);u.uDens.value=1;u.uOr.value=0;u.uTime.value=t;
   u.uNeon.value=LVL.ville;try{u.uEcl.value=CAMP_FLASH;}catch(e){}u.uVent.value.set(1.4+12.6*or9,0,.6+5.4*or9); // (2026-09-30, revue GAMEPLAY) sans ville, pas de gouttes-enseignes ; l'éclair allume la pluie ; l'ORAGE a du VENT et plus de pluie
   if(!U.pv){U.pv=new THREE.Vector3().copy(camera.position);U.v9=new THREE.Vector3();U.t=t;}
   const dt9=t-U.t;if(dt9>1e-4&&dt9<.25){U.v9.subVectors(camera.position,U.pv).divideScalar(dt9);if(U.v9.lengthSq()>4.9e5)U.v9.set(0,0,0); // la vitesse de la caméra (un téléport ne compte pas)
     u.uVel.value.lerp(U.v9,Math.min(1,dt9*10));}
   U.pv.copy(camera.position);U.t=t;u.uCam.value.copy(camera.position);
-  PLUIE.visible=Math.max(LVL.pluie,parisPluie())>.01||!PLUIE.userData.vu; // dessinée UNE fois au boot (compilation), ensuite seulement quand il pleut
+  PLUIE.visible=LVL.pluie>.01||!PLUIE.userData.vu; // dessinée UNE fois au boot (compilation), ensuite seulement quand il pleut
   PLUIE.userData.vu=true;
 }
