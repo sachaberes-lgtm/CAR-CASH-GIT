@@ -7,17 +7,17 @@
    (un salto la raccourcit, un tonneau l'étrécit) ; les quatre appuis des roues disparaissent dès qu'elles décollent (texture « air »). Au
    repos, rien ne change : c'est exactement l'ancienne ombre. `figOmbre()` tourne à chaque image du garage (garFigTick), après la pose de la
    caisse ; `figOmbre.O` garde le résultat (lu par updateContactShadow). Banc : `dbgFigOmbre()`. */
-function figBoite(){ // la boîte des pièces pleines de la caisse (repère caisse), relevée UNE fois par caisse (`userData.gen`, posé par buildCar)
-  const g=carGroup.userData.gen||0,B=figBoite._b||(figBoite._b={g:-1,t:0,ok:false,min:new THREE.Vector3(),max:new THREE.Vector3()});
-  if(B.g===g&&(B.ok||performance.now()-B.t<400))return B.ok?B:null; // une caisse encore vide : on ne réessaie pas à chaque image
-  B.g=g;B.t=performance.now();B.ok=false;
+function figBoite(force){ // la boîte des pièces pleines de la caisse (repère caisse), relevée par caisse (`userData.gen`, posé par buildCar) et rafraîchie toutes les 1,5 s
+  const g=carGroup.userData.gen||0,now=performance.now(),B=figBoite._b||(figBoite._b={g:-1,t:0,ok:false,min:new THREE.Vector3(),max:new THREE.Vector3()});
+  if(!force&&B.g===g&&(B.ok?now-B.t<1500:now-B.t<400))return B.ok?B:null; // une caisse encore vide : on ne réessaie pas à chaque image
+  B.g=g;B.t=now;
   const inv=figBoite._i||(figBoite._i=new THREE.Matrix4()),M=figBoite._m||(figBoite._m=new THREE.Matrix4()),bb=figBoite._bb||(figBoite._bb=new THREE.Box3()),b9=figBoite._b9||(figBoite._b9=new THREE.Box3());
   carGroup.updateMatrixWorld(true);inv.copy(carGroup.matrixWorld).invert();bb.makeEmpty();
   carGroup.traverse(function(o){if(!o.isMesh||!o.geometry||!o.geometry.attributes.position)return;const mt=Array.isArray(o.material)?o.material[0]:o.material;
     if((mt&&(mt.transparent||mt.blending===THREE.AdditiveBlending))||(o.userData&&o.userData.sol))return; // ni halos, ni flaques, ni flammes : la tôle et les roues
-    for(let q=o;q&&q!==carGroup;q=q.parent)if(!q.visible)return;
+    for(let q=o;q&&q!==carGroup;q=q.parent)if(!q.visible||q===carWingL||q===carWingR)return; // ni l'invisible, ni les AILES de la boutique (dépliées à 2,5 m à la construction, repliées ensuite)
     if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();M.multiplyMatrices(inv,o.matrixWorld);b9.copy(o.geometry.boundingBox).applyMatrix4(M);bb.union(b9);});
-  if(bb.isEmpty())return null;
+  if(bb.isEmpty()){B.ok=false;return null;}
   B.min.copy(bb.min);B.max.copy(bb.max);B.ok=true;return B;}
 function figOmbre(){ // chaque image du garage, après la pose de la caisse : où est son empreinte sur le plateau, et à quelle hauteur elle flotte
   const O=figOmbre.O||(figOmbre.O={on:false,t:0,x:0,z:0,h:0,hAir:0,kx:1,kz:1,psi:0,solY:0,v:new THREE.Vector3(),a:new THREE.Vector3(),b:new THREE.Vector3(),c:new THREE.Vector3()});
@@ -43,4 +43,4 @@ function figOmbre(){ // chaque image du garage, après la pose de la caisse : o�
     else{o.position.x=0;o.position.z=0;}}
   else O.hAir=O.h;
   return O;}
-window.dbgFigOmbre=function(){const O=figOmbre.O;return O&&{on:O.on,h:+O.h.toFixed(3),bas:+O.hBas.toFixed(3),hAir:+O.hAir.toFixed(3),kx:+O.kx.toFixed(2),kz:+O.kz.toFixed(2),psi:+O.psi.toFixed(2),x:+O.x.toFixed(2),z:+O.z.toFixed(2),solY:+O.solY.toFixed(3)};}; // (banc) où l'ombre de la caisse se pose
+window.dbgFigOmbre=function(){const O=figOmbre.O;return O&&{on:O.on,h:+O.h.toFixed(3),bas:+O.hBas.toFixed(3),hAir:+O.hAir.toFixed(3),kx:+O.kx.toFixed(2),kz:+O.kz.toFixed(2),psi:+O.psi.toFixed(2),x:+O.x.toFixed(2),z:+O.z.toFixed(2),solY:+O.solY.toFixed(3),gen:figBoite._b&&figBoite._b.g,boite:figBoite._b&&figBoite._b.ok?[figBoite._b.min.x,figBoite._b.min.y,figBoite._b.min.z,figBoite._b.max.x,figBoite._b.max.y,figBoite._b.max.z].map(function(v){return +v.toFixed(2);}):null};}; // (banc) où l'ombre de la caisse se pose

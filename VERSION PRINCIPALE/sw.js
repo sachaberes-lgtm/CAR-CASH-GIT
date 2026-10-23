@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v813'; // v813 (2026-10-23, Léo : « il y a une ombre plate qui suit la voiture pendant que ça saute, ce qui n'est pas réaliste ») : l'ombre de la caisse reste SUR le plateau pendant les figures (garage et boutique), voir le journal
+const CACHE = 'cashcar-v814'; // v814 (2026-10-23, Léo : « travailler la physique des tricks dans le garage et la boutique… quand la voiture atterrit, un petit effet ») : le VRAI SAUT des figures — parabole, rotation gouvernée (plus rien ne traverse le plateau), ressort, poussière et son à la pose ; ?saut=ancien rend l'ancien, voir le journal
 // const CACHE = 'cashcar-v811'; // v811 (2026-10-22, Léo : « push déjà, c'est trop ») : LES DUNES D'OR, la route continue — vagues, tremplins de crête, sable à rides, pharaon assis, pyramides de Gizeh, voir le journal
 // const CACHE = 'cashcar-v810'; // v810 (2026-10-22, Sacha : « poids et chargement ») : LES PHOTOS DES CAISSES SURVIVENT AUX PUBLICATIONS (signature = empreinte des seuls fichiers de dessin) ; v809 (2026-10-22 soir, Léo : « oui, fais le SCAN au tap sur la Stratos ») — le SCAN de LA STRATOS (CAR_ACTION), voir le journal
 // const CACHE = 'cashcar-v808'; // v808 (2026-10-22, Sacha : « refais l'orbite avec plusieurs planètes de tailles différentes ») : Jupiter, Saturne, Mars, Neptune, Mercure dans le ciel d'orbite
