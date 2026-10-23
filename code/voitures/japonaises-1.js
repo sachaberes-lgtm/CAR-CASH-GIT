@@ -227,7 +227,14 @@ SHAPES.corolla=function(K){
      else if(VP==='b'){piece('k',PH,.012,-.012,sd);piece('W',LED,.020,.008,sd);}                                   // b : UN plateau mince + sa lame de LED
      else if(VP==='c'){piece('k',PH,.014,-.012,sd);piece('g',VERRE,.022,.010,sd);piece('W',LED,.028,.018,sd);}   // c : boîtier, verre brillant, LED — sans l'oeil, bas
      else{piece('k',NET,.032,-.012,sd);piece('h',VNET,.052,.024,sd);piece('W',LED2,.064,.044,sd);piece('c',ONET,.074,.040,sd);}}}   // d : les quatre étages (v. précédente)
-  if(HB)for(const sd of [1,-1]){P.box('h',.36,.05,.04,sd*.50,.80,2.235);P.box('W',.30,.014,.03,sd*.50,.76,2.245);P.box('k',.46,.10,.03,sd*.38,.58,2.255);P.box('L',.40,.07,.04,sd*.52,.93,-2.24);}   // phares, lame de LED, bouche, feux : des dalles posées
+  if(HB)for(const sd of [1,-1]){   // (23/10) LES PHARES, empilés sur la face avant (z = ZE) : une plaque noire, le verre gris, la lame de LED ; les feux : une plaque noire et le bloc rouge ; sur chaque roue, DEUX couches de bavolet
+    const xA=(sc,y)=>{let m=0;for(let i=1;i<sc.length;i++){const a=sc[i-1],b=sc[i];if((a[1]-y)*(b[1]-y)<=0&&a[1]!==b[1]){const x=a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);if(x>m)m=x;}}return m;},
+      zAv=(x,y)=>{for(let z=ZE-.003;z>0;z-=.01)if(xA(S(z),y)>=x)return z;return 2.2;},zAr=(x,y)=>{for(let z=ZB+.003;z<0;z+=.01)if(xA(S(z),y)>=x)return z;return -2.2;};
+    const plaque=(k,x0,x1,y,h,e,dep,av)=>{const n=4,w=(x1-x0)/n;for(let i=0;i<n;i++){const xc=x0+w*(i+.5),z=(av?zAv:zAr)(xc+w/2,y);P.box(k,w+.004,h,.022,sd*xc,y,z+(av?1:-1)*(e+dep));}};   // une plaque en 4 tronçons, chacun posé sur SA marche de la face
+    plaque('k',.24,.70,.80,.13,0,.010,true);plaque('h',.28,.68,.805,.085,0,.028,true);plaque('W',.30,.64,.752,.016,0,.046,true);
+    plaque('k',.28,.72,.93,.12,0,.010,false);plaque('L',.30,.70,.935,.07,0,.028,false);
+    for(const z of [ZF,ZR]){P.box('d',.07,.03,.80,sd*.885,.655,z);P.box('d',.055,.025,.70,sd*.89,.685,z);}
+  }
   // LES RÉTROVISEURS (relevés sur les trois vues) : la coque à la couleur de la caisse, la glace vers l'arrière, le répétiteur orange devant
   P.sym(sd=>{P.box('k',.10,.035,.10,sd*.80,.885,.745,0,0,0);                              // le pied, sur la portière
     const cx=sd*.94,cy=.995,cz=.71;
