@@ -3,6 +3,14 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE CHARGEUR ET LA ZED RETIRÉS DU JEU (2026-10-18 soir, v658, Sacha : « enlève la voiture the chargeur rare », « supprime the Z »)
+- `{retire:1,name}` sur leurs lignes de CARS (index 31 et 53 gardés) : plus en vente ni au garage. Qui les avait est remboursé à leur prix
+  (60 000 $ et 1,6 M $ — `san`, LES CAISSES RETIRÉES) et repart en LA HONTE s'il roulait avec. Gabarits `a_chargeur` et `e_zed` gardés dans SHAPES.
+- « the chargeur rare » = LE CHARGEUR (THE CHARGER), la berline rare à 60 000 $ : LE CHARGEUR 69 reste. « the Z » = LA ZED (THE Z), que Léo
+  venait de passer ÉPIQUE (v651). « enlève la gold bar », le même soir, était déjà fait par la passe des raretés (LE LINGOT, v655).
+- Vérifié au banc (sauvegarde qui possède 31, 43, 53, 67, roule en 53, carrière VILLE à 5) : remboursement versé une seule fois, LE CHARGEUR 69
+  gardé, équipée = LA HONTE, aucune des retirées dans les familles du garage, aucune erreur.
+
 ## LA VILLE, NÉON ET VERRE — LES GÉANTES DE LA VILLE VITRÉE DANS LA VILLE AU NÉON (2026-10-18, session VILLE-NEON — Sacha : « mets-toi dans la peau d'une designer de jeux vidéo senior et fusionne les maps ville et ville vitrée ; on garde l'ambiance néon et tout, mais avec certains bâtiments qui viennent de la ville vitrée »)
 - L'IDÉE (le parti de designer) : LE NÉON AU PIED, LE VERRE DANS LE CIEL. La ville garde tout ce qui fait son identité (la nuit, ses quatre temps,
   ses quatre teintes, les enseignes, les réclames, la pluie, la descente en spirale, GLASSY PLUCKS) ; les tours qui MONTENT au-dessus de la route —

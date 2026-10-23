@@ -23030,8 +23030,7 @@ const CARS=[
  {retire:1,name:'L\'AUTO-ÉCOLE'},
  {retire:1,name:'LE PICK-UP DU FERMIER'},
  {retire:1,name:'L\'AMBASSADEUR'},
- {name:'LE CHARGEUR',color:0x050608,accent:0x121316,maxKmh:290,accel:32,turn:2.6,h:1.48,w:1.9,l:5.1,spoiler:0,shape:'a_chargeur',rar:'rare',
-  desc:'Quatre portes, parce qu\'il faut bien emmener quelqu\'un pour voir la tête des autres.'},
+ {retire:1,name:'LE CHARGEUR'}, /* (2026-10-18 soir, Sacha : « enlève la voiture the chargeur rare ») RETIRÉE : sa ligne reste (index de sauvegarde), qui l'avait est remboursé par `san` ; son gabarit a_chargeur reste dans SHAPES */
  {name:'LE DÉFIEUR',color:0xffd000,accent:0x121212,maxKmh:310,accel:34,turn:2.5,h:1.45,w:1.92,l:5.02,spoiler:0,shape:'a_defieur',rar:'rare', // (2026-10-17, Sacha : « la voiture de Transformers, la bonne couleur de base ») orange 0xff7a14 → JAUNE RALLYE, voir SHAPES.a_defieur
   desc:'Né en 1970, jamais sorti de la puberté. Il te défie au feu rouge, puis au suivant, puis au suivant.'},
  {name:'LA BAVAROISE',color:0xf2f2f0,accent:0x3a2a8c,maxKmh:280,accel:31,turn:2.9,h:1.37,w:1.68,l:4.35,spoiler:0,shape:'b_bavaroise',rar:'rare',
@@ -23068,8 +23067,7 @@ const CARS=[
  {retire:1,name:'LA DÉESSE'},
  {name:'L\'AIGLE DE FEU',color:0x0f0f11,accent:0xd9a520,maxKmh:340,accel:38,turn:2.6,h:1.25,w:1.85,l:5.1,spoiler:0,shape:'e_aigle',rar:'rare', // (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE → RARE
   desc:'Un oiseau d\'or sur le capot, un shérif dans le rétro. Le shérif n\'a jamais rattrapé l\'oiseau.'},
- {name:'LA ZED',color:0xff6a14,accent:0x131417,maxKmh:330,accel:37,turn:2.9,h:1.28,w:1.63,l:4.14,spoiler:0,shape:'e_zed',rar:'epique', /* (2026-10-18, Léo) ÉPIQUE : à 1,6 M$ elle était la rare la plus chère, plus chère que des épiques */
-  desc:'Six cylindres, un capot d\'un kilomètre et des rétros sur les ailes : le samouraï a troqué le sabre.'},
+ {retire:1,name:'LA ZED'}, /* (2026-10-18 soir, Sacha : « supprime the Z ») RETIRÉE : sa ligne reste (index de sauvegarde), qui l'avait est remboursé par `san` ; son gabarit e_zed reste dans SHAPES */
  {name:'LA FÉLINE',color:0xeee3c6,accent:0xe9ecf0,maxKmh:320,accel:36,turn:2.8,h:1.22,w:1.66,l:4.45,spoiler:0,shape:'e_feline',rar:'legendaire',
   desc:'Un capot si long qu\'il arrive au virage avant toi. Élue plus belle du monde, et elle le sait.'},
  {name:'LA RAIE',color:0xc4161c,accent:0x131417,maxKmh:360,accel:40,turn:2.7,h:1.21,w:1.75,l:4.64,spoiler:0,shape:'e_raie',rar:'epique', // (2026-10-18, Sacha) REMISE dans le jeu (retirée le 14/10) : épique à 2,5 M, comme avant le 6/10
