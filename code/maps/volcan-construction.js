@@ -82,7 +82,11 @@ function* buildVolcanG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
       le couvre jusqu'à 40-60 m après sa sortie ; entre deux bancs, une fenêtre dégagée. Le lac et le volcan restent DÉGAGÉS : c'est le paysage. */
    for(const t of (VOLCAN.Q&&VOLCAN.Q.tours)||[]){const s0=Math.max(380,t.s0-(120+R()*40)*kv),s1=Math.min(L-320,t.s1+(40+R()*20)*kv);if(s1-s0<80)continue;
      const pr=B[B.length-1];if(pr&&s0<pr.s1+60)pr.s1=s1;else B.push({s0:s0,s1:s1,k:.9+R()*.1});}
-   VOLCAN.bancs=B;VOLCAN.n.bancs=B.length;}
+   VOLCAN.bancs=B;VOLCAN.n.bancs=B.length;
+   /* (2026-10-23) LES TEMPÊTES DE CENDRE : 3 à 6 par parcours (une par ~1 100 m), 220-440 m chacune, tirées au hasard de la partie, jamais au départ ni au portail ; la visibilité s'y effondre, la cendre y devient dense et grosse */
+   const TP=[];if(VLC_MODS){const Rt=mulberry32((seed^0xCE4D2E)>>>0),nT=Math.max(3,Math.min(6,Math.round(L/1100))),L9=L-700;
+     for(let e=0;e<nT*8&&TP.length<nT;e++){const l=(220+Rt()*220)*kv,s0=450+Rt()*Math.max(1,L9-l);if(s0+l>L-300)continue;let ok=true;for(const t of TP)if(s0<t.s1+250&&s0+l>t.s0-250)ok=false;if(ok)TP.push({s0:s0,s1:s0+l,k:.9+Rt()*.1});}}
+   VOLCAN.tempetes=TP;VOLCAN.n.tempetes=TP.length;}
   /* 0. TOUT DE SUITE : les rangées et les morceaux du départ (ce que la caméra voit au portail) ; 1. EN TRANCHES : les autres rangées, du plus
      proche au plus loin — la mer lointaine tient la place en attendant */
   const MO=vlcMorceaux(),pres=MO.filter(function(m){return m.dr<60;}); // (le morceau du départ — ou les deux qui le bordent : leurs seules cases ; les voisins suivent dans les premières images)
@@ -223,7 +227,7 @@ function vlcFx(){const fx=VOLCAN.fx;if(fx.bra)return fx;const M=volcanMats(),R=m
   const nuage=(n,mat,nom)=>{const g=new THREE.BufferGeometry(),aR=new Float32Array(n*4);for(let k=0;k<n*4;k++)aR[k]=R();
     g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(n*3),3));g.setAttribute('aR',new THREE.BufferAttribute(aR,4));
     const p=new THREE.Points(g,mat);p.name=nom;p.frustumCulled=false;p.matrixAutoUpdate=false;p.visible=false;p.renderOrder=8;scene.add(p);return p;};
-  const nP=PAL_B9('volcanPart',1000);fx.bra=nuage(nP,M.bra,'volcan braises');fx.cen=nuage(Math.round(nP*.8),M.cen,'volcan cendre');
+  const nP=PAL_B9('volcanPart',1000);fx.bra=nuage(nP,M.bra,'volcan braises');fx.cen=nuage(Math.round(nP*(VLC_MODS?1.4:.8)),M.cen,'volcan cendre');
   {const n=36,g=new THREE.BufferGeometry(),P=new Float32Array(n*3).fill(-1e5);g.setAttribute('position',new THREE.BufferAttribute(P,3));
    fx.bombes=new THREE.Points(g,M.bombe);fx.bombes.name='volcan bombes';fx.bombes.frustumCulled=false;fx.bombes.matrixAutoUpdate=false;fx.bombes.visible=false;fx.bombes.renderOrder=9;scene.add(fx.bombes);
    fx.bL=[];for(let k=0;k<n;k++)fx.bL.push({on:false,t:0,Tf:1,S:new THREE.Vector3(),v:new THREE.Vector3(),E:new THREE.Vector3()});}
@@ -298,8 +302,10 @@ function volcanTick(dt){
   {const sc=mode==='fall'?lastNearS:s;let f=0;for(const b of VOLCAN.bancs||[]){if(sc<b.s0-80||sc>b.s1+80)continue;f=Math.max(f,b.k*THREE.MathUtils.smoothstep(sc,b.s0-70,b.s0+50)*(1-THREE.MathUtils.smoothstep(sc,b.s1-50,b.s1+70)));}
    /* (2026-10-20, Sacha : « le filtre de visibilité avec la cendre et la fumée, mais EN PERMANENCE : le challenge de cette map doit être la faible visibilité ») : un voile de fond partout (0,7), les bancs le refermant jusqu'à 1 ; épargné seulement au départ (fondu de 60 à 260 m) pour ne pas cacher le portail */
    f=Math.max(f,.7*THREE.MathUtils.smoothstep(sc,60,260));
-   VOLCAN.fu+=(f*(c.fu||1)-VOLCAN.fu)*Math.min(1,dt*3);if(VOLCAN.fu<.002)VOLCAN.fu=0;FUMEE_K=VOLCAN.fu;FUMEE_F=c.fuF||250;if(c.fuC)FOG_FUMEE.setRGB(c.fuC[0],c.fuC[1],c.fuC[2]);
-   U.uBra.value=c.bra*(1+VOLCAN.fu*2.5);U.uCen.value=Math.min(1,c.cen+VOLCAN.fu*.6);if(DZ9){U.uBra.value*=DZ9.bra;U.uCen.value=Math.min(1,U.uCen.value*DZ9.cen);}}
+   let cs=0;for(const t of VOLCAN.tempetes||[]){if(sc<t.s0-80||sc>t.s1+80)continue;cs=Math.max(cs,t.k*THREE.MathUtils.smoothstep(sc,t.s0-70,t.s0+60)*(1-THREE.MathUtils.smoothstep(sc,t.s1-60,t.s1+70)));} /* la tempête de cendre */
+   f=Math.max(f,cs*.95);U.uCenS.value+=(cs-U.uCenS.value)*Math.min(1,dt*3);
+   VOLCAN.fu+=(f*(c.fu||1)-VOLCAN.fu)*Math.min(1,dt*3);if(VOLCAN.fu<.002)VOLCAN.fu=0;FUMEE_K=VOLCAN.fu;FUMEE_F=(c.fuF||250)*(1-.3*U.uCenS.value);if(c.fuC)FOG_FUMEE.setRGB(c.fuC[0],c.fuC[1],c.fuC[2]);
+   U.uBra.value=c.bra*(1+VOLCAN.fu*2.5);U.uCen.value=Math.min(1,c.cen+VOLCAN.fu*.6+U.uCenS.value*.5);if(DZ9){U.uBra.value*=DZ9.bra;U.uCen.value=Math.min(1,U.uCen.value*DZ9.cen);}}
   fx.bra.visible=U.uBra.value>.01;fx.cen.visible=U.uCen.value>.01;
   {const k=FUMEE_K,cl=fx.cloche;cl.visible=k>.01&&!!scene.fog;if(cl.visible){cl.position.copy(camera.position);cl.scale.setScalar(Math.min(3000,scene.fog.far*.97));cl.material.color.copy(scene.fog.color);cl.material.opacity=Math.min(1,k*1.1);cl.updateMatrix();cl.updateMatrixWorld();}}
   if(VOLCAN.solM){const ff=(scene.fog&&scene.fog.far)||6000,cp=camera.position;for(const m of VOLCAN.solM){const b=m.geometry.boundingSphere,v=cp.distanceTo(b.center)-b.radius<ff+60;if(m.visible!==v)m.visible=v;}}

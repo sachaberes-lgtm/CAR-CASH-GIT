@@ -20490,6 +20490,8 @@ const VLC6=VLC5&&!/[?&]volcan=avant6(&|$)/.test(location.search);
    décors qui changent ») LE VOLCAN AU HASARD (vlcTraceH) et LE DÉCOR AU HASARD (vlcDecoTire) — `?sans=volcanhasard` = la route d'avant au point près,
    `?sans=volcandecor` = le décor d'avant au tirage près. */
 const VLC_HZ=!/[?&]sans=([^&]*,)?volcanhasard(,|&|$)/.test(location.search),VLC_DECOR=!/[?&]sans=([^&]*,)?volcandecor(,|&|$)/.test(location.search);
+/* (2026-10-23, Sacha : « refonte totale du système de route et de génération de map du volcan : aléatoire, plusieurs modules, la route monte et descend, plus de virages et d'exploration » · « plus de cendre pour challenger par la visibilité ») VLC_MODS : quatre modules qui font MONTER et DESCENDRE la route (rampe, lacets, détour, rouleaux) et les TEMPÊTES DE CENDRE ; `?sans=volcanmods` = avant */
+const VLC_MODS=!/[?&]sans=([^&]*,)?volcanmods(,|&|$)/.test(location.search);
 const NIV_VOLCAN={id:'volcan',nm:'LE ROYAUME DE FEU',bio:['volcanSoir'],planete:0,espace:0,pluie:0,cielMusical:false,route:.26,sheen:.14,piste:'volcan',pr:'LA LAVE NE PARDONNE PAS'};
 const VOLCAN={root:null,Q:null,C:null,K:null,C2:null,K2:null,hand:1,sSp:0,plg:[],sol:null,solM:null,aig:[],arche:null,gcol:null,
   met:'soir',cur:null,de:null,to:null,k:1,dur:1,ms:0,n:{},fx:{},mats:null,graine:0,erup:{t:7,age:-1,n:0,b:0},son:{k:{}},loin:[]};
@@ -20507,6 +20509,7 @@ const VLC_MET={
    où les bords néon et la ligne or se lisent encore ; la brume basse des lacs, moins rouge aussi. Les braises et la cendre un cran plus rares. */
 if(VLC5){const F9={matin:[.24,.14,.20],midi:[.32,.27,.29],soir:[.20,.08,.14],nuit:[.08,.04,.11],pluie:[.21,.16,.17],orage:[.10,.06,.12]};
   for(const k in F9){VLC_MET[k].fuC=F9[k];VLC_MET[k].bra*=.7;VLC_MET[k].cen*=.8;}
+  if(VLC_MODS)for(const k in F9)VLC_MET[k].cen=Math.min(1,VLC_MET[k].cen*2.2+.2);
   /* la BRUME BASSE (celle qui stagne sous la route, sur les lacs) passait TOUT ce qui est en contrebas au rouge-brun : la plaine devenait une boue
      rouge ; elle s'allège de moitié et prend le violet de l'air */
   const B9={matin:[.18,[.30,.18,.26]],midi:[.10,[.34,.28,.30]],soir:[.16,[.24,.08,.16]],nuit:[.34,[.16,.05,.12]],pluie:[.40,[.24,.19,.20]],orage:[.45,[.14,.07,.14]]};
@@ -20517,7 +20520,7 @@ const VLC_U={uSunDir:{value:new THREE.Vector3(0,1,0)},uSunC:{value:new THREE.Col
   uFillC:{value:new THREE.Color()},uFillD:{value:new THREE.Vector3(0,-1,0)},uCam:{value:new THREE.Vector3()},uCarP:{value:new THREE.Vector3(0,-1e5,0)},
   uCarF:{value:new THREE.Vector3(0,0,1)},uTime:{value:0},uPhare:{value:0},uFlash:{value:0},uLue:{value:1},uLav:{value:1},uErupt:{value:0},
   uCrat:{value:new THREE.Vector3(0,-1e5,0)},uBruC:{value:new THREE.Color(.8,.4,.3)},uBruK:{value:.5},uBruY:{value:0},uFumC:{value:new THREE.Color(.4,.2,.15)},uFum:{value:1},
-  uCen:{value:0},uBra:{value:0},uBoxC:{value:new THREE.Vector3()},uPx:{value:1},uGey:{value:1},uVent:{value:new THREE.Vector2(1,.3)},uErupt2:{value:0},
+  uCen:{value:0},uBra:{value:0},uBoxC:{value:new THREE.Vector3()},uPx:{value:1},uGey:{value:1},uVent:{value:new THREE.Vector2(1,.3)},uErupt2:{value:0},uCenS:{value:0},
   uLavT:{value:new THREE.Color(1,.42,.08)},uLavK:{value:0}}; // (2026-10-20, LE DÉCOR AU HASARD) LA PALETTE DE LA LAVE : la teinte (uLavT) et sa part (uLavK : 0 = l'orange d'avant, au bit près)
 /* LES BUDGETS PAR PALIER (PAL : [ANCIEN, MOYEN, RÉCENT]) : maille et portée du relief, braises et cendres, bouffées du panache, geysers, orgues, coulées */
 try{Object.assign(PAL.B,{volcanSolC:[34,30,26],volcanMarge:[1500,1900,2300],volcanPart:[350,650,1000],volcanFumee:[40,58,80],volcanGey:[6,9,12],volcanOrgues:[22,36,52],volcanRiv:[6,8,10]});}catch(e){}
@@ -20846,9 +20849,9 @@ function vlcTraceH(rnd,LV){
   const Rs=()=>rM*(1.30+rh()*.2),Rn=()=>{const a=rM*1.55,b=Math.max(a+25,200);return a+rh()*(b-a);},Rl=()=>Math.max(rM*2,200)+rh()*90;
   const ph1=rh()*6.283,ph2=rh()*6.283,kP=.8+rh()*.5;let gF=null,gR=null,mode=0,gM=null;
   const pente=s9=>{if(gF!=null)return gR!=null?gF*Math.min(1,Math.max(.15,(s9-gR)/120)):gF;
-    let g=mode===2?.008+.015*Math.sin(s9/420*6.283+ph1):mode===3?0:(.006+.022*Math.sin(s9/520*6.283+ph1)+.012*Math.sin(s9/230*6.283+ph2))*kP;
+    let g=mode===2?.008+.015*Math.sin(s9/420*6.283+ph1):mode===3?0:(.006+(.022*Math.sin(s9/520*6.283+ph1)+.012*Math.sin(s9/230*6.283+ph2)+(VLC_MODS?.045*Math.sin(s9/900*6.283+ph2*1.7):0))*(VLC_MODS?1.5:1))*kP;
     if(s9<280)g=.01+(g-.01)*THREE.MathUtils.smoothstep(s9,160,280);
-    return Math.max(-.05,Math.min(.06,g))+(gM&&s9>=gM.s0&&s9<gM.s1?gM.f(s9):0);};
+    const r9=Math.max(-.05,Math.min(VLC_MODS?.10:.06,g))+(gM&&s9>=gM.s0&&s9<gM.s1?gM.f(s9):0);return VLC_MODS?Math.max(-.15,Math.min(.15,r9)):r9;};
   let P=new THREE.Vector3(0,0,0),phi=0,s=0,y=0;
   const push=()=>ctrl.push(P.clone());
   const avance=(nx,nz)=>{const dh=Math.hypot(nx-P.x,nz-P.z),n=Math.max(1,Math.ceil(dh/10)),x0=P.x,z0=P.z;
@@ -20890,8 +20893,24 @@ function vlcTraceH(rnd,LV){
     let s9=rel()>0?-1:1;for(let k=0;k<n;k++){const a=24+rv()*12;tourne(s9*a,Math.max(rM*2,l9/n/(a/57.2958)*.7));s9=-s9;}const res=s0+l9-s;if(res>10)droite(res);gM=null;};
   const vGeysers=()=>{vAxe();const s0=s,a=48+rv()*16,R=rM*(1.7+rv()*.3),s9=rel()>0?-1:1;droite(30*KV);tourne(s9*a,R);droite((30+rv()*20)*KV);tourne(-s9*a,R);droite(40*KV);geyS.push([s0,s]);};
   const vCrochet=()=>{const s9=rel()>0?-1:1;vers(-s9*(44+rv()*10),rM*(1.8+rv()*.3));droite((40+rv()*30)*KV);tourne(s9*(112+rv()*20),rM*(1.45+rv()*.25));droite((50+rv()*30)*KV);};
+  /* (2026-10-23) QUATRE MODULES QUI FONT MONTER ET DESCENDRE : la pente (A > 0 = on descend) est une enveloppe posée sur la longueur prévue ; l'ALTITUDE se pilote
+       vRampe    · 450-800 m × KV à 7,5-13 % (monte ou descend), en virages de liaison
+       vLacets   · 2 ou 4 ÉPINGLES à 178° (1,5-1,9 rM) sur 8-13 % : la paroi en zigzag, le cap revient dans l'axe
+       vDetour   · une EXCURSION : 100-130° hors de l'axe, une droite de 120-300 m, on revient — sur une pente douce
+       vRouleaux · 2-3 BOSSES de ± 9-13 % en slalom (le voltigeur décolle aux crêtes) */
+  const profil=(L9,A)=>{const s0=s;gM={s0:s0,s1:s0+L9,f:function(s9){const u=(s9-s0)/L9;return A*Math.min(1,u*4,(1-u)*4);}};};
+  const dirAlt=()=>y>70?1:y<-230?-1:(rv()<.5?1:-1); // 1 = descendre : au-dessus de +70 m du départ on descend, sous −230 m on monte
+  const vRampe=()=>{vAxe();const L9=(450+rv()*350)*KV,s0=s;profil(L9,dirAlt()*(.075+rv()*.055));for(let n=0;s-s0<L9-60*KV&&n<30;n++){const sb=s;liaison(1);if(s-sb<5)droite(80*KV);}gM=null;};
+  const vLacets=()=>{vAxe();const n=2*(1+((rv()*2)|0)),R=rM*(1.5+rv()*.4),leg=(70+rv()*80)*KV;let sd=rel()>0?-1:1;
+    profil(n*Math.PI*R+(n+1)*leg,dirAlt()*(.08+rv()*.05));droite(leg);for(let k=0;k<n;k++){arc(sd*178,R);droite(leg);sd=-sd;}gM=null;vers(0,R*1.4);};
+  const vDetour=()=>{vAxe();const a=100+rv()*30,R=rM*(2.2+rv()*.8),sd=rel()>0?-1:1,dl=(120+rv()*180)*KV;
+    profil(2*a/57.2958*R+dl,dirAlt()*(.03+rv()*.04));arc(sd*a,R);droite(dl);arc(-sd*a,R*(.9+rv()*.3));gM=null;vers(0,rM*2);};
+  const vRouleaux=()=>{vAxe();const n=2+((rv()*2)|0),lam=(230+rv()*70)*KV,amp=.09+rv()*.04,L9=n*lam,s0=s;
+    gM={s0:s0,s1:s0+L9,f:function(s9){const u=(s9-s0)/L9;return amp*Math.sin(u*n*6.2832)*Math.min(1,u*n*2,(1-u)*n*2);}};
+    let s9=rel()>0?-1:1;tourne(s9*22,lam*.25/(22/57.2958));for(let k=0;k<2*n-1;k++){s9=-s9;const a=44+rv()*12;tourne(s9*a,Math.max(rM*1.55,lam*.5/(a/57.2958)));}tourne(-s9*22,lam*.25/(22/57.2958));gM=null;};
   const vmJ=[vSlalom,vCorde,vChicane,vHoule,vPont,vCoulee,vGeysers,vCrochet],vmN=['slalom','corde','chicane','houle','pont','coulee','geysers','crochet'];
-  const vMod=()=>{let m=0;for(let e=0;e<6;e++){if(!vmPaq.length){const t=[0,1,2,3,4,5,6,7];for(let i=7;i>0;i--){const j=(rv()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)vmPaq.push(x);}m=vmPaq.shift();if(m!==vmLast)break;}
+  if(VLC_MODS){vmJ.push(vRampe,vLacets,vDetour,vRouleaux,vRampe,vLacets);vmN.push('rampe','lacets','detour','rouleaux','rampe','lacets');} /* (la rampe et les lacets : deux jetons dans le paquet — la route monte et descend plus souvent) */
+  const vMod=()=>{let m=0;for(let e=0;e<6;e++){if(!vmPaq.length){const t=vmJ.map(function(_,i){return i;});for(let i=t.length-1;i>0;i--){const j=(rv()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)vmPaq.push(x);}m=vmPaq.shift();if(m!==vmLast)break;}
     vmLast=m;const i0=ctrl.length-1;vmJ[m]();MM.push({i0:i0,i1:ctrl.length-1});return vmN[m];};
   // LES PIÈCES
   const tours=[],fumeron=()=>{droite((70+rh()*50)*KV);const r9=rel();sg=Math.abs(r9)>12?(r9>0?-1:1):(rh()<.5?-1:1);const s0=s,a=tourne(sg*(55+rh()*30),Rs());tours.push({s0:s0,s1:s,a:Math.round(a)});};
@@ -20916,12 +20935,12 @@ function vlcTraceH(rnd,LV){
     th0=Math.min(b0,r.bF);th1=Math.max(b0,r.bF);AX0=AX=r.bF;vers(r.sgB*38,rM*2.2);droite(80*KV);}
   else droite((140+rh()*120)*KV);
   // LE PLAN DE LA BALADE : les pièces mélangées (jamais deux lacs de suite), chacune derrière sa liaison
-  const PCS=['arche','lac'];if(rh()<.33)PCS.push('arche');if(rh()<.25)PCS.push('lac2');{const nf=1+((rh()*3)|0),nm=2+((rh()*3)|0);for(let k=0;k<nf;k++)PCS.push('fum');for(let k=0;k<nm;k++)PCS.push('mod');}
+  const PCS=['arche','lac'];if(rh()<.33)PCS.push('arche');if(rh()<.25)PCS.push('lac2');{const nf=1+((rh()*3)|0),nm=(VLC_MODS?4:2)+((rh()*3)|0);for(let k=0;k<nf;k++)PCS.push('fum');for(let k=0;k<nm;k++)PCS.push('mod');}
   for(let i=PCS.length-1;i>0;i--){const j=(rh()*(i+1))|0,x=PCS[i];PCS[i]=PCS[j];PCS[j]=x;}
   for(let i=1;i<PCS.length;i++)if(PCS[i][0]==='l'&&PCS[i-1][0]==='l'){const j=(i+1)%PCS.length;const x=PCS[i];PCS[i]=PCS[j];PCS[j]=x;}
   if(recette==='corniche')PCS.splice(1+((rh()*Math.max(1,PCS.length-2))|0),0,'corniche');
   const Lcor=recette==='corniche'?(Math.max(560,rM*3.2)+60)*1.75:0,B9=LC9?Math.max(1200,LC9-(recette==='montee'?Lsp9:0)-300):4300*KV+(recette==='descente'?Lsp9:0),
-    EST={arche:260*KV,lac:750*KV,lac2:520*KV,fum:220*KV,mod:430*KV,mod1:430*KV,corniche:Lcor+260*KV},OBL={arche:1,lac:1,corniche:1};
+    EST={arche:260*KV,lac:750*KV,lac2:520*KV,fum:220*KV,mod:(VLC_MODS?560:430)*KV,mod1:(VLC_MODS?560:430)*KV,corniche:Lcor+260*KV},OBL={arche:1,lac:1,corniche:1};
   {let n9=0;for(let i=0;i<PCS.length&&n9<2;i++)if(PCS[i]==='mod'){PCS[i]='mod1';n9++;}} // (deux modules au moins, comme avant : ils passent avant les fumerons)
   if(B9-s-(recette==='corniche'?EST.corniche:0)>1600*KV)OBL.mod1=1; // (deux modules sûrs si la longueur les tient ; aux hauts paliers la longueur passe d'abord, comme avant)
   const reste=i=>{let r=0;for(let j=i+1;j<PCS.length;j++)if(OBL[PCS[j]]&&!(PCS[j]==='arche'&&arches.length))r+=EST[PCS[j]]+90*KV;return r;};
@@ -21275,14 +21294,14 @@ const VLC_FUM_FS=[FG_BRUIT,'uniform vec3 uFumC,uSunC,uSky,fogColor,uLavT;uniform
   '  c=mix(c,fogColor,smoothstep(fogNear,fogFar*3.,vD)*.55);',
   '  gl_FragColor=vec4(c,a);}'].join('\n');
 /* LES BRAISES (uK 0 : elles montent, vacillent, orange) et LA CENDRE (uK 1 : des flocons gris qui tombent) — une boîte qui suit la caisse */
-const VLC_PART_VS=['attribute vec4 aR;uniform float uTime,uBra,uCen,uPx,uK,uLavK;uniform vec3 uBoxC,uLavT;varying vec3 vC;varying float vA;',
+const VLC_PART_VS=['attribute vec4 aR;uniform float uTime,uBra,uCen,uPx,uK,uLavK,uCenS;uniform vec3 uBoxC,uLavT;varying vec3 vC;varying float vA;',
   'void main(){vec3 B=vec3(240.,110.,280.);',
   '  vec3 pa=uK<.5?vec3(sin(uTime*.4+aR.y*9.)*7.,uTime*(5.+aR.x*6.),cos(uTime*.33+aR.z*7.)*7.):vec3(sin(uTime*.6+aR.y*9.)*4.+uTime*2.5,-uTime*(3.+aR.x*2.),cos(uTime*.5+aR.z*6.)*4.);',
   '  vec3 rel=mod(aR.xyz*B+pa-uBoxC+B*.5,B)-B*.5,pos=uBoxC+rel;float e=min(min(.5-abs(rel.x)/B.x,.5-abs(rel.y)/B.y),.5-abs(rel.z)/B.z);',
   '  float fl=.5+.5*sin(uTime*(6.+aR.w*9.)+aR.x*40.);',
   '  vA=smoothstep(0.,.08,e)*(uK<.5?uBra*(.35+.65*fl):uCen*(.55+.45*aR.w));',
   '  vC=uK<.5?mix(vec3(1.,.22,.02),vec3(1.,.72,.22),aR.y)*2.2:vec3(.11,.10,.095);if(uK<.5)vC=mix(vC,dot(vC,vec3(.55,.35,.10))*uLavT*1.45,uLavK);',
-  '  vec4 mv=viewMatrix*vec4(pos,1.);gl_Position=projectionMatrix*mv;gl_PointSize=vA<.003?0.:(uK<.5?'+('.75+aR.z*.6')+':2.2+aR.z*1.2)*uPx*300./max(1.,-mv.z);'+(VLC5?'gl_PointSize=min(gl_PointSize,(uK<.5?4.5:7.)*uPx);':'')+'}'].join('\n'); // (continuité) des ÉTINCELLES, plus des pastilles orange plein écran
+  '  vec4 mv=viewMatrix*vec4(pos,1.);gl_Position=projectionMatrix*mv;gl_PointSize=vA<.003?0.:(uK<.5?'+('.75+aR.z*.6')+':(2.2+aR.z*1.2)*(1.+uCenS*.9))*uPx*300./max(1.,-mv.z);'+(VLC5?'gl_PointSize=min(gl_PointSize,(uK<.5?4.5:7.+uCenS*4.)*uPx);':'')+'}'].join('\n'); // (continuité) des ÉTINCELLES, plus des pastilles orange plein écran
 const VLC_PART_FS=['uniform float uK;varying vec3 vC;varying float vA;void main(){float d=length(gl_PointCoord-.5);float a=smoothstep(.5,0.,d);a*=a;if(vA*a<.004)discard;',
   '  if(uK<.5)gl_FragColor=vec4(vC*vA*a,1.);else gl_FragColor=vec4(vC,min(1.,vA*a*1.6));}'].join('\n');
 /* LES GEYSERS DE LAVE (et la FONTAINE du cratère à l'éruption) : chaque goutte vit sa parabole dans le shader ; aG = (période, phase,
@@ -21528,7 +21547,11 @@ function* buildVolcanG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
       le couvre jusqu'à 40-60 m après sa sortie ; entre deux bancs, une fenêtre dégagée. Le lac et le volcan restent DÉGAGÉS : c'est le paysage. */
    for(const t of (VOLCAN.Q&&VOLCAN.Q.tours)||[]){const s0=Math.max(380,t.s0-(120+R()*40)*kv),s1=Math.min(L-320,t.s1+(40+R()*20)*kv);if(s1-s0<80)continue;
      const pr=B[B.length-1];if(pr&&s0<pr.s1+60)pr.s1=s1;else B.push({s0:s0,s1:s1,k:.9+R()*.1});}
-   VOLCAN.bancs=B;VOLCAN.n.bancs=B.length;}
+   VOLCAN.bancs=B;VOLCAN.n.bancs=B.length;
+   /* (2026-10-23) LES TEMPÊTES DE CENDRE : 3 à 6 par parcours (une par ~1 100 m), 220-440 m chacune, tirées au hasard de la partie, jamais au départ ni au portail ; la visibilité s'y effondre, la cendre y devient dense et grosse */
+   const TP=[];if(VLC_MODS){const Rt=mulberry32((seed^0xCE4D2E)>>>0),nT=Math.max(3,Math.min(6,Math.round(L/1100))),L9=L-700;
+     for(let e=0;e<nT*8&&TP.length<nT;e++){const l=(220+Rt()*220)*kv,s0=450+Rt()*Math.max(1,L9-l);if(s0+l>L-300)continue;let ok=true;for(const t of TP)if(s0<t.s1+250&&s0+l>t.s0-250)ok=false;if(ok)TP.push({s0:s0,s1:s0+l,k:.9+Rt()*.1});}}
+   VOLCAN.tempetes=TP;VOLCAN.n.tempetes=TP.length;}
   /* 0. TOUT DE SUITE : les rangées et les morceaux du départ (ce que la caméra voit au portail) ; 1. EN TRANCHES : les autres rangées, du plus
      proche au plus loin — la mer lointaine tient la place en attendant */
   const MO=vlcMorceaux(),pres=MO.filter(function(m){return m.dr<60;}); // (le morceau du départ — ou les deux qui le bordent : leurs seules cases ; les voisins suivent dans les premières images)
@@ -21669,7 +21692,7 @@ function vlcFx(){const fx=VOLCAN.fx;if(fx.bra)return fx;const M=volcanMats(),R=m
   const nuage=(n,mat,nom)=>{const g=new THREE.BufferGeometry(),aR=new Float32Array(n*4);for(let k=0;k<n*4;k++)aR[k]=R();
     g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(n*3),3));g.setAttribute('aR',new THREE.BufferAttribute(aR,4));
     const p=new THREE.Points(g,mat);p.name=nom;p.frustumCulled=false;p.matrixAutoUpdate=false;p.visible=false;p.renderOrder=8;scene.add(p);return p;};
-  const nP=PAL_B9('volcanPart',1000);fx.bra=nuage(nP,M.bra,'volcan braises');fx.cen=nuage(Math.round(nP*.8),M.cen,'volcan cendre');
+  const nP=PAL_B9('volcanPart',1000);fx.bra=nuage(nP,M.bra,'volcan braises');fx.cen=nuage(Math.round(nP*(VLC_MODS?1.4:.8)),M.cen,'volcan cendre');
   {const n=36,g=new THREE.BufferGeometry(),P=new Float32Array(n*3).fill(-1e5);g.setAttribute('position',new THREE.BufferAttribute(P,3));
    fx.bombes=new THREE.Points(g,M.bombe);fx.bombes.name='volcan bombes';fx.bombes.frustumCulled=false;fx.bombes.matrixAutoUpdate=false;fx.bombes.visible=false;fx.bombes.renderOrder=9;scene.add(fx.bombes);
    fx.bL=[];for(let k=0;k<n;k++)fx.bL.push({on:false,t:0,Tf:1,S:new THREE.Vector3(),v:new THREE.Vector3(),E:new THREE.Vector3()});}
@@ -21744,8 +21767,10 @@ function volcanTick(dt){
   {const sc=mode==='fall'?lastNearS:s;let f=0;for(const b of VOLCAN.bancs||[]){if(sc<b.s0-80||sc>b.s1+80)continue;f=Math.max(f,b.k*THREE.MathUtils.smoothstep(sc,b.s0-70,b.s0+50)*(1-THREE.MathUtils.smoothstep(sc,b.s1-50,b.s1+70)));}
    /* (2026-10-20, Sacha : « le filtre de visibilité avec la cendre et la fumée, mais EN PERMANENCE : le challenge de cette map doit être la faible visibilité ») : un voile de fond partout (0,7), les bancs le refermant jusqu'à 1 ; épargné seulement au départ (fondu de 60 à 260 m) pour ne pas cacher le portail */
    f=Math.max(f,.7*THREE.MathUtils.smoothstep(sc,60,260));
-   VOLCAN.fu+=(f*(c.fu||1)-VOLCAN.fu)*Math.min(1,dt*3);if(VOLCAN.fu<.002)VOLCAN.fu=0;FUMEE_K=VOLCAN.fu;FUMEE_F=c.fuF||250;if(c.fuC)FOG_FUMEE.setRGB(c.fuC[0],c.fuC[1],c.fuC[2]);
-   U.uBra.value=c.bra*(1+VOLCAN.fu*2.5);U.uCen.value=Math.min(1,c.cen+VOLCAN.fu*.6);if(DZ9){U.uBra.value*=DZ9.bra;U.uCen.value=Math.min(1,U.uCen.value*DZ9.cen);}}
+   let cs=0;for(const t of VOLCAN.tempetes||[]){if(sc<t.s0-80||sc>t.s1+80)continue;cs=Math.max(cs,t.k*THREE.MathUtils.smoothstep(sc,t.s0-70,t.s0+60)*(1-THREE.MathUtils.smoothstep(sc,t.s1-60,t.s1+70)));} /* la tempête de cendre */
+   f=Math.max(f,cs*.95);U.uCenS.value+=(cs-U.uCenS.value)*Math.min(1,dt*3);
+   VOLCAN.fu+=(f*(c.fu||1)-VOLCAN.fu)*Math.min(1,dt*3);if(VOLCAN.fu<.002)VOLCAN.fu=0;FUMEE_K=VOLCAN.fu;FUMEE_F=(c.fuF||250)*(1-.3*U.uCenS.value);if(c.fuC)FOG_FUMEE.setRGB(c.fuC[0],c.fuC[1],c.fuC[2]);
+   U.uBra.value=c.bra*(1+VOLCAN.fu*2.5);U.uCen.value=Math.min(1,c.cen+VOLCAN.fu*.6+U.uCenS.value*.5);if(DZ9){U.uBra.value*=DZ9.bra;U.uCen.value=Math.min(1,U.uCen.value*DZ9.cen);}}
   fx.bra.visible=U.uBra.value>.01;fx.cen.visible=U.uCen.value>.01;
   {const k=FUMEE_K,cl=fx.cloche;cl.visible=k>.01&&!!scene.fog;if(cl.visible){cl.position.copy(camera.position);cl.scale.setScalar(Math.min(3000,scene.fog.far*.97));cl.material.color.copy(scene.fog.color);cl.material.opacity=Math.min(1,k*1.1);cl.updateMatrix();cl.updateMatrixWorld();}}
   if(VOLCAN.solM){const ff=(scene.fog&&scene.fog.far)||6000,cp=camera.position;for(const m of VOLCAN.solM){const b=m.geometry.boundingSphere,v=cp.distanceTo(b.center)-b.radius<ff+60;if(m.visible!==v)m.visible=v;}}

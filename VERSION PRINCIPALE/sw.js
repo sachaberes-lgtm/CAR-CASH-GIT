@@ -10,7 +10,8 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v820'; /* v820 (2026-10-23, Sacha : glacier, plus de traversée de pic — le balayage du choc suit la vitesse) */
+const CACHE = 'cashcar-v821'; /* v821 (2026-10-23, Sacha : « refonte totale de la route du volcan : modules au hasard, la route monte et descend, plus de virages, plus de cendre ») : volcan, quatre modules (rampe, lacets, détour, rouleaux), relief de la plaine plus marqué, tempêtes de cendre */
+// const CACHE = 'cashcar-v820'; /* v820 (2026-10-23, Sacha : glacier, plus de traversée de pic — le balayage du choc suit la vitesse) */
 // const CACHE = 'cashcar-v819'; /* v819 (2026-10-23, Sacha : « enlève les vautours ») : dunes, plus de vautours */
 // const CACHE = 'cashcar-v817'; /* v817 (2026-10-23, Sacha : « dune encore plus vallonnée, bosses plus profondes · ce rouge est mal géré ») : dunes amplitude x1,4 ; sable rouge en terre cuite moins saturé */
 // const CACHE = 'cashcar-v815'; // v815 (2026-10-23, Léo : « oui, pousse les dunes sur le main ») : LES DUNES D'OR, 2e passe — route haute et penchée, épaule où l'on se pose (+ vitesse), facettes poly VITRAIL, dieux à têtes d'animaux et sphinx-chat, voir le journal
