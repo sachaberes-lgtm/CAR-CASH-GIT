@@ -480,7 +480,7 @@ function carVit(dt){
     const R0=wheels[wheels.length-1].userData.R||.45,pas=Math.max(-.3,Math.min(.3,ROUES.v/R0*dt));
     if(pas){for(const w of wheels)w.rotation.x+=pas*R0/(w.userData.R||R0);for(const e of ESSIEUX)e.rotation.x+=pas;} // (2026-09-27) les roues d'origine (hors scène, lues ailleurs) + les essieux soudés qu'on VOIT
   }
-  const nuit=Math.max(LVL.pluie||0,LVL.espace||0,(LVL.paris||0)*Math.min(1,PSU.uT.value)); // (Paris) la nuit, la lampe de carrosserie reste
+  const nuit=Math.max(LVL.pluie||0,LVL.espace||0); // (Paris) la nuit, la lampe de carrosserie reste
   /* LA LAMPE DE CARROSSERIE SE RETIRE AU SOLEIL (2026-09-26, vague 2). `carLight` (blanche, 3 m au-dessus du toit) est la clé de la caisse
      la NUIT — sans elle, en ville, une caisse noire sort #0e010f. Mais de jour elle s'ajoutait au soleil : MESURÉ au pixel en poursuite
      (banc des laques), c'est elle — plus que le vernis — qui délavait les laques (L'ÉTALON #4f8578 → #77ab98 à midi, L'AIGLE DE FEU noir

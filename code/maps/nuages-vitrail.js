@@ -692,7 +692,7 @@ function updateClouds(dt,t){
   cloudNearS+=(prox-cloudNearS)*Math.min(1,dt*2.5);
   // CONTRE-JOUR : face au soleil (au carré : ±30° seulement), la brume se dore, l'horizon avance, l'expo respire
   camera.getWorldDirection(cjV);
-  const cj9=Math.max(0,cjV.dot(SUN_DIR))*(1-LVL.pluie)*(1-LVL.paris*Math.min(1,PSU.uT.value)),cj2=cj9*cj9, // (ville sous la pluie : pas de soleil, pas de contre-jour)
+  const cj9=Math.max(0,cjV.dot(SUN_DIR))*(1-LVL.pluie),cj2=cj9*cj9, // (ville sous la pluie : pas de soleil, pas de contre-jour)
         fogN9=FOG_N*(1-cj2*.18);
   scene.fog.near=fogN9-(fogN9-Math.min(fogN9,120))*cloudInS+CAMP_FOG*.5; /* (2026-09-30) jamais plus clair qu'avant d'entrer : à l'ORAGE (70/660) le banc ÉCLAIRCISSAIT la brume */   // on garde de la profondeur DANS le nuage (26→120 : la route reste lisible) · (2026-09-27) l'ÉCLAIR de l'orage ouvre le brouillard (CAMP_FOG)
   scene.fog.far=FOG_F-(FOG_F-Math.min(FOG_F,820))*cloudInS+CAMP_FOG;     // (340→820)
