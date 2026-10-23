@@ -83,7 +83,7 @@ SHAPES.corolla=function(K){
     2.271,2.275,2.285,2.294,2.30,2.306,2.311,ZE-.003,ZE];
   for(const [w,a] of [[ZF,.326],[ZR,.33]])for(const f of [0,.2,.4,.55,.7,.8,.88,.95,.99,1])zs0.push(w-a*f,w+a*f);
   zs0.sort((a,b)=>a-b);const zs=zs0.filter((z,i)=>i===0||z-zs0[i-1]>.002);
-  let HB=false;try{HB=/[?&]honte=[1234]/.test(location.search);}catch(e){}   // (`?honte=1` : dalles ; `?honte=2` : l'ENTRE-DEUX, briques + couches plates)
+  let HB=false;try{HB=!/[?&]honte=0/.test(location.search);}catch(e){}   /* (23/10, Léo : « push-la dans le main ») EN MARCHE par défaut : LA FIDÈLE EN COUCHES ; `?honte=0` = la Fidèle d'avant ; `?honte=1|2|3` les étapes */   // (`?honte=1` : dalles ; `?honte=2` : l'ENTRE-DEUX, briques + couches plates)
   const peint=(j,z)=>j===0&&z<2.24&&z>-2.25?'k':(HB&&z<1.26&&z>-1.87&&((j>=11&&j<=12)||(j>=13&&(z>.3||z<-1.2))))?'g':'p';   // (aux deux bouts, la bande du plancher monte et devient le bas de la face : de la tôle, que la découpe habille)
   const EP=(typeof peintPal==='function'?peintPal(PAL):PAL).p,GP=EP.g;
   /* (23/10, Léo : « traduis dans le style de LA HONTE, fidèle à la Fidèle ») `?honte=1` : la VRAIE forme (les sections du plan) taillée en quelques GROS pans — une tranche par grand changement
@@ -95,7 +95,7 @@ SHAPES.corolla=function(K){
     const sx=z>=ZE-1e-6||z<=ZB+1e-6?.02:1;return [[0,yb],[xm*sx,yb],[xm*sx,yt],[xr*sx,yt],[xr*sx,Math.max(yr,yt+.01)],[0,yc]];};
   const peintB=(j,z)=>j===0?'k':(j===3&&z<1.0&&z>-1.3)?'g':(j===4&&z<1.26&&z>-1.87&&(z>.3||z<-1.2))?'g':'p';
   const PL=K.kit(PAL);let HB2=false;try{HB2=/[?&]honte=2/.test(location.search);}catch(e){}
-  let HB3=false,HB4=false;try{HB3=/[?&]honte=[34]/.test(location.search);HB4=/[?&]honte=4/.test(location.search);}catch(e){}   // (`?honte=4` : l'ENTRE-DEUX du 2 et du 3 — flancs en petits blocs de 8 cm, cabine en briques lisses, couches de base et de ceinture)
+  let HB3=false,HB4=false;try{HB3=!/[?&]honte=[012]/.test(location.search);HB4=!/[?&]honte=[0123]/.test(location.search);}catch(e){}   // (`?honte=4` : l'ENTRE-DEUX du 2 et du 3 — flancs en petits blocs de 8 cm, cabine en briques lisses, couches de base et de ceinture)
   if(HB3){   /* LE MÉLANGE (23/10, Léo : « un mélange technique des deux : répartition stratégique de la taille des cubes ») — de GROS blocs là où la tôle est plate (les flancs : 13 cm d'épaisseur, longs), des couches TRÈS FINES
      (4 cm, tronçons de 6 cm) là où la forme se complique (le nez, la poupe, le capot, la cabine et le toit). Les passages de roue restent des vides en marches. */
     const xAt=(sc,y)=>{let m=0;for(let i=1;i<sc.length;i++){const a=sc[i-1],b=sc[i];if((a[1]-y)*(b[1]-y)<=0&&a[1]!==b[1]){const x=a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);if(x>m)m=x;}}return m;};

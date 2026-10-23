@@ -10,7 +10,7 @@
    à 2 cm pour toutes les caisses du tableau (banc) ; `dbgLarges()` lit ce qui a été retaillé (rangées et colonnes, avant → après). */
 var FACETTES_LARGES=true,FL_FORCE=0;try{if(/[?&]facettes=ancien/.test(location.search))FACETTES_LARGES=false;const m9=/[?&]fl=([0-9.]+)/.exec(location.search);if(m9)FL_FORCE=+m9[1]/100;}catch(e){}
 var LP_LARGES={ /* gabarit : {e : tolérance (m) · ec : tolérance des colonnes si autre · eo : tolérance vers l'EXTÉRIEUR (m, 4 mm) · fin : [d1 (m), coefficient, d2 (m)] tolérance × coefficient sur les d1 premiers mètres des deux bouts, rampe jusqu'à d2 (0 = non) · hi : [hauteur (m) ou null, tolérance (m)] au-dessus de cette hauteur, dans la cabine (les vitres : la découpe y est exigeante), la tolérance ne dépasse pas la valeur — 0 : la cabine garde toutes ses tranches (hi:0 = aucune protection) · col : [indices de colonnes à garder : une arête de couleur dessinée à la main] · L : longueur maximale d'une facette (m)} */
-  corolla:{e:.05},cinq:{e:.05,hi:[null,.004],fin:[.3,.35,.7]},b_canard:{e:.05},mx5na:{e:.05},mx5rf:{e:.05,hi:[null,.004]},ae86:{e:.05,col:[3,4,5]},pikes:{e:.05},robin:{e:.05},bulle:{e:.05},e_anglaise:{e:.05}};
+  /* (23/10) VIDE EN LIGNE : seule La Fidèle change (par ses couches), les autres caisses gardent leurs facettes tant que Léo n'a pas dit oui — le banc les règle à chaud (dbgLarges) */};
 var LP_LARGES_BILAN={};
 function lpLarges(zs,sec,paint,o){
   const M=zs.length,N=sec[0].length;if(M<6||N<5)return null;
@@ -58,7 +58,7 @@ function lpLarges(zs,sec,paint,o){
    la hauteur). Une rangée ou une colonne ne reste que si, ôtée, ses points bougent de plus de `e` mètres par rapport à la droite tendue entre ses voisines
    (distance du point à la corde, en 3D) ; `jtient` : les rangées à garder (le dessous, repéré par son indice), `ctient(c)` : les colonnes à garder (le nez et la
    poupe, où la découpe au plan s'appuie sur la tôle). Rend {G, js, cs} : la grille retaillée et les indices d'origine des rangées et des colonnes gardées. */
-var LP_GRILLES={caid:{e:.012,jtient:[0,1,2]},combi:{e:.012,jtient:[0,1,2]}};
+var LP_GRILLES={};   /* (vide en ligne, voir LP_LARGES) */
 function lpGrilleLarge(G,o){
   const NC=G.length,NR=G[0].length,e=FL_FORCE||o.e;if(NC<4||NR<4)return null;
   const d3=(P,A,B)=>{const dx=B[0]-A[0],dy=B[1]-A[1],dz=B[2]-A[2],l2=dx*dx+dy*dy+dz*dz;let t=l2>1e-12?((P[0]-A[0])*dx+(P[1]-A[1])*dy+(P[2]-A[2])*dz)/l2:0;t=t<0?0:t>1?1:t;
