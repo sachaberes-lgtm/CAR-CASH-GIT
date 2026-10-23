@@ -13110,6 +13110,16 @@ const CAMPM=[]; // (2026-10-18) les repères de la piste de campagne (genCampagn
    CHAQUE MAP » au JOURNAL. `?sans=modcartes` rend les pistes d'avant (même graine, même route qu'avant). */
 let MODC_ON=!/[?&]sans=([^&]*,)?modcartes(,|&|$)/.test(location.search);
 window.dbgModCartes=function(v){if(v!=null)MODC_ON=!!v;return MODC_ON;}; // banc : dbgModCartes(0) = les pistes d'avant, sans recharger (la piste suivante)
+/* ===== LES VILLES AU HASARD — LE TRACÉ (2026-10-20, Sacha : « chaque map doit être aléatoire avec des modules et des décors qui changent, TOUTES LES MAPS ») =====
+   MESURÉ AVANT (16 graines, palier 0, banc traces.cjs) : écart de forme VILLE 0,197 · CRYPTO 0,243 · VITRÉE 0,291 · ORBITE 0,243 — et, à rotation près
+   (deux pistes superposées au mieux), VILLE 0,137 · CRYPTO 0,161 : toutes partaient plein nord, et chaque paquet n'avait que 4 ou 5 modules.
+   · VILLE_MODULES : des modules de plus dans le paquet de chaque map de genCtrl (voir mCarrefourS…) — ≥ 6 sortes par map ; `?sans=villemodules` = les
+     paquets d'avant, au tirage près.
+   · VILLE_HASARD : un flux à part (`rh`, né de la graine du hasard des modules : aucun tirage `rnd` ni `rf` de plus) tire l'AXE de la piste (le cap du
+     départ, sur tout le cercle — la ville, ses tours, ses décors sont bâtis autour de la route où qu'elle aille) et la CADENCE des modules (×0,75-1,35) ;
+     `?sans=villehasard` = la recette d'avant au tirage près. Les NUAGES (et leur route tordue) ne lisent ni l'un ni l'autre : leur route ne bouge pas d'un point. */
+const VILLE_MODULES=!/[?&]sans=([^&]*,)?villemodules(,|&|$)/.test(location.search);
+const VILLE_HASARD=!/[?&]sans=([^&]*,)?villehasard(,|&|$)/.test(location.search);
 /* (2026-10-18, 2e tour — Sacha : « pour les 3 villes il y a trop de moments où il faut faire du tout droit ; il faut que ça reste fun et jouable, il faut
    des tout droit mais pas autant ») les poids des motifs des VILLES quand elles ont leurs modules : épingles, esses, chicanes ×1,6-1,8 ; lignes de
    momentum ×0,3, grands balayages ×0,5, plongeons ×0,6 (ce sont eux, des courbes de 200 à 300 m, qu'on prenait pour des droites — banc). */
@@ -13169,7 +13179,7 @@ function genCtrl(rnd,startPos,startPhi){
   zoneArch=AR.nm; // exporté pour les BIOMES
   const RS=AR.rs*(hautOn()||MC?(40+.3*(70+(LV-1)*100))/61:LV)*(MC?.9:1.25), /* (2e tour) ×0,9 avec les modules : les virages des villes et de l'orbite se SENTENT (plancher : rPlancher) */ /* (2026-10-18, LES MODULES DE CHAQUE MAP) la ville, la crypto, la vitrée et l'orbite aussi : avec LV, au palier 15 plus un virage ne demandait le volant (0,75 virage/km en ville, 0,24 en orbite — banc) */VT=AR.vt; // (2026-10-18) sur la route TORDUE des nuages, les rayons suivent le rayon que la caisse tient au palier (40 + 0,3·v, passation/RACCOURCIS.md) au lieu de LV : LV grandissait plus vite que lui, au palier 12 plus aucun virage ne demandait le volant // ×1,25 (route v2) : des rayons plus larges — les courbes se prennent, elles ne se subissent pas
   const hand=rnd()<.33?-1:(rnd()<.5?0:1);        // LATÉRALITÉ : une piste qui spirale à gauche ne ressemble pas à une équilibrée
-  const sgn=()=>rnd()<.5+hand*.22?1:-1;
+  const sgn=()=>rnd()<thrH(.5+hand*.22)?1:-1; // (2026-10-20) thrH : le PLAN de la piste penche le côté (voir PLN) — même tirage `rnd`
   // ---- HUMEUR DE LA ZONE : deux FLOW ne doivent PAS se ressembler ----
   // Les poids étaient FIXES par archétype : à la longue, toutes les zones d'un même archétype
   // sortaient statistiquement jumelles (« on a l'impression que la génération est toujours pareille »).
@@ -13185,7 +13195,17 @@ function genCtrl(rnd,startPos,startPhi){
   // ---- LE VIRAGE À FILET (voir FILET) : NUAGES seulement ; son hasard a SON générateur (un seul tirage de `rnd`, et seulement ici) ----
   FILETMARK.length=0;MODMARK.length=0;
   const FILON=FILET.on&&typeof LVL!=='undefined'&&LVL.cur&&(LVL.cur.id==='nuages'||LVL.cur.id==='orage')&&!LVL.cur.piste&&!(typeof PARK!=='undefined'&&PARK.on);
-  const rf=FILON||MC?mulberry32((rnd()*4294967296)>>>0):null; // (2026-10-18) les MODULES DE CHAQUE MAP tirent aussi dans `rf` (un seul `rnd` de plus, seulement sur leurs maps)
+  const rfS=FILON||MC?(rnd()*4294967296)>>>0:0,rf=FILON||MC?mulberry32(rfS):null; // (2026-10-18) les MODULES DE CHAQUE MAP tirent aussi dans `rf` (un seul `rnd` de plus, seulement sur leurs maps)
+  const rh=MC&&VILLE_HASARD?mulberry32((rfS^0x7A1EA5ED)>>>0):null; // (2026-10-20, LES VILLES AU HASARD) le hasard du TRACÉ, à part (voir VILLE_HASARD)
+  const kMC=rh?.75+rh()*.6:1;if(rh)phi+=(rh()*2-1)*Math.PI; // la cadence des modules · L'AXE : le cap du départ, sur tout le cercle
+  /* LE PLAN DE LA PISTE (VILLE_HASARD) : 'axe' — la piste file vers l'axe tiré, son cap borné à ±capB (quand elle s'en écarte, les virages penchent du
+     côté qui la ramène) : une longue traversée ; 'libre' — comme avant ; 'boucle' — une latéralité franche : elle s'enroule (la spirale de la ville).
+     Il ne fait que PENCHER le seuil des tirages de côté (sgn, et le côté des modules qui suivaient `hand`) : aucun tirage de plus. */
+  const PLN=rh?(function(u){return u<.42?'axe':u<.7?'libre':'boucle';})(rh()):null,capB=rh?(40+rh()*60)*Math.PI/180:0,hB=rh&&rh()<.5?-1:1,phiAx=phi;
+  const thrH=(b,a9)=>{if(!PLN||PLN==='libre')return b;if(PLN==='boucle')return Math.min(.92,Math.max(.08,b+hB*.3));
+    if(a9){const ep=Math.abs(phi+a9/57.3-phiAx),em=Math.abs(phi-a9/57.3-phiAx);return ep<em?.88:.12;} // un GRAND virage (a9°) : le côté qui finit le plus près de l'axe
+    const e=(phi-phiAx)/capB;return Math.min(.94,Math.max(.06,b-.45*Math.max(-1,Math.min(1,e))-(Math.abs(e)>1?.25*Math.sign(e):0)));};
+  if(typeof window!=='undefined')window.__villePlan=PLN?{plan:PLN,cap:Math.round(capB*57.3),kMC:+kMC.toFixed(2)}:null; // (banc) le plan de la dernière piste générée
   const visF=!FILON?0:FILET.visite!=null?FILET.visite:Math.floor(Math.max(0,(runStats.zones|0)-(LVL.tutoZ|0))/NIVEAUX.length); // la 1re visite du niveau NUAGES, la 2e… (2026-09-30 : le cycle a 6 niveaux, plus 3)
   const filMax=!FILON?0:LVL.cur.id==='orage'?1:FILET.par[Math.min(FILET.par.length-1,visF)]; // (2026-09-29) L'ORAGE, le niveau dur : UN filet
   let filN=0,filNext=900*LV;
@@ -13205,16 +13225,16 @@ function genCtrl(rnd,startPos,startPhi){
   const modPaq=[];let modNext=1000*LV,modLast=-1;
   const modTire=()=>{for(let e=0;e<12;e++){if(!modPaq.length){const t=[0,1,2,3,4].concat(MODT&&FIGON?[5,6,7,8,9,5,9]:[]); /* le looping (5) et le puits (9) comptent double : ce sont LES raccourcis */for(let i=t.length-1;i>0;i--){const j=(rf()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)modPaq.push(x);}
     const m=modPaq.shift();if(m===modLast||(m===0&&filN>=filMax)||(m>=5&&modLast>=5))continue;return m;}return 3;};
-  const lacets=()=>{const n=2+(rf()<.5?1:0),sg0=rf()<.5?1:-1,R=(62+rf()*20)*RS,leg=(150+rf()*80)*LV,drop=(34+rf()*10)*LV,aE=172/Math.max(1,Math.sqrt(LV*.7));
+  const lacets=()=>{const n=2+(rf()<.5?1:0),sg0=rf()<thrH(.5)?1:-1,R=(62+rf()*20)*RS,leg=(150+rf()*80)*LV,drop=(34+rf()*10)*LV,aE=172/Math.max(1,Math.sqrt(LV*.7));
     straight(90*LV,-6*LV,2); // l'approche : on voit la première épingle venir
     for(let k=0;k<n;k++){const sg=k%2?-sg0:sg0;straight(leg,-drop*.55,3);arc(sg*aE,R,8,-drop*.45);}
     straight(leg*.8,-drop*.4,3);};
-  const russes=()=>{const n=3+(rf()<.5?1:0),sg=rf()<.5?1:-1;straight(90*LV,-4*LV,2);
+  const russes=()=>{const n=3+(rf()<.5?1:0),sg=rf()<thrH(.5)?1:-1;straight(90*LV,-4*LV,2);
     for(let k=0;k<n;k++){const h=(16+rf()*10)*LV;courbe((80+rf()*25)*LV,h,sg*(4+rf()*4),2);courbe((110+rf()*30)*LV,-(h+(10+rf()*8)*LV),sg*(4+rf()*4),3);}
     straight(100*LV,-6*LV,2);};
   const plongeonG=()=>{const L1=(200+rf()*80)*LV;straight(100*LV,4*LV,2);straight(L1,-L1*.46,4); // la lèvre, puis ~25° qu'on voit venir
-    arc((rf()<.5?1:-1)*(40+rf()*30),(150+rf()*70)*RS,4,-12*LV);straight(140*LV,-6*LV,2);}; // la compression : un grand virage presque plat
-  const chameau=()=>{const sg=rf()<.5?1:-1;courbe((140+rf()*40)*LV,(22+rf()*10)*LV,sg*5,3);courbe((220+rf()*60)*LV,-(70+rf()*25)*LV,sg*8,3);straight(100*LV,-6*LV,2);};
+    arc((rf()<thrH(.5)?1:-1)*(40+rf()*30),(150+rf()*70)*RS,4,-12*LV);straight(140*LV,-6*LV,2);}; // la compression : un grand virage presque plat
+  const chameau=()=>{const sg=rf()<thrH(.5)?1:-1;courbe((140+rf()*40)*LV,(22+rf()*10)*LV,sg*5,3);courbe((220+rf()*60)*LV,-(70+rf()*25)*LV,sg*8,3);straight(100*LV,-6*LV,2);};
   /* LES MODULES DE COURSE DE LA ROUTE TORDUE (2026-10-18, Sacha : « rajoute des virages et des modules cool à rider, ça reste un jeu de course »).
      Sans haut ni bas, le filet n'a plus de route en dessous, et lacets, plongeon, dos de chameau vivaient de la pente — qui ne pousse plus ici.
      Cinq modules qui se jouent AU VOLANT, tirés comme les autres (paquet mélangé, jamais deux fois de suite, `rf`), tous les 0,5-0,9 km (× LV) :
@@ -13228,15 +13248,15 @@ function genCtrl(rnd,startPos,startPhi){
      une pente ne se sent pas) ; le dévers de pisteTord les couche dans le virage. */
   const rP=40+.3*(70+(LV-1)*100),Z=1/AMP;
   rPlancher=MC?1.35*rP:0; // (2e tour) voir arc()
-  const tSlalom=()=>{const n=5+((rf()*3)|0),R=(1.9+rf()*.5)*rP;let sg=rf()<.5?1:-1;straight(70*LV*Z,-4*LV*Z,1);
+  const tSlalom=()=>{const n=5+((rf()*3)|0),R=(1.9+rf()*.5)*rP;let sg=rf()<thrH(.5)?1:-1;straight(70*LV*Z,-4*LV*Z,1);
     for(let k=0;k<n;k++){const a=38+rf()*14;arc(sg*a,R*Z,Math.ceil(a/10),-a/57.3*R*Z*.03);sg=-sg;}straight(70*LV*Z,-4*LV*Z,1);};
-  const tEpingle=()=>{const sg=rf()<.5+hand*.22?1:-1,R=(1.7+rf()*.3)*rP,a=165+rf()*20;straight(150*LV*Z,-6*LV*Z,2);
+  const tEpingle=()=>{const sg=rf()<thrH(.5+hand*.22,175)?1:-1,R=(1.7+rf()*.3)*rP,a=165+rf()*20;straight(150*LV*Z,-6*LV*Z,2);
     arc(sg*a,R*Z,Math.ceil(a/10),-a/57.3*R*Z*.03);straight(130*LV*Z,-6*LV*Z,2);};
-  const tCorde=()=>{const sg=rf()<.5+hand*.22?1:-1,R=(2+rf()*.5)*rP;straight(100*LV*Z,-5*LV*Z,1);
+  const tCorde=()=>{const sg=rf()<thrH(.5+hand*.22,185)?1:-1,R=(2+rf()*.5)*rP;straight(100*LV*Z,-5*LV*Z,1);
     for(let k=0;k<2;k++){const a=80+rf()*25;arc(sg*a,R*Z,Math.ceil(a/10),-a/57.3*R*Z*.03);if(!k)straight((60+rf()*40)*LV*Z,-3*LV*Z,1);}straight(100*LV*Z,-5*LV*Z,1);};
-  const tEsses=()=>{let sg=rf()<.5?1:-1;const R=(2.4+rf()*.7)*rP;straight(60*LV*Z,-3*LV*Z,1);
+  const tEsses=()=>{let sg=rf()<thrH(.5)?1:-1;const R=(2.4+rf()*.7)*rP;straight(60*LV*Z,-3*LV*Z,1);
     for(let k=0;k<3;k++){const a=70+rf()*25;arc(sg*a,R*Z,Math.ceil(a/10),-a/57.3*R*Z*.03);sg=-sg;}straight(60*LV*Z,-3*LV*Z,1);};
-  const tRusses=()=>{const n=3+(rf()<.5?1:0),sg=rf()<.5?1:-1;straight(90*LV*Z,-4*LV*Z,2);
+  const tRusses=()=>{const n=3+(rf()<.5?1:0),sg=rf()<thrH(.5)?1:-1;straight(90*LV*Z,-4*LV*Z,2);
     for(let k=0;k<n;k++){const h=(16+rf()*10)*LV*Z;courbe((80+rf()*25)*LV*Z,h,sg*(8+rf()*8),2);courbe((110+rf()*30)*LV*Z,-(h+(6+rf()*6)*LV*Z),sg*(8+rf()*8),3);}
     straight(100*LV*Z,-6*LV*Z,2);};
   /* LES MODULES DE CHAQUE MAP (2026-10-18, voir MODC_ON) — les maps de genCtrl hors nuages. Rayons VRAIS réglés sur rP (jamais sous 1,7 rP : serré,
@@ -13250,16 +13270,16 @@ function genCtrl(rnd,startPos,startPhi){
        mFronde   · LA FRONDE (orbite) : un grand virage de 200-260° qui vous relance de l'autre côté — la fronde gravitationnelle
        mHoule    · LA HOULE (orbite) : 3-4 vagues, chacune un virage de 50-70° (on monte dans sa 1re moitié, on plonge dans la 2de), en S — ESP_ROUTE.pente l'arrondit
      et ceux des nuages, tels quels hors de la route tordue (Z = 1) : tSlalom, tEpingle, tCorde, tEsses. */
-  const mAngles=()=>{const n=3+(rf()<.5?1:0),R=(1.75+rf()*.35)*rP;let sg=rf()<.5+hand*.22?1:-1;straight(80*LV,-4*LV,1);
+  const mAngles=()=>{const n=3+(rf()<.5?1:0),R=(1.75+rf()*.35)*rP;let sg=rf()<thrH(.5+hand*.22)?1:-1;straight(80*LV,-4*LV,1);
     for(let k=0;k<n;k++){const a=80+rf()*15;arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.05);sg=-sg;if(k<n-1)straight((70+rf()*60)*LV,-(4+rf()*4)*LV,1);}straight(80*LV,-4*LV,1);};
-  const mBretelle=()=>{const sg=rf()<.5+hand*.22?1:-1,R=(2+rf()*.4)*rP,a=200+rf()*50;straight(110*LV,-5*LV,2);arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.07);straight(110*LV,-5*LV,2);};
-  const mBougie=()=>{const sg=rf()<.5?1:-1,L1=(90+rf()*30)*LV,L2=(140+rf()*40)*LV;straight(40*LV,-2*LV,1); // (2e tour) plus courte : 0,3-0,4 km au lieu de 0,6-0,8
+  const mBretelle=()=>{const sg=rf()<thrH(.5+hand*.22,225)?1:-1,R=(2+rf()*.4)*rP,a=200+rf()*50;straight(110*LV,-5*LV,2);arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.07);straight(110*LV,-5*LV,2);};
+  const mBougie=()=>{const sg=rf()<thrH(.5)?1:-1,L1=(90+rf()*30)*LV,L2=(140+rf()*40)*LV;straight(40*LV,-2*LV,1); // (2e tour) plus courte : 0,3-0,4 km au lieu de 0,6-0,8
     courbe(L1,L1*(.17+rf()*.05),sg*(40+rf()*12),4);courbe(40*LV,1.5*LV,sg*6,2);courbe(L2,-L2*(.26+rf()*.04),-sg*(16+rf()*8),4); /* le pump TOURNE (35-47°), le dump reste presque droit : c'est là qu'on se pose */straight(90*LV,-5*LV,2);};
-  const mDents=()=>{const n=4+(rf()<.5?1:0),R=(2+rf()*.5)*rP;let sg=rf()<.5?1:-1;straight(70*LV,-3*LV,1);
+  const mDents=()=>{const n=4+(rf()<.5?1:0),R=(2+rf()*.5)*rP;let sg=rf()<thrH(.5)?1:-1;straight(70*LV,-3*LV,1);
     for(let k=0;k<n;k++){const a=40+rf()*20,l=a/57.3*R;arc(sg*a,R,Math.ceil(a/10),k%2?-l*(.2+rf()*.06):l*(.12+rf()*.06));sg=-sg;}straight(80*LV,-4*LV,1);};
-  const mTour=()=>{const sg=rf()<.5+hand*.22?1:-1,R=(2+rf()*.4)*rP,a=300+rf()*40;straight(120*LV,0,2);arc(sg*a,R,Math.ceil(a/10),0);straight(160*LV,0,2);};
-  const mFronde=()=>{const sg=rf()<.5+hand*.22?1:-1,R=(1.9+rf()*.5)*rP,a=200+rf()*60;straight(90*LV,-4*LV,2);arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.04);straight(150*LV,-6*LV,2);};
-  const mHoule=()=>{const n=3+(rf()<.5?1:0),R=(2+rf()*.4)*rP;let sg=rf()<.5?1:-1;straight(80*LV,-3*LV,1); // chaque vague = un virage de 50-70° : on monte dans sa première moitié, on plonge dans la seconde
+  const mTour=()=>{const sg=rf()<thrH(.5+hand*.22,320)?1:-1,R=(2+rf()*.4)*rP,a=300+rf()*40;straight(120*LV,0,2);arc(sg*a,R,Math.ceil(a/10),0);straight(160*LV,0,2);};
+  const mFronde=()=>{const sg=rf()<thrH(.5+hand*.22,230)?1:-1,R=(1.9+rf()*.5)*rP,a=200+rf()*60;straight(90*LV,-4*LV,2);arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.04);straight(150*LV,-6*LV,2);};
+  const mHoule=()=>{const n=3+(rf()<.5?1:0),R=(2+rf()*.4)*rP;let sg=rf()<thrH(.5)?1:-1;straight(80*LV,-3*LV,1); // chaque vague = un virage de 50-70° : on monte dans sa première moitié, on plonge dans la seconde
     for(let k=0;k<n;k++){const a=50+rf()*20,h=(10+rf()*6)*LV;arc(sg*a*.5,R,Math.ceil(a/20),h);arc(sg*a*.5,R,Math.ceil(a/20),-(h+(6+rf()*4)*LV));sg=-sg;}straight(90*LV,-4*LV,1);};
   /* ===== LES FIGURES (2026-10-22, LA ROUTE LIBRE — Sacha : « retravaille la route de l'espace et des nuages : plus fun, plus jouable, des modules, des raccourcis, passer à
      l'endroit et à l'envers ; garde les spirales mais gère-les bien ») ===== NUAGES et ORBITE, là où la route se roule dans l'espace (pisteTord), tirent aussi dans cinq figures
@@ -13310,12 +13330,37 @@ function genCtrl(rnd,startPos,startPhi){
     return {g:1,fig:'puits'};};
   const FIGF=FIGON?[fBoucle,fTonneau,fEnvers,fMur,fPuits]:[];
   const MODTJ=[tSlalom,tEpingle,tCorde,tEsses,tRusses].concat(FIGF);
-  const MCJ=!MC?null:MC==='crypto'?[mBougie,mDents,tSlalom,tEpingle]:MC==='vitree'?[mTour,mAngles,tSlalom,tEsses]:MC==='espace'?[mFronde,mHoule,tSlalom,tCorde,tEsses].concat(FIGF,FIGON?[fBoucle,fPuits]:[]):[mAngles,mBretelle,tSlalom,tCorde];
+  /* LES MODULES DE PLUS (2026-10-20, LES VILLES AU HASARD — voir VILLE_MODULES) : deux ou trois par map, mêmes règles (rayons VRAIS ≥ 1,75 rP, longueurs × LV, `rf`) :
+       mCarrefourS · LE CARREFOUR EN S (ville, vitrée) : deux coins de 82-94° opposés à 25-55 m l'un de l'autre (on change de rue), parfois un troisième
+       mPont       · LE PONT ENTRE DEUX TOURS (ville) : on monte en courbe (~9 %), un tablier droit et plat de 160-240 m au-dessus du canyon, on replonge (~13 %)
+       mParking    · LA DESCENTE DU PARKING (ville) : une spirale de 400-460° qui descend à ~9 % au rayon que la caisse tient (≥ 60 m d'air entre deux tours)
+       mEscalier   · L'ESCALIER DU BULL RUN (crypto) : 3-4 marches qui montent (~13 %) en tournant, des paliers entre deux, puis la chute
+       mKrach      · LE KRACH ET LA REPRISE (crypto) : un plongeon à ~20 % en virage, le creux, la remontée à ~15 % de l'autre côté — un V de cours
+       mTrombone   · LE TROMBONE (vitrée) : deux demi-tours opposés reliés par 100-160 m — la route revient sur elle-même deux fois (vitreAplanir en fait des ponts)
+       mDebris     · LE CHAMP DE DÉBRIS (orbite) : 6-8 coups de volant de 22-34° qui montent et descendent de ±7 m — on se faufile
+       mTransfert  · L'ORBITE DE TRANSFERT (orbite) : deux grands virages du même côté (110-140° chacun), une bosse de 18-26 m entre eux */
+  const mCarrefourS=()=>{const n=2+(rf()<.35?1:0),R=(1.75+rf()*.3)*rP;let sg=rf()<thrH(.5+hand*.22)?1:-1;straight(70*LV,-3*LV,1);
+    for(let k=0;k<n;k++){const a=82+rf()*12;arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.04);sg=-sg;if(k<n-1)straight((25+rf()*30)*LV,-2*LV,1);}straight(110*LV,-4*LV,2);};
+  const mPont=()=>{const sg=rf()<thrH(.5)?1:-1,L1=(110+rf()*30)*LV,Lp=(160+rf()*80)*LV,L2=(120+rf()*30)*LV;straight(50*LV,-2*LV,1);
+    courbe(L1,L1*.09,sg*(14+rf()*10),3);courbe(Lp,0,-sg*4,3);courbe(L2,-L2*.13,sg*(16+rf()*12),3);straight(70*LV,-3*LV,1);};
+  const mParking=()=>{const sg=rf()<thrH(.5+hand*.22,430)?1:-1,R=(1.8+rf()*.3)*rP,a=400+rf()*60;straight(70*LV,-3*LV,1);arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.09);straight(110*LV,-4*LV,2);};
+  const mEscalier=()=>{const n=3+(rf()<.5?1:0);let sg=rf()<thrH(.5)?1:-1;straight(50*LV,-2*LV,1);
+    for(let k=0;k<n;k++){const l=(60+rf()*25)*LV;courbe(l,l*(.12+rf()*.03),sg*(10+rf()*8),2);courbe((55+rf()*30)*LV,-1*LV,-sg*(8+rf()*6),2);sg=-sg;}
+    {const l=(170+rf()*50)*LV;courbe(l,-l*(.24+rf()*.04),sg*(18+rf()*10),4);}straight(70*LV,-3*LV,1);};
+  const mKrach=()=>{const sg=rf()<thrH(.5)?1:-1,L1=(130+rf()*40)*LV,L2=(120+rf()*30)*LV;straight(50*LV,-2*LV,1);
+    courbe(L1,-L1*(.19+rf()*.03),sg*(20+rf()*10),4);courbe(40*LV,-1*LV,sg*6,2);courbe(L2,L2*(.14+rf()*.03),-sg*(20+rf()*10),4);straight(70*LV,-3*LV,1);};
+  const mTrombone=()=>{const sg=rf()<thrH(.5+hand*.22)?1:-1,R=(1.8+rf()*.3)*rP;straight(80*LV,0,1);arc(sg*(170+rf()*15),R,18,0);straight((100+rf()*60)*LV,0,2);arc(-sg*(170+rf()*15),R,18,0);straight(100*LV,0,2);};
+  const mDebris=()=>{const n=6+((rf()*3)|0),R=(1.8+rf()*.4)*rP;let sg=rf()<thrH(.5)?1:-1;straight(60*LV,-3*LV,1);
+    for(let k=0;k<n;k++){const a=22+rf()*12;arc(sg*a,R,Math.ceil(a/10),(k%2?-7:7)*LV);sg=-sg;}straight(80*LV,-4*LV,1);};
+  const mTransfert=()=>{const sg=rf()<thrH(.5+hand*.22,250)?1:-1,R=(2+rf()*.5)*rP,h=(18+rf()*8)*LV;straight(70*LV,-3*LV,1);
+    {const a=110+rf()*30;arc(sg*a,R,Math.ceil(a/10),h);}straight((60+rf()*40)*LV,-h*.4,1);{const a=110+rf()*30;arc(sg*a,R,Math.ceil(a/10),-h*.9);}straight(90*LV,-4*LV,1);};
+  const VMOD=VILLE_MODULES; // (`?sans=villemodules` : les paquets d'avant)
+  const MCJ=!MC?null:MC==='crypto'?[mBougie,mDents,tSlalom,tEpingle].concat(VMOD?[mEscalier,mKrach]:[]):MC==='vitree'?[mTour,mAngles,tSlalom,tEsses].concat(VMOD?[mCarrefourS,mTrombone,tCorde]:[]):MC==='espace'?[mFronde,mHoule,tSlalom,tCorde,tEsses].concat(VMOD?[mDebris,mTransfert]:[],FIGF,FIGON?[fBoucle,fPuits]:[]):[mAngles,mBretelle,tSlalom,tCorde].concat(VMOD?[mCarrefourS,mPont,mParking]:[]);
   const mcPaq=[];let mcLast=-1,mcNext=Math.max(Math.min(700*LV,LEN*.15),FIGON?Math.max(450,1.8*vD)+90:0); // (LA DURÉE DES MAPS) une map courte garde au moins un module
   const mcTire=()=>{for(let e=0;e<8;e++){if(!mcPaq.length){const t=MCJ.map(function(_,i){return i;});for(let i=t.length-1;i>0;i--){const j=(rf()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)mcPaq.push(x);}
     const m=mcPaq.shift();if(m===mcLast||(FIGF.indexOf(MCJ[m])>=0&&FIGF.indexOf(MCJ[mcLast])>=0))continue;return m;}return 0;};
   const filet=()=>{
-    const sg=rf()<.5+hand*.22?1:-1,R=(95+rf()*45)*RS,th=(55+rf()*20)*Math.PI/180,Re=R+ROAD_HALF;
+    const sg=rf()<thrH(.5+hand*.22)?1:-1,R=(95+rf()*45)*RS,th=(55+rf()*20)*Math.PI/180,Re=R+ROAD_HALF;
     const vN=FILET.kv*(70+(LV-1)*100),g=FALL_G*SPD,k0=FILET.kick,iM0=ctrl.length-1; // iM0 : début du module (MODMARK)
     straight(70*LV,-10*LV,2); // l'APPROCHE : droite et lisible — le virage et son filet se voient venir
     const A=P.clone(),ph0=phi,yA=P.y,pC=.04+rf()*.03,dropC=th*R*pC; // un virage PRESQUE PLAT : sa pente part avec la caisse (vy = −v·pente) — à 780 km/h, 12 % de pente jetaient la caisse 44 m sous le filet (mesuré)
@@ -13357,7 +13402,7 @@ function genCtrl(rnd,startPos,startPhi){
   if(sansLoop&&LVL.cur.id==='ville'){ // (2026-09-29) L'ENTRÉE DANS LA VILLE : droite surélevée, puis la grande rampe qui plonge dans le canyon (voir VILLE_ENTREE_R)
     const E9=MC?Object.assign({},VILLE_ENTREE_R,{droite:260,rampe:320,chute:160}):VILLE_ENTREE_R; // (2e tour) avec les modules, l'entrée raccourcit : 260 m de droite au lieu de 420, une rampe de 320 m (en virage) au lieu de 520 (« trop de tout droit »)
     straight(E9.droite*LV,-6*LV,4);const iA9=ctrl.length-1;
-    if(MC)courbe(E9.rampe*LV,-E9.chute*LV,(rf()<.5?1:-1)*(48+rf()*14),6);else // (2e tour) avec les modules, la grande rampe plonge EN VIRAGE (48-62°)
+    if(MC)courbe(E9.rampe*LV,-E9.chute*LV,(rf()<thrH(.5)?1:-1)*(48+rf()*14),6);else // (2e tour) avec les modules, la grande rampe plonge EN VIRAGE (48-62°)
     straight(E9.rampe*LV,-E9.chute*LV,6);VILLE_ENTREE={pA:ctrl[iA9],pB:ctrl[ctrl.length-1]}; // (les points eux-mêmes : les adoucissements les déplacent, la ville lit leur place FINALE)
   }else straight(110*LV,-70*LV,2); // DÉPART : ligne droite, rallongée avec la vitesse (était 170 m + la caisse)
   if(MODT)modNext=Math.max(Math.min((FIGON?300:900)*LV*Z,LEN*(FIGON?.08:.18)),FIGON?(Math.max(450,1.8*vD)+90)/AMP:0); // (ROUTE LIBRE) pas avant la fin du départ tenu de pisteTord : une figure y serait perdue // (LA DURÉE DES MAPS) une map courte garde au moins un module // (2026-10-18) le 1er module de course ~900 m après le départ (VRAIS mètres : la zone est tirée au 1/AMP)
@@ -13365,7 +13410,7 @@ function genCtrl(rnd,startPos,startPhi){
   if(FIGON&&MC&&approx<mcNext)straight(mcNext-approx,-2*LV,2);
   while(approx<LEN){
     if(MC&&approx>mcNext&&approx<LEN-Math.min(600*LV,LEN*.3)){const m=mcTire(),iM9=ctrl.length-1;mcLast=m; // (2e tour) jusqu'à 0,6 km du bout : le dernier 1,5 km faisait de longues droites // (2026-10-18) LES MODULES DE CHAQUE MAP (voir mAngles…)
-      {const fm9=MCJ[m]();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));}mcNext=approx+(MC==='espace'?(FIGON?40+rf()*200:300+rf()*300):300+rf()*250)*LV;continue;} // (2e tour) un module tous les 0,3-0,6 km × LV
+      {const fm9=MCJ[m]();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));}mcNext=approx+(MC==='espace'?(FIGON?40+rf()*200:300+rf()*300):300+rf()*250)*LV*kMC;continue;} // (2e tour) un module tous les 0,3-0,6 km × LV
     if(MODT&&approx>modNext&&approx<LEN-Math.min((FIGON?900:1500)*LV*Z,LEN*(FIGON?.2:.3))){const m=modTire(),iM9=ctrl.length-1;modLast=m; // (2026-10-18) LES MODULES DE COURSE (voir tSlalom…) — même paquet, même hasard `rf`
       {const fm9=MODTJ[m]();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));}
       modNext=approx+(FIGON?40+rf()*140:500+rf()*400)*LV*Z;continue;}
@@ -22899,7 +22944,7 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
 window.dbgVilleGta=function(k,a,d,h){CITY.uGta.value=k==null?1:+k;
   if(a!=null){const f=new THREE.Vector3(0,0,1).applyQuaternion(carGroup.getWorldQuaternion(new THREE.Quaternion()));window.dbgView(Math.atan2(-f.x,-f.z)+a,d,h);}
   else if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
-  return {k:CITY.uGta.value};};
+  return {k:CITY.uGta.value,deco:CITY.deco||null};}; /* (2026-10-20) + le tirage du décor (LES VILLES AU HASARD) */
 function villeMatNeon(ancien){ // enseignes, couronnes, feux d'antenne — ils RESPIRENT, quelques-uns clignotent, une poignée grésille
   const K=ancien?'matN0':'matN';if(CITY[K])return CITY[K];
   const Q=c=>ancien?'true':c; // (passe perf) voir villeMatTours
@@ -23005,6 +23050,68 @@ function villeMatPub(){
       .replace('#include <fog_fragment>','gl_FragColor.rgb*=(.78+.22*step(.5,fract(gl_FragCoord.y*.25-uT9*6.)))*(.85+.15*sin(uT9*(3.+vS9*4.)))*uCour9;\n#include <fog_fragment>');};
   m.dispose=function(){};CITY.matP=m;return m;
 }
+/* ===== LES VILLES AU HASARD — LE DÉCOR (2026-10-20, Sacha : « chaque map doit être aléatoire avec des modules et des décors qui changent, TOUTES LES MAPS ») =====
+   MESURÉ AVANT : la graine déplaçait les tours (le flux `vr`), jamais la COMPOSITION — même hauteur de skyline, même densité, mêmes enseignes, mêmes
+   réclames, mêmes couronnes ; à CRYPTO CITY toujours deux taureaux à 30 et 70 %, trois rangées de bougies à 13/50/88 %, douze pièces, huit diamants,
+   trois dirigeables ; à la VILLE VITRÉE les mêmes formes aux mêmes places (elles naissent de la POSITION de la tour). Désormais, par piste, un TIRAGE DE
+   DÉCOR (`villeDecoTire`) dans un flux à lui (né de la graine, brassée : jamais `vr`, jamais `rnd`), lu par buildVoxCity, cryptoPlace, vitreTick, plaTick :
+   · COMMUN : la SKYLINE (basse ×0,72 · moyenne · haute ×1,3 : la hauteur des murs du canyon au-dessus de la route), la DENSITÉ des rangs et de la forêt,
+     0-3 PLACES (trouées de 180-340 m où les deux premiers rangs s'effacent, d'un côté ou des deux : la vue s'ouvre sur la ville), 0-3 TOURS REPÈRES
+     (des géantes de 400 à 700 m au-dessus de la route — 1,3 à 1,8 km à la vitrée —, mât et feu d'obstacle, parfois une couronne), les ANTENNES,
+     les COURONNES, les TUYAUX ;
+   · LA VILLE (et MINUIT) : les ENSEIGNES verticales (rares · normales · partout), les RÉCLAMES (×0,4 · ×1 · ×1,9), la PALETTE des néons (magenta et cyan ·
+     tout magenta · cyan froid · rouge et or — que la teinte de la ville remappe ensuite), le BÉTON (gris-bleu · acier · brique sombre · bleu nuit),
+     la part de GÉANTES DE VERRE (peu · normale · beaucoup) et lesquelles ;
+   · CRYPTO CITY : 1 à 3 TAUREAUX (à des abscisses tirées), 2 à 5 rangées de BOUGIES (longueur, abscisses, et le marché : bull pur · normal · volatil),
+     les PIÈCES ₿ géantes (6 · 12 · 20), les DIAMANTS (3 · 8 · 14), les DIRIGEABLES (1 · 3 · 5), les bougies du lointain, la PLUIE D'ARGENT (fine · normale ·
+     averse), la cadence des FUSÉES et des FEUX, la palette des néons (comme avant · tout or · vert profit · orange bitcoin) ;
+   · LA VILLE VITRÉE : les FORMES des géantes (mixte · vrillées · lames · sobres · rondes — et lesquelles : la graine de position décalée), les MONTANTS
+     (alu · champagne · graphite), le DIRIGEABLE (aucun · comme avant · haut · rasant), les NUAGES (dégagé · comme avant · couvert).
+   Que des pièces déjà là (le cube des tours, ses matières, les néons, les instances de crypto) : 0 programme de plus. Rien sur la route : les places
+   retirent des tours, les repères passent par la règle d'or (tourLibre / routePres, chev, la réserve de crypto). `CITY.dz` (le tirage), `CITY.deco`
+   (lisible) : `dbgVilleDeco()`, `dbgCrypto().deco`, `dbgVitre().deco`, `dbgVilleGta().deco`. `?sans=villedecor`, `?sans=cryptodecor`, `?sans=vitreedecor` =
+   le décor d'avant, au tirage près. */
+const VILLE_DECOR=!/[?&]sans=([^&]*,)?villedecor(,|&|$)/.test(location.search);
+const CRYPTO_DECOR=!/[?&]sans=([^&]*,)?cryptodecor(,|&|$)/.test(location.search);
+const VITREE_DECOR=!/[?&]sans=([^&]*,)?vitreedecor(,|&|$)/.test(location.search);
+function villeDecoGraine(seed,k){let h=Math.imul(((seed>>>0)^k)>>>0,0x85EBCA6B);h^=h>>>13;h=Math.imul(h,0xC2B2AE35);h^=h>>>16;return mulberry32(h>>>0);} // la graine BRASSÉE (des graines voisines ne tirent pas les mêmes choix)
+function villeDecoTire(seed,genre){ // genre : 'ville' (et minuit) · 'crypto' · 'vitree' — null : le décor d'avant
+  if(genre==='ville'?!VILLE_DECOR:genre==='crypto'?!CRYPTO_DECOR:!VITREE_DECOR)return null;
+  const dr=villeDecoGraine(seed,0xDEC0C17E),ch=a=>a[(dr()*a.length)|0],D={genre:genre},li=[],pc=x=>Math.round(x*100)+' %';
+  {const h=ch([[.72,'basse'],[1,'moyenne'],[1.3,'haute']]);D.haut=h[0];li.push('skyline '+h[1]);}
+  {const d=ch([[.7,'aérée'],[1,'normale'],[1.18,'serrée']]);D.dens=d[0];li.push('densité '+d[1]);}
+  {const n=(dr()*4)|0,T9=[];for(let k=0;k<n;k++)T9.push({f:.14+dr()*.76,l:180+dr()*160,c:ch([-1,1,0])});D.trou=T9;
+   li.push(n?n+' place'+(n>1?'s':'')+' : '+T9.map(function(t){return pc(t.f)+(t.c<0?' à gauche':t.c>0?' à droite':' des deux côtés');}).join(', '):'pas de place');}
+  {const n=(dr()*4)|0,R=[];for(let k=0;k<n;k++)R.push({f:.12+dr()*.78,sg:dr()<.5?-1:1,lat:dr(),h:dr(),cour:dr()<.6});D.rep=R;
+   li.push(n?n+' tour'+(n>1?'s':'')+' repère'+(n>1?'s':'')+' : '+R.map(function(r){return pc(r.f)+(r.sg<0?' g':' d');}).join(', '):'pas de tour repère');}
+  {const a=ch([[.25,'rares'],[.5,'normales'],[.8,'nombreuses']]);D.ant=a[0];li.push('antennes '+a[1]);}
+  {const c=ch([[.12,'rares'],[.32,'normales'],[.6,'partout']]);D.cour=c[0];li.push('couronnes '+c[1]);}
+  D.tuy=ch([.5,1,1.3]);li.push('tuyaux ×'+D.tuy);
+  if(genre==='ville'){
+    {const e=ch([[.35,'rares'],[1,'normales'],[1.7,'partout']]);D.ens=e[0];li.push('enseignes '+e[1]);}
+    {const p=ch([[.4,'rares'],[1,'normales'],[1.9,'partout']]);D.pub=p[0];li.push('réclames '+p[1]);}
+    {const n=ch([['magenta et cyan',null],['tout magenta',[0xff3ec8,0xff6ad5,0xff4f9e,0xff2e8e,0xff3ec8]],['cyan froid',[0x3ee8ff,0x52c8ff,0x8fd8ff,0x3ee8ff,0xff3ec8]],['rouge et or',[0xff3b5c,0xffb04a,0xff4f9e,0xffd75e,0xff3b5c]]]);D.neon=n[1];li.push('néons '+n[0]);}
+    {const b=ch([['gris-bleu',null],['acier',[.19,.21,.23]],['brique sombre',[.25,.20,.19]],['bleu nuit',[.15,.18,.28]]]);D.bet=b[1];li.push('béton '+b[0]);}
+    {const v=ch([[.5,'peu'],[1,'normal'],[1.7,'beaucoup']]);D.verre={k:v[0],ox:dr()*97,oz:dr()*89};li.push('géantes de verre : '+v[1]);}}
+  else if(genre==='crypto'){D.ens=1;D.pub=ch([.5,1,1.6]);li.push('réclames ×'+D.pub);
+    {const n=dr()<.25?1:dr()<.7?2:3,T9=[];for(let k=0;k<n;k++)T9.push(n===1?.3+dr()*.4:(k+.2+dr()*.6)/n);D.tau=T9;li.push(n+' taureau'+(n>1?'x':'')+' : '+T9.map(pc).join(', '));}
+    {const n=2+((dr()*4)|0),B9=[];for(let k=0;k<n;k++)B9.push({f:(k+.1+dr()*.8)/n,n:7+((dr()*10)|0)});D.boug=B9;
+     const m=ch([[0,'bull pur'],[1,'normal'],[2,'volatil']]);D.rouge=m[0];li.push(n+' rangées de bougies ('+B9.map(function(b){return b.n;}).join('/')+'), marché '+m[1]);}
+    D.pie=ch([6,12,20]);D.diam=ch([3,8,14]);D.dir=ch([1,3,5]);li.push(D.pie+' pièces ₿, '+D.diam+' diamants, '+D.dir+' dirigeable'+(D.dir>1?'s':''));
+    D.bfo=ch([.05,.13,.26]);li.push('bougies au loin ×'+(D.bfo/.13).toFixed(1));
+    {const p=ch([[.25,'fine'],[.5,'normale'],[.85,'averse']]);D.pluie=p[0];li.push('pluie d’argent '+p[1]);}
+    D.fus=ch([.6,1,1.7]);D.feu=ch([.6,1,1.7]);li.push('fusées ×'+D.fus+', feux ×'+D.feu);
+    {const n=ch([['comme avant',null],['tout or',[0xffd23e,0xffc63a,0xfff2c8,0xf7931a,0xffd23e]],['vert profit',[0x2bff88,0x6dffc8,0x3dff9a,0xffd23e,0x2bff88]],['orange bitcoin',[0xf7931a,0xffb04a,0xffd23e,0xf7931a,0xfff2c8]]]);D.neon=n[1];li.push('néons '+n[0]);}}
+  else{
+    {const f=ch([['mixte',[.28,.46,.60,.71,.86]],['vrillées',[.14,.26,.52,.72,.86]],['lames',[.18,.30,.40,.48,.62]],['sobres',[.5,.7,.76,.82,.94]],['rondes',[.2,.32,.42,.52,.86]]]);D.fo={s:f[1],ox:dr()*97,oz:dr()*89};li.push('formes '+f[0]);}
+    {const m=ch([['alu',null],['champagne',[1.05,.97,.82]],['graphite',[.5,.52,.56]]]);D.mont=m[1];li.push('montants '+m[0]);}
+    {const d=ch([['aucun',null],['comme avant',[200,0]],['haut',[260,190]],['rasant',[140,-60]]]);D.dir=d[1];li.push('dirigeable '+d[0]);}
+    {const n=ch([[.1,'dégagé'],[0,'comme avant'],[-.1,'couvert']]);D.nu=n[0];li.push('nuages '+n[1]);}}
+  D.li=li;return D;}
+window.dbgVilleDeco=function(k,v){
+  if(k==='vue'){if(started&&!gameOver&&!paused)togglePause();if(acesPass)acesPass.uniforms.uSpeed.value=0;camera.position.fromArray(v.p);camera.lookAt(v.c[0],v.c[1],v.c[2]);if(v.fov){camera.fov=v.fov;camera.updateProjectionMatrix();}camera.updateMatrixWorld(); // (banc) la caméra en p, qui regarde c
+    try{if(CITY.dz&&CITY.dz.genre==='crypto'){plaTick(0,false);cryptoTick(0,false);}if(LVL.cur&&LVL.cur.vitre)vitreTick(0,false);}catch(e){}if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return 'vue';}
+  return {pret:!!CITY.root,genre:CITY.dz?CITY.dz.genre:null,deco:CITY.deco||null,reperes:CITY.n&&CITY.n.reperes,places:CITY.n&&CITY.n.places,ville9:CITY.n};}; // (banc) le tirage du décor de la ville en cours
 /* ================================ CRYPTOCITY — LA VILLE EN BULL RUN ================================
    (2026-10-13, Léo : « avec le même système de génération automatique que les autres maps, génère une ville mais avec un twist majeur :
    c'est CRYPTOCITY, mais en BULL RUN — ciel joyeux, trouve plein de détails émerveillants du bull run, toute l'ambiance est différente,
@@ -23053,6 +23160,7 @@ function cryptoVide(){ // (buildVoxCity, à chaque piste) ce que la ville d'avan
 function cryptoPlace(seed,proches){
   const cr=mulberry32(seed^0xB0117A11),S={taureaux:[],bougies:[],pieces:[],diam:[],dirig:[]},dS=L/(NP-1),iE=CITY.entree?CITY.entree[1]:0;
   CRYPTO.res.length=0;CRYPTO.rf=mulberry32(seed^0xF0E57B0);
+  const DZ=CITY.dz&&CITY.dz.genre==='crypto'?CITY.dz:null; // (2026-10-20, LE DÉCOR AU HASARD) le tirage du décor (villeDecoTire) : combien, où — nul : le plan d'avant, au tirage `cr` près
   const libre=function(x,z,R,y0,y1){let ok=true;proches(x,z,R,function(i){if(!ok)return;const p=pts[i],dx=p.x-x,dz=p.z-z;if(dx*dx+dz*dz<R*R&&p.y>y0-45&&p.y<y1+45)ok=false;});return ok;};
   const dessous=function(x,z,R,y){let h=-1e9;proches(x,z,R,function(i){const p=pts[i],dx=p.x-x,dz=p.z-z;if(dx*dx+dz*dz<R*R&&p.y<y&&p.y>h)h=p.y;});return h;};
   const cadre=function(i){const T9=T[i],hl=Math.hypot(T9.x,T9.z)||1;return {px:-T9.z/hl,pz:T9.x/hl,tx:T9.x/hl,tz:T9.z/hl};};
@@ -23060,7 +23168,7 @@ function cryptoPlace(seed,proches){
   // LES TAUREAUX : à 30 % et à 70 % de la piste, à ~230 m de l'axe, le ventre 70 m sous la route (le dos 120 m au-dessus, les cornes 230)
   const poseT=function(t){t.ph=cr()*6.28;S.taureaux.push(t);CRYPTO.res.push(t.x,t.z,330);const p=pts[t.i];
     for(const f of [.3,.52,.74])CRYPTO.res.push(t.x+(p.x-t.x)*f,t.z+(p.z-t.z)*f,95);}; // L'ESPLANADE : pas une tour entre le taureau et la route qu'il regarde
-  for(const F0 of [.3,.7]){let rep=null,ok=false;
+  for(const F0 of (DZ?DZ.tau:[.3,.7])){let rep=null,ok=false;
     for(let k=0;k<14;k++){const i=ix(F0+(cr()-.5)*.2),c=cadre(i),sg=cr()<.5?-1:1,lat=ROAD_HALF+300+cr()*80;
       const x=pts[i].x+c.px*sg*lat,z=pts[i].z+c.pz*sg*lat,yb=pts[i].y-70;
       if(cryptoReserve(x,z,330)||!libre(x,z,280,yb-20,yb+440))continue;
@@ -23072,25 +23180,26 @@ function cryptoPlace(seed,proches){
       poseT(t);ok=true;break;}
     if(!ok&&rep)poseT(rep);}
   // LE GRAPHIQUE : trois rangées de bougies qui MONTENT le long de la route (une bougie tous les ~42 m), deux petites rouges dans chaque
-  for(const F0 of [.13,.5,.88]){const i0=ix(F0+(cr()-.5)*.05),sg=cr()<.5?-1:1,lat0=ROAD_HALF+115+cr()*90,pas=Math.max(1,Math.round(42/dS)),n=10+((cr()*4)|0),r1=2+((cr()*4)|0);
+  for(const R0 of (DZ?DZ.boug:[{f:.13},{f:.5},{f:.88}])){const F0=R0.f,i0=ix(F0+(cr()-.5)*.05),sg=cr()<.5?-1:1,lat0=ROAD_HALF+115+cr()*90,pas=Math.max(1,Math.round(42/dS)),n0=10+((cr()*4)|0),r1=2+((cr()*4)|0),n=DZ?R0.n:n0;
     let niv=pts[i0].y-150;
     for(let k=0;k<n;k++){const i=Math.min(NP-1,i0+k*pas),c=cadre(i),lat=lat0+(cr()-.5)*14,x=pts[i].x+c.px*sg*lat,z=pts[i].z+c.pz*sg*lat;
-      const rouge=(k===r1||k===r1+4)&&k<n-2,h=rouge?14+cr()*16:28+cr()*52,y0=rouge?niv-h:niv,y1=y0+h,mh=12+cr()*28,mb=8+cr()*22,w=16+cr()*6;
+      const rouge=(DZ&&DZ.rouge!==1?DZ.rouge===2&&k%3===r1%3&&k>0:(k===r1||k===r1+4))&&k<n-2,h=rouge?14+cr()*16:28+cr()*52,y0=rouge?niv-h:niv,y1=y0+h,mh=12+cr()*28,mb=8+cr()*22,w=16+cr()*6;
       if(cryptoReserve(x,z,w*.75)||!libre(x,z,w*.75+4,y0-mb,y1+mh)){niv+=rouge?-h*.5:h*.7;continue;}
       S.bougies.push({x:x,z:z,y0:y0,y1:y1,mh:mh,mb:mb,w:w,rouge:rouge});CRYPTO.res.push(x,z,w*.75+3);
       niv=rouge?y0+h*.3:y1-h*.22+cr()*8;}}
   // LES PIÈCES ₿ GÉANTES : douze, de 13 à 25 m de rayon, à 40-150 m du bord, 45-155 m au-dessus de la route
-  for(let k=0;k<12;k++){for(let e=0;e<4;e++){const i=ix(.07+.86*(k+cr()*.7)/12),c=cadre(i),sg=cr()<.5?-1:1,r=13+cr()*12;
+  const nPi=DZ?DZ.pie:12,nDi=DZ?DZ.diam:8;
+  for(let k=0;k<nPi;k++){for(let e=0;e<4;e++){const i=ix(.07+.86*(k+cr()*.7)/nPi),c=cadre(i),sg=cr()<.5?-1:1,r=13+cr()*12;
       const lat=ROAD_HALF+r+40+cr()*110,x=pts[i].x+c.px*sg*lat,z=pts[i].z+c.pz*sg*lat,y=pts[i].y+45+cr()*110;
       if(cryptoReserve(x,z,r+6)||!libre(x,z,r+18,y-r-10,y+r+10))continue;
       S.pieces.push({x:x,y:y,z:z,r:r,a:cr()*6.28,w:(.35+cr()*.4)*(cr()<.5?-1:1),ph:cr()*6.28,cd:0});CRYPTO.res.push(x,z,r+8);break;}}
   // LES DIAMANTS (diamond hands) : huit, plus petits, plus haut
-  for(let k=0;k<8;k++){for(let e=0;e<4;e++){const i=ix(.1+.8*(k+cr())/8),c=cadre(i),sg=cr()<.5?-1:1,r=6+cr()*5;
+  for(let k=0;k<nDi;k++){for(let e=0;e<4;e++){const i=ix(.1+.8*(k+cr())/nDi),c=cadre(i),sg=cr()<.5?-1:1,r=6+cr()*5;
       const lat=ROAD_HALF+r+60+cr()*160,x=pts[i].x+c.px*sg*lat,z=pts[i].z+c.pz*sg*lat,y=pts[i].y+90+cr()*120;
       if(cryptoReserve(x,z,r+6)||!libre(x,z,r+14,y-r*1.6-10,y+r*1.6+10))continue;
       S.diam.push({x:x,y:y,z:z,r:r,a:cr()*6.28,w:.5+cr()*.6,ph:cr()*6.28});CRYPTO.res.push(x,z,r+6);break;}}
   // LES DIRIGEABLES À ÉCRAN : trois, le long de la route, au-dessus du canyon
-  for(const F0 of [.24,.56,.84]){for(let k=0;k<8;k++){const i=ix(F0+(cr()-.5)*.12),c=cadre(i),sg=cr()<.5?-1:1;
+  for(const F0 of (DZ?Array.from({length:DZ.dir},function(_,k){return (k+.5)/DZ.dir;}):[.24,.56,.84])){for(let k=0;k<8;k++){const i=ix(F0+(cr()-.5)*.12),c=cadre(i),sg=cr()<.5?-1:1;
       const lat=ROAD_HALF+75+cr()*80,x=pts[i].x+c.px*sg*lat,z=pts[i].z+c.pz*sg*lat,y=pts[i].y+70+cr()*50;
       if(cryptoReserve(x,z,48)||!libre(x,z,62,y-28,y+28))continue;
       S.dirig.push({x:x,y:y,z:z,cap:Math.atan2(c.tx,c.tz),ph:cr()*6.28});CRYPTO.res.push(x,z,48);break;}}
@@ -23100,7 +23209,7 @@ function cryptoPlace(seed,proches){
 function cryptoTour(cx,cz,hd,b,t,canyon){
   if(cryptoReserve(cx,cz,hd))return true;
   const H=t-b;
-  if(!canyon&&CRYPTO.rf()<.13&&H>160){const w=Math.max(14,Math.min(30,hd*.75)),rouge=CRYPTO.rf()<.16,y1=t-20-CRYPTO.rf()*40,y0=Math.max(b+40,y1-(rouge?50:90+CRYPTO.rf()*160));
+  if(!canyon&&CRYPTO.rf()<(CITY.dz&&CITY.dz.genre==='crypto'?CITY.dz.bfo:.13)&&H>160){const w=Math.max(14,Math.min(30,hd*.75)),rouge=CRYPTO.rf()<.16,y1=t-20-CRYPTO.rf()*40,y0=Math.max(b+40,y1-(rouge?50:90+CRYPTO.rf()*160));
     CRYPTO.sites.bougies.push({x:cx,z:cz,y0:y0,y1:y1,mh:14+CRYPTO.rf()*30,mb:Math.min(y0-b,30+CRYPTO.rf()*90),w:w,rouge:rouge});return true;}
   if(H>200&&CRYPTO.toits.length<1800)CRYPTO.toits.push(cx,t,cz);
   return false;
@@ -23581,8 +23690,9 @@ function cryptoTick(dt,sim){
   for(const f of CRYPTO.fus)if(f.on&&d>0)cryptoFuseeTick(f,d);
   if(CRYPTO.feux){const U=CRYPTO.feux.material.uniforms;U.uT.value+=d;U.uPx.value=(renderer.domElement.height||600)*.5*camera.projectionMatrix.elements[5];}
   if(sim&&started&&!gameOver){
-    CRYPTO.fusT-=d;if(CRYPTO.fusT<=0){CRYPTO.fusT=5+Math.random()*5;cryptoFusee();}
-    CRYPTO.feuT-=d;if(CRYPTO.feuT<=0){CRYPTO.feuT=1.6+Math.random()*2.6;cryptoFeuDevant();}
+    const DZ9=CITY.dz&&CITY.dz.genre==='crypto'?CITY.dz:null; // (2026-10-20, LE DÉCOR AU HASARD) la cadence des fusées et des feux tirée
+    CRYPTO.fusT-=d*(DZ9?DZ9.fus:1);if(CRYPTO.fusT<=0){CRYPTO.fusT=5+Math.random()*5;cryptoFusee();}
+    CRYPTO.feuT-=d*(DZ9?DZ9.feu:1);if(CRYPTO.feuT<=0){CRYPTO.feuT=1.6+Math.random()*2.6;cryptoFeuDevant();}
     CRYPTO.ath.t-=d;if(CRYPTO.ath.t<=0&&mode!=='boom'){CRYPTO.ath.t=32+Math.random()*14;cryptoAth();}}
 }
 function cryptoJackpot(p){ // traverser une pièce ₿ géante en vol
@@ -23649,7 +23759,7 @@ window.dbgCrypto=function(k,v){ // console : l'état de CRYPTOCITY · ('ath') un
     pix:PLA.texB?Array.from(PLA.texB.image.getContext('2d').getImageData(256,128,1,1).data):null,pixP:PLA.texP?Array.from(PLA.texP.image.getContext('2d').getImageData(128,122,1,1).data):null,inst:PLA.mB.geometry.instanceCount,max:PLA.mB.geometry._maxInstanceCount};
   if(k==='sites'){const S=CRYPTO.sites;return S?{bougies:S.bougies.slice(0,40).map(function(b){return [Math.round(b.x),Math.round(b.y0),Math.round(b.z),Math.round(b.y1-b.y0)];}),pieces:S.pieces.map(function(p){return [Math.round(p.x),Math.round(p.y),Math.round(p.z),Math.round(p.r)];}),dirig:S.dirig.map(function(d){return [Math.round(d.x),Math.round(d.y),Math.round(d.z)];})}:null;}
   if(k==='taureaux')return CRYPTO.taureaux.map(function(b){return {x:Math.round(b.x),y:Math.round(b.y),z:Math.round(b.z),cap:+Math.atan2(b.si,b.co).toFixed(2),s:Math.round(b.s),pied:Math.round(b.pl*b.k)};});
-  const S=CRYPTO.sites;return {on:cryptoOn(),ville:!!CITY.root,taureaux:CRYPTO.taureaux.length,bougies:S?S.bougies.length:0,pieces:CRYPTO.pInfo.length,diamants:CRYPTO.dInfo.length,
+  const S=CRYPTO.sites;return {on:cryptoOn(),ville:!!CITY.root,deco:CITY.dz&&CITY.dz.genre==='crypto'?CITY.deco:null,taureaux:CRYPTO.taureaux.length,bougies:S?S.bougies.length:0,pieces:CRYPTO.pInfo.length,diamants:CRYPTO.dInfo.length,
     dirigeables:CRYPTO.dirig.length,toits:CRYPTO.toits.length/3,reserve:CRYPTO.res.length/3,fusees:CRYPTO.fus.filter(function(f){return f.on;}).length,
     ath:{dans:+CRYPTO.ath.t.toFixed(1),n:CRYPTO.ath.n,prix:CRYPTO.ath.prix},pluie:{dens:+PLA.dens.toFixed(2),surge:+PLA.surge.toFixed(1),n:PLA.N,np:PLA.NP},ville9:CITY.n};};
 /* ================================ LA VILLE VITRÉE — LES TOURS DE VERRE ================================
@@ -23704,6 +23814,7 @@ const VV={on:false,n:0,nv:0,acc:new THREE.Color(1,.25,.78),
   uClD:{value:new THREE.Vector2()},uPlf:{value:new THREE.Vector3(.1,.05,.12)}};
 /* QUI devient une géante de verre : haut = de combien son toit dépasse la route qu'elle borde (m) — le skyline, pas les toits qu'on survole */
 function villeVerreTour(cx,cz,haut,canyon){if(haut<(canyon?60:30))return false;const h=metroH(cx*.71-5.3,cz*1.37+2.9);return h<(canyon?(haut>190?.52:.34):.3);}
+function villeVerreTourD(cx,cz,haut,canyon,V){if(haut<(canyon?60:30))return false;const h=metroH(cx*.71-5.3+V.ox,cz*1.37+2.9+V.oz);return h<Math.min(.9,(canyon?(haut>190?.52:.34):.3)*V.k);} // (2026-10-20, LE DÉCOR AU HASARD) la part de géantes tirée (V.k) et LESQUELLES (la graine de position décalée)
 /* LE CIEL QUE LE VERRE RENVOIE, en ville : la brume de la ville (sa teinte, son temps) — sombre au zénith, la lueur des rues et des néons à l'horizon ;
    les nuages, éclairés par en dessous. Posé à chaque image (VV : ses propres uniformes, la ville vitrée garde les siens). (banc, 2e passe, même graine :
    à la première les géantes sortaient PLUS SOMBRES que les tours au néon — elles éteignaient le skyline ; d'où ces dosages.) */
@@ -23895,6 +24006,9 @@ function vitreGeoR(){return VIT.geoR||(VIT.geoR=vitreGeoFab(6));}
    canyon (le long de la route) ont toutes les formes ; la forêt du lointain, les simples. Le sommet la lit dans la couleur d'instance (r + 8 × forme). */
 function vitreForme(cx,cz,H,canyon){const h=metroH(cx*1.7+3.1,cz*.9-7.3);
   if(canyon&&H>240)return h<.28?0:h<.46?1:h<.60?2:h<.71?3:h<.86?4:5;
+  return h<.6?0:h<.75?4:h<.88?1:5;}
+function vitreFormeD(cx,cz,H,canyon,F){const h=metroH(cx*1.7+3.1+F.ox,cz*.9-7.3+F.oz),S=F.s; // (2026-10-20, LE DÉCOR AU HASARD) les formes de la VILLE VITRÉE : la famille tirée (F.s, les seuils) et lesquelles (la graine décalée)
+  if(canyon&&H>240)return h<S[0]?0:h<S[1]?1:h<S[2]?2:h<S[3]?3:h<S[4]?4:5;
   return h<.6?0:h<.75?4:h<.88?1:5;}
 // LE MUR DE VERRE — au sommet le biseau, au pixel la façade ; la tour de la ville (tri hors champ, portée des lampes, impact) pour le reste
 /* (2026-10-18, NÉON ET VERRE) le mur de verre est une FONCTION de ce qu'il renvoie vers le bas et sur les côtés (CB, la fin du ciel renvoyé) : la VILLE
@@ -24103,12 +24217,15 @@ function vitreDirigeable(){
   g.name='ville vitrée dirigeable';g.visible=false;scene.add(g);VIT.dir=g;
   VIT.Fd={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};VIT.dirS=null;VIT.dirC=0;VIT.dirT=0;return g;}
 function vitreDirTick(d){
+  const DZ9=CITY.dz&&CITY.dz.genre==='vitree'?CITY.dz:null; // (2026-10-20, LE DÉCOR AU HASARD) le dirigeable tiré : aucun, comme avant, haut, rasant
+  if(DZ9&&!DZ9.dir){if(VIT.dir&&VIT.dir.visible)VIT.dir.visible=false;return;}
   const g=vitreDirigeable();g.visible=true;
   if(VIT.dirS==null||s>VIT.dirS-150||VIT.dirS>s+5200){VIT.dirS=Math.min(L-80,s+1700);VIT.dirC++;VIT.dirT=0; // dépassé (ou nouvelle piste) : loin devant, de l'autre côté
     VIT.dirY=0;if(VIT_SOL&&CITY.solY!=null&&VIT.tours){frameAt(VIT.dirS,VIT.Fd);const p9=VIT.Fd.p;let mx=CITY.solY+620; // (AU SOL) il croise AU-DESSUS des géantes qui l'entourent (jamais dans une tour)
       for(const t9 of VIT.tours){const dx=t9[0]-p9.x,dz=t9[1]-p9.z;if(dx*dx+dz*dz<520*520&&t9[5]+60>mx)mx=t9[5]+60;}VIT.dirY=mx;}}
   VIT.dirT+=d;frameAt(VIT.dirS,VIT.Fd);const F9=VIT.Fd,h=Math.hypot(F9.t.x,F9.t.z)||1,tx=F9.t.x/h,tz=F9.t.z/h,sg=(VIT.dirC%2)?1:-1;
-  g.position.set(F9.p.x-tz*sg*200+tx*VIT.dirT*7,(VIT.dirY||F9.p.y+130)+Math.sin(VIT.uT.value*.3)*3,F9.p.z+tx*sg*200+tz*VIT.dirT*7);
+  const lat9=DZ9?DZ9.dir[0]:200,dh9=DZ9?DZ9.dir[1]:0;
+  g.position.set(F9.p.x-tz*sg*lat9+tx*VIT.dirT*7,(VIT.dirY||F9.p.y+130)+dh9+Math.sin(VIT.uT.value*.3)*3,F9.p.z+tx*sg*lat9+tz*VIT.dirT*7);
   g.rotation.set(0,Math.atan2(tx,tz),Math.sin(VIT.uT.value*.21)*.02);
   if(VIT.nav)VIT.nav.visible=(VIT.uT.value%1.6)<.25;
 }
@@ -24121,7 +24238,8 @@ function vitreTick(dt,sim){
   VIT.uSun.value.copy(SUN_DIR);VIT.uNuit.value=LVL.nuit||0;
   VIT.uSunC.value.set(sun.color.r,sun.color.g,sun.color.b).multiplyScalar(Math.min(1.6,sun.intensity));
   const M=VIT_MET[(LVL.cur&&LVL.cur.meteo)||VIT.met]||VIT_MET.midi,k=Math.min(1,dt*1.5+(VIT.neuf?1:0)),K=VIT.uClK.value;VIT.neuf=false; // (au portail : posé d'un coup, ensuite il glisse)
-  K.x+=(M.k[0]-K.x)*k;K.y+=(M.k[1]-K.y)*k;K.z+=(M.k[2]-K.z)*k;VIT.uSunK.value+=(M.s-VIT.uSunK.value)*k;
+  const nu9=CITY.dz&&CITY.dz.genre==='vitree'?CITY.dz.nu:0; // (2026-10-20, LE DÉCOR AU HASARD) les nuages tirés : le seuil de couverture décalé
+  K.x+=(M.k[0]+nu9-K.x)*k;K.y+=(M.k[1]+nu9-K.y)*k;K.z+=(M.k[2]-K.z)*k;VIT.uSunK.value+=(M.s-VIT.uSunK.value)*k;
   {const P=VIT.uPlf.value;P.x+=(M.p[0]-P.x)*k;P.y+=(M.p[1]-P.y)*k;P.z+=(M.p[2]-P.z)*k;} // la couleur du plafond
   const L=VIT.uClL.value,A=VIT.uClA.value;L.x+=(M.l[0]-L.x)*k;L.y+=(M.l[1]-L.y)*k;L.z+=(M.l[2]-L.z)*k;A.x+=(M.a[0]-A.x)*k;A.y+=(M.a[1]-A.y)*k;A.z+=(M.a[2]-A.z)*k;
   VIT.sol[0]+=(M.sol[0]-VIT.sol[0])*k;VIT.sol[1]+=(M.sol[1]-VIT.sol[1])*k; // le soleil de l'heure (posé par canyonSoleil)
@@ -24157,7 +24275,7 @@ window.dbgVitre=function(k,v){ // console : l'état de la VILLE VITRÉE · ('nua
       taille:[Math.hypot(e[0],e[1],e[2]),Math.hypot(e[4],e[5],e[6]),Math.hypot(e[8],e[9],e[10])].map(Math.round),centre:[e[12],e[13],e[14]].map(Math.round)});}
     if(!L.length)for(const h of rc.intersectObjects(scene.children,true).slice(0,5))L.push({objet:h.object.name||h.object.type,parent:h.object.parent&&(h.object.parent.name||h.object.parent.type),d:Math.round(h.distance),visible:h.object.visible}); // pas une tour : quoi d'autre ?
     return L.sort(function(a,b){return a.d-b.d;}).slice(0,6);}
-  return {on:vitreOn(),ville:!!CITY.root,meteo:LVL.cur&&LVL.cur.meteo,ciel:BIO.name,nuages:VIT.uClK.value.toArray().map(function(x){return +x.toFixed(2);}),eclat:+VIT.uSunK.value.toFixed(2),nuit:+VIT.uNuit.value.toFixed(2),
+  return {on:vitreOn(),ville:!!CITY.root,deco:CITY.dz&&CITY.dz.genre==='vitree'?CITY.deco:null,meteo:LVL.cur&&LVL.cur.meteo,ciel:BIO.name,nuages:VIT.uClK.value.toArray().map(function(x){return +x.toFixed(2);}),eclat:+VIT.uSunK.value.toFixed(2),nuit:+VIT.uNuit.value.toFixed(2),
     couche:!!(VIT.ciel&&VIT.ciel.visible),ville9:CITY.n};};
 /* ======================= LA PLUIE D'ARGENT v2 — `PLA` (2026-10-13, Léo : « ramène la pluie d'argent, et augmente la qualité ») =======================
    L'averse de glyphes (startMoneyRain : des « $ € ¥ » en sprites, 3 s) ne tombait plus que passé 4 000 $ × ECO3.gain dans UNE partie — on ne
@@ -24277,7 +24395,7 @@ function plaInit(){
 function plaSurge(s){plaInit();PLA.surge=Math.max(PLA.surge,s||4);}
 function plaTick(dt,sim){
   if(!PLA.mB){if(!(PLA.surge>0)&&!cryptoOn())return;plaInit();}
-  const cr9=cryptoOn()&&started&&!gameOver,cible=PLA.surge>0?1:cr9?.5:0;
+  const cr9=cryptoOn()&&started&&!gameOver,cible=PLA.surge>0?1:cr9?(CITY.dz&&CITY.dz.genre==='crypto'?CITY.dz.pluie:.5):0; /* (2026-10-20, LE DÉCOR AU HASARD) la pluie de fond tirée : fine, normale, averse */
   if(sim){PLA.surge=Math.max(0,PLA.surge-dt);PLA.dens+=(cible-PLA.dens)*Math.min(1,dt*(cible>PLA.dens?2.2:.9));PLA.u.uT9.value+=dt;}
   if(!started||gameOver&&PLA.surge<=0)PLA.dens=Math.max(0,PLA.dens-dt*.8);
   const vis=PLA.dens>.004&&!PLA.off;PLA.mB.visible=PLA.mP.visible=vis;if(!vis)return; // PLA.off : le banc la coupe (dbgCrypto('sansPluie'))
@@ -26404,7 +26522,7 @@ function baladeDepart(){
 addEventListener('load',function(){setTimeout(baladeDepart,0);});
 function buildVoxCity(seed,accC){
   for(const F of CITY.fam||[])for(const x of [F.im,F.imL])x.dispose(); // (passe perf) les tampons d'instances de l'ancienne ville (les géométries sont parties avec trackMeshes)
-  CITY.root=null;CITY.n={};CITY.col=null;CITY.ens=[];CITY.solY=null;CITY.imC=CITY.imN=null;CITY.fam=null;CITY.lampes=null;cryptoVide(); // (CRYPTOCITY) ce que la ville d'avant avait de crypto part avec elle // (l'ancien cratère s'éteint avec son quartier)
+  CITY.root=null;CITY.n={};CITY.col=null;CITY.dz=null;CITY.deco=null;CITY.ens=[];CITY.solY=null;CITY.imC=CITY.imN=null;CITY.fam=null;CITY.lampes=null;cryptoVide(); // (CRYPTOCITY) ce que la ville d'avant avait de crypto part avec elle // (l'ancien cratère s'éteint avec son quartier)
   if(PARK.on)return; // le parc a sa prairie
   if(LVL.cur&&LVL.cur.id!=='ville')return; // NIVEAUX : la ville n'existe qu'au niveau VILLE
   if(!(NP>1))return;
@@ -26412,6 +26530,10 @@ function buildVoxCity(seed,accC){
   const CR=!!(LVL.cur&&LVL.cur.crypto); // (2026-10-13) CRYPTOCITY : la même ville (mêmes tirages), un autre air — voir cryptoPlace / cryptoTour / cryptoBatit
   const t00=performance.now();
   const vr=mulberry32(seed^0x5EED10C1); // flux DÉRIVÉ (voir ⚠ ci-dessus)
+  /* (2026-10-20) LES VILLES AU HASARD — LE DÉCOR (voir villeDecoTire) : DZ nul = le décor d'avant, au tirage `vr` près */
+  const DZ=villeDecoTire(seed,VI?'vitree':CR?'crypto':'ville');CITY.dz=DZ;CITY.deco=DZ?DZ.li:null;
+  const dk=(k,d)=>DZ&&DZ[k]!=null?DZ[k]:d,dsP=L/(NP-1);let nPl=0,nRep=0;
+  const place9=(i,sg)=>{const s9=i*dsP;for(const t of DZ.trou)if(Math.abs(s9-t.f*L)<t.l*.5&&(t.c===0||t.c===sg))return true;return false;}; // (DZ) dans une PLACE : les deux premiers rangs s'effacent
   const root=new THREE.Group();scene.add(root);CITY.root=root;trackMeshes.push(root);
   const snap=v=>Math.max(1,Math.round(v/VOX_CITY))*VOX_CITY; // tout atterrit sur la trame, jamais entre deux
   // LA GRILLE DE HACHAGE DE LA PISTE : un point tous les ~12 m, rangé par cases de 120 m (horizontales)
@@ -26457,6 +26579,7 @@ function buildVoxCity(seed,accC){
               new THREE.Color(0xffb04a),new THREE.Color(0xe5484d),new THREE.Color(0xe8eef2)]: // DIRECTION §2.2 : enseignes ambre #FFB04A / blanc de bureau #E8EEF2, feu d'antenne rouge de balise #E5484D (l'unique accent saturé), couronne blanche — mêmes indices, même tirage `vr`
              [new THREE.Color(0xff3ec8),new THREE.Color(0x3ee8ff),new THREE.Color(0xff4f9e),new THREE.Color(0x52c8ff),
               new THREE.Color(0xff3ec8),new THREE.Color(0xff3b5c),accC];
+  if(DZ&&DZ.neon&&(CR||villeRose()))for(let i=0;i<5;i++)NEON[i].setHex(DZ.neon[i]); // (DZ) la PALETTE des néons tirée (la teinte de la ville la remappe ensuite)
   if(!VI){const T9=vtCur();if(T9)for(let i=0;i<6;i++)vtCol(NEON[i],T9);} // (2026-10-16) LES TEINTES DE LA VILLE : magenta et rose des enseignes → la couleur de la ville (le cyan et le rouge des balises restent ; accC l'est déjà)
   if(VV9)VV.acc.copy(NEON[0]); // (NÉON ET VERRE) les filets, les logos et le parapet du verre : le néon de la teinte
   let nT=0;
@@ -26480,9 +26603,9 @@ function buildVoxCity(seed,accC){
     const hd=Math.hypot(w,p)*.5+5,l0=corps.length,lg=genre.length,lq=tqC.length,ln=neon.length,lnc=neonC.length,lqn=tqN.length,le=CITY.ens.length;
     let t;
     if(VS){if(chev(cx,cz,hd))return;const k=canyon?1-Math.min(1,(d-54)/(R_CAN-54)):0,r1=vr(),r2=vr(); // (AU SOL) LES GÉANTES, posées sur le sol : 170 à 1 300 m au bord de la route (une sur six passe le kilomètre), 90 à 470 m au large
-      t=GS+(canyon?170+(840-250*k)*Math.pow(r1,1.5)+(r2<.18?260:0):90+380*r1*r2);} // (le 1er rang un peu moins haut : les géantes de derrière se lisent au-dessus)
+      t=GS+(canyon?170+(840-250*k)*Math.pow(r1,1.5)+(r2<.18?260:0):90+380*r1*r2);if(DZ&&canyon)t=GS+(t-GS)*DZ.haut;} // (le 1er rang un peu moins haut : les géantes de derrière se lisent au-dessus)
     else if(canyon){const k=1-Math.min(1,(d-54)/(R_CAN-54));           // LE CANYON : les murs montent AU-DESSUS de la route
-      t=yN-50+290*Math.pow(vr(),.75)*(.55+.45*k);if(k>.5&&vr()<.22)t+=160;}
+      t=yN-50+290*Math.pow(vr(),.75)*(.55+.45*k);if(k>.5&&vr()<.22)t+=160;if(DZ)t=yN-50+(t-yN+50)*DZ.haut;}
     else t=yN-230+vr()*vr()*470;                                   // AU LARGE : la forêt du village
     if(eE>0&&!VS){const u9=THREE.MathUtils.clamp((t-yN+50)/450,0,1),tE=yN-VILLE_ENTREE_R.toit-(1-u9)*VILLE_ENTREE_R.etage;t+=(tE-t)*eE;} // (2026-09-29) L'ENTRÉE SURÉLEVÉE : le toit passe SOUS la route (juste sous elle pour les plus hautes : on les voit défiler au ras du bitume)
     if(VI&&VIT_PLAFOND&&t>yN)t=yN+(VIT_HC-40)*(1-Math.exp(-(t-yN)/(VIT_HC-40))); // (VILLE VITRÉE) la hauteur AU-DESSUS de la route se tasse en douceur sous le plafond (jamais plus de 110 m) : la route passe ENTRE les deux villes, chaque reflet pend au-dessus de sa tour
@@ -26490,8 +26613,8 @@ function buildVoxCity(seed,accC){
     const bt=VS?(routePres(cx,cz,hd)?null:[b,t]):tourLibre(cx,cz,hd,b,t);if(!bt)return;b=bt[0];t=bt[1];
     if(VS)chevPose(cx,cz,hd);
     const H=t-b,km=(b+t)/2;nT++;
-    const GV=VV9&&villeVerreTour(cx,cz,t-yN,canyon),VIt=VI||GV;gvDer=GV;if(VV9){VV.n++;if(GV)VV.nv++;} // (NÉON ET VERRE) une GÉANTE DE VERRE : bâtie comme dans la ville vitrée (VIt) — aucun tirage `vr` de plus ni de moins
-    const fo=VIt?vitreForme(cx,cz,H,canyon):0; // (VILLE VITRÉE) la FORME de la tour (0 = droite, à retraits empilés)
+    const GV=VV9&&(DZ&&DZ.verre?villeVerreTourD(cx,cz,t-yN,canyon,DZ.verre):villeVerreTour(cx,cz,t-yN,canyon)),VIt=VI||GV;gvDer=GV;if(VV9){VV.n++;if(GV)VV.nv++;} // (NÉON ET VERRE) une GÉANTE DE VERRE : bâtie comme dans la ville vitrée (VIt) — aucun tirage `vr` de plus ni de moins
+    const fo=VIt?(VI&&DZ&&DZ.fo?vitreFormeD(cx,cz,H,canyon,DZ.fo):vitreForme(cx,cz,H,canyon)):0; // (VILLE VITRÉE) la FORME de la tour (0 = droite, à retraits empilés)
     // LES RETRAITS : volumes EMBOÎTÉS qui partent tous du pied (la brume se lit pareil sur tous), plus étroits et plus hauts
     const et=H>260?(vr()<.55?3:2):(vr()<.4?2:1);
     let wk=w,pk=p,yV=b,h0=H; // (VILLE VITRÉE) yV : le haut du dernier volume EMPILÉ · h0 : la hauteur du volume du pied
@@ -26506,7 +26629,7 @@ function buildVoxCity(seed,accC){
     }
     if(VIt&&fo>0){corps.push(cx,km,cz,w,H,p);genre.push(0);tqC.push(cx,km,cz);}
     // LES TUYAUX : ils DESCENDENT le long d'une façade jusque dans la brume
-    if(H>220&&vr()<(canyon?.7:.5)){
+    if(H>220&&vr()<(canyon?.7:.5)*dk('tuy',1)){
       const nt=1+((vr()*(IS_MOBILE?2:3))|0),tk=snap(3+vr()*2.5);
       for(let t9=0;t9<nt;t9++){const face=(vr()*4)|0,ht=VIt?Math.min(H*(.5+vr()*.45),h0):H*(.5+vr()*.45),gl=(vr()-.5)*.7; // (VILLE VITRÉE) la lame s'arrête au toit du volume qu'elle longe
         const ox=face<2?(face?1:-1)*(w/2+tk/2):gl*w,oz=face<2?gl*p:(face===2?1:-1)*(p/2+tk/2);
@@ -26514,12 +26637,12 @@ function buildVoxCity(seed,accC){
         corps.push(cx+ox,b+ht/2,cz+oz,tk,ht,tk);genre.push(1);tqC.push(cx,km,cz);}
     }
     // L'ANTENNE et son FEU ROUGE — sinon, parfois, la COURONNE à l'accent de la zone
-    if(H>320&&vr()<.5){let ha=24+vr()*56;if(VIt){if(fo===5)ha=0;else{corps.push(cx,yV+ha/2,cz,1.4,ha,1.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,yV+ha,cz,2.2,2.2,2.2);neonC.push(5);tqN.push(cx,km,cz);}} // (VILLE VITRÉE) le mât part du TOIT — pas de mât sur une LAME (son toit est en biais) (il ne traverse plus la tour)
+    if(H>320&&vr()<dk('ant',.5)){let ha=24+vr()*56;if(VIt){if(fo===5)ha=0;else{corps.push(cx,yV+ha/2,cz,1.4,ha,1.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,yV+ha,cz,2.2,2.2,2.2);neonC.push(5);tqN.push(cx,km,cz);}} // (VILLE VITRÉE) le mât part du TOIT — pas de mât sur une LAME (son toit est en biais) (il ne traverse plus la tour)
       else{ha=Math.min(ha,routeAuDessus(cx,cz,hd,t)-t-12);if(ha>=8){corps.push(cx,(b+yV+ha)/2,cz,2.4,yV-b+ha,2.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,yV+ha,cz,4.5,4.5,4.5) /* (DEBUGGING : ville) au bout du mât posé sur le vrai toit */;neonC.push(5);tqN.push(cx,km,cz);}}}
-    else if(vr()<.32){if(!VIt||(fo===0&&!vitreBiseau(cx,cz))){neon.push(cx,yV-1.4,cz, /* (2026-10-18, DEBUGGING : ville) la COURONNE sur le vrai toit : à t, 5 à 15 % d'entre elles flottaient 95 à 256 m au-dessus de la tour (banc, 16 villes) */wk/.72*1.05,2.8,pk/.72*1.05);neonC.push(6);tqN.push(cx,km,cz);}} // (VILLE VITRÉE) pas de couronne carrée sur une tour biseautée
+    else if(vr()<dk('cour',.32)){if(!VIt||(fo===0&&!vitreBiseau(cx,cz))){neon.push(cx,yV-1.4,cz, /* (2026-10-18, DEBUGGING : ville) la COURONNE sur le vrai toit : à t, 5 à 15 % d'entre elles flottaient 95 à 256 m au-dessus de la tour (banc, 16 villes) */wk/.72*1.05,2.8,pk/.72*1.05);neonC.push(6);tqN.push(cx,km,cz);}} // (VILLE VITRÉE) pas de couronne carrée sur une tour biseautée
     if(VIt)VTW.push([l0/6,corps.length/6,ln/6,neon.length/6,yN,fo,t]); // (VILLE VITRÉE) la tour, pour la forme et pour son reflet au plafond
     // L'ENSEIGNE VERTICALE : le long du canyon, une tour sur deux porte son néon, à hauteur de ROUTE (on la voit passer)
-    if(vr()<(canyon?.5:.18)){
+    if(vr()<(canyon?.5:.18)*dk('ens',1)){
       const hs=Math.min(H*.3,30+vr()*60),ys=Math.max(b+hs/2+20,Math.min(t-hs/2-6,yN+(vr()-.3)*80)),fx=vr()<.5,sg=vr()<.5?-1:1;
       const c5=(vr()*5)|0;if(VIt)return; /* (NÉON ET VERRE) ni sur une géante de verre */ // (VILLE VITRÉE) un quartier d'affaires : pas d'enseigne (le tirage a eu lieu, la suite de la ville ne bouge pas)
       neon.push(cx+(fx?sg*(w/2+1.2):0),ys,cz+(fx?0:sg*(p/2+1.2)),fx?1.8:7.5,hs,fx?7.5:1.8);neonC.push(c5);tqN.push(cx,km,cz);
@@ -26538,19 +26661,34 @@ function buildVoxCity(seed,accC){
   for(let i=0;i<NP;i+=pasC){const T9=T[i],hl=Math.hypot(T9.x,T9.z);if(hl<.5)continue; // haut des loopings : pas de mur
     const px=-T9.z/hl,pz=T9.x/hl,tx=T9.x/hl,tz=T9.z/hl;
     let yLo=pts[i].y;for(let j=Math.max(0,i-pasC*5);j<=Math.min(NP-1,i+pasC*5);j+=pasC)if(pts[j].y<yLo)yLo=pts[j].y; // le pied se noie sous le point le plus bas du tronçon
-    for(const sg of [-1,1])for(const rw of ROWS){if(vr()>rw[2]*kC)continue;
+    for(const sg of [-1,1])for(const rw of ROWS){if(vr()>rw[2]*kC*dk('dens',1))continue;
+      if(DZ&&DZ.trou.length&&rw!==ROWS[2]&&place9(i,sg)){nPl++;continue;} // (DZ) LA PLACE
       const w=snap(VS?30+vr()*42:16+vr()*26),p=snap(VS?30+vr()*42:16+vr()*26),hd=Math.hypot(w,p)*.5,lat=ROAD_HALF+rw[0]*(VS?1.7:1)+hd+vr()*rw[1]*(VS?1.6:1),al=(vr()-.5)*SN*.6; // (AU SOL) des géantes : plus larges, plus loin (le ciel et leurs pieds se voient entre elles)
       const nt0=nT,eI=eEnt(i);batir(pts[i].x+px*sg*lat+tx*al,pts[i].z+pz*sg*lat+tz*al,lat,pts[i].y,yLo,true,w,p,rw===ROWS[0]?eI:0); // (2026-10-04) seul le MUR (1er rang) passe sous la route à l'entrée — voir ENTRÉE v2
       // LE PANNEAU : un mur sur quatre du 1er rang porte une réclame, tournée VERS la route, un peu au-dessus d'elle
-      if(rw===ROWS[0]&&nT>nt0&&vr()<(IS_MOBILE?.22:.3)){const pw=24+vr()*16,ph=pw*(.75+vr()*.25),d9=lat-hd*.72-1.5;
+      if(rw===ROWS[0]&&nT>nt0&&vr()<(IS_MOBILE?.22:.3)*dk('pub',1)){const pw=24+vr()*16,ph=pw*(.75+vr()*.25),d9=lat-hd*.72-1.5;
         (eI>.3||VI||gvDer||CR&&cryptoReserve(pts[i].x+px*sg*d9+tx*al,pts[i].z+pz*sg*d9+tz*al,pw*.6)?[]:pubs).push(pts[i].x+px*sg*d9+tx*al,pts[i].y+16+vr()*40,pts[i].z+pz*sg*d9+tz*al,Math.atan2(-px*sg,-pz*sg),pw,ph);}} // (entrée surélevée : pas de réclame en l'air au-dessus des toits — les tirages restent)
   }
   // AU LARGE : la forêt du village, par cases au sol (le fond de scène), calée sur le point de piste le plus proche
   const cF=cellules(SF,R_VIL,d=>d>R_CAN),kF=Math.min(1,BUD*.55/Math.max(1,cF.length));
-  for(const v of cF){if(vr()>kF*.8)continue;const cx=v[2]+(vr()-.5)*SF*.4,cz=v[3]+(vr()-.5)*SF*.4;
+  for(const v of cF){if(vr()>kF*.8*dk('dens',1))continue;const cx=v[2]+(vr()-.5)*SF*.4,cz=v[3]+(vr()-.5)*SF*.4;
     let d2=1e12,yN=pts[v[1]].y,yLo=yN,iN=v[1];
     proches(cx,cz,360,function(i){const p=pts[i],dx=p.x-cx,dz=p.z-cz,e=dx*dx+dz*dz;if(e<d2){d2=e;yN=p.y;iN=i;}if(e<129600&&p.y<yLo)yLo=p.y;});
     const dF=d2<1e12?Math.sqrt(d2):v[0];batir(cx,cz,dF,yN,yLo,false,snap(VS?32+vr()*48:20+vr()*30),snap(VS?32+vr()*48:20+vr()*30),0);} // (2026-10-04, ENTRÉE v2) la forêt garde sa hauteur à l'entrée (elle baissait près de la droite)
+  /* (DZ) LES TOURS REPÈRES : des géantes qu'on voit venir de loin — trois volumes emboîtés (à la vitrée : une seule, posée au sol), le mât et son feu,
+     parfois la couronne ; elles passent par la règle d'or comme les autres (tourLibre, routePres, chev, la réserve de crypto) */
+  if(DZ)for(const R of DZ.rep){const i=Math.max(2,Math.min(NP-3,Math.round(R.f*(NP-1)))),T9=T[i],hl=Math.hypot(T9.x,T9.z)||1,px=-T9.z/hl,pz=T9.x/hl;
+    const w=snap(VS?62+R.h*30:34+R.h*14),p=snap(VS?62+R.h*30:34+R.h*14),hd=Math.hypot(w,p)*.5+5,lat=ROAD_HALF+(VS?160:110)+hd+R.lat*120,cx=pts[i].x+px*R.sg*lat,cz=pts[i].z+pz*R.sg*lat,yN=pts[i].y;
+    let yLo=yN;for(let j=Math.max(0,i-40);j<=Math.min(NP-1,i+40);j+=4)if(pts[j].y<yLo)yLo=pts[j].y;
+    if(VS&&chev(cx,cz,hd))continue;if(CR&&cryptoReserve(cx,cz,hd))continue;
+    let b=VS?GS-3:Math.min(yLo,yN)-330,t=VS?GS+1300+R.h*500:yN+400+R.h*300;
+    const bt=VS?(routePres(cx,cz,hd)?null:[b,t]):tourLibre(cx,cz,hd,b,t);if(!bt||bt[1]-bt[0]<300)continue;b=bt[0];t=bt[1];if(VS)chevPose(cx,cz,hd);
+    const H=t-b,km=(b+t)/2,l0=corps.length,ln=neon.length;nT++;nRep++;
+    if(VI){corps.push(cx,km,cz,w,H,p);genre.push(0);tqC.push(cx,km,cz);}
+    else{let wk=w,pk=p;for(let k=0;k<3;k++){const fr=k===2?1:.55+.17*k;corps.push(cx,b+H*fr/2,cz,wk,H*fr,pk);genre.push(0);tqC.push(cx,km,cz);wk=snap(wk*.74);pk=snap(pk*.74);}}
+    const ha=40+R.h*50;corps.push(cx,t+ha/2,cz,VI?1.4:2.4,ha,VI?1.4:2.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,t+ha,cz,4.5,4.5,4.5);neonC.push(5);tqN.push(cx,km,cz);
+    if(R.cour&&!VI){neon.push(cx,t-1.4,cz,w*.74*.74*1.05,2.8,p*.74*.74*1.05);neonC.push(6);tqN.push(cx,km,cz);}
+    if(VI)VTW.push([l0/6,corps.length/6,ln/6,neon.length/6,yN,0,t]);}
   CITY.nC=Math.round(NP/pasC);CITY.nF=cF.length;
   if(VS)vitreSolPose(root,GS); // (AU SOL) le sol de la ville et les piliers de la voie express
   /* (2026-10-17, VILLE VITRÉE v2) LA VILLE D'EN HAUT — Léo : « le plafond de glace, l'effet miroir : une ville qui vient du ciel ». Chaque tour a son
@@ -26583,12 +26721,12 @@ function buildVoxCity(seed,accC){
   for(let i=0;i<genre.length;i++){const t9=.8+vr()*.45,g=genre[i]; // (le tirage `vr` dans le MÊME ordre qu'avant : chaque tour garde sa teinte)
     if(VI&&i>=nBas){const j=mirOf[i-nBas];colT[i*3]=colT[j*3];colT[i*3+1]=colT[j*3+1];colT[i*3+2]=colT[j*3+2];continue;} // (VILLE VITRÉE) le reflet a la teinte (et la forme) de sa tour
     if(VI||verreV[i]){const o9=i*6,sd9=((corps[o9]*.0131+corps[o9+2]*.0173)%1+1)%1,q9=(sd9*29.37)%1,st9=VI?(q9<.26?0:q9<.50?1:q9<.66?2:q9<.76?3:4):(q9<.34?0:q9<.44?1:q9<.56?2:q9<.78?3:4),k9=.9+(t9-.8)*.35; /* (NÉON ET VERRE) les seuils de VV_STY */ // (mêmes seuils que le sommet) // (VILLE VITRÉE) la STRUCTURE (la façade, c'est le shader : mêmes seuils)
-      if(g===0){const P9=[[.66,.70,.76],[.94,.95,.96],[.93,.94,.95],[.20,.22,.25],[.80,.83,.87]][st9]; /* (CLEAN CITY) le BLANC des tours blanches et des lames */col.setRGB(P9[0]*k9,P9[1]*k9,P9[2]*k9);} // montants d'alu · béton clair · lames blanches · montants noirs · alu argent
+      if(g===0){let P9=[[.66,.70,.76],[.94,.95,.96],[.93,.94,.95],[.20,.22,.25],[.80,.83,.87]][st9],m9=VI&&DZ&&DZ.mont&&(st9===0||st9===3||st9===4)?DZ.mont:null;if(m9)P9=[P9[0]*m9[0],P9[1]*m9[1],P9[2]*m9[2]]; /* (DZ) les MONTANTS tirés */ /* (CLEAN CITY) le BLANC des tours blanches et des lames */col.setRGB(P9[0]*k9,P9[1]*k9,P9[2]*k9);} // montants d'alu · béton clair · lames blanches · montants noirs · alu argent
       else if(g===1)col.setRGB(.93*k9,.94*k9,.95*k9);else col.setRGB(.88,.90,.93);col.toArray(colT,i*3);colT[i*3]+=8*formV[i];colT[i*3+1]+=8*piedV[i];continue;} // + la FORME (r + 8 × forme, lue au sommet) // les tuyaux deviennent des LAMES de béton clair ; les mâts, acier clair
     if(CR){const o9=i*6,sd9=((corps[o9]*.0131+corps[o9+2]*.0173)%1+1)%1,q9=(sd9*29.37)%1,st9=q9<.26?0:q9<.44?1:q9<.64?2:q9<.80?3:4,k9=Math.min(1.12,t9); // CRYPTO CITY : la STRUCTURE de la tour (la façade, c'est le shader)
       if(g===0){const P9=[[.30,.40,.46],[.74,.62,.36],[.70,.74,.80],[.38,.40,.44],[.94,.94,.92]][st9];col.setRGB(P9[0]*k9,P9[1]*k9,P9[2]*k9);} // VERRE · OR · ARGENT · MÉTAL · BLANC (2026-10-15, Sacha)
       else if(g===1)col.setRGB(.76*k9,.78*k9,.82*k9);else col.setRGB(.16,.16,.18);}               // tuyaux de chrome, mâts sombres
-    else if(g===0)col.setRGB(.20*t9,.21*t9,.26*t9);                   // le BÉTON du village : gris-bleu, mouillé
+    else if(g===0){if(DZ&&DZ.bet)col.setRGB(DZ.bet[0]*t9,DZ.bet[1]*t9,DZ.bet[2]*t9);else col.setRGB(.20*t9,.21*t9,.26*t9);} // (DZ) le BÉTON tiré                   // le BÉTON du village : gris-bleu, mouillé
     else if(g===1)col.setRGB(.32*t9,.33*t9,.37*t9);              // le MÉTAL des tuyaux : il accroche le néon
     else col.setRGB(.10,.10,.12);                                // le mât : une ligne sombre
     col.toArray(colT,i*3);}
@@ -26630,7 +26768,7 @@ function buildVoxCity(seed,accC){
     for(let i=0;i<n9;i++){const o=i*6;Qp.setFromAxisAngle(Ay,pubs[o+3]);Pp.set(pubs[o],pubs[o+1],pubs[o+2]);Sp.set(pubs[o+4],pubs[o+5],1);M.compose(Pp,Qp,Sp);imP.setMatrixAt(i,M);}
     imP.instanceMatrix.needsUpdate=true;imP.frustumCulled=false;imP.renderOrder=3;root.add(imP);trackMeshes.push(imP);}
   if(CR)cryptoBatit(root); // (CRYPTOCITY) les taureaux, le graphique, les pièces, les diamants, les dirigeables
-  CITY.n={pubs:pubs.length/6,tours:nT,volumes:corps.length/6,neons:neon.length/6,routeY:[Math.round(yMin),Math.round(yMax)],ms:Math.round(performance.now()-t00),L:Math.round(L),cellsC:CITY.nC,cellsF:CITY.nF};
+  CITY.n={pubs:pubs.length/6,tours:nT,reperes:nRep,places:nPl,volumes:corps.length/6,neons:neon.length/6,routeY:[Math.round(yMin),Math.round(yMax)],ms:Math.round(performance.now()-t00),L:Math.round(L),cellsC:CITY.nC,cellsF:CITY.nF};
 }
 for(const f of [villeMatTours,villeMatNeon,villeMatToursLoin,villeMatNeonLoin])f().dispose=function(){}; // partagés sur toute la partie : le rebuild ne les jette pas
 /* L'HORIZON DE LA VILLE : le cylindre peint (2026-09-25) est RETIRÉ le 2026-09-26 — net derrière des tours noyées de brume, il se

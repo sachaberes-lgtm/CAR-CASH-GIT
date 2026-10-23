@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v831'; /* v831 (2026-10-23, Sacha : « pas du tout assez bien et divertissant : mets-toi dans la peau d'un designer senior ») : volcan, LA ROUTE EN ACTES (faille, crête, lac, raccourci) et les orages de cendre sur les temps forts */
+const CACHE = 'cashcar-v833'; /* v831 (2026-10-23, Sacha : « pas du tout assez bien et divertissant : mets-toi dans la peau d'un designer senior ») : volcan, LA ROUTE EN ACTES (faille, crête, lac, raccourci) et les orages de cendre sur les temps forts */
 // 'cashcar-v830'; /* v830 (2026-10-23, Sacha : « améliore encore l'animation de déblocage, surtout pour les plus rares ») : fête v2 — charge qui monte, explosion, étincelles, colonnes de lumière, nom tamponné lettre par lettre, étoiles */ /* v829 v829 (2026-10-23, Sacha : « la fenêtre power up nitro infini doit être rouge, pas violet ») : la carte du pouvoir NITRO INFINIE en rouge */ //  /* v828 (2026-10-23, Sacha : glacier, la courbe de difficulté — figures faciles au départ, grosses figures et rythme serré en fin de descente) */
 // const CACHE = 'cashcar-v827'; /* v827 (2026-10-23, Sacha : « la route est trop plate, montagne russe sur les collines de sable ») : dunes, pentes x1,3 et creux qui ondulent */
 // const CACHE = 'cashcar-v820'; /* v820 (2026-10-23, Sacha : glacier, plus de traversée de pic — le balayage du choc suit la vitesse) */
