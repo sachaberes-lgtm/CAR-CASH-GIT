@@ -210,6 +210,7 @@ moteur/boucle-4-effets.js            # loop() — LOD, phares, reflets, plume du
 moteur/boucle-5-sons.js              # loop() — sons continus
 moteur/boucle-6-hud.js               # loop() — HUD, jauge de progression, fin de la boucle
 moteur/init.js                       # init, intro du studio 1.61
+moteur/intro-161.js                  # l'intro du studio 1.61, version console : blips, noir, gros logo qui casse l'écran
 moteur/mobile-tactile.js             # mobile, tactile, pause, PWA
 moteur/desktop-banc.js               # ⚙ du desktop, le banc du téléphone, démarrage (requestAnimationFrame), fin du jeu
 page/fin.html                        # </script></body></html>

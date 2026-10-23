@@ -1,5 +1,6 @@
 function loop(now){
   requestAnimationFrame(loop);
+  if(window.__introCouvre){loop._pn=now;last=now;return;} // (2026-10-22, Léo : « ça bug ») l'INTRO DU STUDIO couvre tout l'écran : dessous, le jeu ne calcule ni ne dessine rien (il faisait saccader le film, surtout sur un Mac chargé) — voir moteur/intro-161.js
   if(CAD.ok&&cadSaute(now))return; // (2026-10-14, passe perf mobile) LA CADENCE STABLE : cette image d'écran se saute, sans RIEN toucher — voir CAD
   /* (2026-10-20, Sacha : « Chrome à 94-96 % de CPU ») PLAFOND À 60 i/s : rAF suit la fréquence de l'écran — 120/144/240 Hz = 2 à 4× plus d'images
      calculées (physique, particules, bloom) pour rien. On saute l'image d'écran trop proche de l'échéance (horloge cumulée : pas de dérive,
