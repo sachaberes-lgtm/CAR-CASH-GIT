@@ -108,6 +108,14 @@ SHAPES.corolla=function(K){
     const verre=(z,y)=>(y>1.0&&y<1.40&&z<ZW-.02&&z>ZHT+.02&&xAt(Sz(z),y)<.72)?'g':'p';
     for(let yc=.22+.02;yc<1.43;yc+=.04){
       if(yc>=YM&&!HB4)rangee(yc,.04,.06,.02,ZB,ZE,verre);}
+    /* LES PORTES (23/10, Léo : « aussi les portes ») deux panneaux de porte par flanc, en RELIEF de 1,6 cm de la couleur de la caisse, séparés par un joint qui laisse voir le fond sombre ; chaque porte porte sa poignée chromée
+       en bloc et un filet chromé sous la vitre. Le panneau suit la largeur réelle de la caisse à mi-hauteur. */
+    for(const sd of [1,-1])for(const [z0,z1] of [[.70,-.12],[-.22,-1.00]]){const zc=(z0+z1)/2,L=Math.abs(z0-z1),xw=xAt(Sz(zc),.64)+.002;
+      PL.box('p',.05,.58,L,sd*(xw+.012),.64,zc);                              // le panneau de porte, en relief de 3,7 cm
+      for(const z of [z0,z1])PL.box('k',.058,.62,.016,sd*(xw+.012),.64,z);      // les joints : deux montants noirs
+      PL.box('k',.058,.016,L+.016,sd*(xw+.012),.335,zc);PL.box('k',.058,.016,L+.016,sd*(xw+.012),.945,zc);   // et le haut et le bas du cadre
+      PL.box('c',.05,.034,.22,sd*(xw+.045),.84,zc+(z0>z1?.20:-.20));          // la poignée : un bloc chromé, bien saillant
+      PL.box('c',.022,.014,L*.94,sd*(xw+.03),.915,zc);}                       // le filet chromé sous la vitre
     if(HB4){   // la cabine : des BRIQUES lisses (le loft rectangulaire du 2), rentrées de 1,5 cm sous les blocs ; les couches de base et de ceinture du 2
       PL.loft(zsB.filter(z=>z>=ZA-.001&&z<=ZBm+.001),z=>{const q=SB(z);for(let i=1;i<=3;i++)q[i]=[Math.max(0,q[i][0]-.015),q[i][1]];return q;},peintB);
       const couche=(y,h,k,grow,zA,zB)=>{let run=null;const flush=z1=>{if(run&&run.w>.02)PL.box(k,2*run.w,h,z1-run.z0,0,y,(run.z0+z1)/2);run=null;};
