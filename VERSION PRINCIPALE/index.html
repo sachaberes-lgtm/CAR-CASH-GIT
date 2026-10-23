@@ -25096,7 +25096,7 @@ function parisHeurt(p){ // EN VOL : dans une façade ? dans la Seine ? dans le s
    Console : `dbgJade()`, `dbgJadeVue(k)` ('route' 'porte' 'pont' 'haut' 'loin' 'grue'), `dbgJadeAller('porte'|'pont')`, `dbgJadeHeurt('test')`. */
 const BALADE_MOTEUR=(/[?&]moteur=(\d+)/.exec(location.search)||[0,8])[1]|0; // (BALADE) le moteur de la balade : sans pièces il ne monterait jamais — un V6 biturbo par défaut, `?moteur=n` pour un autre palier
 const JADE_NOM='SOLEIL DE JADE'; // (2026-10-12) le nom du NIVEAU (choisi par Claude, à la demande de Léo) — la map, elle, reste « PICS DE JADE »
-const NIV_JADE={graine:(+((/[?&]graine=(\d+)/.exec(location.search)||[])[1])||0x51ADE),id:'jade',nm:'PICS DE JADE',bio:['jade'],planete:0,espace:0,pluie:0,cielMusical:false,route:.42,sheen:.16,piste:'jade',pr:''};
+const NIV_JADE={graine:(+((/[?&]graine=(\d+)/.exec(location.search)||[])[1])||0x51ADE),id:'jade',nm:'PICS DE JADE',bio:['jade'],planete:0,espace:0,pluie:0,cielMusical:false,route:.42,sheen:.16,piste:'jade',pr:'',sansNuages:1}; /* (2026-10-23, Sacha : « enlève les nuages de la map de jade ») le ciel de coton de Jade (cotonJade) n'est plus posé : `sansNuages` fait que lvlNuageOk() refuse, buildCoton() ne bâtit rien. La mer de cubes sous les pics, la brume et les rayons restent. */
 /* (2026-10-13, Léo) CRYPTOCITY — LA VILLE EN BULL RUN : id 'ville' (toute la mécanique de la ville suit, comme MINUIT EN VILLE), `crypto`
    change l'air (voir « CRYPTOCITY — LA VILLE EN BULL RUN », après villeMatPub). (2026-10-15, Sacha) une MAP du mode classique au hasard :
    SF_CARTES.crypto (« CRYPTO CITY ») — `?carte=crypto` ou `?niveau=crypto` l'impose au 1er JOUER, `dbgNiveauCrypto(meteo)` aussi. */
