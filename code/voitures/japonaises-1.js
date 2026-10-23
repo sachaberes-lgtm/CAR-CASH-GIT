@@ -193,25 +193,6 @@ SHAPES.corolla=function(K){
      else if(VP==='b'){piece('k',PH,.012,-.012,sd);piece('W',LED,.020,.008,sd);}                                   // b : UN plateau mince + sa lame de LED
      else if(VP==='c'){piece('k',PH,.014,-.012,sd);piece('g',VERRE,.022,.010,sd);piece('W',LED,.028,.018,sd);}   // c : boîtier, verre brillant, LED — sans l'oeil, bas
      else{piece('k',NET,.032,-.012,sd);piece('h',VNET,.052,.024,sd);piece('W',LED2,.064,.044,sd);piece('c',ONET,.074,.040,sd);}}}   // d : les quatre étages (v. précédente)
-  if(HB){   /* (23/10, Léo : « comme LA HONTE : plus de blocs, de nouvelles formes, des épaisseurs, pour bien dessiner les petits détails ») — chaque détail de la Fidèle est un BLOC distinct, de sa propre taille
-     et de sa propre épaisseur, collé sur la brique : joints de portes, poignées, jupes, bavolets d'ailes, jonc de ceinture, montant central, calandre à lames, bavette, feux, diffuseur. */
-   for(const sd of [1,-1]){
-     for(const z of [.78,-.17,-1.17])P.box('d',.016,.66,.026,sd*.885,.60,z);                 // les joints de portes : fines lames sombres, hautes
-     for(const z of [.12,-.80])P.box('c',.034,.03,.17,sd*.89,.84,z);                          // les poignées chromées
-     P.box('d',.06,.09,1.95,sd*.90,.29,.02);                                                  // la jupe de bas de caisse
-     for(const z of [ZF,ZR])P.box('d',.055,.04,.74,sd*.885,.68,z);                            // les bavolets d'ailes : un bloc épais au-dessus de chaque roue
-     P.box('c',.018,.022,2.45,sd*.86,1.00,-.30);                                              // le jonc chromé de ceinture
-     P.box('k',.03,.30,.07,sd*.678,1.16,-.20);                                                // le montant central
-     P.box('k',.03,.05,.36,sd*.65,1.02,.58);P.box('c',.03,.014,.30,sd*.65,1.03,.58);          // le clignotant de rétro posé
-     P.box('L',.46,.08,.04,sd*.52,.93,-2.24);P.box('k',.50,.03,.05,sd*.52,.86,-2.245);         // les feux arrière : un bloc rouge sur sa base noire
-     P.box('Q',.05,.025,.012,sd*.74,.49,-2.255);                                              // le catadioptre
-     P.box('h',.15,.15,.05,sd*.66,.43,2.26);P.box('c',.17,.17,.02,sd*.66,.43,2.245);           // les antibrouillards : un cerclage chromé et son verre
-   }
-   P.box('k',1.14,.17,.06,0,.47,2.27);for(let i=0;i<5;i++)P.box('c',1.06,.012,.02,0,.40+i*.034,2.30);   // la calandre : le bloc noir et ses cinq lames chromées
-   P.box('d',1.30,.07,.10,0,.265,2.29);                                                       // la bavette avant
-   P.box('d',1.30,.09,.10,0,.30,-2.29);for(const x of [-.4,-.13,.13,.4])P.box('d',.03,.11,.08,x,.29,-2.30);   // le diffuseur : un bloc et quatre ailettes
-   P.box('c',.98,.02,.03,0,.93,-2.245);                                                       // la barre chromée qui relie les feux
-  }
   // LES RÉTROVISEURS (relevés sur les trois vues) : la coque à la couleur de la caisse, la glace vers l'arrière, le répétiteur orange devant
   P.sym(sd=>{P.box('k',.10,.035,.10,sd*.80,.885,.745,0,0,0);                              // le pied, sur la portière
     const cx=sd*.94,cy=.995,cz=.71;
