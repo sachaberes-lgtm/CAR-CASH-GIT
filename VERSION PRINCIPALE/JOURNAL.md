@@ -24,7 +24,12 @@
   La calandre est rentrée sous la lame. La plaque a sa place dessinée (une boîte `W` claire au milieu de la poupe : `plqDessinee` y pose la
   plaque du joueur). Les pots : `x` ,8905 → **,766** et le tube finit à ,72 (avant l'arche avant) : il frôle le bas de caisse (1 mm), ses
   pattes touchent la tôle.
-- MESURÉ : (à compléter)
+- MESURÉ — la géométrie (le gabarit construit hors navigateur, `lpKit` instrumenté, plus `echRetire` et le pot) : AVANT, les pots à 8,8 cm de
+  toute pièce, le pied du rétro à 1,9 cm, la baguette enterrée aux deux bouts, les ouïes qui se battaient avec leurs barrettes ; APRÈS,
+  0 pièce en l'air, 0 enterrée, 0 face visible qui se bat. Au studio (`dbgEssaiCaisse`) : 4 104 → **4 148 facettes** (+1 %), hors tout
+  2,01 × 1,21 × 4,75 m → **1,76** × 1,21 × 4,70 ; les mêmes familles de matière (clé `W` dans `l`, déjà posée) → 0 appel de dessin, 0 programme.
+  Bancs (Chrome de l'ordi, muet, plaque validée) : garage, boutique (`dbgBqVoir(55)`), course au pilote automatique, couché, debout et cadre
+  de l'ordi : la partie part avec LA RAIE, 0 erreur de page. Gardes burn-out et charte OK.
 - Banc sur ce PC : le banc des caisses est écrit pour le Mac (`cdp.mjs` lance le Chrome du Mac) — sur le PC de Sacha, copie à part avec
   le Chrome de Windows et le verrou commun `cc-banc/lib.cjs`.
 ## LA VILLE, NÉON ET VERRE — LES GÉANTES DE LA VILLE VITRÉE DANS LA VILLE AU NÉON (2026-10-18, session VILLE-NEON — Sacha : « mets-toi dans la peau d'une designer de jeux vidéo senior et fusionne les maps ville et ville vitrée ; on garde l'ambiance néon et tout, mais avec certains bâtiments qui viennent de la ville vitrée »)
