@@ -32,7 +32,7 @@ function dnPlanScenes(S,K,RH,D){
     if(k==='porte'){const H=(38+R()*8)*Kd,sc=H/30,a=Math.max(q.a+40,Math.min(q.b-60,q.a+170+R()*Math.max(0,L9-340)));ajoute('porte',a-20,a+20,RH+22*sc+8,{H:H});return true;}
     if(k==='allee'){const len=(34+R()*10)*Kd,a=q.a+50,b=Math.min(q.b-40,a+380+R()*160);if(b-a>len*3.4){ajoute('allee',a,b,RH+len*1.0+16,{len:len});return true;}return false;}
     if(k==='colonnade'){const Hc=(36+R()*10)*Kc,sc=Hc/22,a=q.a+70,b=Math.min(q.b-40,a+360+R()*170);if(b-a>sc*26*5){ajoute('colonnade',a,b,RH+8+3.8*sc*2.2+10,{H:Hc});return true;}return false;}
-    if(k==='sphinx'){const Ls=Math.min((190+R()*60)*Kd,(L9-60)/1.25),lat=RH+36+.46*Ls,sg=R()<.5?-1:1,hw=(200+R()*80)*Kd,sc=Math.max(q.a+Ls*.6+30,q.a+L9*.42);
+    if(k==='sphinx'){const Ls=Math.min((270+R()*70)*Kd,(L9-60)/1.25),lat=RH+36+.46*Ls,sg=R()<.5?-1:1,hw=(200+R()*80)*Kd,sc=Math.max(q.a+Ls*.6+30,q.a+L9*.42);
       if(Ls<150||sc+Ls*.6>q.b-20)return false;const sH=sc-Ls*.3,H=dnPos(S,sH,sg*lat),dd=Math.hypot(330,lat),d0=330/dd,d1=sg*lat/dd,dist=hw*1.4+80;
       let ps=sH+d0*dist,pl=sg*lat+d1*dist;const minL=RH+hw*1.1+40;if(Math.abs(pl)<minL)pl=sg*minL;const Pp=dnPos(S,ps,pl);
       ajoute('sphinx',sc-Ls*.6,sc+Ls*.6,lat+.46*Ls+20,{L:Ls,lat:lat,sg:sg,sc:sc,py:{x:Pp.x,z:Pp.z,hw:hw,t:Pp.t}});return true;}
