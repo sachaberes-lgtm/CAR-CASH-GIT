@@ -38593,6 +38593,26 @@ SHAPES.corolla=function(K){
           roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],(K.mats&&K.mats[g])||(typeof lpMat==='function'?lpMat(g):null));m.userData.lp=1;w.add(m);}},
           lpw:{R:R,w:JW,style:'nyan',jante:0xc4c8ce}};
 };
+/* LA FIDÈLE « À LA HONTE » (23/10, Léo : « traduis ce modèle dans le style de La Honte ») — la même berline, remontée en BLOCS empilés comme LA HONTE : la caisse basse, le capot et la malle en coins, la
+   boîte de verre de l'habitacle, la dalle du toit, les pare-chocs, les phares et les feux en rectangles plats ; les roues de La Fidèle. Chaque pièce est un bloc distinct, posé sur le bloc d'en dessous. */
+SHAPES.corolla_b=function(K){
+  const PAL={p:{g:'p',c:0x9fa3a9},k:{g:'m',c:0x121214},g:{g:'g',c:0x141c26},c:{g:'c',c:0xd4d8de},W:{g:'l',c:0xf2f6ff},L:{g:'l',c:0xd0101e},h:{g:'g',c:0x6d7886},Q:{g:'l',c:0xe6e6e6}};
+  const P=K.kit(PAL),B=(k,w,h,d,x,y,z,rx,ry,rz)=>P.box(k,w,h,d,x,y,z,rx||0,ry||0,rz||0);
+  B('p',1.74,.30,4.40,0,.78,0);                              // la caisse, posée AU-DESSUS des roues (passages de roue ouverts dessous)
+  B('p',1.74,.34,1.55,0,.40,0);                              // le bas de caisse, entre les roues
+  B('p',1.62,.16,1.30,0,1.01,1.46,-.10,0,0);                 // le capot, en coin vers le nez
+  B('p',1.60,.15,.90,0,1.03,-1.72,.06,0,0);                  // la malle
+  B('g',1.50,.46,1.95,0,1.25,-.16);                          // la boîte de verre
+  B('p',1.44,.06,1.30,0,1.51,-.20);                          // la dalle du toit
+  for(const sd of [1,-1]){B('k',.06,.50,.07,sd*.74,1.26,.78,-.55,0,0);B('k',.06,.50,.07,sd*.74,1.26,-1.08,.60,0,0);}
+  B('k',1.72,.18,.14,0,.56,2.28);B('k',1.72,.18,.14,0,.58,-2.26);   // les pare-chocs
+  B('k',1.00,.14,.06,0,.78,2.24);                            // la bouche
+  for(const sd of [1,-1]){B('h',.46,.12,.06,sd*.52,.95,2.20);B('W',.34,.02,.02,sd*.52,.90,2.235);B('L',.40,.12,.05,sd*.52,1.00,-2.22);
+    B('k',.07,.10,1.5,sd*.88,.25,.04);}
+  K.commit(P);
+  return {hl:[.60,.65,2.20],tl:[.62,.93,-2.23],wx:.765,wzF:1.4015,wzR:1.3047,pots:[[.50,.25,-2.27]],lamps:0,halos:0,
+          lpw:{R:.319,w:.21,style:'rayons',jante:0xc4c8ce}};
+};
 // <<< SHAPES.corolla (JAPONAISES) — fin >>>
 // <<< SHAPES.pikes (JAPONAISES) — début >>>
 SHAPES.pikes=function(K){
