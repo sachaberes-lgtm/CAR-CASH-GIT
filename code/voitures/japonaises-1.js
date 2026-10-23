@@ -243,8 +243,8 @@ SHAPES.corolla=function(K){
       zAv=(x,y)=>{for(let z=ZE-.003;z>0;z-=.01)if(xA(S(z),y)>=x)return z;return 2.2;},zAr=(x,y)=>{for(let z=ZB+.003;z<0;z+=.01)if(xA(S(z),y)>=x)return z;return -2.2;};
     const plaque=(k,x0,x1,y,h,e,dep,av)=>{const n=4,w=(x1-x0)/n;for(let i=0;i<n;i++){const xc=x0+w*(i+.5),z=(av?zAv:zAr)(xc+w/2,y);P.box(k,w+.004,h,.022,sd*xc,y,z+(av?1:-1)*(e+dep));}};   // une plaque en 4 tronçons, chacun posé sur SA marche de la face
     plaque('k',.28,.72,.93,.12,0,.010,false);plaque('L',.30,.70,.935,.07,0,.028,false);
-    for(const z of [ZF,ZR]){const r=.37,n=10;for(let i=0;i<n;i++){const a0=Math.PI*i/n,a1=Math.PI*(i+1)/n,am=(a0+a1)/2,L=2*r*Math.sin((a1-a0)/2)+.03;
-        P.box('d',.06,.04,L,sd*.89,.35+Math.sin(am)*r,z+Math.cos(am)*r,Math.PI/2-am,0,0);}}   // l'ARC noir qui encadre chaque roue : dix segments, un poly arrondi
+    for(const z of [ZF,ZR]){const n=22,y0=.32;for(const [r,xx,w,h,k] of [[.345,.884,.05,.034,'d'],[.372,.909,.016,.016,'c']])for(let i=0;i<n;i++){const a0=Math.PI*(.09+.82*i/n),a1=Math.PI*(.09+.82*(i+1)/n),am=(a0+a1)/2,L=2*r*Math.sin((a1-a0)/2)+.012;
+        P.box(k,w,h,L,sd*xx,y0+Math.sin(am)*r,z+Math.cos(am)*r,Math.PI/2-am,0,0);}}   // la PROTECTION DE ROUE : un arc noir plaqué sur le bord de l'ouverture, bordé d'un filet CHROMÉ, 22 segments par arc (arrondi léger)
   }
   // LES RÉTROVISEURS (relevés sur les trois vues) : la coque à la couleur de la caisse, la glace vers l'arrière, le répétiteur orange devant
   P.sym(sd=>{P.box('k',.10,.035,.10,sd*.80,.885,.745,0,0,0);                              // le pied, sur la portière
