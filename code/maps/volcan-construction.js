@@ -84,7 +84,8 @@ function* buildVolcanG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
      const pr=B[B.length-1];if(pr&&s0<pr.s1+60)pr.s1=s1;else B.push({s0:s0,s1:s1,k:.9+R()*.1});}
    VOLCAN.bancs=B;VOLCAN.n.bancs=B.length;
    /* (2026-10-23) LES TEMPÊTES DE CENDRE : 3 à 6 par parcours (une par ~1 100 m), 220-440 m chacune, tirées au hasard de la partie, jamais au départ ni au portail ; la visibilité s'y effondre, la cendre y devient dense et grosse */
-   const TP=[];if(VLC_MODS){const Rt=mulberry32((seed^0xCE4D2E)>>>0),nT=Math.max(3,Math.min(6,Math.round(L/1100))),L9=L-700;
+   const OQ=VOLCAN.Q&&VOLCAN.Q.orages,TP=[];if(OQ)for(const t of OQ)TP.push({s0:t.s0,s1:Math.min(t.s1,L-300),k:t.k}); /* (LE VOLCAN EN ACTES) les orages posés par la route : sur les temps forts */
+   else if(VLC_MODS){const Rt=mulberry32((seed^0xCE4D2E)>>>0),nT=Math.max(3,Math.min(6,Math.round(L/1100))),L9=L-700;
      for(let e=0;e<nT*8&&TP.length<nT;e++){const l=(220+Rt()*220)*kv,s0=450+Rt()*Math.max(1,L9-l);if(s0+l>L-300)continue;let ok=true;for(const t of TP)if(s0<t.s1+250&&s0+l>t.s0-250)ok=false;if(ok)TP.push({s0:s0,s1:s0+l,k:.9+Rt()*.1});}}
    VOLCAN.tempetes=TP;VOLCAN.n.tempetes=TP.length;}
   /* 0. TOUT DE SUITE : les rangées et les morceaux du départ (ce que la caméra voit au portail) ; 1. EN TRANCHES : les autres rangées, du plus

@@ -97,7 +97,7 @@ function* genVolcan(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
   const LV=typeof lvPiste==='function'?lvPiste():1,gr=mulberry32((rnd()*4294967296)>>>0);
   let best=null;
   const V3=MODC_ON&&VLC_BALADE; // (2026-10-18, 2e tour) LA BALADE DES FLAMMES ET LA MONTÉE DU VOLCAN (voir vlcTrace3) ; `?volcan=v4` ou `?sans=modcartes` = avant
-  for(let e=0;e<6;e++){if(e)yield;const r=V3&&VLC_HZ?vlcTraceH(gr,LV):V3?vlcTrace3(gr,LV):vlcTrace(gr,LV);if(!best||r.conflits<best.conflits)best=r;if(!r.conflits)break;}
+  for(let e=0;e<6;e++){if(e)yield;const r=V3&&VLC_ACTES?vlcTraceA(gr,LV):V3&&VLC_HZ?vlcTraceH(gr,LV):V3?vlcTrace3(gr,LV):vlcTrace(gr,LV);if(!best||r.conflits<best.conflits)best=r;if(!r.conflits)break;}
   for(const k of ['K','C','K2','C2','Q','plg','sauts','sSp','ySea','conflits','croise','th0','th1','lac','hz'])VOLCAN[k]=best[k];
   if(VOLCAN.Q)VOLCAN.Q.c2=!!best.C2; // (LE DÉCOR AU HASARD) la route a-t-elle son second volcan à elle (v4) ? sinon le décor peut en poser un
   for(const m of best.mods||[])MODMARK.push(m); // (2026-10-18) LES MODULES DE CHAQUE MAP : ceux de l'essai gardé (voir vSlalom)
