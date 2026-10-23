@@ -112,15 +112,13 @@ SHAPES.corolla=function(K){
        en bloc et un filet chromé sous la vitre. Le panneau suit la largeur réelle de la caisse à mi-hauteur. */
     for(const sd of [1,-1])for(const [z0,z1] of [[.70,-.12],[-.22,-1.00]]){const zc=(z0+z1)/2,L=Math.abs(z0-z1),xw=xAt(Sz(zc),.64)+.002;
       PL.box('p',.05,.58,L,sd*(xw+.012),.64,zc);                              // le panneau de porte, en relief de 3,7 cm
-      for(const z of [z0,z1])PL.box('k',.058,.62,.016,sd*(xw+.012),.64,z);      // les joints : deux montants noirs
-      PL.box('k',.058,.016,L+.016,sd*(xw+.012),.335,zc);PL.box('k',.058,.016,L+.016,sd*(xw+.012),.945,zc);   // et le haut et le bas du cadre
       PL.box('c',.05,.034,.22,sd*(xw+.045),.84,zc+(z0>z1?.20:-.20));          // la poignée : un bloc chromé, bien saillant
       PL.box('c',.022,.014,L*.94,sd*(xw+.03),.915,zc);}                       // le filet chromé sous la vitre
     if(HB4){   // la cabine : des BRIQUES lisses (le loft rectangulaire du 2), rentrées de 1,5 cm sous les blocs ; les couches de base et de ceinture du 2
       PL.loft(zsB.filter(z=>z>=ZA-.001&&z<=ZBm+.001),z=>{const q=SB(z);for(let i=1;i<=3;i++)q[i]=[Math.max(0,q[i][0]-.015),q[i][1]];return q;},peintB);
       const couche=(y,h,k,grow,zA,zB)=>{let run=null;const flush=z1=>{if(run&&run.w>.02)PL.box(k,2*run.w,h,z1-run.z0,0,y,(run.z0+z1)/2);run=null;};
         for(let z=zA+.045;z<zB;z+=.09){const w=Math.round((xAt(Sz(z),y)+grow)/.03)*.03;if(!run||run.w!==w){flush(z-.045);run={w:w,z0:z-.045};}}flush(zB);};
-      couche(.245,.03,'d',.02,ZB+.2,ZE-.2);couche(.275,.03,'d',.015,ZB+.2,ZE-.2);couche(.985,.022,'c',.012,-2.0,1.0);}
+      couche(.985,.022,'c',.012,-2.0,1.0);}
     /* LE MUSEAU ET LA POUPE en POLY ARRONDI (Léo : « il faut que ce soit beau, tu peux faire des formes poly arrondies ») : un loft à 7 points — le dessous, un chanfrein bas, le flanc, un chanfrein haut, l'épaule qui s'arrondit
        vers le capot — sur 6 tranches, mesuré sur la vraie section ; il remplace les marches sous la ceinture. */
     const SR=z=>{const s=S(z),xm=s[1][0]+.10*Math.min(1,s[1][0]/.62),yb=s[0][1],yt=s[NC][1],yc=s[s.length-1][1],sx=z>=ZE-1e-6||z<=ZB+1e-6?.02:1;
