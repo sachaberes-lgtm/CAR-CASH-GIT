@@ -169,18 +169,20 @@ function dnSelect(cam){const M=DN.mesh;if(!M||!M.visible)return;
    CAISSE (la clé baisse quand on passe à l'ombre d'une dune : seul écrit du soleil hors de bioApply, et seulement ici — comme canyonTick, qu'il suit) */
 /* (2026-10-20, LE DÉSERT AU HASARD) LES PALETTES DU SABLE : la teinte de l'ambiance tirée vers une autre teinte À LUMINANCE ÉGALE (la nuit reste la nuit) —
    [r, g, b de la teinte, part, gain de luminance] ; l'or = le sable d'avant */
-const DN_SAB={or:null,rouge:[.82,.28,.15,.62,.92],blanc:[1,.95,.86,.78,1.2],rose:[.96,.60,.58,.6,1.06]};
+const DN_SAB={or:null,rouge:[.84,.42,.26,.5,.95],blanc:[1,.95,.86,.78,1.2],rose:[.96,.68,.56,.5,1.04]};
 function dnTeinte(c,T){const l=c.r*.3+c.g*.55+c.b*.15,n=T[0]*.3+T[1]*.55+T[2]*.15,g=l*T[4]/n,k=T[3];c.r+=(T[0]*g-c.r)*k;c.g+=(T[1]*g-c.g)*k;c.b+=(T[2]*g-c.b)*k;}
 /* (2026-10-23, Léo : « inspire-toi de plusieurs météos et couleurs ») LES VARIANTES D'AMBIANCE, tirées avec la graine du décor (`DN.deco.sd`, sans toucher dnTirage) : le SOIR est ROSE-VIOLET (le crépuscule d'origine) ou DORÉ (soleil bas, ciel bleu-or), le MIDI BLEU PUR ou NUAGEUX
    (lumière filtrée, ciel gris-bleu). Les valeurs de base sont gardées à part (`__o`) : rien ne s'accumule d'une partie à l'autre. `?ciel=0` = les ambiances d'avant, `?ciel=dore|rose|nuageux|bleu` en force une. */
-const DN_VAR={soir:{rose:{},dore:{jZen:[.16,.26,.58],jMid:[.72,.52,.48],jHor:[1,.74,.40],jSol:[1,.60,.22],fog:[.98,.74,.46],fogCj:[1,.72,.42],hemiS:[.50,.56,.86],hemiG:[.80,.54,.34],sunC:[1,.72,.38],cyZ:[.16,.26,.58],cyM:[.72,.52,.48],cyH:[1,.74,.40],cyS:[1,.62,.26],cyC:[1,.70,.44],cyR:[.86,.52,.34],dnA:[1,.74,.38],dnB:[.92,.54,.28],dnL:[1,.86,.58],dnS:[.44,.48,.92],dnH:[1,.74,.46]}},
-  midi:{bleu:{},nuageux:{jZen:[.30,.40,.58],jMid:[.54,.62,.76],jHor:[.88,.86,.80],fog:[.82,.78,.70],fogCj:[.92,.86,.76],hemiS:[.52,.62,.84],sunI:.95,cyZ:[.30,.40,.58],cyM:[.54,.62,.76],cyH:[.88,.86,.80],cyS:[1,.94,.84],cyB:[.62,.64,.72],cyC:[.98,.98,.98],cyN:[0,.9,2.4,0],dnS:[.50,.56,.90],dnH:[.90,.86,.76],dnA:[.88,.74,.50],dnB:[.78,.60,.38]}}};
+const DN_VAR={soir:{rose:{},dore:{jZen:[.16,.26,.58],jMid:[.72,.52,.48],jHor:[1,.74,.40],jSol:[1,.60,.22],fog:[.98,.74,.46],fogCj:[1,.72,.42],hemiS:[.50,.56,.86],hemiG:[.80,.54,.34],sunC:[1,.72,.38],cyZ:[.16,.26,.58],cyM:[.72,.52,.48],cyH:[1,.74,.40],cyS:[1,.62,.26],cyC:[1,.70,.44],cyR:[.86,.52,.34],dnA:[1,.74,.38],dnB:[.92,.54,.28],dnL:[1,.86,.58],dnS:[.52,.52,.92],dnH:[1,.74,.46],cyK:[.66,.35,0,0]}},
+  midi:{bleu:{},nuageux:{jZen:[.30,.40,.58],jMid:[.54,.62,.76],jHor:[.88,.86,.80],fog:[.82,.78,.70],fogCj:[.92,.86,.76],hemiS:[.52,.62,.84],sunI:.95,cyZ:[.30,.40,.58],cyM:[.54,.62,.76],cyH:[.88,.86,.80],cyS:[1,.94,.84],cyB:[.62,.64,.72],cyC:[.98,.98,.98],cyN:[0,.9,2.4,0],cyK:[.95,.3,0,0],dnS:[.50,.56,.90],dnH:[.90,.86,.76],dnA:[.88,.74,.50],dnB:[.78,.60,.38]}}};
 function dnAmb(){const D=DN.deco;if(!D||DN._amb===D.sd)return;DN._amb=D.sd;const f=/[?&]ciel=(\w+)/.exec(location.search),h=(Math.imul((D.sd^0xC1E10)>>>0,0x9E3779B1)>>>0)/4294967296;
   for(const nm in DN_VAR){const B=BIOMES['dunes'+nm[0].toUpperCase()+nm.slice(1)];if(!B)continue;const o=B.__o||(B.__o={}),V=DN_VAR[nm],ks=Object.keys(V);let v=f&&f[1]==='0'?null:V[ks[h<.5?0:1]];if(f&&V[f[1]])v=V[f[1]];
     const cp=function(x){return Array.isArray(x)?x.slice():x;};for(const k in o)B[k]=cp(o[k]);                          /* d'abord la base */
     if(v)for(const k in v){if(o[k]===undefined)o[k]=cp(B[k]);B[k]=cp(v[k]);}}
   {const B=BIO.to;if(B&&/^dunes/.test(BIO.name||'')){bioLerp(B,B,1,BIO.cur);bioApply(BIO.cur);paintEnv(B.env,B.eS1,B.eS2);}}} /* l'ambiance courante est recalculée tout de suite */
-function dunesTick(dt){dnAmb();
+const DN_NUA=!/[?&]nuages=0\b/.test(location.search); /* (2026-10-23, Léo : « plus de nuages ») `?nuages=0` : le ciel d'avant (peu de nuages, ronds, plats) */
+function dnNuages(){const on=DN.on&&DN_NUA&&!QUAL_LOW&&/^dunes/.test(BIO.name||''),W=skyU.uCyW.value;if(!on){W.set(0,0);return;}W.set(.4,1);if(!DN_NUA&&skyU.uCyK){}} // bandes étirées, nuages modelés
+function dunesTick(dt){dnAmb();dnNuages();
   if(!DN.mat)return;const U=DN.mat.uniforms,c=BIO.cur,k=LVL.dunes||0;
   if(DN.on&&!paused)U.uTime.value=(U.uTime.value+dt)%4096;
   if(DN.gx>1&&(mode!=='fall'||!DN.on))DN.gx=1; // le vol fini (ou la map quittée) : la pesanteur redevient la sienne
