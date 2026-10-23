@@ -27931,7 +27931,7 @@ const ECH_POTS={  // (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
  origami:{p:[{t:'triangle',w:0.17,h:0.09,k:'a',lueur:'G',pts:[[0.52,0.47,-2.768],[-0.52,0.47,-2.768]]}]},
  rosso:{p:[{t:'rond',r:0.05,k:'C',dbl:1,k2:'c',pts:[[-0.15,0.4,-2.3],[0,0.4,-2.3],[0.15,0.4,-2.3]]}]},
  abstraite:{p:[{t:'rond',r:0.05,k:'s',kb:'o',len:0.08,lueur:'Y',pts:[[0.22,0.36,-2.22],[-0.22,0.36,-2.22]]}]},
- iceberg:{p:[{t:'cristal',r:0.055,pts:[[0.11,0.31,-2.2681],[-0.11,0.31,-2.3239]]}]},
+ iceberg:{p:[{t:'cristal',r:0.055,pts:[[0.11,0.31,-2.316],[-0.11,0.31,-2.316]]}]}, /* (2026-10-18) les deux bouches à la même profondeur, 1,6 cm derrière le bout du fuselage (z −2,30) : relevées le 10/10 sur l'iceberg d'avant, l'une rentrait de 3 cm dans la glace (voilée), l'autre dépassait de 2,4 cm — même pièce, même x, même y */
  e_murduson:{p:[{t:'turbine',r:0.11,n:10,k:'C',kp:'b',aubes:6,lueur:'g',force:1,pts:[[0.48,0.45,-3],[-0.48,0.45,-3]]},{t:'turbine',r:0.235,n:12,k:'C',kp:'b',aubes:0,force:1,pts:[[0.7,0.66,-0.8],[-0.7,0.66,-0.8]]}]},
  e_feline:{p:[{t:'reel',r:0.034,k:'c',len:0.5,pts:[[0.06,0.27,-2.465],[-0.06,0.27,-2.465]]}]},
  b_trone:{p:[{t:'plaque',k:'o',w:0.56,h:0.22,x:0,y:0.46,z:-2.226},{t:'ovale',r:0.065,sx:1.4,sy:0.85,k:'C',dbl:1,k2:'o',pts:[[0,0.46,-2.269]]}]},
@@ -31695,7 +31695,7 @@ Object.assign(SHAPES,{
     const U=LPU,R=.36,ZF=1.5,ZR=-1.5,V=new THREE.Vector3(),V2=new THREE.Vector3(),V3=new THREE.Vector3();
     const P=K.kit({N:{g:'s',c:0xeaf4fb},B:{g:'p',c:0x0d2d4a,f:0},G:{g:'s',c:0x23272e},C:{g:'l',c:0x46d2ff},
       W:{g:'l',c:0xeafaff},L:{g:'l',c:0xff1838},k:{g:'m',c:0x0c1a26},
-      r:{g:'l',c:0x8a0c18},R:{g:'l',c:0xff7a8c}}); // (17/10, l'arrière v2) r, R : les facettes des éclats rouges — aucune famille de plus
+      r:{g:'l',c:0x8a0c18},R:{g:'l',c:0xff7a8c},Q:{g:'l',c:0xf2f4f6}}); // (17/10, l'arrière v2) r, R : les facettes des éclats rouges — aucune famille de plus · (18/10) Q : la place de la plaque
     const I=K.kit({i:{g:'c',c:0x1479b8},o:{g:'c',c:0x1f95cf},j:{g:'c',c:0x2fb2e6},m:{g:'c',c:0x48c4ee},h:{g:'c',c:0x7ad8f7},n:{g:'c',c:0x9ae2fa},v:{g:'c',c:0x0b3f66}});
     const hs=(a,b)=>{const x=Math.sin(a*127.1+b*311.7)*43758.5453;return x-Math.floor(x);};             // un hasard FIXE (la même glace à chaque construction)
     // UNE FACETTE : `cle` la force ; sinon, à plat c'est de la NEIGE (par plaques), ailleurs une nuance de GLACE plus profonde vers le bas
@@ -31713,13 +31713,17 @@ Object.assign(SHAPES,{
       for(const [i,dz] of [[0,1],[zs.length-1,-1]]){const z=zs[i],c9=[ctr[i][0],ctr[i][1],z],o=[ctr[i][0],ctr[i][1],z+dz*.3];
         for(let k=0;k<n;k++){const a=A[i][k],b=A[i][(k+1)%n];dehors(c9,[a[0],a[1],z],[b[0],b[1],z],o);}}};
     const bous=(p,i,k,g9,a)=>[p[0]+(hs(i,k+g9)-.5)*a,p[1]+(hs(i+.5,k*1.3+g9)-.5)*a*.85];                    // la glace brute : quelques cm
+    /* (2026-10-18, « la voiture iceberg est super buger ») la bousculade se règle sur l'ÉPAISSEUR de la tranche : là où la glace est mince
+       (le bloc au-dessus de la roue avant, le nez du fuselage), 5-6 cm de hasard croisaient les points de la section — des facettes
+       retournées qui se battaient. Mêmes tirages, amplitude ramenée à la place qu'il y a. */
+    const bousE=(e,a,e0)=>a*U.cl((e-e0)/.3,.1,1);
     const AR=[[0,2*R+.06],[R*.6,2*R+.06],[R+.15,.26]],arches=z=>U.arch(z,[ZF,ZR],AR,.26);
     // LE FUSELAGE : étroit, en goutte, du nez au dard
     const wF=z=>U.lin([[-2.3,.10],[-2.0,.24],[-1.2,.38],[0,.42],[1.2,.36],[2.0,.22],[2.42,.06]],z),
           tF=z=>U.lin([[-2.3,.40],[-1.6,.62],[-.6,.72],[.2,.74],[1.2,.62],[2.0,.42],[2.42,.30]],z);
     volume([-2.3,-2.0,-1.6,-1.2,-.6,0,.6,1.2,1.7,2.1,2.42],(z,i)=>{const w=wF(z),t=tF(z),b=.26,m=b+(t-b)*.55;
-      const D=[[w*.75,b],[w,m],[w*.82,t-(t-b)*.15],[w*.4,t]];
-      return [[0,b-.005]].concat(D.map((p,k)=>bous(p,i,k,0,.05)),[[0,t+.01]],D.slice().reverse().map((p,k)=>{const q=bous(p,i,k,17,.05);return [-q[0],q[1]];}));});
+      const D=[[w*.75,b],[w,m],[w*.82,t-(t-b)*.15],[w*.4,t]],a9=bousE(t-b,.05,0);
+      return [[0,b-.005]].concat(D.map((p,k)=>bous(p,i,k,0,a9)),[[0,t+.01]],D.slice().reverse().map((p,k)=>{const q=bous(p,i,k,17,a9);return [-q[0],q[1]];}));});
     // LA BULLE : une seule place, glace sombre, posée sur le fuselage
     const cwB=z=>U.lin([[-.45,.02],[-.1,.27],[.5,.31],[1.0,.22],[1.3,.02]],z),ctB=z=>U.lin([[-.45,.74],[.1,1.03],[.55,1.07],[1.0,.93],[1.3,.70]],z);
     volume([-.45,-.1,.2,.55,.8,1.0,1.3],(z)=>{const c=cwB(z),t=ctB(z),b=tF(z)-.03;return [[0,b],[c,b],[c*.86,b+(t-b)*.6],[c*.45,t-.01],[0,t],[-c*.45,t-.01],[-c*.86,b+(t-b)*.6],[-c,b]];},()=>'v');
@@ -31729,8 +31733,10 @@ Object.assign(SHAPES,{
           tP=z=>U.lin([[-2.25,1.0],[-1.5,1.0],[-.7,.86],[.4,.80],[1.5,.95],[2.05,.70],[2.3,.48]],z),
           zP=[-2.25,-2.1,-1.8,-1.0,-.5,0,.5,1.0,1.8,2.05,2.2,2.3];
     for(const w of [ZF,ZR])for(const d of [R*.6,R+.15])zP.push(w-d,w+d);zP.sort((a,b)=>a-b);
-    for(const sd of [1,-1])volume(zP,(z,i)=>{const b=arches(z),t=tP(z),o=xo(z),xi=.55,g9=sd>0?0:17;
-      const Q=[[xi,b],[o-.06,b],[o,b+(t-b)*.45],[o-.05,t-.06],[o-.2,t],[xi+.05,t-.03],[xi,b+(t-b)*.5]].map((p,k)=>k<2?p:bous(p,i,k,g9,.06));
+    for(const sd of [1,-1])volume(zP,(z,i)=>{const b=arches(z),t=tP(z),o=xo(z),xi=.55,g9=sd>0?0:17,e=t-b,a9=bousE(e,.06,.06);
+      // (2026-10-18) les deux chanfreins du haut descendent d'au plus 30 % / 25 % de l'épaisseur : au-dessus de la roue avant (7 cm de glace),
+      // « t − 6 cm » passait SOUS le point le plus large — la section se repliait (facettes retournées)
+      const Q=[[xi,b],[o-.06,b],[o,b+e*.45],[o-.05,t-Math.min(.06,e*.3)],[o-.2,t],[xi+.05,t-Math.min(.03,e*.25)],[xi,b+e*.5]].map((p,k)=>k<2?p:bous(p,i,k,g9,a9));
       return Q.map(p=>[sd*p[0],p[1]]);});
     // LES ARCS-BOUTANTS : deux ponts de glace par côté, du fuselage au bloc, par-dessus le canal
     for(const sd of [1,-1])for(const z of [1.75,-1.05]){const y0=tF(z)-.06,y1=tP(z)-.05,x0=wF(z)*.9,x1=.58,l=Math.hypot(x1-x0,y1-y0);
@@ -31738,12 +31744,18 @@ Object.assign(SHAPES,{
     // L'AILERON : une lame de glace qui court d'un bloc à l'autre, sa neige dessus, son bord d'attaque cassé
     I.put('h',new THREE.BoxGeometry(2.06,.045,.40),0,1.10,-2.06,.14,0,0);
     P.put('N',new THREE.BoxGeometry(1.5,.012,.24),.08,1.13,-2.05,.14,0,0);
-    for(let k=0;k<7;k++){const x=-.9+k*.3+(hs(k,3)-.5)*.1,l=.08+hs(k,5)*.1;I.tri(k%2?'n':'m',[x-.06,1.115,-1.86],[x+.06,1.115,-1.86],[x,1.12,-1.86+l]);}
-    for(const sd of [1,-1])I.put('m',new THREE.BoxGeometry(.05,.14,.10),sd*.82,1.04,-2.04);
-    // LE BÉQUET : une lame sous le nez, d'un bloc à l'autre
-    I.put('j',new THREE.BoxGeometry(1.86,.03,.30),0,.23,2.30);
+    /* (2026-10-18) le bord d'attaque suit la lame PENCHÉE (rx .14 baisse l'avant) : posé à plat à y 1,115, il flottait 2 cm au-dessus de
+       l'arête, en dents détachées ; et les deux montants montent du bloc (ils s'arrêtaient à 2 cm au-dessus de sa glace, à l'arrière) */
+    {const ca=Math.cos(.14),sa=Math.sin(.14),yA=1.10+.0225*ca-.2*sa,zA=-2.06+.0225*sa+.2*ca; // l'arête du dessus, au bout avant de la lame
+     for(let k=0;k<7;k++){const x=-.9+k*.3+(hs(k,3)-.5)*.1,l=.08+hs(k,5)*.1;I.tri(k%2?'n':'m',[x-.06,yA,zA-.01],[x,yA-l*sa,zA+l*ca],[x+.06,yA,zA-.01]);}}
+    for(const sd of [1,-1])I.put('m',new THREE.BoxGeometry(.05,.17,.10),sd*.82,1.005,-2.04);
+    // LE BÉQUET : une lame sous le nez, d'un bloc à l'autre — (2026-10-18) 1 cm plus en arrière et 2 cm moins large : son dos tombait PILE sur le nez du plancher (z 2,15), deux faces confondues qui scintillaient
+    I.put('j',new THREE.BoxGeometry(1.84,.03,.30),0,.23,2.29);
     // LE PLANCHER (bleu nuit) et les CANAUX : un fil de lumière bleue au fond de chacun
-    P.box('B',1.86,.05,4.3,0,.245,0);
+    /* (2026-10-18) le plancher ÉCHANCRÉ autour des roues : d'une pièce sur 1,86 m de large, il passait À TRAVERS les quatre roues (leur face
+       intérieure est à x 0,69) et sa tranche barrait la jante, devant les rayons, sans tourner. Même plancher, moins les quatre encoches. */
+    P.box('B',1.32,.05,4.3,0,.245,0);
+    P.sym(sd=>{for(const q of [[-2.025,.25],[0,2.2],[2.025,.25]])P.box('B',.27,.05,q[1],sd*.795,.245,q[0]);});
     P.sym(sd=>P.box('C',.06,.012,3.8,sd*.485,.275,0));
     // LES CRISTAUX (flancs des blocs, pas les mêmes des deux côtés) et LES STALACTITES (sous les blocs)
     const crist=(sd,z,y,l)=>{const x=sd*xo(z)*.99,p1=[x,y+.06,z+.05],p2=[x,y-.05,z+.07],p3=[x,y,z-.08],A=[x+sd*l*.55,y+l*.35,z-l*.85],o=[x-sd*.3,y,z];
@@ -31764,21 +31776,39 @@ Object.assign(SHAPES,{
      P.sym(sd=>{for(const q of [[.70,.88,.16,.035,-.15,.25],[.78,.90,.22,.04,0,.35],[.86,.87,.15,.032,.25,.2],[.74,.83,.12,.03,-.1,-.15],[.83,.82,.13,.03,.2,-.2]])
        ec(sd*q[0],q[1],-2.262,q[2],q[3],sd*q[4],q[5]);});}
     P.box('L',.12,.035,.02,0,.36,-2.315);
+    /* (2026-10-18) LA PLACE DE LA PLAQUE : les rayons de plqCherche ne trouvaient au milieu de la poupe que de la glace (transparente, refusée)
+       — la plaque retombait sur la boîte de la caisse et FLOTTAIT derrière elle, au ras du sol. Elle s'accroche désormais sous le bout du
+       plancher, entre les deux falaises, sous les tuyères : la plaque blanche « déjà dessinée » (plqDessinee) qu'elle vient couvrir. */
+    P.box('Q',.60,.15,.004,0,.15,-2.173); // 4 mm : elle se tient juste devant le cadre de la plaque, qui la couvre
     P.sym(sd=>P.cyl('k',.045,.04,10,sd*.11,.31,-2.30,'z'));
     K.commit(P);
     // LA GLACE : un maillage à part, transparent, dessiné après le reste
+    /* (2026-10-18, Sacha : « la voiture iceberg est super buger ») — la glace se dessinait SANS écrire sa profondeur, ses deux faces : dans
+       l'ordre du tampon, le dos d'un bloc (ou du fuselage) se peignait PAR-DESSUS sa face avant — glace à l'envers, pans qui se battaient
+       quand la caisse tournait. Désormais elle écrit sa profondeur (une face de devant n'est plus jamais recouverte par une face cachée) et
+       ses facettes sont RANGÉES de celles qui tournent le dos à la caméra de poursuite (derrière et au-dessus) à celles qui lui font face :
+       en course on voit le dos de la glace à travers sa face, ailleurs la face seule. Même matière, même programme. Et la glace porte
+       `lp` : la photo de la boutique (photoPropre) ne la cache plus — la carte montrait une caisse SANS glace (un plancher, des feux). */
     const g=K.add(new THREE.Group());g.userData.ice=1;
     let gm;try{gm=lpMat('c');}catch(e){gm=new THREE.MeshPhongMaterial({vertexColors:true,side:THREE.DoubleSide,shininess:160});}
-    gm.transparent=true;gm.opacity=.80;gm.depthWrite=false;gm.userData.g='ice';
-    const gl9=new THREE.Mesh(I.done().c,gm);gl9.renderOrder=2;g.add(gl9);
+    gm.transparent=true;gm.opacity=.80;gm.depthWrite=true;gm.userData.g='ice';
+    const gi=I.done().c;
+    {const pa=gi.attributes.position.array,na=gi.attributes.normal.array,ca=gi.attributes.color.array,n=pa.length/9,o=[],dy=.45,dz=-.89;
+     for(let t=0;t<n;t++)o.push([t,na[t*9+1]*dy+na[t*9+2]*dz]);o.sort((a,b)=>a[1]-b[1]);
+     const P2=new Float32Array(pa.length),N2=new Float32Array(pa.length),C2=new Float32Array(pa.length);
+     o.forEach((q,j)=>{P2.set(pa.subarray(q[0]*9,q[0]*9+9),j*9);N2.set(na.subarray(q[0]*9,q[0]*9+9),j*9);C2.set(ca.subarray(q[0]*9,q[0]*9+9),j*9);});
+     gi.setAttribute('position',new THREE.BufferAttribute(P2,3));gi.setAttribute('normal',new THREE.BufferAttribute(N2,3));gi.setAttribute('color',new THREE.BufferAttribute(C2,3));}
+    const gl9=new THREE.Mesh(gi,gm);gl9.renderOrder=2;gl9.userData.lp=1;g.add(gl9);
     // LES ÉCLATS DE GIVRE : trois aiguilles croisées (une étoile vue de partout) ; ils scintillent
     const E=K.kit({s:{g:'l',c:0xffffff}});
     for(const sc of [[1,.09,.09],[.09,1,.09],[.09,.09,.7]])E.put('s',new THREE.OctahedronGeometry(.17,0),0,0,0,0,0,0,sc[0],sc[1],sc[2]);
     E.put('s',new THREE.OctahedronGeometry(.035,0),0,0,0);
     const par=g.parent,n0=par.children.length;K.commit(E);const em=par.children[n0];par.remove(em);
     const eg=K.add(new THREE.Group()),et=[];eg.userData.etoiles=et;const em2=em.material.clone();em2.transparent=true;
-    for(const q of [[1.0,1.13,-2.06],[-.95,1.12,-2.06],[.2,1.07,.55],[.85,.96,1.5],[-.9,1.0,-1.5],[.6,.82,.4],[-.3,.75,1.4]]){
-      const m=new THREE.Mesh(em.geometry,em2);m.position.set(q[0],q[1],q[2]);m.renderOrder=3;
+    /* (2026-10-18) les éclats POSÉS SUR LA GLACE, 2 à 4 cm au-dessus (mesurés sur la caisse) : l'un flottait à 22 cm au-dessus du capot, trois
+       à 6-8 cm ; et dessinés AVANT la glace (ordre 1) : la glace écrit sa profondeur, la part d'un éclat qui y plonge se voit au travers */
+    for(const q of [[1.0,1.15,-2.06],[-.95,1.15,-2.06],[.2,1.02,.55],[.85,.915,1.5],[-.9,.98,-1.5],[.6,.82,.4],[-.22,.57,1.4]]){
+      const m=new THREE.Mesh(em.geometry,em2);m.position.set(q[0],q[1],q[2]);m.renderOrder=1;
       m.userData.ph=et.length*2.39;m.userData.r=1.3+(et.length*.37)%1.1;m.userData.s=.8+(et.length%3)*.25;eg.add(m);et.push(m);}
     if(typeof BLING==='object'&&BLING)BLING.s=et;
     return {hl:[.78,.44,2.34],tl:[.78,.86,-2.28],wx:.82,wzF:ZF,wzR:-ZR,pots:[[.11,.31,-2.32],[-.11,.31,-2.32]],
