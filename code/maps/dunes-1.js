@@ -170,7 +170,7 @@ function dnProfil(S,RE,i0,x,z,o,RH,TH){
     const px=ax+dx*u-x,pz=az+dz*u-z,d=px*px+pz*pz;if(d<bd){bd=d;bj=j;bu=u;}}
   if(bj<0)return false;const j=bj,u=bu,j1=j+1,d=Math.sqrt(bd);if(d>RE[j]+20)return false;
   const v=1-u,qx=x-(S.x[j]*v+S.x[j1]*u),qz=z-(S.z[j]*v+S.z[j1]*u),sg=(qz*(S.tx[j]*v+S.tx[j1]*u)-qx*(S.tz[j]*v+S.tz[j1]*u))>=0?1:-1, // le côté : le décalage (−tz, tx) est le côté +1
-    Wf=Math.max(0,S.pw[j]*v+S.pw[j1]*u-RH-10),bkv=S.bk?S.bk[j]*v+S.bk[j1]*u:0,yb=S.y[j]*v+S.y[j1]*u-1.6-3*Math.abs(Math.sin(bkv))-sg*Math.min(d,RH+10+Wf)*Math.tan(bkv), /* la berme suit la dalle penchée (S.bk), puis garde son niveau ; +3·sin : la marge perdue quand l'angle bouge vite entre deux échantillons */Dn=Math.max(2,yb-(S.B[j]*v+S.B[j1]*u)),
+    Wf=Math.max(0,S.pw[j]*v+S.pw[j1]*u-RH-10),bkv=S.bk?S.bk[j]*v+S.bk[j1]*u:0,yb=S.y[j]*v+S.y[j1]*u-1.6-3*Math.abs(Math.sin(bkv))-7*Math.abs(S.y[j1]-S.y[j])/(S.ds||8)-sg*Math.min(d,RH+10+Wf)*Math.tan(bkv), /* la berme suit la dalle penchée (S.bk), puis garde son niveau ; +3·sin : la marge perdue quand l'angle bouge vite entre deux échantillons ; +7·pente : dans un arc sur une pente raide, le sable du bord extérieur lit l'échantillon voisin, plus haut (MESURÉ : 2 m à 20 %) */Dn=Math.max(2,yb-(S.B[j]*v+S.B[j1]*u)),
     Hh=sg>0?S.hP[j]*v+S.hP[j1]*u:S.hM[j]*v+S.hM[j1]*u,Wh=Math.max(24,sg>0?S.wP[j]*v+S.wP[j1]*u:S.wM[j]*v+S.wM[j1]*u);
   const p=dnPf(Math.max(0,d-RH-10-Wf),Hh,Wh,Dn,S.sP?(sg>0?S.sP[j]*v+S.sP[j1]*u:S.sM[j]*v+S.sM[j1]*u):0),rc=RH+10+Wf+(Hh>0?Wh+Hh/.6:-Hh/.34)+40,t9=Math.max(0,Math.min(1,(d-rc)/200)); // rc : où le profil a fini de dire son mot, puis 200 m de fondu vers le désert
   o.H=yb+p;o.d=d;o.w=1-t9*t9*(3-2*t9);return true;}
