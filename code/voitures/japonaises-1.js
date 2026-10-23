@@ -107,8 +107,14 @@ SHAPES.corolla=function(K){
     // 2. les COUCHES FINES : le nez et la poupe sur toute la hauteur, tout le reste au-dessus de la ceinture
     const verre=(z,y)=>(y>1.0&&y<1.40&&z<ZW-.02&&z>ZHT+.02&&xAt(Sz(z),y)<.72)?'g':'p';
     for(let yc=.22+.02;yc<1.43;yc+=.04){
-      if(yc<YM){rangee(yc,.04,.06,.02,ZB,ZA,verre);rangee(yc,.04,.06,.02,ZBm,ZE,verre);}
-      else rangee(yc,.04,.06,.02,ZB,ZE,verre);}
+      if(yc>=YM)rangee(yc,.04,.06,.02,ZB,ZE,verre);}
+    /* LE MUSEAU ET LA POUPE en POLY ARRONDI (Léo : « il faut que ce soit beau, tu peux faire des formes poly arrondies ») : un loft à 7 points — le dessous, un chanfrein bas, le flanc, un chanfrein haut, l'épaule qui s'arrondit
+       vers le capot — sur 6 tranches, mesuré sur la vraie section ; il remplace les marches sous la ceinture. */
+    const SR=z=>{const s=S(z),xm=s[1][0]+.10*Math.min(1,s[1][0]/.62),yb=s[0][1],yt=s[NC][1],yc=s[s.length-1][1],sx=z>=ZE-1e-6||z<=ZB+1e-6?.02:1;
+      return [[0,yb],[(xm-.16)*sx,yb],[xm*sx,yb+.13],[xm*sx,Math.max(yb+.14,yt-.10)],[(xm-.07)*sx,yt+(yc-yt)*.25],[xm*.55*sx,Math.max(yt+.02,yc-.015)],[0,yc]];};
+    // (« le museau doit être plus fidèle à la Fidèle ») : le nez et la poupe reprennent les VRAIES sections du plan (S), une tranche sur deux — la forme exacte, taillée en larges facettes
+    const zN=zs.filter(z=>z>=ZBm-.001).filter((z,i)=>i%2===0||z>2.2),zT=zs.filter(z=>z<=ZA+.001).filter((z,i)=>i%2===0||z<-2.2);
+    PL.loft(zN,S,j=>j===0?'k':'p');PL.loft(zT,S,j=>j===0?'k':'p');
   }else if(HB&&HB2){   /* L'ENTRE-DEUX (23/10, Léo : « fais un entre-deux ») : la caisse en BRIQUES (sections rectangulaires, peu de plis), plus quelques COUCHES TRÈS PLATES empilées aux endroits qui
      portent le dessin — la base noire (2 couches), la ceinture, la dalle du toit (2 couches), la couche du capot. */
     PL.loft(zsB,SB,peintB);
@@ -233,7 +239,8 @@ SHAPES.corolla=function(K){
     const plaque=(k,x0,x1,y,h,e,dep,av)=>{const n=4,w=(x1-x0)/n;for(let i=0;i<n;i++){const xc=x0+w*(i+.5),z=(av?zAv:zAr)(xc+w/2,y);P.box(k,w+.004,h,.022,sd*xc,y,z+(av?1:-1)*(e+dep));}};   // une plaque en 4 tronçons, chacun posé sur SA marche de la face
     plaque('k',.24,.70,.80,.13,0,.010,true);plaque('h',.28,.68,.805,.085,0,.028,true);plaque('W',.30,.64,.752,.016,0,.046,true);
     plaque('k',.28,.72,.93,.12,0,.010,false);plaque('L',.30,.70,.935,.07,0,.028,false);
-    for(const z of [ZF,ZR]){P.box('d',.07,.03,.80,sd*.885,.655,z);P.box('d',.055,.025,.70,sd*.89,.685,z);}
+    for(const z of [ZF,ZR]){const r=.37,n=10;for(let i=0;i<n;i++){const a0=Math.PI*i/n,a1=Math.PI*(i+1)/n,am=(a0+a1)/2,L=2*r*Math.sin((a1-a0)/2)+.03;
+        P.box('d',.06,.04,L,sd*.89,.35+Math.sin(am)*r,z+Math.cos(am)*r,Math.PI/2-am,0,0);}}   // l'ARC noir qui encadre chaque roue : dix segments, un poly arrondi
   }
   // LES RÉTROVISEURS (relevés sur les trois vues) : la coque à la couleur de la caisse, la glace vers l'arrière, le répétiteur orange devant
   P.sym(sd=>{P.box('k',.10,.035,.10,sd*.80,.885,.745,0,0,0);                              // le pied, sur la portière
