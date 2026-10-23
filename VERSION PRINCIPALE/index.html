@@ -13627,7 +13627,7 @@ function prebChampsDe(piste){ // les champs de module qu'écrit la construction 
   else if(piste==='canyon')L9.push([CY,['Q','rmin','sep','hz']]); // (+ hz : LE CANYON AU HASARD)
   else if(piste==='dunes')L9.push([DN,['Q','rmin','sep','hz']]); // (2026-10-18) LES DUNES D'OR (+ hz : LES DUNES AU HASARD)
   else if(piste==='banquise')L9.push([BANQ,['Q','cas','spi','axe','plan','pres','essais']]); // (2026-10-19) axe, plan, pres, essais : LE GLACIER AU HASARD (l'axe tourne les aurores)
-  else if(piste==='grotte')L9.push([GROTTE,['Q','salles','spi','conflits','croise']]); // (2026-10-18) LES PROFONDEURS
+  else if(piste==='grotte')L9.push([GROTTE,['Q','salles','spi','conflits','croise','hz']]); // (2026-10-18) LES PROFONDEURS (+ hz : LES PROFONDEURS AU HASARD, 20/10)
   else if(piste==='paris')L9.push([PARIS,['Q']]);
   return L9;}
 function pisteTravail(c){ // l'état de travail d'une route : celle d'en face (c, le pré-bâti), ou celle que newTrack vient de choisir (null, d'un trait)
@@ -19704,7 +19704,7 @@ window.dbgVolcan=function(k,o){
    (photo en pause au début d'une salle) · `dbgGrotte('puits')` (le raccourci vu du bord) · `dbgGrotte('meteo','nuit')`.
    Lancer : `?carte=grotte&meteo=matin`. */
 const NIV_GROTTE={id:'grotte',nm:'LES PROFONDEURS',bio:['grt-matin-mine'],planete:0,espace:0,pluie:0,cielMusical:false,route:.34,sheen:.14,piste:'grotte',nuit:1,pr:'LA ROCHE NE PARDONNE PAS'};
-const GROTTE={root:null,Q:null,salles:null,spi:null,conflits:0,croise:0, // la génération (prebChampsDe)
+const GROTTE={root:null,Q:null,salles:null,spi:null,conflits:0,croise:0,hz:null, // la génération (prebChampsDe) — hz : LES PROFONDEURS AU HASARD (20/10)
   V:null,met:'matin',cur:null,de:null,to:null,k:1,dur:1,ms:0,msFile:0,n:{},file:null,fi:0,pret:false,grp:[],salle:-1,sl:null,col:null,heurt:'',part:null,R:null,puits:null,lac:null,eau:null};
 const GRT_SALLES=['mine','luxe','geode','stal','lave','abysse'];
 /* LA FORME DE CHAQUE SALLE (mètres) — rh : la demi-largeur de l'air autour de la route · up : le plafond au-dessus d'elle · dn : le fond en
@@ -19743,6 +19743,21 @@ if(GRT_VASTE)Object.assign(GRT_FORME,{
    `?grv=amb:2.6,fogC:1.3` : un réglage à l'essai (le banc). */
 const GRV=GRT_VASTE?{long:1.7,ent:200,voute:300,bassin:190,eauP:170,nzK:2,lacP:70,eauL:60,lavL:85,geoL:110,torR:66,tR2:4356,tF:166,torK:1.7,fog:1.3,cull:170,amb:2,fogC:1,fogN:.4,fogS:[1,1.6,1.6,1.6,1.6,2.2]}
   :{long:1,ent:92,voute:150,bassin:112,eauP:96,nzK:1,lacP:48,eauL:44,lavL:38,geoL:70,torR:46,tR2:2100,tF:80,torK:1,fog:1,cull:120,amb:1,fogC:1,fogN:1,fogS:[1,1,1,1,1,1]};
+/* ===== LES PROFONDEURS AU HASARD (2026-10-20, Sacha : « volcan, grotte, dune : ces maps ne sont pas générées aléatoirement, il faut que chaque map
+   soit aléatoire avec des modules et des décors qui changent ») =====
+   MESURÉ AVANT (banc des tracés, 24 graines × paliers 0/10/25) : écart de forme 0,07, cap de départ −7°…+7°, TOUJOURS les mêmes six salles dans
+   le même ordre. Désormais, dans un hasard à elle (`rh`, né de la graine de l'essai — jamais un `rnd()` de plus dans l'ordre d'avant) :
+   · LE TRACÉ (`GRT_HZ`, `?sans=grottehasard` = la route d'avant au point près) : l'AXE tiré sur tout le cercle (la route part dans l'axe : tout ce
+     qui lit la route — roche, puits, lacs, décors, lumière — suit), des COUDES de l'axe entre deux salles (±22° au plus au total : le cap reste à
+     moins de 90° de l'axe de départ), l'ORDRE des salles du milieu tiré (la mine d'abord, la salle du portail au bout ; la lave jamais contre le
+     puits, jamais deux fois la même de suite), parfois une salle en MOINS (luxuriante, stalactites ou abysses) ou en PLUS (deux lacs de lave, deux
+     cathédrales…) selon la longueur visée, la part de chacune tirée ; un CARACTÈRE par salle, jamais deux fois le même de suite (virages, courbes,
+     serpent, dérive, cassures) ; huit sortes de MODULES au paquet : les quatre d'avant + LE PONT (une longue droite à plat au-dessus d'un gouffre,
+     sur des piles de basalte), LE TIRE-BOUCHON (un tour complet qui descend de ~62 m : la route repasse sous elle-même), L'ÉQUERRE (la galerie à
+     angles presque droits), LA PORTE (un goulet entre deux piliers de roche). `dbgGrotte().hz` = l'axe, l'ordre, les caractères, les modules.
+   · LE DÉCOR (`GRT_DECO`, `?sans=grottedecor` = le décor d'avant au tirage près) : voir `grtDecoTire` (grottes-2). */
+const GRT_HZ=!/[?&]sans=([^&]*,)?grottehasard(,|&|$)/.test(location.search);
+const GRT_DECO=!/[?&]sans=([^&]*,)?grottedecor(,|&|$)/.test(location.search);
 {const m=/[?&]grv=([^&]*)/.exec(location.search);if(m&&GRT_VASTE)for(const kv of decodeURIComponent(m[1]).split(',')){const a=kv.split(':');if(a.length===2&&a[0] in GRV&&!Array.isArray(GRV[a[0]])&&isFinite(+a[1]))GRV[a[0]]=+a[1];}}
 /* LES MÉTÉOS — torche : les torches (lumière cuite et flammes) · lieu : la lumière du lieu · amb : le plancher de lumière · lant : la lanterne
    de la caisse · emi : minerais, cristaux, sculk · lav : la lave · part : les poussières · flam : les flammes des torches */
@@ -19758,12 +19773,12 @@ const GRT_MET={
    vers l'intérieur) ; le PAS (58-64 m par tour) laisse > 50 m d'air entre deux tours. */
 function* genGrotte(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main entre deux essais
   CAMPM.length=0;MODMARK.length=0;
-  const LV=typeof lvPiste==='function'?lvPiste():1,gr=mulberry32((rnd()*4294967296)>>>0);let best=null;
-  for(let e=0;e<6;e++){if(e)yield;const r=grtTrace(gr,LV);if(!best||r.conflits<best.conflits)best=r;if(!r.conflits)break;}
-  for(const k of ['Q','salles','spi','conflits','croise'])GROTTE[k]=best[k];
+  const LV=typeof lvPiste==='function'?lvPiste():1,g0=(rnd()*4294967296)>>>0,gr=mulberry32(g0),rh=GRT_HZ?mulberry32((g0^0x47A0E5)>>>0):null;let best=null; // rh : LE HASARD DES PROFONDEURS (né de la graine, à part)
+  for(let e=0;e<(rh?8:6);e++){if(e)yield;const r=grtTrace(gr,LV,rh);if(!best||r.conflits<best.conflits)best=r;if(!r.conflits)break;}
+  for(const k of ['Q','salles','spi','conflits','croise','hz'])GROTTE[k]=best[k];
   for(const m of best.mods||[])MODMARK.push(m);
   return best.ctrl;}
-function grtTrace(rnd,LV){
+function grtTrace(rnd,LV,rh){ /* rh : LE HASARD DES PROFONDEURS (null : la recette d'avant, au tirage près) */
   const vw=70+100*(LV-1),rM=40+.3*vw,KV=Math.sqrt(Math.max(1,vw/78)),ctrl=[],RH=(typeof ROAD_HALF==='number'&&ROAD_HALF>0)?ROAD_HALF:28,DN=[];
   const Rs=()=>rM*(1.30+rnd()*.2),Rn=()=>{const a=rM*1.55,b=Math.max(a+25,200);return a+rnd()*(b-a);},Rl=()=>Math.max(rM*2.1,230)+rnd()*110;
   // LA PENTE (positive = on descend) par salle, une houle douce par-dessus ; les 300 premiers mètres en douceur (le portail d'arrivée)
@@ -19773,7 +19788,7 @@ function grtTrace(rnd,LV){
     let g=PENTE[sa]+(sa==='mine'?0:sa==='lave'?.012*Math.sin(s9/430*6.283+ph1):.024*Math.sin(s9/520*6.283+ph1)+.012*Math.sin(s9/230*6.283+ph2));
     if(s9<300)g=.008+(g-.008)*THREE.MathUtils.smoothstep(s9,170,300);
     return Math.max(-.03,Math.min(.10,g))+(gM&&s9>=gM.s0&&s9<gM.s1?gM.f(s9):0);};
-  let P=new THREE.Vector3(0,0,0),phi=0,s=0,y=0;const axe=0;
+  let P=new THREE.Vector3(0,0,0),phi=0,s=0,y=0,axe=0;
   const push=()=>ctrl.push(P.clone());
   const avance=(nx,nz)=>{const dh=Math.hypot(nx-P.x,nz-P.z),n=Math.max(1,Math.ceil(dh/10)),x0=P.x,z0=P.z;
     for(let j=0;j<n;j++){y-=pente(s+dh*(j+.5)/n)*dh/n;DN.push(x0+(nx-x0)*(j+1)/n,y,z0+(nz-z0)*(j+1)/n,s+dh*(j+1)/n);}s+=dh;P.set(nx,y,nz);push();};
@@ -19799,9 +19814,26 @@ function grtTrace(rnd,LV){
   const gHoule=()=>{gAxe();const n=2,lam=(280+rv()*60)*KV,amp=.07+rv()*.03,L9=n*lam,s0=s;
     gM={s0:s0,s1:s0+L9,f:function(s9){const u=(s9-s0)/L9;return amp*Math.sin(u*n*6.2832)*Math.min(1,u*n*2,(1-u)*n*2);}};
     let s9=rel()>0?-1:1;tourne(s9*22,lam*.25/(22/57.2958));for(let k=0;k<2*n-1;k++){s9=-s9;const a=44+rv()*12;tourne(s9*a,Math.max(rM*1.55,lam*.5/(a/57.2958)));}tourne(-s9*22,lam*.25/(22/57.2958));gM=null;};
-  const MJ=[gSlalom,gCorde,gChicane,gHoule];
-  const gMod=()=>{let m=0;for(let e=0;e<6;e++){if(!paq.length){const t=[0,1,2,3];for(let i=3;i>0;i--){const j=(rv()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)paq.push(x);}m=paq.shift();if(m!==mLast)break;}
-    mLast=m;const i0=ctrl.length-1;MJ[m]();MM.push({i0:i0,i1:ctrl.length-1});};
+  /* (LES PROFONDEURS AU HASARD, 20/10) quatre modules de plus, propres à la grotte — seulement au hasard (rh) :
+     LE PONT : une longue droite presque à plat (son gouffre et ses piles : grtEchantillons, grtDecors) · LE TIRE-BOUCHON : un tour complet de
+     rayon ≥ 2,2 × le rayon mini, qui descend de 62-70 m (la route repasse sous elle-même : un croisement, jamais un conflit) · L'ÉQUERRE : la
+     galerie à angles presque droits (62-76° au rayon serré), simple ou double · LA PORTE : un goulet entre deux piliers de roche (grtPiliers). */
+  const PONT=[],PORTE=[],MODN=[];
+  const gPont=()=>{gAxe();droite(30*KV);const a=P.clone(),L9=(240+rv()*160)*KV;gF=.006;droite(L9);gF=null;PONT.push([a.x,a.y,a.z,P.x,P.y,P.z]);droite(30*KV);};
+  const gSpire=()=>{gAxe();const R=Math.max(rM*2.2,190)+rv()*50,sgn=rel()>0?-1:1,pas=62+rv()*8;droite(40*KV);gF=pas/(2*Math.PI*R);arc(sgn*360,R);gF=null;droite(40*KV);};
+  const gEquerre=()=>{gAxe();const s9=rel()>0?-1:1,R=rM*(1.3+rv()*.15),a=62+rv()*14;droite((40+rv()*30)*KV);tourne(s9*a,R);droite((50+rv()*50)*KV);tourne(-s9*a,R);droite((40+rv()*30)*KV);
+    if(rv()<.5){tourne(-s9*a,R);droite((50+rv()*40)*KV);tourne(s9*a,R);droite(30*KV);}};
+  const gPorte=()=>{gAxe();droite(50*KV);PORTE.push([P.x,P.y,P.z]);droite(70*KV);const s9=rel()>0?-1:1;tourne(s9*(14+rv()*10),Rn());tourne(-s9*(14+rv()*10),Rn());};
+  const MJ=rh?[gSlalom,gCorde,gChicane,gHoule,gPont,gSpire,gEquerre,gPorte]:[gSlalom,gCorde,gChicane,gHoule];
+  const MNOM=['slalom','corde','chicane','houle','pont','tire-bouchon','equerre','porte'];
+  const gMod=()=>{let m=0;for(let e=0;e<6;e++){if(!paq.length){const t=[];for(let i=0;i<MJ.length;i++)t.push(i);for(let i=t.length-1;i>0;i--){const j=(rv()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)paq.push(x);}m=paq.shift();if(m!==mLast)break;}
+    mLast=m;const i0=ctrl.length-1,s0=s;MJ[m]();MM.push({i0:i0,i1:ctrl.length-1});MODN.push([MNOM[m],Math.round(s0),Math.round(s-s0)]);};
+  /* (au hasard) un module qui TIENT dans ce qui reste de la salle (r m) : le premier du paquet dont la longueur estimée tient, les autres gardent leur
+     tour ; aucun : false (la salle se remplit de son caractère) */
+  const EST=m=>m===5?2*Math.PI*(Math.max(rM*2.2,190)+25)+80*KV:m===4?380*KV:m===3?720*KV:m===0?560*KV:m===1?520*KV:m===2?300*KV:m===6?420*KV:260*KV;
+  const gModH=r=>{if(!paq.length){const t=[];for(let i=0;i<MJ.length;i++)t.push(i);for(let i=t.length-1;i>0;i--){const j=(rv()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)paq.push(x);}
+    let k=-1;for(let i=0;i<paq.length;i++)if(paq[i]!==mLast&&EST(paq[i])<=r*1.05){k=i;break;}if(k<0)return false;
+    const m=paq.splice(k,1)[0];mLast=m;const i0=ctrl.length-1,s0=s;MJ[m]();MM.push({i0:i0,i1:ctrl.length-1});MODN.push([MNOM[m],Math.round(s0),Math.round(s-s0)]);return true;};
   /* LA PLACE DE CHAQUE SALLE (LA DURÉE DES MAPS, 2026-10-18 — voir DUREE) : l'entrée, la mine, le PUITS (la pièce maîtresse) et la salle du portail
      sont fixes ; les quatre autres salles se partagent le reste de la longueur visée (luxuriante 27 %, stalactites 20 %, lave 30 %, abysses 23 %),
      chacune remplie de virages et d'un module quand il tient (au moins un module dans la map). Hors du JOUER : la longueur pleine (~4,2 km × KV). */
@@ -19810,22 +19842,59 @@ function grtTrace(rnd,LV){
   const Lsp=TH*(R0+R1)/2+50*KV+1.6*Math.max(rM*2,220),KM=Math.sqrt(KV),FIXE=170*KM+330*KM+Lsp+80*KV+250*KV,B9=LC9?Math.max(1500,LC9-FIXE):4200*KV*GRV.long;
   let nMod=0;
   const remplir=(len,mods)=>{const s0=s;let m=0;while(s-s0<len-70){const r=len-(s-s0);if(m<mods&&(r>430*KV||nMod===0)){gMod();m++;nMod++;}else virages(1);}};
+  if(rh){axe=rh()*6.2832-3.1416;phi=axe;} /* (AU HASARD) L'AXE : n'importe où sur le cercle — la route part dans l'axe */
   // ================= 0 · L'ENTRÉE ET LA MINE =================
   push();salle('mine');ici('depart');droite(170*KM);ici('mine0'); // (la mine ne grandit qu'en √KV : c'est un décor qu'on reconnaît, pas un tronçon de vitesse)
   {const a=sg*(24+rnd()*10);tourne(a,Rn());droite(70*KM);tourne(-a*1.25,Rn());droite(90*KM);tourne(a*.7,Rn());droite(40*KM);}ici('mine1');
-  // ================= 1 · LA GROTTE LUXURIANTE =================
-  salle('luxe');remplir(B9*.27,B9*.27>950*KV?2:1);droite(40*KV);
-  // ================= 2 · LE PUITS DE LA GÉODE =================
-  salle('geode');
+  // ================= 2 · LE PUITS DE LA GÉODE (sa recette : `puits`) =================
+  let C=null,b0=0,yH0=0,sH0=0,yH1=0,sH1=0,sgB=1;
+  const puits=()=>{
   const hv=rel()>=0?1:-1;vers(hv*90,Math.max(rM*2,220));droite(50*KV);
   const fx=Math.sin(axe),fz=Math.cos(axe),cA=new THREE.Vector3(P.x+R0*Math.cos(phi),0,P.z-R0*Math.sin(phi)),cB=new THREE.Vector3(P.x-R0*Math.cos(phi),0,P.z+R0*Math.sin(phi));
-  const C=((cA.x-P.x)*fx+(cA.z-P.z)*fz)>((cB.x-P.x)*fx+(cB.z-P.z)*fz)?cA:cB; // le centre DEVANT : 1¼ tour plus tard, la route repart dans l'axe
-  const b0=Math.atan2(P.x-C.x,P.z-C.z),yH0=y,sH0=s;ici('puits0');let sgB=1;
+  C=((cA.x-P.x)*fx+(cA.z-P.z)*fz)>((cB.x-P.x)*fx+(cB.z-P.z)*fz)?cA:cB; /* le centre DEVANT : 1¼ tour plus tard, la route repart dans l'axe */
+  b0=Math.atan2(P.x-C.x,P.z-C.z);yH0=y;sH0=s;ici('puits0');
   {const t0x=Math.sin(phi),t0z=Math.cos(phi);sgB=(Math.cos(b0)*t0x-Math.sin(b0)*t0z)>0?1:-1;const Lh=TH*(R0+R1)/2,nP=Math.max(60,Math.ceil(Lh/12));
    gF=PAS/(Math.PI*(R0+R1)); // la descente continue (PAS par tour)
    for(let k=1;k<=nP;k++){const t=k/nP,b=b0+sgB*TH*t,r=R0+(R1-R0)*t,nx=C.x+Math.sin(b)*r,nz=C.z+Math.cos(b)*r;phi=Math.atan2(nx-P.x,nz-P.z);avance(nx,nz);}}
-  gF=null;const yH1=y,sH1=s;ici('puits1');
-  droite(80*KV);
+  gF=null;yH1=y;sH1=s;ici('puits1');
+  droite(80*KV);};
+  /* ---- LES SALLES AU HASARD (rh) : l'ordre, une de moins ou de plus, les parts, les caractères, les coudes ---- */
+  const CARS=['virages','courbes','serpent','derive','cassures'];
+  const pas1=(car,r,dd)=>{const s1=s; /* un pas du caractère de la salle (r : ce qui reste, dd : le côté de la dérive) */
+    if(car==='courbes'){const rr=rel();sg=Math.abs(rr)>20?(rr>0?-1:1):-sg;tourne(sg*(30+rh()*24),Rl());if(rh()<.45&&r>260)droite((40+rh()*50)*KV);}
+    else if(car==='serpent'){const rr=rel();sg=Math.abs(rr)>34?(rr>0?-1:1):-sg;tourne(sg*(38+rh()*26),Rs());}
+    else if(car==='derive'){const rr=rel();if(rr*dd<44)tourne(dd*(16+rh()*14),Rn());else tourne(-dd*(14+rh()*12),Rn());droite((30+rh()*40)*KV);}
+    else if(car==='cassures'){droite((50+rh()*70)*KV);const rr=rel();sg=Math.abs(rr)>30?(rr>0?-1:1):(rh()<.5?-sg:sg);tourne(sg*(26+rh()*22),Rs());}
+    else virages(1);
+    if(s-s1<5)droite(30*KV);};
+  const remplirH=(len,mods,car)=>{const s0=s,dd=rh()<.5?-1:1;let m=0;while(s-s0<len-70){const r=len-(s-s0);if(m<mods&&nMod<7&&(r>430*KV||nMod===0)&&gModH(r)){m++;nMod++;}else pas1(car,r,dd);}};
+  const grtSuite=()=>{
+    const ax0=axe,B9r=B9/(KV*6000),pM=B9r<.8?.5:B9r>1.25?.1:.25,pP=B9r<.8?.12:B9r>1.25?.55:.33,u=rh();
+    let mil=['luxe','geode','stal','lave','abysse'],moins=null,plus=null;
+    if(u<pM){moins=['luxe','stal','abysse'][(rh()*3)|0];mil=mil.filter(function(k){return k!==moins;});}
+    else if(u<pM+pP){plus=['stal','lave','luxe','abysse'][(rh()*4)|0];mil.push(plus);}
+    let ord=null; /* mélangé : la lave jamais contre le puits (son lac et l'entonnoir), jamais deux fois la même de suite */
+    for(let e=0;e<80&&!ord;e++){const t=mil.slice();for(let i=t.length-1;i>0;i--){const j=(rh()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}
+      let ok=true;for(let i=1;i<t.length;i++)if(t[i]===t[i-1]||(t[i]==='lave'&&t[i-1]==='geode')||(t[i]==='geode'&&t[i-1]==='lave'))ok=false;if(ok)ord=t;}
+    if(!ord){ord=['luxe','geode','stal','lave','abysse'].filter(function(k){return k!==moins;});plus=null;}
+    const W0={luxe:.27,stal:.2,lave:.3,abysse:.23},w=ord.map(function(k){return k==='geode'?0:W0[k]*(.75+.5*rh());}),sw=w.reduce(function(a,b){return a+b;},0);
+    const car=[];let cD=null;for(const k of ord){if(k==='geode'){car.push('puits');continue;}let c=k==='lave'&&rh()<.6?'courbes':CARS[(rh()*CARS.length)|0];
+      if(c===cD)c=CARS[(CARS.indexOf(c)+1+((rh()*(CARS.length-1))|0))%CARS.length];car.push(c);cD=c;}
+    let nC=0;
+    for(let i=0;i<ord.length;i++){const k=ord[i];
+      if(i&&rh()<.62){const c=(rh()<.5?-1:1)*(10+rh()*15)/57.2958;axe=Math.max(ax0-.384,Math.min(ax0+.384,axe+c));nC++;} /* LE COUDE : l'axe tourne (±22° au plus autour de celui du départ) */
+      salle(k);
+      if(k==='geode')puits();
+      else{if(k==='lave')droite(60*KV);const len=B9*w[i]/sw;remplirH(len,len>1500*KV?2:1,car[i]);}
+      if(i+1<ord.length&&ord[i+1]==='geode')droite(40*KV);}
+    if(!nMod){if(!gModH(1e9))gMod();nMod++;} /* (au moins un module dans la map) */
+    return {axe:Math.round(ax0*57.2958),axeFin:Math.round(axe*57.2958),ordre:['mine'].concat(ord,['fin']),moins:moins,plus:plus,car:car,parts:w.map(function(v){return +(v/sw).toFixed(2);}),coudes:nC,
+      mods:MODN,ponts:PONT,portes:PORTE};};
+  let hz=null;
+  if(!rh){
+  // ================= 1 · LA GROTTE LUXURIANTE =================
+  salle('luxe');remplir(B9*.27,B9*.27>950*KV?2:1);droite(40*KV);
+  salle('geode');puits();
   // ================= 3 · LES STALACTITES =================
   salle('stal');remplir(B9*.2,1);
   // ================= 4 · LE LAC DE LAVE : de longues courbes au-dessus de la lave =================
@@ -19834,6 +19903,7 @@ function grtTrace(rnd,LV){
       const rr=rel();sg=Math.abs(rr)>20?(rr>0?-1:1):-sg;tourne(sg*(30+rnd()*24),Rl());if(rnd()<.45&&r>260)droite((40+rnd()*50)*KV);}}
   // ================= 5 · LES ABYSSES =================
   salle('abysse');remplir(B9*.23,nMod?1:2);if(!nMod){gMod();nMod++;} // (au moins un module dans la map)
+  }else hz=grtSuite();
   droite(90*KV);ici('fin');SL.push({k:'fin',p:P.clone(),s:s});droite(150*KV); // la salle du portail
   // LE CONTRÔLE DES CROISEMENTS (celui du volcan) : un passage à moins de 2·RH+14 m d'un autre tronçon ; avec moins de 32 m d'air = un CONFLIT
   let conflits=0,croise=0;{const G=new Map(),n=DN.length/4,cle=(x,z)=>Math.floor(x/40)+','+Math.floor(z/40),vu=new Set();
@@ -19842,7 +19912,7 @@ function grtTrace(rnd,LV){
       for(let a9=-2;a9<=2;a9++)for(let b9=-2;b9<=2;b9++){const L9=G.get((bx+a9)+','+(bz+b9));if(!L9)continue;
         for(const j of L9){const sj=DN[j*4+3];if(sj-si<300)continue;const dh=Math.hypot(DN[j*4]-x,DN[j*4+2]-z);if(dh>2*RH+14)continue;
           const t=Math.round(si/150)+':'+Math.round(sj/150);if(vu.has(t))continue;vu.add(t);if(Math.abs(yy-DN[j*4+1])<32)conflits++;else croise++;}}}}
-  return {ctrl:ctrl,Q:Q,salles:SL,conflits:conflits,croise:croise,mods:MM,
+  return {ctrl:ctrl,Q:Q,salles:SL,conflits:conflits,croise:croise,mods:MM,hz:hz,
     spi:{cx:C.x,cz:C.z,R0:R0,R1:R1,TH:TH,sgB:sgB,b0:b0,y0:yH0,y1:yH1,s0:sH0,s1:sH1,pas:PAS,tours:+(TH/6.2832).toFixed(3)}};
 }
 /* ---------------- LA ROCHE : un CHAMP DE DENSITÉ creusé autour de la route ----------------
@@ -19878,8 +19948,11 @@ function grtEchantillons(){
   const near=function(p){let bd=1e18,bi=0;for(let i=0;i<NP;i+=4){const q=pts[i],d=(q.x-p.x-ox)**2+(q.y-p.y-oy)**2+(q.z-p.z-oz)**2;if(d<bd){bd=d;bi=i;}}
     let b2=bi;for(let i=Math.max(0,bi-4);i<=Math.min(NP-1,bi+4);i++){const q=pts[i],d=(q.x-p.x-ox)**2+(q.y-p.y-oy)**2+(q.z-p.z-oz)**2;if(d<bd){bd=d;b2=i;}}return b2*ds;};
   const F=[{k:'entree',s:-1e9}];for(const b of SL)F.push({k:b.k,s:b.k==='mine'?180:near(b.p)});
-  const SI={entree:0,mine:0,luxe:1,geode:2,stal:3,lave:4,abysse:5,fin:5},bornes={};for(let j=1;j<F.length;j++)bornes[F[j].k]=F[j].s;
-  const sm=THREE.MathUtils.smoothstep,ns=Math.floor((NP-1)/st)+1,n=ns+40,R={n:n,X:new Float32Array(n),Y:new Float32Array(n),Z:new Float32Array(n),S:new Float32Array(n),TX:new Float32Array(n),TZ:new Float32Array(n),
+  const SI={entree:0,mine:0,luxe:1,geode:2,stal:3,lave:4,abysse:5,fin:5},bornes={};for(let j=1;j<F.length;j++)if(!GRT_HZ||!(F[j].k in bornes))bornes[F[j].k]=F[j].s; /* (AU HASARD) une salle deux fois : sa 1re */
+  /* LES TRONÇONS DE CHAQUE SORTE (AU HASARD : une salle peut venir deux fois, dans n'importe quel ordre) : [début, fin pour les décors (la dernière
+     salle du milieu va jusqu'au bout, comme les abysses d'avant), début de la suivante, la sorte d'avant, celle d'après] */
+  const segs={};for(let j=1;j<F.length;j++){const k=F[j].k;if(k==='fin')continue;const nx=j+1<F.length?F[j+1].s:1e9,kn=j+1<F.length?F[j+1].k:'fin';(segs[k]||(segs[k]=[])).push([F[j].s,kn==='fin'?1e9:nx,nx,F[j-1].k,kn]);}
+  const sm=THREE.MathUtils.smoothstep,ns=Math.floor((NP-1)/st)+1,n=ns+40,R={segs:segs,n:n,X:new Float32Array(n),Y:new Float32Array(n),Z:new Float32Array(n),S:new Float32Array(n),TX:new Float32Array(n),TZ:new Float32Array(n),
     SAL:new Uint8Array(n),RH:new Float32Array(n),UP:new Float32Array(n),DN:new Float32Array(n),EX:new Float32Array(n),NZ:new Float32Array(n),EXT:new Uint8Array(n),i0:20,bornes:bornes,ds:ds};
   const pose=function(q,x,y,z,tx,tz,s9,ext){R.X[q]=x;R.Y[q]=y;R.Z[q]=z;R.S[q]=s9;const l=Math.hypot(tx,tz)||1;R.TX[q]=tx/l;R.TZ[q]=tz/l;R.EXT[q]=ext;
     let rh=0,up=0,dn=0,ex=0,nz=0,wb=-1,kb=0;
@@ -19892,9 +19965,22 @@ function grtEchantillons(){
   for(let k=0;k<20;k++){const d=(k+1)*6;pose(20+ns+k,p1.x+T1.x*d,p1.y+T1.y*d,p1.z+T1.z*d,T1.x,T1.z,L+d,1);}
   // LES LACS : la lave PLATE 48 m sous le point le plus bas de la salle de lave (elle déborde 300 m dans les salles voisines) ; l'eau de la grotte luxuriante
   const yMinDe=function(a,b){let m=1e9;for(let q=0;q<n;q++)if(!R.EXT[q]&&R.S[q]>=a&&R.S[q]<=b)m=Math.min(m,R.Y[q]);return m;};
+  if(!GRT_HZ){
   if(bornes.lave!=null&&bornes.abysse!=null){const y9=yMinDe(bornes.lave,bornes.abysse);GROTTE.lac={y:y9-GRV.lacP,s0:bornes.lave-300,s1:bornes.abysse+300};
     for(let q=0;q<n;q++)if(R.S[q]>=GROTTE.lac.s0&&R.S[q]<=GROTTE.lac.s1)R.DN[q]=Math.max(R.DN[q],R.Y[q]-GROTTE.lac.y+14);}
   if(bornes.luxe!=null&&bornes.geode!=null){const y9=yMinDe(bornes.luxe,bornes.geode);GROTTE.eau={y:y9-GRV.eauL,s0:bornes.luxe,s1:bornes.geode+120};}
+  GROTTE.lacs=GROTTE.lac?[GROTTE.lac]:[];GROTTE.eaux=GROTTE.eau?[GROTTE.eau]:[];}
+  else{ /* (AU HASARD) UN LAC PAR SALLE DE LAVE : il déborde de 300 m chez ses voisines (jamais dans la mine, le puits ou la salle du portail) — vois :
+     les salles où sa lueur monte ; UN LAC D'EAU par grotte luxuriante (120 m chez la suivante, comme avant) */
+    const H9=GROTTE.hz;R.ponts=[];R.portes=[];
+    if(H9){for(const a of H9.ponts||[])R.ponts.push([near({x:a[0],y:a[1],z:a[2]}),near({x:a[3],y:a[4],z:a[5]})]);for(const a of H9.portes||[])R.portes.push(near({x:a[0],y:a[1],z:a[2]}));}
+    for(const pn of R.ponts)for(let q=0;q<n;q++)if(R.S[q]>=pn[0]-40&&R.S[q]<=pn[1]+40)R.DN[q]=R.DN[q]*1.6; /* LE PONT : le gouffre sous lui */
+    GROTTE.lacs=[];GROTTE.eaux=[];
+    for(const sg of segs.lave||[]){const y9=yMinDe(sg[0],sg[2]),kb=sg[3]==='mine'||sg[3]==='geode',kf=sg[4]==='geode'||sg[4]==='fin',l={y:y9-GRV.lacP,s0:sg[0]-(kb?0:300),s1:sg[2]+(kf?0:300),vois:[4]};
+      if(!kb)l.vois.push(SI[sg[3]]);if(!kf)l.vois.push(SI[sg[4]]);GROTTE.lacs.push(l);
+      for(let q=0;q<n;q++)if(R.S[q]>=l.s0&&R.S[q]<=l.s1)R.DN[q]=Math.max(R.DN[q],R.Y[q]-l.y+14);}
+    for(const sg of segs.luxe||[]){const y9=yMinDe(sg[0],sg[2]);GROTTE.eaux.push({y:y9-GRV.eauL,s0:sg[0],s1:sg[2]+120});}
+    GROTTE.lac=GROTTE.lacs[0]||null;GROTTE.eau=GROTTE.eaux[0]||null;}
   // le PUITS dans le repère de la route
   const P=GROTTE.spi;if(P){const rg=Math.min(150,P.R1-ROAD_HALF-52);GROTTE.puits={cx:P.cx+ox,cz:P.cz+oz,y0:P.y0+oy,y1:P.y1+oy,R0:P.R0,R1:P.R1,gy:(P.y0+P.y1)/2+oy,rg:rg,rp:34,
     yB:P.y1+oy-GRV.bassin,yW:P.y1+oy-GRV.eauP,yT:P.y0+oy+GRV.voute,s0:P.s0,s1:P.s1};}
@@ -19957,31 +20043,49 @@ function grtPuits(V,R){const P=GROTTE.puits;if(!P)return;const B=V.B,K=GRT.K,EN=
         if(m>0){A[o]=1;V.nAir++;}else if(mS>0&&cy<P.yW)A[o]=5;}}}}
 /* LES LACS : sous le niveau, dans la portée du lac (l'échantillon le plus proche), la densité devient celle d'une surface PLATE au niveau — la
    lave (ou l'eau) est le dessus de ce « sol » ; ses cases sont marquées 4 (5) pour la collision et la matière */
-function grtLacs(V,R){const lac=GROTTE.lac,eau=GROTTE.eau,B=V.B,K=GRT.K;if(!lac&&!eau)return;const yMax=Math.max(lac?lac.y:-1e9,eau?eau.y:-1e9)+2*B;
+function grtLacs(V,R){const LA=GROTTE.lacs||[],EA=GROTTE.eaux||[],B=V.B,K=GRT.K;if(!LA.length&&!EA.length)return;let yMax=-1e9;for(const l of LA.concat(EA))yMax=Math.max(yMax,l.y);yMax+=2*B; /* (AU HASARD) un lac par salle de lave, un d'eau par grotte luxuriante */
   for(let c=0;c<V.pool.length;c++){const d=V.cle[c],cj=((d/V.CX)|0)%V.CY,y0=V.oy+cj*16*B;if(y0>yMax)continue;const A=V.pool[c],DN=V.dn[c],SI=V.si[c];
+    /* (AU HASARD) les échantillons de route qui peuvent passer dans ce tronçon (en plan à moins de RH + B + 10 m, en hauteur dans sa tranche) : une liste courte, souvent vide */
+    let CD=null;if(GRT_HZ){const C9=16*B,x0=V.ox+(d%V.CX)*C9,z0=V.oz+((d/(V.CX*V.CY))|0)*C9,lm=ROAD_HALF+B+10;CD=[];
+      for(let a9=Math.floor((x0-lm)/48);a9<=Math.floor((x0+C9+lm)/48);a9++)for(let b9=Math.floor((z0-lm)/48);b9<=Math.floor((z0+C9+lm)/48);b9++){const L8=R.G.get(a9+','+b9);if(!L8)continue;
+        for(const q of L8){const Y=R.Y[q];if(Y+36<y0-B||Y-THICK-14>Math.min(y0+C9,yMax)+B)continue;if(R.X[q]<x0-lm||R.X[q]>x0+C9+lm||R.Z[q]<z0-lm||R.Z[q]>z0+C9+lm)continue;CD.push(q);}}}
     for(let o=0;o<4096;o++){if(DN[o]<=0)continue;const j=(o>>4)&15,cy=y0+(j+.5)*B,q=SI[((o&15)>>2)|((j>>2)<<2)|(((o>>8)>>2)<<4)];if(q<0)continue;const S=R.S[q];
-      const L9=lac&&S>=lac.s0&&S<=lac.s1?lac:(eau&&S>=eau.s0&&S<=eau.s1?eau:null);if(!L9||cy>L9.y+2*B)continue;
-      const dv=Math.max(-127,Math.round((cy-L9.y)*K));if(dv<DN[o])DN[o]=dv;if(cy<L9.y&&A[o]===1){A[o]=L9===lac?4:5;V.nAir--;}}}}
+      let L9=null,lv=false;for(const l of LA)if(S>=l.s0&&S<=l.s1){L9=l;lv=true;break;}if(!L9)for(const l of EA)if(S>=l.s0&&S<=l.s1){L9=l;break;}if(!L9||cy>L9.y+2*B)continue;
+      if(CD&&CD.length){const x=V.ox+(((d%V.CX)*16+(o&15))+.5)*B,z=V.oz+(((d/(V.CX*V.CY)|0)*16+(o>>8))+.5)*B,lm=ROAD_HALF+B+10;let pres=false;
+        for(const q of CD){if((R.X[q]-x)**2+(R.Z[q]-z)**2>lm*lm)continue;if(!(cy-B>R.Y[q]+36||cy+B<R.Y[q]-THICK-14)){pres=true;break;}}if(pres)continue;} /* (AU HASARD, banc du 20/10) une route qui repasse PLUS BAS sous la salle d'un lac
+        (le tire-bouchon, une salle qui revient) : la case la plus proche d'un échantillon d'en haut se remplissait de lave sur elle — jamais près d'une route */
+      const dv=Math.max(-127,Math.round((cy-L9.y)*K));if(dv<DN[o])DN[o]=dv;if(cy<L9.y&&A[o]===1){A[o]=lv?4:5;V.nAir--;}}}}
 /* LES PILIERS (après les lacs) : des colonnes de BASALTE qui sortent de la lave jusqu'à la voûte, des COLONNES de concrétion (en sablier) dans la
    cathédrale — loin de toutes les routes (règle d'or), dans l'air de la salle. La densité les refait roche (la physique = l'image). */
-function grtPiliers(V,R,fr){const L9=[],B=V.B,K=GRT.K,b=R.bornes,VZ=GRT_VASTE,H9=VZ?560:260; // (GROTTE VASTE : plus nombreux, plus gros, dans toute la largeur des salles)
-  for(const [k,s0,s1,nb,ra,rb] of VZ?[['stal',b.stal,b.lave,11,14,14],['lave',b.lave,b.abysse,16,18,16]]:[['stal',b.stal,b.lave,6,9,9],['lave',b.lave,b.abysse,9,12,11]]){if(s0==null||s1==null)continue;
+function grtPiliers(V,R,fr,DC){const L9=[],B=V.B,K=GRT.K,VZ=GRT_VASTE,H9=VZ?560:260,SG=R.segs; // (GROTTE VASTE : plus nombreux, plus gros, dans toute la largeur des salles)
+  /* une liste de piliers par tronçon de salle (au hasard une salle peut venir deux fois) ; DC (LE DÉCOR AU HASARD) : combien de colonnes dans la
+     cathédrale, de piliers de basalte dans la lave ; puis (LA PORTE, un module) deux piliers de part et d'autre de la route */
+  const T9=[];for(const [k,nb,ra,rb] of VZ?[['stal',11,14,14],['lave',16,18,16]]:[['stal',6,9,9],['lave',9,12,11]])for(const sg of SG[k]||[])T9.push([k,sg[0],sg[2],DC?(k==='stal'?DC.stal.col:DC.lave.pil):nb,ra,rb]);
+  for(const [k,s0,s1,nb,ra,rb] of T9){if(s0==null||s1==null)continue;
     let n=0;for(let e=0;e<nb*12&&n<nb;e++){const q=R.i0+((fr()*(R.n-R.i0-20))|0);if(R.S[q]<s0+60||R.S[q]>s1-60)continue;
       const sd=fr()<.5?-1:1,lat=ROAD_HALF+48+fr()*(VZ?Math.max(110,R.RH[q]*.75):110),x=R.X[q]+R.TZ[q]*sd*lat,z=R.Z[q]-R.TX[q]*sd*lat,y=R.Y[q],r=ra+fr()*rb;
       if(grtIci(V,x,y,z)!==1||!grtLibre(R,x,z,-1e9,1e9,r+8))continue;
+      if(grtPilier(V,L9,x,y,z,r,k,H9,R))n++;}}
+  for(const s9 of R.portes||[]){let q=R.i0;while(q<R.n-21&&R.S[q]<s9)q++;const r=VZ?22:12; /* LA PORTE : les deux piliers du goulet, au plus près de la route */
+    const rL=r*1.25+2*B; /* (la marge : la bosse du bruit et l'interpolation des cases de 12 m — banc du 20/10 : à r + 8, une graine sur 72 mordait le bord de la route) */
+    for(const sd of [-1,1])for(let lat=ROAD_HALF+rL+12;lat<ROAD_HALF+rL+90;lat+=6){const x=R.X[q]+R.TZ[q]*sd*lat,z=R.Z[q]-R.TX[q]*sd*lat;
+      if(grtIci(V,x,R.Y[q],z)!==1||!grtLibre(R,x,z,-1e9,1e9,rL))continue;if(grtPilier(V,L9,x,R.Y[q],z,r,'porte',H9,R))break;}}
+  return L9;}
+function grtPilier(V,L9,x,y,z,r,k,H9,R){const B=V.B,K=GRT.K;{
       let yb=y,yt=y;while(yb>y-H9&&grtIci(V,x,yb-B,z)===1)yb-=B;while(yt<y+H9&&grtIci(V,x,yt+B,z)===1)yt+=B;
-      if(yt-yb<40)continue;yb-=B*1.5;yt+=B*1.5;
+      if(yt-yb<40)return false;yb-=B*1.5;yt+=B*1.5;
       const R9=r*1.3+2*B,i0=Math.floor((x-R9-V.ox)/B),i1=Math.floor((x+R9-V.ox)/B),k0=Math.floor((z-R9-V.oz)/B),k1=Math.floor((z+R9-V.oz)/B),j0=Math.floor((yb-V.oy)/B),j1=Math.floor((yt-V.oy)/B);
       for(let j=j0;j<=j1;j++){const cy=V.oy+(j+.5)*B,u=(cy-yb)/(yt-yb),rr=k==='stal'?r*(1-.42*Math.sin(Math.PI*Math.max(0,Math.min(1,u)))):r*(1+.25*(grtN3(x/9,cy/14,z/9,8)-.5));
         for(let kk=k0;kk<=k1;kk++)for(let i=i0;i<=i1;i++){const cx=V.ox+(i+.5)*B,cz=V.oz+(kk+.5)*B,dd=Math.hypot(cx-x,cz-z);if(dd>rr+2*B)continue;
           const c=V.dir[(i>>4)+V.CX*((j>>4)+V.CY*(kk>>4))];if(c<0)continue;const o=(i&15)|((j&15)<<4)|((kk&15)<<8),dv=Math.round((dd-rr)*K);
           if(dv<V.dn[c][o])V.dn[c][o]=Math.max(-127,dv);if(dd<rr&&V.pool[c][o]===1){V.pool[c][o]=0;V.nAir--;}}}
-      L9.push({x:x,z:z,r:r*1.3+B,yb:yb,yt:yt,k:k});n++;}}
-  return L9;}
+      let ly=null;if(k==='lave'&&GROTTE.lacs){let bd=1e18;for(const l of GROTTE.lacs){const d=Math.abs(l.y-(yb+B*1.5));if(d<bd){bd=d;ly=l.y;}}} /* le lac à son pied */
+      L9.push({x:x,z:z,r:r*1.3+B,yb:yb,yt:yt,k:k,ly:ly});return true;}}
 /* ---------------- LA LUMIÈRE CUITE ----------------
    Canal 1 (aL.x) : les TORCHES (rayon 45 m). Canal 2 (aL.yzw, ×2 dans le shader) : la LUMIÈRE DU LIEU — l'air de la salle (GRT_AMB), la lave
    (par en dessous, elle décroît en 38 m), l'eau, la géode (en 70 m), et les lumières ponctuelles (baies, chutes de lave, capteurs, âmes, gemmes).
    Chaque tronçon a sa liste (`grtLumListes`) : un sommet ne regarde que les lumières qui peuvent l'atteindre. */
+const GRT_GEOC0=[.62,.28,1.0]; /* la lumière de la géode d'améthyste (celle d'avant) */
 const GRT_AMB=[[.30,.19,.10],[.13,.38,.24],[.24,.10,.40],[.34,.24,.14],[.30,.09,.045],[.04,.15,.20]]; // (banc 18/10 : au tiers, les grandes salles étaient noires au-delà de la lanterne)
 function grtLumListes(V,T9,P9){const M=new Map(),C=16*V.B;
   const add=function(o,r,cle){const i0=Math.floor((o.x-r-V.ox)/C),i1=Math.floor((o.x+r-V.ox)/C),j0=Math.floor((o.y-r-V.oy)/C),j1=Math.floor((o.y+r-V.oy)/C),k0=Math.floor((o.z-r-V.oz)/C),k1=Math.floor((o.z+r-V.oz)/C);
@@ -19992,9 +20096,13 @@ function grtLum(x,y,z,sal,LL,out){
   const a=GRT_AMB[sal]||GRT_AMB[0],ka=sal?GRV.amb:1;let t=0,r=a[0]*ka,g=a[1]*ka,b=a[2]*ka;
   if(LL){for(const o of LL.t){const dx=x-o.x,dy=y-o.y,dz=z-o.z,d2=dx*dx+dy*dy+dz*dz;if(d2<GRV.tR2)t+=1.3/(1+d2/GRV.tF)*(1-d2/GRV.tR2);}
     for(const o of LL.p){const dx=x-o.x,dy=y-o.y,dz=z-o.z,d2=dx*dx+dy*dy+dz*dz;if(d2<o.r2){let k=1-d2/o.r2;k*=k*o.I;r+=o.c[0]*k;g+=o.c[1]*k;b+=o.c[2]*k;}}}
+  if(!GRT_HZ){
   const lac=GROTTE.lac;if(lac&&sal>=3&&y>lac.y-8){const k=(sal===4?1.65:.9)*Math.exp(-Math.max(0,y-lac.y)/(sal===4?GRV.lavL:38));r+=1.0*k;g+=.32*k;b+=.055*k;}
-  const e=GROTTE.eau;if(e&&sal===1&&y>e.y-8){const k=.6*Math.exp(-Math.max(0,y-e.y)/16);r+=.04*k;g+=.22*k;b+=.26*k;}
-  const P=GROTTE.puits;if(P&&sal===2){const dg=Math.hypot(x-P.cx,y-P.gy,z-P.cz)-P.rg,k=1.4*Math.exp(-Math.max(0,dg)/GRV.geoL);r+=.62*k;g+=.28*k;b+=1.0*k;
+  const e=GROTTE.eau;if(e&&sal===1&&y>e.y-8){const k=.6*Math.exp(-Math.max(0,y-e.y)/16);r+=.04*k;g+=.22*k;b+=.26*k;}}
+  else{ /* (AU HASARD) chaque lac de lave éclaire sa salle et celles où il déborde ; chaque lac d'eau, sa grotte luxuriante */
+    for(const l of GROTTE.lacs)if(y>l.y-8&&(sal===4||l.vois.indexOf(sal)>=0)){const k=(sal===4?1.65:.9)*Math.exp(-Math.max(0,y-l.y)/(sal===4?GRV.lavL:38));r+=1.0*k;g+=.32*k;b+=.055*k;}
+    if(sal===1)for(const e of GROTTE.eaux)if(y>e.y-8){const k=.6*Math.exp(-Math.max(0,y-e.y)/16);r+=.04*k;g+=.22*k;b+=.26*k;}}
+  const P=GROTTE.puits;if(P&&sal===2){const gc=GROTTE.geoC||GRT_GEOC0,dg=Math.hypot(x-P.cx,y-P.gy,z-P.cz)-P.rg,k=1.4*Math.exp(-Math.max(0,dg)/GRV.geoL);r+=gc[0]*k;g+=gc[1]*k;b+=gc[2]*k; /* gc : la teinte de la géode (LE DÉCOR AU HASARD) */
     const kw=.55*Math.exp(-Math.max(0,y-P.yW)/22);r+=.10*kw;g+=.24*kw;b+=.42*kw;}
   out[0]=Math.min(1,t);out[1]=Math.min(2,r);out[2]=Math.min(2,g);out[3]=Math.min(2,b);}
 /* ---------------- LA SURFACE À FACETTES (surface nets) ----------------
@@ -20008,10 +20116,12 @@ function grtTampons(){const T=GRT_TMP;if(!T.loc){T.loc=new Float32Array(20*20*20
 const GT={ROCHE:0,LAVE:1,EAU:2,AMETHYSTE:3,BOIS:4,FLAMME:5,CRISTAL:6,BAIE:7,FEUILLE:8,FLEUR:9,CONCRETION:10,BASALTE:11,SCULK:12,CAPTEUR:13,BRIQUE:14,AME:15,DIAMANT:16,OR:17,MAGMA:18};
 function grtMatieres(x,y,z,sal,lv){ // la matière d'un sommet de la roche (lv : un coin voisin est de la lave 4 ou de l'eau 5)
   const lac=GROTTE.lac,eau=GROTTE.eau,P=GROTTE.puits;
-  if(lv===4&&lac&&Math.abs(y-lac.y)<3.5)return GT.LAVE;if(lv===5&&((eau&&Math.abs(y-eau.y)<3.5)||(P&&Math.abs(y-P.yW)<3.5)))return GT.EAU;
+  if(!GRT_HZ){if(lv===4&&lac&&Math.abs(y-lac.y)<3.5)return GT.LAVE;if(lv===5&&((eau&&Math.abs(y-eau.y)<3.5)||(P&&Math.abs(y-P.yW)<3.5)))return GT.EAU;}
+  else{if(lv===4)for(const l of GROTTE.lacs)if(Math.abs(y-l.y)<3.5)return GT.LAVE;if(lv===5){for(const l of GROTTE.eaux)if(Math.abs(y-l.y)<3.5)return GT.EAU;if(P&&Math.abs(y-P.yW)<3.5)return GT.EAU;}}
   if(P&&sal===2){if(Math.hypot(x-P.cx,y-P.gy,z-P.cz)<P.rg+12)return GT.AMETHYSTE;if(Math.hypot(x-P.cx,z-P.cz)<P.rp*1.3+10)return GT.BASALTE;}
-  if((sal===3||sal===4)&&GROTTE.piliers)for(const c of GROTTE.piliers)if((x-c.x)**2+(z-c.z)**2<c.r*c.r&&y>c.yb-8&&y<c.yt+8)return c.k==='stal'?GT.CONCRETION:(lac&&y<lac.y+14?GT.MAGMA:GT.BASALTE);
-  if(sal===4&&lac&&y<lac.y+9)return GT.MAGMA; // le rivage rougeoie
+  if((sal===3||sal===4)&&GROTTE.piliers)for(const c of GROTTE.piliers)if((x-c.x)**2+(z-c.z)**2<c.r*c.r&&y>c.yb-8&&y<c.yt+8)return c.k==='stal'?GT.CONCRETION:(c.ly!=null&&y<c.ly+14?GT.MAGMA:GT.BASALTE);
+  if(sal===4&&!GRT_HZ&&lac&&y<lac.y+9)return GT.MAGMA; // le rivage rougeoie
+  if(sal===4&&GRT_HZ)for(const l of GROTTE.lacs)if(y<l.y+9&&y>l.y-90)return GT.MAGMA; /* (au hasard : le rivage de SON lac, s'il y en a deux) */
   return GT.ROCHE;}
 function grtMailleNets(V,c,LL){
   const T=grtTampons(),d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V.CY,ck=(d/(V.CX*V.CY))|0,I0=ci*16,J0=cj*16,K0=ck*16,B=V.B,lum=T.lum,loc=T.loc,vid=T.vid,R=GROTTE.R;
@@ -20055,7 +20165,7 @@ function grtMailleNets(V,c,LL){
   const nt=ni/3,P=new Float32Array(nt*9),F=new Uint8Array(nt*12),Lt=new Uint8Array(nt*12);
   for(let t=0;t<nt;t++){const a=T.I[t*3],b=T.I[t*3+1],c9=T.I[t*3+2],ma=T.F[a*4],mb=T.F[b*4],mc=T.F[c9*4],mt=(ma===mb||ma===mc)?ma:(mb===mc?mb:(ma||mb||mc));
     for(let k=0;k<3;k++){const v=k===0?a:k===1?b:c9,o=t*3+k;P[o*3]=T.P[v*3];P[o*3+1]=T.P[v*3+1];P[o*3+2]=T.P[v*3+2];
-      F[o*4]=mt;F[o*4+1]=T.F[v*4+1];F[o*4+2]=T.F[v*4+2];F[o*4+3]=0;Lt[o*4]=T.Lt[v*4];Lt[o*4+1]=T.Lt[v*4+1];Lt[o*4+2]=T.Lt[v*4+2];Lt[o*4+3]=T.Lt[v*4+3];}}
+      F[o*4]=mt;F[o*4+1]=T.F[v*4+1];F[o*4+2]=T.F[v*4+2];F[o*4+3]=mt===GT.AMETHYSTE?(GROTTE.geoW|0):0;Lt[o*4]=T.Lt[v*4];Lt[o*4+1]=T.Lt[v*4+1];Lt[o*4+2]=T.Lt[v*4+2];Lt[o*4+3]=T.Lt[v*4+3];}}
   return {P:P,F:F,L:Lt,I:null,nv:nt*3,nt:nt};}
 /* LES DÉCORS : des FORMES low-poly (prismes à n pans qui s'affinent, boîtes orientées, octaèdres), rangées par tronçon, dessinées dans la même
    matière que la roche (matière, lumière cuite à leurs coins). Les grosses entrent aussi dans les COLLISIONS (boîtes orientées, grille de 64 m). */
@@ -20070,7 +20180,7 @@ function grtOcta(D,V,x,y,z,r,h,t,rot){grtRange(D,V,x,y,z,['o',x,y,z,r,h,t,rot||0
 function grtMailleDecor(V,c,L9,LL,sal){ // les formes d'un tronçon → triangles {P (mètres du tronçon),F,L,I}
   const d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V.CY,ck=(d/(V.CX*V.CY))|0,C=16*V.B,ox=V.ox+ci*C,oy=V.oy+cj*C,oz=V.oz+ck*C,lum=GRT_TMP.lum;
   const P=[],F=[],Lt=[],I=[];
-  const sommet=function(x,y,z,nx,ny,nz,t){grtLum(x+nx*.8,y+ny*.8,z+nz*.8,sal,LL,lum);P.push(x-ox,y-oy,z-oz);F.push(t,sal,255,0);Lt.push(lum[0]*255,lum[1]*127.5,lum[2]*127.5,lum[3]*127.5);return P.length/3-1;};
+  const sommet=function(x,y,z,nx,ny,nz,t){grtLum(x+nx*.8,y+ny*.8,z+nz*.8,sal,LL,lum);P.push(x-ox,y-oy,z-oz);F.push(t&31,sal,255,t>>5);Lt.push(lum[0]*255,lum[1]*127.5,lum[2]*127.5,lum[3]*127.5);return P.length/3-1;};
   const tri=function(a,b,c9){I.push(a,b,c9);};
   const nrm=function(a,b,c9){const e1=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],e2=[c9[0]-a[0],c9[1]-a[1],c9[2]-a[2]],n=[e1[1]*e2[2]-e1[2]*e2[1],e1[2]*e2[0]-e1[0]*e2[2],e1[0]*e2[1]-e1[1]*e2[0]],l=Math.hypot(n[0],n[1],n[2])||1;return [n[0]/l,n[1]/l,n[2]/l];};
   const face=function(Q,t){const n=nrm(Q[0],Q[1],Q[2]),ix=Q.map(function(p){return sommet(p[0],p[1],p[2],n[0],n[1],n[2],t);});tri(ix[0],ix[1],ix[2]);if(ix.length>3)tri(ix[0],ix[2],ix[3]);};
@@ -20102,8 +20212,43 @@ function grtMailleDecor(V,c,L9,LL,sal){ // les formes d'un tronçon → triangle
    · LE LAC DE LAVE : des CHUTES DE LAVE de la voûte au lac (trois lumières chacune) ;
    · LES ABYSSES : des CAPTEURS de sculk (leurs vrilles battent en cyan), les PILIERS d'ardoise d'une cité oubliée et leur feu d'âme bleu.
    Rien ne touche la route : chaque décor passe `grtLibre` (36 m d'air au-dessus d'elle, 14 m sous la dalle). */
-function grtDecors(V,R,fr,MOB){const D=new Map(),T9=[],P9=[],B=V.B,b=R.bornes,RHd=ROAD_HALF,UP=[0,1,0],BAS=[0,-1,0],VZ=GRT_VASTE; // VZ : LA GROTTE VASTE (19/10) — les décors à l'échelle des salles
+/* ===== LE DÉCOR DES PROFONDEURS AU HASARD (2026-10-20, Sacha : « il faut que chaque map soit aléatoire avec des modules et des décors qui changent ») =====
+   Avant, le décor était semé par la graine mais sa COMPOSITION était la même à chaque partie. Désormais, chaque grotte TIRE son décor (`grtDecoTire`,
+   dans un hasard à lui né de la graine : jamais le `fr` des décors), dix choix indépendants, tous visibles depuis la route : LA MINE (cadres de bois,
+   voûtes de pierre ou de basalte · l'espacement · torches ou LANTERNES pendues · les ÉTAIS en biais) · les TORCHES (espacement) · les GEMMES (la paire
+   de teintes : diamant et or, rubis, émeraude, saphir, citrine, calcite · leur espacement) · LA GROTTE LUXURIANTE (son lac d'eau ou pas · la teinte des
+   baies et des fleurs · les lianes en grappes ou en RIDEAUX · azalées, CHAMPIGNONS GÉANTS lumineux, ou les deux) · LA GÉODE (améthyste, émeraude,
+   citrine, saphir ou quartz rose — les cristaux, le cœur, sa lumière, la paroi et la brume de la salle · leur nombre, leur taille) · LES STALACTITES
+   (densité, pendues ou dressées, hauteur, colonnes, teinte : ocre, calcite, rouille, bleutée) · LE LAC DE LAVE (chutes, ÎLOTS de basalte, piliers) ·
+   LES ABYSSES (sculk, nombre et ARCHITECTURE des piliers de la cité — tours, colonnes, arches —, la teinte des âmes) · la POUSSIÈRE de l'air.
+   Une teinte se lit dans le canal libre aF.w (matière + 32 × teinte) : AUCUNE matière ni programme neuf. `dbgGrotte().deco` = le tirage.
+   `?sans=grottedecor` = le décor d'avant, au tirage près. */
+const GRT_TEINTE=[null,[.25,1,.45],[1,.72,.12],[.35,.55,1],[1,.42,.62],[1,.16,.18],[.85,.92,1],[.7,.3,1]]; // (les lumières : les couleurs de gTeinte du shader)
+/* la géode de chaque teinte : sa lumière cuite, sa paroi et son sol (uMur/uSol[2]), ses paillettes, son ambiance (grtBiomes) — 0 = l'améthyste d'avant */
+const GRT_GEO=[null,
+  {nm:'emeraude',c:[.22,.95,.45],mur:[.18,.34,.28],sol:[.16,.30,.22],pa:[.5,1,.6],fog:[.02,.09,.06],hemiS:[.30,.55,.42],hemiG:[.12,.40,.24],fillC:[.35,1,.6],kickC:[.5,1,.7]},
+  {nm:'citrine',c:[1,.62,.12],mur:[.46,.36,.20],sol:[.40,.30,.16],pa:[1,.85,.4],fog:[.11,.07,.02],hemiS:[.6,.48,.28],hemiG:[.5,.32,.08],fillC:[1,.72,.25],kickC:[1,.8,.4]},
+  {nm:'saphir',c:[.25,.5,1],mur:[.20,.26,.46],sol:[.16,.22,.40],pa:[.55,.75,1],fog:[.02,.04,.13],hemiS:[.3,.4,.7],hemiG:[.1,.2,.5],fillC:[.4,.6,1],kickC:[.5,.7,1]},
+  {nm:'quartz rose',c:[1,.38,.6],mur:[.44,.24,.34],sol:[.38,.20,.30],pa:[1,.6,.8],fog:[.11,.03,.07],hemiS:[.65,.35,.5],hemiG:[.5,.15,.3],fillC:[1,.45,.7],kickC:[1,.5,.8]}];
+function grtDecoTire(f){const t=function(a){return a[(f()*a.length)|0];};
+  return {mine:{style:t(['bois','bois','pierre','basalte']),pas:t([24,32,32,44]),lum:t(['torches','lanternes']),etais:f()<.5},
+    torches:t([32,42,42,60]),
+    gemmes:{paire:t([[0,0],[5,0],[1,0],[3,2],[0,5],[6,1]]),pas:t([80,110,150])},
+    luxe:{lac:f()<.7,baie:t([0,0,4,3,6,1]),lianes:t(['grappes','rideaux']),flore:t(['azalees','champignons','les deux']),champi:t([4,2,7,3])},
+    geode:{teinte:t([0,0,1,2,3,4]),n:t([110,170,240]),k:t([.8,1,1.3,1.5])},
+    stal:{dens:t([.6,1,1.5]),pend:t([.35,.55,.8]),haut:t([.7,1,1.4]),col:t(GRT_VASTE?[5,11,18]:[3,6,10]),teinte:t([0,0,6,5,3])},
+    lave:{chutes:t(GRT_VASTE?[6,14,24]:[4,9,15]),ilots:t([0,5,10]),pil:t(GRT_VASTE?[8,16,24]:[5,9,14])},
+    abysse:{sculk:t([.6,1,1.5]),cite:t(GRT_VASTE?[12,28,40]:[7,16,23]),style:t(['tours','colonnes','arches']),ame:t([0,0,1,7,6])},
+    brume:t([.6,1,1.6])};}
+function grtDecoTexte(D){if(!D)return null;const N=['','émeraude','citrine','saphir','rose','rubis','calcite','violet'],g=GRT_GEO[D.geode.teinte];
+  return ['mine '+D.mine.style+' /'+D.mine.pas+' m, '+D.mine.lum+(D.mine.etais?', étais':''),'torches /'+D.torches+' m','gemmes '+(N[D.gemmes.paire[0]]||'diamant')+'+'+(N[D.gemmes.paire[1]]||'or')+' /'+D.gemmes.pas+' m',
+    'luxuriante '+(D.luxe.lac?'lac':'sans lac')+', baies '+(N[D.luxe.baie]||'orange')+', lianes '+D.luxe.lianes+', '+D.luxe.flore,'géode '+(g?g.nm:'améthyste')+' ×'+D.geode.n+' ×'+D.geode.k,
+    'stalactites ×'+D.stal.dens+', pendues '+D.stal.pend+', ×'+D.stal.haut+', '+D.stal.col+' colonnes, '+(N[D.stal.teinte]||'ocre'),'lave '+D.lave.chutes+' chutes, '+D.lave.ilots+' îlots, '+D.lave.pil+' piliers',
+    'abysses sculk ×'+D.abysse.sculk+', cité '+D.abysse.cite+' '+D.abysse.style+', âmes '+(N[D.abysse.ame]||'bleues'),'poussière ×'+D.brume];}
+function grtDecors(V,R,fr,MOB,DC){const D=new Map(),T9=[],P9=[],B=V.B,b=R.bornes,RHd=ROAD_HALF,UP=[0,1,0],BAS=[0,-1,0],VZ=GRT_VASTE,SG=R.segs||{}; // VZ : LA GROTTE VASTE (19/10) — les décors à l'échelle des salles
+  /* DC : LE DÉCOR AU HASARD (grtDecoTire ; null = le décor d'avant, au tirage près) · une teinte de matière : t + 32 × son numéro (GRT_TEINTE, lue dans aF.w) */
   GROTTE.col={G:new Map(),n:0};const nb={};
+  const TE=function(w,c0){return w?GRT_TEINTE[w]:c0;}; /* la couleur d'une lumière teintée */
   const lum=function(x,y,z,r,c,I){P9.push({x:x,y:y,z:z,r:r,r2:r*r,c:c,I:I});};
   const torche=function(x,y,z,k){k=k||1;grtPrisme(D,V,x,y-4.2*k,z,UP,5,.42*k,.36*k,4.4*k,GT.BOIS,fr()*6);grtOcta(D,V,x,y+.9*k,z,.85*k,1.5*k,GT.FLAMME,fr()*6);T9.push({x:x,y:y+k,z:z});nb.torches=(nb.torches|0)+1;}; // (k : la taille — les torches des grandes salles se voient de loin)
   const cel=function(x,y,z){return [Math.floor((x-V.ox)/B),Math.floor((y-V.oy)/B),Math.floor((z-V.oz)/B)];};
@@ -20111,73 +20256,103 @@ function grtDecors(V,R,fr,MOB){const D=new Map(),T9=[],P9=[],B=V.B,b=R.bornes,RH
   const plafond=function(x,y,z,mx){if(grtDensIci(V,x,y,z)<=0)return null;let yy=y;for(;yy<y+mx;yy+=2)if(grtDensIci(V,x,yy,z)<=0)return yy-1;return null;};
   const plancher=function(x,y,z,mx){if(grtDensIci(V,x,y,z)<=0)return null;let yy=y;for(;yy>y-mx;yy-=2)if(grtDensIci(V,x,yy,z)<=0){const v=grtIci(V,x,yy-1,z);return v===0?yy+1:null;}return null;}; // (sur la roche seulement : jamais sur la lave ou l'eau)
   const pris=function(s0,s1){if(s0==null||s1==null)return -1;let a=R.i0,z=R.n-21;while(a<z&&R.S[a]<s0)a++;let e=a;while(e<z&&R.S[e+1]<=s1)e++;if(e<=a)return -1;return a+((fr()*(e-a+1))|0);}; // un échantillon au hasard DANS la salle
+  const prisK=function(k){const L9=SG[k];if(!L9||!L9.length)return -1;if(L9.length===1)return pris(L9[0][0],L9[0][1]); /* (au hasard, une salle deux fois : l'un de ses tronçons, au prorata de sa longueur) */
+    let t=0;for(const g of L9)t+=Math.min(g[1],L)-g[0];let u=fr()*t;for(const g of L9){u-=Math.min(g[1],L)-g[0];if(u<=0)return pris(g[0],g[1]);}return pris(L9[L9.length-1][0],L9[L9.length-1][1]);};
+  const lacDe=function(q){const LA=GROTTE.lacs||[];if(!LA.length)return GROTTE.lac;const s9=R.S[q];for(const l of LA)if(s9>=l.s0&&s9<=l.s1)return l;return LA[0];}; /* le lac de lave de cet échantillon */
   const cote=function(q,lat){const sd=fr()<.5?-1:1;return [R.X[q]+R.TZ[q]*sd*lat,R.Z[q]-R.TX[q]*sd*lat];};
   // la paroi la plus proche, à hauteur y, dans la direction latérale sd : [x, z, nx, nz] juste devant elle, ou null
   const paroi=function(q,sd,y,d0,d1){const bx=R.TZ[q]*sd,bz=-R.TX[q]*sd;for(let dd=d0;dd<d1;dd+=2){const x=R.X[q]+bx*dd,z=R.Z[q]+bz*dd;if(grtDensIci(V,x,y,z)<=0){const d2=dd-2.2;return [R.X[q]+bx*d2,R.Z[q]+bz*d2,-bx,-bz,d2];}}return null;};
   // ---- 0 · LA MINE ----
-  if(b.mine!=null&&b.luxe!=null){let n=0,der=-1;
-    for(let q=R.i0;q<R.n-20;q++){const s9=R.S[q];if(s9<b.mine+20||s9>b.luxe-60)continue;const t=Math.floor(s9/32);if(t===der)continue;der=t;
+  {const sm=SG.mine&&SG.mine[0];if(sm&&sm[1]<1e9){let n=0,der=-1;const mS=sm[0],mE=sm[1]; /* (la mine : de son début à la salle suivante — b.mine … b.luxe d'avant) */
+    const pas=DC?DC.mine.pas:32,st=DC?DC.mine.style:'bois',MT=st==='pierre'?GT.BRIQUE:st==='basalte'?GT.BASALTE:GT.BOIS,ep=st==='bois'?.9:st==='pierre'?1.7:1.3,lant=!!DC&&DC.mine.lum==='lanternes';
+    for(let q=R.i0;q<R.n-20;q++){const s9=R.S[q];if(s9<mS+20||s9>mE-60)continue;const t=Math.floor(s9/pas);if(t===der)continue;der=t;
       const x=R.X[q],y=R.Y[q],z=R.Z[q],tx=R.TX[q],tz=R.TZ[q],yaw=Math.atan2(tx,tz),la=RHd+7,y0=y-THICK-7,y1=y+27.5;
-      for(const sd of [-1,1]){grtBoite(D,V,x+tz*sd*la,(y0+y1)/2,z-tx*sd*la,.9,(y1-y0)/2,.9,GT.BOIS,yaw,'roche');
-        grtBoite(D,V,x+tz*sd*(la-3.2),y1-2.4,z-tx*sd*(la-3.2),2.4,.7,.7,GT.BOIS,yaw,'roche');
-        if(n%2===(sd>0?0:1))torche(x+tz*sd*(la-1.4),y+9,z-tx*sd*(la-1.4));}
-      grtBoite(D,V,x,y1+.6,z,la+1,1.1,1.1,GT.BOIS,yaw,'roche');n++;}nb.cadres=n;}
+      for(const sd of [-1,1]){grtBoite(D,V,x+tz*sd*la,(y0+y1)/2,z-tx*sd*la,ep,(y1-y0)/2,ep,MT,yaw,'roche');
+        grtBoite(D,V,x+tz*sd*(la-3.2),y1-2.4,z-tx*sd*(la-3.2),2.4,DC?.7*ep/.9:.7,.7,MT,yaw,'roche');
+        if(!lant&&n%2===(sd>0?0:1))torche(x+tz*sd*(la-1.4),y+9,z-tx*sd*(la-1.4));
+        if(DC&&DC.mine.etais){const ax=x+tz*sd*(la-1),az=z-tx*sd*(la-1),bx=x+tz*sd*(la-10),bz=z-tx*sd*(la-10),ay=y+12,by=y1-1.2,dl=Math.hypot(bx-ax,by-ay,bz-az); /* L'ÉTAI : du poteau à la poutre, en biais */
+          grtPrisme(D,V,ax,ay,az,[(bx-ax)/dl,(by-ay)/dl,(bz-az)/dl],4,.5*ep/.9,.45*ep/.9,dl,MT,yaw);}}
+      grtBoite(D,V,x,y1+.6,z,la+1,1.1,1.1,MT,yaw,'roche');
+      if(st==='pierre')grtOcta(D,V,x,y1+1.9,z,2.2,1.6,GT.BRIQUE,yaw); /* la clé de voûte */
+      if(lant&&n%2===0){const sd=(n&2)?1:-1,lx=x+tz*sd*la*.42,lz=z-tx*sd*la*.42; /* LA LANTERNE : pendue à la poutre (la lumière des torches) */
+        grtPrisme(D,V,lx,y1,lz,BAS,4,.16,.16,4.2,GT.BOIS,0);grtBoite(D,V,lx,y1-5.4,lz,.75,1.1,.75,GT.BOIS,yaw);grtOcta(D,V,lx,y1-5.4,lz,.62,.95,GT.FLAMME,yaw);
+        T9.push({x:lx,y:y1-5.4,z:lz});nb.lanternes=(nb.lanternes|0)+1;}
+      n++;}nb.cadres=n;}}
   // ---- LES TORCHES (hors de la mine) ----
-  {let sd=1,der=-1e9;for(let q=R.i0;q<R.n-20;q++){const s9=R.S[q],sal=R.SAL[q];if(sal===0||s9-der<(sal===4?84:42))continue;der=s9;sd=-sd;
+  const TP=DC?DC.torches:42;
+  {let sd=1,der=-1e9;for(let q=R.i0;q<R.n-20;q++){const s9=R.S[q],sal=R.SAL[q];if(sal===0||s9-der<(sal===4?2*TP:TP))continue;der=s9;sd=-sd;
     const y=R.Y[q]+7,tk=GRV.torK,w=paroi(q,sd,y,RHd+4,VZ?Math.min(R.RH[q]*1.45,600):96);let ok=false;
     if(w&&w[4]>=RHd+3&&grtDensIci(V,w[0],y+5,w[1])>0){torche(w[0],y,w[1],tk);ok=true;}
     if(!ok){const bx=R.TZ[q]*sd,bz=-R.TX[q]*sd,tx=R.X[q]+bx*(RHd+9),tz=R.Z[q]+bz*(RHd+9),yf=plancher(tx,R.Y[q]-THICK-3,tz,70);if(yf!=null&&grtLibre(R,tx,tz,yf,yf+5*tk,1))torche(tx,yf+4.6*tk,tz,tk);}}}
   // ---- LES GEMMES : diamants et or dans les parois, près de la route (une grappe tous les ~110 m) ----
-  {let n=0;for(let q=R.i0;q<R.n-20;q+=Math.max(1,Math.round(110/6))){const sal=R.SAL[q];if(sal===0)continue;const sd=fr()<.5?-1:1,y=R.Y[q]+4+fr()*18,w=paroi(q,sd,y,RHd+6,VZ?Math.min(R.RH[q]*1.45,600):160);if(!w)continue;
-    const t=(sal>=4||fr()<.55)?GT.DIAMANT:GT.OR,k9=3+((fr()*3)|0),g9=VZ?2:1;
-    for(let k=0;k<k9;k++){const a=fr()*6.28,r9=fr()*3.2*g9;grtOcta(D,V,w[0]-w[2]*1.2*g9+Math.cos(a)*r9,y+(fr()-.5)*5*g9,w[1]-w[3]*1.2*g9+Math.sin(a)*r9,(1+fr()*1.3)*g9,(1.5+fr()*2.2)*g9,t,fr()*6);}
-    lum(w[0],y,w[1],22*(VZ?1.9:1),t===GT.DIAMANT?[.25,.85,1]:[1,.78,.25],.55);n++;}nb.gemmes=n;}
-  // ---- 1 · LA GROTTE LUXURIANTE : les lianes à baies, les azalées ----
-  {let n=0,na=0;const N=Math.round((VZ?190:110)*MOB),NA=Math.round((VZ?80:46)*MOB),g9=VZ?1.7:1;
-    for(let e=0;e<N*8&&n<N;e++){const q=pris(b.luxe,b.geode);if(q<0)break;const xz=cote(q,RHd+6+fr()*(VZ?R.RH[q]*.72:104)),yc=plafond(xz[0],R.Y[q]+6,xz[1],VZ?R.UP[q]*1.5:120);if(yc==null)continue;
+  {let n=0;const gP=DC?DC.gemmes.pas:110,gW=DC?DC.gemmes.paire:[0,0];for(let q=R.i0;q<R.n-20;q+=Math.max(1,Math.round(gP/6))){const sal=R.SAL[q];if(sal===0)continue;const sd=fr()<.5?-1:1,y=R.Y[q]+4+fr()*18,w=paroi(q,sd,y,RHd+6,VZ?Math.min(R.RH[q]*1.45,600):160);if(!w)continue;
+    const t=(sal>=4||fr()<.55)?GT.DIAMANT:GT.OR,k9=3+((fr()*3)|0),g9=VZ?2:1,tw=gW[t===GT.DIAMANT?0:1];
+    for(let k=0;k<k9;k++){const a=fr()*6.28,r9=fr()*3.2*g9;grtOcta(D,V,w[0]-w[2]*1.2*g9+Math.cos(a)*r9,y+(fr()-.5)*5*g9,w[1]-w[3]*1.2*g9+Math.sin(a)*r9,(1+fr()*1.3)*g9,(1.5+fr()*2.2)*g9,t+32*tw,fr()*6);}
+    lum(w[0],y,w[1],22*(VZ?1.9:1),TE(tw,t===GT.DIAMANT?[.25,.85,1]:[1,.78,.25]),.55);n++;}nb.gemmes=n;}
+  // ---- 1 · LA GROTTE LUXURIANTE : les lianes à baies, les azalées (AU HASARD : la teinte des baies et des fleurs, les lianes en grappes ou en RIDEAUX, les azalées et/ou des CHAMPIGNONS GÉANTS) ----
+  {let n=0,na=0,nc=0;const N=Math.round((VZ?190:110)*MOB),NA=Math.round((VZ?80:46)*MOB),g9=VZ?1.7:1,bw=DC?DC.luxe.baie:0,BAIE=GT.BAIE+32*bw,bc=TE(bw,[1,.5,.12]),rid=!!DC&&DC.luxe.lianes==='rideaux',fl=DC?DC.luxe.flore:'azalees';
+    const liane=function(x,z,yc,Lv){grtPrisme(D,V,x,yc+2,z,BAS,4,.4*g9,.25*g9,Lv+2,GT.FEUILLE,fr()*6);
+      for(let u=2.5*g9;u<Lv-g9;u+=(2.8+fr()*1.6)*g9)grtOcta(D,V,x+(fr()<.5?-.6:.6)*g9,yc-u,z+(fr()-.5)*.7*g9,.62*g9,.75*g9,BAIE,fr()*6);};
+    for(let e=0;e<N*8&&n<N;e++){const q=prisK('luxe');if(q<0)break;const xz=cote(q,RHd+6+fr()*(VZ?R.RH[q]*.72:104)),yc=plafond(xz[0],R.Y[q]+6,xz[1],VZ?R.UP[q]*1.5:120);if(yc==null)continue;
       const Lv=(10+fr()*32)*(VZ?2.4:1),yb=yc-Lv;if(!grtLibre(R,xz[0],xz[1],yb,yc,2*g9))continue;
-      grtPrisme(D,V,xz[0],yc+2,xz[1],BAS,4,.4*g9,.25*g9,Lv+2,GT.FEUILLE,fr()*6);
-      for(let u=2.5*g9;u<Lv-g9;u+=(2.8+fr()*1.6)*g9)grtOcta(D,V,xz[0]+(fr()<.5?-.6:.6)*g9,yc-u,xz[1]+(fr()-.5)*.7*g9,.62*g9,.75*g9,GT.BAIE,fr()*6);
-      lum(xz[0],yc-Lv*.65,xz[1],VZ?50:30,[1,.5,.12],.8);n++;}
-    for(let e=0;e<NA*8&&na<NA;e++){const q=pris(b.luxe,b.geode);if(q<0)break;const xz=cote(q,RHd+10+fr()*(VZ?R.RH[q]*.7:90)),yf=plancher(xz[0],R.Y[q]-THICK-4,xz[1],VZ?R.DN[q]*1.5+20:110);if(yf==null)continue;
+      liane(xz[0],xz[1],yc,Lv);
+      if(rid){const k9=3+((fr()*5)|0);for(let k=1;k<=k9&&n<N;k++){const x=xz[0]+R.TX[q]*k*4.5*g9,z=xz[1]+R.TZ[q]*k*4.5*g9,y2=plafond(x,R.Y[q]+6,z,VZ?R.UP[q]*1.5:120); /* LE RIDEAU : des lianes en rang le long de la route */
+        if(y2==null)continue;const L2=Lv*(.7+fr()*.5);if(!grtLibre(R,x,z,y2-L2,y2,2*g9))continue;liane(x,z,y2,L2);n++;}}
+      lum(xz[0],yc-Lv*.65,xz[1],VZ?50:30,bc,.8);n++;}
+    for(let e=0;e<NA*8&&na<NA;e++){const q=prisK('luxe');if(q<0)break;const xz=cote(q,RHd+10+fr()*(VZ?R.RH[q]*.7:90)),yf=plancher(xz[0],R.Y[q]-THICK-4,xz[1],VZ?R.DN[q]*1.5+20:110);if(yf==null)continue;
+      if(fl==='champignons'||(fl==='les deux'&&fr()<.5)){const cw=DC.luxe.champi,Hc=(7+fr()*16)*g9,Rc=(3+fr()*4.5)*g9;if(!grtLibre(R,xz[0],xz[1],yf,yf+Hc+Rc,Rc))continue; /* LE CHAMPIGNON GÉANT : un pied de calcite, un chapeau qui luit */
+        grtPrisme(D,V,xz[0],yf-1,xz[1],UP,6,1.1*g9+Rc*.12,.8*g9+Rc*.08,Hc+1,GT.CONCRETION+32*6,fr()*6);grtPrisme(D,V,xz[0],yf+Hc-Rc*.12,xz[1],UP,7,Rc,Rc*.3,Rc*.5,GT.BAIE+32*cw,fr()*6);
+        lum(xz[0],yf+Hc,xz[1],VZ?40:24,TE(cw,[1,.5,.12]),.7);nc++;na++;continue;}
       const w=(2.6+fr()*2.4)*g9,h=(2.2+fr()*1.8)*g9;if(!grtLibre(R,xz[0],xz[1],yf,yf+2*h,w))continue;
       grtOcta(D,V,xz[0],yf+h,xz[1],w,h*1.05,GT.FEUILLE,fr()*6);grtOcta(D,V,xz[0]+(fr()-.5)*w,yf+h*1.25,xz[1]+(fr()-.5)*w,w*.7,h*.8,GT.FEUILLE,fr()*6);
-      for(let k=0;k<4;k++)grtOcta(D,V,xz[0]+(fr()-.5)*w*1.5,yf+h*(1.4+fr()*.5),xz[1]+(fr()-.5)*w*1.5,.55*g9,.55*g9,GT.FLEUR,fr()*6);na++;}
-    nb.lianes=n;nb.azalees=na;}
-  // ---- 2 · LE PUITS : les cristaux de la géode ----
-  {const P=GROTTE.puits;let n=0;if(P){const N=Math.round(170*MOB);
+      for(let k=0;k<4;k++)grtOcta(D,V,xz[0]+(fr()-.5)*w*1.5,yf+h*(1.4+fr()*.5),xz[1]+(fr()-.5)*w*1.5,.55*g9,.55*g9,GT.FLEUR+32*bw,fr()*6);na++;}
+    nb.lianes=n;nb.azalees=na-nc;if(DC)nb.champignons=nc;}
+  // ---- 2 · LE PUITS : les cristaux de la géode (AU HASARD : leur teinte — améthyste, émeraude, citrine, saphir, quartz rose —, leur nombre, leur taille) ----
+  {const P=GROTTE.puits;let n=0;if(P){const N=Math.round((DC?DC.geode.n:170)*MOB),kG=DC?DC.geode.k:1,CR=GT.CRISTAL+32*(DC?DC.geode.teinte:0);
     for(let e=0;e<N*3&&n<N;e++){const u=fr()*2-1,a=fr()*6.2832,s9=Math.sqrt(1-u*u),dv=[s9*Math.cos(a),u,s9*Math.sin(a)];
       let r=P.rg*.85,hit=null;for(;r<P.rg+5*B;r+=1.5){const x=P.cx+dv[0]*r,y=P.gy+dv[1]*r,z=P.cz+dv[2]*r;if(grtDensIci(V,x,y,z)>0){hit=[x-dv[0]*1.5,y-dv[1]*1.5,z-dv[2]*1.5];break;}}
       if(!hit)continue;const k9=2+((fr()*3)|0);
-      for(let k=0;k<k9;k++){const len=(k?4:7)+fr()*(k?6:10),w=k?.9+fr()*.6:1.5+fr()*.8,j=k?[(fr()-.5)*.6,(fr()-.5)*.6,(fr()-.5)*.6]:[0,0,0];
+      for(let k=0;k<k9;k++){const len=((k?4:7)+fr()*(k?6:10))*kG,w=(k?.9+fr()*.6:1.5+fr()*.8)*kG,j=k?[(fr()-.5)*.6,(fr()-.5)*.6,(fr()-.5)*.6]:[0,0,0];
         const d9=[dv[0]+j[0],dv[1]+j[1],dv[2]+j[2]],l9=Math.hypot(d9[0],d9[1],d9[2]);d9[0]/=l9;d9[1]/=l9;d9[2]/=l9;
         const p=[hit[0]+(fr()-.5)*(k?5:1),hit[1]+(fr()-.5)*(k?5:1),hit[2]+(fr()-.5)*(k?5:1)];
-        if(!grtLibre(R,p[0],p[2],p[1]-len,p[1]+len,2))continue;grtPrisme(D,V,p[0],p[1],p[2],d9,6,w,0,len,GT.CRISTAL,fr()*6);}
+        if(!grtLibre(R,p[0],p[2],p[1]-len,p[1]+len,2))continue;grtPrisme(D,V,p[0],p[1],p[2],d9,6,w,0,len,CR,fr()*6);}
       n++;}}nb.cristaux=n;}
-  // ---- 3 · LES STALACTITES : les concrétions, des cônes à six pans ----
-  {let n=0;const N=Math.round((VZ?240:140)*MOB),g9=VZ?1.25:1;
-    for(let e=0;e<N*8&&n<N;e++){const q=pris(b.stal,b.lave);if(q<0)break;const xz=cote(q,RHd+8+fr()*(VZ?R.RH[q]*.8:118)),pend=fr()<.55,k=.75+fr()*.5;
-      if(pend){const yc=plafond(xz[0],R.Y[q]+8,xz[1],VZ?R.UP[q]*1.5:150);if(yc==null)continue;const Ld=(8+fr()*38)*(VZ?2.6:1);if(!grtLibre(R,xz[0],xz[1],yc-Ld,yc,5))continue;
-        grtPrisme(D,V,xz[0],yc+3,xz[1],BAS,6,3.4*k*(.8+Ld/60)*g9,0,Ld+3,GT.CONCRETION,fr()*6,'roche');}
-      else{const yf=plancher(xz[0],R.Y[q]-THICK-3,xz[1],VZ?R.DN[q]*1.5+20:140);if(yf==null)continue;const Hs=(6+fr()*30)*(VZ?2.4:1);if(!grtLibre(R,xz[0],xz[1],yf,yf+Hs,5))continue;
-        grtPrisme(D,V,xz[0],yf-2,xz[1],UP,6,3.2*k*(.8+Hs/50)*g9,0,Hs+2,GT.CONCRETION,fr()*6,'roche');}
+  // ---- 3 · LES STALACTITES : les concrétions, des cônes à six pans (AU HASARD : leur densité, pendues ou dressées, leur hauteur, leur teinte) ----
+  {let n=0;const N=Math.round((VZ?240:140)*MOB*(DC?DC.stal.dens:1)),g9=VZ?1.25:1,pP=DC?DC.stal.pend:.55,hk=DC?DC.stal.haut:1,CT=GT.CONCRETION+32*(DC?DC.stal.teinte:0);
+    for(let e=0;e<N*8&&n<N;e++){const q=prisK('stal');if(q<0)break;const xz=cote(q,RHd+8+fr()*(VZ?R.RH[q]*.8:118)),pend=fr()<pP,k=.75+fr()*.5;
+      if(pend){const yc=plafond(xz[0],R.Y[q]+8,xz[1],VZ?R.UP[q]*1.5:150);if(yc==null)continue;const Ld=(8+fr()*38)*(VZ?2.6:1)*hk;if(!grtLibre(R,xz[0],xz[1],yc-Ld,yc,5))continue;
+        grtPrisme(D,V,xz[0],yc+3,xz[1],BAS,6,3.4*k*(.8+Ld/60)*g9,0,Ld+3,CT,fr()*6,'roche');}
+      else{const yf=plancher(xz[0],R.Y[q]-THICK-3,xz[1],VZ?R.DN[q]*1.5+20:140);if(yf==null)continue;const Hs=(6+fr()*30)*(VZ?2.4:1)*hk;if(!grtLibre(R,xz[0],xz[1],yf,yf+Hs,5))continue;
+        grtPrisme(D,V,xz[0],yf-2,xz[1],UP,6,3.2*k*(.8+Hs/50)*g9,0,Hs+2,CT,fr()*6,'roche');}
       n++;}nb.concretions=n;}
-  // ---- 4 · LE LAC DE LAVE : les chutes de lave ----
-  {let n=0;const lac=GROTTE.lac;if(lac){const N=Math.round((VZ?14:9)*MOB),cw=VZ?6:3.4;
-    for(let e=0;e<N*10&&n<N;e++){const q=pris(b.lave,b.abysse);if(q<0)break;const sd=fr()<.5?-1:1,y=R.Y[q]+28,w=paroi(q,sd,y,RHd+30,VZ?Math.min(R.RH[q]*1.45,640):300);if(!w)continue;
+  // ---- 4 · LE LAC DE LAVE : les chutes de lave (AU HASARD : leur nombre, des ÎLOTS de colonnes de basalte qui sortent du lac) ----
+  {let n=0;if(GROTTE.lac){const N=Math.round((DC?DC.lave.chutes:(VZ?14:9))*MOB),cw=VZ?6:3.4;
+    for(let e=0;e<N*10&&n<N;e++){const q=prisK('lave');if(q<0)break;const lac=lacDe(q),sd=fr()<.5?-1:1,y=R.Y[q]+28,w=paroi(q,sd,y,RHd+30,VZ?Math.min(R.RH[q]*1.45,640):300);if(!w)continue;
       const x=w[0]+w[2]*(VZ?6:3),z=w[1]+w[3]*(VZ?6:3),yc=plafond(x,y,z,VZ?R.UP[q]*1.6:140);if(yc==null)continue; // (5 m devant la paroi, côté route)
       if(!grtLibre(R,x,z,lac.y-4,yc,5))continue;const h=(yc+2-lac.y)/2;grtBoite(D,V,x,lac.y+h,z,cw,h,cw,GT.LAVE,Math.atan2(w[2],w[3]),'lave');
-      for(const u of VZ?[.12,.37,.62,.88]:[.2,.55,.88])lum(x,lac.y+2*h*u,z,VZ?120:78,[1,.36,.07],1.35);n++;}}nb.chutes=n;}
-  // ---- 5 · LES ABYSSES : capteurs de sculk, piliers de la cité oubliée, feux d'âme ----
-  {let n=0,np=0;const N=Math.round((VZ?90:48)*MOB),NP9=Math.round((VZ?28:16)*MOB),g9=VZ?1.8:1;
-    for(let e=0;e<N*8&&n<N;e++){const q=pris(b.abysse,1e9);if(q<0)break;const xz=cote(q,RHd+6+fr()*(VZ?R.RH[q]*.7:76)),yf=plancher(xz[0],R.Y[q]-THICK-3,xz[1],VZ?R.DN[q]*1.5+20:90);if(yf==null)continue;
+      for(const u of VZ?[.12,.37,.62,.88]:[.2,.55,.88])lum(x,lac.y+2*h*u,z,VZ?120:78,[1,.36,.07],1.35);n++;}
+    if(DC&&DC.lave.ilots){let ni=0;const g9=VZ?1.6:1;for(let e=0;e<DC.lave.ilots*14&&ni<DC.lave.ilots;e++){const q=prisK('lave');if(q<0)break;const l=lacDe(q),xz=cote(q,RHd+40+fr()*(VZ?R.RH[q]*.8:120));
+      if(grtIci(V,xz[0],l.y-3,xz[1])!==4)continue;const k9=3+((fr()*4)|0);let ok=0; /* L'ÎLOT : une touffe de colonnes de basalte, dans la lave */
+      for(let k=0;k<k9;k++){const x=xz[0]+(fr()-.5)*16*g9,z=xz[1]+(fr()-.5)*16*g9,r=(2.5+fr()*3.5)*g9,h=(8+fr()*26)*g9;if(!grtLibre(R,x,z,l.y-8,l.y+h,r))continue;grtPrisme(D,V,x,l.y-8,z,UP,6,r,r*.85,h+8,GT.BASALTE,fr()*6,'roche');ok++;}
+      if(ok){lum(xz[0],l.y+4,xz[1],VZ?60:36,[1,.36,.07],.6);ni++;}}nb.ilots=ni;}}nb.chutes=n;}
+  // ---- (LE PONT, un module) : ses piles de basalte, du fond du gouffre au dessous de la dalle (rien sur la route, aucune collision) ----
+  if(R.ponts&&R.ponts.length){let np=0;const g9=VZ?1.6:1;for(const pn of R.ponts)for(let s9=pn[0]+30;s9<pn[1]-20;s9+=55*g9){let q=R.i0;while(q<R.n-21&&R.S[q]<s9)q++;
+    const x=R.X[q],z=R.Z[q],yt=R.Y[q]-THICK-1.6;let yb=yt-2;while(yb>yt-520&&grtDensIci(V,x,yb,z)>0)yb-=3;if(yt-yb<12)continue;
+    grtPrisme(D,V,x,yb-6,z,UP,6,7*g9,4.2*g9,yt-yb+6-2.4,GT.BASALTE,0);grtBoite(D,V,x,yt-1.2,z,ROAD_HALF*.8,1.2,3.4*g9,GT.BASALTE,Math.atan2(R.TX[q],R.TZ[q]));np++;}nb.piles=np;}
+  // ---- 5 · LES ABYSSES : capteurs de sculk, piliers de la cité oubliée, feux d'âme (AU HASARD : la densité du sculk, le nombre et l'ARCHITECTURE des piliers — tours, colonnes, arches —, la teinte des âmes) ----
+  {let n=0,np=0;const N=Math.round((VZ?90:48)*MOB*(DC?DC.abysse.sculk:1)),NP9=Math.round((DC?DC.abysse.cite*(VZ?1:.57):(VZ?28:16))*MOB),g9=VZ?1.8:1,st=DC?DC.abysse.style:'tours',aw=DC?DC.abysse.ame:0;
+    for(let e=0;e<N*8&&n<N;e++){const q=prisK('abysse');if(q<0)break;const xz=cote(q,RHd+6+fr()*(VZ?R.RH[q]*.7:76)),yf=plancher(xz[0],R.Y[q]-THICK-3,xz[1],VZ?R.DN[q]*1.5+20:90);if(yf==null)continue;
       if(!grtLibre(R,xz[0],xz[1],yf,yf+5*g9,3*g9))continue;grtPrisme(D,V,xz[0],yf-1,xz[1],UP,6,2.6*g9,1.9*g9,2.4*g9,GT.SCULK,fr()*6);
       for(const o of [[-1.2,-1.2],[1.2,-1.2],[-1.2,1.2],[1.2,1.2]])grtPrisme(D,V,xz[0]+o[0]*g9,yf+1.2*g9,xz[1]+o[1]*g9,UP,4,.32*g9,.12*g9,(2.6+fr()*1.2)*g9,GT.CAPTEUR,fr()*6);
       lum(xz[0],yf+4*g9,xz[1],VZ?44:24,[.12,.85,.95],.85);n++;}
-    for(let e=0;e<NP9*10&&np<NP9;e++){const q=pris(b.abysse,1e9);if(q<0)break;const xz=cote(q,RHd+22+fr()*(VZ?R.RH[q]*.7:70)),yf=plancher(xz[0],R.Y[q]-THICK-3,xz[1],VZ?R.DN[q]*1.5+20:110);if(yf==null)continue;
-      const yc=plafond(xz[0],yf+2,xz[1],VZ?450:200);let H=(26+fr()*46)*(VZ?2.6:1);if(yc!=null)H=Math.min(H,yc-yf-8);if(H<14)continue;if(!grtLibre(R,xz[0],xz[1],yf,yf+H+5,6*g9))continue;
-      const rot=fr()*1.5;grtBoite(D,V,xz[0],yf+H/2,xz[1],3.8*g9,H/2,3.8*g9,GT.BRIQUE,rot,'roche');grtBoite(D,V,xz[0],yf+H+1.1*g9,xz[1],4.8*g9,1.1*g9,4.8*g9,GT.BRIQUE,rot,'roche');
-      grtOcta(D,V,xz[0],yf+H+3.6*g9,xz[1],1.5*g9,2.2*g9,GT.AME,fr()*6);lum(xz[0],yf+H+4*g9,xz[1],VZ?60:34,[.25,.75,1],1.1);np++;}
+    for(let e=0;e<NP9*10&&np<NP9;e++){const q=prisK('abysse');if(q<0)break;const xz=cote(q,RHd+22+fr()*(VZ?R.RH[q]*.7:70)),yf=plancher(xz[0],R.Y[q]-THICK-3,xz[1],VZ?R.DN[q]*1.5+20:110);if(yf==null)continue;
+      const yc=plafond(xz[0],yf+2,xz[1],VZ?450:200);let H=(26+fr()*46)*(VZ?2.6:1);if(yc!=null)H=Math.min(H,yc-yf-8);if(H<14)continue;if(!grtLibre(R,xz[0],xz[1],yf,yf+H+5,(st==='arches'?14:6)*g9))continue;
+      const rot=fr()*1.5;
+      if(st==='colonnes'){grtPrisme(D,V,xz[0],yf-1,xz[1],UP,8,3.6*g9,2.9*g9,H+1,GT.BRIQUE,rot,'roche');grtBoite(D,V,xz[0],yf+H+1.1*g9,xz[1],4.6*g9,1.1*g9,4.6*g9,GT.BRIQUE,rot+.39,'roche');} /* LA COLONNE : un fût à huit pans */
+      else if(st==='arches'){const ax=Math.cos(rot)*9*g9,az=-Math.sin(rot)*9*g9; /* L'ARCHE : deux piles et leur linteau */
+        for(const sg of [-1,1])grtBoite(D,V,xz[0]+sg*ax,yf+H/2,xz[1]+sg*az,2.6*g9,H/2,2.6*g9,GT.BRIQUE,rot,'roche');grtBoite(D,V,xz[0],yf+H+1.4*g9,xz[1],12.5*g9,1.4*g9,3.2*g9,GT.BRIQUE,rot,'roche');}
+      else{grtBoite(D,V,xz[0],yf+H/2,xz[1],3.8*g9,H/2,3.8*g9,GT.BRIQUE,rot,'roche');grtBoite(D,V,xz[0],yf+H+1.1*g9,xz[1],4.8*g9,1.1*g9,4.8*g9,GT.BRIQUE,rot,'roche');}
+      grtOcta(D,V,xz[0],yf+H+3.6*g9,xz[1],1.5*g9,2.2*g9,GT.AME+32*aw,fr()*6);lum(xz[0],yf+H+4*g9,xz[1],VZ?60:34,TE(aw,[.25,.75,1]),1.1);np++;}
     nb.capteurs=n;nb.piliersCite=np;}
   return {D:D,T:T9,P:P9,n:nb};}
 /* ---------------- LE RENDU : UNE matière à FACETTES (la DA des autres maps) ----------------
@@ -20194,6 +20369,8 @@ const GRT_U={uTime:{value:0},uTorch:{value:1},uLieu:{value:1},uAmb:{value:new TH
 const GRT_VS=['attribute vec4 aF;attribute vec4 aL;uniform vec3 uMur[6],uSol[6];varying vec3 vW,vMur,vSol;varying vec4 vF,vL;','#include <fog_pars_vertex>',
   'void main(){vec4 wp=modelMatrix*vec4(position,1.);vW=wp.xyz;vF=aF;vL=aL;int s=int(aF.y+.5);vMur=uMur[s];vSol=uSol[s];vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
 const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant;uniform vec3 uAmb,uTorchC,uLantC,uLantP;','varying vec3 vW,vMur,vSol;varying vec4 vF,vL;','#include <fog_pars_fragment>',FG_BRUIT,
+  /* (LE DÉCOR AU HASARD, 20/10) la TEINTE d'une matière (aF.w, 0 = la sienne) : 1 émeraude, 2 citrine, 3 saphir, 4 quartz rose, 5 rubis, 6 calcite, 7 violet — GRT_TEINTE */
+  'vec3 gTeinte(float w){return w<1.5?vec3(.25,1.,.45):w<2.5?vec3(1.,.72,.12):w<3.5?vec3(.35,.55,1.):w<4.5?vec3(1.,.42,.62):w<5.5?vec3(1.,.16,.18):w<6.5?vec3(.85,.92,1.):vec3(.7,.3,1.);}',
   'void main(){',
   '  vec3 n=normalize(cross(dFdx(vW),dFdy(vW)));if(dot(n,cameraPosition-vW)<0.)n=-n;', // la FACETTE
   '  float mt=floor(vF.x+.5),sal=floor(vF.y+.5),fc=fh3(floor(vW*'+(GRT_VASTE?'.13':'.19')+')+sal*7.);vec3 alb;vec3 em=vec3(0.);',
@@ -20219,6 +20396,14 @@ const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant;uniform ve
   '  else if(mt<16.5){alb=vec3(.3,.9,1.);em=vec3(.25,.9,1.)*1.3*uEmi*(.7+.3*sin(uTime*3.+fc*20.));}', // le DIAMANT
   '  else if(mt<17.5){alb=vec3(1.,.75,.15);em=vec3(1.,.72,.15)*.9*uEmi*(.7+.3*sin(uTime*3.+fc*20.));}', // l'OR
   '  else{alb=vec3(.16,.05,.04);em=vec3(1.,.38,.06)*(.25+.75*step(.55,fc))*1.1*uLav*(.75+.25*sin(uTime*2.+fc*8.));}', // le MAGMA du rivage : des facettes qui rougeoient
+  '  float tw=floor(vF.w+.5);if(tw>.5){vec3 tc=gTeinte(tw);', /* (LE DÉCOR AU HASARD) les matières teintées : géode, cristaux, baies, fleurs, concrétions, âmes, gemmes */
+  '    if(mt>2.5&&mt<3.5){alb=mix(tc*.5,tc*.95,fc*.7);em=tc*(.45+.25*fc)*uEmi*(.8+.2*sin(uTime*1.3+fc*9.));}',
+  '    else if(mt>5.5&&mt<6.5){alb=tc*.6;em=mix(tc,mix(tc,vec3(1.),.55),fc)*1.5*uEmi*(.85+.15*sin(uTime*2.+fc*5.));}',
+  '    else if(mt>6.5&&mt<7.5){alb=tc*.45;em=tc*2.*uEmi;}',
+  '    else if(mt>8.5&&mt<9.5){alb=tc;em=tc*.18;}',
+  '    else if(mt>9.5&&mt<10.5)alb=mix(alb,tc*.72,.6);',
+  '    else if(mt>14.5&&mt<15.5)em=mix(tc,vec3(1.),.35)*2.4*(.82+.18*sin(uTime*11.+vW.x));',
+  '    else if(mt>15.5&&mt<17.5){alb=tc;em=tc*1.2*uEmi*(.7+.3*sin(uTime*3.+fc*20.));}}',
   '  float ao=vF.z/255.,key=.6+.4*max(0.,dot(n,vec3(.3,.86,.41)));',
   '  vec3 dl=uLantP-vW;float d2=dot(dl,dl),lam=max(0.,dot(n,dl))*inversesqrt(d2+1.);vec3 Lc=uLantC*uLant*(.25+.75*lam)/(1.+d2/1600.);',
   '  vec3 col=alb*(((uAmb+uTorchC*(vL.x*uTorch)+vL.yzw*(2.*uLieu))*key+Lc)*ao);',
@@ -20251,15 +20436,16 @@ function grtPartObj(){if(GRT_FX.part)return GRT_FX.part;const M=grtMats(),n=Math
 function grotteVide(){
   if(GROTTE.root){GROTTE.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});GROTTE.root=null;}
   GROTTE.V=null;GROTTE.R=null;GROTTE.grp=[];GROTTE.file=null;GROTTE.fi=0;GROTTE.msFile=0;GROTTE.pret=false;GROTTE.col=null;GROTTE.salle=-1;GROTTE.piliers=null;
-  GROTTE.puits=null;GROTTE.lac=null;GROTTE.eau=null;GROTTE.dec=null;GROTTE.LL=null;GROTTE.heurt='';}
+  GROTTE.puits=null;GROTTE.lac=null;GROTTE.eau=null;GROTTE.lacs=null;GROTTE.eaux=null;GROTTE.deco=null;GROTTE.geoW=0;GROTTE.geoC=null;GROTTE.dec=null;GROTTE.LL=null;GROTTE.heurt='';}
 function buildGrotte(seed){jadeFini(buildGrotteG(seed));} // d'un trait au passage ; en tranches d'avance (prebDecorG)
 function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au pré-bâti
   grotteVide();
   if(PARK.on||!LVL.cur||LVL.cur.id!=='grotte'||!(NP>1)||!GROTTE.salles)return;
   const t0=performance.now(),direct=JF.lim===Infinity,fr=mulberry32((seed^0x6A07E)>>>0),MOB=TEL_NATIF?.75:1;
+  const DC=GRT_DECO?grtDecoTire(mulberry32((seed^0x0DEC0A7E)>>>0)):null,gT=DC?DC.geode.teinte:0;GROTTE.deco=DC;GROTTE.geoW=gT;GROTTE.geoC=gT?GRT_GEO[gT].c:null; /* LE DÉCOR AU HASARD : son tirage, à part */
   GROTTE.met=GRT_MET[LVL.cur.meteo]?LVL.cur.meteo:'matin';GROTTE.n={};
   const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);GROTTE.root=root;trackMeshes.push(root);
-  const R=grtEchantillons();GROTTE.R=R;
+  const R=grtEchantillons();GROTTE.R=R;if(DC&&!DC.luxe.lac){GROTTE.eaux=[];GROTTE.eau=null;} /* (au hasard : la grotte luxuriante sans son lac) */
   let x0=1e9,y0=1e9,z0=1e9,x1=-1e9,y1=-1e9,z1=-1e9;
   for(let q=0;q<R.n;q++){const r=R.RH[q]*1.4+20;x0=Math.min(x0,R.X[q]-r);x1=Math.max(x1,R.X[q]+r);z0=Math.min(z0,R.Z[q]-r);z1=Math.max(z1,R.Z[q]+r);
     y0=Math.min(y0,R.Y[q]-R.DN[q]*1.4-20);y1=Math.max(y1,R.Y[q]+R.UP[q]*1.4+20);}
@@ -20271,8 +20457,8 @@ function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
   for(let q=0,ac=1e9,nq=0;q<R.n;q++){ac+=6;if(ac<Math.max(6,R.RH[q]/3.2)&&!R.EXT[q])continue;ac=0;grtCreuse1(V,R,q);if((++nq&7)===7&&performance.now()>JF.lim)yield;}
   tm.creuse=Math.round(performance.now()-t9);t9=performance.now();
   grtPuits(V,R);tm.puits=Math.round(performance.now()-t9);if(performance.now()>JF.lim)yield;
-  t9=performance.now();grtLacs(V,R);GROTTE.piliers=grtPiliers(V,R,fr);V.nzc=null;tm.lacs=Math.round(performance.now()-t9);if(performance.now()>JF.lim)yield; // (le cache du bruit ne sert plus)
-  t9=performance.now();const dec=grtDecors(V,R,fr,MOB);tm.decors=Math.round(performance.now()-t9);GROTTE.tm=tm;
+  t9=performance.now();grtLacs(V,R);GROTTE.piliers=grtPiliers(V,R,fr,DC);V.nzc=null;tm.lacs=Math.round(performance.now()-t9);if(performance.now()>JF.lim)yield; // (le cache du bruit ne sert plus)
+  t9=performance.now();const dec=grtDecors(V,R,fr,MOB,DC);tm.decors=Math.round(performance.now()-t9);GROTTE.tm=tm;
   GROTTE.dec=dec.D;GROTTE.LL=grtLumListes(V,dec.T,dec.P);Object.assign(GROTTE.n,dec.n);GROTTE.n.lumieres=dec.P.length;GROTTE.n.piliers=GROTTE.piliers.length;
   GROTTE.n.troncons=V.pool.length;GROTTE.n.air=V.nAir;GROTTE.n.col=GROTTE.col.n;GROTTE.msCreuse=tm.creuse+tm.puits;
   if(performance.now()>JF.lim)yield;t9=performance.now();
@@ -20294,7 +20480,7 @@ function grtTranches(ms){const F=GROTTE.file;if(!F||GROTTE.fi>=F.length)return;c
   while(GROTTE.fi<F.length&&performance.now()-t0<ms){grtTroncon(F[GROTTE.fi]);GROTTE.fi++;}
   GROTTE.msFile+=performance.now()-t0;if(GROTTE.fi>=F.length)GROTTE.pret=true;}
 /* ---------------- LES MÉTÉOS : la grotte glisse d'un temps à l'autre au même fondu que l'ambiance ---------------- */
-function grotteMeteo(m,dur){const T9=GRT_MET[m]||GRT_MET.matin;GROTTE.met=GRT_MET[m]?m:'matin';
+function grotteMeteo(m,dur){grtDecoActive();const T9=GRT_MET[m]||GRT_MET.matin;GROTTE.met=GRT_MET[m]?m:'matin';
   if(!GROTTE.cur)GROTTE.cur=JSON.parse(JSON.stringify(T9));
   GROTTE.de=JSON.parse(JSON.stringify(GROTTE.cur));GROTTE.to=T9;GROTTE.k=0;GROTTE.dur=Math.max(.01,dur||1.2);}
 function grtPas(dt){if(!GROTTE.cur||GROTTE.k>=1)return;GROTTE.k=Math.min(1,GROTTE.k+dt/GROTTE.dur);const e=GROTTE.k*GROTTE.k*(3-2*GROTTE.k),a=GROTTE.de,b=GROTTE.to,o=GROTTE.cur;
@@ -20318,7 +20504,7 @@ function grotteTick(dt){
   // LES POUSSIÈRES
   {const P=grtPartObj(),cur=GRT_FX.p,to=GRT_PART[k]||GRT_PART[0],a=Math.min(1,dt*1.2);
    for(const f of ['w','z','k'])cur[f]+=(to[f]-cur[f])*a;for(let i=0;i<3;i++){cur.c[i]+=(to.c[i]-cur.c[i])*a;cur.v[i]+=(to.v[i]-cur.v[i])*a;}
-   const u=GRT_PU;u.uK.value=cur.k*c.part;u.uSz.value=cur.z;u.uSw.value=cur.w;u.uVel.value.fromArray(cur.v);u.uPC.value.setRGB(cur.c[0],cur.c[1],cur.c[2]);u.uPx.value=renderer.getPixelRatio();
+   const u=GRT_PU;u.uK.value=cur.k*c.part*(GROTTE.deco?GROTTE.deco.brume:1);u.uSz.value=cur.z;u.uSw.value=cur.w;u.uVel.value.fromArray(cur.v);u.uPC.value.setRGB(cur.c[0],cur.c[1],cur.c[2]);u.uPx.value=renderer.getPixelRatio();
    u.uBoxC.value.copy(camera.position);P.visible=u.uK.value>.01;}
 }
 /* ---------------- CE QUI TUE EN VOL : la roche (la densité au point, la surface qu'on voit), la lave, l'eau, et les gros décors (boîtes orientées) ---------------- */
@@ -20342,6 +20528,9 @@ window.dbgGrotte=function(k,o){
     return {roche:roc,decors:dec,ou:ou.join(' ')};}
   if(k==='meteo'){grotteMeteo(o||'nuit',.01);GROTTE.cur=JSON.parse(JSON.stringify(GRT_MET[GROTTE.met]));GROTTE.k=1;const nm=grtBioNom(GROTTE.met,Math.max(0,GROTTE.salle));
     if(BIOMES[nm]){bioGo(nm,.01);BIO.k=0;bioStep(1);}grotteTick(0);return GROTTE.met;} // (tout de suite, même en pause : les photos)
+  if(k==='dens'&&o){const V=GROTTE.V;if(!V)return null;const x=o[0],y=o[1],z=o[2],i=Math.floor((x-V.ox)/V.B),j=Math.floor((y-V.oy)/V.B),kk=Math.floor((z-V.oz)/V.B),c=V.dir[(i>>4)+V.CX*((j>>4)+V.CY*(kk>>4))]; /* (banc) la densité et la case d'un point */
+    let q=-1;if(c>=0)q=V.si[c][((i&15)>>2)|(((j&15)>>2)<<2)|(((kk&15)>>2)<<4)];return {d:+grtDensIci(V,x,y,z).toFixed(1),case:grtIci(V,x,y,z),q:q,S:q>=0?Math.round(GROTTE.R.S[q]):null,sal:q>=0?GROTTE.R.SAL[q]:null,Y:q>=0?Math.round(GROTTE.R.Y[q]):null,
+      lacs:(GROTTE.lacs||[]).map(function(l){return [Math.round(l.y),Math.round(l.s0),Math.round(l.s1)];}),eaux:(GROTTE.eaux||[]).map(function(l){return [Math.round(l.y),Math.round(l.s0),Math.round(l.s1)];})};}
   if(k==='reprend'){if(paused)togglePause();return 'reprise';}
   if(k==='vue'&&o){if(started&&!gameOver&&!paused)togglePause();camera.position.fromArray(o.p);camera.up.set(0,1,0);camera.lookAt(new THREE.Vector3().fromArray(o.c));camera.updateMatrixWorld();
     if(o.fov){camera.fov=o.fov;camera.updateProjectionMatrix();}skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);
@@ -20350,7 +20539,7 @@ window.dbgGrotte=function(k,o){
     GRT_PU.uBoxC.value.copy(camera.position);if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return 'ok';}
   /* les PHOTOS (en pause) : 'salle' (o.k = mine|luxe|geode|stal|lave|abysse|fin, o.d m après l'entrée, o.h m de haut, o.r m en arrière) · 'puits' : du bord
      intérieur du premier tour, le regard sur le tour d'en dessous et la géode — le raccourci tel qu'on le voit avant de sauter */
-  if(k==='salle'){const R=GROTTE.R;if(!R)return 'pas de grotte';const sb=R.bornes[(o&&o.k)||'luxe'];if(sb==null)return 'pas de salle';
+  if(k==='salle'){const R=GROTTE.R;if(!R)return 'pas de grotte';const sb=o&&o.s!=null?o.s:R.bornes[(o&&o.k)||'luxe']; /* (o.s : une abscisse de la route, au lieu d'une salle) */if(sb==null)return 'pas de salle';
     const s9=Math.max(0,Math.min(L-1,sb+((o&&o.d)||60))),F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};frameAt(s9,F9);
     const r=(o&&o.r)||22,h=(o&&o.h)||9,p=F9.p.clone().addScaledVector(F9.t,-r).addScaledVector(F9.n,h),c=F9.p.clone().addScaledVector(F9.t,120).addScaledVector(F9.n,h*.4);
     const k9=grtSalleIci(s9),nm=grtBioNom(GROTTE.met,k9);if(BIOMES[nm]){bioGo(nm,.01);BIO.k=0;bioStep(1);}GROTTE.salle=k9;
@@ -20363,28 +20552,41 @@ window.dbgGrotte=function(k,o){
   return {on:!!GROTTE.root,met:GROTTE.met,salle:GROTTE.salle,ms:GROTTE.ms,msCreuse:GROTTE.msCreuse,msFile:Math.round(GROTTE.msFile||0),pret:GROTTE.pret,tm:GROTTE.tm,
     file:GROTTE.file?GROTTE.file.length-GROTTE.fi:0,n:GROTTE.n,conflits:GROTTE.conflits,croise:GROTTE.croise,L:Math.round(L),
     salles:GROTTE.R?GROTTE.R.bornes:null,spi:GROTTE.spi&&{R0:Math.round(GROTTE.spi.R0),R1:Math.round(GROTTE.spi.R1),tours:GROTTE.spi.tours,pas:Math.round(GROTTE.spi.pas),descente:Math.round(GROTTE.spi.y0-GROTTE.spi.y1)},
-    lac:GROTTE.lac&&Math.round(GROTTE.lac.y),eau:GROTTE.eau&&Math.round(GROTTE.eau.y),geode:GROTTE.puits&&Math.round(GROTTE.puits.rg)};};
+    lac:GROTTE.lac&&Math.round(GROTTE.lac.y),eau:GROTTE.eau&&Math.round(GROTTE.eau.y),geode:GROTTE.puits&&Math.round(GROTTE.puits.rg),
+    lacs:GROTTE.lacs&&GROTTE.lacs.length,ponts:GROTTE.R&&GROTTE.R.ponts,portes:GROTTE.R&&GROTTE.R.portes,piliers:GROTTE.piliers&&GROTTE.piliers.map(function(c){return [Math.round(c.x),Math.round(c.z),Math.round(c.r),c.k];}),hz:GROTTE.hz||null,deco:grtDecoTexte(GROTTE.deco)};}; /* (20/10) hz : LE TRACÉ AU HASARD · deco : LE DÉCOR AU HASARD */
 /* ---------------- LES AMBIANCES : une par salle et par météo (appelée après les biomes du volcan, une fois BIOMES né) ----------------
    La grammaire des nuits de la bible (deux températures : la brume froide et sombre, la lumière du lieu chaude ou colorée), la brume est la
    couleur de la grotte AU LOIN (jamais un gris : un teal profond, un violet, un ambre, un pourpre, un noir bleuté). Ciel = brume (on ne le voit
    jamais : la roche est partout). Puis LA RECETTE COMMUNE des maps (`grtConti`, après CONTI) : saturation, contraste, vignette, contre-jour
    rose, bitume commun, par temps — la grotte parle la langue des six autres. */
-function grtBiomes(){if(typeof BIOMES==='undefined'||!BIOMES.nuagesNuit)return;
-  const S={mine:{fog:[.07,.048,.033],hemiS:[.40,.32,.26],hemiG:[.34,.20,.10],fillC:[1,.58,.26],kickC:[1,.46,.30]},
+const GRT_BIO_S={mine:{fog:[.07,.048,.033],hemiS:[.40,.32,.26],hemiG:[.34,.20,.10],fillC:[1,.58,.26],kickC:[1,.46,.30]},
     luxe:{fog:[.028,.088,.074],hemiS:[.28,.48,.40],hemiG:[.22,.42,.14],fillC:[1,.58,.20],kickC:[.50,1,.70]},
     geode:{fog:[.074,.032,.13],hemiS:[.46,.32,.70],hemiG:[.36,.16,.52],fillC:[.78,.40,1],kickC:[1,.45,1]},
     stal:{fog:[.094,.066,.042],hemiS:[.50,.42,.32],hemiG:[.36,.26,.16],fillC:[1,.72,.40],kickC:[1,.56,.40]},
     lave:{fog:[.15,.04,.022],hemiS:[.38,.22,.30],hemiG:[.70,.18,.04],fillC:[1,.36,.08],kickC:[1,.30,.12]},
     abysse:{fog:[.01,.045,.06],hemiS:[.12,.30,.36],hemiG:[.04,.20,.24],fillC:[.12,.80,.90],kickC:[.30,.90,1]}};
-  const M={matin:{k:1,fogN:50,fogF:680,hemiI:.52,fillI:.34,expo:1,bloomS:.55,bloomT:.86},midi:{k:.9,fogN:60,fogF:740,hemiI:.46,fillI:.42,expo:1,bloomS:.66,bloomT:.82},
+const GRT_BIO_M={matin:{k:1,fogN:50,fogF:680,hemiI:.52,fillI:.34,expo:1,bloomS:.55,bloomT:.86},midi:{k:.9,fogN:60,fogF:740,hemiI:.46,fillI:.42,expo:1,bloomS:.66,bloomT:.82},
     soir:{k:1.05,fogN:50,fogF:640,hemiI:.5,fillI:.42,expo:.98,bloomS:.62,bloomT:.84},nuit:{k:.5,fogN:30,fogF:460,hemiI:.3,fillI:.26,expo:1,bloomS:.6,bloomT:.84}};
-  const hx=function(c,k){return '#'+c.map(function(v){return ('0'+Math.round(Math.min(1,Math.pow(Math.max(0,v*k),1/2.2))*255).toString(16)).slice(-2);}).join('');};
+function grtHx(c,k){return '#'+c.map(function(v){return ('0'+Math.round(Math.min(1,Math.pow(Math.max(0,v*k),1/2.2))*255).toString(16)).slice(-2);}).join('');}
+function grtBiomes(){if(typeof BIOMES==='undefined'||!BIOMES.nuagesNuit)return;
+  const S=GRT_BIO_S,M=GRT_BIO_M,hx=grtHx;
   for(const m in M)for(const k of GRT_SALLES){const a=S[k],b=M[m],kc=GRV.fogS[GRT_SALLES.indexOf(k)]*(k==='mine'?1:GRV.fogC),f=a.fog.map(function(v){return v*b.k*kc;}),sky=f.map(function(v){return v*.8;});
     BIOMES['grt-'+m+'-'+k]=bioMet(BIOMES.nuagesNuit,{nm:'GROTTE · '+k.toUpperCase()+' · '+m.toUpperCase(),jour:1,jZen:sky,jMid:sky,jHor:f,jSol:f,sunTint:[.5,.5,.6],sunHalo:0,stars:0,moon:0,city:0,
       fog:f,fogN:b.fogN*(k==='mine'?1:GRV.fog*GRV.fogN),fogF:b.fogF*(k==='mine'?1:GRV.fog),fogCj:f, /* (GROTTE VASTE) la mine, étroite, garde sa brume : au-delà, des tronçons cachés en moins */fogIn:f.map(function(v){return v*1.6;}),hemiS:a.hemiS,hemiG:a.hemiG,hemiI:b.hemiI,sunC:[.5,.5,.62],sunI:.12,fillC:a.fillC,fillI:b.fillI,kickC:a.kickC,kickI:.22,
       expo:b.expo,sat:1.04,con:1.16,rtK:1,wb:[1,1,1],sh:[0,.006,.02],hi:[.01,.004,-.004],daSh:.4,vigK:.46,vigC:[.01,.01,.03],bloomS:b.bloomS,bloomT:b.bloomT,rimK:.8,
       env:[[0,hx(f,.6)],[.3,hx(f,1.6)],[.48,hx(a.fillC,.35)],[.58,hx(a.fillC,.55)],[.66,hx(f,1.2)],[1,hx(f,.5)]],
       eS1:a.fillC.map(function(v){return Math.round(Math.min(1,v)*255);}).concat([.42]),eS2:a.kickC.map(function(v){return Math.round(Math.min(1,v)*255);}).concat([.26])});}}
+/* (LE DÉCOR AU HASARD) la géode d'une autre teinte : les COULEURS de ses quatre ambiances (brume, ciel, lumières, reflets) refaites en place — le reste
+   (la recette commune, la bulle de contre-jour) ne bouge pas ; g = null : celles de l'améthyste d'avant */
+function grtBioGeode(g){if(typeof BIOMES==='undefined')return;const a=g||GRT_BIO_S.geode,k='geode',kc=GRV.fogS[GRT_SALLES.indexOf(k)]*GRV.fogC;
+  for(const m in GRT_BIO_M){const B9=BIOMES['grt-'+m+'-'+k];if(!B9)continue;const b=GRT_BIO_M[m],f=a.fog.map(function(v){return v*b.k*kc;}),sky=f.map(function(v){return v*.8;});
+    Object.assign(B9,{jZen:sky,jMid:sky.slice(),jHor:f,jSol:f.slice(),fog:f.slice(),fogCj:f.slice(),fogIn:f.map(function(v){return v*1.6;}),hemiS:a.hemiS.slice(),hemiG:a.hemiG.slice(),fillC:a.fillC.slice(),
+      env:[[0,grtHx(f,.6)],[.3,grtHx(f,1.6)],[.48,grtHx(a.fillC,.35)],[.58,grtHx(a.fillC,.55)],[.66,grtHx(f,1.2)],[1,grtHx(f,.5)]],
+      eS1:a.fillC.map(function(v){return Math.round(Math.min(1,v)*255);}).concat([.42]),eS2:a.kickC.map(function(v){return Math.round(Math.min(1,v)*255);}).concat([.26])});}}
+let GRT_GEO_ACT=0;
+function grtDecoActive(){if(!GRT_DECO)return;const D=GROTTE.deco,w=D?D.geode.teinte:0;if(GRT_GEO_ACT===w)return;GRT_GEO_ACT=w;const g=GRT_GEO[w]; /* la géode de CETTE grotte entre en scène */
+  const mu=g?g.mur:GRT_MUR[2],so=g?g.sol:GRT_SOL[2];GRT_U.uMur.value[2].set(mu[0],mu[1],mu[2]);GRT_U.uSol.value[2].set(so[0],so[1],so[2]);
+  GRT_PART[2].c=(g?g.pa:[1,.55,1]).slice();grtBioGeode(g);}
 function grtConti(){for(const m of ['matin','midi','soir','nuit']){const r=CONTI.temps[m];if(!r)continue;for(const k of GRT_SALLES){const b=BIOMES['grt-'+m+'-'+k];if(!b)continue;
   for(const f in r)if(f!=='stars')b[f]=Array.isArray(r[f])?r[f].slice():r[f];}}}
 function grtTextes(){Object.assign(I18N,{'LES PROFONDEURS':'THE DEPTHS','LA ROCHE NE PARDONNE PAS':'THE ROCK NEVER FORGIVES','TORCHES':'TORCHES','CRISTAUX':'CRYSTALS','MAGMA':'MAGMA','NOIR COMPLET':'PITCH BLACK',

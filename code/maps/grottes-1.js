@@ -379,9 +379,14 @@ function grtPuits(V,R){const P=GROTTE.puits;if(!P)return;const B=V.B,K=GRT.K,EN=
    lave (ou l'eau) est le dessus de ce « sol » ; ses cases sont marquées 4 (5) pour la collision et la matière */
 function grtLacs(V,R){const LA=GROTTE.lacs||[],EA=GROTTE.eaux||[],B=V.B,K=GRT.K;if(!LA.length&&!EA.length)return;let yMax=-1e9;for(const l of LA.concat(EA))yMax=Math.max(yMax,l.y);yMax+=2*B; /* (AU HASARD) un lac par salle de lave, un d'eau par grotte luxuriante */
   for(let c=0;c<V.pool.length;c++){const d=V.cle[c],cj=((d/V.CX)|0)%V.CY,y0=V.oy+cj*16*B;if(y0>yMax)continue;const A=V.pool[c],DN=V.dn[c],SI=V.si[c];
+    /* (AU HASARD) les échantillons de route qui peuvent passer dans ce tronçon (en plan à moins de RH + B + 10 m, en hauteur dans sa tranche) : une liste courte, souvent vide */
+    let CD=null;if(GRT_HZ){const C9=16*B,x0=V.ox+(d%V.CX)*C9,z0=V.oz+((d/(V.CX*V.CY))|0)*C9,lm=ROAD_HALF+B+10;CD=[];
+      for(let a9=Math.floor((x0-lm)/48);a9<=Math.floor((x0+C9+lm)/48);a9++)for(let b9=Math.floor((z0-lm)/48);b9<=Math.floor((z0+C9+lm)/48);b9++){const L8=R.G.get(a9+','+b9);if(!L8)continue;
+        for(const q of L8){const Y=R.Y[q];if(Y+36<y0-B||Y-THICK-14>Math.min(y0+C9,yMax)+B)continue;if(R.X[q]<x0-lm||R.X[q]>x0+C9+lm||R.Z[q]<z0-lm||R.Z[q]>z0+C9+lm)continue;CD.push(q);}}}
     for(let o=0;o<4096;o++){if(DN[o]<=0)continue;const j=(o>>4)&15,cy=y0+(j+.5)*B,q=SI[((o&15)>>2)|((j>>2)<<2)|(((o>>8)>>2)<<4)];if(q<0)continue;const S=R.S[q];
       let L9=null,lv=false;for(const l of LA)if(S>=l.s0&&S<=l.s1){L9=l;lv=true;break;}if(!L9)for(const l of EA)if(S>=l.s0&&S<=l.s1){L9=l;break;}if(!L9||cy>L9.y+2*B)continue;
-      if(GRT_HZ&&!grtLibre(R,V.ox+(((d%V.CX)*16+(o&15))+.5)*B,V.oz+(((d/(V.CX*V.CY)|0)*16+(o>>8))+.5)*B,cy-B,cy+B,B))continue; /* (AU HASARD, banc du 20/10) une route qui repasse PLUS BAS sous la salle d'un lac
+      if(CD&&CD.length){const x=V.ox+(((d%V.CX)*16+(o&15))+.5)*B,z=V.oz+(((d/(V.CX*V.CY)|0)*16+(o>>8))+.5)*B,lm=ROAD_HALF+B+10;let pres=false;
+        for(const q of CD){if((R.X[q]-x)**2+(R.Z[q]-z)**2>lm*lm)continue;if(!(cy-B>R.Y[q]+36||cy+B<R.Y[q]-THICK-14)){pres=true;break;}}if(pres)continue;} /* (AU HASARD, banc du 20/10) une route qui repasse PLUS BAS sous la salle d'un lac
         (le tire-bouchon, une salle qui revient) : la case la plus proche d'un échantillon d'en haut se remplissait de lave sur elle — jamais près d'une route */
       const dv=Math.max(-127,Math.round((cy-L9.y)*K));if(dv<DN[o])DN[o]=dv;if(cy<L9.y&&A[o]===1){A[o]=lv?4:5;V.nAir--;}}}}
 /* LES PILIERS (après les lacs) : des colonnes de BASALTE qui sortent de la lave jusqu'à la voûte, des COLONNES de concrétion (en sablier) dans la
