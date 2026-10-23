@@ -152,5 +152,13 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {p:1500000}, // 88 — RÉSERVÉE, LIBRE (prix provisoire)
+  {p:3500000}, // 88 — ÉPIQUE : LA ZAGAIE, la 5-95 de Zagato (2026-10-22, Léo : « zagato imite exactement la forme de la voiture orange ») — prix provisoire (entre L'ICEBERG et ROSSO 40, la caisse de rêve à 4 M : un exemplaire unique)
+  /* · */
+  /* · */
+  /* · */
+  {p:5000000}, // 89 — LÉGENDAIRE : LE LOUP, la Countach blanche du film (2026-10-22, Léo : « genere la blanche ressemblance 11/10 ») — prix provisoire (la caisse la plus chère de la boutique à pièces)
+  /* · */
+  /* · */
+  /* · */
+  {p:1500000}, // 90 — RÉSERVÉE, LIBRE (prix provisoire)
 ]

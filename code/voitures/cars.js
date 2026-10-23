@@ -257,7 +257,17 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {retire:1,name:'NOUVELLE 88',shape:'epave',rar:'epique', // 88 — RÉSERVÉE, LIBRE (18/10 : la Classe G prévue ici, Léo : « enlève la Classe G ») — la prochaine caisse la prend
+ {name:'LA ZAGAIE',shape:'zagato',color:0xc7753c,accent:0x2a2c31,maxKmh:500,accel:58,turn:3.1,h:1.17,w:1.93,l:4.22,spoiler:0,rar:'epique', // 88 — (2026-10-22, Léo : « zagato imite exactement la forme de la voiture orange ») la 5-95 de Zagato (2014, un exemplaire) : gueule creuse, vitrage noir qui s'enroule, nacelle de toit, queue coupée net, cuivre mat (SHAPES.zagato)
+  desc:'Une pièce unique, taillée comme une lance : la gueule grande ouverte, le toit noir qui s\'enroule, la queue coupée net.'},
+ /* · */
+ /* · */
+ /* · */
+ {name:'LE LOUP',shape:'countach',color:0xb4b9c2,accent:0x2a2c31,maxKmh:500,accel:58,turn:3.0,h:1.07,w:2.0,l:4.46,spoiler:0,rar:'legendaire', // 89 — (2026-10-22, Léo : « genere la blanche ressemblance 11/10 ») la Countach blanche du film, l'ÉPAVE : aile avant gauche écrasée et son phare entrouvert, phare droit arraché, pare-chocs déchiré et sa lame basse qui pend, portière et quartiers froissés, portes à ciseaux (SHAPES.countach ; `?epave=0` : la Countach intacte)
+  desc:'Blanche, basse, taillée à la hache, et passée sous un camion. Les portes se lèvent encore.'},
+ /* · */
+ /* · */
+ /* · */
+ {retire:1,name:'NOUVELLE 90',shape:'epave',rar:'epique', // 90 — RÉSERVÉE, LIBRE (22/10 : LE LOUP a pris la 89) — la prochaine caisse la prend
   desc:'(place réservée)'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
