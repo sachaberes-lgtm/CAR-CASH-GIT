@@ -32868,6 +32868,452 @@ Object.assign(SHAPES,{
   }
 });
 /* ===== LA GAMME DES 50 — FIN ===== */
+/* LES CAISSES RETIRÉES QUI REVIENNENT COMME RÉCOMPENSES DE MISSION (2026-10-16, Sacha : « TAXI JAUNE, SANS-PERMIS, GRILLE-PAIN, BOULE,
+   COMÈTE, GLACIER, DEUCHE et DÉESSE portent retire:1 dans CARS. Retrouve leur modèle dans l'historique git ; elles reviennent dans le jeu, mais
+   uniquement comme récompenses de mission ») : leurs gabarits, tels qu'effacés le 14/10 (44e3f785, « lot C ») — repris de f16dc691, sans
+   retouche. Leur ligne de CARS garde `retire:1` : c'est le patch des MISSIONS v2 (après CAR_UNLOCK) qui les fait revenir, seulement en v2 et
+   seulement si le gabarit existe (`revenue:1`). COMÈTE n'en a pas besoin : son gabarit `proto` n'avait jamais été effacé. */
+Object.assign(SHAPES,{
+  a_taxi:function(K){
+  /* LE TAXI JAUNE — la grosse propulsion de Manhattan : trois volumes interminables, calandre chromée
+     en caisson, le lumineux sur le toit, le DAMIER noir et blanc sur les flancs, pare-chocs de tank. */
+  const U=LPU,R=.34,ZF=1.62,ZR=-1.29;
+  const P=K.kit({p:{g:'p',c:0xffc61a},n:{g:'p',c:0x141414,f:0},w:{g:'p',c:0xf4f2ec,f:0},k:{g:'m',c:0x141518},
+    K:{g:'g',c:0x0c0d10},c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1b2733},W:{g:'l',c:0xfff3d6},T:{g:'l',c:0xfff0b8},
+    L:{g:'l',c:0xff1f2e},r:{g:'l',c:0x8a0d16},O:{g:'l',c:0xffa21a}});
+  const AR=[[0,2*R+.05],[R*.60,2*R+.03],[R*.98,R*1.18],[R+.12,.32]];
+  const CW=1.32,RF=.52,RR=-.78,RB=-1.46;
+  const zs=[-2.62,-2.54,-2.34,RB,RR,-.52,-.02,.08,RF,CW,2.26,2.54,2.62];
+  for(const w of [ZF,ZR])for(const d of [R*.60,R*.98,R+.12])zs.push(w-d,w+d);
+  zs.sort((a,b)=>a-b);
+  const yC=z=>U.lin([[-2.62,.94],[-2.54,1.00],[-2.34,1.02],[RB,1.04],[RR,1.42],[-.60,1.44],[RF,1.44],[CW,1.00],[2.26,.96],[2.54,.92],[2.62,.82]],z),
+        xW=z=>U.lin([[-2.62,.92],[-2.48,.96],[2.40,.96],[2.62,.90]],z),cab=z=>z>RB-.001&&z<CW+.001;
+  P.loft(zs,z=>{
+    const yb=U.arch(z,[ZF,ZR],AR,.32),c=yC(z),xw=xW(z),y2=Math.max(.58,yb+.06);
+    if(cab(z)){const xr=U.lin([[RB,.84],[RR,.74],[RF,.74],[CW,.84]],z);
+      return [[0,yb],[xw-.07,yb],[xw,y2],[xw,.90],[xw-.03,1.00],[xw-.08,1.02],[xr,Math.max(1.03,c-.06)],[xr-.10,c],[0,c+.015]];}
+    const y4=Math.min(1.00,c-.03);
+    return [[0,yb],[xw-.07,yb],[xw,y2],[xw,Math.min(.90,c-.10)],[xw-.03,y4],[xw-.10,Math.max(y4+.002,c-.01)],[xw-.30,c],[xw-.62,c+.006],[0,c+.01]];
+  },(j,z)=>{
+    if(j===0)return 'k';
+    if(j===5&&cab(z)){if(z>.08&&z<1.26)return 'g';if(z>-.52&&z<-.02)return 'g';if(z>-.02&&z<.08)return 'K';return 'p';}
+    if(j===7&&((z>RF&&z<CW)||(z>RB&&z<RR)))return 'g';
+    return 'p';});
+  /* LE DAMIER : bande blanche, carreaux noirs posés à plat sur le flanc */
+  const sq=.09,z0=-1.02,nC=24;
+  P.sym(sd=>{const x=sd*.966;
+    P.box('w',.004,2*sq+.02,nC*sq+.02,sd*.960,.80,z0+nC*sq/2);
+    for(let i=0;i<nC;i++)for(let r=0;r<2;r++){if((i+r)%2)continue;
+      const za=z0+i*sq,zb=za+sq,ya=.80-sq+r*sq,yb2=ya+sq;
+      P.tri('n',[x,ya,za],[x,ya,zb],[x,yb2,zb]);P.tri('n',[x,ya,za],[x,yb2,zb],[x,yb2,za]);}
+  });
+  /* LA FACE : calandre-caisson chromée, phares rectangulaires, pare-chocs de tank */
+  P.plate('c',[[-.44,.60],[.44,.60],[.50,.66],[.50,.88],[.44,.94],[-.44,.94],[-.50,.88],[-.50,.66]],.03,2.61);
+  P.plate('K',[[-.42,.63],[.42,.63],[.46,.68],[.46,.86],[.42,.90],[-.42,.90],[-.46,.86],[-.46,.68]],.02,2.635);
+  for(let i=0;i<2;i++)P.box('c',.90,.02,.02,0,.72+i*.09,2.655);
+  for(let i=-2;i<=2;i++)P.box('c',.02,.26,.02,i*.18,.77,2.655);
+  P.box('p',1.90,.26,.20,0,.44,2.60);P.box('n',1.94,.08,.04,0,.48,2.695);P.box('k',1.50,.08,.03,0,.34,2.702);
+  P.box('p',1.88,.28,.20,0,.46,-2.60);P.box('n',1.92,.08,.04,0,.50,-2.695);
+  P.sym(sd=>{
+    P.box('k',.36,.18,.02,sd*.72,.80,2.622);P.box('W',.32,.14,.03,sd*.72,.80,2.625);
+    P.box('O',.03,.12,.20,sd*.955,.80,2.48);P.box('O',.10,.06,.02,sd*.60,.62,2.705);
+    /* feux arrière enveloppants et le catadioptre central */
+    P.box('L',.44,.20,.03,sd*.70,.86,-2.625);P.box('L',.03,.20,.18,sd*.935,.86,-2.52);
+    P.box('W',.12,.08,.035,sd*.58,.86,-2.628);
+    P.box('K',.08,.30,.03,sd*.80,1.16,.54,0,0,0);
+    /* rétros, poignées, joncs chromés de caisse */
+    P.box('k',.06,.05,.10,sd*.93,1.05,1.18);P.box('k',.08,.13,.18,sd*.97,1.08,1.16);
+    P.box('c',.03,.03,.16,sd*.965,.98,.62);P.box('c',.03,.03,.16,sd*.965,.98,-.36);
+    P.box('c',.012,.02,2.66,sd*.958,.975,-.08);
+    for(const z of [1.30,.06,-.52])P.box('k',.012,.36,.012,sd*.962,.84,z);
+    P.cyl('c',.05,.10,8,sd*.44,.36,-2.67,'z');
+  });
+  P.box('r',.46,.16,.02,0,.86,-2.625);
+  /* LE LUMINEUX DE TOIT, sur son socle noir */
+  P.box('n',.86,.05,.30,0,1.475,-.10);
+  P.prism('T',[[-.16,1.50],[.16,1.50],[.10,1.68],[-.10,1.68]],.78,0);
+  P.prism('n',[[-.11,1.68],[.11,1.68],[.10,1.70],[-.10,1.70]],.80,0);
+  P.sym(sd=>P.prism('n',[[-.16,1.50],[.16,1.50],[.10,1.68],[-.10,1.68]],.02,sd*.40));
+  K.commit(P);
+  return {hl:[.72,.80,2.64],tl:[.70,.86,-2.64],wx:.83,wzF:ZF,wzR:-ZR,
+          lpw:{R:R,w:.24,style:'enjoliveur',jante:0xd6dade}};
+ },
+  d_sanspermis:function(K){
+  const U=LPU,R=.24,ZF=.86,ZR=-.86;
+  const P=K.kit({p:{g:'p',c:0xf2f2f2},b:{g:'p',c:0x2a6ad8,f:0},n:{g:'m',c:0x30343b},k:{g:'m',c:0x141518},K:{g:'g',c:0x0b0c10},
+    c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1b2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
+  const AR=[[0,2*R+.08],[R*.80,2*R+.06],[R+.10,R*1.15],[R+.16,.26]];
+  const zs=[-1.40,-1.36,-1.31,-1.30,-1.24,-1.05,-.46,-.38,.12,.60,.72,1.05,1.24,1.30,1.31,1.36,1.40];
+  for(const w of [ZF,ZR])for(const d of [R*.80,R+.10,R+.16])zs.push(w-d,w+d);
+  zs.sort((a,b)=>a-b);
+  const yC=z=>U.lin([[-1.30,1.40],[-1.24,1.47],[-1.05,1.50],[.12,1.50],[.72,1.00],[1.05,.90],[1.24,.86],[1.30,.84]],z),
+        yB=z=>U.lin([[-1.30,.98],[.12,.97],[.72,.96],[1.05,.87],[1.24,.82],[1.30,.80]],z),
+        xW=z=>U.lin([[-1.40,.62],[-1.36,.70],[-1.30,.72],[-1.18,.74],[1.12,.74],[1.30,.72],[1.36,.70],[1.40,.62]],z),
+        xR=z=>U.lin([[-1.30,.58],[-1.24,.61],[.12,.62],[.72,.68]],z),
+        flare=z=>Math.abs(z-ZF)<R+.13||Math.abs(z-ZR)<R+.13,
+        bout=z=>Math.abs(z)>1.308;
+  P.loft(zs,z=>{
+    const yb=U.arch(z,[ZF,ZR],AR,.26),xw=xW(z);
+    if(bout(z)){const t=Math.abs(z)>1.38?.04:0;                              // LE PARE-CHOCS seul : la section s'écrase sur lui
+      return [[0,yb],[xw-.06,yb],[xw+.02-t,.32],[xw+.03-t,.46],[xw+.01-t,.57],[xw-.05,.595],[xw-.20,.60],[.40,.603],[.20,.605],[.08,.606],[0,.607]];}
+    const c=yC(z),b=Math.max(yB(z),yb+.16);
+    const y3=Math.min(Math.max(yb+.06,.72),b-.03),y2=Math.min(Math.max(yb+.03,.37),y3-.03);
+    const s=[[0,yb],[xw-.06,yb],[xw,y2],[xw+.012,y3],[xw-.005,b],[xw-.05,b+.02]];
+    if(z<.72){const xr=xR(z),y6=Math.max(c-.05,b+.03);
+      s.push([xr,y6],[xr-.12,Math.max(y6+.004,c-.012)],[.20,c-.002],[.08,c],[0,c+.002]);}
+    else s.push([xw-.14,b+.02],[xw-.30,Math.max(b+.03,c-.02)],[.20,Math.max(b+.035,c-.006)],[.08,Math.max(b+.04,c-.002)],[0,Math.max(b+.04,c)]);
+    return s;
+  },(j,z)=>{
+    if(j===0)return 'k';
+    if(j<0||bout(z))return 'n';                                              // les boucliers de plastique
+    if(Math.abs(z)>1.30)return j<=2?'n':'p';                                 // la face et le hayon, à pic
+    if(j===1)return 'n';                                                     // bas de caisse en plastique
+    if(j===2)return flare(z)?'n':'p';                                        // les élargisseurs
+    if(j<=4)return 'p';
+    if(z>=.72)return j===8?'b':'p';                                          // capot, et ses bandes
+    if(j===5){if(z<-1.20||(z>-.46&&z<-.38))return 'p';return z<.60?'g':'p';} // vitres, montants
+    if(z>.12)return 'g';                                                     // pare-brise droit comme un i
+    return j===8?'b':'p';});
+  // LA FACE NAÏVE : deux gros yeux ronds, la fente
+  P.sym(sd=>{
+    P.cyl('K',.14,.02,12,sd*.43,.705,1.305,'z');P.cyl('c',.12,.03,12,sd*.43,.705,1.31,'z');P.cyl('W',.097,.04,12,sd*.43,.705,1.315,'z');
+    P.box('O',.09,.05,.03,sd*.63,.66,1.31);
+    P.box('b',.03,.07,.12,sd*.80,1.03,.64);P.box('k',.06,.03,.04,sd*.765,1.00,.64); // rétros bleus
+    P.box('k',.02,.03,.12,sd*.748,.88,-.20);                                // poignée
+    P.box('K',.13,.24,.03,sd*.54,.78,-1.31);P.box('L',.10,.14,.03,sd*.54,.82,-1.318);P.box('O',.10,.06,.03,sd*.54,.71,-1.318);
+    P.box('b',.12,.32,.02,sd*.14,.80,-1.31);                                 // les bandes descendent le hayon
+    P.box('p',.04,.06,.10,sd*.40,1.46,-1.23);                                // pieds du becquet
+    P.box('k',.12,.07,.012,sd*.40,.50,1.40);
+    P.box('n',.03,.06,2.00,sd*.745,.64,-.02);                                // le jonc de plastique anti-portières                                 // prises du bouclier
+    P.cyl('c',.03,.04,8,sd*.30,.30,-1.39,'z');
+  });
+  P.box('k',.36,.07,.03,0,.72,1.31);P.box('c',.24,.012,.02,0,.72,1.325);
+  P.box('k',.56,.06,.012,0,.40,1.40);P.box('k',.30,.10,.012,0,.44,-1.40);
+  P.box('g',.98,.30,.03,0,1.16,-1.31);                                      // la lunette
+  P.box('p',1.00,.035,.18,0,1.50,-1.23,-.20);                              // LE BECQUET, fier comme tout
+  P.box('k',.50,.02,.03,0,1.03,.73,-.9);                                    // l'essuie-glace unique
+  K.commit(P);
+  return {hl:[.43,.70,1.33],tl:[.54,.82,-1.33],wx:.64,wzF:ZF,wzR:-ZR,
+          lpw:{R:R,w:.16,style:'rayons',n:4,jante:0xdadde2,accent:0xdadde2}};
+},
+  d_grillepain:function(K){
+  const U=LPU,R=.30,ZF=.86,ZR=-.95;
+  const P=K.kit({p:{g:'p',c:0xff8a1e},T:{g:'p',c:0x7c8490},k:{g:'m',c:0x151619},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},
+    g:{g:'g',c:0x1b2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
+  const AR=[[0,2*R+.05],[R*.62,2*R+.01],[R*.98,R*1.16],[R+.10,.26]];
+  const zs=[-1.35,-1.31,-1.27,-1.18,-1.06,-.62,-.40,-.10,.02,.62,.78,1.10,1.22,1.30,1.35];
+  for(const w of [ZF,ZR])for(const d of [R*.62,R*.98,R+.10])zs.push(w-d,w+d);
+  zs.sort((a,b)=>a-b);
+  const zs2=zs.filter((z,i)=>i===0||z-zs[i-1]>.005);
+  const yC=z=>U.lin([[-1.35,1.03],[-1.31,1.26],[-1.27,1.43],[-1.18,1.52],[-1.06,1.545],[-.40,1.555],[.02,1.545],[.78,1.02],[1.10,.88],[1.22,.83],[1.30,.74],[1.35,.60]],z),
+        yB=z=>U.lin([[-1.35,.98],[-.40,.99],[.62,.97],[.78,.95],[1.10,.84],[1.22,.78],[1.30,.70],[1.35,.58]],z),
+        xW=z=>U.lin([[-1.35,.66],[-1.31,.72],[-1.24,.75],[-1.10,.77],[.90,.77],[1.10,.75],[1.22,.71],[1.30,.64],[1.35,.54]],z),
+        xR=z=>U.lin([[-1.35,.54],[-1.31,.58],[-1.27,.61],[-1.18,.63],[-1.06,.64],[.02,.64],[.78,.70],[1.10,.66],[1.22,.60],[1.30,.52],[1.35,.44]],z);
+  P.loft(zs2,z=>{
+    const yb=U.arch(z,[ZF,ZR],AR,.26),xw=xW(z),c=yC(z),b=Math.max(yB(z),yb+.14);
+    const y3=Math.min(Math.max(yb+.06,.72),b-.03),y2=Math.min(Math.max(yb+.03,.44),y3-.03);
+    const s=[[0,yb],[xw-.06,yb],[xw,y2],[xw+.012,y3],[xw-.005,b]];
+    const xr=xR(z),y6=Math.max(c-.05,b+.03),y7=Math.max(y6+.004,c-.005);   // une seule section : le capot prolonge le pavillon sans vriller
+    s.push([xw-.05,b+.025],[xr,y6],[xr-.13,y7],[0,Math.max(y7+.004,c+.01)]);
+    return s;
+  },(j,z)=>{
+    if(j===0)return 'k';
+    if(j<0)return j===-2?'T':'p';
+    if(j===1)return z>1.02?'p':'T';                                          // le bas de caisse : la cellule
+    if(z>=.78)return 'p';                                                    // le capot
+    if(j<=3)return ((z>-.62&&z<-.40)||z<-1.24)?'T':'p';                      // le pilier B descend jusqu'au seuil
+    if(j===4||(j===5&&z<-.40))return ((z>-.62&&z<-.40)||z<-1.24)?'T':'p'; // l'arceau argent, le custode orange
+    if(j===5)return z<.62?'g':'k';                                           // vitre de portière
+    if(z<-1.18)return 'g';                                                   // le hayon vitré, qui s'enroule dans le toit
+    if(j===6)return z<.02?'T':'g';                                           // l'arceau de toit… puis le pare-brise
+    return (z>-1.06&&z<-.10)?'K':(z<.02?'T':'g');});                         // toit de verre fumé, cerclé d'argent
+  // LA FACE : deux gros yeux sur les coins, la bouche noire, le bouclier à prise d'air
+  P.sym(sd=>{
+    P.box('K',.32,.23,.03,sd*.50,.836,1.217,-.95,sd*.25,0);                  // les yeux, couchés sur la pente du nez
+    P.box('W',.25,.15,.03,sd*.505,.848,1.228,-.95,sd*.25,0);
+    P.box('O',.10,.035,.03,sd*.56,.795,1.285,-.95,sd*.25,0);
+    P.cyl('k',.05,.03,10,sd*.40,.38,1.35,'z');P.cyl('W',.035,.035,10,sd*.40,.38,1.355,'z'); // antibrouillards
+    P.box('k',.012,.46,.015,sd*.785,.74,.58);                               // la découpe de portière
+    P.box('k',.02,.10,.26,sd*.782,.86,-.84);                                 // la prise d'air moteur
+    P.box('p',.08,.09,.14,sd*.80,1.04,.66);P.box('k',.06,.03,.05,sd*.76,1.00,.66); // rétro
+    P.box('c',.02,.03,.13,sd*.792,.90,-.24);                                 // poignée
+    P.box('K',.13,.30,.03,sd*.555,.86,-1.355);P.box('L',.09,.18,.03,sd*.555,.92,-1.365);P.box('O',.09,.06,.03,sd*.555,.77,-1.365); // feux verticaux dans la cellule
+    P.box('k',.035,.91,.045,sd*.67,1.25,.40,-.99);                           // montant de pare-brise
+    P.cyl('c',.035,.06,8,sd*.34,.36,-1.36,'z');
+  });
+  P.plate('k',[[-.22,.46],[.22,.46],[.26,.56],[.20,.59],[-.20,.59],[-.26,.56]],.02,1.35);
+  for(const y of [.50,.545])P.box('c',.40,.014,.02,0,y,1.37);
+  P.box('k',.70,.07,.03,0,.31,1.345);
+  P.box('p',.86,.32,.03,0,.72,-1.357);                                       // le panneau de hayon
+  P.box('k',1.20,.12,.06,0,.34,-1.34);
+  K.commit(P);
+  return {hl:[.51,.80,1.26],tl:[.555,.92,-1.37],wx:.66,wzF:ZF,wzR:-ZR,
+          lpw:{R:R,w:.22,style:'rayons',n:3,jante:0xd6dade,accent:0xd6dade}};
+},
+  c_boule:function(K){
+  const U=LPU,R=.29,ZF=1.06,ZR=-1.28,LF=1.715;
+  const P=K.kit({p:{g:'p',c:0x46d06e},a:{g:'s',c:0x555a61},k:{g:'m',c:0x131417},K:{g:'g',c:0x0b0c10},
+    c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
+  const AR=[[0,2*R+.06],[R*.62,2*R+.04],[R*.98,R*1.30],[R+.13,.22]];      // arche RONDE
+  const zs=[-LF,-1.68,-1.62,-1.46,-1.30,-1.02,-.62,-.50,.15,.95,1.25,1.50,1.62,1.68,LF];
+  for(const w of [ZF,ZR])for(const d of [R*.62,R*.98,R+.13])zs.push(w-d,w+d);
+  zs.sort((a,b)=>a-b);
+  const yC=z=>U.lin([[-LF,.52],[-1.68,.72],[-1.62,.86],[-1.46,1.13],[-1.30,1.30],[-1.02,1.38],[-.40,1.42],[.15,1.36],
+                     [.95,.92],[1.25,.85],[1.50,.79],[1.62,.72],[1.68,.62],[LF,.50]],z),
+        yB=z=>U.lin([[-LF,.48],[-1.68,.70],[-1.62,.84],[-1.30,.97],[.95,.90],[1.25,.81],[1.55,.74],[1.68,.60],[LF,.48]],z),
+        xW=z=>U.lin([[-LF,.70],[-1.66,.78],[-1.50,.805],[1.40,.805],[1.62,.77],[LF,.68]],z),
+        xR=z=>U.lin([[-1.62,.56],[-1.30,.62],[.15,.63],[.95,.72],[1.30,.58],[LF,.46]],z),
+        dR=z=>U.lin([[.15,.07],[.95,.06],[1.25,.03]],z),
+        cab=z=>z>-1.63&&z<.96;
+  P.loft(zs,z=>{
+    const yb=U.arch(z,[ZF,ZR],AR,.20),xw=xW(z),c=yC(z),B=yB(z),y2=Math.max(.36,yb+.05);
+    const ym=Math.max(y2+.01,Math.min(.62,B-.12)),y5=B+.02,y6=Math.max(y5+.004,c-dR(z)),
+          y7=Math.max(y6+.003,c-.015),y8=Math.max(y7+.002,c),xr=xR(z);
+    return [[0,yb],[xw-.07,yb],[xw,y2],[xw,ym],[xw-.035,B],[xw-.075,y5],[xr,y6],[xr*.55,y7],[0,y8]];
+  },(j,z)=>{
+    const bump=z>1.50||z<-1.58;
+    if(j<0)return 'a';
+    if(j===0)return 'k';
+    if(j<=2)return bump?'a':(j===1?'k':'p');
+    if(j===5&&cab(z))return (z>-1.28&&z<.78)?((z>-.62&&z<-.50)?'K':'g'):'p';     // vitres, montant B noir
+    if(j===7&&z>-1.05&&z<.16)return 'a';                                       // la toile du toit ouvrant
+    if(j>=6&&((z>.16&&z<.94)||(z>-1.63&&z<-1.29)))return 'g';                  // pare-brise, lunette de hayon
+    return 'p';});
+  // LES YEUX DE GRENOUILLE : deux dômes qui crèvent la ligne du capot, sertis d'un anneau gris
+  const dome=new THREE.SphereGeometry(1,10,4,0,Math.PI*2,0,Math.PI/2);
+  P.sym(sd=>{
+    P.put('W',dome.clone(),sd*.53,.70,1.59,1.10,0,0,.20,.085,.14);
+    P.put('k',dome.clone(),sd*.53,.70,1.58,1.10,0,0,.225,.02,.162);          // le liseré noir de l'oeil
+  });
+  dome.dispose();
+  // LE SOURIRE : une fente en croissant dans le bouclier, et la petite bouche sous le capot
+  {const s=[];for(let i=0;i<=8;i++){const t=i/4-1;s.push([.34*t,.31+.08*t*t]);}
+   for(let i=8;i>=0;i--){const t=i/4-1;s.push([.34*t,.365+.055*t*t]);}
+   P.plate('k',s,.02,LF-.012);}
+  P.box('k',.46,.035,.03,0,.62,1.672,.5);
+  P.sym(sd=>{
+    P.box('O',.10,.05,.03,sd*.60,.44,1.70);                                  // clignotants dans le bouclier
+    P.box('k',.10,.09,.06,sd*.83,1.00,.82);P.box('k',.05,.04,.08,sd*.79,.97,.86); // rétro
+    P.box('k',.02,.035,.12,sd*.81,.86,-.40);                                  // poignée
+    P.box('L',.11,.28,.03,sd*.65,.80,-1.665,-.12);P.box('O',.11,.08,.03,sd*.65,.61,-1.69,-.12); // feux verticaux
+    P.box('a',.02,.06,1.60,sd*.815,.56,-.14);                                 // jonc de protection gris
+    P.cyl('c',.035,.07,8,sd*.36,.30,-1.72,'z');                               // les pots
+  });
+  P.box('k',.36,.025,.03,.08,yC(-1.55)+.015,-1.55,-.95);                       // essuie-glace arrière
+  // LE TOIT EN TOILE replié : la petite folie des versions « ciel ouvert »
+  P.box('K',1.06,.035,.10,0,yC(-1.31)+.01,-1.31,-.25);                          // la visière noire du hayon
+  for(const z of [-.80,-.56,-.32,-.08])P.box('k',.70,.02,.035,0,yC(z)+.004,z);
+  P.box('a',.74,.05,.12,0,yC(-.96)+.02,-.96);
+  P.box('K',.44,.14,.02,0,.62,-1.70);                                          // le logement de plaque
+  K.commit(P);
+  return {hl:[.53,.72,1.68],tl:[.64,.78,-1.69],wx:.70,wzF:ZF,wzR:-ZR,
+          lpw:{R:R,w:.22,style:'cadran',jante:0xc4c9cf}};
+},
+  c_glacier:function(K){
+  const U=LPU,R=.37,ZF=1.72,ZR=-1.42,LF=2.50;
+  const P=K.kit({p:{g:'p',c:0xff7eb6},u:{g:'p',c:0xfff8ee,f:0},k:{g:'m',c:0x16171b},K:{g:'g',c:0x0b0c10},
+    c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1c2733},y:{g:'s',c:0xd08a38},Y:{g:'s',c:0x7a4718},r:{g:'p',c:0xff3d88,f:0},
+    m:{g:'p',c:0x2fc793,f:0},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},C:{g:'l',c:0xff2448}});
+  const AR=[[0,2*R+.07],[R*.92,2*R+.05],[R+.12,.40]];                         // arche CARRÉE d'utilitaire
+  const zs=[-LF,-2.44,-2.32,.95,1.10,1.28,1.45,1.95,2.30,2.44,LF];
+  for(const w of [ZF,ZR])for(const d of [R*.92,R+.12])zs.push(w-d,w+d);
+  zs.sort((a,b)=>a-b);
+  const top=z=>U.lin([[-LF,1.74],[-2.44,1.82],[-2.32,1.84],[.95,1.84],[1.10,1.82],[1.28,1.78],[1.45,1.68],[1.95,1.14],[2.30,1.06],[2.44,.96],[LF,.84]],z),
+        yT=z=>U.lin([[-LF,1.66],[-2.44,1.71],[.95,1.73],[1.10,1.71],[1.28,1.67],[1.45,1.60],[1.95,1.12],[2.30,1.02],[2.44,.92],[LF,.82]],z),
+        yB=z=>U.lin([[-LF,1.06],[1.95,1.08],[2.30,1.00],[2.44,.90],[LF,.80]],z),
+        xW=z=>U.lin([[-LF,.93],[-2.44,1.00],[.95,1.00],[1.10,.97],[2.30,.97],[2.44,.94],[LF,.88]],z);
+  P.loft(zs,z=>{
+    const yb=U.arch(z,[ZF,ZR],AR,.40),xw=xW(z),y2=Math.max(.48,yb+.08),B=yB(z),T=Math.max(B+.01,yT(z)),c=Math.max(T+.02,top(z));
+    return [[0,yb],[xw-.06,yb],[xw,y2],[xw,Math.max(y2+.01,.80)],[xw,B],[xw-.015,T],[xw-.14,c-.015],[0,c]];
+  },(j,z)=>{
+    if(j===0||j===1)return 'k';
+    if(j<0)return 'p';
+    if(j===4&&z>1.10&&z<1.90)return (z>1.40&&z<1.50)?'p':'g';                 // vitres de cabine
+    if(j>=5&&z>1.42&&z<1.96)return 'g';                                        // pare-brise
+    if(j>=5&&z<1.40)return 'u';                                                // le toit : la crème
+    return 'p';});
+  // LA CRÈME QUI DÉGOULINE : une nappe blanche festonnée de coulures sous le rebord du toit
+  const drip=(z0,z1,seed)=>{const s=[[z1,1.735],[z0,1.735]];let z=z0,i=seed;
+    while(z<z1-.05){const w=Math.min(.42,z1-z),l=[.10,.30,.16,.38,.20,.26][i%6];i++;
+      s.push([z,1.60],[z+w*.25,1.60-l*.7],[z+w*.5,1.60-l-.03],[z+w*.75,1.60-l*.7],[z+w,1.60]);z+=w;}
+    return s;};
+  P.sym(sd=>{
+    if(sd<0)P.prism('u',drip(-2.40,.95,0),.012,sd*1.006);
+    else{P.prism('u',drip(-2.40,-1.34,2),.012,sd*1.006);P.prism('u',drip(.66,1.00,4),.012,sd*1.006);}
+    P.box('k',.02,.06,3.30,sd*1.008,.62,-.62);                                // jonc de protection
+  });
+  P.plate('u',[[-.95,1.60],[.95,1.60],[.95,1.735],[-.95,1.735]],.012,-2.513);  // la nappe fait le tour
+  // LE GROS CORNET PEINT sur le flanc (côté route) : gaufrette, deux boules, la pointe de crème
+  P.prism('y',[[-.10,.74],[.16,1.30],[-.36,1.30]],.012,-1.008);
+  for(let i=0;i<3;i++)P.prism('Y',[[-.10+(i-1)*.12,.80+i*.02],[-.10+(i-1)*.12+.03,1.28-i*.02],[-.10+(i-1)*.12+.012,1.28-i*.02],[-.10+(i-1)*.12-.018,.80+i*.02]],.004,-1.016);
+  const bo=(zc,yc,r,n)=>{const s=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2;s.push([zc+Math.cos(a)*r,yc+Math.sin(a)*r]);}return s;};
+  P.prism('r',bo(-.10,1.36,.21,8),.012,-1.010);P.prism('m',bo(-.10,1.54,.16,8),.012,-1.014);
+  // LE GUICHET (côté trottoir) : l'ouverture, son cadre, la tablette, trois cornets qui attendent
+  P.prism('K',[[.56,1.52],[-1.20,1.52],[-1.20,1.10],[.56,1.10]],.02,1.00);
+  P.prism('c',[[.62,1.56],[-1.26,1.56],[-1.26,1.06],[.62,1.06]],.012,.995);
+  P.box('u',.20,.05,1.86,1.10,1.08,-.32);P.box('c',.02,.02,1.86,1.20,1.11,-.32);
+  for(const [z,k] of [[-.90,'r'],[-.55,'u'],[-.20,'m']]){
+    P.cyl('y',.012,.10,5,1.10,1.16,z,'y',.045);P.put(k,new THREE.OctahedronGeometry(.06,0),1.10,1.24,z);}
+  // L'AUVENT RAYÉ, et son lambrequin festonné
+  for(let i=0;i<8;i++){const z=-1.30+i*.25+.125;P.box(i%2?'u':'r',.28,.03,.25,1.12,1.64,z,0,0,-.34);}
+  for(let i=0;i<8;i++){const z=-1.30+i*.25+.125;
+    P.prism(i%2?'u':'r',[[z+.125,1.60],[z-.125,1.60],[z-.125,1.55],[z,1.50],[z+.125,1.55]],.012,1.255);}
+  // LA FACE : calandre à barrettes, phares ronds cerclés, pare-chocs chromé
+  P.box('k',.92,.30,.03,0,.74,2.49);
+  for(let i=0;i<5;i++)P.box('c',.90,.025,.035,0,.62+i*.06,2.497);
+  P.sym(sd=>{
+    P.cyl('c',.14,.04,10,sd*.70,.76,2.49,'z');P.cyl('W',.105,.05,10,sd*.70,.76,2.50,'z');
+    P.box('O',.12,.07,.03,sd*.70,.56,2.49);
+    P.box('k',.10,.16,.06,sd*1.03,1.30,1.86);P.box('k',.06,.03,.10,sd*.99,1.24,1.86); // rétros de camion
+    P.box('L',.10,.30,.03,sd*.86,.78,-2.51);P.box('O',.10,.08,.03,sd*.86,.58,-2.51);
+    P.box('g',.62,.46,.02,sd*.40,1.30,-2.505);                                // les vitres des portes AR
+    P.box('c',.14,.035,.02,sd*.13,1.00,-2.515);                                // poignées
+    P.cyl('c',.045,.08,8,sd*.44,.30,-2.51,'z');
+  });
+  P.box('k',.03,.90,.03,0,1.20,-2.508);                                       // la fente des portes
+  P.box('c',2.00,.14,.08,0,.47,2.50);P.box('c',2.00,.14,.08,0,.47,-2.50);
+  P.box('k',1.10,.04,.12,0,.36,-2.50);                                        // le marchepied
+  // LE CORNET, vissé sur le toit : gaufrette en bagues, spirale fraise-vanille, et la cerise
+  const Y0=1.84,ZC=.60;P.cyl('c',.12,.05,8,0,Y0+.025,ZC,'y');
+  const cn=[[.04,0],[.11,.07],[.18,.14],[.25,.21],[.31,.28]];
+  for(let i=0;i<cn.length-1;i++)P.lathe(i%2?'Y':'y',[cn[i],cn[i+1]],8,0,Y0+.04,ZC,'y');
+  P.lathe('y',[[.31,.28],[.33,.30],[0,.30]],8,0,Y0+.04,ZC,'y');
+  const sw=[[.32,0],[.33,.04],[.26,.08],[.27,.11],[.19,.16],[.20,.19],[.12,.24],[.05,.28],[0,.30]];
+  for(let i=0;i<sw.length-1;i++)P.lathe(i%2?'u':'r',[sw[i],sw[i+1]],8,0,Y0+.34,ZC,'y');
+  P.put('C',new THREE.IcosahedronGeometry(.04,0),0,Y0+.67,ZC);
+  // LES HAUT-PARLEURS de la ritournelle, pavillons chromés braqués vers l'avant
+  P.sym(sd=>{P.cyl('c',.03,.24,8,sd*.42,Y0+.07,1.02,'z',.10);P.box('c',.03,.06,.03,sd*.42,Y0+.02,.94);P.cyl('k',.085,.012,8,sd*.42,Y0+.07,1.14,'z');});
+  K.commit(P);
+  return {hl:[.70,.76,2.52],tl:[.86,.78,-2.52],wx:.84,wzF:ZF,wzR:-ZR,
+          lpw:{R:R,w:.26,style:'rayons',n:5,jante:0xf4f1ea,accent:0xff8fbd}};
+},
+  a_deuche:function(K){
+  /* LA DEUCHE — la 2 CV Charleston : caisse étroite et haute, bordeaux dessus, NOIR dessous en coup de
+     pinceau ; ailes galbées posées À PART sur les roues, phares ronds perchés sur leurs tiges, capot à
+     nervures, et le toit de toile ROULÉ à l'arrière (on voit les sièges). */
+  const U=LPU,R=.30,ZF=1.18,ZR=-1.22;
+  const P=K.kit({p:{g:'p',c:0x7a1426},n:{g:'p',c:0x121212,f:0},s:{g:'s',c:0x1e1e22},S:{g:'s',c:0x3a3438},
+    k:{g:'m',c:0x141518},c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1b2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
+  const AR=[[0,2*R+.06],[R*.70,2*R+.04],[R+.10,R*1.10],[R+.16,.34]];
+  const zs=[-1.88,-1.76,-1.55,-1.35,-1.12,-.92,-.71,-.70,-.62,-.02,.04,.38,.40,.72,1.40,1.72,1.88];
+  for(const w of [ZF,ZR])for(const d of [R*.70,R+.16])zs.push(w-d,w+d);
+  zs.sort((a,b)=>a-b);
+  const CW=.72,HD=.40,
+        yC=z=>U.lin([[-1.88,.62],[-1.76,.86],[-1.55,1.10],[-1.35,1.27],[-1.10,1.40],[-.71,1.50],[-.30,1.53],[HD,1.52],[CW,1.03],[1.40,.93],[1.88,.82]],z),
+        xW=z=>U.lin([[-1.88,.50],[-1.72,.58],[-1.35,.62],[CW,.62],[1.00,.56],[1.88,.44]],z),
+        open=z=>z<.385&&z>-.705;
+  P.loft(zs,z=>{
+    const yb=U.arch(z,[ZF,ZR],AR,.32),c=yC(z),xw=xW(z);
+    if(z>CW){return [[0,yb],[xw-.04,yb],[xw,yb+.04],[xw,Math.max(yb+.05,c-.16)],[xw-.02,c-.09],[xw*.80,c-.04],[xw*.55,c-.015],[xw*.30,c-.004],[xw*.12,c],[0,c+.002]];}
+    const bl=Math.min(.98,c-.14),xg=xw-.03,xr=xw-.09;
+    const s=[[0,yb],[xw-.04,yb],[xw,yb+.04],[xw,bl],[xg,bl+.02],[xr,Math.max(bl+.03,c-.08)],[xr-.05,Math.max(bl+.04,c-.01)]];
+    if(open(z))s.push([xr-.09,c-.07],[xr-.12,.80],[0,.78]);
+    else s.push([xr*.62,c+.004],[xr*.30,c+.012],[0,c+.015]);
+    return s;
+  },(j,z,y)=>{
+    if(j===0)return 'k';
+    if(j<0)return j===-1?'k':'p';
+    if(z>CW)return 'n';                                              /* le capot noir */
+    if(j===1)return 'n';
+    if(j===4){if(z>.04&&z<.70)return 'g';if(z>-.60&&z<-.02)return 'g';if(z>-1.12&&z<-.66&&y>1.02)return 'g';return 'p';}
+    if(j<=5)return 'p';
+    if(z>HD)return 'g';                                              /* pare-brise */
+    if(open(z))return j===6?'p':'S';                                 /* l'habitacle, à ciel ouvert */
+    if(z>-.72)return 'p';
+    if(z>-1.36){if(j>=8&&z<-.91&&z>-1.13)return 'g';return 's';}   /* la toile et sa petite lunette */
+    return 'p';});
+  /* LES AILES À PART : deux lofts ouverts, galbés sur les roues */
+  const wing=(z0,z1,zsW,top,lo,xo)=>{P.loft(zsW,z=>{const t=U.lin(top,z),l=Math.min(lo(z),t-.05),x=U.lin(xo,z);
+      return [[.47,l],[x-.03,l],[x,l+.03],[x,t-.07],[x-.07,t],[.47,t-.01]];},(j)=>j<0?'x':'n');};
+  const zF=[.40,.52,.70,ZF-R-.10,ZF-R*.7,ZF+R*.7,ZF+R+.10,1.70,1.84,1.92];
+  wing(.40,1.95,zF,[[.40,.36],[.52,.50],[.70,.66],[ZF,.84],[1.55,.80],[1.84,.62],[1.92,.44]],
+       z=>U.arch(z,[ZF],[[0,2*R+.07],[R*.70,2*R+.05],[R+.10,R*1.10],[R+.17,.34]],.33),[[.40,.66],[.70,.73],[1.60,.73],[1.92,.62]]);
+  const zR=[-1.80,-1.70,-1.52,ZR-R*.7,ZR+R*.7,-.78,-.66,-.60];
+  wing(-1.80,-.60,zR,[[-1.80,.50],[-1.70,.64],[-1.50,.76],[ZR,.80],[-.80,.70],[-.66,.54],[-.60,.40]],
+       z=>U.arch(z,[ZR],[[0,.56],[R*.75,.54],[R+.06,.42]],.40),[[-1.80,.64],[-1.60,.74],[-.78,.74],[-.60,.70]]);
+  /* le coup de pinceau noir de la Charleston, et le bas de caisse */
+  P.sym(sd=>{
+    P.prism('n',[[.72,.99],[.40,.96],[.10,.89],[-.20,.77],[-.42,.62],[-.62,.46],[-.62,.33],[.72,.33]],.008,sd*.624);
+    P.box('k',.10,.06,1.06,sd*.60,.33,-.10);
+    for(const z of [.72,.02,-.62])P.box('k',.01,.62,.012,sd*.623,.66,z);
+    P.box('c',.03,.12,.03,sd*.63,.70,.66);P.box('c',.03,.12,.03,sd*.63,.70,.08);
+    P.box('c',.03,.025,.10,sd*.63,.90,.10);P.box('c',.03,.025,.10,sd*.63,.90,-.54);
+    /* LES PHARES RONDS SUR LEURS TIGES */
+    P.box('n',.04,.12,.04,sd*.52,.84,1.60);
+    P.lathe('c',[[0,-.09],[.07,-.08],[.10,-.02],[.10,.06]],10,sd*.52,.94,1.60,'z');
+    P.cyl('W',.085,.02,10,sd*.52,.94,1.665,'z');
+    P.box('O',.05,.04,.06,sd*.64,.76,1.70);
+    /* rétro rond sur la portière */
+    P.box('k',.02,.10,.02,sd*.64,1.04,.64);P.cyl('c',.05,.02,8,sd*.66,1.12,.64,'z');
+    /* feux arrière sur la poupe */
+    P.box('L',.10,.12,.04,sd*.42,.74,-1.80,.55);P.box('O',.10,.05,.04,sd*.42,.65,-1.83,.55);
+    /* butoirs */
+    P.box('c',.05,.12,.05,sd*.36,.40,1.945);P.box('c',.05,.12,.05,sd*.36,.40,-1.935);
+  });
+  /* LE CAPOT À NERVURES : cinq côtes d'acier */
+  for(let i=-2;i<=2;i++){const x=i*.10,zc=1.30;P.box('n',.03,.03,1.02,x,yC(zc)+.012-.035*Math.abs(i)*Math.abs(i)*.25,zc,.19);}
+  /* la calandre à lamelles, cerclée de chrome */
+  P.plate('c',[[-.30,.44],[.30,.44],[.33,.76],[-.33,.76]],.02,1.88);
+  P.plate('k',[[-.26,.47],[.26,.47],[.29,.73],[-.29,.73]],.02,1.89);
+  for(let i=0;i<5;i++)P.box('c',.54,.018,.02,0,.50+i*.055,1.91);
+  /* pare-chocs tubulaires */
+  P.cyl('c',.03,1.30,8,0,.40,1.94,'x');P.cyl('c',.03,1.30,8,0,.40,-1.93,'x');
+  /* le toit ouvert : banquette, sièges hamac, volant, et la TOILE ROULÉE */
+  P.sym(sd=>{P.box('s',.40,.40,.08,sd*.24,.98,-.10,-.20);P.box('s',.40,.08,.40,sd*.24,.80,.08);});
+  P.box('s',.96,.36,.08,0,.96,-.62,-.18);
+  P.lathe('k',[[.14,-.012],[.14,.012]],10,.26,1.00,.34,'z');
+  P.cyl('s',.075,1.02,10,0,1.52,-.70,'x');
+  P.cyl('c',.035,.10,8,.40,.33,-1.90,'z');
+  K.commit(P);
+  return {hl:[.52,.94,1.68],tl:[.42,.74,-1.84],wx:.62,wzF:ZF,wzR:-ZR,
+          lpw:{R:R,w:.15,style:'enjoliveur',jante:0x8a1a2c}};
+ },
+  d_deesse:function(K){
+  const U=LPU,R=.34,ZF=1.50,ZR=-1.62;
+  const P=K.kit({p:{g:'p',c:0x141418},r:{g:'p',c:0xe8dcc0,f:0},c:{g:'c',c:0xe9ecf0},k:{g:'m',c:0x131417},K:{g:'g',c:0x0c0d10},
+    g:{g:'g',c:0x18212c},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
+  const AR=[[0,2*R+.07],[R*.62,2*R+.05],[R*.98,R*1.25],[R+.14,.30]];
+  const zs=[-2.42,-2.36,-2.28,-1.95,-1.40,-1.30,-.48,-.40,.10,.88,.95,1.80,2.20,2.34,2.42,ZR-.54,ZR-.48,ZR+.48,ZR+.54];
+  for(const d of [R*.62,R*.98,R+.14])zs.push(ZF-d,ZF+d);
+  zs.sort((a,b)=>a-b);
+  const yC=z=>U.lin([[-2.42,.76],[-2.36,.80],[-2.28,.84],[-1.95,.97],[-1.40,1.42],[.10,1.47],[.95,.97],[1.80,.84],[2.20,.72],[2.34,.62],[2.42,.55]],z),
+        yB=z=>U.lin([[-2.42,.74],[-2.36,.78],[-2.28,.82],[-1.95,.92],[-1.40,.95],[.95,.94],[1.80,.81],[2.20,.70],[2.34,.60],[2.42,.53]],z),
+        xW=z=>U.lin([[-2.42,.56],[-2.36,.65],[-2.28,.70],[-1.90,.79],[-1.20,.86],[.00,.895],[1.80,.895],[2.20,.84],[2.34,.76],[2.42,.64]],z),
+        xR=z=>U.lin([[-1.95,.66],[-1.40,.64],[.10,.67],[.95,.80]],z),
+        cab=z=>z>-1.95&&z<.95,jupe=z=>Math.abs(z-ZR)<.51;
+  P.loft(zs,z=>{
+    const yb=jupe(z)?.31:U.arch(z,[ZF],AR,.30),xw=xW(z),c=yC(z),b=Math.max(yB(z),yb+.14);
+    const s=[[0,yb],[xw-.08,yb],[xw-.01,Math.max(yb+.05,.39)],[xw+.01,Math.max(yb+.09,.68)],[xw-.02,b],[xw-.065,b+.022]];
+    if(cab(z)){const y6=Math.max(c-.04,b+.04);s.push([xR(z),y6],[xR(z)-.14,Math.max(y6+.004,c-.003)],[0,c]);}
+    else s.push([xw-.28,Math.max(b+.035,c-.02)],[xw-.52,Math.max(b+.04,c-.007)],[0,Math.max(b+.045,c)]);
+    return s;
+  },(j,z)=>{
+    if(j===0)return 'k';
+    if(j===1&&z>-2.12&&z<1.00)return 'c';                                   // le jonc de bas de caisse, et la lèvre des jupes
+    if(j===4&&z>-2.25&&z<2.15)return 'c';                                    // la ceinture inox
+    if(j<0||j<=4||!cab(z))return 'p';
+    if(j===5){if(z>.88||z<-1.40)return 'p';return (z>-.48&&z<-.40)?'r':'g';} // vitres sans cadre, pied milieu champagne
+    return (z>.10||z<-1.40)?'g':'r';});                                     // pare-brise, lunette, LE PAVILLON CHAMPAGNE
+  P.sym(sd=>{
+    // LES PHARES CARÉNÉS : deux optiques rondes au bout des ailes, sous un globe fumé
+    for(const x of [.46,.63]){P.cyl('K',.075,.03,10,sd*x,.585,2.385,'z');P.cyl('W',.06,.05,10,sd*x,.585,2.40,'z');}
+    P.box('K',.42,.025,.20,sd*.545,.625,2.33,.58);
+    P.box('O',.10,.04,.03,sd*.34,.47,2.425);
+    // LES CORNETS au bout du pavillon
+    P.cyl('c',.065,.26,10,sd*.61,1.40,-1.47,'z',.025);P.cyl('L',.055,.03,10,sd*.61,1.40,-1.60,'z');
+    P.box('c',.02,.03,.12,sd*.892,.86,.10);P.box('c',.02,.03,.12,sd*.885,.86,-.85); // poignées
+    P.box('c',.04,.08,.10,sd*.93,1.03,.82);                                  // rétro
+    P.box('L',.12,.06,.03,sd*.32,.64,-2.425);                                // feux de pare-chocs
+    P.box('k',.26,.07,.03,sd*.40,.30,2.40);                                  // les bouches sous le pare-chocs
+    P.cyl('c',.04,.08,8,sd*.36,.34,-2.41,'z');
+  });
+  P.box('c',1.24,.045,.08,0,.40,2.41);P.box('k',1.20,.02,.05,0,.378,2.42);  // la lame de pare-chocs
+  P.box('c',.98,.045,.08,0,.52,-2.41);                                       // pare-chocs arrière
+  P.box('k',.40,.13,.02,0,.66,-2.40,-.30);                                   // plaque
+  K.commit(P);
+  return {hl:[.55,.585,2.42],tl:[.61,1.40,-1.62],wx:.68,wzF:ZF,wzR:-ZR,
+          lpw:{R:R,w:.20,style:'enjoliveur',jante:0xe9ecf0}};
+}});
 /* ============================================================================================
    L'ORIGAMI (2026-10-02, Sacha, photo du pick-up d'inox : « mets cette voiture dans le jeu, fais-la exceptionnellement belle et
    parfaite ») — le pick-up plié dans UNE feuille d'acier : zéro courbe, un toit en TRIANGLE dont la pointe est au-dessus du
@@ -46823,6 +47269,7 @@ function m2Menu(){const s=m2Etat();if(s.c.rejoue){s.c.rejoue=0;SAVE.mark();}}
    réussir pour de vrai (sa récompense attend à l'écran ; une secrète joue sa révélation) · ('prend',id) · ('raz') = tout effacer
    (la sauvegarde repart de la migration) · ('etat') = l'état de la partie en cours */
 /* console : dbgMissionsLots() = le contenu des lots « toutes » (sans les objets de mission) et ce qui, dedans, ne s'achète PAS à l'argent du jeu */
+window.dbgMissionsPhoto=function(i){return new Promise(function(r){try{carPhoto(i|0,r);}catch(e){r(null);}});}; // (banc) la photo de studio d'une caisse (planches des récompenses)
 window.dbgMissionsLots=function(){const o={};for(const cat of ['voiture','peinture','aile','trainee','figure']){const c=m2Col(cat),sans=[];
   if(cat==='voiture'){for(let i=0;i<CARS.length;i++){if(carRetiree(i)||m2Reco().car[CARS[i].name])continue;const u=CAR_UNLOCK[i];if(u&&!u.p&&u.k)sans.push(CARS[i].name+' ('+(u.eur||u.k)+')');}}
   else for(const d of COSM[cat]||[]){if(m2HabReco(cat,d))continue;if(!d.p&&(d.eur||d.pack||d.sec||d.mis))sans.push(d.id+' ('+(d.eur||d.pack||'?')+')');}
