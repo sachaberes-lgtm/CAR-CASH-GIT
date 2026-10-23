@@ -265,7 +265,7 @@ function disposeClouds(){
   // ⚠ chaque nuage a sa PROPRE géométrie fusionnée : il FAUT la libérer, sinon chaque portail
   // laisse fuir quelques Mo de VRAM. Le matériau (CLOUD_MAT) est partagé : jamais disposé.
   sceneRetire(CLOUDS.map(function(c){return c.g;})); // (chasse aux gels) d'un seul passage
-  for(const c of CLOUDS){if(c.mesh&&c.mesh.geometry)c.mesh.geometry.dispose();const u9=c.mesh&&c.mesh.userData;if(u9&&u9.vit){for(const o9 of u9.vit){nufJette(o9);o9.geometry.dispose();}if(u9.g8)u9.g8.dispose();if(u9.gVit)u9.gVit.dispose();}} // (vitrail) ses écailles, sa peau, ses deux surfaces
+  for(const c of CLOUDS){if(c.mesh&&c.mesh.geometry)c.mesh.geometry.dispose();const u9=c.mesh&&c.mesh.userData;if(u9&&u9.peau)u9.peau.dispose(); /* (2026-10-22, DEBUGGING : la PEAU d'un nuage seul (v773, un enfant du maillage hors de u9.vit) n'était jamais libérée — MESURÉ : 12 à 16 géométries de plus au compteur à chaque sortie de la mer de nuages) */if(u9&&u9.vit){for(const o9 of u9.vit){nufJette(o9);o9.geometry.dispose();}if(u9.g8)u9.g8.dispose();if(u9.gVit)u9.gVit.dispose();}} // (vitrail) ses écailles, sa peau, ses deux surfaces
   CLOUDS=[];cloudIn=0;
 }
 let FLOU_OK=true; // (2026-09-26) le flou radial du boost — le palier BAS le coupe

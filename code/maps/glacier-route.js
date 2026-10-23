@@ -76,7 +76,7 @@ function PAL_BK(k,d){return PAL_B9(k,d);}
      ni rails, ni nappe, ni ligne, ni tranche (`bkPisteNue`) : seule la GLACE (le verglas de bkVerglasPose, opaque, sur toute la largeur, sa frange de
      givre fondue dans la neige). Plus raide (58-88 %, ~70 % de moyenne — « beaucoup plus pentue », Sacha, deux fois : voir BK_PENTE4) et à grands rayons (≥ 2,6 demi-largeurs : le bord intérieur ne se replie jamais).
    · SES BORDS : la neige se cale AU RAS de la glace puis monte en BOURRELET (13-19 m sur 45 m) — on ne tombe plus de la piste, on COGNE la neige :
-     le mur des couloirs du canyon (`parisMur`, coup d'épaule ; mort au-delà de ~30° et 200 km/h). Plus de lacs (ils creusaient la piste).
+     le mur des couloirs du canyon (`murCote`, coup d'épaule ; mort au-delà de ~30° et 200 km/h). Plus de lacs (ils creusaient la piste).
      (2026-10-18) PLUS DE MUR : LA CONGÈRE — 16 m de neige profonde où l'on s'enfonce et ralentit, sans mourir (voir bkCongere).
    · LES PICS SUR LA PISTE (`BANQ.obst`) : des cristaux de glace coiffés de neige, en QUATRE FIGURES qui ouvrent des chemins — la FOURCHE (une arête au
      milieu : deux couloirs), le CHAMP (des pics semés), la PORTE (deux géants, une trouée), l'ÎLOT (un massif d'un côté, le large de l'autre). Au sol,
@@ -221,6 +221,23 @@ function genBanq(rnd){
    points de route) ; le bruit seulement là où il compte (D0 sous 540 m, les arêtes au-delà de 420 m, les bosses sous 1 km) ; au-delà de
    `BK_DF` = 1 km, la neige vient de la grille grossière (le loin, sous la brume). Mesuré : 86-133 → voir JOURNAL. */
 const BK_DF=1000;
+/* ===== LE DÉCOR DU GLACIER, RECALÉ SUR LA PENTE À 45° (2026-10-20, Sacha : « la map montagne neige est super buggée, genre le décor, les montagnes et tout ») =====
+   Le manteau de neige et les cristaux dataient de la descente à 7-14 % ; le 3e tour (18/10) l'a mise à 40-50° (mesuré : 103 % de moyenne,
+   ~4 km de dénivelé) et trois règles « au plus bas dans un rayon » sont devenues des trous de la hauteur du rayon. MESURÉ au banc (piste de 6 km) :
+   · LA SÛRETÉ (la neige jamais au-dessus de la glace) prenait le point de piste le plus BAS à moins de 98 m : la neige sous la glace était à −97 m
+     (au lieu de −1,5), et au bord de −60 à +35 m — des fosses et des murs, rendus en roche noire ;
+   · `YM` (la neige sous le PLUS BAS des tours superposés, du temps des spirales ôtées le 15/10) abaissait les flancs de ~110 m : une falaise à 228 m
+     de l'axe ;
+   · le DÉVERS de la piste (le repère de buildTrack roule dans les virages : 7,5° de médiane, 26° au plus, ±40 m aux bords d'une piste de 196 m)
+     était ignoré : la neige suivait l'axe, la congère et la glace suivaient le dévers ;
+   · les CRISTAUX (bkPrim) enterraient leur base d'une profondeur fixe sous leur CENTRE : côté aval, la base flottait — 43 dômes sur 61, 77 aiguilles
+     sur 161, tous les pics de la piste, jusqu'à 360 m de vide ; les géants de l'horizon, au-delà de la neige, montraient leur dessous plat ;
+   · la ROCHE noire des pentes raides (le shader de la neige) commençait vers 45° : la pente même de la montagne, partout en taches noires.
+   Désormais : la neige proche se cale sur le PLAN de la piste au pied du point le plus proche (sa pente et son dévers, fondu à 130 m), la sûreté
+   aussi ; plus de `YM` ; chaque sommet de base d'un cristal descend sous la neige qu'il touche (au-delà de la neige : d'un rayon de base plus bas,
+   dans la brume) ; la roche ne vient qu'au-delà de ~55°. `?sans=glacerecale` = avant (même graine : même piste ; les cristaux, eux, tombent ailleurs —
+   libre() ne refuse plus les mêmes grappes, et chaque essai refusé consomme le tirage). */
+const BK_RECALE=typeof location==='undefined'||!/[?&]sans=([^&]*,)?glacerecale(,|&|$)/.test(location.search);
 function bkProfil(x,z,d,ys,sd9){
   const W9=70+50*forBruit(x*.43,z*.43,sd9+3);let h;
   if(d<540)h=ys+13+(W9-13)*Math.pow(THREE.MathUtils.smoothstep(d,ROAD_HALF+46,520),1.3); // le BOURRELET puis les flancs : plus de combe sous la piste
@@ -232,7 +249,7 @@ function banqSol(){
   const C=PAL_BK('banqSolC',26),MARG=PAL_BK('banqMarge',2200),R1=380,sd9=BANQ.graine*.001,T0=performance.now(),TQ=BANQ.tq={};let tq=T0;const tqm=k=>{const n=performance.now();TQ[k]=Math.round((n-tq)*10)/10;tq=n;};
   let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(let i=0;i<NP;i+=6){const p=pts[i];if(p.x<x0)x0=p.x;if(p.x>x1)x1=p.x;if(p.z<z0)z0=p.z;if(p.z>z1)z1=p.z;}
   x0-=MARG;x1+=MARG;z0-=MARG;z1+=MARG;
-  const nx=Math.ceil((x1-x0)/C)+1,nz=Math.ceil((z1-z0)/C)+1,N=nx*nz,D=new Float32Array(N).fill(1e9),WS=new Float32Array(N),YS=new Float32Array(N),YM=new Float32Array(N).fill(1e9),YN=new Float32Array(N).fill(-1e9); // YN (v4) : la hauteur du point de piste le plus proche
+  const nx=Math.ceil((x1-x0)/C)+1,nz=Math.ceil((z1-z0)/C)+1,N=nx*nz,D=new Float32Array(N).fill(1e9),WS=new Float32Array(N),YS=new Float32Array(N),YM=new Float32Array(N).fill(1e9),YN=new Float32Array(N).fill(-1e9),YI=new Int32Array(N).fill(-1); // YN (v4) : la hauteur du point de piste le plus proche ; YI (2026-10-20) : son indice (le plan de la piste à son pied)
   const RS=[],pas=Math.max(1,Math.round(12/(L/(NP-1))));for(let i=0;i<NP;i+=pas)RS.push(i);
   // 1. LA GRILLE GROSSIÈRE (4 C) : la transformée de distance — chaque case garde le point de route le plus proche (GI) ; on le propage
   const CG=C*4,gx=Math.ceil((x1-x0)/CG)+1,gz=Math.ceil((z1-z0)/CG)+1,G=gx*gz,GD=new Float32Array(G).fill(1e18),GY=new Float32Array(G),GI=new Int32Array(G).fill(-1);
@@ -254,19 +271,24 @@ function banqSol(){
   for(const ri of RS){const p=pts[ri],ci=Math.round((p.x-x0)/C),cj=Math.round((p.z-z0)/C);
     for(let b=-rC;b<=rC;b++){const j=cj+b;if(j<0||j>=nz)continue;const z=z0+j*C,dz=z-p.z;
       for(let a=-rC;a<=rC;a++){const i=ci+a;if(i<0||i>=nx)continue;const x=x0+i*C,dx=x-p.x,d2=dx*dx+dz*dz;if(d2>R1*R1)continue;const k=i+j*nx;
-        if(d2<D[k]){D[k]=d2;YN[k]=p.y;}const u=1-d2*iR,w=u*u*u;WS[k]+=w;YS[k]+=w*p.y;if(d2<14400&&p.y<YM[k])YM[k]=p.y;}}}
+        if(d2<D[k]){D[k]=d2;YN[k]=p.y;YI[k]=ri;}const u=1-d2*iR,w=u*u*u;WS[k]+=w;YS[k]+=w*p.y;if(d2<14400&&p.y<YM[k])YM[k]=p.y;}}}
   tqm('noyau');
   // 3. chaque case fine
   const H=new Float32Array(N);
+  // (2026-10-20, LE DÉCOR RECALÉ) la hauteur du PLAN de la piste au pied du point le plus proche : sa pente (le long) et son dévers (en travers, borné au
+  // bord de la congère, fondu par fd) — et non plus la hauteur de son axe (à 45°, le bord d'une piste couchée de 26° est à ±40 m de l'axe). Le point
+  // (x, z) = p + T·a + B·l : vus d'en haut, T et B ne sont PAS perpendiculaires (tous deux penchent) — on résout le 2 × 2, pas des produits scalaires
+  const plan=(k,x,z,fd)=>{const r=YI[k],p=pts[r],t=T[r],b=B[r],ex=x-p.x,ez=z-p.z,dt=t.x*b.z-t.z*b.x;if(Math.abs(dt)<1e-4)return p.y;
+    const a=(ex*b.z-ez*b.x)/dt,l=(t.x*ez-t.z*ex)/dt,lm=ROAD_HALF+40;return p.y+a*t.y+THREE.MathUtils.clamp(l,-lm,lm)*b.y*fd;};
   for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const k=i+j*nx,x=x0+i*C,z=z0+j*C;let d,ys;
-    if(D[k]<1e8){d=Math.sqrt(D[k]);const yc=gBil(GY,x,z),w0=.02;ys=(YS[k]+yc*w0)/(WS[k]+w0);if(YM[k]<1e8)ys=Math.min(ys,YM[k]+12);}else{d=Math.max(R1,gBil(GD,x,z));ys=gBil(GY,x,z);} // (le GLACIER) sous des tours superposés, la neige se cale sous le PLUS BAS
+    if(D[k]<1e8){d=Math.sqrt(D[k]);const yc=gBil(GY,x,z),w0=.02;ys=(YS[k]+yc*w0)/(WS[k]+w0);if(!BK_RECALE&&YM[k]<1e8)ys=Math.min(ys,YM[k]+12);}else{ /* (2026-10-20) YM : plus de tours superposés depuis le 15/10 — à 45°, « le plus bas à 120 m » abaissait les flancs de ~110 m */d=Math.max(R1,gBil(GD,x,z));ys=gBil(GY,x,z);} // (le GLACIER) sous des tours superposés, la neige se cale sous le PLUS BAS
     D[k]=d;
     if(d>=BK_DF){H[k]=gBil(HF,x,z);continue;}
     let h=bkProfil(x,z,d,ys,sd9);
     if(d<ROAD_HALF+130&&YN[k]>-1e8){ // LA PISTE : la neige se cale au RAS de la glace (le point de piste le plus proche, pas la moyenne), puis le BOURRELET
       // (2026-10-18) le bourrelet part après la CONGÈRE (bkCongerePose : la bande de neige où l'on roule, 36 m) : jusque-là la grille reste SOUS le ruban — en cases
       // de 34-40 m, sa pente montait jusque dans la piste et y crevait la glace par endroits
-      const y0=YN[k]-.9,hb=y0+THREE.MathUtils.smoothstep(d,ROAD_HALF+34,ROAD_HALF+82)*(13+6*forBruit(x*.5,z*.5,sd9+9));
+      const y0=(BK_RECALE&&YI[k]>=0?plan(k,x,z,1-THREE.MathUtils.smoothstep(d,ROAD_HALF+82,ROAD_HALF+130)):YN[k])-.9,hb=y0+THREE.MathUtils.smoothstep(d,ROAD_HALF+34,ROAD_HALF+82)*(13+6*forBruit(x*.5,z*.5,sd9+9));
       h=d<ROAD_HALF+1?y0-.6:d<ROAD_HALF+82?hb:hb+(Math.max(hb,h)-hb)*THREE.MathUtils.smoothstep(d,ROAD_HALF+82,ROAD_HALF+130);}
     if(d>BK_DF-200)h+=(gBil(HF,x,z)-h)*THREE.MathUtils.smoothstep(d,BK_DF-200,BK_DF);                 // le raccord avec le loin
     const kb=1-THREE.MathUtils.smoothstep(d,700,BK_DF-200);
@@ -274,7 +296,9 @@ function banqSol(){
     H[k]=h;}
   tqm('cases');
   // LA SÛRETÉ : jamais moins de 7 m d'air sous la dalle (ni sous ses bords, ni sous la caméra qui suit à 14 m)
-  {const W9=ROAD_HALF+.5,rr=Math.ceil(W9/C);for(let ii=0;ii<NP;ii+=Math.max(1,Math.round(6/(L/(NP-1))))){const p=pts[ii],ci=Math.round((p.x-x0)/C),cj=Math.round((p.z-z0)/C),lim=p.y-.8; // sous la glace : juste sous la surface (la piste EST le sol)
+  if(BK_RECALE){const W9=ROAD_HALF+.5;for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const k=i+j*nx;if(D[k]>=W9||YI[k]<0)continue; // (2026-10-20) sous la glace : le PLAN de la piste au pied, pas le point le plus bas à 98 m (à 45° : 97 m de fosse sous la glace)
+    const lim=plan(k,x0+i*C,z0+j*C,1)-.8;if(H[k]>lim)H[k]=lim;}}
+  else{const W9=ROAD_HALF+.5,rr=Math.ceil(W9/C);for(let ii=0;ii<NP;ii+=Math.max(1,Math.round(6/(L/(NP-1))))){const p=pts[ii],ci=Math.round((p.x-x0)/C),cj=Math.round((p.z-z0)/C),lim=p.y-.8; // sous la glace : juste sous la surface (la piste EST le sol)
     for(let b=-rr;b<=rr;b++)for(let a=-rr;a<=rr;a++){const i=ci+a,j=cj+b;if(i<0||j<0||i>=nx||j>=nz)continue;const x=x0+i*C,z=z0+j*C;if((x-p.x)**2+(z-p.z)**2>W9*W9)continue;const k=i+j*nx;if(H[k]>lim)H[k]=lim;}}}
   tqm('surete');
   return BANQ.sol={x0:x0,z0:z0,C:C,nx:nx,nz:nz,h:H,d:D,MARG:MARG,gBil:gBil,GY:GY,GD:GD};
@@ -291,11 +315,19 @@ function bkSolD(x,z){const S=BANQ.sol;if(!S)return 1e9;const fx=(x-S.x0)/S.C,fz=
 function bkPrim(x,z,yb,H,R,n,lx,lz,rot,rg,fam,prof){
   const ay=yb+H,by=yb-(prof||Math.max(8,R*.35)),Rb=R*(ay-by)/H,ax=x+lx,az=z+lz,V=[];
   for(let i=0;i<n;i++){const th=rot+(i+(rg()-.5)*.38)/n*6.2832;V.push([x+Math.cos(th)*Rb,by,z+Math.sin(th)*Rb]);}
+  /* (2026-10-20, LE DÉCOR RECALÉ) chaque sommet de base descend SOUS LA NEIGE QU'IL TOUCHE (6 m), et le milieu de chaque arête de base aussi : la base
+     suit la pente (à 45°, le côté aval d'une base plate flottait) ; hors de la neige (les géants de l'horizon), un rayon de base plus bas, dans la brume.
+     Aucun tirage de plus dans le cristal. La facette aval devient plus raide — la physique lit les mêmes plans (F, by). */
+  let bm=by;
+  if(BK_RECALE&&BANQ.sol){const MG=BANQ.sol.MARG,sous=(x9,z9)=>bkSolD(x9,z9)<MG?bkSolH(x9,z9)-6:null;
+    for(const v of V){const h9=sous(v[0],v[2]);v[1]=Math.min(by,h9!=null?h9:by-Rb);}
+    for(let e=0;e<2;e++)for(let i=0;i<n;i++){const a=V[i],b=V[(i+1)%n],h9=sous((a[0]+b[0])/2,(a[2]+b[2])/2);if(h9==null)continue;const ex=(a[1]+b[1])/2-h9;if(ex>0){a[1]-=ex;b[1]-=ex;}}
+    for(const v of V)if(v[1]<bm)bm=v[1];}
   const F=new Float32Array(n*4);
   for(let i=0;i<n;i++){const a=V[i],b=V[(i+1)%n];const ux=a[0]-ax,uy=a[1]-ay,uz=a[2]-az,vx=b[0]-ax,vy=b[1]-ay,vz=b[2]-az;
     let nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;if(ny<0){nx=-nx;ny=-ny;nz=-nz;}const l=Math.hypot(nx,ny,nz)||1;nx/=l;ny/=l;nz/=l;
     F[i*4]=nx;F[i*4+1]=ny;F[i*4+2]=nz;F[i*4+3]=nx*ax+ny*ay+nz*az;}
-  return {A:[ax,ay,az],V:V,F:F,n:n,by:by,yb:yb,H:H,cx:x,cz:z,r:Rb+Math.hypot(lx,lz),r2:(Rb+Math.hypot(lx,lz))**2,fam:fam,sd:rg()};}
+  return {A:[ax,ay,az],V:V,F:F,n:n,by:bm,yb:yb,H:H,cx:x,cz:z,r:Rb+Math.hypot(lx,lz),r2:(Rb+Math.hypot(lx,lz))**2,fam:fam,sd:rg()};}
 function bkPrimH(P,x,z){const F=P.F;let hm=1e9;for(let q=0;q<F.length;q+=4){const y=(F[q+3]-F[q]*x-F[q+2]*z)/F[q+1];if(y<hm)hm=y;}return hm>P.by?hm:-1e9;}
 // UNE GRAPPE : `pente` = H/R du cristal principal (≤ 1 : on y glisse ; 2-4 : une aiguille) — des voisins plus petits, penchés vers l'extérieur
 function bkGrappe(x,z,yb,H,pente,nv,rg,fam,prof){
@@ -327,7 +359,7 @@ const BK_SOL_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN;varying vec2 vS;','#include
   '  vec2 W=vec2(.83,.56);float ph=dot(q,W)*.85+fn2(q*.045)*7.;gr+=W*cos(ph)*.24*(1.-smoothstep(25.,95.,dist))*(.45+.55*fn2(q*.017));',
   '  if(f2>0.){float g0=fn2(q*.75);gr+=vec2(fn2((q+vec2(.25,0.))*.75)-g0,fn2((q+vec2(0.,.25))*.75)-g0)*1.6*f2;}',
   '  vec3 Np=normalize(N-vec3(gr.x,0.,gr.y));',
-  '  float n1=fn2(q*.019),n2=fn2(q*.083),sl=1.-N.y,roc=smoothstep(.40,.56,sl+(n1-.5)*.22);',
+  '  float n1=fn2(q*.019),n2=fn2(q*.083),sl=1.-N.y,roc=smoothstep('+(BK_RECALE?'.52,.68':'.40,.56')+',sl+(n1-.5)*.22);', // (2026-10-20) la roche au-delà de ~55° : 45°, c'est la pente même de la montagne
   '  vec3 neige=mix(vec3(.76,.82,.93),vec3(.66,.74,.90),smoothstep(.45,.75,fn2(q*.012)));',                  // la neige soufflée, plus tassée, plus bleue
   '  vec3 pierre=vec3(.065,.075,.12)*(.65+.7*n2);pierre=mix(pierre,neige*.9,smoothstep(.58,.80,fn2(q*vec2(.05,.21)+n1*2.))*.75);',
   '  vec3 alb=mix(neige,pierre,roc);',

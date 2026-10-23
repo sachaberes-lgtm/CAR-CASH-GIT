@@ -117,42 +117,6 @@ const BIOMES={
     // brume VIOLETTE (était .12/.14/.19, bleu-noir) : la ville se FOND dans l'horizon au lieu d'y trancher
     volAmb:.44,
     eS2:[80,230,255,.35]},
-  // ---- PARIS LA NUIT (2026-09-28, Léo : « une map ville à Paris », « Paris la nuit ») : le 4e monde ----
-  // Le COUPLE COMPLÉMENTAIRE de la nuit parisienne : un ciel BLEU MARINE (lune, quelques étoiles) sur une ville ORANGE-OR (lampadaires au
-  // sodium, façades éclairées, la tour dorée). La lumière vient d'EN BAS (hemiG chaud, `fill` ambré) et du clair de lune d'en haut.
-  paris:{ nm:'PARIS LA NUIT', skyMul:[.40,.46,.78],skyLift:[.015,.012,.03],sunTint:[.62,.55,.72],sunHalo:.08,city:.30,stars:.55,moon:1.45,
-    fog:[.10,.10,.20],fogN:420,fogF:2800,
-    hemiS:[.30,.36,.58],hemiG:[.20,.13,.07],hemiI:.42, sunC:[.62,.70,.95],sunI:.70,
-    fillC:[1,.64,.32],fillI:.30, kickC:[1,.80,.45],kickI:.16,
-    volSun:[1.0,1.0,1.3],volSky:[.16,.18,.36],volGnd:[.10,.07,.05],volAmb:.42,
-    expo:.78,sat:1.30,
-    env:[[0,'#0a1030'],[.3,'#18224c'],[.48,'#3a3a6a'],[.58,'#b06a36'],[.66,'#261c36'],[1,'#07081a']],eS1:[255,200,130,.5],eS2:[140,170,255,.3],
-    wb:[1.02,.99,.96],sh:[.004,.008,.03],hi:[.05,.03,0],con:1.12,bloomS:.62,bloomT:.86,vigK:.40,vigC:[.05,.04,.12],rimK:.2},
-  // ---- PARIS AU SOL (2026-09-28) : trois heures, fondues d'un quartier à l'autre par parisTick (le ciel, lui, suit uParisT) ----
-  parisOr:{ nm:'PARIS — HEURE DORÉE', skyMul:[1,1,1],skyLift:[0,0,0],sunTint:[1,.62,.30],sunHalo:.3,city:0,stars:0,moon:0,
-    fog:[.86,.67,.54],fogN:420,fogF:3400,
-    hemiS:[.62,.70,.95],hemiG:[.36,.27,.2],hemiI:.62, sunC:[1,.72,.42],sunI:1.6,
-    fillC:[.45,.52,.8],fillI:.22, kickC:[1,.6,.4],kickI:.12,
-    volSun:[2,1.3,.8],volSky:[.5,.46,.6],volGnd:[.24,.18,.18],volAmb:.6,
-    expo:.95,sat:1.2,
-    env:[[0,'#5a7ab8'],[.3,'#c8a080'],[.48,'#f2b870'],[.58,'#ffcf80'],[.66,'#7a6a68'],[1,'#3a3a4e']],eS1:[255,214,150,.5],eS2:[255,180,110,.3],
-    wb:[1.03,1,.96],sh:[.01,.015,.04],hi:[.04,.02,0],con:1.06,bloomS:.5,bloomT:.9,vigK:.3,vigC:[.10,.06,.08],rimK:.2,rimS:.5},
-  parisBleu:{ nm:'PARIS — HEURE BLEUE', skyMul:[1,1,1],skyLift:[0,0,0],sunTint:[.9,.5,.5],sunHalo:.05,city:0,stars:.25,moon:.4,
-    fog:[.30,.32,.52],fogN:360,fogF:3200,
-    hemiS:[.40,.50,.85],hemiG:[.2,.14,.10],hemiI:.5, sunC:[.85,.62,.62],sunI:.5,
-    fillC:[1,.66,.36],fillI:.34, kickC:[.6,.7,1],kickI:.14,
-    volSun:[1.2,.9,1],volSky:[.26,.32,.62],volGnd:[.1,.1,.18],volAmb:.5,
-    expo:.86,sat:1.26,
-    env:[[0,'#101a40'],[.3,'#26346a'],[.48,'#5a5a90'],[.58,'#c07a5a'],[.66,'#2a2a52'],[1,'#0c1028']],eS1:[255,190,130,.45],eS2:[120,170,255,.3],
-    wb:[.99,.99,1.03],sh:[.0,.01,.05],hi:[.05,.03,0],con:1.08,bloomS:.6,bloomT:.86,vigK:.36,vigC:[.04,.04,.12],rimK:.3,rimS:.45},
-  parisNuit:{ nm:'PARIS — LA NUIT', skyMul:[1,1,1],skyLift:[0,0,0],sunTint:[.5,.4,.5],sunHalo:0,city:0,stars:.8,moon:1.1,
-    fog:[.07,.07,.13],fogN:300,fogF:3000,
-    hemiS:[.22,.28,.5],hemiG:[.24,.14,.07],hemiI:.4, sunC:[.5,.56,.8],sunI:.28,
-    fillC:[1,.62,.3],fillI:.42, kickC:[.7,.8,1],kickI:.14,
-    volSun:[.9,.9,1.2],volSky:[.14,.16,.34],volGnd:[.1,.07,.05],volAmb:.4,
-    expo:.8,sat:1.3,
-    env:[[0,'#0a1030'],[.3,'#18224c'],[.48,'#3a3a6a'],[.58,'#b06a36'],[.66,'#261c36'],[1,'#07081a']],eS1:[255,200,130,.5],eS2:[140,170,255,.3],
-    wb:[1.02,.99,.96],sh:[.004,.008,.03],hi:[.05,.03,0],con:1.12,bloomS:.64,bloomT:.84,vigK:.4,vigC:[.05,.04,.12],rimK:.2},
   // ---- L'ATELIER (2026-09-26, vague 2) : l'ambiance du GARAGE — jamais tirée, posée par openGarage, rendue à la fermeture ----
   // MESURÉ avant : saturation .42-.56, les caisses blanches BRÛLÉES — l'atelier héritait du ciel et du SOLEIL de la dernière course
   // (plein midi : `hemiI` .95 + soleil 1,42 à travers les murs) EN PLUS de ses deux lampes et de ses cônes additifs. Un atelier, c'est
@@ -190,7 +154,7 @@ const BIO_ETAL0={wb:[1,1,1],sh:[0,.004,.03],hi:[.024,.014,-.008],con:1.16,bloomS
 const MN_T9=new THREE.Color();
 Object.assign(BIO_ETAL0,{mzH:[1,.985,.96,0],mzO:[.4,.5,.66,0],nuA:[1,1,1]}); // rgb = la teinte d'avant (le fondu d'un portail glisse vers elle), w 0 = inerte · nuA = l'albédo des nuages × 1 (inchangé)
 Object.assign(BIO_ETAL0,{nuLav:[.72,.78,.97],nuR:[-.25,.5,.64,1],nuK:[1,1,1,1]}); // (2026-10-14, passe graphismes · nuages-jour) LA MATIÈRE DES CUMULUS PAR AMBIANCE : nuLav = la teinte de l'ombre (GLSL uLav), nuR = uR (frontière d'ombre, clarté de l'ombre), nuK = uK (albédo, soleil, lisière, bord) ; les défauts = les valeurs d'avant, inertes
-Object.assign(BIO_ETAL0,{dnA:[.95,.56,.26],dnB:[.88,.36,.17],dnL:[1,.78,.52],dnS:[.62,.62,.95],dnC:[.93,.86,.78],dnV:[.22,.42,.10],dnH:[.9,.7,.5],dnQ:[0,0,0,0],dnK:[.5,1,.25,1],dnW:[.10,.66,.62],dnX:[.02,.26,.36]}); // (2026-10-18) LES DUNES D'OR : le sable de leurs six temps (lus seulement là-bas : dunesTick)
+Object.assign(BIO_ETAL0,{dnA:[.95,.56,.26],dnB:[.88,.36,.17],dnL:[1,.78,.52],dnS:[.62,.62,.95],dnC:[.93,.86,.78],dnV:[.22,.42,.10],dnH:[.9,.7,.5],dnQ:[0,0,0,0],dnK:[.5,1,.25,1],dnM:[.8,.010,1,0],dnW:[.10,.66,.62],dnX:[.02,.26,.36]}); // (2026-10-18) LES DUNES D'OR : le sable de leurs six temps (lus seulement là-bas : dunesTick)
 // (vague 3) ETAL_JOUR retiré : le jour des NUAGES reprend l'étalonnage d'origine (BIO_ETAL0), voir le haut de BIOMES
 Object.assign(BIOMES.pluie,{rimS:.55}); // VILLE : l'étalonnage d'avant (déjà au niveau) — le liseré vient du NÉON de contre-jour
 Object.assign(BIOMES.espace,{fog:[.016,.02,.055],wb:[.98,1,1.04],rimS:.62}); // ORBITE : le vide NOIR et froid, un contraste dur ; la brume n'est plus le noir absolu mais le noir bleuté #04050e de la bible (le lointain de la route s'y fond, et la brillance d'horizon du bitume, qui en prend la couleur, n'est plus nulle)
@@ -414,21 +378,21 @@ BIOMES.jadeOrage=bioMet(BIOMES.jadePluie,{nm:'JADE · ORAGE',fogN:90,fogF:1150,s
    env:[[0,'#4E8FDA'],[.3,'#A9B2DA'],[.48,'#F8D6BC'],[.58,'#FFE2C4'],[.66,'#E2A27E'],[1,'#9A5A3E']],
    cyZ:[.08,.27,.66],cyM:[.34,.48,.78],cyH:[.98,.70,.58],cyS:[1,.68,.44],cyB:[.90,.50,.64],cyC:[1,.82,.74],cyD:[.46,.42,.60],cyR:[.94,.64,.54],
    cyK:[.12,.45,0,0],cyN:[.9,.9,1.3,0],cyA:[10,68,0,0],
-   dnA:[1,.64,.40],dnB:[.94,.42,.30],dnL:[1,.80,.62],dnS:[.56,.58,1.04],dnC:[.98,.88,.84],dnV:[.24,.46,.16],dnH:[.98,.76,.68],dnQ:[.30,.20,0,.6],dnK:[.55,1,.25,1],dnW:[.14,.64,.66],dnX:[.03,.24,.36]});
+   dnA:[1,.64,.40],dnB:[.94,.42,.30],dnL:[1,.80,.62],dnS:[.56,.58,1.04],dnC:[.98,.88,.84],dnV:[.17,.34,.11],dnH:[.98,.76,.68],dnQ:[.30,.20,0,.6],dnK:[.55,1,.25,1],dnW:[.14,.64,.66],dnX:[.03,.24,.36]});
  BIOMES.dunesMidi=dnB('canyonMidi',{nm:'DUNES · MIDI',jZen:[.02,.20,.66],jMid:[.12,.48,.86],jHor:[.92,.80,.62],jSol:[.36,.30,.18],
-   fog:[.90,.80,.64],fogN:900,fogF:9800,fogCj:[1,.86,.64],fogIn:[.96,.92,.84],hemiS:[.40,.62,1.0],hemiG:[.82,.56,.36],hemiI:.64,sunC:[1,.94,.82],sunI:1.7,fillC:[.44,.62,.95],fillI:.22,
+   fog:[.90,.80,.64],fogN:900,fogF:9800,fogCj:[1,.86,.64],fogIn:[.96,.92,.84],hemiS:[.40,.62,1.0],hemiG:[.82,.56,.36],hemiI:.52,sunC:[1,.94,.82],sunI:1.35,fillC:[.44,.62,.95],fillI:.18,
    env:[[0,'#2F86E0'],[.3,'#6CC2EE'],[.48,'#E6E2D6'],[.58,'#FFF6E6'],[.66,'#EAB27E'],[1,'#A8643C']],
    cyZ:[.02,.20,.66],cyM:[.12,.48,.86],cyH:[.92,.80,.62],cyS:[1,.95,.86],cyB:[.72,.70,.78],cyC:[1,1,.98],cyD:[.56,.64,.78],cyR:[.94,.72,.52],
-   cyK:[.18,.12,0,0],cyN:[0,.6,1.8,0],cyA:[64,200,0,0],
-   dnA:[1,.68,.32],dnB:[.96,.46,.20],dnL:[1,.86,.62],dnS:[.62,.66,1.06],dnC:[1,.94,.86],dnV:[.20,.46,.12],dnH:[.96,.86,.68],dnQ:[.22,1,0,1],dnK:[.45,1,.2,1],dnW:[.10,.72,.70],dnX:[.02,.30,.40]});
+   cyK:[.36,.34,0,0],cyN:[0,.6,1.8,0],cyA:[50,205,0,0],
+   dnA:[.86,.64,.40],dnB:[.80,.44,.26],dnL:[.98,.84,.62],dnS:[.50,.52,.94],dnC:[1,.94,.86],dnV:[.14,.34,.09],dnH:[.96,.86,.68],dnQ:[.22,1,0,1],dnK:[.45,1,.2,.62],dnW:[.10,.72,.70],dnX:[.02,.30,.40]});
  BIOMES.dunesSoir=dnB('canyonSoir',{nm:'DUNES · SOIR',jZen:[.08,.10,.40],jMid:[.50,.30,.46],jHor:[1,.48,.22],jSol:[1,.44,.14],
    fog:[.96,.52,.30],fogN:700,fogF:8200,fogCj:[1,.60,.32],fogIn:[1,.82,.70],hemiS:[.42,.40,.76],hemiG:[.64,.30,.16],hemiI:.62,sunC:[1,.46,.18],sunI:1.7,fillC:[.42,.44,.95],fillI:.36,
    env:[[0,'#4A4FA6'],[.3,'#B0749A'],[.48,'#FFB27E'],[.58,'#FFC88C'],[.66,'#E0663A'],[1,'#74301C']],
    cyZ:[.08,.10,.40],cyM:[.50,.30,.46],cyH:[1,.48,.22],cyS:[1,.44,.14],cyB:[.82,.42,.56],cyC:[1,.56,.32],cyD:[.32,.22,.38],cyR:[.72,.36,.30],
    cyK:[.10,.65,0,0],cyN:[.6,1.3,1.25,0],cyA:[5,-104,0,0],
-   dnA:[1,.54,.22],dnB:[.94,.30,.12],dnL:[1,.72,.42],dnS:[.50,.44,1.0],dnC:[1,.80,.66],dnV:[.22,.40,.12],dnH:[1,.58,.36],dnQ:[.32,.40,0,.85],dnK:[.65,1,.30,1],dnW:[.16,.48,.56],dnX:[.03,.14,.26]});
+   dnA:[1,.56,.26],dnB:[.92,.38,.20],dnL:[1,.76,.48],dnS:[.50,.44,1.0],dnC:[1,.80,.66],dnV:[.17,.30,.09],dnH:[1,.58,.36],dnQ:[.32,.40,0,.85],dnK:[.65,1,.30,1],dnW:[.16,.48,.56],dnX:[.03,.14,.26]});
  BIOMES.dunesNuit=dnB('canyonNuit',{nm:'DUNES · NUIT',cyA:[34,150,0,0],cyR:[.10,.09,.20], /* (MESURÉ à la photo : un sable clair sous la lune sortait blanc rosé comme de la neige — le sable de nuit est sombre, la crête argentée) */
-   dnA:[.52,.44,.42],dnB:[.46,.36,.36],dnL:[.72,.74,.90],dnS:[.50,.56,1.15],dnC:[.55,.56,.66],dnV:[.10,.20,.14],dnH:[.10,.10,.24],dnQ:[.25,0,0,.4],dnK:[.7,1,.3,1],dnW:[.04,.10,.16],dnX:[.01,.03,.06]});
+   dnA:[.40,.34,.36],dnB:[.34,.27,.30],dnL:[.62,.66,.86],dnS:[.50,.56,1.15],dnC:[.55,.56,.66],dnV:[.10,.20,.14],dnH:[.10,.10,.24],dnQ:[.25,0,0,.4],dnK:[.7,1,.3,1],dnW:[.04,.10,.16],dnX:[.01,.03,.06]});
  BIOMES.dunesVent=dnB('canyonMidi',{nm:'DUNES · VENT DE SABLE',jZen:[.24,.30,.42],jMid:[.56,.48,.40],jHor:[.88,.66,.44],jSol:[.5,.36,.2],
    fog:[.80,.60,.40],fogN:140,fogF:2800,fogCj:[.92,.70,.46],fogIn:[.88,.70,.52],hemiS:[.62,.58,.62],hemiG:[.62,.44,.30],hemiI:.78,sunC:[1,.80,.58],sunI:.95,fillC:[.50,.50,.62],fillI:.2,
    env:[[0,'#7A7E8C'],[.3,'#A69A88'],[.48,'#D8B48A'],[.58,'#E6C49A'],[.66,'#B8865A'],[1,'#6A4428']],
@@ -441,7 +405,7 @@ BIOMES.jadeOrage=bioMet(BIOMES.jadePluie,{nm:'JADE · ORAGE',fogN:90,fogF:1150,s
    cyZ:[.10,.06,.05],cyM:[.30,.16,.09],cyH:[.58,.32,.16],cyS:[.9,.5,.25],cyB:[0,0,0],cyC:[.66,.38,.18],cyD:[.24,.12,.06],cyR:[.40,.22,.11],
    cyK:[0,0,0,0],cyN:[0,.8,.3,.9],cyA:[36,170,0,0],
    dnA:[.62,.38,.22],dnB:[.52,.28,.15],dnL:[.70,.48,.32],dnS:[.62,.56,.86],dnC:[.62,.52,.44],dnV:[.16,.28,.10],dnH:[.40,.23,.12],dnQ:[1,0,1,0],dnK:[.3,.5,.4,1],dnW:[.18,.20,.18],dnX:[.06,.06,.05]});
- Object.assign(I18N,{"LES DUNES D'OR":'THE GOLDEN DUNES','DE CRETE EN CRETE':'FROM CREST TO CREST','VENT DE SABLE':'DUST WIND','TEMPETE DE SABLE':'SANDSTORM',
+ Object.assign(I18N,{"LES DUNES D'OR":'THE GOLDEN DUNES','DE CRETE EN CRETE':'FROM CREST TO CREST','DESCENTE PARFAITE':'PERFECT SLOPE','BONNE DESCENTE':'GOOD SLOPE','VENT DE SABLE':'DUST WIND','TEMPETE DE SABLE':'SANDSTORM',
    'LE VENT SE LEVE':'THE WIND RISES','LA LUNE ARGENTE LE SABLE':'THE MOON SILVERS THE SAND','ENSEVELI DANS LE SABLE':'BURIED IN THE SAND',"AU FOND DE L'OASIS":'AT THE BOTTOM OF THE OASIS',
    "CONTRE L'OBELISQUE":'SMASHED INTO THE OBELISK','CONTRE LA PYRAMIDE':'SMASHED INTO THE PYRAMID'});
 }

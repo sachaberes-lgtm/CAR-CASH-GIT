@@ -32,6 +32,8 @@ css/missions.css                     # missionsV2 (l'écran des missions)
 css/garage-jouer.css                 # uiRevue, jouerGarage, garShop
 page/ecrans-garage.html              # HTML : accueil, garage, atelier, inventaire, voile du départ, compteur, dark triad, niveaux
 css/plaque.css                       # <style id="plaque"> (plaque d'immatriculation)
+css/boutons-flottants.css           # <style id="boutonsFlottants"> : ⚙ · œil · trophée flottants en haut à droite, BOUTIQUE en L (touche entrée)
+css/palier-leger.css                 # <style id="palierLeger"> : le CSS par palier (balayages décoratifs de l'atelier figés sur ANCIEN/MOYEN), réglages sans flou sur tactile
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
 page/bibliotheques.html              # <script src> : three.js, figures, sons, post-traitement — et l'ouverture du <script> du jeu
 interface/icones-fenetre.js          # ouverture du jeu (function, 'use strict'), icônes pixel, la fenêtre du jeu
@@ -58,12 +60,16 @@ maps/foret-construction.js           # forêt : construction, boucle, console
 maps/canyon-route.js                 # LE CANYON DES GÉANTS : route, construction, monde, pose
 maps/canyon-relief.js                # canyon : relief, monuments, voûte, lumière cuite
 maps/canyon-mine.js                  # canyon : la mine abandonnée, la route 66
-maps/dunes-1.js                      # LES DUNES D'OR : route, monde, construction
-maps/dunes-2.js                      # dunes : sable à la puce, décors, sable qui vole
+maps/dunes-1.js                      # LES DUNES D'OR : la route CONTINUE (vagues, tremplins de crête), le terrain prescrit, la construction
+maps/dunes-2.js                      # dunes : sable à la puce (rides façon Journey), matière des décors, hiéroglyphes, tremplins, sable qui vole
+maps/dunes-3.js                      # dunes : la boîte à outils des décors (loft, oriflammes), les modèles (pharaon assis, pyramides de Gizeh, obélisque, pylône, sphinx, felouque…)
+maps/dunes-dieux.js                  # dunes : les DIEUX À TÊTE D'ANIMAL (faucon, chacal, ibis, bélier, lionne, crocodile — assis sur le corps du pharaon), le SPHINX-CHAT (trois livrées, queue à gauche ou à droite) et leur tirage (colosses, porte, allée)
+maps/dunes-4.js                      # dunes : les scènes le long de la route (colonnade, allée des sphinx, colosses, porte, portes du ciel, braseros, ruines)
 maps/glacier-route.js                # LA BANQUISE / LE GLACIER v4 : route, manteau de neige
 maps/glacier-construction.js         # glacier : construction, volant en l'air
 maps/glacier-verglas.js              # glacier : verglas, retombée des tremplins, console
 maps/volcan-route.js                 # LE ROYAUME DE FEU : routes v4 et v5, bruit du relief
+maps/volcan-actes.js                 # LE VOLCAN EN ACTES : la route en temps forts (faille, crête, lac, raccourci) et ses orages de cendre
 maps/volcan-construction.js          # volcan : construction, console
 maps/grottes-1.js                    # LES PROFONDEURS : route, surface à facettes
 maps/grottes-2.js                    # grottes : décors, lumières, rendu, construction, ambiances
@@ -72,8 +78,7 @@ maps/cryptocity.js                   # CRYPTOCITY : plan, matières, réclames
 maps/cryptocity-taureau.js           # cryptocity : le taureau, objets du ciel
 maps/ville-verre.js                  # la ville vitrée, néon et verre, le dirigeable
 maps/pluie-argent.js                 # la pluie d'argent v2 (PLA)
-maps/paris.js                        # PARIS au sol, ses matières
-maps/paris-monuments.js              # Paris : les monuments, la figure SLIDE
+maps/murs-slide.js                   # la figure SLIDE (frotter le bord) et le coup d'épaule des parois (murCote)
 maps/jade-1.js                       # LES PICS DE JADE : route, maillage glouton, montagnes en cubes
 maps/jade-2.js                       # jade : la matière des cubes, construction
 maps/jade-3.js                       # jade : la construction en générateur, surface de la physique
@@ -125,6 +130,7 @@ voitures/finition.js                 # la finition studio (dans le jeu ; ?finiti
 voitures/travail-caisse.js           # le travail d'une caisse : laque qui coule (lisseDiffuse), patine par sommet (patineGeo), pneu sculpté (pneuTravaille) — la Zagaie et le Loup
 voitures/zagato.js                   # la Zagaie : la 5-95 de Zagato (gueule creuse, vitrage noir, nacelle, queue coupée)
 voitures/countach.js                 # le Loup : la Countach blanche du film (coin à arêtes vives, aileron, portes à ciseaux, l'épave)
+voitures/stratos-meteo.js            # LA STRATOS, station météo : anémomètre, manche à air, radars Doppler, gyroscope, barre de prévision (?stratos=ancien)
 voitures/buildcar.js                 # buildCar : construire une voiture
 voitures/plaque.js                   # la plaque d'immatriculation, le profil
 interface/vignette-moteur.js         # vignette moteur, étapes de chauffe
@@ -170,7 +176,7 @@ gameplay/figures-route.js            # figures sur la route
 interface/hud-figures.js             # HUD des figures (v3 à v5)
 missions/defis-moteur.js             # défis secrets, missions v2 : le moteur
 missions/ecran-revelation.js         # missions v2 : l'écran, la vignette, boutique et garage, la révélation
-missions/aujourdhui.js               # aujourd'hui : la série de sept jours et le défi du jour (Léo, 20/10)
+missions/aujourdhui.js               # la série de sept jours (carte de l'écran MISSIONS) ; le défi du jour, éteint depuis le 22/10 (Léo, 20/10)
 rendu/stries-vent.js                 # les stries de vent
 gameplay/boost-depart.js             # le ting, le boost de départ
 gameplay/aura-chaine.js              # l'aura v2 (la chaîne), le train de boosts
@@ -189,6 +195,7 @@ interface/garage-salle.js            # buildGarageRoom : la salle du garage
 interface/garage-lacher.js           # garage : le lâcher, la liste, la console à trois modes
 economie/boutique-du-jour.js         # la boutique du jour
 interface/atelier-ferme.js           # l'atelier fermé
+interface/fete-caisse.js             # la fête d'une caisse débloquée, selon sa rareté
 interface/habillages-accueil.js      # la bande des habillages, les plans de l'accueil
 interface/flammes-cubes.js           # les flammes en cubes
 interface/chute-menu.js              # la chute : le menu dans le ciel, le doigt de bienvenue
@@ -198,6 +205,8 @@ interface/richesse-3.js              # la pluie de richesse : tirage, chaque ima
 interface/chute-libre.js             # chute libre douce et réaliste
 interface/boutique-scene-1.js        # boutique 3D : blanc laqué, son, aimant
 interface/boutique-scene-2.js        # boutique 3D : lancer dosé, bras, gestes
+interface/garage-ombre.js            # l'ombre de la caisse qui saute : empreinte sur le plateau, hauteur, emprise (garage et boutique)
+interface/garage-saut.js             # la figure au garage et en boutique : un vrai saut (parabole, rotation gouvernée, ressort, poussière)
 interface/garage-rendu.js            # le doigt sur la scène, garageRender
 interface/garage-cadrage.js          # cadrage mesuré, lampes de l'atelier
 interface/garage-menu-inventaire.js  # le garage est le menu, hub, accueil du ciel, l'inventaire
