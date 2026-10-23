@@ -3,6 +3,19 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA PASSE PERF DU 24/10 — LA VITESSE ET L'ARRIVÉE DANS UNE MAP (2026-10-24, session PERF — Sacha : « lance une grosse session d'optimisation du jeu… il y a beaucoup de latence sur les essais… surtout quand ça va vite. Aussi quand tu arrives dans une nouvelle map, des fois il y a du temps à apparaître, et du coup tu peux mourir sans voir des obstacles arriver »)
+- **LE BANC** (scratchpad de la session, sous Windows : Chrome sans fenêtre, ANGLE/D3D11 sur la RX 6600, téléphone couché émulé 844 × 390 ×2, `?palier=2&garde=1` —
+  ⚠ depuis le 22/10 le lien web démarre un compte NEUF : sans `?garde=1` le banc tombe dans l'auto-école) : `course.cjs` (une partie pilotée nitro tenue : chaque image,
+  profil CPU, trace Chrome), `portail.cjs` (la map d'en face imposée par `dbgClassique`, la caisse posée à T s du portail par `dbgPortail`, le passage relevé : voile,
+  construction, chauffe, images longues), `dom.cjs` (qui écrit dans le DOM en course). Le jeu met ~2 min à devenir jouable dans ce Chrome de banc (8,6 Mo de page).
+- **LE CANYON D'AVANCE** (v842, `cyBatitG`/`cyAvPart`/`cyAvPrend`, `code/maps/canyon-route.js` ; branché dans `prebJob`) : depuis le portail de cubes (17/10) le monde
+  bascule d'un coup au passage — mais le relief du canyon partait au travailleur APRÈS : on roulait 0,6 à 1,1 s (bien plus sur téléphone) sur une route sans parois NI
+  collision (`canyonHeurt` rend '' tant que `CY.on` est faux), puis toute la roche surgissait d'un bloc, parfois autour d'une caisse en vol. Désormais le pré-bâti
+  prépare les échantillons par tranches et envoie le monde au travailleur pendant l'approche ; au passage il est posé dans la construction, sous l'image du portail.
+  MESURÉ (palier 8, caisse posée à 9 s du portail) : `canyon.on` au même instant que la fin de la construction (avant : ~0,6 s après sur PC), monde prêt 2,1 s
+  après le début du pré-bâti, pose 121 ms. Même graine + même palier = même canyon (`cyCle`). `?cyw=0` = sans travailleur (rien d'avance, comme avant) ;
+  `dbgCanyon().ms.avance` = 'pret' (posé au passage) ou 'en vol' (le travailleur n'avait pas fini : attendu comme avant).
+
 ## LA FIDÈLE EN COUCHES EMPILÉES (2026-10-23, v839, Léo : « traduis ce modèle dans le style de La Honte… push-la dans le main »)
 - **Méthode** : la vraie silhouette (sections du plan) taillée en briques et en couches plates dont la taille suit la forme — flancs galbés en facettes larges, toit et vitres en briques lisses, devant (aile, capot, museau) en couches fines à épaisseur et rythme irréguliers ; chaque détail est une PIÈCE posée, jamais un dessin dans la tôle.
 - **Pièces** : phares en 4 pièces (boîtier noir, verre gris, lame de LED, œil chromé), calandre sportive en nid d'abeilles (cadre chromé, fond noir, plots), arcs de roue en relief (bavolet noir, aile couleur caisse, filet chromé), portes en panneaux fins à coins arrondis + poignée chromée, jante en couches (deux étages de bras), aileron sur deux jambes. Code : `SHAPES.corolla` (code/voitures/japonaises-1.js), tout sous `HB`.
