@@ -243,8 +243,13 @@ SHAPES.corolla=function(K){
       zAv=(x,y)=>{for(let z=ZE-.003;z>0;z-=.01)if(xA(S(z),y)>=x)return z;return 2.2;},zAr=(x,y)=>{for(let z=ZB+.003;z<0;z+=.01)if(xA(S(z),y)>=x)return z;return -2.2;};
     const plaque=(k,x0,x1,y,h,e,dep,av)=>{const n=4,w=(x1-x0)/n;for(let i=0;i<n;i++){const xc=x0+w*(i+.5),z=(av?zAv:zAr)(xc+w/2,y);P.box(k,w+.004,h,.022,sd*xc,y,z+(av?1:-1)*(e+dep));}};   // une plaque en 4 tronçons, chacun posé sur SA marche de la face
     plaque('k',.28,.72,.93,.12,0,.010,false);plaque('L',.30,.70,.935,.07,0,.028,false);
-    for(const z of [ZF,ZR]){const n=22,y0=.32;for(const [r,xx,w,h,k] of [[.345,.884,.05,.034,'d'],[.372,.909,.016,.016,'c']])for(let i=0;i<n;i++){const a0=Math.PI*(.09+.82*i/n),a1=Math.PI*(.09+.82*(i+1)/n),am=(a0+a1)/2,L=2*r*Math.sin((a1-a0)/2)+.012;
-        P.box(k,w,h,L,sd*xx,y0+Math.sin(am)*r,z+Math.cos(am)*r,Math.PI/2-am,0,0);}}   // la PROTECTION DE ROUE : un arc noir plaqué sur le bord de l'ouverture, bordé d'un filet CHROMÉ, 22 segments par arc (arrondi léger)
+    for(const z of [ZF,ZR]){const n=22,y0=.32;   /* LES PASSAGES DE ROUE EN RELIEF (23/10, Léo : « la c'est plat au niveau des roues ; protège-les de manière cool ») un BOMBÉ d'aile en trois couches qui sortent de plus en plus : le bavolet noir épais (6 cm), l'aile de la couleur de la caisse par-dessus (3 cm de plus, rayon plus grand), le filet chromé tout au bord. */
+      for(const [r,xx,w,h,k] of [[.345,.884,.05,.034,'d'],[.375,.905,.075,.05,'d'],[.405,.915,.065,.045,'p'],[.428,.936,.016,.016,'c']])for(let i=0;i<n;i++){const a0=Math.PI*(.07+.86*i/n),a1=Math.PI*(.07+.86*(i+1)/n),am=(a0+a1)/2,L=2*r*Math.sin((a1-a0)/2)+.012;
+        P.box(k,w,h,L,sd*xx,y0+Math.sin(am)*r,z+Math.cos(am)*r,Math.PI/2-am,0,0);}}
+  }
+  if(HB){   /* L'AILERON TUNING (23/10) : une lame sur deux jambes, posée sur la malle, le bord relevé — noir mat, avec sa lèvre chromée */
+   const yt=yDessus(0,-1.98);P.box('d',1.46,.034,.27,0,yt+.15,-2.05,.10,0,0);P.box('c',1.46,.012,.02,0,yt+.172,-2.17,.10,0,0);
+   for(const sd of [1,-1]){P.box('d',.03,.11,.28,sd*.73,yt+.15,-2.05,.10,0,0);P.box('d',.045,.15,.05,sd*.45,yt+.07,-2.02);}
   }
   // LES RÉTROVISEURS (relevés sur les trois vues) : la coque à la couleur de la caisse, la glace vers l'arrière, le répétiteur orange devant
   P.sym(sd=>{P.box('k',.10,.035,.10,sd*.80,.885,.745,0,0,0);                              // le pied, sur la portière
