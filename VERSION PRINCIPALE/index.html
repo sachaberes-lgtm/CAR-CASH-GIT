@@ -20941,7 +20941,7 @@ const VLC_ROC_VS=['attribute vec4 aA;attribute vec3 aC;attribute vec4 aI;varying
   'void main(){mat4 M=modelMatrix;','#ifdef USE_INSTANCING','M=modelMatrix*instanceMatrix;','#endif',
   '  vec4 wp=M*vec4(position,1.);vW=wp.xyz;vN=normalize((M*vec4(normal,0.)).xyz);vO=position+aI.x*vec3(71.3,13.7,37.1);vC=aC;vA=aA;vI=aI;',
   '  vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
-const VLC_ROC_FS=[FG_BRUIT,VLC_LUM,'varying vec3 vW,vN,vO,vC;varying vec4 vA,vI;','#include <fog_pars_fragment>',
+const VLC_ROC_FS=[FG_BRUIT,VLC_LUM,VLC_VOR,'varying vec3 vW,vN,vO,vC;varying vec4 vA,vI;','#include <fog_pars_fragment>',
   'void main(){float part=floor(vA.x+.5);vec3 N=normalize(vN);vec3 V=uCam-vW;float dist=length(V);V/=max(dist,.001);vec3 o=vO;',
   '#ifdef V5','  vec3 Nf=normalize(cross(dFdx(vW),dFdy(vW)));if(dot(Nf,N)<0.)Nf=-Nf;N=normalize(mix(Nf,N,.3));','#endif', // (v5) les facettes, comme la roche
   '  vec3 alb=vC*(.72+.56*fn3(o*.35));float ao=vA.y,gl=0.;',
@@ -20949,7 +20949,7 @@ const VLC_ROC_FS=[FG_BRUIT,VLC_LUM,'varying vec3 vW,vN,vO,vC;varying vec4 vA,vI;
   '  if(part<.5)alb*=.75+.5*fn3(o*vec3(.5,.12,.5));',
   '  else if(part<1.5){alb='+(VLC5?'vec3(.075,.058,.115)':'vec3(.016,.013,.02)')+'*(.8+.4*fn3(o*.4));float vn=abs(fn3(o*.21)-.5)+abs(fn3(o*.57)-.5)*.6;gl=smoothstep(.055,0.,vn)*(.35+.65*smoothstep(.45,0.,vA.w));}',
   '  else if(part<2.5)alb*=.8+.35*fn3(o*.9);',
-  '  else{float vn=abs(fn3(o*'+(VLC5?'.17':'.33')+')-.5);gl=smoothstep('+(VLC5?'.032':'.06')+',0.,vn)*.85;}',  // (v5) des veines plus rares et plus larges : l'arche en peau de léopard redevient une roche fendue
+  '  else{'+(VLC5?'vec3 vo=vlcVor(vec2(o.x+o.z*.7,o.y)/6.5);gl=(1.-smoothstep(0.,.07,vo.y-vo.x))*.85;ao=max(ao,.6);':'float vn=abs(fn3(o*.33)-.5);gl=smoothstep(.06,0.,vn)*.85;')+'}',  // (v5) la roche chaude FENDUE en plaques (les cellules de la lave) : les veines en boucles faisaient une peau de léopard sur l'arche
   '  float dif=clamp((dot(N,uSunDir)+.12)/1.12,0.,1.);',
   '  vec3 col=alb*(uSky*('+(VLC5?'.85+.40':'.42+.36')+'*N.y)*ao+uGnd*(.32-.24*N.y)*ao+uSunC*dif*mix(.5,.92,ao)+uFillC*max(dot(N,-uFillD),0.)*.4);', // (v5 : le ciel remplit les ombres, comme la roche)
   '  if(part>.5&&part<1.5){vec3 H=normalize(uSunDir+V);col+=uSunC*pow(max(dot(N,H),0.),80.)*.8;float fr=pow(1.-max(dot(N,V),0.),4.);col+=mix(uGnd,uSky,clamp(reflect(-V,N).y*.5+.5,0.,1.))*fr*'+(VLC5?'.55':'.30')+';}', // le VERRE NOIR (v5 : un verre violet qui prend le ciel — l'obsidienne noire sur brume sombre ne se lisait plus)

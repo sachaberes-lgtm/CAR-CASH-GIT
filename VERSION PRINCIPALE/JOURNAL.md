@@ -3,6 +3,47 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE ROYAUME DE FEU v5 — LA GROSSE REFONTE VISUELLE DU VOLCAN (2026-10-18, session VOLCAN5 — Sacha : « la map volcan est la plus moche, lance une grosse refonte »)
+- **Ce qui ne bouge pas** : la route (tracé v4, boucles à raccourci, `vlcTrace`), les collisions ('lave' / 'roche'), la physique, la caméra, les sons,
+  les tirages `rnd`/`fr` (chaque tirage supprimé est GARDÉ, le décor en aval ne se décale pas). Tout ce qu'on VOIT est refait, derrière `VLC5` :
+  **`?volcan=v4` = le volcan d'avant, au pixel**.
+- **CE QUI ÉTAIT MOCHE (mesuré au banc, photos en course + vues posées, soir/nuit/midi)** : tout l'écran MONOCHROME rouge-orange (ciel orange,
+  brume rouge, lave rouge, brume basse rouge-brun sur toute la plaine) ; la lave = un bruit noir/orange à grain fin, une PEAU DE LÉOPARD plein
+  écran ; le grand volcan rouge sur ciel orange (on ne le voyait pas) avec une « tour » noire rayée au sommet ; des taches de suie brunes collées
+  au ciel (plafond de cendre + panache brun) ; des braises en DISQUES rouges de 200 px quand elles frôlaient l'objectif ; dans un banc de fumée,
+  l'écran entier ROUGE PUR ; des aiguilles fines comme des antennes noires. Et les CARTES POSTALES du portail avaient été tirées avant la fin de la
+  construction en tranches : un plateau vide, sans volcan.
+- **LA LAVE EN PLAQUES** (`VLC_LAVE_FS5`, `VLC_VOR` = des cellules de Voronoï) : de grandes plaques de croûte (~40 m, bords déformés par un courant
+  lent) qui dérivent dans le sens de la pente, séparées par des FENTES de lave vive (or au cœur, orange au bord) ; une cellule sur quatre reste
+  OUVERTE (un bassin) ; un liseré tiède le long des bords ; la croûte en verre violacé qui prend le ciel. La teinte passe du ROUGE à l'OR (le rouge
+  pur, poussé par l'étalonnage, saturait tout). Au loin les plaques fondent en une croûte sombre à peine rougeoyante (au-delà de 1,1 km, plus de
+  calcul de cellules) : l'orange vif reste aux rivières et aux lacs proches. Fentes élargies par `fwidth` : aucune ligne d'un pixel qui scintille.
+- **LA ROCHE EN FACETTES** (`VLC_SOL_FS5`) : la normale de la FACETTE (dFdx/dFdy) — un relief low-poly, adouci au loin ; le BASALTE indigo (ardoise),
+  la CENDRE mauve sur les plats, une bande d'OXYDE sous le sommet des cônes et une lèvre de SOUFRE (`VOLCAN.sol.cf` = la part du cône et la
+  hauteur sur lui, posée par `volcanSol`, lue dans `aS.w`) ; le ciel froid remplit les ombres (jamais un aplat noir) ; les FISSURES qui couvent
+  sont des cellules, sur la roche chaude et seulement de près. Les aiguilles et l'arche (`VLC_ROC_FS`, define `V5`) : facettes, basalte indigo,
+  obsidienne en verre VIOLET qui prend le ciel, veines de l'arche deux fois plus rares.
+- **LES AIGUILLES** : des flèches de basalte TRAPUES (largeur ×1,6, la collision suit — `sxz`, `rR`, `COL`).
+- **LE CRATÈRE** (bug) : au bord du lac du cratère la surface de lave sautait du niveau de la mer à celui du cratère — un MUR de lave de 600 m,
+  rayé, dessinait une tour noire et orange au sommet du grand volcan ; ces cases (sous la roche) ne sont plus tracées (`vlcMorceau`).
+- **LES CIELS** (après la continuité, bloc `if(VLC5)` près des biomes) : le SOIR (la carte postale) avait un zénith NOIR et une bande orange — il
+  prend le dégradé de la bible : indigo → magenta → braise → or ; la nuit plus violette ; la brume prune (plus le rouge plat) ; la brume RECULE
+  (3 000 → 4 000-4 600 m) : le GRAND VOLCAN, droit devant le portail à 1,5-3 km (calculé hors ligne sur 18 pistes : à ±16° de l'axe, 7-15° de
+  haut), est enfin le repère qu'on voit dès le départ.
+- **LA FUMÉE, LA BRUME BASSE, LE PANACHE, LES BRAISES** (`VLC_MET`) : bancs de fumée PRUNE (`fuC`), plus rouge pur ; brume basse allégée de moitié
+  et violette (`bru`, `bC`) ; panache en cendre claire lavande (`fumC`) ; plus de PLAFOND DE CENDRE (`vlcPanaches`, genre 3) ; braises et cendre
+  un cran plus rares, et plafonnées à 4,5-7 px (`VLC_PART_VS`).
+- **LES CARTES POSTALES** (`assets/portail/volcan-*.webp`) retirées APRÈS la construction complète (`VOLCAN.pret`, file vide).
+- MESURÉ (banc headless, RX 6600, DPR 1,5, 740 000 px, 120 images en course au pilote automatique, `dbgCout`) : GPU au matin avant p50 5,2 ms /
+  p90 10,6 — après p50 4,0 / p90 9,4 ; après à l'orage 6,5 / 12,3, à la pluie de cendres 7,7 / 9,9 (les pistes diffèrent d'une passe à l'autre :
+  un ordre de grandeur, pas un duel — la lave en cellules ne coûte pas plus que l'ancien bruit à trois octaves, la roche ne cherche ses cellules
+  que de près). Construction « tout de suite » 55-76 ms (66 avant), le reste en tranches comme avant. 0 erreur sur 9 passages (6 météos).
+- Bancs (scratchpad de la session) : `vphoto5c.cjs <racine> <étiquette> 1 <météo>` (photos en course au pilote auto + vues posées, bancs de fumée,
+  volcan ; `run5.sh` enchaîne les météos), `planche.py` (avant / après), `vue-depart.cjs` (où sont les volcans vus du portail, en Node),
+  `cp-volcan.cjs` (les cartes postales).
+- À trancher par Sacha : la lave OR (plutôt que rouge) ; les aiguilles trapues (×1,6 — `sxz` dans `buildVolcan`, la collision suit) ; la densité des
+  braises (×0,7) ; tout se compare avec `?volcan=v4`.
+
 ## LA CAMÉRA DU GLACIER : ON VOIT LA PENTE EN ROULANT (2026-10-18, Sacha : « oui : redresse la caméra sur le glacier seulement, pour qu'on voie la pente en roulant »)
 - Réponse à la question laissée par le 2e tour (ci-dessous) : la caméra de course s'inclinait avec la piste, la glace à 70 % remplissait l'écran
   comme un parking plat. `CAM_GLACIER` (`k` .8, `max` 30°, `garde` 12°) + `camGlacier()` : au glacier v4, SUR la piste, le CABRAGE ANTICIPÉ

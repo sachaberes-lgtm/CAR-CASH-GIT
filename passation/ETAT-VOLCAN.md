@@ -30,3 +30,9 @@ Sacha : « la route ne doit pas être toute plate mais doit pouvoir s'emmêler, 
 - Banc RACCOURCIS hors ligne (scratchpad d9665cfc : `vtrace.cjs <index.html> <graine> <palier> <out.json>` puis `raccourcis.cjs volcan 1 --depuis=`) :
   30 pistes (paliers 0/5/10/20/27 × 6 graines) : raccourcis rentables 0,7-4,9/km, 0 croisement dangereux, 0 infranchissable, pente ~5 %.
   Restent sous la cible : virages/km (~2,1) et enchaînements (~0,8) — la balade (lac, corniche) assumée. L ≈ 10 km au palier 0 (v3 : 6,9).
+
+## v5 (18/10, session VOLCAN5) — LA GROSSE REFONTE VISUELLE
+Sacha : « la map volcan est la plus moche, lance une grosse refonte ». Route, boucles, collisions, gameplay inchangés ; tout le visuel refait
+derrière `VLC5` (`?volcan=v4` = avant) : lave en plaques (`VLC_LAVE_FS5`, `VLC_VOR`), roche en facettes (`VLC_SOL_FS5`, `VOLCAN.sol.cf`),
+aiguilles/arche (`VLC_ROC_FS` define V5), ciels (bloc `if(VLC5)` après la continuité), fumée/brume/panache/braises (`VLC_MET`), bug du mur de lave
+au cratère, cartes postales retirées APRÈS la construction. Détail et mesures : JOURNAL « LE ROYAUME DE FEU v5 ».
