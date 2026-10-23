@@ -415,7 +415,7 @@ function figAchete(id,bt){const f=window.FIG&&FIG.par[id];if(!f||figPossede(id))
   SAVE.d.bank=bank()-f.p;if(!Array.isArray(SAVE.d.figs))SAVE.d.figs=['tailwhip'];SAVE.d.figs.push(id);SAVE.flush();
   const c9=bqFigDir(id);if(FIGV2.on)try{figEquipe(id,c9);}catch(e){} // (LES FIGURES v2) achetée = ÉQUIPÉE — (2026-10-15) dans la direction de la carte touchée, à la place de celle qui y était
   try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}}catch(e){}try{gTampon(sansAcc(TR('À TOI !')));}catch(e){}hap([10,40,10]);GBQ.rk='';garFigEssai(id,c9);return true;} /* (2026-10-14, session SON) le même « À TOI ! » que l'achat d'une peinture ou d'une caisse : le même tampon qui s'abat (il manquait à la figure) */
-const GFIG={lect:null,t:0,D:0,corps:null};
+const GFIG={lect:null,t:0,D:0,corps:null,pl:null,pulse:0,kick:0,vu:0}; // pl : le plan du saut en cours (garage-saut.js) · pulse : l'anneau du plateau qui s'allume à la pose · kick : le choc de la pose (0 → 1,3)
 /* (2026-10-14, LES FIGURES v2) un emplacement pris ou rendu, et ce qu'on en dit */
 function figEqToast(id,c){const f=window.FIG&&FIG.par[id];if(!f)return;const r=figEquipe(id,c);if(!r)return;const F=FIG_FAM[r.slot],fam=pxi(F[2])+' '+sansAcc(TR(F[0])); // (2026-10-15, les directions) équiper dans la direction c (sans c : la 1re libre, voir figEquipe) ; le toast dit la DIRECTION (le geste)
   if(!r.deja){try{if(SONV2)sfx('ui.equipe');}catch(e){}
@@ -426,13 +426,18 @@ function garFigEssai(id,c,libre){let f=window.FIG&&FIG.par[id];if(!f)return;if(c
   GFGOM.p=null;GFIG.plat=!!(f.m&&f.m.length&&f.m.every(function(m){return m.a&&Math.abs(+m.a[1]||0)>.9;})); /* (2026-10-22, Sacha : « le tail whip à l'inventaire, la caisse décolle ; il faut que ça reste sur le sol, avec une trace de pneus comme les donuts ») une figure À PLAT (tail whip, toupie) reste POSÉE : pas de saut, et les pneus marquent le plateau */
   if(!libre&&!BRAS_FIG&&(brasVoulu()||brasBqVoulu())&&!figPosee()){if(GFIG.corps)GFIG.corps.vide();if(GFIG.lect)GFIG.lect.vide();GFIG.D=0;BRB.libre={id:id,c:c,t:.5};return;} // (19/10 soir) pas encore posée (pinces, bras d'argent qui rentrent) : elle la fera dès qu'elle l'est (brasTick)
   if(!libre&&BRAS_FIG&&(brasVoulu()||brasBqVoulu())){if(brasBqVoulu())BRB.bqVeut=true;if(GFIG.corps)GFIG.corps.vide();if(GFIG.lect)GFIG.lect.vide();GFIG.D=0;const r9=brasFigure(f);if(r9===true)return;if(r9==='libre'){BRB.libre={id:id,c:c,t:.5};return;}} // (2026-10-19) à l'inventaire, LE BRAS DES FIGURES la fait (sans plan sûr : il se range d'abord, puis elle la fait seule) // (2026-10-15) la caisse la fait dans le sens de la carte (le rodéo avant ≠ le rodéo arrière)
-  if(FIGV2.on&&FIG.Corps){if(!GFIG.corps)GFIG.corps=new FIG.Corps();const C=GFIG.corps;C.vide();C.lance(f,1,f.D*1.2);C.evts.length=0;GFIG.t=0;GFIG.D=f.D*1.2*(FIG.PHY.elan?1:1/.85)+.6; /* (2026-10-15 soir) le coup net : la figure en f.D × 1,2, puis le planté */
+  if(FIGV2.on&&FIG.Corps){figSautRaz();GFIG.pl=null;try{GFIG.pl=FIG_SAUT.on?figPlan(f,GFIG.plat):null;}catch(e){GFIG.pl=null;console.warn('figPlan',e);} /* (2026-10-23) LE VRAI SAUT : un plan joué à l'horloge du jeu (voir garage-saut.js) — sans lui (erreur), l'ancien Corps vivant ci-dessous */
+    if(GFIG.pl){if(GFIG.corps)GFIG.corps.vide();GFIG.t=0;GFIG.D=GFIG.pl.D;GFIG.vu=performance.now();try{if(SONV2){sfx('turbo.mini',{vol:-6,t:GFIG.pl.tA});GSON9=true;}}catch(e){}return;}
+    if(!GFIG.corps)GFIG.corps=new FIG.Corps();const C=GFIG.corps;C.vide();C.lance(f,1,f.D*1.2);C.evts.length=0;GFIG.t=0;GFIG.D=f.D*1.2*(FIG.PHY.elan?1:1/.85)+.6; /* (2026-10-15 soir) le coup net : la figure en f.D × 1,2, puis le planté */
     try{if(SONV2){sfx('turbo.mini',{vol:-6});GSON9=true;}}catch(e){}return;} // (LES FIGURES v2) la caisse fait la figure en vraie physique : explosion, élan, planté
   if(!GFIG.lect)GFIG.lect=new FIG.Lecteur();GFIG.lect.vide();GFIG.lect.lance(f,1,f.D*1.25);GFIG.t=0;GFIG.D=f.D*1.25;
   try{if(SONV2){sfx('fig.vrille',{st:2});GSON9=true;}}catch(e){}}
-function garFigTick(dt){
+function garFigTick(dt){garFigPas(dt);try{figOmbre();}catch(e){if(!garFigTick._w){garFigTick._w=1;console.warn('figOmbre',e);}}} // (2026-10-23) chaque image du garage : la figure, puis l'ombre de la caisse là où elle est (voir garage-ombre.js)
+function garFigPas(dt){
+  {const e9=Math.exp(-Math.min(dt,.05)*8);GFIG.pulse*=e9;GFIG.kick*=e9;if(GFIG.pulse<.003)GFIG.pulse=0;if(GFIG.kick<.003)GFIG.kick=0;} // (2026-10-23) l'éclat de la pose retombe
   if(brasTick(dt))return; // (2026-10-19) LE BRAS DES FIGURES tient la caisse
-  if(GFIG.corps&&GFIG.D>0){const C=GFIG.corps,d9=Math.min(dt,.05);GFIG.t+=d9;C.budget=Math.max(0,GFIG.D-GFIG.t);C.tick(d9);C.evts.length=0; // (LES FIGURES v2)
+  if(GFIG.pl&&GFIG.D>0&&figSaut(dt))return; // (2026-10-23) LE VRAI SAUT (garage-saut.js)
+  if(GFIG.corps&&GFIG.D>0){const C=GFIG.corps,d9=GFIG.gel!=null?Math.max(0,Math.min(dt,.05,GFIG.gel-GFIG.t)):Math.min(dt,.05);GFIG.t+=d9;C.budget=Math.max(0,GFIG.D-GFIG.t);C.tick(d9);C.evts.length=0; // (LES FIGURES v2) — (banc) GFIG.gel : l'horloge s'arrête à cet instant (voir dbgFigGel)
     const x=Math.min(1,GFIG.t/GFIG.D),hc=(CARS[equippedCar()].h||1.3)*.5,q=C.q;if(!GFIG.plat)carGroup.position.y+=1.5*Math.sin(Math.PI*x);
     VEQ.pv.set(0,hc,0).applyQuaternion(carGroup.quaternion);VEQ.qr.set(q[0],q[1],q[2],q[3]);carGroup.quaternion.multiply(VEQ.qr);
     VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);
@@ -444,6 +449,11 @@ function garFigTick(dt){
   VEQ.qr.set(L9.q[0],L9.q[1],L9.q[2],L9.q[3]);carGroup.quaternion.multiply(VEQ.qr);
   VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);
   if(GFIG.plat)try{garFigGomme(Math.min(dt,.05),true);}catch(e){}}
+/* (banc, 2026-10-23) LES CROCHETS DE LA FIGURE DU GARAGE : `dbgFigEssai(id,c)` la lance (c : 0 avant · 1 arrière · 2 côté) et rend sa durée ; `dbgFigEtat()`
+   dit où elle en est (horloge du jeu, pas celle du mur) ; `dbgFigGel(t)` arrête son horloge à t s (null = elle repart) pour photographier un instant exact. */
+window.dbgFigEssai=function(id,c){garFigEssai(id,c==null?-1:c);return {D:+GFIG.D.toFixed(3),plat:!!GFIG.plat,plan:window.dbgFigPlan?window.dbgFigPlan():null};};
+window.dbgFigEtat=function(){const o=GBQ.omb;return {t:+GFIG.t.toFixed(3),D:+GFIG.D.toFixed(3),plat:!!GFIG.plat,gel:GFIG.gel==null?null:GFIG.gel,omb:o?{vis:!!(o.visible&&GBQ.grp&&GBQ.grp.visible),y:+o.position.y.toFixed(3),x:+o.position.x.toFixed(3),z:+o.position.z.toFixed(3),s:[+o.scale.x.toFixed(2),+o.scale.y.toFixed(2)],o:+o.material.opacity.toFixed(2)}:null};};
+window.dbgFigGel=function(t){GFIG.gel=t==null?null:+t;return GFIG.gel;};
 function bqBoutonMaj(){const bt=document.getElementById('gBqBtn');if(!bt)return;const s=bqEtat(),cle=s?s.e+'|'+s.t+'|'+(s.p||'')+'|'+(s.j!=null?Math.round(s.j*100):'')+'|'+LANG:'';if(bt._k===cle)return;bt._k=cle;
   bt.dataset.e=s?s.e:'';bt.innerHTML=s?('<span>'+sansAcc(TR(s.t))+'</span>'+(s.p?'<b'+(bqPxLg(s.p)?' class="lg"':'')+'>'+String(s.p).replace(/</g,'')+'</b>':'')+(s.e==='eq'?pxi('coche'):(s.e==='mis'||s.e==='chat')?pxi('droite'):s.e==='sec'?pxi('oeil'):'')+(s.e==='manque'?'<i class="bqJ" style="--v:'+s.j.toFixed(2)+'"></i>':'')):'';}
 try{Object.assign(I18N,{"VERS L'ARRIÈRE":'BACKWARD','POUCE EN ARRIÈRE':'THUMB BACK',"VERS L'AVANT":'FORWARD','SUR LES CÔTÉS':'SIDEWAYS','POUCE EN AVANT':'THUMB FORWARD','POUCE À GAUCHE OU À DROITE':'THUMB LEFT OR RIGHT'});}catch(e){} // (2026-10-15) les deux familles de figures

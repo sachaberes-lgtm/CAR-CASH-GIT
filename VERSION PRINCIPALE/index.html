@@ -10436,25 +10436,27 @@ const shTmpP=new THREE.Vector3(),shMat4=new THREE.Matrix4();
    c'est ce qui colle une caisse au bitume. L'ancien rond de 3,8 × 5,4 m, identique pour une kei-car et un mastodonte, se lisait
    comme une tache sous la voiture et ne tournait pas avec elle en glisse. Recalculée UNE fois par caisse (`userData.gen`, posé par
    buildCar) : 64 × 128 px, moins d'une milliseconde, au menu. Noir PUR en alpha : jamais une lueur. */
-const EMPR={cv:null,tex:null,gen:-1,PW:3.8,PL:5.4,f:new THREE.Vector3(),n:new THREE.Vector3(),r:new THREE.Vector3()};
+const EMPR={cv:null,tex:null,cvA:null,texA:null,gen:-1,PW:3.8,PL:5.4,f:new THREE.Vector3(),n:new THREE.Vector3(),r:new THREE.Vector3()};
 function emprPeint(){
-  if(!EMPR.cv){EMPR.cv=document.createElement('canvas');EMPR.cv.width=64;EMPR.cv.height=128;EMPR.tex=new THREE.CanvasTexture(EMPR.cv);}
+  if(!EMPR.cv){EMPR.cv=document.createElement('canvas');EMPR.cv.width=64;EMPR.cv.height=128;EMPR.tex=new THREE.CanvasTexture(EMPR.cv);
+    EMPR.cvA=document.createElement('canvas');EMPR.cvA.width=64;EMPR.cvA.height=128;EMPR.texA=new THREE.CanvasTexture(EMPR.cvA);} // (2026-10-23) la même empreinte SANS les quatre appuis et plus floue : celle d'une caisse qui a décollé (voir garage-ombre.js)
   const sp=CARS[carGroup.userData.lvl]||CARS[0];
   let wx=sp.w*.42,wzF=sp.l*.32,wzR=sp.l*.32,tw=.3;
   let wxR=wx;if(wheels.length>=4){wx=Math.abs(wheels[1].position.x);wxR=Math.abs(wheels[3].position.x);wzF=Math.abs(wheels[1].position.z);wzR=Math.abs(wheels[3].position.z);tw=wheels[0].userData.large||.3;} // (2026-10-08) la voie de CHAQUE essieu (SQUALE : la roue unique du milieu)
   const BW=Math.max(sp.w,2*Math.max(wx,wxR)+tw)*.5,BL=Math.max(sp.l*.5,Math.max(wzF,wzR)+.35);           // demi-empreinte de la caisse
   EMPR.PW=2*BW+1.3;EMPR.PL=2*BL+1.5;                                                         // + la pénombre tout autour
-  const c=EMPR.cv.getContext('2d'),im=c.createImageData(64,128),D=im.data,rc=Math.min(BW,.55);
+  const c=EMPR.cv.getContext('2d'),im=c.createImageData(64,128),D=im.data,rc=Math.min(BW,.55),cA=EMPR.cvA.getContext('2d'),imA=cA.createImageData(64,128),DA=imA.data;
   for(let j=0;j<128;j++)for(let i=0;i<64;i++){
     const x=((i+.5)/64-.5)*EMPR.PW,z=(.5-(j+.5)/128)*EMPR.PL;                               // ligne 0 = le NEZ (le haut du canvas = +Y du plan = l'avant)
     const qx=Math.abs(x)-(BW-rc),qz=Math.abs(z)-(BL-rc);                                      // distance signée au rectangle aux coins ronds
     const dd=Math.hypot(Math.max(qx,0),Math.max(qz,0))+Math.min(Math.max(qx,qz),0)-rc;
     const t=Math.min(1,Math.max(0,(dd+.3)/.9));let a=.46*(1-t*t*(3-2*t));                     // le corps : plein dessous, fondu sur ~90 cm
+    const o=(j*64+i)*4,tA=Math.min(1,Math.max(0,(dd+.3)/.95)),sA=1-tA*tA*(3-2*tA);DA[o]=DA[o+1]=DA[o+2]=255;DA[o+3]=Math.round(.72*sA*255); // (2026-10-23) en l'air : le même corps, sans les quatre appuis, un peu plus dense (l'ombre d'une caisse qui vole doit se LIRE sur un plateau clair)
     const zw=z>0?wzF:wzR,ex=(Math.abs(x)-(z>0?wx:wxR))/(tw*.9),ez=(Math.abs(z)-zw)/.55;                // les quatre appuis
     a=1-(1-a)*(1-.5*Math.exp(-(ex*ex+ez*ez)*1.6));
-    const o=(j*64+i)*4;D[o]=D[o+1]=D[o+2]=255;D[o+3]=Math.round(a*255); // (vague 2) blanc : l'encre vient de la matière (voir contactShadow)
+    D[o]=D[o+1]=D[o+2]=255;D[o+3]=Math.round(a*255); // (vague 2) blanc : l'encre vient de la matière (voir contactShadow)
   }
-  c.putImageData(im,0,0);EMPR.tex.needsUpdate=true;
+  c.putImageData(im,0,0);EMPR.tex.needsUpdate=true;cA.putImageData(imA,0,0);EMPR.texA.needsUpdate=true;
 }
 function updateContactShadow(){ // appelée juste avant le rendu
   if(CHUTE&&CHUTE.on){contactShadow.visible=false;return;} // (2026-09-30) LA CHUTE : pas de sol sous elle (CHUTE est un var : undefined avant sa ligne)
@@ -10467,7 +10469,9 @@ function updateContactShadow(){ // appelée juste avant le rendu
   const M9=contactShadow.material;
   if(vitrine||mode==='drive'){
     EMPR.f.set(0,0,1).applyQuaternion(carGroup.quaternion);                                   // le nez de la caisse (glisse et drift compris)
-    if(vitrine){EMPR.n.set(0,1,0).applyQuaternion(carGroup.quaternion);shTmpP.copy(carGroup.position).addScaledVector(EMPR.n,.018);}
+    const FO=garageOn&&vitrine&&typeof figOmbre==='function'?figOmbre.O:null,air9=!!(FO&&FO.on&&FO.h>.02&&performance.now()-FO.t<150); /* (2026-10-23, Léo : « une ombre plate suit la voiture pendant que ça saute ») AU GARAGE, la caisse qui a quitté le plateau laisse son ombre SUR le plateau, sous son centre, au cap — voir garage-ombre.js */
+    if(air9){EMPR.n.set(0,1,0);EMPR.f.set(Math.sin(FO.psi),0,Math.cos(FO.psi));shTmpP.set(FO.x,FO.solY+.018,FO.z);}
+    else if(vitrine){EMPR.n.set(0,1,0).applyQuaternion(carGroup.quaternion);shTmpP.copy(carGroup.position).addScaledVector(EMPR.n,.018);}
     else{
       frameAt(s,Fsh);
       if(side<0){Fsh.n.multiplyScalar(-1);Fsh.b.multiplyScalar(-1);}
@@ -10480,9 +10484,10 @@ function updateContactShadow(){ // appelée juste avant le rendu
     shMat4.makeBasis(EMPR.r,EMPR.f,EMPR.n);
     contactShadow.position.copy(shTmpP);
     contactShadow.quaternion.setFromRotationMatrix(shMat4);
-    if(M9.map!==EMPR.tex)M9.map=EMPR.tex;
-    contactShadow.scale.set(EMPR.PW*carGroup.scale.x,EMPR.PL*carGroup.scale.z,1);
-    M9.opacity=vitrine?.9:(side<0?1:.72); // (2026-09-26) l'empreinte porte sa propre densité (≤ .46 sous le corps, ~.7 aux roues) ; sous la dalle elle est seule (l'ombre réelle part dans le vide)
+    if(air9){const g9=1+.22*Math.min(FO.h,2.5);M9.map=FO.h>.05?EMPR.texA:EMPR.tex;contactShadow.scale.set(EMPR.PW*FO.kx*g9,EMPR.PL*FO.kz*g9,1);const u9=Math.min(1,Math.max(0,(FO.h-.05)/.55));M9.opacity=(.575+(.9/(1+.18*FO.h)-.575)*u9*u9*(3-2*u9));} /* .575 × .72 = .9 × .46 : le centre de l'ombre garde sa noirceur d'au sol au moment du décollage (aucun saut), puis elle s'éclaircit à peine avec l'altitude */ // en l'air : plus elle monte, plus l'ombre s'étale et s'éclaircit ; les appuis des roues s'éteignent au décollage
+    else{if(M9.map!==EMPR.tex)M9.map=EMPR.tex;
+      contactShadow.scale.set(EMPR.PW*carGroup.scale.x,EMPR.PL*carGroup.scale.z,1);
+      M9.opacity=vitrine?.9:(side<0?1:.72);} // (2026-09-26) l'empreinte porte sa propre densité (≤ .46 sous le corps, ~.7 aux roues) ; sous la dalle elle est seule (l'ombre réelle part dans le vide)
     contactShadow.visible=true;
   }else if(mode==='fall'){
     const hgt=VOLR.on?curHOff:fallPos.y-lastNearY; // hauteur au-dessus de la route la plus proche → télégraphe d'atterrissage — (LE VOL QUI SUIT LA ROUTE) sur la route sans haut ni bas : le long de la normale de la dalle
@@ -67445,7 +67450,7 @@ function figAchete(id,bt){const f=window.FIG&&FIG.par[id];if(!f||figPossede(id))
   SAVE.d.bank=bank()-f.p;if(!Array.isArray(SAVE.d.figs))SAVE.d.figs=['tailwhip'];SAVE.d.figs.push(id);SAVE.flush();
   const c9=bqFigDir(id);if(FIGV2.on)try{figEquipe(id,c9);}catch(e){} // (LES FIGURES v2) achetée = ÉQUIPÉE — (2026-10-15) dans la direction de la carte touchée, à la place de celle qui y était
   try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}}catch(e){}try{gTampon(sansAcc(TR('À TOI !')));}catch(e){}hap([10,40,10]);GBQ.rk='';garFigEssai(id,c9);return true;} /* (2026-10-14, session SON) le même « À TOI ! » que l'achat d'une peinture ou d'une caisse : le même tampon qui s'abat (il manquait à la figure) */
-const GFIG={lect:null,t:0,D:0,corps:null};
+const GFIG={lect:null,t:0,D:0,corps:null,pl:null,pulse:0,kick:0,vu:0}; // pl : le plan du saut en cours (garage-saut.js) · pulse : l'anneau du plateau qui s'allume à la pose · kick : le choc de la pose (0 → 1,3)
 /* (2026-10-14, LES FIGURES v2) un emplacement pris ou rendu, et ce qu'on en dit */
 function figEqToast(id,c){const f=window.FIG&&FIG.par[id];if(!f)return;const r=figEquipe(id,c);if(!r)return;const F=FIG_FAM[r.slot],fam=pxi(F[2])+' '+sansAcc(TR(F[0])); // (2026-10-15, les directions) équiper dans la direction c (sans c : la 1re libre, voir figEquipe) ; le toast dit la DIRECTION (le geste)
   if(!r.deja){try{if(SONV2)sfx('ui.equipe');}catch(e){}
@@ -67456,13 +67461,18 @@ function garFigEssai(id,c,libre){let f=window.FIG&&FIG.par[id];if(!f)return;if(c
   GFGOM.p=null;GFIG.plat=!!(f.m&&f.m.length&&f.m.every(function(m){return m.a&&Math.abs(+m.a[1]||0)>.9;})); /* (2026-10-22, Sacha : « le tail whip à l'inventaire, la caisse décolle ; il faut que ça reste sur le sol, avec une trace de pneus comme les donuts ») une figure À PLAT (tail whip, toupie) reste POSÉE : pas de saut, et les pneus marquent le plateau */
   if(!libre&&!BRAS_FIG&&(brasVoulu()||brasBqVoulu())&&!figPosee()){if(GFIG.corps)GFIG.corps.vide();if(GFIG.lect)GFIG.lect.vide();GFIG.D=0;BRB.libre={id:id,c:c,t:.5};return;} // (19/10 soir) pas encore posée (pinces, bras d'argent qui rentrent) : elle la fera dès qu'elle l'est (brasTick)
   if(!libre&&BRAS_FIG&&(brasVoulu()||brasBqVoulu())){if(brasBqVoulu())BRB.bqVeut=true;if(GFIG.corps)GFIG.corps.vide();if(GFIG.lect)GFIG.lect.vide();GFIG.D=0;const r9=brasFigure(f);if(r9===true)return;if(r9==='libre'){BRB.libre={id:id,c:c,t:.5};return;}} // (2026-10-19) à l'inventaire, LE BRAS DES FIGURES la fait (sans plan sûr : il se range d'abord, puis elle la fait seule) // (2026-10-15) la caisse la fait dans le sens de la carte (le rodéo avant ≠ le rodéo arrière)
-  if(FIGV2.on&&FIG.Corps){if(!GFIG.corps)GFIG.corps=new FIG.Corps();const C=GFIG.corps;C.vide();C.lance(f,1,f.D*1.2);C.evts.length=0;GFIG.t=0;GFIG.D=f.D*1.2*(FIG.PHY.elan?1:1/.85)+.6; /* (2026-10-15 soir) le coup net : la figure en f.D × 1,2, puis le planté */
+  if(FIGV2.on&&FIG.Corps){figSautRaz();GFIG.pl=null;try{GFIG.pl=FIG_SAUT.on?figPlan(f,GFIG.plat):null;}catch(e){GFIG.pl=null;console.warn('figPlan',e);} /* (2026-10-23) LE VRAI SAUT : un plan joué à l'horloge du jeu (voir garage-saut.js) — sans lui (erreur), l'ancien Corps vivant ci-dessous */
+    if(GFIG.pl){if(GFIG.corps)GFIG.corps.vide();GFIG.t=0;GFIG.D=GFIG.pl.D;GFIG.vu=performance.now();try{if(SONV2){sfx('turbo.mini',{vol:-6,t:GFIG.pl.tA});GSON9=true;}}catch(e){}return;}
+    if(!GFIG.corps)GFIG.corps=new FIG.Corps();const C=GFIG.corps;C.vide();C.lance(f,1,f.D*1.2);C.evts.length=0;GFIG.t=0;GFIG.D=f.D*1.2*(FIG.PHY.elan?1:1/.85)+.6; /* (2026-10-15 soir) le coup net : la figure en f.D × 1,2, puis le planté */
     try{if(SONV2){sfx('turbo.mini',{vol:-6});GSON9=true;}}catch(e){}return;} // (LES FIGURES v2) la caisse fait la figure en vraie physique : explosion, élan, planté
   if(!GFIG.lect)GFIG.lect=new FIG.Lecteur();GFIG.lect.vide();GFIG.lect.lance(f,1,f.D*1.25);GFIG.t=0;GFIG.D=f.D*1.25;
   try{if(SONV2){sfx('fig.vrille',{st:2});GSON9=true;}}catch(e){}}
-function garFigTick(dt){
+function garFigTick(dt){garFigPas(dt);try{figOmbre();}catch(e){if(!garFigTick._w){garFigTick._w=1;console.warn('figOmbre',e);}}} // (2026-10-23) chaque image du garage : la figure, puis l'ombre de la caisse là où elle est (voir garage-ombre.js)
+function garFigPas(dt){
+  {const e9=Math.exp(-Math.min(dt,.05)*8);GFIG.pulse*=e9;GFIG.kick*=e9;if(GFIG.pulse<.003)GFIG.pulse=0;if(GFIG.kick<.003)GFIG.kick=0;} // (2026-10-23) l'éclat de la pose retombe
   if(brasTick(dt))return; // (2026-10-19) LE BRAS DES FIGURES tient la caisse
-  if(GFIG.corps&&GFIG.D>0){const C=GFIG.corps,d9=Math.min(dt,.05);GFIG.t+=d9;C.budget=Math.max(0,GFIG.D-GFIG.t);C.tick(d9);C.evts.length=0; // (LES FIGURES v2)
+  if(GFIG.pl&&GFIG.D>0&&figSaut(dt))return; // (2026-10-23) LE VRAI SAUT (garage-saut.js)
+  if(GFIG.corps&&GFIG.D>0){const C=GFIG.corps,d9=GFIG.gel!=null?Math.max(0,Math.min(dt,.05,GFIG.gel-GFIG.t)):Math.min(dt,.05);GFIG.t+=d9;C.budget=Math.max(0,GFIG.D-GFIG.t);C.tick(d9);C.evts.length=0; // (LES FIGURES v2) — (banc) GFIG.gel : l'horloge s'arrête à cet instant (voir dbgFigGel)
     const x=Math.min(1,GFIG.t/GFIG.D),hc=(CARS[equippedCar()].h||1.3)*.5,q=C.q;if(!GFIG.plat)carGroup.position.y+=1.5*Math.sin(Math.PI*x);
     VEQ.pv.set(0,hc,0).applyQuaternion(carGroup.quaternion);VEQ.qr.set(q[0],q[1],q[2],q[3]);carGroup.quaternion.multiply(VEQ.qr);
     VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);
@@ -67474,6 +67484,11 @@ function garFigTick(dt){
   VEQ.qr.set(L9.q[0],L9.q[1],L9.q[2],L9.q[3]);carGroup.quaternion.multiply(VEQ.qr);
   VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);
   if(GFIG.plat)try{garFigGomme(Math.min(dt,.05),true);}catch(e){}}
+/* (banc, 2026-10-23) LES CROCHETS DE LA FIGURE DU GARAGE : `dbgFigEssai(id,c)` la lance (c : 0 avant · 1 arrière · 2 côté) et rend sa durée ; `dbgFigEtat()`
+   dit où elle en est (horloge du jeu, pas celle du mur) ; `dbgFigGel(t)` arrête son horloge à t s (null = elle repart) pour photographier un instant exact. */
+window.dbgFigEssai=function(id,c){garFigEssai(id,c==null?-1:c);return {D:+GFIG.D.toFixed(3),plat:!!GFIG.plat,plan:window.dbgFigPlan?window.dbgFigPlan():null};};
+window.dbgFigEtat=function(){const o=GBQ.omb;return {t:+GFIG.t.toFixed(3),D:+GFIG.D.toFixed(3),plat:!!GFIG.plat,gel:GFIG.gel==null?null:GFIG.gel,omb:o?{vis:!!(o.visible&&GBQ.grp&&GBQ.grp.visible),y:+o.position.y.toFixed(3),x:+o.position.x.toFixed(3),z:+o.position.z.toFixed(3),s:[+o.scale.x.toFixed(2),+o.scale.y.toFixed(2)],o:+o.material.opacity.toFixed(2)}:null};};
+window.dbgFigGel=function(t){GFIG.gel=t==null?null:+t;return GFIG.gel;};
 function bqBoutonMaj(){const bt=document.getElementById('gBqBtn');if(!bt)return;const s=bqEtat(),cle=s?s.e+'|'+s.t+'|'+(s.p||'')+'|'+(s.j!=null?Math.round(s.j*100):'')+'|'+LANG:'';if(bt._k===cle)return;bt._k=cle;
   bt.dataset.e=s?s.e:'';bt.innerHTML=s?('<span>'+sansAcc(TR(s.t))+'</span>'+(s.p?'<b'+(bqPxLg(s.p)?' class="lg"':'')+'>'+String(s.p).replace(/</g,'')+'</b>':'')+(s.e==='eq'?pxi('coche'):(s.e==='mis'||s.e==='chat')?pxi('droite'):s.e==='sec'?pxi('oeil'):'')+(s.e==='manque'?'<i class="bqJ" style="--v:'+s.j.toFixed(2)+'"></i>':'')):'';}
 try{Object.assign(I18N,{"VERS L'ARRIÈRE":'BACKWARD','POUCE EN ARRIÈRE':'THUMB BACK',"VERS L'AVANT":'FORWARD','SUR LES CÔTÉS':'SIDEWAYS','POUCE EN AVANT':'THUMB FORWARD','POUCE À GAUCHE OU À DROITE':'THUMB LEFT OR RIGHT'});}catch(e){} // (2026-10-15) les deux familles de figures
@@ -67909,6 +67924,153 @@ window.dbgSonde=(function(ql){return function(x0,y0,x1,y1,st){if(arguments.lengt
     const lp=carGroup.worldToLocal(h.point.clone()),k=g+':'+col;out[k]=out[k]||{n:0,p:[]};out[k].n++;if(out[k].p.length<5)out[k].p.push([x,y,+lp.x.toFixed(2),+lp.y.toFixed(2),+lp.z.toFixed(2)]);}
   return out;};})(window.dbgSonde);
 window.dbgBqVoir=function(i){if(!GBQ.on)return 'boutique fermée';bqEssaie('v:'+(i|0));return CARS[i|0]&&CARS[i|0].name;}; // (banc) pose la caisse i sur le plateau de la boutique
+/* ===== L'OMBRE DE LA CAISSE QUI SAUTE (2026-10-23, Léo : « il y a une ombre plate qui suit la voiture pendant que ça saute, ce qui n'est pas réaliste ») =====
+   Au GARAGE, l'ombre de contact (`contactShadow`, rendu/triptyque-bloom.js) était posée SOUS la caisse (sa position + sa normale) : pendant une
+   figure elle montait avec elle, à plat, et basculait avec son assiette — une feuille noire collée au ventre (MESURÉ au banc : elle suivait
+   l'origine de la caisse à 1,8 m, même taille, même noirceur). En BOUTIQUE, `GBQ.omb` restait au sol, mais aussi noire et aussi large à 1,7 m
+   de haut. Désormais l'empreinte reste SUR LE PLATEAU, sous le centre de la caisse, tournée au CAP (jamais à l'assiette), et elle suit la HAUTEUR
+   du point le plus bas : plus la caisse monte, plus l'ombre s'étale et s'éclaircit ; son emprise est celle de la boîte de la caisse vue d'en haut
+   (un salto la raccourcit, un tonneau l'étrécit) ; les quatre appuis des roues disparaissent dès qu'elles décollent (texture « air »). Au
+   repos, rien ne change : c'est exactement l'ancienne ombre. `figOmbre()` tourne à chaque image du garage (garFigTick), après la pose de la
+   caisse ; `figOmbre.O` garde le résultat (lu par updateContactShadow). Banc : `dbgFigOmbre()`. */
+function figBoite(force){ // la boîte des pièces pleines de la caisse (repère caisse), relevée par caisse (`userData.gen`, posé par buildCar) et rafraîchie toutes les 1,5 s
+  const g=carGroup.userData.gen||0,now=performance.now(),B=figBoite._b||(figBoite._b={g:-1,t:0,ok:false,min:new THREE.Vector3(),max:new THREE.Vector3()});
+  if(!force&&B.g===g&&(B.ok?now-B.t<1500:now-B.t<400))return B.ok?B:null; // une caisse encore vide : on ne réessaie pas à chaque image
+  B.g=g;B.t=now;
+  const inv=figBoite._i||(figBoite._i=new THREE.Matrix4()),M=figBoite._m||(figBoite._m=new THREE.Matrix4()),bb=figBoite._bb||(figBoite._bb=new THREE.Box3()),b9=figBoite._b9||(figBoite._b9=new THREE.Box3());
+  carGroup.updateMatrixWorld(true);inv.copy(carGroup.matrixWorld).invert();bb.makeEmpty();
+  carGroup.traverse(function(o){if(!o.isMesh||!o.geometry||!o.geometry.attributes.position)return;const mt=Array.isArray(o.material)?o.material[0]:o.material;
+    if((mt&&(mt.transparent||mt.blending===THREE.AdditiveBlending))||(o.userData&&o.userData.sol))return; // ni halos, ni flaques, ni flammes : la tôle et les roues
+    for(let q=o;q&&q!==carGroup;q=q.parent)if(!q.visible||q===carWingL||q===carWingR)return; // ni l'invisible, ni les AILES de la boutique (dépliées à 2,5 m à la construction, repliées ensuite)
+    if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();M.multiplyMatrices(inv,o.matrixWorld);b9.copy(o.geometry.boundingBox).applyMatrix4(M);bb.union(b9);});
+  if(bb.isEmpty()){B.ok=false;return null;}
+  B.min.copy(bb.min);B.max.copy(bb.max);B.ok=true;return B;}
+function figOmbre(){ // chaque image du garage, après la pose de la caisse : où est son empreinte sur le plateau, et à quelle hauteur elle flotte
+  const O=figOmbre.O||(figOmbre.O={on:false,t:0,x:0,z:0,h:0,hAir:0,kx:1,kz:1,psi:0,solY:0,v:new THREE.Vector3(),a:new THREE.Vector3(),b:new THREE.Vector3(),c:new THREE.Vector3()});
+  O.on=false;if(!garageOn||!carGroup||!carGroup.visible)return O;
+  const B=figBoite();if(!B)return O;
+  const q=carGroup.quaternion,s=carGroup.scale,p=carGroup.position,ax=O.a.set(1,0,0).applyQuaternion(q),ay=O.b.set(0,1,0).applyQuaternion(q),az=O.c.set(0,0,1).applyQuaternion(q), /* x = sa gauche · y = son toit · z = son nez */
+    hx=(B.max.x-B.min.x)*.5*Math.abs(s.x),hy=(B.max.y-B.min.y)*.5*Math.abs(s.y),hz=(B.max.z-B.min.z)*.5*Math.abs(s.z),
+    v=O.v.set((B.min.x+B.max.x)*.5*s.x,(B.min.y+B.max.y)*.5*s.y,(B.min.z+B.max.z)*.5*s.z).applyQuaternion(q), /* le centre de la boîte, dans la salle */
+    cx=p.x+v.x,cy=p.y+v.y,cz=p.z+v.z,
+    bas=cy-(hx*Math.abs(ax.y)+hy*Math.abs(ay.y)+hz*Math.abs(az.y)), /* son point le plus bas (fonction d'appui de la boîte) */
+    sol0=GARAGE_Y+GAR.POD+B.min.y*Math.abs(s.y); /* le dessous de la caisse AU REPOS, sur le plateau */
+  O.solY=GARAGE_Y+GAR.POD;O.hBas=bas-sol0;O.h=Math.max(0,cy-(sol0+hy)); /* la hauteur de son CENTRE au-dessus de sa place de repos : en plein salto le point le plus bas dépasse sous le plateau, l'ombre, elle, doit rester au sol et s'éclaircir avec l'altitude */
+  const fh=Math.hypot(az.x,az.z),lh=Math.hypot(ax.x,ax.z);O.psi=fh>=lh?Math.atan2(az.x,az.z):Math.atan2(-ax.z,ax.x); /* le cap : l'axe du nez, ou celui du côté quand le nez pointe en l'air (l'empreinte est la même à 180° près) */
+  const sn=Math.sin(O.psi),cs=Math.cos(O.psi), /* le nez (sn,cs) et le côté (cs,−sn), sur le plateau */
+    ex=hx*Math.abs(ax.x*cs-ax.z*sn)+hy*Math.abs(ay.x*cs-ay.z*sn)+hz*Math.abs(az.x*cs-az.z*sn), /* la demi-largeur de la boîte vue d'en haut… */
+    ez=hx*Math.abs(ax.x*sn+ax.z*cs)+hy*Math.abs(ay.x*sn+ay.z*cs)+hz*Math.abs(az.x*sn+az.z*cs); /* …et sa demi-longueur */
+  O.kx=THREE.MathUtils.clamp(ex/Math.max(.1,hx),.35,1.25);O.kz=THREE.MathUtils.clamp(ez/Math.max(.1,hz),.35,1.25);
+  O.x=cx;O.z=cz;O.t=performance.now();O.on=true;
+  if(typeof GBQ!=='undefined'&&GBQ.on&&GBQ.omb&&GBQ.grp&&GBQ.grp.visible){ // BOUTIQUE : le disque d'ombre au sol (GBQ.omb) suit la hauteur de ce qui monte AU-DESSUS de sa lévitation (la sienne, c'est `fl`, voir garBqIndus)
+    const o=GBQ.omb,air=Math.max(0,O.h-((GBQ.lev||0)+(GBQ.levB||0)+(GBQ.leve||0)));O.hAir=air;
+    if(air>.02){const fl=Math.max(0,Math.min(1,(GBQ.lev||0)/.95)),th=GBQ.grp.rotation.y,dx=cx-GBQ.grp.position.x,dz=cz-GBQ.grp.position.z,sc=(4.2-.9*fl)*Math.sqrt(O.kx*O.kz)*(1+.1*Math.min(air,2));
+      o.position.x=dx*Math.cos(th)-dz*Math.sin(th);o.position.z=dx*Math.sin(th)+dz*Math.cos(th);o.scale.set(sc,sc,1);o.material.opacity=(.42-.12*fl)/(1+1.5*air);}
+    else{o.position.x=0;o.position.z=0;}}
+  else O.hAir=O.h;
+  return O;}
+window.dbgFigOmbre=function(){const O=figOmbre.O;return O&&{on:O.on,h:+O.h.toFixed(3),bas:+O.hBas.toFixed(3),hAir:+O.hAir.toFixed(3),kx:+O.kx.toFixed(2),kz:+O.kz.toFixed(2),psi:+O.psi.toFixed(2),x:+O.x.toFixed(2),z:+O.z.toFixed(2),solY:+O.solY.toFixed(3),gen:figBoite._b&&figBoite._b.g,boite:figBoite._b&&figBoite._b.ok?[figBoite._b.min.x,figBoite._b.min.y,figBoite._b.min.z,figBoite._b.max.x,figBoite._b.max.y,figBoite._b.max.z].map(function(v){return +v.toFixed(2);}):null};}; // (banc) où l'ombre de la caisse se pose
+/* ===== LA FIGURE AU GARAGE : UN VRAI SAUT (2026-10-23, Léo : « travailler la physique des tricks dans le garage, ainsi que dans la boutique… et peut-être, quand la voiture atterrit, un petit effet ») =====
+   MESURÉ au banc (salto arrière, `dbgFigEssai('saltoa')`, horloge du jeu) : la caisse faisait son tour sur place PENDANT qu'elle montait de 1,5 m en sinus —
+   la rotation, elle, partait à pleine vitesse dès la 1re image : à 0,17 s le nez était à 105° et le BAS de la caisse à −1,5 m, sous le plateau (la poupe
+   traversait le plateau, puis le sol de l'atelier, pendant ~0,3 s). Et elle se posait sans rien : arrêt net à 3,3 m/s, ni ressort, ni poussière, ni son.
+   Désormais la figure est un PLAN calculé au lancement (`figPlan`), joué à l'horloge du jeu (`figSaut`) :
+   · LA ROTATION vient du même moteur (`FIG.Corps`, celui de la course), jouée d'avance par un Corps jetable et relevée à 60 Hz — la figure est la même ;
+   · LE SAUT est une vraie PARABOLE (hauteur, durée et gravité tirées du plan, gravité entre `FIG_SAUT.gMin` et `gMax`), précédée d'un petit ACCROUPI (la suspension se tasse 0,1 s) ;
+   · LE GOUVERNEUR : la rotation n'avance que si la caisse est assez HAUTE pour qu'aucun coin de sa boîte (pièces pleines, roues comprises) ne passe sous le
+     plateau — au décollage elle monte d'abord, puis tourne ; le saut choisi est le meilleur compromis court / pas trop haut (T + 0,3 h, durées 1,2 → 3,3 s,
+     hauteurs 1,3 → 2,4 m) qui laisse finir la figure avant la pose : une grande caisse ou un grand salto monte plus haut et plus longtemps. Le pivot est le centre
+     de masse de la caisse. Un filet de sécurité relève la caisse de ce qui manque encore (jamais sous le plateau) ;
+   · L'ATTERRISSAGE : la carrosserie encaisse sur ses roues (ressort amorti, 8 cm au plus), un nuage de poussière en pixels à chaque roue + l'anneau de fumée du garage,
+     quelques étincelles si le choc est dur, le son de pose (`pose.nette`), un tic dans le pouce, et l'anneau du plateau qui s'allume (`GFIG.pulse`).
+   Les figures À PLAT (tail whip, toupie : `GFIG.plat`) restent posées, avec leur gomme, comme avant. Banc : `dbgFigEssai`, `dbgFigEtat`, `dbgFigGel`, `dbgFigPlan` ; `?saut=ancien` rend l'ancien saut (un sinus de 1,5 m, la rotation à pleine vitesse dès la 1re image) pour comparer. */
+const FIG_SAUT={on:!/[?&]saut=ancien\b/.test(location.search),gMin:1.8,gMax:9.5,tA:.1,tRec:.5,hMin:1.3,hMax:2.4,marge:.08,tPose:.12,accroupi:.055,ressort:{w:38,z:.3}}; /* gMin, gMax : la gravité du saut, tirée entre ces bornes (m/s²) · tA : l'accroupi · tRec : le temps du ressort après la pose · tPose : la figure finit au moins tPose avant de toucher */
+function figPlan(f,plat){ // la figure `f` (déjà orientée) sur la caisse du plateau : la rotation relevée à 60 Hz, le saut qui la laisse passer, les instants
+  const K=FIG_SAUT,B=figBoite(true)||{min:{x:-1,y:0,z:-2.2},max:{x:1,y:1.4,z:2.2}},hc=B.min.y+.45*(B.max.y-B.min.y), /* le pivot : son centre de masse, un peu sous le milieu de la boîte (avant : la moitié de la fiche `h`, trop bas — le toit balayait un grand cercle) */
+    cs=[],ph0=hc-B.min.y; /* ph0 : la hauteur du pivot au-dessus du dessous de la caisse, au repos */
+  for(const x of [B.min.x,B.max.x])for(const y of [B.min.y,B.max.y])for(const z of [B.min.z,B.max.z])cs.push(x,y-hc,z); /* les huit coins de la boîte, dans le repère du pivot */
+  const C=new FIG.Corps(),Q=[],AN=[],NEED=[];C.lance(f,1,f.D*1.2);C.evts.length=0;
+  const pousse=function(){const q=C.q,x=q[0],y=q[1],z=q[2],w=q[3],r0=2*(x*y+w*z),r1=1-2*(x*x+z*z),r2=2*(y*z-w*x);let mn=1e9; /* la ligne y de la matrice : la hauteur de chaque coin tourné */
+    for(let k=0;k<24;k+=3){const v=r0*cs[k]+r1*cs[k+1]+r2*cs[k+2];if(v<mn)mn=v;}
+    Q.push(x,y,z,w);AN.push(C.ecart());NEED.push(Math.max(0,-mn-ph0));}; /* NEED : de combien le pivot doit monter pour que le coin le plus bas reste sur le plateau */
+  pousse();
+  const Dref=f.D*1.2*(FIG.PHY.elan?1:1/.85)+.6; /* le temps que le garage lui donnait pour finir (le budget du Corps vivant) : sans lui un battement (shimmy) sonne 3 s */
+  for(let i=1;i<260;i++){C.budget=Math.max(0,Dref-i/60);C.poseK=i/60>f.D*1.2?1:0;C.tick(1/120);C.tick(1/120);pousse();if(i>6&&C.occupe()===0&&C.ecart()<.02&&Math.hypot(C.w[0],C.w[1],C.w[2])<.3)break;} /* jusqu'au planté, jamais plus de 4 s */
+  Q.push(0,0,0,1);AN.push(0);NEED.push(0);const N=Q.length/4;
+  if(plat){const nR=N-1,QR=new Float32Array((N+1)*4);QR.set(Q);QR[N*4+3]=1;return {plat:true,vol:false,hc:hc,h:0,T:0,g:0,v0:0,tA:0,tRec:0,nR:nR,QR:QR,D:nR/60+.15,B:B,cs:cs,ph0:ph0};}
+  const gouverne=function(h,T,force){const nR=Math.ceil(T*60),JJ=new Int32Array(nR+1),iF=force?nR-Math.round(K.tPose*60)-(N-1):1e9;let j=0,iFin=-1; /* iF : en dernier recours elle finit à l'heure, quoi qu'il arrive */
+      for(let i=1;i<=nR;i++){const u=Math.min(1,i/60/T),p=4*h*u*(1-u); /* la levée de la parabole à cet instant */
+        if(j<N-1&&(i>=iF||NEED[j+1]+K.marge*Math.min(1,AN[j+1]/.3)<=p))j++; /* l'image de rotation suivante n'est jouée que si la caisse est assez haute pour elle */
+        JJ[i]=j;if(j>=N-1&&iFin<0)iFin=i;}
+      return {JJ:JJ,nR:nR,iFin:iFin};},
+    fini=function(g,T){return g.iFin>=0&&g.iFin<=Math.floor((T-K.tPose)*60);};
+  let h=K.hMax,T=3.3,gv=null,ok=false,J=1e9; /* le meilleur saut : T + ,3 h le plus petit — court ET pas trop haut — parmi les durées (1,2 → 3,3 s) et les hauteurs (1,3 → 2,4 m) dont la gravité reste dans [gMin, gMax] et qui laissent finir la figure */
+  for(let Tc=1.2;Tc<=3.31;Tc+=.05)for(let hh=K.hMin;hh<=K.hMax+1e-6;hh+=.1){const g=8*hh/(Tc*Tc);if(g>K.gMax||g<K.gMin||Tc+.3*hh>=J)continue;
+    const g2=gouverne(hh,Tc,false);if(fini(g2,Tc)){ok=true;J=Tc+.3*hh;h=+hh.toFixed(2);T=+Tc.toFixed(2);gv=g2;}}
+  if(!ok){h=K.hMax;T=2.2;gv=gouverne(h,T,true);} /* dernier recours (une limousine de 6 m ne fait pas un salto dans un atelier de 6 m de haut) : la figure finit à l'heure, le filet relève la caisse de ce qui manque */
+  const nR=gv.nR,QR=new Float32Array((nR+2)*4);
+  for(let i=0;i<=nR;i++){const j=gv.JJ[i]*4;QR[i*4]=Q[j];QR[i*4+1]=Q[j+1];QR[i*4+2]=Q[j+2];QR[i*4+3]=Q[j+3];}
+  QR[(nR+1)*4+3]=1;
+  return {plat:false,vol:true,hc:hc,h:h,T:T,g:8*h/(T*T),v0:4*h/T,tA:K.tA,tRec:K.tRec,nR:nR,QR:QR,D:K.tA+T+K.tRec,B:B,cs:cs,ph0:ph0,iFin:gv.iFin,sur:ok,N:N};}
+function figSautRaz(){ // la carrosserie reprend sa place sur les roues (fin de la figure, nouvelle figure, garage quitté)
+  if(GFIG.corps9){GFIG.corps9=false;if(!BURN.corps){carBody.position.y=0;carBody.rotation.x=0;}}
+}
+function figSaut(dt){ // une image de la figure : rend vrai tant qu'elle joue (appelée par garFigPas, juste après la pose de la caisse sur le plateau)
+  const P=GFIG.pl;if(!P)return false;
+  const now=performance.now();if(now-(GFIG.vu||0)>700&&GFIG.vu){GFIG.pl=null;GFIG.D=0;figSautRaz();GFIG.vu=0;return false;} /* le garage était fermé (une course, un autre écran) : la figure d'avant ne reprend pas au milieu de son saut */
+  GFIG.vu=now;
+  let d9=Math.min(dt,.05);if(GFIG.gel!=null)d9=Math.max(0,Math.min(d9,GFIG.gel-GFIG.t));
+  GFIG.t+=d9;const t=GFIG.t,tv=t-P.tA;
+  let lift=0,corps=0,x;
+  if(P.vol){
+    if(t<P.tA){corps=FIG_SAUT.accroupi*Math.sin(Math.PI*t/P.tA);x=0;} /* l'accroupi : la carrosserie se tasse sur ses roues, puis part */
+    else if(tv<P.T){lift=P.v0*tv-.5*P.g*tv*tv;x=tv*60;if(!P.lance){P.lance=true;try{figDecolle(P);}catch(e){}}}
+    else{x=1e9;if(!P.atterri){P.atterri=true;try{figAtterrit(P);}catch(e){}}
+      const ta=tv-P.T,R=FIG_SAUT.ressort,wd=R.w*Math.sqrt(1-R.z*R.z),tp=Math.atan2(wd,R.z*R.w)/wd, /* le 1er creux du ressort amorti */
+        pic=Math.exp(-R.z*R.w*tp)*Math.sin(wd*tp);
+      corps=(P.encaisse||0)*Math.exp(-R.z*R.w*ta)*Math.sin(wd*ta)/pic;}} /* encaisse : de combien la carrosserie s'enfonce au plus (m) ; le ressort la fait remonter au-dessus de sa place (corps < 0), puis se poser */
+  else x=t*60;
+  // l'assiette : l'image de la rotation jouée à cet instant (interpolée), appliquée AUTOUR DU PIVOT comme avant
+  const QR=P.QR,i0=Math.min(P.nR+1,Math.max(0,Math.floor(x))),i1=Math.min(P.nR+1,i0+1),fr=Math.max(0,Math.min(1,x-i0)),a=i0*4,b=i1*4;
+  let qx=QR[a],qy=QR[a+1],qz=QR[a+2],qw=QR[a+3];const bx=QR[b],by=QR[b+1],bz=QR[b+2],bw=QR[b+3];
+  if(fr>0){const sg=qx*bx+qy*by+qz*bz+qw*bw<0?-1:1;qx+=(sg*bx-qx)*fr;qy+=(sg*by-qy)*fr;qz+=(sg*bz-qz)*fr;qw+=(sg*bw-qw)*fr;const n=1/Math.hypot(qx,qy,qz,qw);qx*=n;qy*=n;qz*=n;qw*=n;}
+  const hc=P.hc,y0=carGroup.position.y;
+  VEQ.pv.set(0,hc,0).applyQuaternion(carGroup.quaternion);VEQ.qr.set(qx,qy,qz,qw);carGroup.quaternion.multiply(VEQ.qr);
+  VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);carGroup.position.y+=lift;
+  // le filet : aucun coin de la boîte ne passe sous le plateau (le plan l'évite ; ceci rattrape ce qui manque, d'un coup, sans à-coup visible)
+  if(P.vol){const q=carGroup.quaternion,r0=2*(q.x*q.y+q.w*q.z),r1=1-2*(q.x*q.x+q.z*q.z),r2=2*(q.y*q.z-q.w*q.x),cs=P.cs;let mn=1e9;
+    for(let k=0;k<24;k+=3){const v=r0*cs[k]+r1*cs[k+1]+r2*cs[k+2];if(v<mn)mn=v;}
+    const manque=(y0+P.B.min.y)-(carGroup.position.y+hc*r1+mn);if(manque>.002){carGroup.position.y+=manque;P.filet=Math.max(P.filet||0,manque);}} /* y0 + min.y : le dessous au repos, sur le plateau ; position.y + hc·r1 : le pivot dans la salle ; + mn : son coin le plus bas */
+  if(corps!==0||GFIG.corps9){carBody.position.y=-corps;GFIG.corps9=corps!==0;if(!GFIG.corps9)carBody.position.y=0;}
+  if(P.plat)try{garFigGomme(d9,true);}catch(e){}
+  if(t>=P.D){GFIG.pl=null;GFIG.D=0;figSautRaz();}
+  return true;}
+function figRoues(){ // le point de contact de chaque roue, dans la salle (repli : les quatre coins du dessous)
+  const L=[],v=new THREE.Vector3();carGroup.updateMatrixWorld(true);
+  for(const w of wheels){if(!w||!w.position||!w.parent)continue;v.set(w.position.x,w.position.y-(w.userData.R||.4)+.06,w.position.z);carGroup.localToWorld(v);L.push(v.x,v.y,v.z);}
+  if(L.length<6){const B=figBoite();if(B)for(const sx of [B.min.x*.8,B.max.x*.8])for(const sz of [B.min.z*.75,B.max.z*.75]){v.set(sx,B.min.y+.1,sz);carGroup.localToWorld(v);L.push(v.x,v.y,v.z);}}
+  return L;}
+function figPoussiere(k,fort){ // un nuage de poussière en pixels à chaque roue (la fumée du burn-out : mêmes réservoirs, même style) — k : l'intensité (0,5 à 1,3)
+  if(!BURN.fum)return;const L=figRoues(),c=carGroup.position,n=L.length/3;if(!n)return;
+  for(let i=0;i<L.length;i+=3){const dx=L[i]-c.x,dz=L[i+2]-c.z,d=Math.hypot(dx,dz)||1,ox=dx/d,oz=dz/d,m=Math.round((fort?5:3)+3*k);
+    for(let j=0;j<m;j++){const v=(.9+Math.random()*2.2)*k*(fort?1:.6),tg=(Math.random()-.5)*1.6;
+      burnEmet(BURN.fum,L[i]+ox*.15,L[i+1]+.06,L[i+2]+oz*.15,(ox-oz*tg)*v,.25+Math.random()*(.5+.5*k),(oz+ox*tg)*v,1.6+Math.random()*1.2,.3+Math.random()*.2,.9+.5*k+Math.random()*.4,.2+Math.random()*.12,.86,.85,.93);}}}
+function figAnneau(k){ // l'anneau de fumée qui s'ouvre autour de la caisse à la pose (celui du burn-out, mais à SON rayon et qui ne dure pas 4 s)
+  const F=BURN.fum;if(!F)return;const c=carGroup.position,N=Math.round(10+8*k),R=garGabarit().R*.62;
+  for(let i=0;i<N;i++){const a=(i+Math.random()*.4)/N*Math.PI*2,ca=Math.cos(a),sa=Math.sin(a),v=(1.8+Math.random()*1)*k;
+    burnEmet(F,c.x+ca*R,GARAGE_Y+.3,c.z+sa*R,ca*v,.12+Math.random()*.3,sa*v,1.8+Math.random()*.9,.34,1+.3*k,.22,.8,.78,.88);}}
+function figEtincelles(k){ // un dur atterrissage : quelques étincelles au ras du plateau, aux roues
+  if(!BURN.feu)return;const L=figRoues(),c=carGroup.position;
+  for(let i=0;i<L.length;i+=3){const dx=L[i]-c.x,dz=L[i+2]-c.z,d=Math.hypot(dx,dz)||1;
+    for(let j=0;j<3;j++){const v=1.5+Math.random()*3*k;burnEmet(BURN.feu,L[i],L[i+1]+.05,L[i+2],dx/d*v+(Math.random()-.5)*1.5,1+Math.random()*2.2,dz/d*v+(Math.random()-.5)*1.5,.3+Math.random()*.35,.05+Math.random()*.05,0,1,1,.55+Math.random()*.35,.18);}}}
+function figDecolle(P){ // l'instant où elle quitte le plateau : un petit nuage à chaque roue, un tic dans le pouce
+  figPoussiere(.55,0);try{hap(6);}catch(e){}}
+function figAtterrit(P){ // l'instant où elle touche : la carrosserie encaisse, la poussière, l'anneau, le son, le pouce
+  const vi=P.g*P.T/2,k=Math.min(1.3,.35+vi*.14);P.vi=vi;P.k=k;P.encaisse=Math.min(.08,.016*vi);GFIG.pulse=1;GFIG.kick=k;
+  try{figPoussiere(k,1);figAnneau(k);if(vi>4.2)figEtincelles(k);}catch(e){}
+  try{if(SONV2)sfx('pose.nette',{vol:-4+2*k,t:.01});else{chimeNote(240,0,.06,.12);noiseBurst(.16,.08,900);}}catch(e){}
+  try{hap([8,18]);}catch(e){}}
+window.dbgFigPlan=function(){const P=GFIG.pl;return P&&{plat:P.plat,h:+P.h.toFixed(2),T:+P.T.toFixed(3),g:+P.g.toFixed(2),v0:+P.v0.toFixed(2),D:+P.D.toFixed(3),tA:P.tA,nR:P.nR,iFin:P.iFin,sur:P.sur,N:P.N,boite:P.B&&[+P.B.min.x.toFixed(2),+P.B.min.y.toFixed(2),+P.B.min.z.toFixed(2),+P.B.max.x.toFixed(2),+P.B.max.y.toFixed(2),+P.B.max.z.toFixed(2)],hc:+P.hc.toFixed(2),filet:+(P.filet||0).toFixed(3),vi:P.vi&&+P.vi.toFixed(2),encaisse:P.encaisse&&+P.encaisse.toFixed(3)};}; // (banc) le plan de la figure en cours
 /* LE DOIGT SUR LA SCÈNE (2026-10-15, bug : un lancer parti juste à droite de la bande « CETTE SEMAINE » ne lançait pas la caisse — la bande
    prend le doigt jusque dans son blanc, et c'était le doigt du GARAGE, sans élan planifié, qui la tournait). Pour la boutique, la scène c'est
    le canevas ET ce que la page de vente pose dessus sans être un bouton : le titre, l'argent, le nom, le blanc entre les cartes de la bande.
@@ -68019,7 +68181,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
       const k=1-GAR.pressT/GAR.PRESS_D,sq=1-Math.sin(Math.min(1,k)*Math.PI)*.07;
       carGroup.scale.set(1/sq,sq,1/sq);
     }else if(carGroup.scale.x!==1)carGroup.scale.set(1,1,1);
-    if(GAR.ring){GAR.ring.material.opacity=.8;GAR.ring.scale.setScalar(1);}
+    if(GAR.ring){GAR.ring.material.opacity=.8+1.1*GFIG.pulse;GAR.ring.scale.setScalar(1+.04*GFIG.pulse);} // (2026-10-23) la pose d'une figure fait battre l'anneau du plateau (voir garage-saut.js)
     // ---- LE TAP (2026-09-05) : recul bref + pluie de blocs (voir `garageImpact`) — même minuteur
     // pour les deux, ils naissent et retombent ENSEMBLE, c'est un seul geste, pas deux effets qui se
     // chevauchent par hasard.
@@ -68236,6 +68398,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
      GAR.vD=THREE.MathUtils.clamp(x9,-.9,.9);GAR.vDv=x9===GAR.vD?v9:0;}}
   if(GAR.roll)camera.rotateZ(GAR.roll);
   if((BURN.k>.02||BURN.kick>.01)&&!REDUCED_MOTION){const a9=BURN.k*(.8+.5*BURN.chaud+.6*BURN.donK);camera.rotateZ((Math.sin(t9*47.1)*.6+Math.sin(t9*73.3+1.7)*.4)*.0015*a9);camera.position.y+=(Math.sin(t9*53.9+.5)*.6+Math.sin(t9*81.7+2.9)*.4)*.005*a9-.07*BURN.kick;} /* (BURN-OUT v2) la secousse suit la chaleur et le donut ; au DÉPART la caméra encaisse (BURN.kick) */ // (2026-10-06) même amplitude, en BRUIT LISSE (7-13 Hz) : tiré au hasard à chaque image, il grésillait (et deux fois plus vite à 120 Hz) // (BURN-OUT) la caméra vibre à peine // (le glissé fondu) la caméra penche un peu dans le sens où elle tourne
+  if(GFIG.kick>.01&&!REDUCED_MOTION)camera.position.y-=.04*GFIG.kick; // (2026-10-23) la pose d'une figure : la caméra encaisse le choc (4 à 5 cm, ça retombe en 0,3 s)
   { // LES MISSIONS : la caméra s'élève sous la porte relevée et regarde tout l'atelier (fondu en S ; le départ la ramène, voir GAR.go.pre)
     if(!GAR.go)GMIS.mk+=(((gEl.classList.contains('missions'))?1:0)-GMIS.mk)*Math.min(1,dt*2.4);
     const u9=Math.min(1,Math.max(0,GMIS.mk)),e=u9*u9*u9*(u9*(u9*6-15)+10);GMIS.e=e;

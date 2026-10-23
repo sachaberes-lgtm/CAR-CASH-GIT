@@ -396,25 +396,27 @@ const shTmpP=new THREE.Vector3(),shMat4=new THREE.Matrix4();
    c'est ce qui colle une caisse au bitume. L'ancien rond de 3,8 × 5,4 m, identique pour une kei-car et un mastodonte, se lisait
    comme une tache sous la voiture et ne tournait pas avec elle en glisse. Recalculée UNE fois par caisse (`userData.gen`, posé par
    buildCar) : 64 × 128 px, moins d'une milliseconde, au menu. Noir PUR en alpha : jamais une lueur. */
-const EMPR={cv:null,tex:null,gen:-1,PW:3.8,PL:5.4,f:new THREE.Vector3(),n:new THREE.Vector3(),r:new THREE.Vector3()};
+const EMPR={cv:null,tex:null,cvA:null,texA:null,gen:-1,PW:3.8,PL:5.4,f:new THREE.Vector3(),n:new THREE.Vector3(),r:new THREE.Vector3()};
 function emprPeint(){
-  if(!EMPR.cv){EMPR.cv=document.createElement('canvas');EMPR.cv.width=64;EMPR.cv.height=128;EMPR.tex=new THREE.CanvasTexture(EMPR.cv);}
+  if(!EMPR.cv){EMPR.cv=document.createElement('canvas');EMPR.cv.width=64;EMPR.cv.height=128;EMPR.tex=new THREE.CanvasTexture(EMPR.cv);
+    EMPR.cvA=document.createElement('canvas');EMPR.cvA.width=64;EMPR.cvA.height=128;EMPR.texA=new THREE.CanvasTexture(EMPR.cvA);} // (2026-10-23) la même empreinte SANS les quatre appuis et plus floue : celle d'une caisse qui a décollé (voir garage-ombre.js)
   const sp=CARS[carGroup.userData.lvl]||CARS[0];
   let wx=sp.w*.42,wzF=sp.l*.32,wzR=sp.l*.32,tw=.3;
   let wxR=wx;if(wheels.length>=4){wx=Math.abs(wheels[1].position.x);wxR=Math.abs(wheels[3].position.x);wzF=Math.abs(wheels[1].position.z);wzR=Math.abs(wheels[3].position.z);tw=wheels[0].userData.large||.3;} // (2026-10-08) la voie de CHAQUE essieu (SQUALE : la roue unique du milieu)
   const BW=Math.max(sp.w,2*Math.max(wx,wxR)+tw)*.5,BL=Math.max(sp.l*.5,Math.max(wzF,wzR)+.35);           // demi-empreinte de la caisse
   EMPR.PW=2*BW+1.3;EMPR.PL=2*BL+1.5;                                                         // + la pénombre tout autour
-  const c=EMPR.cv.getContext('2d'),im=c.createImageData(64,128),D=im.data,rc=Math.min(BW,.55);
+  const c=EMPR.cv.getContext('2d'),im=c.createImageData(64,128),D=im.data,rc=Math.min(BW,.55),cA=EMPR.cvA.getContext('2d'),imA=cA.createImageData(64,128),DA=imA.data;
   for(let j=0;j<128;j++)for(let i=0;i<64;i++){
     const x=((i+.5)/64-.5)*EMPR.PW,z=(.5-(j+.5)/128)*EMPR.PL;                               // ligne 0 = le NEZ (le haut du canvas = +Y du plan = l'avant)
     const qx=Math.abs(x)-(BW-rc),qz=Math.abs(z)-(BL-rc);                                      // distance signée au rectangle aux coins ronds
     const dd=Math.hypot(Math.max(qx,0),Math.max(qz,0))+Math.min(Math.max(qx,qz),0)-rc;
     const t=Math.min(1,Math.max(0,(dd+.3)/.9));let a=.46*(1-t*t*(3-2*t));                     // le corps : plein dessous, fondu sur ~90 cm
+    const o=(j*64+i)*4,tA=Math.min(1,Math.max(0,(dd+.3)/.95)),sA=1-tA*tA*(3-2*tA);DA[o]=DA[o+1]=DA[o+2]=255;DA[o+3]=Math.round(.72*sA*255); // (2026-10-23) en l'air : le même corps, sans les quatre appuis, un peu plus dense (l'ombre d'une caisse qui vole doit se LIRE sur un plateau clair)
     const zw=z>0?wzF:wzR,ex=(Math.abs(x)-(z>0?wx:wxR))/(tw*.9),ez=(Math.abs(z)-zw)/.55;                // les quatre appuis
     a=1-(1-a)*(1-.5*Math.exp(-(ex*ex+ez*ez)*1.6));
-    const o=(j*64+i)*4;D[o]=D[o+1]=D[o+2]=255;D[o+3]=Math.round(a*255); // (vague 2) blanc : l'encre vient de la matière (voir contactShadow)
+    D[o]=D[o+1]=D[o+2]=255;D[o+3]=Math.round(a*255); // (vague 2) blanc : l'encre vient de la matière (voir contactShadow)
   }
-  c.putImageData(im,0,0);EMPR.tex.needsUpdate=true;
+  c.putImageData(im,0,0);EMPR.tex.needsUpdate=true;cA.putImageData(imA,0,0);EMPR.texA.needsUpdate=true;
 }
 function updateContactShadow(){ // appelée juste avant le rendu
   if(CHUTE&&CHUTE.on){contactShadow.visible=false;return;} // (2026-09-30) LA CHUTE : pas de sol sous elle (CHUTE est un var : undefined avant sa ligne)
@@ -427,7 +429,9 @@ function updateContactShadow(){ // appelée juste avant le rendu
   const M9=contactShadow.material;
   if(vitrine||mode==='drive'){
     EMPR.f.set(0,0,1).applyQuaternion(carGroup.quaternion);                                   // le nez de la caisse (glisse et drift compris)
-    if(vitrine){EMPR.n.set(0,1,0).applyQuaternion(carGroup.quaternion);shTmpP.copy(carGroup.position).addScaledVector(EMPR.n,.018);}
+    const FO=garageOn&&vitrine&&typeof figOmbre==='function'?figOmbre.O:null,air9=!!(FO&&FO.on&&FO.h>.02&&performance.now()-FO.t<150); /* (2026-10-23, Léo : « une ombre plate suit la voiture pendant que ça saute ») AU GARAGE, la caisse qui a quitté le plateau laisse son ombre SUR le plateau, sous son centre, au cap — voir garage-ombre.js */
+    if(air9){EMPR.n.set(0,1,0);EMPR.f.set(Math.sin(FO.psi),0,Math.cos(FO.psi));shTmpP.set(FO.x,FO.solY+.018,FO.z);}
+    else if(vitrine){EMPR.n.set(0,1,0).applyQuaternion(carGroup.quaternion);shTmpP.copy(carGroup.position).addScaledVector(EMPR.n,.018);}
     else{
       frameAt(s,Fsh);
       if(side<0){Fsh.n.multiplyScalar(-1);Fsh.b.multiplyScalar(-1);}
@@ -440,9 +444,10 @@ function updateContactShadow(){ // appelée juste avant le rendu
     shMat4.makeBasis(EMPR.r,EMPR.f,EMPR.n);
     contactShadow.position.copy(shTmpP);
     contactShadow.quaternion.setFromRotationMatrix(shMat4);
-    if(M9.map!==EMPR.tex)M9.map=EMPR.tex;
-    contactShadow.scale.set(EMPR.PW*carGroup.scale.x,EMPR.PL*carGroup.scale.z,1);
-    M9.opacity=vitrine?.9:(side<0?1:.72); // (2026-09-26) l'empreinte porte sa propre densité (≤ .46 sous le corps, ~.7 aux roues) ; sous la dalle elle est seule (l'ombre réelle part dans le vide)
+    if(air9){const g9=1+.22*Math.min(FO.h,2.5);M9.map=FO.h>.05?EMPR.texA:EMPR.tex;contactShadow.scale.set(EMPR.PW*FO.kx*g9,EMPR.PL*FO.kz*g9,1);const u9=Math.min(1,Math.max(0,(FO.h-.05)/.55));M9.opacity=(.575+(.9/(1+.18*FO.h)-.575)*u9*u9*(3-2*u9));} /* .575 × .72 = .9 × .46 : le centre de l'ombre garde sa noirceur d'au sol au moment du décollage (aucun saut), puis elle s'éclaircit à peine avec l'altitude */ // en l'air : plus elle monte, plus l'ombre s'étale et s'éclaircit ; les appuis des roues s'éteignent au décollage
+    else{if(M9.map!==EMPR.tex)M9.map=EMPR.tex;
+      contactShadow.scale.set(EMPR.PW*carGroup.scale.x,EMPR.PL*carGroup.scale.z,1);
+      M9.opacity=vitrine?.9:(side<0?1:.72);} // (2026-09-26) l'empreinte porte sa propre densité (≤ .46 sous le corps, ~.7 aux roues) ; sous la dalle elle est seule (l'ombre réelle part dans le vide)
     contactShadow.visible=true;
   }else if(mode==='fall'){
     const hgt=VOLR.on?curHOff:fallPos.y-lastNearY; // hauteur au-dessus de la route la plus proche → télégraphe d'atterrissage — (LE VOL QUI SUIT LA ROUTE) sur la route sans haut ni bas : le long de la normale de la dalle
