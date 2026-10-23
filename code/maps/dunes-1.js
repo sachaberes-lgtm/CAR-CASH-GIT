@@ -351,7 +351,7 @@ function buildDunes(seed){
   {let kk=0;const ph=[r()*6.28,r()*6.28,r()*6.28];
    for(let i=0;i<NS;i++){const s9=i*DS;while(kk<KEYS.length-2&&KEYS[kk+1][0]<s9)kk++;const a=KEYS[kk],b=KEYS[Math.min(KEYS.length-1,kk+1)];
      let u=b[0]>a[0]?(s9-a[0])/(b[0]-a[0]):1;u=Math.max(0,Math.min(1,u));u=u*u*u*(u*(u*6-15)+10);const v=f=>a[1][f]+(b[1][f]-a[1][f])*u,g=GD[i];
-     S.H[i]=(v('H')+(135-v('H'))*g)*(1+.10*Math.sin(s9/870+ph[0]));S.A[i]=(v('A')+(70-v('A'))*g)*K*(1+.12*Math.sin(s9/610+ph[1]));S.D[i]=v('D')+(52-v('D'))*g;
+     S.H[i]=(v('H')+(135-v('H'))*g)*(1+.10*Math.sin(s9/870+ph[0]));S.A[i]=(v('A')+(70-v('A'))*g)*K*1.4*(1+.12*Math.sin(s9/610+ph[1]));S.D[i]=v('D')+(52-v('D'))*g;
      S.zC[i]=v('zC')*(1-g);S.pan[i]=v('pan')*(1-g);S.ob[i]=v('ob');S.gd[i]=g;}}
   // le FOND : la route lissée sur ±300 m, moins la profondeur ; au loin, une mer plus haute (90 m sous la route) et plus calme
   {const w=Math.round(300/DS),c=new Float64Array(NS+1);for(let i=0;i<NS;i++)c[i+1]=c[i]+S.y[i];
@@ -377,7 +377,7 @@ function buildDunes(seed){
   DN.lev.sort(function(p,q){return p.s-q.s;}); // (2026-10-19) LES LÈVRES des vagues (dnLevre)
   DN.S=S;DN.ms={ech:Math.round(performance.now()-t0)};
   const bio9=BIOMES[(LVL.cur.bio&&LVL.cur.bio[0])||'dunesSoir']||BIOMES.dunesSoir,cA=bio9.cyA||[6,-110,0,0];
-  const opt={K:K,seed:seed,RH:RH,TH:TH,sQ:sQ,sun:[cA[0],cA[1]],vent:DN.vent,lam:DN.lam,oa:oa,Af:120*K,pal:{dnPlat:PAL.b('dnPlat',64),dnFin:PAL.b('dnFin',12),dnOmbre:PAL.b('dnOmbre',44)}};
+  const opt={K:K,seed:seed,RH:RH,TH:TH,sQ:sQ,sun:[cA[0],cA[1]],vent:DN.vent,lam:DN.lam,oa:oa,Af:168*K,pal:{dnPlat:PAL.b('dnPlat',64),dnFin:PAL.b('dnFin',12),dnOmbre:PAL.b('dnOmbre',44)}};
   DN.oa=oa;DN.t0=t0;
   const W=started&&!/[?&]dnw=0\b/.test(location.search)?dnTravailleur():null;
   if(W){const job=DN.job;DN.attente={job:job,S:S,opt:opt};try{W.postMessage({job:job,S:S,opt:opt,nz:CY.nz});return;}catch(e){console.warn('dunes : travailleur',e);DN.attente=null;}}
