@@ -38477,7 +38477,7 @@ SHAPES.corolla=function(K){
     const SR=z=>{const s=S(z),xm=s[1][0]+.10*Math.min(1,s[1][0]/.62),yb=s[0][1],yt=s[NC][1],yc=s[s.length-1][1],sx=z>=ZE-1e-6||z<=ZB+1e-6?.02:1;
       return [[0,yb],[(xm-.16)*sx,yb],[xm*sx,yb+.13],[xm*sx,Math.max(yb+.14,yt-.10)],[(xm-.07)*sx,yt+(yc-yt)*.25],[xm*.55*sx,Math.max(yt+.02,yc-.015)],[0,yc]];};
     // (« le museau doit être plus fidèle à la Fidèle ») : le nez et la poupe reprennent les VRAIES sections du plan (S), une tranche sur deux — la forme exacte, taillée en larges facettes
-    const zN=zs.filter(z=>z>=ZBm-.001).filter((z,i)=>i%2===0||z>2.2),zT=zs.filter(z=>z<=ZA+.001).filter((z,i)=>i%2===0||z<-2.2);
+    const zN=zs.filter(z=>z>=ZBm-.001),zT=zs.filter(z=>z<=ZA+.001).filter((z,i)=>i%2===0||z<-2.2);
     PL.loft(zN,S,j=>j===0?'k':'p');PL.loft(zT,S,j=>j===0?'k':'p');
   }else if(HB&&HB2){   /* L'ENTRE-DEUX (23/10, Léo : « fais un entre-deux ») : la caisse en BRIQUES (sections rectangulaires, peu de plis), plus quelques COUCHES TRÈS PLATES empilées aux endroits qui
      portent le dessin — la base noire (2 couches), la ceinture, la dalle du toit (2 couches), la couche du capot. */
@@ -38590,6 +38590,12 @@ SHAPES.corolla=function(K){
    let VP='d';try{const m=/[?&]phare=([abcde])/.exec(location.search);if(m)VP=m[1];}catch(e){}   // (22/10, banc : `?phare=b|c|d` — trois relevés du phare, Léo choisit)
    for(const sd of [1,-1]){
      piece('d',[[0,.222],[.66,.222],[.78,.238],[.78,.262],[0,.262]],.034,-.010,sd);   // la LAME de bouclier : un patin noir en saillie sur toute la largeur du bas
+     if(HB3){   /* LA CALANDRE SPORTIVE (23/10, Léo : « quelque chose de plus beau, sportif ») une BOUCHE large et basse en trois étages — le cadre chromé, le fond noir, puis un NID D'ABEILLES de petits plots gris posés en quinconce */
+       piece('c',F9.grille,.022,-.010,sd);piece('k',rentre9(F9.grille,.016),.030,.004,sd);
+       const dedansP=(Pt,x,y)=>{let c=false;const n=Pt.length;for(let i=0,j=n-1;i<n;j=i++){const a=Pt[i],b=Pt[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])c=!c;}return c;};
+       const G2=F9.grille.concat(F9.grille.slice(1,-1).reverse().map(p=>[-p[0],p[1]])),inner=rentre9(F9.grille,.034).concat(rentre9(F9.grille,.034).slice(1,-1).reverse().map(p=>[-p[0],p[1]]));
+       for(let r=0;r<9;r++){const y=.29+r*.027;for(let c=0;c<26;c++){const x=(c-12.5)*.034+(r%2?.017:0);if(x<0&&sd>0||x>0&&sd<0)continue;if(!dedansP(inner,x,y))continue;
+         P.box('h',.018,.016,.018,sd*Math.abs(x),y,zf(Math.abs(x),y)+.034);}}}
      piece('k',F9.prise,.016,-.012,sd);                                  // la prise d'air du bouclier : un bloc noir en relief…
      piece('c',japRuban(JONC_L,.022),.026,.008,sd);                      // …et son jonc chromé, posé dessus au bord haut
      if(VP==='e'){piece('k',NET,.010,-.012,sd);piece('W',LED2,.017,.004,sd);}   // e : UNE pièce découpée net (sans la pointe basse) + sa lame de LED, collées par-dessus
@@ -38621,7 +38627,7 @@ SHAPES.corolla=function(K){
   {const g=new THREE.CylinderGeometry(.018,.03,.13,6);g.rotateX(Math.PI/2);P.put('n',g,0,yDessus(0,-1.08)+.03,-1.08,.12,0,0,1,1.2,1);}
   // LES LAMES DE LA BOUCHE : onze barres chromées sur la tôle d'origine, devant le fond noir creusé — elles suivent le nez en flèche (`zFace` : la
   // profondeur de la tôle en (x, y), cherchée tranche à tranche) ; l'OPTIQUE de l'antibrouillard, posée au fond de sa coupelle
-  {const LA=K.kit({c:{g:'c',c:0xc7ccd3},q:{g:'g',c:0xd9dde2},K:{g:'g',c:0x0b0b0e}}),h=.0036,ep=.018;
+  if(!HB3){const LA=K.kit({c:{g:'c',c:0xc7ccd3},q:{g:'g',c:0xd9dde2},K:{g:'g',c:0x0b0b0e}}),h=.0036,ep=.018;
    for(const [y,r] of PROF.lames)for(const sd of [1,-1]){let pv=null;for(const [x,z] of r){const p=[sd*x,y,z+.004];
        if(pv){LA.tri('c',[pv[0],y-h,pv[2]],[p[0],y-h,p[2]],[p[0],y+h,p[2]]);LA.tri('c',[pv[0],y-h,pv[2]],[p[0],y+h,p[2]],[pv[0],y+h,pv[2]]);
          LA.tri('c',[pv[0],y+h,pv[2]],[p[0],y+h,p[2]],[p[0],y+h,p[2]-ep]);LA.tri('c',[pv[0],y+h,pv[2]],[p[0],y+h,p[2]-ep],[pv[0],y+h,pv[2]-ep]);}
