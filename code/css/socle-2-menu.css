@@ -154,6 +154,7 @@
     text-shadow:0 0 14px rgba(255,190,80,.5);transition:color .15s,transform .15s}
   #overlay .go:hover{color:#fff0c2;transform:scale(1.04)}
   /* ------- INTRO STUDIO 1.61 : accumulation → FISSION ------- */
+  html:not(.introAncien) #splash #spTitle{display:none} /* (2026-10-23, Léo : « enlève le CASH CAR sur écran noir ») le titre du HTML ne se peint plus avant l'intro : noir, puis la boule (`?intro=ancien` le garde) */
   #splash{position:fixed;inset:0;background:#000; /* (2026-10-23, Léo : « le titre noir dès le début, sans lumière ») NOIR dès le premier affichage (avant : le dégradé violet restait tant que le script de l'intro n'avait pas tourné) */z-index:80;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity .7s;overflow:hidden}
   #fxCv{position:absolute;inset:0;width:100%;height:100%}
   /* (2026-10-15, Sacha : « améliore l'écran de chargement CAR CASH ») LE CŒUR QUI BAT PENDANT LE CHARGEMENT : tant que le jeu se construit, le
