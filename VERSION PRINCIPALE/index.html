@@ -38442,9 +38442,13 @@ SHAPES.corolla=function(K){
     2.271,2.275,2.285,2.294,2.30,2.306,2.311,ZE-.003,ZE];
   for(const [w,a] of [[ZF,.326],[ZR,.33]])for(const f of [0,.2,.4,.55,.7,.8,.88,.95,.99,1])zs0.push(w-a*f,w+a*f);
   zs0.sort((a,b)=>a-b);const zs=zs0.filter((z,i)=>i===0||z-zs0[i-1]>.002);
-  const peint=(j,z)=>j===0&&z<2.24&&z>-2.25?'k':'p';   // (aux deux bouts, la bande du plancher monte et devient le bas de la face : de la tôle, que la découpe habille)
+  let HB=false;try{HB=/[?&]honte=1/.test(location.search);}catch(e){}   // (`?honte=1` : voir plus bas)
+  const peint=(j,z)=>j===0&&z<2.24&&z>-2.25?'k':(HB&&z<1.26&&z>-1.87&&((j>=11&&j<=12)||(j>=13&&(z>.3||z<-1.2))))?'g':'p';   // (aux deux bouts, la bande du plancher monte et devient le bas de la face : de la tôle, que la découpe habille)
   const EP=(typeof peintPal==='function'?peintPal(PAL):PAL).p,GP=EP.g;
-  const PL=K.kit(PAL);PL.loft(zs,S,peint);
+  /* (23/10, Léo : « traduis dans le style de LA HONTE, fidèle à la Fidèle ») `?honte=1` : la VRAIE forme (les sections du plan) taillée en quelques GROS pans — une tranche par grand changement
+     de ligne —, sans découpe au plan ; les vitres, les phares, la bouche sont des pièces posées. */
+  const zsB=[ZB,-2.28,-2.236,-2.0,-1.87,-1.36,-1.10,-.50,.30,.50,1.05,1.26,1.60,2.0,2.24,2.28,ZE].filter((z,i,a)=>i===0||z-a[i-1]>.003);
+  const PL=K.kit(PAL);PL.loft(HB?zsB:zs,S,peint);
   // ---- LA DÉCOUPE AU PLAN (`japDecoupe`) ----
   const MEM=(typeof SHAPES==='object'&&SHAPES.corolla)||null;
   const av=(x,y,z,nx,ny,nz)=>z>2.0&&nz>.2,ar=(x,y,z,nx,ny,nz)=>z<-2.0&&nz<-.2,cs=(x,y,z,nx,ny,nz)=>Math.abs(nx)>.5;
@@ -38493,7 +38497,7 @@ SHAPES.corolla=function(K){
     dos:japLignes([].concat(D9.lignes.j.map(p=>({k:'j',p:p,gate:ar})),D9.lignes.h.map(p=>({k:'h',p:p,gate:ar})),[{k:'j',p:D9.plaque,gate:ar},{k:'h',p:bas.slice(0,-2),gate:ar}])),dessus:LG('dessus')};
   const CODES={p:{g:GP},gap:{g:GP,c:0x26282c},K:{g:'g',c:PAL.K.c,lisse:1},g:{g:'g',c:PAL.g.c,lisse:1},c:{g:'c',c:0xd4d8de},W:{g:'l',c:0xf2f6ff},
     h:{g:'g',c:0x2e323a,lisse:1},l2:{g:'c',c:0x9aa0a8},L:{g:'l',c:0xd8101e},r:{g:'l',c:0x7a0a14}   /* (le corps des feux : rouge sombre émissif — en verre, une grande facette du coin renvoyait le ciel en blanc) */,b:{g:'s',c:0x151518},O:{g:'g',c:PAL.O.c,lisse:1}};
-  {const f2=PL.done;PL.done=()=>{const gs=f2(),G=gs[GP];if(!G)return gs;
+  if(!HB){const f2=PL.done;PL.done=()=>{const gs=f2(),G=gs[GP];if(!G)return gs;
     const out=japDecoupe(G,{zones:ZN,lignes:LGN,codes:CODES,ns:()=>japLisse(G,32),GP:GP,colP:japColP(EP),cache:MEM,
       vue:(x,y,z,ax,ay,az,nx,ny,nz)=>{if(z>2.0&&nz>.2&&ny<.92&&y<.84)return 'face';   // (le bouclier en flèche : toute sa face est lue vue de face — sinon les zones s'y posaient en damier)if(z<-1.95&&y>.80&&y<1.0&&Math.abs(x)>.5)return -nz>Math.abs(nx)?'dos':'cote';   // (le coin des feux : jamais vu de dessus, il est vu de dos ou de côté)
         if(z<-2.15&&nz<-.3&&ny<.75&&y<1.05)return 'dos';
@@ -38593,29 +38597,6 @@ SHAPES.corolla=function(K){
           roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],(K.mats&&K.mats[g])||(typeof lpMat==='function'?lpMat(g):null));m.userData.lp=1;w.add(m);}},
           lpw:{R:R,w:JW,style:'nyan',jante:0xc4c8ce}};
 };
-/* LA FIDÈLE « À LA HONTE » (23/10, Léo : « traduis ce modèle dans le style de La Honte ») — la même berline, remontée en BLOCS empilés comme LA HONTE : la caisse basse, le capot et la malle en coins, la
-   boîte de verre de l'habitacle, la dalle du toit, les pare-chocs, les phares et les feux en rectangles plats ; les roues de La Fidèle. Chaque pièce est un bloc distinct, posé sur le bloc d'en dessous. */
-SHAPES.corolla_b=function(K){
-  const PAL={p:{g:'p',c:0x9fa3a9},k:{g:'m',c:0x121214},g:{g:'g',c:0x141c26},c:{g:'c',c:0xd4d8de},W:{g:'l',c:0xf2f6ff},L:{g:'l',c:0xd0101e},h:{g:'g',c:0x6d7886},Q:{g:'l',c:0xe6e6e6}};
-  const P=K.kit(PAL),B=(k,w,h,d,x,y,z,rx,ry,rz)=>P.box(k,w,h,d,x,y,z,rx||0,ry||0,rz||0);
-  // (23/10, « plus fidèle à la Fidèle ») la silhouette du plan, en blocs : capot bas qui plonge vers le nez, pare-brise très couché, toit bas et long, lunette qui file, malle courte
-  B('p',1.74,.30,4.40,0,.79,0);                               // la caisse, posée AU-DESSUS des roues
-  B('p',1.74,.34,1.55,0,.40,0);                               // le bas de caisse, entre les roues
-  B('p',1.62,.12,1.45,0,1.00,1.52,.13,0,0);                   // le capot : long, il plonge vers le nez
-  B('p',1.62,.10,.80,0,1.02,-1.82,-.05,0,0);                  // la malle, courte
-  B('g',1.46,.04,1.28,0,1.20,.62,.40,0,0);                    // le pare-brise, couché (23°)
-  B('g',1.46,.04,.95,0,1.25,-1.42,-.40,0,0);                  // la lunette, qui file vers la malle
-  B('g',1.46,.34,2.00,0,1.17,-.18);                           // les vitres latérales
-  B('p',1.42,.05,1.55,0,1.44,-.40);                           // le toit, bas et long
-  for(const sd of [1,-1]){B('k',.05,.04,1.30,sd*.73,1.21,.62,.40,0,0);B('k',.05,.04,.95,sd*.73,1.26,-1.42,-.40,0,0);}   // les cadres noirs des vitres
-  B('k',1.72,.18,.14,0,.56,2.28);B('k',1.72,.18,.14,0,.58,-2.26);   // les pare-chocs
-  B('k',1.00,.14,.06,0,.80,2.24);                             // la bouche
-  for(const sd of [1,-1]){B('h',.46,.10,.06,sd*.52,.94,2.20);B('W',.34,.02,.02,sd*.52,.90,2.235);B('L',.40,.10,.05,sd*.52,1.00,-2.22);
-    B('k',.07,.10,1.5,sd*.88,.25,.04);}
-  K.commit(P);
-  return {hl:[.60,.65,2.20],tl:[.62,.93,-2.23],wx:.765,wzF:1.4015,wzR:1.3047,pots:[[.50,.25,-2.27]],lamps:0,halos:0,
-          lpw:{R:.319,w:.21,style:'rayons',jante:0xc4c8ce}};
-};
 // <<< SHAPES.corolla (JAPONAISES) — fin >>>
 // <<< SHAPES.pikes (JAPONAISES) — début >>>
 SHAPES.pikes=function(K){
@@ -38679,7 +38660,10 @@ SHAPES.pikes=function(K){
   zs0.sort((a,b)=>a-b);const zs=zs0.filter((z,i)=>i===0||z-zs0[i-1]>.002);
   const peint=(j,z)=>j===0&&z<2.10&&z>-1.96?'k':'p';
   const EP=(typeof peintPal==='function'?peintPal(PAL):PAL).p,GP=EP.g;
-  const PL=K.kit(PAL);PL.loft(zs,S,peint);
+  /* (23/10, Léo : « traduis dans le style de LA HONTE, fidèle à la Fidèle ») `?honte=1` : la VRAIE forme (les sections du plan) taillée en quelques GROS pans — une tranche par grand changement
+     de ligne —, sans découpe au plan ; les vitres, les phares, la bouche sont des pièces posées. */
+  const zsB=[ZB,-2.28,-2.236,-2.0,-1.87,-1.36,-1.10,-.50,.30,.50,1.05,1.26,1.60,2.0,2.24,2.28,ZE].filter((z,i,a)=>i===0||z-a[i-1]>.003);
+  const PL=K.kit(PAL);PL.loft(HB?zsB:zs,S,peint);
   // ---- LA DÉCOUPE AU PLAN (`japDecoupe`) ----
   const MEM=(typeof SHAPES==='object'&&SHAPES.pikes)||null;
   const av=(x,y,z,nx,ny,nz)=>z>1.95&&nz>.2,ar=(x,y,z,nx,ny,nz)=>z<-1.8&&nz<-.2,cs=(x,y,z,nx,ny,nz)=>Math.abs(nx)>.45;
@@ -38735,7 +38719,7 @@ SHAPES.pikes=function(K){
     face:japLignes([]),dos:japLignes([{k:'j',p:[[0,.88],[.62,.88],[.72,.92]],gate:ar}])};
   const CODES={p:{g:GP},gap:{g:GP,c:0x202228},K:{g:'g',c:PAL.K.c,lisse:1},g:{g:'g',c:PAL.g.c,lisse:1},n:{g:'g',c:PAL.n.c},W:{g:'l',c:0xf2f6ff},
     L:{g:'l',c:0xc80c1c},a:{g:'k',c:ARG},R:{g:'p',c:ROUGE},Y:{g:'p',c:JAUNE},N:{g:'s',c:NUIT},B:{g:'p',c:0x1e78d8}};
-  {const f2=PL.done;PL.done=()=>{const gs=f2(),G=gs[GP];if(!G)return gs;
+  if(!HB){const f2=PL.done;PL.done=()=>{const gs=f2(),G=gs[GP];if(!G)return gs;
     const out=japDecoupe(G,{zones:ZN,lignes:LGN,codes:CODES,ns:()=>japLisse(G,32),GP:GP,colP:japColP(EP),cache:MEM,
       vue:(x,y,z,ax,ay,az,nx,ny,nz)=>{if(z>2.0&&nz>.3&&ny<.85&&y<.80)return 'face';
         if(z<-.95&&y>.86&&nz<-.1){const s9=S(z);if(Math.abs(x)<s9[NC+3][0]-.004)return 'dos';}   // (le hayon : la lunette est lue de dos)
