@@ -103,7 +103,7 @@ SHAPES.corolla=function(K){
     const rangee=(yc,dy,dz,q,zA,zB,kf)=>{let run=null;const flush=z1=>{if(run&&run.w>.02)PL.box(run.k,2*run.w,dy+.002,z1-run.z0,0,yc,(run.z0+z1)/2);run=null;};
       for(let z=zA+dz/2;z<zB;z+=dz){const w=Math.round(xAt(Sz(z),yc)/q)*q,k=kf(z,yc);if(!run||run.w!==w||run.k!==k){flush(z-dz/2);run={w:w,k:k,z0:z-dz/2};}}flush(zB);};
     // 1. les GROS blocs : le flanc entre la poupe et le nez, sous la ceinture
-    const DYF=HB4?.08:.13;for(let yc=.22+DYF/2;yc<YM-.001;yc+=DYF)rangee(yc,DYF,.12,HB4?.03:.04,ZA,ZBm,()=>'p');
+    const DYF=.13;if(!HB4)for(let yc=.22+DYF/2;yc<YM-.001;yc+=DYF)rangee(yc,DYF,.12,.04,ZA,ZBm,()=>'p');
     // 2. les COUCHES FINES : le nez et la poupe sur toute la hauteur, tout le reste au-dessus de la ceinture
     const verre=(z,y)=>(y>1.0&&y<1.40&&z<ZW-.02&&z>ZHT+.02&&xAt(Sz(z),y)<.72)?'g':'p';
     for(let yc=.22+.02;yc<1.43;yc+=.04){
@@ -115,7 +115,8 @@ SHAPES.corolla=function(K){
       PL.box('c',.05,.034,.22,sd*(xw+.045),.84,zc+(z0>z1?.20:-.20));          // la poignée : un bloc chromé, bien saillant
       PL.box('c',.022,.014,L*.94,sd*(xw+.03),.915,zc);}                       // le filet chromé sous la vitre
     if(HB4){   // la cabine : des BRIQUES lisses (le loft rectangulaire du 2), rentrées de 1,5 cm sous les blocs ; les couches de base et de ceinture du 2
-      PL.loft(zsB.filter(z=>z>=ZA-.001&&z<=ZBm+.001),z=>{const q=SB(z);for(let i=1;i<=3;i++)q[i]=[Math.max(0,q[i][0]-.015),q[i][1]];return q;},peintB);
+      // (« c'est un peu carré encore, inspire-toi du vrai ») le milieu de la caisse reprend les VRAIES sections du plan (flancs galbés, épaule, vitres rentrées), en facettes larges ; les verres sont des bandes de la section
+      PL.loft(zs.filter(z=>z>=ZA-.001&&z<=ZBm+.001),S,(j,z)=>j===0?'k':((j>=11&&j<=12)||(j>=13&&(z>.3||z<-1.2)))&&z<1.26&&z>-1.87?'g':'p');
       const couche=(y,h,k,grow,zA,zB)=>{let run=null;const flush=z1=>{if(run&&run.w>.02)PL.box(k,2*run.w,h,z1-run.z0,0,y,(run.z0+z1)/2);run=null;};
         for(let z=zA+.045;z<zB;z+=.09){const w=Math.round((xAt(Sz(z),y)+grow)/.03)*.03;if(!run||run.w!==w){flush(z-.045);run={w:w,z0:z-.045};}}flush(zB);};
       couche(.985,.022,'c',.012,-2.0,1.0);}
