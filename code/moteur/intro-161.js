@@ -1,3 +1,9 @@
+/* ===== L'INTRO DU JEU, VERSION FINALE (2026-10-23, validée par Léo : « c'est exactement ça ») =====
+   Un seul film. Noir, puis une boule de « 1 . 6 1 » (quatre couleurs qui changent) se dessine point après point, tourne sans s'arrêter, pulse, et se tourne au doigt.
+   Derrière : un pad infini (Ré, Si mineur, Sol, La) qui bat avec la boule, et des cloches pentatoniques qui suivent la couleur. Dès que la page est prête (≥ 4,6 s), un accord s'ouvre.
+   L'APPUI (un vrai tap, pas un glissement) : la boule explose, CASH CAR claque (dActe3), le jeu se prépare dessous, puis le voile fond vers le jeu (fonduDoux).
+   `?intro=ancien` = l'intro d'avant (init.js) · `?intro=muet` = sans son. Les anciens films (feu d'artifice, néon, poussière, luxe, hype, caisse, pluie, route, spirale PlayStation, sphère qui s'écroule) sont retirés
+   de ce fichier : ils restent dans l'historique git (commit 254157dc). Ce qui suit, avant « LA BOULE », est l'ancien commentaire du film à calendrier (le gros logo, la casse en tuiles, l'horloge `TL`). */
 /* ===== L'INTRO DU STUDIO 1.61, VERSION CONSOLE (2026-10-21, Léo : « une nouvelle intro beaucoup plus moderne et stylée pour le label 1.61, du style
    Xbox ou PlayStation : le logo qui apparaît avec une animation, des bruits intenses qui font blip blip blip, puis un silence, un fondu noir ;
    le gros logo CASH CAR doré qui se secoue, se casse en morceaux, casse l'écran noir et laisse voir le jeu ») =====
@@ -43,21 +49,11 @@
 
   /* ---- LE CALENDRIER. Les heures de TL sont celles du film ; K les resserre pour qui a déjà fini la leçon. ---- */
   const tuto=!!(SAVE&&SAVE.d&&SAVE.d.tuto),K=tuto?.8:1;
-  const LBL=(function(){const m=/[?&]label=([a-z]+)/.exec(location.search);return m?m[1]:'boule';})(),PS=LBL==='ps',SPH=LBL==='sphere',BOULE=LBL==='boule'; /* « boule » : le défaut depuis le 23/10 soir (Léo : « juste la boule 1.61 qui tourne lentement en chargement ; prête, elle s'arrête ; on appuie, ça explose en CASH CAR ; fondu vers le jeu ») */ /* défaut : « sphere » (23/10, Léo) ; ?label=ps : le logo spirale façon PlayStation */
-  const MOT=/^(caisse|pluie|route)$/.test(LBL); /* les trois films moteur (23/10) : ~8 s au lieu de ~4 s, un autre calendrier et un autre son */
-  const TL=(function(k){const T=x=>x*k;return PS?{
-    blips:[.30,.5,.7,.9,1.1,1.3,1.5,1.7,1.9,2.1].map(T),
-    plein:T(2.7),
-    fondu:T(4.0),noir:T(4.75),slam:T(5.15),casse:T(6.75)}:(SPH||BOULE)?{
-    blips:[.30,.544,.766,.959,1.118,1.252,1.349,1.422,1.495,1.556].map(T), /* le feu d'artifice d'avant, puis la sphère (de plein à fondu) */
+  const BOULE=true; /* (un seul film depuis le 23/10 soir, validé par Léo : « c'est exactement ça ») */
+  const TL=(function(k){const T=x=>x*k;return{
+    blips:[.30,.544,.766,.959,1.118,1.252,1.349,1.422,1.495,1.556].map(T), /* (gardés : l'ancien code lit blips[0] et blips[9]) */
     plein:T(1.85),
-    fondu:T(5.95),noir:T(6.55),slam:T(7.55),casse:T(9.2)}:MOT?{
-    blips:[.30,.84,1.38,1.92,2.46,3.0,3.54,4.08,4.62,4.9].map(T), /* (sans blips : seul le moteur monte ; on garde dix instants pour le reste du code) */
-    plein:T(5.2),
-    fondu:T(6.05),noir:T(6.8),slam:T(7.2),casse:T(8.8)}:{
-    blips:[.30,.544,.766,.959,1.118,1.252,1.349,1.422,1.495,1.556].map(T), /* les dix blips (étirés de 22 % le 22/10 : « le début un tout petit peu plus lent ») */
-    plein:T(1.85),
-    fondu:T(2.80),noir:T(3.55),slam:T(3.95),casse:T(5.55)};})(K); /* casse : l'instant NOMINAL (le banc) ; la vraie casse est celle du TOUCHER */
+    fondu:T(5.95),noir:T(6.55),slam:T(7.55),casse:T(9.2)};})(K); /* casse : l'instant NOMINAL (le banc) ; la vraie casse est celle du TOUCHER */
   const DUREE_CASSE=1.45; /* secondes d'éclats en vol avant d'ôter le voile */
   const reduit=()=>document.documentElement.getAttribute('data-reduced-motion')==='1'||(typeof REDUCED_MOTION!=='undefined'&&REDUCED_MOTION);
 
@@ -100,7 +96,7 @@
      la version muette tient déjà seule, le son tombe quand le logo se fige, la fin est figée et lisible. Et le nom du studio EST le nombre d'or (φ ≈ 1,618).
      ?label=neon · or · poussiere · luxe · hype ; ?label=demo les enchaîne en boucle (un toucher pour jouer le jeu). Tous partagent le même calendrier (`TL`) et le même son. ---- */
   const PENTE=.194; /* tan(11°) : la pente du logo de l'accueil */
-  const LAB_ID=LBL,DEMO=LAB_ID==='demo'; /* défaut : le feu d'artifice (le choix de Léo, 22/10) */
+  const LAB_ID='boule',DEMO=false;
   const ORDRE_LABELS=['feu','poussiere','luxe','hype','neon'],NOMS_LABELS={feu:"FEU D'ARTIFICE",poussiere:'POUSSIERE',luxe:'LUXE',hype:'HYPE',neon:'NEON'}; /* l'ordre de la démo, les noms à l'écran (la police pixel n'a pas d'accents) */
   const ETS={}; /* les données de chaque label, calculées à la taille de l'écran */
   function bez(p0,p1,p2,p3,n){const o=[];for(let i=0;i<=n;i++){const t=i/n,u=1-t;o.push({x:u*u*u*p0[0]+3*u*u*t*p1[0]+3*u*t*t*p2[0]+t*t*t*p3[0],y:u*u*u*p0[1]+3*u*u*t*p1[1]+3*u*t*t*p2[1]+t*t*t*p3[1]});}return o;}
@@ -173,48 +169,6 @@
   }
 
   /* ---- 1. NÉON : le tube blanc que les blips allument morceau après morceau, dans le sens de l'écriture ---- */
-  function geoLabNeon(){
-    const port=W<H*1.15,sw=.125,Gl=glyphes({sw:sw,gaps:[.075,.075,.085],pente:PENTE});
-    const bw=Gl.bx1-Gl.bx0,bh=Gl.by1-Gl.by0,h=Math.min(W*.84/bw,H*(port?.34:.54)/bh),cx=W/2,cy=H*(port?.45:.46);
-    const mx=cx-(Gl.bx0+bw/2)*h,my=cy-(Gl.by0+bh/2)*h,M=dixMorceaux(Gl,(x,y)=>[mx+x*h,my+y*h],h);
-    return{h:bh*h,w:bw*h,sw:sw*h,cx:cx,cy:cy,axe:my+Gl.by1*h+.04*h,G:M.G,U:M.U};
-  }
-  function dTube(c,t,kc,kl,e){ /* les morceaux allumés du nombre : la lueur (des taches de lumière posées le long du trait), puis le cœur blanc ; kc, kl : l'intensité du cœur et celle de la lueur */
-    const sw=e.sw,sur=t>=TL.plein?2.2*Math.exp(-(t-TL.plein)/.26):0,r1=sw*1.5,r2=sw*3.4; /* sur : le coup final gonfle la lueur */
-    c.lineCap='round';c.lineJoin='round';c.strokeStyle='#fff';
-    let n=0;while(n<10&&t-TL.blips[n]>=.11)n++; /* les n premiers morceaux sont posés (ils ne scintillent plus) */
-    for(let j=0;j<10;j++){const a=t-TL.blips[j];if(a<0)continue;const g=e.G[j];
-      const fl=!RM&&a<.11?(pique(j*13+5,Math.floor(a*110))>.38?1:.2):1; /* l'allumage scintille */
-      const B=fl*(1+1.1*Math.exp(-a/.13)*(1+.05*j)+sur)*kl;
-      c.globalCompositeOperation='lighter';
-      if(B>.01){c.globalAlpha=Math.min(1,.14*g.m*B);for(let i=0;i<g.s1.length;i+=2)c.drawImage(SPR.bl,g.s1[i]-r1,g.s1[i+1]-r1,2*r1,2*r1);
-      c.globalAlpha=Math.min(1,.073*g.m*B);for(let i=0;i<g.s2.length;i+=2)c.drawImage(SPR.bl,g.s2[i]-r2,g.s2[i+1]-r2,2*r2,2*r2);}
-      c.globalCompositeOperation='source-over';
-      if(g.k>1||j>=n){c.globalAlpha=fl*kc;c.lineWidth=sw*g.k;c.stroke(g.p);}} /* le point, et ceux qui scintillent encore : chacun son trait */
-    c.globalCompositeOperation='source-over';c.globalAlpha=kc;c.lineWidth=sw;c.stroke(e.U[n]); /* les autres : d'un seul coup */
-  }
-  function dLabNeon(c,t,e){
-    const cx=W/2,cy=e.cy,h=e.h,sw=e.sw,fond=TL.fondu,pl=TL.plein;
-    const vis=1-lisse(fond,TL.noir,t);if(vis<=0)return; /* le fondu : le cœur du trait s'éteint doucement, le halo plus vite */
-    const vg=vis*vis,allume=lisse(TL.blips[0],TL.blips[9]+.12,t),ff=!RM&&t>=pl?Math.exp(-(t-pl)/.2):0,sur=t>=pl?Math.exp(-(t-pl)/.26):0;
-    c.save();
-    const sc=1+.05*lisse(0,fond+.25,t);c.translate(cx,cy);c.scale(sc,sc);c.translate(-cx,-cy); /* une lente avancée de caméra */
-    if(ff>.02)c.translate(Math.sin(t*190)*3.2*ff*ku,Math.cos(t*170)*2.2*ff*ku); /* le coup final secoue tout, un instant */
-    /* le reflet sur le sol noir et poli : le même nombre, à l'envers, qui s'efface vers le bas */
-    c.save();c.translate(0,2*e.axe);c.scale(1,-1);dTube(c,t,.17*vis,0,e);c.restore();
-    {const d=c.createLinearGradient(0,e.axe,0,e.axe+h*.55);d.addColorStop(0,'rgba(0,0,0,.3)');d.addColorStop(1,'rgba(0,0,0,1)');c.globalAlpha=1;c.fillStyle=d;c.fillRect(cx-W,e.axe,2*W,h*1.6);}
-    c.globalCompositeOperation='lighter';
-    halo(c,SPR.bl,cx,cy,W*.62,h*.8,(.05*allume+.10*sur)*vg); /* la lueur diffuse derrière le nombre */
-    allumage(c,t,cx,cy,sw,h);
-    c.globalCompositeOperation='source-over';
-    dTube(c,t,vis,vg,e);
-    /* l'étincelle (une étoile à quatre branches effilées) qui court au bout du trait, à chaque blip */
-    c.globalCompositeOperation='lighter';
-    for(let j=0;j<10;j++){const a=t-TL.blips[j];if(a<0||a>.22)continue;const k=1-a/.22,g=e.G[j],r=sw*(.8+1.5*k);
-      halo(c,SPR.bl,g.x,g.y,r*1.1,r*1.1,.6*k*k*vg);etoile(c,g.x,g.y,r,.95*k*vg);}
-    coupFinal(c,t,cx,cy,sw,h,vg,true);
-    c.restore();
-  }
 
   /* ---- 2. FEU D'ARTIFICE EN PIXELS (2026-10-22, Léo : « garde la rotation circulaire… au lieu d'un fil banal, un feu d'artifice qui suit le mouvement, un jaillissement de petits pixels minuscules colorés ; à la fin
      du mouvement ça explose et ça donne 1.61 en pixels ; puis les petits cubes se déconstruisent et tombent petit à petit, et ça laisse apparaître le gros logo CASH CAR qui explose » · puis : « le début de la spirale un tout petit
@@ -231,368 +185,27 @@
     let x0=0;ordre.forEach(function(ch,i){const gl=G[ch],dy=hb-gl.h;for(const p of gl.pts)cells.push([x0+p[0],dy+p[1]]);x0+=gl.w+(gaps[i]||0);});
     return{cols:x0,rows:hb,cells:cells};
   }
-  function geoLabFeu(){
-    const m=Math.min(W,H),cx=W/2,cy=H*(W<H*1.15?.45:.5),land=W>H*1.15,R0=m*(land?.44:.36),Psi=5.5*Math.PI/2,Tn=TL.blips[9],T0=.2,R=hasard(1610),u=Math.max(2,Math.round(2.2*ku*(land?1.4:1))),pw=1.5;
-    const sp=function(psi,sg){const r=R0*Math.pow(PHI,-psi/(Math.PI/2)),a=-2.2+psi;return[sg*r*Math.cos(a),sg*r*Math.sin(a)];}; /* un point de la spirale (relatif au centre) ; sg = ±1 : les deux têtes */
-    const psiAt=function(t){return Psi*Math.pow(borne((t-T0)/(Tn-T0),0,1),pw);}; /* l'angle parcouru à l'instant t : les têtes démarrent doucement et accélèrent */
-    const pick=function(){const q=R();return q<.24?0:q<.46?1:q<.66?2:q<.74?3:q<.86?4:q<.94?5:6;};
-    const S0=[]; /* les étincelles : [naissance, x, y, vx, vy, vie, taille, couleur] */
-    const grain=function(te,x,y,ang,v,vie,tai,col){S0.push([te,x,y,Math.cos(ang)*v,Math.sin(ang)*v,vie,tai,col]);};
-    for(const sg of [1,-1]){
-      for(let i=0;i<300;i++){const psi=Psi*(i+R())/300,te=T0+(Tn-T0)*Math.pow(psi/Psi,1/pw),p=sp(psi,sg),a0=Math.atan2(p[1],p[0])+(R()-.5)*2.0; /* le jaillissement le long du trait : plus de fil, des étincelles */
-        grain(te,p[0],p[1],a0,(26+R()*90)*ku,.45+R()*.6,(R()<.8?1:2)*u,pick());}
-      for(let k=0;k<10;k++){const p=sp(psiAt(TL.blips[k]),sg),n=12+k; /* un cercle d'étincelles à chaque blip, sur chaque tête */
-        for(let j=0;j<n;j++)grain(TL.blips[k],p[0],p[1],(j+R())/n*6.2832,(75+R()*135)*ku,.4+R()*.45,(R()<.65?1:2)*u,pick());}
-    }
-    for(let i=0;i<160;i++)grain(TL.plein,0,0,R()*6.2832,(100+R()*330)*ku,.55+R()*.7,(R()<.75?1:2)*u,(R()<.4?(R()<.5?0:3):pick())); /* l'explosion du centre */
-    const ns=S0.length,F=()=>new Float32Array(ns),te=F(),x0=F(),y0=F(),vx=F(),vy=F(),vie=F(),tai=F(),col=new Uint8Array(ns),parCol=PAL_FEU.map(()=>[]);
-    S0.forEach(function(s,i){te[i]=s[0];x0[i]=s[1];y0[i]=s[2];vx[i]=s[3];vy[i]=s[4];vie[i]=s[5];tai[i]=s[6];col[i]=s[7];parCol[s[7]].push(i);});
-    /* le nombre : de minuscules cubes (3 × 3 par pixel), d'un or champagne, qui partent du centre et se posent */
-    const BMN=bitmapsNombre(),sub=3,tiny=Math.max(2,Math.floor(Math.min(W*.5/(BMN.cols*sub),H*(land?.46:.3)/(BMN.rows*sub)))),gap=tiny>=3?1:0,wT=BMN.cols*sub*tiny,hT=BMN.rows*sub*tiny,X0=Math.round(cx-wT/2),Y0=Math.round(cy-hT/2);
-    const C=[];for(const cl of BMN.cells)for(let a=0;a<sub;a++)for(let b=0;b<sub;b++)C.push([X0+(cl[0]*sub+a)*tiny,Y0+(cl[1]*sub+b)*tiny,cl[1]*sub+b]);
-    C.sort((p,q)=>p[2]-q[2]); /* par rangée : une couleur à la fois */
-    const nc=C.length,nr=BMN.rows*sub,Fc=()=>new Float32Array(nc),tx=Fc(),ty=Fc(),cl0=Fc(),cd=Fc(),tf=Fc(),fvx=Fc(),wob=Fc(),rg=new Uint8Array(nc);
-    C.forEach(function(q,i){tx[i]=q[0];ty[i]=q[1];rg[i]=q[2];cl0[i]=TL.plein+R()*.06;cd[i]=.38+R()*.34;tf[i]=TL.fondu+.1+Math.pow(R(),.8)*.34+(1-q[2]/nr)*.05;fvx[i]=(R()-.5)*50*ku;wob[i]=(R()-.5)*.9;});
-    const stops=[[0,[255,247,224]],[.35,[246,220,146]],[.7,[224,176,74]],[1,[176,125,34]]],coul=[]; /* le dégradé : blanc chaud → or pâle → or → ambre */
-    for(let r=0;r<nr;r++){const f=nr>1?r/(nr-1):0;let a=stops[0],b=stops[1];for(let k=1;k<stops.length;k++)if(f<=stops[k][0]){a=stops[k-1];b=stops[k];break;}
-      const q=(f-a[0])/Math.max(1e-6,b[0]-a[0]);coul.push('rgb('+[0,1,2].map(j=>Math.round(a[1][j]+(b[1][j]-a[1][j])*q)).join(',')+')');}
-    return{cx:cx,cy:cy,u:u,R0:R0,Psi:Psi,sp:sp,psiAt:psiAt,ns:ns,te:te,x0:x0,y0:y0,vx:vx,vy:vy,vie:vie,tai:tai,col:col,parCol:parCol,nc:nc,tx:tx,ty:ty,cl0:cl0,cd:cd,tf:tf,fvx:fvx,wob:wob,rg:rg,coul:coul,tiny:tiny,gap:gap,wT:wT,hT:hT,X0:X0,Y0:Y0,cols:BMN.cols*sub,rows:nr};
-  }
-  function dLabFeu(c,t,e){
-    const cx=e.cx,cy=e.cy,u=e.u,pl=TL.plein,Tn=TL.blips[9],g=190*ku,G=4600*ku;
-    c.save();
-    /* les étincelles, par teinte et par transparence (trois paliers) : un lot de carrés à chaque fois */
-    for(let ci=0;ci<PAL_FEU.length;ci++){const L=e.parCol[ci];c.fillStyle=PAL_FEU[ci];
-      for(let b=0;b<3;b++){c.globalAlpha=b===0?1:b===1?.62:.3;c.beginPath();let n=0;
-        for(let k=0;k<L.length;k++){const i=L[k],a=t-e.te[i];if(a<0||a>e.vie[i])continue;const f=a/e.vie[i];if((f<.55?0:f<.8?1:2)!==b)continue;
-          const s=e.tai[i];c.rect(Math.round((cx+e.x0[i]+e.vx[i]*a)/u)*u,Math.round((cy+e.y0[i]+e.vy[i]*a+.5*g*a*a)/u)*u,s,s);n++;}
-        if(n)c.fill();}}
-    c.globalAlpha=1;c.fillStyle=PAL_FEU[0];
-    /* les deux têtes : une croix de pixels blancs au bout de la spirale */
-    if(t>=.2&&t<Tn+.04){const ph=e.psiAt(t);for(const sg of [1,-1]){const p=e.sp(ph,sg),hx=Math.round((cx+p[0])/u)*u,hy=Math.round((cy+p[1])/u)*u;c.fillRect(hx-u,hy,3*u,u);c.fillRect(hx,hy-u,u,3*u);}}
-    /* le point central qui charge entre le dernier blip et le coup final */
-    if(t>=Tn&&t<pl){const q=(t-Tn)/(pl-Tn),n=1+Math.floor(q*6),fl=pique(3,Math.floor(t*60))>.3?1:.55,hx=Math.round(cx/u)*u,hy=Math.round(cy/u)*u;c.globalAlpha=fl;c.fillStyle=q>.6?PAL_FEU[1]:PAL_FEU[0];c.fillRect(hx-n*u,hy,(2*n+1)*u,u);c.fillRect(hx,hy-n*u,u,(2*n+1)*u);c.globalAlpha=1;}
-    /* le nombre : de minuscules cubes d'or qui partent du centre, se posent, brillent, puis tombent un à un */
-    if(t>=pl&&!e.sansNombre){
-      const tiny=e.tiny,sz=tiny-e.gap,sw=(t-(pl+.95))/.8*(e.cols+e.rows)*1.15;let dernier=-1; /* sw : le reflet qui traverse le nombre, en diagonale */
-      for(let i=0;i<e.nc;i++){
-        const a=t-e.cl0[i];if(a<0)continue;
-        const k=Math.min(1,a/e.cd[i]),b=1-Math.pow(1-k,3);
-        const dx=e.tx[i]-cx,dy=e.ty[i]-cy,bump=4*k*(1-k)*e.wob[i];
-        let x=cx+dx*b-dy*bump,y=cy+dy*b+dx*bump; /* une trajectoire en arc : l'explosion tourbillonne un peu */
-        const af=t-e.tf[i];
-        if(af>0){y+=.5*G*af*af;x+=e.fvx[i]*af;}else if(af>-.1){x+=((i*7919)%3-1)*.6*ku;y+=((i*104729)%3-1)*.6*ku;} /* un frémissement juste avant de lâcher */
-        if(y>H+tiny)continue;
-        if(e.rg[i]!==dernier){dernier=e.rg[i];c.fillStyle=e.coul[dernier];}
-        x=Math.round(x);y=Math.round(y);c.fillRect(x,y,sz,sz);
-        const d=Math.abs((e.tx[i]-e.X0)/tiny+(e.ty[i]-e.Y0)/tiny-sw);if(d<2.4&&af<=0){c.globalAlpha=.5*(1-d/2.4);c.fillStyle='#fff';c.fillRect(x,y,sz,sz);c.globalAlpha=1;c.fillStyle=e.coul[dernier];}}
-    }
-    c.restore();
-  }
 
   /* ---- 3. POUSSIÈRE : des milliers de grains de lumière affluent et se posent au rythme des blips ; au coup final ils se figent en trait plein ; au fondu le nombre repart en poussière ---- */
-  function geoLabPoussiere(){
-    const port=W<H*1.15,sw=.15,Gl=glyphes({sw:sw,gaps:[.06,.06,.07],pente:PENTE,rx:.21,ry:.29,fx:.23,fy:.15});
-    const bw=Gl.bx1-Gl.bx0,bh=Gl.by1-Gl.by0,h=Math.min(W*.86/bw,H*(port?.34:.54)/bh),cx=W/2,cy=H*(port?.46:.47);
-    const mx=cx-(Gl.bx0+bw/2)*h,my=cy-(Gl.by0+bh/2)*h,M=dixMorceaux(Gl,(x,y)=>[mx+x*h,my+y*h],h);
-    const R=hasard(1610),n=Math.round(Math.min(6000,Math.max(2400,W*H/140))),tot=M.G.reduce((a,g)=>a+g.len,0);
-    const aire=M.G.reduce((a,g)=>a+g.len*sw*h,0),taille=Math.max(1.4*ku,Math.sqrt(.62*aire/n));
-    const F=()=>new Float32Array(n),tx=F(),ty=F(),sx=F(),sy=F(),tr=F(),ta=F(),sw0=F(),siz=F(),ph=F(),dx=F(),dy=F();
-    let i=0;
-    M.G.forEach(function(g,j){const nj=Math.round(n*g.len/tot),m=g.ech.length/4;
-      for(let q=0;q<nj&&i<n;q++,i++){let x,y;
-        if(g.k>1){const rr=g.k*sw*h/2*Math.sqrt(R()),aa=R()*6.2832;x=g.x+Math.cos(aa)*rr;y=g.y+Math.sin(aa)*rr;} /* le point : un disque de grains */
-        else{const s=Math.floor(R()*m)*4,o=(R()*2-1)*sw*h*.46;x=g.ech[s]+g.ech[s+2]*o;y=g.ech[s+1]+g.ech[s+3]*o;}
-        tx[i]=x;ty[i]=y;const th=R()*6.2832,d=Math.max(W,H)*(.12+.55*R());sx[i]=x+Math.cos(th)*d;sy[i]=y+Math.sin(th)*d;
-        tr[i]=.28+.32*R();ta[i]=TL.blips[j]-.03+.07*R();sw0[i]=(R()-.5)*2.6;siz[i]=taille*(.7+.7*R());ph[i]=R()*6.28;dx[i]=(40+160*R())*ku;dy[i]=-(30+140*R())*ku;}});
-    const na=420,ax=new Float32Array(na),ay=new Float32Array(na),avx=new Float32Array(na),avy=new Float32Array(na);
-    for(let k=0;k<na;k++){ax[k]=R()*W;ay[k]=R()*H;avx[k]=(R()-.5)*10*ku;avy[k]=-(4+R()*10)*ku;} /* la poussière du fond, qui monte doucement */
-    return{h:bh*h,sw:sw*h,cx:cx,cy:cy,G:M.G,M:M,n:i,tx:tx,ty:ty,sx:sx,sy:sy,tr:tr,ta:ta,sw0:sw0,siz:siz,ph:ph,dx:dx,dy:dy,X:F(),Y:F(),bk:new Uint8Array(n),na:na,ax:ax,ay:ay,avx:avx,avy:avy};
-  }
-  function dLabPoussiere(c,t,e){
-    const cx=W/2,cy=e.cy,fond=TL.fondu,pl=TL.plein,vis=1-lisse(fond,TL.noir,t);if(vis<=0)return;
-    const ex=lisse(fond-.05,TL.noir,t),sur=t>=pl?Math.exp(-(t-pl)/.26):0;
-    c.save();
-    const sc=1+.04*lisse(0,fond+.25,t);c.translate(cx,cy);c.scale(sc,sc);c.translate(-cx,-cy);
-    c.globalCompositeOperation='lighter';
-    halo(c,SPR.bl,cx,cy,W*.6,e.h*.7,(.05*lisse(.3,1.6,t)+.12*sur)*vis);
-    allumage(c,t,cx,cy,e.sw,e.h);
-    for(let j=0;j<10;j++){const a=t-TL.blips[j];if(a<0||a>.3)continue;const g=e.G[j],r=e.sw*(2+2*Math.exp(-a/.1));halo(c,SPR.bl,g.x,g.y,r,r,.5*Math.exp(-a/.1)*vis);} /* un éclat quand les grains se posent */
-    c.globalCompositeOperation='source-over';
-    /* la poussière du fond */
-    c.fillStyle='#fff';c.globalAlpha=.2*vis*lisse(.1,.8,t);c.beginPath();
-    for(let k=0;k<e.na;k++){const x=((e.ax[k]+t*e.avx[k])%W+W)%W,y=((e.ay[k]+t*e.avy[k])%H+H)%H;c.rect(x,y,1.3*ku,1.3*ku);}c.fill();
-    /* les grains : ils arrivent en tourbillon, se posent sur le trait (ou le quittent au fondu) */
-    const nn=e.n,bk=e.bk,X=e.X,Y=e.Y;
-    for(let i=0;i<nn;i++){
-      const u=(t-e.ta[i]+e.tr[i])/e.tr[i];
-      if(u<=0){bk[i]=255;continue;}
-      const k=u>=1?1:1-Math.pow(2,-10*u),f=1-k,an=e.sw0[i]*f,co=Math.cos(an),si=Math.sin(an),vx=(e.sx[i]-e.tx[i])*f,vy=(e.sy[i]-e.ty[i])*f;
-      let x=e.tx[i]+vx*co-vy*si,y=e.ty[i]+vx*si+vy*co,al=lisse(0,.3,u)*(.72+.28*Math.sin(t*5+e.ph[i]));
-      if(u>=1){x+=Math.sin(t*7+e.ph[i])*.5*ku;y+=Math.cos(t*6+e.ph[i]*1.3)*.5*ku;}
-      if(ex>0){x+=e.dx[i]*ex*ex;y+=e.dy[i]*ex*ex;al*=1-ex;}
-      if(al<.06){bk[i]=255;continue;}
-      X[i]=x;Y[i]=y;bk[i]=Math.min(3,Math.floor(al*4));}
-    c.fillStyle='#fff';
-    for(let b=0;b<4;b++){c.globalAlpha=(b+.6)/4*vis;c.beginPath();for(let i=0;i<nn;i++)if(bk[i]===b){const s=e.siz[i];c.rect(X[i]-s/2,Y[i]-s/2,s,s);}c.fill();}
-    /* au coup final, les grains se figent : le trait plein, et la lueur */
-    const cc=lisse(pl-.02,pl+.14,t)*Math.pow(1-ex,2.5);
-    if(cc>.005)dNombre(c,e.M,e.sw,cc,(.4+2.2*sur)*cc*vis,1.5,3.4);
-    coupFinal(c,t,cx,cy,e.sw,e.h,vis,true);
-    c.restore();
-  }
 
   /* ---- 4. LUXE : un trait fin, droit, très espacé ; un fil de lumière avance d'un cran à chaque blip et laisse le nombre derrière lui ; au coup final un reflet le traverse, un filet se tire dessous ---- */
-  function geoLabLuxe(){
-    const port=W<H*1.15,sw=.034,Gl=glyphes({sw:sw,gaps:[.22,.22,.26],rx:.23,ry:.30,fx:.15,fy:.11,dr:.042});
-    const bw=Gl.bx1-Gl.bx0,bh=Gl.by1-Gl.by0,h=Math.min(W*.82/bw,H*(port?.27:.46)/bh),cx=W/2,cy=H*(port?.45:.47);
-    const mx=cx-(Gl.bx0+bw/2)*h,my=cy-(Gl.by0+bh/2)*h,M=dixMorceaux(Gl,(x,y)=>[mx+x*h,my+y*h],h);
-    const ext=Gl.signes.map(function(g){let a=1e9,b=-1e9;if(g.pt){a=g.pt.x-Gl.dr;b=g.pt.x+Gl.dr;}else for(const q of g.pl){a=Math.min(a,q.x-sw/2);b=Math.max(b,q.x+sw/2);}return[a,b];});
-    const nT=[2,1,4,3],bords=[]; /* les bords de la révélation : un pas par blip, chaque signe coupé en autant de tranches qu'il a de blips */
-    ext.forEach(function(r,i){for(let k=1;k<=nT[i];k++)bords.push(mx+(r[0]+(r[1]-r[0])*k/nT[i])*h+(k===nT[i]?h*.02:0));});
-    return{h:bh*h,w:bw*h,sw:sw*h,cx:cx,cy:cy,G:M.G,M:M,bords:bords,x0:mx+ext[0][0]*h-h*.05,x1:mx+ext[3][1]*h+h*.05,bas:my+Gl.by1*h};
-  }
-  function dLabLuxe(c,t,e){
-    const cx=W/2,cy=e.cy,h=e.h,sw=e.sw,fond=TL.fondu,pl=TL.plein,vis=1-lisse(fond,TL.noir,t);if(vis<=0)return;
-    c.save();
-    const sc=1+.04*lisse(0,fond+.25,t);c.translate(cx,cy);c.scale(sc,sc);c.translate(-cx,-cy);
-    let xe=e.x0;for(let j=0;j<10;j++){const pv=j?e.bords[j-1]:e.x0;xe+=(e.bords[j]-pv)*lisse(TL.blips[j],TL.blips[j]+.07,t);} /* le bord du fil de lumière : un cran par blip */
-    const fini=t>TL.blips[9]+.12;
-    c.globalCompositeOperation='lighter';
-    halo(c,SPR.bl,cx,cy,W*.55,h*.7,.035*lisse(.3,1.6,t)*vis);
-    allumage(c,t,cx,cy,sw,h);
-    c.globalCompositeOperation='source-over';
-    if(t>=TL.blips[0]){
-      c.save();if(!fini){c.beginPath();c.rect(0,0,xe,H);c.clip();}
-      /* la lueur : plus vive près du fil, puis près du reflet qui traverse après le coup final */
-      const xs=e.x0+(e.x1-e.x0)*sort3((t-pl)/.8)*1.25,bnd=t>=pl&&t<pl+.9?Math.sin(Math.PI*borne((t-pl)/.9,0,1)):0,r1=sw*3,r2=sw*7;
-      c.globalCompositeOperation='lighter';
-      for(const g of e.G){
-        for(let i=0;i<g.s1.length;i+=2){const x=g.s1[i],d=(x-xe)/(h*.3),d2=(x-xs)/(h*.2),A=(.07+(t<pl?.12*Math.exp(-d*d):0)+.25*bnd*Math.exp(-d2*d2))*vis*g.m;c.globalAlpha=Math.min(1,A);c.drawImage(SPR.bl,x-r1,g.s1[i+1]-r1,2*r1,2*r1);}
-        for(let i=0;i<g.s2.length;i+=2){const x=g.s2[i],d=(x-xe)/(h*.3),d2=(x-xs)/(h*.2),A=(.035+(t<pl?.06*Math.exp(-d*d):0)+.12*bnd*Math.exp(-d2*d2))*vis*g.m;c.globalAlpha=Math.min(1,A);c.drawImage(SPR.bl,x-r2,g.s2[i+1]-r2,2*r2,2*r2);}}
-      c.globalCompositeOperation='source-over';
-      c.lineCap='round';c.lineJoin='round';c.strokeStyle='#fff';c.globalAlpha=vis;c.lineWidth=sw;c.stroke(e.M.U[10]);
-      for(const g of e.G)if(g.k>1){c.lineWidth=sw*g.k;c.stroke(g.p);}
-      c.restore();
-      /* le fil de lumière lui-même */
-      const af=(1-lisse(pl-.05,pl+.15,t))*vis;
-      if(af>.01){c.globalCompositeOperation='lighter';halo(c,SPR.bl,xe,cy,h*.06,h*.62,.25*af);c.globalAlpha=.9*af;c.fillStyle='#fff';c.fillRect(xe-.6,cy-h*.62,1.2,h*1.24);c.globalCompositeOperation='source-over';}
-    }
-    /* au coup final : une étoile fine, un trait de lumière, un filet qui se tire sous le nombre */
-    if(t>=pl){const a=t-pl;c.globalCompositeOperation='lighter';etoile(c,cx,cy,h*.62,.4*Math.exp(-a/.3)*vis);c.globalCompositeOperation='source-over';
-      coupFinal(c,t,cx,cy,sw,h,vis*.8,false);
-      const demi=e.w/2*sort3(a/.55);c.globalAlpha=.55*vis;c.fillStyle='#fff';c.fillRect(cx-demi,e.bas+h*.2,2*demi,1);}
-    c.restore();
-  }
 
   /* ---- 5. HYPE : des chiffres lourds, penchés ; à chaque blip une COUPE sèche sur un autre morceau du nombre, de plus en plus large (écho, tranches décalées, traits de vitesse) ; au coup final l'image se pose en grand avec un éclair ---- */
-  const COUPES=[{z:3.7,x:.13,y:.18},{z:3.2,x:.30,y:.94},{z:2.8,x:.60,y:.10},{z:2.45,x:.58,y:.66},{z:2.1,x:.92,y:.40},{z:1.8,x:.24,y:.52},{z:1.55,x:.62,y:.48},{z:1.3,x:.5,y:.5},{z:1.12,x:.5,y:.5},{z:1,x:.5,y:.5}]; /* le zoom et le point du nombre (en fractions) mis au centre de l'écran */
-  function geoLabHype(){
-    const port=W<H*1.15,sw=.21,Gl=glyphes({sw:sw,gaps:[.045,.045,.06],pente:PENTE,rx:.215,ry:.285,fx:.21,fy:.13,dr:.15});
-    const bw=Gl.bx1-Gl.bx0,bh=Gl.by1-Gl.by0,h=Math.min(W*.9/bw,H*(port?.36:.58)/bh),cx=W/2,cy=H*(port?.46:.48);
-    const M=dixMorceaux(Gl,(x,y)=>[cx+(x-(Gl.bx0+bw/2))*h,cy+(y-(Gl.by0+bh/2))*h],h);
-    return{h:bh*h,w:bw*h,sw:sw*h,cx:cx,cy:cy,G:M.G,M:M,nx0:cx-bw*h/2,ny0:cy-bh*h/2};
-  }
-  function dLabHype(c,t,e){
-    const cx=W/2,cy=e.cy,fond=TL.fondu,pl=TL.plein,vis=1-lisse(fond,TL.noir,t);if(vis<=0)return;
-    let j=-1;for(let k=0;k<10;k++)if(t>=TL.blips[k])j=k;
-    const apres=t>=pl,a=j<0?0:t-(apres?pl:TL.blips[j]);
-    c.save();
-    c.globalCompositeOperation='lighter';allumage(c,t,cx,cy,e.sw,e.h);c.globalCompositeOperation='source-over';
-    if(j>=0){
-      const cp=apres?COUPES[9]:COUPES[j],dep=apres?.03*lisse(0,1,t-pl):0,z=cp.z*(1+dep+(a<.09&&!apres?.07*(1-a/.09):0)); /* un à-coup d'échelle à chaque coupe */
-      const corps=function(q,zz,dx,al){c.save();c.translate(cx+dx,cy);c.scale(zz,zz);c.translate(-(e.nx0+q.x*e.w),-(e.ny0+q.y*e.h));c.lineCap='round';c.lineJoin='round';c.strokeStyle='#fff';c.globalAlpha=al*vis;c.lineWidth=e.sw;c.stroke(e.M.U[10]);
-        for(const g of e.G)if(g.k>1){c.lineWidth=e.sw*g.k;c.stroke(g.p);}c.restore();};
-      const sh=!RM&&apres?Math.exp(-a/.2):0;if(sh>.02){c.translate(Math.sin(t*190)*4*sh*ku,Math.cos(t*170)*3*sh*ku);}
-      if(!apres&&j>0&&a<.1&&!RM)corps(COUPES[j-1],COUPES[j-1].z,0,.28*(1-a/.1)); /* l'écho de la coupe d'avant */
-      if(!apres&&a<.08&&!RM){ /* tranches décalées : un instant de signal brouillé */
-        for(let b=0;b<5;b++){c.save();c.beginPath();c.rect(0,H*b/5,W,H/5+1);c.clip();corps(cp,z,(pique(j*7+b,17)-.5)*80*ku*(1-a/.08),1);c.restore();}
-      }else corps(cp,z,0,1);
-      if(!apres&&a<.14){c.globalCompositeOperation='lighter';c.fillStyle='#fff';for(let b=0;b<3;b++){c.globalAlpha=.5*(1-a/.14)*vis;c.fillRect(0,H*(.18+.64*pique(j,b+3)),W,1.2);}c.globalCompositeOperation='source-over';} /* des traits de vitesse */
-      if(apres){const f=.55*Math.exp(-a/.07);if(f>.01){c.globalAlpha=f*vis;c.fillStyle='#fff';c.fillRect(-W,-H,3*W,3*H);}} /* l'éclair du coup final (un seul) */
-    }
-    c.restore();
-  }
 
   /* ---- 6-8. LES TROIS FILMS MOTEUR (2026-10-23, Léo : « refonte de toute l'intro du studio : luxe et cinéma, ~8 s, un toucher la saute, plus de wahou, plus cohérent avec le jeu, le son du moteur » ; « fais les trois »).
      `?label=caisse|pluie|route`. Même fin que les autres (le nombre en cubes d'or, le coup final, le fondu, le noir, CASH CAR), mais une montée de ~5 s sous un moteur qui prend des tours (trois changements de vitesse), coupée net par un freinage :
      CAISSE (des passages éclair d'une caisse dorée sur un filet d'or, puis elle freine en dévoilant « 1.61 » à mesure que ses phares passent), PLUIE (des pièces et des billets d'or tombent et s'empilent en « 1.61 », du bas vers le haut),
      ROUTE (la route suspendue file vers l'horizon, les étoiles s'étirent, la vitesse monte ; au freinage « 1.61 » se lève de l'horizon dans le ciel). ---- */
-  function geoMot(fy){ /* le nombre « 1.61 » en cubes d'or centré à la hauteur fy (fraction de l'écran) : où chaque cube se pose, sa couleur par rangée, son instant de chute au fondu */
-    const land=W>H*1.15,cx=W/2,cy=H*fy,R=hasard(1618),BMN=bitmapsNombre(),sub=3;
-    const tiny=Math.max(2,Math.floor(Math.min(W*.5/(BMN.cols*sub),H*(land?.46:.3)/(BMN.rows*sub)))),gap=tiny>=3?1:0,wT=BMN.cols*sub*tiny,hT=BMN.rows*sub*tiny,X0=Math.round(cx-wT/2),Y0=Math.round(cy-hT/2);
-    const C=[];for(const cl of BMN.cells)for(let a=0;a<sub;a++)for(let b=0;b<sub;b++)C.push([X0+(cl[0]*sub+a)*tiny,Y0+(cl[1]*sub+b)*tiny,cl[1]*sub+b]);
-    C.sort((p,q)=>p[2]-q[2]);
-    const nc=C.length,nr=BMN.rows*sub,Fc=()=>new Float32Array(nc),tx=Fc(),ty=Fc(),tf=Fc(),fvx=Fc(),al=Fc(),rg=new Uint8Array(nc);
-    C.forEach(function(q,i){tx[i]=q[0];ty[i]=q[1];rg[i]=q[2];tf[i]=TL.fondu+.1+Math.pow(R(),.8)*.34+(1-q[2]/nr)*.05;fvx[i]=(R()-.5)*50*ku;al[i]=R();});
-    const stops=[[0,[255,247,224]],[.35,[246,220,146]],[.7,[224,176,74]],[1,[176,125,34]]],coul=[]; /* le même dégradé que le feu d'artifice */
-    for(let r=0;r<nr;r++){const f=nr>1?r/(nr-1):0;let a=stops[0],b=stops[1];for(let k=1;k<stops.length;k++)if(f<=stops[k][0]){a=stops[k-1];b=stops[k];break;}
-      const q=(f-a[0])/Math.max(1e-6,b[0]-a[0]);coul.push('rgb('+[0,1,2].map(j=>Math.round(a[1][j]+(b[1][j]-a[1][j])*q)).join(',')+')');}
-    return{cx:cx,cy:cy,tiny:tiny,gap:gap,nc:nc,nr:nr,tx:tx,ty:ty,tf:tf,fvx:fvx,al:al,rg:rg,coul:coul,wT:wT,hT:hT,X0:X0,Y0:Y0,cols:BMN.cols*sub,rows:nr};
-  }
-  function cubesMot(c,e,t,place){ /* les cubes du nombre : `place(i,t)` donne [x, y, échelle] (ou rien : pas encore là) ; au fondu ils tombent un à un ; un reflet les traverse après le coup final */
-    const tiny=e.tiny,sz=tiny-e.gap,G=4600*ku,sw=(t-(TL.plein+.5))/.8*(e.cols+e.rows)*1.15;let dernier=-1;
-    for(let i=0;i<e.nc;i++){
-      const p=place(i,t);if(!p)continue;
-      let x=p[0],y=p[1];const s=sz*(p[2]===undefined?1:p[2]),af=t-e.tf[i];
-      if(af>0){y+=.5*G*af*af;x+=e.fvx[i]*af;}
-      if(y>H+tiny)continue;
-      if(e.rg[i]!==dernier){dernier=e.rg[i];c.fillStyle=e.coul[dernier];}
-      x=Math.round(x);y=Math.round(y);c.fillRect(x,y,s,s);
-      const d=Math.abs((e.tx[i]-e.X0)/tiny+(e.ty[i]-e.Y0)/tiny-sw);
-      if(d<2.4&&af<=0){c.globalAlpha=.5*(1-d/2.4);c.fillStyle='#fff';c.fillRect(x,y,s,s);c.globalAlpha=1;c.fillStyle=e.coul[dernier];}}
-  }
-  function finMot(c,t,e,vis){ /* le coup final commun : éclair, secousse, lueur, onde de choc */
-    if(t<TL.plein)return;const a=t-TL.plein,f=.5*Math.exp(-a/.07);
-    if(f>.01){c.globalAlpha=f*vis;c.fillStyle='#fff';c.fillRect(-W,-H,3*W,3*H);}
-    c.globalCompositeOperation='lighter';halo(c,SPR.or,e.cx,e.cy,W*.7,e.hT*1.2,.5*Math.exp(-a/.35)*vis);c.globalCompositeOperation='source-over';
-    coupFinal(c,t,e.cx,e.cy,e.tiny*3,e.hT,vis,true);
-  }
 
   /* 6. CAISSE */
-  function dessineCaisse(c,x,gy,w,dir,nez,feux){ /* une caisse de profil (nez à droite si dir > 0), posée sur la ligne gy ; nez : piqué au freinage (rad) ; feux : intensité des phares */
-    c.save();c.translate(x,gy);c.scale(dir*w/2,w/2);c.rotate(nez);
-    const P=function(pts){c.beginPath();c.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)c.lineTo(pts[i][0],pts[i][1]);c.closePath();};
-    const gd=c.createLinearGradient(0,-.34,0,-.03);gd.addColorStop(0,'#fff1cf');gd.addColorStop(.35,'#e3a93c');gd.addColorStop(1,'#6b4510');
-    c.fillStyle=gd;P([[-1,-.08],[-.98,-.17],[-.55,-.2],[-.28,-.31],[.1,-.33],[.42,-.2],[.88,-.15],[1,-.08],[1,-.03],[-1,-.03]]);c.fill();
-    c.fillStyle='#120c04';P([[-.24,-.27],[.08,-.29],[.3,-.2],[-.4,-.2]]);c.fill();
-    for(const wx of [-.6,.58]){c.fillStyle='#000';c.beginPath();c.arc(wx,-.085,.1,0,6.2832);c.fill();c.fillStyle='#e3a93c';c.beginPath();c.arc(wx,-.085,.045,0,6.2832);c.fill();}
-    c.fillStyle='#ff3b30';c.fillRect(-1,-.14,.04,.03);
-    if(feux>0){c.globalCompositeOperation='lighter';const f=c.createLinearGradient(.98,0,2.8,0);f.addColorStop(0,'rgba(255,236,190,'+(.5*feux)+')');f.addColorStop(1,'rgba(255,236,190,0)');c.fillStyle=f;c.beginPath();c.moveTo(.98,-.12);c.lineTo(2.8,-.32);c.lineTo(2.8,.05);c.lineTo(.98,-.08);c.fill();c.fillStyle='#fff';c.fillRect(.95,-.13,.05,.04);}
-    c.restore();
-  }
-  function geoLabCaisse(){
-    const port=W<H*1.15,M=geoMot(port?.38:.36),cw=Math.min(W*.46,H*.4),gy=H*(port?.66:.72);
-    M.gy=gy;M.cw=cw;M.xFin=M.X0+M.wT+cw*.05;return M;
-  }
-  function dLabCaisse(c,t,e){
-    const pl=TL.plein,vis=1-lisse(TL.fondu,TL.noir,t);if(vis<=0)return;
-    const gy=e.gy,cw=e.cw,k0=4.1*pl/5.2;
-    c.save();
-    const ff=!RM&&t>=pl?Math.exp(-(t-pl)/.2):0;if(ff>.02)c.translate(Math.sin(t*190)*3.2*ff*ku,Math.cos(t*170)*2.2*ff*ku);
-    c.globalAlpha=.6*vis*lisse(.15,.9,t);const gl=c.createLinearGradient(0,0,W,0);gl.addColorStop(0,'rgba(227,169,60,0)');gl.addColorStop(.5,'rgba(255,225,150,1)');gl.addColorStop(1,'rgba(227,169,60,0)');c.fillStyle=gl;c.fillRect(0,gy+1,W,1.5*ku); /* la route : un filet d'or sur le noir */
-    c.globalAlpha=.18*vis*lisse(.15,.9,t);c.fillRect(0,gy+cw*.07,W,1);
-    c.globalAlpha=1;
-    const PASSES=[[.55,.40,1],[1.7,.36,-1],[2.95,.45,1]]; /* trois passages éclair : [départ, durée, sens] */
-    for(const ps of PASSES){const k=(t-ps[0]*pl/5.2)/(ps[1]*pl/5.2);if(k<0||k>1)continue;
-      const dir=ps[2],x=dir>0?-cw+(W+2*cw)*k:W+cw-(W+2*cw)*k;
-      c.globalCompositeOperation='lighter';const st=c.createLinearGradient(x,0,x-dir*cw*3.2,0);st.addColorStop(0,'rgba(255,225,150,.55)');st.addColorStop(1,'rgba(255,225,150,0)');c.fillStyle=st;c.globalAlpha=vis;c.fillRect(Math.min(x,x-dir*cw*3.2),gy-cw*.2,cw*3.2,cw*.14); /* la traînée de vitesse */
-      halo(c,SPR.or,x,gy-cw*.08,cw*.9,cw*.35,.45*Math.sin(Math.PI*k)*vis);c.globalCompositeOperation='source-over';
-      for(let g=3;g>=0;g--){c.globalAlpha=(g?.28/g:1)*vis;dessineCaisse(c,x-dir*g*cw*.2,gy,cw,dir,0,g?0:1);}}
-    c.globalAlpha=vis;
-    let x=-cw*2,front=-1e9;
-    if(t>=k0){const kf=borne((t-k0)/(1.0*pl/5.2),0,1);x=-cw*.6+(e.xFin+cw*.6)*(1-Math.pow(1-kf,2.2));front=x+cw*.5;
-      const a=t-pl,nez=t>=pl?.035*Math.exp(-a/.18):0;
-      dessineCaisse(c,x,gy,cw,1,nez,.9);
-      if(t>=pl&&a<.5){c.fillStyle='#ffe6a8';for(let q=0;q<14;q++){const vx=(60+pique(q,1)*220)*ku,vy=-(40+pique(q,2)*160)*ku,px=x+cw*.55+vx*a,py=gy+vy*a+.5*700*ku*a*a;c.globalAlpha=(1-a/.5)*vis;c.fillRect(Math.round(px),Math.round(py),2*ku,2*ku);}}} /* les étincelles du freinage */
-    c.globalAlpha=1;
-    const tiny=e.tiny;
-    cubesMot(c,e,t,function(i){const s=t>=pl?1:borne((front-e.tx[i])/(tiny*8),0,1);return s>0?[e.tx[i],e.ty[i],s]:null;}); /* le nombre se dévoile à mesure que la caisse passe */
-    finMot(c,t,e,vis);
-    c.restore();
-  }
 
   /* 7. PLUIE */
-  function geoLabPluie(){
-    const port=W<H*1.15,M=geoMot(port?.45:.5),ta=new Float32Array(M.nc),du=new Float32Array(M.nc),rot=new Float32Array(M.nc),R=hasard(777);
-    for(let i=0;i<M.nc;i++){ta[i]=(.9+(1-M.rg[i]/M.nr)*3.5+M.al[i]*.5)*TL.plein/5.2;du[i]=.5+M.al[i]*.25;rot[i]=R()*6.28;} /* les rangées du bas arrivent d'abord : l'écran se remplit en montant */
-    M.ta=ta;M.du=du;M.rot=rot;M.nd=Math.round(Math.min(90,W*H/5000));M.dx=new Float32Array(M.nd);M.dv=new Float32Array(M.nd);M.dp=new Float32Array(M.nd);
-    for(let k=0;k<M.nd;k++){M.dx[k]=R()*W;M.dv[k]=(260+R()*420)*ku;M.dp[k]=R()*(H+80);} /* la pluie qui ne se pose pas */
-    return M;
-  }
-  function pieceOr(c,x,y,r,ph,bill){ /* une pièce (qui tourne : son épaisseur oscille) ou un billet, en or */
-    c.save();c.translate(x,y);
-    if(bill){c.rotate(ph);c.fillStyle='#d9a441';c.fillRect(-r*1.3,-r*.7,r*2.6,r*1.4);c.fillStyle='#f6dc9a';c.fillRect(-r*1.3,-r*.7,r*2.6,r*.35);c.fillStyle='#8a5a14';c.fillRect(-r*.35,-r*.35,r*.7,r*.7);}
-    else{const e=Math.abs(Math.cos(ph))*.85+.15;c.fillStyle='#e3a93c';c.beginPath();c.ellipse(0,0,r*e,r,0,0,6.2832);c.fill();c.fillStyle='#fff1cf';c.beginPath();c.ellipse(-r*.2*e,-r*.25,r*.3*e,r*.3,0,0,6.2832);c.fill();}
-    c.restore();
-  }
-  function dLabPluie(c,t,e){
-    const pl=TL.plein,vis=1-lisse(TL.fondu,TL.noir,t);if(vis<=0)return;
-    const tiny=e.tiny,r=Math.max(3,tiny*1.1);
-    c.save();
-    const ff=!RM&&t>=pl?Math.exp(-(t-pl)/.2):0;if(ff>.02)c.translate(Math.sin(t*190)*3.2*ff*ku,Math.cos(t*170)*2.2*ff*ku);
-    c.globalCompositeOperation='lighter';halo(c,SPR.or,e.cx,e.cy,W*.8,e.hT*1.1,(.05+.12*lisse(.5,pl,t))*vis);c.globalCompositeOperation='source-over';
-    const ex=t<pl?1:1-lisse(pl,pl+.5,t);
-    c.globalAlpha=.55*ex*vis*lisse(.3,1,t);
-    for(let k=0;k<e.nd;k++){const y=((e.dp[k]+t*e.dv[k])%(H+80))-40;pieceOr(c,e.dx[k],y,r*.7,t*6+k,k%3===0);} /* la pluie qui ne se pose pas */
-    c.globalAlpha=vis;
-    for(let i=0;i<e.nc;i++){const a=e.ta[i]-t;if(a<=0||a>e.du[i])continue;const f=a/e.du[i];pieceOr(c,e.tx[i]+tiny/2,e.ty[i]-(e.ty[i]+30)*f*f,r,t*9+e.rot[i],e.al[i]>.6);} /* les pièces et les billets en chute, chacun vers sa place */
-    c.globalAlpha=1;
-    cubesMot(c,e,t,function(i){return t>=e.ta[i]?[e.tx[i],e.ty[i]]:null;});
-    c.globalCompositeOperation='lighter';c.fillStyle='#fff';
-    for(let i=0;i<e.nc;i++){const a=t-e.ta[i];if(a<0||a>.12||t>=e.tf[i])continue;c.globalAlpha=.8*(1-a/.12)*vis;c.fillRect(Math.round(e.tx[i]-tiny*.4),Math.round(e.ty[i]-tiny*.4),tiny*1.8,tiny*1.8);} /* l'éclat quand une pièce se pose */
-    c.globalCompositeOperation='source-over';c.globalAlpha=1;
-    finMot(c,t,e,vis);
-    c.restore();
-  }
 
   /* 8. ROUTE */
-  function geoLabRoute(){
-    const port=W<H*1.15,M=geoMot(port?.3:.3),hy=H*(port?.62:.66),R=hasard(404),dt=.02,n=Math.ceil(TL.noir/dt)+2,D=new Float32Array(n);
-    const vit=function(t){const v=3+95*Math.pow(lisse(.3,TL.plein,t),1.6);return t<TL.plein?v:v*Math.exp(-(t-TL.plein)/.1);};
-    for(let i=1;i<n;i++)D[i]=D[i-1]+vit(i*dt)*dt;
-    M.hy=hy;M.vit=vit;M.dist=function(t){const f=borne(t/dt,0,n-2),i=Math.floor(f);return D[i]+(D[i+1]-D[i])*(f-i);};
-    const ns=Math.round(Math.min(160,W*H/2600));M.ns=ns;M.sa=new Float32Array(ns);M.sr=new Float32Array(ns);
-    for(let k=0;k<ns;k++){M.sa[k]=Math.PI+.1+R()*(Math.PI-.2);M.sr[k]=.06+R()*.94;} /* les étoiles : des rayons qui partent de l'horizon, vers le haut */
-    M.ts=new Float32Array(M.nc);for(let i=0;i<M.nc;i++)M.ts[i]=(3.4+M.al[i]*1.5)*TL.plein/5.2; /* l'instant où chaque cube arrive à sa place */
-    return M;
-  }
-  function dLabRoute(c,t,e){
-    const pl=TL.plein,vis=1-lisse(TL.fondu,TL.noir,t);if(vis<=0)return;
-    const cx=W/2,hy=e.hy,v=e.vit(t),D=e.dist(t),Rm=Math.max(W,H)*.9;
-    c.save();
-    c.globalCompositeOperation='lighter';halo(c,SPR.or,cx,hy,W*.9,H*.2,(.1+.3*lisse(.5,pl,t))*vis);c.globalCompositeOperation='source-over';
-    c.strokeStyle='#fff';c.lineWidth=1.2*ku;c.globalAlpha=.7*vis*lisse(.1,.8,t);c.beginPath();
-    for(let k=0;k<e.ns;k++){const co=Math.cos(e.sa[k]),si=Math.sin(e.sa[k]),r=e.sr[k]*Rm,len=Math.max(1.3,v*.55*ku*(.3+e.sr[k]));c.moveTo(cx+co*r,hy+si*r);c.lineTo(cx+co*(r+len),hy+si*(r+len));}
-    c.stroke(); /* les étoiles s'étirent avec la vitesse */
-    const hw=W*.55,gr=c.createLinearGradient(0,hy,0,H);gr.addColorStop(0,'#000');gr.addColorStop(1,'#1a1208');
-    c.globalAlpha=vis;c.fillStyle=gr;c.beginPath();c.moveTo(cx-hw,H);c.lineTo(cx-W*.012,hy);c.lineTo(cx+W*.012,hy);c.lineTo(cx+hw,H);c.fill();
-    c.strokeStyle='#e3a93c';for(const sg of [-1,1]){for(const w of [[5,.12],[1.6,.9]]){c.lineWidth=w[0]*ku;c.globalAlpha=w[1]*vis;c.beginPath();c.moveTo(cx+sg*hw,H);c.lineTo(cx+sg*W*.012,hy);c.stroke();}} /* les bords de la route, en or */
-    c.fillStyle='#fff1cf';
-    const z0=1.4,sp=7,span=sp*12,len=2.2*(1+v/40);
-    for(let n=0;n<12;n++){const z=(((n*sp-D)%span)+span)%span+z0,s1=z0/z,s2=z0/(z+len),y1=hy+(H-hy)*s1,y2=hy+(H-hy)*s2;if(y1>H+4)continue;
-      const w1=W*.014*s1,w2=W*.014*s2;c.globalAlpha=.9*Math.min(1,s1*5)*vis;c.beginPath();c.moveTo(cx-w1,y1);c.lineTo(cx+w1,y1);c.lineTo(cx+w2,y2);c.lineTo(cx-w2,y2);c.fill();} /* les tirets du milieu, étirés par la vitesse */
-    c.globalAlpha=1;
-    const ff=!RM&&t>=pl?Math.exp(-(t-pl)/.2):0;if(ff>.02)c.translate(Math.sin(t*190)*3.2*ff*ku,Math.cos(t*170)*2.2*ff*ku);
-    cubesMot(c,e,t,function(i){const a=t-(e.ts[i]-.6*pl/5.2);if(a<0)return null;const k=Math.min(1,a/(.6*pl/5.2)),b=1-Math.pow(1-k,3);return[e.cx+(e.tx[i]-e.cx)*b,hy+(e.ty[i]-hy)*b,.3+.7*b];}); /* le nombre se lève de l'horizon */
-    finMot(c,t,e,vis);
-    c.restore();
-  }
 
-  function spiraleOr(c,cx,cy,w,p,a){ /* le logo : un rectangle d'or (1 : φ) coupé en carrés, et la spirale qui les traverse ; p (0 → 1) : jusqu'où la spirale est tracée ; a : opacité. Rend la tête de la spirale. */
-    const h=w/PHI;let x=cx-w/2,y=cy-h/2,rw=w,rh=h,head=null;const N=8,part=p*N;
-    c.lineCap='round';
-    for(let k=0;k<N;k++){
-      const d=k%4,s=d===0||d===2?rh:rw;let sx,sy,ccx,ccy,a0,a1;
-      if(d===0){sx=x;sy=y;ccx=x+s;ccy=y+s;a0=Math.PI;a1=1.5*Math.PI;}
-      else if(d===1){sx=x;sy=y;ccx=x;ccy=y+s;a0=1.5*Math.PI;a1=2*Math.PI;}
-      else if(d===2){sx=x+rw-s;sy=y;ccx=x+rw-s;ccy=y;a0=0;a1=.5*Math.PI;}
-      else{sx=x;sy=y+rh-s;ccx=x+rw;ccy=y+rh-s;a0=.5*Math.PI;a1=Math.PI;}
-      const f=borne(part-k,0,1);
-      if(f>0){c.globalAlpha=a*.3*lisse(0,.5,f);c.strokeStyle='#f6dc9a';c.lineWidth=Math.max(1,ku);c.strokeRect(sx,sy,s,s);} /* le carré, discret */
-      if(f>0){const e1=a0+(a1-a0)*f;c.globalAlpha=a;c.strokeStyle='#fff1cf';c.lineWidth=Math.max(2,3.2*ku);c.beginPath();c.arc(ccx,ccy,s,a0,e1);c.stroke();head=[ccx+Math.cos(e1)*s,ccy+Math.sin(e1)*s];}
-      if(d===0){x+=s;rw-=s;}else if(d===1){y+=s;rh-=s;}else if(d===2){rw-=s;}else{rh-=s;}
-    }
-    return head;
-  }
-  function dLabPs(c,t,e){ /* 1.61 façon PlayStation : le logo sort du noir (la spirale d'or se dessine, sa lueur gonfle), « 1.61 » vient dessous, un reflet traverse le tout au coup final, puis tout s'éteint doucement */
-    const pl=TL.plein,vis=1-lisse(TL.fondu,TL.noir,t);if(vis<=0)return;
-    const cx=W/2,cy=e.cy,ap=lisse(.4,pl,t),pm=lisse(.35,pl*.78,t),mh=Math.min(Math.min(W*.46,e.h*2.3)/PHI,cy+e.h*.02-H*.08),mw=mh*PHI,my=H*.06+mh/2;
-    c.save();const sc=1+.05*lisse(0,TL.fondu,t);c.translate(cx,cy);c.scale(sc,sc);c.translate(-cx,-cy);
-    c.globalCompositeOperation='lighter';halo(c,SPR.or,cx,cy-e.h*.2,W*.7,e.h*1.1,(.03+.2*ap*ap)*vis);
-    const hd=spiraleOr(c,cx,my,mw,pm,vis);
-    if(hd&&pm<1)halo(c,SPR.bl,hd[0],hd[1],mw*.14,mw*.14,.9*vis); /* la tête de la spirale */
-    c.globalCompositeOperation='source-over';
-    c.save();c.translate(cx,cy+e.h*.5);c.scale(.8,.8);c.translate(-cx,-cy);
-    const na=lisse(1.2,pl,t);dNombre(c,e.M,e.sw*1.5,na*vis,(.2+1.2*na)*na*vis,1.8,4.5);
-    c.restore();
-    if(t>=pl){const a=t-pl;halo(c,SPR.bl,cx,my,mw*.9,mw*.5,0);coupFinal(c,t,cx,cy+e.h*.1,e.sw,e.h,vis*.8,false);}
-    c.restore();
-  }
   /* 9. SPHÈRE (2026-10-23, Léo : « l'effet éclaboussure étincelle artifice qui fait la courbe φ, explose et laisse paraître 1.61 en sphère, écrit en masse pour former une boule qui tourne sur elle-même, se désintègre, et toutes les lettres tombent, effet terre qui s'écroule ; puis CASH CAR surgit de l'ombre, zoom, et boom : ça explose en écran ciel »).
      Le feu d'artifice en spirale (dLabFeu, sans son nombre en cubes), puis les caractères « 1 . 6 1 » en masse jaillissent du centre et se posent en sphère (spirale de Fibonacci) qui tourne, penchée ; elle tremble, puis lâche : le bas d'abord, tout choit. */
   function geoLabSphere(){
-    const f=geoLabFeu();f.sansNombre=true;
     const land=W>H*1.15,R=Math.min(W*.24,H*(land?.27:.19)),cx=W/2,cy=H*(land?.5:.46),n=Math.round(Math.max(260,Math.min(520,W*H/420))),Rn=hasard(161),ga=Math.PI*(3-Math.sqrt(5));
     const F=()=>new Float32Array(n),px=F(),py=F(),pz=F(),dl=F(),tf=F(),fx=F(),gk=new Uint8Array(n),spr=[];
     for(let i=0;i<n;i++){const y=1-2*(i+.5)/n,r=Math.sqrt(1-y*y),th=i*ga;px[i]=r*Math.cos(th);py[i]=y;pz[i]=r*Math.sin(th);dl[i]=Rn()*.4;gk[i]=i%4;
@@ -601,24 +214,7 @@
     ['1','.','6','1'].forEach(function(ch,ci){const cc=document.createElement('canvas');cc.width=48;cc.height=64;const x=cc.getContext('2d'),d=x.createLinearGradient(0,8,0,56);d.addColorStop(0,TEINTES[ci][0]);d.addColorStop(1,TEINTES[ci][1]);x.fillStyle=d;x.font='44px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText(ch,24,34);spr.push(cc);});
     const sprH=[],HB=[42,200,340,265]; /* la boule qui change de couleur : 24 teintes par signe (départ : or, bleu glace, rose, violet), toutes décalées pareil au fil du temps */
     for(let ci=0;ci<4;ci++){sprH.push([]);for(let st=0;st<24;st++){const h=(HB[ci]+15*st)%360,cc=document.createElement('canvas');cc.width=48;cc.height=64;const x=cc.getContext('2d'),d=x.createLinearGradient(0,8,0,56);d.addColorStop(0,'hsl('+h+',100%,86%)');d.addColorStop(1,'hsl('+h+',95%,56%)');x.fillStyle=d;x.font='44px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText(['1','.','6','1'][ci],24,34);sprH[ci].push(cc);}}
-    return{sprH:sprH,feu:f,R:R,cx:cx,cy:cy,n:n,px:px,py:py,pz:pz,dl:dl,tf:tf,fx:fx,gk:gk,spr:spr,gs:Math.max(9*ku,R*.2)};
-  }
-  function dLabSphere(c,t,e){
-    dLabFeu(c,t,e.feu);
-    const pl=TL.plein;if(t<pl)return;
-    const a=t-pl,rot=a*1.7+.6,tl=.38,cr=Math.cos(rot),sr=Math.sin(rot),ct=Math.cos(tl),st=Math.sin(tl),G=3400*ku,R=e.R,gs=e.gs;
-    c.save();
-    c.globalCompositeOperation='lighter';halo(c,SPR.or,e.cx,e.cy,R*1.7,R*1.7,.2*lisse(0,1,a)*(1-lisse(TL.fondu-.9,TL.fondu-.2,t)));c.globalCompositeOperation='source-over';
-    for(let pass=0;pass<2;pass++)for(let i=0;i<e.n;i++){
-      const k=borne((a-e.dl[i])/.9,0,1);if(k<=0)continue;
-      const b=1-Math.pow(1-k,3),x1=e.px[i]*cr+e.pz[i]*sr,z1=-e.px[i]*sr+e.pz[i]*cr,y2=e.py[i]*ct-z1*st,z2=e.py[i]*st+z1*ct;
-      if((z2>=0?1:0)!==pass)continue;
-      let sx=e.cx+x1*R*b,sy=e.cy+y2*R*b;const af=t-e.tf[i];
-      if(af>0){sy+=.5*G*af*af;sx+=e.fx[i]*af;}else if(af>-.3){const m=(1+af/.3)*3*ku;sx+=(pique(i,Math.floor(t*40))-.5)*m;sy+=(pique(i,Math.floor(t*40)+9)-.5)*m;} /* le tremblement avant de lâcher */
-      if(sy>H+gs)continue;
-      const dp=z2*.5+.5,sz=gs*(.55+.45*dp);c.globalAlpha=(.3+.7*dp)*lisse(0,.15,k);c.drawImage(e.spr[e.gk[i]],sx-sz*.35,sy-sz*.5,sz*.7,sz);
-    }
-    c.globalAlpha=1;c.restore();
+    return{sprH:sprH,R:R,cx:cx,cy:cy,n:n,px:px,py:py,pz:pz,dl:dl,tf:tf,fx:fx,gk:gk,spr:spr,gs:Math.max(9*ku,R*.2)};
   }
   /* 10. BOULE (2026-10-23 soir) : seulement la sphère de « 1.61 » ; elle tourne lentement tant que ça charge, s'arrête quand c'est prêt ; l'appui la fait exploser en CASH CAR (dActe3), puis le voile fond vers le jeu. */
   let pasSon=-1;
@@ -659,7 +255,7 @@
     }
     c.globalAlpha=1;c.restore();
   }
-  const LABELS={neon:{geo:geoLabNeon,dessin:dLabNeon},feu:{geo:geoLabFeu,dessin:dLabFeu},poussiere:{geo:geoLabPoussiere,dessin:dLabPoussiere},luxe:{geo:geoLabLuxe,dessin:dLabLuxe},hype:{geo:geoLabHype,dessin:dLabHype},ps:{geo:geoLabLuxe,dessin:dLabPs},sphere:{geo:geoLabSphere,dessin:dLabSphere},boule:{geo:geoLabSphere,dessin:dBoule},caisse:{geo:geoLabCaisse,dessin:dLabCaisse},pluie:{geo:geoLabPluie,dessin:dLabPluie},route:{geo:geoLabRoute,dessin:dLabRoute}};
+  const LABELS={boule:{geo:geoLabSphere,dessin:dBoule}};
 
   /* ---- LE GROS LOGO CASH CAR : chaque lettre est peinte une fois (extrusion brune, face dorée ou couchant), puis posée/secouée à volonté ---- */
   function peintLettre(c,ch,mot,fs,dp,mg){
@@ -761,11 +357,6 @@
     const a=lisse(0,.8,t-TL.slam-1.2)*(.45+.25*Math.sin((t-TL.slam)*3.1));if(a<=.01)return;
     c.save();c.globalAlpha=a;c.fillStyle='#fff1cf';c.textAlign='center';c.textBaseline='middle';c.font=Math.max(9,Math.round(11*ku))+'px "Press Start 2P",monospace';
     c.fillText(LANG==='fr'?'TOUCHE':'TAP',W/2,Math.min(H-16*ku,LOGO.cy+1.55*LOGO.fs));c.restore();
-  }
-  function dZoomLogo(c,t){ /* le logo surgit de l'ombre : très gros et sombre, il fonce vers nous jusqu'au claquement (SPH) */
-    const q=borne((t-(TL.slam-1))/1,0,1),z=1.18+1.5*(1-q*q);
-    c.save();c.globalCompositeOperation='lighter';halo(c,SPR.or,W/2,LOGO.cy,W*.9*z,Math.max(H*.4,W*.8)*z,.25*q*q);c.globalCompositeOperation='source-over';
-    dLettres(c,t,5,z,.12+.88*q*q,{x:0,y:0,r:0,k:0,a:0},false,-1);c.restore();
   }
   function dActe3(c,t,mode){
     const u=t-TL.slam,L=LOGO,cxL=W/2,cyL=L.cy,sk=mode?{x:0,y:0,r:0,k:1,a:0}:secousse(t),k=sk.k,ap=lisse(0,.2,u);
@@ -904,11 +495,7 @@
     }
     const T=x=>t0+x;
     /* le silence : le son coupe quand le label se dissout, et ne revient qu'avec le claquement du logo */
-    if(!BOULE){master.gain.setValueAtTime(1,T(TL.fondu-.10));master.gain.linearRampToValueAtTime(.0001,T(TL.fondu+.12));master.gain.setValueAtTime(1,T(TL.slam-(SPH?1.05:.06)));}
     /* 0. l'allumage : un coup sourd, un souffle qui monte, un tic */
-    if(!BOULE){oscil(master,'sine',150,46,T(0),.45,.34,.004,.42,0,.12);
-    souffle(master,T(0),.3,'bandpass',500,3600,1.3,.20,.02,.28,0,.15);
-    souffle(master,T(0),.05,'highpass',5200,0,1,.10,.001,.04,0,0);}
     const R={ctx:A,master:master,busB:busB,fait:{suite:false,acte3:false}};
     R.suite=function(){
       if(R.fait.suite)return;R.fait.suite=true;
@@ -917,52 +504,8 @@
         for(let ch=0;ch<2;ch++){if(A.sampleRate===48000)b.copyToChannel(IR48[ch],ch);else{const d=b.getChannelData(ch),src=IR48[ch],r=48000/A.sampleRate;for(let i=0;i<n;i++){const p=i*r,j=Math.floor(p),f=p-j;d[i]=src[j]*(1-f)+(src[j+1]||0)*f;}}}
         rev.buffer=b;}
       const revOut=A.createGain();revOut.gain.value=.62;rev.connect(revOut);revOut.connect(master);send.connect(rev);
-      if(BOULE)return;
-      /* 1. les blips (les quatre derniers en rafale, plus courts) et un souffle d'air qui monte dessous */
-      if(PS){ /* LE SON PLAYSTATION : un grave qui gonfle, un voile aigu qui scintille, puis le coup final */
-        const t1=T(.3),t2=T(TL.plein);
-        oscil(master,'sine',48,72,t1,t2-t1,.34,t2-t1,.5,0,.3);oscil(master,'sine',96,144,t1,t2-t1,.12,t2-t1,.5,0,.3);
-        souffle(master,t1,t2-t1,'bandpass',900,5200,1.1,.09,(t2-t1)*.95,.4,0,.35);
-      }else if(MOT){ /* LE MOTEUR : un régime qui monte avec trois changements de vitesse, un souffle d'admission qui grossit, puis le FREINAGE net au coup final */
-        const kk=TL.plein/5.2,t1=T(.3*kk),t2=T(TL.plein),RPM=[[.3,46],[1.65,118],[1.72,86],[2.95,150],[3.02,110],[4.15,188],[4.22,138],[5.15,232]];
-        const gm=A.createGain(),lp=A.createBiquadFilter(),w1=A.createOscillator(),w2=A.createOscillator(),sb=A.createOscillator(),sg=A.createGain();
-        w1.type='sawtooth';w2.type='sawtooth';w2.detune.value=14;sb.type='sine';lp.type='lowpass';lp.Q.value=3.5;sg.gain.value=.6;
-        gm.gain.setValueAtTime(.0003,t1);gm.gain.exponentialRampToValueAtTime(.10,T(1.2*kk));gm.gain.linearRampToValueAtTime(.30,t2-.02);gm.gain.linearRampToValueAtTime(.0001,t2+.05);
-        RPM.forEach(function(q,i){const tt=T(q[0]*kk),f=q[1];
-          if(!i){w1.frequency.setValueAtTime(f,tt);w2.frequency.setValueAtTime(f,tt);sb.frequency.setValueAtTime(f/2,tt);lp.frequency.setValueAtTime(f*5,tt);}
-          else{w1.frequency.linearRampToValueAtTime(f,tt);w2.frequency.linearRampToValueAtTime(f,tt);sb.frequency.linearRampToValueAtTime(f/2,tt);lp.frequency.linearRampToValueAtTime(f*5,tt);}});
-        w1.connect(lp);w2.connect(lp);lp.connect(gm);sb.connect(sg);sg.connect(gm);gm.connect(master);const m=A.createGain();m.gain.value=.12;gm.connect(m);m.connect(send);
-        for(const x of [w1,w2,sb]){x.start(t1);x.stop(t2+.1);}
-        for(const q of [1.65,2.95,4.15])souffle(master,T(q*kk),.08,'bandpass',900,300,1.2,.14,.002,.08,0,.1); /* le claquement de chaque changement de vitesse */
-        souffle(master,t1,4.7*kk,'bandpass',300,2400,1.2,.09,4.5*kk,.2,0,.1);
-        souffle(master,t2,.55,'bandpass',2600,900,6,.34,.004,.5,0,.15);souffle(master,t2,.45,'bandpass',1500,600,9,.2,.004,.45,.3,.1); /* le crissement des pneus */
-      }else{const t1=T(TL.blips[0]),t2=T(TL.plein),s=A.createBufferSource(),fl=A.createBiquadFilter(),e=A.createGain();
-        s.buffer=nz;s.loop=true;fl.type='bandpass';fl.Q.value=3.5;fl.frequency.setValueAtTime(1800,t1);fl.frequency.exponentialRampToValueAtTime(8200,t2);
-        e.gain.setValueAtTime(.0003,t1);e.gain.exponentialRampToValueAtTime(.08,t2);e.gain.linearRampToValueAtTime(0,t2+.05);
-        s.connect(fl);fl.connect(e);e.connect(master);const m=A.createGain();m.gain.value=.1;e.connect(m);m.connect(send);s.start(t1,0);s.stop(t2+.1);}
-      if(!MOT)TL.blips.forEach(function(b,j){const stut=j>=6;
-        blip(T(b),1180*(1+.022*j),.26+.012*j,j%2?.4:-.4,stut);
-        if(!stut)oscil(master,'sine',135,52,T(b),.09,.10+.03*j,.002,.085,0,0);});
-      /* 2. LE COUP FINAL : sub, corps, souffle, bande de lumière (du bruit qui passe : pas de note) */
-      {const q=T(TL.plein);
-        oscil(master,'sine',78,30,q,.9,.7,.004,.9,0,.25);oscil(master,'triangle',190,70,q,.22,.3,.003,.2,0,.15);
-        souffle(master,q,.45,'lowpass',5000,300,.8,.35,.002,.45,0,.2);
-        souffle(master,q,.02,'bandpass',3000,0,.8,.5,.001,.012,0,0);
-        souffle(master,q,.5,'bandpass',2500,9000,1.6,.16,.01,.55,0,.5);souffle(master,q+.05,.7,'highpass',6000,0,.8,.06,.05,.7,0,.6);}
-      if(SPH){ /* la sphère qui tourne (un grave et un voile qui montent), puis la terre qui s'écroule */
-        const q=T(TL.plein),d=T(TL.fondu-.95);
-        oscil(master,'sine',58,104,q+.2,3,.2,1.4,2.2,0,.3);souffle(master,q+.2,3,'bandpass',1200,4200,2,.07,1.3,2.0,0,.4);
-        souffle(master,d,.9,'lowpass',2000,110,.8,.5,.03,.85,0,.3);oscil(master,'sine',52,26,d,.9,.5,.02,.85,0,.2);
-        for(let i=0;i<26;i++)souffle(master,d+.1+Math.pow(i/26,1.3)*.7,.03,'bandpass',500+Math.random()*1600,0,5,.12,.001,.05,(Math.random()-.5)*1.4,.2);}
     };
-    R.acte3=function(){
-      if(R.fait.acte3)return;R.fait.acte3=true;if(BOULE)return;
-      /* 3. LE CLAQUEMENT DU LOGO, après le silence : un coup énorme, un fracas de métal */
-      {const q=T(TL.slam);
-        oscil(master,'sine',95,24,q,1.2,.9,.003,1.2,0,.4);oscil(master,'sine',60,30,q,.3,.5,.003,.3,0,.2);
-        souffle(master,q,.35,'lowpass',9000,250,.8,.6,.001,.35,0,.35);
-        souffle(master,q,.6,'bandpass',1800,500,.7,.28,.002,.6,0,.4);souffle(master,q,.02,'highpass',3000,0,1,.4,.001,.015,0,0);}
-    };
+    R.acte3=function(){}; /* (plus de claquement programmé : il sonne à l'appui, `boum`) */
     const ACC=[73.42,110,146.83,220,293.66,440]; /* l'accord de la marque : Ré, quintes et octaves, net et ouvert (pas de notes serrées) */
     function accord(q,pk,att,dec,w){for(let i=0;i<ACC.length;i++){oscil(master,'sine',ACC[i],ACC[i],q,0,pk*(i<2?1.5:1),att,dec,(i-4)*.12,w);oscil(master,'triangle',ACC[i]*1.003,ACC[i]*1.003,q,0,pk*.6,att,dec,(4-i)*.12,w);}}
     R.charge=function(q,el,pret){ /* le chargement : un grave qui monte avec la boule, mais VIVANT : il bat au rythme du pouls de la boule (3,2 rad/s), un pad dont le filtre respire, un chœur de médiums qui s'ouvre en tremblant, un souffle, un voile qui scintille, et des étincelles à mesure que les chiffres apparaissent */
@@ -1139,7 +682,7 @@
     if(BOULE){const e=ETS.boule||(ETS.boule=geoLabSphere());dBoule(g,t,e);if(tapT!==null&&LOGO){g.globalCompositeOperation='source-over';g.globalAlpha=1;dActe3(g,TL.slam+Math.max(0,t-tapT),0);}g.globalCompositeOperation='source-over';g.globalAlpha=1;return;}
     let tl=t,id=forceId||(LABELS[LAB_ID]?LAB_ID:'neon'),idx=0;
     if(DEMO){const T=PERIODE_DEMO(),n=ORDRE_LABELS.length;idx=Math.floor(Math.max(0,t)/T);tl=Math.max(0,t)-idx*T;id=forceId||ORDRE_LABELS[idx%n];} /* la démo : les labels s'enchaînent en boucle */
-    if(tl<TL.noir){const e=ETS[id]||(ETS[id]=LABELS[id].geo());LABELS[id].dessin(g,tl,e);}else if(!DEMO&&t>=TL.slam)dActe3(g,t,0);else if(SPH&&!DEMO&&LOGO&&t>=TL.slam-1)dZoomLogo(g,t);
+    if(tl<TL.noir){const e=ETS[id]||(ETS[id]=LABELS[id].geo());LABELS[id].dessin(g,tl,e);}else if(!DEMO&&t>=TL.slam)dActe3(g,t,0);;
     g.globalCompositeOperation='source-over';g.globalAlpha=1;if(!DEMO&&t>=TL.slam){g.drawImage(VIG,0,0,W,H);if(!casse)dIndice(g,t);}
     if(DEMO&&!forceId){g.textAlign='center';g.textBaseline='alphabetic';g.fillStyle='#fff';g.font='9px "Press Start 2P",monospace';g.globalAlpha=.55;g.fillText((idx%ORDRE_LABELS.length+1)+'/'+ORDRE_LABELS.length+'  '+NOMS_LABELS[id],W/2,H-36*ku);g.font='7px "Press Start 2P",monospace';g.globalAlpha=.3;g.fillText('TOUCHE = JOUER',W/2,H-20*ku);g.globalAlpha=1;}
   }
