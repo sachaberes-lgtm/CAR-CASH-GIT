@@ -14114,6 +14114,30 @@ let PISTE_TEMOIN=false,PISTE_SANSLOIN=false;
 window.dbgPiste=function(on,loin){if(loin!=null)PISTE_SANSLOIN=!loin;if(on!=null){PISTE_TEMOIN=!on;for(const m of trackMeshes)if(m.isMesh&&!m.isInstancedMesh&&m.matrixAutoUpdate===false&&m.geometry&&m.geometry.boundingSphere)m.frustumCulled=!PISTE_TEMOIN;}
   let n=0;for(const E of PISTE_LOD)if(E.loin)n++;
   return {tri:!PISTE_TEMOIN,tranches:PISTE_LOD.length,auLoin:n};};
+/* ===== LE BILAN DE LA ROUTE (2026-10-23, Sacha : « retravaille toutes les générations de routes… trop souvent tout droit ») =====
+   (banc) dbgPisteBilan() mesure la piste courante ; dbgPisteBilan(n) en rebâtit n (newTrack, mêmes map et météo) et rend la moyenne.
+   Cap = direction horizontale sur 20 m ; « droit » = rayon > 450 m ; « virage » = un changement de cap ≥ 25° d'un seul sens. */
+function pisteBilan1(P,Lm){
+  const pp=P||pts,LL=Lm||L,nn=pp.length,st=Math.max(1,Math.round(nn/Math.max(1,LL)*20)),pas=LL/(nn-1);const runs=[];let droit=0,run=0,maxRun=0,vir=0,cumul=0,sens=0,tot=0,serre=0;
+  for(let i=st;i<nn-st;i+=st){const a=pp[i-st],b=pp[i],c=pp[i+st];
+    const h1=Math.atan2(b.x-a.x,b.z-a.z),h2=Math.atan2(c.x-b.x,c.z-b.z);let d=h2-h1;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;
+    const ds=pas*st,R=Math.abs(d)>1e-5?ds/Math.abs(d):1e9;tot+=ds;
+    if(R>450){droit+=ds;run+=ds;if(run>maxRun)maxRun=run;}else{if(run>=250)runs.push(Math.round((tot-ds-run)/10)*10+'+'+Math.round(run));run=0;if(R<110)serre+=ds;}
+    const sg=d>0?1:-1;if(Math.abs(d)>1e-4){if(sg===sens)cumul+=Math.abs(d);else{if(cumul>=25*Math.PI/180)vir++;cumul=Math.abs(d);sens=sg;}}}
+  if(cumul>=25*Math.PI/180)vir++;
+  const km=LL/1000;return {km:+km.toFixed(2),droit:+(100*droit/tot).toFixed(1),plusLongueDroite:Math.round(maxRun),virages_km:+(vir/km).toFixed(1),serre:+(100*serre/tot).toFixed(1),runs:runs};}
+window.dbgGenBilan=function(n,graine0,carte,detail){const cur0=LVL.cur,TAB={nuages:()=>NIVEAUX[0],orage:()=>NIVEAUX[3],ville:()=>NIVEAUX[1],minuit:()=>NIVEAUX[4],espace:()=>NIVEAUX[2],jade:()=>NIV_JADE,foret:()=>NIV_FORET,banquise:()=>NIV_BANQ,volcan:()=>NIV_VOLCAN,canyon:()=>NIV_CANYON,dunes:()=>NIV_DUNES,grotte:()=>NIV_GROTTE,crypto:()=>NIV_CRYPTO,vitre:()=>NIV_VITRE};try{if(carte&&TAB[carte])LVL.cur=TAB[carte]();return dbgGenBilan1(n,graine0,detail);}finally{LVL.cur=cur0;}};
+function dbgGenBilan1(n,graine0,detail){ /* la génération SEULE (sans décor ni mailles) : ~ms par piste, pour des centaines de graines. Mêmes générateurs que pisteRoute. */
+  const rs=[];for(let k=0;k<(n||20);k++){const seed=((graine0|0)||12345)+k*7919,rnd=mulberry32(seed),c=LVL.cur,pi=c&&c.piste;
+    const run=it=>{let r=it.next();while(!r.done)r=it.next();return r.value;};
+    let ctrl=pi==='tuto'?genTuto():pi==='paris'?genParis():pi==='jade'?genJade(rnd):pi==='foret'?run(genForet(rnd)):pi==='volcan'?run(genVolcan(rnd)):pi==='canyon'?run(genCanyon(rnd)):pi==='dunes'?run(genDunes(rnd)):pi==='banquise'?genBanq(rnd):pi==='grotte'?run(genGrotte(rnd)):genCtrl(rnd,new THREE.Vector3(0,0,0),0);
+    if(hautOn()){ctrl=pisteTordPropre(ctrl,seed|0).ctrl;}
+    const cv=new THREE.CatmullRomCurve3(ctrl,false,'centripetal');cv.arcLengthDivisions=Math.max(200,ctrl.length*16);const Lm=cv.getLength(),N=Math.max(3000,Math.round(Lm));
+    const P=[];for(let d=0;d<=N;d++)P.push(cv.getPointAt(d/N));{const b9=pisteBilan1(P,Lm);if(detail){b9.graine=seed;b9.plan=(pi==='banquise'&&BANQ.plan)?BANQ.plan.join(','):'';b9.marks=MODMARK.map(m=>(m.fig||'m')+'@'+Math.round(m.i0/Math.max(1,ctrl.length)*Lm/10)*10).join(',');}rs.push(b9);}}
+  if(detail)return rs;
+  const m={};for(const key of Object.keys(rs[0])){if(key==='runs'||key==='plan'||key==='graine')continue;m[key]=+(rs.reduce((a,x)=>a+x[key],0)/rs.length).toFixed(1);}m.n=rs.length;m.pire=Math.max.apply(null,rs.map(x=>x.plusLongueDroite));return m;};
+window.dbgPisteBilan=function(n){if(!n)return pisteBilan1();const r=[];for(let k=0;k<n;k++){newTrack();r.push(pisteBilan1());}
+  const m={};for(const key of Object.keys(r[0])){m[key]=+(r.reduce((a,x)=>a+x[key],0)/r.length).toFixed(1);}m.n=n;m.pire=Math.max.apply(null,r.map(x=>x.plusLongueDroite));return m;};
 function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée), np (rangées par bloc), pas (points de piste par rangée)}
   // (l'index de chaque tranche est écrit DIRECTEMENT, bloc après bloc, rangée après rangée : le même ordre et le même motif de quads
   //  a,c,b · b,c,d que l'index complet d'origine — et zéro remappage, la reconstruction du portail n'a pas à le payer)
@@ -14278,7 +14302,7 @@ function* prebJob(sd,W){yield* pisteRoute(sd,W);if(PARK.on)return;
 const PREB_PISTES=['','jade','foret','volcan','canyon','banquise','grotte','dunes']; // les pistes dont on sait ce que la génération écrit (prebChampsDe) — une map NEUVE n'est pas bâtie d'avance tant qu'elle n'y est pas
 function prebPart(c){ // on commence la piste d'en face
   const W=pisteTravail(c);
-  try{for(const b of (W.cur&&W.cur.bio)||[])envPrepare(BIOMES[b]||BIOMES.golden);if(W.piste==='grotte')for(const m in GRT_MET)for(let k=0;k<GRT_SALLES.length;k++)envPrepare(BIOMES[grtBioNom(m,k)]);}catch(e){} // (+ la grotte : les ciels de ses salles, voir grotteTick) // (2026-10-24) LE CIEL DES REFLETS D'AVANCE : le ciel de la map d'en face part au travailleur (voir envPrepare)
+  try{for(const b of (W.cur&&W.cur.bio)||[])envPrepare(BIOMES[b]||BIOMES.golden);}catch(e){} // (2026-10-24) LE CIEL DES REFLETS D'AVANCE : le ciel de la map d'en face part au travailleur (voir envPrepare)
   if(PREB_PISTES.indexOf(W.piste)<0){PREB.non=c.t;return;}
   PREB.W=W;PREB.sd=(Math.random()*1e9)|0;PREB.t=c.t;PREB.z=c.z;PREB.eng=c.dep?c.eng:engTier;PREB.rh=W.ROAD_HALF;PREB.carte=c.t.carte+'-'+c.t.meteo;
   PREB.dep=!!c.dep;PREB.ctx=c.dep?c.st:null;
@@ -16431,7 +16455,7 @@ const CY={Q:null,on:false,ms:{},yMin:-1e4,yMax:1e4,ombre:1,prof:0,mesh:null,mat:
    Le relief, la rivière, les parois et tous les décors (Mitaines, station, arche, cheminées, mine, tunnel) sont posés AUTOUR de la route : ils suivent ;
    le soleil de l'heure (`cyA`) reste celui du monde — il ne tombe plus toujours du même côté de la route. `?sans=canyonhasard` = la recette d'avant,
    au tirage près ; `dbgCanyon().hz` = l'axe, la pente, la longueur visée et les pièces dans l'ordre. */
-const CY_HZ={on:!/[?&]sans=([^&]*,)?canyonhasard(,|&|$)/.test(location.search),axe:55,kL:1.34,mod:.6,lien:170,coude:.65,cmax:28};
+const CY_HZ={on:!/[?&]sans=([^&]*,)?canyonhasard(,|&|$)/.test(location.search),axe:55,kL:1.34,mod:.75,lien:150,coude:.65,cmax:28};
 /* ===== LE CANYON AU HASARD, SON DÉCOR (2026-10-20, Sacha : « volcan, grotte, dune : ces maps ne sont pas générées aléatoirement, il faut que chaque map soit
    aléatoire avec des modules et des décors qui changent ») ===== — le tracé changeait déjà (écart de forme 0,29), le DÉCOR jamais : les mêmes strates jaune-rose,
    les Mitaines et leur mesa, la même station-service à droite à 430 m, la même rivière pleine, les mêmes peupliers, cinq vautours. Chaque canyon tire
@@ -16456,11 +16480,11 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
     const droite=(l,pe,n)=>{n=n||Math.max(2,Math.round(l/90));for(let k=0;k<n;k++){P.x+=Math.sin(phi+AX9)*l/n;P.z+=Math.cos(phi+AX9)*l/n;P.y+=pe*l/n;push();}};
     const arc=(aDeg,R,pe)=>{R=Math.max(R,RMIN);const n=Math.max(3,Math.ceil(Math.abs(aDeg)/8)),st=aDeg*Math.PI/180/n,ch=2*R*Math.sin(Math.abs(st)/2);
       for(let k=0;k<n;k++){phi+=st/2;P.x+=Math.sin(phi+AX9)*ch;P.z+=Math.cos(phi+AX9)*ch;P.y+=pe*ch;phi+=st/2;push();}};
-    const recentre=pe=>{if(Math.abs(phi)>.06)arc(-phi*57.2958,(300+r()*150)*RS,pe);}; // (2026-10-15) R 300-450 : à 520-720 le retour au cap faisait 900 m qu on prenait pour une droite
+    const recentre=pe=>{if(Math.abs(phi)>.06)arc(-phi*57.2958,(230+r()*120)*RS,pe);}; // (2026-10-15) R 300-450 : à 520-720 le retour au cap faisait 900 m qu on prenait pour une droite
     // LES VIRAGES DE COURSE (règle RACCOURCIS de GAMEPLAY : ≥ 2,5 virages/km de rayon < 250 m, enchaînés) : gauche-droite, presque plus de droites
     // LE GRAND VIRAGE (2026-10-15, Sacha : « plus de virages larges, la plupart de la map fait du tout droit ») : une longueur donnée
     // posée en COURBE ample (R 300-520 m) au lieu d'une droite — le côté se choisit d'après la place qui reste dans les ±58°
-    const large=(len,pe,R)=>{R=R||(300+r()*220)*RS;let sg=r()<.5?-1:1;const a=len/R*57.2958;
+    const large=(len,pe,R)=>{R=R||(200+r()*150)*RS; /* (2026-10-23, Sacha : « retravaille toutes les générations de routes… trop souvent tout droit, plus de virages, que ça reste fun ») : 200-350 m (c'étaient 300-520) */let sg=r()<.5?-1:1;const a=len/R*57.2958;
       if((LIM-sg*phi)*57.2958<a*.6)sg=-sg;const lib=Math.max(4,(LIM-sg*phi)*57.2958);
       if(a<=lib){arc(sg*a,R,pe);return;}arc(sg*lib,R,pe);arc(-sg*Math.min(a-lib,(LIM+sg*phi)*57.2958),R,pe);}; // trop long d'un côté : il repart en S
     const virages=(len,p0,p1)=>{let fait=0,sg=r()<.5?-1:1;
@@ -16528,10 +16552,10 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
       // LES CARACTÈRES DES LIAISONS : les méandres (les virages d'avant), la gorge (grandes courbes), le serpent (S serrés), la dérive (la gorge part
       // en biais jusqu'à la butée et y ondule), les cassures (courtes droites et coudes) — jamais deux fois le même de suite ; ou un MODULE (cmPose)
       const cote=(sg,a)=>{const l9=(LIM-sg*phi)*57.2958;if(l9<15){sg=-sg;a=Math.min(a,(LIM-sg*phi)*57.2958);}else a=Math.min(a,l9);return [sg,a];};
-      const gorge=(len,p0,p1)=>{let f9=0,sg=r()<.5?-1:1;while(f9<len){const t=cote(-sg,35+r()*30),R=(300+r()*180)*RS;sg=t[0];arc(sg*t[1],R,-(p0+r()*(p1-p0)));f9+=R*t[1]/57.2958;}};
+      const gorge=(len,p0,p1)=>{let f9=0,sg=r()<.5?-1:1;while(f9<len){const t=cote(-sg,40+r()*35),R=(200+r()*140)*RS;sg=t[0];arc(sg*t[1],R,-(p0+r()*(p1-p0)));f9+=R*t[1]/57.2958;}};
       const serpent=(len,p0,p1)=>{let f9=0,sg=r()<.5?-1:1;while(f9<len){const t=cote(-sg,30+r()*18),R=RMIN*(1.25+r()*.35);sg=t[0];arc(sg*t[1],R,-(p0+r()*(p1-p0)));f9+=R*t[1]/57.2958;}};
       const derive=(len,p0,p1)=>{const sg=r()<.5?-1:1,c9=sg*(LIM*57.2958-6-r()*12)-phi*57.2958,R0=(260+r()*120)*RS;arc(c9,R0,-(p0+r()*(p1-p0)));let f9=R0*Math.abs(c9)/57.2958;
-        while(f9<len){const s9=sg*phi*57.2958>LIM*57.2958-24?-sg:sg,a=Math.min(10+r()*14,(LIM-s9*phi)*57.2958),R=(220+r()*160)*RS;arc(s9*a,R,-(p0+r()*(p1-p0)));f9+=R*a/57.2958;}};
+        while(f9<len){const s9=sg*phi*57.2958>LIM*57.2958-24?-sg:sg,a=Math.min(12+r()*16,(LIM-s9*phi)*57.2958),R=(180+r()*120)*RS;arc(s9*a,R,-(p0+r()*(p1-p0)));f9+=R*a/57.2958;}};
       const cassures=(len,p0,p1)=>{let f9=0,sg=r()<.5?-1:1;while(f9<len){const l=(60+r()*60)*LL;droite(l,-(p0+r()*(p1-p0))*.8);const t=cote(-sg,28+r()*20),R=RMIN*(1.3+r()*.5);sg=t[0];arc(sg*t[1],R,-(p0+r()*(p1-p0)));f9+=l+R*t[1]/57.2958;}};
       const CAR9=[virages,gorge,serpent,derive,cassures],CARN=['meandres','gorge','serpent','derive','cassures'];let hPrec=-1;
       const lienH=(len,p0,p1)=>{p0*=kP;p1*=kP;if(rm&&rm()<CY_HZ.mod){cmPose(p0,p1);return 'module';}
@@ -17722,11 +17746,12 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
     if(t==='S'){const a=26+r()*22,R=RMIN*(1.45+r()*.7);const sg=vir(r()<.5?-1:1,a,R);vir(-sg,a*(.85+r()*.35),R);}
     else if(t==='balayage'){const a=42+r()*26,R=RMIN*(2.0+r()*.8);vir(r()<.5?-1:1,a,R);}
     else if(t==='serpent'){let sg=r()<.5?-1:1;for(let k=0;k<3;k++){const a=24+r()*14;sg=vir(sg,a,RMIN*(1.3+r()*.4));sg=-sg;}}
-    else droite((100+r()*60)*LL);};
+    else{const sg=vir(r()<.5?-1:1,26+r()*20,RMIN*(1.7+r()*.6));droite((30+r()*30)*LL);vir(-sg,16+r()*14,RMIN*(1.7+r()*.6));}}; /* (2026-10-23, Sacha : « retravaille toutes les générations de routes… trop souvent tout droit, plus de virages, que ça reste fun ») : le creux « droit » est un S souple */
+  const ond=l=>{const s0=r()<.5?-1:1;droite(l*.3);const s1=vir(s0,12+r()*10,RMIN*(3+r()*1.2));droite(l*.2);vir(-s1,12+r()*10,RMIN*(3+r()*1.2));droite(l*.3);}; /* l'allée et la place ondulent : deux souples virages de 12-22° au lieu d'une droite de 310-400 m */
   // le fond d'une vague : on tourne, ou (l'allée, la cuvette d'argile) on roule droit entre deux rangées de décors
   const valle=fe=>{const u0=uh;
-    if(fe.sp==='avenue'){recentre();ici('obel0');droite((310+r()*60)*LL);ici('obel1');}
-    else if(fe.sp==='plaza'){recentre();droite((340+r()*70)*LL);}
+    if(fe.sp==='avenue'){recentre();ici('obel0');ond((310+r()*60)*LL);ici('obel1');}
+    else if(fe.sp==='plaza'){recentre();ond((340+r()*70)*LL);}
     else if(fe.sp==='rythme'){recentre();droite(84*LL);const nH=4+((r()*2)|0),W=(100+r()*22)*LL,gH=.20+r()*.05,uS=uh;ici('w'+fe.n+'a');
       gn(uS-30,fe.gv);for(let j=0;j<=2*nH;j++)gn(uS+j*W/2,(j&1?-1:1)*gH);                       // LE RYTHME : une onde triangulaire de pente ±gH (les crêtes arrondies par le ruban lui-même) — chaque bosse est un petit tremplin
       droite(W/4);for(let k=0;k<nH;k++){ici('w'+fe.n+'_'+k);droite(k<nH-1?W:W*.75);}ici('w'+fe.n+'b');gn(uh+30,fe.gv);droite(70*LL);fe.nh=nH;}
@@ -17749,7 +17774,7 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
     /* L'ÉPAULE (2026-10-23, Léo : « comme le jeu du pingouin où il faut atterrir pour prendre la vitesse ») — MESURÉ : à la vitesse de la caisse (190 m/s) une descente à 17 % file sous la parabole du vol, la caisse ne se pose qu'en BAS (2 s, choc de 67) ;
        pour qu'elle atterrisse SUR la pente il faut une pente DOUCE (5-9 %) pendant ~200 m après l'apex : l'ÉPAULE, où l'on se pose — puis la DESCENTE RAIDE (20-29 %, qui zigzague) où la gravité rend la vitesse : décoller, se poser sur l'épaule, plonger. */
     {const Ls=(o.fin?110:pt?95+r()*30:125+r()*55)*LL*kb;droite(Ls);ici('e'+n);gn(uh,-fe.g1);gn(uh+80,-fe.gl);}
-    {const dl=(o.fin?330+r()*60+(o.xtra||0)*.5:pt?105+r()*40:125+r()*55)*LL*kb;if(o.fin)droite(dl);else{const f1=.45+r()*.12;droite(dl*f1);if(r()<.8)vir(r()<.5?-1:1,12+r()*18,RMIN*(2.4+r()*1.4));droite(Math.max(dl*(1-f1),90*LL));}} /* LA DESCENTE ZIGZAGUE : un balayage entre deux dunes */
+    {const dl=(o.fin?330+r()*60+(o.xtra||0)*.5:pt?105+r()*40:125+r()*55)*LL*kb;if(o.fin)droite(dl);else{const f1=.45+r()*.12;droite(dl*f1);{const s9=vir(r()<.5?-1:1,20+r()*18,RMIN*(2+r()*1.1));vir(-s9,14+r()*14,RMIN*(2+r()*1.1));}droite(Math.max(dl*(1-f1)*.6,60*LL));}} /* la descente zigzague toujours : un virage et son contre-virage */ /* LA DESCENTE ZIGZAGUE : un balayage entre deux dunes */
     ici('d'+n);{const uL=uh,gv=o.fin?-.015:fe.gv;gn(uL-50,-fe.gl);gn(uL+50,gv);gP=gv;}
     if(o.fin){ici('oasis0');creux('S');recentre();droite(170*LL+(o.xtra||0)*.5);ici('fin');droite(150,2);}
     else valle(fe);
@@ -19394,7 +19419,7 @@ function genBanq(rnd){
        l'autre) passent à moins de 440 m en plan est repris (6 essais au plus) — avant : 455 m au plus près.
      (Les lacets SUPERPOSÉS du 14/10, et leurs raccourcis, ne reviennent pas : Sacha les a ôtés le 15/10 — « sans module bizarre ».) */
     AXE=(rh()-.5)*Math.PI;
-    const TR9=['lacets','courbes','traverse','schuss'],vers9=(h,R)=>{phi=Math.atan2(Math.sin(phi),Math.cos(phi));const d=(h-phi)*57.2958;if(Math.abs(d)>2)A(d,R,BK_PENTE4[4]);},
+    const TR9=['lacets','lacets','courbes','traverse','lacets'],vers9=(h,R)=>{phi=Math.atan2(Math.sin(phi),Math.cos(phi));const d=(h-phi)*57.2958;if(Math.abs(d)>2)A(d,R,BK_PENTE4[4]);},
       gV=()=>BK_PENTE4[0]+rh()*BK_PENTE4[1],gD=()=>BK_PENTE4[2]+rh()*BK_PENTE4[3];
     const e0={n:ctrl.length,g:segs.length,m:MODMARK.length,P:P.clone(),phi:phi,sC:sC,sg:sg,bkNext:bkNext,bkLast:bkLast,paq:bkPaq.slice()};
     const pres=()=>{let m=1e9;const S9=[0];for(let k=1;k<ctrl.length;k++)S9.push(S9[k-1]+Math.hypot(ctrl[k].x-ctrl[k-1].x,ctrl[k].z-ctrl[k-1].z)); // le plus près que passent deux bouts de piste (≥ 700 m de piste entre eux)
@@ -19403,18 +19428,18 @@ function genBanq(rnd){
       if(e){ctrl.length=e0.n;segs.length=e0.g;MODMARK.length=e0.m;P.copy(e0.P);phi=e0.phi;sC=e0.sC;sg=e0.sg;bkNext=e0.bkNext;bkLast=e0.bkLast;bkPaq.length=0;for(const x9 of e0.paq)bkPaq.push(x9);PLAN.length=0;}
       let tP='';
       while(sC<LEN){
-        if(rm&&tP&&sC>bkNext&&sC<LEN-700){const m=bkTire(),i9=ctrl.length-1;bkLast=m;bkJ[m]();MODMARK.push({i0:i9,i1:ctrl.length-1});PLAN.push(['module'+m,0]);bkNext=sC+350+rm()*300;continue;} // LES MODULES DU GLACIER (voir bkSlalom)
-        let t=TR9[(rh()*4)|0];if(t===tP)t=TR9[(TR9.indexOf(t)+1+((rh()*3)|0))%4];tP=t;
-        const s0=sC,lg=Math.min(LEN-sC+120,(420+rh()*560)*Math.sqrt(KR));
+        if(rm&&tP&&sC>bkNext&&sC<LEN-700){const m=bkTire(),i9=ctrl.length-1;bkLast=m;bkJ[m]();MODMARK.push({i0:i9,i1:ctrl.length-1});PLAN.push(['module'+m,0]);bkNext=sC+200+rm()*220;continue;} // LES MODULES DU GLACIER (voir bkSlalom) — plus fréquents (200-420 m au lieu de 350-650)
+        let t=TR9[(rh()*5)|0];if(t===tP)t=TR9[(TR9.indexOf(t)+1+((rh()*4)|0))%5];if(t===tP)t=TR9[0];tP=t; /* (2026-10-23, Sacha : « retravaille toutes les générations de routes… trop souvent tout droit, plus de virages, que ça reste fun ») 'lacets' pèse double ; jamais deux fois le même */
+        const s0=sC,lg=Math.min(LEN-sC+120,(160+rh()*240)*Math.sqrt(KR));
         if(t==='lacets'){while(sC-s0<lg&&sC<LEN){if(rh()<.78)sg=-sg;const a=30+rh()*45,R=Math.max(ROAD_HALF*2,(175+rh()*150)*KR*.72);
             let lib=(LIB-sg*phi)*57.2958;if(lib<20){sg=-sg;lib=(LIB-sg*phi)*57.2958;}A(sg*Math.min(a*1.3+10,125,lib),R,gV());D(.35*(50+rh()*140),gD());}}
-        else if(t==='courbes'){while(sC-s0<lg&&sC<LEN){if(rh()<.85)sg=-sg;const a=45+rh()*50,R=Math.max(ROAD_HALF*2.6,(420+rh()*380)*KR);
-            let lib=(LIB-sg*phi)*57.2958;if(lib<20){sg=-sg;lib=(LIB-sg*phi)*57.2958;}A(sg*Math.min(a,lib),R,gV());D(60+rh()*100,gD());}}
+        else if(t==='courbes'){while(sC-s0<lg&&sC<LEN){if(rh()<.85)sg=-sg;const a=50+rh()*55,R=Math.max(ROAD_HALF*2.6,(190+rh()*150)*KR); /* des courbes de 250-460 m (c'étaient 420-800 : on les prenait pour des droites) */
+            let lib=(LIB-sg*phi)*57.2958;if(lib<20){sg=-sg;lib=(LIB-sg*phi)*57.2958;}A(sg*Math.min(a,lib),R,gV());D(25+rh()*55,gD());}}
         else if(t==='traverse'){let sd=Math.abs(phi)>.3?-Math.sign(phi):(rh()<.5?-1:1);
-          for(let k=0;k<2&&sC-s0<lg&&sC<LEN;k++){vers9(sd*(44+rh()*14)/57.2958,Math.max(ROAD_HALF*2.6,(260+rh()*80)*KR));D(200+rh()*220,gD());sd=-sd;}}
+          for(let k=0;k<2&&sC-s0<lg&&sC<LEN;k++){vers9(sd*(44+rh()*14)/57.2958,Math.max(ROAD_HALF*2.6,(260+rh()*80)*KR));D(80+rh()*110,gD());sd=-sd;}}
         else{vers9((rh()-.5)*.2,Math.max(ROAD_HALF*2.6,(260+rh()*80)*KR));const n9=1+((rh()*2)|0);
-          for(let k=0;k<n9;k++){D(130+rh()*170,BK_PENTE4[2]+BK_PENTE4[3]);const a=(rh()<.5?-1:1)*(10+rh()*12),lib=(LIB-Math.sign(a)*phi)*57.2958;if(lib>Math.abs(a)+5)A(a,Math.max(ROAD_HALF*3,600*KR),gV());}
-          D(80+rh()*120,BK_PENTE4[2]+BK_PENTE4[3]);}
+          for(let k=0;k<n9;k++){D(60+rh()*90,BK_PENTE4[2]+BK_PENTE4[3]);const a=(rh()<.5?-1:1)*(10+rh()*12),lib=(LIB-Math.sign(a)*phi)*57.2958;if(lib>Math.abs(a)+5)A(a,Math.max(ROAD_HALF*3,600*KR),gV());}
+          D(40+rh()*60,BK_PENTE4[2]+BK_PENTE4[3]);}
         PLAN.push([t,Math.round(sC-s0)]);}
       BANQ.pres=Math.round(pres());BANQ.essais=e+1;if(BANQ.pres>=440)break;}
   }
@@ -22750,7 +22775,6 @@ function grotteTick(dt){
   U.uLant.value=c.lant*(mode==='boom'||!carGroup.visible?0:1);
   GRT_V.set(0,0,1).applyQuaternion(carGroup.quaternion);U.uLantP.value.copy(carGroup.position).addScaledVector(GRT_V,12);U.uLantP.value.y+=2;
   // LA SALLE : sous la caisse (en vol, la route survolée) ; en entrant, l'ambiance de la salle (2,4 s)
-  if(GROTTE.envPret!==GROTTE.root){GROTTE.envPret=GROTTE.root;for(const m9 in GRT_MET)for(let k9=0;k9<GRT_SALLES.length;k9++)envPrepare(BIOMES[grtBioNom(m9,k9)]);} /* (2026-10-24, passe perf) les ciels des reflets de TOUTES les salles, à tous les temps (la grotte change de temps en route : 24 ciels), partent au travailleur (envPrepare) : chaque entrée de salle recalculait le cube des reflets en JS — 210 ms d'image figée sur PC, en pleine course */
   const k=grtSalleIci(mode==='fall'?lastNearS:s);
   if(k!==GROTTE.salle){const nm=grtBioNom(GROTTE.met,k);if(!BIOMES[nm]||BIO.name===nm)GROTTE.salle=k;else if(BIO.k>=1){bioGo(nm,2.4);GROTTE.salle=k;}} // (pendant le fondu du portail : on attend qu'il finisse)
   // LES TRONÇONS : cachés au-delà du brouillard
@@ -24651,11 +24675,11 @@ const JADE_DECOR=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadedecor(,|
    Le départ, l'arrivée, l'effondrement, les deux monuments à plat et dans l'axe : inchangés. `?graine=n` (la balade, `?niveau=jade`) garde
    une vallée fixe — mais plus celle d'avant. */
 const JADE_HUMEURS=[ // a : angle d'un virage (°, minimum + étendue) · R : rayon (m, minimum + étendue) · inv : la chance d'inverser le sens (un S) · dr : [chance d'une droite après, longueur minimum, étendue]
-  {nm:'vallee',  a:[28,62],R:[280,420],inv:.72,dr:[.4,90,230]},   // l'ancienne recette, gardée parmi les autres
+  {nm:'vallee',  a:[32,62],R:[260,300],inv:.74,dr:[.3,70,160]},   // l'ancienne recette, gardée parmi les autres
   {nm:'serpent', a:[40,42],R:[280,140],inv:.88,dr:[.12,60,100]},  // des S serrés, presque sans répit (280 m : jamais plus serré que l'ancienne recette)
-  {nm:'courbes', a:[26,36],R:[680,480],inv:.6,dr:[.35,160,240]},  // de grandes courbes qui se prennent à fond
-  {nm:'derive',  a:[18,26],R:[420,320],inv:.2,dr:[.3,120,220]},   // la vallée tourne d'un côté jusqu'à la butée, puis revient : un grand biais
-  {nm:'balcon',  a:[14,26],R:[460,360],inv:.5,dr:[1,260,360]},    // de longues droites cassées de coudes : on voit loin
+  {nm:'courbes', a:[34,40],R:[420,300],inv:.66,dr:[.25,100,160]},  // de grandes courbes qui se prennent à fond
+  {nm:'derive',  a:[22,28],R:[340,240],inv:.25,dr:[.25,80,140]},   // la vallée tourne d'un côté jusqu'à la butée, puis revient : un grand biais
+  {nm:'balcon',  a:[24,30],R:[340,260],inv:.6,dr:[.7,110,170]},    // de longues droites cassées de coudes : on voit loin
   {nm:'chicanes',a:[22,20],R:[280,80],inv:1,dr:[.06,40,70]}];     // gauche-droite-gauche, vite
 const JADE_PENTE={seuil:.12,garde:.3}; // au-delà de 12 %, la pente n'est gardée qu'à 30 % (voir adoucirPentes)
 function genJade(rnd){
@@ -24684,8 +24708,8 @@ function genJade(rnd){
      l'effondrement ne raccourcissent pas. */
   const FX9=MODC_ON?2400:3200,MD9=MODC_ON?1000:0,LC9=longueurCible(),jmN=!LC9?3:Math.max(1,Math.min(3,Math.floor((LC9-FX9-900)/1000))),vir9=LC9?Math.max(900,LC9-FX9-jmN*MD9):0,chu9=LC9?Math.min(1000,Math.max(350,vir9*.12)):0,tot=LC9?vir9-chu9:tot0;
   const porte=()=>{{const a=(phi0-phi)*57.2958*.7;if(Math.abs(a)>4)arc(a,rj?300:520);} // (2e tour) avec les modules : l'alignement plus serré, les abords plus courts // la Porte se prend plutôt dans l'axe de la vallée
-    droite(rj?230:380,4);ici('porte0');droite(520,6);ici('porte1');droite(rj?170:260,3);};
-  const pont=()=>{droite(rj?200:300,3);ici('pont0');droite(360,4);ici('pont1');droite(rj?140:200,2);};
+    droite(rj?130:380,4);ici('porte0');droite(520,6);ici('porte1');droite(rj?90:260,3);}; /* (2026-10-23, Sacha : « retravaille toutes les générations de routes… trop souvent tout droit, plus de virages, que ça reste fun ») : abords plus courts */
+  const pont=()=>{droite(rj?110:300,3);ici('pont0');droite(360,4);ici('pont1');droite(rj?80:200,2);};
   const monus=rnd()<.5?[porte,pont]:[pont,porte];               // la Porte d'abord, ou le Pont
   /* LES MODULES DE JADE (2026-10-18, LES MODULES DE CHAQUE MAP — voir MODC_ON). Un au cœur de chacun des trois tronçons de virages (après 40 à 60 %
      de sa longueur : jamais collé à la Porte ni au Pont), les trois chaque fois, dans un ordre tiré au hasard (`rj`, un seul tirage de plus) :
@@ -43321,12 +43345,12 @@ function fstuDirs(S){if(FSTU_DIR&&FSTU_DIR.S===S)return FSTU_DIR;
    MESURÉ (banc du portail, PC) : la construction d'un passage durait ~180 ms dont 94 % dans paintEnvCiel — les 6 faces × 128² du cube des reflets
    calculées PIXEL PAR PIXEL à chaque changement de ciel (et deux fois aux dunes) ; un téléphone y passe une seconde, image figée. Le calcul est
    devenu une fonction pure (envCielCalc) : le pré-bâti l'envoie à un TRAVAILLEUR pour le ciel de la map d'en face (envPrepare, depuis prebPart)
-   et le passage n'a plus qu'à recopier les octets (putImageData). Les ciels déjà vus restent en cache (ENVC, 32 au plus, ~0,4 Mo chacun : les 24 de la grotte y tiennent). La clé
+   et le passage n'a plus qu'à recopier les octets (putImageData). Les ciels déjà vus restent en cache (ENVC, 12 au plus, ~0,4 Mo chacun). La clé
    porte tout ce dont l'image dépend (dégradé, néons, halo, direction EXACTE du soleil) : même image au bit près. Sans travailleur : calculé ici,
    comme avant (et gardé). `?envav=0` = sans travailleur ni cache (avant) · `dbgEnvCiel()` = l'état. */
 const ENVC={on:!/[?&]envav=0\b/.test(location.search),cache:new Map(),att:new Map(),w:undefined,id:0,pris:0,calc:0,av:0,ms:0};
 function envCle(stops,s1,s2,sunHalo,sd){return JSON.stringify([stops,s1,s2,sunHalo,sd.x,sd.y,sd.z]);}
-function envGarde(cle,F){ENVC.cache.delete(cle);ENVC.cache.set(cle,F);while(ENVC.cache.size>32)ENVC.cache.delete(ENVC.cache.keys().next().value);} // (le plus récent en dernier)
+function envGarde(cle,F){ENVC.cache.delete(cle);ENVC.cache.set(cle,F);while(ENVC.cache.size>12)ENVC.cache.delete(ENVC.cache.keys().next().value);} // (le plus récent en dernier)
 function envOuvrier(){if(ENVC.w!==undefined)return ENVC.w;
   try{const src="'use strict';var FSTU_DIR=null;\n"+fstuDirs.toString()+"\n"+envCielCalc.toString()+"\nvar ECL="+JSON.stringify(FSTU_ECL)+";\n"+
       "onmessage=function(e){var m=e.data,a=m.a,F=envCielCalc(a[0],a[1],a[2],a[3],a[4],fstuDirs(128).T,ECL,128);postMessage({id:m.id,cle:m.cle,F:F},F.map(function(x){return x.buffer;}));};";
@@ -43340,11 +43364,11 @@ function envPrepare(B){ // (le pré-bâti) le ciel d'un biome à venir, calculé
   if(ENVC.cache.has(cle)||ENVC.att.has(cle))return;const W=envOuvrier();if(!W)return;
   const id=++ENVC.id;ENVC.att.set(cle,id);
   try{W.postMessage({id:id,cle:cle,a:[B.env,B.eS1,B.eS2,sh,{x:SUN_DIR.x,y:SUN_DIR.y,z:SUN_DIR.z}]});}catch(e){ENVC.att.delete(cle);}}
-window.dbgEnvCiel=function(){return {on:ENVC.on,cache:ENVC.cache.size,enVol:ENVC.att.size,prisEnCache:ENVC.pris,calculesIci:ENVC.calc,parLeTravailleur:ENVC.av,msDernierCalcul:ENVC.ms,travailleur:!!ENVC.w,rates:ENVC.rates||[],cles:[...ENVC.cache.keys()].map(function(k){return k.slice(-120);})};};
+window.dbgEnvCiel=function(){return {on:ENVC.on,cache:ENVC.cache.size,enVol:ENVC.att.size,prisEnCache:ENVC.pris,calculesIci:ENVC.calc,parLeTravailleur:ENVC.av,msDernierCalcul:ENVC.ms,travailleur:!!ENVC.w};};
 function paintEnvCiel(stops,s1,s2,sunHalo){FSTU.env='ciel2';FSTU.envB=null;FSTU.garage=false;FSTU.menuW=1;
   const S=128,cle=ENVC.on?envCle(stops,s1,s2,sunHalo,SUN_DIR):null;let F=cle&&ENVC.cache.get(cle);
   if(F){envGarde(cle,F);ENVC.pris++;}
-  else{if(cle){(ENVC.rates||(ENVC.rates=[])).push(cle.slice(-120));if(ENVC.rates.length>6)ENVC.rates.shift();}const t9=performance.now();F=envCielCalc(stops,s1,s2,sunHalo,{x:SUN_DIR.x,y:SUN_DIR.y,z:SUN_DIR.z},fstuDirs(S).T,FSTU_ECL,S);ENVC.ms=Math.round(performance.now()-t9);ENVC.calc++;if(cle)envGarde(cle,F);}
+  else{const t9=performance.now();F=envCielCalc(stops,s1,s2,sunHalo,{x:SUN_DIR.x,y:SUN_DIR.y,z:SUN_DIR.z},fstuDirs(S).T,FSTU_ECL,S);ENVC.ms=Math.round(performance.now()-t9);ENVC.calc++;if(cle)envGarde(cle,F);}
   envCvs.forEach(function(cv,f){if(cv.width!==S)cv.width=cv.height=S;const c=cv.getContext('2d'),im=c.createImageData(S,S);im.data.set(F[f]);c.putImageData(im,0,0);});
   envTex.needsUpdate=true;}
 function envCielCalc(stops,s1,s2,sunHalo,sd,T,ECL,S){ // (pure : ici ou dans le travailleur) les 6 faces du cube, en octets RGBA
