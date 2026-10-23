@@ -239,16 +239,19 @@ SHAPES.corolla=function(K){
 SHAPES.corolla_b=function(K){
   const PAL={p:{g:'p',c:0x9fa3a9},k:{g:'m',c:0x121214},g:{g:'g',c:0x141c26},c:{g:'c',c:0xd4d8de},W:{g:'l',c:0xf2f6ff},L:{g:'l',c:0xd0101e},h:{g:'g',c:0x6d7886},Q:{g:'l',c:0xe6e6e6}};
   const P=K.kit(PAL),B=(k,w,h,d,x,y,z,rx,ry,rz)=>P.box(k,w,h,d,x,y,z,rx||0,ry||0,rz||0);
-  B('p',1.74,.30,4.40,0,.78,0);                              // la caisse, posée AU-DESSUS des roues (passages de roue ouverts dessous)
-  B('p',1.74,.34,1.55,0,.40,0);                              // le bas de caisse, entre les roues
-  B('p',1.62,.16,1.30,0,1.01,1.46,-.10,0,0);                 // le capot, en coin vers le nez
-  B('p',1.60,.15,.90,0,1.03,-1.72,.06,0,0);                  // la malle
-  B('g',1.50,.46,1.95,0,1.25,-.16);                          // la boîte de verre
-  B('p',1.44,.06,1.30,0,1.51,-.20);                          // la dalle du toit
-  for(const sd of [1,-1]){B('k',.06,.50,.07,sd*.74,1.26,.78,-.55,0,0);B('k',.06,.50,.07,sd*.74,1.26,-1.08,.60,0,0);}
+  // (23/10, « plus fidèle à la Fidèle ») la silhouette du plan, en blocs : capot bas qui plonge vers le nez, pare-brise très couché, toit bas et long, lunette qui file, malle courte
+  B('p',1.74,.30,4.40,0,.79,0);                               // la caisse, posée AU-DESSUS des roues
+  B('p',1.74,.34,1.55,0,.40,0);                               // le bas de caisse, entre les roues
+  B('p',1.62,.12,1.45,0,1.00,1.52,.13,0,0);                   // le capot : long, il plonge vers le nez
+  B('p',1.62,.10,.80,0,1.02,-1.82,-.05,0,0);                  // la malle, courte
+  B('g',1.46,.04,1.28,0,1.20,.62,.40,0,0);                    // le pare-brise, couché (23°)
+  B('g',1.46,.04,.95,0,1.25,-1.42,-.40,0,0);                  // la lunette, qui file vers la malle
+  B('g',1.46,.34,2.00,0,1.17,-.18);                           // les vitres latérales
+  B('p',1.42,.05,1.55,0,1.44,-.40);                           // le toit, bas et long
+  for(const sd of [1,-1]){B('k',.05,.04,1.30,sd*.73,1.21,.62,.40,0,0);B('k',.05,.04,.95,sd*.73,1.26,-1.42,-.40,0,0);}   // les cadres noirs des vitres
   B('k',1.72,.18,.14,0,.56,2.28);B('k',1.72,.18,.14,0,.58,-2.26);   // les pare-chocs
-  B('k',1.00,.14,.06,0,.78,2.24);                            // la bouche
-  for(const sd of [1,-1]){B('h',.46,.12,.06,sd*.52,.95,2.20);B('W',.34,.02,.02,sd*.52,.90,2.235);B('L',.40,.12,.05,sd*.52,1.00,-2.22);
+  B('k',1.00,.14,.06,0,.80,2.24);                             // la bouche
+  for(const sd of [1,-1]){B('h',.46,.10,.06,sd*.52,.94,2.20);B('W',.34,.02,.02,sd*.52,.90,2.235);B('L',.40,.10,.05,sd*.52,1.00,-2.22);
     B('k',.07,.10,1.5,sd*.88,.25,.04);}
   K.commit(P);
   return {hl:[.60,.65,2.20],tl:[.62,.93,-2.23],wx:.765,wzF:1.4015,wzR:1.3047,pots:[[.50,.25,-2.27]],lamps:0,halos:0,
