@@ -47,6 +47,7 @@ if(/[?&]garage=(leo|avant)\b/.test(location.search))document.documentElement.cla
 if(/[?&]garjouer=0\b/.test(location.search))document.documentElement.classList.add('sansGarJouer'); /* (2026-10-18) le JOUER de l'inventaire et de la boutique, coupé : voir <style id="jouerGarage"> */
 /* (2026-10-11, Léo : « enlève les intros, tout ça : lance juste la voiture dans la map ») LA BALADE SANS INTRO — la classe est posée
    dès le <head> : ni le logo du chargement, ni le menu ne se montrent (voir baladeDepart). */
+if(/[?&]intro=ancien\b/.test(location.search))document.documentElement.classList.add('introAncien');
 if(/[?&](map=jade|balade=1)\b/.test(location.search)){document.documentElement.classList.add('balade');document.write('<style id="baladeIntro">html.balade #splash,html.balade #overlay,html.balade #garage,html.balade #wipe{visibility:hidden!important}html.balade body{background:#07050f}html.balade:not(.parti) body>canvas{visibility:hidden!important}</style>');}
 /* LES MISSIONS v2 (2026-10-16, Sacha : « on remplace tout le système actuel de défis en carnets / groupes de 3 par des MISSIONS libres ») :
    l'ancien système (CARNETS, la file de trois, les pastilles, la constellation de l'atelier) est RETIRÉ (18/10, allègement) ; la sauvegarde
@@ -834,6 +835,7 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
     text-shadow:0 0 14px rgba(255,190,80,.5);transition:color .15s,transform .15s}
   #overlay .go:hover{color:#fff0c2;transform:scale(1.04)}
   /* ------- INTRO STUDIO 1.61 : accumulation → FISSION ------- */
+  html:not(.introAncien) #splash #spTitle{display:none} /* (2026-10-23, Léo : « enlève le CASH CAR sur écran noir ») le titre du HTML ne se peint plus avant l'intro : noir, puis la boule (`?intro=ancien` le garde) */
   #splash{position:fixed;inset:0;background:#000; /* (2026-10-23, Léo : « le titre noir dès le début, sans lumière ») NOIR dès le premier affichage (avant : le dégradé violet restait tant que le script de l'intro n'avait pas tourné) */z-index:80;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity .7s;overflow:hidden}
   #fxCv{position:absolute;inset:0;width:100%;height:100%}
   /* (2026-10-15, Sacha : « améliore l'écran de chargement CAR CASH ») LE CŒUR QUI BAT PENDANT LE CHARGEMENT : tant que le jeu se construit, le
