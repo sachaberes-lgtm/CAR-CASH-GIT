@@ -1557,7 +1557,7 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
   @keyframes chipFin{50%{opacity:.25}}
   body #flowHud:not([data-lv="0"])::after{content:'';position:absolute;top:0;bottom:0;left:-45%;width:38%;pointer-events:none;
     background:linear-gradient(100deg,transparent,rgba(255,255,255,.2),transparent);animation:fSheen 2.6s var(--ease) infinite}
-  @keyframes fSheen{0%,45%{left:-45%}100%{left:125%}}
+  @keyframes fSheen{0%,45%{transform:translateX(0)}100%{transform:translateX(447.4%)}} /* (2026-10-23, audit mobile) transform au lieu de left : -45% → 125% du parent = 170 % / 38 % de sa largeur */
   #lvlBan.on #lvlNum i{display:inline-block;font-style:normal;animation:lvlLettre .5s var(--ease) both}
   @keyframes lvlLettre{from{opacity:0;transform:translate3d(0,-26px,0) scale(1.7)}to{opacity:1;transform:none}}
   body.touch #airPie.danger{animation:pieDanger .12s steps(2) infinite}
@@ -2676,7 +2676,7 @@ html.misS #gmHead small{line-height:1.6}
 #gmListe.land>.glA::-webkit-scrollbar{display:none}
 #gmListe.land.vu>.glA{animation:none}
 @media (prefers-reduced-motion:reduce){#gmListe{animation:none!important}}
-@keyframes gmBalaye{to{top:122%}}
+@keyframes gmBalaye{to{transform:translateY(654.5%)}} /* (2026-10-23, audit mobile) transform au lieu de top : -22% → 122% du parent = 144 % / 22 % de sa propre hauteur */
 #gmFils{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}
 #gmFils path{fill:none;stroke:#5ff0ff;stroke-width:1.6;stroke-dasharray:7 7;stroke-linecap:round;animation:gmFlux 1.1s linear infinite}
 #gmFils path.hl{stroke-width:6;stroke-dasharray:none;opacity:.16;animation:none}
@@ -5800,7 +5800,7 @@ html body #garage:is(.consoleCachee,.modeInv):not(.menu):not(.vitrine):not(.quie
 #gRappel .grT i:not(.pxi){font-style:normal;font-variant-numeric:tabular-nums}
 #gRappel>.pxi:last-child{--pxs:1;color:#ff8ad8}
 #gRappel::after{content:'';position:absolute;top:0;bottom:0;left:-40%;width:30%;pointer-events:none;background:linear-gradient(100deg,transparent,rgba(255,240,200,.28),transparent);animation:grReflet 4.2s ease-in-out infinite}
-@keyframes grReflet{0%,62%{left:-40%}100%{left:120%}}
+@keyframes grReflet{0%,62%{transform:translateX(0)}100%{transform:translateX(533.3%)}} /* (2026-10-23, audit mobile) transform au lieu de left : -40% → 120% du parent = 160 % / 30 % de sa largeur */
 #gRappel:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
 @media (prefers-reduced-motion:reduce){#gRappel::after{animation:none;display:none}}
 html[data-reduced-motion="1"] #gRappel::after{animation:none;display:none}
@@ -8143,6 +8143,20 @@ html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#
 @keyframes dkBrille{0%,62%{background-position:-160% 0}88%,100%{background-position:160% 0}}
 @keyframes dkPanier{0%,100%{translate:0 0}50%{translate:0 -2px}}
 @media (prefers-reduced-motion:reduce){html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct>#gShopBas#gShopBas::after,html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct>#gShopBas#gShopBas .pxi{animation:none!important}}
+</style>
+<style id="palierLeger">
+/* ===== LE CSS PAR PALIER (2026-10-23, audit mobile, Sacha : « une version mobile fluide sans que ça baisse trop en qualité ») =====
+   `html[data-palier]` était écrit par PAL mais aucune règle ne le lisait : un iPhone 7 repeignait les mêmes balayages décoratifs en boucle qu'un
+   iPhone 15, en plus de la 3D. Ici (ANCIEN = 0 et MOYEN = 1, le palier 2 ne change PAS) : les mouvements purement décoratifs de l'atelier se
+   figent (balayage et trame de l'hologramme des missions, reflet du rappel, flux des fils, respiration de l'inventaire, flottement des photos).
+   Ni le HUD de course, ni les boutons, ni les compteurs ne sont touchés. Le flou plein écran des réglages saute sur tout tactile. */
+html[data-palier="0"] #gMis::after,html[data-palier="1"] #gMis::after,
+html[data-palier="0"] #gMis::before,html[data-palier="1"] #gMis::before,
+html[data-palier="0"] #gRappel::after,html[data-palier="1"] #gRappel::after,
+html[data-palier="0"] #gmFils path,html[data-palier="1"] #gmFils path,
+html[data-palier="0"] #gInv.on .ivT:not(.flash)::after,html[data-palier="1"] #gInv.on .ivT:not(.flash)::after,
+html[data-palier="0"] .shPhoto img,html[data-palier="1"] .shPhoto img{animation:none!important}
+body.touch #settings{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(6,8,18,.88)} /* un flou de 18 px sur tout l'écran, par-dessus une 3D qui tourne */
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -57867,7 +57881,12 @@ function nfxR(){let t=(NFX.s=(NFX.s+0x6D2B79F5)|0);t=Math.imul(t^(t>>>15),t|1);t
    se juge à 60 sur PC. `emiN` rend le nombre d'« images à 60 Hz » écoulées : 1 à 60 i/s, 2 à 30, 1,5 en moyenne à 40. JAMAIS moins d'1 :
    au-dessus de 60 (écrans 120/144 Hz) on garde l'émission d'avant au pixel près — ce qu'on voyait sur un PC rapide ne change pas. */
 const EMI={};
-function emiN(k,dt){const a=(EMI[k]||0)+Math.min(dt,.067)*60,n=Math.max(1,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;} // le reste reporté (−0,5 au plus) : 60 par seconde pile à 30, 40 ou 50 i/s ; au-dessus de 60, une émission par image comme avant
+/* (2026-10-23, audit mobile) L'ÉMISSION TAILLÉE SUR LE PALIER : à 30 i/s un ANCIEN émettait autant par seconde qu'un 60 i/s (jamais moins d'1 par image) —
+   fumée, flammes, jet et traits d'air additifs, ce que le remplissage d'une vieille puce paie le plus cher. `emiK` = la part d'émission gardée
+   [ANCIEN .6, MOYEN .8, RÉCENT 1] ; au palier RÉCENT (K = 1) le code est celui d'avant, au bit près. Sous 1, le report fractionnaire fait la moyenne. */
+PAL.B.emiK=[.6,.8,1];
+function emiN(k,dt){const K=PAL.b('emiK',1);if(K>=1){const a=(EMI[k]||0)+Math.min(dt,.067)*60,n=Math.max(1,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;}
+  const a=(EMI[k]||0)+Math.min(dt,.067)*60*K,n=Math.max(0,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;} // le reste reporté (−0,5 au plus) : 60 par seconde pile à 30, 40 ou 50 i/s ; au-dessus de 60, une émission par image comme avant
 function nfxVent(dt,dir,kmh){ // `dir` : le sens de la course (cap au sol, vitesse en vol) — sème autour de la caméra, devant elle
   const v9=Math.max(20,kmh/3.6);NFX.vAcc+=dt*(nitroBlue?52:40)*(1+NFX.ign*NFX.ignK*1.5);
   NFX.cR.setFromMatrixColumn(camera.matrixWorld,0);NFX.cU.setFromMatrixColumn(camera.matrixWorld,1);
@@ -70644,15 +70663,29 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
   else if(now-CAD.calT>5000){cadPose(false,now);CAD.essT=now;}}
 window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0))?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
   const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1),plafond:{actif:FPS_CAP,n:FPS.n,ecran:+FPS.per.toFixed(2)}};}; // (2026-10-20) plafond : une image d'écran sur n (fpsSaute)
+/* ====================== HORS COURSE À 30 i/s — HC (2026-10-23, audit mobile, Sacha : « une version mobile fluide sans que ça baisse trop en qualité ») ======================
+   CAD ne cale qu'EN COURSE : un accueil ou un garage laissé ouvert tournait à 60 i/s plein rendu (haute définition comprise) et chauffait comme une
+   partie. Sur ANCIEN et MOYEN (CAD.ok), l'accueil et le garage se calent donc sur 33 ms, par le même saut en temps que CAD (une image d'écran sur
+   deux sur 60 Hz, une sur quatre sur 120 Hz) : une image sautée ne fait RIEN, le dt de la suivante absorbe l'écart (borné à 50 ms). La durée lue par
+   la règle de qualité est ramenée à une image d'écran (voir ms9 dans loop), le filet de VHD et la détection de 30 Hz imposé n'y voient donc rien.
+   Palier RÉCENT : `hors30` = 0, aucun effet. `?hc=0` coupe (comparer). La course, la pause et l'écran de fin ne sont pas touchés. */
+PAL.B.hors30=[1,1,0];
+const HC={on:false,der:0,off:/[?&]hc=0/.test(location.search)};
+function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran à jour) : rend true si cette image d'écran se saute
+  const hc=!HC.off&&PAL.b('hors30',0)&&!CAD.on&&(!started||garageOn)&&!document.hidden;
+  if(!hc){HC.on=false;return false;}
+  if(HC.on&&now-HC.der<CAD.per-CAD.tol)return true;
+  HC.on=true;HC.der=now;return false;}
 function loop(now){
   requestAnimationFrame(loop);
   if(CAD.ok&&cadSaute(now))return; // (2026-10-14, passe perf mobile) LA CADENCE STABLE : cette image d'écran se saute, sans RIEN toucher — voir CAD
+  if(CAD.ok&&hcSaute(now))return; /* (2026-10-23, audit mobile) hors course (accueil, garage) : 30 i/s sur les vieux paliers — voir HC */
   /* (2026-10-20, Sacha : « Chrome à 94-96 % de CPU ») PLAFOND À 60 i/s : rAF suit la fréquence de l'écran — 120/144/240 Hz = 2 à 4× plus d'images
      calculées (physique, particules, bloom) pour rien. On saute l'image d'écran trop proche de l'échéance (horloge cumulée : pas de dérive,
      pas de « une sur deux » raté sur 144 Hz), sans RIEN toucher : le dt de la suivante absorbe l'écart, comme la cadence 30 Hz. Sur un
      écran 60 Hz (ou 30 Hz imposé) rien ne se saute. Coupé quand CAD cale déjà à 30 (même horloge, pas de double saut). `?fps=0` = sans plafond.
      (2026-10-20, même jour) une image d'écran sur n, n ENTIER — voir fpsSaute : l'horloge à 1000/60 hachait les écrans 75/90/100/144 Hz. */
-  if(FPS_CAP&&!CAD.on&&fpsSaute(now))return;
+  if(FPS_CAP&&!CAD.on&&!HC.on&&fpsSaute(now))return;
   if(BANC_ON)BANC_T0=performance.now(); // (banc ?banc=1) début de l'image chronométrée
   QLR.t0=performance.now(); // (tour 2) début de l'image, pour la sonde de la règle de qualité
   if(QLR.sN>0)qlSondeDebut(); // (2026-10-08) sonde armée : la puce chronomètre l'image (voir qlSonde)
@@ -70665,7 +70698,7 @@ function loop(now){
   // qualité auto : si le GPU peine (<45 fps soutenus après l'échauffement), on allège la ouate une fois pour toutes
   if(PERF_MON)loop._brut=now-(loop._pn||now); // (OPTIMISATION, ?perf=1) l'intervalle VRAI, non plafonné : le relevé des à-coups (perfAcoup)
   const rawMs=Math.min(100,now-(loop._pn||now));
-  const ms9=CAD.on?Math.max(0,rawMs-(CAD.per-CAD.ecran)):rawMs; // (2026-10-14, passe perf mobile) calé à 30 i/s : la durée RAMENÉE à une image d'écran, pour toute la règle de qualité — voir CAD (rawMs reste la durée vraie)
+  const ms9=(CAD.on||HC.on)?Math.max(0,rawMs-(CAD.per-CAD.ecran)):rawMs; // (2026-10-14, passe perf mobile) calé à 30 i/s : la durée RAMENÉE à une image d'écran, pour toute la règle de qualité — voir CAD (rawMs reste la durée vraie)
   loop._ms=(loop._ms||16)*.96+ms9*.04;loop._pn=now;
   // DÉTECTEUR D'À-COUPS : l'EMA (constante ~25 frames) lisse les PICS ponctuels (titan de nuage plein écran) —
   // ce compteur fuyant attrape la saccade VÉCUE : ~10 frames >26 ms sur les 2-3 dernières secondes = on allège.
