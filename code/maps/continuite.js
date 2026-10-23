@@ -81,6 +81,23 @@ const CONTI={
   // la BRUME BASSE des nuits (celle qui noie les vallées sous la route) prend l'indigo de la nuit commune : la forêt la tirait au noir-sarcelle, le glacier au vert sombre
   if(FOR_MET.nuit)FOR_MET.nuit.mC=[.06,.07,.15];if(BK_MET.nuit)BK_MET.nuit.mC=[.05,.09,.17];
 }
+/* ===== L'ÉQUILIBRE DE L'ÉTALONNAGE, MAP PAR MAP × MÉTÉO (2026-10-23, Sacha : « la colorimétrie des maps avec toutes les météos, un réel équilibre colorimétrique et d'étalonnage, une unité de map en map ») =====
+   MESURÉ à l'image (56 couples carte × météo, course lancée, L* et chroma par bande : ciel, horizon, bitume) — quatre écarts, tous en VALEURS :
+   · LE BITUME DE JOUR : la ville vitrée de midi tenait un béton clair (L* 61, gris sable) quand les autres cartes sont à L* 32-48 : la caisse orange s'y perdait → `rtK`
+     abaissé (la clarté du béton, voir routeTick) ; au matin (L* 37) il était juste : inchangé ;
+   · LE BITUME DE NUIT : CRYPTO CITY (chroma 67, un cobalt électrique) et la ville vitrée (L* 36) sortaient du lot (L* 17-33, chroma 17-40) → `rtK` .55-.78 ;
+   · LA SATURATION : crypto et vitrée (effective 1,5-1,55 de jour) tenaient 25 à 30 % de plus que la recette (1,17-1,26) → ramenées à mi-chemin (elles gardent
+     leur éclat, or et verre : leur contre-jour et leur ciel ne bougent pas) ; le soir vitré, trop gris (1,35), remonte ;
+   · LA PLUIE ET L'ORAGE DE JADE : le bitume mouillé sortait bleu électrique (chroma 50 sous la pluie, contre 16 aux nuages et au canyon) — le passage « plus de BLEU »
+     avait tourné les lumières en bleu franc : elles sont ramenées à moitié vers leur gris (jade garde son lavis vert-de-gris). */
+{const EQ9={
+  vitreMatin:{sat:1.2},vitreMidi:{rtK:.7,sat:1.18},vitreSoir:{rtK:.78,sat:1.22},vitreNuit:{rtK:.78,sat:1.1},vitrePluie:{sat:1.1},
+  cryptoMatin:{sat:1.2},bullrun:{sat:1.2},cryptoSoir:{sat:1.26},cryptoNuit:{rtK:.55,sat:1.18}};
+ for(const k in EQ9)if(BIOMES[k])Object.assign(BIOMES[k],EQ9[k]);
+ for(const k of ['jadePluie','jadeOrage'])if(BIOMES[k]){const b=BIOMES[k];
+  for(const f of ['fog','fogIn','fogCj','hemiS','hemiG','fillC','sunC','volSun','volSky','volGnd']){if(!Array.isArray(b[f])||b[f].length<3)continue;
+   const v=b[f]=b[f].slice(),L=.3*v[0]+.59*v[1]+.11*v[2];for(let i=0;i<3;i++)v[i]+=(L-v[i])*.5;}} /* la teinte seule glisse vers le gris, la clarté reste */
+}
 grtConti(); // (2026-10-18) LES PROFONDEURS : ses 24 ambiances prennent la recette commune de leur temps (saturation, contraste, vignette, contre-jour rose, bitume commun)
 /* (2026-10-17, Léo : « joue sur le contraste, que l'obscurité soit belle là aussi ») LA FORÊT CONTRASTÉE — APRÈS la continuité de Sacha (elle réécrit
    contraste, vignette et nuits de toutes les maps) : un cran de contraste, un peu plus de halo pour les éclats des mini-cubes ; la nuit et l'orage plus
