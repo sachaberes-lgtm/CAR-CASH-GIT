@@ -8,7 +8,13 @@ const DN_VS=['attribute vec4 aN;uniform sampler2D uTC,uTZ,uTS,uNZ;uniform vec4 u
   '  float p=f<.72?pow(max(f/.72,1e-5),1.5):pow(max((1.-f)/.28,1e-5),1.15),m=.30+.70*clamp((texture2D(uNZ,vec2(v/9000.+.13,a*.13+.5)).r-.22)*1.9,0.,1.);',
   '  float a2=dot(x,uW.zw)/(uLam*.40)+1.6*w2+.5*w3,f2=fract(a2);',
   '  float p2=f2<.68?pow(max(f2/.68,1e-5),1.4):pow(max((1.-f2)/.32,1e-5),1.1);',
-  '  gU=p*m;return p*m+.08*p2*(1.-.75*p);}',
+  '  gU=p*m;float h=p*m+.08*p2*(1.-.75*p);',
+  /* LES DUNES ÉTOILÉES : la même fonction que dnDune (dunes-1.js) */
+  ...(DN_STAR?['  float ts0=(texture2D(uNZ,x/16000.+vec2(.71,.29)).r-.5-.10)/.18,ts=clamp(ts0,0.,1.);ts=ts*ts*(3.-2.*ts);',
+  '  if(ts>0.){float k=6.2832/(uLam*1.9);vec2 d2=vec2(-.5*W.x-.866*W.y,.866*W.x-.5*W.y),d3=vec2(-.5*W.x+.866*W.y,-.866*W.x-.5*W.y);',
+  '    float s1=cos(k*dot(x,W)+9.*w3+5.*w1),s2=cos(k*dot(x,d2)+8.*w2+4.*w3),s3=cos(k*dot(x,d3)+7.*w3+5.*w2);float st=clamp((s1+s2+s3+1.5)/4.5,0.,1.);st=pow(st,2.2);',
+  '    float hs=st*.95+.05*p2*(1.-.5*st);h+=(hs-h)*ts;gU+=(st-gU)*ts;}']:[]),
+  '  return h;}',
   /* LES BUTTES : la même fonction que dnMesa (dunes-1.js) — un seuil du bruit (canal g), le haut par un autre (canal b), rien près de la route (Z.g = la distance à la route) */
   'float dnMesa(vec2 x,float dr){if(uFin.w>.5)return 0.;float n=texture2D(uNZ,x/11000.+vec2(.21,.73)).g,e=clamp((n-.58)/.14,0.,1.),m0=e*e*(3.-2.*e);if(m0<=0.)return 0.;',
   '  float t=texture2D(uNZ,x/1700.+vec2(.5,.1)).b,f=clamp((dr-260.)/260.,0.,1.),q=clamp((length(x-uFin.xy)-1800.)/1200.,0.,1.);return m0*f*f*(3.-2.*f)*q*q*(3.-2.*q)*(70.+110.*t);}',
@@ -144,6 +150,7 @@ function dnTeinte(c,T){const l=c.r*.3+c.g*.55+c.b*.15,n=T[0]*.3+T[1]*.55+T[2]*.1
 function dunesTick(dt){
   if(!DN.mat)return;const U=DN.mat.uniforms,c=BIO.cur,k=LVL.dunes||0;
   if(DN.on&&!paused)U.uTime.value=(U.uTime.value+dt)%4096;
+  if(DN.gx>1&&(mode!=='fall'||!DN.on))DN.gx=1; // le vol fini (ou la map quittée) : la pesanteur redevient la sienne
   if(DN.on){U.uSunC.value.copy(sun.color).multiplyScalar(sun.intensity);U.uSky.value.copy(hemi.color).multiplyScalar(hemi.intensity);U.uGnd.value.copy(hemi.groundColor).multiplyScalar(hemi.intensity);
     U.uFillC.value.copy(fill.color).multiplyScalar(fill.intensity);U.uFillD.value.copy(fill.position).normalize();
     const f=(u,k9)=>{const a=c[k9];if(a)u.value.fromArray(a);};
@@ -166,13 +173,14 @@ function dunesTick(dt){
    sur la pente) ou DÉCOLLER pour de bon (planer, des figures, se poser plus loin). Plus lente que 90 km/h, la caisse ne décolle pas : elle roule par-dessus la crête et DESCEND avec la route. g monde ~23 m/s²
    (FALL_G × SPD). Pas de recharge (rampCd). DN.sauts = le compte (banc). */
 const DN_LF={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
+const DN_GX={on:!/[?&]sans=([^&]*,)?dunesgrav(,|&|$)/.test(location.search),v0:110,p:1.3,max:2.3}; /* la pesanteur du vol : (vitesse / 110)^1,3, de ×1 à ×2,3 — `?sans=dunesgrav` = la pesanteur d'avant */
 function dnLevre(s0){if(side<0||introD||driveDir<0)return;const a=Math.min(s0,s),b=Math.max(s0,s);
   for(const k of DN.lev){if(b<k.s||a>=k.e-2)continue;if(!(k.s>=a-.01&&k.s<=b+.01)&&!(s>k.s&&s<k.e-2))continue;if(Math.abs(lat)>ROAD_HALF)return;
     const vm=vitMult(),vx=Math.max(12,Math.abs(vA)*SPD*vm);if(vx*3.6<90)return; /* (trop lent : il roule par-dessus la crête) */
-    const S9=DN.S,yAt=q=>{const f=Math.max(0,Math.min(S9.n-1.001,q/S9.ds)),i=Math.floor(f);return S9.y[i]+(S9.y[i+1]-S9.y[i])*(f-i);},g2=FALL_G*SPD*.5,sb=Math.max(s,k.s),y0=yAt(sb);
+    const S9=DN.S,yAt=q=>{const f=Math.max(0,Math.min(S9.n-1.001,q/S9.ds)),i=Math.floor(f);return S9.y[i]+(S9.y[i+1]-S9.y[i])*(f-i);},gx=DN_GX.on?Math.max(1,Math.min(DN_GX.max,Math.pow(vx/DN_GX.v0,DN_GX.p))):1,g2=FALL_G*SPD*.5*gx,sb=Math.max(s,k.s),y0=yAt(sb);DN.gx=gx;
     const t=Math.max(.6,Math.min(2.6,Math.max(30,k.s+k.aim-sb)/vx)),D=y0-yAt(sb+vx*t),d35=y0-yAt(sb+vx*.35);
     frameAt(sb,DN_LF);const ty=DN_LF.t.y;
-    const vy=Math.min(24,Math.max((g2*t*t-D)/t,(4+g2*.1225-d35)/.35)),u=THREE.MathUtils.clamp(vy/SPD-ty*Math.abs(vA)*vm,0,60);DN.dbgLev={vx:+vx.toFixed(1),vy:+vy.toFixed(1),u:+u.toFixed(1),ty:+ty.toFixed(3),t:+t.toFixed(2),D:+D.toFixed(1),d35:+d35.toFixed(1),k:DN.lev.indexOf(k),tag:k.tag};
+    const vy=Math.min(24,Math.max((g2*t*t-D)/t,(4+g2*.1225-d35)/.35)),u=THREE.MathUtils.clamp(vy/SPD-ty*Math.abs(vA)*vm,0,60);DN.dbgLev={gx:+gx.toFixed(2),vx:+vx.toFixed(1),vy:+vy.toFixed(1),u:+u.toFixed(1),ty:+ty.toFixed(3),t:+t.toFixed(2),D:+D.toFixed(1),d35:+d35.toFixed(1),k:DN.lev.indexOf(k),tag:k.tag};
     rampCd=1.2;startFall(u,1);shake=Math.max(shake,.42);fovPunch=Math.max(fovPunch,9);try{hap([8,14]);}catch(e){}DN.sauts=(DN.sauts|0)+1;return;}} // (le coup de tremplin : un coup de grand-angle et une secousse)
 /* EN VOL : le sable, l'eau de l'oasis, les obélisques et la pyramide tuent (5 points de caisse) — renvoie la cause, ou '' */
 /* LA CAISSE REPLACÉE REPART LANCÉE (2026-10-22, DEBUGGING : la seconde chance des dunes) — respawn() repose la caisse 8 m avant safeS, à vA 26 (~45 km/h). Dans les
@@ -180,6 +188,14 @@ function dnLevre(s0){if(side<0||introD||driveDir<0)return;const a=Math.min(s0,s)
    vide de 70 à 200 m → ENSEVELI DANS LE SABLE à coup sûr (MESURÉ : la reprise gagnée d'une pub re-meurt sur la même lèvre ; sous le bouclier, chaque chute la replace
    au même endroit). Sur une map à trous, la caisse replacée repart à la croisière du palier (vPalier) : la lèvre suivante la pose comme d'habitude. */
 function dnRelance(){if(!DN.on||!TROUS.length||mode!=='drive')return;const v9=vPalier()/(SPD*vitMult());if(Math.abs(vA)<v9){vA=v9;DN.relance=(DN.relance|0)+1;}}
+/* (2026-10-23, Léo : « comme le jeu du pingouin où il faut atterrir pour prendre la vitesse ») SE POSER SUR LA PENTE — la route descend (sl = −T.y > 3,5 %) et la caisse arrive dans son axe : a = 1 quand l'écart entre sa trajectoire
+   et la pente est nul (0 à 16°), pondéré par la raideur (plein à 10 %) ; la perte de la pose fond de 92 % × a et la caisse GAGNE g = a·(5 % + 45 % × sl) de vitesse (+ 5 à + 17 %). Une pose ratée, ou à plat, ne gagne rien. La pente
+   elle-même accélère déjà (boucle-2 : −GRAV × T.y) ; ceci récompense le geste. `?sans=dunessurf` l'éteint. */
+const DN_SURF=!/[?&]sans=([^&]*,)?dunessurf(,|&|$)/.test(location.search);
+function dnSurf(i,fv,ratee){if(!DN_SURF||ratee)return null;const T9=T[i];if(!T9)return null;const sl=-T9.y;if(sl<.035)return null;const sp=fv.length();if(sp<8)return null;
+  const ang=Math.acos(Math.max(-1,Math.min(1,fv.dot(T9)/sp)))*57.2958,a=Math.max(0,1-ang/16)*Math.min(1,(sl-.025)/.075);if(a<.12)return null;return {a:a,g:a*(.05+.45*sl),sl:sl,ang:ang};}
+function dnSurfFx(o){DN.surf=(DN.surf|0)+1;DN.surfG=+o.g.toFixed(3);shake=Math.max(shake,.25+.3*o.a);fovPunch=Math.max(fovPunch,4+7*o.a);try{hap([6,10]);}catch(e){}
+  if(o.a>.35)try{trickMsg(o.a>.75?'DESCENTE PARFAITE':'BONNE DESCENTE',o.a>.75?1:true);}catch(e){}}
 const DN_H9={};
 function dunesHeurt(p){if(!DN.on||!DN.Z)return '';
   for(const o of JH){const x=p.x+o[0],z=p.z+o[1],h=dnHauteur(x,z,DN_H9);if(p.y<h+.7)return DN_H9.eau?'oasis':'sable';}
@@ -484,6 +500,10 @@ window.dbgDunes=function(k,a,b,c,d){
       if(m<1){dessus++;if(od.length<40)od.push(Math.round(s9)+(lt?(lt>0?'d':'g'):'c')+'('+m.toFixed(1)+')');}pire=Math.min(pire,m);}}
     let mo=0;for(let s9=0;s9<L;s9+=10){frameAt(s9,F9);for(const lt of [-ROAD_HALF,0,ROAD_HALF]){F9.p.addScaledVector(F9.b,lt);F9.p.y+=1;if(dnMonuHeurt(F9.p))mo++;F9.p.y-=1;F9.p.addScaledVector(F9.b,-lt);}}
     return {dessus:dessus,dessusOu:od.join(' '),margeMin:+pire.toFixed(1),decorsSurLaRoute:mo,sep:DN.sep};}
+  if(k==='bank'){if(!DN.on||!DN.S)return 'pas de dunes';const S9=DN.S,F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},o=[]; /* (banc) l'inclinaison de la dalle à l'abscisse a..b (pas c) : celle de la route (frameAt) contre celle que le sable a reçue (S.bk), et la marge aux deux bords */
+    for(let q=+a||0;q<=(+b||+a||0);q+=(+c||16)){frameAt(q,F9);const i=Math.max(0,Math.min(S9.n-1,Math.round(q/S9.ds))),m=function(lt){return +(F9.p.y+F9.b.y*lt-dnHauteur(F9.p.x+F9.b.x*lt,F9.p.z+F9.b.z*lt)).toFixed(2);};
+      o.push({s:Math.round(q),route:+(Math.asin(Math.max(-1,Math.min(1,-F9.b.y)))*57.2958).toFixed(1),sable:+(S9.bk[i]*57.2958).toFixed(1),gauche:m(-ROAD_HALF),droite:m(ROAD_HALF)});}return o;}
+  if(k==='lev')return {lev:DN.dbgLev||null,surf:DN.surf|0,surfG:DN.surfG||0,tous:DN.lev.map(function(v){return [Math.round(v.s),Math.round(v.aim),v.tag];})}; /* (banc) le dernier tremplin pris : vitesse, impulsion, durée visée… et la liste des tremplins */
   if(k==='ech'){if(!DN.on||!DN.S)return 'pas de dunes';const S9=DN.S,o=[];for(let q=+a||0;q<=(+b||+a||0);q+=(+c||8)){const i=Math.max(0,Math.min(S9.n-1,Math.round(q/S9.ds))),f=function(v){return +v[i].toFixed(1);}; /* (banc) les paramètres du terrain prescrit à l'abscisse q : route, mer, côtés (h = la colline ou l'éperon, w = sa largeur) */
       o.push({s:Math.round(q),y:f(S9.y),B:f(S9.B),hP:f(S9.hP),wP:f(S9.wP),hM:f(S9.hM),wM:f(S9.wM),RE:Math.round(S9.RE[i]),pw:f(S9.pw),pan:f(S9.pan)});}return o;}
   if(k==='suit'){if(!started||gameOver)return 'pas de course';if(!paused)togglePause();const q=carGroup.position,f=DN_V.set(0,0,1).applyQuaternion(carGroup.quaternion); /* (banc) gèle la course et pose la caméra derrière la caisse : a = recul (m), b = hauteur, c = champ */
