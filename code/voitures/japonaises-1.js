@@ -83,7 +83,7 @@ SHAPES.corolla=function(K){
     2.271,2.275,2.285,2.294,2.30,2.306,2.311,ZE-.003,ZE];
   for(const [w,a] of [[ZF,.326],[ZR,.33]])for(const f of [0,.2,.4,.55,.7,.8,.88,.95,.99,1])zs0.push(w-a*f,w+a*f);
   zs0.sort((a,b)=>a-b);const zs=zs0.filter((z,i)=>i===0||z-zs0[i-1]>.002);
-  let HB=false;try{HB=/[?&]honte=[123]/.test(location.search);}catch(e){}   // (`?honte=1` : dalles ; `?honte=2` : l'ENTRE-DEUX, briques + couches plates)
+  let HB=false;try{HB=/[?&]honte=[1234]/.test(location.search);}catch(e){}   // (`?honte=1` : dalles ; `?honte=2` : l'ENTRE-DEUX, briques + couches plates)
   const peint=(j,z)=>j===0&&z<2.24&&z>-2.25?'k':(HB&&z<1.26&&z>-1.87&&((j>=11&&j<=12)||(j>=13&&(z>.3||z<-1.2))))?'g':'p';   // (aux deux bouts, la bande du plancher monte et devient le bas de la face : de la tôle, que la découpe habille)
   const EP=(typeof peintPal==='function'?peintPal(PAL):PAL).p,GP=EP.g;
   /* (23/10, Léo : « traduis dans le style de LA HONTE, fidèle à la Fidèle ») `?honte=1` : la VRAIE forme (les sections du plan) taillée en quelques GROS pans — une tranche par grand changement
@@ -95,7 +95,7 @@ SHAPES.corolla=function(K){
     const sx=z>=ZE-1e-6||z<=ZB+1e-6?.02:1;return [[0,yb],[xm*sx,yb],[xm*sx,yt],[xr*sx,yt],[xr*sx,Math.max(yr,yt+.01)],[0,yc]];};
   const peintB=(j,z)=>j===0?'k':(j===3&&z<1.0&&z>-1.3)?'g':(j===4&&z<1.26&&z>-1.87&&(z>.3||z<-1.2))?'g':'p';
   const PL=K.kit(PAL);let HB2=false;try{HB2=/[?&]honte=2/.test(location.search);}catch(e){}
-  let HB3=false;try{HB3=/[?&]honte=3/.test(location.search);}catch(e){}
+  let HB3=false,HB4=false;try{HB3=/[?&]honte=[34]/.test(location.search);HB4=/[?&]honte=4/.test(location.search);}catch(e){}   // (`?honte=4` : l'ENTRE-DEUX du 2 et du 3 — flancs en petits blocs de 8 cm, cabine en briques lisses, couches de base et de ceinture)
   if(HB3){   /* LE MÉLANGE (23/10, Léo : « un mélange technique des deux : répartition stratégique de la taille des cubes ») — de GROS blocs là où la tôle est plate (les flancs : 13 cm d'épaisseur, longs), des couches TRÈS FINES
      (4 cm, tronçons de 6 cm) là où la forme se complique (le nez, la poupe, le capot, la cabine et le toit). Les passages de roue restent des vides en marches. */
     const xAt=(sc,y)=>{let m=0;for(let i=1;i<sc.length;i++){const a=sc[i-1],b=sc[i];if((a[1]-y)*(b[1]-y)<=0&&a[1]!==b[1]){const x=a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);if(x>m)m=x;}}return m;};
@@ -103,11 +103,16 @@ SHAPES.corolla=function(K){
     const rangee=(yc,dy,dz,q,zA,zB,kf)=>{let run=null;const flush=z1=>{if(run&&run.w>.02)PL.box(run.k,2*run.w,dy+.002,z1-run.z0,0,yc,(run.z0+z1)/2);run=null;};
       for(let z=zA+dz/2;z<zB;z+=dz){const w=Math.round(xAt(Sz(z),yc)/q)*q,k=kf(z,yc);if(!run||run.w!==w||run.k!==k){flush(z-dz/2);run={w:w,k:k,z0:z-dz/2};}}flush(zB);};
     // 1. les GROS blocs : le flanc entre la poupe et le nez, sous la ceinture
-    for(let yc=.22+.065;yc<YM;yc+=.13)rangee(yc,.13,.12,.04,ZA,ZBm,()=>'p');
+    const DYF=HB4?.08:.13;for(let yc=.22+DYF/2;yc<YM-.001;yc+=DYF)rangee(yc,DYF,.12,HB4?.03:.04,ZA,ZBm,()=>'p');
     // 2. les COUCHES FINES : le nez et la poupe sur toute la hauteur, tout le reste au-dessus de la ceinture
     const verre=(z,y)=>(y>1.0&&y<1.40&&z<ZW-.02&&z>ZHT+.02&&xAt(Sz(z),y)<.72)?'g':'p';
     for(let yc=.22+.02;yc<1.43;yc+=.04){
-      if(yc>=YM)rangee(yc,.04,.06,.02,ZB,ZE,verre);}
+      if(yc>=YM&&!HB4)rangee(yc,.04,.06,.02,ZB,ZE,verre);}
+    if(HB4){   // la cabine : des BRIQUES lisses (le loft rectangulaire du 2), rentrées de 1,5 cm sous les blocs ; les couches de base et de ceinture du 2
+      PL.loft(zsB.filter(z=>z>=ZA-.001&&z<=ZBm+.001),z=>{const q=SB(z);for(let i=1;i<=3;i++)q[i]=[Math.max(0,q[i][0]-.015),q[i][1]];return q;},peintB);
+      const couche=(y,h,k,grow,zA,zB)=>{let run=null;const flush=z1=>{if(run&&run.w>.02)PL.box(k,2*run.w,h,z1-run.z0,0,y,(run.z0+z1)/2);run=null;};
+        for(let z=zA+.045;z<zB;z+=.09){const w=Math.round((xAt(Sz(z),y)+grow)/.03)*.03;if(!run||run.w!==w){flush(z-.045);run={w:w,z0:z-.045};}}flush(zB);};
+      couche(.245,.03,'d',.02,ZB+.2,ZE-.2);couche(.275,.03,'d',.015,ZB+.2,ZE-.2);couche(.985,.022,'c',.012,-2.0,1.0);}
     /* LE MUSEAU ET LA POUPE en POLY ARRONDI (Léo : « il faut que ce soit beau, tu peux faire des formes poly arrondies ») : un loft à 7 points — le dessous, un chanfrein bas, le flanc, un chanfrein haut, l'épaule qui s'arrondit
        vers le capot — sur 6 tranches, mesuré sur la vraie section ; il remplace les marches sous la ceinture. */
     const SR=z=>{const s=S(z),xm=s[1][0]+.10*Math.min(1,s[1][0]/.62),yb=s[0][1],yt=s[NC][1],yc=s[s.length-1][1],sx=z>=ZE-1e-6||z<=ZB+1e-6?.02:1;
@@ -210,7 +215,7 @@ SHAPES.corolla=function(K){
      1. le BOÎTIER noir mat (le contour du plan, 2,2 cm) · 2. le VERRE fumé, rentré de 1,2 cm, brillant (+1,6 cm de plus) · 3. la LAME DE LED blanche, posée sur le verre
      le long du bord bas (+1 cm) · 4. l'OEIL : le projecteur carré, un bloc chromé en saillie au coin. Chaque pièce est un plateau tendu sur la tôle (contour densifié
      tous les 2,5 cm pour épouser le bombé) fermé par des flancs verticaux — un bloc, pas un dessin. */
-  if(!HB){const zf=PROF.zf,dens=Q=>{const o=[];for(let i=0;i<Q.length;i++){const a=Q[i],b=Q[(i+1)%Q.length],n=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.02));for(let k=0;k<n;k++)o.push([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n]);}return o;};
+  if(!HB||(typeof HB3!=='undefined'&&HB3)){const zf=PROF.zf,dens=Q=>{const o=[];for(let i=0;i<Q.length;i++){const a=Q[i],b=Q[(i+1)%Q.length],n=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.02));for(let k=0;k<n;k++)o.push([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n]);}return o;};
    const tri3=(k,sd,a,b,c)=>{const A=[sd*a[0],a[1],a[2]],B=[sd*b[0],b[1],b[2]],C=[sd*c[0],c[1],c[2]],nz=(B[0]-A[0])*(C[1]-A[1])-(B[1]-A[1])*(C[0]-A[0]);if(nz<0)P.tri(k,A,C,B);else P.tri(k,A,B,C);};
    const piece=(k,poly,top,bot,sd)=>{const pts=dens(poly),cen=[pts.reduce((a,p)=>a+p[0],0)/pts.length,pts.reduce((a,p)=>a+p[1],0)/pts.length];
      const V=(p,h)=>[p[0],p[1],zf(p[0],p[1])+h];
@@ -237,7 +242,6 @@ SHAPES.corolla=function(K){
     const xA=(sc,y)=>{let m=0;for(let i=1;i<sc.length;i++){const a=sc[i-1],b=sc[i];if((a[1]-y)*(b[1]-y)<=0&&a[1]!==b[1]){const x=a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);if(x>m)m=x;}}return m;},
       zAv=(x,y)=>{for(let z=ZE-.003;z>0;z-=.01)if(xA(S(z),y)>=x)return z;return 2.2;},zAr=(x,y)=>{for(let z=ZB+.003;z<0;z+=.01)if(xA(S(z),y)>=x)return z;return -2.2;};
     const plaque=(k,x0,x1,y,h,e,dep,av)=>{const n=4,w=(x1-x0)/n;for(let i=0;i<n;i++){const xc=x0+w*(i+.5),z=(av?zAv:zAr)(xc+w/2,y);P.box(k,w+.004,h,.022,sd*xc,y,z+(av?1:-1)*(e+dep));}};   // une plaque en 4 tronçons, chacun posé sur SA marche de la face
-    plaque('k',.24,.70,.80,.13,0,.010,true);plaque('h',.28,.68,.805,.085,0,.028,true);plaque('W',.30,.64,.752,.016,0,.046,true);
     plaque('k',.28,.72,.93,.12,0,.010,false);plaque('L',.30,.70,.935,.07,0,.028,false);
     for(const z of [ZF,ZR]){const r=.37,n=10;for(let i=0;i<n;i++){const a0=Math.PI*i/n,a1=Math.PI*(i+1)/n,am=(a0+a1)/2,L=2*r*Math.sin((a1-a0)/2)+.03;
         P.box('d',.06,.04,L,sd*.89,.35+Math.sin(am)*r,z+Math.cos(am)*r,Math.PI/2-am,0,0);}}   // l'ARC noir qui encadre chaque roue : dix segments, un poly arrondi
