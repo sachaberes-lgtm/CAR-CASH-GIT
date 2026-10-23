@@ -184,6 +184,7 @@ interface/garage-salle.js            # buildGarageRoom : la salle du garage
 interface/garage-lacher.js           # garage : le lâcher, la liste, la console à trois modes
 economie/boutique-du-jour.js         # la boutique du jour
 interface/atelier-ferme.js           # l'atelier fermé
+interface/fete-caisse.js             # la fête d'une caisse débloquée, selon sa rareté
 interface/habillages-accueil.js      # la bande des habillages, les plans de l'accueil
 interface/flammes-cubes.js           # les flammes en cubes
 interface/chute-menu.js              # la chute : le menu dans le ciel, le doigt de bienvenue

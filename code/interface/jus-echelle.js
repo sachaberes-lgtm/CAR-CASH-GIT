@@ -355,6 +355,7 @@ function checkUpgrade(){
     const sp9=CARS[i];
     showMsg(TR(pickL(CAR_LINES))+' — '+TR(sp9.name)+'  '+TR('(au garage)'),'#ffd75e');
     trickMsg('🔑 '+TR(sp9.name),3);
+    if(!REDUCED_MOTION&&running&&!gameOver)try{feteCaisse(i);}catch(e){} /* (2026-10-23) en course aussi : la fête de sa rareté */
   }
   SAVE.flush();
 }
