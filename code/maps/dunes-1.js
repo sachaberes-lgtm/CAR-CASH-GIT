@@ -329,9 +329,33 @@ function dnTirage(seed){let h9=Math.imul((seed^0xDEC0D5)>>>0,0x9E3779B1);h9^=h9>
   if(DN_ACTES.on){D.sphinx=false;D.colosses=0;D.temple=false;D.portes=0;D.village=false;D.camps=0;D.epars={k:0,br:0};D.os=0;D.avion=false;D.bateau=false;
     const am=D.sd%3;D.caravanes=am===0&&D.caravanes.length?[D.caravanes[0]]:[];D.tornades=am===1?1:0;D.flore.epars=0;D.flore.cactus=0;D.flore.palmeraies=0;D.flore.acacias=Math.min(D.flore.acacias,.5);}
   return D;}
-function buildDunes(seed){
-  dnEteindre();DN.job=(DN.job||0)+1;
+/* ===== LES DUNES D'AVANCE (2026-10-24, passe perf 3e tour — le canyon l'a depuis le 23/10, les dunes non) =====
+   Au 1er JOUER (started faux) puis au passage, buildDunes calculait le monde (dnMondeCalc : le fond, le relief fin, l'ombre) d'un bloc sur le fil
+   principal, ou l'envoyait au travailleur APRÈS le passage (le sable apparaît alors une demi-seconde plus tard, sur une route sans collision).
+   Le pré-bâti (prebDunes, dans prebJob) fait la PRÉPARATION sur la route fantôme — le module DN est échangé EN ENTIER le temps de la préparation
+   (prebObj), seules les clés CHANGÉES sont gardées (W.dunes.chg) —, confie le calcul au travailleur et l'attend image après image ; au départ
+   (ou au portail), buildDunes(seed,W.dunes) reprend ces clés et pose le monde. Pas arrivé à temps, ou `?dnw=0` : tout comme avant. */
+function prebDunes(sd,W){ // (le pré-bâti, DANS une tranche : la route fantôme est en place) la préparation, puis le calcul chez le travailleur — W.dunes tient le résultat
+  if(PARK.on||!LVL.cur||LVL.cur.piste!=='dunes'||!(NP>1)||!DUNES_OK||/[?&]dnw=0\b/.test(location.search))return null;
+  const w=dnTravailleur();if(!w)return null;
+  cyBruits();
+  const av=Object.assign({},DN),ghost=Object.assign({},DN);prebObj(DN,ghost);let r=null;
+  try{r=buildDunes(sd,true);}finally{prebObj(DN,ghost);} // DN revient tel qu'il était ; ghost tient l'état préparé
+  if(!r)return null;
+  const chg={};for(const k of Object.keys(ghost))if(k!=='job'&&k!=='attente'&&ghost[k]!==av[k])chg[k]=ghost[k];
+  const a={job:-(DN.jav=(DN.jav||0)+1),R:null,chg:chg,S:r.S,opt:r.opt,cle:[sd,L,NP,lvPiste(),ROAD_HALF].join('|')};
+  try{w.postMessage({job:a.job,S:r.S,opt:r.opt,nz:CY.nz});}catch(e){console.warn('dunes : travailleur',e);return null;}
+  DN.pre=a;return a;}
+function buildDunes(seed,pre){
+  const av=pre===true; // true : le pré-bâti prépare (rien n'est écrit dans DN, rien ne part) ; un objet : ce qu'il a préparé (W.dunes)
+  if(!av){dnEteindre();DN.job=(DN.job||0)+1;}
   if(PARK.on||!LVL.cur||LVL.cur.piste!=='dunes'||!(NP>1)||!DUNES_OK)return;
+  if(pre&&!av){const a=pre;
+    if(a.cle===[seed,L,NP,lvPiste(),ROAD_HALF].join('|')){Object.assign(DN,a.chg);DN.t0=performance.now();cyBruits();dnTerrain();
+      if(a.R){DN.ms.avance='pret';dnMondePose(a.R);return;}
+      const W9=started&&!/[?&]dnw=0\b/.test(location.search)?dnTravailleur():null; // pas revenu : on le lui redemande, comme avant
+      if(W9){const job=DN.job;DN.attente={job:job,S:a.S,opt:a.opt};try{W9.postMessage({job:job,S:a.S,opt:a.opt,nz:CY.nz});return;}catch(e){DN.attente=null;}}
+      dnMondePose(dnMondeCalc(a.S,a.opt));return;}}
   const t0=performance.now(),LV=lvPiste(),K=Math.sqrt(LV),r=mulberry32((seed^0xD0E5A7)>>>0);
   cyBruits();dnTerrain();
   // ---- 1. LES ÉCHANTILLONS : la route tous les 8 m ----
@@ -398,6 +422,7 @@ function buildDunes(seed){
   if(DN_SOL&&cA[0]<14&&NS>20){const i1=NS-1,i0=Math.max(0,i1-18),hx=S.x[i1]-S.x[i0],hz=S.z[i1]-S.z[i0];if(hx*hx+hz*hz>1){DN.sunAz=Math.atan2(hx,hz)*57.29578;cA[1]=DN.sunAz;S.solD=2200;}}
   const opt={K:K,seed:seed,RH:RH,TH:TH,sQ:sQ,sun:[cA[0],cA[1]],vent:DN.vent,lam:DN.lam,oa:oa,fin:{x:S.x[NS-1],z:S.z[NS-1]},sb:!DN_BUTTES,vol:DN.scnV||[],Af:210*K,deco:D9,pal:{dnPlat:PAL.b('dnPlat',64),dnFin:PAL.b('dnFin',12),dnOmbre:PAL.b('dnOmbre',44)}};
   DN.oa=oa;DN.fin=opt.fin;DN.sb=opt.sb;DN.t0=t0;
+  if(av)return {S:S,opt:opt}; // (LES DUNES D'AVANCE) la préparation s'arrête ici : prebDunes envoie le calcul au travailleur
   const W=started&&!/[?&]dnw=0\b/.test(location.search)?dnTravailleur():null;
   if(W){const job=DN.job;DN.attente={job:job,S:S,opt:opt};try{W.postMessage({job:job,S:S,opt:opt,nz:CY.nz});return;}catch(e){console.warn('dunes : travailleur',e);DN.attente=null;}}
   dnMondePose(dnMondeCalc(S,opt));
@@ -409,7 +434,7 @@ function dnTravailleur(){if(DN.w!==undefined)return DN.w;
       "\nonmessage=function(e){var m=e.data;CY={nz:m.nz};DN={};PAL.B=m.opt.pal;var R=dnMondeCalc(m.S,m.opt);R.job=m.job;"+
       "postMessage(R,[R.Z.d.buffer,R.F.c.buffer,R.O.h.buffer]);};";
     const W=new Worker(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));
-    W.onmessage=function(e){const R=e.data;if(!DN.attente||R.job!==DN.job)return;DN.attente=null;try{dnMondePose(R);}catch(er){console.warn('dunes : pose',er);}};
+    W.onmessage=function(e){const R=e.data;if(R.job<0){if(DN.pre&&DN.pre.job===R.job)DN.pre.R=R;return;} /* (LES DUNES D'AVANCE) le monde du pré-bâti */if(!DN.attente||R.job!==DN.job)return;DN.attente=null;try{dnMondePose(R);}catch(er){console.warn('dunes : pose',er);}};
     W.onerror=function(e){console.warn('dunes : travailleur en erreur',e.message);DN.w=null;const a=DN.attente;DN.attente=null;if(a&&a.job===DN.job)try{dnMondePose(dnMondeCalc(a.S,a.opt));}catch(er){console.warn('dunes',er);}};
     DN.w=W;}catch(e){DN.w=null;}
   return DN.w;}

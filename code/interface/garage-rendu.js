@@ -253,7 +253,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
       // `started` déjà vrai que rien n'a encore posé.
       if(GAR.sous){const f9=GAR.sous;GAR.sous=null;try{f9();}catch(e){console.warn('lâcher : piste sous le voile',e);}} // (2026-10-15) la piste tirée par le JOUER de l'atelier se bâtit ICI, sous le voile chaud (voir classiqueJouer)
       const wasStarted=started;
-      closeGarage();
+      closeGarage(wasStarted);
       if(wasStarted)resetGame();else{start();fireLaunchBoost();}
       const f=$('gFade');if(f)setTimeout(function(){f.classList.remove('on');},60); // il se retire SUR la piste
     }
