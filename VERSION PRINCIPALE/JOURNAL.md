@@ -44,7 +44,11 @@
   du bouton nitro par crans de 2 % et la barre de 1 % sur ANCIEN et MOYEN (1 % et 0,5 % d'origine) : nitro tenue, deux fois moins de recalculs de style et de repeints du
   dégradé conique (#tNitro : 331 µs par recalcul à ×1) ; `ventK` (`boost-depart.js`) — les traits de vent à 50 % / 70 % / 100 % ; la carte NOUVEAU MOTEUR de course rendue
   à la cadence `engVigMs` (10 / 15 / 30 par seconde). MESURÉ (×4, MOYEN, forêt) : la vignette moteur 2,5 → 1,1 % de la boucle, le vent 3,3 → 3,0 % (le reste est l'effacement plein écran).
-  RESTE À FAIRE (mesuré, pas touché) : sur téléphone (×4) le recalcul de styles du HUD ≈ 6 ms/image (le bouton nitro `#tNitro` : 402 déclarations,
+- **2e TOUR — LE 1er DÉPART AVANT LES GABARITS DE LA JADE** (v853, `prebDepTick`, `jadeGabFond`) : au menu, trois attentes en série — la chauffe des matières, puis les
+  gabarits de la Jade (une tranche par image), puis seulement le départ d'avance, même quand la map du départ n'est pas la Jade. MESURÉ (banc `menu.cjs`, ×4, MOYEN) : le départ
+  commençait à ~65 s du chargement et était prêt à 71 s — tout JOUER plus tôt bâtissait la piste d'un coup. Désormais, pour une autre map, le départ passe avant les gabarits
+  (qui attendent qu'il soit prêt) : commencé à ~25 s (la fin de la chauffe), prêt à 29 s. La Jade en 1re map : comme avant (elle a besoin de ses gabarits).
+  RESTE À FAIRE (mesuré, pas touché) : la chauffe du menu (~24 s à ×4 avant tout pré-bâti) ; sur téléphone (×4) le recalcul de styles du HUD ≈ 6 ms/image (le bouton nitro `#tNitro` : 402 déclarations,
   dégradé conique réécrit à chaque image nitro tenue ; `#nitroBar` 542 µs par recalcul), les traits de vent en 2D (3 %), le bouton nitro en putImageData (2 %), la vignette
   moteur rendue chaque image pendant la carte NOUVEAU MOTEUR, la voiture (31 appels dont 12 d'ombre), la porte de Jade (35 ms d'une tranche du pré-bâti sur PC).
 - **CE QUI A ÉTÉ MESURÉ ET LAISSÉ** : le rendu de la scène (2-5 ms, 130-260 appels de dessin selon la map, PC) et la boucle (16,7 ms) tiennent ; la correspondance des
