@@ -234,8 +234,12 @@ function* jadeChutePrep(PIL,jr,root){ // (LE PRÉ-BÂTI) un générateur : rende
 function imEnvoi(im,n,coul){if(!(n>0))return;const a=im.instanceMatrix;a.updateRange.offset=0;a.updateRange.count=n*16;a.needsUpdate=true;
   if(coul&&im.instanceColor){const c=im.instanceColor;c.updateRange.offset=0;c.updateRange.count=n*3;c.needsUpdate=true;}}
 const JCH_M=new THREE.Matrix4(),JCH_R=new THREE.Matrix4(),JCH_T=new THREE.Matrix4(),JCH_A=new THREE.Matrix4(),JCH_V=new THREE.Vector3(),JCH_Z=new Float32Array(16);
+/* ===== L'EFFONDREMENT S'ARRÊTE AVEC LA PAUSE (24/10, relecture : « une montagne qui tombait sautait d'un coup au retour de pause ») ===== son
+   horloge était JADE_U.uTime, qui avance aussi en pause (le temps réel) alors que jadeChuteTick n'y tourne pas : au retour, chaque montagne en
+   chute avait pris toute la durée de la pause d’un coup (5 s de pause : 140 à 270 m de chute en une image, l’écume partait, sa hitbox avec). JCH.t ne
+   compte que le temps joué (preuve-chute-pause.cjs). */
 function jadeChuteTick(dt){
-  if(!JCH.L.length||!JADE.root||!started||gameOver)return;let chg=false;const tn=JADE_U.uTime.value;
+  if(!JCH.L.length||!JADE.root||!started||gameOver)return;let chg=false;JCH.t+=dt;const tn=JCH.t;
   for(const c of JCH.L){
     if(!c.t0){if(s>c.sN-700-c.dl&&mode!=='boom'){c.t0=tn;if(JADE.col&&JADE.col.mort)JADE.col.mort.add(c.pi);if(!c.inv)c.inv=new THREE.Matrix4();c.inv.identity();jadeChuteOrig(c);
       if(carGroup.position.distanceTo(JCH_V.set(c.q[0],carGroup.position.y,c.q[1]))<500)shake=Math.max(shake,.12);}else continue;}
