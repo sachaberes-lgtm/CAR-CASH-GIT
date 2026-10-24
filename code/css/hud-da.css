@@ -275,6 +275,12 @@ body.hTp:not(#ccH) #cashHud,body.dead #cashHud,body.coOn #cashHud{visibility:hid
   html body :is(#pwrChip .pw span b,#popTxt){color:var(--pc,#ffd75e)!important;-webkit-text-fill-color:var(--pc,#ffd75e)!important}
   html body #triade .trNom{color:var(--fren)!important;-webkit-text-fill-color:var(--fren)!important}
   html body #engBig .ebCarte>b{color:var(--ec)!important;-webkit-text-fill-color:var(--ec)!important}
+  /* ===== LE BADGE « RECORD ! » DE L'ÉCRAN DE FIN SANS color-mix() (24/10, relecture CSS : « texte et fond de la même couleur ») =====
+     charte-6 pose `color:var(--hc)` ET `background:color-mix(...)` sur `.hCard em` : sans color-mix() seul le fond tombe, et le fond de
+     charte-4 (`background:var(--hc)`) l'emporte — texte rose sur fond rose. Même pastille sombre à liseré de la teinte, sans mélange ;
+     `.hMot` retrouve sa teinte simple (son --hc à color-mix() ne vaudrait rien). */
+  html body .hCard em{background:#0c0919;color:var(--hc,var(--aura));box-shadow:inset 0 0 0 1px var(--hc,var(--aura)),0 0 14px var(--auG)}
+  html body .hMot{--hc:var(--ec,var(--au2))}
 }
 /* ---- 6. L'ASTUCE / LE DÉFI (#misBan) NE SE POSE PLUS SUR LES POUVOIRS (portrait) : centrée, elle couvrait la colonne de droite (plaques
    NITRO MAX, AIR MAX…). Tant qu'une plaque de pouvoir est affichée, elle se range à GAUCHE et s'arrête avant la colonne. ---- */
