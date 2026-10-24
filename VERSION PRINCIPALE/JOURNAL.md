@@ -3,6 +3,41 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES TUILES EN VERRE DU MENU CIEL, GARAGE BLEU / BUY ROUGE (2026-10-24 soir, Léo : « j'aime bien tuiles arrondies » · « le bleu sur garage et le rouge sur BUY » · « inverse le cyan et le rose magenta » · « mets ces bulles-là »)
+- **POURQUOI** : la copine de Léo trouvait les trois boutons penchés (parallélogramme) « trop Claude ». Trois familles de formes essayées (A tuiles arrondies, B formes par fonction : arche · panier · pilule, C lentilles ovales) ; Léo garde A. Le verre-loupe de v858, retiré par Sacha en v863, revient ici sous la forme de TUILES ARRONDIES (20 px, plus de pente) : bloc `<style id="tuilesVerre">` dans `code/css/boutons-flottants.css`, après celui de la lueur de la boutique.
+- **COULEURS** : GARAGE bleu #2f80ff, BUY rouge #ff3347, SETTINGS or (inchangé) — via `--nc` sur `.mHubPorte` / `.mOffres`, les icônes suivent. Le badge NEW reste rose.
+- **LA BANDELETTE sous CASH CAR** : cyan · magenta · or (avant : rose · cyan · or, cyan et rose échangés). Elle ne lit PAS `--livree` : son dégradé est dans `#mHome .mTitle::after`, repris dans le même bloc.
+- Vérifié (Chrome, portrait 390×844 et paysage 844×390, vrais touchers) : GARAGE, BUY et SETTINGS s'ouvrent, aucune erreur JS. Le flou de fond (`backdrop-filter`, 5 px) est à mesurer sur un vrai iPhone (la 3D tourne derrière). Pas de paramètre d'URL pour revenir aux anciens boutons : retirer le bloc `tuilesVerre`.
+
+## LA PASSE PERF DU 24/10, 3e TOUR — LA GROTTE ET LES DUNES BÂTIES D'AVANCE SANS À-COUPS (2026-10-24, session PERF — Léo : « observe tous les changements qui ont été faits depuis et relance une petite séance de révision… une meilleure optimisation, le jeu doit tourner sans bugger sur iPhone ou Android, absolument pas que le jeu devienne de moindre qualité ») — v869
+- **PORTÉ SUR LE MAIN MODULAIRE** : ce travail avait été fait le 19/10 sur l'ancien `index.html` d'un seul tenant et n'avait jamais été poussé ; le main a depuis
+  reçu la passe PERF du 24/10 (canyon d'avance, ciel des reflets, routes en tranches, REJOUER sans gel) et le découpage en `code/` : les changements sont refaits
+  morceau par morceau (`code/maps/grottes-*.js`, `dunes-1.js`, `nuages-v8.js`, `nuages-vitrail.js`, `code/moteur/piste-prebati.js`, `depart-avance.js`, `code/interface/`), image identique.
+- **LE TOUR DE MESURE** (banc `~/Downloads/CAR-bancs/perf-3/` : Chrome sans fenêtre en iPhone 390 × 844 ×3, NETTE, processeur ×4, `?palier=2&garde=1`, les 12 maps à la file,
+  portails traversés pour de vrai — `dbgClassique` + `dbgPortail(2600)`) : 0 programme compilé en course sur les 12 maps (la matière des tremplins du glacier, qui compilait
+  à la 1re entrée le 19/10, est revenue d'elle-même au programme du verglas). Ce qui figeait encore :
+  1. **LA GROTTE** — son pré-bâti (3 à 5 s de calcul ×4, 3 à 10 × une autre map) se faisait par blocs de 40-150 ms (le maillage d'un tronçon, huit creusements d'un trait) :
+     8 à 15 images de 100-283 ms pendant le vol qui la PRÉCÈDE ; et derrière une map lourde (la jade) elle n'était pas finie au portail → le reste d'un trait, 0,6 à 1 s figées.
+  2. **LES DUNES** — le monde (`dnMondeCalc` : fond, relief fin, ombre) se calculait d'un bloc au 1er JOUER (0,5 à 1 s figées ×4) ou partait au travailleur APRÈS le passage.
+  3. **LES NUAGES** — la toile des cubes fantômes (8 000 cubes × 12 `toHalfFloat`) se remplissait sur le fil principal à l'arrivée de chaque nuage (~10 ms ×4 par départ).
+  4. **LE JOUER D'APRÈS PARTIE** — la caisse était bâtie deux fois dans la même image (closeGarage, puis resetGame : 25-30 ms ×4 chacune).
+- **CE QUI CHANGE** : `grtMailleNetsG`/`grtTronconG` (le maillage d'un tronçon en générateur à rendez-vous `JF.lim` ; `grtMailleNets`/`grtTroncon` restent d'un trait pour les tranches
+  en course) et un rendez-vous après CHAQUE creusement dans `buildGrotteG` ; l'URGENCE dans `prebTick` (la map d'en face pas finie à moins de 10 s du portail : tranche de 9 ms,
+  à moins de 5 s : 14 ms ; sinon 3-6) ; LES DUNES D'AVANCE (`prebDunes`, `buildDunes(seed,pre)` : la préparation sur la route fantôme — le module DN échangé EN ENTIER (`prebObj`),
+  seules les clés CHANGÉES gardées —, le calcul du monde chez le travailleur des dunes, attendu image après image, posé au départ ; pas arrivé à temps ou `?dnw=0` : comme avant) ;
+  `nufDemi` (la même conversion en demi-flottants que `THREE.DataUtils.toHalfFloat`, faite dans l'ouvrier des nuages ; `nuage8Async(…,dyF)`) ; `closeGarage(resetSuit)`.
+- **VÉRIFIÉ** : `nufDemi` contre `toHalfFloat` sur 6 millions de valeurs (aléatoires de 2⁻⁴⁰ à 2⁴⁰, zéros, infinis, NaN, sous-normaux, trois décalages) : 0 bit de différence ;
+  le monde des dunes (`tdn.py` : fond, relief, ombre, échantillons, vent, lèvres, raccourcis, monuments, pyramides, tirage du décor, uniformes de la matière) identique au bit près
+  au JOUER et au REJOUER contre le main ; fumée déterministe (`tsmoke.py`) debout et couché — JOUER, REJOUER, JOUER de l'atelier : 0 erreur, la même caisse (5 pièces, 18 947 sommets).
+- **MESURÉ** (×4, A/B alterné, charge 2 à 7 ; plus tard la machine est montée à 14-37 : ces manches-là sont jetées) : pire image du JOUER des dunes **1 000 → 408 ms** (construction
+  722/523 → 119/104 ms), du REJOUER 458 → 225 ; l'approche de la grotte après la jade — excès au-delà de 50 ms **7 402 / 1 518 → 618 / 317 ms**, images > 100 ms 29 / 10 → 3 / 2 ;
+  la jade qui la précède 2 images > 100 ms → 1. Les nuages : un gain réel mais petit (~10 ms de fil principal par départ), dans le bruit des mesures.
+- ⚠ **LE BANC** : un `http.server` lancé AVANT un `git checkout` sert un dossier supprimé (page qui ne démarre jamais, sans erreur) — relancer ses serveurs ; la référence d'un A/B se
+  tire du MÊME commit que la branche (une copie plus récente change l'écran de mort : le MENU y ouvre le garage, plus l'accueil) ; mesurer quand `uptime` < 8.
+- **CE QUI RESTE** : les NUAGES ne sont pas bâtis d'avance (`buildClouds` ~45 ms ×4 au JOUER et au portail des nuages) ; la VILLE (`buildVoxCity` ~35 ms) ; `chauffeRendu` au portail
+  (40-105 ms, voulu) ; la Porte de jade (~50 ms) ; la grotte elle-même (4 s ×4 de calcul : le vrai remède serait de la mailler dans un ouvrier). À départager sur un VRAI iPhone :
+  `…/jouer/?banc=1&refaire=1`.
+
 ## LES ANCIENS BOUTONS DU MENU REMIS (2026-10-24, Sacha : « dans l'écran principal il y a des nouveaux boutons horribles, remets les anciens »)
 - Le bloc « verre en loupe » de v858 (GARAGE · BUY · SETTINGS en lentilles transparentes) est retiré de `code/css/boutons-flottants.css` : les touches reprennent leur look d'avant. La lueur d'angle de la BOUTIQUE du garage (même v858) reste.
 
