@@ -154,6 +154,7 @@ window.dbgBeau=function(k,o){o=o||{};
   if(k==='photo'){if(started&&!gameOver&&!paused)togglePause();
     OBEAU.q.copy(camera.quaternion);OBEAU.fov=camera.fov;
     if(o.yaw)camera.rotateOnWorldAxis(ORB.haut,+o.yaw*Math.PI/180);if(o.pitch)camera.rotateX(+o.pitch*Math.PI/180);
+    if(o.planete)camera.lookAt(planetGroup.position);
     if(o.fov){camera.fov=+o.fov;camera.updateProjectionMatrix();}
     orbiteTick(skyU.uTime.value);camera.updateMatrixWorld();if(acesPass)acesPass.uniforms.uSpeed.value=0;
     if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
