@@ -1,0 +1,43 @@
+<style id="ecransIphone">
+/* ===== LES ÉCRANS SUR TOUS LES IPHONE (24/10, débogage sortie iOS : « un jeu irréprochable sur tous les iPhone ») =====
+   Mesuré au banc (Chrome sans fenêtre, iPhone SE 375×667, 13 mini 375×812, 15 393×852, 15 Pro Max 430×932, debout et couché,
+   FR et EN, zones sûres posées) : seulement ce qui débordait. Rien n'est redessiné, les tailles et la grille restent celles de Sacha. */
+
+/* LA PAUSE COUCHÉE : la grille des réglages en 2 colonnes (Sacha, 23/10) prenait la largeur de ses lignes les plus longues
+   (222 + 244 px) : 466 px dans une colonne de 328 (SE) à 418 px (Pro Max) — MUSIQUE, POUCE HAUT et la valeur de FIGURES sortaient
+   de l'écran ou passaient sous l'encoche, sur TOUS les iPhone. Les deux colonnes se partagent maintenant la place ; dans les
+   cases d'une colonne, le nom et son interrupteur s'empilent à droite de l'icône (qui reste centrée dans son cadre), le nom garde
+   sa taille et se replie sur plusieurs lignes (la case a la hauteur). FIGURES et TOUS LES REGLAGES, sur toute la largeur, ne changent pas. */
+@media (orientation:landscape) and (max-height:540px){
+  html:not(.c6) #tPanel #tpIn>.tpPanel{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  html:not(.c6) #tPanel #tpIn>.tpPanel>.tp.ligne:not([data-a="figg"]):not([data-a="tous"]){display:grid;grid-template-columns:auto minmax(0,1fr);align-content:center;column-gap:12px;row-gap:4px;min-width:0;padding-right:8px}
+  html:not(.c6) #tPanel #tpIn>.tpPanel>.tp.ligne:not([data-a="figg"]):not([data-a="tous"])>i.pxi{grid-column:1;grid-row:1/3;align-self:center}
+  html:not(.c6) #tPanel #tpIn>.tpPanel>.tp.ligne:not([data-a="figg"]):not([data-a="tous"])>.tpL{grid-column:2;min-width:0}
+  html:not(.c6) #tPanel #tpIn>.tpPanel>.tp.ligne:not([data-a="figg"]):not([data-a="tous"])>:is(.bascule,.valeur){grid-column:2;justify-self:end;margin-left:0}
+}
+
+/* L'ÉCRAN DE FIN COUCHÉ SUR LE PETIT IPHONE (SE, 667 px) : quatre cases de 71 px, « FRENESIE » en 10 px en fait 80 —
+   il mordait sur NIVEAU (« NIVEAUFRENESIE ») et sortait du cadre. Les étiquettes passent en 8 px, sur cette largeur seulement. */
+@media (orientation:landscape) and (max-height:540px) and (max-width:700px){
+  html:not(.c6) #mDead .mStat{padding-left:2px;padding-right:2px}
+  html:not(.c6) #mDead .mStat span{font-size:var(--f0)}
+}
+
+/* LE HOME DU GARAGE EN FRANÇAIS SUR LES IPHONE ÉTROITS : « ACCUEIL » en 7 px fait 49 px dans une touche de 44 à 48 px,
+   son L était mangé par le biais de la touche (« ACCUEI »). Un pixel de moins, en français seulement (HOME tient). */
+@media (max-width:400px),(orientation:landscape) and (max-height:400px){
+  html[lang="fr"]:not(.c6):not(.ux8g) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gHomeBas span{font-size:6px!important}
+}
+
+/* LES NOMS DES CAISSES DANS LA BOUTIQUE DE L'ATELIER, EN ANGLAIS, SUR LES IPHONE ÉTROITS : « THE ENGLISH DAME », « THE TRAILBLAZER »…
+   tombaient sur trois lignes dans une case qui en montre deux (la fin du nom disparaissait). 8 px et 4 px de marge : deux lignes. */
+@media (max-width:400px),(orientation:landscape) and (max-height:400px){
+  html:not(.c6):not(.ux8g) #gBqPan .bqK .bqKn{font-size:8px;line-height:10px;padding:5px 4px 0}
+}
+
+/* L'AUTO-ÉCOLE DEBOUT (SE, 15) : la carte du moniteur (`76px 1fr`) s'élargissait à la ligne la plus longue qui ne se coupe pas
+   (« ENCORE ! NITRO EN L'AIR », en nowrap) : 310 à 340 px de texte dans 230 — la consigne sortait de l'écran (« Sors de la route
+   par le b… ») et la note passait sous PASSER. La colonne du texte ne dépasse plus la carte : la consigne revient à la ligne,
+   la note s'arrête sur ses points de suspension (ce que son CSS prévoyait déjà). */
+html body #coach.v2{grid-template-columns:76px minmax(0,1fr)}
+</style>
