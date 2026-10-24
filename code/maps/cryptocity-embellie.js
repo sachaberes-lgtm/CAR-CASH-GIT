@@ -21,20 +21,24 @@ const CRH={mat:null,matF:null,tours:null,fais:null,D:2400,n:0};
 function crhMat(add){ /* un shader, deux mélanges : l'opaque (couronne) et l'additif (projecteurs) partagent le même programme */
   const k=add?'matF':'mat';if(CRH[k])return CRH[k];
   const U=THREE.UniformsUtils.clone(THREE.UniformsLib.fog);
-  U.uZen=skyU.uJZen;U.uMid=skyU.uJMid;U.uHor=skyU.uJHor;U.uNuit=CRYPTO.uNuit;U.uT=CRYPTO.uT;
+  U.uZen=skyU.uJZen;U.uMid=skyU.uJMid;U.uHor=skyU.uJHor;U.uNuit=CRYPTO.uNuit;U.uT=CRYPTO.uT;U.uSun=CRYPTO.uSun;
   const m=new THREE.ShaderMaterial({uniforms:U,fog:true,side:THREE.DoubleSide,transparent:!!add,depthWrite:!add,blending:add?THREE.AdditiveBlending:THREE.NormalBlending,
-    vertexShader:'attribute vec4 aK;varying vec4 vK;varying float fogDepth;void main(){vK=aK;vec4 mv=modelViewMatrix*vec4(position,1.);fogDepth=-mv.z;gl_Position=projectionMatrix*mv;}',
-    fragmentShader:'uniform vec3 uZen,uMid,uHor,fogColor;uniform float uNuit,uT,fogNear,fogFar;varying vec4 vK;varying float fogDepth;\n'+
+    vertexShader:'attribute vec4 aK;varying vec4 vK;varying vec3 vP;varying float fogDepth;void main(){vK=aK;vP=position;vec4 mv=modelViewMatrix*vec4(position,1.);fogDepth=-mv.z;gl_Position=projectionMatrix*mv;}',
+    fragmentShader:'uniform vec3 uZen,uMid,uHor,uSun,fogColor;uniform float uNuit,uT,fogNear,fogFar;varying vec4 vK;varying vec3 vP;varying float fogDepth;\n'+
       'void main(){float h=vK.x,kd=vK.y,r=vK.z,ac=vK.w,ff=smoothstep(fogNear,fogFar,fogDepth);vec3 c;\n'+
       ' if(kd>2.5){ /* un PROJECTEUR : fondu sur la largeur (ac) et la longueur (h), plus fort à la base, la nuit seulement */\n'+
       '  vec3 hue=r<.34?vec3(1.,.30,.68):r<.67?vec3(.28,.88,1.):vec3(1.,.78,.32);float e=1.-abs(ac);e*=e*e;\n'+
       '  c=hue*e*(1.-h)*(1.-.4*h)*1.1*uNuit*(.8+.2*sin(uT*1.9+r*40.))*(1.-ff*.75);gl_FragColor=vec4(c,1.);return;}\n'+
-      ' if(kd>.5){ /* une BOUGIE : verte (la hausse) ou rouge, plus claire vers le haut ; elle brille la nuit */\n'+
-      '  c=(kd<1.5?vec3(.14,1.,.45):vec3(1.,.17,.24))*(.78+.4*h)*(1.+uNuit*1.2);}\n'+
-      ' else { /* une TOUR : le pied fond dans la brume ; le jour une silhouette bleu froid et la tête éclairée du côté de l\'horizon ; la nuit des bureaux allumés */\n'+
+      ' float roof=step(5.,ac);vec2 nn=roof>.5?vec2(0.,1.):vec2(cos(ac),sin(ac));float fc=roof>.5?.62:.5+.5*dot(nn,normalize(uSun.xz+vec2(1e-4))); /* la FACE : ac = son azimut (9 = le toit), fc = sa part de soleil */\n'+
+      ' if(kd>.5){ /* une BOUGIE : verte (la hausse) ou rouge, plus claire vers le haut, un flanc plus clair que l\'autre ; un peu plus vive la nuit */\n'+
+      '  c=(kd<1.5?vec3(.10,.80,.36):vec3(.95,.15,.22))*(.74+.3*h)*(.84+.3*fc)*(1.+.25*uNuit);}\n'+
+      ' else { /* une TOUR : le pied fond dans la brume ; le jour une silhouette bleu froid, un flanc chaud (le soleil) et un flanc froid, la tête éclairée ; la nuit une masse sombre aux bureaux allumés */\n'+
       '  vec3 day=mix(fogColor,uMid*vec3(.50,.55,.70),smoothstep(0.,.5,h))+uHor*.55*smoothstep(.78,1.,h);\n'+
-      '  vec3 wn=r>.86?vec3(1.,.36,.66):r<.12?vec3(.38,.92,1.):vec3(1.,.74,.42);\n'+
-      '  vec3 nuit=mix(fogColor,vec3(.03,.04,.11),smoothstep(0.,.4,h))+wn*(.15+.7*r)*smoothstep(.04,.35,h)*(1.-.6*smoothstep(.88,1.,h))*1.3;\n'+
+      '  day*=roof>.5?vec3(1.1,1.06,1.):mix(vec3(.70,.80,1.),vec3(1.22,1.1,.88),fc);\n'+
+      '  vec2 tg=vec2(-nn.y,nn.x),cl=vec2(dot(vP.xz,tg)/24.,vP.y/34.),id=floor(cl),f9=fract(cl);float hs=fract(sin(dot(id+r*37.,vec2(12.9898,78.233)))*43758.5453);\n'+
+      '  float win=step(.58,hs)*step(.2,f9.x)*step(f9.x,.8)*step(.25,f9.y)*step(f9.y,.75)*(1.-roof)*smoothstep(.04,.3,h)*(1.-.7*smoothstep(.9,1.,h));\n'+
+      '  float pk=fract(hs*7.13+r*5.7);vec3 wn=r>.88?vec3(1.,.36,.66):r<.1?vec3(.38,.92,1.):pk<.1?vec3(1.,.36,.66):pk<.22?vec3(.38,.92,1.):vec3(1.,.76,.40);\n'+
+      '  vec3 nuit=mix(fogColor,vec3(.03,.04,.11),smoothstep(0.,.4,h))*(.7+.6*fc)+wn*win*(.6+.9*fract(hs*9.3))*1.5;\n'+
       '  c=mix(day,nuit,uNuit);}\n'+
       ' c=mix(c,fogColor,ff);gl_FragColor=vec4(c,1.);}'});
   m.dispose=function(){};
@@ -43,9 +47,11 @@ function crhMat(add){ /* un shader, deux mélanges : l'opaque (couronne) et l'ad
 /* une boîte (4 flancs + le toit) : x,z le centre, y0..y1 la hauteur, w × d la base, rot l'angle ; K = (hauteur 0..1, sorte, hasard, travers) */
 function crhBoite(P,K,x,z,y0,y1,w,d,rot,sorte,r){
   const co=Math.cos(rot),si=Math.sin(rot),hx=w/2,hz=d/2,C=[[-hx,-hz],[hx,-hz],[hx,hz],[-hx,hz]].map(function(q){return [x+q[0]*co-q[1]*si,z+q[0]*si+q[1]*co];});
-  const v=function(c,y,h){P.push(c[0],y,c[1]);K.push(h,sorte,r,0);};
-  for(let i=0;i<4;i++){const a=C[i],b=C[(i+1)%4];v(a,y0,0);v(b,y0,0);v(b,y1,1);v(a,y0,0);v(b,y1,1);v(a,y1,1);}
-  v(C[0],y1,1);v(C[1],y1,1);v(C[2],y1,1);v(C[0],y1,1);v(C[2],y1,1);v(C[3],y1,1);
+  let az=9; /* K.w : l'azimut du flanc (la normale sortante) ; 9 = le toit */
+  const v=function(c,y,h){P.push(c[0],y,c[1]);K.push(h,sorte,r,az);};
+  for(let i=0;i<4;i++){const a=C[i],b=C[(i+1)%4];let nx=b[1]-a[1],nz=a[0]-b[0];if(nx*((a[0]+b[0])/2-x)+nz*((a[1]+b[1])/2-z)<0){nx=-nx;nz=-nz;}az=Math.atan2(nz,nx);
+    v(a,y0,0);v(b,y0,0);v(b,y1,1);v(a,y0,0);v(b,y1,1);v(a,y1,1);}
+  az=9;v(C[0],y1,1);v(C[1],y1,1);v(C[2],y1,1);v(C[0],y1,1);v(C[2],y1,1);v(C[3],y1,1);
 }
 function crhGeo(P,K){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('aK',new THREE.Float32BufferAttribute(K,4));g.boundingSphere=new THREE.Sphere(new THREE.Vector3(),1e5);return g;}
 function crhVide(){
@@ -56,7 +62,7 @@ function crhBatit(){
   const sd=(CRYPTO.sd||0)^0x4B0C0DE5,rr=mulberry32(sd),NT=PAL.b('cryptoHor',110),NB=PAL.b('cryptoBoug',24),NF=PAL.b('cryptoFais',9),D=CRH.D,PI2=6.2832;
   {const P=[],K=[];
     /* la couronne de tours : des azimuts tirés par tranches (aucun trou), une distance de 100 à 500 m de plus que D, des hauteurs en carré (beaucoup de basses, quelques géantes) */
-    for(let i=0;i<NT;i++){const a=(i+rr())/NT*PI2,d=D+(rr()-.35)*520,w=70+rr()*150,hgt=90+Math.pow(rr(),2.2)*620,y0=-260,rot=a+(rr()-.5)*.8,r=rr();
+    for(let i=0;i<NT;i++){const a=(i+rr())/NT*PI2,d=D+(rr()-.35)*520,w=60+rr()*110,hgt=90+Math.pow(rr(),2.2)*420,y0=-260,rot=a+(rr()-.5)*.8,r=rr();
       crhBoite(P,K,Math.sin(a)*d,Math.cos(a)*d,y0,y0+hgt+120,w,w*(.7+rr()*.5),rot,0,r);
       if(rr()<.28){const w2=w*.55,h2=hgt*(.4+rr()*.4);crhBoite(P,K,Math.sin(a+.012)*d,Math.cos(a+.012)*d,y0+hgt+60,y0+hgt+120+h2*.35,w2,w2,rot,0,r);} /* un étage en retrait sur quelques-unes */
     }
