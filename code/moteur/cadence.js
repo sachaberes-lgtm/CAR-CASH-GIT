@@ -24,10 +24,19 @@
    · `cadenceMonte` : calé, l'échelle peut-elle REMONTER ? ANCIEN oui (elle est tenue par `qlMin`, et à 30 i/s il regagne sa netteté) ;
      MOYEN non — sinon elle remplirait les 33 ms de qualité et le travail ne repasserait jamais sous 10 ms : il resterait à 30 pour toujours
      alors qu'il tient 60 un cran plus bas. Lui retourne d'abord à 60, PUIS remonte.
-   Palier RÉCENT : `CAD.ok` = 0 → un test faux par point d'accroche, rien d'autre. Hors course (accueil, garage, écran de fin) : jamais calé.
+   Palier RÉCENT : sur l'ordinateur `CAD.ok` = 0 → un test faux par point d'accroche, rien d'autre ; sur un téléphone, voir CAD30_REC (2026-10-24). Hors course (accueil, garage, écran de fin) : jamais calé.
    Banc : `dbgCadence()` décrit, `dbgCadence(30)` force, `dbgCadence(60)` coupe et fige, `dbgCadence(0)` rend la main. */
-/* (2026-10-14, décision de Sacha 3 h 30) ROUVERT (7 h 50) : le choc balayé de DEBUGGING est dans le jeu ; preuve perf/banc/chef/v13.cjs (trafic niv. 19, satellites au sol et en vol, 163 / 400 / 8 010 km/h, plein axe et de biais : 20/20 chocs à 30 i/s, 0 faux positif ; l'ancien code ratait). Avant : interrupteur fermé, à 20-30 i/s la caisse traversait le trafic. `dbgCadence(30)` force toujours au banc. */PAL.B.cadence30=[1,1,0];PAL.B.cadenceDepart=[1,0,0];PAL.B.cadenceTenue=[1000,2000,2000];PAL.B.cadenceMonte=[1,0,1];
-const CAD={ok:PAL.b('cadence30',0)?1:0,on:false,gel:false,force:0,per:1000/30,ecran:1000/60,tol:1000/120,der:0,rp:0,eMin:99,eN:0,
+/* (2026-10-14, décision de Sacha 3 h 30) ROUVERT (7 h 50) : le choc balayé de DEBUGGING est dans le jeu ; preuve perf/banc/chef/v13.cjs (trafic niv. 19, satellites au sol et en vol, 163 / 400 / 8 010 km/h, plein axe et de biais : 20/20 chocs à 30 i/s, 0 faux positif ; l'ancien code ratait). Avant : interrupteur fermé, à 20-30 i/s la caisse traversait le trafic. `dbgCadence(30)` force toujours au banc. */PAL.B.cadence30=[1,1,0];PAL.B.cadenceDepart=[1,0,0];PAL.B.cadenceTenue=[1000,2000,2000];PAL.B.cadenceMonte=[1,0,0];
+/* ===== LE TÉLÉPHONE RÉCENT QUI CHAUFFE SE CALE AUSSI SUR 30 (2026-10-24, passe perf iPhone — Sacha, sur la question « quand l'iPhone chauffe, il ne tient
+   plus 60 et le jeu saccade entre 17 et 45 i/s » : « 30 i/s stables si chaud ») =====
+   MESURÉ dans l'app sur l'iPhone 13 Pro (CC BANC, puis Sacha à la main, enregistreur de PERF-PC) : froid, 58-60 i/s ; au bout de 3-4 min iOS bride la puce
+   (sonde CPU ×2) et la course tombe à 17-45 i/s, irrégulière, alors même que l'échelle QL est descendue au cran 9-13. Le palier RÉCENT n'avait pas la cadence :
+   il hachait. Désormais, sur un VRAI téléphone (TEL_NATIF) au palier RÉCENT, la même règle que MOYEN : 60 tant qu'il tient ; calé sur 33 ms quand plus d'un
+   quart des images ratent la synchro pendant 2 s ; retour à 60 quand le travail repasse sous 10 ms (essai, puis mur de 60 s doublé). `cadenceMonte` RÉCENT = 0 :
+   calé, l'échelle ne remonte pas — deux fois moins d'images ET pas plus lourdes, la puce refroidit (sur l'ordinateur CAD reste éteint : la colonne 3 n'y joue pas).
+   `?cad30=0` = avant (RÉCENT à 60, haché). Le RÉCENT qui tient 60 ne voit aucune différence (règle d'or). */
+const CAD30_REC=TEL_NATIF&&PAL.n===2&&!/[?&]cad30=0\b/.test(location.search);
+const CAD={ok:(PAL.b('cadence30',0)||CAD30_REC)?1:0,on:false,gel:false,force:0,per:1000/30,ecran:1000/60,tol:1000/120,der:0,rp:0,eMin:99,eN:0,
   w:0,wMax:10,wh:0,calT:0,lT:0,vu:0,crs:false,calme:false,essT:0,murT:0,murD:30000,entrees:0,sorties:0};
 const FPS_CAP=!/[?&]fps=0\b/.test(location.search); /* (2026-10-20) le plafond à 60 i/s — voir le début de loop */
 /* (2026-10-20, Sacha : « beaucoup de freeze et de latence sur la version vercel ») LE PLAFOND EN IMAGES ENTIÈRES. L'horloge cumulée à 1000/60
@@ -68,7 +77,7 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
     else if(CAD.essT>0&&!ess9){CAD.essT=0;CAD.murD=30000;}} // l'essai a tenu 10 s : 60 est acquis, le mur repart de zéro
   else if(CAD.wh>=3||(CAD.murT>0&&now-CAD.murT<CAD.murD)||(QLR.vraiT&&now-QLR.vraiT<20000&&QLR.vrai>13))CAD.calT=now;
   else if(now-CAD.calT>5000){cadPose(false,now);CAD.essT=now;}}
-window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0))?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
+window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0)||CAD30_REC)?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
   const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1),plafond:{actif:FPS_CAP,n:FPS.n,ecran:+FPS.per.toFixed(2)}};}; // (2026-10-20) plafond : une image d'écran sur n (fpsSaute)
 /* ====================== HORS COURSE À 30 i/s — HC (2026-10-23, audit mobile, Sacha : « une version mobile fluide sans que ça baisse trop en qualité ») ======================
    CAD ne cale qu'EN COURSE : un accueil ou un garage laissé ouvert tournait à 60 i/s plein rendu (haute définition comprise) et chauffait comme une
