@@ -214,7 +214,7 @@ function chaHud(fort,monte){
   const ch=avE('avCh');if(!ch)return;if(CHA.n>0)ch.classList.remove('vole','perdu');ch.classList.toggle('on',CHA.n>0);
   if(!fort||!CHA.n)return;
   avE('avPts').textContent=fmtAura(CHA.pts);
-  const x9=avE('avX'),xv=Math.max(1,CHA.x);x9.textContent='×'+xv;x9.style.setProperty('--xc',X_COUL[Math.min(10,xv)]);x9.classList.toggle('feu',xv>=5);
+  const x9=avE('avX'),xv=Math.max(1,CHA.x);x9.textContent='×'+xv;if(document.documentElement.classList.contains('han'))x9.setAttribute('data-hx','×'+xv); /* (2026-10-24, passe perf PC) le texte des calques du × en feu (hud-maitrise.css, hanFeu) */x9.style.setProperty('--xc',X_COUL[Math.min(10,xv)]);x9.classList.toggle('feu',xv>=5);
   if(monte){x9.classList.remove('up');void x9.offsetWidth;x9.classList.add('up');hudReveil('avCh'); /* un × de plus : la plaque se RALLUME (HUD discret) */
     const pal={5:'EN FEU !!',8:'DEMENT !!!',10:'MAX !!!'}[xv]; // (vague 2, H4) plus de « ×3 CHAUD ! » au centre : le × du tableau de bord bat déjà — le couloir ne parle qu'à partir de ×5
     if(pal){if(SONV2)sfx('aura.x'+xv); /* (2026-10-15, Sacha : « écrit ailleurs de toute façon ») plus de « ×5 EN FEU / ×8 DÉMENT / ×10 MAX » au centre : le × de la chaîne bat déjà (.up, .feu) — le son, le flash et la main restent */flashEcran(xv>=8?'rgba(255,57,36,.55)':'rgba(255,94,200,.45)');hap(xv>=8?[14,40,24,40,30]:[12,30,20]);}}
