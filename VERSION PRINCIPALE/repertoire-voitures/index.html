@@ -23,6 +23,43 @@
   button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
   body.vueOn{overflow:hidden}
 
+  /* ---------- LA TABLE (24/10, Léo : « que je puisse les bouger, mettre deux voitures à côté pour les comparer ») ---------- */
+  #bTable{margin-top:14px;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 18px;border-radius:999px;background:var(--encre);color:#fff;font-size:14px;font-weight:600}
+  #table{position:fixed;inset:0;z-index:7;background:#f4f4f2;display:none;flex-direction:column}
+  #table.on{display:flex}
+  #tBarre{flex:none;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:max(12px,env(safe-area-inset-top)) 16px 12px;background:rgba(255,255,255,.85);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 .5px 0 var(--trait)}
+  #tBarre h2{font-size:17px;font-weight:700;margin-right:6px}
+  .tb{height:34px;padding:0 14px;border-radius:999px;background:#fff;font-size:13px;font-weight:600;box-shadow:0 0 0 .5px rgba(0,0,0,.12)}
+  .tb:hover{background:var(--carte)}.tb.fort{background:var(--encre);color:#fff}
+  #tZoom{width:110px}
+  #tAide{font-size:12px;color:var(--gris2);margin-left:auto}
+  #tCorps{flex:1;display:flex;min-height:0}
+  #tBac{flex:none;width:210px;overflow:auto;background:#fff;padding:10px;box-shadow:.5px 0 0 var(--trait)}
+  #tBac h3{font-size:10.5px;font-weight:700;letter-spacing:.14em;margin:12px 4px 6px;display:flex;align-items:center;gap:7px}
+  #tBac h3 i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+  .tPuce{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:4px;border-radius:10px;font-size:12px;font-weight:600;letter-spacing:.02em}
+  .tPuce:hover{background:var(--carte)}.tPuce.pose{opacity:.35}
+  .tPuce canvas{width:54px;aspect-ratio:16/10;border-radius:6px;background:var(--carte);flex:none}
+  #tScroll{flex:1;overflow:auto;position:relative;background-image:radial-gradient(rgba(0,0,0,.13) 1px,transparent 1.2px);background-size:28px 28px;touch-action:none}
+  #tPlan{position:relative;width:6000px;height:4000px;transform-origin:0 0}
+  .tc{position:absolute;border-radius:18px;background:var(--carte);box-shadow:0 2px 6px rgba(0,0,0,.08),0 14px 36px rgba(0,0,0,.08);cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none}
+  .tc.tient{cursor:grabbing;box-shadow:0 8px 20px rgba(0,0,0,.14),0 30px 60px rgba(0,0,0,.16)}
+  .tc.sel{outline:3px solid #0a63d6;outline-offset:2px}
+  .tc canvas{display:block;width:100%;aspect-ratio:16/10;border-radius:18px 18px 0 0;pointer-events:none}
+  .tc .tx{padding:2px 14px 13px;pointer-events:none}
+  .tc .tx b{display:block;font-size:15px;font-weight:700;letter-spacing:.04em}
+  .tc .tx .mo{display:block;margin-top:2px;font-size:12px;opacity:.62}
+  .tc .tx .sp{display:block;margin-top:6px;font-size:12.5px;color:var(--gris);line-height:1.5;font-variant-numeric:tabular-nums}
+  .tc .tx .fa{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:.12em;margin-bottom:5px}
+  .tc .tx .fa i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+  .tc .sup{position:absolute;right:8px;top:8px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.85);font-size:14px;line-height:26px;text-align:center;opacity:0;transition:opacity .15s}
+  .tc:hover .sup{opacity:1}
+  .tc .poi{position:absolute;right:0;bottom:0;width:26px;height:26px;cursor:nwse-resize}
+  .tc .poi::after{content:"";position:absolute;right:7px;bottom:7px;width:9px;height:9px;border-right:2px solid var(--gris2);border-bottom:2px solid var(--gris2)}
+  .tc .meil{color:#168a3a;font-weight:700}
+  #tVide{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);text-align:center;color:var(--gris);font-size:15px;line-height:1.7;pointer-events:none}
+  body.tableOn{overflow:hidden}
+
   /* ---------- LA LISTE ---------- */
   #page{max-width:1240px;margin:0 auto;padding:max(28px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) 60px max(20px,env(safe-area-inset-left))}
   h1{font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
@@ -173,6 +210,7 @@
 <div id="page">
   <h1>Les voitures du jeu</h1>
   <p id="sous">Ouverture du garage…</p>
+  <button id="bTable">Ouvrir la table : bouger, comparer</button>
   <p id="source" class="lit"><i></i><span>Lecture du jeu sur le main…</span></p>
   <section id="chg" hidden>
     <h3>Ce qui a changé dans le jeu <span id="chgDepuis"></span></h3>
@@ -212,6 +250,17 @@
       <div class="nBas"><span>Entrée pour ajouter · Maj + Entrée pour aller à la ligne</span><button id="nAjoute" disabled>Ajouter</button></div>
     </div>
   </div>
+</div>
+<div id="table" aria-hidden="true">
+  <div id="tBarre">
+    <button class="tb" id="tRetour">← Liste</button><h2>La table</h2>
+    <button class="tb fort" id="tCote">Côte à côte</button>
+    <button class="tb" id="tTout">Tout poser</button>
+    <button class="tb" id="tVider">Vider</button>
+    <label style="font-size:12px;color:var(--gris)">zoom <input id="tZoom" type="range" min="25" max="150" value="100"></label>
+    <span id="tAide">glisse une voiture · coin = taille · clic = choisir (2 choisies → Côte à côte)</span>
+  </div>
+  <div id="tCorps"><div id="tBac"></div><div id="tScroll"><div id="tPlan"></div><div id="tVide">La table est vide.<br>Touche une voiture à gauche, ou « Tout poser ».</div></div></div>
 </div>
 <div id="toast"></div>
 
@@ -526,6 +575,98 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now(
 $('source').addEventListener('click',()=>relire(true));
 relire();requestAnimationFrame(boucle);notesLit();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)notesLit();});
+
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   LA TABLE (24/10, Léo : « que je puisse les bouger, mettre deux voitures à côté pour les comparer ; une vue sur tout ce qu'on a ») —
+   un grand plan : on y pose les voitures (bac à gauche), on les glisse, on les agrandit, on en choisit deux et « Côte à côte »
+   les aligne à la même taille avec leurs chiffres ; « Tout poser » étale toute la gamme par famille. Mémorisée par NOM de voiture.
+   --------------------------------------------------------------------------------------------------------------------- */
+const TCLE='cashcar.voitures.table.v1';
+const TB={cartes:[],zoom:1,sel:new Set(),z:10,ok:false};
+try{const s=JSON.parse(localStorage.getItem(TCLE)||'null');if(s&&Array.isArray(s.cartes)){TB.cartes=s.cartes.filter(c=>c&&c.n);TB.zoom=s.zoom||1;}}catch(e){}
+const tSave=()=>{try{localStorage.setItem(TCLE,JSON.stringify({cartes:TB.cartes.map(c=>({n:c.n,x:c.x,y:c.y,w:c.w})),zoom:TB.zoom}));}catch(e){}};
+const idDe=n=>ORDRE.find(i=>JEU[i].n===n);
+function photoHD(i,dest){
+  const b=caisse(i);if(!b)return false;
+  const W=PW*2,H=PH*2,parent=b.parent;if(parent)parent.remove(b);
+  b.rotation.y=-.72;SCV.add(b);const t=b.userData.taille;OMBV.scale.set(t.x*2.05,t.z*1.42,1);OMBV.rotation.set(-Math.PI/2,0,-.72);
+  const rayon=Math.hypot(t.x,t.y,t.z)/2,fv=CAMV.fov*Math.PI/360,fh=Math.atan(Math.tan(fv)*CAMV.aspect);
+  const d=rayon/Math.sin(Math.min(fv,fh))*.8;placeCam(CAMV,d,.3,t.y*.42);SCV.fog.near=d+3;SCV.fog.far=d+26;
+  tailleToile(W,H);R.render(SCV,CAMV);dest.width=W;dest.height=H;dest.getContext('2d').drawImage(R.domElement,0,0,W,H);
+  SCV.remove(b);b.rotation.y=0;if(parent)parent.add(b);return true;}
+const nb=(x,d)=>Number(x).toFixed(d).replace('.',',');
+function tFiche(i,el){
+  const c=G.CARS[i],f=famDe(JEU[i].rar);
+  el.querySelector('.fa').style.setProperty('--c',f.c);el.querySelector('.fa span').textContent=f.n1;
+  el.querySelector('b').textContent=JEU[i].n;el.querySelector('.mo').textContent=modeleDe(i);
+  const L=[JEU[i].prix];if(c.maxKmh)L.push(c.maxKmh+' km/h');if(c.accel)L.push('accél. '+c.accel);
+  const m=[c.l,c.w,c.h].every(v=>typeof v==='number')?nb(c.l,2)+' × '+nb(c.w,2)+' × '+nb(c.h,2)+' m':'';
+  el.querySelector('.sp').innerHTML=L.filter(Boolean).join(' · ')+(m?'<br>'+m:'');}
+function tCree(c){
+  const i=idDe(c.n);if(i==null)return null;
+  const el=document.createElement('div');el.className='tc';el.dataset.n=c.n;
+  el.innerHTML='<canvas></canvas><div class="tx"><span class="fa"><i></i><span></span></span><b></b><i class="mo" style="font-style:normal;display:block"></i><span class="sp"></span></div><span class="sup" title="Retirer">✕</span><span class="poi"></span>';
+  el.querySelector('.mo').className='mo';tFiche(i,el);
+  if(!photoHD(i,el.querySelector('canvas')))el.querySelector('canvas').getContext('2d');
+  tPlace(c,el);$('tPlan').appendChild(el);c.el=el;
+  const dr=e=>{if(e.target.classList.contains('sup')||e.target.classList.contains('poi'))return;
+    e.preventDefault();el.setPointerCapture(e.pointerId);el.style.zIndex=++TB.z;el.classList.add('tient');
+    const x0=e.clientX,y0=e.clientY,cx=c.x,cy=c.y;let bouge=false;
+    const mv=ev=>{const dx=(ev.clientX-x0)/TB.zoom,dy=(ev.clientY-y0)/TB.zoom;if(Math.abs(dx)+Math.abs(dy)>3)bouge=true;c.x=Math.max(0,cx+dx);c.y=Math.max(0,cy+dy);tPlace(c,el);};
+    const up=()=>{el.removeEventListener('pointermove',mv);el.removeEventListener('pointerup',up);el.removeEventListener('pointercancel',up);el.classList.remove('tient');
+      if(!bouge){if(e.shiftKey||TB.sel.size<2||TB.sel.has(c.n)){TB.sel.has(c.n)?TB.sel.delete(c.n):TB.sel.add(c.n);}else{TB.sel.clear();TB.sel.add(c.n);}tSel();}tSave();};
+    el.addEventListener('pointermove',mv);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);};
+  el.addEventListener('pointerdown',dr);
+  el.querySelector('.sup').onclick=ev=>{ev.stopPropagation();tRetire(c.n);};
+  const po=el.querySelector('.poi');
+  po.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();po.setPointerCapture(e.pointerId);const x0=e.clientX,w0=c.w;
+    const mv=ev=>{c.w=Math.max(160,Math.min(1400,w0+(ev.clientX-x0)/TB.zoom));tPlace(c,el);};
+    const up=()=>{po.removeEventListener('pointermove',mv);po.removeEventListener('pointerup',up);tSave();};
+    po.addEventListener('pointermove',mv);po.addEventListener('pointerup',up);});
+  return el;}
+function tPlace(c,el){el.style.left=c.x+'px';el.style.top=c.y+'px';el.style.width=c.w+'px';el.style.fontSize=Math.max(.8,c.w/300)+'em';}
+function tSel(){for(const c of TB.cartes)if(c.el)c.el.classList.toggle('sel',TB.sel.has(c.n));}
+function tVideMaj(){$('tVide').style.display=TB.cartes.length?'none':'';
+  for(const b of $('tBac').querySelectorAll('.tPuce'))b.classList.toggle('pose',TB.cartes.some(c=>c.n===b.dataset.n));}
+function tAjoute(n,x,y,w){
+  if(TB.cartes.some(c=>c.n===n))return;
+  const sc=$('tScroll'),c={n,w:w||300,x:x!=null?x:sc.scrollLeft/TB.zoom+60+(TB.cartes.length%6)*36,y:y!=null?y:sc.scrollTop/TB.zoom+40+(TB.cartes.length%6)*36};
+  if(!tCree(c))return;TB.cartes.push(c);tVideMaj();tSave();}
+function tRetire(n){const k=TB.cartes.findIndex(c=>c.n===n);if(k<0)return;if(TB.cartes[k].el)TB.cartes[k].el.remove();TB.cartes.splice(k,1);TB.sel.delete(n);tVideMaj();tSave();}
+function tBacRempli(){
+  const bac=$('tBac');bac.innerHTML='';
+  for(const f of FAMS){const h=document.createElement('h3');h.style.setProperty('--c',f.c);h.innerHTML='<i></i><span></span>';h.querySelector('span').textContent=f.n;bac.appendChild(h);
+    for(const i of f.L){const b=document.createElement('button');b.className='tPuce';b.dataset.n=JEU[i].n;
+      b.innerHTML='<canvas width="110" height="69"></canvas><span></span>';b.querySelector('span').textContent=JEU[i].n;
+      const v=VIG.get(i);if(v&&v.cv.width)try{b.querySelector('canvas').getContext('2d').drawImage(v.cv,0,0,110,69);}catch(e){}
+      b.onclick=()=>{if(TB.cartes.some(c=>c.n===JEU[i].n))tRetire(JEU[i].n);else tAjoute(JEU[i].n);};bac.appendChild(b);}}}
+function tReconstruit(){
+  $('tPlan').innerHTML='';const garde=TB.cartes.filter(c=>idDe(c.n)!=null);TB.cartes=[];
+  for(const c of garde){if(tCree(c))TB.cartes.push(c);}tBacRempli();tVideMaj();tSel();}
+function tZoomer(z){TB.zoom=z;$('tPlan').style.transform='scale('+z+')';$('tZoom').value=Math.round(z*100);}
+function tCote(){
+  let L=TB.cartes.filter(c=>TB.sel.has(c.n));if(L.length<2)L=TB.cartes.slice(-2);
+  if(L.length<2){toast('Pose au moins deux voitures sur la table');return;}
+  L.sort((a,b)=>a.x-b.x);const w=Math.max(...L.map(c=>c.w)),y=Math.min(...L.map(c=>c.y)),x0=L[0].x,sp=24;
+  L.forEach((c,k)=>{c.w=w;c.x=x0+k*(w+sp);c.y=y;tPlace(c,c.el);c.el.style.zIndex=++TB.z;});
+  // le meilleur chiffre de chaque ligne en vert
+  const cmp=(cle,haut)=>{const v=L.map(c=>G.CARS[idDe(c.n)][cle]);if(v.some(x=>typeof x!=='number'))return;};
+  tSave();const sc=$('tScroll');sc.scrollTo({left:Math.max(0,(x0-40)*TB.zoom),top:Math.max(0,(y-40)*TB.zoom),behavior:'smooth'});}
+function tTout(){
+  const w=250,sp=18,per=Math.max(3,Math.floor(($('tScroll').clientWidth/TB.zoom-60)/(w+sp)));let y=30;
+  for(const f of FAMS){let k=0;for(const i of f.L){const n=JEU[i].n;let c=TB.cartes.find(q=>q.n===n);
+      if(!c){c={n,w,x:0,y:0};if(!tCree(c))continue;TB.cartes.push(c);}
+      c.w=w;c.x=30+(k%per)*(w+sp);c.y=y+Math.floor(k/per)*(w*.62+95);tPlace(c,c.el);k++;}
+    y+=Math.ceil(k/per)*(w*.62+95)+40;}
+  tVideMaj();tSave();$('tScroll').scrollTo({left:0,top:0});}
+function tOuvre(){if(!G||!ORDRE.length){toast('Le jeu se charge encore…');return;}
+  document.body.classList.add('tableOn');$('table').classList.add('on');if(!TB.ok){TB.ok=true;tZoomer(TB.zoom);tReconstruit();}else{tBacRempli();tVideMaj();}}
+function tFerme(){document.body.classList.remove('tableOn');$('table').classList.remove('on');}
+$('bTable').onclick=tOuvre;$('tRetour').onclick=tFerme;$('tCote').onclick=tCote;$('tTout').onclick=tTout;
+$('tVider').onclick=()=>{for(const c of TB.cartes)if(c.el)c.el.remove();TB.cartes=[];TB.sel.clear();tVideMaj();tSave();};
+$('tZoom').oninput=e=>{tZoomer(e.target.value/100);tSave();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('table').classList.contains('on')){e.stopPropagation();tFerme();}},true);
 
 // console : l'état de la page (pour les bancs)
 window.dbgVoitures={etat:()=>({source:{nom:SOURCE.nom,sha:SOURCE.sha.slice(0,8),msg:SOURCE.msg},n:ORDRE.length,familles:FAMS.map(f=>f.id+':'+f.L.length),
