@@ -78,6 +78,8 @@ const ENG_V8=new THREE.Vector3();
 const PCF_HAN_SUIT=document.documentElement.classList.contains('han');
 function pcfHanPlace(el,l9,t9,o){const v9=l9+' '+t9;if(o._hv===v9&&el.style.left==='0px')return;o._hv=v9;
   if(el.style.left!=='0px')el.style.left='0px';if(el.style.top!=='0px')el.style.top='0px';el.style.translate=v9;}
+/* banc (dev) : `dbgPcfSuit(el,'412px','180px')` pose un élément comme popSuit / engBigSuit le feraient (translate sous html.han, left/top sinon) */
+window.dbgPcfSuit=function(el,l9,t9){if(PCF_HAN_SUIT)pcfHanPlace(el,l9,t9,{});else{el.style.left=l9;el.style.top=t9;}return PCF_HAN_SUIT?'translate':'left/top';};
 function engBigSuit(){ // le moteur 3D de la carte : OÙ le recoller dans l'image, à quelle taille, avec quelle opacité (lu par engQuadDraw)
   if(!engBig.on){ENG_Q.op=0;return;}
   const n=performance.now(),t=n-engBig.t0,RM=REDUCED_MOTION;
