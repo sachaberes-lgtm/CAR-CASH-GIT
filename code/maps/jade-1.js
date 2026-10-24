@@ -163,6 +163,8 @@ function jadeKit(){const P=[],C=[];
 /* (v7, Léo : « pas Minecraft » → « des cubes minuscules ») VX 3,5 → 1,75 m sur l'ordi (3,5 m sur un vrai téléphone), la muraille et l'arche
    5 → 2,5 m ; un 4e niveau de détail (1,75 · 3,5 · 7 · 14 m) garde le coût : les petits cubes ne se dessinent que de près. */
 const VX=TEL_NATIF?3.5:1.75,VXG=TEL_NATIF?5:2.5;
+/* (2026-10-24, Sacha : « réduire la map jade sur mobile : moins de montagnes, plus d'animaux ni de nuages, et le reste ») JADE_SOBRE : sur téléphone, la vallée est allégée — montagnes ÷2, ni singes, ni dauphins, ni grues, ni nuages, ni rayons, ni lucioles, moins de rochers flottants, de cascades et de brume. `?jadeplein=1` rend la vallée d'avant. L'ordi n'est pas touché. */
+const JADE_SOBRE=IS_MOBILE&&!/[?&]jadeplein=1\b/.test(location.search);
 const JADE_NUVOX=!/[?&]nuvox=0\b/.test(location.search); // (v13) les volutes en cubes — `?nuvox=0` : les panneaux en relief de la v9
  // (v10) les montagnes en VITRAIL (voir « LE VITRAIL ») — (v11, Léo : « laisse tomber, reviens sur les pixels, c'était plus joli ») : seulement avec `?vitrail=1`
 const JM={roche:1,rouille:2,herbe:3,feuille:4,bois:5,laque:6,tuile:7,or:8,pierre:9};

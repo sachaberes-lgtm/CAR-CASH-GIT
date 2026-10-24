@@ -37,7 +37,7 @@ const JSG={S:{},node:new THREE.Group(),fab:null,pret:false,chaud:false,cle:null,
   F:{p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),
   m:new THREE.Matrix4(),cib:new THREE.Vector3(),vel:new THREE.Vector3(),p0:new THREE.Vector3()};
 JSG.node.visible=false;scene.add(JSG.node);
-function jsgActif(){return !!(started&&!gameOver&&JADE.root&&LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!TUTO.on);}
+function jsgActif(){return !JADE_SOBRE&&!!(started&&!gameOver&&JADE.root&&LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!TUTO.on);}
 function jsgCache(){if(JSG.cur){JSG.cur.o.nd.visible=false;JSG.cur=null;}JSG.node.visible=false;}
 function jsgS(){ // où est la caisse sur la piste (au sol : s ; en vol : la dalle la plus proche) — null sans route sous elle
   if(mode==='drive')return s;const P=carGroup.position,bi=dalleProche(P.x,P.y,P.z,2,1e9,tryLand._bi);if(bi<0||bi>=NP)return null;
@@ -233,7 +233,7 @@ const JDM={pret:false,chaud:false,node:new THREE.Group(),D:[],mode:null,part:0,t
   cv:new THREE.Vector3(),c0:new THREE.Vector3(),H:new THREE.Vector3(0,0,1),v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),Xr:new THREE.Vector3(),
   X:new THREE.Vector3(),Y:new THREE.Vector3(),Z:new THREE.Vector3(),UP:new THREE.Vector3(0,1,0),AX:new THREE.Vector3(1,0,0),m:new THREE.Matrix4(),q:new THREE.Quaternion()};
 JDM.node.visible=false;scene.add(JDM.node);
-function jdmActif(){return !!(started&&!gameOver&&jadeEauOk()&&!TUTO.on);}
+function jdmActif(){return !JADE_SOBRE&&!!(started&&!gameOver&&jadeEauOk()&&!TUTO.on);}
 function jdmFabrique(){ // les trois dauphins (le modèle est bâti au chargement de creatures/dauphin.js) — une fois
   if(typeof mkDauphin!=='function'||typeof DOL_GEO==='undefined'||!DOL_GEO)return false;
   for(let i=0;i<3;i++){const b=DOL_BANC[i]||DOL_BANC[0],d=mkDauphin();d.visible=false;d.frustumCulled=false;JDM.node.add(d);

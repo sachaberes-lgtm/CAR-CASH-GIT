@@ -78,6 +78,7 @@ maps/glacier-verglas.js              # glacier : verglas, retombée des tremplin
 maps/glacier-embelli.js              # glacier embelli : crêtes lointaines en trois plans, panaches de neige
 maps/grottes-1.js                    # LES PROFONDEURS : route, surface à facettes
 maps/grottes-2.js                    # grottes : décors, lumières, rendu, construction, ambiances
+maps/grottes-embellies.js            # grottes : les cristaux à teintes (rose, violet, azur, or) dans les parois
 maps/ville-v3.js                     # la ville v3 (canyon du village de la pluie), panneaux holographiques
 maps/cryptocity.js                   # CRYPTOCITY : plan, matières, réclames
 maps/cryptocity-taureau.js           # cryptocity : le taureau, objets du ciel
@@ -238,5 +239,6 @@ moteur/boucle-6-hud.js               # loop() — HUD, jauge de progression, fin
 moteur/init.js                       # init, intro du studio 1.61
 moteur/intro-161.js                  # l'intro du studio 1.61, version console : blips, noir, gros logo qui casse l'écran
 moteur/mobile-tactile.js             # mobile, tactile, pause, PWA
+moteur/enregistreur-perf.js          # l'enregistreur de parties (?perfrec=1) : chaque image de course notée par phase (sol, vol, figure), relue par dbgPerfRec()
 moteur/desktop-banc.js               # ⚙ du desktop, le banc du téléphone, démarrage (requestAnimationFrame), fin du jeu
 page/fin.html                        # </script></body></html>

@@ -191,7 +191,7 @@ const RICH_FS_FLEUR=['uniform vec3 uSunDir;uniform vec3 uSunCol;uniform vec3 uSk
   ' float bo=1.-abs(dot(N,V));c+=vec3(1.,.93,.97)*pow(bo,2.4)*.42+uSunCol*pow(max(dot(N,normalize(L+V)),0.),36.)*.22;', // le liseré blanc rosé, le lustre de la soie
   ' float a=vC.a*(.78+.22*bo);gl_FragColor=vec4(c*a,a);}'].join('\n');
  // prémultiplié : ce qui couvre + ce qui luit (le fantôme brille un peu)
-function richMat(fs,u,defs,side){const U=Object.assign({},RICH_U,u||{});return new THREE.ShaderMaterial({uniforms:U,vertexShader:RICH_VS,fragmentShader:fs,defines:defs||{},side:side||THREE.FrontSide,fog:false,lights:false});}
+function richMat(fs,u,defs,side){const U=Object.assign({},RICH_U,u||{});return new THREE.ShaderMaterial({uniforms:U,vertexShader:RICH_VS,fragmentShader:fs,defines:defs||{},side:side||THREE.FrontSide,fog:false,lights:false,extensions:{derivatives:true}});} /* (24/10, relecture) dFdx/dFdy (le relief de bosse) exigent en WebGL1 la directive des dérivées : three ne la pose que si on la demande, et l'ignore en WebGL2 (voir le ciel, scene-ciel.js) */
 
 // ---- LES DESSINS (canvas) ----
 function richCv(w,h,fn){const cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d');fn(x,w,h);const t=new THREE.CanvasTexture(cv);t.anisotropy=4;return t;}

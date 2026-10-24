@@ -138,6 +138,15 @@ html body.touch.play.figVol.figDir #fhLeg{display:flex;flex-direction:column;ali
 #fh .fhRec{font-family:var(--pix);font-size:var(--fhCh);letter-spacing:1px;line-height:1;text-decoration:none;color:var(--fhE);background:var(--fh0);padding:5px 6px 4px;clip-path:var(--fhCoupe);visibility:hidden}
 #fh .fhRec.on{visibility:visible;animation:fhRecBat .5s steps(2) infinite}
 @keyframes fhRecBat{50%{background:#fff}}
+/* ===== LE « RECORD » DES FIGURES EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») =====
+   iPhone 13 Pro mesuré : 58,0 i/s en course contre 59,7 i/s animations figées (WebKit repeint les fonds animés à chaque image).
+   fhRecBat est une bascule franche (steps(2)) du fond var(--fh0) au blanc OPAQUE : le blanc est posé une fois sur un pseudo-élément (sous le
+   texte : .fhRec isolé, pseudo en z-index −1, coupé par le même clip-path) dont seule l'opacité bascule. Écart attendu : 0. */
+html.han #fh .fhRec.on{animation:none;position:relative;isolation:isolate}
+html.han #fh .fhRec.on::before{content:'';position:absolute;left:0;top:0;right:0;bottom:0;z-index:-1;background:#fff;opacity:0;pointer-events:none;
+  will-change:opacity;animation:hanFhRecBat .5s steps(2) infinite}
+@keyframes hanFhRecBat{50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){html.han #fh .fhRec.on::before{animation:none!important}}
 .fhL{opacity:.62;transition:opacity var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
 .fhL.arme{opacity:1;transform:translateX(-8px);background:color-mix(in srgb,var(--fc) 28%,var(--fhE));
   box-shadow:inset 3px 0 0 var(--fc),inset 0 0 0 2px var(--fc),0 0 16px color-mix(in srgb,var(--fc) 55%,transparent)}

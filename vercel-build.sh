@@ -46,6 +46,9 @@ rm -f .vercel-static/jouer/assets/audio/music/direct/french-touch.html .vercel-s
 # …et ce qui dépend des musiques de POUCE BLEU (musique-moteur.json) est calculé à chaque build, avec la règle du jeu : les dossiers de paliers
 # des morceaux rangés « bleu », les générateurs que les 👍 rejouent, les échantillons vrais/ du rejeu (outils/vrais-jeu.json, tant que sa preuve
 # colle). AVANT publie-allege (l'empreinte de la preuve lit les fichiers tels que le dépôt les a).
+# (2026-10-24, passe perf) LA BANQUE DE SONS EN DEUX MOITIÉS : le 1er lancement ne télécharge d'abord que les sons du début (0,8 Mo sur 7,7) ; le reste arrive
+# après load (sfx.js, CCSON.ajoute). La copie publiée seulement ; en cas d'échec la banque reste entière (outils/scinde-banque.cjs, preuve octet pour octet).
+node outils/scinde-banque.cjs .vercel-static/jouer || echo "⚠ scinde-banque : échec, la banque part entière"
 node outils/publie-audio.cjs .vercel-static/jouer || echo "⚠ publie-audio : échec, la copie part avec tous ses sons"
 # (2026-10-18, Sacha : « retirer les commentaires de la copie mise en ligne » + « les outils de test dbg… ») LA COPIE ALLÉGÉE : la copie
 # publiée perd ses commentaires (index.html 7,6 → 4,5 Mo, ≈ −1 Mo téléchargé par joueur) et les crochets window.dbgX que rien de publié
