@@ -3,6 +3,64 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE PALIER DE L'IPHONE LU SUR SON ÉCRAN — MESURÉ DANS L'APP, SUR LE VRAI TÉLÉPHONE (2026-10-24, v873, session Optimisation mobile — Sacha : « grosse session d'optimisation du jeu, il faut que la version mobile soit parfaite » · « je veux que tu fasses l'app »)
+- **LE BANC DANS L'APP** (`optim-mobile/.banc-optim/`, non suivi) : « CC BANC » (`com.sachaberes.carcash.banc`) = la copie de l'app de `sortie-ios/appstore` (Capacitor 8),
+  www/ refait par son `preparer-www.js --essai` sur n'importe quel VERSION PRINCIPALE, installée À CÔTÉ de CASH CAR (la vraie app et la sauvegarde de Sacha ne sont pas touchées).
+  `banc-app.js`, posé juste après natif.js : au lancement il demande un scénario au Mac (`chef.mjs`, port 8931, par le partage de connexion), recharge avec ses paramètres
+  d'adresse (`history`/`location.replace` : `?carte=`, `?palier=`…), passe l'intro, JOUER, `dbgAuto(1,0,{nit:1})`, relève CHAQUE image (intervalle de rAF + temps JS des rappels)
+  et `dbgPerf`/`dbgQual`/`dbgCout`/`getAnimations()`, puis renvoie le bilan — SANS inspecteur branché. Le chef ferme l'app après chaque course et attend que la batterie
+  redescende (`pymobiledevice3 diagnostics battery`, en USB). L'inspecteur WebKit de l'app passe par `pymobiledevice3 webinspector cdp` (pont CDP : Runtime, Profiler, Tracing).
+  ⚠ Le téléphone CHAUFFE (alerte Température vers 16 h : jeu + charge + partage de connexion) : iOS bride alors processeur et puce graphique ; mesurer à < 37 °C.
+- **LE DÉFAUT** : le banc CPU de PAL (le meilleur de 4 tours, au démarrage) rend 16 à 22 ms sur l'iPhone 13 Pro au 1er lancement (le compilateur de JavaScript n'est pas
+  encore passé, le téléphone chaud), 3 à 8 ms une fois chaud → classé ANCIEN et RETENU 7 jours (`cashcarPalier`) : cadence 30 dès le départ, échelle QL au cran 4-5, DPR 1,25.
+  Le même iPhone tombait ANCIEN ou RÉCENT d'un lancement à l'autre. Et WKWebView comme Safari 26 écrivent « iPhone OS 18_7 » sous iOS 26 : la règle « iOS 26 → au moins
+  MOYEN » ne jouait jamais. (L'app du 14-19/10, branches iphone-perf/iphone-max, recevait le modèle exact de Swift — `window.__ccAppareil` — ce n'est plus dans l'app App Store.)
+- **LA CORRECTION** (`PAL`, `code/rendu/palier-appareil.js`) : la taille d'écran de l'iPhone (points, portrait) et sa densité désignent sa génération — RÉCENT : 360×780,
+  390×844, 428×926, 393×852, 430×932, 402×874, 440×956, 420×912 (×3) et toute taille inconnue ×3 de 390 et plus ; MOYEN : 414×896 (XR, 11, XS Max, 11 Pro Max) ;
+  ANCIEN : 320×568, 414×736 ×3 ; douteux (375×667 ×2, 375×812 ×3, Zoom de l'écran) : le banc comme avant. « Version/26 » de Safari relève `P.ios`. `?palier=` d'abord,
+  l'ordinateur inchangé, le palier 2 lui-même inchangé (règle d'or). `?palecran=0` = l'ancien choix ; `dbgPalier().src` dit « écran 390×844 ×3 ».
+- **MESURÉ** (CC BANC, iPhone 13 Pro, volcan, 35 s de course pilotée nitro, batterie 27-36 °C) : AVANT (classé ANCIEN) 33,6 images calculées/s (cadence 30), DPR 1,25, cran 4-5 ;
+  APRÈS (« écran 390×844 ×3 ») 58,4 à 59,3 i/s, DPR 1,5, cran 0, JS méd 2 ms / p90 3 ms par image, 14-16 % du temps en JS ; nuages midi 57,0 i/s. DPR 0,5 forcé : 59,6
+  (la puce graphique ne limite pas). Démarrage de l'app : prêt (`__gameReady`) à 1,6-2,4 s d'un lancement chaud, 9,7 s au 1er lancement après installation.
+- **CE QUI RESTE AU RÉCENT** (mesuré, pas touché ici) : 23 à 63 images > 25 ms par 35 s de course viennent des ANIMATIONS CSS du HUD (toutes figées : 9 ; figer
+  seulement la zone nitro OU seulement le reste suffit presque : 10-11) — la conversion des animations hors nitro est chez PERF-PC ; la zone nitro (#tNitro : 181 repeints
+  en 8 s de trace, le plus repeint après la 3D ; rayures `nbRaye` en background-position, bout `nbBout`, `hmSec`) reste à faire. Les gerbes `pxBurst` (12 à la fois).
+
+## LES TUILES EN VERRE DU MENU CIEL, GARAGE BLEU / BUY ROUGE (2026-10-24 soir, Léo : « j'aime bien tuiles arrondies » · « le bleu sur garage et le rouge sur BUY » · « inverse le cyan et le rose magenta » · « mets ces bulles-là »)
+- **POURQUOI** : la copine de Léo trouvait les trois boutons penchés (parallélogramme) « trop Claude ». Trois familles de formes essayées (A tuiles arrondies, B formes par fonction : arche · panier · pilule, C lentilles ovales) ; Léo garde A. Le verre-loupe de v858, retiré par Sacha en v863, revient ici sous la forme de TUILES ARRONDIES (20 px, plus de pente) : bloc `<style id="tuilesVerre">` dans `code/css/boutons-flottants.css`, après celui de la lueur de la boutique.
+- **COULEURS** : GARAGE bleu #2f80ff, BUY rouge #ff3347, SETTINGS or (inchangé) — via `--nc` sur `.mHubPorte` / `.mOffres`, les icônes suivent. Le badge NEW reste rose.
+- **LA BANDELETTE sous CASH CAR** : cyan · magenta · or (avant : rose · cyan · or, cyan et rose échangés). Elle ne lit PAS `--livree` : son dégradé est dans `#mHome .mTitle::after`, repris dans le même bloc.
+- Vérifié (Chrome, portrait 390×844 et paysage 844×390, vrais touchers) : GARAGE, BUY et SETTINGS s'ouvrent, aucune erreur JS. Le flou de fond (`backdrop-filter`, 5 px) est à mesurer sur un vrai iPhone (la 3D tourne derrière). Pas de paramètre d'URL pour revenir aux anciens boutons : retirer le bloc `tuilesVerre`.
+
+## LA PASSE PERF DU 24/10, 3e TOUR — LA GROTTE ET LES DUNES BÂTIES D'AVANCE SANS À-COUPS (2026-10-24, session PERF — Léo : « observe tous les changements qui ont été faits depuis et relance une petite séance de révision… une meilleure optimisation, le jeu doit tourner sans bugger sur iPhone ou Android, absolument pas que le jeu devienne de moindre qualité ») — v869
+- **PORTÉ SUR LE MAIN MODULAIRE** : ce travail avait été fait le 19/10 sur l'ancien `index.html` d'un seul tenant et n'avait jamais été poussé ; le main a depuis
+  reçu la passe PERF du 24/10 (canyon d'avance, ciel des reflets, routes en tranches, REJOUER sans gel) et le découpage en `code/` : les changements sont refaits
+  morceau par morceau (`code/maps/grottes-*.js`, `dunes-1.js`, `nuages-v8.js`, `nuages-vitrail.js`, `code/moteur/piste-prebati.js`, `depart-avance.js`, `code/interface/`), image identique.
+- **LE TOUR DE MESURE** (banc `~/Downloads/CAR-bancs/perf-3/` : Chrome sans fenêtre en iPhone 390 × 844 ×3, NETTE, processeur ×4, `?palier=2&garde=1`, les 12 maps à la file,
+  portails traversés pour de vrai — `dbgClassique` + `dbgPortail(2600)`) : 0 programme compilé en course sur les 12 maps (la matière des tremplins du glacier, qui compilait
+  à la 1re entrée le 19/10, est revenue d'elle-même au programme du verglas). Ce qui figeait encore :
+  1. **LA GROTTE** — son pré-bâti (3 à 5 s de calcul ×4, 3 à 10 × une autre map) se faisait par blocs de 40-150 ms (le maillage d'un tronçon, huit creusements d'un trait) :
+     8 à 15 images de 100-283 ms pendant le vol qui la PRÉCÈDE ; et derrière une map lourde (la jade) elle n'était pas finie au portail → le reste d'un trait, 0,6 à 1 s figées.
+  2. **LES DUNES** — le monde (`dnMondeCalc` : fond, relief fin, ombre) se calculait d'un bloc au 1er JOUER (0,5 à 1 s figées ×4) ou partait au travailleur APRÈS le passage.
+  3. **LES NUAGES** — la toile des cubes fantômes (8 000 cubes × 12 `toHalfFloat`) se remplissait sur le fil principal à l'arrivée de chaque nuage (~10 ms ×4 par départ).
+  4. **LE JOUER D'APRÈS PARTIE** — la caisse était bâtie deux fois dans la même image (closeGarage, puis resetGame : 25-30 ms ×4 chacune).
+- **CE QUI CHANGE** : `grtMailleNetsG`/`grtTronconG` (le maillage d'un tronçon en générateur à rendez-vous `JF.lim` ; `grtMailleNets`/`grtTroncon` restent d'un trait pour les tranches
+  en course) et un rendez-vous après CHAQUE creusement dans `buildGrotteG` ; l'URGENCE dans `prebTick` (la map d'en face pas finie à moins de 10 s du portail : tranche de 9 ms,
+  à moins de 5 s : 14 ms ; sinon 3-6) ; LES DUNES D'AVANCE (`prebDunes`, `buildDunes(seed,pre)` : la préparation sur la route fantôme — le module DN échangé EN ENTIER (`prebObj`),
+  seules les clés CHANGÉES gardées —, le calcul du monde chez le travailleur des dunes, attendu image après image, posé au départ ; pas arrivé à temps ou `?dnw=0` : comme avant) ;
+  `nufDemi` (la même conversion en demi-flottants que `THREE.DataUtils.toHalfFloat`, faite dans l'ouvrier des nuages ; `nuage8Async(…,dyF)`) ; `closeGarage(resetSuit)`.
+- **VÉRIFIÉ** : `nufDemi` contre `toHalfFloat` sur 6 millions de valeurs (aléatoires de 2⁻⁴⁰ à 2⁴⁰, zéros, infinis, NaN, sous-normaux, trois décalages) : 0 bit de différence ;
+  le monde des dunes (`tdn.py` : fond, relief, ombre, échantillons, vent, lèvres, raccourcis, monuments, pyramides, tirage du décor, uniformes de la matière) identique au bit près
+  au JOUER et au REJOUER contre le main ; fumée déterministe (`tsmoke.py`) debout et couché — JOUER, REJOUER, JOUER de l'atelier : 0 erreur, la même caisse (5 pièces, 18 947 sommets).
+- **MESURÉ** (×4, A/B alterné, charge 2 à 7 ; plus tard la machine est montée à 14-37 : ces manches-là sont jetées) : pire image du JOUER des dunes **1 000 → 408 ms** (construction
+  722/523 → 119/104 ms), du REJOUER 458 → 225 ; l'approche de la grotte après la jade — excès au-delà de 50 ms **7 402 / 1 518 → 618 / 317 ms**, images > 100 ms 29 / 10 → 3 / 2 ;
+  la jade qui la précède 2 images > 100 ms → 1. Les nuages : un gain réel mais petit (~10 ms de fil principal par départ), dans le bruit des mesures.
+- ⚠ **LE BANC** : un `http.server` lancé AVANT un `git checkout` sert un dossier supprimé (page qui ne démarre jamais, sans erreur) — relancer ses serveurs ; la référence d'un A/B se
+  tire du MÊME commit que la branche (une copie plus récente change l'écran de mort : le MENU y ouvre le garage, plus l'accueil) ; mesurer quand `uptime` < 8.
+- **CE QUI RESTE** : les NUAGES ne sont pas bâtis d'avance (`buildClouds` ~45 ms ×4 au JOUER et au portail des nuages) ; la VILLE (`buildVoxCity` ~35 ms) ; `chauffeRendu` au portail
+  (40-105 ms, voulu) ; la Porte de jade (~50 ms) ; la grotte elle-même (4 s ×4 de calcul : le vrai remède serait de la mailler dans un ouvrier). À départager sur un VRAI iPhone :
+  `…/jouer/?banc=1&refaire=1`.
+
 ## LES ANCIENS BOUTONS DU MENU REMIS (2026-10-24, Sacha : « dans l'écran principal il y a des nouveaux boutons horribles, remets les anciens »)
 - Le bloc « verre en loupe » de v858 (GARAGE · BUY · SETTINGS en lentilles transparentes) est retiré de `code/css/boutons-flottants.css` : les touches reprennent leur look d'avant. La lueur d'angle de la BOUTIQUE du garage (même v858) reste.
 

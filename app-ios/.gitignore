@@ -1,0 +1,8 @@
+# CASH CAR iOS — ce qui se refait tout seul
+node_modules/
+# entrées de @capacitor/assets, refaites par generer-icones.js depuis ressources/
+/assets/
+# l'archive App Store et son .ipa, refaits par archiver.sh
+/build/
+/fiche/captures/
+/fiche/captures-t8/
