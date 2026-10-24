@@ -135,12 +135,20 @@ function nuFantFS(){return ['#include <common>','#include <fog_pars_fragment>',n
   '  float a=vQ.y*uFant*uFondu*(1.-smoothstep(.88,1.,ed));',
   '#ifdef NUAGE8_INST','  a*=smoothstep(uNearF.x,uNearF.y,length(vW-cameraPosition));','#endif',
   '  if(a<.004)discard;gl_FragColor=vec4(col,a);','#include <fog_fragment>','}'].join('\n');}
+/* (2026-10-24, passe perf 3e tour) LES FANTÔMES CONVERTIS DANS LE TRAVAILLEUR : la toile des cubes fantômes (3 texels demi-précision par cube,
+   NUF_TEX) se remplissait sur le fil principal à l'arrivée de chaque nuage — ~8 000 cubes × 12 conversions (toHalfFloat de three) : plusieurs
+   nuages arrivés dans la même image la figeaient. nufDemi fait la MÊME conversion (la même formule que THREE.DataUtils.toHalfFloat de r128, bit à
+   bit, vérifié sur 6 millions de valeurs) dans l'ouvrier des nuages, qui l'envoie avec le calcul (F.D, pour le décalage F.Dy) ; sans ouvrier, ou
+   pour un autre décalage, nuFantGeo la refait ici comme avant. */
+function nufDemi(F,dy,W){const n=F.q.length/4,H=Math.ceil(n*3/W),D=new Uint16Array(W*H*4),f=new Float32Array(1),u=new Int32Array(f.buffer);
+  const h=function(t){f[0]=t;const e=u[0];let b=e>>16&32768,m=e>>12&2047;const x=e>>23&255;return x<103?b:x>142?(b|=31744,b|=(255==x?0:1)&&8388607&e,b):x<113?(m|=2048,b|=(m>>114-x)+(m>>113-x&1),b):(b|=x-112<<10|m>>1,b+=1&m,b);}; // = THREE.DataUtils.toHalfFloat (r128)
+  for(let i=0;i<n;i++){const o=i*12;D[o]=h(F.pos[i*3]);D[o+1]=h(F.pos[i*3+1]+(dy||0));D[o+2]=h(F.pos[i*3+2]);D[o+3]=h(F.q[i*4]);
+    D[o+4]=h(F.nor[i*3]);D[o+5]=h(F.nor[i*3+1]);D[o+6]=h(F.nor[i*3+2]);D[o+7]=h(F.q[i*4+1]);D[o+8]=h(F.col[i*3]);D[o+9]=h(F.col[i*3+1]);D[o+10]=h(F.col[i*3+2]);D[o+11]=h(F.q[i*4+2]);}
+  return D;}
 function nuFantGeo(r,dy,g8){ // les cubes fantômes d'un calcul (r.fant) et le CORPS rentré — g8 : la géométrie v8 de ce calcul (le corps en partage les normales, le modelé, les indices)
   const F=r.fant;if(!F)return null;const n=F.q.length/4,BA=function(a,k){return nuLibre(new THREE.BufferAttribute(a,k));},g=new THREE.BufferGeometry();let tex=null;
   let x0=1e9,y0=1e9,z0=1e9,x1=-1e9,y1=-1e9,z1=-1e9;for(let i=0;i<n;i++){const x=F.pos[i*3],y=F.pos[i*3+1]+(dy||0),z=F.pos[i*3+2];if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;if(z<z0)z0=z;if(z>z1)z1=z;}
-  if(NUF_TEX){const H=Math.ceil(n*3/NUF_W),D=new Uint16Array(NUF_W*H*4),h=THREE.DataUtils.toHalfFloat;
-    for(let i=0;i<n;i++){const o=i*12;D[o]=h(F.pos[i*3]);D[o+1]=h(F.pos[i*3+1]+(dy||0));D[o+2]=h(F.pos[i*3+2]);D[o+3]=h(F.q[i*4]);
-      D[o+4]=h(F.nor[i*3]);D[o+5]=h(F.nor[i*3+1]);D[o+6]=h(F.nor[i*3+2]);D[o+7]=h(F.q[i*4+1]);D[o+8]=h(F.col[i*3]);D[o+9]=h(F.col[i*3+1]);D[o+10]=h(F.col[i*3+2]);D[o+11]=h(F.q[i*4+2]);}
+  if(NUF_TEX){const H=Math.ceil(n*3/NUF_W),D=F.D&&F.Dy===(dy||0)&&F.D.length===NUF_W*H*4?F.D:nufDemi(F,dy,NUF_W);F.D=null; // (converti par l'ouvrier, s'il l'a fait pour CE décalage)
     tex=new THREE.DataTexture(D,NUF_W,H,THREE.RGBAFormat,THREE.HalfFloatType);tex.minFilter=tex.magFilter=THREE.NearestFilter;tex.generateMipmaps=false;tex.needsUpdate=true;
     tex.onUpdate=function(x){x.image.data=null;}; // (la copie JavaScript jetée une fois envoyée)
     g.setIndex(nufIdx());g.setDrawRange(0,n*6);g.userData.idxPartage=true;}
@@ -510,7 +518,7 @@ function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh
         f9.onBeforeRender=function(r9,s9,c9b,g9,m9){m9.uniforms.uNvW.value=1;m9.uniformsNeedUpdate=true;};if(!NUVIT.on)f9.visible=false;}}
     else if(q.fant){const G=nuFantGeo(q,fin9.dyU,g2),MS=nuVitMats(true),f9=new THREE.Mesh(G.fan,nufMat(MS.fan,G)); /* (fantôme) les bancs, coussins et tours : le maillage devient le CORPS rentré, les cubes fantômes sont son enfant */
       f9.castShadow=f9.receiveShadow=false;f9.updateMatrix();f9.matrixAutoUpdate=false;mesh.add(f9);
-      const u9=mesh.userData;u9.vit=[f9];u9.g8=g2;u9.hcw=r/NUVIT.fsz;u9.fan=true;u9.nvw=1;f9.onBeforeRender=function(r9,s9,c9,g9,m9){m9.uniforms.uNvW.value=u9.nvw;m9.uniformsNeedUpdate=true;}; /* (2026-10-18, LE FONDU) la part de cubes de CE nuage */u9.gVit=G.corps;u9.mVit=nuage8Solo();if(NUVIT.on)mesh.geometry=G.corps;else f9.visible=false;}},Math.max(NUVIT.nc,Math.min(40,Math.round(r/8))));
+      const u9=mesh.userData;u9.vit=[f9];u9.g8=g2;u9.hcw=r/NUVIT.fsz;u9.fan=true;u9.nvw=1;f9.onBeforeRender=function(r9,s9,c9,g9,m9){m9.uniforms.uNvW.value=u9.nvw;m9.uniformsNeedUpdate=true;}; /* (2026-10-18, LE FONDU) la part de cubes de CE nuage */u9.gVit=G.corps;u9.mVit=nuage8Solo();if(NUVIT.on)mesh.geometry=G.corps;else f9.visible=false;}},Math.max(NUVIT.nc,Math.min(40,Math.round(r/8))),fin9.dyU);
   else if(fin9)cotonCalcAsync(fin9.S,CLOUD_SPH,function(q){if(!g.parent)return; /* jeté entre-temps (portail) */ const g2=cotonBuf(q);g2.scale(fin9.r,fin9.r,fin9.r);g2.translate(0,fin9.dy,0);g2.computeBoundingSphere();const o9=mesh.geometry;mesh.geometry=g2;o9.dispose();mesh.userData.fin=true;});
   CLOUDS.push({g:g,c:center.clone(),r:r,ry:ry,onRoad:!!o.onRoad,puffs:[],mesh:mesh,ph:rr()*6.28,refT:0,fid:-1,wasIn:false});
 }

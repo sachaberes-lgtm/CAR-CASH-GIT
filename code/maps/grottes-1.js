@@ -388,14 +388,19 @@ function grtMatieres(x,y,z,sal,lv){ // la matière d'un sommet de la roche (lv :
   if((sal===3||sal===4)&&GROTTE.piliers)for(const c of GROTTE.piliers)if((x-c.x)**2+(z-c.z)**2<c.r*c.r&&y>c.yb-8&&y<c.yt+8)return c.k==='stal'?GT.CONCRETION:(lac&&y<lac.y+14?GT.MAGMA:GT.BASALTE);
   if(sal===4&&lac&&y<lac.y+9)return GT.MAGMA; // le rivage rougeoie
   return GT.ROCHE;}
-function grtMailleNets(V,c,LL){
+/* (2026-10-24, passe perf 3e tour) LE MAILLAGE D'UN TRONÇON EN TRANCHES : au PRÉ-BÂTI, un tronçon (40 à 150 ms ×4, d'un bloc) faisait les images
+   de 100-283 ms du vol qui précède la grotte (MESURÉ ×4 : 8 à 15 images > 100 ms par approche). grtMailleNetsG rend la main entre deux tranches de sa
+   grille (l'échéance JF.lim, celle du pré-bâti) ; d'un trait (JF.lim infini : le passage, les tranches en course), il ne s'arrête jamais.
+   Mêmes calculs, même ordre : le même maillage. */
+function grtMailleNets(V,c,LL){return jadeFini(grtMailleNetsG(V,c,LL));}
+function* grtMailleNetsG(V,c,LL){
   const T=grtTampons(),d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V.CY,ck=(d/(V.CX*V.CY))|0,I0=ci*16,J0=cj*16,K0=ck*16,B=V.B,lum=T.lum,loc=T.loc,vid=T.vid,R=GROTTE.R;
   // 1 · les densités du tronçon et de sa bordure (−2 … 17)
-  for(let k=0;k<20;k++)for(let j=0;j<20;j++)for(let i=0;i<20;i++)loc[i+20*(j+20*k)]=grtD(V,I0+i-2,J0+j-2,K0+k-2);
+  for(let k=0;k<20;k++){if(performance.now()>JF.lim)yield;for(let j=0;j<20;j++)for(let i=0;i<20;i++)loc[i+20*(j+20*k)]=grtD(V,I0+i-2,J0+j-2,K0+k-2);}
   const L=function(i,j,k){return loc[(i+2)+20*((j+2)+20*(k+2))];};
   // 2 · les sommets (cubes −1 … 15)
   vid.fill(-1);let nv=0;const MAXV=39990,cv=new Float32Array(8);
-  for(let cc=-1;cc<16&&nv<MAXV;cc++)for(let b=-1;b<16&&nv<MAXV;b++)for(let a=-1;a<16;a++){
+  for(let cc=-1;cc<16&&nv<MAXV;cc++){if(performance.now()>JF.lim)yield;for(let b=-1;b<16&&nv<MAXV;b++)for(let a=-1;a<16;a++){
     let m=0;for(let q=0;q<8;q++){const v=L(a+(q&1),b+((q>>1)&1),cc+((q>>2)&1));cv[q]=v;if(v>0)m|=1<<q;}
     if(m===0||m===255)continue;
     let sx=0,sy=0,sz=0,ne=0;
@@ -412,10 +417,10 @@ function grtMailleNets(V,c,LL){
     const p3=nv*3,p4=nv*4;T.P[p3]=lx;T.P[p3+1]=ly;T.P[p3+2]=lz;
     T.F[p4]=grtMatieres(wx,wy,wz,sal,lv);T.F[p4+1]=sal;T.F[p4+2]=Math.round(Math.max(.3,Math.min(1,1.28-roc/64))*255);T.F[p4+3]=0;
     grtLum(wx+gx/gl*1.5,wy+gy/gl*1.5,wz+gz/gl*1.5,sal,LL,lum);T.Lt[p4]=lum[0]*255;T.Lt[p4+1]=lum[1]*127.5;T.Lt[p4+2]=lum[2]*127.5;T.Lt[p4+3]=lum[3]*127.5;
-    vid[(a+1)+17*((b+1)+17*(cc+1))]=nv++;}
+    vid[(a+1)+17*((b+1)+17*(cc+1))]=nv++;}}
   // 3 · les quads : chaque arête (points 0 … 15 du tronçon) qui traverse la paroi — tournés vers l'air
   let ni=0;const V9=function(a,b,cc){return vid[(a+1)+17*((b+1)+17*(cc+1))];};
-  for(let cc=0;cc<16;cc++)for(let b=0;b<16;b++)for(let a=0;a<16;a++){const v0=L(a,b,cc),s0=v0>0;
+  for(let cc=0;cc<16;cc++){if(performance.now()>JF.lim)yield;for(let b=0;b<16;b++)for(let a=0;a<16;a++){const v0=L(a,b,cc),s0=v0>0;
     for(let ax=0;ax<3;ax++){const v1=ax===0?L(a+1,b,cc):ax===1?L(a,b+1,cc):L(a,b,cc+1);if((v1>0)===s0)continue;
       let q0,q1,q2,q3;
       if(ax===0){q0=V9(a,b-1,cc-1);q1=V9(a,b,cc-1);q2=V9(a,b,cc);q3=V9(a,b-1,cc);}
@@ -423,12 +428,12 @@ function grtMailleNets(V,c,LL){
       else{q0=V9(a-1,b-1,cc);q1=V9(a,b-1,cc);q2=V9(a,b,cc);q3=V9(a-1,b,cc);}
       if(q0<0||q1<0||q2<0||q3<0||ni+6>T.I.length)continue;
       if(s0){T.I[ni++]=q0;T.I[ni++]=q1;T.I[ni++]=q2;T.I[ni++]=q0;T.I[ni++]=q2;T.I[ni++]=q3;}
-      else{T.I[ni++]=q0;T.I[ni++]=q2;T.I[ni++]=q1;T.I[ni++]=q0;T.I[ni++]=q3;T.I[ni++]=q2;}}}
+      else{T.I[ni++]=q0;T.I[ni++]=q2;T.I[ni++]=q1;T.I[ni++]=q0;T.I[ni++]=q3;T.I[ni++]=q2;}}}}
   /* 4 · UNE MATIÈRE PAR FACETTE : les sommets sont dédoublés par triangle et la facette prend la matière de la majorité de ses coins (le numéro
      de matière interpolé sur un triangle à cheval passait par toutes les matières entre les deux : un liseré arc-en-ciel le long des bords —
      banc du 18/10). La lumière et l'occlusion restent celles des coins (fondues sur la facette). */
   const nt=ni/3,P=new Float32Array(nt*9),F=new Uint8Array(nt*12),Lt=new Uint8Array(nt*12);
-  for(let t=0;t<nt;t++){const a=T.I[t*3],b=T.I[t*3+1],c9=T.I[t*3+2],ma=T.F[a*4],mb=T.F[b*4],mc=T.F[c9*4],mt=(ma===mb||ma===mc)?ma:(mb===mc?mb:(ma||mb||mc));
+  for(let t=0;t<nt;t++){if((t&2047)===2047&&performance.now()>JF.lim)yield;const a=T.I[t*3],b=T.I[t*3+1],c9=T.I[t*3+2],ma=T.F[a*4],mb=T.F[b*4],mc=T.F[c9*4],mt=(ma===mb||ma===mc)?ma:(mb===mc?mb:(ma||mb||mc));
     for(let k=0;k<3;k++){const v=k===0?a:k===1?b:c9,o=t*3+k;P[o*3]=T.P[v*3];P[o*3+1]=T.P[v*3+1];P[o*3+2]=T.P[v*3+2];
       F[o*4]=mt;F[o*4+1]=T.F[v*4+1];F[o*4+2]=T.F[v*4+2];F[o*4+3]=0;Lt[o*4]=T.Lt[v*4];Lt[o*4+1]=T.Lt[v*4+1];Lt[o*4+2]=T.Lt[v*4+2];Lt[o*4+3]=T.Lt[v*4+3];}}
   return {P:P,F:F,L:Lt,I:null,nv:nt*3,nt:nt};}
