@@ -50,6 +50,7 @@ maps/nuages-v8.js                    # nuages v8 : une seule matière, sculpteur
 maps/nuages-vitrail.js               # nuages en vitrail (Léo)
 maps/nuages-casses.js                # nuages qui se dégagent : trouées par marches de cubes, blocs qui se cassent en petits (Léo)
 maps/pigeons.js                      # pigeons ramiers, pigeons de Paris
+maps/nuages-embellie.js              # nuages : l'embellissement (poussières de lumière, oiseaux lointains, éclats rose et or)
 gameplay/route-sans-haut.js          # la route sans haut ni bas, vitesse réelle
 maps/ville-entree.js                 # l'entrée dans la ville
 rendu/bitume-beton.js                # bitume v2, béton brut, lumières de la caisse v2, bitume mouillé, bords en béton
@@ -59,9 +60,11 @@ moteur/depart-avance.js              # le départ d'avance
 maps/foret-route.js                  # LA FORÊT NOIRE : la pelote (route), les mini-cubes
 maps/foret-decor.js                  # forêt : les géants, les fleurs, les matières, le relief
 maps/foret-construction.js           # forêt : construction, boucle, console
+maps/foret-embellie.js               # forêt : la passe d'embellissement (lanternes de conte, réglages FOR_EMB)
 maps/canyon-route.js                 # LE CANYON DES GÉANTS : route, construction, monde, pose
 maps/canyon-relief.js                # canyon : relief, monuments, voûte, lumière cuite
 maps/canyon-mine.js                  # canyon : la mine abandonnée, la route 66
+maps/canyon-embellie.js               # canyon : la poussière dorée (détail vivant, une instance)
 maps/dunes-1.js                      # LES DUNES D'OR : la route CONTINUE (vagues, tremplins de crête), le terrain prescrit, la construction
 maps/dunes-2.js                      # dunes : sable à la puce (rides façon Journey), matière des décors, hiéroglyphes, tremplins, sable qui vole
 maps/dunes-3.js                      # dunes : la boîte à outils des décors (loft, oriflammes), les modèles (pharaon assis, pyramides de Gizeh, obélisque, pylône, sphinx, felouque…)
@@ -71,15 +74,14 @@ maps/dunes-4.js                      # dunes : les scènes le long de la route (
 maps/glacier-route.js                # LA BANQUISE / LE GLACIER v4 : route, manteau de neige
 maps/glacier-construction.js         # glacier : construction, volant en l'air
 maps/glacier-verglas.js              # glacier : verglas, retombée des tremplins, console
-maps/volcan-route.js                 # LE ROYAUME DE FEU : routes v4 et v5, bruit du relief
-maps/volcan-actes.js                 # LE VOLCAN EN ACTES : la route en temps forts (faille, crête, lac, raccourci) et ses orages de cendre
-maps/volcan-construction.js          # volcan : construction, console
 maps/grottes-1.js                    # LES PROFONDEURS : route, surface à facettes
 maps/grottes-2.js                    # grottes : décors, lumières, rendu, construction, ambiances
 maps/ville-v3.js                     # la ville v3 (canyon du village de la pluie), panneaux holographiques
 maps/cryptocity.js                   # CRYPTOCITY : plan, matières, réclames
 maps/cryptocity-taureau.js           # cryptocity : le taureau, objets du ciel
+maps/cryptocity-embellie.js          # cryptocity : l'horizon du bull run (tours et bougies lointaines), les projecteurs de la nuit
 maps/ville-verre.js                  # la ville vitrée, néon et verre, le dirigeable
+maps/ville-embellie.js               # la ville embellie : rais de projecteur, écho des néons dans le verre, étages techniques, l'or
 maps/pluie-argent.js                 # la pluie d'argent v2 (PLA)
 maps/murs-slide.js                   # la figure SLIDE (frotter le bord) et le coup d'épaule des parois (murCote)
 maps/jade-1.js                       # LES PICS DE JADE : route, maillage glouton, montagnes en cubes
@@ -100,6 +102,7 @@ maps/continuite.js                   # continuité des maps, la planète du nive
 maps/audit-placement.js              # dbgAudit : l'audit des décors posés au sol (pics flottants…)
 maps/orbite-1.js                     # L'ORBITE : la lune, les Starlink, les variantes empilées
 maps/orbite-2.js                     # orbite : le soleil hors cadre, la pose des tranches
+maps/orbite-embellie.js              # orbite embellie : le fond du vide, étoiles-vedettes, la planète (volume, limbe, Terre repeinte), la poussière cosmique
 rendu/trainees-1.js                  # traînées pop : la planche
 rendu/trainees-2.js                  # traînées pop : les dix traînées
 voitures/atchoum-feu.js              # Atchoum : le feu
@@ -163,6 +166,7 @@ gameplay/impact.js                   # l'impact
 gameplay/mort.js                     # le plan de la mort, signatures d'explosion, morts par niveau
 gameplay/pluie-caisse.js             # la pluie qui éclabousse la caisse (gouttelettes sur le toit, le capot, le coffre)
 maps/jade-singes-dauphins.js         # singes et dauphins de Jade
+maps/jade-embellie.js                 # jade : les cristaux de jade (grappes peintes, case 8-9 de la planche des arbres) — passe d'embellissement du 21/10
 son/musique.js                       # système musical, mixage, gestionnaire
 son/musique-frenesie.js              # musique de la frénésie
 rendu/billets-devises.js             # billets, pluie de devises
