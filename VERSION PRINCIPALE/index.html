@@ -4041,25 +4041,6 @@ html body.touch #avX{line-height:1;text-shadow:none;color:transparent;-webkit-te
 @keyframes hmFeu{50%{filter:var(--contourH) drop-shadow(0 0 20px var(--xc,#ff5ec8)) brightness(1.3)}}
 html body.touch #avX.feu{animation:avBat .42s ease-in-out infinite alternate,hmFeu .84s var(--ease) infinite}
 html body.touch #avX.feu.up{animation:hmX .5s var(--ease),avBat .42s ease-in-out .5s infinite alternate,hmFeu .84s var(--ease) infinite}
-/* ===== LE × « EN FEU » EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») =====
-   iPhone 13 Pro mesuré : 58,0 i/s et 63 images > 25 ms en course, 59,7 i/s et 9 images avec les animations figées ; trace Mac : `#avX · Animation`
-   0,5 recalcul de style par image en course (×5 et plus, fréquent). hmFeu anime `filter` (halo 12 → 20 px, brightness 1 → 1,3) : WebKit refait
-   style + peinture du × à chaque image. Ici le × de l'élément n'est plus peint (fond et filtre ôtés, le texte reste pour la mise en page) ;
-   `::before` = l'état de repos (le dégradé, l'encre, le halo 12 px) FIXE, `::after` = l'état du pic (halo 20 px, brightness 1,3) FIXE, et seule
-   l'OPACITÉ de `::after` suit hmFeu (.84s var(--ease), pic à 50 %). Le texte vient de `data-hx`, posé par chaHud (pose-verdict.js) sous html.han.
-   avBat (scale) et hmX restent : déjà en transform, ils emportent les deux calques. Écart : au pic, le halo de repos reste SOUS celui du pic
-   (le halo un peu plus dense, quelques % de pixels à faible écart autour du ×) ; lettres et encre : opaques, identiques. Exclu sous `contourV2`
-   (le banc iPhone y pose SES ::before/::after) et sans color-mix (le repli des vieux iPhone garde l'ancien). */
-@supports (color:color-mix(in srgb,red 50%,blue)){
-html.han:not(.contourV2) body.touch #avX.feu[data-hx]{position:relative;background:none;filter:none;animation:avBat .42s ease-in-out infinite alternate}
-html.han:not(.contourV2) body.touch #avX.feu[data-hx].up{animation:hmX .5s var(--ease),avBat .42s ease-in-out .5s infinite alternate}
-html.han:not(.contourV2) body.touch #avX.feu[data-hx]::before,html.han:not(.contourV2) body.touch #avX.feu[data-hx]::after{content:attr(data-hx);position:absolute;left:0;top:0;right:0;bottom:0;white-space:nowrap;pointer-events:none;
-  color:transparent;-webkit-text-fill-color:transparent;background:linear-gradient(180deg,#fff 0 12%,color-mix(in srgb,var(--xc,#ff5ec8) 42%,#fff) 12% 38%,var(--xc,#ff5ec8) 38% 74%,color-mix(in srgb,var(--xc,#ff5ec8) 68%,var(--inkH)) 74%);-webkit-background-clip:text;background-clip:text;
-  filter:var(--contourH) drop-shadow(0 0 12px color-mix(in srgb,var(--xc,#ff5ec8) 60%,transparent))}
-html.han:not(.contourV2) body.touch #avX.feu[data-hx]::after{filter:var(--contourH) drop-shadow(0 0 20px var(--xc,#ff5ec8)) brightness(1.3);opacity:0;will-change:opacity;animation:hanFeu .84s var(--ease) infinite}
-@keyframes hanFeu{50%{opacity:1}}
-@media (prefers-reduced-motion:reduce){html.han:not(.contourV2) body.touch #avX.feu[data-hx]::after{animation:none!important}}
-}
 /* les POINTS de la chaîne : blanc sur lavande */
 html body.touch #avPts{line-height:1;text-shadow:none;color:transparent;-webkit-text-fill-color:transparent;
   background:linear-gradient(180deg,#fff 0 55%,#d8ccff 55%);-webkit-background-clip:text;background-clip:text;filter:var(--contourH)}
@@ -58325,7 +58306,7 @@ function chaHud(fort,monte){
   const ch=avE('avCh');if(!ch)return;if(CHA.n>0)ch.classList.remove('vole','perdu');ch.classList.toggle('on',CHA.n>0);
   if(!fort||!CHA.n)return;
   avE('avPts').textContent=fmtAura(CHA.pts);
-  const x9=avE('avX'),xv=Math.max(1,CHA.x);x9.textContent='×'+xv;if(document.documentElement.classList.contains('han'))x9.setAttribute('data-hx','×'+xv); /* (2026-10-24, passe perf PC) le texte des calques du × en feu (hud-maitrise.css, hanFeu) */x9.style.setProperty('--xc',X_COUL[Math.min(10,xv)]);x9.classList.toggle('feu',xv>=5);
+  const x9=avE('avX'),xv=Math.max(1,CHA.x);x9.textContent='×'+xv;x9.style.setProperty('--xc',X_COUL[Math.min(10,xv)]);x9.classList.toggle('feu',xv>=5);
   if(monte){x9.classList.remove('up');void x9.offsetWidth;x9.classList.add('up');hudReveil('avCh'); /* un × de plus : la plaque se RALLUME (HUD discret) */
     const pal={5:'EN FEU !!',8:'DEMENT !!!',10:'MAX !!!'}[xv]; // (vague 2, H4) plus de « ×3 CHAUD ! » au centre : le × du tableau de bord bat déjà — le couloir ne parle qu'à partir de ×5
     if(pal){if(SONV2)sfx('aura.x'+xv); /* (2026-10-15, Sacha : « écrit ailleurs de toute façon ») plus de « ×5 EN FEU / ×8 DÉMENT / ×10 MAX » au centre : le × de la chaîne bat déjà (.up, .feu) — le son, le flash et la main restent */flashEcran(xv>=8?'rgba(255,57,36,.55)':'rgba(255,94,200,.45)');hap(xv>=8?[14,40,24,40,30]:[12,30,20]);}}
