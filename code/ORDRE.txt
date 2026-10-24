@@ -43,6 +43,7 @@ rendu/palier-appareil.js             # PAL (palier de l'appareil), toiles 2D, fo
 rendu/triptyque-bloom.js             # triptyque visuel : ACES, bloom, ombre de contact, caisse nette, flous, lumières de la caisse (pilote)
 rendu/portails.js                    # le portail de cubes, cartes postales, map d'en face
 rendu/nettete-qualite.js             # échelle de qualité QL, la sonde
+rendu/pc-liste-rendu.js              # (passe perf PC) les dessins vides (0 instance, 0 sommet, opacité 0) sortent de la liste de rendu — ?pcthree=0
 maps/nuages-coton.js                 # nuages : mesh simples, brillance, finesse, ciel de coton
 maps/nuages-v8.js                    # nuages v8 : une seule matière, sculpteur de cumulus, sans coutures
 maps/nuages-vitrail.js               # nuages en vitrail (Léo)
