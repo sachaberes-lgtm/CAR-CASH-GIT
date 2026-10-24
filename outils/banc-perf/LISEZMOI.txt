@@ -1,0 +1,4 @@
+BANC DE PERF (24/10) — python3 outils/banc-perf/garde-perf.py [carte:météo …]
+Banc court (3-5 min) : iPhone simulé ×4, un vrai portail vers chaque map, compte les programmes compilés en course (doit rester 0),
+les erreurs de page et les images trop longues. Sortie 0 = OK, 1 = seuil franchi. Les mesures fines (A/B contre origin/main, empreintes,
+profils) : « LA PASSE PERF DU 24/10 » du JOURNAL. ⚠ mesurer quand la machine est calme (charge < 8) ; un banc à la fois.
