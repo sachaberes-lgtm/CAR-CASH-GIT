@@ -61465,7 +61465,13 @@ expBtn.addEventListener('click',e=>{e.stopPropagation();
 impBtn.addEventListener('click',e=>{e.stopPropagation();
   const c=prompt(TR('Colle ton code de sauvegarde :'));
   if(c==null)return; // annulé
-  if(SAVE.import(c)){btnFlash(impBtn,pxi('coche')+' '+TR('RESTAURE — RECHARGE…'));setTimeout(()=>location.reload(),900);}
+  /* ===== LA RESTAURATION DU MENU ORDINATEUR (24/10, relecture : « le bouton RESTAURER UN CODE du menu ?pc=1 ») ===== deux trous que
+     l'ENTRER UN CODE des réglages du téléphone avait déjà bouchés (moteur/mobile-tactile.js) : (1) le SITE ne garde rien (SAVE.neuf) —
+     import puis rechargement rendaient un compte VIDE, la session en cours partie avec : on refuse ; (2) une fois le code posé, plus
+     AUCUNE écriture jusqu'au rechargement (SAVE.natif=2) : le passage en arrière-plan qui l'accompagne versait sinon la partie en cours
+     (enCoursPose) dans la sauvegarde restaurée. */
+  if(SAVE.neuf){let s9=false;try{s9=typeof JSON.parse(decodeURIComponent(escape(atob(String(c).trim())))).v==='number';}catch(er){}if(s9){btnFlash(impBtn,pxi('croix')+' '+TR('LE SITE NE RESTAURE PAS LES SAUVEGARDES'));return;}}
+  if(SAVE.import(c)){SAVE.natif=2;btnFlash(impBtn,pxi('coche')+' '+TR('RESTAURE — RECHARGE…'));setTimeout(()=>location.reload(),900);}
   else btnFlash(impBtn,pxi('croix')+' '+TR('CODE INVALIDE'));
 });
 // ---------- MODE SURVIVANT v2 : 7 VRAIES voitures de police sur la piste — la POURSUITE ----------
