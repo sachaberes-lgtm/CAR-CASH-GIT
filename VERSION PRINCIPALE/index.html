@@ -70,6 +70,11 @@ const CC_PHOTOS='__CC_PHOTOS__';
 const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b/.test(location.search)?' · SANS CIEL':'');
 (function(){
   var q=location.search,M=window.matchMedia;
+  /* ===== LES ANIMATIONS DU HUD SANS RECALCUL (2026-10-24, passe perf PC, Sacha : « sur la version mobile l'HUD prend trop de capacité, règle ça ») =====
+     Mesuré sur l'iPhone 13 Pro de Sacha (app, palier RÉCENT, 35 s de course) : 63 images > 25 ms ; animations CSS figées : 9. Les animations infinies du HUD
+     sur des propriétés non composées (box-shadow, filter, background-position) sont refaites en transform / opacité, sous `html.han`.
+     `?hudanim=0` = les anciennes animations (A/B). */
+  if(!/[?&]hudanim=0\b/.test(q))document.documentElement.classList.add('han');
   /* L'ÉCRAN NU PAR DÉFAUT (2026-10-01, copie de test de Léo : « je préfère le point de vue de la 1re image » = sans la forme de
      l'iPhone) : sur l'ordi, l'écran du téléphone est un rectangle simple, sans boîtier, sans encoche ni coins arrondis, et le jeu ne
      garde pas les marges de l'encoche. `ENCOCHE_DEFAUT=true` rend le boîtier du 13 Pro par défaut ; dans l'adresse, `?encoche=1` /
@@ -1476,6 +1481,18 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
   body #flowHud[data-lv="0"] .fM{opacity:.4}
   body #flowHud.presque .fSeg i.cur s{animation:fPresque .3s ease-in-out infinite alternate}   /* le palier suivant est À PORTÉE */
   @keyframes fPresque{to{filter:brightness(1.8)}}   /* plus de style depuis 1,8 s : ça FUIT */
+  /* ===== « À PORTÉE » EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») — iPhone 13 Pro : 58,0 i/s en
+     course, 59,7 animations CSS figées. Le filter animé (brightness 1 → 1,8, refait à chaque image) devient une COPIE du remplissage
+     (background:inherit) posée éclaircie ×1,8 une fois pour toutes, dont seule l'opacité suit la même courbe. Exact aux deux bouts ; entre
+     les deux, un canal qui SATURE (×1,8 > 255, ex. la ligne claire du haut) monte en droite au lieu de plafonner tôt (≤ ~30 niveaux à mi-course),
+     et le curseur (::after, au-dessus de la copie) n'est plus éclairci (#fff6d8 au lieu de blanc au sommet). Gelée / armée / frénésie qui fuit :
+     l'ancienne règle (filtres qui se combinent autrement). ===== */
+  html.han body #flowHud.presque:not(.gele):not(.arme):not([data-lv="4"].fuit) .fSeg i.cur s{animation:none}
+  html.han body #flowHud.presque:not(.gele):not(.arme):not([data-lv="4"].fuit) .fSeg i.cur s::before{content:'';position:absolute;inset:0;pointer-events:none;
+    background:inherit;filter:brightness(1.8);opacity:0;will-change:opacity;animation:hanFlowPresque .3s ease-in-out infinite alternate}
+  @keyframes hanFlowPresque{to{opacity:1}}
+  @media (prefers-reduced-motion:reduce){html.han body #flowHud.presque:not(.gele):not(.arme):not([data-lv="4"].fuit) .fSeg i.cur s::before{animation:none}}
+  html.han[data-reduced-motion="1"] body #flowHud .fSeg .fZ s::before{animation:none!important}   /* l'ancien : .fZ s figée, le reste de la cellule non */
   body #flowHud.fuit .fSeg i.cur s{background:repeating-linear-gradient(-45deg,var(--sc) 0 5px,color-mix(in srgb,var(--sc) 40%,#000) 5px 10px)}   /* moins d'1,1 s avant de perdre le palier : ça LÂCHE (au rythme du tic) */
   /* R3 — L'AURA EN HÉROS, et le RECORD à battre juste dessous */
   body #auraV2{left:var(--hudG);top:calc(var(--hudH) + 128px);max-width:58vw}
@@ -1504,6 +1521,25 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
   #avRec.battu s{background:linear-gradient(90deg,#ffd75e,#fff6cf,#ffd75e);background-size:200% 100%;animation:recFile 1s linear infinite}
   @keyframes recBattu{50%{color:#fff}}
   @keyframes recFile{to{background-position:-200% 0}}
+  /* ===== LE RECORD « ENCORE UNE » ET « BATTU » EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») =====
+     iPhone 13 Pro mesuré : 58,0 i/s et 63 images > 25 ms en course, 59,7 i/s et 9 images avec les animations figées — WebKit refait style +
+     peinture à chaque image pour une animation infinie de box-shadow / background-position. Ici :
+     · recPresque (le halo de la jauge qui bat) : l'ombre d'arrivée est posée FIXE sur `#avRec i::after`, seule son OPACITÉ suit la même courbe
+       (.45s ease-in-out alterné). Le liseré 1 px : 0,3 + 0,7·t d'alpha, comme l'interpolé ; le halo de 10 px fond au lieu de grandir (écart :
+       le flou à mi-course, quelques pixels de faible écart autour de la jauge). Le calque passe sur le plein `s` : même couleur (--recOr) ;
+     · recFile (le reflet qui file, record battu) : le dégradé est peint sur `#avRec s::before`, large de 400 % (deux tuiles
+       de 2 W), et TRANSLATÉ de −50 % à 0 dans `s` qui coupe : décalage 2 W·t, le même que background-position −200 % (image exacte).
+     `?hudanim=0` rend l'ancien jeu (classe html.han absente). */
+  html.han #avRec.presque i{position:relative}
+  html.han #avRec.presque i::after{content:"";position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;opacity:0;will-change:opacity;
+    box-shadow:inset 0 0 0 1px var(--recOr),0 0 10px var(--recOr);animation:hanRecPresque .45s ease-in-out infinite alternate}
+  html.han #avRec.presque i{animation:none}
+  @keyframes hanRecPresque{to{opacity:1}}
+  html.han #avRec.battu s{position:relative;overflow:hidden;animation:none}
+  html.han #avRec.battu s::before{content:"";position:absolute;left:0;top:0;bottom:0;width:400%;pointer-events:none;will-change:transform;
+    background:linear-gradient(90deg,#ffd75e,#fff6cf,#ffd75e);background-size:50% 100%;animation:hanRecFile 1s linear infinite}
+  @keyframes hanRecFile{from{transform:translateX(-50%)}to{transform:none}}
+  @media (prefers-reduced-motion:reduce){html.han #avRec.presque i::after,html.han #avRec.battu s::before{animation:none!important}}
   /* R4 — LA CHAÎNE : elle s'ENVOLE dans le compteur quand elle s'encaisse, elle se BRISE quand on la perd */
   body #avCh{margin-top:14px}
   body #avCh .avBar{width:160px}
@@ -1745,6 +1781,20 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
     background:linear-gradient(100deg,transparent 40%,rgba(255,255,255,.35) 50%,transparent 60%) no-repeat;background-size:300% 100%;
     animation:nbReflet 3.6s ease-in-out infinite}   /* le reflet de la nitro : il passe tant qu'on TIENT un palier */
   body #flowHud[data-lv="0"] .fSeg::after{display:none}
+  /* ===== LE REFLET DU FLOW EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») =====
+     Mesuré sur l'iPhone 13 Pro (app, palier RÉCENT, 35 s pilotées) : 58,0 i/s et 63 images > 25 ms en course, 59,7 i/s et 9 images avec
+     toutes les animations CSS figées. Ce reflet tourne EN PERMANENCE dès le palier 1 : un background-position = style + peinture à chaque image.
+     Ici le MÊME dégradé est posé sur un calque de la taille de son image d'origine (300 % de l'::after = 3W) et glisse en translateX :
+     position p % → décalage p·(W − 3W), soit 150 % → −3W et −50 % → +W, c.-à-d. −100 % → +⅓ de la largeur du calque. Même durée, même courbe.
+     Haut et bas : ceux de l'::after (inset gardé). Largeur : right = 5·inset − 200 % (3 px au bureau, 2 px en tactile, !important comme
+     l'inset tactile). Seul écart : aux deux BOUTS la coupe est celle de .fSeg (overflow:hidden, au bord) et non plus le bord de l'::after —
+     le reflet mord l'anneau du cadre (inset px) le temps d'entrer et de sortir. Le balayage .monte (tactile) garde son ::after d'origine. ===== */
+  html.han body:not(.touch) #flowHud .fSeg::after,html.han body.touch #flowHud:not(.monte) .fSeg::after{background-size:100% 100%;background-position:0 0;
+    will-change:transform;animation:hanFlowReflet 3.6s ease-in-out infinite}
+  html.han body:not(.touch) #flowHud .fSeg::after{right:calc(15px - 200%)}
+  html.han body.touch #flowHud:not(.monte) .fSeg::after{right:calc(10px - 200%)!important}
+  @keyframes hanFlowReflet{0%,60%{transform:translateX(-100%)}100%{transform:translateX(calc(100% / 3))}}
+  @media (prefers-reduced-motion:reduce){html.han body:not(.touch) #flowHud .fSeg::after,html.han body.touch #flowHud:not(.monte) .fSeg::after{animation:none}}   /* comme l'ancien : éteint hors frénésie (la frénésie, plus forte, le gardait) */
   body #flowHud .fL,body #flowHud .fM{grid-row:2;font-size:10px;line-height:1;letter-spacing:1px;
     text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,0 3px 0 #1c0430}
   body #flowHud .fL{grid-column:1;justify-self:start;font-weight:normal}
@@ -2935,6 +2985,30 @@ html body #campChip b{color:var(--cc,var(--tx))}
 html body #campChip small{color:var(--tx2)}
 html body #campChip.alerte{animation:k5CampAlerte .6s steps(2) infinite}
 @keyframes k5CampAlerte{50%{box-shadow:inset 4px 0 0 var(--neoR),inset 0 0 0 2px var(--neoR),inset 30px 0 26px -20px rgba(255,74,100,.5)}}
+/* ===== L'OBJECTIF EN ALERTE EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») =====
+   iPhone 13 Pro mesuré : 58,0 i/s en course contre 59,7 i/s animations figées (WebKit repeint les box-shadow animées à chaque image).
+   k5CampAlerte (steps(2)) passe par l'ombre de base A (celle de charte-6 : `html body.touch #campChip`, recopiée ici —
+   à garder en phase) l'ombre à mi-chemin et l'ombre B : chacune sur un pseudo-élément en z-index −1 (#campChip est un contexte d'empilement : fixed + z-index 6),
+   donc au-dessus de la plaque et sous le texte, comme une ombre intérieure ; seule l'opacité bascule. Téléphone seulement. Écart attendu : 0 sur A et B, l'arrondi des couleurs au milieu. */
+html.han body.touch #campChip.alerte{animation:none;box-shadow:none}
+html.han body.touch #campChip.alerte::before,html.han body.touch #campChip.alerte>b::before,html.han body.touch #campChip.alerte::after{content:'';position:absolute;left:0;top:0;right:0;bottom:0;z-index:-1;
+  pointer-events:none;will-change:opacity;opacity:0}
+/* steps(2) vaut pour CHAQUE intervalle (0→50 %, 50→100 %) : A sur [0 ; ¼[, mi-chemin sur [¼ ; ½[ et [¾ ; 1[, B sur [½ ; ¾[. Le calque du
+   milieu est porté par `b::before` (b n'est pas positionné : sa boîte absolue se cale sur #campChip, son z-index −1 aussi). L'ombre du milieu,
+   à la main : B est complétée d'une ombre transparente nulle (4 contre 3), décalages/flous/étendues moyennés, couleurs « anciennes » en sRGB,
+   avec un color-mix en Oklab. */
+html.han body.touch #campChip.alerte::before{box-shadow:inset 3px 0 0 var(--cc,var(--neoC)),inset 40px 0 30px -26px color-mix(in srgb,var(--cc,var(--neoC)) 45%,transparent),var(--filetH);
+  animation:hanCcAlerteA .6s step-end infinite}
+html.han body.touch #campChip.alerte>b::before{box-shadow:inset 3.5px 0 0 color-mix(in srgb,var(--cc,var(--neoC)),var(--neoR)),
+  inset 20px 0 15px -12px color-mix(in oklab,color-mix(in srgb,var(--cc,var(--neoC)) 45%,transparent),var(--neoR)),
+  inset 15px 0 13px -9.5px color-mix(in srgb,var(--fil),rgba(255,74,100,.5)),inset 0 .5px 0 color-mix(in srgb,rgba(255,255,255,.14),transparent);
+  animation:hanCcAlerteM .6s step-end infinite}
+html.han body.touch #campChip.alerte::after{box-shadow:inset 4px 0 0 var(--neoR),inset 0 0 0 2px var(--neoR),inset 30px 0 26px -20px rgba(255,74,100,.5);
+  animation:hanCcAlerteB .6s step-end infinite}
+@keyframes hanCcAlerteA{0%{opacity:1}25%,100%{opacity:0}}
+@keyframes hanCcAlerteM{0%,50%{opacity:0}25%,75%,100%{opacity:1}}
+@keyframes hanCcAlerteB{0%,75%,100%{opacity:0}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){html.han body.touch #campChip.alerte>b::before,html.han body.touch #campChip.alerte::after{animation:none!important}html.han body.touch #campChip.alerte::before{animation:none!important;opacity:1!important}}
 @media (prefers-reduced-motion:reduce){html body #campChip.alerte{animation:none}}
 
 /* ---- 9. LA COLONNE DE DROITE ne saute plus : la case du chrono de vol est RÉSERVÉE (sous le ⏸), les pouvoirs vivent toujours
@@ -3029,6 +3103,15 @@ html body #flowHud[data-lv="4"].sc2 .fSeg::before{animation:frGlisse .9s linear 
 @keyframes frEclatB{from{filter:brightness(1.8)}to{filter:none}}
 @keyframes frGlintA{from{background-position:150% 0}to{background-position:-50% 0}}
 @keyframes frGlintB{from{background-position:150% 0}to{background-position:-50% 0}}
+/* ===== LE REFLET DE LA FRÉNÉSIE ET SON ÉCLAT EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») =====
+   iPhone 13 Pro : 58,0 i/s en course contre 59,7 animations CSS figées. Le calque 3W du reflet du flow (voir socle-4-aura, « LE REFLET DU
+   FLOW EN TRANSFORM ») : le reflet rouge (1,6 s) et les éclats .sc1/.sc2 (0,34 s, derniers de la liste : ils gagnent le temps de leur course)
+   passent de background-position 150 % → −50 % à translateX −100 % → +⅓, mêmes durées, mêmes courbes. ===== */
+html.han body:not(.touch) #flowHud[data-lv="4"] .fSeg::after,html.han body.touch #flowHud[data-lv="4"]:not(.monte) .fSeg::after{animation:hanFlowReflet 1.6s var(--ease) infinite}
+html.han body:not(.touch) #flowHud[data-lv="4"].sc1 .fSeg::after,html.han body.touch #flowHud[data-lv="4"].sc1:not(.monte) .fSeg::after{animation:hanFlowReflet 1.6s var(--ease) infinite,hanFlowGlintA .34s var(--ease)}
+html.han body:not(.touch) #flowHud[data-lv="4"].sc2 .fSeg::after,html.han body.touch #flowHud[data-lv="4"].sc2:not(.monte) .fSeg::after{animation:hanFlowReflet 1.6s var(--ease) infinite,hanFlowGlintB .34s var(--ease)}
+@keyframes hanFlowGlintA{from{transform:translateX(-100%)}to{transform:translateX(calc(100% / 3))}}
+@keyframes hanFlowGlintB{from{transform:translateX(-100%)}to{transform:translateX(calc(100% / 3))}}
 @keyframes frPetA{0%,100%{opacity:1}}
 @keyframes frPetB{0%,100%{opacity:1}}
 /* elle FUIT : la marge BRÛLE (hachures qui clignotent), le halo s'éteint à moitié */
@@ -3096,6 +3179,15 @@ html body #triade.mesure{display:block;visibility:hidden;animation:none}
 #frenTraits i.fl1,#frenTraits i.fl2{filter:brightness(1.6)}
 /* (v4) ARMÉE : la jauge est pleine, la frénésie attend une figure POSÉE — la zone rouge bat (style fin : session UI) */
 html body #flowHud.arme .fSeg .fZ s{animation:frBrule .3s steps(2) infinite}
+/* ===== LA MARGE QUI BRÛLE EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») — iPhone 13 Pro : 58,0 i/s
+   en course, 59,7 animations CSS figées. steps(2) sur un 50 % : quatre états (rien, ×1,3, ×1,6, ×1,3). La copie du remplissage
+   (background:inherit) est posée ×1,6, son opacité fait 0 / ½ / 1 / ½ sur la même grille. Exact à 0 et à 1 ; à ½, un canal qui sature
+   (×1,6 > 255 : la ligne claire --frenC du haut, le bas --frenS) donne ≤ 23 niveaux de moins, et le curseur n'est plus éclairci. ===== */
+html.han body #flowHud.arme .fSeg .fZ s,html.han body #flowHud[data-lv="4"].fuit .fSeg .fZ s{animation:none}
+html.han body #flowHud.arme .fSeg .fZ s::before,html.han body #flowHud[data-lv="4"].fuit .fSeg .fZ s::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:inherit;filter:brightness(1.6);opacity:0;will-change:opacity;animation:hanFlowBrule .3s steps(2) infinite}
+html.han body #flowHud[data-lv="4"].fuit .fSeg .fZ s::before{animation-duration:.36s}   /* la frénésie qui fuit gagnait déjà sur l'armée (règle plus forte) */
+@keyframes hanFlowBrule{50%{opacity:1}}
 @keyframes trMeurt{0%{opacity:1;transform:scale(1)}25%{opacity:1;transform:scale(1.12)}100%{opacity:0;transform:scale(.2)}}
 /* la barre du RECORD se contracte pour laisser passer ses pointes (le texte, lui, ne bouge pas) */
 html body.touch.play.hTriade:not(#ccH) #avRec{max-width:calc(100vw - var(--hudD) - var(--frenD) - var(--frenT) - var(--hudG) - 6px)}
@@ -3984,6 +4076,26 @@ html body.touch #avCh.on{transform:none}
 @keyframes hmPwIn{0%{opacity:0;translate:28px 0;filter:brightness(2)}100%{opacity:1;translate:0 0;filter:none}}
 html body.touch #pwrChip .pw{animation:hmPwIn .45s var(--ease) both,k5PwBat 1.1s var(--ease) .45s infinite alternate}
 html body.touch #pwrChip .pw.fin{animation:chipFin .24s steps(2) infinite}
+/* ===== LA PLAQUE DES POUVOIRS QUI RESPIRE, EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») =====
+   Mesuré sur l'iPhone 13 Pro de Sacha : 58,0 i/s en course, 59,7 i/s animations figées ; la trace PC repeint `DIV.pw` ~0,7 fois par image.
+   `k5PwBat` (la version de charte-6, la dernière déclarée) battait le box-shadow de la plaque : style + peinture à chaque image, pour chaque
+   plaque. Ici le filet de 3 px et `--filetH` restent posés sur la plaque, et la LUEUR de gauche passe sur deux calques (::before = la lueur
+   « repos », ::after = la lueur « pleine », z-index:-1 : sous le texte, au-dessus des ombres de la plaque, comme dans l'ancienne liste) dont
+   seule l'OPACITÉ suit la même courbe (1,1 s, var(--ease), délai .45 s, alternate). Le filet passe sous la lueur au lieu d'au-dessus : même
+   image (lueur couleur --pc sur un filet --pc opaque). Écart : seulement entre les deux bouts du battement (fondu de deux ombres au lieu
+   de l'ombre interpolée), quelques % d'alpha dans la lueur. La découpe : le clip-path de la plaque coupe aussi ses pseudo-éléments.
+   La jauge `u` (scaleX(var(--p)) réécrit à CHAQUE image par la boucle) prend son calque : sa transformation ne repeint plus la plaque. */
+html.han body.touch #pwrChip .pw{box-shadow:inset 3px 0 0 var(--pc),var(--filetH)}
+html.han body.touch #pwrChip .pw:not(.fin){animation:hmPwIn .45s var(--ease) both}
+html.han body.touch #pwrChip .pw::before,html.han body.touch #pwrChip .pw::after{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;will-change:opacity;
+  box-shadow:inset 34px 0 26px -24px color-mix(in srgb,var(--pc) 60%,transparent);animation:hanPwRepos 1.1s var(--ease) .45s infinite alternate}
+html.han body.touch #pwrChip .pw::after{box-shadow:inset 56px 0 34px -24px color-mix(in srgb,var(--pc) 85%,transparent);opacity:0;animation-name:hanPwPlein}
+html.han body.touch #pwrChip .pw.fin::before,html.han body.touch #pwrChip .pw.fin::after{animation:none}
+html.han body.touch #pwrChip .pw u{will-change:transform}
+@keyframes hanPwRepos{from{opacity:1}to{opacity:0}}
+@keyframes hanPwPlein{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){html.han body.touch #pwrChip .pw::before,html.han body.touch #pwrChip .pw::after{animation:none!important}}
+html.han[data-reduced-motion="1"] body.touch #pwrChip .pw::before,html.han[data-reduced-motion="1"] body.touch #pwrChip .pw::after{animation:none!important}
 /* le chrono de vol ÉCLÔT au décollage (il apparaissait d'un coup) */
 @keyframes hmPie{0%{opacity:0;scale:.55}100%{opacity:1;scale:1}}
 html body.touch #airPie{animation:hmPie .32s var(--ease)}
@@ -4402,6 +4514,42 @@ html body.touch #airPie[style*="block"]+#airHud{display:block}
 html body.touch #airPie.danger+#airHud{animation:k6PieDanger .12s steps(2) infinite}
 html body.touch #airPie.danger+#airHud .ahBar{animation:daSecA .3s steps(2) infinite}
 @keyframes daSecA{50%{box-shadow:inset 0 0 0 3px var(--rP),0 4px 0 var(--jEncre),0 0 12px color-mix(in srgb,var(--rP) 70%,transparent)}}
+/* ===== LE CHRONO DE VOL EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») =====
+   Mesuré sur l'iPhone 13 Pro de Sacha : 58,0 i/s et 63 images > 25 ms en course, 59,7 i/s et 9 images toutes animations CSS figées —
+   WebKit refait style + peinture à chaque image pour background-position / box-shadow. Même image, mais dans le compositeur :
+   · AIR INFINI (daFile) : les rayures ne glissent plus par background-position ; elles sont peintes UNE fois sur un calque 13 px plus
+     large (.hanAhR::before, mêmes tuiles de 13 px, même origine) qui glisse de −13 px en transform, coupé par .hanAhR (= la boîte de .ahF,
+     .ahF ne coupe pas : son curseur ::after déborde). La 2e barre du raisin (.ahBar2, clone) garde l'ancien chemin (son fond est autre).
+   · SECONDES CRITIQUES (daSecA, steps(2)) : l'ombre A, l'ombre à mi-chemin et l'ombre B sont posées chacune sur un calque (::before,
+     .hanAhM, ::after ; sous la jauge : .ahBar devient un contexte d'empilement, calques en z-index −1), seule leur opacité bascule.
+     Écart attendu : 0 sur A et B, l'arrondi des couleurs sur le calque du milieu. En .flash (rare), l'ancien chemin (l'ombre de base y est autre). */
+#airHud .hanAhR{display:none}
+html.han #airHud[data-k="inf"] .ahBar:not(.ahBar2) .ahF{animation:none;background-size:100% 100%;
+  background-image:linear-gradient(var(--bandes4),var(--xL) 0 2px,var(--xP) 2px 50%,var(--xS) 50% calc(100% - 2px),var(--xO) calc(100% - 2px))}
+html.han #airHud[data-k="inf"] .ahBar:not(.ahBar2) .ahF>.hanAhR{display:block;position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none}
+html.han #airHud[data-k="inf"] .ahBar:not(.ahBar2) .ahF>.hanAhR::before{content:'';position:absolute;left:0;top:0;bottom:0;width:calc(100% + 13px);
+  background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.4) 0 4px,transparent 4px 9px);background-size:13px 100%;background-position:0 0;
+  animation:hanAhFile .4s linear infinite;will-change:transform}
+@keyframes hanAhFile{to{transform:translateX(-13px)}}
+html.han body.touch #airPie.danger+#airHud:not(.flash) .ahBar{animation:none;box-shadow:none;isolation:isolate}
+#airHud .hanAhM{display:none}
+html.han body.touch #airPie.danger+#airHud:not(.flash) .ahBar::before,html.han body.touch #airPie.danger+#airHud:not(.flash) .ahBar::after{content:''}
+html.han body.touch #airPie.danger+#airHud:not(.flash) .ahBar::before,html.han body.touch #airPie.danger+#airHud:not(.flash) .ahBar>.hanAhM,html.han body.touch #airPie.danger+#airHud:not(.flash) .ahBar::after{display:block;position:absolute;
+  left:0;top:0;right:0;bottom:0;z-index:-1;pointer-events:none;will-change:opacity;opacity:0}
+/* steps(2) s'applique à CHAQUE intervalle d'images clés (0→50 %, 50→100 %) : A sur [0 ; ¼[, la MOITIÉ du chemin A→B sur [¼ ; ½[ et [¾ ; 1[,
+   B sur [½ ; ¾[. Trois calques, un seul visible à la fois (step-end). Le calque du milieu porte l'ombre interpolée à 50 %, écrite à la main :
+   décalages, flous et couleurs moyennés (deux couleurs « anciennes » : en sRGB ; avec un color-mix, qui n'en est pas une : en Oklab). */
+html.han body.touch #airPie.danger+#airHud:not(.flash) .ahBar::before{box-shadow:inset 0 0 0 3px var(--jEncre),0 4px 0 var(--jEncre),0 8px 14px rgba(0,0,0,.35);
+  animation:hanAhSecA .3s step-end infinite}
+html.han body.touch #airPie.danger+#airHud:not(.flash) .ahBar>.hanAhM{box-shadow:inset 0 0 0 3px color-mix(in srgb,var(--jEncre),var(--rP)),0 4px 0 var(--jEncre),
+  0 4px 13px color-mix(in oklab,rgba(0,0,0,.35),color-mix(in srgb,var(--rP) 70%,transparent));animation:hanAhSecM .3s step-end infinite}
+html.han body.touch #airPie.danger+#airHud:not(.flash) .ahBar::after{box-shadow:inset 0 0 0 3px var(--rP),0 4px 0 var(--jEncre),0 0 12px color-mix(in srgb,var(--rP) 70%,transparent);
+  animation:hanAhSecB .3s step-end infinite}
+@keyframes hanAhSecA{0%{opacity:1}25%,100%{opacity:0}}
+@keyframes hanAhSecM{0%,50%{opacity:0}25%,75%,100%{opacity:1}}
+@keyframes hanAhSecB{0%,75%,100%{opacity:0}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){html.han #airHud .hanAhR::before,html.han body.touch #airPie.danger+#airHud .ahBar>.hanAhM,html.han body.touch #airPie.danger+#airHud .ahBar::after{animation:none!important}
+  html.han body.touch #airPie.danger+#airHud .ahBar::before{animation:none!important;opacity:1!important}}
 body.hTp:not(#ccH) #airHud,body.dead #airHud{visibility:hidden}
 /* ---- 4. L'EMBLÈME DARK TRIAD : l'icône pixel (triangle et œil) et le nom dans la typo du compteur, en bandes ROUGES (TRIPLE MONSTER) ---- */
 :root{--frenTh:60px}
@@ -6466,6 +6614,15 @@ html body.touch.play.figVol.figDir #fhLeg{display:flex;flex-direction:column;ali
 #fh .fhRec{font-family:var(--pix);font-size:var(--fhCh);letter-spacing:1px;line-height:1;text-decoration:none;color:var(--fhE);background:var(--fh0);padding:5px 6px 4px;clip-path:var(--fhCoupe);visibility:hidden}
 #fh .fhRec.on{visibility:visible;animation:fhRecBat .5s steps(2) infinite}
 @keyframes fhRecBat{50%{background:#fff}}
+/* ===== LE « RECORD » DES FIGURES EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») =====
+   iPhone 13 Pro mesuré : 58,0 i/s en course contre 59,7 i/s animations figées (WebKit repeint les fonds animés à chaque image).
+   fhRecBat est une bascule franche (steps(2)) du fond var(--fh0) au blanc OPAQUE : le blanc est posé une fois sur un pseudo-élément (sous le
+   texte : .fhRec isolé, pseudo en z-index −1, coupé par le même clip-path) dont seule l'opacité bascule. Écart attendu : 0. */
+html.han #fh .fhRec.on{animation:none;position:relative;isolation:isolate}
+html.han #fh .fhRec.on::before{content:'';position:absolute;left:0;top:0;right:0;bottom:0;z-index:-1;background:#fff;opacity:0;pointer-events:none;
+  will-change:opacity;animation:hanFhRecBat .5s steps(2) infinite}
+@keyframes hanFhRecBat{50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){html.han #fh .fhRec.on::before{animation:none!important}}
 .fhL{opacity:.62;transition:opacity var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
 .fhL.arme{opacity:1;transform:translateX(-8px);background:color-mix(in srgb,var(--fc) 28%,var(--fhE));
   box-shadow:inset 3px 0 0 var(--fc),inset 0 0 0 2px var(--fc),0 0 16px color-mix(in srgb,var(--fc) 55%,transparent)}
@@ -8032,7 +8189,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
        NITRO : l'aile pixel, les secondes dans la typo ombrée du compteur d'aura, et une barre de la même recette que la nitro (cadre
        d'encre, remplissage en quatre bandes, curseur blanc) qui se vide. Il se montre et se cache AVEC #airPie (sélecteur frère) : le
        canvas garde son rôle d'état (display, .danger) — plus rien n'y est dessiné. -->
-  <div id="airHud" aria-hidden="true"><div class="ahTop"><i class="pxi pxi-aile"></i><b class="ahS">6.0</b><em>AIR</em></div><div class="ahBar"><i class="ahF"></i></div></div>
+  <div id="airHud" aria-hidden="true"><div class="ahTop"><i class="pxi pxi-aile"></i><b class="ahS">6.0</b><em>AIR</em></div><div class="ahBar"><i class="hanAhM"></i><i class="ahF"><i class="hanAhR"></i></i></div></div>
   <canvas id="minimap" width="176" height="176"></canvas>
   <div id="survHud"></div>
   <div id="lastAlert"></div>
@@ -59084,6 +59241,19 @@ const ENG_V9=new THREE.Vector3();
    CAPOT en accélérant, rétrécit à 10 %, tourne de plus en plus vite (la scène d'atelier, armée pour ça), et tout ce qui passe sous la
    ligne du capot s'efface (`uClipY`) : il s'enfonce dans la tôle. Les textes, eux, s'effacent au début de la plongée. */
 const ENG_V8=new THREE.Vector3();
+/* ===== LA CARTE MOTEUR ET LE GESTE SUIVENT LA CAISSE EN TRANSFORM (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») =====
+   engBigSuit et popSuit écrivaient left/top à CHAQUE image où la caisse bouge d'un pixel (950 ms par geste, toute la carte moteur) : une
+   mise en page + une peinture par image. Sous html.han (sauf ?hudanim=0), left/top sont posés à 0 une fois et la place exacte (les mêmes
+   pixels entiers) passe par la propriété `translate`, qui se compose AVANT le `transform` des animations (translate(-50%) scale…) :
+   même image, sans mise en page. */
+const PCF_HAN_SUIT=document.documentElement.classList.contains('han');
+/* left/top sont arrondis au pixel PHYSIQUE par la mise en page (Chrome compte en pixels d'écran : 422 px × 3,072 = 1296,4 → 1296), une
+   translation non : on arrondit pareil, sinon le texte glisse d'une fraction de pixel (vu à la preuve du chef, densité 3,07). */
+function pcfHanPlace(el,l9,t9,o){const v9=l9+' '+t9;if(o._hv===v9&&el.style.left==='0px')return;o._hv=v9;
+  const k9=window.devicePixelRatio||1,a9=function(s){return Math.round(parseFloat(s)*k9)/k9+'px';};
+  if(el.style.left!=='0px')el.style.left='0px';if(el.style.top!=='0px')el.style.top='0px';el.style.translate=a9(l9)+' '+a9(t9);}
+/* banc (dev) : `dbgPcfSuit(el,'412px','180px')` pose un élément comme popSuit / engBigSuit le feraient (translate sous html.han, left/top sinon) */
+window.dbgPcfSuit=function(el,l9,t9){if(PCF_HAN_SUIT)pcfHanPlace(el,l9,t9,{});else{el.style.left=l9;el.style.top=t9;}return PCF_HAN_SUIT?'translate':'left/top';};
 function engBigSuit(){ // le moteur 3D de la carte : OÙ le recoller dans l'image, à quelle taille, avec quelle opacité (lu par engQuadDraw)
   if(!engBig.on){ENG_Q.op=0;return;}
   const n=performance.now(),t=n-engBig.t0,RM=REDUCED_MOTION;
@@ -59103,7 +59273,7 @@ function engBigSuit(){ // le moteur 3D de la carte : OÙ le recoller dans l'imag
   else{const k9=Math.min(1,(n-(engBig._n||n))/1000*14);engBig.sx+=(cx-engBig.sx)*k9;engBig.sy+=(cy-engBig.sy)*k9;}
   engBig._n=n;
   const el=engBig.el;if(el&&!engBig.plonge){const l9=engBig.sx.toFixed(0)+'px',t9=engBig.sy.toFixed(0)+'px';
-    if(el.style.left!==l9)el.style.left=l9;if(el.style.top!==t9)el.style.top=t9;} // (perf) on n'écrit que ce qui a bougé d'un pixel
+    if(PCF_HAN_SUIT)pcfHanPlace(el,l9,t9,engBig);else{if(el.style.left!==l9)el.style.left=l9;if(el.style.top!==t9)el.style.top=t9;}} // (perf) on n'écrit que ce qui a bougé d'un pixel
   let s=1,op=1,x=engBig.sx+(engBig.rx||0)*S,y=engBig.sy+(engBig.ry||0)*S;
   if(t<220&&!RM){const u=t/220,e=1-(1-u)*(1-u)*(1-u);s=.55+.45*e;op=Math.min(1,u*6);} // l'entrée — (v5.1) opaque en 40 ms, il GRANDIT depuis la caisse : le fondu depuis le transparent se lisait « fantôme gris » sur les captures
   ENG_Q.fl=RM?0:Math.max(0,1-t/260); // (v4) l'éclat d'apparition (lu par engQuadDraw)
@@ -59136,9 +59306,9 @@ function popSuit(){ // (HUD v4) le geste JAILLIT DE LA CAISSE : tant que le text
      pose plus. Pas la place au-dessus (une annonce occupe le couloir) → il s'efface : la liste des figures, à gauche, le garde. Au sol : comme avant. */
   const vol9=mode==='fall',haut9=yH-56>=mini;if(vol9!==!!popSuit._v||haut9!==!!popSuit._h){popSuit._v=vol9;popSuit._h=haut9;e.classList.toggle('cache',vol9&&!haut9);}
   const y=haut9?Math.min(yH-56,VP.h*.64):THREE.MathUtils.clamp(yB+24,mini,VP.h*.74);
-  const t9=y.toFixed(0)+'px';if(e.style.top!==t9)e.style.top=t9; // (perf) on n'écrit que ce qui a bougé d'un pixel
+  const t9=y.toFixed(0)+'px';if(!PCF_HAN_SUIT&&e.style.top!==t9)e.style.top=t9; // (perf) on n'écrit que ce qui a bougé d'un pixel
   // (vague 2, H5) il suit aussi la caisse en LARGEUR, mais borné : « AUPHIN EN VOL +8 » sortait de l'écran par la gauche
-  const hw=(popTexte._w||0)*.58+8,x=Math.max(hw,Math.min(VP.w-hw,xC)),l9=x.toFixed(0)+'px';if(e.style.left!==l9)e.style.left=l9; // .58 : le rebond d'entrée (×1,15) compris
+  const hw=(popTexte._w||0)*.58+8,x=Math.max(hw,Math.min(VP.w-hw,xC)),l9=x.toFixed(0)+'px';if(PCF_HAN_SUIT)pcfHanPlace(e,l9,t9,popSuit);else if(e.style.left!==l9)e.style.left=l9; // .58 : le rebond d'entrée (×1,15) compris
 }
 /* (HUD v4) LE RECORD À BATTRE — la meilleure partie (SAVE.d.auraMax) s'affiche sous le compteur, avec sa jauge : on la voit se
    remplir, elle BAT à 85 %, et le jour où on la dépasse EN COURSE, le jeu le crie (une fois par partie). C'est le « encore une ». */
@@ -74815,6 +74985,63 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   };
   mGo('home');
 }
+/* ===== L'ENREGISTREUR DE PARTIES (2026-10-24, passe perf, Sacha : « lors des tests la voiture reste conduite sur le sol alors qu'une grosse partie du
+   jeu se joue en voltigeant dans les airs ; fais un mode où c'est moi qui joue en voltigeant et toi tu récupères de la data ») =====
+   Le pilote des bancs roule au sol : il ne vole presque pas, ne fait pas de figures, ne rate rien. Ici c'est SACHA qui joue, et le jeu note, à chaque
+   image de course : la durée de l'image, le temps pris par le jeu avant le dessin (proxy du JS de la boucle), et la PHASE — sol, vol, figure (en vol
+   avec une figure lancée) — avec la map, le palier, le cran de qualité, la densité. À chaque fin de partie, la course est rangée dans le téléphone
+   (localStorage `ccPerfRec`, les 15 dernières) : on la relit sur le Mac par le pont de l'inspecteur (`dbgPerfRec()`).
+   ALLUMER : `?perfrec=1` dans l'adresse, ou `localStorage.ccPerfRecOn='1'` (l'appli n'a pas d'adresse), ou `dbgPerfRec(1)` ; ÉTEINDRE : `?perfrec=0`
+   ou `dbgPerfRec(0)`. Éteint, il ne pose aucun rappel d'image : zéro coût. Rien de ce qu'il fait ne touche au jeu (il lit, il ne pose rien). */
+const PREC={on:false,cours:null,der:0,K:'ccPerfRec',KON:'ccPerfRecOn',N:15,LONG:40,BORNES:[16.9,25,33.4,50,100]};
+(function(){try{const q=location.search;
+  if(/[?&]perfrec=0\b/.test(q)){localStorage.removeItem(PREC.KON);}
+  else if(/[?&]perfrec=1\b/.test(q)){localStorage.setItem(PREC.KON,'1');PREC.on=true;}
+  else PREC.on=localStorage.getItem(PREC.KON)==='1';}catch(e){PREC.on=/[?&]perfrec=1\b/.test(location.search);}})();
+function precPhase(){ /* sol / vol / figure (en vol avec une figure lancée) */
+  if(mode!=='fall')return 'sol';
+  let f=false;try{const C=FX2&&FX2.corps;f=!!(C&&C.figs&&C.figs.length);}catch(e){}
+  return f?'figure':'vol';}
+function precLieu(){try{return (LVL&&LVL.cur&&LVL.cur.id)||'?';}catch(e){return '?';}}
+function precNeuve(now){ return {debut:new Date().toISOString(),t0:now,carte:[precLieu()],palier:(typeof PAL!=='undefined'?PAL.n:null),
+  phases:{},longues:[],secondes:[],sec:null,ql:[],dpr:[],cad:null,n:0}; }
+function precPose(c,ph,dt,js){
+  const p=c.phases[ph]||(c.phases[ph]={n:0,ms:0,js:0,max:0,b:[0,0,0,0,0,0]});
+  p.n++;p.ms+=dt;p.js+=js;if(dt>p.max)p.max=dt;
+  let i=0;while(i<PREC.BORNES.length&&dt>PREC.BORNES[i])i++;p.b[i]++;}
+function precFinit(c,now){ /* la course finie : arrondie et rangée */
+  if(c.sec)c.secondes.push(c.sec);c.duree=+((now-c.t0)/1000).toFixed(1);
+  for(const k in c.phases){const p=c.phases[k];p.ms=Math.round(p.ms);p.js=Math.round(p.js);p.max=Math.round(p.max);p.ips=p.ms?+(1000*p.n/p.ms).toFixed(1):0;}
+  delete c.sec;delete c.t0;
+  try{const a=JSON.parse(localStorage.getItem(PREC.K)||'[]');a.push(c);while(a.length>PREC.N)a.shift();localStorage.setItem(PREC.K,JSON.stringify(a));}catch(e){}}
+function precImage(ts){
+  if(!PREC.on)return;requestAnimationFrame(precImage);
+  const now=performance.now(),js=Math.max(0,now-ts),dt=PREC.der?ts-PREC.der:0;PREC.der=ts;
+  const enCourse=started&&!gameOver;
+  if(!enCourse){if(PREC.cours){precFinit(PREC.cours,now);PREC.cours=null;}return;}
+  if(!PREC.cours){PREC.cours=precNeuve(now);return;}
+  if(!(dt>0)||dt>5000)return; /* l'onglet caché, une pause : pas une image */
+  const c=PREC.cours,ph=precPhase(),lieu=precLieu();c.n++;
+  if(c.carte[c.carte.length-1]!==lieu)c.carte.push(lieu);
+  precPose(c,ph,dt,js);
+  const s=Math.floor((now-c.t0)/1000);
+  if(!c.sec||c.sec[0]!==s){if(c.sec)c.secondes.push(c.sec);c.sec=[s,0,0,ph];}
+  c.sec[1]++;if(dt>c.sec[2])c.sec[2]=Math.round(dt);if(ph!=='sol')c.sec[3]=ph;
+  try{const k=QL.k,d=+curDPR.toFixed(2);if(c.ql[c.ql.length-1]?.[1]!==k)c.ql.push([s,k]);if(c.dpr[c.dpr.length-1]?.[1]!==d)c.dpr.push([s,d]);c.cad=!!(typeof CAD!=='undefined'&&CAD.on);}catch(e){}
+  if(dt>PREC.LONG&&c.longues.length<200){let v=0;try{v=Math.round(mode==='fall'?Math.hypot(fallVel.x,fallVel.z):Math.abs(vA));}catch(e){}
+    c.longues.push([+((now-c.t0)/1000).toFixed(2),Math.round(dt),Math.round(js),ph,lieu,v]);}
+}
+if(PREC.on)requestAnimationFrame(precImage);
+/* (banc) dbgPerfRec() : tout · dbgPerfRec(1|0) : allumer / éteindre (gardé dans le téléphone) · dbgPerfRec('vide') : effacer les courses ·
+   dbgPerfRec('resume') : une ligne par course et par phase (i/s, images > 25 / 33 / 50 ms, pire) */
+window.dbgPerfRec=function(a){
+  if(a===1||a===true){PREC.on=true;try{localStorage.setItem(PREC.KON,'1');}catch(e){}PREC.der=0;requestAnimationFrame(precImage);return 'enregistreur allumé';}
+  if(a===0||a===false){PREC.on=false;try{localStorage.removeItem(PREC.KON);}catch(e){}return 'enregistreur éteint';}
+  let C=[];try{C=JSON.parse(localStorage.getItem(PREC.K)||'[]');}catch(e){}
+  if(a==='vide'){try{localStorage.removeItem(PREC.K);}catch(e){}return 'courses effacées';}
+  if(a==='resume')return C.map(function(c){return c.debut.slice(11,19)+' '+c.carte.join('>')+' '+c.duree+'s palier '+c.palier+' | '+Object.keys(c.phases).map(function(k){const p=c.phases[k];
+    return k+' '+p.n+' img '+p.ips+' i/s >25:'+(p.b[2]+p.b[3]+p.b[4]+p.b[5])+' >33:'+(p.b[3]+p.b[4]+p.b[5])+' >50:'+(p.b[4]+p.b[5])+' pire '+p.max;}).join(' · ');});
+  return {on:PREC.on,enCours:PREC.cours?{n:PREC.cours.n,carte:PREC.cours.carte,phases:PREC.cours.phases}:null,courses:C};};
 // ============================================================================
 // LE MÊME ⚙ POUR LE DESKTOP (2026-09-05) — « enlève la mini app, déplace tous les boutons du
 // gameplay, par un petit logo réglages qui inclue tous les boutons qu'on vient de supprimer ».
