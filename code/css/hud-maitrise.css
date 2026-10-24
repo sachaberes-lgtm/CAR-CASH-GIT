@@ -275,7 +275,7 @@ html body #flowHud .fT i.moins.on2{animation:hmTagB .5s steps(1) both,hmTagRouge
 /* les trois ensemble : l'étiquette peut déborder un peu à droite de la bande — jamais sous le ⏸, qui vit plus haut */
 html body #flowHud .fT.trois{gap:5px}
 /* EN PORTRAIT l'emblème DARK TRIAD descend d'un cran : sa pointe se posait sur la ligne des traits */
-@media not ((orientation:landscape) and (max-height:540px)){
+@media not all and (orientation:landscape) and (max-height:540px){
   html body.touch{--frenH:88px}
   html body.touch.play.hTriade:not(#ccH) #pwrChip{top:calc(var(--hudH) + 278px)}
 }
