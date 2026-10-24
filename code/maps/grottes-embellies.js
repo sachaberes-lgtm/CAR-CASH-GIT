@@ -19,14 +19,14 @@ function* grtCristauxG(V,R,dec,seed){
   const fe=mulberry32((seed^0x5C47A1)>>>0),D=dec.D,P9=dec.P,RHd=ROAD_HALF,VZ=GRT_VASTE,K9=PAL_B9('grotteCris',1)*(TEL_NATIF?.75:1),UP=[0,1,0],BAS=[0,-1,0];
   let n=0,it=0,acc=0,suiv=30+fe()*40;
   const teinte=function(sal){const p=GRT_CRIS_P[sal];let u=fe(),k=0;for(;k<3&&u>p[k];k++)u-=p[k];return k;};
-  const clair=function(x,y,z,L,k){const r=(24+L*.9)*(VZ?1.4:1),c=GRT_CRIS_L[k];P9.push({x:x,y:y,z:z,r:r,r2:r*r,c:c,I:.85});};
+  const clair=function(x,y,z,L,k){const r=(24+L*.9)*(VZ?1.4:1),c=GRT_CRIS_L[k];P9.push({x:x,y:y,z:z,r:r,r2:r*r,c:c,I:1.7});}; /* (reprise : I .85 → 1,7 — la roche autour d'une grappe rosissait trop peu pour se lire à 150 m dans la brume) */
   /* une grappe : un cristal principal (prisme à cinq pans + pointe) et trois éclats pointus, plantés dans la roche en (bx,by,bz), tournés vers dir (unitaire) */
-  const grappe=function(bx,by,bz,dir,L,r0,k){const t=GRT_CRIS_T[k],h=L*.7,rot=fe()*6;
+  const grappe=function(bx,by,bz,dir,L0,r0,k,pro){const t=GRT_CRIS_T[k],L=L0+pro,h=L*.7,rot=fe()*6; /* pro : le PIED ENTERRÉ dans la roche (la grappe sort de la paroi au lieu d'y flotter) */
     grtPrisme(D,V,bx,by,bz,dir,5,r0,r0,h,t,rot);grtPrisme(D,V,bx+dir[0]*h,by+dir[1]*h,bz+dir[2]*h,dir,5,r0,0,L*.3,t,rot);
     for(let j=0;j<3;j++){ /* trois éclats, nés de la même souche : un petit décalage de la base dans le plan perpendiculaire à l'axe, un axe qui s'écarte de ±0,5 */
       const a=[dir[0]+(fe()-.5)*1.1,dir[1]+(fe()-.5)*1.1,dir[2]+(fe()-.5)*1.1],l=Math.hypot(a[0],a[1],a[2])||1,u=[a[0]/l,a[1]/l,a[2]/l];
       let w=[fe()-.5,fe()-.5,fe()-.5];const pd=w[0]*dir[0]+w[1]*dir[1]+w[2]*dir[2];w=[w[0]-pd*dir[0],w[1]-pd*dir[1],w[2]-pd*dir[2]];const wl=Math.hypot(w[0],w[1],w[2])||1,o=r0*(.5+fe()*1.1)/wl;
-      grtPrisme(D,V,bx+w[0]*o,by+w[1]*o,bz+w[2]*o,u,5,r0*.7,0,L*(.35+fe()*.25),t,fe()*6);}
+      grtPrisme(D,V,bx+w[0]*o,by+w[1]*o,bz+w[2]*o,u,5,r0*.7,0,pro+L0*(.3+fe()*.3),t,fe()*6);}
     n++;};
   for(let q=R.i0+1;q<R.n-20;q++){acc+=R.S[q]-R.S[q-1];const sal=R.SAL[q],dn9=GRT_CRIS_D[sal];if(acc<suiv||!dn9||(sal===0&&R.RH[q]<90))continue;
     acc=0;suiv=(44/Math.max(.05,K9*dn9))*(.6+fe()*.8);if(((++it)&7)===0&&performance.now()>JF.lim)yield;
@@ -39,12 +39,12 @@ function* grtCristauxG(V,R,dec,seed){
         const sz=Math.max(1,Math.min(4.2,hit/60)),L=Math.min(Lmax,(5+fe()*7)*sz),r0=L*(.12+fe()*.06),x0=R.X[q]+bx*(hit-.8),z0=R.Z[q]+bz*(hit-.8);
         const a=[-bx+(fe()-.5)*.5,(fe()-.5)*.8,-bz+(fe()-.5)*.5],l=Math.hypot(a[0],a[1],a[2]),u=[a[0]/l,a[1]/l,a[2]/l];
         if(!grtLibre(R,x0+u[0]*L,z0+u[2]*L,y+u[1]*L-3,y+u[1]*L+3,r0+2))continue;
-        grappe(x0,y,z0,u,L,r0,k);clair(x0-bx*(3+L*.2),y,z0-bz*(3+L*.2),L,k);ok=true;}
+        const pro=r0*1.7+1.5;grappe(x0+bx*(pro+.8),y,z0+bz*(pro+.8),u,L,r0,k,pro);clair(x0-bx*(3+L*.2),y,z0-bz*(3+L*.2),L,k);ok=true;}
       else{ /* la VOÛTE (pendue) ou le SOL (dressée) : de côté, loin de la route */
         const sd=fe()<.5?-1:1,lat=RHd+14+fe()*(VZ?R.RH[q]*.7:90),x=R.X[q]+R.TZ[q]*sd*lat,z=R.Z[q]-R.TX[q]*sd*lat,haut=mode<.8;
         let yb=null;if(haut){let y0=R.Y[q]+8;if(grtDensIci(V,x,y0,z)<=0)continue;for(let yy=y0;yy<y0+(VZ?R.UP[q]*1.5:120);yy+=2)if(grtDensIci(V,x,yy,z)<=0){yb=yy-1;break;}}
         else{let y0=R.Y[q]-THICK-3;if(grtDensIci(V,x,y0,z)<=0)continue;for(let yy=y0;yy>y0-(VZ?R.DN[q]*1.5+20:110);yy-=2)if(grtDensIci(V,x,yy,z)<=0){yb=grtIci(V,x,yy-1,z)===0?yy+1:null;break;}}
         if(yb==null)continue;const sz=Math.max(1,Math.min(3.2,lat/90)),L=(5+fe()*8)*sz,r0=L*(.12+fe()*.06);
         if(!(haut?grtLibre(R,x,z,yb-L,yb,r0*2+2):grtLibre(R,x,z,yb,yb+L,r0*2+2)))continue;
-        grappe(x,haut?yb+2:yb-2,z,haut?BAS:UP,L,r0,k);clair(x,haut?yb-L*.4:yb+L*.4,z,L,k);ok=true;}}}
+        const pro=r0*1.7+1.5;grappe(x,haut?yb+2+pro:yb-2-pro,z,haut?BAS:UP,L,r0,k,pro);clair(x,haut?yb-L*.4:yb+L*.4,z,L,k);ok=true;}}}
   dec.n.cristauxM=n;}

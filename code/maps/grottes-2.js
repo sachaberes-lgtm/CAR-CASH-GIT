@@ -144,7 +144,7 @@ const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant,uVeilK,uVe
   '  if(mt<.5&&uVein>.001&&uLant>.01){vec3 Hh=normalize(normalize(cameraPosition-vW)+normalize(dl));float wm=step(.5,fh3(floor(vW*.045)+sal*5.))*(1.-.6*smoothstep(.45,.85,n.y));',
   '    em+=uLantC*pow(max(dot(n,Hh),0.),30.)*wm*uLant*.7/(1.+d2/2200.);}',
   '  vec3 col=alb*(((uAmb+uTorchC*(vL.x*uTorch)+vL.yzw*(2.*uLieu))*key+Lc)*ao);',
-  '  #ifdef USE_FOG','  float ff=smoothstep(fogNear,fogFar,fogDepth);vec3 vl=sal<.5?vec3(.10,.08,.15):sal<1.5?vec3(.03,.15,.15):sal<2.5?vec3(.12,.07,.26):sal<3.5?vec3(.10,.09,.17):sal<4.5?vec3(.16,.05,.12):vec3(.02,.10,.17);col=mix(col,fogColor+vl*uVeilK*ff,ff)+em*(1.-ff*.55);','  #else','  col+=em;','  #endif',
+  '  #ifdef USE_FOG','  float ff=smoothstep(fogNear,fogFar,fogDepth);vec3 vl=sal<.5?vec3(.10,.08,.15):sal<1.5?vec3(.03,.15,.15):sal<2.5?vec3(.12,.07,.26):sal<3.5?vec3(.10,.09,.17):sal<4.5?vec3(.16,.05,.12):vec3(.02,.10,.17);col=mix(col,fogColor,ff)+vl*uVeilK*(4.*ff*(1.-ff))+em*(1.-ff*.55);','  #else','  col+=em;','  #endif',
   '  gl_FragColor=vec4(col,1.);}'].join('\n');
 /* LES POUSSIÈRES (700 points ronds et doux autour de la caméra, comme les braises du volcan) : la poussière de la mine, les spores, les paillettes
    de la géode, les gouttes, les braises, les âmes — chaque salle les siennes, fondues en ~1 s. */
