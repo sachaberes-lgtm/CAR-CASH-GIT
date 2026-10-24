@@ -118,10 +118,8 @@ const SF_CARTES={
    ========================================================================== */
 const PLANETES_ON=true;
 const PLANETES={ // teinte = multiplicateur du globe (le grade final rallume : on rentre sombre) · atmo = coquille du limbe · limbe = halo (au repos) · peint = la peinture de la toile
-  terre:{teinte:0x55708c,atmo:0x8fd4ff,limbe:0x6fc0ff,rim:1},
-  mars:{teinte:0x7c6a62,atmo:0xd09064,limbe:0xc07a52,rim:0,peint:'mars'},
-  jupiter:{teinte:0x6c6050,atmo:0xe8c090,limbe:0xd8a870,rim:.3,peint:'jupiter'}}; // (teinte : sombre exprès, le grade final rallume — mesuré à l'image : 0x8c7a6e lavait Mars en saumon, 0x6e5f56 le tenait rouille)
-if(PLANETES_ON){SF_CARTES.espace.m.midi.astre=Object.assign({echelle:1.35},PLANETES.mars);SF_CARTES.espace.m.soir.astre=Object.assign({echelle:1.35},PLANETES.jupiter);} /* (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») plus de variante satellites (Saturne) */ // (Sacha a validé) matin = Terre (rien), midi = Mars, soir = Jupiter, satellites = Saturne
+  terre:{teinte:0x55708c,atmo:0x8fd4ff,limbe:0x6fc0ff,rim:1}}; // (teinte : sombre exprès, le grade final rallume — mesuré à l'image : 0x8c7a6e lavait Mars en saumon, 0x6e5f56 le tenait rouille)
+/* (2026-10-24, Sacha : « au lieu de Mars et Jupiter, remets juste la Terre ») plus de variante Mars (midi) ni Jupiter (soir) : l'orbite a toujours la Terre. */
 {SF_CARTES.nuages.m.matin.bio='nuagesMatinCC';SF_CARTES.nuages.m.midi.bio='nuagesMidiCC';}
 /* (2026-10-15 soir, Sacha : « le ciel est toujours assez mal géré, les couleurs en plein jour sont mal gérées ») LE CIEL DES NUAGES SANS BANDE ORANGE.
    Depuis LA MAP SANS HAUT NI BAS, le dôme est replié (uSym) et la caméra roule avec la route : l'horizon PÊCHE de la bible (jHor .95,.80,.64 à midi,
