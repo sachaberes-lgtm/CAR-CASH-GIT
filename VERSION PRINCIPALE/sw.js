@@ -10,7 +10,8 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v883'; /* v883 (2026-10-24, Sacha : « supprime la map crypto city de téléphone ») CRYPTO CITY hors du tirage sur téléphone (?carte=crypto la remet) */
+const CACHE = 'cashcar-v884'; /* v884 (2026-10-24, Sacha : « réduire la map jade sur mobile ») JADE_SOBRE : montagnes ÷2, sans animaux ni nuages ni rayons ni lucioles, moins de cascades et de brume (téléphone seulement ; ?jadeplein=1 = avant) */
+// const CACHE = 'cashcar-v883'; /* v883 (2026-10-24, Sacha : « supprime la map crypto city de téléphone ») CRYPTO CITY hors du tirage sur téléphone (?carte=crypto la remet) */
 // const CACHE = 'cashcar-v882'; /* v882 (2026-10-24, Sacha : « orbite : retire lune, 90 % des satellites, glint et flare, Terre à la place de Mars/Jupiter ») */
 // const CACHE = 'cashcar-v881'; /* v881 (2026-10-24, Sacha : « étape suivante pour alléger ») palier 0 (vieux téléphones) : bloom coupé dès le départ (?bloom=1 le rend) */
 // const CACHE = 'cashcar-v880'; /* v880 (2026-10-24, Sacha : « alléger le son pour le mobile ») banque de sons sans les 5 sons du volcan supprimé (−0,5 Mo) ; palier 0 : forêt/banquise/ailes non décodés (?sonsplein=1 = tout) */
