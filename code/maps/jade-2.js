@@ -54,7 +54,7 @@ const JADE_VR_FS=[
   '    float mo=max(step(.5,Ng.y)*smoothstep(.3,.62,rn(p*.13)),smoothstep(.6,.78,rn(p*.05+11.)*.7+(1.-st)*.3)*hv*(1.-smoothstep(.4,.95,vAO))*.8)*vJ.y;',
   '    alb=mix(alb,mix(vec3(.09,.16,.07),vec3(.22,.32,.12),rn(p*.4))*uVerT,mo);',      // la mousse
   (JMAT>=1?[
-  '    float sb=smoothstep(.15,.85,.5+.5*sin(p.y*.11+st*4.5+vJ.x*6.));alb=mix(alb,roc*vec3(1.55,1.18,.78),sb*.38*(1.-mo));', // (embellie) les STRATES : des bancs de grès chaud entre les bancs de roche verte
+  '    float sb=smoothstep(.15,.85,.5+.5*sin(p.y*.11+st*4.5+vJ.x*6.));alb=mix(alb,roc*vec3(1.55,1.18,.78),sb*.30*(1.-mo));', // (embellie) les STRATES : des bancs de grès chaud entre les bancs de roche verte
   '    float vj=smoothstep(.52,.8,st)*(1.-mo);ve=fv*vj*dF;alb=mix(alb,vec3(.16,.74,.52),ve*.8);'].join('\n'):''),               // (embellie) les VEINES de jade, dans les fissures des bandes claires
   (JMAT>=2?'    au=fv*step(.8,rh(floor(p*.016)+11.))*dF*(1.-mo);alb=mix(alb,vec3(.96,.72,.28),au*.9);':''),                       // (embellie) de RARES fils d or (une région sur cinq, cases de 60 m)
   '  }',
