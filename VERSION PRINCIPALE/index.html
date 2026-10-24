@@ -62444,7 +62444,7 @@ SHAPES.lingot=function(K){ // la caisse du garage — buildCar pose les roues, l
 function meuteTick(){ // la PLAQUE du Survivant au téléphone (2026-09-30) : ton rang, la minute — rouge et clignotante quand tu es dernier
   if(!SURV.on){vChip('');return;}
   const pT=survPTot();let rk=1,vv=0;for(const b of SURV.bots)if(b.alive){vv++;if(b.totD>pT)rk++;}
-  const clk='0:'+String(Math.max(0,Math.ceil(60-SURV.t))).padStart(2,'0');
+  const clk='0:'+String(Math.max(0,Math.min(59,Math.ceil(60-SURV.t)))).padStart(2,'0'); /* (24/10, relecture) jamais « 0:60 » la première seconde de chaque minute (même borne que kit-lumiere) */
   if(SURV.over)vChip(TR(vv?'SURVIVANT':'CHAMPION !'),'','#ffd75e');
   else if(vv&&SURV.last)vChip(TR('DERNIER !'),TR('EXPLOSION DANS')+' '+clk,'#ff5e7a',true); // (2026-09-30) SURV.last, le verdict du couperet (rendu au sol) : la plaque et le bip disent la même chose
   else vChip(TR('RANG')+' '+rk+' / '+(vv+1),TR('COUPERET DANS')+' '+clk,rk===1?'#ffd75e':'#9fe8ff');
@@ -66127,7 +66127,7 @@ const RICH_FS_FLEUR=['uniform vec3 uSunDir;uniform vec3 uSunCol;uniform vec3 uSk
   ' float bo=1.-abs(dot(N,V));c+=vec3(1.,.93,.97)*pow(bo,2.4)*.42+uSunCol*pow(max(dot(N,normalize(L+V)),0.),36.)*.22;', // le liseré blanc rosé, le lustre de la soie
   ' float a=vC.a*(.78+.22*bo);gl_FragColor=vec4(c*a,a);}'].join('\n');
  // prémultiplié : ce qui couvre + ce qui luit (le fantôme brille un peu)
-function richMat(fs,u,defs,side){const U=Object.assign({},RICH_U,u||{});return new THREE.ShaderMaterial({uniforms:U,vertexShader:RICH_VS,fragmentShader:fs,defines:defs||{},side:side||THREE.FrontSide,fog:false,lights:false});}
+function richMat(fs,u,defs,side){const U=Object.assign({},RICH_U,u||{});return new THREE.ShaderMaterial({uniforms:U,vertexShader:RICH_VS,fragmentShader:fs,defines:defs||{},side:side||THREE.FrontSide,fog:false,lights:false,extensions:{derivatives:true}});} /* (24/10, relecture) dFdx/dFdy (le relief de bosse) exigent en WebGL1 la directive des dérivées : three ne la pose que si on la demande, et l'ignore en WebGL2 (voir le ciel, scene-ciel.js) */
 
 // ---- LES DESSINS (canvas) ----
 function richCv(w,h,fn){const cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d');fn(x,w,h);const t=new THREE.CanvasTexture(cv);t.anisotropy=4;return t;}
