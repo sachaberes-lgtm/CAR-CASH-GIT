@@ -82,7 +82,7 @@ function feuilleOuvre(el,cls){ if(!el)return; try{uiGarde();}catch(e){} clearTim
 function feuilleFerme(el,cls){ if(!el||!el.classList.contains(cls))return; try{uiGarde();}catch(e){} clearTimeout(el._fermeT);
   try{typeof sfx==='function'&&sfx('ui.feuilleFerme');}catch(e){}
   if(document.documentElement.getAttribute('data-reduced-motion')==='1'){el.classList.remove(cls,'sortant');return;}
-  el.classList.add('sortant'); el._fermeT=setTimeout(function(){el.classList.remove(cls,'sortant');},170); }
+  el.classList.add('sortant'); el._fermeT=setTimeout(function(){el.classList.remove(cls,'sortant');},el._sortMs||170); }
 function modale(o){return new Promise(function(res){
   const m=document.getElementById('modale'),c=document.getElementById('modC'),b=m.querySelector('.modB');
   m.classList.toggle('facC6',!!o.cartes); // (2026-10-14, charte 6) les boutons en CARTES

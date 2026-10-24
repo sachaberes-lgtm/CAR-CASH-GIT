@@ -418,17 +418,34 @@
   /* LE « PRESENTS » (2026-10-24, Léo : « enlève le premier CASH CAR ; après l'explosion, PRESENTS, puis l'écran menu ciel avec la musique qui apparaît ») : la boule explose, le mot s'écrit
      lettre à lettre sur le noir (or, interlettrage qui se resserre), tient, s'éteint ; PUIS le voile fond sur le ciel, et c'est là, là seulement, que la musique du lobby démarre (`reveler`).
      Le gros logo CASH CAR du film (`dActe3`) n'est plus montré après l'appui : le premier CASH CAR du jeu est celui du menu. s = secondes depuis l'appui. */
-  const PRES_FIN=2.5; /* l'instant (s après l'appui) où le mot est éteint ; le voile fond juste après */
+  const PRES_FIN=4.1; /* l'instant (s après l'appui) où le texte est éteint ; le voile fond juste après (2026-10-24 : 2,5 → 4,1 s, Léo : « laisse le temps d'apprécier ») */
   function dPresente(c,s,e){
-    const sor=1-lisse(PRES_FIN-.6,PRES_FIN,s);if(sor<=.004)return;
-    const txt='PRESENTS',n=txt.length,px=Math.max(10,Math.round(Math.min(W/17,H/9,30))),k=sort3((s-.7)/1.3),esp=px*(.95-.5*k);
-    const tot=n*px+(n-1)*esp,y=e.cy+px*.4;let x=W/2-tot/2;
+    const sor=1-lisse(PRES_FIN-.7,PRES_FIN,s);if(sor<=.004)return;
+    /* (2026-10-24, Léo : « au lieu de PRESENTS, 1.61 STUDIO PRESENTS ») deux lignes : « 1.61 STUDIO » en grand (le « 1.61 » blanc chaud, STUDIO en or), un filet d'or qui s'ouvre depuis le centre,
+       puis « PRESENTS » plus petit, très espacé, crème. La ligne du haut s'écrit lettre à lettre (0,7 s), le filet suit, le mot du bas arrive en dernier. */
+    const t1='1.61 STUDIO',t2='PRESENTS',n1=t1.length,n2=t2.length;
+    const px=Math.max(9,Math.round(Math.min(W/23,H/9,30))),px2=Math.max(8,Math.round(px*.5)),k=sort3((s-.7)/1.5),esp=px*(.95-.5*k);
+    const tot=n1*px+(n1-1)*esp,y1=e.cy-px*.1,yR=e.cy+px*.62,y2=yR+px2*2.1;
     c.save();c.textAlign='left';c.textBaseline='alphabetic';c.font=px+'px "Press Start 2P",monospace';
-    const gr=c.createLinearGradient(0,y-px,0,y);gr.addColorStop(0,'#fff2be');gr.addColorStop(.5,'#ffd75e');gr.addColorStop(1,'#e8a53a');
-    for(let i=0;i<n;i++){
+    const grO=c.createLinearGradient(0,y1-px,0,y1);grO.addColorStop(0,'#fff2be');grO.addColorStop(.5,'#ffd75e');grO.addColorStop(1,'#e8a53a');
+    const grB=c.createLinearGradient(0,y1-px,0,y1);grB.addColorStop(0,'#ffffff');grB.addColorStop(1,'#ffe9b8');
+    let x=W/2-tot/2;
+    for(let i=0;i<n1;i++){
       const la=lisse(.7+i*.07,1.15+i*.07,s)*sor;
-      if(la>.004){c.globalAlpha=la;c.fillStyle='#1c0430';c.fillText(txt[i],x+px*.12,y+px*.12);c.fillStyle=gr;c.fillText(txt[i],x,y);}
+      if(la>.004){c.globalAlpha=la;c.fillStyle='#1c0430';c.fillText(t1[i],x+px*.12,y1+px*.12);c.fillStyle=i<4?grB:grO;c.fillText(t1[i],x,y1);}
       x+=px+esp;
+    }
+    /* le filet d'or : il s'ouvre depuis le centre */
+    const fl=sort3((s-1.55)/.9);
+    if(fl>.004){const wl=tot*.62*fl,g=c.createLinearGradient(W/2-wl/2,0,W/2+wl/2,0);g.addColorStop(0,'rgba(255,215,94,0)');g.addColorStop(.5,'rgba(255,226,150,1)');g.addColorStop(1,'rgba(255,215,94,0)');
+      c.globalAlpha=sor*.9;c.fillStyle=g;c.fillRect(W/2-wl/2,yR,wl,Math.max(1,Math.round(px*.1)));}
+    /* « PRESENTS » : plus petit, l'interlettrage se resserre doucement */
+    const k2=sort3((s-1.9)/1.5),esp2=px2*(2.4-1.3*k2),tot2=n2*px2+(n2-1)*esp2;
+    c.font=px2+'px "Press Start 2P",monospace';x=W/2-tot2/2;
+    for(let i=0;i<n2;i++){
+      const la=lisse(1.9+i*.09,2.4+i*.09,s)*sor;
+      if(la>.004){c.globalAlpha=la*.92;c.fillStyle='#1c0430';c.fillText(t2[i],x+px2*.12,y2+px2*.12);c.fillStyle='#ffe9c4';c.fillText(t2[i],x,y2);}
+      x+=px2+esp2;
     }
     c.restore();
   }
@@ -659,7 +676,7 @@
   }
   function finir(){
     if(fini)return;fini=true;
-    window.__introCouvre=false;cancelAnimationFrame(raf);removeEventListener('keydown',kd);removeEventListener('resize',remesure);
+    window.__introCouvre=false;cancelAnimationFrame(raf);removeEventListener('keydown',kd);removeEventListener('resize',remesure);document.removeEventListener('visibilitychange',introVis);
     try{sp.remove();}catch(e){}
     SNAP=null;SNAPPIX=null;GAMECV=null;ECL=null;ETC=null;PXC=null;LOGO=null;MESH=null;RAY=null;
   }
@@ -790,6 +807,12 @@
   setTimeout(irPret,500); /* pendant l'attente du toucher : 10 ms de calcul, hors de vue */
   setTimeout(chauffe,900); /* puis le reste (quelques dizaines de ms, hors de vue) */
   addEventListener('keydown',kd);addEventListener('resize',remesure);
+  /* ===== L'INTRO SE TAIT EN ARRIÈRE-PLAN (24/10, relecture : « l'appli passe derrière pendant l'intro ») =====
+     Le jeu endort SON contexte audio quand la page est cachée (voir init.js), pas celui de l'intro : la boule attend le toucher indéfiniment,
+     son pad tourne en boucle — sur le site (Chrome Android), il continuait de jouer dans la poche. Caché : le contexte de l'intro s'endort ;
+     revenu : il se réveille (le film muet, lui, attend toujours son toucher). */
+  function introVis(){try{if(fini||!iAC||iAC.state==='closed')return;if(document.hidden){if(iAC.state==='running')iAC.suspend();}else if(lance&&!filmMuet&&iAC.state!=='running')iAC.resume();}catch(e){}}
+  document.addEventListener('visibilitychange',introVis);
   sp.addEventListener('pointerdown',pose,true);boulePointeur();
   sp.addEventListener('click',function(){
     if(BOULE&&bGlisse){bGlisse=false;return;} /* un glissement qui tourne la boule n'est pas un appui */
@@ -800,7 +823,7 @@
     if(lance||fini)return;
     let A=null;if(!SANS_SON&&SND.sfx&&VOL.sfx>0){try{A=new (window.AudioContext||window.webkitAudioContext)();}catch(e){A=null;}}
     if(!A){lancer(false);return;}
-    preAC=A;let fait=false;const go=function(){if(fait)return;fait=true;if(lance){try{A.close();}catch(e){}return;}lancer(false);};
+    preAC=A;let fait=false;const go=function(){if(fait)return;fait=true;if(lance){if(A!==iAC)try{A.close();}catch(e){}return;}lancer(false);}; /* (24/10, relecture : « le son de l'intro coupé net ») un toucher pendant l'attente de A.resume() (≤ 0,3 s) lance le film SUR A (son() prend preAC) : A n'est fermé que s'il n'a pas servi — avant, le film tapé tôt passait muet */
     try{A.resume().then(go,go);}catch(e){go();}
     setTimeout(go,300);
   }

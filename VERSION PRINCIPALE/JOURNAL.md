@@ -3,6 +3,35 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA RELECTURE LIGNE À LIGNE DE TOUT LE CODE (2026-10-24, v887, session DÉBOGAGE — Sacha : « continue à déboguer, je suis sûr qu'il y a encore plein de bugs cachés, explore chaque ligne de code »)
+- **LA MÉTHODE** : 15 agents, chacun un lot de `code/` lu ligne à ligne (gameplay ×2, moteur + sauvegarde + page, économie + missions + son, interface ×2, rendu,
+  maps ×3, voitures logique, dessins des voitures ×2 en lecture seule — ils sont à Léo —, CSS). Un bug = un scénario concret prouvé : chaque correctif a sa
+  preuve node dans `passation/preuves/` (KO sur l'ancien index, OK sur le nouveau) — 33 preuves, toutes vertes. Worktrees allégés (sparse : code/, index.html,
+  preuves) à cause du disque plein. En plus : trois balayages automatiques sur tout le jeu (ESLint à fort signal, `//` qui avale du code, fonction déclarée
+  deux fois — outils dans la mémoire « balayages statiques »). Banc d'ensemble : démarrage et écrans debout/couché, 12 maps, contexte 3D perdu, cadre de
+  l'ordi : 0 erreur (hors le 404 connu de `dark-triad.mp3`).
+- **CORRIGÉ** (le joueur le voyait) :
+  - la RÉVÉLATION d'une secrète (plein écran) couvrait l'offre CONTINUER de la seconde chance (5,5 s) : elle attend la fin de l'offre et de la machine FINAL SPIN (`missions/ecran-revelation.js`, `economie/final-spin.js`) ;
+  - restaurer un code depuis la PAUSE versait la partie en cours dans la sauvegarde restaurée ; sur le SITE, « Restaurer un code » du menu ordinateur rendait un compte vide : refusé comme au téléphone (`moteur/mobile-tactile.js`, `interface/menu-logo.js`) ;
+  - un appel ou Siri pendant le 3-2-1 de REPRENDRE : la caisse repartait seule (`moteur/mobile-tactile.js`) ;
+  - l'AUTO-ÉCOLE continuait sous la pause (consigne suivante, permis +500 $ et fanfare sous l'écran de pause ; minuteur d'une leçon recommencée) (`interface/auto-ecole.js`) ;
+  - une figure sur la route ou une descente de pose interrompue était payée au départ suivant et bloquait le saut nitro (`interface/jus-echelle.js`, `respawn`) ;
+  - un choc « ignoré » sous le bouclier de la seconde chance coupait le demi-tour et vidait l'aura du SLIDE (`gameplay/mort.js`) ;
+  - en WebGL1 (vieux navigateurs) : plus de ciel (`rendu/scene-ciel.js`), plus d'arbres en forêt (`maps/foret-decor.js`), matières de la richesse (`interface/richesse-1.js`) ;
+  - sur iOS < 16.4 : trois `@media not (…)` de niveau 4 ignorés → le HUD portrait (triade, chrono de vol, plaque d'astuce) mal placé ; badge « RECORD ! » rose sur rose sans color-mix (`css/hud-da.css`, `css/hud-maitrise.css`) ;
+  - les réclames de la ville gardaient l'ancienne langue (`maps/ville-v3.js`) ; aux Pics de Jade une montagne en chute sautait au retour de pause (`maps/jade-3.js`) ;
+  - FINAL SPIN sans « FORTUNE MAX » ; « $ NaN » sur une vitrine du jour gardée ; « 0:60 » du Survivant (ordi et téléphone) ; son de l'intro 1.61 (toucher tôt, arrière-plan) ;
+    bannière « NIVEAU » après une course quittée ; touche Retour du clavier iPhone au Top 10 ; Entrée sur RETOUR dans l'atelier de la plaque.
+- **TROUVÉ, À TRANCHER PAR SACHA / LÉO** (rien de modifié) : chez Léo — la nappe sonore de la BOUTIQUE 3D jamais débranchée et son souffle muet (un `//`
+  avale `ah.connect…air.start()`, `interface/boutique-scene-1.js:122`) ; LA PERLE à carrosserie doublée après un changement de type de peinture
+  (`voitures/perle.js:338/345`, correctif testé dans `.banc-sortie/archives/v3-v2b/correctifs-proposes.diff`) ; lunette arrière de LA CABOSSÉE avalée par
+  un `//` (`simpson.js:212`) ; le geste au tap du menu écrasé par la préchauffe de la Cerise et LA BÊTE jamais préchauffée (`japonaises-2.js`) ; double
+  éternuement d'ATCHOUM après une pause ; roues chromées de LA BULLE et du ROUGE-GORGE. Ailleurs — `dnGeos2` déclarée deux fois (diable de sable et mur de
+  tempête des dunes invisibles depuis le 21/10) ; « RECORD » au lieu de « BEST SCORE » en anglais ; missions « collecte tout » qui comptent des objets en
+  euros ; RECOMMENCER garde la progression de mission de la partie abandonnée ; plaque par défaut fausse pour `zh-Hans-CN` & co ; secousse renforcée de la
+  mort jamais appliquée ; mur invisible de la salle du portail du tunnel de grès ; prix de l'« ATH » de CRYPTO CITY sans fin ; cible iOS 15.0 contre `:has()`
+  (JOUER et ACHETER superposés au garage sur iOS 15.0-15.3), container queries et color-mix.
+- **DISQUE** : le Mac est tombé à 266 Mo libres pendant la relecture ; sur le oui de Sacha, 110 worktrees d'anciennes sessions (fusionnés, propres, inactifs) retirés, branches gardées → 12 Go.
 ## LE TÉLÉPHONE AU FRAIS (2026-10-24, v885, session PERF-PC — Sacha : « trouve un moyen de ne plus le faire chauffer » ; à la question du menu à 30 i/s : « oui, 30 i/s hors course »)
 - **POURQUOI** : sa partie enregistrée sur l'iPhone 13 Pro (enregistreur `?perfrec`, 164 s, ville > espace > nuages > banquise) : 30-40 i/s dès la 1re minute, 17-22 à la fin, qualité au
   cran 9, densité 1,25 ; la session OPTIMISATION MOBILE mesure le bridage thermique (~×2 au bout de 3-4 min). Tout ce que le téléphone calcule pour rien hors course le chauffe pour la
