@@ -58583,6 +58583,7 @@ function fireLaunchBoost(){
   if(lg9){lg9.classList.remove('on');void lg9.offsetWidth;lg9.classList.add('on');}
   clearTimeout(fireLaunchBoost._t);fireLaunchBoost._t=setTimeout(function(){
     if(ll9)ll9.classList.remove('on');if(lg9)lg9.classList.remove('on');
+    if(!started||gameOver)return; /* (24/10, relecture) la course est déjà finie ou quittée (QUITTER, mort dans les 1,9 s) : la bannière « NIVEAU n » ne vient plus après coup sur l'écran de fin ou le garage */
     if(TUTO.on&&TUTO.attente&&started&&!gameOver){TUTO.attente=false;tutoAffiche();}else // l'auto-école prend la parole pile quand le logo s'efface
     lvlAnnonce(); // LE LOGO PASSE LE RELAIS : « NIVEAU 1 — … » arrive quand CASH CAR s'efface (au même endroit, jamais par-dessus)
   },1900);
@@ -58810,7 +58811,7 @@ nameSave.addEventListener('click',function(e){e.stopPropagation();commitName();}
 nameEntry.addEventListener('click',function(e){e.stopPropagation();});
 // ENTRÉE dans le champ nom : 1er appui = valider le nom · 2e appui (nom déjà validé) = REJOUER direct
 nameInput.addEventListener('blur',function(){setTimeout(function(){try{scrollTo(0,0);}catch(e){}},60);}); // (2026-09-29) iOS laissait la page remontée après le clavier : REJOUER coupé en bas
-nameInput.addEventListener('keydown',function(e){e.stopPropagation();if(e.code==='Enter'){e.preventDefault();if(pendingScore!=null)commitName();else if(gameOver)playViaGarage();}});
+nameInput.addEventListener('keydown',function(e){e.stopPropagation();if(e.code==='Enter'||e.key==='Enter'||e.keyCode===13){ /* (24/10, relecture) le clavier logiciel de l'iPhone peut laisser `code` vide : la touche Retour se lit aussi par `key` */e.preventDefault();if(pendingScore!=null)commitName();else if(gameOver)playViaGarage();}});
 // (2026-09-28) le record MONTE en direct pendant la course (voir la boucle : `money>best`), même d'une partie abandonnée
 // (RECOMMENCER/QUITTER) qui n'entre pas au Top 10. L'écraser par `leaders[0]` au chargement faisait redescendre le record
 // après une relance — et « NOUVEAU RECORD ! » revenait à tort. On garde le plus haut des deux, ici comme à la signature.
