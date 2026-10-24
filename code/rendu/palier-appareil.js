@@ -32,10 +32,35 @@ const PAL=(function(){
   let appris=null;try{appris=JSON.parse(localStorage.getItem('cashcarPalier')||'null');}catch(e){}
   if(appris&&!(appris.n>=0&&appris.n<=2&&appris.v===1))appris=null;
   P.appris=appris;
+  /* ===== L'ÉCRAN DE L'IPHONE DIT SA GÉNÉRATION (2026-10-24, passe perf iPhone, Sacha : « il faut que la version mobile soit parfaite ») =====
+     MESURÉ sur l'iPhone 13 Pro de Sacha, DANS L'APP (copie de banc CC BANC, sans inspecteur) : le banc ci-dessus y rend 16 à 22 ms au 1er
+     lancement (le compilateur de JavaScript n'est pas encore passé, et le téléphone chauffait), 3 à 8 ms une fois chaud. Classé ANCIEN et
+     RETENU 7 jours : cadence 30 dès le départ, échelle QL au cran 4-5, DPR 1,25 — alors qu'au palier RÉCENT il tient 60 i/s à DPR 1,5 avec
+     2 ms de JS par image. Le même iPhone tombait ANCIEN ou RÉCENT selon le lancement. Et l'app (WKWebView) comme Safari 26 écrivent
+     « iPhone OS 18_7 » sous iOS 26 : la règle « iOS 26 → au moins une A13 » ne jouait jamais.
+     La taille d'écran d'un iPhone (en points, portrait) et sa densité désignent sa génération sans rien mesurer :
+       RÉCENT (A14 et après) : 360×780 (12 mini, 13 mini) · 390×844 (12, 13, 14, 16e) · 428×926 (12/13 Pro Max, 14 Plus) · 393×852 (14 Pro, 15, 16)
+         · 430×932 (14 Pro Max, 15/16 Plus, Pro Max) · 402×874 (16 Pro, 17) · 440×956 (16/17 Pro Max) · 420×912 (Air) — et toute taille INCONNUE en
+         densité 3 et ≥ 390 de large (les iPhone à venir) ;
+       MOYEN (A12, A13) : 414×896 (XR, 11 en ×2 ; XS Max, 11 Pro Max en ×3) ;
+       ANCIEN (A9 à A11) : 320×568 (SE 1) · 414×736 ×3 (6s, 7, 8 Plus) ;
+       DOUTEUX, le banc tranche comme avant : 375×667 ×2 (6s, 7, 8, SE 2, SE 3 : A9 à A15) · 375×812 ×3 (X, XS, 11 Pro) · le Zoom de l'écran.
+     Le Safari d'iOS 26 garde sa vraie version dans « Version/26 » : elle relève P.ios (l'app, elle, ne l'écrit pas).
+     `?palier=` et le palier appris passent toujours avant ; le palier 2 lui-même ne change pas (RÈGLE D'OR). `?palecran=0` = l'ancien choix. */
+  const mV=/Version\/(\d+)/.exec(ua);if(mV&&P.ios&&+mV[1]>=26&&P.ios<+mV[1])P.ios=+mV[1];
+  const ecran=(function(){
+    if(!/iPhone/.test(ua)||/[?&]palecran=0\b/.test(location.search))return null;
+    const w=Math.round(Math.min(screen.width,screen.height)),h=Math.round(Math.max(screen.width,screen.height)),d=Math.round(devicePixelRatio||1),k=w+'x'+h+'@'+d;
+    const n={'360x780@3':2,'390x844@3':2,'428x926@3':2,'393x852@3':2,'430x932@3':2,'402x874@3':2,'440x956@3':2,'420x912@3':2,
+             '414x896@2':1,'414x896@3':1,'320x568@2':0,'414x736@3':0}[k];
+    if(n!=null)return {n:n,k:k};
+    if(d>=3&&w>=390&&k!=='414x736@3')return {n:2,k:k+' (inconnu)'};
+    return null;})();
   if(force){P.n=+force[1];P.src='?palier';}
   else if(appris&&appris.src==='mesure'){P.n=appris.n;P.src='appris en course';}
   else if(!IS_MOBILE||FORCE_TEL){P.n=2;P.src='ordinateur';} // l'ordi (colonne comprise) : l'échelle QL suffit
   else if(P.ios&&P.ios<=15){P.n=0;P.src='iOS '+P.ios+' (A10 au mieux)';}
+  else if(ecran){P.n=ecran.n;P.src='écran '+ecran.k.replace('x','×').replace('@',' ×');}
   else{
     if(appris&&appris.src==='banc'&&Date.now()-appris.t<6048e5){P.banc=appris.banc;P.n=appris.n;P.src='banc (retenu)';}
     else{P.banc=banc();const m=P.banc;P.n=m==null?1:m>=12.5?0:m>=8.5?1:2;P.src='banc '+(m==null?'?':m.toFixed(1)+' ms');
