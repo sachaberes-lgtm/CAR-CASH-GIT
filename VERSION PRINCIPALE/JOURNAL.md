@@ -40,6 +40,10 @@
   ne se bâtissait qu'à 3-6 ms par image, 0,8 s après l'arrivée de l'écran de fin, et le reste se faisait d'un trait. Désormais il commence DÈS L'EXPLOSION (mode
   'boom', 1,8 s avant l'écran de fin), ne s'arrête plus pendant l'installation de l'écran de fin (3 ms), puis prend jusqu'à 8 ms par image pendant l'explosion et
   10 ms à l'écran de fin ; au menu rien ne change. APRÈS : construction 128 ms puis 6 ms, course repartie 0,5 s après le clic, pire image 0,3 s. Sur PC : 5-33 ms (inchangé).
+- **2e TOUR — LES VIEUX TÉLÉPHONES** (v852, tables PAL, le RÉCENT identique au bit près) : `hudNitroQ` / `hudBarQ` (`bouton-nitro-gains.js`, lus dans `boucle-6-hud.js`) — l'anneau
+  du bouton nitro par crans de 2 % et la barre de 1 % sur ANCIEN et MOYEN (1 % et 0,5 % d'origine) : nitro tenue, deux fois moins de recalculs de style et de repeints du
+  dégradé conique (#tNitro : 331 µs par recalcul à ×1) ; `ventK` (`boost-depart.js`) — les traits de vent à 50 % / 70 % / 100 % ; la carte NOUVEAU MOTEUR de course rendue
+  à la cadence `engVigMs` (10 / 15 / 30 par seconde). MESURÉ (×4, MOYEN, forêt) : la vignette moteur 2,5 → 1,1 % de la boucle, le vent 3,3 → 3,0 % (le reste est l'effacement plein écran).
   RESTE À FAIRE (mesuré, pas touché) : sur téléphone (×4) le recalcul de styles du HUD ≈ 6 ms/image (le bouton nitro `#tNitro` : 402 déclarations,
   dégradé conique réécrit à chaque image nitro tenue ; `#nitroBar` 542 µs par recalcul), les traits de vent en 2D (3 %), le bouton nitro en putImageData (2 %), la vignette
   moteur rendue chaque image pendant la carte NOUVEAU MOTEUR, la voiture (31 appels dont 12 d'ombre), la porte de Jade (35 ms d'une tranche du pré-bâti sur PC).
