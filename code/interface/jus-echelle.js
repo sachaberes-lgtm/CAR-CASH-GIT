@@ -57,6 +57,10 @@ function juiceScreen(col,power,n){
   // l'aura restent — le fruit se lit toujours, sans giclée plein cadre.
   if(!juiceCx||REDUCED_MOTION)return;
   const W=juiceCv.width,H=juiceCv.height,cc=new THREE.Color(col),hsl=cc.getHSL({h:0,s:0,l:0}); // le CORPS : le fruit, SATURÉ
+  /* ===== LA TOILE NULLE (24/10, relecture : « toile du jus de largeur nulle pendant une transition iOS ») ===== innerWidth à 0 le temps
+     d'une transition : la goutte aurait un rayon 0, sa toile 0 px de large, et drawImage d'une toile nulle LÈVE dans juiceScreenTick, hors
+     de tout try et avant le rendu — chaque goutte vide figeait l'écran toute sa vie et bloquait les suivantes (preuve-jus-toile-nulle) */
+  if(!(W>0&&H>0))return;
   cc.setHSL(hsl.h,Math.max(hsl.s,.78),Math.min(.6,Math.max(.46,hsl.l)));const k2=cc.clone().lerp(JUS_BLANC,.38); // …et son CŒUR clair
   const cR=cc.r*255|0,cG=cc.g*255|0,cB=cc.b*255|0,kR=k2.r*255|0,kG=k2.g*255|0,kB=k2.b*255|0,corps='rgba('+cR+','+cG+','+cB+',.95)';
   const B9=Math.min(W,H); // (v3) la taille suit la plus petite dimension : même goutte debout ou couché
