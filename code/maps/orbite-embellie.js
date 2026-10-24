@@ -29,7 +29,7 @@ skyU.uVid={value:1};skyU.uVed={value:PAL.b('orbVed',1)};
   const FOND=['uniform float uVid;',
     'vec3 orbVide(float y){',
     '  float h=1.-clamp(abs(y),0.,1.);',                                                                    /* 1 à l'horizon, 0 au zénith */
-    '  vec3 v=mix(vec3(.020,.014,.070),vec3(.018,.030,.112),smoothstep(0.,.72,h));',                        /* zénith indigo-violet → bleu nuit */
+    '  vec3 v=mix(vec3(.018,.012,.060),vec3(.014,.024,.088),smoothstep(0.,.72,h));',                        /* zénith indigo-violet → bleu nuit */
     '  float yy=(y-.03)/.30;v+=vec3(.024,.062,.210)*exp(-yy*yy);',                                                 /* le voile bleu de la Terre, au ras de l\'horizon */
     '  v+=vec3(.020,.008,.040)*smoothstep(.55,1.,h)*smoothstep(.0,.3,y);',                                  /* un fond de lilas au-dessus */
     '  return v*uVid;}'].join('\n');
