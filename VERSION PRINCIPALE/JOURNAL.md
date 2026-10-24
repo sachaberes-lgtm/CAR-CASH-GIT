@@ -48,6 +48,10 @@
   gabarits de la Jade (une tranche par image), puis seulement le départ d'avance, même quand la map du départ n'est pas la Jade. MESURÉ (banc `menu.cjs`, ×4, MOYEN) : le départ
   commençait à ~65 s du chargement et était prêt à 71 s — tout JOUER plus tôt bâtissait la piste d'un coup. Désormais, pour une autre map, le départ passe avant les gabarits
   (qui attendent qu'il soit prêt) : commencé à ~25 s (la fin de la chauffe), prêt à 29 s. La Jade en 1re map : comme avant (elle a besoin de ses gabarits).
+- **2e TOUR — LES TÔLES DES VOITURES APRÈS LE DÉPART** (v854, `chauffeApres`, `interface/vignette-moteur.js`) : profil de la chauffe du menu (×4) — chaque étape prend une image
+  entière : les programmes de la Jade 2,8 à 12 s (4 étapes ; la compilation varie avec la charge de la carte), les tôles des japonaises 2,0 s, de la Perle 1,9 s (2 étapes),
+  des rondes 0,5 s, le glacier 1,35 s d'une traite. Les tôles des voitures ne servent qu'au garage et à la boutique : elles quittent `chauffeDivers` et passent après la fin de
+  la chauffe, une par image, quand le départ d'avance est prêt (ou qu'il n'y en a pas, ou 15 s après). Gain NON chiffré au banc : la durée de la chauffe de la Jade masque tout.
   RESTE À FAIRE (mesuré, pas touché) : la chauffe du menu (~24 s à ×4 avant tout pré-bâti) ; sur téléphone (×4) le recalcul de styles du HUD ≈ 6 ms/image (le bouton nitro `#tNitro` : 402 déclarations,
   dégradé conique réécrit à chaque image nitro tenue ; `#nitroBar` 542 µs par recalcul), les traits de vent en 2D (3 %), le bouton nitro en putImageData (2 %), la vignette
   moteur rendue chaque image pendant la carte NOUVEAU MOTEUR, la voiture (31 appels dont 12 d'ombre), la porte de Jade (35 ms d'une tranche du pré-bâti sur PC).

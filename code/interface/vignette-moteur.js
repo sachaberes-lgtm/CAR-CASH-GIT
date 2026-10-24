@@ -189,7 +189,9 @@ const ENG_GARDE=new Map();let engChaudI=-1;
 function engChauffe(){
   if(atelierChauffe()){chauffeGrace();return;} // (chasse aux gels) L'ATELIER D'ABORD : c'est lui que JOUER montre dans la seconde
   if(engChaudI<0){chauffeGrace();if(!chauffeDivers(CHAUFFE_R.div++))engChaudI=0;return;} // d'abord ce qui peut naître à N'IMPORTE quel moment de la course (pigeons, trace, ville) — (chasse aux gels) une étape par image
-  if(engChaudI>ENGINE_TIERS.length){if(!CHAUFFE_R.fait){CHAUFFE_R.fait=true;chauffeGrace();chauffeRendu();}return;} // (tour 2) les moteurs prêts : toute la scène passe une fois par la puce
+  if(engChaudI>ENGINE_TIERS.length){if(!CHAUFFE_R.fait){CHAUFFE_R.fait=true;CHAUFFE_R.tFait=performance.now();chauffeGrace();chauffeRendu();return;} // (tour 2) les moteurs prêts : toute la scène passe une fois par la puce
+    if(CHAUFFE_R.ap>=0&&!ecranWipe._on&&(PREB.W?PREB.fait:(!PREB.on||!prebDepCible()||performance.now()-CHAUFFE_R.tFait>15000))){chauffeGrace();if(!chauffeApres(CHAUFFE_R.ap++))CHAUFFE_R.ap=-1;} // (2026-10-24) les tôles des voitures, une par image, le départ d'avance prêt (voir chauffeApres)
+    return;}
   chauffeGrace();
   try{
     const g=engChaudI<ENGINE_TIERS.length?mkEngine(engChaudI):new THREE.Mesh(engVigFeuGeo,engVigFeuMat); // dernier tour : la flamme
@@ -216,7 +218,7 @@ function engChauffe(){
    DESSINE tout une fois, HORS écran (une cible 8×8 au MÊME format que la vraie — les états de pipeline en dépendent), tout rendu
    visible et sans tri de champ, les lumières intouchées (leur nombre changerait les programmes) : au menu une fois, et à chaque
    construction de niveau. Les géométries montent au GPU du même coup (elles montaient elles aussi au 1er dessin, en plein vol). */
-const CHAUFFE_R={t:0,rt:null,fait:false,div:0};
+const CHAUFFE_R={t:0,rt:null,fait:false,div:0,ap:0}; // ap : l'étape des tôles des voitures (chauffeApres ; -1 = finies)
 function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ces sous-arbres, sous l'éclairage de la scène (l'atelier, au menu)
   if(!CHAUFFE_R.rt){const t9=(composer&&composer.renderTarget1)?composer.renderTarget1.texture.type:THREE.UnsignedByteType;
     CHAUFFE_R.rt=new THREE.WebGLRenderTarget(8,8,{format:THREE.RGBAFormat,type:t9,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});}
@@ -262,10 +264,6 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){try{grotteChauffe();}catch(e){console.warn('grotteChauffe',e);}}, // (2026-10-18) LES PROFONDEURS : la roche en blocs (un programme) et les poussières, compilées au menu
   function(){try{banqChauffe();}catch(e){console.warn('banqChauffe',e);}}, // (2026-10-14) LA BANQUISE : neige, glace, lacs, traces, flocons, aurores, poudre et givre — compilés au menu
   function(){if(carWingL&&carWingR&&carGroup.parent===scene){const v9=carWingL.visible;carWingL.visible=carWingR.visible=true;chauffeRendu([carGroup]);carWingL.visible=carWingR.visible=v9;}}, // (2026-10-16, LES AILES VIVANTES) les AILES de la caisse équipée, cachées au sol, compilées au menu : rien ne naît au 1er envol (MESURÉ : 1 à 2 programmes par aile, au 1er déploiement de la session)
-  function(){try{perleTraits();}catch(e){console.warn('perleTraits',e);}},
-  function(){try{perleTraits();   /* (la tôle découpée au plan) */}catch(e){console.warn('perleTraits',e);}},
-  function(){try{japChauffe();}catch(e){}},function(){try{japChauffe();}catch(e){}},function(){try{japChauffe();}catch(e){}},function(){try{japChauffe();}catch(e){}},function(){try{japChauffe();}catch(e){}}, // (2026-10-18, JAPONAISES) la tôle des japonaises découpée au plan, une caisse par étape (voir japChauffe)
-  function(){try{if(typeof rondesChauffe==='function')rondesChauffe();}catch(e){console.warn('rondesChauffe',e);}},function(){try{if(typeof rondesChauffe==='function')rondesChauffe();}catch(e){console.warn('rondesChauffe',e);}}, // (2026-10-18, RONDES) la tôle de LA QUEUE DE CANARD puis de LA GRANDE ANGLAISE découpée au plan (~60-90 ms chacune) : au menu, une caisse par étape, pas au premier garage
   function(){try{bqChauffe(0);}catch(e){console.warn('bqChauffe',e);}},function(){try{bqChauffe(1);}catch(e){console.warn('bqChauffe',e);}},function(){try{bqChauffe(2);}catch(e){console.warn('bqChauffe',e);}}, // (2026-10-16, « la boutique rame de ouf ») LA BOUTIQUE bâtie et compilée au menu, en trois étapes : MESURÉ, sa 1re ouverture figeait l'image 1,2 s (10 programmes, la salle blanche, les bras, le trône) // (2026-10-16) LA PERLE : les traits de son plan projetés UNE fois ici (~0,2 s ordi), pas au 1er affichage de la caisse
   function(){const F=nyanPixPool();F.o.visible=true;chauffeRendu([F.o]);F.o.visible=false;}, // (2026-10-06) les PIXELS du chat (le programme du feu du burn-out) compilés au menu
   function(){const fx9=FX_EFF||(CARS[level]&&CARS[level].fx);if(fx9&&fx9.wow){wowPool();for(const q9 of wowTex())renderer.initTexture(q9.tx);}}, // (2026-10-14, passe perf mobile) LA TRAÎNÉE WOW (le DOGE, ou la traînée WOW) : ses 12 toiles en Comic Sans, ses 18 sprites et l'envoi des textures se faisaient à la 1re NITRO, en pleine course (~20-40 ms sur iPhone 7) — au menu, seulement si la caisse la porte (sinon rien ne change)
@@ -276,6 +274,20 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){jadeChauffeProgs(0);},function(){jadeChauffeProgs(1);},function(){jadeChauffeProgs(2);},function(){jadeChauffeProgs(3);}, // (2026-10-14, passe perf mobile) LE SOLEIL DE JADE : ses 17 programmes compilés au menu, ~4 par étape (jadeChauffeProgs) — plus rien ne naît au portail vers le jade ni au REJOUER tiré sur lui
   function(){engCarteQuad.visible=engHalo.visible=true;renderer.compile(engVigQuadScene,engVigQuadCam);engCarteQuad.visible=engHalo.visible=false; // (vague 2) le recollage de la carte MOTEUR (sinon son programme naît au 1er palier)
     renderer.initTexture(engHaloMat.map);renderer.setRenderTarget(engRTc);renderer.setRenderTarget(null);}]; // …et son halo et son tampon montent au GPU dès le menu
+  if(k<E.length)try{E[k]();}catch(e){}
+  return k+1<E.length;
+}
+/* (2026-10-24, passe perf 2e tour) LES TÔLES DES VOITURES APRÈS LE DÉPART. MESURÉ (banc processeur ×4, MOYEN) : la Perle 1,9 s (deux étapes), les japonaises
+   2,0 s, les rondes 0,5 s — chacune UNE image du menu, et toutes AVANT le départ d'avance (qui attend la fin de la chauffe). Elles ne servent qu'au garage et à
+   la boutique (la tôle gardée sur le gabarit : sa 1re construction est instantanée) : elles passent après la chauffe utile à la course, quand le départ
+   d'avance est prêt (voir engChauffe). Sans elles, une caisse se bâtit comme avant leur préchauffe. */
+function chauffeApres(k){
+  const E=[
+  function(){try{perleTraits();}catch(e){console.warn('perleTraits',e);}},
+  function(){try{perleTraits();   /* (la tôle découpée au plan) */}catch(e){console.warn('perleTraits',e);}},
+  function(){try{japChauffe();}catch(e){}},function(){try{japChauffe();}catch(e){}},function(){try{japChauffe();}catch(e){}},function(){try{japChauffe();}catch(e){}},function(){try{japChauffe();}catch(e){}}, // (2026-10-18, JAPONAISES) la tôle des japonaises découpée au plan, une caisse par étape (voir japChauffe)
+  function(){try{if(typeof rondesChauffe==='function')rondesChauffe();}catch(e){console.warn('rondesChauffe',e);}},function(){try{if(typeof rondesChauffe==='function')rondesChauffe();}catch(e){console.warn('rondesChauffe',e);}}, // (2026-10-18, RONDES) la tôle de LA QUEUE DE CANARD puis de LA GRANDE ANGLAISE découpée au plan (~60-90 ms chacune) : au menu, une caisse par étape, pas au premier garage
+  ];
   if(k<E.length)try{E[k]();}catch(e){}
   return k+1<E.length;
 }
