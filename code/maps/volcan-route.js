@@ -663,9 +663,9 @@ const VLC_SOL_FS5=[FG_BRUIT,VLC_LUM,VLC_VOR,'varying vec3 vW,vN;varying vec4 vS;
   '  vec3 N=normalize(mix(Nf,Ns,.22+.6*loin));',                                                               // la facette de près, la pente lisse au loin
   '  float ht=clamp(vS.y,0.,1.),ab=vS.z,cn=vS.w>1.5?.55:clamp(vS.w,0.,1.);',
   '  float n1=fn2(q*.0042),n2=fn2(q*.016),fv=fh3(floor(Nf*6.)+floor(vW*.019));',                               // fv : la valeur propre de chaque facette
-  '  vec3 alb=vec3(.100,.080,.135)*(.80+.40*fv);',                                                            // le BASALTE indigo (une ardoise : noir sur brume sombre, il ne se lisait plus)
+  '  vec3 alb=vec3(.082,.092,.170)*(.80+.40*fv);',                                                            // le BASALTE indigo (une ardoise : noir sur brume sombre, il ne se lisait plus)
   '  float plat=smoothstep(.80,.96,N.y);',
-  '  alb=mix(alb,vec3(.29,.225,.245)*(.88+.24*fv),plat*smoothstep(.40,.66,n1+.14*n2)*(1.-smoothstep(.15,.45,cn)));', // la CENDRE sur les plats
+  '  alb=mix(alb,vec3(.245,.240,.275)*(.88+.24*fv),plat*smoothstep(.40,.66,n1+.14*n2)*(1.-smoothstep(.15,.45,cn)));', // la CENDRE sur les plats
   '  alb=mix(alb,vec3(.15,.055,.05)*(.85+.3*fv),smoothstep(.58,.80,cn)*(1.-plat*.5));',                       // l'OXYDE : une bande sous le sommet (partout, le cône virait au ROUGE sur ciel orange)
   '  alb=mix(alb,vec3(.42,.27,.06)*(.85+.3*fv),smoothstep(.86,.97,cn)*.85);',                                 // la lèvre de SOUFRE
   '  alb=mix(alb,vec3(.020,.014,.020),smoothstep(8.,1.,ab));',                                                // la rive : verre noir
@@ -674,7 +674,7 @@ const VLC_SOL_FS5=[FG_BRUIT,VLC_LUM,VLC_VOR,'varying vec3 vW,vN;varying vec4 vS;
   '  float bas=smoothstep(60.,0.,ab)*(.45+.55*(1.-N.y));',
   '  col+=alb*vTeinte(vec3(1.,.32,.08))*uLue*(bas*2.6+ht*1.1);',                                                       // la LAVE éclaire la roche par en dessous
   '  col+=alb*(vPhare(vW,N)+vErupt(vW,N)*3.+uFlash*vec3(.8,.82,1.)*1.3);',
-  '  float fre=pow(clamp(1.-dot(N,V),0.,1.),3.);col+=uSky*alb*2.6*fre;',                                         // le liseré froid du ciel (deux températures)
+  '  float fre=pow(clamp(1.-dot(N,V),0.,1.),3.);col+=uSky*alb*2.6*fre+alb*vec3(.16,.24,.55)*fre*(.35+.65*smoothstep(0.,40.,ab))*(1.-loin);',                                         // le liseré froid du ciel (deux températures)
   '  col=mix(col,uBruC,vBrume(vW,dist));',
   '  float pres=1.-smoothstep(220.,480.,dist),fis=0.,aq=length(fwidth(q))/23.;',                              // (la largeur d'un pixel, prise HORS du if : une dérivée dans une branche ne vaut rien)
   '  if(pres>.01){vec3 vo=vlcVor(q/23.+(vec2(fn2(q*.03),fn2(q*.03+5.))-.5)*.8);float e=vo.y-vo.x;',
@@ -755,14 +755,17 @@ const VLC_LAVE_FS5=[FG_BRUIT,VLC_LUM,VLC_VOR,'varying vec3 vW;varying vec4 vV;',
   '  pl=max(pl,smoothstep(3.2,.4,vV.z)*.96);pl=mix(pl,.9,loin);',                                           // la rive fige ; au loin les plaques fondent en une croûte sombre veinée
   '  float h=fn2(q*.006+vec2(t*.008,0.))*.65+fn2(q*.021-vec2(0.,t*.015))*.35;',
   '  vec3 liq=mix(vec3(1.,.20,.03),vec3(1.,.42,.06),smoothstep(.25,.75,h));',                               // la lave vive : rouge-orange → orange (jamais de jaune acide, la bible ; le rouge pur saturait tout l'écran)
-  '  liq=mix(liq,vec3(1.,.66,.20),fente*fente*(1.-ouv)*.80+ouv*(1.-smoothstep(.05,.62,vo.x))*.50);',         // ambre au cœur des fentes et des bassins
+  '  liq=mix(liq,vec3(1.,.66,.20),fente*fente*(1.-ouv)*.80+ouv*(1.-smoothstep(.05,.62,vo.x))*.50);liq=mix(liq,vec3(1.,.90,.52),fente*fente*fente*(1.-ouv)*.75+ouv*(1.-smoothstep(.0,.30,vo.x))*.55);',         // ambre au cœur des fentes et des bassins
   '  float bord=smoothstep(.34,.12,e)*pl;',                                                                   // le liseré tiède le long des bords
-  '  vec3 cru=mix(vec3(.085,.055,.095),vec3(.13,.075,.10),vo.z)*(.85+.3*fn2(q*.05));',                     // la croûte : verre noir violacé, une teinte par plaque
+  '  float rid=.5+.5*sin(vo.x*34.+fn2(q*.09)*5.),pres=1.-smoothstep(150.,420.,dist);',                          // les RIDES DE CORDE : des arcs concentriques autour du cœur de chaque plaque (la lave cordée des photos)
+  '  vec3 cru=mix(vec3(.060,.075,.150),vec3(.115,.120,.215),vo.z)*(.85+.3*fn2(q*.05))*(1.+(rid-.5)*.9*pres);',   // la croûte refroidie : bleu acier (la lave la découpe en orange)                     // la croûte : verre noir violacé, une teinte par plaque
   '  vec3 R=reflect(-V,vec3(0.,1.,0.));float fr=.04+.96*pow(clamp(1.-V.y,0.,1.),5.);',
   '  vec3 col=cru*(uSky*.8+uGnd*.4+uFlash*1.2+vPhare(vW,vec3(0.,1.,0.)))+mix(uGnd,uSky,clamp(R.y*.5+.5,0.,1.))*fr*.11*pl+uSunC*pow(max(dot(R,uSunDir),0.),60.)*.18*pl;',
   '  col=mix(col,uBruC,vBrume(vW,dist)*.25);',
   '  float pul=.88+.12*sin(t*1.1+vo.z*20.+h*6.);',
-  '  vec3 em=(liq*(1.-pl)*pul+vec3(1.,.26,.04)*bord*.30)*uLav*(1.9+(uErupt+uErupt2)*.6);',                    // assez fort pour que la bloom s'en empare
+  '  col+=cru*vec3(.07,.11,.30)*pl*(1.-loin);',
+  '  float fil=smoothstep(.55,.0,rid)*pl*pres*smoothstep(.45,.12,e*1.6);',                                      // le rouge qui filtre entre deux rides, près d\'une fente
+  '  vec3 em=(liq*(1.-pl)*pul+vec3(1.,.26,.04)*(bord*.30+fil*.55))*uLav*(1.9+(uErupt+uErupt2)*.6);',                    // assez fort pour que la bloom s'en empare
   '  em=mix(em,liq*uLav*1.9*(.09+.08*smoothstep(.4,.8,h)),loin*.8);',                                       // au loin : une lueur basse — l'orange vif reste aux rivières et aux lacs proches
   '  em=vTeinte(em);','  #ifdef USE_FOG','  float ff=smoothstep(fogNear,fogFar,fogDepth);col=mix(col,fogColor,ff)+em*(1.-ff*.78)*(1.-smoothstep(fogFar*.9,fogFar*1.7,fogDepth));','  #else','  col+=em;','  #endif',
   '  gl_FragColor=vec4(col,1.);}'].join('\n');

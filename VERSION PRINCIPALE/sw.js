@@ -10,7 +10,8 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v855'; // v855 (2026-10-24, passe perf 2e tour) : la préchauffe des tôles des voitures (Perle, japonaises, rondes) passe après la chauffe utile à la course et le départ d'avance
+const CACHE = 'cashcar-v859'; /* v859 (2026-10-24, Léo : « enlève le premier CASH CAR ; après l'explosion, PRESENTS, puis le ciel avec la musique ») intro : la boule explose, PRESENTS s'écrit en or, puis le voile s'ouvre sur le menu ciel et la musique du lobby démarre */
+// const CACHE = 'cashcar-v858'; /* v858 (2026-10-24, Léo : « contour seul avec effet loupe, reflets à l'intérieur ») menu ciel : GARAGE · BUY · SETTINGS en verre-loupe ; boutique du garage : lueur sur l'angle extérieur et les deux axes (le L de Sacha et ⚙ · œil · trophée inchangés) */
 // const CACHE = 'cashcar-v853'; // v853 (2026-10-24, passe perf 2e tour, Sacha) : le 1er départ se prépare avant les gabarits de la Jade quand sa map n'est pas la Jade (téléphone ×4 : prêt à 29 s du chargement au lieu de 71 s)
 // const CACHE = 'cashcar-v852'; // v852 (2026-10-24, passe perf 2e tour, Sacha) : vieux téléphones — jauge et anneau nitro par crans plus larges, moins de traits de vent, vignette moteur à la cadence du palier (le RÉCENT ne change pas)
 // const CACHE = 'cashcar-v841'; // v841 (2026-10-23, Léo : « tu as pas mis celle de ma photo ») : LA FIDÈLE EN COUCHES, la version de sa photo (sans traits noirs : flancs en blocs, devant en marches) ; `?honte=0` = la Fidèle d'avant
