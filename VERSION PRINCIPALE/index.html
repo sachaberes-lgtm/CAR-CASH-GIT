@@ -74670,6 +74670,24 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(started&&!gameOver&&mode==='boom')boomSkip(); // (2026-10-14, chasse aux bugs) retour pendant l'explosion : comme le ⏸ (gearOpenHandler) — vers l'écran de fin, jamais une PAUSE sur la caisse qui brûle
     else if(started&&!gameOver&&!paused&&pan&&!pan.classList.contains('open'))panOpen(true);
     wakeAsk(); audioKick(); });
+  /* ===== L'APPEL ENTRANT MET LA COURSE EN PAUSE (24/10, débogage sortie iOS : « appel entrant / Siri / centre de contrôle ») =====
+     Sur iPhone, un appel (la bannière), Siri ou une alarme passent PAR-DESSUS le jeu sans le cacher : pas de visibilitychange, la course
+     continuait muette pendant que le pouce allait décrocher — la caisse tombait, la partie était perdue. Le seul signe fiable : le
+     contexte audio passe « interrupted » (état propre à WebKit). On le guette et on ouvre la PAUSE, exactement comme au retour
+     d'arrière-plan : REPRENDRE attend sous le pouce, et le toucher qui reprend relance le contexte (audioKick, repriseCompte).
+     Le contexte n'existe qu'après initAudio : on se branche au premier toucher, une fois par contexte (`_appelGuette`). */
+  function appelGuette(){ try{ if(!AC||AC._appelGuette||!AC.addEventListener)return; AC._appelGuette=1; const ac9=AC;
+    ac9.addEventListener('statechange',function(){ try{
+      if(ac9===AC&&ac9.state==='interrupted'&&started&&!gameOver&&!paused&&mode!=='boom'&&pan&&!pan.classList.contains('open'))panOpen(true);
+    }catch(e){} }); }catch(e){} }
+  addEventListener('touchend',appelGuette,{passive:true}); appelGuette();
+  /* (même passe) l'appli passe derrière en plein appui : le volant est lâché plus haut (stUp), la NITRO et les flèches aussi — comme au
+     `blur` (voir curseurs), qu'une WebView n'envoie pas toujours. Sans ça, une touche restée « enfoncée » repartait au REPRENDRE. */
+  addEventListener('visibilitychange',function(){ if(!document.hidden)return; try{ for(const k in keys)keys[k]=false;
+    document.querySelectorAll('#tNitro.on,#tLeft.on,#tRight.on').forEach(function(e){e.classList.remove('on');}); }catch(e){} });
+  /* (même passe) LE CHAMP DE LA FENÊTRE (#modC : « colle un code de sauvegarde, ou un code secret ») : comme le pseudo (boost-depart) et
+     la plaque, iOS pouvait laisser la page remontée après la fermeture du clavier — on la recale, seulement si elle a bougé. */
+  try{ const mc9=$t('modC'); if(mc9)mc9.addEventListener('blur',function(){setTimeout(function(){try{if(scrollX||scrollY)scrollTo(0,0);}catch(e){}},60);}); }catch(e){}
   // ---- BASCULE D'ORIENTATION : iOS annonce des dimensions PÉRIMÉES — on recadre après le pivot ----
   const reflow=function(){ clearTimeout(reflow._t); reflow._t=setTimeout(function(){ // (2026-09-29) une seule fois par rafale (clavier, barre d'adresse) : applyDPR réalloue toutes les cibles de rendu
     camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); fovFit(); applyDPR(); },280); };
