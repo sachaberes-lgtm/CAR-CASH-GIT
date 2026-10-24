@@ -6525,7 +6525,7 @@ body.verdOn #fh .fhNom{visibility:hidden} /* UNE voix au centre : le verdict de 
 html body #coach.v2.v2{
   --ecC:var(--neoC,#00eaff);
   left:50%;top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 56px);width:min(410px,calc(100vw - 24px));box-sizing:border-box;
-  display:grid;grid-template-columns:76px 1fr;grid-template-rows:auto auto 1fr;column-gap:12px;row-gap:3px;align-items:center;
+  display:grid;grid-template-columns:76px minmax(0,1fr);grid-template-rows:auto auto 1fr; /* (24/10, débogage sortie iOS) minmax(0,…) : un 1fr ne descend jamais sous son contenu le plus long — le message rouge d un raté (« ENCORE ! NITRO EN L AIR », sur une ligne) élargissait la colonne à 385 px dans une carte de 351 : consigne coupée, message sous PASSER, sur tous les iPhone */column-gap:12px;row-gap:3px;align-items:center;
   padding:10px 12px 11px 10px;border:0!important;border-radius:0!important;overflow:visible;font-family:var(--pix);color:#fff;
   background:linear-gradient(100deg,#150e33 0%,#22165a 58%,#150e33 100%)!important;
   clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
