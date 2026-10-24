@@ -326,9 +326,9 @@ const VV_VERRE=vitreVerre(VV_CIEL_B).replace('sty=s3<.26?0.:s3<.50?1.:s3<.66?2.:
     'float bwV=8.+s2*16.,gbV=floor(ux/bwV),hbV=fract(sin(gbV*12.9898+vSeed9*78.233)*43758.5453),sbV=sin(3.14159*fract(ux/bwV)),pkV=smoothstep(.5,.9,hbV)*sbV*sbV,grV=smoothstep(280.,-140.,vW9.y-uCam9.y);'+
     'refl+=mix(uAcc9,vec3(.24,.91,1.),step(.5,fract(hbV*7.3)))*pkV*grV*.26*uEmb9;')
   .replace('gl_FragColor.rgb=colF;','gl_FragColor.rgb=colF;'+
-    'if(s4<.5&&vSc9.y>150.){float npV=12.+floor(s2*10.),yyV=vB9/(fh*npV),fyV=max(fwidth(yyV),1e-5),qV=fract(yyV),bdV=1.7/npV;'+
-    'float lbV=smoothstep(0.,fyV*1.5,qV)*(1.-smoothstep(bdV,bdV+fyV*1.5,qV));lbV=mix(lbV,bdV,smoothstep(.4,1.5,fyV));'+
-    'vec3 bcV=s1>.8?vec3(1.,.78,.34):mix(uAcc9,vec3(.24,.91,1.),step(.5,s1));gl_FragColor.rgb+=bcV*lbV*1.4*uNuit9*uEmb9;}');
+    'if(s4<.45&&vSc9.y>150.){float npV=12.+floor(s2*10.),yyV=vB9/(fh*npV),fyV=max(fwidth(yyV),1e-5),dqV=abs(fract(yyV+.5)-.5),hbV2=.4/npV;'+
+    'float lbV=1.-smoothstep(hbV2,hbV2+fyV*1.5,dqV);lbV=mix(lbV,2.*hbV2,smoothstep(.4,1.5,fyV));lbV+=.2*exp(-dqV*npV/1.2)*(1.-smoothstep(.4,1.5,fyV));'+
+    'vec3 bcV=s1>.8?vec3(1.,.78,.34):mix(uAcc9,vec3(.24,.91,1.),step(.5,s1));gl_FragColor.rgb+=bcV*lbV*1.15*uNuit9*uEmb9;}');
 /* LE PIED DANS LA BRUME : les volumes sont EMPILÉS (voir buildVoxCity), on ne connaît plus le pied de la tour — la brume est une NAPPE posée
    à ~380 m sous la caméra (la route est à ~330 m au-dessus du pied des tours), fondue sur 300 m ; la nuit, la rue l'éclaire à peine. */
 /* (CLEAN CITY) ⚠ une tour qui borde un étage de route PLUS HAUT a son pied au-dessus de la caméra : la nappe seule ne le noyait pas — elle flottait,
