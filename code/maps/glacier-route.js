@@ -380,11 +380,11 @@ const BK_SOL_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN;varying vec2 vS;','#include
   '  col+=alb*uSky*(1.-dif)*vec3(.20,.42,.75)*.55*(1.-roc);',                                                // l'OMBRE BLEUE de la neige (le ciel qu'elle diffuse)
   '  col+=alb*uSunC*pow(1.-max(dot(Np,V),0.),4.)*.10*dif;',                                                  // le lustre rasant
   // les ÉTINCELLES : chaque cristal a sa facette (une normale au hasard) ; il s'allume quand le soleil s'y reflète vers l'œil — elles naissent et meurent quand la caméra bouge
-  '  float sp=0.;if(f2>0.){vec2 g=q*2.2;vec2 c=floor(g);float h=fh2(c);vec3 nj=normalize(vec3(fh2(c+3.1)-.5,.9,fh2(c+7.7)-.5));',
-  '    sp=step(.80,h)*pow(max(dot(reflect(-L,nj),V),0.),70.)*smoothstep(.36,.06,length(fract(g)-.5))*f2;}',
+  '  float sp=0.,spk=0.;if(f2>0.){vec2 g=q*2.2;vec2 c=floor(g);float h=fh2(c);vec3 nj=normalize(vec3(fh2(c+3.1)-.5,.9,fh2(c+7.7)-.5));',
+  '    float s1=step(.80,h)*pow(max(dot(reflect(-L,nj),V),0.),70.)*smoothstep(.36,.06,length(fract(g)-.5))*f2*(.62+.38*sin(uTime*(1.4+h*3.)+h*70.));sp=s1;spk=s1*step(fract(h*53.7),.20);}',
   '  {vec2 g=q*.42;vec2 c=floor(g);float h=fh2(c+5.);vec3 nj=normalize(vec3(fh2(c+1.3)-.5,.8,fh2(c+9.2)-.5));',
-  '   sp+=step(.86,h)*pow(max(dot(reflect(-L,nj),V),0.),60.)*smoothstep(.30,.04,length(fract(g)-.5))*smoothstep(60.,140.,dist)*(1.-smoothstep(300.,650.,dist))*.8;}',
-  '  sp*=(1.-roc)*uSpark;col+=(uSunC*2.2+vec3(.4,.6,1.)*.3)*sp*2.6+uAurC*sp*uAur*1.2;',
+  '   float s2=step(.86,h)*pow(max(dot(reflect(-L,nj),V),0.),60.)*smoothstep(.30,.04,length(fract(g)-.5))*smoothstep(60.,140.,dist)*(1.-smoothstep(300.,650.,dist))*.8;sp+=s2;spk+=s2*step(fract(h*61.3),.20);}',
+  '  sp*=(1.-roc)*uSpark;spk*=(1.-roc)*uSpark;col+=(uSunC*2.2+vec3(.4,.6,1.)*.3)*(sp-spk)*2.6+mix(vec3(1.,.55,.06),vec3(1.,.10,.46),step(.5,fh2(floor(q*1.1)+11.)))*spk*2.2+uAurC*sp*uAur*1.2;', /* (2026-10-21, LE GLACIER EMBELLI) un éclat sur cinq est OR ou ROSE (le clin d'œil CASH) et tous scintillent avec uTime */
   '  col+=alb*uAlpC*uAlp*dif*.40*smoothstep(-40.,120.,vW.y-uMistY);',                                         // l'alpenglow sur les pentes hautes
   '  col+=alb*mix(uAurC,uAurC2,.3)*uAur*.12*(.4+.6*Np.y);',                                                    // le vert des aurores sur la neige
   '  col+=vec3(.10,.55,.80)*cv*(uSky*.35+uSunC*.12)*(.6+.4*fn2(q*.4));',  // le fond de la crevasse : la glace bleue qui luit
@@ -414,6 +414,7 @@ const BK_PIC_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN,vB;varying vec4 vP;','#ifnd
   '  float tr=pow(max(dot(-V,L),0.),3.)*(.6+.4*(1.-th))+.22;',                                                                // la lumière qui TRAVERSE
   '  vec3 col=alb*(uSky*.42+uGnd*.10+uSunC*(.10+.95*dif))+mid*uSunC*tr*(.20+.60*hf)*vec3(.55,.92,1.)+clair*uSunC*hf*hf*.10;',
   '  col+=clair*(fr*.70+bu*.9)*(uSunC*.55+uSky*.45);',
+  '  col=mix(col,col*vec3(.80,.88,1.16),(1.-dif)*.30*(1.-hf*.5));col+=vec3(1.,.78,.46)*uSunC*pow(dif,2.5)*(.04+.11*hf)*(.6+.4*fv);', /* (2026-10-21, LE GLACIER EMBELLI) deux températures : l'ombre des facettes bascule au bleu-violet, la clé chaude se pose sur les pointes éclairées */
   '  col=mix(col,bCiel(R),fres*.55);',
   '  float sr=max(dot(R,L),0.);col+=uSunC*(pow(sr,110.)*2.8+pow(sr,14.)*.16);',                                              // l'ÉCLAT de la facette
   '  float e=min(min(vB.x,vB.y),vB.z),w9=fwidth(e)*1.4;float ar=1.-smoothstep(0.,w9+.010,e);',                                 // les ARÊTES
@@ -446,7 +447,8 @@ const BK_VG_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN;varying vec4 vV;','#include 
   '  col=mix(col,bCiel(R)*.95,fres*.9);',
   '  float sr=max(dot(R,uSunDir),0.);col+=uSunC*(pow(sr,500.)*6.+pow(sr,35.)*.35);',                               // le chemin du soleil
   '  float gv=smoothstep(e-.32,e-.02,u)*(.45+.55*fn2(q*1.9));col=mix(col,vec3(.88,.94,1.)*(uSky*.6+uSunC*.85),gv*.75);', // le givre des bords (v4 : la frange qui se fond dans la neige)
-  '  {vec2 g=q*2.6;vec2 c=floor(g);float h=fh2(c);col+=(uSunC*1.6+uSky*.4)*step(.93,h)*smoothstep(.30,.05,length(fract(g)-.5))*(1.-smoothstep(25.,90.,dist))*uSpark;}', // les paillettes
+  '  {vec2 g=q*2.6;vec2 c=floor(g);float h=fh2(c);float pk=step(.93,h)*smoothstep(.30,.05,length(fract(g)-.5))*(1.-smoothstep(25.,90.,dist))*uSpark*(.72+.28*sin(uTime*(1.2+h*5.)+h*90.));',
+  '   col+=mix(uSunC*1.6+uSky*.4,mix(vec3(1.,.55,.06),vec3(1.,.10,.46),step(.5,fh2(c+9.1)))*2.0,step(fh2(c+4.3),.18))*pk;}', /* (2026-10-21, LE GLACIER EMBELLI) les paillettes de la glace scintillent (uTime) ; une sur cinq environ est OR ou ROSE : le clin d'œil CASH, aspect seulement */
   '  vec3 hd=normalize(uCarP+vec3(0.,1.,0.)-vW);col+=vec3(.9,.95,1.)*uPhare*pow(max(dot(R,hd),0.),60.)*2.5*(1.-smoothstep(10.,140.,distance(uCarP,vW)));',
   '  col+=bPhare(vW,N)*.3+uFlash*vec3(.8,.85,1.)*.5;',
   '  col=mix(col,uMistC,bBrume(vW,dist));gl_FragColor=vec4(col,al*.9);','  gl_FragColor.a=1.;','#include <fog_fragment>','}'].join('\n');

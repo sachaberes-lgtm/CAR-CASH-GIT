@@ -75,6 +75,7 @@ maps/dunes-embellie.js               # dunes : le plan moyen (buttes, arbres mor
 maps/glacier-route.js                # LA BANQUISE / LE GLACIER v4 : route, manteau de neige
 maps/glacier-construction.js         # glacier : construction, volant en l'air
 maps/glacier-verglas.js              # glacier : verglas, retombée des tremplins, console
+maps/glacier-embelli.js              # glacier embelli : crêtes lointaines en trois plans, panaches de neige
 maps/grottes-1.js                    # LES PROFONDEURS : route, surface à facettes
 maps/grottes-2.js                    # grottes : décors, lumières, rendu, construction, ambiances
 maps/ville-v3.js                     # la ville v3 (canyon du village de la pluie), panneaux holographiques
