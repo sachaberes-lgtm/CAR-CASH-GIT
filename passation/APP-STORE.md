@@ -1,3 +1,48 @@
+# MISE À JOUR — 24/10 (session APP STORE de la grande chasse aux bugs, branche `sortie-ios/appstore`, rien de poussé, rien d'envoyé)
+## FAIT
+- `origin/main` (41a404b6, cache v855, 1 921 commits) fusionné dans la branche (1 conflit : CLAUDE.md racine, les deux gardés). Le jeu
+  hors `app-ios/` = main à l'octet près ; `assembler.cjs --verifier` vert, `syntaxe.cjs` 0 erreur.
+- `preparer-www.js` recalé (commit `001f8528`). RETIRÉES (le jeu l'a retiré lui-même) : TEST_CARRIERE, phrase « Ferrari », MOULIN ROUGE,
+  SANS_VOIX + fichiers de voix, onglet OFFRES du garage, bouton BIENTÔT, `.mCode`, retouche de l'accueil 2 × 2 (accueil = GARAGE · RÉGLAGES ·
+  JOUER, vu au banc : pas de trou). RÉPARÉES : comptes des 4 noms renommés (DAYTONA 10, STRATOS 13, VETTE 5, CHARGEUR 11 — FR et EN :
+  0 reste dans www/). NOUVELLES : peintures en € (PEINT_EUR, 0,50-5 €, ajoutées le 16/10) → argent du jeu (60 000 $/€) ; article du pack
+  LA PALETTE (0,99 €) → SECRÈTE ; fenêtre ENTRER UN CODE sans « code secret » ; adresse AdSense vidée ; pages d'atelier `assets/**/*.html`
+  non citées par le jeu laissées dehors (french-touch.html = polices Google ; AURA·30 / RUBIS / ASPHALTE, jouées en iframe, restent).
+- `www/` refait (`2e210b72`) : 633 fichiers, 100 Mo, jeu 41a404b6, 0 adresse réseau hors latest.json. Banc navigateur (www/ servi en local,
+  FR + EN, debout + couché) : accueil, garage, boutique (tout en $, aucun €), inventaire, missions, réglages, ENTRER UN CODE, course :
+  0 requête hors app, 0 texte français visible en anglais, 0 erreur JS (seulement les 404 connus : version.json du site, dark-triad.mp3).
+- `npx cap sync ios` + construction SIMULATEUR Debug sans signature : BUILD SUCCEEDED (Xcode 26.6). Lancée au simulateur iPhone 17 Pro
+  (iOS 26.5) : l'app démarre, l'écran natif s'efface, le jeu peint son écran d'accueil 1.61 (attend un toucher) à 40 s. Console du
+  WebView NON relue (le journal système ne reçoit pas le console.log de Capacitor : passer par Safari › Développement) ; une seule
+  alerte WebKit vue : `HTMLMediaElement mediaLoadingFailed … FormatError` (un son que le simulateur ne décode pas, à identifier).
+- Fiche : « MISSIONS ET CARRIÈRE » → « MISSIONS ET MONDES » (FR + EN, `3a6ed2c9`), longueurs vérifiées.
+- Natif vérifié : Info.plist sans aucune clé NS…UsageDescription, ITSAppUsesNonExemptEncryption = NO, iPhone seul, portrait + paysage,
+  UIRequiresFullScreen, barre d'état cachée ; PrivacyInfo = UserDefaults CA92.1 + FileTimestamp C617.1 + DiskSpace E174.1, cohérent avec Capgo
+  8.52.1 (UserDefaults, attributesOfItem, systemFreeSize ; pas de systemUptime ; menu « secouer » éteint par défaut) ; icône 1024 sans alpha ;
+  LaunchScreen.storyboard ; IPHONEOS_DEPLOYMENT_TARGET = 15.0 ; MARKETING_VERSION 1.0.0, CURRENT_PROJECT_VERSION = 2.
+## À DÉCIDER PAR SACHA (rien n'est tranché à sa place)
+1. LA PUB MAISON (15/10) : dans l'app, CONTINUER ▶ PUB et « TON GAIN ×2 APRÈS LA PUB » montrent 5 s une caisse du jeu (aucune régie).
+   La fiche dit « Aucune publicité » → incohérence possible (règle 2.3). Proposition : dans l'app seulement, reprise immédiate (`PUBR.sans`)
+   et le mot PUB remplacé (ex. CONTINUER ▶ GRATUIT), ou garder et retirer « sans pub » de la fiche.
+2. CRYPTO CITY est revenue comme MAP le 15/10 (à ta demande : Bitcoin, ATH, « 1 BITCOIN · TO THE MOON », JPEG MILLIONAIRE) alors que la règle
+   du 14/10 disait « plus de CRYPTOCITY ». Pas interdit par Apple (simple décor), à garder ou couper dans l'app.
+3. Noms/dessins ajoutés depuis le 14/10 qui évoquent une œuvre ou une marque (règle 5.2) : LE DOGE (le mème « Doge », photo protégée de
+   Kabosu, « Wow. Très tête. Beaucoup roues. ») → « LE SHIBA » + phrase ; LA CABOSSÉE (forme `simpson` : la berline rose cabossée à antenne
+   en zigzag d'Homer Simpson) → changer couleur/antenne ou couper dans l'app ; LE BAROUDEUR (« Sept fentes » = calandre Jeep, dessin déposé)
+   → « Une calandre à fentes » et 5 fentes au dessin ; LE LOUP (Countach), L'ORIGAMI (Cybertruck, « on a essayé avec une boule »),
+   LE SPECTRE (= un modèle Rolls-Royce) : risque faible. Toujours ouverts : ELDORADO, ROSSO 40, LE DÉFIEUR, ATCHOUM, LA DOLORÈS, sons tiers.
+4. Pages EN LIGNE (`pages-app/confidentialite.html` de main) : disent encore « Le jeu ne se connecte à aucun réseau » / « aucune requête
+   réseau » — FAUX à partir du build 2 (mises à jour en direct). Recopier `app-ios/fiche/confidentialite.html` (et assistance.html) dans
+   `pages-app/` sur main → seulement sur ton OUI (pousser main = publier).
+## RESTE À FAIRE POUR ENVOYER LE BUILD 2
+- Sacha : décisions 1 à 4 ; OUI pour les pages ; captures 6,9" (1320×2868) et 6,3" (1206×2622, OBLIGATOIRE) FR + EN sur ce www/ ;
+  vérifier dans App Store Connect que la question « publicité » et les notes du testeur collent à la décision 1.
+- Mac : fusionner `sortie-ios/appstore` dans `ios-capacitor` ; `cd app-ios && npm ci && npm run sync` ; parcours au simulateur (démarrage,
+  plaque, FR/EN, course, mort, garage, boutique en $, peintures en $, réglages) ; `sh archiver.sh` (archive + export local) ; puis
+  `sh archiver.sh --envoyer` SEULEMENT sur le OUI de Sacha, juste avant. Le build 1 ne doit jamais être soumis (pas de mises à jour en direct).
+- Après la sortie : chaque nouveau jeu = `node preparer-www.js --essai "<VERSION PRINCIPALE>"` d'abord ; une coupe qui perd sa cible :
+  chose retirée par le jeu → retirer la coupe ; chose déplacée → réparer ; puis `node publier-maj.js` (et `--envoyer` sur le oui de Sacha).
+
 # MISE À JOUR — 14/10, 17 h 40 : LES MISES À JOUR EN DIRECT (oui de Sacha) · le jeu sera figé dans ~1 mois (Sacha)
 - Sacha a accepté le nouveau contrat Apple. 18 h 15 : DÉCLARATION DSA faite (statut COMMERÇANT, choix de Sacha ; EI SIREN 104 067 996,
   adresse de l'attestation RNE, +33 6 51 96 89 02, 16180contact@gmail.com ; justificatifs chargés par Sacha) → « En cours de vérification »
