@@ -34,7 +34,13 @@
 - **2e TOUR — LA ROUTE EN TRANCHES DE 1 200 POINTS** (v850, `PISTE_CH`, `code/moteur/piste-prebati.js`) : chaque tranche visible coûte 5 appels de dessin (bitume, flancs, rail,
   lueur, ligne) — 45 à 75 appels pour la seule route. MESURÉ (processeur ×4, mêmes pistes `pistegraine=777`, 4 relevés moyennés) : rendu de la scène crypto 14,5 → 10,4 ms,
   forêt 20,2 → 9,8, nuages 16,3 → 10,8, jade 12,8 → 9,9 ; boucle forêt 66 → 39 ms, nuages 71 → 49. Chaque tranche du pré-bâti est recoupée en 3 pas (index, sommets, maigre).
-  `?tranche=600` = avant. RESTE À FAIRE (mesuré, pas touché) : sur téléphone (×4) le recalcul de styles du HUD ≈ 6 ms/image (le bouton nitro `#tNitro` : 402 déclarations,
+  `?tranche=600` = avant.
+- **2e TOUR — LE REJOUER SANS GEL** (v851, `prebTick` / `prebDepTick`) : la « latence sur les essais » sur téléphone. MESURÉ (banc `rejouer.cjs`, processeur ×4, palier MOYEN,
+  REJOUER 1,5 s après la mort) : la construction du REJOUER durait 1 983 ms d'un bloc (image figée 2,2 s ; la course repartait 2,4 s après le clic) — le départ suivant
+  ne se bâtissait qu'à 3-6 ms par image, 0,8 s après l'arrivée de l'écran de fin, et le reste se faisait d'un trait. Désormais il commence DÈS L'EXPLOSION (mode
+  'boom', 1,8 s avant l'écran de fin), ne s'arrête plus pendant l'installation de l'écran de fin (3 ms), puis prend jusqu'à 8 ms par image pendant l'explosion et
+  10 ms à l'écran de fin ; au menu rien ne change. APRÈS : construction 128 ms puis 6 ms, course repartie 0,5 s après le clic, pire image 0,3 s. Sur PC : 5-33 ms (inchangé).
+  RESTE À FAIRE (mesuré, pas touché) : sur téléphone (×4) le recalcul de styles du HUD ≈ 6 ms/image (le bouton nitro `#tNitro` : 402 déclarations,
   dégradé conique réécrit à chaque image nitro tenue ; `#nitroBar` 542 µs par recalcul), les traits de vent en 2D (3 %), le bouton nitro en putImageData (2 %), la vignette
   moteur rendue chaque image pendant la carte NOUVEAU MOTEUR, la voiture (31 appels dont 12 d'ombre), la porte de Jade (35 ms d'une tranche du pré-bâti sur PC).
 - **CE QUI A ÉTÉ MESURÉ ET LAISSÉ** : le rendu de la scène (2-5 ms, 130-260 appels de dessin selon la map, PC) et la boucle (16,7 ms) tiennent ; la correspondance des

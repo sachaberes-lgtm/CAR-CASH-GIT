@@ -293,7 +293,8 @@ function prebPalier(){ // (newTrack0) la piste bâtie d'avance l'a été à SON 
 const PREB_AVANCE=20; // (s) la map d'en face commence quand le portail est à moins de 20 s de route : son palier moteur (l'échelle de la piste) est celui de ce moment-là
 function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier, travailler
   PREB.cam=false; // (voir sous9 : resetGame l'a lu dans cette image, ou rien ne l'a lu)
-  if(!started||gameOver){prebDepTick(now);return;} // (LE DÉPART D'AVANCE) au menu et à l'écran de fin
+  if(!started||gameOver){prebDepTick(now);return;}
+  if(mode==='boom'){prebDepTick(now);return;} // (2026-10-24, passe perf) la caisse explose : la partie est finie, le départ suivant se bâtit DÈS MAINTENANT (1,8 s avant l'écran de fin — voir prebDepTick) // (LE DÉPART D'AVANCE) au menu et à l'écran de fin
   PREB.fin0=0;
   if(PREB.W&&PREB.dep){prebAnnule('départ');return;} // la partie est partie sans prendre la piste du départ
   if(mode==='drive'&&PREB.sT){const d9=(now-PREB.sT)/1000,v9=(s-PREB.sP)/Math.max(1e-3,d9);if(d9>0&&d9<.5&&v9>0)PREB.v=PREB.v?PREB.v+(v9-PREB.v)*Math.min(1,d9*2):v9;} // la vitesse le long de la piste (m/s), lissée
