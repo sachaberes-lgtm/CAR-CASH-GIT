@@ -82,43 +82,7 @@ skyU.uVid={value:1};skyU.uVed={value:PAL.b('orbVed',1)};
   am.customProgramCacheKey=function(){return 'atmoDegrade2';};
   am.userData.kh={value:0};const hm=g.halo.material;hm.userData.kh={value:1};hm.onBeforeCompile=am.onBeforeCompile;hm.customProgramCacheKey=am.customProgramCacheKey; /* le HALO (2e coquille, à bord dur) reprend le profil en dégradé, en orbite seulement */
 })();
-/* LA TERRE REPEINTE — la même toile 1024 × 512 (peinte UNE fois, au portail), des continents vrais zonés par la latitude. Pas de nuages (Sacha les a retirés de l'espace) :
-   la Terre reste nette ; la profondeur vient des océans, des plateaux et du relief. */
-function orbTerre(x,W,H){
-  const R=planetesAlea(2161),rd=function(a,b){return a+R()*(b-a);},px=function(lo){return (lo+180)/360*W;},py=function(la){return (90-la)/180*H;};
-  const oc=x.createLinearGradient(0,0,0,H);
-  oc.addColorStop(0,'#08224f');oc.addColorStop(.2,'#0c4592');oc.addColorStop(.5,'#1a7fd8');oc.addColorStop(.8,'#0c4592');oc.addColorStop(1,'#08224f');
-  x.fillStyle=oc;x.fillRect(0,0,W,H);
-  const tache=function(cx,cy,rx,ry,rot,col,a){for(let k=-1;k<=1;k++){const X=cx+k*W;if(X+rx<0||X-rx>W)continue;
-    x.save();x.translate(X,cy);x.rotate(rot);x.scale(1,ry/rx);const gr=x.createRadialGradient(0,0,0,0,0,rx);gr.addColorStop(0,'rgba('+col+','+a+')');gr.addColorStop(.6,'rgba('+col+','+(a*.6)+')');gr.addColorStop(1,'rgba('+col+',0)');
-    x.fillStyle=gr;x.beginPath();x.arc(0,0,rx,0,6.2832);x.fill();x.restore();}};
-  for(let i=0;i<34;i++)tache(rd(0,W),rd(40,H-40),rd(60,170),rd(24,64),rd(-.5,.5),R()<.5?'5,28,76':'46,160,236',rd(.14,.28)); /* les grands courants : plus sombre, plus clair */
-  const terres=[]; /* [x, y, rayon, couleur] */
-  const zone=function(la){const a=Math.abs(la);if(a>74)return '#eef6ff';if(a<12)return R()<.8?'#1f7d3e':'#4c9a42';if(a<33)return R()<.62?'#d8b36b':'#7e9f48';if(a<56)return R()<.8?'#4c9a42':'#6c9a4a';return R()<.7?'#2f7058':'#3b7a52';};
-  const echine=function(pts,r0,r1,pas,col){for(let s=0;s<pts.length-1;s++){const a=pts[s],b=pts[s+1],n=Math.max(2,Math.round(Math.hypot((b[0]-a[0])/360*W,(b[1]-a[1])/180*H)/pas));
-    for(let i=0;i<=n;i++){const t=(s+i/n)/(pts.length-1),k=i/n,lo=a[0]+(b[0]-a[0])*k,la=a[1]+(b[1]-a[1])*k,r=(r0+(r1-r0)*t)*rd(.7,1.15);
-      terres.push([px(lo)+rd(-1,1)*r*.5,py(la)+rd(-1,1)*r*.5,r,col||zone(la+rd(-4,4))]);}}};
-  echine([[-165,62],[-140,62],[-120,58],[-100,55],[-85,50],[-68,47]],20,17,9);echine([[-125,48],[-105,42],[-90,37],[-78,33]],24,20,9);echine([[-108,30],[-100,22],[-90,16],[-80,9]],13,7,7);   /* Amérique du Nord */
-  echine([[-52,68],[-42,76],[-30,72],[-40,63]],14,12,7,'#eef6ff');                                                                                                                              /* Groenland */
-  echine([[-80,2],[-72,-6],[-60,-5],[-52,-10],[-48,-19],[-58,-31],[-66,-42],[-70,-54]],22,8,8);echine([[-72,9],[-62,8],[-54,3]],12,10,7);                                                /* Amérique du Sud */
-  echine([[-10,38],[0,44],[10,48],[22,54],[35,57],[46,62]],13,12,7);echine([[8,58],[15,64],[22,68]],7,6,5);echine([[-6,52],[-3,57]],5,5,4);                                                    /* Europe */
-  echine([[-10,28],[10,22],[28,16],[36,2],[28,-12],[24,-30]],32,15,8);echine([[-12,14],[0,8],[10,4]],18,16,7);echine([[42,8],[50,10]],7,6,5);echine([[47,-14],[49,-24]],5,5,4);          /* Afrique */
-  echine([[40,58],[70,58],[100,60],[130,60],[160,64]],21,18,9);echine([[45,42],[70,40],[95,38],[115,36],[125,42]],21,17,9);echine([[74,26],[78,16],[80,10]],11,6,6);echine([[38,28],[48,24],[56,20]],13,11,7);
-  echine([[98,18],[104,10],[102,2]],7,6,5);echine([[105,30],[118,28],[122,36]],13,11,7);echine([[130,32],[138,36],[142,42]],5,5,4);echine([[96,2],[106,-4],[116,-3],[126,-3],[135,-4]],6,5,4);   /* Asie */
-  echine([[115,-24],[125,-22],[135,-20],[148,-22],[152,-30],[145,-38],[132,-33],[118,-34]],18,16,8);echine([[172,-38],[174,-44]],4,4,4);                                                   /* Océanie */
-  const L=document.createElement('canvas');L.width=W;L.height=H;const l=L.getContext('2d');
-  for(const t of terres)for(const ox of [-W,0,W]){const X=t[0]+ox;if(X+t[2]*1.7<0||X-t[2]*1.7>W)continue;x.fillStyle='rgba(70,214,228,.17)';x.beginPath();x.arc(X,t[1],t[2]*1.55,0,6.2832);x.fill();} /* les plateaux : un turquoise le long des côtes */
-  for(const t of terres)for(const ox of [-W,0,W]){const X=t[0]+ox;if(X+t[2]<0||X-t[2]>W)continue;l.fillStyle=t[3];l.beginPath();l.arc(X,t[1],t[2],0,6.2832);l.fill();}
-  l.globalCompositeOperation='source-atop'; /* tout ce qui suit ne se pose QUE sur la terre */
-  const chaine=function(pts,col,w,a){l.strokeStyle=col;l.lineWidth=w;l.globalAlpha=a;l.lineCap='round';l.beginPath();for(let i=0;i<pts.length;i++){const X=px(pts[i][0]),Y=py(pts[i][1])+Math.sin(i*2.1)*2;if(i)l.lineTo(X,Y);else l.moveTo(X,Y);}l.stroke();l.globalAlpha=1;};
-  for(const m of [[[-118,56],[-112,46],[-107,36],[-104,30]],[[-72,6],[-74,-8],[-70,-24],[-71,-42]],[[68,37],[78,34],[88,29],[98,28]],[[4,45],[10,47],[17,47]],[[-8,32],[0,34],[10,35]],[[30,44],[40,42],[48,38]]]){
-    chaine(m,'#8a7556',6,.62);chaine(m,'#f4f8fc',2,.55);} /* les chaînes : un dos brun, une crête de neige */
-  for(let i=0;i<520;i++){l.fillStyle=R()<.5?'rgba(20,50,30,.17)':'rgba(240,226,170,.13)';const s=1.5+R()*3.5;l.fillRect(rd(0,W),rd(0,H),s,s);} /* le grain du relief */
-  l.globalCompositeOperation='source-over';
-  x.drawImage(L,0,0);toileRend(L);
-  x.fillStyle='rgba(238,248,255,.96)';for(const haut of [1,0]){const y0=haut?0:H;for(let i=0;i<40;i++){x.beginPath();x.arc(rd(0,W),y0+(haut?1:-1)*rd(0,10),rd(8,22),0,6.2832);x.fill();}x.fillRect(0,haut?0:H-12,W,12);} /* les calottes */
-}
-PLANETES_PEINTRES.terre2=orbTerre;
+/* (2026-10-24, Sacha) LA TERRE REPEINTE (orbTerre) est retirée : l'orbite reprend la Terre d'avant (celle du menu). */
 /* ---- LA POUSSIÈRE COSMIQUE : des grains qui filent autour de la caméra (un LineSegments, tout dans le vertex shader) ---- */
 const POUS=(function(){
   const N=PAL.b('orbPous',700),r=mulberry32(0x0C0510F),P=new Float32Array(N*6),E=new Float32Array(N*2),S=new Float32Array(N*8);

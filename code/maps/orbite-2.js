@@ -2,23 +2,8 @@
    que l'OBJECTIF en fait. Il est sur la gauche, juste hors champ (ORB.cle) : son VOILE déborde par le bord de l'image, et un TRAIT
    anamorphique bleuté court à sa hauteur. S'il entre dans le cadre (vrille, looping), c'est une étoile à cœur blanc et quatre
    branches. Deux quads en espace écran, additifs, sans profondeur, dessinés en dernier : seuls les pixels du voile se paient. */
-const FLARE=(function(){
-  const P=[],K=[],I=[];for(let k=0;k<2;k++){P.push(-1,-1,0,1,-1,0,1,1,0,-1,1,0);K.push(k,k,k,k);I.push(k*4,k*4+1,k*4+2,k*4,k*4+2,k*4+3);}
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('aK',new THREE.Float32BufferAttribute(K,1));g.setIndex(I);
-  const m=new THREE.ShaderMaterial({transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,
-    uniforms:{uS:{value:new THREE.Vector2(-1.6,.5)},uAsp:{value:1},uOp:{value:0}},
-    vertexShader:['attribute float aK;uniform vec2 uS;uniform float uAsp;varying vec2 vQ;varying float vK;',
-      'void main(){vK=aK;vQ=position.xy;vec2 c=uS,h=vec2(1.45/uAsp,1.45);',              // le voile : un disque d 1,45 hauteur d écran autour du soleil
-      '  if(aK>.5){c=vec2(0.,uS.y);h=vec2(1.,.05);}',                                         // le trait : toute la largeur, à la hauteur du soleil
-      '  gl_Position=vec4(c+position.xy*h,0.,1.);}'].join('\n'),
-    fragmentShader:['uniform vec2 uS;uniform float uAsp,uOp;varying vec2 vQ;varying float vK;',
-      'void main(){vec3 col;',
-      '  if(vK<.5){float r=length(vQ)*1.45,a=abs(vQ.x),b=abs(vQ.y);',
-      '    float br=(exp(-b*260.)*exp(-a*5.)+exp(-a*260.)*exp(-b*5.))*.8;',                      // les branches (si le soleil entre dans le cadre)
-      '    col=vec3(1.,.94,.84)*(exp(-r*2.2)*.21+exp(-r*r*6.)*.27)+vec3(1.,.97,.9)*(exp(-r*r*900.)*4.+br);}',
-      '  else{col=vec3(.50,.70,1.)*exp(-vQ.y*vQ.y*9.)*exp(-abs(vQ.x-uS.x)*1.1)*.42;}', // le trait anamorphique, bleuté
-      '  gl_FragColor=vec4(col*uOp,1.);}'].join('\n')});
-  const me=new THREE.Mesh(g,m);me.frustumCulled=false;me.visible=false;me.renderOrder=9999;scene.add(me);return me;})();
+/* FLARE RETIRÉ (2026-10-24, Sacha : « enlève glint et flare ») : plus de voile ni de trait anamorphique du soleil ; l'objet reste, vide, pour les lignes qui posent `visible`. */
+const FLARE={visible:false};
 /* (2026-09-30) LES PASSAGES OBLIGÉS : aucun satellite ne se pose là où l'on n'a pas le choix de sa route — le couloir d'un tremplin, les
    abords d'un trou. */
 function satPassage(s9){
@@ -28,7 +13,6 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
   const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;} // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
   for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;
   if(!ORB.actif)return;
-  if(!ORB.peinte)lunePeint();
   const t00=performance.now();
   const r=mulberry32(seed^0x0A57E401); // flux DÉRIVÉ : la piste en aval ne bouge pas
   // LA GRILLE DE LA PISTE (un point tous les ~10 m, cases de 150 m) : un objet n'approche AUCUNE portion de route
@@ -147,14 +131,8 @@ function orbiteLumiere(dt9){ // LA LUMIÈRE SPATIALE : le soleil dur, la Terre q
   ORB.terre.subVectors(planetGroup.position,camera.position).normalize();
   fill.position.copy(FILL_P0).lerp(ORB.t1.copy(ORB.terre).multiplyScalar(450),e); // la Terre éclaire depuis LA Terre (la cible de `fill` est l'origine)
   kick.position.copy(KICK_P0).lerp(ORB.t1.copy(ORB.dm).multiplyScalar(600),e);   // le clair de lune vient de la lune
-  // LE SOLEIL À L'ÉCRAN : sa direction dans le repère de la caméra ; hors champ, on le ramène juste derrière le bord (1,45) pour que son voile y déborde
-  const lv=ORB.t1.copy(ORB.cle).transformDirection(camera.matrixWorldInverse),fu=FLARE.material.uniforms,dev=Math.max(.05,-lv.z);
-  let sx=lv.x/dev*camera.projectionMatrix.elements[0],sy=lv.y/dev*camera.projectionMatrix.elements[5];const sl=Math.hypot(sx,sy);if(sl>1.45){sx*=1.45/sl;sy*=1.45/sl;}
-  fu.uS.value.set(sx,sy);fu.uAsp.value=camera.aspect;fu.uOp.value=e*Math.max(0,Math.min(1,(-lv.z+.55)/.6))*(garageOn||stallOn?0:1); // loin derrière l'oeil, l'objectif ne le voit plus
-  FLARE.visible=fu.uOp.value>.01;
 }
 function orbiteTick(t){ // chaque image : lumière, visibilité, place et regard de la lune — zéro allocation
-  if(ORB.pinceau&&!ORB.peinte&&(!started||gameOver))luneAvance(); // au menu : une étape du pinceau de la lune par image
   const dt9=Math.min(.1,Math.max(0,t-ORB.tp));ORB.tp=t;
   orbiteLumiere(dt9);
   skyU.uEtK.value=renderer.getPixelRatio(); // (2026-10-22) les étoiles se comptent en pixels CSS : voir `pous` (la voûte profonde)
@@ -163,7 +141,6 @@ function orbiteTick(t){ // chaque image : lumière, visibilité, place et regard
   GLINT.visible=vr&&GLINT.count>0;
   orbBeau(t,dt9,vr); /* (2026-10-21, embellir) la poussière cosmique et l'intensité du niveau : voir orbite-embellie.js */
   const lunOk=ok&&ORB.lune; // (2026-10-22, la lune retirée du ciel : LUNE_ON) elle reste « dans le niveau » : sa direction (ORB.dm) pilote toujours la clé froide, la caisse est éclairée comme avant
-  LUNE.visible=lunOk&&LUNE_ON;
   if(!lunOk&&!vr)return;
   // LE SOLEIL DE LA TERRE (la formule du globe, à l'identique) — gardé pour qui le lit ; les satellites prennent celui de la caisse (ORB.cle)
   const tc=ORB.t1.subVectors(camera.position,planetGroup.position).normalize(),sd=ORB.t2.crossVectors(tc,ORB.haut).normalize();
@@ -185,40 +162,12 @@ function orbiteTick(t){ // chaque image : lumière, visibilité, place et regard
   if(!ORB.capOk){ORB.dm.copy(ORB.cible);ORB.capOk=true;}
   else{ORB.dm.lerp(ORB.cible,Math.min(1,dt9*2)).normalize();const cc=ORB.dm.dot(ORB.cible);
     if(cc<Math.cos(.16)){const pr=ORB.du.copy(ORB.dm).addScaledVector(ORB.cible,-cc).normalize();ORB.dm.copy(ORB.cible).multiplyScalar(Math.cos(.16)).addScaledVector(pr,Math.sin(.16));}}
-  const A=ORB.A.copy(ORB.dm);
-  const P=ORB.t2.copy(tc).negate(),c9=A.dot(P),mini=Math.asin(Math.min(.99,PLANET_R*LVL.planete*1.06/PLANET_D))+LUNE_R/LUNE_D+.05;
-  if(c9>Math.cos(mini)){const pr=ORB.t3.copy(A).addScaledVector(P,-c9);if(pr.lengthSq()<1e-6)pr.set(0,1,0);pr.normalize();A.copy(P).multiplyScalar(Math.cos(mini)).addScaledVector(pr,Math.sin(mini)).normalize();}
-  const u=LUNE.material.uniforms;u.uA.value.copy(A);u.uC.value.copy(camera.position).addScaledVector(A,LUNE_D);
-  /* SON SOLEIL : la formule du globe appliquée à SA direction (au-dessus, un peu à gauche, derrière l'œil) — MESURÉ : avec le soleil
-     de la Terre tel quel, la lune (placée ailleurs dans le ciel) passait en fin croissant dès que la Terre prenait du retard. Ainsi,
-     à l'écran, Terre et lune sont éclairées du même côté (haut-gauche), et la lune reste gibbeuse (64 à 76 % éclairée). */
-  const tm=ORB.t2.copy(A).negate(),sm=ORB.t3.crossVectors(tm,ORB.haut);if(sm.lengthSq()<1e-6)sm.set(1,0,0);sm.normalize();
-  u.uSol.value.copy(tm).multiplyScalar(.5).addScaledVector(ORB.haut,.75).addScaledVector(sm,.45).normalize();
-  u.uTerre.value.subVectors(planetGroup.position,u.uC.value).normalize(); // d'où vient le clair de Terre
-  u.uLib.value=Math.sin(t*.023)*.09+Math.sin(t*.0071+1.3)*.05; // la LIBRATION : la lune se balance, les cratères glissent sur le terminateur
-  u.uOp.value=Math.min(1,LVL.espace);
-  /* SON REGARD : la direction, à l'écran, de la lune vers la CAISSE — lissée (les yeux rattrapent vite, sans sauter), plus de petites
-     saccades (un regard fixe n'est jamais immobile). Pendant le vol, la nitro, et surtout l'explosion, la stupeur monte. */
-  const pc=ORB.pc.copy(carGroup.position).project(camera),pm=ORB.pm.copy(u.uC.value).project(camera);
-  let ex=(pc.x-pm.x)*camera.aspect,ey=pc.y-pm.y;const el=Math.hypot(ex,ey);
-  if(el>1e-4&&pc.z<1)ORB.oeilC.set(ex/el*.95,ey/el*.95);
-  if(t>ORB.sacT){ORB.sacT=t+.35+orbAlea()*1.1;ORB.sac.set((orbAlea()-.5)*.26,(orbAlea()-.5)*.20);}
-  ORB.sac.multiplyScalar(Math.max(0,1-dt9*2.5));
-  ORB.oeil.lerp(ORB.oeilC,Math.min(1,dt9*9));u.uOeil.value.copy(ORB.oeil).add(ORB.sac);
-  if(u.uOeil.value.lengthSq()>1)u.uOeil.value.normalize();
-  const boom=mode==='boom'||gameOver,choc=!started?.45:(boom?1:.55+(mode==='fall'?.28:0)+(nitroOn?.17:0));
-  ORB.choc+=(Math.min(1,choc)-ORB.choc)*Math.min(1,dt9*(choc>ORB.choc?6:1.5));u.uChoc.value=ORB.choc;
-  if(t>ORB.cligProchain&&ORB.choc<.9){ORB.cligT=t;ORB.cligProchain=t+3.5+orbAlea()*5.5;} // un clignement rare — pas quand il est pétrifié
-  const kc=(t-ORB.cligT)/.17;u.uCligne.value=kc>=0&&kc<1?Math.sin(kc*Math.PI):0;
-  u.uT.value=t%1000;
 }
 function orbiteChauffe(){ // au menu (chauffeDivers) : le pinceau de la lune lancé, les programmes compilés — rien ne naît au portail
-  luneAvance(); // la 1re étape du pinceau ; la boucle peint le reste, une étape par image (voir orbiteTick)
   renderer.compile(scene,camera); // lune, satellites et éclats sont DANS la scène (invisibles) : compile() les prend (il parcourt tout, visible ou non)
 }
-window.dbgOrbite=function(k){if(k==='carte'){lunePeint();return LUNE.userData.cv.toDataURL('image/png');} // (dev) dbgOrbite('carte') : la carte de la lune (R albédo, G relief, B mers)
-  if(k==='cout'){const r=renderer.info,m=()=>{r.autoReset=false;r.reset();renderer.render(scene,camera);r.autoReset=true;return [r.render.calls,r.render.triangles];}; // (dev) dbgOrbite('cout') : ce que coûtent lune + satellites dans l'image vue
-    const a=m(),v=SATS.map(im=>im.visible),gv=GLINT.visible,fv=FLARE.visible,lv=LUNE.visible;for(const im of SATS)im.visible=false;GLINT.visible=false;FLARE.visible=false;LUNE.visible=false;const s=m();SATS.forEach((im,i)=>im.visible=v[i]);GLINT.visible=gv;FLARE.visible=fv;LUNE.visible=lv;
+window.dbgOrbite=function(k){  if(k==='cout'){const r=renderer.info,m=()=>{r.autoReset=false;r.reset();renderer.render(scene,camera);r.autoReset=true;return [r.render.calls,r.render.triangles];}; // (dev) dbgOrbite('cout') : ce que coûtent lune + satellites dans l'image vue
+    const a=m(),v=SATS.map(im=>im.visible);for(const im of SATS)im.visible=false;const s=m();SATS.forEach((im,i)=>im.visible=v[i]);
     return {appels:a[0]-s[0],triangles:a[1]-s[1],poseMs:ORB.ms,pireEtapePeintureMs:ORB.pireMs,sommets:SATS.map(im=>im.geometry.attributes.position.count),instances:SATS.map(im=>im.count),
       sommetsTraites:SATS.reduce((t,im)=>t+im.geometry.attributes.position.count*im.count,0)};}
   if(k==='vue'){const v=new THREE.Vector3(),o={};SATS.forEach(function(im,f){const a=im.instanceMatrix.array;let dans=0,haut=0,dm=0; // (dev) dbgOrbite('vue') : combien d'objets dans l'image, dont au-dessus du centre
@@ -238,7 +187,7 @@ window.dbgOrbite=function(k){if(k==='carte'){lunePeint();return LUNE.userData.cv
     im.instanceMatrix.needsUpdate=true;for(const a of ['aVar','aRot','aMov'])im.geometry.attributes[a].needsUpdate=true;
     camera.position.copy(p).addScaledVector(vw,kk?62:70);camera.lookAt(p);camera.updateMatrixWorld();skyDome.position.copy(camera.position);return 'posé '+i;}
   if(k==='lum')return {espace:LVL.espace,soleilIdentique:L_DIR.equals(SUN_DIR)&&L_PERP.equals(SUN_PERP)&&L_UP.equals(SUN_UP), // (dev) dbgOrbite('lum') : hors orbite, la lumière est-elle EXACTEMENT celle d'avant ?
-    fillIdentique:fill.position.equals(FILL_P0),kickIdentique:kick.position.equals(KICK_P0),flare:FLARE.visible,sats:SATS.map(im=>im.visible),lune:LUNE.visible,
+    fillIdentique:fill.position.equals(FILL_P0),kickIdentique:kick.position.equals(KICK_P0),flare:FLARE.visible,sats:SATS.map(im=>im.visible),
     rim:RIM_U.uSunV.value.equals(ORB.t1.copy(RIM_DIR).transformDirection(camera.matrixWorldInverse)),rimC:RIM_U.uRimC.value.getHexString(),sunPos:sun.position.clone().sub(sun.target.position).normalize().toArray().map(v=>+v.toFixed(4)),sunDir:SUN_DIR.toArray().map(v=>+v.toFixed(4))};
   if(k==='train'){if(started&&!gameOver&&!paused)togglePause(); // (dev) dbgOrbite('train',j,dist,cap,fov,temps) : le train Starlink n° j cadré de loin, UNE image (temps : l'horloge des satellites imposée)
     const im=SATS[0],A=im.geometry.attributes,a=im.instanceMatrix.array,c=new THREE.Vector3(),j0=+arguments[1]||0;let n=0,tj=-1,pl=null;
@@ -250,19 +199,11 @@ window.dbgOrbite=function(k){if(k==='carte'){lunePeint();return LUNE.userData.cv
   if(k==='force'){SAT_U.uForce.value=+arguments[1]||0;return SAT_U.uForce.value;} // (dev) dbgOrbite('force',1) : tous les éclats de soleil allumés (vérifier qu'ils se dessinent)
   if(k==='rendu'){if(started&&!gameOver&&!paused)togglePause();const f0=camera.fov;if(arguments[1]){camera.fov=+arguments[1];camera.updateProjectionMatrix();} // (dev) dbgOrbite('rendu',fov) : UNE image, caméra en place
     orbiteTick(skyU.uTime.value);camera.updateMatrixWorld();if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);camera.fov=f0;camera.updateProjectionMatrix();return 'ok';}
-  if(k==='portrait'){if(started&&!gameOver&&!paused)togglePause();const f0=camera.fov;camera.fov=+arguments[1]||40;camera.updateProjectionMatrix(); // (dev) dbgOrbite('portrait',fov) : la lune ENTIÈRE au centre, UNE image
-    orbiteTick(skyU.uTime.value);camera.lookAt(LUNE.material.uniforms.uC.value);camera.updateMatrixWorld();skyDome.position.copy(camera.position);orbiteTick(skyU.uTime.value);
-    const u9=LUNE.material.uniforms;if(arguments[2])u9.uOeil.value.fromArray(arguments[2]);if(arguments[3]!=null)u9.uChoc.value=+arguments[3]; // regard [x,y] et stupeur imposés
-    if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);camera.fov=f0;camera.updateProjectionMatrix();return 'ok';}
-  if(k==='photo'){if(started&&!gameOver&&!paused)togglePause();const f0=camera.fov;camera.fov=24;camera.updateProjectionMatrix(); // (dev) dbgOrbite('photo') : la lune au téléobjectif (24°), UNE image rendue
-    orbiteTick(skyU.uTime.value);camera.lookAt(LUNE.material.uniforms.uC.value);camera.updateMatrixWorld();skyDome.position.copy(camera.position);
-    if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);camera.fov=f0;camera.updateProjectionMatrix();return 'ok';}
-  const A=ORB.A;return {actif:ORB.actif,lune:LUNE.visible,starlink:SATS[0].count,debris:SATS[1].count,eclats:SATS[2].count,
-  visibles:SATS[0].visible,espace:+LVL.espace.toFixed(2),luneCap:+Math.atan2(-A.x,-A.z).toFixed(3),luneSite:+Math.asin(Math.max(-1,Math.min(1,A.y))).toFixed(3),
-  soleil:ORB.cle.toArray().map(v=>+v.toFixed(2)),regard:LUNE.material.uniforms.uOeil.value.toArray().map(v=>+v.toFixed(2)),choc:+ORB.choc.toFixed(2),peinte:ORB.peinte,
-  luneEcran:(function(){const v=LUNE.material.uniforms.uC.value.clone().project(camera);return [Math.round((v.x*.5+.5)*VP.w),Math.round((.5-v.y*.5)*VP.h),v.z<1?'devant':'derriere'];})(),
+  return {actif:ORB.actif,starlink:SATS[0].count,debris:SATS[1].count,eclats:SATS[2].count,
+  visibles:SATS[0].visible,espace:+LVL.espace.toFixed(2),
+  soleil:ORB.cle.toArray().map(v=>+v.toFixed(2)),
   camSite:+Math.asin(camera.getWorldDirection(new THREE.Vector3()).y).toFixed(3),fov:+camera.fov.toFixed(1)};};
-const PLANETE_DEF={teinte:0x55708c,atmo:0x8fd4ff,peint:'terre2'}; /* (2026-10-21, embellir) la Terre de l'orbite est REPEINTE (orbTerre) ; le menu garde la sienne */
+const PLANETE_DEF={teinte:0x55708c,atmo:0x8fd4ff,peint:'terre'}; /* (2026-10-24, Sacha : « remets la Terre des versions antérieures ») la Terre d'AVANT l'embellissement du 21/10 (celle du menu) ; Mars et Jupiter n'existent plus */
 function lvlAstre(a){ // la planète du niveau d'espace : teinte du globe + couleur du limbe
   const g=planetGroup.userData;a=a||PLANETE_DEF;
   if(PLANETES_ON&&planetesGarde(a))return; // (2026-10-14, passe graphismes) PLANETES
