@@ -90,8 +90,6 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b
   window.CC_COLONNE=true;window.__gameReady=true; // (le chien de garde du démarrage n'a rien à garder ici : le jeu démarre dans le cadre)
   var debout=/[?&]colonne=portrait/.test(q);
   document.documentElement.classList.add('colonne',debout?'debout':'couche');
-  /* (2026-10-24, passe perf PC : « la page-cadre repeint tout son document et #tel, 2800 × 1600, à CHAQUE image ») A/B du chef : `?pccadre=1` met l'iframe du jeu dans son propre calque (will-change), `?pccadre=2` isole le boîtier (contain:paint) — voir socle-1.css */
-  {var pcc9=/[?&]pccadre=([12])\b/.exec(q);if(pcc9)document.documentElement.classList.add('pcCadre'+pcc9[1]);}
   var L=debout?390:844,H=debout?844:390; // l'écran logique de référence (iPhone 12 à 15) — couché par défaut (le verdict de Sacha)
   document.addEventListener('DOMContentLoaded',function(){
     var f=document.createElement('iframe'),u=location.href.split('#')[0];

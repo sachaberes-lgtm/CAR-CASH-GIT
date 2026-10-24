@@ -90,8 +90,6 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b
   window.CC_COLONNE=true;window.__gameReady=true; // (le chien de garde du démarrage n'a rien à garder ici : le jeu démarre dans le cadre)
   var debout=/[?&]colonne=portrait/.test(q);
   document.documentElement.classList.add('colonne',debout?'debout':'couche');
-  /* (2026-10-24, passe perf PC : « la page-cadre repeint tout son document et #tel, 2800 × 1600, à CHAQUE image ») A/B du chef : `?pccadre=1` met l'iframe du jeu dans son propre calque (will-change), `?pccadre=2` isole le boîtier (contain:paint) — voir socle-1.css */
-  {var pcc9=/[?&]pccadre=([12])\b/.exec(q);if(pcc9)document.documentElement.classList.add('pcCadre'+pcc9[1]);}
   var L=debout?390:844,H=debout?844:390; // l'écran logique de référence (iPhone 12 à 15) — couché par défaut (le verdict de Sacha)
   document.addEventListener('DOMContentLoaded',function(){
     var f=document.createElement('iframe'),u=location.href.split('#')[0];
@@ -223,9 +221,6 @@ html.colonne #tourne:hover{opacity:1}
 /* couché, le cadre prend toute la largeur : le bouton se range au milieu du bas, là où le jeu n'a rien */
 html.colonne:not(.debout) #tourne{right:auto;left:50%;bottom:8px;transform:translateX(-50%);padding:7px 12px;font-size:10px;opacity:.6}
 html.colonne #colonne{display:block;flex:none;border:0;background:#07050f}
-/* (2026-10-24, passe perf PC) les variantes du banc (voir tete.html, `?pccadre=`) : l'iframe dans son calque à elle / le boîtier isolé */
-html.colonne.pcCadre1 #colonne{will-change:transform}
-html.colonne.pcCadre2 #tel{contain:paint;isolation:isolate}
 </style>
 <style>
 @font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}

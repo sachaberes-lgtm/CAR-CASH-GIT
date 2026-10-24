@@ -25,9 +25,6 @@ html.colonne #tourne:hover{opacity:1}
 /* couché, le cadre prend toute la largeur : le bouton se range au milieu du bas, là où le jeu n'a rien */
 html.colonne:not(.debout) #tourne{right:auto;left:50%;bottom:8px;transform:translateX(-50%);padding:7px 12px;font-size:10px;opacity:.6}
 html.colonne #colonne{display:block;flex:none;border:0;background:#07050f}
-/* (2026-10-24, passe perf PC) les variantes du banc (voir tete.html, `?pccadre=`) : l'iframe dans son calque à elle / le boîtier isolé */
-html.colonne.pcCadre1 #colonne{will-change:transform}
-html.colonne.pcCadre2 #tel{contain:paint;isolation:isolate}
 </style>
 <style>
 @font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
