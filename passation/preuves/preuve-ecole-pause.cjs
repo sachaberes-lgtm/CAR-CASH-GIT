@@ -33,4 +33,8 @@ ctx.TUTO.i=5;Q=[];ctx.mode='fall';ctx.tutoBravo();ctx.paused=true;avance(20000);
 ok(n.sandRevive===0,'pause en l\'air : la caisse n\'est pas replacée (sandRevive '+n.sandRevive+')');
 ok(n.tutoFin===0,'pause : le PERMIS n\'est pas donné sous l\'écran de pause (tutoFin '+n.tutoFin+')');
 ctx.paused=false;ctx.mode='drive';avance(1000);ok(n.tutoFin===1&&n.sandRevive===0,'reprise, roues sur la route : le permis tombe (une fois)');
+/* 4. la dernière étape réussie, PAUSE, puis RECOMMENCER (tutoDebut : TUTO.i=0, TUTO.attente) : le minuteur périmé ne donne pas le permis à la nouvelle leçon */
+ctx.TUTO.on=true;ctx.TUTO.i=5;Q=[];n.tutoFin=0;ctx.mode='fall';ctx.tutoBravo();ctx.paused=true;avance(3000);
+ctx.TUTO.i=0;ctx.TUTO.attente=true;ctx.paused=false;ctx.mode='drive';avance(3000);
+ok(n.tutoFin===0,'recommencée pendant la pause : pas de PERMIS sur la nouvelle leçon (tutoFin '+n.tutoFin+')');
 console.log(ko?'KO':'OK');if(ko)process.exitCode=1;

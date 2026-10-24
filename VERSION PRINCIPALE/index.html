@@ -48524,7 +48524,7 @@ function tutoAffiche(msg){ // msg (facultatif) : le raté s'écrit dans l'en-tê
     if(!intro&&(E.geste==='nitro'||E.geste==='figure')){nitroR=Math.max(nitroR,(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2);nitroGain(.01,'ecole');} // le PLEIN, offert : on apprend sans compter
     tutoMain();
     try{sfx(msg?'tuto.rate':'tuto.info');}catch(e){} // la carte de consigne sonne son « ding » ; un raté, ses deux notes qui descendent
-    if(intro){const accueil9=function(){if(!(TUTO.on&&started&&!gameOver&&c.classList.contains('intro')))return;if(paused){setTimeout(accueil9,200);return;}tutoAffiche();};setTimeout(accueil9,2400);} /* (24/10, relecture : « la leçon continuait sous la PAUSE ») en pause, l'accueil attend la reprise : la 1re consigne et son « ding » ne tombent plus sur l'écran de pause */
+    if(intro){const accueil9=function(){if(!(TUTO.on&&started&&!gameOver&&!TUTO.attente&&c.classList.contains('intro')))return;if(paused){setTimeout(accueil9,200);return;}tutoAffiche();};setTimeout(accueil9,2400);} /* (24/10, relecture : « la leçon continuait sous la PAUSE ») en pause, l'accueil attend la reprise : la 1re consigne et son « ding » ne tombent plus sur l'écran de pause */
   };
   // la carte d'avant s'efface d'abord (un raté reste en place : il tremble)
   if(c.classList.contains('on')&&!msg&&!REDUCED_MOTION){c.classList.add('sort');c.classList.remove('on');setTimeout(function(){if(TUTO.on)montre();},170);}else montre();
@@ -48553,14 +48553,14 @@ function tutoBravo(){ // la réussite d'une étape : le mot devient l'éloge, co
   /* (v2) LA DERNIÈRE ÉTAPE se finit LES ROUES SUR LA ROUTE : une FIGURE faite en l'air (hors de la route) terminait la leçon en plein vol — le
      vol redevenait mortel et le joueur explosait juste après « PERMIS OBTENU » (vu au banc). On attend la pose, le vol reste infini ; au bout de
      8 s la caisse est replacée. */
-  if(TUTO.i>=TUTO_ETAPES.length){const fin=function(n){if(!(TUTO.on&&started&&!gameOver))return;
+  if(TUTO.i>=TUTO_ETAPES.length){const fin=function(n){if(!(TUTO.on&&started&&!gameOver&&!TUTO.attente))return; /* (24/10) TUTO.attente : la leçon a été RECOMMENCÉE entre-temps (tutoDebut) — ce minuteur-là est périmé */
       if(paused){setTimeout(function(){fin(n);},200);return;} /* (24/10, relecture) en PAUSE la leçon attend : la caisse en l'air n'est plus replacée au bout de 8 s, ni le PERMIS (+500, fanfare) donné sous l'écran de pause */
       if(mode==='drive'){tutoFin(false);return;}
       if(mode==='fall'){pwrAirT=Math.max(pwrAirT,2);TUTO.pa=1;}
       if(n>40){sandRevive();setTimeout(function(){if(TUTO.on&&started&&!gameOver)tutoFin(false);},300);return;}
       setTimeout(function(){fin(n+1);},200);};
     setTimeout(function(){fin(0);},900);return;}
-  const suite9=function(){if(!(TUTO.on&&started&&!gameOver))return;if(paused){setTimeout(suite9,200);return;}tutoAffiche();};setTimeout(suite9,1050); /* (débogage son 2026-09-29) QUITTER dans l'intervalle : ni carte ni son sur l'écran de fin — (24/10, relecture) en PAUSE, la consigne suivante (son « ding », le plein de nitro offert) attend la reprise */
+  const suite9=function(){if(!(TUTO.on&&started&&!gameOver&&!TUTO.attente))return;if(paused){setTimeout(suite9,200);return;}tutoAffiche();};setTimeout(suite9,1050); /* (débogage son 2026-09-29) QUITTER dans l'intervalle : ni carte ni son sur l'écran de fin — (24/10, relecture) en PAUSE, la consigne suivante (son « ding », le plein de nitro offert) attend la reprise */
 }
 function tutoFin(passe){
   TUTO.on=false;document.body.classList.remove('coNitro','coOn');
