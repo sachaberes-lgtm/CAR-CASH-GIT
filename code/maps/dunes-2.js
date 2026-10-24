@@ -38,7 +38,7 @@ const DN_VS=['attribute vec4 aN;uniform sampler2D uTC,uTZ,uTS,uNZ;uniform vec4 u
   '  float lit=1.;vec2 sp=(x-uSD.xy)*uSD.zw;if(sp.x>0.&&sp.y>0.&&sp.x<1.&&sp.y<1.){float hs=tB(uTS,sp*uSN,uSN).r;lit=smoothstep(hs-1.2,hs+3.,A.x);}',
   '  vA=vec4(A.y,A.z,pu,lit);vB=vec4(pa,pm,0.,vg);vGp=gp;vF=vec4(aN.xy/aN.z,aN.w,uG);', /* (facettes) gp : la case de la grille (entiers aux sommets) · vF : l'indice de la tuile, son niveau, G */
   '  vec4 mvPosition=viewMatrix*vec4(vW,1.);gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
-const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uSaA,uSaB,uSaL,uShd,uClay,uVeg,uHaze,uSkH,uSkZ,uWS,uWD,uPhP,uPhD,uPhC;uniform vec4 uQ,uK,uW,uMo,uPl,uLm;uniform float uTime,uFlash,uPoly,uLum;',
+const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uSaA,uSaB,uSaL,uShd,uClay,uVeg,uHaze,uSkH,uSkZ,uWS,uWD,uPhP,uPhD,uPhC;uniform vec4 uQ,uK,uW,uMo,uPl,uLm,uEx,uSp;uniform float uTime,uFlash,uPoly,uLum;',
   'varying vec3 vW,vN;varying vec4 vA,vB;varying vec2 vGp;varying vec4 vF;','#include <fog_pars_fragment>',
   'float dh2(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}',
   'void main(){vec3 N=normalize(vN),Vv=uCam-vW;float dist=length(Vv);vec3 V=Vv/max(dist,.001);',
@@ -75,11 +75,20 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   '    vec3 rc=mix(uSaB*.74,uSaL*.98,h1*h1)*(.82+.36*h2)*(1.-.22*(1.-smoothstep(0.,.07,fb)));',
   '    float ve=texture2D(uNZ,vec2(dot(vW.xz,vec2(.7071,.7071))/11.,vW.y/70.)).g;rc*=.84+.32*ve;', // les cannelures verticales de l'érosion
   '    col=mix(col,rc,rk);}',
+  /* LE SABLE GRENÉ (2026-10-21, passe d'embellissement ; repris le 24/10 sur le sable à rides) : des STRIES qui filent dans le sens du vent (un bruit étiré 60 pour 1), des FILETS sombres de fer sur les faces d'avalanche,
+     et la RIDE jusqu'à 350 m (en teinte seulement, effacée par fwidth avant de créneler) — tout en un uniform (uEx.y = 0 au palier ANCIEN : aucune lecture de plus) */
+  '  vec2 wd=uW.xy,wq=vec2(-uW.y,uW.x);float wx=dot(vW.xz,wd),wz=dot(vW.xz,wq),gk=uEx.y*(1.-.85*pan)*(1.-veg)*(1.-wat);',
+  '  if(uEx.y>.001){float st=texture2D(uNZ,vec2(wx/1500.,wz/24.)).a-.5,sg=texture2D(uNZ,vec2(wx/420.+.37,wz/8.5)).g-.5,fe=texture2D(uNZ,vec2(wz/13.,wx/460.+.2)).b;',
+  '    float ph2=wx*1.15+3.*n2.r,aa=1.-smoothstep(.5,1.5,fwidth(ph2));',
+  '    col*=1.+gk*(st*.50+sg*.34+aa*cos(ph2)*.075*(1.-smoothstep(150.,350.,dist)));',
+  '    col=mix(col,col*vec3(.60,.46,.50),gk*smoothstep(.56,.74,fe)*smoothstep(.15,.50,stp)*.85);}',
   '  if(uPoly>.5)col*=ftn*vec3(1.+(hs9-.5)*.08,1.,1.-(hs9-.5)*.10);vec3 Ls=normalize(vec3(uSunD.x,min(uSunD.y,uK.w),uSunD.z));float ndl=dot(NL,Ls),wr=clamp((ndl+uK.z)/(1.+uK.z),0.,1.);', // (uK.w : le soleil de midi est abaissé pour le RELIEF — la lumière de forme ; l'ombre, elle, reste celle du vrai soleil)
   '  float ao=mix(.80,1.,smoothstep(0.,.45,du));', // le creux d'une dune reçoit moins de ciel
   '  vec3 Lc=uSunC*wr*lit+mix(uGnd,uSky,NL.y*.5+.5)*1.15*ao+uFillC*max(dot(NL,uFillD),0.)*.5+uSunC*(.10+.16*rk)*(1.-lit)*(.6+.4*NL.y)+uGnd*.28*rk;', /* + le REBOND : le sable à l'ombre reçoit la lumière des dunes au soleil (jamais de creux noir) */
   '  vec3 c=col*Lc;',
-  '  c=mix(c,c*uShd,(1.-lit*clamp(ndl*2.5+.2,0.,1.))*.72);', // l'ombre du sable tire au VIOLET (la bible)
+  '  float shw=1.-lit*clamp(ndl*2.5+.2,0.,1.);c=mix(c,c*uShd,shw*.72);', // l'ombre du sable tire au VIOLET (la bible)
+  /* LES DEUX TEMPÉRATURES : à l'ombre, le sable ne devient plus un rouge sombre mais un violet-bleu de MÊME valeur (la clé chaude, le remplissage froid) */
+  '  {float ly=dot(c,vec3(.3,.55,.15));c=mix(c,ly*uShd/dot(uShd,vec3(.3,.55,.15)),clamp(shw*.55*uEx.x,0.,.9));}',
   '  float fr=pow(1.-max(dot(NL,V),0.),4.);c+=(uSky*.22+uSunC*.16*max(ndl,0.)*lit)*fr*uK.x*(1.-wat);', // le SATIN du sable au rasant
   '  vec3 Hh=normalize(Ls+V);',
   '  if(wat<.5){c+=uSunC*pow(max(dot(NL,Hh),0.),26.)*lit*(.05+.55*rm*abs(rv))*(1.-smoothstep(200.,900.,dist));}', // le LUSTRE des crêtes de rides (sur la ride seulement)
@@ -94,6 +103,12 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   '    c+=col*uSunC*vec3(.62,.24,.07)*tm*lit*uLm.z;',
   '    c+=col*uSunC*vec3(.95,.58,.32)*(1.-lit)*(.5+.5*NL.y)*.12*uLm.w;',
   '    c+=uSunC*vec3(1.,.80,.52)*pow(vs,6.)*(1.-exp(-dist/2600.))*uLm.y*.5;}',
+  /* LES ÉTINCELLES D'OR (l'éclat cash) : de rares grains qui s'allument un instant, or ou rose, jusqu'à 2 km — la cellule grandit avec la distance (≈ 3 px à l'écran) */
+  '  if(uSp.w>.001&&wat<.5){float cs=exp2(floor(log2(max(dist,4.)*.0042)*2.)*.5),hq=dh2(floor(vW.xz/cs)+cs),tw=pow(.5+.5*sin(uTime*(2.4+3.*fract(hq*91.))+hq*600.),10.);',
+  '    c+=mix(uSp.rgb,vec3(1.,.42,.74),step(.72,fract(hq*37.)))*step(.986,hq)*tw*lit*(1.-.9*pan)*(1.-smoothstep(500.,2400.,dist))*2.4*uSp.w;}',
+  /* LA CRÊTE VIVE : le grain diffuse la lumière vers l'avant au rasant (un liseré d'or sur les crêtes en contre-jour), et le sable FILE des crêtes dans le vent (bandes qui dérivent, uTime) */
+  '  {float fg=pow(max(dot(-V,uSunD),0.),3.)*fr*lit*(1.-wat);float spd=smoothstep(.62,.94,du)*(1.-smoothstep(.97,1.,du)),sn=texture2D(uNZ,vec2((wx-uTime*11.)/380.,wz/17.)).a;',
+  '   c+=mix(uSunC,uSaL*dot(uSunC,vec3(.33)),.4)*(fg*.55+spd*smoothstep(.50,.80,sn)*.50*lit)*uEx.w*(1.-pan)*(1.-.7*smoothstep(900.,3000.,dist));}',
   '  if(wat>.01){vec4 nw=texture2D(uNZ,mat2(.8,.6,-.6,.8)*vW.xz/57.+uTime*vec2(.006,.010)),nw2=texture2D(uNZ,vW.xz/143.-uTime*vec2(.004,.002));', /* (des bruits LARGES et tournés : à 18 m la tuile du bruit se répétait en grille sur le lac) */
   '    vec3 Nw=normalize(vec3(0.,6.,0.)+vec3(nw.r+nw2.g-1.,0.,nw.g+nw2.r-1.));vec3 wc=mix(uWS,uWD,1.-exp(-dep/4.));',
   '    float f9=.02+.98*pow(1.-max(dot(V,Nw),0.),5.);vec3 R=reflect(-V,Nw),sk=mix(uSkH,uSkZ,smoothstep(0.,.5,R.y));',
@@ -101,8 +116,10 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   '  if(uPhC.r+uPhC.g>.001){vec3 lv=vW-uPhP;float dl=length(lv);vec3 ld=lv/max(dl,.01);c+=col*uPhC*smoothstep(.80,.95,dot(ld,uPhD))*max(dot(NL,-ld),0.)/(1.+dl*dl/9000.);}', // les PHARES sur le sable
   /* LE MIRAGE : au loin, le sable presque à plat, vu en rasant, renvoie le ciel — et tremble */
   '  if(uQ.y>.001){float mi=uQ.y*smoothstep(800.,3200.,dist)*(1.-smoothstep(.02,.10,abs(V.y)))*(1.-smoothstep(.06,.25,stp));',
-  '   float sh=texture2D(uNZ,vec2(vW.x/260.+uTime*.04,vW.z/260.-uTime*.03)).r;c=mix(c,mix(uSkH,uSkZ,.25)*(.92+.16*sh),mi*(.55+.45*sh));}',
-  '  c=mix(c,uHaze,uQ.x*smoothstep(150.,4500.,dist)*.65);', // la poussière en suspension
+  '   float sh=texture2D(uNZ,vec2(vW.x/260.+uTime*.04,vW.z/260.-uTime*.03)).r;c=mix(c,mix(mix(uSkH,uSkZ,.25),uWS*1.3+.06,.42*uEx.z)*(.92+.16*sh),mi*(.55+.45*sh));}',
+  /* LA BRUME EN PLANS : la poussière du proche reste chaude, celle du lointain vire au froid du ciel (le plan lointain est plus clair et plus froid) et s'épaissit dans les creux */
+  '  {float far=smoothstep(1500.,6500.,dist)*uEx.z,low=smoothstep(40.,-150.,vW.y-uCam.y)*smoothstep(500.,2600.,dist);vec3 hc=mix(uHaze,uHaze*.45+mix(uSkH,uSkZ,.45)*.75,far);',
+  '   c=mix(c,hc,clamp(uQ.x*smoothstep(150.,4500.,dist)*.65*(1.+.6*low*uEx.z),0.,1.));}', // la poussière en suspension
   '  c=mix(c,uHaze,uQ.z*smoothstep(8.,500.,dist)*.5);', // (le vent de sable et la tempête : la poussière est DANS l'air tout près — le sable proche n'est plus net)
   '  c+=uFlash*col*vec3(.75,.78,1.)*(.35+.65*max(NL.y,0.));',
   '  gl_FragColor=vec4(c,1.);','#include <fog_fragment>','}'].join('\n');
@@ -141,7 +158,7 @@ function dnTerrain(){ if(DN.mesh)return;
   const C3=()=>({value:new THREE.Color()});
   const U=Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),{uTC:{value:z1},uTZ:{value:z1},uTS:{value:z1},uNZ:{value:CY.tNz},uGl:{value:dnGlyphes()},
     uFD:{value:new THREE.Vector4(0,0,1,1)},uZD:{value:new THREE.Vector4(0,0,1,1)},uSD:{value:new THREE.Vector4(0,0,1,1)},uFN:{value:new THREE.Vector2(1,1)},uZN:{value:new THREE.Vector2(1,1)},uSN:{value:new THREE.Vector2(1,1)},
-    uOA:{value:new THREE.Vector4(0,0,0,0)},uW:{value:new THREE.Vector4(1,0,1,0)},uLam:{value:560},
+    uOA:{value:new THREE.Vector4(0,0,0,0)},uW:{value:new THREE.Vector4(1,0,1,0)},uLam:{value:560},uEx:{value:new THREE.Vector4(1,1,.8,1)},uSp:{value:new THREE.Vector4(1,.8,.45,1)},
     uCam:{value:new THREE.Vector3()},uG:{value:G},uR0:{value:DN.R0},uTime:{value:0},uFlash:{value:0},uSunD:{value:SUN_DIR},
     uSunC:C3(),uSky:C3(),uGnd:C3(),uFillC:C3(),uFillD:{value:new THREE.Vector3(0,-1,0)},uSaA:C3(),uSaB:C3(),uSaL:C3(),uShd:C3(),uClay:C3(),uVeg:C3(),uHaze:C3(),uSkH:C3(),uSkZ:C3(),uWS:C3(),uWD:C3(),
     uQ:{value:new THREE.Vector4()},uPoly:{value:DN_POLY?1:0},uLum:{value:DN_POLY&&DN_LUM?1:0},uPl:{value:new THREE.Vector4(.03,0,0,0)},uLm:{value:new THREE.Vector4(.5,.25,.30,.06)},uFin:{value:new THREE.Vector4(0,0,0,0)},uK:{value:new THREE.Vector4(.5,1,.25,1)},uMo:{value:new THREE.Vector4(.8,.010,1,0)},uPhP:{value:new THREE.Vector3()},uPhD:{value:new THREE.Vector3(0,0,1)},uPhC:{value:new THREE.Color(0,0,0)}});
@@ -193,7 +210,7 @@ function dunesTick(dt){dnAmb();dnNuages();
     const f=(u,k9)=>{const a=c[k9];if(a)u.value.fromArray(a);};
     f(U.uSaA,'dnA');f(U.uSaB,'dnB');f(U.uSaL,'dnL');f(U.uShd,'dnS');f(U.uClay,'dnC');f(U.uVeg,'dnV');f(U.uHaze,'dnH');f(U.uWS,'dnW');f(U.uWD,'dnX');f(U.uSkH,'cyH');f(U.uSkZ,'cyZ');
     const D9=DN.deco,T9=D9&&DN_SAB[D9.sable];if(T9){dnTeinte(U.uSaA.value,T9);dnTeinte(U.uSaB.value,T9);dnTeinte(U.uSaL.value,T9);} // (2026-10-20) LA COULEUR DU SABLE tirée (relue chaque image : rien ne s'accumule)
-    const Q9=c.dnQ||[0,0,0,0],K9=c.dnK||[.5,1,.25,1];U.uQ.value.set(Q9[0],Q9[1],Q9[2],Q9[3]);U.uK.value.set(K9[0],K9[1]*(D9?D9.vent.rides:1),K9[2],K9[3]);{const M9=c.dnM||[.8,.010,1,0];U.uMo.value.set(M9[0],M9[1],QUAL_LOW||!DN_MOSA?0:M9[2]*PAL.b('dnMo',1),M9[3]);} /* (2026-10-22, Léo : « le niveau dune n'est pas au niveau — regarde jade, la grotte, la forêt ») LA MOSAÏQUE du sable : [case de près (m), case par mètre de distance, force, —] */
+    const Q9=c.dnQ||[0,0,0,0],K9=c.dnK||[.5,1,.25,1];U.uQ.value.set(Q9[0],Q9[1],Q9[2],Q9[3]);U.uK.value.set(K9[0],K9[1]*(D9?D9.vent.rides:1),K9[2],K9[3]);{const R9=DN.reg||{},E9=R9.ex||c.dnE||[1,1,.8,1],P9=R9.sp||c.dnP||[1,.8,.45,1],pm=PAL.b('dnMat',1);U.uEx.value.set(E9[0],E9[1]*pm,E9[2],E9[3]*pm);U.uSp.value.set(P9[0],P9[1],P9[2],P9[3]*pm);} /* (2026-10-21) le grain, les crêtes qui filent, les étincelles, la brume en plans : dnE = [ombre froide, grain, brume lointaine froide, crêtes vives] et dnP = [teinte, quantité] des étincelles ; réduits aux paliers ANCIEN / MOYEN */ {const M9=c.dnM||[.8,.010,1,0];U.uMo.value.set(M9[0],M9[1],QUAL_LOW||!DN_MOSA?0:M9[2]*PAL.b('dnMo',1),M9[3]);} /* (2026-10-22, Léo : « le niveau dune n'est pas au niveau — regarde jade, la grotte, la forêt ») LA MOSAÏQUE du sable : [case de près (m), case par mètre de distance, force, —] */
     U.uFlash.value=CAMP_FLASH||0;skyU.uCyF.value=U.uFlash.value;
     {const nu=(LVL.nuit||0)*(mode==='boom'?0:1),sh=c.sunI<.9?1-c.sunI/.9:0,k9=Math.max(nu,sh*.6)*2.4;U.uPhC.value.copy(headSpot.color).multiplyScalar(k9); // les phares, la nuit et dans la tempête
      if(k9>.001){U.uPhP.value.copy(carGroup.position);U.uPhP.value.y+=1.2;U.uPhD.value.set(0,0,1).applyQuaternion(carGroup.quaternion);U.uPhD.value.y-=.08;U.uPhD.value.normalize();}}}
@@ -396,6 +413,7 @@ function dnMonuments(seed){
      const x=S.x[i]-S.tz[i]*sg*lat,z=S.z[i]+S.tx[i]*sg*lat,dir=Math.atan2(S.tx[i],S.tz[i])+(rg()<.5?0:Math.PI)+(rg()-.5)*.6;
      DN.car.push({x:x,z:z,a:dir,t:rg()*60,n:7});for(let k=0;k<7;k++)L9.push([x,0,z,3.4,dir]);}
    if(L9.length){DN.carIm=inst(G9.cha,M9.t,L9,'caravanes');if(DN.carIm){DN.carIm.instanceMatrix.setUsage(THREE.DynamicDrawUsage);DN.carT=0;dnCaravane(0,true);}}}
+  try{dnEmbellir();}catch(e){console.warn('dunes : plan moyen',e);} /* (2026-10-21) les buttes, les arbres morts, les touffes : voir dunes-embellie.js */
   DN.grp.updateMatrixWorld(true);}
 /* (2026-10-20, LE DÉSERT AU HASARD) LE DÉCOR TIRÉ (DN.deco) : les obélisques (les brisés sans pyramidion, leur tronçon couché à côté), les pyramides de chaque
    style, les grands monuments (dnPrevoirDeco les a posés : ils ombrent et tuent), puis — à la pose, ici, sur le sable relu — le village, les campements,
@@ -580,6 +598,7 @@ window.dbgDunes=function(k,a,b,c,d){
   if(k==='shader'){const m=a==='sable'?DN.mat:(DN.mm&&DN.mm[a]);if(!m)return 'pas de matière';const f0=m.fragmentShader;m.fragmentShader=f0.split(b).join(c);m.needsUpdate=true;return {change:f0!==m.fragmentShader};} /* (banc) retouche la matière à chaud : a = sable | t | g, b = le texte à remplacer, c = son remplaçant */
   if(k==='poly'){const U=DN.mat&&DN.mat.uniforms;if(!U)return 'pas de matière';const o=a||{};if(o.tint!=null)U.uPl.value.x=o.tint;if(o.joint!=null)U.uPl.value.y=o.joint;if(o.glint!=null)U.uPl.value.z=o.glint;if(o.flat!=null)U.uPl.value.w=o.flat;if(o.rim!=null)U.uLm.value.x=o.rim;if(o.scat!=null)U.uLm.value.y=o.scat;if(o.term!=null)U.uLm.value.z=o.term;if(o.reb!=null)U.uLm.value.w=o.reb;return {pl:U.uPl.value.toArray(),lm:U.uLm.value.toArray(),poly:U.uPoly.value,lum:U.uLum.value};}
   if(k==='uni'){const U=DN.mat&&DN.mat.uniforms;if(!U)return 'pas de matière';return {mo:U.uMo.value.toArray(),k:U.uK.value.toArray(),q:U.uQ.value.toArray(),fs:DN.mat.fragmentShader.length,mosaique:DN.mat.fragmentShader.indexOf('uMo')>=0,decor:DN.mm?{t:DN.mm.t.fragmentShader.indexOf('blk(')>=0,g:DN.mm.g.fragmentShader.indexOf('blk(')>=0}:null};} /* (banc) les réglages de la matière du sable */
+  if(k==='regle'){DN.reg=a||null;return DN.reg;} /* (banc, 2026-10-21) {ex:[…],sp:[…]} : règle les uniformes de l'embellissement sans recharger ; null = les valeurs de l'ambiance */
   if(k==='reprendre'){if(paused)togglePause();return 'ok';}
   if(k==='cam'){if(!DN.on)return 'pas de dunes';if(started&&!gameOver&&!paused)togglePause();const P=a||[0,0,0],T=b||[0,0,1]; /* (banc) la caméra où l'on veut : a = [x,y,z] de l'œil, b = [x,y,z] de la cible, c = le champ (degrés) */
     camera.position.set(P[0],P[1],P[2]);camera.up.set(0,1,0);camera.lookAt(T[0],T[1],T[2]);if(c){camera.fov=c;camera.updateProjectionMatrix();}camera.updateMatrixWorld();
@@ -594,6 +613,6 @@ window.dbgDunes=function(k,a,b,c,d){
     camera.position.set(F9.p.x,F9.p.y+(b||12),F9.p.z);camera.up.set(0,1,0);camera.lookAt(F9.p.x+dx*200,F9.p.y+(b||12)-200*(d!=null?d:.12),F9.p.z+dz*200);camera.updateMatrixWorld();
     skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return {cam:camera.position.toArray().map(Math.round),noeuds:DN.n};}
   return {on:DN.on,ms:DN.ms,noeuds:DN.n,sep:DN.sep,rmin:DN.rmin,F:DN.F?[DN.F.nx,DN.F.nz,DN.F.ts]:null,Z:DN.Z?[DN.Z.nx,DN.Z.nz,DN.Z.ts]:null,O:DN.O?[DN.O.nx,DN.O.nz,DN.O.ts]:null,
-    ciel:CIEL2.mode,attente:!!DN.attente,sQ:DN.sQ,L:Math.round(L),obelisques:DN.ob.length,pyramide:!!DN.pyr,acacias:DN.nArb|0,palmiers:DN.nPal|0,caravanes:DN.car.length,oasis:DN.oa?{r:Math.round(DN.oa.r),y:Math.round(DN.oa.y)}:null,
+    ciel:CIEL2.mode,attente:!!DN.attente,sQ:DN.sQ,L:Math.round(L),obelisques:DN.ob.length,pyramide:!!DN.pyr,acacias:DN.nArb|0,palmiers:DN.nPal|0,emb:DN.emb||null,caravanes:DN.car.length,oasis:DN.oa?{r:Math.round(DN.oa.r),y:Math.round(DN.oa.y)}:null,
     sol:[DN.sunAz,DN.sunEl,DN.fin&&DN.fin.x,DN.fin&&DN.fin.z,DN.pyrs&&DN.pyrs[2]&&[DN.pyrs[2].x,DN.pyrs[2].y,DN.pyrs[2].z,DN.pyrs[2].hw,DN.pyrs[2].h]],hz:DN.hz||null,deco:DN.deco?Object.assign({},DN.deco,{pose:DN.decoN,pyramides:DN.pyrs.map(function(p){return p.st+':'+Math.round(p.hw*2)+'m';}),monuments:DN.mo.map(function(m){return m.k;})}):null,levres:(DN.lev||[]).length,scenes:DN.scn||null,heurt:DN.heurt||'',sauts:DN.sauts|0,levre:DN.dbgLev||null,vent:DN.vent.map(v=>+v.toFixed(2)),lam:Math.round(DN.lam),soleil:SUN_DIR.toArray().map(v=>+v.toFixed(3)),ombre:+DN.ombre.toFixed(2),dunes:+(LVL.dunes||0).toFixed(2),canyon:+(LVL.canyon||0).toFixed(2),
     tri:DN.tri|0,lmin:DN.lmin|0,carHaut:DN.on?+(carGroup.position.y-dnHauteur(carGroup.position.x,carGroup.position.z)).toFixed(1):null};};

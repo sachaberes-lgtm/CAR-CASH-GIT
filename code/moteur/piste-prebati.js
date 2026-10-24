@@ -243,7 +243,8 @@ function* prebJob(sd,W){yield* pisteRoute(sd,W);if(PARK.on)return;
   else if(W.piste==='foret')yield* prebDecorG(W,'foret',FORET,function(){return buildForetG(sd);});
   else if(W.piste==='banquise')yield* prebDecorG(W,'banquise',BANQ,function(){return buildBanqG(sd);});
   else if(W.piste==='grotte')yield* prebDecorG(W,'grotte',GROTTE,function(){return buildGrotteG(sd);}); // (2026-10-18) LES PROFONDEURS
-  else if(W.piste==='canyon')yield* cyBatitG(sd,W);} // (2026-10-23) LE CANYON D'AVANCE : son monde part au travailleur pendant l'approche (voir cyAvPart)
+  else if(W.piste==='canyon')yield* cyBatitG(sd,W); // (2026-10-23) LE CANYON D'AVANCE : son monde part au travailleur pendant l'approche (voir cyAvPart)
+  else if(W.piste==='dunes'){W.dunes=prebDunes(sd,W);const a=W.dunes;if(a){yield;while(!a.R){if(JF.lim===Infinity||!DN.w)break;yield;}}}} // (2026-10-24) LES DUNES D'AVANCE : la préparation puis le calcul du monde chez le travailleur, attendu image après image (voir prebDunes)
 const PREB_PISTES=['','jade','foret','canyon','banquise','grotte','dunes']; // les pistes dont on sait ce que la génération écrit (prebChampsDe) — une map NEUVE n'est pas bâtie d'avance tant qu'elle n'y est pas
 function prebPart(c){ // on commence la piste d'en face
   const W=pisteTravail(c);
@@ -304,4 +305,8 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
   if(!c||c.t!==PREB.t||c.z!==PREB.z){prebAnnule(!c?'cible':c.t!==PREB.t?'map':'zone');return;} // (un palier gagné en route ne change rien : la piste garde celui du départ)
   if(PREB.fait)return;
   const tr=typeof QLR!=='undefined'&&QLR.t0?performance.now()-QLR.t0:8;
-  prebTravaille(performance.now()+Math.max(3,Math.min(6,14-tr)));}
+  /* (2026-10-24, passe perf 3e tour) L'URGENCE : la grotte se bâtit en tranches fines (grtMailleNetsG) et peut ne pas être finie au portail quand l'image
+     est lourde (MESURÉ ×4 : une grotte après la jade, 3,2 s de calcul : le reste d'un trait au passage, 900 ms figées). Le portail à moins de 10 s :
+     la tranche monte à 9 ms, à moins de 5 s à 14 ms (une image de 25-33 ms au lieu d'un bloc). */
+  const r9=(L-s)/Math.max(20,PREB.v||60),u9=r9<5?14:r9<10?9:0;
+  prebTravaille(performance.now()+Math.max(u9,3,Math.min(6,14-tr)));}

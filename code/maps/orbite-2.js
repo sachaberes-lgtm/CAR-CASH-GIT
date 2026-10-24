@@ -161,6 +161,7 @@ function orbiteTick(t){ // chaque image : lumière, visibilité, place et regard
   const ok=LVL.espace>.01&&!garageOn&&!stallOn&&!MENUV.bio,vr=ok&&ORB.actif; // les satellites partent avec leur piste ; la lune, elle, s'efface avec le fondu du niveau
   for(let i=0;i<SATS.length;i++)SATS[i].visible=vr&&SATS[i].count>0;
   GLINT.visible=vr&&GLINT.count>0;
+  orbBeau(t,dt9,vr); /* (2026-10-21, embellir) la poussière cosmique et l'intensité du niveau : voir orbite-embellie.js */
   const lunOk=ok&&ORB.lune; // (2026-10-22, la lune retirée du ciel : LUNE_ON) elle reste « dans le niveau » : sa direction (ORB.dm) pilote toujours la clé froide, la caisse est éclairée comme avant
   LUNE.visible=lunOk&&LUNE_ON;
   if(!lunOk&&!vr)return;
@@ -261,7 +262,7 @@ window.dbgOrbite=function(k){if(k==='carte'){lunePeint();return LUNE.userData.cv
   soleil:ORB.cle.toArray().map(v=>+v.toFixed(2)),regard:LUNE.material.uniforms.uOeil.value.toArray().map(v=>+v.toFixed(2)),choc:+ORB.choc.toFixed(2),peinte:ORB.peinte,
   luneEcran:(function(){const v=LUNE.material.uniforms.uC.value.clone().project(camera);return [Math.round((v.x*.5+.5)*VP.w),Math.round((.5-v.y*.5)*VP.h),v.z<1?'devant':'derriere'];})(),
   camSite:+Math.asin(camera.getWorldDirection(new THREE.Vector3()).y).toFixed(3),fov:+camera.fov.toFixed(1)};};
-const PLANETE_DEF={teinte:0x55708c,atmo:0x8fd4ff};
+const PLANETE_DEF={teinte:0x55708c,atmo:0x8fd4ff,peint:'terre2'}; /* (2026-10-21, embellir) la Terre de l'orbite est REPEINTE (orbTerre) ; le menu garde la sienne */
 function lvlAstre(a){ // la planète du niveau d'espace : teinte du globe + couleur du limbe
   const g=planetGroup.userData;a=a||PLANETE_DEF;
   if(PLANETES_ON&&planetesGarde(a))return; // (2026-10-14, passe graphismes) PLANETES
