@@ -31,7 +31,7 @@
   tous au travailleur dès le pré-bâti (`prebPart`) et, en filet, à la 1re image de chaque grotte (`GROTTE.envPret`) ; le cache passe à 32 ciels (~13 Mo).
   MESURÉ (40 s de grotte, palier 6, 357 m/s de médiane, pointes à 526 m/s) : 0 tâche longue, 0 image > 50 ms, la pire 39,5 ms ; `dbgEnvCiel()` : 24 ciels livrés par
   le travailleur, les entrées de salle prises au cache (`rates` = les clés manquées, pour le banc).
-- **2e TOUR — LA ROUTE EN TRANCHES DE 1 200 POINTS** (v848, `PISTE_CH`, `code/moteur/piste-prebati.js`) : chaque tranche visible coûte 5 appels de dessin (bitume, flancs, rail,
+- **2e TOUR — LA ROUTE EN TRANCHES DE 1 200 POINTS** (v850, `PISTE_CH`, `code/moteur/piste-prebati.js`) : chaque tranche visible coûte 5 appels de dessin (bitume, flancs, rail,
   lueur, ligne) — 45 à 75 appels pour la seule route. MESURÉ (processeur ×4, mêmes pistes `pistegraine=777`, 4 relevés moyennés) : rendu de la scène crypto 14,5 → 10,4 ms,
   forêt 20,2 → 9,8, nuages 16,3 → 10,8, jade 12,8 → 9,9 ; boucle forêt 66 → 39 ms, nuages 71 → 49. Chaque tranche du pré-bâti est recoupée en 3 pas (index, sommets, maigre).
   `?tranche=600` = avant. RESTE À FAIRE (mesuré, pas touché) : sur téléphone (×4) le recalcul de styles du HUD ≈ 6 ms/image (le bouton nitro `#tNitro` : 402 déclarations,

@@ -395,7 +395,7 @@ SHAPES.pikes=function(K){
   const SB=z=>{const s=S(z),xm=s[1][0]+.10*Math.min(1,s[1][0]/.62),yb=s[0][1],yt=s[NC][1],yc=s[s.length-1][1],cab=z<=ZW&&z>=ZHT,xr=cab?s[NC+3][0]:xm*.93,yr=cab?s[NC+3][1]:yt;
     const sx=z>=ZE-1e-6||z<=ZB+1e-6?.02:1;return [[0,yb],[xm*sx,yb],[xm*sx,yt],[xr*sx,yt],[xr*sx,Math.max(yr,yt+.01)],[0,yc]];};
   const peintB=(j,z)=>j===0?'k':(j===3&&z<1.0&&z>-1.3)?'g':(j===4&&z<1.26&&z>-1.87&&(z>.3||z<-1.2))?'g':'p';
-  const PL=K.kit(PAL);
+  const PL=K.kit(PAL);const HB=false;   /* (24/10, correctif) HB n'existe que dans SHAPES.corolla (les essais « honte » de LA FIDÈLE) : sans cette ligne, LA BÊTE levait une ReferenceError à chaque construction — elle garde son loft et sa découpe au plan */
   if(HB){   /* (23/10, Léo : « empiler des formes TRÈS PLATES pour construire, comme LA HONTE, mais avec plus de couches ») LA FIDÈLE EN DALLES : la vraie silhouette taillée en TRANCHES HORIZONTALES de 5 cm ;
      dans chaque tranche, des dalles (une par tronçon de même largeur, mesurée sur la vraie section à cette hauteur) — le bas, la caisse, la ceinture, la cabine de verre, le toit : un empilement, des marches, comme un modèle en briques. */
     const xAt=(sc,y)=>{let m=0;for(let i=1;i<sc.length;i++){const a=sc[i-1],b=sc[i];if((a[1]-y)*(b[1]-y)<=0&&a[1]!==b[1]){const x=a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);if(x>m)m=x;}}return m;};

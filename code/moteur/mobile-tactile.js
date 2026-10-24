@@ -567,7 +567,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         em.textContent=TR('RECORD !');em.style.display=(rec&&!tq9)?'':'none';}} // (2026-09-30, R7-3) le record d'ARGENT se VOIT : « NOUVEAU RECORD ! » s'allumait sans dire lequel, la plaque d'argent était la seule sans badge
       ot.style.color=recT?'var(--aura)':'var(--neoR)'; // (2026-09-28, charte au complet) l'or est au lingot REJOUER : le record parle la couleur de l'aura
       {const CAUSES={eau:'AU FOND DE L EAU',lave:'ENGLOUTI PAR LA LAVE',roche:'ECRASE SUR LA ROCHE',paroi:'ENCASTRE DANS LA PAROI',canyon:'AU FOND DU CANYON',sable:'ENSEVELI DANS LE SABLE',oasis:"AU FOND DE L'OASIS",obelisque:"CONTRE L'OBELISQUE",pyramide:'CONTRE LA PYRAMIDE',sol:'AU PIED DES TOURS',riviere:'A LA RIVIERE !',air:"TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE',
-         facade:'ENCASTRE DANS UNE FACADE',seine:'A LA SEINE !',sol:'ECRASE SUR LE PAVE',arbre:'ENCASTRE DANS UN ARBRE',poudreuse:'ENSEVELI DANS LA POUDREUSE',glace:'FRACASSE SUR LA GLACE',sousbois:'ECRASE DANS LES FOUGERES'};
+         facade:'ENCASTRE DANS UNE FACADE',seine:'A LA SEINE !',arbre:'ENCASTRE DANS UN ARBRE',poudreuse:'ENSEVELI DANS LA POUDREUSE',glace:'FRACASSE SUR LA GLACE',sousbois:'ECRASE DANS LES FOUGERES',pic:'ENCASTRE DANS UN PIC DE JADE'}; /* (chasse aux bugs) la mort 'pic' des PICS DE JADE n'avait pas de cause sous GAME OVER */ I18N['ENCASTRE DANS UN PIC DE JADE']='SMASHED INTO A JADE PEAK';
        const mc9=$t('mCause'),k9=SANDBOX?'':(CAUSES[mortCause]||'');if(mc9){mc9.textContent=k9?TR(k9):'';mc9.style.display=k9?'':'none';mc9.style.color='';}}
       mCompteSon(recT);
       // Ce qui se gagne DANS une partie, c'est le MOTEUR (la caisse, elle, se choisit au garage) :
@@ -716,13 +716,14 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       modale({titre:'ENTRER UN CODE',texte:'Colle un code de sauvegarde, ou un code secret.',champ:'',boutons:[{l:'VALIDER',ic:'coche',cls:'pb-gold',v:1},{l:'ANNULER',v:0}]}).then(function(r){
         if(!r.v)return;
         const t9=String(r.texte||'').trim();
+        if(t9&&SAVE.neuf){let s9=false;try{s9=typeof JSON.parse(decodeURIComponent(escape(atob(t9)))).v==='number';}catch(e){}if(s9){toast(pxi('croix')+' '+TR('LE SITE NE RESTAURE PAS LES SAUVEGARDES'));return;}} /* (2026-10-24, chasse aux bugs) le site ne garde rien (SAVE.neuf) : importer puis recharger rendait un compte VIDE, et la session en cours partait avec */
         if(t9&&SAVE.import(t9)){toast(pxi('coche')+' '+TR('RESTAURE — RECHARGE…'));setTimeout(function(){location.reload();},900);return;}
         if(codeCousin(r.texte)){toast(pxi('coche')+' '+TR('TOUT EST DÉBLOQUÉ !'),true);try{if(SONV2)sfx('caisse.debloquee');}catch(e){}hap([20,40,20,40,60]);try{mFill();}catch(e){}}
         else toast(pxi('croix')+' '+TR('CODE INCONNU')); }); }
     else if(a==='wipe'){
       modale({titre:'TOUT EFFACER ?',texte:'Argent, caisses, habillages, missions, records et réglages : tout repart de zéro.',
         boutons:[{l:'EFFACER',ic:'corbeille',cls:'pb-red',v:1},{l:'ANNULER',v:0}]}).then(function(r){
-        if(r.v){SAVE.d=SAVE.san(null);SAVE.flush();try{localStorage.removeItem('ccLang');}catch(e){}location.reload();} }); } // (passe qualité) « …et réglages : tout repart de zéro » : la LANGUE aussi (rangée à part, ccLang) — le jeu repart sur celle du téléphone
+        if(r.v){SAVE.d=SAVE.san(null);SAVE.flush();SAVE.natif=2; /* (2026-10-24) plus AUCUNE écriture jusqu'au rechargement : le passage en arrière-plan qui l'accompagne versait la partie en pause (enCoursPose) dans le compte effacé */try{localStorage.removeItem('ccLang');}catch(e){}location.reload();} }); } // (passe qualité) « …et réglages : tout repart de zéro » : la LANGUE aussi (rangée à part, ccLang) — le jeu repart sur celle du téléphone
   }
   /* LA SECONDE CHANCE À L'ÉCRAN DE FIN (UX 8, 2026-10-14 soir — PILOTAGE et DEBUGING : la plaque #mChance existait, cachée, jamais branchée : la
      fonction validée par Sacha était invisible). Contrat de la session GENERAL : chanceEtat() → {ok, prix, reste}, chanceJoue(), chanceRefuse(),

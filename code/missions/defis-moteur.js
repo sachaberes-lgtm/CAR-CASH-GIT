@@ -262,7 +262,7 @@ function m2Pose(g,ratee,vol){if(!m2Ok())return;const s=m2Etat(),r=s.r;
   if(vol>.7){if(!ratee&&g>=1.5){M2R.parf++;if(M2R.parf>(r.parf|0))r.parf=M2R.parf;}else M2R.parf=0;}
   if(!ratee&&g>=1.5){if(M2R.volT>M2R.airPm)M2R.airPm=M2R.volT;if(M2R.volT>(r.airP||0))r.airP=M2R.volT; /* le temps VÉCU en l'air (le bump ne le raccourcit pas) */const k=secCarte().c;if(k&&s.c.cartesP.indexOf(k)<0){s.c.cartesP.push(k);SAVE.mark();}}}
 function m2Mort(cause){if(!m2Ok())return;const s=m2Etat();s.c.morts=(s.c.morts|0)+1;
-  if(M2R.ctl<M2K.debut)m2Flag('mort3s');
+  if(M2R.ctl<M2K.debut&&(RUNX.t||0)<M2K.debut+4)m2Flag('mort3s'); /* (2026-10-24) M2R.ctl ne compte qu'après l'auto-école, RUNX.t toute la partie (leçon comprise) : mourir juste après le permis ou un PASSER n'est pas « mourir au départ » */
   if(cause==='arret')m2Flag('arret');
   if(cause==='air')m2Flag('air0'); // le chrono de vol est tombé à zéro (la boule de l'airtime)
   if(cause==='lave')m2Flag('lave');

@@ -56,11 +56,12 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
     if(t==='S'){const a=26+r()*22,R=RMIN*(1.45+r()*.7);const sg=vir(r()<.5?-1:1,a,R);vir(-sg,a*(.85+r()*.35),R);}
     else if(t==='balayage'){const a=42+r()*26,R=RMIN*(2.0+r()*.8);vir(r()<.5?-1:1,a,R);}
     else if(t==='serpent'){let sg=r()<.5?-1:1;for(let k=0;k<3;k++){const a=24+r()*14;sg=vir(sg,a,RMIN*(1.3+r()*.4));sg=-sg;}}
-    else droite((100+r()*60)*LL);};
+    else{const sg=vir(r()<.5?-1:1,26+r()*20,RMIN*(1.7+r()*.6));droite((30+r()*30)*LL);vir(-sg,16+r()*14,RMIN*(1.7+r()*.6));}}; /* (2026-10-23, Sacha : « retravaille toutes les générations de routes… trop souvent tout droit, plus de virages, que ça reste fun ») : le creux « droit » est un S souple */
+  const ond=l=>{const s0=r()<.5?-1:1;droite(l*.3);const s1=vir(s0,12+r()*10,RMIN*(3+r()*1.2));droite(l*.2);vir(-s1,12+r()*10,RMIN*(3+r()*1.2));droite(l*.3);}; /* l'allée et la place ondulent : deux souples virages de 12-22° au lieu d'une droite de 310-400 m */
   // le fond d'une vague : on tourne, ou (l'allée, la cuvette d'argile) on roule droit entre deux rangées de décors
   const valle=fe=>{const u0=uh;
-    if(fe.sp==='avenue'){recentre();ici('obel0');droite((310+r()*60)*LL);ici('obel1');}
-    else if(fe.sp==='plaza'){recentre();droite((340+r()*70)*LL);}
+    if(fe.sp==='avenue'){recentre();ici('obel0');ond((310+r()*60)*LL);ici('obel1');}
+    else if(fe.sp==='plaza'){recentre();ond((340+r()*70)*LL);}
     else if(fe.sp==='rythme'){recentre();droite(84*LL);const nH=4+((r()*2)|0),W=(100+r()*22)*LL,gH=.20+r()*.05,uS=uh;ici('w'+fe.n+'a');
       gn(uS-30,fe.gv);for(let j=0;j<=2*nH;j++)gn(uS+j*W/2,(j&1?-1:1)*gH);                       // LE RYTHME : une onde triangulaire de pente ±gH (les crêtes arrondies par le ruban lui-même) — chaque bosse est un petit tremplin
       droite(W/4);for(let k=0;k<nH;k++){ici('w'+fe.n+'_'+k);droite(k<nH-1?W:W*.75);}ici('w'+fe.n+'b');gn(uh+30,fe.gv);droite(70*LL);fe.nh=nH;}
@@ -83,7 +84,7 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
     /* L'ÉPAULE (2026-10-23, Léo : « comme le jeu du pingouin où il faut atterrir pour prendre la vitesse ») — MESURÉ : à la vitesse de la caisse (190 m/s) une descente à 17 % file sous la parabole du vol, la caisse ne se pose qu'en BAS (2 s, choc de 67) ;
        pour qu'elle atterrisse SUR la pente il faut une pente DOUCE (5-9 %) pendant ~200 m après l'apex : l'ÉPAULE, où l'on se pose — puis la DESCENTE RAIDE (20-29 %, qui zigzague) où la gravité rend la vitesse : décoller, se poser sur l'épaule, plonger. */
     {const Ls=(o.fin?110:pt?95+r()*30:125+r()*55)*LL*kb;droite(Ls);ici('e'+n);gn(uh,-fe.g1);gn(uh+80,-fe.gl);}
-    {const dl=(o.fin?330+r()*60+(o.xtra||0)*.5:pt?105+r()*40:125+r()*55)*LL*kb;if(o.fin)droite(dl);else{const f1=.45+r()*.12;droite(dl*f1);if(r()<.8)vir(r()<.5?-1:1,12+r()*18,RMIN*(2.4+r()*1.4));droite(Math.max(dl*(1-f1),90*LL));}} /* LA DESCENTE ZIGZAGUE : un balayage entre deux dunes */
+    {const dl=(o.fin?330+r()*60+(o.xtra||0)*.5:pt?105+r()*40:125+r()*55)*LL*kb;if(o.fin)droite(dl);else{const f1=.45+r()*.12;droite(dl*f1);{const s9=vir(r()<.5?-1:1,20+r()*18,RMIN*(2+r()*1.1));vir(-s9,14+r()*14,RMIN*(2+r()*1.1));}droite(Math.max(dl*(1-f1)*.6,60*LL));}} /* la descente zigzague toujours : un virage et son contre-virage */ /* LA DESCENTE ZIGZAGUE : un balayage entre deux dunes */
     ici('d'+n);{const uL=uh,gv=o.fin?-.015:fe.gv;gn(uL-50,-fe.gl);gn(uL+50,gv);gP=gv;}
     if(o.fin){ici('oasis0');creux('S');recentre();droite(170*LL+(o.xtra||0)*.5);ici('fin');droite(150,2);}
     else valle(fe);

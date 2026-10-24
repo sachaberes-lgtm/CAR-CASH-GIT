@@ -412,7 +412,7 @@ function figDesc(f,lg){const en=lg==='en'||lg==='zh'; // (2026-10-14, textes) BI
 COSM.figure=(window.FIG?FIG.liste:[]).map(function(f){return {id:f.id,n:f.n,p:f.p,d:figDesc(f,'fr'),fig:1};});
 const SHOP_CATS=['voiture','peinture','aile','trainee','figure'];
 const SHOP={tab:'voiture',i:{peinture:0,aile:0,trainee:0},prev:null}; // prev : l'article ESSAYÉ (pas forcément à toi)
-function shopOwned(cat,id){if(cat==='figure')return figPossede(id);if(cousin())return !!COSM[cat].find(x=>x.id===id); // (2026-10-14) LE CODE COUSIN : tous les habillages
+function shopOwned(cat,id){if(cat==='figure')return figPossede(id);if(cousin()){const c9=COSM[cat].find(x=>x.id===id);if(c9&&!c9.eur&&(!c9.pack||c9.sec))return true;} /* (2026-10-14) LE CODE COUSIN : tous les habillages — (2026-10-24) SAUF ce qui se paie en EUROS (peintures en €, packs PALETTE et CHAT), la règle de Sacha du 14/10 (carEuros) ; les secrètes, gagnables par leur défi, restent offertes ; le reste suit la possession réelle */
 const d=COSM[cat].find(x=>x.id===id);if(!d)return false;
   if(d.pack==='chat'&&m2Chat())return true; /* (2026-10-16, missions v2) l'ARC-EN-CIEL vient avec le chat */if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur&&!d.serie)return true;return SAVE.d.shop.own.indexOf(cat+':'+id)>=0;} // (2026-10-14, palette) pack et secrètes : possédées seulement une fois données
 function shopEqD(cat){const id=SAVE.d.shop.eq[cat],d=COSM[cat].find(x=>x.id===id);return (d&&shopOwned(cat,d.id))?d:COSM[cat][0];}
