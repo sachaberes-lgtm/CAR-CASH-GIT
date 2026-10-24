@@ -151,7 +151,7 @@ function canyonTick(dt){
     U.uFillC.value.copy(fill.color).multiplyScalar(fill.intensity);U.uFillD.value.copy(fill.position).normalize();
     const q=c.cyL||[1,.6,.4];U.uBnc.value.setRGB(q[0],q[1],q[2]).multiplyScalar(sun.intensity*.16);
     if(c.cyT)U.uRkT.value.fromArray(c.cyT);if(c.cyW)U.uWS.value.fromArray(c.cyW);if(c.cyX)U.uWD.value.fromArray(c.cyX);if(c.cyH)U.uSkH.value.fromArray(c.cyH);if(c.cyZ)U.uSkZ.value.fromArray(c.cyZ);if(c.cyF)U.uMist.value.fromArray(c.cyF);
-    const Q9=c.cyQ||[0,100,0,0];U.uQ.value.set(Q9[0],Q9[1],Q9[2],Q9[3]);U.uWet.value=Q9[2];U.uFlash.value=CAMP_FLASH||0;skyU.uCyF.value=U.uFlash.value; /* l'éclair allume aussi le plafond du ciel */
+    const Q9=c.cyQ||[0,100,0,0];U.uQ.value.set(Q9[0]*(CY.deco?CY.deco.brume:1),Q9[1],Q9[2],Q9[3]); /* (2026-10-20) × la brume du fond tirée */U.uWet.value=Q9[2];U.uFlash.value=CAMP_FLASH||0;skyU.uCyF.value=U.uFlash.value; /* l'éclair allume aussi le plafond du ciel */
     {const nu=(LVL.nuit||0)*(mode==='boom'?0:1),sh=c.sunI<.9?1-c.sunI/.9:0,k9=Math.max(nu,sh*.6)*2.4;U.uPhC.value.copy(headSpot.color).multiplyScalar(k9); // les phares, la nuit et sous l'orage
      if(k9>.001){U.uPhP.value.copy(carGroup.position);U.uPhP.value.y+=1.2;U.uPhD.value.set(0,0,1).applyQuaternion(carGroup.quaternion);U.uPhD.value.y-=.08;U.uPhD.value.normalize();}}
     if(CY.rais){const N9=c.cyN||[0,1,1,0],ru=CY_RAI_M.uniforms;ru.uC.value.copy(sun.color).multiplyScalar(.10*sun.intensity*Math.max(0,SUN_DIR.y-.2)*(1-N9[3]));if(!paused)ru.uT.value=(ru.uT.value+dt)%4096;}}
@@ -180,7 +180,7 @@ function canyonHeurt(p){if(!CY.on||!CY.Z)return '';
    colonnes à chapeau sur les gradins de l'amphithéâtre, en instances). Arche et cheminées prennent la MÊME matière que le relief (CY_FS,
    uniformes partagés) avec leur propre sommet (CY_MVS) : mêmes strates, même lumière, même ombre. Leur hauteur entre dans le balayage de
    l'ombre (elles ombrent la route), et elles TUENT en vol (cyMonuHeurt). Règle d'or : rien ne touche la dalle (vérifié par dbgCanyon('test')). */
-function cyMitaines(S,F,sQ,K,r){
+function cyMitaines(S,F,sQ,K,r,D){
   const a=sQ.depart!=null?sQ.depart:0,b=sQ.breche0!=null?sQ.breche0:Math.min(L,600);if(b-a<120)return;
   const s9=a+(b-a)*.55,i=Math.min(S.n-1,Math.round(s9/S.ds)),tx=S.tx[i],tz=S.tz[i],px=-tz,pz=tx,K4=Math.pow(K,.8);
   const th=Math.atan2(tx,tz),dA=Math.abs(th)>1e-6?th:0; // (2026-10-19, LE CANYON AU HASARD) le cap de la Route 67 : les Mitaines se tournent avec elle (plein nord : 0, rien ne change)
@@ -192,6 +192,8 @@ function cyMitaines(S,F,sQ,K,r){
      dérive, un coude : MESURÉ, 4 canyons sur 40 passaient DANS une butte, 360 à 830 m sous sa cime). Une butte dont le pied (1,65 × son grand rayon : là où
      son talus tombe sous ~15 m ; le pouce : rx + 100 m) approche une route s'écarte de 60 m en 60 m, au plus 12 fois — sinon elle n'est pas posée. Aucun tirage ;
      la recette d'avant n'en a jamais besoin (sa route file droit sous les Mitaines : 390 m et plus). */
+  if(D){const m9=D.mit;for(const m of M){m.rx*=m9.k;m.rz*=m9.k;m.h*=m9.k;} // (2026-10-20, LE DÉCOR TIRÉ) les Mitaines : l'une, l'autre, les deux, aucune ; la mesa ; leur taille
+    for(let k=M.length-1;k>=0;k--)if(k===0&&!m9.g||k===1&&!m9.d||k===2&&!m9.mesa)M.splice(k,1);}
   for(let k=M.length-1;k>=0;k--){const m=M[k],R9=Math.max(1.65*Math.max(m.rx,m.rz),m.pouce?m.rx+100*K4:0)+ROAD_HALF+10,pres=()=>{for(let j=0;j<S.n;j+=2){const dx=S.x[j]-m.x,dz=S.z[j]-m.z;if(dx*dx+dz*dz<R9*R9)return true;}return false;};
     if(!pres())continue;let ux=m.x-S.x[i],uz=m.z-S.z[i];const ul=Math.hypot(ux,uz)||1;ux/=ul;uz/=ul;let n9=0;while(n9<12&&pres()){m.x+=ux*60;m.z+=uz*60;n9++;}if(pres())M.splice(k,1);}
   const fc=F.c,fm=F.m,TF=F.ts;CY.mit=[];
@@ -207,7 +209,7 @@ function cyMitaines(S,F,sQ,K,r){
       if(h<2)continue;const o=jz*F.nx+jx,y=base+h;if(y>fc[o*2+1]){fc[o*2+1]=y;fm[o*4+1]=Math.round(rkm*255);if(y>CY.yMaxM)CY.yMaxM=y;}}}
 }
 // les données (avant le balayage de l'ombre) : l'ARCHE au milieu de sa droite, les CHEMINÉES sur les gradins de l'amphithéâtre
-function cyMonuPrevoir(S,sQ,K,r){
+function cyMonuPrevoir(S,sQ,K,r,D){
   CY.arche=null;CY.chem=[];CY.yMaxM=-1e9;
   const a0=sQ.arche0,a1=sQ.arche1;
   if(a0!=null&&a1!=null&&a1-a0>200){const s9=(a0+a1)/2,i=Math.round(s9/S.ds),tx=S.tx[i],tz=S.tz[i],px=-tz,pz=tx,y=S.y[i],wF=S.wF[i],K4=Math.pow(K,.5);
@@ -216,7 +218,7 @@ function cyMonuPrevoir(S,sQ,K,r){
       P.push({x:S.x[i]+px*u,z:S.z[i]+pz*u,y:ys,u:u,e:e});}
     CY.arche={P:P,tx:tx,tz:tz,px:px,pz:pz,W:(44+r()*10)*K4,T:(34+r()*8)*K4,cx:S.x[i],cz:S.z[i],yb:yb,rise:rise,Ua:Ua};}
   const h0=sQ.amphi0,h1=sQ.amphi1;
-  if(h0!=null&&h1!=null){const N=PAL.b('cyChem',300);let n=0;
+  if(h0!=null&&h1!=null){const N=Math.round(PAL.b('cyChem',300)*(D?D.chem:1));let n=0; // (2026-10-20) × le nombre de cheminées tiré
     for(let k=0;k<4000&&n<N;k++){const s9=h0-120+r()*(h1-h0+380),i=Math.max(0,Math.min(S.n-2,Math.round(s9/S.ds))),sg=r()<.5?-1:1,tx=S.tx[i],tz=S.tz[i];
       if(S.zH[i]<.35)continue;const wF=S.wF[i]*(1-sg*S.as[i]),t=.08+r()*.82,lat=wF+t*S.wW[i]+(r()-.5)*30,x=S.x[i]-tz*sg*lat+tx*(r()-.5)*20,z=S.z[i]+tx*sg*lat+tz*(r()-.5)*20;
       const hg=cyHauteur(x,z),ht=(28+r()*r()*95)*Math.pow(K,.3),rad=ht*(.15+r()*.09);
@@ -239,10 +241,10 @@ function cyMonuMats(){if(CY.mm)return CY.mm;const U=CY.mat.uniforms;
   const mk=()=>{const m=new THREE.ShaderMaterial({uniforms:U,vertexShader:CY_MVS,fragmentShader:CY_FS,fog:true});m.dispose=function(){};return m;};
   const mt=()=>{const m=new THREE.ShaderMaterial({uniforms:U,vertexShader:CY_MVS,fragmentShader:CY_AFS,fog:true,vertexColors:true});m.dispose=function(){};return m;};
   CY.mm={a:mk(),i:mk(),b:(function(){const m=mk();m.side=THREE.DoubleSide;return m;})(),t:mt(),g:(function(){const m=mt();m.side=THREE.DoubleSide;return m;})()};return CY.mm;}
-function cyArbreGeo(){const P=[],C=[],I=[],ad=(g,col,tx,ty,tz,sx,sy,sz)=>{const b=P.length/3,p=g.attributes.position,n=g.index;for(let k=0;k<p.count;k++){const v=.88+.24*Math.abs(Math.sin(k*12.9898));P.push(p.getX(k)*sx+tx,p.getY(k)*sy+ty,p.getZ(k)*sz+tz);C.push(col[0]*v,col[1]*v,col[2]*v);}
+function cyArbreGeo(V){V=V||[[.40,.58,.18],[.34,.52,.14],[.46,.62,.22]];const P=[],C=[],I=[], /* V : les trois verts du houppier (2026-10-20 : le tirage en a d'autres, CY_ARB) */ad=(g,col,tx,ty,tz,sx,sy,sz)=>{const b=P.length/3,p=g.attributes.position,n=g.index;for(let k=0;k<p.count;k++){const v=.88+.24*Math.abs(Math.sin(k*12.9898));P.push(p.getX(k)*sx+tx,p.getY(k)*sy+ty,p.getZ(k)*sz+tz);C.push(col[0]*v,col[1]*v,col[2]*v);}
     if(n)for(let k=0;k<n.count;k++)I.push(b+n.getX(k));else for(let k=0;k<p.count;k++)I.push(b+k);g.dispose();};
   ad(new THREE.CylinderGeometry(.05,.09,1,5),[.42,.33,.24],0,.5,0,1,1,1);
-  ad(new THREE.IcosahedronGeometry(1,0),[.40,.58,.18],0,1.05,0,.42,.34,.42);ad(new THREE.IcosahedronGeometry(1,0),[.34,.52,.14],.22,.86,.12,.30,.26,.30);ad(new THREE.IcosahedronGeometry(1,0),[.46,.62,.22],-.18,.92,-.16,.28,.24,.28);
+  ad(new THREE.IcosahedronGeometry(1,0),V[0],0,1.05,0,.42,.34,.42);ad(new THREE.IcosahedronGeometry(1,0),V[1],.22,.86,.12,.30,.26,.30);ad(new THREE.IcosahedronGeometry(1,0),V[2],-.18,.92,-.16,.28,.24,.28);
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.setIndex(I);g.computeVertexNormals();return g;}
 // l'arche : un tube de grès à section arrondie qui suit sa courbe, plus épais aux culées, l'arête rongée
 function cyArcheGeo(A){const P=A.P,NR=18,pos=[],idx=[],rg=mulberry32(0xA7C4E);
@@ -326,7 +328,7 @@ function cyGalerie(i0,i1,L0){const S=CY.S,n=i1-i0+1,NA=14,vh=CY_TUN.vh,ap=CY_TUN
    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(R,3));g.setIndex(K);g.computeBoundingSphere();const me=new THREE.Mesh(g,CY_NEON.r);me.userData.jeter=1;me.matrixAutoUpdate=false;me.updateMatrix();me.renderOrder=3;CY.grp.add(me);}}
 function cyCouloirHeurt(p,C){const S=CY.S;if(!C)return false;let bi=-1,bd=1e18;
   for(let i=C.i0;i<=C.i1;i+=2){const d=(p.x-S.x[i])**2+(p.z-S.z[i])**2;if(d<bd){bd=d;bi=i;}}
-  if(bi<0||bd>(C.L0+CY_COU.T+40)**2)return false;const lt=(p.x-S.x[bi])*-S.tz[bi]+(p.z-S.z[bi])*S.tx[bi],a=Math.abs(lt),k=bi-C.i0;
+  if(bi<0||bd>(C.L0+CY_COU.T+40)**2)return false;{const al=(p.x-S.x[bi])*S.tx[bi]+(p.z-S.z[bi])*S.tz[bi];if((bi-C.i0<2&&al<0)||(C.i1-bi<2&&al>(C.i1-bi)*S.ds))return false;} /* (2026-10-18, DEBUGGING : un mur INVISIBLE sur la route) avant le 1er échantillon d'une bande (ou après le dernier), l'échantillon le plus proche est le bout et le test latéral se faisait dans SON repère : jusqu'à 85 m avant la bouche du TUNNEL et après la sortie des ÉTROITS, un vol bas au bord de la route mourait « ENCASTRÉ DANS LA PAROI » contre rien — la bande commence et finit à ses bouts */const lt=(p.x-S.x[bi])*-S.tz[bi]+(p.z-S.z[bi])*S.tx[bi],a=Math.abs(lt),k=bi-C.i0;
   if(C.tun){const yr=S.y[bi];if(p.y>yr+CY_TUN.vh&&a<C.L0){const u=a/C.L0;if(p.y>yr+CY_TUN.vh+(CY_TUN.ap-CY_TUN.vh)*Math.sqrt(Math.max(0,1-u*u))-1.5)return true;}}
   return a>C.L0-1.2&&a<C.L0+CY_COU.T+2&&p.y<C.top[k*2+(lt>0?1:0)]&&p.y>C.bas[k]-2;}
 /* LE TUNNEL DE GRÈS (2026-10-19, Sacha : « le tunel d'arriver pour la map canyon est moche » — entre deux idées, le choix : « le tunnel de

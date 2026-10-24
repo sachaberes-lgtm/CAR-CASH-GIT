@@ -1,10 +1,48 @@
 /* LA CONSTRUCTION — un générateur (voir LES TRANCHES), mené d'une traite par buildJade. Il ne touche NI à la scène NI à la route NI aux
    uniformes (jadePose / jadeReprend s'en chargent). */
+/* ======================= LE DÉCOR AU HASARD (2026-10-20, Sacha : « chaque map doit être aléatoire avec des modules et des décors qui changent, TOUTES LES MAPS ») =======================
+   MESURÉ AVANT : le tracé de la vallée change depuis le 18/10 (axe, ordre des monuments, humeurs), pas son décor — les mêmes rangs de piliers (mêmes
+   densités, mêmes hauteurs autour de la route), la même jade vert-de-gris, autant de pins, de lianes, de cascades, de rayons et de brume à chaque
+   vallée. Désormais, par vallée, un TIRAGE DE DÉCOR dans un flux à lui (`dr`, né de la graine du décor : jamais `jr`), treize choix indépendants
+   (`JADE.dz`, lisible dans `dbgJade().deco`) — (v16, Léo : « évite les clichés en mode Chine ») ni pagode, ni lanterne, ni pavillon ne reviennent :
+   · LA PIERRE (`teinte`) : jade (celle d'avant), émeraude, grès rose, ardoise, or d'automne — deux uniforms (uRocT, uVerT) dans le programme du verre
+     de jade : même programme, 1 = l'image d'avant ;
+   · LES PILIERS DU BORD (`dens`) : la vallée ouverte ×0,6, avant, la forêt de piliers ×1,25 (les trois rangs le long de la route) ;
+   · LEUR HAUTEUR (`haut`) : des pics qui plongent sous la route (−70 m), avant, ou qui la dominent (+90 m) ;
+   · LEUR CARRURE (`larg`) : fins ×0,75 (les gabarits étroits et hauts), avant, massifs ×1,3 ;
+   · LE LOINTAIN (`loin`) : ×0,5 / 1 / 1,35 ;
+   · LES ROCHERS QUI FLOTTENT (`roch`) : rares, avant, une NUÉE (3 montagnes sur 4, jusqu'à 4 rochers chacune) ;
+   · LA FORÊT PEINTE (`pins`) : clairsemée ×0,45, avant, dense ×1,2, et la part des pins ;
+   · LES LIANES (`lian`) : aucune, peu, avant, des rideaux ;
+   · LES CASCADES (`casc`) : rares, avant, partout ;
+   · LES RAYONS (`ray`), LES NUAGES (`nua`), LA BRUME (`brume` : son nombre et sa part au ras de l'eau) ;
+   · L'EAU (`eau`) : basse, avant, haute (le fleuve du ciel, à 165 / 185 / 210 m au-dessus de la mer de nuages).
+   La règle d'or ne bouge pas : chaque pilier passe par `regle` (SOUS la dalle à 45 m, ou au-dessus à 70 m). `?sans=jadedecor` = la vallée d'avant,
+   au tirage près (aucun tirage de plus dans `jr`). */
+const JADE_TEINTES=[['jade',1.3,[1,1,1],[1,1,1]],['émeraude',1,[.84,1.08,.96],[.82,1.18,.92]],['grès rose',1,[1.18,.94,.88],[1.05,1,.9]],['ardoise',.9,[.84,.9,1.1],[.88,1,1.08]],['or d\'automne',.9,[1.06,1,.9],[1.55,1.12,.55]]];
+function jadeDecoTire(seed){
+  const dr=mulberry32((seed^0xDEC01A)>>>0),ch=a=>a[(dr()*a.length)|0],pds=L9=>{let t=0;for(const e of L9)t+=e[1];let u=dr()*t;for(const e of L9){u-=e[1];if(u<=0)return e;}return L9[0];};
+  const D={},li=[];
+  {const t=pds(JADE_TEINTES);D.roc=t[2];D.ver=t[3];li.push('pierre '+t[0]);}
+  {const d=ch([[.6,'vallée ouverte'],[1,'piliers'],[1.25,'forêt de piliers']]);D.dens=d[0];li.push(d[1]);}
+  {const h=ch([[-70,'pics bas'],[0,'pics à hauteur'],[90,'pics dominants']]);D.haut=h[0];li.push(h[1]);}
+  {const l=ch([[.75,'fins'],[1,'moyens'],[1.3,'massifs']]);D.larg=l[0];li.push('piliers '+l[1]);}
+  D.loin=ch([.5,1,1.35]);li.push('lointain ×'+D.loin);
+  {const r=ch([[.18,3,'rares'],[.5,3,'comme avant'],[.75,4,'une nuée']]);D.roch={p:r[0],n:r[1]};li.push('rochers flottants : '+r[2]);}
+  {const p=ch([.45,1,1.2]),q=ch([.32,.62,.9]);D.pins={k:p,pin:q};li.push('forêt peinte ×'+p+', '+Math.round(q*100)+' % de pins');}
+  D.lian=ch([0,.5,1,1.6]);li.push('lianes ×'+D.lian);
+  {const c=ch([[.03,8,'rares'],[.11,16,'comme avant'],[.26,26,'partout']]);D.casc={p:c[0],n:c[1]};li.push('cascades '+c[2]);}
+  D.ray=ch([.45,1,1.5]);li.push('rayons ×'+D.ray);
+  D.nua=ch([.6,1,1.4]);li.push('nuages ×'+D.nua);
+  {const b=ch([.6,1,1.5]),lo=ch([.25,.45,.7]);D.brume={n:b,bas:lo};li.push('brume ×'+b+' ('+Math.round(lo*100)+' % au ras de l\'eau)');}
+  D.eau=ch([165,185,210]);li.push('eau '+(D.eau<185?'basse':D.eau>185?'haute':'comme avant'));
+  D.li=li;return D;}
 function* jadeBatit(seed,cle){
   const t00=performance.now(),M9=jadeMats(),G=jadeGabarits(),jr=mulberry32((seed^0x1ADE5EED)>>>0),Q=JADE.Q||{};
+  const DZ=JADE_DECOR?jadeDecoTire(seed):null;JADE.dz=DZ;JADE.deco=DZ?DZ.li:null; /* (LE DÉCOR AU HASARD) le tirage de cette vallée */
   const root=new THREE.Group();root.matrixAutoUpdate=false;JADE.root=root;
   let yMin=1e9,yMax=-1e9;for(let i=0;i<NP;i+=4){if(pts[i].y<yMin)yMin=pts[i].y;if(pts[i].y>yMax)yMax=pts[i].y;}
-  JADE.merY=yMin-230;JADE.eauY=JADE.merY+185; // (v17, Léo : « l'eau plus haute, elle vient frapper les montagnes ») les montagnes sont posées comme avant (pied ≥ merY + 90) ; l'eau monte à merY + 140 : celles du bas trempent
+  JADE.merY=yMin-230;JADE.eauY=JADE.merY+(DZ?DZ.eau:185); // (v17, Léo : « l'eau plus haute, elle vient frapper les montagnes ») les montagnes sont posées comme avant (pied ≥ merY + 90) ; l'eau monte à merY + 140 : celles du bas trempent
    // LA MER DE NUAGES, loin sous les montagnes : elles flottent — (v14, Léo : « remonte le niveau de l'eau ») 470 → 230 m sous le point le plus bas de la route
   const HB=120,grille=new Map(),pas=Math.max(1,Math.round(10/(L/(NP-1))));
   for(let i=0;i<NP;i+=pas){const p=pts[i],k=Math.floor(p.x/HB)*100003+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);}
@@ -41,22 +79,22 @@ function* jadeBatit(seed,cle){
   const RANGS=[[ROAD_HALF+38,90,.27,10,30,-150,260,2],[170,200,.38,12,40,-200,330,3],[380,420,.46,16,56,-260,380,4]];
   for(let i=Math.round(120/(L/(NP-1)));i<NP;i+=pasR){if(performance.now()>JF.lim)yield;const t9=T[i],hl=Math.hypot(t9.x,t9.z);if(hl<.5)continue; // (LE PRÉ-BÂTI) les rendez-vous de jadeBatit ne servent qu'à une échéance finie (JF.lim) : au passage, elle est infinie
     const px=-t9.z/hl,pz=t9.x/hl;
-    for(const sg of [-1,1])for(const R9 of RANGS){if(jr()>R9[2]*MOB)continue;
-      const r=R9[3]+jr()*(R9[4]-R9[3]),lat=R9[0]+r+jr()*R9[1],al=(jr()-.5)*40;
-      touffe(pts[i].x+px*sg*lat+t9.x/hl*al,pts[i].z+pz*sg*lat+t9.z/hl*al,r,pts[i].y,R9[5],R9[6],1+((jr()*R9[7])|0),1,lat);}}
+    for(const sg of [-1,1])for(const R9 of RANGS){if(jr()>R9[2]*MOB*(DZ?DZ.dens:1))continue;
+      const r=(R9[3]+jr()*(R9[4]-R9[3]))*(DZ?DZ.larg:1),lat=R9[0]+r+jr()*R9[1],al=(jr()-.5)*40;
+      touffe(pts[i].x+px*sg*lat+t9.x/hl*al,pts[i].z+pz*sg*lat+t9.z/hl*al,r,pts[i].y,R9[5]+(DZ?DZ.haut:0),R9[6]+(DZ?DZ.haut:0),1+((jr()*R9[7])|0),1,lat);}}
   {const S=230,Rmax=TEL_NATIF?2100:2500,m=new Map(),pasC=Math.max(1,Math.round(S*.7/(L/(NP-1))));
    for(let i=0;i<NP;i+=pasC){if(performance.now()>JF.lim)yield;const cx0=Math.round(pts[i].x/S),cz0=Math.round(pts[i].z/S),rr=Math.ceil(Rmax/S);
      for(let dx=-rr;dx<=rr;dx++)for(let dz=-rr;dz<=rr;dz++){const gx=(cx0+dx)*S,gz=(cz0+dz)*S,d=Math.hypot(gx-pts[i].x,gz-pts[i].z);if(d>Rmax)continue;
        const k=(cx0+dx)+','+(cz0+dz),o=m.get(k);if(!o||d<o[0])m.set(k,[d,i,gx,gz]);}}
-   for(const v of m.values()){if(v[0]<700||jr()>.55*MOB)continue;
+   for(const v of m.values()){if(v[0]<700||jr()>.55*MOB*(DZ?DZ.loin:1))continue;
      touffe(v[2]+(jr()-.5)*S*.7,v[3]+(jr()-.5)*S*.7,20+jr()*36,pts[v[1]].y,-260,420,1+((jr()*4)|0),.85,v[0]);}}
   const ARB=[];
   const tP0=performance.now();if(iPorte>0){try{yield* jadePorte(root,iPorte,jr,M9,function(x,z,r,yt){return tente(x,z,r,yt,1,60,true);});}catch(e){console.warn('porte',e);JADE.porte=null;}}
   const tP1=performance.now();if(iPont>0){try{yield* jadePont(root,iPont,jr,M9,pose,ARB);}catch(e){console.warn('pont',e);JADE.pont=null;}}JADE.msPorte=Math.round(tP1-tP0);JADE.msPont=Math.round(performance.now()-tP1);
   if(performance.now()>JF.lim)yield;
   // ---- LES ROCHERS EN CUBES qui flottent autour des montagnes (des gabarits à part : JADE_NTPL et suivants) ----
-  {const n0=PIL.length;for(let k=0;k<n0;k++){const q=PIL[k];if(q[8]>1600||jr()>.5)continue;const T9=G.p[q[5]];
-    for(let j=0,n=1+((jr()*3)|0);j<n;j++){const t=JADE_NTPL+((jr()*3)|0),Tr=G.p[t],th=jr()*6.2832,rr=q[2]+12+jr()*45,x=snap(q[0]+Math.cos(th)*rr),z=snap(q[1]+Math.sin(th)*rr),rm=Tr.rmax*VX,Hs=Tr.yTop*VX;
+  {const n0=PIL.length;for(let k=0;k<n0;k++){const q=PIL[k];if(q[8]>1600||jr()>(DZ?DZ.roch.p:.5))continue;const T9=G.p[q[5]];
+    for(let j=0,n=1+((jr()*(DZ?DZ.roch.n:3))|0);j<n;j++){const t=JADE_NTPL+((jr()*3)|0),Tr=G.p[t],th=jr()*6.2832,rr=q[2]+12+jr()*45,x=snap(q[0]+Math.cos(th)*rr),z=snap(q[1]+Math.sin(th)*rr),rm=Tr.rmax*VX,Hs=Tr.yTop*VX;
       const yt=Math.floor((q[3]+(T9.Hb+jr()*T9.H*.65)*VX)/VX)*VX;if(yt-Hs<mer)continue;
       let ok=true;proches(x,z,rm+ROAD_HALF+14,function(i){const p=pts[i];if(Math.abs(p.y-yt+Hs/2)<Hs+30&&Math.hypot(p.x-x,p.z-z)<rm+ROAD_HALF+14)ok=false;});
       if(!ok||pgVois(x,z,function(q2){return Math.hypot(q2[0]-x,q2[1]-z)<(q2[2]+rm)*.95&&yt>q2[3]-10&&yt-Hs<q2[4]+10;}))continue;
@@ -66,13 +104,13 @@ function* jadeBatit(seed,cle){
   let qCur=null;JCH.fixe=new Set();
   const arb=(x,y,z,w,h,cell)=>{ARB.push({x:x,y:y,z:z,j:[w,h,cell,jr()],pq:qCur});};
   for(const q of PIL){if(performance.now()>JF.lim)yield;const d=q[8];if(!(d<(TEL_NATIF?700:1000)))continue;const T9=G.p[q[5]],mP=jadeMatPilier(q,0);qCur=q;
-    const nA=Math.min(60,Math.round(T9.tops.length*.9*(VX/3.5)*(VX/3.5))); // (v7) la même forêt au m² qu'avec des cubes de 3,5 m
-    for(let k=0;k<nA&&T9.tops.length;k++){const c=T9.tops[(jr()*T9.tops.length)|0];V3.set(c[0]+.15+jr()*.7,c[1]+1,c[2]+.15+jr()*.7).applyMatrix4(mP);const pin=jr()<.62,h=pin?11+jr()*11:5+jr()*5;arb(V3.x,V3.y,V3.z,h*(pin?.95:1.35),h,pin?(jr()*4)|0:4+((jr()*2)|0));}
+    const nA=Math.min(DZ?72:60,Math.round(T9.tops.length*.9*(VX/3.5)*(VX/3.5)*(DZ?DZ.pins.k:1))); // (v7) la même forêt au m² qu'avec des cubes de 3,5 m
+    for(let k=0;k<nA&&T9.tops.length;k++){const c=T9.tops[(jr()*T9.tops.length)|0];V3.set(c[0]+.15+jr()*.7,c[1]+1,c[2]+.15+jr()*.7).applyMatrix4(mP);const pin=jr()<(DZ?DZ.pins.pin:.62),h=pin?11+jr()*11:5+jr()*5;arb(V3.x,V3.y,V3.z,h*(pin?.95:1.35),h,pin?(jr()*4)|0:4+((jr()*2)|0));}
     for(let k=0;k<Math.min(12,T9.cor.length);k++){const c=T9.cor[(jr()*T9.cor.length)|0];V3.set(c[0]+.5,c[1]+1,c[2]+.5).applyMatrix4(mP);const h=7+jr()*9;arb(V3.x,V3.y,V3.z,h,h,jr()<.6?(jr()*4)|0:4+((jr()*2)|0));}
-    for(let k=0;k<Math.min(16,T9.des.length);k++){const c=T9.des[(jr()*T9.des.length)|0];V3.set(c[0]+.5,c[1],c[2]+.5).applyMatrix4(mP);const h=24+jr()*50;arb(V3.x,V3.y,V3.z,14+jr()*12,-h,6+((jr()*2)|0));}
+    for(let k=0;k<Math.min(DZ?Math.round(16*DZ.lian):16,T9.des.length);k++){const c=T9.des[(jr()*T9.des.length)|0];V3.set(c[0]+.5,c[1],c[2]+.5).applyMatrix4(mP);const h=24+jr()*50;arb(V3.x,V3.y,V3.z,14+jr()*12,-h,6+((jr()*2)|0));}
     if(q[5]>=3&&d<700&&T9.tops.length){let bc=null,bd=1e9;for(const c of T9.tops){const e=Math.hypot(c[0]+.5-T9.M,c[2]+.5-T9.M);if(e<bd){bd=e;bc=c;}}
       V3.set(bc[0]+.5,bc[1]+1,bc[2]+.5).applyMatrix4(mP);if(PAG.length<7&&jr()<.16){PAG.push([V3.x,V3.y,V3.z,1.1+jr()*.4]);JCH.fixe.add(q);}else if(PAV.length<10&&jr()<.14){PAV.push([V3.x,V3.y,V3.z,1.3+jr()*.4]);JCH.fixe.add(q);}}
-    if(CHU.length<16&&T9.H*VX>260&&jr()<.11){ // UNE CASCADE : d'une cellule au bord (l'air à côté), vers le vide
+    if(CHU.length<(DZ?DZ.casc.n:16)&&T9.H*VX>260&&jr()<(DZ?DZ.casc.p:.11)){ // UNE CASCADE : d'une cellule au bord (l'air à côté), vers le vide
       const L9=T9.cor.concat(T9.tops);for(let tries=0;tries<12;tries++){const c=L9[(jr()*L9.length)|0];if(!c||c[1]<T9.H*.7)continue;
         const o=[[1,0],[-1,0],[0,1],[0,-1]].find(function(o9){return !voxAt(T9.G,c[0]+o9[0],c[1],c[2]+o9[1])&&!voxAt(T9.G,c[0]+o9[0],c[1]-1,c[2]+o9[1]);});if(!o)continue;
         V3.set(c[0]+.5+o[0]*.55,c[1]+.6,c[2]+.5+o[1]*.55).applyMatrix4(mP);const w=jadeQuart(q[6],o[0],o[1]);
@@ -122,15 +160,15 @@ function* jadeBatit(seed,cle){
   // (v16, « évite les clichés en mode Chine ») plus de pagodes ni de pavillons sur les cimes
   JADE.quart=[];for(const o of quart.values())JADE.quart[o.k]={c:new THREE.Vector3((o.x0+o.x1)/2,(o.y0+o.y1)/2,(o.z0+o.z1)/2),r:Math.hypot(o.x1-o.x0,o.y1-o.y0,o.z1-o.z0)/2+10,b:[o.x0,o.x1,o.y0,o.y1,o.z0,o.z1]};
   if(CHU.length){const m=new THREE.Mesh(jadeChutes(CHU),JADE_CHUTE_M);m.userData.jeter=true;m.frustumCulled=false;m.renderOrder=5;root.add(m);}
-  {const RY=[],pasY=Math.max(1,Math.round(170/(L/(NP-1))));for(let i=0;i<NP;i+=pasY){if(jr()>.55)continue;const t9=T[i],hl=Math.hypot(t9.x,t9.z)||1,px=-t9.z/hl,pz=t9.x/hl,sg=jr()<.5?-1:1,lat=60+Math.pow(jr(),1.3)*650;
+  {const RY=[],pasY=Math.max(1,Math.round(170/(L/(NP-1))));for(let i=0;i<NP;i+=pasY){if(jr()>.55*(DZ?DZ.ray:1))continue;const t9=T[i],hl=Math.hypot(t9.x,t9.z)||1,px=-t9.z/hl,pz=t9.x/hl,sg=jr()<.5?-1:1,lat=60+Math.pow(jr(),1.3)*650;
      RY.push([pts[i].x+px*sg*lat,pts[i].y+40+jr()*160,pts[i].z+pz*sg*lat,22+jr()*55,650+jr()*600,jr(),.03+jr()*.05]);}
    if(RY.length){const m=new THREE.Mesh(jadeRayons(RY),JADE_RAYON_M);m.userData.jeter=true;m.frustumCulled=false;m.renderOrder=7;root.add(m);JADE.n9=RY.length;}}
   if(performance.now()>JF.lim)yield;
   // ---- LES NUAGES EN VOLUTES : loin autour de la route (au-dessus des montagnes, et quelques bancs bas sur le fleuve), quelques-uns au-dessus d'elle ----
   {const NU=[],pasN=Math.max(1,Math.round(360/(L/(NP-1)))); // (v17, Léo : « plus de nuages ») 480 → 360 m, quatre par pas au lieu de trois, une couche ENTRE les montagnes et des bancs bas sur l'eau
    for(let i=0;i<NP;i+=pasN){const t9=T[i],hl=Math.hypot(t9.x,t9.z)||1,px=-t9.z/hl,pz=t9.x/hl;
-     if(jr()<.55){const sg=jr()<.5?-1:1,w=200+jr()*260,lat=ROAD_HALF+420+w*.5+jr()*900;NU.push([pts[i].x+px*sg*lat,pts[i].y-60+jr()*300,pts[i].z+pz*sg*lat,w,w*.5,(jr()*16)|0,jr(),pts[i].x,pts[i].z]);} // entre les montagnes
-     for(let k=0;k<4;k++){const r9=jr();if(r9>.8)continue;const sg=jr()<.5?-1:1,haut=true,lat=haut?1000+Math.pow(jr(),.8)*3000:1500+jr()*2600,al=(jr()-.5)*700,w=haut?800+jr()*1100:1500+jr()*1300;
+     if(jr()<.55*(DZ?DZ.nua:1)){const sg=jr()<.5?-1:1,w=200+jr()*260,lat=ROAD_HALF+420+w*.5+jr()*900;NU.push([pts[i].x+px*sg*lat,pts[i].y-60+jr()*300,pts[i].z+pz*sg*lat,w,w*.5,(jr()*16)|0,jr(),pts[i].x,pts[i].z]);} // entre les montagnes
+     for(let k=0;k<4;k++){const r9=jr();if(r9>.8*(DZ?Math.min(1.2,DZ.nua):1))continue;const sg=jr()<.5?-1:1,haut=true,lat=haut?1000+Math.pow(jr(),.8)*3000:1500+jr()*2600,al=(jr()-.5)*700,w=haut?800+jr()*1100:1500+jr()*1300;
        const y=haut?pts[i].y+260+jr()*820:JADE.eauY+45+jr()*120;NU.push([pts[i].x+px*sg*lat+t9.x/hl*al,y,pts[i].z+pz*sg*lat+t9.z/hl*al,w,w*.5,(jr()*16)|0,jr(),pts[i].x,pts[i].z]);}
      if(jr()<.35){const sg=jr()<.5?-1:1,lat=250+jr()*500,w=600+jr()*600;NU.push([pts[i].x+px*sg*lat,pts[i].y+780+jr()*600,pts[i].z+pz*sg*lat,w,w*.5,(jr()*16)|0,jr(),pts[i].x,pts[i].z]);}} // au-dessus de la route
    }
@@ -145,9 +183,9 @@ function* jadeBatit(seed,cle){
    PIL.forEach(function(q,k){const re=q[2]+2;for(let gx=Math.floor((q[0]-re)/CG);gx<=Math.floor((q[0]+re)/CG);gx++)for(let gz=Math.floor((q[1]-re)/CG);gz<=Math.floor((q[1]+re)/CG);gz++){const kk=gx+','+gz;let a=g9.get(kk);if(!a)g9.set(kk,a=[]);a.push(k);}});
    JADE.col={g:g9,CG:CG,P:PIL};}
   // ---- LA BRUME QUI FLOTTE ----
-  {const n0=TEL_NATIF?150:240,itb=[],ib=[],Mx=new THREE.Matrix4();const pasB=Math.max(1,Math.floor(NP/n0));
+  {const n0=Math.round((TEL_NATIF?150:240)*(DZ?DZ.brume.n:1)),itb=[],ib=[],Mx=new THREE.Matrix4();const pasB=Math.max(1,Math.floor(NP/n0));
    for(let i=0;i<NP;i+=pasB){const t9=T[i],hl=Math.hypot(t9.x,t9.z)||1,px=-t9.z/hl,pz=t9.x/hl;
-     for(let k=0;k<2;k++){const sg=jr()<.5?-1:1,lat=ROAD_HALF+60+Math.pow(jr(),1.4)*700,w=140+jr()*320,low=jr()<.45;
+     for(let k=0;k<2;k++){const sg=jr()<.5?-1:1,lat=ROAD_HALF+60+Math.pow(jr(),1.4)*700,w=140+jr()*320,low=jr()<(DZ?DZ.brume.bas:.45);
        const y=low?JADE.eauY+20+jr()*100:pts[i].y-260+jr()*290;
        itb.push(pts[i].x+px*sg*lat+(jr()-.5)*120,y,pts[i].z+pz*sg*lat+(jr()-.5)*120);ib.push(w*(low?1.8:1),w*(low?.42:.3),jr(),low?.75:.38+jr()*.3);}}
    const n=itb.length/3,geo=new THREE.PlaneGeometry(1,1),im=new THREE.InstancedMesh(geo,JADE_BRUME_M,n);

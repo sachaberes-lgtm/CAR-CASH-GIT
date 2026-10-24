@@ -8,7 +8,11 @@
    (localStorage simulé, faux Capacitor.Preferences). Cas : 1 JSON tronqué + miroir plein → le miroir est lu, semé, rechargement, rien
    d'écrasé · 2 JSON tronqué + miroir vide → sauvegarde neuve écrite partout (comme avant) · 3 sauvegarde locale lisible → le miroir
    n'est PAS consulté (comportement inchangé) · 4 web sans Capacitor + JSON tronqué → aucune exception (inchangé).
-   Dernière ligne : PREUVE OK ou PREUVE KO ; avec un 2e fichier, l'ancien doit échouer au cas 1. */
+   Dernière ligne : PREUVE OK ou PREUVE KO ; avec un 2e fichier, l'ancien doit échouer au cas 1.
+   (24/10, débogage sortie iOS) MISE À JOUR : le bloc SAVE appelle m2Vierge, gagneAjoute, carRetiree, carOwned, HAB_RETIRES (extraits du fichier,
+   hissés devant lui comme dans l'IIFE du jeu) et m2Etat (bouchon vide) ; le web sans Capacitor ne sauvegarde plus rien depuis le 22/10 (SAVE.neuf) :
+   le cas 4 tourne avec `?garde=1` (là où quelque chose est lu). NOUVEAU cas 5 : miroir ILLISIBLE lui aussi → il était semé tel quel puis la page
+   rechargeait, retrouvait un localStorage illisible, relisait le miroir, rechargeait… à l'infini (appli inutilisable). Il doit être traité comme vide. */
 'use strict';
 const fs=require('fs'),vm=require('vm');
 function sauteTexte(t,i){const ch=t[i],n=t[i+1];
@@ -22,7 +26,10 @@ const attends=()=>new Promise(r=>setImmediate(r));
 async function essai(chemin){
   const src=fs.readFileSync(chemin,'utf8');
   const unique=rep=>{const i=src.indexOf(rep);if(i<0)throw new Error('repère introuvable : '+rep);if(src.indexOf(rep,i+1)>=0)throw new Error('repère non unique : '+rep);return i;};
-  const bloc=src.slice(unique('const SAVE={'),unique('if(BALADE){SAVE.d.tuto=1'));
+  const fonction=entete=>{const i=unique(entete);return src.slice(i,finBloc(src,i+entete.length-1,'{','}'));};
+  const iHab=unique('const HAB_RETIRES={'),habTxt=src.slice(iHab,finBloc(src,iHab+'const HAB_RETIRES='.length,'{','}'))+';';
+  const avant=[fonction('function m2Vierge(){'),fonction('function gagneAjoute(x){'),fonction('function carRetiree(i){'),fonction('function carOwned(i){'),habTxt,'function m2Etat(){}'].join('\n');
+  const bloc=avant+'\n'+src.slice(unique('const SAVE={'),unique('if(BALADE){SAVE.d.tuto=1'));
   const iE=unique('const ENGINE_TIERS=[')+'const ENGINE_TIERS='.length,NE=(function(){const t=src.slice(iE,finBloc(src,iE,'[',']'));let n=0,d=0;
     for(let i=0;i<t.length;i++){const s=sauteTexte(t,i);if(s>=0){i=s;continue;}if(t[i]==='{'){if(d===1)n++;d++;}else if(t[i]==='}')d--;else if(t[i]==='[')d=d||1;}return n;})();
   const KO=[];const v=(c,cas,detail)=>{console.log('  '+(c?'ok':'KO')+'  '+cas+(detail?' — '+detail:''));if(!c)KO.push(cas);};
@@ -30,7 +37,7 @@ async function essai(chemin){
     const store=Object.assign({},lsInit);const P={store:{},sets:[],gets:0,get(a){P.gets++;return Promise.resolve({value:P.store[a.key]!==undefined?P.store[a.key]:null});},set(a){P.sets.push(a.value);P.store[a.key]=a.value;return Promise.resolve();}};
     if(miroir!==undefined)P.store.cashcarSave=miroir;
     const reload={n:0};
-    const sb={localStorage:store,window:{Capacitor:avecCap===false?undefined:{Plugins:{Preferences:P}}},location:{reload(){reload.n++;}},console,
+    const sb={localStorage:store,window:{Capacitor:avecCap===false?undefined:{Plugins:{Preferences:P}}},location:{reload(){reload.n++;},search:'?garde=1'},console,
       THREE:{MathUtils:{clamp:(x,a,b)=>Math.min(b,Math.max(a,x))}},ECO3:{gain:.25},ENGINE_TIERS:new Array(NE).fill(0),
       CARS:new Array(77).fill(0).map(()=>({})),CAR_UNLOCK:new Array(77).fill(null),pk:()=>null,SANS_CARRIERE:false,PAL:{b:(k,d)=>d}};
     const ctx=vm.createContext(sb);let err=null;try{vm.runInContext(bloc+';',ctx);}catch(e){err=e;}
@@ -50,6 +57,9 @@ async function essai(chemin){
   v(!r.err&&r.P.gets===0&&r.reload.n===0&&JSON.parse(r.store.cashcarSave).bank===5000,'3  sauvegarde locale lisible : le miroir n\'est pas consulté','gets='+r.P.gets);
   r=await boot({cashcarSave:tronque},undefined,false);
   v(!r.err&&r.reload.n===0,'4  web sans Capacitor + JSON tronqué : aucune exception',r.err&&String(r.err));
+  /* 5 : le miroir aussi est illisible — deux lancements de suite (le 2e part du localStorage laissé par le 1er) : pas de rechargement en boucle */
+  r=await boot({cashcarSave:tronque},tronque);const r2=await boot(Object.assign({},r.store),r.P.store.cashcarSave);
+  v(!r.err&&!r2.err&&r.reload.n+r2.reload.n===0&&JSON.parse(r2.store.cashcarSave).v===2,'5  JSON tronqué + miroir tronqué : pas de rechargement en boucle, le jeu démarre (sauvegarde neuve)','rechargements '+r.reload.n+' puis '+r2.reload.n);
   return KO;}
 (async()=>{
   const a=await essai(process.argv[2]);

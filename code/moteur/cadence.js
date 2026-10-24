@@ -70,3 +70,16 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
   else if(now-CAD.calT>5000){cadPose(false,now);CAD.essT=now;}}
 window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0))?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
   const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1),plafond:{actif:FPS_CAP,n:FPS.n,ecran:+FPS.per.toFixed(2)}};}; // (2026-10-20) plafond : une image d'écran sur n (fpsSaute)
+/* ====================== HORS COURSE À 30 i/s — HC (2026-10-23, audit mobile, Sacha : « une version mobile fluide sans que ça baisse trop en qualité ») ======================
+   CAD ne cale qu'EN COURSE : un accueil ou un garage laissé ouvert tournait à 60 i/s plein rendu (haute définition comprise) et chauffait comme une
+   partie. Sur ANCIEN et MOYEN (CAD.ok), l'accueil et le garage se calent donc sur 33 ms, par le même saut en temps que CAD (une image d'écran sur
+   deux sur 60 Hz, une sur quatre sur 120 Hz) : une image sautée ne fait RIEN, le dt de la suivante absorbe l'écart (borné à 50 ms). La durée lue par
+   la règle de qualité est ramenée à une image d'écran (voir ms9 dans loop), le filet de VHD et la détection de 30 Hz imposé n'y voient donc rien.
+   Palier RÉCENT : `hors30` = 0, aucun effet. `?hc=0` coupe (comparer). La course, la pause et l'écran de fin ne sont pas touchés. */
+PAL.B.hors30=[1,1,0];
+const HC={on:false,der:0,off:/[?&]hc=0/.test(location.search)};
+function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran à jour) : rend true si cette image d'écran se saute
+  const hc=!HC.off&&PAL.b('hors30',0)&&!CAD.on&&(!started||garageOn)&&!document.hidden;
+  if(!hc){HC.on=false;return false;}
+  if(HC.on&&now-HC.der<CAD.per-CAD.tol)return true;
+  HC.on=true;HC.der=now;return false;}

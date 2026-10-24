@@ -22,6 +22,7 @@ function richLance(t,P,n,d,delai,kv,mat){ // (rend l'objet lancé ; mat : la mat
   const o=richSort(t);if(!o)return null;const D=RICH_T[t],rr=(a)=>a[0]+Math.random()*(a[1]-a[0]),m=o.m;
   if(t==='fruit'){const k9=richFruitK(),g9=fruitGeo(k9);if(!g9.boundingSphere)g9.computeBoundingSphere();m.geometry=g9;o.fr=(RICH_FRUIT_R[FRUIT_DEFS[k9].n]||.35)/Math.max(.05,g9.boundingSphere.radius);}else o.fr=1; // chaque fruit à SA taille
   if(t==='jeton')m.material=RICH.M.jetons[Math.floor(Math.random()*RICH.M.jetons.length)]; // une couleur, une valeur
+  const montreArg=t==='montre'&&Math.random()<.5;m.material=t==='montre'?(montreArg?RICH.M.montreArg:RICH.M.montre):m.material; // la dorée ou l'argentée
   if(t==='champagne'){const k9=Math.floor(Math.random()*RICH.G.vins.length);m.geometry=RICH.G.vins[k9];m.material=RICH.M.vins[k9];} // (2026-10-16) le champagne ou l'un de ses quatre cousins
   if(t==='fleur'){m.geometry=RICH.G.fleurs[Math.floor(Math.random()*RICH.G.fleurs.length)];o.A=(.5+Math.random()*1.1)*(Math.random()<.5?-1:1);} // (2026-10-16) une des six fleurs ; o.A : sa vitesse de rotation sur sa tige
   if(t==='billet')m.material=mat||RICH.M.billets[Math.floor(Math.random()*RICH.M.billets.length)]; // (2026-10-10) une valeur, une couleur
@@ -40,6 +41,7 @@ function richLance(t,P,n,d,delai,kv,mat){ // (rend l'objet lancé ; mat : la mat
   if(D.pop){o.pt=Math.max(.45,o.vie*(.3+Math.random()*.55));o.vie=o.pt+.34;o.fv=.05;o.popS=0;m.material.uniforms.uPop.value=0;if(m.children[0])m.children[0].scale.setScalar(2.2);} // (2026-10-16) le cœur ÉCLATERA à son heure (o.pt), chacun la sienne
   // les facettes qui peuvent renvoyer le soleil (repère de l'objet)
   o.nl=D.nl||null;let gc=D.gc||[1,.9,.68];
+  if(montreArg)gc=[.9,.95,1]; // l'éclat de l'acier : blanc-bleu
   if(t==='crane'){const mc=RICH.M.cranes[Math.floor(Math.random()*RICH.M.cranes.length)];m.children[0].material=mc;gc=mc.userData.gc;} // un pastel au hasard, son éclat à sa teinte
   if(o.nl&&!o.gl){for(const g of RICH.gl)if(!g.o){g.o=o;o.gl=g;break;}}
   if(o.gl){o.gl.s.material.rotation=Math.random()*3;o.gl.s.material.color.setRGB(gc[0],gc[1],gc[2]);}
@@ -148,7 +150,7 @@ function richCoup(P,n,d,mu,combo){
     richFlamme(P9,n9,T9.fl,r==='jackpot'||r==='gros');richEtincelles(P9,n9,d9,Math.round(12*T9.fl),1);
     const nb=T9.n[0]+Math.floor(Math.random()*(T9.n[1]-T9.n[0]+1)),etal=r==='jackpot'?.38:r==='gros'?.22:.12;
     const M9=RICH.mat9={g:0,v:0,f:0};for(let i=0;i<nb;i++){const ty=richPioche(T9.w),D9=RICH_T[ty]||{},lourd=D9.flip==='y'||ty==='or'||ty==='lingot'; // (2026-10-10) LA GERBE EN DEUX TEMPS : le métal part d'abord, sec ; le papier suit et s'étale
-      if(ty==='diamant'||ty==='rubis'||ty==='emeraude')M9.g=1;else if(ty==='champagne')M9.v=1;else if(ty==='fleur')M9.f=1; // (les matières de la gerbe, pour ses sons)
+      if(ty==='diamant'||ty==='rubis'||ty==='emeraude'||ty==='bague')M9.g=1;else if(ty==='champagne')M9.v=1;else if(ty==='fleur')M9.f=1; // (les matières de la gerbe, pour ses sons)
       richLance(ty,P9,n9,d9,lourd?Math.random()*etal*.55:D9.papier||ty==='liasse'?.05+Math.random()*etal*1.25:Math.random()*etal,r==='jackpot'?1.2:1);}
     if(Math.random()<.04)richLance('crane',P9,n9,d9,etal*.5,1); // de temps en temps, un CRÂNE pastel
     {const NU=RICH_NUEE[r];if(NU&&Math.random()<NU[0]){RICH.popI=0;const nc=NU[1]+Math.floor(Math.random()*(NU[2]-NU[1]+1));let t9=.03;for(let i=0;i<nc;i++){t9+=.03+Math.pow(Math.random(),2.2)*.38; // (2026-10-16) LA NUÉE : de petits cœurs, en plus de la gerbe, qui éclatent un à un — et (Léo : « plus irréguliers, on les voit trop en groupe ») ils s'ÉCHAPPENT un par un, à intervalles irréguliers (parfois deux d'affilée, parfois un silence), chacun sa vitesse, sa direction et son point de départ autour de la caisse
@@ -307,17 +309,38 @@ const CHUTE_NU=[
   [ 500,8600,560,4,0,-250],[3000,8200,620,6,0,-300],[-1800,8000,480,5,0,-330],
   // (2026-10-07, campagne de debug) deux tours étaient posées à 10,8 et 12,5 km — AU-DELÀ du plan lointain (camera.far 9800) : jamais
   // dessinées, juste payées. Retirées. Le 7e champ (2) rend leurs deux tirages de rotation : la tour de face garde EXACTEMENT sa silhouette.
-  [1500,9100,700,5,0,-200,2]];
+  [1500,9100,700,5,0,-200,2],
+  /* (2026-10-20, Léo : « dans le menu ciel, les nuages du fond encore plats ») LES BANCS DU MILIEU : seize cumulus en cubes posés sur la mer entre la caisse et les tours de l'horizon
+     (2,4-6,2 km, tout autour, immobiles) — le tapis ne fait plus seul tout le fond : des volumes à toutes les profondeurs, noyés dans l'air plus ils sont loin. Ajoutés en FIN de liste :
+     les silhouettes d'avant ne changent pas (les tirages de rotation suivent l'ordre). */
+  [-403,5004,362,0,0,-636],
+  [1725,5129,423,1,0,-641],
+  [2334,2328,165,3,0,-619],
+  [2480,968,207,2,0,-597],
+  [2555,164,217,0,0,-678],
+  [4198,-2200,242,1,0,-612],
+  [2009,-2007,236,3,0,-618],
+  [2521,-4895,299,0,0,-708],
+  [50,-4497,278,2,0,-637],
+  [-793,-2414,204,1,0,-597],
+  [-2404,-2100,267,3,0,-703],
+  [-5010,-1724,372,0,0,-676],
+  [-4192,-380,332,1,0,-592],
+  [-5081,2738,371,2,0,-618],
+  [-2765,2701,327,3,0,-621],
+  [-1335,2408,206,0,0,-718]];
 /* LES FORMES D'ABORD (titre v3) : les surfaces fines des cinq gabarits du titre sont demandées à l'ouvrier AU CHARGEMENT DU SCRIPT, avant
    les 96 finesses du ciel de coton (cotonInit, au premier newTrack) — sinon elles attendaient 10 à 15 s derrière elles, et le titre
    montrait pendant ce temps des ÉBAUCHES en grappes de boules. Aucune ébauche ici : un cumulus du titre n'existe à l'image que fini. */
 function chuteFormes(){
-  if(CHUTE.geo)return;const rg=mulberry32(0xC4A5),G9=[['mediocris',3],['humilis',3],['humilis',2],['mediocris',2],['congestus',3],['mediocris',3],['congestus',3]],geo=[];
+  if(CHUTE.geo)return;const rg=mulberry32(0xC4A5),G9=[['mediocris',2],['humilis',2],['humilis',1],['mediocris',1],['congestus',2],['mediocris',2],['congestus',2]],geo=[];
   for(const q of G9){const S=cumulus8(q[0],rg);S.seed=Math.floor(rg()*997);const dyU=-(S.base+S.top)*.5,e={g:null};geo.push(e);
     nuage8Async(S,N8_FIN[q[1]],function(r9){const g2=cotonBuf(r9);g2.translate(0,dyU,0);g2.computeBoundingSphere();e.g=g2;
-      if(CHUTE.nu)for(const c of CHUTE.nu)if(c.e===e)c.m.geometry=g2;});}
+      if(r9.skin&&NUSKIN.on)e.skg=nuSkinGeo(r9.skin,dyU); // (2026-10-21) la PEAU transparente des cumulus du titre aussi
+      if(CHUTE.nu)for(const c of CHUTE.nu)if(c.e===e){c.m.geometry=g2;if(e.skg)chuteSkinPose(c);}});}
   CHUTE.geo=geo;CHUTE.rg=rg;
 }
+function chuteSkinPose(c){if(c.sk||!c.e.skg)return;const sk=new THREE.Mesh(c.e.skg,nuSkinMat());sk.renderOrder=1;sk.frustumCulled=false;sk.castShadow=sk.receiveShadow=false;c.m.add(sk);c.sk=sk;}
 function chuteCumulus(){
   if(CHUTE.nu)return;chuteFormes();const geo=CHUTE.geo,rg=CHUTE.rg,vide=new THREE.BufferGeometry();
   /* LEUR MATIÈRE : celle des nuages v8 (même programme, déjà compilé), avec SES réglages de lumière (uK : albédo, soleil, lisière, vapeur ·
@@ -328,18 +351,20 @@ function chuteCumulus(){
   for(const d of CHUTE_NU){if(d[6])for(let k9=0;k9<d[6];k9++)rg(); /* (7e champ) des tirages sautés : voir les tours de l'horizon */
     const e=geo[d[3]],m=new THREE.Mesh(e.g||vide,mT);m.visible=false;m.castShadow=false;m.receiveShadow=false;
     m.scale.set(d[2],d[2],d[2]);m.rotation.y=rg()*6.2832;scene.add(m);const dd=Math.hypot(d[0],d[1]);
-    N.push({m:m,e:e,a:d[0],b:d[1],r:d[2],v:d[4],y:d[5],lo:-(1.2*dd+1.3*d[2]),hi:.1*dd+1.3*d[2]});}
+    {const c9={m:m,e:e,a:d[0],b:d[1],r:d[2],v:d[4],y:d[5],lo:-(1.2*dd+1.3*d[2]),hi:.1*dd+1.3*d[2]};N.push(c9);if(e.skg)chuteSkinPose(c9);}}
   CHUTE.nu=N;
 }
 try{if(CHUTE_OK)chuteFormes();}catch(e){} /* (titre v3) au chargement : les formes du titre passent AVANT celles du ciel de coton dans la file de l'ouvrier */
+const CHUTE_RONDS=/[?&]ronds=1\b/.test(location.search); // `?ronds=1` rend les bancs de brume ronds du titre
 function chuteMonte(){ // les bancs de nuage et les filets de vent (une fois)
   chuteCumulus();
   const tex=chuteNuageTex(),W=[];
-  for(let i=0;i<16;i++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:0,depthWrite:false,fog:false}));
+  /* (2026-10-21, Léo : « enlève tous les ronds qui n'ont plus rien à voir avec les nouveaux nuages ») plus de bancs de brume RONDS (16 sprites) ni de nappes rondes (30) au titre : les nuages du titre sont les cumulus en cubes */
+  for(let i=0;i<(CHUTE_RONDS?16:0);i++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:0,depthWrite:false,fog:false}));
     sp.visible=false;sp.renderOrder=4;scene.add(sp);W.push({sp:sp,x:0,y:0,z:0,s:1,v:1,r:0});}
   for(const w of W)chuteNuageNeuf(w,true);
   CHUTE.w=W;
-  const SOL=[];for(let i=0;i<30;i++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:.95,depthWrite:false,fog:false}));
+  const SOL=[];for(let i=0;i<(CHUTE_RONDS?30:0);i++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:.95,depthWrite:false,fog:false}));
     sp.visible=false;sp.renderOrder=-3;scene.add(sp);SOL.push(sp);}
   CHUTE.sol=SOL;
   const N=46,g=new THREE.BufferGeometry(),pos=new Float32Array(N*4*3),col=new Float32Array(N*4*3),idx=[];

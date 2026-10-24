@@ -12,9 +12,12 @@ paintCarHud(); // et la fiche de caisse porte le bon nom/palier dès l'écran d'
 applyLangDOM(); // la langue sauvegardée s'applique AU CHARGEMENT (elle ne prenait qu'en cliquant le sélecteur)
 setBestChip();
 renderLeaders(-1);
+/* (2026-10-21, Léo : « une nouvelle intro beaucoup plus moderne et stylée pour le label 1.61, du style Xbox ou PlayStation ») l'intro est
+   désormais celle de moteur/intro-161.js (blips, noir, gros logo qui casse l'écran). `?intro=ancien` rend celle d'avant, juste dessous. */
+const INTRO_NEUVE=!/[?&]intro=ancien\b/.test(location.search);
 (function(){ // ---------- INTRO STUDIO « 1.61 » : accumulation… battements… FISSION ----------
   const sp9=document.getElementById('splash');
-  if(!sp9)return;
+  if(!sp9||INTRO_NEUVE)return;
   window.__intro='attente'; // (la mise à jour toute seule) l'écran titre attend son toucher : rien n'a sonné, on peut recharger
   const cv9=document.getElementById('fxCv'),ctx9=cv9.getContext('2d');
   const stage=document.getElementById('spStage'),num=document.getElementById('spNum'),

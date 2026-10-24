@@ -24,8 +24,8 @@
     }
     updateMoneyRain(dt,t);
     updatePigeons(dt,t);
-    pgpTick(dt,t); // (Paris) les bisets
     updateClouds(dt,t);
+    pluieCaisseTick(dt); // (2026-10-21) la pluie éclabousse la caisse
     for(let i9=skulls.length-1;i9>=0;i9--){ // crânes qui tournoient puis s'estompent
       const k9=skulls[i9];
       k9.life-=dt;k9.v.y-=18*dt;
