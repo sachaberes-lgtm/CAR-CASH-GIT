@@ -196,6 +196,42 @@ html body.touch #airPie[style*="block"]+#airHud{display:block}
 html body.touch #airPie.danger+#airHud{animation:k6PieDanger .12s steps(2) infinite}
 html body.touch #airPie.danger+#airHud .ahBar{animation:daSecA .3s steps(2) infinite}
 @keyframes daSecA{50%{box-shadow:inset 0 0 0 3px var(--rP),0 4px 0 var(--jEncre),0 0 12px color-mix(in srgb,var(--rP) 70%,transparent)}}
+/* ===== LE CHRONO DE VOL EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») =====
+   Mesuré sur l'iPhone 13 Pro de Sacha : 58,0 i/s et 63 images > 25 ms en course, 59,7 i/s et 9 images toutes animations CSS figées —
+   WebKit refait style + peinture à chaque image pour background-position / box-shadow. Même image, mais dans le compositeur :
+   · AIR INFINI (daFile) : les rayures ne glissent plus par background-position ; elles sont peintes UNE fois sur un calque 13 px plus
+     large (.hanAhR::before, mêmes tuiles de 13 px, même origine) qui glisse de −13 px en transform, coupé par .hanAhR (= la boîte de .ahF,
+     .ahF ne coupe pas : son curseur ::after déborde). La 2e barre du raisin (.ahBar2, clone) garde l'ancien chemin (son fond est autre).
+   · SECONDES CRITIQUES (daSecA, steps(2)) : l'ombre A, l'ombre à mi-chemin et l'ombre B sont posées chacune sur un calque (::before,
+     .hanAhM, ::after ; sous la jauge : .ahBar devient un contexte d'empilement, calques en z-index −1), seule leur opacité bascule.
+     Écart attendu : 0 sur A et B, l'arrondi des couleurs sur le calque du milieu. En .flash (rare), l'ancien chemin (l'ombre de base y est autre). */
+#airHud .hanAhR{display:none}
+html.han #airHud[data-k="inf"] .ahBar:not(.ahBar2) .ahF{animation:none;background-size:100% 100%;
+  background-image:linear-gradient(var(--bandes4),var(--xL) 0 2px,var(--xP) 2px 50%,var(--xS) 50% calc(100% - 2px),var(--xO) calc(100% - 2px))}
+html.han #airHud[data-k="inf"] .ahBar:not(.ahBar2) .ahF>.hanAhR{display:block;position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none}
+html.han #airHud[data-k="inf"] .ahBar:not(.ahBar2) .ahF>.hanAhR::before{content:'';position:absolute;left:0;top:0;bottom:0;width:calc(100% + 13px);
+  background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.4) 0 4px,transparent 4px 9px);background-size:13px 100%;background-position:0 0;
+  animation:hanAhFile .4s linear infinite;will-change:transform}
+@keyframes hanAhFile{to{transform:translateX(-13px)}}
+html.han body.touch #airPie.danger+#airHud:not(.flash) .ahBar{animation:none;box-shadow:none;isolation:isolate}
+#airHud .hanAhM{display:none}
+html.han body.touch #airPie.danger+#airHud:not(.flash) .ahBar::before,html.han body.touch #airPie.danger+#airHud:not(.flash) .ahBar::after{content:''}
+html.han body.touch #airPie.danger+#airHud:not(.flash) .ahBar::before,html.han body.touch #airPie.danger+#airHud:not(.flash) .ahBar>.hanAhM,html.han body.touch #airPie.danger+#airHud:not(.flash) .ahBar::after{display:block;position:absolute;
+  left:0;top:0;right:0;bottom:0;z-index:-1;pointer-events:none;will-change:opacity;opacity:0}
+/* steps(2) s'applique à CHAQUE intervalle d'images clés (0→50 %, 50→100 %) : A sur [0 ; ¼[, la MOITIÉ du chemin A→B sur [¼ ; ½[ et [¾ ; 1[,
+   B sur [½ ; ¾[. Trois calques, un seul visible à la fois (step-end). Le calque du milieu porte l'ombre interpolée à 50 %, écrite à la main :
+   décalages, flous et couleurs moyennés (deux couleurs « anciennes » : en sRGB ; avec un color-mix, qui n'en est pas une : en Oklab). */
+html.han body.touch #airPie.danger+#airHud:not(.flash) .ahBar::before{box-shadow:inset 0 0 0 3px var(--jEncre),0 4px 0 var(--jEncre),0 8px 14px rgba(0,0,0,.35);
+  animation:hanAhSecA .3s step-end infinite}
+html.han body.touch #airPie.danger+#airHud:not(.flash) .ahBar>.hanAhM{box-shadow:inset 0 0 0 3px color-mix(in srgb,var(--jEncre),var(--rP)),0 4px 0 var(--jEncre),
+  0 4px 13px color-mix(in oklab,rgba(0,0,0,.35),color-mix(in srgb,var(--rP) 70%,transparent));animation:hanAhSecM .3s step-end infinite}
+html.han body.touch #airPie.danger+#airHud:not(.flash) .ahBar::after{box-shadow:inset 0 0 0 3px var(--rP),0 4px 0 var(--jEncre),0 0 12px color-mix(in srgb,var(--rP) 70%,transparent);
+  animation:hanAhSecB .3s step-end infinite}
+@keyframes hanAhSecA{0%{opacity:1}25%,100%{opacity:0}}
+@keyframes hanAhSecM{0%,50%{opacity:0}25%,75%,100%{opacity:1}}
+@keyframes hanAhSecB{0%,75%,100%{opacity:0}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){html.han #airHud .hanAhR::before,html.han body.touch #airPie.danger+#airHud .ahBar>.hanAhM,html.han body.touch #airPie.danger+#airHud .ahBar::after{animation:none!important}
+  html.han body.touch #airPie.danger+#airHud .ahBar::before{animation:none!important;opacity:1!important}}
 body.hTp:not(#ccH) #airHud,body.dead #airHud{visibility:hidden}
 /* ---- 4. L'EMBLÈME DARK TRIAD : l'icône pixel (triangle et œil) et le nom dans la typo du compteur, en bandes ROUGES (TRIPLE MONSTER) ---- */
 :root{--frenTh:60px}

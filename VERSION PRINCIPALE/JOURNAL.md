@@ -3,6 +3,44 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES TUILES DE VERRE SANS FLOU (2026-10-24 soir, Léo : « ça serait mieux de faire quoi pour que ça rame pas, en gardant l'idée » · « sans flou, voile givré (n°2) »)
+- **LA CAUSE** : les tuiles GARAGE · BUY · SETTINGS portaient `backdrop-filter:blur(5px) saturate() brightness()` — le navigateur doit relire l'image de la 3D qui tourne derrière chaque tuile à chaque image ; la charte de l'interface l'interdit sur mobile (« zéro backdrop-filter », `body.touch #overlay` le remet à `none`). Mesure impossible ici (rendu logiciel plafonné à 30 i/s, avec et sans flou identiques) : le gain est à confirmer sur un vrai iPhone (`?banc=1`).
+- **LE CORRECTIF** (bloc `tuilesVerre` de `code/css/boutons-flottants.css`) : plus de `backdrop-filter` ; la dernière couche du fond passe de `rgba(255,255,255,.06)` à `linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.08))` (le « voile givré »). Reflets, double liseré, lueur de couleur, bleu / rouge / or : inchangés. Vu : sur ciel dégagé, la différence avec le flou ne se voit pas ; seul un nuage qui passe pile derrière n'est plus adouci.
+- Si ça rame encore : le menu rend la 3D à pleine densité d'écran (`VHD`, voir « L'ACCUEIL EN HAUTE DÉFINITION »), c'est le plus gros poste du menu.
+
+## LE 1er LANCEMENT — LA BANQUE DE SONS EN DEUX MOITIÉS (2026-10-24, session PERF, 4e tour — Léo : « lance tout ce qui semble stratégique »)
+- **MESURÉ sur le vrai site** (iPhone simulé, processeur ×4, cache froid, `?garde=1`, banc `tlance.py`) : le 1er lancement télécharge 8,4 Mo (`sons-banque.js` 4,9 Mo, la page 1,7, un ciel 0,9) ;
+  le menu jouable arrive à 18,5 s en 4G rapide (10 Mbit/s : le processeur domine) mais à **57 s en 4G lente (1,6 Mbit/s)** — 28 s sans la banque : elle est un script `defer`, la page attend sa fin.
+- **LE CHANGEMENT** : à la publication seulement (`outils/scinde-banque.cjs`, appelé par `vercel-build.sh` ; le fichier du dépôt reste ENTIER : cuire.js le relit, `sons.html` et la salle
+  blanche le chargent tel quel) la banque devient `sons-banque.js` (les fiches + les sons `pre:1` + l'étalon : 110 fiches, 0,82 Mo) et `sons-banque-2.js` (288 fiches, 6,9 Mo, ~4,3 Mo transférés).
+  `sfx.js` (?v=7) charge le 2e fichier APRÈS l'événement load, au repos (`suite`, 3 essais), et ses sons entrent dans la même file de décodage (`CCSON.ajoute`) ; un son pas encore là : `play()` se tait,
+  comme avant pour un son pas encore décodé. La preuve est faite à chaque publication : l'union des deux fichiers relue = la banque d'origine, octet pour octet (sinon la banque part entière).
+  Le fichier de la copie publiée garde son URL (`?v=38`) : un joueur qui a déjà la banque entière en cache ne retélécharge rien.
+- **VÉRIFIÉ** : copie réellement construite par `vercel-build.sh` (allégée, scindée) servie en local : 397 sons sur 397 décodés en 21 s à 10 Mbit/s ; menu au même instant (19 s) ; en 1,6 Mbit/s
+  (copie non allégée, locale) menu **107 → 74 s**, les 109 sons du début décodés avant le menu, 397/397 à 120 s (la banque entière : 109 s). Sur le vrai site, la 4G lente devrait passer de ~57 s à ~30 s.
+- ⚠ Une publication sans la scission (ou en cas d'échec de l'outil) marche comme avant ; `?` rien à régler. Une banque recuite (`cuire.js`) change `?v=` comme toujours.
+
+## LE HUD QUI NE RAME PLUS SUR L'IPHONE + L'ENREGISTREUR DE PARTIES (2026-10-24, v876, session PERF-PC — Sacha : « sur la version mobile l'HUD prend trop de capacité, règle ça » · « lors des tests la voiture reste conduite sur le sol alors qu'une grosse partie du jeu se joue en voltigeant dans les airs ; fais un mode où c'est moi qui joue en voltigeant et toi tu récupères de la data »)
+- **LE DIAGNOSTIC** (session OPTIMISATION MOBILE, iPhone 13 Pro de Sacha DANS L'APP, banc CC BANC, palier RÉCENT, 35 s de course) : course normale 58,0 i/s et 63 images > 25 ms ;
+  TOUTES les animations CSS figées 59,7 i/s et 9 ; HUD masqué pareil ; le JS par image identique (2 ms) → c'est WebKit qui refait style + peinture à chaque image pour les
+  animations INFINIES du HUD sur des propriétés non composées (box-shadow, filter, background-position). Sur Chrome PC le plafond n'est que ≤ 1 ms par image.
+- **LE CORRECTIF** (`html.han`, posée par `code/page/tete.html` ; `?hudanim=0` = les anciennes animations, A/B dans la même page) : refaites en transform / opacité, les anciennes
+  règles intactes à côté — la plaque des pouvoirs `.pw` (k5PwBat : deux pseudo-éléments dont seule l'opacité bat ; la jauge `u` sur son calque), le reflet et les éclats de `#flowHud`
+  (calque 3× plus large en translateX dans `.fSeg` qui coupe déjà), « à portée » et la brûlure de la zone rouge (copie éclaircie en opacité), `#avRec` presque / battu, le chrono de vol
+  (rayures de l'air infini, secondes critiques), `#campChip.alerte`, le RECORD des figures, et `#popTxt` / `#engBig` placés par `translate` au lieu de top/left (plus de mise en page
+  par image pendant un geste). Laissé : les `hue-rotate` (avArc, drgHue), le × en feu `hmFeu` (essayé : Chrome passe par un halo rouge à mi-battement, irreproductible), fLache3/hmArme,
+  hmEncore, hmChronoRec, frBrule de `#frenTraits`, toute la zone NITRO (session téléphone).
+- **PREUVE D'IMAGE** (`perf-pc/.banc-pc/preuve-hud.mjs`, dossier de travail : ancien contre neuf, boucle coupée, toile 3D et film masqués, chaque état forcé, animations figées aux
+  phases 0 / ¼ / ½ / ¾ / 0,9, pixels qui diffèrent) : reflet du flow, frénésie, popTxt, engBig, × en feu 0 ; plaques, flow, aura, air, RECORD ≤ 0,8 % de pixels à écart > 32 (fondus
+  de lueurs, bord de la jauge `u` à ⅓ px) ; `#campChip.alerte` 2,6 % — c'est l'ANCIEN qui se trompe sur PC (Chrome ne zoome pas l'ombre animée dans le cadre zoomé), pas l'iPhone.
+- **MESURÉ SUR L'IPHONE** (CC BANC, même piste `?pistegraine=777`, nuages midi, 3 passes par bras alternées) : `?hudanim=0` 55,2-56,7 i/s, 71-113 images > 25 ms (moy. 93) ;
+  défaut 57,9-59,4 i/s, 18-53 (moy. 38) : **+2,7 i/s, −59 % d'images ratées**. Reste ~40 images ratées par course, dont la zone nitro (à la session téléphone).
+- **L'ENREGISTREUR DE PARTIES** (`code/moteur/enregistreur-perf.js`, `PREC`) : allumé par `?perfrec=1`, par `localStorage.ccPerfRecOn='1'` (l'appli n'a pas d'adresse) ou
+  `dbgPerfRec(1)`, il note chaque image de course — durée, temps du jeu avant le dessin, PHASE (sol / vol / figure), map, palier, crans QL, densité, cadence 30 — et range chaque
+  course finie dans le téléphone (`localStorage.ccPerfRec`, les 15 dernières). Relevé : `dbgPerfRec('resume')` (une ligne par course et par phase) ou `dbgPerfRec()` (tout : histogrammes,
+  images > 40 ms avec instant, phase, map, vitesse ; une ligne par seconde). Éteint : aucun rappel d'image, zéro coût. Essai au banc PC : sol 53 i/s, vol 50, figure 50 — les phases
+  de vol que le pilote des bancs ne montrait jamais.
+
 ## LE PALIER DE L'IPHONE LU SUR SON ÉCRAN — MESURÉ DANS L'APP, SUR LE VRAI TÉLÉPHONE (2026-10-24, v873, session Optimisation mobile — Sacha : « grosse session d'optimisation du jeu, il faut que la version mobile soit parfaite » · « je veux que tu fasses l'app »)
 - **LE BANC DANS L'APP** (`optim-mobile/.banc-optim/`, non suivi) : « CC BANC » (`com.sachaberes.carcash.banc`) = la copie de l'app de `sortie-ios/appstore` (Capacitor 8),
   www/ refait par son `preparer-www.js --essai` sur n'importe quel VERSION PRINCIPALE, installée À CÔTÉ de CASH CAR (la vraie app et la sauvegarde de Sacha ne sont pas touchées).

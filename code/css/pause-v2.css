@@ -1,77 +1,109 @@
 <style>
-/* ===== LA PAUSE REFAITE (2026-10-24, Sacha : « cet écran de pause est horrible, fais un truc bien ») =====
-   Une seule grille, deux dispositions : debout (titre, la partie, réglages en tuiles, boutons) et couché (la partie + REPRENDRE à gauche,
-   les réglages en tuiles + RECOMMENCER / QUITTER à droite). Les tuiles remplacent les lignes plates ; SON et MUSIQUE s'allument en vert.
-   Tout est en #tPanel#tPanel#tPanel : les anciennes règles (charte 2/5/7, ux8) se superposaient, celle-ci passe au-dessus sans !important. */
-#tPanel#tPanel#tPanel #tpIn{display:grid;box-sizing:border-box;width:100%;max-width:460px;min-height:100%;margin:0 auto;gap:12px;align-content:stretch;
-  grid-template-columns:minmax(0,1fr);grid-template-rows:none;
-  grid-template-areas:"titre" "partie" "regl" "bas" "go";
+/* ===== LA PAUSE, MESURÉE (2026-10-24, Sacha : « cet écran est horrible, mets-toi sérieusement dessus, prends des mesures et corrige ça ») =====
+   Mesuré au banc, iPhone couché 844×390, sur la pause de la v866 :
+   - les cases s'étiraient pour remplir l'écran : SON 194×130 et TOUS LES REGLAGES 396×130 pour un mot de 10 px, la carte AURA 285×229 ;
+   - tout le texte en 10 px, le titre PAUSE compris ;
+   - quatre habillages de cases (rose, vert, vert, bleu) et trois de plaques (or, cyan, contour rouge) ;
+   - les plaques inclinées (skew 11°) débordaient de 6 px de leur colonne, la carte de gauche ne partait pas à la hauteur de celle de droite ;
+   - le fond tombait à 0,6 d'opacité au milieu : les traits de la course passaient à travers les cartes ;
+   - IMAGE, POUCE HAUT et FIGURES, demandés en paysage par Sacha le 23/10 (v834), étaient re-cachés.
+   Maintenant chaque bloc a la taille de ce qu'il contient et l'ensemble se centre. UNE carte pour la partie, UNE carte pour les réglages
+   (des cases séparées d'un filet), les trois plaques à la même hauteur et dans leurs colonnes. Libellés en 12 px, PAUSE en 20.
+   Debout, le bloc se cale en bas, sous le pouce : le vide est au-dessus, sur la course figée (avant : un trou de 256 px au milieu).
+   Tout est en #tPanel#tPanel#tPanel : les anciennes règles (charte 2/5/7, ux8, écrans iPhone) se superposent, celle-ci passe au-dessus sans !important. */
+#tPanel#tPanel#tPanel{background:radial-gradient(95% 42% at 8% -4%,rgba(255,62,200,.18),transparent 70%),
+  radial-gradient(circle,rgba(214,200,255,.07) 0 1px,transparent 1.5px) 0 0/7px 7px,
+  linear-gradient(180deg,rgba(9,6,22,.93),rgba(7,5,15,.88) 45%,rgba(7,5,15,.95))}
+#tPanel#tPanel#tPanel #tpIn{display:grid;box-sizing:border-box;width:100%;max-width:440px;min-height:100%;margin:0 auto;gap:14px;align-content:stretch;
+  grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto auto auto auto auto;
+  grid-template-areas:"." "titre" "partie" "regl" "bas" "go";
   padding:calc(var(--sT) + 18px) calc(var(--sR) + var(--gut)) calc(var(--sB) + 16px) calc(var(--sL) + var(--gut))}
 #tPanel#tPanel#tPanel #tpIn>.tpH[data-g="run"],#tPanel#tPanel#tPanel #tpIn>.tpHR{display:none}
-#tPanel#tPanel#tPanel #tpIn>.tpH:first-child{grid-area:titre;margin:0;align-self:start}
+#tPanel#tPanel#tPanel #tpIn>.tpH:first-child{grid-area:titre;margin:0 0 4px;align-self:start;font-size:var(--f6);letter-spacing:4px;line-height:1}
+#tPanel#tPanel#tPanel #tpIn>.tpH:first-child::after{margin-top:10px}
 #tPanel#tPanel#tPanel #tpIn>.tpResume{grid-area:partie;margin:0}
 #tPanel#tPanel#tPanel #tpIn>.tpPanel{grid-area:regl;margin:0;align-self:start}
-#tPanel#tPanel#tPanel #tpIn>.tpRow{grid-area:bas;margin:0;padding:0;align-self:end}
-#tPanel#tPanel#tPanel #tpIn>.tp.go{grid-area:go;margin:0;align-self:end;position:relative;bottom:auto}
+#tPanel#tPanel#tPanel #tpIn>.tpRow{grid-area:bas;margin:0;align-self:end}
+#tPanel#tPanel#tPanel #tpIn>.tp.go{grid-area:go;align-self:end;position:relative;bottom:auto}
+
+/* ---- les deux cartes : même coupe, même filet, même laque ---- */
+#tPanel#tPanel#tPanel :is(.tpResume,.tpPanel){position:relative;overflow:hidden;
+  clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px)}
 
 /* ---- la partie en cours : AURA en grand, MOTEUR et NIVEAU dessous ---- */
-#tPanel#tPanel#tPanel .tpResume{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1.5fr 1fr;gap:0;position:relative;overflow:hidden;
-  background:linear-gradient(160deg,rgba(255,62,200,.16),rgba(0,234,255,.05) 55%,rgba(20,14,44,.7)),var(--laqueP,rgba(20,14,44,.8));
-  clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);
+#tPanel#tPanel#tPanel .tpResume{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1.3fr) minmax(0,1fr);gap:0;
+  background:linear-gradient(160deg,rgba(255,62,200,.14),rgba(0,234,255,.04) 55%,transparent),linear-gradient(180deg,#1a1532,#120e26);
   box-shadow:inset 0 0 0 1px var(--fil,rgba(255,255,255,.14)),inset 0 1px 0 rgba(255,255,255,.12)}
-#tPanel#tPanel#tPanel .tpResume .mStat{flex-direction:column-reverse;gap:6px;min-height:0;padding:10px 8px;background:none;box-shadow:none;clip-path:none;text-align:center}
-#tPanel#tPanel#tPanel .tpResume .mStat span{font-size:var(--f1);letter-spacing:3px;color:var(--tx3)}
-#tPanel#tPanel#tPanel .tpResume .mStat b{font-size:var(--f6);color:var(--tx);max-width:100%;white-space:nowrap}
+#tPanel#tPanel#tPanel .tpResume .mStat{display:flex;flex-direction:column-reverse;align-items:center;justify-content:center;gap:8px;min-height:0;height:auto;
+  padding:12px 8px;background:none;box-shadow:none;clip-path:none;text-align:center}
+#tPanel#tPanel#tPanel .tpResume .mStat span{font-size:var(--f2);letter-spacing:3px;color:var(--tx3)}
+#tPanel#tPanel#tPanel .tpResume .mStat b{font-size:var(--f6);line-height:1;color:var(--tx);max-width:100%;white-space:nowrap}
 #tPanel#tPanel#tPanel .tpResume .mStat:nth-child(1){grid-column:1/-1;border-bottom:1px solid var(--fil,rgba(255,255,255,.14))}
 #tPanel#tPanel#tPanel .tpResume .mStat:nth-child(1) b{font-size:var(--f7);color:var(--neoM,#ff3ec8);text-shadow:0 0 18px rgba(255,62,200,.55),0 3px 0 var(--txO,#0a0418)}
 #tPanel#tPanel#tPanel .tpResume .mStat:nth-child(1) span{color:var(--neoM,#ff3ec8);opacity:.85}
 #tPanel#tPanel#tPanel .tpResume .mStat:nth-child(2){border-right:1px solid var(--fil,rgba(255,255,255,.14))}
 #tPanel#tPanel#tPanel .tpResume .mStat:nth-child(2) b{color:var(--neoC,#00eaff)}
-#tPanel#tPanel#tPanel .tpResume .mStat:nth-child(3) b{color:var(--auT-clair,#ffd044)}
+#tPanel#tPanel#tPanel .tpResume .mStat:nth-child(3) b{color:#ffd044}
 
-/* ---- les réglages : des tuiles, deux par rangée ---- */
-#tPanel#tPanel#tPanel .tpPanel{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:minmax(62px,1fr);gap:10px}
-#tPanel#tPanel#tPanel .tpPanel>.tp.ligne{display:grid;grid-template-columns:34px minmax(0,1fr);grid-template-rows:auto auto;column-gap:10px;row-gap:3px;align-content:center;align-items:center;
-  box-sizing:border-box;min-height:62px;margin:0;padding:8px 12px;border:0;overflow:hidden;
-  background:linear-gradient(180deg,rgba(34,28,64,.92),rgba(18,14,36,.92));
-  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
-  box-shadow:inset 0 0 0 1px var(--fil,rgba(255,255,255,.14)),inset 0 1px 0 rgba(255,255,255,.1);
-  transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease),background var(--t-fast) var(--ease)}
-#tPanel#tPanel#tPanel .tpPanel>.tp.ligne::before{left:12px;top:50%;width:34px;height:34px;margin-top:-17px}
+/* ---- les réglages : une carte, des cases en grille (le filet entre elles est le fond de la carte, vu par l'écart de 1 px) ---- */
+#tPanel#tPanel#tPanel .tpPanel{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-auto-rows:minmax(56px,auto);gap:1px;padding:1px;
+  background:var(--fil,rgba(200,184,255,.17))}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne{display:grid;grid-template-columns:34px minmax(0,1fr);grid-template-rows:auto auto;column-gap:10px;row-gap:6px;
+  align-content:center;align-items:center;box-sizing:border-box;min-height:56px;height:auto;margin:0;padding:8px 10px;border:0;overflow:hidden;
+  background:#151129;clip-path:none;box-shadow:none;transform:none;transition:background var(--t-fast) var(--ease)}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne::before{left:10px;top:50%;width:34px;height:34px;margin-top:-17px}
 #tPanel#tPanel#tPanel .tpPanel>.tp.ligne>.pxi{grid-column:1;grid-row:1/span 2;justify-self:center;margin:0}
-#tPanel#tPanel#tPanel .tpPanel>.tp.ligne .tpL{grid-column:2;grid-row:1;font-size:var(--f1);letter-spacing:1px;line-height:1.6;white-space:normal;color:var(--tx)}
-#tPanel#tPanel#tPanel .tpPanel>.tp.ligne b.valeur{grid-column:2;grid-row:2;justify-self:start;font-family:var(--pix);font-weight:400;font-size:var(--f1);letter-spacing:1px;color:var(--neoC,#00eaff);
-  text-shadow:0 0 10px rgba(0,234,255,.45)}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne>span{grid-column:2;grid-row:1;min-width:0;font-size:var(--f3);letter-spacing:.5px;line-height:1.35;white-space:normal;color:var(--tx)}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne b.valeur{grid-column:2;grid-row:2;justify-self:start;margin:0;font-family:var(--pix);font-weight:400;font-size:var(--f2);letter-spacing:1px;
+  color:var(--neoC,#00eaff);text-shadow:0 0 10px rgba(0,234,255,.45)}
 #tPanel#tPanel#tPanel .tpPanel>.tp.ligne b.valeur::after{content:'';display:inline-block;margin-left:8px;border-left:6px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent}
-#tPanel#tPanel#tPanel .tpPanel>.tp.ligne b.bascule{grid-column:2;grid-row:2;justify-self:start;width:64px;height:24px;font-size:var(--f0)}
-#tPanel#tPanel#tPanel .tpPanel>.tp.ligne b.bascule::before{width:22px;height:18px}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne b.bascule{grid-column:2;grid-row:2;justify-self:start;margin:0;width:60px;height:22px;padding:0 7px;font-size:var(--f0)}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne b.bascule::before{top:3px;right:3px;width:20px;height:16px}
 #tPanel#tPanel#tPanel .tpPanel>.tp.ligne b.bascule.ko::before{transform:translateX(-34px)}
-#tPanel#tPanel#tPanel .tpPanel>.tp.ligne:has(b.bascule:not(.ko)){background:linear-gradient(180deg,rgba(14,56,38,.9),rgba(10,26,28,.92));
-  box-shadow:inset 0 0 0 1px rgba(94,227,122,.55),inset 0 1px 0 rgba(255,255,255,.12),inset 0 0 22px rgba(94,227,122,.12)}
-#tPanel#tPanel#tPanel .tpPanel>.tp.ligne:has(b.bascule.ko){opacity:.8}
-#tPanel#tPanel#tPanel .tpPanel>.tp.ligne:is(:active,.appui){transform:translateY(2px);background:linear-gradient(180deg,rgba(60,52,104,.95),rgba(30,24,60,.95))}
-/* TOUS LES REGLAGES : une tuile comme les autres, une flèche à droite (l'ancienne ::after de lien est remplacée) */
-#tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien{grid-template-columns:34px minmax(0,1fr) auto;background:linear-gradient(180deg,rgba(0,60,80,.55),rgba(18,14,36,.92))}
-#tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien .tpL{grid-row:1/span 2;color:var(--neoC,#00eaff)}
-#tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien::after{content:'';grid-column:3;grid-row:1/span 2;width:0;height:0;margin:0;background:none;-webkit-mask:none;mask:none;
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne:is(:active,.appui){background:#2a2350}
+/* TOUS LES REGLAGES : le libellé sur toute la hauteur, une flèche à droite (l'ancienne ::after de lien est remplacée) */
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien{grid-template-columns:34px minmax(0,1fr) auto;background:linear-gradient(90deg,#151129 40%,#0f2236)}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien>span{grid-row:1/span 2;color:var(--neoC,#00eaff)}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien::after{content:'';position:static;grid-column:3;grid-row:1/span 2;width:0;height:0;margin:0 2px 0 0;background:none;-webkit-mask:none;mask:none;
   border-left:8px solid var(--neoC,#00eaff);border-top:6px solid transparent;border-bottom:6px solid transparent}
+/* debout : SON, MUSIQUE, puis TOUS LES REGLAGES sur la largeur (IMAGE, POUCE HAUT et FIGURES sont dans TOUS LES REGLAGES, comme avant) */
 html:not(.c6) #tPanel#tPanel#tPanel .tpPanel>.tp.ligne:is([data-a="q"],[data-a="volh"],[data-a="figg"]){display:none}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien{grid-column:1/-1}
 
-/* ---- les trois plaques du bas : REPRENDRE (or), RECOMMENCER, QUITTER ---- */
-#tPanel#tPanel#tPanel #tpIn>.tpRow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-#tPanel#tPanel#tPanel #tpIn>.tpRow>.tp{min-height:60px;margin:0;padding:0 12px;font-size:var(--f1);letter-spacing:1px}
-#tPanel#tPanel#tPanel #tpIn>.tp.go{min-height:68px}
+/* ---- les trois plaques : même hauteur, même plaque sombre pour RECOMMENCER et QUITTER (le liseré dit le sens : cyan, rouge),
+        l'or pour REPRENDRE ; 6 px de marge de chaque côté, la moitié de ce que l'inclinaison fait déborder ---- */
+#tPanel#tPanel#tPanel #tpIn>.tpRow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;padding:0 6px}
+#tPanel#tPanel#tPanel #tpIn>.tpRow>.tp{min-height:56px;height:56px;margin:0;padding:0 10px;font-size:var(--f2);letter-spacing:1px}
+#tPanel#tPanel#tPanel #tpIn>.tp.go{min-height:64px;height:64px;margin:0 6px}
+#tPanel#tPanel#tPanel #tpIn .tp.rouge{color:#ff6a80;
+  background:linear-gradient(112deg,transparent 0 37%,rgba(255,255,255,.055) 37% 45%,transparent 45% 49%,rgba(255,255,255,.03) 49% 51%,transparent 51%),
+    linear-gradient(180deg,#272049 0%,#1c1738 46%,#141029 100%);
+  box-shadow:inset 3px 0 0 var(--neoR,#ff4a64),inset 34px 0 30px -28px rgba(255,74,100,.75),inset 0 1px 0 rgba(255,255,255,.16),inset 0 0 0 1px rgba(255,255,255,.06),
+    0 0 0 1px rgba(3,1,9,.92),0 5px 0 #0a0818,0 5px 0 1px rgba(3,1,9,.92),0 14px 24px -10px rgba(0,0,0,.72)}
+#tPanel#tPanel#tPanel #tpIn .tp.rouge:is(:active,.appui){box-shadow:inset 3px 0 0 var(--neoR,#ff4a64),inset 0 0 26px rgba(255,74,100,.4),0 0 0 1px rgba(3,1,9,.92),0 2px 0 #0a0818}
 
-/* ---- couché : la partie et REPRENDRE à gauche, les réglages et le reste à droite ---- */
+/* ---- couché : la partie et REPRENDRE à gauche, les réglages (les six) et RECOMMENCER / QUITTER à droite, le tout centré en hauteur ---- */
 @media (orientation:landscape){
-  #tPanel#tPanel#tPanel #tpIn{max-width:880px;column-gap:22px;row-gap:12px;grid-template-columns:minmax(0,.9fr) minmax(0,1.25fr);grid-template-rows:auto minmax(0,1fr) auto;
-    grid-template-areas:"titre regl" "partie regl" "go bas";
-    padding:calc(var(--sT) + 14px) calc(var(--sR) + 24px) calc(var(--sB) + 14px) calc(var(--sL) + 24px)}
-  #tPanel#tPanel#tPanel #tpIn>.tpRow,#tPanel#tPanel#tPanel #tpIn>.tpPanel{align-self:stretch}
-  #tPanel#tPanel#tPanel #tpIn>.tpRow>.tp,#tPanel#tPanel#tPanel #tpIn>.tp.go{min-height:60px;height:100%}
+  #tPanel#tPanel#tPanel #tpIn{max-width:860px;column-gap:24px;row-gap:14px;align-content:center;
+    grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);grid-template-rows:auto auto auto;
+    grid-template-areas:"titre titre" "partie regl" "go bas";
+    padding:calc(var(--sT) + 12px) calc(var(--sR) + 22px) calc(var(--sB) + 12px) calc(var(--sL) + 22px)}
+  #tPanel#tPanel#tPanel #tpIn>.tpResume{align-self:stretch}
+  #tPanel#tPanel#tPanel #tpIn>.tpPanel{align-self:start}
+  #tPanel#tPanel#tPanel #tpIn>.tpRow{align-self:stretch}
+  #tPanel#tPanel#tPanel #tpIn>.tpRow>.tp,#tPanel#tPanel#tPanel #tpIn>.tp.go{min-height:56px;height:56px}
+  html:not(.c6) #tPanel#tPanel#tPanel .tpPanel>.tp.ligne:is([data-a="q"],[data-a="volh"],[data-a="figg"]){display:grid}
+  #tPanel#tPanel#tPanel .tpPanel>.tp.ligne:is(.lien,[data-a="figg"]){grid-column:auto} /* ux8 étalait FIGURES sur la largeur : 4 rangées, la page débordait */
 }
-@media (orientation:landscape) and (max-height:430px){
-  #tPanel#tPanel#tPanel .tpPanel>.tp.ligne{min-height:54px;padding:6px 10px}
-  #tPanel#tPanel#tPanel .tpPanel{gap:8px}
+/* couché bas (iPhone 13 mini, SE : 375 px) : le même écran serré — titre 16 px, libellés 10 px, plaques de 50 px (débordait de 18 px) */
+@media (orientation:landscape) and (max-height:380px){
+  #tPanel#tPanel#tPanel #tpIn{row-gap:10px}
+  #tPanel#tPanel#tPanel #tpIn>.tpH:first-child{font-size:var(--f5)}
+  #tPanel#tPanel#tPanel #tpIn>.tpH:first-child::after{margin-top:7px}
+  #tPanel#tPanel#tPanel .tpPanel{grid-auto-rows:minmax(50px,auto)}
+  #tPanel#tPanel#tPanel .tpPanel>.tp.ligne{min-height:50px;padding:6px 8px;column-gap:8px;row-gap:5px}
+  #tPanel#tPanel#tPanel .tpPanel>.tp.ligne::before{left:8px}
+  #tPanel#tPanel#tPanel .tpPanel>.tp.ligne>span{font-size:var(--f2)}
+  #tPanel#tPanel#tPanel #tpIn>.tpRow>.tp,#tPanel#tPanel#tPanel #tpIn>.tp.go{min-height:50px;height:50px}
 }
 </style>
