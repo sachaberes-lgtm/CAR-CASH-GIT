@@ -61203,6 +61203,16 @@ function chanceOuvre(boom,sc,q){ // fin de endGame : la partie est versée, l'é
   CHANCE.tm=setTimeout(function(){CHANCE.offre=false;chanceSignal();},CHANCE.fen+30);
   chanceSignal();
 }
+/* ===== LA SECONDE CHANCE NE FILE PAS EN ARRIÈRE-PLAN (24/10, débogage sortie iOS : « pas de minuteur de jeu qui avance en arrière-plan ») =====
+   L'offre se comptait à l'horloge murale (CHANCE.fin) et par un setTimeout : l'appli quittée une seconde pendant l'offre (une notification,
+   le centre de contrôle, un appel), elle avait disparu au retour. Caché : le minuteur s'arrête ; revenu : la fin recule d'autant. */
+addEventListener('visibilitychange',function(){ try{
+  if(document.hidden){ if(CHANCE.offre&&!CHANCE.used&&CHANCE.fin&&!CHANCE.chanceCacheT){CHANCE.chanceCacheT=performance.now();clearTimeout(CHANCE.tm);} return; }
+  if(!CHANCE.chanceCacheT)return; const dur9=performance.now()-CHANCE.chanceCacheT; CHANCE.chanceCacheT=0;
+  if(!(CHANCE.offre&&!CHANCE.used&&CHANCE.fin))return;
+  CHANCE.fin+=dur9; clearTimeout(CHANCE.tm);
+  CHANCE.tm=setTimeout(function(){CHANCE.offre=false;chanceSignal();},Math.max(0,CHANCE.fin-performance.now())+30); chanceSignal();
+}catch(e){} });
 function chanceEtat(){
   const ok=!!(CHANCE.on&&CHANCE.offre&&!CHANCE.used&&started&&gameOver&&performance.now()<CHANCE.fin&&overlay.style.display!=='none'&&!garageOn&&!MENUV.retour); /* (15/10 soir) plus de `bank()>=CHANCE.prix` : la pub ne demande rien au compte */
   return {ok:ok,prix:CHANCE.prix,gratuit:!!CHANCE.gratuit,reste:ok?Math.max(0,Math.round(CHANCE.fin-performance.now())):0};
