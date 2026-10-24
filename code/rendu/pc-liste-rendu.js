@@ -6,7 +6,8 @@
      — sans même compter l'appel dans renderer.info (les ~150 appels de `dbgCout()` ne les montrent pas) ;
    · une géométrie à 0 sommet, un drawRange ou un groupe vide : même chose, `renderBufferDirect` sort APRÈS `setProgram` ;
    · un objet transparent à opacité 0 (les fondus), matière de série, mélange normal ou additif, sans écriture de profondeur ni de stencil :
-     alpha 0 → le pixel reste ce qu'il était, au bit près.
+     alpha 0 → le pixel reste ce qu'il était, au bit près — et seulement une matière déjà dessinée VISIBLE une fois (un fondu à 0 peut servir de
+     chauffe : le premier vrai dessin fabrique l'état de pipeline de la puce, on ne le déplace pas).
    Déjà vu aux Pics de Jade : 92 des 316 appels d'une image étaient des peaux de nuages à zéro instance (corrigé à la main dans `cotonTick`).
    Ici, POUR TOUTES LES MAPS : juste après la projection (`finish` de la liste de rendu, avant le tri), ces éléments sont retirés de la liste —
    ni programme, ni uniformes, ni tampons, ni tri. MÊME IMAGE : ce qui sort ne dessinait aucun pixel ; l'ordre du reste est inchangé.
@@ -15,7 +16,7 @@
    inchangée. ORDI seulement (TEL_NATIF : le téléphone ne change pas ; `?pcthree=1` pour l'y essayer) ; `?pcthree=0` = avant.
    Banc : `dbgPctListe()` = ce qui est sorti de la liste de la scène à la dernière image (et des exemples) ; `dbgPctListe(0|1)` coupe/remet à chaud. */
 const PCT_ON=/[?&]pcthree=1\b/.test(location.search)||(!TEL_NATIF&&!/[?&]pcthree=0\b/.test(location.search));
-const PCT={on:PCT_ON,n:[0,0,0,0],op:0,tr:0,ex:null,
+const PCT={on:PCT_ON,n:[0,0,0,0],op:0,tr:0,ex:null,vus:new WeakSet(),
   mats:new Set(['MeshBasicMaterial','MeshLambertMaterial','MeshPhongMaterial','MeshStandardMaterial','MeshToonMaterial','MeshMatcapMaterial','PointsMaterial','SpriteMaterial','LineBasicMaterial']),
   obr:THREE.Object3D.prototype.onBeforeRender,oar:THREE.Object3D.prototype.onAfterRender,obc:THREE.Material.prototype.onBeforeCompile};
 function pctVide(it,ov,tr){ /* 0 = se dessine · 1 = zéro instance · 2 = zéro sommet à tracer · 3 = transparent à opacité 0 */
@@ -25,14 +26,14 @@ function pctVide(it,ov,tr){ /* 0 = se dessine · 1 = zéro instance · 2 = zéro
   else{const ix=g.index,po=g.attributes.position,c=ix!==null?ix.count:(po!==undefined?po.count:0),gr=it.group,dr=g.drawRange;
     if((ov||it.material).wireframe!==true){const a=Math.max(dr.start,gr!==null?gr.start:0),b=Math.min(c,dr.start+dr.count,gr!==null?gr.start+gr.count:Infinity);if(b<=a)k=2;} /* le calcul de renderBufferDirect : drawCount = 0 */
     if(k===0&&tr&&ov===null){const m=it.material;
-      if(m.opacity===0&&m.transparent===true&&m.depthWrite===false&&m.stencilWrite!==true&&(m.blending===THREE.NormalBlending||m.blending===THREE.AdditiveBlending)&&m.onBeforeCompile===PCT.obc&&PCT.mats.has(m.type))k=3;}}
+      if(m.opacity===0&&m.transparent===true&&m.depthWrite===false&&m.stencilWrite!==true&&(m.blending===THREE.NormalBlending||m.blending===THREE.AdditiveBlending)&&m.onBeforeCompile===PCT.obc&&PCT.mats.has(m.type)&&PCT.vus.has(m))k=3;}} /* vus : déjà dessinée visible une fois (l'état de pipeline de la puce existe, voir cielChauffe) */
   if(k===0||o.onBeforeRender!==PCT.obr||o.onAfterRender!==PCT.oar)return 0;
   const m=ov||it.material,p=renderer.properties.get(m);if(p.currentProgram===undefined||p.__version!==m.version)return 0;
   return k;}
 function pctFiltre(A,ov,tr,pr){let j=0;
   for(let i=0;i<A.length;i++){const it=A[i],k=PCT.on?pctVide(it,ov,tr):0;
     if(k!==0){if(pr){PCT.n[k]++;if(PCT.ex&&PCT.ex.length<16)PCT.ex.push(k+' '+(it.object.name||it.object.type)+' · '+it.material.type+(it.material.name?':'+it.material.name:''));}continue;}
-    if(j!==i)A[j]=it;j++;}
+    if(tr&&it.material.opacity!==0)PCT.vus.add(it.material);if(j!==i)A[j]=it;j++;}
   A.length=j;}
 function pctTasse(L,sc){const ov=sc.overrideMaterial||null,pr=sc===scene;if(pr){PCT.n[1]=PCT.n[2]=PCT.n[3]=0;}
   pctFiltre(L.opaque,ov,false,pr);pctFiltre(L.transparent,ov,true,pr);if(pr){PCT.op=L.opaque.length;PCT.tr=L.transparent.length;}}
