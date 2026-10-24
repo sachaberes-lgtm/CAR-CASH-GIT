@@ -71,9 +71,6 @@ maps/dunes-4.js                      # dunes : les scènes le long de la route (
 maps/glacier-route.js                # LA BANQUISE / LE GLACIER v4 : route, manteau de neige
 maps/glacier-construction.js         # glacier : construction, volant en l'air
 maps/glacier-verglas.js              # glacier : verglas, retombée des tremplins, console
-maps/volcan-route.js                 # LE ROYAUME DE FEU : routes v4 et v5, bruit du relief
-maps/volcan-actes.js                 # LE VOLCAN EN ACTES : la route en temps forts (faille, crête, lac, raccourci) et ses orages de cendre
-maps/volcan-construction.js          # volcan : construction, console
 maps/grottes-1.js                    # LES PROFONDEURS : route, surface à facettes
 maps/grottes-2.js                    # grottes : décors, lumières, rendu, construction, ambiances
 maps/ville-v3.js                     # la ville v3 (canyon du village de la pluie), panneaux holographiques

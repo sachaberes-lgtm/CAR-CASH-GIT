@@ -698,7 +698,6 @@ function updateClouds(dt,t){
   scene.fog.far=FOG_F-(FOG_F-Math.min(FOG_F,820))*cloudInS+CAMP_FOG;     // (340→820)
   fogTmp.copy(FOG_BASE).lerp(FOG_CJ,cj2*.5).lerp(FOG_CLOUD,cloudInS);
   scene.fog.color.copy(fogTmp);
-  if(FUMEE_K>.002){scene.fog.near+=(Math.min(scene.fog.near,30)-scene.fog.near)*FUMEE_K;scene.fog.far+=(Math.min(scene.fog.far,FUMEE_F)-scene.fog.far)*FUMEE_K;scene.fog.color.lerp(FOG_FUMEE,FUMEE_K);} // (2026-10-14) LE ROYAUME DE FEU : dans un BANC DE FUMÉE la vue se referme (le défi de la map : voir) — les néons de la route, eux, percent encore quelques dizaines de mètres
   /* L'ADAPTATION DE L'ŒIL (2026-09-25, user : « la lumière peut être éblouissante, dans les nuages notamment »). Une ouate
      blanche éclairée plein soleil, c'est déjà du blanc pur AVANT le post ; le bloom l'étale et l'ACES le cloue au plafond :
      l'écran entier devenait blanc. Comme une vraie caméra, l'exposition BAISSE quand l'œil s'approche d'un banc, y entre,
