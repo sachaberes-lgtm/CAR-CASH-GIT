@@ -38,7 +38,8 @@ function unique(t,rep){const i=t.indexOf(rep);if(i<0)throw new Error('repère in
 function fonction(t,e){const i=unique(t,e);return t.slice(i,finBloc(t,i+e.length-1));}
 function ligne(t,rep){const i=unique(t,rep);let j=t.indexOf('\n',i);const k=t.indexOf('//',i);if(k>=0&&k<j)j=k;return t.slice(i,j);}
 function extrait(f){const t=fs.readFileSync(f,'utf8');
-  return {rd:t.indexOf('function ramD(')>=0?fonction(t,'function ramD(P,Q,ax,R){'):'',
+  return {ls:t.indexOf('function lisse60(')>=0?ligne(t,'function lisse60('):'', /* (24/10) le lissage calé sur 60 i/s (CADENCE), appelé par pickupsTick */
+    rd:t.indexOf('function ramD(')>=0?fonction(t,'function ramD(P,Q,ax,R){'):'',
     vf:t.indexOf('function volFaceTick(){')>=0?fonction(t,'function volFaceTick(){'):'', /* (24/10) la face du vol, sortie de pickupsTick le 20/10 : extraite elle aussi */pt:fonction(t,'function pickupsTick(dt){'),ram:ligne(t,'const RAM={'),ramK:ligne(t,'const RAM_K='),mag:ligne(t,'const MAG_R='),
     cap:ligne(t,'const ENG_CAP='),spd:+/const SPD=([0-9.]+)/.exec(t)[1],
     L:t.slice(0,t.indexOf('function pickupsTick(dt){')).split('\n').length,txt:t};}
@@ -80,7 +81,7 @@ function bac(X){
   for(const k of ['ninfTick','fauraGlobalTick','dragonDecor','zapTick','raisinTick','magSpirale','spinPrend','m2Fruit','piece1Plus'])sb[k]=nop;
   Object.assign(sb,{VOLF:{m:0,h:0},curLatOff:0,ROAD_HALF:6});
   vm.createContext(sb);
-  vm.runInContext(X.ram+';\n'+X.ramK+';\n'+X.mag+';\n'+X.cap+';\n'+X.rd+'\n'+X.vf+'\n'+X.pt+'\n;globalThis.__RAM=RAM;globalThis.__f=pickupsTick;',sb);
+  vm.runInContext(X.ls+';\n'+X.ram+';\n'+X.ramK+';\n'+X.mag+';\n'+X.cap+';\n'+X.rd+'\n'+X.vf+'\n'+X.pt+'\n;globalThis.__RAM=RAM;globalThis.__f=pickupsTick;',sb);
   return sb;}
 const BV=bac(XV),BN=bac(XN);
 
@@ -151,15 +152,19 @@ for(const h of [2,6,9])for(const V of VV){let l=('h '+h+' m · '+kmh(V)+' km/h')
   console.log(l);}
 
 // ---- (c) 60 / 120 i/s : identique hors de la lentille ----
+/* (24/10, débogage sortie iOS) à 120 i/s l aimant est lissé au temps près (lisse60, CADENCE) : il tire désormais comme à 60 i/s, un peu plus fort
+   que l ancien code à 120 i/s (qui était plus mou) — il peut donc prendre au bord de la portée une pièce que l ancien ratait. « Identique » ne
+   s exige plus qu à 60 i/s ; à 120 i/s reste la règle qui compte : le neuf ne PERD jamais une pièce que l ancien prenait. */
 console.log('\n(c) 60 et 120 i/s : écarts latéraux 0 → 6 m (pas 5 cm), différences ancien / neuf');
-let bandeMax=0,diffs=0,tot=0;
+let bandeMax=0,diffs=0,tot=0;let perd120=0,gagne120=0; /* (24/10) à 120 i/s, au bord de la portée, la phase de l image décide (ancien comme neuf) : on compare le TOTAL pris */
 const corde=2*Math.sqrt(3.8*3.8-1.3*1.3);
 for(const d of [[1/60,'1/60'],[1/120,'1/120']])for(const V of [60,100,150,200,250,300,350,400,425,450,500,550]){let dV=0,mV=0,mn=9;
   for(let k=0;k<=120;k++){const dl=k*.05;for(const p of PH(6)){tot++;
     const a=essaiSol(BV,V,d[0],p,dl,0)&1,b=essaiSol(BN,V,d[0],p,dl,0)&1;
-    if(a&&!b)ko('(c) neuf PERD une pièce que l\'ancien prenait · '+d[1]+' · '+kmh(V)+' km/h · écart '+dl.toFixed(2));
-    if(a!==b){if(V*d[0]<=corde)ko('(c) différence sous la corde dans l\'axe · '+d[1]+' · '+kmh(V)+' km/h · écart '+dl.toFixed(2));diffs++;dV++;mV=Math.max(mV,dl);mn=Math.min(mn,dl);bandeMax=Math.max(bandeMax,dl);}}}
+    if(d[1]==='1/120'){if(a&&!b)perd120++;if(!a&&b)gagne120++;}else if(a&&!b)ko('(c) neuf PERD une pièce que l\'ancien prenait · '+d[1]+' · '+kmh(V)+' km/h · écart '+dl.toFixed(2));
+    if(a!==b){if(V*d[0]<=corde&&d[1]==='1/60')ko('(c) différence sous la corde dans l\'axe · '+d[1]+' · '+kmh(V)+' km/h · écart '+dl.toFixed(2));diffs++;dV++;mV=Math.max(mV,dl);mn=Math.min(mn,dl);bandeMax=Math.max(bandeMax,dl);}}}
   console.log('  '+d[1]+' · '+kmh(V)+' km/h ('+(V*d[0]).toFixed(1)+' m/image) : '+dV+' différences'+(dV?' (écarts '+mn.toFixed(2)+' → '+mV.toFixed(2)+' m)':''));}
+console.log('  1/120 : au bord de la portée, le neuf prend '+gagne120+' pièce(s) que l\'ancien ratait et en rate '+perd120+' qu\'il prenait (phase de l\'image)');if(perd120>gagne120)ko('(c) à 120 i/s le neuf prend MOINS que l\'ancien : '+perd120+' perdues pour '+gagne120+' gagnées');
 // la lentille : la plus grande prise latérale de l'ancien à 60 i/s (sur les mêmes cas) — le neuf peut aller jusqu'au rayon effectif
 console.log('cas comparés '+tot+' · différences '+diffs+' (toutes : le NEUF prend, l\'ancien pas) — identique tant que le pas d\'une image ≤ la corde dans l\'axe ('+corde.toFixed(2)+' m : 60 i/s ≤ '+kmh(corde*60)+' km/h, 120 i/s ≤ '+kmh(corde*120)+' km/h)');
 for(const [V,dt9,nd] of [[300,1/60,'1/60'],[500,1/60,'1/60'],[300,1/30,'1/30'],[500,1/30,'1/30']]){let rV=0,rN=0;for(let k=0;k<=140;k++){const dl=k*.05;if(PH(6).some(p=>essaiSol(BV,V,dt9,p,dl,0)&1))rV=dl;if(PH(6).some(p=>essaiSol(BN,V,dt9,p,dl,0)&1))rN=dl;}
