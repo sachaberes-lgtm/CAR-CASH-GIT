@@ -3,6 +3,27 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE HUD QUI NE RAME PLUS SUR L'IPHONE + L'ENREGISTREUR DE PARTIES (2026-10-24, v876, session PERF-PC — Sacha : « sur la version mobile l'HUD prend trop de capacité, règle ça » · « lors des tests la voiture reste conduite sur le sol alors qu'une grosse partie du jeu se joue en voltigeant dans les airs ; fais un mode où c'est moi qui joue en voltigeant et toi tu récupères de la data »)
+- **LE DIAGNOSTIC** (session OPTIMISATION MOBILE, iPhone 13 Pro de Sacha DANS L'APP, banc CC BANC, palier RÉCENT, 35 s de course) : course normale 58,0 i/s et 63 images > 25 ms ;
+  TOUTES les animations CSS figées 59,7 i/s et 9 ; HUD masqué pareil ; le JS par image identique (2 ms) → c'est WebKit qui refait style + peinture à chaque image pour les
+  animations INFINIES du HUD sur des propriétés non composées (box-shadow, filter, background-position). Sur Chrome PC le plafond n'est que ≤ 1 ms par image.
+- **LE CORRECTIF** (`html.han`, posée par `code/page/tete.html` ; `?hudanim=0` = les anciennes animations, A/B dans la même page) : refaites en transform / opacité, les anciennes
+  règles intactes à côté — la plaque des pouvoirs `.pw` (k5PwBat : deux pseudo-éléments dont seule l'opacité bat ; la jauge `u` sur son calque), le reflet et les éclats de `#flowHud`
+  (calque 3× plus large en translateX dans `.fSeg` qui coupe déjà), « à portée » et la brûlure de la zone rouge (copie éclaircie en opacité), `#avRec` presque / battu, le chrono de vol
+  (rayures de l'air infini, secondes critiques), `#campChip.alerte`, le RECORD des figures, et `#popTxt` / `#engBig` placés par `translate` au lieu de top/left (plus de mise en page
+  par image pendant un geste). Laissé : les `hue-rotate` (avArc, drgHue), le × en feu `hmFeu` (essayé : Chrome passe par un halo rouge à mi-battement, irreproductible), fLache3/hmArme,
+  hmEncore, hmChronoRec, frBrule de `#frenTraits`, toute la zone NITRO (session téléphone).
+- **PREUVE D'IMAGE** (`perf-pc/.banc-pc/preuve-hud.mjs`, dossier de travail : ancien contre neuf, boucle coupée, toile 3D et film masqués, chaque état forcé, animations figées aux
+  phases 0 / ¼ / ½ / ¾ / 0,9, pixels qui diffèrent) : reflet du flow, frénésie, popTxt, engBig, × en feu 0 ; plaques, flow, aura, air, RECORD ≤ 0,8 % de pixels à écart > 32 (fondus
+  de lueurs, bord de la jauge `u` à ⅓ px) ; `#campChip.alerte` 2,6 % — c'est l'ANCIEN qui se trompe sur PC (Chrome ne zoome pas l'ombre animée dans le cadre zoomé), pas l'iPhone.
+- **MESURÉ SUR L'IPHONE** (CC BANC, même piste `?pistegraine=777`, nuages midi, 3 passes par bras alternées) : `?hudanim=0` 55,2-56,7 i/s, 71-113 images > 25 ms (moy. 93) ;
+  défaut 57,9-59,4 i/s, 18-53 (moy. 38) : **+2,7 i/s, −59 % d'images ratées**. Reste ~40 images ratées par course, dont la zone nitro (à la session téléphone).
+- **L'ENREGISTREUR DE PARTIES** (`code/moteur/enregistreur-perf.js`, `PREC`) : allumé par `?perfrec=1`, par `localStorage.ccPerfRecOn='1'` (l'appli n'a pas d'adresse) ou
+  `dbgPerfRec(1)`, il note chaque image de course — durée, temps du jeu avant le dessin, PHASE (sol / vol / figure), map, palier, crans QL, densité, cadence 30 — et range chaque
+  course finie dans le téléphone (`localStorage.ccPerfRec`, les 15 dernières). Relevé : `dbgPerfRec('resume')` (une ligne par course et par phase) ou `dbgPerfRec()` (tout : histogrammes,
+  images > 40 ms avec instant, phase, map, vitesse ; une ligne par seconde). Éteint : aucun rappel d'image, zéro coût. Essai au banc PC : sol 53 i/s, vol 50, figure 50 — les phases
+  de vol que le pilote des bancs ne montrait jamais.
+
 ## LE PALIER DE L'IPHONE LU SUR SON ÉCRAN — MESURÉ DANS L'APP, SUR LE VRAI TÉLÉPHONE (2026-10-24, v873, session Optimisation mobile — Sacha : « grosse session d'optimisation du jeu, il faut que la version mobile soit parfaite » · « je veux que tu fasses l'app »)
 - **LE BANC DANS L'APP** (`optim-mobile/.banc-optim/`, non suivi) : « CC BANC » (`com.sachaberes.carcash.banc`) = la copie de l'app de `sortie-ios/appstore` (Capacitor 8),
   www/ refait par son `preparer-www.js --essai` sur n'importe quel VERSION PRINCIPALE, installée À CÔTÉ de CASH CAR (la vraie app et la sauvegarde de Sacha ne sont pas touchées).
