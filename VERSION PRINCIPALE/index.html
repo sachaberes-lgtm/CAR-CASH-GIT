@@ -59695,6 +59695,11 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
 }
 function respawn(){
   dmtCoupe();
+  /* ===== RIEN DE LA PARTIE D'AVANT (24/10, relecture : « une partie arrêtée en pleine figure sur la route ou en pleine descente d'une
+     pose ») ===== pause → RECOMMENCER / QUITTER, ou mort au sol, pendant le bond d'une figure (FR) ou les 0,1-0,5 s où la pose finit sa
+     descente (POSE_F) : la partie suivante finissait et PAYAIT l'ancienne figure au départ, et POSE_F resté posé refusait le saut nitro,
+     le décollage au manche et les figures au sol du GLISSER jusqu'au vol suivant (preuve-reste-figure.cjs). */
+  POSE_F=null;try{frCoupe();}catch(e){}
   try{slideRaz();}catch(e){} // (SLIDE) replacé : le frottement en cours est perdu
   try{bkSkateRaz();BKV.yaw=0;BKV.gl=0;BKV.gk=0;}catch(e){} // (ICE SKATE) la glisse aussi · (2026-10-15 soir) et la glissade sur le verglas
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) replacé : la tension du vol ne survit pas
