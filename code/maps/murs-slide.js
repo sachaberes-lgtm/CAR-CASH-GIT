@@ -13,6 +13,11 @@
 const MURC={psiK:0,psiR:0,chocT:0,murT:0,murAnn:0}; /* (2026-10-23, Paris retiré) l'état du coup d'épaule d'une paroi (était dans PARIS) */
 const SLD={on:!/[?&]slide=0\b/.test(location.search),base:20,v:120,frein:.12,tMin:.35,lache:.15,kmhMin:40,
   t:0,hors:0,aura:0,cote:1,mur:0,etiq:null,force:0,son:false,k:0};
+/* ===== HUD DE COURSE : N'ÉCRIRE QUE CE QUI CHANGE (2026-10-24, passe perf PC : « le navigateur passe ~4,6 ms par image dans le DOM ») =====
+   `textContent=` remplace le nœud texte MÊME à valeur égale (mutation du DOM → recalcul de style, mise en page et peinture de
+   l'étiquette), là où un style inline réécrit à l'identique ne coûte presque rien à Chrome. L'étiquette « SLIDE +X » se réécrivait à
+   chaque image de frottement. `?pchud=0` rend l'ancienne écriture, pour l'A/B. */
+const PCH_ON=!/[?&]pchud=0\b/.test(location.search);
 function slideRaz(){SLD.t=0;SLD.hors=0;SLD.aura=0;SLD.mur=0;if(SLD.son){SLD.son=false;try{sonSlide('fin',0);}catch(e){}}if(SLD.etiq)SLD.etiq.style.opacity='0';}
 function slideEtiq(){let e=SLD.etiq;if(!e){e=SLD.etiq=document.createElement('div');e.id='slideHud';e.setAttribute('aria-hidden','true');document.body.appendChild(e);}return e;}
 function slideTick(dt){ // boucle de conduite, chaque image, après le RASE-BORD
@@ -28,7 +33,7 @@ function slideTick(dt){ // boucle de conduite, chaque image, après le RASE-BORD
     if(!SLD.mur)vA*=1-SLD.frein*dt; // la sanction : le flanc frotte (les façades de Paris ont la leur)
     if(Math.random()<dt*(14+46*k)){DRIFT_V.set(SLD.cote*w,.15,(Math.random()-.5)*CARS[level].l*.6);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,1+(k>.6?1:0),5+9*k);}
     try{if(!SLD.son){SLD.son=true;sonSlide('debut',k);}else sonSlide('tick',k);}catch(e){}
-    if(SLD.t>=SLD.tMin){const e=slideEtiq();e.textContent='SLIDE +'+Math.round(SLD.aura);e.style.opacity='1';}
+    if(SLD.t>=SLD.tMin){const e=slideEtiq();if(!PCH_ON){e.textContent='SLIDE +'+Math.round(SLD.aura);e.style.opacity='1';}else{const t9='SLIDE +'+Math.round(SLD.aura);if(e._t!==t9){e._t=t9;e.textContent=t9;}if(e.style.opacity!=='1')e.style.opacity='1';}} /* (2026-10-24, passe perf PC) le texte n'est remplacé que s'il change (voir PCH_ON) */
     return;}
   if(SLD.t<=0)return;
   SLD.hors+=dt;if(SLD.hors<SLD.lache)return;

@@ -239,7 +239,9 @@ const SAVE={
 if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences&&!(function(){try{const x=JSON.parse(localStorage[SAVE.K]||'null');return !!x&&typeof x==='object';}catch(e){return false;}})()){ // (2026-10-14, chasse aux bugs) une sauvegarde locale ILLISIBLE (écriture tronquée) comptait comme présente : le miroir n'était pas lu, load repartait à neuf et le 1er flush écrasait le secours natif — perte totale. Illisible = absente
   SAVE.natif=1;
   try{window.Capacitor.Plugins.Preferences.get({key:SAVE.K}).then(function(r){
-    if(r&&r.value){SAVE.natif=2;let ok=false;try{localStorage[SAVE.K]=r.value;ok=localStorage[SAVE.K]===r.value;}catch(e){}
+    /* ===== LE MIROIR ILLISIBLE NE SE SÈME PAS (24/10, débogage sortie iOS : « aucune progression perdue ») ===== semé tel quel, il rechargeait la page sur un localStorage
+       tout aussi illisible, qui relisait le miroir, rechargeait… à l'infini : appli inutilisable. Illisible = vide (le flush qui suit écrit une sauvegarde saine) */
+    if(r&&r.value&&(function(){try{const x9=JSON.parse(r.value);return !!x9&&typeof x9==='object';}catch(e){return false;}})()){SAVE.natif=2;let ok=false;try{localStorage[SAVE.K]=r.value;ok=localStorage[SAVE.K]===r.value;}catch(e){}
       if(ok)location.reload();else SAVE.natif=1;}
     else{SAVE.natif=0;SAVE.flush();}
   }).catch(function(){});}catch(e){}

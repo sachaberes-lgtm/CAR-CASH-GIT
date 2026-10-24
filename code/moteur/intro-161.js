@@ -66,6 +66,32 @@
   const SPR={};
 
   function tailleEcran(){return[Math.min(sp.clientWidth||1e5,innerWidth||1e5)||390,Math.min(sp.clientHeight||1e5,innerHeight||1e5)||844];}
+  /* ===== LE FILM SANS TRAVAIL REFAIT (2026-10-24, passe perf PC : « le démarrage sur ordinateur ») =====
+     Le film tourne PENDANT que le jeu se construit dessous : chaque ms qu'il prend par image retarde la construction. Trace du chef (Mac M4, cadre bureau,
+     rechargement à chaud, 36 s) : 295 ms de temps propre dans `tailleEcran`, 672 ms dans `dBoule`.
+     · LA TAILLE : `boucle` relisait sp.clientWidth/Height + innerWidth/Height à CHAQUE image, une mise en page FORCÉE de toute la page en construction.
+       Elle n'est plus relue que si elle a pu changer (ResizeObserver du voile, `resize`) et, par prudence, une fois par seconde (le cas « sans que resize
+       nous le dise » reste attrapé, en ≤ 1 s au lieu d'une image).
+     · LA BOULE (`dBoule`) : même dessin au bit près, moins de calcul — l'heure d'apparition de chaque point est calculée une fois (plus de 1 040 Math.pow
+       par image), la rotation une fois au lieu de deux (une par passe), et les 96 vignettes de « 1 . 6 1 » sont dessinées depuis des ImageBitmap (les mêmes
+       pixels, sans la photo de la toile source que Chrome refait à chaque drawImage d'un canvas : ~520 par image).
+     · LA CADENCE (`?pci60=0` pour l'ôter seule) : sur un écran de plus de ~110 Hz (MacBook Pro 120 Hz), la boule qui tourne au ralenti (0,5 rad/s, < 1 px par
+       image) est redessinée une image d'écran sur deux, soit 60 i/s, jusqu'à l'appui ; chaque image dessinée est celle de son instant, à 60 Hz rien ne change.
+     `?pcintro=0` = tout l'ancien comportement. `window.dbgPciIntro` : les compteurs (lectures de taille, images dessinées / sautées, pas d'écran). */
+  const PCI_ON=!/[?&]pcintro=0\b/.test(location.search),PCI_60=PCI_ON&&!/[?&]pci60=0\b/.test(location.search);
+  const PCI_N={lectures:0,rendus:0,sautees:0,ecranMs:0,pas:1,prepares:0,prepEvitees:0};window.dbgPciIntro=PCI_N;
+  let pciSale=true,pciLu=-1e9,pciPrec=0,pciMin=99,pciNm=0,pciDer=-1e9,pciCourts=0;
+  if(PCI_ON){try{new ResizeObserver(function(){pciSale=true;}).observe(sp,{box:'border-box'});}catch(e){} addEventListener('resize',function(){pciSale=true;});}
+  function pciTaille(now){ /* la taille du voile, relue seulement si elle a pu changer (sinon : celle qu'on a, donc « rien n'a changé ») */
+    if(pciSale||!(now-pciLu<1000)){pciSale=false;pciLu=now;PCI_N.lectures++;return tailleEcran();}
+    return[W,H];
+  }
+  function pciSaute(now){ /* true = cette image d'écran garde le dessin de la précédente (écran de ~110 Hz et plus, régulier : une sur deux, jamais moins ; 60, 75, 90, 100 Hz : rien ne change) */
+    const d=now-pciPrec;pciPrec=now;if(d>1&&d<9.4){pciCourts++;if(d<pciMin)pciMin=d;} /* un intervalle d'écran rapide (< 9,4 ms : plus de ~106 Hz) */
+    if(++pciNm>=60){PCI_N.pas=pciCourts>=40?2:1;PCI_N.ecranMs=pciCourts?+pciMin.toFixed(2):0;pciNm=0;pciMin=99;pciCourts=0;} /* les deux tiers des 60 derniers intervalles : l'écran est rapide ET la page respire (sous la charge, tout est dessiné comme avant) */
+    if(PCI_N.pas>1&&now-pciDer<1.5*PCI_N.ecranMs){PCI_N.sautees++;return true;}
+    pciDer=now;PCI_N.rendus++;return false;
+  }
   function mesure(){
     const t=tailleEcran();W=t[0];H=t[1]; /* ce qui se VOIT (la fenêtre du cadre), jamais plus : un voile plus large que la fenêtre décalait tout le dessin (vu le 23/10 : logo énorme, coupé à droite) */
     S=Math.max(.6,Math.min(devicePixelRatio||1,2,Math.sqrt(2.2e6/(W*H)))); /* net sur un téléphone, borné en pixels : un grand écran ne coûte pas plus */
@@ -246,6 +272,18 @@
     c.globalCompositeOperation='lighter';halo(c,SPR.or,e.cx,e.cy,R*1.7,R*1.7,(.2*lisse(.8,4,t)+.08*pls)*ea+(s>0?.9*Math.exp(-s*7):0));c.globalCompositeOperation='source-over';
     const pas=Math.floor(t*2.2)%24; /* la teinte avance de 15° toutes les 0,45 s : un tour complet en 11 s */
     if(pasSon!==Math.floor(t*2.2)){pasSon=Math.floor(t*2.2);if(t>3&&tp===null&&pasSon%2===0){try{if(SON&&!filmMuet&&iAC&&SON.dr)SON.note(iAC.currentTime+.02,pasSon>>1);}catch(x){}}} /* une cloche tous les deux pas : elle suit la couleur */
+    if(PCI_ON){if(ea>0){ /* (passe perf PC, voir LE FILM SANS TRAVAIL REFAIT) le même dessin au bit près : mêmes expressions, même ordre (les points de derrière, puis ceux de devant, par i croissant) */
+      if(!e.pciT0){const T0=new Float64Array(e.n);for(let i=0;i<e.n;i++)T0[i]=.8+Math.pow(i/e.n,.9)*3.2;e.pciT0=T0;e.pciQ=new Float64Array(e.n*4);e.pciZ=new Int8Array(e.n);
+        if(typeof createImageBitmap==='function')e.sprH.forEach(function(L,ci){L.forEach(function(cc,st){try{createImageBitmap(cc).then(function(b){if(e.sprH[ci][st]===cc)e.sprH[ci][st]=b;},function(){});}catch(x){}});});} /* les vignettes en ImageBitmap (mêmes pixels) dès qu'elles sont prêtes */
+      const T0=e.pciT0,Q=e.pciQ,Z=e.pciZ,gr=1+.6*borne(s/.7,0,1);
+      for(let i=0;i<e.n;i++){
+        const k=borne((t-T0[i])/.55,0,1);if(k<=0){Z[i]=-1;continue;}
+        const b=(1-Math.pow(1-k,3))*(1+ex),x1=e.px[i]*cr+e.pz[i]*sr,z1=-e.px[i]*sr+e.pz[i]*cr,y2=e.py[i]*ct-z1*st,z2=e.py[i]*st+z1*ct;
+        const sx=e.cx+x1*R*b,sy=e.cy+y2*R*b;if(sx<-gs||sx>W+gs||sy<-gs||sy>H+gs){Z[i]=-1;continue;}
+        const dp=z2*.5+.5,sz=gs*(.55+.45*dp)*gr;Z[i]=z2>=0?1:0;Q[4*i]=sx-sz*.35;Q[4*i+1]=sy-sz*.5;Q[4*i+2]=sz;Q[4*i+3]=(.5+.5*dp)*lisse(0,.15,k)*ea;
+      }
+      for(let pass=0;pass<2;pass++)for(let i=0;i<e.n;i++)if(Z[i]===pass){c.globalAlpha=Q[4*i+3];c.drawImage(e.sprH[e.gk[i]][pas],Q[4*i],Q[4*i+1],Q[4*i+2]*.7,Q[4*i+2]);}
+    }}else
     if(ea>0)for(let pass=0;pass<2;pass++)for(let i=0;i<e.n;i++){
       const k=borne((t-(.8+Math.pow(i/e.n,.9)*3.2))/.55,0,1);if(k<=0)continue; /* noir d'abord, puis la boule se dessine point après point, en spirale du bas vers le haut */
       const b=(1-Math.pow(1-k,3))*(1+ex),x1=e.px[i]*cr+e.pz[i]*sr,z1=-e.px[i]*sr+e.pz[i]*cr,y2=e.py[i]*ct-z1*st,z2=e.py[i]*st+z1*ct;
@@ -374,6 +412,24 @@
     c.globalCompositeOperation='lighter';
     const rf=Math.hypot(W,H)*.5;halo(c,SPR.bl,cxL,cyL,rf,rf,Math.exp(-u*12)*.8*(u>=0?1:0));
     if(u<.55){c.globalAlpha=Math.max(0,.7-u*1.3);c.strokeStyle='rgb(255,224,150)';c.lineWidth=(6-9*u)*ku;c.beginPath();c.arc(cxL,cyL,u*W*1.2,0,6.2832);c.stroke();}
+    c.restore();
+  }
+
+  /* LE « PRESENTS » (2026-10-24, Léo : « enlève le premier CASH CAR ; après l'explosion, PRESENTS, puis l'écran menu ciel avec la musique qui apparaît ») : la boule explose, le mot s'écrit
+     lettre à lettre sur le noir (or, interlettrage qui se resserre), tient, s'éteint ; PUIS le voile fond sur le ciel, et c'est là, là seulement, que la musique du lobby démarre (`reveler`).
+     Le gros logo CASH CAR du film (`dActe3`) n'est plus montré après l'appui : le premier CASH CAR du jeu est celui du menu. s = secondes depuis l'appui. */
+  const PRES_FIN=2.5; /* l'instant (s après l'appui) où le mot est éteint ; le voile fond juste après */
+  function dPresente(c,s,e){
+    const sor=1-lisse(PRES_FIN-.6,PRES_FIN,s);if(sor<=.004)return;
+    const txt='PRESENTS',n=txt.length,px=Math.max(10,Math.round(Math.min(W/17,H/9,30))),k=sort3((s-.7)/1.3),esp=px*(.95-.5*k);
+    const tot=n*px+(n-1)*esp,y=e.cy+px*.4;let x=W/2-tot/2;
+    c.save();c.textAlign='left';c.textBaseline='alphabetic';c.font=px+'px "Press Start 2P",monospace';
+    const gr=c.createLinearGradient(0,y-px,0,y);gr.addColorStop(0,'#fff2be');gr.addColorStop(.5,'#ffd75e');gr.addColorStop(1,'#e8a53a');
+    for(let i=0;i<n;i++){
+      const la=lisse(.7+i*.07,1.15+i*.07,s)*sor;
+      if(la>.004){c.globalAlpha=la;c.fillStyle='#1c0430';c.fillText(txt[i],x+px*.12,y+px*.12);c.fillStyle=gr;c.fillText(txt[i],x,y);}
+      x+=px+esp;
+    }
     c.restore();
   }
 
@@ -635,7 +691,7 @@
     try{if(SON){SON.suite();SON.boum(iAC.currentTime+.02);}}catch(e){}
     try{ouvrir();}catch(e){}
     setTimeout(function(){window.__introCouvre=false;},150);
-    setTimeout(fonduDoux,1700);
+    setTimeout(fonduDoux,PRES_FIN*1000+80);
   }
   function passer(){
     if(BOULE){tapBoule();return;}
@@ -661,7 +717,7 @@
   function etape(nom,f){const a=performance.now();f();TPS.push(nom+' '+(performance.now()-a).toFixed(1));}
   let prepEn=''; /* la taille pour laquelle tout est prêt */
   function prepare(){ /* les ressources qui dépendent de la taille ; la police pixel pour le gros logo (apresPolice redessine quand elle est chargée) */
-    TPS=[];SNAP=null;SNAPPIX=null; /* (la photo du logo se refait à la nouvelle taille) */
+    TPS=[];SNAP=null;SNAPPIX=null;PCI_N.prepares++; /* (la photo du logo se refait à la nouvelle taille) */
     etape('ressources',function(){if(!SPR.bl)faitRessources();});
     etape('etiquette',function(){const ids=DEMO?ORDRE_LABELS:[LABELS[LAB_ID]?LAB_ID:'neon'];for(const k of ids)ETS[k]=LABELS[k].geo();});
     etape('logo',function(){try{apresPolice(function(){faitLogo();});}catch(e){faitLogo();}});
@@ -679,7 +735,7 @@
     g.setTransform(S,0,0,S,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';
     if(casse){dEclats(g,t-tCasse);return;}
     g.fillStyle='#000';g.fillRect(0,0,W,H);
-    if(BOULE){const e=ETS.boule||(ETS.boule=geoLabSphere());dBoule(g,t,e);if(tapT!==null&&LOGO){g.globalCompositeOperation='source-over';g.globalAlpha=1;dActe3(g,TL.slam+Math.max(0,t-tapT),0);}g.globalCompositeOperation='source-over';g.globalAlpha=1;return;}
+    if(BOULE){const e=ETS.boule||(ETS.boule=geoLabSphere());dBoule(g,t,e);if(tapT!==null){g.globalCompositeOperation='source-over';g.globalAlpha=1;dPresente(g,Math.max(0,t-tapT),e);}g.globalCompositeOperation='source-over';g.globalAlpha=1;return;}
     let tl=t,id=forceId||(LABELS[LAB_ID]?LAB_ID:'neon'),idx=0;
     if(DEMO){const T=PERIODE_DEMO(),n=ORDRE_LABELS.length;idx=Math.floor(Math.max(0,t)/T);tl=Math.max(0,t)-idx*T;id=forceId||ORDRE_LABELS[idx%n];} /* la démo : les labels s'enchaînent en boucle */
     if(tl<TL.noir){const e=ETS[id]||(ETS[id]=LABELS[id].geo());LABELS[id].dessin(g,tl,e);}else if(!DEMO&&t>=TL.slam)dActe3(g,t,0);;
@@ -691,11 +747,11 @@
     if(fini)return;
     raf=requestAnimationFrame(boucle);
     if(manuel)return;
-    if(!casse){const t=tailleEcran();if(t[0]!==W||t[1]!==H)remesure();} /* l'écran a changé de taille sans que `resize` nous le dise (cadre du volet, rotation) : tout se refait à la bonne taille (vu le 23/10 : logo énorme, coupé à droite) */
+    if(!casse){const t=PCI_ON?pciTaille(now):tailleEcran();if(t[0]!==W||t[1]!==H)remesure();} /* l'écran a changé de taille sans que `resize` nous le dise (cadre du volet, rotation) : tout se refait à la bonne taille (vu le 23/10 : logo énorme, coupé à droite) */
     if(!lance)return;
     try{
       const t=(now-tLance)/1000-latV;
-      if(BOULE){if(pretT===null&&t>=4.6&&document.readyState==='complete'&&(!document.fonts||document.fonts.status!=='loading')){pretT=t;try{if(SON&&!filmMuet)SON.pret(iAC.currentTime+.02);}catch(e){}}rendu(t);return;} /* la boule : prête dès que la page est chargée (et après 2,6 s au moins) */
+      if(BOULE){if(pretT===null&&t>=4.6&&document.readyState==='complete'&&(!document.fonts||document.fonts.status!=='loading')){pretT=t;try{if(SON&&!filmMuet)SON.pret(iAC.currentTime+.02);}catch(e){}}if(PCI_60&&tapT===null&&pciSaute(now))return;rendu(t);return;} /* la boule : prête dès que la page est chargée (et après 2,6 s au moins) */
       if(DEMO){const T=PERIODE_DEMO(),idx=Math.floor(Math.max(0,t)/T);if(idx>0)sonDemo(idx,t-idx*T);else sonDemo(0,t);rendu(t);return;}
       if(!ouvert&&t>=TL.noir)ouvrir();
       if(!revele&&!doux&&!passee){ /* le jeu ne dessine rien derrière le film (voir `loop`), SAUF quelques images dans le NOIR COMPLET : ses accrocs du premier dessin (relecture du ciel, compilations) ne se voient pas là, et il reprend à chaud 0,5 s avant la casse */
@@ -728,7 +784,7 @@
   }
   function kd(){if(!lance&&!fini)lancer(true);else if(lance&&performance.now()-tLance>600)passer();}
   function pose(e){try{const r=cv.getBoundingClientRect();TOUCH={x:e.clientX-r.left,y:e.clientY-r.top};}catch(x){TOUCH=null;}}
-  function remesure(){if(fini||casse)return;mesure();if(lance){try{prepare();}catch(e){}}}
+  function remesure(){pciDer=-1e9;if(fini||casse)return;mesure();if(lance){if(PCI_ON&&prepEn===W+'x'+H+'x'+S){PCI_N.prepEvitees++;return;}try{prepare();}catch(e){}}} /* (passe perf PC) un `resize` qui ne change ni la taille ni l'échelle (le zoom du cadre bureau en envoie) ne refait plus tout le film : boule, logo, fracture étaient refaits À L'IDENTIQUE (même règle que `lancer` et `chauffe`) */
 
   mesure();
   setTimeout(irPret,500); /* pendant l'attente du toucher : 10 ms de calcul, hors de vue */
