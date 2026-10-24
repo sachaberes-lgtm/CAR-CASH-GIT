@@ -53163,11 +53163,15 @@ function musicBandeNette(el){if(el)try{el.playbackRate=1;el.preservesPitch=true;
    s'il a une montée à sauter) ; on la perd, il S'ÉTRANGLE (tape-stop de 0,4 s) et la radio reprend EXACTEMENT où elle en était.
    MÊME lecteur que tout le reste : l'<audio> unique, libéré au premier toucher — iOS le laisse changer de source hors d'un geste,
    alors qu'un second élément lancé en pleine course y serait refusé.
-   ⚠ LE FICHIER N'EST PAS ENCORE LIVRÉ : Sacha le posera à `MUSIC_FREN.f` (mp3, nom en ASCII sans espace — une URL mal encodée ne
-   plante pas, elle se tait). Tant qu'il manque (sondé une fois, et rattrapé si la lecture échoue quand même), la frénésie joue le
-   morceau EN COURS « SURMULTIPLIÉ » : un demi-ton plus haut et 6 % plus vite, qui retombe à sa vitesse quand on la perd — on entend
-   déjà ce qu'on gagne et ce qu'on perd. `surm:1` éteint ce repli. */
-const MUSIC_FREN={titre:'THE DARK TRIAD',f:'assets/audio/music/dark-triad.mp3',drop:0,surm:1.06};
+   LE FICHIER : `MUSIC_FREN.f` (nom en ASCII sans espace — une URL mal encodée ne plante pas, elle se tait). S'il manque (sondé une
+   fois, et rattrapé si la lecture échoue quand même), la frénésie joue le morceau EN COURS « SURMULTIPLIÉ » : un demi-ton plus haut et
+   6 % plus vite, qui retombe à sa vitesse quand on la perd. `surm:1` éteint ce repli.
+   (2026-10-24, le 404 de chaque chargement) LE MORCEAU EXISTE DEPUIS LE 01/10 : la boucle maison DARK TRIAD de l'atelier (atelier-son/
+   boucles.py, « pour : FRÉNÉSIE » — phonk 140 bpm, do# phrygien, 16 mesures = 27,43 s qui bouclent), rangée à `boucles/dark-triad.m4a`
+   (vercel-build.sh la publie pour ça). `f` la cherchait en .mp3 sous music/, où rien n'a jamais été posé : deux 404 par chargement, et
+   la frénésie ne changeait jamais de morceau. Depuis que Pouce bleu tient la course (15/10), le repli accélérait le lecteur <audio>…
+   en pause : en course, la frénésie ne s'entendait plus du tout. Un autre morceau = un autre `f`. */
+const MUSIC_FREN={titre:'THE DARK TRIAD',f:'assets/audio/music/boucles/dark-triad.m4a',drop:0,surm:1.06};
 const FRENM={on:false,ok:null,sw:false,surm:false,src:'',t:0,loop:false,iv:0};
 function frenMusSonde(){ // le fichier est-il là ? (une fois — une réponse muette, comme sur iPhone, laisse la question ouverte)
   if(FRENM.ok!==null||!MUSIC_FREN.f)return;
@@ -53192,6 +53196,7 @@ function frenMusRetour(el){ // la radio reprend où elle en était (ou sur le mo
   if(pbjRegne()&&window.POUCE_JEU.joue()){stopMusic();return;} // (15/10 soir) POUCE BLEU reprend l'antenne (musicTick le remonte) : pas de radio
   if(!FRENM.src){musicPlayCurrent();return;}
   el.loop=FRENM.loop;el.src=FRENM.src;const t=FRENM.t;
+  if(musWaTient()&&MUS_WA.bus)MUS_WA.bus.piste(FRENM.src); /* (2026-10-24) le bus des basses retrouve le réglage du morceau repris */
   el.addEventListener('loadedmetadata',function(){try{el.currentTime=t;}catch(e){}},{once:true});
   musicVoulue=true;musicJoue();
 }
@@ -53212,6 +53217,7 @@ function frenMus(on){
       FRENM.src=el.src;FRENM.t=el.currentTime||0;FRENM.loop=el.loop;FRENM.sw=true;
       try{el.playbackRate=1;el.preservesPitch=true;el.webkitPreservesPitch=true;}catch(e){}
       el.loop=true;el.src=MUSIC_FREN.f;
+      if(musWaTient()&&MUS_WA.bus)MUS_WA.bus.piste(MUSIC_FREN.f); /* (2026-10-24) les basses de CE morceau, comme playMusic (musique-bus.js : 'dark-triad', cloche −2 dB) */
       if(MUSIC_FREN.drop>0)el.addEventListener('loadedmetadata',function(){try{el.currentTime=MUSIC_FREN.drop;}catch(e){}},{once:true});
       musicVoulue=true;musicJoue();try{lvlBlast();}catch(e){}
     }else if(MUSIC_FREN.surm>1){FRENM.surm=true;frenMusVit(el,MUSIC_FREN.surm,300);} // le repli : la radio S'EMBALLE

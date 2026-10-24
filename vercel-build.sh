@@ -37,7 +37,7 @@ rm -f .vercel-static/jouer/musique-moteur.html .vercel-static/jouer/assets/audio
 # ce que SEULE elle lit : ses catalogues de boucles (boucles/, depart/, petites-musiques/, les *-donnees.js), le lobby du garage que le jeu ne joue
 # plus (lobby/garage-*), GLISSE, le moteur French Touch et les mesures de goûts. Les fichiers restent dans le dépôt. Rien de ce que le jeu peut
 # demander n'est touché : MENU_MUS (lobby/ciel-*), l'auto-école (lobby/chris-matin), les morts et l'argent (death/, fx/), Pouce bleu (le reste de direct/,
-# musique-moteur.json, musique-paliers.js, rendus/). boucles/dark-triad.m4a RESTE : c'est le morceau de la frénésie (MUSIC_FREN le cherche en .mp3 ailleurs).
+# musique-moteur.json, musique-paliers.js, rendus/). boucles/dark-triad.m4a RESTE : c'est le morceau de la frénésie (MUSIC_FREN.f, depuis le 24/10 — avant, le jeu le cherchait en .mp3 ailleurs).
 rm -f .vercel-static/jouer/bibliotheque.html
 rm -rf .vercel-static/jouer/assets/audio/music/depart .vercel-static/jouer/assets/audio/music/petites-musiques
 find .vercel-static/jouer/assets/audio/music/boucles -type f ! -name dark-triad.m4a -delete 2>/dev/null || true

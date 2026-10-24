@@ -503,7 +503,7 @@ un autre). En `file://` les voix et le décodage WebAudio meurent sans bruit.
   le jeu se met en PAUSE quand l'onglet est caché ; `dbgStep` dans un appel séparé du clic de départ ; le profil Chrome garde le
   service worker → `Network.setBypassServiceWorker`, sinon on photographie une vieille copie ; les `const` du jeu ne se lisent pas
   depuis la page (IIFE) : passer par `dbg*` ou le DOM.
-- **Faux positifs connus** : le 404 de `assets/audio/music/dark-triad.mp3` (repli prévu) ; les avertissements WebGL « READ-usage
+- **Faux positifs connus** : les avertissements WebGL « READ-usage
   buffer » à l'écran de fin ; `#auraV2` à −4 px (son animation d'entrée) ; les chevauchements voulus `#engBig`×`#slam9` et
   `#dolHud`×`#lvlBan` ; +8 nœuds DOM par partie (le TOP 10).
 
