@@ -1481,6 +1481,18 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
   body #flowHud[data-lv="0"] .fM{opacity:.4}
   body #flowHud.presque .fSeg i.cur s{animation:fPresque .3s ease-in-out infinite alternate}   /* le palier suivant est À PORTÉE */
   @keyframes fPresque{to{filter:brightness(1.8)}}   /* plus de style depuis 1,8 s : ça FUIT */
+  /* ===== « À PORTÉE » EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») — iPhone 13 Pro : 58,0 i/s en
+     course, 59,7 animations CSS figées. Le filter animé (brightness 1 → 1,8, refait à chaque image) devient une COPIE du remplissage
+     (background:inherit) posée éclaircie ×1,8 une fois pour toutes, dont seule l'opacité suit la même courbe. Exact aux deux bouts ; entre
+     les deux, un canal qui SATURE (×1,8 > 255, ex. la ligne claire du haut) monte en droite au lieu de plafonner tôt (≤ ~30 niveaux à mi-course),
+     et le curseur (::after, au-dessus de la copie) n'est plus éclairci (#fff6d8 au lieu de blanc au sommet). Gelée / armée / frénésie qui fuit :
+     l'ancienne règle (filtres qui se combinent autrement). ===== */
+  html.han body #flowHud.presque:not(.gele):not(.arme):not([data-lv="4"].fuit) .fSeg i.cur s{animation:none}
+  html.han body #flowHud.presque:not(.gele):not(.arme):not([data-lv="4"].fuit) .fSeg i.cur s::before{content:'';position:absolute;inset:0;pointer-events:none;
+    background:inherit;filter:brightness(1.8);opacity:0;will-change:opacity;animation:hanFlowPresque .3s ease-in-out infinite alternate}
+  @keyframes hanFlowPresque{to{opacity:1}}
+  @media (prefers-reduced-motion:reduce){html.han body #flowHud.presque:not(.gele):not(.arme):not([data-lv="4"].fuit) .fSeg i.cur s::before{animation:none}}
+  html.han[data-reduced-motion="1"] body #flowHud .fSeg .fZ s::before{animation:none!important}   /* l'ancien : .fZ s figée, le reste de la cellule non */
   body #flowHud.fuit .fSeg i.cur s{background:repeating-linear-gradient(-45deg,var(--sc) 0 5px,color-mix(in srgb,var(--sc) 40%,#000) 5px 10px)}   /* moins d'1,1 s avant de perdre le palier : ça LÂCHE (au rythme du tic) */
   /* R3 — L'AURA EN HÉROS, et le RECORD à battre juste dessous */
   body #auraV2{left:var(--hudG);top:calc(var(--hudH) + 128px);max-width:58vw}
@@ -1750,6 +1762,20 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
     background:linear-gradient(100deg,transparent 40%,rgba(255,255,255,.35) 50%,transparent 60%) no-repeat;background-size:300% 100%;
     animation:nbReflet 3.6s ease-in-out infinite}   /* le reflet de la nitro : il passe tant qu'on TIENT un palier */
   body #flowHud[data-lv="0"] .fSeg::after{display:none}
+  /* ===== LE REFLET DU FLOW EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») =====
+     Mesuré sur l'iPhone 13 Pro (app, palier RÉCENT, 35 s pilotées) : 58,0 i/s et 63 images > 25 ms en course, 59,7 i/s et 9 images avec
+     toutes les animations CSS figées. Ce reflet tourne EN PERMANENCE dès le palier 1 : un background-position = style + peinture à chaque image.
+     Ici le MÊME dégradé est posé sur un calque de la taille de son image d'origine (300 % de l'::after = 3W) et glisse en translateX :
+     position p % → décalage p·(W − 3W), soit 150 % → −3W et −50 % → +W, c.-à-d. −100 % → +⅓ de la largeur du calque. Même durée, même courbe.
+     Haut et bas : ceux de l'::after (inset gardé). Largeur : right = 5·inset − 200 % (3 px au bureau, 2 px en tactile, !important comme
+     l'inset tactile). Seul écart : aux deux BOUTS la coupe est celle de .fSeg (overflow:hidden, au bord) et non plus le bord de l'::after —
+     le reflet mord l'anneau du cadre (inset px) le temps d'entrer et de sortir. Le balayage .monte (tactile) garde son ::after d'origine. ===== */
+  html.han body:not(.touch) #flowHud .fSeg::after,html.han body.touch #flowHud:not(.monte) .fSeg::after{background-size:100% 100%;background-position:0 0;
+    will-change:transform;animation:hanFlowReflet 3.6s ease-in-out infinite}
+  html.han body:not(.touch) #flowHud .fSeg::after{right:calc(15px - 200%)}
+  html.han body.touch #flowHud:not(.monte) .fSeg::after{right:calc(10px - 200%)!important}
+  @keyframes hanFlowReflet{0%,60%{transform:translateX(-100%)}100%{transform:translateX(calc(100% / 3))}}
+  @media (prefers-reduced-motion:reduce){html.han body:not(.touch) #flowHud .fSeg::after,html.han body.touch #flowHud:not(.monte) .fSeg::after{animation:none}}   /* comme l'ancien : éteint hors frénésie (la frénésie, plus forte, le gardait) */
   body #flowHud .fL,body #flowHud .fM{grid-row:2;font-size:10px;line-height:1;letter-spacing:1px;
     text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,0 3px 0 #1c0430}
   body #flowHud .fL{grid-column:1;justify-self:start;font-weight:normal}
@@ -3034,6 +3060,15 @@ html body #flowHud[data-lv="4"].sc2 .fSeg::before{animation:frGlisse .9s linear 
 @keyframes frEclatB{from{filter:brightness(1.8)}to{filter:none}}
 @keyframes frGlintA{from{background-position:150% 0}to{background-position:-50% 0}}
 @keyframes frGlintB{from{background-position:150% 0}to{background-position:-50% 0}}
+/* ===== LE REFLET DE LA FRÉNÉSIE ET SON ÉCLAT EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») =====
+   iPhone 13 Pro : 58,0 i/s en course contre 59,7 animations CSS figées. Le calque 3W du reflet du flow (voir socle-4-aura, « LE REFLET DU
+   FLOW EN TRANSFORM ») : le reflet rouge (1,6 s) et les éclats .sc1/.sc2 (0,34 s, derniers de la liste : ils gagnent le temps de leur course)
+   passent de background-position 150 % → −50 % à translateX −100 % → +⅓, mêmes durées, mêmes courbes. ===== */
+html.han body:not(.touch) #flowHud[data-lv="4"] .fSeg::after,html.han body.touch #flowHud[data-lv="4"]:not(.monte) .fSeg::after{animation:hanFlowReflet 1.6s var(--ease) infinite}
+html.han body:not(.touch) #flowHud[data-lv="4"].sc1 .fSeg::after,html.han body.touch #flowHud[data-lv="4"].sc1:not(.monte) .fSeg::after{animation:hanFlowReflet 1.6s var(--ease) infinite,hanFlowGlintA .34s var(--ease)}
+html.han body:not(.touch) #flowHud[data-lv="4"].sc2 .fSeg::after,html.han body.touch #flowHud[data-lv="4"].sc2:not(.monte) .fSeg::after{animation:hanFlowReflet 1.6s var(--ease) infinite,hanFlowGlintB .34s var(--ease)}
+@keyframes hanFlowGlintA{from{transform:translateX(-100%)}to{transform:translateX(calc(100% / 3))}}
+@keyframes hanFlowGlintB{from{transform:translateX(-100%)}to{transform:translateX(calc(100% / 3))}}
 @keyframes frPetA{0%,100%{opacity:1}}
 @keyframes frPetB{0%,100%{opacity:1}}
 /* elle FUIT : la marge BRÛLE (hachures qui clignotent), le halo s'éteint à moitié */
@@ -3101,6 +3136,15 @@ html body #triade.mesure{display:block;visibility:hidden;animation:none}
 #frenTraits i.fl1,#frenTraits i.fl2{filter:brightness(1.6)}
 /* (v4) ARMÉE : la jauge est pleine, la frénésie attend une figure POSÉE — la zone rouge bat (style fin : session UI) */
 html body #flowHud.arme .fSeg .fZ s{animation:frBrule .3s steps(2) infinite}
+/* ===== LA MARGE QUI BRÛLE EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») — iPhone 13 Pro : 58,0 i/s
+   en course, 59,7 animations CSS figées. steps(2) sur un 50 % : quatre états (rien, ×1,3, ×1,6, ×1,3). La copie du remplissage
+   (background:inherit) est posée ×1,6, son opacité fait 0 / ½ / 1 / ½ sur la même grille. Exact à 0 et à 1 ; à ½, un canal qui sature
+   (×1,6 > 255 : la ligne claire --frenC du haut, le bas --frenS) donne ≤ 23 niveaux de moins, et le curseur n'est plus éclairci. ===== */
+html.han body #flowHud.arme .fSeg .fZ s,html.han body #flowHud[data-lv="4"].fuit .fSeg .fZ s{animation:none}
+html.han body #flowHud.arme .fSeg .fZ s::before,html.han body #flowHud[data-lv="4"].fuit .fSeg .fZ s::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:inherit;filter:brightness(1.6);opacity:0;will-change:opacity;animation:hanFlowBrule .3s steps(2) infinite}
+html.han body #flowHud[data-lv="4"].fuit .fSeg .fZ s::before{animation-duration:.36s}   /* la frénésie qui fuit gagnait déjà sur l'armée (règle plus forte) */
+@keyframes hanFlowBrule{50%{opacity:1}}
 @keyframes trMeurt{0%{opacity:1;transform:scale(1)}25%{opacity:1;transform:scale(1.12)}100%{opacity:0;transform:scale(.2)}}
 /* la barre du RECORD se contracte pour laisser passer ses pointes (le texte, lui, ne bouge pas) */
 html body.touch.play.hTriade:not(#ccH) #avRec{max-width:calc(100vw - var(--hudD) - var(--frenD) - var(--frenT) - var(--hudG) - 6px)}
