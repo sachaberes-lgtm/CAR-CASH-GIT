@@ -243,8 +243,10 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   vtCol(accC,vtCur()); // (2026-10-16) LES TEINTES DE LA VILLE : le rose de la route prend la couleur de la ville (rails, nappe, flaques, couronnes des tours)
   W.accC=accC; // (LE PRÉ-BÂTI) posé sur le bitume à l'installation (pisteInstalle) — (2026-09-26) le bitume mouillé reflète aussi l'accent de la zone
   // BANDES NÉON (dessus + dessous) : les rails de Vice City — couleur d'accent de la zone
-  {const ep=new Float32Array(4*NP*6),el=new Float32Array(4*NP*6),es9=new Float32Array(4*NP*2),dS9=L/Math.max(1,NP-1);let q=0; // (passe perf) les QUATRE rails dans un seul maillage, une seule matière (le caméléon les peignait tous pareil), découpé en tranches — (chasse aux gels) écrits en place
-  for(const fy of [0,-THICK]) for(const sd of [-1,1]){ // el : `aLat`, du milieu du rail vers chaque bord (voir traitMat)
+  /* (2026-10-24, allègement mobile) LE DESSOUS DES RAILS : MESURÉ (canyon, iPhone émulé) les rails néon et leur nappe pèsent ~100 000 triangles, dont la moitié sous la route — qu'on ne voit qu'en tombant dessous. Sur téléphone ils n'ont plus de face de dessous (2 rubans au lieu de 4) ; `?routedessous=1` les rend. */
+  const ROUTE_DESSOUS=!IS_MOBILE||/[?&]routedessous=1\b/.test(location.search),FYR=ROUTE_DESSOUS?[0,-THICK]:[0],NBR=FYR.length*2;
+  {const ep=new Float32Array(NBR*NP*6),el=new Float32Array(NBR*NP*6),es9=new Float32Array(NBR*NP*2),dS9=L/Math.max(1,NP-1);let q=0; // (passe perf) les QUATRE rails dans un seul maillage, une seule matière (le caméléon les peignait tous pareil), découpé en tranches — (chasse aux gels) écrits en place
+  for(const fy of FYR) for(const sd of [-1,1]){ // el : `aLat`, du milieu du rail vers chaque bord (voir traitMat)
     for(let i=0;i<NP;i++,q+=6){if((i&2047)===2047)yield;
       const p=pts[i],b=B[i],nn=Nn[i],o=sd*(ROAD_HALF+.05),h=fy+(fy===0?.06:-.06);
       ep[q]=p.x+b.x*(o-sd*.6)+nn.x*h;ep[q+1]=p.y+b.y*(o-sd*.6)+nn.y*h;ep[q+2]=p.z+b.z*(o-sd*.6)+nn.z*h;
@@ -256,12 +258,12 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     const mat9=traitMat(new THREE.MeshBasicMaterial({color:accC,side:THREE.DoubleSide,polygonOffsetFactor:-2,polygonOffsetUnits:-2}),1.5,0);
     mat9.userData.base=accC.clone(); // la teinte d'accent de la zone, à retrouver après chaque pulsation
     NEON_RAILS.push(mat9);
-    yield* pisteTranches({position:[ep,3],aLat:[el,3],aS:[es9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{marge:20});
+    yield* pisteTranches({position:[ep,3],aLat:[el,3],aS:[es9,1]},{blocs:NBR,pr:2,np:NP,pas:1},mat9,{marge:20});
   }
   // NAPPE DE LUEUR sous chaque bande : additif qui saigne vers l intérieur du bitume — sans fog, le néon perce
   // la brume et les rails roses filent jusqu au bout de la nuit (1 mesh par face : gauche+droite fusionnées)
-  {const gp=new Float32Array(4*NP*6),gc=new Float32Array(4*NP*6),gl=new Float32Array(4*NP*6),gs9=new Float32Array(4*NP*2),dS9=L/Math.max(1,NP-1);let q=0; // (passe perf) les deux faces dans un seul maillage, une seule matière (même opacité pulsée), découpé en tranches — (chasse aux gels) écrits en place
-  for(const fy of [0,-THICK]){
+  {const gp=new Float32Array(NBR*NP*6),gc=new Float32Array(NBR*NP*6),gl=new Float32Array(NBR*NP*6),gs9=new Float32Array(NBR*NP*2),dS9=L/Math.max(1,NP-1);let q=0; // (passe perf) les deux faces dans un seul maillage, une seule matière (même opacité pulsée), découpé en tranches — (chasse aux gels) écrits en place
+  for(const fy of FYR){
     const mo9=LVL.cur&&LVL.cur.pluie?1:0,lg9=1.15+2.2*mo9,ka9=(.48+.14*mo9); // (2026-09-26) sous la PLUIE le bitume mouillé renvoie le rail : la nappe s'élargit (1,15 → 3,35 m) et chauffe un peu
     for(const sd of [-1,1]){
       for(let i=0;i<NP;i++,q+=6){if((i&2047)===2047)yield;
@@ -280,7 +282,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     mat9.userData.base=.78; // opacité de repos — la pulsation part de là et y revient
     NEON_GLOW.push(mat9);
     W.bords=true; // (LE PRÉ-BÂTI) bordsTick part à l'installation — (2026-10-14, bords-route) la 1re image du rail est déjà à la bonne couleur (chanfrein de jour / rail blanc de nuit)
-    yield* pisteTranches({position:[gp,3],color:[gc,3],aLat:[gl,3],aS:[gs9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{ordre:1,marge:20}); // ...et leur nappe aussi
+    yield* pisteTranches({position:[gp,3],color:[gc,3],aLat:[gl,3],aS:[gs9,1]},{blocs:NBR,pr:2,np:NP,pas:1},mat9,{ordre:1,marge:20}); // ...et leur nappe aussi
   }
   // ligne centrale pointillée — sodium doré, comme les vraies voies rapides la nuit (les DEUX faces : zéro dessus-dessous)
   /* (2026-09-26) UNE VRAIE PEINTURE AU SOL. C'était un trait GL d'UN pixel : aussi fin sous la caisse qu'à 2 km, crénelé, et au loin des

@@ -282,6 +282,8 @@ function cyStratesDonnees(d,T){
   return d;}
 /* LE TIRAGE DU DÉCOR DU CANYON (2026-10-20) : des choix INDÉPENDANTS, dans un flux né de la graine de la piste (ni `rnd`, ni `r`, ni le tracé) — un objet simple
    (il part au travailleur) */
+/* (2026-10-24, Sacha : « commence par le canyon, même schéma que Jade, téléphone seulement ») CANYON_SOBRE : sur téléphone le décor facultatif du tirage est réduit (éboulis ÷4, vautours 2, ni mine ni motel ni carcasses ni panneaux, cactus et cheminées ÷2, ripisylve et buttes lointaines allégées). `?canyonplein=1` rend le canyon d'avant. L'ordi n'est pas touché. */
+const CANYON_SOBRE=IS_MOBILE&&!/[?&]canyonplein=1\b/.test(location.search);
 function cyTirage(seed){let h9=Math.imul((seed^0xDEC0CA)>>>0,0x9E3779B1);h9^=h9>>>15;h9=Math.imul(h9,0x85EBCA6B);h9^=h9>>>13;const rd=mulberry32(h9>>>0), /* (la graine brassée : des graines voisines ne tirent plus les mêmes choix) */ch=(L9,P9)=>{let t=rd()*P9.reduce((a,b)=>a+b,0);for(let i=0;i<L9.length;i++){t-=P9[i];if(t<0)return L9[i];}return L9[L9.length-1];},
     ent=(a,b)=>a+Math.floor(rd()*(b-a+1)),D={sd:(rd()*4294967296)>>>0};
   D.strates=ch(['classique','sedona','zion','peint','bryce'],[2.4,1.6,1.3,1.2,1.3]);D.brume=+ch([.4,1,1.7],[1,2,1]).toFixed(2);
@@ -290,6 +292,7 @@ function cyTirage(seed){let h9=Math.imul((seed^0xDEC0CA)>>>0,0x9E3779B1);h9^=h9>
   D.arbres={k:+ch([.35,1,1.6],[1,2,1.3]).toFixed(2),nm:ch(['vert','automne','sombre'],[2,1.4,1])};D.eboulis=ch([0,120,260,420],[1,1.6,1.4,1]);D.vautours=ent(2,9);
   D.mine={la:rd()<.82,or:+(.4+rd()*2).toFixed(2),cad:rd()<.6?2:3,tq:rd()<.5?1:2,bois:ch(['clair','sombre','rouge'],[2,1,1])};
   D.r66={station:rd()<.8,sc:rd()<.5?-1:1,ss:Math.round(330+rd()*240),panneau:rd()<.85,pc:rd()<.5?-1:1,motel:rd()<.5,carcasses:ch([0,1,2,4],[1.2,1.5,1.2,.8]),cactus:ch([0,14,32],[1,1.6,1.4]),pubs:ch([0,1,2],[1.2,1.5,.9])};
+  if(CANYON_SOBRE){D.eboulis=D.eboulis>>2;D.vautours=2;D.mine.la=false;D.chem=+(D.chem*.5).toFixed(2);D.arbres.k=+(D.arbres.k*.5).toFixed(2);D.buttes=+(D.buttes*.7).toFixed(2);D.r66.motel=false;D.r66.carcasses=0;D.r66.cactus=D.r66.cactus>>1;D.r66.pubs=0;}
   return D;}
 /* ---- LE MONDE : appelé en fin de buildTrack (no-op hors du canyon) ---- */
 function cyEteindre(){CY.on=false;if(CY.mesh)CY.mesh.visible=false;if(CY.grp)CY.grp.visible=false;}
