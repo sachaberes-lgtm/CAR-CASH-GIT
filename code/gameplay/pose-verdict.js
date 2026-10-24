@@ -76,8 +76,11 @@ const ENG_V8=new THREE.Vector3();
    pixels entiers) passe par la propriété `translate`, qui se compose AVANT le `transform` des animations (translate(-50%) scale…) :
    même image, sans mise en page. */
 const PCF_HAN_SUIT=document.documentElement.classList.contains('han');
+/* left/top sont arrondis au pixel PHYSIQUE par la mise en page (Chrome compte en pixels d'écran : 422 px × 3,072 = 1296,4 → 1296), une
+   translation non : on arrondit pareil, sinon le texte glisse d'une fraction de pixel (vu à la preuve du chef, densité 3,07). */
 function pcfHanPlace(el,l9,t9,o){const v9=l9+' '+t9;if(o._hv===v9&&el.style.left==='0px')return;o._hv=v9;
-  if(el.style.left!=='0px')el.style.left='0px';if(el.style.top!=='0px')el.style.top='0px';el.style.translate=v9;}
+  const k9=window.devicePixelRatio||1,a9=function(s){return Math.round(parseFloat(s)*k9)/k9+'px';};
+  if(el.style.left!=='0px')el.style.left='0px';if(el.style.top!=='0px')el.style.top='0px';el.style.translate=a9(l9)+' '+a9(t9);}
 /* banc (dev) : `dbgPcfSuit(el,'412px','180px')` pose un élément comme popSuit / engBigSuit le feraient (translate sous html.han, left/top sinon) */
 window.dbgPcfSuit=function(el,l9,t9){if(PCF_HAN_SUIT)pcfHanPlace(el,l9,t9,{});else{el.style.left=l9;el.style.top=t9;}return PCF_HAN_SUIT?'translate':'left/top';};
 function engBigSuit(){ // le moteur 3D de la carte : OÙ le recoller dans l'image, à quelle taille, avec quelle opacité (lu par engQuadDraw)
