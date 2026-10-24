@@ -781,7 +781,7 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
       linear-gradient(105deg,transparent 38%,rgba(0,234,255,.10) 49%,transparent 60%),
       repeating-linear-gradient(0deg,rgba(255,255,255,.028) 0 1px,transparent 1px 3px),
       radial-gradient(1200px 700px at 50% 30%,rgba(74,34,58,.5),rgba(8,5,16,.94));
-    backdrop-filter:blur(9px);gap:6px}
+    -webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);gap:6px} /* (24/10, relecture WebKit) Safari < 18 ne lit que la forme préfixée : sans elle, pas de flou derrière l’accueil et l’écran de fin (ordinateur) */
   /* ================= LE TITRE SORT DE L'ÉCRAN (2026-08-30) ================================
      Demande du user, mot pour mot : les lettres « sortent de l'écran ». Ce n'est pas une taille de
      plus, c'est un CADRAGE : le mot est plus large que la fenêtre, on n'en voit pas les bords, et
