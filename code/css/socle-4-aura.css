@@ -110,6 +110,18 @@
   body #flowHud[data-lv="0"] .fM{opacity:.4}
   body #flowHud.presque .fSeg i.cur s{animation:fPresque .3s ease-in-out infinite alternate}   /* le palier suivant est À PORTÉE */
   @keyframes fPresque{to{filter:brightness(1.8)}}   /* plus de style depuis 1,8 s : ça FUIT */
+  /* ===== « À PORTÉE » EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») — iPhone 13 Pro : 58,0 i/s en
+     course, 59,7 animations CSS figées. Le filter animé (brightness 1 → 1,8, refait à chaque image) devient une COPIE du remplissage
+     (background:inherit) posée éclaircie ×1,8 une fois pour toutes, dont seule l'opacité suit la même courbe. Exact aux deux bouts ; entre
+     les deux, un canal qui SATURE (×1,8 > 255, ex. la ligne claire du haut) monte en droite au lieu de plafonner tôt (≤ ~30 niveaux à mi-course),
+     et le curseur (::after, au-dessus de la copie) n'est plus éclairci (#fff6d8 au lieu de blanc au sommet). Gelée / armée / frénésie qui fuit :
+     l'ancienne règle (filtres qui se combinent autrement). ===== */
+  html.han body #flowHud.presque:not(.gele):not(.arme):not([data-lv="4"].fuit) .fSeg i.cur s{animation:none}
+  html.han body #flowHud.presque:not(.gele):not(.arme):not([data-lv="4"].fuit) .fSeg i.cur s::before{content:'';position:absolute;inset:0;pointer-events:none;
+    background:inherit;filter:brightness(1.8);opacity:0;will-change:opacity;animation:hanFlowPresque .3s ease-in-out infinite alternate}
+  @keyframes hanFlowPresque{to{opacity:1}}
+  @media (prefers-reduced-motion:reduce){html.han body #flowHud.presque:not(.gele):not(.arme):not([data-lv="4"].fuit) .fSeg i.cur s::before{animation:none}}
+  html.han[data-reduced-motion="1"] body #flowHud .fSeg .fZ s::before{animation:none!important}   /* l'ancien : .fZ s figée, le reste de la cellule non */
   body #flowHud.fuit .fSeg i.cur s{background:repeating-linear-gradient(-45deg,var(--sc) 0 5px,color-mix(in srgb,var(--sc) 40%,#000) 5px 10px)}   /* moins d'1,1 s avant de perdre le palier : ça LÂCHE (au rythme du tic) */
   /* R3 — L'AURA EN HÉROS, et le RECORD à battre juste dessous */
   body #auraV2{left:var(--hudG);top:calc(var(--hudH) + 128px);max-width:58vw}
