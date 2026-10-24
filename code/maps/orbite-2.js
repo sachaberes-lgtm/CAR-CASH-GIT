@@ -157,17 +157,19 @@ function orbiteTick(t){ // chaque image : lumière, visibilité, place et regard
   if(ORB.pinceau&&!ORB.peinte&&(!started||gameOver))luneAvance(); // au menu : une étape du pinceau de la lune par image
   const dt9=Math.min(.1,Math.max(0,t-ORB.tp));ORB.tp=t;
   orbiteLumiere(dt9);
+  skyU.uEtK.value=renderer.getPixelRatio(); // (2026-10-22) les étoiles se comptent en pixels CSS : voir `pous` (la voûte profonde)
   const ok=LVL.espace>.01&&!garageOn&&!stallOn&&!MENUV.bio,vr=ok&&ORB.actif; // les satellites partent avec leur piste ; la lune, elle, s'efface avec le fondu du niveau
   for(let i=0;i<SATS.length;i++)SATS[i].visible=vr&&SATS[i].count>0;
   GLINT.visible=vr&&GLINT.count>0;
   orbBeau(t,dt9,vr); /* (2026-10-21, embellir) la poussière cosmique et l'intensité du niveau : voir orbite-embellie.js */
-  LUNE.visible=ok&&ORB.lune;
-  if(!LUNE.visible&&!vr)return;
+  const lunOk=ok&&ORB.lune; // (2026-10-22, la lune retirée du ciel : LUNE_ON) elle reste « dans le niveau » : sa direction (ORB.dm) pilote toujours la clé froide, la caisse est éclairée comme avant
+  LUNE.visible=lunOk&&LUNE_ON;
+  if(!lunOk&&!vr)return;
   // LE SOLEIL DE LA TERRE (la formule du globe, à l'identique) — gardé pour qui le lit ; les satellites prennent celui de la caisse (ORB.cle)
   const tc=ORB.t1.subVectors(camera.position,planetGroup.position).normalize(),sd=ORB.t2.crossVectors(tc,ORB.haut).normalize();
   ORB.sol.copy(tc).multiplyScalar(.5).addScaledVector(ORB.haut,.75).addScaledVector(sd,.45).normalize();
   SAT_U.uTerre.value.copy(tc).negate();SAT_U.uT.value=t%4096;SAT_U.uOp.value=Math.min(1,LVL.espace);SAT_U.uFog.value.copy(scene.fog.color);
-  if(!LUNE.visible)return;
+  if(!lunOk)return;
   /* LA LUNE, SA PLACE DANS LE CADRE — MESURÉ : la caméra de poursuite plonge de 10° à 50° selon la pente, et son champ va de 74° à
      135° avec la vitesse : une direction fixe la faisait tomber tantôt sous le HUD, tantôt sur le bout de la route, tantôt hors
      cadre (et un simple cap retardé la sortait par le bord dans chaque longue courbe). Elle vise donc un point de l'IMAGE — le tiers

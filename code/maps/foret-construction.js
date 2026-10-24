@@ -12,7 +12,7 @@ function forFamille(root,geo,mat,lot,b0,b1,attr,ordre){if(!lot||!lot.n)return nu
   if(ordre)F.im.renderOrder=ordre;root.add(F.im);FORET.fam.push(F);return F;}
 function foretVide(){
   for(const F of FORET.fam){const g=F.im.geometry;for(const k in g.attributes)if(k!==F.attr)g.deleteAttribute(k);g.setIndex(null);g.dispose();F.im.dispose();}
-  FORET.fam=[];FORET.quart=null;FORET.sig=0;FORET.geants=[];FORET.dz=null;FORET.deco=null;FORET.clr=[];FORET.gcol=null;FORET.arche=[];FORET.chaum=[];FORET.rocs=[];FORET.sol=null;FORET.solM=null;
+  FORET.fam=[];FORET.quart=null;FORET.sig=0;FORET.geants=[];FORET.dz=null;FORET.deco=null;FORET.clr=[];FORET.lant=null;FORET.gcol=null;FORET.arche=[];FORET.chaum=[];FORET.rocs=[];FORET.sol=null;FORET.solM=null;
   if(FORET.root){FORET.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});FORET.root=null;}
   if(FORET.loup){FORET.loup.t=0;FORET.loup.on=false;FORET.loup.roc=null;} // (2026-10-14, chasse aux bugs) un portail pendant un hurlement laissait `on` et le rocher de l'ANCIENNE piste : à la forêt suivante le loup-garou y réapparaissait jusqu'à 7,4 s
 }
@@ -203,6 +203,19 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
       const pl=function(e){const P=FOR_PLEUR_VOL[e],rh=(P.r+8)*g.sxz+ROAD_HALF;let yH=-1e9;proches(g.x,g.z,rh,function(j){const q=pts[j];if(q.y>yH&&Math.hypot(q.x-g.x,q.z-g.z)<rh)yH=q.y;});
         return yH<-1e8?g.sy:Math.max(g.sy,(yH+16-g.y)/P.bas);};
       let e9=sp,k9=pl(sp);if(k9>g.sy*1.45){const o9=sp==='gsaule'?'gpleureur':'gsaule',k8=pl(o9);if(k8<k9){e9=o9;k9=k8;}}
+      /* (2026-10-18, DEBUGGING : « des arbres qui traversent la route ? ») LE FÛT DU PLEUREUR HORS DE LA ROUTE. geantXZ a posé ce géant à la distance que demande le fût de SON essence
+         (FOR_GEANT_RB : un épicéa 6,6, un hêtre 8,2) ; devenu saule ou hêtre pleureur (fût de 13-15,5, penché ou tordu de 4-6 unités), son tronc mordait le bord de la route
+         (banc, 15 graines : 32 géants, jusqu'à 4 m dans la chaussée — on le traversait en roulant, on y mourait en sautant). Le fût et les branches réels (gélules du prototype
+         à l'échelle, ×1,3 + 2 m : le bois visible, écorce comprise) sont testés contre la chaussée (toute sa largeur, sa tranche) : l'autre pleureur s'il passe, sinon la clairière reste vide. */
+      const fut=function(e,k){const ca=Math.cos(g.ry),sa=Math.sin(g.ry),sx=g.sxz,W9=[];let hit=false;
+        for(const cp of PT.geant[e][0].m.C){const ax=g.x+(cp[0]*ca+cp[2]*sa)*sx,ay=g.y+cp[1]*k,az=g.z+(-cp[0]*sa+cp[2]*ca)*sx,bx=g.x+(cp[3]*ca+cp[5]*sa)*sx-ax,by=g.y+cp[4]*k-ay,bz=g.z+(-cp[3]*sa+cp[5]*ca)*sx-az;
+          W9.push([ax,ay,az,bx,by,bz,bx*bx+by*by+bz*bz,cp[6]*sx*1.3+2,bx*bx+bz*bz]);}
+        proches(g.x,g.z,FOR_PLEUR_VOL[e].r*sx+ROAD_HALF+20,function(j){if(hit)return;const q=pts[j],b=B[j],dyb=ROAD_HALF*Math.abs(b.y);
+          for(const w of W9){const r=w[7];let u=w[8]>0?((q.x-w[0])*w[3]+(q.z-w[2])*w[5])/w[8]:0;u=u<0?0:u>1?1:u;const hx=q.x-w[0]-w[3]*u,hz=q.z-w[2]-w[5]*u,rr=r+ROAD_HALF+2; /* (tri rapide : en plan, puis en hauteur) */
+            if(hx*hx+hz*hz>rr*rr||q.y+dyb+3<Math.min(w[1],w[1]+w[4])-r||q.y-dyb-4>Math.max(w[1],w[1]+w[4])+r)continue;
+            for(let l=-ROAD_HALF;l<=ROAD_HALF+.01;l+=7)for(const h of [-3,2]){const px=q.x+b.x*l,py=q.y+b.y*l+h,pz=q.z+b.z*l;let v=w[6]>0?((px-w[0])*w[3]+(py-w[1])*w[4]+(pz-w[2])*w[5])/w[6]:0;v=v<0?0:v>1?1:v;
+              const dx=px-w[0]-w[3]*v,dy=py-w[1]-w[4]*v,dz=pz-w[2]-w[5]*v;if(dx*dx+dy*dy+dz*dz<r*r){hit=true;return;}}}});return hit;};
+      if(k9<=g.sy*1.45&&k9<=5.6&&fut(e9,k9)){const o9=e9==='gsaule'?'gpleureur':'gsaule',k8=pl(o9);if(k8<=g.sy*1.45&&k8<=5.6&&!fut(o9,k8)){e9=o9;k9=k8;}else k9=1e9;} /* (le fût dans la route : l'autre pleureur, ou la clairière vide) */
       if(k9>g.sy*1.45||k9>5.6){g.vide=1;g.spV=sp;fr();fr();continue;} // (deux tirages : le décor qui suit ne bouge pas)
       sp=e9;g.sy=k9;g.top=Math.max(g.top,g.y+FOR_PLEUR_VOL[sp].h*k9);}
     g.spV=sp;const q=qDe(g.x,g.z),meta=PT.geant[sp][0].m;GES[sp].push({q:q,m:mat(g.x,g.y,g.z,g.ry,g.sxz,g.sy,g.sxz),j:[fr(),DZ?(DZ.sais.or&&dz2()<DZ.sais.or*.8?2:Math.max(-1,Math.min(1,(fr()*2-1)*.4+DZ.sais.dt))):(fr()*2-1)*.4,0,1]});
@@ -266,6 +279,7 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
      y=haut?pts[i].y+3+fr()*10:Math.max(solH(x,z)+12,pts[i].y-28-fr()*50),s=haut?40+fr()*40:70+fr()*90;Bm.push(mat(x,y,z,0,s,s,s));}}
    const im=new THREE.InstancedMesh(new THREE.PlaneGeometry(1,1),M.brume,Bm.length);for(let k=0;k<Bm.length;k++)im.instanceMatrix.array.set(Bm[k],k*16);
    im.frustumCulled=false;im.matrixAutoUpdate=false;im.renderOrder=4;im.geometry.userData=im.geometry.userData||{};im.userData.jeter=true;root.add(im);FORET.brume=im;}
+  foretLanternes(root,M,GE,proches,mat,seed); /* (2026-10-20, embellir) les lanternes de conte (leur flux à elles) */
   {const Ey=[],EyL=[];const ne=Math.round(PAL_B9('foretYeux',90)*(DZ?DZ.yeux/90:1));for(let k=0;k<ne;k++){const i=Math.round((.06+fr()*.9)*(NP-1)),l9=lat9(i),sd=fr()<.5?-1:1,lat=45+fr()*200,x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;
      const g9=solH(x,z),top=Math.max(g9+4,canH(x,z)-8),y=g9+3+fr()*Math.max(2,Math.min(16,top-g9)),sz=1+fr()*.7,c=fr()<.55?0:fr()<.6?1:2,w=fr(),dx=-l9[1],dz=l9[0];
      for(const e of [-1,1]){Ey.push(mat(x+dx*e*sz*1.1,y,z+dz*e*sz*1.1,0,1,1,1));EyL.push(1,c,sz,w);}}
@@ -281,7 +295,7 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
    FORET.gcol={CG:CG,G:G,n:COL.length};}
   for(const F of FORET.fam)F.im.name='forêt '+(F.nom||'?');if(FORET.rayons)FORET.rayons.name='forêt rayons';if(FORET.brume)FORET.brume.name='forêt brume';if(FORET.yeux)FORET.yeux.name='forêt yeux';
   FORET.n.geants=GE.length;FORET.n.rochers=RO.length;FORET.n.quartiers=QL.length;FORET.n.familles=FORET.fam.length;
-  FORET.ms=Math.round(performance.now()-t0);FORET.msSol=Math.round(tS-t0);FORET.sig=0;
+  FORET.ms=Math.round(performance.now()-t0);FORET.msSol=Math.round(tS-t0);FORET.sig=0;FORET.yRaz=true; /* (2026-10-18, DEBUGGING : yRaz n'était jamais posé — foretTick le lit pour poser la BRUME DU FOND à la hauteur de la route neuve dès la 1re image ; sans lui elle partait de celle de la forêt d'avant et glissait ~2 s, comme BANQ.yRaz / VOLCAN.yRaz) */
   foretMeteo(FORET.met,started?bioPortDur():.01);
 }
 /* deux quads croisés (fleurs, fougères : y de 0 à 1) — ou qui PENDENT (lierre : y de 0 à −1) ; uv.y = 1 en haut de la case */
@@ -361,6 +375,7 @@ function foretTick(dt){
   U.uPhare.value=c.phare*(mode==='boom'||!carGroup.visible?0:1);U.uFlash.value=(LVL.cur&&LVL.cur.orage)?(CAMP_FLASH||0):0;U.uWet.value=LVL.pluie;
   U.uHante.value=c.hante;U.uMistK.value=c.mist*(FORET.dz?FORET.dz.brume.k:1);U.uMistC.value.setRGB(c.mC[0],c.mC[1],c.mC[2]);if(scene.fog)U.uMistC.value.lerp(scene.fog.color,.25);
   {const i=Math.max(0,Math.min(NP-1,Math.round(s/Math.max(1,L)*(NP-1))));const y9=pts[i]?pts[i].y:0;U.uMistY.value+=(y9-U.uMistY.value)*Math.min(1,dt*2+(FORET.yRaz?1:0));FORET.yRaz=false;}
+  U.uLant.value=(c.lant||0)*FOR_EMB.lant;U.uRayK.value=FOR_EMB.ray;U.uAir.value=FOR_EMB.air;if(c.vg)M.arb.uniforms.uVitG.value.setRGB(c.vg[0],c.vg[1],c.vg[2]); /* (2026-10-20, embellir) lanternes, rayons, perspective, vitrail */
   U.uLeafT.value.set(c.leaf[0],c.leaf[1],c.leaf[2]);if(FORET.dz){const l9=FORET.dz.sais.leaf;U.uLeafT.value.x*=l9[0];U.uLeafT.value.y*=l9[1];U.uLeafT.value.z*=l9[2];} /* (LE DÉCOR AU HASARD) LA SAISON */U.uRos.value=c.ros;U.uVent.value=c.vent;U.uRay.value=c.ray*(1-LVL.pluie);U.uPap.value=c.pap;U.uLuc.value=c.luc;U.uPol.value=c.pol;U.uLune.value=c.lune;
   U.uPx.value=renderer.getPixelRatio();M.arb.uniforms.uFen.value=Math.min(1,c.hante*1.1+(FORET.met==='soir'?.55:0));
   M.pap.uniforms.uBat.value=c.hante>.4?c.hante:0;
@@ -370,7 +385,7 @@ function foretTick(dt){
   fx.luc.visible=c.luc>.01||c.pol>.01;if(fx.luc.visible){const f=U.uCarF.value,p=U.uCarP.value;M.luc.uniforms.uBoxL.value.set(p.x+f.x*90,p.y-18,p.z+f.z*90);}
   foretAbeilles(dt,c);
   if(FORET.solM){const ff=(scene.fog&&scene.fog.far)||6000,cp=camera.position;for(const m of FORET.solM){const b=m.geometry.boundingSphere,v=cp.distanceTo(b.center)-b.radius<ff+40;if(m.visible!==v)m.visible=v;}}
-  if(FORET.rayons)FORET.rayons.visible=U.uRay.value>.01;if(FORET.brume)FORET.brume.visible=c.mist>.01;if(FORET.yeux)FORET.yeux.visible=c.hante>.02;
+  if(FORET.rayons)FORET.rayons.visible=U.uRay.value>.01;if(FORET.brume)FORET.brume.visible=c.mist>.01;if(FORET.yeux)FORET.yeux.visible=c.hante>.02;if(FORET.lant)FORET.lant.visible=U.uLant.value>.01;
   foretFollets(dt,c,fx);foretLuneTick(c,fx);foretLoupTick(dt,c,fx);
   if(vit)foretSons(dt,c);
 }

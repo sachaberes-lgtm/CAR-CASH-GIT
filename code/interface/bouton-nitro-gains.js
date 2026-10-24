@@ -33,6 +33,11 @@ const NX3_G=[ // 15 × 20 : la silhouette de l'éclair de la barre (pente, march
   '..##...........',
   '.##............',
   '.#.............'];
+/* (2026-10-24, passe perf 2e tour) LA JAUGE ET L'ANNEAU DE LA NITRO PAR CRANS PLUS LARGES sur les vieux téléphones : nitro tenue, la valeur change à chaque
+   image — et le bouton (#tNitro : 18 règles, 402 déclarations, 16 descendants, un dégradé conique) est l'élément du HUD le plus cher à restyler et à repeindre
+   (mesuré : 331 µs par recalcul à ×1, ~1,3 ms à ×4 ; la barre #nitroBar 542 µs). Crans [ANCIEN, MOYEN, RÉCENT] : l'anneau 2 % · 2 % · 1 % (d'origine), la barre
+   1 % · 1 % · 0,5 % (d'origine) — deux fois moins de recalculs pendant la vidange ; le RÉCENT ne change pas. */
+PAL.B.hudNitroQ=[50,50,100];PAL.B.hudBarQ=[100,100,200];
 const NX3_T=3,NX3_M=3; // l'épaisseur (cases) · la marge autour (lueur 2 + contour 1)
 const NX3={el:null,cv:null,cx:null,img:null,u32:null,vit:null,vN:null,v:-1,vT:0,vc:null,kmh:0,
   W:0,H:0,p:0,pv:0,pF:null,k:0,kF:null,t:0,gl:-1,glT:1.6,cle:'',m:null};
@@ -42,8 +47,8 @@ const NX3_PAL={
   or:  ['#fff3b8','#ffc21f','#ffe680','#e07a00','#b45200','#6e2a00','#ff8d2e','#1c0430'],
   feu: ['#ffffff','#fff0a0','#ffffff','#ffb02a','#ff7a1a','#b83e00','#ffb347','#1c0430'],
   bleu:['#ffffff','#b5c4ff','#e8edff','#4a68f0','#2a44c8','#16247a','#4a68f0','#0b0a2e'],
-  vio: ['#f4e6ff','#b06bff','#dcb8ff','#8a3dff','#5a1fc2','#3e1287','#b06bff','#1c0430'],
-  vioF:['#ffffff','#e6ccff','#ffffff','#b06bff','#8a3dff','#3e1287','#b06bff','#1c0430'],
+  vio: ['#ffe0dc','#ff4a3a','#ffb0a8','#ff1a0a','#c40a00','#6e0500','#ff4a3a','#1c0430'],
+  vioF:['#ffffff','#ffc8c0','#ffffff','#ff4a3a','#ff1a0a','#6e0500','#ff4a3a','#1c0430'],
   sec: ['#a49cc4','#6e6890','#8a84aa','#4a4468','#332e50','#211d38','#ff5a6e','#1c0430']};
 const NX3_RGB={};function nx3Rgb(h){let v=NX3_RGB[h];if(v==null){const n=parseInt(h.slice(1),16);v=NX3_RGB[h]=(255<<24|(n&255)<<16|(n>>8&255)<<8|n>>16)>>>0;}return v;} // ABGR (petit-boutiste)
 function nx3Monte(){

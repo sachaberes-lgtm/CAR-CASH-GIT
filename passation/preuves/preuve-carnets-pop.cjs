@@ -11,7 +11,10 @@
          2 relance après une coche relevée sur le carnet POP → la coche RESTE (la remise à zéro ne joue qu'une fois) ·
          3 joueur au carnet 11 → PHÉNIX offert (carnet 10 passé), coches à zéro · 4 joueur au carnet 13+ → coches gardées
          (mêmes défis, seuils plus bas), les trois POP offerts · 5 joueur neuf → rien ne bouge · 6 joueur au carnet 3 → coches gardées.
-   Dernière ligne : PREUVE OK ou PREUVE KO — <cas> ; code de sortie 0 / 1. Avec un 2e fichier : l'ancien doit échouer au cas 1. */
+   Dernière ligne : PREUVE OK ou PREUVE KO — <cas> ; code de sortie 0 / 1. Avec un 2e fichier : l'ancien doit échouer au cas 1.
+   (24/10, débogage sortie iOS) MISE À JOUR — tout sortait à zéro : depuis le 22/10 le web sans Capacitor ne relit plus la sauvegarde (SAVE.neuf, Sacha :
+   « enlève le système de sauvegarde du lien Vercel ») ; le bac simule `?garde=1` (la persistance de l'app native). Le bloc SAVE appelle aussi m2Vierge,
+   gagneAjoute, carRetiree, carOwned, HAB_RETIRES (extraits du fichier) et m2Etat (bouchon vide : misPop est appelé à la main, comme m2Etat le fait une fois). */
 'use strict';
 const fs=require('fs'),vm=require('vm');
 function sauteTexte(t,i){const ch=t[i],n=t[i+1];
@@ -33,13 +36,15 @@ function essai(chemin){
   const iE=unique('const ENGINE_TIERS=[')+'const ENGINE_TIERS='.length,NE=(function(){const t=src.slice(iE,finBloc(src,iE,'[',']'));let n=0,d=0;
     for(let i=0;i<t.length;i++){const s=sauteTexte(t,i);if(s>=0){i=s;continue;}if(t[i]==='{'){if(d===1)n++;d++;}else if(t[i]==='}')d--;else if(t[i]==='[')d=d||1;}return n;})();
   const eco=/const ECO3=\{\s*gain:([\d.]+)/.exec(src);
-  const code=carnets+'\n'+src.slice(iSave,iFin)+'\n'+(neuf?fonction('function popCarnets(s){')+'\n'+fonction('function misPop(){'):fonction('function misEtat(){')+'\n'+fonction('function popCarnets(s){'));
+  const iHab=unique('const HAB_RETIRES={'),habTxt=src.slice(iHab,finBloc(src,iHab+'const HAB_RETIRES='.length,'{','}'))+';';
+  const avant=[fonction('function m2Vierge(){'),fonction('function gagneAjoute(x){'),fonction('function carRetiree(i){'),fonction('function carOwned(i){'),habTxt,'function m2Etat(){}'].join('\n');
+  const code=carnets+'\n'+avant+'\n'+src.slice(iSave,iFin)+'\n'+(neuf?fonction('function popCarnets(s){')+'\n'+fonction('function misPop(){'):fonction('function misEtat(){')+'\n'+fonction('function popCarnets(s){'));
   const KO=[];const v=(c,cas,detail)=>{console.log('  '+(c?'ok':'KO')+'  '+cas+(detail?' — '+detail:''));if(!c)KO.push(cas);};
   // un lancement du jeu : localStorage donné → SAVE.load() (dans le bloc) → misEtat() (1er appel de la session) → ce qu'on lit
   function lance(store){
     const ls=new Proxy(store,{get(t,p){if(p==='getItem')return k=>(k in t?t[k]:null);if(p==='setItem')return (k,x)=>{t[k]=String(x);};if(p==='removeItem')return k=>{delete t[k];};return t[p];},set(t,p,x){t[p]=String(x);return true;}});
-    const sb={localStorage:ls,window:{},location:{reload(){}},console,THREE:{MathUtils:{clamp:(x,a,b)=>Math.min(b,Math.max(a,x))}},ECO3:{gain:eco?+eco[1]:.25},
-      ENGINE_TIERS:new Array(NE).fill(0),CARS:new Array(77).fill(0).map(()=>({})),CAR_UNLOCK:new Array(77).fill(null),GAP_ON:false,pk:()=>null,SANS_CARRIERE:false,PAL:{b:(k,d)=>d},m2Vierge:()=>({v:0,ok:[],pr:[],su:[],vu:{},nv:[],fl:[],r:{},c:{}})}; // (2026-10-18) m2Vierge : la sauvegarde des missions v2 (la preuve ne tournait plus depuis le 16/10)
+    const sb={localStorage:ls,window:{},location:{reload(){},search:'?garde=1'},console,THREE:{MathUtils:{clamp:(x,a,b)=>Math.min(b,Math.max(a,x))}},ECO3:{gain:eco?+eco[1]:.25},
+      ENGINE_TIERS:new Array(NE).fill(0),CARS:new Array(77).fill(0).map(()=>({})),CAR_UNLOCK:new Array(77).fill(null),GAP_ON:false,pk:()=>null,SANS_CARRIERE:false,PAL:{b:(k,d)=>d}}; // (2026-10-18) m2Vierge : la sauvegarde des missions v2 (la preuve ne tournait plus depuis le 16/10)
     const ctx=vm.createContext(sb);vm.runInContext(code,ctx);
     return vm.runInContext(neuf?'(function(){misPop();SAVE.flush();const s=SAVE.d.mis||{n:0,ok:[0,0,0],best:[0,0,0]};return {s:JSON.parse(JSON.stringify(s)),own:SAVE.d.shop.own.slice(),N:9+CARNETS_POP.length};})()'
       :'(function(){const s=misEtat();SAVE.flush();return {s:JSON.parse(JSON.stringify(s)),own:SAVE.d.shop.own.slice(),N:CARNETS.length};})()',ctx);}

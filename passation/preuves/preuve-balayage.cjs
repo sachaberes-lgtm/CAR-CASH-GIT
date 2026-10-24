@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+/* (24/10, débogage sortie iOS) SANS OBJET : les deux systèmes balayés — le trafic de l'heure de pointe (traficTick, VILLE 9) et la pluie
+   de satellites (satHard, SATOB, 6e niveau) — appartenaient à la CARRIÈRE, retirée du jeu par 48eaef5d (18/10, « Allègement B (carrière) :
+   la carrière, ses niveaux, ses écrans et ses systèmes retirés du jeu ») ; JOURNAL : « PLUS DE CARRIÈRE + PLUS DE MODE FACILE, POUR LA
+   SORTIE (2026-10-14, Sacha … « on le fera dans des MAJ, donc garde-le dans le git quelque part ») ». Le fichier est gardé : si la
+   carrière revient (un des repères réapparaît), la preuve d'origine se rejoue telle quelle. */
 /* PREUVE DU BALAYAGE DES CHOCS (2026-10-14, chasse aux bugs — agent preuve-balayage)
    usage : node preuve-balayage.cjs [chemin index.html]        (défaut : la référence de la session DEBUGGING)
    Sans navigateur. Le test EXTRAIT du fichier du jeu le texte réel de :
@@ -21,6 +26,9 @@ const fs=require('fs'),vm=require('vm'),cp=require('child_process');
 const REF='/Users/sachaberes/cash-car/debug/integ/VERSION PRINCIPALE/index.html',DEPOT='/Users/sachaberes/cash-car/debug/integ',ANCIEN='0c1ecee';
 const fichier=process.argv[2]||REF;
 const src=fs.readFileSync(fichier,'utf8');
+if(src.indexOf('function satHard(){')<0&&src.indexOf('function traficTick(dt,sp){')<0){
+  console.log('PREUVE SANS OBJET — ni traficTick (trafic de VILLE 9) ni satHard (pluie de satellites) dans '+fichier+' : la carrière a été retirée (48eaef5d, 18/10)');
+  process.exit(0);}
 
 // ---------- EXTRACTION PAR REPÈRES DE TEXTE ----------
 function finBloc(t,i0){ // i0 = l'accolade ouvrante ; rend l'index APRÈS l'accolade fermante (commentaires et chaînes sautés)

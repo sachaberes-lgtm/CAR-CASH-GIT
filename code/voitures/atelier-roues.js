@@ -54,7 +54,9 @@ function lpKit(pal){
        du bas-centre au haut-centre, TOUJOURS le même nombre. `paint(j,z,y,x)` : clé de la facette —
        j = n° de bande (0 = plancher … N-2 = toit), −1 bouchon avant, −2 bouchon arrière. */
     loft(zs,S,paint){
-      const sec=zs.map(z=>S(z)),N=sec[0].length;
+      let sec=zs.map(z=>S(z)),N=sec[0].length;
+      const lg=FACETTES_LARGES&&K.forme&&LP_LARGES[K.forme];   /* (2026-10-22, les facettes larges : la grille retaillée, le dessin intact — voir facettes-larges.js) */
+      if(lg){const r=lpLarges(zs,sec,paint,lg);if(r){zs=r.zs;sec=r.sec;paint=r.paint;N=sec[0].length;(LP_LARGES_BILAN[K.forme]||(LP_LARGES_BILAN[K.forme]=[])).push(r.bilan);}}
       for(let i=0;i<zs.length-1;i++){const z0=zs[i],z1=zs[i+1],A=sec[i],C=sec[i+1];
         for(let j=0;j<N-1;j++){const a=A[j],b=A[j+1],c=C[j+1],d=C[j];
           const k=paint(j,(z0+z1)/2,(a[1]+b[1]+c[1]+d[1])/4,(a[0]+b[0]+c[0]+d[0])/4);

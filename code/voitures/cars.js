@@ -24,7 +24,7 @@ const CARS=[
  {name:'LE CAÏD',         shape:'caid',    color:0xd2d5d9,accent:0x16171b,maxKmh:275,accel:31,turn:2.7, h:2.01,w:2.20,l:5.51,spoiler:0, /* (2026-10-19, Léo : « sans le toit, comme sur la photo exactement ») le pick-up blanc nacré de sa photo (avant : 0x7cb83f, le SUV 1,98 × 5,00) */
   desc:'Trois tonnes de cube. Personne ne t\'a jamais demandé de te pousser.'},
  {retire:1,name:'SA MAJESTÉ'},
- {name:'ROSSO 40',        shape:'rosso',   color:0xe8121c,accent:0x131417,maxKmh:420,accel:48,turn:3.05,h:1.12,w:1.98,l:4.36,spoiler:0,
+ {name:'ROSSO 40',        shape:'rosso',   color:0xe8121c,accent:0x131417,maxKmh:420,accel:48,turn:3.05,h:1.12,w:1.98,l:4.36,spoiler:0,rar:'epique', /* (2026-10-22, Sacha : « tableau des voitures » ROSSO 40 épique à 400 000 $ : sans cette ligne le prix la ferait RARE) */
   desc:'Rouge course, aileron plateau. La caisse de rêve : 1,5 million, et chaque dollar se voit.'},
  {name:'POSTER 84',       shape:'poster',  color:0xffc414,accent:0x131417,maxKmh:480,accel:55,turn:3.15,h:1.07,w:2.00,l:4.14,spoiler:0,
   desc:'Elle était punaisée au mur de ta chambre. Maintenant, c\'est toi qui la conduis.'},
@@ -117,17 +117,16 @@ const CARS=[
  {retire:1,name:'LA DÉESSE'},
  {name:'L\'AIGLE DE FEU',color:0x0f0f11,accent:0xd9a520,maxKmh:340,accel:38,turn:2.6,h:1.25,w:1.85,l:5.1,spoiler:0,shape:'e_aigle',rar:'rare', // (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE → RARE
   desc:'Un oiseau d\'or sur le capot, un shérif dans le rétro. Le shérif n\'a jamais rattrapé l\'oiseau.'},
- {name:'LA ZED',color:0xff6a14,accent:0x131417,maxKmh:330,accel:37,turn:2.9,h:1.28,w:1.63,l:4.14,spoiler:0,shape:'e_zed',rar:'epique', /* (2026-10-18, Léo) ÉPIQUE : à 1,6 M$ elle était la rare la plus chère, plus chère que des épiques */
-  desc:'Six cylindres, un capot d\'un kilomètre et des rétros sur les ailes : le samouraï a troqué le sabre.'},
+ {retire:1,name:'LA ZED'}, /* (2026-10-22, Sacha : « tableau des voitures » : à supprimer) RETIRÉE ; sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement */
  {name:'LA FÉLINE',color:0xeee3c6,accent:0xe9ecf0,maxKmh:320,accel:36,turn:2.8,h:1.22,w:1.66,l:4.45,spoiler:0,shape:'e_feline',rar:'legendaire',
   desc:'Un capot si long qu\'il arrive au virage avant toi. Élue plus belle du monde, et elle le sait.'},
  {name:'LA RAIE',color:0xc4161c,accent:0x131417,maxKmh:360,accel:40,turn:2.7,h:1.21,w:1.75,l:4.64,spoiler:0,shape:'e_raie',rar:'epique', // (2026-10-18, Sacha) REMISE dans le jeu (retirée le 14/10) : épique à 2,5 M, comme avant le 6/10
   desc:'Une taille de guêpe, des hanches de starlette et un V8 sous le capot. Hollywood a pris la route.'},
- {name:'L\'ÉTERNELLE',color:0x1d4fd8,accent:0x121418,maxKmh:620,accel:69,turn:3,h:1.21,w:2.04,l:4.54,spoiler:0,shape:'a_eternelle',rar:'defi',
+ {name:'L\'ÉTERNELLE',color:0x1d4fd8,accent:0x121418,maxKmh:620,accel:69,turn:3,h:1.21,w:2.04,l:4.54,spoiler:0,shape:'a_eternelle',rar:'legendaire',
   desc:'Seize cylindres, quatre turbos, zéro remords. Le temps, lui, attend qu\'elle passe.'},
  {name:'LE TRÔNE CENTRAL',color:0xff7a10,accent:0x121316,maxKmh:560,accel:62,turn:3,h:1.14,w:1.82,l:4.29,spoiler:0,shape:'b_trone',rar:'legendaire',
   desc:'Un seul siège, au milieu. Les passagers regardent de côté : ils ne sont pas là pour conduire.'},
- {name:'LE SPECTRE',color:0x1a1d22,accent:0x5cff1e,maxKmh:560,accel:62,turn:3,h:1.13,w:2,l:4.5,spoiler:0,shape:'c_spectre',rar:'legendaire',
+ {name:'LE SPECTRE',color:0x1a1d22,accent:0x5cff1e,maxKmh:560,accel:62,turn:3,h:1.13,w:2,l:4.5,spoiler:0,shape:'c_spectre',rar:'epique',
   desc:'Tu l’as vu passer ? Non. Personne ne l’a jamais vu passer. D’où le nom.'},
  {name:'LE BLINDÉ NOIR',color:0x17181b,accent:0x4a4e56,maxKmh:520,accel:58,turn:2.6,h:1.6,w:2.6,l:4.6,spoiler:0,shape:'d_chevalier',rar:'legendaire',
   desc:'Pas de capot, pas de pitié, pas de feu rouge. Quand il passe, la rue se range toute seule.'},
@@ -140,15 +139,12 @@ const CARS=[
  {retire:1,name:'LA GROUPE B'}, /* (2026-10-18 soir, Sacha : « enlève la groupe B ») RETIRÉE : sa ligne reste (index de sauvegarde), qui l'avait est remboursé par `san` ; son gabarit b_groupeb reste dans SHAPES */
  {name:'LE HOT ROD',color:0xc8141c,accent:0xe9ecf0,maxKmh:380,accel:42,turn:2.5,h:1.4,w:1.7,l:3.9,spoiler:0,shape:'c_hotrod',rar:'defi',
   desc:'Un capot ? Pour cacher un compresseur pareil ? Tu rigoles. Même les flammes sont d’époque.'},
- {name:'LA PUCE',color:0xc8141e,accent:0xf4f4f0,maxKmh:320,accel:36,turn:3.2,h:1.35,w:1.41,l:3.05,spoiler:0,shape:'d_puce',rar:'defi',
-  desc:'Trois mètres, quatre phares, zéro complexe. Elle a battu des monstres sur la neige : toi, c\'est l\'apéro.'},
+ {retire:1,name:'LA PUCE'}, /* (2026-10-22, Sacha : « tableau des voitures » : à supprimer) RETIRÉE ; sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement */
 /* ===== LES FICHES DES 50 — FIN ===== */
  // (2026-09-27) LA CAISSE-NUAGE — la récompense de la CAMPAGNE NUAGES : un petit cumulus monté comme une vraie voiture (châssis, roues,
  // feux sobres), taillé dans la même ouate que le ciel. Elle ne s'achète pas : on la CHASSE au niveau 10 (voir fantomeTick) et elle
  // devient à toi quand tu tiens son sillage une seconde. Ajoutée APRÈS le bloc généré des 50 : aucun index existant ne bouge.
- {name:'LA CAISSE-NUAGE',shape:'nuage',color:0xfff6ee,accent:0xffd9b8,maxKmh:360,accel:40,turn:2.9,h:1.3,w:2.1,l:4.1,spoiler:0,rar:'defi',
-  fx:{jet:0xfff0f6,core:0xffffff,trail:[1.25,1.05,.9],light:0xffe6f2},
-  desc:'Douce comme un nuage, elle file comme un orage. Un coucher de soleil, rien que pour toi.'},
+ {retire:1,name:'LA CAISSE-NUAGE'}, /* (2026-10-22, Sacha : « tableau des voitures » : à supprimer) RETIRÉE ; sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement */
  // (2026-09-27) LE LINGOT — la récompense de la CAMPAGNE VILLE : un lingot d'or de 1 kg (poinçon 999,9) monté sur roues. Il ne s'achète
  // pas : on le GAGNE en battant le banquier au portail du niveau 10 (voir banquierTick). Ajouté en dernier : aucun index ne bouge.
  {retire:1,name:'LE LINGOT'}, /* (2026-10-18 soir, Sacha : « enlève la gold bar ») RETIRÉ : sa ligne reste (index de sauvegarde), qui l'avait est remboursé par `san` ; son gabarit `lingot` reste dans SHAPES */
@@ -165,21 +161,17 @@ const CARS=[
   desc:'Elle a pris froid au dernier tour : depuis, elle éternue du feu. Ne reste jamais devant elle.'},
  // (2026-10-08) LE SQUALE — Léo : la voiture au sourire de requin de son sketch du garage, bleu clair, sportive, carrée aux angles
  // arrondis, les phares en yeux (voir SHAPES.squale). Ajoutée EN DERNIER (les index de sauvegarde ne bougent pas).
- {name:'SQUALE',shape:'squale',color:0x5e666d,accent:0x2a3036,maxKmh:340,accel:40,turn:2.7,h:1.66,w:2.52,l:4.5,spoiler:0,rar:'epique', // (2026-10-09, Léo, fiche de la salle blanche) RARE → ÉPIQUE
+ {name:'SQUALE',shape:'squale',color:0x5e666d,accent:0x2a3036,maxKmh:340,accel:40,turn:2.7,h:1.66,w:2.52,l:4.5,spoiler:0,rar:'legendaire', // (2026-10-21, Sacha) ÉPIQUE → LÉGENDAIRE : elle est en boutique payante, où toutes les caisses le sont (carRar lit cette fiche avant le prix) — (2026-10-09, Léo, fiche de la salle blanche) RARE → ÉPIQUE
   fx:{jet:0xbfe4ff,core:0xffffff,trail:[.75,.85,.95],light:0xcfe8ff},
   desc:'Toujours le sourire. Surtout quand elle te double.'},
  // (2026-10-09, Léo : « fais-en une hyper abstraite mais travaillée, concept, ajoute-la à la liste ») L'ABSTRAITE (voir SHAPES.abstraite). Ajoutée EN DERNIER (les index de sauvegarde ne bougent pas).
- {name:'L\'ABSTRAITE',shape:'abstraite',color:0xf2f2ee,accent:0x2b2e34,maxKmh:420,accel:48,turn:3.0,h:1.18,w:2.0,l:4.74,spoiler:0,rar:'epique',
-  fx:{jet:0xffd36a,core:0xfff6d8,trail:[1.4,1.0,.35],light:0xffc84a},
-  desc:'Trois lames qui flottent l\'une sur l\'autre, quatre disques, un anneau d\'or qu\'elle traverse sans le toucher. Personne ne sait où est le moteur. Elle non plus.'},
+ {retire:1,name:'L\'ABSTRAITE'}, /* (2026-10-22, Sacha : « tableau des voitures » : à supprimer) RETIRÉE ; sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement */
  // (2026-10-10, Léo : « une nouvelle abstraite, en glace, genre iceberg, stylisée, dynamique ») L'ICEBERG (voir SHAPES.iceberg). Ajoutée EN DERNIER (les index de sauvegarde ne bougent pas).
  {name:'L\'ICEBERG',shape:'iceberg',color:0x52c8f0,accent:0xf4faff,maxKmh:415,accel:49,turn:3.1,h:1.15,w:2.1,l:4.75,spoiler:0,rar:'epique',
   fx:{jet:0x9fe8ff,core:0xffffff,trail:[.75,1.15,1.45],light:0x8fe0ff},
   desc:'Un iceberg fendu en trois : deux blocs de glace sur les roues, une bulle au milieu pour un seul pilote. Le vent passe entre.'},
  // (2026-10-10, Léo : « une voiture flamme — dur, vas-y dur ; une autre technique ; une forme de voiture originale, associée au feu ») LA FOURNAISE (voir SHAPES.fournaise). Ajoutée EN DERNIER.
- {name:'LA FOURNAISE',shape:'fournaise',color:0x241a16,accent:0xff6a1a,maxKmh:425,accel:50,turn:3.0,h:1.2,w:1.95,l:4.72,spoiler:0,rar:'epique',
-  fx:{jet:0xff7a24,core:0xffe0a0,trail:[1.5,.7,.25],light:0xff6a1a},
-  desc:'Une croûte de basalte qui se fend sur un cœur de lave, le feu qui coule dans chaque joint. Ne la touche pas.'},
+ {retire:1,name:'LA FOURNAISE'}, /* (2026-10-22, Sacha : « tableau des voitures » : à supprimer) RETIRÉE ; sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement */
  // (2026-10-10, Léo : « une abstraite type EAU — l'élément, pas une bouteille ; quelque chose de vraiment méchant ») LA DÉFERLANTE. RETIRÉE le 2026-10-15 (Sacha : « elle ne respecte pas les règles du low-poly », comme LA MERCURE) : son gabarit est effacé, la ligne reste pour les index.
  {retire:1,name:'LA DÉFERLANTE'},
  // (2026-10-11, Léo, « retoucheur de voitures » : la planche générée, « génère la mercure », « génère-la en 3D dans mon jeu ») LA MERCURE
@@ -247,8 +239,7 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LE TOFU',shape:'ae86',color:0xf2f2ee,accent:0x141414,maxKmh:280,accel:32,turn:3.1,h:1.28,w:1.68,l:4.22,spoiler:0,rar:'rare', // 86 — discussion JAPONAISES : le petit coupé à hayon de 1983 (la ligne de la Toyota Sprinter Trueno AE86, 3 portes GT-APEX), livrée panda, phares escamotables (SHAPES.ae86)
-  desc:'Livreur de tofu au petit matin, roi de la descente la nuit. Le verre d\'eau posé sur le tableau de bord ne se renverse jamais.'},
+ {retire:1,name:'LE TOFU'}, /* (2026-10-22, Sacha : « tableau des voitures » : à supprimer) RETIRÉE ; sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement */
  /* · */
  /* · */
  /* · */
@@ -257,7 +248,17 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {retire:1,name:'NOUVELLE 88',shape:'epave',rar:'epique', // 88 — RÉSERVÉE, LIBRE (18/10 : la Classe G prévue ici, Léo : « enlève la Classe G ») — la prochaine caisse la prend
+ {name:'LA ZAGAIE',shape:'zagato',color:0xc7753c,accent:0x2a2c31,maxKmh:500,accel:58,turn:3.1,h:1.17,w:1.93,l:4.22,spoiler:0,rar:'epique', // 88 — (2026-10-22, Léo : « zagato imite exactement la forme de la voiture orange ») la 5-95 de Zagato (2014, un exemplaire) : gueule creuse, vitrage noir qui s'enroule, nacelle de toit, queue coupée net, cuivre mat (SHAPES.zagato)
+  desc:'Une pièce unique, taillée comme une lance : la gueule grande ouverte, le toit noir qui s\'enroule, la queue coupée net.'},
+ /* · */
+ /* · */
+ /* · */
+ {name:'LE LOUP',shape:'countach',color:0xb4b9c2,accent:0x2a2c31,maxKmh:500,accel:58,turn:3.0,h:1.07,w:2.0,l:4.46,spoiler:0,rar:'legendaire', // 89 — (2026-10-22, Léo : « genere la blanche ressemblance 11/10 ») la Countach blanche du film, l'ÉPAVE : aile avant gauche écrasée et son phare entrouvert, phare droit arraché, pare-chocs déchiré et sa lame basse qui pend, portière et quartiers froissés, portes à ciseaux (SHAPES.countach ; `?epave=0` : la Countach intacte)
+  desc:'Blanche, basse, taillée à la hache, et passée sous un camion. Les portes se lèvent encore.'},
+ /* · */
+ /* · */
+ /* · */
+ {retire:1,name:'NOUVELLE 90',shape:'epave',rar:'epique', // 90 — RÉSERVÉE, LIBRE (22/10 : LE LOUP a pris la 89) — la prochaine caisse la prend
   desc:'(place réservée)'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------

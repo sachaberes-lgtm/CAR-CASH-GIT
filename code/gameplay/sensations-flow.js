@@ -83,7 +83,7 @@ function sensCaisse(){
      bitume : elle TOMBE d'un cran (≈ 1,1° vers le vide, ≈ 1 cm) et le pouce reçoit UN tic. Une fois par approche (pas avant 0,45 s). */
   const sp9=CARS[level];if(!sp9)return;
   const hw9=sp9.w*.5,dB9=Math.abs(lat)-(ROAD_HALF-hw9); // > 0 = les roues extérieures sont dehors (la même mesure que le roulis du bord)
-  if(PARIS.sol||hopY>0){SENS_CA.o=false;SENS_CA.pk=0;return;} // pas de vide (Paris au sol) · roues en l'air : rien, et on oublie
+  if(hopY>0){SENS_CA.o=false;SENS_CA.pk=0;return;} // pas de vide (Paris au sol) · roues en l'air : rien, et on oublie
   if(!SENS_CA.o){
     if(dB9>0){SENS_CA.o=true;SENS_CA.pk=0;
       if(v>12&&t-SENS_CA.tl>450){SENS_CA.tl=t;sensHap(8,1);if(!REDUCED_MOTION)sensCoup(Math.sign(lat)*.45,0,-.3);}}
