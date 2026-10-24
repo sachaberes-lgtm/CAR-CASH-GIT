@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CASH CAR</title>
+<meta name="description" content="CASH CAR — runner arcade 3D : fonce, saute, vrille, surfe les nuages et amasse une fortune. Une seule vie.">
+<!-- ICÔNES (2026-09-24) : le 💰 était l'EMOJI D'APPLE (image protégée — risque de rejet App Store, et hors DA) ;
+     remplacé par le mot-symbole pixel CASH CAR. apple-touch-icon en PNG : iOS n'accepte pas le SVG. -->
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/icon-32.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#12081f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CASH CAR">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preload" href="assets/fonts/pressstart2p.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-180.png">
+<!-- ================= L'ÉDITION, ET LA COLONNE DE L'ORDI (2026-09-28) =================
+     Sacha : « quand on ouvre cette version, la disposition des affichages de la version PC et de la version mobile verticale doit
+     être EXACTEMENT la même ». Jusqu'ici l'ordi jouait le chemin téléphone dans TOUTE la fenêtre, en paysage : jauges étirées sur
+     1 600 px, HUD minuscule, caisse lointaine, accueil réarrangé (captures 1600×900 du 28/09). Une disposition identique ne
+     s'obtient qu'en donnant au jeu LE MÊME ÉCRAN : sur l'ordi, cette page n'est plus qu'un CADRE, et le jeu tourne dans une
+     colonne de 390 × 844 (l'écran logique d'un iPhone) agrandie à la hauteur de la fenêtre par `zoom`. Chrome propage ce zoom
+     au document du cadre comme une densité de pixels : dedans, innerWidth = 390, les @media et les vw sont ceux d'un téléphone,
+     devicePixelRatio = le facteur d'agrandissement → texte et jauges NETS (mesuré : 1 600 × 1 100 → colonne 499 × 1 080, dpr 1,28).
+     Même en file:// (double-clic) : le cadre se charge et partage la sauvegarde (même localStorage, vérifié).
+     ⚠ LE MOT DE LA FIN, même soir, après trois allers-retours (vertical → « horizontale sur PC » → « comme mon téléphone en
+     vertical ») : « non, justement : je veux voir la version HORIZONTALE DU MOBILE sur mon PC ». Le cadre donne donc au jeu l'écran
+     d'un téléphone COUCHÉ : 844 × 390 (l'iPhone de référence tenu en paysage), agrandi à la largeur de la fenêtre — dedans,
+     innerWidth 844 / innerHeight 390 : exactement la mise en page qu'un téléphone affiche en paysage (le jeu joue portrait ET
+     paysage depuis le 27/09), pas celle d'un moniteur de 1 600 px. `?colonne=portrait` = le téléphone tenu DEBOUT (390 × 844) ;
+     `?colonne=0` = l'ancien plein écran de moniteur ; `?pc=1` = le menu desktop.
+     Qui y passe : l'édition 'mobile', ouverte en page principale (pas déjà dans un cadre), sur un écran qui n'est PAS un téléphone
+     (même test que TEL_NATIF). Dans la page-cadre, le grand script s'arrête à sa 1re ligne (`CC_COLONNE`) : aucun second jeu.
+     ⚠ `const EDITION` VIT ICI : c'est LA ligne que `synchro-versions.js` bascule (une seule occurrence, sinon il refuse). -->
+<script>
+/* ⚠ LES DEUX ÉDITIONS (2026-09-25, user : « sépare-les en deux dossiers : VERSION PRINCIPALE = la version mobile fusionnée, AUTRE
+   VERSION = la version PC »). C'est UN SEUL jeu : les deux dossiers portent le MÊME index.html, et cette ligne est la SEULE qui
+   diffère. 'mobile' → sur l'ordi aussi on joue la version TÉLÉPHONE (l'écran d'un téléphone en paysage, voir plus haut) ; 'pc' → l'ordi garde le menu
+   desktop. Un vrai téléphone reçoit la version téléphone dans les deux cas. On ne modifie JAMAIS « AUTRE VERSION » à la main :
+   `node synchro-versions.js` (racine du dépôt) la régénère depuis la principale. Forçages ponctuels : `?tel=1` / `?pc=1`.
+   (Déclarée au niveau global — un `const` de script classique est visible du grand script, qui la lit.) */
+const EDITION='mobile';
+if(/[?&]portes=haut\b/.test(location.search))document.documentElement.classList.add('portesHaut'); /* (2026-10-20, Léo : « le mission, le shop, tu remets ça en dessous ») les portes du garage sous le nom (Sacha, 19/10) : seulement avec ?portes=haut */
+if(/[?&]garage=(leo|avant)\b/.test(location.search))document.documentElement.classList.add('garLeo'); /* (2026-10-19, Sacha) LE GARAGE QUI PREND TOUT L'ÉCRAN (la feuille garageHaut) est le défaut ; ?garage=leo (ou =avant) rend le garage d'avant */
+if(/[?&]garjouer=0\b/.test(location.search))document.documentElement.classList.add('sansGarJouer'); /* (2026-10-18) le JOUER de l'inventaire et de la boutique, coupé : voir <style id="jouerGarage"> */
+/* (2026-10-11, Léo : « enlève les intros, tout ça : lance juste la voiture dans la map ») LA BALADE SANS INTRO — la classe est posée
+   dès le <head> : ni le logo du chargement, ni le menu ne se montrent (voir baladeDepart). */
+if(/[?&]intro=ancien\b/.test(location.search))document.documentElement.classList.add('introAncien');
+if(/[?&](map=jade|balade=1)\b/.test(location.search)){document.documentElement.classList.add('balade');document.write('<style id="baladeIntro">html.balade #splash,html.balade #overlay,html.balade #garage,html.balade #wipe{visibility:hidden!important}html.balade body{background:#07050f}html.balade:not(.parti) body>canvas{visibility:hidden!important}</style>');}
+/* LES MISSIONS v2 (2026-10-16, Sacha : « on remplace tout le système actuel de défis en carnets / groupes de 3 par des MISSIONS libres ») :
+   l'ancien système (CARNETS, la file de trois, les pastilles, la constellation de l'atelier) est RETIRÉ (18/10, allègement) ; la sauvegarde
+   SAVE.d.mis reste lue (carStat('carnet'), la migration m2MigreV2, le cadeau des carnets POP). Voir « LES MISSIONS v2 » au journal. */
+document.documentElement.classList.add('misV2');
+/* (2026-10-15, Léo : « enlève les dauphins et les singes ; avec les figures ça n'a plus sa place, ça prend trop de place dans le jeu — enlève
+tout ce qui est volumineux et inutile : dragon, animaux ») → ARRACHÉS : les dauphins (créatures, figure LE DAUPHIN, étiquette #dolHud, aura de la
+nage au ras), le serpent néon, le dragon de feu de NITROOO (DRG / DFEU), les singes de la course (3 sauts en 5 s). Le modèle du dauphin, la recette
+VITRAIL et le singe vivent dans `creatures/*.js`, CHARGÉS par le jeu (<script> plus bas, et le Worker creatures/atelier.js) pour ce qui est revenu par map — les singes et les dauphins du SOLEIL DE JADE (JSG, JDM) — et lus par
+   les boîtes de Léo.
+(2026-10-18, allègement) coupés le 15/10, arrachés à leur tour : le SNAKE LOOP, NITROOO / PURE SPEED / AIR NITROOO, le MÉTÉORE et son cratère,
+la pluie de débris de l'orbite — plus de `?snake=1`, `?nitrooo=1`, `?meteore=1`, `?debris=1`. Tout le reste : l'historique git (85470fb4 et avant). */
+/* LA MÊME VERSION POUR TOUT LE MONDE (2026-10-01, Léo : « trouve un moyen pour qu'on joue au même jeu, juste ») : `vercel-build.sh`
+   remplace ce jeton par le commit publié et pose `version.json` à côté du jeu. Le jeu compare les deux et se recharge tout seul
+   s'il est en retard (voir « LA MISE À JOUR TOUTE SEULE », près du service worker). En copie locale le jeton reste tel quel : rien ne se vérifie. */
+const CC_BUILD='__CC_BUILD__';
+/* (2026-10-22, piste « démarrage », profil au CPU ×4 : les photos des caisses se refaisaient à CHAQUE publication — 3 à 4 s de fil principal) L'EMPREINTE DES PHOTOS : `vercel-build.sh` grave ici le hachage des seuls fichiers qui changent l'IMAGE d'une photo de caisse
+   (voitures/, rendu/, le studio, les constantes de cadrage). Les photos gardées (IndexedDB `ccPhotos`) survivent donc aux publications qui n'y touchent pas. Copie locale : jeton intact, rien n'est gardé (voir phdbSig). */
+const CC_PHOTOS='__CC_PHOTOS__';
+const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b/.test(location.search)?' · SANS CIEL':'');
+(function(){
+  var q=location.search,M=window.matchMedia;
+  /* L'ÉCRAN NU PAR DÉFAUT (2026-10-01, copie de test de Léo : « je préfère le point de vue de la 1re image » = sans la forme de
+     l'iPhone) : sur l'ordi, l'écran du téléphone est un rectangle simple, sans boîtier, sans encoche ni coins arrondis, et le jeu ne
+     garde pas les marges de l'encoche. `ENCOCHE_DEFAUT=true` rend le boîtier du 13 Pro par défaut ; dans l'adresse, `?encoche=1` /
+     `?encoche=0` forcent l'un ou l'autre. Un vrai téléphone n'est jamais concerné (pas de cadre). */
+  /* (2026-10-06, Sacha : « remets l'encoche et le format de l'iPhone quand on lance la version main ») : le BOÎTIER du 13 Pro revient par
+     défaut — lunette, coins arrondis, encoche. L'écran nu de Léo reste à portée : `?encoche=0` dans l'adresse. */
+  var ENCOCHE_DEFAUT=true,ENC=(/[?&]encoche=1\b/.test(q)||(ENCOCHE_DEFAUT&&!/[?&]encoche=0\b/.test(q)));
+  if(window.top!==window){ // DANS la colonne : les touches frappées pendant que la page-cadre avait le focus arrivent par message
+    if(/[?&]colonne=1\b/.test(q)&&!/[?&]encoche=0\b/.test(q))document.documentElement.classList.add('telCadre'); // les MARGES de l'iPhone restent, même sans en dessiner la forme : les boutons à la même place que sur le téléphone de Sacha (`?encoche=0` : sans marges) // les marges de l'iPhone de référence (voir « L'ENCOCHE »)
+    addEventListener('message',function(e){var d=e.data;if(e.source!==window.parent||!d||d.cc!=='touche')return;
+      try{document.dispatchEvent(new KeyboardEvent(d.t,{key:d.key,code:d.code,repeat:!!d.rep,bubbles:true,cancelable:true}));}catch(_){}});
+    return;}
+  if(EDITION!=='mobile'||window.Capacitor||/[?&](pc|desktop)=1|[?&]colonne=0/.test(q)&&!/[?&](tel|mobile)=1/.test(q))return; // ?pc=1 : menu desktop · ?colonne=0 : l'ancien plein écran
+  var tactile=(M&&M('(pointer:coarse)').matches)||('ontouchstart' in window)||navigator.maxTouchPoints>0;
+  if(tactile&&((M&&M('(hover:none)').matches)||Math.min(screen.width,screen.height)<600))return; // un vrai téléphone : il EST l'écran
+  /* (2026-10-01, Léo : « sur tous les ordis ») la taille de l'ÉCRAN, plus celle de la fenêtre : un portable à écran tactile
+     (1 536 × 864 → fenêtre < 820 px de haut) passait pour un téléphone et jouait sans cadre, étiré sur tout le moniteur */
+  window.CC_COLONNE=true;window.__gameReady=true; // (le chien de garde du démarrage n'a rien à garder ici : le jeu démarre dans le cadre)
+  var debout=/[?&]colonne=portrait/.test(q);
+  document.documentElement.classList.add('colonne',debout?'debout':'couche');
+  var L=debout?390:844,H=debout?844:390; // l'écran logique de référence (iPhone 12 à 15) — couché par défaut (le verdict de Sacha)
+  document.addEventListener('DOMContentLoaded',function(){
+    var f=document.createElement('iframe'),u=location.href.split('#')[0];
+    f.id='colonne';f.setAttribute('aria-label','CASH CAR'); // (2026-10-08, Léo : « c'est un peu goofy ici ») le NOM du cadre sans `title` : un title affichait l'infobulle grise « CASH CAR » dès que la souris s'arrêtait sur le jeu
+    f.setAttribute('allow','autoplay; fullscreen; gamepad');f.setAttribute('allowfullscreen','');
+    f.src=u+(u.indexOf('?')<0?'?':'&')+'colonne=1';
+    f.style.width=L+'px';f.style.height=H+'px';
+    /* LE CORPS DU TÉLÉPHONE (2026-10-01, Léo : « le truc iPhone c'est mal mis ») : l'écran collait aux bords de la fenêtre (une
+       fenêtre d'ordi est moins allongée que 844 × 390 : le cadre prenait TOUTE la largeur), ses coins arrondis et l'encoche étaient
+       coupés par le bord. Désormais un vrai boîtier : une lunette noire de `TEL_B` pt autour de l'écran, de l'air autour du
+       boîtier, et l'encoche posée DANS la lunette (même noir : elle en sort, comme sur le vrai). Le boîtier se place en px (#tel,
+       sans zoom), l'écran (l'iframe zoomée) vit dedans sans aucun décalage à lui — un left/top sur un élément zoomé serait zoomé aussi. */
+    var tel=document.createElement('div');tel.id='tel';tel.appendChild(f);
+    document.body.appendChild(tel);
+    /* L'ENCOCHE (2026-10-01, Léo : « son emplacement des touches est différent — que sur tous les ordis ça ressemble à ce que
+       Sacha a ») : le téléphone de référence est l'iPhone 13 Pro de Sacha, 844 × 390 — le cadre en avait la taille, pas les
+       MARGES. iOS rentre l'interface de 47 px de chaque côté couché (21 en bas ; debout 47 en haut, 34 en bas) : dans la
+       colonne, `html.telCadre` pose ces marges (--ccT/B/L/R, lues à la place de env(safe-area-inset-*) partout), et la page-
+       cadre dessine l'écran arrondi + l'encoche, par-dessus l'image comme sur le vrai. `?encoche=0` = sans. */
+    var en=null;if(ENC){en=document.createElement('div');en.id='encoche';tel.appendChild(en);
+      document.documentElement.classList.add('encoche');}
+    var MODE=/[?&]cadre=scale\b/.test(q)?'scale':'zoom'; // voir « LE ZOOM NE PASSE PAS PARTOUT » plus bas
+    var TEL_B=en?11:0; // la lunette du 13 Pro ≈ 11 pt de chaque côté de l'écran (sans encoche : l'écran nu, comme avant)
+    var cadre=function(){
+      // de l'air autour du boîtier ; en bas la place du bouton TOURNER et du numéro de version
+      var PW=0,LW=innerWidth-PW;
+      var mx=Math.max(16,LW*.025),mh=Math.max(14,innerHeight*.03),mb=Math.max(mh,40),
+        z=Math.max(.5,Math.min((innerHeight-mh-mb)/(H+2*TEL_B),(LW-2*mx)/(L+2*TEL_B))),b=TEL_B*z,
+        w=(L+2*TEL_B)*z,h=(H+2*TEL_B)*z,ts=tel.style;
+      if(MODE==='zoom'){f.style.transform='';f.style.zoom=z.toFixed(4);}else{f.style.zoom='';f.style.transformOrigin='0 0';f.style.transform='scale('+z.toFixed(4)+')';}
+      document.documentElement.style.setProperty('--labPW',PW+'px');
+      ts.width=w+'px';ts.height=h+'px';ts.padding=b+'px';ts.left=((LW-w)/2)+'px';ts.top=(mh+(innerHeight-mh-mb-h)/2)+'px';
+      ts.borderRadius=en?((47+TEL_B)*z)+'px':'0'; // (?encoche=0 : l'écran nu, à angles droits, comme avant)
+      if(!en)return;var lo=154*z,ep=31*z,ro=(9*z)+'px',s=en.style; // l'encoche du 13 Pro ≈ 154 × 31 pt, coins de 9 pt, et ses deux « oreilles » (::before/::after)
+      s.setProperty('--or',(6*z)+'px');
+      if(debout){s.width=lo+'px';s.height=ep+'px';s.left=(b+(L*z-lo)/2)+'px';s.top=b+'px';s.borderRadius='0 0 '+ro+' '+ro;}
+      else{s.width=ep+'px';s.height=lo+'px';s.left=b+'px';s.top=(b+(H*z-lo)/2)+'px';s.borderRadius='0 '+ro+' '+ro+' 0';}};
+    cadre();addEventListener('resize',cadre);
+    /* (2026-10-03, Léo : « pourquoi le menu du début est mal placé », sur ses deux liens) LE ZOOM NE PASSE PAS PARTOUT : Chrome applique le
+       `zoom` de l'iframe à son contenu (le jeu s'y croit dans un écran de 844 × 390, en haute définition) ; un navigateur qui ne le fait
+       pas (Safari ? Firefox ? — pas de banc pour eux ici) donne au jeu un écran de 1 400 px de large : le menu passe en disposition
+       « grand écran », boutons petits en bas, caisse à droite. On VÉRIFIE au chargement ce que voit le jeu ; si ce n'est pas 844 × 390,
+       on bascule sur une mise à l'échelle (transform) qui marche partout (image un peu moins fine). `?cadre=scale` la force (banc). */
+    f.addEventListener('load',function(){try{var iw=f.contentWindow.innerWidth,ih=f.contentWindow.innerHeight;
+      if(MODE==='zoom'&&(Math.abs(iw-L)>3||Math.abs(ih-H)>3)){MODE='scale';cadre();}}catch(_){}});
+    /* LE BOUTON TOURNER (2026-09-30, Léo : « ajoute une option où je peux regarder en mode portrait » — repris de sa branche
+       `version-leolei-2026`, 26/09) : le téléphone passe COUCHÉ ⇄ DEBOUT sans recharger — le jeu, dans la colonne, ne reçoit qu'un
+       resize (fovFit, HUD, garage suivent seuls), on peut tourner en pleine course. L'adresse garde le choix (`?colonne=portrait`). */
+    var vv=document.createElement('div');vv.id='ccVer';vv.textContent='VERSION '+CC_VER;document.body.appendChild(vv); // à comparer d'un coup d'œil avec les réglages du téléphone
+    var tb=document.createElement('button');tb.id='tourne';tb.type='button';document.body.appendChild(tb);
+    var tLbl=function(){var lg9='';try{lg9=localStorage.ccLang||'';}catch(e){}var en=lg9?lg9!=='fr':!/^fr/i.test(navigator.language||'fr'); /* (2026-10-07) la langue CHOISIE d'abord, comme l'écran de crash */
+      tb.textContent=debout?(en?'\u21bb  LANDSCAPE':'\u21bb  PAYSAGE'):'\u21bb  PORTRAIT';var a9=debout?'Tenir le téléphone couché':'Tenir le téléphone debout';
+      tb.dataset.frAria=a9;tb.setAttribute('aria-label',en?(debout?'Hold the phone sideways':'Hold the phone upright'):a9);};
+    window.__tourneLbl=tLbl; /* applyLangDOM le rappelle quand on change de langue */
+    tLbl();
+    tb.addEventListener('click',function(e){e.stopPropagation();debout=!debout;L=debout?390:844;H=debout?844:390;
+      document.documentElement.classList.toggle('debout',debout);document.documentElement.classList.toggle('couche',!debout);
+      f.style.width=L+'px';f.style.height=H+'px';cadre();tLbl();
+      try{var u=new URL(location.href);if(debout)u.searchParams.set('colonne','portrait');else u.searchParams.delete('colonne');history.replaceState(null,'',u.toString());}catch(_){}
+      donne();});
+    // le CLAVIER va au jeu : focus donné au chargement et à chaque clic hors de la colonne ; une touche frappée entre-temps est relayée
+    var donne=function(){try{f.contentWindow.focus();}catch(_){}};
+    f.addEventListener('load',donne);addEventListener('pointerdown',donne);
+    ['keydown','keyup'].forEach(function(t){addEventListener(t,function(e){
+      try{f.contentWindow.postMessage({cc:'touche',t:t,key:e.key,code:e.code,rep:e.repeat},'*');}catch(_){}
+      if(/^(Space|Arrow|Shift|Escape|Enter)/.test(e.code))e.preventDefault();donne();});});
+  });
+})();
+</script>
+<script>
+/* LA RÉGIE ADSENSE (2026-10-15 soir, Sacha : « branche les vraies pubs sur le site web avec Google AdSense (jeux H5) ») — le chargeur de
+   l'Ad Placement API de Google (« H5 Games Ads »), côté page ; le côté jeu (adBreak de type reward → la SECONDE CHANCE) est le bloc
+   « LA RÉGIE ADSENSE, CÔTÉ JEU », juste au-dessus de LA PUB QUI RESSUSCITE.
+   · CC_ADSENSE = l'identifiant d'éditeur AdSense de Sacha (« ca-pub-… », sur adsense.google.com › Compte › Infos du compte). VIDE = AUCUNE
+     régie : la pub maison de 5 s. C'est le SEUL endroit où le poser : vercel-build.sh en tire aussi /ads.txt à la racine du site.
+   · Seulement sur le SITE (CC_ADSENSE_SITES, en http/https) : jamais dans l'app iPhone (Capacitor, capacitor://), jamais dans une copie
+     locale (localhost, JOUER.bat), jamais dans la page-cadre de l'ordi — Google veut le code DANS le document du jeu, donc dans l'iframe de
+     la colonne (qui a déjà allow="autoplay").
+   · `?pubtest=1` : le MODE TEST de Google (data-adbreak-test="on") partout, même sans identifiant — de fausses pubs, aucune requête de pub
+     envoyée, une fois sur deux « pas de pub prête » (la pub maison prend le relais). Pour les bancs et pour voir le parcours. */
+var CC_ADSENSE='',CC_ADSENSE_SITES=['car-cash-git.vercel.app'];
+(function(){try{
+  var test=/[?&]pubtest=1\b/.test(location.search);
+  if(window.CC_COLONNE||window.Capacitor||!/^https?:$/.test(location.protocol))return;
+  if(!test&&!(/^ca-pub-\d{10,20}$/.test(CC_ADSENSE)&&CC_ADSENSE_SITES.indexOf(location.hostname)>=0))return;
+  var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';
+  if(test)s.setAttribute('data-adbreak-test','on');
+  s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client='+(CC_ADSENSE||'ca-pub-0000000000000000');
+  window.adsbygoogle=window.adsbygoogle||[];
+  window.adBreak=window.adConfig=function(o){window.adsbygoogle.push(o);};
+  window.CC_ADS={test:test,client:CC_ADSENSE||'test'};
+  document.head.appendChild(s);
+}catch(e){}})();
+/* LA RÉGIE ADMOB DE L'APP iPHONE (2026-10-19, Sacha : « prépare les emplacements de pub récompensée dans le jeu (sans module AdMob), on
+   branchera AdMob en v1.1 ») — la prise est posée, ÉTEINTE. Le côté jeu est le bloc « LA RÉGIE ADMOB, CÔTÉ JEU », juste au-dessus de
+   « LA RÉGIE ADSENSE, CÔTÉ JEU ». Elle ne s'allume que si les TROIS sont vrais :
+   · on est dans l'app (window.Capacitor : jamais sur le site ni dans une copie locale) ;
+   · le module natif @capacitor-community/admob est installé dans le projet Xcode (Capacitor.Plugins.AdMob) — le travail du Mac en v1.1 ;
+   · CC_ADMOB.recompense porte l'identifiant du BLOC de pub récompensée iOS (« ca-app-pub-…/… », AdMob › Applis › Blocs d'annonces). VIDE = éteinte.
+   `?pubtest=1` dans l'app = le bloc de TEST de Google (ca-app-pub-3940256099942544/1712485313) et isTesting, même sans identifiant.
+   ⚠ À LA v1.1, en plus du module : l'App ID AdMob (GADApplicationIdentifier), SKAdNetworkItems et NSUserTrackingUsageDescription dans
+   Info.plist, et les réponses « confidentialité » de l'App Store (identifiant publicitaire, données d'usage) à refaire. */
+var CC_ADMOB={recompense:''};
+</script>

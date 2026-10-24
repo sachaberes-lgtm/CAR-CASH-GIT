@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Boîte à figures — CASH CAR</title>
 <!-- LA BOÎTE À FIGURES (2026-10-14, Léo : « dans une boîte blanche, un générateur où je peux voir ces différents tricks qu'on ajoute au jeu
-     direct »). La caisse, seule dans une salle blanche, fait les FIGURES du double-tap nitro — le MÊME catalogue et le MÊME lecteur que le
-     jeu (figures.js) : ce qu'on voit ici, c'est ce qu'elle fait en vol. Toucher une figure = elle la fait ; ENCHAÎNER = trois figures au
+     direct »). La caisse, seule dans une salle blanche, fait les FIGURES du double-tap nitro — le MÊME catalogue et la MÊME physique que le
+     jeu (figures.js, `FIG.Corps` depuis LES FIGURES v2 du 14/10 : l'explosion, l'élan, le planté) : ce qu'on voit ici, c'est ce qu'elle fait en vol. Toucher une figure = elle la fait ; ENCHAÎNER = trois figures au
      hasard, enchaînées comme au double-tap ; GÉNÉRER = une figure neuve tirée au hasard — AJOUTER AU JEU la met au shop (sur cet appareil :
      localStorage « cashcarFigPerso », même origine que le jeu). -->
 <style>
@@ -73,7 +73,7 @@
 </div>
 <div id="toast"></div>
 <script src="vendor/three.min.js"></script>
-<script src="figures.js?v=1"></script>
+<script src="figures.js?v=9"></script>
 <script>
 (function(){
 'use strict';
@@ -129,23 +129,30 @@ cv.addEventListener('wheel',function(e){dist=Math.max(6,Math.min(22,dist*(1+e.de
 function taille(){const w=innerWidth,h=innerHeight;R.setSize(w,h,false);C.aspect=w/h;C.fov=w<h?52:38;C.updateProjectionMatrix();}
 addEventListener('resize',taille);taille();
 
-// ---- LE LECTEUR : le même qu'en jeu ----
-const L=new FIG.Lecteur();let saut=null,lent=false,courant=null,chaine=[];
-function joue(liste,sens){ // une ou plusieurs figures, enchaînées (comme des double-taps)
-  L.vide();chaine=[];
-  liste.forEach(function(f){L.lance(f,sens!=null?sens:(Math.random()<.5?-1:1),f.D);});
-  saut={t:0,T:L.reste()+.25,H:1.8+.55*(liste.length-1)};
-  annonce(liste[0],liste.length>1?'×1':'');
+// ---- LE CORPS : la MÊME physique qu'en jeu (2026-10-14, LES FIGURES v2 — FIG.Corps : l'explosion, l'élan, la prise, le planté) ----
+// ENCHAÎNER lance les figures à 0,22 s d'écart : leurs explosions S'ADDITIONNENT, comme trois boutons pressés en vol.
+const L=FIG.Corps?new FIG.Corps():new FIG.Lecteur();let saut=null,lent=false,courant=null,chaine=[],aVenir=[];
+function joue(liste,sens){ // une ou plusieurs figures
+  L.vide();chaine=[];aVenir=liste.map(function(f,i){return {f:f,t:i*.22,s:sens!=null?sens:(Math.random()<.5?-1:1)};});
+  const Dm=Math.max.apply(null,liste.map(function(f){return f.D;}));
+  saut={t:0,T:Dm+.22*(liste.length-1)+.75,H:1.8+.55*(liste.length-1)};
 }
+// L'EXPLOSION, à la place des flammes du jeu : une boule orange qui gonfle et s'éteint, au point qui pousse
+const BM=new THREE.SphereGeometry(.32,10,8),boules=[];
+for(let i=0;i<8;i++){const m=new THREE.Mesh(BM,new THREE.MeshBasicMaterial({color:0xff8a2a,transparent:true,opacity:0,depthWrite:false}));m.visible=false;caisse.add(m);boules.push({m:m,t:9});}
+function boum(e){const b=boules.find(function(x){return x.t>.3;})||boules[0];b.t=0;b.m.visible=true;b.m.position.set(e.p[0]*.95,HC+e.p[1]*.55,e.p[2]*2.15);}
 let anT=0;function annonce(f,sous){const b=$('anNom');b.classList.remove('on');void b.offsetWidth;b.textContent=f.n;b.classList.add('on');$('anSous').textContent=sous||'';clearTimeout(anT);anT=setTimeout(function(){b.classList.remove('on');$('anSous').textContent='';},1500);}
 let derN=performance.now();
 function boucle(n){requestAnimationFrame(boucle);let dt=Math.min(.05,(n-derN)/1000);derN=n;if(lent)dt*=.33;
   // la caisse : saut (elle quitte le sol, monte, retombe), figures autour de son milieu, ressort à la pose
   let y=HC,lev=0;
   if(saut){saut.t+=dt;const x=Math.min(1,saut.t/saut.T);lev=saut.H*Math.sin(Math.PI*x);
-    const fin=L.tick(dt);fin.forEach(function(f){chaine.push(f.id);});
-    if(L.actifs.length&&L.actifs[L.actifs.length-1].f!==courant){courant=L.actifs[L.actifs.length-1].f;if(chaine.length)annonce(courant,'×'+(chaine.length+1));}
-    if(x>=1&&!L.occupe()){saut=null;courant=null;pose.v=-2.6;}}
+    while(aVenir.length&&aVenir[0].t<=saut.t){const a=aVenir.shift();L.lance(a.f,a.s,a.f.D);courant=a.f;annonce(a.f,chaine.length+L.occupe()>1?'+ '+(chaine.length+L.occupe()-1):'');}
+    if(L.reste)saut.T=Math.max(saut.T,saut.t+L.reste()+.12); // la boîte n'a pas de sol qui presse : le saut DURE le temps que les figures se plantent
+    const fin=L.tick(dt);fin.forEach(function(r){const f=r.f||r;chaine.push(f.id);if(r.reps>1)annonce(f,'×'+r.reps);});
+    if(L.evts){L.evts.forEach(boum);L.evts.length=0;}
+    if(x>=1&&!L.occupe()&&!aVenir.length){saut=null;courant=null;pose.v=-2.6;}}
+  boules.forEach(function(b){if(b.t>.3){b.m.visible=false;return;}b.t+=dt;const k=b.t/.3;b.m.scale.setScalar(.4+2.2*k);b.m.material.opacity=.95*(1-k);});
   pose.v+=(-pose.x*170-pose.v*9)*dt;pose.x+=pose.v*dt; // la suspension à la pose
   pivot.position.set(0,y+lev,0);
   pivot.quaternion.set(L.q[0],L.q[1],L.q[2],L.q[3]);
@@ -184,7 +191,7 @@ function genere(){neuve=FIG.genere();$('gen').classList.add('on');$('gNom').text
 $('bGen').addEventListener('click',genere);$('gAutre').addEventListener('click',genere);
 $('gRe').addEventListener('click',function(){if(neuve)joue([neuve]);});
 $('gAj').addEventListener('click',function(){if(!neuve)return;if(FIG.ajoute(neuve)){sel=neuve.id;liste();toast('Ajoutée au jeu : '+neuve.n+' — au shop, catégorie FIGURES');$('gen').classList.remove('on');neuve=null;}else toast('Impossible de l’ajouter');});
-window.dbgBoite=function(a){if(a==='ench')$('bEnch').click();if(a==='gen')genere();return {figures:FIG.liste.length,joue:L.actifs.map(function(x){return x.f.id;}),saut:!!saut};};
+window.dbgBoite=function(a){if(a==='ench')$('bEnch').click();if(a==='gen')genere();return {figures:FIG.liste.length,joue:(L.figs||L.actifs).map(function(x){return x.f.id;}),payees:chaine.slice(),saut:!!saut,ecart:Math.round(L.ecart()*57.3)};};
 })();
 </script>
 </body>

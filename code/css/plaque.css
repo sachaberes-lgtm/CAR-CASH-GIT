@@ -1,0 +1,106 @@
+<style id="plaque">
+/* ====== LA PLAQUE D'IMMATRICULATION + LE PROFIL (2026-10-17, Sacha : « une plaque personnalisable au début du jeu, plusieurs templates »
+   puis « un petit bouton dans le garage avec un logo trophée : le joueur peut changer sa plaque et voir des stats sur son compte ») — voir
+   PLQ dans le script. La charte : la laque et le filet des panneaux, des touches .pbtn, UN lingot par écran (VALIDER · CHANGER MA PLAQUE),
+   ce qu'on touche en bas, cibles ≥ 44 px, safe areas, --ease et deux durées, une seule police. Couché : deux colonnes. ====== */
+#plq,#prof{position:fixed;inset:0;z-index:90;display:none;box-sizing:border-box;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:calc(var(--sT) + 14px) calc(var(--sR) + var(--gut)) calc(var(--sB) + 14px) calc(var(--sL) + var(--gut));
+  background:var(--fondEcran);font-family:var(--pix);color:var(--tx);-webkit-tap-highlight-color:transparent}
+#prof{z-index:89} /* au-dessus de la jauge qui tourne l'atelier (#gTourne, 82 : elle avalait le RETOUR) */
+#plq.on,#prof.on{display:flex;flex-direction:column;align-items:center;animation:plqEntre var(--t-slow) var(--ease) both}
+#plq.sortant,#prof.sortant{animation:plqSort var(--t-fast) var(--ease) both}
+@keyframes plqEntre{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes plqSort{to{opacity:0;transform:translateY(10px)}}
+@media (prefers-reduced-motion:reduce){#plq.on,#prof.on,#plq.sortant,#prof.sortant{animation:none}}
+#plq .plIn,#prof .pfIn{box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;gap:12px;width:100%;max-width:480px;min-height:100%;margin:0 auto}
+/* LES TITRES : l'or des titres en couleur pleine, son extrusion dessous */
+#plq .plTete,#prof .pfTete{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+#prof .pfTete{flex-direction:row;justify-content:center;gap:10px}
+#plq .plTete b,#prof .pfTete b{font-size:var(--f5);line-height:1.2;letter-spacing:1px;color:var(--au1);text-shadow:0 3px 0 var(--auE),0 4px 0 var(--k0)}
+#prof .pfTete .pxi{--pxs:2;color:var(--au2);filter:drop-shadow(0 2px 0 var(--auE))}
+#plq .plX{font-size:var(--f1);line-height:1.6;color:var(--tx2)}
+/* LA PLAQUE EN GRAND : la même toile que la caisse (plqPeint) ; la toucher, c'est écrire */
+#plq .plVue,#prof .pfPlaque{position:relative;align-self:center;width:100%;max-width:420px;cursor:text}
+#prof .pfPlaque{max-width:360px;cursor:default}
+#plq .plVue canvas,#prof .pfPlaque canvas{display:block;width:100%;height:auto;aspect-ratio:4/1;filter:drop-shadow(0 6px 0 var(--k0)) drop-shadow(0 12px 14px rgba(0,0,0,.55))}
+/* LA SAISIE : une plaque de laque, curseur or, le texte en grand et espacé ; le DÉ (au hasard) à sa droite */
+#plq .plSaisie{display:flex;align-items:stretch;gap:10px}
+#plq #plqTx{flex:1 1 auto;min-width:0;box-sizing:border-box;height:52px;margin:0;padding:0 14px;border:0;border-radius:0;outline:0;
+  font-family:var(--pix);font-size:var(--f4);letter-spacing:3px;text-align:center;text-transform:uppercase;color:var(--tx);caret-color:var(--au2);
+  background:var(--laqueP);clip-path:var(--coupe7);box-shadow:inset 0 0 0 2px var(--fil),inset 0 2px 0 rgba(0,0,0,.45);
+  transition:box-shadow var(--t-fast) var(--ease)}
+#plq #plqTx:focus{box-shadow:inset 0 0 0 2px var(--au2),inset 0 2px 0 rgba(0,0,0,.45)}
+#plq .plDe{flex:none;width:56px;min-width:56px;height:52px;min-height:52px;padding:0;--nc:var(--neoC)}
+#plq .plDe .pxi,#prof .pfRet .pxi,#plq .plRet .pxi{--pxs:2}
+/* LES MODÈLES : neuf vignettes (la vraie plaque en petit), trois par rangée ; la choisie a le filet cyan */
+#plq .plMods{max-height:min(58vh,520px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:2px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#plq .plMod{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;min-height:56px;padding:8px 6px 7px;
+  cursor:pointer;background:var(--laqueP);clip-path:var(--coupe7);box-shadow:inset 0 0 0 1px var(--fil);
+  transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
+#plq .plMod canvas{display:block;width:100%;height:auto;aspect-ratio:4/1}
+#plq .plMod b{font-size:var(--f0);line-height:1;color:var(--tx3);white-space:nowrap}
+#plq .plMod.on{box-shadow:inset 0 0 0 2px var(--neoC),inset 0 0 18px -6px var(--neoC)}
+#plq .plMod.on b{color:var(--neoC)}
+#plq .plMod:is(:active,.appui){transform:translateY(2px)}
+#plq .plMod:focus-visible{outline:2px solid var(--neoC);outline-offset:2px}
+/* LE BAS : RETOUR à gauche (la sortie, comme partout), le lingot à droite — au tout premier accueil, il n'y a que VALIDER */
+#plq .plBas,#prof .pfBas{display:flex;gap:12px;margin-top:auto;padding-top:6px}
+#plq .plOk,#prof .pfChg{flex:1 1 auto;min-width:0}
+#plq .plRet,#prof .pfRet{flex:none;gap:8px;padding:0 16px;font-size:var(--f1)}
+#prof .pfChg{padding:0 12px;font-size:var(--f2);letter-spacing:0} /* « CHANGER MA PLAQUE » : 17 signes, il débordait du lingot debout */
+#plq.premier .plRet{display:none}
+/* LE PROFIL : les chiffres du compte, deux par rangée (le temps de jeu en tête, sur toute la largeur) */
+#prof .pfStats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-content:start}
+#prof .pfS{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;column-gap:8px;row-gap:7px;align-items:center;box-sizing:border-box;
+  min-height:56px;padding:10px 10px 9px;background:var(--laqueP);clip-path:var(--coupe7);box-shadow:inset 0 0 0 1px var(--fil)}
+#prof .pfS .pxi{grid-row:1 / span 2;--pxs:2;color:var(--tx3)}
+#prof .pfS i{font-style:normal;font-size:var(--f0);line-height:1.25;color:var(--tx3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#prof .pfS b{font-size:var(--f2);line-height:1.3;color:var(--tx)}
+#prof .pfS.gros{grid-column:1 / -1}
+#prof .pfS.gros b{font-size:var(--f5);color:var(--au1)}
+#prof .pfS.gros .pxi{color:var(--au2)}
+#prof .pfS.cash b{color:var(--cash)}
+#prof .pfS.aura b{color:var(--aura)}
+/* LE PETIT TROPHÉE DU GARAGE : en haut à droite (2026-10-18 soir, Sacha : « le trophée doit être en haut à droite »), en miroir du compte —
+   plqGarage le recale sur #gCompteur ; cette place-ci n'est que le premier cadre */
+#gProf{position:fixed;z-index:4;right:calc(var(--sR) + 26px);top:calc(var(--sT) + 9px);display:none;width:52px;min-width:52px;height:48px;min-height:48px;padding:0;
+  --nc:var(--neoA);pointer-events:auto}
+#gProf.on{display:flex}
+#gProf .pxi{--pxs:2}
+/* COUCHÉ (le téléphone tenu en travers, le cadre de l'ordi) : deux colonnes, tout tient sans défiler */
+@media (orientation:landscape) and (max-height:540px){
+  #plq,#prof{padding-top:calc(var(--sT) + 10px);padding-bottom:calc(var(--sB) + 10px)}
+  #plq .plIn{max-width:860px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);grid-template-rows:auto auto auto 1fr;
+    grid-template-areas:"tete mods" "vue mods" "saisie mods" "bas mods";column-gap:24px;row-gap:10px;align-items:start}
+  #plq .plTete{grid-area:tete;gap:6px}#plq .plVue{grid-area:vue;max-width:340px}#plq .plSaisie{grid-area:saisie}
+  #plq .plMods{grid-area:mods;align-self:center;max-height:calc(100vh - 40px)}#plq .plBas{grid-area:bas;align-self:end}
+  #plq .plTete b,#prof .pfTete b{font-size:var(--f4)}
+  #prof .pfIn{max-width:900px;height:100%;min-height:0;display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.45fr);grid-template-rows:auto 1fr auto;
+    grid-template-areas:"tete stats" "plaque stats" "bas stats";column-gap:22px;row-gap:12px}
+  #prof .pfTete{grid-area:tete}#prof .pfPlaque{grid-area:plaque;align-self:center}#prof .pfBas{grid-area:bas}
+  #prof .pfStats{grid-area:stats;grid-template-columns:repeat(3,minmax(0,1fr));overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0;max-height:100%;padding:2px}
+  #prof .pfS.gros{grid-column:auto}#prof .pfS.gros b{font-size:var(--f3)}
+  #prof .pfS{grid-template-columns:minmax(0,1fr);padding:9px 10px 8px}#prof .pfS .pxi{display:none}
+  #prof .pfRet{width:56px;min-width:56px;padding:0}#prof .pfRet span{display:none} /* la flèche seule : le lingot garde sa ligne entière */
+}
+/* (2026-10-18, Sacha : « regarde comment la version mobile est gérée avec le clavier ») LE CLAVIER DU TÉLÉPHONE OUVERT : il se pose PAR-DESSUS
+   la page (couché, il ne reste que ~150 px visibles) — iOS faisait glisser l'écran pour montrer le champ : la plaque coupée, VALIDER sous les
+   touches. Tant qu'on écrit, l'atelier se pose sur la partie VISIBLE (plqClavier : top/height = visualViewport) et ne garde que l'essentiel :
+   la plaque qui s'écrit, le champ et son dé, RETOUR · VALIDER juste au-dessus des touches. Debout, les modèles restent s'ils tiennent (sinon
+   .serre les range, posé par plqClavier) ; couché, ils reviennent quand le clavier se range. `?plqclavier=0` = comme avant. */
+#plq.clavier{bottom:auto;padding-bottom:10px}
+#plq.clavier .plX,#plq.clavier.serre .plMods{display:none}
+#plq.clavier .plIn{height:auto;min-height:100%;gap:10px}
+#plq.clavier .plTete{margin-top:auto} /* le groupe se pose sur le clavier (une marge auto : s'il déborde, on le fait défiler sans rien perdre en haut) */
+#plq.clavier .plBas{margin-top:0;padding-top:0}
+#plq.clavier #plqTx,#plq.clavier .plDe{height:48px;min-height:48px}
+#plq.clavier .plBas .pbtn{min-height:48px}
+@media (orientation:landscape) and (max-height:540px){
+  #plq.clavier{padding-top:10px}
+  #plq.clavier .plIn{height:100%;min-height:0;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:1fr auto auto 1fr;
+    grid-template-areas:"vue ." "vue saisie" "vue bas" "vue .";row-gap:8px;align-items:center}
+  #plq.clavier .plTete,#plq.clavier .plMods{display:none}
+  #plq.clavier .plVue{max-width:none}
+  #plq.clavier .plBas{align-self:auto}
+}
+</style>

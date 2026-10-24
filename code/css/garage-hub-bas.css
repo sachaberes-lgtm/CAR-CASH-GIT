@@ -1,0 +1,241 @@
+/* LE GARAGE REPLIÉ (même jour) : seulement les cinq touches — le panneau (laque, filet, livrée tricolore, marges) s'efface ; la caisse
+   prend la place (garLibre relit la console). INVENTAIRE ou BOUTIQUE le déplient. */
+html body #garage.consoleCachee:not(.menu):not(.vitrine) #gBottom{background:none!important;box-shadow:none!important;clip-path:none!important;padding-top:0}
+html body #garage.consoleCachee:not(.menu):not(.vitrine) #gBottom::before{display:none}
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gOeil{grid-column:3;grid-row:1;height:auto;min-height:0;align-self:stretch}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip{grid-column:3;grid-row:1;justify-self:end;width:calc(100% - 64px);height:auto;min-height:0;align-self:stretch}
+html body #garage:not(.menu):not(.vitrine) #gAct:has(>#gEquip.achat) #gRang1>#gOeil{justify-self:start;width:44px;padding:0}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat{width:calc(100% - 52px);padding:0 2px;font-size:var(--f0);letter-spacing:0}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqV{letter-spacing:0}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP{font-size:var(--f1);letter-spacing:0}
+html body #garage:not(.menu):not(.vitrine) #gAct:has(>#gEquip.achat) #gRang1>#gOeil .gLueur .pxi{--pxs:2}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas{width:88px}
+  html body #garage:not(.menu):not(.vitrine) #gRang1>:is(#gHomeBas,#gOeil){height:auto;min-height:0}
+  html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip{height:auto;min-height:0}}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip:not(.achat){display:none!important} /* (2026-10-11) ÉQUIPER AU TOUCHER : le bouton ne reste que pour ACHETER */
+html body #garage:not(.menu):not(.vitrine) #gStrip :is(.gT.c-aile,.gT.c-trainee.pop).lock em{bottom:auto!important;height:auto!important} /* (2026-10-10) une AILE à vendre : le prix monte au coin haut (il s'étirait sur toute la vignette et se posait sur le nom — vu dans SEE ALL ITEMS) */
+#gStrip.fnBande .fnTout{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:10px;min-height:42px;margin:8px 2px 6px;cursor:pointer;transform:skewX(var(--sk));
+  font-size:var(--f1);letter-spacing:2px;color:#fff;text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 10px rgba(94,230,255,.55);
+  background:rgba(94,230,255,.08);box-shadow:inset 0 0 0 1px rgba(94,230,255,.55),0 0 14px -6px rgba(94,230,255,.8);transition:background var(--t-fast) var(--ease)} /* (2026-10-10) écrit en transparent, pas une plaque — (même soir, Léo : « SEE ALL ITEMS, c'est transparent, pas très visible ; mais à l'endroit où ça devrait être ») même place, mais lisible : texte blanc un cran plus grand, un fin cadre cyan penché */
+#gStrip.fnBande .fnTout .pxi{--pxs:1;color:#5ee6ff}
+#gStrip.fnBande .fnTout:is(:hover,:active,.appui){background:rgba(94,230,255,.18)}
+#gStrip.fnBande .fnSec{grid-column:1/-1;scroll-snap-align:start;display:flex;align-items:center;gap:8px;margin:4px 2px -2px;font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
+#gStrip.fnBande .fnSec s{flex:1;height:1px;background:linear-gradient(90deg,rgba(154,144,200,.5),transparent)}
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC{position:relative;grid-column:span 2;width:auto;height:128px;overflow:hidden;cursor:pointer;scroll-snap-align:start;transform:skewX(var(--sk));
+  background:radial-gradient(130% 90% at 50% 30%,var(--rcL) 0%,var(--rc) 34%,var(--rcD) 100%),#120d24;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.3),0 0 0 1px rgba(7,5,15,.95),0 8px 18px -8px var(--rc);
+  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);transition:transform var(--t-fast) var(--ease)}
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC.une{grid-column:span 3;height:146px}
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC.on{box-shadow:inset 0 0 0 2px #fff,0 0 0 1px rgba(7,5,15,.95),0 0 22px var(--rc)}
+#gStrip.fnBande .fnC i,#gStrip.fnBande .fnC s,#gStrip.fnBande .fnC b,#gStrip.fnBande .fnC em,#gStrip.fnBande .fnC span{pointer-events:none}
+#gStrip.fnBande .fnFond{position:absolute;inset:0;opacity:.55;background:repeating-conic-gradient(from 0deg at 50% 30%,rgba(255,255,255,.16) 0 5deg,transparent 5deg 15deg);
+  -webkit-mask:radial-gradient(closest-side at 50% 30%,#000 30%,transparent);mask:radial-gradient(closest-side at 50% 30%,#000 30%,transparent)}
+#gStrip.fnBande .fnC::after{content:'';position:absolute;left:0;right:0;bottom:0;height:48%;pointer-events:none;background:linear-gradient(180deg,transparent,rgba(7,5,15,.78) 45%,rgba(7,5,15,.96))}
+#gStrip.fnBande .fnPh{position:absolute;left:50%;top:34%;width:132%;transform:translate(-50%,-50%) skewX(calc(-1 * var(--sk)))}
+#gStrip.fnBande .fnC.une .fnPh{width:112%}
+#gStrip.fnBande .fnPh img{display:block;width:100%;height:auto;filter:drop-shadow(0 6px 5px rgba(0,0,0,.5))}
+#gStrip.fnBande .fnSw{position:absolute;left:50%;top:32%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;
+  box-shadow:inset 0 -7px 10px rgba(0,0,0,.35),inset 0 5px 8px rgba(255,255,255,.5),0 0 0 3px rgba(7,5,15,.55),0 8px 14px rgba(0,0,0,.4)}
+#gStrip.fnBande .fnSw.chrome{background:linear-gradient(160deg,#fff,#9aa6b8 45%,#f1f5fb 55%,#7b8698)!important}
+#gStrip.fnBande .fnRub{position:absolute;left:12%;right:12%;top:32%;height:14px;margin-top:-7px;border-radius:7px;box-shadow:0 0 14px rgba(255,255,255,.35)}
+#gStrip.fnBande .fnAile{position:absolute;left:50%;top:32%;--pxs:5;transform:translate(-50%,-50%) skewX(calc(-1 * var(--sk)));color:#eef8ff;filter:none}
+#gStrip.fnBande .fnBan{position:absolute;top:7px;left:-2px;z-index:2;padding:3px 9px 3px 10px;text-decoration:none;font-size:var(--f0);letter-spacing:1px;color:#2b1700;
+  background:linear-gradient(180deg,#ffe48a,#ffc23a);box-shadow:0 2px 0 rgba(7,5,15,.6),0 0 12px rgba(255,215,94,.6)}
+#gStrip.fnBande .fnTy{position:absolute;left:9px;right:4px;bottom:38px;z-index:1;font-size:var(--f0);letter-spacing:0;color:var(--rc);white-space:nowrap;overflow:hidden;text-shadow:0 1px 0 rgba(7,5,15,.95)}
+#gStrip.fnBande .fnN{position:absolute;left:9px;right:6px;bottom:22px;z-index:1;font-weight:400;font-size:var(--f1);letter-spacing:1px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 2px 0 rgba(7,5,15,.95)}
+#gStrip.fnBande .fnP{position:absolute;left:9px;right:4px;bottom:6px;z-index:1;display:flex;white-space:nowrap;align-items:center;gap:5px;font-style:normal;font-size:var(--f1);letter-spacing:1px;color:var(--cash,#3ee87a);text-shadow:0 1px 0 rgba(7,5,15,.95),0 0 8px rgba(62,232,122,.4)}
+#gStrip.fnBande .fnP.eur{color:#ffd75e;text-shadow:0 1px 0 rgba(7,5,15,.95),0 0 8px rgba(255,215,94,.45)}
+#gStrip.fnBande .fnC.acquis .fnP{color:#cfe9ff;text-shadow:0 1px 0 rgba(7,5,15,.95)}
+#gStrip.fnBande .fnC.acquis .fnP .pxi{--pxs:1;color:#3ee87a}
+#gStrip.fnBande .fnC.acquis{filter:saturate(.75)}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande{max-height:186px}
+  html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC{height:112px}
+  html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC.une{height:124px}}
+/* L'ACCUEIL DU CIEL (2026-10-10, Léo : « le ciel, la voiture, tout reste identique au main ; seulement les boutons : plus petits, mieux
+   cadrés ; des flammes très légères derrière le logo ») — voir le bloc JS du même nom. Deux rangées serrées dans une colonne de 360 px :
+   MISSIONS · GARAGE · CARRIÈRE (tuiles icône + mot, chacune sa couleur de néon), puis ⚙ · JOUER · BOUTIQUE. Rien d'autre ne bouge. */
+html.hub body #mHome.acc2 .mOutils{display:grid!important;grid-template-columns:44px repeat(3,minmax(0,1fr));gap:8px;width:min(calc(100% - 8px),372px);margin:0 auto 10px!important;align-self:center} /* (puis) ⚙ · GARAGE · CARRIÈRE · OFFRES */
+html.hub body #mHome.acc2 .mAccB{position:relative;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-width:0!important;width:auto!important;
+  height:58px;min-height:58px!important;padding:6px 2px 5px!important;font-size:var(--f0)!important;letter-spacing:0!important;white-space:nowrap;color:var(--tx)}
+html.hub body #mHome.acc2 .mAccB .pxi{--pxs:2;color:var(--nc);filter:none}
+html.hub body #mHome.acc2 .mAccB[data-m="mis"]{--nc:var(--neoV)}
+html.hub body #mHome.acc2 .mAccB[data-m="garage"]{--nc:var(--neoC)}
+html.hub body #mHome.acc2 .mAccB .mMisPips{position:absolute;top:6px;right:7px;display:flex;gap:2px;margin:0}
+html.hub body #mHome.acc2 .mAccB .mMisPips u{width:5px;height:5px}
+html.hub body #mHome.acc2 .mAccB .mBadge{top:-9px;right:-7px;transform:scale(.8);transform-origin:100% 0}
+html.hub body #mHome.acc2 .mOutils>:is(.mGear,.mHubShop){width:auto!important;min-width:0!important;height:58px;min-height:58px!important;padding:0!important;margin:0!important}
+html.hub body #mHome.acc2 .mOutils>:is(.mGear,.mHubShop) .pxi{--pxs:2}
+html.hub body #mHome.acc2 .mOutils>.mHubShop .mBadge{top:-9px;right:-10px;transform:scale(.72);transform-origin:100% 0}
+/* JOUER : la plaque sur toute la largeur du bloc, le mot d'or dedans */
+html.hub body #mHome.acc2 .mAccP{position:relative;display:flex;flex-direction:column;width:min(calc(100% - 8px),372px);margin:0 auto;align-self:center}
+/* MISSIONS BRANCHÉ SUR JOUER (2026-10-10, Léo : « branche la mission au play comme la dernière fois » — la barre fine du 5/10) : une barre de
+   30 px au-dessus de la plaque de JOUER ; les trois cases des défis au bout. (puis, Léo : « MISSIONS et JOUER sont bizarrement liés ») : plus
+   de conducteurs d'or ni de retrait — comme le 5/10, « sans conducteurs » : MISSIONS a la largeur de JOUER, bord à bord, et les deux penchent
+   autour de la MÊME ligne (le milieu de l'écart de 6 px, `transform-origin`) : leurs bords penchés se prolongent, un seul bloc. */
+html.hub body #mHome.acc2 .mAccP>.mMisBarre{flex-direction:row!important;align-self:stretch!important;width:auto!important;height:30px;min-height:30px!important;margin:0 0 6px!important;padding:0 14px!important;gap:9px;font-size:var(--f0)!important;letter-spacing:1px!important;transform-origin:50% calc(100% + 3px)!important}
+html.hub body #mHome.acc2 .mAccP>.mMisBarre .pxi{--pxs:1}
+html.hub body #mHome.acc2 .mAccP>.mMisBarre .mMisPips{position:static;margin-left:auto}
+html.hub body #mHome.acc2 .mOffres{--nc:var(--neoM)}
+html.hub body #mHome.acc2 .mOffres .mBadge{top:-9px;right:-7px;transform:scale(.8);transform-origin:100% 0}
+html.hub body #mHome.acc2 .mAccP>.mPlay{flex:1;display:flex!important;align-items:center;justify-content:center;height:60px;margin:0!important;width:auto!important;max-width:none!important;align-self:stretch!important;
+  transform:skewX(var(--sk));transform-origin:50% -3px;background:linear-gradient(180deg,rgba(40,26,8,.82),rgba(18,12,4,.92))!important;box-shadow:inset 0 0 0 1px rgba(255,215,94,.55),inset 0 -4px 0 #ffc23a,0 0 18px -6px #ffc23a,0 6px 14px -8px rgba(0,0,0,.8)!important;
+  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)!important} /* (la règle du mot d'or impose background/clip-path none !important) */
+html.hub body #mHome.acc2 .mAccP>.mPlay .lg{font-size:30px!important}
+html.hub body #mHome.acc2 .mAccP>.mPlay:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html.hub body #mHome.acc2 :is(.mOutils,.mAccP){width:min(372px,48vw);margin-left:auto!important;margin-right:0!important;align-self:flex-end}
+  html.hub body #mHome.acc2 .mOutils{margin-bottom:8px!important}
+  html.hub body #mHome.acc2 :is(.mAccB,.mOutils>.mGear,.mOutils>.mHubShop){height:50px;min-height:50px!important;gap:5px}
+  html.hub body #mHome.acc2 .mAccP>.mPlay{height:52px}
+  html.hub body #mHome.acc2 .mAccP>.mMisBarre{height:28px;min-height:28px!important;margin-bottom:6px!important}
+  html.hub body #mHome.acc2 .mAccP>.mPlay .lg{font-size:26px!important}}
+/* LA JAUGE SOBRE (2026-10-10, Léo : « retravaille la jauge : jolie, sobre, discrète, agréable à l'œil ») : plus de plaque ni de flèches.
+   Un fil fin qui s'efface aux deux bouts (une ombre douce dessous pour se lire sur l'anneau du plateau), cinq points discrets (−180°, −90°,
+   0°, 90°, 180° ; celui du milieu un peu plus haut), le trait cyan du centre au curseur, et un curseur blanc fin, penché comme les touches,
+   à lueur cyan. Au repos tout est à 70 % ; sous le doigt, tout s'allume et le curseur grandit. Même zone de toucher (48 px). */
+html.hubOn body #gTourne.on{background:none!important;box-shadow:none!important;transform:none!important;opacity:.72;transition:opacity var(--t-fast) var(--ease)}
+html.hubOn body #gTourne.on:is(.tient,:hover){opacity:1}
+html.hubOn body #gTourne::before,html.hubOn body #gTourne::after{display:none!important}
+html.hubOn body #gTourne .gtRail{left:18px;right:18px;height:12px;margin-top:-6px;filter:drop-shadow(0 1px 1.5px rgba(7,5,15,.75));
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.4) 12%,rgba(255,255,255,.4) 88%,transparent) 0 50%/100% 1px no-repeat,
+    linear-gradient(rgba(255,255,255,.75),rgba(255,255,255,.75)) 50% 50%/2px 8px no-repeat,
+    radial-gradient(circle,rgba(255,255,255,.6) 0 1.5px,transparent 2px) 25% 50%/4px 4px no-repeat,radial-gradient(circle,rgba(255,255,255,.6) 0 1.5px,transparent 2px) 75% 50%/4px 4px no-repeat,
+    radial-gradient(circle,rgba(255,255,255,.3) 0 1.5px,transparent 2px) 0 50%/4px 4px no-repeat,radial-gradient(circle,rgba(255,255,255,.3) 0 1.5px,transparent 2px) 100% 50%/4px 4px no-repeat}
+html.hubOn body #gTourne .gtFill{left:18px;right:18px;height:2px;margin-top:-1px;background:var(--neoC);box-shadow:0 0 6px rgba(94,230,255,.7);opacity:.85}
+html.hubOn body #gTourne .gtPouce{left:18px;width:5px;height:16px;margin:-8px 0 0 -2.5px;translate:calc(var(--t,.5) * (100cqw - 36px)) 0;transform:skewX(var(--sk));
+  background:#fff;box-shadow:0 0 0 1px rgba(7,5,15,.55),0 0 10px rgba(94,230,255,.85);border-radius:1px}
+html.hubOn body #gTourne.tient .gtPouce{height:22px;margin-top:-11px;box-shadow:0 0 0 1px rgba(7,5,15,.55),0 0 16px var(--neoC)}
+html.hubOn.gtConsole body #garage:not(.menu)>#gTourne.on{background:none!important;box-shadow:none!important}
+/* LE LOGO QUI BRILLE (2026-10-10, Léo : « enlève les flammes, sois plus mature : juste le logo — il est beau ; fais-le briller encore plus,
+   plus d'effet OR sur CASH, plus d'effet SUNSET sur CAR ; imposant ; en paysage il est trop haut »). CASH : un or MÉTALLIQUE (crème, or vif,
+   une bande ambrée sombre à l'horizon de la lettre, puis l'or qui remonte) ; CAR : un coucher de soleil (crème, or, orange, corail, rose,
+   violet au pied) ; le TITRE porte un double halo (or serré, rose large). Le reflet qui passe (lgShine) devient plus lent et plus franc. Le logo grandit (debout
+   jusqu'au bord de la colonne ; couché 64 px) et, couché, descend au quart de l'écran. Rien d'autre ne bouge. */
+html.hub body #mHome.acc2 .mTitle .lg.gold{background:linear-gradient(180deg,#fffef6 0%,#fff2bd 16%,#ffd84f 34%,#ffb000 48%,#8f4c00 60%,#c57800 70%,#ffcf48 84%,#fff1ba 100%);
+  -webkit-background-clip:text;background-clip:text}
+html.hub body #mHome.acc2 .mTitle .lg.grad{background:linear-gradient(180deg,#fff5c8 0%,#ffd75e 20%,#ff9d3a 40%,#ff5d5a 58%,#ff2f8e 76%,#b13cff 100%);
+  -webkit-background-clip:text;background-clip:text} /* ⚠ PAS de filter sur un .lg : il ferait passer l'extrusion brune (::before) devant la face d'or — la lueur est portée par le TITRE */
+html.hub body #mHome.acc2 .mTitle .lg::after{background:linear-gradient(105deg,transparent 36%,rgba(255,255,255,.95) 50%,transparent 64%) 180% 0/240% 100% no-repeat;
+  -webkit-background-clip:text;background-clip:text;animation:lgShine 5.2s ease-in-out infinite}
+html.hub body #mHome.acc2 .mTitle .lg.grad::after{animation-delay:.35s}
+html.hub body #mHome.acc2 .mTitle{font-size:clamp(40px,12.4vw,60px);filter:drop-shadow(0 8px 0 rgba(0,0,0,.35)) drop-shadow(0 0 14px rgba(255,200,80,.55)) drop-shadow(0 0 34px rgba(255,120,110,.3))}
+@media (prefers-reduced-motion:reduce){html.hub body #mHome.acc2 .mTitle .lg::after{animation:none;opacity:0}}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html.hub body #mHome.acc2 .mTitle{font-size:54px;margin:0 0 34px auto!important;align-self:flex-end}
+  html.hub body #mHome.acc2{justify-content:center}html.hub body #mHome.acc2 .mVide{display:none}} /* (puis, Léo : « colle le logo au bouton ; à droite, mieux aligné en hauteur ») le logo juste au-dessus du bloc, l'ensemble centré en hauteur à droite */
+/* LA CROIX DE L'INVENTAIRE, DISCRÈTE (même jour, Léo : « la croix est juste plus discrète, et sert à enlever le rectangle avec toutes
+   les voitures pour qu'on ait une vue sur le garage ») : elle ferme toujours le tiroir, mais n'est plus une touche cyan pleine. Plus de
+   plaque ni de tranche : une petite croix lilas dans un carré à peine dessiné (filet d'1 px, fond presque nul), qui s'allume sous le doigt.
+   La cible reste à 44 × 44 (le dessin fait 30). */
+html body #gInv #ivFerme{position:relative;width:44px;min-width:44px;height:44px;min-height:44px;padding:0;margin-left:auto;background:none;box-shadow:none;transform:none;color:#b8b0e0;opacity:.75}
+html body #gInv #ivFerme::before{content:'';position:absolute;inset:7px;display:block;background:rgba(255,255,255,.03);box-shadow:inset 0 0 0 1px rgba(184,176,224,.3);border:0;opacity:1;transform:skewX(var(--sk))}
+html body #gInv #ivFerme::after{display:none}
+html body #gInv #ivFerme .pxi{--pxs:1;position:relative;color:#d6ceff;filter:none}
+html body #gInv #ivFerme:is(:active,.appui){opacity:1;translate:0 1px}
+html body #gInv #ivFerme:is(:active,.appui)::before{background:rgba(214,206,255,.12);box-shadow:inset 0 0 0 1px rgba(214,206,255,.6)}
+@media (hover:hover){html body #gInv #ivFerme:hover{opacity:1}}
+/* LE BAS DU GARAGE, REFONDU (2026-10-13, Léo : « refonds l'interface du garage : INVENTAIRE, MISSIONS et BOUTIQUE placés par-dessus PLAY, de
+   manière design, efficace et esthétique ; il faut inclure le bouton MISSIONS comme avant, et HOME ») — deux rangées, une seule grille de six :
+     · EN HAUT, trois portes à parts ÉGALES : INVENTAIRE (cyan) · MISSIONS (violet, ses trois cases de défis) · BOUTIQUE (magenta) — même laque,
+       même hauteur, l'icône luit de sa couleur, le filet du bas dit le rôle ;
+     · EN BAS, sous le pouce : HOME (le ciel qui bouge) en carré à gauche · le lingot PLAY au milieu · l'ŒIL en carré à droite.
+   ACHETER (une caisse à vendre) prend la place de PLAY. Les états à part (retour de boutique, atelier) gardent leurs règles. */
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;grid-template-rows:auto auto!important;column-gap:8px!important;row-gap:8px!important;align-items:stretch}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gRang1{display:contents!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>:is(#gvBranche,#gvLvl,#gvNivs,#gClose,#gPerso,#gBuyRow,#gCache){display:none!important} /* les conducteurs d'or de l'ancienne vitrine dépassaient au-dessus de MISSIONS */
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>:is(#gvCof,#gvMis,#gShopBas){grid-row:1!important;display:flex!important;flex-direction:row!important;align-items:center;justify-content:center;gap:7px!important;
+  width:auto!important;min-width:0!important;margin:0!important;padding:0 6px!important;translate:none;
+  font-size:var(--f0)!important;letter-spacing:1px!important;color:#fff;text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 8px var(--pc);
+  background:linear-gradient(115deg,rgba(255,255,255,.10) 0 18%,transparent 18% 100%),linear-gradient(180deg,rgba(38,30,72,.96),rgba(14,11,30,.98))!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),inset 0 -3px 0 var(--pc),0 0 0 1px rgba(7,5,15,.95),0 7px 16px -9px var(--pc)!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvCof{grid-column:1/3!important;--pc:#5ee6ff}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis{grid-column:3/5!important;--pc:#b07bff}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gShopBas{grid-column:5/7!important;--pc:#ff4fc3}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>:is(#gvCof,#gvMis,#gShopBas) .pxi{--pxs:2!important;color:var(--pc)!important;filter:drop-shadow(0 0 5px var(--pc))!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis .gvFx{display:none!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis .gvPips{position:absolute;right:7px;top:5px;gap:3px}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis .gvPips u{width:5px;height:5px}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis{position:relative}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis::before,html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis::after{display:none!important} /* ses deux conducteurs d'or (la vitrine de l'atelier) dépassaient au-dessus */
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>:is(#gvCof,#gvMis,#gShopBas).modeOn{background:linear-gradient(115deg,rgba(255,255,255,.16) 0 18%,transparent 18% 100%),linear-gradient(180deg,color-mix(in srgb,var(--pc) 34%,#1b1440),rgba(14,11,30,.98))!important;
+  box-shadow:inset 0 0 0 2px var(--pc),0 0 0 1px rgba(7,5,15,.95),0 0 16px -4px var(--pc)!important;outline:0!important;filter:none!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>:is(#gvCof,#gvMis,#gShopBas):is(:active,.appui){translate:0 2px}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gHomeBas{grid-row:2!important;grid-column:1/2!important;width:auto!important;min-width:0!important;height:62px!important;min-height:62px!important;align-self:stretch;
+  flex-direction:column!important;padding:5px 2px 4px!important;font-size:var(--f0)!important;letter-spacing:0!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer{grid-row:2!important;grid-column:2/6!important;min-width:0!important;height:62px!important;min-height:62px!important;margin:0!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gOeil{grid-row:2!important;grid-column:6/7!important;justify-self:stretch!important;width:auto!important;min-width:0!important;height:62px!important;min-height:62px!important;padding:0!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gEquip.achat{grid-row:2!important;grid-column:2/6!important;justify-self:stretch!important;width:auto!important;height:62px!important;min-height:62px!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct:has(>#gEquip.achat)>#gJouer{display:none!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct:has(>#gEquip.achat) #gRang1>#gOeil{justify-self:stretch!important;width:auto!important}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct{column-gap:6px!important;row-gap:6px!important}
+  html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>:is(#gvCof,#gvMis,#gShopBas){gap:5px!important}
+  html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) :is(#gRang1>#gHomeBas,#gAct>#gJouer,#gRang1>#gOeil,#gAct>#gEquip.achat){height:54px!important;min-height:54px!important}}
+/* LA BARRE DU GARAGE, MIEUX REMPLIE (2026-10-15, Sacha, sur la capture d'une caisse à vendre) :
+   « le bouton BOUTIQUE doit remplacer le bouton ACHETER, l'œil doit plus ressembler à un œil, ACCUEIL doit correspondre à la DA de
+   l'interface, et tous les boutons doivent mieux occuper l'espace ».
+     · caisse À VENDRE : ACHETER s'efface, la BOUTIQUE descend à sa place (le lingot du milieu, magenta) — c'est là qu'on achète ;
+       en haut, INVENTAIRE et MISSIONS se partagent la largeur, moitié-moitié ;
+     · ACCUEIL quitte son morceau de ciel (noir la nuit, hors charte) : même laque que les portes du haut, filet lavande ;
+     · l'ŒIL : même laque, filet orange, et un vrai dessin d'œil (PXI_G.oeil) ;
+     · partout : portes plus hautes (46 → 52), pictogrammes ×3, libellés un cran au-dessus — moins de vide dans chaque plaque. */
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>:is(#gvCof,#gvMis,#gShopBas){height:52px!important;min-height:52px!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct:has(>#gEquip.achat)>:is(#gvCof,#gvMis){gap:10px!important;font-size:var(--f1)!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct:has(>#gEquip.achat)>:is(#gvCof,#gvMis) .pxi{--pxs:3!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct:has(>#gEquip.achat)>#gvCof{grid-column:1/4!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct:has(>#gEquip.achat)>#gvMis{grid-column:4/7!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct:has(>#gEquip.achat)>#gEquip.achat{display:none!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct:has(>#gEquip.achat)>#gShopBas{grid-row:2!important;grid-column:2/6!important;height:66px!important;min-height:66px!important;gap:12px!important;font-size:var(--f2)!important;letter-spacing:2px!important;
+  background:linear-gradient(115deg,rgba(255,255,255,.16) 0 18%,transparent 18% 100%),linear-gradient(180deg,color-mix(in srgb,var(--pc) 40%,#1b1440),color-mix(in srgb,var(--pc) 14%,#0e0b1e))!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.22),inset 0 -4px 0 var(--pc),0 0 0 1px rgba(7,5,15,.95),0 0 18px -6px var(--pc)!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct:has(>#gEquip.achat)>#gShopBas .pxi{--pxs:3!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) :is(#gRang1>#gHomeBas,#gRang1>#gOeil,#gAct>#gJouer){height:66px!important;min-height:66px!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>:is(#gHomeBas,#gOeil){color:#fff;animation:none!important;text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 8px var(--pc);
+  background:linear-gradient(115deg,rgba(255,255,255,.10) 0 18%,transparent 18% 100%),linear-gradient(180deg,rgba(38,30,72,.96),rgba(14,11,30,.98))!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),inset 0 -3px 0 var(--pc),0 0 0 1px rgba(7,5,15,.95),0 7px 16px -9px var(--pc)!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gHomeBas{--pc:#c9bdff;gap:6px!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gOeil{--pc:#ff9d2e;--lu:var(--pc)}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gHomeBas>.gHomeCielCv{display:none!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>:is(#gHomeBas,#gOeil) .gLueur{filter:drop-shadow(0 0 2px var(--pc))!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>:is(#gHomeBas,#gOeil) .gLueur::after{display:none!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gHomeBas .gLueur .pxi{--pxs:3!important;color:var(--pc)!important}
+/* l'ŒIL de la barre a SON dessin, en 15 × 7 (le 9 × 9 des pictogrammes ne laisse pas la place d'une amande : il se lisait comme une pièce, puis comme un bonbon) — paupières en arc, coins pointus, l'iris au milieu */
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gOeil{--pxiOeilG:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2015%207%22%20shape-rendering%3D%22crispEdges%22%3E%3Crect%20x%3D%225%22%20y%3D%220%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%226%22%20y%3D%220%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%227%22%20y%3D%220%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%228%22%20y%3D%220%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%229%22%20y%3D%220%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%223%22%20y%3D%221%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%224%22%20y%3D%221%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%2210%22%20y%3D%221%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%2211%22%20y%3D%221%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%222%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%222%22%20y%3D%222%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%226%22%20y%3D%222%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%227%22%20y%3D%222%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%228%22%20y%3D%222%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%2212%22%20y%3D%222%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%2213%22%20y%3D%222%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%223%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%225%22%20y%3D%223%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%226%22%20y%3D%223%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%227%22%20y%3D%223%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%228%22%20y%3D%223%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%229%22%20y%3D%223%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%2214%22%20y%3D%223%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%224%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%222%22%20y%3D%224%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%226%22%20y%3D%224%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%227%22%20y%3D%224%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%228%22%20y%3D%224%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%2212%22%20y%3D%224%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%2213%22%20y%3D%224%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%224%22%20y%3D%225%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%2210%22%20y%3D%225%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%2211%22%20y%3D%225%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%225%22%20y%3D%226%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%226%22%20y%3D%226%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%227%22%20y%3D%226%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%228%22%20y%3D%226%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%229%22%20y%3D%226%22%20width%3D%221%22%20height%3D%221%22%2F%3E%3C%2Fsvg%3E")}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gOeil .gLueur .pxi{--pxi:var(--pxiOeilG);width:45px!important;height:21px!important;margin:0!important;color:var(--pc)!important;filter:none!important}
+html body #garage.vueSeule:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gOeil{background:none!important;box-shadow:none!important}
+html:not(.c6):not(.ux8g) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gHomeBas span{font-size:7px!important;letter-spacing:0!important}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>:is(#gvCof,#gvMis,#gShopBas){height:44px!important;min-height:44px!important}
+  html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) :is(#gRang1>#gHomeBas,#gRang1>#gOeil,#gAct>#gJouer),
+  html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct:has(>#gEquip.achat)>#gShopBas{height:56px!important;min-height:56px!important}}
+/* LA BARRE DU GARAGE D'APLOMB (2026-10-15 après-midi, Sacha, capture couchée : « les boutons sont toujours pas très bien placés ») :
+   la rangée du bas avait deux hauteurs (ACCUEIL et l'œil à 54, la BOUTIQUE à 56 : la règle des 54 gagnait par sa spécificité) — une seule
+   hauteur, plus de marche. La pente des plaques, elle, se recale dans le script (garAplomb) : un seul axe pour toute la pile. */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) :is(#gRang1>#gHomeBas,#gRang1>#gOeil,#gAct>#gJouer,#gAct>#gEquip.achat,#gAct:has(>#gEquip.achat)>#gShopBas){height:56px!important;min-height:56px!important}}
+/* LE JOUER DU GARAGE RETROUVE SES TROIS CHEVRONS (2026-10-15, Sacha : « rajoute le bouton jouer dans le garage avec les 3 flèches animées
+   qu'il y avait dans une ancienne version, il était bien ») : la flèche qui file (.mChev, k4Chev — trois chevrons qui s'allument l'un après
+   l'autre) revient derrière le mot du ciel de Léo. Elle se taisait sous 230 px de lingot (règle du 30/09, quand la BOUTIQUE partageait la
+   barre) : dans la console le lingot a la rangée du milieu pour lui — sur un écran étroit (320), c'est le MOT qui se serre, plus les chevrons. */
+html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev{display:inline-flex!important}
+@container (max-width:185px){html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .lg{font-size:17px!important}} /* MESURÉ : mot 117 + chevrons 59 + écart 6 = 182 px ; à 390 de large le lingot en offre 210 (mot gardé à 21 px), à 320 il en offre 164 */
+/* LES CHEVRONS DU JOUER, EN GRAND ET EN LUMIÈRE (2026-10-17, Sacha : « les flèches sont trop discrètes : rends-les plus grosses et plus
+   lumineuses, avec une animation qui se voit vraiment ») : ×3 au lieu de ×2, emboîtés l'un dans l'autre (une seule flèche qui file) : au repos
+   en BRUN (celui du mot), celui qui s'allume en BLANC CHAUFFÉ, cerclé de brun (sans ce contour le blanc se noie dans le lingot clair). L'animation est une VAGUE qui
+   court de gauche à droite : chaque chevron s'allume, grossit et avance de 3 px, puis retombe dans le brun. Rien que opacity/transform sur les
+   chevrons (plus leur couleur) ; le contour vit sur le PARENT (.mChev) : un drop-shadow posé sur un élément masqué (.pxi) est rogné par son propre masque.
+   Sous 200 px de lingot (écran de 320-360), ils redescendent à ×2 pour laisser au mot sa place. */
+html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev{gap:0;margin-left:8px;filter:drop-shadow(1px 0 0 var(--auT)) drop-shadow(-1px 0 0 var(--auT)) drop-shadow(0 -1px 0 var(--auT)) drop-shadow(0 2px 0 var(--auT))}
+html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev .pxi{--pxs:3;color:var(--auT);opacity:.55;filter:none;animation:gChevFile .9s var(--ease) infinite}
+html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev .pxi+.pxi{margin-left:-7px}
+html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev .pxi:nth-child(2){animation-delay:.15s}
+html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev .pxi:nth-child(3){animation-delay:.3s}
+@keyframes gChevFile{0%,45%,100%{color:var(--auT);opacity:.55;transform:translateX(0) scale(.9)}18%{color:var(--au0);opacity:1;transform:translateX(3px) scale(1.16)}}
+@container (max-width:200px){html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev .pxi{--pxs:2}
+  html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev .pxi+.pxi{margin-left:-5px}}
+@media (prefers-reduced-motion:reduce){html body #garage#garage #gAct>#gJouer .mChev .pxi{opacity:1;transform:none}}
+html[data-reduced-motion="1"] body #garage#garage #gAct>#gJouer .mChev .pxi{animation:none;opacity:1;transform:none}
+</style>

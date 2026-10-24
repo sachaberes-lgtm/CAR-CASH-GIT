@@ -53,3 +53,12 @@ PLAYGAMA.zip
 VERSION PRINCIPALE/salle-blanche/sauvegarde.json
 VERSION PRINCIPALE/salle-blanche/fiche-salle-blanche.txt
 VERSION PRINCIPALE/salle-blanche/sauvegardes/
+
+# --- La bibliothèque des sons (VERSION PRINCIPALE/bibliotheque.html, 2026-10-14) : ce que Léo dépose en INSPIRATION (des morceaux
+#     d'artistes réels) et les références du labo restent sur ce Mac — le main est public. ---
+VERSION PRINCIPALE/assets/audio/music/inspi-generateur/
+VERSION PRINCIPALE/atelier-son/studio/references/
+VERSION PRINCIPALE/atelier-son/boite/mp3/
+
+# --- (2026-10-18) l édition PC n est plus dans le dépôt : synchro-versions.js la refabrique en local si besoin, sans la committer ---
+AUTRE VERSION/

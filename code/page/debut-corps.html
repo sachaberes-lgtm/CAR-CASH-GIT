@@ -1,0 +1,89 @@
+</head>
+<body>
+<!-- ================= LE MOUCHARD : un écran noir ne doit JAMAIS rester muet =================
+     ⚠ IL EST DANS SON PROPRE <script>, ET C'EST TOUT L'INTÉRÊT. Le capteur d'erreur du jeu vit DANS
+     le grand script : si celui-ci meurt au PARSING (une accolade de travers, une syntaxe que le
+     navigateur du joueur ne connaît pas), pas une ligne ne s'exécute — capteur compris — et le
+     joueur reçoit un rectangle noir sans un mot. Ici, on est déjà chargé quand le jeu se présente.
+     ⚠ ET IL A UN CHIEN DE GARDE, pas seulement un capteur : la panne la plus fréquente d'un fichier
+     autonome n'est pas une exception bruyante, c'est un démarrage qui n'arrive jamais (WebGL refusé,
+     mémoire, un navigateur qui bloque une API en file://). Aucune erreur n'est levée dans ce cas —
+     il n'y a qu'un silence. Le chien de garde transforme ce silence en diagnostic lisible. -->
+<script>
+/* UNE SEULE POLICE (2026-10-15, Sacha : « chaque texte du jeu doit avoir la bonne police […] il faut pas que je te le répète ») —
+   LE FILET DES CANVAS. Les textes DESSINÉS (billets, carte bancaire, montre et pièces de la boutique, « wow » du DOGE…) échappent au
+   CSS. Toute police de canvas qui n'est pas Press Start 2P est réécrite ici en Press Start 2P, à 62 % du corps demandé (la chasse pixel
+   est ~1,6 fois plus large qu'une Helvetica : le mot garde sa largeur) et sans gras (la police n'en a pas : un gras se synthétise et bave).
+   Les textures écrites pour le pixel passent telles quelles. Une police qu'on écrit demain dans un canvas est donc pixel d'office.
+   apresPolice(f) : dessine tout de suite, puis REDESSINE quand la police est chargée — une texture peinte au chargement de la page
+   l'était sinon dans la police de secours. garde-charte.sh refuse une version sans ce filet ni le filet CSS (#policeUnique). */
+(function UNE_POLICE(){try{const P=CanvasRenderingContext2D.prototype,D=Object.getOwnPropertyDescriptor(P,'font');if(!D||!D.set)return;
+  const C=new Map();
+  Object.defineProperty(P,'font',{configurable:true,enumerable:D.enumerable,get:D.get,set:function(v){let r=C.get(v);
+    if(r===undefined){const s=String(v);r=s;if(!/Press Start 2P/i.test(s)){const m=/(\d+(?:\.\d+)?)px/.exec(s);if(m)r=Math.max(6,Math.round(+m[1]*.62))+'px "Press Start 2P",monospace';}C.set(v,r);}
+    D.set.call(this,r);}});}catch(e){}})();
+function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('16px "Press Start 2P"'))F.load('16px "Press Start 2P"').then(f).catch(function(){});}catch(e){}}
+</script>
+<script>
+(function(){
+  var vu=false;
+  function esc(t){return String(t).replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+  function ccEn(){var lg9='';try{lg9=localStorage.ccLang||'';}catch(e){}return lg9?lg9!=='fr':!/^fr/i.test((navigator.language||'fr'));} // (passe qualité) la langue CHOISIE d'abord
+  function diag(){ // ce qu'on veut savoir AVANT de poser la moindre question au joueur — (2026-10-14, textes) dans sa langue
+    var d=[],en=ccEn(),O=en?'yes':'oui',N=en?'no':'non',R=en?'BLOCKED':'REFUSÉE';
+    d.push((en?'opened from: ':'ouverture : ')+location.protocol+(location.protocol==='file:'?(en?' (double-click)':' (double-clic)'):(en?' (server)':' (serveur)')));
+    d.push((en?'browser: ':'navigateur : ')+navigator.userAgent);
+    var gl=N;try{var c=document.createElement('canvas');gl=(c.getContext('webgl')||c.getContext('experimental-webgl'))?O:R;}catch(e){gl=R+' ('+e.message+')';}
+    d.push((en?'3D (WebGL): ':'carte 3D (WebGL) : ')+gl);
+    var ls=O;try{window.localStorage.getItem('x');}catch(e){ls=R+' ('+e.name+')';}
+    d.push((en?'save (localStorage): ':'sauvegarde (localStorage) : ')+ls);
+    d.push((en?'3D engine loaded: ':'moteur 3D chargé : ')+(typeof window.THREE==='object'?O:(en?'NO':'NON')));
+    return d.join('\n');
+  }
+  window.__crash=function(titre,detail){
+    if(vu)return;vu=true;
+    try{document.title='ERR:'+titre;}catch(_){}
+    /* (2026-09-29, audit de sortie) le JOUEUR lit d'abord une phrase à lui et un bouton RELANCER (l'écran n'avait aucune sortie : pour un
+       testeur d'Apple, c'était un crash) ; le diagnostic technique reste dessous, en petit, pour les captures */
+    var en=ccEn();
+    var b=document.createElement('div');b.id='ccCrash';if(window.__ccLent){b.dataset.lent='1';window.__ccLent=0;} // (passe qualité) seul l'écran du chien de garde peut se retirer (voir garde)
+    b.setAttribute('style','position:fixed;inset:0;z-index:99999;background:#07050f;color:#ffd75e;box-sizing:border-box;'+
+      'font:8px/1.8 var(--pix);padding:calc(var(--ccT,env(safe-area-inset-top,0px)) + 28px) 24px calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 24px);overflow:auto;-webkit-user-select:text;user-select:text');
+    b.innerHTML='<div style="font:14px/1.5 var(--pix);color:#fff;margin-bottom:10px">'+(en?'CASH CAR hit a snag.':'CASH CAR a calé.')+'</div>'+
+      '<div style="font:10px/1.7 var(--pix);color:#c9bdf0;margin-bottom:22px">'+(en?'Tap RESTART: your progress is saved.':'Touche RELANCER : ta progression est sauvegardée.')+'</div>'+
+      '<button id="ccRelance" style="display:block;width:100%;max-width:360px;min-height:56px;margin:0 0 28px;border:0;font:12px var(--pix);letter-spacing:1px;color:#3a1800;background:linear-gradient(180deg,#ffe78e,#f7ae16);box-shadow:0 5px 0 #9c5200;cursor:pointer">'+(en?'RESTART':'RELANCER')+'</button>'+
+      '<div style="color:#ff5e7a;margin-bottom:6px">'+esc(titre)+(detail?'\n'+esc(detail):'')+'</div>'+
+      '<div style="color:#6b6290;white-space:pre-wrap">'+esc(diag())+'</div>';
+    (document.body||document.documentElement).appendChild(b);
+    try{document.getElementById('ccRelance').addEventListener('click',function(){location.reload();});}catch(_){}
+  };
+  /* (2026-09-26, passe débogage) CES ÉCOUTEURS GARDENT LE DÉMARRAGE, PAS LA PARTIE. Ils restaient armés toute la session : la moindre
+     erreur tardive (hors du try/catch de la boucle) ou une promesse rejetée — `AC.resume()` au retour d'arrière-plan sur iPhone, un
+     `Preferences.set` — posait l'écran plein « N'A PAS PU DÉMARRER » PAR-DESSUS une partie en cours, sans bouton pour en sortir.
+     Une fois le jeu démarré (`__gameReady`), l'erreur est notée (`__loopErr`, console) et la partie continue. */
+  addEventListener('error',function(e){
+    if(!e.message)return;
+    if(window.__gameReady){window.__loopErr=e.message+' @'+e.lineno;try{console.error(e.error||e.message);}catch(_){}return;}
+    window.__crash(e.message,(ccEn()?'line ':'ligne ')+e.lineno+(e.filename?' · '+e.filename:''));
+  });
+  addEventListener('unhandledrejection',function(e){
+    if(window.__gameReady){try{console.warn('promesse rejetée',e.reason);e.preventDefault();}catch(_){}return;}
+    window.__crash((ccEn()?'unhandled promise: ':'promesse rejetée : ')+(e.reason&&e.reason.message||e.reason));});
+  // LE CHIEN DE GARDE : 8 s sans que la boucle ait tourné une seule fois = ce n'est plus un chargement long.
+  // (2026-09-29, audit de sortie) une erreur ISOLÉE dans la boucle (rattrapée, la partie continue) posait l'écran plein — on vérifie qu'elle
+  // REVIENT : la boucle la réécrit à chaque image quand elle plante vraiment ; une exception d'une seule image ne revient pas.
+  /* (2026-10-12, passe qualité) LE RÉSEAU LENT N'EST PAS UN PLANTAGE : le chrono part ici, à ~200 Ko d'une page de 5 Mo — en 3G il reste
+     1,6 Mo à recevoir, puis three.js, puis 4,5 Mo de script à lire. L'écran « a calé » se posait PAR-DESSUS un jeu qui démarrait dessous
+     (et RELANCER retéléchargeait tout : la boucle). Tant que la page arrive encore (readyState 'loading'), on réarme (jusqu'à ~1 min 40) ;
+     et si le jeu finit par démarrer sous l'écran, l'écran s'en va. */
+  var garde=function(n){setTimeout(function(){
+    if(!window.__gameReady&&document.readyState==='loading'&&n<12){garde(n+1);return;}
+    if(!window.__gameReady){window.__ccLent=1;window.__crash(ccEn()?'The game loaded but never started.':'Le jeu s\'est chargé mais n\'a jamais démarré.');
+      var k=0,iv=setInterval(function(){if(window.__gameReady){clearInterval(iv);var c=document.getElementById('ccCrash');if(c&&c.dataset.lent){c.remove();vu=false;}}else if(++k>240)clearInterval(iv);},500);return;}
+    if(!window.__loopErr)return;
+    window.__loopErr=null;
+    setTimeout(function(){if(window.__loopErr)window.__crash(ccEn()?'The game loop crashes on every frame.':'La boucle de jeu plante à chaque image.',String(window.__loopErr&&window.__loopErr.message||window.__loopErr));},1500);
+  },8000);};
+  garde(0);
+})();
+</script>

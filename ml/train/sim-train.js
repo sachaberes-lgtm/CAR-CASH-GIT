@@ -7,7 +7,8 @@ const {loadGame}=require('./sim-env');
 // --auto : porter le pilote du Survivant comme contrôleur au sol (TRAIN.AUTO_GROUND, §7.4).
 const AUTO=process.argv.indexOf('--auto')>0;
 const NOFLYFIX=process.argv.indexOf('--noflyfix')>0;
-const g=loadGame('?train=1&sim=1'+(AUTO?'&auto=1':'')+(NOFLYFIX?'&flyfix=0':''));
+const FIGSTYLE=process.argv.indexOf('--figstyle')>0; // (2026-10-20) entrainement "freestyle" separe, note sur les figures
+const g=loadGame('?train=1&sim=1'+(AUTO?'&auto=1':'')+(NOFLYFIX?'&flyfix=0':'')+(FIGSTYLE?'&figstyle=1':''));
 const vmGet=g.get;
 console.log('Chargement OK. IS_TRAIN=',vmGet('typeof IS_TRAIN'));
 const T=vmGet('__TRAIN');
