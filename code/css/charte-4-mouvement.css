@@ -220,6 +220,21 @@ html body #campChip b{color:var(--cc,var(--tx))}
 html body #campChip small{color:var(--tx2)}
 html body #campChip.alerte{animation:k5CampAlerte .6s steps(2) infinite}
 @keyframes k5CampAlerte{50%{box-shadow:inset 4px 0 0 var(--neoR),inset 0 0 0 2px var(--neoR),inset 30px 0 26px -20px rgba(255,74,100,.5)}}
+/* ===== L'OBJECTIF EN ALERTE EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») =====
+   iPhone 13 Pro mesuré : 58,0 i/s en course contre 59,7 i/s animations figées (WebKit repeint les box-shadow animées à chaque image).
+   k5CampAlerte est une bascule franche (steps(2)) entre l'ombre de base A (celle de charte-6 : `html body.touch #campChip`, recopiée ici —
+   à garder en phase) et l'ombre B : chacune sur un pseudo-élément en z-index −1 (#campChip est un contexte d'empilement : fixed + z-index 6),
+   donc au-dessus de la plaque et sous le texte, comme une ombre intérieure ; seule l'opacité bascule. Téléphone seulement. Écart attendu : 0. */
+html.han body.touch #campChip.alerte{animation:none;box-shadow:none}
+html.han body.touch #campChip.alerte::before,html.han body.touch #campChip.alerte::after{content:'';position:absolute;left:0;top:0;right:0;bottom:0;z-index:-1;
+  pointer-events:none;will-change:opacity}
+html.han body.touch #campChip.alerte::before{box-shadow:inset 3px 0 0 var(--cc,var(--neoC)),inset 40px 0 30px -26px color-mix(in srgb,var(--cc,var(--neoC)) 45%,transparent),var(--filetH);
+  animation:hanCcAlerteA .6s steps(2) infinite}
+html.han body.touch #campChip.alerte::after{box-shadow:inset 4px 0 0 var(--neoR),inset 0 0 0 2px var(--neoR),inset 30px 0 26px -20px rgba(255,74,100,.5);
+  opacity:0;animation:hanCcAlerteB .6s steps(2) infinite}
+@keyframes hanCcAlerteA{50%{opacity:0}}
+@keyframes hanCcAlerteB{50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){html.han body.touch #campChip.alerte::before,html.han body.touch #campChip.alerte::after{animation:none!important}}
 @media (prefers-reduced-motion:reduce){html body #campChip.alerte{animation:none}}
 
 /* ---- 9. LA COLONNE DE DROITE ne saute plus : la case du chrono de vol est RÉSERVÉE (sous le ⏸), les pouvoirs vivent toujours
