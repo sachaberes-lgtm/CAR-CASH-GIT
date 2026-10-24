@@ -379,6 +379,20 @@
     background:linear-gradient(100deg,transparent 40%,rgba(255,255,255,.35) 50%,transparent 60%) no-repeat;background-size:300% 100%;
     animation:nbReflet 3.6s ease-in-out infinite}   /* le reflet de la nitro : il passe tant qu'on TIENT un palier */
   body #flowHud[data-lv="0"] .fSeg::after{display:none}
+  /* ===== LE REFLET DU FLOW EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») =====
+     Mesuré sur l'iPhone 13 Pro (app, palier RÉCENT, 35 s pilotées) : 58,0 i/s et 63 images > 25 ms en course, 59,7 i/s et 9 images avec
+     toutes les animations CSS figées. Ce reflet tourne EN PERMANENCE dès le palier 1 : un background-position = style + peinture à chaque image.
+     Ici le MÊME dégradé est posé sur un calque de la taille de son image d'origine (300 % de l'::after = 3W) et glisse en translateX :
+     position p % → décalage p·(W − 3W), soit 150 % → −3W et −50 % → +W, c.-à-d. −100 % → +⅓ de la largeur du calque. Même durée, même courbe.
+     Haut et bas : ceux de l'::after (inset gardé). Largeur : right = 5·inset − 200 % (3 px au bureau, 2 px en tactile, !important comme
+     l'inset tactile). Seul écart : aux deux BOUTS la coupe est celle de .fSeg (overflow:hidden, au bord) et non plus le bord de l'::after —
+     le reflet mord l'anneau du cadre (inset px) le temps d'entrer et de sortir. Le balayage .monte (tactile) garde son ::after d'origine. ===== */
+  html.han body:not(.touch) #flowHud .fSeg::after,html.han body.touch #flowHud:not(.monte) .fSeg::after{background-size:100% 100%;background-position:0 0;
+    will-change:transform;animation:hanFlowReflet 3.6s ease-in-out infinite}
+  html.han body:not(.touch) #flowHud .fSeg::after{right:calc(15px - 200%)}
+  html.han body.touch #flowHud:not(.monte) .fSeg::after{right:calc(10px - 200%)!important}
+  @keyframes hanFlowReflet{0%,60%{transform:translateX(-100%)}100%{transform:translateX(calc(100% / 3))}}
+  @media (prefers-reduced-motion:reduce){html.han body:not(.touch) #flowHud .fSeg::after,html.han body.touch #flowHud:not(.monte) .fSeg::after{animation:none}}   /* comme l'ancien : éteint hors frénésie (la frénésie, plus forte, le gardait) */
   body #flowHud .fL,body #flowHud .fM{grid-row:2;font-size:10px;line-height:1;letter-spacing:1px;
     text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,0 3px 0 #1c0430}
   body #flowHud .fL{grid-column:1;justify-self:start;font-weight:normal}

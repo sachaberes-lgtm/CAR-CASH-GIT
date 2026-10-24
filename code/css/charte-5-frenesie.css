@@ -82,6 +82,15 @@ html body #flowHud[data-lv="4"].sc2 .fSeg::before{animation:frGlisse .9s linear 
 @keyframes frEclatB{from{filter:brightness(1.8)}to{filter:none}}
 @keyframes frGlintA{from{background-position:150% 0}to{background-position:-50% 0}}
 @keyframes frGlintB{from{background-position:150% 0}to{background-position:-50% 0}}
+/* ===== LE REFLET DE LA FRÉNÉSIE ET SON ÉCLAT EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») =====
+   iPhone 13 Pro : 58,0 i/s en course contre 59,7 animations CSS figées. Le calque 3W du reflet du flow (voir socle-4-aura, « LE REFLET DU
+   FLOW EN TRANSFORM ») : le reflet rouge (1,6 s) et les éclats .sc1/.sc2 (0,34 s, derniers de la liste : ils gagnent le temps de leur course)
+   passent de background-position 150 % → −50 % à translateX −100 % → +⅓, mêmes durées, mêmes courbes. ===== */
+html.han body:not(.touch) #flowHud[data-lv="4"] .fSeg::after,html.han body.touch #flowHud[data-lv="4"]:not(.monte) .fSeg::after{animation:hanFlowReflet 1.6s var(--ease) infinite}
+html.han body:not(.touch) #flowHud[data-lv="4"].sc1 .fSeg::after,html.han body.touch #flowHud[data-lv="4"].sc1:not(.monte) .fSeg::after{animation:hanFlowReflet 1.6s var(--ease) infinite,hanFlowGlintA .34s var(--ease)}
+html.han body:not(.touch) #flowHud[data-lv="4"].sc2 .fSeg::after,html.han body.touch #flowHud[data-lv="4"].sc2:not(.monte) .fSeg::after{animation:hanFlowReflet 1.6s var(--ease) infinite,hanFlowGlintB .34s var(--ease)}
+@keyframes hanFlowGlintA{from{transform:translateX(-100%)}to{transform:translateX(calc(100% / 3))}}
+@keyframes hanFlowGlintB{from{transform:translateX(-100%)}to{transform:translateX(calc(100% / 3))}}
 @keyframes frPetA{0%,100%{opacity:1}}
 @keyframes frPetB{0%,100%{opacity:1}}
 /* elle FUIT : la marge BRÛLE (hachures qui clignotent), le halo s'éteint à moitié */
