@@ -321,8 +321,11 @@ const PUB_EN={'LA CAISSE QUI PAIE':'THE CAR PAYS','JPEG MILLIONAIRE':'JPEG MILLI
   'VITE VITE':'QUICK QUICK','NUIT BLANCHE':'ALL NIGHTER','CHAUD':'HOT','PLUIE ET LUMIERE':'RAIN AND LIGHT','PLUS VITE':'FASTER','TOUT OU RIEN':'ALL OR NOTHING','OU CREVE':'OR DIE',
   'VITESSE':'SPEED','ILLEGALE':'ILLEGAL','LEVIER MAX':'MAX LEVERAGE','QUEL DIP ?':'WHAT DIP?'};
 function pubLangue(P){if(typeof LANG==='undefined'||LANG==='fr')return;for(const p of P)for(let j=0;j<4;j++)if(PUB_EN[p[j]])p[j]=PUB_EN[p[j]];} // (2026-10-14, textes) peintes une fois, dans la langue du moment
+/* ===== LES RÉCLAMES SUIVENT LA LANGUE (24/10, relecture : « une ville en français, la langue passée en anglais, la ville suivante gardait ses
+   réclames en français ») ===== la clé de l'atlas porte la teinte ET la langue : changée dans les réglages, l'atlas est repeint à la ville suivante
+   (preuve-pubs-langue.cjs). */
 function villePubAtlas(){
-  const T9=vtCur(),te9=T9?LVL.cur.teinte:''; // (2026-10-16) LES TEINTES DE LA VILLE : l'atlas est repeint (une fois, à la construction de la ville) quand la teinte change
+  const T9=vtCur(),te9=(T9?LVL.cur.teinte:'')+'|'+(typeof LANG==='undefined'?'fr':LANG); // (2026-10-16) LES TEINTES DE LA VILLE : l'atlas est repeint (une fois, à la construction de la ville) quand la teinte change
   if(CITY.pub&&CITY.pubT===te9)return CITY.pub;
   const N=512,C=128,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d');
   const PUB=[['CASH CAR','#ffd75e','#ff2e8e','LA CAISSE QUI PAIE'],['1.61','#fff3be','#b86bff','GAME STUDIO'],['NITRO','#ff8d2e','#ff2e2e','PLEIN GAZ'],['$$$','#ffd75e','#7a1fb0','BANQUE OUVERTE'],
