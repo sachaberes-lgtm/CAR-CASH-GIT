@@ -3,6 +3,9 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES ANCIENS BOUTONS DU MENU REMIS (2026-10-24, Sacha : « dans l'écran principal il y a des nouveaux boutons horribles, remets les anciens »)
+- Le bloc « verre en loupe » de v858 (GARAGE · BUY · SETTINGS en lentilles transparentes) est retiré de `code/css/boutons-flottants.css` : les touches reprennent leur look d'avant. La lueur d'angle de la BOUTIQUE du garage (même v858) reste.
+
 ## LE DÉBOGAGE COMPLET POUR LA SORTIE iOS (2026-10-24, v862, session DÉBOGAGE — Sacha : « lance une immense session de debugging ultra complète sur tout le code du jeu pour la version mobile… que le jeu soit parfaitement sortable sur l'App Store directement »)
 - **LA MÉTHODE** : six agents, chacun dans son worktree tiré d'origin/main (`sortie-ios/wt/<nom>`), intégrés un à un dans `sortie-ios-integration` après relecture : COURSE (le vrai jeu
   au banc en émulation iPhone, 12 maps, écrans au doigt, rotations, fuites, contexte 3D perdu), MOBILE (cycle de vie, audio iOS, tactile, encoche, compatibilité iOS 15), LOGIQUE
