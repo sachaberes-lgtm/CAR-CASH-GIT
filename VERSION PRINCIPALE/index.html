@@ -56833,11 +56833,17 @@ function veqCorps(dt){ // LA BALANCE : qTmp = l'assiette de vol (repère) → la
     const i=VEQ.si,dessus=VEQ.sh>-THICK*.5,hs=dessus?VEQ.sh:-THICK-VEQ.sh,sd=dessus?1:-1,vN=-fallVel.dot(Nn[i])*sd*SPD;
     if(hs>-1.5&&vN>.4)a=1-THREE.MathUtils.smoothstep(Math.max(0,hs-2.8)/vN,K.posA,K.posB); // ⚠ la pose est DÉCLARÉE à 3 m (tryLand) : à 2,8 m la caisse doit être prête
     if(a>.001){veqRoute(i,sd,fallVel,VEQ.qp);qTmp.slerp(VEQ.qp,a*m);}}
-  VEQ.pose+=(a-VEQ.pose)*Math.min(1,dt*10);
-  VEQ.qb.slerp(qTmp,Math.min(1,dt*(12+10*a)));carGroup.quaternion.copy(VEQ.qb);airRoll=VEQ.br;
+  VEQ.pose+=(a-VEQ.pose)*lisse60(10,dt);
+  VEQ.qb.slerp(qTmp,lisse60(12+10*a,dt));carGroup.quaternion.copy(VEQ.qb);airRoll=VEQ.br;
   // LES ROUES PENDENT : en l'air la suspension se détend (la carrosserie monte au-dessus de ses roues)
-  VEQ.ext+=(K.ext-VEQ.ext)*Math.min(1,dt*9);carBody.position.y=VEQ.ext;
+  VEQ.ext+=(K.ext-VEQ.ext)*lisse60(9,dt);carBody.position.y=VEQ.ext;
 }
+/* ===== LE LISSAGE CALÉ SUR 60 i/s (24/10, débogage sortie iOS : « un jeu irréprochable sur tous les iPhone, du vieux à 30 images/s au ProMotion 120 Hz ») =====
+   x+=(cible-x)*Math.min(1,dt*k) n'avance PAS du même chemin par seconde selon la cadence : à 30 i/s la part prise par image double, l'approche
+   est plus vive (k=22 : +45 % de raideur à 30 i/s, −11 % à 120 Hz). lisse60(k,dt) rend EXACTEMENT la part de Math.min(1,dt*k) à 60 i/s (la
+   cadence où tout a été réglé) et la compose au temps près : deux images à 30 Hz = une à 60 = la moitié de deux à 120. Preuve :
+   passation/preuves/preuve-lisse60.cjs (assiette du vol équilibré, aimant à pièces). */
+function lisse60(k,dt){return 1-Math.pow(Math.max(0,1-k/60),dt*60);}
 function veqPose(bI,sd){ // la caisse se pose (tryLand, lèvre) : ce qui reste d'assiette passe aux ressorts de la conduite
   VEQ.rate=false;VEQ.volT=fallTR;
   let rx=0,ry=0,rz=0;
@@ -70809,10 +70815,10 @@ function pickupsTick(dt){
       // CAPACITÉ MOTEUR (V12 atmosphérique) : L'AIMANT À PIÈCES — elles viennent à toi de bien plus
       // loin, et plus vite. Sans lui, on garde l'attraction d'origine, discrète.
       if(ds9<15+mag*2&&Math.abs(p.lat-side*lat)<9+mag*2) // (2026-09-26) plus de `level` ici : c'est l'index de la caisse (66), l'aimant faisait 33 m sur les dernières // portée LATÉRALE de l'aimant à pièces (route large)
-        p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(6+mag*1.5)));
+        p.mesh.position.lerp(carGroup.position,lisse60(6+mag*1.5,dt));
     }
     if(p.hk>0){ // ACCROCHÉ : il file sur la caisse — l'écart fond d'au moins (1−f) par image, quoi que fasse la caisse
-      const f9=Math.min(1,dt*(RAM_K+RAM_A*p.hk)),P9=p.mesh.position;p.hk+=dt;
+      const f9=lisse60(RAM_K+RAM_A*p.hk,dt),P9=p.mesh.position;p.hk+=dt;
       P9.lerp(carGroup.position,f9);if(MAG9&&!p.nitro&&!p.pow)magSpirale(p,P9.distanceTo(carGroup.position),dt); // (pomme dorée) la pièce accrochée en vol tourne aussi
       const d9=P9.distanceTo(carGroup.position),dM=p.hkD*(1-f9);
       if(d9>dM&&d9>1e-6)P9.lerp(carGroup.position,1-dM/d9); // la caisse le distance : il est tiré sur la ligne qui les relie
