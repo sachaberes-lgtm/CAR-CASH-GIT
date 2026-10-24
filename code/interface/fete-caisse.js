@@ -111,11 +111,11 @@ function feteParticules(cv,cfg,col,K){ /* UN canvas, quatre sortes : particules 
     g.globalCompositeOperation='lighter';
     for(let k=P.length-1;k>=0;k--){const p=P[k];p.t+=dt;const q=Math.min(1,p.t/p.T),z=q*q,x=p.x+(cx-p.x)*z,y=p.y+(cy-p.y)*z;
       g.globalAlpha=Math.min(1,q*2.5)*(1-q*.4);g.fillStyle=p.c;g.fillRect(x-p.s/2,y-p.s/2,p.s,p.s);if(q>=1)P.splice(k,1);}
-    for(let k=S.length-1;k>=0;k--){const s=S[k];s.l+=dt;s.px=s.x;s.py=s.y;s.vx*=.965;s.vy=s.vy*.965+.35*dpr;s.x+=s.vx;s.y+=s.vy;
+    for(let k=S.length-1;k>=0;k--){const s=S[k];s.l+=dt;s.px=s.x;s.py=s.y;const f9=dt*60,a9=Math.pow(.965,f9);s.vx*=a9;s.vy=s.vy*a9+.35*dpr*f9;s.x+=s.vx*f9;s.y+=s.vy*f9; /* (2026-10-24) calé sur 60 i/s : même trajet à 30, 60 ou 120 Hz */
       const a=1-s.l/s.L;if(a<=0){S.splice(k,1);continue;}g.globalAlpha=a;g.strokeStyle=s.c;g.lineWidth=2.2*dpr;g.beginPath();g.moveTo(s.px,s.py);g.lineTo(s.x,s.y);g.stroke();}
     g.globalCompositeOperation='source-over';
     const fin=cfg.d-600;
-    for(let k=C.length-1;k>=0;k--){const p=C[k];if(e<K+p.d*1000)continue;p.vy+=.5*dpr;p.vx*=.987;p.vy*=.992;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;
+    for(let k=C.length-1;k>=0;k--){const p=C[k];if(e<K+p.d*1000)continue;const f9=dt*60;p.vy+=.5*dpr*f9;p.vx*=Math.pow(.987,f9);p.vy*=Math.pow(.992,f9);p.x+=p.vx*f9;p.y+=p.vy*f9;p.r+=p.vr*f9; /* (2026-10-24) idem, calé sur 60 i/s */
       if(p.y>H+30){C.splice(k,1);continue;}g.save();g.translate(p.x,p.y);g.rotate(p.r);g.scale(1,Math.cos(p.r*1.7));g.fillStyle=p.c;g.globalAlpha=Math.max(0,Math.min(1,(fin-e)/700));g.fillRect(-p.w/2,-p.h/2,p.w,p.h);g.restore();}
     if(boom&&cfg.st>=3&&e<fin-300&&Math.random()<.5){E.push({x:Math.random()*W,y:Math.random()*H*.8,t:0,T:.5+Math.random()*.6,s:(5+Math.random()*9)*dpr});} /* les étoiles scintillent pendant le maintien */
     g.globalCompositeOperation='lighter';
