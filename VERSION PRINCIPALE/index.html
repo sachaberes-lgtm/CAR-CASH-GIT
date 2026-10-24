@@ -20142,11 +20142,11 @@ const BK_SOL_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN;varying vec2 vS;','#include
   '  col+=alb*uSky*(1.-dif)*vec3(.20,.42,.75)*.55*(1.-roc);',                                                // l'OMBRE BLEUE de la neige (le ciel qu'elle diffuse)
   '  col+=alb*uSunC*pow(1.-max(dot(Np,V),0.),4.)*.10*dif;',                                                  // le lustre rasant
   // les ÉTINCELLES : chaque cristal a sa facette (une normale au hasard) ; il s'allume quand le soleil s'y reflète vers l'œil — elles naissent et meurent quand la caméra bouge
-  '  float sp=0.;if(f2>0.){vec2 g=q*2.2;vec2 c=floor(g);float h=fh2(c);vec3 nj=normalize(vec3(fh2(c+3.1)-.5,.9,fh2(c+7.7)-.5));',
-  '    sp=step(.80,h)*pow(max(dot(reflect(-L,nj),V),0.),70.)*smoothstep(.36,.06,length(fract(g)-.5))*f2;}',
+  '  float sp=0.,spk=0.;if(f2>0.){vec2 g=q*2.2;vec2 c=floor(g);float h=fh2(c);vec3 nj=normalize(vec3(fh2(c+3.1)-.5,.9,fh2(c+7.7)-.5));',
+  '    float s1=step(.80,h)*pow(max(dot(reflect(-L,nj),V),0.),70.)*smoothstep(.36,.06,length(fract(g)-.5))*f2*(.62+.38*sin(uTime*(1.4+h*3.)+h*70.));sp=s1;spk=s1*step(fract(h*53.7),.20);}',
   '  {vec2 g=q*.42;vec2 c=floor(g);float h=fh2(c+5.);vec3 nj=normalize(vec3(fh2(c+1.3)-.5,.8,fh2(c+9.2)-.5));',
-  '   sp+=step(.86,h)*pow(max(dot(reflect(-L,nj),V),0.),60.)*smoothstep(.30,.04,length(fract(g)-.5))*smoothstep(60.,140.,dist)*(1.-smoothstep(300.,650.,dist))*.8;}',
-  '  sp*=(1.-roc)*uSpark;col+=(uSunC*2.2+vec3(.4,.6,1.)*.3)*sp*2.6+uAurC*sp*uAur*1.2;',
+  '   float s2=step(.86,h)*pow(max(dot(reflect(-L,nj),V),0.),60.)*smoothstep(.30,.04,length(fract(g)-.5))*smoothstep(60.,140.,dist)*(1.-smoothstep(300.,650.,dist))*.8;sp+=s2;spk+=s2*step(fract(h*61.3),.20);}',
+  '  sp*=(1.-roc)*uSpark;spk*=(1.-roc)*uSpark;col+=(uSunC*2.2+vec3(.4,.6,1.)*.3)*(sp-spk)*2.6+mix(vec3(1.,.55,.06),vec3(1.,.10,.46),step(.5,fh2(floor(q*1.1)+11.)))*spk*2.2+uAurC*sp*uAur*1.2;', /* (2026-10-21, LE GLACIER EMBELLI) un éclat sur cinq est OR ou ROSE (le clin d'œil CASH) et tous scintillent avec uTime */
   '  col+=alb*uAlpC*uAlp*dif*.40*smoothstep(-40.,120.,vW.y-uMistY);',                                         // l'alpenglow sur les pentes hautes
   '  col+=alb*mix(uAurC,uAurC2,.3)*uAur*.12*(.4+.6*Np.y);',                                                    // le vert des aurores sur la neige
   '  col+=vec3(.10,.55,.80)*cv*(uSky*.35+uSunC*.12)*(.6+.4*fn2(q*.4));',  // le fond de la crevasse : la glace bleue qui luit
@@ -20176,6 +20176,7 @@ const BK_PIC_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN,vB;varying vec4 vP;','#ifnd
   '  float tr=pow(max(dot(-V,L),0.),3.)*(.6+.4*(1.-th))+.22;',                                                                // la lumière qui TRAVERSE
   '  vec3 col=alb*(uSky*.42+uGnd*.10+uSunC*(.10+.95*dif))+mid*uSunC*tr*(.20+.60*hf)*vec3(.55,.92,1.)+clair*uSunC*hf*hf*.10;',
   '  col+=clair*(fr*.70+bu*.9)*(uSunC*.55+uSky*.45);',
+  '  col=mix(col,col*vec3(.80,.88,1.16),(1.-dif)*.30*(1.-hf*.5));col+=vec3(1.,.78,.46)*uSunC*pow(dif,2.5)*(.04+.11*hf)*(.6+.4*fv);', /* (2026-10-21, LE GLACIER EMBELLI) deux températures : l'ombre des facettes bascule au bleu-violet, la clé chaude se pose sur les pointes éclairées */
   '  col=mix(col,bCiel(R),fres*.55);',
   '  float sr=max(dot(R,L),0.);col+=uSunC*(pow(sr,110.)*2.8+pow(sr,14.)*.16);',                                              // l'ÉCLAT de la facette
   '  float e=min(min(vB.x,vB.y),vB.z),w9=fwidth(e)*1.4;float ar=1.-smoothstep(0.,w9+.010,e);',                                 // les ARÊTES
@@ -20208,7 +20209,8 @@ const BK_VG_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN;varying vec4 vV;','#include 
   '  col=mix(col,bCiel(R)*.95,fres*.9);',
   '  float sr=max(dot(R,uSunDir),0.);col+=uSunC*(pow(sr,500.)*6.+pow(sr,35.)*.35);',                               // le chemin du soleil
   '  float gv=smoothstep(e-.32,e-.02,u)*(.45+.55*fn2(q*1.9));col=mix(col,vec3(.88,.94,1.)*(uSky*.6+uSunC*.85),gv*.75);', // le givre des bords (v4 : la frange qui se fond dans la neige)
-  '  {vec2 g=q*2.6;vec2 c=floor(g);float h=fh2(c);col+=(uSunC*1.6+uSky*.4)*step(.93,h)*smoothstep(.30,.05,length(fract(g)-.5))*(1.-smoothstep(25.,90.,dist))*uSpark;}', // les paillettes
+  '  {vec2 g=q*2.6;vec2 c=floor(g);float h=fh2(c);float pk=step(.93,h)*smoothstep(.30,.05,length(fract(g)-.5))*(1.-smoothstep(25.,90.,dist))*uSpark*(.72+.28*sin(uTime*(1.2+h*5.)+h*90.));',
+  '   col+=mix(uSunC*1.6+uSky*.4,mix(vec3(1.,.55,.06),vec3(1.,.10,.46),step(.5,fh2(c+9.1)))*2.0,step(fh2(c+4.3),.18))*pk;}', /* (2026-10-21, LE GLACIER EMBELLI) les paillettes de la glace scintillent (uTime) ; une sur cinq environ est OR ou ROSE : le clin d'œil CASH, aspect seulement */
   '  vec3 hd=normalize(uCarP+vec3(0.,1.,0.)-vW);col+=vec3(.9,.95,1.)*uPhare*pow(max(dot(R,hd),0.),60.)*2.5*(1.-smoothstep(10.,140.,distance(uCarP,vW)));',
   '  col+=bPhare(vW,N)*.3+uFlash*vec3(.8,.85,1.)*.5;',
   '  col=mix(col,uMistC,bBrume(vW,dist));gl_FragColor=vec4(col,al*.9);','  gl_FragColor.a=1.;','#include <fog_fragment>','}'].join('\n');
@@ -20853,9 +20855,9 @@ function banqFx(){const fx=BANQ.fx;if(fx.flo)return fx;const M=banqMats(),R=mulb
   fx.eclat=makePool(PAL_BK('banqEclat',700),.8,0x8fe4ff,1,true,{a:[.02,.35,1,.35],pr:[1.2,3.5,30,90],etire:true,str:.05,v:.6}); /* cyan glacier : blanc sur la glace blanche, on ne les voyait pas — (2026-10-15 soir) ce commentaire en // avalait la suite (drag, acc, nom) : rendu */fx.eclat.drag=1.4;fx.eclat.acc=14;fx.eclat.mesh.name='banquise eclats';
   fx.brume=makePool(PAL_BK('banqBrume',220),3.4,0xe2f2ff,.5,true,{a:[.10,.75,.45,1.7],pr:[2.5,7,120,0]}); /* (plafond 120 px : à 46, le voile n'était qu'un point blanc sur la glace blanche) — (2026-10-18, DEBUGGING : ce commentaire en // avalait la suite : le voile de givre filait avec la caisse, sans frein) */fx.brume.drag=2.4;fx.brume.mesh.name='banquise brume';
   fx.eclat.mesh.renderOrder=fx.brume.mesh.renderOrder=9; // ⚠ APRÈS la plaque de verglas (renderOrder 1, transparente) et les traces (2) : dessinées avant, elles étaient repeintes par la glace — invisibles au banc
-  bkTraceMesh();
+  bkTraceMesh();bkCretes(fx); /* (2026-10-21, LE GLACIER EMBELLI) les crêtes lointaines et leurs panaches : voir glacier-embelli.js */
   return fx;}
-function banqFxCache(){if(BKV.t>0)bkSkateRaz();BKV.sur=false;BKV.yaw=0;BKV.gl=0;BKV.gk=0;const fx=BANQ.fx;if(!fx.flo||!fx.on)return;fx.on=false;fx.flo.visible=fx.dd.visible=fx.aur.visible=false;if(BK_TR.mesh)BK_TR.mesh.visible=false;
+function banqFxCache(){if(BKV.t>0)bkSkateRaz();BKV.sur=false;BKV.yaw=0;BKV.gl=0;BKV.gk=0;const fx=BANQ.fx;if(!fx.flo||!fx.on)return;fx.on=false;fx.flo.visible=fx.dd.visible=fx.aur.visible=false;bkCretesCache(fx);if(BK_TR.mesh)BK_TR.mesh.visible=false;
   try{updatePool(fx.poudre,10,0);updatePool(fx.givre,10,0);updatePool(fx.eclat,10,0);updatePool(fx.brume,10,0);}catch(e){}
   for(const k in BANQ.boucles)if(BANQ.boucles[k]&&BANQ.boucles[k].stop){try{BANQ.boucles[k].stop(.5);}catch(e){}BANQ.boucles[k]=null;}
   BANQ.sur=0;BANQ.glisse=false;BANQ.pou=false;}
@@ -20892,6 +20894,7 @@ function banqTick(dt){
   {camera.getWorldDirection(BK_V);U.uBoxC.value.copy(camera.position).addScaledVector(BK_V,22);}
   fx.flo.visible=c.neige>.01;fx.dd.visible=U.uDD.value>.01&&c.neige<.2;
   fx.aur.visible=c.aur>.01;if(fx.aur.visible){fx.aur.position.copy(camera.position);fx.aur.rotation.y=BANQ.axe||0; /* (2026-10-19) les aurores tournent avec la montagne (LE GLACIER AU HASARD) */fx.aur.updateMatrix();fx.aur.updateMatrixWorld(true);}
+  bkCretesTick(fx);
   if(BK_TR.mesh)BK_TR.mesh.visible=true;
   if(BANQ.solM){const ff=(scene.fog&&scene.fog.far)||6000,cp=camera.position;for(const m of BANQ.solM){const b=m.geometry.boundingSphere,v=cp.distanceTo(b.center)-b.radius<ff+60;if(m.visible!==v)m.visible=v;}}
   if(BANQ.picM){const ff=(scene.fog&&scene.fog.far)||6000,cp=camera.position;for(const m of BANQ.picM){const b=m.geometry.boundingSphere,v=cp.distanceTo(b.center)-b.radius<ff+60;if(m.visible!==v)m.visible=v;}}
@@ -20954,7 +20957,7 @@ function banqChauffe(){
     for(const k in at)g.setAttribute(k,new THREE.Float32BufferAttribute(new Float32Array(3*at[k]),at[k]));return g;};
   L9.push(new THREE.Mesh(tri({aS:2}),M.sol),new THREE.Mesh(tri({aB:3,aP:4}),M.pic),new THREE.Mesh(tri({aB:3,aP:4}),M.loin),new THREE.Mesh(tri({aT:4}),M.tr),new THREE.Mesh(tri({aV:4}),M.vg));
   for(const o of L9)o.frustumCulled=false;
-  const ex=[fx.flo,fx.dd,fx.aur,BK_TR.mesh,fx.poudre.mesh,fx.givre.mesh,fx.eclat.mesh,fx.brume.mesh],vus=ex.map(function(o){return [o,o.visible];});
+  const ex=[fx.flo,fx.dd,fx.aur,BK_TR.mesh,fx.poudre.mesh,fx.givre.mesh,fx.eclat.mesh,fx.brume.mesh].concat(bkCretesChauffe(fx)),vus=ex.map(function(o){return [o,o.visible];});
   for(const v of vus)v[0].visible=true;
   const g=new THREE.Group();for(const o of L9)g.add(o);scene.add(g);
   try{chauffeRendu([g].concat(ex));}finally{scene.remove(g);for(const v of vus)v[0].visible=v[1];for(const o of L9)o.geometry.dispose();}
@@ -20977,6 +20980,7 @@ window.dbgBanq=function(k,o){
       for(const P of A9){if(ob.has(P)||(x-P.cx)*(x-P.cx)+(z-P.cz)*(z-P.cz)>P.r2)continue;const h=bkPrimH(P,x,z),m=h-(p.y-THICK-5);if(m>pire)pire=m;if(m>0){n++;if(ex.length<6)ex.push([Math.round(i*ds),+q.toFixed(2),Math.round(m),P.fam]);}}}}
     return {essais:t,percees:n,pire:Math.round(pire),ex:ex};}
   if(k==='meteo'){banqMeteo(o||'nuit',.01);return BANQ.met;}
+  if(k==='embelli'){const fx=BANQ.fx;return {on:BK_EMB,cre:!!fx.cre,cN:fx.cN||null,graine:fx.cG,progs:renderer.info.programs?renderer.info.programs.length:-1};} /* (2026-10-21, banc) LE GLACIER EMBELLI : les comptes de l'anneau de crêtes */
   if(k==='phys'&&o){Object.assign(BK_PH,o);return BK_PH;}
   if(k==='cg'){if(o)Object.assign(BK_CG,o);return {cg:BK_CG,k:+BKB.k.toFixed(2),enf:+BKB.enf.toFixed(2),dans:BKB.dans,lat:+lat.toFixed(1),kmh:Math.round(Math.abs(vA)*3.6*SPD),p:carGroup.position.toArray().map(function(v){return +v.toFixed(1);}),t:F.t.toArray().map(function(v){return +v.toFixed(3);}),b:F.b.toArray().map(function(v){return +v.toFixed(3);}),n:F.n.toArray().map(function(v){return +v.toFixed(3);}),mort:mortCause,pq:BANQ.pourquoi||'',latOff:+curLatOff.toFixed(1),hOff:+curHOff.toFixed(1)};} // (banc, 2026-10-18) LA CONGÈRE : réglages et état
   if(k==='vue'&&o){if(started&&!gameOver&&!paused)togglePause();camera.position.fromArray(o.p);camera.up.set(0,1,0);camera.lookAt(new THREE.Vector3().fromArray(o.c));camera.updateMatrixWorld();
@@ -21013,6 +21017,103 @@ window.dbgBanq=function(k,o){
     cur:BANQ.cur&&{aur:+BANQ.cur.aur.toFixed(2),neige:+BANQ.cur.neige.toFixed(2),alp:+BANQ.cur.alp.toFixed(2)},L:Math.round(L),yMin:Math.round(trackMinY),y0:pts[0]&&Math.round(pts[0].y)};};
 
 /* <<<FIN BANQUISE>>> */
+/* ======================= LE GLACIER EMBELLI (2026-10-21, Sacha : « apporter des améliorations visuelles à chaque map — ajouter des éléments, améliorer des textures, améliorer les lumières — sans que ce soit trop gourmand pour le téléphone ») =======================
+   MESURÉ AVANT : devant la caisse, deux plans seulement — la glace de la piste et les pics à moins de 3,6 km ; au-delà, l'horizon est un bandeau de brume SANS RIEN dedans (un dégradé plat),
+   et rien ne vit dans l'air à part la neige qui tombe. Cette passe ajoute les plans qui manquent, dans la charte (clé chaude + remplissage froid, brume teintée, rose/or rares) :
+   · LES CRÊTES LOINTAINES (pilier « trois plans ») : un anneau de montagnes à 7,3 / 8 / 8,7 km qui SUIT la caméra (à l'infini, comme les aurores), trois rangées de facettes plates
+     (une teinte par facette : le côté du soleil chaud, l'ombre bleu-violet), la neige haut, la glace bleue bas, le pied qui fond dans la brume TEINTÉE (la plus loin est la plus pâle) ;
+     elles lisent les mêmes uniforms que le reste de la banquise (uSunC, uSky, uAlpC, uAurC, uIceT, uMistC, uHazeC) : l'alpenglow les embrase au matin et au soir, l'aurore les bleuit la nuit
+     et la couleur de la glace, des aurores et de l'alpenglow TIRÉS PAR LE DÉCOR AU HASARD (BANQ.dz) les suivent sans qu'on y touche ; un liseré d'or chaud, très fin, sur leur arête éclairée ;
+   · LES PANACHES DE NEIGE (pilier « un détail vivant ») : de la neige soufflée qui file des plus hautes cimes, deux feuilles croisées par panache, qui ondulent et défilent avec uTime
+     (rien à faire côté processeur) ; effacés par la neige et le blizzard (ils se noieraient dans la brume).
+   Tout est à l'infini (aucun décor près de la piste, aucun calcul par image, aucune lumière), UN seul programme (les deux maillages partagent le même shader, `uPl` choisit crête / panache),
+   deux appels de dessin, ~2 000 triangles. Le tirage vient de la graine de la piste mais dans un flux À LUI (`mulberry32(graine ^ 0xC4E7E5)`) : aucun tirage dans `fr`, la piste ne bouge pas.
+   Paliers : `PAL.B.banqCreteL` (nombre de rangées 1/2/3), `banqCreteN` (facettes par tour), `banqPana` (panaches 0/8/14). `?sans=glacierembelli` = la banquise d'avant (rien de tout ceci).
+   Console : `dbgBanq('embelli')` (les comptes), `dbgBanq('embelli',{k:…})`. */
+const BK_EMB=typeof location==='undefined'||!/[?&]sans=([^&]*,)?glacierembelli(,|&|$)/.test(location.search);
+try{Object.assign(PAL.B,{banqCreteL:[1,2,3],banqCreteN:[150,230,320],banqPana:[0,14,24]});}catch(e){}
+const BK_CRE_LAY=[[8700,1900,.80],[8000,1400,.66],[7300,950,.50]]; /* [rayon (m), hauteur max au-dessus de la caméra (m), part de brume] — du plus loin au plus près */
+const BK_CRE_B=-300; // le pied de l'anneau, sous l'horizon : il fond dans la brume (alpha 0)
+const BK_CRE_VS=['attribute vec4 aK;uniform float uTime,uPl;varying vec3 vW;varying vec4 vK;',
+  'void main(){vec3 p=position;',
+  '  if(uPl>.5){float ph=aK.w;p.y+=sin(uTime*.37+aK.y*5.+ph*6.2832)*70.*aK.y;p.xz+=vec2(cos(ph*6.2832),sin(ph*6.2832))*sin(uTime*.29+aK.y*4.+ph*9.)*60.*aK.y;}', // le panache ondule : plus on va vers la queue, plus il flotte
+  '  vec4 wp=modelMatrix*vec4(p,1.);vW=wp.xyz;vK=aK;gl_Position=projectionMatrix*viewMatrix*wp;}'].join('\n');
+const BK_CRE_FS=[FG_BRUIT,
+  'uniform vec3 uSunDir,uSunC,uSky,uFillC,uCam,uHazeC,uMistC,uAlpC,uAurC,uAurC2,uIceT;uniform float uTime,uPl,uAlp,uAur,uHazeM,uNeige;varying vec3 vW;varying vec4 vK;',
+  'void main(){vec3 rel=vW-uCam;float hr=max(length(rel.xz),1.);vec3 r=vec3(rel.x,0.,rel.z)/hr;float lay=vK.x;',
+  '  float hzL=lay<.5?.80:(lay<1.5?.66:.50);vec3 hc=mix(uHazeC,uMistC,.35);',
+  '  if(uPl>.5){', /* le PANACHE : t le long (0 à la cime, 1 à la queue), sd le travers */
+  '    float t=vK.y,sd=vK.z,ph=vK.w;float st=fn2(vec2(t*6.-uTime*.55+ph*9.,sd*2.2+ph*5.));',
+  '    float a=(1.-t)*(1.-t*.6)*smoothstep(1.,.30,abs(sd))*(.30+.80*st)*.90*(1.-smoothstep(.15,.85,uNeige));',
+  '    vec3 sn=vec3(.93,.96,1.)*(uSky*.60+uSunC*.55)+uAlpC*uAlp*.45+vec3(1.,.82,.5)*.04*uSunC;',
+  '    sn=mix(sn,hc,hzL*.55);gl_FragColor=vec4(sn,a);return;}',
+  /* la CRÊTE : la facette a sa pente (vK.z), sa hauteur absolue (vK.y, 0 au pied → 1 au plus haut) et sa place dans la colonne (vK.w, 0 pied → 1 arête) */
+  '  float h01=vK.y,k=vK.z,cf=vK.w;vec3 tg=vec3(r.z,0.,-r.x);',
+  '  vec3 n=normalize(vec3(-r.x*.55,.50,-r.z*.55)-tg*k*.9);',
+  '  float ndl=dot(n,uSunDir),dif=clamp((ndl+.15)/1.15,0.,1.);',
+  '  vec2 nq=vec2(atan(rel.x,rel.z)*46.+lay*13.,vW.y*.012);float nz=fn2(nq);',
+  '  float sn=smoothstep(.30,.60,h01+(nz-.5)*.16);', /* la neige tient en haut */
+  '  vec3 rock=uIceT*vec3(.22,.36,.74)*(.90+.20*fn2(nq*2.7+4.));vec3 snow=vec3(.86,.91,1.);',
+  '  vec3 alb=mix(rock,snow,sn);',
+  '  vec3 col=alb*(uSky*(.42+.22*n.y)+uSunC*dif*.80+uFillC*.20);', /* la clé chaude de face… */
+  '  col=mix(col,col*vec3(.76,.86,1.22),(1.-dif)*.65);', /* …et l'ombre qui bascule au bleu-violet (jamais au gris) */
+  '  float sa=max(dot(r,normalize(vec3(uSunDir.x,0.,uSunDir.z)+vec3(1e-4))),0.);',
+  '  col+=alb*uAlpC*uAlp*(.25+.75*dif)*(.25+.75*smoothstep(.35,1.,h01))*1.1;', /* l'ALPENGLOW embrase les crêtes */
+  '  float rim=smoothstep(.80,1.,cf);',
+  '  col+=uSunC*vec3(1.,.80,.50)*rim*(.10+.40*pow(sa,3.))*(.35+.65*dif)*.85;', /* le liseré d'or de l'arête éclairée (le clin d'œil CASH) */
+  '  col+=alb*mix(uAurC,uAurC2,.35)*uAur*.24*(.25+.75*h01);', /* la nuit : la couleur de l'aurore sur la neige */
+  '  float hz=clamp(hzL+(.97-hzL)*pow(1.-h01,2.5),0.,max(.97,uHazeM));col=mix(col,hc,hz);',
+  '  gl_FragColor=vec4(col*.92,smoothstep(0.,.20,cf));}'].join('\n');
+function bkCretesMat(pl){const m=new THREE.ShaderMaterial({uniforms:Object.assign({uPl:{value:pl}},BK_U),vertexShader:BK_CRE_VS,fragmentShader:BK_CRE_FS,transparent:true,depthWrite:!pl,side:THREE.DoubleSide,fog:false});
+  m.dispose=function(){};return m;} // jamais libérées : un seul jeu pour toutes les banquises ; les deux gardent `transparent` : UN programme pour les deux
+/* LA GÉNÉRATION : une rangée = un bruit périodique en valeur, REDRESSÉ (1-|2n-1|)² (des pointes, pas des vagues), cinq octaves, trois massifs en bosse ; chaque facette (un segment de l'anneau)
+   a sa pente constante (aK.z) → éclairée à plat, comme les cristaux de la piste. Les plus hautes pointes des rangées lointaines portent un panache. */
+function bkCretesGen(fx){
+  const R=mulberry32((((BANQ.graine|0)^0xC4E7E5)>>>0)),LL=PAL_BK('banqCreteL',3),NS=PAL_BK('banqCreteN',320),PN=PAL_BK('banqPana',14);
+  const rangs=LL>=3?[0,1,2]:LL===2?[0,2]:[1],P=[],K=[],pics=[],TP=Math.PI*2;
+  const tri=(a,b,c)=>{P.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2]);K.push(a[3],a[4],a[5],a[6],b[3],b[4],b[5],b[6],c[3],c[4],c[5],c[6]);};
+  for(const j of rangs){
+    const Rr=BK_CRE_LAY[j][0],Hm=BK_CRE_LAY[j][1],FQ=[3,7,16,34,70],AM=[.30,.26,.22,.14,.08],tb=FQ.map(f=>{const a=[];for(let i=0;i<f;i++)a.push(R());return a;}),bump=[];
+    for(let b=0;b<3;b++)bump.push([R()*TP,.07+R()*.09,.55+R()*.45]);
+    const H=new Float32Array(NS+1);
+    for(let i=0;i<=NS;i++){const u=(i%NS)/NS;let h=0;
+      for(let o=0;o<5;o++){const f=FQ[o],x=u*f,fl=Math.floor(x),i0=fl%f,i1=(i0+1)%f,t=x-fl,s=t*t*(3-2*t),n=tb[o][i0]+(tb[o][i1]-tb[o][i0])*s,rr=1-Math.abs(2*n-1);h+=AM[o]*rr*rr;}
+      h=1-Math.exp(-h*2.2); /* un genou doux : des pointes distinctes, plus de plateau écrêté */
+      for(const b of bump){let d=Math.abs(u*TP-b[0]);if(d>Math.PI)d=TP-d;h=Math.max(h,b[2]*Math.exp(-(d/b[1])*(d/b[1])));}
+      H[i]=.10+.90*h;}
+    H[NS]=H[0];
+    const top=i=>BK_CRE_B+(Hm-BK_CRE_B)*H[i],h01=i=>top(i)-BK_CRE_B,hn=Hm-BK_CRE_B,xz=(i)=>{const a=(i%NS)/NS*TP;return [Math.sin(a)*Rr,Math.cos(a)*Rr];};
+    for(let i=0;i<NS;i++){const a=xz(i),b=xz(i+1),k=Math.max(-1,Math.min(1,(top(i+1)-top(i))/(Rr*TP/NS)*.55));
+      const A=[a[0],BK_CRE_B,a[1],j,0,k,0],B=[a[0],top(i),a[1],j,h01(i)/hn,k,1],C=[b[0],BK_CRE_B,b[1],j,0,k,0],D=[b[0],top(i+1),b[1],j,h01(i+1)/hn,k,1];
+      tri(A,B,C);tri(C,B,D);
+      if(j<2&&H[i]>.52&&H[i]>=H[(i+NS-1)%NS]&&H[i]>=H[i+1])pics.push([j,i,H[i],a[0],top(i),a[1]]);}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('aK',new THREE.Float32BufferAttribute(K,4));g.computeBoundingSphere();
+  if(fx.cre.geometry)fx.cre.geometry.dispose();fx.cre.geometry=g;
+  /* LES PANACHES : les plus hautes pointes, espacées d'au moins 0,22 rad, soufflées dans le sens du vent de la piste ; deux feuilles croisées (une verticale, une à plat) de sept éléments */
+  const wd=R()*TP,dwx=Math.sin(wd),dwz=Math.cos(wd),pxz=[Math.cos(wd),-Math.sin(wd)],PP=[],PK=[],M=7;pics.sort((a,b)=>b[2]-a[2]);const pris=[];
+  for(const p of pics){if(pris.length>=PN)break;const an=Math.atan2(p[3],p[5]);let ok=true;for(const q of pris){let d=Math.abs(an-q);if(d>Math.PI)d=TP-d;if(d<.22){ok=false;break;}}if(!ok)continue;pris.push(an);
+    const ph=R(),Lp=1100+R()*800,W0=130+R()*80,rr=.985,ax=p[3]*rr,ay=p[4],az=p[5]*rr,v=[];
+    for(let m=0;m<=M;m++){const t=m/M,W=W0*(.35+1.5*t),cx=ax+dwx*t*Lp,cy=ay+Lp*.12*Math.sin(t*2.2),cz=az+dwz*t*Lp;v.push([cx,cy,cz,W]);}
+    for(const sheet of [0,1])for(let m=0;m<M;m++){const q0=v[m],q1=v[m+1],t0=m/M,t1=(m+1)/M,off=(q,s)=>sheet?[q[0]+pxz[0]*q[3]*.5*s,q[1],q[2]+pxz[1]*q[3]*.5*s]:[q[0],q[1]+q[3]*.5*s,q[2]];
+      const a0=off(q0,-1),b0=off(q0,1),a1=off(q1,-1),b1=off(q1,1),V=(o,t,s)=>[o[0],o[1],o[2],p[0],t,s,ph];
+      const A=V(a0,t0,-1),B=V(b0,t0,1),C=V(a1,t1,-1),D=V(b1,t1,1);
+      for(const w of [A,B,C,C,B,D]){PP.push(w[0],w[1],w[2]);PK.push(w[3],w[4],w[5],w[6]);}}}
+  if(PP.length){const g2=new THREE.BufferGeometry();g2.setAttribute('position',new THREE.Float32BufferAttribute(PP,3));g2.setAttribute('aK',new THREE.Float32BufferAttribute(PK,4));g2.computeBoundingSphere();
+    if(!fx.pan){fx.pan=new THREE.Mesh(g2,fx.mPan);fx.pan.name='banquise panaches';fx.pan.frustumCulled=false;fx.pan.matrixAutoUpdate=false;fx.pan.renderOrder=-2.5;fx.pan.visible=false;scene.add(fx.pan);}
+    else{if(fx.pan.geometry)fx.pan.geometry.dispose();fx.pan.geometry=g2;}}
+  fx.cG=BANQ.graine|0;fx.cN={tri:P.length/9,pana:pris.length,panaTri:PP.length/9,rangs:rangs.length};}
+function bkCretes(fx){ // une fois, au premier tour de la banquise (banqFx) : les matières, le maillage de l'anneau, puis sa génération
+  if(!BK_EMB||fx.cre)return;
+  fx.mCre=bkCretesMat(0);fx.mPan=bkCretesMat(1);
+  fx.cre=new THREE.Mesh(new THREE.BufferGeometry(),fx.mCre);fx.cre.name='banquise crêtes lointaines';fx.cre.frustumCulled=false;fx.cre.matrixAutoUpdate=false;fx.cre.renderOrder=-3;fx.cre.visible=false;scene.add(fx.cre);
+  bkCretesGen(fx);}
+function bkCretesTick(fx){ // chaque image, dans banqTick : l'anneau suit la caméra (rien d'autre : tout le reste vit dans le shader)
+  if(!fx.cre)return;
+  if(fx.cG!==(BANQ.graine|0))bkCretesGen(fx); // une piste neuve : d'autres crêtes (un seul passage, < 1 ms)
+  const cp=camera.position;
+  for(const m of [fx.cre,fx.pan]){if(!m)continue;m.visible=true;m.position.copy(cp);m.updateMatrix();m.updateMatrixWorld(true);}}
+function bkCretesCache(fx){if(fx.cre)fx.cre.visible=false;if(fx.pan)fx.pan.visible=false;}
+function bkCretesChauffe(fx){return fx.cre?(fx.pan?[fx.cre,fx.pan]:[fx.cre]):[];}
 /* <<<GROTTE>>> */
 /* ======================= LES PROFONDEURS — LA MAP DES GROTTES (2026-10-18, Sacha : « fais une nouvelle map en mode dans les grottes, en mode
    Minecraft mais bien — mets-toi dans la peau d'un designer senior de jeu vidéo et fais un truc parfait ») =======================
