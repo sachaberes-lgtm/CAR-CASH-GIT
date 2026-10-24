@@ -384,6 +384,7 @@ function raisinHud(double,fr2){ // la 2e barre sous le chrono de vol
   if(double){const q=fr2.toFixed(2);if(raisinHud._q!==q){raisinHud._q=q;el.style.setProperty('--a2',q);}}
 }
 Object.assign(PWR_DEFS.a,{col:0xffffff,core:0xfff4e8,tint:'#ffd6f0',c2:'#d070d0',fx:'rgba(255,214,240,.8)',fx2:'rgba(208,112,208,.3)',msg:'🍇 RAISIN — AIRTIME ×2 : DEUX JAUGES !',sous:'AIRTIME x2, 2 JAUGES'});
+Object.assign(I18N,{'PIMENT — NITRO INFINIE 7 s À FOND !':'CHILI — INFINITE NITRO 7 s FLAT OUT!','POMME DORÉE — LES PIÈCES VIENNENT À TOI !':'GOLDEN APPLE — THE COINS COME TO YOU!','FRUIT DU DRAGON — AURA ×2 · ×3 SI TU ENCHAÎNES !':'DRAGON FRUIT — AURA ×2 · ×3 IF YOU CHAIN!','⚡ CITRON — VITESSE ×2 — 8 s !':'⚡ LEMON — SPEED ×2 — 8 s!','🍇 RAISIN — AIRTIME ×2 : DEUX JAUGES !':'🍇 GRAPES — AIRTIME ×2: TWO GAUGES!'}); /* (24/10) les messages des fruits-pouvoirs en anglais (showMsg les passe par TR) */
 {const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.a.bd=f9(PWR_DEFS.a.fx);PWR_DEFS.a.bd2=f9(PWR_DEFS.a.fx2);}
 /* banc (dev) : `dbgRaisin()` l'état de la double jauge ; `dbgRaisin('vide')` vide la jauge en cours (pour voir les ailes exploser / la 2e jauge démarrer). */
 window.dbgRaisin=function(k){if(k==='vide')fallTR=airMax()+.05;return {stage:RAI.stage,fallTR:+fallTR.toFixed(2),airMax:airMax(),pwrAirT:+pwrAirT.toFixed(2),mode:mode,ailes:!!(RAI.wings&&RAI.wings.visible)};};

@@ -40,7 +40,7 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
     else if(a==='q'){ SAVE.d.q=qSuivant(SAVE.d.q); SAVE.d.qChoisi=1; SAVE.flush(); applyQ9(SAVE.d.q==='fast'); dPanSync(); }
     else if(a==='surv'){ dClic(survBtnEl); dPanSync(); }
     else if(a==='resp'){ dPanOpen(false); if(started&&!gameOver&&mode==='drive')respawn(); }
-    else if(a==='reset'){ dPanOpen(false); if(started){resetGame();} }
+    else if(a==='reset'){ dPanOpen(false); if(started){ if(!gameOver&&mode==='boom')endGame(); else resetGame(); } } /* (2026-10-24) comme le mobile (12/10) : la caisse EXPLOSE déjà, la partie est finie — RECOMMENCER la solde (virement, aura, record, écran de fin) au lieu de la jeter */
     else if(a==='quit'){ dPanOpen(false); if(started&&!gameOver){ if(TUTO.on)tutoQuitte(); /* (2026-09-28) pas tutoFin(true) : QUITTER n'est pas PASSER */ const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb; } } // QUITTER pendant l'auto-école : on sort vraiment (sinon « RATÉ ! » et la caisse replacée)
   });
   // ⚠ NOM DÉDIÉ (`applyQ9`, pas `applyQ`) : `applyQ` est déclarée `const` À L'INTÉRIEUR du bloc
@@ -92,6 +92,7 @@ if('serviceWorker'in navigator&&!window.Capacitor&&(location.protocol==='http:'|
     var ie=window.__intro;if(ie==='attente')return true;if(ie==='joue')return false; // l'écran titre muet : oui · l'intro qui passe : non
     return Date.now()-touche>45e3;}
   function recharge(){
+    if(SAVE.neuf&&window.__intro!=='attente')return; /* (2026-10-24) SANS SAUVEGARDE SUR LE SITE (SAVE.neuf), recharger = repartir d'un compte VIDE : seulement à l'écran titre, jamais derrière le dos d'un joueur qui a commencé (la nouvelle version l'attend à sa prochaine ouverture) */
     try{var t=JSON.parse(sessionStorage.getItem('ccMaj')||'{}'),n=t.v===neuf?t.n|0:0;if(n>=2)return;sessionStorage.setItem('ccMaj',JSON.stringify({v:neuf,n:n+1}));}catch(_){return;}
     try{SAVE.flush();}catch(_){}
     try{window.top.location.reload();}catch(_){location.reload();}
