@@ -68992,7 +68992,7 @@ function garJouer(e){
      toucher ; un second toucher pendant l'attente est ignoré. */
   let att9=0;const bq9=gModeM()==='shop';
   if(GATL.on){gAtelier(false);att9=450;}
-  if(att9||bq9){try{gGarageReplie();}catch(x){}if(bq9)att9=650;garJouer._t=performance.now()+att9+200;}
+  if(att9||bq9){try{gGarageReplie();}catch(x){}if(bq9)att9=650;garJouer._t=performance.now()+att9+200;uiGarde(att9+200);} /* (24/10, relecture VÉRIFS-A : « HOME touché pendant l'attente, la course partait quand même ») TOUS les touchers sont ignorés pendant le lâcher, pas seulement un second JOUER : HOME ou BOUTIQUE y créaient un état mêlé (accueil affiché, puis la course partait) */
   const part=function(){
     if(!garageOn||GAR.go)return;
     if(SHOP.tab==='voiture'){if(!carUnlocked(garageI))garageShow(equippedCar());}
