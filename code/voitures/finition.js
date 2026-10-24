@@ -145,12 +145,12 @@ function fstuDirs(S){if(FSTU_DIR&&FSTU_DIR.S===S)return FSTU_DIR;
    MESURÉ (banc du portail, PC) : la construction d'un passage durait ~180 ms dont 94 % dans paintEnvCiel — les 6 faces × 128² du cube des reflets
    calculées PIXEL PAR PIXEL à chaque changement de ciel (et deux fois aux dunes) ; un téléphone y passe une seconde, image figée. Le calcul est
    devenu une fonction pure (envCielCalc) : le pré-bâti l'envoie à un TRAVAILLEUR pour le ciel de la map d'en face (envPrepare, depuis prebPart)
-   et le passage n'a plus qu'à recopier les octets (putImageData). Les ciels déjà vus restent en cache (ENVC, 12 au plus, ~0,4 Mo chacun). La clé
+   et le passage n'a plus qu'à recopier les octets (putImageData). Les ciels déjà vus restent en cache (ENVC, 32 au plus, ~0,4 Mo chacun : les 24 de la grotte y tiennent). La clé
    porte tout ce dont l'image dépend (dégradé, néons, halo, direction EXACTE du soleil) : même image au bit près. Sans travailleur : calculé ici,
    comme avant (et gardé). `?envav=0` = sans travailleur ni cache (avant) · `dbgEnvCiel()` = l'état. */
 const ENVC={on:!/[?&]envav=0\b/.test(location.search),cache:new Map(),att:new Map(),w:undefined,id:0,pris:0,calc:0,av:0,ms:0};
 function envCle(stops,s1,s2,sunHalo,sd){return JSON.stringify([stops,s1,s2,sunHalo,sd.x,sd.y,sd.z]);}
-function envGarde(cle,F){ENVC.cache.delete(cle);ENVC.cache.set(cle,F);while(ENVC.cache.size>12)ENVC.cache.delete(ENVC.cache.keys().next().value);} // (le plus récent en dernier)
+function envGarde(cle,F){ENVC.cache.delete(cle);ENVC.cache.set(cle,F);while(ENVC.cache.size>32)ENVC.cache.delete(ENVC.cache.keys().next().value);} // (le plus récent en dernier)
 function envOuvrier(){if(ENVC.w!==undefined)return ENVC.w;
   try{const src="'use strict';var FSTU_DIR=null;\n"+fstuDirs.toString()+"\n"+envCielCalc.toString()+"\nvar ECL="+JSON.stringify(FSTU_ECL)+";\n"+
       "onmessage=function(e){var m=e.data,a=m.a,F=envCielCalc(a[0],a[1],a[2],a[3],a[4],fstuDirs(128).T,ECL,128);postMessage({id:m.id,cle:m.cle,F:F},F.map(function(x){return x.buffer;}));};";
@@ -164,11 +164,11 @@ function envPrepare(B){ // (le pré-bâti) le ciel d'un biome à venir, calculé
   if(ENVC.cache.has(cle)||ENVC.att.has(cle))return;const W=envOuvrier();if(!W)return;
   const id=++ENVC.id;ENVC.att.set(cle,id);
   try{W.postMessage({id:id,cle:cle,a:[B.env,B.eS1,B.eS2,sh,{x:SUN_DIR.x,y:SUN_DIR.y,z:SUN_DIR.z}]});}catch(e){ENVC.att.delete(cle);}}
-window.dbgEnvCiel=function(){return {on:ENVC.on,cache:ENVC.cache.size,enVol:ENVC.att.size,prisEnCache:ENVC.pris,calculesIci:ENVC.calc,parLeTravailleur:ENVC.av,msDernierCalcul:ENVC.ms,travailleur:!!ENVC.w};};
+window.dbgEnvCiel=function(){return {on:ENVC.on,cache:ENVC.cache.size,enVol:ENVC.att.size,prisEnCache:ENVC.pris,calculesIci:ENVC.calc,parLeTravailleur:ENVC.av,msDernierCalcul:ENVC.ms,travailleur:!!ENVC.w,rates:ENVC.rates||[],cles:[...ENVC.cache.keys()].map(function(k){return k.slice(-120);})};};
 function paintEnvCiel(stops,s1,s2,sunHalo){FSTU.env='ciel2';FSTU.envB=null;FSTU.garage=false;FSTU.menuW=1;
   const S=128,cle=ENVC.on?envCle(stops,s1,s2,sunHalo,SUN_DIR):null;let F=cle&&ENVC.cache.get(cle);
   if(F){envGarde(cle,F);ENVC.pris++;}
-  else{const t9=performance.now();F=envCielCalc(stops,s1,s2,sunHalo,{x:SUN_DIR.x,y:SUN_DIR.y,z:SUN_DIR.z},fstuDirs(S).T,FSTU_ECL,S);ENVC.ms=Math.round(performance.now()-t9);ENVC.calc++;if(cle)envGarde(cle,F);}
+  else{if(cle){(ENVC.rates||(ENVC.rates=[])).push(cle.slice(-120));if(ENVC.rates.length>6)ENVC.rates.shift();}const t9=performance.now();F=envCielCalc(stops,s1,s2,sunHalo,{x:SUN_DIR.x,y:SUN_DIR.y,z:SUN_DIR.z},fstuDirs(S).T,FSTU_ECL,S);ENVC.ms=Math.round(performance.now()-t9);ENVC.calc++;if(cle)envGarde(cle,F);}
   envCvs.forEach(function(cv,f){if(cv.width!==S)cv.width=cv.height=S;const c=cv.getContext('2d'),im=c.createImageData(S,S);im.data.set(F[f]);c.putImageData(im,0,0);});
   envTex.needsUpdate=true;}
 function envCielCalc(stops,s1,s2,sunHalo,sd,T,ECL,S){ // (pure : ici ou dans le travailleur) les 6 faces du cube, en octets RGBA

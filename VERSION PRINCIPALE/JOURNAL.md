@@ -26,6 +26,15 @@
 - **LES PICS DU GLACIER À DISTANCE DE VUE** (v845, `buildBanqG`, `code/maps/glacier-construction.js`) : c'est la map qui pose ses obstacles SUR la route ; la 1re figure
   tombait à 560-680 m du départ quel que soit le palier — 1,2 à 2 s après le portail à 300-470 m/s, le voile compris. Elle part désormais à 3 s de croisière du palier au
   moins (`3 × (70 + (lvPiste() − 1) × 100)`, la croisière de conception de la piste) ; au palier de départ rien ne change (210 m < 560). Les tirages `fr` sont les mêmes.
+- **LA GROTTE SANS GEL D'UNE SALLE À L'AUTRE** (v847, `grotteTick`) : le profil d'une course dans la grotte montrait `grotteTick → bioGo → paintEnv` à 120-210 ms
+  par entrée de salle — EN PLEINE COURSE (chaque salle a son ciel `grt-<temps>-<salle>`, et la grotte change aussi de temps en route : 4 × 6 = 24 ciels). Ils partent
+  tous au travailleur dès le pré-bâti (`prebPart`) et, en filet, à la 1re image de chaque grotte (`GROTTE.envPret`) ; le cache passe à 32 ciels (~13 Mo).
+  MESURÉ (40 s de grotte, palier 6, 357 m/s de médiane, pointes à 526 m/s) : 0 tâche longue, 0 image > 50 ms, la pire 39,5 ms ; `dbgEnvCiel()` : 24 ciels livrés par
+  le travailleur, les entrées de salle prises au cache (`rates` = les clés manquées, pour le banc).
+- **CE QUI A ÉTÉ MESURÉ ET LAISSÉ** : le rendu de la scène (2-5 ms, 130-260 appels de dessin selon la map, PC) et la boucle (16,7 ms) tiennent ; la correspondance des
+  sélecteurs CSS ne pèse que ~0,1 ms par recalcul (les styles ≈ 2 % du processeur en médiane) ; les pauses du ramasse-miettes restent courtes hors trace (< 35 ms, rarement
+  70-140 ms — la trace les gonfle) ; le tas vivant (~230 Mo) est à 2/3 des tableaux de sommets gardés après leur envoi à la carte (142 Mo, 5 000 tableaux) ; la relecture
+  de la carte moteur (`engLit`, 46 ms) ne sert qu'à l'écran de fin. Le pré-bâti tient son budget sur PC (tranches médianes 2 ms, p99 12 ms ; la porte de Jade 35 ms).
 
 ## LA FIDÈLE EN COUCHES EMPILÉES (2026-10-23, v839, Léo : « traduis ce modèle dans le style de La Honte… push-la dans le main »)
 - **Méthode** : la vraie silhouette (sections du plan) taillée en briques et en couches plates dont la taille suit la forme — flancs galbés en facettes larges, toit et vitres en briques lisses, devant (aile, capot, museau) en couches fines à épaisseur et rythme irréguliers ; chaque détail est une PIÈCE posée, jamais un dessin dans la tôle.
