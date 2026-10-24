@@ -64,6 +64,7 @@ maps/foret-embellie.js               # forêt : la passe d'embellissement (lante
 maps/canyon-route.js                 # LE CANYON DES GÉANTS : route, construction, monde, pose
 maps/canyon-relief.js                # canyon : relief, monuments, voûte, lumière cuite
 maps/canyon-mine.js                  # canyon : la mine abandonnée, la route 66
+maps/canyon-embellie.js               # canyon : la poussière dorée (détail vivant, une instance)
 maps/dunes-1.js                      # LES DUNES D'OR : la route CONTINUE (vagues, tremplins de crête), le terrain prescrit, la construction
 maps/dunes-2.js                      # dunes : sable à la puce (rides façon Journey), matière des décors, hiéroglyphes, tremplins, sable qui vole
 maps/dunes-3.js                      # dunes : la boîte à outils des décors (loft, oriflammes), les modèles (pharaon assis, pyramides de Gizeh, obélisque, pylône, sphinx, felouque…)

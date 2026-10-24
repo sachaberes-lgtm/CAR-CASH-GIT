@@ -244,7 +244,8 @@ function canyonChauffe(){ // au menu (chauffeDivers) : la matière du relief com
      à couleurs ; mesas, voûtes, tunnels) : MESURÉ, à chaque 1re visite du canyon leurs 2 programmes naissaient EN COURSE (banc ×4, dbgProgs) —
      `.g` sur une géométrie qui porte des COULEURS (celle des arbres) : sans attribut `color`, la clé du programme diffère d'un détail (vertexAlphas) */
   const M9=cyMonuMats(),g9=new THREE.Group(),bx9=new THREE.BoxGeometry(1,1,1);g9.add(new THREE.Mesh(bx9,M9.a));g9.add(new THREE.Mesh(bx9,M9.b));g9.add(new THREE.Mesh(bx9,CY_RAI_M));{const a9=cyArbreGeo(),i9=new THREE.InstancedMesh(a9,M9.t,1);i9.setMatrixAt(0,new THREE.Matrix4());g9.add(i9);g9.add(new THREE.Mesh(a9,M9.g));if(TUN2_ON){const T9=cyT2Mats();g9.add(new THREE.Mesh(a9,T9.m));g9.add(new THREE.Mesh(bx9,T9.o));}} /* (2026-10-19) + LE TUNNEL DE GRÈS : la roche cuite sans brume et l'or des anneaux */const im9=new THREE.InstancedMesh(bx9,M9.i,1);im9.setMatrixAt(0,new THREE.Matrix4());g9.add(im9);g9.traverse(function(o){o.frustumCulled=false;});scene.add(g9);
-  try{chauffeRendu([m,g9]);}finally{m.visible=v;CY.geo.instanceCount=n;scene.remove(g9);bx9.dispose();}
+  const P9=cyPousPoints(),pv9=P9.visible;P9.visible=true; /* (2026-10-21) + la poussière dorée : son programme compilé au menu, lui aussi */
+  try{chauffeRendu([m,g9,P9]);}finally{m.visible=v;P9.visible=pv9;CY.geo.instanceCount=n;scene.remove(g9);bx9.dispose();}
   try{const C=skyDome.userData.ciel;if(C.cy){const sc=new THREE.Scene(),me=new THREE.Mesh(skyDome.geometry,C.cy),t=cielCible(8,8,true),cib=renderer.getRenderTarget();me.frustumCulled=false;sc.add(me);renderer.setRenderTarget(t);renderer.render(sc,camera);renderer.setRenderTarget(cib);t.dispose();}}catch(e){console.warn('canyonChauffe ciel',e);}}
 window.dbgCanyon=function(k,a,b,c){
   if(k==='test'){if(!CY.on)return 'pas de canyon';let dessus=0,dessous=0,pire=1e9,ou=[];const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
@@ -258,6 +259,7 @@ window.dbgCanyon=function(k,a,b,c){
       for(let u=.15;u<=.86;u+=.1){const x=F9.p.x+(bx-F9.p.x)*u,z=F9.p.z+(bz-F9.p.z)*u;pire=Math.max(pire,cyHauteur(x,z)-(F9.p.y+(by-F9.p.y)*u));}}return o.nm+':'+Math.round(pire);});
     return {bord:{p10:q(.1),med:q(.5),p90:q(.9),libres:D.filter(d=>d===999).length+'/'+D.length},garde:gar.join(' '),mine:CY.mineT?{de:Math.round(CY.mine[0]),a:Math.round(CY.mine[1])}:null,L:Math.round(L)};}
   if(k==='reprendre'){if(paused)togglePause();return 'ok';}
+  if(k==='frag'){if(!CY.mat)return 'pas de matière';if(typeof a==='string'){CY.mat.fragmentShader=a;CY.mat.needsUpdate=true;}return CY.mat.fragmentShader;} /* (banc) la matière du relief relue / remplacée à chaud */
   if(k==='raccourcis')return CY.rac||[];
   if(k==='vue'||k==='vueA'){if(!CY.on)return 'pas de canyon';if(started&&!gameOver&&!paused)togglePause();const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
     frameAt(Math.max(0,Math.min(L-1,(k==='vueA'?0:s)+(a||0))),F9); /* 'vueA' : à l'abscisse a de la piste (sinon a mètres devant la caisse) */const cap=(c||0)*Math.PI/180,dx=F9.t.x*Math.cos(cap)-F9.t.z*Math.sin(cap),dz=F9.t.z*Math.cos(cap)+F9.t.x*Math.sin(cap);
