@@ -78,6 +78,7 @@ maps/glacier-verglas.js              # glacier : verglas, retombée des tremplin
 maps/glacier-embelli.js              # glacier embelli : crêtes lointaines en trois plans, panaches de neige
 maps/grottes-1.js                    # LES PROFONDEURS : route, surface à facettes
 maps/grottes-2.js                    # grottes : décors, lumières, rendu, construction, ambiances
+maps/grottes-embellies.js            # grottes : les cristaux à teintes (rose, violet, azur, or) dans les parois
 maps/ville-v3.js                     # la ville v3 (canyon du village de la pluie), panneaux holographiques
 maps/cryptocity.js                   # CRYPTOCITY : plan, matières, réclames
 maps/cryptocity-taureau.js           # cryptocity : le taureau, objets du ciel
