@@ -84,7 +84,7 @@ function charge(){
       const cle=cles[i++],b64=B.d[cle];if(!b64)continue;
       enCours++;
       decode(c,b64,function(buf){enCours--;
-        if(buf){S.buf[cle]=buf;S.off[cle]=attaque(buf);S.nDec++;}
+        if(buf){S.buf[cle]=buf;S.off[cle]=(B.m[cle.split('#')[0]]||{}).pcm?Math.max(0,tete-.0015):attaque(buf);S.nDec++;} // (2026-10-16) un son rangé en WAV (`pcm:1`, cuire.js PCM=1) n'a pas le retard de l'encodeur MP3 : son attaque est à la tête exacte, pas sur l'étalon
         B.d[cle]=null; // le texte base64 n'est plus utile : la mémoire est rendue
         suivant();});
     }
