@@ -73,10 +73,10 @@ const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd
   'void main(){vec3 N=normalize(vN),Vv=uCam-vW;float dist=length(Vv);vec3 V=Vv/max(dist,.001);',
   '  float wat=vA.x,dep=vA.y,rk=clamp(vA.z,0.,1.),lit=clamp(vA.w,0.,1.),veg=vB.x,fo=vB.y,dk=clamp(vB.z,0.,1.),fl=vB.w,stp=clamp(1.-N.y,0.,1.);',
   '  float uw=dot(vW.xz,normalize(vec2(-N.z,N.x)+1e-4)),wl=smoothstep(.10,.30,stp);vec4 n0=texture2D(uNZ,vW.xz/2600.),n1=mix(texture2D(uNZ,vW.xz/170.),texture2D(uNZ,vec2(uw,vW.y)/170.),wl),n2=mix(texture2D(uNZ,vW.xz/31.),texture2D(uNZ,vec2(uw,vW.y)/31.),wl),nv=texture2D(uNZ,vec2(uw/140.,vW.y/70.));', /* sur une paroi le bruit se déroule le long du mur : plus de fenêtres étirées */
-  ...(CYD>=1?['  vec4 nf=texture2D(uNZ,vec2(uw/17.,vW.y/89.));float fx=wl*rk*(1.-smoothstep(140.,520.,dist));vec3 Tg=normalize(vec3(-N.z,0.,N.x)+vec3(1e-4,0.,1e-4));'+'']:[]),
+  ...(CYD>=1?['  float wX=abs(N.x)/(abs(N.x)+abs(N.z)+.001);vec4 nf=mix(texture2D(uNZ,vec2(vW.x/17.,vW.y/89.)),texture2D(uNZ,vec2(vW.z/17.,vW.y/89.)),wX);float fx=wl*rk*(1.-smoothstep(200.,700.,dist));vec3 Tg=normalize(vec3(-N.z,0.,N.x)+vec3(1e-4,0.,1e-4));'+'']:[]),
   /* LES STRATES : la colonne relue à la hauteur, gondolée par deux bruits (les couches ondulent et plongent doucement) */
   '  float sy=(vW.y+34.*(n0.r-.5)+4.*(n1.g-.5))/'+('3.7')+';vec4 st=texture2D(uSTR,vec2(.5,sy/1024.));'+('vec3 rc=st.rgb*st.rgb*(.95+.10*n1.b);rc=max(mix(vec3(dot(rc,vec3(.3,.55,.15))),rc,1.32),0.);'),
-  ...(CYD>=1?['  rc*=vec3(1.+.35*(n0.g-.5),1.,1.-.42*(n0.g-.5));rc*=1.+(nf.g-.5)*.55*fx;']:[]), /* la dérive de teinte au kilomètre (chaud ↔ froid) · les cannelures : des bandes verticales plus claires, plus sombres */
+  ...(CYD>=1?['  rc*=vec3(1.+.35*(n0.g-.5),1.,1.-.42*(n0.g-.5));rc*=1.+(nf.g-.5)*.62*fx;']:[]), /* la dérive de teinte au kilomètre (chaud ↔ froid) · les cannelures : des bandes verticales plus claires, plus sombres */
   ...(CYD>=2?['  rc*=1.-.30*(1.-smoothstep(0.,.03,abs(nf.b-.5)))*fx;']:[]), /* les fissures : de fines lignes sombres, verticales */
   '  float lb=fract(vW.y*.42+n1.b*.6);rc*=1.-'+('(.025+.035*st.a)*smoothstep(.65,1.,lb)')+'*rk;', // le litage des grès, horizontal
   '  float vr=smoothstep(.55,.82,nv.r)*smoothstep(.35,.8,stp)*rk;rc=mix(rc,rc*vec3(.74,.62,.60),vr*.28);', // le VERNIS du désert
@@ -88,7 +88,7 @@ const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd
   ...(CYD>=2?['  vec3 Nb=normalize(N+fx*((nf.g-.5)*1.4*Tg+(nf.r-.5)*.8*vec3(0.,1.,0.)));']:['  vec3 Nb=N;']), /* le relief fin : la normale tordue par les cannelures (la lumière rasante y accroche des arêtes) */
   '  float ndl=max(dot(Nb,uSunD),0.);',
   '  vec3 Lc=uSunC*ndl*lit+mix(uGnd,uSky,N.y*.5+.5)*(1.-.5*dk)+uBnc*(1.-.65*lit)*(.35+.65*dk)*(.55+.45*stp)+uFillC*max(dot(N,uFillD),0.)*.6+(uSunC*.10+uSky*.22+uBnc*.18)*(.55+.45*stp);', /* le plancher : l'ombre d'un désert reste claire (ciel + rebond), jamais noire */
-  '  Lc+=uSunC*vec3(1.,1.1,1.2)*(1.-smoothstep(.04,.5,uSunD.y))*pow(1.-smoothstep(.1,.9,dk),1.4)*(1.-lit)*(.4+.6*stp)*rk*.42;', /* LA LUEUR D'ALTITUDE : le soleil rasant n'atteint pas le fond, mais le HAUT des parois en garde la lueur (dorée, un peu rose) ; le bas reste dans le violet */
+  '  Lc+=uSunC*vec3(1.,1.1,1.2)*(1.-smoothstep(.04,.5,uSunD.y))*pow(1.-smoothstep(.1,.9,dk),1.4)*(1.-lit)*(.4+.6*stp)*rk*'+(CYD>=1?'.42':'.26')+';', /* LA LUEUR D'ALTITUDE : le soleil rasant n'atteint pas le fond, mais le HAUT des parois en garde la lueur (dorée, un peu rose) ; le bas reste dans le violet */
   '  if(dist<220.){float gr=texture2D(uNZ,vec2(uw,vW.y)/5.3).g*wl+texture2D(uNZ,vW.xz/5.3).g*(1.-wl);col*=1.+(gr-.5)*'+('.06')+'*(1.-smoothstep(90.,220.,dist));}',
   '  vec3 c=max(col*Lc,col*vec3(.36,.26,.25)*(.5+.5*lit)+col*uSky*.22);', /* jamais de noir franc : un grès à l'ombre reste brun */
   '  c*=mix(vec3(1.),vec3(.80,.70,1.04),(1.-lit)*.55*rk);', // l'ombre de la roche tire au VIOLET (la bible)
@@ -105,6 +105,7 @@ const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd
   '    c*=1.-.25*uWet*smoothstep(.55,.8,nv.g)*stp*rk;}', // et les coulées sombres de l'averse sur la pierre
       '  c+=uFlash*col*vec3(.70,.76,1.)*(.35+.65*max(N.y,0.));',
       '  if(uPhC.r+uPhC.g>.001){vec3 lv=vW-uPhP;float dl=length(lv);vec3 ld=lv/max(dl,.01);c+=col*uPhC*smoothstep(.80,.95,dot(ld,uPhD))*max(dot(N,-ld),0.)/(1.+dl*dl/9000.);}', // les PHARES sur la roche
+  '  c*=1.-.24*smoothstep(.45,.85,uSunD.y)*smoothstep(.55,1.3,max(c.r,max(c.g,c.b)));', /* le plein midi : les hautes lumières crème des parois sont rabattues vers l'ocre (le soleil bas, lui, n'est pas touché) */
   ...(CYD>=2?['  {float lo=smoothstep(700.,5200.,dist);c=mix(c,c*vec3(.80,.86,1.10)+uSkH*.07,lo*.38);}']:[]), /* trois plans : le proche chaud et contrasté, le lointain plus clair et plus froid, fondu dans la brume pêche */
   '  c=mix(c,uMist,uQ.x*(1.-smoothstep(fl+4.,fl+uQ.y,vW.y))*(.35+.65*smoothstep(0.,450.,dist)));',
   '  c+=uWet*(1.-wat)*mix(uSkH,uSkZ,.5)*pow(1.-max(dot(V,N),0.),4.)*.25;',
