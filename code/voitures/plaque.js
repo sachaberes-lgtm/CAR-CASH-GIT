@@ -295,7 +295,9 @@ function plqBranche(){const el=$p('plq');if(!el||el._b)return;el._b=1;
       else if(a==='hasard'){const ecrit=PLQ.kb||document.activeElement===tx;uiClic('onglet');hap(8);uiPop(b);PLQ.x=plqHasard();if(tx)tx.value=PLQ.x;plqVue();
         if(ecrit&&tx)try{tx.focus();tx.setSelectionRange(tx.value.length,tx.value.length);}catch(_){}}}; /* on écrivait : on continue d'écrire, au bout du texte tiré */
     b.addEventListener('click',go);b.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go(e);}});});
-  addEventListener('keydown',function(e){if(!PLQ.on)return;if(e.target===tx)return;if(e.code==='Escape'&&PLQ.mode!=='premier'){e.preventDefault();e.stopImmediatePropagation();plqFerme(false);}
+  addEventListener('keydown',function(e){if(!PLQ.on)return;if(e.target===tx)return;
+    if(e.code==='Enter'&&e.target&&e.target.closest&&e.target.closest('#plq [data-p],#plq .plMod'))return; /* (24/10, relecture : « Entrée sur RETOUR enregistrait la plaque ») un bouton atteint au clavier (Tab, iPad au clavier) fait SON geste — RETOUR annule, le dé tire, un modèle se choisit ; Entrée ailleurs valide toujours */
+    if(e.code==='Escape'&&PLQ.mode!=='premier'){e.preventDefault();e.stopImmediatePropagation();plqFerme(false);}
     else if(e.code==='Enter'){e.preventDefault();e.stopImmediatePropagation();plqFerme(true);}},true);
 }
 /* le clavier qui écrit sur la plaque ne conduit pas : la touche ne descend pas jusqu'au jeu (ESPACE = nitro, P = pause, I = inventaire…) —
