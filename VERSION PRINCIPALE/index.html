@@ -16055,7 +16055,10 @@ const FOR_LUEUR_FS=['varying vec2 vQ;varying vec4 vL;varying float vO;',
 function foretMats(){if(FORET.mats)return FORET.mats;const U=FOR_U,F=THREE.UniformsLib.fog;
   const sm=(vs,fs,o)=>{const m=new THREE.ShaderMaterial(Object.assign({uniforms:Object.assign(THREE.UniformsUtils.clone(F),U,o&&o.u||{}),vertexShader:vs,fragmentShader:fs,fog:true},o&&o.m||{}));m.dispose=function(){};return m;}; // jamais libérées : un seul jeu pour toutes les forêts
   const M={};
-  M.arb=sm(FOR_ARB_VS,FOR_ARB_FS,{u:{uFen:{value:0},uMini:{value:1},uCon:{value:1},uVit:{value:1},uVitL:{value:.95},uVitS:{value:.85},uVitG:{value:new THREE.Color(1,.86,.45)}}});
+  /* ===== LES ARBRES EN WEBGL 1 (24/10, relecture : « les shaders qui lisent fwidth sans l'extension des dérivées ») ===== FOR_ARB_FS lit fwidth (les
+     mini-cubes, le vitrail) : en WebGL 1 il faut GL_OES_standard_derivatives, sinon le programme ne compile pas — plus un arbre, ni géant, ni
+     chaumière, ni rocher, ni abeille. three ne pose la directive qu'en WebGL 1 (en WebGL 2 le programme est le même) ; comme M.pic du glacier. */
+  M.arb=sm(FOR_ARB_VS,FOR_ARB_FS,{u:{uFen:{value:0},uMini:{value:1},uCon:{value:1},uVit:{value:1},uVitL:{value:.95},uVitS:{value:.85},uVitG:{value:new THREE.Color(1,.86,.45)}},m:{extensions:{derivatives:true}}});
   M.sol=sm(FOR_SOL_VS,FOR_SOL_FS);
   M.eau=sm(FOR_EAU_VS,FOR_EAU_FS,{m:{transparent:true,depthWrite:false}});
   M.fleur=sm(FOR_FLEUR_VS,FOR_FLEUR_FS,{u:{uTex:{value:forFleursTex()}},m:{side:THREE.DoubleSide}});
