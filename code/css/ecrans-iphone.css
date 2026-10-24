@@ -35,9 +35,4 @@
   html:not(.c6):not(.ux8g) #gBqPan .bqK .bqKn{font-size:8px;line-height:10px;padding:5px 4px 0}
 }
 
-/* L'AUTO-ÉCOLE DEBOUT (SE, 15) : la carte du moniteur (`76px 1fr`) s'élargissait à la ligne la plus longue qui ne se coupe pas
-   (« ENCORE ! NITRO EN L'AIR », en nowrap) : 310 à 340 px de texte dans 230 — la consigne sortait de l'écran (« Sors de la route
-   par le b… ») et la note passait sous PASSER. La colonne du texte ne dépasse plus la carte : la consigne revient à la ligne,
-   la note s'arrête sur ses points de suspension (ce que son CSS prévoyait déjà). */
-html body #coach.v2{grid-template-columns:76px minmax(0,1fr)}
 </style>
