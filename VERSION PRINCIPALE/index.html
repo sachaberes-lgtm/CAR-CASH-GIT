@@ -73541,16 +73541,16 @@ function goImmersive(){
      `?pcintro=0` = tout l'ancien comportement. `window.dbgPciIntro` : les compteurs (lectures de taille, images dessinées / sautées, pas d'écran). */
   const PCI_ON=!/[?&]pcintro=0\b/.test(location.search),PCI_60=PCI_ON&&!/[?&]pci60=0\b/.test(location.search);
   const PCI_N={lectures:0,rendus:0,sautees:0,ecranMs:0,pas:1,prepares:0,prepEvitees:0};window.dbgPciIntro=PCI_N;
-  let pciSale=true,pciLu=-1e9,pciPrec=0,pciMin=99,pciNm=0,pciDer=-1e9;
+  let pciSale=true,pciLu=-1e9,pciPrec=0,pciMin=99,pciNm=0,pciDer=-1e9,pciCourts=0;
   if(PCI_ON){try{new ResizeObserver(function(){pciSale=true;}).observe(sp,{box:'border-box'});}catch(e){} addEventListener('resize',function(){pciSale=true;});}
   function pciTaille(now){ /* la taille du voile, relue seulement si elle a pu changer (sinon : celle qu'on a, donc « rien n'a changé ») */
     if(pciSale||!(now-pciLu<1000)){pciSale=false;pciLu=now;PCI_N.lectures++;return tailleEcran();}
     return[W,H];
   }
-  function pciSaute(now){ /* true = cette image d'écran garde le dessin de la précédente (écran > ~110 Hz : une sur deux) */
-    const d=now-pciPrec;pciPrec=now;if(d>1&&d<pciMin)pciMin=d;
-    if(++pciNm>=60){PCI_N.ecranMs=+pciMin.toFixed(2);PCI_N.pas=Math.max(1,Math.floor(1000/60/pciMin+.1));pciNm=0;pciMin=99;}
-    if(PCI_N.pas>1&&now-pciDer<(PCI_N.pas-.5)*PCI_N.ecranMs){PCI_N.sautees++;return true;}
+  function pciSaute(now){ /* true = cette image d'écran garde le dessin de la précédente (écran de ~110 Hz et plus, régulier : une sur deux, jamais moins ; 60, 75, 90, 100 Hz : rien ne change) */
+    const d=now-pciPrec;pciPrec=now;if(d>1&&d<9.4){pciCourts++;if(d<pciMin)pciMin=d;} /* un intervalle d'écran rapide (< 9,4 ms : plus de ~106 Hz) */
+    if(++pciNm>=60){PCI_N.pas=pciCourts>=40?2:1;PCI_N.ecranMs=pciCourts?+pciMin.toFixed(2):0;pciNm=0;pciMin=99;pciCourts=0;} /* les deux tiers des 60 derniers intervalles : l'écran est rapide ET la page respire (sous la charge, tout est dessiné comme avant) */
+    if(PCI_N.pas>1&&now-pciDer<1.5*PCI_N.ecranMs){PCI_N.sautees++;return true;}
     pciDer=now;PCI_N.rendus++;return false;
   }
   function mesure(){
