@@ -163,6 +163,7 @@ gameplay/impact.js                   # l'impact
 gameplay/mort.js                     # le plan de la mort, signatures d'explosion, morts par niveau
 gameplay/pluie-caisse.js             # la pluie qui éclabousse la caisse (gouttelettes sur le toit, le capot, le coffre)
 maps/jade-singes-dauphins.js         # singes et dauphins de Jade
+maps/jade-embellie.js                 # jade : les cristaux de jade (grappes peintes, case 8-9 de la planche des arbres) — passe d'embellissement du 21/10
 son/musique.js                       # système musical, mixage, gestionnaire
 son/musique-frenesie.js              # musique de la frénésie
 rendu/billets-devises.js             # billets, pluie de devises
