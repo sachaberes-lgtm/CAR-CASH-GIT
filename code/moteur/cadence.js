@@ -88,7 +88,7 @@ window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.for
 PAL.B.hors30=[1,1,0];
 const HC={on:false,der:0,off:/[?&]hc=0/.test(location.search)};
 function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran à jour) : rend true si cette image d'écran se saute
-  const hc=!HC.off&&PAL.b('hors30',0)&&!CAD.on&&(!started||garageOn)&&!document.hidden;
+  const hc=!HC.off&&(PAL.b('hors30',0)||PFR_ON)&&!CAD.on&&(!started||garageOn)&&!document.hidden;
   if(!hc){HC.on=false;return false;}
   if(HC.on&&now-HC.der<CAD.per-CAD.tol)return true;
   HC.on=true;HC.der=now;return false;}

@@ -3,6 +3,35 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE TÉLÉPHONE AU FRAIS (2026-10-24, v885, session PERF-PC — Sacha : « trouve un moyen de ne plus le faire chauffer » ; à la question du menu à 30 i/s : « oui, 30 i/s hors course »)
+- **POURQUOI** : sa partie enregistrée sur l'iPhone 13 Pro (enregistreur `?perfrec`, 164 s, ville > espace > nuages > banquise) : 30-40 i/s dès la 1re minute, 17-22 à la fin, qualité au
+  cran 9, densité 1,25 ; la session OPTIMISATION MOBILE mesure le bridage thermique (~×2 au bout de 3-4 min). Tout ce que le téléphone calcule pour rien hors course le chauffe pour la
+  partie suivante.
+- **LE CORRECTIF** (`PFR_ON`, `code/rendu/nettete-qualite.js` ; VRAI téléphone seulement — TEL_NATIF —, tous paliers ; l'ordi ne change pas ; `?frais=0` = avant) :
+  - l'ACCUEIL, le GARAGE et la BOUTIQUE à 30 i/s (le `hors30` des vieux paliers — HC, `code/moteur/cadence.js`, appelé en tête de loop par `boucle-1.js`) ;
+  - l'ÉCRAN DE FIN à la résolution de la course (`PCM_ON` étendu au téléphone : la vitrine HD ne s'allume plus sous le voile à 90 % ni à chaque mort/REJOUER) ;
+  - la SCÈNE DERRIÈRE L'ÉCRAN DE FIN une image sur deux au moins (`mortImg`). La COURSE n'est pas touchée (la cadence 30 « si chaud » en course est le chantier de la session téléphone).
+  Accord de la session OPTIMISATION MOBILE pour ses tables (vhdMort, mortImg) ; aucune table PAL ni QL modifiée.
+- **VÉRIFIÉ** (Chrome sans fenêtre, iPhone couché émulé 844 × 390 × 3) : accueil 60 → 30 images dessinées par seconde ; course 60 (inchangée) ; écran de fin toile 1740 × 804 + ombre 2048 →
+  1266 × 585 + 1024, carte graphique 10,6 → 2,3 ms par image ; aucune erreur. La température sur le vrai iPhone : mesure de la session téléphone (CC BANC).
+
+## LES TUILES DE VERRE SANS FLOU (2026-10-24 soir, Léo : « ça serait mieux de faire quoi pour que ça rame pas, en gardant l'idée » · « sans flou, voile givré (n°2) »)
+- **LA CAUSE** : les tuiles GARAGE · BUY · SETTINGS portaient `backdrop-filter:blur(5px) saturate() brightness()` — le navigateur doit relire l'image de la 3D qui tourne derrière chaque tuile à chaque image ; la charte de l'interface l'interdit sur mobile (« zéro backdrop-filter », `body.touch #overlay` le remet à `none`). Mesure impossible ici (rendu logiciel plafonné à 30 i/s, avec et sans flou identiques) : le gain est à confirmer sur un vrai iPhone (`?banc=1`).
+- **LE CORRECTIF** (bloc `tuilesVerre` de `code/css/boutons-flottants.css`) : plus de `backdrop-filter` ; la dernière couche du fond passe de `rgba(255,255,255,.06)` à `linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.08))` (le « voile givré »). Reflets, double liseré, lueur de couleur, bleu / rouge / or : inchangés. Vu : sur ciel dégagé, la différence avec le flou ne se voit pas ; seul un nuage qui passe pile derrière n'est plus adouci.
+- Si ça rame encore : le menu rend la 3D à pleine densité d'écran (`VHD`, voir « L'ACCUEIL EN HAUTE DÉFINITION »), c'est le plus gros poste du menu.
+
+## LE 1er LANCEMENT — LA BANQUE DE SONS EN DEUX MOITIÉS (2026-10-24, session PERF, 4e tour — Léo : « lance tout ce qui semble stratégique »)
+- **MESURÉ sur le vrai site** (iPhone simulé, processeur ×4, cache froid, `?garde=1`, banc `tlance.py`) : le 1er lancement télécharge 8,4 Mo (`sons-banque.js` 4,9 Mo, la page 1,7, un ciel 0,9) ;
+  le menu jouable arrive à 18,5 s en 4G rapide (10 Mbit/s : le processeur domine) mais à **57 s en 4G lente (1,6 Mbit/s)** — 28 s sans la banque : elle est un script `defer`, la page attend sa fin.
+- **LE CHANGEMENT** : à la publication seulement (`outils/scinde-banque.cjs`, appelé par `vercel-build.sh` ; le fichier du dépôt reste ENTIER : cuire.js le relit, `sons.html` et la salle
+  blanche le chargent tel quel) la banque devient `sons-banque.js` (les fiches + les sons `pre:1` + l'étalon : 110 fiches, 0,82 Mo) et `sons-banque-2.js` (288 fiches, 6,9 Mo, ~4,3 Mo transférés).
+  `sfx.js` (?v=7) charge le 2e fichier APRÈS l'événement load, au repos (`suite`, 3 essais), et ses sons entrent dans la même file de décodage (`CCSON.ajoute`) ; un son pas encore là : `play()` se tait,
+  comme avant pour un son pas encore décodé. La preuve est faite à chaque publication : l'union des deux fichiers relue = la banque d'origine, octet pour octet (sinon la banque part entière).
+  Le fichier de la copie publiée garde son URL (`?v=38`) : un joueur qui a déjà la banque entière en cache ne retélécharge rien.
+- **VÉRIFIÉ** : copie réellement construite par `vercel-build.sh` (allégée, scindée) servie en local : 397 sons sur 397 décodés en 21 s à 10 Mbit/s ; menu au même instant (19 s) ; en 1,6 Mbit/s
+  (copie non allégée, locale) menu **107 → 74 s**, les 109 sons du début décodés avant le menu, 397/397 à 120 s (la banque entière : 109 s). Sur le vrai site, la 4G lente devrait passer de ~57 s à ~30 s.
+- ⚠ Une publication sans la scission (ou en cas d'échec de l'outil) marche comme avant ; `?` rien à régler. Une banque recuite (`cuire.js`) change `?v=` comme toujours.
+
 ## LE HUD QUI NE RAME PLUS SUR L'IPHONE + L'ENREGISTREUR DE PARTIES (2026-10-24, v876, session PERF-PC — Sacha : « sur la version mobile l'HUD prend trop de capacité, règle ça » · « lors des tests la voiture reste conduite sur le sol alors qu'une grosse partie du jeu se joue en voltigeant dans les airs ; fais un mode où c'est moi qui joue en voltigeant et toi tu récupères de la data »)
 - **LE DIAGNOSTIC** (session OPTIMISATION MOBILE, iPhone 13 Pro de Sacha DANS L'APP, banc CC BANC, palier RÉCENT, 35 s de course) : course normale 58,0 i/s et 63 images > 25 ms ;
   TOUTES les animations CSS figées 59,7 i/s et 9 ; HUD masqué pareil ; le JS par image identique (2 ms) → c'est WebKit qui refait style + peinture à chaque image pour les

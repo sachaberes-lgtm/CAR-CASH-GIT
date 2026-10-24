@@ -174,7 +174,8 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     const N9=yield* normales9(P9,I9);yield* pisteTranches({position:[P9,3],normal:[N9,3],uv:[UV9,2]},{blocs:2,pr:2,np:NP,pas:1},mat,{ombre:true});
   };
   // faces roulables : COLS colonnes de vertex → stries longitudinales + micro-grain étiré
-  const COLS=11;
+  /* (2026-10-24, allègement mobile) LE NOMBRE DE COLONNES DE LA ROUTE par palier : MESURÉ (zone d'entraînement, iPhone 7 émulé) la route pèse 360 000 triangles sur 1,08 M, dessus ET dessous à 11 colonnes. ANCIEN 5 · MOYEN 7 · RÉCENT 11 (l'image d'avant, au triangle près). La physique ne lit pas ces colonnes (elle lit `pts`) ; seul le grain en travers de la route s'élargit. `?routecols=n` : un autre réglage (essai). */
+  PAL.B.routeCols=[5,7,11];const COLS=Math.max(3,Math.min(11,+((/[?&]routecols=(\d+)/.exec(location.search)||[])[1])||PAL.b('routeCols',11)));
   /* LA TEINTE D'UNE CASE (grain DIVISÉ par 2, même luminosité moyenne : le premier plan se calme, l œil reste sur la route et le ciel) :
      laneShade[c9]+nz(c9*131.7+(i>>5)*7.77)*.05+nz(c9*53.1+(i>>1)*3.3)*.05+nz(i*7.71+c9*13.7)*.03-.08, × dim (=1 : les DEUX faces à pleine
      lumière, même texture dessus et dessous). (2026-09-28, chasse aux gels) Elle ne dépend QUE de (i, c9), jamais de la piste : MESURÉ, ses
