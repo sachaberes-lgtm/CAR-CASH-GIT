@@ -65151,7 +65151,16 @@ const SHOP_LBL={voiture:'CAISSE',peinture:'PEINTURE',aile:'AILES',trainee:'TRAÎ
    au centre : au-dessus de la caisse) dans une petite toile posée au fond de HOME. Au garage, HOME montre donc le ciel tel qu'on l'a
    quitté — jour, couchant ou nuit — et il vit d'un lent travelling (CSS). Avant la 1re prise, le ciel peint en CSS reste en secours.
    La copie se fait DANS la même image que le rendu (après, le tampon WebGL peut être vidé). */
+/* ===== LE CIEL DU HOME SANS RELECTURE BLOQUANTE (2026-10-24, passe perf PC : « getImageData 325 ms au menu, 204 ms à l'écran de fin ») =====
+   La vignette est une toile PROCESSEUR (willReadFrequently) : y dessiner l'image WebGL obligeait Chrome à rapatrier TOUTE l'image (~2 600 × 1 200
+   au palier 2 sur le Mac, 12 Mo) en attendant que la carte graphique ait fini l'image — un à-coup toutes les 3 s, compté dans getImageData (le
+   dessin n'est exécuté qu'à la lecture). Désormais createImageBitmap DÉCOUPE le morceau utile sur la carte graphique (calé sur une grille de 8 px,
+   8 px de marge : le lissage lit les mêmes voisins qu'avant), et c'est à l'image SUIVANTE, la carte ayant fini, qu'on le rapatrie (~0,5 Mo) et qu'on
+   le pose par le MÊME drawImage dans la même toile processeur (mêmes pixels, même lissage), puis qu'on mesure la luminosité (homeCielLum, inchangée).
+   Une image de retard sur un ciel qui change en minutes. Vrai téléphone (TEL_NATIF) : l'ancienne prise, rien ne change. ?pclect=0 : l'ancienne prise. */
+const PCL_ON=!TEL_NATIF&&(function(){try{return new URLSearchParams(location.search).get('pclect')!=='0';}catch(e){return true;}})();
 function homeCielPrise(now){
+  if(PCL_ON&&homeCielPrise._bm){pclCielPose();return;} /* (2026-10-24, passe perf PC) la découpe lancée à l'image d'avant : voir pclCielPrend */
   const ciel=(garageOn&&!!gEl&&gEl.classList.contains('menu'))||(!garageOn&&((!started||gameOver)||MENUV.retour)); // l'ACCUEIL : le garage en mode « menu » (le ciel), ou l'ancien menu hors garage
   if(!ciel||(typeof stallOn!=='undefined'&&stallOn))return;
   if(now-(homeCielPrise._t||0)<3000)return; // toutes les 3 s : le ciel change lentement, et relire l'image WebGL coûte un peu sur iPhone
@@ -65160,12 +65169,25 @@ function homeCielPrise(now){
   if(!cv){const b=document.getElementById('gHomeBas');if(!b)return;cv=homeCielPrise._cv=document.createElement('canvas');cv.className='gHomeCielCv';cv.width=160;cv.height=210;cv.setAttribute('aria-hidden','true');b.insertBefore(cv,b.firstChild);}
   const src=renderer.domElement,W=src.width,H=src.height;if(!(W>8&&H>8))return;
   const a=cv.width/cv.height;let sh=H*.34,sw=sh*a;if(sw>W){sw=W;sh=W/a;}
-  const cx=cv.getContext('2d',{willReadFrequently:true});cx.drawImage(src,(W-sw)/2,0,sw,sh,0,0,cv.width,cv.height);cv.classList.add('on');
+  const cx=cv.getContext('2d',{willReadFrequently:true});if(PCL_ON&&pclCielPrend(src,W,H,sw,sh))return;cx.drawImage(src,(W-sw)/2,0,sw,sh,0,0,cv.width,cv.height);cv.classList.add('on');
   /* LES BOUTONS SUIVENT LE CIEL (2026-10-11, Léo : « change la colorimétrie des boutons selon que c'est la nuit : tous un peu plus sombres et
      sobres — et vice versa ») : la luminosité moyenne de la vignette (un pixel sur 16) dit le moment — NUIT sous ,22 (html.cielNuit : boutons
      plus sombres et sobres), JOUR au-dessus de ,38 (html.cielJour : un cran plus clairs et vifs), entre les deux (couchant) : tels quels. */
+  homeCielLum(cx,cv);}
+function homeCielLum(cx,cv){ /* (2026-10-24, passe perf PC) la mesure, sortie telle quelle de homeCielPrise : pclCielPose s'en sert aussi */
   try{const d=cx.getImageData(0,0,cv.width,cv.height).data;let l=0,n=0;for(let i=0;i<d.length;i+=64){l+=.2126*d[i]+.7152*d[i+1]+.0722*d[i+2];n++;}l=l/n/255;
     const h=document.documentElement;h.classList.toggle('cielNuit',l<.22);h.classList.toggle('cielJour',l>.38);homeCielPrise._l=+l.toFixed(3);}catch(e){}}
+function pclCielPrend(src,W,H,sw,sh){ /* lance la découpe sur la carte graphique ; faux = prendre à l'ancienne (pas de createImageBitmap, ou un échec déjà vu) */
+  if(typeof createImageBitmap!=='function'||homeCielPrise._ko)return false;
+  if(homeCielPrise._en)return true; /* une découpe déjà en route */
+  const sx=(W-sw)/2,x0=Math.max(0,Math.floor((sx-8)/8)*8),x1=Math.min(W,Math.ceil(sx+sw)+8),y1=Math.min(H,Math.ceil(sh)+8);
+  try{homeCielPrise._en=1;createImageBitmap(src,x0,0,x1-x0,y1).then(function(b){homeCielPrise._en=0;homeCielPrise._bm={b:b,ox:sx-x0,sw:sw,sh:sh};},function(){homeCielPrise._en=0;homeCielPrise._ko=1;homeCielPrise._t=0;});}
+  catch(e){homeCielPrise._en=0;homeCielPrise._ko=1;return false;}
+  return true;}
+function pclCielPose(){ /* l'image d'après : la découpe est arrivée, la carte graphique a fini — on la rapatrie et on la pose comme avant */
+  const o=homeCielPrise._bm,cv=homeCielPrise._cv;homeCielPrise._bm=null;
+  if(cv){const cx=cv.getContext('2d',{willReadFrequently:true});cx.drawImage(o.b,o.ox,0,o.sw,o.sh,0,0,cv.width,cv.height);cv.classList.add('on');homeCielLum(cx,cv);}
+  try{o.b.close();}catch(e){}}
 /* LA CAISSE SE TOURNE VERS CE QU'ON REGARDE (2026-10-11, Léo : « quand on appuie sur TRAÎNÉES et PEINTURE, au lieu de faire TP de position,
    la voiture se tourne pour montrer les différentes features — TRAÎNÉES : la vue de l'arrière ») : l'onglet ne POSE plus l'angle d'un coup
    (garageAng=3.5), il le fait TOURNER en ~0,9 s par le plus court chemin (garTourneVers, joué dans garageRender, prioritaire sur la rotation
