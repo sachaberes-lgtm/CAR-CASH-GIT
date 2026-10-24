@@ -37,7 +37,9 @@ const RETIRES=new Set(['ui.pop','ui.compteFin','fig.goutte','nuages.ambiance','u
   'monde.fin','panne.gresille','rival.devant','rival.passe','radar','trafic.accroche','abri','pad.neon',
   /* (18/10, 2e passe de l'allègement, sur l'ensemble assemblé) plus AUCUN appelant vivant : fig.gap, dosdane, debris.esquive (tremplins, plots, débris), banq.bris,
      flaque.sec, portail.ouvre, foudre.touche, aura.moyenne, ui.carnet ; mort.feu et mort.foudre (aucune mort n'a la cause 'feu' ni 'sat') */
-  'fig.gap','dosdane','debris.esquive','banq.bris','flaque.sec','portail.ouvre','foudre.touche','aura.moyenne','ui.carnet','mort.feu','mort.foudre']);
+  'fig.gap','dosdane','debris.esquive','banq.bris','flaque.sec','portail.ouvre','foudre.touche','aura.moyenne','ui.carnet','mort.feu','mort.foudre',
+  /* (2026-10-24, allègement son) la map volcan est supprimée du code (16e39c15) : plus aucun appelant */
+  'volcan.eruption','volcan.gronde','volcan.geyser','volcan.lave','volcan.amb']);
 if(PCM&&!filtre){console.log('PCM=1 exige un filtre (node cuire.js <son>) : toute la banque en WAV passerait de 6 à ~40 Mo.');process.exit(1);}
 const TMP=fs.mkdtempSync(path.join(os.tmpdir(),'ccson-'));
 const WAVDIR=process.env.WAV?path.join(ICI,'_wav'):null;if(WAVDIR)fs.mkdirSync(WAVDIR,{recursive:true});
