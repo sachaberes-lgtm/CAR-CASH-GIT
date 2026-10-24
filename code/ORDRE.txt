@@ -29,11 +29,13 @@ css/final-spin.css                   # finalSpin (la machine à sous de fin)
 css/ux8.css                          # ux8 (menus, partie, mouvement), clarté de la boutique, pub récompense, cadeau, HUD allégé
 css/accueil-boutique.css             # accueilDoigt, bqFigHex, policeUnique
 css/missions.css                     # missionsV2 (l'écran des missions)
+css/pause-v2.css                      # pauseV2 (l'écran de pause refait : tuiles, partie en carte)
 css/garage-jouer.css                 # uiRevue, jouerGarage, garShop
 page/ecrans-garage.html              # HTML : accueil, garage, atelier, inventaire, voile du départ, compteur, dark triad, niveaux
 css/plaque.css                       # <style id="plaque"> (plaque d'immatriculation)
 css/boutons-flottants.css           # <style id="boutonsFlottants"> : ⚙ · œil · trophée flottants en haut à droite, BOUTIQUE en L (touche entrée)
 css/palier-leger.css                 # <style id="palierLeger"> : le CSS par palier (balayages décoratifs de l'atelier figés sur ANCIEN/MOYEN), réglages sans flou sur tactile
+css/ecrans-iphone.css                # <style id="ecransIphone"> : les écrans sur tous les iPhone (pause couchée, fin du SE, HOME, noms des caisses)
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
 page/bibliotheques.html              # <script src> : three.js, figures, sons, post-traitement — et l'ouverture du <script> du jeu
 interface/icones-fenetre.js          # ouverture du jeu (function, 'use strict'), icônes pixel, la fenêtre du jeu
@@ -48,6 +50,7 @@ maps/nuages-v8.js                    # nuages v8 : une seule matière, sculpteur
 maps/nuages-vitrail.js               # nuages en vitrail (Léo)
 maps/nuages-casses.js                # nuages qui se dégagent : trouées par marches de cubes, blocs qui se cassent en petits (Léo)
 maps/pigeons.js                      # pigeons ramiers, pigeons de Paris
+maps/nuages-embellie.js              # nuages : l'embellissement (poussières de lumière, oiseaux lointains, éclats rose et or)
 gameplay/route-sans-haut.js          # la route sans haut ni bas, vitesse réelle
 maps/ville-entree.js                 # l'entrée dans la ville
 rendu/bitume-beton.js                # bitume v2, béton brut, lumières de la caisse v2, bitume mouillé, bords en béton
@@ -57,6 +60,7 @@ moteur/depart-avance.js              # le départ d'avance
 maps/foret-route.js                  # LA FORÊT NOIRE : la pelote (route), les mini-cubes
 maps/foret-decor.js                  # forêt : les géants, les fleurs, les matières, le relief
 maps/foret-construction.js           # forêt : construction, boucle, console
+maps/foret-embellie.js               # forêt : la passe d'embellissement (lanternes de conte, réglages FOR_EMB)
 maps/canyon-route.js                 # LE CANYON DES GÉANTS : route, construction, monde, pose
 maps/canyon-relief.js                # canyon : relief, monuments, voûte, lumière cuite
 maps/canyon-mine.js                  # canyon : la mine abandonnée, la route 66
@@ -69,9 +73,6 @@ maps/dunes-4.js                      # dunes : les scènes le long de la route (
 maps/glacier-route.js                # LA BANQUISE / LE GLACIER v4 : route, manteau de neige
 maps/glacier-construction.js         # glacier : construction, volant en l'air
 maps/glacier-verglas.js              # glacier : verglas, retombée des tremplins, console
-maps/volcan-route.js                 # LE ROYAUME DE FEU : routes v4 et v5, bruit du relief
-maps/volcan-actes.js                 # LE VOLCAN EN ACTES : la route en temps forts (faille, crête, lac, raccourci) et ses orages de cendre
-maps/volcan-construction.js          # volcan : construction, console
 maps/grottes-1.js                    # LES PROFONDEURS : route, surface à facettes
 maps/grottes-2.js                    # grottes : décors, lumières, rendu, construction, ambiances
 maps/ville-v3.js                     # la ville v3 (canyon du village de la pluie), panneaux holographiques

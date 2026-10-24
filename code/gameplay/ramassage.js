@@ -114,10 +114,10 @@ function pickupsTick(dt){
       // CAPACITÉ MOTEUR (V12 atmosphérique) : L'AIMANT À PIÈCES — elles viennent à toi de bien plus
       // loin, et plus vite. Sans lui, on garde l'attraction d'origine, discrète.
       if(ds9<15+mag*2&&Math.abs(p.lat-side*lat)<9+mag*2) // (2026-09-26) plus de `level` ici : c'est l'index de la caisse (66), l'aimant faisait 33 m sur les dernières // portée LATÉRALE de l'aimant à pièces (route large)
-        p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(6+mag*1.5)));
+        p.mesh.position.lerp(carGroup.position,lisse60(6+mag*1.5,dt));
     }
     if(p.hk>0){ // ACCROCHÉ : il file sur la caisse — l'écart fond d'au moins (1−f) par image, quoi que fasse la caisse
-      const f9=Math.min(1,dt*(RAM_K+RAM_A*p.hk)),P9=p.mesh.position;p.hk+=dt;
+      const f9=lisse60(RAM_K+RAM_A*p.hk,dt),P9=p.mesh.position;p.hk+=dt;
       P9.lerp(carGroup.position,f9);if(MAG9&&!p.nitro&&!p.pow)magSpirale(p,P9.distanceTo(carGroup.position),dt); // (pomme dorée) la pièce accrochée en vol tourne aussi
       const d9=P9.distanceTo(carGroup.position),dM=p.hkD*(1-f9);
       if(d9>dM&&d9>1e-6)P9.lerp(carGroup.position,1-dM/d9); // la caisse le distance : il est tiré sur la ligne qui les relie

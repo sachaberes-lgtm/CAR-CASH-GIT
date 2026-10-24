@@ -58,13 +58,13 @@ const SF_HORS={vitree:VILLE_VERRE_V&&!/[?&]vitree=1\b/.test(location.search)}; /
 {const q9=/[?&]carte=(\w+)/.exec(location.search)||(/[?&]niveau=crypto\b/.test(location.search)?[0,'crypto']:null),m9=/[?&]meteo=(\w+)/.exec(location.search),t9=/[?&]teinte=(\w+)/.exec(location.search);if(q9||m9)SF.force={carte:q9?q9[1]:null,meteo:m9?m9[1]:null,teinte:t9?t9[1]:null};} // (2026-10-16) + `?teinte=` (la ville : violet, vert, jaune, bleu)
 const SF_NIV={nuages:NIVEAUX.find(function(n){return n.id==='nuages';}),orage:NIVEAUX.find(function(n){return n.id==='orage';}),
   ville:NIVEAUX.find(function(n){return n.id==='ville'&&!n.nuit;}),minuit:NIVEAUX.find(function(n){return n.id==='ville'&&n.nuit;}),
-  espace:NIVEAUX.find(function(n){return n.id==='espace';}),jade:NIV_JADE,foret:NIV_FORET,canyon:NIV_CANYON,dunes:NIV_DUNES,volcan:NIV_VOLCAN,grotte:NIV_GROTTE,banquise:NIV_BANQ,crypto:NIV_CRYPTO,vitree:NIV_VITRE};
+  espace:NIVEAUX.find(function(n){return n.id==='espace';}),jade:NIV_JADE,foret:NIV_FORET,canyon:NIV_CANYON,dunes:NIV_DUNES,grotte:NIV_GROTTE,banquise:NIV_BANQ,crypto:NIV_CRYPTO,vitree:NIV_VITRE};
 const SF_METEOS={matin:'MATIN',midi:'MIDI',soir:'SOIR',nuit:'NUIT',pluie:'PLUIE',orage:'ORAGE',neige:'NEIGE',blizzard:'BLIZZARD',brouillard:'BROUILLARD'}; // (2026-10-16) BROUILLARD : le temps de la ville // (2026-10-14) NEIGE et BLIZZARD : les temps de LA BANQUISE
 Object.assign(I18N,{'BROUILLARD':'FOG'}); // (2026-10-16) la météo de la ville, dite au portail
 // une MAP = son niveau de base + ses météos permises (`bio` : l'ambiance, `niv` : un niveau du jeu repris tel quel, `p` : le poids au tirage, 1 par défaut)
-/* (2026-10-14, LA BIBLE CAR CASH, passe graphismes · banquise2 / volcan2) LA BANQUISE ET LE ROYAUME DE FEU avaient déjà leurs ciels saturés à horizon chaud : il leur
+/* (2026-10-14, LA BIBLE CAR CASH, passe graphismes · banquise2) LA BANQUISE avait déjà son ciel saturé à horizon chaud : il leur
    manquait les invariants communs — le contre-jour ROSE sur les caisses (ici) et la signature de route rose + or (routeSig). */
-for(const [f9,ks9] of [['banquise',['banqMatin','banqMidi','banqSoir','banqNuit','banqNeige','banqBlizzard']],['volcan',['volcanMatin','volcanMidi','volcanSoir','volcanNuit','volcanCendre','volcanOrage']]])
+for(const [f9,ks9] of [['banquise',['banqMatin','banqMidi','banqSoir','banqNuit','banqNeige','banqBlizzard']]])
   for(const k of ks9)if(BIOMES[k])Object.assign(BIOMES[k],{kickC:[1,.38,.66],kickI:Math.max(BIOMES[k].kickI||0,.16)});
 {if(BIOMES.banqMatin)BIOMES.banqMatin.sat=1.08;if(BIOMES.banqMidi)BIOMES.banqMidi.sat=1.08;if(BIOMES.banqSoir)BIOMES.banqSoir.sat=1.12;} // (bible · banquise2) saturation effective : jour 1,25 → 1,31, soir 1,28 → 1,35 (neige et blizzard gardent leur retenue)
 const SF_CARTES={
@@ -83,11 +83,6 @@ const SF_CARTES={
      éclairs. La promesse est la même à toute heure : le RACCOURCI (genBanq : les lacets superposés). Voir « LE GLACIER » au JOURNAL. L'id reste 'banquise'. */
   banquise:{nm:'LE GLACIER',base:'banquise',m:{matin:{bio:'banqMatin'},midi:{bio:'banqMidi'},soir:{bio:'banqSoir'},nuit:{bio:'banqNuit',nuit:1},
     neige:{bio:'banqNeige'},blizzard:{bio:'banqBlizzard',p:.6}}},
-  /* (2026-10-14, Sacha) LE ROYAUME DE FEU : ses six temps — l'aube rose, le midi soufré, le SOIR rouge sang (un peu plus souvent : c'est la carte
-     postale), la NUIT de lave, la PLUIE DE CENDRES (pas une goutte d'eau : de la cendre, `pluie` reste à 0), l'ORAGE VOLCANIQUE (les éclairs
-     d'orageTick dans le panache). `mt` : le nom de la météo dit au portail. Voir « LE ROYAUME DE FEU » (genVolcan, buildVolcan, VLC_MET). */
-  volcan:{nm:'LE ROYAUME DE FEU',base:'volcan',m:{matin:{bio:'volcanMatin'},midi:{bio:'volcanMidi'},soir:{bio:'volcanSoir',p:1.4},nuit:{bio:'volcanNuit',nuit:1,pr:'LA LAVE EST LA SEULE LUMIERE'},
-    pluie:{bio:'volcanCendre',mt:'CENDRES',sheen:.1,pr:'PLUIE DE CENDRES'},orage:{bio:'volcanOrage',orage:1,mt:'ORAGE VOLCANIQUE',pr:'ORAGE VOLCANIQUE'}}},
   /* (2026-10-15, Sacha : « un nouveau décor pour le générateur aléatoire de map : CRYPTO CITY, une ville imaginaire, de grands immeubles qui
      reflètent — vitrés, dorés, argentés, métalliques, blancs ; hyper moderne, le futur ; explosif : la période BULL RUN, l'apogée de la ville,
      pendant la montée fulgurante du Bitcoin ; pleine de références à la token culture, à l'argent et à la tech »). La CRYPTOCITY de Léo (13/10,

@@ -226,7 +226,12 @@ const skyDome=(function(){
       '    vec3 L=G+smoothstep(3000.,7000.,t)*vec3(.05,.03,.015)*(.25+.75*qu);',           // au loin (au-delà de 7 km) : la lueur MOYENNE, pas de moiré — les fines sont dans villeFin
       '    bas=F*(1.+.28*smoothstep(-.05,-.6,y)*nuit)+L*exp(-t/2300.)*(1.+.6*lv)*nuit;}', // la brume s éclaire par en dessous
       '    else bas=F*(1.+.28*smoothstep(-.05,-.6,y)*nuit);}',
-      '  return mix(bas,haut,smoothstep(-.03,.03,y));}',
+      /* (2026-10-24, Sacha : « le ciel déconne, il n'y a pas de fondu, c'est moche ») HORIZON SANS COUPURE : hors pluie, le ciel du dessus (corail, bleu
+         nuit) basculait en 3° sur la brume du dessous — une ligne franche, la couleur de l'air n'étant pas celle du sol. Maintenant la brume REMONTE
+         dans le ciel (≈ 12°, courbe douce, 60 % au ras de l'horizon) : le dégradé du ciel s'y noie, comme le brouillard noie les tours 3D ; la jonction
+         s'élargit à ±3°. Sous la pluie (uPluie = 1) le plafond est déjà fondu dans la brume : rien ne change. */
+      '  haut=mix(haut,F,(1.-smoothstep(0.,.21,y))*(1.-uPluie)*.6);',
+      '  return mix(bas,haut,smoothstep(-.05,.045,y));}',
       'void villeFin(inout vec3 c,vec3 d){',
       '  float y=d.y;vec3 F=uFogCol;',
       '  float nuit=clamp(1.5-dot(F,vec3(.3,.59,.11))*4.,0.,1.),lv=uLvl*(.35+uPulse*.5+uBeatK*.6);',
@@ -993,7 +998,6 @@ const skyDome=(function(){
 })();
 let FOG_N=420,FOG_F=2600; // near/far pilotés par les BIOMES (le lerp cloudInS les relit chaque frame)
 const FOG_BASE=new THREE.Color(0x5e3254),FOG_CLOUD=new THREE.Color(0xd8bcd0),fogTmp=new THREE.Color(); // FOG_BASE : l'objet reste const, les biomes mutent son RGB
-let FUMEE_K=0,FUMEE_F=250;const FOG_FUMEE=new THREE.Color(.24,.06,.07); // (2026-10-14) LE ROYAUME DE FEU : les BANCS DE FUMÉE — volcanTick pose FUMEE_K (0 hors du volcan), updateClouds referme la brume
 const FOG_CJ=new THREE.Color(0xc06a54),cjV=new THREE.Vector3(); // CONTRE-JOUR : l'air s'embrase quand on roule vers le soleil (la seule zone lumineuse)
 scene.fog=new THREE.Fog(0x5e3254,FOG_N,FOG_F); // brume MAGENTA sombre : la route lointaine fond dans le rose de la nuit qui tombe
 const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.1,9800);

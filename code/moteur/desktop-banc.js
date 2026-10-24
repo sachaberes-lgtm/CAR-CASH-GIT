@@ -214,6 +214,75 @@ if(BANC_ON)(function(){
     bouton('COPIER',k=>copier(txt,k));
   })();
 })();
+/* ====================== LE CONTOUR D'ENCRE SANS FILTRE — `?contour=v2` (2026-10-17, perf-devtools ; Sacha : « prépare le contour d'encre sans filtre derrière un paramètre d'adresse, avec une planche avant/après pour que je valide ») ======================
+   MESURÉ (Chrome DevTools, iPhone couché émulé, palier 2) : à grande vitesse le HUD tombe à 27-52 i/s, 60 sans les `filter` CSS — les contours
+   d'encre (`--contourH`/`--contourP` : 5 drop-shadow enchaînés + un halo) sont refiltrés à chaque chiffre qui change. Sur l'iPhone (session iPhone,
+   16/10, économie d'énergie) : sans eux, les images ratées ÷2 et les gros à-coups ÷3,5. ICI, LE MÊME DESSIN SANS FILTRE, à l'essai (rien ne change sans) :
+   · on LIT les règles du jeu (CSSOM) : chaque règle dont le `filter` est une chaîne d'encre (drop-shadow nets d'une même couleur, puis des halos
+     flous) reçoit sa JUMELLE — même sélecteur préfixé `html.contourV2 … [data-ct]`, même ordre, même écart de spécificité : les états (feu,
+     record, couleurs par palier, `var(--xc)`…) restent ceux d'avant. Une règle de filtre d'un autre genre est recopiée telle quelle et efface la copie ;
+   · l'encre = toutes les sommes des décalages (des drop-shadow ENCHAÎNÉS : chacun ombre aussi les précédents ; pour --contourH x ∈ {−2,0,2} ×
+     y ∈ {−2,0,2,4,6}) en `text-shadow` sur une COPIE du texte (`::before`, derrière, z-index −1) ; le dégradé du chiffre est REDESSINÉ par-dessus
+     (`::after`, `background:inherit` + `background-clip:text`) : l'encre reste sous le dégradé même quand l'élément fait son propre plan (animé) ;
+     un halo (flou d'après l'encre) = quatre text-shadow aux coins de l'encre, à 55 % (le plus proche mesuré au pixel, planche du 17/10) ;
+   · le texte de la copie : l'attribut `data-ct`, tenu à jour par un MutationObserver posé sur les seuls éléments convertis ;
+   · ne sont convertis que les éléments VUS EN COURSE (body.play), sans enfant élément, sans ::before/::after à eux, et dont le fond ne se voit
+     pas hors du texte (le drop-shadow d'origine ombrait aussi la boîte) : le reste garde son filtre (icônes masquées, logo, plaques) ;
+   · `--contourH`/`--contourP` neutralisés (brightness(1)) sur les éléments convertis : les PULSATIONS animées (hmFeu, hmChronoRec, fx3Bat)
+     gardent leur halo et leur éclat, l'encre vient de la copie.
+   À chaud : la classe `contourV2` sur <html> (le banc iPhone la bascule toutes les 5 s ; la 1re fois, les jumelles se fabriquent) ;
+   `dbgContour(1|0)` la pose / l'ôte et dit l'état. */
+const CONTOUR2=(function(){
+  const C={pret:false,st:null,regles:[],sels:[],tag:new WeakSet(),refus:new WeakSet(),n:0,refuses:0,mo:null,iv:0};
+  const decoupe=s=>{const L=[];let d=0,a=0;for(let i=0;i<s.length;i++){const c=s[i];if(c==='('||c==='[')d++;else if(c===')'||c===']')d--;else if(c===','&&!d){L.push(s.slice(a,i).trim());a=i+1;}}L.push(s.slice(a).trim());return L.filter(Boolean);};
+  const prefixe=s=>/^html(?![\w-])/.test(s)?'html.contourV2'+s.slice(4):/^:root(?![\w-])/.test(s)?':root.contourV2'+s.slice(5):'.contourV2 '+s; // toujours UNE classe de plus (+ [data-ct]) : l'écart de spécificité entre deux règles reste celui d'avant
+  const jetons=s=>{const L=[];let d=0,a=0;s=s.trim();for(let i=0;i<=s.length;i++){const c=s[i];if(c==='(')d++;else if(c===')')d--;if((i===s.length||/\s/.test(c))&&!d){if(i>a)L.push(s.slice(a,i));a=i+1;}}return L;};
+  // une valeur de `filter` DÉCLARÉE (var() comprises) → {encre, ombres}, ou null : pas une chaîne d'encre, on n'y touche pas
+  const chaine=(f,V)=>{f=f.replace(/var\(\s*(--contour[HP])\s*\)/g,(m,v)=>V[v]||m);if(/var\(\s*--contour/.test(f))return null;
+    const fn=jetons(f);if(!fn.length)return null;let encre=null,S=[[0,0]];const halos=[];
+    for(const t of fn){const m=/^drop-shadow\((.*)\)$/.exec(t);if(!m)return null;const n=[],col=[];
+      for(const x of jetons(m[1])){if(/^-?(\d*\.)?\d+(px)?$/.test(x))n.push(parseFloat(x));else if(/^-?(\d*\.)?\d+[a-z%]+$/i.test(x))return null;else col.push(x);}
+      if(n.length<2||col.length!==1)return null;const dx=n[0],dy=n[1],b=n[2]||0,c=col[0];
+      if(!b){if(halos.length)return null;if(encre===null)encre=c;else if(c!==encre)return null;
+        const N=S.slice();for(const p of S){const x=p[0]+dx,y=p[1]+dy;if(!N.some(r=>r[0]===x&&r[1]===y))N.push([x,y]);}S=N;}
+      else halos.push([dx,dy,b,c]);}
+    if(encre===null)return null;
+    const o=[];for(const p of S)if(p[0]||p[1])o.push(p[0]+'px '+p[1]+'px 0 '+encre);
+    const xs=S.map(p=>p[0]),ys=S.map(p=>p[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+    for(const h of halos){const c='color-mix(in srgb,'+h[3]+' 55%,transparent)';for(const p of [[x0,y0],[x1,y0],[x0,y1],[x1,y1]])o.push((p[0]+h[0])+'px '+(p[1]+h[1])+'px '+h[2]+'px '+c);}
+    return {encre,ombres:o.join(',')};};
+  const genere=()=>{const cs=getComputedStyle(document.documentElement),V={'--contourH':cs.getPropertyValue('--contourH').trim(),'--contourP':cs.getPropertyValue('--contourP').trim()};
+    const out=['html.contourV2 [data-ct]{--contourH:brightness(1);--contourP:brightness(1)}html.contourV2 [data-ct][data-ctp]{position:relative}'],sels=[];
+    const R='content:attr(data-ct);position:absolute;inset:0;padding:inherit;margin:0;pointer-events:none;filter:none;';
+    const regle=(r,cond)=>{const f=r.style.getPropertyValue('filter');if(!f||/::?(before|after)\b/.test(r.selectorText))return;
+      const imp=r.style.getPropertyPriority('filter')?'!important':'',k=chaine(f,V),L=decoupe(r.selectorText).map(s=>prefixe(s)+'[data-ct]');
+      const av=L.map(s=>s+'::before').join(','),ap=L.map(s=>s+'[data-ctg]::after').join(',');let t;
+      if(k){sels.push(r.selectorText);t=L.join(',')+'{filter:none'+imp+'}'+av+'{'+R+'z-index:-1;background:none;color:'+k.encre+';-webkit-text-fill-color:'+k.encre+';text-shadow:'+k.ombres+'}'+
+        ap+'{'+R+'background:inherit;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;text-shadow:none}';}
+      else t=L.join(',')+'{filter:'+f+imp+'}'+av+','+ap+'{content:none'+imp+'}'; // un filtre d'un autre genre qui l'emporte : il reste, et la copie s'efface avec l'encre
+      out.push(cond?cond+'{'+t+'}':t);};
+    const parcours=(L,cond)=>{for(const r of L){if(r instanceof CSSStyleRule)regle(r,cond);else if(r instanceof CSSMediaRule)parcours(r.cssRules,'@media '+r.conditionText);
+      else if(typeof CSSSupportsRule!=='undefined'&&r instanceof CSSSupportsRule)parcours(r.cssRules,'@supports '+r.conditionText);}};
+    for(const sh of document.styleSheets){let L=null;try{L=sh.cssRules;}catch(e){}if(L)parcours(L,'');}
+    C.sels=sels;C.regles=out;C.st=document.createElement('style');C.st.id='contourV2';C.st.textContent=out.join('\n');document.head.appendChild(C.st);};
+  const elig=el=>{if(el.children.length)return null;const pris=p=>{const c=getComputedStyle(el,p).content;return c&&c!=='none'&&c!=='normal';};if(pris('::before')||pris('::after'))return null;
+    const cs=getComputedStyle(el),deg=(cs.webkitBackgroundClip||cs.backgroundClip)==='text';
+    if(!deg&&(cs.backgroundImage!=='none'||!/^(transparent|rgba\(0, 0, 0, 0\))$/.test(cs.backgroundColor)||parseFloat(cs.borderTopWidth)||parseFloat(cs.borderBottomWidth)||cs.boxShadow!=='none'))return null;
+    return {deg,stat:cs.position==='static'};};
+  const scan=()=>{if(!document.body||!document.body.classList.contains('play'))return;
+    for(const s of C.sels){let L;try{L=document.querySelectorAll(s);}catch(e){continue;}
+      for(const el of L){if(C.tag.has(el)||C.refus.has(el))continue;const r=el.getBoundingClientRect();if(r.width<1||r.height<1)continue; // pas encore vu : on repassera
+        const e=elig(el);if(!e){C.refus.add(el);C.refuses++;continue;}
+        C.tag.add(el);C.n++;if(e.deg)el.dataset.ctg='';if(e.stat)el.dataset.ctp='';el.dataset.ct=el.textContent;C.mo.observe(el,{characterData:true,childList:true,subtree:true});}}};
+  const suit=L=>{for(const m of L){let e=m.target.nodeType===1?m.target:m.target.parentNode;while(e&&e.nodeType===1&&!C.tag.has(e))e=e.parentNode;if(!e||e.nodeType!==1)continue;
+    if(e.children.length){C.tag.delete(e);C.refus.add(e);delete e.dataset.ct;delete e.dataset.ctg;delete e.dataset.ctp;continue;} // un enfant élément est né dedans : il reprend son filtre
+    const t=e.textContent;if(e.dataset.ct!==t)e.dataset.ct=t;}};
+  const prepare=()=>{if(C.pret)return;C.pret=true;C.mo=new MutationObserver(suit);genere();scan();C.iv=setInterval(scan,1000);};
+  C.allume=on=>{on=!!on;if(on)prepare();document.documentElement.classList.toggle('contourV2',on);return on;};
+  new MutationObserver(()=>{if(!C.pret&&document.documentElement.classList.contains('contourV2'))prepare();}).observe(document.documentElement,{attributes:true,attributeFilter:['class']}); // la classe posée de dehors (le banc iPhone) suffit
+  if(/[?&]contour=v2\b/.test(location.search))C.allume(true);
+  return C;})();
+window.dbgContour=function(on){if(on!=null)CONTOUR2.allume(on);return {on:document.documentElement.classList.contains('contourV2'),regles:CONTOUR2.regles.length,selecteurs:CONTOUR2.sels.length,convertis:CONTOUR2.n,refuses:CONTOUR2.refuses};}; // (2026-10-17) le contour d'encre sans filtre — voir CONTOUR2
 window.__gameReady=true; // la boucle part : le chien de garde du mouchard se tait
 try{plqDemarre();}catch(e){console.warn('plaque',e);} // (2026-10-17) LA PLAQUE : ses écrans, l'horloge du compte, et l'atelier au premier accueil (voir PLQ)
 try{bienvGuette();}catch(e){} // (2026-10-16) LA QUESTION DE BIENVENUE guette l'accueil (voir bienvMontre)

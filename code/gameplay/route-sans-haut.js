@@ -63,7 +63,7 @@ const DUREE=(function(){const m=/[?&]duree=([^&]*)/.exec(location.search),v=m?de
    à fond elle ne fait plus que vPalier (DUREE_ELAN, du palier 0 au palier t1). Puis l'ALLURE de chaque map, relative à la ville : la glace
    du glacier, les virages de course des nuages, les boucles du volcan et du canyon la ralentissent. */
 const DUREE_ELAN=[1.8,1];
-const DUREE_ALLURE={nuages:.65,ville:1,crypto:1.15,vitree:.85,espace:1.2,jade:.85,foret:.93,banquise:.7,volcan:.9,canyon:.7,grotte:.85,dunes:.75}; // (volcan .9 : la balade et la spirale de vlcTrace3 roulent plus vite que les boucles d'avant — mesuré 34 s pour 45 à .7)
+const DUREE_ALLURE={nuages:.65,ville:1,crypto:1.15,vitree:.85,espace:1.2,jade:.85,foret:.93,banquise:.7,canyon:.7,grotte:.85,dunes:.75}; // (volcan .9 : la balade et la spirale de vlcTrace3 roulent plus vite que les boucles d'avant — mesuré 34 s pour 45 à .7)
 const DUREE_V={banquise:function(t){return 100+3*t;}}; // (m/s) les maps dont la vitesse ne suit PAS le moteur — sur la glace du glacier, MESURÉ : ~113 m/s au palier 0, 150-195 au palier 20-23 (l'adhérence et la pente la tiennent)
 function dureeCible(){ // (s) la durée visée pour la map qu'on bâtit (LVL.cur : la map d'en face pendant le pré-bâti) — 0 hors du JOUER
   if(!DUREE||PARK.on||!LVL.cur||!LVL.cur.sansFin||!LVL.cur.carte)return 0;

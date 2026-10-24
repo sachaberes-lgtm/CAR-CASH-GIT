@@ -95,3 +95,19 @@ html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#
 @keyframes dkPanier{0%,100%{translate:0 0}50%{translate:0 -2px}}
 @media (prefers-reduced-motion:reduce){html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct>#gShopBas#gShopBas::after,html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct>#gShopBas#gShopBas .pxi{animation:none!important}}
 </style>
+<style id="verreLoupe">
+/* ===== LA LUEUR DE L'ANGLE DE LA BOUTIQUE (2026-10-24, Léo : « petite lueur vers l'angle extérieur, et sur les deux axes ») =====
+   La BOUTIQUE en L de Sacha (#gShopBas, touche rose du bas) n'est pas touchée : une lueur rose sur son ANGLE EXTÉRIEUR (le coin haut droit du
+   coude) ET le long des DEUX bords qui s'y rejoignent — le bord du haut (le bras) et le bord de droite (le bras puis la jambe) — qui
+   s'éteint en s'éloignant du coin. Dedans (le clip-path du L coupe tout ce qui déborde) ; elle respire doucement. */
+html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gShopBas#gShopBas::before{
+  content:'';display:block!important;position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:
+    radial-gradient(circle at 100% 0,rgba(255,226,248,.95) 0,rgba(255,79,195,.6) 13%,rgba(255,79,195,0) 36%),
+    linear-gradient(270deg,rgba(255,196,238,.98) 0,rgba(255,79,195,0) 60%) 0 0/100% 3px no-repeat,
+    linear-gradient(180deg,rgba(255,196,238,.98) 0,rgba(255,79,195,0) 74%) 100% 0/3px 100% no-repeat;
+  animation:lueurAngle 3.2s ease-in-out infinite}
+@keyframes lueurAngle{0%,100%{opacity:.72}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){html body #garage#garage #gAct>#gShopBas#gShopBas::before{animation:none}}
+html[data-reduced-motion="1"] body #garage#garage #gAct>#gShopBas#gShopBas::before{animation:none!important}
+</style>

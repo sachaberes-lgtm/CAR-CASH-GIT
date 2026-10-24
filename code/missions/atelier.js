@@ -114,7 +114,8 @@ $('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)r
    il n'y a pas de « suivant »). Le temps de VOIR son choix sur la caisse : la bascule du plateau d'abord (~1 s pour une caisse), puis un
    battement ; un habillage, ,55 s. Un onglet touché à la main, une autre vignette, la console quittée : l'enchaînement s'annule de lui-même.
    uiGarde : la bande change sous le doigt, un second toucher trop vite équiperait la peinture qu'on n'a pas encore vue. */
-function gInvSuite(cat){clearTimeout(gInvSuite.t);gInvSuite.t=0;if(gModeM()!=='inv')return;const k=SHOP_CATS.indexOf(cat);if(k<0||k>=SHOP_CATS.length-1)return;
+const INV_ENCHAINE=false; // (2026-10-24, Léo : « dans l'inventaire on doit pouvoir sélectionner ET RESTER dans la même catégorie ») l'enchaînement VOITURES → PEINTURE → AILES… est coupé ; true = il revient
+function gInvSuite(cat){clearTimeout(gInvSuite.t);gInvSuite.t=0;if(!INV_ENCHAINE||gModeM()!=='inv')return;const k=SHOP_CATS.indexOf(cat);if(k<0||k>=SHOP_CATS.length-1)return;
   let n=0,vu=0;const va=function(){gInvSuite.t=0;if(!garageOn||GAR.go||gModeM()!=='inv'||SHOP.tab!==cat)return;
     if(GAR.sw){vu=1;if(++n<40)gInvSuite.t=setTimeout(va,100);return;} // la caisse finit de se poser sur le plateau
     if(vu===1){vu=2;gInvSuite.t=setTimeout(va,220);return;}

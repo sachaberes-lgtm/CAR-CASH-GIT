@@ -118,7 +118,7 @@ window.dbgAtelier=function(a,x,z){
   const B=atlBoutonEcran();return {inventaire:!!INV.on,bras:+ATL.k.toFixed(2),construit:+ATL.cons.toFixed(2),cat:ATL.cat,bouton:B?[Math.round(B.x),Math.round(B.y),Math.round(B.r)]:null};
 };
 document.querySelectorAll('#gInv .ivTab').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();const c=b.getAttribute('data-c');if(!INV.on||c===INV.cat)return;
-  uiPop(b);uiClic('onglet');INV.cat=c;if(c==='trainee')garageAng=3.5; /* comme la console : on regarde ce qui SORT des tuyères */
+  uiPop(b);uiClic('onglet');INV.cat=c;if(GAR_TAB_ANG[c]!=null)garTourneVers(GAR_TAB_ANG[c]); /* comme la console : la caisse TOURNE vers ce qu'on habille (TRAÎNÉES : les tuyères) — (2026-10-24, Léo) elle sautait aux traînées et ne bougeait pas pour le reste */
   const g=$('ivGrille');if(g)g.scrollTop=0;invRender();});});
 $('ivGrille').addEventListener('click',function(e){const t=e.target.closest('.ivT');if(!t)return;e.stopPropagation();invEquipe(+t.getAttribute('data-i'),t);});
 $('ivFerme').addEventListener('click',function(e){e.stopPropagation();uiPop(e.currentTarget);uiClic('retour');invFerme();});
