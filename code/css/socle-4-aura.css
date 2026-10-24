@@ -138,6 +138,25 @@
   #avRec.battu s{background:linear-gradient(90deg,#ffd75e,#fff6cf,#ffd75e);background-size:200% 100%;animation:recFile 1s linear infinite}
   @keyframes recBattu{50%{color:#fff}}
   @keyframes recFile{to{background-position:-200% 0}}
+  /* ===== LE RECORD « ENCORE UNE » ET « BATTU » EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») =====
+     iPhone 13 Pro mesuré : 58,0 i/s et 63 images > 25 ms en course, 59,7 i/s et 9 images avec les animations figées — WebKit refait style +
+     peinture à chaque image pour une animation infinie de box-shadow / background-position. Ici :
+     · recPresque (le halo de la jauge qui bat) : l'ombre d'arrivée est posée FIXE sur `#avRec i::after`, seule son OPACITÉ suit la même courbe
+       (.45s ease-in-out alterné). Le liseré 1 px : 0,3 + 0,7·t d'alpha, comme l'interpolé ; le halo de 10 px fond au lieu de grandir (écart :
+       le flou à mi-course, quelques pixels de faible écart autour de la jauge). Le calque passe sur le plein `s` : même couleur (--recOr) ;
+     · recFile (le reflet qui file, record battu) : le dégradé est peint sur `#avRec s::before`, large de 400 % (deux tuiles
+       de 2 W), et TRANSLATÉ de −50 % à 0 dans `s` qui coupe : décalage 2 W·t, le même que background-position −200 % (image exacte).
+     `?hudanim=0` rend l'ancien jeu (classe html.han absente). */
+  html.han #avRec.presque i{position:relative}
+  html.han #avRec.presque i::after{content:"";position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;opacity:0;will-change:opacity;
+    box-shadow:inset 0 0 0 1px var(--recOr),0 0 10px var(--recOr);animation:hanRecPresque .45s ease-in-out infinite alternate}
+  html.han #avRec.presque i{animation:none}
+  @keyframes hanRecPresque{to{opacity:1}}
+  html.han #avRec.battu s{position:relative;overflow:hidden;animation:none}
+  html.han #avRec.battu s::before{content:"";position:absolute;left:0;top:0;bottom:0;width:400%;pointer-events:none;will-change:transform;
+    background:linear-gradient(90deg,#ffd75e,#fff6cf,#ffd75e);background-size:50% 100%;animation:hanRecFile 1s linear infinite}
+  @keyframes hanRecFile{from{transform:translateX(-50%)}to{transform:none}}
+  @media (prefers-reduced-motion:reduce){html.han #avRec.presque i::after,html.han #avRec.battu s::before{animation:none!important}}
   /* R4 — LA CHAÎNE : elle s'ENVOLE dans le compteur quand elle s'encaisse, elle se BRISE quand on la perd */
   body #avCh{margin-top:14px}
   body #avCh .avBar{width:160px}
