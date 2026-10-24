@@ -3,6 +3,24 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA FRÉNÉSIE A ENFIN SA MUSIQUE : THE DARK TRIAD (2026-10-24 soir, v893 — le 404 de `dark-triad.mp3`, vu deux fois à chaque chargement au banc du 21/10)
+- **LE CONSTAT** : `MUSIC_FREN.f` visait `assets/audio/music/dark-triad.mp3`, un fichier qui n'a JAMAIS existé dans le dépôt (aucun commit ne l'a posé, `git log --all`) ;
+  le morceau est la boucle maison DARK TRIAD de l'atelier (`atelier-son/boucles.py`, 01/10, « pour : FRÉNÉSIE » : phonk 140 bpm, do# phrygien, 16 mesures = 27,43 s
+  qui bouclent), rangée à `boucles/dark-triad.m4a` — publiée exprès par `vercel-build.sh`, et réglée par le bus des basses (`'dark-triad'`, cloche −2 dB).
+  Résultat, depuis le 28/09 : la sonde (`HEAD` puis l'élément audio) prenait deux 404 par chargement et la frénésie ne changeait jamais de morceau ; elle jouait le
+  repli « surmultiplié » (+6 %, un demi-ton). Et depuis que Pouce bleu tient la course (15/10), ce repli accélérait le lecteur `<audio>` EN PAUSE : en course, la
+  frénésie n'avait plus AUCUN effet musical (banc : lecteur figé, Pouce bleu au même niveau avant, pendant et après).
+- **CORRIGÉ** (`son/musique-frenesie.js`) : `MUSIC_FREN.f` = `assets/audio/music/boucles/dark-triad.m4a` ; à la bascule et au retour, le bus des basses prend le
+  réglage du morceau (`MUS_WA.bus.piste`, comme `playMusic` — avant, le morceau de la triade aurait gardé celui du morceau d'avant). Le reste ne bouge pas : le
+  morceau TOMBE à l'entrée, Pouce bleu s'efface (~0,3 s), il S'ÉTRANGLE à la sortie et Pouce bleu revient ; repli surmultiplié si le fichier manque.
+- **VÉRIFIÉ** (Chrome sans fenêtre et muet, copie du jeu fusionné avec main v892, `dbgFren('v',100)` + `dbgFren('entre')`, puis `dbgFren('pose')`) : sonde 200
+  (`FRENM.ok` vrai), aucun 404, 0 erreur ; course de Pouce bleu : `musique:'triade'`, le lecteur joue `boucles/dark-triad.m4a` (le temps avance), Pouce bleu à 0,
+  volume de la radio, bus sur `dark-triad` ; à la sortie Pouce bleu remonte (0,38) et le lecteur se tait. Leçon de l'auto-école : la triade tombe, puis PREMIER
+  MATIN revient. ⚠ Non vérifié : la reprise de PREMIER MATIN À SA PLACE (elle est repartie du début au banc, dont le serveur ignore les requêtes Range — Vercel
+  répond 206 ; code de reprise inchangé) ; le niveau du morceau face à Pouce bleu n'a pas été réglé à l'oreille ; l'appli iPhone (la sonde y dépend du `HEAD`).
+- Les décisions d'avant restent à Sacha / Léo : le morceau de la frénésie « est à Léo » (Q-SON-4, `passation/SON.md`), et une passe l'avait laissé « NON corrigé,
+  comme demandé » (`passation/ALLEGEMENT-MUSIQUE.md`). Un autre morceau (TRIPLE MONSTRE, `boucles/niv-monstre.m4a`, l'autre candidat de l'atelier) = un autre `f`.
+
 ## L'IPHONE QUI CHAUFFE ET LES MAPS QUI S'ALOURDISSENT : CADENCE 30 SUR LE RÉCENT, LA ROUTE EN TRANCHE MOYENNE (2026-10-24 soir, v892, session Optimisation mobile — Sacha : « après quelques maps passées on arrive vraiment presque à 1 image/seconde » · sur la question de la chauffe : « 30 i/s stables si chaud » · « oui, prends l'iPhone 12 min »)
 - **CE QUI RALENTIT** (iPhone 13 Pro, dans l'app de banc CC BANC, voir la section du palier v873 juste dessous) : (1) la CHAUFFE — au bout de 3-4 min de jeu iOS bride la puce
   (sonde CPU ×2) : la course, 58-60 i/s à froid, tombe à 17-45 i/s haché ; Sacha à la main (enregistreur de PERF-PC, 164 s, ville → banquise) : ~30 i/s, 17-22 à la fin ;
