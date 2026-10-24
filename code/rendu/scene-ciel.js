@@ -126,7 +126,15 @@ const skyDome=(function(){
       '  float u=uPh.y+uPh2.x*(atan(d.x,-d.z)-atan(uSunDir.x,-uSunDir.z))/6.2832,u1=fract(u),u2=fract(u+.5)-.5;',
       '  vec2 uv=vec2(u1,e2/H),g=vec2(u2,uv.y);vec2 dx=dFdx(g),dy=dFdy(g);vec2 dx1=dFdx(uv),dy1=dFdy(uv);',
       '  if(abs(dx1.x)+abs(dy1.x)<abs(dx.x)+abs(dy.x)){dx=dx1;dy=dy1;}',
+      /* ===== LE CIEL SE COMPILE AUSSI EN WebGL1 (24/10, relecture : « shaders invalides sur certains GPU ») =====
+         `textureGrad` n'existe qu'en GLSL ES 3.00 (WebGL2) : sur un navigateur resté en WebGL1 (WebGL2 indisponible ou bloqué par le pilote),
+         les SEPT programmes du dôme ne compilaient plus — tout le ciel manquait, au menu comme sur chaque map. En WebGL1 : une lecture simple
+         (au plus une couture d'un pixel au raccord du tour de la photo). En WebGL2 (__VERSION__ 300) : la ligne d'avant, telle quelle. */
+      '#if __VERSION__>=300',
       '  return textureGrad(uPhT,uv,dx,dy).rgb*uPh.w;}',
+      '#else',
+      '  return texture2D(uPhT,uv).rgb*uPh.w;}',
+      '#endif',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse,uRose;', // grade biome (identité par défaut) + uPulse musique
       'uniform vec3 uFd[8];uniform vec3 uVc[6];', // (2026-10-16) LES TEINTES DE LA VILLE : les couleurs fixes du dégradé et du ciel de la ville (valeurs d'origine hors ville teintée)
       'uniform float uSpace,uNeb,uEtK;', // NIVEAU ORBITE : 0 = aucun effet · uNeb : les nébuleuses (2026-10-15) · uEtK : pixels de rendu par pixel CSS, pour la taille des étoiles (2026-10-22)
@@ -226,7 +234,12 @@ const skyDome=(function(){
       '    vec3 L=G+smoothstep(3000.,7000.,t)*vec3(.05,.03,.015)*(.25+.75*qu);',           // au loin (au-delà de 7 km) : la lueur MOYENNE, pas de moiré — les fines sont dans villeFin
       '    bas=F*(1.+.28*smoothstep(-.05,-.6,y)*nuit)+L*exp(-t/2300.)*(1.+.6*lv)*nuit;}', // la brume s éclaire par en dessous
       '    else bas=F*(1.+.28*smoothstep(-.05,-.6,y)*nuit);}',
-      '  return mix(bas,haut,smoothstep(-.03,.03,y));}',
+      /* (2026-10-24, Sacha : « le ciel déconne, il n'y a pas de fondu, c'est moche ») HORIZON SANS COUPURE : hors pluie, le ciel du dessus (corail, bleu
+         nuit) basculait en 3° sur la brume du dessous — une ligne franche, la couleur de l'air n'étant pas celle du sol. Maintenant la brume REMONTE
+         dans le ciel (≈ 12°, courbe douce, 60 % au ras de l'horizon) : le dégradé du ciel s'y noie, comme le brouillard noie les tours 3D ; la jonction
+         s'élargit à ±3°. Sous la pluie (uPluie = 1) le plafond est déjà fondu dans la brume : rien ne change. */
+      '  haut=mix(haut,F,(1.-smoothstep(0.,.21,y))*(1.-uPluie)*.6);',
+      '  return mix(bas,haut,smoothstep(-.05,.045,y));}',
       'void villeFin(inout vec3 c,vec3 d){',
       '  float y=d.y;vec3 F=uFogCol;',
       '  float nuit=clamp(1.5-dot(F,vec3(.3,.59,.11))*4.,0.,1.),lv=uLvl*(.35+uPulse*.5+uBeatK*.6);',
@@ -972,7 +985,9 @@ const skyDome=(function(){
      cible 8 bits) : elles remplissent une cible hors écran qui couvre toute l'image (voir CIEL2). */
   const src=function(){return [].concat.apply([],arguments).join('\n');},K=COUCHES;
   // (2026-09-26, vague 2 — audit GPU) gl_Position.z = w : le dôme se pose sur le PLAN LOINTAIN (profondeur 1,0) — voir renderOrder plus bas
-  const mk=(fs,lisse)=>new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,depthTest:!lisse,vertexShader:VS,fragmentShader:fs});
+  /* (24/10, relecture) `extensions.derivatives` : dFdx/dFdy (la photo, la voûte de l'orbite) exigent en WebGL1 la directive
+     OES_standard_derivatives — three ne la pose que si on la demande, et l'ignore en WebGL2 (programme identique au bit près). */
+  const mk=(fs,lisse)=>new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,depthTest:!lisse,vertexShader:VS,fragmentShader:fs,extensions:{derivatives:true}});
   const mat=mk(src(TETE,VILLE,VILLE_CIEL,MER,K.fond,K.mer,K.jour,K.soleil,K.titre,K.jade,K.canyon,K.gon,K.son,K.guirl,K.niveau,K.etoiles,K.espace,K.pous,K.lune,K.voile,K.onde,K.trame,MAIN.plein));
   /* LE CIEL SE PEINT EN DERNIER (2026-09-26, vague 2 — audit GPU). Il était dessiné en PREMIER (renderOrder −9, sans écrire la
      profondeur) : chaque pixel de l'écran payait le shader le plus lourd du jeu (mer de nuages, ville, étoiles, fond musical)… puis
@@ -993,7 +1008,6 @@ const skyDome=(function(){
 })();
 let FOG_N=420,FOG_F=2600; // near/far pilotés par les BIOMES (le lerp cloudInS les relit chaque frame)
 const FOG_BASE=new THREE.Color(0x5e3254),FOG_CLOUD=new THREE.Color(0xd8bcd0),fogTmp=new THREE.Color(); // FOG_BASE : l'objet reste const, les biomes mutent son RGB
-let FUMEE_K=0,FUMEE_F=250;const FOG_FUMEE=new THREE.Color(.24,.06,.07); // (2026-10-14) LE ROYAUME DE FEU : les BANCS DE FUMÉE — volcanTick pose FUMEE_K (0 hors du volcan), updateClouds referme la brume
 const FOG_CJ=new THREE.Color(0xc06a54),cjV=new THREE.Vector3(); // CONTRE-JOUR : l'air s'embrase quand on roule vers le soleil (la seule zone lumineuse)
 scene.fog=new THREE.Fog(0x5e3254,FOG_N,FOG_F); // brume MAGENTA sombre : la route lointaine fond dans le rose de la nuit qui tombe
 const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.1,9800);

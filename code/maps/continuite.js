@@ -29,7 +29,6 @@ const CONTI={
     dunes:{matin:'dunesMatin',midi:'dunesMidi',soir:'dunesSoir',nuit:'dunesNuit',pluie:'dunesVent',orage:'dunesTempete'}, // (2026-10-18) LES DUNES D'OR
     foret:{matin:'foretMatin',midi:'foretMidi',soir:'foretSoir',nuit:'foretNuit',pluie:'foretPluie',orage:'foretOrage'},
     banquise:{matin:'banqMatin',midi:'banqMidi',soir:'banqSoir',nuit:'banqNuit',pluie:'banqNeige',orage:'banqBlizzard'},
-    volcan:{matin:'volcanMatin',midi:'volcanMidi',soir:'volcanSoir',nuit:'volcanNuit',pluie:'volcanCendre',orage:'volcanOrage'},
     espace:{matin:'espaceMatin',midi:'espace',soir:'espaceSoir'}},
   /* LES NUITS, map par map : le ciel (jZen/jMid/jHor en LINÉAIRE ; le canyon a le sien, cy*), la brume, la lune (sunC/sunI = la clé froide), le ciel et
      le sol de l'hémisphère, le remplissage à l'accent de la map */
@@ -45,23 +44,18 @@ const CONTI={
     foretNuit:{jZen:[.05,.07,.26],jMid:[.09,.10,.30],jHor:[.10,.09,.24],fog:[.07,.08,.16],fogCj:[.14,.16,.26],fogIn:[.16,.18,.26],
       hemiS:[.34,.42,.72],hemiG:[.06,.09,.09],hemiI:.66,sunC:[.68,.78,1],sunI:1.0,fillC:[.24,.52,.42],fillI:.26,expo:1.0},
     banqNuit:{jZen:[.04,.06,.24],jMid:[.07,.11,.30],jHor:[.06,.13,.22],fog:[.045,.06,.14],fogCj:[.12,.24,.28],fogIn:[.12,.20,.26],
-      hemiS:[.30,.46,.74],hemiG:[.12,.18,.26],hemiI:.62,sunC:[.62,.76,1],sunI:.95,fillC:[.22,.60,.50],fillI:.28},
-    volcanNuit:{jZen:[.06,.04,.20],jMid:[.16,.06,.24],jHor:[.34,.08,.05],fog:[.14,.05,.10],fogCj:[.40,.12,.08],fogIn:[.30,.10,.10],
-      hemiS:[.30,.26,.56],hemiG:[.40,.11,.04],hemiI:.66,sunC:[.58,.62,.95],sunI:.75,fillC:[.95,.30,.07],fillI:.42,stars:.9,moon:.4}}, /* (mesuré : à 1,1 de contraste et zénith ×4 le ciel de nuit sort enfin du noir ; la lune du dôme, à ,9, dessinait un losange) */
+      hemiS:[.30,.46,.74],hemiG:[.12,.18,.26],hemiI:.62,sunC:[.62,.76,1],sunI:.95,fillC:[.22,.60,.50],fillI:.28}}, /* (mesuré : à 1,1 de contraste et zénith ×4 le ciel de nuit sort enfin du noir ; la lune du dôme, à ,9, dessinait un losange) */
   /* LE CIEL DE JOUR CONTINU (Sacha : « le dégradé de ciel-soleil est à refaire complètement ») : le même ciel à la même heure sur les quatre maps au
-     ciel d'altitude (nuages, forêt, glacier, volcan — le canyon a le sien) — zénith azur, milieu bleu clair, HORIZON PÂLE tout autour (l'air, jamais une
+     ciel d'altitude (nuages, forêt, glacier — le canyon a le sien) — zénith azur, milieu bleu clair, HORIZON PÂLE tout autour (l'air, jamais une
      bande orange : le glacier avait un horizon orange en plein midi), la CHALEUR seulement du côté du soleil (jSol, large) ; le soir garde son horizon
-     de braise. LINÉAIRE. `cielJ_map` : l'accent d'une map par-dessus (le volcan garde son aube rose et son air soufré). */
+     de braise. LINÉAIRE. `cielJ_map` : l'accent d'une map par-dessus. */
   cielJ:{
     matin:{jZen:[.10,.28,.66],jMid:[.34,.50,.80],jHor:[.88,.84,.86],jSol:[.85,.48,.24]},
     midi: {jZen:[.07,.25,.68],jMid:[.30,.54,.88],jHor:[.76,.85,.95],jSol:[.34,.30,.22]},
     soir: {jZen:[.09,.10,.34],jMid:[.40,.28,.46],jHor:[.98,.64,.50],jSol:[1,.46,.16]}},
   cielJ_map:{
-    volcanMatin:{jZen:[.08,.12,.36],jMid:[.38,.30,.52],jHor:[.96,.70,.66],jSol:[1,.50,.28]},
-    volcanMidi:{jHor:[.80,.74,.70],jSol:[.40,.30,.16],fog:[.40,.34,.34]}, // (mesuré : une brume claire voilait tout l'horizon de blanc) l'air soufré, un voile de cendre
-    volcanSoir:{jZen:[.08,.03,.12],jMid:[.34,.07,.16],jHor:[1,.40,.18],jSol:[1,.36,.08]},
     banqSoir:{jMid:[.44,.26,.50],jHor:[1,.58,.48]}},
-  /* LE JOUR, les retouches propres (au-delà de la recette) : le midi du canyon ne blanchit plus sa route, le soir des nuages et du volcan retrouvent
+  /* LE JOUR, les retouches propres (au-delà de la recette) : le midi du canyon ne blanchit plus sa route, le soir des nuages retrouve
      un horizon qui brûle sans saturer tout l'écran */
   jours:{
     canyonMidi:{rtK:.6,sunI:1.6},dunesMidi:{rtK:.6,sunI:1.6},
@@ -74,7 +68,7 @@ const CONTI={
   const garde9={espace:{sat:1,con:1,vigK:1,rimK:1,stars:1}}; // l'ORBITE est déjà la map la plus sobre (chroma 15-23 mesurée) : elle garde son grade, elle prend la route, la vignette et le contre-jour
   for(const c in CONTI.cartes)for(const t in CONTI.cartes[c]){const b=BIOMES[CONTI.cartes[c][t]];if(!b)continue;const r=CONTI.temps[t],g9=garde9[c]||{};
     for(const f in r)if(!g9[f])b[f]=Array.isArray(r[f])?r[f].slice():r[f];}
-  for(const c of ['nuages','foret','banquise','volcan'])for(const t in CONTI.cielJ){const b=BIOMES[CONTI.cartes[c][t]];if(b)Object.assign(b,JSON.parse(JSON.stringify(CONTI.cielJ[t])));}
+  for(const c of ['nuages','foret','banquise'])for(const t in CONTI.cielJ){const b=BIOMES[CONTI.cartes[c][t]];if(b)Object.assign(b,JSON.parse(JSON.stringify(CONTI.cielJ[t])));}
   for(const k in CONTI.cielJ_map)if(BIOMES[k])Object.assign(BIOMES[k],JSON.parse(JSON.stringify(CONTI.cielJ_map[k])));
   for(const k in CONTI.nuits)if(BIOMES[k])Object.assign(BIOMES[k],JSON.parse(JSON.stringify(CONTI.nuits[k])));
   for(const k in CONTI.jours)if(BIOMES[k])Object.assign(BIOMES[k],JSON.parse(JSON.stringify(CONTI.jours[k])));
@@ -105,73 +99,9 @@ grtConti(); // (2026-10-18) LES PROFONDEURS : ses 24 ambiances prennent la recet
 for(const k of ['foretMatin','foretMidi','foretSoir','foretNuit','foretPluie','foretOrage'])if(BIOMES[k]){const b=BIOMES[k],n9=k==='foretNuit'||k==='foretOrage';
   b.con=(b.con||1)+(n9?.08:.06);b.vigK=(b.vigK||.3)+(n9?.08:.03);b.bloomS=(b.bloomS||.45)+.06;
   if(n9){b.expo=(b.expo||1)*.84;b.hemiI=(b.hemiI||.5)*.7;}}
-/* (v5, 2026-10-18 — Sacha : « la map volcan est la plus moche, lance une grosse refonte ») LES CIELS DU VOLCAN — APRÈS la continuité (elle réécrit
-   les ciels, les nuits, le grade de toutes les maps) : le SOIR, la carte postale, avait un zénith NOIR et une simple bande orange — il prend le
-   dégradé de la bible (indigo → magenta → braise → or) ; la brume n'est plus un rouge plat qui avale tout, mais un air prune qui laisse lire les
-   silhouettes ; le rebond du sol reste la lave (la caisse éclairée PAR LE BAS) ; la brume recule (3 000 → 4 000-4 600 m) : le GRAND VOLCAN, droit
-   devant le portail à 1,5-3 km, était fondu aux deux tiers dans la brume — c'est le repère de la map, on le voit dès le départ. `?volcan=avant5` = avant. */
-if(VLC5){const V9={
-    volcanSoir:{jZen:[.11,.05,.26],jMid:[.46,.09,.27],jHor:[1,.40,.12],jSol:[1,.52,.14],fog:[.26,.08,.15],fogCj:[.80,.30,.14],fogIn:[.44,.15,.24],
-      hemiS:[.50,.36,.70],hemiG:[.46,.12,.04],hemiI:.66,sunC:[1,.54,.28],sunI:1.6,fillC:[.80,.24,.06],fillI:.30,fogN:320,fogF:4300},
-    volcanMatin:{fog:[.38,.24,.34],fogIn:[.58,.42,.52],fogN:300,fogF:4000},
-    volcanMidi:{fog:[.42,.36,.40],hemiG:[.40,.16,.08],fogN:320,fogF:4600},
-    volcanNuit:{jZen:[.05,.04,.20],jMid:[.15,.06,.28],jHor:[.40,.09,.06],fog:[.10,.045,.12],fogIn:[.24,.09,.16],fogN:320,fogF:4000},
-    /* l'ORAGE VOLCANIQUE sortait presque NOIR (ciel L* 2-4, roche et brume au noir) : un orage violet, la nuit de la bible — les éclairs et la lave par-dessus */
-    volcanOrage:{jZen:[.055,.035,.15],jMid:[.13,.06,.21],jHor:[.30,.08,.09],fog:[.09,.045,.11],fogCj:[.30,.12,.14],fogIn:[.20,.10,.20],hemiS:[.36,.30,.58],hemiI:.62,expo:1},
-    /* la PLUIE DE CENDRES était un brun gris (l'interdit de la bible) : une cendre mauve et ocre */
-    volcanCendre:{jZen:[.15,.11,.19],jMid:[.30,.20,.25],jHor:[.54,.33,.26],fog:[.27,.18,.21],fogCj:[.46,.30,.26],fogIn:[.36,.27,.30],hemiS:[.52,.48,.68]}};
-  for(const k in V9)if(BIOMES[k])Object.assign(BIOMES[k],JSON.parse(JSON.stringify(V9[k])));}
 function planetesAlea(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};} // (même générateur que mulberry32, local : la Terre en dépend à la construction)
-function planetesMars(x,W,H){ // MARS : rouille et ocre, mers sombres, poussière claire, une faille, quelques cratères, deux calottes. AUCUN nuage (Sacha).
-  const R=planetesAlea(4242),rd=function(a,b){return a+R()*(b-a);};
-  const fond=x.createLinearGradient(0,0,0,H); // plus clair et plus ocre vers les pôles
-  fond.addColorStop(0,'#cf9a72');fond.addColorStop(.17,'#b8663f');fond.addColorStop(.5,'#a94a28');fond.addColorStop(.83,'#b8663f');fond.addColorStop(1,'#cf9a72');
-  x.fillStyle=fond;x.fillRect(0,0,W,H);
-  const tache=function(cx,cy,rx,ry,rot,col,a){ // une tache DOUCE (dégradé radial), recopiée de part et d'autre si elle coupe le bord (la toile se raccorde)
-    for(let k=-1;k<=1;k++){const X=cx+k*W;if(X+rx<0||X-rx>W)continue;
-      x.save();x.translate(X,cy);x.rotate(rot);x.scale(1,ry/rx);
-      const g=x.createRadialGradient(0,0,0,0,0,rx);g.addColorStop(0,'rgba('+col+','+a+')');g.addColorStop(.6,'rgba('+col+','+(a*.7)+')');g.addColorStop(1,'rgba('+col+',0)');
-      x.fillStyle=g;x.beginPath();x.arc(0,0,rx,0,6.2832);x.fill();x.restore();}};
-  for(let i=0;i<11;i++)tache(rd(0,W),rd(90,430),rd(80,190),rd(34,80),rd(-.5,.5),'240,184,132',rd(.42,.62)); // poussière claire (Arabia, Hellas…)
-  for(let i=0;i<13;i++)tache(rd(0,W),rd(90,430),rd(70,170),rd(30,70),rd(-.6,.6),'70,30,20',rd(.7,.9)); // les mers sombres (Syrtis, Acidalia…) : franches, le grade final aplatit tout (mesuré : à .5-.7 elles ne se lisaient pas)
-  for(let i=0;i<26;i++)tache(rd(0,W),rd(80,440),rd(16,44),rd(10,24),rd(-.8,.8),'84,36,24',rd(.45,.7)); // taches fines
-  tache(700,372,95,70,0,'236,204,176',.65);tache(190,228,34,28,0,'238,196,156',.8); // un grand bassin clair, un volcan clair
-  x.lineCap='round';x.strokeStyle='rgba(66,28,20,.8)';x.lineWidth=5; // la grande faille équatoriale (Valles Marineris)
-  x.beginPath();x.moveTo(262,266);for(let i=1;i<=9;i++)x.lineTo(262+i*21,266+Math.sin(i*1.3)*7+i*1.4);x.stroke();
-  x.strokeStyle='rgba(66,28,20,.5)';x.lineWidth=3;x.beginPath();x.moveTo(300,258);for(let i=1;i<=6;i++)x.lineTo(300+i*20,258+Math.sin(i*1.9)*5+i*2.2);x.stroke();
-  x.lineWidth=1.6; // cratères : un anneau sombre, un reflet clair de l'autre côté (retenue : peu, et petits)
-  for(let i=0;i<70;i++){const cx=rd(0,W),cy=rd(60,H-60),r=rd(3,9);
-    x.strokeStyle='rgba(60,28,20,.38)';x.beginPath();x.arc(cx,cy,r,0,6.2832);x.stroke();
-    x.strokeStyle='rgba(240,200,160,.30)';x.beginPath();x.arc(cx+1,cy+1,r,.4,2.4);x.stroke();}
-  for(let i=0;i<700;i++){x.fillStyle=R()<.5?'rgba(60,28,20,.13)':'rgba(236,190,150,.13)';const s=1+R()*2;x.fillRect(rd(0,W),rd(0,H),s,s);} // le grain de la poussière
-  for(const haut of [1,0]){ // calottes polaires : irrégulières, petites, d'un blanc rosé (jamais un blanc de Terre)
-    const y0=haut?0:H;x.fillStyle='rgba(248,238,230,.96)';
-    for(let i=0;i<46;i++){x.beginPath();x.arc(rd(0,W),y0+(haut?1:-1)*rd(0,12),rd(10,26),0,6.2832);x.fill();}
-    x.fillRect(0,haut?0:H-12,W,12);}
-}
-function planetesBandes(x,W,H,R,cols,n,amp,streaks){ // des BANDES horizontales à bords ondulés (périodiques : la toile se raccorde), puis des filets fins ; un bord est partagé par deux bandes (aucun interstice)
-  const hs=[];let tot=0;for(let i=0;i<n;i++){const h=.55+R()*.95;hs.push(h);tot+=h;}
-  const bord=[];let y=0;for(let j=0;j<=n;j++){bord.push({y:j===0?-12:j===n?H+12:y,a:(j===0||j===n)?0:amp*(.5+R()),k:2+((R()*4)|0),p:R()*6.28,k2:5+((R()*5)|0),p2:R()*6.28});if(j<n)y+=hs[j]/tot*H;}
-  const yb=function(b,X){return b.y+b.a*(Math.sin(6.2832*b.k*X/W+b.p)*.62+Math.sin(6.2832*b.k2*X/W+b.p2)*.38);};
-  let prev=-1;
-  for(let i=0;i<n;i++){let c;do{c=(R()*cols.length)|0;}while(c===prev&&cols.length>1);prev=c;
-    x.fillStyle=cols[c];x.beginPath();x.moveTo(0,yb(bord[i],0));for(let X=8;X<=W;X+=8)x.lineTo(X,yb(bord[i],X));
-    for(let X=W;X>=0;X-=8)x.lineTo(X,yb(bord[i+1],X));x.closePath();x.fill();}
-  x.lineCap='round';
-  for(let i=0;i<streaks;i++){const b=bord[1+((R()*(n-1))|0)],o=(R()-.5)*14,k=2+((R()*5)|0),p=R()*6.28,a=2+R()*5;
-    x.strokeStyle=R()<.5?'rgba(90,56,38,'+(.14+R()*.14)+')':'rgba(246,230,196,'+(.14+R()*.14)+')';x.lineWidth=1+R()*2.6;
-    x.beginPath();for(let X=0;X<=W;X+=8){const Y=yb(b,X)+o+a*Math.sin(6.2832*k*X/W+p);if(X===0)x.moveTo(X,Y);else x.lineTo(X,Y);}x.stroke();}
-  return bord;}
-function planetesJupiter(x,W,H){ // JUPITER : bandes crème / ocre / roux / brun, UNE grande tache rouille (discrète), trois ovales clairs. Pas de nuage dessiné : de la couleur.
-  const R=planetesAlea(1969);
-  x.fillStyle='#c99a64';x.fillRect(0,0,W,H);
-  planetesBandes(x,W,H,R,['#ecd9b0','#c8955c','#9a5a36','#f2e3be','#6a4030','#d8b484'],15,7,46); // (bandes plus franches : le grade rapproche tout vers l'orange)
-  const tache=function(cx,cy,rx,ry,col,a){x.save();x.translate(cx,cy);x.scale(1,ry/rx);const g=x.createRadialGradient(0,0,0,0,0,rx);g.addColorStop(0,'rgba('+col+','+a+')');g.addColorStop(.7,'rgba('+col+','+(a*.8)+')');g.addColorStop(1,'rgba('+col+',0)');x.fillStyle=g;x.beginPath();x.arc(0,0,rx,0,6.2832);x.fill();x.restore();};
-  tache(330,338,50,27,'190,84,50',.8);x.strokeStyle='rgba(240,214,176,.45)';x.lineWidth=2.5;x.beginPath();x.ellipse(330,338,46,24,0,0,6.2832);x.stroke(); // la Grande Tache et son anneau clair
-  tache(700,300,17,9,'246,232,208',.6);tache(780,352,14,8,'246,232,208',.55);tache(520,176,15,8,'246,232,208',.5); // petits ovales blancs
-  for(const haut of [1,0]){const g=x.createLinearGradient(0,haut?0:H,0,haut?H*.2:H*.8);g.addColorStop(0,'rgba(78,52,40,.55)');g.addColorStop(1,'rgba(78,52,40,0)');x.fillStyle=g;x.fillRect(0,haut?0:H*.8,W,H*.2);} // les pôles s'assombrissent
-}
-const PLANETES_PEINTRES={mars:planetesMars,jupiter:planetesJupiter};
+/* (2026-10-24) Mars, Jupiter et leurs bandes sont supprimés : il ne reste que la Terre. */
+const PLANETES_PEINTRES={};
 function planetesGarde(a){ // un niveau SANS planète n'a pas à la repeindre : on la laisse telle quelle, elle s'éteint en fondu (sinon un flash de teinte au portail)
   const c=LVL.cur;return !(c&&c.espace)&&planetGroup.userData.peint!=='terre';}
 function planetesPeint(a){ // la toile change si la planète change — UNE repeinte à la naissance du niveau (même taille, même canvas recréé puis rendu après l'envoi)
@@ -305,7 +235,6 @@ function lvlNuageOk(o){ // quelles familles de nuages chaque monde garde (lu par
   if(c.id==='banquise')return false; // (2026-10-14) LA BANQUISE : sa brume de vallée et sa neige sont à elle (buildBanq)
   if(c.id==='foret')return false; // (2026-10-14) LA FORÊT NOIRE : sa brume et ses rayons sont à elle (buildForet)
   if(c.id==='grotte')return false; // (2026-10-18) LES PROFONDEURS : sous la terre, pas un nuage
-  if(c.id==='volcan')return false; // (2026-10-14) LE ROYAUME DE FEU : son ciel, c'est le panache et la cendre (buildVolcan)
   if(c.id==='jade')return false; // (2026-10-09) LES PICS DE JADE : leur brume est à eux (buildJade)
   if(c.id==='canyon'||c.id==='dunes')return false; // (2026-10-14) LE CANYON DES GÉANTS : ses nuages sont dans son ciel (canyonCiel)
   if(c.id==='espace')return false; // (2026-09-26, user : « pas de nuage dans l'espace ») — même plus les coussins de vol

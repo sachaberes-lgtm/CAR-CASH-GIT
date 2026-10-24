@@ -324,7 +324,15 @@ const VV_VERRE=vitreVerre(VV_CIEL_B).replace('sty=s3<.26?0.:s3<.50?1.:s3<.66?2.:
   .replace('colF+=vec3(.25,.62,1.)*','colF+=uAcc9*1.4*')
   .replace('step(.5,fract(vSeed9*17.9))*(.1+1.5*uNuit9)','step(.25,fract(vSeed9*17.9))*(.1+1.5*uNuit9)')
   .replace('vec3(.6,.86,1.)*1.9,uNuit9)','mix(uAcc9,vec3(1.),.35)*1.9,uNuit9)')
-  .replace('gl_FragColor.rgb+=vec3(.86,.93,1.)*(1.-smoothstep(.55,.55+fe*1.5,de))','gl_FragColor.rgb+=mix(uAcc9,vec3(1.),.3)*1.6*(1.-smoothstep(.55,.55+fe*1.5,de))');
+  .replace('gl_FragColor.rgb+=vec3(.86,.93,1.)*(1.-smoothstep(.55,.55+fe*1.5,de))','gl_FragColor.rgb+=mix(uAcc9,vec3(1.),.3)*1.6*(1.-smoothstep(.55,.55+fe*1.5,de))')
+  /* (2026-10-20, VILLE EMBELLIE) L'ÉCHO des néons dans le verre (des bandes verticales de la teinte et de cyan, fortes sous l'œil) et les ÉTAGES TECHNIQUES (une bande de LED tous les 12 à 21 étages sur une géante sur deux) */
+  .replace('vec3 refl=sky*tint*1.18+gl*uSunC9*mix(tint,vec3(1.),.6);','vec3 refl=sky*tint*1.18+gl*uSunC9*mix(tint,vec3(1.),.6);'+
+    'float bwV=8.+s2*16.,gbV=floor(ux/bwV),hbV=fract(sin(gbV*12.9898+vSeed9*78.233)*43758.5453),sbV=sin(3.14159*fract(ux/bwV)),pkV=smoothstep(.5,.9,hbV)*sbV*sbV,grV=smoothstep(280.,-140.,vW9.y-uCam9.y);'+
+    'refl+=mix(uAcc9,vec3(.24,.91,1.),step(.5,fract(hbV*7.3)))*pkV*grV*.26*uEmb9;')
+  .replace('gl_FragColor.rgb=colF;','gl_FragColor.rgb=colF;'+
+    'if(s4<.45&&vSc9.y>150.){float npV=12.+floor(s2*10.),yyV=vB9/(fh*npV),fyV=max(fwidth(yyV),1e-5),dqV=abs(fract(yyV+.5)-.5),hbV2=.4/npV;'+
+    'float lbV=1.-smoothstep(hbV2,hbV2+fyV*1.5,dqV);lbV=mix(lbV,2.*hbV2,smoothstep(.4,1.5,fyV));lbV+=.2*exp(-dqV*npV/1.2)*(1.-smoothstep(.4,1.5,fyV));'+
+    'vec3 bcV=s1>.8?vec3(1.,.78,.34):mix(uAcc9,vec3(.24,.91,1.),step(.5,s1));gl_FragColor.rgb+=bcV*lbV*1.15*uNuit9*uEmb9;}');
 /* LE PIED DANS LA BRUME : les volumes sont EMPILÉS (voir buildVoxCity), on ne connaît plus le pied de la tour — la brume est une NAPPE posée
    à ~380 m sous la caméra (la route est à ~330 m au-dessus du pied des tours), fondue sur 300 m ; la nuit, la rue l'éclaire à peine. */
 /* (CLEAN CITY) ⚠ une tour qui borde un étage de route PLUS HAUT a son pied au-dessus de la caméra : la nappe seule ne le noyait pas — elle flottait,
@@ -361,7 +369,7 @@ function vitreMatFab(NE){ // NE : le verre de LA VILLE (VV_VERRE, les uniformes 
     'if(fo<3.5)return (1.+.16*sin(3.1416*clamp((hh-.4)/.45,0.,1.)))*mix(1.,.5,smoothstep(.8,1.,hh));if(fo<4.5)return mix(1.,.8,smoothstep(.4,1.,hh));return 1.;}';
   m.onBeforeCompile=function(sh){Object.assign(sh.uniforms,{uT9:CITY.uT,uWet9:ROAD_U.uWet,uLum9:CITY.uL,uZen9:skyU.uJZen,uMid9:skyU.uJMid,uHor9:skyU.uJHor,
       uSun9:VIT.uSun,uCam9:VIT.uCam,uNuit9:VIT.uNuit,uSunC9:VIT.uSunC,uSunK9:VIT.uSunK,uCl9:VIT.uCl,uClK9:VIT.uClK,uClL9:VIT.uClL,uClA9:VIT.uClA,uClD9:VIT.uClD,uClS9:VIT.uClS,uClH9:VIT.uClH,uClT9:VIT.uClT,uBand9:VIT.uBand,uPlf9:VIT.uPlf,uHaut9:VIT.uHaut,uSolR9:VIT.uSolR});
-    if(NE)Object.assign(sh.uniforms,{uZen9:VV.uZen,uMid9:VV.uMid,uHor9:VV.uHor,uAcc9:VV.uAcc,uNuit9:VV.uNuit,uSunK9:VV.uSunK,uClK9:VV.uClK,uClL9:VV.uClL,uClA9:VV.uClA,uClD9:VV.uClD,uPlf9:VV.uPlf,uPied9:CITY.uPied,uPiedC9:CITY.uPiedC}); // (NÉON ET VERRE) le ciel de la ville, sa teinte, son pied
+    if(NE)Object.assign(sh.uniforms,{uZen9:VV.uZen,uMid9:VV.uMid,uHor9:VV.uHor,uAcc9:VV.uAcc,uNuit9:VV.uNuit,uSunK9:VV.uSunK,uClK9:VV.uClK,uClL9:VV.uClL,uClA9:VV.uClA,uClD9:VV.uClD,uPlf9:VV.uPlf,uPied9:CITY.uPied,uPiedC9:CITY.uPiedC,uEmb9:CITY.uEmb}); // (NÉON ET VERRE) le ciel de la ville, sa teinte, son pied
     sh.vertexShader='#undef USE_SHADOWMAP\n'+sh.vertexShader.replace('#include <common>','#include <common>\n'+DECL+'\nattribute vec2 aCh9;uniform vec4 uLum9[4];uniform float uHaut9;\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nuniform float fogFar;\n#endif\n'+SF+'\n')
       .replace('#include <color_vertex>','#include <color_vertex>\nfloat fo9=0.;\n#ifdef USE_INSTANCING_COLOR\nfo9=floor(instanceColor.r/8.+.001);vColor.r-=8.*fo9;\n#endif\nvFo9=fo9;vPb9=0.;\n#ifdef USE_INSTANCING_COLOR\nvPb9=floor(instanceColor.g/8.+.001);vColor.g-=8.*vPb9;\n#endif\n') // LA FORME, rangée dans la couleur d'instance (r + 8 × forme)
             .replace('#include <beginnormal_vertex>','#include <beginnormal_vertex>\n#ifdef USE_INSTANCING\n'+
@@ -383,9 +391,9 @@ function vitreMatFab(NE){ // NE : le verre de LA VILLE (VV_VERRE, les uniformes 
         '#ifdef USE_INSTANCING\nbool proche9=false;{vec3 w9=(modelMatrix*vec4(instanceMatrix[3].xyz,1.)).xyz;float r9=.5*length(sc9)+1.;'+
         'for(int i=0;i<4;i++)if(distance(w9,uLum9[i].xyz)<uLum9[i].w+r9)proche9=true;}\n#else\nbool proche9=true;\n#endif\n')
       .replace('#include <lights_lambert_vertex>','vLightFront=vec3(0.);vIndirectFront=vec3(0.);\nif(!loin9){\n'+VILLE_LLV+'\n}');
-    sh.fragmentShader='#undef USE_SHADOWMAP\n'+sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uNuit9,uSunK9,uClH9,uClT9;uniform vec3 uZen9,uMid9,uHor9,uSun9,uSunC9,uClL9,uClA9,uCam9,uPlf9,uSolR9;uniform vec4 uClK9;uniform vec2 uClD9,uClS9,uBand9;uniform sampler2D uCl9;'+DECL+SDF+(NE?'uniform vec3 uAcc9,uPiedC9;uniform float uPied9;':''))
+    sh.fragmentShader='#undef USE_SHADOWMAP\n'+sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uNuit9,uSunK9,uClH9,uClT9;uniform vec3 uZen9,uMid9,uHor9,uSun9,uSunC9,uClL9,uClA9,uCam9,uPlf9,uSolR9;uniform vec4 uClK9;uniform vec2 uClD9,uClS9,uBand9;uniform sampler2D uCl9;'+DECL+SDF+(NE?'uniform vec3 uAcc9,uPiedC9;uniform float uPied9,uEmb9;':''))
       .replace('#include <fog_fragment>',(NE?VV_VERRE:VIT_VERRE)+'#include <fog_fragment>\n'+(NE?vvPied():vitrePied(true)));};
-  m.customProgramCacheKey=function(){return NE?'toursVerreNeon1':VIT_PLAFOND?'toursVitre2':VIT_SOL?'toursVitre5':'toursVitre4';};m.dispose=function(){};
+  m.customProgramCacheKey=function(){return NE?'toursVerreNeon2':VIT_PLAFOND?'toursVitre2':VIT_SOL?'toursVitre5':'toursVitre4';};m.dispose=function(){};
   return m;
 }
 /* (NÉON ET VERRE) LE PIED D'UNE GÉANTE DE VERRE, dans la brume de la ville : le code de villePied (le même que les tours de béton, au caractère près),

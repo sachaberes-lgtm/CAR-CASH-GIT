@@ -261,7 +261,7 @@ const FG_BRUIT=['float fh3(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.
   'float fh2(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}',
   'float fn2(vec2 x){vec2 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);return mix(mix(fh2(i),fh2(i+vec2(1.,0.)),f.x),mix(fh2(i+vec2(0.,1.)),fh2(i+vec2(1.,1.)),f.x),f.y);}'].join('\n');
 const FG_LUM=['uniform vec3 uSunDir,uSunC,uSky,uGnd,uFillC,uFillD,uCam,uCarP,uCarF,uMistC,uLeafT;',
-  'uniform float uTime,uPhare,uFlash,uWet,uHante,uMistK,uMistY,uRos,uLune,uVent;',
+  'uniform float uTime,uPhare,uFlash,uWet,uHante,uMistK,uMistY,uRos,uLune,uVent,uAir;',
   // les PHARES de la caisse sur la forêt : un cône (cos .62-.93), une portée de ~150 m, une flaque blanche-chaude
   'vec3 fPhare(vec3 w,vec3 n){vec3 d=w-uCarP;float l=length(d);d/=max(l,.001);float c=smoothstep(.62,.93,dot(d,uCarF));',
   '  return vec3(1.,.93,.80)*uPhare*c*(2600./(l*l*.10+320.))*(.30+.70*max(dot(n,-d),0.));}',
@@ -303,7 +303,7 @@ const FOR_ARB_FS=[FG_BRUIT,FG_LUM,'uniform float uFen,uMini,uCon,uVit,uVitL,uVit
   '  else if(part<3.5)alb*=.92+.16*fn3(o*1.5);',
   '  else if(part>5.5)alb=mix(alb*(.8+.3*fn3(o*.9)),vec3(.96,.94,.88),step(.62,fn3(o*3.)));',                       // l'amanite : rouge, points blancs
   '  float vj9=0.;vec3 cg9=vec3(0.);bool vb9=uVit>0.&&vI.z<=0.&&(part<2.5||part>6.5);',
-  '  if(vb9){cg9=mix(alb/max(max(alb.r,max(alb.g,alb.b)),.04),uVitG,.42);',
+  '  if(vb9){cg9=mix(alb/max(max(alb.r,max(alb.g,alb.b)),.04),uVitG,.42+.38*uHante);',
   '    if(mk9>0.){vec3 fq9=fract(mp9),eq9=min(fq9,1.-fq9),no9=abs(normalize(vNo)),sq9=sqrt(max(1.-no9*no9,.05)),es9=eq9/sq9,fw9=fwidth(mp9)/sq9+.002,w9=vec3(.05);',
   '      vec3 jl9=(1.-smoothstep(w9-fw9,w9+fw9,es9))*min(vec3(1.),w9/fw9);if(!(part>.5&&part<2.5&&vB.x>.5))vj9=max(jl9.x,max(jl9.y,jl9.z))*mk9;',
   '      float bv9=smoothstep(.0,.17,min(es9.x,min(es9.y,es9.z)));alb*=mix(1.,(br9?.8+.4*mh9:1.)*mix(.74,1.,bv9),mk9);if(br9)N=normalize(N+mn9*.62*mk9);}}',
@@ -311,7 +311,7 @@ const FOR_ARB_FS=[FG_BRUIT,FG_LUM,'uniform float uFen,uMini,uCon,uVit,uVitL,uVit
   '  if(uCon>0.)ao=mix(ao,pow(ao,1.6),uCon);',                                                                     // (contraste) le creux des couronnes plus profond
   '  float ndl=dot(N,L),wr=(part>.5&&part<2.5)?.55:.25,dif=clamp((ndl+wr)/(1.+wr),0.,1.);',
   '  vec3 col=alb*((uSky*(.42+.36*N.y)*ao+uGnd*(.40-.30*N.y)*ao)*(1.-.12*uCon)+uSunC*dif*mix(.45,.86,ao)*(1.+.15*uCon)+uFillC*max(dot(N,-uFillD),0.)*.4);', // (contraste) moins de lumière du ciel dans l ombre, plus de soleil
-  '  if(part>.5&&part<2.5){float tr=pow(max(dot(-V,L),0.),5.)*(1.-.45*ao);col+=alb*uSunC*tr*vec3(1.2,1.45,.7)*.85;', // le CONTRE-JOUR à travers les feuilles
+  '  if(part>.5&&part<2.5){float tr=pow(max(dot(-V,L),0.),5.)*(1.-.45*ao);col+=alb*uSunC*tr*vec3(1.35,1.3,.6)*.85;', // le CONTRE-JOUR à travers les feuilles
   '    col+=uSunC*pow(max(dot(reflect(-L,N),V),0.),24.)*step(.72,leaf)*.35*uRos;',                                     // la rosée qui scintille
   '    if(mk9>0.){col+=uSunC*pow(max(dot(reflect(-L,N),V),0.),16.)*(.2+.55*mh9)*mk9*.72;',                           // (mini-cubes) la BRILLANCE : un reflet serré par cube (la nuit, celui de la lune)
   '      col+=uSunC*alb*2.*step(.985,fract(mh9*7.31+floor(uTime*.9+mh9*13.)*.618))*max(ndl,0.)*mk9;}}',               // …et des ÉCLATS : un cube sur soixante-dix s allume, puis un autre
@@ -324,7 +324,8 @@ const FOR_ARB_FS=[FG_BRUIT,FG_LUM,'uniform float uFen,uMini,uCon,uVit,uVitL,uVit
   '  col+=alb*fPhare(vW,N)*(part>.5&&part<2.5&&vB.x>.5?.3:1.);col+=alb*uFlash*vec3(.8,.85,1.)*(1.2+.8*max(N.y,0.));',             // (2026-10-17) les MÈCHES des pleureurs (aB.x = 1) : les phares les effleurent (pleins, elles faisaient une pluie de fils verts fluo la nuit)
   '  if(part>3.5&&part<4.5)col=mix(col,vec3(1.,.60,.22)*(1.3+.25*sin(uTime*7.+vI.x*20.+o.x)),uFen);',               // la FENÊTRE de la chaumière
   '  if(part>4.5&&part<5.5)col+=vec3(1.,.36,.08)*uHante*(1.6+.8*sin(uTime*2.2+vI.x*9.))*(.6+.4*fn3(o*2.+uTime*.8));', // le VISAGE du vieux chêne
-  '  if(part>5.5&&part<6.5)col+=vec3(.55,.95,.80)*uHante*.9*step(.62,fn3(o*3.));',                                 // les champignons qui luisent
+  '  if(part>5.5&&part<6.5)col+=mix(vec3(.55,.95,.80),vec3(1.,.34,.66),step(.78,fract(vI.x*5.3)))*uHante*.9*step(.62,fn3(o*3.));',                                 // les champignons qui luisent
+  '  {float pa9=smoothstep(180.,1500.,dist)*(1.-uHante)*uAir;col=mix(col,col*vec3(.84,.96,1.12)+vec3(0.,.012,.04),pa9*.55);col*=mix(vec3(1.,1.,1.),vec3(1.05,1.01,.93),(1.-smoothstep(0.,260.,dist))*(1.-uHante)*uAir);}', /* (2026-10-20, embellir) TROIS PLANS : le proche plus chaud, le lointain plus froid et plus clair */
   '  col=mix(col,uMistC,fBrume(vW,dist));gl_FragColor=vec4(col,1.);','#include <fog_fragment>','}'].join('\n');
 /* LE SOL : humus, mousse, fougères, prairies fleuries, roche des pentes raides ; sous les arbres, des taches de soleil ; la nuit, des
    champignons qui luisent. aS = (distance à la route, prairie, densité de forêt, hasard). */
@@ -341,7 +342,7 @@ const FOR_SOL_FS=[FG_BRUIT,FG_LUM,'varying vec3 vW,vN;varying vec4 vS;','#includ
   '  alb=mix(alb,alb*vec3(1.10,.96,1.08)+vec3(.05,.03,.04),pr*smoothstep(90.,240.,dist)*.6);',                      // …et une teinte, au loin
   '  float ao=1.-f*.42,dif=clamp((dot(N,uSunDir)+.2)/1.2,0.,1.),ta=smoothstep(.42,.72,fn2(q*.085+vec2(uTime*.02,0.))),omb=mix(1.,.22+.78*ta,f*.85);', // l'ombre de la canopée, percée de taches de soleil
   '  vec3 col=alb*(uSky*(.45+.40*N.y)*ao+uGnd*.18+uSunC*dif*omb*.95);col+=alb*fPhare(vW,N);col+=alb*uFlash*vec3(.8,.85,1.)*1.4;',
-  '  float gh=fh2(floor(q*.8));col+=vec3(.2,1.,.72)*step(.982,gh)*f*uHante*.9*(.6+.4*sin(uTime*1.3+gh*30.));',      // la nuit : des champignons qui luisent
+  '  float gh=fh2(floor(q*.8));col+=mix(vec3(.2,1.,.72),vec3(1.,.28,.62),step(.75,fract(gh*37.)))*step(.982,gh)*f*uHante*.9*(.6+.4*sin(uTime*1.3+gh*30.));',      // la nuit : des champignons qui luisent
   '  col=mix(col,uMistC,fBrume(vW,dist)*1.1);gl_FragColor=vec4(col,1.);','#include <fog_fragment>','}'].join('\n');
 /* LE TORRENT : un ruban d'eau au fond de la vallée — le ciel s'y reflète, le soleil y scintille, l'écume sur les bords */
 const FOR_EAU_VS=['attribute vec2 aU;varying vec3 vW;varying vec2 vU;','#include <fog_pars_vertex>',
@@ -394,7 +395,8 @@ const FOR_LUC_VS=['attribute vec4 aR;uniform float uTime,uLuc,uPol,uPx;uniform v
   '  vec3 rel=mod(aR.xyz*B+pa-uBoxL+B*.5,B)-B*.5,pos=uBoxL+rel;float e=min(min(.5-abs(rel.x)/B.x,.5-abs(rel.y)/B.y),.5-abs(rel.z)/B.z);',
   '  float bl=pow(max(sin(uTime*(1.1+aR.w*2.4)+aR.x*40.),0.),5.);',
   '  vA=smoothstep(0.,.08,e)*(luc>0.?uLuc*bl:uPol*(.55+.45*sin(uTime*2.+aR.y*30.)));',
-  '  vC=luc>0.?vec3(.70,1.,.28)*2.2:uSunC*vec3(1.,.9,.6)*1.1;',
+  '  float hc=fract(aR.x*91.7+aR.z*13.1);vec3 am=hc<.78?vec3(1.,.74,.40):hc<.92?vec3(1.,.86,.40):vec3(.96,.30,.64);', /* (2026-10-20, embellir) les lucioles : AMBRE (#FFC477), un peu d'OR, et de rares ROSES néon */
+  '  vC=luc>0.?am*2.3:uSunC*vec3(1.,.9,.6)*1.1;',
   '  vec4 mv=viewMatrix*vec4(pos,1.);gl_Position=projectionMatrix*mv;gl_PointSize=min((luc>0.?1.6:.7)*uPx*320./max(1.,-mv.z),1e4);}'].join('\n');
 const FOR_LUC_FS=['varying vec3 vC;varying float vA;void main(){float d=length(gl_PointCoord-.5);float a=smoothstep(.5,0.,d);a*=a;if(vA*a<.004)discard;gl_FragColor=vec4(vC*vA*a,1.);}'].join('\n');
 /* LES RAYONS DE SOLEIL : des pans de lumière qui tombent en biais entre les géants (additifs). Leur axe suit la lumière de la forêt ;
@@ -403,36 +405,45 @@ const FOR_RAY_VS=['attribute vec4 aR;attribute vec2 aL;uniform vec3 uSunDir,uCam
   'void main(){vec3 ax=-normalize(uSunDir+vec3(0.,.08,0.));vec3 P=aR.xyz+ax*aL.x*position.y;vec3 vw=normalize(P-uCam);vec3 sd=normalize(cross(ax,vw)+vec3(1e-4,0.,0.));',
   '  P+=sd*position.x*aR.w*(1.+position.y*.7);vQ=vec2(position.x*2.,position.y);vA=.55+.45*sin(uTime*.35+aL.y*20.);',
   '  vec4 mv=viewMatrix*vec4(P,1.);vD=-mv.z;gl_Position=projectionMatrix*mv;}'].join('\n');
-const FOR_RAY_FS=['uniform vec3 uSunC;uniform float uRay,fogNear,fogFar;varying vec2 vQ;varying float vA,vD;',
-  'void main(){float x=1.-vQ.x*vQ.x;float a=x*x*smoothstep(0.,.18,vQ.y)*smoothstep(1.,.45,vQ.y)*vA*uRay*smoothstep(40.,110.,vD)*(1.-smoothstep(fogNear,fogFar,vD));',
-  '  gl_FragColor=vec4(uSunC*vec3(1.,.93,.74)*a*.16,1.);}'].join('\n');
+const FOR_RAY_FS=['uniform vec3 uSunC;uniform float uRay,uRayK,fogNear,fogFar;varying vec2 vQ;varying float vA,vD;',
+  'void main(){float x=1.-vQ.x*vQ.x;float a=x*x*smoothstep(0.,.18,vQ.y)*smoothstep(1.,.45,vQ.y)*vA*uRay*uRayK*smoothstep(40.,110.,vD)*(1.-smoothstep(fogNear,fogFar,vD));',
+  '  vec3 rc=mix(vec3(.50,.72,1.),vec3(1.,.80,.46),smoothstep(.15,.85,x));gl_FragColor=vec4(uSunC*rc*a*.16,1.);}'].join('\n'); /* (2026-10-20, embellir) DEUX TEMPÉRATURES : le cœur du rai est ambre, sa lisière bleutée (le remplissage froid du ciel) */
 /* LA BRUME EN NAPPES : de grands flocons face à la caméra, qui dérivent au fond de la vallée et traversent la route la nuit */
-const FOR_BRUME_VS=['uniform vec3 uCam;uniform float uTime;varying vec2 vUv;varying float vD,vS;',
+const FOR_BRUME_VS=['uniform vec3 uCam,uSunDir;uniform float uTime;varying vec2 vUv;varying float vD,vS,vG;',
   'void main(){vec3 c=(modelMatrix*instanceMatrix*vec4(0.,0.,0.,1.)).xyz;float s=length(instanceMatrix[0].xyz);vS=fract(c.x*.013+c.z*.007);',
   '  c.x+=sin(uTime*.05+vS*20.)*25.;c.z+=cos(uTime*.04+vS*13.)*25.;',
   '  vec3 R=vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]),U=vec3(viewMatrix[0][1],viewMatrix[1][1],viewMatrix[2][1]);',
+  '  vG=dot(normalize(c-uCam),uSunDir);', /* (2026-10-20, embellir) vG : la nappe est-elle devant le soleil (ou la lune) ? */
   '  vec3 P=c+(R*position.x+U*position.y*.45)*s;vUv=uv;vec4 mv=viewMatrix*vec4(P,1.);vD=-mv.z;gl_Position=projectionMatrix*mv;}'].join('\n');
-const FOR_BRUME_FS=[FG_BRUIT,'uniform vec3 uMistC,uSky,uSunC;uniform float uMistK,uHante,uTime,fogNear,fogFar;varying vec2 vUv;varying float vD,vS;',
+const FOR_BRUME_FS=[FG_BRUIT,'uniform vec3 uMistC,uSky,uSunC;uniform float uMistK,uHante,uTime,fogNear,fogFar;varying vec2 vUv;varying float vD,vS,vG;',
   'void main(){vec2 q=vUv-.5;float a=smoothstep(.5,.08,length(q*vec2(1.,1.6)))*(.35+.65*fn2(vUv*3.2+vS*17.+vec2(uTime*.03,0.)))*.24*uMistK*smoothstep(25.,90.,vD)*(1.-smoothstep(fogFar*.7,fogFar,vD))*1.6;if(a<.003)discard;',
-  '  vec3 c=uMistC*.75+(uSky*.18+uSunC*.12)+vec3(.05,.20,.16)*uHante;gl_FragColor=vec4(c,a);}'].join('\n');
+  '  vec3 c=uMistC*.75+(uSky*.18+uSunC*.12)+vec3(.05,.20,.16)*uHante;',
+  '  float so=smoothstep(-.1,.9,vG);c+=mix(uSunC*vec3(1.,.70,.38)*.20,vec3(.20,.16,.42),uHante)*so*so;c+=vec3(.03,.06,.16)*(1.-so)*(1.-uHante*.5);', /* (embellir) la brume au contre-jour s'allume (ambre, la nuit violet-lune), à l'opposé elle se refroidit */
+  '  gl_FragColor=vec4(c,a);}'].join('\n');
 /* LES LUEURS DE LA NUIT : les FEUX FOLLETS (type 0 : un coeur bleu-vert, un halo, ils vacillent) et les YEUX (type 1 : deux amandes
    rouges ou ambrées qui clignent, et se ferment quand la caisse approche). aL = (type, couleur, taille, hasard). */
-const FOR_LUEUR_VS=['attribute vec4 aL;uniform vec3 uCarP;uniform float uTime,uHante;varying vec2 vQ;varying vec4 vL;varying float vO;',
+const FOR_LUEUR_VS=['attribute vec4 aL;uniform vec3 uCarP,uCam;uniform float uTime,uHante,uLant;varying vec2 vQ;varying vec4 vL;varying float vO;',
   'void main(){vec3 c=(modelMatrix*instanceMatrix*vec4(0.,0.,0.,1.)).xyz;',
   '  vec3 R=vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]),U=vec3(viewMatrix[0][1],viewMatrix[1][1],viewMatrix[2][1]);',
-  '  float op=uHante;if(aL.x>.5){float bl=step(.06,fract(uTime*(.11+aL.w*.07)+aL.w*7.));op*=bl*smoothstep(40.,85.,distance(c,uCarP))*(1.-smoothstep(380.,520.,distance(c,uCarP)));}', // les yeux CLIGNENT, se ferment quand on approche
+  '  float op=uHante;if(aL.x>1.5){float dc=distance(c,uCam);op=uLant*(.88+.12*sin(uTime*3.1+aL.w*40.))*smoothstep(32.,95.,dc)*(1.-smoothstep(480.,820.,dc));}', /* (2026-10-20, embellir) type 2 : les LANTERNES de conte — fixes, ambre, elles ne brillent que le soir, la nuit et sous la pluie */
+  '  else if(aL.x>.5){float bl=step(.06,fract(uTime*(.11+aL.w*.07)+aL.w*7.));op*=bl*smoothstep(40.,85.,distance(c,uCarP))*(1.-smoothstep(380.,520.,distance(c,uCarP)));}', // les yeux CLIGNENT, se ferment quand on approche
   '  else op*=(.75+.25*sin(uTime*9.+aL.w*40.))*(.8+.2*sin(uTime*2.3+aL.w*9.));vO=op;',
-  '  vec3 P=c+(R*position.x*(aL.x>.5?1.6:1.)+U*position.y)*aL.z;vQ=position.xy*2.;vL=aL;vec4 mv=viewMatrix*vec4(P,1.);gl_Position=projectionMatrix*mv;}'].join('\n');
+  '  vec3 P=c+(R*position.x*(aL.x>1.5?1.:aL.x>.5?1.6:1.)+U*position.y)*aL.z;vQ=position.xy*2.;vL=aL;vec4 mv=viewMatrix*vec4(P,1.);gl_Position=projectionMatrix*mv;}'].join('\n');
 const FOR_LUEUR_FS=['varying vec2 vQ;varying vec4 vL;varying float vO;',
   'void main(){if(vO<.003)discard;vec3 col;float a;',
-  '  if(vL.x>.5){float e=abs(vQ.y)/max(.001,1.-vQ.x*vQ.x*.95);a=smoothstep(.55,.25,e)*(1.-smoothstep(.8,1.,abs(vQ.x)));float p=smoothstep(.2,0.,length(vQ*vec2(1.,1.6)));',
+  '  if(vL.x>1.5){float r=length(vQ),co=exp(-r*r*30.),ha=exp(-r*r*3.6)*.62*(1.-smoothstep(.55,1.,r));vec3 hu=vL.y<.5?vec3(1.,.60,.24):vL.y<1.5?vec3(1.,.80,.40):vec3(.96,.30,.62);', /* ambre · or · rose néon (rare) */
+  '    col=hu*1.25+vec3(.9,.8,.62)*co*1.3;a=ha+co;}',
+  '  else if(vL.x>.5){float e=abs(vQ.y)/max(.001,1.-vQ.x*vQ.x*.95);a=smoothstep(.55,.25,e)*(1.-smoothstep(.8,1.,abs(vQ.x)));float p=smoothstep(.2,0.,length(vQ*vec2(1.,1.6)));',
   '    col=(vL.y<.5?vec3(1.,.12,.05):vL.y<1.5?vec3(1.,.62,.08):vec3(.6,1.,.2))*(1.6+2.*p);}',
   '  else{float r=length(vQ);a=exp(-r*r*9.)+.42*exp(-r*r*2.2);col=mix(vec3(.55,.95,.82),vec3(.62,.80,1.),vL.y)*1.35;}',
   '  gl_FragColor=vec4(col*a*vO,1.);}'].join('\n');
 function foretMats(){if(FORET.mats)return FORET.mats;const U=FOR_U,F=THREE.UniformsLib.fog;
   const sm=(vs,fs,o)=>{const m=new THREE.ShaderMaterial(Object.assign({uniforms:Object.assign(THREE.UniformsUtils.clone(F),U,o&&o.u||{}),vertexShader:vs,fragmentShader:fs,fog:true},o&&o.m||{}));m.dispose=function(){};return m;}; // jamais libérées : un seul jeu pour toutes les forêts
   const M={};
-  M.arb=sm(FOR_ARB_VS,FOR_ARB_FS,{u:{uFen:{value:0},uMini:{value:1},uCon:{value:1},uVit:{value:1},uVitL:{value:.95},uVitS:{value:.85},uVitG:{value:new THREE.Color(1,.86,.45)}}});
+  /* ===== LES ARBRES EN WEBGL 1 (24/10, relecture : « les shaders qui lisent fwidth sans l'extension des dérivées ») ===== FOR_ARB_FS lit fwidth (les
+     mini-cubes, le vitrail) : en WebGL 1 il faut GL_OES_standard_derivatives, sinon le programme ne compile pas — plus un arbre, ni géant, ni
+     chaumière, ni rocher, ni abeille. three ne pose la directive qu'en WebGL 1 (en WebGL 2 le programme est le même) ; comme M.pic du glacier. */
+  M.arb=sm(FOR_ARB_VS,FOR_ARB_FS,{u:{uFen:{value:0},uMini:{value:1},uCon:{value:1},uVit:{value:1},uVitL:{value:.95},uVitS:{value:.85},uVitG:{value:new THREE.Color(1,.86,.45)}},m:{extensions:{derivatives:true}}});
   M.sol=sm(FOR_SOL_VS,FOR_SOL_FS);
   M.eau=sm(FOR_EAU_VS,FOR_EAU_FS,{m:{transparent:true,depthWrite:false}});
   M.fleur=sm(FOR_FLEUR_VS,FOR_FLEUR_FS,{u:{uTex:{value:forFleursTex()}},m:{side:THREE.DoubleSide}});

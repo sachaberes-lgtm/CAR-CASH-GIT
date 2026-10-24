@@ -111,3 +111,38 @@ html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv)
 @media (prefers-reduced-motion:reduce){html body #garage#garage #gAct>#gShopBas#gShopBas::before{animation:none}}
 html[data-reduced-motion="1"] body #garage#garage #gAct>#gShopBas#gShopBas::before{animation:none!important}
 </style>
+<style id="tuilesVerre">
+/* ===== LES TUILES EN VERRE (2026-10-24, Léo : « j'aime bien tuiles arrondies… le bleu sur garage, le rouge sur BUY… et la bandelette : inverse le cyan et le rose magenta… mets ces bulles-là ») =====
+   Menu ciel : GARAGE · BUY · SETTINGS (`.mHubPorte`, `.mOffres`, `.mGear` de `#mHome.acc2`) sont des TUILES ARRONDIES (20 px, plus de pente) en
+   VERRE-LOUPE : un contour clair, le ciel qui passe (voile givré, SANS flou de fond), et dedans un reflet bombé en haut à gauche, une traînée diagonale, la lueur
+   de la couleur de la tuile qui monte du bas, un double liseré. `--lk` dose les reflets (1 = marqué). COULEURS : GARAGE bleu #2f80ff, BUY rouge
+   #ff3347, SETTINGS or (inchangé) — les icônes suivent `--nc`. LA BANDELETTE sous CASH CAR : cyan · magenta · or (l'ordre rose · cyan · or, cyan
+   et rose échangés) ; elle ne lit PAS `--livree` (son dégradé est dans `#mHome .mTitle::after`). Le badge NEW reste rose. Le verre-loupe de v858 avait été
+   retiré par Sacha (v863) : c'est cette version-ci que Léo a demandée ensuite (tuiles, pas de parallélogramme — « trop Claude »).
+   Texte en contre-pente : tout enfant des tuiles a `transform:none`. Pas de backdrop-filter : il relit la 3D derrière chaque tuile à chaque image (interdit sur mobile par la charte) — un voile blanc en dégradé le remplace. */
+html{--lk:1}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte){
+  position:relative;isolation:isolate;border-radius:7px!important;clip-path:none!important;animation:none!important;overflow:visible;
+  background:
+    radial-gradient(120% 95% at 16% -12%,rgba(255,255,255,calc(.62*var(--lk))) 0,rgba(255,255,255,calc(.14*var(--lk))) 36%,transparent 57%),
+    linear-gradient(112deg,transparent 0 41%,rgba(255,255,255,calc(.34*var(--lk))) 42% 47%,transparent 48% 54%,rgba(255,255,255,calc(.16*var(--lk))) 55% 58%,transparent 59%),
+    radial-gradient(95% 75% at 86% 118%,color-mix(in srgb,var(--nc) calc(46%*var(--lk)),transparent),transparent 62%),
+    linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.08))!important;
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.8),inset 0 2px 2px rgba(255,255,255,calc(.85*var(--lk))),
+    inset 0 -12px 16px -9px color-mix(in srgb,var(--nc) 60%,transparent),inset 0 0 24px rgba(255,255,255,calc(.22*var(--lk))),
+    0 0 18px color-mix(in srgb,var(--nc) 42%,transparent),0 7px 16px -6px rgba(15,25,70,.32)!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)::before{
+  content:''!important;display:block!important;position:absolute;inset:4px;z-index:-1;pointer-events:none;border-radius:4px;
+  border:1px solid rgba(255,255,255,calc(.34*var(--lk)));box-shadow:inset 0 0 8px rgba(255,255,255,calc(.18*var(--lk)));background:none!important;animation:none!important;transform:none!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)::after{
+  content:''!important;display:block!important;position:absolute;left:9%;top:7%;width:30%;height:17%;z-index:-1;pointer-events:none;border-radius:50%;
+  background:radial-gradient(ellipse at 40% 40%,rgba(255,255,255,calc(.95*var(--lk))) 0,rgba(255,255,255,calc(.35*var(--lk))) 45%,transparent 72%);transform:rotate(-14deg)!important;animation:none!important;opacity:1!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte) :is(span,.pxi,i){text-shadow:0 1px 3px rgba(10,20,60,.7)}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte):is(:active,.appui){translate:0 2px;--lk:1.25}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte){transform:none!important;border-radius:20px!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte) *{transform:none!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)::before{border-radius:inherit!important;inset:5px!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mHubPorte{--nc:#2f80ff!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mOffres{--nc:#ff3347!important}
+html #mHome.on .mTitle::after,html #mHome .mTitle::after{background:linear-gradient(90deg,transparent,var(--neoC) 18%,var(--neoC) 40%,transparent 40.5%,transparent 43%,var(--neoM) 43.5%,var(--neoM) 64%,transparent 64.5%,transparent 67%,var(--au2) 67.5%,var(--au2) 82%,transparent)!important;box-shadow:0 0 14px rgba(0,234,255,.5)!important}
+</style>

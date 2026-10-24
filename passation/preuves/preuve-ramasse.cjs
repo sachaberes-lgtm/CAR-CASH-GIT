@@ -24,7 +24,7 @@
 const fs=require('fs'),vm=require('vm');
 const D='/Users/sachaberes/cash-car/debug';
 const NEUF=process.argv[2]||D+'/wt/ramasse-30/VERSION PRINCIPALE/index.html';
-const VIEUX=process.argv[3]||D+'/integ/VERSION PRINCIPALE/index.html';
+const VIEUX=process.argv[3]||(fs.existsSync(D+'/integ/VERSION PRINCIPALE/index.html')?D+'/integ/VERSION PRINCIPALE/index.html':NEUF); /* (24/10) le worktree debug/integ a été retiré (disque plein) : sans référence ancienne, le fichier testé sert de référence (« référence déjà corrigée », voir plus bas) */
 
 // ---------- EXTRACTION PAR REPÈRES DE TEXTE (comme preuve-balayage) ----------
 function finBloc(t,i0){let d=0;

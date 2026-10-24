@@ -91,7 +91,7 @@ const JADE_RAYON_M=(function(){const m=new THREE.ShaderMaterial({transparent:tru
     '  gl_Position=projectionMatrix*viewMatrix*vec4(wp,1.);}'].join('\n'),
   fragmentShader:['uniform float uTime;uniform vec3 uCol;varying vec2 vP;varying vec4 vWw;varying float vF;',
     'void main(){float ac=1.-abs(vP.x*2.),al=sin((vP.y+.5)*3.1416);float n=.55+.45*sin(vP.y*6.+uTime*.25+vWw.z*20.)*sin(vP.x*9.+vWw.z*7.+uTime*.15);',
-    '  float a=ac*ac*al*n*vWw.w*vF;gl_FragColor=vec4(uCol*a,a);}'].join('\n')});m.dispose=function(){};return m;})();
+    '  float a=ac*ac*al*n*vWw.w*vF;gl_FragColor=vec4(mix(vec3(1.,.62,.84),uCol,smoothstep(0.,.55,ac))*a,a);}'].join('\n')});m.dispose=function(){};return m;})(); /* (2026-10-21, embellie) deux températures : le cœur du rai prend la couleur du soleil (jadeTick : doré au soir, bleu pâle la nuit), ses franges le rose */
 function jadeRayons(L9){ // [x, y, z, largeur, longueur, graine, intensité]
   const P=[],C=[],W=[],I=[];
   for(let k=0;k<L9.length;k++){const q=L9[k],b=P.length/3;for(const v of [[-.5,-.5],[.5,-.5],[.5,.5],[-.5,.5]]){P.push(v[0],v[1],0);C.push(q[0],q[1],q[2]);W.push(q[3],q[4],q[5],q[6]);}I.push(b,b+1,b+2,b,b+2,b+3);}
@@ -100,15 +100,25 @@ function jadeRayons(L9){ // [x, y, z, largeur, longueur, graine, intensité]
 const JADE_ESPRITS=(function(){const N=TEL_NATIF?900:2400,S=700,P=new Float32Array(N*3),A=new Float32Array(N),rg=mulberry32(0xE5B1);
   for(let k=0;k<N;k++){P[k*3]=(rg()-.5)*S;P[k*3+1]=(rg()-.5)*S;P[k*3+2]=(rg()-.5)*S;A[k]=rg();}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));g.setAttribute('aS',new THREE.BufferAttribute(A,1));g.boundingSphere=new THREE.Sphere(new THREE.Vector3(),1e7);
+  /* (2026-10-21, embellie — le DÉTAIL VIVANT de Jade) la même volée de points, trois genres : les lucioles d'avant (elles montent, rondes) ; des PÉTALES rose et or
+     (aS < .16 : ils TOMBENT en tournoyant, ovales) ; des ÉCLATS DE JADE CARRÉS (aS > .90 : de petits pixels de lumière verte, l'écho des cubes). Aucun point de plus,
+     aucun programme de plus, aucun travail par point côté processeur : tout est dans le vertex shader (le genre sort de aS). */
   const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
     uniforms:{uTime:JADE_U.uTime,uCam:{value:new THREE.Vector3()},uPx:{value:1},uK:{value:0}},
-    vertexShader:['attribute float aS;uniform vec3 uCam;uniform float uTime,uPx;varying float vA;varying vec3 vC;',
-      'void main(){vec3 p=position;p.y+=uTime*(1.5+aS*3.5);p.x+=sin(uTime*.3+aS*30.)*14.;p.z+=cos(uTime*.25+aS*20.)*14.;',
+    vertexShader:['attribute float aS;uniform vec3 uCam;uniform float uTime,uPx;varying float vA,vG,vR;varying vec3 vC;',
+      'void main(){vec3 p=position;float pe=step(aS,.16),px=step(.90,aS);',
+      '  p.y+=uTime*mix(1.5+aS*3.5,-(1.1+aS*6.),pe);p.x+=sin(uTime*.3+aS*30.)*14.*(1.+pe*.9);p.z+=cos(uTime*.25+aS*20.)*14.*(1.+pe*.9);',
       '  vec3 rel=mod(p-uCam+350.,700.)-350.;vec4 mv=viewMatrix*vec4(uCam+rel,1.);float d=-mv.z;',
       '  vA=(.35+.65*(.5+.5*sin(uTime*(.8+aS*2.)+aS*50.)))*smoothstep(345.,140.,length(rel))*smoothstep(3.,14.,d);',
       '  float h9=fract(aS*7.31);vC=h9<.45?vec3(1.,.82,.45):h9<.75?vec3(1.,.60,.86):vec3(.62,.96,1.);', // (v17) FÉERIQUE : des lucioles d or, de rose et de turquoise
-      '  gl_PointSize=uPx*(1.9+aS*3.2)*min(8.,340./max(d,1.));gl_Position=projectionMatrix*mv;}'].join('\n'),
-    fragmentShader:['uniform float uK;varying float vA;varying vec3 vC;void main(){float r=length(gl_PointCoord-.5)*2.;float a=(exp(-r*r*4.5)+.35*exp(-r*r*40.))*vA*uK;gl_FragColor=vec4(vC*a*1.25,a);}'].join('\n')});
+      '  if(pe>.5)vC=h9<.5?vec3(1.,.60,.80):vec3(1.,.84,.46);if(px>.5)vC=vec3(.40,1.,.72);',                // les pétales : le rose et l or de la marque ; les éclats : le vert jade
+      '  vG=pe+2.*px;vR=uTime*(.7+aS*2.2)+aS*40.;',
+      '  gl_PointSize=uPx*(1.9+aS*3.2)*(1.+pe*.7)*min(8.,340./max(d,1.));gl_Position=projectionMatrix*mv;}'].join('\n'),
+    fragmentShader:['uniform float uK;varying float vA,vG,vR;varying vec3 vC;void main(){vec2 q=gl_PointCoord-.5;float a;',
+      '  if(vG>1.5){q=abs(q)*2.;float r=max(q.x,q.y);a=(smoothstep(1.,.6,r)*.8+exp(-r*r*3.)*.25)*vA*uK;}',                                  // l éclat : un carré net
+      '  else if(vG>.5){float c=cos(vR),s=sin(vR);q=vec2(c*q.x-s*q.y,s*q.x+c*q.y)*2.;q.y*=2.3;float r=length(q);a=(exp(-r*r*3.5)+.3*exp(-r*r*20.))*vA*uK;}', // le pétale : un ovale qui tourne
+      '  else{float r=length(q)*2.;a=(exp(-r*r*4.5)+.35*exp(-r*r*40.))*vA*uK;}',
+      '  gl_FragColor=vec4(vC*a*1.25,a);}'].join('\n')});
   const pt=new THREE.Points(g,m);pt.frustumCulled=false;pt.renderOrder=6;pt.visible=false;scene.add(pt);return pt;})();
 const JADE_C9=new THREE.Color();
 const JADE_NUAGE_M=(function(){const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,
@@ -171,7 +181,7 @@ const JADE_NUVOX_M=(function(){const m=new THREE.ShaderMaterial({transparent:tru
     '  gl_FragColor=vec4(c,.88*smoothstep(80.,320.,vD)*(1.-smoothstep(7800.,9400.,vD)));}'].join('\n')});m.dispose=function(){};return m;})();
 /* ---- CHAQUE IMAGE : les lumières du niveau dans la matière (une Lambert les lirait d'elle-même), l'horloge, la brume ---- */
 function jadeTick(dt){
-  {const on=!!JADE.root&&LVL.cur&&LVL.cur.id==='jade';if(JADE_ESPRITS.visible!==on)JADE_ESPRITS.visible=on;if(on){const u=JADE_ESPRITS.material.uniforms;u.uCam.value.copy(camera.position);u.uPx.value=renderer.getPixelRatio();u.uK.value=Math.min(1,u.uK.value+dt*.5);}}
+  {const on=!!JADE.root&&LVL.cur&&LVL.cur.id==='jade'&&!JADE_SOBRE;if(JADE_ESPRITS.visible!==on)JADE_ESPRITS.visible=on;if(on){const u=JADE_ESPRITS.material.uniforms;u.uCam.value.copy(camera.position);u.uPx.value=renderer.getPixelRatio();u.uK.value=Math.min(1,u.uK.value+dt*.5);}}
   if(!JADE.root)return;
   if(JADE.photo&&paused&&acesPass){acesPass.uniforms.uSpeed.value=0;loop._sfx=0;}
   if(BALADE&&running&&!gameOver){
@@ -189,6 +199,7 @@ function jadeTick(dt){
   for(let i9J=0;i9J<2;i9J++){const M9=i9J?JADE.pont:JADE.porte;/* (2026-10-14, passe perf mobile) même ordre (porte, pont), sans tableau neuf par image */if(!M9||!M9.mF)continue;const d=camera.position.distanceTo(M9.c),n=d<(M9===JADE.porte?780:650)+(M9.pres?40:0); // (v8) de près, les cubes fins
     if(n!==M9.pres){M9.pres=n;for(const m of M9.mF)m.visible=n;for(const m of M9.mL)m.visible=!n;}}
   JADE_U.uSunC.value.copy(sun.color).multiplyScalar(sun.intensity);
+  {const rc=JADE_RAYON_M.uniforms.uCol.value,v9=JADE_U.uSunC.value,m9=Math.max(v9.r,v9.g,v9.b,1e-3),k9=Math.min(1,.5+.5*m9)/m9;rc.setRGB(v9.r*k9,v9.g*k9,v9.b*k9);} /* (2026-10-21, embellie) les rais prennent la couleur du soleil du moment (doré au soir, bleu pâle la nuit) — trois flottants, rien d'alloué */
   JADE_U.uSky.value.copy(hemi.color).multiplyScalar(hemi.intensity);JADE_U.uGnd.value.copy(hemi.groundColor).multiplyScalar(hemi.intensity);
   JADE_U.uFillC.value.copy(fill.color).multiplyScalar(fill.intensity);JADE_U.uFillD.value.copy(fill.position).normalize().negate();
   JADE_U.uMist.value.fromArray(BIO.cur.jdB||[.86,.87,.82]);
@@ -230,7 +241,7 @@ function grueVol(){grueGeos();
     GRUE.L.push({g:g,wl:wl,wr:wr,v:dir.clone().multiplyScalar(sp),ph:k*.35+Math.random()*.3,life:42});}
 }
 function grueTick(dt){
-  const ici=!!JADE.root&&LVL.cur&&LVL.cur.id==='jade'&&mode!=='boom';
+  const ici=!!JADE.root&&LVL.cur&&LVL.cur.id==='jade'&&mode!=='boom'&&!JADE_SOBRE;
   GRUE.t-=dt;if(ici&&GRUE.t<=0&&GRUE.L.length<20){grueVol();GRUE.t=16+Math.random()*16;}
   const t=JADE_U.uTime.value;
   for(let i=GRUE.L.length-1;i>=0;i--){const b=GRUE.L[i];b.life-=dt;if(!ici)b.life=0;

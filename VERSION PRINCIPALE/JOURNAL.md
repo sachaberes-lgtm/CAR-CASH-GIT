@@ -3,6 +3,143 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA RELECTURE LIGNE À LIGNE DE TOUT LE CODE (2026-10-24, v887, session DÉBOGAGE — Sacha : « continue à déboguer, je suis sûr qu'il y a encore plein de bugs cachés, explore chaque ligne de code »)
+- **LA MÉTHODE** : 15 agents, chacun un lot de `code/` lu ligne à ligne (gameplay ×2, moteur + sauvegarde + page, économie + missions + son, interface ×2, rendu,
+  maps ×3, voitures logique, dessins des voitures ×2 en lecture seule — ils sont à Léo —, CSS). Un bug = un scénario concret prouvé : chaque correctif a sa
+  preuve node dans `passation/preuves/` (KO sur l'ancien index, OK sur le nouveau) — 33 preuves, toutes vertes. Worktrees allégés (sparse : code/, index.html,
+  preuves) à cause du disque plein. En plus : trois balayages automatiques sur tout le jeu (ESLint à fort signal, `//` qui avale du code, fonction déclarée
+  deux fois — outils dans la mémoire « balayages statiques »). Banc d'ensemble : démarrage et écrans debout/couché, 12 maps, contexte 3D perdu, cadre de
+  l'ordi : 0 erreur (hors le 404 connu de `dark-triad.mp3`).
+- **CORRIGÉ** (le joueur le voyait) :
+  - la RÉVÉLATION d'une secrète (plein écran) couvrait l'offre CONTINUER de la seconde chance (5,5 s) : elle attend la fin de l'offre et de la machine FINAL SPIN (`missions/ecran-revelation.js`, `economie/final-spin.js`) ;
+  - restaurer un code depuis la PAUSE versait la partie en cours dans la sauvegarde restaurée ; sur le SITE, « Restaurer un code » du menu ordinateur rendait un compte vide : refusé comme au téléphone (`moteur/mobile-tactile.js`, `interface/menu-logo.js`) ;
+  - un appel ou Siri pendant le 3-2-1 de REPRENDRE : la caisse repartait seule (`moteur/mobile-tactile.js`) ;
+  - l'AUTO-ÉCOLE continuait sous la pause (consigne suivante, permis +500 $ et fanfare sous l'écran de pause ; minuteur d'une leçon recommencée) (`interface/auto-ecole.js`) ;
+  - une figure sur la route ou une descente de pose interrompue était payée au départ suivant et bloquait le saut nitro (`interface/jus-echelle.js`, `respawn`) ;
+  - un choc « ignoré » sous le bouclier de la seconde chance coupait le demi-tour et vidait l'aura du SLIDE (`gameplay/mort.js`) ;
+  - en WebGL1 (vieux navigateurs) : plus de ciel (`rendu/scene-ciel.js`), plus d'arbres en forêt (`maps/foret-decor.js`), matières de la richesse (`interface/richesse-1.js`) ;
+  - sur iOS < 16.4 : trois `@media not (…)` de niveau 4 ignorés → le HUD portrait (triade, chrono de vol, plaque d'astuce) mal placé ; badge « RECORD ! » rose sur rose sans color-mix (`css/hud-da.css`, `css/hud-maitrise.css`) ;
+  - les réclames de la ville gardaient l'ancienne langue (`maps/ville-v3.js`) ; aux Pics de Jade une montagne en chute sautait au retour de pause (`maps/jade-3.js`) ;
+  - FINAL SPIN sans « FORTUNE MAX » ; « $ NaN » sur une vitrine du jour gardée ; « 0:60 » du Survivant (ordi et téléphone) ; son de l'intro 1.61 (toucher tôt, arrière-plan) ;
+    bannière « NIVEAU » après une course quittée ; touche Retour du clavier iPhone au Top 10 ; Entrée sur RETOUR dans l'atelier de la plaque.
+- **TROUVÉ, À TRANCHER PAR SACHA / LÉO** (rien de modifié) : chez Léo — la nappe sonore de la BOUTIQUE 3D jamais débranchée et son souffle muet (un `//`
+  avale `ah.connect…air.start()`, `interface/boutique-scene-1.js:122`) ; LA PERLE à carrosserie doublée après un changement de type de peinture
+  (`voitures/perle.js:338/345`, correctif testé dans `.banc-sortie/archives/v3-v2b/correctifs-proposes.diff`) ; lunette arrière de LA CABOSSÉE avalée par
+  un `//` (`simpson.js:212`) ; le geste au tap du menu écrasé par la préchauffe de la Cerise et LA BÊTE jamais préchauffée (`japonaises-2.js`) ; double
+  éternuement d'ATCHOUM après une pause ; roues chromées de LA BULLE et du ROUGE-GORGE. Ailleurs — `dnGeos2` déclarée deux fois (diable de sable et mur de
+  tempête des dunes invisibles depuis le 21/10) ; « RECORD » au lieu de « BEST SCORE » en anglais ; missions « collecte tout » qui comptent des objets en
+  euros ; RECOMMENCER garde la progression de mission de la partie abandonnée ; plaque par défaut fausse pour `zh-Hans-CN` & co ; secousse renforcée de la
+  mort jamais appliquée ; mur invisible de la salle du portail du tunnel de grès ; prix de l'« ATH » de CRYPTO CITY sans fin ; cible iOS 15.0 contre `:has()`
+  (JOUER et ACHETER superposés au garage sur iOS 15.0-15.3), container queries et color-mix.
+- **DISQUE** : le Mac est tombé à 266 Mo libres pendant la relecture ; sur le oui de Sacha, 110 worktrees d'anciennes sessions (fusionnés, propres, inactifs) retirés, branches gardées → 12 Go.
+## LE TÉLÉPHONE AU FRAIS (2026-10-24, v885, session PERF-PC — Sacha : « trouve un moyen de ne plus le faire chauffer » ; à la question du menu à 30 i/s : « oui, 30 i/s hors course »)
+- **POURQUOI** : sa partie enregistrée sur l'iPhone 13 Pro (enregistreur `?perfrec`, 164 s, ville > espace > nuages > banquise) : 30-40 i/s dès la 1re minute, 17-22 à la fin, qualité au
+  cran 9, densité 1,25 ; la session OPTIMISATION MOBILE mesure le bridage thermique (~×2 au bout de 3-4 min). Tout ce que le téléphone calcule pour rien hors course le chauffe pour la
+  partie suivante.
+- **LE CORRECTIF** (`PFR_ON`, `code/rendu/nettete-qualite.js` ; VRAI téléphone seulement — TEL_NATIF —, tous paliers ; l'ordi ne change pas ; `?frais=0` = avant) :
+  - l'ACCUEIL, le GARAGE et la BOUTIQUE à 30 i/s (le `hors30` des vieux paliers — HC, `code/moteur/cadence.js`, appelé en tête de loop par `boucle-1.js`) ;
+  - l'ÉCRAN DE FIN à la résolution de la course (`PCM_ON` étendu au téléphone : la vitrine HD ne s'allume plus sous le voile à 90 % ni à chaque mort/REJOUER) ;
+  - la SCÈNE DERRIÈRE L'ÉCRAN DE FIN une image sur deux au moins (`mortImg`). La COURSE n'est pas touchée (la cadence 30 « si chaud » en course est le chantier de la session téléphone).
+  Accord de la session OPTIMISATION MOBILE pour ses tables (vhdMort, mortImg) ; aucune table PAL ni QL modifiée.
+- **VÉRIFIÉ** (Chrome sans fenêtre, iPhone couché émulé 844 × 390 × 3) : accueil 60 → 30 images dessinées par seconde ; course 60 (inchangée) ; écran de fin toile 1740 × 804 + ombre 2048 →
+  1266 × 585 + 1024, carte graphique 10,6 → 2,3 ms par image ; aucune erreur. La température sur le vrai iPhone : mesure de la session téléphone (CC BANC).
+
+## LES TUILES DE VERRE SANS FLOU (2026-10-24 soir, Léo : « ça serait mieux de faire quoi pour que ça rame pas, en gardant l'idée » · « sans flou, voile givré (n°2) »)
+- **LA CAUSE** : les tuiles GARAGE · BUY · SETTINGS portaient `backdrop-filter:blur(5px) saturate() brightness()` — le navigateur doit relire l'image de la 3D qui tourne derrière chaque tuile à chaque image ; la charte de l'interface l'interdit sur mobile (« zéro backdrop-filter », `body.touch #overlay` le remet à `none`). Mesure impossible ici (rendu logiciel plafonné à 30 i/s, avec et sans flou identiques) : le gain est à confirmer sur un vrai iPhone (`?banc=1`).
+- **LE CORRECTIF** (bloc `tuilesVerre` de `code/css/boutons-flottants.css`) : plus de `backdrop-filter` ; la dernière couche du fond passe de `rgba(255,255,255,.06)` à `linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.08))` (le « voile givré »). Reflets, double liseré, lueur de couleur, bleu / rouge / or : inchangés. Vu : sur ciel dégagé, la différence avec le flou ne se voit pas ; seul un nuage qui passe pile derrière n'est plus adouci.
+- Si ça rame encore : le menu rend la 3D à pleine densité d'écran (`VHD`, voir « L'ACCUEIL EN HAUTE DÉFINITION »), c'est le plus gros poste du menu.
+
+## LE 1er LANCEMENT — LA BANQUE DE SONS EN DEUX MOITIÉS (2026-10-24, session PERF, 4e tour — Léo : « lance tout ce qui semble stratégique »)
+- **MESURÉ sur le vrai site** (iPhone simulé, processeur ×4, cache froid, `?garde=1`, banc `tlance.py`) : le 1er lancement télécharge 8,4 Mo (`sons-banque.js` 4,9 Mo, la page 1,7, un ciel 0,9) ;
+  le menu jouable arrive à 18,5 s en 4G rapide (10 Mbit/s : le processeur domine) mais à **57 s en 4G lente (1,6 Mbit/s)** — 28 s sans la banque : elle est un script `defer`, la page attend sa fin.
+- **LE CHANGEMENT** : à la publication seulement (`outils/scinde-banque.cjs`, appelé par `vercel-build.sh` ; le fichier du dépôt reste ENTIER : cuire.js le relit, `sons.html` et la salle
+  blanche le chargent tel quel) la banque devient `sons-banque.js` (les fiches + les sons `pre:1` + l'étalon : 110 fiches, 0,82 Mo) et `sons-banque-2.js` (288 fiches, 6,9 Mo, ~4,3 Mo transférés).
+  `sfx.js` (?v=7) charge le 2e fichier APRÈS l'événement load, au repos (`suite`, 3 essais), et ses sons entrent dans la même file de décodage (`CCSON.ajoute`) ; un son pas encore là : `play()` se tait,
+  comme avant pour un son pas encore décodé. La preuve est faite à chaque publication : l'union des deux fichiers relue = la banque d'origine, octet pour octet (sinon la banque part entière).
+  Le fichier de la copie publiée garde son URL (`?v=38`) : un joueur qui a déjà la banque entière en cache ne retélécharge rien.
+- **VÉRIFIÉ** : copie réellement construite par `vercel-build.sh` (allégée, scindée) servie en local : 397 sons sur 397 décodés en 21 s à 10 Mbit/s ; menu au même instant (19 s) ; en 1,6 Mbit/s
+  (copie non allégée, locale) menu **107 → 74 s**, les 109 sons du début décodés avant le menu, 397/397 à 120 s (la banque entière : 109 s). Sur le vrai site, la 4G lente devrait passer de ~57 s à ~30 s.
+- ⚠ Une publication sans la scission (ou en cas d'échec de l'outil) marche comme avant ; `?` rien à régler. Une banque recuite (`cuire.js`) change `?v=` comme toujours.
+
+## LE HUD QUI NE RAME PLUS SUR L'IPHONE + L'ENREGISTREUR DE PARTIES (2026-10-24, v876, session PERF-PC — Sacha : « sur la version mobile l'HUD prend trop de capacité, règle ça » · « lors des tests la voiture reste conduite sur le sol alors qu'une grosse partie du jeu se joue en voltigeant dans les airs ; fais un mode où c'est moi qui joue en voltigeant et toi tu récupères de la data »)
+- **LE DIAGNOSTIC** (session OPTIMISATION MOBILE, iPhone 13 Pro de Sacha DANS L'APP, banc CC BANC, palier RÉCENT, 35 s de course) : course normale 58,0 i/s et 63 images > 25 ms ;
+  TOUTES les animations CSS figées 59,7 i/s et 9 ; HUD masqué pareil ; le JS par image identique (2 ms) → c'est WebKit qui refait style + peinture à chaque image pour les
+  animations INFINIES du HUD sur des propriétés non composées (box-shadow, filter, background-position). Sur Chrome PC le plafond n'est que ≤ 1 ms par image.
+- **LE CORRECTIF** (`html.han`, posée par `code/page/tete.html` ; `?hudanim=0` = les anciennes animations, A/B dans la même page) : refaites en transform / opacité, les anciennes
+  règles intactes à côté — la plaque des pouvoirs `.pw` (k5PwBat : deux pseudo-éléments dont seule l'opacité bat ; la jauge `u` sur son calque), le reflet et les éclats de `#flowHud`
+  (calque 3× plus large en translateX dans `.fSeg` qui coupe déjà), « à portée » et la brûlure de la zone rouge (copie éclaircie en opacité), `#avRec` presque / battu, le chrono de vol
+  (rayures de l'air infini, secondes critiques), `#campChip.alerte`, le RECORD des figures, et `#popTxt` / `#engBig` placés par `translate` au lieu de top/left (plus de mise en page
+  par image pendant un geste). Laissé : les `hue-rotate` (avArc, drgHue), le × en feu `hmFeu` (essayé : Chrome passe par un halo rouge à mi-battement, irreproductible), fLache3/hmArme,
+  hmEncore, hmChronoRec, frBrule de `#frenTraits`, toute la zone NITRO (session téléphone).
+- **PREUVE D'IMAGE** (`perf-pc/.banc-pc/preuve-hud.mjs`, dossier de travail : ancien contre neuf, boucle coupée, toile 3D et film masqués, chaque état forcé, animations figées aux
+  phases 0 / ¼ / ½ / ¾ / 0,9, pixels qui diffèrent) : reflet du flow, frénésie, popTxt, engBig, × en feu 0 ; plaques, flow, aura, air, RECORD ≤ 0,8 % de pixels à écart > 32 (fondus
+  de lueurs, bord de la jauge `u` à ⅓ px) ; `#campChip.alerte` 2,6 % — c'est l'ANCIEN qui se trompe sur PC (Chrome ne zoome pas l'ombre animée dans le cadre zoomé), pas l'iPhone.
+- **MESURÉ SUR L'IPHONE** (CC BANC, même piste `?pistegraine=777`, nuages midi, 3 passes par bras alternées) : `?hudanim=0` 55,2-56,7 i/s, 71-113 images > 25 ms (moy. 93) ;
+  défaut 57,9-59,4 i/s, 18-53 (moy. 38) : **+2,7 i/s, −59 % d'images ratées**. Reste ~40 images ratées par course, dont la zone nitro (à la session téléphone).
+- **L'ENREGISTREUR DE PARTIES** (`code/moteur/enregistreur-perf.js`, `PREC`) : allumé par `?perfrec=1`, par `localStorage.ccPerfRecOn='1'` (l'appli n'a pas d'adresse) ou
+  `dbgPerfRec(1)`, il note chaque image de course — durée, temps du jeu avant le dessin, PHASE (sol / vol / figure), map, palier, crans QL, densité, cadence 30 — et range chaque
+  course finie dans le téléphone (`localStorage.ccPerfRec`, les 15 dernières). Relevé : `dbgPerfRec('resume')` (une ligne par course et par phase) ou `dbgPerfRec()` (tout : histogrammes,
+  images > 40 ms avec instant, phase, map, vitesse ; une ligne par seconde). Éteint : aucun rappel d'image, zéro coût. Essai au banc PC : sol 53 i/s, vol 50, figure 50 — les phases
+  de vol que le pilote des bancs ne montrait jamais.
+
+## LE PALIER DE L'IPHONE LU SUR SON ÉCRAN — MESURÉ DANS L'APP, SUR LE VRAI TÉLÉPHONE (2026-10-24, v873, session Optimisation mobile — Sacha : « grosse session d'optimisation du jeu, il faut que la version mobile soit parfaite » · « je veux que tu fasses l'app »)
+- **LE BANC DANS L'APP** (`optim-mobile/.banc-optim/`, non suivi) : « CC BANC » (`com.sachaberes.carcash.banc`) = la copie de l'app de `sortie-ios/appstore` (Capacitor 8),
+  www/ refait par son `preparer-www.js --essai` sur n'importe quel VERSION PRINCIPALE, installée À CÔTÉ de CASH CAR (la vraie app et la sauvegarde de Sacha ne sont pas touchées).
+  `banc-app.js`, posé juste après natif.js : au lancement il demande un scénario au Mac (`chef.mjs`, port 8931, par le partage de connexion), recharge avec ses paramètres
+  d'adresse (`history`/`location.replace` : `?carte=`, `?palier=`…), passe l'intro, JOUER, `dbgAuto(1,0,{nit:1})`, relève CHAQUE image (intervalle de rAF + temps JS des rappels)
+  et `dbgPerf`/`dbgQual`/`dbgCout`/`getAnimations()`, puis renvoie le bilan — SANS inspecteur branché. Le chef ferme l'app après chaque course et attend que la batterie
+  redescende (`pymobiledevice3 diagnostics battery`, en USB). L'inspecteur WebKit de l'app passe par `pymobiledevice3 webinspector cdp` (pont CDP : Runtime, Profiler, Tracing).
+  ⚠ Le téléphone CHAUFFE (alerte Température vers 16 h : jeu + charge + partage de connexion) : iOS bride alors processeur et puce graphique ; mesurer à < 37 °C.
+- **LE DÉFAUT** : le banc CPU de PAL (le meilleur de 4 tours, au démarrage) rend 16 à 22 ms sur l'iPhone 13 Pro au 1er lancement (le compilateur de JavaScript n'est pas
+  encore passé, le téléphone chaud), 3 à 8 ms une fois chaud → classé ANCIEN et RETENU 7 jours (`cashcarPalier`) : cadence 30 dès le départ, échelle QL au cran 4-5, DPR 1,25.
+  Le même iPhone tombait ANCIEN ou RÉCENT d'un lancement à l'autre. Et WKWebView comme Safari 26 écrivent « iPhone OS 18_7 » sous iOS 26 : la règle « iOS 26 → au moins
+  MOYEN » ne jouait jamais. (L'app du 14-19/10, branches iphone-perf/iphone-max, recevait le modèle exact de Swift — `window.__ccAppareil` — ce n'est plus dans l'app App Store.)
+- **LA CORRECTION** (`PAL`, `code/rendu/palier-appareil.js`) : la taille d'écran de l'iPhone (points, portrait) et sa densité désignent sa génération — RÉCENT : 360×780,
+  390×844, 428×926, 393×852, 430×932, 402×874, 440×956, 420×912 (×3) et toute taille inconnue ×3 de 390 et plus ; MOYEN : 414×896 (XR, 11, XS Max, 11 Pro Max) ;
+  ANCIEN : 320×568, 414×736 ×3 ; douteux (375×667 ×2, 375×812 ×3, Zoom de l'écran) : le banc comme avant. « Version/26 » de Safari relève `P.ios`. `?palier=` d'abord,
+  l'ordinateur inchangé, le palier 2 lui-même inchangé (règle d'or). `?palecran=0` = l'ancien choix ; `dbgPalier().src` dit « écran 390×844 ×3 ».
+- **MESURÉ** (CC BANC, iPhone 13 Pro, volcan, 35 s de course pilotée nitro, batterie 27-36 °C) : AVANT (classé ANCIEN) 33,6 images calculées/s (cadence 30), DPR 1,25, cran 4-5 ;
+  APRÈS (« écran 390×844 ×3 ») 58,4 à 59,3 i/s, DPR 1,5, cran 0, JS méd 2 ms / p90 3 ms par image, 14-16 % du temps en JS ; nuages midi 57,0 i/s. DPR 0,5 forcé : 59,6
+  (la puce graphique ne limite pas). Démarrage de l'app : prêt (`__gameReady`) à 1,6-2,4 s d'un lancement chaud, 9,7 s au 1er lancement après installation.
+- **CE QUI RESTE AU RÉCENT** (mesuré, pas touché ici) : 23 à 63 images > 25 ms par 35 s de course viennent des ANIMATIONS CSS du HUD (toutes figées : 9 ; figer
+  seulement la zone nitro OU seulement le reste suffit presque : 10-11) — la conversion des animations hors nitro est chez PERF-PC ; la zone nitro (#tNitro : 181 repeints
+  en 8 s de trace, le plus repeint après la 3D ; rayures `nbRaye` en background-position, bout `nbBout`, `hmSec`) reste à faire. Les gerbes `pxBurst` (12 à la fois).
+
+## LES TUILES EN VERRE DU MENU CIEL, GARAGE BLEU / BUY ROUGE (2026-10-24 soir, Léo : « j'aime bien tuiles arrondies » · « le bleu sur garage et le rouge sur BUY » · « inverse le cyan et le rose magenta » · « mets ces bulles-là »)
+- **POURQUOI** : la copine de Léo trouvait les trois boutons penchés (parallélogramme) « trop Claude ». Trois familles de formes essayées (A tuiles arrondies, B formes par fonction : arche · panier · pilule, C lentilles ovales) ; Léo garde A. Le verre-loupe de v858, retiré par Sacha en v863, revient ici sous la forme de TUILES ARRONDIES (20 px, plus de pente) : bloc `<style id="tuilesVerre">` dans `code/css/boutons-flottants.css`, après celui de la lueur de la boutique.
+- **COULEURS** : GARAGE bleu #2f80ff, BUY rouge #ff3347, SETTINGS or (inchangé) — via `--nc` sur `.mHubPorte` / `.mOffres`, les icônes suivent. Le badge NEW reste rose.
+- **LA BANDELETTE sous CASH CAR** : cyan · magenta · or (avant : rose · cyan · or, cyan et rose échangés). Elle ne lit PAS `--livree` : son dégradé est dans `#mHome .mTitle::after`, repris dans le même bloc.
+- Vérifié (Chrome, portrait 390×844 et paysage 844×390, vrais touchers) : GARAGE, BUY et SETTINGS s'ouvrent, aucune erreur JS. Le flou de fond (`backdrop-filter`, 5 px) est à mesurer sur un vrai iPhone (la 3D tourne derrière). Pas de paramètre d'URL pour revenir aux anciens boutons : retirer le bloc `tuilesVerre`.
+
+## LA PASSE PERF DU 24/10, 3e TOUR — LA GROTTE ET LES DUNES BÂTIES D'AVANCE SANS À-COUPS (2026-10-24, session PERF — Léo : « observe tous les changements qui ont été faits depuis et relance une petite séance de révision… une meilleure optimisation, le jeu doit tourner sans bugger sur iPhone ou Android, absolument pas que le jeu devienne de moindre qualité ») — v869
+- **PORTÉ SUR LE MAIN MODULAIRE** : ce travail avait été fait le 19/10 sur l'ancien `index.html` d'un seul tenant et n'avait jamais été poussé ; le main a depuis
+  reçu la passe PERF du 24/10 (canyon d'avance, ciel des reflets, routes en tranches, REJOUER sans gel) et le découpage en `code/` : les changements sont refaits
+  morceau par morceau (`code/maps/grottes-*.js`, `dunes-1.js`, `nuages-v8.js`, `nuages-vitrail.js`, `code/moteur/piste-prebati.js`, `depart-avance.js`, `code/interface/`), image identique.
+- **LE TOUR DE MESURE** (banc `~/Downloads/CAR-bancs/perf-3/` : Chrome sans fenêtre en iPhone 390 × 844 ×3, NETTE, processeur ×4, `?palier=2&garde=1`, les 12 maps à la file,
+  portails traversés pour de vrai — `dbgClassique` + `dbgPortail(2600)`) : 0 programme compilé en course sur les 12 maps (la matière des tremplins du glacier, qui compilait
+  à la 1re entrée le 19/10, est revenue d'elle-même au programme du verglas). Ce qui figeait encore :
+  1. **LA GROTTE** — son pré-bâti (3 à 5 s de calcul ×4, 3 à 10 × une autre map) se faisait par blocs de 40-150 ms (le maillage d'un tronçon, huit creusements d'un trait) :
+     8 à 15 images de 100-283 ms pendant le vol qui la PRÉCÈDE ; et derrière une map lourde (la jade) elle n'était pas finie au portail → le reste d'un trait, 0,6 à 1 s figées.
+  2. **LES DUNES** — le monde (`dnMondeCalc` : fond, relief fin, ombre) se calculait d'un bloc au 1er JOUER (0,5 à 1 s figées ×4) ou partait au travailleur APRÈS le passage.
+  3. **LES NUAGES** — la toile des cubes fantômes (8 000 cubes × 12 `toHalfFloat`) se remplissait sur le fil principal à l'arrivée de chaque nuage (~10 ms ×4 par départ).
+  4. **LE JOUER D'APRÈS PARTIE** — la caisse était bâtie deux fois dans la même image (closeGarage, puis resetGame : 25-30 ms ×4 chacune).
+- **CE QUI CHANGE** : `grtMailleNetsG`/`grtTronconG` (le maillage d'un tronçon en générateur à rendez-vous `JF.lim` ; `grtMailleNets`/`grtTroncon` restent d'un trait pour les tranches
+  en course) et un rendez-vous après CHAQUE creusement dans `buildGrotteG` ; l'URGENCE dans `prebTick` (la map d'en face pas finie à moins de 10 s du portail : tranche de 9 ms,
+  à moins de 5 s : 14 ms ; sinon 3-6) ; LES DUNES D'AVANCE (`prebDunes`, `buildDunes(seed,pre)` : la préparation sur la route fantôme — le module DN échangé EN ENTIER (`prebObj`),
+  seules les clés CHANGÉES gardées —, le calcul du monde chez le travailleur des dunes, attendu image après image, posé au départ ; pas arrivé à temps ou `?dnw=0` : comme avant) ;
+  `nufDemi` (la même conversion en demi-flottants que `THREE.DataUtils.toHalfFloat`, faite dans l'ouvrier des nuages ; `nuage8Async(…,dyF)`) ; `closeGarage(resetSuit)`.
+- **VÉRIFIÉ** : `nufDemi` contre `toHalfFloat` sur 6 millions de valeurs (aléatoires de 2⁻⁴⁰ à 2⁴⁰, zéros, infinis, NaN, sous-normaux, trois décalages) : 0 bit de différence ;
+  le monde des dunes (`tdn.py` : fond, relief, ombre, échantillons, vent, lèvres, raccourcis, monuments, pyramides, tirage du décor, uniformes de la matière) identique au bit près
+  au JOUER et au REJOUER contre le main ; fumée déterministe (`tsmoke.py`) debout et couché — JOUER, REJOUER, JOUER de l'atelier : 0 erreur, la même caisse (5 pièces, 18 947 sommets).
+- **MESURÉ** (×4, A/B alterné, charge 2 à 7 ; plus tard la machine est montée à 14-37 : ces manches-là sont jetées) : pire image du JOUER des dunes **1 000 → 408 ms** (construction
+  722/523 → 119/104 ms), du REJOUER 458 → 225 ; l'approche de la grotte après la jade — excès au-delà de 50 ms **7 402 / 1 518 → 618 / 317 ms**, images > 100 ms 29 / 10 → 3 / 2 ;
+  la jade qui la précède 2 images > 100 ms → 1. Les nuages : un gain réel mais petit (~10 ms de fil principal par départ), dans le bruit des mesures.
+- ⚠ **LE BANC** : un `http.server` lancé AVANT un `git checkout` sert un dossier supprimé (page qui ne démarre jamais, sans erreur) — relancer ses serveurs ; la référence d'un A/B se
+  tire du MÊME commit que la branche (une copie plus récente change l'écran de mort : le MENU y ouvre le garage, plus l'accueil) ; mesurer quand `uptime` < 8.
+- **CE QUI RESTE** : les NUAGES ne sont pas bâtis d'avance (`buildClouds` ~45 ms ×4 au JOUER et au portail des nuages) ; la VILLE (`buildVoxCity` ~35 ms) ; `chauffeRendu` au portail
+  (40-105 ms, voulu) ; la Porte de jade (~50 ms) ; la grotte elle-même (4 s ×4 de calcul : le vrai remède serait de la mailler dans un ouvrier). À départager sur un VRAI iPhone :
+  `…/jouer/?banc=1&refaire=1`.
+
 ## LES ANCIENS BOUTONS DU MENU REMIS (2026-10-24, Sacha : « dans l'écran principal il y a des nouveaux boutons horribles, remets les anciens »)
 - Le bloc « verre en loupe » de v858 (GARAGE · BUY · SETTINGS en lentilles transparentes) est retiré de `code/css/boutons-flottants.css` : les touches reprennent leur look d'avant. La lueur d'angle de la BOUTIQUE du garage (même v858) reste.
 

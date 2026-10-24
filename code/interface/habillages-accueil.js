@@ -67,7 +67,10 @@ function openGarage(quiet){
   if(GAR.aMis){GAR.aMis=false;garMode('missions');}
   GAR.vueT=0;GAR.vueNeuve=true; // (2026-10-06) LA MISE EN PLACE : l'atelier qui s'ouvre pose son plan d'un coup (voir garageRender) — (2026-09-30) la porte des MISSIONS, venue d'ailleurs (écran de mort…) // (2026-09-30) ouvert par l'ACCUEIL = le menu ; par un autre chemin (mort → GARAGE, missions, objectif) = la boutique
 }
-function closeGarage(){
+/* (2026-10-24, passe perf 3e tour) resetSuit : resetGame suit DANS LA MÊME IMAGE (le JOUER après une partie, au bout du piqué ou du lâcher) et
+   rebâtit la caisse équipée (buildCar) — la caisse « du menu » que closeGarage remettait n'était jamais dessinée : une construction de caisse
+   de moins (26-30 ms ×4 MESURÉS) au JOUER d'après partie. La caisse dessinée est la même : celle de resetGame. */
+function closeGarage(resetSuit){
   GATL.on=false;GATL.c=GATL.cs=GATL.l=GATL.p=0;if(gEl)gEl.classList.remove('atelierInv');BRB.p=0;BRB.plan=null;BRB.TP=null;BRB.attente=null;BRB.libre=null;BRB.joue=false;BRB.yaw=0;BRB.cK=BRB.cY=0;if(BRB.g)BRB.g.visible=false; /* (2026-10-19) le bras des figures non plus */ // (2026-10-12) l'ATELIER FERMÉ ne survit pas au garage
   try{gVueSeule(false);}catch(e){} // (2026-10-10) l'ŒIL ne survit pas à l'atelier
   try{burnCoupe();}catch(e){} // (2026-10-05) le burn-out ne survit pas à l'atelier
@@ -79,7 +82,7 @@ function closeGarage(){
   try{if(openGarage._amb){openGarage._amb.stop(.35);openGarage._amb=null;}}catch(e){}
   try{if(openGarage._feu){openGarage._feu.stop(.35);openGarage._feu=null;}}catch(e){}
   trailApercu(0,false);
-  if(SHOP.prev||SHOP.tab!=='voiture'){SHOP.prev=null;SHOP.tab='voiture';buildCar(CARS[equippedCar()]);} // l'essai ne sort pas de l'atelier
+  if(SHOP.prev||SHOP.tab!=='voiture'){SHOP.prev=null;SHOP.tab='voiture';if(!resetSuit)buildCar(CARS[equippedCar()]);} // l'essai ne sort pas de l'atelier
   paintEnv(BIO.to.env,BIO.to.eS1,BIO.to.eS2); // (2026-09-26) on rend à la laque le ciel du biome (l'atelier l'avait repeint en studio)
   finLaque(false); // (2026-10-20) le vernis de course (voir finition.js)
   bioApply(BIO.cur); // ⚠ (2026-09-24) le garage/l'étal écrasent le ciel chaque frame (nuit étoilée) : on rend la main au BIOME en sortant, sinon la 1re course gardait leur ciel
@@ -97,7 +100,7 @@ function closeGarage(){
   atelierLampes(false);stallKey.intensity=0;stallRim.intensity=0;
   sunSprite.visible=true;horizonGlow.visible=true;for(const r9 of RAYS)r9.visible=true; // le soleil revient sur la piste
   if(pigGroup)pigGroup.visible=true;
-  buildCar(CARS[level||0]);                 // remet la caisse du menu
+  if(!resetSuit)buildCar(CARS[level||0]);   // remet la caisse du menu (resetSuit : resetGame la rebâtit dans la même image)
   camera.up.set(0,1,0);
   frameAt(0,F);camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4);camera.lookAt(F.p);
   document.body.classList.remove('garMenuH');overlay.style.display='flex';

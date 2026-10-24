@@ -1,6 +1,10 @@
 # CASH CAR — la carte du code (à lire en premier)
 
 CASH CAR est un runner arcade 3D (three.js) pour téléphone : on conduit une caisse sur une route suspendue dans le ciel, on vole, on ramasse de l'argent et on achète des voitures au garage.
+`ROBLOX/` est un autre jeu, le portage Roblox : un commit ROBLOX ne change pas le jeu web.
+**L'APP iOS** (2026-10-13, branche `ios-capacitor`) n'est pas un autre jeu : `app-ios/` = Capacitor 8, appId `com.sachaberes.carcash`.
+Son `www/` est GÉNÉRÉ depuis `VERSION PRINCIPALE/` (`cd app-ios && npm run sync`, jamais à la main) ; la colle native vit dans
+`app-ios/natif/natif.js` (inerte hors de l'app). Mode d'emploi : `app-ios/LISEZ-MOI.md` ; état et décisions : `passation/APP-STORE.md`.
 
 ## Quel fichier fait quoi
 - `VERSION PRINCIPALE/index.html` : le jeu que le navigateur charge. **Fabriqué à partir de `code/` : on ne l'édite pas.**
@@ -14,7 +18,7 @@ CASH CAR est un runner arcade 3D (three.js) pour téléphone : on conduit une ca
 - `code/economie/` : boutique (`SHOP`, `shopBuy`), achat (`carBuy`), contrats, argent de l'atelier, boutique du jour, final spin.
 - `code/gameplay/` : flow, frénésie, pouvoirs, figures, impact, mort, caméra, aura, pose, seconde chance, ramassage.
 - `code/missions/` : la table, le moteur, l'écran, la révélation, les missions de l'atelier.
-- `code/son/` : musique, voix des moteurs, console et graphe audio, mute.
+- `code/son/` : musique, voix des moteurs, console et graphe audio, mute ; `moteur-vivant.js` = le second moteur (?moteurvivant=1, DSP dans `assets/audio/moteur-vivant/`, atelier d'écoute dans `atelier-son/moteur-vivant/`).
 - `code/interface/` : traductions (`I18N`), menus, garage, boutique 3D, inventaire, HUD des figures, auto-école.
 - `code/moteur/` : la boucle `loop()` (6 tranches `boucle-*`), cadence, init, `intro-161.js` (l'intro du studio : cinq « 1.61 » blanc sur noir au choix `?label=neon|or|poussiere|luxe|hype|demo`, noir, logo qui casse l'écran ; l'ancienne est dans `init.js`, `?intro=ancien`), mobile/tactile/PWA.
 - `code/sauvegarde.js` : `SAVE`, la sauvegarde (localStorage `cashcarSave`).

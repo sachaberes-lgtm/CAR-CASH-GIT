@@ -62,11 +62,11 @@ window.dbgTeinte=function(){const c=typeof LVL!=='undefined'&&LVL.cur;return {te
    toutes les maps comme un tout ; il faut une vraie continuité dans les maps, tant dans la colorimétrie que dans les textures — pour l'instant les
    seules maps à ne pas toucher sont les montagnes chinoises (jade) et la ville » · « c'est surtout l'éclairage de NUIT que tu arrives mal à faire » ·
    « des couleurs vives et pop mais pas trop : la journée dans les nuages est trop saturée ; un vrai équilibre ») — six maps : NUAGES, CANYON, FORÊT,
-   GLACIER, VOLCAN, ORBITE. Le détail (la recette commune par temps, la route commune, la nuit) est dans `CONTI` (après l'étalonnage) et au JOURNAL.
+   GLACIER, ORBITE. Le détail (la recette commune par temps, la route commune, la nuit) est dans `CONTI` (après l'étalonnage) et au JOURNAL.
    `contiMap()` : la map courante est l'une des six (JAMAIS la ville ni le jade). */
-function contiMap(){const c=typeof LVL!=='undefined'&&LVL.cur;return !!c&&(c.id==='nuages'||c.id==='orage' /* (2026-10-18, DEBUGGING : la MER DE NUAGES sous l'ORAGE a l'id du niveau 'orage' — CONTI.cartes.nuages.orage = 'tempete' recevait la recette, mais le bitume commun rtT/rtA, le ciel continu uCiel2 et la chroma du ciel ne la lisaient pas) */||c.id==='canyon'||c.id==='foret'||c.id==='banquise'||c.id==='volcan'||c.id==='espace'||c.id==='grotte'||c.id==='dunes');} /* (2026-10-18) + LES PROFONDEURS : la grotte suit la recette commune (grtConti) */
+function contiMap(){const c=typeof LVL!=='undefined'&&LVL.cur;return !!c&&(c.id==='nuages'||c.id==='orage' /* (2026-10-18, DEBUGGING : la MER DE NUAGES sous l'ORAGE a l'id du niveau 'orage' — CONTI.cartes.nuages.orage = 'tempete' recevait la recette, mais le bitume commun rtT/rtA, le ciel continu uCiel2 et la chroma du ciel ne la lisaient pas) */||c.id==='canyon'||c.id==='foret'||c.id==='banquise'||c.id==='espace'||c.id==='grotte'||c.id==='dunes');} /* (2026-10-18) + LES PROFONDEURS : la grotte suit la recette commune (grtConti) */
 function routeSig(){const c=typeof LVL!=='undefined'&&LVL.cur;if(!c||!c.bio)return false;
-  return c.id==='nuages'||c.id==='orage' /* (2026-10-18, DEBUGGING) l'orage des nuages (id 'orage') : la ligne centrale OR de la signature, comme bmapCle pour les bords */||c.id==='banquise'||c.id==='volcan'||c.id==='canyon'||c.id==='dunes'||c.id==='espace'||c.id==='foret'||c.id==='jade'||!!c.vitre;} /* (continuité) la signature rose + or sur TOUTES les météos des nuages · (2026-10-17) la VILLE VITRÉE la porte aussi */
+  return c.id==='nuages'||c.id==='orage' /* (2026-10-18, DEBUGGING) l'orage des nuages (id 'orage') : la ligne centrale OR de la signature, comme bmapCle pour les bords */||c.id==='banquise'||c.id==='canyon'||c.id==='dunes'||c.id==='espace'||c.id==='foret'||c.id==='jade'||!!c.vitre;} /* (continuité) la signature rose + or sur TOUTES les météos des nuages · (2026-10-17) la VILLE VITRÉE la porte aussi */
 const BORDS={jour:new THREE.Color(0xc9c3b6),nuit:new THREE.Color(0xe8e4da),kJ:1,kNuit:.62,glowN:.4,jf:1}; // kNuit .62 = le « rail blanc doux » (le rail est opaque : on baisse sa couleur ; .5 sortait un peu mince au banc, le bord du vide doit rester lisible) · glowN .4 = la nappe ambre garde 40 % de son opacité la nuit
 const LIGNE_OPJ=.55; // l'opacité de la ligne centrale aux PICS DE JADE (blanc cassé sur béton clair : un peu plus franche)
 const _c9=new THREE.Color(),_d9=new THREE.Color();
@@ -92,7 +92,7 @@ const _c9=new THREE.Color(),_d9=new THREE.Color();
    couleur pleine, braise, fumée) dans la part qu'elle a DANS LE FEU à cet instant (`NFEU.part`, mesurée par nfeuPas sur la surface des cubes, lissée
    ~0,12 s), avec l'éclat ± 8 % de chaque cube. En réserve bleue et en nitro infinie, le feu change de palette : les bords aussi. `dbgBordsMap()`
    donne la palette et les parts (`trainee`). Uniformes : `uPal` (10 couleurs), `uCum` (parts cumulées) — toujours aucun programme de plus. */
-const BMAP_PAL={nuages:0xf24aa0,jade:0x2ee8a6,foret:0xc8f03c,banquise:0x52d8ff,volcan:0xffe03a,crypto:0xffc23a,espace:0x8c6bff,canyon:0x22e0c2,vitree:0x2f8cff,grotte:0x3ef0ff,dunes:0x1fd6ff}; // (2026-10-18) LES PROFONDEURS : les bords au bleu DIAMANT
+const BMAP_PAL={nuages:0xf24aa0,jade:0x2ee8a6,foret:0xc8f03c,banquise:0x52d8ff,crypto:0xffc23a,espace:0x8c6bff,canyon:0x22e0c2,vitree:0x2f8cff,grotte:0x3ef0ff,dunes:0x1fd6ff}; // (2026-10-18) LES PROFONDEURS : les bords au bleu DIAMANT
 const BMAP_B=!/[?&]bordsboost=0\b/.test(location.search);
 const BMAP_ARC=/[?&]bordsboost=rgb\b/.test(location.search); // ?bordsboost=rgb : l'arc-en-ciel de Léo pour toutes les traînées (comparer)
 const BMAP_PART0=[.07,.09,.11,.12,.13,.12,.11,.1,.08,.07]; // la part des 10 nuances avant le premier nitro (la durée de chacune dans la vie d'un cube : NFEU_B10) — remplacée par la mesure dès que le feu brûle
@@ -234,7 +234,7 @@ window.dbgBeton=function(o){if(o){for(const k in o){if(k==='col'){BETON.col=o.co
 const MAT_SURSIS=new Set();let matSursisN=0;
 /* (2026-10-18, PASSE PERF, Léo : « optimisation des performances ») LE SURSIS NE SUFFIT PAS QUAND LA MAP SUIVANTE A UNE AUTRE ROUTE : le glacier
    (sa piste nue) ne reprend ni le bitume, ni la tranche, ni les rails, ni la ligne — leurs matières partaient, three DÉTRUISAIT leurs 5 programmes,
-   et la map d'après (nuages, volcan…) les recompilait EN COURSE (MESURÉ, banc ×4 : 5 programmes à l'entrée de la map qui suit le glacier).
+   et la map d'après (nuages…) les recompilait EN COURSE (MESURÉ, banc ×4 : 5 programmes à l'entrée de la map qui suit le glacier).
    Comme `CAR_GARDE` pour les caisses : la 1re matière de route vue de chaque programme n'est jamais libérée (`PISTE_GARDE`) — un programme de route
    compilé une fois l'est pour la session. Coût : une poignée de matières gardées (leurs textures sont celles de toutes les routes). */
 const PISTE_GARDE=new Map();
