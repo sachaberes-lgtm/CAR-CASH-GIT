@@ -3,6 +3,18 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE TÉLÉPHONE AU FRAIS (2026-10-24, v885, session PERF-PC — Sacha : « trouve un moyen de ne plus le faire chauffer » ; à la question du menu à 30 i/s : « oui, 30 i/s hors course »)
+- **POURQUOI** : sa partie enregistrée sur l'iPhone 13 Pro (enregistreur `?perfrec`, 164 s, ville > espace > nuages > banquise) : 30-40 i/s dès la 1re minute, 17-22 à la fin, qualité au
+  cran 9, densité 1,25 ; la session OPTIMISATION MOBILE mesure le bridage thermique (~×2 au bout de 3-4 min). Tout ce que le téléphone calcule pour rien hors course le chauffe pour la
+  partie suivante.
+- **LE CORRECTIF** (`PFR_ON`, `code/rendu/nettete-qualite.js` ; VRAI téléphone seulement — TEL_NATIF —, tous paliers ; l'ordi ne change pas ; `?frais=0` = avant) :
+  - l'ACCUEIL, le GARAGE et la BOUTIQUE à 30 i/s (le `hors30` des vieux paliers — HC, `code/moteur/cadence.js`, appelé en tête de loop par `boucle-1.js`) ;
+  - l'ÉCRAN DE FIN à la résolution de la course (`PCM_ON` étendu au téléphone : la vitrine HD ne s'allume plus sous le voile à 90 % ni à chaque mort/REJOUER) ;
+  - la SCÈNE DERRIÈRE L'ÉCRAN DE FIN une image sur deux au moins (`mortImg`). La COURSE n'est pas touchée (la cadence 30 « si chaud » en course est le chantier de la session téléphone).
+  Accord de la session OPTIMISATION MOBILE pour ses tables (vhdMort, mortImg) ; aucune table PAL ni QL modifiée.
+- **VÉRIFIÉ** (Chrome sans fenêtre, iPhone couché émulé 844 × 390 × 3) : accueil 60 → 30 images dessinées par seconde ; course 60 (inchangée) ; écran de fin toile 1740 × 804 + ombre 2048 →
+  1266 × 585 + 1024, carte graphique 10,6 → 2,3 ms par image ; aucune erreur. La température sur le vrai iPhone : mesure de la session téléphone (CC BANC).
+
 ## LES TUILES DE VERRE SANS FLOU (2026-10-24 soir, Léo : « ça serait mieux de faire quoi pour que ça rame pas, en gardant l'idée » · « sans flou, voile givré (n°2) »)
 - **LA CAUSE** : les tuiles GARAGE · BUY · SETTINGS portaient `backdrop-filter:blur(5px) saturate() brightness()` — le navigateur doit relire l'image de la 3D qui tourne derrière chaque tuile à chaque image ; la charte de l'interface l'interdit sur mobile (« zéro backdrop-filter », `body.touch #overlay` le remet à `none`). Mesure impossible ici (rendu logiciel plafonné à 30 i/s, avec et sans flou identiques) : le gain est à confirmer sur un vrai iPhone (`?banc=1`).
 - **LE CORRECTIF** (bloc `tuilesVerre` de `code/css/boutons-flottants.css`) : plus de `backdrop-filter` ; la dernière couche du fond passe de `rgba(255,255,255,.06)` à `linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.08))` (le « voile givré »). Reflets, double liseré, lueur de couleur, bleu / rouge / or : inchangés. Vu : sur ciel dégagé, la différence avec le flou ne se voit pas ; seul un nuage qui passe pile derrière n'est plus adouci.

@@ -11482,7 +11482,14 @@ window.dbgVhdEcran=function(){ const px=Math.max(1,innerWidth*innerHeight),bud=T
    opacité .9, charte-2-ecrans.css) couvre la scène à 90 % : on payait la haute définition d'une image qu'on voit à 10 %. Sur l'ORDI (TEL_NATIF faux),
    l'écran de fin garde la toile, l'ombre et le halo de la course (×7 moins de pixels), et ni la mort ni le REJOUER ne réallouent plus les cibles.
    Le téléphone et les tables PAL ne changent pas. `?pcmort=0` = la haute définition à la mort, comme avant. */
-const PCM_ON=!TEL_NATIF&&!/[?&]pcmort=0\b/.test(location.search);
+/* ===== LE TÉLÉPHONE AU FRAIS (2026-10-24, passe perf, Sacha : « trouve un moyen de ne plus le faire chauffer » — et, pour le menu à 30 i/s : « oui, 30 i/s hors course ») =====
+   Sa partie enregistrée sur l'iPhone 13 Pro (enregistreur, 164 s) : 30-40 i/s dès la 1re minute, 17-22 à la fin, la qualité qui descend au cran 9 — un téléphone qui chauffe
+   se bride, et tout ce qu'il calcule pour rien hors course le chauffe pour la partie suivante. Sur un VRAI téléphone (TEL_NATIF), tous paliers : l'accueil, le garage et la
+   boutique à 30 i/s (le `hors30` des vieux paliers, voir HC dans cadence.js) ; l'écran de fin à la résolution de la course (PCM_ON, ci-dessous : la vitrine HD ne s'y allume
+   plus sous le voile à 90 %) ; la scène derrière l'écran de fin une image sur deux au moins (`mortImg`). La COURSE n'est pas touchée. L'ordi ne change pas.
+   `?frais=0` = comme avant. */
+const PFR_ON=TEL_NATIF&&!/[?&]frais=0\b/.test(location.search);
+const PCM_ON=(!TEL_NATIF||PFR_ON)&&!/[?&]pcmort=0\b/.test(location.search); /* (2026-10-24) le téléphone aussi, par le mode frais */
 function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?PAL.b('vhdPx',3.2e6):8.3e6; // (2026-10-14) le budget du téléphone se taille sur son palier (voir LE DÉPART AU BON CRAN)
   return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF||VHE_MODE?1:1.5),Math.sqrt(bud/px),4));} /* (2026-10-24, passe perf PC) `?vhdecran=1|2` : sans le ×1,5 sur l'ordi (voir LA VITRINE À LA MESURE DE L'ÉCRAN) */
 function vhdAniso(on){ const m=renderer.capabilities.getMaxAnisotropy(),n=on?m:Math.min(IS_MOBILE?4:8,m);
@@ -70662,7 +70669,7 @@ window.dbgCout=function(on){ // (banc) — voir COUT
 PAL.B.mortImg=[4,2,1];
 const MORT_IMG={t:0,i:0,w:0,h:0,n:0,on:false,dt:0}; // dt : le temps des images sautées, rendu aux ticks d'ambiance à l'image dessinée suivante (voir loop)
 function mortSaute(dt){
-  const N=PAL.b('mortImg',1)|0;
+  const N=Math.max(PAL.b('mortImg',1)|0,PFR_ON?2:1); /* (2026-10-24) le téléphone au frais : une image sur deux au moins (voir PFR_ON) */
   if(N<=1)return false;
   if(!(gameOver&&TCTL.on&&!garageOn&&!stallOn&&!MENUV.retour&&overlay.style.display!=='none'&&overlay.getAttribute('data-ecran')==='dead')){MORT_IMG.t=0;MORT_IMG.i=0;MORT_IMG.on=false;return false;}
   MORT_IMG.t+=dt;
@@ -70756,7 +70763,7 @@ window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.for
 PAL.B.hors30=[1,1,0];
 const HC={on:false,der:0,off:/[?&]hc=0/.test(location.search)};
 function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran à jour) : rend true si cette image d'écran se saute
-  const hc=!HC.off&&PAL.b('hors30',0)&&!CAD.on&&(!started||garageOn)&&!document.hidden;
+  const hc=!HC.off&&(PAL.b('hors30',0)||PFR_ON)&&!CAD.on&&(!started||garageOn)&&!document.hidden;
   if(!hc){HC.on=false;return false;}
   if(HC.on&&now-HC.der<CAD.per-CAD.tol)return true;
   HC.on=true;HC.der=now;return false;}
@@ -70764,7 +70771,7 @@ function loop(now){
   requestAnimationFrame(loop);
   if(window.__introCouvre){loop._pn=now;last=now;return;} // (2026-10-22, Léo : « ça bug ») l'INTRO DU STUDIO couvre tout l'écran : dessous, le jeu ne calcule ni ne dessine rien (il faisait saccader le film, surtout sur un Mac chargé) — voir moteur/intro-161.js
   if(CAD.ok&&cadSaute(now))return; // (2026-10-14, passe perf mobile) LA CADENCE STABLE : cette image d'écran se saute, sans RIEN toucher — voir CAD
-  if(CAD.ok&&hcSaute(now))return; /* (2026-10-23, audit mobile) hors course (accueil, garage) : 30 i/s sur les vieux paliers — voir HC */
+  if((CAD.ok||PFR_ON)&&hcSaute(now))return; /* (2026-10-24) le téléphone au frais aussi (voir PFR_ON) */ /* (2026-10-23, audit mobile) hors course (accueil, garage) : 30 i/s sur les vieux paliers — voir HC */
   /* (2026-10-20, Sacha : « Chrome à 94-96 % de CPU ») PLAFOND À 60 i/s : rAF suit la fréquence de l'écran — 120/144/240 Hz = 2 à 4× plus d'images
      calculées (physique, particules, bloom) pour rien. On saute l'image d'écran trop proche de l'échéance (horloge cumulée : pas de dérive,
      pas de « une sur deux » raté sur 144 Hz), sans RIEN toucher : le dt de la suivante absorbe l'écart, comme la cadence 30 Hz. Sur un

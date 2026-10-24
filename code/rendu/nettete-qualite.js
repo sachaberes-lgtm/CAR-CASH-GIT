@@ -153,7 +153,14 @@ window.dbgVhdEcran=function(){ const px=Math.max(1,innerWidth*innerHeight),bud=T
    opacité .9, charte-2-ecrans.css) couvre la scène à 90 % : on payait la haute définition d'une image qu'on voit à 10 %. Sur l'ORDI (TEL_NATIF faux),
    l'écran de fin garde la toile, l'ombre et le halo de la course (×7 moins de pixels), et ni la mort ni le REJOUER ne réallouent plus les cibles.
    Le téléphone et les tables PAL ne changent pas. `?pcmort=0` = la haute définition à la mort, comme avant. */
-const PCM_ON=!TEL_NATIF&&!/[?&]pcmort=0\b/.test(location.search);
+/* ===== LE TÉLÉPHONE AU FRAIS (2026-10-24, passe perf, Sacha : « trouve un moyen de ne plus le faire chauffer » — et, pour le menu à 30 i/s : « oui, 30 i/s hors course ») =====
+   Sa partie enregistrée sur l'iPhone 13 Pro (enregistreur, 164 s) : 30-40 i/s dès la 1re minute, 17-22 à la fin, la qualité qui descend au cran 9 — un téléphone qui chauffe
+   se bride, et tout ce qu'il calcule pour rien hors course le chauffe pour la partie suivante. Sur un VRAI téléphone (TEL_NATIF), tous paliers : l'accueil, le garage et la
+   boutique à 30 i/s (le `hors30` des vieux paliers, voir HC dans cadence.js) ; l'écran de fin à la résolution de la course (PCM_ON, ci-dessous : la vitrine HD ne s'y allume
+   plus sous le voile à 90 %) ; la scène derrière l'écran de fin une image sur deux au moins (`mortImg`). La COURSE n'est pas touchée. L'ordi ne change pas.
+   `?frais=0` = comme avant. */
+const PFR_ON=TEL_NATIF&&!/[?&]frais=0\b/.test(location.search);
+const PCM_ON=(!TEL_NATIF||PFR_ON)&&!/[?&]pcmort=0\b/.test(location.search); /* (2026-10-24) le téléphone aussi, par le mode frais */
 function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?PAL.b('vhdPx',3.2e6):8.3e6; // (2026-10-14) le budget du téléphone se taille sur son palier (voir LE DÉPART AU BON CRAN)
   return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF||VHE_MODE?1:1.5),Math.sqrt(bud/px),4));} /* (2026-10-24, passe perf PC) `?vhdecran=1|2` : sans le ×1,5 sur l'ordi (voir LA VITRINE À LA MESURE DE L'ÉCRAN) */
 function vhdAniso(on){ const m=renderer.capabilities.getMaxAnisotropy(),n=on?m:Math.min(IS_MOBILE?4:8,m);
