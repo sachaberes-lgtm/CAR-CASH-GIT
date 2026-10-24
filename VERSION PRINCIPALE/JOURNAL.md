@@ -3,6 +3,16 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA MUSIQUE DE COURSE QUI PART PLEINE (2026-10-24, session SON — Léo, sur une vidéo de course : « la musique de niveau est un peu bizarre, elle prend beaucoup de temps à commencer, on dirait juste pas de la musique »)
+- **LA CAUSE** (mesurée : chaque morceau de Pouce bleu joué comme en course, sortie enregistrée, spectrogramme de la vidéo comparé) : une course démarre au moteur 1 et Pouce bleu suit
+  le moteur. Aux moteurs 1-4 les morceaux du générateur sortent à −40/−45 dB RMS (RUBIS ULTRA −45, CAVALE ULTRA −41), 20 dB SOUS les effets, avec une ou deux notes de marimba
+  (richesse spectrale 47-81, contre 120-220 plus haut) ; au moteur 5 le même morceau est déjà à −17/−23 dB. Le plancher du départ (+11 dB au plus) ne rattrape pas ça. Dans la vidéo : 50 s de
+  course sans aucun son tonal soutenu, seulement des coups graves et des notes isolées — la vraie musique n'apparaît qu'à l'écran de mort (le lobby).
+- **LE CORRECTIF** : `pbjTier(m)` (`code/son/musique.js`) remappe le moteur donné au morceau : moteur 1 du jeu → palier `PBJ_MIN` (6) du morceau, le 30 reste le 30, droite entre les deux. Le
+  morceau est complet dès l'intro (il démarre aussi au palier 6 : `pouce-bleu-jeu.js` lit `window.pbjTier`), la grande montée jusqu'au 30 est gardée. `?pbjmin=1` = le départ d'avant (A/B) ;
+  `dbgPouce().min`. Vérifié en vraie course (RUBIS ULTRA, `?pouce=bleu-8338`) : moteur de la musique 6, filtre ouvert, plancher inutile (−16 dB sans lui), aucune erreur.
+- Extraits avant / après (3 morceaux) : `ecoutes-depart/` (dossier de travail de la session, non versé).
+
 ## LA PASSE PERF DU 24/10 — LA VITESSE ET L'ARRIVÉE DANS UNE MAP (2026-10-24, session PERF — Sacha : « lance une grosse session d'optimisation du jeu… il y a beaucoup de latence sur les essais… surtout quand ça va vite. Aussi quand tu arrives dans une nouvelle map, des fois il y a du temps à apparaître, et du coup tu peux mourir sans voir des obstacles arriver »)
 - **LE BANC** (scratchpad de la session, sous Windows : Chrome sans fenêtre, ANGLE/D3D11 sur la RX 6600, téléphone couché émulé 844 × 390 ×2, `?palier=2&garde=1` —
   ⚠ depuis le 22/10 le lien web démarre un compte NEUF : sans `?garde=1` le banc tombe dans l'auto-école) : `course.cjs` (une partie pilotée nitro tenue : chaque image,
