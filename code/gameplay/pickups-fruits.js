@@ -480,14 +480,14 @@ const ENG_CAP={billets:12,aimant:15,comete:27};
    SIX CRANS : 1 = le départ normal (MOTEUR ROUILLÉ), puis les paliers 6 · 11 · 16 · 21 · 26 (index 5 · 10 · 15 · 20 · 25). LA FONCTION
    S'OUVRE AU PALIER 30 (Léo, même jour : « on débloque cette fonction seulement quand on a atteint le palier trente ») : le TROU NOIR atteint
    une fois en course (`SAVE.d.ex.eng`, le record de palier, versé à la fin de chaque partie) ouvre les six crans d'un coup ; avant, les six
-   cases sont visibles sous CADENAS (son choix : « le joueur sait que ça existe »). Le code cousin ouvre tout. Le choix vit dans `SAVE.d.vdep` (0-5) ; il se pose au départ de chaque partie (resetGame, sous9 du 1er JOUER, la
+   cases sont visibles sous CADENAS (son choix : « le joueur sait que ça existe »). Le code cousin ne l'ouvre PAS (Sacha, 20/10 : seul le palier 30 atteint, pour de vrai, la débloque). Le choix vit dans `SAVE.d.vdep` (0-5) ; il se pose au départ de chaque partie (resetGame, sous9 du 1er JOUER, la
    jade) À LA PLACE du moteur remis à zéro — pièces du palier comptées, réservoir de nitro plein —, AVANT que la piste se bâtisse : la 1re map
    a l'échelle de la vitesse choisie, et le DÉPART D'AVANCE se bâtit au même palier (prebDepCible). L'auto-école, le parc, la balade et le
    tout premier joueur (pas encore de permis) partent toujours du cran 1. Le moteur monte ensuite comme d'habitude. La grille (6 cases
    au-dessus du PLAY du garage) et l'étal du moteur soulevé (à gauche de la porte) : voir « LA VITESSE DE DÉPART AU GARAGE ». */
 const VDEP_PAL=[0,5,10,15,20,25];
 let VDEP_TOUT=false; // (banc) dbgVdep('tout') : tous les crans ouverts le temps d'une page, rien de sauvé
-function vdepFonction(){try{return VDEP_TOUT||cousin()||((SAVE.d.ex&&SAVE.d.ex.eng)|0)>=ENGINE_TIERS.length-1;}catch(e){return false;}} // (Léo, même jour : « on débloque cette fonction seulement quand on a atteint le palier trente ») le TROU NOIR atteint une fois → les six crans d'un coup
+function vdepFonction(){try{return VDEP_TOUT||((SAVE.d.ex&&SAVE.d.ex.eng)|0)>=ENGINE_TIERS.length-1;}catch(e){return false;}} // (Léo, même jour : « on débloque cette fonction seulement quand on a atteint le palier trente ») le TROU NOIR atteint une fois → les six crans d'un coup · (2026-10-20, Sacha) et RIEN d'autre : le code cousin ne l'ouvre plus
 function vdepOuvert(n){if(!(n>0))return true;if(n>=VDEP_PAL.length)return false;return vdepFonction();}
 function vdepN(){let n=0;try{n=SAVE.d.vdep|0;}catch(e){}n=Math.max(0,Math.min(VDEP_PAL.length-1,n));while(n>0&&!vdepOuvert(n))n--;return n;} // un cran fermé (sauvegarde importée…) retombe sur le plus haut ouvert
 function vdepPal(){try{if(TUTO.on||PARK.on||BALADE||!(SAVE.d.tuto||SAVE.d.permis))return 0;}catch(e){return 0;}return VDEP_PAL[vdepN()];}

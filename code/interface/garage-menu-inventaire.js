@@ -225,7 +225,7 @@ function invOuvre(){
   INV.on=true;if(!((SAVE.d.ast|0)&4)){SAVE.d.ast=(SAVE.d.ast|0)|4;SAVE.mark();}
   gEl.classList.remove('aideInv');gEl.classList.add('inv');garLibre._r=null;
   const g=$('ivGrille');if(g){g._k=null;g.scrollTop=0;}invRender();
-  if(INV.cat==='trainee')garageAng=3.5;
+  if(GAR_TAB_ANG[INV.cat]!=null)garTourneVers(GAR_TAB_ANG[INV.cat]); // (2026-10-24) en tournant, comme les onglets
   feuilleOuvre($('gInv'),'on');return true;
 }
 function invFerme(sec){
@@ -235,7 +235,7 @@ function invFerme(sec){
   feuilleFerme(el,'on');
 }
 function invEquipe(i,el){
-  if(!INV.on||GAR.go)return;uiPop(el);const cat=INV.cat;
+  if(!INV.on||GAR.go)return;uiPop(el);const cat=INV.cat;if(GAR_TAB_ANG[cat]!=null)garTourneVers(GAR_TAB_ANG[cat]); /* (2026-10-24, Léo : « quand on sélectionne, ça ne tourne pas vers l'autre ») toucher un objet ramène la caisse face à ce qu'il habille (le plateau l'avait fait dériver) */
   if(cat==='figure'){const f=window.FIG&&FIG.liste[i];if(f){if(FIGV2.on)figEqToast(f.id);garFigEssai(f.id,figEquipee(f.id));}hap(8);invRender();return;} // (2026-10-14) toucher une figure : la caisse la fait sur le plateau — (LES FIGURES v2) et elle prend (ou rend) son emplacement
   if(cat==='voiture'){if(i===equippedCar()){uiClic('nav');return;}if(!carUnlocked(i))return;
     SAVE.d.equipped=i;SAVE.flush();level=i;levelCash=0;garageSaute(i);}       // le même geste que ÉQUIPER : la caisse de départ — et la bascule du plateau

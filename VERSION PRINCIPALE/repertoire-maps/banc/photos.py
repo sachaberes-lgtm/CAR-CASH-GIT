@@ -111,7 +111,7 @@ def main():
             c.send('Page.addScriptToEvaluateOnNewDocument', {'source': 'try{localStorage.setItem("cashcarSave",%s)}catch(e){}' % json.dumps(json.dumps(SAVE))})
             mt, _, te = meteo.partition('-')  # (2026-10-16) « pluie-vert » = la météo pluie, la teinte verte ; LA VILLE sans teinte dite = la violette (celle de base)
             if not te and carte == 'ville': te = 'violet'
-            c.send('Page.navigate', {'url': 'http://127.0.0.1:%d/index.html?colonne=0&simu=1&carte=%s&meteo=%s%s' % (PORT_HTTP, carte, mt, ('&teinte=' + te) if te else '')})
+            c.send('Page.navigate', {'url': 'http://127.0.0.1:%d/index.html?colonne=0&simu=1&garde=1&carte=%s&meteo=%s%s' % (PORT_HTTP, carte, mt, ('&teinte=' + te) if te else '')})
             for _ in range(120):
                 time.sleep(.5)
                 if c.ev("typeof dbgState==='function'&&!!document.querySelector('[data-m=\"play\"]')"): break

@@ -226,7 +226,7 @@ function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uni
   RIM_U.uRimStr.value=c.rimS;RIM_S0=c.rimS; // (RIM_S0 : la base du niveau — la boucle la relève en vol, voir « la caisse se détache »)
   FOG_CLOUD.setRGB(c.fogIn[0],c.fogIn[1],c.fogIn[2]);FOG_CJ.setRGB(c.fogCj[0],c.fogCj[1],c.fogCj[2]); // le white-out et le contre-jour prennent l'air du niveau
   // le SOLEIL « 1.61 », sa nappe d'horizon et ses rayons sont des SPRITES hors shader : ils suivent le halo du biome
-  const nuit9=(1-LVL.espace)*(1-LVL.pluie)*(1-LVL.paris)*(1-(LVL.jade||0))*(1-(LVL.canyon||0))*(1-(LVL.grotte||0)); /* (2026-10-18) LES PROFONDEURS : sous la terre, pas de soleil « 1.61 » */ /* (2026-10-14) le CANYON peint son soleil lui-même */ // (PICS DE JADE) le soleil est peint dans le rouleau : pas de « 1.61 » // (Paris) la nuit : pas de « 1.61 » // ORBITE, NOIR COMPLET — et sous le plafond de PLUIE de la ville, pas de soleil non plus : même le disque « 1.61 » s'éteint (lvlStep tourne AVANT bioStep : la valeur est fraîche)
+  const nuit9=(1-LVL.espace)*(1-LVL.pluie)*(1-(LVL.jade||0))*(1-(LVL.canyon||0))*(1-(LVL.grotte||0)); /* (2026-10-18) LES PROFONDEURS : sous la terre, pas de soleil « 1.61 » */ /* (2026-10-14) le CANYON peint son soleil lui-même */ // (PICS DE JADE) le soleil est peint dans le rouleau : pas de « 1.61 » // (Paris) la nuit : pas de « 1.61 » // ORBITE, NOIR COMPLET — et sous le plafond de PLUIE de la ville, pas de soleil non plus : même le disque « 1.61 » s'éteint (lvlStep tourne AVANT bioStep : la valeur est fraîche)
   sunSprite.material.opacity=Math.min(1,.15+c.sunHalo*.85)*nuit9;
   horizonGlow.material.opacity=.8*c.sunHalo*nuit9;
   for(const r9 of RAYS)r9.material.opacity=RAY_OPACITY*c.sunHalo*nuit9;

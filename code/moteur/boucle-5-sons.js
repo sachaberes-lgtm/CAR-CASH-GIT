@@ -130,7 +130,7 @@
       if(pluieG){ /* (2026-10-14, session SON, audit oreille-neuve §7) LA PLUIE : suit ce que le rideau montre (LVL.pluie, fondu du portail ; la bruine de Paris), se tait à la
         mort, sous l'eau (comme le vent) et s'étouffe dans un nuage (comme le sifflement). Coupée sous .02 : la porte se ferme, zéro coût hors pluie. Elle respecte le creux des
         grands moments (dk). Fondu .4 s (l'orage qui s'installe ne saute pas) ; PLUIE_SON=false la rend muette. */
-        const pl9=PLUIE_SON&&mode!=='boom'&&!gameOver?Math.max(LVL.pluie||0,parisPluie()):0;
+        const pl9=PLUIE_SON&&mode!=='boom'&&!gameOver?(LVL.pluie||0):0;
         stt(pluieG.gain,pl9<.02?0:PLUIE_NIV*Math.min(1,pl9)*dk*(1-.85*JEAU.k)*(1-.6*cloudInS),AC.currentTime,mode==='boom'?.08:.4);
       }
       if(cloudInS>.45&&!loop._cldWas&&!SONV2)noiseBurst(.45,.08,520); // percée dans la ouate : fwoosh de coton

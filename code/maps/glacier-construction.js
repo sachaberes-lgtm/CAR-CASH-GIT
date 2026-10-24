@@ -19,7 +19,7 @@ function banqPisteHeurt(){
   if(graceT>0){BK_PP.x=P.x;BK_PP.z=P.z;BK_PP.ok=true;return false;}
   const ax=BK_PP.ok?BK_PP.x:P.x,az=BK_PP.ok?BK_PP.z:P.z;BK_PP.x=P.x;BK_PP.z=P.z;BK_PP.ok=true;
   const C=CARS[level]||CARS[0],hw=BK_CHOC?C.w*.5:0,hl=BK_CHOC?C.l*.42:0,fx=F.t.x,fz=F.t.z,rx=-fz,rz=fx; /* (F.t : le sens de la route ; le travers = sa perpendiculaire) */
-  const nE=BK_CHOC&&Math.hypot(P.x-ax,P.z-az)>.8?3:1;
+  const dEc=Math.hypot(P.x-ax,P.z-az),nE=BK_CHOC&&dEc>.8?Math.min(16,Math.max(3,Math.ceil(dEc/1.2))):1; /* (2026-10-23, Sacha : « je traverse un pic sans mourir ») le pas du balayage : 3 étapes fixes = 2,2 m entre deux tests à 200 m/s et 30 i/s, 3,5 m à 20 i/s — un pic mince (rayon 5 m au sol) passait entre deux ; désormais un test tous les 1,2 m, quelle que soit la cadence */
   for(const o of BANQ.obst){if(Math.abs(o.s-s)>o.r+10+(BK_CHOC?6:0))continue;
     for(const Q of o.L9){let dx=0,dz=0,hit=false;
       for(let e=1;e<=nE&&!hit;e++){const u=e/nE,cx=ax+(P.x-ax)*u,cz=az+(P.z-az)*u;
@@ -142,7 +142,7 @@ function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au
   if(performance.now()>JF.lim)yield;
   // ---- 4 bis (v4). LA PISTE : LES BECS DE GLACE, puis LES PICS SUR LA PISTE, en figures ----
   BANQ.obst=[];BANQ.kick=[];
-  {const RH=ROAD_HALF,kRH=RH/61.6,O=BANQ.obst,KK=BANQ.kick,ou=(s9,la)=>{const i=Math.max(0,Math.min(NP-1,Math.round(s9/ds))),p=pts[i],b=B[i];return [p.x+b.x*la,p.y+b.y*la,p.z+b.z*la];};
+  {const fr=mulberry32((seed^0xB0B57AC)>>>0) /* (2026-10-22, DEBUGGING : LA PISTE a SON flux — les multiplicateurs du DÉCOR AU HASARD (pics, séracs, aiguilles, géants, amphithéâtre) changent le NOMBRE de tirages de `fr` des sections 1-4 : MESURÉ, même pistegraine, 16 pics sur la piste avec le décor contre 14 sans (23 contre 15), et les pièces qui les évitent — le décor rebattait les obstacles de la route) */,RH=ROAD_HALF,kRH=RH/61.6,O=BANQ.obst,KK=BANQ.kick,ou=(s9,la)=>{const i=Math.max(0,Math.min(NP-1,Math.round(s9/ds))),p=pts[i],b=B[i];return [p.x+b.x*la,p.y+b.y*la,p.z+b.z*la];};
     const libreK=(s9,la,r,ov)=>{for(const k of KK){if(s9>k.s-k.lg-60&&s9<k.s+260&&la+r>k.l0-8&&la-r<k.l1+8)return false;if(BK_RETOMBE&&s9+r>k.s&&s9-r<k.s+BK_BEC.retombe)return false;} /* (2026-10-18) 60 m d'approche dégagés devant la rampe (au banc, on percutait un pic en visant le tremplin), et sa retombée : 260 m (à 45°, on vole loin) — (2026-10-19) puis BK_BEC.retombe m sur TOUTE la largeur (voir BK_RETOMBE) */if(!ov)for(const o of O)if(Math.abs(o.s-s9)<o.r+r+8&&Math.abs(o.lat-la)<o.r+r+8)return false;return true;}; // ni sur un bec ni dans sa retombée, ni collé à un autre pic
     const pic=(s9,la,H,pente,ov)=>{{const i=Math.max(3,Math.min(NP-4,Math.round(s9/ds))),a=pts[i-3],c=pts[i+3];pente+=Math.max(0,(a.y-c.y)/Math.max(1,Math.hypot(a.x-c.x,a.z-c.z)));} /* (2026-10-18) + la PENTE de la piste : à 45°, le flanc aval d'un pic à 55° (1,4) devenait presque parallèle à la glace — une lame basse de 30 à 50 m qu'on croyait franchir et qui tuait (« des problèmes de collision avec la glace ») ; sa face aval garde désormais, par rapport à la piste, la raideur qu'elle aurait sur le plat */const R=H/pente;if(Math.abs(la)>RH-R*.35-3||!libreK(s9,la,R,ov))return false;const q=ou(s9,la);
       const L9=bkGrappe(q[0],q[2],q[1]-.4,H,pente,(fr()*3)|0,fr,1.4,Math.max(9,R*1.1)); /* (pied profond : sur la pente raide, le côté aval ne flotte pas) fam 1,4 : une aiguille pour la physique, mais COIFFÉE DE NEIGE (BK_PIC_FS) */pose(L9,true,false);let r=0;for(const P of L9)r=Math.max(r,Math.hypot(P.cx-q[0],P.cz-q[2])+P.r);
@@ -152,10 +152,18 @@ function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au
     /* (2026-10-18, Sacha : « moins d'obstacles sur la route ») une figure tous les ~0,6-1 km (0,3-0,5 avant) et moins de pics dans chacune (fourche 3-5,
        champ 5-7, îlot 2-3) — ~4 × moins de pics ; (« les tremplins doivent être plus beaux, gros et visibles ») un TREMPLIN avant deux figures sur trois,
        et un tremplin seul au milieu d'une longue descente sur deux (voir BK_BEC) */
-    let sp=560+fr()*120;
-    while(sp<L-380){const f=fr();
+    let sp=Math.max(560,3*(70+(lvPiste()-1)*100))+fr()*120; /* (2026-10-24, passe perf — Sacha : « tu peux mourir sans voir des obstacles arriver ») la 1re figure à 3 s de croisière du palier au moins (la croisière de la piste, vC9) : à 560 m elle tombait 1,2 à 2 s après le portail en fin de partie, voile compris ; au palier de départ rien ne change (210 m < 560) */
+    while(sp<L-380){const f0=fr(),f=sp<1800?.5+f0*.5:sp>L*.6?f0*.85:f0; /* (2026-10-23, Sacha : « prends des initiatives ») LA COURBE DE DIFFICULTÉ : les 1 800 premiers mètres n'ont que des figures faciles (champ, porte, îlot — on apprend à lire la glace), puis tout arrive ; passé 60 % de la descente le tirage penche vers les grosses figures (bifurcation, massif, fourche, slalom) et les figures se resserrent (voir gap) */
       if(fr()<.65){const k9=bec(sp,(fr()*2-1)*RH*.45,36+fr()*22),j9=BK_BEC.lg+100+fr()*30;sp=k9!=null&&BK_RETOMBE?Math.max(sp+j9,k9+BK_BEC.retombe):sp+j9;} // un TREMPLIN, le plus souvent juste avant une figure : on peut la survoler — (2026-10-19) elle attend la fin de sa retombée (BK_RETOMBE)
-      if(f<.18){ /* (2026-10-21, Sacha : « rajoute des éléments sur la piste, comme une montagne au milieu qui sépare la route en deux ») LE MASSIF : une vraie montagne de 30 à 80 m
+      if(f<.10){ /* (2026-10-23, Sacha : « la route de verglas se sépare en deux routes et on doit choisir un chemin ») LA BIFURCATION : une longue crête (~400 m, jusqu'à 90 m de haut) coupe la
+         piste en deux couloirs aux caractères opposés — l'un est LIBRE et finit sur un TREMPLIN (le chemin du plaisir), l'autre est SEMÉ de petits pics (le chemin du risque, pour qui aime
+         tenir sa ligne) ; on voit les deux de loin, on choisit avant que la crête se referme sur soi */
+        const c=(fr()-.5)*10,n=10+((fr()*3)|0),pas=34+fr()*6,sg=fr()<.5?-1:1,lc=c+sg*(RH+40)/2,la=c-sg*(RH+40)/2; // lc : le couloir du risque · la : le couloir libre
+        for(let j=0;j<n;j++){const u=j/(n-1);pic(sp+j*pas,c+(fr()-.5)*5,(34+56*Math.sin(Math.PI*(.06+.88*u)))*(.92+fr()*.16),1.3+fr()*.4,true);}
+        for(let j=0;j<5;j++)pic(sp+70+j*((n-1)*pas-140)/4,lc+(j%2?1:-1)*(10+fr()*5),10+fr()*7,1.8+fr()*.4);
+        sp+=(n-1)*pas+80;
+        {const k9=bec(sp,la,46);if(k9!=null)sp=BK_RETOMBE?Math.max(sp,k9+BK_BEC.retombe):k9+120;}}
+      else if(f<.24){ /* (2026-10-21, Sacha : « rajoute des éléments sur la piste, comme une montagne au milieu qui sépare la route en deux ») LE MASSIF : une vraie montagne de 30 à 80 m
          dans l'axe de la piste, une crête de pics soudés (nez bas, sommet au milieu, queue qui retombe) ; on choisit son COULOIR — la voie large à gauche, le
          raccourci étroit à droite, ou l'inverse — et à la sortie du couloir large un TREMPLIN lance vers la suite (la montagne ne se franchit pas : on la contourne, ou on la grimpe en glissant sur ses flancs doux) */
         const c=(fr()-.5)*34,n=6+((fr()*3)|0),pas=34+fr()*8;
@@ -163,15 +171,20 @@ function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au
         sp+=(n-1)*pas+80;
         {const wL=c-42+RH,wR=RH-c-42,cl=wL>wR?(-RH+(c-42))/2:(RH+(c+42))/2,wl=Math.max(wL,wR); // le couloir le plus large reçoit le tremplin de sortie
           if(wl>46&&fr()<.8){const k9=bec(sp,cl,Math.min(52,wl-14));if(k9!=null)sp=BK_RETOMBE?Math.max(sp,k9+BK_BEC.retombe):k9+120;}}}
-      else if(f<.26){const c=(fr()-.5)*14,n=3+((fr()*3)|0),pas=34+fr()*16; // LA FOURCHE : une arête au milieu, deux couloirs
+      else if(f<.30){const c=(fr()-.5)*14,n=3+((fr()*3)|0),pas=34+fr()*16; // LA FOURCHE : une arête au milieu, deux couloirs
         for(let j=0;j<n;j++)pic(sp+j*pas,c+(fr()-.5)*8,12+fr()*14,1.7+fr()*.8);sp+=n*pas;}
-      else if(f<.56){const lg=140+fr()*80,n=Math.round((4+((fr()*3)|0))*kRH*.75); // LE CHAMP : des pics semés, des trouées — (kRH : la largeur ÷ celle de 123 m) — (2026-10-18) 5-7 pics, au lieu de 11-18
+      else if(f<.42){ /* (2026-10-23, Sacha : « ajoute d'autres éléments de gameplay sur le glacier ») LE SLALOM : des pics en quinconce, un à gauche puis un à droite de l'axe, assez
+         serrés pour qu'il faille vraiment zigzaguer — la caisse qui glisse sur la glace se balance d'une trouée à l'autre, un rythme à prendre */
+        const c=(fr()-.5)*20,n=6+((fr()*3)|0),pas=70+fr()*20,am=15+fr()*5,sg0=fr()<.5?-1:1;
+        for(let j=0;j<n;j++)pic(sp+j*pas,c+sg0*(j%2?1:-1)*am,15+fr()*8,1.7+fr()*.5);
+        sp+=n*pas;}
+      else if(f<.64){const lg=140+fr()*80,n=Math.round((4+((fr()*3)|0))*kRH*1.05); // LE CHAMP : des pics semés, des trouées — (kRH : la largeur ÷ celle de 123 m) — (2026-10-18) 5-7 pics, au lieu de 11-18
         for(let j=0,e=0;j<n&&e<n*4;e++){if(pic(sp+fr()*lg,(fr()*2-1)*(RH-10),6+fr()*14,1.4+fr()*1.2))j++;}sp+=lg;}
-      else if(f<.76){const gw=26+fr()*12,g=(fr()*2-1)*(RH*.45); // LA PORTE : deux géants, une trouée à viser
+      else if(f<.82){const gw=26+fr()*12,g=(fr()*2-1)*(RH*.45); // LA PORTE : deux géants, une trouée à viser
         for(const sg of [-1,1]){const H=26+fr()*14,pe=1.8+fr()*.6;pic(sp+(fr()-.5)*6,g+sg*(gw/2+H/pe*.85),H,pe);}sp+=40;}
       else{const sg=fr()<.5?-1:1,n=2+((fr()*2)|0); // L'ÎLOT : un massif d'un côté, le large de l'autre
         for(let j=0;j<n;j++)pic(sp+fr()*70,sg*(RH*.35+fr()*RH*.4),10+fr()*16,1.5+fr()*.9);sp+=70;}
-      const gap=420+fr()*380;let kS=null;if(gap>520&&fr()<.5&&sp+gap*.5<L-380)kS=bec(sp+gap*.4,(fr()*2-1)*RH*.5,36+fr()*22); // un TREMPLIN seul, au milieu de la descente : pour le plaisir de voler
+      const gap=(270+fr()*300)*(1.2-.5*Math.min(1,sp/L));let kS=null;if(gap>400&&fr()<.5&&sp+gap*.5<L-380)kS=bec(sp+gap*.4,(fr()*2-1)*RH*.5,36+fr()*22); // un TREMPLIN seul, au milieu de la descente : pour le plaisir de voler
       sp=kS!=null&&BK_RETOMBE?Math.max(sp+gap,kS+BK_BEC.retombe):sp+gap;} // (2026-10-19) la figure suivante attend la fin de sa retombée
     if(KK.length)bkBecMesh(root,KK); // (2026-10-18) LE TREMPLIN DE GLACE : la rampe, sa lèvre, ses balises
     BANQ.n.pistePics=O.length;BANQ.n.becs=KK.length;}

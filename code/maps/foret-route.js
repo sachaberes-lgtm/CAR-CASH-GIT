@@ -46,24 +46,25 @@ const FORET={root:null,Q:null,plg:[],fam:[],quart:null,sig:0,sol:null,can:null,g
 // LES MÉTÉOS DE LA FORÊT — el : hauteur de la lumière (°) · ray : rayons de soleil · mist/mC : la brume du fond · pap : papillons · luc :
 // lucioles · pol : pollen · hante : la hantise (feux follets, yeux, visage, fleurs qui luisent, chauves-souris) · phare : les phares
 // sur la forêt · leaf : la teinte des feuilles · ros : la rosée (éclats) · vent · sons : 'jour' | 'nuit' | 'pluie'
+// (2026-10-20, embellir) lant : les lanternes ambre (0-1) · vg : la couleur de la lueur des joints de vitrail (or le jour, bleu-lune la nuit)
 const FOR_MET={
-  matin:{el:15,ray:1.2,mist:.9,mC:[.92,.88,.78],pap:.75,luc:0,pol:.8,hante:0,phare:.04,leaf:[1.02,1.02,.94],ros:1,vent:.5,lune:0,sons:'jour'},
-  midi: {el:55,ray:.62,mist:.25,mC:[.78,.88,.84],pap:1,luc:0,pol:.5,hante:0,phare:0,leaf:[1.04,1.08,.94],ros:.3,vent:.6,lune:0,sons:'jour'},
-  soir: {el:8,ray:1.35,mist:.55,mC:[1,.70,.46],pap:.4,luc:.45,pol:.9,hante:.12,phare:.35,leaf:[1.1,.98,.78],ros:.2,vent:.45,lune:0,sons:'soir'},
-  nuit: {el:34,ray:.3,mist:1,mC:[.09,.14,.19],pap:0,luc:1,pol:0,hante:1,phare:1,leaf:[.62,.82,.92],ros:0,vent:.7,lune:1,sons:'nuit'},
-  pluie:{el:62,ray:0,mist:.85,mC:[.44,.50,.50],pap:0,luc:0,pol:0,hante:.18,phare:.55,leaf:[.84,.96,.90],ros:0,vent:1.1,lune:0,sons:'pluie'},
-  orage:{el:62,ray:0,mist:.95,mC:[.14,.17,.22],pap:0,luc:.15,pol:0,hante:.75,phare:.9,leaf:[.70,.84,.92],ros:0,vent:1.6,lune:0,sons:'orage'}};
+  matin:{el:15,ray:1.2,mist:.9,mC:[.92,.88,.78],pap:.75,luc:0,pol:.8,hante:0,phare:.04,leaf:[1.02,1.02,.94],ros:1,vent:.5,lune:0,sons:'jour',lant:.12,vg:[1,.84,.46]},
+  midi: {el:55,ray:.62,mist:.25,mC:[.78,.88,.84],pap:1,luc:0,pol:.5,hante:0,phare:0,leaf:[1.04,1.08,.94],ros:.3,vent:.6,lune:0,sons:'jour',lant:0,vg:[1,.86,.45]},
+  soir: {el:8,ray:1.35,mist:.55,mC:[1,.70,.46],pap:.4,luc:.45,pol:.9,hante:.12,phare:.35,leaf:[1.1,.98,.78],ros:.2,vent:.45,lune:0,sons:'soir',lant:.8,vg:[1,.76,.40]},
+  nuit: {el:34,ray:.3,mist:1,mC:[.09,.14,.19],pap:0,luc:1,pol:0,hante:1,phare:1,leaf:[.62,.82,.92],ros:0,vent:.7,lune:1,sons:'nuit',lant:1,vg:[.50,.62,1]},
+  pluie:{el:62,ray:0,mist:.85,mC:[.44,.50,.50],pap:0,luc:0,pol:0,hante:.18,phare:.55,leaf:[.84,.96,.90],ros:0,vent:1.1,lune:0,sons:'pluie',lant:.5,vg:[.76,.88,.96]},
+  orage:{el:62,ray:0,mist:.95,mC:[.14,.17,.22],pap:0,luc:.15,pol:0,hante:.75,phare:.9,leaf:[.70,.84,.92],ros:0,vent:1.6,lune:0,sons:'orage',lant:.45,vg:[.62,.55,1]}};
 const FOR_U={uSunDir:{value:new THREE.Vector3(0,1,0)},uSunC:{value:new THREE.Color()},uSky:{value:new THREE.Color()},uGnd:{value:new THREE.Color()},
   uFillC:{value:new THREE.Color()},uFillD:{value:new THREE.Vector3(0,-1,0)},uCam:{value:new THREE.Vector3()},uCarP:{value:new THREE.Vector3(0,-1e5,0)},
   uCarF:{value:new THREE.Vector3(0,0,1)},uTime:{value:0},uPhare:{value:0},uFlash:{value:0},uWet:{value:0},uHante:{value:0},uMistC:{value:new THREE.Color(.8,.88,.84)},
   uMistK:{value:.3},uMistY:{value:0},uLeafT:{value:new THREE.Vector3(1,1,1)},uRos:{value:0},uVent:{value:.5},uRay:{value:0},uPap:{value:0},uLuc:{value:0},uPol:{value:0},
-  uBoxC:{value:new THREE.Vector3()},uPx:{value:1},uLune:{value:0}};
+  uBoxC:{value:new THREE.Vector3()},uPx:{value:1},uLune:{value:0},uLant:{value:0},uRayK:{value:1},uAir:{value:1}};
 /* LES BUDGETS PAR PALIER (PAL : [ANCIEN, MOYEN, RÉCENT] — la 3e colonne est le rendu de référence) : densité et portée de la forêt, détail des
    géants, pas des fleurs, des plantes du fond, des rayons et de la brume, papillons, lucioles, feux follets, yeux, taille des toiles. */
 const FOR_LUNE=new THREE.Vector3(-.52,.40,-.72).normalize(); // la lune du dôme (cielLune) : la forêt pose la sienne au même endroit
 try{Object.assign(PAL.B,{foretArbres:[.42,.66,1],foretRayon:[900,1250,1650],foretMarge:[1700,2200,2800],foretSolC:[32,28,26],foretB0:[150,180,200],foretB1:[400,480,540],
   foretGeantFin:[0,1,1],foretFleurs:[2.2,1.6,1.1],foretPlantes:[8,6,4.2],foretRayons:[46,36,28],foretBrume:[70,55,42],foretYeux:[50,70,90],foretPap:[50,100,150],
-  foretFutaie:[1.45,1.15,1],foretLuc:[300,560,900],foretFollets:[8,11,14],foretTex:[.5,.75,1],foretLierre:[0,1,1],foretChampi:[0,1,1],foretSolCh:[999,64,64],foretPres:[1,0,0]});}catch(e){}
+  foretFutaie:[1.45,1.15,1],foretLuc:[300,560,900],foretLant:[30,60,90],foretFollets:[8,11,14],foretTex:[.5,.75,1],foretLierre:[0,1,1],foretChampi:[0,1,1],foretSolCh:[999,64,64],foretPres:[1,0,0]});}catch(e){}
 /* ---------------- LA ROUTE v3 : LA PELOTE — LA FORÊT OÙ L'ON SE PERD ----------------
    (2026-10-15, Sacha : « le concept de la forêt, ça va être de SE PERDRE. Soit tu suis la route — plein de virages, vers le bas, vers le
    haut — et tu es sûr d'arriver un jour ; soit tu prends des raccourcis, mais tu ne sais pas si ce sont des bons raccourcis » · « comme dans

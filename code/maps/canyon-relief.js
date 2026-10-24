@@ -342,7 +342,7 @@ function cyGalerie(i0,i1,L0){const S=CY.S,n=i1-i0+1,NA=14,vh=CY_TUN.vh,ap=CY_TUN
    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(R,3));g.setIndex(K);g.computeBoundingSphere();const me=new THREE.Mesh(g,CY_NEON.r);me.userData.jeter=1;me.matrixAutoUpdate=false;me.updateMatrix();me.renderOrder=3;CY.grp.add(me);}}
 function cyCouloirHeurt(p,C){const S=CY.S;if(!C)return false;let bi=-1,bd=1e18;
   for(let i=C.i0;i<=C.i1;i+=2){const d=(p.x-S.x[i])**2+(p.z-S.z[i])**2;if(d<bd){bd=d;bi=i;}}
-  if(bi<0||bd>(C.L0+CY_COU.T+40)**2)return false;const lt=(p.x-S.x[bi])*-S.tz[bi]+(p.z-S.z[bi])*S.tx[bi],a=Math.abs(lt),k=bi-C.i0;
+  if(bi<0||bd>(C.L0+CY_COU.T+40)**2)return false;{const al=(p.x-S.x[bi])*S.tx[bi]+(p.z-S.z[bi])*S.tz[bi];if((bi-C.i0<2&&al<0)||(C.i1-bi<2&&al>(C.i1-bi)*S.ds))return false;} /* (2026-10-18, DEBUGGING : un mur INVISIBLE sur la route) avant le 1er échantillon d'une bande (ou après le dernier), l'échantillon le plus proche est le bout et le test latéral se faisait dans SON repère : jusqu'à 85 m avant la bouche du TUNNEL et après la sortie des ÉTROITS, un vol bas au bord de la route mourait « ENCASTRÉ DANS LA PAROI » contre rien — la bande commence et finit à ses bouts */const lt=(p.x-S.x[bi])*-S.tz[bi]+(p.z-S.z[bi])*S.tx[bi],a=Math.abs(lt),k=bi-C.i0;
   if(C.tun){const yr=S.y[bi];if(p.y>yr+CY_TUN.vh&&a<C.L0){const u=a/C.L0;if(p.y>yr+CY_TUN.vh+(CY_TUN.ap-CY_TUN.vh)*Math.sqrt(Math.max(0,1-u*u))-1.5)return true;}}
   return a>C.L0-1.2&&a<C.L0+CY_COU.T+2&&p.y<C.top[k*2+(lt>0?1:0)]&&p.y>C.bas[k]-2;}
 /* LE TUNNEL DE GRÈS (2026-10-19, Sacha : « le tunel d'arriver pour la map canyon est moche » — entre deux idées, le choix : « le tunnel de

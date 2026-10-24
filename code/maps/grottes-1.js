@@ -91,21 +91,29 @@ const GRT_MET={
    l'axe ; le rayon se resserre de 34 m par tour (le tour d'en dessous est sous le BORD INTÉRIEUR de celui d'au-dessus : on y tombe en sautant
    vers l'intérieur) ; le PAS (58-64 m par tour) laisse > 50 m d'air entre deux tours. */
 /* (2026-10-19, session HASARD — Sacha : « vérifie bien que toutes les maps sont générées aléatoirement ») LES PROFONDEURS AU HASARD.
-   MESURÉ (40 graines, palier 0, l'écart de forme du ROYAUME AU HASARD — voir VLC_HASARD) : 0,067 — toujours plein nord, toujours la même
+   MESURÉ (40 graines, palier 0, l'écart de forme du hasard des maps) : 0,067 — toujours plein nord, toujours la même
    descente : la mine, la grotte luxuriante, le PUITS à 25-29 % du parcours, les stalactites, la lave, les abysses. Désormais chaque grotte tire,
    dans son propre flux (`rh` : un seul tirage `rnd` de plus) :
    · son AXE, dans toutes les directions (sous la terre, aucun soleil ne l'oriente) ;
    · l'ORDRE des quatre salles du milieu — luxuriante, puits de la géode, stalactites, lave — entre la mine (toujours la 1re : la porte qu'on
      reconnaît) et les abysses (toujours la dernière : le noir et la salle du portail) ; jamais la lave contre le puits (son lac ne déborde pas
      dans l'entonnoir : on y saute pour le raccourci), 12 ordres possibles — le puits arrive de ~5 à ~70 % du parcours ;
-   · la LONGUEUR de chaque salle (0,6-1,4 × sa part d'avant, puis le tout ramené à la longueur visée) et un CARACTÈRE par salle (`VLC_HUMEURS`,
-     ceux du volcan ; la salle de lave garde ses grandes courbes) ;
+   · la LONGUEUR de chaque salle (0,6-1,4 × sa part d'avant, puis le tout ramené à la longueur visée) et un CARACTÈRE par salle (`GRT_HUMEURS`,
+     ceux de la balade classique ; la salle de lave garde ses grandes courbes) ;
    · LE PUITS : 1¼ tour ± 0,12 (on en ressort jusqu'à ±43° de l'axe : l'AXE suit, borné à ±40° de celui de l'entrée — la grotte ne revient
      jamais sur ses pas), son rayon (+0 à 80 m).
    Le lac de lave ne déborde que dans les stalactites et les abysses (ses voisines d'avant) ; l'eau de la luxuriante, les piliers, les décors
    et la lumière de la lave suivent les salles VOISINES (`R.apres`, `GROTTE.lavLum`) au lieu de l'ordre fixe. Gardés : la mine, la règle d'or,
    le rayon tenable, les modules, le contrôle des croisements. `?sans=hasardgrotte` = la grotte d'avant, tirage pour tirage. */
 const GRT_HASARD=!/[?&]sans=([^&]*,)?hasardgrotte(,|&|$)/.test(location.search);
+/* LES CARACTÈRES DES SALLES (les profondeurs au hasard) : chacun fixe les virages de la route d'une salle */
+const GRT_HUMEURS=[ // a : angle d'un virage (°, minimum + étendue) · t : la part de virages SERRÉS (Rs) · Rk : le rayon des autres (× rM, minimum + étendue ; 0 = Rn) · inv : la chance de changer de côté · dr : [chance d'une droite après, longueur minimum, étendue] (m × KV)
+  {nm:'flammes', a:[36,28],t:.33,Rk:0,        inv:1,  dr:[.2,30,40]},  // la balade classique : on louvoie, on revient vers l'axe passé 30°
+  {nm:'serpent', a:[46,26],t:.6, Rk:0,        inv:1,  dr:[.05,20,20]}, // des S serrés, presque sans répit
+  {nm:'courbes', a:[24,22],t:0,  Rk:[2.4,1.6],inv:.7, dr:[.35,50,80]}, // de grandes courbes qui se prennent à fond
+  {nm:'derive',  a:[20,18],t:.15,Rk:[1.8,1.2],inv:.18,dr:[.3,40,70]},  // la plaine part en biais d'un côté, jusqu'à la butée
+  {nm:'balcon',  a:[30,22],t:.2, Rk:0,        inv:.6, dr:[1,110,120]}, // de longues droites cassées de coudes : on voit loin
+  {nm:'chicanes',a:[30,16],t:.7, Rk:0,        inv:1,  dr:[.08,20,30]}];// gauche-droite-gauche, vite
 function* genGrotte(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main entre deux essais
   CAMPM.length=0;MODMARK.length=0;
   const LV=typeof lvPiste==='function'?lvPiste():1,gr=mulberry32((rnd()*4294967296)>>>0);let best=null;
@@ -137,7 +145,7 @@ function grtTrace(rnd,LV){
   const LIM=68,tourne=(aDeg,R)=>{const r=rel();let a=aDeg;if(r+a>LIM)a=LIM-r;if(r+a<-LIM)a=-LIM-r;if(Math.abs(a)>2)arc(a,R);return a;};
   const vers=(cible,R)=>{const a=wrap(axe+cible/57.2958-phi)*57.2958;if(Math.abs(a)>3)arc(a,R);};
   let sg=rnd()<.5?-1:1;
-  let HC=null,dvH=1; // (AU HASARD) le CARACTÈRE de la salle (VLC_HUMEURS) et le côté de sa dérive
+  let HC=null,dvH=1; // (AU HASARD) le CARACTÈRE de la salle (GRT_HUMEURS) et le côté de sa dérive
   const virages=n=>{for(let k=0;k<n;k++){const r=rel();
     if(HC){const H=HC;if(H.nm==='derive')sg=r*dvH>LIM-16?-dvH:(rh()<H.inv?-dvH:dvH);else sg=Math.abs(r)>30?(r>0?-1:1):(rh()<H.inv?-sg:sg);
       tourne(sg*(H.a[0]+rh()*H.a[1]),rh()<H.t?Rs():H.Rk?rM*(H.Rk[0]+rh()*H.Rk[1]):Rn());if(rh()<H.dr[0])droite((H.dr[1]+rh()*H.dr[2])*KV);continue;}
@@ -197,7 +205,7 @@ function grtTrace(rnd,LV){
     const ORD=['luxe','geode','stal','lave'];for(let e=0;e<60;e++){for(let i=3;i>0;i--){const j=(rh()*(i+1))|0,x=ORD[i];ORD[i]=ORD[j];ORD[j]=x;}if(Math.abs(ORD.indexOf('lave')-ORD.indexOf('geode'))!==1)break;}
     if(Math.abs(ORD.indexOf('lave')-ORD.indexOf('geode'))===1){ORD.length=0;ORD.push('luxe','geode','stal','lave');} // (filet : l'ordre d'avant)
     const PART={luxe:.27,stal:.2,lave:.3,abysse:.23};let sp=0;for(const k in PART){PART[k]*=.6+.8*rh();sp+=PART[k];}for(const k in PART)PART[k]/=sp;
-    let hPrec=-1;const humeur=()=>{let i=(rh()*VLC_HUMEURS.length)|0;if(i===hPrec)i=(i+1+((rh()*(VLC_HUMEURS.length-1))|0))%VLC_HUMEURS.length;hPrec=i;return VLC_HUMEURS[i];};
+    let hPrec=-1;const humeur=()=>{let i=(rh()*GRT_HUMEURS.length)|0;if(i===hPrec)i=(i+1+((rh()*(GRT_HUMEURS.length-1))|0))%GRT_HUMEURS.length;hPrec=i;return GRT_HUMEURS[i];};
     const HU={},car=k=>{HC=humeur();dvH=rh()<.5?-1:1;HU[k]=HC.nm;};
     for(const k of ORD){if(k==='luxe'){car(k);sLuxe(B9*PART.luxe);}else if(k==='geode'){HC=null;sPuits();}else if(k==='stal'){car(k);sStal(B9*PART.stal);}else{HC=null;sLave(B9*PART.lave);}}
     car('abysse');sAbysse(B9*PART.abysse);HC=null;
@@ -436,11 +444,11 @@ function grtMailleNets(V,c,LL){
    matière que la roche (matière, lumière cuite à leurs coins). Les grosses entrent aussi dans les COLLISIONS (boîtes orientées, grille de 64 m). */
 function grtRange(D,V,x,y,z,f){const C=16*V.B,d=Math.floor((x-V.ox)/C)+V.CX*(Math.floor((y-V.oy)/C)+V.CY*Math.floor((z-V.oz)/C));let a=D.get(d);if(!a)D.set(d,a=[]);a.push(f);}
 function grtCol(x,y,z,hx,hy,hz,yaw,k){const G=GROTTE.col,cs=Math.cos(yaw||0),sn=Math.sin(yaw||0),rx=Math.abs(cs)*hx+Math.abs(sn)*hz,rz=Math.abs(sn)*hx+Math.abs(cs)*hz,o={x:x,y:y,z:z,hx:hx,hy:hy,hz:hz,c:cs,s:sn,k:k};
-  for(let i=Math.floor((x-rx)/64);i<=Math.floor((x+rx)/64);i++)for(let j=Math.floor((z-rz)/64);j<=Math.floor((z+rz)/64);j++){const k9=i+','+j;let L9=G.G.get(k9);if(!L9)G.G.set(k9,L9=[]);L9.push(o);}G.n++;}
+  for(let i=Math.floor((x-rx)/64);i<=Math.floor((x+rx)/64);i++)for(let j=Math.floor((z-rz)/64);j<=Math.floor((z+rz)/64);j++){const k9=i+','+j;let L9=G.G.get(k9);if(!L9)G.G.set(k9,L9=[]);L9.push(o);}G.n++;return o;}
 function grtBoite(D,V,x,y,z,hx,hy,hz,t,yaw,col){grtRange(D,V,x,y,z,['b',x,y,z,hx,hy,hz,t,yaw||0]);if(col)grtCol(x,y,z,hx,hy,hz,yaw,col);}
 function grtPrisme(D,V,x,y,z,dir,n,r0,r1,h,t,rot,col){ // la base au point, l'axe dir (unitaire), n pans, rayon r0 → r1 (0 : une pointe)
   grtRange(D,V,x,y,z,['p',x,y,z,dir[0],dir[1],dir[2],n,r0,r1,h,t,rot||0]);
-  if(col){const m=Math.max(r0,r1)*.8;grtCol(x+dir[0]*h/2,y+dir[1]*h/2,z+dir[2]*h/2,Math.abs(dir[0])*h/2+m,Math.abs(dir[1])*h/2+m,Math.abs(dir[2])*h/2+m,0,col);}}
+  if(col){const m=Math.max(r0,r1)*.8;grtCol(x+dir[0]*h/2,y+dir[1]*h/2,z+dir[2]*h/2,Math.abs(dir[0])*h/2+m,Math.abs(dir[1])*h/2+m,Math.abs(dir[2])*h/2+m,0,col).cone=[x,y,z,dir[0],dir[1],dir[2],r0,r1,h];} /* (2026-10-22, DEBUGGING : la boîte n'est que la 1re approche — un cône s'affine jusqu'à sa POINTE, la boîte (0,8 × le rayon de la base + 1 m, sur toute la longueur et encore 0,8 × ce rayon AU-DELÀ de la pointe) tuait en vol dans l'air vide autour des pointes des stalactites et des stalagmites — mesuré : 100 % des points à 3 m du cône près de la pointe, 2/3 de ceux à 2-10 m au-delà de la pointe ; grotteHeurt teste aussi le cône) */}
 function grtOcta(D,V,x,y,z,r,h,t,rot){grtRange(D,V,x,y,z,['o',x,y,z,r,h,t,rot||0]);}
 function grtMailleDecor(V,c,L9,LL,sal){ // les formes d'un tronçon → triangles {P (mètres du tronçon),F,L,I}
   const d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V.CY,ck=(d/(V.CX*V.CY))|0,C=16*V.B,ox=V.ox+ci*C,oy=V.oy+cj*C,oz=V.oz+ck*C,lum=GRT_TMP.lum;
