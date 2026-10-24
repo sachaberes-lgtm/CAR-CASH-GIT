@@ -3702,6 +3702,7 @@ html #mDead .mHero{margin-top:18px}
    texte grossi en paysage (les libellés en nowrap débordaient), ni image qu'on soulève pour la glisser */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
 html,body{-webkit-user-select:none;-webkit-touch-callout:none}
+html{touch-action:manipulation} /* (24/10, débogage sortie iOS) Safari ignore user-scalable=no : un double-tap hors bouton zoomait la page. `manipulation` ne retire QUE le zoom au double-tap (défilement et pincement gardés ; le canvas et le HUD restent en `none`) */
 input,textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 img{-webkit-user-drag:none}
 /* les feuilles DÉFILENT au doigt sans entraîner la page, et la fenêtre défile si elle dépasse (clavier ouvert, petit écran) */
@@ -3735,7 +3736,7 @@ html body #tRight{left:calc(var(--ccL,env(safe-area-inset-left,0px)) + min(84px,
   clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);text-shadow:none}
 /* RÉGLAGES : tous les chevrons cyan (les liens étaient gris, les valeurs cyan) ; l'icône d'un réglage COUPÉ s'éteint avec lui */
 .mLigne.lien::after{background:var(--neoC)}
-.mLigne.off>.pxi,.tp.ligne:has(b.bascule.ko)>.pxi{opacity:.45}
+.mLigne.off>.pxi{opacity:.45}.tp.ligne:has(b.bascule.ko)>.pxi{opacity:.45} /* (24/10, débogage sortie iOS) deux règles : avant iOS 15.4, `:has` dans la liste annulait la règle ENTIÈRE, `.mLigne.off` compris */
 /* ÉCRAN DE MORT : RÉGLAGES cyan comme l'engrenage de l'accueil (« aller voir ») ; MENU reste neutre */
 #mDead [data-m="set"]{--nc:var(--neoC)}
 #mDead [data-m="set"] .pxi{color:var(--neoC)}
