@@ -94,11 +94,17 @@ function veqCorps(dt){ // LA BALANCE : qTmp = l'assiette de vol (repère) → la
     const i=VEQ.si,dessus=VEQ.sh>-THICK*.5,hs=dessus?VEQ.sh:-THICK-VEQ.sh,sd=dessus?1:-1,vN=-fallVel.dot(Nn[i])*sd*SPD;
     if(hs>-1.5&&vN>.4)a=1-THREE.MathUtils.smoothstep(Math.max(0,hs-2.8)/vN,K.posA,K.posB); // ⚠ la pose est DÉCLARÉE à 3 m (tryLand) : à 2,8 m la caisse doit être prête
     if(a>.001){veqRoute(i,sd,fallVel,VEQ.qp);qTmp.slerp(VEQ.qp,a*m);}}
-  VEQ.pose+=(a-VEQ.pose)*Math.min(1,dt*10);
-  VEQ.qb.slerp(qTmp,Math.min(1,dt*(12+10*a)));carGroup.quaternion.copy(VEQ.qb);airRoll=VEQ.br;
+  VEQ.pose+=(a-VEQ.pose)*lisse60(10,dt);
+  VEQ.qb.slerp(qTmp,lisse60(12+10*a,dt));carGroup.quaternion.copy(VEQ.qb);airRoll=VEQ.br;
   // LES ROUES PENDENT : en l'air la suspension se détend (la carrosserie monte au-dessus de ses roues)
-  VEQ.ext+=(K.ext-VEQ.ext)*Math.min(1,dt*9);carBody.position.y=VEQ.ext;
+  VEQ.ext+=(K.ext-VEQ.ext)*lisse60(9,dt);carBody.position.y=VEQ.ext;
 }
+/* ===== LE LISSAGE CALÉ SUR 60 i/s (24/10, débogage sortie iOS : « un jeu irréprochable sur tous les iPhone, du vieux à 30 images/s au ProMotion 120 Hz ») =====
+   x+=(cible-x)*Math.min(1,dt*k) n'avance PAS du même chemin par seconde selon la cadence : à 30 i/s la part prise par image double, l'approche
+   est plus vive (k=22 : +45 % de raideur à 30 i/s, −11 % à 120 Hz). lisse60(k,dt) rend EXACTEMENT la part de Math.min(1,dt*k) à 60 i/s (la
+   cadence où tout a été réglé) et la compose au temps près : deux images à 30 Hz = une à 60 = la moitié de deux à 120. Preuve :
+   passation/preuves/preuve-lisse60.cjs (assiette du vol équilibré, aimant à pièces). */
+function lisse60(k,dt){return 1-Math.pow(Math.max(0,1-k/60),dt*60);}
 function veqPose(bI,sd){ // la caisse se pose (tryLand, lèvre) : ce qui reste d'assiette passe aux ressorts de la conduite
   VEQ.rate=false;VEQ.volT=fallTR;
   let rx=0,ry=0,rz=0;

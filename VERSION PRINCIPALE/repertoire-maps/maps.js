@@ -28,8 +28,6 @@ window.REPERTOIRE = [
     meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
   { id: 'banquise', nom: 'LE GLACIER',        couverture: 'nuit',
     meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['neige', 'NEIGE'], ['blizzard', 'BLIZZARD']] },
-  { id: 'volcan',   nom: 'LE ROYAUME DE FEU', couverture: 'soir',
-    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'CENDRES'], ['orage', 'ORAGE']] },
   { id: 'espace',   nom: 'EN ORBITE',         couverture: 'matin',
     meteos: [['matin', 'TERRE'], ['midi', 'MARS'], ['soir', 'JUPITER']] },
   { id: 'canyon',   nom: 'CANYON DES GÉANTS', couverture: 'matin',

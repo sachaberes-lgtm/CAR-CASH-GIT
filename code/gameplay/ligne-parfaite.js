@@ -74,10 +74,29 @@ function villePousse(F){ // n'envoie à la puce QUE la plage touchée (updateRan
     VT.nu++;VT.ko+=(b-a)*(C?76:64)/1024;}
 }
 {const ob9=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt){ob9.call(this,r9,s9,cam,rt);villeTri(cam);};} // CHAÎNÉ (jamais réassigné)
+/* (2026-10-18, DEBUGGING : ville) LES GÉANTES DE VERRE SONT DURES SELON LEUR FORME. La grille rangeait leur BOÎTE (w × H × p) : une effilée finit à 45-60 % de sa
+   largeur, une ronde à 80 % (et ses pans de coin à 29 %), une lame a le toit en biais (5 à 13 % de H), les coins biseautés (jusqu'à 7 m) — on mourait contre
+   l'air à côté du verre (banc, 16 villes : 100 % des effilées, rondes et lames, 5 à 31 m de vide dur) ; la vrillée et le fuseau débordaient de leur boîte
+   (leur verre se traversait). Le calcul du sommet de vitreMatFab (vitreSF, la vrille, le biseau, le toit de la lame), à la hauteur de la caisse ; entre deux
+   anneaux de la géométrie (vitreGeoFab : 1 bande, 6 pour la vrillée et le fuseau), linéaire comme elle. f = 1 + vitreForme. Rien d'alloué. */
+function villeSS(a,b,x){const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t);} // smoothstep
+function villeSFj(f,sv,h){ // vitreSF, en JS
+  if(f===1)return 1+(-.55+.15*sv)*villeSS(.4,1,h);if(f===2)return 1-.28*villeSS(.3,1,h);if(f===3)return (1+.16*Math.sin(3.1416*Math.min(1,Math.max(0,(h-.4)/.45))))*(1-.5*villeSS(.8,1,h));if(f===4)return 1-.2*villeSS(.4,1,h);return 1;}
+function villeForme(p,c,o,f9){
+  const cx=c[o],cy=c[o+1],cz=c[o+2],w=c[o+3],H=c[o+4],d=c[o+5],dy=p.y-cy,f=f9-1;if(Math.abs(dy)>H/2+.5)return false;
+  const s0=cx*.0131+cz*.0173,sd=s0-Math.floor(s0),s1=sd*41.7,sv=s1-Math.floor(s1),hh=Math.min(1,Math.max(0,dy/H+.5)); // la graine de l'instance (vSeed9, sv9)
+  const NR=f===2||f===3?6:1,q=Math.min(NR-1e-6,hh*NR),r=Math.floor(q),t=q-r,h0=r/NR,h1=(r+1)/NR;
+  const s=villeSFj(f,sv,h0)*(1-t)+villeSFj(f,sv,h1)*t,aK=f===2?(1.6+1.2*sv)*(sv<.5?-1:1):0;
+  const a=aK?aK*(villeSS(.25,1,h0)*(1-t)+villeSS(.25,1,h1)*t):0,ca=Math.cos(a),sa=Math.sin(a),dx=p.x-cx,dz=p.z-cz,ax=Math.abs(ca*dx+sa*dz),az=Math.abs(-sa*dx+ca*dz);
+  const hw=s*w/2,hd=s*d/2;if(ax>hw+.9||az>hd+.9)return false;
+  const b9=sd*71.3,ch=s*(f===4?.29*Math.min(w,d):(b9-Math.floor(b9))<=.6?Math.min(Math.min(w,d)*(f===2?.08:.16),7):0); // le biseau (vCh9)
+  if(ch>0&&ax+az>hw+hd-ch+1.27)return false;
+  if(f===5&&dy>H*(.5-(.05+.08*sv)*(.5+Math.min(.5,Math.max(-.5,dx/w))))+.5)return false; // la LAME : au-dessus de son toit en biais
+  return true;}
 function villeHeurt(p){ // la caisse est-elle DANS une tour de la ville ? (marge : la demi-caisse)
   const C=CITY.col;if(!C||!CITY.root)return false;if(CRYPTO.taureaux.length&&cryptoHeurt(p))return true; // (CRYPTOCITY) les taureaux sont durs
   const a=C.g.get(Math.floor(p.x/C.CG)+','+Math.floor(p.z/C.CG));if(!a)return false;const c=C.c;
-  for(let j=0;j<a.length;j++){const o=a[j];if(Math.abs(p.x-c[o])<c[o+3]/2+.9&&Math.abs(p.z-c[o+2])<c[o+5]/2+.9&&Math.abs(p.y-c[o+1])<c[o+4]/2+.5)return true;}
+  for(let j=0;j<a.length;j++){const o=a[j],f9=C.f?C.f[o/6]:0;if(f9){if(villeForme(p,c,o,f9))return true;continue;}if(Math.abs(p.x-c[o])<c[o+3]/2+.9&&Math.abs(p.z-c[o+2])<c[o+5]/2+.9&&Math.abs(p.y-c[o+1])<c[o+4]/2+.5)return true;}
   return false;
 }
 function cityTick(dt,camY){
@@ -137,6 +156,7 @@ function ligneMotif(base,H9){ // la position latérale du prochain fruit (+ son 
   LIGNE.prevLat=lt;return lt;
 }
 function ligneBloque(s9,k){
+  if(enTrou(s9,8))return true; // (LES TROUS) jamais un fruit ni un pad dans le vide entre deux segments de route
   for(const o of OILS)if(o.face===1&&Math.abs(o.s-s9)<(o.r||4)+7)return true; // jamais dans une flaque
   if(BANQ.obst&&LVL.cur&&LVL.cur.id==='banquise')for(const o of BANQ.obst)if(Math.abs(o.s-s9)<o.r+12)return true; // (2026-10-17) ni dans un pic de la piste du glacier
   return false;

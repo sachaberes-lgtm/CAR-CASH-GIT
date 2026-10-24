@@ -24,12 +24,13 @@ function nuage8Calc(B, base, top, N, opt) {
   const vn = function (x, y, z) { const i = Math.floor(x), j = Math.floor(y), k = Math.floor(z); let fx = x - i, fy = y - j, fz = z - k; fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy); fz = fz * fz * (3 - 2 * fz);
     const a = hs(i, j, k), b = hs(i + 1, j, k), c = hs(i, j + 1, k), d = hs(i + 1, j + 1, k), e = hs(i, j, k + 1), f = hs(i + 1, j, k + 1), g = hs(i, j + 1, k + 1), m = hs(i + 1, j + 1, k + 1);
     const l1 = a + (b - a) * fx, l2 = c + (d - c) * fx, l3 = e + (f - e) * fx, l4 = g + (m - g) * fx, q1 = l1 + (l2 - l1) * fy, q2 = l3 + (l4 - l3) * fy; return q1 + (q2 - q1) * fz; };
-  const sd = (opt.seed || 0) * 17.13;
+  const sd = (opt.seed || 0) * 17.13, VOXF = !!opt.vox, FAR = DET * .5 + .02;
   // le champ : > 0 dedans
-  const champ = function (x, y, z) {
+  const champ = function (x, y, z, LB) { // LB (cubes) : la liste des lobes qui comptent dans la région interrogée
     let f = 0;
-    for (let i = 0; i < B.length; i++) { const b = B[i], r = b[3], ry = b[3] * b[4], dx = (x - b[0]) / r, dy = (y - b[1]) / ry, dz = (z - b[2]) / r, q = dx * dx + dy * dy + dz * dz; if (q < 9) f += Math.exp(-K * q); }
+    for (let ii = 0, nb = LB ? LB.length : B.length; ii < nb; ii++) { const i = LB ? LB[ii] : ii, b = B[i], r = b[3], ry = b[3] * b[4], dx = (x - b[0]) / r, dy = (y - b[1]) / ry, dz = (z - b[2]) / r, q = dx * dx + dy * dy + dz * dz; if (q < 9) f += Math.exp(-K * q); }
     let g = Math.log(Math.max(f, 1e-9) / T); // 0 à la surface, en « unités de rayon » (le log rend le champ presque linéaire près de la surface)
+    if (VOXF && (g > FAR || g < -FAR)) return g - Math.max(0, (base + .015 - y)) * 40; // (cubes) le bruit ne vaut que ±DET/2 : loin de la surface il ne change aucun signe, on ne le calcule pas
     // le chou-fleur : deux octaves de bosses, plus fortes vers le haut (la base reste lisse)
     const hy = Math.max(0, Math.min(1, (y - base) / Math.max(.1, top - base)));
     g += DET * (0.55 * (vn(x * 4.1 * FQ + sd, y * 4.1 * FQ, z * 4.1 * FQ) - .5) + 0.3 * (vn(x * 9.3 * FQ, y * 9.3 * FQ + sd, z * 9.3 * FQ) - .5) + 0.15 * (vn(x * 19.7 * FQ, y * 19.7 * FQ, z * 19.7 * FQ + sd) - .5)) * (.3 + .7 * hy);
@@ -37,6 +38,68 @@ function nuage8Calc(B, base, top, N, opt) {
     g -= Math.max(0, (base + .015 - y)) * 40;
     return g;
   };
+  /* (2026-10-20, Léo : « le niveau nuage a l'air déchiqueté — une refonte, avec toutes les techniques, entre réalisme et cubes pixel de tailles
+     variables ») LE CUMULUS EN CUBES DE TAILLES VARIABLES : du MÊME champ lisse (donc les mêmes formes, la même base plate), la surface n'est plus
+     maillée en surface nets mais en CUBES posés sur une grille emboîtée (régions de 4 unités : des cubes de 1, 2 ou 4 unités selon un bruit lisse
+     par région — petits sur les bourgeons du haut, gros vers le ventre) ; seules les faces tournées vers le dehors sont émises, une par
+     « patch » si le voisin change de taille (jamais de trou entre un gros et un petit cube). La LUMIÈRE reste celle du nuage lisse : la normale
+     d'un cube = sa face mêlée au gradient du champ (opt.vox.kn), le modelé cuit (creux, ombre des bourgeons du haut, hauteur) est lu en son
+     centre, et chaque cube a SA nuance (opt.vox.jit) : c'est elle qui fait lire la mosaïque. Aucun fantôme, aucune poussière : un seul objet opaque. */
+  if (opt.vox) {
+    const VX = opt.vox, hv = ext / (N * (VX.k || 1.5) * (N > 40 ? (VX.kf || .75) : 1)), RG = hv * 4, kn = VX.kn == null ? .5 : VX.kn, jit = VX.jit == null ? .16 : VX.jit;
+    const gx0 = Math.floor(x0 / RG) * RG, gz0 = Math.floor(z0 / RG) * RG, gy0 = base - RG; // la base du nuage sur une frontière de région : le dessous est PLAT
+    const NRX = Math.ceil((x1 + hv * 2 - gx0) / RG) + 1, NRZ = Math.ceil((z1 + hv * 2 - gz0) / RG) + 1, NRY = Math.ceil((y1 + hv * 2 - gy0) / RG) + 1;
+    const NCX = NRX * 4, NCY = NRY * 4;
+    const RL = new Int8Array(NRX * NRY * NRZ), RS = new Int8Array(NRX * NRY * NRZ), memo = new Map();
+    const t0v = VX.t0 == null ? .36 : VX.t0, t1v = VX.t1 == null ? .7 : VX.t1, hbv = VX.hb == null ? .35 : VX.hb, hh0 = Math.max(.1, top - base);
+    for (let k = 0; k < NRZ; k++) for (let j = 0; j < NRY; j++) for (let i = 0; i < NRX; i++) { // la taille des cubes de chaque région : un bruit LISSE (des plaques), plus petite vers le haut
+      const rv = vn(i * .83 + sd + 3.1, j * .83 + 1.7, k * .83 - 2.3) * .65 + hs(i * 7 + 1, j * 13 + 5, k * 11 + 3) * .35, yy = Math.min(1, Math.max(0, (gy0 + (j + .5) * RG - base) / hh0)), t = rv + (.5 - yy) * hbv;
+      RL[i + NRX * (j + NRY * k)] = t < t0v ? 0 : t < t1v ? 1 : 2; }
+    const RBL = new Array(NRX * NRY * NRZ), bl = function (i, j, k) { const q = i + NRX * (j + NRY * k); let L9 = RBL[q]; if (L9) return L9; // les lobes dont la portée (3 rayons : q < 9) touche cette région
+      const ccx = gx0 + (i + .5) * RG, ccy = gy0 + (j + .5) * RG, ccz = gz0 + (k + .5) * RG, rr = RG * .87; L9 = [];
+      for (let b9 = 0; b9 < B.length; b9++) { const b = B[b9], R9 = 3 * Math.max(b[3], b[3] * b[4]) + rr; if (Math.abs(ccx - b[0]) < R9 && Math.abs(ccy - b[1]) < R9 && Math.abs(ccz - b[2]) < R9) L9.push(b9); }
+      RBL[q] = L9; return L9; };
+    const rstate = function (i, j, k) { const q = i + NRX * (j + NRY * k); let s = RS[q]; if (s) return s;
+      let mn = 1e9, mx = -1e9; const xa = gx0 + i * RG, ya = gy0 + j * RG, za = gz0 + k * RG;
+      const L9 = bl(i, j, k); for (let c = 0; c < 9; c++) { const g = champ(c === 8 ? xa + RG * .5 : xa + (c & 1) * RG, c === 8 ? ya + RG * .5 : ya + ((c >> 1) & 1) * RG, c === 8 ? za + RG * .5 : za + ((c >> 2) & 1) * RG, L9); if (g < mn) mn = g; if (g > mx) mx = g; }
+      s = mn > 2.5 ? 2 : mx < -2.5 ? 1 : 3; RS[q] = s; return s; };
+    const cellSolid = function (l, ci, cj, ck) { const key = ((ck * NCY + cj) * NCX + ci) * 3 + l, m = memo.get(key); if (m !== undefined) return m;
+      const s = hv * (1 << l), sh = 2 - l, v = champ(gx0 + (ci + .5) * s, gy0 + (cj + .5) * s, gz0 + (ck + .5) * s, bl(ci >> sh, cj >> sh, ck >> sh)) > 0; memo.set(key, v); return v; };
+    const solidAt = function (x, y, z) { const i = Math.floor((x - gx0) / RG), j = Math.floor((y - gy0) / RG), k = Math.floor((z - gz0) / RG);
+      if (i < 0 || j < 0 || k < 0 || i >= NRX || j >= NRY || k >= NRZ) return false;
+      const st = rstate(i, j, k); if (st === 1) return false; if (st === 2) return true;
+      const l = RL[i + NRX * (j + NRY * k)], s = hv * (1 << l); return cellSolid(l, Math.floor((x - gx0) / s), Math.floor((y - gy0) / s), Math.floor((z - gz0) / s)); };
+    const VP = [], VN = [], VC = [], VI = [], VQ = [], DIRS = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]], QQ = [[-1, -1], [1, -1], [1, 1], [-1, 1]], eps = hv * .25;
+    const quad = function (cx, cy, cz, ax, sg, hs9, cu, cw, hu, hw, nn, md) { const u = (ax + 1) % 3, w = (ax + 2) % 3, b0 = VP.length / 3;
+      for (const q of QQ) { const P = [cx, cy, cz]; P[ax] += sg * hs9; P[u] += cu + q[0] * hu; P[w] += cw + q[1] * hw; VP.push(P[0], P[1], P[2]); VN.push(nn[0], nn[1], nn[2]); VC.push(md[0], md[1], md[2]); VQ.push(ax, sg); }
+      if (sg > 0) VI.push(b0, b0 + 1, b0 + 2, b0, b0 + 2, b0 + 3); else VI.push(b0, b0 + 2, b0 + 1, b0, b0 + 3, b0 + 2); };
+    const e1 = hv * .6;
+    for (let k = 0; k < NRZ; k++) for (let j = 0; j < NRY; j++) for (let i = 0; i < NRX; i++) {
+      if (rstate(i, j, k) !== 3) continue;
+      const l = RL[i + NRX * (j + NRY * k)], n = 4 >> l, s = hv * (1 << l), m = 1 << l;
+      for (let c = 0; c < n; c++) for (let b = 0; b < n; b++) for (let a = 0; a < n; a++) {
+        const ci = i * n + a, cj = j * n + b, ck = k * n + c; if (!cellSolid(l, ci, cj, ck)) continue;
+        const cx = gx0 + (ci + .5) * s, cy = gy0 + (cj + .5) * s, cz = gz0 + (ck + .5) * s; let dat = null;
+        for (const d of DIRS) { const ax = d[0] ? 0 : d[1] ? 1 : 2, u = (ax + 1) % 3, w = (ax + 2) % 3, sg = d[ax], ex = [];
+          let nex = 0; for (let q = 0; q < m; q++) for (let p = 0; p < m; p++) { const P = [cx, cy, cz]; P[ax] += sg * (s * .5 + eps); P[u] += ((p + .5) / m - .5) * s; P[w] += ((q + .5) / m - .5) * s;
+            const e = !solidAt(P[0], P[1], P[2]); ex.push(e); if (e) nex++; }
+          if (!nex) continue;
+          if (!dat) { let gx = champ(cx + e1, cy, cz) - champ(cx - e1, cy, cz), gy = champ(cx, cy + e1, cz) - champ(cx, cy - e1, cz), gz = champ(cx, cy, cz + e1) - champ(cx, cy, cz - e1);
+            const gl = Math.hypot(gx, gy, gz) || 1; gx = -gx / gl; gy = -gy / gl; gz = -gz / gl;
+            let o9 = 0; for (const s9 of [.04, .09, .17, .3]) { const w9 = champ(cx + gx * s9, cy + gy * s9, cz + gz * s9); if (w9 > -1.4) o9 += (w9 + 1.4) / 1.4 * (s9 === .04 ? .35 : s9 === .09 ? .3 : s9 === .17 ? .22 : .13); }
+            let u9 = 0; for (const s9 of [.1, .22, .38, .6]) { const w9 = champ(cx + gx * .03, cy + s9, cz + gz * .03); if (w9 > 0) u9 += Math.min(1, w9) * .5; }
+            const hz = hs(ci * 7 + 3, cj * 13 + 5, ck * 11 + 1 + l * 31) - .5;
+            dat = { g: [gx, gy, gz], md: [Math.max(0, Math.min(1, (.25 + .75 * Math.max(0, Math.min(1, 1 - o9 * 1.15))) * (1 + hz * jit))), Math.min(1, Math.exp(-u9 * 1.6) * (1 + hz * jit * .5)), Math.max(0, Math.min(1, (cy - base) / hh0))] }; }
+          const nn = [d[0] * (1 - kn) + dat.g[0] * kn, d[1] * (1 - kn) + dat.g[1] * kn, d[2] * (1 - kn) + dat.g[2] * kn], nl = Math.hypot(nn[0], nn[1], nn[2]) || 1; nn[0] /= nl; nn[1] /= nl; nn[2] /= nl;
+          if (nex === m * m) quad(cx, cy, cz, ax, sg, s * .5, 0, 0, s * .5, s * .5, nn, dat.md);
+          else { const hp = s / m * .5; let ii = 0; for (let q = 0; q < m; q++) for (let p = 0; p < m; p++, ii++) if (ex[ii]) quad(cx, cy, cz, ax, sg, s * .5, ((p + .5) / m - .5) * s, ((q + .5) / m - .5) * s, hp, hp, nn, dat.md); } } } }
+    const nvv = VP.length / 3, idxv = nvv < 65535 ? new Uint16Array(VI) : new Uint32Array(VI);
+    /* (2026-10-21, Léo : « couche par-dessus les cubes, pas gonflé, embrasse la forme des cubes ») LA PEAU : les MÊMES faces que les cubes, décalées de 7 % de cube le long de leur normale de face (une pellicule collée sur chaque marche,
+       qui en épouse tous les angles), avec les normales lissées du corps (elle luit comme un vernis) — plus de surface lisse gonflée */
+    const off = hv * (VX.skin == null ? .07 : VX.skin), sp = new Float32Array(VP.length);
+    for (let i = 0; i < nvv; i++) { const ax = VQ[i * 2], sg = VQ[i * 2 + 1]; sp[i * 3] = VP[i * 3]; sp[i * 3 + 1] = VP[i * 3 + 1]; sp[i * 3 + 2] = VP[i * 3 + 2]; sp[i * 3 + ax] += sg * off; }
+    return { pos: new Float32Array(VP), nor: new Float32Array(VN), col: new Float32Array(VC), idx: idxv, vit: null, fant: null, skin: { pos: sp, nor: new Float32Array(VN), idx: idxv.slice() } };
+  }
   // les coins
   const NX = nx + 1, NY = ny + 1, NZ = nz + 1, V = new Float32Array(NX * NY * NZ);
   for (let k = 0; k < NZ; k++) for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) V[i + NX * (j + NY * k)] = champ(x0 + i * h, y0 + j * h, z0 + k * h);
@@ -189,9 +252,43 @@ function nuage8Calc(B, base, top, N, opt) {
    puis le CHOU-FLEUR : chaque lobe du haut porte 2-3 enfants ronds posés sur sa calotte, vers le haut et le dehors, et les enfants du sommet
    leurs petits-enfants. 70 lobes au plus. Fonction pure : la surface (nuage8Calc) les fond ensuite en une seule masse. */
 function cumulus8(genre, rng) {
-  const B = [], base = -.35, U = function (a, b) { return a + (b - a) * rng(); }, MAXB = 70;
+  const B = [], U = function (a, b) { return a + (b - a) * rng(); }, MAXB = 70; let base = -.35;
   const add = function (x, y, z, r, fy) { if (B.length < MAXB) B.push([x, y, z, r, fy || 1]); return B.length - 1; };
   let d = .7, H = .55, n0 = 9, rb = .3, tour = 0, enclume = 0, cis = 0, kidsK = 1;
+  /* (2026-10-21, Léo : « donne des formes encore plus originales à tes nuages ») SIX FORMES D'AUTEUR, en plus des cumulus : chacune est une silhouette qu'on reconnaît de loin et qui reste un nuage (lobes ronds qui se soudent,
+     base plate sauf la méduse) — ARCHE (une porte de ouate), MÉDUSE (un dôme et ses filaments qui pendent), ANNEAU (un beignet), SPIRALE (une vis qui monte et s'amincit), GÂTEAU (des étages qui rétrécissent), VAGUE (une crête qui déferle). */
+  if (genre === 'arche') { // deux piliers et une voûte : on voit le ciel dans le trou
+    for (const sd of [-1, 1]) for (let i = 0; i < 4; i++) for (const z of [-.14, .14]) add(sd * .64 + U(-.03, .03), base + .22 + i * .26, z + U(-.04, .04), .3 - i * .012, 1);
+    for (let i = 0; i <= 8; i++) { const t = i / 8 * Math.PI; for (const z of [-.13, .13]) add(Math.cos(t) * .64, base + 1.0 + Math.sin(t) * .36, z + U(-.04, .04), .27 + Math.sin(t) * .04, 1); }
+    enfants(B.length, .4); return fin();
+  }
+  if (genre === 'meduse') { // un dôme bombé, et dessous des filaments qui pendent et ondulent
+    base = -.95;
+    add(0, base + 1.18, 0, .5, .8);
+    for (let i = 0; i < 7; i++) { const a = i / 7 * 6.283 + U(-.2, .2); add(Math.cos(a) * .5, base + 1.0 + U(-.05, .05), Math.sin(a) * .42, .34, .7); }
+    for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283 + U(-.3, .3), ox = Math.cos(a) * .42, oz = Math.sin(a) * .36, sw = U(-.12, .12);
+      for (let k = 0; k < 4; k++) add(ox + sw * k, base + .74 - k * .17, oz + sw * k * .6, .12 - k * .012, 1); }
+    enfants(8, .5); return fin();
+  }
+  if (genre === 'anneau') { // un beignet de ouate : le ciel passe au milieu
+    for (let i = 0; i < 14; i++) { const a = i / 14 * 6.283; add(Math.cos(a) * .74, base + .34 + U(-.04, .06), Math.sin(a) * .62, .26 + U(-.02, .03), 1); }
+    for (let i = 0; i < 7; i++) { const a = (i + .5) / 7 * 6.283; add(Math.cos(a) * .74, base + .6, Math.sin(a) * .62, .2, 1); }
+    enfants(B.length, .5); return fin();
+  }
+  if (genre === 'spirale') { // une vis qui monte en s'amincissant
+    for (let i = 0; i < 19; i++) { const t = i / 18, a = t * 3.4 * Math.PI, r = .62 * (1 - .62 * t); add(Math.cos(a) * r, base + .24 + t * 1.75, Math.sin(a) * r * .8, .31 * (1 - .5 * t) + .04, 1); }
+    enfants(B.length, .35); return fin();
+  }
+  if (genre === 'gateau') { // des étages de ouate, de plus en plus petits
+    for (let t = 0; t < 3; t++) { const R = .92 - t * .27, y = base + .26 + t * .44, n = 9 - t * 2, rr = .31 - t * .06;
+      add(0, y, 0, rr * 1.4, .7); for (let i = 0; i < n; i++) { const a = i / n * 6.283 + t * .4; add(Math.cos(a) * R, y, Math.sin(a) * R * .8, rr, .62); } }
+    enfants(B.length, .4); return fin();
+  }
+  if (genre === 'vague') { // une crête qui monte et déferle vers l'avant
+    for (let i = 0; i < 8; i++) { const t = i / 7; for (const z of [-.2, .2]) add(-.95 + i * .25, base + .25 + Math.pow(t, 1.6) * .8, z + U(-.04, .04), .3 - t * .02, 1); }
+    for (let k = 0; k < 4; k++) for (const z of [-.18, .18]) add(.82 + k * .12, base + 1.12 - k * .14, z + U(-.04, .04), .22 - k * .02, 1);
+    enfants(B.length, .45); return fin();
+  }
   if (genre === 'humilis') { d = U(.55, .8); H = U(.28, .42); n0 = 11; rb = U(.22, .3); kidsK = .8; }
   else if (genre === 'mediocris') { d = U(.6, .8); H = U(.5, .7); n0 = 10; rb = U(.27, .34); }
   else if (genre === 'congestus') { d = U(.65, .85); H = U(.55, .75); n0 = 9; rb = U(.3, .36); tour = U(.9, 1.5); }
@@ -266,7 +363,7 @@ function cotonGeo(S,sph){ // les bourgeons fusionnés, en unités du nuage : mod
 const COTON_OUV={w:null,ko:false,id:0,att:new Map(),file:[],t:0};
 function cotonOuvrier(){
   if(COTON_OUV.w||COTON_OUV.ko)return COTON_OUV.w;
-  try{const src='const cotonCalc='+cotonCalc.toString()+';const nuage8Calc='+nuage8Calc.toString()+';self.onmessage=function(e){const q=e.data,r=q.n8?nuage8Calc(q.B,q.base,q.top,q.n8,q.o8):cotonCalc(q.B,q.base,q.top,q.sp,q.sn,q.si,q.CH);self.postMessage({id:q.id,r:r},[r.pos.buffer,r.nor.buffer,r.col.buffer,r.idx.buffer]);};';
+  try{const src='const cotonCalc='+cotonCalc.toString()+';const nuage8Calc='+nuage8Calc.toString()+';self.onmessage=function(e){const q=e.data,r=q.n8?nuage8Calc(q.B,q.base,q.top,q.n8,q.o8):cotonCalc(q.B,q.base,q.top,q.sp,q.sn,q.si,q.CH);self.postMessage({id:q.id,r:r},[r.pos.buffer,r.nor.buffer,r.col.buffer,r.idx.buffer].concat(r.skin?[r.skin.pos.buffer,r.skin.nor.buffer,r.skin.idx.buffer]:[]));};';
     const w=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));
     w.onmessage=function(e){const a=COTON_OUV.att.get(e.data.id);if(!a)return;COTON_OUV.att.delete(e.data.id);a.cb(e.data.r);};
     w.onerror=function(ev){try{ev.preventDefault();}catch(e9){}cotonOuvrierKo();};COTON_OUV.w=w;
@@ -283,7 +380,7 @@ function cotonCalcAsync(S,sph,cb){ // cb(le calcul), PLUS TARD : dans l'ouvrier 
   if(w){const id=++COTON_OUV.id;COTON_OUV.att.set(id,{job:job,cb:cb});try{w.postMessage({id:id,B:job.B,base:job.base,top:job.top,sp:job.sp,sn:job.sn,si:job.si,CH:job.CH});}catch(e){COTON_OUV.att.delete(id);cotonTranche(job,cb);}}
   else cotonTranche(job,cb);}
 function nuage8Async(S,N,cb,vit){ // (v8) une finesse de la NOUVELLE surface : dans l'ouvrier si possible, sinon par tranches — vit : la taille des écailles du VITRAIL (nombre de cubes sur la plus grande dimension), 0 = sans
-  const job={n8:N,o8:Object.assign({seed:S.seed||0},N8_OPT,vit?(NUVIT.fant?{fant:NUVIT.fant,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:Object.assign({vit:vit,iso:NUVIT.iso,nsk:NUVIT.nsk,ecart:NUVIT.ecart,jit:NUVIT.jit||0},NUVIT.mix?{fant:NUVIT.mix,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:{})):{}),B:S.B,base:S.base,top:S.top},w=cotonOuvrier();
+  const job={n8:N,o8:Object.assign({seed:S.seed||0},N8_OPT,NUVIT.vox?{vox:NUVIT.vox,det:NUVIT.vox.det==null?N8_OPT.det:NUVIT.vox.det}:vit?(NUVIT.fant?{fant:NUVIT.fant,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:Object.assign({vit:vit,iso:NUVIT.iso,nsk:NUVIT.nsk,ecart:NUVIT.ecart,jit:NUVIT.jit||0},NUVIT.mix?{fant:NUVIT.mix,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:{})):{}),B:S.B,base:S.base,top:S.top},w=cotonOuvrier();
   if(w){const id=++COTON_OUV.id;COTON_OUV.att.set(id,{job:job,cb:cb});try{w.postMessage({id:id,n8:N,o8:job.o8,B:job.B,base:job.base,top:job.top});}catch(e){COTON_OUV.att.delete(id);cotonTranche(job,cb);}}
   else cotonTranche(job,cb);}
 function cotonFinesse(k,f,g){ // une finesse est arrivée : elle remplace l'ébauche dans SON lot et dans les lots plus fins encore en attente
@@ -309,6 +406,7 @@ function n8Vap(){ const N=256,A=new Uint8Array(N*N),D=new Uint8Array(N*N*2),rg=m
   const t=new THREE.DataTexture(D,N,N,THREE.LuminanceAlphaFormat);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;return t;}
 const N8_U={uFondu:{value:1},uTps:{value:0},uSunW:{value:SUN_DIR},uNearF:GFX_U.uNearF,uAlb:{value:CLOUD_MAT.color},uSunC:{value:null},uSky:{value:null},uGnd:{value:null},uK:{value:new THREE.Vector4(1,1,1,1)},uR:{value:new THREE.Vector4(-.25,.5,.64,1)}}; // uR : la frontière d'ombre (début, fin en N·L), la clarté du côté ombre, (libre)
 if(N8_VAP){N8_U.uVap={value:null};N8_U.uVapK={value:new THREE.Vector4(1,1,1,1)};} // (coton-blanc) la toile de vapeur et ses doses : x érosion du bord, y grain du cœur, z or du contre-jour, w tout (palier 2)
+N8_U.uHole=NHOLE.uHole;N8_U.uHoleC=NHOLE.uHoleC;N8_U.uMood={value:new THREE.Vector4(1,0,0,0)};N8_U.uBolt=NBOLT.uBolt;N8_U.uBoltR=NBOLT.uBoltR;N8_U.uInC={value:new THREE.Vector3(.6,.7,1)};
 N8_U.uLav={value:new THREE.Vector3(.72,.78,.97)}; // (2026-10-14, passe graphismes · nuages-jour) la teinte de l'ombre des cumulus (était la constante vec3(.72,.78,.97) du GLSL, un bleu-lavande franc) : un uniforme, posé par ambiance (champ `nuLav`), même valeur par défaut
 /* LES NUAGES SANS COUTURES BLEUES (2026-10-15 soir, Sacha : « les nuages sont encore buggés ») — VU au banc (mer de nuages, rafales de photos) : des
    LISERÉS BLEUS et des trous dans la ouate là où deux cumulus se chevauchent. La cause : le bord d'un nuage est à demi transparent (la silhouette
@@ -346,8 +444,9 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       ...(N8_VAP?['  float sc9=length(modelMatrix[0].xyz);','#ifdef USE_INSTANCING','  sc9*=length(c0);','#endif','  vQ=sc9*.077/max(length(cameraPosition-wp.xyz),1.);']:[]), /* (coton-blanc) la taille d une cellule de vapeur à l écran (rad) : sous ~3 px elle s éteint */
       '#include <fog_vertex>',
       '}'].join('\n'),
-    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform vec4 uK,uR;uniform float uFondu;varying vec3 vN,vW,vA,vT;varying float vNvF;',...(N8_VAP?['uniform sampler2D uVap;uniform vec4 uVapK;varying vec3 vP;varying float vQ;','float n8vap(vec3 x){vec3 p=floor(x),f=fract(x);f=f*f*(3.-2.*f);vec2 uv=mod(p.xy+vec2(37.,17.)*p.z,256.)+f.xy;vec2 rg=texture2D(uVap,(uv+.5)/256.).ra;return mix(rg.x,rg.y,f.z);}']:[]),
+    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform vec4 uK,uR;uniform float uFondu;uniform vec4 uHole[8];uniform float uHoleC;uniform vec4 uMood;uniform vec3 uInC;uniform float uTps;uniform vec4 uBolt[12];uniform float uBoltR;varying vec3 vN,vW,vA,vT;varying float vNvF;',...(N8_VAP?['uniform sampler2D uVap;uniform vec4 uVapK;varying vec3 vP;varying float vQ;','float n8vap(vec3 x){vec3 p=floor(x),f=fract(x);f=f*f*(3.-2.*f);vec2 uv=mod(p.xy+vec2(37.,17.)*p.z,256.)+f.xy;vec2 rg=texture2D(uVap,(uv+.5)/256.).ra;return mix(rg.x,rg.y,f.z);}']:[]),
       'void main(){vec3 N=normalize(vN),N0=N,V=normalize(cameraPosition-vW);',
+      '  for(int i9=0;i9<8;i9++){vec4 h9=uHole[i9];if(h9.w>.01&&distance((floor(vW/uHoleC)+.5)*uHoleC,h9.xyz)<h9.w)discard;}',
       /* LE RELIEF DE PRÈS (SON et DEBUGGING, mesuré : en vol, un grand nuage tout proche était un MUR lisse « en plastique ») : sous ~300 m, la
          normale ondule (deux champs de sinus déformés, en espace monde, des bosses de ~50 m) — le mur redevient de la ouate bosselée. Au loin, rien. */
       '  float dd=length(cameraPosition-vW),kd=smoothstep(320.,70.,dd);',
@@ -369,10 +468,14 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       ...(N8_VAP?['  float nz=n8vap(vP),kq=smoothstep(.0045,.013,vQ)*uVapK.w,e9=smoothstep(.62,.95,fr)*kq;']:[]), /* (coton-blanc) UNE lecture : nz la vapeur, e9 la frange (3-8 % du rayon au bord de la silhouette) */
       N8_VAP?'  col+=soleil*mix(vec3(1.),vec3(1.,.9,.7),uVapK.z*smoothstep(.3,.8,dot(uSunC,vec3(.3,.59,.11))))*(pow(fr,3.)*1.5*bk+bk*.07*(1.-ao*.5))*uK.z;':'  col+=soleil*(pow(fr,3.)*1.5*bk+bk*.07*(1.-ao*.5))*uK.z;',   /* (SON, mesuré) la lueur de contre-jour ne teinte plus TOUTE la face en sable : le liseré, et un voile léger */                                  /* à contre-jour : la LISIÈRE d argent, et la vapeur éclairée par derrière */
       N8_VAP?'  col+=alb*vec3(dot(soleil,vec3(.3,.59,.11)))*pow(fr,2.)*.16*(1.-bk)*(.4+.6*lit);':'  col+=alb*soleil*pow(fr,2.)*.16*(1.-bk)*(.4+.6*lit);',                                     /* de face, le bord qui tourne s ALLÈGE (la vapeur mince diffuse la lumière) */
+      /* (2026-10-21, Léo : « utilise la technique de la forêt, la transparence, pour que chaque nuage soit adapté à sa météo ») L'HUMEUR : un souffle de lumière DE L'INTÉRIEUR (uInC × uMood.y), qui monte aux éclairs (uMood.z)
+         et ne se voit que dans l'ombre et les creux — la ouate devient un verre dépoli éclairé du dedans, comme la peau du vitrail de la forêt ; + de petits éclairs lointains propres à chaque quartier de ciel. */
+      '  {float ob=1.-lit*.8,cr9=.3+.7*(1.-ao),lo9=pow(.5+.5*sin(uTps*.9+dot(floor(vW/190.),vec3(1.7,2.3,3.1))),40.);col+=uInC*uMood.y*(.35+uMood.z*1.7+lo9*.5)*ob*cr9;}',
+      '  {vec3 bl=vec3(0.);float R2=uBoltR*uBoltR;for(int i9=0;i9<12;i9++){vec4 b=uBolt[i9];if(b.w>.01){vec3 dv=vW-b.xyz;float g=b.w*exp(-dot(dv,dv)/R2);bl+=vec3(.55,.44,1.)*g+vec3(.5)*g*g;}}col+=bl*(.55+.45*(1.-lit))*1.15;}', /* la ouate s éclaire AUTOUR des fils : violet, blanc au plus près (g²) */
       '  float a=(1.-pow(fr,6.)*.45*uK.w)*uFondu;',
       ...(N8_VAP?['  col*=mix(1.,.955+.09*nz,kq*uVapK.y*(1.-e9));','  a*=mix(1.,smoothstep(e9*.9-.15,e9*.9+.15,nz),e9*uVapK.x);']:[]), /* (coton-blanc) le grain du cœur (±4,5 %), puis le bord qui s effiloche : plus on va vers la silhouette, plus la vapeur doit être dense pour rester */
       '#ifdef NUAGE8_INST',
-      '  a*=smoothstep(uNearF.x,uNearF.y,length(vW-cameraPosition));',
+      '  a*=uMood.x*smoothstep(uNearF.x,uNearF.y,length(vW-cameraPosition));',
       ...(N8_TRAME?['  {vec2 q9=floor(gl_FragCoord.xy),h9=floor(q9*.5);float b9=fract(h9.x*.5+h9.y*h9.y*.75)*.25+fract(q9.x*.5+q9.y*q9.y*.75);if(a<=b9+.03125||(vNvF<0.?-vNvF<=b9+.03125:vNvF>b9+.03125))discard;a=1.;}']:['  a*=vNvF<0.?-vNvF:1.-vNvF;']), /* (2026-10-15 soir) LE BORD EN TRAME : opaque ou rien (voir N8_TRAME) */ /* (2026-10-18, LE FONDU) la v8 (part ≥ 0) cède ces points-là ; le corps rentré d'un fantôme (part < 0) les prend */
       '#endif',
       ...(N8_VAP?['  if(e9>.01&&a<.02)discard;']:[]), /* (coton-blanc) un bord effiloché n écrit pas sa profondeur : le lobe de derrière le remplit */

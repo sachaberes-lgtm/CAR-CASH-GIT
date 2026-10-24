@@ -5,7 +5,7 @@
    astéroïdes on doit mettre des satellites STARLINK et des débris de satellite, travaille-les bien, que tout soit joli ; après,
    travaille sur la lumière — essaie d'avoir une lumière SPATIALE ».
    ----------------------------------------------------------------------------
-   · LA LUNE (`LUNE`) : l'astre peint UNE fois (`lunePinceau` : 1024 × 512, albédo / relief / mers dans R/G/B), posé en CERCLE à
+   · LA LUNE (`LUNE`) [⚠ RETIRÉE DU CIEL le 2026-10-22 : voir LUNE_ON plus bas, `?lune=ancien` la rend] : l'astre peint UNE fois (`lunePinceau` : 1024 × 512, albédo / relief / mers dans R/G/B), posé en CERCLE à
      l'écran et calculé comme une SPHÈRE dans le fragment. Sa place : le tiers haut-droit de l'image, rejoint avec RETARD — c'est ce
      qui la fait « suivre le joueur », et c'est GARDÉ tel quel (verdict : « c'est un bug mais j'aime bien »). Elle est un peu plus
      grande (LUNE_R 520 → 640) : le visage doit se lire à 60 px.
@@ -56,6 +56,12 @@ const ORB={actif:false,lune:false,peinte:false,sol:new THREE.Vector3(0,1,0),haut
   pc:new THREE.Vector3(),pm:new THREE.Vector3(),rs:0x5EED1};
 function orbAlea(){ORB.rs=ORB.rs*16807%2147483647;return ORB.rs/2147483647;} // le hasard du REGARD (saccades, clignements) : un flux à lui — Math.random nourrit d'autres tirages du jeu
 const LUNE_D=3000,LUNE_R=640; // à 3 km, ~24° de diamètre (sa place dans le cadre : voir orbiteTick) — 520 → 640 : le visage doit se lire
+/* ===== LA LUNE RETIRÉE DE L'ORBITE (2026-10-22, Léo : « la lune qui suit dans la planète espace, on va la mettre ailleurs ; pour l'instant on l'enlève,
+   on laisse juste la grande planète, et la voiture se promène ») =====
+   Plus d'astre dans l'orbite : la lune n'est ni posée dans la scène, ni peinte au menu, ni compilée (zéro coût). Tout son code reste en place —
+   `?lune=ancien` la rend telle qu'avant (visage, regard, libration) : c'est de là qu'on la reprendra pour la poser ailleurs. Sa DIRECTION, elle, continue
+   de piloter la clé froide (`kick`, le clair de lune faible : voir orbiteLumiere) : l'éclairage de la caisse ne bouge pas d'un poil. */
+const LUNE_ON=/[?&]lune=ancien\b/.test(location.search);
 const LUNE=(function(){
   const cv=document.createElement('canvas');cv.width=1024;cv.height=512;
   const tex=new THREE.CanvasTexture(cv); // mipmaps (défaut) : la couture est sur la face cachée, jamais à l'écran
@@ -149,15 +155,15 @@ const LUNE=(function(){
       '  gl_FragColor=vec4(col,al);}'].join('\n')});
   const me=new THREE.Mesh(new THREE.PlaneGeometry(2,2),m);
   me.frustumCulled=false;me.matrixAutoUpdate=false;me.visible=false;me.renderOrder=-9; // transparent, avant le limbe et le halo de la Terre
-  me.userData.cv=cv;me.userData.tex=tex;scene.add(me);return me;
+  me.userData.cv=cv;me.userData.tex=tex;if(LUNE_ON)scene.add(me);return me; // retirée du ciel : hors scène, renderer.compile() ne la voit pas non plus
 })();
 /* LA CARTE DE LA LUNE — 1024 × 512, équirectangulaire, peinte UNE fois au menu. ⚠ MESURÉ d'une traite : 140 ms (PC) — une image
    gelée au menu, bien pire sur iPhone. Le pinceau est donc un GÉNÉRATEUR : une étape par image au menu (`luneAvance`, appelé par la
    boucle via orbiteTick), chacune de quelques ms ; les toiles de travail restent en mémoire CPU (`willReadFrequently` : les relire
    n'est plus un aller-retour GPU). `lunePeint()` finit d'une traite si on en a besoin tout de suite (orbite atteinte avant la fin). */
-function lunePeint(){if(ORB.peinte)return;if(!ORB.pinceau)ORB.pinceau=lunePinceau();while(!ORB.pinceau.next().done){}ORB.pinceau=null;}
+function lunePeint(){if(ORB.peinte||!LUNE_ON)return;if(!ORB.pinceau)ORB.pinceau=lunePinceau();while(!ORB.pinceau.next().done){}ORB.pinceau=null;}
 function luneAvance(){ // une étape du pinceau (au menu) ; la dernière monte la carte au GPU
-  if(ORB.peinte)return;if(!ORB.pinceau)ORB.pinceau=lunePinceau();
+  if(ORB.peinte||!LUNE_ON)return;if(!ORB.pinceau)ORB.pinceau=lunePinceau();
   const t0=performance.now(),fin=ORB.pinceau.next().done;ORB.pireMs=Math.max(ORB.pireMs|0,Math.round(performance.now()-t0));
   if(fin){renderer.initTexture(LUNE.userData.tex);ORB.pinceau=null;} // (2026-10-14, passe perf mobile) le générateur fini ne retient plus ses toiles ni ses tableaux
 }

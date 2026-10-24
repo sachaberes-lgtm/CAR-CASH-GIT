@@ -50,6 +50,7 @@ const VV={on:false,n:0,nv:0,acc:new THREE.Color(1,.25,.78),
   uClD:{value:new THREE.Vector2()},uPlf:{value:new THREE.Vector3(.1,.05,.12)}};
 /* QUI devient une géante de verre : haut = de combien son toit dépasse la route qu'elle borde (m) — le skyline, pas les toits qu'on survole */
 function villeVerreTour(cx,cz,haut,canyon){if(haut<(canyon?60:30))return false;const h=metroH(cx*.71-5.3,cz*1.37+2.9);return h<(canyon?(haut>190?.52:.34):.3);}
+function villeVerreTourD(cx,cz,haut,canyon,V){if(haut<(canyon?60:30))return false;const h=metroH(cx*.71-5.3+V.ox,cz*1.37+2.9+V.oz);return h<Math.min(.9,(canyon?(haut>190?.52:.34):.3)*V.k);} // (2026-10-20, LE DÉCOR AU HASARD) la part de géantes tirée (V.k) et LESQUELLES (la graine de position décalée)
 /* LE CIEL QUE LE VERRE RENVOIE, en ville : la brume de la ville (sa teinte, son temps) — sombre au zénith, la lueur des rues et des néons à l'horizon ;
    les nuages, éclairés par en dessous. Posé à chaque image (VV : ses propres uniformes, la ville vitrée garde les siens). (banc, 2e passe, même graine :
    à la première les géantes sortaient PLUS SOMBRES que les tours au néon — elles éteignaient le skyline ; d'où ces dosages.) */
@@ -241,6 +242,9 @@ function vitreGeoR(){return VIT.geoR||(VIT.geoR=vitreGeoFab(6));}
    canyon (le long de la route) ont toutes les formes ; la forêt du lointain, les simples. Le sommet la lit dans la couleur d'instance (r + 8 × forme). */
 function vitreForme(cx,cz,H,canyon){const h=metroH(cx*1.7+3.1,cz*.9-7.3);
   if(canyon&&H>240)return h<.28?0:h<.46?1:h<.60?2:h<.71?3:h<.86?4:5;
+  return h<.6?0:h<.75?4:h<.88?1:5;}
+function vitreFormeD(cx,cz,H,canyon,F){const h=metroH(cx*1.7+3.1+F.ox,cz*.9-7.3+F.oz),S=F.s; // (2026-10-20, LE DÉCOR AU HASARD) les formes de la VILLE VITRÉE : la famille tirée (F.s, les seuils) et lesquelles (la graine décalée)
+  if(canyon&&H>240)return h<S[0]?0:h<S[1]?1:h<S[2]?2:h<S[3]?3:h<S[4]?4:5;
   return h<.6?0:h<.75?4:h<.88?1:5;}
 // LE MUR DE VERRE — au sommet le biseau, au pixel la façade ; la tour de la ville (tri hors champ, portée des lampes, impact) pour le reste
 /* (2026-10-18, NÉON ET VERRE) le mur de verre est une FONCTION de ce qu'il renvoie vers le bas et sur les côtés (CB, la fin du ciel renvoyé) : la VILLE
@@ -457,12 +461,15 @@ function vitreDirigeable(){
   g.name='ville vitrée dirigeable';g.visible=false;scene.add(g);VIT.dir=g;
   VIT.Fd={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};VIT.dirS=null;VIT.dirC=0;VIT.dirT=0;return g;}
 function vitreDirTick(d){
+  const DZ9=CITY.dz&&CITY.dz.genre==='vitree'?CITY.dz:null; // (2026-10-20, LE DÉCOR AU HASARD) le dirigeable tiré : aucun, comme avant, haut, rasant
+  if(DZ9&&!DZ9.dir){if(VIT.dir&&VIT.dir.visible)VIT.dir.visible=false;return;}
   const g=vitreDirigeable();g.visible=true;
   if(VIT.dirS==null||s>VIT.dirS-150||VIT.dirS>s+5200){VIT.dirS=Math.min(L-80,s+1700);VIT.dirC++;VIT.dirT=0; // dépassé (ou nouvelle piste) : loin devant, de l'autre côté
     VIT.dirY=0;if(VIT_SOL&&CITY.solY!=null&&VIT.tours){frameAt(VIT.dirS,VIT.Fd);const p9=VIT.Fd.p;let mx=CITY.solY+620; // (AU SOL) il croise AU-DESSUS des géantes qui l'entourent (jamais dans une tour)
       for(const t9 of VIT.tours){const dx=t9[0]-p9.x,dz=t9[1]-p9.z;if(dx*dx+dz*dz<520*520&&t9[5]+60>mx)mx=t9[5]+60;}VIT.dirY=mx;}}
   VIT.dirT+=d;frameAt(VIT.dirS,VIT.Fd);const F9=VIT.Fd,h=Math.hypot(F9.t.x,F9.t.z)||1,tx=F9.t.x/h,tz=F9.t.z/h,sg=(VIT.dirC%2)?1:-1;
-  g.position.set(F9.p.x-tz*sg*200+tx*VIT.dirT*7,(VIT.dirY||F9.p.y+130)+Math.sin(VIT.uT.value*.3)*3,F9.p.z+tx*sg*200+tz*VIT.dirT*7);
+  const lat9=DZ9?DZ9.dir[0]:200,dh9=DZ9?DZ9.dir[1]:0;
+  g.position.set(F9.p.x-tz*sg*lat9+tx*VIT.dirT*7,(VIT.dirY||F9.p.y+130)+dh9+Math.sin(VIT.uT.value*.3)*3,F9.p.z+tx*sg*lat9+tz*VIT.dirT*7);
   g.rotation.set(0,Math.atan2(tx,tz),Math.sin(VIT.uT.value*.21)*.02);
   if(VIT.nav)VIT.nav.visible=(VIT.uT.value%1.6)<.25;
 }
@@ -475,7 +482,8 @@ function vitreTick(dt,sim){
   VIT.uSun.value.copy(SUN_DIR);VIT.uNuit.value=LVL.nuit||0;
   VIT.uSunC.value.set(sun.color.r,sun.color.g,sun.color.b).multiplyScalar(Math.min(1.6,sun.intensity));
   const M=VIT_MET[(LVL.cur&&LVL.cur.meteo)||VIT.met]||VIT_MET.midi,k=Math.min(1,dt*1.5+(VIT.neuf?1:0)),K=VIT.uClK.value;VIT.neuf=false; // (au portail : posé d'un coup, ensuite il glisse)
-  K.x+=(M.k[0]-K.x)*k;K.y+=(M.k[1]-K.y)*k;K.z+=(M.k[2]-K.z)*k;VIT.uSunK.value+=(M.s-VIT.uSunK.value)*k;
+  const nu9=CITY.dz&&CITY.dz.genre==='vitree'?CITY.dz.nu:0; // (2026-10-20, LE DÉCOR AU HASARD) les nuages tirés : le seuil de couverture décalé
+  K.x+=(M.k[0]+nu9-K.x)*k;K.y+=(M.k[1]+nu9-K.y)*k;K.z+=(M.k[2]-K.z)*k;VIT.uSunK.value+=(M.s-VIT.uSunK.value)*k;
   {const P=VIT.uPlf.value;P.x+=(M.p[0]-P.x)*k;P.y+=(M.p[1]-P.y)*k;P.z+=(M.p[2]-P.z)*k;} // la couleur du plafond
   const L=VIT.uClL.value,A=VIT.uClA.value;L.x+=(M.l[0]-L.x)*k;L.y+=(M.l[1]-L.y)*k;L.z+=(M.l[2]-L.z)*k;A.x+=(M.a[0]-A.x)*k;A.y+=(M.a[1]-A.y)*k;A.z+=(M.a[2]-A.z)*k;
   VIT.sol[0]+=(M.sol[0]-VIT.sol[0])*k;VIT.sol[1]+=(M.sol[1]-VIT.sol[1])*k; // le soleil de l'heure (posé par canyonSoleil)
@@ -511,5 +519,5 @@ window.dbgVitre=function(k,v){ // console : l'état de la VILLE VITRÉE · ('nua
       taille:[Math.hypot(e[0],e[1],e[2]),Math.hypot(e[4],e[5],e[6]),Math.hypot(e[8],e[9],e[10])].map(Math.round),centre:[e[12],e[13],e[14]].map(Math.round)});}
     if(!L.length)for(const h of rc.intersectObjects(scene.children,true).slice(0,5))L.push({objet:h.object.name||h.object.type,parent:h.object.parent&&(h.object.parent.name||h.object.parent.type),d:Math.round(h.distance),visible:h.object.visible}); // pas une tour : quoi d'autre ?
     return L.sort(function(a,b){return a.d-b.d;}).slice(0,6);}
-  return {on:vitreOn(),ville:!!CITY.root,meteo:LVL.cur&&LVL.cur.meteo,ciel:BIO.name,nuages:VIT.uClK.value.toArray().map(function(x){return +x.toFixed(2);}),eclat:+VIT.uSunK.value.toFixed(2),nuit:+VIT.uNuit.value.toFixed(2),
+  return {on:vitreOn(),ville:!!CITY.root,deco:CITY.dz&&CITY.dz.genre==='vitree'?CITY.deco:null,meteo:LVL.cur&&LVL.cur.meteo,ciel:BIO.name,nuages:VIT.uClK.value.toArray().map(function(x){return +x.toFixed(2);}),eclat:+VIT.uSunK.value.toFixed(2),nuit:+VIT.uNuit.value.toFixed(2),
     couche:!!(VIT.ciel&&VIT.ciel.visible),ville9:CITY.n};};
