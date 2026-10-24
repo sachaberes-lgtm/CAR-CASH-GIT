@@ -38,7 +38,8 @@ function unique(t,rep){const i=t.indexOf(rep);if(i<0)throw new Error('repère in
 function fonction(t,e){const i=unique(t,e);return t.slice(i,finBloc(t,i+e.length-1));}
 function ligne(t,rep){const i=unique(t,rep);let j=t.indexOf('\n',i);const k=t.indexOf('//',i);if(k>=0&&k<j)j=k;return t.slice(i,j);}
 function extrait(f){const t=fs.readFileSync(f,'utf8');
-  return {rd:t.indexOf('function ramD(')>=0?fonction(t,'function ramD(P,Q,ax,R){'):'',pt:fonction(t,'function pickupsTick(dt){'),ram:ligne(t,'const RAM={'),ramK:ligne(t,'const RAM_K='),mag:ligne(t,'const MAG_R='),
+  return {rd:t.indexOf('function ramD(')>=0?fonction(t,'function ramD(P,Q,ax,R){'):'',
+    vf:t.indexOf('function volFaceTick(){')>=0?fonction(t,'function volFaceTick(){'):'', /* (24/10) la face du vol, sortie de pickupsTick le 20/10 : extraite elle aussi */pt:fonction(t,'function pickupsTick(dt){'),ram:ligne(t,'const RAM={'),ramK:ligne(t,'const RAM_K='),mag:ligne(t,'const MAG_R='),
     cap:ligne(t,'const ENG_CAP='),spd:+/const SPD=([0-9.]+)/.exec(t)[1],
     L:t.slice(0,t.indexOf('function pickupsTick(dt){')).split('\n').length,txt:t};}
 const XN=extrait(NEUF),XV=extrait(VIEUX);
@@ -53,7 +54,9 @@ function plafonds(t){
     return maxSp*Math.sqrt(5.8*(th+nit*p/acc9))*SPD*(1+NTR);};
   const T=push.length-1,vS=P(T,.55*2.8,30),vT=P(T,.55*1.5*2.8*1.24,48);
   return {sout:vS,theo:vT,vol:vT+(46+96*1.4*3)*push[T]*SPD};}
-const PL=plafonds(XV.txt);
+const PL=plafonds(XN.txt); /* (24/10, débogage sortie iOS) PÉRIMÉE puis remise à jour : le plafond se lit dans le jeu d'AUJOURD'HUI.
+   Depuis le 18/10 la regex de plafonds() vise la forme neuve de vitMult (Math.min(2.6,…)) ; l'appliquer à l'ANCIEN fichier de référence
+   (debug/integ du 14/10, où vitMult valait encore Math.min(1+NTR_BOOST_MAX,…)) faisait planter la preuve. Même propriété : jusqu'au plafond actuel. */
 
 // ---------- LE BAC ----------
 class V3{constructor(x,y,z){this.x=x||0;this.y=y||0;this.z=z||0;}
@@ -71,8 +74,13 @@ function bac(X){
     sparkBurst:nop,sparkGold:{},sparkBlue:{},FLOW:{lv:0},combo:0,comboT:0,chaineAura:nop,addCoins:nop,flowAdd:nop,coinSerie:nop,SCOUP:{ht:0},
     sensHap:nop,ECO3:{recolte:2.5},denom:()=>1,fever:0,flowMult:()=>1,money:0,levelCash:0,blip:nop,addStyle:nop,frenCash:nop,checkUpgrade:nop,shake:0};
   sb.vitMult=function(){return sb.mult;};
+  /* (24/10, débogage sortie iOS) ce que pickupsTick appelle de plus depuis le 14/10 : les horloges des auras et décors des fruits-pouvoirs
+     (ninfTick … raisinTick), la spirale de l'aimant, le jeton du FINAL SPIN, le « +1 » et le compteur de fruits des missions : des EFFETS,
+     bouchonnés vides comme les autres. La face du vol (volFaceTick) est le VRAI code, extrait avec ses réglages (sans radar ici : curNear nul). */
+  for(const k of ['ninfTick','fauraGlobalTick','dragonDecor','zapTick','raisinTick','magSpirale','spinPrend','m2Fruit','piece1Plus'])sb[k]=nop;
+  Object.assign(sb,{VOLF:{m:0,h:0},curLatOff:0,ROAD_HALF:6});
   vm.createContext(sb);
-  vm.runInContext(X.ram+';\n'+X.ramK+';\n'+X.mag+';\n'+X.cap+';\n'+X.rd+'\n'+X.pt+'\n;globalThis.__RAM=RAM;globalThis.__f=pickupsTick;',sb);
+  vm.runInContext(X.ram+';\n'+X.ramK+';\n'+X.mag+';\n'+X.cap+';\n'+X.rd+'\n'+X.vf+'\n'+X.pt+'\n;globalThis.__RAM=RAM;globalThis.__f=pickupsTick;',sb);
   return sb;}
 const BV=bac(XV),BN=bac(XN);
 
@@ -123,7 +131,14 @@ for(const [mag,h,nm] of [[0,1.3,''],[1,1.3,' A'],[0,2.1,' CR'],[0,3,' F3']])for(
 console.log('(A = aimant moteur, CR = cristal à 2,1 m, F3 = fruit à 3 m) — vitesse à partir de laquelle l\'ANCIEN code rate, dans la grille :');
 for(const nm of ['',' A',' CR',' F3'])console.log('  objet'+nm+' : '+DTS.map(d=>d[1]+' '+(crit[d[1]+nm]?kmh(crit[d[1]+nm])+' km/h':'jamais')).join(' · '));
 const preuveKO=!!crit['1/30']&&crit['1/30']<=550;
-if(!preuveKO)ko('(a) l\'ANCIEN code ne rate rien à 1/30 jusqu\'à 1 980 km/h : la preuve ne prouve rien');
+/* (24/10, débogage sortie iOS) la référence « ancienne » par défaut (debug/integ, 14/10 13 h 20) contient DÉJÀ le correctif (ramD) :
+   elle ne rate plus rien, et la preuve d'origine elle-même (b4960019) le constate sur ce fichier. Le contrôle « l'ancien rate » ne vaut
+   donc que si l'on passe en 2e argument un index.html d'AVANT le correctif (sans ramD) ; sinon on le dit, sans KO. Tout ce qui juge le
+   jeu d'aujourd'hui — (a) prises au sol, (b) en vol, (c) jamais moins que la référence, (d) sauts muets, (e) ni jumeau ni prise lointaine —
+   reste vérifié en entier. */
+const vieuxCorrige=!!XV.rd;
+if(!preuveKO&&!vieuxCorrige)ko('(a) l\'ANCIEN code ne rate rien à 1/30 jusqu\'à 1 980 km/h : la preuve ne prouve rien');
+if(!preuveKO&&vieuxCorrige)console.log('NOTE : la référence ancienne contient déjà ramD (corrigée) — « l\'ancien rate » non démontrable ici, (c) compare au correctif du 14/10');
 
 // ---- (b) EN VOL (accroche 11 m, prise 3,8 m) ----
 console.log('\n(b) EN VOL, passage à h au-dessus de la pièce (axe), RATÉES / phases, ancien → neuf');
@@ -166,5 +181,5 @@ let loin=0;for(const d of DTS)for(const V of VITS)for(const p of PH(6))if(essaiS
 console.log('\n(e) pièce à 12 m de la ligne (hors de l\'attraction d\'origine, 9 + 2 m avec l\'aimant moteur) : prises par le neuf = '+loin);
 if(loin)ko('(e) pièce prise hors de portée : '+loin);
 
-console.log('\n'+(KO.length?'PREUVE KO — '+KO.slice(0,6).join(' | ')+(KO.length>6?' … (+'+(KO.length-6)+')':''):'PREUVE OK — ancien KO à 1/30 dès '+kmh(crit['1/30'])+' km/h (cristal/gros fruit dès '+kmh(crit['1/30 CR'])+') · neuf OK à 20/30/60/120 i/s au sol jusqu\'au plafond théorique '+kmh(PL.theo)+' km/h, en vol jusqu\'à 2 000 km/h (au-delà de ~5 000 km/h par image de 70 m le pré-filtre de vol coupe : inatteignable) · 60/120 i/s identiques jusqu\'à 1 543 / 3 085 km/h · sauts muets'));
+console.log('\n'+(KO.length?'PREUVE KO — '+KO.slice(0,6).join(' | ')+(KO.length>6?' … (+'+(KO.length-6)+')':''):'PREUVE OK — '+(preuveKO?'ancien KO à 1/30 dès '+kmh(crit['1/30'])+' km/h (cristal/gros fruit dès '+kmh(crit['1/30 CR'])+')':'référence ancienne déjà corrigée')+' · neuf OK à 20/30/60/120 i/s au sol jusqu\'au plafond théorique '+kmh(PL.theo)+' km/h, en vol jusqu\'à 2 000 km/h (au-delà de ~5 000 km/h par image de 70 m le pré-filtre de vol coupe : inatteignable) · 60/120 i/s identiques jusqu\'à 1 543 / 3 085 km/h · sauts muets'));
 process.exit(KO.length?1:0);
