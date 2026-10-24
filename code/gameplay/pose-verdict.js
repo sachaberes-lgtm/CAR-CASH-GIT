@@ -193,7 +193,7 @@ function chaineEncaisse(){
     avPlusPop('+'+fmtAura(g));{const c9=avE('avCh');if(c9){c9.classList.remove('vole','perdu');void c9.offsetWidth;c9.classList.add('vole');}}
     /* (2026-10-15, Sacha : « enlève les inscriptions qui se mettent au milieu de l'écran, comme + 2000 AURA, qui est écrit ailleurs de toute façon ») plus de
        « +X AURA » au centre : la chaîne s'envole dans le compteur et « +X » s'écrit à côté (avPlusPop) — le son, l'éclaboussure et le flash restent */
-    const t9=document.querySelector('#auraV2 .avTot');if(t9){t9.classList.remove('pulse');void t9.offsetWidth;t9.classList.add('pulse');}
+    const t9=document.querySelector('#auraV2 .avTot');if(t9){if(PCL_ON)jumelle(t9,'pulse','pulse2');else{t9.classList.remove('pulse');void t9.offsetWidth;t9.classList.add('pulse');}} /* (2026-10-24, passe perf PC) la jumelle (socle-4-aura.css, hud-maitrise.css) : une lecture forcée de moins par chaîne encaissée — voir figBtFx */
     if(g>=300)try{pixBurst(avE('avVal'),Math.min(14,4+Math.round(g/250)));}catch(e){} // (2026-09-26) la chaîne tombe DANS le compteur : il éclabousse
     if(g>=500)flashEcran('rgba(177,75,255,.5)');
     hap(CHA.x>=4?[12,30,24]:12);try{if(SONV2)sfx(g>=2000?'aura.encaisse3':g>=600?'aura.encaisse2':'aura.encaisse1',{vol:2});else{ /* (2026-10-14, session SON) +2 : l'encaissement (−30/−28/−26) était conçu 4 dB au-dessus de la pièce ; depuis son +4 le petit encaissement sonnait AU NIVEAU d'une pièce (−30) */chimeNote(noteP(Math.min(9,CHA.x+2),1),0,.18,.22);if(CHA.x>=4)sparkle(.1,.08);

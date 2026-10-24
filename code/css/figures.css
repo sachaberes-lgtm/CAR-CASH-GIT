@@ -64,6 +64,12 @@ html body.touch.play.figVol #tFig{display:flex;position:fixed;z-index:3;gap:var(
 .tFigB.non{--fgC:var(--neoR);animation:fgNon var(--t-slow) steps(4)}
 @keyframes fgNon{25%{margin-left:-5px}50%{margin-left:5px}75%{margin-left:-3px}}
 @media (prefers-reduced-motion:reduce){html body.touch.play.figVol #tFig,.tFigB.boum,.tFigB.non{animation:none}}
+/* (2026-10-24, passe perf PC) les JUMELLES de .boum / .non — même dessin, autre nom : figBtFx relance l'animation sans `void offsetWidth` (?pclect=0 : l'ancienne relance) */
+.tFigB.boum2{animation:fgBoum2 var(--t-slow) var(--ease)}
+@keyframes fgBoum2{0%{filter:brightness(2.4)}100%{filter:none}}
+.tFigB.non2{--fgC:var(--neoR);animation:fgNon2 var(--t-slow) steps(4)}
+@keyframes fgNon2{25%{margin-left:-5px}50%{margin-left:5px}75%{margin-left:-3px}}
+@media (prefers-reduced-motion:reduce){.tFigB.boum2,.tFigB.non2{animation:none}}
 </style>
 <style id="figuresHud">
 /* ===== LE HUD DES FIGURES v3 (2026-10-15, Sacha : « retravaille l'HUD pour le système de figure, il est buggé et trop discret ; enlève certaines

@@ -615,8 +615,8 @@ const SHOP_LBL={voiture:'CAISSE',peinture:'PEINTURE',aile:'AILES',trainee:'TRAÎ
    dessin n'est exécuté qu'à la lecture). Désormais createImageBitmap DÉCOUPE le morceau utile sur la carte graphique (calé sur une grille de 8 px,
    8 px de marge : le lissage lit les mêmes voisins qu'avant), et c'est à l'image SUIVANTE, la carte ayant fini, qu'on le rapatrie (~0,5 Mo) et qu'on
    le pose par le MÊME drawImage dans la même toile processeur (mêmes pixels, même lissage), puis qu'on mesure la luminosité (homeCielLum, inchangée).
-   Une image de retard sur un ciel qui change en minutes. Vrai téléphone (TEL_NATIF) : l'ancienne prise, rien ne change. ?pclect=0 : l'ancienne prise. */
-const PCL_ON=!TEL_NATIF&&(function(){try{return new URLSearchParams(location.search).get('pclect')!=='0';}catch(e){return true;}})();
+   Une image de retard sur un ciel qui change en minutes. Vrai téléphone (TEL_NATIF) : l'ancienne prise, rien ne change. ?pclect=0 : l'ancienne prise
+   (PCL_ON est défini dans hud-figures.js, plus tôt dans l'ordre des morceaux). */
 function homeCielPrise(now){
   if(PCL_ON&&homeCielPrise._bm){pclCielPose();return;} /* (2026-10-24, passe perf PC) la découpe lancée à l'image d'avant : voir pclCielPrend */
   const ciel=(garageOn&&!!gEl&&gEl.classList.contains('menu'))||(!garageOn&&((!started||gameOver)||MENUV.retour)); // l'ACCUEIL : le garage en mode « menu » (le ciel), ou l'ancien menu hors garage

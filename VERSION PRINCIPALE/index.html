@@ -644,6 +644,9 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
     opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
   #chainHud.pulse{animation:chPulse .32s cubic-bezier(.2,1.6,.4,1)}
   @keyframes chPulse{0%{transform:translateX(-50%) scale(1.5)}100%{transform:translateX(-50%) scale(1)}}
+  /* (2026-10-24, passe perf PC) la JUMELLE de .pulse — même dessin, autre nom : chainHudShow la relance sans `void offsetWidth` (?pclect=0 : l'ancienne relance) */
+  #chainHud.pulse2{animation:chPulse2 .32s cubic-bezier(.2,1.6,.4,1)}
+  @keyframes chPulse2{0%{transform:translateX(-50%) scale(1.5)}100%{transform:translateX(-50%) scale(1)}}
   #caseHud{position:absolute;top:42%;left:50%;transform:translateX(-50%);font-family:var(--pix);
     letter-spacing:1px;color:#8dff9e;text-shadow:0 2px 0 #0a3a14,0 0 16px rgba(90,255,140,.5);
     background:rgba(8,5,18,.34);padding:4px 13px;border-radius:9px;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
@@ -1396,6 +1399,9 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
   #auraV2 .avTot em{font-size:10px;letter-spacing:3px;color:#ff9ee6;text-shadow:0 2px 0 #3a0f4a,0 0 8px rgba(255,90,220,.6)}
   #auraV2 .avTot.pulse{animation:avGros .55s cubic-bezier(.2,1.6,.4,1)}
   @keyframes avGros{0%{transform:scale(1.6)}100%{transform:scale(1)}}
+  /* (2026-10-24, passe perf PC) la JUMELLE de .pulse (chaineEncaisse la relance sans `void offsetWidth`) — même règle juste après l'originale */
+  #auraV2 .avTot.pulse2{animation:avGros2 .55s cubic-bezier(.2,1.6,.4,1)}
+  @keyframes avGros2{0%{transform:scale(1.6)}100%{transform:scale(1)}}
   #avPts{font-size:15px;color:#fff}
   #avX{display:inline-block;font-size:30px;transform-origin:center;background:linear-gradient(180deg,#fff 5%,var(--xc,#ff5ec8) 60%);
     -webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;
@@ -3967,6 +3973,9 @@ html body.touch #flowHud .fL{transform-origin:0 50%}
 html body.touch #auraV2 .avTot{transform-origin:0 70%}
 html body.touch #auraV2 .avTot.pulse{animation:hmEncaisse .55s var(--ease)}
 @keyframes hmEncaisse{0%{transform:scale(1.35);filter:brightness(1.6)}100%{transform:none;filter:none}}
+/* (2026-10-24, passe perf PC) la JUMELLE de .pulse (chaineEncaisse la relance sans `void offsetWidth`) */
+html body.touch #auraV2 .avTot.pulse2{animation:hmEncaisse2 .55s var(--ease)}
+@keyframes hmEncaisse2{0%{transform:scale(1.35);filter:brightness(1.6)}100%{transform:none;filter:none}}
 /* « ENCORE n » : quand le record est à portée, la ligne bat doucement (le rail s'allume déjà) */
 html body.touch #avRec.presque{animation:hmEncore .9s var(--ease) infinite}
 @keyframes hmEncore{50%{filter:brightness(1.4)}}
@@ -6385,6 +6394,12 @@ html body.touch.play.figVol #tFig{display:flex;position:fixed;z-index:3;gap:var(
 .tFigB.non{--fgC:var(--neoR);animation:fgNon var(--t-slow) steps(4)}
 @keyframes fgNon{25%{margin-left:-5px}50%{margin-left:5px}75%{margin-left:-3px}}
 @media (prefers-reduced-motion:reduce){html body.touch.play.figVol #tFig,.tFigB.boum,.tFigB.non{animation:none}}
+/* (2026-10-24, passe perf PC) les JUMELLES de .boum / .non — même dessin, autre nom : figBtFx relance l'animation sans `void offsetWidth` (?pclect=0 : l'ancienne relance) */
+.tFigB.boum2{animation:fgBoum2 var(--t-slow) var(--ease)}
+@keyframes fgBoum2{0%{filter:brightness(2.4)}100%{filter:none}}
+.tFigB.non2{--fgC:var(--neoR);animation:fgNon2 var(--t-slow) steps(4)}
+@keyframes fgNon2{25%{margin-left:-5px}50%{margin-left:5px}75%{margin-left:-3px}}
+@media (prefers-reduced-motion:reduce){.tFigB.boum2,.tFigB.non2{animation:none}}
 </style>
 <style id="figuresHud">
 /* ===== LE HUD DES FIGURES v3 (2026-10-15, Sacha : « retravaille l'HUD pour le système de figure, il est buggé et trop discret ; enlève certaines
@@ -57623,7 +57638,14 @@ function figHudMaj(){const el=document.getElementById('tFig');if(!el||!window.FI
   el.innerHTML=S.map(function(id,i){if(!id)return '';const f=i<2&&FIG.oriente?FIG.oriente(FIG.par[id],FIG_DIR[i]):FIG.par[id];return '<div class="tFigB" data-s="'+i+'" role="button" aria-label="'+sansAcc(TR(f.n)).replace(/"/g,'')+'">'
     +'<i class="pxi pxi-rotation '+figIco(f)+'" aria-hidden="true"></i><b>'+sansAcc(figCourt(f)).replace(/[<>&"]/g,'')+'</b><u>'+(i+1)+'</u></div>';}).join('');
   FX2.bts=[];[].forEach.call(el.children,function(b){FX2.bts[+b.getAttribute('data-s')]=b;});FX2.btOn[0]=FX2.btOn[1]=FX2.btOn[2]=false;} // (les deux familles) rangés par EMPLACEMENT : 1 = avant, 2 = côté
-function figBtFx(s,c){const b=FX2.bts&&FX2.bts[s];if(!b)return;b.classList.remove('boum','non');void b.offsetWidth;b.classList.add(c);}
+/* ===== LES RELANCES SANS LECTURE FORCÉE (2026-10-24, passe perf PC : « get offsetWidth 31 ms en course, getImageData 325 ms au menu ») =====
+   PCL_ON : l'interrupteur de TOUTE la passe « lectures 2D » (ici, la vignette du ciel dans atelier-ferme.js, chainHudShow, chaineEncaisse) —
+   ?pclect=0 rend l'ancien comportement ; un vrai téléphone (TEL_NATIF) le garde aussi. Défini ICI, le plus tôt des morceaux qui s'en servent.
+   figBtFx : `void b.offsetWidth` forçait style ET mise en page de tout le HUD à chaque figure lancée ; on ALTERNE l'animation et sa jumelle
+   (.boum / .boum2, même dessin, autre nom — figures.css) : le nom change, le navigateur la relance à la même image. Deux appels dans la même
+   tâche gardent le dernier, comme avant. */
+const PCL_ON=!TEL_NATIF&&(function(){try{return new URLSearchParams(location.search).get('pclect')!=='0';}catch(e){return true;}})();
+function figBtFx(s,c){const b=FX2.bts&&FX2.bts[s];if(!b)return;if(PCL_ON){const x=b.classList.contains(c);b.classList.remove('boum','non','boum2','non2');b.classList.add(x?c+'2':c);return;}b.classList.remove('boum','non');void b.offsetWidth;b.classList.add(c);}
 function figHud(){ // (chaque image) les boutons n'existent qu'en VOL ; « on » = tenu
   figRedP();const v=FIGV2.on&&started&&!gameOver&&mode==='fall'&&!introD&&figTutoOk();fhTick(v||FR.on);if(v&&FDIR.on)fhArme(); // (2026-10-17) la figure SUR LA ROUTE garde son HUD tant qu'elle tourne (le rappel des gestes, lui, reste au vol)
   if(v!==FX2.vis){FX2.vis=v;document.body.classList.toggle('figVol',v);if(v){if(FDIR.on)fhLegMaj();else figHudMaj();}} // (2026-10-15) au joystick : le RAPPEL ↑ 1 · ◄► 2, plus de boutons
@@ -59571,7 +59593,7 @@ function chaineEncaisse(){
     avPlusPop('+'+fmtAura(g));{const c9=avE('avCh');if(c9){c9.classList.remove('vole','perdu');void c9.offsetWidth;c9.classList.add('vole');}}
     /* (2026-10-15, Sacha : « enlève les inscriptions qui se mettent au milieu de l'écran, comme + 2000 AURA, qui est écrit ailleurs de toute façon ») plus de
        « +X AURA » au centre : la chaîne s'envole dans le compteur et « +X » s'écrit à côté (avPlusPop) — le son, l'éclaboussure et le flash restent */
-    const t9=document.querySelector('#auraV2 .avTot');if(t9){t9.classList.remove('pulse');void t9.offsetWidth;t9.classList.add('pulse');}
+    const t9=document.querySelector('#auraV2 .avTot');if(t9){if(PCL_ON)jumelle(t9,'pulse','pulse2');else{t9.classList.remove('pulse');void t9.offsetWidth;t9.classList.add('pulse');}} /* (2026-10-24, passe perf PC) la jumelle (socle-4-aura.css, hud-maitrise.css) : une lecture forcée de moins par chaîne encaissée — voir figBtFx */
     if(g>=300)try{pixBurst(avE('avVal'),Math.min(14,4+Math.round(g/250)));}catch(e){} // (2026-09-26) la chaîne tombe DANS le compteur : il éclabousse
     if(g>=500)flashEcran('rgba(177,75,255,.5)');
     hap(CHA.x>=4?[12,30,24]:12);try{if(SONV2)sfx(g>=2000?'aura.encaisse3':g>=600?'aura.encaisse2':'aura.encaisse1',{vol:2});else{ /* (2026-10-14, session SON) +2 : l'encaissement (−30/−28/−26) était conçu 4 dB au-dessus de la pièce ; depuis son +4 le petit encaissement sonnait AU NIVEAU d'une pièce (−30) */chimeNote(noteP(Math.min(9,CHA.x+2),1),0,.18,.22);if(CHA.x>=4)sparkle(.1,.08);
@@ -60024,7 +60046,8 @@ function trickPop(k){ // carillon qui MONTE d'un demi-ton par maillon — l'orei
 function chainHudShow(){
   chainHud.textContent=TR('CHAÎNE ×')+decFr(Math.min(6,chainMult),1)+' · +'+Math.round(chainVal);
   chainHud.style.opacity=1;
-  chainHud.classList.remove('pulse');void chainHud.offsetWidth;chainHud.classList.add('pulse');
+  if(PCL_ON)jumelle(chainHud,'pulse','pulse2'); /* (2026-10-24, passe perf PC) à CHAQUE figure : relancée par sa jumelle (socle-1.css), sans `void offsetWidth` — voir figBtFx */
+  else{chainHud.classList.remove('pulse');void chainHud.offsetWidth;chainHud.classList.add('pulse');}
 }
 function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent déjà (vrilles, bumps) — pas de décote. free : figure GRATUITE, zéro dollar : feedback oui, argent non (plus personne depuis le 15/10 soir : le bump paie comme les autres)
   if(fever>0&&!free)fever=Math.min(18,fever+.8); // pendant le BRAQUAGE, chaque figure PROLONGE le plaisir (plafond 18 s) — sauf les gratuites
@@ -65143,8 +65166,8 @@ const SHOP_LBL={voiture:'CAISSE',peinture:'PEINTURE',aile:'AILES',trainee:'TRAÎ
    dessin n'est exécuté qu'à la lecture). Désormais createImageBitmap DÉCOUPE le morceau utile sur la carte graphique (calé sur une grille de 8 px,
    8 px de marge : le lissage lit les mêmes voisins qu'avant), et c'est à l'image SUIVANTE, la carte ayant fini, qu'on le rapatrie (~0,5 Mo) et qu'on
    le pose par le MÊME drawImage dans la même toile processeur (mêmes pixels, même lissage), puis qu'on mesure la luminosité (homeCielLum, inchangée).
-   Une image de retard sur un ciel qui change en minutes. Vrai téléphone (TEL_NATIF) : l'ancienne prise, rien ne change. ?pclect=0 : l'ancienne prise. */
-const PCL_ON=!TEL_NATIF&&(function(){try{return new URLSearchParams(location.search).get('pclect')!=='0';}catch(e){return true;}})();
+   Une image de retard sur un ciel qui change en minutes. Vrai téléphone (TEL_NATIF) : l'ancienne prise, rien ne change. ?pclect=0 : l'ancienne prise
+   (PCL_ON est défini dans hud-figures.js, plus tôt dans l'ordre des morceaux). */
 function homeCielPrise(now){
   if(PCL_ON&&homeCielPrise._bm){pclCielPose();return;} /* (2026-10-24, passe perf PC) la découpe lancée à l'image d'avant : voir pclCielPrend */
   const ciel=(garageOn&&!!gEl&&gEl.classList.contains('menu'))||(!garageOn&&((!started||gameOver)||MENUV.retour)); // l'ACCUEIL : le garage en mode « menu » (le ciel), ou l'ancien menu hors garage

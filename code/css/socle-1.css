@@ -448,6 +448,9 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
     opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
   #chainHud.pulse{animation:chPulse .32s cubic-bezier(.2,1.6,.4,1)}
   @keyframes chPulse{0%{transform:translateX(-50%) scale(1.5)}100%{transform:translateX(-50%) scale(1)}}
+  /* (2026-10-24, passe perf PC) la JUMELLE de .pulse — même dessin, autre nom : chainHudShow la relance sans `void offsetWidth` (?pclect=0 : l'ancienne relance) */
+  #chainHud.pulse2{animation:chPulse2 .32s cubic-bezier(.2,1.6,.4,1)}
+  @keyframes chPulse2{0%{transform:translateX(-50%) scale(1.5)}100%{transform:translateX(-50%) scale(1)}}
   #caseHud{position:absolute;top:42%;left:50%;transform:translateX(-50%);font-family:var(--pix);
     letter-spacing:1px;color:#8dff9e;text-shadow:0 2px 0 #0a3a14,0 0 16px rgba(90,255,140,.5);
     background:rgba(8,5,18,.34);padding:4px 13px;border-radius:9px;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);

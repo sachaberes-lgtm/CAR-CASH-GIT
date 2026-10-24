@@ -147,7 +147,14 @@ function figHudMaj(){const el=document.getElementById('tFig');if(!el||!window.FI
   el.innerHTML=S.map(function(id,i){if(!id)return '';const f=i<2&&FIG.oriente?FIG.oriente(FIG.par[id],FIG_DIR[i]):FIG.par[id];return '<div class="tFigB" data-s="'+i+'" role="button" aria-label="'+sansAcc(TR(f.n)).replace(/"/g,'')+'">'
     +'<i class="pxi pxi-rotation '+figIco(f)+'" aria-hidden="true"></i><b>'+sansAcc(figCourt(f)).replace(/[<>&"]/g,'')+'</b><u>'+(i+1)+'</u></div>';}).join('');
   FX2.bts=[];[].forEach.call(el.children,function(b){FX2.bts[+b.getAttribute('data-s')]=b;});FX2.btOn[0]=FX2.btOn[1]=FX2.btOn[2]=false;} // (les deux familles) rangés par EMPLACEMENT : 1 = avant, 2 = côté
-function figBtFx(s,c){const b=FX2.bts&&FX2.bts[s];if(!b)return;b.classList.remove('boum','non');void b.offsetWidth;b.classList.add(c);}
+/* ===== LES RELANCES SANS LECTURE FORCÉE (2026-10-24, passe perf PC : « get offsetWidth 31 ms en course, getImageData 325 ms au menu ») =====
+   PCL_ON : l'interrupteur de TOUTE la passe « lectures 2D » (ici, la vignette du ciel dans atelier-ferme.js, chainHudShow, chaineEncaisse) —
+   ?pclect=0 rend l'ancien comportement ; un vrai téléphone (TEL_NATIF) le garde aussi. Défini ICI, le plus tôt des morceaux qui s'en servent.
+   figBtFx : `void b.offsetWidth` forçait style ET mise en page de tout le HUD à chaque figure lancée ; on ALTERNE l'animation et sa jumelle
+   (.boum / .boum2, même dessin, autre nom — figures.css) : le nom change, le navigateur la relance à la même image. Deux appels dans la même
+   tâche gardent le dernier, comme avant. */
+const PCL_ON=!TEL_NATIF&&(function(){try{return new URLSearchParams(location.search).get('pclect')!=='0';}catch(e){return true;}})();
+function figBtFx(s,c){const b=FX2.bts&&FX2.bts[s];if(!b)return;if(PCL_ON){const x=b.classList.contains(c);b.classList.remove('boum','non','boum2','non2');b.classList.add(x?c+'2':c);return;}b.classList.remove('boum','non');void b.offsetWidth;b.classList.add(c);}
 function figHud(){ // (chaque image) les boutons n'existent qu'en VOL ; « on » = tenu
   figRedP();const v=FIGV2.on&&started&&!gameOver&&mode==='fall'&&!introD&&figTutoOk();fhTick(v||FR.on);if(v&&FDIR.on)fhArme(); // (2026-10-17) la figure SUR LA ROUTE garde son HUD tant qu'elle tourne (le rappel des gestes, lui, reste au vol)
   if(v!==FX2.vis){FX2.vis=v;document.body.classList.toggle('figVol',v);if(v){if(FDIR.on)fhLegMaj();else figHudMaj();}} // (2026-10-15) au joystick : le RAPPEL ↑ 1 · ◄► 2, plus de boutons

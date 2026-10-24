@@ -30,6 +30,9 @@
   #auraV2 .avTot em{font-size:10px;letter-spacing:3px;color:#ff9ee6;text-shadow:0 2px 0 #3a0f4a,0 0 8px rgba(255,90,220,.6)}
   #auraV2 .avTot.pulse{animation:avGros .55s cubic-bezier(.2,1.6,.4,1)}
   @keyframes avGros{0%{transform:scale(1.6)}100%{transform:scale(1)}}
+  /* (2026-10-24, passe perf PC) la JUMELLE de .pulse (chaineEncaisse la relance sans `void offsetWidth`) — même règle juste après l'originale */
+  #auraV2 .avTot.pulse2{animation:avGros2 .55s cubic-bezier(.2,1.6,.4,1)}
+  @keyframes avGros2{0%{transform:scale(1.6)}100%{transform:scale(1)}}
   #avPts{font-size:15px;color:#fff}
   #avX{display:inline-block;font-size:30px;transform-origin:center;background:linear-gradient(180deg,#fff 5%,var(--xc,#ff5ec8) 60%);
     -webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;

@@ -273,7 +273,8 @@ function trickPop(k){ // carillon qui MONTE d'un demi-ton par maillon — l'orei
 function chainHudShow(){
   chainHud.textContent=TR('CHAÎNE ×')+decFr(Math.min(6,chainMult),1)+' · +'+Math.round(chainVal);
   chainHud.style.opacity=1;
-  chainHud.classList.remove('pulse');void chainHud.offsetWidth;chainHud.classList.add('pulse');
+  if(PCL_ON)jumelle(chainHud,'pulse','pulse2'); /* (2026-10-24, passe perf PC) à CHAQUE figure : relancée par sa jumelle (socle-1.css), sans `void offsetWidth` — voir figBtFx */
+  else{chainHud.classList.remove('pulse');void chainHud.offsetWidth;chainHud.classList.add('pulse');}
 }
 function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent déjà (vrilles, bumps) — pas de décote. free : figure GRATUITE, zéro dollar : feedback oui, argent non (plus personne depuis le 15/10 soir : le bump paie comme les autres)
   if(fever>0&&!free)fever=Math.min(18,fever+.8); // pendant le BRAQUAGE, chaque figure PROLONGE le plaisir (plafond 18 s) — sauf les gratuites
