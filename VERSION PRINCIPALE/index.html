@@ -14073,7 +14073,7 @@ function matSursisTick(){
    mesuré à 4) : laissé à 1, ces trois-là n'ont pas de tranche maigre.
    `o.loin` : {blocs, pr (sommets par rangée et par bloc), cols (colonnes gardées)} · 0 = rien au loin · absent = pas de LOD.
    Bascule par tranche, à chaque rendu (`pisteLoin`, appelée par scene.onBeforeRender). */
-const PISTE_CH=600,PISTE_PAS=1,PISTE_LOD=[];
+const PISTE_CH=Math.max(100,+((/[?&]tranche=(\d+)/.exec(location.search)||[])[1])||600),PISTE_PAS=1,PISTE_LOD=[]; // `?tranche=n` : la taille des tranches (banc)
 const TEINTE9={c:null,n:0}; // (chasse aux gels) la teinte du bitume par (point, colonne) — ne dépend pas de la piste : voir buildTrack
 function sphere9(g){ // (2026-09-28, chasse aux gels) computeBoundingSphere de three r128 recopié sur le tableau brut (même boîte, même centre
   // (min+max)×0,5, même plus grand carré de distance par Math.max, même racine) : mêmes flottants, sans Vector3 ni getX par sommet
