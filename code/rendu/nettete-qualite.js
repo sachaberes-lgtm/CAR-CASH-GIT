@@ -144,6 +144,14 @@ const VHE_MODE=TEL_NATIF?0:(function(){const m=/[?&]vhdecran=([12])\b/.exec(loca
 window.dbgVhdEcran=function(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?PAL.b('vhdPx',3.2e6):8.3e6,f9=function(d){return Math.max(DPR_CAP,Math.min(d,Math.sqrt(bud/px),4));},a9=f9(devicePixelRatio*(TEL_NATIF?1:1.5)),b9=f9(devicePixelRatio);
   return {mode:VHE_MODE,tel:TEL_NATIF,vhd:VHD.on,dprEcran:+devicePixelRatio.toFixed(3),dprAvant:+a9.toFixed(3),dprApres:+b9.toFixed(3),pxEcran:Math.round(px*devicePixelRatio*devicePixelRatio),pxAvant:Math.round(px*a9*a9),pxApres:Math.round(px*b9*b9),
     toile:[renderer.domElement.width,renderer.domElement.height],ombre:sun.shadow.mapSize.x,bloom:bloomPass&&bloomPass.renderTargetsHorizontal?[bloomPass.renderTargetsHorizontal[0].width,bloomPass.renderTargetsHorizontal[0].height]:null};};
+/* ===== L'ÉCRAN DE FIN DE L'ORDI À LA RÉSOLUTION DE LA COURSE (2026-10-24, passe perf PC : « la carte graphique sature à l'écran de fin ») =====
+   MESURÉ (Mac M4, cadre bureau, `dbgCout`) : à la mort la vitrine HD s'allume (`vhdMort` RÉCENT) — toile 3376×1560 (5,27 M de pixels), ombre 4096,
+   halo 1418×655 — et la carte graphique passe de 4 ms (course) à 49,5 ms par image (p90 62) ; la lecture de la carte moteur attend derrière
+   (34 % du fil principal, 48 images > 50 ms en 13 s). Or dans la colonne le voile de l'écran de fin (`body.touch #overlay[data-ecran="dead"]::before`,
+   opacité .9, charte-2-ecrans.css) couvre la scène à 90 % : on payait la haute définition d'une image qu'on voit à 10 %. Sur l'ORDI (TEL_NATIF faux),
+   l'écran de fin garde la toile, l'ombre et le halo de la course (×7 moins de pixels), et ni la mort ni le REJOUER ne réallouent plus les cibles.
+   Le téléphone et les tables PAL ne changent pas. `?pcmort=0` = la haute définition à la mort, comme avant. */
+const PCM_ON=!TEL_NATIF&&!/[?&]pcmort=0\b/.test(location.search);
 function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?PAL.b('vhdPx',3.2e6):8.3e6; // (2026-10-14) le budget du téléphone se taille sur son palier (voir LE DÉPART AU BON CRAN)
   return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF||VHE_MODE?1:1.5),Math.sqrt(bud/px),4));} /* (2026-10-24, passe perf PC) `?vhdecran=1|2` : sans le ×1,5 sur l'ordi (voir LA VITRINE À LA MESURE DE L'ÉCRAN) */
 function vhdAniso(on){ const m=renderer.capabilities.getMaxAnisotropy(),n=on?m:Math.min(IS_MOBILE?4:8,m);
