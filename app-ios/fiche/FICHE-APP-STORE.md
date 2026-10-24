@@ -55,9 +55,9 @@ UN GARAGE À REMPLIR
 • Peintures, ailes et traînées à essayer en 3D sur ta voiture.
 • Tout se gagne en jouant, avec l'argent ramassé en course.
 
-MISSIONS ET CARRIÈRE
+MISSIONS ET MONDES
 • Des missions à remplir pour débloquer des voitures.
-• Une carrière monde par monde, niveau après niveau.
+• Des mondes qui s'enchaînent : nuages, forêt, canyon, glacier, volcan, villes…
 
 SANS RIEN AUTOUR
 • 100 % hors ligne : joue dans le métro, en avion, partout.
@@ -111,9 +111,9 @@ A GARAGE TO FILL
 • Paints, wings and trails to try in 3D on your car.
 • Everything is earned by playing, with the cash you collect on the road.
 
-MISSIONS AND CAREER
+MISSIONS AND WORLDS
 • Missions to complete to unlock cars.
-• A career to clear world by world, level after level.
+• Worlds that keep coming: clouds, forest, canyon, glacier, volcano, cities…
 
 NOTHING IN THE WAY
 • Fully offline: play on the subway, on a plane, anywhere.
