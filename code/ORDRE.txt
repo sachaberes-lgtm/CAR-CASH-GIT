@@ -29,6 +29,7 @@ css/final-spin.css                   # finalSpin (la machine à sous de fin)
 css/ux8.css                          # ux8 (menus, partie, mouvement), clarté de la boutique, pub récompense, cadeau, HUD allégé
 css/accueil-boutique.css             # accueilDoigt, bqFigHex, policeUnique
 css/missions.css                     # missionsV2 (l'écran des missions)
+css/pause-v2.css                      # pauseV2 (l'écran de pause refait : tuiles, partie en carte)
 css/garage-jouer.css                 # uiRevue, jouerGarage, garShop
 page/ecrans-garage.html              # HTML : accueil, garage, atelier, inventaire, voile du départ, compteur, dark triad, niveaux
 css/plaque.css                       # <style id="plaque"> (plaque d'immatriculation)

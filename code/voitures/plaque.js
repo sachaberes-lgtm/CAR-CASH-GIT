@@ -1,6 +1,6 @@
 /* ================= LA PLAQUE D'IMMATRICULATION (2026-10-17, Sacha : « rajoute une plaque d'immatriculation personnalisable au début du
    jeu, fais plusieurs templates, le joueur peut écrire ce qu'il veut sur la plaque, puis elle doit être intégrée à toutes les voitures ») ======
-   · LES MODÈLES (`PLQ_MOD`) : neuf plaques peintes à la main dans une toile 512 × 128 (`plqPeint`) — FRANCE, RETRO (la noire d'avant 93),
+   · LES MODÈLES (`PLQ_MOD`) : dix plaques peintes à la main dans une toile 512 × 128 (`plqPeint`) — FRANCE, RETRO (la noire d'avant 93),
      U.K. (la jaune), USA, COURSE (damier), BILLET (le vert des billets), LINGOT (or sur laque), NEON (le rose et le cyan de la nuit), ARCADE
      (la plaque des menus du jeu). La MÊME fonction peint la texture 3D et les aperçus de l'écran : ce qu'on choisit est ce qui roule.
    · LE TEXTE (`plqNet`) : 9 signes au plus, en capitales sans accent (la police pixel n'en a pas) : A-Z, 0-9, espace, - . ! ? $.
@@ -23,7 +23,7 @@
    (la plaque redevient « à choisir ») · `dbgPlaque('pos')` (où elle s'est posée sur la caisse) · `dbgProfil()` (ouvre le profil). */
 var PLQ={cv:null,ctx:null,tex:null,matF:null,matC:null,pos:{},ray:null,on:false,mode:'',m:'fr',x:'',iv:0,t0:0,fait:false,prof:false};
 const PLQ_MOD=[{id:'fr',n:'FRANCE'},{id:'retro',n:'RETRO'},{id:'uk',n:'U.K.'},{id:'us',n:'USA'},{id:'course',n:'COURSE'},
-  {id:'billet',n:'BILLET'},{id:'lingot',n:'LINGOT'},{id:'neon',n:'NEON'},{id:'arcade',n:'ARCADE'}];
+  {id:'billet',n:'BILLET'},{id:'lingot',n:'LINGOT'},{id:'neon',n:'NEON'},{id:'arcade',n:'ARCADE'},{id:'pal',n:'PALESTINE'}];
 const PLQ_MAX=9;
 function plqModOk(m){for(const o of PLQ_MOD)if(o.id===m)return m;return 'fr';}
 function plqNet(s){ // le texte tel qu'il peut se peindre : capitales, sans accent, 9 signes, rien que la police sache dessiner
@@ -81,6 +81,11 @@ function plqPeint(x,W,H,m,t,fond){
       x.fillStyle='rgba(255,255,255,.12)';x.fillRect(12,8,488,3);x.fillStyle='rgba(0,0,0,.4)';x.fillRect(12,117,488,3);
       x.fillStyle='#ff3ec8';x.fillRect(24,106,190,6);x.fillStyle='#00eaff';x.fillRect(236,106,96,6);x.fillStyle='#ffc72a';x.fillRect(354,106,134,6);
       col='#ffd75e';omb='#7a4400';ombY=4;zx=36;zw=440;zy=58;cap=48;break;
+    case 'pal':
+      oct(0,'#16181d');oct(4,'#f6f6f2');
+      x.save();oct(4);x.clip();x.fillStyle='#111';x.fillRect(0,0,92,43);x.fillStyle='#fff';x.fillRect(0,43,92,42);x.fillStyle='#0a7a35';x.fillRect(0,85,92,43);
+      x.fillStyle='#d3202e';x.beginPath();x.moveTo(0,0);x.lineTo(54,64);x.lineTo(0,128);x.closePath();x.fill();x.restore();
+      mot('PALESTINE',8,396,116,'#0a7a35');col='#111';zx=100;zw=392;zy=58;break;
     default: // 'fr'
       oct(0,'#16181d');oct(4,'#f4f5f8');
       x.save();oct(4);x.clip();x.fillStyle='#1d3fae';x.fillRect(0,0,62,128);x.fillRect(450,0,62,128);x.restore();
@@ -164,7 +169,7 @@ Object.assign(I18N,{'TA PLAQUE':'YOUR PLATE','Elle roule sur toutes tes caisses'
   'FIGURES':'TRICKS','MEILLEUR TEMPS':'BEST TIME','RECORD':'BEST SCORE','FORTUNE MAX':'TOP FORTUNE','VITESSE MAX':'TOP SPEED',
   'AURA':'AURA','MEILLEURE AURA':'BEST AURA','RANG':'RANK','CAISSES':'CARS','MISSIONS':'MISSIONS','MEILLEUR COMBO':'BEST COMBO','SERIE':'STREAK',
   'TEMPS EN COURSE':'RACE TIME','Au hasard':'Random','Le texte de ta plaque':'Your plate text','Modeles':'Styles','Profil':'Profile',
-  'JOURS':'DAYS','JOUR':'DAY','AUJOURD\'HUI':'TODAY','RETRO':'RETRO','COURSE':'RACING','BILLET':'BANKNOTE','LINGOT':'GOLD BAR','FRANCE':'FRANCE',
+  'JOURS':'DAYS','JOUR':'DAY','AUJOURD\'HUI':'TODAY','RETRO':'RETRO','COURSE':'RACING','BILLET':'BANKNOTE','LINGOT':'GOLD BAR','PALESTINE':'PALESTINE','FRANCE':'FRANCE',
   'PLAQUE ENREGISTREE':'PLATE SAVED'});
 function $p(id){return document.getElementById(id);}
 function plqDuree(s){s=Math.max(0,Math.round(+s||0));const h=Math.floor(s/3600),mn=Math.floor(s%3600/60),sc=s%60;
@@ -278,7 +283,7 @@ function profBranche(){const el=$p('prof');if(!el||el._b)return;el._b=1;
       if(a==='ret'){uiClic('retour');hap(6);profFerme();}else if(a==='plaque'){uiClic('');hap(10);uiPop(b);plqOuvre('profil');}};
     b.addEventListener('click',go);b.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go(e);}});});
   addEventListener('keydown',function(e){if(!PLQ.prof||PLQ.on)return;if(e.code==='Escape'){e.preventDefault();e.stopImmediatePropagation();profFerme();}},true);
-  const g=$p('gProf');if(g){const go=function(e){e.stopPropagation();if(!garageOn||(GAR&&GAR.go)||ecranWipe._on)return;uiClic('nav');hap(8);uiPop(g);profOuvre();};
+  /* (2026-10-20) le trophée de la rangée du bas (#gvTro) ouvre le profil comme #gProf */ for(const g of [$p('gProf'),$p('gvTro')])if(g){const go=function(e){e.stopPropagation();if(!garageOn||(GAR&&GAR.go)||ecranWipe._on)return;uiClic('nav');hap(8);uiPop(g);profOuvre();};
     g.addEventListener('click',go);g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go(e);}});}
 }
 /* l'horloge du compte : cinq secondes de plus toutes les cinq secondes où le jeu est à l'écran (SAVE.mark : c'est le filet des 30 s qui écrit) */
@@ -291,7 +296,7 @@ function plqGarage(){const g=$p('gProf');if(!g)return;let on=false;
   try{if(garageOn&&!(GAR&&GAR.go)&&!(INV&&INV.on)&&!PLQ.prof&&!PLQ.on&&gEl&&!gEl.classList.contains('vueSeule')&&!gEl.classList.contains('menu')&&!gEl.classList.contains('atelierInv')&&!gEl.classList.contains('shopRet')){const j=$p('gJouer'); /* (2026-10-18) JOUER vit aussi dans l'inventaire et la boutique : ce ne sont pas la vue principale */
     if(j&&j.getClientRects().length&&getComputedStyle(j).visibility!=='hidden')on=true;}}catch(e){}
   if(g.classList.contains('on')!==on)g.classList.toggle('on',on);
-  if(on&&!g.matches(':active,.appui'))try{const c=$p('gCompteur'),r=c&&c.getBoundingClientRect();
+  if(on&&g.getClientRects().length&&!g.matches(':active,.appui'))try{const c=$p('gCompteur'),r=c&&c.getBoundingClientRect();
     if(r&&r.width>8&&r.bottom>0){const b=g.getBoundingClientRect(),dx=Math.round((innerWidth-r.left)-b.right),dy=Math.round((r.top+r.height/2)-(b.top+b.height/2));
       if(dx||dy){g.style.left=(g.offsetLeft+dx)+'px';g.style.top=(g.offsetTop+dy)+'px';}}}catch(e){}}
 function plqDemarre(){try{plqBranche();profBranche();}catch(e){console.warn('plaque',e);}

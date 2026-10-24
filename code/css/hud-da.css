@@ -148,6 +148,8 @@ html body.touch #tNitro.inf>.nxJauge{background-image:repeating-linear-gradient(
 @keyframes daFile{to{background-position:-13px 0,0 0}}
 /* l'anneau de l'auto-école (« appuie ici ») épouse la plaque */
 /* ---- 2. LA BARRE NITRO EN NITRO INFINIE : violette (elle brûlait or, comme la nitro ordinaire — on ne voyait pas le pouvoir) ---- */
+/* (2026-10-22, Sacha : « le boost de Nitro, il doit mettre la barre en rouge vif, pas en violet ») — la barre seule passe au ROUGE VIF */
+html body.touch #nitroBar.inf{--vL:#ffd9d4;--vP:#ff2b2b;--vS:#e00d0d;--vO:#6e0505;--vG:rgba(255,40,40,.9)}
 html body.touch #nitroBar.inf{box-shadow:inset 0 0 0 3px var(--vL),0 4px 0 var(--jEncre),0 0 24px var(--vG),0 0 44px color-mix(in srgb,var(--vS) 55%,transparent)!important}
 html body.touch #nitroBar.inf #nitroR::after{box-shadow:0 0 10px var(--vP),0 0 18px var(--vS)!important}
 html body.touch #nitroBar.inf::before{background:linear-gradient(var(--bandes4),#fff 0 24%,var(--vL) 24% 60%,var(--vP) 60%)!important;filter:drop-shadow(0 0 8px var(--vP))!important}

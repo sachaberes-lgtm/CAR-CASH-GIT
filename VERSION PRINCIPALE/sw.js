@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v738'; // v738 (2026-10-22, Sacha : l'inventaire s'ouvre sur les FIGURES, le bouton montre trois hexagones) ; v737 (2026-10-22, Sacha : « l'onglet missions est très mal géré, la moitié gauche ne sert à rien ») : refonte en deux colonnes — AUJOURD'HUI + SUIVIES à gauche, filtres de famille + liste à droite
+const CACHE = 'cashcar-v739'; // v738 (2026-10-22, Sacha : l'inventaire s'ouvre sur les FIGURES, le bouton montre trois hexagones) ; v737 (2026-10-22, Sacha : « l'onglet missions est très mal géré, la moitié gauche ne sert à rien ») : refonte en deux colonnes — AUJOURD'HUI + SUIVIES à gauche, filtres de famille + liste à droite
 // const CACHE = 'cashcar-v735'; // v735 (2026-10-22, Sacha : maison de la mort vers le garage, onglet mission tassé, stats allongées)
 // const CACHE = 'cashcar-v734'; // v734 (2026-10-22, Sacha : « rajoute une plaque palestine ») : dixième modèle de plaque, PALESTINE
 // const CACHE = 'cashcar-v733'; // v733 (2026-10-22, Sacha : « les photos de lave pour la map volcan ») : roche et croûte bleu acier, rides de corde, cœur des fentes jaune pâle, rouge qui filtre entre les rides
