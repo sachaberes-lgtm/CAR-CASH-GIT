@@ -260,7 +260,7 @@ function chuteRender(dt){
     if(u>=1){
       if(CHUTE.sous){const f9=CHUTE.sous;CHUTE.sous=null;try{f9();}catch(e){console.warn('chute: piste sous le voile',e);}} // (2026-10-15) la piste tirée par JOUER se bâtit ICI, sous le nuage blanc (voir classiqueJouer)
       const wasStarted=started;GAR.go=null;CHUTE.go=null;carGroup.scale.set(1,1,1);
-      closeGarage();
+      closeGarage(wasStarted);
       if(wasStarted)resetGame();else{start();fireLaunchBoost();}
       /* le nuage se déchire SUR la piste — (2026-10-15) après la 1re image de la course RENDUE (deux rAF, au lieu d'un minuteur de 60 ms qui
          pouvait découvrir une image pas encore dessinée), en s'ouvrant vers nous */

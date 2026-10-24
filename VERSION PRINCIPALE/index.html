@@ -11946,7 +11946,7 @@ function cotonGeo(S,sph){ // les bourgeons fusionnés, en unités du nuage : mod
 const COTON_OUV={w:null,ko:false,id:0,att:new Map(),file:[],t:0};
 function cotonOuvrier(){
   if(COTON_OUV.w||COTON_OUV.ko)return COTON_OUV.w;
-  try{const src='const cotonCalc='+cotonCalc.toString()+';const nuage8Calc='+nuage8Calc.toString()+';self.onmessage=function(e){const q=e.data,r=q.n8?nuage8Calc(q.B,q.base,q.top,q.n8,q.o8):cotonCalc(q.B,q.base,q.top,q.sp,q.sn,q.si,q.CH);self.postMessage({id:q.id,r:r},[r.pos.buffer,r.nor.buffer,r.col.buffer,r.idx.buffer].concat(r.skin?[r.skin.pos.buffer,r.skin.nor.buffer,r.skin.idx.buffer]:[]));};';
+  try{const src='const cotonCalc='+cotonCalc.toString()+';const nuage8Calc='+nuage8Calc.toString()+';const nufDemi='+nufDemi.toString()+';self.onmessage=function(e){const q=e.data,r=q.n8?nuage8Calc(q.B,q.base,q.top,q.n8,q.o8):cotonCalc(q.B,q.base,q.top,q.sp,q.sn,q.si,q.CH);if(q.hf&&r.fant){r.fant.D=nufDemi(r.fant,q.dy||0,q.hf);r.fant.Dy=q.dy||0;}self.postMessage({id:q.id,r:r},[r.pos.buffer,r.nor.buffer,r.col.buffer,r.idx.buffer].concat(r.skin?[r.skin.pos.buffer,r.skin.nor.buffer,r.skin.idx.buffer]:[]).concat(r.fant&&r.fant.D?[r.fant.D.buffer]:[]));};';
     const w=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));
     w.onmessage=function(e){const a=COTON_OUV.att.get(e.data.id);if(!a)return;COTON_OUV.att.delete(e.data.id);a.cb(e.data.r);};
     w.onerror=function(ev){try{ev.preventDefault();}catch(e9){}cotonOuvrierKo();};COTON_OUV.w=w;
@@ -11962,9 +11962,9 @@ function cotonCalcAsync(S,sph,cb){ // cb(le calcul), PLUS TARD : dans l'ouvrier 
   const A=sph.attributes,job={B:S.B,base:S.base,top:S.top,sp:A.position.array,sn:A.normal.array,si:sph.index.array,CH:COTON.CH},w=cotonOuvrier();
   if(w){const id=++COTON_OUV.id;COTON_OUV.att.set(id,{job:job,cb:cb});try{w.postMessage({id:id,B:job.B,base:job.base,top:job.top,sp:job.sp,sn:job.sn,si:job.si,CH:job.CH});}catch(e){COTON_OUV.att.delete(id);cotonTranche(job,cb);}}
   else cotonTranche(job,cb);}
-function nuage8Async(S,N,cb,vit){ // (v8) une finesse de la NOUVELLE surface : dans l'ouvrier si possible, sinon par tranches — vit : la taille des écailles du VITRAIL (nombre de cubes sur la plus grande dimension), 0 = sans
+function nuage8Async(S,N,cb,vit,dyF){ // dyF : le décalage vertical de ses cubes fantômes (nuFantGeo), pour que l'ouvrier les convertisse // (v8) une finesse de la NOUVELLE surface : dans l'ouvrier si possible, sinon par tranches — vit : la taille des écailles du VITRAIL (nombre de cubes sur la plus grande dimension), 0 = sans
   const job={n8:N,o8:Object.assign({seed:S.seed||0},N8_OPT,NUVIT.vox?{vox:NUVIT.vox,det:NUVIT.vox.det==null?N8_OPT.det:NUVIT.vox.det}:vit?(NUVIT.fant?{fant:NUVIT.fant,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:Object.assign({vit:vit,iso:NUVIT.iso,nsk:NUVIT.nsk,ecart:NUVIT.ecart,jit:NUVIT.jit||0},NUVIT.mix?{fant:NUVIT.mix,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:{})):{}),B:S.B,base:S.base,top:S.top},w=cotonOuvrier();
-  if(w){const id=++COTON_OUV.id;COTON_OUV.att.set(id,{job:job,cb:cb});try{w.postMessage({id:id,n8:N,o8:job.o8,B:job.B,base:job.base,top:job.top});}catch(e){COTON_OUV.att.delete(id);cotonTranche(job,cb);}}
+  if(w){const id=++COTON_OUV.id;COTON_OUV.att.set(id,{job:job,cb:cb});let hf=0;try{hf=NUF_TEX&&job.o8.fant?NUF_W:0;}catch(e){} /* (NUF_TEX est déclarée plus bas : jamais lue en zone morte) */try{w.postMessage({id:id,n8:N,o8:job.o8,B:job.B,base:job.base,top:job.top,hf:hf,dy:dyF||0});}catch(e){COTON_OUV.att.delete(id);cotonTranche(job,cb);}}
   else cotonTranche(job,cb);}
 function cotonFinesse(k,f,g){ // une finesse est arrivée : elle remplace l'ébauche dans SON lot et dans les lots plus fins encore en attente
   COTON.pret[k*4+f]=1;const tri=g.index.count/3;
@@ -12207,12 +12207,20 @@ function nuFantFS(){return ['#include <common>','#include <fog_pars_fragment>',n
   '  float a=vQ.y*uFant*uFondu*(1.-smoothstep(.88,1.,ed));',
   '#ifdef NUAGE8_INST','  a*=smoothstep(uNearF.x,uNearF.y,length(vW-cameraPosition));','#endif',
   '  if(a<.004)discard;gl_FragColor=vec4(col,a);','#include <fog_fragment>','}'].join('\n');}
+/* (2026-10-24, passe perf 3e tour) LES FANTÔMES CONVERTIS DANS LE TRAVAILLEUR : la toile des cubes fantômes (3 texels demi-précision par cube,
+   NUF_TEX) se remplissait sur le fil principal à l'arrivée de chaque nuage — ~8 000 cubes × 12 conversions (toHalfFloat de three) : plusieurs
+   nuages arrivés dans la même image la figeaient. nufDemi fait la MÊME conversion (la même formule que THREE.DataUtils.toHalfFloat de r128, bit à
+   bit, vérifié sur 6 millions de valeurs) dans l'ouvrier des nuages, qui l'envoie avec le calcul (F.D, pour le décalage F.Dy) ; sans ouvrier, ou
+   pour un autre décalage, nuFantGeo la refait ici comme avant. */
+function nufDemi(F,dy,W){const n=F.q.length/4,H=Math.ceil(n*3/W),D=new Uint16Array(W*H*4),f=new Float32Array(1),u=new Int32Array(f.buffer);
+  const h=function(t){f[0]=t;const e=u[0];let b=e>>16&32768,m=e>>12&2047;const x=e>>23&255;return x<103?b:x>142?(b|=31744,b|=(255==x?0:1)&&8388607&e,b):x<113?(m|=2048,b|=(m>>114-x)+(m>>113-x&1),b):(b|=x-112<<10|m>>1,b+=1&m,b);}; // = THREE.DataUtils.toHalfFloat (r128)
+  for(let i=0;i<n;i++){const o=i*12;D[o]=h(F.pos[i*3]);D[o+1]=h(F.pos[i*3+1]+(dy||0));D[o+2]=h(F.pos[i*3+2]);D[o+3]=h(F.q[i*4]);
+    D[o+4]=h(F.nor[i*3]);D[o+5]=h(F.nor[i*3+1]);D[o+6]=h(F.nor[i*3+2]);D[o+7]=h(F.q[i*4+1]);D[o+8]=h(F.col[i*3]);D[o+9]=h(F.col[i*3+1]);D[o+10]=h(F.col[i*3+2]);D[o+11]=h(F.q[i*4+2]);}
+  return D;}
 function nuFantGeo(r,dy,g8){ // les cubes fantômes d'un calcul (r.fant) et le CORPS rentré — g8 : la géométrie v8 de ce calcul (le corps en partage les normales, le modelé, les indices)
   const F=r.fant;if(!F)return null;const n=F.q.length/4,BA=function(a,k){return nuLibre(new THREE.BufferAttribute(a,k));},g=new THREE.BufferGeometry();let tex=null;
   let x0=1e9,y0=1e9,z0=1e9,x1=-1e9,y1=-1e9,z1=-1e9;for(let i=0;i<n;i++){const x=F.pos[i*3],y=F.pos[i*3+1]+(dy||0),z=F.pos[i*3+2];if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;if(z<z0)z0=z;if(z>z1)z1=z;}
-  if(NUF_TEX){const H=Math.ceil(n*3/NUF_W),D=new Uint16Array(NUF_W*H*4),h=THREE.DataUtils.toHalfFloat;
-    for(let i=0;i<n;i++){const o=i*12;D[o]=h(F.pos[i*3]);D[o+1]=h(F.pos[i*3+1]+(dy||0));D[o+2]=h(F.pos[i*3+2]);D[o+3]=h(F.q[i*4]);
-      D[o+4]=h(F.nor[i*3]);D[o+5]=h(F.nor[i*3+1]);D[o+6]=h(F.nor[i*3+2]);D[o+7]=h(F.q[i*4+1]);D[o+8]=h(F.col[i*3]);D[o+9]=h(F.col[i*3+1]);D[o+10]=h(F.col[i*3+2]);D[o+11]=h(F.q[i*4+2]);}
+  if(NUF_TEX){const H=Math.ceil(n*3/NUF_W),D=F.D&&F.Dy===(dy||0)&&F.D.length===NUF_W*H*4?F.D:nufDemi(F,dy,NUF_W);F.D=null; // (converti par l'ouvrier, s'il l'a fait pour CE décalage)
     tex=new THREE.DataTexture(D,NUF_W,H,THREE.RGBAFormat,THREE.HalfFloatType);tex.minFilter=tex.magFilter=THREE.NearestFilter;tex.generateMipmaps=false;tex.needsUpdate=true;
     tex.onUpdate=function(x){x.image.data=null;}; // (la copie JavaScript jetée une fois envoyée)
     g.setIndex(nufIdx());g.setDrawRange(0,n*6);g.userData.idxPartage=true;}
@@ -12583,7 +12591,7 @@ function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh
         f9.onBeforeRender=function(r9,s9,c9b,g9,m9){m9.uniforms.uNvW.value=1;m9.uniformsNeedUpdate=true;};if(!NUVIT.on)f9.visible=false;}}
     else if(q.fant){const G=nuFantGeo(q,fin9.dyU,g2),MS=nuVitMats(true),f9=new THREE.Mesh(G.fan,nufMat(MS.fan,G)); /* (fantôme) les bancs, coussins et tours : le maillage devient le CORPS rentré, les cubes fantômes sont son enfant */
       f9.castShadow=f9.receiveShadow=false;f9.updateMatrix();f9.matrixAutoUpdate=false;mesh.add(f9);
-      const u9=mesh.userData;u9.vit=[f9];u9.g8=g2;u9.hcw=r/NUVIT.fsz;u9.fan=true;u9.nvw=1;f9.onBeforeRender=function(r9,s9,c9,g9,m9){m9.uniforms.uNvW.value=u9.nvw;m9.uniformsNeedUpdate=true;}; /* (2026-10-18, LE FONDU) la part de cubes de CE nuage */u9.gVit=G.corps;u9.mVit=nuage8Solo();if(NUVIT.on)mesh.geometry=G.corps;else f9.visible=false;}},Math.max(NUVIT.nc,Math.min(40,Math.round(r/8))));
+      const u9=mesh.userData;u9.vit=[f9];u9.g8=g2;u9.hcw=r/NUVIT.fsz;u9.fan=true;u9.nvw=1;f9.onBeforeRender=function(r9,s9,c9,g9,m9){m9.uniforms.uNvW.value=u9.nvw;m9.uniformsNeedUpdate=true;}; /* (2026-10-18, LE FONDU) la part de cubes de CE nuage */u9.gVit=G.corps;u9.mVit=nuage8Solo();if(NUVIT.on)mesh.geometry=G.corps;else f9.visible=false;}},Math.max(NUVIT.nc,Math.min(40,Math.round(r/8))),fin9.dyU);
   else if(fin9)cotonCalcAsync(fin9.S,CLOUD_SPH,function(q){if(!g.parent)return; /* jeté entre-temps (portail) */ const g2=cotonBuf(q);g2.scale(fin9.r,fin9.r,fin9.r);g2.translate(0,fin9.dy,0);g2.computeBoundingSphere();const o9=mesh.geometry;mesh.geometry=g2;o9.dispose();mesh.userData.fin=true;});
   CLOUDS.push({g:g,c:center.clone(),r:r,ry:ry,onRoad:!!o.onRoad,puffs:[],mesh:mesh,ph:rr()*6.28,refT:0,fid:-1,wasIn:false});
 }
@@ -14601,7 +14609,8 @@ function* prebJob(sd,W){yield* pisteRoute(sd,W);if(PARK.on)return;
   else if(W.piste==='foret')yield* prebDecorG(W,'foret',FORET,function(){return buildForetG(sd);});
   else if(W.piste==='banquise')yield* prebDecorG(W,'banquise',BANQ,function(){return buildBanqG(sd);});
   else if(W.piste==='grotte')yield* prebDecorG(W,'grotte',GROTTE,function(){return buildGrotteG(sd);}); // (2026-10-18) LES PROFONDEURS
-  else if(W.piste==='canyon')yield* cyBatitG(sd,W);} // (2026-10-23) LE CANYON D'AVANCE : son monde part au travailleur pendant l'approche (voir cyAvPart)
+  else if(W.piste==='canyon')yield* cyBatitG(sd,W); // (2026-10-23) LE CANYON D'AVANCE : son monde part au travailleur pendant l'approche (voir cyAvPart)
+  else if(W.piste==='dunes'){W.dunes=prebDunes(sd,W);const a=W.dunes;if(a){yield;while(!a.R){if(JF.lim===Infinity||!DN.w)break;yield;}}}} // (2026-10-24) LES DUNES D'AVANCE : la préparation puis le calcul du monde chez le travailleur, attendu image après image (voir prebDunes)
 const PREB_PISTES=['','jade','foret','canyon','banquise','grotte','dunes']; // les pistes dont on sait ce que la génération écrit (prebChampsDe) — une map NEUVE n'est pas bâtie d'avance tant qu'elle n'y est pas
 function prebPart(c){ // on commence la piste d'en face
   const W=pisteTravail(c);
@@ -14662,7 +14671,11 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
   if(!c||c.t!==PREB.t||c.z!==PREB.z){prebAnnule(!c?'cible':c.t!==PREB.t?'map':'zone');return;} // (un palier gagné en route ne change rien : la piste garde celui du départ)
   if(PREB.fait)return;
   const tr=typeof QLR!=='undefined'&&QLR.t0?performance.now()-QLR.t0:8;
-  prebTravaille(performance.now()+Math.max(3,Math.min(6,14-tr)));}
+  /* (2026-10-24, passe perf 3e tour) L'URGENCE : la grotte se bâtit en tranches fines (grtMailleNetsG) et peut ne pas être finie au portail quand l'image
+     est lourde (MESURÉ ×4 : une grotte après la jade, 3,2 s de calcul : le reste d'un trait au passage, 900 ms figées). Le portail à moins de 10 s :
+     la tranche monte à 9 ms, à moins de 5 s à 14 ms (une image de 25-33 ms au lieu d'un bloc). */
+  const r9=(L-s)/Math.max(20,PREB.v||60),u9=r9<5?14:r9<10?9:0;
+  prebTravaille(performance.now()+Math.max(u9,3,Math.min(6,14-tr)));}
 /* LE DÉPART D'AVANCE (2026-10-19, session PERF — chantier du pré-bâti de Léo ; la passe perf du 18/10 : « JOUER : ~1,1 s d'image figée sous le
    nuage blanc · REJOUER : ~1 s de construction sous le volet · depuis l'accueil, la piste bâtie deux fois »). La 1re piste d'une partie se bâtit
    comme la map d'en face : AU MENU et À L'ÉCRAN DE FIN, quelques ms par image, par la même machine (pisteRoute, prebJade, prebDecorG), puis le
@@ -15072,7 +15085,7 @@ function buildTrack(seed){
   try{buildJade(seed);}catch(e){window.__jadeErr=e;console.warn('Jade',e);} // (2026-10-09) LES PICS DE JADE : les piliers, les pins, la brume, la Porte et le Pont du ciel (no-op ailleurs) // (2026-09-28) PARIS LA NUIT : les toits et la Dame de fer (no-op hors Paris)
   try{if(!prebDecor(W,'foret'))buildForet(seed);}catch(e){window.__foretErr=e;console.warn('Forêt',e);} // (2026-10-14) LA FORÊT NOIRE : la vallée, les arbres, les géants du slalom, l'arche, les rochers du loup (no-op ailleurs)
   try{buildCanyon(seed);}catch(e){window.__cyErr=e;console.warn('Canyon',e);} // (2026-10-14) LE CANYON DES GÉANTS : le relief, la rivière, l'ombre de l'heure (no-op ailleurs)
-  try{buildDunes(seed);}catch(e){window.__dnErr=e;console.warn('Dunes',e);} // (2026-10-18) LES DUNES D'OR : le sable, l'oasis, l'ombre de l'heure, les décors (no-op ailleurs)
+  try{buildDunes(seed,W.dunes);}catch(e){window.__dnErr=e;console.warn('Dunes',e);} // (2026-10-18) LES DUNES D'OR : le sable, l'oasis, l'ombre de l'heure, les décors (no-op ailleurs)
   try{if(!prebDecor(W,'grotte'))buildGrotte(seed);}catch(e){window.__grotteErr=e;console.warn('Grotte',e);} // (2026-10-18) LES PROFONDEURS : la grotte en blocs, ses décors, ses lumières (no-op ailleurs)
   try{if(!prebDecor(W,'banquise'))buildBanq(seed);}catch(e){window.__banqErr=e;console.warn('Banquise',e);} // (2026-10-14) LA BANQUISE : la neige sous la route, les lacs gelés, les pics de glace, les stalactites (no-op ailleurs)
   try{orbiteBuild(seed);}catch(e){window.__orbErr=e;} // (vague 3) L'ORBITE : les Starlink et les débris autour de la piste (no-op hors orbite)
@@ -18378,9 +18391,33 @@ function dnTirage(seed){let h9=Math.imul((seed^0xDEC0D5)>>>0,0x9E3779B1);h9^=h9>
   if(DN_ACTES.on){D.sphinx=false;D.colosses=0;D.temple=false;D.portes=0;D.village=false;D.camps=0;D.epars={k:0,br:0};D.os=0;D.avion=false;D.bateau=false;
     const am=D.sd%3;D.caravanes=am===0&&D.caravanes.length?[D.caravanes[0]]:[];D.tornades=am===1?1:0;D.flore.epars=0;D.flore.cactus=0;D.flore.palmeraies=0;D.flore.acacias=Math.min(D.flore.acacias,.5);}
   return D;}
-function buildDunes(seed){
-  dnEteindre();DN.job=(DN.job||0)+1;
+/* ===== LES DUNES D'AVANCE (2026-10-24, passe perf 3e tour — le canyon l'a depuis le 23/10, les dunes non) =====
+   Au 1er JOUER (started faux) puis au passage, buildDunes calculait le monde (dnMondeCalc : le fond, le relief fin, l'ombre) d'un bloc sur le fil
+   principal, ou l'envoyait au travailleur APRÈS le passage (le sable apparaît alors une demi-seconde plus tard, sur une route sans collision).
+   Le pré-bâti (prebDunes, dans prebJob) fait la PRÉPARATION sur la route fantôme — le module DN est échangé EN ENTIER le temps de la préparation
+   (prebObj), seules les clés CHANGÉES sont gardées (W.dunes.chg) —, confie le calcul au travailleur et l'attend image après image ; au départ
+   (ou au portail), buildDunes(seed,W.dunes) reprend ces clés et pose le monde. Pas arrivé à temps, ou `?dnw=0` : tout comme avant. */
+function prebDunes(sd,W){ // (le pré-bâti, DANS une tranche : la route fantôme est en place) la préparation, puis le calcul chez le travailleur — W.dunes tient le résultat
+  if(PARK.on||!LVL.cur||LVL.cur.piste!=='dunes'||!(NP>1)||!DUNES_OK||/[?&]dnw=0\b/.test(location.search))return null;
+  const w=dnTravailleur();if(!w)return null;
+  cyBruits();
+  const av=Object.assign({},DN),ghost=Object.assign({},DN);prebObj(DN,ghost);let r=null;
+  try{r=buildDunes(sd,true);}finally{prebObj(DN,ghost);} // DN revient tel qu'il était ; ghost tient l'état préparé
+  if(!r)return null;
+  const chg={};for(const k of Object.keys(ghost))if(k!=='job'&&k!=='attente'&&ghost[k]!==av[k])chg[k]=ghost[k];
+  const a={job:-(DN.jav=(DN.jav||0)+1),R:null,chg:chg,S:r.S,opt:r.opt,cle:[sd,L,NP,lvPiste(),ROAD_HALF].join('|')};
+  try{w.postMessage({job:a.job,S:r.S,opt:r.opt,nz:CY.nz});}catch(e){console.warn('dunes : travailleur',e);return null;}
+  DN.pre=a;return a;}
+function buildDunes(seed,pre){
+  const av=pre===true; // true : le pré-bâti prépare (rien n'est écrit dans DN, rien ne part) ; un objet : ce qu'il a préparé (W.dunes)
+  if(!av){dnEteindre();DN.job=(DN.job||0)+1;}
   if(PARK.on||!LVL.cur||LVL.cur.piste!=='dunes'||!(NP>1)||!DUNES_OK)return;
+  if(pre&&!av){const a=pre;
+    if(a.cle===[seed,L,NP,lvPiste(),ROAD_HALF].join('|')){Object.assign(DN,a.chg);DN.t0=performance.now();cyBruits();dnTerrain();
+      if(a.R){DN.ms.avance='pret';dnMondePose(a.R);return;}
+      const W9=started&&!/[?&]dnw=0\b/.test(location.search)?dnTravailleur():null; // pas revenu : on le lui redemande, comme avant
+      if(W9){const job=DN.job;DN.attente={job:job,S:a.S,opt:a.opt};try{W9.postMessage({job:job,S:a.S,opt:a.opt,nz:CY.nz});return;}catch(e){DN.attente=null;}}
+      dnMondePose(dnMondeCalc(a.S,a.opt));return;}}
   const t0=performance.now(),LV=lvPiste(),K=Math.sqrt(LV),r=mulberry32((seed^0xD0E5A7)>>>0);
   cyBruits();dnTerrain();
   // ---- 1. LES ÉCHANTILLONS : la route tous les 8 m ----
@@ -18447,6 +18484,7 @@ function buildDunes(seed){
   if(DN_SOL&&cA[0]<14&&NS>20){const i1=NS-1,i0=Math.max(0,i1-18),hx=S.x[i1]-S.x[i0],hz=S.z[i1]-S.z[i0];if(hx*hx+hz*hz>1){DN.sunAz=Math.atan2(hx,hz)*57.29578;cA[1]=DN.sunAz;S.solD=2200;}}
   const opt={K:K,seed:seed,RH:RH,TH:TH,sQ:sQ,sun:[cA[0],cA[1]],vent:DN.vent,lam:DN.lam,oa:oa,fin:{x:S.x[NS-1],z:S.z[NS-1]},sb:!DN_BUTTES,vol:DN.scnV||[],Af:210*K,deco:D9,pal:{dnPlat:PAL.b('dnPlat',64),dnFin:PAL.b('dnFin',12),dnOmbre:PAL.b('dnOmbre',44)}};
   DN.oa=oa;DN.fin=opt.fin;DN.sb=opt.sb;DN.t0=t0;
+  if(av)return {S:S,opt:opt}; // (LES DUNES D'AVANCE) la préparation s'arrête ici : prebDunes envoie le calcul au travailleur
   const W=started&&!/[?&]dnw=0\b/.test(location.search)?dnTravailleur():null;
   if(W){const job=DN.job;DN.attente={job:job,S:S,opt:opt};try{W.postMessage({job:job,S:S,opt:opt,nz:CY.nz});return;}catch(e){console.warn('dunes : travailleur',e);DN.attente=null;}}
   dnMondePose(dnMondeCalc(S,opt));
@@ -18458,7 +18496,7 @@ function dnTravailleur(){if(DN.w!==undefined)return DN.w;
       "\nonmessage=function(e){var m=e.data;CY={nz:m.nz};DN={};PAL.B=m.opt.pal;var R=dnMondeCalc(m.S,m.opt);R.job=m.job;"+
       "postMessage(R,[R.Z.d.buffer,R.F.c.buffer,R.O.h.buffer]);};";
     const W=new Worker(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));
-    W.onmessage=function(e){const R=e.data;if(!DN.attente||R.job!==DN.job)return;DN.attente=null;try{dnMondePose(R);}catch(er){console.warn('dunes : pose',er);}};
+    W.onmessage=function(e){const R=e.data;if(R.job<0){if(DN.pre&&DN.pre.job===R.job)DN.pre.R=R;return;} /* (LES DUNES D'AVANCE) le monde du pré-bâti */if(!DN.attente||R.job!==DN.job)return;DN.attente=null;try{dnMondePose(R);}catch(er){console.warn('dunes : pose',er);}};
     W.onerror=function(e){console.warn('dunes : travailleur en erreur',e.message);DN.w=null;const a=DN.attente;DN.attente=null;if(a&&a.job===DN.job)try{dnMondePose(dnMondeCalc(a.S,a.opt));}catch(er){console.warn('dunes',er);}};
     DN.w=W;}catch(e){DN.w=null;}
   return DN.w;}
@@ -21256,14 +21294,19 @@ function grtMatieres(x,y,z,sal,lv){ // la matière d'un sommet de la roche (lv :
   if((sal===3||sal===4)&&GROTTE.piliers)for(const c of GROTTE.piliers)if((x-c.x)**2+(z-c.z)**2<c.r*c.r&&y>c.yb-8&&y<c.yt+8)return c.k==='stal'?GT.CONCRETION:(lac&&y<lac.y+14?GT.MAGMA:GT.BASALTE);
   if(sal===4&&lac&&y<lac.y+9)return GT.MAGMA; // le rivage rougeoie
   return GT.ROCHE;}
-function grtMailleNets(V,c,LL){
+/* (2026-10-24, passe perf 3e tour) LE MAILLAGE D'UN TRONÇON EN TRANCHES : au PRÉ-BÂTI, un tronçon (40 à 150 ms ×4, d'un bloc) faisait les images
+   de 100-283 ms du vol qui précède la grotte (MESURÉ ×4 : 8 à 15 images > 100 ms par approche). grtMailleNetsG rend la main entre deux tranches de sa
+   grille (l'échéance JF.lim, celle du pré-bâti) ; d'un trait (JF.lim infini : le passage, les tranches en course), il ne s'arrête jamais.
+   Mêmes calculs, même ordre : le même maillage. */
+function grtMailleNets(V,c,LL){return jadeFini(grtMailleNetsG(V,c,LL));}
+function* grtMailleNetsG(V,c,LL){
   const T=grtTampons(),d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V.CY,ck=(d/(V.CX*V.CY))|0,I0=ci*16,J0=cj*16,K0=ck*16,B=V.B,lum=T.lum,loc=T.loc,vid=T.vid,R=GROTTE.R;
   // 1 · les densités du tronçon et de sa bordure (−2 … 17)
-  for(let k=0;k<20;k++)for(let j=0;j<20;j++)for(let i=0;i<20;i++)loc[i+20*(j+20*k)]=grtD(V,I0+i-2,J0+j-2,K0+k-2);
+  for(let k=0;k<20;k++){if(performance.now()>JF.lim)yield;for(let j=0;j<20;j++)for(let i=0;i<20;i++)loc[i+20*(j+20*k)]=grtD(V,I0+i-2,J0+j-2,K0+k-2);}
   const L=function(i,j,k){return loc[(i+2)+20*((j+2)+20*(k+2))];};
   // 2 · les sommets (cubes −1 … 15)
   vid.fill(-1);let nv=0;const MAXV=39990,cv=new Float32Array(8);
-  for(let cc=-1;cc<16&&nv<MAXV;cc++)for(let b=-1;b<16&&nv<MAXV;b++)for(let a=-1;a<16;a++){
+  for(let cc=-1;cc<16&&nv<MAXV;cc++){if(performance.now()>JF.lim)yield;for(let b=-1;b<16&&nv<MAXV;b++)for(let a=-1;a<16;a++){
     let m=0;for(let q=0;q<8;q++){const v=L(a+(q&1),b+((q>>1)&1),cc+((q>>2)&1));cv[q]=v;if(v>0)m|=1<<q;}
     if(m===0||m===255)continue;
     let sx=0,sy=0,sz=0,ne=0;
@@ -21280,10 +21323,10 @@ function grtMailleNets(V,c,LL){
     const p3=nv*3,p4=nv*4;T.P[p3]=lx;T.P[p3+1]=ly;T.P[p3+2]=lz;
     T.F[p4]=grtMatieres(wx,wy,wz,sal,lv);T.F[p4+1]=sal;T.F[p4+2]=Math.round(Math.max(.3,Math.min(1,1.28-roc/64))*255);T.F[p4+3]=0;
     grtLum(wx+gx/gl*1.5,wy+gy/gl*1.5,wz+gz/gl*1.5,sal,LL,lum);T.Lt[p4]=lum[0]*255;T.Lt[p4+1]=lum[1]*127.5;T.Lt[p4+2]=lum[2]*127.5;T.Lt[p4+3]=lum[3]*127.5;
-    vid[(a+1)+17*((b+1)+17*(cc+1))]=nv++;}
+    vid[(a+1)+17*((b+1)+17*(cc+1))]=nv++;}}
   // 3 · les quads : chaque arête (points 0 … 15 du tronçon) qui traverse la paroi — tournés vers l'air
   let ni=0;const V9=function(a,b,cc){return vid[(a+1)+17*((b+1)+17*(cc+1))];};
-  for(let cc=0;cc<16;cc++)for(let b=0;b<16;b++)for(let a=0;a<16;a++){const v0=L(a,b,cc),s0=v0>0;
+  for(let cc=0;cc<16;cc++){if(performance.now()>JF.lim)yield;for(let b=0;b<16;b++)for(let a=0;a<16;a++){const v0=L(a,b,cc),s0=v0>0;
     for(let ax=0;ax<3;ax++){const v1=ax===0?L(a+1,b,cc):ax===1?L(a,b+1,cc):L(a,b,cc+1);if((v1>0)===s0)continue;
       let q0,q1,q2,q3;
       if(ax===0){q0=V9(a,b-1,cc-1);q1=V9(a,b,cc-1);q2=V9(a,b,cc);q3=V9(a,b-1,cc);}
@@ -21291,12 +21334,12 @@ function grtMailleNets(V,c,LL){
       else{q0=V9(a-1,b-1,cc);q1=V9(a,b-1,cc);q2=V9(a,b,cc);q3=V9(a-1,b,cc);}
       if(q0<0||q1<0||q2<0||q3<0||ni+6>T.I.length)continue;
       if(s0){T.I[ni++]=q0;T.I[ni++]=q1;T.I[ni++]=q2;T.I[ni++]=q0;T.I[ni++]=q2;T.I[ni++]=q3;}
-      else{T.I[ni++]=q0;T.I[ni++]=q2;T.I[ni++]=q1;T.I[ni++]=q0;T.I[ni++]=q3;T.I[ni++]=q2;}}}
+      else{T.I[ni++]=q0;T.I[ni++]=q2;T.I[ni++]=q1;T.I[ni++]=q0;T.I[ni++]=q3;T.I[ni++]=q2;}}}}
   /* 4 · UNE MATIÈRE PAR FACETTE : les sommets sont dédoublés par triangle et la facette prend la matière de la majorité de ses coins (le numéro
      de matière interpolé sur un triangle à cheval passait par toutes les matières entre les deux : un liseré arc-en-ciel le long des bords —
      banc du 18/10). La lumière et l'occlusion restent celles des coins (fondues sur la facette). */
   const nt=ni/3,P=new Float32Array(nt*9),F=new Uint8Array(nt*12),Lt=new Uint8Array(nt*12);
-  for(let t=0;t<nt;t++){const a=T.I[t*3],b=T.I[t*3+1],c9=T.I[t*3+2],ma=T.F[a*4],mb=T.F[b*4],mc=T.F[c9*4],mt=(ma===mb||ma===mc)?ma:(mb===mc?mb:(ma||mb||mc));
+  for(let t=0;t<nt;t++){if((t&2047)===2047&&performance.now()>JF.lim)yield;const a=T.I[t*3],b=T.I[t*3+1],c9=T.I[t*3+2],ma=T.F[a*4],mb=T.F[b*4],mc=T.F[c9*4],mt=(ma===mb||ma===mc)?ma:(mb===mc?mb:(ma||mb||mc));
     for(let k=0;k<3;k++){const v=k===0?a:k===1?b:c9,o=t*3+k;P[o*3]=T.P[v*3];P[o*3+1]=T.P[v*3+1];P[o*3+2]=T.P[v*3+2];
       F[o*4]=mt;F[o*4+1]=T.F[v*4+1];F[o*4+2]=T.F[v*4+2];F[o*4+3]=0;Lt[o*4]=T.Lt[v*4];Lt[o*4+1]=T.Lt[v*4+1];Lt[o*4+2]=T.Lt[v*4+2];Lt[o*4+3]=T.Lt[v*4+3];}}
   return {P:P,F:F,L:Lt,I:null,nv:nt*3,nt:nt};}
@@ -21523,7 +21566,7 @@ function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
   if(performance.now()>JF.lim)yield;
   const tm={ech:Math.round(performance.now()-t0)};let t9=performance.now();
   /* (le pas de creusement suit la largeur : un ellipsoïde tous les rh/3,2 m — entre deux, le creux des parois fait ~1,5 m, sous la facette et le bruit) */
-  for(let q=0,ac=1e9,nq=0;q<R.n;q++){ac+=6;if(ac<Math.max(6,R.RH[q]/3.2)&&!R.EXT[q])continue;ac=0;grtCreuse1(V,R,q);if((++nq&7)===7&&performance.now()>JF.lim)yield;}
+  for(let q=0,ac=1e9,nq=0;q<R.n;q++){ac+=6;if(ac<Math.max(6,R.RH[q]/3.2)&&!R.EXT[q])continue;ac=0;grtCreuse1(V,R,q);nq++;if(performance.now()>JF.lim)yield;} /* (2026-10-24, passe perf) un rendez-vous par creusement (tous les 8 : des tranches de 40-60 ms ×4 au pré-bâti) */
   tm.creuse=Math.round(performance.now()-t9);t9=performance.now();
   grtPuits(V,R);tm.puits=Math.round(performance.now()-t9);if(performance.now()>JF.lim)yield;
   t9=performance.now();grtLacs(V,R);GROTTE.piliers=grtPiliers(V,R,fr);GROTTE.n.bouche=grtBouche(V);V.nzc=null;tm.lacs=Math.round(performance.now()-t9);if(performance.now()>JF.lim)yield; // (le cache du bruit ne sert plus)
@@ -21536,16 +21579,17 @@ function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
      pas fini quand vient le JOUER (ou le portail) est fini par prebTravaille(Infinity) : `direct`, lu au début du générateur, valait faux, et
      TOUTE la grotte restante se maillait dans la même image (MESURÉ en ligne, trace Chrome : 220 ms de grtTroncon/grtMailleNets au JOUER, sur
      l'ordi). Comme un bâti direct : les 1 100 premiers mètres tout de suite, le reste par les tranches de grotteTick (grtTranches). */
-  while(GROTTE.fi<ord.length){const c=ord[GROTTE.fi];if((direct||JF.lim===Infinity)&&R.S[Math.min(R.n-1,V.chS[c])]>1100)break;grtTroncon(c);GROTTE.fi++;if(performance.now()>JF.lim)yield;}
+  while(GROTTE.fi<ord.length){const c=ord[GROTTE.fi];if((direct||JF.lim===Infinity)&&R.S[Math.min(R.n-1,V.chS[c])]>1100)break;yield* grtTronconG(c);GROTTE.fi++;if(performance.now()>JF.lim)yield;}
   GROTTE.pret=GROTTE.fi>=ord.length;tm.mailles=Math.round(performance.now()-t9);
   GROTTE.ms=Math.round(performance.now()-t0);
   grotteMeteo(GROTTE.met,started?bioPortDur():.01);
 }
-function grtTroncon(c){const V=GROTTE.V,d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V.CY,ck=(d/(V.CX*V.CY))|0,C=16*V.B,M=grtMats(),LL=GROTTE.LL&&GROTTE.LL.get(d)||null;
+function grtTroncon(c){jadeFini(grtTronconG(c));} // d'un trait (les tranches en course) — au pré-bâti : yield* grtTronconG
+function* grtTronconG(c){const V=GROTTE.V,d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V.CY,ck=(d/(V.CX*V.CY))|0,C=16*V.B,M=grtMats(),LL=GROTTE.LL&&GROTTE.LL.get(d)||null;
   const g=new THREE.Group();g.position.set(V.ox+ci*C,V.oy+cj*C,V.oz+ck*C);g.matrixAutoUpdate=false;g.updateMatrix();
   const mk=function(p){const ge=new THREE.BufferGeometry();ge.setAttribute('position',new THREE.BufferAttribute(p.P,3));ge.setAttribute('aF',new THREE.BufferAttribute(p.F,4));ge.setAttribute('aL',new THREE.BufferAttribute(p.L,4,true));
     if(p.I)ge.setIndex(new THREE.BufferAttribute(p.I,1));ge.computeBoundingSphere();const me=new THREE.Mesh(ge,M.roche);me.matrixAutoUpdate=false;me.updateMatrix();me.userData.jeter=1;g.add(me);};
-  const m=grtMailleNets(V,c,LL);GROTTE.n.triangles=(GROTTE.n.triangles|0)+m.nt;if(m.nt)mk(m);
+  const m=yield* grtMailleNetsG(V,c,LL);GROTTE.n.triangles=(GROTTE.n.triangles|0)+m.nt;if(m.nt)mk(m);
   const L9=GROTTE.dec&&GROTTE.dec.get(d);
   if(L9&&L9.length){const qs=V.chS[c],sal=qs<1e9&&GROTTE.R?GROTTE.R.SAL[Math.min(GROTTE.R.n-1,qs)]:0,p=grtMailleDecor(V,c,L9,LL,sal);if(p.nv){mk(p);GROTTE.n.decors=(GROTTE.n.decors|0)+L9.length;GROTTE.n.triangles+=p.I.length/3;}}
   g.userData.c=new THREE.Vector3(g.position.x+C/2,g.position.y+C/2,g.position.z+C/2);GROTTE.root.add(g);GROTTE.grp.push(g);}
@@ -64221,7 +64265,10 @@ function openGarage(quiet){
   if(GAR.aMis){GAR.aMis=false;garMode('missions');}
   GAR.vueT=0;GAR.vueNeuve=true; // (2026-10-06) LA MISE EN PLACE : l'atelier qui s'ouvre pose son plan d'un coup (voir garageRender) — (2026-09-30) la porte des MISSIONS, venue d'ailleurs (écran de mort…) // (2026-09-30) ouvert par l'ACCUEIL = le menu ; par un autre chemin (mort → GARAGE, missions, objectif) = la boutique
 }
-function closeGarage(){
+/* (2026-10-24, passe perf 3e tour) resetSuit : resetGame suit DANS LA MÊME IMAGE (le JOUER après une partie, au bout du piqué ou du lâcher) et
+   rebâtit la caisse équipée (buildCar) — la caisse « du menu » que closeGarage remettait n'était jamais dessinée : une construction de caisse
+   de moins (26-30 ms ×4 MESURÉS) au JOUER d'après partie. La caisse dessinée est la même : celle de resetGame. */
+function closeGarage(resetSuit){
   GATL.on=false;GATL.c=GATL.cs=GATL.l=GATL.p=0;if(gEl)gEl.classList.remove('atelierInv');BRB.p=0;BRB.plan=null;BRB.TP=null;BRB.attente=null;BRB.libre=null;BRB.joue=false;BRB.yaw=0;BRB.cK=BRB.cY=0;if(BRB.g)BRB.g.visible=false; /* (2026-10-19) le bras des figures non plus */ // (2026-10-12) l'ATELIER FERMÉ ne survit pas au garage
   try{gVueSeule(false);}catch(e){} // (2026-10-10) l'ŒIL ne survit pas à l'atelier
   try{burnCoupe();}catch(e){} // (2026-10-05) le burn-out ne survit pas à l'atelier
@@ -64233,7 +64280,7 @@ function closeGarage(){
   try{if(openGarage._amb){openGarage._amb.stop(.35);openGarage._amb=null;}}catch(e){}
   try{if(openGarage._feu){openGarage._feu.stop(.35);openGarage._feu=null;}}catch(e){}
   trailApercu(0,false);
-  if(SHOP.prev||SHOP.tab!=='voiture'){SHOP.prev=null;SHOP.tab='voiture';buildCar(CARS[equippedCar()]);} // l'essai ne sort pas de l'atelier
+  if(SHOP.prev||SHOP.tab!=='voiture'){SHOP.prev=null;SHOP.tab='voiture';if(!resetSuit)buildCar(CARS[equippedCar()]);} // l'essai ne sort pas de l'atelier
   paintEnv(BIO.to.env,BIO.to.eS1,BIO.to.eS2); // (2026-09-26) on rend à la laque le ciel du biome (l'atelier l'avait repeint en studio)
   finLaque(false); // (2026-10-20) le vernis de course (voir finition.js)
   bioApply(BIO.cur); // ⚠ (2026-09-24) le garage/l'étal écrasent le ciel chaque frame (nuit étoilée) : on rend la main au BIOME en sortant, sinon la 1re course gardait leur ciel
@@ -64251,7 +64298,7 @@ function closeGarage(){
   atelierLampes(false);stallKey.intensity=0;stallRim.intensity=0;
   sunSprite.visible=true;horizonGlow.visible=true;for(const r9 of RAYS)r9.visible=true; // le soleil revient sur la piste
   if(pigGroup)pigGroup.visible=true;
-  buildCar(CARS[level||0]);                 // remet la caisse du menu
+  if(!resetSuit)buildCar(CARS[level||0]);   // remet la caisse du menu (resetSuit : resetGame la rebâtit dans la même image)
   camera.up.set(0,1,0);
   frameAt(0,F);camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4);camera.lookAt(F.p);
   document.body.classList.remove('garMenuH');overlay.style.display='flex';
@@ -66347,7 +66394,7 @@ function chuteRender(dt){
     if(u>=1){
       if(CHUTE.sous){const f9=CHUTE.sous;CHUTE.sous=null;try{f9();}catch(e){console.warn('chute: piste sous le voile',e);}} // (2026-10-15) la piste tirée par JOUER se bâtit ICI, sous le nuage blanc (voir classiqueJouer)
       const wasStarted=started;GAR.go=null;CHUTE.go=null;carGroup.scale.set(1,1,1);
-      closeGarage();
+      closeGarage(wasStarted);
       if(wasStarted)resetGame();else{start();fireLaunchBoost();}
       /* le nuage se déchire SUR la piste — (2026-10-15) après la 1re image de la course RENDUE (deux rAF, au lieu d'un minuteur de 60 ms qui
          pouvait découvrir une image pas encore dessinée), en s'ouvrant vers nous */
@@ -67754,7 +67801,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
       // `started` déjà vrai que rien n'a encore posé.
       if(GAR.sous){const f9=GAR.sous;GAR.sous=null;try{f9();}catch(e){console.warn('lâcher : piste sous le voile',e);}} // (2026-10-15) la piste tirée par le JOUER de l'atelier se bâtit ICI, sous le voile chaud (voir classiqueJouer)
       const wasStarted=started;
-      closeGarage();
+      closeGarage(wasStarted);
       if(wasStarted)resetGame();else{start();fireLaunchBoost();}
       const f=$('gFade');if(f)setTimeout(function(){f.classList.remove('on');},60); // il se retire SUR la piste
     }
