@@ -29,7 +29,7 @@ skyU.uVid={value:1};skyU.uVed={value:PAL.b('orbVed',1)};
   const FOND=['uniform float uVid;',
     'vec3 orbVide(float y){',
     '  float h=1.-clamp(abs(y),0.,1.);',                                                                    /* 1 à l'horizon, 0 au zénith */
-    '  vec3 v=mix(vec3(.018,.012,.060),vec3(.014,.024,.088),smoothstep(0.,.72,h));',                        /* zénith indigo-violet → bleu nuit */
+    '  vec3 v=mix(vec3(.014,.009,.046),vec3(.010,.018,.066),smoothstep(0.,.72,h));',                        /* zénith indigo-violet → bleu nuit */
     '  float yy=(y-.03)/.30;v+=vec3(.024,.062,.210)*exp(-yy*yy);',                                                 /* le voile bleu de la Terre, au ras de l\'horizon */
     '  v+=vec3(.020,.008,.040)*smoothstep(.55,1.,h)*smoothstep(.0,.3,y);',                                  /* un fond de lilas au-dessus */
     '  return v*uVid;}'].join('\n');
@@ -68,17 +68,19 @@ skyU.uVid={value:1};skyU.uVed={value:PAL.b('orbVed',1)};
       '  outgoingLight=c; }'].join('\n'),'globe limbe');
     sh.fragmentShader=f;};
   gm.customProgramCacheKey=function(){return 'globeJourNuit4';};
-  am.onBeforeCompile=function(sh){oa(sh);sh.uniforms.uOrb=OBEAU.u.uOrb;sh.uniforms.uOrbQ=OBEAU.u.uOrbQ;
+  am.onBeforeCompile=function(sh){oa(sh);sh.uniforms.uOrb=OBEAU.u.uOrb;sh.uniforms.uOrbQ=OBEAU.u.uOrbQ;sh.uniforms.uKh=this.userData.kh;
     sh.vertexShader=orbRempl(sh.vertexShader,'varying vec3 vN9a,vV9a;','varying vec3 vN9a,vV9a,vS9a;','atmo vdef');
     sh.vertexShader=orbRempl(sh.vertexShader,'vV9a=-mvPosition.xyz;','vV9a=-mvPosition.xyz;vec3 tc9=normalize(cameraPosition-modelMatrix[3].xyz),sd9=normalize(cross(tc9,vec3(0.,1.,0.))+vec3(1e-4));vS9a=mat3(viewMatrix)*normalize(tc9*.5+vec3(0.,.75,0.)+sd9*.45);','atmo vsoleil');
-    let f=orbRempl(sh.fragmentShader,'varying vec3 vN9a,vV9a;','varying vec3 vN9a,vV9a,vS9a;uniform float uOrb,uOrbQ;','atmo fdef');
+    let f=orbRempl(sh.fragmentShader,'varying vec3 vN9a,vV9a;','varying vec3 vN9a,vV9a,vS9a;uniform float uOrb,uOrbQ,uKh;','atmo fdef');
     f=orbRempl(f,'vec4 diffuseColor=vec4(diffuse,opacity*2.2*smoothstep(0.,.29,nd9)*(1.-smoothstep(.29,.66,nd9)));',[
       'float so9=dot(normalize(vN9a),normalize(vS9a));',
-      'float ka9=mix(1.,.40+1.0*smoothstep(-.35,.65,so9),uOrb);',                                           /* la coquille brille côté soleil */
+      'float ka9=mix(1.,.40+1.0*smoothstep(-.35,.65,so9),uOrb)*mix(1.,.55,uKh*uOrb);',                                           /* la coquille brille côté soleil */
       'vec3 dc9=mix(diffuse,mix(diffuse,vec3(1.,.55,.30),.55),uOrb*uOrbQ*(1.-smoothstep(0.,.42,abs(so9-.05))));', /* … et prend l\'aube au terminateur */
-      'vec4 diffuseColor=vec4(dc9,opacity*2.2*smoothstep(0.,.29,nd9)*(1.-smoothstep(.29,.66,nd9))*ka9);'].join('\n'),'atmo corps');
+      'float pf9=smoothstep(0.,.29,nd9)*(1.-smoothstep(.29,.66,nd9));pf9=mix(pf9,mix(.4545,pf9,uOrb),uKh);',  /* le halo (uKh=1) garde son aplat hors orbite, prend le dégradé en orbite */
+      'vec4 diffuseColor=vec4(dc9,opacity*2.2*pf9*ka9);'].join('\n'),'atmo corps');
     sh.fragmentShader=f;};
   am.customProgramCacheKey=function(){return 'atmoDegrade2';};
+  am.userData.kh={value:0};const hm=g.halo.material;hm.userData.kh={value:1};hm.onBeforeCompile=am.onBeforeCompile;hm.customProgramCacheKey=am.customProgramCacheKey; /* le HALO (2e coquille, à bord dur) reprend le profil en dégradé, en orbite seulement */
 })();
 /* LA TERRE REPEINTE — la même toile 1024 × 512 (peinte UNE fois, au portail), des continents vrais zonés par la latitude. Pas de nuages (Sacha les a retirés de l'espace) :
    la Terre reste nette ; la profondeur vient des océans, des plateaux et du relief. */
@@ -129,10 +131,10 @@ const POUS=(function(){
       'void main(){const float B=64.;',
       '  vec3 p0=position*(2.*B)+(aS.xyz-.5)*uT*1.6;',
       '  vec3 rel=mod(p0-uCam,2.*B)-B;',                                                                       /* la boîte enroulée autour de la caméra : un grain qui sort d\'un côté rentre de l\'autre */
-      '  vec3 q=rel+aE*(uVel*.034+vec3(0.,.12,0.));',                                                          /* la traînée : où le grain était il y a 34 ms (et un minimum : un point reste un trait) */
+      '  vec3 q=rel+aE*(uVel*.028+vec3(0.,.12,0.));',                                                          /* la traînée : où le grain était il y a 34 ms (et un minimum : un point reste un trait) */
       '  vec3 v=mat3(viewMatrix)*rel;float fw=max(-v.z,.001);',
       '  float cone=v.z<0.?smoothstep(.42,.80,length(v.xy)/fw):1.;',                                           /* le COULOIR de jeu reste vide : un cône autour de l\'axe de la caméra */
-      '  float fade=1.-smoothstep(.62,1.,max(max(abs(rel.x),abs(rel.y)),abs(rel.z))/B);',
+      '  float fade=(1.-smoothstep(.62,1.,max(max(abs(rel.x),abs(rel.y)),abs(rel.z))/B))*smoothstep(5.,16.,fw);',  /* un grain qui frôle la caméra s\'éteint : pas de long trait blanc en travers de l\'écran */
       '  float tw=.62+.38*sin(uT*(1.4+aS.y*3.)+aS.z*40.),k=aS.w;',
       '  vec3 c=k<.62?vec3(.56,.70,1.):(k<.90?vec3(1.,.88,.68):(fract(aS.x*7.3)<.5?vec3(1.,.82,.34):vec3(1.,.38,.70)));', /* glace bleue · glace chaude · un grain d\'OR ou de ROSE, rare */
       '  vC=c*(.45+.95*aS.x*aS.x)*uOp*cone*fade*tw*(1.-.75*aE);',                                             /* la tête brille, la queue s\'éteint */
