@@ -206,6 +206,11 @@ if(BANC_ON)(function(){
     for(let i=0;i<80&&!started;i++)await Z(250);
     RESPIN=true;DPR_CAP=Math.min(devicePixelRatio,1.5);qlPose(0);setDPR(1.5);dbgAuto(true,0);
     const lieu=()=>((LVL.cur&&LVL.cur.id)||'?').toUpperCase().slice(0,7); // (2026-10-14) les colonnes portent le VRAI niveau (le JOUER lance le Soleil de jade : « NUAGES » mentait)
+    /* (2026-10-24, passe perf iPhone — Sacha : « après quelques maps passées on arrive presque à 1 image/seconde ») LE BANC AU NIVEAU N :
+       `&bancniv=9` franchit 8 portails (dbgSaut) avant de mesurer, `&bancmap=jade` impose la map de chaque passage (dbgClassique) — la même
+       map au niveau 1 et au niveau 9 dit ce qui gonfle avec le niveau. Sans ces paramètres : rien ne change. */
+    {const niv9=+((/[?&]bancniv=(\d+)/.exec(location.search)||[])[1])||1,map9=(/[?&]bancmap=(\w+)/.exec(location.search)||[])[1];
+      for(let k=1;k<niv9;k++){etat('niveau '+(k+1)+' / '+niv9);await vivant();if(map9)try{dbgClassique(map9);}catch(e){}dbgSaut();dbgAuto(true,0);await Z(2500);}}
     try{await Z(3500);const L1=lieu();await vue(L1+' sol');await vol();await vue(L1+' vol');
       await vivant();dbgSaut();dbgAuto(true,0);await Z(4000);const L2=lieu();if(L2!==L1){await vue(L2+' sol');await vol();await vue(L2+' vol');}}
     catch(e){R.err=String(e&&e.message);}
