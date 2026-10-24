@@ -289,7 +289,7 @@ window.dbgCout=function(on){ // (banc) — voir COUT
 PAL.B.mortImg=[4,2,1];
 const MORT_IMG={t:0,i:0,w:0,h:0,n:0,on:false,dt:0}; // dt : le temps des images sautées, rendu aux ticks d'ambiance à l'image dessinée suivante (voir loop)
 function mortSaute(dt){
-  const N=PAL.b('mortImg',1)|0;
+  const N=Math.max(PAL.b('mortImg',1)|0,PFR_ON?2:1); /* (2026-10-24) le téléphone au frais : une image sur deux au moins (voir PFR_ON) */
   if(N<=1)return false;
   if(!(gameOver&&TCTL.on&&!garageOn&&!stallOn&&!MENUV.retour&&overlay.style.display!=='none'&&overlay.getAttribute('data-ecran')==='dead')){MORT_IMG.t=0;MORT_IMG.i=0;MORT_IMG.on=false;return false;}
   MORT_IMG.t+=dt;
