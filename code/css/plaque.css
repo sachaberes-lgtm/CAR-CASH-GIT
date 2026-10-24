@@ -33,7 +33,7 @@
 #plq .plDe{flex:none;width:56px;min-width:56px;height:52px;min-height:52px;padding:0;--nc:var(--neoC)}
 #plq .plDe .pxi,#prof .pfRet .pxi,#plq .plRet .pxi{--pxs:2}
 /* LES MODÈLES : neuf vignettes (la vraie plaque en petit), trois par rangée ; la choisie a le filet cyan */
-#plq .plMods{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#plq .plMods{max-height:min(58vh,520px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:2px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 #plq .plMod{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;min-height:56px;padding:8px 6px 7px;
   cursor:pointer;background:var(--laqueP);clip-path:var(--coupe7);box-shadow:inset 0 0 0 1px var(--fil);
   transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
@@ -73,7 +73,7 @@
   #plq .plIn{max-width:860px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);grid-template-rows:auto auto auto 1fr;
     grid-template-areas:"tete mods" "vue mods" "saisie mods" "bas mods";column-gap:24px;row-gap:10px;align-items:start}
   #plq .plTete{grid-area:tete;gap:6px}#plq .plVue{grid-area:vue;max-width:340px}#plq .plSaisie{grid-area:saisie}
-  #plq .plMods{grid-area:mods;align-self:center}#plq .plBas{grid-area:bas;align-self:end}
+  #plq .plMods{grid-area:mods;align-self:center;max-height:calc(100vh - 40px)}#plq .plBas{grid-area:bas;align-self:end}
   #plq .plTete b,#prof .pfTete b{font-size:var(--f4)}
   #prof .pfIn{max-width:900px;height:100%;min-height:0;display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.45fr);grid-template-rows:auto 1fr auto;
     grid-template-areas:"tete stats" "plaque stats" "bas stats";column-gap:22px;row-gap:12px}

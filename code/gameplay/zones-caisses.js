@@ -15,8 +15,8 @@ function campCourbure(){ // la courbure LATÉRALE de la piste en chaque point (1
 }
 function portailVisible(v){for(const o of [portalMesh,PORTAL.noy,PORTAL.halo])if(o)o.visible=v;if(PCUBE.on){PCUBE.grp.visible=v;PCUBE.halo.visible=v;}if(PORTAL.lum)PORTAL.lum.intensity=v?(PCUBE.on?1.1:1.6):0;}
 // ============ L'ORAGE : l'éclair RÉVÈLE, le tonnerre suit ============
-const ECL=(function(){
-  const N=34,pos=new Float32Array(N*12),col=new Float32Array(N*12),uv=new Float32Array(N*8),idx=[];
+function eclFab(N){ // (2026-10-21) UN jeu d'éclairs : une mesh de rubans additifs (N segments × 2 : halo violet + coeur blanc-bleu)
+  const pos=new Float32Array(N*12),col=new Float32Array(N*12),uv=new Float32Array(N*8),idx=[];
   for(let i=0;i<N;i++){const o=i*4;idx.push(o,o+1,o+2,o+2,o+1,o+3);uv.set([0,0,1,0,0,1,1,1],i*8);}
   for(let i=0;i<N*4;i++)pos[i*3+1]=-99999;
   const g=new THREE.BufferGeometry();
@@ -24,49 +24,127 @@ const ECL=(function(){
   const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:TRAIL_TEX,vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.DoubleSide}));
   m.frustumCulled=false;m.renderOrder=2;scene.add(m);
   const P=[];for(let i=0;i<N+2;i++)P.push(new THREE.Vector3());
-  return {m:m,pos:pos,col:col,N:N,P:P,seg:[],t:4,k:0,vie:0,tonT:-1,ton:0,dernier:false,viv:true};
-})();
-function eclVide(){ECL.vie=0;ECL.k=0;ECL.seg.length=0;ECL.tonT=-1;ECL.viv=true;eclEcrit();CAMP_FLASH=0;CAMP_FOG=0;
+  return {m:m,pos:pos,col:col,N:N,P:P,seg:[],t:4,k:0,vie:0,dur:.34,tonT:-1,ton:0,dernier:false,viv:true};
+}
+const ECL=eclFab(170),ECL2=eclFab(240); // ECL : le COUP (du ciel au sol) · ECL2 : l'éclair DANS les nuages
+function eclVide(){ECL.vie=0;ECL.k=0;ECL.seg.length=0;ECL.tonT=-1;ECL.viv=true;FIL.act.length=0;FIL.lit=false;for(let i9=0;i9<12;i9++)NBOLT.uBolt.value[i9].w=0;eclEcrit(ECL);eclEcrit(ECL2);CAMP_FLASH=0;CAMP_FOG=0;
   if(acesPass)acesPass.uniforms.uExposure.value=POST_EXPO;if(scene.fog){scene.fog.near=FOG_N;scene.fog.far=FOG_F;}} // (2026-09-29, audit GAMEPLAY) l'exposition et la brume ne sont réécrites qu'en course : sans ça, l'écran de fin gardait le flash (×1,8) ou la brume du banc
+function eclFrac(P,q0,ax,ay,az,bx,by,bz,lv,disp){ // remplit P[q0 …] de 2^lv + 1 points de a à b par déplacement des milieux (brisé à toutes les échelles) ; rend leur nombre
+  const n=1<<lv;P[q0].set(ax,ay,az);P[q0+n].set(bx,by,bz);
+  for(let step=n;step>1;step>>=1){const half=step>>1,d=disp*(step/n);for(let i=half;i<n;i+=step){const A=P[q0+i-half],B=P[q0+i+half];P[q0+i].set((A.x+B.x)/2+(Math.random()-.5)*d,(A.y+B.y)/2+(Math.random()-.5)*d*.45,(A.z+B.z)/2+(Math.random()-.5)*d);}}
+  return n+1;}
 function eclFrappe(){
   const fin=s>L-1700&&!ECL.dernier;
   if(fin){ECL.dernier=true;frameAt(Math.max(0,L-60),GF);const l=Math.hypot(GF.t.x,GF.t.z)||1;CV1.set(PORTAL.c.x+GF.t.z/l*150,PORTAL.c.y-140,PORTAL.c.z-GF.t.x/l*150);} // le DERNIER éclair tombe à côté du portail
+  else if(Math.random()<.3){const sT=Math.min(L-10,s+300+Math.random()*260);frameAt(sT,GF);const l=Math.hypot(GF.t.x,GF.t.z)||1,d=(Math.random()-.5)*ROAD_HALF*1.2; // (2026-10-21, Léo : « parfois ça frappe la route ») le coup tombe SUR le ruban : gerbe d'étincelles bleues, visuel seulement
+    CV1.set(GF.p.x+GF.t.z/l*d,GF.p.y+1,GF.p.z-GF.t.x/l*d);ECL.sol=true;}
   else{const sT=Math.min(L-10,s+380+Math.random()*520);frameAt(sT,GF);const l=Math.hypot(GF.t.x,GF.t.z)||1,d=(Math.random()<.5?-1:1)*(ROAD_HALF+90+Math.random()*420);
     CV1.set(GF.p.x+GF.t.z/l*d,GF.p.y-150,GF.p.z-GF.t.x/l*d);}
-  // le tronc : 16 segments du ciel jusque sous la route, brisés ; deux branches
-  const P=ECL.P,H=640,nT=16;ECL.seg.length=0;let q=0;
-  P[0].set(CV1.x+(Math.random()-.5)*60,CV1.y+H,CV1.z+(Math.random()-.5)*60);
-  for(let k=1;k<=nT;k++){const u=k/nT;P[k].set(P[0].x+(CV1.x-P[0].x)*u+(Math.random()-.5)*46,P[0].y-H*u,P[0].z+(CV1.z-P[0].z)*u+(Math.random()-.5)*46);ECL.seg.push(k-1,k,9);}
-  q=nT+1;
-  for(const [from,len] of [[5,6],[10,5]]){let prev=from;const ang=Math.random()*6.283;
-    for(let k=1;k<=len&&q<P.length;k++){P[q].set(P[prev].x+Math.cos(ang)*28*k/len*3+(Math.random()-.5)*22,P[prev].y-34,P[prev].z+Math.sin(ang)*28*k/len*3+(Math.random()-.5)*22);
-      ECL.seg.push(prev,q,4.2);prev=q;q++;}}
-  ECL.vie=.34;ECL.k=1;
+  // (2026-10-21, « ta foudre n'est pas encore assez belle ») LE COUP EN ARBRE : un tronc FRACTAL (32 segments, déplacement par milieux : brisé à toutes les échelles, jamais droit), quatre branches qui
+  // plongent en s'écartant (8 segments chacune) dont deux se re-divisent — un cœur blanc fin dans un halo violet large (voir eclEcrit)
+  const P=ECL.P,H=720;ECL.seg.length=0;let q=0;
+  const tx=CV1.x+(Math.random()-.5)*90,tz=CV1.z+(Math.random()-.5)*90;
+  const nT=eclFrac(P,0,tx,CV1.y+H,tz,CV1.x,CV1.y,CV1.z,5,170);q=nT;
+  for(let k=0;k<nT-1;k++)ECL.seg.push(k,k+1,5.4);
+  for(let b=0;b<4&&q<P.length-24;b++){const k=4+((Math.random()*22)|0),a9=Math.random()*6.283,o=P[k],d9=170+Math.random()*130;
+    const nb=eclFrac(P,q,o.x,o.y,o.z,o.x+Math.cos(a9)*d9,o.y-120-Math.random()*190,o.z+Math.sin(a9)*d9,3,60);
+    for(let i=0;i<nb-1;i++)ECL.seg.push(q+i,q+i+1,Math.max(.9,2.6-i*.18));
+    if(b<2&&q+nb<P.length-8){const m9=q+3,om=P[m9],nb2=eclFrac(P,q+nb,om.x,om.y,om.z,om.x+Math.cos(a9+1.1)*90,om.y-70-Math.random()*70,om.z+Math.sin(a9+1.1)*90,2,28);
+      for(let i=0;i<nb2-1;i++)ECL.seg.push(q+nb+i,q+nb+i+1,1.1);q+=nb2;}
+    q+=nb;}
+  ECL.luM=[P[(nT*.25)|0],P[(nT*.5)|0],P[(nT*.8)|0]]; // les points qui éclairent la ouate autour du coup
+  ECL.vie=ECL.dur=.34;ECL.k=1;if(ECL.sol){ECL.sol=false;try{sparkBurst(sparkBlue,CV1,34,16);sparkBurst(sparkGold,CV1,10,9);}catch(e9){}shake=Math.max(shake,.3);}
   const dd=CV2.subVectors(CV1,carGroup.position).length();
   ECL.tonT=.25+dd/1400;ECL.ton=Math.max(.25,1-dd/1400);if(SONV2)sfx('foudre.eclair',{vol:-14+14*ECL.ton}); // le tonnerre arrive après, et plus fort quand c'est près
   if(dd<700)hap(12);
 }
-function eclEcrit(){
-  const P=ECL.pos,C=ECL.col,cam=camera.position,on=ECL.vie>0;let n=0;
-  if(on){const fl=ECL.vie>.2?1:.2+.8*(ECL.vie/.2); /* (2026-10-14, WCAG 2.3.1) fondu continu : l'alternance à 14 Hz faisait 3 flashs en 0,2 s */ // il claque, puis vacille
-    for(let j=0;j<ECL.seg.length&&n<ECL.N;j+=3,n++){const a=ECL.P[ECL.seg[j]],b=ECL.P[ECL.seg[j+1]],w=ECL.seg[j+2],o=n*12;
-      CV3.subVectors(b,a);CV4.subVectors(cam,a);CV4.crossVectors(CV3,CV4);const l=CV4.length();if(l>1e-6)CV4.multiplyScalar(w/l);
-      P[o]=a.x-CV4.x;P[o+1]=a.y-CV4.y;P[o+2]=a.z-CV4.z;P[o+3]=a.x+CV4.x;P[o+4]=a.y+CV4.y;P[o+5]=a.z+CV4.z;
-      P[o+6]=b.x-CV4.x;P[o+7]=b.y-CV4.y;P[o+8]=b.z-CV4.z;P[o+9]=b.x+CV4.x;P[o+10]=b.y+CV4.y;P[o+11]=b.z+CV4.z;
-      const f=fl*(w>6?1.5:1.05);for(let k=0;k<4;k++){C[o+k*3]=.95*f;C[o+k*3+1]=.97*f;C[o+k*3+2]=1.18*f;}}} // (2026-10-14, neon-residuel) l'éclair : blanc-bleu (la charte), plus lilas
-  for(let i=n;i<ECL.N;i++){const o=i*12;if(P[o+1]===-99999)continue;for(let k=0;k<4;k++){P[o+k*3+1]=-99999;C[o+k*3]=C[o+k*3+1]=C[o+k*3+2]=0;}}
-  if(on||ECL.viv){const at=ECL.m.geometry.attributes;at.position.needsUpdate=true;at.color.needsUpdate=true;}
-  ECL.viv=on;
+/* ============ LES FILS D'ÉLECTRICITÉ DANS LES NUAGES (2026-10-21, Léo : « il faudrait des petits fils d'électricité qui passent dans le nuage et qui éclairent un peu autour ; c'est pas tout le nuage qui flashe, c'est en fonction de où la lumière va ») ============
+   Sur la map ORAGE (en course, et au menu quand ce ciel est choisi) : jusqu'à 3 FILS à la fois, chacun une ligne fine et brisée (fractale, 16 segments + 2 petites branches) qui traverse UN gros nuage de bout en bout
+   et vit 0,55-1,05 s (montée rapide, longue traîne douce, un léger frémissement) ; ils posent chacun TROIS LUMIÈRES de monde (NBOLT) le long d'eux : la ouate s'éclaire AUTOUR (violet, blanc au plus près),
+   le reste du nuage reste sombre. Largeur : jamais sous 0,22 % de la distance (le fil se lit de loin). */
+const FIL={act:[],t:.5,max:2,lit:false};
+function filSources(){ // les nuages où un fil peut naître : en course, ceux du ciel de coton ; au menu, les cumulus du titre
+  const out=[],cam=camera.position;
+  if(started&&!gameOver&&COTON.n>0&&COTON.I){const I=COTON.I;
+    for(let j=0;j<COTON.n;j++){const o=j*COTON_ST,r=I[o+3];if(r<60)continue;const S=COTON.S[I[o+5]],dx=I[o]-cam.x,dz=I[o+2]-cam.z,d=Math.sqrt(dx*dx+dz*dz);if(d<160||d>1900)continue;
+      out.push({x:I[o],y:I[o+1]+S.base*r*I[o+9]+I[o+7]*.5,z:I[o+2],rx:r*I[o+8]*.8,ry:Math.max(20,(S.top-S.base)*r*I[o+9]*.45),d:d});}}
+  else if(typeof CHUTE!=='undefined'&&CHUTE.nu){for(const c of CHUTE.nu){const m=c.m;if(!m.visible||c.r<50)continue;const dx=m.position.x-cam.x,dy=m.position.y-cam.y,dz=m.position.z-cam.z,d=Math.sqrt(dx*dx+dy*dy+dz*dz);if(d<100||d>9000)continue;
+    out.push({x:m.position.x,y:m.position.y,z:m.position.z,rx:c.r*.75,ry:c.r*.35,d:d});}}
+  return out;}
+function filVu(q){CV3.set(q.x,q.y,q.z).project(camera);return CV3.z<1&&Math.abs(CV3.x)<1.15&&Math.abs(CV3.y)<1.15;} // le centre du nuage est (à peu près) dans l'image
+function filNeuf(){
+  let S=filSources();if(!S.length)return;{const V=S.filter(filVu);if(V.length)S=V;} // (2026-10-21, « jvois pas ») un fil naît dans un nuage QU'ON VOIT — pas dans un nuage derrière soi ou hors champ
+  /* (« un nuage est allumé presque constamment en violet ») le choix favorisait toujours le plus gros nuage proche : c'était TOUJOURS le même. Désormais : au hasard parmi les nuages visibles, jamais l'un des 4 derniers. */
+  const cle=function(q){return Math.round(q.x/40)+','+Math.round(q.y/40)+','+Math.round(q.z/40);};FIL.rec=FIL.rec||[];
+  {const L9=S.filter(function(q){return FIL.rec.indexOf(cle(q))<0;});if(L9.length)S=L9;}
+  const c0=S[(Math.random()*S.length)|0];let c=c0;FIL.rec.push(cle(c0));if(FIL.rec.length>4)FIL.rec.shift();
+  /* (2026-10-21, Léo : « les traits électriques doivent embrasser les courbes, pas qu'une ligne et trajectoire ; ils se promènent — regarde les images sur Internet ; là t'en as trop mis ») VUS SUR PHOTOS (éclairs dans
+     et entre les nuages) : UN canal fin qui SERPENTE en longues courbes douces, de fines dentelures, deux-trois branches qui s'effilent, parfois une boucle — et un ou deux à la fois. Ici : une MARCHE À CAP PERSISTANT sur la face du nuage
+     (le cap tourne doucement, ondule à basse fréquence, et est rappelé vers le centre quand il approche du bord : le fil épouse le bombé du nuage au lieu de le traverser en droite), 26 pas ; deux branches courtes qui s'amincissent. */
+  const R=c.rx*.88,seg=[],NP9=26,ps=Math.random()*6.283;
+  const cam9=camera.position;CV4.set(cam9.x-c.x,cam9.y-c.y,cam9.z-c.z).normalize(); // vers la caméra (le nuage est OPAQUE : le fil court sur la face qu'on voit)
+  const vx=CV4.x,vy=CV4.y,vz=CV4.z;let rx9=vz,ry9=0,rz9=-vx;{const l9=Math.hypot(rx9,rz9);if(l9<1e-4){rx9=1;rz9=0;}else{rx9/=l9;rz9/=l9;}}
+  const uxx=vy*rz9-vz*ry9,uyy=vz*rx9-vx*rz9,uzz=vx*ry9-vy*rx9; // le « haut » du plan du nuage (v × droite)
+  const cx9=c.x+vx*c.rx*.9,cy9=c.y+vy*c.rx*.9,cz9=c.z+vz*c.rx*.9;
+  const P=[];for(let i=0;i<44;i++)P.push(new THREE.Vector3());const TH=[];
+  const pose=function(i,u,w,d){P[i].set(cx9+rx9*u+uxx*w+vx*d,cy9+ry9*u+uyy*w+vy*d,cz9+rz9*u+uzz*w+vz*d);};
+  const wrap=function(a){while(a>3.1416)a-=6.2832;while(a<-3.1416)a+=6.2832;return a;};
+  const a0=Math.random()*6.283;let u=Math.cos(a0)*R*.78,w=Math.sin(a0)*R*.55,th=a0+3.1416+(Math.random()-.5)*1.1;pose(0,u,w,0);TH[0]=th;
+  for(let i=1;i<=NP9;i++){let turn=(Math.random()-.5)*.42+.3*Math.sin(i*.42+ps); // des dentelures fines + une ondulation lente
+    const dist=Math.hypot(u,w);if(dist>R*.75){turn+=wrap(Math.atan2(-w,-u)-th)*.3;} // près du bord : rappelé vers le centre, il épouse le contour
+    th+=turn;const step=R*.072*(.8+Math.random()*.4);u+=Math.cos(th)*step;w+=Math.sin(th)*step;pose(i,u,w,Math.sin(i*.3+ps)*R*.05);TH[i]=th;
+    seg.push(i-1,i,1.0);}
+  let q=NP9+1;
+  for(const k of [5+((Math.random()*4)|0),14+((Math.random()*5)|0)]){ // deux branches courtes qui s'effilent
+    const o=P[k];let bth=TH[k]+(Math.random()<.5?-1:1)*(.55+Math.random()*.5),bu=0,bw=0,prev=k;
+    // la branche repart du point k, dans le plan : on reprend (u,w) du point par projection
+    const dx=o.x-cx9,dy=o.y-cy9,dz=o.z-cz9;bu=dx*rx9+dy*ry9+dz*rz9;bw=dx*uxx+dy*uyy+dz*uzz;
+    for(let i=1;i<=7&&q<P.length;i++,q++){bth+=(Math.random()-.5)*.5;const st=R*.06*(1-i*.09);bu+=Math.cos(bth)*st;bw+=Math.sin(bth)*st;pose(q,bu,bw,0);seg.push(prev,q,Math.max(.32,.62-i*.05));prev=q;}}
+  FIL.act.push({P:P,seg:seg,age:0,dur:.9+Math.random()*.6,seed:Math.random()*6.28,lu:[P[5],P[12],P[20]]});}
+window.dbgFil=function(){const S=filSources(),U=NBOLT.uBolt.value;const f0=FIL.act[0],nd=f0?[0,8,16].map(function(k){CV3.copy(f0.P[k]).project(camera);return [+CV3.x.toFixed(2),+CV3.y.toFixed(2),+CV3.z.toFixed(3)];}):null,dist=f0?+f0.P[8].distanceTo(camera.position).toFixed(0):null,w0=f0?f0.seg[2]:null;return {ndc:nd,dist:dist,fils:FIL.act.length,sources:S.length,lit:FIL.lit,lum:U.map(function(v){return +v.w.toFixed(2);}),quads:ECL2.m.geometry.attributes.position.array.reduce(function(a,v,i){return a+((i%3===1&&v>-99999)?1:0);},0)/4,visible:ECL2.m.visible,t:FIL.t};}; // (banc)
+function filTick(dt,on){
+  const U=NBOLT.uBolt.value;
+  if(!on){if(FIL.lit||FIL.act.length){FIL.act.length=0;FIL.lit=false;for(let i=0;i<9;i++)U[i].w=0;eclEcrit(ECL2);}return;}
+  FIL.t-=dt;if(FIL.t<=0){if(FIL.act.length<FIL.max)filNeuf();FIL.t=1.1+Math.random()*2.2; /* peu : un ou deux à la fois (les vraies photos) */}
+  const P9=ECL2.pos,C9=ECL2.col,cam=camera.position;let n=0;
+  for(let i=FIL.act.length-1;i>=0;i--){const f=FIL.act[i];f.age+=dt;if(f.age>=f.dur){FIL.act.splice(i,1);}}
+  for(let i=0;i<3;i++){const f=FIL.act[i];if(!f){for(let k=0;k<3;k++)U[i*3+k].w=0;continue;}
+    const u=f.age/f.dur,env=(u<.14?u/.14:Math.pow(1-(u-.14)/.86,1.5))*(.88+.12*Math.sin(f.age*26+f.seed)); // monte vite, longue traîne, frémit (faiblement)
+    for(let k=0;k<3;k++){const l=f.lu[k];U[i*3+k].set(l.x,l.y,l.z,env*1.15);}
+    for(let j=0;j<f.seg.length&&n+1<ECL2.N;j+=3){const a=f.P[f.seg[j]],b=f.P[f.seg[j+1]],w0=f.seg[j+2],dc=Math.sqrt((a.x-cam.x)*(a.x-cam.x)+(a.y-cam.y)*(a.y-cam.y)+(a.z-cam.z)*(a.z-cam.z));
+      for(let h=0;h<2;h++,n++){const w=Math.max(w0,dc*.0034)*(h?1:4.6),o=n*12;
+        CV3.subVectors(b,a);CV4.subVectors(cam,a);CV4.crossVectors(CV3,CV4);const l=CV4.length();if(l>1e-6)CV4.multiplyScalar(w/l);
+        P9[o]=a.x-CV4.x;P9[o+1]=a.y-CV4.y;P9[o+2]=a.z-CV4.z;P9[o+3]=a.x+CV4.x;P9[o+4]=a.y+CV4.y;P9[o+5]=a.z+CV4.z;
+        P9[o+6]=b.x-CV4.x;P9[o+7]=b.y-CV4.y;P9[o+8]=b.z-CV4.z;P9[o+9]=b.x+CV4.x;P9[o+10]=b.y+CV4.y;P9[o+11]=b.z+CV4.z;
+        const f9=env*(h?1.15:.9),r9=h?.95*f9:.36*f9,g9=h?.97*f9:.22*f9,b9=h?1.2*f9:.7*f9;for(let k=0;k<4;k++){C9[o+k*3]=r9;C9[o+k*3+1]=g9;C9[o+k*3+2]=b9;}}}}
+  for(let i=n;i<ECL2.N;i++){const o=i*12;if(P9[o+1]===-99999)continue;for(let k=0;k<4;k++){P9[o+k*3+1]=-99999;C9[o+k*3]=C9[o+k*3+1]=C9[o+k*3+2]=0;}}
+  const at=ECL2.m.geometry.attributes;at.position.needsUpdate=true;at.color.needsUpdate=true;FIL.lit=true;ECL2.viv=true;}
+function eclEnv(E){const u=1-E.vie/E.dur;return u<.1?1:u<.2?1-.45*((u-.1)/.1):u<.3?.55+.45*((u-.2)/.1):Math.max(0,1-(u-.3)/.7);} // le coup : un fondu à deux lobes (jamais une alternance)
+function eclEcrit(E){ // (2026-10-21) les rubans d'un jeu d'éclairs : halo violet (large, doux) + coeur blanc-bleu ; l'enveloppe est UN fondu à deux lobes (le coup, un creux à 55 %, le retour) — jamais une alternance
+  E=E||ECL;const P=E.pos,C=E.col,cam=camera.position,on=E.vie>0;let n=0;
+  if(on){const fl=eclEnv(E);
+    for(let j=0;j<E.seg.length&&n+1<E.N;j+=3){const a=E.P[E.seg[j]],b=E.P[E.seg[j+1]],w0=E.seg[j+2];
+      for(let h=0;h<2;h++,n++){const dcm=Math.sqrt((a.x-cam.x)*(a.x-cam.x)+(a.y-cam.y)*(a.y-cam.y)+(a.z-cam.z)*(a.z-cam.z)),w1=Math.max(w0,dcm*.0016),w=h?w1:w1*5.2,o=n*12;
+        CV3.subVectors(b,a);CV4.subVectors(cam,a);CV4.crossVectors(CV3,CV4);const l=CV4.length();if(l>1e-6)CV4.multiplyScalar(w/l);
+        P[o]=a.x-CV4.x;P[o+1]=a.y-CV4.y;P[o+2]=a.z-CV4.z;P[o+3]=a.x+CV4.x;P[o+4]=a.y+CV4.y;P[o+5]=a.z+CV4.z;
+        P[o+6]=b.x-CV4.x;P[o+7]=b.y-CV4.y;P[o+8]=b.z-CV4.z;P[o+9]=b.x+CV4.x;P[o+10]=b.y+CV4.y;P[o+11]=b.z+CV4.z;
+        const f=fl*(w0>6?1.4:1),r9=h?.95*f:.34*f,g9=h?.97*f:.2*f,b9=h?1.18*f:.62*f;for(let k=0;k<4;k++){C[o+k*3]=r9;C[o+k*3+1]=g9;C[o+k*3+2]=b9;}}}}
+  for(let i=n;i<E.N;i++){const o=i*12;if(P[o+1]===-99999)continue;for(let k=0;k<4;k++){P[o+k*3+1]=-99999;C[o+k*3]=C[o+k*3+1]=C[o+k*3+2]=0;}}
+  if(on||E.viv){const at=E.m.geometry.attributes;at.position.needsUpdate=true;at.color.needsUpdate=true;}
+  E.viv=on;
 }
+window.dbgEclair=function(k){ // (banc, 2026-10-21) déclenche un éclair tout de suite : 'nuage' (dans un nuage) · 'coup' (du ciel au sol) · 'route' (SUR la route)
+  if(k==='nuage')filNeuf();else if(k==='route'){const r=Math.random;Math.random=function(){return .1;};try{eclFrappe();}finally{Math.random=r;}}else eclFrappe();return {coup:ECL.vie,fils:FIL.act.length};};
 function orageTick(dt){
   ECL.t-=dt;if(ECL.t<=0){eclFrappe();ECL.t=3.4+Math.random()*4;}
   if(ECL.vie>0)ECL.vie-=dt;
   ECL.k=Math.max(0,ECL.k-dt*1.9);
   const e=ECL.k*ECL.k;
-  CAMP_FLASH=.8*e; /* (2026-10-14, chasse aux bugs · WCAG 2.3.1) plus de vacillation à 11 Hz pendant la vie de l'éclair (plage des crises d'épilepsie, motif de refus Apple) : UN flash qui s'éteint en douceur */ // le ciel s'allume (et vacille avec l'éclair)
-  CAMP_FOG=1900*e;                                            // …et le brouillard recule : la route, le portail se montrent
-  eclEcrit();
-  if(ECL.tonT>=0){ECL.tonT-=dt;if(ECL.tonT<0){try{if(SONV2)sfx('tonnerre',{vol:-10+10*ECL.ton});else{subBoom(.14+.16*ECL.ton);noiseBurst(1.5,.07+.1*ECL.ton,150);noiseBurst(.35,.05*ECL.ton,900);}}catch(e){}if(ECL.ton>.7)shake=Math.max(shake,.25);}}
+  CAMP_FLASH=.8*e; /* (2026-10-14, WCAG 2.3.1) UN flash qui s'éteint en douceur par éclair ; (2026-10-21) les fils des nuages ne flashent plus l'écran : ils éclairent LOCALEMENT (filTick) */
+  CAMP_FOG=1900*e;
+  {const U=NBOLT.uBolt.value,lu=ECL.luM,en=ECL.vie>0&&lu?eclEnv(ECL):0;for(let k=0;k<3;k++){if(lu&&en>0)U[9+k].set(lu[k].x,lu[k].y,lu[k].z,en*1.4);else U[9+k].w=0;}} // le coup éclaire les nuages autour de son tronc
+  eclEcrit(ECL);
+  if(ECL.tonT>=0){ECL.tonT-=dt;if(ECL.tonT<0){try{if(SONV2)sfx('tonnerre',{vol:-10+10*ECL.ton});else{subBoom(.14+.16*ECL.ton);noiseBurst(1.5,.07+.1*ECL.ton,150);noiseBurst(.35,.05*ECL.ton,900);}}catch(e9){}if(ECL.ton>.7)shake=Math.max(shake,.25);}}
 }
 // ============ LA CAISSE-NUAGE (la caisse du garage, et l'ÉVÉNEMENT RARE) ============
 // La même ouate que le ciel (mergeSpheres : ventre lavande, sommet blanc, creux ombrés ; la matière des nuages et sa lisière d'argent),

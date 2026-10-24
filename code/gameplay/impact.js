@@ -216,7 +216,7 @@ function impFin(){ // le ménage (clearBoom, ou neuf secondes après) — rien n
 function impNegFin(){if(IMP.neg){IMP.neg=false;renderer.domElement.style.filter='';}} // l'étalonnage `body>canvas` reprend la main
 /* (2026-10-15 soir) L'IMPACT EN MINIATURE — Sacha : « fais le point 1 : étoile + éclats + étincelles au premier contact, sans boule ni
    cratère ». Ce qu'on percute SANS mourir — le coup d'épaule contre la paroi des couloirs du canyon (les Étroits, le tunnel, la mine) et
-   les façades de Paris : tout ce qui passe par parisMur sous le seuil mortel — reprend L'IMPACT en petit, au PREMIER contact seulement
+   les façades de Paris : tout ce qui passe par murCote sous le seuil mortel — reprend L'IMPACT en petit, au PREMIER contact seulement
    (ensuite on frotte : les étincelles d'avant, rien de plus) : l'ÉTOILE de choc (la même texture en pixels) qui pousse au flanc puis
    éclate, quelques ÉCLATS de roche calcinée (la même forme, les mêmes matières, un sur trois en braise) qui sautent de la paroi — la moitié
    y retape et rebondit —, une GERBE d'étincelles. Plus le choc est franc (angle, vitesse), plus c'est gros. NI cratère, NI coup (la caisse
@@ -235,7 +235,7 @@ for(let i=0;i<10;i++){const m=new THREE.Mesh(IMP_ECL.geo,IMPM.m[i%3===0?1:0]),c=
   m.frustumCulled=false;m.position.set(0,-1e5,0);scene.add(m);
   m.onAfterRender=function(){if(!c.on)m.visible=false;m.onAfterRender=function(){};};
   IMPM.L.push(c);}
-function impMini(out,a,kmh,into){ // parisMur, sous le seuil mortel, à chaque image de contact : l'étoile ne part qu'au PREMIER (≥ 0,35 s de jeu sans toucher)
+function impMini(out,a,kmh,into){ // murCote, sous le seuil mortel, à chaque image de contact : l'étoile ne part qu'au PREMIER (≥ 0,35 s de jeu sans toucher)
   const neuf=IMPM.clk-IMPM.tC>IMPM.K.dt;IMPM.tC=IMPM.clk;
   if(!neuf||!(into>IMPM.K.into)||mode!=='drive')return false;
   const sp=CARS[level]||CARS[0],N=IMPM.N.copy(F.b).multiplyScalar(-out).normalize(),fw=IMPM.fw.copy(F.t).multiplyScalar(driveDir),up=IMPM.up.copy(F.n),V=IMPM.v.copy(PT_U.uVc.value);
@@ -284,7 +284,7 @@ window.dbgImpactMini=function(k,a){
     eclatsVus:IMPM.L.filter(function(c){return c.on&&c.m.visible;}).length,seuil:IMPM.K.into,programmes:renderer.info.programs?renderer.info.programs.length:null,
     couloirs:CY.on?{etroits:CY.cou,tunnel:CY.tun?[CY.tun[0]]:null,mine:CY.mineT?CY.mine:null}:null,s:+s.toFixed(1),lat:+lat.toFixed(2),demi:ROAD_HALF,mode:mode};};
 function impTestIci(){ // l'obstacle de la carte en cours (le même ordre que la boucle de vol)
-  if(PARIS.sol)return parisHeurt;if(FORET.root)return foretHeurt;if(VOLCAN.root)return volcanHeurt;if(GROTTE.root)return grotteHeurt;if(BANQ.root)return banqDans;
+  if(FORET.root)return foretHeurt;if(GROTTE.root)return grotteHeurt;if(BANQ.root)return banqDans;
   if(JADE.col)return jadeHeurt;if(CY.on)return canyonHeurt;if(DN.on)return dunesHeurt;if(CITY.col)return villeHeurt;return null;}
 /* console : dbgImpact(d,v,el) → la caisse lancée EN VOL à v m/s (60) sur l'obstacle le plus proche (cherché de 6 à 400 m, élévation el en
    radians, 0 = à l'horizontale ; 'sol' = droit dessous), d m avant (22) — la boucle fait le reste, exactement comme en jeu. */

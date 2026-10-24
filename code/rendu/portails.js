@@ -21,7 +21,7 @@ const PCUBE={on:false,S:5.2,Ri:44,Ro:54,H:20,grp:null,cub:null,mem:null,halo:nul
   inv:new THREE.Matrix3(),x:new THREE.Vector3(),y:new THREE.Vector3(),z:new THREE.Vector3(),M:new THREE.Matrix4(),asp:0};
 /* LES COULEURS DE L'AUTRE CÔTÉ : [cube A, cube B, la lumière de la fenêtre] — la ville a les siennes par teinte */
 const PCUBE_PAL={nuages:[0xff5ec8,0x5ee6ff,0xffd0f4],orage:[0x8a7bff,0x5ee6ff,0xd8d0ff],jade:[0x2fd39a,0xffd75e,0xb8ffe0],foret:[0x5fd35a,0xffb347,0xd8ff9a],
-  banquise:[0x8fe8ff,0xffffff,0xd8f6ff],volcan:[0xff5a1f,0xffcc3d,0xff9a4a],crypto:[0xffd75e,0xe8eef8,0xfff1b0],espace:[0x8a5bff,0xe8e0ff,0xc8b0ff],
+  banquise:[0x8fe8ff,0xffffff,0xd8f6ff],crypto:[0xffd75e,0xe8eef8,0xfff1b0],espace:[0x8a5bff,0xe8e0ff,0xc8b0ff],
   canyon:[0xff9a3d,0xd8442a,0xffd09a],grotte:[0x3ef0ff,0xa45bff,0xc8fbff],paris:[0xffd75e,0x5e8bff,0xfff0c0],ville:[0xb04cff,0xff3ec8,0xf0b0ff],
   'ville-violet':[0xb04cff,0xff3ec8,0xf0b0ff],'ville-vert':[0x3dff9a,0x00d2ff,0xb8ffe0],'ville-jaune':[0xffd23d,0xff8a1c,0xfff0b0],'ville-bleu':[0x3d8bff,0x5ee6ff,0xc0e0ff],vitree:[0x2f8cff,0xffffff,0xcfe8ff],dunes:[0xffb43d,0x1fd6ff,0xffe2a0]}; // (2026-10-18) la VILLE VITRÉE : verre bleu, blanc, glace
 /* LES CARTES POSTALES LIVRÉES (assets/portail/) — la liste est réécrite par le banc qui les tire (outils : carte-postale.py) */
@@ -206,6 +206,14 @@ const FILETMARK=[];
    virage rapide puis son filet — buildTrack les traduit en tronçons `s` (MODS) où ni plot ni huile ne sont tirés au hasard : ils
    tombaient pile au bord où le voltigeur sort, sur la crête où il décolle. Zéro tirage `rnd` : on lit ctrl.length, rien d'autre. */
 const MODMARK=[];
+/* (2026-10-20, Sacha : « refonte totale de la map Dune : des petits segments de route posés sur les dunes, on surfe de dune en dune ») LES TROUS DE LA ROUTE.
+   La piste reste UNE courbe (la caisse, la caméra, la distance, le portail la lisent comme avant) ; mais genDunes y note, comme les modules, des TROUS
+   {i0,i1} (index de points de contrôle : le bout d'un segment de route, le début du suivant). buildTrack les traduit en lignes de `pts` : `TROU[k]` = 1
+   quand le ruban n'existe PAS entre le point k et le suivant (aucun triangle : pisteTranches, pisteMaigre) ; `TROUS` = {s0,s1,a,b} (abscisses et lignes
+   de pts du vide). Une dalle absente ne reçoit rien : ni pad, ni pièce, ni atterrissage (dalleProche). null = aucune map à trous. */
+const TROUMARK=[];
+let TROUS=[],TROU=null;
+function enTrou(s9,marge){if(!TROUS.length)return false;marge=marge||0;for(const t of TROUS)if(s9>t.s0-marge&&s9<t.s1+marge)return true;return false;} // l'abscisse s est-elle au-dessus d'un vide (à `marge` m près) ?
 let FILETS=[],MODS=[]; // les filets de la piste courante, en distance le long de la piste : {sC0,sC1 (le virage), sN0,sN1 (le filet), cote (−1/+1 : le côté du vide)}
 function filetDe(s0,s1){for(const q of FILETS)if(s0>q.sC0-80&&s0<q.sC1+60&&s1>q.sN0-160&&s1<q.sN1+260)return q;return null;} // un vol parti de ce virage et posé dans son filet ?
 /* LES PLAQUES TURBO EN INSTANCES (2026-09-27, passe perf iPhone) — recensement des appels de dessin au sol : 82 pour les seules
@@ -257,7 +265,7 @@ function disposeClouds(){
   // ⚠ chaque nuage a sa PROPRE géométrie fusionnée : il FAUT la libérer, sinon chaque portail
   // laisse fuir quelques Mo de VRAM. Le matériau (CLOUD_MAT) est partagé : jamais disposé.
   sceneRetire(CLOUDS.map(function(c){return c.g;})); // (chasse aux gels) d'un seul passage
-  for(const c of CLOUDS){if(c.mesh&&c.mesh.geometry)c.mesh.geometry.dispose();const u9=c.mesh&&c.mesh.userData;if(u9&&u9.vit){for(const o9 of u9.vit){nufJette(o9);o9.geometry.dispose();}if(u9.g8)u9.g8.dispose();if(u9.gVit)u9.gVit.dispose();}} // (vitrail) ses écailles, sa peau, ses deux surfaces
+  for(const c of CLOUDS){if(c.mesh&&c.mesh.geometry)c.mesh.geometry.dispose();const u9=c.mesh&&c.mesh.userData;if(u9&&u9.peau)u9.peau.dispose(); /* (2026-10-22, DEBUGGING : la PEAU d'un nuage seul (v773, un enfant du maillage hors de u9.vit) n'était jamais libérée — MESURÉ : 12 à 16 géométries de plus au compteur à chaque sortie de la mer de nuages) */if(u9&&u9.vit){for(const o9 of u9.vit){nufJette(o9);o9.geometry.dispose();}if(u9.g8)u9.g8.dispose();if(u9.gVit)u9.gVit.dispose();}} // (vitrail) ses écailles, sa peau, ses deux surfaces
   CLOUDS=[];cloudIn=0;
 }
 let FLOU_OK=true; // (2026-09-26) le flou radial du boost — le palier BAS le coupe
