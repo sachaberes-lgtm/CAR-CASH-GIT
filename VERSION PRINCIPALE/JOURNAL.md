@@ -3,6 +3,12 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES TUILES EN VERRE DU MENU CIEL, GARAGE BLEU / BUY ROUGE (2026-10-24 soir, Léo : « j'aime bien tuiles arrondies » · « le bleu sur garage et le rouge sur BUY » · « inverse le cyan et le rose magenta » · « mets ces bulles-là »)
+- **POURQUOI** : la copine de Léo trouvait les trois boutons penchés (parallélogramme) « trop Claude ». Trois familles de formes essayées (A tuiles arrondies, B formes par fonction : arche · panier · pilule, C lentilles ovales) ; Léo garde A. Le verre-loupe de v858, retiré par Sacha en v863, revient ici sous la forme de TUILES ARRONDIES (20 px, plus de pente) : bloc `<style id="tuilesVerre">` dans `code/css/boutons-flottants.css`, après celui de la lueur de la boutique.
+- **COULEURS** : GARAGE bleu #2f80ff, BUY rouge #ff3347, SETTINGS or (inchangé) — via `--nc` sur `.mHubPorte` / `.mOffres`, les icônes suivent. Le badge NEW reste rose.
+- **LA BANDELETTE sous CASH CAR** : cyan · magenta · or (avant : rose · cyan · or, cyan et rose échangés). Elle ne lit PAS `--livree` : son dégradé est dans `#mHome .mTitle::after`, repris dans le même bloc.
+- Vérifié (Chrome, portrait 390×844 et paysage 844×390, vrais touchers) : GARAGE, BUY et SETTINGS s'ouvrent, aucune erreur JS. Le flou de fond (`backdrop-filter`, 5 px) est à mesurer sur un vrai iPhone (la 3D tourne derrière). Pas de paramètre d'URL pour revenir aux anciens boutons : retirer le bloc `tuilesVerre`.
+
 ## LA PASSE PERF DU 24/10, 3e TOUR — LA GROTTE ET LES DUNES BÂTIES D'AVANCE SANS À-COUPS (2026-10-24, session PERF — Léo : « observe tous les changements qui ont été faits depuis et relance une petite séance de révision… une meilleure optimisation, le jeu doit tourner sans bugger sur iPhone ou Android, absolument pas que le jeu devienne de moindre qualité ») — v869
 - **PORTÉ SUR LE MAIN MODULAIRE** : ce travail avait été fait le 19/10 sur l'ancien `index.html` d'un seul tenant et n'avait jamais été poussé ; le main a depuis
   reçu la passe PERF du 24/10 (canyon d'avance, ciel des reflets, routes en tranches, REJOUER sans gel) et le découpage en `code/` : les changements sont refaits
