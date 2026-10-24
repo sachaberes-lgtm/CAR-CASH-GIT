@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Labo moteur & nitro</title>
+<style>
+/* LE LABO MOTEUR & NITRO (2026-10-22, session SON ; Sacha : « génère-moi un générateur de son de moteur et de nitro où je peux tout régler, cool, intuitif et complet : moteur, nitro, accélération et tout »).
+   Tout ce que le moteur vivant et le nitro vivant savent régler est ici en curseurs ; on CONDUIT (pédale continue, nitro, boîte, point mort), on passe en mode STUDIO pour figer régime et charge,
+   on met une vraie musique dessous, on sauve ses presets, on copie ses réglages pour les envoyer à Claude. */
+:root{--bg:#0b0d12;--pan:#141821;--pan2:#1a1f2b;--ln:#262d3b;--tx:#e9edf5;--mu:#8793a8;--ac:#ff6a2b;--ac2:#35d0ff;--ok:#4be38a;--ko:#ff4d5e;--nit:#7a5cff}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{position:sticky;top:0;z-index:5;background:rgba(11,13,18,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--ln);padding:8px 14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+header h1{font-size:16px;margin:0 8px 0 0;letter-spacing:.06em}header h1 b{color:var(--ac)}
+main{display:grid;grid-template-columns:minmax(330px,420px) 1fr;gap:12px;padding:12px 14px 60px;max-width:1280px;margin:0 auto}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+.card{background:var(--pan);border:1px solid var(--ln);border-radius:12px;padding:12px}
+h2{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mu);margin:0 0 8px;font-weight:600}
+button,select,input[type=text],textarea{font:inherit;color:var(--tx);background:#222938;border:1px solid var(--ln);border-radius:8px;padding:7px 11px}
+button{cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}button:hover{border-color:#3d4860}
+button.on{background:var(--ac);border-color:var(--ac);color:#160a04;font-weight:700}
+button.nit.on{background:var(--nit);border-color:var(--nit);color:#fff}
+button.big{padding:20px 8px;font-size:17px;font-weight:800;letter-spacing:.08em}
+.gas{background:#2b1b12;border-color:#5d3521}.gas.held{background:var(--ac);color:#160a04}
+.nitb{background:#1d1840;border-color:#443a9a}.nitb.held{background:var(--nit);color:#fff}
+.brk{background:#2b1219;border-color:#5d2132}.brk.held{background:var(--ko);color:#fff}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.row>*{flex:0 0 auto}.grow{flex:1 1 90px!important}
+canvas{width:100%;display:block;border-radius:8px;background:#0e1118}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;align-items:center}
+.val{font-variant-numeric:tabular-nums;color:var(--ac2)}
+.pill{display:inline-block;padding:1px 8px;border-radius:99px;border:1px solid var(--ln);font-size:11px;color:var(--mu)}
+.pill.warn{border-color:var(--ko);color:var(--ko)}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}.tabs button{border-radius:8px 8px 0 0}
+.tabs button.on{background:var(--pan2);color:var(--tx);border-color:var(--ac);border-bottom-color:var(--pan2);font-weight:700}
+.tabs button[data-t=nit].on{border-color:var(--nit)}
+.pane{display:none}.pane.on{display:block}
+.grp{background:var(--pan2);border:1px solid var(--ln);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.grp h3{font-size:12px;margin:0 0 8px;color:var(--ac2);letter-spacing:.06em}
+.grp.n h3{color:#a99bff}
+.sl{display:grid;grid-template-columns:minmax(120px,190px) 1fr 58px;gap:8px;align-items:center;margin:5px 0}
+.sl label{font-size:13px}.sl label small{display:block;color:var(--mu);font-size:11px;line-height:1.2}
+.sl input[type=range]{width:100%;accent-color:var(--ac)}
+.grp.n .sl input[type=range]{accent-color:var(--nit)}
+.sl output{font-variant-numeric:tabular-nums;color:var(--ac2);text-align:right;font-size:12px}
+.hint{color:var(--mu);font-size:12px}
+kbd{background:#222938;border:1px solid var(--ln);border-bottom-width:2px;border-radius:5px;padding:0 5px;font-size:11px}
+#boot{position:fixed;inset:0;background:rgba(5,6,9,.94);display:flex;align-items:center;justify-content:center;z-index:9;text-align:center}
+#boot button{font-size:20px;padding:18px 28px;background:var(--ac);color:#160a04;border-color:var(--ac);font-weight:800}
+.meter{height:7px;background:#222938;border-radius:5px;overflow:hidden}.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--ok),var(--ac2));transition:width .05s}
+textarea{width:100%;min-height:110px;font:12px ui-monospace,Menlo,monospace}
+.lay{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.lay div{background:#10141c;border:1px solid var(--ln);border-radius:8px;padding:6px 8px}
+.lay .top{display:flex;justify-content:space-between;font-size:12px;color:var(--mu)}
+.lay button{padding:1px 6px;font-size:11px}
+</style>
+</head>
+<body>
+<div id="boot"><div><p style="max-width:460px;color:#c9d1e0">Labo moteur &amp; nitro — tout se règle en direct, à l'oreille.<br>Casque ou bonnes enceintes.</p><button id="go">▶ ALLUMER LE SON</button></div></div>
+<header>
+  <h1>LABO <b>MOTEUR</b> &amp; <span style="color:var(--nit)">NITRO</span></h1>
+  <select id="presetMot" title="Preset de moteur"></select>
+  <select id="presetNit" title="Preset de nitro"></select>
+  <button id="bUndo" title="Annuler le dernier réglage (Ctrl+Z)">↶ annuler</button>
+  <button id="bSurprise" title="Secoue les réglages rapides au hasard, autour de ce que tu as">🎲 surprends-moi</button>
+  <button id="bSave" title="Garde ce moteur + ce nitro sous un nom">💾 sauver</button>
+  <button id="bExport">📋 copier les réglages</button>
+  <span class="grow"></span>
+  <label class="hint">volume</label><input type="range" id="vol" min="-24" max="6" step=".5" value="-6" style="width:110px">
+  <button id="bPhone" title="Simule un haut-parleur de téléphone (rien sous 300 Hz)">📱 téléphone</button>
+</header>
+<main>
+  <section>
+    <div class="card" style="margin-bottom:12px">
+      <h2>Cockpit</h2>
+      <canvas id="gauge" width="800" height="300" style="height:150px"></canvas>
+      <div class="kv" style="margin:6px 0">
+        <label class="hint">état</label><div><b id="etat">ARRÊT</b> <span class="pill" id="stage">RODÉ</span> <span class="pill warn" id="lim" style="display:none">LIMITEUR</span></div>
+        <label class="hint">rapport · vitesse</label><div class="val"><span id="gearV">N</span> · <span id="spdV">0</span> km/h</div>
+      </div>
+      <div class="row" style="margin-bottom:8px">
+        <button id="bStart">🔑 Démarrer</button><button id="bStart2">🔑 raté ×1</button><button id="bStall">🛑 Caler</button><button id="bHit">💥 Choc</button>
+      </div>
+      <div class="row" style="margin-bottom:8px">
+        <button class="big gas grow" id="bGas" style="flex-grow:3">GAZ</button>
+        <button class="big nitb grow" id="bNit" style="flex-grow:3">NITRO</button>
+        <button class="big brk grow" id="bBrk">FREIN</button>
+      </div>
+      <div class="sl"><label>Accélérateur<small>pédale continue</small></label><input type="range" id="pedal" min="0" max="100" value="0"><output id="pedalV">0</output></div>
+      <div class="sl"><label>Nitro<small>gâchette continue</small></label><input type="range" id="nitS" min="0" max="100" value="0"><output id="nitSV">0</output></div>
+      <div class="row" style="margin:6px 0"><span class="hint">boîte</span><button id="bAuto" class="on">auto</button><button id="bDn">−</button><button id="bUp">+</button><button id="bN">N</button><button id="bRev" title="Garder pour des coups de gaz au point mort">point mort : gaz libres (R)</button></div>
+      <p class="hint" style="margin:6px 0 0"><kbd>Espace</kbd> gaz · <kbd>N</kbd> nitro · <kbd>↓</kbd> frein · <kbd>R</kbd> point mort · <kbd>E</kbd>/<kbd>Q</kbd> rapport · <kbd>S</kbd> démarrer · <kbd>C</kbd> caler · <kbd>X</kbd> choc. Lève le pied à haut régime : crépitements.</p>
+    </div>
+    <div class="card" style="margin-bottom:12px">
+      <h2>Studio — je fige le moteur</h2>
+      <div class="row"><button id="bStudio">mode studio : OFF</button><span class="hint">régime et charge fixés à la main (plus de boîte)</span></div>
+      <div class="sl"><label>Régime<small>tr/min</small></label><input type="range" id="stRpm" min="500" max="9500" step="10" value="3000"><output id="stRpmV"></output></div>
+      <div class="sl"><label>Charge<small>0 = lâché · 1 = pleine</small></label><input type="range" id="stLoad" min="0" max="100" value="70"><output id="stLoadV"></output></div>
+      <div class="sl"><label>Vitesse (nitro)<small>0–100 %</small></label><input type="range" id="stSpd" min="0" max="100" value="60"><output id="stSpdV"></output></div>
+      <div class="sl"><label>Santé du moteur<small>1 rodé → 0 mort</small></label><input type="range" id="health" min="0" max="100" value="100"><output id="healthV"></output></div>
+      <div class="row"><button data-h="100">rodé</button><button data-h="70">fatigué</button><button data-h="45">maltraité</button><button data-h="20">agonie</button></div>
+    </div>
+    <div class="card" style="margin-bottom:12px">
+      <h2>Musique &amp; équilibre</h2>
+      <div class="row" style="margin-bottom:6px"><select id="mus" class="grow"><option value="">(sans musique)</option></select></div>
+      <div class="sl"><label>Musique</label><input type="range" id="gMus" min="-30" max="6" step=".5" value="-6"><output id="gMusV"></output></div>
+      <div class="sl"><label>Moteur</label><input type="range" id="gEng" min="-30" max="12" step=".5" value="0"><output id="gEngV"></output></div>
+      <div class="sl"><label>Nitro</label><input type="range" id="gNit" min="-30" max="12" step=".5" value="0"><output id="gNitV"></output></div>
+      <div class="sl"><label>Creux de la musique<small>là où parle le moteur</small></label><input type="range" id="carve" min="0" max="8" step=".5" value="3.5"><output id="carveV"></output></div>
+      <div class="sl"><label>Coupe-bas moteur<small>grave laissé à la musique</small></label><input type="range" id="hpE" min="20" max="200" step="5" value="55"><output id="hpEV"></output></div>
+      <div class="row"><button id="bMaster" class="on">limiteur du jeu : ON</button></div>
+      <div class="kv" style="margin-top:8px"><label class="hint">moteur</label><div class="meter"><i id="mE"></i></div><label class="hint">nitro</label><div class="meter"><i id="mN"></i></div><label class="hint">musique</label><div class="meter"><i id="mM"></i></div><label class="hint">sortie</label><div class="meter"><i id="mO"></i></div></div>
+    </div>
+    <div class="card">
+      <h2>Spectre (ce que tu entends)</h2>
+      <canvas id="spec" width="800" height="200" style="height:110px"></canvas>
+      <p class="hint" style="margin:6px 0 0">40 Hz → 12 kHz. Un « aspirateur » se voit : une plage plate et haute entre 1 et 6 kHz.</p>
+    </div>
+  </section>
+  <section class="card">
+    <div class="tabs" id="tabs">
+      <button data-t="quick" class="on">⚡ Réglages rapides</button><button data-t="eng">🔧 Moteur (tout)</button><button data-t="lay">🎚 Couches</button><button data-t="nit">🔥 Nitro (tout)</button><button data-t="save">💾 Presets &amp; export</button>
+    </div>
+    <div class="pane on" id="p-quick"></div>
+    <div class="pane" id="p-eng"></div>
+    <div class="pane" id="p-lay"></div>
+    <div class="pane" id="p-nit"></div>
+    <div class="pane" id="p-save">
+      <div class="grp"><h3>Mes presets</h3><div class="row" id="myPresets"></div><p class="hint">Clique pour recharger · clic droit ou ✕ pour supprimer. Gardés dans ce navigateur.</p></div>
+      <div class="grp"><h3>Copier / coller les réglages</h3><textarea id="json" spellcheck="false"></textarea>
+        <div class="row" style="margin-top:6px"><button id="bCopy">📋 copier</button><button id="bPaste">⬇ appliquer le texte</button></div>
+        <p class="hint">Colle ce texte à Claude : les réglages sont repris tels quels dans le jeu.</p></div>
+    </div>
+  </section>
+</main>
+<script src="../../assets/audio/moteur-vivant/moteur-vivant.js"></script>
+<script src="../../assets/audio/moteur-vivant/nitro-vivant.js"></script>
+<script src="conducteur.js"></script>
+<script>
+'use strict';
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const { CFG, DEF } = MoteurVivantApi, NDEF = NitroVivantApi.NITRO_DEF;
+const clone = o => JSON.parse(JSON.stringify(o));
+const dbl = x => Math.pow(10, x / 20);
+
+/* ===== L'ÉTAT RÉGLÉ : la fiche moteur, les réglages nitro, les gains de couches ===== */
+const LAYERS = [['pipe', 'Échappement (le tuyau)'], ['dry', 'Claquement sec'], ['intake', 'Admission'], ['tick', 'Culbuteurs'], ['knock', 'Cliquetis'], ['rod', 'Coup de bielle'], ['grind', 'Raclement'], ['starter', 'Démarreur'], ['clank', 'Chocs de tôle'], ['tink', 'Métal qui refroidit'], ['turbo', 'Turbo moteur']];
+const NLAYERS = [['roar', 'Flamme'], ['hiss', 'Souffle'], ['whine', 'Sifflet'], ['tone', 'Ton'], ['pops', 'Pops'], ['boom', 'Allumage'], ['bov', 'Soupape']];
+let S = { eng: 'v8', cfg: null, nit: clone(NDEF), G: {}, NG: {} };
+function freshCfg(n) { return clone(Object.assign({}, DEF, CFG[n])); }
+S.cfg = freshCfg('v8');
+LAYERS.forEach(l => S.G[l[0]] = 1); NLAYERS.forEach(l => S.NG[l[0]] = 1);
+
+/* ===== LES CURSEURS : une table = toute l'interface ===== */
+/* [onglet, groupe, clé, étiquette, aide, min, max, pas, lire, écrire, moteur|nitro] */
+const E = (g, k, lab, hint, mn, mx, st, get, set) => ({ t: 'eng', g, k, lab, hint, mn, mx, st, get, set });
+const N = (g, k, lab, hint, mn, mx, st) => ({ t: 'nit', g, k, lab, hint, mn, mx, st, get: () => S.nit[k], set: v => { S.nit[k] = v; } });
+const ec = k => ({ get: () => S.cfg[k], set: v => { S.cfg[k] = v; } });
+const ea = (k, i) => ({ get: () => S.cfg[k][i], set: v => { S.cfg[k][i] = v; } });
+const eq = (i, j) => ({ get: () => S.cfg.eq[i][j], set: v => { S.cfg.eq[i][j] = v; } });
+const R = (...a) => Object.assign(E(...a.slice(0, 7), null, null), a[7]);
+const SPEC = [];
+function add(group, key, label, hint, mn, mx, st, acc) { SPEC.push(Object.assign(E(group, key, label, hint, mn, mx, st), acc)); }
+/* — réglages rapides du MOTEUR — */
+add('Le caractère', 'pitch', 'Taille du moteur', '← gros, grave, sourd · petit, aigu →', .3, 1.6, .01, ec('pitch'));
+add('Le caractère', 'noiseMix', 'Souffle', '↓ pour tuer l\'effet aspirateur', 0, 2, .01, ec('noiseMix'));
+add('Le caractère', 'rasp', 'Râpe de l\'explosion', 'le grain qui déchire, en charge', 0, 1.6, .01, ec('rasp'));
+add('Le caractère', 'sat', 'Hargne', 'saturation : rond ↔ mordant', .4, 3, .01, ec('sat'));
+add('Le caractère', 'lope', 'Gargouillis du ralenti', 'cylindres inégaux : le « blou-blou »', 0, 1.6, .01, ec('lope'));
+add('Le caractère', 'ticks', 'Tic mécanique', 'culbuteurs, soupapes', 0, 3, .01, ec('ticks'));
+add('Le pot', 'r', 'Résonance du pot', 'le tuyau qui chante', .1, .92, .01, { get: () => -S.cfg.r, set: v => { S.cfg.r = -v; } });
+add('Le pot', 'damp', 'Pot : feutré ← → brillant', 'amortissement du tuyau', 0, .85, .01, { get: () => .85 - S.cfg.damp, set: v => { S.cfg.damp = .85 - v; } });
+add('Le pot', 'pipe0', 'Longueur du tuyau gauche', 'plus long = plus grave (m)', .3, 2.4, .01, ea('pipe', 0));
+add('Le pot', 'pipe1', 'Longueur du tuyau droit', 'l\'écart des deux = le battement', .3, 2.4, .01, ea('pipe', 1));
+add('Le corps', 'ls', 'Grave', 'étagère sous 110 Hz (dB)', -14, 8, .5, eq(0, 3));
+add('Le corps', 'hs', 'Brillance', 'étagère à 1,4 kHz (dB)', -20, 6, .5, eq(1, 3));
+add('Le corps', 'hp', 'Coupe-bas', 'Hz : tout ce qui est dessous disparaît', 20, 200, 1, ec('hp'));
+add('Le corps', 'bodyLP', 'Coupe-haut du carter', 'Hz : au-dessus, le moteur s\'éteint', 800, 9000, 50, ec('bodyLP'));
+add('Le corps', 'formG', 'Gorge du pot (gain)', 'le pic fixe qui « boîte » le son (dB)', -6, 14, .5, ea('form', 2));
+add('Les extras', 'intake', 'Rugissement d\'admission', 'le souffle sous charge, haut régime', 0, 2.5, .01, ec('intake'));
+add('Les extras', 'popRate', 'Crépitements au lâcher', 'pétarades, rafales', 0, 2, .01, ec('popRate'));
+add('Les extras', 'pan', 'Largeur stéréo', 'les deux bancades gauche/droite', 0, 1, .01, ec('pan'));
+add('Régimes', 'idle', 'Ralenti', 'tr/min', 500, 1500, 10, ec('idle'));
+add('Régimes', 'redline', 'Zone rouge', 'tr/min (la boîte du labo s\'y cale)', 3000, 9500, 50, ec('redline'));
+add('Régimes', 'limit', 'Limiteur', 'tr/min : coupure d\'allumage', 3500, 10000, 50, ec('limit'));
+/* — le moteur en détail — */
+add('Forme du coup', 'tau', 'Durée du coup', 'plus court = plus claquant (ms)', .3, 4, .05, { get: () => S.cfg.tau * 1000, set: v => { S.cfg.tau = v / 1000; } });
+add('Forme du coup', 'clac', 'Durée du clac sec', 'ms', .15, 3, .05, { get: () => S.cfg.clac * 1000, set: v => { S.cfg.clac = v / 1000; } });
+add('Forme du coup', 'dryF', 'Couleur du clac', 'Hz', 300, 4000, 10, ec('dryF'));
+add('Échappement', 'muff', 'Silencieux : longueur', 'm', .08, 1.2, .01, ec('muff'));
+add('Échappement', 'formF', 'Gorge : fréquence', 'Hz', 50, 400, 1, ea('form', 0));
+add('Échappement', 'formQ', 'Gorge : étroitesse', 'Q', .4, 5, .05, ea('form', 1));
+add('Échappement', 'f2F', 'Épaule du bloc : fréquence', 'Hz', 100, 800, 5, { get: () => S.cfg.form2[0], set: v => { S.cfg.form2[0] = v; } });
+add('Échappement', 'f2G', 'Épaule du bloc : gain', 'dB', -8, 10, .5, { get: () => S.cfg.form2[2], set: v => { S.cfg.form2[2] = v; } });
+add('Corps & saturation', 'lsF', 'Étagère grave : fréquence', 'Hz', 40, 400, 5, eq(0, 1));
+add('Corps & saturation', 'hsF', 'Étagère aiguë : fréquence', 'Hz', 500, 6000, 50, eq(1, 1));
+add('Corps & saturation', 'satLoad', 'Hargne sous charge', 'la saturation monte avec la pédale', 0, 3, .01, ec('satLoad'));
+add('Mécanique', 'tickF', 'Tic : hauteur', 'Hz', 1500, 7000, 50, ec('tickF'));
+add('Mécanique', 'knockF', 'Cliquetis : hauteur', 'Hz', 3000, 10000, 100, ec('knockF'));
+add('Limiteur', 'cut0', 'Coupure : durée mini', 'ms', 15, 200, 1, { get: () => S.cfg.cutMs[0], set: v => { S.cfg.cutMs[0] = v; } });
+add('Limiteur', 'cut1', 'Coupure : durée maxi', 'ms', 20, 260, 1, { get: () => S.cfg.cutMs[1], set: v => { S.cfg.cutMs[1] = v; } });
+const NSPEC = [
+  N('Flamme', 'roarG', 'Grondement', 'le corps du nitro', 0, 2, .01), N('Flamme', 'roarF', 'Flamme : grave ← → aiguë', 'Hz', 80, 900, 5), N('Flamme', 'roarBody', 'Grain de la flamme', 'bruit large ajouté', 0, 2, .01),
+  N('Flamme', 'roarFlut', 'Battement', 'creux régulier (flutter)', 0, 1, .01), N('Flamme', 'roarFlutHz', 'Battement : vitesse', 'Hz', 4, 50, .5), N('Flamme', 'roarTurb', 'Turbulence', 'irrégularité lente', 0, 1, .01),
+  N('Air', 'hissG', 'Souffle d\'air', 'le « chhh »', 0, 1.5, .01), N('Air', 'hissF', 'Souffle : hauteur', 'Hz', 600, 7000, 50), N('Air', 'hissQ', 'Souffle : étroitesse', 'Q', .2, 4, .05), N('Air', 'hissSpd', 'Souffle : sensibilité à la vitesse', '', .3, 2.5, .05),
+  N('Turbo / jet', 'whineG', 'Sifflet', 'niveau', 0, 1, .005), N('Turbo / jet', 'whineF0', 'Sifflet : départ', 'Hz', 300, 3000, 10), N('Turbo / jet', 'whineF1', 'Sifflet : sommet', 'Hz', 1500, 9000, 50), N('Turbo / jet', 'whineQ', 'Sifflet : finesse', 'Q (haut = pur)', 4, 90, 1), N('Turbo / jet', 'whineWob', 'Sifflet : tremblement', '', 0, .08, .001),
+  N('Ton', 'toneG', 'Ton (hauteur)', 'donne une note au nitro', 0, 1, .005), N('Ton', 'toneF0', 'Ton : départ', 'Hz', 40, 400, 1), N('Ton', 'toneF1', 'Ton : sommet', 'Hz', 100, 1200, 5), N('Ton', 'toneHarm', 'Ton : harmoniques', 'rond ← → rugueux', 0, 1.5, .01),
+  N('Pops de flamme', 'popRate', 'Densité', 'pops par seconde à fond', 0, 60, .5), N('Pops de flamme', 'popG', 'Niveau', '', 0, 2, .01), N('Pops de flamme', 'popTone', 'Hauteur', 'Hz', 300, 3500, 10), N('Pops de flamme', 'popBig', 'Part de gros pops', '', 0, 1, .01),
+  N('Allumage', 'boomG', 'Coup de poitrine', 'niveau', 0, 2, .01), N('Allumage', 'boomF', 'Coup : hauteur', 'Hz', 25, 120, 1), N('Allumage', 'boomWhoosh', 'Fwoom', 'souffle de l\'allumage', 0, 2, .01),
+  N('Soupape', 'bovG', 'Soupape de décharge', 'le « pshhh » au lâcher', 0, 2, .01), N('Soupape', 'bovF', 'Soupape : hauteur', 'Hz', 1000, 9000, 50),
+  N('Dynamique', 'attack', 'Montée du nitro', 's', .01, 1, .01), N('Dynamique', 'release', 'Retombée', 's', .02, 2, .01), N('Dynamique', 'spool', 'Montée en pression (turbo)', 's', .05, 3, .01), N('Dynamique', 'master', 'Niveau général du nitro', '', 0, 2, .01)
+];
+const NQUICK = ['roarG', 'roarF', 'hissG', 'whineG', 'whineF1', 'toneG', 'popRate', 'boomG', 'bovG', 'spool'];
+const nq = NSPEC.filter(s => NQUICK.includes(s.k)).map(s => Object.assign({}, s, { g: 'Nitro' }));
+
+/* ===== L'INTERFACE GÉNÉRÉE ===== */
+const rows = {};   // clé → { s, input, out }
+function fmt(v, st) { return st >= 1 ? Math.round(v) : v.toFixed(st >= .1 ? 1 : st >= .01 ? 2 : 3); }
+function sliderRow(s, nitro) {
+  const d = document.createElement('div'); d.className = 'sl';
+  d.innerHTML = '<label>' + s.lab + (s.hint ? '<small>' + s.hint + '</small>' : '') + '</label><input type="range" min="' + s.mn + '" max="' + s.mx + '" step="' + s.st + '"><output></output>';
+  const inp = d.querySelector('input'), out = d.querySelector('output');
+  inp.addEventListener('input', () => { snap(); s.set(+inp.value); out.textContent = fmt(+inp.value, s.st); (nitro ? pushNit : pushEng)(); });
+  (rows[(nitro ? 'n.' : 'e.') + s.k + (s.g === 'Nitro' ? '#q' : '')] = { s, inp, out, nitro });
+  return d;
+}
+function buildPane(id, specs, nitro, onlyQuick) {
+  const pane = $(id), groups = {};
+  specs.forEach(s => { (groups[s.g] = groups[s.g] || []).push(s); });
+  Object.keys(groups).forEach(g => { const box = document.createElement('div'); box.className = 'grp' + (nitro ? ' n' : ''); box.innerHTML = '<h3>' + g + '</h3>'; groups[g].forEach(s => box.appendChild(sliderRow(s, nitro))); pane.appendChild(box); });
+}
+const QE = ['Le caractère', 'Le pot', 'Le corps', 'Les extras', 'Régimes'];
+buildPane('#p-quick', SPEC.filter(s => QE.includes(s.g)), false);
+{ const box = document.createElement('div'); box.className = 'grp n'; box.innerHTML = '<h3>Nitro — l\'essentiel</h3>'; nq.forEach(s => box.appendChild(sliderRow(s, true))); $('#p-quick').appendChild(box); }
+buildPane('#p-eng', SPEC.filter(s => !QE.includes(s.g)), false);
+buildPane('#p-nit', NSPEC, true);
+function refreshUI() {
+  for (const k in rows) { const r = rows[k]; if (!r.s.get) continue; const v = r.s.get(); r.inp.value = v; r.out.textContent = fmt(v, r.s.st); }
+  $('#health').value = Math.round(S.health * 100); $('#healthV').textContent = Math.round(S.health * 100);
+  buildLayers();
+}
+S.health = 1;
+function buildLayers() {
+  const p = $('#p-lay'); p.innerHTML = '';
+  const mk = (title, list, G, nitro) => {
+    const box = document.createElement('div'); box.className = 'grp' + (nitro ? ' n' : ''); box.innerHTML = '<h3>' + title + '</h3><div class="lay"></div>'; const lay = box.querySelector('.lay');
+    list.forEach(([k, lab]) => {
+      const d = document.createElement('div'); d.innerHTML = '<div class="top"><span>' + lab + '</span><span><button data-a="solo">solo</button> <button data-a="mute">muet</button></span></div><input type="range" min="0" max="2" step=".01" style="width:100%"><output class="val"></output>';
+      const inp = d.querySelector('input'), out = d.querySelector('output'); inp.value = G[k]; out.textContent = G[k].toFixed(2);
+      inp.oninput = () => { G[k] = +inp.value; out.textContent = G[k].toFixed(2); (nitro ? pushNG : pushG)(); };
+      d.querySelector('[data-a=mute]').onclick = () => { G[k] = G[k] > 0 ? 0 : 1; inp.value = G[k]; out.textContent = G[k].toFixed(2); (nitro ? pushNG : pushG)(); };
+      d.querySelector('[data-a=solo]').onclick = () => { list.forEach(([k2]) => G[k2] = (k2 === k ? 1 : 0)); buildLayers(); (nitro ? pushNG : pushG)(); };
+      lay.appendChild(d);
+    });
+    p.appendChild(box);
+  };
+  mk('Couches du moteur', LAYERS, S.G, false); mk('Couches du nitro', NLAYERS, S.NG, true);
+  const r = document.createElement('p'); r.className = 'hint'; r.innerHTML = '<button id="bAllLay">tout remettre à 1</button> Le solo isole une couche pour la juger seule.'; p.appendChild(r);
+  $('#bAllLay').onclick = () => { LAYERS.forEach(l => S.G[l[0]] = 1); NLAYERS.forEach(l => S.NG[l[0]] = 1); buildLayers(); pushG(); pushNG(); };
+}
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; $$('#tabs button').forEach(x => x.classList.toggle('on', x === b)); $$('.pane').forEach(p => p.classList.toggle('on', p.id === 'p-' + b.dataset.t)); if (b.dataset.t === 'save') { $('#json').value = exportTxt(); showMy(); } });
+
+/* ===== HISTORIQUE (annuler) ===== */
+let hist = [], snapT = 0;
+function state() { return { eng: S.eng, cfg: clone(S.cfg), nit: clone(S.nit), G: clone(S.G), NG: clone(S.NG), health: S.health }; }
+function snap() { const t = performance.now(); if (t - snapT < 700) return; snapT = t; hist.push(state()); if (hist.length > 60) hist.shift(); }
+function restore(h) { S.eng = h.eng; S.cfg = clone(h.cfg); S.nit = clone(h.nit); S.G = clone(h.G); S.NG = clone(h.NG); S.health = h.health; send('m', { moteur: S.eng }); pushAll(); refreshUI(); $$('#presetMot').forEach(x => 0); }
+$('#bUndo').onclick = () => { const h = hist.pop(); if (h) restore(h); };
+document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); $('#bUndo').click(); } });
+
+/* ===== PRESETS ===== */
+const PM = {
+  'Départ — V8 croisé': { eng: 'v8', cfg: {} },
+  'Anti-aspirateur (V8)': { eng: 'v8', cfg: { pitch: .6, noiseMix: .3, rasp: .5, intake: .12, lope: .9, sat: 1.3, hp: 60, form: [96, 1.5, 6.5] } },
+  'Muscle car sourd': { eng: 'v8', cfg: { pitch: .5, lope: 1.2, r: -.7, damp: .5, rasp: .6, noiseMix: .35, form: [80, 1.4, 7], eq: [['ls', 110, 0, -1], ['hs', 1400, 0, -13]], bodyLP: 2400 } },
+  'Dragster qui rugit': { eng: 'v8', cfg: { pitch: .45, rasp: 1.3, sat: 2.2, lope: 1, noiseMix: .45, popRate: 1.3, intake: .3 } },
+  'Sportive hargneuse (plat-plan)': { eng: 'flat', cfg: { pitch: .85, rasp: 1, sat: 1.6, noiseMix: .6, intake: .4 } },
+  'Turbo JDM (6 en ligne)': { eng: 'l6', cfg: { pitch: .7, noiseMix: .7 } },
+  'Moto aiguë': { eng: 'flat', cfg: { pitch: 1.35, hp: 90, noiseMix: .5, rasp: .9 } }
+};
+const PN = {
+  'Nitro — départ': {},
+  'Flamme grave (chalumeau)': { roarG: 1, roarF: 160, roarFlut: .45, whineG: .04, hissG: .1, toneG: .06, popRate: 24, boomG: 1 },
+  'Jet aigu (turbo)': { roarG: .3, hissG: .3, whineG: .35, whineF0: 1500, whineF1: 7000, toneG: .15, toneF1: 700, spool: 1.2, popRate: 3, bovG: .8 },
+  'Fusée': { roarG: .9, roarF: 320, hissG: .6, whineG: .08, toneG: .2, toneF0: 70, toneF1: 220, popRate: 0, boomG: 1.3, boomWhoosh: 1.2, spool: .9 },
+  'Crépitant (pops de flamme)': { roarG: .45, popRate: 40, popG: 1, popBig: .3, popTone: 1400, whineG: .06 },
+  'Sourd & discret': { master: .5, roarG: .5, roarF: 150, hissG: .05, whineG: .03, toneG: .04, popRate: 6 }
+};
+Object.keys(PM).forEach(k => $('#presetMot').add(new Option('🔧 ' + k, k))); Object.keys(PN).forEach(k => $('#presetNit').add(new Option('🔥 ' + k, k)));
+$('#presetMot').onchange = () => { snap(); const p = PM[$('#presetMot').value]; S.eng = p.eng; S.cfg = freshCfg(p.eng); Object.assign(S.cfg, clone(p.cfg)); send('m', { moteur: S.eng }); pushEng(); pushG(); refreshUI(); };
+$('#presetNit').onchange = () => { snap(); S.nit = Object.assign(clone(NDEF), clone(PN[$('#presetNit').value])); pushNit(); refreshUI(); };
+function exportTxt() { return JSON.stringify({ moteurVivant: 1, eng: S.eng, cfg: S.cfg, nitro: S.nit, couchesMoteur: S.G, couchesNitro: S.NG, sante: S.health }, null, 1); }
+function importTxt(t) { const j = JSON.parse(t); if (!j.moteurVivant) throw 0; snap(); S.eng = j.eng; S.cfg = Object.assign(freshCfg(j.eng), j.cfg); S.nit = Object.assign(clone(NDEF), j.nitro); if (j.couchesMoteur) Object.assign(S.G, j.couchesMoteur); if (j.couchesNitro) Object.assign(S.NG, j.couchesNitro); S.health = j.sante == null ? 1 : j.sante; send('m', { moteur: S.eng }); pushAll(); refreshUI(); }
+$('#bExport').onclick = async () => { const t = exportTxt(); $('#json').value = t; try { await navigator.clipboard.writeText(t); $('#bExport').textContent = '✔ copié'; setTimeout(() => $('#bExport').textContent = '📋 copier les réglages', 1500); } catch (e) { $$('#tabs button')[4].click(); } };
+$('#bCopy').onclick = async () => { $('#json').select(); try { await navigator.clipboard.writeText($('#json').value); } catch (e) { document.execCommand('copy'); } };
+$('#bPaste').onclick = () => { try { importTxt($('#json').value); } catch (e) { alert('Texte de réglages invalide'); } };
+function myList() { try { return JSON.parse(localStorage.getItem('mvLaboPresets') || '{}'); } catch (e) { return {}; } }
+function showMy() {
+  const box = $('#myPresets'); box.innerHTML = ''; const L = myList();
+  if (!Object.keys(L).length) box.innerHTML = '<span class="hint">aucun pour l\'instant — 💾 sauver</span>';
+  Object.keys(L).forEach(k => { const b = document.createElement('button'); b.textContent = '▶ ' + k; b.onclick = () => importTxt(JSON.stringify(L[k])); b.oncontextmenu = e => { e.preventDefault(); delete L[k]; localStorage.setItem('mvLaboPresets', JSON.stringify(L)); showMy(); }; box.appendChild(b); });
+}
+$('#bSave').onclick = () => { const n = prompt('Nom de ce réglage ?'); if (!n) return; const L = myList(); L[n] = JSON.parse(exportTxt()); try { localStorage.setItem('mvLaboPresets', JSON.stringify(L)); } catch (e) {} showMy(); };
+$('#bSurprise').onclick = () => {
+  snap(); const quick = SPEC.filter(s => QE.includes(s.g) && !['idle', 'redline', 'limit', 'hp'].includes(s.k)).concat(nq);
+  quick.forEach(s => { const v = s.get(), span = s.mx - s.mn, nv = Math.max(s.mn, Math.min(s.mx, v + (Math.random() * 2 - 1) * span * .18)); s.set(Math.round(nv / s.st) * s.st); });
+  pushAll(); refreshUI();
+};
+
+/* ===== L'AUDIO : moteur, nitro, musique, mêmes chaînes que le jeu ===== */
+let ac, eNode, nNode, hpE, engG, nitG, cmp, lim, sum, musEl, musSrc, musG, carve1, carve2, phoneHP, phoneLP, anaE, anaN, anaM, anaO, anaS, master = true, phone = false;
+let st = { rpm: 0, etat: 'off', niv: 0, cut: false }, nst = { niv: 0, a: 0, sp: 0 };
+function send(w, o) { const n = w === 'm' ? eNode : nNode; if (n) n.port.postMessage(o); }
+function pushEng() { send('m', { cfg: S.cfg }); }
+function pushNit() { send('n', { P: S.nit }); }
+function pushG() { send('m', { G: S.G }); }
+function pushNG() { send('n', { G: S.NG }); }
+function pushAll() { pushEng(); pushNit(); pushG(); pushNG(); }
+async function boot() {
+  ac = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+  const base = '../../assets/audio/moteur-vivant/', F = n => fetch(base + n).then(r => r.text());
+  const txt = (await Promise.all(['moteur-vivant.js', 'nitro-vivant.js', 'worklet-moteur.js', 'worklet-nitro.js'].map(F))).join('\n');
+  await ac.audioWorklet.addModule(URL.createObjectURL(new Blob([txt], { type: 'text/javascript' })));
+  eNode = new AudioWorkletNode(ac, 'moteur-vivant', { outputChannelCount: [2], processorOptions: { moteur: S.eng } });
+  nNode = new AudioWorkletNode(ac, 'nitro-vivant', { outputChannelCount: [2], processorOptions: { P: S.nit } });
+  eNode.port.onmessage = e => { st = e.data; }; nNode.port.onmessage = e => { nst = e.data; };
+  hpE = ac.createBiquadFilter(); hpE.type = 'highpass'; hpE.frequency.value = 55; hpE.Q.value = .7;
+  engG = ac.createGain(); nitG = ac.createGain();
+  cmp = ac.createDynamicsCompressor(); cmp.threshold.value = -16; cmp.knee.value = 12; cmp.ratio.value = 4; cmp.attack.value = .004; cmp.release.value = .16;
+  const engOut = ac.createGain();
+  eNode.connect(hpE); hpE.connect(engG); engG.connect(cmp); cmp.connect(engOut);
+  nNode.connect(nitG);
+  musG = ac.createGain();
+  carve1 = ac.createBiquadFilter(); carve1.type = 'peaking'; carve1.frequency.value = 850; carve1.Q.value = .9;
+  carve2 = ac.createBiquadFilter(); carve2.type = 'peaking'; carve2.frequency.value = 1800; carve2.Q.value = .9;
+  musG.connect(carve1); carve1.connect(carve2);
+  sum = ac.createGain(); sum.gain.value = .937; engOut.connect(sum); nitG.connect(sum); carve2.connect(sum);
+  phoneHP = ac.createBiquadFilter(); phoneHP.type = 'highpass'; phoneHP.frequency.value = 20; phoneHP.Q.value = .7;
+  phoneLP = ac.createBiquadFilter(); phoneLP.type = 'lowpass'; phoneLP.frequency.value = 20000; phoneLP.Q.value = .7;
+  lim = ac.createDynamicsCompressor(); lim.threshold.value = -1; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = .001; lim.release.value = .1;
+  const vol = ac.createGain(); vol.gain.value = dbl(-6); window._vol = vol;
+  sum.connect(phoneHP); phoneHP.connect(phoneLP); phoneLP.connect(lim); lim.connect(vol); vol.connect(ac.destination);
+  const an = (src, fft) => { const a = ac.createAnalyser(); a.fftSize = fft || 1024; a.smoothingTimeConstant = .6; src.connect(a); return a; };
+  anaE = an(engOut); anaN = an(nitG); anaM = an(carve2); anaO = an(vol, 4096); anaS = anaO;
+  musEl = new Audio(); musEl.crossOrigin = 'anonymous'; musEl.loop = true; musSrc = ac.createMediaElementSource(musEl); musSrc.connect(musG);
+  send('m', { ev: 'allume' }); pushAll(); mix(); requestAnimationFrame(frame);
+}
+function mix() {
+  if (!ac) return; const t = ac.currentTime;
+  musG.gain.setTargetAtTime(dbl(+$('#gMus').value), t, .05); engG.gain.setTargetAtTime(dbl(+$('#gEng').value), t, .05); nitG.gain.setTargetAtTime(dbl(+$('#gNit').value), t, .05);
+  hpE.frequency.setTargetAtTime(+$('#hpE').value, t, .05); window._vol.gain.setTargetAtTime(dbl(+$('#vol').value), t, .05);
+  ['gMus', 'gEng', 'gNit'].forEach(i => $('#' + i + 'V').textContent = $('#' + i).value + ' dB'); $('#carveV').textContent = '−' + $('#carve').value + ' dB'; $('#hpEV').textContent = $('#hpE').value + ' Hz';
+}
+['gMus', 'gEng', 'gNit', 'carve', 'hpE', 'vol'].forEach(i => $('#' + i).addEventListener('input', mix));
+const MUS = [['NUIT DE VELOURS', 'nuit-de-velours', [2, 5, 8]], ['PENTHOUSE', 'penthouse', [2, 5, 8]], ['NÉON NOIR', 'neon-noir', [2, 5, 8]], ['GLISSE FUSION', 'glisse-fusion', [2, 5, 8]], ['SIFFLEUR 30', 'siffleur-30', [4, 14, 26]], ['CIEL 30', 'ciel-30', [4, 14, 26]]];
+MUS.forEach(([n, d, ps]) => ps.forEach(p => $('#mus').add(new Option('🎵 ' + n + ' · palier ' + p, d + '/p' + p + '.m4a'))));
+$('#mus').onchange = () => { if (!musEl) return; if (!$('#mus').value) { musEl.pause(); return; } musEl.src = '../../assets/audio/music/paliers/rendus/' + $('#mus').value; musEl.play().catch(() => {}); };
+$('#bMaster').onclick = () => { master = !master; $('#bMaster').classList.toggle('on', master); $('#bMaster').textContent = 'limiteur du jeu : ' + (master ? 'ON' : 'OFF'); if (!ac) return; cmp.ratio.value = master ? 4 : 1; cmp.threshold.value = master ? -16 : 0; };
+$('#bPhone').onclick = () => { phone = !phone; $('#bPhone').classList.toggle('on', phone); if (!ac) return; phoneHP.frequency.value = phone ? 300 : 20; phoneLP.frequency.value = phone ? 7000 : 20000; };
+
+/* ===== LA CONDUITE ===== */
+const keys = {}; let pil, sim, auto = true, manualGear = 0, studio = false, nitK = 0, gasK = 0, last = performance.now(), scen = null;
+function mkSim() {
+  sim = { cfg: S.cfg, etat: st.etat, rpm: st.rpm, rpmEff: st.rpm, rpmCmd: 0, thr: 0, load: 0, health: S.health, demarre: a => send('m', { ev: 'demarre', a: a || 0 }), calage: () => send('m', { ev: 'calage' }), coup: a => send('m', { ev: 'coup', a }) };
+  pil = new MVConducteur.Pilote(sim, scen);
+}
+mkSim();
+function hold(btn, key) { const on = e => { e.preventDefault(); keys[key] = true; btn.classList.add('held'); }, off = () => { keys[key] = false; btn.classList.remove('held'); }; btn.addEventListener('pointerdown', on); btn.addEventListener('pointerup', off); btn.addEventListener('pointerleave', off); btn.addEventListener('pointercancel', off); }
+hold($('#bGas'), 'gas'); hold($('#bNit'), 'nit'); hold($('#bBrk'), 'brk');
+$('#bRev').onclick = () => { keys.rev = !keys.rev; $('#bRev').classList.toggle('on', keys.rev); };
+$('#bStart').onclick = () => send('m', { ev: 'demarre', a: 0 }); $('#bStart2').onclick = () => send('m', { ev: 'demarre', a: 1 }); $('#bStall').onclick = () => send('m', { ev: 'calage' }); $('#bHit').onclick = () => send('m', { ev: 'coup', a: .7 });
+$('#bAuto').onclick = () => { auto = !auto; $('#bAuto').classList.toggle('on', auto); };
+$('#bUp').onclick = () => { manualGear = Math.min(6, pil.gearT + 1); auto = false; $('#bAuto').classList.remove('on'); };
+$('#bDn').onclick = () => { manualGear = Math.max(0, pil.gearT - 1); auto = false; $('#bAuto').classList.remove('on'); };
+$('#bN').onclick = () => { manualGear = 0; auto = false; $('#bAuto').classList.remove('on'); };
+$('#bStudio').onclick = () => { studio = !studio; $('#bStudio').classList.toggle('on', studio); $('#bStudio').textContent = 'mode studio : ' + (studio ? 'ON' : 'OFF'); };
+['pedal', 'nitS', 'stRpm', 'stLoad', 'stSpd', 'health'].forEach(i => $('#' + i).addEventListener('input', () => {
+  $('#pedalV').textContent = $('#pedal').value; $('#nitSV').textContent = $('#nitS').value; $('#stRpmV').textContent = $('#stRpm').value; $('#stLoadV').textContent = $('#stLoad').value + ' %'; $('#stSpdV').textContent = $('#stSpd').value + ' %';
+  S.health = +$('#health').value / 100; $('#healthV').textContent = $('#health').value; }));
+$$('[data-h]').forEach(b => b.onclick = () => { $('#health').value = b.dataset.h; $('#health').dispatchEvent(new Event('input')); });
+document.addEventListener('keydown', e => {
+  if (e.repeat || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return; const k = e.key.toLowerCase();
+  if (k === ' ' || k === 'arrowup') { keys.gas = true; $('#bGas').classList.add('held'); e.preventDefault(); }
+  else if (k === 'n') { keys.nit = true; $('#bNit').classList.add('held'); }
+  else if (k === 'arrowdown') { keys.brk = true; $('#bBrk').classList.add('held'); e.preventDefault(); }
+  else if (k === 'r') $('#bRev').click(); else if (k === 'e') $('#bUp').click(); else if (k === 'q') $('#bDn').click();
+  else if (k === 's') $('#bStart').click(); else if (k === 'c') $('#bStall').click(); else if (k === 'x') $('#bHit').click();
+});
+document.addEventListener('keyup', e => { const k = e.key.toLowerCase(); if (k === ' ' || k === 'arrowup') { keys.gas = false; $('#bGas').classList.remove('held'); } else if (k === 'n') { keys.nit = false; $('#bNit').classList.remove('held'); } else if (k === 'arrowdown') { keys.brk = false; $('#bBrk').classList.remove('held'); } });
+['pedal', 'nitS', 'stRpm', 'stLoad', 'stSpd'].forEach(i => $('#' + i).dispatchEvent(new Event('input')));
+const stageName = h => h > .8 ? 'RODÉ' : h > .55 ? 'FATIGUÉ' : h > .3 ? 'MALTRAITÉ' : h > .001 ? 'AGONIE' : 'MORT';
+
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  const C = S.cfg;
+  gasK += ((keys.gas ? 1 : 0) - gasK) * Math.min(1, dt * (keys.gas ? 9 : 14)); nitK += ((keys.nit ? 1 : 0) - nitK) * Math.min(1, dt * 12);
+  const pedal = Math.max(+$('#pedal').value / 100, gasK), nitro = Math.max(+$('#nitS').value / 100, nitK);
+  sim.cfg = C; sim.etat = st.etat; sim.rpm = sim.rpmEff = st.rpm; sim.health = S.health;
+  let speed01;
+  if (studio) {
+    const rpm = +$('#stRpm').value, load = +$('#stLoad').value / 100;
+    send('m', { c: { rpmCmd: rpm * (1 + .04 * nitro), thr: pedal > 0 ? pedal : (load > .05 ? 1 : 0), load: pedal > 0 ? Math.max(load, pedal) : load, health: S.health } });
+    speed01 = +$('#stSpd').value / 100;
+  } else {
+    pil.thrT = pedal; pil.brakeT = keys.brk ? 1 : 0; pil.neutralRev = !!keys.rev; pil.auto = auto; if (!auto) pil.gearT = manualGear; else manualGear = pil.gearT;
+    if (nitro > .1 && pil.cond.g > 0) pil.cond.v = Math.min(C.limit / (pil.cond.rat[pil.cond.g] * pil.cond.k), pil.cond.v + nitro * dt * 14);
+    pil.tick(dt);
+    if (st.etat === 'run' || scen) send('m', { c: { rpmCmd: sim.rpmCmd * (1 + .04 * nitro), thr: sim.thr, load: Math.min(1, sim.load + .25 * nitro), health: scen ? sim.health : S.health } }); else send('m', { c: { health: S.health } });
+    if (scen) { S.health = sim.health; $('#health').value = Math.round(S.health * 100); $('#healthV').textContent = Math.round(S.health * 100); }
+    speed01 = Math.min(1, pil.cond.v / 260);
+  }
+  send('n', { c: { nit: nitro, speed: speed01 } });
+  draw(); requestAnimationFrame(frame);
+}
+function draw() {
+  const C = S.cfg, cv = $('#gauge'), g = cv.getContext('2d'), W = cv.width, H = cv.height;
+  g.clearRect(0, 0, W, H); const cx = W / 2, cy = H - 22, r = H - 60, a0 = Math.PI * 1.08, a1 = Math.PI * 1.92, max = C.limit * 1.12;
+  g.lineWidth = 18; g.strokeStyle = '#222938'; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke();
+  g.strokeStyle = '#5e2030'; g.beginPath(); g.arc(cx, cy, r, a0 + (a1 - a0) * (C.redline / max), a1); g.stroke();
+  const v = Math.min(max, st.rpm), av = a0 + (a1 - a0) * (v / max);
+  g.strokeStyle = nst.a > .3 ? '#7a5cff' : st.cut ? '#ff4d5e' : v > C.redline ? '#ff9a2b' : '#35d0ff'; g.beginPath(); g.arc(cx, cy, r, a0, av); g.stroke();
+  g.strokeStyle = '#e9edf5'; g.lineWidth = 3; g.beginPath(); g.moveTo(cx + Math.cos(av) * (r - 30), cy + Math.sin(av) * (r - 30)); g.lineTo(cx + Math.cos(av) * (r + 12), cy + Math.sin(av) * (r + 12)); g.stroke();
+  g.fillStyle = '#e9edf5'; g.font = '700 64px system-ui'; g.textAlign = 'center'; g.fillText(Math.round(st.rpm / 10) * 10, cx, cy - 34); g.fillStyle = '#8793a8'; g.font = '16px system-ui'; g.fillText('tr/min', cx, cy - 10);
+  g.fillStyle = '#7a5cff'; g.fillRect(40, H - 8, (W - 80) * nst.a, 5);
+  $('#etat').textContent = { off: 'ARRÊT', crank: 'DÉMARREUR', pause: 'DÉMARREUR…', catch: 'IL PREND', run: 'EN MARCHE', stall: 'CALE' }[st.etat] || st.etat;
+  $('#stage').textContent = stageName(S.health); $('#stage').className = 'pill' + (S.health < .55 ? ' warn' : ''); $('#lim').style.display = st.cut ? '' : 'none';
+  const c = pil && pil.cond; $('#gearV').textContent = c ? (c.g || 'N') + (c.shiftT > 0 ? '…' : '') : 'N'; $('#spdV').textContent = c ? Math.round(c.v) : 0;
+  if (!anaE) return;
+  const buf = draw.b || (draw.b = new Float32Array(1024)), rms = a => { a.getFloatTimeDomainData(buf); let s = 0; for (let i = 0; i < 1024; i++) s += buf[i] * buf[i]; return Math.sqrt(s / 1024); };
+  const m100 = x => Math.max(0, Math.min(100, (20 * Math.log10(x + 1e-6) + 60) / 60 * 100));
+  const e = rms(anaE), n = rms(anaN), m = rms(anaM), o = rms(anaO);
+  $('#mE').style.width = m100(e) + '%'; $('#mN').style.width = m100(n) + '%'; $('#mM').style.width = m100(m) + '%'; $('#mO').style.width = m100(o) + '%';
+  const pres = Math.min(1, Math.max(0, (e + n - .008) / .06)), dep = +$('#carve').value, t = ac.currentTime;
+  carve1.gain.setTargetAtTime(-dep * pres, t, .25); carve2.gain.setTargetAtTime(-dep * .7 * pres, t, .25);
+  /* le spectre */
+  const sc = $('#spec'), s = sc.getContext('2d'), SW = sc.width, SH = sc.height; s.clearRect(0, 0, SW, SH);
+  const fb = draw.f || (draw.f = new Float32Array(anaS.frequencyBinCount)); anaS.getFloatFrequencyData(fb);
+  const hz = ac.sampleRate / anaS.fftSize, f0 = 40, f1 = 12000; s.fillStyle = '#35d0ff';
+  for (let x = 0; x < SW; x += 3) { const f = f0 * Math.pow(f1 / f0, x / SW), fN = f0 * Math.pow(f1 / f0, (x + 3) / SW); let mx = -140; for (let k = Math.floor(f / hz); k <= Math.max(Math.floor(f / hz), Math.floor(fN / hz)); k++) mx = Math.max(mx, fb[k] || -140); const h = Math.max(0, Math.min(1, (mx + 100) / 80)) * SH; s.fillRect(x, SH - h, 2, h); }
+  s.fillStyle = '#4a556b'; s.font = '16px system-ui'; [100, 300, 1000, 3000, 10000].forEach(f => { const x = Math.log(f / f0) / Math.log(f1 / f0) * SW; s.fillRect(x, 0, 1, SH); s.fillText(f >= 1000 ? f / 1000 + 'k' : f, x + 4, 16); });
+}
+$('#go').onclick = async () => { $('#boot').remove(); await boot(); };
+refreshUI(); showMy();
+</script>
+</body>
+</html>

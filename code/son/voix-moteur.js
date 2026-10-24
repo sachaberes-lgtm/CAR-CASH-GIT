@@ -236,6 +236,7 @@ function engSetTier(lv){ // changement de palier → nouveau timbre (onde harmon
     engFmt.frequency.value=F[0];engFmt.Q.value=F[1];engFmt.gain.value=F[2];}
   engSubG.gain.value=e.sub*.5;
   engShaper.curve=engCurve(e.dr);
+  try{if(MV.on)MV.tier(lv);}catch(_){} /* (2026-10-22) le moteur vivant change de fiche avec le palier */
 }
 function crackle(amt){ // crépitements d'échappement au lâcher : pop-pop-pop dense puis qui s'égrène
   if(!sfxOk())return;

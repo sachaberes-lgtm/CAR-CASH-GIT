@@ -91,21 +91,29 @@ const GRT_MET={
    l'axe ; le rayon se resserre de 34 m par tour (le tour d'en dessous est sous le BORD INTÉRIEUR de celui d'au-dessus : on y tombe en sautant
    vers l'intérieur) ; le PAS (58-64 m par tour) laisse > 50 m d'air entre deux tours. */
 /* (2026-10-19, session HASARD — Sacha : « vérifie bien que toutes les maps sont générées aléatoirement ») LES PROFONDEURS AU HASARD.
-   MESURÉ (40 graines, palier 0, l'écart de forme du ROYAUME AU HASARD — voir VLC_HASARD) : 0,067 — toujours plein nord, toujours la même
+   MESURÉ (40 graines, palier 0, l'écart de forme du hasard des maps) : 0,067 — toujours plein nord, toujours la même
    descente : la mine, la grotte luxuriante, le PUITS à 25-29 % du parcours, les stalactites, la lave, les abysses. Désormais chaque grotte tire,
    dans son propre flux (`rh` : un seul tirage `rnd` de plus) :
    · son AXE, dans toutes les directions (sous la terre, aucun soleil ne l'oriente) ;
    · l'ORDRE des quatre salles du milieu — luxuriante, puits de la géode, stalactites, lave — entre la mine (toujours la 1re : la porte qu'on
      reconnaît) et les abysses (toujours la dernière : le noir et la salle du portail) ; jamais la lave contre le puits (son lac ne déborde pas
      dans l'entonnoir : on y saute pour le raccourci), 12 ordres possibles — le puits arrive de ~5 à ~70 % du parcours ;
-   · la LONGUEUR de chaque salle (0,6-1,4 × sa part d'avant, puis le tout ramené à la longueur visée) et un CARACTÈRE par salle (`VLC_HUMEURS`,
-     ceux du volcan ; la salle de lave garde ses grandes courbes) ;
+   · la LONGUEUR de chaque salle (0,6-1,4 × sa part d'avant, puis le tout ramené à la longueur visée) et un CARACTÈRE par salle (`GRT_HUMEURS`,
+     ceux de la balade classique ; la salle de lave garde ses grandes courbes) ;
    · LE PUITS : 1¼ tour ± 0,12 (on en ressort jusqu'à ±43° de l'axe : l'AXE suit, borné à ±40° de celui de l'entrée — la grotte ne revient
      jamais sur ses pas), son rayon (+0 à 80 m).
    Le lac de lave ne déborde que dans les stalactites et les abysses (ses voisines d'avant) ; l'eau de la luxuriante, les piliers, les décors
    et la lumière de la lave suivent les salles VOISINES (`R.apres`, `GROTTE.lavLum`) au lieu de l'ordre fixe. Gardés : la mine, la règle d'or,
    le rayon tenable, les modules, le contrôle des croisements. `?sans=hasardgrotte` = la grotte d'avant, tirage pour tirage. */
 const GRT_HASARD=!/[?&]sans=([^&]*,)?hasardgrotte(,|&|$)/.test(location.search);
+/* LES CARACTÈRES DES SALLES (les profondeurs au hasard) : chacun fixe les virages de la route d'une salle */
+const GRT_HUMEURS=[ // a : angle d'un virage (°, minimum + étendue) · t : la part de virages SERRÉS (Rs) · Rk : le rayon des autres (× rM, minimum + étendue ; 0 = Rn) · inv : la chance de changer de côté · dr : [chance d'une droite après, longueur minimum, étendue] (m × KV)
+  {nm:'flammes', a:[36,28],t:.33,Rk:0,        inv:1,  dr:[.2,30,40]},  // la balade classique : on louvoie, on revient vers l'axe passé 30°
+  {nm:'serpent', a:[46,26],t:.6, Rk:0,        inv:1,  dr:[.05,20,20]}, // des S serrés, presque sans répit
+  {nm:'courbes', a:[24,22],t:0,  Rk:[2.4,1.6],inv:.7, dr:[.35,50,80]}, // de grandes courbes qui se prennent à fond
+  {nm:'derive',  a:[20,18],t:.15,Rk:[1.8,1.2],inv:.18,dr:[.3,40,70]},  // la plaine part en biais d'un côté, jusqu'à la butée
+  {nm:'balcon',  a:[30,22],t:.2, Rk:0,        inv:.6, dr:[1,110,120]}, // de longues droites cassées de coudes : on voit loin
+  {nm:'chicanes',a:[30,16],t:.7, Rk:0,        inv:1,  dr:[.08,20,30]}];// gauche-droite-gauche, vite
 function* genGrotte(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main entre deux essais
   CAMPM.length=0;MODMARK.length=0;
   const LV=typeof lvPiste==='function'?lvPiste():1,gr=mulberry32((rnd()*4294967296)>>>0);let best=null;
@@ -137,7 +145,7 @@ function grtTrace(rnd,LV){
   const LIM=68,tourne=(aDeg,R)=>{const r=rel();let a=aDeg;if(r+a>LIM)a=LIM-r;if(r+a<-LIM)a=-LIM-r;if(Math.abs(a)>2)arc(a,R);return a;};
   const vers=(cible,R)=>{const a=wrap(axe+cible/57.2958-phi)*57.2958;if(Math.abs(a)>3)arc(a,R);};
   let sg=rnd()<.5?-1:1;
-  let HC=null,dvH=1; // (AU HASARD) le CARACTÈRE de la salle (VLC_HUMEURS) et le côté de sa dérive
+  let HC=null,dvH=1; // (AU HASARD) le CARACTÈRE de la salle (GRT_HUMEURS) et le côté de sa dérive
   const virages=n=>{for(let k=0;k<n;k++){const r=rel();
     if(HC){const H=HC;if(H.nm==='derive')sg=r*dvH>LIM-16?-dvH:(rh()<H.inv?-dvH:dvH);else sg=Math.abs(r)>30?(r>0?-1:1):(rh()<H.inv?-sg:sg);
       tourne(sg*(H.a[0]+rh()*H.a[1]),rh()<H.t?Rs():H.Rk?rM*(H.Rk[0]+rh()*H.Rk[1]):Rn());if(rh()<H.dr[0])droite((H.dr[1]+rh()*H.dr[2])*KV);continue;}
@@ -197,7 +205,7 @@ function grtTrace(rnd,LV){
     const ORD=['luxe','geode','stal','lave'];for(let e=0;e<60;e++){for(let i=3;i>0;i--){const j=(rh()*(i+1))|0,x=ORD[i];ORD[i]=ORD[j];ORD[j]=x;}if(Math.abs(ORD.indexOf('lave')-ORD.indexOf('geode'))!==1)break;}
     if(Math.abs(ORD.indexOf('lave')-ORD.indexOf('geode'))===1){ORD.length=0;ORD.push('luxe','geode','stal','lave');} // (filet : l'ordre d'avant)
     const PART={luxe:.27,stal:.2,lave:.3,abysse:.23};let sp=0;for(const k in PART){PART[k]*=.6+.8*rh();sp+=PART[k];}for(const k in PART)PART[k]/=sp;
-    let hPrec=-1;const humeur=()=>{let i=(rh()*VLC_HUMEURS.length)|0;if(i===hPrec)i=(i+1+((rh()*(VLC_HUMEURS.length-1))|0))%VLC_HUMEURS.length;hPrec=i;return VLC_HUMEURS[i];};
+    let hPrec=-1;const humeur=()=>{let i=(rh()*GRT_HUMEURS.length)|0;if(i===hPrec)i=(i+1+((rh()*(GRT_HUMEURS.length-1))|0))%GRT_HUMEURS.length;hPrec=i;return GRT_HUMEURS[i];};
     const HU={},car=k=>{HC=humeur();dvH=rh()<.5?-1:1;HU[k]=HC.nm;};
     for(const k of ORD){if(k==='luxe'){car(k);sLuxe(B9*PART.luxe);}else if(k==='geode'){HC=null;sPuits();}else if(k==='stal'){car(k);sStal(B9*PART.stal);}else{HC=null;sLave(B9*PART.lave);}}
     car('abysse');sAbysse(B9*PART.abysse);HC=null;
@@ -388,14 +396,19 @@ function grtMatieres(x,y,z,sal,lv){ // la matière d'un sommet de la roche (lv :
   if((sal===3||sal===4)&&GROTTE.piliers)for(const c of GROTTE.piliers)if((x-c.x)**2+(z-c.z)**2<c.r*c.r&&y>c.yb-8&&y<c.yt+8)return c.k==='stal'?GT.CONCRETION:(lac&&y<lac.y+14?GT.MAGMA:GT.BASALTE);
   if(sal===4&&lac&&y<lac.y+9)return GT.MAGMA; // le rivage rougeoie
   return GT.ROCHE;}
-function grtMailleNets(V,c,LL){
+/* (2026-10-24, passe perf 3e tour) LE MAILLAGE D'UN TRONÇON EN TRANCHES : au PRÉ-BÂTI, un tronçon (40 à 150 ms ×4, d'un bloc) faisait les images
+   de 100-283 ms du vol qui précède la grotte (MESURÉ ×4 : 8 à 15 images > 100 ms par approche). grtMailleNetsG rend la main entre deux tranches de sa
+   grille (l'échéance JF.lim, celle du pré-bâti) ; d'un trait (JF.lim infini : le passage, les tranches en course), il ne s'arrête jamais.
+   Mêmes calculs, même ordre : le même maillage. */
+function grtMailleNets(V,c,LL){return jadeFini(grtMailleNetsG(V,c,LL));}
+function* grtMailleNetsG(V,c,LL){
   const T=grtTampons(),d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V.CY,ck=(d/(V.CX*V.CY))|0,I0=ci*16,J0=cj*16,K0=ck*16,B=V.B,lum=T.lum,loc=T.loc,vid=T.vid,R=GROTTE.R;
   // 1 · les densités du tronçon et de sa bordure (−2 … 17)
-  for(let k=0;k<20;k++)for(let j=0;j<20;j++)for(let i=0;i<20;i++)loc[i+20*(j+20*k)]=grtD(V,I0+i-2,J0+j-2,K0+k-2);
+  for(let k=0;k<20;k++){if(performance.now()>JF.lim)yield;for(let j=0;j<20;j++)for(let i=0;i<20;i++)loc[i+20*(j+20*k)]=grtD(V,I0+i-2,J0+j-2,K0+k-2);}
   const L=function(i,j,k){return loc[(i+2)+20*((j+2)+20*(k+2))];};
   // 2 · les sommets (cubes −1 … 15)
   vid.fill(-1);let nv=0;const MAXV=39990,cv=new Float32Array(8);
-  for(let cc=-1;cc<16&&nv<MAXV;cc++)for(let b=-1;b<16&&nv<MAXV;b++)for(let a=-1;a<16;a++){
+  for(let cc=-1;cc<16&&nv<MAXV;cc++){if(performance.now()>JF.lim)yield;for(let b=-1;b<16&&nv<MAXV;b++)for(let a=-1;a<16;a++){
     let m=0;for(let q=0;q<8;q++){const v=L(a+(q&1),b+((q>>1)&1),cc+((q>>2)&1));cv[q]=v;if(v>0)m|=1<<q;}
     if(m===0||m===255)continue;
     let sx=0,sy=0,sz=0,ne=0;
@@ -412,10 +425,10 @@ function grtMailleNets(V,c,LL){
     const p3=nv*3,p4=nv*4;T.P[p3]=lx;T.P[p3+1]=ly;T.P[p3+2]=lz;
     T.F[p4]=grtMatieres(wx,wy,wz,sal,lv);T.F[p4+1]=sal;T.F[p4+2]=Math.round(Math.max(.3,Math.min(1,1.28-roc/64))*255);T.F[p4+3]=0;
     grtLum(wx+gx/gl*1.5,wy+gy/gl*1.5,wz+gz/gl*1.5,sal,LL,lum);T.Lt[p4]=lum[0]*255;T.Lt[p4+1]=lum[1]*127.5;T.Lt[p4+2]=lum[2]*127.5;T.Lt[p4+3]=lum[3]*127.5;
-    vid[(a+1)+17*((b+1)+17*(cc+1))]=nv++;}
+    vid[(a+1)+17*((b+1)+17*(cc+1))]=nv++;}}
   // 3 · les quads : chaque arête (points 0 … 15 du tronçon) qui traverse la paroi — tournés vers l'air
   let ni=0;const V9=function(a,b,cc){return vid[(a+1)+17*((b+1)+17*(cc+1))];};
-  for(let cc=0;cc<16;cc++)for(let b=0;b<16;b++)for(let a=0;a<16;a++){const v0=L(a,b,cc),s0=v0>0;
+  for(let cc=0;cc<16;cc++){if(performance.now()>JF.lim)yield;for(let b=0;b<16;b++)for(let a=0;a<16;a++){const v0=L(a,b,cc),s0=v0>0;
     for(let ax=0;ax<3;ax++){const v1=ax===0?L(a+1,b,cc):ax===1?L(a,b+1,cc):L(a,b,cc+1);if((v1>0)===s0)continue;
       let q0,q1,q2,q3;
       if(ax===0){q0=V9(a,b-1,cc-1);q1=V9(a,b,cc-1);q2=V9(a,b,cc);q3=V9(a,b-1,cc);}
@@ -423,12 +436,12 @@ function grtMailleNets(V,c,LL){
       else{q0=V9(a-1,b-1,cc);q1=V9(a,b-1,cc);q2=V9(a,b,cc);q3=V9(a-1,b,cc);}
       if(q0<0||q1<0||q2<0||q3<0||ni+6>T.I.length)continue;
       if(s0){T.I[ni++]=q0;T.I[ni++]=q1;T.I[ni++]=q2;T.I[ni++]=q0;T.I[ni++]=q2;T.I[ni++]=q3;}
-      else{T.I[ni++]=q0;T.I[ni++]=q2;T.I[ni++]=q1;T.I[ni++]=q0;T.I[ni++]=q3;T.I[ni++]=q2;}}}
+      else{T.I[ni++]=q0;T.I[ni++]=q2;T.I[ni++]=q1;T.I[ni++]=q0;T.I[ni++]=q3;T.I[ni++]=q2;}}}}
   /* 4 · UNE MATIÈRE PAR FACETTE : les sommets sont dédoublés par triangle et la facette prend la matière de la majorité de ses coins (le numéro
      de matière interpolé sur un triangle à cheval passait par toutes les matières entre les deux : un liseré arc-en-ciel le long des bords —
      banc du 18/10). La lumière et l'occlusion restent celles des coins (fondues sur la facette). */
   const nt=ni/3,P=new Float32Array(nt*9),F=new Uint8Array(nt*12),Lt=new Uint8Array(nt*12);
-  for(let t=0;t<nt;t++){const a=T.I[t*3],b=T.I[t*3+1],c9=T.I[t*3+2],ma=T.F[a*4],mb=T.F[b*4],mc=T.F[c9*4],mt=(ma===mb||ma===mc)?ma:(mb===mc?mb:(ma||mb||mc));
+  for(let t=0;t<nt;t++){if((t&2047)===2047&&performance.now()>JF.lim)yield;const a=T.I[t*3],b=T.I[t*3+1],c9=T.I[t*3+2],ma=T.F[a*4],mb=T.F[b*4],mc=T.F[c9*4],mt=(ma===mb||ma===mc)?ma:(mb===mc?mb:(ma||mb||mc));
     for(let k=0;k<3;k++){const v=k===0?a:k===1?b:c9,o=t*3+k;P[o*3]=T.P[v*3];P[o*3+1]=T.P[v*3+1];P[o*3+2]=T.P[v*3+2];
       F[o*4]=mt;F[o*4+1]=T.F[v*4+1];F[o*4+2]=T.F[v*4+2];F[o*4+3]=0;Lt[o*4]=T.Lt[v*4];Lt[o*4+1]=T.Lt[v*4+1];Lt[o*4+2]=T.Lt[v*4+2];Lt[o*4+3]=T.Lt[v*4+3];}}
   return {P:P,F:F,L:Lt,I:null,nv:nt*3,nt:nt};}
