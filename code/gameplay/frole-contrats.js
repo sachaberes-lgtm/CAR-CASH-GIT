@@ -260,6 +260,7 @@ function hautArme(){clearTimeout(HAUT.t);
   let at=n;
   if(c&&n<HAUT.fin&&(b.p<=c.p||c.ferme)){at=c.s+c.min;if(at>=HAUT.fin)at=HAUT.fin+120;} // la voix en place a droit à son temps de lecture (verrouillée : même face à plus fort)
   HAUT.t=setTimeout(function(){
+    if(paused&&started&&!gameOver){HAUT.t=setTimeout(hautArme,250);return;} /* (24/10, relecture : « la file des annonces continue pendant la pause ») en PAUSE la file attend : la carte suivante (défi, moteur, niveau) passait par-dessus le panneau de pause — on regarde de nouveau toutes les 250 ms ; une annonce dont la patience s'épuise se tait comme avant (preuve-annonce-pause) */
     const n2=performance.now(),b2=hautMeilleur(n2);if(!b2)return;
     const c2=HAUT.cur;
     if(hautCede(c2,b2.p,n2)){HAUT.q.splice(HAUT.q.indexOf(b2),1);hautMontre(b2,n2);}else hautArme();

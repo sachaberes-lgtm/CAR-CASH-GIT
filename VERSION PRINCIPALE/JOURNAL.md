@@ -3,7 +3,7 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
-## LA FRÉNÉSIE A ENFIN SA MUSIQUE : THE DARK TRIAD (2026-10-24 soir, v893 — le 404 de `dark-triad.mp3`, vu deux fois à chaque chargement au banc du 21/10)
+## LA FRÉNÉSIE A ENFIN SA MUSIQUE : THE DARK TRIAD (2026-10-24 soir, v894 — le 404 de `dark-triad.mp3`, vu deux fois à chaque chargement au banc du 21/10)
 - **LE CONSTAT** : `MUSIC_FREN.f` visait `assets/audio/music/dark-triad.mp3`, un fichier qui n'a JAMAIS existé dans le dépôt (aucun commit ne l'a posé, `git log --all`) ;
   le morceau est la boucle maison DARK TRIAD de l'atelier (`atelier-son/boucles.py`, 01/10, « pour : FRÉNÉSIE » : phonk 140 bpm, do# phrygien, 16 mesures = 27,43 s
   qui bouclent), rangée à `boucles/dark-triad.m4a` — publiée exprès par `vercel-build.sh`, et réglée par le bus des basses (`'dark-triad'`, cloche −2 dB).
@@ -20,6 +20,31 @@
   répond 206 ; code de reprise inchangé) ; le niveau du morceau face à Pouce bleu n'a pas été réglé à l'oreille ; l'appli iPhone (la sonde y dépend du `HEAD`).
 - Les décisions d'avant restent à Sacha / Léo : le morceau de la frénésie « est à Léo » (Q-SON-4, `passation/SON.md`), et une passe l'avait laissé « NON corrigé,
   comme demandé » (`passation/ALLEGEMENT-MUSIQUE.md`). Un autre morceau (TRIPLE MONSTRE, `boucles/niv-monstre.m4a`, l'autre candidat de l'atelier) = un autre `f`.
+## LA VAGUE 4 DU DÉBOGAGE : SOUPÇONS TRANCHÉS, SINGE, WEBKIT (2026-10-24 soir, v893, session DÉBOGAGE — Sacha : « continue à déboguer, je suis sûr qu'il y a encore plein de soucis »)
+- **LA MÉTHODE** : (1) les 28 soupçons non démontrés de la relecture ligne à ligne, tranchés un par un (VÉRIFS-A : états, sauvegarde, économie ;
+  VÉRIFS-B : mémoire, rendu, interface) — 7 prouvés et corrigés, 1 prouvé laissé puis corrigé à l'intégration, 19 écartés avec la ligne qui protège,
+  1 non tranché ; (2) un SINGE dans le vrai jeu (iPhone émulé, muet) : 1 734 gestes au hasard en 27 min (touchers, doubles, appuis longs, volant,
+  NITRO multi-doigts, 88 rotations, 65 passages en arrière-plan), invariants toutes les 500 ms — 0 bug, mémoire en plateau après 2-3 min ;
+  (3) WEBKIT : inventaire de toutes les API du navigateur contre Safari iOS 15 → 26, banc « faux Safari » (58 API retirées) sur 12 maps et les écrans —
+  0 exception. 41 preuves dans `passation/preuves/`, toutes vertes. Outils gardés : `integ/.banc-sortie/archives/v4-singe/singe.mjs` (graine
+  rejouable), `archives/v4-webkit/shim-webkit.js` + `course-wk.mjs`.
+- **CORRIGÉ** :
+  - la MÉMOIRE DES PHOTOS de la boutique : +6,6 Mo par caisse équipée, jamais libérés (risque que iOS tue l'app) → plafond 32 Mo, les plus anciennes
+    adresses blob: libérées, jamais une photo affichée (`interface/photos-films.js`, `dbgPhotoMem()`) ;
+  - l'ÉCRAN FIGÉ ~8 s : une goutte de jus sur une toile de largeur nulle (transition iOS) faisait lever drawImage à chaque image (`interface/jus-echelle.js`) ;
+  - RECOMMENCER puis arrière-plan pendant le volet : la partie neuve roulait sous la feuille de pause → elle part en PAUSE (`moteur/mobile-tactile.js`) ;
+  - JOUER depuis la boutique puis HOME pendant le lâcher : l'accueil s'affichait puis la course partait quand même → tous les touchers ignorés pendant
+    les 450-650 ms du lâcher (`interface/garage-cadrage.js`, `uiGarde`) ;
+  - faisceaux des PHARES et RAYONS du soleil à bords nets sur iPhone (Safari n'a pas `ctx.filter`) → flou calculé après coup, une fois au chargement
+    (`rendu/soleil-planete.js` `flou2dRepli`, `voitures/atchoum-feu.js`) ; `-webkit-backdrop-filter` de l'accueil (Safari Mac < 18) ;
+  - annonce en file jouée (et perdue) pendant la pause ; clavier qui agissait sur le garage sous le profil/la plaque ; policier qui explosait deux fois au Survivant.
+- **VÉRIFIÉ, ÉCARTÉ** (extraits) : pas de sauvegarde vierge après une purge iOS (banc : aucune écriture au démarrage) ; la pub maison se termine toujours
+  et `#pubR` reprend `hidden` ; pas de musique en pause au retour après 24 h ; aucune voiture retirée équipable ; textures flottantes toujours en Nearest
+  (iPhone sans `OES_texture_float_linear`) ; toiles 2D vivantes ~37 Mo stables.
+- **À VÉRIFIER SUR LE VRAI iPHONE** : phares la nuit ; carte MOTEUR de l'écran de fin qui tourne (relecture PBO/fenceSync sous WebKit) ; photos de la
+  boutique relues d'IndexedDB après avoir tué l'app ; COPIER LA SAUVEGARDE ; double prime de portail après une seconde chance (non tranché, A3).
+- **POUR LÉO** (en plus de la liste v887) : l'ombre du « 1.61 » de la boutique 3D a le même défaut de flou sous Safari (`boutique-scene-1.js:29`,
+  `flou2dRepli(x,cv.width,cv.height,S*.35)` après les fillRect).
 
 ## L'IPHONE QUI CHAUFFE ET LES MAPS QUI S'ALOURDISSENT : CADENCE 30 SUR LE RÉCENT, LA ROUTE EN TRANCHE MOYENNE (2026-10-24 soir, v892, session Optimisation mobile — Sacha : « après quelques maps passées on arrive vraiment presque à 1 image/seconde » · sur la question de la chauffe : « 30 i/s stables si chaud » · « oui, prends l'iPhone 12 min »)
 - **CE QUI RALENTIT** (iPhone 13 Pro, dans l'app de banc CC BANC, voir la section du palier v873 juste dessous) : (1) la CHAUFFE — au bout de 3-4 min de jeu iOS bride la puce

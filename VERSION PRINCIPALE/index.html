@@ -781,7 +781,7 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
       linear-gradient(105deg,transparent 38%,rgba(0,234,255,.10) 49%,transparent 60%),
       repeating-linear-gradient(0deg,rgba(255,255,255,.028) 0 1px,transparent 1px 3px),
       radial-gradient(1200px 700px at 50% 30%,rgba(74,34,58,.5),rgba(8,5,16,.94));
-    backdrop-filter:blur(9px);gap:6px}
+    -webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);gap:6px} /* (24/10, relecture WebKit) Safari < 18 ne lit que la forme préfixée : sans elle, pas de flou derrière l’accueil et l’écran de fin (ordinateur) */
   /* ================= LE TITRE SORT DE L'ÉCRAN (2026-08-30) ================================
      Demande du user, mot pour mot : les lettres « sortent de l'écran ». Ce n'est pas une taille de
      plus, c'est un CADRAGE : le mot est plus large que la fenêtre, on n'en voit pas les bords, et
@@ -10224,6 +10224,24 @@ const planetGroup=(function(){
   scene.add(g);return g;
 })();
 /* <<<FIN CIEL>>> */
+/* ===== LE FLOU DES TOILES SANS `ctx.filter` (24/10, relecture WebKit : « les bugs qui n'existent que sous Safari / WKWebView ») =====
+   `ctx.filter='blur(Npx)'` n'existe dans AUCUN Safari (iOS 15 → 18 : derrière le réglage « Canvas Filters », éteint par défaut) : l'affectation
+   y crée une simple propriété et rien n'est flouté — les rayons du soleil et les faisceaux des phares de TOUTES les caisses sortaient à bords
+   nets sur iPhone (le `try` ne voit rien : il n'y a pas d'erreur). Là où le filtre manque, `flou2dRepli` floute la toile APRÈS le dessin :
+   trois flous-boîtes séparables (≈ la gaussienne d'écart-type N du filtre CSS), en alpha prémultiplié (pas de frange sombre), le dehors de la
+   toile transparent. Une fois par texture, au chargement (256 × 256 : quelques ms). Là où `ctx.filter` existe (Chrome, Firefox, Android) :
+   la fonction rend tout de suite, rien ne change. */
+function flou2dNatif(){if(flou2dNatif.v===undefined){try{flou2dNatif.v=typeof CanvasRenderingContext2D!=='undefined'&&('filter' in CanvasRenderingContext2D.prototype);}catch(e){flou2dNatif.v=false;}}return flou2dNatif.v;}
+function flou2dRepli(c,w,h,s){if(flou2dNatif()||!(s>0))return;try{
+  const im=c.getImageData(0,0,w,h),d=im.data,n=w*h,A=new Float32Array(n*4),B=new Float32Array(n*4);
+  for(let i=0;i<n;i++){const a=d[i*4+3]/255;A[i*4]=d[i*4]*a;A[i*4+1]=d[i*4+1]*a;A[i*4+2]=d[i*4+2]*a;A[i*4+3]=d[i*4+3];}
+  const wi=Math.sqrt(4*s*s+1);let wl=Math.floor(wi);if(wl%2===0)wl--;const m=Math.round((12*s*s-3*wl*wl-12*wl-9)/(-4*wl-4)); /* les 3 boîtes d'une gaussienne : m de largeur wl, les autres wl+2 */
+  const passe=function(S,D,r,hz){const L=hz?w:h,K=hz?h:w,st=hz?4:w*4,k=1/(2*r+1);
+    for(let j=0;j<K;j++){const o=hz?j*w*4:j*4;for(let ch=0;ch<4;ch++){let acc=0;for(let t=0;t<=r&&t<L;t++)acc+=S[o+t*st+ch];
+      for(let i=0;i<L;i++){D[o+i*st+ch]=acc*k;const ad=i+r+1,ot=i-r;if(ad<L)acc+=S[o+ad*st+ch];if(ot>=0)acc-=S[o+ot*st+ch];}}}};
+  for(let b=0;b<3;b++){const r=((b<m?wl:wl+2)-1)/2;passe(A,B,r,true);passe(B,A,r,false);}
+  for(let i=0;i<n;i++){const a=A[i*4+3],q=a>0?255/a:0;d[i*4+3]=Math.round(a);d[i*4]=Math.round(A[i*4]*q);d[i*4+1]=Math.round(A[i*4+1]*q);d[i*4+2]=Math.round(A[i*4+2]*q);}
+  c.putImageData(im,0,0);}catch(e){}}
 const RAYS=(function(){ // 3-4 faisceaux diffus en éventail derrière les nuages (discrets)
   const cv=document.createElement('canvas');cv.width=64;cv.height=256;
   const c=cv.getContext('2d');
@@ -10236,6 +10254,7 @@ const RAYS=(function(){ // 3-4 faisceaux diffus en éventail derrière les nuage
   g.addColorStop(.55,'rgba(250,150,140,.18)');g.addColorStop(1,'rgba(240,130,130,0)');
   c.fillStyle=g;
   c.beginPath();c.moveTo(26,256);c.lineTo(38,256);c.lineTo(58,0);c.lineTo(6,0);c.closePath();c.fill();
+  flou2dRepli(c,64,256,5); /* (24/10) Safari n'a pas `ctx.filter` : le même flou, après coup (voir LE FLOU DES TOILES SANS ctx.filter) */
   const tex=new THREE.CanvasTexture(cv);
   const arr=[];
   for(let i=0;i<RAY_ANGLES.length;i++){
@@ -31190,6 +31209,7 @@ const beamTex=(function(){
     c.fillStyle=g;
     c.beginPath();c.moveTo(x0-12,10);c.lineTo(x0+12,10);c.lineTo(x0+sd*14+46*sd+14,238);c.lineTo(x0+sd*14-46*sd-14,238);c.closePath();c.fill();
   }
+  flou2dRepli(c,256,256,7); /* (24/10) Safari n'a pas `ctx.filter` : le même flou, après coup (voir LE FLOU DES TOILES SANS ctx.filter, rendu/soleil-planete.js) */
   return new THREE.CanvasTexture(cv);
 })();
 // ---- PLUME DE RÉACTEUR (façon fusée) : cône incandescent à la tuyère — dégradé + ANNEAUX DE CHOC bakés.
@@ -47441,6 +47461,7 @@ function hautArme(){clearTimeout(HAUT.t);
   let at=n;
   if(c&&n<HAUT.fin&&(b.p<=c.p||c.ferme)){at=c.s+c.min;if(at>=HAUT.fin)at=HAUT.fin+120;} // la voix en place a droit à son temps de lecture (verrouillée : même face à plus fort)
   HAUT.t=setTimeout(function(){
+    if(paused&&started&&!gameOver){HAUT.t=setTimeout(hautArme,250);return;} /* (24/10, relecture : « la file des annonces continue pendant la pause ») en PAUSE la file attend : la carte suivante (défi, moteur, niveau) passait par-dessus le panneau de pause — on regarde de nouveau toutes les 250 ms ; une annonce dont la patience s'épuise se tait comme avant (preuve-annonce-pause) */
     const n2=performance.now(),b2=hautMeilleur(n2);if(!b2)return;
     const c2=HAUT.cur;
     if(hautCede(c2,b2.p,n2)){HAUT.q.splice(HAUT.q.indexOf(b2),1);hautMontre(b2,n2);}else hautArme();
@@ -47535,6 +47556,20 @@ const PHOTO_W=720,PHOTO_H=440,PHOTO_SS=2,PHOTO_ROT=-.12,PHOTO_AZ=.70,PHOTO_EL=.2
 const PHOTO_AILE={el:1,az:.15}; // (2026-10-15) une aile se photographie DE FACE et d'en haut (57°) : les deux ailes s'ouvrent à gauche et à droite, comme un avion qui arrive (dbgAile pour régler ; essayé de trois quarts : la caisse mangeait la photo)
 /* LA PHOTO D'UNE AILE (2026-10-15, Sacha : « pour les ailes il n'y a pas de photo, c'est pas bien ») : la caisse équipée, l'aile essayée,
    DÉPLOYÉE comme en vol (pleine envergure, léger dièdre), vue de trois quarts en plongée — même studio, même pellicule que les caisses */
+/* ===== LA MÉMOIRE DES PHOTOS (24/10, relecture : « les adresses blob: de PHOTO.cache ne sont jamais libérées ») =====
+   MESURÉ au banc (iPhone émulé) : tous les rayons de la boutique parcourus = 83 photos, 13 Mo de PNG gardés ; chaque caisse ÉQUIPÉE de plus
+   ajoute ses ailes et ses films de figures (leurs clés portent la caisse) : ~6,6 Mo de plus à chaque fois, sans limite sur une session.
+   Au-delà de PHOTO_MEM.max, les plus anciennes photos prises dans la session sont libérées (revokeObjectURL) et oubliées de PHOTO.cache —
+   jamais une photo AFFICHÉE (une <img> de la page, le film d'une carte présente) ni celle qui arrive ; une photo oubliée se reprend à la
+   demande. Les photos relues de la base (PHDB, fichiers du navigateur) ne comptent pas. `dbgPhotoMem()` : l'état (banc). */
+const PHOTO_MEM={L:new Map(),oct:0,max:32*1048576,lib:0};
+function photoGarde(ck,u,oct){const k=String(ck),M=PHOTO_MEM;if(!u||String(u).indexOf('blob:')!==0)return;
+  if(M.L.has(k))M.oct-=M.L.get(k).o;M.L.delete(k);M.L.set(k,{u:u,o:oct||0});M.oct+=oct||0;
+  if(M.oct<=M.max)return;
+  const vues=new Set();try{document.querySelectorAll('img[src^="blob:"]').forEach(function(im){vues.add(im.getAttribute('src'));});for(const F of FILM.l)if(F.cv.isConnected)vues.add(F.im.src);}catch(e){return;}
+  for(const [k9,e] of M.L){if(M.oct<=M.max*.85)break;if(k9===k||vues.has(e.u))continue;
+    M.L.delete(k9);M.oct-=e.o;M.lib++;if(PHOTO.cache[k9]===e.u)delete PHOTO.cache[k9];try{URL.revokeObjectURL(e.u);}catch(x){}}}
+window.dbgPhotoMem=function(mo){if(mo!=null)PHOTO_MEM.max=mo*1048576;return {photos:PHOTO_MEM.L.size,mo:+(PHOTO_MEM.oct/1048576).toFixed(2),maxMo:PHOTO_MEM.max/1048576,liberees:PHOTO_MEM.lib,cache:Object.keys(PHOTO.cache).length};};
 // le studio (pellicule, scène, objectif, lumières), monté à la première photo — caisse, aile ou figure (2026-10-15 soir : sorti de carPhoto pour figPhoto)
 function photoStudio(){if(PHOTO.rt)return;const W=PHOTO_W,H=PHOTO_H;
   PHOTO.rt=new THREE.WebGLRenderTarget(W*PHOTO_SS,H*PHOTO_SS);PHOTO.scene=new THREE.Scene();PHOTO.cam=new THREE.PerspectiveCamera(24,W/H,.1,400);
@@ -47641,7 +47676,7 @@ function carPhoto(i,cb,aile){
     x.drawImage(gros,0,0,W,H);toileRend(gros);
     if(cb&&cv.toBlob&&window.URL&&URL.createObjectURL){asy=true;(PHOTO.att||(PHOTO.att={}))[ck]=[cb];
       cv.toBlob(function(b){let u=null;try{if(b)u=URL.createObjectURL(b);}catch(e){}toileRend(cv);
-        if(u){if(PHOTO.cache[ck]){try{URL.revokeObjectURL(u);}catch(e){}u=PHOTO.cache[ck];}else{PHOTO.cache[ck]=u;phdbEcrit(ck,b,sig9);}}
+        if(u){if(PHOTO.cache[ck]){try{URL.revokeObjectURL(u);}catch(e){}u=PHOTO.cache[ck];}else{PHOTO.cache[ck]=u;phdbEcrit(ck,b,sig9);photoGarde(ck,u,b.size);}}
         const L9=PHOTO.att[ck]||[];delete PHOTO.att[ck];for(const f of L9)try{f(u);}catch(e){console.warn('photo',e);}},'image/png');}
     else{url=cv.toDataURL('image/png');toileRend(cv);}
     T9.montage=performance.now()-T9.t0;
@@ -47756,7 +47791,7 @@ function figFilm(o,cb){const ck=o.k;
     T9.montage=performance.now()-T9.t0;
     if(cb&&pl.toBlob&&window.URL&&URL.createObjectURL){asy=true;(PHOTO.att||(PHOTO.att={}))[ck]=[cb];
       pl.toBlob(function(b){let u=null;try{if(b)u=URL.createObjectURL(b);}catch(e){}toileRend(pl);
-        if(u){if(PHOTO.cache[ck]){try{URL.revokeObjectURL(u);}catch(e){}u=PHOTO.cache[ck];}else{PHOTO.cache[ck]=u;phdbEcrit(ck,b,sig9);}}
+        if(u){if(PHOTO.cache[ck]){try{URL.revokeObjectURL(u);}catch(e){}u=PHOTO.cache[ck];}else{PHOTO.cache[ck]=u;phdbEcrit(ck,b,sig9);photoGarde(ck,u,b.size);}}
         const L9=PHOTO.att[ck]||[];delete PHOTO.att[ck];for(const fn of L9)try{fn(u);}catch(e){console.warn('film figure',e);}},'image/png');}
     else{url=pl.toDataURL('image/png');toileRend(pl);}
   }catch(e){console.warn('film figure',e);if(asy&&PHOTO.att)delete PHOTO.att[ck];asy=false;}
@@ -59425,6 +59460,10 @@ function juiceScreen(col,power,n){
   // l'aura restent — le fruit se lit toujours, sans giclée plein cadre.
   if(!juiceCx||REDUCED_MOTION)return;
   const W=juiceCv.width,H=juiceCv.height,cc=new THREE.Color(col),hsl=cc.getHSL({h:0,s:0,l:0}); // le CORPS : le fruit, SATURÉ
+  /* ===== LA TOILE NULLE (24/10, relecture : « toile du jus de largeur nulle pendant une transition iOS ») ===== innerWidth à 0 le temps
+     d'une transition : la goutte aurait un rayon 0, sa toile 0 px de large, et drawImage d'une toile nulle LÈVE dans juiceScreenTick, hors
+     de tout try et avant le rendu — chaque goutte vide figeait l'écran toute sa vie et bloquait les suivantes (preuve-jus-toile-nulle) */
+  if(!(W>0&&H>0))return;
   cc.setHSL(hsl.h,Math.max(hsl.s,.78),Math.min(.6,Math.max(.46,hsl.l)));const k2=cc.clone().lerp(JUS_BLANC,.38); // …et son CŒUR clair
   const cR=cc.r*255|0,cG=cc.g*255|0,cB=cc.b*255|0,kR=k2.r*255|0,kG=k2.g*255|0,kB=k2.b*255|0,corps='rgba('+cR+','+cG+','+cB+',.95)';
   const B9=Math.min(W,H); // (v3) la taille suit la plus petite dimension : même goutte debout ou couché
@@ -61930,7 +61969,7 @@ function survTick(dt){
       survRender();explode('police');
     }else{
       const low=racers[racers.length-1];
-      if(low&&low.totD<pTot){botBoom(low); // la meute s'ÉNERVE : pas plus vite que toi, mais plus téméraire
+      if(low&&low.alive&&low.totD<pTot){botBoom(low); /* (24/10, relecture : « double explosion d'un policier ») `racers` est figé avant la boucle des policiers : celui qui vient d'y retomber à côté de la route (botBoom) ne resaute pas (preuve-police-double) */ // la meute s'ÉNERVE : pas plus vite que toi, mais plus téméraire
         for(const b of SURV.bots)if(b.alive){b.agro=Math.min(1,b.agro+.08);b.appBoost=Math.min(1.2,b.appBoost+.1);b.marg=Math.min(.97,b.marg+.02);}}
       if(!SURV.bots.some(b=>b.alive)){
         SURV.over=true;if(SONV2)sfx('victoire');else fanfare();
@@ -68959,7 +68998,7 @@ function garJouer(e){
      toucher ; un second toucher pendant l'attente est ignoré. */
   let att9=0;const bq9=gModeM()==='shop';
   if(GATL.on){gAtelier(false);att9=450;}
-  if(att9||bq9){try{gGarageReplie();}catch(x){}if(bq9)att9=650;garJouer._t=performance.now()+att9+200;}
+  if(att9||bq9){try{gGarageReplie();}catch(x){}if(bq9)att9=650;garJouer._t=performance.now()+att9+200;uiGarde(att9+200);} /* (24/10, relecture VÉRIFS-A : « HOME touché pendant l'attente, la course partait quand même ») TOUS les touchers sont ignorés pendant le lâcher, pas seulement un second JOUER : HOME ou BOUTIQUE y créaient un état mêlé (accueil affiché, puis la course partait) */
   const part=function(){
     if(!garageOn||GAR.go)return;
     if(SHOP.tab==='voiture'){if(!carUnlocked(garageI))garageShow(equippedCar());}
@@ -70272,7 +70311,7 @@ addEventListener('pointermove',e=>{
 // ⚠ ORBITE BORNÉE À 7,8 m : au-delà on sortait par les murs et on traversait la servante et les
 // piles de pneus. Le décor est rangé POUR ce rayon (rien de posé à moins de 8,3 m du centre).
 addEventListener('wheel',e=>{if(!garageOn||PLQ.on||PLQ.prof)return;garageDist=THREE.MathUtils.clamp(garageDist+e.deltaY*.008,4.6,8.6);},{passive:true}); // plafond 7,8→8,6 (2026-09-05) : le zoom arrière par défaut est monté, la molette doit pouvoir suivre
-addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on)return;if(GATL.on&&e.code==='Escape'){e.preventDefault();gAtelier(false);return;}if(INV.on){if(e.code==='Escape'||e.code==='KeyI'){e.preventDefault();invFerme();}return;}if(e.code==='KeyI'&&!e.repeat&&garAtelierLibre()){invOuvre();return;} /* (2026-10-04) L'INVENTAIRE au clavier : I l'ouvre, I ou Échap le referme */ if(e.code==='Escape'){if(!GAR.go&&gEl.classList.contains('missions'))garMisRetour();else if(!GAR.go&&!gEl.classList.contains('menu')&&(gModeM()==='shop'||gModeM()==='tous')){uiClic('retour');gModeVa('shop');} /* (2026-10-12, passe qualité) en BOUTIQUE, Échap = ◀ RETOUR (le même chemin que la touche), pas la sortie du garage */ else if(!GAR.go&&!gEl.classList.contains('menu')){if(window.__mRetour)ecranWipe(closeGarage);else ecranWipe(function(){if(started&&gameOver)accueilRetour();garMode('menu');});}}else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);else if(e.code==='Enter'&&!e.repeat&&!document.querySelector('#modale.on')&&!gEl.classList.contains('shopRet')){e.preventDefault();garJouer();}}); // (passe qualité) pas de JOUER au clavier en BOUTIQUE : la touche JOUER y est masquée · même chemin que les flèches à l'écran (boutique comprise, premium exclues) · (2026-09-29) Entrée = JOUER, comme à l'accueil
+addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on||PLQ.on||PLQ.prof)return; /* (24/10, relecture : « Espace / I / P agissent-ils sur le garage derrière la plaque ? ») le profil ou l'atelier de la plaque ouverts par-dessus : le clavier ne touche plus le garage dessous (I ouvrait l'inventaire, les flèches changeaient la caisse, Entrée lançait la course) — comme la molette (preuve-clavier-profil) */if(GATL.on&&e.code==='Escape'){e.preventDefault();gAtelier(false);return;}if(INV.on){if(e.code==='Escape'||e.code==='KeyI'){e.preventDefault();invFerme();}return;}if(e.code==='KeyI'&&!e.repeat&&garAtelierLibre()){invOuvre();return;} /* (2026-10-04) L'INVENTAIRE au clavier : I l'ouvre, I ou Échap le referme */ if(e.code==='Escape'){if(!GAR.go&&gEl.classList.contains('missions'))garMisRetour();else if(!GAR.go&&!gEl.classList.contains('menu')&&(gModeM()==='shop'||gModeM()==='tous')){uiClic('retour');gModeVa('shop');} /* (2026-10-12, passe qualité) en BOUTIQUE, Échap = ◀ RETOUR (le même chemin que la touche), pas la sortie du garage */ else if(!GAR.go&&!gEl.classList.contains('menu')){if(window.__mRetour)ecranWipe(closeGarage);else ecranWipe(function(){if(started&&gameOver)accueilRetour();garMode('menu');});}}else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);else if(e.code==='Enter'&&!e.repeat&&!document.querySelector('#modale.on')&&!gEl.classList.contains('shopRet')){e.preventDefault();garJouer();}}); // (passe qualité) pas de JOUER au clavier en BOUTIQUE : la touche JOUER y est masquée · même chemin que les flèches à l'écran (boutique comprise, premium exclues) · (2026-09-29) Entrée = JOUER, comme à l'accueil
 
 // ---------- BOUCLE ----------
 const fwdW=new THREE.Vector3(),tmp=new THREE.Vector3(),tmp2=new THREE.Vector3(),tmp3=new THREE.Vector3(),mat4=new THREE.Matrix4();
@@ -74317,7 +74356,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
           else { /* (2026-10-14, chasse aux bugs) …et passe par le VOLET comme REJOUER : la piste neuve se construisait à l'écran, sous la feuille qui descendait. Le jeu reste gelé sous le voile ; le son (endormi par la pause) se réveille pour le volet — la musique abandonnée, elle, reste en pause : resetGame lance la neuve en fondu */
             let r9=null;try{busPlein();if(AC&&SND.sfx&&AC.state!=='running')r9=AC.resume();}catch(e){}
             if(ecranWipe._on){resetGame();} // un fondu déjà en cours ignorerait le nôtre : jamais une partie gelée sans feuille
-            else{ecranWipe(function(){if(started&&!gameOver){resetGame();}});
+            else{ecranWipe(function(){if(started&&!gameOver){resetGame(); /* ===== RECOMMENCER PUIS ARRIÈRE-PLAN (24/10, relecture : « la course roule sous la PAUSE ») ===== l'appli passée derrière pendant le volet a ROUVERT la feuille (paused encore vrai) ; resetGame remet paused=false : la partie neuve roulait sous la pause ouverte, REPRENDRE ne la gelait plus. La feuille ouverte = la partie neuve part en PAUSE, REPRENDRE sous le pouce (comme un retour d'arrière-plan) */
+                if(pan.classList.contains('open')&&!pan.classList.contains('sortant'))panOpen(true);}});
               if(r9&&r9.then&&SONV2)r9.then(function(){try{if(ecranWipe._on)sfx('ui.volet');}catch(e){}},function(){});} } }; // le son du volet, perdu sur le contexte encore endormi, part au réveil
         f9(); }); } // (2026-09-28) tutoQuitte : la leçon quittée sera reproposée
     uiClic(a==='close'?'retour':a==='tous'?'nav':a==='snd'?(SND.sfx?'on':'off'):a==='mus'?(SND.music?'on':'off'):a==='surv'?(SURV.armed?'on':'off'):(a==='ctl'||a==='q'||a==='volh'||a==='figg')?'onglet':(a==='reset'||a==='quit')?'danger':''); /* (console de son) le RÔLE — ici le clic part APRÈS la bascule : l'interrupteur sonne son nouvel état */ // ⚠ EN DERNIER : un bouton qui SORT de la pause (reprendre, recommencer, quitter) garde son clic ; en pause il reste le visuel et la vibration
