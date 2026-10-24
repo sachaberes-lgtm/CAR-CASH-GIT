@@ -11,7 +11,12 @@ function nfxR(){let t=(NFX.s=(NFX.s+0x6D2B79F5)|0);t=Math.imul(t^(t>>>15),t|1);t
    se juge à 60 sur PC. `emiN` rend le nombre d'« images à 60 Hz » écoulées : 1 à 60 i/s, 2 à 30, 1,5 en moyenne à 40. JAMAIS moins d'1 :
    au-dessus de 60 (écrans 120/144 Hz) on garde l'émission d'avant au pixel près — ce qu'on voyait sur un PC rapide ne change pas. */
 const EMI={};
-function emiN(k,dt){const a=(EMI[k]||0)+Math.min(dt,.067)*60,n=Math.max(1,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;} // le reste reporté (−0,5 au plus) : 60 par seconde pile à 30, 40 ou 50 i/s ; au-dessus de 60, une émission par image comme avant
+/* (2026-10-23, audit mobile) L'ÉMISSION TAILLÉE SUR LE PALIER : à 30 i/s un ANCIEN émettait autant par seconde qu'un 60 i/s (jamais moins d'1 par image) —
+   fumée, flammes, jet et traits d'air additifs, ce que le remplissage d'une vieille puce paie le plus cher. `emiK` = la part d'émission gardée
+   [ANCIEN .6, MOYEN .8, RÉCENT 1] ; au palier RÉCENT (K = 1) le code est celui d'avant, au bit près. Sous 1, le report fractionnaire fait la moyenne. */
+PAL.B.emiK=[.6,.8,1];
+function emiN(k,dt){const K=PAL.b('emiK',1);if(K>=1){const a=(EMI[k]||0)+Math.min(dt,.067)*60,n=Math.max(1,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;}
+  const a=(EMI[k]||0)+Math.min(dt,.067)*60*K,n=Math.max(0,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;} // le reste reporté (−0,5 au plus) : 60 par seconde pile à 30, 40 ou 50 i/s ; au-dessus de 60, une émission par image comme avant
 function nfxVent(dt,dir,kmh){ // `dir` : le sens de la course (cap au sol, vitesse en vol) — sème autour de la caméra, devant elle
   const v9=Math.max(20,kmh/3.6);NFX.vAcc+=dt*(nitroBlue?52:40)*(1+NFX.ign*NFX.ignK*1.5);
   NFX.cR.setFromMatrixColumn(camera.matrixWorld,0);NFX.cU.setFromMatrixColumn(camera.matrixWorld,1);

@@ -108,7 +108,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
       const k=1-GAR.pressT/GAR.PRESS_D,sq=1-Math.sin(Math.min(1,k)*Math.PI)*.07;
       carGroup.scale.set(1/sq,sq,1/sq);
     }else if(carGroup.scale.x!==1)carGroup.scale.set(1,1,1);
-    if(GAR.ring){GAR.ring.material.opacity=.8;GAR.ring.scale.setScalar(1);}
+    if(GAR.ring){GAR.ring.material.opacity=.8+1.1*GFIG.pulse;GAR.ring.scale.setScalar(1+.04*GFIG.pulse);} // (2026-10-23) la pose d'une figure fait battre l'anneau du plateau (voir garage-saut.js)
     // ---- LE TAP (2026-09-05) : recul bref + pluie de blocs (voir `garageImpact`) — même minuteur
     // pour les deux, ils naissent et retombent ENSEMBLE, c'est un seul geste, pas deux effets qui se
     // chevauchent par hasard.
@@ -325,6 +325,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
      GAR.vD=THREE.MathUtils.clamp(x9,-.9,.9);GAR.vDv=x9===GAR.vD?v9:0;}}
   if(GAR.roll)camera.rotateZ(GAR.roll);
   if((BURN.k>.02||BURN.kick>.01)&&!REDUCED_MOTION){const a9=BURN.k*(.8+.5*BURN.chaud+.6*BURN.donK);camera.rotateZ((Math.sin(t9*47.1)*.6+Math.sin(t9*73.3+1.7)*.4)*.0015*a9);camera.position.y+=(Math.sin(t9*53.9+.5)*.6+Math.sin(t9*81.7+2.9)*.4)*.005*a9-.07*BURN.kick;} /* (BURN-OUT v2) la secousse suit la chaleur et le donut ; au DÉPART la caméra encaisse (BURN.kick) */ // (2026-10-06) même amplitude, en BRUIT LISSE (7-13 Hz) : tiré au hasard à chaque image, il grésillait (et deux fois plus vite à 120 Hz) // (BURN-OUT) la caméra vibre à peine // (le glissé fondu) la caméra penche un peu dans le sens où elle tourne
+  if(GFIG.kick>.01&&!REDUCED_MOTION)camera.position.y-=.04*GFIG.kick; // (2026-10-23) la pose d'une figure : la caméra encaisse le choc (4 à 5 cm, ça retombe en 0,3 s)
   { // LES MISSIONS : la caméra s'élève sous la porte relevée et regarde tout l'atelier (fondu en S ; le départ la ramène, voir GAR.go.pre)
     if(!GAR.go)GMIS.mk+=(((gEl.classList.contains('missions'))?1:0)-GMIS.mk)*Math.min(1,dt*2.4);
     const u9=Math.min(1,Math.max(0,GMIS.mk)),e=u9*u9*u9*(u9*(u9*6-15)+10);GMIS.e=e;

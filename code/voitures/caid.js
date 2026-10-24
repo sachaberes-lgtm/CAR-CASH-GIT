@@ -285,10 +285,10 @@ const cuire=()=>{let C9=CACHE[0];if(C9)return C9;
       if(nx*nx+ny*ny+nz*nz<1e-12)return;const m=[(a[0]+b[0]+c[0])/3,(a[1]+b[1]+c[1])/3,(a[2]+b[2]+c[2])/3],r=ref(m);
       if(nx*(m[0]-r[0])+ny*(m[1]-r[1])+nz*(m[2]-r[2])<0)TR.push([a,c,b,k]);else TR.push([a,b,c,k]);};
     const M=p=>[-p[0],p[1],p[2]];
-    for(const [D,bas] of [[BAS,1],[SERRE,0]]){const g=grille(D),G=g.G;
-      for(let c=0;c<g.COL.length-1;c++)for(let j=0;j<g.ROWS.length-1;j++){
-        const A=G[c][j],B=G[c+1][j],C=G[c+1][j+1],E=G[c][j+1];let k;
-        if(bas){k=j<=1?23:0;if(!k&&A[1]<=YBb(A[2])+.001&&B[1]<=YBb(B[2])+.001&&C[1]<=YBb(C[2])+.001&&E[1]<=YBb(E[2])+.001)k=23;}
+    for(const [D,bas] of [[BAS,1],[SERRE,0]]){const g=grille(D),LG0=FACETTES_LARGES&&LP_GRILLES.caid?lpGrilleLarge(g.G,{e:LP_GRILLES.caid.e,jtient:LP_GRILLES.caid.jtient,ctient:c=>g.COL[c].k!=='s'}):null,G=LG0?LG0.G:g.G;   /* (les facettes larges : la grille retaillée, le nez et la poupe gardés — voir facettes-larges.js) */
+      for(let c=0;c<G.length-1;c++)for(let j=0;j<G[0].length-1;j++){
+        const A=G[c][j],B=G[c+1][j],C=G[c+1][j+1],E=G[c][j+1];let k;const jo=LG0?LG0.js[j]:j;
+        if(bas){k=jo<=1?23:0;if(!k&&A[1]<=YBb(A[2])+.001&&B[1]<=YBb(B[2])+.001&&C[1]<=YBb(C[2])+.001&&E[1]<=YBb(E[2])+.001)k=23;}
         else{const mx=(A[0]+B[0]+C[0]+E[0])/4,mz=(A[2]+B[2]+C[2]+E[2])/4,my=(A[1]+B[1]+C[1]+E[1])/4;k=(mx>.70&&mz<-.80&&my<1.935)?0:26;}  // les ailerons couleur caisse, le reste de la cabine noir
         for(const f of [p=>p,M]){tri(f(A),f(B),f(C),k);tri(f(A),f(C),f(E),k);}}}
     // ---- LES CONTOURS ----

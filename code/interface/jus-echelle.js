@@ -317,7 +317,7 @@ function respawn(){
   momT=0; // (momentum v2) repartir = réserve vide
   if(introD){introD=false;if(pigGroup){scene.remove(pigGroup);pigGroup=null;}} // R pendant le largage : on annule proprement
   s=THREE.MathUtils.clamp(safeS-8,0,Math.max(0,L-80));
-  lat=0;psi=0;vA=26;vL=0;side=1;FREIN_L=0;PARIS.psiK=0;/* (2026-10-17) ni frein étalé ni renvoi de paroi en cours */driveDir=1;graceT=1.6;prevTvalid=false;yawAcc=0;hopY=0;hopV=0;levreY=0;bascOn=false;bascT=0;mode='drive';yawR=0;slipB=0;glisse9=0;driftYaw=0;driftEnCours=false;driftC=0;driftLv=0;driftT=0;carRoll9=0;rollV=0;pitch9=0;
+  lat=0;psi=0;vA=26;vL=0;side=1;FREIN_L=0;MURC.psiK=0;/* (2026-10-17) ni frein étalé ni renvoi de paroi en cours */driveDir=1;graceT=1.6;prevTvalid=false;yawAcc=0;hopY=0;hopV=0;levreY=0;bascOn=false;bascT=0;mode='drive';yawR=0;slipB=0;glisse9=0;driftYaw=0;driftEnCours=false;driftC=0;driftLv=0;driftT=0;carRoll9=0;rollV=0;pitch9=0;
   if(SENS)try{SENS_PA.rs=1;}catch(e){} // (2026-10-14, sensations · passages) un replacement vient d'avoir lieu : sensPassages le lit à l'image suivante (rien n'est joué ici — respawn sert aussi au chargement et au départ)
 }
 // FREESTYLE : on ne MEURT jamais dans le parc — on repart sur la piste. La chaîne en cours est perdue
@@ -355,6 +355,7 @@ function checkUpgrade(){
     const sp9=CARS[i];
     showMsg(TR(pickL(CAR_LINES))+' — '+TR(sp9.name)+'  '+TR('(au garage)'),'#ffd75e');
     trickMsg('🔑 '+TR(sp9.name),3);
+    if(!REDUCED_MOTION&&running&&!gameOver)try{feteCaisse(i);}catch(e){} /* (2026-10-23) en course aussi : la fête de sa rareté */
   }
   SAVE.flush();
 }

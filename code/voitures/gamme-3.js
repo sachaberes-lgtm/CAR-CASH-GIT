@@ -178,9 +178,9 @@
      et un nez arrondi vu de dessus, autour de la visière. */
   const hmp=(z,w,r)=>{const d=Math.abs(z-w)/r;return d>=1?0:1-d*d;};
   const U=LPU,R=.33,ZF=1.07,ZR=-1.11,LF=1.855;
-  const P=K.kit({p:{g:'p',c:0xe9eae4,grad:[0xa7aab0,0xdcded9,0xf4f4f0]},v:{g:'p',c:0x006b2c,f:0},r:{g:'p',c:0xc4000e,f:0},
+  const P=K.kit(Object.assign({p:{g:'p',c:0xe9eae4,grad:[0xa7aab0,0xdcded9,0xf4f4f0]},v:{g:'p',c:0x006b2c,f:0},r:{g:'p',c:0xc4000e,f:0},
     k:{g:'m',c:0x121317},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1c2733},
-    W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},Y:{g:'l',c:0xffe08a}});
+    W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},Y:{g:'l',c:0xffe08a}},(STRATOS_METEO&&typeof stratosPal==='function')?stratosPal():{})); // (22/10) + l'or et les lueurs verte et dorée de la STATION MÉTÉO (stratos-meteo.js)
   const AR=[[0,2*R+.05],[R*.70,2*R+.04],[R+.04,R*1.15],[R+.14,.24]];
   const zs=[-LF,-1.848,-1.835,-1.81,-1.77,-1.66,-1.30,-.80,-.26,-.12,.15,.55,.97,1.40,1.62,1.72,1.76,1.80,LF];   // (affinement) -1,83 et -1,76 : la poupe tourne ses coins
   for(const w of [ZF,ZR])for(const d of [R*.70,R+.04,R+.14])zs.push(w-d,w+d);
@@ -228,6 +228,7 @@
   P.box('k',1.34,.26,.02,0,.62,-LF-.004);                                      // la face arrière noire (1,34 : la poupe arrondie ne la laisse plus déborder)
   P.cyl('c',.05,.10,8,-.30,.38,-LF-.01,'z');P.cyl('c',.05,.10,8,.30,.38,-LF-.01,'z');
   P.box('k',1.30,.06,.03,0,.30,LF-.005);
+  if(STRATOS_METEO&&typeof stratosMeteo==='function'){try{stratosMeteo(K,P,{yT:yT,LF:LF});}catch(e){console.warn('LA STRATOS, la station météo :',e);}} // (22/10) LA STATION MÉTÉO : voir stratos-meteo.js (?stratos=ancien = sans)
   K.commit(P);
   return {hl:[.36,1.02,1.37],tl:[.56,.66,-1.87],wx:.78,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.30,style:'rayons',n:5,jante:0xe0b84a,accent:0xe0b84a,branches:1}};
