@@ -3,6 +3,11 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE VERRE EN LOUPE DU MENU CIEL + LA LUEUR DE LA BOUTIQUE (2026-10-24, Léo : « contour seul avec effet loupe, reflet à l'intérieur des contours » · « une petite lueur sur l'angle extérieur, et sur les deux axes »)
+- **MENU CIEL** : GARAGE · BUY · SETTINGS (`.mAccB`, `.mOffres`, `.mGear`, `.mHubPorte` de `#mHome.acc2`) ne sont plus des laques opaques : un contour clair, le ciel qui passe (flou 5 px), et DEDANS un reflet bombé en haut à gauche, une traînée en diagonale, la lueur de la couleur de la touche par le bas, un double liseré et un point de lumière. `--lk` (1 = marqué, choisi par Léo ; .6 = discret) dose tous les reflets. Bloc `<style id="verreLoupe">` dans `code/css/boutons-flottants.css`, APRÈS celui de Sacha. Le flou de fond peut coûter du GPU sur iPhone : à mesurer sur un vrai téléphone.
+- **BOUTIQUE DU GARAGE** : la touche en L de Sacha (v797) n'est PAS touchée, ni ⚙ · œil · trophée en haut à droite (Léo : « laisse intact les changements de Sacha »). Seule ajoutée : `#gShopBas::before`, une lueur rose sur l'ANGLE EXTÉRIEUR (coin haut droit du coude) ET le long des deux bords qui s'y rejoignent (le haut, le côté droit), elle respire (`lueurAngle` 3,2 s). Dedans : le clip-path du L coupe ce qui déborde.
+- Écarté après essai : un SHOP rectangulaire avec l'œil remis en bas (c'est le L de Sacha qui prenait la place de l'œil — Léo a finalement dit de le laisser). Bande sous le logo : 5 palettes essayées (SORBET, AURORE, GLACE, SOLEIL), Léo garde l'actuelle ; aucun réglage ni paramètre d'URL ajouté.
+
 ## LA MUSIQUE DE COURSE QUI PART PLEINE (2026-10-24, session SON — Léo, sur une vidéo de course : « la musique de niveau est un peu bizarre, elle prend beaucoup de temps à commencer, on dirait juste pas de la musique »)
 - **LA CAUSE** (mesurée : chaque morceau de Pouce bleu joué comme en course, sortie enregistrée, spectrogramme de la vidéo comparé) : une course démarre au moteur 1 et Pouce bleu suit
   le moteur. Aux moteurs 1-4 les morceaux du générateur sortent à −40/−45 dB RMS (RUBIS ULTRA −45, CAVALE ULTRA −41), 20 dB SOUS les effets, avec une ou deux notes de marimba
