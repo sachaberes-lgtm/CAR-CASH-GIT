@@ -47,6 +47,7 @@ function cryptoVide(){ // (buildVoxCity, à chaque piste) ce que la ville d'avan
 function cryptoPlace(seed,proches){
   const cr=mulberry32(seed^0xB0117A11),S={taureaux:[],bougies:[],pieces:[],diam:[],dirig:[]},dS=L/(NP-1),iE=CITY.entree?CITY.entree[1]:0;
   CRYPTO.res.length=0;CRYPTO.rf=mulberry32(seed^0xF0E57B0);CRYPTO.sd=seed;
+  const DZ=CITY.dz&&CITY.dz.genre==='crypto'?CITY.dz:null; // (2026-10-20, LE DÉCOR AU HASARD) le tirage du décor (villeDecoTire) : combien, où — nul : le plan d'avant, au tirage `cr` près
   const libre=function(x,z,R,y0,y1){let ok=true;proches(x,z,R,function(i){if(!ok)return;const p=pts[i],dx=p.x-x,dz=p.z-z;if(dx*dx+dz*dz<R*R&&p.y>y0-45&&p.y<y1+45)ok=false;});return ok;};
   const dessous=function(x,z,R,y){let h=-1e9;proches(x,z,R,function(i){const p=pts[i],dx=p.x-x,dz=p.z-z;if(dx*dx+dz*dz<R*R&&p.y<y&&p.y>h)h=p.y;});return h;};
   const cadre=function(i){const T9=T[i],hl=Math.hypot(T9.x,T9.z)||1;return {px:-T9.z/hl,pz:T9.x/hl,tx:T9.x/hl,tz:T9.z/hl};};
@@ -54,7 +55,7 @@ function cryptoPlace(seed,proches){
   // LES TAUREAUX : à 30 % et à 70 % de la piste, à ~230 m de l'axe, le ventre 70 m sous la route (le dos 120 m au-dessus, les cornes 230)
   const poseT=function(t){t.ph=cr()*6.28;S.taureaux.push(t);CRYPTO.res.push(t.x,t.z,330);const p=pts[t.i];
     for(const f of [.3,.52,.74])CRYPTO.res.push(t.x+(p.x-t.x)*f,t.z+(p.z-t.z)*f,95);}; // L'ESPLANADE : pas une tour entre le taureau et la route qu'il regarde
-  for(const F0 of [.3,.7]){let rep=null,ok=false;
+  for(const F0 of (DZ?DZ.tau:[.3,.7])){let rep=null,ok=false;
     for(let k=0;k<14;k++){const i=ix(F0+(cr()-.5)*.2),c=cadre(i),sg=cr()<.5?-1:1,lat=ROAD_HALF+300+cr()*80;
       const x=pts[i].x+c.px*sg*lat,z=pts[i].z+c.pz*sg*lat,yb=pts[i].y-70;
       if(cryptoReserve(x,z,330)||!libre(x,z,280,yb-20,yb+440))continue;
@@ -66,25 +67,26 @@ function cryptoPlace(seed,proches){
       poseT(t);ok=true;break;}
     if(!ok&&rep)poseT(rep);}
   // LE GRAPHIQUE : trois rangées de bougies qui MONTENT le long de la route (une bougie tous les ~42 m), deux petites rouges dans chaque
-  for(const F0 of [.13,.5,.88]){const i0=ix(F0+(cr()-.5)*.05),sg=cr()<.5?-1:1,lat0=ROAD_HALF+115+cr()*90,pas=Math.max(1,Math.round(42/dS)),n=10+((cr()*4)|0),r1=2+((cr()*4)|0);
+  for(const R0 of (DZ?DZ.boug:[{f:.13},{f:.5},{f:.88}])){const F0=R0.f,i0=ix(F0+(cr()-.5)*.05),sg=cr()<.5?-1:1,lat0=ROAD_HALF+115+cr()*90,pas=Math.max(1,Math.round(42/dS)),n0=10+((cr()*4)|0),r1=2+((cr()*4)|0),n=DZ?R0.n:n0;
     let niv=pts[i0].y-150;
     for(let k=0;k<n;k++){const i=Math.min(NP-1,i0+k*pas),c=cadre(i),lat=lat0+(cr()-.5)*14,x=pts[i].x+c.px*sg*lat,z=pts[i].z+c.pz*sg*lat;
-      const rouge=(k===r1||k===r1+4)&&k<n-2,h=rouge?14+cr()*16:28+cr()*52,y0=rouge?niv-h:niv,y1=y0+h,mh=12+cr()*28,mb=8+cr()*22,w=16+cr()*6;
+      const rouge=(DZ&&DZ.rouge!==1?DZ.rouge===2&&k%3===r1%3&&k>0:(k===r1||k===r1+4))&&k<n-2,h=rouge?14+cr()*16:28+cr()*52,y0=rouge?niv-h:niv,y1=y0+h,mh=12+cr()*28,mb=8+cr()*22,w=16+cr()*6;
       if(cryptoReserve(x,z,w*.75)||!libre(x,z,w*.75+4,y0-mb,y1+mh)){niv+=rouge?-h*.5:h*.7;continue;}
       S.bougies.push({x:x,z:z,y0:y0,y1:y1,mh:mh,mb:mb,w:w,rouge:rouge});CRYPTO.res.push(x,z,w*.75+3);
       niv=rouge?y0+h*.3:y1-h*.22+cr()*8;}}
   // LES PIÈCES ₿ GÉANTES : douze, de 13 à 25 m de rayon, à 40-150 m du bord, 45-155 m au-dessus de la route
-  for(let k=0;k<12;k++){for(let e=0;e<4;e++){const i=ix(.07+.86*(k+cr()*.7)/12),c=cadre(i),sg=cr()<.5?-1:1,r=13+cr()*12;
+  const nPi=DZ?DZ.pie:12,nDi=DZ?DZ.diam:8;
+  for(let k=0;k<nPi;k++){for(let e=0;e<4;e++){const i=ix(.07+.86*(k+cr()*.7)/nPi),c=cadre(i),sg=cr()<.5?-1:1,r=13+cr()*12;
       const lat=ROAD_HALF+r+40+cr()*110,x=pts[i].x+c.px*sg*lat,z=pts[i].z+c.pz*sg*lat,y=pts[i].y+45+cr()*110;
       if(cryptoReserve(x,z,r+6)||!libre(x,z,r+18,y-r-10,y+r+10))continue;
       S.pieces.push({x:x,y:y,z:z,r:r,a:cr()*6.28,w:(.35+cr()*.4)*(cr()<.5?-1:1),ph:cr()*6.28,cd:0});CRYPTO.res.push(x,z,r+8);break;}}
   // LES DIAMANTS (diamond hands) : huit, plus petits, plus haut
-  for(let k=0;k<8;k++){for(let e=0;e<4;e++){const i=ix(.1+.8*(k+cr())/8),c=cadre(i),sg=cr()<.5?-1:1,r=6+cr()*5;
+  for(let k=0;k<nDi;k++){for(let e=0;e<4;e++){const i=ix(.1+.8*(k+cr())/nDi),c=cadre(i),sg=cr()<.5?-1:1,r=6+cr()*5;
       const lat=ROAD_HALF+r+60+cr()*160,x=pts[i].x+c.px*sg*lat,z=pts[i].z+c.pz*sg*lat,y=pts[i].y+90+cr()*120;
       if(cryptoReserve(x,z,r+6)||!libre(x,z,r+14,y-r*1.6-10,y+r*1.6+10))continue;
       S.diam.push({x:x,y:y,z:z,r:r,a:cr()*6.28,w:.5+cr()*.6,ph:cr()*6.28});CRYPTO.res.push(x,z,r+6);break;}}
   // LES DIRIGEABLES À ÉCRAN : trois, le long de la route, au-dessus du canyon
-  for(const F0 of [.24,.56,.84]){for(let k=0;k<8;k++){const i=ix(F0+(cr()-.5)*.12),c=cadre(i),sg=cr()<.5?-1:1;
+  for(const F0 of (DZ?Array.from({length:DZ.dir},function(_,k){return (k+.5)/DZ.dir;}):[.24,.56,.84])){for(let k=0;k<8;k++){const i=ix(F0+(cr()-.5)*.12),c=cadre(i),sg=cr()<.5?-1:1;
       const lat=ROAD_HALF+75+cr()*80,x=pts[i].x+c.px*sg*lat,z=pts[i].z+c.pz*sg*lat,y=pts[i].y+70+cr()*50;
       if(cryptoReserve(x,z,48)||!libre(x,z,62,y-28,y+28))continue;
       S.dirig.push({x:x,y:y,z:z,cap:Math.atan2(c.tx,c.tz),ph:cr()*6.28});CRYPTO.res.push(x,z,48);break;}}
@@ -94,7 +96,7 @@ function cryptoPlace(seed,proches){
 function cryptoTour(cx,cz,hd,b,t,canyon){
   if(cryptoReserve(cx,cz,hd))return true;
   const H=t-b;
-  if(!canyon&&CRYPTO.rf()<.13&&H>160){const w=Math.max(14,Math.min(30,hd*.75)),rouge=CRYPTO.rf()<.16,y1=t-20-CRYPTO.rf()*40,y0=Math.max(b+40,y1-(rouge?50:90+CRYPTO.rf()*160));
+  if(!canyon&&CRYPTO.rf()<(CITY.dz&&CITY.dz.genre==='crypto'?CITY.dz.bfo:.13)&&H>160){const w=Math.max(14,Math.min(30,hd*.75)),rouge=CRYPTO.rf()<.16,y1=t-20-CRYPTO.rf()*40,y0=Math.max(b+40,y1-(rouge?50:90+CRYPTO.rf()*160));
     CRYPTO.sites.bougies.push({x:cx,z:cz,y0:y0,y1:y1,mh:14+CRYPTO.rf()*30,mb:Math.min(y0-b,30+CRYPTO.rf()*90),w:w,rouge:rouge});return true;}
   if(H>200&&CRYPTO.toits.length<1800)CRYPTO.toits.push(cx,t,cz);
   return false;

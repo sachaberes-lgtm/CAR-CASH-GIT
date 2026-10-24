@@ -222,7 +222,7 @@ function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe();RAI.stage=0;
   if(bord)secBord();m2Saut(); /* (2026-10-16) LES MISSIONS v2 : un saut neuf, des tours neuves à frôler */ // (2026-10-14) LES DÉFIS SECRETS : FANTÔME — sorti par le bord
   const roll0=carRoll9; // (bord v2) le roulis de la carrosserie AVANT la remise à zéro : la bascule part de là
   const cap0=psi-slipB-BKV.gl; /* (2026-10-17, LE DÉCOLLAGE SANS SURSAUT) la TRAJECTOIRE au sol, lue avant la remise à zéro : au sol on avance de vA·cos(cap) et l'on dérive de vA·sin(cap) (vL) ; l'éjection prenait vA ENTIER le long de la route PLUS la dérive — à 30° de cap, la caisse décollait 11 % plus vite qu'elle ne roulait, 3° à côté de sa trajectoire */
-  if(FREIN_L<0){vA*=Math.exp(FREIN_L);FREIN_L=0;}PARIS.psiK=0; // (2026-10-17) un FREIN ÉTALÉ en cours se paie d'un coup au décollage ; la paroi lâche la caisse (voir parisMur)
+  if(FREIN_L<0){vA*=Math.exp(FREIN_L);FREIN_L=0;}MURC.psiK=0; // (2026-10-17) un FREIN ÉTALÉ en cours se paie d'un coup au décollage ; la paroi lâche la caisse (voir murCote)
   ECH=0;SVOL.t=0;/* (2026-10-14, session SON) le chrono de la tension repart : un vol neuf monte de zéro (k, lui, retombe tout seul) */figSnd._ess=0;pitchS=0;JEAU.dans=false;JEAU.wB=0;JEAU.vRef=0;JEAU.n=0;JEAU.t=0;JEAU.rico=0;JEAU.cd=0;JEAU.syF=NaN;JEAU.y0=carGroup.position.y; // (2026-10-13) la mer : un vol neuf, un premier plongeon neuf
   // (console de son) une gamme neuve à chaque vol — (2026-10-09) pitchS : le manche repart du neutre
   traceTick(false); // (2026-09-26) le ruban de gomme se coupe au décollage
@@ -351,6 +351,7 @@ function dalleProche(x,y,z,pas,bd0,graine){
     const lb=dalleLb(X,b,x,y,z);if(lb>lim||lb>=bd)continue; // ni ce casier ni aucun de ses points ne peut battre le candidat
     const i1=Math.min(NP,b*DALLE_K+DALLE_K);
     for(let i=b*DALLE_K;i<i1;i+=pas){
+      if(TROU&&TROU[i]&&(i<1||TROU[i-1]))continue; // (LES TROUS) pas de dalle au-dessus du vide : on ne s'y pose pas
       const p=pts[i],dx=x-p.x,dy=y-p.y,dz=z-p.z,dd=dx*dx+dy*dy+dz*dz;
       if(dd<bd){bd=dd;bi=i;}
     }

@@ -18,19 +18,20 @@
         ~90 % pour le reste ; un plancher de débutant (2 figures, 3 s de vol, 45 s, 250 km/h, 1 500 d'aura, 2 poses, 8 s de frénésie).
       · Il se joue EN UNE PARTIE (les mesures de la course : m2ValCourse) ; réussi → +1 JETON tout de suite et la ligne du bas en course
         (« DÉFI DU JOUR RÉUSSI · +1 JETON ») — la machine FINAL SPIN s'ouvre à l'écran de fin. Rien en balade, bac à sable, parc ni auto-école.
-   L'AFFICHAGE : un bloc AUJOURD'HUI en tête de la liste des missions (m2Render) — la ligne du défi (la même main que les missions : icône,
-   consigne, jauge du meilleur essai du jour, « NOUVEAU DÉFI DANS 7 H ») et la rangée des sept cases (cochées, celle d'aujourd'hui qui bat,
-   DEMAIN annoncé quand la case du jour est prise). L'écran de fin dit ce que la série a donné (jourFinTexte).
+   L'AFFICHAGE : la carte de la série (serieHtml, colonne de gauche de l'écran MISSIONS) — le titre (la série en cours), les sept cases (cochées, celle d'aujourd'hui
+   qui bat, DEMAIN annoncé quand la case du jour est prise) et une phrase. L'écran de fin dit ce que la série a donné (jourFinTexte).
+   (2026-10-22, Sacha : « enlève le défi du jour, je t'avais dit de l'enlever ») LE DÉFI DU JOUR EST ÉTEINT : `DJ.on` faux sauf `?defijour=1` — plus de tirage, de ligne
+   ni de jeton ; le moteur (djTire, djTick…) reste là, intact, pour le rallumer. Seule la série de sept jours garde son affichage.
    Console : dbgSerie() · dbgSerie('jour',n) (pose la série à n jours, prise hier) · dbgDefiJour() · ('force','fig') · ('reussi') · ('demain'). */
 const SERIE7={on:!/[?&]serie=ancien\b/.test(location.search),
   lots:[{cash:150},{cash:250},{jeton:1},{cash:400},{cash:600},{jeton:1},{exclu:1}],
-  exclu:['srBraise','srAurore','srLagon','srEtoile'],plein:{jeton:2}};
+  exclu:[],plein:{jeton:2}}; /* (2026-10-22, Sacha : « tableau des peintures ») les quatre peintures de la série passent à l'achat (1 €) : le 7e jour ne donne plus que le plein de jetons */
 /* LES QUATRE PEINTURES DE LA SÉRIE — `serie:1` : ni prix, ni mission ; shopOwned / m2HabAMoi ne les donnent qu'une fois gagnées ; hors des lots « toutes » des missions (m2HabReco) */
 COSM.peinture.push(
-  {id:'srBraise',n:'BRAISE FIDÈLE',serie:1,r:'epique',g:'o',grad:[0xb3141c,0xff5a1c,0xffc23a],d:'Ne s\'achète pas : le 7e jour de ta série. Sept jours d\'affilée sur l\'asphalte, la laque en garde la chaleur.'},
-  {id:'srAurore',n:'AURORE BORÉALE',serie:1,r:'epique',g:'c',grad:[0x3cffc0,0x6fb8ff,0xc77dff],d:'Ne s\'achète pas : le 7e jour de ta série. Le ciel du Grand Nord, pour ceux qui reviennent chaque jour.'},
-  {id:'srLagon',n:'LAGON INTERDIT',serie:1,r:'epique',g:'g',grad:[0x01404f,0x00b3c7,0x9ff7ff],d:'Ne s\'achète pas : le 7e jour de ta série. Une eau que personne n\'a le droit de voir. Toi si.'},
-  {id:'srEtoile',n:'NUIT ÉTOILÉE',serie:1,r:'epique',g:'c',grad:[0x2a1f8f,0x8f5bff,0xff7ad9],d:'Ne s\'achète pas : le 7e jour de ta série. La nuit entière sur ta carrosserie, une semaine de plus.'});
+  {id:'srBraise',n:'BRAISE FIDÈLE',eur:'1 €',r:'epique',g:'o',grad:[0xb3141c,0xff5a1c,0xffc23a],d:'Sept jours d\'affilée sur l\'asphalte, la laque en garde la chaleur.'},
+  {id:'srAurore',n:'AURORE BORÉALE',eur:'1 €',r:'epique',g:'c',grad:[0x3cffc0,0x6fb8ff,0xc77dff],d:'Le ciel du Grand Nord, pour ceux qui reviennent chaque jour.'},
+  {id:'srLagon',n:'LAGON INTERDIT',eur:'1 €',r:'epique',g:'g',grad:[0x01404f,0x00b3c7,0x9ff7ff],d:'Une eau que personne n\'a le droit de voir. Toi si.'},
+  {id:'srEtoile',n:'NUIT ÉTOILÉE',eur:'1 €',r:'epique',g:'c',grad:[0x2a1f8f,0x8f5bff,0xff7ad9],d:'La nuit entière sur ta carrosserie, une semaine de plus.'});
 function serieCase(n){return ((Math.max(1,n|0)-1)%7)+1;} /* le jour de série n → sa case du calendrier (1 … 7) */
 function serieLot(c){const L=SERIE7.lots[c-1]||SERIE7.lots[0];if(!L.exclu)return L;const id=serieExclu();return id?{exclu:id}:SERIE7.plein;}
 function serieExclu(){const o=(SAVE.d.shop&&SAVE.d.shop.own)||[];for(const id of SERIE7.exclu)if(o.indexOf('peinture:'+id)<0)return id;return '';} /* la prochaine peinture pas encore à toi */
@@ -50,7 +51,7 @@ function serieVue(){ /* l'état du calendrier pour l'affichage : {c : la case du
   return {c:serieCase(e.n),pris:true,faits:serieCase(e.n),n:e.n,casse:false};}
 
 /* ---- LE DÉFI DU JOUR ---- */
-const DJ={on:!/[?&]defijour=0\b/.test(location.search),t:0,
+const DJ={on:/[?&]defijour=1\b/.test(location.search),t:0, /* (2026-10-22, Sacha : « enlève le défi du jour, je t'avais dit de l'enlever ») éteint : ni tirage, ni ligne, ni jeton ; ?defijour=1 le rallume */
   fam:[{k:'fig',  u:'',    ref:4,    min:2,   K:1,   t:'FAIS {v} FIGURES DANS UN SEUL SAUT',en:'LAND {v} TRICKS IN A SINGLE JUMP'},
        {k:'airP', u:'s',   ref:5,    min:3,   K:.9,  t:'TIENS {v} S EN L\'AIR ET POSE-TOI PROPREMENT',en:'STAY {v} S IN THE AIR AND LAND CLEAN'},
        {k:'vie',  u:'mn',  ref:120,  min:45,  K:.9,  t:'SURVIS {v} EN UNE PARTIE',en:'SURVIVE {v} IN ONE RUN'},
@@ -84,41 +85,33 @@ function djTick(dt){ /* m2Tick (chaque image de course, missions allumées) : le
 function djReste(){const t=new Date(),m=new Date(t.getFullYear(),t.getMonth(),t.getDate()+1);return Math.max(0,m-t);} /* ms jusqu'à minuit (l'appareil) */
 function djResteTxt(){const mn=Math.max(1,Math.ceil(djReste()/6e4)),h=Math.floor(mn/60);return h?h+' H':mn+' MIN';}
 
-/* ---- LE BLOC AUJOURD'HUI, en tête de la liste des missions ---- */
-function aujHtml(){
-  let h='';
-  const D=djEtat();
-  if(D){const m=djM(D),ok=!!D.ok,w=Math.round(100*Math.max(0,Math.min(1,D.b/D.v)));try{spinSprites();}catch(e){}
-    h+='<div class="m2L m2F-exploit m2Dj'+(ok?' ok':'')+'" data-aj="dj" role="button" tabindex="0">'
-      +'<span class="m2Ic">'+pxi(ok?'coche':'cible')+'</span>'
-      +'<div class="glTx"><b><i class="m2Tag">'+sansAcc(TR('DÉFI DU JOUR'))+'</i> '+sansAcc(djTxt(D))+'</b>'
-      +(ok?'':'<u><em style="width:'+w+'%"></em></u>')
-      +'<small>'+(ok?sansAcc(TR('RÉUSSI')+' · +1 '+TR('JETON')+' · '+TR('NOUVEAU DANS')+' '+djResteTxt()):m2Prog(m,D.b,D.v)+' · '+sansAcc(TR('NOUVEAU DANS'))+' '+djResteTxt())+'</small></div>'
-      +'<div class="m2R m2Jt">'+(typeof spinIco==='function'?spinIco(5):'')+'<b>+1</b></div></div>';}
-  const S=SERIE7.on?serieVue():null;
-  if(S){let cs='';
-    for(let c=1;c<=7;c++){const L=serieLot(c),fait=c<=S.faits,auj=c===S.c,dem=S.pris&&c===serieCase(S.c+1)&&c!==S.c;
-      let ico;if(L.cash)ico='<b class="m2Cash">'+m2Nb(L.cash)+'</b>'; /* le chiffre seul : le vert dit déjà l'argent du jeu (« $ 150 » ne tenait pas dans la case) */else if(L.jeton)ico=(typeof spinIco==='function'?spinIco(5):'')+(L.jeton>1?'<b>×'+L.jeton+'</b>':'');
-      else{const d=COSM.peinture.find(function(x){return x.id===L.exclu;}),hx=function(c){return '#'+((c>>>0)&0xffffff).toString(16).padStart(6,'0');};
-        ico=d?'<b class="srSw" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0))+'"></b>':pxi('etoile');}
-      cs+='<i class="srC'+(fait?' fait':'')+(auj&&!S.pris?' auj':'')+(dem?' dem':'')+(L.exclu?' ex':'')+'" style="--i:'+c+'"><em>'+(LANG==='en'?'D':'J')+c+'</em>'+ico+(fait?'<s>'+pxi('coche')+'</s>':'')+'</i>';}
-    const tit=S.pris?TR('SÉRIE')+' '+S.n+' '+TR(S.n>1?'JOURS':'JOUR')+' · '+TR('DEMAIN')+' : '+serieLotTxt(serieLot(serieCase(S.c+1))):S.casse?TR('SÉRIE PERDUE · ON REPART AU 1ER JOUR'):
-      (S.n?TR('SÉRIE')+' '+S.n+' '+TR(S.n>1?'JOURS':'JOUR')+' · ':'')+TR('JOUE UNE PARTIE POUR LA CASE DU JOUR');
-    h+='<div class="m2Serie" data-aj="serie" role="button" tabindex="0"><b>'+pxi('flamme')+' '+sansAcc(tit)+'</b><div class="srL">'+cs+'</div></div>';}
-  return h?'<div class="m2Auj"><h4>'+sansAcc(TR('AUJOURD\'HUI'))+'</h4>'+h+'</div>':'';}
+/* ---- LA SÉRIE DE SEPT JOURS, en carte à côté de la liste des missions ---- */
+/* (2026-10-22, Sacha : « enlève le défi du jour… plus simple ») plus de bloc AUJOURD'HUI ni de ligne de défi : une carte — le titre (la série en
+   cours), les sept cases, une phrase (ce qui attend demain, ou comment gagner la case du jour). */
+function serieHtml(){
+  const S=SERIE7.on?serieVue():null;if(!S)return '';
+  try{spinSprites();}catch(e){}
+  let cs='';
+  for(let c=1;c<=7;c++){const L=serieLot(c),fait=c<=S.faits,auj=c===S.c,dem=S.pris&&c===serieCase(S.c+1)&&c!==S.c;
+    let ico;if(L.cash)ico='<b class="m2Cash">'+m2Nb(L.cash)+'</b>'; /* le chiffre seul : le vert dit déjà l'argent du jeu (« $ 150 » ne tenait pas dans la case) */else if(L.jeton)ico=(typeof spinIco==='function'?spinIco(5):'')+(L.jeton>1?'<b>×'+L.jeton+'</b>':'');
+    else{const d=COSM.peinture.find(function(x){return x.id===L.exclu;}),hx=function(c){return '#'+((c>>>0)&0xffffff).toString(16).padStart(6,'0');};
+      ico=d?'<b class="srSw" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0))+'"></b>':pxi('etoile');}
+    cs+='<i class="srC'+(fait?' fait':'')+(auj&&!S.pris?' auj':'')+(dem?' dem':'')+(L.exclu?' ex':'')+'" style="--i:'+c+'"><em>'+(LANG==='en'?'D':'J')+c+'</em>'+ico+(fait?'<s>'+pxi('coche')+'</s>':'')+'</i>';}
+  const tit=S.n&&!S.casse?TR('SÉRIE')+' '+S.n+' '+TR(S.n>1?'JOURS':'JOUR'):TR('SÉRIE'),
+    bas=S.pris?TR('DEMAIN')+' : '+serieLotTxt(serieLot(serieCase(S.c+1))):S.casse?TR('SÉRIE PERDUE · ON REPART AU 1ER JOUR'):TR('JOUE UNE PARTIE POUR LA CASE DU JOUR');
+  return '<div class="m2Serie" data-aj="serie" role="button" tabindex="0"><b>'+pxi('flamme')+' '+sansAcc(tit)+'</b><div class="srL">'+cs+'</div><small>'+sansAcc(bas)+'</small></div>';}
 function aujClic(t){const a=t.closest&&t.closest('[data-aj]');if(!a)return false;
-  const k=a.getAttribute('data-aj');try{uiClic('nav');}catch(e){}try{hap(8);}catch(e){}
-  if(k==='dj'){const D=djEtat();if(D)try{toast(pxi('cible')+' '+(D.ok?TR('DÉFI DU JOUR RÉUSSI')+' · '+TR('NOUVEAU DÉFI DANS')+' '+djResteTxt():TR('UNE PARTIE POUR LE RÉUSSIR')+' · +1 '+TR('JETON')+' FINAL SPIN'));}catch(e){}}
-  else{const S=serieVue();if(S)try{const L=serieLot(S.pris?serieCase(S.c+1):S.c);toast(pxi('flamme')+' '+(S.pris?TR('DEMAIN')+' : ':TR('AUJOURD\'HUI')+' : ')+serieLotTxt(L));}catch(e){}}
+  try{uiClic('nav');}catch(e){}try{hap(8);}catch(e){}
+  const S=serieVue();if(S)try{const L=serieLot(S.pris?serieCase(S.c+1):S.c);toast(pxi('flamme')+' '+(S.pris?TR('DEMAIN')+' : ':TR('AUJOURD\'HUI')+' : ')+serieLotTxt(L));}catch(e){}
   return true;}
 Object.assign(I18N,{'DÉFI DU JOUR':'DAILY CHALLENGE','DÉFI DU JOUR RÉUSSI':'DAILY CHALLENGE DONE','JETON':'TOKEN','JETONS':'TOKENS','RÉUSSI':'DONE','MEILLEUR ESSAI':'BEST TRY',
   'NOUVEAU DÉFI DANS':'NEW CHALLENGE IN','NOUVEAU DANS':'NEW IN','AUJOURD\'HUI':'TODAY','DEMAIN':'TOMORROW','REVIENS DEMAIN':'COME BACK TOMORROW','JOUR':'DAY',
   'SÉRIE PERDUE · ON REPART AU 1ER JOUR':'STREAK LOST · BACK TO DAY 1','JOUE UNE PARTIE POUR LA CASE DU JOUR':'PLAY A RUN FOR TODAY\'S BOX','UNE PARTIE POUR LE RÉUSSIR':'ONE RUN TO DO IT',
   'FAIS {v} FIGURES DANS UN SEUL SAUT':'LAND {v} TRICKS IN A SINGLE JUMP','BRAISE FIDÈLE':'FAITHFUL EMBER','AURORE BORÉALE':'NORTHERN LIGHTS','LAGON INTERDIT':'FORBIDDEN LAGOON','NUIT ÉTOILÉE':'STARRY NIGHT',
-  'Ne s\'achète pas : le 7e jour de ta série. Sept jours d\'affilée sur l\'asphalte, la laque en garde la chaleur.':'Not for sale: day 7 of your streak. Seven days in a row on the asphalt, and the paint keeps the heat.',
-  'Ne s\'achète pas : le 7e jour de ta série. Le ciel du Grand Nord, pour ceux qui reviennent chaque jour.':'Not for sale: day 7 of your streak. The sky of the far north, for those who come back every day.',
-  'Ne s\'achète pas : le 7e jour de ta série. Une eau que personne n\'a le droit de voir. Toi si.':'Not for sale: day 7 of your streak. Water nobody is allowed to see. Except you.',
-  'Ne s\'achète pas : le 7e jour de ta série. La nuit entière sur ta carrosserie, une semaine de plus.':'Not for sale: day 7 of your streak. The whole night on your body panels, one more week.'});
+  'Sept jours d\'affilée sur l\'asphalte, la laque en garde la chaleur.':'Seven days in a row on the asphalt, and the paint keeps the heat.',
+  'Le ciel du Grand Nord, pour ceux qui reviennent chaque jour.':'The sky of the far north, for those who come back every day.',
+  'Une eau que personne n\'a le droit de voir. Toi si.':'Water nobody is allowed to see. Except you.',
+  'La nuit entière sur ta carrosserie, une semaine de plus.':'The whole night on your body panels, one more week.'});
 window.dbgSerie=function(a,n){ /* (banc) l'état du calendrier · ('jour',n) : la série à n jours, prise HIER (la case suivante est à jouer) · ('pris',n) : prise aujourd'hui */
   if(a==='jour'||a==='pris'){const t=new Date();if(a==='jour')t.setDate(t.getDate()-1);const y=t.getFullYear(),m=t.getMonth()+1,d=t.getDate();
     SAVE.d.jour={d:y+'-'+(m<10?'0':'')+m+'-'+(d<10?'0':'')+d,n:Math.max(0,n|0)};SAVE.flush();}

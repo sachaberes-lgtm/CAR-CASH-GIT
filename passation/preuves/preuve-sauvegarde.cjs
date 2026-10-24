@@ -11,7 +11,12 @@
    sauvegardes mutées au hasard (jamais d'exception, forme garantie, idempotence) · D localStorage qui jette à l'écriture / à la lecture
    (avec et sans miroir natif) · E miroir natif : purge puis appli tuée pendant le boot · F partie interrompue (créditée UNE fois) ·
    G premier lancement : l'état écrit à chaque étape ramène au bon écran.
-   Dernière ligne : PREUVE OK ou PREUVE KO — <cas> ; code de sortie 0 / 1. */
+   Dernière ligne : PREUVE OK ou PREUVE KO — <cas> ; code de sortie 0 / 1.
+   (24/10, débogage sortie iOS) MISE À JOUR — la preuve plantait (« m2Vierge is not defined ») : le bloc SAVE appelle désormais m2Vierge (missions v2),
+   gagneAjoute, carRetiree, carOwned, HAB_RETIRES et m2Etat. Les quatre premiers et HAB_RETIRES sont EXTRAITS du fichier (le vrai code) ; m2Etat (la
+   migration des missions, jugée par preuve-carnets-pop) est un bouchon vide. Depuis le 22/10 (Sacha : « enlève le système de sauvegarde du lien
+   Vercel ») le web SANS Capacitor ne lit ni n'écrit rien (SAVE.neuf) sauf avec `?garde=1` : le bac simule donc `?garde=1` (la persistance de l'app
+   native, où Capacitor est là), et le cas H vérifie le lien web neuf. B3 : une vieille sauvegarde a désormais le TAIL WHIP en tête de `figs` (15/10). */
 'use strict';
 const fs=require('fs'),vm=require('vm');
 const REF='/Users/sachaberes/cash-car/debug/integ/VERSION PRINCIPALE/index.html';
@@ -31,7 +36,11 @@ function finBloc(t,i0,o,c){let d=0;for(let i=i0;i<t.length;i++){const s=sauteTex
 function unique(rep){const i=src.indexOf(rep);if(i<0)throw new Error('repère introuvable : '+rep);if(src.indexOf(rep,i+1)>=0)throw new Error('repère non unique : '+rep);return i;}
 function fonction(entete){const i=unique(entete);return src.slice(i,finBloc(src,i+entete.length-1,'{','}'));}
 const iSave=unique('const SAVE={'),iFin=unique('if(BALADE){SAVE.d.tuto=1');
-const blocSave=src.slice(iSave,iFin);
+/* (24/10) ce que le bloc SAVE appelle hors de lui-même : le vrai code, hissé avant lui (dans le jeu ce sont des déclarations de fonction de la même IIFE) */
+const iHab=unique('const HAB_RETIRES={'),habTxt=src.slice(iHab,finBloc(src,iHab+'const HAB_RETIRES='.length,'{','}'))+';';
+const avantSave=[fonction('function m2Vierge(){'),fonction('function gagneAjoute(x){'),fonction('function carRetiree(i){'),fonction('function carOwned(i){'),habTxt,
+  'function m2Etat(){} /* bouchon : la migration des missions (preuve-carnets-pop) */'].join('\n');
+const blocSave=avantSave+'\n'+src.slice(iSave,iFin);
 const F={enCoursPose:fonction('function enCoursPose(){'),enCoursRetire:fonction('function enCoursRetire(){'),
   commitExploits:fonction('function commitExploits(){'),bank:fonction('function bank(){'),bankMaxMaj:fonction('function bankMaxMaj(){'),chanceBase:fonction('function chanceBase(){')}; // (2026-10-14) la SECONDE CHANCE : chanceBase réelle, CHANCE bouchonné (jamais utilisée)
 // CARS : nombre de fiches et drapeau retire
@@ -56,7 +65,7 @@ function fauxCap(valeur,opt){const o=opt||{};const P={store:{},sets:[],gets:0,pe
   set(a){P.sets.push(a.value);P.store[a.key]=a.value;return Promise.resolve();}};
   if(valeur!==undefined)P.store.cashcarSave=valeur;return {Plugins:{Preferences:P},P};}
 function boot(initLS,opt){const o=opt||{};const L=fauxLS(initLS,o);const cap=o.cap||null;const reloads={n:0};
-  const sb={localStorage:L.ls,window:{Capacitor:cap},location:{reload(){reloads.n++;}},console,
+  const sb={localStorage:L.ls,window:{Capacitor:cap},location:{reload(){reloads.n++;},search:o.search!=null?o.search:'?garde=1'},console,
     THREE:{MathUtils:{clamp:(x,a,b)=>Math.min(b,Math.max(a,x))}},ECO3:{gain:ECOGAIN},ENGINE_TIERS:new Array(NE).fill(0),
     CARS:RETIRE.map(r=>r?{retire:1}:{}),CAR_UNLOCK:RETIRE.map(r=>r?{p:1000}:null),pk:()=>null,SANS_CARRIERE:false,CHANCE:{used:false},jourCommit:()=>0,/* (2026-10-14, GAMEPLAY) LE RETOUR DU JOUR : commitExploits et enCoursPose l'appellent ; le quotidien n'a pas de rôle dans ces preuves */PAL:{b:(k,d)=>d}}; // PAL (T5, passe perf) : défaut = le palier « fast »
   const ctx=vm.createContext(sb);let err=null;
@@ -86,14 +95,14 @@ console.log('A  joueur NEUF (aucune clé)');
 
 // ---------- B : vieilles sauvegardes ----------
 console.log('B  vieilles versions');
-{const libres=[];RETIRE.forEach((r,i)=>{if(!r&&i>0)libres.push(i);});const [c1,c2]=libres,cD=NC-1;
+{const libres=[];RETIRE.forEach((r,i)=>{if(!r&&i>0)libres.push(i);});const [c1,c2]=libres,cD=libres[libres.length-1]; /* (24/10) la DERNIÈRE caisse EN VENTE (la dernière fiche, aujourd'hui, est retirée : elle serait remboursée) */
   const recent={v:2,best:5000,leaders:[{n:'TOI',s:5000}],bestCar:4,equipped:c1,sfx:true,vox:true,mus:true,gamme:3,eco:3,
     ex:{eng:6,tricks:40,gaps:3,bumps:9,zones:2,chain:12,kmh:300,surv:0,runs:25,floor:0},bank:123456,aura:777,owned:[c1,c2,cD],tuto:1,permis:1,
     carr:{nuages:4,ville:2},mis:{n:3,ok:[1,0,1],best:[5,0,9]},shop:{own:['peinture:or'],eq:{peinture:'or'}}};
   const b=boot({cashcarSave:JSON.stringify(recent)}),d=b.S.d;
   verifie(formeOK(d).length===0,'B1 sauvegarde d\'avant LE DOGE / PARIS / figures / code cousin : forme complète',formeOK(d).join(','));
-  verifie(d.bank===123456&&d.aura===777&&d.owned.join()===[c1,c2,cD].join()&&d.equipped===c1&&d.carr.nuages===4&&d.carr.ville===2&&d.carr.paris===0&&d.tuto===1&&d.permis===1&&d.ex.runs===25,'B2 argent, voitures (dont l\'index 76), carrière, permis gardés');
-  verifie(d.volH==='monte'&&d.volHv===2&&Array.isArray(d.figs)&&d.figs[0]==='tonneau'&&d.cousin===0&&d.bankMax>=d.bank,'B3 champs récents posés par défaut (volH, figures, cousin, bankMax)');
+  verifie(d.bank===123456&&d.aura===777&&d.owned.join()===[c1,c2,cD].join()&&d.equipped===c1&&d.carr.nuages===4&&d.carr.ville===2&&d.carr.paris===0&&d.tuto===1&&d.permis===1&&d.ex.runs===25,'B2 argent, voitures (dont l\'index 76), carrière, permis gardés',JSON.stringify({bank:d.bank,aura:d.aura,owned:d.owned,att:[c1,c2,cD],eq:d.equipped,carr:d.carr,tuto:d.tuto,permis:d.permis,runs:d.ex.runs}));
+  verifie(d.volH==='monte'&&d.volHv===2&&Array.isArray(d.figs)&&d.figs.indexOf('tonneau')>=0&&d.cousin===0&&d.bankMax>=d.bank,'B3 champs récents posés par défaut (volH, figures, cousin, bankMax)',JSON.stringify({volH:d.volH,volHv:d.volHv,figs:d.figs,cousin:d.cousin,bankMax:d.bankMax}));
   const sansEx=Object.assign({},recent);delete sansEx.ex;sansEx.bestCar=4;delete sansEx.tuto;delete sansEx.permis;
   const b2=boot({cashcarSave:JSON.stringify(sansEx)});verifie(b2.S.d.ex.floor===4&&b2.S.d.tuto===0,'B4 sans `ex` : clause de grand-père (floor=bestCar), tuto 0 (runs inconnu)',JSON.stringify([b2.S.d.ex.floor,b2.S.d.tuto]));
   const avecRuns=jsonProfond(recent);delete avecRuns.tuto;const b3=boot({cashcarSave:JSON.stringify(avecRuns)});verifie(b3.S.d.tuto===1,'B5 qui a déjà joué (runs>0) sans champ tuto : pas de leçon');
@@ -209,6 +218,15 @@ console.log('G  premier lancement — l\'état écrit à chaque étape ramène a
   etapes.forEach((e,i)=>{const b=boot({cashcarSave:JSON.stringify(Object.assign({v:2,gamme:3,eco:3},e[1]))});const b2=boot({cashcarSave:b.store.cashcarSave});
     const ex=ecran(b2.S.d),bien=ex===attendu[i]&&formeOK(b2.S.d).length===0;verifie(bien,'G'+(i+1)+' '+e[0]+' → '+ex);});
   const b=boot({cashcarSave:JSON.stringify({v:2,gamme:3,eco:3,tuto:0,permis:1,bank:700,ex:{runs:9}})});verifie(b.S.d.tuto===0&&b.S.d.bank===700,'G6 « REVOIR L\'AUTO-ÉCOLE » (tuto 0 écrit) est respecté malgré les parties jouées');}
+
+// ---------- H : le lien web sans sauvegarde (22/10, Sacha) ----------
+console.log('H  lien web (sans Capacitor) : compte NEUF à chaque ouverture, rien d\'écrit');
+{const vraie=JSON.stringify({v:2,best:9000,bank:250000,owned:[],gamme:3,eco:3,tuto:1,permis:1});
+  const b=boot({cashcarSave:vraie},{search:''});
+  verifie(!b.err&&b.S.neuf===true&&b.S.d.bank===0&&b.S.d.tuto===0&&formeOK(b.S.d).length===0,'H1 web sans ?garde=1 : partie neuve, forme complète',b.err&&String(b.err));
+  b.S.d.bank=77;b.S.flush();verifie(b.store.cashcarSave===vraie,'H2 web : rien n\'est écrit (la clé présente n\'est ni lue ni écrasée)');
+  const cap=fauxCap(undefined);const bc=boot({cashcarSave:vraie},{search:'',cap});await sleep();await sleep();
+  verifie(bc.S.neuf===false&&bc.S.d.bank===250000,'H3 app native (Capacitor + Preferences) : la sauvegarde est lue, même sans ?garde=1',String(bc.S.d.bank));}
 
 console.log('');
 if(KO.length){console.log('PREUVE KO — '+KO.join(' ; '));process.exit(1);}

@@ -161,15 +161,15 @@ return function(K){
   let C9=CACHE[YEUX?1:0];
   if(!C9){
     // ---- LA GRILLE : les points, puis les facettes (les deux flancs) ----
-    const G=COL.map(c=>ROWS.map((r,j)=>point(c,j))),TR=[];
+    const G0=COL.map(c=>ROWS.map((r,j)=>point(c,j))),TR=[],LG0=FACETTES_LARGES&&LP_GRILLES.combi?lpGrilleLarge(G0,{e:LP_GRILLES.combi.e,jtient:LP_GRILLES.combi.jtient,ctient:c=>COL[c].k!=='s'}):null,G=LG0?LG0.G:G0;   /* (les facettes larges : la grille retaillée, le nez et la poupe gardés — voir facettes-larges.js) */
     const ref=(c)=>[0,1.05,cl(c[2],-1.5,1.3)];
     const tri=(a,b,c,k)=>{const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2],nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;
       if(nx*nx+ny*ny+nz*nz<1e-12)return;const m=[(a[0]+b[0]+c[0])/3,(a[1]+b[1]+c[1])/3,(a[2]+b[2]+c[2])/3],r=ref(m);
       if(nx*(m[0]-r[0])+ny*(m[1]-r[1])+nz*(m[2]-r[2])<0)TR.push([a,c,b,k]);else TR.push([a,b,c,k]);};
     const M=p=>[-p[0],p[1],p[2]];
-    for(let c=0;c<COL.length-1;c++)for(let j=0;j<ROWS.length-1;j++){
+    for(let c=0;c<G.length-1;c++)for(let j=0;j<G[0].length-1;j++){
       const A=G[c][j],B=G[c+1][j],C=G[c+1][j+1],D=G[c][j+1];
-      let k=j<=1?23:0;if(!k&&A[1]<=YB(A[2])+.001&&B[1]<=YB(B[2])+.001&&C[1]<=YB(C[2])+.001&&D[1]<=YB(D[2])+.001)k=23; // (le plafond des passages de roue)
+      let k=(LG0?LG0.js[j]:j)<=1?23:0;if(!k&&A[1]<=YB(A[2])+.001&&B[1]<=YB(B[2])+.001&&C[1]<=YB(C[2])+.001&&D[1]<=YB(D[2])+.001)k=23; // (le plafond des passages de roue)
       for(const s of [1,-1]){const f=s>0?(p=>p):M;tri(f(A),f(B),f(C),k);tri(f(A),f(C),f(D),k);}}
     // ---- LES CONTOURS (vues du plan) ----
     const ZO={cote:[],face:[],dos:[],dessus:[]},LG={cote:[],face:[],dos:[],dessus:[]};

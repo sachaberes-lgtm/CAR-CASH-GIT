@@ -246,7 +246,7 @@ function musicTick(dt,mvt){
     if(!SND.music)POUCE_JEU.fin(false);
     else{const fr9=musicMode==='run'&&!!FRENM.sw; /* (15/10 soir, Léo : « la frénésie doit rester ») le morceau de la FRÉNÉSIE joue : Pouce bleu s'efface (~0,3 s), puis revient */
       const b9=VOL.mus/.62*PBJ_NIV*(musicMode==='run'?(.62+.38*musicBoostEnv):.62);
-      POUCE_JEU.niveau(fr9?0:b9*pbjPlancher(dt,b9,PBJ_FORCE||(musicMode==='run'&&running?engTier+1:1))); /* (2026-10-16) LE PLANCHER DU DÉPART (pbjPlancher) */if(musicMode==='run'){POUCE_JEU.moteur(PBJ_FORCE||engTier+1);if(!fr9)musicVolCible=0;}}}
+      POUCE_JEU.niveau(fr9?0:b9*pbjPlancher(dt,b9,PBJ_FORCE||(musicMode==='run'&&running?pbjTier(engTier+1):1))); /* (2026-10-16) LE PLANCHER DU DÉPART (pbjPlancher) */if(musicMode==='run'){POUCE_JEU.moteur(PBJ_FORCE||pbjTier(engTier+1));if(!fr9)musicVolCible=0;}}}
   else if(musicMode==='menu'){musicVolCible=musVol()*.5;                   // le menu : en fond
     if(DEPMUS.on&&GAR.go)musicVolCible*=Math.max(0,1-(GAR.go.t||0)/1.5);          // (LE DÉPART EN MUSIQUE) il s'EFFACE pendant le piqué de JOUER…
     if(DEPMUS.sort){const d9=performance.now()-DEPMUS.sort;if(d9>3000)DEPMUS.sort=0;else musicVolCible*=Math.max(0,1-d9/350);}} // …et sous le fondu au noir du REJOUER
