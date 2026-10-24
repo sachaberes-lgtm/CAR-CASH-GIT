@@ -3,6 +3,39 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE DÉBOGAGE COMPLET POUR LA SORTIE iOS (2026-10-24, v862, session DÉBOGAGE — Sacha : « lance une immense session de debugging ultra complète sur tout le code du jeu pour la version mobile… que le jeu soit parfaitement sortable sur l'App Store directement »)
+- **LA MÉTHODE** : six agents, chacun dans son worktree tiré d'origin/main (`sortie-ios/wt/<nom>`), intégrés un à un dans `sortie-ios-integration` après relecture : COURSE (le vrai jeu
+  au banc en émulation iPhone, 12 maps, écrans au doigt, rotations, fuites, contexte 3D perdu), MOBILE (cycle de vie, audio iOS, tactile, encoche, compatibilité iOS 15), LOGIQUE
+  (sauvegarde, économie, missions, voitures, preuves node), CADENCE (minuteurs à 30 / 60 / 120 Hz), ÉCRANS (SE, mini, 15, Pro Max, FR + EN), APP STORE (branche de l'app, voir plus bas).
+  Bancs sous `verrou-banc.sh`. Rien n'est redessiné, aucun équilibrage touché.
+- **L'APPEL ENTRANT MET LA COURSE EN PAUSE** (`code/moteur/mobile-tactile.js`) : sur iPhone, un appel, Siri ou une alarme passent par-dessus le jeu sans le cacher (pas de
+  `visibilitychange`) — la course continuait muette et la partie était perdue. Le contexte audio qui passe `interrupted` ouvre la PAUSE, comme au retour d'arrière-plan. Même passe :
+  NITRO et flèches lâchées quand la page est cachée (seul le volant l'était) ; la page recalée après le clavier de `#modC`.
+- **LA SECONDE CHANCE NE FILE PAS EN ARRIÈRE-PLAN** (`code/gameplay/seconde-chance.js`) : l'offre se comptait à l'horloge murale ; l'appli quittée une seconde, elle avait disparu.
+  Cachée : le minuteur s'arrête, la fin recule d'autant. `preuve-chance-cachee.cjs`.
+- **LE CONTEXTE 3D PERDU AU PREMIER PLAN** (`code/rendu/palier-appareil.js`) : perdu sans être rendu pendant que l'appli reste à l'écran, la toile restait NOIRE pour toujours, la course
+  continuait à l'aveugle. Filet : 5 s après, toujours perdu et visible → rechargement (la partie est posée à la perte). Pas en boucle : à la 4e perte de la session, l'écran
+  « CASH CAR a calé » (`window.__crash`) et son RELANCER. Banc : rechargement à 5,1 s en course, 5,0 s au menu. `preuve-ctx-boucle.cjs`.
+- **LE MIROIR NATIF ILLISIBLE** (`code/sauvegarde.js`) : localStorage ET miroir Preferences illisibles → la page se rechargeait à l'infini. Illisible = vide (le flush écrit une
+  sauvegarde saine). `preuve-miroir-illisible.cjs` cas 5.
+- **LES LISSAGES CALÉS SUR 60 i/s** (`lisse60(k,dt)`, `code/gameplay/vol-equilibre.js` ; utilisé aussi par `ramassage.js`) : `Math.min(1,dt*k)` ne fait pas le même chemin selon la
+  cadence — l'assiette du vol équilibré s'alignait ~45 % plus vite à 30 i/s, l'aimant à pièces tirait plus fort. Identique à 60 i/s (la cadence de réglage), au temps près ailleurs.
+  `preuve-lisse60.cjs`. Une soixantaine de lissages purement visuels (caméra, glacier, pilotes adverses) restent en `Math.min(1,dt*k)` : listés, pas touchés.
+- **LES ÉCRANS SUR TOUS LES IPHONE** (`code/css/ecrans-iphone.css`, nouveau morceau) : la PAUSE COUCHÉE — la grille des réglages en 2 colonnes prenait 466 px dans 328 à 418 :
+  MUSIQUE, POUCE HAUT et FIGURES coupés ou sous l'encoche sur les 4 iPhone ; l'écran de fin couché du SE (NIVEAU/FRENESIE) ; HOME du garage (« ACCUEI ») ; noms anglais des caisses
+  sur 3 lignes. Et L'AUTO-ÉCOLE DEBOUT (`code/css/ecole.css`) : après un raté, le message rouge sur une ligne élargissait la colonne à 385 px dans une carte de 351 — consigne coupée,
+  message sous PASSER, sur tous les iPhone ; colonne en `minmax(0,1fr)` (le message rouge se termine par « … » sur les écrans étroits).
+- **LES PREUVES DE NON-RÉGRESSION** (`passation/preuves/`) : 9 sur 11 échouaient sur le main du 24/10 — toutes PÉRIMÉES (repères changés de forme, choix de Sacha : web sans
+  sauvegarde, POUPÉE et REQUIN retirés), aucune vraie régression. Remises à jour ; `preuve-balayage` sans objet (carrière retirée). 15 preuves vertes.
+- **VÉRIFIÉ PROPRE** : 0 exception sur les 12 maps, les écrans, pause, mort, REJOUER, rotations (seul bruit : le 404 de `dark-triad.mp3`, fichier pas encore livré) ; pas de fuite
+  sur 9 courses ni 2 passes de 7 maps (géométries, textures, programmes, écouteurs stables) ; JS compatible iOS 15 (aucun lookbehind, `requestIdleCallback` gardé…) ; double toucher
+  sur ACHETER, fonds insuffisants, missions payées deux fois : protégés ; CARS/CAR_UNLOCK alignés (91), chaque nom traduit ; pouvoirs, missions, économie et physique du vol en `dt`.
+- **À TRANCHER PAR SACHA** : cible iOS 15.0 de l'app alors que 122 `color-mix()`, des `@container`/`cqi`, 44 `:has()` et `1lh` demandent iOS 15.4 à 16.4 (rendu dégradé, pas
+  cassé, sur iPhone 6s/7/SE 1) ; triche par l'horloge du téléphone (prime de série, défi du jour : gains faibles) ; message rouge de l'auto-école coupé sur écran étroit.
+- **L'APP iOS** (branche `sortie-ios/appstore`, depuis `ios-capacitor`) : main fusionné, `preparer-www.js` recalé (coupes devenues sans objet retirées, PEINTURES EN € et pack
+  LA PALETTE passés à l'argent du jeu dans l'app — règle 3.1.1), `www/` refait, construction simulateur réussie. Décisions ouvertes : page de confidentialité en ligne (« aucun
+  réseau » faux depuis les mises à jour en direct), « pub maison » contre « sans pub » de la fiche, LE DOGE / LA CABOSSÉE / LE BAROUDEUR, CRYPTO CITY dans l'app.
+
 ## LA PASSE PERF PC — LES OUTILS DEVTOOLS SUR LE MAC (2026-10-24, v860, session PERF-PC — Sacha : « lance une grosse session d'optimisation des performances grâce aux outils Google Dev… sans toucher au téléphone. Il y a déjà une autre session qui est sur le téléphone »)
 - **LE BANC** : Chrome DevTools (chrome-devtools-mcp, le Chrome à fenêtre) sur le Mac de Sacha (Apple M4, Chrome 155, fenêtre 1400 × 800 ×2, cadre bureau : le jeu dans l'iframe 844 × 390
   zoomée ×1,536 → densité 3,07, palier 2 RÉCENT) + un banc CDP sans fenêtre (`perf-pc/.banc-pc/banc.mjs`, dossier de travail non versé : course / menu / fin / chargement, trace,
