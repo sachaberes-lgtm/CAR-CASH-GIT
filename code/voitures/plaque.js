@@ -269,9 +269,15 @@ function plqClavier(){const el=$p('plq'),tx=$p('plqTx'),vv=window.visualViewport
   if(on){const T=Math.round(top)+'px',H=Math.round(h)+'px',neuf=!el.classList.contains('clavier')||el.style.height!==H;if(el.style.top!==T)el.style.top=T;if(el.style.height!==H)el.style.height=H;
     if(neuf){el.classList.add('clavier');el.classList.remove('serre');if(el.scrollHeight>el.clientHeight+2)el.classList.add('serre');el.scrollTop=el.scrollHeight;}} /* debout, les modèles restent s'ils tiennent ; le champ et VALIDER, toujours au ras du clavier */
   else if(el.classList.contains('clavier')){el.classList.remove('clavier','serre');el.style.top=el.style.height='';}}
-function plqFerme(ok){const el=$p('plq');if(!el||!PLQ.on)return;
+function plqFerme(ok){const el=$p('plq');if(!el||!PLQ.on||PLQ.sort)return;
   if(ok){const p=SAVE.d.plq||(SAVE.d.plq={});p.m=PLQ.m;p.x=plqNet(PLQ.x).trim()||plqHasard();p.ok=1;SAVE.flush();plqRepeint();
     toast(pxi('coche')+' '+TR('PLAQUE ENREGISTREE'),true);}
+  /* (2026-10-24) LA PREMIÈRE FOIS, la plaque ne disparaît pas d'un coup : elle est TAMPONNÉE (éclat d'or, elle se pose), le reste s'éteint autour d'elle, puis l'atelier fond sur l'accueil en 0,9 s.
+     Le jeu attend (PLQ.on reste vrai) jusqu'à la fin du fondu : rien ne se coupe. */
+  if(ok&&PLQ.mode==='premier'&&!PLQ.sort&&document.documentElement.getAttribute('data-reduced-motion')!=='1'&&!matchMedia('(prefers-reduced-motion:reduce)').matches){
+    PLQ.sort=true;const tx0=$p('plqTx');try{if(tx0)tx0.blur();}catch(_){}el.classList.add('valide');
+    setTimeout(function(){el._sortMs=900;PLQ.on=false;PLQ.kb=false;PLQ.sort=false;feuilleFerme(el,'on');el._sortMs=0;setTimeout(function(){el.classList.remove('valide');},1000);if(PLQ.prof)profRemplit();},1250);
+    return;}
   PLQ.on=false;PLQ.kb=false;const tx=$p('plqTx');try{if(tx)tx.blur();}catch(_){} /* (2026-10-18, débogage) PLQ.kb remis ici : plqClavier ne tourne plus une fois l'atelier fermé, et le rattrapage de 400 ms (la page qui revient en haut quand le clavier iOS descend) attendait un PLQ.kb faux qui ne venait jamais */
   feuilleFerme(el,'on');if(PLQ.prof)profRemplit();}
 function plqBranche(){const el=$p('plq');if(!el||el._b)return;el._b=1;
@@ -310,7 +316,7 @@ function plqGuette(){if(PLQ.iv)return;PLQ.iv=setInterval(function(){try{
   const sp=document.getElementById('splash'),md=document.getElementById('modale');
   const pret=!sp&&!!overlay&&overlay.getAttribute('data-ecran')==='home'&&!(started&&!gameOver)&&!(garageOn&&!document.body.classList.contains('titreCiel'))&&!(GAR&&GAR.go)&&!ecranWipe._on&&!(md&&md.classList.contains('on'))&&!document.body.classList.contains('play')&&!BIENV.on;
   if(!pret){PLQ.t0=0;return;}if(!PLQ.t0){PLQ.t0=performance.now();return;}
-  if(performance.now()-PLQ.t0>600){clearInterval(PLQ.iv);PLQ.fait=true;plqOuvre('premier');}}catch(e){}},250);}
+  if(performance.now()-PLQ.t0>2600){clearInterval(PLQ.iv);PLQ.fait=true;plqOuvre('premier');}}catch(e){}},250);} /* (2026-10-24, Léo : « laisse le temps d'apprécier, ça ne doit pas couper ») l'accueil et sa musique respirent 2,6 s avant que l'atelier ne se lève (avant : 0,6 s) */
 /* LE PROFIL */
 function profChiffres(){const d=SAVE.d,ex=d.ex||{},p=d.prof||{};let tc=0;try{for(const k in (ex.temps||{}))tc+=+ex.temps[k]||0;}catch(e){}
   let own=0,tot=0;try{for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;tot++;if(i===0||carOwned(i))own++;}}catch(e){}

@@ -8027,6 +8027,46 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
   --nc:var(--neoA);pointer-events:auto}
 #gProf.on{display:flex}
 #gProf .pxi{--pxs:2}
+/* ====== LA PREMIÈRE PLAQUE, MISE EN SCÈNE (2026-10-24, Léo : « l'animation du choix des plaques beaucoup plus stylée, laisse le temps d'apprécier, ça ne doit pas couper ») ======
+   Seulement `.premier` (le tout début du jeu) : l'atelier ne glisse plus d'un bloc, il SE DISTRIBUE. L'écran se dissout depuis l'accueil (1,1 s), le titre tombe et resserre son interlettrage, la plaque
+   est « distribuée » d'en haut (plus grande, penchée, elle se pose avec un léger rebond) puis un reflet la traverse, la saisie monte, les neuf modèles se posent un à un, VALIDER arrive en dernier (~2,2 s
+   en tout : le temps de regarder, jamais bloquant — on peut tout toucher dès qu'un élément est là). Valider : `.valide` — la plaque est TAMPONNÉE (éclat d'or, elle se pose), le reste s'éteint,
+   puis l'atelier fond sur l'accueil en 0,9 s (plaque.js, plqFerme). Que des propriétés individuelles (opacity/translate/scale/rotate) : rien ne se bat avec les `transform` ailleurs. */
+#plq.premier.on{animation:plqPremier 1.1s ease both}
+@keyframes plqPremier{from{opacity:0}to{opacity:1}}
+#plq.premier.sortant{animation:plqSortLent .9s ease both}
+@keyframes plqSortLent{to{opacity:0}}
+#plq.premier.on .plTete b{animation:plqTitre 1s var(--ease) .3s both}
+@keyframes plqTitre{from{opacity:0;translate:0 -22px;letter-spacing:11px}to{opacity:1;translate:0 0;letter-spacing:1px}}
+#plq.premier.on .plX{animation:plqFondu .8s ease .85s both}
+@keyframes plqFondu{from{opacity:0;translate:0 8px}to{opacity:1;translate:0 0}}
+#plq.premier.on .plVue{animation:plqDonne 1.15s cubic-bezier(.2,.9,.25,1.12) .5s both;transform-origin:50% 100%}
+@keyframes plqDonne{0%{opacity:0;translate:0 -70px;scale:1.4;rotate:-5deg}55%{opacity:1}100%{opacity:1;translate:0 0;scale:1;rotate:0deg}}
+#plq.premier .plVue::before{content:"";position:absolute;inset:-26% -10%;z-index:-1;pointer-events:none;background:radial-gradient(closest-side,rgba(255,215,94,.34),rgba(255,215,94,0));opacity:0}
+#plq.premier.on .plVue::before{animation:plqHalo 3.2s ease-in-out 1.3s infinite}
+@keyframes plqHalo{0%,100%{opacity:.25;scale:.92}50%{opacity:.75;scale:1.04}}
+#plq.premier .plVue::after{content:"";position:absolute;inset:0;pointer-events:none;clip-path:inset(0 round 7%);background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.7) 50%,transparent 62%) -160% 0/160% 100% no-repeat;opacity:0}
+#plq.premier.on .plVue::after{animation:plqReflet 1.1s ease-in-out 1.55s both}
+@keyframes plqReflet{0%{opacity:1;background-position:-160% 0}100%{opacity:1;background-position:260% 0}}
+#plq.premier.on .plSaisie{animation:plqFondu .7s var(--ease) 1.25s both}
+#plq.premier.on .plMod{animation:plqTuile .55s cubic-bezier(.2,.9,.25,1.2) 2.1s both} /* au-delà des neuf premières (la liste des pays est longue) : elles se posent avec la dernière */
+@keyframes plqTuile{from{opacity:0;translate:0 16px;scale:.86}to{opacity:1;translate:0 0;scale:1}}
+#plq.premier.on .plMod:nth-child(1){animation-delay:1.45s}#plq.premier.on .plMod:nth-child(2){animation-delay:1.52s}#plq.premier.on .plMod:nth-child(3){animation-delay:1.59s}
+#plq.premier.on .plMod:nth-child(4){animation-delay:1.66s}#plq.premier.on .plMod:nth-child(5){animation-delay:1.73s}#plq.premier.on .plMod:nth-child(6){animation-delay:1.8s}
+#plq.premier.on .plMod:nth-child(7){animation-delay:1.87s}#plq.premier.on .plMod:nth-child(8){animation-delay:1.94s}#plq.premier.on .plMod:nth-child(9){animation-delay:2.01s}
+#plq.premier.on .plBas{animation:plqFondu .8s var(--ease) 2.2s both}
+#plq.premier.on .plOk{animation:plqFondu .8s var(--ease) 2.2s both,plqPouls 2.4s ease-in-out 3.2s infinite}
+@keyframes plqPouls{0%,100%{filter:brightness(1)}50%{filter:brightness(1.18)}}
+/* VALIDER : la plaque est tamponnée, tout le reste s'éteint */
+#plq.premier.valide .plVue{animation:plqTampon .8s cubic-bezier(.3,1.4,.4,1) both;transform-origin:50% 50%}
+@keyframes plqTampon{0%{scale:1;filter:brightness(1)}30%{scale:1.1;filter:brightness(1.6)}100%{scale:1.03;filter:brightness(1)}}
+#plq.premier.valide .plVue::after{animation:plqReflet .9s ease-in-out .15s both}
+#plq.premier.valide .plVue::before{animation:plqHaloFin 1.1s ease-out both}
+@keyframes plqHaloFin{0%{opacity:.4;scale:.9}35%{opacity:1;scale:1.25}100%{opacity:.5;scale:1.1}}
+#plq.premier.valide .plTete,#plq.premier.valide .plX,#plq.premier.valide .plSaisie,#plq.premier.valide .plMods,#plq.premier.valide .plBas{animation:plqEteint .5s ease both;pointer-events:none}
+@keyframes plqEteint{to{opacity:0;translate:0 10px}}
+#plq.premier.valide .plMod,#plq.premier.valide .plOk{animation:none}
+@media (prefers-reduced-motion:reduce){#plq.premier.on,#plq.premier.sortant,#plq.premier .plTete b,#plq.premier .plX,#plq.premier .plVue,#plq.premier .plVue::before,#plq.premier .plVue::after,#plq.premier .plSaisie,#plq.premier .plMod,#plq.premier .plBas,#plq.premier .plOk{animation:none!important}}
 /* COUCHÉ (le téléphone tenu en travers, le cadre de l'ordi) : deux colonnes, tout tient sans défiler */
 @media (orientation:landscape) and (max-height:540px){
   #plq,#prof{padding-top:calc(var(--sT) + 10px);padding-bottom:calc(var(--sB) + 10px)}
@@ -8568,7 +8608,7 @@ function feuilleOuvre(el,cls){ if(!el)return; try{uiGarde();}catch(e){} clearTim
 function feuilleFerme(el,cls){ if(!el||!el.classList.contains(cls))return; try{uiGarde();}catch(e){} clearTimeout(el._fermeT);
   try{typeof sfx==='function'&&sfx('ui.feuilleFerme');}catch(e){}
   if(document.documentElement.getAttribute('data-reduced-motion')==='1'){el.classList.remove(cls,'sortant');return;}
-  el.classList.add('sortant'); el._fermeT=setTimeout(function(){el.classList.remove(cls,'sortant');},170); }
+  el.classList.add('sortant'); el._fermeT=setTimeout(function(){el.classList.remove(cls,'sortant');},el._sortMs||170); }
 function modale(o){return new Promise(function(res){
   const m=document.getElementById('modale'),c=document.getElementById('modC'),b=m.querySelector('.modB');
   m.classList.toggle('facC6',!!o.cartes); // (2026-10-14, charte 6) les boutons en CARTES
@@ -45108,9 +45148,15 @@ function plqClavier(){const el=$p('plq'),tx=$p('plqTx'),vv=window.visualViewport
   if(on){const T=Math.round(top)+'px',H=Math.round(h)+'px',neuf=!el.classList.contains('clavier')||el.style.height!==H;if(el.style.top!==T)el.style.top=T;if(el.style.height!==H)el.style.height=H;
     if(neuf){el.classList.add('clavier');el.classList.remove('serre');if(el.scrollHeight>el.clientHeight+2)el.classList.add('serre');el.scrollTop=el.scrollHeight;}} /* debout, les modèles restent s'ils tiennent ; le champ et VALIDER, toujours au ras du clavier */
   else if(el.classList.contains('clavier')){el.classList.remove('clavier','serre');el.style.top=el.style.height='';}}
-function plqFerme(ok){const el=$p('plq');if(!el||!PLQ.on)return;
+function plqFerme(ok){const el=$p('plq');if(!el||!PLQ.on||PLQ.sort)return;
   if(ok){const p=SAVE.d.plq||(SAVE.d.plq={});p.m=PLQ.m;p.x=plqNet(PLQ.x).trim()||plqHasard();p.ok=1;SAVE.flush();plqRepeint();
     toast(pxi('coche')+' '+TR('PLAQUE ENREGISTREE'),true);}
+  /* (2026-10-24) LA PREMIÈRE FOIS, la plaque ne disparaît pas d'un coup : elle est TAMPONNÉE (éclat d'or, elle se pose), le reste s'éteint autour d'elle, puis l'atelier fond sur l'accueil en 0,9 s.
+     Le jeu attend (PLQ.on reste vrai) jusqu'à la fin du fondu : rien ne se coupe. */
+  if(ok&&PLQ.mode==='premier'&&!PLQ.sort&&document.documentElement.getAttribute('data-reduced-motion')!=='1'&&!matchMedia('(prefers-reduced-motion:reduce)').matches){
+    PLQ.sort=true;const tx0=$p('plqTx');try{if(tx0)tx0.blur();}catch(_){}el.classList.add('valide');
+    setTimeout(function(){el._sortMs=900;PLQ.on=false;PLQ.kb=false;PLQ.sort=false;feuilleFerme(el,'on');el._sortMs=0;setTimeout(function(){el.classList.remove('valide');},1000);if(PLQ.prof)profRemplit();},1250);
+    return;}
   PLQ.on=false;PLQ.kb=false;const tx=$p('plqTx');try{if(tx)tx.blur();}catch(_){} /* (2026-10-18, débogage) PLQ.kb remis ici : plqClavier ne tourne plus une fois l'atelier fermé, et le rattrapage de 400 ms (la page qui revient en haut quand le clavier iOS descend) attendait un PLQ.kb faux qui ne venait jamais */
   feuilleFerme(el,'on');if(PLQ.prof)profRemplit();}
 function plqBranche(){const el=$p('plq');if(!el||el._b)return;el._b=1;
@@ -45149,7 +45195,7 @@ function plqGuette(){if(PLQ.iv)return;PLQ.iv=setInterval(function(){try{
   const sp=document.getElementById('splash'),md=document.getElementById('modale');
   const pret=!sp&&!!overlay&&overlay.getAttribute('data-ecran')==='home'&&!(started&&!gameOver)&&!(garageOn&&!document.body.classList.contains('titreCiel'))&&!(GAR&&GAR.go)&&!ecranWipe._on&&!(md&&md.classList.contains('on'))&&!document.body.classList.contains('play')&&!BIENV.on;
   if(!pret){PLQ.t0=0;return;}if(!PLQ.t0){PLQ.t0=performance.now();return;}
-  if(performance.now()-PLQ.t0>600){clearInterval(PLQ.iv);PLQ.fait=true;plqOuvre('premier');}}catch(e){}},250);}
+  if(performance.now()-PLQ.t0>2600){clearInterval(PLQ.iv);PLQ.fait=true;plqOuvre('premier');}}catch(e){}},250);} /* (2026-10-24, Léo : « laisse le temps d'apprécier, ça ne doit pas couper ») l'accueil et sa musique respirent 2,6 s avant que l'atelier ne se lève (avant : 0,6 s) */
 /* LE PROFIL */
 function profChiffres(){const d=SAVE.d,ex=d.ex||{},p=d.prof||{};let tc=0;try{for(const k in (ex.temps||{}))tc+=+ex.temps[k]||0;}catch(e){}
   let own=0,tot=0;try{for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;tot++;if(i===0||carOwned(i))own++;}}catch(e){}
@@ -74000,17 +74046,34 @@ function goImmersive(){
   /* LE « PRESENTS » (2026-10-24, Léo : « enlève le premier CASH CAR ; après l'explosion, PRESENTS, puis l'écran menu ciel avec la musique qui apparaît ») : la boule explose, le mot s'écrit
      lettre à lettre sur le noir (or, interlettrage qui se resserre), tient, s'éteint ; PUIS le voile fond sur le ciel, et c'est là, là seulement, que la musique du lobby démarre (`reveler`).
      Le gros logo CASH CAR du film (`dActe3`) n'est plus montré après l'appui : le premier CASH CAR du jeu est celui du menu. s = secondes depuis l'appui. */
-  const PRES_FIN=2.5; /* l'instant (s après l'appui) où le mot est éteint ; le voile fond juste après */
+  const PRES_FIN=4.1; /* l'instant (s après l'appui) où le texte est éteint ; le voile fond juste après (2026-10-24 : 2,5 → 4,1 s, Léo : « laisse le temps d'apprécier ») */
   function dPresente(c,s,e){
-    const sor=1-lisse(PRES_FIN-.6,PRES_FIN,s);if(sor<=.004)return;
-    const txt='PRESENTS',n=txt.length,px=Math.max(10,Math.round(Math.min(W/17,H/9,30))),k=sort3((s-.7)/1.3),esp=px*(.95-.5*k);
-    const tot=n*px+(n-1)*esp,y=e.cy+px*.4;let x=W/2-tot/2;
+    const sor=1-lisse(PRES_FIN-.7,PRES_FIN,s);if(sor<=.004)return;
+    /* (2026-10-24, Léo : « au lieu de PRESENTS, 1.61 STUDIO PRESENTS ») deux lignes : « 1.61 STUDIO » en grand (le « 1.61 » blanc chaud, STUDIO en or), un filet d'or qui s'ouvre depuis le centre,
+       puis « PRESENTS » plus petit, très espacé, crème. La ligne du haut s'écrit lettre à lettre (0,7 s), le filet suit, le mot du bas arrive en dernier. */
+    const t1='1.61 STUDIO',t2='PRESENTS',n1=t1.length,n2=t2.length;
+    const px=Math.max(9,Math.round(Math.min(W/23,H/9,30))),px2=Math.max(8,Math.round(px*.5)),k=sort3((s-.7)/1.5),esp=px*(.95-.5*k);
+    const tot=n1*px+(n1-1)*esp,y1=e.cy-px*.1,yR=e.cy+px*.62,y2=yR+px2*2.1;
     c.save();c.textAlign='left';c.textBaseline='alphabetic';c.font=px+'px "Press Start 2P",monospace';
-    const gr=c.createLinearGradient(0,y-px,0,y);gr.addColorStop(0,'#fff2be');gr.addColorStop(.5,'#ffd75e');gr.addColorStop(1,'#e8a53a');
-    for(let i=0;i<n;i++){
+    const grO=c.createLinearGradient(0,y1-px,0,y1);grO.addColorStop(0,'#fff2be');grO.addColorStop(.5,'#ffd75e');grO.addColorStop(1,'#e8a53a');
+    const grB=c.createLinearGradient(0,y1-px,0,y1);grB.addColorStop(0,'#ffffff');grB.addColorStop(1,'#ffe9b8');
+    let x=W/2-tot/2;
+    for(let i=0;i<n1;i++){
       const la=lisse(.7+i*.07,1.15+i*.07,s)*sor;
-      if(la>.004){c.globalAlpha=la;c.fillStyle='#1c0430';c.fillText(txt[i],x+px*.12,y+px*.12);c.fillStyle=gr;c.fillText(txt[i],x,y);}
+      if(la>.004){c.globalAlpha=la;c.fillStyle='#1c0430';c.fillText(t1[i],x+px*.12,y1+px*.12);c.fillStyle=i<4?grB:grO;c.fillText(t1[i],x,y1);}
       x+=px+esp;
+    }
+    /* le filet d'or : il s'ouvre depuis le centre */
+    const fl=sort3((s-1.55)/.9);
+    if(fl>.004){const wl=tot*.62*fl,g=c.createLinearGradient(W/2-wl/2,0,W/2+wl/2,0);g.addColorStop(0,'rgba(255,215,94,0)');g.addColorStop(.5,'rgba(255,226,150,1)');g.addColorStop(1,'rgba(255,215,94,0)');
+      c.globalAlpha=sor*.9;c.fillStyle=g;c.fillRect(W/2-wl/2,yR,wl,Math.max(1,Math.round(px*.1)));}
+    /* « PRESENTS » : plus petit, l'interlettrage se resserre doucement */
+    const k2=sort3((s-1.9)/1.5),esp2=px2*(2.4-1.3*k2),tot2=n2*px2+(n2-1)*esp2;
+    c.font=px2+'px "Press Start 2P",monospace';x=W/2-tot2/2;
+    for(let i=0;i<n2;i++){
+      const la=lisse(1.9+i*.09,2.4+i*.09,s)*sor;
+      if(la>.004){c.globalAlpha=la*.92;c.fillStyle='#1c0430';c.fillText(t2[i],x+px2*.12,y2+px2*.12);c.fillStyle='#ffe9c4';c.fillText(t2[i],x,y2);}
+      x+=px2+esp2;
     }
     c.restore();
   }
