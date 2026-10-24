@@ -80,6 +80,7 @@ maps/cryptocity.js                   # CRYPTOCITY : plan, matières, réclames
 maps/cryptocity-taureau.js           # cryptocity : le taureau, objets du ciel
 maps/cryptocity-embellie.js          # cryptocity : l'horizon du bull run (tours et bougies lointaines), les projecteurs de la nuit
 maps/ville-verre.js                  # la ville vitrée, néon et verre, le dirigeable
+maps/ville-embellie.js               # la ville embellie : rais de projecteur, écho des néons dans le verre, étages techniques, l'or
 maps/pluie-argent.js                 # la pluie d'argent v2 (PLA)
 maps/murs-slide.js                   # la figure SLIDE (frotter le bord) et le coup d'épaule des parois (murCote)
 maps/jade-1.js                       # LES PICS DE JADE : route, maillage glouton, montagnes en cubes
