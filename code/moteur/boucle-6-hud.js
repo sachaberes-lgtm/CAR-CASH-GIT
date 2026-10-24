@@ -63,7 +63,7 @@
     // (2026-09-28, HUD v5) la rampe dit la MÊME chose que le disque NITRO : la part du RÉSERVOIR du moteur (orange), puis la réserve bleue
     // par-dessus, plafonnées à la rampe entière — elle comptait sur 4 unités : réservoir plein = rampe à moitié, disque plein (contradiction)
     {VOLG.n.r=Math.min(VOLG.n.r,nitroR);VOLG.n.x=Math.min(VOLG.n.x,nitroX); // (2026-10-12) la barre MONTRE la nitro moins celle qui vole encore vers elle
-     const nR8=Math.max(0,nitroR-VOLG.n.r),nX8=Math.max(0,nitroX-VOLG.n.x),mx8=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,fR8=Math.min(1,nR8/mx8),fX8=Math.min(1-fR8,nX8/2);volgRessort(dt,fR8,fX8);const w1=Math.round(VOLG.fR*200)/2,w2=Math.round(VOLG.fX*200)/2; // (2026-10-12) elle se remplit en RESSORT
+     const nR8=Math.max(0,nitroR-VOLG.n.r),nX8=Math.max(0,nitroX-VOLG.n.x),mx8=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,fR8=Math.min(1,nR8/mx8),fX8=Math.min(1-fR8,nX8/2);volgRessort(dt,fR8,fX8);const qB9=PAL.b('hudBarQ',200),w1=Math.round(VOLG.fR*qB9)*100/qB9,w2=Math.round(VOLG.fX*qB9)*100/qB9; // (2026-10-12) elle se remplit en RESSORT
      if(loop._nw1!==w1){loop._nw1=w1;elNR.style.width=w1+'%';}
      if(loop._nw2!==w2){loop._nw2=w2;elNX.style.width=w2+'%';}
      const pl=(nR8+nX8)>=mx8-.01;
@@ -74,7 +74,7 @@
       if(loop._nst!==st){loop._nst=st;const nb=elNR.parentNode;nb.classList.toggle('boost',nitroOn&&!nitroBlue);nb.classList.toggle('bleu',nitroOn&&nitroBlue);nb.classList.toggle('bas',(nR8+nX8)<.35);
        if(elNB){elNB.classList.toggle('bleu',nitroOn&&nitroBlue);elNB.classList.toggle('bas',(nR8+nX8)<.35);}}} // (2026-09-28) …et le bouton NITRO : réserve bleue, à sec
      // L'ANNEAU DU BOUTON NITRO : la même réserve, en arc autour du pouce
-     const r9=Math.round(Math.min(1,nR8/mx8)*100)/100,x9=Math.round(Math.min(1,nX8/2)*100)/100;
+     const qN9=PAL.b('hudNitroQ',100),r9=Math.round(Math.min(1,nR8/mx8)*qN9)/qN9,x9=Math.round(Math.min(1,nX8/2)*qN9)/qN9; // (2026-10-24, passe perf) par crans de 1/qN9 (voir hudNitroQ)
      if(elNB&&(loop._nbr!==r9||loop._nbx!==x9)){loop._nbr=r9;loop._nbx=x9;elNB.style.setProperty('--nr',r9);elNB.style.setProperty('--nx',x9);}}
     try{nx3Tick(dt,speedKmh);}catch(e){loopWarn(256,'nitro',e);}
     try{ajTick(dt);}catch(e){loopWarn(512,'jauge aura',e);} // (2026-10-12, Léo) LA JAUGE D'AURA (le flow passe en petit dessous) // (2026-10-12, Léo) LE BOUTON NITRO v3 : l'éclair en pixels qui s'enfonce, la vitesse à droite de la barre de boost

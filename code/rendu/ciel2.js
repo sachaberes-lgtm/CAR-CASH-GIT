@@ -225,7 +225,7 @@ function engVigRender(dt){
   }
   // (vague 2, H6) LA CARTE DE COURSE : le moteur est rendu à 30 i/s dans son petit tampon, et recollé À CHAQUE IMAGE (le framebuffer
   // principal est repeint à chaque image : un quad sauté = un moteur qui clignote)
-  if(carte9){if(performance.now()-engEndT>33){engEndT=performance.now();engVigRendRT(engRTc);}engQuadDraw();return;}
+  if(carte9){if(performance.now()-engEndT>PAL.b('engVigMs',33)){engEndT=performance.now();engVigRendRT(engRTc);}engQuadDraw();return;} // (2026-10-24, passe perf) la carte de COURSE aussi à la cadence du palier (engVigMs : 10 / 15 / 30 rendus par seconde) — le quad recolle l'image d'avant entre deux
   // (perf) téléphone et écran de fin : l'image n'est RECOPIÉE qu'à 30 (20) i/s — la rendre entre deux recopies ne servait à rien
   if((fin||tel)&&performance.now()-engEndT<=(tel?PAL.b('engVigMs',33):50))return;
   if(tel&&ENG_MORT.cv&&ENG_MORT.cv.offsetParent===null){engEndT=performance.now();return;} // (2026-10-14, passe perf mobile) carte cachée (accueil ou atelier ouverts par-dessus la mort) : ni rendu ni relecture — et la question n'est reposée qu'à la cadence de la recopie

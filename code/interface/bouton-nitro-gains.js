@@ -33,6 +33,11 @@ const NX3_G=[ // 15 × 20 : la silhouette de l'éclair de la barre (pente, march
   '..##...........',
   '.##............',
   '.#.............'];
+/* (2026-10-24, passe perf 2e tour) LA JAUGE ET L'ANNEAU DE LA NITRO PAR CRANS PLUS LARGES sur les vieux téléphones : nitro tenue, la valeur change à chaque
+   image — et le bouton (#tNitro : 18 règles, 402 déclarations, 16 descendants, un dégradé conique) est l'élément du HUD le plus cher à restyler et à repeindre
+   (mesuré : 331 µs par recalcul à ×1, ~1,3 ms à ×4 ; la barre #nitroBar 542 µs). Crans [ANCIEN, MOYEN, RÉCENT] : l'anneau 2 % · 2 % · 1 % (d'origine), la barre
+   1 % · 1 % · 0,5 % (d'origine) — deux fois moins de recalculs pendant la vidange ; le RÉCENT ne change pas. */
+PAL.B.hudNitroQ=[50,50,100];PAL.B.hudBarQ=[100,100,200];
 const NX3_T=3,NX3_M=3; // l'épaisseur (cases) · la marge autour (lueur 2 + contour 1)
 const NX3={el:null,cv:null,cx:null,img:null,u32:null,vit:null,vN:null,v:-1,vT:0,vc:null,kmh:0,
   W:0,H:0,p:0,pv:0,pF:null,k:0,kF:null,t:0,gl:-1,glT:1.6,cle:'',m:null};

@@ -14073,7 +14073,11 @@ function matSursisTick(){
    mesuré à 4) : laissé à 1, ces trois-là n'ont pas de tranche maigre.
    `o.loin` : {blocs, pr (sommets par rangée et par bloc), cols (colonnes gardées)} · 0 = rien au loin · absent = pas de LOD.
    Bascule par tranche, à chaque rendu (`pisteLoin`, appelée par scene.onBeforeRender). */
-const PISTE_CH=600,PISTE_PAS=1,PISTE_LOD=[];
+/* (2026-10-24, passe perf, 2e tour) DES TRANCHES DE 1 200 POINTS (600 avant). Chaque tranche visible coûte CINQ appels de dessin (bitume, flancs, rail,
+   lueur additive, ligne) : 9 à 15 tranches visibles = 45 à 75 appels pour la seule route, sur 160-220. MESURÉ (banc processeur ×4, mêmes pistes
+   `pistegraine=777`, 4 relevés par map) : rendu de la scène crypto 14,5 → 10,4 ms, forêt 20,2 → 9,8, nuages 16,3 → 10,8, jade 12,8 → 9,9, ville 8,3 → 7,7 ;
+   la boucle forêt 66 → 39 ms, nuages 71 → 49. L'image ne change pas (le découpage ne sert qu'au tri par le champ de vision). `?tranche=600` = avant. */
+const PISTE_CH=Math.max(100,+((/[?&]tranche=(\d+)/.exec(location.search)||[])[1])||1200),PISTE_PAS=1,PISTE_LOD=[]; // `?tranche=n` : la taille des tranches (banc)
 const TEINTE9={c:null,n:0}; // (chasse aux gels) la teinte du bitume par (point, colonne) — ne dépend pas de la piste : voir buildTrack
 function sphere9(g){ // (2026-09-28, chasse aux gels) computeBoundingSphere de three r128 recopié sur le tableau brut (même boîte, même centre
   // (min+max)×0,5, même plus grand carré de distance par Math.max, même racine) : mêmes flottants, sans Vector3 ni getX par sommet
@@ -14152,6 +14156,7 @@ function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée
         if(inv){li[w++]=a2;li[w++]=a2+1;li[w++]=c2;li[w++]=a2+1;li[w++]=c2+1;li[w++]=c2;}
         else{li[w++]=a2;li[w++]=c2;li[w++]=a2+1;li[w++]=a2+1;li[w++]=c2;li[w++]=c2+1;}}}}
     if(TROU&&!w)continue; // (LES TROUS) une tranche entièrement au-dessus du vide n'existe pas
+    yield; // (2026-10-24) la tranche de 1 200 points en trois pas : l'index, les sommets, la tranche maigre
     const g=new THREE.BufferGeometry();
     for(const nm of noms){const A=att[nm][0],sz=att[nm][1],B9=new Float32Array(nv*sz);
       for(let b=0;b<lay.blocs;b++)B9.set(A.subarray((b*np+r0)*pr*sz,(b*np+r1+1)*pr*sz),b*nr*pr*sz);
@@ -14162,6 +14167,7 @@ function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée
     m.updateMatrix();m.matrixAutoUpdate=false; // sommets en coordonnées MONDE : la tranche ne bouge jamais
     trackMeshes.push(m); /* (LE PRÉ-BÂTI) elle entre dans la scène à l'installation (pisteInstalle) */
     if(o.loin===undefined)continue;
+    yield;
     let lo=null;const g2=o.loin?pisteMaigre(att,c,o.loin):null;
     if(g2){lo=new THREE.Mesh(g2,mat);lo.receiveShadow=m.receiveShadow;lo.renderOrder=m.renderOrder;lo.visible=false;lo.userData.maigre=true;
       lo.updateMatrix();lo.matrixAutoUpdate=false;trackMeshes.push(lo);}
@@ -14345,7 +14351,8 @@ function prebPalier(){ // (newTrack0) la piste bâtie d'avance l'a été à SON 
 const PREB_AVANCE=20; // (s) la map d'en face commence quand le portail est à moins de 20 s de route : son palier moteur (l'échelle de la piste) est celui de ce moment-là
 function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier, travailler
   PREB.cam=false; // (voir sous9 : resetGame l'a lu dans cette image, ou rien ne l'a lu)
-  if(!started||gameOver){prebDepTick(now);return;} // (LE DÉPART D'AVANCE) au menu et à l'écran de fin
+  if(!started||gameOver){prebDepTick(now);return;}
+  if(mode==='boom'){prebDepTick(now);return;} // (2026-10-24, passe perf) la caisse explose : la partie est finie, le départ suivant se bâtit DÈS MAINTENANT (1,8 s avant l'écran de fin — voir prebDepTick) // (LE DÉPART D'AVANCE) au menu et à l'écran de fin
   PREB.fin0=0;
   if(PREB.W&&PREB.dep){prebAnnule('départ');return;} // la partie est partie sans prendre la piste du départ
   if(mode==='drive'&&PREB.sT){const d9=(now-PREB.sT)/1000,v9=(s-PREB.sP)/Math.max(1e-3,d9);if(d9>0&&d9<.5&&v9>0)PREB.v=PREB.v?PREB.v+(v9-PREB.v)*Math.min(1,d9*2):v9;} // la vitesse le long de la piste (m/s), lissée
@@ -14401,11 +14408,18 @@ function prebDepTick(now){ // (prebTick, hors course) commencer, vérifier, trav
   if(PREB.W&&(!c||c.t!==PREB.t||c.st!==PREB.ctx||c.eng!==PREB.eng)){prebAnnule(!c?'cible':c.t!==PREB.t?'map':'contexte');return;}
   if(!c||PREB.fait)return;
   if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go)||CHUTE.go||!CHAUFFE_R.fait||CHAUFFE_R.t||(!JADE.geos&&!GAB_FOND.fini))return; // ni volet, ni lâcher, ni piqué ; la chauffe et les gabarits de la jade d'abord
-  if(now-PREB.tNeuf<700||(PREB.fin0&&now-PREB.fin0<800))return; // le monde neuf (le menu, l'écran de fin) s'installe d'abord
+  const ins9=now-PREB.tNeuf<700||(PREB.fin0&&now-PREB.fin0<800); // le monde neuf (le menu, l'écran de fin) s'installe d'abord
+  if(ins9&&!PREB.W)return;
   if(!PREB.W){if(c.t!==PREB.non&&PREB.echecs<3)prebPart(c);return;} // (l'image suivante travaille)
   chauffeGrace(); // (la qualité auto ne lit pas une tranche comme une faiblesse, comme jadeGabFond)
   const tr=QLR.t0?performance.now()-QLR.t0:8;
-  prebTravaille(performance.now()+Math.max(3,Math.min(6,14-tr)));}
+  /* (2026-10-24, passe perf 2e tour — Sacha : « beaucoup de latence sur les essais ») LE REJOUER SANS GEL. MESURÉ (banc processeur ×4, palier MOYEN, REJOUER
+     1,5 s après la mort) : la construction du REJOUER durait 1 983 ms d'un bloc (image figée 2,2 s) — à 3-6 ms par image et 20 images/s, l'écran de fin
+     n'avait bâti qu'une petite part du départ suivant. Désormais le travail commence DÈS L'EXPLOSION (prebTick, mode 'boom' : 1,8 s avant l'écran de fin),
+     continue à 3 ms pendant que l'écran de fin s'installe (il ne s'arrête plus), puis prend jusqu'à 8 ms par image pendant l'explosion et 10 ms à
+     l'écran de fin (rien ne s'y joue) ; au menu, rien ne change (3-6 ms). */
+  const bud9=ins9?3:mode==='boom'&&!gameOver?Math.max(3,Math.min(8,16-tr)):started&&gameOver?Math.max(4,Math.min(10,20-tr)):Math.max(3,Math.min(6,14-tr));
+  prebTravaille(performance.now()+bud9);}
 function prebDepPrend(fn){PREB.depPorte=true;try{fn();}finally{PREB.depPorte=false;PREB.prend=false;}} // c'est le DÉPART qui construit : la piste bâtie d'avance peut servir
 window.dbgPrebati=function(on){if(on!=null){PREB.on=!!on;if(!PREB.on)prebAnnule('dbg');}
   return {on:PREB.on,etat:PREB.W?(PREB.fait?'pret':'en cours'):'',carte:PREB.carte,graine:PREB.sd,palier:PREB.eng,palierCourse:engTier,reste:+((L-s)/Math.max(20,PREB.v||60)).toFixed(1),v:Math.round(PREB.v||0),ms:PREB.W||PREB.tFin?Math.round((PREB.tFin||performance.now())-PREB.t0):0,
@@ -45606,7 +45620,7 @@ function engVigRender(dt){
   }
   // (vague 2, H6) LA CARTE DE COURSE : le moteur est rendu à 30 i/s dans son petit tampon, et recollé À CHAQUE IMAGE (le framebuffer
   // principal est repeint à chaque image : un quad sauté = un moteur qui clignote)
-  if(carte9){if(performance.now()-engEndT>33){engEndT=performance.now();engVigRendRT(engRTc);}engQuadDraw();return;}
+  if(carte9){if(performance.now()-engEndT>PAL.b('engVigMs',33)){engEndT=performance.now();engVigRendRT(engRTc);}engQuadDraw();return;} // (2026-10-24, passe perf) la carte de COURSE aussi à la cadence du palier (engVigMs : 10 / 15 / 30 rendus par seconde) — le quad recolle l'image d'avant entre deux
   // (perf) téléphone et écran de fin : l'image n'est RECOPIÉE qu'à 30 (20) i/s — la rendre entre deux recopies ne servait à rien
   if((fin||tel)&&performance.now()-engEndT<=(tel?PAL.b('engVigMs',33):50))return;
   if(tel&&ENG_MORT.cv&&ENG_MORT.cv.offsetParent===null){engEndT=performance.now();return;} // (2026-10-14, passe perf mobile) carte cachée (accueil ou atelier ouverts par-dessus la mort) : ni rendu ni relecture — et la question n'est reposée qu'à la cadence de la recopie
@@ -58979,6 +58993,9 @@ function ventPose(i,loin){ // (re)nait un trait : un point de l'écran (loin du 
   VENT.wx[i*3]=e[0]*xv+e[4]*yv+e[8]*zv+e[12];VENT.wx[i*3+1]=e[1]*xv+e[5]*yv+e[9]*zv+e[13];VENT.wx[i*3+2]=e[2]*xv+e[6]*yv+e[10]*zv+e[14];
   VENT.lg[i]=.55+Math.random()*.9;VENT.ep[i]=.7+Math.random()*.8;
 }
+/* (2026-10-24, passe perf 2e tour) LE VENT SUR LES VIEUX TÉLÉPHONES : chaque trait est un drawImage tourné, en mélange additif, dans une toile 2D plein écran
+   effacée à chaque image (mesuré : 3,3 % du processeur de la boucle au banc ×4, à grande vitesse nitro tenue). [ANCIEN, MOYEN, RÉCENT] : la moitié, 70 %, tous. */
+PAL.B.ventK=[.5,.7,1];
 function ventDessine(kmh,nitro,dt){
   const W=slCv.width,H=slCv.height;dt=Math.min(dt||.016,.05);
   const vcL=vCroisiere();
@@ -58991,7 +59008,7 @@ function ventDessine(kmh,nitro,dt){
   if(!VENT.init||jump>160){VENT.init=true;for(let i=0;i<VENT_N;i++){ventPose(i,false);VENT.pal[i]=0;}VENT.vx=VENT.vy=VENT.vz=0;}
   else if(dt>0){const g=1-Math.exp(-dt*10);VENT.vx+=((P.x-VENT.pxP)/dt-VENT.vx)*g;VENT.vy+=((P.y-VENT.pyP)/dt-VENT.vy)*g;VENT.vz+=((P.z-VENT.pzP)/dt-VENT.vz)*g;}
   VENT.pxP=P.x;VENT.pyP=P.y;VENT.pzP=P.z;
-  k=Math.min(1.35,k);const cible=Math.min(VENT_N,k*46+(VENT.pic>0?VENT.pic*18:0));
+  k=Math.min(1.35,k);const cible=Math.min(VENT_N,(k*46+(VENT.pic>0?VENT.pic*18:0))*PAL.b('ventK',1)); // (2026-10-24, passe perf) ventK : moins de traits sur les vieux téléphones
   if(cible<=.05&&!VENT.vivants){if(drawSpeedLines._had){slCtx.clearRect(0,0,W,H);drawSpeedLines._had=false;slCv.style.visibility='hidden';}return;}
   slCtx.clearRect(0,0,W,H);if(!drawSpeedLines._had){drawSpeedLines._had=true;slCv.style.visibility='visible';}
   const spr=VENT.sp||(VENT.sp=ventSprites());
@@ -70858,6 +70875,11 @@ const NX3_G=[ // 15 × 20 : la silhouette de l'éclair de la barre (pente, march
   '..##...........',
   '.##............',
   '.#.............'];
+/* (2026-10-24, passe perf 2e tour) LA JAUGE ET L'ANNEAU DE LA NITRO PAR CRANS PLUS LARGES sur les vieux téléphones : nitro tenue, la valeur change à chaque
+   image — et le bouton (#tNitro : 18 règles, 402 déclarations, 16 descendants, un dégradé conique) est l'élément du HUD le plus cher à restyler et à repeindre
+   (mesuré : 331 µs par recalcul à ×1, ~1,3 ms à ×4 ; la barre #nitroBar 542 µs). Crans [ANCIEN, MOYEN, RÉCENT] : l'anneau 2 % · 2 % · 1 % (d'origine), la barre
+   1 % · 1 % · 0,5 % (d'origine) — deux fois moins de recalculs pendant la vidange ; le RÉCENT ne change pas. */
+PAL.B.hudNitroQ=[50,50,100];PAL.B.hudBarQ=[100,100,200];
 const NX3_T=3,NX3_M=3; // l'épaisseur (cases) · la marge autour (lueur 2 + contour 1)
 const NX3={el:null,cv:null,cx:null,img:null,u32:null,vit:null,vN:null,v:-1,vT:0,vc:null,kmh:0,
   W:0,H:0,p:0,pv:0,pF:null,k:0,kF:null,t:0,gl:-1,glT:1.6,cle:'',m:null};
@@ -72760,7 +72782,7 @@ function loop(now){
     // (2026-09-28, HUD v5) la rampe dit la MÊME chose que le disque NITRO : la part du RÉSERVOIR du moteur (orange), puis la réserve bleue
     // par-dessus, plafonnées à la rampe entière — elle comptait sur 4 unités : réservoir plein = rampe à moitié, disque plein (contradiction)
     {VOLG.n.r=Math.min(VOLG.n.r,nitroR);VOLG.n.x=Math.min(VOLG.n.x,nitroX); // (2026-10-12) la barre MONTRE la nitro moins celle qui vole encore vers elle
-     const nR8=Math.max(0,nitroR-VOLG.n.r),nX8=Math.max(0,nitroX-VOLG.n.x),mx8=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,fR8=Math.min(1,nR8/mx8),fX8=Math.min(1-fR8,nX8/2);volgRessort(dt,fR8,fX8);const w1=Math.round(VOLG.fR*200)/2,w2=Math.round(VOLG.fX*200)/2; // (2026-10-12) elle se remplit en RESSORT
+     const nR8=Math.max(0,nitroR-VOLG.n.r),nX8=Math.max(0,nitroX-VOLG.n.x),mx8=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,fR8=Math.min(1,nR8/mx8),fX8=Math.min(1-fR8,nX8/2);volgRessort(dt,fR8,fX8);const qB9=PAL.b('hudBarQ',200),w1=Math.round(VOLG.fR*qB9)*100/qB9,w2=Math.round(VOLG.fX*qB9)*100/qB9; // (2026-10-12) elle se remplit en RESSORT
      if(loop._nw1!==w1){loop._nw1=w1;elNR.style.width=w1+'%';}
      if(loop._nw2!==w2){loop._nw2=w2;elNX.style.width=w2+'%';}
      const pl=(nR8+nX8)>=mx8-.01;
@@ -72771,7 +72793,7 @@ function loop(now){
       if(loop._nst!==st){loop._nst=st;const nb=elNR.parentNode;nb.classList.toggle('boost',nitroOn&&!nitroBlue);nb.classList.toggle('bleu',nitroOn&&nitroBlue);nb.classList.toggle('bas',(nR8+nX8)<.35);
        if(elNB){elNB.classList.toggle('bleu',nitroOn&&nitroBlue);elNB.classList.toggle('bas',(nR8+nX8)<.35);}}} // (2026-09-28) …et le bouton NITRO : réserve bleue, à sec
      // L'ANNEAU DU BOUTON NITRO : la même réserve, en arc autour du pouce
-     const r9=Math.round(Math.min(1,nR8/mx8)*100)/100,x9=Math.round(Math.min(1,nX8/2)*100)/100;
+     const qN9=PAL.b('hudNitroQ',100),r9=Math.round(Math.min(1,nR8/mx8)*qN9)/qN9,x9=Math.round(Math.min(1,nX8/2)*qN9)/qN9; // (2026-10-24, passe perf) par crans de 1/qN9 (voir hudNitroQ)
      if(elNB&&(loop._nbr!==r9||loop._nbx!==x9)){loop._nbr=r9;loop._nbx=x9;elNB.style.setProperty('--nr',r9);elNB.style.setProperty('--nx',x9);}}
     try{nx3Tick(dt,speedKmh);}catch(e){loopWarn(256,'nitro',e);}
     try{ajTick(dt);}catch(e){loopWarn(512,'jauge aura',e);} // (2026-10-12, Léo) LA JAUGE D'AURA (le flow passe en petit dessous) // (2026-10-12, Léo) LE BOUTON NITRO v3 : l'éclair en pixels qui s'enfonce, la vitesse à droite de la barre de boost
