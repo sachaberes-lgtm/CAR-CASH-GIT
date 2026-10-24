@@ -54,6 +54,7 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   uSkyMul:{value:new THREE.Vector3(1,1,1)},uSkyLift:{value:new THREE.Vector3(0,0,0)},
   uSunTint:{value:new THREE.Vector3(1,.40,.28)},uSunHalo:{value:1},uCity:{value:1},uStars:{value:1},uMoon:{value:1},uRose:{value:0},
   uNeb:{value:1}, // (2026-10-15) LES NÉBULEUSES de l'orbite (× uSpace) : 0 = le noir complet d'avant
+  uEtK:{value:1.5}, // (2026-10-22) pixels de rendu par pixel CSS (`renderer.getPixelRatio()`, posé par orbiteTick) : les étoiles de l'orbite gardent la même taille sur tous les téléphones
   uSpace:{value:0}, // NIVEAU ORBITE (2026-09-24) : 0 = le ciel de toujours AU PIXEL PRÈS, 1 = le noir étoilé (piloté par lvlStep)
   uPulse:{value:0}, // MUSIQUE : le ciel respire en rythme (piloté par l'analyseur audio, 0 = neutre = rendu d'origine)
   /* ---- LE FOND DU NIVEAU (2026-08-08) : le décor JOUE la musique, façon Geometry Dash / Super Hexagon.
@@ -75,7 +76,7 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   // LE CIEL DE LA VILLE (2026-09-26) — voir villeCiel dans le shader : présence du niveau VILLE, de la pluie (le plafond), couleur de la
   // brume (le lointain y converge) et position de la caméra (le plafond et les rues d'en bas défilent : parallaxe VRAIE)
   uVille:{value:0},uPluie:{value:0},uFogCol:{value:new THREE.Color(0x331f48)},uCam:{value:new THREE.Vector3()},
-  uVilleY:{value:0},uParis:{value:0},uParisT:{value:0}, // (2026-09-28) uParis : le ciel de PARIS (toits bas à l'horizon, lueur d'or) au lieu des tours de la ville
+  uVilleY:{value:0},
   // (2026-09-26) la SKYLINE descend à l'altitude de la ville (en sinus d'élévation) : la route spirale AU-DESSUS des toits
   /* (2026-10-19, essai ARC) LE FOND EN PHOTO + LA MER DE CUMULUS — voir « LE CIEL D'ARC » plus bas. uPh : x la part de la photo, y la colonne (0-1) de son
      soleil, z sa hauteur (rad), w l exposition · uPh2.x le sens du tour · uMr : x la mer de cumulus (0 = la mer peinte d avant), y la profondeur du
@@ -90,7 +91,7 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   uSym:{value:0}, // (2026-10-15) LE CIEL SANS DESSOUS (map NUAGES) : 1 = la moitié basse du dôme est le reflet de la haute (voir TETE)
   uMer:{value:0}, // (2026-09-26) LA MER DE NUAGES PEINTE sous l'horizon — niveau NUAGES seulement (voir merNuages ; fondue par lvlStep comme la ville)
   uBasTex:{value:null},uBasInv:{value:new THREE.Vector2(1,1)},uBasTr:{value:0},
-  uCanyon:{value:0},uCyF:{value:0},uCyDn:{value:0},uCyZ:{value:new THREE.Vector3(.1,.25,.6)},uCyM:{value:new THREE.Vector3(.35,.45,.7)},uCyH:{value:new THREE.Vector3(.8,.7,.6)},uCyS:{value:new THREE.Vector3(1,.8,.6)},uCyB:{value:new THREE.Vector3(.8,.5,.6)},uCyC:{value:new THREE.Vector3(1,.9,.85)},uCyD:{value:new THREE.Vector3(.45,.45,.55)},uCyR:{value:new THREE.Vector3(.5,.45,.5)},uCyK:{value:new THREE.Vector4(0,0,0,0)},uCyN:{value:new THREE.Vector4(0,1,1,0)}, // (2026-10-14) LE CANYON DES GÉANTS : son ciel (voir COUCHES.canyon) — uCanyon 0 ailleurs
+  uCanyon:{value:0},uCyF:{value:0},uCyDn:{value:0},uCyZ:{value:new THREE.Vector3(.1,.25,.6)},uCyM:{value:new THREE.Vector3(.35,.45,.7)},uCyH:{value:new THREE.Vector3(.8,.7,.6)},uCyS:{value:new THREE.Vector3(1,.8,.6)},uCyB:{value:new THREE.Vector3(.8,.5,.6)},uCyC:{value:new THREE.Vector3(1,.9,.85)},uCyD:{value:new THREE.Vector3(.45,.45,.55)},uCyR:{value:new THREE.Vector3(.5,.45,.5)},uCyK:{value:new THREE.Vector4(0,0,0,0)},uCyN:{value:new THREE.Vector4(0,1,1,0)},uCyW:{value:new THREE.Vector2(0,0)}, // (2026-10-14) LE CANYON DES GÉANTS : son ciel (voir COUCHES.canyon) — uCanyon 0 ailleurs
   uJade:{value:0},uJMerY:{value:-420},uJPx:{value:.0015},uJdZ:{value:new THREE.Vector3(.42,.58,.66)},uJdH:{value:new THREE.Vector3(.93,.90,.80)},uJdR:{value:new THREE.Vector3(.2,.28,.27)},uJdB:{value:new THREE.Vector3(.86,.87,.82)},uJdS:{value:new THREE.Vector3(1,.88,.66)},uJdM:{value:new THREE.Vector3(.93,.90,.80)},uJdL:{value:new THREE.Vector3(.42,.58,.66)},uJdK:{value:new THREE.Vector4(1,1,1,0)},uEauW:{value:new THREE.Vector4(0,0,0,0)},uEauP:{value:[0,1,2,3,4,5,6,7,8,9,10,11].map(function(){return new THREE.Vector4(0,0,-1,0);})}}; // (2026-10-09) LES PICS DE JADE : le ciel peint (voir COUCHES.jade) — 0 ailleurs // (2026-09-27, tour 2) LE CIEL EN DEUX TEMPS : la passe lisse (cible hors écran), 1/taille de l'image où la relire, sa trame si elle est en 8 bits (voir CIEL2)
 /* (2026-10-16, Sacha) LES TEINTES DE LA VILLE (voir VTEINTES) — les couleurs FIXES du ciel qui portent le violet de la ville deviennent des uniforms : uFd = les huit
    teintes du dégradé de cielFond (zénith → prune du dessous), uVc = le lilas du plafond, l'éclair, la lueur rose des quartiers, les points roses de l'abîme, le rose
@@ -128,7 +129,7 @@ const skyDome=(function(){
       '  return textureGrad(uPhT,uv,dx,dy).rgb*uPh.w;}',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse,uRose;', // grade biome (identité par défaut) + uPulse musique
       'uniform vec3 uFd[8];uniform vec3 uVc[6];', // (2026-10-16) LES TEINTES DE LA VILLE : les couleurs fixes du dégradé et du ciel de la ville (valeurs d'origine hors ville teintée)
-      'uniform float uSpace,uNeb;', // NIVEAU ORBITE : 0 = aucun effet · uNeb : les nébuleuses (2026-10-15)
+      'uniform float uSpace,uNeb,uEtK;', // NIVEAU ORBITE : 0 = aucun effet · uNeb : les nébuleuses (2026-10-15) · uEtK : pixels de rendu par pixel CSS, pour la taille des étoiles (2026-10-22)
       'uniform float uJour,uMerLoin,uCiel2;uniform vec3 uJZen,uJMid,uJHor,uJSol;uniform vec4 uMzA,uMzB,uMzT,uMzO,uMzH;', // (2026-09-30) LE JOUR D ALTITUDE : 0 = le ciel d avant, au bit près
       'uniform float uLvl,uSpin,uBeatK,uFlip,uBar,uHi,uWave,uHueAmp;uniform vec3 uAcc,uAcc2;uniform vec4 uRingR,uRingA;', // LE FOND DU NIVEAU
       'float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
@@ -162,7 +163,7 @@ const skyDome=(function(){
            · LE SOL : l'abîme. 1 600 m sous l'œil, les rues de la ville basse — lampadaires sodium, fenêtres, files de
              phares qui roulent — vues À TRAVERS la brume (elles s'y éteignent au loin, fondues en lueur moyenne : pas de moiré).
          ⚠ PRÉCISION : le hachage est sans sinus (Hoskins) — sin() sur de grands arguments dérive en mediump. */
-      'uniform float uVille,uPluie,uVilleY,uParis;uniform vec3 uFogCol,uCam;',
+      'uniform float uVille,uPluie,uVilleY;uniform vec3 uFogCol,uCam;',
       'float vh(vec2 p){vec3 q=fract(vec3(p.xyx)*.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}',
       'float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);',
       '  return mix(mix(vh(i),vh(i+vec2(1.,0.)),f.x),mix(vh(i+vec2(0.,1.)),vh(i+vec2(1.,1.)),f.x),f.y);}',
@@ -216,56 +217,31 @@ const skyDome=(function(){
       // (2026-09-27, passe perf iPhone) sous 0,6° (t > 48 km) le plafond pèse exp(-t/4200) < 1e-5 : c est la brume, sans ses 7 bruits
       '  else if(y>-.03&&uPluie>.001)haut=mix(ciel,F,uPluie);',
       '  if(y<.03&&nuit>0.){',                                     // ---- LE SOL : l abîme de la ville basse ---- (vague 2 : ses lumières SEULEMENT de nuit — de jour, bas = brume au pixel près)
-      '    float t=mix(1600.,450.,uParis)/max(-y,.01);',              // (Paris) le sol remonte à 450 m : la Seine doit se LIRE
+      '    float t=1600./max(-y,.01);',
       // (2026-09-27, passe perf iPhone) au-delà de 26,5 km (3,5° sous l horizon) les lumières pèsent exp(-t/2300) < 1e-5 : il ne reste que la brume
       '    if(t<26500.){',
-      '    vec2 p=(d.xz*t+uCam.xz)*mix(1.,3.5,uParis);',
+      '    vec2 p=d.xz*t+uCam.xz;',
       '    float qu=smoothstep(.3,.8,vn(p/1500.))*(.5+.5*vn(p/450.+4.2)),qu2=vn(p/2600.+9.1);', // les QUARTIERS : un centre qui brille, des zones éteintes
-      '    vec3 G=mix(vec3(1.,.42,.18),mix(uVc[2],vec3(1.,.62,.26),uParis),qu2)*qu*.24;', // (Paris) la lueur des quartiers vire à l or                    // la lueur des quartiers qui monte dans la brume
+      '    vec3 G=mix(vec3(1.,.42,.18),uVc[2],qu2)*qu*.24;', // la lueur des quartiers qui monte dans la brume
       '    vec3 L=G+smoothstep(3000.,7000.,t)*vec3(.05,.03,.015)*(.25+.75*qu);',           // au loin (au-delà de 7 km) : la lueur MOYENNE, pas de moiré — les fines sont dans villeFin
       '    bas=F*(1.+.28*smoothstep(-.05,-.6,y)*nuit)+L*exp(-t/2300.)*(1.+.6*lv)*nuit;}', // la brume s éclaire par en dessous
       '    else bas=F*(1.+.28*smoothstep(-.05,-.6,y)*nuit);}',
-      '  return mix(bas,haut,smoothstep(-.03,.03,y));}',
-      /* LA SEINE (2026-09-28, Léo : « et il y a la Seine ») — un méandre dans le repère MONDE du sol de Paris (450 m sous l œil,
-         la même parallaxe que l abîme) : l eau plus noire que la brume où tremblent les reflets d or, les QUAIS de pierre et leurs
-         lampadaires, un PONT tous les 520 m avec ses deux rangées de lanternes, et les BATEAUX-MOUCHES qui glissent en inondant l eau
-         de leurs projecteurs. Renvoie le masque de l eau (les toits allumés ne s y posent pas). */
-      'float seineZ(float x){return 900.*sin(x/2300.)+380.*sin(x/870.+1.7);}',
-      'float parisSeine(inout vec3 c,vec2 p,vec2 vd,float px,float t,float fl,float nuit){',
-      '  float k1=p.x/2300.,k2=p.x/870.+1.7,zc=seineZ(p.x),dz=.3913*cos(k1)+.4368*cos(k2);',
-      '  float sd=(p.y-zc)/sqrt(1.+dz*dz),a=abs(sd),Wd=105.,fo=exp(-t/2600.)*(1.-fl)*uParis,aa=min(1.,5./px);',
-      '  float eau=smoothstep(Wd+px,Wd-px,a);',
-      '  float rip=vn(vec2(p.x/7.,sd/1.6)+vec2(uTime*.9,0.)),ref=pow(rip,7.)*(.35+.65*smoothstep(Wd*.35,Wd,a))*aa;',
-      // LES REFLETS : chaque lampadaire des deux quais étire sur l eau un trait d or VERS L ŒIL (vd : la visée au sol), haché par les vaguelettes
-      '  vec2 ve=-normalize(vd+vec2(1e-5)),vp=vec2(-ve.y,ve.x);float rf=0.;',
-      '  for(int k=-1;k<=1;k++)for(int q=-1;q<=1;q+=2){float lx=(floor(p.x/38.)+float(k)+.5)*38.;',
-      '   vec2 L=vec2(lx,seineZ(lx)+float(q)*(Wd+2.)*sqrt(1.+dz*dz));vec2 r=p-L;float al=dot(r,ve),pe=dot(r,vp);',
-      '   rf+=step(0.,al)*exp(-al/70.)*exp(-pe*pe/(3.5+px*px*.3))*(.4+.6*vn(vec2(al/4.,pe*.7)+vec2(uTime*1.5,0.)));}',
-      // (essai du 28/09 : bordée de lampadaires, elle se lisait comme une ROUTE) — le SCINTILLEMENT de lune argenté et les reflets d or
-      // CASSÉS par le courant disent « de l eau »
-      '  float gl=pow(vn(vec2(p.x/3.2,sd/1.1)+vec2(uTime*.7,uTime*.2)),9.)*aa,co=pow(vn(vec2(p.x/15.,sd/.8)+vec2(uTime*.35,0.)),5.)*smoothstep(Wd*.2,Wd*.9,a)*aa;',
-      '  c=mix(c,uFogCol*.24+vec3(.012,.022,.055)+vec3(.55,.66,1.)*gl*1.1+vec3(1.,.64,.3)*(ref*.6+rf*1.6+co*.9)*nuit,eau*fo);',
-      '  float quai=smoothstep(Wd-px,Wd+px,a)*smoothstep(Wd+16.+px,Wd+16.-px,a);',
-      '  c=mix(c,vec3(.34,.29,.22)*(.4+.6*nuit),quai*fo*.8);',
-      '  c+=vec3(1.,.72,.38)*smoothstep(2.4+px*.8,0.,length(vec2((fract(p.x/38.)-.5)*38.,a-Wd-12.)))*aa*aa*1.7*fo*nuit;', // les lampadaires des quais (au loin ils s éteignent : pas de liseré continu)
-      '  float bx=(fract(p.x/520.)-.5)*520.,pont=smoothstep(15.+px,15.-px,abs(bx))*smoothstep(Wd+20.+px,Wd+20.-px,a);',
-      '  c=mix(c,vec3(.36,.3,.22)*(.45+.55*nuit),pont*fo);',
-      '  c+=vec3(1.,.8,.5)*smoothstep(1.9+px*.8,0.,length(vec2(abs(bx)-13.,(fract(sd/18.)-.5)*18.)))*step(a,Wd+20.)*aa*1.8*fo*nuit;',
-      '  float cel=floor(p.x/1300.),hb=vh(vec2(cel,3.7)),dr=hb<.5?1.:-1.,on=step(.22,fract(hb*13.1));',
-      '  vec2 bq=vec2(p.x-(cel+fract(hb*7.+uTime*.0065*dr))*1300.,sd-dr*Wd*.36);',
-      '  c=mix(c,vec3(1.,.93,.8),step(abs(bq.x),16.)*step(abs(bq.y),4.5)*on*fo);',                              // la coque blanche
-      '  c+=vec3(1.,.8,.5)*exp(-dot(bq,bq)/2200.)*.6*eau*on*fo*nuit;',                                           // ses projecteurs sur l eau
-      '  return eau*fo;}',
+      /* (2026-10-24, Sacha : « le ciel déconne, il n'y a pas de fondu, c'est moche ») HORIZON SANS COUPURE : hors pluie, le ciel du dessus (corail, bleu
+         nuit) basculait en 3° sur la brume du dessous — une ligne franche, la couleur de l'air n'étant pas celle du sol. Maintenant la brume REMONTE
+         dans le ciel (≈ 12°, courbe douce, 60 % au ras de l'horizon) : le dégradé du ciel s'y noie, comme le brouillard noie les tours 3D ; la jonction
+         s'élargit à ±3°. Sous la pluie (uPluie = 1) le plafond est déjà fondu dans la brume : rien ne change. */
+      '  haut=mix(haut,F,(1.-smoothstep(0.,.21,y))*(1.-uPluie)*.6);',
+      '  return mix(bas,haut,smoothstep(-.05,.045,y));}',
       'void villeFin(inout vec3 c,vec3 d){',
       '  float y=d.y;vec3 F=uFogCol;',
       '  float nuit=clamp(1.5-dot(F,vec3(.3,.59,.11))*4.,0.,1.),lv=uLvl*(.35+uPulse*.5+uBeatK*.6);',
-      '  if(y<.03&&nuit>0.){float t=mix(1600.,450.,uParis)/max(-y,.01);',
+      '  if(y<.03&&nuit>0.){float t=1600./max(-y,.01);',
       /* (2026-09-27, passe perf iPhone) AU-DELÀ DE 7 KM (les 13 derniers degrés sous l'horizon, la moitié de l'abîme vu en vol), le
          mélange du bas prenait DÉJÀ 100 % de la lueur moyenne : artères, rues, toits et leur scintillement étaient calculés pour être
          multipliés par zéro. Ils ne sont plus calculés que là où ils comptent — même image. */
       '  if(t<7000.){',
       '    float px=t*.0016/max(-y,.06),fl=smoothstep(3000.,7000.,t);',               // px : ce que couvre un pixel au sol (m) — l anticrénelage suit la distance
-      '    vec2 p0=d.xz*t+uCam.xz,p=p0*mix(1.,3.5,uParis);float px0=px;px*=mix(1.,3.5,uParis);', // (Paris) sol 3,5× plus proche : la ville y garde sa finesse
+      '    vec2 p=d.xz*t+uCam.xz;',
       '    float qu=smoothstep(.3,.8,vn(p/1500.))*(.5+.5*vn(p/450.+4.2));',
       // LES ARTÈRES : les lignes de niveau de deux bruits — des routes qui SERPENTENT, se croisent, bouclent. Une grille régulière se lisait
       // comme un sol de synthwave (essai du 26/09) ; vue d en haut à travers la pluie, une ville est un réseau irrégulier de traînées.
@@ -276,19 +252,7 @@ const skyDome=(function(){
       '    float pt=step(1.-.32*qu,hl)*smoothstep(.3+px/48.,0.,length(cf))*min(1.,8./px);', // toits et fenêtres, flous dans la brume
       '    pt*=.75+.25*sin(uTime*(1.+hl*3.)+hl*40.);',                                     // quelques-uns scintillent
       '    vec3 pc=mix(vec3(1.,.66,.36),vec3(.4,.85,1.),step(.985,hl));pc=mix(pc,uVc[3],step(.995,hl));',
-      '    float eau=uParis>.001?parisSeine(c,p0,d.xz,px0,t,fl,nuit):0.;',                        // (Paris) la SEINE : pas de toits allumés sur l eau
-      '    c+=(vec3(1.,.55,.22)*(route*.5+rue*.3)+pc*pt)*(1.-eau)*(.25+.75*qu)*(1.-fl)*exp(-t/2300.)*(1.+.6*lv)*nuit;}}}',
-      // PARIS (2026-09-28) : deux rangées de TOITS BAS (mansardes plates, cheminées, lucarnes allumées) — Paris n'a pas de tours
-      'void parisToits(inout vec3 c,float y,float az,vec3 F,float nuit){',
-      '  float lum=.35+.65*nuit;',
-      '  for(int k=0;k<2;k++){float s=float(k)+1.,N=k==0?150.:92.,h0=k==0?-.02:-.013,h1=k==0?-.005:.004;',
-      '    float cw=6.2831853/N,u=az/cw+s*7.3,id=floor(u),fx=fract(u),r=vh(vec2(id,s)),top=h0+(h1-h0)*r;',
-      '    float body=step(y,top),ch=step(.55,vh(vec2(id*3.1,s)))*step(abs(fx-.3),.035)*step(y,top+.003)*step(top,y);',
-      '    vec2 wc=vec2(fx*7.,(top-y)/.0028),wi=floor(wc),wf=abs(fract(wc)-.5);',
-      '    float win=step(.5,vh(wi+vec2(id,s)))*step(max(wf.x,wf.y),.22)*body*step(.6,wc.y);',
-      '    float fo=smoothstep(-.1,0.,y);vec3 dk=F*(.30+.1*s)+vec3(.006,.005,.008);',
-      '    vec3 sil=mix(F,dk,.35*fo)+vec3(1.,.72,.38)*win*(.22+.12*s)*lum*fo;',
-      '    c=mix(c,sil,max(body,ch)*fo);}}',
+      '    c+=(vec3(1.,.55,.22)*(route*.5+rue*.3)+pc*pt)*(.25+.75*qu)*(1.-fl)*exp(-t/2300.)*(1.+.6*lv)*nuit;}}}',
       'void villeSkyline(inout vec3 c,vec3 d,float az){',
       '  vec3 F=uFogCol;float nuit=clamp(1.5-dot(F,vec3(.3,.59,.11))*4.,0.,1.),lv=uLvl*(.35+uPulse*.5+uBeatK*.6);',
       // ---- LA SKYLINE : du plus loin au plus proche, chaque rangée un peu moins noyée dans la brume ----
@@ -298,7 +262,6 @@ const skyDome=(function(){
          seraient des toits lointains à l altitude de la ville (`uVilleY`, posé par la boucle d après CITY.n.routeY, ~3,5 km) :
          vue d en haut, elle passe SOUS l horizon, derrière la forêt 3D, noyée de brume ; ses fenêtres sont un cran plus sourdes. */
       '  float y=d.y-uVilleY;',
-      '  if(uParis>.5){float yp=d.y;if(yp>-.1&&yp<.03)parisToits(c,yp,az,F,nuit);return;}', // (Paris) le sol est un plan 450 m sous l œil : son horizon est à y=0, les toits lointains s y posent // PARIS : les toits, pas les tours                                      // (le plafond et l abîme sont faits : y ne sert plus qu à la skyline)
       '  if(y>-.1&&y<.42){',                                         // (vague 2) la SKYLINE seulement dans sa bande : sous −0,1 le pied est noyé (fo = 0), au-dessus de 0,42 plus une antenne — image identique
       '  float fo=smoothstep(-.1,.015,y),lum=(1.+.7*lv)*(.35+.65*nuit)*.75;', // fo : le PIED des tours se noie — sous l horizon il ne reste que la brume et l abîme
       '  vec3 f0=vec3(1.,.64,.3),f1=vec3(.42,.88,1.),dk=F*.35+vec3(.004,.006,.02),sil;vec4 T;',
@@ -403,34 +366,8 @@ const skyDome=(function(){
       '  m=mix(mix(F,creux,.4),m,exp(-t/9000.));',                       // la perspective aérienne : le lointain bleuit
       '  return mix(m,F,smoothstep(-.055,-.004,y));}',                   // …et SEULE la ligne d horizon rejoint la brume
   ];
+  const ETO_ANC=/[?&]etoiles=ancien\b/.test(location.search); // (2026-10-22) `?etoiles=ancien` : le ciel étoilé de l'orbite d'avant (grains d'un pixel, une seule taille) — pour comparer ; voir `pous`
   const COUCHES={
-    /* PARIS AU SOL (2026-09-28, Léo : « un ciel travaillé ») — le ciel de TROIS HEURES (uParisT : 0 dorée · 1 bleue · 2 nuit, fondu
-       sur la distance parcourue) : dégradé de chaque heure, une couche d altocumulus ÉCLAIRÉS PAR EN DESSOUS (or et argent face au
-       couchant, rose puis ardoise à l heure bleue, la ville orange les allume la nuit), le disque du soleil qui se couche dans l axe
-       des Champs-Élysées. Sous l horizon : la brume de la ville. Mélangé par uParis (0 ailleurs : rien ne change). */
-    paris:[
-      'uniform float uParisT;',
-      'vec3 parisDegrade(float y,float sd){float yy=max(y,0.),T=uParisT;',
-      '  vec3 hO=mix(vec3(.97,.70,.56),vec3(1.,.74,.44),pow(sd,5.)),cO=mix(hO,vec3(.66,.69,.84),smoothstep(0.,.17,yy));cO=mix(cO,vec3(.30,.47,.78),smoothstep(.14,.62,yy));',
-      '  cO+=vec3(1.,.58,.26)*pow(sd,20.)*.55*(1.-smoothstep(0.,.35,yy));',
-      '  vec3 hB=mix(vec3(.46,.43,.66),vec3(.95,.56,.44),pow(sd,5.)*.85),cB=mix(hB,vec3(.21,.29,.60),smoothstep(0.,.2,yy));cB=mix(cB,vec3(.06,.10,.31),smoothstep(.2,.7,yy));',
-      '  vec3 cN=mix(vec3(.21,.14,.18),vec3(.05,.06,.14),smoothstep(0.,.16,yy));cN=mix(cN,vec3(.012,.018,.05),smoothstep(.16,.6,yy));',
-      '  vec3 c=T<1.?mix(cO,cB,T):mix(cB,cN,T-1.);',
-      '  return mix(c,uFogCol,smoothstep(0.,-.06,y));}',
-      'void parisCiel(inout vec3 col,vec3 d,float y,float sd){',
-      '  vec3 c=parisDegrade(y,sd);float T=uParisT;',
-      '  if(y>.012){float t=2600./y;if(t<60000.){',
-      '    vec2 p=d.xz*t+uCam.xz*.9+vec2(uTime*6.,uTime*2.),q=p/2300.;',
-      '    float n=vfbm(q+.55*vec2(vn(q*.5+2.1),vn(q*.5-3.7))),st=vn(vec2(q.x*.4,q.y*3.)+7.);',
-      '    float dn=smoothstep(.47,.77,n)*(.72+.28*st)*exp(-t/24000.),ep=smoothstep(.56,.95,n);',
-      '    vec3 lO=mix(vec3(1.,.66,.55),vec3(1.25,.86,.52),pow(sd,3.)),dO=vec3(.58,.48,.64);',
-      '    vec3 lB=mix(vec3(.50,.38,.55),vec3(.95,.52,.46),pow(sd,3.)),dB=vec3(.17,.19,.36);',
-      '    vec3 lN=vec3(.22,.14,.13),dN=vec3(.05,.05,.09);',
-      '    vec3 cc=T<1.?mix(mix(lO,dO,ep),mix(lB,dB,ep),T):mix(mix(lB,dB,ep),mix(lN,dN,ep),T-1.);',
-      '    c=mix(c,cc,dn*.92);}}',
-      '  float dk=smoothstep(.99982,.99992,sd)*(1.-smoothstep(.25,.7,T));c=mix(c,vec3(1.,.9,.72)*3.2,dk);',
-      '  c+=vec3(1.,.62,.3)*pow(sd,400.)*1.2*(1.-smoothstep(.25,.8,T));',
-      '  col=mix(col,c,uParis);}'],
     /* LES PICS DE JADE (2026-10-09, Léo) — le ciel d un rouleau peint : horizon crème, lavis jade vers le zénith, un soleil pâle, des
        voiles de nuage étirés ; QUATRE rangées de monts à l infini (les crêtes du Huangshan au fond, trois peignes de piliers de
        Zhangjiajie devant), chacune plus nette que celle de derrière, le pied noyé dans la brume ; sous l horizon la MER DE NUAGES (un plan
@@ -565,7 +502,7 @@ const skyDome=(function(){
        brume, et sous l'horizon la brume du désert (le relief lointain s'y fond). Mélangé par uCanyon (0 ailleurs) ; seul, il a son programme
        (`cy`, voir cielDeuxTemps). Couleurs : uCy* (les ambiances canyon*, en linéaire). */
     canyon:[
-      'uniform float uCanyon,uCyF,uCyDn;uniform vec3 uCyZ,uCyM,uCyH,uCyS,uCyB,uCyC,uCyD,uCyR;uniform vec4 uCyK,uCyN;',
+      'uniform float uCanyon,uCyF,uCyDn;uniform vec3 uCyZ,uCyM,uCyH,uCyS,uCyB,uCyC,uCyD,uCyR;uniform vec4 uCyK,uCyN;uniform vec2 uCyW;',
       'float cyh(float x){return fract(sin(x*127.13+.71)*43758.5453);}',
       'vec2 cyMesas(float az,float y){vec2 o=vec2(0.);for(int L=0;L<3;L++){float fl=float(L),N=11.+fl*7.,s=fl*13.1+3.7,u=az/6.2831853*N,id=floor(u);',
       '  for(int k=-1;k<=1;k++){float i2=mod(id+float(k),N),r1=cyh(i2+s),r2=cyh(i2*1.37+s*2.1),r3=cyh(i2*2.71+s*4.3);if(r3<.30)continue;',
@@ -582,10 +519,11 @@ const skyDome=(function(){
       '  c+=uCyS*(pow(sdp,6.)*.30+pow(sdp,40.)*.40)*(1.-.8*uCyN.w);',
       '  {float an=pow(max(-sd,0.),1.5)*uCyN.x;c=mix(c,uCyB,an*smoothstep(.03,.07,y)*(1.-smoothstep(.12,.24,y))*.7);c=mix(c,c*vec3(.70,.75,.92),an*(1.-smoothstep(0.,.05,y))*smoothstep(-.01,.01,y)*.6);}',
       '  if(y>.015&&uCyK.x+uCyK.y>.001){float t=2800./y;vec2 p=d.xz*t+uCam.xz*.7+vec2(uTime*4.,uTime*1.5);',
+      '    p=vec2(p.x*(1.-.62*uCyW.x),p.y*(1.+.55*uCyW.x));', /* (2026-10-23, DUNES : « plus de nuages ») uCyW.x : les nuages s'ÉTIRENT en bandes (cumulus de la photo 9) ; uCyW.y : ils se MODÈLENT (le côté du soleil clair, le dessous sombre) */
       '    float n=vfbm(p/1500.+.5*vec2(vn(p/2800.+3.7),vn(p/2800.-5.1))),cov=smoothstep(.80-uCyK.x*.55,1.05-uCyK.x*.55,n)*exp(-t/26000.)*step(.001,uCyK.x);',
       '    float ci=smoothstep(.45,.85,vfbm(vec2(p.x/5200.,p.y/900.)+7.))*exp(-t/40000.)*.55*uCyK.y;',
       '    float li=.5+.5*dot(normalize(vec3(d.x,0.,d.z)+1e-4),normalize(vec3(uSunDir.x,0.,uSunDir.z)+1e-4));',
-      '    vec3 cc=mix(uCyD,uCyC,clamp(li*.7+.6*(n-.5)+pow(sdp,4.)*.5,0.,1.));c=mix(c,cc,cov*.92);c=mix(c,mix(uCyC,c,.35),ci);}',
+      '    float sh9=0.;if(uCyW.y>0.){vec2 sv=normalize(uSunDir.xz+1e-4)*.16;float n2=vfbm((p+sv*1500.)/1500.+.5*vec2(vn(p/2800.+3.7),vn(p/2800.-5.1)));sh9=clamp((n-n2)*3.2,-.5,.5)*uCyW.y;}vec3 cc=mix(uCyD,uCyC,clamp(li*.7+.6*(n-.5)+pow(sdp,4.)*.5+sh9,0.,1.));c=mix(c,cc,cov*.92);c=mix(c,mix(uCyC,c,.35),ci);}',
       '  if(uCyN.w>.001){float t=900./max(y,.02);vec2 p=d.xz*t+uCam.xz+vec2(uTime*9.,uTime*3.);float n=vfbm(p/700.+.6*vec2(vn(p/1300.),vn(p/1300.+4.)));',
       '    vec3 pl=mix(uCyD,uCyC,smoothstep(.3,.8,n))+vec3(.75,.78,.95)*uCyF*(.5+.8*smoothstep(.4,.8,n));c=mix(c,pl,uCyN.w*smoothstep(-.02,.06,y));}',
       '  {float ds=smoothstep('+'.99955-.00035*uCyN.y,.99975-.00035*uCyN.y,sd);c=mix(c,mix(vec3(1.,.97,.9),vec3(.92,.94,1.),uCyK.w)*uCyN.z*(1.+1.2*(1.-uCyK.w)),ds*(1.-uCyN.w*.92));',
@@ -745,7 +683,7 @@ const skyDome=(function(){
       'bool cielGOn(float y,float sd){return abs(y+.03)<.13&&sd<.75&&uCity*(1.-uSpace)>0.&&(uVille<.999||y>-.03);}', // la bande de la guirlande (cband > 0, loin du soleil) ; en VILLE, sous -.03 l abime la remplace
     ],
     son:[
-      'bool cielSOn(float y,float sd){return uStars>0.&&(y>.10||uSpace>0.)&&sd<.8;}', // la voûte des étoiles (hors orbite : au-dessus de .10)
+      'bool cielSOn(float y,float sd){return uStars>0.&&(y>.10||uSpace>0.)&&sd<.8'+(ETO_ANC?'':'&&uSpace<.999')+';}', // la voûte des étoiles (hors orbite : au-dessus de .10) — (2026-10-22) en orbite, ce sont celles de `pous` (la voûte profonde)
     ],
     guirl:[
       'void cielGuirlande(inout vec3 col,float y,float az,float sd){',
@@ -836,7 +774,7 @@ const skyDome=(function(){
       '  float sr=length(vec2((sfr.x-stp.x)*.0982*sqrt(max(0.,1.-y*y)),(sfr.y-stp.y)*.04545));',
       '  float st=(1.-smoothstep(0.,.0026+.0022*fract(h*7.7),sr))*step(.76,h);',
       '  st*=.55+.45*sin(uTime*(1.2+h*2.6)+h*44.);',
-      '  col+=mix(vec3(.80,.88,1.),vec3(1.,.86,.70),step(.8,fract(h*3.31)))*st*mix(smoothstep(.10,.42,y),1.,uSpace)*(1.-smoothstep(.25,.8,sd))*.9*uStars*(1.+uSpace*.5)*(1.+uPulse*1.3);}}', // elles descendent plus bas : le haut du cadre est habité — MINUIT les multiplie, l aube les éteint ; elles palpitent au beat
+      '  col+=mix(vec3(.80,.88,1.),vec3(1.,.86,.70),step(.8,fract(h*3.31)))*st*mix(smoothstep(.10,.42,y),1.,uSpace)*(1.-smoothstep(.25,.8,sd))*.9*uStars*'+(ETO_ANC?'(1.+uSpace*.5)':'(1.-uSpace)')+'*(1.+uPulse*1.3);}}', // elles descendent plus bas : le haut du cadre est habité — MINUIT les multiplie, l aube les éteint ; elles palpitent au beat
     ],
     espace:[
       /* (2026-10-15) LE CIEL PROFOND DE L ORBITE — une couche LISSE (passe à demi-résolution) : la VOIE LACTÉE et les NÉBULEUSES.
@@ -862,17 +800,49 @@ const skyDome=(function(){
       '  col+=(mw*glow*.58+neb*.26*(1.-.55*dust))*uSpace*uNeb;}',
     ],
     pous:[
-      /* (2026-10-15) LA POUSSIÈRE D ÉTOILES de l orbite — passe NETTE (des points au pixel). 180 cellules par tour : des étoiles d un
-         pixel, bleues, blanches ou mauves, rares hors de la voie lactée et serrées dedans. */
+      /* ===== LA VOÛTE PROFONDE (2026-10-22, Léo : « travaille un tout petit peu les étoiles pour créer un peu de profondeur, là c'est un peu tout noir ;
+         des petites étoiles et des étoiles un peu moins petites ; travaille la répartition, observe des images ») =====
+         (Remplace la poussière d'étoiles du 15/10 — des grains d'un pixel, tous pareils, jetés au hasard ; `?etoiles=ancien` la rend.) Passe NETTE.
+         QUATRE CLASSES, de la plus fine à la plus grosse, comme sur une vraie photo du ciel : un VOILE de grains très faibles, des PETITES, des MOYENNES à
+         peine plus grosses, quelques BRILLANTES à halo (qui font fleurir le bloom). Chaque classe a sa grille (`voute` : une étoile au plus par cellule, des
+         ceintures de même AIRE — pas de pincement au pôle), sa taille EN PIXELS CSS (`uEtK`, celle d'un objectif : elle ne bouge ni avec le champ de vision, qui
+         s'élargit avec la vitesse — c'est la densité qui monte —, ni avec la résolution du téléphone), son éclat (beaucoup de faibles, peu de fortes : `q*q`) et sa
+         teinte (bleutées, blanches, orangées — plus franche chez les grosses). Les étoiles sont RONDES partout (la distance se compte en pixels via les dérivées de
+         la direction ; l'ancienne voûte les mesurait en angle sans le cosinus de la latitude et les étirait en ovales, puis en tirets vers le haut du cadre).
+         La RÉPARTITION n'est pas uniforme : la bande de la voie lactée les serre (3 à 4 fois plus), de larges PLAGES de ~20° sont plus ou moins peuplées (deux
+         champs lents, `c1` et `c2`, jamais les mêmes d'une classe à l'autre), les brillantes sont semées sans règle ; chaque étoile se pose où elle veut dans sa
+         cellule et le voile a DEUX grilles de pas différents (sinon des rangées et des colonnes se voient là où il est dense — mesuré à 100° de champ).
+         Hors orbite (uSpace = 0) cette couche ne tourne pas : les autres ciels sont inchangés au bit près. Coût : une graine de hasard par pixel et par classe,
+         le reste seulement dans une cellule habitée. */
+      'vec3 vouteTeinte(float t,float s){', // la teinte d'une étoile, tirée au hasard (t) : bleutée, blanche ou orangée ; s = à quel point elle se voit
+      '  vec3 c=mix(vec3(.68,.78,1.),vec3(1.,.97,.92),smoothstep(.04,.34,t));',   // un quart bleutées (pâles : jamais des diodes), le gros blanc
+      '  c=mix(c,vec3(1.,.76,.52),smoothstep(.62,1.,t));',                          // et plus du tiers qui chauffe vers l orangé
+      '  return mix(vec3(1.),c,s);}',
+      // UNE classe : A = (rangées par unité de y, graine, part des cellules habitées, rayon du cœur en pixels CSS) · B = (éclat min, éclat max, halo, échelle du halo en pixels CSS) · C = (teinte, scintillement, pouls, marge)
+      'vec3 voute(float y,float u0,float pa,vec4 A,vec4 B,vec4 C){',
+      '  float row=floor(y*A.x),yc=(row+.5)/A.x,cc=sqrt(max(1.-yc*yc,.02));',      // la rangée, et le cosinus de sa latitude
+      '  float M=max(3.,floor(6.2832*A.x*cc*cc+.5)),u=u0*M,ci=floor(u);',          // les cellules de la rangée : de même aire d une rangée à l autre
+      '  vec2 id=vec2(row,ci)+A.y;',
+      '  if(hash21(id)>A.z)return vec3(0.);',                                      // cellule vide
+      '  vec2 f=vec2(fract(u)-(C.w+(1.-2.*C.w)*hash21(id+17.3)),fract(y*A.x)-(C.w+(1.-2.*C.w)*hash21(id+29.1)));', // l étoile se pose où elle veut dans la cellule, à une marge du bord près (large pour les grosses, qu un bord couperait) : sinon des rangées et des colonnes se voient
+      '  float r=length(vec2(f.x*6.2832/M*cc,f.y/(A.x*cc)))/pa;',                 // sa distance au pixel, EN PIXELS de rendu
+      '  float sg=max(A.w*uEtK,.6),hs=B.w*uEtK;',                                  // le cœur et le halo se comptent en pixels CSS (même taille sur tous les téléphones) ; jamais sous ~½ pixel : il scintillerait
+      '  if(r>3.2*sg+3.*hs)return vec3(0.);',
+      '  float q=hash21(id+41.7),ph=hash21(id+53.9);',
+      '  float k=exp(-.5*r*r/(sg*sg))+B.z*exp(-r/max(hs,.001));',                  // le cœur, et son halo
+      '  return vouteTeinte(hash21(id+7.9),C.x)*mix(B.x,B.y,q*q)*k*(1.+C.y*sin(uTime*(.45+ph*1.1)+ph*40.))*(1.+uPulse*C.z);}',
       'void cielPoussiere(inout vec3 col,float y,float az){',
-      '  float b=dot(vDir,normalize(vec3(.78,.38,-.50))),band=exp(-b*b*36.);',
-      '  vec2 sg=vec2(az*28.6479,y*60.),sid=floor(sg),sfr=fract(sg);float h=hash21(sid+71.3);',
-      '  if(h<.935-.16*band)return;',
-      '  vec2 stp=vec2(fract(h*23.7),fract(h*41.3))*.7+.15;',
-      '  float sr=length(vec2((sfr.x-stp.x)*.0349*sqrt(max(0.,1.-y*y)),(sfr.y-stp.y)*.01667));',
-      '  float st=1.-smoothstep(0.,.0016,sr),k=fract(h*5.13);',
-      '  vec3 c=k<.4?vec3(.66,.76,1.):k<.75?vec3(1.,.96,.92):vec3(.86,.62,1.);',
-      '  col+=c*st*(.55+.65*band)*(.7+.3*sin(uTime*(.8+h*2.)+h*31.))*uSpace*uNeb;}',
+      '  float pa=max(sqrt(length(cross(dFdx(vDir),dFdy(vDir)))),1e-5),u0=az*.159155+.5;',    // l angle que couvre un pixel
+      '  vec3 d=vDir;float b=dot(d,normalize(vec3(.78,.38,-.50))),bl=exp(-b*b*9.),bc=exp(-b*b*55.);', // la bande de la voie lactée : large, et son cœur
+      '  float c1=sin(d.x*8.3+d.z*6.1+1.7)*sin(d.y*9.7-d.x*5.1+.6)+.7*sin(d.z*13.1+d.y*7.3-1.1)*sin(d.x*11.3+d.z*8.1+2.4);', // des plages plus ou moins peuplées
+      '  float c2=sin(d.x*10.7-d.y*6.1+.3)*sin(d.z*9.3+d.y*11.9+1.9)+.7*sin(d.y*14.1+d.x*7.7+2.2)*sin(d.z*12.1-d.x*9.9-.5);',
+      '  float fa=.8+.8*bl+.6*bc;',
+      '  vec3 s=voute(y,u0,pa,vec4(50.,3.1,min(.9,.22*fa*exp(c1*.40)),.45),vec4(.10,.36,0.,0.),vec4(.35,0.,0.,.04));',                 // le voile : des grains très faibles, sur DEUX grilles de pas différents (une seule laisse voir ses rangées là où elle est dense)
+      '  s+=voute(y,u0,pa,vec4(33.,5.3,min(.9,.20*fa*exp(c2*.40)),.45),vec4(.10,.36,0.,0.),vec4(.35,0.,0.,.04));',
+      '  s+=voute(y,u0,pa,vec4(22.,7.7,min(.9,.38*(.9+.7*bl+.4*bc)*exp(c2*.35)),.52),vec4(.28,.75,0.,0.),vec4(.55,.06,.3,.06));',       // les petites
+      '  s+=voute(y,u0,pa,vec4(11.,11.3,min(.9,.42*(1.+.4*bl)*exp((c1+c2)*.18)),.68),vec4(.60,1.15,.14,1.7),vec4(.8,.10,.7,.15));',   // les moyennes
+      '  s+=voute(y,u0,pa,vec4(5.4,19.9,.55,.95),vec4(1.2,2.,.20,3.),vec4(1.,.10,1.,.22));',                                         // les brillantes
+      '  col+=s*uSpace*uNeb;}',
     ],
     lune:[
       // LUNE pâle à l opposé du couchant — le témoin du presque-nuit
@@ -921,6 +891,17 @@ const skyDome=(function(){
     trame:[
       'float cielTrame(){return (fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5)/160.;}', // la trame (dither) : TOUJOURS à pleine résolution, dans la passe qui écrit l écran
     ]};
+  if(ETO_ANC)COUCHES.pous=[ // (2026-10-22) `?etoiles=ancien` : la poussière d'étoiles du 15/10, telle quelle (180 cellules par tour, des grains d'un pixel bleus, blancs ou mauves, serrés dans la voie lactée)
+      'void cielPoussiere(inout vec3 col,float y,float az){',
+      '  float b=dot(vDir,normalize(vec3(.78,.38,-.50))),band=exp(-b*b*36.);',
+      '  vec2 sg=vec2(az*28.6479,y*60.),sid=floor(sg),sfr=fract(sg);float h=hash21(sid+71.3);',
+      '  if(h<.935-.16*band)return;',
+      '  vec2 stp=vec2(fract(h*23.7),fract(h*41.3))*.7+.15;',
+      '  float sr=length(vec2((sfr.x-stp.x)*.0349*sqrt(max(0.,1.-y*y)),(sfr.y-stp.y)*.01667));',
+      '  float st=1.-smoothstep(0.,.0016,sr),k=fract(h*5.13);',
+      '  vec3 c=k<.4?vec3(.66,.76,1.):k<.75?vec3(1.,.96,.92):vec3(.86,.62,1.);',
+      '  col+=c*st*(.55+.65*band)*(.7+.3*sin(uTime*(.8+h*2.)+h*31.))*uSpace*uNeb;}',
+  ];
   const LECT='uniform sampler2D uBasTex;uniform vec2 uBasInv;',LECT_TR='uniform float uBasTr;'; // (passes NETTES) la passe lisse, relue au pixel de l'écran · (passes LISSES) leur trame 8 bits
   const MAIN={
     plein:[
@@ -944,7 +925,6 @@ const skyDome=(function(){
       '  cielSoleil(col,sd);',
       '  if(uTi.x>.001)cielTitre(col,vDir,y,sd);', // (titre v4) le ciel de l écran titre
       '  if(uPh.x>.001&&y>-.006)col=mix(col,phCiel(vDir),uPh.x*smoothstep(-.006,.004,y));', // (essai ARC) la photo
-      '  if(uParis>.001)parisCiel(col,vDir,y,sd);', // PARIS AU SOL : le ciel de l heure
       '  cielArcEC(col,vDir,y);', // (2026-10-21) l arc-en-ciel de la pluie : APRÈS le titre et la photo, qui repeignent tout le ciel
       '  bool gOn=cielGOn(y,sd),sOn=cielSOn(y,sd);',
       '  float az=0.;if(gOn||sOn||uLvl>.001||uVille>.001)az=atan(vDir.x,-vDir.z);',
@@ -967,7 +947,7 @@ const skyDome=(function(){
     basN:[LECT_TR,
       'void main(){',
       '  float y=vDir.y;vec3 col=cielFond(y);if(uSpace*uNeb>.001)cielEspace(col);float sd=max(dot(vDir,uSunDir),0.);', // (2026-10-15) + l espace profond
-      '  cielMer(col,y,sd);cielJour(col,y,sd);cielSoleil(col,sd);if(uTi.x>.001)cielTitre(col,vDir,y,sd);if(uParis>.001)parisCiel(col,vDir,y,sd);cielArcEC(col,vDir,y);',
+      '  cielMer(col,y,sd);cielJour(col,y,sd);cielSoleil(col,sd);if(uTi.x>.001)cielTitre(col,vDir,y,sd);cielArcEC(col,vDir,y);',
       '  if(cielGOn(y,sd))cielGuirlande(col,y,atan(vDir.x,-vDir.z),sd);',
       '  cielVoile(col,y);',
       '  gl_FragColor=vec4(cielSat(col)+vec3(cielTrame()*uBasTr),1.);}'],
@@ -983,6 +963,8 @@ const skyDome=(function(){
     // PASSE LISSE — VILLE sous la pluie : le plafond, la brume du bas et la lueur des quartiers
     basV:[LECT_TR,'void main(){gl_FragColor=vec4(villeLisse(vDir,vec3(0.))+vec3(cielTrame()*uBasTr),1.);}'],
     // PASSE NETTE — VILLE sous la pluie : la passe lisse relue, + les lumières fines de l'abîme, la skyline, la trame
+    // (2026-10-22) LES PICS DE JADE SEULS : le MÊME ciel que la branche `uJade>.9999` du programme plein (le rouleau peint, ou le dessous de la mer), sans le reste
+    jd:['void main(){gl_FragColor=vec4((uSous>.5?jadeSous(vDir):jadeCiel(vDir))+vec3(cielTrame()),1.);}'],
     // (2026-10-14) LE CANYON DES GÉANTS SEUL : son ciel, les étoiles de sa nuit, la trame
     cy:['void main(){vec3 c=canyonCiel(vDir);float y=vDir.y,sd=max(dot(vDir,uSunDir),0.);if(cielSOn(y,sd))cielEtoiles(c,y,atan(vDir.x,-vDir.z),sd);c=cielSat(c);c+=vec3(cielTrame());gl_FragColor=vec4(c,1.);}'],
     netV:[LECT,
@@ -996,7 +978,7 @@ const skyDome=(function(){
   const src=function(){return [].concat.apply([],arguments).join('\n');},K=COUCHES;
   // (2026-09-26, vague 2 — audit GPU) gl_Position.z = w : le dôme se pose sur le PLAN LOINTAIN (profondeur 1,0) — voir renderOrder plus bas
   const mk=(fs,lisse)=>new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,depthTest:!lisse,vertexShader:VS,fragmentShader:fs});
-  const mat=mk(src(TETE,VILLE,VILLE_CIEL,MER,K.fond,K.mer,K.jour,K.soleil,K.titre,K.paris,K.jade,K.canyon,K.gon,K.son,K.guirl,K.niveau,K.etoiles,K.espace,K.pous,K.lune,K.voile,K.onde,K.trame,MAIN.plein));
+  const mat=mk(src(TETE,VILLE,VILLE_CIEL,MER,K.fond,K.mer,K.jour,K.soleil,K.titre,K.jade,K.canyon,K.gon,K.son,K.guirl,K.niveau,K.etoiles,K.espace,K.pous,K.lune,K.voile,K.onde,K.trame,MAIN.plein));
   /* LE CIEL SE PEINT EN DERNIER (2026-09-26, vague 2 — audit GPU). Il était dessiné en PREMIER (renderOrder −9, sans écrire la
      profondeur) : chaque pixel de l'écran payait le shader le plus lourd du jeu (mer de nuages, ville, étoiles, fond musical)… puis
      la route, la caisse, les nuages le recouvraient. Posé sur le plan lointain (z = w dans le vertex) et dessiné APRÈS tous les
@@ -1006,16 +988,16 @@ const skyDome=(function(){
   const m=new THREE.Mesh(new THREE.SphereGeometry(4300,48,28),mat);
   const F_BAS=.5,FPK_BAS=1; // la passe lisse : ½ de la résolution en largeur et en hauteur (¼ des pixels) · l'anticrénelage de la mer y compte des pixels d'ÉCRAN (1)
   m.userData.ciel={plein:mat,f:F_BAS,
-    basN:mk(src('#define MER_FPK '+FPK_BAS.toFixed(4),TETE,VILLE,MER,K.fond,K.mer,K.jour,K.soleil,K.titre,K.paris,K.gon,K.guirl,K.voile,K.espace,K.trame,MAIN.basN),true),
+    basN:mk(src('#define MER_FPK '+FPK_BAS.toFixed(4),TETE,VILLE,MER,K.fond,K.mer,K.jour,K.soleil,K.titre,K.gon,K.guirl,K.voile,K.espace,K.trame,MAIN.basN),true),
     netN:mk(src(TETE,K.son,K.etoiles,K.pous,K.lune,K.trame,MAIN.netN)),
     basV:mk(src(TETE,VILLE,VILLE_CIEL,K.trame,MAIN.basV),true),
     netV:mk(src(TETE,VILLE,VILLE_CIEL,K.trame,MAIN.netV)),
-    cy:mk(src(TETE,VILLE,K.son,K.etoiles,K.canyon,K.trame,MAIN.cy))}; // (2026-10-14) LE CANYON DES GÉANTS : son ciel seul
+    cy:mk(src(TETE,VILLE,K.son,K.etoiles,K.canyon,K.trame,MAIN.cy)), // (2026-10-14) LE CANYON DES GÉANTS : son ciel seul
+    jd:mk(src(TETE,VILLE,K.jade,K.trame,MAIN.jd))}; // (2026-10-22) LES PICS DE JADE : son ciel seul
   m.frustumCulled=false;m.renderOrder=20;scene.add(m);return m;
 })();
 let FOG_N=420,FOG_F=2600; // near/far pilotés par les BIOMES (le lerp cloudInS les relit chaque frame)
 const FOG_BASE=new THREE.Color(0x5e3254),FOG_CLOUD=new THREE.Color(0xd8bcd0),fogTmp=new THREE.Color(); // FOG_BASE : l'objet reste const, les biomes mutent son RGB
-let FUMEE_K=0,FUMEE_F=250;const FOG_FUMEE=new THREE.Color(.24,.06,.07); // (2026-10-14) LE ROYAUME DE FEU : les BANCS DE FUMÉE — volcanTick pose FUMEE_K (0 hors du volcan), updateClouds referme la brume
 const FOG_CJ=new THREE.Color(0xc06a54),cjV=new THREE.Vector3(); // CONTRE-JOUR : l'air s'embrase quand on roule vers le soleil (la seule zone lumineuse)
 scene.fog=new THREE.Fog(0x5e3254,FOG_N,FOG_F); // brume MAGENTA sombre : la route lointaine fond dans le rose de la nuit qui tombe
 const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.1,9800);

@@ -241,7 +241,7 @@ html.misS #gmHead small{line-height:1.6}
 #gmListe.land>.glA::-webkit-scrollbar{display:none}
 #gmListe.land.vu>.glA{animation:none}
 @media (prefers-reduced-motion:reduce){#gmListe{animation:none!important}}
-@keyframes gmBalaye{to{top:122%}}
+@keyframes gmBalaye{to{transform:translateY(654.5%)}} /* (2026-10-23, audit mobile) transform au lieu de top : -22% → 122% du parent = 144 % / 22 % de sa propre hauteur */
 #gmFils{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}
 #gmFils path{fill:none;stroke:#5ff0ff;stroke-width:1.6;stroke-dasharray:7 7;stroke-linecap:round;animation:gmFlux 1.1s linear infinite}
 #gmFils path.hl{stroke-width:6;stroke-dasharray:none;opacity:.16;animation:none}

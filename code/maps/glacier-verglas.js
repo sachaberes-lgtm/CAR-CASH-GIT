@@ -78,7 +78,7 @@ function banqVerglas(dt){ // la boucle de conduite, chaque image, après les fla
 function bkSkateRaz(){BKV.t=0;BKV.hors=0;BKV.aura=0;BKV.dix=0;} // (2026-10-15, Sacha : « enlève la figure ICE SKATE ») la figure est partie ; ses remises à zéro restent, inertes
 /* ---------------- LA CONGÈRE : LA NEIGE PROFONDE DU BORD (2026-10-18) ----------------
    (Sacha : « quand on touche le bord on y reste collé » puis « quand on touche le bord on doit pas mourir : on s'enfonce dans la neige, ce qui
-   ralentit beaucoup, mais ça tue pas ».) Le bord de la piste était le MUR des couloirs du canyon (parisMur : coup d'épaule, mort au-delà de 30°
+   ralentit beaucoup, mais ça tue pas ».) Le bord de la piste était le MUR des couloirs du canyon (murCote : coup d'épaule, mort au-delà de 30°
    et 200 km/h) ; et sur la glace la caisse part vers l'extérieur des virages (banqVerglas) : elle y revenait à chaque image, collée au mur.
    Désormais, au-delà de la glace, une bande de NEIGE PROFONDE de `BK_CG.w` m de chaque côté — un ruban posé sur le repère de la piste
    (`bkCongerePose`), car la grille de neige, en cases de 34-40 m, ne savait pas dessiner un bord net (et passait par endroits AU-DESSUS de la
@@ -215,7 +215,7 @@ function banqFx(){const fx=BANQ.fx;if(fx.flo)return fx;const M=banqMats(),R=mulb
   fx.givre=makePool(240,1.1,0xe4fbff,1,true,{a:[.02,.3,.6,1],pr:[2,6,26,0]});fx.givre.drag=2.4;fx.givre.acc=9;fx.givre.mesh.name='banquise givre';
   // (2026-10-15 soir) LA GLISSE SUR LE VERGLAS : des éclats ÉTIRÉS (le trait suit leur vitesse, voir ptShader) et un voile de givre qui gonfle en s'effaçant
   fx.eclat=makePool(PAL_BK('banqEclat',700),.8,0x8fe4ff,1,true,{a:[.02,.35,1,.35],pr:[1.2,3.5,30,90],etire:true,str:.05,v:.6}); /* cyan glacier : blanc sur la glace blanche, on ne les voyait pas — (2026-10-15 soir) ce commentaire en // avalait la suite (drag, acc, nom) : rendu */fx.eclat.drag=1.4;fx.eclat.acc=14;fx.eclat.mesh.name='banquise eclats';
-  fx.brume=makePool(PAL_BK('banqBrume',220),3.4,0xe2f2ff,.5,true,{a:[.10,.75,.45,1.7],pr:[2.5,7,120,0]}); // (plafond 120 px : à 46, le voile n'était qu'un point blanc sur la glace blanche)fx.brume.drag=2.4;fx.brume.mesh.name='banquise brume';
+  fx.brume=makePool(PAL_BK('banqBrume',220),3.4,0xe2f2ff,.5,true,{a:[.10,.75,.45,1.7],pr:[2.5,7,120,0]}); /* (plafond 120 px : à 46, le voile n'était qu'un point blanc sur la glace blanche) — (2026-10-18, DEBUGGING : ce commentaire en // avalait la suite : le voile de givre filait avec la caisse, sans frein) */fx.brume.drag=2.4;fx.brume.mesh.name='banquise brume';
   fx.eclat.mesh.renderOrder=fx.brume.mesh.renderOrder=9; // ⚠ APRÈS la plaque de verglas (renderOrder 1, transparente) et les traces (2) : dessinées avant, elles étaient repeintes par la glace — invisibles au banc
   bkTraceMesh();bkCretes(fx); /* (2026-10-21, LE GLACIER EMBELLI) les crêtes lointaines et leurs panaches : voir glacier-embelli.js */
   return fx;}

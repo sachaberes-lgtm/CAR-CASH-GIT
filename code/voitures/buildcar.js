@@ -70,7 +70,7 @@ function buildCar(spec){
   // L'ATELIER LOW-POLY : `K.kit(pal)` ouvre un chantier (voir lpKit), `K.commit` le pose — une
   // géométrie par matière, et les matières PARTAGÉES par toute la caisse, roues comprises.
   const lpM={},lpMatC=g=>lpM[g]||(lpM[g]=lpMat(g,FSTU.on)); // (2026-10-20) `?finition=studio` : la tôle en finition studio (voir finition.js)
-  const kit=pal=>lpKit(peintPal(pal)); // la PEINTURE de la boutique passe par la palette (voir `peintPal`)
+  const kit=pal=>{const k9=lpKit(peintPal(pal));k9.forme=spec.shape||'gt';return k9;}; // la PEINTURE de la boutique passe par la palette (voir `peintPal`) · `forme` : le gabarit qui tient le chantier (les facettes larges, voir facettes-larges.js)
   const lpPrims=[];let lpZmin=1e9; // (pots) les pièces simples de la caisse et sa poupe réelle, relevées au passage
   const commit=kt=>{const gs=kt.ech?kt.done():echRetire(kt.done(),kt.prims,spec.shape||'gt');for(const g in gs){gs[g].computeBoundingBox();lpZmin=Math.min(lpZmin,gs[g].boundingBox.min.z);
     if(g!=='l')lpOmbre(gs[g],H9); // (2026-09-26, vague 2) l'ombre cuite (voir lpOmbre) — les feux émettent, ils n'en prennent pas

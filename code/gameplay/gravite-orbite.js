@@ -5,7 +5,7 @@
    gravité : il est ×gK lui aussi, sinon il la battrait (.6 × 33 > .5 × 33) et la caisse monterait toute seule. Mesuré là-bas :
    même impulsion → 13,5 m de haut contre 6,7. Jamais au parc (ses sauts sont réglés à part). */
 const ORB_G=.5,ORB_AIR=5/6; /* (2026-10-14 soir, Sacha : « dans l'espace 5 secondes de air time ») la jauge de l'espace passe de 10,2 s à 5 s (6 × 5/6) : moins que sur Terre, alors que les sauts y montent deux fois plus haut — voulu */
-function gK(){return (LVL.espaceA>=.5&&!PARK.on)?ORB_G:1;}
+function gK(){return (LVL.espaceA>=.5&&!PARK.on)?ORB_G:(DN.gx>1?DN.gx:1);} /* (2026-10-23, DUNES) DN.gx : la pesanteur d'un vol de tremplin, tirée à la vitesse du décollage (voir dnLevre) — plus on va vite, plus la caisse retombe vite : elle se pose sur l'ÉPAULE à toute vitesse */
 function volSens(){return SAVE.d&&SAVE.d.volH==='plonge'?1:-1;} // (2026-10-10) absent = MONTE
 function volhBascule(){SAVE.d.volH=volSens()<0?'plonge':'monte';SAVE.flush();} // (2026-09-30, R7-5) LE seul écrivain de « POUCE HAUT EN VOL » : les RÉGLAGES et la PAUSE passent par lui // (2026-09-29) « pouce en HAUT = monte » : l'assiette au pouce s'inverse (le clavier ne change pas)
 function airMax(){return AIR_MAX*(gK()<1?ORB_AIR:1);}

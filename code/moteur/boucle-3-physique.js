@@ -35,7 +35,7 @@
           /* (bord v2) LES ROUES DEHORS : dès que les roues extérieures passent la lèvre, plus rien ne porte ce côté — la carrosserie
              s'affaisse vers le VIDE (jusqu'à ~9° quand le centre de gravité arrive au bord, où la bascule prend le relais) et le plancher
              RACLE la lèvre (étincelles). C'est l'avertissement physique : on SENT le bord avant d'y tomber. */
-          const hw9=CARS[level].w*.5,dB9=Math.abs(lat)-(ROAD_HALF-hw9),pe9=dB9>0&&!(PARIS.sol)?Math.min(1,dB9/hw9):0;
+          const hw9=CARS[level].w*.5,dB9=Math.abs(lat)-(ROAD_HALF-hw9),pe9=dB9>0?Math.min(1,dB9/hw9):0;
           if(pe9>0&&Math.abs(vA)>12&&Math.random()<dt*28*pe9){DRIFT_V.set(Math.sign(lat)*Math.max(0,hw9-dB9),.08,(Math.random()-.5)*CARS[level].l*.7);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,1,6);}
           {const aLat=yawR/spdMult*Math.abs(vA)*SPD,d9=Math.min(dt,1/30), /* (HAUTE VITESSE) le lacet de BASE : le roulis du même virage qu'à ×1 */
                 rollT=Math.sign(aLat)*.26*(1-Math.exp(-Math.abs(aLat)/35))+(driftEnCours?Math.sign(slipB)*.07:0)-Math.sign(lat)*.15*pe9*(2-pe9);
@@ -562,9 +562,7 @@
       if(TCTL.on&&!TUTO.on&&!(SAVE.d.ast&2)){loop._astV=(loop._astV||0)+dt;if(loop._astV>1){SAVE.d.ast|=2;SAVE.mark(); // ASTUCE (une fois à vie) : l'assiette au pouce
         misBanniere('ASTUCE',TR(volSens()<0?"En l'air : pouce en HAUT = monte, en BAS = plonge.":"En l'air : pouce en HAUT = plonge, en BAS = monte."),'','eclair');}}
       if(!PARK.on&&portalMesh&&(PCUBE.on?pcubeFranchi(fallPos):fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)&&!PORTV.att)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
-      else if(PARIS.sol&&(PARIS.heurt=parisHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(parisHeurt,PARIS.heurt,.3);explode(PARIS.heurt);} // (Paris au sol) une façade, la Seine, le sol
       else if(FORET.root&&(FORET.heurt=foretHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(foretHeurt,FORET.heurt,1.1);explode(FORET.heurt);} // (2026-10-14) LA FORÊT NOIRE : un géant, une cime, le sous-bois
-      else if(VOLCAN.root&&(VOLCAN.heurt=volcanHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(volcanHeurt,VOLCAN.heurt,VOLCAN.heurt==='lave'?.8:1.1);explode(VOLCAN.heurt);} // (2026-10-14) LE ROYAUME DE FEU : une aiguille, l'arche, la roche — LA LAVE
       else if(GROTTE.root&&(GROTTE.heurt=grotteHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(grotteHeurt,GROTTE.heurt,1);explode(GROTTE.heurt);} // (2026-10-18) LES PROFONDEURS : la roche, la lave, l'eau, les gros décors
       else if(BANQ.root&&(BANQ.heurt=banqHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(banqDans,BANQ.heurt,.3);explode(BANQ.heurt);} // (2026-10-14) LA BANQUISE : trop profond dans la poudreuse, la glace prise de face
       else if(JADE.col&&jadeHeurt(fallPos)){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(jadeHeurt,'pic',1.1);explode('pic');} // (2026-10-09) LES PICS DE JADE : un pilier, la muraille, l'arche
