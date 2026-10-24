@@ -8878,7 +8878,15 @@ const skyDome=(function(){
       '  float u=uPh.y+uPh2.x*(atan(d.x,-d.z)-atan(uSunDir.x,-uSunDir.z))/6.2832,u1=fract(u),u2=fract(u+.5)-.5;',
       '  vec2 uv=vec2(u1,e2/H),g=vec2(u2,uv.y);vec2 dx=dFdx(g),dy=dFdy(g);vec2 dx1=dFdx(uv),dy1=dFdy(uv);',
       '  if(abs(dx1.x)+abs(dy1.x)<abs(dx.x)+abs(dy.x)){dx=dx1;dy=dy1;}',
+      /* ===== LE CIEL SE COMPILE AUSSI EN WebGL1 (24/10, relecture : « shaders invalides sur certains GPU ») =====
+         `textureGrad` n'existe qu'en GLSL ES 3.00 (WebGL2) : sur un navigateur resté en WebGL1 (WebGL2 indisponible ou bloqué par le pilote),
+         les SEPT programmes du dôme ne compilaient plus — tout le ciel manquait, au menu comme sur chaque map. En WebGL1 : une lecture simple
+         (au plus une couture d'un pixel au raccord du tour de la photo). En WebGL2 (__VERSION__ 300) : la ligne d'avant, telle quelle. */
+      '#if __VERSION__>=300',
       '  return textureGrad(uPhT,uv,dx,dy).rgb*uPh.w;}',
+      '#else',
+      '  return texture2D(uPhT,uv).rgb*uPh.w;}',
+      '#endif',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse,uRose;', // grade biome (identité par défaut) + uPulse musique
       'uniform vec3 uFd[8];uniform vec3 uVc[6];', // (2026-10-16) LES TEINTES DE LA VILLE : les couleurs fixes du dégradé et du ciel de la ville (valeurs d'origine hors ville teintée)
       'uniform float uSpace,uNeb,uEtK;', // NIVEAU ORBITE : 0 = aucun effet · uNeb : les nébuleuses (2026-10-15) · uEtK : pixels de rendu par pixel CSS, pour la taille des étoiles (2026-10-22)
@@ -9729,7 +9737,9 @@ const skyDome=(function(){
      cible 8 bits) : elles remplissent une cible hors écran qui couvre toute l'image (voir CIEL2). */
   const src=function(){return [].concat.apply([],arguments).join('\n');},K=COUCHES;
   // (2026-09-26, vague 2 — audit GPU) gl_Position.z = w : le dôme se pose sur le PLAN LOINTAIN (profondeur 1,0) — voir renderOrder plus bas
-  const mk=(fs,lisse)=>new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,depthTest:!lisse,vertexShader:VS,fragmentShader:fs});
+  /* (24/10, relecture) `extensions.derivatives` : dFdx/dFdy (la photo, la voûte de l'orbite) exigent en WebGL1 la directive
+     OES_standard_derivatives — three ne la pose que si on la demande, et l'ignore en WebGL2 (programme identique au bit près). */
+  const mk=(fs,lisse)=>new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,depthTest:!lisse,vertexShader:VS,fragmentShader:fs,extensions:{derivatives:true}});
   const mat=mk(src(TETE,VILLE,VILLE_CIEL,MER,K.fond,K.mer,K.jour,K.soleil,K.titre,K.jade,K.canyon,K.gon,K.son,K.guirl,K.niveau,K.etoiles,K.espace,K.pous,K.lune,K.voile,K.onde,K.trame,MAIN.plein));
   /* LE CIEL SE PEINT EN DERNIER (2026-09-26, vague 2 — audit GPU). Il était dessiné en PREMIER (renderOrder −9, sans écrire la
      profondeur) : chaque pixel de l'écran payait le shader le plus lourd du jeu (mer de nuages, ville, étoiles, fond musical)… puis
@@ -61698,7 +61708,7 @@ function svClockDraw(){ // minuteur circulaire PIXEL-ART : 20×20 upscalé net �
   c.fillStyle='#fff';
   for(let r=1.5;r<6;r+=1)c.fillRect(Math.round(9.5+Math.sin(na)*r),Math.round(9.5-Math.cos(na)*r),1,1);
   c.fillStyle='#ffd75e';c.fillRect(9,9,2,2);
-  if(svSecsEl){const sLeft=Math.max(0,Math.ceil(left));svSecsEl.textContent='0:'+String(sLeft).padStart(2,'0');
+  if(svSecsEl){const sLeft=Math.max(0,Math.min(59,Math.ceil(left)));svSecsEl.textContent='0:'+String(sLeft).padStart(2,'0'); /* (24/10, relecture : « 0:60 » toute la première seconde de chaque minute) la minute s'affiche 0:59 → 0:00, jamais 0:60 */
     svSecsEl.style.color=left<10?'#ff5040':'#ffd75e';}
 }
 function botBoom(b){ // une unité saute : gerbe or+bleu, champignon, et le son si c'est proche
@@ -61943,7 +61953,7 @@ function survTick(dt){
     if(SURV.last&&!gameOver){if(!SURV.alW&&performance.now()-(SURV.alQ||0)>500)SURV.alT=0;SURV.alT-=dt;if(SURV.alT<=0){const r9=Math.max(0,60-SURV.t);SURV.alT=Math.max(.18,Math.min(1.6,r9*.06));sfx('alerte.dernier',{vol:r9<10?2:0});}}
     if(SURV.alW&&!SURV.last)SURV.alQ=performance.now();SURV.alW=SURV.last&&!gameOver;} /* (débogage son 2026-09-29) une seconde place perdue puis reprise en moins de 0,5 s ne relance pas le bip */
   if(SURV.last&&!gameOver&&!TCTL.on){ // (2026-09-30) au téléphone, #lastAlert est masqué : on ne réécrit plus son HTML à chaque image
-    const left=Math.max(0,Math.ceil(60-SURV.t));
+    const left=Math.max(0,Math.min(59,Math.ceil(60-SURV.t))); /* (24/10, relecture) jamais « 00:60 » (voir svClockDraw) */
     lastAlertEl.innerHTML=TR('⚠ ATTENTION !<br>TU ES DERNIER<br>EXPLOSION DANS : 00:')+String(left).padStart(2,'0');
     lastAlertEl.style.display='block';
   }else lastAlertEl.style.display='none';
