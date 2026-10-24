@@ -138,9 +138,11 @@ const VHD={on:false,dpr:1,max:1,ombre:2048,t:0,k0:0,lT:0,bT:0,sT:0,mur:0,murT:0,
    `?vhdecran=1` (ORDI seulement, TEL_NATIF faux) : la vitrine jamais au-delà des pixels RÉELS de l'écran — plafond = devicePixelRatio du
    document du jeu, zoom du cadre compris → 2591×1197 = 3,10 M de pixels (−41 %, halo compris : sa base est taillée sur la toile) ;
    `?vhdecran=2` : pareil + ombre de la vitrine 2048 au lieu de 4096 (4× moins de texels de profondeur remplis et écrits à chaque image).
-   PAR DÉFAUT ÉTEINT : c'est un changement d'image (anticrénelage, bord de l'ombre) — Sacha tranche sur photos A/B. Le téléphone
+   C'est un changement d'image (anticrénelage, bord de l'ombre) : Sacha l'a regardé en ligne et l'a gardé — `=2` par défaut (voir VHE_MODE). Le téléphone
    (TEL_NATIF) et les tables PAL ne changent pas d'un bit. `dbgVhdEcran()` chiffre la toile d'avant/après sur l'écran du banc. */
-const VHE_MODE=TEL_NATIF?0:(function(){const m=/[?&]vhdecran=([12])\b/.exec(location.search);return m?+m[1]:0;})();
+/* (2026-10-24, Sacha, après avoir regardé ?vhdecran=2 sur le site : « c'est bon, active-le par défaut sur ordi ») LA VARIANTE 2 PAR DÉFAUT sur l'ordi :
+   les pixels de l'écran + ombre 2048 (menu : GPU 16 → 6,4 ms, 53 → 59 i/s). `?vhdecran=0` = l'ancienne vitrine (×1,5, ombre 4096), `?vhdecran=1` = sans l'ombre 2048. */
+const VHE_MODE=TEL_NATIF?0:(function(){const m=/[?&]vhdecran=([012])\b/.exec(location.search);return m?+m[1]:2;})();
 window.dbgVhdEcran=function(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?PAL.b('vhdPx',3.2e6):8.3e6,f9=function(d){return Math.max(DPR_CAP,Math.min(d,Math.sqrt(bud/px),4));},a9=f9(devicePixelRatio*(TEL_NATIF?1:1.5)),b9=f9(devicePixelRatio);
   return {mode:VHE_MODE,tel:TEL_NATIF,vhd:VHD.on,dprEcran:+devicePixelRatio.toFixed(3),dprAvant:+a9.toFixed(3),dprApres:+b9.toFixed(3),pxEcran:Math.round(px*devicePixelRatio*devicePixelRatio),pxAvant:Math.round(px*a9*a9),pxApres:Math.round(px*b9*b9),
     toile:[renderer.domElement.width,renderer.domElement.height],ombre:sun.shadow.mapSize.x,bloom:bloomPass&&bloomPass.renderTargetsHorizontal?[bloomPass.renderTargetsHorizontal[0].width,bloomPass.renderTargetsHorizontal[0].height]:null};};

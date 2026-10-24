@@ -19,7 +19,8 @@
   `tailleEcran` 161-178 → 14-24 ms, `dBoule` 557-603 → 220-270 ms, le film entier 768-807 → 227-277 ms : ~0,5 s de fil principal rendue à la construction du jeu.
   `?pcintro=0` = avant, `?pci60=0` = sans la cadence seule, `dbgPciIntro` (compteurs).
 - **SLIDE +X** (`PCH_ON`, `code/maps/murs-slide.js`) : l'étiquette n'est réécrite que si son texte change. `?pchud=0`.
-- **EN ATTENTE DE SACHA — LA VITRINE AUX PIXELS RÉELS DE L'ÉCRAN** (`VHE_MODE`, `?vhdecran=1|2`, ÉTEINTE par défaut) : hors téléphone, `vhdDpr` vise devicePixelRatio × 1,5 (le
+- **LA VITRINE AUX PIXELS RÉELS DE L'ÉCRAN** (v861, `VHE_MODE`) — ✔ ACTIVÉE PAR DÉFAUT SUR L'ORDI en variante 2 (Sacha, après l'avoir regardée en ligne : « c'est bon, active-le par
+  défaut sur ordi ») ; `?vhdecran=0` = l'ancienne vitrine, `?vhdecran=1` = sans l'ombre 2048. Vérifié : toile 2592 × 1197, ombre 2048, aucune erreur. Hors téléphone, `vhdDpr` vise devicePixelRatio × 1,5 (le
   sur-échantillonnage de l'accueil, 28/09) → DPR 4 dans le cadre = 1,69× les pixels que l'écran montre. `=1` : jamais au-delà des pixels de l'écran ; `=2` : pareil + ombre 2048.
   MESURÉ au menu (fenêtre DevTools, 10 s) : défaut GPU 16,1 ms en médiane / 30 au p90, 53 i/s, 19 images > 33 ms ; `=1` 13,1 / 21,5, 58 i/s, 3 ; `=2` 6,4 / 11,4, 59 i/s, 2.
   C'est un changement d'image (anticrénelage de la caisse, bord de l'ombre) : à juger à l'œil (`dbgVhdEcran()`).
