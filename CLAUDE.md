@@ -14,7 +14,7 @@ CASH CAR est un runner arcade 3D (three.js) pour téléphone : on conduit une ca
 - `code/economie/` : boutique (`SHOP`, `shopBuy`), achat (`carBuy`), contrats, argent de l'atelier, boutique du jour, final spin.
 - `code/gameplay/` : flow, frénésie, pouvoirs, figures, impact, mort, caméra, aura, pose, seconde chance, ramassage.
 - `code/missions/` : la table, le moteur, l'écran, la révélation, les missions de l'atelier.
-- `code/son/` : musique, voix des moteurs, console et graphe audio, mute.
+- `code/son/` : musique, voix des moteurs, console et graphe audio, mute ; `moteur-vivant.js` = le second moteur (?moteurvivant=1, DSP dans `assets/audio/moteur-vivant/`, atelier d'écoute dans `atelier-son/moteur-vivant/`).
 - `code/interface/` : traductions (`I18N`), menus, garage, boutique 3D, inventaire, HUD des figures, auto-école.
 - `code/moteur/` : la boucle `loop()` (6 tranches `boucle-*`), cadence, init, `intro-161.js` (l'intro du studio : cinq « 1.61 » blanc sur noir au choix `?label=neon|or|poussiere|luxe|hype|demo`, noir, logo qui casse l'écran ; l'ancienne est dans `init.js`, `?intro=ancien`), mobile/tactile/PWA.
 - `code/sauvegarde.js` : `SAVE`, la sauvegarde (localStorage `cashcarSave`).
