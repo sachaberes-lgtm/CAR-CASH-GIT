@@ -96,18 +96,28 @@ function grtDecors(V,R,fr,MOB){const D=new Map(),T9=[],P9=[],B=V.B,b=R.bornes,RH
    une lumière douce d'en haut qui dessine les facettes, l'occlusion, la LANTERNE de la caisse. Les éclats PERCENT le brouillard. */
 const GRT_MUR=[[.46,.32,.22],[.22,.36,.33],[.32,.25,.46],[.60,.38,.22],[.17,.15,.24],[.10,.15,.24]]; // mine, luxuriante, puits, stalactites, lave, abysses
 const GRT_SOL=[[.42,.28,.15],[.24,.56,.16],[.26,.22,.40],[.68,.48,.28],[.24,.11,.09],[.04,.17,.21]];
-const GRT_U={uTime:{value:0},uTorch:{value:1},uLieu:{value:1},uAmb:{value:new THREE.Color(.05,.05,.06)},uEmi:{value:1},uLav:{value:1},uFlam:{value:1},uLant:{value:1},
+/* (2026-10-20, Sacha : « amélioration visuelle des maps ») LA PROFONDEUR, LES FILONS : la lueur de la brume LOINTAINE de chaque salle (plus claire et plus FROIDE
+   que la brume : la clé chaude reste devant, le remplissage froid fond les plans au loin) et la couleur des filons de minerai (or, rose, braise) */
+const GRT_VEIL=[[.10,.08,.15],[.03,.15,.15],[.12,.07,.26],[.10,.09,.17],[.16,.05,.12],[.02,.10,.17]]; // mine, luxuriante, puits, stalactites, lave, abysses
+const GRT_VEINE=[[1,.72,.30],[1,.74,.28],[1,.40,.78],[1,.60,.50],[1,.50,.10],[1,.30,.78]];
+const GRT_U={uTime:{value:0},uTorch:{value:1},uLieu:{value:1},uAmb:{value:new THREE.Color(.05,.05,.06)},uEmi:{value:1},uLav:{value:1},uFlam:{value:1},uLant:{value:1},uVeilK:{value:1},uVein:{value:1},uGlint:{value:1},
   uTorchC:{value:new THREE.Color(1.5,.86,.42)},uLantC:{value:new THREE.Color(1.05,.95,.82)},uLantP:{value:new THREE.Vector3(0,-1e5,0)},
-  uMur:{value:GRT_MUR.map(function(c){return new THREE.Vector3(c[0],c[1],c[2]);})},uSol:{value:GRT_SOL.map(function(c){return new THREE.Vector3(c[0],c[1],c[2]);})}};
-const GRT_VS=['attribute vec4 aF;attribute vec4 aL;uniform vec3 uMur[6],uSol[6];varying vec3 vW,vMur,vSol;varying vec4 vF,vL;','#include <fog_pars_vertex>',
-  'void main(){vec4 wp=modelMatrix*vec4(position,1.);vW=wp.xyz;vF=aF;vL=aL;int s=int(aF.y+.5);vMur=uMur[s];vSol=uSol[s];vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
-const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant;uniform vec3 uAmb,uTorchC,uLantC,uLantP;','varying vec3 vW,vMur,vSol;varying vec4 vF,vL;','#include <fog_pars_fragment>',FG_BRUIT,
+  uMur:{value:GRT_MUR.map(function(c){return new THREE.Vector3(c[0],c[1],c[2]);})},uSol:{value:GRT_SOL.map(function(c){return new THREE.Vector3(c[0],c[1],c[2]);})},
+  uVeil:{value:GRT_VEIL.map(function(c){return new THREE.Vector3(c[0],c[1],c[2]);})},uVeine:{value:GRT_VEINE.map(function(c){return new THREE.Vector3(c[0],c[1],c[2]);})}};
+const GRT_VS=['attribute vec4 aF;attribute vec4 aL;uniform vec3 uMur[6],uSol[6],uVeil[6],uVeine[6];varying vec3 vW,vMur,vSol,vVeil,vVeine;varying vec4 vF,vL;','#include <fog_pars_vertex>',
+  'void main(){vec4 wp=modelMatrix*vec4(position,1.);vW=wp.xyz;vF=aF;vL=aL;int s=int(aF.y+.5);vMur=uMur[s];vSol=uSol[s];vVeil=uVeil[s];vVeine=uVeine[s];vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
+const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant,uVeilK,uVein,uGlint;uniform vec3 uAmb,uTorchC,uLantC,uLantP;','varying vec3 vW,vMur,vSol,vVeil,vVeine;varying vec4 vF,vL;','#include <fog_pars_fragment>',FG_BRUIT,
   'void main(){',
   '  vec3 n=normalize(cross(dFdx(vW),dFdy(vW)));if(dot(n,cameraPosition-vW)<0.)n=-n;', // la FACETTE
   '  float mt=floor(vF.x+.5),sal=floor(vF.y+.5),fc=fh3(floor(vW*'+(GRT_VASTE?'.13':'.19')+')+sal*7.);vec3 alb;vec3 em=vec3(0.);',
   '  if(mt<.5){float up=smoothstep(.45,.85,n.y),st=fh2(vec2(floor(vW.y*.14),sal*3.1));alb=mix(vMur,vSol,up)*(.84+.24*st)*(.88+.2*fc);', // la ROCHE : la paroi, le sol, les strates
   '    if(sal>4.5)em=vec3(.10,.85,.95)*step(.8,fc)*up*.7*uEmi*(.3+.7*pow(.5+.5*sin(uTime*2.2-length(vW.xz)*.02+fc*6.),3.));', // le SCULK : des plaques du sol des abysses qui battent en cyan
-  '    else if(sal>.5&&sal<1.5)em=vec3(.35,.95,.25)*step(.84,fc)*up*.22*uEmi;}', // la mousse qui luit par plaques
+  '    else if(sal>.5&&sal<1.5)em=vec3(.35,.95,.25)*step(.84,fc)*up*.22*uEmi;',  // la mousse qui luit par plaques
+  /* LES FILONS (embellir, 2026-10-20) : des lignes de minerai qui courent sur les parois et les voûtes (jamais le sol) — l'isoligne d'une onde plane tordue (aucun bruit, ~30 opérations),
+     par zones de ~30 m, qui s'élargit avec la distance (fwidth : pas de scintillement de pixel) et s'efface avant 420 m ; ils scintillent par bandes qui montent le long de la paroi */
+  '    if(uVein>.001){vec3 q=vW*.05;float w1=sin(q.x*.9+q.y*2.4-q.z*.6+sin(q.z*1.8+q.y*1.2)*1.9+sal*2.3),zn=step(.6,fh3(floor(vW*.032)+sal*3.));',
+  '      float fv=zn*(1.-up)*(1.-smoothstep(0.,.11+fwidth(w1)*1.6,abs(w1)))*(1.-smoothstep(160.,420.,length(cameraPosition-vW)));',
+  '      float gl=pow(max(0.,sin(uTime*1.9+vW.y*.21+fc*30.)),14.);alb=mix(alb,vVeine*.4,fv*.7);em+=vVeine*fv*(.45+.9*gl*uGlint)*uVein*uEmi;}}',
   '  else if(mt<1.5){vec2 p=vW.xz*.035;float f=fn2(p+vec2(uTime*.07,uTime*.045))*.65+fn2(p*2.3-uTime*.11)*.35;',
   '    vec3 c=mix(vec3(.95,.22,.02),vec3(1.,.72,.18),smoothstep(.45,.82,f));c=mix(vec3(.30,.04,.02),c,smoothstep(.28,.42,f));alb=c*.15;em=c*2.2*uLav;}', // la LAVE : des plaques de croûte entre la lave vive
   '  else if(mt<2.5){float f=fn2(vW.xz*.05+vec2(uTime*.05,uTime*.03));alb=mix(vec3(.02,.12,.22),vec3(.06,.30,.42),f);em=vec3(.03,.16,.22)*(.6+.4*f);}', // l'EAU
@@ -126,11 +136,18 @@ const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant;uniform ve
   '  else if(mt<15.5){alb=vec3(0.);em=mix(vec3(.2,.75,1.),vec3(.7,1.,1.),fc)*2.4*(.82+.18*sin(uTime*11.+vW.x));}', // le FEU D'ÂME
   '  else if(mt<16.5){alb=vec3(.3,.9,1.);em=vec3(.25,.9,1.)*1.3*uEmi*(.7+.3*sin(uTime*3.+fc*20.));}', // le DIAMANT
   '  else if(mt<17.5){alb=vec3(1.,.75,.15);em=vec3(1.,.72,.15)*.9*uEmi*(.7+.3*sin(uTime*3.+fc*20.));}', // l'OR
-  '  else{alb=vec3(.16,.05,.04);em=vec3(1.,.38,.06)*(.25+.75*step(.55,fc))*1.1*uLav*(.75+.25*sin(uTime*2.+fc*8.));}', // le MAGMA du rivage : des facettes qui rougeoient
+  '  else if(mt<18.5){alb=vec3(.16,.05,.04);em=vec3(1.,.38,.06)*(.25+.75*step(.55,fc))*1.1*uLav*(.75+.25*sin(uTime*2.+fc*8.));}', // le MAGMA du rivage : des facettes qui rougeoient
+  /* LES CRISTAUX À TEINTES (embellir) : rose #F24AA0, violet, azur, or miel — la lumière-vedette des parois ; une lueur par facette (le prisme se lit), un pouls lent, et de rares éclats qui courent */
+  '  else{vec3 hc=mt<19.5?vec3(1.,.26,.58):mt<20.5?vec3(.60,.30,1.):mt<21.5?vec3(.22,.60,1.):vec3(1.,.72,.26);',
+  '    float fk=.55+.6*abs(dot(n,vec3(.42,.71,.57))),gl=pow(max(0.,sin(uTime*2.3+fc*50.+vW.y*.4)),16.);alb=hc*.3;',
+  '    em=hc*fk*(1.1+.4*fc)*(.55+.45*uEmi)*(.88+.12*sin(uTime*1.6+fc*9.))+vec3(1.,.92,.96)*gl*.5*uGlint;}',
   '  float ao=vF.z/255.,key=.6+.4*max(0.,dot(n,vec3(.3,.86,.41)));',
   '  vec3 dl=uLantP-vW;float d2=dot(dl,dl),lam=max(0.,dot(n,dl))*inversesqrt(d2+1.);vec3 Lc=uLantC*uLant*(.25+.75*lam)/(1.+d2/1600.);',
+  /* L'HUMIDITÉ (embellir) : des plaques de roche mouillée qui brillent quand les phares passent (le reflet de la lanterne sur les facettes) — le détail vivant, sans aucun calcul côté processeur */
+  '  if(mt<.5&&uLant>.01){vec3 Hh=normalize(normalize(cameraPosition-vW)+normalize(dl));float wm=step(.5,fh3(floor(vW*.045)+sal*5.))*(1.-.6*smoothstep(.45,.85,n.y));',
+  '    em+=uLantC*pow(max(dot(n,Hh),0.),30.)*wm*uLant*.7/(1.+d2/2200.);}',
   '  vec3 col=alb*(((uAmb+uTorchC*(vL.x*uTorch)+vL.yzw*(2.*uLieu))*key+Lc)*ao);',
-  '  #ifdef USE_FOG','  float ff=smoothstep(fogNear,fogFar,fogDepth);col=mix(col,fogColor,ff)+em*(1.-ff*.55);','  #else','  col+=em;','  #endif',
+  '  #ifdef USE_FOG','  float ff=smoothstep(fogNear,fogFar,fogDepth);col=mix(col,fogColor+vVeil*uVeilK*ff,ff)+em*(1.-ff*.55);','  #else','  col+=em;','  #endif',
   '  gl_FragColor=vec4(col,1.);}'].join('\n');
 /* LES POUSSIÈRES (700 points ronds et doux autour de la caméra, comme les braises du volcan) : la poussière de la mine, les spores, les paillettes
    de la géode, les gouttes, les braises, les âmes — chaque salle les siennes, fondues en ~1 s. */
@@ -142,7 +159,7 @@ const GRT_PART_VS=['attribute vec4 aR;uniform float uTime,uPx,uK,uSz,uSw;uniform
 const GRT_PART_FS='varying vec3 vC;varying float vA;void main(){float a=smoothstep(.5,.08,length(gl_PointCoord-.5));if(a*vA<.004)discard;gl_FragColor=vec4(vC*vA*a,1.);}';
 const GRT_PART=[{c:[.95,.70,.42],v:[0,-.6,0],w:1.2,z:.32,k:.5},{c:[.55,1,.32],v:[0,.9,0],w:3,z:.42,k:.75},{c:[1,.55,1],v:[0,.3,0],w:2,z:.36,k:.85},
   {c:[.55,.78,1],v:[0,-16,0],w:.3,z:.28,k:.7},{c:[1,.42,.08],v:[0,7,0],w:2.4,z:.4,k:.95},{c:[.25,1,1],v:[0,2.6,0],w:4,z:.4,k:.8}]; // mine, luxe, géode, stalactites, lave, abysses (z : la taille en mètres)
-try{Object.assign(PAL.B,{grottePart:[380,560,700]});}catch(e){}
+try{Object.assign(PAL.B,{grottePart:[380,560,700],grotteVeine:[0,1,1],grotteCris:[.35,.65,1]});}catch(e){} /* (embellir, 2026-10-20) grotteVeine : les filons de la roche (le vieux téléphone n'en paie pas le calcul) · grotteCris : la part des grappes de cristaux à teintes */
 const GRT_MATS={roche:null,part:null},GRT_FX={part:null,p:null};
 function grtMats(){if(GRT_MATS.roche)return GRT_MATS;
   const m=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),GRT_U),vertexShader:GRT_VS,fragmentShader:GRT_FS,fog:true,side:THREE.DoubleSide,extensions:{derivatives:true}});
@@ -220,7 +237,7 @@ function grotteTick(dt){
   if(GROTTE.file&&GROTTE.fi<GROTTE.file.length)grtTranches(paused?12:4); // LES TRANCHES : la grotte se finit quelques millisecondes par image
   const U=GRT_U,c=GROTTE.cur||(grotteMeteo(GROTTE.met,.01),GROTTE.cur),vit=!paused;grtPas(dt);if(vit)U.uTime.value+=dt;
   U.uTorch.value=c.torche;U.uLieu.value=c.lieu;U.uAmb.value.setRGB(c.amb*.85,c.amb*.9,c.amb*1.15);U.uEmi.value=c.emi;U.uLav.value=c.lav;U.uFlam.value=c.flam;
-  U.uLant.value=c.lant*(mode==='boom'||!carGroup.visible?0:1);
+  U.uLant.value=c.lant*(mode==='boom'||!carGroup.visible?0:1);U.uVeilK.value=c.veil;U.uVein.value=c.vein*PAL_B9('grotteVeine',1);U.uGlint.value=c.glint;
   GRT_V.set(0,0,1).applyQuaternion(carGroup.quaternion);U.uLantP.value.copy(carGroup.position).addScaledVector(GRT_V,12);U.uLantP.value.y+=2;
   // LA SALLE : sous la caisse (en vol, la route survolée) ; en entrant, l'ambiance de la salle (2,4 s)
   const k=grtSalleIci(mode==='fall'?lastNearS:s);
