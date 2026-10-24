@@ -100,56 +100,8 @@ for(const k of ['foretMatin','foretMidi','foretSoir','foretNuit','foretPluie','f
   b.con=(b.con||1)+(n9?.08:.06);b.vigK=(b.vigK||.3)+(n9?.08:.03);b.bloomS=(b.bloomS||.45)+.06;
   if(n9){b.expo=(b.expo||1)*.84;b.hemiI=(b.hemiI||.5)*.7;}}
 function planetesAlea(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};} // (même générateur que mulberry32, local : la Terre en dépend à la construction)
-function planetesMars(x,W,H){ // MARS : rouille et ocre, mers sombres, poussière claire, une faille, quelques cratères, deux calottes. AUCUN nuage (Sacha).
-  const R=planetesAlea(4242),rd=function(a,b){return a+R()*(b-a);};
-  const fond=x.createLinearGradient(0,0,0,H); // plus clair et plus ocre vers les pôles
-  fond.addColorStop(0,'#cf9a72');fond.addColorStop(.17,'#b8663f');fond.addColorStop(.5,'#a94a28');fond.addColorStop(.83,'#b8663f');fond.addColorStop(1,'#cf9a72');
-  x.fillStyle=fond;x.fillRect(0,0,W,H);
-  const tache=function(cx,cy,rx,ry,rot,col,a){ // une tache DOUCE (dégradé radial), recopiée de part et d'autre si elle coupe le bord (la toile se raccorde)
-    for(let k=-1;k<=1;k++){const X=cx+k*W;if(X+rx<0||X-rx>W)continue;
-      x.save();x.translate(X,cy);x.rotate(rot);x.scale(1,ry/rx);
-      const g=x.createRadialGradient(0,0,0,0,0,rx);g.addColorStop(0,'rgba('+col+','+a+')');g.addColorStop(.6,'rgba('+col+','+(a*.7)+')');g.addColorStop(1,'rgba('+col+',0)');
-      x.fillStyle=g;x.beginPath();x.arc(0,0,rx,0,6.2832);x.fill();x.restore();}};
-  for(let i=0;i<11;i++)tache(rd(0,W),rd(90,430),rd(80,190),rd(34,80),rd(-.5,.5),'240,184,132',rd(.42,.62)); // poussière claire (Arabia, Hellas…)
-  for(let i=0;i<13;i++)tache(rd(0,W),rd(90,430),rd(70,170),rd(30,70),rd(-.6,.6),'70,30,20',rd(.7,.9)); // les mers sombres (Syrtis, Acidalia…) : franches, le grade final aplatit tout (mesuré : à .5-.7 elles ne se lisaient pas)
-  for(let i=0;i<26;i++)tache(rd(0,W),rd(80,440),rd(16,44),rd(10,24),rd(-.8,.8),'84,36,24',rd(.45,.7)); // taches fines
-  tache(700,372,95,70,0,'236,204,176',.65);tache(190,228,34,28,0,'238,196,156',.8); // un grand bassin clair, un volcan clair
-  x.lineCap='round';x.strokeStyle='rgba(66,28,20,.8)';x.lineWidth=5; // la grande faille équatoriale (Valles Marineris)
-  x.beginPath();x.moveTo(262,266);for(let i=1;i<=9;i++)x.lineTo(262+i*21,266+Math.sin(i*1.3)*7+i*1.4);x.stroke();
-  x.strokeStyle='rgba(66,28,20,.5)';x.lineWidth=3;x.beginPath();x.moveTo(300,258);for(let i=1;i<=6;i++)x.lineTo(300+i*20,258+Math.sin(i*1.9)*5+i*2.2);x.stroke();
-  x.lineWidth=1.6; // cratères : un anneau sombre, un reflet clair de l'autre côté (retenue : peu, et petits)
-  for(let i=0;i<70;i++){const cx=rd(0,W),cy=rd(60,H-60),r=rd(3,9);
-    x.strokeStyle='rgba(60,28,20,.38)';x.beginPath();x.arc(cx,cy,r,0,6.2832);x.stroke();
-    x.strokeStyle='rgba(240,200,160,.30)';x.beginPath();x.arc(cx+1,cy+1,r,.4,2.4);x.stroke();}
-  for(let i=0;i<700;i++){x.fillStyle=R()<.5?'rgba(60,28,20,.13)':'rgba(236,190,150,.13)';const s=1+R()*2;x.fillRect(rd(0,W),rd(0,H),s,s);} // le grain de la poussière
-  for(const haut of [1,0]){ // calottes polaires : irrégulières, petites, d'un blanc rosé (jamais un blanc de Terre)
-    const y0=haut?0:H;x.fillStyle='rgba(248,238,230,.96)';
-    for(let i=0;i<46;i++){x.beginPath();x.arc(rd(0,W),y0+(haut?1:-1)*rd(0,12),rd(10,26),0,6.2832);x.fill();}
-    x.fillRect(0,haut?0:H-12,W,12);}
-}
-function planetesBandes(x,W,H,R,cols,n,amp,streaks){ // des BANDES horizontales à bords ondulés (périodiques : la toile se raccorde), puis des filets fins ; un bord est partagé par deux bandes (aucun interstice)
-  const hs=[];let tot=0;for(let i=0;i<n;i++){const h=.55+R()*.95;hs.push(h);tot+=h;}
-  const bord=[];let y=0;for(let j=0;j<=n;j++){bord.push({y:j===0?-12:j===n?H+12:y,a:(j===0||j===n)?0:amp*(.5+R()),k:2+((R()*4)|0),p:R()*6.28,k2:5+((R()*5)|0),p2:R()*6.28});if(j<n)y+=hs[j]/tot*H;}
-  const yb=function(b,X){return b.y+b.a*(Math.sin(6.2832*b.k*X/W+b.p)*.62+Math.sin(6.2832*b.k2*X/W+b.p2)*.38);};
-  let prev=-1;
-  for(let i=0;i<n;i++){let c;do{c=(R()*cols.length)|0;}while(c===prev&&cols.length>1);prev=c;
-    x.fillStyle=cols[c];x.beginPath();x.moveTo(0,yb(bord[i],0));for(let X=8;X<=W;X+=8)x.lineTo(X,yb(bord[i],X));
-    for(let X=W;X>=0;X-=8)x.lineTo(X,yb(bord[i+1],X));x.closePath();x.fill();}
-  x.lineCap='round';
-  for(let i=0;i<streaks;i++){const b=bord[1+((R()*(n-1))|0)],o=(R()-.5)*14,k=2+((R()*5)|0),p=R()*6.28,a=2+R()*5;
-    x.strokeStyle=R()<.5?'rgba(90,56,38,'+(.14+R()*.14)+')':'rgba(246,230,196,'+(.14+R()*.14)+')';x.lineWidth=1+R()*2.6;
-    x.beginPath();for(let X=0;X<=W;X+=8){const Y=yb(b,X)+o+a*Math.sin(6.2832*k*X/W+p);if(X===0)x.moveTo(X,Y);else x.lineTo(X,Y);}x.stroke();}
-  return bord;}
-function planetesJupiter(x,W,H){ // JUPITER : bandes crème / ocre / roux / brun, UNE grande tache rouille (discrète), trois ovales clairs. Pas de nuage dessiné : de la couleur.
-  const R=planetesAlea(1969);
-  x.fillStyle='#c99a64';x.fillRect(0,0,W,H);
-  planetesBandes(x,W,H,R,['#ecd9b0','#c8955c','#9a5a36','#f2e3be','#6a4030','#d8b484'],15,7,46); // (bandes plus franches : le grade rapproche tout vers l'orange)
-  const tache=function(cx,cy,rx,ry,col,a){x.save();x.translate(cx,cy);x.scale(1,ry/rx);const g=x.createRadialGradient(0,0,0,0,0,rx);g.addColorStop(0,'rgba('+col+','+a+')');g.addColorStop(.7,'rgba('+col+','+(a*.8)+')');g.addColorStop(1,'rgba('+col+',0)');x.fillStyle=g;x.beginPath();x.arc(0,0,rx,0,6.2832);x.fill();x.restore();};
-  tache(330,338,50,27,'190,84,50',.8);x.strokeStyle='rgba(240,214,176,.45)';x.lineWidth=2.5;x.beginPath();x.ellipse(330,338,46,24,0,0,6.2832);x.stroke(); // la Grande Tache et son anneau clair
-  tache(700,300,17,9,'246,232,208',.6);tache(780,352,14,8,'246,232,208',.55);tache(520,176,15,8,'246,232,208',.5); // petits ovales blancs
-  for(const haut of [1,0]){const g=x.createLinearGradient(0,haut?0:H,0,haut?H*.2:H*.8);g.addColorStop(0,'rgba(78,52,40,.55)');g.addColorStop(1,'rgba(78,52,40,0)');x.fillStyle=g;x.fillRect(0,haut?0:H*.8,W,H*.2);} // les pôles s'assombrissent
-}
-const PLANETES_PEINTRES={mars:planetesMars,jupiter:planetesJupiter};
+/* (2026-10-24) Mars, Jupiter et leurs bandes sont supprimés : il ne reste que la Terre. */
+const PLANETES_PEINTRES={};
 function planetesGarde(a){ // un niveau SANS planète n'a pas à la repeindre : on la laisse telle quelle, elle s'éteint en fondu (sinon un flash de teinte au portail)
   const c=LVL.cur;return !(c&&c.espace)&&planetGroup.userData.peint!=='terre';}
 function planetesPeint(a){ // la toile change si la planète change — UNE repeinte à la naissance du niveau (même taille, même canvas recréé puis rendu après l'envoi)
