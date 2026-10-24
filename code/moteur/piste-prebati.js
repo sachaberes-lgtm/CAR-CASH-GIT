@@ -96,7 +96,7 @@ function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée
      sont ceux de buildTrack, dans le même ordre : une graine donne la même piste au bit près, bâtie d'avance ou au passage.
    · LA JADE se bâtissait déjà en tranches (`jadeBatit`, LES TRANCHES) et sait se GARDER hors de la scène (JADE_GARDE, LA CARTE GARDÉE) : on la
      bâtit d'avance sur la route fantôme, son état (jadeEtatLit) échangé de la même façon, et buildJade la REPREND au passage en quelques ms.
-   · LA FORÊT, LE VOLCAN, LE GLACIER : leur build devient un générateur (ses rendez-vous ne rendent la main qu'à une échéance finie, JF.lim :
+   · LA FORÊT, LE GLACIER : leur build devient un générateur (ses rendez-vous ne rendent la main qu'à une échéance finie, JF.lim :
      jamais au passage) ; d'avance (prebDecorG), leur module est échangé EN ENTIER le temps d'une tranche (prebObj), ce qu'ils mettent dans la
      scène est noté au lieu d'être ajouté — au passage, prebDecor l'installe là où leur build l'aurait bâti. La VILLE, le CANYON (son relief
      se calcule déjà dans un travailleur), les nuages et les pièces se bâtissent encore au passage (0,05 à 0,1 s à ×4).
@@ -118,7 +118,6 @@ function prebChampsDe(piste){ // les champs de module qu'écrit la construction 
   const L9=[[TORD,['on','N','ctrl0','seed','info']],[JADE,['flank','ligne']],[LIGNE_PER,['v']]];
   if(piste==='jade')L9.push([JADE,['Q']]);
   else if(piste==='foret')L9.push([FORET,['Q','plg','boucles','noeuds','pel','plan','axe']]); // (2026-10-19) plan, axe : LA FORÊT AU HASARD
-  else if(piste==='volcan')L9.push([VOLCAN,['K','C','K2','C2','Q','plg','sauts','sSp','ySea','conflits','croise','th0','th1','lac']]);
   else if(piste==='canyon')L9.push([CY,['Q','rmin','sep','hz']]); // (+ hz : LE CANYON AU HASARD)
   else if(piste==='dunes')L9.push([DN,['Q','rmin','sep','hz']]); // (2026-10-18) LES DUNES D'OR (+ hz : LES DUNES AU HASARD)
   else if(piste==='banquise')L9.push([BANQ,['Q','cas','spi','axe','plan','pres','essais']]); // (2026-10-19) axe, plan, pres, essais : LE GLACIER AU HASARD (l'axe tourne les aurores)
@@ -188,7 +187,6 @@ function* prebDecorG(W,nom,O,gen){ // UN DÉCOR d'avance : gen (son build, en g�
   if(k9>=0){for(const k of W.champs[k9][1])if(k in W.ch[k9])vivant[k]=W.ch[k9][k];else delete vivant[k];W.champs.splice(k9,1);W.ch.splice(k9,1);} // (les champs que sa génération a écrits passent dans l'état entier)
   W.mods=[[O,vivant]];W.tabs=[];
   if(nom==='foret'&&FORET.loup)FORET.loup=Object.assign({},FORET.loup); // foretVide remet le loup à zéro en place : le fantôme a le sien
-  if(nom==='volcan')VOLCAN.erup=Object.assign({},VOLCAN.erup); // volcanVide relance l'éruption en place : idem
   if(nom==='banquise'){const b9=Object.assign({},BKV);W.mods.push([BKV,b9]); // banqVide remet la glisse à zéro en place
     const t9=BK_NUE.slice();BK_NUE.length=0;W.tabs.push([BK_NUE,t9]);} // …et la route nue du glacier (bkPisteNue) a sa liste à elle
   W.scn=[];W.add=function(){for(let i=0;i<arguments.length;i++)W.scn.push(arguments[i]);return this;};
@@ -198,23 +196,22 @@ function* prebDecorG(W,nom,O,gen){ // UN DÉCOR d'avance : gen (son build, en g�
   W.decorTM=trackMeshes.splice(nA);W.decor=nom;}
 function prebDecor(W,nom){ // (buildTrack) le décor bâti d'avance entre en scène là où son build l'aurait bâti
   if(!W||W.decor!==nom)return false;W.decor=null;
-  const O=W.mods[0][0],S=W.mods[0][1],GARDE={foret:['loup'],volcan:['erup'],banquise:[],grotte:[]}[nom]; // (le loup, l'éruption : ceux du module vivant, que son « Vide » vient de remettre à zéro)
-  if(nom==='foret')foretVide();else if(nom==='volcan')volcanVide();else if(nom==='grotte')grotteVide();else banqVide();
+  const O=W.mods[0][0],S=W.mods[0][1],GARDE={foret:['loup'],banquise:[],grotte:[]}[nom]; // (le loup, l'éruption : ceux du module vivant, que son « Vide » vient de remettre à zéro)
+  if(nom==='foret')foretVide();else if(nom==='grotte')grotteVide();else banqVide();
   for(const k of Object.keys(O))if(!(k in S)&&GARDE.indexOf(k)<0)delete O[k];
   for(const k of Object.keys(S))if(GARDE.indexOf(k)<0)O[k]=S[k];
   if(nom==='banquise'){const t9=W.tabs[0][1];BK_NUE.length=0;for(const m of t9)BK_NUE.push(m);} // la route nue du glacier (bkPisteNue(true), fait d'avance)
   for(const o of W.decorTM)trackMeshes.push(o);for(const o of W.scn)scene.add(o);
   if(W.decorErr){const e=W.decorErr;W.decorErr=null;W.mods=null;W.tabs=null;throw e;} // (le build s'était arrêté là : sa météo n'était pas posée)
   const d9=started?bioPortDur():.01; // (la météo : sa durée est celle du passage)
-  if(nom==='foret')foretMeteo(FORET.met,d9);else if(nom==='volcan')volcanMeteo(VOLCAN.met,d9);else if(nom==='grotte')grotteMeteo(GROTTE.met,d9);else banqMeteo(BANQ.met,d9);
+  if(nom==='foret')foretMeteo(FORET.met,d9);else if(nom==='grotte')grotteMeteo(GROTTE.met,d9);else banqMeteo(BANQ.met,d9);
   W.mods=null;W.tabs=null;return true;}
 function* prebJob(sd,W){yield* pisteRoute(sd,W);if(PARK.on)return;
   if(W.piste==='jade')yield* prebJade(sd,W);
   else if(W.piste==='foret')yield* prebDecorG(W,'foret',FORET,function(){return buildForetG(sd);});
-  else if(W.piste==='volcan')yield* prebDecorG(W,'volcan',VOLCAN,function(){return buildVolcanG(sd);});
   else if(W.piste==='banquise')yield* prebDecorG(W,'banquise',BANQ,function(){return buildBanqG(sd);});
   else if(W.piste==='grotte')yield* prebDecorG(W,'grotte',GROTTE,function(){return buildGrotteG(sd);});} // (2026-10-18) LES PROFONDEURS
-const PREB_PISTES=['','jade','foret','volcan','canyon','banquise','grotte','dunes']; // les pistes dont on sait ce que la génération écrit (prebChampsDe) — une map NEUVE n'est pas bâtie d'avance tant qu'elle n'y est pas
+const PREB_PISTES=['','jade','foret','canyon','banquise','grotte','dunes']; // les pistes dont on sait ce que la génération écrit (prebChampsDe) — une map NEUVE n'est pas bâtie d'avance tant qu'elle n'y est pas
 function prebPart(c){ // on commence la piste d'en face
   const W=pisteTravail(c);if(PREB_PISTES.indexOf(W.piste)<0){PREB.non=c.t;return;}
   PREB.W=W;PREB.sd=(Math.random()*1e9)|0;PREB.t=c.t;PREB.z=c.z;PREB.eng=c.dep?c.eng:engTier;PREB.rh=W.ROAD_HALF;PREB.carte=c.t.carte+'-'+c.t.meteo;
