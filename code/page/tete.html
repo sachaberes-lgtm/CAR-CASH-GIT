@@ -70,6 +70,11 @@ const CC_PHOTOS='__CC_PHOTOS__';
 const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b/.test(location.search)?' · SANS CIEL':'');
 (function(){
   var q=location.search,M=window.matchMedia;
+  /* ===== LES ANIMATIONS DU HUD SANS RECALCUL (2026-10-24, passe perf PC, Sacha : « sur la version mobile l'HUD prend trop de capacité, règle ça ») =====
+     Mesuré sur l'iPhone 13 Pro de Sacha (app, palier RÉCENT, 35 s de course) : 63 images > 25 ms ; animations CSS figées : 9. Les animations infinies du HUD
+     sur des propriétés non composées (box-shadow, filter, background-position) sont refaites en transform / opacité, sous `html.han`.
+     `?hudanim=0` = les anciennes animations (A/B). */
+  if(!/[?&]hudanim=0\b/.test(q))document.documentElement.classList.add('han');
   /* L'ÉCRAN NU PAR DÉFAUT (2026-10-01, copie de test de Léo : « je préfère le point de vue de la 1re image » = sans la forme de
      l'iPhone) : sur l'ordi, l'écran du téléphone est un rectangle simple, sans boîtier, sans encoche ni coins arrondis, et le jeu ne
      garde pas les marges de l'encoche. `ENCOCHE_DEFAUT=true` rend le boîtier du 13 Pro par défaut ; dans l'adresse, `?encoche=1` /
