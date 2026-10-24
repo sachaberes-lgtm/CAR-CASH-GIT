@@ -3,6 +3,29 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE PALIER DE L'IPHONE LU SUR SON ÉCRAN — MESURÉ DANS L'APP, SUR LE VRAI TÉLÉPHONE (2026-10-24, v872, session Optimisation mobile — Sacha : « grosse session d'optimisation du jeu, il faut que la version mobile soit parfaite » · « je veux que tu fasses l'app »)
+- **LE BANC DANS L'APP** (`optim-mobile/.banc-optim/`, non suivi) : « CC BANC » (`com.sachaberes.carcash.banc`) = la copie de l'app de `sortie-ios/appstore` (Capacitor 8),
+  www/ refait par son `preparer-www.js --essai` sur n'importe quel VERSION PRINCIPALE, installée À CÔTÉ de CASH CAR (la vraie app et la sauvegarde de Sacha ne sont pas touchées).
+  `banc-app.js`, posé juste après natif.js : au lancement il demande un scénario au Mac (`chef.mjs`, port 8931, par le partage de connexion), recharge avec ses paramètres
+  d'adresse (`history`/`location.replace` : `?carte=`, `?palier=`…), passe l'intro, JOUER, `dbgAuto(1,0,{nit:1})`, relève CHAQUE image (intervalle de rAF + temps JS des rappels)
+  et `dbgPerf`/`dbgQual`/`dbgCout`/`getAnimations()`, puis renvoie le bilan — SANS inspecteur branché. Le chef ferme l'app après chaque course et attend que la batterie
+  redescende (`pymobiledevice3 diagnostics battery`, en USB). L'inspecteur WebKit de l'app passe par `pymobiledevice3 webinspector cdp` (pont CDP : Runtime, Profiler, Tracing).
+  ⚠ Le téléphone CHAUFFE (alerte Température vers 16 h : jeu + charge + partage de connexion) : iOS bride alors processeur et puce graphique ; mesurer à < 37 °C.
+- **LE DÉFAUT** : le banc CPU de PAL (le meilleur de 4 tours, au démarrage) rend 16 à 22 ms sur l'iPhone 13 Pro au 1er lancement (le compilateur de JavaScript n'est pas
+  encore passé, le téléphone chaud), 3 à 8 ms une fois chaud → classé ANCIEN et RETENU 7 jours (`cashcarPalier`) : cadence 30 dès le départ, échelle QL au cran 4-5, DPR 1,25.
+  Le même iPhone tombait ANCIEN ou RÉCENT d'un lancement à l'autre. Et WKWebView comme Safari 26 écrivent « iPhone OS 18_7 » sous iOS 26 : la règle « iOS 26 → au moins
+  MOYEN » ne jouait jamais. (L'app du 14-19/10, branches iphone-perf/iphone-max, recevait le modèle exact de Swift — `window.__ccAppareil` — ce n'est plus dans l'app App Store.)
+- **LA CORRECTION** (`PAL`, `code/rendu/palier-appareil.js`) : la taille d'écran de l'iPhone (points, portrait) et sa densité désignent sa génération — RÉCENT : 360×780,
+  390×844, 428×926, 393×852, 430×932, 402×874, 440×956, 420×912 (×3) et toute taille inconnue ×3 de 390 et plus ; MOYEN : 414×896 (XR, 11, XS Max, 11 Pro Max) ;
+  ANCIEN : 320×568, 414×736 ×3 ; douteux (375×667 ×2, 375×812 ×3, Zoom de l'écran) : le banc comme avant. « Version/26 » de Safari relève `P.ios`. `?palier=` d'abord,
+  l'ordinateur inchangé, le palier 2 lui-même inchangé (règle d'or). `?palecran=0` = l'ancien choix ; `dbgPalier().src` dit « écran 390×844 ×3 ».
+- **MESURÉ** (CC BANC, iPhone 13 Pro, volcan, 35 s de course pilotée nitro, batterie 27-36 °C) : AVANT (classé ANCIEN) 33,6 images calculées/s (cadence 30), DPR 1,25, cran 4-5 ;
+  APRÈS (« écran 390×844 ×3 ») 58,4 à 59,3 i/s, DPR 1,5, cran 0, JS méd 2 ms / p90 3 ms par image, 14-16 % du temps en JS ; nuages midi 57,0 i/s. DPR 0,5 forcé : 59,6
+  (la puce graphique ne limite pas). Démarrage de l'app : prêt (`__gameReady`) à 1,6-2,4 s d'un lancement chaud, 9,7 s au 1er lancement après installation.
+- **CE QUI RESTE AU RÉCENT** (mesuré, pas touché ici) : 23 à 63 images > 25 ms par 35 s de course viennent des ANIMATIONS CSS du HUD (toutes figées : 9 ; figer
+  seulement la zone nitro OU seulement le reste suffit presque : 10-11) — la conversion des animations hors nitro est chez PERF-PC ; la zone nitro (#tNitro : 181 repeints
+  en 8 s de trace, le plus repeint après la 3D ; rayures `nbRaye` en background-position, bout `nbBout`, `hmSec`) reste à faire. Les gerbes `pxBurst` (12 à la fois).
+
 ## LES TUILES EN VERRE DU MENU CIEL, GARAGE BLEU / BUY ROUGE (2026-10-24 soir, Léo : « j'aime bien tuiles arrondies » · « le bleu sur garage et le rouge sur BUY » · « inverse le cyan et le rose magenta » · « mets ces bulles-là »)
 - **POURQUOI** : la copine de Léo trouvait les trois boutons penchés (parallélogramme) « trop Claude ». Trois familles de formes essayées (A tuiles arrondies, B formes par fonction : arche · panier · pilule, C lentilles ovales) ; Léo garde A. Le verre-loupe de v858, retiré par Sacha en v863, revient ici sous la forme de TUILES ARRONDIES (20 px, plus de pente) : bloc `<style id="tuilesVerre">` dans `code/css/boutons-flottants.css`, après celui de la lueur de la boutique.
 - **COULEURS** : GARAGE bleu #2f80ff, BUY rouge #ff3347, SETTINGS or (inchangé) — via `--nc` sur `.mHubPorte` / `.mOffres`, les icônes suivent. Le badge NEW reste rose.
