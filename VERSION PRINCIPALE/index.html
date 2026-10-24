@@ -47520,6 +47520,20 @@ const PHOTO_W=720,PHOTO_H=440,PHOTO_SS=2,PHOTO_ROT=-.12,PHOTO_AZ=.70,PHOTO_EL=.2
 const PHOTO_AILE={el:1,az:.15}; // (2026-10-15) une aile se photographie DE FACE et d'en haut (57°) : les deux ailes s'ouvrent à gauche et à droite, comme un avion qui arrive (dbgAile pour régler ; essayé de trois quarts : la caisse mangeait la photo)
 /* LA PHOTO D'UNE AILE (2026-10-15, Sacha : « pour les ailes il n'y a pas de photo, c'est pas bien ») : la caisse équipée, l'aile essayée,
    DÉPLOYÉE comme en vol (pleine envergure, léger dièdre), vue de trois quarts en plongée — même studio, même pellicule que les caisses */
+/* ===== LA MÉMOIRE DES PHOTOS (24/10, relecture : « les adresses blob: de PHOTO.cache ne sont jamais libérées ») =====
+   MESURÉ au banc (iPhone émulé) : tous les rayons de la boutique parcourus = 83 photos, 13 Mo de PNG gardés ; chaque caisse ÉQUIPÉE de plus
+   ajoute ses ailes et ses films de figures (leurs clés portent la caisse) : ~6,6 Mo de plus à chaque fois, sans limite sur une session.
+   Au-delà de PHOTO_MEM.max, les plus anciennes photos prises dans la session sont libérées (revokeObjectURL) et oubliées de PHOTO.cache —
+   jamais une photo AFFICHÉE (une <img> de la page, le film d'une carte présente) ni celle qui arrive ; une photo oubliée se reprend à la
+   demande. Les photos relues de la base (PHDB, fichiers du navigateur) ne comptent pas. `dbgPhotoMem()` : l'état (banc). */
+const PHOTO_MEM={L:new Map(),oct:0,max:32*1048576,lib:0};
+function photoGarde(ck,u,oct){const k=String(ck),M=PHOTO_MEM;if(!u||String(u).indexOf('blob:')!==0)return;
+  if(M.L.has(k))M.oct-=M.L.get(k).o;M.L.delete(k);M.L.set(k,{u:u,o:oct||0});M.oct+=oct||0;
+  if(M.oct<=M.max)return;
+  const vues=new Set();try{document.querySelectorAll('img[src^="blob:"]').forEach(function(im){vues.add(im.getAttribute('src'));});for(const F of FILM.l)if(F.cv.isConnected)vues.add(F.im.src);}catch(e){return;}
+  for(const [k9,e] of M.L){if(M.oct<=M.max*.85)break;if(k9===k||vues.has(e.u))continue;
+    M.L.delete(k9);M.oct-=e.o;M.lib++;if(PHOTO.cache[k9]===e.u)delete PHOTO.cache[k9];try{URL.revokeObjectURL(e.u);}catch(x){}}}
+window.dbgPhotoMem=function(mo){if(mo!=null)PHOTO_MEM.max=mo*1048576;return {photos:PHOTO_MEM.L.size,mo:+(PHOTO_MEM.oct/1048576).toFixed(2),maxMo:PHOTO_MEM.max/1048576,liberees:PHOTO_MEM.lib,cache:Object.keys(PHOTO.cache).length};};
 // le studio (pellicule, scène, objectif, lumières), monté à la première photo — caisse, aile ou figure (2026-10-15 soir : sorti de carPhoto pour figPhoto)
 function photoStudio(){if(PHOTO.rt)return;const W=PHOTO_W,H=PHOTO_H;
   PHOTO.rt=new THREE.WebGLRenderTarget(W*PHOTO_SS,H*PHOTO_SS);PHOTO.scene=new THREE.Scene();PHOTO.cam=new THREE.PerspectiveCamera(24,W/H,.1,400);
@@ -47626,7 +47640,7 @@ function carPhoto(i,cb,aile){
     x.drawImage(gros,0,0,W,H);toileRend(gros);
     if(cb&&cv.toBlob&&window.URL&&URL.createObjectURL){asy=true;(PHOTO.att||(PHOTO.att={}))[ck]=[cb];
       cv.toBlob(function(b){let u=null;try{if(b)u=URL.createObjectURL(b);}catch(e){}toileRend(cv);
-        if(u){if(PHOTO.cache[ck]){try{URL.revokeObjectURL(u);}catch(e){}u=PHOTO.cache[ck];}else{PHOTO.cache[ck]=u;phdbEcrit(ck,b,sig9);}}
+        if(u){if(PHOTO.cache[ck]){try{URL.revokeObjectURL(u);}catch(e){}u=PHOTO.cache[ck];}else{PHOTO.cache[ck]=u;phdbEcrit(ck,b,sig9);photoGarde(ck,u,b.size);}}
         const L9=PHOTO.att[ck]||[];delete PHOTO.att[ck];for(const f of L9)try{f(u);}catch(e){console.warn('photo',e);}},'image/png');}
     else{url=cv.toDataURL('image/png');toileRend(cv);}
     T9.montage=performance.now()-T9.t0;
@@ -47741,7 +47755,7 @@ function figFilm(o,cb){const ck=o.k;
     T9.montage=performance.now()-T9.t0;
     if(cb&&pl.toBlob&&window.URL&&URL.createObjectURL){asy=true;(PHOTO.att||(PHOTO.att={}))[ck]=[cb];
       pl.toBlob(function(b){let u=null;try{if(b)u=URL.createObjectURL(b);}catch(e){}toileRend(pl);
-        if(u){if(PHOTO.cache[ck]){try{URL.revokeObjectURL(u);}catch(e){}u=PHOTO.cache[ck];}else{PHOTO.cache[ck]=u;phdbEcrit(ck,b,sig9);}}
+        if(u){if(PHOTO.cache[ck]){try{URL.revokeObjectURL(u);}catch(e){}u=PHOTO.cache[ck];}else{PHOTO.cache[ck]=u;phdbEcrit(ck,b,sig9);photoGarde(ck,u,b.size);}}
         const L9=PHOTO.att[ck]||[];delete PHOTO.att[ck];for(const fn of L9)try{fn(u);}catch(e){console.warn('film figure',e);}},'image/png');}
     else{url=pl.toDataURL('image/png');toileRend(pl);}
   }catch(e){console.warn('film figure',e);if(asy&&PHOTO.att)delete PHOTO.att[ck];asy=false;}
