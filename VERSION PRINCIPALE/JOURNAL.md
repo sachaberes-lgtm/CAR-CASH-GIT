@@ -3,6 +3,18 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE 1er LANCEMENT — LA BANQUE DE SONS EN DEUX MOITIÉS (2026-10-24, session PERF, 4e tour — Léo : « lance tout ce qui semble stratégique »)
+- **MESURÉ sur le vrai site** (iPhone simulé, processeur ×4, cache froid, `?garde=1`, banc `tlance.py`) : le 1er lancement télécharge 8,4 Mo (`sons-banque.js` 4,9 Mo, la page 1,7, un ciel 0,9) ;
+  le menu jouable arrive à 18,5 s en 4G rapide (10 Mbit/s : le processeur domine) mais à **57 s en 4G lente (1,6 Mbit/s)** — 28 s sans la banque : elle est un script `defer`, la page attend sa fin.
+- **LE CHANGEMENT** : à la publication seulement (`outils/scinde-banque.cjs`, appelé par `vercel-build.sh` ; le fichier du dépôt reste ENTIER : cuire.js le relit, `sons.html` et la salle
+  blanche le chargent tel quel) la banque devient `sons-banque.js` (les fiches + les sons `pre:1` + l'étalon : 110 fiches, 0,82 Mo) et `sons-banque-2.js` (288 fiches, 6,9 Mo, ~4,3 Mo transférés).
+  `sfx.js` (?v=7) charge le 2e fichier APRÈS l'événement load, au repos (`suite`, 3 essais), et ses sons entrent dans la même file de décodage (`CCSON.ajoute`) ; un son pas encore là : `play()` se tait,
+  comme avant pour un son pas encore décodé. La preuve est faite à chaque publication : l'union des deux fichiers relue = la banque d'origine, octet pour octet (sinon la banque part entière).
+  Le fichier de la copie publiée garde son URL (`?v=38`) : un joueur qui a déjà la banque entière en cache ne retélécharge rien.
+- **VÉRIFIÉ** : copie réellement construite par `vercel-build.sh` (allégée, scindée) servie en local : 397 sons sur 397 décodés en 21 s à 10 Mbit/s ; menu au même instant (19 s) ; en 1,6 Mbit/s
+  (copie non allégée, locale) menu **107 → 74 s**, les 109 sons du début décodés avant le menu, 397/397 à 120 s (la banque entière : 109 s). Sur le vrai site, la 4G lente devrait passer de ~57 s à ~30 s.
+- ⚠ Une publication sans la scission (ou en cas d'échec de l'outil) marche comme avant ; `?` rien à régler. Une banque recuite (`cuire.js`) change `?v=` comme toujours.
+
 ## LE HUD QUI NE RAME PLUS SUR L'IPHONE + L'ENREGISTREUR DE PARTIES (2026-10-24, v876, session PERF-PC — Sacha : « sur la version mobile l'HUD prend trop de capacité, règle ça » · « lors des tests la voiture reste conduite sur le sol alors qu'une grosse partie du jeu se joue en voltigeant dans les airs ; fais un mode où c'est moi qui joue en voltigeant et toi tu récupères de la data »)
 - **LE DIAGNOSTIC** (session OPTIMISATION MOBILE, iPhone 13 Pro de Sacha DANS L'APP, banc CC BANC, palier RÉCENT, 35 s de course) : course normale 58,0 i/s et 63 images > 25 ms ;
   TOUTES les animations CSS figées 59,7 i/s et 9 ; HUD masqué pareil ; le JS par image identique (2 ms) → c'est WebKit qui refait style + peinture à chaque image pour les

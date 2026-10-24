@@ -82,7 +82,7 @@ function ecrit(f,avant,apres,note){const g=Buffer.byteLength(avant)-Buffer.byteL
 
 /* 1. index.html */
 const FI=path.join(DOS,'index.html');const html=fs.readFileSync(FI,'utf8');const P=decoupe(html);
-const autres=fichiers(DOS).filter(f=>f!==FI&&!/sons-banque\.js$/.test(f));
+const autres=fichiers(DOS).filter(f=>f!==FI&&!/sons-banque(-2)?\.js$/.test(f));
 const texteAutres=autres.map(f=>fs.readFileSync(f,'utf8')).join('\n');
 const JS=P.filter(p=>p.k==='js').map(p=>{const src=html.slice(p.a,p.b);try{const L=lireJS(src);return Object.assign(p,{src,L,cand:crochets(L.ast)});}
   catch(e){console.log('⚠ script en ligne illisible, gardé tel quel :',e.message);return Object.assign(p,{src,L:null,cand:[]});}});

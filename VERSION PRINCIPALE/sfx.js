@@ -90,6 +90,19 @@ function charge(){
     }
   };
   S.relance=suivant;suivant();
+  /* (2026-10-24, passe perf — « le 1er lancement ») LA 2e MOITIÉ DE LA BANQUE : la copie PUBLIÉE ne porte d'abord que les fiches `pre:1` (outils/scinde-banque.cjs) ; le reste
+     (sons-banque-2.js, ~4,3 Mo transférés) arrive après l'événement load, et ses sons entrent dans la même file de décodage. Un son pas encore là : play() se tait. */
+  S.ajoute=function(d){for(const k in d){if(B.d[k]!=null||!d[k])continue;B.d[k]=d[k];cles.push(k);}S.nTot=cles.length;suivant();};
+  if(B.partiel)suite();
+}
+function suite(){
+  const go=function(n){const sc=document.querySelector('script[src*="sons-banque.js"]');if(!sc)return;
+    const e=document.createElement('script');e.async=true;e.src=sc.getAttribute('src').replace('sons-banque.js','sons-banque-2.js');
+    e.onload=function(){const B2=G.CCSON_BANQUE_2;if(B2&&B2.d&&S.ajoute){S.ajoute(B2.d);G.CCSON_BANQUE_2=null;}};
+    e.onerror=function(){e.remove();if(n<3)setTimeout(function(){go(n+1);},4000*(n+1));};
+    document.head.appendChild(e);};
+  const lance=function(){if(typeof requestIdleCallback==='function')requestIdleCallback(function(){go(0);},{timeout:3000});else setTimeout(function(){go(0);},500);};
+  if(document.readyState==='complete')lance();else addEventListener('load',lance);
 }
 function init(ac,dest){
   if(S.ok)return;
