@@ -781,7 +781,7 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
       linear-gradient(105deg,transparent 38%,rgba(0,234,255,.10) 49%,transparent 60%),
       repeating-linear-gradient(0deg,rgba(255,255,255,.028) 0 1px,transparent 1px 3px),
       radial-gradient(1200px 700px at 50% 30%,rgba(74,34,58,.5),rgba(8,5,16,.94));
-    backdrop-filter:blur(9px);gap:6px}
+    -webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);gap:6px} /* (24/10, relecture WebKit) Safari < 18 ne lit que la forme préfixée : sans elle, pas de flou derrière l’accueil et l’écran de fin (ordinateur) */
   /* ================= LE TITRE SORT DE L'ÉCRAN (2026-08-30) ================================
      Demande du user, mot pour mot : les lettres « sortent de l'écran ». Ce n'est pas une taille de
      plus, c'est un CADRAGE : le mot est plus large que la fenêtre, on n'en voit pas les bords, et
@@ -8303,6 +8303,46 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
   --nc:var(--neoA);pointer-events:auto}
 #gProf.on{display:flex}
 #gProf .pxi{--pxs:2}
+/* ====== LA PREMIÈRE PLAQUE, MISE EN SCÈNE (2026-10-24, Léo : « l'animation du choix des plaques beaucoup plus stylée, laisse le temps d'apprécier, ça ne doit pas couper ») ======
+   Seulement `.premier` (le tout début du jeu) : l'atelier ne glisse plus d'un bloc, il SE DISTRIBUE. L'écran se dissout depuis l'accueil (1,1 s), le titre tombe et resserre son interlettrage, la plaque
+   est « distribuée » d'en haut (plus grande, penchée, elle se pose avec un léger rebond) puis un reflet la traverse, la saisie monte, les neuf modèles se posent un à un, VALIDER arrive en dernier (~2,2 s
+   en tout : le temps de regarder, jamais bloquant — on peut tout toucher dès qu'un élément est là). Valider : `.valide` — la plaque est TAMPONNÉE (éclat d'or, elle se pose), le reste s'éteint,
+   puis l'atelier fond sur l'accueil en 0,9 s (plaque.js, plqFerme). Que des propriétés individuelles (opacity/translate/scale/rotate) : rien ne se bat avec les `transform` ailleurs. */
+#plq.premier.on{animation:plqPremier 1.1s ease both}
+@keyframes plqPremier{from{opacity:0}to{opacity:1}}
+#plq.premier.sortant{animation:plqSortLent .9s ease both}
+@keyframes plqSortLent{to{opacity:0}}
+#plq.premier.on .plTete b{animation:plqTitre 1s var(--ease) .3s both}
+@keyframes plqTitre{from{opacity:0;translate:0 -22px;letter-spacing:11px}to{opacity:1;translate:0 0;letter-spacing:1px}}
+#plq.premier.on .plX{animation:plqFondu .8s ease .85s both}
+@keyframes plqFondu{from{opacity:0;translate:0 8px}to{opacity:1;translate:0 0}}
+#plq.premier.on .plVue{animation:plqDonne 1.15s cubic-bezier(.2,.9,.25,1.12) .5s both;transform-origin:50% 100%}
+@keyframes plqDonne{0%{opacity:0;translate:0 -70px;scale:1.4;rotate:-5deg}55%{opacity:1}100%{opacity:1;translate:0 0;scale:1;rotate:0deg}}
+#plq.premier .plVue::before{content:"";position:absolute;inset:-26% -10%;z-index:-1;pointer-events:none;background:radial-gradient(closest-side,rgba(255,215,94,.34),rgba(255,215,94,0));opacity:0}
+#plq.premier.on .plVue::before{animation:plqHalo 3.2s ease-in-out 1.3s infinite}
+@keyframes plqHalo{0%,100%{opacity:.25;scale:.92}50%{opacity:.75;scale:1.04}}
+#plq.premier .plVue::after{content:"";position:absolute;inset:0;pointer-events:none;clip-path:inset(0 round 7%);background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.7) 50%,transparent 62%) -160% 0/160% 100% no-repeat;opacity:0}
+#plq.premier.on .plVue::after{animation:plqReflet 1.1s ease-in-out 1.55s both}
+@keyframes plqReflet{0%{opacity:1;background-position:-160% 0}100%{opacity:1;background-position:260% 0}}
+#plq.premier.on .plSaisie{animation:plqFondu .7s var(--ease) 1.25s both}
+#plq.premier.on .plMod{animation:plqTuile .55s cubic-bezier(.2,.9,.25,1.2) 2.1s both} /* au-delà des neuf premières (la liste des pays est longue) : elles se posent avec la dernière */
+@keyframes plqTuile{from{opacity:0;translate:0 16px;scale:.86}to{opacity:1;translate:0 0;scale:1}}
+#plq.premier.on .plMod:nth-child(1){animation-delay:1.45s}#plq.premier.on .plMod:nth-child(2){animation-delay:1.52s}#plq.premier.on .plMod:nth-child(3){animation-delay:1.59s}
+#plq.premier.on .plMod:nth-child(4){animation-delay:1.66s}#plq.premier.on .plMod:nth-child(5){animation-delay:1.73s}#plq.premier.on .plMod:nth-child(6){animation-delay:1.8s}
+#plq.premier.on .plMod:nth-child(7){animation-delay:1.87s}#plq.premier.on .plMod:nth-child(8){animation-delay:1.94s}#plq.premier.on .plMod:nth-child(9){animation-delay:2.01s}
+#plq.premier.on .plBas{animation:plqFondu .8s var(--ease) 2.2s both}
+#plq.premier.on .plOk{animation:plqFondu .8s var(--ease) 2.2s both,plqPouls 2.4s ease-in-out 3.2s infinite}
+@keyframes plqPouls{0%,100%{filter:brightness(1)}50%{filter:brightness(1.18)}}
+/* VALIDER : la plaque est tamponnée, tout le reste s'éteint */
+#plq.premier.valide .plVue{animation:plqTampon .8s cubic-bezier(.3,1.4,.4,1) both;transform-origin:50% 50%}
+@keyframes plqTampon{0%{scale:1;filter:brightness(1)}30%{scale:1.1;filter:brightness(1.6)}100%{scale:1.03;filter:brightness(1)}}
+#plq.premier.valide .plVue::after{animation:plqReflet .9s ease-in-out .15s both}
+#plq.premier.valide .plVue::before{animation:plqHaloFin 1.1s ease-out both}
+@keyframes plqHaloFin{0%{opacity:.4;scale:.9}35%{opacity:1;scale:1.25}100%{opacity:.5;scale:1.1}}
+#plq.premier.valide .plTete,#plq.premier.valide .plX,#plq.premier.valide .plSaisie,#plq.premier.valide .plMods,#plq.premier.valide .plBas{animation:plqEteint .5s ease both;pointer-events:none}
+@keyframes plqEteint{to{opacity:0;translate:0 10px}}
+#plq.premier.valide .plMod,#plq.premier.valide .plOk{animation:none}
+@media (prefers-reduced-motion:reduce){#plq.premier.on,#plq.premier.sortant,#plq.premier .plTete b,#plq.premier .plX,#plq.premier .plVue,#plq.premier .plVue::before,#plq.premier .plVue::after,#plq.premier .plSaisie,#plq.premier .plMod,#plq.premier .plBas,#plq.premier .plOk{animation:none!important}}
 /* COUCHÉ (le téléphone tenu en travers, le cadre de l'ordi) : deux colonnes, tout tient sans défiler */
 @media (orientation:landscape) and (max-height:540px){
   #plq,#prof{padding-top:calc(var(--sT) + 10px);padding-bottom:calc(var(--sB) + 10px)}
@@ -8879,7 +8919,7 @@ function feuilleOuvre(el,cls){ if(!el)return; try{uiGarde();}catch(e){} clearTim
 function feuilleFerme(el,cls){ if(!el||!el.classList.contains(cls))return; try{uiGarde();}catch(e){} clearTimeout(el._fermeT);
   try{typeof sfx==='function'&&sfx('ui.feuilleFerme');}catch(e){}
   if(document.documentElement.getAttribute('data-reduced-motion')==='1'){el.classList.remove(cls,'sortant');return;}
-  el.classList.add('sortant'); el._fermeT=setTimeout(function(){el.classList.remove(cls,'sortant');},170); }
+  el.classList.add('sortant'); el._fermeT=setTimeout(function(){el.classList.remove(cls,'sortant');},el._sortMs||170); }
 function modale(o){return new Promise(function(res){
   const m=document.getElementById('modale'),c=document.getElementById('modC'),b=m.querySelector('.modB');
   m.classList.toggle('facC6',!!o.cartes); // (2026-10-14, charte 6) les boutons en CARTES
@@ -10184,6 +10224,24 @@ const planetGroup=(function(){
   scene.add(g);return g;
 })();
 /* <<<FIN CIEL>>> */
+/* ===== LE FLOU DES TOILES SANS `ctx.filter` (24/10, relecture WebKit : « les bugs qui n'existent que sous Safari / WKWebView ») =====
+   `ctx.filter='blur(Npx)'` n'existe dans AUCUN Safari (iOS 15 → 18 : derrière le réglage « Canvas Filters », éteint par défaut) : l'affectation
+   y crée une simple propriété et rien n'est flouté — les rayons du soleil et les faisceaux des phares de TOUTES les caisses sortaient à bords
+   nets sur iPhone (le `try` ne voit rien : il n'y a pas d'erreur). Là où le filtre manque, `flou2dRepli` floute la toile APRÈS le dessin :
+   trois flous-boîtes séparables (≈ la gaussienne d'écart-type N du filtre CSS), en alpha prémultiplié (pas de frange sombre), le dehors de la
+   toile transparent. Une fois par texture, au chargement (256 × 256 : quelques ms). Là où `ctx.filter` existe (Chrome, Firefox, Android) :
+   la fonction rend tout de suite, rien ne change. */
+function flou2dNatif(){if(flou2dNatif.v===undefined){try{flou2dNatif.v=typeof CanvasRenderingContext2D!=='undefined'&&('filter' in CanvasRenderingContext2D.prototype);}catch(e){flou2dNatif.v=false;}}return flou2dNatif.v;}
+function flou2dRepli(c,w,h,s){if(flou2dNatif()||!(s>0))return;try{
+  const im=c.getImageData(0,0,w,h),d=im.data,n=w*h,A=new Float32Array(n*4),B=new Float32Array(n*4);
+  for(let i=0;i<n;i++){const a=d[i*4+3]/255;A[i*4]=d[i*4]*a;A[i*4+1]=d[i*4+1]*a;A[i*4+2]=d[i*4+2]*a;A[i*4+3]=d[i*4+3];}
+  const wi=Math.sqrt(4*s*s+1);let wl=Math.floor(wi);if(wl%2===0)wl--;const m=Math.round((12*s*s-3*wl*wl-12*wl-9)/(-4*wl-4)); /* les 3 boîtes d'une gaussienne : m de largeur wl, les autres wl+2 */
+  const passe=function(S,D,r,hz){const L=hz?w:h,K=hz?h:w,st=hz?4:w*4,k=1/(2*r+1);
+    for(let j=0;j<K;j++){const o=hz?j*w*4:j*4;for(let ch=0;ch<4;ch++){let acc=0;for(let t=0;t<=r&&t<L;t++)acc+=S[o+t*st+ch];
+      for(let i=0;i<L;i++){D[o+i*st+ch]=acc*k;const ad=i+r+1,ot=i-r;if(ad<L)acc+=S[o+ad*st+ch];if(ot>=0)acc-=S[o+ot*st+ch];}}}};
+  for(let b=0;b<3;b++){const r=((b<m?wl:wl+2)-1)/2;passe(A,B,r,true);passe(B,A,r,false);}
+  for(let i=0;i<n;i++){const a=A[i*4+3],q=a>0?255/a:0;d[i*4+3]=Math.round(a);d[i*4]=Math.round(A[i*4]*q);d[i*4+1]=Math.round(A[i*4+1]*q);d[i*4+2]=Math.round(A[i*4+2]*q);}
+  c.putImageData(im,0,0);}catch(e){}}
 const RAYS=(function(){ // 3-4 faisceaux diffus en éventail derrière les nuages (discrets)
   const cv=document.createElement('canvas');cv.width=64;cv.height=256;
   const c=cv.getContext('2d');
@@ -10196,6 +10254,7 @@ const RAYS=(function(){ // 3-4 faisceaux diffus en éventail derrière les nuage
   g.addColorStop(.55,'rgba(250,150,140,.18)');g.addColorStop(1,'rgba(240,130,130,0)');
   c.fillStyle=g;
   c.beginPath();c.moveTo(26,256);c.lineTo(38,256);c.lineTo(58,0);c.lineTo(6,0);c.closePath();c.fill();
+  flou2dRepli(c,64,256,5); /* (24/10) Safari n'a pas `ctx.filter` : le même flou, après coup (voir LE FLOU DES TOILES SANS ctx.filter) */
   const tex=new THREE.CanvasTexture(cv);
   const arr=[];
   for(let i=0;i<RAY_ANGLES.length;i++){
@@ -11751,7 +11810,7 @@ function cotonPalier(){ // 0 ancien iPhone · 1 moyen · 2 récent — `PAL.n` (
   if(COTON_JADE.force!=null)return COTON_JADE.force;
   try{if(typeof PAL==='object'&&PAL&&typeof PAL.n==='number')return Math.max(0,Math.min(2,PAL.n|0));}catch(e){}
   return QUAL_LOW?0:QUAL_MED?1:2;}
-const N8_FIN=[12,18,26,48]; // (SON, mesuré : de près, en vol, une surface lisse « en plastique ») la finesse du tout près monte à 48 : les petits bourgeons s'y dessinent // (mesuré, banc perf de DEBUGGING : 14/22/32/46 avec des seuils trop fins = 449 k triangles au sol, contre 153 k avant)
+const N8_FIN=(/[?&]nufin=(\d+)/.exec(location.search)||[])[1]==='2'?[12,18,26,48]:PAL.n===0?[10,14,20,32]:PAL.n===1?[12,16,24,40]:[12,18,26,48]; /* (2026-10-24, allègement mobile) la finesse des nuages par palier : ANCIEN 10/14/20/32 · MOYEN 12/16/24/40 · RÉCENT 12/18/26/48 (l'image d'avant) ; `?nufin=2` = celle d'avant sur tous les paliers (essai) */ // (SON, mesuré : de près, en vol, une surface lisse « en plastique ») la finesse du tout près monte à 48 : les petits bourgeons s'y dessinent // (mesuré, banc perf de DEBUGGING : 14/22/32/46 avec des seuils trop fins = 449 k triangles au sol, contre 153 k avant)
 const N8_GENRE6=['mediocris','humilis','congestus','humilis','stratocumulus','mediocris'];
 const N8_GENRE_V={champignon:'congestus'}; // (v8) le « champignon » (une tête sur un cou) se lisait comme un ARBRE de près : un congestus de plus ; l'ENCLUME est réservée aux titans lointains (kind 24) // (v8) le « champignon » (une tête sur un cou) se lisait comme un ARBRE : c'est un congestus de plus // (v8) les six gabarits « classiques » deviennent des cumulus de ces genres
 const N8_OPT={K:5.5,det:.3,fq:1}; // (v8) le champ : netteté des bourgeons, force et finesse du chou-fleur // les quatre finesses de la surface (cellules sur la plus grande dimension du nuage)
@@ -14633,9 +14692,10 @@ function sphere9(g){ // (2026-09-28, chasse aux gels) computeBoundingSphere de t
   for(let k=0;k<n;k+=3){const dx=cx-a[k],dy=cy-a[k+1],dz=cz-a[k+2];m=Math.max(m,dx*dx+dy*dy+dz*dz);}
   S.radius=Math.sqrt(m);
 }
-function pisteMaigre(att,c,lz){ // la tranche lointaine : mêmes attributs, une rangée sur PISTE_PAS (+ bords de tranche et de trou), colonnes choisies
-  const r0=c*PISTE_CH,r1=Math.min((c+1)*PISTE_CH,NP-1),R=[];
-  for(let r=r0;r<r1;r+=PISTE_PAS)R.push(r);R.push(r1);
+function pisteMaigre(att,c,lz,pas9){ // la tranche lointaine : mêmes attributs, une rangée sur PISTE_PAS (+ bords de tranche et de trou), colonnes choisies
+  const r0=c*PISTE_CH,r1=Math.min((c+1)*PISTE_CH,NP-1),R=[],pas=pas9||PISTE_PAS;
+  for(let r=r0;r<r1;r+=pas)R.push(r);R.push(r1);
+  if(pas>1&&TROU)for(let r=r0+1;r<r1;r++)if(TROU[r]!==TROU[r-1]&&r%pas)R.push(r); // (la tranche MOYENNE) chaque bord de trou est une rangée : un quad ne chevauche jamais un trou
   R.sort((a,b)=>a-b);
   const nb=lz.blocs,pr=lz.pr,cols=lz.cols,nc=cols.length,nR=R.length,nv=nb*nR*nc,g=new THREE.BufferGeometry(),ix=[];
   for(const nm in att){const A=att[nm][0],sz=att[nm][1],B9=new Float32Array(nv*sz);let w=0;
@@ -14647,21 +14707,31 @@ function pisteMaigre(att,c,lz){ // la tranche lointaine : mêmes attributs, une 
   if(!ix.length)return null;
   g.setIndex(ix);sphere9(g);return g;
 }
-function pisteLoin(cam){ // chaque tranche : entière en deçà du brouillard, maigre (ou absente) quand elle est TOUTE au-delà
+/* ===== LA TRANCHE MOYENNE (2026-10-24, passe perf iPhone — Sacha : « après quelques maps passées on arrive presque à 1 image/seconde ») =====
+   MESURÉ (banc Chrome, triangles DESSINÉS par image) : la route seule fait 274 000 à 528 000 triangles selon la map, 50 à 70 % de l'image, et elle gonfle
+   avec le niveau (72 000 → 400 000 entre la 1re et la 11e map) ; sur l'iPhone 13 Pro la course tombe de 60 à 7 i/s au niveau 9 (1,0-1,3 M de triangles).
+   Le bitume a 11 colonnes × une rangée PAR MÈTRE ; une tranche (1 200 m) n'était maigre que TOUTE au-delà du brouillard — or le brouillard est à 2 à 9 km :
+   quatre à huit tranches entières à l'écran. Sur TÉLÉPHONE, une tranche dont le point le plus proche est à plus de PISTE_MOY_D mètres de profondeur passe
+   en MOYENNE : les mêmes 11 colonnes, une rangée sur PISTE_MOY (4 m), les bords de trou gardés — 4 fois moins de triangles de bitume. À 400 m un pas de
+   4 m fait moins d'un vingtième de pixel en profondeur, la flèche d'un virage serré (R 110 m) 2 cm : l'image ne bouge pas. Sur l'ordinateur : rien ne
+   change (règle d'or). `?pistemoy=0` = avant ; `dbgPiste()` compte les tranches moyennes. */
+const PISTE_MOY=(TEL_NATIF&&!/[?&]pistemoy=0\b/.test(location.search))?4:0,PISTE_MOY_D=400;
+function pisteLoin(cam){ // chaque tranche : entière de près, moyenne au-delà de PISTE_MOY_D (téléphone), maigre (ou absente) quand elle est TOUTE au-delà du brouillard
   if(!PISTE_LOD.length)return;
-  if(PISTE_TEMOIN||PISTE_SANSLOIN){for(const E of PISTE_LOD){E.loin=false;E.hi.visible=true;if(E.lo)E.lo.visible=false;}return;}
+  if(PISTE_TEMOIN||PISTE_SANSLOIN){for(const E of PISTE_LOD){E.loin=false;E.et=0;E.hi.visible=true;if(E.lo)E.lo.visible=false;if(E.mo)E.mo.visible=false;}return;}
   const f=scene.fog,far=f&&f.isFog?f.far:Infinity,e=cam.matrixWorld.elements;
   const il=1/Math.hypot(e[8],e[9],e[10]),fx=-e[8]*il,fy=-e[9]*il,fz=-e[10]*il,px=e[12],py=e[13],pz=e[14];
   for(let i=0;i<PISTE_LOD.length;i++){const E=PISTE_LOD[i],c=E.s.center;
-    const loin=(c.x-px)*fx+(c.y-py)*fy+(c.z-pz)*fz-E.s.radius-1>=far; // la profondeur de vue de son point le plus proche (1 m de garde)
-    if(loin!==E.loin){E.loin=loin;E.hi.visible=!loin;if(E.lo)E.lo.visible=loin;}}
+    const p9=(c.x-px)*fx+(c.y-py)*fy+(c.z-pz)*fz-E.s.radius; // la profondeur de vue de son point le plus proche
+    const et=p9-1>=far?2:(E.mo&&!PISTE_SANSMOY&&p9>=PISTE_MOY_D)?1:0; // (1 m de garde au brouillard, comme avant)
+    if(et!==E.et){E.et=et;E.loin=et===2;E.hi.visible=et===0;if(E.lo)E.lo.visible=et===2;if(E.mo)E.mo.visible=et===1;}}
 }
 /* `dbgPiste(false)` : le TÉMOIN — tranches toutes entières et jamais triées, tous les plots envoyés, comme avant la passe. Sert à mesurer
    (et à comparer l'image) sur la MÊME image figée ; `dbgPiste(true,false)` : le tri sans les tranches maigres ; `dbgPiste()` rend l'état. */
-let PISTE_TEMOIN=false,PISTE_SANSLOIN=false;
-window.dbgPiste=function(on,loin){if(loin!=null)PISTE_SANSLOIN=!loin;if(on!=null){PISTE_TEMOIN=!on;for(const m of trackMeshes)if(m.isMesh&&!m.isInstancedMesh&&m.matrixAutoUpdate===false&&m.geometry&&m.geometry.boundingSphere)m.frustumCulled=!PISTE_TEMOIN;}
-  let n=0;for(const E of PISTE_LOD)if(E.loin)n++;
-  return {tri:!PISTE_TEMOIN,tranches:PISTE_LOD.length,auLoin:n};};
+let PISTE_TEMOIN=false,PISTE_SANSLOIN=false,PISTE_SANSMOY=false; // (banc) dbgPiste(null,null,false) : sans les tranches moyennes, le reste tel quel
+window.dbgPiste=function(on,loin,moy){if(loin!=null)PISTE_SANSLOIN=!loin;if(moy!=null)PISTE_SANSMOY=!moy;if(on!=null){PISTE_TEMOIN=!on;for(const m of trackMeshes)if(m.isMesh&&!m.isInstancedMesh&&m.matrixAutoUpdate===false&&m.geometry&&m.geometry.boundingSphere)m.frustumCulled=!PISTE_TEMOIN;}
+  let n=0,m=0;for(const E of PISTE_LOD){if(E.loin)n++;else if(E.et===1)m++;}
+  return {tri:!PISTE_TEMOIN,tranches:PISTE_LOD.length,auLoin:n,moyennes:m,pasMoyen:PISTE_MOY};};
 /* ===== LE BILAN DE LA ROUTE (2026-10-23, Sacha : « retravaille toutes les générations de routes… trop souvent tout droit ») =====
    (banc) dbgPisteBilan() mesure la piste courante ; dbgPisteBilan(n) en rebâtit n (newTrack, mêmes map et météo) et rend la moyenne.
    Cap = direction horizontale sur 20 m ; « droit » = rayon > 450 m ; « virage » = un changement de cap ≥ 25° d'un seul sens. */
@@ -14715,7 +14785,12 @@ function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée
     let lo=null;const g2=o.loin?pisteMaigre(att,c,o.loin):null;
     if(g2){lo=new THREE.Mesh(g2,mat);lo.receiveShadow=m.receiveShadow;lo.renderOrder=m.renderOrder;lo.visible=false;lo.userData.maigre=true;
       lo.updateMatrix();lo.matrixAutoUpdate=false;trackMeshes.push(lo);}
-    PISTE_LOD.push({hi:m,lo,s:g.boundingSphere,loin:false});
+    let mo=null; // (LA TRANCHE MOYENNE, téléphone) toutes les colonnes, une rangée sur PISTE_MOY
+    if(PISTE_MOY>1&&o.loin&&lay.pas===1){yield;const cols9=[];for(let j=0;j<lay.pr;j++)cols9.push(j);
+      const g3=pisteMaigre(att,c,{blocs:lay.blocs,pr:lay.pr,cols:cols9,inv:lay.inv},PISTE_MOY);
+      if(g3){mo=new THREE.Mesh(g3,mat);mo.receiveShadow=m.receiveShadow;mo.renderOrder=m.renderOrder;mo.visible=false;mo.userData.moyenne=true;
+        mo.updateMatrix();mo.matrixAutoUpdate=false;trackMeshes.push(mo);}}
+    PISTE_LOD.push({hi:m,lo,mo,s:g.boundingSphere,loin:false,et:0});
   }
 }
 /* LE PRÉ-BÂTI (2026-10-17, Léo : « la pause du passage est beaucoup trop longue » — le portail de cubes, 3e tour). MESURÉ (banc : téléphone
@@ -28787,7 +28862,7 @@ const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau da
    Banc / lien de test : `?carte=jade&meteo=orage` impose le 1er couple ; `dbgClassique('ville','soir')` impose le suivant (puis dbgSaut()).
    ========================================================================== */
 const SF={on:!/[?&](classique=cycle|play=sansfin)\b/.test(location.search),pret:false,neuf:false,tirage:[],der:null,force:null,prochain:null,prochainDer:null};
-const SF_HORS={vitree:VILLE_VERRE_V&&!/[?&]vitree=1\b/.test(location.search),crypto:IS_MOBILE&&!/[?&](carte|niveau)=crypto\b/.test(location.search)}; /* (2026-10-24, Sacha : « supprime la map crypto city de téléphone ») CRYPTO CITY n'est plus tirée sur téléphone (l'ordi la garde) ; `?carte=crypto` la remet pour les essais */
+const SF_HORS={vitree:VILLE_VERRE_V&&!/[?&]vitree=1\b/.test(location.search),crypto:IS_MOBILE&&!/[?&](carte|niveau)=crypto\b/.test(location.search),foret:IS_MOBILE&&!/[?&]carte=foret\b/.test(location.search),dunes:IS_MOBILE&&!/[?&]carte=dunes\b/.test(location.search)}; /* (2026-10-24, Sacha : « enlève les maps dunes et forêt de la version mobile ») LES DUNES et LA FORÊT ne sont plus tirées sur téléphone (l'ordi les garde) ; `?carte=foret` / `?carte=dunes` les remettent */ /* (2026-10-24, Sacha : « supprime la map crypto city de téléphone ») CRYPTO CITY n'est plus tirée sur téléphone (l'ordi la garde) ; `?carte=crypto` la remet pour les essais */
 /* (2026-10-18, Sacha : « fusionne les maps ville et ville vitrée ») les maps HORS DU TIRAGE — jouables par ?carte= et dbgClassique (voir VILLE_VERRE_V) */
 {const q9=/[?&]carte=(\w+)/.exec(location.search)||(/[?&]niveau=crypto\b/.test(location.search)?[0,'crypto']:null),m9=/[?&]meteo=(\w+)/.exec(location.search),t9=/[?&]teinte=(\w+)/.exec(location.search);if(q9||m9)SF.force={carte:q9?q9[1]:null,meteo:m9?m9[1]:null,teinte:t9?t9[1]:null};} // (2026-10-16) + `?teinte=` (la ville : violet, vert, jaune, bleu)
 const SF_NIV={nuages:NIVEAUX.find(function(n){return n.id==='nuages';}),orage:NIVEAUX.find(function(n){return n.id==='orage';}),
@@ -31134,6 +31209,7 @@ const beamTex=(function(){
     c.fillStyle=g;
     c.beginPath();c.moveTo(x0-12,10);c.lineTo(x0+12,10);c.lineTo(x0+sd*14+46*sd+14,238);c.lineTo(x0+sd*14-46*sd-14,238);c.closePath();c.fill();
   }
+  flou2dRepli(c,256,256,7); /* (24/10) Safari n'a pas `ctx.filter` : le même flou, après coup (voir LE FLOU DES TOILES SANS ctx.filter, rendu/soleil-planete.js) */
   return new THREE.CanvasTexture(cv);
 })();
 // ---- PLUME DE RÉACTEUR (façon fusée) : cône incandescent à la tuyère — dégradé + ANNEAUX DE CHOC bakés.
@@ -44420,9 +44496,15 @@ function plqClavier(){const el=$p('plq'),tx=$p('plqTx'),vv=window.visualViewport
   if(on){const T=Math.round(top)+'px',H=Math.round(h)+'px',neuf=!el.classList.contains('clavier')||el.style.height!==H;if(el.style.top!==T)el.style.top=T;if(el.style.height!==H)el.style.height=H;
     if(neuf){el.classList.add('clavier');el.classList.remove('serre');if(el.scrollHeight>el.clientHeight+2)el.classList.add('serre');el.scrollTop=el.scrollHeight;}} /* debout, les modèles restent s'ils tiennent ; le champ et VALIDER, toujours au ras du clavier */
   else if(el.classList.contains('clavier')){el.classList.remove('clavier','serre');el.style.top=el.style.height='';}}
-function plqFerme(ok){const el=$p('plq');if(!el||!PLQ.on)return;
+function plqFerme(ok){const el=$p('plq');if(!el||!PLQ.on||PLQ.sort)return;
   if(ok){const p=SAVE.d.plq||(SAVE.d.plq={});p.m=PLQ.m;p.x=plqNet(PLQ.x).trim()||plqHasard();p.ok=1;SAVE.flush();plqRepeint();
     toast(pxi('coche')+' '+TR('PLAQUE ENREGISTREE'),true);}
+  /* (2026-10-24) LA PREMIÈRE FOIS, la plaque ne disparaît pas d'un coup : elle est TAMPONNÉE (éclat d'or, elle se pose), le reste s'éteint autour d'elle, puis l'atelier fond sur l'accueil en 0,9 s.
+     Le jeu attend (PLQ.on reste vrai) jusqu'à la fin du fondu : rien ne se coupe. */
+  if(ok&&PLQ.mode==='premier'&&!PLQ.sort&&document.documentElement.getAttribute('data-reduced-motion')!=='1'&&!matchMedia('(prefers-reduced-motion:reduce)').matches){
+    PLQ.sort=true;const tx0=$p('plqTx');try{if(tx0)tx0.blur();}catch(_){}el.classList.add('valide');
+    setTimeout(function(){el._sortMs=900;PLQ.on=false;PLQ.kb=false;PLQ.sort=false;feuilleFerme(el,'on');el._sortMs=0;setTimeout(function(){el.classList.remove('valide');},1000);if(PLQ.prof)profRemplit();},1250);
+    return;}
   PLQ.on=false;PLQ.kb=false;const tx=$p('plqTx');try{if(tx)tx.blur();}catch(_){} /* (2026-10-18, débogage) PLQ.kb remis ici : plqClavier ne tourne plus une fois l'atelier fermé, et le rattrapage de 400 ms (la page qui revient en haut quand le clavier iOS descend) attendait un PLQ.kb faux qui ne venait jamais */
   feuilleFerme(el,'on');if(PLQ.prof)profRemplit();}
 function plqBranche(){const el=$p('plq');if(!el||el._b)return;el._b=1;
@@ -44463,7 +44545,7 @@ function plqGuette(){if(PLQ.iv)return;PLQ.iv=setInterval(function(){try{
   const sp=document.getElementById('splash'),md=document.getElementById('modale');
   const pret=!sp&&!!overlay&&overlay.getAttribute('data-ecran')==='home'&&!(started&&!gameOver)&&!(garageOn&&!document.body.classList.contains('titreCiel'))&&!(GAR&&GAR.go)&&!ecranWipe._on&&!(md&&md.classList.contains('on'))&&!document.body.classList.contains('play')&&!BIENV.on;
   if(!pret){PLQ.t0=0;return;}if(!PLQ.t0){PLQ.t0=performance.now();return;}
-  if(performance.now()-PLQ.t0>600){clearInterval(PLQ.iv);PLQ.fait=true;plqOuvre('premier');}}catch(e){}},250);}
+  if(performance.now()-PLQ.t0>2600){clearInterval(PLQ.iv);PLQ.fait=true;plqOuvre('premier');try{typeof sfx==='function'&&sfx('ui.banniere');}catch(_){}}}catch(e){}},250);} /* (2026-10-24, Léo : « laisse le temps d'apprécier, ça ne doit pas couper ») l'accueil et sa musique respirent 2,6 s avant que l'atelier ne se lève (avant : 0,6 s) */
 /* LE PROFIL */
 function profChiffres(){const d=SAVE.d,ex=d.ex||{},p=d.prof||{};let tc=0;try{for(const k in (ex.temps||{}))tc+=+ex.temps[k]||0;}catch(e){}
   let own=0,tot=0;try{for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;tot++;if(i===0||carOwned(i))own++;}}catch(e){}
@@ -47379,6 +47461,7 @@ function hautArme(){clearTimeout(HAUT.t);
   let at=n;
   if(c&&n<HAUT.fin&&(b.p<=c.p||c.ferme)){at=c.s+c.min;if(at>=HAUT.fin)at=HAUT.fin+120;} // la voix en place a droit à son temps de lecture (verrouillée : même face à plus fort)
   HAUT.t=setTimeout(function(){
+    if(paused&&started&&!gameOver){HAUT.t=setTimeout(hautArme,250);return;} /* (24/10, relecture : « la file des annonces continue pendant la pause ») en PAUSE la file attend : la carte suivante (défi, moteur, niveau) passait par-dessus le panneau de pause — on regarde de nouveau toutes les 250 ms ; une annonce dont la patience s'épuise se tait comme avant (preuve-annonce-pause) */
     const n2=performance.now(),b2=hautMeilleur(n2);if(!b2)return;
     const c2=HAUT.cur;
     if(hautCede(c2,b2.p,n2)){HAUT.q.splice(HAUT.q.indexOf(b2),1);hautMontre(b2,n2);}else hautArme();
@@ -47473,6 +47556,20 @@ const PHOTO_W=720,PHOTO_H=440,PHOTO_SS=2,PHOTO_ROT=-.12,PHOTO_AZ=.70,PHOTO_EL=.2
 const PHOTO_AILE={el:1,az:.15}; // (2026-10-15) une aile se photographie DE FACE et d'en haut (57°) : les deux ailes s'ouvrent à gauche et à droite, comme un avion qui arrive (dbgAile pour régler ; essayé de trois quarts : la caisse mangeait la photo)
 /* LA PHOTO D'UNE AILE (2026-10-15, Sacha : « pour les ailes il n'y a pas de photo, c'est pas bien ») : la caisse équipée, l'aile essayée,
    DÉPLOYÉE comme en vol (pleine envergure, léger dièdre), vue de trois quarts en plongée — même studio, même pellicule que les caisses */
+/* ===== LA MÉMOIRE DES PHOTOS (24/10, relecture : « les adresses blob: de PHOTO.cache ne sont jamais libérées ») =====
+   MESURÉ au banc (iPhone émulé) : tous les rayons de la boutique parcourus = 83 photos, 13 Mo de PNG gardés ; chaque caisse ÉQUIPÉE de plus
+   ajoute ses ailes et ses films de figures (leurs clés portent la caisse) : ~6,6 Mo de plus à chaque fois, sans limite sur une session.
+   Au-delà de PHOTO_MEM.max, les plus anciennes photos prises dans la session sont libérées (revokeObjectURL) et oubliées de PHOTO.cache —
+   jamais une photo AFFICHÉE (une <img> de la page, le film d'une carte présente) ni celle qui arrive ; une photo oubliée se reprend à la
+   demande. Les photos relues de la base (PHDB, fichiers du navigateur) ne comptent pas. `dbgPhotoMem()` : l'état (banc). */
+const PHOTO_MEM={L:new Map(),oct:0,max:32*1048576,lib:0};
+function photoGarde(ck,u,oct){const k=String(ck),M=PHOTO_MEM;if(!u||String(u).indexOf('blob:')!==0)return;
+  if(M.L.has(k))M.oct-=M.L.get(k).o;M.L.delete(k);M.L.set(k,{u:u,o:oct||0});M.oct+=oct||0;
+  if(M.oct<=M.max)return;
+  const vues=new Set();try{document.querySelectorAll('img[src^="blob:"]').forEach(function(im){vues.add(im.getAttribute('src'));});for(const F of FILM.l)if(F.cv.isConnected)vues.add(F.im.src);}catch(e){return;}
+  for(const [k9,e] of M.L){if(M.oct<=M.max*.85)break;if(k9===k||vues.has(e.u))continue;
+    M.L.delete(k9);M.oct-=e.o;M.lib++;if(PHOTO.cache[k9]===e.u)delete PHOTO.cache[k9];try{URL.revokeObjectURL(e.u);}catch(x){}}}
+window.dbgPhotoMem=function(mo){if(mo!=null)PHOTO_MEM.max=mo*1048576;return {photos:PHOTO_MEM.L.size,mo:+(PHOTO_MEM.oct/1048576).toFixed(2),maxMo:PHOTO_MEM.max/1048576,liberees:PHOTO_MEM.lib,cache:Object.keys(PHOTO.cache).length};};
 // le studio (pellicule, scène, objectif, lumières), monté à la première photo — caisse, aile ou figure (2026-10-15 soir : sorti de carPhoto pour figPhoto)
 function photoStudio(){if(PHOTO.rt)return;const W=PHOTO_W,H=PHOTO_H;
   PHOTO.rt=new THREE.WebGLRenderTarget(W*PHOTO_SS,H*PHOTO_SS);PHOTO.scene=new THREE.Scene();PHOTO.cam=new THREE.PerspectiveCamera(24,W/H,.1,400);
@@ -47579,7 +47676,7 @@ function carPhoto(i,cb,aile){
     x.drawImage(gros,0,0,W,H);toileRend(gros);
     if(cb&&cv.toBlob&&window.URL&&URL.createObjectURL){asy=true;(PHOTO.att||(PHOTO.att={}))[ck]=[cb];
       cv.toBlob(function(b){let u=null;try{if(b)u=URL.createObjectURL(b);}catch(e){}toileRend(cv);
-        if(u){if(PHOTO.cache[ck]){try{URL.revokeObjectURL(u);}catch(e){}u=PHOTO.cache[ck];}else{PHOTO.cache[ck]=u;phdbEcrit(ck,b,sig9);}}
+        if(u){if(PHOTO.cache[ck]){try{URL.revokeObjectURL(u);}catch(e){}u=PHOTO.cache[ck];}else{PHOTO.cache[ck]=u;phdbEcrit(ck,b,sig9);photoGarde(ck,u,b.size);}}
         const L9=PHOTO.att[ck]||[];delete PHOTO.att[ck];for(const f of L9)try{f(u);}catch(e){console.warn('photo',e);}},'image/png');}
     else{url=cv.toDataURL('image/png');toileRend(cv);}
     T9.montage=performance.now()-T9.t0;
@@ -47694,7 +47791,7 @@ function figFilm(o,cb){const ck=o.k;
     T9.montage=performance.now()-T9.t0;
     if(cb&&pl.toBlob&&window.URL&&URL.createObjectURL){asy=true;(PHOTO.att||(PHOTO.att={}))[ck]=[cb];
       pl.toBlob(function(b){let u=null;try{if(b)u=URL.createObjectURL(b);}catch(e){}toileRend(pl);
-        if(u){if(PHOTO.cache[ck]){try{URL.revokeObjectURL(u);}catch(e){}u=PHOTO.cache[ck];}else{PHOTO.cache[ck]=u;phdbEcrit(ck,b,sig9);}}
+        if(u){if(PHOTO.cache[ck]){try{URL.revokeObjectURL(u);}catch(e){}u=PHOTO.cache[ck];}else{PHOTO.cache[ck]=u;phdbEcrit(ck,b,sig9);photoGarde(ck,u,b.size);}}
         const L9=PHOTO.att[ck]||[];delete PHOTO.att[ck];for(const fn of L9)try{fn(u);}catch(e){console.warn('film figure',e);}},'image/png');}
     else{url=pl.toDataURL('image/png');toileRend(pl);}
   }catch(e){console.warn('film figure',e);if(asy&&PHOTO.att)delete PHOTO.att[ck];asy=false;}
@@ -59357,6 +59454,10 @@ function juiceScreen(col,power,n){
   // l'aura restent — le fruit se lit toujours, sans giclée plein cadre.
   if(!juiceCx||REDUCED_MOTION)return;
   const W=juiceCv.width,H=juiceCv.height,cc=new THREE.Color(col),hsl=cc.getHSL({h:0,s:0,l:0}); // le CORPS : le fruit, SATURÉ
+  /* ===== LA TOILE NULLE (24/10, relecture : « toile du jus de largeur nulle pendant une transition iOS ») ===== innerWidth à 0 le temps
+     d'une transition : la goutte aurait un rayon 0, sa toile 0 px de large, et drawImage d'une toile nulle LÈVE dans juiceScreenTick, hors
+     de tout try et avant le rendu — chaque goutte vide figeait l'écran toute sa vie et bloquait les suivantes (preuve-jus-toile-nulle) */
+  if(!(W>0&&H>0))return;
   cc.setHSL(hsl.h,Math.max(hsl.s,.78),Math.min(.6,Math.max(.46,hsl.l)));const k2=cc.clone().lerp(JUS_BLANC,.38); // …et son CŒUR clair
   const cR=cc.r*255|0,cG=cc.g*255|0,cB=cc.b*255|0,kR=k2.r*255|0,kG=k2.g*255|0,kB=k2.b*255|0,corps='rgba('+cR+','+cG+','+cB+',.95)';
   const B9=Math.min(W,H); // (v3) la taille suit la plus petite dimension : même goutte debout ou couché
@@ -61862,7 +61963,7 @@ function survTick(dt){
       survRender();explode('police');
     }else{
       const low=racers[racers.length-1];
-      if(low&&low.totD<pTot){botBoom(low); // la meute s'ÉNERVE : pas plus vite que toi, mais plus téméraire
+      if(low&&low.alive&&low.totD<pTot){botBoom(low); /* (24/10, relecture : « double explosion d'un policier ») `racers` est figé avant la boucle des policiers : celui qui vient d'y retomber à côté de la route (botBoom) ne resaute pas (preuve-police-double) */ // la meute s'ÉNERVE : pas plus vite que toi, mais plus téméraire
         for(const b of SURV.bots)if(b.alive){b.agro=Math.min(1,b.agro+.08);b.appBoost=Math.min(1.2,b.appBoost+.1);b.marg=Math.min(.97,b.marg+.02);}}
       if(!SURV.bots.some(b=>b.alive)){
         SURV.over=true;if(SONV2)sfx('victoire');else fanfare();
@@ -68891,7 +68992,7 @@ function garJouer(e){
      toucher ; un second toucher pendant l'attente est ignoré. */
   let att9=0;const bq9=gModeM()==='shop';
   if(GATL.on){gAtelier(false);att9=450;}
-  if(att9||bq9){try{gGarageReplie();}catch(x){}if(bq9)att9=650;garJouer._t=performance.now()+att9+200;}
+  if(att9||bq9){try{gGarageReplie();}catch(x){}if(bq9)att9=650;garJouer._t=performance.now()+att9+200;uiGarde(att9+200);} /* (24/10, relecture VÉRIFS-A : « HOME touché pendant l'attente, la course partait quand même ») TOUS les touchers sont ignorés pendant le lâcher, pas seulement un second JOUER : HOME ou BOUTIQUE y créaient un état mêlé (accueil affiché, puis la course partait) */
   const part=function(){
     if(!garageOn||GAR.go)return;
     if(SHOP.tab==='voiture'){if(!carUnlocked(garageI))garageShow(equippedCar());}
@@ -70204,7 +70305,7 @@ addEventListener('pointermove',e=>{
 // ⚠ ORBITE BORNÉE À 7,8 m : au-delà on sortait par les murs et on traversait la servante et les
 // piles de pneus. Le décor est rangé POUR ce rayon (rien de posé à moins de 8,3 m du centre).
 addEventListener('wheel',e=>{if(!garageOn||PLQ.on||PLQ.prof)return;garageDist=THREE.MathUtils.clamp(garageDist+e.deltaY*.008,4.6,8.6);},{passive:true}); // plafond 7,8→8,6 (2026-09-05) : le zoom arrière par défaut est monté, la molette doit pouvoir suivre
-addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on)return;if(GATL.on&&e.code==='Escape'){e.preventDefault();gAtelier(false);return;}if(INV.on){if(e.code==='Escape'||e.code==='KeyI'){e.preventDefault();invFerme();}return;}if(e.code==='KeyI'&&!e.repeat&&garAtelierLibre()){invOuvre();return;} /* (2026-10-04) L'INVENTAIRE au clavier : I l'ouvre, I ou Échap le referme */ if(e.code==='Escape'){if(!GAR.go&&gEl.classList.contains('missions'))garMisRetour();else if(!GAR.go&&!gEl.classList.contains('menu')&&(gModeM()==='shop'||gModeM()==='tous')){uiClic('retour');gModeVa('shop');} /* (2026-10-12, passe qualité) en BOUTIQUE, Échap = ◀ RETOUR (le même chemin que la touche), pas la sortie du garage */ else if(!GAR.go&&!gEl.classList.contains('menu')){if(window.__mRetour)ecranWipe(closeGarage);else ecranWipe(function(){if(started&&gameOver)accueilRetour();garMode('menu');});}}else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);else if(e.code==='Enter'&&!e.repeat&&!document.querySelector('#modale.on')&&!gEl.classList.contains('shopRet')){e.preventDefault();garJouer();}}); // (passe qualité) pas de JOUER au clavier en BOUTIQUE : la touche JOUER y est masquée · même chemin que les flèches à l'écran (boutique comprise, premium exclues) · (2026-09-29) Entrée = JOUER, comme à l'accueil
+addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on||PLQ.on||PLQ.prof)return; /* (24/10, relecture : « Espace / I / P agissent-ils sur le garage derrière la plaque ? ») le profil ou l'atelier de la plaque ouverts par-dessus : le clavier ne touche plus le garage dessous (I ouvrait l'inventaire, les flèches changeaient la caisse, Entrée lançait la course) — comme la molette (preuve-clavier-profil) */if(GATL.on&&e.code==='Escape'){e.preventDefault();gAtelier(false);return;}if(INV.on){if(e.code==='Escape'||e.code==='KeyI'){e.preventDefault();invFerme();}return;}if(e.code==='KeyI'&&!e.repeat&&garAtelierLibre()){invOuvre();return;} /* (2026-10-04) L'INVENTAIRE au clavier : I l'ouvre, I ou Échap le referme */ if(e.code==='Escape'){if(!GAR.go&&gEl.classList.contains('missions'))garMisRetour();else if(!GAR.go&&!gEl.classList.contains('menu')&&(gModeM()==='shop'||gModeM()==='tous')){uiClic('retour');gModeVa('shop');} /* (2026-10-12, passe qualité) en BOUTIQUE, Échap = ◀ RETOUR (le même chemin que la touche), pas la sortie du garage */ else if(!GAR.go&&!gEl.classList.contains('menu')){if(window.__mRetour)ecranWipe(closeGarage);else ecranWipe(function(){if(started&&gameOver)accueilRetour();garMode('menu');});}}else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);else if(e.code==='Enter'&&!e.repeat&&!document.querySelector('#modale.on')&&!gEl.classList.contains('shopRet')){e.preventDefault();garJouer();}}); // (passe qualité) pas de JOUER au clavier en BOUTIQUE : la touche JOUER y est masquée · même chemin que les flèches à l'écran (boutique comprise, premium exclues) · (2026-09-29) Entrée = JOUER, comme à l'accueil
 
 // ---------- BOUCLE ----------
 const fwdW=new THREE.Vector3(),tmp=new THREE.Vector3(),tmp2=new THREE.Vector3(),tmp3=new THREE.Vector3(),mat4=new THREE.Matrix4();
@@ -70759,10 +70860,19 @@ window.dbgMortImg=function(n){if(n!=null){PAL.B.mortImg[PAL.n]=Math.max(1,n|0);M
    · `cadenceMonte` : calé, l'échelle peut-elle REMONTER ? ANCIEN oui (elle est tenue par `qlMin`, et à 30 i/s il regagne sa netteté) ;
      MOYEN non — sinon elle remplirait les 33 ms de qualité et le travail ne repasserait jamais sous 10 ms : il resterait à 30 pour toujours
      alors qu'il tient 60 un cran plus bas. Lui retourne d'abord à 60, PUIS remonte.
-   Palier RÉCENT : `CAD.ok` = 0 → un test faux par point d'accroche, rien d'autre. Hors course (accueil, garage, écran de fin) : jamais calé.
+   Palier RÉCENT : sur l'ordinateur `CAD.ok` = 0 → un test faux par point d'accroche, rien d'autre ; sur un téléphone, voir CAD30_REC (2026-10-24). Hors course (accueil, garage, écran de fin) : jamais calé.
    Banc : `dbgCadence()` décrit, `dbgCadence(30)` force, `dbgCadence(60)` coupe et fige, `dbgCadence(0)` rend la main. */
-/* (2026-10-14, décision de Sacha 3 h 30) ROUVERT (7 h 50) : le choc balayé de DEBUGGING est dans le jeu ; preuve perf/banc/chef/v13.cjs (trafic niv. 19, satellites au sol et en vol, 163 / 400 / 8 010 km/h, plein axe et de biais : 20/20 chocs à 30 i/s, 0 faux positif ; l'ancien code ratait). Avant : interrupteur fermé, à 20-30 i/s la caisse traversait le trafic. `dbgCadence(30)` force toujours au banc. */PAL.B.cadence30=[1,1,0];PAL.B.cadenceDepart=[1,0,0];PAL.B.cadenceTenue=[1000,2000,2000];PAL.B.cadenceMonte=[1,0,1];
-const CAD={ok:PAL.b('cadence30',0)?1:0,on:false,gel:false,force:0,per:1000/30,ecran:1000/60,tol:1000/120,der:0,rp:0,eMin:99,eN:0,
+/* (2026-10-14, décision de Sacha 3 h 30) ROUVERT (7 h 50) : le choc balayé de DEBUGGING est dans le jeu ; preuve perf/banc/chef/v13.cjs (trafic niv. 19, satellites au sol et en vol, 163 / 400 / 8 010 km/h, plein axe et de biais : 20/20 chocs à 30 i/s, 0 faux positif ; l'ancien code ratait). Avant : interrupteur fermé, à 20-30 i/s la caisse traversait le trafic. `dbgCadence(30)` force toujours au banc. */PAL.B.cadence30=[1,1,0];PAL.B.cadenceDepart=[1,0,0];PAL.B.cadenceTenue=[1000,2000,2000];PAL.B.cadenceMonte=[1,0,0];
+/* ===== LE TÉLÉPHONE RÉCENT QUI CHAUFFE SE CALE AUSSI SUR 30 (2026-10-24, passe perf iPhone — Sacha, sur la question « quand l'iPhone chauffe, il ne tient
+   plus 60 et le jeu saccade entre 17 et 45 i/s » : « 30 i/s stables si chaud ») =====
+   MESURÉ dans l'app sur l'iPhone 13 Pro (CC BANC, puis Sacha à la main, enregistreur de PERF-PC) : froid, 58-60 i/s ; au bout de 3-4 min iOS bride la puce
+   (sonde CPU ×2) et la course tombe à 17-45 i/s, irrégulière, alors même que l'échelle QL est descendue au cran 9-13. Le palier RÉCENT n'avait pas la cadence :
+   il hachait. Désormais, sur un VRAI téléphone (TEL_NATIF) au palier RÉCENT, la même règle que MOYEN : 60 tant qu'il tient ; calé sur 33 ms quand plus d'un
+   quart des images ratent la synchro pendant 2 s ; retour à 60 quand le travail repasse sous 10 ms (essai, puis mur de 60 s doublé). `cadenceMonte` RÉCENT = 0 :
+   calé, l'échelle ne remonte pas — deux fois moins d'images ET pas plus lourdes, la puce refroidit (sur l'ordinateur CAD reste éteint : la colonne 3 n'y joue pas).
+   `?cad30=0` = avant (RÉCENT à 60, haché). Le RÉCENT qui tient 60 ne voit aucune différence (règle d'or). */
+const CAD30_REC=TEL_NATIF&&PAL.n===2&&!/[?&]cad30=0\b/.test(location.search);
+const CAD={ok:(PAL.b('cadence30',0)||CAD30_REC)?1:0,on:false,gel:false,force:0,per:1000/30,ecran:1000/60,tol:1000/120,der:0,rp:0,eMin:99,eN:0,
   w:0,wMax:10,wh:0,calT:0,lT:0,vu:0,crs:false,calme:false,essT:0,murT:0,murD:30000,entrees:0,sorties:0};
 const FPS_CAP=!/[?&]fps=0\b/.test(location.search); /* (2026-10-20) le plafond à 60 i/s — voir le début de loop */
 /* (2026-10-20, Sacha : « beaucoup de freeze et de latence sur la version vercel ») LE PLAFOND EN IMAGES ENTIÈRES. L'horloge cumulée à 1000/60
@@ -70803,7 +70913,7 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
     else if(CAD.essT>0&&!ess9){CAD.essT=0;CAD.murD=30000;}} // l'essai a tenu 10 s : 60 est acquis, le mur repart de zéro
   else if(CAD.wh>=3||(CAD.murT>0&&now-CAD.murT<CAD.murD)||(QLR.vraiT&&now-QLR.vraiT<20000&&QLR.vrai>13))CAD.calT=now;
   else if(now-CAD.calT>5000){cadPose(false,now);CAD.essT=now;}}
-window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0))?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
+window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0)||CAD30_REC)?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
   const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1),plafond:{actif:FPS_CAP,n:FPS.n,ecran:+FPS.per.toFixed(2)}};}; // (2026-10-20) plafond : une image d'écran sur n (fpsSaute)
 /* ====================== HORS COURSE À 30 i/s — HC (2026-10-23, audit mobile, Sacha : « une version mobile fluide sans que ça baisse trop en qualité ») ======================
    CAD ne cale qu'EN COURSE : un accueil ou un garage laissé ouvert tournait à 60 i/s plein rendu (haute définition comprise) et chauffait comme une
@@ -73457,17 +73567,34 @@ function goImmersive(){
   /* LE « PRESENTS » (2026-10-24, Léo : « enlève le premier CASH CAR ; après l'explosion, PRESENTS, puis l'écran menu ciel avec la musique qui apparaît ») : la boule explose, le mot s'écrit
      lettre à lettre sur le noir (or, interlettrage qui se resserre), tient, s'éteint ; PUIS le voile fond sur le ciel, et c'est là, là seulement, que la musique du lobby démarre (`reveler`).
      Le gros logo CASH CAR du film (`dActe3`) n'est plus montré après l'appui : le premier CASH CAR du jeu est celui du menu. s = secondes depuis l'appui. */
-  const PRES_FIN=2.5; /* l'instant (s après l'appui) où le mot est éteint ; le voile fond juste après */
+  const PRES_FIN=4.1; /* l'instant (s après l'appui) où le texte est éteint ; le voile fond juste après (2026-10-24 : 2,5 → 4,1 s, Léo : « laisse le temps d'apprécier ») */
   function dPresente(c,s,e){
-    const sor=1-lisse(PRES_FIN-.6,PRES_FIN,s);if(sor<=.004)return;
-    const txt='PRESENTS',n=txt.length,px=Math.max(10,Math.round(Math.min(W/17,H/9,30))),k=sort3((s-.7)/1.3),esp=px*(.95-.5*k);
-    const tot=n*px+(n-1)*esp,y=e.cy+px*.4;let x=W/2-tot/2;
+    const sor=1-lisse(PRES_FIN-.7,PRES_FIN,s);if(sor<=.004)return;
+    /* (2026-10-24, Léo : « au lieu de PRESENTS, 1.61 STUDIO PRESENTS ») deux lignes : « 1.61 STUDIO » en grand (le « 1.61 » blanc chaud, STUDIO en or), un filet d'or qui s'ouvre depuis le centre,
+       puis « PRESENTS » plus petit, très espacé, crème. La ligne du haut s'écrit lettre à lettre (0,7 s), le filet suit, le mot du bas arrive en dernier. */
+    const t1='1.61 STUDIO',t2='PRESENTS',n1=t1.length,n2=t2.length;
+    const px=Math.max(9,Math.round(Math.min(W/23,H/9,30))),px2=Math.max(8,Math.round(px*.5)),k=sort3((s-.7)/1.5),esp=px*(.95-.5*k);
+    const tot=n1*px+(n1-1)*esp,y1=e.cy-px*.1,yR=e.cy+px*.62,y2=yR+px2*2.1;
     c.save();c.textAlign='left';c.textBaseline='alphabetic';c.font=px+'px "Press Start 2P",monospace';
-    const gr=c.createLinearGradient(0,y-px,0,y);gr.addColorStop(0,'#fff2be');gr.addColorStop(.5,'#ffd75e');gr.addColorStop(1,'#e8a53a');
-    for(let i=0;i<n;i++){
+    const grO=c.createLinearGradient(0,y1-px,0,y1);grO.addColorStop(0,'#fff2be');grO.addColorStop(.5,'#ffd75e');grO.addColorStop(1,'#e8a53a');
+    const grB=c.createLinearGradient(0,y1-px,0,y1);grB.addColorStop(0,'#ffffff');grB.addColorStop(1,'#ffe9b8');
+    let x=W/2-tot/2;
+    for(let i=0;i<n1;i++){
       const la=lisse(.7+i*.07,1.15+i*.07,s)*sor;
-      if(la>.004){c.globalAlpha=la;c.fillStyle='#1c0430';c.fillText(txt[i],x+px*.12,y+px*.12);c.fillStyle=gr;c.fillText(txt[i],x,y);}
+      if(la>.004){c.globalAlpha=la;c.fillStyle='#1c0430';c.fillText(t1[i],x+px*.12,y1+px*.12);c.fillStyle=i<4?grB:grO;c.fillText(t1[i],x,y1);}
       x+=px+esp;
+    }
+    /* le filet d'or : il s'ouvre depuis le centre */
+    const fl=sort3((s-1.55)/.9);
+    if(fl>.004){const wl=tot*.62*fl,g=c.createLinearGradient(W/2-wl/2,0,W/2+wl/2,0);g.addColorStop(0,'rgba(255,215,94,0)');g.addColorStop(.5,'rgba(255,226,150,1)');g.addColorStop(1,'rgba(255,215,94,0)');
+      c.globalAlpha=sor*.9;c.fillStyle=g;c.fillRect(W/2-wl/2,yR,wl,Math.max(1,Math.round(px*.1)));}
+    /* « PRESENTS » : plus petit, l'interlettrage se resserre doucement */
+    const k2=sort3((s-1.9)/1.5),esp2=px2*(2.4-1.3*k2),tot2=n2*px2+(n2-1)*esp2;
+    c.font=px2+'px "Press Start 2P",monospace';x=W/2-tot2/2;
+    for(let i=0;i<n2;i++){
+      const la=lisse(1.9+i*.09,2.4+i*.09,s)*sor;
+      if(la>.004){c.globalAlpha=la*.92;c.fillStyle='#1c0430';c.fillText(t2[i],x+px2*.12,y2+px2*.12);c.fillStyle='#ffe9c4';c.fillText(t2[i],x,y2);}
+      x+=px2+esp2;
     }
     c.restore();
   }
@@ -74223,7 +74350,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
           else { /* (2026-10-14, chasse aux bugs) …et passe par le VOLET comme REJOUER : la piste neuve se construisait à l'écran, sous la feuille qui descendait. Le jeu reste gelé sous le voile ; le son (endormi par la pause) se réveille pour le volet — la musique abandonnée, elle, reste en pause : resetGame lance la neuve en fondu */
             let r9=null;try{busPlein();if(AC&&SND.sfx&&AC.state!=='running')r9=AC.resume();}catch(e){}
             if(ecranWipe._on){resetGame();} // un fondu déjà en cours ignorerait le nôtre : jamais une partie gelée sans feuille
-            else{ecranWipe(function(){if(started&&!gameOver){resetGame();}});
+            else{ecranWipe(function(){if(started&&!gameOver){resetGame(); /* ===== RECOMMENCER PUIS ARRIÈRE-PLAN (24/10, relecture : « la course roule sous la PAUSE ») ===== l'appli passée derrière pendant le volet a ROUVERT la feuille (paused encore vrai) ; resetGame remet paused=false : la partie neuve roulait sous la pause ouverte, REPRENDRE ne la gelait plus. La feuille ouverte = la partie neuve part en PAUSE, REPRENDRE sous le pouce (comme un retour d'arrière-plan) */
+                if(pan.classList.contains('open')&&!pan.classList.contains('sortant'))panOpen(true);}});
               if(r9&&r9.then&&SONV2)r9.then(function(){try{if(ecranWipe._on)sfx('ui.volet');}catch(e){}},function(){});} } }; // le son du volet, perdu sur le contexte encore endormi, part au réveil
         f9(); }); } // (2026-09-28) tutoQuitte : la leçon quittée sera reproposée
     uiClic(a==='close'?'retour':a==='tous'?'nav':a==='snd'?(SND.sfx?'on':'off'):a==='mus'?(SND.music?'on':'off'):a==='surv'?(SURV.armed?'on':'off'):(a==='ctl'||a==='q'||a==='volh'||a==='figg')?'onglet':(a==='reset'||a==='quit')?'danger':''); /* (console de son) le RÔLE — ici le clic part APRÈS la bascule : l'interrupteur sonne son nouvel état */ // ⚠ EN DERNIER : un bouton qui SORT de la pause (reprendre, recommencer, quitter) garde son clic ; en pause il reste le visuel et la vibration
@@ -75014,6 +75142,11 @@ if(BANC_ON)(function(){
     for(let i=0;i<80&&!started;i++)await Z(250);
     RESPIN=true;DPR_CAP=Math.min(devicePixelRatio,1.5);qlPose(0);setDPR(1.5);dbgAuto(true,0);
     const lieu=()=>((LVL.cur&&LVL.cur.id)||'?').toUpperCase().slice(0,7); // (2026-10-14) les colonnes portent le VRAI niveau (le JOUER lance le Soleil de jade : « NUAGES » mentait)
+    /* (2026-10-24, passe perf iPhone — Sacha : « après quelques maps passées on arrive presque à 1 image/seconde ») LE BANC AU NIVEAU N :
+       `&bancniv=9` franchit 8 portails (dbgSaut) avant de mesurer, `&bancmap=jade` impose la map de chaque passage (dbgClassique) — la même
+       map au niveau 1 et au niveau 9 dit ce qui gonfle avec le niveau. Sans ces paramètres : rien ne change. */
+    {const niv9=+((/[?&]bancniv=(\d+)/.exec(location.search)||[])[1])||1,map9=(/[?&]bancmap=(\w+)/.exec(location.search)||[])[1];
+      for(let k=1;k<niv9;k++){etat('niveau '+(k+1)+' / '+niv9);await vivant();if(map9)try{dbgClassique(map9);}catch(e){}dbgSaut();dbgAuto(true,0);await Z(2500);}}
     try{await Z(3500);const L1=lieu();await vue(L1+' sol');await vol();await vue(L1+' vol');
       await vivant();dbgSaut();dbgAuto(true,0);await Z(4000);const L2=lieu();if(L2!==L1){await vue(L2+' sol');await vol();await vue(L2+' vol');}}
     catch(e){R.err=String(e&&e.message);}

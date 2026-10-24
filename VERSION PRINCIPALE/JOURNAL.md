@@ -3,6 +3,55 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA VAGUE 4 DU DÉBOGAGE : SOUPÇONS TRANCHÉS, SINGE, WEBKIT (2026-10-24 soir, v893, session DÉBOGAGE — Sacha : « continue à déboguer, je suis sûr qu'il y a encore plein de soucis »)
+- **LA MÉTHODE** : (1) les 28 soupçons non démontrés de la relecture ligne à ligne, tranchés un par un (VÉRIFS-A : états, sauvegarde, économie ;
+  VÉRIFS-B : mémoire, rendu, interface) — 7 prouvés et corrigés, 1 prouvé laissé puis corrigé à l'intégration, 19 écartés avec la ligne qui protège,
+  1 non tranché ; (2) un SINGE dans le vrai jeu (iPhone émulé, muet) : 1 734 gestes au hasard en 27 min (touchers, doubles, appuis longs, volant,
+  NITRO multi-doigts, 88 rotations, 65 passages en arrière-plan), invariants toutes les 500 ms — 0 bug, mémoire en plateau après 2-3 min ;
+  (3) WEBKIT : inventaire de toutes les API du navigateur contre Safari iOS 15 → 26, banc « faux Safari » (58 API retirées) sur 12 maps et les écrans —
+  0 exception. 41 preuves dans `passation/preuves/`, toutes vertes. Outils gardés : `integ/.banc-sortie/archives/v4-singe/singe.mjs` (graine
+  rejouable), `archives/v4-webkit/shim-webkit.js` + `course-wk.mjs`.
+- **CORRIGÉ** :
+  - la MÉMOIRE DES PHOTOS de la boutique : +6,6 Mo par caisse équipée, jamais libérés (risque que iOS tue l'app) → plafond 32 Mo, les plus anciennes
+    adresses blob: libérées, jamais une photo affichée (`interface/photos-films.js`, `dbgPhotoMem()`) ;
+  - l'ÉCRAN FIGÉ ~8 s : une goutte de jus sur une toile de largeur nulle (transition iOS) faisait lever drawImage à chaque image (`interface/jus-echelle.js`) ;
+  - RECOMMENCER puis arrière-plan pendant le volet : la partie neuve roulait sous la feuille de pause → elle part en PAUSE (`moteur/mobile-tactile.js`) ;
+  - JOUER depuis la boutique puis HOME pendant le lâcher : l'accueil s'affichait puis la course partait quand même → tous les touchers ignorés pendant
+    les 450-650 ms du lâcher (`interface/garage-cadrage.js`, `uiGarde`) ;
+  - faisceaux des PHARES et RAYONS du soleil à bords nets sur iPhone (Safari n'a pas `ctx.filter`) → flou calculé après coup, une fois au chargement
+    (`rendu/soleil-planete.js` `flou2dRepli`, `voitures/atchoum-feu.js`) ; `-webkit-backdrop-filter` de l'accueil (Safari Mac < 18) ;
+  - annonce en file jouée (et perdue) pendant la pause ; clavier qui agissait sur le garage sous le profil/la plaque ; policier qui explosait deux fois au Survivant.
+- **VÉRIFIÉ, ÉCARTÉ** (extraits) : pas de sauvegarde vierge après une purge iOS (banc : aucune écriture au démarrage) ; la pub maison se termine toujours
+  et `#pubR` reprend `hidden` ; pas de musique en pause au retour après 24 h ; aucune voiture retirée équipable ; textures flottantes toujours en Nearest
+  (iPhone sans `OES_texture_float_linear`) ; toiles 2D vivantes ~37 Mo stables.
+- **À VÉRIFIER SUR LE VRAI iPHONE** : phares la nuit ; carte MOTEUR de l'écran de fin qui tourne (relecture PBO/fenceSync sous WebKit) ; photos de la
+  boutique relues d'IndexedDB après avoir tué l'app ; COPIER LA SAUVEGARDE ; double prime de portail après une seconde chance (non tranché, A3).
+- **POUR LÉO** (en plus de la liste v887) : l'ombre du « 1.61 » de la boutique 3D a le même défaut de flou sous Safari (`boutique-scene-1.js:29`,
+  `flou2dRepli(x,cv.width,cv.height,S*.35)` après les fillRect).
+
+## L'IPHONE QUI CHAUFFE ET LES MAPS QUI S'ALOURDISSENT : CADENCE 30 SUR LE RÉCENT, LA ROUTE EN TRANCHE MOYENNE (2026-10-24 soir, v892, session Optimisation mobile — Sacha : « après quelques maps passées on arrive vraiment presque à 1 image/seconde » · sur la question de la chauffe : « 30 i/s stables si chaud » · « oui, prends l'iPhone 12 min »)
+- **CE QUI RALENTIT** (iPhone 13 Pro, dans l'app de banc CC BANC, voir la section du palier v873 juste dessous) : (1) la CHAUFFE — au bout de 3-4 min de jeu iOS bride la puce
+  (sonde CPU ×2) : la course, 58-60 i/s à froid, tombe à 17-45 i/s haché ; Sacha à la main (enregistreur de PERF-PC, 164 s, ville → banquise) : ~30 i/s, 17-22 à la fin ;
+  (2) les maps qui s'ALOURDISSENT avec le niveau — triangles par image 0,2-0,6 M aux 1res maps, 0,8-1,3 M aux niveaux 7-9 (jade niv 9 ≈ 7 i/s) ; LA ROUTE = 274 000
+  à 528 000 triangles DESSINÉS (50 à 70 % de l'image) : bitume 11 colonnes × une rangée par mètre, et une tranche de 1 200 m n'était maigre que TOUTE au-delà du brouillard
+  (2 à 9 km) ; diviser la résolution par trois ne change presque rien (ce n'est pas le remplissage). Pas de fuite qui s'accumule de map en map (banc Chrome, registre de
+  chaque BufferGeometry avec sa pile de création) ; le 1er REJOUER monte les géométries 544 → ~900 puis plafonne.
+- **LA CADENCE 30 DU RÉCENT** (`CAD30_REC`, `code/moteur/cadence.js`) : sur un vrai téléphone (TEL_NATIF) au palier RÉCENT, la règle du MOYEN — 60 tant qu'il tient,
+  calé sur 33 ms quand plus d'un quart des images ratent la synchro 2 s durant, essai de retour à 60 quand le travail repasse sous 10 ms (mur 60 s doublé) ; calé,
+  l'échelle QL ne remonte pas (`cadenceMonte` RÉCENT = 0 : deux fois moins d'images et pas plus lourdes). L'ordinateur : CAD reste éteint. `?cad30=0` = avant.
+- **LA TRANCHE MOYENNE** (`PISTE_MOY`, `pisteLoin`, `code/moteur/piste-prebati.js`) : sur téléphone, une tranche de bitume dont le point le plus proche est à plus de
+  400 m de profondeur passe en MOYENNE — toutes les colonnes, une rangée sur 4, les bords de trou gardés (`pisteMaigre` a gagné un pas de rangées). Banc Chrome sur la
+  MÊME image : 0 pixel d'écart sur 7 maps sur 9, et sur nuages/espace l'écart est celui de la même image rendue deux fois (les nuages bougent) ; −9 à −30 % des
+  triangles de toute l'image selon la map (ville 481 k → 337 k, espace 675 k → 495 k). `?pistemoy=0` = avant ; `dbgPiste()` compte les `moyennes` ;
+  `dbgPiste(null,null,false)` les coupe à chaud (banc).
+- **MESURÉ SUR L'IPHONE** (CC BANC, même suite de maps imposée `dbgClassique(m);dbgSaut()` jusqu'à la ville niveau 9, batterie 37 °C dans les deux courses) :
+  AVANT (`?cad30=0&pistemoy=0`) 16,9 puis 13,1 images calculées/s, 478 images > 50 ms ; APRÈS 20,2 puis 21,7 i/s (cadence enclenchée, 6 tranches moyennes sur 14),
+  250 images > 50 ms. Une seule paire : le gain est net mais la ville niveau 9 sur un téléphone chaud reste sous 30 i/s.
+- **BANC** : `&bancniv=9&bancmap=jade` pour le banc intégré `?banc=1` (`code/moteur/desktop-banc.js`) : franchir n−1 portails sur la map imposée avant de mesurer.
+- **RESTE À FAIRE** (mesuré) : les décors lourds des niveaux avancés (forêt `forFamille` 350 k triangles, jade), la route hors bitume (flancs, rails, nappe, ligne :
+  aucune version allégée), le compteur d'argent (`cashTxt` → `toLocaleString` à chaque image de défilement, 3 % du JS). L'APP installée chez Sacha tourne toujours
+  le jeu du 18/10 : rien de tout ça n'y arrive sans build ou mise à jour en direct.
+
 ## LA RELECTURE LIGNE À LIGNE DE TOUT LE CODE (2026-10-24, v887, session DÉBOGAGE — Sacha : « continue à déboguer, je suis sûr qu'il y a encore plein de bugs cachés, explore chaque ligne de code »)
 - **LA MÉTHODE** : 15 agents, chacun un lot de `code/` lu ligne à ligne (gameplay ×2, moteur + sauvegarde + page, économie + missions + son, interface ×2, rendu,
   maps ×3, voitures logique, dessins des voitures ×2 en lecture seule — ils sont à Léo —, CSS). Un bug = un scénario concret prouvé : chaque correctif a sa

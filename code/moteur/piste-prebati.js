@@ -31,9 +31,10 @@ function sphere9(g){ // (2026-09-28, chasse aux gels) computeBoundingSphere de t
   for(let k=0;k<n;k+=3){const dx=cx-a[k],dy=cy-a[k+1],dz=cz-a[k+2];m=Math.max(m,dx*dx+dy*dy+dz*dz);}
   S.radius=Math.sqrt(m);
 }
-function pisteMaigre(att,c,lz){ // la tranche lointaine : mêmes attributs, une rangée sur PISTE_PAS (+ bords de tranche et de trou), colonnes choisies
-  const r0=c*PISTE_CH,r1=Math.min((c+1)*PISTE_CH,NP-1),R=[];
-  for(let r=r0;r<r1;r+=PISTE_PAS)R.push(r);R.push(r1);
+function pisteMaigre(att,c,lz,pas9){ // la tranche lointaine : mêmes attributs, une rangée sur PISTE_PAS (+ bords de tranche et de trou), colonnes choisies
+  const r0=c*PISTE_CH,r1=Math.min((c+1)*PISTE_CH,NP-1),R=[],pas=pas9||PISTE_PAS;
+  for(let r=r0;r<r1;r+=pas)R.push(r);R.push(r1);
+  if(pas>1&&TROU)for(let r=r0+1;r<r1;r++)if(TROU[r]!==TROU[r-1]&&r%pas)R.push(r); // (la tranche MOYENNE) chaque bord de trou est une rangée : un quad ne chevauche jamais un trou
   R.sort((a,b)=>a-b);
   const nb=lz.blocs,pr=lz.pr,cols=lz.cols,nc=cols.length,nR=R.length,nv=nb*nR*nc,g=new THREE.BufferGeometry(),ix=[];
   for(const nm in att){const A=att[nm][0],sz=att[nm][1],B9=new Float32Array(nv*sz);let w=0;
@@ -45,21 +46,31 @@ function pisteMaigre(att,c,lz){ // la tranche lointaine : mêmes attributs, une 
   if(!ix.length)return null;
   g.setIndex(ix);sphere9(g);return g;
 }
-function pisteLoin(cam){ // chaque tranche : entière en deçà du brouillard, maigre (ou absente) quand elle est TOUTE au-delà
+/* ===== LA TRANCHE MOYENNE (2026-10-24, passe perf iPhone — Sacha : « après quelques maps passées on arrive presque à 1 image/seconde ») =====
+   MESURÉ (banc Chrome, triangles DESSINÉS par image) : la route seule fait 274 000 à 528 000 triangles selon la map, 50 à 70 % de l'image, et elle gonfle
+   avec le niveau (72 000 → 400 000 entre la 1re et la 11e map) ; sur l'iPhone 13 Pro la course tombe de 60 à 7 i/s au niveau 9 (1,0-1,3 M de triangles).
+   Le bitume a 11 colonnes × une rangée PAR MÈTRE ; une tranche (1 200 m) n'était maigre que TOUTE au-delà du brouillard — or le brouillard est à 2 à 9 km :
+   quatre à huit tranches entières à l'écran. Sur TÉLÉPHONE, une tranche dont le point le plus proche est à plus de PISTE_MOY_D mètres de profondeur passe
+   en MOYENNE : les mêmes 11 colonnes, une rangée sur PISTE_MOY (4 m), les bords de trou gardés — 4 fois moins de triangles de bitume. À 400 m un pas de
+   4 m fait moins d'un vingtième de pixel en profondeur, la flèche d'un virage serré (R 110 m) 2 cm : l'image ne bouge pas. Sur l'ordinateur : rien ne
+   change (règle d'or). `?pistemoy=0` = avant ; `dbgPiste()` compte les tranches moyennes. */
+const PISTE_MOY=(TEL_NATIF&&!/[?&]pistemoy=0\b/.test(location.search))?4:0,PISTE_MOY_D=400;
+function pisteLoin(cam){ // chaque tranche : entière de près, moyenne au-delà de PISTE_MOY_D (téléphone), maigre (ou absente) quand elle est TOUTE au-delà du brouillard
   if(!PISTE_LOD.length)return;
-  if(PISTE_TEMOIN||PISTE_SANSLOIN){for(const E of PISTE_LOD){E.loin=false;E.hi.visible=true;if(E.lo)E.lo.visible=false;}return;}
+  if(PISTE_TEMOIN||PISTE_SANSLOIN){for(const E of PISTE_LOD){E.loin=false;E.et=0;E.hi.visible=true;if(E.lo)E.lo.visible=false;if(E.mo)E.mo.visible=false;}return;}
   const f=scene.fog,far=f&&f.isFog?f.far:Infinity,e=cam.matrixWorld.elements;
   const il=1/Math.hypot(e[8],e[9],e[10]),fx=-e[8]*il,fy=-e[9]*il,fz=-e[10]*il,px=e[12],py=e[13],pz=e[14];
   for(let i=0;i<PISTE_LOD.length;i++){const E=PISTE_LOD[i],c=E.s.center;
-    const loin=(c.x-px)*fx+(c.y-py)*fy+(c.z-pz)*fz-E.s.radius-1>=far; // la profondeur de vue de son point le plus proche (1 m de garde)
-    if(loin!==E.loin){E.loin=loin;E.hi.visible=!loin;if(E.lo)E.lo.visible=loin;}}
+    const p9=(c.x-px)*fx+(c.y-py)*fy+(c.z-pz)*fz-E.s.radius; // la profondeur de vue de son point le plus proche
+    const et=p9-1>=far?2:(E.mo&&!PISTE_SANSMOY&&p9>=PISTE_MOY_D)?1:0; // (1 m de garde au brouillard, comme avant)
+    if(et!==E.et){E.et=et;E.loin=et===2;E.hi.visible=et===0;if(E.lo)E.lo.visible=et===2;if(E.mo)E.mo.visible=et===1;}}
 }
 /* `dbgPiste(false)` : le TÉMOIN — tranches toutes entières et jamais triées, tous les plots envoyés, comme avant la passe. Sert à mesurer
    (et à comparer l'image) sur la MÊME image figée ; `dbgPiste(true,false)` : le tri sans les tranches maigres ; `dbgPiste()` rend l'état. */
-let PISTE_TEMOIN=false,PISTE_SANSLOIN=false;
-window.dbgPiste=function(on,loin){if(loin!=null)PISTE_SANSLOIN=!loin;if(on!=null){PISTE_TEMOIN=!on;for(const m of trackMeshes)if(m.isMesh&&!m.isInstancedMesh&&m.matrixAutoUpdate===false&&m.geometry&&m.geometry.boundingSphere)m.frustumCulled=!PISTE_TEMOIN;}
-  let n=0;for(const E of PISTE_LOD)if(E.loin)n++;
-  return {tri:!PISTE_TEMOIN,tranches:PISTE_LOD.length,auLoin:n};};
+let PISTE_TEMOIN=false,PISTE_SANSLOIN=false,PISTE_SANSMOY=false; // (banc) dbgPiste(null,null,false) : sans les tranches moyennes, le reste tel quel
+window.dbgPiste=function(on,loin,moy){if(loin!=null)PISTE_SANSLOIN=!loin;if(moy!=null)PISTE_SANSMOY=!moy;if(on!=null){PISTE_TEMOIN=!on;for(const m of trackMeshes)if(m.isMesh&&!m.isInstancedMesh&&m.matrixAutoUpdate===false&&m.geometry&&m.geometry.boundingSphere)m.frustumCulled=!PISTE_TEMOIN;}
+  let n=0,m=0;for(const E of PISTE_LOD){if(E.loin)n++;else if(E.et===1)m++;}
+  return {tri:!PISTE_TEMOIN,tranches:PISTE_LOD.length,auLoin:n,moyennes:m,pasMoyen:PISTE_MOY};};
 /* ===== LE BILAN DE LA ROUTE (2026-10-23, Sacha : « retravaille toutes les générations de routes… trop souvent tout droit ») =====
    (banc) dbgPisteBilan() mesure la piste courante ; dbgPisteBilan(n) en rebâtit n (newTrack, mêmes map et météo) et rend la moyenne.
    Cap = direction horizontale sur 20 m ; « droit » = rayon > 450 m ; « virage » = un changement de cap ≥ 25° d'un seul sens. */
@@ -113,7 +124,12 @@ function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée
     let lo=null;const g2=o.loin?pisteMaigre(att,c,o.loin):null;
     if(g2){lo=new THREE.Mesh(g2,mat);lo.receiveShadow=m.receiveShadow;lo.renderOrder=m.renderOrder;lo.visible=false;lo.userData.maigre=true;
       lo.updateMatrix();lo.matrixAutoUpdate=false;trackMeshes.push(lo);}
-    PISTE_LOD.push({hi:m,lo,s:g.boundingSphere,loin:false});
+    let mo=null; // (LA TRANCHE MOYENNE, téléphone) toutes les colonnes, une rangée sur PISTE_MOY
+    if(PISTE_MOY>1&&o.loin&&lay.pas===1){yield;const cols9=[];for(let j=0;j<lay.pr;j++)cols9.push(j);
+      const g3=pisteMaigre(att,c,{blocs:lay.blocs,pr:lay.pr,cols:cols9,inv:lay.inv},PISTE_MOY);
+      if(g3){mo=new THREE.Mesh(g3,mat);mo.receiveShadow=m.receiveShadow;mo.renderOrder=m.renderOrder;mo.visible=false;mo.userData.moyenne=true;
+        mo.updateMatrix();mo.matrixAutoUpdate=false;trackMeshes.push(mo);}}
+    PISTE_LOD.push({hi:m,lo,mo,s:g.boundingSphere,loin:false,et:0});
   }
 }
 /* LE PRÉ-BÂTI (2026-10-17, Léo : « la pause du passage est beaucoup trop longue » — le portail de cubes, 3e tour). MESURÉ (banc : téléphone

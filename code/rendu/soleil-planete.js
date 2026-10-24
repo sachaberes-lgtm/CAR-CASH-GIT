@@ -225,6 +225,24 @@ const planetGroup=(function(){
   scene.add(g);return g;
 })();
 /* <<<FIN CIEL>>> */
+/* ===== LE FLOU DES TOILES SANS `ctx.filter` (24/10, relecture WebKit : « les bugs qui n'existent que sous Safari / WKWebView ») =====
+   `ctx.filter='blur(Npx)'` n'existe dans AUCUN Safari (iOS 15 → 18 : derrière le réglage « Canvas Filters », éteint par défaut) : l'affectation
+   y crée une simple propriété et rien n'est flouté — les rayons du soleil et les faisceaux des phares de TOUTES les caisses sortaient à bords
+   nets sur iPhone (le `try` ne voit rien : il n'y a pas d'erreur). Là où le filtre manque, `flou2dRepli` floute la toile APRÈS le dessin :
+   trois flous-boîtes séparables (≈ la gaussienne d'écart-type N du filtre CSS), en alpha prémultiplié (pas de frange sombre), le dehors de la
+   toile transparent. Une fois par texture, au chargement (256 × 256 : quelques ms). Là où `ctx.filter` existe (Chrome, Firefox, Android) :
+   la fonction rend tout de suite, rien ne change. */
+function flou2dNatif(){if(flou2dNatif.v===undefined){try{flou2dNatif.v=typeof CanvasRenderingContext2D!=='undefined'&&('filter' in CanvasRenderingContext2D.prototype);}catch(e){flou2dNatif.v=false;}}return flou2dNatif.v;}
+function flou2dRepli(c,w,h,s){if(flou2dNatif()||!(s>0))return;try{
+  const im=c.getImageData(0,0,w,h),d=im.data,n=w*h,A=new Float32Array(n*4),B=new Float32Array(n*4);
+  for(let i=0;i<n;i++){const a=d[i*4+3]/255;A[i*4]=d[i*4]*a;A[i*4+1]=d[i*4+1]*a;A[i*4+2]=d[i*4+2]*a;A[i*4+3]=d[i*4+3];}
+  const wi=Math.sqrt(4*s*s+1);let wl=Math.floor(wi);if(wl%2===0)wl--;const m=Math.round((12*s*s-3*wl*wl-12*wl-9)/(-4*wl-4)); /* les 3 boîtes d'une gaussienne : m de largeur wl, les autres wl+2 */
+  const passe=function(S,D,r,hz){const L=hz?w:h,K=hz?h:w,st=hz?4:w*4,k=1/(2*r+1);
+    for(let j=0;j<K;j++){const o=hz?j*w*4:j*4;for(let ch=0;ch<4;ch++){let acc=0;for(let t=0;t<=r&&t<L;t++)acc+=S[o+t*st+ch];
+      for(let i=0;i<L;i++){D[o+i*st+ch]=acc*k;const ad=i+r+1,ot=i-r;if(ad<L)acc+=S[o+ad*st+ch];if(ot>=0)acc-=S[o+ot*st+ch];}}}};
+  for(let b=0;b<3;b++){const r=((b<m?wl:wl+2)-1)/2;passe(A,B,r,true);passe(B,A,r,false);}
+  for(let i=0;i<n;i++){const a=A[i*4+3],q=a>0?255/a:0;d[i*4+3]=Math.round(a);d[i*4]=Math.round(A[i*4]*q);d[i*4+1]=Math.round(A[i*4+1]*q);d[i*4+2]=Math.round(A[i*4+2]*q);}
+  c.putImageData(im,0,0);}catch(e){}}
 const RAYS=(function(){ // 3-4 faisceaux diffus en éventail derrière les nuages (discrets)
   const cv=document.createElement('canvas');cv.width=64;cv.height=256;
   const c=cv.getContext('2d');
@@ -237,6 +255,7 @@ const RAYS=(function(){ // 3-4 faisceaux diffus en éventail derrière les nuage
   g.addColorStop(.55,'rgba(250,150,140,.18)');g.addColorStop(1,'rgba(240,130,130,0)');
   c.fillStyle=g;
   c.beginPath();c.moveTo(26,256);c.lineTo(38,256);c.lineTo(58,0);c.lineTo(6,0);c.closePath();c.fill();
+  flou2dRepli(c,64,256,5); /* (24/10) Safari n'a pas `ctx.filter` : le même flou, après coup (voir LE FLOU DES TOILES SANS ctx.filter) */
   const tex=new THREE.CanvasTexture(cv);
   const arr=[];
   for(let i=0;i<RAY_ANGLES.length;i++){
