@@ -246,7 +246,7 @@ function cotonPose(x,yB,z,r,k,cr,syF){ // un nuage dont le DESSOUS est à yB —
   const o=COTON.n*COTON_ST,I=COTON.I;I[o]=x;I[o+1]=yB-S.base*r*sy;I[o+2]=z;I[o+3]=r;I[o+4]=cr()*6.2832;I[o+5]=k;I[o+6]=cr()*6.28;I[o+7]=h;I[o+8]=sx;I[o+9]=sy;
   {const l9=.82+cr()*.22,w9=(cr()-.5)*2,lourd=cr()<.12;{const g9=(.88+(l9-.82)*.727)*(lourd?.94:1);I[o+10]=I[o+11]=I[o+12]=g9;}} /* (coton-blanc) un BLANC neutre .83-1,04 (vu à 30 % par le shader : ±3 % de luminance, 0 % de teinte) — mêmes trois tirages `cr` */ // (v6) SA TEINTE : clair/sourd, chaud/froid, parfois lourd (la moitié passe la lumière de peintre)
   COTON.n++;return true;}
-function cotonVide(){COTON.n=0;if(COTON.root){COTON.root.visible=false;for(const im of COTON.im)im.count=0;}}
+function cotonVide(){COTON.n=0;if(COTON.root){COTON.root.visible=false;for(const im of COTON.im)im.count=0;}try{nuEmbVide();}catch(e9){}} /* (2026-10-21, embellissement) les poussières de lumière et les oiseaux s'en vont avec les nuages : voir nuages-embellie.js */
 // classique · bas · tour · flocon · banc · double | (v4) humilis ×2 · mediocris ×2 · congestus ×2 · castellanus · fractus
 const COTON_POIDS=(function(){ // (v6) près · milieu · loin — les classiques pèsent moins (on les revoyait à chaque partie), chaque genre a sa distance
   const C={pres:[2,1,.3,2,.8,1.2],mil:[1.4,1,1,1,1,1.4],loin:[1,1.2,2,.4,1.2,1]},W={humilis:[2.2,1,.8],mediocris:[1.6,1.4,1.2],congestus:[.3,1.3,2.2],castellanus:[.8,1.2,1],fractus:[1.6,.6,.2],
@@ -360,6 +360,7 @@ function buildCoton(cr){
     {const i=Math.min(NP-1,Math.floor(NP*(.6+cr()*.15))),p=pts[i],a=sunAz+3.1416+(cr()-.5)*.9,d=1500+cr()*700;cotonPose(p.x+Math.cos(a)*d,p.y-380,p.z+Math.sin(a)*d,(760+cr()*300)*(.75),24,cr);} // LE COLOSSE, à l'opposé du couchant
   }
   COTON.root.visible=COTON.n>0;
+  try{nuEmbBati();}catch(e9){window.__nuEmbErr=e9;} /* (2026-10-21, embellissement) du vivant dans le ciel : poussières de lumière, oiseaux lointains, éclats rose et or (nuages-embellie.js ; hasard local, la piste ne bouge pas) */
 }
 const COTON_T0=performance.now();
 function cotonInst(o,A,C,b,tt){const I=COTON.I,r=I[o+3];C[b*3]=I[o+10];C[b*3+1]=I[o+11];C[b*3+2]=I[o+12]; // une instance de nuage : sa teinte, la dérive au vent, son cap

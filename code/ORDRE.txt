@@ -50,6 +50,7 @@ maps/nuages-v8.js                    # nuages v8 : une seule matière, sculpteur
 maps/nuages-vitrail.js               # nuages en vitrail (Léo)
 maps/nuages-casses.js                # nuages qui se dégagent : trouées par marches de cubes, blocs qui se cassent en petits (Léo)
 maps/pigeons.js                      # pigeons ramiers, pigeons de Paris
+maps/nuages-embellie.js              # nuages : l'embellissement (poussières de lumière, oiseaux lointains, éclats rose et or)
 gameplay/route-sans-haut.js          # la route sans haut ni bas, vitesse réelle
 maps/ville-entree.js                 # l'entrée dans la ville
 rendu/bitume-beton.js                # bitume v2, béton brut, lumières de la caisse v2, bitume mouillé, bords en béton
@@ -59,6 +60,7 @@ moteur/depart-avance.js              # le départ d'avance
 maps/foret-route.js                  # LA FORÊT NOIRE : la pelote (route), les mini-cubes
 maps/foret-decor.js                  # forêt : les géants, les fleurs, les matières, le relief
 maps/foret-construction.js           # forêt : construction, boucle, console
+maps/foret-embellie.js               # forêt : la passe d'embellissement (lanternes de conte, réglages FOR_EMB)
 maps/canyon-route.js                 # LE CANYON DES GÉANTS : route, construction, monde, pose
 maps/canyon-relief.js                # canyon : relief, monuments, voûte, lumière cuite
 maps/canyon-mine.js                  # canyon : la mine abandonnée, la route 66
