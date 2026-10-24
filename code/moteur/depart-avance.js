@@ -39,7 +39,7 @@ function prebDepTick(now){ // (prebTick, hors course) commencer, vérifier, trav
   const c=prebDepCible();
   if(PREB.W&&(!c||c.t!==PREB.t||c.st!==PREB.ctx||c.eng!==PREB.eng)){prebAnnule(!c?'cible':c.t!==PREB.t?'map':'contexte');return;}
   if(!c||PREB.fait)return;
-  if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go)||CHUTE.go||!CHAUFFE_R.fait||CHAUFFE_R.t||(!JADE.geos&&!GAB_FOND.fini))return; // ni volet, ni lâcher, ni piqué ; la chauffe et les gabarits de la jade d'abord
+  if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go)||CHUTE.go||!CHAUFFE_R.fait||CHAUFFE_R.t||(!JADE.geos&&!GAB_FOND.fini&&c.t.carte==='jade'))return; // ni volet, ni lâcher, ni piqué ; la chauffe d'abord — et les gabarits de la jade, si c'est elle qu'on bâtit (2026-10-24, passe perf : pour une autre map, le départ passe AVANT les gabarits — voir jadeGabFond)
   const ins9=now-PREB.tNeuf<700||(PREB.fin0&&now-PREB.fin0<800); // le monde neuf (le menu, l'écran de fin) s'installe d'abord
   if(ins9&&!PREB.W)return;
   if(!PREB.W){if(c.t!==PREB.non&&PREB.echecs<3)prebPart(c);return;} // (l'image suivante travaille)

@@ -14407,7 +14407,7 @@ function prebDepTick(now){ // (prebTick, hors course) commencer, vérifier, trav
   const c=prebDepCible();
   if(PREB.W&&(!c||c.t!==PREB.t||c.st!==PREB.ctx||c.eng!==PREB.eng)){prebAnnule(!c?'cible':c.t!==PREB.t?'map':'contexte');return;}
   if(!c||PREB.fait)return;
-  if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go)||CHUTE.go||!CHAUFFE_R.fait||CHAUFFE_R.t||(!JADE.geos&&!GAB_FOND.fini))return; // ni volet, ni lâcher, ni piqué ; la chauffe et les gabarits de la jade d'abord
+  if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go)||CHUTE.go||!CHAUFFE_R.fait||CHAUFFE_R.t||(!JADE.geos&&!GAB_FOND.fini&&c.t.carte==='jade'))return; // ni volet, ni lâcher, ni piqué ; la chauffe d'abord — et les gabarits de la jade, si c'est elle qu'on bâtit (2026-10-24, passe perf : pour une autre map, le départ passe AVANT les gabarits — voir jadeGabFond)
   const ins9=now-PREB.tNeuf<700||(PREB.fin0&&now-PREB.fin0<800); // le monde neuf (le menu, l'écran de fin) s'installe d'abord
   if(ins9&&!PREB.W)return;
   if(!PREB.W){if(c.t!==PREB.non&&PREB.echecs<3)prebPart(c);return;} // (l'image suivante travaille)
@@ -25226,7 +25226,7 @@ function jadeGabarits(){if(JADE.geos)return JADE.geos;
   try{const g=jadeFini(it);GAB_FOND.sync=performance.now()-t0;GAB_FOND.ms+=GAB_FOND.sync;g.ms=Math.round(GAB_FOND.ms);JADE.geos=g;}finally{JF.lim=l0;}
   return JADE.geos;}
 function jadeGabFond(){ // une tranche par image, au menu (voir LES GABARITS TAILLÉS AU MENU)
-  if(JADE.geos||GAB_FOND.fini||(started&&!gameOver)||!CHAUFFE_R.fait||ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go))return;
+  if(JADE.geos||GAB_FOND.fini||(started&&!gameOver)||!CHAUFFE_R.fait||ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go)||(PREB.W&&PREB.dep&&!PREB.fait))return; // (2026-10-24, passe perf) le départ d'avance d'une autre map passe d'abord : MESURÉ (×4, MOYEN), il ne commençait qu'à ~65 s du chargement, après les gabarits
   const t=performance.now(),l0=JF.lim;if(!GAB_FOND.it)GAB_FOND.it=jadeGabaritsG();JF.lim=t+PAL.b('gabFondMs',6);chauffeGrace(); // (la qualité auto ne lit pas une tranche comme une faiblesse)
   let r;try{r=GAB_FOND.it.next();}catch(e){GAB_FOND.it=null;GAB_FOND.fini=true;console.warn('gabarits',e);return;}finally{JF.lim=l0;GAB_FOND.ms+=performance.now()-t;GAB_FOND.n++;}
   if(r.done){GAB_FOND.it=null;GAB_FOND.fini=true;r.value.ms=Math.round(GAB_FOND.ms);JADE.geos=r.value;}}
