@@ -3,7 +3,7 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
-## LE PALIER DE L'IPHONE LU SUR SON ÉCRAN — MESURÉ DANS L'APP, SUR LE VRAI TÉLÉPHONE (2026-10-24, v872, session Optimisation mobile — Sacha : « grosse session d'optimisation du jeu, il faut que la version mobile soit parfaite » · « je veux que tu fasses l'app »)
+## LE PALIER DE L'IPHONE LU SUR SON ÉCRAN — MESURÉ DANS L'APP, SUR LE VRAI TÉLÉPHONE (2026-10-24, v873, session Optimisation mobile — Sacha : « grosse session d'optimisation du jeu, il faut que la version mobile soit parfaite » · « je veux que tu fasses l'app »)
 - **LE BANC DANS L'APP** (`optim-mobile/.banc-optim/`, non suivi) : « CC BANC » (`com.sachaberes.carcash.banc`) = la copie de l'app de `sortie-ios/appstore` (Capacitor 8),
   www/ refait par son `preparer-www.js --essai` sur n'importe quel VERSION PRINCIPALE, installée À CÔTÉ de CASH CAR (la vraie app et la sauvegarde de Sacha ne sont pas touchées).
   `banc-app.js`, posé juste après natif.js : au lancement il demande un scénario au Mac (`chef.mjs`, port 8931, par le partage de connexion), recharge avec ses paramètres

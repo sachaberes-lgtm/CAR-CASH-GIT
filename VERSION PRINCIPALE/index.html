@@ -18147,7 +18147,7 @@ function cyPousTick(dt,c){
    Console : `dbgDunes()` (état) · `dbgDunes('test')` (le sable sous le bitume ?) · `dbgDunes('ech', s0, s1)` (le terrain prescrit) · `dbgDunes('sauts')` · `dbgDunes('vueA', s, h, cap, pente)` (photo figée) · `?carte=dunes&meteo=soir`. */
 const NIV_DUNES={id:'dunes',nm:"LES DUNES D'OR",bio:['dunesSoir'],planete:0,espace:0,pluie:0,cielMusical:false,route:.30,sheen:.12,piste:'dunes',pr:'DE CRETE EN CRETE'};
 const DUNES_OK=CANYON_OK; // les mêmes besoins que le canyon : textures de données en flottants, lecture de textures au sommet
-PAL.B.dnFin=[16,14,12];PAL.B.dnPlat=[96,80,64];PAL.B.dnOmbre=[60,52,44];PAL.B.dnGrille=[16,16,32];PAL.B.dnR0=[85,100,118];PAL.B.dnArbres=[50,90,140];PAL.B.dnPalmes=[22,34,48];PAL.B.dnPart=[600,1100,1600];PAL.B.dnMo=[0,.75,1];PAL.B.dnRuines=[.35,.7,1]; // (2026-10-22) la mosaïque du sable et des pierres (0 = éteinte sur les vieux téléphones) · le nombre de ruines éparses // la finesse par palier [ancien, moyen, récent]
+PAL.B.dnFin=[16,14,12];PAL.B.dnPlat=[96,80,64];PAL.B.dnOmbre=[60,52,44];PAL.B.dnGrille=[16,16,32];PAL.B.dnR0=[85,100,118];PAL.B.dnArbres=[50,90,140];PAL.B.dnPalmes=[22,34,48];PAL.B.dnPart=[600,1100,1600];PAL.B.dnMo=[0,.75,1];PAL.B.dnRuines=[.35,.7,1];PAL.B.dnMat=[0,.5,1];PAL.B.dnTors=[10,18,28];PAL.B.dnTouffes=[30,70,120];PAL.B.dnMorts=[8,18,28]; /* (2026-10-21, embellissement) dnMat = le grain / les crêtes qui filent (0 = éteint sur les vieux téléphones) ; dnTors, dnTouffes, dnMorts : le plan moyen */ // (2026-10-22) la mosaïque du sable et des pierres (0 = éteinte sur les vieux téléphones) · le nombre de ruines éparses // la finesse par palier [ancien, moyen, récent]
 const DN={Q:null,on:false,ms:{},yMin:-1e4,yMax:1e4,mesh:null,mat:null,geo:null,aN:null,maxN:900,G:32,S0:64,R0:118,lods:7,
   F:null,Z:null,O:null,fr:new THREE.Frustum(),pm:new THREE.Matrix4(),box:new THREE.Box3(),n:0,S:null,job:0,attente:null,grp:null,
   ombre:1,ecrit:false,ob:[],pyr:null,pyrs:[],gp:[],fe:[],lev:[],mo:[],deco:null,tor:[],oa:null,rac:[],vent:[1,0,1,0],lam:560,car:[],sep:0,rmin:0}; // (les textes : avec les ambiances des dunes, I18N n'existe pas encore ici)
@@ -18641,7 +18641,7 @@ const DN_VS=['attribute vec4 aN;uniform sampler2D uTC,uTZ,uTS,uNZ;uniform vec4 u
   '  float lit=1.;vec2 sp=(x-uSD.xy)*uSD.zw;if(sp.x>0.&&sp.y>0.&&sp.x<1.&&sp.y<1.){float hs=tB(uTS,sp*uSN,uSN).r;lit=smoothstep(hs-1.2,hs+3.,A.x);}',
   '  vA=vec4(A.y,A.z,pu,lit);vB=vec4(pa,pm,0.,vg);vGp=gp;vF=vec4(aN.xy/aN.z,aN.w,uG);', /* (facettes) gp : la case de la grille (entiers aux sommets) · vF : l'indice de la tuile, son niveau, G */
   '  vec4 mvPosition=viewMatrix*vec4(vW,1.);gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
-const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uSaA,uSaB,uSaL,uShd,uClay,uVeg,uHaze,uSkH,uSkZ,uWS,uWD,uPhP,uPhD,uPhC;uniform vec4 uQ,uK,uW,uMo,uPl,uLm;uniform float uTime,uFlash,uPoly,uLum;',
+const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uSaA,uSaB,uSaL,uShd,uClay,uVeg,uHaze,uSkH,uSkZ,uWS,uWD,uPhP,uPhD,uPhC;uniform vec4 uQ,uK,uW,uMo,uPl,uLm,uEx,uSp;uniform float uTime,uFlash,uPoly,uLum;',
   'varying vec3 vW,vN;varying vec4 vA,vB;varying vec2 vGp;varying vec4 vF;','#include <fog_pars_fragment>',
   'float dh2(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}',
   'void main(){vec3 N=normalize(vN),Vv=uCam-vW;float dist=length(Vv);vec3 V=Vv/max(dist,.001);',
@@ -18678,11 +18678,20 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   '    vec3 rc=mix(uSaB*.74,uSaL*.98,h1*h1)*(.82+.36*h2)*(1.-.22*(1.-smoothstep(0.,.07,fb)));',
   '    float ve=texture2D(uNZ,vec2(dot(vW.xz,vec2(.7071,.7071))/11.,vW.y/70.)).g;rc*=.84+.32*ve;', // les cannelures verticales de l'érosion
   '    col=mix(col,rc,rk);}',
+  /* LE SABLE GRENÉ (2026-10-21, passe d'embellissement ; repris le 24/10 sur le sable à rides) : des STRIES qui filent dans le sens du vent (un bruit étiré 60 pour 1), des FILETS sombres de fer sur les faces d'avalanche,
+     et la RIDE jusqu'à 350 m (en teinte seulement, effacée par fwidth avant de créneler) — tout en un uniform (uEx.y = 0 au palier ANCIEN : aucune lecture de plus) */
+  '  vec2 wd=uW.xy,wq=vec2(-uW.y,uW.x);float wx=dot(vW.xz,wd),wz=dot(vW.xz,wq),gk=uEx.y*(1.-.85*pan)*(1.-veg)*(1.-wat);',
+  '  if(uEx.y>.001){float st=texture2D(uNZ,vec2(wx/1500.,wz/24.)).a-.5,sg=texture2D(uNZ,vec2(wx/420.+.37,wz/8.5)).g-.5,fe=texture2D(uNZ,vec2(wz/13.,wx/460.+.2)).b;',
+  '    float ph2=wx*1.15+3.*n2.r,aa=1.-smoothstep(.5,1.5,fwidth(ph2));',
+  '    col*=1.+gk*(st*.50+sg*.34+aa*cos(ph2)*.075*(1.-smoothstep(150.,350.,dist)));',
+  '    col=mix(col,col*vec3(.60,.46,.50),gk*smoothstep(.56,.74,fe)*smoothstep(.15,.50,stp)*.85);}',
   '  if(uPoly>.5)col*=ftn*vec3(1.+(hs9-.5)*.08,1.,1.-(hs9-.5)*.10);vec3 Ls=normalize(vec3(uSunD.x,min(uSunD.y,uK.w),uSunD.z));float ndl=dot(NL,Ls),wr=clamp((ndl+uK.z)/(1.+uK.z),0.,1.);', // (uK.w : le soleil de midi est abaissé pour le RELIEF — la lumière de forme ; l'ombre, elle, reste celle du vrai soleil)
   '  float ao=mix(.80,1.,smoothstep(0.,.45,du));', // le creux d'une dune reçoit moins de ciel
   '  vec3 Lc=uSunC*wr*lit+mix(uGnd,uSky,NL.y*.5+.5)*1.15*ao+uFillC*max(dot(NL,uFillD),0.)*.5+uSunC*(.10+.16*rk)*(1.-lit)*(.6+.4*NL.y)+uGnd*.28*rk;', /* + le REBOND : le sable à l'ombre reçoit la lumière des dunes au soleil (jamais de creux noir) */
   '  vec3 c=col*Lc;',
-  '  c=mix(c,c*uShd,(1.-lit*clamp(ndl*2.5+.2,0.,1.))*.72);', // l'ombre du sable tire au VIOLET (la bible)
+  '  float shw=1.-lit*clamp(ndl*2.5+.2,0.,1.);c=mix(c,c*uShd,shw*.72);', // l'ombre du sable tire au VIOLET (la bible)
+  /* LES DEUX TEMPÉRATURES : à l'ombre, le sable ne devient plus un rouge sombre mais un violet-bleu de MÊME valeur (la clé chaude, le remplissage froid) */
+  '  {float ly=dot(c,vec3(.3,.55,.15));c=mix(c,ly*uShd/dot(uShd,vec3(.3,.55,.15)),clamp(shw*.55*uEx.x,0.,.9));}',
   '  float fr=pow(1.-max(dot(NL,V),0.),4.);c+=(uSky*.22+uSunC*.16*max(ndl,0.)*lit)*fr*uK.x*(1.-wat);', // le SATIN du sable au rasant
   '  vec3 Hh=normalize(Ls+V);',
   '  if(wat<.5){c+=uSunC*pow(max(dot(NL,Hh),0.),26.)*lit*(.05+.55*rm*abs(rv))*(1.-smoothstep(200.,900.,dist));}', // le LUSTRE des crêtes de rides (sur la ride seulement)
@@ -18697,6 +18706,12 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   '    c+=col*uSunC*vec3(.62,.24,.07)*tm*lit*uLm.z;',
   '    c+=col*uSunC*vec3(.95,.58,.32)*(1.-lit)*(.5+.5*NL.y)*.12*uLm.w;',
   '    c+=uSunC*vec3(1.,.80,.52)*pow(vs,6.)*(1.-exp(-dist/2600.))*uLm.y*.5;}',
+  /* LES ÉTINCELLES D'OR (l'éclat cash) : de rares grains qui s'allument un instant, or ou rose, jusqu'à 2 km — la cellule grandit avec la distance (≈ 3 px à l'écran) */
+  '  if(uSp.w>.001&&wat<.5){float cs=exp2(floor(log2(max(dist,4.)*.0042)*2.)*.5),hq=dh2(floor(vW.xz/cs)+cs),tw=pow(.5+.5*sin(uTime*(2.4+3.*fract(hq*91.))+hq*600.),10.);',
+  '    c+=mix(uSp.rgb,vec3(1.,.42,.74),step(.72,fract(hq*37.)))*step(.986,hq)*tw*lit*(1.-.9*pan)*(1.-smoothstep(500.,2400.,dist))*2.4*uSp.w;}',
+  /* LA CRÊTE VIVE : le grain diffuse la lumière vers l'avant au rasant (un liseré d'or sur les crêtes en contre-jour), et le sable FILE des crêtes dans le vent (bandes qui dérivent, uTime) */
+  '  {float fg=pow(max(dot(-V,uSunD),0.),3.)*fr*lit*(1.-wat);float spd=smoothstep(.62,.94,du)*(1.-smoothstep(.97,1.,du)),sn=texture2D(uNZ,vec2((wx-uTime*11.)/380.,wz/17.)).a;',
+  '   c+=mix(uSunC,uSaL*dot(uSunC,vec3(.33)),.4)*(fg*.55+spd*smoothstep(.50,.80,sn)*.50*lit)*uEx.w*(1.-pan)*(1.-.7*smoothstep(900.,3000.,dist));}',
   '  if(wat>.01){vec4 nw=texture2D(uNZ,mat2(.8,.6,-.6,.8)*vW.xz/57.+uTime*vec2(.006,.010)),nw2=texture2D(uNZ,vW.xz/143.-uTime*vec2(.004,.002));', /* (des bruits LARGES et tournés : à 18 m la tuile du bruit se répétait en grille sur le lac) */
   '    vec3 Nw=normalize(vec3(0.,6.,0.)+vec3(nw.r+nw2.g-1.,0.,nw.g+nw2.r-1.));vec3 wc=mix(uWS,uWD,1.-exp(-dep/4.));',
   '    float f9=.02+.98*pow(1.-max(dot(V,Nw),0.),5.);vec3 R=reflect(-V,Nw),sk=mix(uSkH,uSkZ,smoothstep(0.,.5,R.y));',
@@ -18704,8 +18719,10 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   '  if(uPhC.r+uPhC.g>.001){vec3 lv=vW-uPhP;float dl=length(lv);vec3 ld=lv/max(dl,.01);c+=col*uPhC*smoothstep(.80,.95,dot(ld,uPhD))*max(dot(NL,-ld),0.)/(1.+dl*dl/9000.);}', // les PHARES sur le sable
   /* LE MIRAGE : au loin, le sable presque à plat, vu en rasant, renvoie le ciel — et tremble */
   '  if(uQ.y>.001){float mi=uQ.y*smoothstep(800.,3200.,dist)*(1.-smoothstep(.02,.10,abs(V.y)))*(1.-smoothstep(.06,.25,stp));',
-  '   float sh=texture2D(uNZ,vec2(vW.x/260.+uTime*.04,vW.z/260.-uTime*.03)).r;c=mix(c,mix(uSkH,uSkZ,.25)*(.92+.16*sh),mi*(.55+.45*sh));}',
-  '  c=mix(c,uHaze,uQ.x*smoothstep(150.,4500.,dist)*.65);', // la poussière en suspension
+  '   float sh=texture2D(uNZ,vec2(vW.x/260.+uTime*.04,vW.z/260.-uTime*.03)).r;c=mix(c,mix(mix(uSkH,uSkZ,.25),uWS*1.3+.06,.42*uEx.z)*(.92+.16*sh),mi*(.55+.45*sh));}',
+  /* LA BRUME EN PLANS : la poussière du proche reste chaude, celle du lointain vire au froid du ciel (le plan lointain est plus clair et plus froid) et s'épaissit dans les creux */
+  '  {float far=smoothstep(1500.,6500.,dist)*uEx.z,low=smoothstep(40.,-150.,vW.y-uCam.y)*smoothstep(500.,2600.,dist);vec3 hc=mix(uHaze,uHaze*.45+mix(uSkH,uSkZ,.45)*.75,far);',
+  '   c=mix(c,hc,clamp(uQ.x*smoothstep(150.,4500.,dist)*.65*(1.+.6*low*uEx.z),0.,1.));}', // la poussière en suspension
   '  c=mix(c,uHaze,uQ.z*smoothstep(8.,500.,dist)*.5);', // (le vent de sable et la tempête : la poussière est DANS l'air tout près — le sable proche n'est plus net)
   '  c+=uFlash*col*vec3(.75,.78,1.)*(.35+.65*max(NL.y,0.));',
   '  gl_FragColor=vec4(c,1.);','#include <fog_fragment>','}'].join('\n');
@@ -18744,7 +18761,7 @@ function dnTerrain(){ if(DN.mesh)return;
   const C3=()=>({value:new THREE.Color()});
   const U=Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),{uTC:{value:z1},uTZ:{value:z1},uTS:{value:z1},uNZ:{value:CY.tNz},uGl:{value:dnGlyphes()},
     uFD:{value:new THREE.Vector4(0,0,1,1)},uZD:{value:new THREE.Vector4(0,0,1,1)},uSD:{value:new THREE.Vector4(0,0,1,1)},uFN:{value:new THREE.Vector2(1,1)},uZN:{value:new THREE.Vector2(1,1)},uSN:{value:new THREE.Vector2(1,1)},
-    uOA:{value:new THREE.Vector4(0,0,0,0)},uW:{value:new THREE.Vector4(1,0,1,0)},uLam:{value:560},
+    uOA:{value:new THREE.Vector4(0,0,0,0)},uW:{value:new THREE.Vector4(1,0,1,0)},uLam:{value:560},uEx:{value:new THREE.Vector4(1,1,.8,1)},uSp:{value:new THREE.Vector4(1,.8,.45,1)},
     uCam:{value:new THREE.Vector3()},uG:{value:G},uR0:{value:DN.R0},uTime:{value:0},uFlash:{value:0},uSunD:{value:SUN_DIR},
     uSunC:C3(),uSky:C3(),uGnd:C3(),uFillC:C3(),uFillD:{value:new THREE.Vector3(0,-1,0)},uSaA:C3(),uSaB:C3(),uSaL:C3(),uShd:C3(),uClay:C3(),uVeg:C3(),uHaze:C3(),uSkH:C3(),uSkZ:C3(),uWS:C3(),uWD:C3(),
     uQ:{value:new THREE.Vector4()},uPoly:{value:DN_POLY?1:0},uLum:{value:DN_POLY&&DN_LUM?1:0},uPl:{value:new THREE.Vector4(.03,0,0,0)},uLm:{value:new THREE.Vector4(.5,.25,.30,.06)},uFin:{value:new THREE.Vector4(0,0,0,0)},uK:{value:new THREE.Vector4(.5,1,.25,1)},uMo:{value:new THREE.Vector4(.8,.010,1,0)},uPhP:{value:new THREE.Vector3()},uPhD:{value:new THREE.Vector3(0,0,1)},uPhC:{value:new THREE.Color(0,0,0)}});
@@ -18796,7 +18813,7 @@ function dunesTick(dt){dnAmb();dnNuages();
     const f=(u,k9)=>{const a=c[k9];if(a)u.value.fromArray(a);};
     f(U.uSaA,'dnA');f(U.uSaB,'dnB');f(U.uSaL,'dnL');f(U.uShd,'dnS');f(U.uClay,'dnC');f(U.uVeg,'dnV');f(U.uHaze,'dnH');f(U.uWS,'dnW');f(U.uWD,'dnX');f(U.uSkH,'cyH');f(U.uSkZ,'cyZ');
     const D9=DN.deco,T9=D9&&DN_SAB[D9.sable];if(T9){dnTeinte(U.uSaA.value,T9);dnTeinte(U.uSaB.value,T9);dnTeinte(U.uSaL.value,T9);} // (2026-10-20) LA COULEUR DU SABLE tirée (relue chaque image : rien ne s'accumule)
-    const Q9=c.dnQ||[0,0,0,0],K9=c.dnK||[.5,1,.25,1];U.uQ.value.set(Q9[0],Q9[1],Q9[2],Q9[3]);U.uK.value.set(K9[0],K9[1]*(D9?D9.vent.rides:1),K9[2],K9[3]);{const M9=c.dnM||[.8,.010,1,0];U.uMo.value.set(M9[0],M9[1],QUAL_LOW||!DN_MOSA?0:M9[2]*PAL.b('dnMo',1),M9[3]);} /* (2026-10-22, Léo : « le niveau dune n'est pas au niveau — regarde jade, la grotte, la forêt ») LA MOSAÏQUE du sable : [case de près (m), case par mètre de distance, force, —] */
+    const Q9=c.dnQ||[0,0,0,0],K9=c.dnK||[.5,1,.25,1];U.uQ.value.set(Q9[0],Q9[1],Q9[2],Q9[3]);U.uK.value.set(K9[0],K9[1]*(D9?D9.vent.rides:1),K9[2],K9[3]);{const R9=DN.reg||{},E9=R9.ex||c.dnE||[1,1,.8,1],P9=R9.sp||c.dnP||[1,.8,.45,1],pm=PAL.b('dnMat',1);U.uEx.value.set(E9[0],E9[1]*pm,E9[2],E9[3]*pm);U.uSp.value.set(P9[0],P9[1],P9[2],P9[3]*pm);} /* (2026-10-21) le grain, les crêtes qui filent, les étincelles, la brume en plans : dnE = [ombre froide, grain, brume lointaine froide, crêtes vives] et dnP = [teinte, quantité] des étincelles ; réduits aux paliers ANCIEN / MOYEN */ {const M9=c.dnM||[.8,.010,1,0];U.uMo.value.set(M9[0],M9[1],QUAL_LOW||!DN_MOSA?0:M9[2]*PAL.b('dnMo',1),M9[3]);} /* (2026-10-22, Léo : « le niveau dune n'est pas au niveau — regarde jade, la grotte, la forêt ») LA MOSAÏQUE du sable : [case de près (m), case par mètre de distance, force, —] */
     U.uFlash.value=CAMP_FLASH||0;skyU.uCyF.value=U.uFlash.value;
     {const nu=(LVL.nuit||0)*(mode==='boom'?0:1),sh=c.sunI<.9?1-c.sunI/.9:0,k9=Math.max(nu,sh*.6)*2.4;U.uPhC.value.copy(headSpot.color).multiplyScalar(k9); // les phares, la nuit et dans la tempête
      if(k9>.001){U.uPhP.value.copy(carGroup.position);U.uPhP.value.y+=1.2;U.uPhD.value.set(0,0,1).applyQuaternion(carGroup.quaternion);U.uPhD.value.y-=.08;U.uPhD.value.normalize();}}}
@@ -18999,6 +19016,7 @@ function dnMonuments(seed){
      const x=S.x[i]-S.tz[i]*sg*lat,z=S.z[i]+S.tx[i]*sg*lat,dir=Math.atan2(S.tx[i],S.tz[i])+(rg()<.5?0:Math.PI)+(rg()-.5)*.6;
      DN.car.push({x:x,z:z,a:dir,t:rg()*60,n:7});for(let k=0;k<7;k++)L9.push([x,0,z,3.4,dir]);}
    if(L9.length){DN.carIm=inst(G9.cha,M9.t,L9,'caravanes');if(DN.carIm){DN.carIm.instanceMatrix.setUsage(THREE.DynamicDrawUsage);DN.carT=0;dnCaravane(0,true);}}}
+  try{dnEmbellir();}catch(e){console.warn('dunes : plan moyen',e);} /* (2026-10-21) les buttes, les arbres morts, les touffes : voir dunes-embellie.js */
   DN.grp.updateMatrixWorld(true);}
 /* (2026-10-20, LE DÉSERT AU HASARD) LE DÉCOR TIRÉ (DN.deco) : les obélisques (les brisés sans pyramidion, leur tronçon couché à côté), les pyramides de chaque
    style, les grands monuments (dnPrevoirDeco les a posés : ils ombrent et tuent), puis — à la pose, ici, sur le sable relu — le village, les campements,
@@ -19183,6 +19201,7 @@ window.dbgDunes=function(k,a,b,c,d){
   if(k==='shader'){const m=a==='sable'?DN.mat:(DN.mm&&DN.mm[a]);if(!m)return 'pas de matière';const f0=m.fragmentShader;m.fragmentShader=f0.split(b).join(c);m.needsUpdate=true;return {change:f0!==m.fragmentShader};} /* (banc) retouche la matière à chaud : a = sable | t | g, b = le texte à remplacer, c = son remplaçant */
   if(k==='poly'){const U=DN.mat&&DN.mat.uniforms;if(!U)return 'pas de matière';const o=a||{};if(o.tint!=null)U.uPl.value.x=o.tint;if(o.joint!=null)U.uPl.value.y=o.joint;if(o.glint!=null)U.uPl.value.z=o.glint;if(o.flat!=null)U.uPl.value.w=o.flat;if(o.rim!=null)U.uLm.value.x=o.rim;if(o.scat!=null)U.uLm.value.y=o.scat;if(o.term!=null)U.uLm.value.z=o.term;if(o.reb!=null)U.uLm.value.w=o.reb;return {pl:U.uPl.value.toArray(),lm:U.uLm.value.toArray(),poly:U.uPoly.value,lum:U.uLum.value};}
   if(k==='uni'){const U=DN.mat&&DN.mat.uniforms;if(!U)return 'pas de matière';return {mo:U.uMo.value.toArray(),k:U.uK.value.toArray(),q:U.uQ.value.toArray(),fs:DN.mat.fragmentShader.length,mosaique:DN.mat.fragmentShader.indexOf('uMo')>=0,decor:DN.mm?{t:DN.mm.t.fragmentShader.indexOf('blk(')>=0,g:DN.mm.g.fragmentShader.indexOf('blk(')>=0}:null};} /* (banc) les réglages de la matière du sable */
+  if(k==='regle'){DN.reg=a||null;return DN.reg;} /* (banc, 2026-10-21) {ex:[…],sp:[…]} : règle les uniformes de l'embellissement sans recharger ; null = les valeurs de l'ambiance */
   if(k==='reprendre'){if(paused)togglePause();return 'ok';}
   if(k==='cam'){if(!DN.on)return 'pas de dunes';if(started&&!gameOver&&!paused)togglePause();const P=a||[0,0,0],T=b||[0,0,1]; /* (banc) la caméra où l'on veut : a = [x,y,z] de l'œil, b = [x,y,z] de la cible, c = le champ (degrés) */
     camera.position.set(P[0],P[1],P[2]);camera.up.set(0,1,0);camera.lookAt(T[0],T[1],T[2]);if(c){camera.fov=c;camera.updateProjectionMatrix();}camera.updateMatrixWorld();
@@ -19197,7 +19216,7 @@ window.dbgDunes=function(k,a,b,c,d){
     camera.position.set(F9.p.x,F9.p.y+(b||12),F9.p.z);camera.up.set(0,1,0);camera.lookAt(F9.p.x+dx*200,F9.p.y+(b||12)-200*(d!=null?d:.12),F9.p.z+dz*200);camera.updateMatrixWorld();
     skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return {cam:camera.position.toArray().map(Math.round),noeuds:DN.n};}
   return {on:DN.on,ms:DN.ms,noeuds:DN.n,sep:DN.sep,rmin:DN.rmin,F:DN.F?[DN.F.nx,DN.F.nz,DN.F.ts]:null,Z:DN.Z?[DN.Z.nx,DN.Z.nz,DN.Z.ts]:null,O:DN.O?[DN.O.nx,DN.O.nz,DN.O.ts]:null,
-    ciel:CIEL2.mode,attente:!!DN.attente,sQ:DN.sQ,L:Math.round(L),obelisques:DN.ob.length,pyramide:!!DN.pyr,acacias:DN.nArb|0,palmiers:DN.nPal|0,caravanes:DN.car.length,oasis:DN.oa?{r:Math.round(DN.oa.r),y:Math.round(DN.oa.y)}:null,
+    ciel:CIEL2.mode,attente:!!DN.attente,sQ:DN.sQ,L:Math.round(L),obelisques:DN.ob.length,pyramide:!!DN.pyr,acacias:DN.nArb|0,palmiers:DN.nPal|0,emb:DN.emb||null,caravanes:DN.car.length,oasis:DN.oa?{r:Math.round(DN.oa.r),y:Math.round(DN.oa.y)}:null,
     sol:[DN.sunAz,DN.sunEl,DN.fin&&DN.fin.x,DN.fin&&DN.fin.z,DN.pyrs&&DN.pyrs[2]&&[DN.pyrs[2].x,DN.pyrs[2].y,DN.pyrs[2].z,DN.pyrs[2].hw,DN.pyrs[2].h]],hz:DN.hz||null,deco:DN.deco?Object.assign({},DN.deco,{pose:DN.decoN,pyramides:DN.pyrs.map(function(p){return p.st+':'+Math.round(p.hw*2)+'m';}),monuments:DN.mo.map(function(m){return m.k;})}):null,levres:(DN.lev||[]).length,scenes:DN.scn||null,heurt:DN.heurt||'',sauts:DN.sauts|0,levre:DN.dbgLev||null,vent:DN.vent.map(v=>+v.toFixed(2)),lam:Math.round(DN.lam),soleil:SUN_DIR.toArray().map(v=>+v.toFixed(3)),ombre:+DN.ombre.toFixed(2),dunes:+(LVL.dunes||0).toFixed(2),canyon:+(LVL.canyon||0).toFixed(2),
     tri:DN.tri|0,lmin:DN.lmin|0,carHaut:DN.on?+(carGroup.position.y-dnHauteur(carGroup.position.x,carGroup.position.z)).toFixed(1):null};};
 /* ===== LES DÉCORS DES DUNES, REFAITS (2026-10-22, Léo : « le niveau dune n'est pas au niveau — observe jade, la grotte et la forêt pour voir le niveau que j'attends ») =====
@@ -19715,6 +19734,57 @@ function dnScenes(X){
       else if(r<.62){const sc=(4+rg()*5)*K*.8;cuis(M(dnTeteNom(p)),p.x,g-sc*.42,p.z,sc,sc,sc,Math.atan2(S.x[p.i]-p.x,S.z[p.i]-p.z)+(rg()-.5)*.8,(rg()-.5)*.5,(rg()-.4)*.4);}
       else{const sc=(2+rg()*4)*K*.8;cuis(M('bloc'),p.x,g-.4,p.z,sc*(1+rg()),sc*(.6+rg()*.6),sc*(1+rg()),rg()*6.28,(rg()-.5)*.4,(rg()-.5)*.4,[.88,.76,.58]);}nr++;}}N.ruines=nr;}
 /* <<<FIN DUNES>>> */
+/* ===== LES DUNES D'OR, LE PLAN MOYEN (2026-10-21, Sacha : « amélioration visuelle des maps — ajouter des éléments, chaque map un peu plus belle ») =====
+   Ce que la mer de dunes n'avait pas : un étage MOYEN. Entre les obélisques de la route et la ligne d'horizon, rien ne dépassait du sable — donc aucune échelle, aucune profondeur.
+   · LES BUTTES (inselbergs de grès, façon Wadi Rum) : 7 à 28 massifs sombres aux strates rose-brun, de 14 à 70 m, à 250 m-2 km de la route — des silhouettes que la brume teinte
+     (l'étage lointain, plus clair et plus froid) ; une seule géométrie, étirée en tour ou en mesa par l'échelle de l'instance.
+   · LES ARBRES MORTS ÉPARS (l'acacia de la vallée, ailleurs aussi) : 8 à 28 troncs blanchis à 26-350 m de la route, là où le sable est assez haut pour qu'on les voie défiler.
+   · LES TOUFFES D'HERBE SÈCHE (le premier plan qui défile) : 30 à 120 touffes d'or sec, de 1,6 à 3,4 m, près des bords.
+   Même matière, mêmes ombres, mêmes programmes que les décors d'avant (DN_MVS / DN_AFS : aucun programme de plus), 3 appels de dessin, ≤ 5 000 triangles. Tout naît dans le temps de construction
+   (dnMonuments), dans un générateur LOCAL (`mulberry32` du tracé lui-même : aucun tirage dans le hasard de la piste, ni dans celui des décors d'avant) ; rien n'est posé près d'une dalle ni dans le couloir. */
+function dnGeos2(){if(DN.geos2)return DN.geos2;const G9={};
+  {const g=dnGeo(),n=8,hh=(a,b)=>{const v=Math.sin(a*12.9898+b*78.233)*43758.5453;return v-Math.floor(v);}, /* l'irrégularité des facettes : un hasard FIXE (pas de tirage) */
+     R=[[0,1.06],[.30,.90],[.32,.99],[.55,.86],[.57,.94],[.80,.80],[1,.68]],  /* [hauteur, rayon] des anneaux : des strates qui avancent et reculent (des corniches) */
+     C=[[.46,.22,.20],[.54,.27,.21],[.62,.31,.23],[.70,.37,.26],[.78,.45,.30],[.86,.58,.36]]; /* terre cuite sombre au pied → grès chaud et clair au sommet (l'or du couchant y accroche) */
+    const P=(k,j)=>{const a=k/n*6.2832+.4*(j%2),r=R[j][1]*(.90+.20*hh(k,j));return [Math.cos(a)*r,R[j][0]*(.97+.06*hh(k+7,j)),Math.sin(a)*r];};
+    for(let j=0;j<R.length-1;j++)for(let k=0;k<n;k++)g.quad(P(k,j),P(k,j+1),P(k+1,j+1),P(k+1,j),C[j]);
+    for(let k=0;k<n;k++)g.tri(P(k,R.length-1),[0,1.02,0],P(k+1,R.length-1),[.90,.70,.44]);G9.butte=g.fin();}              /* LA BUTTE (h = 1, rayon = 1) */
+  {const g=dnGeo(),bas=[.42,.34,.15],haut=[.84,.70,.30];                                                                  /* LA TOUFFE D'HERBE SÈCHE (h = 1) : neuf lames qui retombent, or sec en pointe */
+    for(let k=0;k<9;k++){const a=k/9*6.2832+.2,ca=Math.cos(a),sa=Math.sin(a),px=-sa*.05,pz=ca*.05,f=((k*37)%11)/11,h=.62+.38*f,ex=.30+.18*f;
+      const b0=[ca*.05-px,0,sa*.05-pz],b1=[ca*.05+px,0,sa*.05+pz],m1=[ca*(.12+ex*.3)+px*.7,h*.55,sa*(.12+ex*.3)+pz*.7],m0=[ca*(.12+ex*.3)-px*.7,h*.55,sa*(.12+ex*.3)-pz*.7],t=[ca*ex,h,sa*ex];
+      g.quad(b0,b1,m1,m0,bas);g.tri(m0,m1,t,haut);}
+    G9.touffe=g.fin();}
+  DN.geos2=G9;return G9;}
+function dnEmbellir(){
+  const S=DN.S;if(!S||!DN.grp||!DN.Z)return;
+  const M9=dnMats(),G=dnGeos2(),G0=dnGeos(),K=Math.sqrt(lvPiste()),L9=(S.n-1)*S.ds,RH=ROAD_HALF,o9={},o1={},o2={},
+    mt=new THREE.Matrix4(),q9=new THREE.Quaternion(),ax=new THREE.Vector3(0,1,0),v9=new THREE.Vector3(),s9=new THREE.Vector3();
+  let h9=0x9E3779B1;for(const i of [S.n>>2,S.n>>1,(S.n*3)>>2]){h9=Math.imul(h9^Math.round(S.x[i]*8),0x85EBCA6B);h9=Math.imul(h9^Math.round(S.z[i]*8),0xC2B2AE35);}
+  const r=mulberry32((h9>>>0)^0x3E5B1A); /* le hasard de l'embellissement : né du TRACÉ (trois points de la route), jamais du hasard de la piste */
+  const inst=(geo,L,nom)=>{if(!L.length)return null;const im=new THREE.InstancedMesh(geo,M9.t,L.length);
+    L.forEach(function(a,k){q9.setFromAxisAngle(ax,a[4]);mt.compose(v9.set(a[0],a[1],a[2]),q9,s9.set(a[3],a[5]!=null?a[5]:a[3],a[6]!=null?a[6]:a[3]));im.setMatrixAt(k,mt);});
+    im.instanceMatrix.needsUpdate=true;im.matrixAutoUpdate=false;im.updateMatrix();im.frustumCulled=false;im.name='dunes '+nom;DN.grp.add(im);return im;};
+  const dmin=(x,z)=>{let b=1e18;for(let i=0;i<S.n;i+=2){const dx=S.x[i]-x,dz=S.z[i]-z,d=dx*dx+dz*dz;if(d<b)b=d;}return Math.sqrt(b);}; /* la distance à la route la plus proche (toutes les dalles, à toute hauteur) */
+  const pente=(x,z,h)=>Math.hypot(dnHauteur(x+3,z,o1)-h,dnHauteur(x,z+3,o2)-h)/3;
+  const oa=DN.oa;
+  /* les BUTTES : loin, grandes, sombres */
+  const Lb=[],Nb=PAL.b('dnTors',28);
+  for(let k=0;k<Nb*14&&Lb.length<Nb;k++){const i=Math.min(S.n-1,Math.round(r()*L9/S.ds)),sg=r()<.5?-1:1,lat=RH+(250+r()*r()*1750)*K,tour=r()<.35,
+      rr=(tour?9+r()*13:34+r()*86)*Math.sqrt(K),hh=tour?26+r()*44:14+r()*26,a=r()*6.28,x=S.x[i]-S.tz[i]*sg*lat,z=S.z[i]+S.tx[i]*sg*lat;
+    if(dmin(x,z)<RH+rr+170)continue;if(oa&&Math.hypot(x-oa.x,z-oa.z)<oa.r*2.6+rr)continue;if(DN.pyr&&Math.hypot(x-DN.pyr.x,z-DN.pyr.z)<DN.pyr.hw*2.2+rr)continue;
+    const h=dnHauteur(x,z,o9);if(o9.eau)continue;Lb.push([x,h-hh*.12,z,rr,a,hh,rr]);}
+  /* les ARBRES MORTS épars (la géométrie de l'acacia de la vallée) */
+  const Lm=[],Nm=PAL.b('dnMorts',28);
+  for(let k=0;k<Nm*16&&Lm.length<Nm;k++){const i=Math.min(S.n-1,Math.round(r()*L9/S.ds)),sg=r()<.5?-1:1,lat=RH+(26+r()*r()*330)*K,ht=(7+r()*8)*(1+.3*r()),a=r()*6.28,
+      x=S.x[i]-S.tz[i]*sg*lat,z=S.z[i]+S.tx[i]*sg*lat,h=dnHauteur(x,z,o9);
+    if(o9.eau||h<S.y[i]-THICK-110||pente(x,z,h)>.5||dnPresRoute(x,z,RH+12,h+ht+3))continue;Lm.push([x,h-.4,z,ht,a]);}
+  /* les TOUFFES d'herbe sèche : près des bords, là où le sable se voit */
+  const Lt=[],Nt=PAL.b('dnTouffes',120);
+  for(let k=0;k<Nt*14&&Lt.length<Nt;k++){const i=Math.min(S.n-1,Math.round(r()*L9/S.ds)),sg=r()<.5?-1:1,lat=RH+(14+r()*r()*120)*K,sz=(1.6+r()*1.8)*(1+.25*r()),a=r()*6.28,
+      x=S.x[i]-S.tz[i]*sg*lat,z=S.z[i]+S.tx[i]*sg*lat,h=dnHauteur(x,z,o9);
+    if(o9.eau||h<S.y[i]-THICK-70||pente(x,z,h)>.42||dnPresRoute(x,z,RH+8,h+sz+3))continue;Lt.push([x,h-.1,z,sz,a]);}
+  inst(G.butte,Lb,'buttes');inst(G0.arb,Lm,'arbres morts');inst(G.touffe,Lt,'touffes');
+  DN.emb={buttes:Lb.length,morts:Lm.length,touffes:Lt.length};}
 /* <<<BANQUISE>>> */
 /* ======================= LA BANQUISE — LA DESCENTE DES PICS DE GLACE (2026-10-14, Sacha : « fais une nouvelle map en mode banquise, mais
    genre la route dévale une montagne au-dessus du sol, avec d'immenses pics de glace partout ; on peut faire des traces dans la poudreuse
@@ -20097,11 +20167,11 @@ const BK_SOL_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN;varying vec2 vS;','#include
   '  col+=alb*uSky*(1.-dif)*vec3(.20,.42,.75)*.55*(1.-roc);',                                                // l'OMBRE BLEUE de la neige (le ciel qu'elle diffuse)
   '  col+=alb*uSunC*pow(1.-max(dot(Np,V),0.),4.)*.10*dif;',                                                  // le lustre rasant
   // les ÉTINCELLES : chaque cristal a sa facette (une normale au hasard) ; il s'allume quand le soleil s'y reflète vers l'œil — elles naissent et meurent quand la caméra bouge
-  '  float sp=0.;if(f2>0.){vec2 g=q*2.2;vec2 c=floor(g);float h=fh2(c);vec3 nj=normalize(vec3(fh2(c+3.1)-.5,.9,fh2(c+7.7)-.5));',
-  '    sp=step(.80,h)*pow(max(dot(reflect(-L,nj),V),0.),70.)*smoothstep(.36,.06,length(fract(g)-.5))*f2;}',
+  '  float sp=0.,spk=0.;if(f2>0.){vec2 g=q*2.2;vec2 c=floor(g);float h=fh2(c);vec3 nj=normalize(vec3(fh2(c+3.1)-.5,.9,fh2(c+7.7)-.5));',
+  '    float s1=step(.80,h)*pow(max(dot(reflect(-L,nj),V),0.),70.)*smoothstep(.36,.06,length(fract(g)-.5))*f2*(.62+.38*sin(uTime*(1.4+h*3.)+h*70.));sp=s1;spk=s1*step(fract(h*53.7),.20);}',
   '  {vec2 g=q*.42;vec2 c=floor(g);float h=fh2(c+5.);vec3 nj=normalize(vec3(fh2(c+1.3)-.5,.8,fh2(c+9.2)-.5));',
-  '   sp+=step(.86,h)*pow(max(dot(reflect(-L,nj),V),0.),60.)*smoothstep(.30,.04,length(fract(g)-.5))*smoothstep(60.,140.,dist)*(1.-smoothstep(300.,650.,dist))*.8;}',
-  '  sp*=(1.-roc)*uSpark;col+=(uSunC*2.2+vec3(.4,.6,1.)*.3)*sp*2.6+uAurC*sp*uAur*1.2;',
+  '   float s2=step(.86,h)*pow(max(dot(reflect(-L,nj),V),0.),60.)*smoothstep(.30,.04,length(fract(g)-.5))*smoothstep(60.,140.,dist)*(1.-smoothstep(300.,650.,dist))*.8;sp+=s2;spk+=s2*step(fract(h*61.3),.20);}',
+  '  sp*=(1.-roc)*uSpark;spk*=(1.-roc)*uSpark;col+=(uSunC*2.2+vec3(.4,.6,1.)*.3)*(sp-spk)*2.6+mix(vec3(1.,.55,.06),vec3(1.,.10,.46),step(.5,fh2(floor(q*1.1)+11.)))*spk*2.2+uAurC*sp*uAur*1.2;', /* (2026-10-21, LE GLACIER EMBELLI) un éclat sur cinq est OR ou ROSE (le clin d'œil CASH) et tous scintillent avec uTime */
   '  col+=alb*uAlpC*uAlp*dif*.40*smoothstep(-40.,120.,vW.y-uMistY);',                                         // l'alpenglow sur les pentes hautes
   '  col+=alb*mix(uAurC,uAurC2,.3)*uAur*.12*(.4+.6*Np.y);',                                                    // le vert des aurores sur la neige
   '  col+=vec3(.10,.55,.80)*cv*(uSky*.35+uSunC*.12)*(.6+.4*fn2(q*.4));',  // le fond de la crevasse : la glace bleue qui luit
@@ -20131,6 +20201,7 @@ const BK_PIC_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN,vB;varying vec4 vP;','#ifnd
   '  float tr=pow(max(dot(-V,L),0.),3.)*(.6+.4*(1.-th))+.22;',                                                                // la lumière qui TRAVERSE
   '  vec3 col=alb*(uSky*.42+uGnd*.10+uSunC*(.10+.95*dif))+mid*uSunC*tr*(.20+.60*hf)*vec3(.55,.92,1.)+clair*uSunC*hf*hf*.10;',
   '  col+=clair*(fr*.70+bu*.9)*(uSunC*.55+uSky*.45);',
+  '  col=mix(col,col*vec3(.80,.88,1.16),(1.-dif)*.30*(1.-hf*.5));col+=vec3(1.,.78,.46)*uSunC*pow(dif,2.5)*(.04+.11*hf)*(.6+.4*fv);', /* (2026-10-21, LE GLACIER EMBELLI) deux températures : l'ombre des facettes bascule au bleu-violet, la clé chaude se pose sur les pointes éclairées */
   '  col=mix(col,bCiel(R),fres*.55);',
   '  float sr=max(dot(R,L),0.);col+=uSunC*(pow(sr,110.)*2.8+pow(sr,14.)*.16);',                                              // l'ÉCLAT de la facette
   '  float e=min(min(vB.x,vB.y),vB.z),w9=fwidth(e)*1.4;float ar=1.-smoothstep(0.,w9+.010,e);',                                 // les ARÊTES
@@ -20163,7 +20234,8 @@ const BK_VG_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN;varying vec4 vV;','#include 
   '  col=mix(col,bCiel(R)*.95,fres*.9);',
   '  float sr=max(dot(R,uSunDir),0.);col+=uSunC*(pow(sr,500.)*6.+pow(sr,35.)*.35);',                               // le chemin du soleil
   '  float gv=smoothstep(e-.32,e-.02,u)*(.45+.55*fn2(q*1.9));col=mix(col,vec3(.88,.94,1.)*(uSky*.6+uSunC*.85),gv*.75);', // le givre des bords (v4 : la frange qui se fond dans la neige)
-  '  {vec2 g=q*2.6;vec2 c=floor(g);float h=fh2(c);col+=(uSunC*1.6+uSky*.4)*step(.93,h)*smoothstep(.30,.05,length(fract(g)-.5))*(1.-smoothstep(25.,90.,dist))*uSpark;}', // les paillettes
+  '  {vec2 g=q*2.6;vec2 c=floor(g);float h=fh2(c);float pk=step(.93,h)*smoothstep(.30,.05,length(fract(g)-.5))*(1.-smoothstep(25.,90.,dist))*uSpark*(.72+.28*sin(uTime*(1.2+h*5.)+h*90.));',
+  '   col+=mix(uSunC*1.6+uSky*.4,mix(vec3(1.,.55,.06),vec3(1.,.10,.46),step(.5,fh2(c+9.1)))*2.0,step(fh2(c+4.3),.18))*pk;}', /* (2026-10-21, LE GLACIER EMBELLI) les paillettes de la glace scintillent (uTime) ; une sur cinq environ est OR ou ROSE : le clin d'œil CASH, aspect seulement */
   '  vec3 hd=normalize(uCarP+vec3(0.,1.,0.)-vW);col+=vec3(.9,.95,1.)*uPhare*pow(max(dot(R,hd),0.),60.)*2.5*(1.-smoothstep(10.,140.,distance(uCarP,vW)));',
   '  col+=bPhare(vW,N)*.3+uFlash*vec3(.8,.85,1.)*.5;',
   '  col=mix(col,uMistC,bBrume(vW,dist));gl_FragColor=vec4(col,al*.9);','  gl_FragColor.a=1.;','#include <fog_fragment>','}'].join('\n');
@@ -20808,9 +20880,9 @@ function banqFx(){const fx=BANQ.fx;if(fx.flo)return fx;const M=banqMats(),R=mulb
   fx.eclat=makePool(PAL_BK('banqEclat',700),.8,0x8fe4ff,1,true,{a:[.02,.35,1,.35],pr:[1.2,3.5,30,90],etire:true,str:.05,v:.6}); /* cyan glacier : blanc sur la glace blanche, on ne les voyait pas — (2026-10-15 soir) ce commentaire en // avalait la suite (drag, acc, nom) : rendu */fx.eclat.drag=1.4;fx.eclat.acc=14;fx.eclat.mesh.name='banquise eclats';
   fx.brume=makePool(PAL_BK('banqBrume',220),3.4,0xe2f2ff,.5,true,{a:[.10,.75,.45,1.7],pr:[2.5,7,120,0]}); /* (plafond 120 px : à 46, le voile n'était qu'un point blanc sur la glace blanche) — (2026-10-18, DEBUGGING : ce commentaire en // avalait la suite : le voile de givre filait avec la caisse, sans frein) */fx.brume.drag=2.4;fx.brume.mesh.name='banquise brume';
   fx.eclat.mesh.renderOrder=fx.brume.mesh.renderOrder=9; // ⚠ APRÈS la plaque de verglas (renderOrder 1, transparente) et les traces (2) : dessinées avant, elles étaient repeintes par la glace — invisibles au banc
-  bkTraceMesh();
+  bkTraceMesh();bkCretes(fx); /* (2026-10-21, LE GLACIER EMBELLI) les crêtes lointaines et leurs panaches : voir glacier-embelli.js */
   return fx;}
-function banqFxCache(){if(BKV.t>0)bkSkateRaz();BKV.sur=false;BKV.yaw=0;BKV.gl=0;BKV.gk=0;const fx=BANQ.fx;if(!fx.flo||!fx.on)return;fx.on=false;fx.flo.visible=fx.dd.visible=fx.aur.visible=false;if(BK_TR.mesh)BK_TR.mesh.visible=false;
+function banqFxCache(){if(BKV.t>0)bkSkateRaz();BKV.sur=false;BKV.yaw=0;BKV.gl=0;BKV.gk=0;const fx=BANQ.fx;if(!fx.flo||!fx.on)return;fx.on=false;fx.flo.visible=fx.dd.visible=fx.aur.visible=false;bkCretesCache(fx);if(BK_TR.mesh)BK_TR.mesh.visible=false;
   try{updatePool(fx.poudre,10,0);updatePool(fx.givre,10,0);updatePool(fx.eclat,10,0);updatePool(fx.brume,10,0);}catch(e){}
   for(const k in BANQ.boucles)if(BANQ.boucles[k]&&BANQ.boucles[k].stop){try{BANQ.boucles[k].stop(.5);}catch(e){}BANQ.boucles[k]=null;}
   BANQ.sur=0;BANQ.glisse=false;BANQ.pou=false;}
@@ -20847,6 +20919,7 @@ function banqTick(dt){
   {camera.getWorldDirection(BK_V);U.uBoxC.value.copy(camera.position).addScaledVector(BK_V,22);}
   fx.flo.visible=c.neige>.01;fx.dd.visible=U.uDD.value>.01&&c.neige<.2;
   fx.aur.visible=c.aur>.01;if(fx.aur.visible){fx.aur.position.copy(camera.position);fx.aur.rotation.y=BANQ.axe||0; /* (2026-10-19) les aurores tournent avec la montagne (LE GLACIER AU HASARD) */fx.aur.updateMatrix();fx.aur.updateMatrixWorld(true);}
+  bkCretesTick(fx);
   if(BK_TR.mesh)BK_TR.mesh.visible=true;
   if(BANQ.solM){const ff=(scene.fog&&scene.fog.far)||6000,cp=camera.position;for(const m of BANQ.solM){const b=m.geometry.boundingSphere,v=cp.distanceTo(b.center)-b.radius<ff+60;if(m.visible!==v)m.visible=v;}}
   if(BANQ.picM){const ff=(scene.fog&&scene.fog.far)||6000,cp=camera.position;for(const m of BANQ.picM){const b=m.geometry.boundingSphere,v=cp.distanceTo(b.center)-b.radius<ff+60;if(m.visible!==v)m.visible=v;}}
@@ -20909,7 +20982,7 @@ function banqChauffe(){
     for(const k in at)g.setAttribute(k,new THREE.Float32BufferAttribute(new Float32Array(3*at[k]),at[k]));return g;};
   L9.push(new THREE.Mesh(tri({aS:2}),M.sol),new THREE.Mesh(tri({aB:3,aP:4}),M.pic),new THREE.Mesh(tri({aB:3,aP:4}),M.loin),new THREE.Mesh(tri({aT:4}),M.tr),new THREE.Mesh(tri({aV:4}),M.vg));
   for(const o of L9)o.frustumCulled=false;
-  const ex=[fx.flo,fx.dd,fx.aur,BK_TR.mesh,fx.poudre.mesh,fx.givre.mesh,fx.eclat.mesh,fx.brume.mesh],vus=ex.map(function(o){return [o,o.visible];});
+  const ex=[fx.flo,fx.dd,fx.aur,BK_TR.mesh,fx.poudre.mesh,fx.givre.mesh,fx.eclat.mesh,fx.brume.mesh].concat(bkCretesChauffe(fx)),vus=ex.map(function(o){return [o,o.visible];});
   for(const v of vus)v[0].visible=true;
   const g=new THREE.Group();for(const o of L9)g.add(o);scene.add(g);
   try{chauffeRendu([g].concat(ex));}finally{scene.remove(g);for(const v of vus)v[0].visible=v[1];for(const o of L9)o.geometry.dispose();}
@@ -20932,6 +21005,7 @@ window.dbgBanq=function(k,o){
       for(const P of A9){if(ob.has(P)||(x-P.cx)*(x-P.cx)+(z-P.cz)*(z-P.cz)>P.r2)continue;const h=bkPrimH(P,x,z),m=h-(p.y-THICK-5);if(m>pire)pire=m;if(m>0){n++;if(ex.length<6)ex.push([Math.round(i*ds),+q.toFixed(2),Math.round(m),P.fam]);}}}}
     return {essais:t,percees:n,pire:Math.round(pire),ex:ex};}
   if(k==='meteo'){banqMeteo(o||'nuit',.01);return BANQ.met;}
+  if(k==='embelli'){const fx=BANQ.fx;return {on:BK_EMB,cre:!!fx.cre,cN:fx.cN||null,graine:fx.cG,progs:renderer.info.programs?renderer.info.programs.length:-1};} /* (2026-10-21, banc) LE GLACIER EMBELLI : les comptes de l'anneau de crêtes */
   if(k==='phys'&&o){Object.assign(BK_PH,o);return BK_PH;}
   if(k==='cg'){if(o)Object.assign(BK_CG,o);return {cg:BK_CG,k:+BKB.k.toFixed(2),enf:+BKB.enf.toFixed(2),dans:BKB.dans,lat:+lat.toFixed(1),kmh:Math.round(Math.abs(vA)*3.6*SPD),p:carGroup.position.toArray().map(function(v){return +v.toFixed(1);}),t:F.t.toArray().map(function(v){return +v.toFixed(3);}),b:F.b.toArray().map(function(v){return +v.toFixed(3);}),n:F.n.toArray().map(function(v){return +v.toFixed(3);}),mort:mortCause,pq:BANQ.pourquoi||'',latOff:+curLatOff.toFixed(1),hOff:+curHOff.toFixed(1)};} // (banc, 2026-10-18) LA CONGÈRE : réglages et état
   if(k==='vue'&&o){if(started&&!gameOver&&!paused)togglePause();camera.position.fromArray(o.p);camera.up.set(0,1,0);camera.lookAt(new THREE.Vector3().fromArray(o.c));camera.updateMatrixWorld();
@@ -20968,6 +21042,103 @@ window.dbgBanq=function(k,o){
     cur:BANQ.cur&&{aur:+BANQ.cur.aur.toFixed(2),neige:+BANQ.cur.neige.toFixed(2),alp:+BANQ.cur.alp.toFixed(2)},L:Math.round(L),yMin:Math.round(trackMinY),y0:pts[0]&&Math.round(pts[0].y)};};
 
 /* <<<FIN BANQUISE>>> */
+/* ======================= LE GLACIER EMBELLI (2026-10-21, Sacha : « apporter des améliorations visuelles à chaque map — ajouter des éléments, améliorer des textures, améliorer les lumières — sans que ce soit trop gourmand pour le téléphone ») =======================
+   MESURÉ AVANT : devant la caisse, deux plans seulement — la glace de la piste et les pics à moins de 3,6 km ; au-delà, l'horizon est un bandeau de brume SANS RIEN dedans (un dégradé plat),
+   et rien ne vit dans l'air à part la neige qui tombe. Cette passe ajoute les plans qui manquent, dans la charte (clé chaude + remplissage froid, brume teintée, rose/or rares) :
+   · LES CRÊTES LOINTAINES (pilier « trois plans ») : un anneau de montagnes à 7,3 / 8 / 8,7 km qui SUIT la caméra (à l'infini, comme les aurores), trois rangées de facettes plates
+     (une teinte par facette : le côté du soleil chaud, l'ombre bleu-violet), la neige haut, la glace bleue bas, le pied qui fond dans la brume TEINTÉE (la plus loin est la plus pâle) ;
+     elles lisent les mêmes uniforms que le reste de la banquise (uSunC, uSky, uAlpC, uAurC, uIceT, uMistC, uHazeC) : l'alpenglow les embrase au matin et au soir, l'aurore les bleuit la nuit
+     et la couleur de la glace, des aurores et de l'alpenglow TIRÉS PAR LE DÉCOR AU HASARD (BANQ.dz) les suivent sans qu'on y touche ; un liseré d'or chaud, très fin, sur leur arête éclairée ;
+   · LES PANACHES DE NEIGE (pilier « un détail vivant ») : de la neige soufflée qui file des plus hautes cimes, deux feuilles croisées par panache, qui ondulent et défilent avec uTime
+     (rien à faire côté processeur) ; effacés par la neige et le blizzard (ils se noieraient dans la brume).
+   Tout est à l'infini (aucun décor près de la piste, aucun calcul par image, aucune lumière), UN seul programme (les deux maillages partagent le même shader, `uPl` choisit crête / panache),
+   deux appels de dessin, ~2 000 triangles. Le tirage vient de la graine de la piste mais dans un flux À LUI (`mulberry32(graine ^ 0xC4E7E5)`) : aucun tirage dans `fr`, la piste ne bouge pas.
+   Paliers : `PAL.B.banqCreteL` (nombre de rangées 1/2/3), `banqCreteN` (facettes par tour), `banqPana` (panaches 0/8/14). `?sans=glacierembelli` = la banquise d'avant (rien de tout ceci).
+   Console : `dbgBanq('embelli')` (les comptes), `dbgBanq('embelli',{k:…})`. */
+const BK_EMB=typeof location==='undefined'||!/[?&]sans=([^&]*,)?glacierembelli(,|&|$)/.test(location.search);
+try{Object.assign(PAL.B,{banqCreteL:[1,2,3],banqCreteN:[150,230,320],banqPana:[0,14,24]});}catch(e){}
+const BK_CRE_LAY=[[8700,1900,.80],[8000,1400,.66],[7300,950,.50]]; /* [rayon (m), hauteur max au-dessus de la caméra (m), part de brume] — du plus loin au plus près */
+const BK_CRE_B=-300; // le pied de l'anneau, sous l'horizon : il fond dans la brume (alpha 0)
+const BK_CRE_VS=['attribute vec4 aK;uniform float uTime,uPl;varying vec3 vW;varying vec4 vK;',
+  'void main(){vec3 p=position;',
+  '  if(uPl>.5){float ph=aK.w;p.y+=sin(uTime*.37+aK.y*5.+ph*6.2832)*70.*aK.y;p.xz+=vec2(cos(ph*6.2832),sin(ph*6.2832))*sin(uTime*.29+aK.y*4.+ph*9.)*60.*aK.y;}', // le panache ondule : plus on va vers la queue, plus il flotte
+  '  vec4 wp=modelMatrix*vec4(p,1.);vW=wp.xyz;vK=aK;gl_Position=projectionMatrix*viewMatrix*wp;}'].join('\n');
+const BK_CRE_FS=[FG_BRUIT,
+  'uniform vec3 uSunDir,uSunC,uSky,uFillC,uCam,uHazeC,uMistC,uAlpC,uAurC,uAurC2,uIceT;uniform float uTime,uPl,uAlp,uAur,uHazeM,uNeige;varying vec3 vW;varying vec4 vK;',
+  'void main(){vec3 rel=vW-uCam;float hr=max(length(rel.xz),1.);vec3 r=vec3(rel.x,0.,rel.z)/hr;float lay=vK.x;',
+  '  float hzL=lay<.5?.80:(lay<1.5?.66:.50);vec3 hc=mix(uHazeC,uMistC,.35);',
+  '  if(uPl>.5){', /* le PANACHE : t le long (0 à la cime, 1 à la queue), sd le travers */
+  '    float t=vK.y,sd=vK.z,ph=vK.w;float st=fn2(vec2(t*6.-uTime*.55+ph*9.,sd*2.2+ph*5.));',
+  '    float a=(1.-t)*(1.-t*.6)*smoothstep(1.,.30,abs(sd))*(.30+.80*st)*.90*(1.-smoothstep(.15,.85,uNeige));',
+  '    vec3 sn=vec3(.93,.96,1.)*(uSky*.60+uSunC*.55)+uAlpC*uAlp*.45+vec3(1.,.82,.5)*.04*uSunC;',
+  '    sn=mix(sn,hc,hzL*.55);gl_FragColor=vec4(sn,a);return;}',
+  /* la CRÊTE : la facette a sa pente (vK.z), sa hauteur absolue (vK.y, 0 au pied → 1 au plus haut) et sa place dans la colonne (vK.w, 0 pied → 1 arête) */
+  '  float h01=vK.y,k=vK.z,cf=vK.w;vec3 tg=vec3(r.z,0.,-r.x);',
+  '  vec3 n=normalize(vec3(-r.x*.55,.50,-r.z*.55)-tg*k*.9);',
+  '  float ndl=dot(n,uSunDir),dif=clamp((ndl+.15)/1.15,0.,1.);',
+  '  vec2 nq=vec2(atan(rel.x,rel.z)*46.+lay*13.,vW.y*.012);float nz=fn2(nq);',
+  '  float sn=smoothstep(.30,.60,h01+(nz-.5)*.16);', /* la neige tient en haut */
+  '  vec3 rock=uIceT*vec3(.22,.36,.74)*(.90+.20*fn2(nq*2.7+4.));vec3 snow=vec3(.86,.91,1.);',
+  '  vec3 alb=mix(rock,snow,sn);',
+  '  vec3 col=alb*(uSky*(.42+.22*n.y)+uSunC*dif*.80+uFillC*.20);', /* la clé chaude de face… */
+  '  col=mix(col,col*vec3(.76,.86,1.22),(1.-dif)*.65);', /* …et l'ombre qui bascule au bleu-violet (jamais au gris) */
+  '  float sa=max(dot(r,normalize(vec3(uSunDir.x,0.,uSunDir.z)+vec3(1e-4))),0.);',
+  '  col+=alb*uAlpC*uAlp*(.25+.75*dif)*(.25+.75*smoothstep(.35,1.,h01))*1.1;', /* l'ALPENGLOW embrase les crêtes */
+  '  float rim=smoothstep(.80,1.,cf);',
+  '  col+=uSunC*vec3(1.,.80,.50)*rim*(.10+.40*pow(sa,3.))*(.35+.65*dif)*.85;', /* le liseré d'or de l'arête éclairée (le clin d'œil CASH) */
+  '  col+=alb*mix(uAurC,uAurC2,.35)*uAur*.24*(.25+.75*h01);', /* la nuit : la couleur de l'aurore sur la neige */
+  '  float hz=clamp(hzL+(.97-hzL)*pow(1.-h01,2.5),0.,max(.97,uHazeM));col=mix(col,hc,hz);',
+  '  gl_FragColor=vec4(col*.92,smoothstep(0.,.20,cf));}'].join('\n');
+function bkCretesMat(pl){const m=new THREE.ShaderMaterial({uniforms:Object.assign({uPl:{value:pl}},BK_U),vertexShader:BK_CRE_VS,fragmentShader:BK_CRE_FS,transparent:true,depthWrite:!pl,side:THREE.DoubleSide,fog:false});
+  m.dispose=function(){};return m;} // jamais libérées : un seul jeu pour toutes les banquises ; les deux gardent `transparent` : UN programme pour les deux
+/* LA GÉNÉRATION : une rangée = un bruit périodique en valeur, REDRESSÉ (1-|2n-1|)² (des pointes, pas des vagues), cinq octaves, trois massifs en bosse ; chaque facette (un segment de l'anneau)
+   a sa pente constante (aK.z) → éclairée à plat, comme les cristaux de la piste. Les plus hautes pointes des rangées lointaines portent un panache. */
+function bkCretesGen(fx){
+  const R=mulberry32((((BANQ.graine|0)^0xC4E7E5)>>>0)),LL=PAL_BK('banqCreteL',3),NS=PAL_BK('banqCreteN',320),PN=PAL_BK('banqPana',14);
+  const rangs=LL>=3?[0,1,2]:LL===2?[0,2]:[1],P=[],K=[],pics=[],TP=Math.PI*2;
+  const tri=(a,b,c)=>{P.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2]);K.push(a[3],a[4],a[5],a[6],b[3],b[4],b[5],b[6],c[3],c[4],c[5],c[6]);};
+  for(const j of rangs){
+    const Rr=BK_CRE_LAY[j][0],Hm=BK_CRE_LAY[j][1],FQ=[3,7,16,34,70],AM=[.30,.26,.22,.14,.08],tb=FQ.map(f=>{const a=[];for(let i=0;i<f;i++)a.push(R());return a;}),bump=[];
+    for(let b=0;b<3;b++)bump.push([R()*TP,.07+R()*.09,.55+R()*.45]);
+    const H=new Float32Array(NS+1);
+    for(let i=0;i<=NS;i++){const u=(i%NS)/NS;let h=0;
+      for(let o=0;o<5;o++){const f=FQ[o],x=u*f,fl=Math.floor(x),i0=fl%f,i1=(i0+1)%f,t=x-fl,s=t*t*(3-2*t),n=tb[o][i0]+(tb[o][i1]-tb[o][i0])*s,rr=1-Math.abs(2*n-1);h+=AM[o]*rr*rr;}
+      h=1-Math.exp(-h*2.2); /* un genou doux : des pointes distinctes, plus de plateau écrêté */
+      for(const b of bump){let d=Math.abs(u*TP-b[0]);if(d>Math.PI)d=TP-d;h=Math.max(h,b[2]*Math.exp(-(d/b[1])*(d/b[1])));}
+      H[i]=.10+.90*h;}
+    H[NS]=H[0];
+    const top=i=>BK_CRE_B+(Hm-BK_CRE_B)*H[i],h01=i=>top(i)-BK_CRE_B,hn=Hm-BK_CRE_B,xz=(i)=>{const a=(i%NS)/NS*TP;return [Math.sin(a)*Rr,Math.cos(a)*Rr];};
+    for(let i=0;i<NS;i++){const a=xz(i),b=xz(i+1),k=Math.max(-1,Math.min(1,(top(i+1)-top(i))/(Rr*TP/NS)*.55));
+      const A=[a[0],BK_CRE_B,a[1],j,0,k,0],B=[a[0],top(i),a[1],j,h01(i)/hn,k,1],C=[b[0],BK_CRE_B,b[1],j,0,k,0],D=[b[0],top(i+1),b[1],j,h01(i+1)/hn,k,1];
+      tri(A,B,C);tri(C,B,D);
+      if(j<2&&H[i]>.52&&H[i]>=H[(i+NS-1)%NS]&&H[i]>=H[i+1])pics.push([j,i,H[i],a[0],top(i),a[1]]);}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('aK',new THREE.Float32BufferAttribute(K,4));g.computeBoundingSphere();
+  if(fx.cre.geometry)fx.cre.geometry.dispose();fx.cre.geometry=g;
+  /* LES PANACHES : les plus hautes pointes, espacées d'au moins 0,22 rad, soufflées dans le sens du vent de la piste ; deux feuilles croisées (une verticale, une à plat) de sept éléments */
+  const wd=R()*TP,dwx=Math.sin(wd),dwz=Math.cos(wd),pxz=[Math.cos(wd),-Math.sin(wd)],PP=[],PK=[],M=7;pics.sort((a,b)=>b[2]-a[2]);const pris=[];
+  for(const p of pics){if(pris.length>=PN)break;const an=Math.atan2(p[3],p[5]);let ok=true;for(const q of pris){let d=Math.abs(an-q);if(d>Math.PI)d=TP-d;if(d<.22){ok=false;break;}}if(!ok)continue;pris.push(an);
+    const ph=R(),Lp=1100+R()*800,W0=130+R()*80,rr=.985,ax=p[3]*rr,ay=p[4],az=p[5]*rr,v=[];
+    for(let m=0;m<=M;m++){const t=m/M,W=W0*(.35+1.5*t),cx=ax+dwx*t*Lp,cy=ay+Lp*.12*Math.sin(t*2.2),cz=az+dwz*t*Lp;v.push([cx,cy,cz,W]);}
+    for(const sheet of [0,1])for(let m=0;m<M;m++){const q0=v[m],q1=v[m+1],t0=m/M,t1=(m+1)/M,off=(q,s)=>sheet?[q[0]+pxz[0]*q[3]*.5*s,q[1],q[2]+pxz[1]*q[3]*.5*s]:[q[0],q[1]+q[3]*.5*s,q[2]];
+      const a0=off(q0,-1),b0=off(q0,1),a1=off(q1,-1),b1=off(q1,1),V=(o,t,s)=>[o[0],o[1],o[2],p[0],t,s,ph];
+      const A=V(a0,t0,-1),B=V(b0,t0,1),C=V(a1,t1,-1),D=V(b1,t1,1);
+      for(const w of [A,B,C,C,B,D]){PP.push(w[0],w[1],w[2]);PK.push(w[3],w[4],w[5],w[6]);}}}
+  if(PP.length){const g2=new THREE.BufferGeometry();g2.setAttribute('position',new THREE.Float32BufferAttribute(PP,3));g2.setAttribute('aK',new THREE.Float32BufferAttribute(PK,4));g2.computeBoundingSphere();
+    if(!fx.pan){fx.pan=new THREE.Mesh(g2,fx.mPan);fx.pan.name='banquise panaches';fx.pan.frustumCulled=false;fx.pan.matrixAutoUpdate=false;fx.pan.renderOrder=-2.5;fx.pan.visible=false;scene.add(fx.pan);}
+    else{if(fx.pan.geometry)fx.pan.geometry.dispose();fx.pan.geometry=g2;}}
+  fx.cG=BANQ.graine|0;fx.cN={tri:P.length/9,pana:pris.length,panaTri:PP.length/9,rangs:rangs.length};}
+function bkCretes(fx){ // une fois, au premier tour de la banquise (banqFx) : les matières, le maillage de l'anneau, puis sa génération
+  if(!BK_EMB||fx.cre)return;
+  fx.mCre=bkCretesMat(0);fx.mPan=bkCretesMat(1);
+  fx.cre=new THREE.Mesh(new THREE.BufferGeometry(),fx.mCre);fx.cre.name='banquise crêtes lointaines';fx.cre.frustumCulled=false;fx.cre.matrixAutoUpdate=false;fx.cre.renderOrder=-3;fx.cre.visible=false;scene.add(fx.cre);
+  bkCretesGen(fx);}
+function bkCretesTick(fx){ // chaque image, dans banqTick : l'anneau suit la caméra (rien d'autre : tout le reste vit dans le shader)
+  if(!fx.cre)return;
+  if(fx.cG!==(BANQ.graine|0))bkCretesGen(fx); // une piste neuve : d'autres crêtes (un seul passage, < 1 ms)
+  const cp=camera.position;
+  for(const m of [fx.cre,fx.pan]){if(!m)continue;m.visible=true;m.position.copy(cp);m.updateMatrix();m.updateMatrixWorld(true);}}
+function bkCretesCache(fx){if(fx.cre)fx.cre.visible=false;if(fx.pan)fx.pan.visible=false;}
+function bkCretesChauffe(fx){return fx.cre?(fx.pan?[fx.cre,fx.pan]:[fx.cre]):[];}
 /* <<<GROTTE>>> */
 /* ======================= LES PROFONDEURS — LA MAP DES GROTTES (2026-10-18, Sacha : « fais une nouvelle map en mode dans les grottes, en mode
    Minecraft mais bien — mets-toi dans la peau d'un designer senior de jeu vidéo et fais un truc parfait ») =======================
@@ -27690,7 +27861,7 @@ const BIO_ETAL0={wb:[1,1,1],sh:[0,.004,.03],hi:[.024,.014,-.008],con:1.16,bloomS
 const MN_T9=new THREE.Color();
 Object.assign(BIO_ETAL0,{mzH:[1,.985,.96,0],mzO:[.4,.5,.66,0],nuA:[1,1,1]}); // rgb = la teinte d'avant (le fondu d'un portail glisse vers elle), w 0 = inerte · nuA = l'albédo des nuages × 1 (inchangé)
 Object.assign(BIO_ETAL0,{nuLav:[.72,.78,.97],nuR:[-.25,.5,.64,1],nuK:[1,1,1,1]}); // (2026-10-14, passe graphismes · nuages-jour) LA MATIÈRE DES CUMULUS PAR AMBIANCE : nuLav = la teinte de l'ombre (GLSL uLav), nuR = uR (frontière d'ombre, clarté de l'ombre), nuK = uK (albédo, soleil, lisière, bord) ; les défauts = les valeurs d'avant, inertes
-Object.assign(BIO_ETAL0,{dnA:[.95,.56,.26],dnB:[.88,.36,.17],dnL:[1,.78,.52],dnS:[.62,.62,.95],dnC:[.93,.86,.78],dnV:[.22,.42,.10],dnH:[.9,.7,.5],dnQ:[0,0,0,0],dnK:[.5,1,.25,1],dnM:[.8,.010,1,0],dnW:[.10,.66,.62],dnX:[.02,.26,.36]}); // (2026-10-18) LES DUNES D'OR : le sable de leurs six temps (lus seulement là-bas : dunesTick)
+Object.assign(BIO_ETAL0,{dnA:[.95,.56,.26],dnB:[.88,.36,.17],dnL:[1,.78,.52],dnS:[.62,.62,.95],dnC:[.93,.86,.78],dnV:[.22,.42,.10],dnH:[.9,.7,.5],dnQ:[0,0,0,0],dnK:[.5,1,.25,1],dnM:[.8,.010,1,0],dnW:[.10,.66,.62],dnX:[.02,.26,.36],dnE:[1,1,.8,1],dnP:[1,.8,.45,1]}); // (2026-10-18) LES DUNES D'OR : le sable de leurs six temps (lus seulement là-bas : dunesTick)
 // (vague 3) ETAL_JOUR retiré : le jour des NUAGES reprend l'étalonnage d'origine (BIO_ETAL0), voir le haut de BIOMES
 Object.assign(BIOMES.pluie,{rimS:.55}); // VILLE : l'étalonnage d'avant (déjà au niveau) — le liseré vient du NÉON de contre-jour
 Object.assign(BIOMES.espace,{fog:[.016,.02,.055],wb:[.98,1,1.04],rimS:.62}); // ORBITE : le vide NOIR et froid, un contraste dur ; la brume n'est plus le noir absolu mais le noir bleuté #04050e de la bible (le lointain de la route s'y fond, et la brillance d'horizon du bitume, qui en prend la couleur, n'est plus nulle)
@@ -27926,21 +28097,21 @@ BIOMES.jadeOrage=bioMet(BIOMES.jadePluie,{nm:'JADE · ORAGE',fogN:90,fogF:1150,s
    env:[[0,'#4A4FA6'],[.3,'#B0749A'],[.48,'#FFB27E'],[.58,'#FFC88C'],[.66,'#E0663A'],[1,'#74301C']],
    cyZ:[.08,.10,.40],cyM:[.50,.30,.46],cyH:[1,.58,.32],cyS:[1,.52,.22],cyB:[.82,.46,.58],cyC:[1,.68,.46],cyD:[.36,.26,.42],cyR:[.78,.46,.38],
    cyK:[.55,.35,0,0],cyN:[.6,1.3,1.25,0],cyA:[5,-104,0,0],
-   dnA:[1,.84,.62],dnB:[.96,.72,.54],dnL:[1,.92,.78],dnS:[.76,.70,.94],dnC:[1,.84,.70],dnV:[.17,.30,.09],dnH:[1,.74,.52],dnQ:[.32,.40,0,.85],dnK:[.65,1,.30,1],dnW:[.16,.48,.56],dnX:[.03,.14,.26]});
+   dnA:[1,.84,.62],dnB:[.96,.72,.54],dnL:[1,.92,.78],dnS:[.76,.70,.94],dnC:[1,.84,.70],dnV:[.17,.30,.09],dnH:[1,.74,.52],dnQ:[.32,.40,0,.85],dnK:[.65,1,.30,1],dnW:[.16,.48,.56],dnX:[.03,.14,.26],dnE:[1.2,1,.9,1.2]});
  BIOMES.dunesNuit=dnB('canyonNuit',{nm:'DUNES · NUIT',cyA:[34,150,0,0],cyR:[.10,.09,.20], /* (MESURÉ à la photo : un sable clair sous la lune sortait blanc rosé comme de la neige — le sable de nuit est sombre, la crête argentée) */
-   dnA:[.40,.34,.36],dnB:[.34,.27,.30],dnL:[.62,.66,.86],dnS:[.50,.56,1.15],dnC:[.55,.56,.66],dnV:[.10,.20,.14],dnH:[.10,.10,.24],dnQ:[.25,0,0,.4],dnK:[.7,1,.3,1],dnW:[.04,.10,.16],dnX:[.01,.03,.06]});
+   dnA:[.40,.34,.36],dnB:[.34,.27,.30],dnL:[.62,.66,.86],dnS:[.50,.56,1.15],dnC:[.55,.56,.66],dnV:[.10,.20,.14],dnH:[.10,.10,.24],dnQ:[.25,0,0,.4],dnK:[.7,1,.3,1],dnW:[.04,.10,.16],dnX:[.01,.03,.06],dnE:[1.1,1,.5,.9],dnP:[.62,.78,1,1]});
  BIOMES.dunesVent=dnB('canyonMidi',{nm:'DUNES · VENT DE SABLE',jZen:[.24,.30,.42],jMid:[.56,.48,.40],jHor:[.88,.66,.44],jSol:[.5,.36,.2],
    fog:[.80,.60,.40],fogN:140,fogF:2800,fogCj:[.92,.70,.46],fogIn:[.88,.70,.52],hemiS:[.62,.58,.62],hemiG:[.62,.44,.30],hemiI:.78,sunC:[1,.80,.58],sunI:.95,fillC:[.50,.50,.62],fillI:.2,
    env:[[0,'#7A7E8C'],[.3,'#A69A88'],[.48,'#D8B48A'],[.58,'#E6C49A'],[.66,'#B8865A'],[1,'#6A4428']],
    cyZ:[.24,.30,.42],cyM:[.56,.48,.40],cyH:[.88,.66,.44],cyS:[1,.78,.52],cyB:[0,0,0],cyC:[.96,.74,.48],cyD:[.58,.40,.26],cyR:[.80,.58,.40],
    cyK:[0,0,0,0],cyN:[0,1.1,.7,.55],cyA:[42,160,0,0],
-   dnA:[.98,.64,.34],dnB:[.90,.46,.24],dnL:[1,.80,.58],dnS:[.70,.66,.90],dnC:[.94,.86,.76],dnV:[.22,.40,.14],dnH:[.86,.64,.42],dnQ:[.85,0,.6,.15],dnK:[.35,.7,.35,1],dnW:[.30,.40,.36],dnX:[.10,.14,.14]});
+   dnA:[.98,.64,.34],dnB:[.90,.46,.24],dnL:[1,.80,.58],dnS:[.70,.66,.90],dnC:[.94,.86,.76],dnV:[.22,.40,.14],dnH:[.86,.64,.42],dnQ:[.85,0,.6,.15],dnK:[.35,.7,.35,1],dnW:[.30,.40,.36],dnX:[.10,.14,.14],dnE:[.7,.8,.3,.3],dnP:[1,.8,.5,.4]});
  BIOMES.dunesTempete=dnB('canyonOrage',{nm:'DUNES · TEMPÊTE DE SABLE',jZen:[.10,.06,.05],jMid:[.30,.16,.09],jHor:[.58,.32,.16],jSol:[0,0,0],
    fog:[.34,.19,.10],fogN:70,fogF:1300,fogCj:[.46,.26,.13],fogIn:[.42,.25,.15],hemiS:[.46,.34,.30],hemiG:[.30,.18,.09],hemiI:.55,sunC:[1,.60,.34],sunI:.55,fillC:[.48,.38,.50],fillI:.24,
    env:[[0,'#3A2A22'],[.3,'#5A3E2C'],[.48,'#8A5C38'],[.58,'#9A6A40'],[.66,'#5A3A24'],[1,'#20140C']],
    cyZ:[.10,.06,.05],cyM:[.30,.16,.09],cyH:[.58,.32,.16],cyS:[.9,.5,.25],cyB:[0,0,0],cyC:[.66,.38,.18],cyD:[.24,.12,.06],cyR:[.40,.22,.11],
    cyK:[0,0,0,0],cyN:[0,.8,.3,.9],cyA:[36,170,0,0],
-   dnA:[.62,.38,.22],dnB:[.52,.28,.15],dnL:[.70,.48,.32],dnS:[.62,.56,.86],dnC:[.62,.52,.44],dnV:[.16,.28,.10],dnH:[.40,.23,.12],dnQ:[1,0,1,0],dnK:[.3,.5,.4,1],dnW:[.18,.20,.18],dnX:[.06,.06,.05]});
+   dnA:[.62,.38,.22],dnB:[.52,.28,.15],dnL:[.70,.48,.32],dnS:[.62,.56,.86],dnC:[.62,.52,.44],dnV:[.16,.28,.10],dnH:[.40,.23,.12],dnQ:[1,0,1,0],dnK:[.3,.5,.4,1],dnW:[.18,.20,.18],dnX:[.06,.06,.05],dnE:[.5,.6,0,0],dnP:[1,.75,.4,.3]});
  Object.assign(I18N,{"LES DUNES D'OR":'THE GOLDEN DUNES','DE CRETE EN CRETE':'FROM CREST TO CREST','DESCENTE PARFAITE':'PERFECT SLOPE','BONNE DESCENTE':'GOOD SLOPE','VENT DE SABLE':'DUST WIND','TEMPETE DE SABLE':'SANDSTORM',
    'LE VENT SE LEVE':'THE WIND RISES','LA LUNE ARGENTE LE SABLE':'THE MOON SILVERS THE SAND','ENSEVELI DANS LE SABLE':'BURIED IN THE SAND',"AU FOND DE L'OASIS":'AT THE BOTTOM OF THE OASIS',
    "CONTRE L'OBELISQUE":'SMASHED INTO THE OBELISK','CONTRE LA PYRAMIDE':'SMASHED INTO THE PYRAMID'});
