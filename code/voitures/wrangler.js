@@ -354,12 +354,26 @@ return function(K){
        régulière ; chaque cube va au niveau de grille juste AU-DESSUS de la tôle (0 à 6 cm de relief) : le toit bombé devient un plateau à deux marches, la lunette couchée un escalier de cubes ; quelques cubes manquent
        (le « bug »). Tout de la couleur de la caisse : c'est l'ombre des marches qui dessine la forme. */
     const c=.06;
+    /* (25/10, Léo : « on veut des cubes glitchés qui font quelques DÉGÂTS sur la voiture ») la grille de cubes devient une carrosserie ENDOMMAGÉE : trois CHOCS (deux sur le toit, un sur la lunette). Au cœur du choc, plus de cubes —
+       un trou : l'intérieur apparaît (gris sombre, à fleur de la tôle) ; autour, une couronne de cubes ARRACHÉS, soulevés et penchés ; au-delà, des DÉBRIS qui retombent, penchés eux aussi. Le reste de la grille est intact. */
+    const choc=(x,z,L)=>{let m=9;for(const [ix,iz,R] of L){const d=Math.hypot(x-ix,z-iz)/R;if(d<m)m=d;}return m;},pen=(a,b,k)=>(hs(a*13,b*17,9,k)-.5)*.9;
+    const IMPT=[[.22,-1.30,.30],[-.34,-.30,.26]],IMPR=[[.18,1.52,.26]];   // (x, z, rayon) sur le toit ; (x, y, rayon) sur la lunette
     // 1. LE TOIT : de la lunette au pare-brise
     for(let iz=Math.round(-2.0/c);iz*c<.27;iz++)for(let ix=-12;ix<=12;ix++){const x=ix*c,z=iz*c;if(Math.abs(x)>.76)continue;if(hs(ix,iz,1,1)>.86)continue;
-      const H=roofY(x),lv=Math.ceil((H-.001)/c)*c;BX('p',c*.96,c,c*.96,x,lv-c/2+.003,z);}
-    // 2. L'ARRIÈRE : la lunette (couchée) et le haut du hayon, du haut de la caisse au toit
+      const H=roofY(x),lv=Math.ceil((H-.001)/c)*c,m=choc(x,z,IMPT);
+      if(m<.5){if(hs(ix,iz,6,6)<.78)BX('D',c*.96,.012,c*.96,x,H+.004,z);continue;}   // le trou : l'intérieur à nu
+      if(m<1){P.box('p',c*.96,c,c*.96,x,lv-c/2+.003+.035*(1-m)+.012,z,pen(ix,iz,1),pen(iz,ix,2),pen(ix+1,iz,3));continue;}   // la couronne : arrachés, penchés
+      BX('p',c*.96,c,c*.96,x,lv-c/2+.003,z);}
+    for(const [ix,iz,R] of IMPT)for(let k=0;k<9;k++){const an=hs(k,1,ix*10,3)*6.283,r=R*(1.05+.9*hs(k,2,iz*10,3)),x=ix+Math.cos(an)*r,z=iz+Math.sin(an)*r;if(Math.abs(x)>.76)continue;
+      const e=.04+.07*hs(k,3,ix*7,3);P.box('p',.05,.05,.05,x,roofY(x)+e,z,pen(k,1,4),pen(k,2,5),pen(k,3,6));}   // les débris
+    // 2. L'ARRIÈRE : la lunette couchée et le haut du hayon
     for(let iy=Math.round(1.25/c);iy*c<1.80;iy++)for(let ix=-11;ix<=11;ix++){const x=ix*c,y=iy*c;if(Math.abs(x)>.74)continue;if(hs(ix,iy,2,2)>.78)continue;
-      const zf=-2.149+(y-1.23)*.1956,lv=Math.floor(zf/c)*c;BX('p',c*.96,c*.96,c,x,y,lv+c/2-.003);}
+      const zf=-2.149+(y-1.23)*.1956,lv=Math.floor(zf/c)*c,m=choc(x,y,IMPR);
+      if(m<.5){if(hs(ix,iy,7,6)<.78)BX('D',c*.96,c*.96,.012,x,y,zf-.004);continue;}
+      if(m<1){P.box('p',c*.96,c*.96,c,x,y,lv+c/2-.003-.035*(1-m)-.012,pen(ix,iy,7),pen(iy,ix,8),pen(ix+1,iy,9));continue;}
+      BX('p',c*.96,c*.96,c,x,y,lv+c/2-.003);}
+    for(const [ix,iy,R] of IMPR)for(let k=0;k<9;k++){const an=hs(k,1,ix*10,5)*6.283,r=R*(1.05+.9*hs(k,2,iy*10,5)),x=ix+Math.cos(an)*r,y=iy+Math.sin(an)*r;if(Math.abs(x)>.74||y<1.25||y>1.80)continue;
+      const e=.04+.07*hs(k,3,ix*7,5);P.box('p',.05,.05,.05,x,y,-2.149+(y-1.23)*.1956-e,pen(k,1,7),pen(k,2,8),pen(k,3,9));}
   }
   // LA CALANDRE : sept fentes, deux phares ronds, un peu couchée
   {const sh=new THREE.Shape(),PTS=rrect(-.66,-.18,.66,.175,.03,3);sh.moveTo(PTS[0][0],PTS[0][1]);for(let i=1;i<PTS.length;i++)sh.lineTo(PTS[i][0],PTS[i][1]);

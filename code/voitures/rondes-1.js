@@ -355,12 +355,19 @@ SHAPES.bulle=function(K){
     /* (« organisé comme sur La Fidèle, qui embrasse la forme la plus complexe » — pour le Scarabée : « ailes avant + capot rond ») LA PIXELISATION SUR GRILLE : des cubes de 5 cm sur UNE grille régulière ; chacun va au niveau de
        grille juste AU-DESSUS de la tôle (0 à 5 cm de relief) : le galbe des ailes et du capot devient un escalier de cubes ; quelques cubes manquent (le « bug ») ; un sur dix en crème. La hauteur de la tôle est lue sur les
        vraies sections (le tube de l'aile, la coque). */
+    /* (« des cubes glitchés qui font quelques DÉGÂTS ») trois CHOCS sur le capot et l'aile avant : un trou (l'intérieur à nu), une couronne de cubes arrachés et penchés, des débris qui retombent. */
+    const IMPC=[[-.26,1.18,.30],[.30,1.50,.26],[.58,1.00,.22]],choc=(x,z)=>{let m=9;for(const [ix,iz,R] of IMPC){const d=Math.hypot(x-ix,z-iz)/R;if(d<m)m=d;}return m;},pen=(a,b,k)=>(hs(a*13,b*17,9,k)-.5)*.9;
     const c=.05;
     const hautDe=(Sx,x)=>{let m=-1e9;for(let i=0;i<Sx.length;i++){const a=Sx[i],b=Sx[(i+1)%Sx.length];if((a[0]-x)*(b[0]-x)<=0&&a[0]!==b[0]){const y=a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);if(y>m)m=y;}}return m;};
     const aileH=(x,z)=>{const yT=L(AV.yT,z),xo=L(AV.xo,z),yL=Math.min(L(AV.yL,z),yT-.02),xi=Math.min(z<.76?xo-.08:xH(Math.max(.76,z))-.03,xo-.08);return hautDe(coupeAile(xi,xo,yT,yL),x);};
     for(let iz=Math.round(.75/c);iz*c<1.74;iz++)for(let ix=-14;ix<=14;ix++){const x=ix*c,z=iz*c;if(hs(ix,iz,5,1)>.88)continue;
       const H=Math.max(aileH(Math.abs(x),z),hautDe(sect(z),Math.abs(x)));if(H<0)continue;
-      const lv=Math.ceil((H-.001)/c)*c;P.box(hs(ix,iz,5,2)>.9?'s':'p',c*.96,c,c*.96,x,lv-c/2+.003,z,0,0,0);}
+      const lv=Math.ceil((H-.001)/c)*c,m=choc(x,z);
+      if(m<.5){if(hs(ix,iz,6,6)<.78)P.box('y',c*.96,.012,c*.96,x,H+.004,z,0,0,0);continue;}   // le trou : l'intérieur à nu (bleu-vert sombre)
+      if(m<1){P.box('p',c*.96,c,c*.96,x,lv-c/2+.003+.035*(1-m)+.012,z,pen(ix,iz,1),pen(iz,ix,2),pen(ix+1,iz,3));continue;}   // la couronne : arrachés, penchés
+      P.box(hs(ix,iz,5,2)>.9?'s':'p',c*.96,c,c*.96,x,lv-c/2+.003,z,0,0,0);}
+    for(const [ix,iz,R] of IMPC)for(let k=0;k<9;k++){const an=hs(k,1,ix*10,3)*6.283,r=R*(1.05+.9*hs(k,2,iz*10,3)),x=ix+Math.cos(an)*r,z=iz+Math.sin(an)*r;
+      const H=Math.max(aileH(Math.abs(x),z),hautDe(sect(z),Math.abs(x)));if(H<0)continue;P.box('p',.045,.045,.045,x,H+.04+.07*hs(k,3,ix*7,3),z,pen(k,1,4),pen(k,2,5),pen(k,3,6));}   // les débris
   }
   // la plaque dessinée : la vraie s'y pose (voir plqDessinee)
   P.box('l',.30,.075,.012,0,.665,-1.79,.5,0,0);
