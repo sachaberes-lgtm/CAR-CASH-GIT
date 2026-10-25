@@ -132,11 +132,21 @@ function sfNiveau(c,m,te){ // le NIVEAU d'un couple map × météo, sous la form
   else if(C.teintes)vtBio(o.bio[0],'violet'); // (le brouillard violet a lui aussi besoin de naître)
   return o;}
 function sfTeinte(c,prev){const L=SF_CARTES[c].teintes;if(!L)return null;let t=L[(Math.random()*L.length)|0];if(prev&&t===prev.teinte)t=L[(Math.random()*L.length)|0];return t;} // (2026-10-16) la TEINTE de la ville, au hasard
-function sfTire(prev,cF){ // une MAP au hasard (jamais celle d'avant), puis une MÉTÉO permise dans cette map (pas deux fois la même de suite si on peut l'éviter) — cF : la map imposée (sa météo tirée)
-  const cs=cF?[cF]:Object.keys(SF_CARTES).filter(function(k){return (!prev||k!==prev.carte)&&!SF_HORS[k];}),c=cs[(Math.random()*cs.length)|0],M=SF_CARTES[c].m,ks=Object.keys(M);
-  const pick=function(){let tot=0;for(const k of ks)tot+=M[k].p==null?1:M[k].p;let r=Math.random()*tot;for(const k of ks){r-=M[k].p==null?1:M[k].p;if(r<=0)return k;}return ks[ks.length-1];};
-  let m=pick();if(prev&&m===prev.meteo)m=pick();
-  return {carte:c,meteo:m,teinte:sfTeinte(c,prev)};}
+/* (2026-10-25, Léo : « merge crypto city et ville en une map : la journée c'est crypto, la nuit c'est la ville, le nom de la map c'est cryptoville ») UNE MAP AU TIRAGE,
+   DEUX DÉCORS : `SF_FUSION` range CRYPTO CITY (matin, midi, soir) et LA VILLE (pluie, nuit, brouillard, orage — la ville est toujours de nuit) sous un seul nom, CRYPTOVILLE.
+   Les deux cartes gardent leur identifiant (palettes, durées, musiques, sauvegardes… sont indexés dessus) : seul le TIRAGE les réunit — une place pour la map,
+   pas deux ; ses météos sont les sept, au poids de chacune. Sur téléphone Crypto City est hors du tirage (SF_HORS) : CRYPTOVILLE n'y a que ses nuits. */
+const SF_FUSION={crypto:'cryptoville',ville:'cryptoville'};
+function sfMapDe(k){return SF_FUSION[k]||k;} // la MAP du tirage à laquelle appartient une carte
+function sfTire(prev,cF){ // une MAP au hasard (jamais celle d'avant, chaque map a la même chance quel que soit son nombre de météos), puis une MÉTÉO permise dans cette map (pas deux fois la même de suite si on peut l'éviter) — cF : la carte imposée (sa météo tirée)
+  let mem;
+  if(cF)mem=[cF];
+  else{const g={};for(const k of Object.keys(SF_CARTES)){if(SF_HORS[k])continue;const id=sfMapDe(k);if(prev&&id===sfMapDe(prev.carte))continue;(g[id]||(g[id]=[])).push(k);}
+    const ids=Object.keys(g);mem=g[ids[(Math.random()*ids.length)|0]];}
+  const P=[];for(const k of mem){const M=SF_CARTES[k].m;for(const x of Object.keys(M))P.push([k,x,M[x].p==null?1:M[x].p]);}
+  const pick=function(){let tot=0;for(const q of P)tot+=q[2];let r=Math.random()*tot;for(const q of P){r-=q[2];if(r<=0)return q;}return P[P.length-1];};
+  let q=pick();if(prev&&q[1]===prev.meteo)q=pick();
+  return {carte:q[0],meteo:q[1],teinte:sfTeinte(q[0],prev)};}
 function sfImpose(prev){ // le couple imposé (lien de test, banc) s'il existe — la météo absente de la map est tirée
   const f=SF.force;SF.force=null;if(!f)return sfTire(prev);
   const c=f.carte&&SF_CARTES[f.carte]?f.carte:sfTire(prev).carte,M=SF_CARTES[c].m,L=SF_CARTES[c].teintes;
