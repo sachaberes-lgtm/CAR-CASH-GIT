@@ -138,7 +138,7 @@
       var cov=c.meteos.filter(function(m){return m[0]===c.couverture;})[0]||c.meteos[0];
       li.innerHTML='<button class="vig" aria-label="Voir les images"><img loading="lazy" src="'+img(c,cov)+'" alt=""></button>'
         +'<div><div class="nom">'+c.nom+(c.hors?'<span class="tag">hors du tirage</span>':'')+'</div>'
-        +'<div class="sous">'+c.meteos.length+' météos'+(n?' · '+n+' à virer':'')+'</div></div>'
+        +'<div class="sous">'+c.meteos.length+(c.meteos.length>1?' météos':' météo')+(n?' · '+n+' à virer':'')+'</div></div>'
         +'<div class="choix"><button class="b g'+(s==='garder'?' on':'')+'">Garder</button><button class="b v'+(s==='virer'?' on':'')+'">Virer</button></div>';
       li.querySelector('.vig').onclick=function(){ouvre(i,Math.max(0,c.meteos.indexOf(cov)));};
       li.querySelector('.b.g').onclick=function(){choisis(c,'garder');};
