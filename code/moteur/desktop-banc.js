@@ -46,7 +46,7 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
   // ⚠ NOM DÉDIÉ (`applyQ9`, pas `applyQ`) : `applyQ` est déclarée `const` À L'INTÉRIEUR du bloc
   // mobile — hors de portée ici (portée de bloc). Se rebrancher sur le MÊME état (`DPR_CAP`/
   // `curDPR`/`applyDPR`), pas une copie qui diverge.
-  function applyQ9(fast){ DPR_CAP=Math.min(devicePixelRatio,fast?1:PAL.b('dprNetCap',1.5)); qlReprise(); } // (2026-10-14, passe perf mobile) même plafond par palier (l'ordi = palier 2 : inchangé ; ?palier=0 au banc le suit) // mêmes crans que le téléphone (2026-09-24) : RAPIDE ne descend plus sous la résolution d'origine du desktop
+  function applyQ9(fast){ DPR_CAP=Math.min(devicePixelRatio,fast?1:Math.min(DPR_PC,PAL.b('dprNetCap',1.5))); qlReprise(); } // (2026-10-14, passe perf mobile) même plafond par palier (l'ordi = palier 2 : inchangé ; ?palier=0 au banc le suit) // mêmes crans que le téléphone (2026-09-24) : RAPIDE ne descend plus sous la résolution d'origine du desktop
   // ⚙/⏸ + le déclencheur `body.play` : le MÊME tick que le mobile (140 ms, zéro écriture DOM si
   // rien n'a changé) — mais SANS le gel « téléphone couché » ni `mGo()`, qui n'ont aucun sens ici.
   function dSyncJeu(){

@@ -10215,7 +10215,7 @@ const SIMU_JEU=/[?&]simu=1\b/.test(location.search);
    devicePixelRatio — le plafond de résolution (DPR_CAP), pris une fois au démarrage, restait celui de la petite image (plein écran flou).
    En ?simu=1 seulement, il suit le zoom du cadre (même calcul qu'au démarrage). */
 if(SIMU_JEU){let dpr9=devicePixelRatio;setInterval(function(){if(Math.abs(devicePixelRatio-dpr9)<.01)return;dpr9=devicePixelRatio;
-  try{DPR_CAP=Math.min(devicePixelRatio,IS_MOBILE?1:1.5);qlReprise();}catch(e){}},250);}
+  try{DPR_CAP=Math.min(devicePixelRatio,IS_MOBILE?1:DPR_PC);qlReprise();}catch(e){}},250);}
 if(BALADE)document.documentElement.classList.add('balade');
 const IS_LOW_END=IS_MOBILE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);
 /* ====================== LE PALIER DE L'APPAREIL — PAL (2026-10-14, passe perf mobile, Sacha : « la version mobile n'arrive pas à afficher
@@ -10350,7 +10350,10 @@ function ccCtxEn(){let l9='';try{l9=localStorage.ccLang||'';}catch(e){}return l9
 // (2026-09-29, audit de sortie) iOS peut garder le contexte PERDU au retour d'arrière-plan sans jamais le rendre : écran noir pour toujours.
 // Au retour, s'il est encore perdu 1,5 s plus tard, on relance (la sauvegarde a été écrite à la perte).
 addEventListener('visibilitychange',function(){if(document.hidden)return;setTimeout(function(){try{if(!document.hidden&&renderer.getContext().isContextLost()){try{enCoursPose();SAVE.flush();}catch(e){}location.reload();}}catch(e){}},1500);});
-let DPR_CAP=Math.min(devicePixelRatio,IS_MOBILE?1:1.5),curDPR=Math.min(DPR_CAP,devicePixelRatio),dprT=0; // téléphone .66→1 (2026-09-24) : la résolution adaptative sait désormais REMONTER, elle protège la fluidité
+/* (2026-10-25, Sacha : « Chrome prend 1 700 Mo de GPU, 1 800-2 000 en jeu ») LES DEUX PLAFONDS DE L'ORDINATEUR : la résolution de la 3D en course (1,5 → 1,25) et le budget de pixels de la vitrine du menu (8,3 M → 4,2 M ; la 4K tenait toute la carte). Le téléphone n'est pas touché. `?dprpc=1.5` · `?vhdpc=8.3` = les anciennes valeurs. */
+const DPR_PC=(function(){const m=/[?&]dprpc=([d.]+)/.exec(location.search);return m?Math.min(2,Math.max(.6,+m[1]||1.25)):1.25;})();
+const VHD_PX_PC=(function(){const m=/[?&]vhdpc=([d.]+)/.exec(location.search);return m?Math.min(16,Math.max(1,+m[1]||4.2))*1e6:4.2e6;})();
+let DPR_CAP=Math.min(devicePixelRatio,IS_MOBILE?1:DPR_PC) /* (2026-10-25, Sacha : « trop de GPU ») plafond ordinateur 1,5 → 1,25 (−31 % de pixels) ; `?dprpc=1.5` = avant */,curDPR=Math.min(DPR_CAP,devicePixelRatio),dprT=0; // téléphone .66→1 (2026-09-24) : la résolution adaptative sait désormais REMONTER, elle protège la fluidité
 // PLANCHER DE L'ADAPTATIF : sur téléphone on a le droit de descendre BAS. `setPixelRatio` ne touche
 // que le canvas 3D — le HUD est du DOM, il reste net au pixel quoi qu'il arrive. On enlève donc les
 // pixels là où ils coûtent (raymarch, bloom, ombres) sans jamais flouter une jauge.
@@ -10412,7 +10415,7 @@ const POST_SHADOW=new THREE.Vector3(0.004,-0.008,0.062); // OMBRES → bleu-viol
 const POST_HI=new THREE.Vector3(0.052,0.008,-0.014);      // LUMIÈRES → or rosé (le couchant qui s'accroche aux tôles)
 // Grade cinéma en PASSE FINALE : tonemap préservant la chroma + contraste + saturation + split-tone. Scène en amont inchangée.
 const GRADE_ACES=IS_MOBILE; // (2026-09-25) l'étalonnage final (ex-filtre CSS du canvas) passe DANS l'ACES : plus de passe de compositeur plein écran, à la résolution de l'écran, sur téléphone
-const FXAA_ON=IS_MOBILE||IS_LOW_END||devicePixelRatio>=1.5; // (2026-09-26, audit rendu) là où il n'y a PAS de MSAA (téléphone : aucun anticrénelage, chaque marche = 3 px physiques)
+const FXAA_ON=!/[?&]msaa=1/.test(location.search); /* (2026-10-25, Sacha : « Chrome prend 1 700 Mo de GPU » · « Léo et moi n'avons pas les mêmes bugs sur le même lien ») FXAA PARTOUT : avant, l'anticrénelage dépendait de la machine (MSAA si l'écran < ×1,5 ET plus de 4 cœurs, FXAA sinon) — deux images différentes selon l'ordinateur, et la cible MSAA demi-flottante (×4 échantillons) pesait plusieurs centaines de Mo. `?msaa=1` = l'ancien choix. */ // // (2026-09-26, audit rendu) là où il n'y a PAS de MSAA (téléphone : aucun anticrénelage, chaque marche = 3 px physiques)
 const ACES_N=IS_MOBILE?6:8;   // flou radial du boost : 18 lectures de texture au téléphone au lieu de 24 (le grain animé fond les copies)
 /* LA PASSE FINALE ALLÉGÉE (2026-09-27, passe perf iPhone, tour 2 — « le post-traitement »). MESURÉ au micro-banc (la passe seule, rejouée
    sur une image figée, 585×1266 comme l'iPhone en NETTE ; rendu logiciel SwiftShader ET vraie carte, chronomètre de la puce) : en rendu
@@ -10615,7 +10618,7 @@ if(CAN_POST){ try{
       const gl=renderer.getContext(),ok=gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE;renderer.setRenderTarget(null);t.dispose();return ok;}
     catch(e){try{renderer.setRenderTarget(null);}catch(e2){}return false;}})();
   const rtType=f16ok?THREE.HalfFloatType:THREE.UnsignedByteType;
-  if(!IS_MOBILE&&!IS_LOW_END&&devicePixelRatio<1.5&&typeof THREE.WebGLMultisampleRenderTarget==='function')rt=new THREE.WebGLMultisampleRenderTarget(w,h,{format:THREE.RGBAFormat,type:rtType}); // MSAA réservé aux écrans 1× (où le crénelage se voit) — sur Retina le resolve coûte cher pour rien
+  if(!FXAA_ON&&!IS_MOBILE&&!IS_LOW_END&&devicePixelRatio<1.5&&typeof THREE.WebGLMultisampleRenderTarget==='function')rt=new THREE.WebGLMultisampleRenderTarget(w,h,{format:THREE.RGBAFormat,type:rtType}); // MSAA réservé aux écrans 1× (où le crénelage se voit) — sur Retina le resolve coûte cher pour rien
   else rt=new THREE.WebGLRenderTarget(w,h,{format:THREE.RGBAFormat,type:rtType,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
   composer=new THREE.EffectComposer(renderer,rt);
   composer.setPixelRatio(curDPR);composer.setSize(w,h);
@@ -11477,7 +11480,7 @@ window.dbgVhdEcran=function(){ const px=Math.max(1,innerWidth*innerHeight),bud=T
    `?frais=0` = comme avant. */
 const PFR_ON=TEL_NATIF&&!/[?&]frais=0\b/.test(location.search);
 const PCM_ON=(!TEL_NATIF||PFR_ON)&&!/[?&]pcmort=0\b/.test(location.search); /* (2026-10-24) le téléphone aussi, par le mode frais */
-function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?PAL.b('vhdPx',3.2e6):8.3e6; // (2026-10-14) le budget du téléphone se taille sur son palier (voir LE DÉPART AU BON CRAN)
+function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?PAL.b('vhdPx',3.2e6):VHD_PX_PC; // (2026-10-14) le budget du téléphone se taille sur son palier (voir LE DÉPART AU BON CRAN)
   return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF||VHE_MODE?1:1.5),Math.sqrt(bud/px),4));} /* (2026-10-24, passe perf PC) `?vhdecran=1|2` : sans le ×1,5 sur l'ordi (voir LA VITRINE À LA MESURE DE L'ÉCRAN) */
 function vhdAniso(on){ const m=renderer.capabilities.getMaxAnisotropy(),n=on?m:Math.min(IS_MOBILE?4:8,m);
   for(const t of [ASPH_TEX,LIGNE_TEX])if(t&&t.anisotropy!==n){t.anisotropy=n;t.needsUpdate=true;}}
@@ -54527,7 +54530,7 @@ function gomPas(drift,spd3,dk,T){ // à chaque image de course, à la place de l
 window.dbgGomme=function(){const r=function(p,n){return p?+p.value.toFixed(n):null;};return {doux:CRISSE_DOUX,pret:GOM.ok,k:+GOM.k.toFixed(3),souffle:r(GOM.sG&&GOM.sG.gain,4),grain:r(GOM.gG&&GOM.gG.gain,4),passeBas:r(GOM.lp1&&GOM.lp1.frequency,0),grains:r(GOM.gSrc&&GOM.gSrc.playbackRate,2)};};
 /* <<<FIN GOMME DOUCE>>> */
 function initAudio(){
-  AC=new (window.AudioContext||window.webkitAudioContext)();
+  AC=(function(){const C=window.AudioContext||window.webkitAudioContext;try{return new C({sampleRate:48000});}catch(e){return new C();}})(); /* (2026-10-25, Sacha/Léo : « sons très aigus chez lui, grésillements chez moi, même lien ») 48 kHz IMPOSÉS : le contexte prenait la cadence de la carte son de chaque ordinateur (44,1 · 48 · 96 kHz, casque Bluetooth 16-24 kHz) et tout le DSP (bruits, réverbe, filtres, worklets) tournait donc à une cadence différente d'une machine à l'autre ; le navigateur rééchantillonne vers la sortie. */
   if(!SND.sfx&&!(MUS_WA&&MUS_WA.on)&&!musGraphe())try{AC.suspend();}catch(e){} // le mute SON survit au redémarrage — (2026-10-14, session SON) sauf si la musique passe par WebAudio (MUS_WA) : suspendu, le contexte la rendait MUETTE au lancement (SON coupé, MUSIQUE allumée) ; musWaSon coupe alors les effets par l'entrée du limiteur
   // BUS MASTER : tout le WebAudio passe par compresseur + limiteur doux tanh — niveau perçu
   // stable, jamais de clip numérique, pas de fatigue d'oreille sur une longue session
@@ -72824,7 +72827,7 @@ const INTRO_NEUVE=!/[?&]intro=ancien\b/.test(location.search);
   const INTRO_SON=/[?&]intro=muet\b/.test(location.search)?0:/[?&]intro=musique\b/.test(location.search)?2:1, INTRO_NOTES=INTRO_SON===2;
   function introSound(){
     if(!SND.sfx||!(VOL.sfx>0))return; // mute SON : l'intro reste muette aussi — (2026-09-28) et le curseur EFFETS à zéro aussi
-    try{iAC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return;}
+    try{iAC=(function(){const C=window.AudioContext||window.webkitAudioContext;try{return new C({sampleRate:48000});}catch(e){return new C();}})();}catch(e){return;}
     const A=iAC;try{A.resume();}catch(e){}
     const t0=A.currentTime+.05,PHI=1.6180339;
     const phi=k=>110*Math.pow(PHI,k); // l'échelle d'or : 110·φ^k
@@ -74958,7 +74961,7 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
   // ⚠ NOM DÉDIÉ (`applyQ9`, pas `applyQ`) : `applyQ` est déclarée `const` À L'INTÉRIEUR du bloc
   // mobile — hors de portée ici (portée de bloc). Se rebrancher sur le MÊME état (`DPR_CAP`/
   // `curDPR`/`applyDPR`), pas une copie qui diverge.
-  function applyQ9(fast){ DPR_CAP=Math.min(devicePixelRatio,fast?1:PAL.b('dprNetCap',1.5)); qlReprise(); } // (2026-10-14, passe perf mobile) même plafond par palier (l'ordi = palier 2 : inchangé ; ?palier=0 au banc le suit) // mêmes crans que le téléphone (2026-09-24) : RAPIDE ne descend plus sous la résolution d'origine du desktop
+  function applyQ9(fast){ DPR_CAP=Math.min(devicePixelRatio,fast?1:Math.min(DPR_PC,PAL.b('dprNetCap',1.5))); qlReprise(); } // (2026-10-14, passe perf mobile) même plafond par palier (l'ordi = palier 2 : inchangé ; ?palier=0 au banc le suit) // mêmes crans que le téléphone (2026-09-24) : RAPIDE ne descend plus sous la résolution d'origine du desktop
   // ⚙/⏸ + le déclencheur `body.play` : le MÊME tick que le mobile (140 ms, zéro écriture DOM si
   // rien n'a changé) — mais SANS le gel « téléphone couché » ni `mGo()`, qui n'ont aucun sens ici.
   function dSyncJeu(){

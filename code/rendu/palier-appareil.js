@@ -130,7 +130,10 @@ function ccCtxEn(){let l9='';try{l9=localStorage.ccLang||'';}catch(e){}return l9
 // (2026-09-29, audit de sortie) iOS peut garder le contexte PERDU au retour d'arrière-plan sans jamais le rendre : écran noir pour toujours.
 // Au retour, s'il est encore perdu 1,5 s plus tard, on relance (la sauvegarde a été écrite à la perte).
 addEventListener('visibilitychange',function(){if(document.hidden)return;setTimeout(function(){try{if(!document.hidden&&renderer.getContext().isContextLost()){try{enCoursPose();SAVE.flush();}catch(e){}location.reload();}}catch(e){}},1500);});
-let DPR_CAP=Math.min(devicePixelRatio,IS_MOBILE?1:1.5),curDPR=Math.min(DPR_CAP,devicePixelRatio),dprT=0; // téléphone .66→1 (2026-09-24) : la résolution adaptative sait désormais REMONTER, elle protège la fluidité
+/* (2026-10-25, Sacha : « Chrome prend 1 700 Mo de GPU, 1 800-2 000 en jeu ») LES DEUX PLAFONDS DE L'ORDINATEUR : la résolution de la 3D en course (1,5 → 1,25) et le budget de pixels de la vitrine du menu (8,3 M → 4,2 M ; la 4K tenait toute la carte). Le téléphone n'est pas touché. `?dprpc=1.5` · `?vhdpc=8.3` = les anciennes valeurs. */
+const DPR_PC=(function(){const m=/[?&]dprpc=([d.]+)/.exec(location.search);return m?Math.min(2,Math.max(.6,+m[1]||1.25)):1.25;})();
+const VHD_PX_PC=(function(){const m=/[?&]vhdpc=([d.]+)/.exec(location.search);return m?Math.min(16,Math.max(1,+m[1]||4.2))*1e6:4.2e6;})();
+let DPR_CAP=Math.min(devicePixelRatio,IS_MOBILE?1:DPR_PC) /* (2026-10-25, Sacha : « trop de GPU ») plafond ordinateur 1,5 → 1,25 (−31 % de pixels) ; `?dprpc=1.5` = avant */,curDPR=Math.min(DPR_CAP,devicePixelRatio),dprT=0; // téléphone .66→1 (2026-09-24) : la résolution adaptative sait désormais REMONTER, elle protège la fluidité
 // PLANCHER DE L'ADAPTATIF : sur téléphone on a le droit de descendre BAS. `setPixelRatio` ne touche
 // que le canvas 3D — le HUD est du DOM, il reste net au pixel quoi qu'il arrive. On enlève donc les
 // pixels là où ils coûtent (raymarch, bloom, ombres) sans jamais flouter une jauge.

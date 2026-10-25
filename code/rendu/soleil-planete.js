@@ -304,6 +304,6 @@ const SIMU_JEU=/[?&]simu=1\b/.test(location.search);
    devicePixelRatio — le plafond de résolution (DPR_CAP), pris une fois au démarrage, restait celui de la petite image (plein écran flou).
    En ?simu=1 seulement, il suit le zoom du cadre (même calcul qu'au démarrage). */
 if(SIMU_JEU){let dpr9=devicePixelRatio;setInterval(function(){if(Math.abs(devicePixelRatio-dpr9)<.01)return;dpr9=devicePixelRatio;
-  try{DPR_CAP=Math.min(devicePixelRatio,IS_MOBILE?1:1.5);qlReprise();}catch(e){}},250);}
+  try{DPR_CAP=Math.min(devicePixelRatio,IS_MOBILE?1:DPR_PC);qlReprise();}catch(e){}},250);}
 if(BALADE)document.documentElement.classList.add('balade');
 const IS_LOW_END=IS_MOBILE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);
