@@ -127,12 +127,12 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
       let c=Math.max(s,z.a);for(const e of z.ev){if(e.a>c+1)seg.push({s0:c,s1:e.a,r0:rho,r1:rho});seg.push({s0:e.a,s1:e.b,r0:rho,r1:rho+e.amt,fig:1});rho+=e.amt;c=e.b;}
       if(z.b>c+1)seg.push({s0:c,s1:z.b,r0:rho,r1:rho});s=Math.max(s,z.b);continue;}
     const lim=fi<FZ.length?FZ[fi].a-lead:fin; // la route ordinaire s'arrête `lead` m avant la prochaine figure
-    const r=rg();let len,amt=0;
+    const r=rg(),Z=O.zone?Object.assign({},O,O.zone(s/Lc)):O;let len,amt=0; /* (SUR LES PAROIS) Z : les réglages DE L'ENDROIT (O.zone(part de la route) → surcharges : chaque salle de la grotte a son caractère de roulis) */
     if(NV_CALME){const w=Math.atan2(Math.sin(rho),Math.cos(rho)); // (MOINS TORDUE, voir NV_CALME) w : le roulis ramené entre −π et π (0 = à l'endroit)
-      if(Math.abs(w)>.3){if(r<(O.tenueHaut!=null?O.tenueHaut:.35))len=Math.max(250,vC*((O.lenHaut?O.lenHaut[0]:2)+rg()*(O.lenHaut?O.lenHaut[1]:2))); // là-haut (couchée, retournée) : 2-4 s de tenue, une fois sur trois…
+      if(Math.abs(w)>.3){if(r<(Z.tenueHaut!=null?Z.tenueHaut:.35))len=Math.max(250,vC*((Z.lenHaut?Z.lenHaut[0]:2)+rg()*(Z.lenHaut?Z.lenHaut[1]:2))); // là-haut (couchée, retournée) : 2-4 s de tenue, une fois sur trois…
         else{amt=-w;len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));}} // …puis on revient à l'endroit, par le plus court
-      else if(r<(O.tenueBas!=null?O.tenueBas:.6)){len=Math.max(O.lenBas?250:450,vC*((O.lenBas?O.lenBas[0]:6)+rg()*(O.lenBas?O.lenBas[1]:6)));const v9=len;len=Math.min(len,lim-s);if(len<60)break;seg.push({s0:s,s1:s+len,r0:rho,r1:rho,calme:1});s+=len;continue;} // à l'endroit : une longue tenue, 6-12 s — CALME : la dalle y est rappelée vers le ciel (voir plus bas)
-      else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<(O.quart!=null?O.quart:.6)?Math.PI/2:k<(O.demi!=null?O.demi:.95)?Math.PI:TOUR);len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));}}
+      else if(r<(Z.tenueBas!=null?Z.tenueBas:.6)){len=Math.max(Z.lenBas?250:450,vC*((Z.lenBas?Z.lenBas[0]:6)+rg()*(Z.lenBas?Z.lenBas[1]:6)));const v9=len;len=Math.min(len,lim-s);if(len<60)break;seg.push({s0:s,s1:s+len,r0:rho,r1:rho,calme:1});s+=len;continue;} // à l'endroit : une longue tenue, 6-12 s — CALME : la dalle y est rappelée vers le ciel (voir plus bas)
+      else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<(Z.quart!=null?Z.quart:.6)?Math.PI/2:k<(Z.demi!=null?Z.demi:.95)?Math.PI:TOUR);len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));}}
     else if(r<.4)len=Math.max(400,vC*(4+rg()*5)); // une tenue : la dalle reste où elle est (couchée, retournée…) 4-9 s — de quoi respirer entre deux vrilles
     else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<.45?Math.PI/2:k<.9?Math.PI:TOUR);len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));} // (EN GRAND) ~3× plus lentes qu'au premier jet, le tour complet rare
     const veut=len;len=Math.min(len,lim-s);if(len<60)break;

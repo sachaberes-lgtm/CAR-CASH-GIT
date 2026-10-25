@@ -55,8 +55,12 @@ const GROTTE={root:null,Q:null,salles:null,sTot:1,conflits:0,croise:0, // la gé
      le lac est sous la caisse en vrai, au-dessus de sa tête vu de la dalle. */
 const GRT_ROULE=!/[?&]sans=([^&]*,)?grotteparois(,|&|$)/.test(location.search);
 function grtTordOn(){const c=LVL.cur;return GRT_ROULE&&!PARK.on&&!!c&&c.piste==='grotte'&&!c.camp&&(started||SF.pret);}
-const GRT_TORD={f0:.14,tenueHaut:.7,lenHaut:[3,4.5],tenueBas:.2,lenBas:[2.2,3.2],quart:.5,demi:.92,dev:{max:88/57.3,k:1.15,vmax:42/57.3,roulis:80/57.3}}; /* le roulis : peu de tenues à l'endroit (20 %), des tenues couchées/à l'envers de 3 à 7 s, la moitié de quarts de tour, 42 % de demi-tours, 8 % de tonneaux */
-function grtTordOpts(){const S=GROTTE.salles,s1=S&&S[1]?S[1].s/Math.max(1,GROTTE.sTot):.14;return Object.assign({},GRT_TORD,{f0:s1+.01});} /* la route ne roule qu'après la mine */
+const GRT_TORD={f0:.14,tenueHaut:.9,lenHaut:[6,6],tenueBas:.5,lenBas:[5,6],quart:.55,demi:.999,dev:{max:34/57.3,k:.8,vmax:24/57.3,roulis:50/57.3}}; /* (2e passe, Sacha : « on longe le mur, ou le plafond, ou le sol, et des spirales adaptées pour changer de surface — pas de spirales partout ») : LONGUES tenues sur une surface (6-12 s), un changement de surface = un quart de tour (mur) ou un demi-tour (plafond) lent, jamais de tonneau, un dévers modeste (34°) */ /* le roulis : peu de tenues à l'endroit (20 %), des tenues couchées/à l'envers de 3 à 7 s, la moitié de quarts de tour, 42 % de demi-tours, 8 % de tonneaux */
+/* LE CARACTÈRE DE ROULIS DE CHAQUE SALLE (surcharges de GRT_TORD, lues par pisteTord selon l'endroit) — la luxuriante : des quarts de tour tranquilles, on marche sur les murs · le BOYAU : des changements de surface plus fréquents (tenues de 4-8 s)
+    · la LAVE : de longues tenues AU PLAFOND, au-dessus du lac (des demi-tours, rarement à l'endroit) · les stalactites et les abysses : le réglage de base */
+const GRT_ROULIS={luxe:{quart:.85},boyau:{tenueHaut:.8,lenHaut:[4,4],tenueBas:.4,lenBas:[4,4],quart:.4},lave:{tenueHaut:.93,lenHaut:[8,6],tenueBas:.25,lenBas:[3,3],quart:.12},abysse:{quart:.7}};
+function grtTordOpts(){const S=GROTTE.salles||[],T9=Math.max(1,GROTTE.sTot),s1=S[1]?S[1].s/T9:.14;
+  return Object.assign({},GRT_TORD,{f0:s1+.01,zone:function(u){let k=null;for(let j=1;j<S.length;j++)if(S[j].s/T9<=u)k=S[j].k;return GRT_ROULIS[k]||null;}});} /* la route ne roule qu'après la mine */
 const GRT_SALLES=['mine','luxe','boyau','stal','lave','abysse'];
 /* LA FORME DE CHAQUE SALLE (mètres) — rh : la demi-largeur de l'air autour de la route · up : le plafond au-dessus d'elle · dn : le fond en
    dessous · ex : la forme (2 = ellipse, 6 = galerie presque carrée) · nz : la morsure du bruit (±). entree / fin : la salle d'arrivée (le
@@ -278,6 +282,7 @@ function grtEchantillons(){
     let rh=0,up=0,dn=0,ex=0,nz=0,lt=0,wb=-1,kb=0;const wp=grtProfond(s9);
     for(let j=0;j<F.length;j++){const a=j?sm(s9,F[j].s-90,F[j].s+90):1,b=j+1<F.length?sm(s9,F[j+1].s-90,F[j+1].s+90):0,m=a-b;if(m<=0)continue;
       const f=GRT_FORME[F[j].k];rh+=f.rh*m;up+=f.up*m;dn+=(f.hug&&GRT_ROULE?f.hug+(f.dn-f.hug)*wp:f.dn)*m;ex+=f.ex*m;nz+=f.nz*m;if(GRT_ROULE&&f.lt)lt+=f.lt*m;if(m>wb){wb=m;kb=SI[F[j].k];}}
+    if(GRT_ROULE&&lt>0){const g=Math.pow(Math.max(0,Math.sin(s9*.0051+2.1)),12),cw=1-.42*g*Math.min(1,lt/.5);rh*=cw;up*=1-.2*g*Math.min(1,lt/.5);} /* LES GOULETS : tous les ~1,2 km la salle se pince sur ~150 m (le creux se resserre autour de la route) : la vitesse se lit, puis l'espace s'ouvre */
     R.RH[q]=rh;R.UP[q]=up;R.DN[q]=dn;R.EX[q]=ex;R.NZ[q]=nz;R.SAL[q]=kb;R.LAT[q]=lt*rh*Math.sin(s9*.0082+.7);}; /* le creux se décale de côté, lentement (période ~770 m) : la route frôle un mur latéral, puis l'autre */
   const T0=T[0],T1=T[NP-1],p0=pts[0],p1=pts[NP-1],N0=Nn[0],N1=Nn[NP-1];
   for(let k=0;k<20;k++){const d=(20-k)*6;pose(k,p0.x-T0.x*d,p0.y-T0.y*d,p0.z-T0.z*d,T0.x,T0.z,-d,1,N0,T0);}

@@ -22,7 +22,7 @@ function* grtCristauxG(V,R,dec,seed){
   const clair=function(x,y,z,L,k){const r=(24+L*.9)*(VZ?1.4:1),c=GRT_CRIS_L[k];P9.push({x:x,y:y,z:z,r:r,r2:r*r,c:c,I:1.7});}; /* (reprise : I .85 → 1,7 — la roche autour d'une grappe rosissait trop peu pour se lire à 150 m dans la brume) */
   /* une grappe : un cristal principal (prisme à cinq pans + pointe) et trois éclats pointus, plantés dans la roche en (bx,by,bz), tournés vers dir (unitaire) */
   const grappe=function(bx,by,bz,dir,L0,r0,k,pro){const t=GRT_CRIS_T[k],L=L0+pro,h=L*.7,rot=fe()*6; /* pro : le PIED ENTERRÉ dans la roche (la grappe sort de la paroi au lieu d'y flotter) */
-    grtPrisme(D,V,bx,by,bz,dir,5,r0,r0,h,t,rot);grtPrisme(D,V,bx+dir[0]*h,by+dir[1]*h,bz+dir[2]*h,dir,5,r0,0,L*.3,t,rot);
+    grtPrisme(D,V,bx,by,bz,dir,5,r0,r0,h,t,rot,L>9?'roche':0); /* (SUR LES PAROIS) les grosses grappes se touchent : on ne les traverse plus (collision en vol, comme les concrétions) */grtPrisme(D,V,bx+dir[0]*h,by+dir[1]*h,bz+dir[2]*h,dir,5,r0,0,L*.3,t,rot);
     for(let j=0;j<3;j++){ /* trois éclats, nés de la même souche : un petit décalage de la base dans le plan perpendiculaire à l'axe, un axe qui s'écarte de ±0,5 */
       const a=[dir[0]+(fe()-.5)*1.1,dir[1]+(fe()-.5)*1.1,dir[2]+(fe()-.5)*1.1],l=Math.hypot(a[0],a[1],a[2])||1,u=[a[0]/l,a[1]/l,a[2]/l];
       let w=[fe()-.5,fe()-.5,fe()-.5];const pd=w[0]*dir[0]+w[1]*dir[1]+w[2]*dir[2];w=[w[0]-pd*dir[0],w[1]-pd*dir[1],w[2]-pd*dir[2]];const wl=Math.hypot(w[0],w[1],w[2])||1,o=r0*(.5+fe()*1.1)/wl;

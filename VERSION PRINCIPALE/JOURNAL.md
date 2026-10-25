@@ -6,6 +6,11 @@
 ## SAUVER MAMAN : LA FLÛTE DEVIENT UN VIOLON (2026-10-25 soir — Léo : « change juste la flûte (instrument) de SAUVER MAMAN »)
 - `retouches-bleu.js`, entrée `bleu-3379` : `Mx.tim.contre = 'violon'` (le contre-chant, qui entre au 12e moteur, était la flûte synthétique). Rien d'autre ne bouge (la cloche de verre retouchée, l'ordre, les grilles). Vérifié au banc : le violon joue au moteur 15, 0 erreur, niveau stable. Non écouté. Retour : retirer ce seul réglage.
 
+## LA GROTTE, 2e PASSE — UNE SURFACE À LA FOIS, DES GOULETS, DES CRISTAUX SOLIDES (2026-10-25, Sacha : « longer le mur, le plafond ou le sol, des spirales adaptées pour changer de surface, pas de spirales partout »)
+- `GRT_TORD` : tenues longues (6-12 s) sur une surface, un changement = un quart de tour (mur) ou un demi-tour (plafond) lent, plus de tonneau, dévers 34° ; `GRT_ROULIS` : un caractère par salle (la lave : de très longues tenues AU PLAFOND au-dessus du lac). `pisteTord` lit `opts.zone(part)`.
+- `LES GOULETS` : la salle se pince sur ~150 m tous les ~1,2 km. Les grosses grappes de cristaux sont solides (collision en vol).
+- MESURÉ : 41 % à l'envers, 16 % sur la tranche, 3 vrilles ; pilote auto téléporté tous les 800 m (12 points, tout le parcours) : 0 mort.
+
 ## LA GROTTE SUR LES PAROIS — PLUS DE GÉODE, LA ROUTE LONGE LE SOL, LES MURS ET LE PLAFOND (2026-10-25, v929 — Sacha : « retire l'énorme boule violette et la géode, c'est tout le temps le même module ; plus de virages, des modules de course ; la route doit longer les parois, des fois sur le sol, des fois sur un mur à 90°, des fois au plafond ; une grande salle de lave ; sois inventif »)
 - **PARTIS** : le puits de la géode (spirale, pilier, boule d'améthyste, bassin, raccourci : `grtPuits`, `GROTTE.puits`, la lumière et la matière de la géode). Sa place est prise par **LE BOYAU DE CRISTAUX** (salle `boyau`, 3e des
   biomes : même violet, mais un tube étroit et tortueux dont les parois portent de grosses grappes de cristaux violets/roses/azur — `GRT_CRIS_P/D`). L'améthyste reste, la boule non.
