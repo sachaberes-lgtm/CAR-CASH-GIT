@@ -41,7 +41,7 @@ Cohabitation mesurée dans le code : une figure posée déclenche à la fois #1 
 
 ### 4. Ce qui disparaît
 - Textes au-dessus de la caisse (#1 : seul `fil` écrit) et ligne du HUD des figures au centre (#2 : le combo se dit dans la pastille).
-- Carte de verdict `#verdHud` (#3), annonce `#slam9` pour les gestes et paliers (#4).
+- Carte de verdict `#verdHud` (#3). De `slam` (#4), seul le BOOST passe à la pastille ; les grandes annonces rares (FRÉNÉSIE, NOUVEL ATH, CHAMPION, RECORD DE VITESSE, CHAÎNE PERDUE…) gardent leur carte : elles portent une consigne ou un enjeu, une fois par partie au plus.
 - Les `+N` volants et les éclairs vers la barre de nitro (#5) : la barre se remplit en direct avec son éclat sur place (`nbPrend`, conservé), le compteur d'aura pulse.
 - Les billets `$` volants (#6) : le compteur d'argent pulse à l'arrivée du gain.
 - `trickBox` / `chainHud` sur PC (#7) : redirigés vers la pastille.
@@ -60,6 +60,11 @@ Chaque incrément est livré derrière `FIL.on` (défaut : vrai, `?fil=0` : faux
 - Banc : compter, par seconde de course, les éléments de texte visibles dans la bande centrale (x 20-80 %, y 15-75 %) avant (`?fil=0`) et après ; objectif : 0 après, > 0 avant.
 - Capture : un saut avec figure + pose, une série de pièces, un palier de FLOW, un MONSTRE.
 - `node code/assembler.cjs --verifier`, compilation des `<script>` d'index.html (`vm.Script`), cache `cashcar-vNNN` +1.
+
+## Décisions de mise en œuvre
+- `#avList` (les deux dernières lignes de la chaîne, sous le compteur d'aura) est GARDÉE : elle est dans le coin, pas au centre. À arbitrer avec Sacha si la pastille la double trop.
+- Les robinets (RÉCOLTE) et le SLALOM ne s'écrivent plus ; le compteur d'aura pulse (`auraPop`).
+- Noms pris dans le jeu : `FIL` (les fils d'éclairs de zones-caisses) et `dbgFil` existent déjà ; l'objet s'appelle `LEFIL`, le crochet `dbgLeFil`, la feuille `#leFil`.
 
 ## Contraintes
 - Version mobile gelée (25/10) : travail sur la branche `fil-hud`, rien n'est poussé sur `main` avant le signal de Sacha.

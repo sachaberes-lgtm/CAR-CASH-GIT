@@ -1,0 +1,15 @@
+<style id="leFil">
+/* (2026-10-25, Sacha : « un seul système qui allège le milieu de l'écran ») LE FIL — la pastille unique, sous le compteur d'aura (fil.js). */
+#fil{margin-top:6px;font-family:var(--pix);font-size:11px;letter-spacing:1px;white-space:nowrap;pointer-events:none;color:var(--fc,#ffd75e);
+  text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,0 4px 0 #1c0430;opacity:0;transform-origin:left center}
+#fil[data-n="2"]{font-size:13px}
+#fil[data-n="3"]{font-size:15px}
+#fil.on{animation:filIn .95s cubic-bezier(.3,1.5,.5,1) forwards}
+#fil.on2{animation:filIn2 .95s cubic-bezier(.3,1.5,.5,1) forwards}
+@keyframes filIn{0%{opacity:0;transform:translateX(-10px) scale(.85)}14%{opacity:1;transform:translateX(0) scale(1.12)}28%{transform:translateX(0) scale(1)}78%{opacity:1}100%{opacity:0;transform:translateX(0) scale(1)}}
+@keyframes filIn2{0%{opacity:0;transform:translateX(-10px) scale(.85)}14%{opacity:1;transform:translateX(0) scale(1.12)}28%{transform:translateX(0) scale(1)}78%{opacity:1}100%{opacity:0;transform:translateX(0) scale(1)}}
+@media (prefers-reduced-motion:reduce){#fil.on{animation:filRM .95s linear forwards}#fil.on2{animation:filRM2 .95s linear forwards}
+  @keyframes filRM{0%{opacity:0}15%{opacity:1}75%{opacity:1}100%{opacity:0}}@keyframes filRM2{0%{opacity:0}15%{opacity:1}75%{opacity:1}100%{opacity:0}}}
+body.dead #fil,body.ebOn #fil{visibility:hidden}
+html.fil :is(#fh,#verdHud,#trickBox,#chainHud){display:none!important} /* les anciennes voix du milieu : la pastille les remplace */
+</style>

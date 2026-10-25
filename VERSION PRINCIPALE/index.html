@@ -6681,6 +6681,21 @@ body.verdOn #fh .fhNom{visibility:hidden} /* UNE voix au centre : le verdict de 
 .fhL b[data-rp]{color:var(--rc);font-size:calc(var(--f0,8px) * var(--rk))}
 @media (prefers-reduced-motion:reduce){#fh .fhNom[data-rp=legendaire] b::after,#fh .fhNom[data-rp=combo] b{animation:none}}
 </style>
+<style id="leFil">
+/* (2026-10-25, Sacha : « un seul système qui allège le milieu de l'écran ») LE FIL — la pastille unique, sous le compteur d'aura (fil.js). */
+#fil{margin-top:6px;font-family:var(--pix);font-size:11px;letter-spacing:1px;white-space:nowrap;pointer-events:none;color:var(--fc,#ffd75e);
+  text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,0 4px 0 #1c0430;opacity:0;transform-origin:left center}
+#fil[data-n="2"]{font-size:13px}
+#fil[data-n="3"]{font-size:15px}
+#fil.on{animation:filIn .95s cubic-bezier(.3,1.5,.5,1) forwards}
+#fil.on2{animation:filIn2 .95s cubic-bezier(.3,1.5,.5,1) forwards}
+@keyframes filIn{0%{opacity:0;transform:translateX(-10px) scale(.85)}14%{opacity:1;transform:translateX(0) scale(1.12)}28%{transform:translateX(0) scale(1)}78%{opacity:1}100%{opacity:0;transform:translateX(0) scale(1)}}
+@keyframes filIn2{0%{opacity:0;transform:translateX(-10px) scale(.85)}14%{opacity:1;transform:translateX(0) scale(1.12)}28%{transform:translateX(0) scale(1)}78%{opacity:1}100%{opacity:0;transform:translateX(0) scale(1)}}
+@media (prefers-reduced-motion:reduce){#fil.on{animation:filRM .95s linear forwards}#fil.on2{animation:filRM2 .95s linear forwards}
+  @keyframes filRM{0%{opacity:0}15%{opacity:1}75%{opacity:1}100%{opacity:0}}@keyframes filRM2{0%{opacity:0}15%{opacity:1}75%{opacity:1}100%{opacity:0}}}
+body.dead #fil,body.ebOn #fil{visibility:hidden}
+html.fil :is(#fh,#verdHud,#trickBox,#chainHud){display:none!important} /* les anciennes voix du milieu : la pastille les remplace */
+</style>
 <style id="ecoleV2">
 /* ==============================================================================================================
    L'AUTO-ÉCOLE v2 (2026-10-14, Sacha : « le tutoriel est un peu intimidant, pas très beau — plus d'animation, plus de trucs clairs ; les carrés
@@ -46693,6 +46708,7 @@ function driftTick(dt,on){
 // LE TEXTE QUI JAILLIT au-dessus de la caisse (l'écran est nu sur téléphone : c'est la seule annonce de conduite)
 function popTexte(txt,col,prio){
   // (2026-09-25) une PRIORITÉ : un temps fort (PARFAIT, AU CHEVEU…) ne se fait pas voler la vedette par un palier dans les 650 ms
+  if(LEFIL.on){popTexte._w=0;fil(txt,col,prio);return;} /* (2026-10-25, LE FIL) plus de texte jailli de la caisse : la pastille unique parle (fil.js) */
   prio=prio|0;const n9=performance.now();
   if(prio<(popTexte._p|0)&&n9<(popTexte._t||0))return;
   popTexte._p=prio;popTexte._t=n9+650;popTexte._s=n9;
@@ -47228,7 +47244,7 @@ function frole(c9,dl,k){
   nitroGain((.08+.08*pres)*(k>1?1.5:1),'frole');flowAdd((4+4*pres)*(k>1?1.5:1),'style','n'); // (v4→v5) frôler, c'est un peu de NARCISSE — flowAdd lui verse la part du style // ×1,5 (et non ×2) : la porte paie plus sans gonfler le FLOW
   momT=Math.min(4.3,momT+.6); // (momentum v2) le style NOURRIT la réserve de vitesse
   try{chaineAuraMuette(FROLE.n>=2?'SLALOM ×'+FROLE.n:'FRÔLÉ',20,'frole',false,SONV2);}catch(e){}
-  if(k===1&&FROLE.n>=2)popTexte('SLALOM ×'+FROLE.n,FROLE.n>=3?'#ffd75e':'#7dffec'); // (2026-09-29, Sacha) FRÔLÉ ! et PORTE ! ne s'écrivent plus : seul le SLALOM parle
+  if(k===1&&FROLE.n>=2&&!LEFIL.on)popTexte('SLALOM ×'+FROLE.n,FROLE.n>=3?'#ffd75e':'#7dffec'); // (2026-09-29, Sacha) FRÔLÉ ! et PORTE ! ne s'écrivent plus : seul le SLALOM parle
   try{froleSnd(pres,FROLE.n,c9);}catch(e){} // (2026-10-14, session SON) + l'objet frôlé : le souffle passe de SON côté
   hap(FROLE.n>=3?[8,20,8]:8);fovPunch=Math.max(fovPunch,1.5+2*pres);
   try{sparkBurst(sparkBlue,c9.mesh.position,3+Math.round(3*pres),5);}catch(e){}
@@ -57215,11 +57231,12 @@ function fhXMaj(){const c=FX2.cv,x=c.n>=2?figCvX():0;fhEl();FH.el.classList.togg
   FH.x.innerHTML=x?'<small>'+fhNet(TR('COMBO'))+'</small> '+figCvTxtX(x):'';FH.x.style.setProperty('--xc',x>=3?'var(--fhO)':x>=2?'var(--fh0)':'var(--fhVert)');FH.x.classList.toggle('max',x>=IMPU.xMax); // vert → or → orange → l'arc-en-ciel du plafond
   {const bat=x>0&&x>figRec()+1e-6;if(bat!==FH.recBat){FH.recBat=bat;FH.rec.textContent=bat?fhNet(TR('RECORD')):'';FH.rec.classList.toggle('on',bat);if(bat){fhAnime(FH.rec,[{transform:'scale(2.2)',opacity:0},{transform:'scale(.9)',opacity:1,offset:.6},{transform:'none'}],380);try{hap([6,20,6]);}catch(e){}}}} // (v4) le RECORD bat à côté du × : on le voit tomber en plein vol
   if(x&&monte)fhAnime(FH.x,[{transform:'scale(2.1)',filter:'brightness(2.6)'},{transform:'scale(.9)',offset:.5},{transform:'none',filter:'none'}],380);}
-function fhLance(s,r,o){if(!r||!r.f||!window.FIG)return;const c=o&&o.douce?3:s>=0?Math.min(2,s):3;r.fhc=c; // (figLance) la figure part : son nom, en grand, dans la couleur de son emplacement
+function fhLance(s,r,o){if(!r||!r.f||!window.FIG)return;if(LEFIL.on)filFig(figNom(r.f,figRepsEnCours(r)),figRarH(r.f),1); /* (LE FIL) le nom part dans la pastille ; #fh reste caché */
+  const c=o&&o.douce?3:s>=0?Math.min(2,s):3;r.fhc=c; // (figLance) la figure part : son nom, en grand, dans la couleur de son emplacement
   if(FH.fin)fhRaz(); /* (v5) la ligne du vol d'avant s'éteignait encore : on repart à neuf (avant, son fondu « forwards » restait posé sur #fh — la figure suivante partait invisible) */
   fhNom(figNom(r.f,figRepsEnCours(r)),null,'in',r.flD||null,figRarH(r.f));FH.nomT=performance.now()+1900;FH.nomPl=false; /* (v4) le nom bien écrit (plus « HELICO 720 ×2 » pour un hélico simple) et la flèche du geste — (v5) dans la couleur et la police de SA RARETÉ (plus celle de l'emplacement) */
   if(s>=0)fhLegFx(s,false);}
-function fhPlante(r,f,reps,neuf){if(!f||!window.FIG)return;const t=figNom(f,reps),rp=figRarH(f); // (figPaye) plantée : elle claque et tombe dans la ligne
+function fhPlante(r,f,reps,neuf){if(!f||!window.FIG)return;const t=figNom(f,reps),rp=figRarH(f);if(LEFIL.on)filFig(t,rp,1); // (figPaye) plantée : elle claque et tombe dans la ligne
   if(FH.fin)fhRaz();
   const m=fhMaillon(t,rp,{neuf:neuf,d:!!(r&&r.douce)});fhXMaj(); /* (v5) son MAILLON entre dans la ligne du combo */
   fhSeule(t,rp,undefined,1000,m,Math.min(12,6+2*FX2.cv.n));}
@@ -57227,11 +57244,11 @@ function fhSeule(t,rp,dir,ms,m,nb){const n=performance.now(); // (v5) une figure
   if(FX2.cv.n<2){fhNom(t,null,'pl',dir,rp);FH.nomT=n+ms;FH.nomPl=true;try{pixBurst(FH.b,nb);}catch(e){}return;} //   (il s'éteint, son maillon arrive) : jamais écrit deux fois — Sacha, 15/10 : « là c'est écrit en double »
   if(FH.nom.classList.contains('on')&&FH.nomT>n+140&&(FH.nomPl||FH.b.textContent===fhNet(t)))FH.nomT=n+140; // le grand nom est celui d'une figure DÉJÀ dans la ligne (nomPl) : il s'éteint — une figure lancée, encore en l'air, garde le sien
   try{pixBurst(m,nb);}catch(e){}}
-function fhBump(k,neuf){fhEl();const t=TR(bumpNomH(k)),rp=figRarH(BUMP_FIG,k); // (v5) LE BUMP s'écrit comme une figure plantée : en grand s'il est seul, son maillon dans la ligne
+function fhBump(k,neuf){fhEl();const t=TR(bumpNomH(k)),rp=figRarH(BUMP_FIG,k);if(LEFIL.on)filFig(t,rp,1); // (v5) LE BUMP s'écrit comme une figure plantée : en grand s'il est seul, son maillon dans la ligne
   if(FH.fin)fhRaz();
   const L=FH.cs.lastElementChild;let m=L;if(k>1&&L&&L.getAttribute('data-b'))fhMaillonMaj(L,t,rp);else m=fhMaillon(t,rp,{neuf:neuf,b:1}); // collé au BUMP d'avant : le même maillon grandit
   fhXMaj();fhSeule(t,rp,null,1100,m,Math.min(10,4+2*k));}
-function fhTrio(txt){if(!FH.el||!FH.vu)return; // (v5, comboNote) LE COMBO À TROIS NOMMÉ : son nom en grand (arc-en-ciel), ses trois maillons soulignés d'or
+function fhTrio(txt){if(LEFIL.on)fil(txt,FIL_RAR.combo,2);if(!FH.el||!FH.vu)return; // (v5, comboNote) LE COMBO À TROIS NOMMÉ : son nom en grand (arc-en-ciel), ses trois maillons soulignés d'or
   fhNom(txt,null,'in',null,'combo');FH.nomT=FH.trioT=performance.now()+1700;FH.nomPl=false;
   const L=FH.cs.children;let n=0;for(let i=L.length-1;i>=0&&n<3;i--){if(L[i].getAttribute('data-b')||L[i].getAttribute('data-d'))continue;L[i].classList.add('trio');n++;}}
 function figBumpNote(k,pts){if(!FIGV2.on||!BUMP_FIG_ON||!figTutoOk())return; /* (2026-10-18, débogage) figTutoOk : pas de combo invisible payé pendant l'auto-école */ // (v5) LE BUMP, FIGURE À PART ENTIÈRE DU COMBO DU VOL — appelée au rebond sur la tranche (k = son rang dans le vol)
@@ -57309,6 +57326,49 @@ window.dbgFig=function(a,b){
   return {on:FIGV2.on,equipees:figEquipees(),slots:figSlots(),mode:C?C.mode:null,ecart:C?Math.round(C.ecart()*57.3):0,w:C?C.w.map(function(x){return +x.toFixed(2);}):null,
     figures:C?C.figs.map(function(r){return r.f.id+(r.paye?' payée':r.fini?' finie':'')+' '+r.mv.map(function(m){return (m.th/6.2832).toFixed(2);}).join('/');}):null,
     herite:FX2.herite,lancees:FX2.n,payees:FX2.payees,chutes:FX2.chutes,ptsVol:FX2.pts,budget:C?+(+C.budget).toFixed(2):0,boutons:document.body.classList.contains('figVol')};};
+/* ===== LE FIL (2026-10-25, Sacha : « alléger visuellement le jeu, surtout le milieu, pour TikTok : un seul système qui donne l'impression
+   d'avoir accompli quelque chose sans prendre l'écran ») — spec : docs/superpowers/specs/2026-10-25-le-fil-design.md =====
+   UNE pastille, sous le compteur d'aura (dans #auraV2 : elle suit la place du compteur sur PC comme sur téléphone), qui remplace les
+   textes jaillis de la caisse (`popTexte` devient un alias), le verdict de pose, la grande annonce des gestes, la ligne du HUD des figures.
+   · UNE ligne, remplacée à chaque annonce (la règle de priorité de popTexte est gardée : un temps fort ne se fait pas voler la vedette
+     dans les 650 ms) ;
+   · les annonces qui tombent dans la même seconde FUSIONNENT : « TONNEAU · SALTO AVANT +60 » au lieu de deux textes ;
+   · niveau 0 geste · 1 palier · 2 temps fort · 3 impact : le 3 grossit la pastille et allume les bords (flashEcran) — jamais au centre.
+   `?fil=0` rend l'ancien affichage. Console : `dbgLeFil(txt,niv)` pour en forcer une. */
+const LEFIL={on:!/[?&]fil=0\b/.test(location.search),el:null,parts:[],niv:0,t:0,p:0,pt:0,k:false,fen:1100};
+try{document.documentElement.classList.toggle('fil',LEFIL.on);}catch(e){}
+function filEl(){
+  if(LEFIL.el&&LEFIL.el.isConnected)return LEFIL.el;
+  const h=document.getElementById('auraV2');if(!h)return null;
+  const e=document.createElement('div');e.id='fil';e.setAttribute('aria-hidden','true');h.appendChild(e);LEFIL.el=e;return e;
+}
+function filBase(s){return String(s).replace(/\s*[+×]\s*[\d.,$].*$/,'').trim();} /* le nom du geste, sans ses points ni son × */
+function fil(txt,col,niv){
+  if(!LEFIL.on)return false;
+  niv=niv|0;const n9=performance.now();
+  if(niv<(LEFIL.p|0)&&n9<LEFIL.pt)return false; /* un temps fort ne se fait pas voler la vedette par un palier dans les 650 ms */
+  const e=filEl();if(!e)return false;
+  const lb=sansAcc(TR(txt)).replace(/[<>&"]/g,'').trim();if(!lb)return false;
+  if(n9-LEFIL.t<LEFIL.fen&&LEFIL.parts.length){ /* même seconde : on fusionne (le dernier mot reste le dernier) */
+    const L9=LEFIL.parts.length-1;
+    if(filBase(LEFIL.parts[L9])===filBase(lb)){if(lb.length>=LEFIL.parts[L9].length)LEFIL.parts[L9]=lb;} /* « TONNEAU » puis « TONNEAU +45 » : le même geste, on garde le plus complet */
+    else LEFIL.parts.push(lb);
+    LEFIL.niv=Math.max(LEFIL.niv,niv);
+  }else{LEFIL.parts=[lb];LEFIL.niv=niv;}
+  while(LEFIL.parts.length>3||(LEFIL.parts.length>1&&LEFIL.parts.join(' · ').length>30))LEFIL.parts.shift(); /* la pastille tient dans la colonne du compteur */
+  LEFIL.t=n9;LEFIL.p=niv;LEFIL.pt=n9+650;
+  e.textContent=LEFIL.parts.join(' · ');e.style.setProperty('--fc',col||'#ffd75e');e.dataset.n=LEFIL.niv;
+  const k9=LEFIL.k=!LEFIL.k;e.classList.remove(k9?'on':'on2');e.classList.add(k9?'on2':'on'); /* deux animations jumelles : relance sans mise en page forcée */
+  if(niv>=3)try{flashEcran('rgba(255,215,94,.2)');}catch(x){}
+  return true;
+}
+const FIL_RAR={commun:'#dfeeff',rare:'#35e6ff',epique:'#ff4fc2',exotique:'#ffc93a',legendaire:'#ff9a3a',combo:'#ffd75e'}; /* la couleur de la rareté d'une figure (celle des pastilles de l'ancien HUD) */
+function filFig(t,rp,niv){fil(t,FIL_RAR[rp]||FIL_RAR.commun,niv==null?1:niv);}
+function filTrick(txt,tier){ /* trickMsg : les verdicts de pose, les figures en vol, les paliers du × — sans emoji, sans la vanne après le tiret */
+  const p9=String(txt).replace(/[\u2190-\u2BFF\uD83C-\uDBFF\uDC00-\uDFFF\uFE0F]/g,'').split(' — '),t=(/^×\d/.test(p9[0])?p9.join(' '):p9[0]).replace(/\s{2,}/g,' ').trim();
+  if(t)fil(t,tier===3?'#ff3ec8':tier===2?'#ff9ee6':tier===1?'#5ee6ff':'#ffd75e',tier===3||tier===2?3:tier===1?2:1);
+}
+window.dbgLeFil=function(t,n){return fil(t||'TONNEAU +45','#ffd75e',n|0);};
 /* ===== LES DÉFIS SECRETS — les détections (2026-10-14, Sacha via PILOTAGE : « une dizaine de couleurs secrètes, chacune gagnée par un défi
    caché un peu compliqué à avoir, façon Geometry Dash » ; GRAPHISME écrit les peintures `COSM.peinture` (`sec:'id'`, l'indice) et `secDonne(id)`
    — la peinture donnée, le toast COULEUR SECRÈTE ; GAMEPLAY écrit ici QUAND on la gagne). Rien en BALADE, en BAC À SABLE, au PARC ni à
@@ -58985,7 +59045,7 @@ function chaineAura(nom,base,fam,brut,muet,rob){ // rob : un ROBINET (récolte, 
   if(!(base>0)||!running||gameOver||(typeof PARK!=='undefined'&&PARK.on))return 0;
   if(rob){ /* (2026-10-01) LE ROBINET : au compteur, tel quel — ni chaîne, ni ×, ni horloge (voir LA CHAÎNE SE FERME) */
     const p=Math.max(1,Math.round(base*auraDragonK()));auraRun+=p;livre('a:robinet.'+(fam||nom),p);auraPop=Math.min(1,auraPop+p/90);
-    if(TCTL.on&&!CHA.sansPop)popTexte(sansAcc(TR(nom))+' +'+p,'#ffd75e',0);
+    if(TCTL.on&&!CHA.sansPop&&!LEFIL.on)popTexte(sansAcc(TR(nom))+' +'+p,'#ffd75e',0); /* (LE FIL) un robinet est un flux : le compteur pulse (auraPop), rien ne s'écrit */
     if(!muet)try{chimeNote(noteP(1,1),0,.10,.16);}catch(e){}
     return p;}
   fam=fam||nom;const k=CHA.fam[fam]|0;CHA.fam[fam]=k+1;
@@ -59638,6 +59698,7 @@ function heistFire(){
   showMsg('🚀 DÉCOLLAGE — TOUT ×2 ! ★','#ff3ec8');
 }
 function trickMsg(txt,tier){ // tier: 1 MONSTRE · 2 DOUBLE · 3 TRIPLE (ou true = mis en avant)
+  if(LEFIL.on){filTrick(txt,tier);return;} /* (2026-10-25, LE FIL) plus de verdict ni de carte au centre : la pastille unique le dit */
   if(TCTL.on){verdPousse(txt,tier);return;} // (vague 3) sur téléphone #trickBox est masqué (écran nu) : le verdict monte au COULOIR des annonces (verdSolde)
   // UN temps fort à la fois : un gros verdict (tier≥2) balaie les petits pops en cours ; sinon on plafonne à 2
   if(tier===2||tier===3){while(trickBox.firstChild)trickBox.firstChild.remove();}
@@ -59681,6 +59742,7 @@ function flyCash(worldPos,n){ // les billets VOLENT de la caisse vers le compteu
   flyV.copy(worldPos).project(camera);
   if(flyV.z>1)return; // derrière la caméra : rien à montrer
   if(SONV2&&!document.body.classList.contains('touch')){const m9=Math.min(4,n|0);for(let k=0;k<m9;k++){const i9=m9>1?Math.round(k*(n-1)/(m9-1)):0;sfx('billet.vole',{t:.58+i9*.045,st:sonPd(k)});}} // (console de son) sur téléphone .bill est masqué (écran nu) : pas de son sans image
+  if(LEFIL.on)return; /* (2026-10-25, LE FIL) le son est joué, mais plus de billets qui traversent l'écran : le compteur d'argent se met à jour seul */
   const x0=(flyV.x*.5+.5)*innerWidth,y0=(-flyV.y*.5+.5)*innerHeight;
   const r=elMoney.getBoundingClientRect(),x1=r.left+r.width/2,y1=r.top+r.height/2;
   for(let i=0;i<n;i++){
@@ -70744,6 +70806,7 @@ function volgLance(k,q,src,big){
 }
 // une nitro gagnée : elle vole si elle peut (`r` réservoir orange, `x` réserve bleue) ; sinon la barre bat tout de suite
 function volgNitro(k,q){
+  if(LEFIL.on)return false; /* (2026-10-25, LE FIL) plus d'éclairs qui traversent l'écran : la barre prend son éclat sur place (nbPrend, appelé par le refus) */
   if(!(q>.03)||!VOLG)return false;
   if(volgLance(k,q,ajSource(false),Math.min(1.5,.9+q*.6))){VOLG.n[k]+=q;return true;}
   return false;
@@ -71333,7 +71396,7 @@ function loop(now){
           vA+=18+5*trk9;boost=Math.max(boost,1.5+.2*trk9);if(!pl9)padCd=1.5; /* (LIGNE PARFAITE, audit GAMEPLAY) un pad de la file ne met plus la recharge : au niveau 12 il bloquait le 1er pad de la LIGNE DE NÉON au-delà de ~470 km/h (« LIGNE CASSÉE ») */ // viser paie plus qu'avant (14 → 18)
           if(SONV2)sfx('pad',{st:sonPd(trk9)});else boostSnd(1+.1*trk9);shake=Math.max(shake,.3+.04*trk9);hap(trk9?[10,16,10]:10);
           if(SENS)try{sensCoup(0,-1.7-.25*trk9,-.9);DRIFT_V.set(0,.12,-CARS[level].l*.42);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,5+trk9,7);}catch(e){} // (2026-10-14, sensations) la plaque POUSSE : le nez se lève, le cul s'écrase sur ses ressorts, une gerbe d'or part de sous la poupe — plus fort à chaque pad du train
-          slam(tr9>1?TR('BOOST')+' ×'+tr9:'BOOST','','#ffb000','#ff3924',28); /* (2026-09-29, Sacha : « BOOST écrit plus petit ») 46 → 28 */flashEcran('rgba(255,150,0,.5)');fovPunch=Math.max(fovPunch,10+2*trk9); // (HUD v3) « quand tu roules sur un boost, BOOST en gros »
+          if(LEFIL.on)fil(tr9>1?TR('BOOST')+' ×'+tr9:'BOOST','#ffb000',1);else slam(tr9>1?TR('BOOST')+' ×'+tr9:'BOOST','','#ffb000','#ff3924',28); /* (LE FIL) le BOOST s'écrit dans la pastille */ /* (2026-09-29, Sacha : « BOOST écrit plus petit ») 46 → 28 */flashEcran('rgba(255,150,0,.5)');fovPunch=Math.max(fovPunch,10+2*trk9); // (HUD v3) « quand tu roules sur un boost, BOOST en gros »
           if(pl9){LIGNE.pris[1]++;LIGNE.padPris.add(i9);}nitroGain(LIGNE.padI.has(i9)?LIGNE.don:.12,LIGNE.padI.has(i9)?'pad.ligne':'pad');flowAdd(6+2*trk9,'route','p');momT=Math.min(4.3,momT+.8); // (LIGNE PARFAITE) le pad de la file rend de quoi tenir jusqu'au fruit
           break;
         }

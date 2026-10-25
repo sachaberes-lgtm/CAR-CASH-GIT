@@ -77,7 +77,7 @@ function chaineAura(nom,base,fam,brut,muet,rob){ // rob : un ROBINET (récolte, 
   if(!(base>0)||!running||gameOver||(typeof PARK!=='undefined'&&PARK.on))return 0;
   if(rob){ /* (2026-10-01) LE ROBINET : au compteur, tel quel — ni chaîne, ni ×, ni horloge (voir LA CHAÎNE SE FERME) */
     const p=Math.max(1,Math.round(base*auraDragonK()));auraRun+=p;livre('a:robinet.'+(fam||nom),p);auraPop=Math.min(1,auraPop+p/90);
-    if(TCTL.on&&!CHA.sansPop)popTexte(sansAcc(TR(nom))+' +'+p,'#ffd75e',0);
+    if(TCTL.on&&!CHA.sansPop&&!LEFIL.on)popTexte(sansAcc(TR(nom))+' +'+p,'#ffd75e',0); /* (LE FIL) un robinet est un flux : le compteur pulse (auraPop), rien ne s'écrit */
     if(!muet)try{chimeNote(noteP(1,1),0,.10,.16);}catch(e){}
     return p;}
   fam=fam||nom;const k=CHA.fam[fam]|0;CHA.fam[fam]=k+1;
