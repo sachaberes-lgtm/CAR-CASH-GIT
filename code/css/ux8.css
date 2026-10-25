@@ -362,12 +362,14 @@ html:not(.c6) #gmHead #mCadeau[hidden]{display:none}
    2. LA LISTE DES FIGURES sous la chaîne (« VIRAGE SERRE +45 / TONNEAU +50 ») : la chaîne garde son total, son × et sa barre.
    3. Le « $×1 » du FLOW au palier 0 : il ne dit rien tant que le flow ne multiplie pas ; il revient dès le palier 1.
    4. (dans le script, `pwrPrend`) le NOM DU POUVOIR au centre de l'écran : sa plaque, à droite, le dit déjà. */
-html body.touch #flowHud{top:calc(var(--hudH) + 53px)!important}
-html body.touch #auraV2{top:calc(var(--hudH) + 76px)!important}
+html body.touch #flowHud{top:calc(var(--hudH) + 53px)!important;row-gap:3px}
+html body.touch #auraV2{top:calc(var(--hudH) + 84px)!important}
 @media (orientation:landscape) and (max-height:540px){
   html body.touch #flowHud{top:calc(var(--hudH) + 56px)!important}
-  html body.touch #auraV2{top:calc(var(--hudH) + 72px)!important}
+  html body.touch #auraV2{top:calc(var(--hudH) + 87px)!important}
 }
+/* (2026-10-25, Sacha : « il y a marqué FLOW 1, FLOW 2, FLOW 3 par-dessus l'indication de AURA ») le NOM du palier vit sous la jauge
+   (2e ligne de la grille, 10 px) : l'AURA, calée avant lui à +76 / +72, se retrouvait dessous — elle passe sous l'étiquette. */
 html body #avList{display:none!important}
 html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
 </style>
