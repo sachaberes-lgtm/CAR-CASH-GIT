@@ -160,7 +160,7 @@ function ligneMat(){ // la peinture de la ligne centrale : tirets dans une textu
   if(!LIGNE_TEX){const cv=document.createElement('canvas');cv.width=4;cv.height=64;const c=cv.getContext('2d');
     c.fillStyle='#fff';c.fillRect(0,1,4,27);c.globalAlpha=.5;c.fillRect(0,0,4,1);c.fillRect(0,28,4,1); // 7/16 de tiret, bouts adoucis d'un texel
     LIGNE_TEX=new THREE.CanvasTexture(cv);LIGNE_TEX.wrapT=THREE.RepeatWrapping;
-    LIGNE_TEX.anisotropy=Math.min(IS_MOBILE?4:8,renderer.capabilities.getMaxAnisotropy());} // vue RASANTE : sans anisotropie, la carte réduite gommerait les tirets dès 30 m
+    LIGNE_TEX.anisotropy=Math.min(ALLEGE?4:8,renderer.capabilities.getMaxAnisotropy());} // vue RASANTE : sans anisotropie, la carte réduite gommerait les tirets dès 30 m
   // (2026-09-26, vague 2) la peinture passe du SODIUM doré (0xffc978) au BLANC lavande : sous le grade, les tirets se lisaient ORANGE,
   // une rangée de fausses pièces au milieu de la route. L'or ne sert qu'à ce qui rapporte ; la peinture n'est que de la peinture.
   const m9=traitMat(new THREE.MeshBasicMaterial({map:LIGNE_TEX,color:routeSig()?0xffd75e:0xf2eee6,transparent:true,opacity:.7,depthWrite:false,side:THREE.DoubleSide,polygonOffsetFactor:-1,polygonOffsetUnits:-1}),1.2,2);

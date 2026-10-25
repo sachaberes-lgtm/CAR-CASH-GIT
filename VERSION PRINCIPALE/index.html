@@ -7764,6 +7764,8 @@ html.misV2 #gmHead em{order:3}
    - IMAGE, POUCE HAUT et FIGURES, demandés en paysage par Sacha le 23/10 (v834), étaient re-cachés.
    Maintenant chaque bloc a la taille de ce qu'il contient et l'ensemble se centre. UNE carte pour la partie, UNE carte pour les réglages
    (des cases séparées d'un filet), les trois plaques à la même hauteur et dans leurs colonnes. Libellés en 12 px, PAUSE en 20.
+   (2026-10-25, Sacha : « l'interface est trop compliquée ») FIGURES et POUCE HAUT EN VOL quittent la pause (ils restent dans TOUS LES REGLAGES) : couché, quatre cases
+   en 2×2 — SON · MUSIQUE / IMAGE · RÉGLAGES — au lieu de six.
    Debout, le bloc se cale en bas, sous le pouce : le vide est au-dessus, sur la course figée (avant : un trou de 256 px au milieu).
    Tout est en #tPanel#tPanel#tPanel : les anciennes règles (charte 2/5/7, ux8, écrans iPhone) se superposent, celle-ci passe au-dessus sans !important. */
 #tPanel#tPanel#tPanel{background:radial-gradient(95% 42% at 8% -4%,rgba(255,62,200,.18),transparent 70%),
@@ -7821,8 +7823,8 @@ html.misV2 #gmHead em{order:3}
 #tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien>span{grid-row:1/span 2;color:var(--neoC,#00eaff)}
 #tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien::after{content:'';position:static;grid-column:3;grid-row:1/span 2;width:0;height:0;margin:0 2px 0 0;background:none;-webkit-mask:none;mask:none;
   border-left:8px solid var(--neoC,#00eaff);border-top:6px solid transparent;border-bottom:6px solid transparent}
-/* debout : SON, MUSIQUE, puis TOUS LES REGLAGES sur la largeur (IMAGE, POUCE HAUT et FIGURES sont dans TOUS LES REGLAGES, comme avant) */
-html:not(.c6) #tPanel#tPanel#tPanel .tpPanel>.tp.ligne:is([data-a="q"],[data-a="volh"],[data-a="figg"]){display:none}
+/* debout : SON, MUSIQUE, puis TOUS LES REGLAGES sur la largeur (IMAGE est dans TOUS LES REGLAGES, comme POUCE HAUT et FIGURES) */
+html:not(.c6) #tPanel#tPanel#tPanel .tpPanel>.tp.ligne[data-a="q"]{display:none}
 #tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien{grid-column:1/-1}
 
 /* ---- les trois plaques : même hauteur, même plaque sombre pour RECOMMENCER et QUITTER (le liseré dit le sens : cyan, rouge),
@@ -7837,28 +7839,30 @@ html:not(.c6) #tPanel#tPanel#tPanel .tpPanel>.tp.ligne:is([data-a="q"],[data-a="
     0 0 0 1px rgba(3,1,9,.92),0 5px 0 #0a0818,0 5px 0 1px rgba(3,1,9,.92),0 14px 24px -10px rgba(0,0,0,.72)}
 #tPanel#tPanel#tPanel #tpIn .tp.rouge:is(:active,.appui){box-shadow:inset 3px 0 0 var(--neoR,#ff4a64),inset 0 0 26px rgba(255,74,100,.4),0 0 0 1px rgba(3,1,9,.92),0 2px 0 #0a0818}
 
-/* ---- couché : la partie et REPRENDRE à gauche, les réglages (les six) et RECOMMENCER / QUITTER à droite, le tout centré en hauteur ---- */
+/* ---- couché : la partie et REPRENDRE à gauche, les réglages (quatre cases : SON, MUSIQUE, IMAGE, RÉGLAGES) et RECOMMENCER / QUITTER à droite, le tout centré en hauteur ---- */
 @media (orientation:landscape){
   #tPanel#tPanel#tPanel #tpIn{max-width:860px;column-gap:24px;row-gap:14px;align-content:center;
     grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);grid-template-rows:auto auto auto;
     grid-template-areas:"titre titre" "partie regl" "go bas";
     padding:calc(var(--sT) + 12px) calc(var(--sR) + 22px) calc(var(--sB) + 12px) calc(var(--sL) + 22px)}
   #tPanel#tPanel#tPanel #tpIn>.tpResume{align-self:stretch}
-  #tPanel#tPanel#tPanel #tpIn>.tpPanel{align-self:start}
+  #tPanel#tPanel#tPanel #tpIn>.tpPanel{align-self:stretch;grid-auto-rows:minmax(56px,1fr)} /* quatre cases : la carte des réglages finit à la même hauteur que celle de la partie, deux rangées égales */
   #tPanel#tPanel#tPanel #tpIn>.tpRow{align-self:stretch}
   #tPanel#tPanel#tPanel #tpIn>.tpRow>.tp,#tPanel#tPanel#tPanel #tpIn>.tp.go{min-height:56px;height:56px}
-  html:not(.c6) #tPanel#tPanel#tPanel .tpPanel>.tp.ligne:is([data-a="q"],[data-a="volh"],[data-a="figg"]){display:grid}
-  #tPanel#tPanel#tPanel .tpPanel>.tp.ligne:is(.lien,[data-a="figg"]){grid-column:auto} /* ux8 étalait FIGURES sur la largeur : 4 rangées, la page débordait */
+  html:not(.c6) #tPanel#tPanel#tPanel .tpPanel>.tp.ligne[data-a="q"]{display:grid}
+  #tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien{grid-column:auto} /* couché : RÉGLAGES est une case comme les autres, SON · MUSIQUE / IMAGE · RÉGLAGES */
 }
 /* couché bas (iPhone 13 mini, SE : 375 px) : le même écran serré — titre 16 px, libellés 10 px, plaques de 50 px (débordait de 18 px) */
 @media (orientation:landscape) and (max-height:380px){
   #tPanel#tPanel#tPanel #tpIn{row-gap:10px}
   #tPanel#tPanel#tPanel #tpIn>.tpH:first-child{font-size:var(--f5)}
   #tPanel#tPanel#tPanel #tpIn>.tpH:first-child::after{margin-top:7px}
-  #tPanel#tPanel#tPanel .tpPanel{grid-auto-rows:minmax(50px,auto)}
+  #tPanel#tPanel#tPanel .tpPanel{grid-auto-rows:minmax(50px,1fr)}
   #tPanel#tPanel#tPanel .tpPanel>.tp.ligne{min-height:50px;padding:6px 8px;column-gap:8px;row-gap:5px}
   #tPanel#tPanel#tPanel .tpPanel>.tp.ligne::before{left:8px}
   #tPanel#tPanel#tPanel .tpPanel>.tp.ligne>span{font-size:var(--f2)}
+  #tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien{grid-template-columns:34px minmax(0,1fr)} /* 375 px : « REGLAGES » touchait sa flèche, l'engrenage dit déjà qu'on ouvre */
+  #tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien::after{display:none}
   #tPanel#tPanel#tPanel #tpIn>.tpRow>.tp,#tPanel#tPanel#tPanel #tpIn>.tp.go{min-height:50px;height:50px}
 }
 </style>
@@ -8833,15 +8837,13 @@ body.touch #settings{-webkit-backdrop-filter:none;backdrop-filter:none;backgroun
     <div class="tp ligne" data-a="snd"><i class="pxi pxi-son" aria-hidden="true"></i> SON</div>
     <div class="tp ligne" data-a="mus"><i class="pxi pxi-musique" aria-hidden="true"></i> MUSIQUE</div>
     <div class="tp ligne" data-a="q"><i class="pxi pxi-eclair" aria-hidden="true"></i> IMAGE</div>
-    <div class="tp ligne" data-a="volh"><i class="pxi pxi-aile" aria-hidden="true"></i> POUCE HAUT EN VOL</div><!-- (2026-09-30, R7-5) ce réglage n'agit qu'en VOL : c'est en pleine partie qu'on découvre qu'on préfère l'autre sens -->
-    <div class="tp ligne" data-a="figg"><i class="pxi pxi-rotation" aria-hidden="true"></i> FIGURES</div><!-- (2026-10-15, Léo) la FIGURE : 2 TAPS ou GLISSER — en pleine partie, c'est là qu'on l'essaie -->
-    <div class="tp ligne lien" data-a="tous" data-g="run"><i class="pxi pxi-reglages" aria-hidden="true"></i> TOUS LES REGLAGES</div><!-- (2026-10-14, charte 6) l'écran complet #mSet par-dessus la course en pause ; absent hors charte 6 (voir setPauseOuvre) -->
+    <div class="tp ligne lien" data-a="tous" data-g="run"><i class="pxi pxi-reglages" aria-hidden="true"></i> REGLAGES</div><!-- (2026-10-14, charte 6) l'écran complet #mSet par-dessus la course en pause ; absent hors charte 6 (voir setPauseOuvre) -->
     </div>
     <div class="tp go" data-a="close"><i class="pxi pxi-lecture" aria-hidden="true"></i> REPRENDRE</div>
   </div></div>
 </div>
 <script src="vendor/three.min.js"></script>
-<script src="figures.js?v=9"></script>
+<script src="figures.js?v=10"></script>
 <script src="creatures/vitrail.js?v=1"></script><script>if(/[?&]singes(jade)?=1\b/.test(location.search))document.write('<script src="creatures/singe.js?v=2"><\/script>');</script><script src="creatures/dauphin.js?v=2"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html — (2026-10-22) le singe n'est chargé que sur `?singes=1` : les singes sont éteints par défaut (voir JSG_ON) -->
 <script src="assets/audio/musique-bus.js?v=7"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
 <script src="assets/audio/pouce-bleu-jeu.js?v=6"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
@@ -9063,7 +9065,8 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   uTime:{value:0},uSunDir:{value:SUN_DIR},
   uSkyMul:{value:new THREE.Vector3(1,1,1)},uSkyLift:{value:new THREE.Vector3(0,0,0)},
   uSunTint:{value:new THREE.Vector3(1,.40,.28)},uSunHalo:{value:1},uCity:{value:1},uStars:{value:1},uMoon:{value:1},uRose:{value:0},
-  uNeb:{value:1}, // (2026-10-15) LES NÉBULEUSES de l'orbite (× uSpace) : 0 = le noir complet d'avant
+  uNeb:{value:1}, // (2026-10-15) LA VOÛTE d'étoiles de l'orbite (× uSpace) : 0 = le noir complet d'avant — (2026-10-25) la voie lactée et les nébuleuses ne sont plus appelées du tout
+  uBandes:{value:new THREE.Vector3(0,0,0)}, // (2026-10-25) LES ÉTOILES JOUENT LA MUSIQUE (orbite) : x = basses, y = médiums, z = aigus — l'excès de chaque bande sur sa moyenne, 0..1 (voir musicTick)
   uEtK:{value:1.5}, // (2026-10-22) pixels de rendu par pixel CSS (`renderer.getPixelRatio()`, posé par orbiteTick) : les étoiles de l'orbite gardent la même taille sur tous les téléphones
   uSpace:{value:0}, // NIVEAU ORBITE (2026-09-24) : 0 = le ciel de toujours AU PIXEL PRÈS, 1 = le noir étoilé (piloté par lvlStep)
   uPulse:{value:0}, // MUSIQUE : le ciel respire en rythme (piloté par l'analyseur audio, 0 = neutre = rendu d'origine)
@@ -9147,7 +9150,7 @@ const skyDome=(function(){
       '#endif',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse,uRose;', // grade biome (identité par défaut) + uPulse musique
       'uniform vec3 uFd[8];uniform vec3 uVc[6];', // (2026-10-16) LES TEINTES DE LA VILLE : les couleurs fixes du dégradé et du ciel de la ville (valeurs d'origine hors ville teintée)
-      'uniform float uSpace,uNeb,uEtK;', // NIVEAU ORBITE : 0 = aucun effet · uNeb : les nébuleuses (2026-10-15) · uEtK : pixels de rendu par pixel CSS, pour la taille des étoiles (2026-10-22)
+      'uniform float uSpace,uNeb,uEtK;uniform vec3 uBandes;', // NIVEAU ORBITE : 0 = aucun effet · uNeb : les nébuleuses (2026-10-15) · uEtK : pixels de rendu par pixel CSS, pour la taille des étoiles (2026-10-22)
       'uniform float uJour,uMerLoin,uCiel2;uniform vec3 uJZen,uJMid,uJHor,uJSol;uniform vec4 uMzA,uMzB,uMzT,uMzO,uMzH;', // (2026-09-30) LE JOUR D ALTITUDE : 0 = le ciel d avant, au bit près
       'uniform float uLvl,uSpin,uBeatK,uFlip,uBar,uHi,uWave,uHueAmp;uniform vec3 uAcc,uAcc2;uniform vec4 uRingR,uRingA;', // LE FOND DU NIVEAU
       'float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
@@ -9837,7 +9840,7 @@ const skyDome=(function(){
       '  c=mix(c,vec3(1.,.76,.52),smoothstep(.62,1.,t));',                          // et plus du tiers qui chauffe vers l orangé
       '  return mix(vec3(1.),c,s);}',
       // UNE classe : A = (rangées par unité de y, graine, part des cellules habitées, rayon du cœur en pixels CSS) · B = (éclat min, éclat max, halo, échelle du halo en pixels CSS) · C = (teinte, scintillement, pouls, marge)
-      'vec3 voute(float y,float u0,float pa,vec4 A,vec4 B,vec4 C){',
+      'vec3 voute(float y,float u0,float pa,vec4 A,vec4 B,vec4 C,float bd){',
       '  float row=floor(y*A.x),yc=(row+.5)/A.x,cc=sqrt(max(1.-yc*yc,.02));',      // la rangée, et le cosinus de sa latitude
       '  float M=max(3.,floor(6.2832*A.x*cc*cc+.5)),u=u0*M,ci=floor(u);',          // les cellules de la rangée : de même aire d une rangée à l autre
       '  vec2 id=vec2(row,ci)+A.y;',
@@ -9848,18 +9851,18 @@ const skyDome=(function(){
       '  if(r>3.2*sg+3.*hs)return vec3(0.);',
       '  float q=hash21(id+41.7),ph=hash21(id+53.9);',
       '  float k=exp(-.5*r*r/(sg*sg))+B.z*exp(-r/max(hs,.001));',                  // le cœur, et son halo
-      '  return vouteTeinte(hash21(id+7.9),C.x)*mix(B.x,B.y,q*q)*k*(1.+C.y*sin(uTime*(.45+ph*1.1)+ph*40.))*(1.+uPulse*C.z);}',
+      '  return vouteTeinte(hash21(id+7.9),C.x)*mix(B.x,B.y,q*q)*k*(1.+C.y*sin(uTime*(.45+ph*1.1)+ph*40.))*(1.+uPulse*C.z)*(1.+bd*step(.35,hash21(id+63.1)));}', /* (2026-10-25) LES ÉTOILES JOUENT : bd = la bande de sa classe (basses : les brillantes · médiums : les moyennes · aigus : les petites et le voile), 65 % des étoiles de la classe y répondent — très léger */
       'void cielPoussiere(inout vec3 col,float y,float az){',
       '  float pa=max(sqrt(length(cross(dFdx(vDir),dFdy(vDir)))),1e-5),u0=az*.159155+.5;',    // l angle que couvre un pixel
       '  vec3 d=vDir;float b=dot(d,normalize(vec3(.78,.38,-.50))),bl=exp(-b*b*9.),bc=exp(-b*b*55.);', // la bande de la voie lactée : large, et son cœur
       '  float c1=sin(d.x*8.3+d.z*6.1+1.7)*sin(d.y*9.7-d.x*5.1+.6)+.7*sin(d.z*13.1+d.y*7.3-1.1)*sin(d.x*11.3+d.z*8.1+2.4);', // des plages plus ou moins peuplées
       '  float c2=sin(d.x*10.7-d.y*6.1+.3)*sin(d.z*9.3+d.y*11.9+1.9)+.7*sin(d.y*14.1+d.x*7.7+2.2)*sin(d.z*12.1-d.x*9.9-.5);',
       '  float fa=.8+.8*bl+.6*bc;',
-      '  vec3 s=voute(y,u0,pa,vec4(50.,3.1,min(.9,.22*fa*exp(c1*.40)),.45),vec4(.10,.36,0.,0.),vec4(.35,0.,0.,.04));',                 // le voile : des grains très faibles, sur DEUX grilles de pas différents (une seule laisse voir ses rangées là où elle est dense)
-      '  s+=voute(y,u0,pa,vec4(33.,5.3,min(.9,.20*fa*exp(c2*.40)),.45),vec4(.10,.36,0.,0.),vec4(.35,0.,0.,.04));',
-      '  s+=voute(y,u0,pa,vec4(22.,7.7,min(.9,.38*(.9+.7*bl+.4*bc)*exp(c2*.35)),.52),vec4(.28,.75,0.,0.),vec4(.55,.06,.3,.06));',       // les petites
-      '  s+=voute(y,u0,pa,vec4(11.,11.3,min(.9,.42*(1.+.4*bl)*exp((c1+c2)*.18)),.68),vec4(.60,1.15,.14,1.7),vec4(.8,.10,.7,.15));',   // les moyennes
-      '  s+=voute(y,u0,pa,vec4(5.4,19.9,.55,.95),vec4(1.2,2.,.20,3.),vec4(1.,.10,1.,.22));',                                         // les brillantes
+      '  vec3 s=voute(y,u0,pa,vec4(50.,3.1,min(.9,.22*fa*exp(c1*.40)),.45),vec4(.10,.36,0.,0.),vec4(.35,0.,0.,.04),uBandes.z*.35);',                 // le voile : des grains très faibles, sur DEUX grilles de pas différents (une seule laisse voir ses rangées là où elle est dense)
+      '  s+=voute(y,u0,pa,vec4(33.,5.3,min(.9,.20*fa*exp(c2*.40)),.45),vec4(.10,.36,0.,0.),vec4(.35,0.,0.,.04),uBandes.z*.35);',
+      '  s+=voute(y,u0,pa,vec4(22.,7.7,min(.9,.38*(.9+.7*bl+.4*bc)*exp(c2*.35)),.52),vec4(.28,.75,0.,0.),vec4(.55,.06,.3,.06),uBandes.z*.5);',       // les petites
+      '  s+=voute(y,u0,pa,vec4(11.,11.3,min(.9,.42*(1.+.4*bl)*exp((c1+c2)*.18)),.68),vec4(.60,1.15,.14,1.7),vec4(.8,.10,.7,.15),uBandes.y*.5);',   // les moyennes
+      '  s+=voute(y,u0,pa,vec4(5.4,19.9,.55,.95),vec4(1.2,2.,.20,3.),vec4(1.,.10,1.,.22),uBandes.x*.6);',                                         // les brillantes
       '  col+=s*uSpace*uNeb;}',
     ],
     lune:[
@@ -9936,7 +9939,7 @@ const skyDome=(function(){
       '    gl_FragColor=vec4(cv,1.);return;}',
       '  float y=vDir.y;',
       '  vec3 col=cielFond(y);',
-      '  if(uSpace*uNeb>.001)cielEspace(col);', // (2026-10-15) ORBITE : voie lactée et nébuleuses
+      /* (2026-10-25, Sacha : « remets le ciel noir dans l'espace, enlève les couleurs de nébuleuses et tout ») plus d'appel à cielEspace : ni voie lactée ni nébuleuses, le noir et les étoiles */
       '  float sd=max(dot(vDir,uSunDir),0.);',      // couchant : halo rosé large, couronne corail, coeur incandescent (tamisé)
       '  cielMer(col,y,sd);', // NUAGES : la mer de nuages sous l horizon (voir merNuages)
       '  cielJour(col,y,sd);', // (2026-09-30) le jour d altitude : la lueur du soleil sur l horizon
@@ -9964,7 +9967,7 @@ const skyDome=(function(){
        d'un niveau que la trame de la passe nette ne ferait que redessiner — on arrondit donc au hasard, juste. En demi-flottant : 0. */
     basN:[LECT_TR,
       'void main(){',
-      '  float y=vDir.y;vec3 col=cielFond(y);if(uSpace*uNeb>.001)cielEspace(col);float sd=max(dot(vDir,uSunDir),0.);', // (2026-10-15) + l espace profond
+      '  float y=vDir.y;vec3 col=cielFond(y);float sd=max(dot(vDir,uSunDir),0.);', // (2026-10-15) + l espace profond
       '  cielMer(col,y,sd);cielJour(col,y,sd);cielSoleil(col,sd);if(uTi.x>.001)cielTitre(col,vDir,y,sd);cielArcEC(col,vDir,y);',
       '  if(cielGOn(y,sd))cielGuirlande(col,y,atan(vDir.x,-vDir.z),sd);',
       '  cielVoile(col,y);',
@@ -10305,6 +10308,20 @@ const TACTILE_NATIF=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)|
 const TEL_NATIF=TACTILE_NATIF&&((window.matchMedia&&matchMedia('(hover:none)').matches)||Math.min(screen.width,screen.height)<600); // (2026-10-01) l'ÉCRAN, pas la fenêtre — même test que la colonne du <head>
 const FORCE_TEL=/[?&](tel|mobile)=1/.test(location.search)||(EDITION==='mobile'&&!TEL_NATIF&&!/[?&](pc|desktop)=1/.test(location.search)); // l'ORDI qui joue la version téléphone
 const IS_MOBILE=FORCE_TEL||TEL_NATIF;
+/* ===== LES DEUX VERSIONS DU JEU : MAX SUR ORDINATEUR, OPTIMISÉE SUR TÉLÉPHONE (2026-10-25, Sacha : « quand on lance Vercel, ça arrive sur la version
+   maximum ; quand on lance le téléphone, c'est la version optimisée — que j'aie pas à te le redire ») =====
+   UN SEUL code, DEUX régimes, séparés par UN SEUL drapeau :
+     · `ALLEGE` = la version OPTIMISÉE : le VRAI téléphone (TEL_NATIF), ou un essai à la main (`?tel=1` / `?mobile=1` / `?allege=1`). `?allege=0` la coupe (comparer).
+       C'est LUI qui garde TOUT ce qui retire de l'image : résolution, ombres, bloom, anticrénelage, densité des décors, satellites, cartes retirées du tirage…
+     · l'ORDINATEUR (Vercel, /jouer/) = le MAX : chaque branche « PC » du code, jamais allégée.
+   ⚠ `IS_MOBILE` NE DIT PAS « téléphone » : il est vrai AUSSI sur l'ordi, qui joue l'édition 'mobile' dans son cadre de téléphone (FORCE_TEL, voir EDITION). Il ne sert
+   donc QU'À L'INTERFACE (tactile, disposition, cadre). Tout allègement de rendu ou de contenu se garde sur `ALLEGE` — `garde-allege.sh` (lancée par vercel-build.sh)
+   REFUSE la publication si `IS_MOBILE` apparaît hors de la liste des fichiers d'interface. Les paliers `PAL.b(...)` restent sûrs (l'ordi est au palier 2).
+   Le 24/10, des retraits « téléphone » gardés par IS_MOBILE ont dégradé le PC (forêt, dunes, Crypto City, Jade, satellites) : c'est pour que ça ne revienne pas. */
+/* `LOOK_TEL` = L'IMAGE TELLE QU'ELLE A ÉTÉ RÉGLÉE (DA, étalonnage dans l'ACES, bloom .44, flou de boost) : elle a été mise au point dans le cadre téléphone,
+   donc la MÊME sur ordi et sur téléphone — ce n'est PAS un allègement, on n'y touche pas pour « améliorer » le PC (ça changerait les couleurs et le halo que Sacha a validés). */
+const LOOK_TEL=FORCE_TEL||TEL_NATIF;
+const ALLEGE=!/[?&]allege=0\b/.test(location.search)&&(TEL_NATIF||/[?&](tel|mobile|allege)=1\b/.test(location.search));
 /* (2026-10-09, Léo : « la capacité d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulement ça : pas de jeu, que la
    voiture dans la map ») LA BALADE — `?map=jade` : la caisse sur la route des PICS DE JADE, sa conduite telle quelle ; ni pièces, ni plots,
    ni score, ni HUD ; la mort n'est qu'un replacement (le bac à sable) ; rien n'est écrit dans la sauvegarde. Voir « LES PICS DE JADE ». */
@@ -10327,9 +10344,9 @@ const SIMU_JEU=/[?&]simu=1\b/.test(location.search);
    devicePixelRatio — le plafond de résolution (DPR_CAP), pris une fois au démarrage, restait celui de la petite image (plein écran flou).
    En ?simu=1 seulement, il suit le zoom du cadre (même calcul qu'au démarrage). */
 if(SIMU_JEU){let dpr9=devicePixelRatio;setInterval(function(){if(Math.abs(devicePixelRatio-dpr9)<.01)return;dpr9=devicePixelRatio;
-  try{DPR_CAP=Math.min(devicePixelRatio,IS_MOBILE?1:1.5);qlReprise();}catch(e){}},250);}
+  try{DPR_CAP=Math.min(devicePixelRatio,ALLEGE?1:1.5);qlReprise();}catch(e){}},250);}
 if(BALADE)document.documentElement.classList.add('balade');
-const IS_LOW_END=IS_MOBILE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);
+const IS_LOW_END=ALLEGE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);
 /* ====================== LE PALIER DE L'APPAREIL — PAL (2026-10-14, passe perf mobile, Sacha : « la version mobile n'arrive pas à afficher
    de bons graphismes sans bugger ; comprime un maximum, que ce soit fluide même sur un iPhone 7 ») ======================
    Jusqu'ici RIEN ne distinguait un iPhone 7 d'un iPhone 15 Pro : `IS_MOBILE` = tout téléphone, Safari dit « 2 cœurs » et « Apple GPU » sur
@@ -10438,7 +10455,7 @@ const FOVP_K=REDUCED_MOTION?.3:1; // (2026-09-30) « Réduire les animations » 
    d'un coup si un détail gêne). Rien de ce qui est gardé par SENS ne touche la physique, les vitesses ni l'économie : du ressenti seul. */
 var SENS=!/[?&]sens=0/.test(location.search); var SENSG=SENS; /* le même drapeau sous un nom que rien ne masque : le bloc tactile a un `const SENS` local (l interface), qui le cachait → « Cannot access SENS before initialization », le jeu ne démarrait plus */
 try{matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',function(e){if(e.matches)document.documentElement.setAttribute('data-reduced-motion','1');else document.documentElement.removeAttribute('data-reduced-motion');});}catch(e){} // (2026-09-29) le réglage d'iOS change en cours de partie : les règles qui ne lisent que l'attribut suivent
-const renderer=new THREE.WebGLRenderer({antialias:!IS_MOBILE&&!IS_LOW_END,powerPreference:'high-performance'});
+const renderer=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END,powerPreference:'high-performance'});
 renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
 try{palPuce(renderer.getContext());}catch(e){} // (2026-10-14, passe perf mobile) le palier affiné par la puce graphique — voir PAL
@@ -10462,10 +10479,18 @@ function ccCtxEn(){let l9='';try{l9=localStorage.ccLang||'';}catch(e){}return l9
 // (2026-09-29, audit de sortie) iOS peut garder le contexte PERDU au retour d'arrière-plan sans jamais le rendre : écran noir pour toujours.
 // Au retour, s'il est encore perdu 1,5 s plus tard, on relance (la sauvegarde a été écrite à la perte).
 addEventListener('visibilitychange',function(){if(document.hidden)return;setTimeout(function(){try{if(!document.hidden&&renderer.getContext().isContextLost()){try{enCoursPose();SAVE.flush();}catch(e){}location.reload();}}catch(e){}},1500);});
-let DPR_CAP=Math.min(devicePixelRatio,IS_MOBILE?1:1.5),curDPR=Math.min(DPR_CAP,devicePixelRatio),dprT=0; // téléphone .66→1 (2026-09-24) : la résolution adaptative sait désormais REMONTER, elle protège la fluidité
+let DPR_CAP=Math.min(devicePixelRatio,ALLEGE?1:1.5),curDPR=Math.min(DPR_CAP,devicePixelRatio),dprT=0; // téléphone .66→1 (2026-09-24) : la résolution adaptative sait désormais REMONTER, elle protège la fluidité
 // PLANCHER DE L'ADAPTATIF : sur téléphone on a le droit de descendre BAS. `setPixelRatio` ne touche
 // que le canvas 3D — le HUD est du DOM, il reste net au pixel quoi qu'il arrive. On enlève donc les
 // pixels là où ils coûtent (raymarch, bloom, ombres) sans jamais flouter une jauge.
+/* LE MAX SUR ORDINATEUR (2026-10-25, Sacha : « Vercel = la version maximum ») MESURÉ (Chrome, fenêtre 1440×900 ×2, cadre téléphone) : le jeu voit un écran de
+   844×390 à densité 3,16 (la page-cadre zoome l'iframe), mais la course était plafonnée à DPR_CAP 1,5 : dessinée en 1 266 px de large puis étirée sur ~2 670 px
+   physiques — le flou du PC. Désormais l'ordi (pas ALLEGE) dessine aux pixels RÉELS de l'écran, dans un budget de pixels (PC_PX, 4,5 M : ~4K/2) ; le téléphone
+   garde son plafond de palier (`dprNetCap`). RAPIDE (choix du joueur) reste à 1. `?pcpx=N` (millions de pixels) règle le budget au banc, `?pcpx=0` = l'ancien plafond 1,5. */
+const PC_PX=(function(){const m=/[?&]pcpx=([\d.]+)/.exec(location.search);return m?+m[1]*1e6:4.5e6;})();
+function dprPlafond(fast){ if(fast)return Math.min(devicePixelRatio,1);
+  if(ALLEGE||!PC_PX)return Math.min(devicePixelRatio,PAL.b('dprNetCap',1.5));
+  return Math.min(devicePixelRatio,Math.max(1.5,Math.sqrt(PC_PX/Math.max(1,innerWidth*innerHeight))),4);}
 const DPR_MIN=(IS_MOBILE&&!FORCE_TEL)?.5:.6; // .42 était une bouillie de pixels — et on y restait coincé (voir la remontée dans loop)
 // PORTRAIT : le `fov` de three est VERTICAL — sur un écran haut, le champ HORIZONTAL s'effondre.
 // FOV_K rouvre l'angle, POR (0 paysage → 1 portrait) recadre la caméra. Les deux se règlent ENSEMBLE
@@ -10507,7 +10532,7 @@ renderer.shadowMap.enabled=true;
 PAL.B.postOmbreDouce=[0,0,1];
 renderer.shadowMap.type=PAL.b('postOmbreDouce',1)?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
 sun.castShadow=true;
-sun.shadow.mapSize.set(IS_MOBILE||IS_LOW_END?1024:1280,IS_MOBILE||IS_LOW_END?1024:1280); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
+sun.shadow.mapSize.set(ALLEGE||IS_LOW_END?1024:1280,ALLEGE||IS_LOW_END?1024:1280); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
 const SUNC=sun.shadow.camera;
 SUNC.left=-34;SUNC.right=34;SUNC.top=30;SUNC.bottom=-64;SUNC.near=40;SUNC.far=340;SUNC.updateProjectionMatrix(); // fond profond : l'ombre atteint la dalle même très haut au-dessus de la route
 sun.shadow.bias=-0.0003;sun.shadow.normalBias=0.08; // normalBias en MÈTRES (~2 texels) : assez pour tuer l'acné, pas de quoi décoller l'ombre
@@ -10523,9 +10548,9 @@ const POST_WB=new THREE.Vector3(1.02,0.985,1.03);       // voile MAGENTA subtil 
 const POST_SHADOW=new THREE.Vector3(0.004,-0.008,0.062); // OMBRES → bleu-violet nuit (place au néon)
 const POST_HI=new THREE.Vector3(0.052,0.008,-0.014);      // LUMIÈRES → or rosé (le couchant qui s'accroche aux tôles)
 // Grade cinéma en PASSE FINALE : tonemap préservant la chroma + contraste + saturation + split-tone. Scène en amont inchangée.
-const GRADE_ACES=IS_MOBILE; // (2026-09-25) l'étalonnage final (ex-filtre CSS du canvas) passe DANS l'ACES : plus de passe de compositeur plein écran, à la résolution de l'écran, sur téléphone
-const FXAA_ON=IS_MOBILE||IS_LOW_END||devicePixelRatio>=1.5; // (2026-09-26, audit rendu) là où il n'y a PAS de MSAA (téléphone : aucun anticrénelage, chaque marche = 3 px physiques)
-const ACES_N=IS_MOBILE?6:8;   // flou radial du boost : 18 lectures de texture au téléphone au lieu de 24 (le grain animé fond les copies)
+const GRADE_ACES=LOOK_TEL; // (2026-09-25) l'étalonnage final (ex-filtre CSS du canvas) passe DANS l'ACES : plus de passe de compositeur plein écran, à la résolution de l'écran, sur téléphone
+const FXAA_ON=ALLEGE||IS_LOW_END||devicePixelRatio>=1.5; // (2026-09-26, audit rendu) là où il n'y a PAS de MSAA (téléphone : aucun anticrénelage, chaque marche = 3 px physiques)
+const ACES_N=LOOK_TEL?6:8;   // flou radial du boost : 18 lectures de texture au téléphone au lieu de 24 (le grain animé fond les copies)
 /* LA PASSE FINALE ALLÉGÉE (2026-09-27, passe perf iPhone, tour 2 — « le post-traitement »). MESURÉ au micro-banc (la passe seule, rejouée
    sur une image figée, 585×1266 comme l'iPhone en NETTE ; rendu logiciel SwiftShader ET vraie carte, chronomètre de la puce) : en rendu
    logiciel, ce qui coûte ce sont les LECTURES de texture (FXAA ~45 %, halo ~20 %, calcul ~15 %) ; sur une vraie puce, le CALCUL de
@@ -10605,11 +10630,11 @@ const ACESShader={
     '    for(int i=0;i<'+ACES_N+';i++){ float t='+(ACES_N<8?'(float(i)+jt)/'+ACES_N+'.0':'float(i)/7.0')+'; vec2 off=dc*amt*t*0.62;',
     FLOU_MIPS?'      acc+=textureLod(tDiffuse,1.0-abs(1.0-abs(buv-off)),lodF).rgb; }': // (FLOU SANS MOTIF) la prise pré-floutée, repliée en miroir au bord
     '      acc+='+TXL('tDiffuse','buv-off')+'.rgb; }',        // (2026-09-26) UNE lecture par prise (il y en avait trois : 18 lectures par pixel au téléphone)
-    '    x=acc/'+ACES_N+'.0; bu=buv-dc*amt*0.31;'+(IS_MOBILE?'':' bd=dc*amt*0.155;'), // le halo se lit au milieu de la traînée (PC : aux deux quarts, il FILE comme l'image ; téléphone : une lecture — mesuré invisible, 5 lectures de moins au boost)
+    '    x=acc/'+ACES_N+'.0; bu=buv-dc*amt*0.31;'+(LOOK_TEL?'':' bd=dc*amt*0.155;'), // le halo se lit au milieu de la traînée (PC : aux deux quarts, il FILE comme l'image ; téléphone : une lecture — mesuré invisible, 5 lectures de moins au boost)
     // L'ABERRATION CHROMATIQUE (2026-09-26, vague 2) — MESURÉ : au boost, chaque bord de nuage et chaque fenêtre de la ville s'ourlait
     // d'un ARC-EN-CIEL rose/jaune/cyan de 10-12 px (×.05 de l'amplitude du flou, dès le centre). Réduite au TIERS et seulement au-delà de
     // 45 % du rayon (le bord de l'image fuit, le centre reste propre) — et COUPÉE au téléphone : deux lectures de texture en moins par pixel.
-    IS_MOBILE?'':'    { vec2 mid=buv-dc*amt*0.31, ca=dc*amt*0.015*smoothstep(.45,.9,rb);'+
+    LOOK_TEL?'':'    { vec2 mid=buv-dc*amt*0.31, ca=dc*amt*0.015*smoothstep(.45,.9,rb);'+
     '      x.r=mix(x.r,'+TXL('tDiffuse','mid-ca')+'.r,0.5); x.b=mix(x.b,'+TXL('tDiffuse','mid+ca')+'.b,0.5); }',
     '  } else {',
     FXAA_ON?[ // ANTICRÉNELAGE LÉGER (FXAA simplifié) — seulement image nette (le flou de boost lisse déjà) ; hors bord, 5 lectures et on sort
@@ -10637,7 +10662,7 @@ const ACESShader={
     '      float lB=dot(b,LUM); x=(lB<lMin||lB>lMax)?a:b; }'].join('\n'):'    x='+TXL('tDiffuse','vUv')+'.rgb;',
     '  }',
     // le HALO, déjà composé (poids, écrêtage à 1 et ×alpha compris) : UNE lecture — deux au PC quand il file au boost
-    IS_MOBILE?'  if(uBa>0.0)x+='+TXL('uBc','bu')+'.rgb;':'  if(uBa>0.0)x+=(bd.x!=0.0||bd.y!=0.0)?0.5*('+TXL('uBc','bu-bd')+'.rgb+'+TXL('uBc','bu+bd')+'.rgb):'+TXL('uBc','bu')+'.rgb;',
+    LOOK_TEL?'  if(uBa>0.0)x+='+TXL('uBc','bu')+'.rgb;':'  if(uBa>0.0)x+=(bd.x!=0.0||bd.y!=0.0)?0.5*('+TXL('uBc','bu-bd')+'.rgb+'+TXL('uBc','bu+bd')+'.rgb):'+TXL('uBc','bu')+'.rgb;',
     '  x*=uWE;',                                          // = x·uWB·uExposure (produit posé par image)
     'float L=dot(x,LUM);',
     'vec3 perCh=aces(x);',                              // ACES par canal : sûr mais désature les hautes lumières
@@ -10727,16 +10752,16 @@ if(CAN_POST){ try{
       const gl=renderer.getContext(),ok=gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE;renderer.setRenderTarget(null);t.dispose();return ok;}
     catch(e){try{renderer.setRenderTarget(null);}catch(e2){}return false;}})();
   const rtType=f16ok?THREE.HalfFloatType:THREE.UnsignedByteType;
-  if(!IS_MOBILE&&!IS_LOW_END&&devicePixelRatio<1.5&&typeof THREE.WebGLMultisampleRenderTarget==='function')rt=new THREE.WebGLMultisampleRenderTarget(w,h,{format:THREE.RGBAFormat,type:rtType}); // MSAA réservé aux écrans 1× (où le crénelage se voit) — sur Retina le resolve coûte cher pour rien
+  if(!ALLEGE&&!IS_LOW_END&&devicePixelRatio<1.5&&typeof THREE.WebGLMultisampleRenderTarget==='function')rt=new THREE.WebGLMultisampleRenderTarget(w,h,{format:THREE.RGBAFormat,type:rtType}); // MSAA réservé aux écrans 1× (où le crénelage se voit) — sur Retina le resolve coûte cher pour rien
   else rt=new THREE.WebGLRenderTarget(w,h,{format:THREE.RGBAFormat,type:rtType,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
   composer=new THREE.EffectComposer(renderer,rt);
   composer.setPixelRatio(curDPR);composer.setSize(w,h);
   composer.addPass(new THREE.RenderPass(scene,camera));
   // BLOOM demi-résolution partout : gros gain GPU, halation quasi identique à l'œil.
   const HALO_REF=2,HALO_LOG=[3,10,28,72,176].map(Math.log2); // (2026-10-14, chaîne de couleur) la résolution où le halo a été réglé (banc : DPR 2) et le rayon de chaque étage, en log2 de texels de la base
-  const bSc=IS_MOBILE?.42:IS_LOW_END?.52:.55; // bloom demi-résolution un cran plus bas sur desktop : le flou EST le produit, personne ne voit la différence
+  const bSc=LOOK_TEL?.42:IS_LOW_END?.52:.55; // bloom demi-résolution un cran plus bas sur desktop : le flou EST le produit, personne ne voit la différence
   const bRes=new THREE.Vector2(Math.max(320,Math.round(w*bSc)),Math.max(240,Math.round(h*bSc)));
-  bloomPass=new THREE.UnrealBloomPass(bRes,IS_MOBILE?0.44:0.54,IS_MOBILE?0.44:.5,0.92);
+  bloomPass=new THREE.UnrealBloomPass(bRes,LOOK_TEL?0.44:0.54,LOOK_TEL?0.44:.5,0.92);
   // (2026-09-26, audit rendu) `addPass` rappelle setSize(largeur×DPR) : la résolution `bSc` était IGNORÉE (mesuré : ½ au lieu de .42).
   // UnrealBloomPass prend la moitié de ce qu'on lui donne — on lui donne donc 2×bSc.
   /* LE HALO COMPOSÉ (2026-09-27, passe perf iPhone, tour 2 — « le post-traitement »). Le halo fusionné dans l'ACES relisait ses 5 mips
@@ -11425,7 +11450,7 @@ function disposeClouds(){
   CLOUDS=[];cloudIn=0;
 }
 let FLOU_OK=true; // (2026-09-26) le flou radial du boost — le palier BAS le coupe
-let QUAL_LOW=false,QUAL_MED=IS_MOBILE||IS_LOW_END; // (lus par dbgPerf : MED = un allègement posé, LOW = bloom éteint — tenus par qlPose)
+let QUAL_LOW=false,QUAL_MED=ALLEGE||IS_LOW_END; // (lus par dbgPerf : MED = un allègement posé, LOW = bloom éteint — tenus par qlPose)
 /* ====================== LA NETTETÉ EN DERNIER — l'échelle de qualité QL (2026-09-27, passe perf iPhone) ======================
    Sacha joue en NETTE (DPR 1,5 sur iPhone 13 Pro) et la voyait fondre « surtout quand on s'envole » : dès que l'image tirait (> 19 ms),
    la résolution adaptative sabrait la RÉSOLUTION d'abord — la seule chose qu'on voit sur chaque pixel — jusqu'à 0,5, pendant que les
@@ -11591,7 +11616,7 @@ const PFR_ON=TEL_NATIF&&!/[?&]frais=0\b/.test(location.search);
 const PCM_ON=(!TEL_NATIF||PFR_ON)&&!/[?&]pcmort=0\b/.test(location.search); /* (2026-10-24) le téléphone aussi, par le mode frais */
 function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?PAL.b('vhdPx',3.2e6):8.3e6; // (2026-10-14) le budget du téléphone se taille sur son palier (voir LE DÉPART AU BON CRAN)
   return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF||VHE_MODE?1:1.5),Math.sqrt(bud/px),4));} /* (2026-10-24, passe perf PC) `?vhdecran=1|2` : sans le ×1,5 sur l'ordi (voir LA VITRINE À LA MESURE DE L'ÉCRAN) */
-function vhdAniso(on){ const m=renderer.capabilities.getMaxAnisotropy(),n=on?m:Math.min(IS_MOBILE?4:8,m);
+function vhdAniso(on){ const m=renderer.capabilities.getMaxAnisotropy(),n=on?m:Math.min(ALLEGE?4:8,m);
   for(const t of [ASPH_TEX,LIGNE_TEX])if(t&&t.anisotropy!==n){t.anisotropy=n;t.needsUpdate=true;}}
 function vhdBascule(on){ if(VHD.off||on===VHD.on)return;
   if(on){VHD.k0=QL.k;VHD.dpr=VHD.max=vhdDpr();VHD.lT=VHD.bT=VHD.sT=0;VHD.ombre=Math.min(TEL_NATIF?PAL.b('vhdOmbre',2048):VHE_MODE===2?2048:4096,renderer.capabilities.maxTextureSize);VHD.t=0;VHD.on=true;curDPR=-1;qlPose(0);}
@@ -11755,7 +11780,7 @@ function nuageChauffe(){ // (2026-09-26) les deux programmes de nuage compilés 
 // FINESSE : à 16×11 les grosses boules (r 200-700) montraient leurs FACETTES — d'où les « formes
 // triangulaires ». On monte la définition sur desktop (mobile reste au gabarit léger).
 const CLOUD_SPH_LO=new THREE.SphereGeometry(1,10,7); // (2026-09-30) l'ÉBAUCHE d'un coussin ou d'une tour, le temps que l'ouvrier rende la forme fine
-const CLOUD_SPH=new THREE.SphereGeometry(1,(IS_MOBILE||IS_LOW_END)?16:20,(IS_MOBILE||IS_LOW_END)?11:14); // gabarit recopié/fusionné (24×16 mangeait 25 fps : 20×14 lisse assez)
+const CLOUD_SPH=new THREE.SphereGeometry(1,(ALLEGE||IS_LOW_END)?16:20,(ALLEGE||IS_LOW_END)?11:14); // gabarit recopié/fusionné (24×16 mangeait 25 fps : 20×14 lisse assez)
 // Fusionne N sphères (x,y,z,rayon en coords locales) en UNE géométrie : un nuage = un draw call.
 function mergeSpheres(blobs,rx,ry,rz){
   const src=CLOUD_SPH, sp=src.attributes.position.array, sn=src.attributes.normal.array, si=src.index.array;
@@ -14220,7 +14245,7 @@ function asphTex(){ if(ASPH_TEX)return ASPH_TEX;
   const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d'),im=c.createImageData(N,N);im.data.set(betonPeint(N));
   c.putImageData(im,0,0);
   const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;
-  t.anisotropy=Math.min(IS_MOBILE?4:8,renderer.capabilities.getMaxAnisotropy()); // la route se regarde RASANTE : sans anisotropie le grain devient une bouillie
+  t.anisotropy=Math.min(ALLEGE?4:8,renderer.capabilities.getMaxAnisotropy()); // la route se regarde RASANTE : sans anisotropie le grain devient une bouillie
   return (ASPH_TEX=t);
 }
 /* (2026-09-26, audit rendu) LES LUMIÈRES PONCTUELLES NE TOUCHENT QUE LA CAISSE. r128 fait tourner la boucle de CHAQUE PointLight dans
@@ -14596,7 +14621,7 @@ function ligneMat(){ // la peinture de la ligne centrale : tirets dans une textu
   if(!LIGNE_TEX){const cv=document.createElement('canvas');cv.width=4;cv.height=64;const c=cv.getContext('2d');
     c.fillStyle='#fff';c.fillRect(0,1,4,27);c.globalAlpha=.5;c.fillRect(0,0,4,1);c.fillRect(0,28,4,1); // 7/16 de tiret, bouts adoucis d'un texel
     LIGNE_TEX=new THREE.CanvasTexture(cv);LIGNE_TEX.wrapT=THREE.RepeatWrapping;
-    LIGNE_TEX.anisotropy=Math.min(IS_MOBILE?4:8,renderer.capabilities.getMaxAnisotropy());} // vue RASANTE : sans anisotropie, la carte réduite gommerait les tirets dès 30 m
+    LIGNE_TEX.anisotropy=Math.min(ALLEGE?4:8,renderer.capabilities.getMaxAnisotropy());} // vue RASANTE : sans anisotropie, la carte réduite gommerait les tirets dès 30 m
   // (2026-09-26, vague 2) la peinture passe du SODIUM doré (0xffc978) au BLANC lavande : sous le grade, les tirets se lisaient ORANGE,
   // une rangée de fausses pièces au milieu de la route. L'or ne sert qu'à ce qui rapporte ; la peinture n'est que de la peinture.
   const m9=traitMat(new THREE.MeshBasicMaterial({map:LIGNE_TEX,color:routeSig()?0xffd75e:0xf2eee6,transparent:true,opacity:.7,depthWrite:false,side:THREE.DoubleSide,polygonOffsetFactor:-1,polygonOffsetUnits:-1}),1.2,2);
@@ -18469,7 +18494,7 @@ PAL.B.dnFin=[16,14,12];PAL.B.dnPlat=[96,80,64];PAL.B.dnOmbre=[60,52,44];PAL.B.dn
    · les décors reprennent le budget du palier MOYEN (acacias, palmiers, touffes, arbres morts, tornades, sable qui vole) — au plan moyen, de dos, ils ne se comptent pas ;
    · les ÉCLATS de 9 cm (dnMo .75) s'éteignent : à ~5 px sur un écran de 390 pt ils ne faisaient que scintiller.
    Rien d'autre ne change (la route, les tremplins, le sable à rides, les nuages en bandes, les monuments). */
-const DN_MOB=(TEL_NATIF||/[?&]dunessobre=1\b/.test(location.search))&&!/[?&]dunesplein=1\b/.test(location.search); // ⚠ TEL_NATIF, PAS IS_MOBILE : l'ordi qui joue l'édition « mobile » (FORCE_TEL) garde les dunes pleines (Sacha, 25/10 : « sur PC la qualité a chuté »)
+const DN_MOB=(ALLEGE||/[?&]dunessobre=1\b/.test(location.search))&&!/[?&]dunesplein=1\b/.test(location.search); // ⚠ TEL_NATIF, PAS l'ancien drapeau mobile : l'ordi qui joue l'édition « mobile » (FORCE_TEL) garde les dunes pleines (Sacha, 25/10 : « sur PC la qualité a chuté »)
 if(DN_MOB){PAL.B.dnGrille[2]=24;PAL.B.dnArbres[2]=PAL.B.dnArbres[1];PAL.B.dnPalmes[2]=PAL.B.dnPalmes[1];PAL.B.dnPart[2]=PAL.B.dnPart[1];PAL.B.dnMo[2]=PAL.B.dnMo[1];PAL.B.dnRuines[2]=PAL.B.dnRuines[1];PAL.B.dnTors[2]=PAL.B.dnTors[1];PAL.B.dnTouffes[2]=PAL.B.dnTouffes[1];PAL.B.dnMorts[2]=PAL.B.dnMorts[1];}
 const DN={Q:null,on:false,ms:{},yMin:-1e4,yMax:1e4,mesh:null,mat:null,geo:null,aN:null,maxN:900,G:32,S0:64,R0:118,lods:7,
   F:null,Z:null,O:null,fr:new THREE.Frustum(),pm:new THREE.Matrix4(),box:new THREE.Box3(),n:0,S:null,job:0,attente:null,grp:null,
@@ -20745,7 +20770,7 @@ function buildBanq(seed){jadeFini(buildBanqG(seed));} // (2026-10-17, LE PRÉ-B�
 function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au pré-bâti
   banqVide();
   if(PARK.on||!LVL.cur||LVL.cur.id!=='banquise'||!(NP>1))return;
-  const t0=performance.now(),M=banqMats(),fr=mulberry32((seed^0xB4A9C)>>>0),ds=L/(NP-1),KP=PAL_BK('banqPics',1)*(TEL_NATIF?.85:1);
+  const t0=performance.now(),M=banqMats(),fr=mulberry32((seed^0xB4A9C)>>>0),ds=L/(NP-1),KP=PAL_BK('banqPics',1)*(TEL_NATIF?.85:1)*.3; /* (2026-10-25, Sacha : « réduis de 70 % les pics de glace dans la map de glace ») dômes, séracs et aiguilles : 70 % de moins */
   BANQ.graine=(seed>>>0)%100000;BANQ.met=LVL.cur.meteo||'midi';BANQ.n={};
   const DZ=BK_DECOR?bkDecoTire(seed):null,dz2=mulberry32((seed^0xB4DEC)>>>0);BANQ.dz=DZ;BANQ.deco=DZ?DZ.li:null; /* (LE DÉCOR AU HASARD) le tirage, et le flux des pièces neuves */
   const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);BANQ.root=root;trackMeshes.push(root);
@@ -20810,7 +20835,7 @@ function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au
   BANQ.obst=[];BANQ.kick=[];
   {const fr=mulberry32((seed^0xB0B57AC)>>>0) /* (2026-10-22, DEBUGGING : LA PISTE a SON flux — les multiplicateurs du DÉCOR AU HASARD (pics, séracs, aiguilles, géants, amphithéâtre) changent le NOMBRE de tirages de `fr` des sections 1-4 : MESURÉ, même pistegraine, 16 pics sur la piste avec le décor contre 14 sans (23 contre 15), et les pièces qui les évitent — le décor rebattait les obstacles de la route) */,RH=ROAD_HALF,kRH=RH/61.6,O=BANQ.obst,KK=BANQ.kick,ou=(s9,la)=>{const i=Math.max(0,Math.min(NP-1,Math.round(s9/ds))),p=pts[i],b=B[i];return [p.x+b.x*la,p.y+b.y*la,p.z+b.z*la];};
     const libreK=(s9,la,r,ov)=>{for(const k of KK){if(s9>k.s-k.lg-60&&s9<k.s+260&&la+r>k.l0-8&&la-r<k.l1+8)return false;if(BK_RETOMBE&&s9+r>k.s&&s9-r<k.s+BK_BEC.retombe)return false;} /* (2026-10-18) 60 m d'approche dégagés devant la rampe (au banc, on percutait un pic en visant le tremplin), et sa retombée : 260 m (à 45°, on vole loin) — (2026-10-19) puis BK_BEC.retombe m sur TOUTE la largeur (voir BK_RETOMBE) */if(!ov)for(const o of O)if(Math.abs(o.s-s9)<o.r+r+8&&Math.abs(o.lat-la)<o.r+r+8)return false;return true;}; // ni sur un bec ni dans sa retombée, ni collé à un autre pic
-    const pic=(s9,la,H,pente,ov)=>{{const i=Math.max(3,Math.min(NP-4,Math.round(s9/ds))),a=pts[i-3],c=pts[i+3];pente+=Math.max(0,(a.y-c.y)/Math.max(1,Math.hypot(a.x-c.x,a.z-c.z)));} /* (2026-10-18) + la PENTE de la piste : à 45°, le flanc aval d'un pic à 55° (1,4) devenait presque parallèle à la glace — une lame basse de 30 à 50 m qu'on croyait franchir et qui tuait (« des problèmes de collision avec la glace ») ; sa face aval garde désormais, par rapport à la piste, la raideur qu'elle aurait sur le plat */const R=H/pente;if(Math.abs(la)>RH-R*.35-3||!libreK(s9,la,R,ov))return false;const q=ou(s9,la);
+    let gdPic=true; /* (2026-10-25) faux = la figure en cours n'a aucun pic */const pic=(s9,la,H,pente,ov)=>{if(!gdPic)return false;{const i=Math.max(3,Math.min(NP-4,Math.round(s9/ds))),a=pts[i-3],c=pts[i+3];pente+=Math.max(0,(a.y-c.y)/Math.max(1,Math.hypot(a.x-c.x,a.z-c.z)));} /* (2026-10-18) + la PENTE de la piste : à 45°, le flanc aval d'un pic à 55° (1,4) devenait presque parallèle à la glace — une lame basse de 30 à 50 m qu'on croyait franchir et qui tuait (« des problèmes de collision avec la glace ») ; sa face aval garde désormais, par rapport à la piste, la raideur qu'elle aurait sur le plat */const R=H/pente;if(Math.abs(la)>RH-R*.35-3||!libreK(s9,la,R,ov))return false;const q=ou(s9,la);
       const L9=bkGrappe(q[0],q[2],q[1]-.4,H,pente,(fr()*3)|0,fr,1.4,Math.max(9,R*1.1)); /* (pied profond : sur la pente raide, le côté aval ne flotte pas) fam 1,4 : une aiguille pour la physique, mais COIFFÉE DE NEIGE (BK_PIC_FS) */pose(L9,true,false);let r=0;for(const P of L9)r=Math.max(r,Math.hypot(P.cx-q[0],P.cz-q[2])+P.r);
       O.push({s:s9,lat:la,L9:L9,r:r,x:q[0],z:q[2]});return true;};
     const bec=(s9,c,w)=>{{const cap9=s=>{const t0=T[Math.min(NP-1,Math.round((s+BK_BEC.lg)/ds))],t1=T[Math.min(NP-1,Math.round((s+BK_BEC.lg+BK_BEC.droit)/ds))];return Math.abs(Math.atan2(t0.x*t1.z-t0.z*t1.x,t0.x*t1.x+t0.z*t1.z));};
@@ -20819,7 +20844,7 @@ function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au
        champ 5-7, îlot 2-3) — ~4 × moins de pics ; (« les tremplins doivent être plus beaux, gros et visibles ») un TREMPLIN avant deux figures sur trois,
        et un tremplin seul au milieu d'une longue descente sur deux (voir BK_BEC) */
     let sp=Math.max(560,3*(70+(lvPiste()-1)*100))+fr()*120; /* (2026-10-24, passe perf — Sacha : « tu peux mourir sans voir des obstacles arriver ») la 1re figure à 3 s de croisière du palier au moins (la croisière de la piste, vC9) : à 560 m elle tombait 1,2 à 2 s après le portail en fin de partie, voile compris ; au palier de départ rien ne change (210 m < 560) */
-    while(sp<L-380){const f0=fr(),f=sp<1800?.5+f0*.5:sp>L*.6?f0*.85:f0; /* (2026-10-23, Sacha : « prends des initiatives ») LA COURBE DE DIFFICULTÉ : les 1 800 premiers mètres n'ont que des figures faciles (champ, porte, îlot — on apprend à lire la glace), puis tout arrive ; passé 60 % de la descente le tirage penche vers les grosses figures (bifurcation, massif, fourche, slalom) et les figures se resserrent (voir gap) */
+    while(sp<L-380){const f0=fr(),f=sp<1800?.5+f0*.5:sp>L*.6?f0*.85:f0;gdPic=f<.30||fr()<.3; /* (2026-10-25) la bifurcation, le massif et la fourche (f<.30) gardent leurs pics ; slalom, champ, porte et îlot : 30 % des figures seulement */ /* (2026-10-23, Sacha : « prends des initiatives ») LA COURBE DE DIFFICULTÉ : les 1 800 premiers mètres n'ont que des figures faciles (champ, porte, îlot — on apprend à lire la glace), puis tout arrive ; passé 60 % de la descente le tirage penche vers les grosses figures (bifurcation, massif, fourche, slalom) et les figures se resserrent (voir gap) */
       if(fr()<.65){const k9=bec(sp,(fr()*2-1)*RH*.45,36+fr()*22),j9=BK_BEC.lg+100+fr()*30;sp=k9!=null&&BK_RETOMBE?Math.max(sp+j9,k9+BK_BEC.retombe):sp+j9;} // un TREMPLIN, le plus souvent juste avant une figure : on peut la survoler — (2026-10-19) elle attend la fin de sa retombée (BK_RETOMBE)
       if(f<.10){ /* (2026-10-23, Sacha : « la route de verglas se sépare en deux routes et on doit choisir un chemin ») LA BIFURCATION : une longue crête (~400 m, jusqu'à 90 m de haut) coupe la
          piste en deux couloirs aux caractères opposés — l'un est LIBRE et finit sur un TREMPLIN (le chemin du plaisir), l'autre est SEMÉ de petits pics (le chemin du risque, pour qui aime
@@ -24159,7 +24184,7 @@ window.dbgVilleEmb=function(k,v){
    de la boîte et l'objectif fondent l'objet en trame (aucun tri, aucune transparence). Deux appels de dessin, zéro calcul par objet et par
    image. `PLA.dens` (0 → 1, une part des objets) : à CRYPTOCITY une pluie de fond (.5), une AVERSE (1) à chaque NOUVEL ATH et à chaque
    pièce géante traversée ; ailleurs elle remplace l'averse de glyphes (même déclencheur : startMoneyRain). */
-const PLA={N:IS_MOBILE?900:1400,NP:IS_MOBILE?220:360,B:new THREE.Vector3(120,70,160),dens:0,surge:0,mB:null,mP:null,u:null,c:new THREE.Vector3(),f:new THREE.Vector3()};
+const PLA={N:ALLEGE?900:1400,NP:ALLEGE?220:360,B:new THREE.Vector3(120,70,160),dens:0,surge:0,mB:null,mP:null,u:null,c:new THREE.Vector3(),f:new THREE.Vector3()};
 PAL.B.memTexBillets=[.5,1,1]; // (2026-10-14, passe perf mobile) l'échelle de l'atlas des billets de la PLUIE : 1024 × 384 au palier ancien (un billet qui tombe fait quelques dizaines de pixels à l'écran) — 8,4 Mo de puce → 2,1 Mo ; paliers 1-2 : 2048 × 768 comme avant
 function plaTexBillets(){ // l'atlas 4 × 3 : la série des sept billets (pluie de richesse) + le billet ₿ · la rangée du bas : les confettis
   if(PLA.texB)return PLA.texB;
@@ -24508,7 +24533,7 @@ function jadeKit(){const P=[],C=[];
    5 → 2,5 m ; un 4e niveau de détail (1,75 · 3,5 · 7 · 14 m) garde le coût : les petits cubes ne se dessinent que de près. */
 const VX=TEL_NATIF?3.5:1.75,VXG=TEL_NATIF?5:2.5;
 /* (2026-10-24, Sacha : « réduire la map jade sur mobile : moins de montagnes, plus d'animaux ni de nuages, et le reste ») JADE_SOBRE : sur téléphone, la vallée est allégée — montagnes ÷2, ni singes, ni dauphins, ni grues, ni nuages, ni rayons, ni lucioles, moins de rochers flottants, de cascades et de brume. `?jadeplein=1` rend la vallée d'avant. L'ordi n'est pas touché. */
-const JADE_SOBRE=TEL_NATIF&&!/[?&]jadeplein=1\b/.test(location.search);
+const JADE_SOBRE=ALLEGE&&!/[?&]jadeplein=1\b/.test(location.search);
 const JADE_NUVOX=!/[?&]nuvox=0\b/.test(location.search); // (v13) les volutes en cubes — `?nuvox=0` : les panneaux en relief de la v9
  // (v10) les montagnes en VITRAIL (voir « LE VITRAIL ») — (v11, Léo : « laisse tomber, reviens sur les pixels, c'était plus joli ») : seulement avec `?vitrail=1`
 const JM={roche:1,rouille:2,herbe:3,feuille:4,bois:5,laque:6,tuile:7,or:8,pierre:9};
@@ -26492,7 +26517,7 @@ function buildVoxCity(seed,accC){
   const routeAuDessus=(cx,cz,hd,t)=>{let m=1e9;const clr=hd+ROAD_HALF+24,c2=clr*clr; // la route la plus basse au-dessus du toit, sous l'emprise : borne le mât (il montait jusque dans le bitume)
     proches(cx,cz,clr,function(i){const p=pts[i],dx=p.x-cx,dz=p.z-cz;if(dx*dx+dz*dz<=c2&&p.y>t&&p.y<m)m=p.y;});return m;};
   // LES CELLULES : maille SERRÉE près du ruban (le canyon), lâche au large ; chaque cellule retient le point de piste le plus proche
-  const R_CAN=330,R_VIL=IS_MOBILE?1700:2100,SN=IS_MOBILE?66:54,SF=IS_MOBILE?230:200; // (2026-09-26) la forêt va jusqu'au brouillard
+  const R_CAN=330,R_VIL=ALLEGE?1700:2100,SN=ALLEGE?66:54,SF=ALLEGE?230:200; // (2026-09-26) la forêt va jusqu'au brouillard
   const cellules=(S,R,garde)=>{const m=new Map(),rr=Math.ceil(R/S),pas=Math.max(1,Math.round(S*.6/(L/(NP-1))));
     for(let i=0;i<NP;i+=pas){const cx0=Math.round(pts[i].x/S),cz0=Math.round(pts[i].z/S);
       for(let dx=-rr;dx<=rr;dx++)for(let dz=-rr;dz<=rr;dz++){const gx=(cx0+dx)*S,gz=(cz0+dz)*S,d=Math.hypot(gx-pts[i].x,gz-pts[i].z);if(d>R)continue;
@@ -26562,7 +26587,7 @@ function buildVoxCity(seed,accC){
     if(VIt&&fo>0){corps.push(cx,km,cz,w,H,p);genre.push(0);tqC.push(cx,km,cz);}
     // LES TUYAUX : ils DESCENDENT le long d'une façade jusque dans la brume
     if(H>220&&vr()<(canyon?.7:.5)*dk('tuy',1)){
-      const nt=1+((vr()*(IS_MOBILE?2:3))|0),tk=snap(3+vr()*2.5);
+      const nt=1+((vr()*(ALLEGE?2:3))|0),tk=snap(3+vr()*2.5);
       for(let t9=0;t9<nt;t9++){const face=(vr()*4)|0,ht=VIt?Math.min(H*(.5+vr()*.45),h0):H*(.5+vr()*.45),gl=(vr()-.5)*.7; // (VILLE VITRÉE) la lame s'arrête au toit du volume qu'elle longe
         const ox=face<2?(face?1:-1)*(w/2+tk/2):gl*w,oz=face<2?gl*p:(face===2?1:-1)*(p/2+tk/2);
         if(VIt&&fo>0)continue; // (VILLE VITRÉE) une tour de forme n'a pas de lame plaquée (sa façade s'effile ou tourne)
@@ -26588,7 +26613,7 @@ function buildVoxCity(seed,accC){
      les autres roulaient dans le vide (capture v3-b du 26/09). Chaque tour se pose par rapport au TRONÇON qu'elle borde : trois
      rangs de chaque côté (le mur, la deuxième ligne, le fond de rue). Les autres étages de route, `tourLibre` s'en charge.
      LE BUDGET (iPhone) : une piste de 30 km ferait 20 000 volumes — au-delà du plafond, on éclaircit au hasard, sans trou régulier. */
-  const pasC=Math.max(1,Math.round(SN/(L/(NP-1)))),ROWS=[[28,40,.9],[100,60,.7],[190,130,.5]],BUD=IS_MOBILE?1300:2300;
+  const pasC=Math.max(1,Math.round(SN/(L/(NP-1)))),ROWS=[[28,40,.9],[100,60,.7],[190,130,.5]],BUD=ALLEGE?1300:2300;
   const kC=Math.min(1,BUD/Math.max(1,(NP/pasC)*2*2.1));
   for(let i=0;i<NP;i+=pasC){const T9=T[i],hl=Math.hypot(T9.x,T9.z);if(hl<.5)continue; // haut des loopings : pas de mur
     const px=-T9.z/hl,pz=T9.x/hl,tx=T9.x/hl,tz=T9.z/hl;
@@ -26598,7 +26623,7 @@ function buildVoxCity(seed,accC){
       const w=snap(VS?30+vr()*42:16+vr()*26),p=snap(VS?30+vr()*42:16+vr()*26),hd=Math.hypot(w,p)*.5,lat=ROAD_HALF+rw[0]*(VS?1.7:1)+hd+vr()*rw[1]*(VS?1.6:1),al=(vr()-.5)*SN*.6; // (AU SOL) des géantes : plus larges, plus loin (le ciel et leurs pieds se voient entre elles)
       const nt0=nT,eI=eEnt(i);batir(pts[i].x+px*sg*lat+tx*al,pts[i].z+pz*sg*lat+tz*al,lat,pts[i].y,yLo,true,w,p,rw===ROWS[0]?eI:0); // (2026-10-04) seul le MUR (1er rang) passe sous la route à l'entrée — voir ENTRÉE v2
       // LE PANNEAU : un mur sur quatre du 1er rang porte une réclame, tournée VERS la route, un peu au-dessus d'elle
-      if(rw===ROWS[0]&&nT>nt0&&vr()<(IS_MOBILE?.22:.3)*dk('pub',1)){const pw=24+vr()*16,ph=pw*(.75+vr()*.25),d9=lat-hd*.72-1.5;
+      if(rw===ROWS[0]&&nT>nt0&&vr()<(ALLEGE?.22:.3)*dk('pub',1)){const pw=24+vr()*16,ph=pw*(.75+vr()*.25),d9=lat-hd*.72-1.5;
         (eI>.3||VI||gvDer||CR&&cryptoReserve(pts[i].x+px*sg*d9+tx*al,pts[i].z+pz*sg*d9+tz*al,pw*.6)?[]:pubs).push(pts[i].x+px*sg*d9+tx*al,pts[i].y+16+vr()*40,pts[i].z+pz*sg*d9+tz*al,Math.atan2(-px*sg,-pz*sg),pw,ph);}} // (entrée surélevée : pas de réclame en l'air au-dessus des toits — les tirages restent)
   }
   // AU LARGE : la forêt du village, par cases au sol (le fond de scène), calée sur le point de piste le plus proche
@@ -26977,7 +27002,7 @@ const padTex=(function(){
     if(cv.width===1&&cv.height===1)break;}
   const t=new THREE.CanvasTexture(pres);t.mipmaps=niv;t.generateMipmaps=false;t.wrapS=THREE.ClampToEdgeWrapping;t.wrapT=THREE.RepeatWrapping;
   t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearMipmapLinearFilter; // de près : les vrais pixels ; au loin : la plaque qui luit, stable
-  t.anisotropy=Math.min(IS_MOBILE?2:4,renderer.capabilities.getMaxAnisotropy()); // la plaque se voit à plat, rasante
+  t.anisotropy=Math.min(ALLEGE?2:4,renderer.capabilities.getMaxAnisotropy()); // la plaque se voit à plat, rasante
   return t;
 })();
 const PAD_MAT=new THREE.MeshBasicMaterial({map:padTex,color:new THREE.Color(1.45,1.45,1.45),polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}); // ×1,45 : la plaque ÉMET au-delà du blanc (le bloom la prend), elle reste d'or au loin au lieu d'un pavé brun // (2026-09-26) décalage de profondeur : le pad lointain ne clignote plus à travers le bitume
@@ -28821,7 +28846,7 @@ function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uni
 // le liseré des caisses : direction MONDE et teinte de repos, posées par bioApply, relues chaque image par la boucle (voir RIM_U)
 let RIM_S0=.4; // (2026-09-29) la force du liseré posée par le niveau (bioApply) — la boucle la relève en vol
 const RIM_DIR=SUN_DIR.clone(),RIM_C0=new THREE.Color(0xffd9a0),RIM_T9=new THREE.Color(),KICK_DIR=kick.position.clone().normalize();
-const BLOOM_K=IS_MOBILE?.44/.54:1; // le téléphone garde son rapport de bloom (.44 contre .54 sur PC) : les forces des biomes sont des bases PC
+const BLOOM_K=LOOK_TEL?.44/.54:1; // le téléphone garde son rapport de bloom (.44 contre .54 sur PC) : les forces des biomes sont des bases PC
 function bioGo(name,dur){ // lance le voyage vers un biome (reflets carrosserie repeints tout de suite : discret)
   if(!BIOMES[name])name='golden';
   BIO.from=JSON.parse(JSON.stringify(BIO.cur));BIO.to=BIOMES[name];BIO.k=0;BIO.dur=dur||4;BIO.name=name;BIO.dip=0;
@@ -28898,7 +28923,7 @@ const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau da
    Banc / lien de test : `?carte=jade&meteo=orage` impose le 1er couple ; `dbgClassique('ville','soir')` impose le suivant (puis dbgSaut()).
    ========================================================================== */
 const SF={on:!/[?&](classique=cycle|play=sansfin)\b/.test(location.search),pret:false,neuf:false,tirage:[],der:null,force:null,prochain:null,prochainDer:null};
-const SF_HORS={vitree:VILLE_VERRE_V&&!/[?&]vitree=1\b/.test(location.search),crypto:TEL_NATIF&&!/[?&](carte|niveau)=crypto\b/.test(location.search),foret:TEL_NATIF&&!/[?&]carte=foret\b/.test(location.search)}; /* ⚠ TEL_NATIF, PAS IS_MOBILE (2026-10-25, Sacha : « sur PC la qualité a chuté ») : `IS_MOBILE` est vrai AUSSI sur l'ordi qui joue l'édition 'mobile' (FORCE_TEL, voir EDITION) — les retraits « téléphone » du 24/10 tombaient donc sur le PC. */ /* (2026-10-24, Sacha : « enlève les maps dunes et forêt de la version mobile ») LA FORÊT n'est plus tirée sur téléphone (l'ordi la garde) · (2026-10-25, Léo : « remets la map dune dans le main, intelligible pour un iPhone 13 ») LES DUNES sont REVENUES au tirage du téléphone, allégées (DN_MOB, dunes-1.js ; `?dunesplein=1` rend l'image d'avant) ; `?carte=foret` / `?carte=dunes` les remettent */ /* (2026-10-24, Sacha : « supprime la map crypto city de téléphone ») CRYPTO CITY n'est plus tirée sur téléphone (l'ordi la garde) ; `?carte=crypto` la remet pour les essais */
+const SF_HORS={vitree:VILLE_VERRE_V&&!/[?&]vitree=1\b/.test(location.search),crypto:ALLEGE&&!/[?&](carte|niveau)=crypto\b/.test(location.search)}; /* ⚠ TEL_NATIF, PAS l'ancien drapeau mobile (2026-10-25, Sacha : « sur PC la qualité a chuté ») : `l'ancien drapeau mobile` est vrai AUSSI sur l'ordi qui joue l'édition 'mobile' (FORCE_TEL, voir EDITION) — les retraits « téléphone » du 24/10 tombaient donc sur le PC. */ /* (2026-10-24, Sacha : « enlève les maps dunes et forêt de la version mobile ») LA FORÊT n'est plus tirée sur téléphone (l'ordi la garde) · (2026-10-25, Léo : « remets la map dune dans le main, intelligible pour un iPhone 13 ») LES DUNES sont REVENUES au tirage du téléphone, allégées (DN_MOB, dunes-1.js ; `?dunesplein=1` rend l'image d'avant) ; `?carte=foret` / `?carte=dunes` les remettent */ /* (2026-10-24, Sacha : « supprime la map crypto city de téléphone ») CRYPTO CITY n'est plus tirée sur téléphone (l'ordi la garde) ; `?carte=crypto` la remet pour les essais */ /* (2026-10-25, Léo : « remets forêt sur iPhone ») LA FORÊT est REVENUE au tirage du téléphone (elle y garde son allègement : arbres ×0,8, MOB) ; l'ordi la gardait déjà */
 /* (2026-10-18, Sacha : « fusionne les maps ville et ville vitrée ») les maps HORS DU TIRAGE — jouables par ?carte= et dbgClassique (voir VILLE_VERRE_V) */
 {const q9=/[?&]carte=(\w+)/.exec(location.search)||(/[?&]niveau=crypto\b/.test(location.search)?[0,'crypto']:null),m9=/[?&]meteo=(\w+)/.exec(location.search),t9=/[?&]teinte=(\w+)/.exec(location.search);if(q9||m9)SF.force={carte:q9?q9[1]:null,meteo:m9?m9[1]:null,teinte:t9?t9[1]:null};} // (2026-10-16) + `?teinte=` (la ville : violet, vert, jaune, bleu)
 const SF_NIV={nuages:NIVEAUX.find(function(n){return n.id==='nuages';}),orage:NIVEAUX.find(function(n){return n.id==='orage';}),
@@ -29255,7 +29280,7 @@ function lvlMontre(){ // la bannière « NIVEAU n — LIEU » (fondu d'opacité 
    premier portail de la ville, c'est un hoquet de compilation au pire moment. Elle reste donc DANS la scène,
    invisible hors niveau VILLE ; `uOp` suit le fondu du niveau (`LVL.pluie`). */
 const PLUIE=(function(){
-  const N=IS_MOBILE?600:1100,pos=new Float32Array(N*6),bout=new Float32Array(N*2); // dosée pour que la route reste LISIBLE à travers
+  const N=ALLEGE?600:1100,pos=new Float32Array(N*6),bout=new Float32Array(N*2); // dosée pour que la route reste LISIBLE à travers
   for(let i=0;i<N;i++){const a=Math.random(),b=Math.random(),c=Math.random();
     pos.set([a,b,c,a,b,c],i*6);bout[i*2]=0;bout[i*2+1]=1;}
   const g=new THREE.BufferGeometry();
@@ -29479,8 +29504,8 @@ function geoEclat(){ // [2] L'ÉCLAT : un prisme irrégulier ; dessus −1, dess
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));
   const A=new Float32Array(36);for(let i=0;i<36;i++)A[i]=i<6?-1:(i<12?-2:-3);
   g.setAttribute('aPart',new THREE.BufferAttribute(A,1));g.setAttribute('aVg',new THREE.BufferAttribute(new Float32Array(36).fill(-1),1));return g;}
-const SAT_MAX=TEL_NATIF?[23,19,130]:IS_MOBILE?[230,190,1300]:[340,300,2000]; // Starlink (passants + champ + trains) · gros débris · éclats (champ + anneaux) — (2026-09-30, Sacha : « plus de satellites dans l'espace ») 120/140 → 230/190 (téléphone), 204/220 → 340/300 ; le niveau HARDCORE y prend ses obstacles EN PREMIER
-const SAT_PASS=TEL_NATIF?3:IS_MOBILE?30:44,SAT_TRAINS=TEL_NATIF?[1,2]:IS_MOBILE?[3,20]:[5,26]; /* (2026-10-25) le vrai téléphone seulement : l'ordi en édition 'mobile' (IS_MOBILE sans TEL_NATIF) retrouve ses valeurs d'avant le 24/10 */ /* (2026-10-24, Sacha : « 90 % des satellites en moins », téléphone seulement : 230/190/1300, 30 passants, 3 trains de 20) */ // passants au bord de la route ; trains × satellites par train — (2026-09-30) 18/26 → 30/44 passants, 2/3 → 3/5 trains
+const SAT_MAX=ALLEGE?[23,19,130]:[340,300,2000]; // Starlink (passants + champ + trains) · gros débris · éclats (champ + anneaux) — (2026-09-30, Sacha : « plus de satellites dans l'espace ») 120/140 → 230/190 (téléphone), 204/220 → 340/300 ; le niveau HARDCORE y prend ses obstacles EN PREMIER
+const SAT_PASS=ALLEGE?3:44,SAT_TRAINS=ALLEGE?[1,2]:[5,26]; /* (2026-10-25) le vrai téléphone seulement : l'ordi en édition 'mobile' (l'ancien drapeau mobile sans TEL_NATIF) retrouve ses valeurs d'avant le 24/10 */ /* (2026-10-24, Sacha : « 90 % des satellites en moins », téléphone seulement : 230/190/1300, 30 passants, 3 trains de 20) */ // passants au bord de la route ; trains × satellites par train — (2026-09-30) 18/26 → 30/44 passants, 2/3 → 3/5 trains
 const SAT_U={uT:{value:0},uSol:{value:ORB.cle},uTerre:{value:new THREE.Vector3(0,-1,0)},uFog:{value:new THREE.Color(0,0,0)},uOp:{value:0},uForce:{value:0}}; // uForce : (dev) tous les éclats allumés
 const SAT_VS=['attribute vec4 aRot,aVar;uniform float uT;',
   'vec3 rotA(vec3 v,vec3 k,float a){float c=cos(a),s=sin(a);return v*c+cross(k,v)*s+k*dot(k,v)*(1.-c);}',
@@ -46037,6 +46062,10 @@ const PWR_EGAUX=PWR_LIGNE; // les cinq pouvoirs à la même fréquence
    ⚠ l'échelle des prix est géométrique (×5 environ) parce que l'économie du jeu l'est : les paliers
    moteur vont de 5 à 2 854 et la valeur d'une pièce suit. Une échelle linéaire rendrait les
    premières caisses interminables et les dernières gratuites. */
+/* ===== TOUS LES PRIX ×10, SAUF LA ZAGAIE (2026-10-25, Sacha : « tous les items du jeu, tous leurs prix des trucs que tu peux acheter, tu rajoutes un 0 à la fin de chacun de leurs prix. sauf la zagate ») =====
+   Les `p:` ci-dessous (et ceux des habillages dans boutique.js, des figures dans figures.js, des quatre caisses de carnet PX9 dans missions/table.js) sont les prix
+   d'AUJOURD'HUI ; les commentaires datés qui les accompagnent citent les prix d'AVANT. LA ZAGAIE (index 88) garde 3 500 000. Les caisses RETIRÉES gardent leur
+   ancien prix : il ne sert qu'au REMBOURSEMENT de qui les avait payées à l'époque. Les prix en € des premium (`eur`) ne bougent pas. */
 const CAR_UNLOCK=[
   /* (2026-10-06, Léo : « fiche-voitures-cash-car.txt — applique les changements ») LA GAMME RESSERRÉE : 43 caisses jouables. Prix et
      familles de la fiche ; les 25 supprimées gardent leur ligne (`retire:1` dans CARS, leur prix ici sert au REMBOURSEMENT de san) ;
@@ -46047,10 +46076,10 @@ const CAR_UNLOCK=[
      automatique (`dbgAuto`, aucune figure, aucun nitro) encaisse ~2 600 $ en une minute avant de tomber ;
      un débutant fait 200 à 1 000 $. L'ancien 25 000 $ demandait donc ~30 parties pour la 1re caisse :
      un mur. Cible : la 1re caisse en 10-15 min de jeu (parties + primes de contrat), puis ×6-7 par marche. */
-  {p:50e3},/* (2026-10-22, Sacha : « tableau des voitures » 40 000 → 50 000) */// ELDORADO — (2026-10-17, Sacha : « pas 3 000 dollars, elle doit coûter 40 000 dollars » — 3 000 → 40 000, juste sous LE CAÏD (50 000) ; le même jour LE CHARGEUR (60 000), LA BAVAROISE (100 000) et LE DÉFIEUR (120 000) montent aussi : l'ELDORADO reste la 1re caisse à l'argent) — (2026-10-14 soir, Sacha : option A de passation/ECONOMIE.md — 10 000 → 3 000 : la 1re caisse en 3-4 parties de joueur moyen, aucun gain ne change) — (2026-10-14, équilibrage : 24 000 → 10 000 — la 1re caisse à l'argent depuis le retrait des communes : un débutant l'avait en ~58 parties, ~22 désormais) — (2026-09-26) RARE : les 14 COMMUNES (1 500 → 15 000 $) prennent le rôle de « première caisse »
-  {p:60e3},/* (2026-10-22, Sacha : « tableau des voitures » 180 000 → 60 000) */ // LE CAÏD — RARE (2026-10-06 : 60 000 → 50 000) ; 50 000 → 180 000 : c'est le HUMMER EV désormais ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
+  {p:500e3},/* (2026-10-22, Sacha : « tableau des voitures » 40 000 → 50 000) */// ELDORADO — (2026-10-17, Sacha : « pas 3 000 dollars, elle doit coûter 40 000 dollars » — 3 000 → 40 000, juste sous LE CAÏD (50 000) ; le même jour LE CHARGEUR (60 000), LA BAVAROISE (100 000) et LE DÉFIEUR (120 000) montent aussi : l'ELDORADO reste la 1re caisse à l'argent) — (2026-10-14 soir, Sacha : option A de passation/ECONOMIE.md — 10 000 → 3 000 : la 1re caisse en 3-4 parties de joueur moyen, aucun gain ne change) — (2026-10-14, équilibrage : 24 000 → 10 000 — la 1re caisse à l'argent depuis le retrait des communes : un débutant l'avait en ~58 parties, ~22 désormais) — (2026-09-26) RARE : les 14 COMMUNES (1 500 → 15 000 $) prennent le rôle de « première caisse »
+  {p:600e3},/* (2026-10-22, Sacha : « tableau des voitures » 180 000 → 60 000) */ // LE CAÏD — RARE (2026-10-06 : 60 000 → 50 000) ; 50 000 → 180 000 : c'est le HUMMER EV désormais ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
   {p:180e3},            // (2026-10-06 : RETIRÉE, le prix sert au remboursement) SA MAJESTÉ — RARE, la plus chère des rares : l'argent achète la Rolls, c'est même à ça qu'il sert
-  {p:400e3},/* (2026-10-22, Sacha : « tableau des voitures » 4 000 000 → 400 000) */ // (2026-10-19 : 2,5 M → 4 M, la plus chère des caisses à l'argent du jeu ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) (2026-10-06 : 1,5 M → 2,5 M) ROSSO 40 — (2026-09-25 : le mode Survivant est retiré, un seul mode de jeu) la caisse de RÊVE, à 1,5 M
+  {p:4e6},/* (2026-10-22, Sacha : « tableau des voitures » 4 000 000 → 400 000) */ // (2026-10-19 : 2,5 M → 4 M, la plus chère des caisses à l'argent du jeu ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) (2026-10-06 : 1,5 M → 2,5 M) ROSSO 40 — (2026-09-25 : le mode Survivant est retiré, un seul mode de jeu) la caisse de RÊVE, à 1,5 M
   {k:'premium',eur:'1,61 €',rar:'leg'},/* (2026-10-22, Sacha : « tableau des voitures » : POSTER 84 en boutique à 1,61 €, légendaire ; avant : rang d'aura MYTHE) */ // POSTER 84 — le poster se mérite au style : rang MYTHE, l'argent n'y peut rien
   {k:'carnet',v:1},     // LA BULLE — contrat n° 1
   {k:'carnet',v:2},     // LE COMBI — contrat n° 2
@@ -46062,7 +46091,7 @@ const CAR_UNLOCK=[
   {k:'premium',eur:'4,99 €',rar:'leg'},       // FORMULE OR — (2026-10-06) RETIRÉE
   {k:'premium',eur:'2,99 €',rar:'leg'},       // LE MANS 24 — (2026-10-06) RETIRÉE
   {k:'premium',eur:'2,99 €',rar:'leg'},       // EL PATRON — (2026-10-06) RETIRÉE
-  {p:200000},/* (2026-10-22, Sacha : « tableau des voitures » 550 000 → 200 000) */ // (2026-10-19 : 750 000 → 550 000, la plus abordable des épiques ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) ACIDE — (2026-10-06) ÉPIQUE à l'argent du jeu (était en boutique, 1,99 €)
+  {p:2000000},/* (2026-10-22, Sacha : « tableau des voitures » 550 000 → 200 000) */ // (2026-10-19 : 750 000 → 550 000, la plus abordable des épiques ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) ACIDE — (2026-10-06) ÉPIQUE à l'argent du jeu (était en boutique, 1,99 €)
 /* ===== LES CONDITIONS DES 50 — DÉBUT ===== */
   {p:1500}, // LA POSTIÈRE — (2026-10-06) RETIRÉE
   {p:2000}, // LA DEUCHE — (2026-10-06) RETIRÉE
@@ -46074,39 +46103,39 @@ const CAR_UNLOCK=[
   {p:6000}, // LE GLACIER
   {p:7000}, // LE TOUT-TERRAIN SOVIÉTIQUE
   {p:8000}, // LE GRILLE-PAIN — (2026-10-06) RETIRÉE
-  {p:300000}, // LE CORBILLARD — (2026-10-06) RARE (était commune, 9 000 $)
+  {p:3000000}, // LE CORBILLARD — (2026-10-06) RARE (était commune, 9 000 $)
   {p:10000}, // LA SANS-PERMIS — (2026-10-06) RETIRÉE
   {p:12000}, // L'AUTO-ÉCOLE — (2026-10-06) RETIRÉE
   {p:15000}, // LE PICK-UP DU FERMIER — (2026-10-06) RETIRÉE
   {p:20000}, // L'AMBASSADEUR — (2026-10-06) RETIRÉE
-  {p:60000}, // LE CHARGEUR — (2026-10-17, Sacha : « le chargeur, il doit coûter 60 000 dollars » : 6 000 → 60 000) — (2026-10-14 soir, option A : 16 000 → 6 000, la 1re marche de transition ; les communes retirées n'ont plus de modèle) — (2026-10-14, équilibrage : 26 000 → 16 000 — une marche douce ×1,5 au bas de la gamme)
-  {p:120000}, // LE DÉFIEUR — (2026-10-17, Sacha : « tu mets son prix à 120 000 dollars » : 10 000 → 120 000, avec sa refonte en robot jaune) — (2026-10-14 soir, option A : 24 000 → 10 000, la 2e marche) — (2026-10-14, équilibrage : 32 000 → 24 000)
-  {p:100000}, // LA BAVAROISE — (2026-10-17, Sacha : « cent mille dollars » — 20 000 → 100 000, le jour du KIT RALLYE : elle passe entre LA SILENCIEUSE 90 000 et LE SAMOURAÏ 120 000) — (2026-10-14 soir, PILOTAGE après l'option A : 42 000 → 20 000, la marche à ×2 entre LE DÉFIEUR 10 000 et LE CAÏD 50 000) — (2026-10-06 : 38 000 → 42 000)
+  {p:600000}, // LE CHARGEUR — (2026-10-17, Sacha : « le chargeur, il doit coûter 60 000 dollars » : 6 000 → 60 000) — (2026-10-14 soir, option A : 16 000 → 6 000, la 1re marche de transition ; les communes retirées n'ont plus de modèle) — (2026-10-14, équilibrage : 26 000 → 16 000 — une marche douce ×1,5 au bas de la gamme)
+  {p:1200000}, // LE DÉFIEUR — (2026-10-17, Sacha : « tu mets son prix à 120 000 dollars » : 10 000 → 120 000, avec sa refonte en robot jaune) — (2026-10-14 soir, option A : 24 000 → 10 000, la 2e marche) — (2026-10-14, équilibrage : 32 000 → 24 000)
+  {p:1000000}, // LA BAVAROISE — (2026-10-17, Sacha : « cent mille dollars » — 20 000 → 100 000, le jour du KIT RALLYE : elle passe entre LA SILENCIEUSE 90 000 et LE SAMOURAÏ 120 000) — (2026-10-14 soir, PILOTAGE après l'option A : 42 000 → 20 000, la marche à ×2 entre LE DÉFIEUR 10 000 et LE CAÏD 50 000) — (2026-10-06 : 38 000 → 42 000)
   {p:45000}, // LA SUÉDOISE TURBO — (2026-10-06) RETIRÉE
   {p:52000}, // LE QUATTRO — (2026-10-06) RETIRÉE
-  {p:90000}, // LA SILENCIEUSE (2026-10-06 : 70 000 → 90 000)
+  {p:900000}, // LA SILENCIEUSE (2026-10-06 : 70 000 → 90 000)
   {p:85000}, // LE TRIDENT — (2026-10-06) RETIRÉE
   {p:100000}, // LA HUIT — (2026-10-06) RETIRÉE
-  {p:120000}, // LE SAMOURAÏ
-  {p:90000},/* (2026-10-22, Sacha : « tableau des voitures » 140 000 → 90 000) */ // LA VETTE
+  {p:1200000}, // LE SAMOURAÏ
+  {p:900000},/* (2026-10-22, Sacha : « tableau des voitures » 140 000 → 90 000) */ // LA VETTE
   {p:160000}, // LE CHÂTELAIN — (2026-10-06) RETIRÉE
-  {p:130000},/* (2026-10-22, Sacha : « tableau des voitures » 200 000 → 130 000) */ // LA GRANDE ANGLAISE
-  {p:70000},/* (2026-10-22, Sacha : « tableau des voitures » 300 000 → 70 000) */ // LE CHARGEUR 69
+  {p:1300000},/* (2026-10-22, Sacha : « tableau des voitures » 200 000 → 130 000) */ // LA GRANDE ANGLAISE
+  {p:700000},/* (2026-10-22, Sacha : « tableau des voitures » 300 000 → 70 000) */ // LE CHARGEUR 69
   {p:380000}, // L'ÉTALON — (2026-10-06) RETIRÉE
-  {p:800000}, // LA QUEUE DE CANARD — (2026-10-19) 550 000 → 800 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) — (2026-10-18, Léo) 460 000 → 550 000 : épique, elle passe au-dessus des exotiques (LA GROUPE B 500 000)
+  {p:8000000}, // LA QUEUE DE CANARD — (2026-10-19) 550 000 → 800 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) — (2026-10-18, Léo) 460 000 → 550 000 : épique, elle passe au-dessus des exotiques (LA GROUPE B 500 000)
   {p:550000}, // LA DAYTONA
-  {p:1200000}, // LA TAURINE — (2026-10-19) 650 000 → 1 200 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
-  {p:750000}, // LA STRATOS
-  {p:850000}, // LA NOCTAMBULE (ex-LA CHAUVE-SOURIS — renommée le 2026-10-14, Sacha : nom trop proche de Batman pour la revue App Store)
+  {p:12000000}, // LA TAURINE — (2026-10-19) 650 000 → 1 200 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
+  {p:7500000}, // LA STRATOS
+  {p:8500000}, // LA NOCTAMBULE (ex-LA CHAUVE-SOURIS — renommée le 2026-10-14, Sacha : nom trop proche de Batman pour la revue App Store)
   {p:950000}, // LA PAGODE — (2026-10-06) RETIRÉE
   {p:1100000}, // LA DÉESSE — (2026-10-06) RETIRÉE
-  {p:800000}, // L'AIGLE DE FEU (2026-10-06 : 1,3 M → 1 M) (2026-10-09, Léo, fiche de la salle blanche) RARE à 800 000 : entre LA QUEUE DE CANARD et LA NOCTAMBULE (ex-LA CHAUVE-SOURIS), l'ordre de la fiche
+  {p:8000000}, // L'AIGLE DE FEU (2026-10-06 : 1,3 M → 1 M) (2026-10-09, Léo, fiche de la salle blanche) RARE à 800 000 : entre LA QUEUE DE CANARD et LA NOCTAMBULE (ex-LA CHAUVE-SOURIS), l'ordre de la fiche
   {p:600000}, // (2026-10-19) 1 600 000 → 600 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) — // LA ZED
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LA FÉLINE — (2026-10-06) LÉGENDAIRE en boutique (était épique, 2 M)
-  {p:260000},/* (2026-10-22, Sacha : « tableau des voitures » 2 500 000 → 260 000) */ // LA RAIE — (2026-10-18, Sacha) REMISE dans le jeu : épique à 2,5 M, comme avant le 6/10 (« DÉFI À VENIR » du 6 au 14/10, retirée ensuite)
+  {p:2600000},/* (2026-10-22, Sacha : « tableau des voitures » 2 500 000 → 260 000) */ // LA RAIE — (2026-10-18, Sacha) REMISE dans le jeu : épique à 2,5 M, comme avant le 6/10 (« DÉFI À VENIR » du 6 au 14/10, retirée ensuite)
   {k:'premium',eur:'1,61 €',rar:'leg'},/* (2026-10-22, Sacha : « tableau des voitures » : L'ÉTERNELLE en boutique à 1,61 €, légendaire ; avant : 100 parties) */ // L'ÉTERNELLE — (2026-10-14, PILOTAGE) DÉFI : 100 PARTIES jouées (`ex.runs`, déjà compté : les parties passées valent) — c'était 100 pubs, impossible depuis qu'il n'y a plus de pubs — (2026-10-06) DÉFI : 100 pubs (était en boutique, 9,99 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE TRÔNE CENTRAL (2026-10-06 : 7,99 → 1,61 €)
-  {p:420000},/* (2026-10-22, Sacha : « tableau des voitures » : LE SPECTRE à l'argent, 420 000 $, épique ; avant : 1,61 €) */ // LE SPECTRE (2026-10-06 : 7,99 → 1,61 €)
+  {p:4200000},/* (2026-10-22, Sacha : « tableau des voitures » : LE SPECTRE à l'argent, 420 000 $, épique ; avant : 1,61 €) */ // LE SPECTRE (2026-10-06 : 7,99 → 1,61 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE BLINDÉ NOIR (2026-10-21, Sacha : 9,99 → 1,61 €) (ex-LE CHEVALIER NOIR — renommé le 2026-10-14, Sacha : nom trop proche de Batman pour la revue App Store)
   {k:'premium',eur:'1,61 €',rar:'leg'},/* (2026-10-22, Sacha : « tableau des voitures » : 0,99 → 1,61 €) */ // LE MUR DU SON (2026-10-06 : 6,99 → 0,99 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE DRAGON D'OR (2026-10-21, Sacha : 9,99 → 1,61 €)
@@ -46117,46 +46146,46 @@ const CAR_UNLOCK=[
 /* ===== LES CONDITIONS DES 50 — FIN ===== */
   {p:1800000,exK:'carrN',exV:5}, // LA CAISSE-NUAGE — (2026-10-18) la carrière retirée : à l'argent du jeu (le prix de l'ancienne édition Poki, depuis le 14/10) ; exK/exV : la condition d'avant (les 5 niveaux de SKY HIGH), gagnée = la caisse est à toi (voir la migration après SAVE.load)
   {p:2200000,exK:'carrV',exV:5}, // LE LINGOT — (2026-10-18) idem : les 5 niveaux de la VILLE gagnés = il est à toi
-  {p:280000},/* (2026-10-22, Sacha : « tableau des voitures » : L'ORIGAMI à l'argent, 280 000 $ ; avant : mission « joue sur chaque map ») */ // (2026-10-02) L'ORIGAMI — ÉPIQUE, à l'argent : entre LA DÉESSE et L'AIGLE DE FEU
-  {p:900000}, // (2026-10-06) ATCHOUM — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 900 000 : entre LA STRATOS et L'ORIGAMI, l'ordre de la fiche
+  {p:2800000},/* (2026-10-22, Sacha : « tableau des voitures » : L'ORIGAMI à l'argent, 280 000 $ ; avant : mission « joue sur chaque map ») */ // (2026-10-02) L'ORIGAMI — ÉPIQUE, à l'argent : entre LA DÉESSE et L'AIGLE DE FEU
+  {p:9000000}, // (2026-10-06) ATCHOUM — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 900 000 : entre LA STRATOS et L'ORIGAMI, l'ordre de la fiche
   {k:'premium',eur:'1,61 €',rar:'leg'}, // (2026-10-21, Sacha : « remplace le shark par l'autre requin de Léo, à 1,61 € ») LE SQUALE passe en boutique, ex-700 000 (la mission secrète `abysse` ne le donne plus : elle paie de l'argent, voir missions/table.js — sinon le patch des missions le remettait en `k:'mis'` et il disparaissait de la boutique) ; (2026-10-08) LE SQUALE — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 700 000 : entre LA TAURINE et ACIDE, l'ordre de la fiche
   {p:3000000}, // (2026-10-09, Léo : « fais-en une hyper abstraite mais travaillée, concept, ajoute-la à la liste ») L'ABSTRAITE — ÉPIQUE, la plus chère des épiques (juste après ROSSO 40)
-  {p:3200000}, // (2026-10-10, Léo : « une nouvelle abstraite, en glace, genre iceberg ») L'ICEBERG — ÉPIQUE, juste après L'ABSTRAITE
+  {p:32000000}, // (2026-10-10, Léo : « une nouvelle abstraite, en glace, genre iceberg ») L'ICEBERG — ÉPIQUE, juste après L'ABSTRAITE
   {p:3400000}, // (2026-10-10, Léo : « une voiture flamme ») LA FOURNAISE — ÉPIQUE, juste après L'ICEBERG
   {p:3600000}, // (2026-10-10, Léo : « une abstraite type eau ») LA DÉFERLANTE — ÉPIQUE, juste après LA FOURNAISE
   {p:3800000}, // (2026-10-11, Léo : « génère-la en 3D dans mon jeu ») LA MERCURE — ÉPIQUE, juste après LA DÉFERLANTE
-  {p:4000000}, // (2026-10-14, Léo : « fais une voiture tête de doge ») LE DOGE — ÉPIQUE, juste après LA MERCURE
+  {p:40000000}, // (2026-10-14, Léo : « fais une voiture tête de doge ») LE DOGE — ÉPIQUE, juste après LA MERCURE
   {p:4200000}, // (2026-10-16, Léo : « une belle Porsche Cayenne rose Barbie ») LA POUPÉE — ÉPIQUE, juste après LE DOGE
-  {p:240000},/* (2026-10-22, Sacha : « tableau des voitures » 2 000 000 → 240 000) */ // (2026-10-19) 4 400 000 → 2 000 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) (2026-10-16, Léo : « Taycan 4S », blanche, « la perle ») LA PERLE — ÉPIQUE, juste après LA POUPÉE
+  {p:2400000},/* (2026-10-22, Sacha : « tableau des voitures » 2 000 000 → 240 000) */ // (2026-10-19) 4 400 000 → 2 000 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) (2026-10-16, Léo : « Taycan 4S », blanche, « la perle ») LA PERLE — ÉPIQUE, juste après LA POUPÉE
   /* LES NOUVELLES VOITURES (2026-10-18) — prix provisoires (réglables dans la salle blanche) : communes 2 500 → 8 000 $, rares 25 000 → 50 000 $ */
   /* · */
   /* · */
   /* · */
-  {p:2500}, // 79 — COMMUNE : la berline rose des Simpson
+  {p:25000}, // 79 — COMMUNE : la berline rose des Simpson
   /* · */
   /* · */
   /* · */
-  {p:3000}, // 80 — COMMUNE : Fiat 500 (2007), finition « 1957 »
+  {p:30000}, // 80 — COMMUNE : Fiat 500 (2007), finition « 1957 »
   /* · */
   /* · */
   /* · */
-  {p:4000}, // 81 — COMMUNE : Toyota Corolla berline (2019)
+  {p:40000}, // 81 — COMMUNE : Toyota Corolla berline (2019)
   /* · */
   /* · */
   /* · */
-  {p:8000}, // 82 — COMMUNE : Jeep Wrangler JL (2018)
+  {p:80000}, // 82 — COMMUNE : Jeep Wrangler JL (2018)
   /* · */
   /* · */
   /* · */
-  {p:6000}, // 83 — COMMUNE : Mazda MX-5 NA (1989), phares escamotables
+  {p:60000}, // 83 — COMMUNE : Mazda MX-5 NA (1989), phares escamotables
   /* · */
   /* · */
   /* · */
-  {p:25000}, // 84 — RARE : Reliant Robin (trois roues)
+  {p:250000}, // 84 — RARE : Reliant Robin (trois roues)
   /* · */
   /* · */
   /* · */
-  {p:80000},/* (2026-10-22, Sacha : « tableau des voitures » 50 000 → 80 000) */ // 85 — RARE : Mazda MX-5 RF (2016), argent
+  {p:800000},/* (2026-10-22, Sacha : « tableau des voitures » 50 000 → 80 000) */ // 85 — RARE : Mazda MX-5 RF (2016), argent
   /* · */
   /* · */
   /* · */
@@ -46164,7 +46193,7 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {p:220000},/* (2026-10-22, Sacha : « tableau des voitures » 1 500 000 → 220 000) */ // 87 — ÉPIQUE : Peugeot 208 T16 Pikes Peak (2013), LA BÊTE — (2026-10-19) 1 000 000 → 1 500 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
+  {p:2200000},/* (2026-10-22, Sacha : « tableau des voitures » 1 500 000 → 220 000) */ // 87 — ÉPIQUE : Peugeot 208 T16 Pikes Peak (2013), LA BÊTE — (2026-10-19) 1 000 000 → 1 500 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
   /* · */
   /* · */
   /* · */
@@ -46172,7 +46201,7 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {p:5000000}, // 89 — LÉGENDAIRE : LE LOUP, la Countach blanche du film (2026-10-22, Léo : « genere la blanche ressemblance 11/10 ») — prix provisoire (la caisse la plus chère de la boutique à pièces)
+  {p:50000000}, // 89 — LÉGENDAIRE : LE LOUP, la Countach blanche du film (2026-10-22, Léo : « genere la blanche ressemblance 11/10 ») — prix provisoire (la caisse la plus chère de la boutique à pièces)
   /* · */
   /* · */
   /* · */
@@ -46291,7 +46320,7 @@ const M2R={lv:'',sonne:false,ctl:0,vie:0,parf:0,lac:0,tourV:[],run:[],t:0,deb:fa
   /* les quatre caisses des carnets 6 à 9 (LA PUCE, LA GROUPE B, LE HOT ROD, LE MASTODONTE) ne sont la récompense d'aucune mission v2 : sans
      carnet, plus personne ne pourrait les avoir. Elles passent à l'argent du jeu (prix posés par Claude, À VALIDER PAR SACHA), comme les
      trophées de la carrière ; leur rareté ne bouge pas ; `exK`/`exV` gardent le carnet — qui l'avait relevé l'a dans `owned` (m2MigreV2). */
-  const PX9={6:30e3,7:500e3,8:800e3,9:1e6}; // (2026-10-19, Léo : la grille des prix) LA PUCE 400 000 → 30 000 : une Mini, la moins chère des rares
+  const PX9={6:300e3,7:5e6,8:8e6,9:10e6}; // (2026-10-19, Léo : la grille des prix) LA PUCE 400 000 → 30 000 : une Mini, la moins chère des rares
   CAR_UNLOCK.forEach(function(u,i){if(!u||u.k!=='carnet'||!PX9[u.v])return;const rr=carRar(i);CAR_UNLOCK[i]={p:PX9[u.v],exK:'carnet',exV:u.v};CARS[i].rar=rr;});}
 /* ============================================================================
    L'AURA ET LA BANQUE (2026-08-17) — la nouvelle règle
@@ -48083,53 +48112,53 @@ function shopAPortee(){let n=0;for(const cat in COSM)for(const d of COSM[cat])if
 const COSM={
   peinture:[
     {id:'usine',   n:'D\'ORIGINE',        p:0,     d:'La teinte du constructeur. Elle a fait ses preuves.'},
-    {id:'menthe',  n:'MENTHE GLACÉE',     p:2500,  c:0x5ff0c6,d:'Fraîche comme un billet qui sort du distributeur.'},
-    {id:'minuit',  n:'BLEU MINUIT',       p:5000,  c:0x2b43c4,d:'Le bleu des néons de la ville, à trois heures du matin.'},
-    {id:'noir',    n:'NOIR MAT',          p:9000,  c:0x202128,g:'s',d:'Pas un reflet. Même la police hésite.'},
-    {id:'couchant',n:'COUCHER DE SOLEIL', p:18000, grad:[0xffc23a,0xff4f8b,0x6b3cff],d:'Du miel en bas, du violet en haut : le ciel de 19 h, en laque.'},
-    {id:'chrome',  n:'CHROME MIROIR',     p:60000, c:0xe9eef5,g:'c',d:'Tu te vois dedans. Les autres aussi.'},
+    {id:'menthe',  n:'MENTHE GLACÉE',     p:25000,  c:0x5ff0c6,d:'Fraîche comme un billet qui sort du distributeur.'},
+    {id:'minuit',  n:'BLEU MINUIT',       p:50000,  c:0x2b43c4,d:'Le bleu des néons de la ville, à trois heures du matin.'},
+    {id:'noir',    n:'NOIR MAT',          p:90000,  c:0x202128,g:'s',d:'Pas un reflet. Même la police hésite.'},
+    {id:'couchant',n:'COUCHER DE SOLEIL', p:180000, grad:[0xffc23a,0xff4f8b,0x6b3cff],d:'Du miel en bas, du violet en haut : le ciel de 19 h, en laque.'},
+    {id:'chrome',  n:'CHROME MIROIR',     p:600000, c:0xe9eef5,g:'c',d:'Tu te vois dedans. Les autres aussi.'},
     {id:'or',      n:'OR MASSIF',         mis:4,   c:0xffc93a,g:'o',d:'Ne s\'achète pas : elle se gagne en relevant des défis.'},
     // (2026-10-14) LES PEINTURES POP — la rareté se lit en couleur (`r`), le prix suit la grille de l'équilibrage (rare 5-12 k · exotique 20-45 k · épique 80-180 k · légendaire 300-500 k)
-    {id:'ogre',     n:'VERT OGRE',         p:5000,  r:'rare',      c:0x6f9a2e,g:'s',d:'Le vert des marais. Ça sent un peu, mais c\'est chez toi.'},
-    {id:'poupee',   n:'ROSE POUPÉE',       p:9000,  r:'rare',      c:0xff5fb0,d:'Rose bonbon, laque parfaite. Tu n\'es pas en plastique, tu es en carbone.'},
-    {id:'banana',   n:'BANANA',            p:20000, r:'rare',      grad:[0x2a5cb8,0xffd21f,0xffe45c],d:'Salopette en bas, jaune en haut. Elle dit « banana » à chaque virage.'},
-    {id:'gotham',   n:'NUIT DE GOTHAM',    p:32000, r:'rare',      c:0x0d0f15,g:'g',d:'Noir laqué, la ville qui brille dedans. Les toits sont à toi.'},
-    {id:'envers',   n:'MONDE À L\'ENVERS', p:42000, r:'rare',      grad:[0x150709,0x6e0f16,0xe0262f],d:'Noir en bas, rouge sang en haut : cette caisse vient de l\'autre côté. Les guirlandes clignotent.'},
-    {id:'vaporwave',n:'VAPORWAVE',         p:85000, r:'epique',    grad:[0x2bd9e8,0xff5ec8,0x7a2bff],d:'Cyan, rose, violet : un coucher de soleil de 1986 sur une cassette usée.'},
-    {id:'lave',     n:'LAVE',              p:130000,r:'epique',    grad:[0x1a0500,0xd8340a,0xffb21a],d:'Du volcan au toit, la coulée ne refroidit jamais. N\'y jette pas d\'anneau.'},
-    {id:'holo',     n:'HOLOGRAMME',        p:300000,r:'legendaire',grad:[0x9ff2ff,0xf3b4ff,0xfff3ae],g:'c',d:'Chrome irisé qui change de couleur à chaque angle. Une carte rare… en voiture.'},
+    {id:'ogre',     n:'VERT OGRE',         p:50000,  r:'rare',      c:0x6f9a2e,g:'s',d:'Le vert des marais. Ça sent un peu, mais c\'est chez toi.'},
+    {id:'poupee',   n:'ROSE POUPÉE',       p:90000,  r:'rare',      c:0xff5fb0,d:'Rose bonbon, laque parfaite. Tu n\'es pas en plastique, tu es en carbone.'},
+    {id:'banana',   n:'BANANA',            p:200000, r:'rare',      grad:[0x2a5cb8,0xffd21f,0xffe45c],d:'Salopette en bas, jaune en haut. Elle dit « banana » à chaque virage.'},
+    {id:'gotham',   n:'NUIT DE GOTHAM',    p:320000, r:'rare',      c:0x0d0f15,g:'g',d:'Noir laqué, la ville qui brille dedans. Les toits sont à toi.'},
+    {id:'envers',   n:'MONDE À L\'ENVERS', p:420000, r:'rare',      grad:[0x150709,0x6e0f16,0xe0262f],d:'Noir en bas, rouge sang en haut : cette caisse vient de l\'autre côté. Les guirlandes clignotent.'},
+    {id:'vaporwave',n:'VAPORWAVE',         p:850000, r:'epique',    grad:[0x2bd9e8,0xff5ec8,0x7a2bff],d:'Cyan, rose, violet : un coucher de soleil de 1986 sur une cassette usée.'},
+    {id:'lave',     n:'LAVE',              p:1300000,r:'epique',    grad:[0x1a0500,0xd8340a,0xffb21a],d:'Du volcan au toit, la coulée ne refroidit jamais. N\'y jette pas d\'anneau.'},
+    {id:'holo',     n:'HOLOGRAMME',        p:3000000,r:'legendaire',grad:[0x9ff2ff,0xf3b4ff,0xfff3ae],g:'c',d:'Chrome irisé qui change de couleur à chaque angle. Une carte rare… en voiture.'},
     {id:'guerrier', n:'SUPER GUERRIER',    mis:12,pk:350000,r:'mythique',grad:[0xff8a00,0xffd23a,0xfff4a8],g:'o',d:'Doré du toit aux pneus. Les cheveux se dressent, le niveau dépasse les 9 000.'}],
   aile:[ /* (2026-10-18, Sacha : « rajoute un zéro pour tous les prix des ailes ») les prix ×10 ; HÉLICES, PLUMES et CHAUVE-SOURIS gardent leur rareté d'avant, écrite en `r` (cosmRar la déduisait du prix) */
     {id:'panneaux',n:'PANNEAUX',          p:0,     d:'Deux planches de planeur, un aileron qui suit tes virages, des feux de position. Au boost, elles tirent deux traînées blanches.'},
-    {id:'helices', n:'HÉLICES',           p:30000, r:'commun',    d:'Quatre rotors qui s\'emballent au boost et piquent du nez pour foncer. Ça ne vole pas mieux, mais ça brasse de l\'air.'},
-    {id:'plumes',  n:'PLUMES D\'ANGE',    p:120000,r:'rare',      d:'De vraies plumes blanches et dorées qui battent lentement et s\'ouvrent en éventail. Au boost, elles sèment de la poussière d\'or.'},
-    {id:'chauve',  n:'CHAUVE-SOURIS',     p:250000,r:'rare',      d:'Membranes veinées de violet, doigts d\'os. Elles battent vite, de travers, et se replient en flèche au boost. Pour les vols de nuit.'},
+    {id:'helices', n:'HÉLICES',           p:300000, r:'commun',    d:'Quatre rotors qui s\'emballent au boost et piquent du nez pour foncer. Ça ne vole pas mieux, mais ça brasse de l\'air.'},
+    {id:'plumes',  n:'PLUMES D\'ANGE',    p:1200000,r:'rare',      d:'De vraies plumes blanches et dorées qui battent lentement et s\'ouvrent en éventail. Au boost, elles sèment de la poussière d\'or.'},
+    {id:'chauve',  n:'CHAUVE-SOURIS',     p:2500000,r:'rare',      d:'Membranes veinées de violet, doigts d\'os. Elles battent vite, de travers, et se replient en flèche au boost. Pour les vols de nuit.'},
     // (2026-10-14) LES AILES POP (voir AILES_POP) — `ico`/`col` : le pictogramme de la vignette et sa couleur
-    {id:'pigeon',   n:'PIGEON',            p:60000, r:'rare',      ico:'ai_pigeon', col:'#b4bac4',d:'Gris, deux barres noires, un cou vert-violet. Il claque des ailes au décollage, bat trop vite et plane sans savoir pourquoi.'},
-    {id:'origami',  n:'AVION EN PAPIER',   p:90000, r:'rare',      ico:'ai_origami',col:'#f4f1ea',d:'Une feuille à grands carreaux pleine de gribouillis, un volet plié. Le pan claque au vent quand tu boostes : c\'est toi qui pilotes.'},
-    {id:'monarque', n:'MONARQUE',          p:120000,r:'rare',      ico:'ai_monarque',col:'#ff8a1a',d:'Orange et noir, nervures et points blancs, comme les vrais. Elles battent, planent, battent encore. Jusqu\'à 900 à l\'heure.'},
-    {id:'pixel',    n:'8-BIT',             p:250000,r:'rare',      ico:'ai_pixel',  col:'#ffd75e',d:'Des ailes d\'ange en gros pixels, animées image par image. Au boost, elles clignotent de toutes les couleurs, comme avec l\'étoile.'},
-    {id:'baron',    n:'BARON ROUGE',       p:380000,r:'rare',      ico:'ai_baron',  col:'#ff4a4e',d:'Toile rouge, haubans, ailerons, et l\'écharpe du pilote qui claque au vent. Un chien sur sa niche en rêve encore.'},
-    {id:'rouages',  n:'ENGRENAGES',        p:1000000,r:'epique',    ico:'ai_rouages',col:'#e0a84a',d:'Les rouages font battre l\'aile, la chaudière crache sa vapeur au boost. Léonard l\'avait dessinée, toi tu la pilotes.'},
-    {id:'xwing',    n:'AILES EN X',        p:1200000,r:'epique',    ico:'ai_xwing',  col:'#e8e4da',d:'Repliées en croisière, elles s\'écartent en X dès que tu boostes, réacteurs à fond. Verrouillez les ailes en position d\'attaque.'},
-    {id:'fee',      n:'FÉE',               p:1600000,r:'epique',    ico:'ai_fee',    col:'#d9b8ff',d:'Quatre voiles irisés qui bourdonnent et sèment de la poussière de fée. Il suffit d\'y croire. Et d\'un plein de nitro.'},
-    {id:'dragon',   n:'DRAGON',            p:4500000,r:'legendaire',ico:'ai_dragon', col:'#ff5a2a',d:'Membranes veinées de lave, griffes, grands coups d\'aile. Au boost, la lave flambe et crache des braises.'},
-    {id:'air',      n:'SANS AILES',        p:5000000,r:'legendaire',ico:'ai_air',    col:'#dff1ff',d:'Les ailes, c\'est pour les pigeons. Dix buses à air comprimé planquées dans la carrosserie : elle crache des bouffées blanches, pivote sur elle-même et s\'envole. Bon. Ça a marché.'}, // (2026-10-18, Léo) LA BLAGUE : l'aile la plus chère de la boutique… n'a pas d'aile (voir AILES_POP.air)
+    {id:'pigeon',   n:'PIGEON',            p:600000, r:'rare',      ico:'ai_pigeon', col:'#b4bac4',d:'Gris, deux barres noires, un cou vert-violet. Il claque des ailes au décollage, bat trop vite et plane sans savoir pourquoi.'},
+    {id:'origami',  n:'AVION EN PAPIER',   p:900000, r:'rare',      ico:'ai_origami',col:'#f4f1ea',d:'Une feuille à grands carreaux pleine de gribouillis, un volet plié. Le pan claque au vent quand tu boostes : c\'est toi qui pilotes.'},
+    {id:'monarque', n:'MONARQUE',          p:1200000,r:'rare',      ico:'ai_monarque',col:'#ff8a1a',d:'Orange et noir, nervures et points blancs, comme les vrais. Elles battent, planent, battent encore. Jusqu\'à 900 à l\'heure.'},
+    {id:'pixel',    n:'8-BIT',             p:2500000,r:'rare',      ico:'ai_pixel',  col:'#ffd75e',d:'Des ailes d\'ange en gros pixels, animées image par image. Au boost, elles clignotent de toutes les couleurs, comme avec l\'étoile.'},
+    {id:'baron',    n:'BARON ROUGE',       p:3800000,r:'rare',      ico:'ai_baron',  col:'#ff4a4e',d:'Toile rouge, haubans, ailerons, et l\'écharpe du pilote qui claque au vent. Un chien sur sa niche en rêve encore.'},
+    {id:'rouages',  n:'ENGRENAGES',        p:10000000,r:'epique',    ico:'ai_rouages',col:'#e0a84a',d:'Les rouages font battre l\'aile, la chaudière crache sa vapeur au boost. Léonard l\'avait dessinée, toi tu la pilotes.'},
+    {id:'xwing',    n:'AILES EN X',        p:12000000,r:'epique',    ico:'ai_xwing',  col:'#e8e4da',d:'Repliées en croisière, elles s\'écartent en X dès que tu boostes, réacteurs à fond. Verrouillez les ailes en position d\'attaque.'},
+    {id:'fee',      n:'FÉE',               p:16000000,r:'epique',    ico:'ai_fee',    col:'#d9b8ff',d:'Quatre voiles irisés qui bourdonnent et sèment de la poussière de fée. Il suffit d\'y croire. Et d\'un plein de nitro.'},
+    {id:'dragon',   n:'DRAGON',            p:45000000,r:'legendaire',ico:'ai_dragon', col:'#ff5a2a',d:'Membranes veinées de lave, griffes, grands coups d\'aile. Au boost, la lave flambe et crache des braises.'},
+    {id:'air',      n:'SANS AILES',        p:50000000,r:'legendaire',ico:'ai_air',    col:'#dff1ff',d:'Les ailes, c\'est pour les pigeons. Dix buses à air comprimé planquées dans la carrosserie : elle crache des bouffées blanches, pivote sur elle-même et s\'envole. Bon. Ça a marché.'}, // (2026-10-18, Léo) LA BLAGUE : l'aile la plus chère de la boutique… n'a pas d'aile (voir AILES_POP.air)
     {id:'phenix',   n:'PHÉNIX',            mis:10,pk:400000,r:'mythique',ico:'flamme',col:'#ffb02a',d:'Des plumes de feu qui battent en semant des étincelles. Tu exploses ? Tu renais de tes cendres. Au prochain run.'}],
   trainee:[
     {id:'nitro',   n:'NITRO',             p:0,     d:'Orange brûlé. Le classique des tuyères.'},
-    {id:'rose',    n:'ROSE NÉON',         p:4000,  rgb:[1.45,.22,1.05],pop:'neon',sil:{c:1.45,h:.75,f:0,p:.3},d:'Le rose des enseignes. On te suit à la trace.'},
-    {id:'or',      n:'POUDRE D\'OR',      p:15000, rgb:[1.5,1.22,.3],pop:'paillettes',sil:{c:1.3,h:1.05,f:.1,p:1.9},d:'Tu ne laisses pas de la fumée derrière toi. Tu laisses de l\'or.'},
+    {id:'rose',    n:'ROSE NÉON',         p:40000,  rgb:[1.45,.22,1.05],pop:'neon',sil:{c:1.45,h:.75,f:0,p:.3},d:'Le rose des enseignes. On te suit à la trace.'},
+    {id:'or',      n:'POUDRE D\'OR',      p:150000, rgb:[1.5,1.22,.3],pop:'paillettes',sil:{c:1.3,h:1.05,f:.1,p:1.9},d:'Tu ne laisses pas de la fumée derrière toi. Tu laisses de l\'or.'},
     {id:'arcenciel',n:'ARC-EN-CIEL',      mis:5,   rainbow:1,d:'Ne s\'achète pas : elle se gagne en relevant des défis.'},
-    {id:'wow',     n:'WOW',               p:30000, wow:1,rgb:[1.45,.35,1.25],d:'Much sillage. Very mots. Wow.'}, // (2026-10-14) LA TRAÎNÉE WOW (voir wowStep) — la signature du DOGE
+    {id:'wow',     n:'WOW',               p:300000, wow:1,rgb:[1.45,.35,1.25],d:'Much sillage. Very mots. Wow.'}, // (2026-10-14) LA TRAÎNÉE WOW (voir wowStep) — la signature du DOGE
     // (2026-10-14) LES TRAÎNÉES POP (voir TRX) — `pop` : son moteur · `rgb` : la couleur du ruban qui l'accompagne · `rubOff` : pas de ruban (l'effet EST la traînée)
-    {id:'sakura',   n:'SAKURA',            p:8000,  r:'rare',      pop:'sakura', rgb:[1.35,.6,.9],sil:{c:1.05,h:1.2,f:0,p:.5}, ico:'tr_sakura', col:'#ff9cc4',d:'Des pétales de cerisier, comme dans un générique d\'animé. Le drame, c\'est pour les autres.'},
-    {id:'matrice',  n:'MATRICE',           p:11000, r:'rare',      pop:'matrice',rgb:[.25,1.25,.4],sil:{c:1.3,h:.65,f:0,p:1.8},ico:'tr_matrice',col:'#3dff6a',d:'Pilule rouge avalée : du code vert ruisselle derrière toi. La route, c\'est toi qui la réécris.'},
-    {id:'anneaux',  n:'ANNEAUX D\'OR',     p:22000, r:'rare',      pop:'anneaux',rgb:[1.3,1.05,.25],sil:{c:1.3,h:1,f:.06,p:1.3},ico:'tr_anneaux',col:'#ffd23a',d:'Tu sèmes des anneaux comme un hérisson qui vient de se cogner. Sauf que toi, tu ne ralentis pas.'},
-    {id:'glouton',  n:'GLOUTON',           p:40000, r:'rare',      pop:'glouton',rubOff:1,      ico:'tr_glouton',col:'#ffe14a',d:'Une ligne de pastilles et quatre fantômes à tes trousses. Lâche la nitro : ils deviennent bleus.'},
-    {id:'hyper',    n:'HYPERESPACE',       p:90000, r:'epique',    pop:'hyper',  rgb:[.42,.98,2.2],sil:{c:1.6,h:.8,f:0,p:2.4},ico:'tr_hyper', col:'#9fd0ff',d:'Les étoiles s\'étirent en traits. Tu passes en vitesse lumière, les autres restent des touristes.'}, /* (2026-10-18, HYPERESPACE v2) ruban .95,1.15,1.6 (un blanc bleuté, délavé) → bleu ÉLECTRIQUE : le feu de pixels du nitro le prend aussi (nfeuPalTrainee) */
-    {id:'grille',   n:'LA GRILLE',         p:200000,r:'epique',    pop:'grille', rubOff:1,      ico:'tr_grille', col:'#2ee8ff',d:'Un mur de lumière dans ton sillage. Celui qui te colle finit en pixels.'}, /* (2026-10-18, Sacha : « the grid doit être epic ») ÉPIQUE, et son prix dans sa famille (350 000 → 200 000 : épique < 250 000, voir cosmRar) */
-    {id:'billets',  n:'FAIS PLEUVOIR',     p:500000,r:'legendaire',pop:'billets',rgb:[.45,1.3,.55],sil:{c:1.15,h:1.05,f:.08,p:1},ico:'tr_billets',col:'#5cd685',d:'Des liasses qui s\'envolent à chaque nitro. Ce n\'est pas du gaspillage, c\'est de la communication.'},
+    {id:'sakura',   n:'SAKURA',            p:80000,  r:'rare',      pop:'sakura', rgb:[1.35,.6,.9],sil:{c:1.05,h:1.2,f:0,p:.5}, ico:'tr_sakura', col:'#ff9cc4',d:'Des pétales de cerisier, comme dans un générique d\'animé. Le drame, c\'est pour les autres.'},
+    {id:'matrice',  n:'MATRICE',           p:110000, r:'rare',      pop:'matrice',rgb:[.25,1.25,.4],sil:{c:1.3,h:.65,f:0,p:1.8},ico:'tr_matrice',col:'#3dff6a',d:'Pilule rouge avalée : du code vert ruisselle derrière toi. La route, c\'est toi qui la réécris.'},
+    {id:'anneaux',  n:'ANNEAUX D\'OR',     p:220000, r:'rare',      pop:'anneaux',rgb:[1.3,1.05,.25],sil:{c:1.3,h:1,f:.06,p:1.3},ico:'tr_anneaux',col:'#ffd23a',d:'Tu sèmes des anneaux comme un hérisson qui vient de se cogner. Sauf que toi, tu ne ralentis pas.'},
+    {id:'glouton',  n:'GLOUTON',           p:400000, r:'rare',      pop:'glouton',rubOff:1,      ico:'tr_glouton',col:'#ffe14a',d:'Une ligne de pastilles et quatre fantômes à tes trousses. Lâche la nitro : ils deviennent bleus.'},
+    {id:'hyper',    n:'HYPERESPACE',       p:900000, r:'epique',    pop:'hyper',  rgb:[.42,.98,2.2],sil:{c:1.6,h:.8,f:0,p:2.4},ico:'tr_hyper', col:'#9fd0ff',d:'Les étoiles s\'étirent en traits. Tu passes en vitesse lumière, les autres restent des touristes.'}, /* (2026-10-18, HYPERESPACE v2) ruban .95,1.15,1.6 (un blanc bleuté, délavé) → bleu ÉLECTRIQUE : le feu de pixels du nitro le prend aussi (nfeuPalTrainee) */
+    {id:'grille',   n:'LA GRILLE',         p:2000000,r:'epique',    pop:'grille', rubOff:1,      ico:'tr_grille', col:'#2ee8ff',d:'Un mur de lumière dans ton sillage. Celui qui te colle finit en pixels.'}, /* (2026-10-18, Sacha : « the grid doit être epic ») ÉPIQUE, et son prix dans sa famille (350 000 → 200 000 : épique < 250 000, voir cosmRar) */
+    {id:'billets',  n:'FAIS PLEUVOIR',     p:5000000,r:'legendaire',pop:'billets',rgb:[.45,1.3,.55],sil:{c:1.15,h:1.05,f:.08,p:1},ico:'tr_billets',col:'#5cd685',d:'Des liasses qui s\'envolent à chaque nitro. Ce n\'est pas du gaspillage, c\'est de la communication.'},
     {id:'foudre',   n:'FOUDRE DIVINE',     mis:11,pk:450000,r:'legendaire',pop:'foudre',rgb:[.85,.55,1.7],sil:{c:1.3,h:.75,f:0,p:2},ico:'eclair',col:'#b98aff',d:'Des éclairs crépitent derrière toi. Le marteau, tu l\'as laissé au garage.'} /* (2026-10-18, Sacha : « divine ligthing doit etre legendaire ») LÉGENDAIRE (elle était MYTHIQUE) ; son prix `pk` (450 000, Poki) est déjà dans la famille */]
 };
 /* (2026-10-18 soir, Sacha : « enlève la traînée menthe ») LES HABILLAGES RETIRÉS : leur ligne SORT de COSM (la sauvegarde les désigne par leur id,
@@ -53457,22 +53486,28 @@ function lvlTick(dt,S){
 function musicTick(dt,mvt){
   if(MUSREP.att&&!paused){MUSREP.att=false;if(SND.music&&started&&running&&!gameOver)try{musicStartRun(false,true);}catch(e){}} // (2026-10-15) MUSIQUE rallumée pendant la pause : la course reprend, son morceau aussi
   try{sonTonSuit();}catch(e){} // (console de son) les sons accordés suivent la tonalité du morceau qui joue
-  let target=0,beat=0,hiT=0;
+  let target=0,beat=0,hiT=0,bsT=0,mdT=0;
   if(musicOn&&musicAna){
     musicAna.getByteFrequencyData(musicData);
     /* TROIS BANDES, PAS DEUX (2026-08-08). Les AIGUS manquaient — or c'est là que vit le tempo
        RAPIDE d'un morceau : charleston, cymbales, souffle. Avec la seule basse, le décor ne
        connaissait que la pulsation lente et restait lisse entre deux coups. Le haut du spectre
        (les 45 % supérieurs des bins) alimente désormais tout ce qui doit grésiller. */
-    const nB=musicData.length;let tot=0,bass=0,hi=0,bN=Math.max(1,(nB*.18)|0),hN=Math.max(1,(nB*.55)|0);
-    for(let i=0;i<nB;i++){const v=musicData[i]/255;tot+=v;if(i<bN)bass+=v;if(i>=hN)hi+=v;}
-    tot/=nB;bass/=bN;hi/=Math.max(1,nB-hN);
+    const nB=musicData.length;let tot=0,bass=0,mid=0,hi=0,bN=Math.max(1,(nB*.18)|0),hN=Math.max(1,(nB*.55)|0);
+    for(let i=0;i<nB;i++){const v=musicData[i]/255;tot+=v;if(i<bN)bass+=v;else if(i<hN)mid+=v;else hi+=v;}
+    tot/=nB;bass/=bN;mid/=Math.max(1,hN-bN);hi/=Math.max(1,nB-hN);bsT=bass;mdT=mid;
     target=Math.min(1,tot*1.7);
     beat=Math.max(0,bass-musicBass)*3.2;musicBass=bass; // transitoire = coup de grosse caisse
     hiT=Math.min(1,hi*2.3);
   }else if(musicOn){ // pas d'analyse possible ici : le décor bat sur un métronome à 120 bpm (il vit, sans lire le morceau)
-    const ph=(performance.now()/500)%1;target=.45;beat=ph<.07?.8:0;hiT=.25+.2*Math.max(0,Math.sin(ph*6.2832*2));musicBass=0;
+    const ph=(performance.now()/500)%1;target=.45;beat=ph<.07?.8:0;hiT=.25+.2*Math.max(0,Math.sin(ph*6.2832*2));musicBass=0;bsT=ph<.2?.8:.2;mdT=.4+.25*Math.sin(ph*6.2832);
   }else {musicBass=0;hiT=0;}
+  /* (2026-10-25, Sacha : « les étoiles clignotent très légèrement au rythme de la musique : des étoiles qui font les basses, des aigus, chaque style de note »)
+     LES ÉTOILES JOUENT. Pour chaque bande (basses, médiums, aigus) on garde l'EXCÈS sur sa moyenne lente (≈1,5 s) : ce qui dépasse, c'est la note qui
+     vient d'être frappée — le fond continu d'un morceau dense n'allume rien. Attaque vive, retombée douce. Lu par la voûte de l'orbite (cielPoussiere). */
+  {const bd=musicTick._bnd||(musicTick._bnd={v:[0,0,0],m:[0,0,0]}),src=[bsT,mdT,hiT];
+   for(let k=0;k<3;k++){bd.m[k]+=(src[k]-bd.m[k])*Math.min(1,dt*.7);const t=Math.min(1,Math.max(0,src[k]-bd.m[k])*4.5);bd.v[k]+=(t-bd.v[k])*Math.min(1,dt*(t>bd.v[k]?30:9));}
+   skyU.uBandes.value.set(bd.v[0],bd.v[1],bd.v[2]);}
   /* ⚠ LES AIGUS MONTENT VITE ET DESCENDENT VITE. Les lisser comme l'énergie moyenne (dt*8) les
      transformerait en nappe continue : on perdrait exactement ce qu'on est venu chercher, le
      GRAIN. Attaque quasi instantanée (dt*24), retombée franche (dt*11). */
@@ -74361,7 +74396,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // Le plafond peut monter sans risque parce que la résolution adaptative redescend si le GPU peine — et
   // qu'elle sait maintenant REMONTER (voir la boucle).
   try{if(!I18N['HAUTE'])I18N['HAUTE']='HIGH';}catch(e){} /* (OPTIMISATION) le 3e choix du réglage IMAGE (voir L'IMAGE EN AUTOMATIQUE) */
-  function applyQ(fast){ DPR_CAP=Math.min(devicePixelRatio,fast?1:PAL.b('dprNetCap',1.5)); // (2026-10-14, passe perf mobile) le plafond NETTE se taille sur le palier (palier 2 : 1,5 comme avant) — voir NETTE PAR PALIER
+  function applyQ(fast){ DPR_CAP=dprPlafond(fast); // (2026-10-14, passe perf mobile) le plafond NETTE se taille sur le palier (palier 2 : 1,5 comme avant) — voir NETTE PAR PALIER
     qlReprise(); } // (2026-09-27) pleine résolution tout de suite + l'échelle QL recalée sur le nouveau plafond (et son plancher NET)
   // ⚠ LES INTERRUPTEURS PASSENT PAR LES BOUTONS DU DESKTOP (`.click()`) au lieu de refaire leur
   // logique : son, voix, musique, Survivant et Parc ont des EFFETS DE BORD (suspend du contexte
@@ -74379,8 +74414,6 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       else if(a==='mus')e.innerHTML=tpLbl('musique','MUSIQUE',SND.music?'ON':'OFF',SND.music);
       else if(a==='ctl')e.innerHTML=tpLbl(TCTL.pad?'fleches':'volant','COMMANDES',TCTL.pad?'FLECHES':'VOLANT',true);
       else if(a==='q'){e.innerHTML=tpLbl('eclair','IMAGE',qLbl(),true);}
-      else if(a==='volh')e.innerHTML=tpLbl('aile','POUCE HAUT EN VOL',volSens()<0?'MONTE':'PLONGE',true);
-      else if(a==='figg')e.innerHTML=tpLbl('rotation','FIGURES',figGlisseOn()?'GLISSER':'2 TAPS',true); // (2026-10-15) LA FIGURE AU GLISSÉ
       else if(a==='surv')e.innerHTML=tpLbl('drapeau','SURVIVANT',SURV.armed?'ON':'OFF',SURV.armed); }
     const hd=pan.querySelector('.tpH'); if(hd)hd.textContent=run?'PAUSE':'CASH CAR'; }
   function panOpen(o,compte){ if(!pan)return;
@@ -74427,8 +74460,6 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       document.body.classList.toggle('tpad',TCTL.pad);
       SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush(); panSync(); }
     else if(a==='q'){ SAVE.d.q=qSuivant(SAVE.d.q); SAVE.d.qChoisi=1; SAVE.flush(); applyQ(SAVE.d.q==='fast'); panSync(); }
-    else if(a==='volh'){ volhBascule(); panSync(); }
-    else if(a==='figg'){ figGBascule(); panSync(); }
     else if(a==='surv'){ clic(survBtnEl); panSync(); }
     else if(a==='tous'){ setPauseOuvre(); } // (2026-10-14, charte 6) TOUS LES REGLAGES : l'écran complet par-dessus la pause
     else if(a==='resp'){ panOpen(false); if(started&&!gameOver&&mode==='drive')respawn(); }
@@ -75074,7 +75105,7 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
   // ⚠ NOM DÉDIÉ (`applyQ9`, pas `applyQ`) : `applyQ` est déclarée `const` À L'INTÉRIEUR du bloc
   // mobile — hors de portée ici (portée de bloc). Se rebrancher sur le MÊME état (`DPR_CAP`/
   // `curDPR`/`applyDPR`), pas une copie qui diverge.
-  function applyQ9(fast){ DPR_CAP=Math.min(devicePixelRatio,fast?1:PAL.b('dprNetCap',1.5)); qlReprise(); } // (2026-10-14, passe perf mobile) même plafond par palier (l'ordi = palier 2 : inchangé ; ?palier=0 au banc le suit) // mêmes crans que le téléphone (2026-09-24) : RAPIDE ne descend plus sous la résolution d'origine du desktop
+  function applyQ9(fast){ DPR_CAP=dprPlafond(fast); qlReprise(); } // (2026-10-14, passe perf mobile) même plafond par palier (l'ordi = palier 2 : inchangé ; ?palier=0 au banc le suit) // mêmes crans que le téléphone (2026-09-24) : RAPIDE ne descend plus sous la résolution d'origine du desktop
   // ⚙/⏸ + le déclencheur `body.play` : le MÊME tick que le mobile (140 ms, zéro écriture DOM si
   // rien n'a changé) — mais SANS le gel « téléphone couché » ni `mGo()`, qui n'ont aucun sens ici.
   function dSyncJeu(){
