@@ -1,0 +1,290 @@
+<style id="hubGarage">
+/* LE GARAGE, HUB DES TROIS (2026-10-06, Sacha : « le garage doit servir de hub aux 3, mets-toi dans la peau d'un designer UX/UI senior »).
+   html.hub   = la version de Sacha : l'accueil n'a plus que GARAGE · BOUTIQUE · ⚙ et JOUER.
+   html.hubOn = on est DANS le hub (atelier, missions ou carrière ouverts depuis le garage) : la barre est là, chaque page lui laisse sa place.
+   LA BARRE : trois onglets à parts égales, au même endroit sur les trois pages (la mémoire du pouce) — en bas debout, en bas à GAUCHE
+   couché (la colonne de droite est celle de la console et de JOUER). Un onglet = sa couleur (atelier magenta comme la console,
+   missions vert comme leurs cases, carrière cyan comme ses mondes) ; l'actif s'allume (trait de néon en haut, fond teinté, icône
+   colorée), les autres se taisent en lilas. Penchée comme tout ce qui se touche ; jamais d'or (l'or, c'est JOUER). */
+#gHub{display:none}
+html.hubOn #gHub{position:fixed;z-index:82;left:calc(var(--sL) + 15px);right:calc(var(--sR) + 15px);bottom:calc(var(--sB) + 10px);margin:0 auto;
+  max-width:560px;height:var(--hubH);box-sizing:border-box;display:flex;transform:skewX(var(--sk));
+  transition:opacity var(--t-slow) var(--ease),translate var(--t-slow) var(--ease);animation:hubMonte var(--t-slow) var(--ease) both}
+html.hubOn #gHub.cache{opacity:0;translate:0 14px;pointer-events:none}
+@keyframes hubMonte{from{opacity:0;translate:0 14px}}
+.ghT{--hc:var(--neoC);position:relative;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  margin:0;padding:6px 0 4px;border:0;border-radius:0;background:transparent;color:var(--tx3);cursor:pointer;-webkit-tap-highlight-color:transparent;
+  font-family:var(--pix);font-size:var(--f0);letter-spacing:1px;white-space:nowrap;
+  transition:color var(--t-fast) var(--ease),background var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
+.ghT[data-h="atl"]{--hc:var(--neoM)}.ghT[data-h="mis"]{--hc:var(--neoV)}
+.ghT .pxi{--pxs:2;color:var(--tx3);transition:color var(--t-fast) var(--ease)}
+.ghT::before{content:'';position:absolute;left:16%;right:16%;top:0;height:3px;background:var(--hc);opacity:0;transform:scaleX(.2);
+  transition:opacity var(--t-fast) var(--ease),transform var(--t-slow) var(--ease)}
+.ghT+.ghT::after{content:'';position:absolute;left:-3px;top:12px;bottom:12px;width:1px;background:var(--fil)}
+.ghT.on{color:var(--tx);background:linear-gradient(180deg,color-mix(in srgb,var(--hc) 24%,transparent),color-mix(in srgb,var(--hc) 6%,transparent));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--hc) 50%,transparent)}
+.ghT.on::before{opacity:1;transform:none;box-shadow:0 0 10px var(--hc)}
+.ghT.on .pxi{color:var(--hc);filter:drop-shadow(0 0 6px color-mix(in srgb,var(--hc) 70%,transparent))}
+.ghT.on+.ghT::after,.ghT+.ghT.on::after{opacity:0}
+.ghT:active,.ghT.appui{transform:translateY(2px)}
+.ghT:not(.on):active{background:rgba(255,255,255,.05)}
+.ghT:focus-visible{outline:2px solid var(--hc);outline-offset:-2px}
+.ghPips{position:absolute;top:8px;right:10px;display:flex;gap:4px}
+.ghPips u{display:block;width:5px;height:5px;transform:rotate(45deg);background:var(--k0);box-shadow:inset 0 0 0 1px rgba(94,227,122,.6)}
+.ghPips u.ok{background:var(--neoV);box-shadow:0 0 6px var(--neoV)}
+/* chaque page laisse sa place à la barre (debout) */
+html.hubOn body #garage:not(.menu) #gBottom{margin-bottom:calc(var(--sB) + var(--hubH) + 22px)}
+/* COUCHÉ : la barre en bas à GAUCHE, sous la caisse ; la console, JOUER et HOME gardent la colonne de droite */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  :root{--hubH:52px}
+  html.hubOn #gHub{right:auto;left:calc(var(--sL) + 19px);bottom:calc(var(--sB) + 12px);margin:0;max-width:none;
+    width:min(calc(100% - min(48%,450px) - var(--sL) - var(--sR) - 56px),440px)}
+  html.hubOn body #garage:not(.menu) #gBottom{margin-bottom:0}
+  html.hubOn #gmBas{left:auto;right:calc(var(--sR) + 14px);transform:none;bottom:calc(var(--sB) + 12px);width:min(48%,450px)}
+}
+/* L'ACCUEIL : une seule rangée — la PORTE DU GARAGE (le hub, avec ses deux pièces en aperçu : la cible des missions et ses trois
+   cases, le trophée de la carrière), puis la BOUTIQUE et le ⚙ en carrés. Les tuiles disparaissent : le ciel respire. */
+html.hub #mHome .mIcons{display:none!important}
+html.hub #mHome .mOutils{gap:10px}
+html.hub #mHome .mHubPorte{--nc:var(--neoC);min-height:52px!important;padding:0 16px;justify-content:center;font-size:var(--f4);letter-spacing:2px} /* (2026-10-07, Sacha) le mot GARAGE, seul, centré */
+html.hub #mHome .mHubShop,html.hub #mHome .mGear{width:52px;min-width:52px;min-height:52px!important;padding:0}
+html.hub #mHome .mHubShop .pxi,html.hub #mHome .mGear .pxi{--pxs:2}
+html.hub #mHome .mHubShop .mBadge{top:-10px;right:-8px;transform:scale(.86);transform-origin:100% 0}
+html.hub #mHome .mHubPorte .mBadge{top:-10px;right:-8px;transform:scale(.86);transform-origin:100% 0}
+@media (prefers-reduced-motion:reduce){html.hubOn #gHub{animation:none;transition:none}.ghT,.ghT::before{transition:none}}
+html[data-reduced-motion="1"] #gHub{animation:none!important;transition:none!important}
+/* LA BARRE FINE (2026-10-09, Léo, photo du garage : « enlève les touches ATELIER, MISSIONS, CARRIÈRE et remplace-les par ce que j'aime
+   bien, mais plus transparent » — ce qu'il aime, ce sont LES ONGLETS FINS de la console, voir garageV7). La barre du hub passe d'un pavé
+   de 56 px (pictogramme au-dessus du mot, fond d'encre plein) à la même RÉGLETTE de 30 px, en plus transparent encore :
+   · le mot seul, sur une ligne (les trois cases des MISSIONS restent, à côté du mot) ; le pictogramme part, comme dans la console ;
+   · le fond à 18 % (la console : 35 %) : le garage se voit au travers — une ombre d'encre sous les lettres les garde lisibles ;
+   · l'actif se dit par un TRAIT de SA couleur dessous (atelier magenta, missions vert, carrière cyan), un voile léger et le mot en blanc ;
+   · la cible reste à 44 px (charte, règle 5) : la zone de touche (::after) déborde de 9 px en haut et en bas ; les séparateurs passent en
+     ombre portée (le ::after leur appartenait). `--hubH` suit : la console et la carrière descendent d'autant, la caisse gagne la place. */
+:root{--hubH:30px}
+html.hubOn #gHub{gap:2px;padding:2px;background:rgba(11,8,24,.18);box-shadow:inset 0 0 0 1px rgba(154,144,200,.16)}
+html.hubOn #gHub .ghT{flex-direction:row;gap:6px;padding:0 4px;font-size:var(--f1);color:rgba(154,144,200,.82);
+  text-shadow:0 1px 0 rgba(7,5,15,.85),0 0 6px rgba(7,5,15,.7)}
+html.hubOn #gHub .ghT .pxi{display:none}
+html.hubOn #gHub .ghT::before{display:none}
+html.hubOn #gHub .ghT::after{content:'';position:absolute;left:0;right:0;top:-9px;bottom:-9px;width:auto;background:none;opacity:1}
+html.hubOn #gHub .ghT+.ghT{box-shadow:-3px 0 0 -2px rgba(154,144,200,.2)}
+html.hubOn #gHub .ghT.on{color:#fff;background:linear-gradient(180deg,color-mix(in srgb,var(--hc) 0%,transparent),color-mix(in srgb,var(--hc) 18%,transparent));
+  box-shadow:inset 0 -2px 0 var(--hc),0 6px 12px -8px var(--hc);text-shadow:0 1px 0 rgba(7,5,15,.85),0 0 8px color-mix(in srgb,var(--hc) 65%,transparent)}
+html.hubOn #gHub .ghT:not(.on):active,html.hubOn #gHub .ghT:not(.on).appui{background:rgba(255,255,255,.06)}
+html.hubOn #gHub .ghPips{position:static;gap:3px}
+html.hubOn #gHub .ghPips u{width:4px;height:4px}
+@media (hover:hover){html.hubOn #gHub .ghT:not(.on):hover{color:var(--tx2);background:rgba(255,255,255,.04)}}
+@supports not (color:color-mix(in srgb,red 50%,blue)){html.hubOn #gHub .ghT.on{background:rgba(255,255,255,.08);text-shadow:0 1px 0 rgba(7,5,15,.85)}}
+/* (même jour, Léo : « enlève le settings ») le ⚙ du garage part (`#gOutils [data-go="set"]`, en haut à droite) : les RÉGLAGES restent
+   sur l'écran titre (le ⚙ à côté de la boutique) et dans la pause. Masqué, pas retiré : les écouteurs le cherchent toujours. */
+html body #garage #gOutils>[data-go="set"]{display:none!important}
+/* LE RANG À CÔTÉ DU NOM (même jour, Léo, capture « 32 / 46 » : « le 1 / 46, mets-le en petit à côté du nom de la voiture »). Il était
+   SOUS le filet du nom, sur sa propre ligne : il monte sur la ligne du nom, en petit (9 px), calé sur le bas des lettres. Le nom n'occupe
+   plus toute la largeur (flex auto) et sa taille réserve 90 px au rang (« 32 / 46 » en fait ~70) — un nom long rapetisse un peu au lieu de pousser le rang à la
+   ligne ; le filet du nom garde sa longueur, HORS DU FLUX (couché, ses 260 px élargissaient la boîte du nom et poussaient le rang loin à droite). */
+html body #garage:not(.menu) #gName{flex:0 1 auto;min-width:0;align-self:baseline;font-size:min(clamp(20px,6.8vw,28px),calc((100cqw - 90px) / var(--nL,10) - 3px))}
+html body #garage:not(.menu) #gName{position:relative;padding-bottom:13px}
+html body #garage:not(.menu) #gName::after{position:absolute;left:0;bottom:0;margin:0;width:min(100cqw,230px)} /* hors du flux : le filet ne fait plus la largeur du nom */
+html body #garage:not(.menu) #gLvl{flex:0 0 auto;align-self:baseline;margin:0 0 0 8px;font-size:9px!important;letter-spacing:0;white-space:nowrap;transform:skewX(var(--sk))}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage:not(.menu) #gName{font-size:min(var(--f6),calc((100cqw - 90px) / var(--nL,10) - 3px))}
+  html body #garage:not(.menu) #gName::after{width:min(100cqw,260px)}
+}
+/* LA JAUGE POUR TOURNER LE GARAGE (même jour, Léo : « mets une jauge manuelle pour tourner le garage, stratégiquement posée à la place
+   des boutons ATELIER · MISSIONS · CARRIÈRE — à enlever du garage »). La barre du hub disparaît (#gHub, son câblage reste) ; à sa place,
+   dans l'ATELIER seulement, une réglette de la même famille (30 px, fond à 18 %, penchée) : un rail gradué tous les 15°, le cran du
+   milieu = face à la porte, un curseur cyan et le trait qui part du milieu jusqu'à lui. Tirer le curseur (ou toucher le rail) fait
+   TOURNER LA VUE autour de la caisse (`GAR.vAc`, la même cible que le glissé du doigt sur le décor), sur un tour complet : la jauge suit
+   aussi le doigt sur le décor, et le RETOUR À LA PORTE (3 s sans toucher) la ramène au milieu. Les pages MISSIONS et CARRIÈRE rendent la
+   place que la barre leur prenait. Cible de 48 px (::before de .gtZone : 9 px au-dessus et au-dessous). */
+html.hubOn #gHub{display:none!important}
+html.hubOn #gmBas{bottom:calc(var(--sB) + 14px)}
+#gTourne{display:none}
+html.hubOn #gTourne.on{position:fixed;z-index:82;left:calc(var(--sL) + 15px);right:calc(var(--sR) + 15px);bottom:calc(var(--sB) + 10px);margin:0 auto;
+  max-width:560px;height:var(--hubH);box-sizing:border-box;display:block;transform:skewX(var(--sk));pointer-events:auto;touch-action:none;cursor:grab;
+  background:rgba(11,8,24,.18);box-shadow:inset 0 0 0 1px rgba(154,144,200,.16);-webkit-tap-highlight-color:transparent;outline:none;
+  animation:hubMonte var(--t-slow) var(--ease) both}
+html.hubOn #gTourne.on.tient{cursor:grabbing}
+#gTourne:focus-visible{box-shadow:inset 0 0 0 1px var(--neoC)}
+#gTourne i{position:absolute;display:block;pointer-events:none}
+#gTourne .gtZone{inset:-9px 0;pointer-events:auto}
+#gTourne::before,#gTourne::after{content:'';position:absolute;top:50%;width:0;height:0;margin-top:-5px;border:5px solid transparent;opacity:.7;pointer-events:none}
+#gTourne::before{left:8px;border-left:0;border-right:6px solid rgba(154,144,200,.9)}
+#gTourne::after{right:8px;border-right:0;border-left:6px solid rgba(154,144,200,.9)}
+#gTourne .gtRail{left:26px;right:26px;top:50%;height:10px;margin-top:-5px;
+  background:linear-gradient(rgba(154,144,200,.4),rgba(154,144,200,.4)) 0 50%/100% 2px no-repeat,
+    linear-gradient(rgba(255,255,255,.75),rgba(255,255,255,.75)) 50% 0/2px 100% no-repeat,
+    repeating-linear-gradient(90deg,rgba(154,144,200,.5) 0 1px,transparent 1px calc(100% / 24)) 0 50%/calc(100% + 1px) 6px no-repeat}
+#gTourne .gtFill{top:50%;height:2px;margin-top:-1px;left:26px;right:26px;clip-path:inset(-6px calc((1 - var(--f1,.5)) * 100%) -6px calc(var(--f0,.5) * 100%));
+  background:var(--neoC);box-shadow:0 0 8px var(--neoC)} /* (même soir, « plus smooth ») le trait se découpe (clip-path) au lieu de changer de largeur : rien à remettre en page */
+#gTourne{container-type:inline-size}
+#gTourne .gtPouce{top:50%;width:8px;height:18px;margin:-9px 0 0 -4px;left:26px;translate:calc(var(--t,.5) * (100cqw - 52px)) 0;will-change:translate;
+  background:linear-gradient(90deg,#fff 0 2px,var(--neoC) 2px calc(100% - 2px),#2a9fbf calc(100% - 2px));
+  box-shadow:0 0 0 1px rgba(7,5,15,.9),0 0 10px var(--neoC);transition:height var(--t-fast) var(--ease),margin var(--t-fast) var(--ease)}
+#gTourne.tient .gtPouce{height:24px;margin-top:-12px;box-shadow:0 0 0 1px rgba(7,5,15,.9),0 0 16px var(--neoC)}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html.hubOn #gTourne.on{right:auto;bottom:calc(var(--sB) + 12px);margin:0;max-width:none}
+}
+@media (prefers-reduced-motion:reduce){html.hubOn #gTourne.on{animation:none}#gTourne .gtPouce{transition:none}}
+html[data-reduced-motion="1"] #gTourne{animation:none!important}
+/* LA JAUGE AURA (même jour, Léo : « ajoute une jauge aura en dessous de la jauge argent »). Sous le compte, la même plaque (coins coupés,
+   encre, filet), en VIOLET aura comme le compteur de course : l'étoile, le total, le rang en petit, et dessous la JAUGE vers le rang
+   suivant (le trait du bas, qui se remplit — plein au dernier rang). Un cran plus basse que le compte (34 px contre 40) : l'argent reste
+   le premier chiffre lu. Masquée là où le compte l'est (vitrine, menu). */
+#gAuraC{position:relative;display:inline-flex;align-items:center;gap:8px;height:34px;margin-top:6px;padding:0 12px 0 11px;pointer-events:none;
+  background:linear-gradient(180deg,rgba(18,14,36,.92),rgba(8,6,18,.92));box-shadow:inset 0 0 0 1px var(--fil),inset 0 -3px 0 rgba(180,107,255,.22);
+  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+#gAuraC .pxi{--pxs:2;color:#b46bff;filter:drop-shadow(0 0 4px rgba(180,107,255,.6))}
+#gAuraC b{display:inline-block;font-weight:400;font-size:var(--f3);letter-spacing:1px;color:#d6a8ff;text-shadow:0 2px 0 #3a1260,0 0 10px rgba(180,107,255,.45);transform:skewX(var(--sk))}
+#gAuraC small{font-size:var(--f0);letter-spacing:1px;color:var(--tx3);white-space:nowrap;transform:skewX(var(--sk))}
+#gAuraC u{position:absolute;left:0;right:0;bottom:0;height:3px;display:block;text-decoration:none}
+#gAuraC u em{display:block;height:100%;width:0;background:#b46bff;box-shadow:0 0 8px #b46bff;transition:width var(--t-slow) var(--ease)}
+#garage.menu #gAuraC{display:none!important}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){#gAuraC{height:30px;margin-top:5px}}
+/* LA JAUGE MONTE, LES BOUTONS DESCENDENT (même jour, Léo : « mets la jauge plus haut en portrait : échange l'emplacement de HOME ·
+   BOUTIQUE · JOUER et de la jauge, seulement en portrait ») : DEBOUT, la jauge entre DANS la console, juste au-dessus de la rangée
+   (gtPlace la range avant #gAct), et la console redescend au bord (sB + 10, la place de l'ancienne barre) — la rangée des boutons est
+   donc tout en bas, sous le pouce. COUCHÉ, rien ne bouge : la jauge reste en bas à gauche, sous la caisse. `html.gtConsole` = rangée. */
+html.hubOn.gtConsole body #garage:not(.menu) #gBottom{margin-bottom:calc(var(--sB) + 10px)}
+html.hubOn.gtConsole body #garage:not(.menu)>#gTourne.on{position:relative;left:auto;right:auto;bottom:auto;z-index:auto;max-width:none;flex:none}
+/* LA RANGÉE DU BAS (même jour, Léo, deux passes : « enlève le HOME » puis « remets l'inventaire et la boutique à la place, ÉQUIPER
+   au-dessus de JOUER, JOUER en jaune, ÉQUIPER moins haut, sur la longueur de JOUER, juste au-dessus ; sa petite barre lumineuse rouge
+   quand la voiture n'est pas achetée, bleue une fois achetée, verte une fois équipée — et il est écrit ÉQUIPÉE ; enlève le "il manque 24 k" »).
+   Une grille : INVENTAIRE · BOUTIQUE · JOUER sur la ligne du bas (comme avant), ÉQUIPER en barre de 28 px au-dessus de la seule colonne de
+   JOUER. Le HOME (#gClose, le haut #gvHome) est caché ; Échap ramène toujours à l'accueil. ACHETER / IL MANQUE (#gBuyRow) disparaît :
+   toucher ÉQUIPER en ROUGE sur une caisse à vendre l'achète (le relais vit dans le JS, gEqTon) — le prix est déjà sous chaque vignette. */
+html body #garage:not(.menu):not(.vitrine) #gAct>#gClose,html body #garage:not(.menu):not(.vitrine) #gAct>#gBuyRow{display:none!important}
+html body #garage:not(.menu):not(.vitrine) #gAct{display:grid;grid-template-columns:auto auto minmax(0,1fr);grid-template-rows:auto auto;column-gap:16px;row-gap:6px;align-items:stretch}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gvCof{display:flex;flex-direction:column;justify-content:center;gap:6px;width:96px;min-width:96px;
+  padding:6px 4px 4px 8px;font-size:var(--f0);letter-spacing:0;--nc:var(--neoC)}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gvCof .pxi{--pxs:3;color:var(--neoC);filter:drop-shadow(0 0 5px rgba(95,240,255,.55))}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gJouer{grid-column:3;grid-row:2;min-width:0}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip{display:flex!important;align-items:center;justify-content:center;gap:8px;min-width:0;--ton:#ff3b5c;--nc:var(--ton);color:var(--tx2);text-shadow:0 1px 0 rgba(7,5,15,.85);animation:none;outline:0;transform:skewX(var(--sk));opacity:1;
+  background:linear-gradient(180deg,rgba(26,21,50,.92),rgba(15,12,32,.92));
+  box-shadow:inset 0 0 0 1px var(--fil),inset 0 -3px 0 var(--ton),0 6px 14px -8px var(--ton)}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip .pxi{--pxs:1;color:var(--ton);filter:drop-shadow(0 0 4px var(--ton))}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip[data-ton="bleu"]{--ton:#4f8cff;color:#fff}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip[data-ton="vert"]{--ton:#3ee87a}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage:not(.menu):not(.vitrine) #gAct{column-gap:10px;row-gap:5px}
+  html body #garage:not(.menu):not(.vitrine) #gAct>#gvCof{width:88px;min-width:88px;min-height:54px;gap:4px;padding:4px 2px 2px 6px}
+  html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip{letter-spacing:2px}}
+/* LE PETIT HOME (même jour, Léo, trois passes : « le HOME en minimaliste en haut à droite, vers la barre jaune mais au-dessus » ;
+   « plus stylisé, moins carré » ; puis « en BLEU, détaché du jaune, et en portrait en haut à droite, au niveau du plafond »). Il flotte en
+   haut à droite, aligné sur la plaque du compte (gHomePlace lit sa hauteur) : debout dans le plafond de l'atelier, couché dans le coin
+   libre au-dessus de la console — jamais collé à elle. Un hexagone allongé (coins coupés, rien de carré) : un filet bleu (::before), le
+   fond bleu nuit dedans (.hmFond), la maison blanc-bleu qui luit. Visible dans l'ATELIER (hubSync) ; cible de 44 px (::after, hors du
+   clip-path qui rognerait le toucher). Il rejoue #gClose. */
+#gHomeMini{display:none}
+html.hubOn #gHomeMini.on{position:fixed;z-index:82;right:calc(var(--sR) + 18px);top:var(--hmT,-200px);width:58px;height:32px;align-items:center;justify-content:center;
+  pointer-events:auto;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none;background:none;
+  transition:translate var(--t-fast) var(--ease);animation:hubMonte var(--t-slow) var(--ease) both}
+#gHomeMini::before,#gHomeMini .hmFond{content:'';position:absolute;clip-path:polygon(16% 0,84% 0,100% 50%,84% 100%,16% 100%,0 50%)}
+#gHomeMini::before{inset:0;background:linear-gradient(180deg,#8fc2ff,#3f7dff);opacity:.85;transition:filter var(--t-fast) var(--ease)}
+#gHomeMini .hmFond{display:block;inset:1.5px;background:linear-gradient(180deg,rgba(34,64,150,.82),rgba(10,18,58,.88));box-shadow:none;transition:filter var(--t-fast) var(--ease)}
+#gHomeMini::after{content:'';position:absolute;left:-4px;right:-4px;top:-6px;bottom:-6px}
+#gHomeMini .pxi{--pxs:2;position:relative;color:#e2eeff;filter:drop-shadow(0 0 5px rgba(90,160,255,.95))}
+html.hubOn #gHomeMini.on:is(:active,.appui){translate:0 1px}
+html.hubOn #gHomeMini.on:is(:active,.appui) :is(.hmFond){filter:brightness(1.7)}
+html.hubOn #gHomeMini.on:is(:active,.appui)::before{filter:brightness(1.3)}
+#gHomeMini:focus-visible::before{filter:brightness(1.4)}
+@media (hover:hover){html.hubOn #gHomeMini.on:hover .hmFond{filter:brightness(1.35)}}
+@media (prefers-reduced-motion:reduce){html.hubOn #gHomeMini.on{animation:none}}
+/* (2026-10-09) LES RARETÉS DE L'INVENTAIRE RETIRÉES : posées sur un malentendu (« l'inventaire ne montre pas les raretés, c'est bien rangé,
+   pas trop scolaire, c'est bien » était un COMPLIMENT), puis Léo : « enlève la rareté de l'inventaire ». Le tiroir revient à son dessin. */
+/* LA CONSOLE À TROIS MODES (voir le JS « LA CONSOLE À TROIS MODES ») : la touche du mode actif reste ENFONCÉE et cerclée de sa couleur ;
+   la barre des familles devient l'intertitre du mode (le même que ceux de l'inventaire : pictogramme, nom, fil, compte) ; en BOUTIQUE les
+   vignettes sont éclairées (c'est une vitrine, pas un mur de cadenas). */
+html body #garage:not(.menu):not(.vitrine) #gAct>:is(#gvCof,#gShopBas).modeOn{translate:0 3px;outline:2px solid var(--nc);outline-offset:-2px;filter:brightness(1.18)}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gShopBas.modeOn{--nc:var(--neoM)}
+html body #garage:not(.menu) #gRar.gModeBar{display:flex!important;align-items:center;-webkit-mask:none;mask:none}
+.gModeT{flex:1;display:flex;align-items:center;gap:10px;height:34px;min-width:0;padding:0 6px;color:var(--rc);font-size:var(--f1);letter-spacing:3px;text-shadow:0 0 8px var(--rc),0 1px 0 rgba(7,5,15,.9)}
+.gModeT .pxi{--pxs:2;flex:none;color:var(--rc);filter:drop-shadow(0 0 5px var(--rc))}
+.gModeT span{flex:none;transform:skewX(var(--sk))}
+.gModeT s{flex:1;height:1px;text-decoration:none;background:linear-gradient(90deg,var(--rc),transparent);opacity:.55}
+.gModeT b{flex:none;font-weight:400;font-size:var(--f0);letter-spacing:1px;color:var(--tx3);text-shadow:none}
+#gStrip .gVide{flex:1;display:flex;align-items:center;justify-content:center;min-height:60px;font-size:var(--f0);letter-spacing:2px;color:var(--tx3)}
+#gStrip.gModeShop .gT.lock img{filter:none}
+
+html body #garage:not(.menu) #gRar .gR.vide{opacity:.45}
+/* LES LOGOS DES FAMILLES (2026-10-09, Léo : « enlève les nombres, fais des logotypes ») : dans la rangée des raretés, plus de losange ni de
+   compte — le logo pixel de la famille (RAR_LOGO : roue · gemme · flamme · couronne · cible), à sa couleur, qui s'allume quand on la choisit. */
+html body #garage:not(.menu) #gRar .gR:not(.gF)::before{display:none}
+html body #garage:not(.menu) #gRar .gR:not(.gF)>.pxi{--pxs:2;color:var(--rc);opacity:.78;filter:drop-shadow(0 0 3px var(--rc));transform:skewX(calc(-1 * var(--sk)))}
+html body #garage:not(.menu) #gRar .gR.on:not(.gF)>.pxi{opacity:1;filter:drop-shadow(0 0 7px var(--rc)) brightness(1.15)}
+/* HOME ET CACHER DANS LE VIDE DE LA RANGÉE (même jour, Léo, capture de la rangée : « dans l'espace vide, intègre un nouveau bouton HOME et
+   un bouton pour enlever l'interface boutique et inventaire »). La ligne du haut de la grille n'avait qu'ÉQUIPER (au-dessus de JOUER) :
+   CACHER prend la place au-dessus d'INVENTAIRE, HOME celle au-dessus de BOUTIQUE (échangés le même soir) — deux barres de la famille d'ÉQUIPER (28 px, laque sombre,
+   trait de couleur dessous : bleu pour HOME, lilas pour CACHER). CACHER replie la partie boutique / inventaire de la console (onglets,
+   familles, vignettes : `#garage.consoleCachee`) ; la jauge et la rangée restent, la caisse prend la place (garLibre relit la console).
+   Le mot devient VOIR ; INVENTAIRE ou BOUTIQUE la rouvrent aussi. Le HOME du haut (#gHomeMini) s'efface : un seul HOME à l'écran. */
+#gHomeBas,#gCache{display:none}
+html.hubOn #gHomeMini.on{display:none}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>:is(#gHomeBas,#gCache){grid-row:1;display:flex;align-items:center;justify-content:center;min-width:0;height:34px;min-height:34px;font-size:var(--f1);--ton:#4f8cff;--nc:var(--ton);color:var(--tx2);text-shadow:0 1px 0 rgba(7,5,15,.85);animation:none;transform:skewX(var(--sk));
+  background:linear-gradient(180deg,rgba(26,21,50,.92),rgba(15,12,32,.92));box-shadow:inset 0 0 0 1px var(--fil),inset 0 -3px 0 var(--ton),0 6px 14px -8px var(--ton)} /* (même soir, Léo : « le HOME et le VOIR changent de place ») */
+html body #garage:not(.menu):not(.vitrine) #gAct>#gCache{grid-column:1;--ton:#b8b0e0}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>:is(#gHomeBas,#gCache) .pxi{--pxs:1;color:var(--ton);filter:drop-shadow(0 0 4px var(--ton))}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>:is(#gHomeBas,#gCache):is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
+html body #garage.consoleCachee:not(.menu):not(.vitrine) #gAct>#gCache{--ton:#fff;color:#fff}
+html body #garage.consoleCachee:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gStrip){display:none!important}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>:is(#gHomeBas,#gCache){height:30px;min-height:30px;letter-spacing:1px}}
+/* LA JAUGE EN TÊTE, LA CONSOLE EN VERRE (2026-10-10, Léo : « encore plus smooth, plus centrée, la jauge — en mode portrait, mets-la
+   au-dessus des catégories VOITURES · PEINTURE… — et remets du visuel sur la zone noire », puis « au-dessus des trois bandes colorées ») :
+   DEBOUT, la jauge sort de la console et se pose JUSTE AU-DESSUS (gtPlace la range avant #gBottom ; garLibre cadre la caisse au-dessus
+   d'elle), plus courte et centrée sous la caisse ; COUCHÉE, elle se centre dans la moitié libre, sous la caisse. Le
+   panneau de la console passe en VERRE : presque transparent en haut (la bande des vignettes, souvent à moitié vide, laisse voir le sol
+   de l'atelier et l'anneau du plateau), il ne se fonce qu'au pied, derrière les touches. Pas de flou (pas de backdrop-filter sur téléphone). */
+html.hubOn.gtConsole body #garage:not(.menu)>#gTourne.on{width:min(calc(100% - var(--sL) - var(--sR) - 96px),300px);align-self:center;margin:auto auto 10px;background:rgba(11,8,24,.55);box-shadow:inset 0 0 0 1px rgba(154,144,200,.22)} /* (même jour, Léo : « au-dessus des trois bandes colorées ») hors de la console, posée juste au-dessus (margin-top:auto la colle au panneau) */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html.hubOn #gTourne.on{--gtW:min(calc(100% - min(48%,450px) - var(--sL) - var(--sR) - 90px),320px);width:var(--gtW);
+    left:calc(var(--sL) + (100% - min(48%,450px) - 14px - var(--sL) - var(--sR) - var(--gtW)) / 2)}}
+html body #garage:not(.menu):not(.vitrine) #gBottom{background:linear-gradient(180deg,rgba(22,17,44,.34) 0%,rgba(18,14,36,.22) 34%,rgba(16,12,34,.26) 62%,rgba(13,10,28,.6) 82%,rgba(11,8,24,.74) 100%)}
+/* HOME BIEN VISIBLE, L'ŒIL QUI LUIT (2026-10-10, Léo : « le HOME plus visible, et le CACHER : mets l'œil en orange luisant ») : les deux
+   pictogrammes passent au double (--pxs 2) dans une enveloppe `.gLueur` qui porte la lueur — un drop-shadow posé SUR une .pxi ne se voit pas
+   (le masque le rogne, voir la charte) : posé sur son parent, il passe. HOME : plaque teintée de bleu, mot en blanc, filet bleu épais.
+   CACHER : l'œil orange, un halo qui respire (opacité seule, 2,4 s — rien d'autre ne s'anime). */
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>:is(#gHomeBas,#gCache){gap:5px;padding:0 6px;letter-spacing:1px}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip{letter-spacing:1px}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>:is(#gHomeBas,#gCache) .gLueur{position:relative;display:inline-flex;line-height:0;filter:drop-shadow(0 0 2px var(--lu)) drop-shadow(0 0 6px var(--lu))}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>:is(#gHomeBas,#gCache) .gLueur .pxi{--pxs:2;filter:none}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gHomeBas{--ton:#5b95ff;--lu:rgba(79,140,255,.85);color:#fff;text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 10px rgba(91,149,255,.75);
+  background:linear-gradient(180deg,rgba(46,78,170,.62),rgba(20,28,74,.9));box-shadow:inset 0 0 0 1px rgba(120,165,255,.55),inset 0 -4px 0 var(--ton),0 0 16px -4px var(--ton),0 6px 14px -8px var(--ton)}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gHomeBas .pxi{color:#8fbcff}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gCache{--lu:rgba(255,138,31,.9)}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gCache .pxi{color:#ffa23a}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gCache .gLueur::after{content:'';position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,150,40,.5),rgba(255,120,20,.18) 45%,transparent 70%);animation:gOeilLuit 2.4s ease-in-out infinite}
+@keyframes gOeilLuit{0%,100%{opacity:.45}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){html body #garage #gAct>#gCache .gLueur::after{animation:none;opacity:.8}}
+html[data-reduced-motion="1"] body #garage #gAct>#gCache .gLueur::after{animation:none;opacity:.8}
+/* HOME À GAUCHE, L'ŒIL À SA PLACE (2026-10-10, Léo : « enlève le bouton HIDE, mets HOME à la place ; à la place du HOME, un bouton œil »).
+   CACHER est retiré (retoucher INVENTAIRE ou BOUTIQUE replie la console) ; HOME passe au-dessus d'INVENTAIRE ; l'ŒIL, au-dessus de BOUTIQUE,
+   orange luisant comme l'était celui de CACHER, sans mot. `.vueSeule` : tout le garage disparaît sauf lui (voir gVueSeule). */
+#gOeil{display:none}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gCache{display:none!important}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gHomeBas{grid-column:1}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil{grid-row:1;grid-column:2;display:flex;align-items:center;justify-content:center;min-width:0;height:34px;min-height:34px;padding:0 8px;
+  --ton:#ff8a1f;--nc:var(--ton);--lu:rgba(255,200,120,.9);transform:skewX(var(--sk));animation:none; /* (même jour, Léo : « case bleue, œil orange », puis « orange le bouton œil, et seulement l'œil quand on l'active ») */
+  background:linear-gradient(180deg,rgba(255,150,50,.92),rgba(196,82,12,.94));box-shadow:inset 0 0 0 1px rgba(255,214,160,.7),inset 0 -4px 0 #ffc27a,0 0 16px -4px var(--ton),0 6px 14px -8px var(--ton)}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil .gLueur{position:relative;display:inline-flex;line-height:0;filter:drop-shadow(0 0 2px var(--lu)) drop-shadow(0 0 6px var(--lu))}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil .gLueur .pxi{--pxs:2;color:#fff3e0;filter:none}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil .gLueur::after{content:'';position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,150,40,.5),rgba(255,120,20,.18) 45%,transparent 70%);animation:gOeilLuit 2.4s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){html body #garage :is(#gAct,#gCoin,#gRang1)>#gOeil .gLueur::after{animation:none;opacity:.8}}
+html[data-reduced-motion="1"] body #garage :is(#gAct,#gCoin,#gRang1)>#gOeil .gLueur::after{animation:none;opacity:.8}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil{height:30px;min-height:30px}}
+html body #garage.vueSeule{visibility:hidden}
+html body #garage.vueSeule #gOeil{visibility:visible}
+html.vueSeule #gTourne,html.vueSeule #gHomeMini{visibility:hidden!important}
+html body #garage.vueSeule:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil{--lu:rgba(255,138,31,1);background:none;box-shadow:none} /* allumé : la case s'efface, il ne reste QUE l'œil, orange luisant */
+html body #garage.vueSeule:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil .gLueur .pxi{--pxs:3;color:#ffa23a}
+/* ÉQUIPER → ACHETER (2026-10-10) : le verbe en petit, le prix dessous, en vert billet (or pour l'euro) — voir gEqTon. */
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat{flex-direction:column;gap:2px;line-height:1}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqV{font-size:var(--f0);color:var(--tx2)}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP{font-weight:400;color:var(--cash,#3ee87a);text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 8px rgba(62,232,122,.45)}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP.eur{color:var(--au2,#ffd75e);text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 8px rgba(255,215,94,.45)}

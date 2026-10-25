@@ -37,10 +37,35 @@
      constante changée (la bibliothèque garde le sien). Un changement de moteur s'entend au plus ~0,65 s plus tard (il tombe déjà sur la mesure
      suivante). Le texte introuvable ou l'import refusé → le module d'origine (rien ne casse). `?avance=.35` = l'horloge d'avant (A/B) ; dbgPouce().avance. */
   const AVANCE = +((/[?&]avance=([\d.]+)/.exec(location.search) || [])[1]) || 1, AV_TXT = 'while (nextTime < now + .35)', MODS = {};
+  const MONTEE_ANCIEN = /[?&]montee=ancien\b/.test(location.search);   // (2026-10-20 soir) voir LA MONTÉE « GRANDE » plus bas
   const importeAvance = u => MODS[u] || (MODS[u] = (async () => { try {
       const r = await fetch(u); if (!r.ok) throw new Error(u);
       const s = await r.text(); if (s.indexOf(AV_TXT) < 0) throw new Error('horloge introuvable');
-      const b = URL.createObjectURL(new Blob([s.split(AV_TXT).join('while (nextTime < now + ' + AVANCE + ')').split('import.meta.url').join(JSON.stringify(u))], { type: 'text/javascript' }));
+      /* (2026-10-20 soir, Léo : « quand je booste, ça apparaît, ça évolue, puis ça devient une sorte de TROMPETTE horrible qui fait bugger la musique :
+         elle s'arrête, puis reprend une ou deux secondes après, et dès que je rappuie sur le boost ça recommence ») LA MONTÉE « GRANDE » DU GÉNÉRATEUR
+         EN COURSE. Le jeu ne lui passe que le MOTEUR (setTier) ; un boost tenu fait monter le moteur de plusieurs paliers d'un coup, et chaque
+         grand élément qui entre (grosse caisse, mélodie…) appelle une MONTÉE d'une mesure : un RISER (une fois sur deux « en ton » : trois scies
+         110 → 440 Hz dans un passe-bas résonant 500 → 6 000 Hz, Q 3, jusqu'à 0,6 de gain — la sirène-trompette qui « apparaît, évolue »), des
+         roulements, et une fois sur trois le TROU (la musique coupée à 8 % juste avant l'arrivée), puis la cymbale et l'impact : la musique
+         « bugge » et repart. Sacha, qui lâche le boost plus tôt et tire d'autres morceaux, n'y tombait pas. EN COURSE SEULEMENT (la bibliothèque
+         charge le générateur elle-même, intact) : le riser est toujours le SOUFFLE (la cymbale à l'envers, jamais la sirène en ton), la montée
+         grande ne fait plus de trou, et le trou ne sort plus du tirage des petites transitions. Les versions figées ne sont pas réécrites sur
+         le disque : c'est le même texte, retouché au chargement, comme l'horloge (un texte absent d'une version = rien à faire).
+         `?montee=ancien` = la montée d'avant (A/B) ; dbgPouce().montee. */
+      let s2 = s.split(AV_TXT).join('while (nextTime < now + ' + AVANCE + ')');
+      if (!MONTEE_ANCIEN) { s2 = s2.split("riser: tpw(['souffle', 'ton'], W.riser)").join("riser: 'souffle'")
+        .split("rp(['montee', 'trou', 'filtre']").join("rp(['montee', 'filtre']")
+        .split("const W9 = Object.assign({}, M.C.trans), a = id =>").join("const W9 = Object.assign({}, M.C.trans, { trou: 0 }), a = id =>");
+        /* (2026-10-21, Léo : « les builds filtre et dub, ça a l'air convaincant — tente ») LES DEUX AUTRES MONTÉES QUI ÉTOUFFENT. 'filtre' ferme le passe-bas
+           à 420 Hz pendant UNE MESURE ENTIÈRE (~2 s), coupe les éléments, puis tout se rouvre sur le 1er temps ; 'dub' (le drop de la wob/du growl) garde
+           le TROU à 8 % et balaie un filtre de 400 à 14 000 Hz. Au boost, plusieurs paliers s'enchaînent : la musique s'étouffe, « s'arrête », reprend
+           1-2 s après. En course ces deux-là deviennent la montée simple (souffle, roulement, 4 pas de coupe, impact à l'arrivée). */
+        s2 = s2.split("bt = M.build;").join("bt = (M.build === 'filtre' || M.build === 'dub') ? 'montee' : M.build;")
+          .split("M.build = 'dub'; (M.journal").join("M.build = 'montee'; (M.journal")
+          .split("else if (grand) { M.build = rp(['montee', 'filtre']").join("else if (grand) { M.build = 'montee'; void rp(['montee', 'filtre']");
+        PB.montee = 'douce'; }
+      else PB.montee = 'ancienne';
+      const b = URL.createObjectURL(new Blob([s2.split('import.meta.url').join(JSON.stringify(u))], { type: 'text/javascript' }));
       try { const m = await import(b); PB.avance = AVANCE; return m; } finally { URL.revokeObjectURL(b); }
     } catch (e) { delete MODS[u]; PB.avance = .35; return importe(u); } })());   // (un espace de noms de module n'accepte aucune propriété : l'avance réelle est notée sur PB)
   const PB = { avance: null, liste: null, E: null, J: null, ch: null, ac: null, phase: 'repos', err: null, tIntro: 0, n: 0, dernier: null };
@@ -77,8 +102,11 @@
     const mod = await importeAvance(url(D + f)), inst = mod.createTrenteMusic({ audioContext: ac, destination: gc || dest, renouvelle: 0, da: E.da });
     const O = {}; if (/^hyb:/.test(E.style)) O.style = E.style;   // (la couleur de l'avis : sans elle, une musique v6 en devenait une autre)
     if (E.ret) { O.retouche = E.ret.retouche; O.voix = E.ret.voix; O.acc = E.ret.acc; }
-    inst.setTier(1, 30); inst.start(E.n, E.W || undefined, O); let cur = 1;
-    return { regle(m) { if (m !== cur) { cur = m; inst.setTier(m, 30); if (gc) gc.gain.setTargetAtTime(depG(m), ac.currentTime, .3); } }, stop() { try { inst.stop(); } catch (e) {} if (gc) setTimeout(() => { try { gc.disconnect(); } catch (e) {} }, 1500); }, bpm: () => inst.bpm || 120, inst };
+    const m0 = typeof W.pbjTier === 'function' ? W.pbjTier(1) : 1;   // (2026-10-24) le morceau part au moteur REMAPPÉ du moteur 1 du jeu (pbjTier, musique.js) : plein dès l'intro, pas un palier presque muet
+    inst.setTier(m0, 30); inst.start(E.n, E.W || undefined, O); let cur = m0;
+    const on = k => { const b = inst._bus && inst._bus[k]; return !!b && b.gain.value > .01; };   // (20/10) ce qui joue : le dompteur de grosse caisse du bus ne touche jamais la basse seule
+    return { regle(m) { if (m !== cur) { cur = m; inst.setTier(m, 30); if (gc) gc.gain.setTargetAtTime(depG(m), ac.currentTime, .3); } }, stop() { try { inst.stop(); } catch (e) {} if (gc) setTimeout(() => { try { gc.disconnect(); } catch (e) {} }, 1500); }, bpm: () => inst.bpm || 120, inst,
+      groupe() { try { return { kick: on('kick'), basse: on('basse') || on('basse2') || on('sub') }; } catch (e) { return null; } } };
   }
   async function joueurPaliers(ac, dest, E) {
     if (!W.PalLecteur) await script('musique-paliers.js');
@@ -98,7 +126,7 @@
     fr.contentWindow.AudioContext = fr.contentWindow.webkitAudioContext = function () { return prete; };
     const d = fr.contentDocument, bt = d.getElementById('play'), jg = d.getElementById('speed'); if (!bt || !jg) throw new Error('page sans #play / #speed');
     jg.step = 'any'; const vit = x => { jg.value = (x * 100).toFixed(1); jg.dispatchEvent(new fr.contentWindow.Event('input')); };
-    vit(0); bt.click();
+    vit(typeof W.pbjTier === 'function' ? (W.pbjTier(1) - 1) / 29 : 0); bt.click();
     const bpm = (fr.contentWindow.MORCEAU && fr.contentWindow.MORCEAU.bpm) || 120;
     return { regle(m) { vit((m - 1) / 29); }, stop() { try { if (/stop/i.test(bt.textContent)) bt.click(); } catch (e) {} fr.remove(); }, bpm: () => bpm };
     } catch (e) { fr.remove(); throw e; }   // (la page n'est pas venue : l'iframe ne reste pas)
@@ -138,7 +166,8 @@
     PB.phase = 'course';
   };
   PB.moteur = function (m) { if (PB.J) try { PB.J.regle(Math.max(1, Math.min(30, m | 0))); } catch (e) {} };
-  PB.niveau = function (v) { if (PB.ch && PB.ac) { const g = PB.ch.g.gain; if (Math.abs((g._v9 == null ? -1 : g._v9) - v) > .003) { g._v9 = v; t9(g, Math.max(0, v), PB.ac.currentTime, .08); } } };
+  PB.niveau = function (v) { if (PB.ch && PB.ac) { const g = PB.ch.g.gain; if (Math.abs((g._v9 == null ? -1 : g._v9) - v) > .003) { g._v9 = v; t9(g, Math.max(0, v), PB.ac.currentTime, .08); }
+    if (PB.ch.bus && PB.ch.bus.tick) PB.ch.bus.tick(PB.J && PB.J.groupe ? PB.J.groupe() : null, Math.max(0, v)); } };   // (20/10) le dompteur de grosse caisse du bus (musique-bus.js) écoute à chaque image, avec le niveau
   PB.recul = function () { if (PB.ch && PB.ch.bus) PB.ch.bus.recul(-3, .4); };
   PB.joue = () => !!PB.J && (PB.phase === 'intro' || PB.phase === 'course');
   /* LA FIN : un fondu (la mort : plus court), puis tout s'éteint */
@@ -149,7 +178,7 @@
     try { if (ch && ac) t9(ch.g.gain, 0, ac.currentTime, d / 4); } catch (e) {}
     setTimeout(() => { try { if (J) J.stop(); } catch (e) {} setTimeout(() => { try { if (ch) ch.e.disconnect(); } catch (e) {} }, 600); }, d * 1000);
   };
-  PB.etat = () => ({ phase: PB.phase, avance: PB.avance, titre: PB.E && PB.E.titre, id: PB.E && PB.E.id, type: PB.E && PB.E.type, liste: PB.liste ? PB.liste.length : null, err: PB.err,
+  PB.etat = () => ({ phase: PB.phase, avance: PB.avance, montee: PB.montee || null, titre: PB.E && PB.E.titre, id: PB.E && PB.E.id, type: PB.E && PB.E.type, liste: PB.liste ? PB.liste.length : null, err: PB.err,
     filtre: PB.ch ? Math.round(PB.ch.f.frequency.value) : null, niveau: PB.ch ? +PB.ch.g.gain.value.toFixed(3) : null, bus: PB.ch && PB.ch.bus ? PB.ch.bus.etat() : null,
     moteur: PB.J && PB.J.inst ? PB.J.inst.tier : null });
   W.POUCE_JEU = PB;

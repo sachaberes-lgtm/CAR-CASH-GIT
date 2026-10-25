@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Moteur vivant — l'atelier d'écoute</title>
+<style>
+/* L'ATELIER D'ÉCOUTE du MOTEUR VIVANT (2026-10-22, session SON) : on CONDUIT le moteur au clavier ou au doigt, on le MALTRAITE, on le cale, et on règle son équilibre contre une vraie musique de course. */
+:root{--bg:#0d0f14;--pan:#161a22;--ln:#262c38;--tx:#e8ecf4;--mu:#8c97ab;--ac:#ff6a2b;--ac2:#35d0ff;--ok:#4be38a;--ko:#ff4d5e}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:980px;margin:0 auto;padding:18px 16px 60px}
+h1{font-size:22px;margin:0 0 2px;letter-spacing:.04em}h1 small{color:var(--mu);font-weight:400;font-size:13px;letter-spacing:0;margin-left:8px}
+h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu);margin:0 0 10px}
+.sub{color:var(--mu);margin:0 0 16px}
+.grid{display:grid;gap:12px;grid-template-columns:1fr 1fr}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.card{background:var(--pan);border:1px solid var(--ln);border-radius:12px;padding:14px}
+.full{grid-column:1/-1}
+button{font:inherit;color:var(--tx);background:#222936;border:1px solid var(--ln);border-radius:9px;padding:9px 13px;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+button:hover{border-color:#3a4458}button:active{transform:translateY(1px)}
+button.on{background:var(--ac);border-color:var(--ac);color:#140a04;font-weight:600}
+button.big{padding:22px 10px;font-size:18px;font-weight:700;letter-spacing:.08em}
+button.gas{background:#2a1a12;border-color:#5b3320}button.gas.held{background:var(--ac);color:#140a04}
+button.brk{background:#2a1218;border-color:#5b2030}button.brk.held{background:var(--ko);color:#fff}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row>*{flex:0 0 auto}
+label{color:var(--mu);font-size:13px}
+input[type=range]{width:100%;accent-color:var(--ac)}
+select{font:inherit;background:#222936;color:var(--tx);border:1px solid var(--ln);border-radius:8px;padding:8px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center}
+.val{font-variant-numeric:tabular-nums;color:var(--ac2)}
+#gauge{width:100%;height:150px;display:block}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;border:1px solid var(--ln);font-size:12px;color:var(--mu)}
+.pill.warn{border-color:var(--ko);color:var(--ko)}.pill.ok{border-color:var(--ok);color:var(--ok)}
+#etat{font-weight:700;letter-spacing:.08em}
+.hint{color:var(--mu);font-size:13px}
+kbd{background:#222936;border:1px solid var(--ln);border-bottom-width:2px;border-radius:5px;padding:0 6px;font-size:12px}
+#boot{position:fixed;inset:0;background:rgba(5,6,9,.92);display:flex;align-items:center;justify-content:center;z-index:9;text-align:center}
+#boot button{font-size:20px;padding:20px 30px;background:var(--ac);color:#140a04;border-color:var(--ac);font-weight:700}
+.meter{height:8px;background:#222936;border-radius:5px;overflow:hidden}.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--ok),var(--ac2));transition:width .06s}
+</style>
+</head>
+<body>
+<div id="boot"><div><p style="max-width:430px;color:#c9d1e0">Moteur vivant — un moteur joué à l'échantillon près : explosions, tuyau, admission, usure, calage.<br>Mets un casque ou de bonnes enceintes.</p><button id="go">▶ ALLUMER LE SON</button></div></div>
+<main>
+<h1>MOTEUR VIVANT<small>atelier d'écoute · session SON</small></h1>
+<p class="sub">Conduis-le, maltraite-le, cale-le. Puis règle son équilibre contre une vraie musique de course.</p>
+
+<div class="grid">
+  <div class="card">
+    <h2>Le moteur</h2>
+    <div class="row" id="mots">
+      <button data-m="v8" class="on">V8 croisé atmo</button><button data-m="flat">V8 plat-plan aigu</button><button data-m="l6">6 en ligne turbo</button>
+    </div>
+    <canvas id="gauge" width="600" height="300"></canvas>
+    <div class="kv" style="margin-top:6px">
+      <label>état</label><div><span id="etat">ARRÊT</span> <span class="pill" id="stage">RODÉ</span> <span class="pill" id="lim" style="display:none">LIMITEUR</span></div>
+      <label>rapport</label><div class="val" id="gearV">N</div>
+      <label>vitesse</label><div class="val" id="spdV">0 km/h</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Conduire</h2>
+    <div class="row" style="margin-bottom:8px">
+      <button id="bStart">🔑 Démarrer</button><button id="bStart2">🔑 Démarrer (1 raté)</button><button id="bStall">🛑 Caler</button><button id="bHit">💥 Choc</button>
+    </div>
+    <div class="row" style="margin-bottom:8px">
+      <button class="big gas" id="bGas" style="flex:2 1 130px">GAZ</button>
+      <button class="big brk" id="bBrk" style="flex:1 1 80px">FREIN</button>
+      <button class="big" id="bRev" style="flex:1 1 100px">POINT MORT<br><small style="font-weight:400">coups de gaz</small></button>
+    </div>
+    <div class="row" style="margin-bottom:6px"><label>boîte</label><button id="bAuto" class="on">auto</button><button id="bDn">− rapport</button><button id="bUp">+ rapport</button><button id="bN">N</button></div>
+    <p class="hint"><kbd>Espace</kbd>/<kbd>↑</kbd> gaz · <kbd>↓</kbd> frein · <kbd>R</kbd> point mort (tiens + gaz) · <kbd>E</kbd>/<kbd>Q</kbd> rapport + / − · <kbd>S</kbd> démarrer · <kbd>C</kbd> caler · <kbd>X</kbd> choc.<br>
+    Lève le pied à haut régime : crépitements. Rétrograde pied sur le frein : talonnage automatique. Reste au rupteur : le limiteur rebondit.</p>
+  </div>
+
+  <div class="card">
+    <h2>L'âge du moteur</h2>
+    <div class="kv"><label>santé</label><div><input type="range" id="health" min="0" max="100" value="100"> <span class="val" id="healthV">100</span> <span class="pill" id="stage2">RODÉ</span></div></div>
+    <div class="row" style="margin-top:8px"><button data-h="100">rodé 100</button><button data-h="70">fatigué 70</button><button data-h="45">maltraité 45</button><button data-h="22">agonie 22</button><button data-h="6">agonie 6</button></div>
+    <p class="hint">Chaque étage a son vocabulaire : tictac des culbuteurs → ratés (le V8 se troue) → cliquetis et coup de bielle → cylindres morts, pompage, raclement → calage.
+    Chaque <b>choc</b> bute le moteur (une grappe de ratés) ; la santé n'est modifiée que par toi.</p>
+    <div class="row"><button id="bScen1">▶ Scénario : la vie d'un moteur neuf (62 s)</button><button id="bScen2">▶ Scénario : les âges, jusqu'au calage (84 s)</button><button id="bScenX">■ stop</button></div>
+    <p class="hint" id="lab"></p>
+  </div>
+
+  <div class="card">
+    <h2>L'équilibre avec la musique</h2>
+    <div class="row" style="margin-bottom:8px"><select id="mus"><option value="">(sans musique)</option></select><label><input type="checkbox" id="musLoop" checked> boucle</label></div>
+    <div class="kv">
+      <label>musique</label><div><input type="range" id="gMus" min="-30" max="6" value="-6" step="0.5"> <span class="val" id="gMusV"></span></div>
+      <label>moteur</label><div><input type="range" id="gEng" min="-30" max="12" value="0" step="0.5"> <span class="val" id="gEngV"></span></div>
+      <label>creux dynamique</label><div><input type="range" id="carve" min="0" max="6" value="3.5" step="0.5"> <span class="val" id="carveV"></span> <span class="hint">la musique s'efface là où parle le moteur</span></div>
+      <label>coupe-bas moteur</label><div><input type="range" id="hpE" min="20" max="140" value="55" step="5"> <span class="val" id="hpEV"></span> <span class="hint">laisse le grave à la musique</span></div>
+    </div>
+    <div class="row" style="margin-top:8px"><button id="bMaster" class="on">limiteur du jeu : ON</button><span class="hint">même chaîne que le jeu : compresseur −16 dB 4:1 sur le moteur, limiteur final −1 dB</span></div>
+    <div class="kv" style="margin-top:8px"><label>moteur</label><div class="meter"><i id="mE"></i></div><label>musique</label><div class="meter"><i id="mM"></i></div><label>sortie</label><div class="meter"><i id="mO"></i></div></div>
+  </div>
+</div>
+</main>
+<script src="conducteur.js"></script>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const MUS = [ /* les musiques de course déjà rendues (paliers figés) : [titre, dossier, paliers proposés] */
+  ['NUIT DE VELOURS', 'nuit-de-velours', [2, 5, 8]], ['PENTHOUSE', 'penthouse', [2, 5, 8]], ['NÉON NOIR', 'neon-noir', [2, 5, 8]], ['GLISSE FUSION', 'glisse-fusion', [2, 5, 8]],
+  ['SIFFLEUR 30', 'siffleur-30', [4, 14, 26]], ['CIEL 30', 'ciel-30', [4, 14, 26]]
+];
+const MUS_BASE = '../../assets/audio/music/paliers/rendus/';
+MUS.forEach(([n, d, ps]) => { for (const p of ps) { const o = document.createElement('option'); o.value = d + '/p' + p + '.m4a'; o.textContent = n + ' · palier ' + p; $('#mus').appendChild(o); } });
+
+let ac, node, engOut, musEl, musSrc, musG, carve1, carve2, eng, hpE, cmp, lim, anaE, anaM, anaO, master = true, pil, piloteScen = null;
+let mot = 'v8', st = { rpm: 0, etat: 'off', niv: 0, boost: 0, cut: false };
+const keys = {};
+const dbl = x => Math.pow(10, x / 20);
+
+async function boot() {
+  ac = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+  const [core, wk] = await Promise.all([fetch('../../assets/audio/moteur-vivant/moteur-vivant.js').then(r => r.text()), fetch('../../assets/audio/moteur-vivant/worklet-moteur.js').then(r => r.text())]);
+  const url = URL.createObjectURL(new Blob([core + '\n' + wk], { type: 'text/javascript' }));
+  await ac.audioWorklet.addModule(url);
+  node = new AudioWorkletNode(ac, 'moteur-vivant', { outputChannelCount: [2], processorOptions: { moteur: mot } });
+  node.port.onmessage = e => { st = e.data; };
+  /* ---- la chaîne : moteur → coupe-bas → (compresseur du jeu) → limiteur → sortie ; musique → creux dynamique → limiteur ---- */
+  hpE = ac.createBiquadFilter(); hpE.type = 'highpass'; hpE.frequency.value = 55; hpE.Q.value = .7;
+  eng = ac.createGain();
+  cmp = ac.createDynamicsCompressor(); cmp.threshold.value = -16; cmp.knee.value = 12; cmp.ratio.value = 4; cmp.attack.value = .004; cmp.release.value = .16;
+  engOut = ac.createGain();
+  node.connect(hpE); hpE.connect(eng); eng.connect(cmp); cmp.connect(engOut);
+  eng.connect(ac.createGain()); /* (réserve) */
+  musG = ac.createGain();
+  carve1 = ac.createBiquadFilter(); carve1.type = 'peaking'; carve1.frequency.value = 850; carve1.Q.value = .9; carve1.gain.value = 0;
+  carve2 = ac.createBiquadFilter(); carve2.type = 'peaking'; carve2.frequency.value = 1800; carve2.Q.value = .9; carve2.gain.value = 0;
+  musG.connect(carve1); carve1.connect(carve2);
+  lim = ac.createDynamicsCompressor(); lim.threshold.value = -1; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = .001; lim.release.value = .1;
+  const sum = ac.createGain(); sum.gain.value = .937;
+  engOut.connect(sum); carve2.connect(sum); sum.connect(lim); lim.connect(ac.destination);
+  anaE = ac.createAnalyser(); anaE.fftSize = 1024; engOut.connect(anaE);
+  anaM = ac.createAnalyser(); anaM.fftSize = 1024; carve2.connect(anaM);
+  anaO = ac.createAnalyser(); anaO.fftSize = 1024; lim.connect(anaO);
+  musEl = new Audio(); musEl.crossOrigin = 'anonymous'; musEl.loop = true;
+  musSrc = ac.createMediaElementSource(musEl); musSrc.connect(musG);
+  applyMix(); loop();
+}
+
+function applyMix() {
+  if (!ac) return;
+  const t = ac.currentTime;
+  musG.gain.setTargetAtTime(dbl(+$('#gMus').value), t, .05); eng.gain.setTargetAtTime(dbl(+$('#gEng').value), t, .05);
+  hpE.frequency.setTargetAtTime(+$('#hpE').value, t, .05);
+  $('#gMusV').textContent = $('#gMus').value + ' dB'; $('#gEngV').textContent = $('#gEng').value + ' dB'; $('#carveV').textContent = '−' + $('#carve').value + ' dB'; $('#hpEV').textContent = $('#hpE').value + ' Hz';
+}
+['gMus', 'gEng', 'carve', 'hpE'].forEach(i => $('#' + i).addEventListener('input', applyMix));
+$('#mus').addEventListener('change', () => { if (!musEl) return; if (!$('#mus').value) { musEl.pause(); return; } musEl.src = MUS_BASE + $('#mus').value; musEl.play().catch(() => {}); });
+$('#musLoop').addEventListener('change', () => { if (musEl) musEl.loop = $('#musLoop').checked; });
+$('#bMaster').addEventListener('click', () => { master = !master; $('#bMaster').classList.toggle('on', master); $('#bMaster').textContent = 'limiteur du jeu : ' + (master ? 'ON' : 'OFF'); if (!ac) return; cmp.ratio.value = master ? 4 : 1; cmp.threshold.value = master ? -16 : 0; lim.ratio.value = master ? 20 : 1; });
+
+/* ---- le moteur reçoit ses ordres ---- */
+function send(o) { if (node) node.port.postMessage(o); }
+let sim = null, MV = null;
+function mkSim() { /* un moteur local pour que le Pilote (conducteur) ait un `cfg` et un état à piloter ; il ne produit aucun son : ses commandes partent au worklet */
+  const cfg = MVCfg[mot];
+  sim = { cfg, etat: st.etat, rpm: st.rpm, rpmEff: st.rpm, rpmCmd: 0, thr: 0, load: 0, health: +$('#health').value / 100,
+    demarre() {}, calage() {}, coup() {} };
+  pil = new MVConducteur.Pilote(sim, piloteScen);
+  pil.manual = !piloteScen;
+}
+const MVCfg = { v8: { idle: 760, limit: 6900, redline: 6500 }, flat: { idle: 900, limit: 9100, redline: 8800 }, l6: { idle: 740, limit: 7300, redline: 7000 } };
+let auto = true, manualGear = 0, last = performance.now();
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (!ac) { requestAnimationFrame(frame); return; }
+  sim.etat = st.etat; sim.rpm = sim.rpmEff = st.rpm;
+  if (!piloteScen) {
+    pil.thrT = (keys.gas ? 1 : 0); pil.brakeT = keys.brk ? 1 : 0; pil.neutralRev = !!keys.rev;
+    pil.auto = auto; if (!auto) pil.gearT = manualGear; else manualGear = pil.gearT;
+
+  }
+  /* le pilote avance ; ses sorties (rpmCmd, thr, load) partent au worklet */
+  pil.tick(dt);
+  if (piloteScen) $('#health').value = Math.round(sim.health * 100);
+  if (st.etat === 'run' || piloteScen) {
+    send({ c: { rpmCmd: sim.rpmCmd, thr: sim.thr, load: sim.load, health: piloteScen ? sim.health : +$('#health').value / 100 } });
+  } else send({ c: { health: +$('#health').value / 100 } });
+  if (piloteScen) { /* les événements du scénario agissent sur le vrai moteur : on les relaie */ }
+  draw(); requestAnimationFrame(frame);
+}
+let lastEtat = '';
+function loop() { requestAnimationFrame(frame); }
+
+/* ---- les événements du pilote (démarre, calage, choc, santé) doivent atteindre le worklet : on enveloppe le faux moteur ---- */
+function wrapSim() {
+  sim.demarre = a => send({ ev: 'demarre', a: a || 0 });
+  sim.calage = () => send({ ev: 'calage' });
+  sim.coup = a => send({ ev: 'coup', a });
+  Object.defineProperty(sim, 'etatSet', { set() {} });
+}
+function newPilot(scen) {
+  piloteScen = scen || null; mkSim(); wrapSim();
+  if (scen) { /* « etat run » de départ : on allume le vrai moteur */
+    const first = scen.ev[0]; if (first && first[1] === 'etat') send({ ev: first[2] === 'run' ? 'allume' : 'coupe' });
+  }
+}
+
+const R = (a, b, x) => Math.min(1, Math.max(0, (x - a) / (b - a)));
+function stageName(h) { return h > .8 ? 'RODÉ' : h > .55 ? 'FATIGUÉ' : h > .3 ? 'MALTRAITÉ' : h > .001 ? 'AGONIE' : 'MORT'; }
+function draw() {
+  const cv = $('#gauge'), g = cv.getContext('2d'), W = cv.width, H = cv.height, C = sim.cfg;
+  g.clearRect(0, 0, W, H);
+  const cx = W / 2, cy = H - 18, r = H - 50, a0 = Math.PI * 1.08, a1 = Math.PI * 1.92, max = C.limit * 1.12;
+  g.lineWidth = 16; g.lineCap = 'butt';
+  g.strokeStyle = '#222936'; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke();
+  const rl = a0 + (a1 - a0) * (C.redline / max), rm = a0 + (a1 - a0) * (C.limit / max);
+  g.strokeStyle = '#6b2330'; g.beginPath(); g.arc(cx, cy, r, rl, a1); g.stroke();
+  const v = Math.min(max, st.rpm), av = a0 + (a1 - a0) * (v / max);
+  g.strokeStyle = st.cut ? '#ff4d5e' : (v > C.redline ? '#ff9a2b' : '#35d0ff'); g.beginPath(); g.arc(cx, cy, r, a0, av); g.stroke();
+  g.strokeStyle = '#e8ecf4'; g.lineWidth = 3; g.beginPath(); g.moveTo(cx + Math.cos(av) * (r - 26), cy + Math.sin(av) * (r - 26)); g.lineTo(cx + Math.cos(av) * (r + 12), cy + Math.sin(av) * (r + 12)); g.stroke();
+  g.fillStyle = '#e8ecf4'; g.font = '700 54px system-ui'; g.textAlign = 'center'; g.fillText(Math.round(st.rpm / 10) * 10, cx, cy - 32);
+  g.fillStyle = '#8c97ab'; g.font = '15px system-ui'; g.fillText('tr/min', cx, cy - 8);
+  if (C.limit > 8000 || mot === 'l6') { /* turbo */ }
+  $('#etat').textContent = { off: 'ARRÊT', crank: 'DÉMARREUR', pause: 'DÉMARREUR…', catch: 'IL PREND', run: 'EN MARCHE', stall: 'CALE' }[st.etat] || st.etat;
+  const h = +$('#health').value / 100; $('#healthV').textContent = Math.round(h * 100); $('#stage').textContent = $('#stage2').textContent = stageName(h);
+  $('#stage').className = 'pill' + (h < .55 ? ' warn' : ''); $('#stage2').className = 'pill' + (h < .55 ? ' warn' : '');
+  $('#lim').style.display = st.cut ? '' : 'none';
+  const c = pil && pil.cond; $('#gearV').textContent = c ? (c.g || 'N') + (c.shiftT > 0 ? ' …' : '') : 'N'; $('#spdV').textContent = c ? Math.round(c.v) + ' km/h' : '0 km/h';
+  $('#lab').textContent = piloteScen && pil ? pil.lab : '';
+  /* mètres + le creux dynamique de la musique */
+  if (anaE) {
+    const rms = a => { const b = rms.b || (rms.b = new Float32Array(1024)); a.getFloatTimeDomainData(b); let s = 0; for (const x of b) s += x * x; return Math.sqrt(s / 1024); };
+    const e = rms(anaE), m = anaM ? rms(anaM) : 0, o = rms(anaO), m100 = x => Math.max(0, Math.min(100, (20 * Math.log10(x + 1e-6) + 60) / 60 * 100));
+    $('#mE').style.width = m100(e) + '%'; $('#mM').style.width = m100(m) + '%'; $('#mO').style.width = m100(o) + '%';
+    const pres = R(.01, .08, e), dep = +$('#carve').value, t = ac.currentTime;
+    carve1.gain.setTargetAtTime(-dep * pres, t, .25); carve2.gain.setTargetAtTime(-dep * .7 * pres, t, .25);
+  }
+}
+
+/* ---- les touches ---- */
+function hold(btn, key) {
+  const on = e => { e.preventDefault(); keys[key] = true; btn.classList.add('held'); }, off = () => { keys[key] = false; btn.classList.remove('held'); };
+  btn.addEventListener('pointerdown', on); btn.addEventListener('pointerup', off); btn.addEventListener('pointerleave', off); btn.addEventListener('pointercancel', off);
+}
+hold($('#bGas'), 'gas'); hold($('#bBrk'), 'brk'); hold($('#bRev'), 'rev');
+$('#bStart').onclick = () => { stopScen(); send({ ev: 'demarre', a: 0 }); }; $('#bStart2').onclick = () => { stopScen(); send({ ev: 'demarre', a: 1 }); };
+$('#bStall').onclick = () => send({ ev: 'calage' }); $('#bHit').onclick = () => send({ ev: 'coup', a: .7 });
+$('#bAuto').onclick = () => { auto = !auto; $('#bAuto').classList.toggle('on', auto); };
+$('#bUp').onclick = () => { manualGear = Math.min(6, pil.gearT + 1); auto = false; $('#bAuto').classList.remove('on'); };
+$('#bDn').onclick = () => { manualGear = Math.max(0, pil.gearT - 1); auto = false; $('#bAuto').classList.remove('on'); };
+$('#bN').onclick = () => { auto = false; $('#bAuto').classList.remove('on'); manualGear = 0; };
+document.addEventListener('keydown', e => {
+  if (e.repeat || /INPUT|SELECT/.test(e.target.tagName)) return;
+  const k = e.key.toLowerCase();
+  if (k === ' ' || k === 'arrowup') { keys.gas = true; $('#bGas').classList.add('held'); e.preventDefault(); }
+  else if (k === 'arrowdown') { keys.brk = true; $('#bBrk').classList.add('held'); e.preventDefault(); }
+  else if (k === 'r') { keys.rev = true; $('#bRev').classList.add('held'); }
+  else if (k === 'e') $('#bUp').click(); else if (k === 'q') $('#bDn').click();
+  else if (k === 's') $('#bStart').click(); else if (k === 'c') $('#bStall').click(); else if (k === 'x') $('#bHit').click();
+});
+document.addEventListener('keyup', e => {
+  const k = e.key.toLowerCase();
+  if (k === ' ' || k === 'arrowup') { keys.gas = false; $('#bGas').classList.remove('held'); }
+  else if (k === 'arrowdown') { keys.brk = false; $('#bBrk').classList.remove('held'); }
+  else if (k === 'r') { keys.rev = false; $('#bRev').classList.remove('held'); }
+});
+$('#mots').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; mot = b.dataset.m; document.querySelectorAll('#mots button').forEach(x => x.classList.toggle('on', x === b)); send({ moteur: mot }); newPilot(null); });
+document.querySelectorAll('[data-h]').forEach(b => b.addEventListener('click', () => { $('#health').value = b.dataset.h; }));
+function stopScen() { if (piloteScen) { newPilot(null); } }
+$('#bScen1').onclick = () => { newPilot(MVConducteur.SCEN.vie); }; $('#bScen2').onclick = () => { newPilot(MVConducteur.SCEN.sante); };
+$('#bScenX').onclick = () => { newPilot(null); };
+$('#go').onclick = async () => { $('#boot').remove(); await boot(); newPilot(null); send({ ev: 'allume' }); };
+mkSim(); wrapSim();
+</script>
+</body>
+</html>

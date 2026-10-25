@@ -30,3 +30,9 @@ Sacha : « la route ne doit pas être toute plate mais doit pouvoir s'emmêler, 
 - Banc RACCOURCIS hors ligne (scratchpad d9665cfc : `vtrace.cjs <index.html> <graine> <palier> <out.json>` puis `raccourcis.cjs volcan 1 --depuis=`) :
   30 pistes (paliers 0/5/10/20/27 × 6 graines) : raccourcis rentables 0,7-4,9/km, 0 croisement dangereux, 0 infranchissable, pente ~5 %.
   Restent sous la cible : virages/km (~2,1) et enchaînements (~0,8) — la balade (lac, corniche) assumée. L ≈ 10 km au palier 0 (v3 : 6,9).
+
+## L'ASPECT v5 (20/10, session VOLCAN5) — la lave, la roche, les ciels, la fumée
+Sacha : « la map volcan est la plus moche, lance une grosse refonte ». Sur la route d'aujourd'hui (balade + montée), tout le visuel est refait derrière
+`VLC5` (`?volcan=avant5` = l'aspect d'avant) : lave en plaques (`VLC_LAVE_FS5`), roche en facettes (`VLC_SOL_FS5`, `VOLCAN.sol.cf`), aiguilles trapues,
+arche fendue, ciels (`code/maps/continuite.js`), fumée / brume / panache / braises (`VLC_MET`), mur de lave du cratère supprimé, six cartes postales
+retirées après la construction. Détail et mesures : JOURNAL « LE ROYAUME DE FEU, L'ASPECT REFAIT ». Rien à trancher d'urgent.

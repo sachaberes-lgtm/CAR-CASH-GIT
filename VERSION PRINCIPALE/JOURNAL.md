@@ -3,6 +3,1335 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES DUNES REVIENNENT SUR TÉLÉPHONE, ALLÉGÉES (2026-10-25, v898 — Léo : « remets la map dune dans le main tout de suite… intelligible pour un iPhone 13 mais toujours aussi belle et fluide, pour moins de puissance demandée »)
+- **LE CONSTAT** : Sacha avait sorti les dunes du tirage mobile le 24/10 (`SF_HORS.dunes`, trop lourdes). Elles y reviennent, avec une facture réduite (`DN_MOB`, `dunes-1.js`/`dunes-2.js`).
+  ⚠ `DN_MOB` suit `TEL_NATIF` (un VRAI téléphone), pas `IS_MOBILE` : l'ordi qui joue l'édition « mobile » garde les dunes pleines (Sacha, v897 : « sur PC la qualité a chuté »).
+  `?dunesplein=1` rend l'image d'avant sur un téléphone, `?dunessobre=1` essaie l'allégée sur l'ordi.
+- **MESURÉ AVANT** (Chrome, chrono GPU d'une image figée, 1 266 × 585 = 0,74 M pixels = l'iPhone 13 ; palier RÉCENT forcé) : 10,0 à 10,8 ms, dont ~5,4 pour le terrain seul (caché : 5,0). Le terrain = ~2 ms de sommets
+  (dont 1,6 pour la seule normale : trois lectures complètes du relief par sommet) + ~4 ms de PIXELS ; aucun bloc du shader de sable ne domine (chacun 0,2-0,5 ms : leur somme fait 2,4 ms), sauf les FACETTES (0,9 ms).
+  Les décors cachés ne changent rien à cette vue ; la route 0,4 ms ; les nuages en bandes du ciel ~0,7 ms (gardés : demande de Léo).
+- **FAIT** : (1) grille d'une tuile 32 → 24 cases (151 k → 82 k triangles ; cellule fine 4 → 5,3 m ; 16 cases faisaient de petits trous blancs sur une crête, écartées) ; (2) le calcul des FACETTES du sable retiré du shader de pixels
+  (`dnLite`) : leurs poids joint/éclat/plat (`uPl.y/.z/.w`) valent 0 dans toutes les ambiances, il ne restait qu'une teinte de ±1,5 % par triangle ; (3) lectures de texture faites seulement là où elles comptent (végétation, argile,
+  crête vive, octaves de rides hors portée) — écart mesuré ≤ 6/255 sur 3 vues (le même shader recompilé, sans rien changer, en fait déjà 4/255 : grain et ciel animés) ; (4) budgets du palier MOYEN pour les décors (arbres, palmiers, touffes, tornades, sable qui vole, ruines) et plus d'ÉCLATS de 9 cm (`dnMo` .75).
+  La route, les tremplins, le sable à rides, les monuments, la scène du sphinx, les nuages ne changent pas.
+- **APRÈS** (même banc, même caméra, trois ambiances) : matin 10,53 → 8,74 ms, soir 10,58 → 8,88, nuit 10,81 → 9,63 ; terrain −29 à −33 % ; 151 552 → 81 792 triangles. Photos avant/après (4 vues × 3 ambiances) : même image à l'œil.
+  Sable rendu ≥ 1,37 m sous le bitume avec des cellules de 4, 5,3 et 8 m (`dbgDunes('ecart', cs)`, 3 graines) ; `dbgDunes('test')` margeMin ≥ 1,2.
+- **NON MESURÉ** : le vrai iPhone 13 (ce banc est une puce de Mac : l'iPhone y met ~2-2,5×). À demander : `?perf=1` sur les dunes, au sol et en vol. Leviers restants si ce n'est pas assez : normale du sommet moins chère
+  (réutiliser les bruits de dune du sommet central, ~−0,5 ms), éteindre mirage / étincelles / stries (~0,2-0,3 ms chacune), résolution plus basse (échelle QL).
+- **Ensuite** : `dbgDunes('gpu',n,reps)` = ms GPU d'une image figée (après `dbgDunes('vueA',s,h,cap,pente)`), cacher `scene.children.find(o=>o.name==='dunes')` pour isoler le terrain ; patcher `…material.fragmentShader` à chaud pour peser un bloc.
+## LA FRÉNÉSIE A ENFIN SA MUSIQUE : THE DARK TRIAD (2026-10-24 soir, v894 — le 404 de `dark-triad.mp3`, vu deux fois à chaque chargement au banc du 21/10)
+- **LE CONSTAT** : `MUSIC_FREN.f` visait `assets/audio/music/dark-triad.mp3`, un fichier qui n'a JAMAIS existé dans le dépôt (aucun commit ne l'a posé, `git log --all`) ;
+  le morceau est la boucle maison DARK TRIAD de l'atelier (`atelier-son/boucles.py`, 01/10, « pour : FRÉNÉSIE » : phonk 140 bpm, do# phrygien, 16 mesures = 27,43 s
+  qui bouclent), rangée à `boucles/dark-triad.m4a` — publiée exprès par `vercel-build.sh`, et réglée par le bus des basses (`'dark-triad'`, cloche −2 dB).
+  Résultat, depuis le 28/09 : la sonde (`HEAD` puis l'élément audio) prenait deux 404 par chargement et la frénésie ne changeait jamais de morceau ; elle jouait le
+  repli « surmultiplié » (+6 %, un demi-ton). Et depuis que Pouce bleu tient la course (15/10), ce repli accélérait le lecteur `<audio>` EN PAUSE : en course, la
+  frénésie n'avait plus AUCUN effet musical (banc : lecteur figé, Pouce bleu au même niveau avant, pendant et après).
+- **CORRIGÉ** (`son/musique-frenesie.js`) : `MUSIC_FREN.f` = `assets/audio/music/boucles/dark-triad.m4a` ; à la bascule et au retour, le bus des basses prend le
+  réglage du morceau (`MUS_WA.bus.piste`, comme `playMusic` — avant, le morceau de la triade aurait gardé celui du morceau d'avant). Le reste ne bouge pas : le
+  morceau TOMBE à l'entrée, Pouce bleu s'efface (~0,3 s), il S'ÉTRANGLE à la sortie et Pouce bleu revient ; repli surmultiplié si le fichier manque.
+- **VÉRIFIÉ** (Chrome sans fenêtre et muet, copie du jeu fusionné avec main v892, `dbgFren('v',100)` + `dbgFren('entre')`, puis `dbgFren('pose')`) : sonde 200
+  (`FRENM.ok` vrai), aucun 404, 0 erreur ; course de Pouce bleu : `musique:'triade'`, le lecteur joue `boucles/dark-triad.m4a` (le temps avance), Pouce bleu à 0,
+  volume de la radio, bus sur `dark-triad` ; à la sortie Pouce bleu remonte (0,38) et le lecteur se tait. Leçon de l'auto-école : la triade tombe, puis PREMIER
+  MATIN revient. ⚠ Non vérifié : la reprise de PREMIER MATIN À SA PLACE (elle est repartie du début au banc, dont le serveur ignore les requêtes Range — Vercel
+  répond 206 ; code de reprise inchangé) ; le niveau du morceau face à Pouce bleu n'a pas été réglé à l'oreille ; l'appli iPhone (la sonde y dépend du `HEAD`).
+- Les décisions d'avant restent à Sacha / Léo : le morceau de la frénésie « est à Léo » (Q-SON-4, `passation/SON.md`), et une passe l'avait laissé « NON corrigé,
+  comme demandé » (`passation/ALLEGEMENT-MUSIQUE.md`). Un autre morceau (TRIPLE MONSTRE, `boucles/niv-monstre.m4a`, l'autre candidat de l'atelier) = un autre `f`.
+## LA VAGUE 4 DU DÉBOGAGE : SOUPÇONS TRANCHÉS, SINGE, WEBKIT (2026-10-24 soir, v893, session DÉBOGAGE — Sacha : « continue à déboguer, je suis sûr qu'il y a encore plein de soucis »)
+- **LA MÉTHODE** : (1) les 28 soupçons non démontrés de la relecture ligne à ligne, tranchés un par un (VÉRIFS-A : états, sauvegarde, économie ;
+  VÉRIFS-B : mémoire, rendu, interface) — 7 prouvés et corrigés, 1 prouvé laissé puis corrigé à l'intégration, 19 écartés avec la ligne qui protège,
+  1 non tranché ; (2) un SINGE dans le vrai jeu (iPhone émulé, muet) : 1 734 gestes au hasard en 27 min (touchers, doubles, appuis longs, volant,
+  NITRO multi-doigts, 88 rotations, 65 passages en arrière-plan), invariants toutes les 500 ms — 0 bug, mémoire en plateau après 2-3 min ;
+  (3) WEBKIT : inventaire de toutes les API du navigateur contre Safari iOS 15 → 26, banc « faux Safari » (58 API retirées) sur 12 maps et les écrans —
+  0 exception. 41 preuves dans `passation/preuves/`, toutes vertes. Outils gardés : `integ/.banc-sortie/archives/v4-singe/singe.mjs` (graine
+  rejouable), `archives/v4-webkit/shim-webkit.js` + `course-wk.mjs`.
+- **CORRIGÉ** :
+  - la MÉMOIRE DES PHOTOS de la boutique : +6,6 Mo par caisse équipée, jamais libérés (risque que iOS tue l'app) → plafond 32 Mo, les plus anciennes
+    adresses blob: libérées, jamais une photo affichée (`interface/photos-films.js`, `dbgPhotoMem()`) ;
+  - l'ÉCRAN FIGÉ ~8 s : une goutte de jus sur une toile de largeur nulle (transition iOS) faisait lever drawImage à chaque image (`interface/jus-echelle.js`) ;
+  - RECOMMENCER puis arrière-plan pendant le volet : la partie neuve roulait sous la feuille de pause → elle part en PAUSE (`moteur/mobile-tactile.js`) ;
+  - JOUER depuis la boutique puis HOME pendant le lâcher : l'accueil s'affichait puis la course partait quand même → tous les touchers ignorés pendant
+    les 450-650 ms du lâcher (`interface/garage-cadrage.js`, `uiGarde`) ;
+  - faisceaux des PHARES et RAYONS du soleil à bords nets sur iPhone (Safari n'a pas `ctx.filter`) → flou calculé après coup, une fois au chargement
+    (`rendu/soleil-planete.js` `flou2dRepli`, `voitures/atchoum-feu.js`) ; `-webkit-backdrop-filter` de l'accueil (Safari Mac < 18) ;
+  - annonce en file jouée (et perdue) pendant la pause ; clavier qui agissait sur le garage sous le profil/la plaque ; policier qui explosait deux fois au Survivant.
+- **VÉRIFIÉ, ÉCARTÉ** (extraits) : pas de sauvegarde vierge après une purge iOS (banc : aucune écriture au démarrage) ; la pub maison se termine toujours
+  et `#pubR` reprend `hidden` ; pas de musique en pause au retour après 24 h ; aucune voiture retirée équipable ; textures flottantes toujours en Nearest
+  (iPhone sans `OES_texture_float_linear`) ; toiles 2D vivantes ~37 Mo stables.
+- **À VÉRIFIER SUR LE VRAI iPHONE** : phares la nuit ; carte MOTEUR de l'écran de fin qui tourne (relecture PBO/fenceSync sous WebKit) ; photos de la
+  boutique relues d'IndexedDB après avoir tué l'app ; COPIER LA SAUVEGARDE ; double prime de portail après une seconde chance (non tranché, A3).
+- **POUR LÉO** (en plus de la liste v887) : l'ombre du « 1.61 » de la boutique 3D a le même défaut de flou sous Safari (`boutique-scene-1.js:29`,
+  `flou2dRepli(x,cv.width,cv.height,S*.35)` après les fillRect).
+
+## L'IPHONE QUI CHAUFFE ET LES MAPS QUI S'ALOURDISSENT : CADENCE 30 SUR LE RÉCENT, LA ROUTE EN TRANCHE MOYENNE (2026-10-24 soir, v892, session Optimisation mobile — Sacha : « après quelques maps passées on arrive vraiment presque à 1 image/seconde » · sur la question de la chauffe : « 30 i/s stables si chaud » · « oui, prends l'iPhone 12 min »)
+- **CE QUI RALENTIT** (iPhone 13 Pro, dans l'app de banc CC BANC, voir la section du palier v873 juste dessous) : (1) la CHAUFFE — au bout de 3-4 min de jeu iOS bride la puce
+  (sonde CPU ×2) : la course, 58-60 i/s à froid, tombe à 17-45 i/s haché ; Sacha à la main (enregistreur de PERF-PC, 164 s, ville → banquise) : ~30 i/s, 17-22 à la fin ;
+  (2) les maps qui s'ALOURDISSENT avec le niveau — triangles par image 0,2-0,6 M aux 1res maps, 0,8-1,3 M aux niveaux 7-9 (jade niv 9 ≈ 7 i/s) ; LA ROUTE = 274 000
+  à 528 000 triangles DESSINÉS (50 à 70 % de l'image) : bitume 11 colonnes × une rangée par mètre, et une tranche de 1 200 m n'était maigre que TOUTE au-delà du brouillard
+  (2 à 9 km) ; diviser la résolution par trois ne change presque rien (ce n'est pas le remplissage). Pas de fuite qui s'accumule de map en map (banc Chrome, registre de
+  chaque BufferGeometry avec sa pile de création) ; le 1er REJOUER monte les géométries 544 → ~900 puis plafonne.
+- **LA CADENCE 30 DU RÉCENT** (`CAD30_REC`, `code/moteur/cadence.js`) : sur un vrai téléphone (TEL_NATIF) au palier RÉCENT, la règle du MOYEN — 60 tant qu'il tient,
+  calé sur 33 ms quand plus d'un quart des images ratent la synchro 2 s durant, essai de retour à 60 quand le travail repasse sous 10 ms (mur 60 s doublé) ; calé,
+  l'échelle QL ne remonte pas (`cadenceMonte` RÉCENT = 0 : deux fois moins d'images et pas plus lourdes). L'ordinateur : CAD reste éteint. `?cad30=0` = avant.
+- **LA TRANCHE MOYENNE** (`PISTE_MOY`, `pisteLoin`, `code/moteur/piste-prebati.js`) : sur téléphone, une tranche de bitume dont le point le plus proche est à plus de
+  400 m de profondeur passe en MOYENNE — toutes les colonnes, une rangée sur 4, les bords de trou gardés (`pisteMaigre` a gagné un pas de rangées). Banc Chrome sur la
+  MÊME image : 0 pixel d'écart sur 7 maps sur 9, et sur nuages/espace l'écart est celui de la même image rendue deux fois (les nuages bougent) ; −9 à −30 % des
+  triangles de toute l'image selon la map (ville 481 k → 337 k, espace 675 k → 495 k). `?pistemoy=0` = avant ; `dbgPiste()` compte les `moyennes` ;
+  `dbgPiste(null,null,false)` les coupe à chaud (banc).
+- **MESURÉ SUR L'IPHONE** (CC BANC, même suite de maps imposée `dbgClassique(m);dbgSaut()` jusqu'à la ville niveau 9, batterie 37 °C dans les deux courses) :
+  AVANT (`?cad30=0&pistemoy=0`) 16,9 puis 13,1 images calculées/s, 478 images > 50 ms ; APRÈS 20,2 puis 21,7 i/s (cadence enclenchée, 6 tranches moyennes sur 14),
+  250 images > 50 ms. Une seule paire : le gain est net mais la ville niveau 9 sur un téléphone chaud reste sous 30 i/s.
+- **BANC** : `&bancniv=9&bancmap=jade` pour le banc intégré `?banc=1` (`code/moteur/desktop-banc.js`) : franchir n−1 portails sur la map imposée avant de mesurer.
+- **RESTE À FAIRE** (mesuré) : les décors lourds des niveaux avancés (forêt `forFamille` 350 k triangles, jade), la route hors bitume (flancs, rails, nappe, ligne :
+  aucune version allégée), le compteur d'argent (`cashTxt` → `toLocaleString` à chaque image de défilement, 3 % du JS). L'APP installée chez Sacha tourne toujours
+  le jeu du 18/10 : rien de tout ça n'y arrive sans build ou mise à jour en direct.
+
+## LA RELECTURE LIGNE À LIGNE DE TOUT LE CODE (2026-10-24, v887, session DÉBOGAGE — Sacha : « continue à déboguer, je suis sûr qu'il y a encore plein de bugs cachés, explore chaque ligne de code »)
+- **LA MÉTHODE** : 15 agents, chacun un lot de `code/` lu ligne à ligne (gameplay ×2, moteur + sauvegarde + page, économie + missions + son, interface ×2, rendu,
+  maps ×3, voitures logique, dessins des voitures ×2 en lecture seule — ils sont à Léo —, CSS). Un bug = un scénario concret prouvé : chaque correctif a sa
+  preuve node dans `passation/preuves/` (KO sur l'ancien index, OK sur le nouveau) — 33 preuves, toutes vertes. Worktrees allégés (sparse : code/, index.html,
+  preuves) à cause du disque plein. En plus : trois balayages automatiques sur tout le jeu (ESLint à fort signal, `//` qui avale du code, fonction déclarée
+  deux fois — outils dans la mémoire « balayages statiques »). Banc d'ensemble : démarrage et écrans debout/couché, 12 maps, contexte 3D perdu, cadre de
+  l'ordi : 0 erreur (hors le 404 connu de `dark-triad.mp3`).
+- **CORRIGÉ** (le joueur le voyait) :
+  - la RÉVÉLATION d'une secrète (plein écran) couvrait l'offre CONTINUER de la seconde chance (5,5 s) : elle attend la fin de l'offre et de la machine FINAL SPIN (`missions/ecran-revelation.js`, `economie/final-spin.js`) ;
+  - restaurer un code depuis la PAUSE versait la partie en cours dans la sauvegarde restaurée ; sur le SITE, « Restaurer un code » du menu ordinateur rendait un compte vide : refusé comme au téléphone (`moteur/mobile-tactile.js`, `interface/menu-logo.js`) ;
+  - un appel ou Siri pendant le 3-2-1 de REPRENDRE : la caisse repartait seule (`moteur/mobile-tactile.js`) ;
+  - l'AUTO-ÉCOLE continuait sous la pause (consigne suivante, permis +500 $ et fanfare sous l'écran de pause ; minuteur d'une leçon recommencée) (`interface/auto-ecole.js`) ;
+  - une figure sur la route ou une descente de pose interrompue était payée au départ suivant et bloquait le saut nitro (`interface/jus-echelle.js`, `respawn`) ;
+  - un choc « ignoré » sous le bouclier de la seconde chance coupait le demi-tour et vidait l'aura du SLIDE (`gameplay/mort.js`) ;
+  - en WebGL1 (vieux navigateurs) : plus de ciel (`rendu/scene-ciel.js`), plus d'arbres en forêt (`maps/foret-decor.js`), matières de la richesse (`interface/richesse-1.js`) ;
+  - sur iOS < 16.4 : trois `@media not (…)` de niveau 4 ignorés → le HUD portrait (triade, chrono de vol, plaque d'astuce) mal placé ; badge « RECORD ! » rose sur rose sans color-mix (`css/hud-da.css`, `css/hud-maitrise.css`) ;
+  - les réclames de la ville gardaient l'ancienne langue (`maps/ville-v3.js`) ; aux Pics de Jade une montagne en chute sautait au retour de pause (`maps/jade-3.js`) ;
+  - FINAL SPIN sans « FORTUNE MAX » ; « $ NaN » sur une vitrine du jour gardée ; « 0:60 » du Survivant (ordi et téléphone) ; son de l'intro 1.61 (toucher tôt, arrière-plan) ;
+    bannière « NIVEAU » après une course quittée ; touche Retour du clavier iPhone au Top 10 ; Entrée sur RETOUR dans l'atelier de la plaque.
+- **TROUVÉ, À TRANCHER PAR SACHA / LÉO** (rien de modifié) : chez Léo — la nappe sonore de la BOUTIQUE 3D jamais débranchée et son souffle muet (un `//`
+  avale `ah.connect…air.start()`, `interface/boutique-scene-1.js:122`) ; LA PERLE à carrosserie doublée après un changement de type de peinture
+  (`voitures/perle.js:338/345`, correctif testé dans `.banc-sortie/archives/v3-v2b/correctifs-proposes.diff`) ; lunette arrière de LA CABOSSÉE avalée par
+  un `//` (`simpson.js:212`) ; le geste au tap du menu écrasé par la préchauffe de la Cerise et LA BÊTE jamais préchauffée (`japonaises-2.js`) ; double
+  éternuement d'ATCHOUM après une pause ; roues chromées de LA BULLE et du ROUGE-GORGE. Ailleurs — `dnGeos2` déclarée deux fois (diable de sable et mur de
+  tempête des dunes invisibles depuis le 21/10) ; « RECORD » au lieu de « BEST SCORE » en anglais ; missions « collecte tout » qui comptent des objets en
+  euros ; RECOMMENCER garde la progression de mission de la partie abandonnée ; plaque par défaut fausse pour `zh-Hans-CN` & co ; secousse renforcée de la
+  mort jamais appliquée ; mur invisible de la salle du portail du tunnel de grès ; prix de l'« ATH » de CRYPTO CITY sans fin ; cible iOS 15.0 contre `:has()`
+  (JOUER et ACHETER superposés au garage sur iOS 15.0-15.3), container queries et color-mix.
+- **DISQUE** : le Mac est tombé à 266 Mo libres pendant la relecture ; sur le oui de Sacha, 110 worktrees d'anciennes sessions (fusionnés, propres, inactifs) retirés, branches gardées → 12 Go.
+## LE TÉLÉPHONE AU FRAIS (2026-10-24, v885, session PERF-PC — Sacha : « trouve un moyen de ne plus le faire chauffer » ; à la question du menu à 30 i/s : « oui, 30 i/s hors course »)
+- **POURQUOI** : sa partie enregistrée sur l'iPhone 13 Pro (enregistreur `?perfrec`, 164 s, ville > espace > nuages > banquise) : 30-40 i/s dès la 1re minute, 17-22 à la fin, qualité au
+  cran 9, densité 1,25 ; la session OPTIMISATION MOBILE mesure le bridage thermique (~×2 au bout de 3-4 min). Tout ce que le téléphone calcule pour rien hors course le chauffe pour la
+  partie suivante.
+- **LE CORRECTIF** (`PFR_ON`, `code/rendu/nettete-qualite.js` ; VRAI téléphone seulement — TEL_NATIF —, tous paliers ; l'ordi ne change pas ; `?frais=0` = avant) :
+  - l'ACCUEIL, le GARAGE et la BOUTIQUE à 30 i/s (le `hors30` des vieux paliers — HC, `code/moteur/cadence.js`, appelé en tête de loop par `boucle-1.js`) ;
+  - l'ÉCRAN DE FIN à la résolution de la course (`PCM_ON` étendu au téléphone : la vitrine HD ne s'allume plus sous le voile à 90 % ni à chaque mort/REJOUER) ;
+  - la SCÈNE DERRIÈRE L'ÉCRAN DE FIN une image sur deux au moins (`mortImg`). La COURSE n'est pas touchée (la cadence 30 « si chaud » en course est le chantier de la session téléphone).
+  Accord de la session OPTIMISATION MOBILE pour ses tables (vhdMort, mortImg) ; aucune table PAL ni QL modifiée.
+- **VÉRIFIÉ** (Chrome sans fenêtre, iPhone couché émulé 844 × 390 × 3) : accueil 60 → 30 images dessinées par seconde ; course 60 (inchangée) ; écran de fin toile 1740 × 804 + ombre 2048 →
+  1266 × 585 + 1024, carte graphique 10,6 → 2,3 ms par image ; aucune erreur. La température sur le vrai iPhone : mesure de la session téléphone (CC BANC).
+
+## LES TUILES DE VERRE SANS FLOU (2026-10-24 soir, Léo : « ça serait mieux de faire quoi pour que ça rame pas, en gardant l'idée » · « sans flou, voile givré (n°2) »)
+- **LA CAUSE** : les tuiles GARAGE · BUY · SETTINGS portaient `backdrop-filter:blur(5px) saturate() brightness()` — le navigateur doit relire l'image de la 3D qui tourne derrière chaque tuile à chaque image ; la charte de l'interface l'interdit sur mobile (« zéro backdrop-filter », `body.touch #overlay` le remet à `none`). Mesure impossible ici (rendu logiciel plafonné à 30 i/s, avec et sans flou identiques) : le gain est à confirmer sur un vrai iPhone (`?banc=1`).
+- **LE CORRECTIF** (bloc `tuilesVerre` de `code/css/boutons-flottants.css`) : plus de `backdrop-filter` ; la dernière couche du fond passe de `rgba(255,255,255,.06)` à `linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.08))` (le « voile givré »). Reflets, double liseré, lueur de couleur, bleu / rouge / or : inchangés. Vu : sur ciel dégagé, la différence avec le flou ne se voit pas ; seul un nuage qui passe pile derrière n'est plus adouci.
+- Si ça rame encore : le menu rend la 3D à pleine densité d'écran (`VHD`, voir « L'ACCUEIL EN HAUTE DÉFINITION »), c'est le plus gros poste du menu.
+
+## LE 1er LANCEMENT — LA BANQUE DE SONS EN DEUX MOITIÉS (2026-10-24, session PERF, 4e tour — Léo : « lance tout ce qui semble stratégique »)
+- **MESURÉ sur le vrai site** (iPhone simulé, processeur ×4, cache froid, `?garde=1`, banc `tlance.py`) : le 1er lancement télécharge 8,4 Mo (`sons-banque.js` 4,9 Mo, la page 1,7, un ciel 0,9) ;
+  le menu jouable arrive à 18,5 s en 4G rapide (10 Mbit/s : le processeur domine) mais à **57 s en 4G lente (1,6 Mbit/s)** — 28 s sans la banque : elle est un script `defer`, la page attend sa fin.
+- **LE CHANGEMENT** : à la publication seulement (`outils/scinde-banque.cjs`, appelé par `vercel-build.sh` ; le fichier du dépôt reste ENTIER : cuire.js le relit, `sons.html` et la salle
+  blanche le chargent tel quel) la banque devient `sons-banque.js` (les fiches + les sons `pre:1` + l'étalon : 110 fiches, 0,82 Mo) et `sons-banque-2.js` (288 fiches, 6,9 Mo, ~4,3 Mo transférés).
+  `sfx.js` (?v=7) charge le 2e fichier APRÈS l'événement load, au repos (`suite`, 3 essais), et ses sons entrent dans la même file de décodage (`CCSON.ajoute`) ; un son pas encore là : `play()` se tait,
+  comme avant pour un son pas encore décodé. La preuve est faite à chaque publication : l'union des deux fichiers relue = la banque d'origine, octet pour octet (sinon la banque part entière).
+  Le fichier de la copie publiée garde son URL (`?v=38`) : un joueur qui a déjà la banque entière en cache ne retélécharge rien.
+- **VÉRIFIÉ** : copie réellement construite par `vercel-build.sh` (allégée, scindée) servie en local : 397 sons sur 397 décodés en 21 s à 10 Mbit/s ; menu au même instant (19 s) ; en 1,6 Mbit/s
+  (copie non allégée, locale) menu **107 → 74 s**, les 109 sons du début décodés avant le menu, 397/397 à 120 s (la banque entière : 109 s). Sur le vrai site, la 4G lente devrait passer de ~57 s à ~30 s.
+- ⚠ Une publication sans la scission (ou en cas d'échec de l'outil) marche comme avant ; `?` rien à régler. Une banque recuite (`cuire.js`) change `?v=` comme toujours.
+
+## LE HUD QUI NE RAME PLUS SUR L'IPHONE + L'ENREGISTREUR DE PARTIES (2026-10-24, v876, session PERF-PC — Sacha : « sur la version mobile l'HUD prend trop de capacité, règle ça » · « lors des tests la voiture reste conduite sur le sol alors qu'une grosse partie du jeu se joue en voltigeant dans les airs ; fais un mode où c'est moi qui joue en voltigeant et toi tu récupères de la data »)
+- **LE DIAGNOSTIC** (session OPTIMISATION MOBILE, iPhone 13 Pro de Sacha DANS L'APP, banc CC BANC, palier RÉCENT, 35 s de course) : course normale 58,0 i/s et 63 images > 25 ms ;
+  TOUTES les animations CSS figées 59,7 i/s et 9 ; HUD masqué pareil ; le JS par image identique (2 ms) → c'est WebKit qui refait style + peinture à chaque image pour les
+  animations INFINIES du HUD sur des propriétés non composées (box-shadow, filter, background-position). Sur Chrome PC le plafond n'est que ≤ 1 ms par image.
+- **LE CORRECTIF** (`html.han`, posée par `code/page/tete.html` ; `?hudanim=0` = les anciennes animations, A/B dans la même page) : refaites en transform / opacité, les anciennes
+  règles intactes à côté — la plaque des pouvoirs `.pw` (k5PwBat : deux pseudo-éléments dont seule l'opacité bat ; la jauge `u` sur son calque), le reflet et les éclats de `#flowHud`
+  (calque 3× plus large en translateX dans `.fSeg` qui coupe déjà), « à portée » et la brûlure de la zone rouge (copie éclaircie en opacité), `#avRec` presque / battu, le chrono de vol
+  (rayures de l'air infini, secondes critiques), `#campChip.alerte`, le RECORD des figures, et `#popTxt` / `#engBig` placés par `translate` au lieu de top/left (plus de mise en page
+  par image pendant un geste). Laissé : les `hue-rotate` (avArc, drgHue), le × en feu `hmFeu` (essayé : Chrome passe par un halo rouge à mi-battement, irreproductible), fLache3/hmArme,
+  hmEncore, hmChronoRec, frBrule de `#frenTraits`, toute la zone NITRO (session téléphone).
+- **PREUVE D'IMAGE** (`perf-pc/.banc-pc/preuve-hud.mjs`, dossier de travail : ancien contre neuf, boucle coupée, toile 3D et film masqués, chaque état forcé, animations figées aux
+  phases 0 / ¼ / ½ / ¾ / 0,9, pixels qui diffèrent) : reflet du flow, frénésie, popTxt, engBig, × en feu 0 ; plaques, flow, aura, air, RECORD ≤ 0,8 % de pixels à écart > 32 (fondus
+  de lueurs, bord de la jauge `u` à ⅓ px) ; `#campChip.alerte` 2,6 % — c'est l'ANCIEN qui se trompe sur PC (Chrome ne zoome pas l'ombre animée dans le cadre zoomé), pas l'iPhone.
+- **MESURÉ SUR L'IPHONE** (CC BANC, même piste `?pistegraine=777`, nuages midi, 3 passes par bras alternées) : `?hudanim=0` 55,2-56,7 i/s, 71-113 images > 25 ms (moy. 93) ;
+  défaut 57,9-59,4 i/s, 18-53 (moy. 38) : **+2,7 i/s, −59 % d'images ratées**. Reste ~40 images ratées par course, dont la zone nitro (à la session téléphone).
+- **L'ENREGISTREUR DE PARTIES** (`code/moteur/enregistreur-perf.js`, `PREC`) : allumé par `?perfrec=1`, par `localStorage.ccPerfRecOn='1'` (l'appli n'a pas d'adresse) ou
+  `dbgPerfRec(1)`, il note chaque image de course — durée, temps du jeu avant le dessin, PHASE (sol / vol / figure), map, palier, crans QL, densité, cadence 30 — et range chaque
+  course finie dans le téléphone (`localStorage.ccPerfRec`, les 15 dernières). Relevé : `dbgPerfRec('resume')` (une ligne par course et par phase) ou `dbgPerfRec()` (tout : histogrammes,
+  images > 40 ms avec instant, phase, map, vitesse ; une ligne par seconde). Éteint : aucun rappel d'image, zéro coût. Essai au banc PC : sol 53 i/s, vol 50, figure 50 — les phases
+  de vol que le pilote des bancs ne montrait jamais.
+
+## LE PALIER DE L'IPHONE LU SUR SON ÉCRAN — MESURÉ DANS L'APP, SUR LE VRAI TÉLÉPHONE (2026-10-24, v873, session Optimisation mobile — Sacha : « grosse session d'optimisation du jeu, il faut que la version mobile soit parfaite » · « je veux que tu fasses l'app »)
+- **LE BANC DANS L'APP** (`optim-mobile/.banc-optim/`, non suivi) : « CC BANC » (`com.sachaberes.carcash.banc`) = la copie de l'app de `sortie-ios/appstore` (Capacitor 8),
+  www/ refait par son `preparer-www.js --essai` sur n'importe quel VERSION PRINCIPALE, installée À CÔTÉ de CASH CAR (la vraie app et la sauvegarde de Sacha ne sont pas touchées).
+  `banc-app.js`, posé juste après natif.js : au lancement il demande un scénario au Mac (`chef.mjs`, port 8931, par le partage de connexion), recharge avec ses paramètres
+  d'adresse (`history`/`location.replace` : `?carte=`, `?palier=`…), passe l'intro, JOUER, `dbgAuto(1,0,{nit:1})`, relève CHAQUE image (intervalle de rAF + temps JS des rappels)
+  et `dbgPerf`/`dbgQual`/`dbgCout`/`getAnimations()`, puis renvoie le bilan — SANS inspecteur branché. Le chef ferme l'app après chaque course et attend que la batterie
+  redescende (`pymobiledevice3 diagnostics battery`, en USB). L'inspecteur WebKit de l'app passe par `pymobiledevice3 webinspector cdp` (pont CDP : Runtime, Profiler, Tracing).
+  ⚠ Le téléphone CHAUFFE (alerte Température vers 16 h : jeu + charge + partage de connexion) : iOS bride alors processeur et puce graphique ; mesurer à < 37 °C.
+- **LE DÉFAUT** : le banc CPU de PAL (le meilleur de 4 tours, au démarrage) rend 16 à 22 ms sur l'iPhone 13 Pro au 1er lancement (le compilateur de JavaScript n'est pas
+  encore passé, le téléphone chaud), 3 à 8 ms une fois chaud → classé ANCIEN et RETENU 7 jours (`cashcarPalier`) : cadence 30 dès le départ, échelle QL au cran 4-5, DPR 1,25.
+  Le même iPhone tombait ANCIEN ou RÉCENT d'un lancement à l'autre. Et WKWebView comme Safari 26 écrivent « iPhone OS 18_7 » sous iOS 26 : la règle « iOS 26 → au moins
+  MOYEN » ne jouait jamais. (L'app du 14-19/10, branches iphone-perf/iphone-max, recevait le modèle exact de Swift — `window.__ccAppareil` — ce n'est plus dans l'app App Store.)
+- **LA CORRECTION** (`PAL`, `code/rendu/palier-appareil.js`) : la taille d'écran de l'iPhone (points, portrait) et sa densité désignent sa génération — RÉCENT : 360×780,
+  390×844, 428×926, 393×852, 430×932, 402×874, 440×956, 420×912 (×3) et toute taille inconnue ×3 de 390 et plus ; MOYEN : 414×896 (XR, 11, XS Max, 11 Pro Max) ;
+  ANCIEN : 320×568, 414×736 ×3 ; douteux (375×667 ×2, 375×812 ×3, Zoom de l'écran) : le banc comme avant. « Version/26 » de Safari relève `P.ios`. `?palier=` d'abord,
+  l'ordinateur inchangé, le palier 2 lui-même inchangé (règle d'or). `?palecran=0` = l'ancien choix ; `dbgPalier().src` dit « écran 390×844 ×3 ».
+- **MESURÉ** (CC BANC, iPhone 13 Pro, volcan, 35 s de course pilotée nitro, batterie 27-36 °C) : AVANT (classé ANCIEN) 33,6 images calculées/s (cadence 30), DPR 1,25, cran 4-5 ;
+  APRÈS (« écran 390×844 ×3 ») 58,4 à 59,3 i/s, DPR 1,5, cran 0, JS méd 2 ms / p90 3 ms par image, 14-16 % du temps en JS ; nuages midi 57,0 i/s. DPR 0,5 forcé : 59,6
+  (la puce graphique ne limite pas). Démarrage de l'app : prêt (`__gameReady`) à 1,6-2,4 s d'un lancement chaud, 9,7 s au 1er lancement après installation.
+- **CE QUI RESTE AU RÉCENT** (mesuré, pas touché ici) : 23 à 63 images > 25 ms par 35 s de course viennent des ANIMATIONS CSS du HUD (toutes figées : 9 ; figer
+  seulement la zone nitro OU seulement le reste suffit presque : 10-11) — la conversion des animations hors nitro est chez PERF-PC ; la zone nitro (#tNitro : 181 repeints
+  en 8 s de trace, le plus repeint après la 3D ; rayures `nbRaye` en background-position, bout `nbBout`, `hmSec`) reste à faire. Les gerbes `pxBurst` (12 à la fois).
+
+## LES TUILES EN VERRE DU MENU CIEL, GARAGE BLEU / BUY ROUGE (2026-10-24 soir, Léo : « j'aime bien tuiles arrondies » · « le bleu sur garage et le rouge sur BUY » · « inverse le cyan et le rose magenta » · « mets ces bulles-là »)
+- **POURQUOI** : la copine de Léo trouvait les trois boutons penchés (parallélogramme) « trop Claude ». Trois familles de formes essayées (A tuiles arrondies, B formes par fonction : arche · panier · pilule, C lentilles ovales) ; Léo garde A. Le verre-loupe de v858, retiré par Sacha en v863, revient ici sous la forme de TUILES ARRONDIES (20 px, plus de pente) : bloc `<style id="tuilesVerre">` dans `code/css/boutons-flottants.css`, après celui de la lueur de la boutique.
+- **COULEURS** : GARAGE bleu #2f80ff, BUY rouge #ff3347, SETTINGS or (inchangé) — via `--nc` sur `.mHubPorte` / `.mOffres`, les icônes suivent. Le badge NEW reste rose.
+- **LA BANDELETTE sous CASH CAR** : cyan · magenta · or (avant : rose · cyan · or, cyan et rose échangés). Elle ne lit PAS `--livree` : son dégradé est dans `#mHome .mTitle::after`, repris dans le même bloc.
+- Vérifié (Chrome, portrait 390×844 et paysage 844×390, vrais touchers) : GARAGE, BUY et SETTINGS s'ouvrent, aucune erreur JS. Le flou de fond (`backdrop-filter`, 5 px) est à mesurer sur un vrai iPhone (la 3D tourne derrière). Pas de paramètre d'URL pour revenir aux anciens boutons : retirer le bloc `tuilesVerre`.
+
+## LA PASSE PERF DU 24/10, 3e TOUR — LA GROTTE ET LES DUNES BÂTIES D'AVANCE SANS À-COUPS (2026-10-24, session PERF — Léo : « observe tous les changements qui ont été faits depuis et relance une petite séance de révision… une meilleure optimisation, le jeu doit tourner sans bugger sur iPhone ou Android, absolument pas que le jeu devienne de moindre qualité ») — v869
+- **PORTÉ SUR LE MAIN MODULAIRE** : ce travail avait été fait le 19/10 sur l'ancien `index.html` d'un seul tenant et n'avait jamais été poussé ; le main a depuis
+  reçu la passe PERF du 24/10 (canyon d'avance, ciel des reflets, routes en tranches, REJOUER sans gel) et le découpage en `code/` : les changements sont refaits
+  morceau par morceau (`code/maps/grottes-*.js`, `dunes-1.js`, `nuages-v8.js`, `nuages-vitrail.js`, `code/moteur/piste-prebati.js`, `depart-avance.js`, `code/interface/`), image identique.
+- **LE TOUR DE MESURE** (banc `~/Downloads/CAR-bancs/perf-3/` : Chrome sans fenêtre en iPhone 390 × 844 ×3, NETTE, processeur ×4, `?palier=2&garde=1`, les 12 maps à la file,
+  portails traversés pour de vrai — `dbgClassique` + `dbgPortail(2600)`) : 0 programme compilé en course sur les 12 maps (la matière des tremplins du glacier, qui compilait
+  à la 1re entrée le 19/10, est revenue d'elle-même au programme du verglas). Ce qui figeait encore :
+  1. **LA GROTTE** — son pré-bâti (3 à 5 s de calcul ×4, 3 à 10 × une autre map) se faisait par blocs de 40-150 ms (le maillage d'un tronçon, huit creusements d'un trait) :
+     8 à 15 images de 100-283 ms pendant le vol qui la PRÉCÈDE ; et derrière une map lourde (la jade) elle n'était pas finie au portail → le reste d'un trait, 0,6 à 1 s figées.
+  2. **LES DUNES** — le monde (`dnMondeCalc` : fond, relief fin, ombre) se calculait d'un bloc au 1er JOUER (0,5 à 1 s figées ×4) ou partait au travailleur APRÈS le passage.
+  3. **LES NUAGES** — la toile des cubes fantômes (8 000 cubes × 12 `toHalfFloat`) se remplissait sur le fil principal à l'arrivée de chaque nuage (~10 ms ×4 par départ).
+  4. **LE JOUER D'APRÈS PARTIE** — la caisse était bâtie deux fois dans la même image (closeGarage, puis resetGame : 25-30 ms ×4 chacune).
+- **CE QUI CHANGE** : `grtMailleNetsG`/`grtTronconG` (le maillage d'un tronçon en générateur à rendez-vous `JF.lim` ; `grtMailleNets`/`grtTroncon` restent d'un trait pour les tranches
+  en course) et un rendez-vous après CHAQUE creusement dans `buildGrotteG` ; l'URGENCE dans `prebTick` (la map d'en face pas finie à moins de 10 s du portail : tranche de 9 ms,
+  à moins de 5 s : 14 ms ; sinon 3-6) ; LES DUNES D'AVANCE (`prebDunes`, `buildDunes(seed,pre)` : la préparation sur la route fantôme — le module DN échangé EN ENTIER (`prebObj`),
+  seules les clés CHANGÉES gardées —, le calcul du monde chez le travailleur des dunes, attendu image après image, posé au départ ; pas arrivé à temps ou `?dnw=0` : comme avant) ;
+  `nufDemi` (la même conversion en demi-flottants que `THREE.DataUtils.toHalfFloat`, faite dans l'ouvrier des nuages ; `nuage8Async(…,dyF)`) ; `closeGarage(resetSuit)`.
+- **VÉRIFIÉ** : `nufDemi` contre `toHalfFloat` sur 6 millions de valeurs (aléatoires de 2⁻⁴⁰ à 2⁴⁰, zéros, infinis, NaN, sous-normaux, trois décalages) : 0 bit de différence ;
+  le monde des dunes (`tdn.py` : fond, relief, ombre, échantillons, vent, lèvres, raccourcis, monuments, pyramides, tirage du décor, uniformes de la matière) identique au bit près
+  au JOUER et au REJOUER contre le main ; fumée déterministe (`tsmoke.py`) debout et couché — JOUER, REJOUER, JOUER de l'atelier : 0 erreur, la même caisse (5 pièces, 18 947 sommets).
+- **MESURÉ** (×4, A/B alterné, charge 2 à 7 ; plus tard la machine est montée à 14-37 : ces manches-là sont jetées) : pire image du JOUER des dunes **1 000 → 408 ms** (construction
+  722/523 → 119/104 ms), du REJOUER 458 → 225 ; l'approche de la grotte après la jade — excès au-delà de 50 ms **7 402 / 1 518 → 618 / 317 ms**, images > 100 ms 29 / 10 → 3 / 2 ;
+  la jade qui la précède 2 images > 100 ms → 1. Les nuages : un gain réel mais petit (~10 ms de fil principal par départ), dans le bruit des mesures.
+- ⚠ **LE BANC** : un `http.server` lancé AVANT un `git checkout` sert un dossier supprimé (page qui ne démarre jamais, sans erreur) — relancer ses serveurs ; la référence d'un A/B se
+  tire du MÊME commit que la branche (une copie plus récente change l'écran de mort : le MENU y ouvre le garage, plus l'accueil) ; mesurer quand `uptime` < 8.
+- **CE QUI RESTE** : les NUAGES ne sont pas bâtis d'avance (`buildClouds` ~45 ms ×4 au JOUER et au portail des nuages) ; la VILLE (`buildVoxCity` ~35 ms) ; `chauffeRendu` au portail
+  (40-105 ms, voulu) ; la Porte de jade (~50 ms) ; la grotte elle-même (4 s ×4 de calcul : le vrai remède serait de la mailler dans un ouvrier). À départager sur un VRAI iPhone :
+  `…/jouer/?banc=1&refaire=1`.
+
+## LES ANCIENS BOUTONS DU MENU REMIS (2026-10-24, Sacha : « dans l'écran principal il y a des nouveaux boutons horribles, remets les anciens »)
+- Le bloc « verre en loupe » de v858 (GARAGE · BUY · SETTINGS en lentilles transparentes) est retiré de `code/css/boutons-flottants.css` : les touches reprennent leur look d'avant. La lueur d'angle de la BOUTIQUE du garage (même v858) reste.
+
+## LE DÉBOGAGE COMPLET POUR LA SORTIE iOS (2026-10-24, v862, session DÉBOGAGE — Sacha : « lance une immense session de debugging ultra complète sur tout le code du jeu pour la version mobile… que le jeu soit parfaitement sortable sur l'App Store directement »)
+- **LA MÉTHODE** : six agents, chacun dans son worktree tiré d'origin/main (`sortie-ios/wt/<nom>`), intégrés un à un dans `sortie-ios-integration` après relecture : COURSE (le vrai jeu
+  au banc en émulation iPhone, 12 maps, écrans au doigt, rotations, fuites, contexte 3D perdu), MOBILE (cycle de vie, audio iOS, tactile, encoche, compatibilité iOS 15), LOGIQUE
+  (sauvegarde, économie, missions, voitures, preuves node), CADENCE (minuteurs à 30 / 60 / 120 Hz), ÉCRANS (SE, mini, 15, Pro Max, FR + EN), APP STORE (branche de l'app, voir plus bas).
+  Bancs sous `verrou-banc.sh`. Rien n'est redessiné, aucun équilibrage touché.
+- **L'APPEL ENTRANT MET LA COURSE EN PAUSE** (`code/moteur/mobile-tactile.js`) : sur iPhone, un appel, Siri ou une alarme passent par-dessus le jeu sans le cacher (pas de
+  `visibilitychange`) — la course continuait muette et la partie était perdue. Le contexte audio qui passe `interrupted` ouvre la PAUSE, comme au retour d'arrière-plan. Même passe :
+  NITRO et flèches lâchées quand la page est cachée (seul le volant l'était) ; la page recalée après le clavier de `#modC`.
+- **LA SECONDE CHANCE NE FILE PAS EN ARRIÈRE-PLAN** (`code/gameplay/seconde-chance.js`) : l'offre se comptait à l'horloge murale ; l'appli quittée une seconde, elle avait disparu.
+  Cachée : le minuteur s'arrête, la fin recule d'autant. `preuve-chance-cachee.cjs`.
+- **LE CONTEXTE 3D PERDU AU PREMIER PLAN** (`code/rendu/palier-appareil.js`) : perdu sans être rendu pendant que l'appli reste à l'écran, la toile restait NOIRE pour toujours, la course
+  continuait à l'aveugle. Filet : 5 s après, toujours perdu et visible → rechargement (la partie est posée à la perte). Pas en boucle : à la 4e perte de la session, l'écran
+  « CASH CAR a calé » (`window.__crash`) et son RELANCER. Banc : rechargement à 5,1 s en course, 5,0 s au menu. `preuve-ctx-boucle.cjs`.
+- **LE MIROIR NATIF ILLISIBLE** (`code/sauvegarde.js`) : localStorage ET miroir Preferences illisibles → la page se rechargeait à l'infini. Illisible = vide (le flush écrit une
+  sauvegarde saine). `preuve-miroir-illisible.cjs` cas 5.
+- **LES LISSAGES CALÉS SUR 60 i/s** (`lisse60(k,dt)`, `code/gameplay/vol-equilibre.js` ; utilisé aussi par `ramassage.js`) : `Math.min(1,dt*k)` ne fait pas le même chemin selon la
+  cadence — l'assiette du vol équilibré s'alignait ~45 % plus vite à 30 i/s, l'aimant à pièces tirait plus fort. Identique à 60 i/s (la cadence de réglage), au temps près ailleurs.
+  `preuve-lisse60.cjs`. Une soixantaine de lissages purement visuels (caméra, glacier, pilotes adverses) restent en `Math.min(1,dt*k)` : listés, pas touchés.
+- **LES ÉCRANS SUR TOUS LES IPHONE** (`code/css/ecrans-iphone.css`, nouveau morceau) : la PAUSE COUCHÉE — la grille des réglages en 2 colonnes prenait 466 px dans 328 à 418 :
+  MUSIQUE, POUCE HAUT et FIGURES coupés ou sous l'encoche sur les 4 iPhone ; l'écran de fin couché du SE (NIVEAU/FRENESIE) ; HOME du garage (« ACCUEI ») ; noms anglais des caisses
+  sur 3 lignes. Et L'AUTO-ÉCOLE DEBOUT (`code/css/ecole.css`) : après un raté, le message rouge sur une ligne élargissait la colonne à 385 px dans une carte de 351 — consigne coupée,
+  message sous PASSER, sur tous les iPhone ; colonne en `minmax(0,1fr)` (le message rouge se termine par « … » sur les écrans étroits).
+- **LES PREUVES DE NON-RÉGRESSION** (`passation/preuves/`) : 9 sur 11 échouaient sur le main du 24/10 — toutes PÉRIMÉES (repères changés de forme, choix de Sacha : web sans
+  sauvegarde, POUPÉE et REQUIN retirés), aucune vraie régression. Remises à jour ; `preuve-balayage` sans objet (carrière retirée). 15 preuves vertes.
+- **VÉRIFIÉ PROPRE** : 0 exception sur les 12 maps, les écrans, pause, mort, REJOUER, rotations (seul bruit : le 404 de `dark-triad.mp3`, fichier pas encore livré) ; pas de fuite
+  sur 9 courses ni 2 passes de 7 maps (géométries, textures, programmes, écouteurs stables) ; JS compatible iOS 15 (aucun lookbehind, `requestIdleCallback` gardé…) ; double toucher
+  sur ACHETER, fonds insuffisants, missions payées deux fois : protégés ; CARS/CAR_UNLOCK alignés (91), chaque nom traduit ; pouvoirs, missions, économie et physique du vol en `dt`.
+- **À TRANCHER PAR SACHA** : cible iOS 15.0 de l'app alors que 122 `color-mix()`, des `@container`/`cqi`, 44 `:has()` et `1lh` demandent iOS 15.4 à 16.4 (rendu dégradé, pas
+  cassé, sur iPhone 6s/7/SE 1) ; triche par l'horloge du téléphone (prime de série, défi du jour : gains faibles) ; message rouge de l'auto-école coupé sur écran étroit.
+- **L'APP iOS** (branche `sortie-ios/appstore`, depuis `ios-capacitor`) : main fusionné, `preparer-www.js` recalé (coupes devenues sans objet retirées, PEINTURES EN € et pack
+  LA PALETTE passés à l'argent du jeu dans l'app — règle 3.1.1), `www/` refait, construction simulateur réussie. Décisions ouvertes : page de confidentialité en ligne (« aucun
+  réseau » faux depuis les mises à jour en direct), « pub maison » contre « sans pub » de la fiche, LE DOGE / LA CABOSSÉE / LE BAROUDEUR, CRYPTO CITY dans l'app.
+
+## LA PASSE PERF PC — LES OUTILS DEVTOOLS SUR LE MAC (2026-10-24, v860, session PERF-PC — Sacha : « lance une grosse session d'optimisation des performances grâce aux outils Google Dev… sans toucher au téléphone. Il y a déjà une autre session qui est sur le téléphone »)
+- **LE BANC** : Chrome DevTools (chrome-devtools-mcp, le Chrome à fenêtre) sur le Mac de Sacha (Apple M4, Chrome 155, fenêtre 1400 × 800 ×2, cadre bureau : le jeu dans l'iframe 844 × 390
+  zoomée ×1,536 → densité 3,07, palier 2 RÉCENT) + un banc CDP sans fenêtre (`perf-pc/.banc-pc/banc.mjs`, dossier de travail non versé : course / menu / fin / chargement, trace,
+  `invalidationTracking`, statistiques des sélecteurs, `dbgCout`), tout sous `verrou-banc.sh`. Partage avec la session OPTIMISATION MOBILE du même jour : elle le téléphone et WebKit, ici le PC.
+- **L'ÉCRAN DE FIN DE L'ORDI À LA RÉSOLUTION DE LA COURSE** (`PCM_ON`, `code/rendu/nettete-qualite.js` + la garde de `vhdBascule` dans `boucle-6-hud.js`) : à la mort, la vitrine HD
+  s'allumait (`vhdMort` RÉCENT) — toile 3376 × 1560 (5,27 M de pixels), ombre 4096, halo 1418 × 655 — pour une scène que le voile à 90 % et les cartes couvrent entièrement ; la carte
+  graphique passait de 4 à 31-50 ms par image et la relecture de la carte moteur (`engLit` → `getBufferSubData`, PBO + barrière pourtant) attendait derrière : 34 % du fil principal,
+  48 images > 50 ms en 13 s. Sur l'ORDI (TEL_NATIF faux), l'écran de fin garde la toile, l'ombre et le halo de la course (7× moins de pixels, plus de réallocation à chaque mort et
+  REJOUER). MESURÉ : GPU 31 → 7,7 ms (fenêtre DevTools), 25,8 → 7,5 (sans fenêtre) ; `getBufferSubData` 1 516 → 85 ms sur 6 s (28 → 1,5 % du fil principal) ; images > 33 ms
+  sous trace 34 → 1. Photos avant/après : identiques à l'œil. Le téléphone et les tables PAL ne changent pas. `?pcmort=0` = avant.
+- **LE FILM 1.61 SANS TRAVAIL REFAIT** (`PCI_ON`, `code/moteur/intro-161.js`) : la taille du voile n'est plus relue à chaque image (une mise en page forcée de la page en construction,
+  295 ms dans `tailleEcran`) mais au ResizeObserver / `resize` et une fois par seconde ; la boule au bit près en un seul calcul, ses 96 vignettes en ImageBitmap ; un `resize` à taille
+  égale ne refait plus boule + logo + fracture ; sur un écran ≥ ~106 Hz régulier, la boule (au ralenti, avant l'appui) à 60 i/s. MESURÉ (chargement tracé, 2 × 2 essais) :
+  `tailleEcran` 161-178 → 14-24 ms, `dBoule` 557-603 → 220-270 ms, le film entier 768-807 → 227-277 ms : ~0,5 s de fil principal rendue à la construction du jeu.
+  `?pcintro=0` = avant, `?pci60=0` = sans la cadence seule, `dbgPciIntro` (compteurs).
+- **SLIDE +X** (`PCH_ON`, `code/maps/murs-slide.js`) : l'étiquette n'est réécrite que si son texte change. `?pchud=0`.
+- **LA VITRINE AUX PIXELS RÉELS DE L'ÉCRAN** (v861, `VHE_MODE`) — ✔ ACTIVÉE PAR DÉFAUT SUR L'ORDI en variante 2 (Sacha, après l'avoir regardée en ligne : « c'est bon, active-le par
+  défaut sur ordi ») ; `?vhdecran=0` = l'ancienne vitrine, `?vhdecran=1` = sans l'ombre 2048. Vérifié : toile 2592 × 1197, ombre 2048, aucune erreur. Hors téléphone, `vhdDpr` vise devicePixelRatio × 1,5 (le
+  sur-échantillonnage de l'accueil, 28/09) → DPR 4 dans le cadre = 1,69× les pixels que l'écran montre. `=1` : jamais au-delà des pixels de l'écran ; `=2` : pareil + ombre 2048.
+  MESURÉ au menu (fenêtre DevTools, 10 s) : défaut GPU 16,1 ms en médiane / 30 au p90, 53 i/s, 19 images > 33 ms ; `=1` 13,1 / 21,5, 58 i/s, 3 ; `=2` 6,4 / 11,4, 59 i/s, 2.
+  C'est un changement d'image (anticrénelage de la caisse, bord de l'ombre) : à juger à l'œil (`dbgVhdEcran()`).
+- **ESSAYÉ ET RETIRÉ** : l'iframe du cadre dans son propre calque (`will-change` / `contain:paint`) — la peinture se déplace, ne baisse pas ; la vignette du ciel du HOME découpée par
+  createImageBitmap — la relecture attend toujours la carte graphique (~21 ms/s dans les deux cas, fenêtre DevTools) ; les relances d'animation du HUD par classes jumelles (gain absent
+  des traces, et des règles CSS tiennent aux noms de classes).
+- **MESURÉ ET LAISSÉ (les pistes)** :
+  - En course sur le M4 : 57 i/s, p90 16,7 ms sans trace. La correspondance des sélecteurs CSS ne coûte que 67 µs par image ; les recalculs de styles du HUD viennent des ANIMATIONS
+    CSS INFINIES sur des propriétés non compositées — `.pw` (`k5PwBat`, box-shadow + color-mix, hud-maitrise.css), `#flowHud .fSeg::after` (`nbReflet`, background-position), les filtres
+    de `#avX.feu` / `.presque` / `#airHud[data-k=inf]`, la nitro — et des `top`/`left` de `#popTxt` / `#engBig` : à passer en transform/opacité (CSS commun au téléphone : signalé à sa session).
+  - La page-cadre repeint son document et `#tel` à chaque image (~0,75 ms) : inhérent à une iframe du même processus.
+  - Le rendu three en course : 4,2 ms par image sur le M4, surtout le coût fixe de ~150 dessins (`setup` = la liaison des tampons, pas les lumières). Branche `pcperf-three-course`
+    (dessins vides retirés de la liste de rendu, `?pcthree`) : ~0,1 ms à la lecture du code, non intégrée.
+  - Le démarrage : la 1re grosse tâche est l'init (newTrack 471 ms, garage 229 ms), la 2e les compilations de la chauffe (zone téléphone) ; `dolCubes` (dauphin.js) 120 ms au
+    chargement alors qu'ils ne servent qu'à la Jade.
+- **LE JOURNAL RÉPARÉ** : la fusion 41a404b6 y avait laissé un conflit sur 40 000 lignes (le journal en double, une copie en fins de ligne CRLF) : gardée la copie complète, en LF.
+
+## LE VERRE EN LOUPE DU MENU CIEL + LA LUEUR DE LA BOUTIQUE (2026-10-24, Léo : « contour seul avec effet loupe, reflet à l'intérieur des contours » · « une petite lueur sur l'angle extérieur, et sur les deux axes »)
+- **MENU CIEL** : GARAGE · BUY · SETTINGS (`.mAccB`, `.mOffres`, `.mGear`, `.mHubPorte` de `#mHome.acc2`) ne sont plus des laques opaques : un contour clair, le ciel qui passe (flou 5 px), et DEDANS un reflet bombé en haut à gauche, une traînée en diagonale, la lueur de la couleur de la touche par le bas, un double liseré et un point de lumière. `--lk` (1 = marqué, choisi par Léo ; .6 = discret) dose tous les reflets. Bloc `<style id="verreLoupe">` dans `code/css/boutons-flottants.css`, APRÈS celui de Sacha. Le flou de fond peut coûter du GPU sur iPhone : à mesurer sur un vrai téléphone.
+- **BOUTIQUE DU GARAGE** : la touche en L de Sacha (v797) n'est PAS touchée, ni ⚙ · œil · trophée en haut à droite (Léo : « laisse intact les changements de Sacha »). Seule ajoutée : `#gShopBas::before`, une lueur rose sur l'ANGLE EXTÉRIEUR (coin haut droit du coude) ET le long des deux bords qui s'y rejoignent (le haut, le côté droit), elle respire (`lueurAngle` 3,2 s). Dedans : le clip-path du L coupe ce qui déborde.
+- Écarté après essai : un SHOP rectangulaire avec l'œil remis en bas (c'est le L de Sacha qui prenait la place de l'œil — Léo a finalement dit de le laisser). Bande sous le logo : 5 palettes essayées (SORBET, AURORE, GLACE, SOLEIL), Léo garde l'actuelle ; aucun réglage ni paramètre d'URL ajouté.
+
+## LA MUSIQUE DE COURSE QUI PART PLEINE (2026-10-24, session SON — Léo, sur une vidéo de course : « la musique de niveau est un peu bizarre, elle prend beaucoup de temps à commencer, on dirait juste pas de la musique »)
+- **LA CAUSE** (mesurée : chaque morceau de Pouce bleu joué comme en course, sortie enregistrée, spectrogramme de la vidéo comparé) : une course démarre au moteur 1 et Pouce bleu suit
+  le moteur. Aux moteurs 1-4 les morceaux du générateur sortent à −40/−45 dB RMS (RUBIS ULTRA −45, CAVALE ULTRA −41), 20 dB SOUS les effets, avec une ou deux notes de marimba
+  (richesse spectrale 47-81, contre 120-220 plus haut) ; au moteur 5 le même morceau est déjà à −17/−23 dB. Le plancher du départ (+11 dB au plus) ne rattrape pas ça. Dans la vidéo : 50 s de
+  course sans aucun son tonal soutenu, seulement des coups graves et des notes isolées — la vraie musique n'apparaît qu'à l'écran de mort (le lobby).
+- **LE CORRECTIF** : `pbjTier(m)` (`code/son/musique.js`) remappe le moteur donné au morceau : moteur 1 du jeu → palier `PBJ_MIN` (6) du morceau, le 30 reste le 30, droite entre les deux. Le
+  morceau est complet dès l'intro (il démarre aussi au palier 6 : `pouce-bleu-jeu.js` lit `window.pbjTier`), la grande montée jusqu'au 30 est gardée. `?pbjmin=1` = le départ d'avant (A/B) ;
+  `dbgPouce().min`. Vérifié en vraie course (RUBIS ULTRA, `?pouce=bleu-8338`) : moteur de la musique 6, filtre ouvert, plancher inutile (−16 dB sans lui), aucune erreur.
+- Extraits avant / après (3 morceaux) : `ecoutes-depart/` (dossier de travail de la session, non versé).
+
+## LA PASSE PERF DU 24/10 — LA VITESSE ET L'ARRIVÉE DANS UNE MAP (2026-10-24, session PERF — Sacha : « lance une grosse session d'optimisation du jeu… il y a beaucoup de latence sur les essais… surtout quand ça va vite. Aussi quand tu arrives dans une nouvelle map, des fois il y a du temps à apparaître, et du coup tu peux mourir sans voir des obstacles arriver »)
+- **LE BANC** (scratchpad de la session, sous Windows : Chrome sans fenêtre, ANGLE/D3D11 sur la RX 6600, téléphone couché émulé 844 × 390 ×2, `?palier=2&garde=1` —
+  ⚠ depuis le 22/10 le lien web démarre un compte NEUF : sans `?garde=1` le banc tombe dans l'auto-école) : `course.cjs` (une partie pilotée nitro tenue : chaque image,
+  profil CPU, trace Chrome), `portail.cjs` (la map d'en face imposée par `dbgClassique`, la caisse posée à T s du portail par `dbgPortail`, le passage relevé : voile,
+  construction, chauffe, images longues), `dom.cjs` (qui écrit dans le DOM en course). Le jeu met ~2 min à devenir jouable dans ce Chrome de banc (8,6 Mo de page).
+- **LE CANYON D'AVANCE** (v842, `cyBatitG`/`cyAvPart`/`cyAvPrend`, `code/maps/canyon-route.js` ; branché dans `prebJob`) : depuis le portail de cubes (17/10) le monde
+  bascule d'un coup au passage — mais le relief du canyon partait au travailleur APRÈS : on roulait 0,6 à 1,1 s (bien plus sur téléphone) sur une route sans parois NI
+  collision (`canyonHeurt` rend '' tant que `CY.on` est faux), puis toute la roche surgissait d'un bloc, parfois autour d'une caisse en vol. Désormais le pré-bâti
+  prépare les échantillons par tranches et envoie le monde au travailleur pendant l'approche ; au passage il est posé dans la construction, sous l'image du portail.
+  MESURÉ (palier 8, caisse posée à 9 s du portail) : `canyon.on` au même instant que la fin de la construction (avant : ~0,6 s après sur PC), monde prêt 2,1 s
+  après le début du pré-bâti, pose 121 ms. Même graine + même palier = même canyon (`cyCle`). `?cyw=0` = sans travailleur (rien d'avance, comme avant) ;
+  `dbgCanyon().ms.avance` = 'pret' (posé au passage) ou 'en vol' (le travailleur n'avait pas fini : attendu comme avant).
+- **LE CIEL DES REFLETS D'AVANCE** (v844 — v843 était pris par l'étalonnage, `envCielCalc`/`envPrepare`/`ENVC`, `code/voitures/finition.js` ; appelé par `prebPart`) : le profil du passage (4 maps) disait
+  94 % de `newTrack0` dans `bioGo` → `paintEnv` → `paintEnvCiel` : le cube des reflets de la carrosserie (6 × 128² pixels, exponentielles, sinus et la boucle des
+  éclats pour chaque pixel) recalculé en JS à CHAQUE changement de ciel (deux fois aux dunes) — ~180 ms sur PC, une seconde et plus sur téléphone, image figée au portail.
+  Le calcul est une fonction PURE : le pré-bâti envoie le ciel de la map d'en face à un travailleur, le passage ne fait plus que `putImageData`, et les ciels déjà vus
+  restent en cache (12 au plus). La clé porte le dégradé, les néons, le halo et la direction EXACTE du soleil (le canyon la tourne) : vérifié en Node, l'ancien et le
+  nouveau calcul donnent les mêmes octets (2 ciels × 6 faces). MESURÉ (banc du portail, palier 6) : construction du passage ville 179 → 27 ms, volcan 179 → 7 ms,
+  dunes 23 ms ; `bioGo` 736 → 4 ms sur l'ensemble. `?envav=0` = sans travailleur ni cache (avant) · `dbgEnvCiel()` = cache, calculs, temps du dernier.
+  Re-mesuré avec les deux : passage vers la VILLE, construction 38 ms, et plus AUCUNE image > 50 ms dans les 4 s qui suivent (la pire 49 ms ; avant 186 ms et 7 > 50 ms).
+- **LES PICS DU GLACIER À DISTANCE DE VUE** (v845, `buildBanqG`, `code/maps/glacier-construction.js`) : c'est la map qui pose ses obstacles SUR la route ; la 1re figure
+  tombait à 560-680 m du départ quel que soit le palier — 1,2 à 2 s après le portail à 300-470 m/s, le voile compris. Elle part désormais à 3 s de croisière du palier au
+  moins (`3 × (70 + (lvPiste() − 1) × 100)`, la croisière de conception de la piste) ; au palier de départ rien ne change (210 m < 560). Les tirages `fr` sont les mêmes.
+- **LA GROTTE SANS GEL D'UNE SALLE À L'AUTRE** (v847, `grotteTick`) : le profil d'une course dans la grotte montrait `grotteTick → bioGo → paintEnv` à 120-210 ms
+  par entrée de salle — EN PLEINE COURSE (chaque salle a son ciel `grt-<temps>-<salle>`, et la grotte change aussi de temps en route : 4 × 6 = 24 ciels). Ils partent
+  tous au travailleur dès le pré-bâti (`prebPart`) et, en filet, à la 1re image de chaque grotte (`GROTTE.envPret`) ; le cache passe à 32 ciels (~13 Mo).
+  MESURÉ (40 s de grotte, palier 6, 357 m/s de médiane, pointes à 526 m/s) : 0 tâche longue, 0 image > 50 ms, la pire 39,5 ms ; `dbgEnvCiel()` : 24 ciels livrés par
+  le travailleur, les entrées de salle prises au cache (`rates` = les clés manquées, pour le banc).
+- **2e TOUR — LA ROUTE EN TRANCHES DE 1 200 POINTS** (v850, `PISTE_CH`, `code/moteur/piste-prebati.js`) : chaque tranche visible coûte 5 appels de dessin (bitume, flancs, rail,
+  lueur, ligne) — 45 à 75 appels pour la seule route. MESURÉ (processeur ×4, mêmes pistes `pistegraine=777`, 4 relevés moyennés) : rendu de la scène crypto 14,5 → 10,4 ms,
+  forêt 20,2 → 9,8, nuages 16,3 → 10,8, jade 12,8 → 9,9 ; boucle forêt 66 → 39 ms, nuages 71 → 49. Chaque tranche du pré-bâti est recoupée en 3 pas (index, sommets, maigre).
+  `?tranche=600` = avant.
+- **2e TOUR — LE REJOUER SANS GEL** (v851, `prebTick` / `prebDepTick`) : la « latence sur les essais » sur téléphone. MESURÉ (banc `rejouer.cjs`, processeur ×4, palier MOYEN,
+  REJOUER 1,5 s après la mort) : la construction du REJOUER durait 1 983 ms d'un bloc (image figée 2,2 s ; la course repartait 2,4 s après le clic) — le départ suivant
+  ne se bâtissait qu'à 3-6 ms par image, 0,8 s après l'arrivée de l'écran de fin, et le reste se faisait d'un trait. Désormais il commence DÈS L'EXPLOSION (mode
+  'boom', 1,8 s avant l'écran de fin), ne s'arrête plus pendant l'installation de l'écran de fin (3 ms), puis prend jusqu'à 8 ms par image pendant l'explosion et
+  10 ms à l'écran de fin ; au menu rien ne change. APRÈS : construction 128 ms puis 6 ms, course repartie 0,5 s après le clic, pire image 0,3 s. Sur PC : 5-33 ms (inchangé).
+- **2e TOUR — LES VIEUX TÉLÉPHONES** (v852, tables PAL, le RÉCENT identique au bit près) : `hudNitroQ` / `hudBarQ` (`bouton-nitro-gains.js`, lus dans `boucle-6-hud.js`) — l'anneau
+  du bouton nitro par crans de 2 % et la barre de 1 % sur ANCIEN et MOYEN (1 % et 0,5 % d'origine) : nitro tenue, deux fois moins de recalculs de style et de repeints du
+  dégradé conique (#tNitro : 331 µs par recalcul à ×1) ; `ventK` (`boost-depart.js`) — les traits de vent à 50 % / 70 % / 100 % ; la carte NOUVEAU MOTEUR de course rendue
+  à la cadence `engVigMs` (10 / 15 / 30 par seconde). MESURÉ (×4, MOYEN, forêt) : la vignette moteur 2,5 → 1,1 % de la boucle, le vent 3,3 → 3,0 % (le reste est l'effacement plein écran).
+- **2e TOUR — LE 1er DÉPART AVANT LES GABARITS DE LA JADE** (v853, `prebDepTick`, `jadeGabFond`) : au menu, trois attentes en série — la chauffe des matières, puis les
+  gabarits de la Jade (une tranche par image), puis seulement le départ d'avance, même quand la map du départ n'est pas la Jade. MESURÉ (banc `menu.cjs`, ×4, MOYEN) : le départ
+  commençait à ~65 s du chargement et était prêt à 71 s — tout JOUER plus tôt bâtissait la piste d'un coup. Désormais, pour une autre map, le départ passe avant les gabarits
+  (qui attendent qu'il soit prêt) : commencé à ~25 s (la fin de la chauffe), prêt à 29 s. La Jade en 1re map : comme avant (elle a besoin de ses gabarits).
+- **2e TOUR — LES TÔLES DES VOITURES APRÈS LE DÉPART** (v854, `chauffeApres`, `interface/vignette-moteur.js`) : profil de la chauffe du menu (×4) — chaque étape prend une image
+  entière : les programmes de la Jade 2,8 à 12 s (4 étapes ; la compilation varie avec la charge de la carte), les tôles des japonaises 2,0 s, de la Perle 1,9 s (2 étapes),
+  des rondes 0,5 s, le glacier 1,35 s d'une traite. Les tôles des voitures ne servent qu'au garage et à la boutique : elles quittent `chauffeDivers` et passent après la fin de
+  la chauffe, une par image, quand le départ d'avance est prêt (ou qu'il n'y en a pas, ou 15 s après). Gain NON chiffré au banc : la durée de la chauffe de la Jade masque tout.
+  RESTE À FAIRE (mesuré, pas touché) : la chauffe du menu (~24 s à ×4 avant tout pré-bâti) ; sur téléphone (×4) le recalcul de styles du HUD ≈ 6 ms/image (le bouton nitro `#tNitro` : 402 déclarations,
+  dégradé conique réécrit à chaque image nitro tenue ; `#nitroBar` 542 µs par recalcul), les traits de vent en 2D (3 %), le bouton nitro en putImageData (2 %), la vignette
+  moteur rendue chaque image pendant la carte NOUVEAU MOTEUR, la voiture (31 appels dont 12 d'ombre), la porte de Jade (35 ms d'une tranche du pré-bâti sur PC).
+- **CE QUI A ÉTÉ MESURÉ ET LAISSÉ** : le rendu de la scène (2-5 ms, 130-260 appels de dessin selon la map, PC) et la boucle (16,7 ms) tiennent ; la correspondance des
+  sélecteurs CSS ne pèse que ~0,1 ms par recalcul (les styles ≈ 2 % du processeur en médiane) ; les pauses du ramasse-miettes restent courtes hors trace (< 35 ms, rarement
+  70-140 ms — la trace les gonfle) ; le tas vivant (~230 Mo) est à 2/3 des tableaux de sommets gardés après leur envoi à la carte (142 Mo, 5 000 tableaux) ; la relecture
+  de la carte moteur (`engLit`, 46 ms) ne sert qu'à l'écran de fin. Le pré-bâti tient son budget sur PC (tranches médianes 2 ms, p99 12 ms ; la porte de Jade 35 ms).
+
+## LA FIDÈLE EN COUCHES EMPILÉES (2026-10-23, v839, Léo : « traduis ce modèle dans le style de La Honte… push-la dans le main »)
+- **Méthode** : la vraie silhouette (sections du plan) taillée en briques et en couches plates dont la taille suit la forme — flancs galbés en facettes larges, toit et vitres en briques lisses, devant (aile, capot, museau) en couches fines à épaisseur et rythme irréguliers ; chaque détail est une PIÈCE posée, jamais un dessin dans la tôle.
+- **Pièces** : phares en 4 pièces (boîtier noir, verre gris, lame de LED, œil chromé), calandre sportive en nid d'abeilles (cadre chromé, fond noir, plots), arcs de roue en relief (bavolet noir, aile couleur caisse, filet chromé), portes en panneaux fins à coins arrondis + poignée chromée, jante en couches (deux étages de bras), aileron sur deux jambes. Code : `SHAPES.corolla` (code/voitures/japonaises-1.js), tout sous `HB`.
+- **Options** : `?honte=0` = la Fidèle d'avant ; `?honte=1|2|3` = les étapes du travail. Les FACETTES LARGES des autres caisses (`facettes-larges.js`, `lpLarges`) existent mais sont ÉTEINTES (tables vides) : elles attendent le oui de Léo.
+
+## L'INTRO DU STUDIO 1.61, VERSION CONSOLE — CINQ « 1.61 » BLANC SUR NOIR AU CHOIX, LE FONDU, LE SILENCE, LE LOGO QUI CASSE L'ÉCRAN (2026-10-21 → 22, v772, Léo : « une nouvelle intro beaucoup plus moderne et stylée pour le label 1.61, du style Xbox ou PlayStation : le logo qui apparaît avec une animation, des bruits intenses qui font blip blip blip, puis un silence, un fondu noir ; le gros logo CASH CAR doré qui se secoue, se casse en morceaux, casse l'écran noir et laisse voir le jeu » · après quatre essais en fruits : « abandonne le 1.61 fruit, juste 1.61, blanc sur noir » · « fade away, puis cash car » · « regarde en ligne une série d'intro luxueuse ou hype minimaliste de truc très connu avec des designers identitaires de renom… propose plusieurs 1.61 ») · « le premier » (= le nombre d'or, la spirale) · « plus petit » · « juste la police corrige » · « ça bug » · « moins brut plus abstrait » · « c'était mieux avant, ça bug trop, trop jeu vidéo, encore plus de minimalisme » · « ça bugggg » · « garde la rotation circulaire π… un feu d'artifice de petits pixels colorés… à la fin ça explose en 1.61 en pixels… les cubes tombent… le gros logo CASH CAR explose » · « un tout petit peu plus lent le début spirale, 1.61 plus petit, pixel plus noble moins jouet, et le cassage de l'écran dans le style du jeu pixel, effet loupe, pour un effet trans-réaliste digital » — branche `plaques-pays`, attend le oui de Léo (le choix est fait : le FEU D'ARTIFICE EN PIXELS ; les quatre autres restent jusqu'à son oui, puis on les enlève)
+- **LE DÉPART TOUT SEUL ET LA CASSE AU TOUCHER (22/10 soir, Léo : « le logo cash car tout début avant 1.61 sur écran noir complet sans lumière, puis animation 1.61, puis cash car apparaît et n'explose pas : c'est l'écran qui s'explose lorsque je le touche, interactif ; donc lâcher le fait de devoir appuyer sur cash car au tout début ; juste ça met cash car sur écran noir si ça charge — [sur mobile ça fait un chargement écran vaporwave : soit la même chose avec nos maps au hasard, soit cash car écran noir] »)** : choix pris = CASH CAR sur NOIR COMPLET (fond noir, plus de halo violet ni de poussière d'or, titre posé sans lueur ; les maps au hasard restent une piste). Plus aucun toucher au début : `autoLance` démarre le film à ≥ 1,7 s quand la page est chargée, la police prête, la fenêtre visible (`?depart=toucher` = l'ancien départ). ⚠ SON : un navigateur refuse tout son sans toucher (iPhone toujours) → sans toucher le film passe MUET (le contexte audio est créé en attente, la casse est déjà construite) ; si l'on touche avant ou si le navigateur l'autorise, il sonne en entier. Le gros logo ne casse plus tout seul : il ATTEND (frémissement léger, reflet toutes les 2,8 s, « TOUCHE » discret sous le logo dès 5,15 s, jeu en pause dessous ; 22/10 nuit, retour de Léo « mal placé, les timings pas bons, tout était buggé, tout plus pro » : logo plus petit en écran large (26 % de la hauteur au lieu de 32 %) pour ne plus remplir le cadre ni être mordu par l'invitation, invitation SOUS le logo, noir 3,55 / claquement 3,95 (avant 3,70 / 4,20), préparation dès 0,5-0,9 s, en écran large le 1.61 (46 % de la hauteur), la spirale (rayon 44 %) et les étincelles (×1,4) sont plus grands — « je vois presque rien » dans le petit cadre du volet, et et un toucher PENDANT le 1.61 coupe au noir et fait claquer le logo — avant il sautait dans le jeu sans casse, ce qui ressemblait à un bug) ; le TOUCHER casse l'écran, les tuiles étant petites autour du doigt (`TOUCH`, `fracture(x,y)`), le son de la casse part au même instant (`passer` → `programmerCasse(true)`). Retirés : les secousses programmées et les fissures, la tension sonore qui montait vers la casse, le chien de garde de 12 s, la poussière d'attente. La photo du jeu pour les loupes et celle du logo se prennent dans le noir (0,14 et 0,30 s après le noir). Calendrier : `casse` n'est plus qu'un instant nominal (le banc : `dbgIntro.toucher(x,y)` choisit le doigt, puis `voir(5,9…6,7)`).
+- **LE FILM** (jusqu'au logo 4,2 s + son attente (avant : 7,7 s, casse à 6,26 s), ×0,8 une fois la leçon finie ; un 2e toucher passe) : le titre faible de l'attente s'aplatit → dix blips (étirés de 22 % le 22/10 soir : « le début un tout petit peu plus lent, qu'on profite plus de l'animation ») : « 1.61 » se dessine de l'une de cinq manières (défaut : LE FEU D'ARTIFICE EN PIXELS, voir plus bas) → 1,85 s le COUP FINAL (le centre explose, de minuscules cubes dorés se posent en « 1.61 ») → le nombre tient un instant → 2,80 s le SON COUPE et les cubes TOMBENT un à un, en silence → 3,70 s noir complet, SILENCE complet jusqu'à 4,20 (le jeu dessine quelques images dans ce noir : voir la fluidité)
+  → le gros logo CASH CAR (or métallique / couchant, la pente −11° de l'accueil, extrusion brune) CLAQUE, un reflet le traverse, il SE SECOUE de plus en plus fort (4 à-coups, à 4,80 · 5,30 · 5,70 · 6,00 s ; chacun fait gagner du terrain à la GRILLE de fissures, dont les lignes sont les arêtes des tuiles à venir) → 6,26 s il CASSE EN TUILES-LOUPES : l'écran noir ET le logo se brisent en ~80 tuiles CARRÉES (un quadtree : petites au centre, grandes aux bords) qui volent vers la caméra ; chacune montre d'abord un morceau du logo, net puis en GROS PIXELS (5 px), et fait LOUPE sur le jeu : la scène 3D, photographiée par la boucle du jeu juste après son rendu (`window.__introPrise`, `boucle-6-hud.js`), agrandie de ×1,5 à ×2,9 et pixelisée, vue à travers la tuile à l'endroit où elle se trouve, avec un reflet et un liseré d'or (« effet loupe, trans-réaliste digital ») ; une gerbe de cubes-pixels colorés ; le jeu apparaît dessous et est jouable dès cet instant. Même son et même calendrier (`TL`) pour les cinq labels (le noir et la suite ont reculé de 0,25 s, puis encore de 0,25 s, le 22/10 pour laisser tomber les cubes et profiter de la spirale).
+- **LES CINQ LABELS** (`?label=neon|or|poussiere|luxe|hype`, défaut or ; `?label=demo` les enchaîne en boucle avec leur nom et « TOUCHE = JOUER », un 2e toucher joue le jeu ; `dbgIntro.voir(t,'or')` pour revoir une image) : les chiffres sont DESSINÉS au trait (`glyphes`, pas une police : la règle « une seule police » reste entière), chaque label a son épaisseur, sa pente et son écartement.
+  Ce qui a guidé le choix (recherches du 22/10 : Pentagram pour MTV World — des logos en formes d'onde étirées sur les battements, noir et blanc ; Netflix — un zoom sur le N qui ouvre un spectre, fond noir, le son en deux notes ; Wolff Olins — une identité née du mouvement ; FIFA 2026 — 32 carrés en orbite qui se verrouillent ; PlayStation — le son posé sur un logo animé fini ; règles : le mouvement sort de l'identité, une seule action majeure à la fois, la version muette tient seule, le son tombe quand le logo se fige, une fin figée et lisible).
+  (1) NÉON : un tube blanc penché que les blips allument morceau par morceau (le 1, le point, le 6 en 4 temps, le 1), étoiles, reflet de sol noir poli. (2) LE FEU D'ARTIFICE EN PIXELS (défaut ; le choix de Léo, 22/10 : « garde la rotation circulaire π… au lieu d'un fil banal, un feu d'artifice qui suit le mouvement, un jaillissement de petits pixels minuscules colorés ; à la fin ça explose et ça donne 1.61 en pixels ; puis les petits cubes se déconstruisent et tombent petit à petit, et ça laisse apparaître le gros logo CASH CAR qui explose comme actuellement, voire encore mieux » ; 2e version, le soir : « un tout petit peu plus lent le début spirale ; 1.61 plus petit ; pixel plus noble, moins jouet ; et le cassage de l'écran dans le style du jeu pixel, effet loupe ») ; il vient après trois essais refusés du « nombre d'or » : dix carrés de Fibonacci avec une caméra qui sautait (« ça bug »), la « spirale de lumière » (comètes, ondes, étoiles : « ça fait trop jeu vidéo » dit AVANT que Léo ne demande des pixels), les carrés fixes minimaux.
+  DEUX têtes descendent en spirale d'or vers le centre (5,5 quarts de tour, le rayon ÷ φ à chaque quart de tour ; elles démarrent doucement et accélèrent : angle `Ψ·s^1,5` — c'était 1,35 — et les dix blips sont étirés de 22 %) ; pas de trait : elles SEMENT des étincelles, de petits carrés d'UN pixel (2 px, snappés sur la grille) dans une palette SOURDE et chaude (blanc chaud, or pâle, or, blanc, glace, corail, lavande ; avant : cyan, rose, vert vifs, « jouet »), qui jaillissent et retombent ; chaque blip fait éclater un cercle d'étincelles sur chaque tête (≈ 1 300 étincelles en tout, tirées d'avance : chaque image est une fonction de `t`). Le centre charge (une croix de pixels), puis au coup final EXPLOSE : 160 étincelles et de MINUSCULES CUBES D'OR — « 1.61 » est un motif de 5 × 9 pixels dessiné à la main (`MOTIFS`, au trait d'un pixel), chaque pixel = 3 × 3 cubes plats de 2 px posés au pas de 3 px (une matrice de diodes ; avant : des cubes biseautés lus dans la police du jeu, 80 % de la largeur), en dégradé blanc chaud → or pâle → or → ambre de haut en bas — qui partent du centre en arc (easeOutCubic), se posent en « 1.61 » (≈ 48 % de la largeur sur un téléphone, au plus 30 % de la hauteur), un reflet les traverse en diagonale ; au fondu ils frémissent puis tombent un à un (gravité, délais au hasard) avant le noir.
+  Aucune dépendance à la police pour le nombre (`MOTIFS`, `bitmapsNombre`). La casse du logo reçoit sa gerbe de cubes-pixels (`PXC`) et ses tuiles-loupes (`fracture`, `casser`, `dEclats`). Écran de 844 × 390, 768 × 1024, 390 × 844 : même composition.
+  (3) POUSSIÈRE : 2 400 à 6 000 grains (selon l'écran) arrivent en tourbillon et se posent sur le tracé à l'heure de leur blip (position = fonction de `t` : chaque grain a son départ, son arrivée, son virage), au coup final ils se figent en trait plein, au fondu ils repartent en poussière. (4) LUXE : trait très fin, droit, espacé ; un fil de lumière avance d'un cran par blip et laisse le nombre derrière lui (une découpe), un reflet balaie le nombre au coup final, un filet se tire dessous.
+  (5) HYPE : chiffres lourds et penchés ; à chaque blip une COUPE sèche sur un autre morceau du nombre (zoom 3,7 → 1, tableau `COUPES`), écho de la coupe d'avant, tranches décalées, traits de vitesse, un seul éclair au coup final (jamais d'inversion en rafale : photosensibilité).
+  Pièges appris : une lueur faite de couches de traits de largeurs croissantes fait des ANNEAUX → des taches radiales posées le long du trait ; deux traits translucides qui se recouvrent font une perle claire → peindre l'union en un seul trait ; une vignette grisait les chiffres près des bords ; un tableau de points partagé par les deux 1 se décalait deux fois ; sur un trait fin la lueur « chaude » se cumule (9 taches qui se recouvrent) et bouche le dessin : la baisser.
+- **LA FLUIDITÉ (le vrai « ça bugggg » de Léo, 22/10)** : mesuré DANS le volet intégré de Léo (un vrai Mac chargé, charge 11 à 18, GPU à 78 %), le film saccadait : p95 66 ms (15 images/s), des gels de 100 à 680 ms, surtout pendant les blips. Causes : (1) la boucle du jeu continuait de calculer ET de dessiner sa scène 3D (bloom) DERRIÈRE le film opaque ; (2) le son se fabriquait à l'image du toucher (AudioContext + graphe : 85 ms à froid) ; (3) le calcul du film (logo, fissures : 75 ms) aussi. Corrigé : (1) `window.__introCouvre` : `loop()` (`boucle-1.js`) ne fait RIEN (elle se reprogramme et recale son horloge) du toucher jusqu'à 0,5 s avant la casse, où le jeu se remet à dessiner (il faut une image dessous quand l'écran casse) ; le noir complet ne fait plus que `initAudio` (≈ 175 ms, dans le noir) ; (2) le son est construit AVANT le départ du film, qui s'aligne sur l'horloge de l'AudioContext (`dSon` : la marge, mesurée sur la machine) ; (3) `chauffe()` : pendant l'attente du toucher (2,2 s après le chargement), hors de vue, le film se prépare (`prepare`) et le code du son se chauffe sur un OfflineAudioContext. Résultat mesuré dans le volet : p95 17,6 ms (60 images/s), un seul à-coup de 116 ms au tout début, un de 84 ms au moment où le jeu se remet à dessiner. ⚠ Un volet dont la fenêtre n'est pas à l'écran tombe à 1 image/s (des images de 1016 ms espacées de 1 s) : un artefact du volet, pas du code. Vérifié aussi : PLAY après l'intro démarre la partie (école de conduite).
+  2e version du feu (22/10 soir), mesurée avec un rappel d'image chronométré et le profil CPU (Chrome sans fenêtre, téléphone émulé, charge basse) : (a) la photo du jeu pour les loupes se prend SANS lecture de pixel (un `getImageData` forçait le processeur graphique à finir son image : 28 à 34 ms d'à-coup juste avant la casse) ; (b) la photo du logo « au repos » et sa version en gros pixels sont prises 0,42 s AVANT la casse (`prepSnap`), plus dans l'image de l'impact (43 → 4 ms) ; (c) le jeu dessine quelques images (0,08 à 0,22 s après le noir) DANS le noir complet : son premier dessin (relecture du ciel du menu, `homeCielPrise`, ~30 ms) ne se voit plus, et il reprend à chaud 0,5 s avant la casse. Résultat : pendant le film visible tous les rappels d'image font moins de 1 ms ; les seuls à plus de 12 ms sont dans le NOIR (`initAudio` 65 ms, premier dessin du jeu 36 ms). Le dessin des tuiles coûte < 1 ms par image côté JS (83 tuiles).
+- **LE CODE** : `code/moteur/intro-161.js` (morceau juste après `init.js` dans `ORDRE.txt`). UNE horloge `t` pilote tout (`TL` = les heures du film, lues par l'image ET le son) ; chaque image est une fonction de `t` seul, donc `dbgIntro.voir(t[,label])` montre n'importe quel instant (sans son), `dbgIntro.labels` les nomme, `dbgIntro.mesure()` donne le temps de préparation (les cinq labels : ~4 ms), `dbgIntro.etat()` dit où l'on en est.
+  Tout est dessiné dans `#fxCv` à la résolution de l'appareil (bornée à 2,2 Mpx). `init.js` : `INTRO_NEUVE` + la garde qui éteint l'ancienne intro (restée intacte dessous). Le HTML/CSS de l'écran titre n'a pas bougé ; le logo de l'accueil et sa garde (`garde-charte.sh`) non plus.
+- **LE RACCORD** (celui de l'ancien `hide()`) : `ouvrir()` au noir complet (initAudio, openGarage sur le PC), `reveler()` à la casse (l'id `#splash` part AVANT, le voile passe à z-index 1000 et ne prend plus les touchers, `cc:revele` à +60 ms, la musique du ciel à +260 ms). Plaque du 1er accueil / bienvenue : elles se gardent par l'id et s'ouvrent ~0,85 s après, derrière les derniers éclats.
+- **LE SON** (WebAudio, `construitSon`, étalé pour ne sacrifier aucune image) : des blips de MÊME hauteur (aucune mélodie : toujours aucune musique avant le ciel), un coup sourd, un souffle, le coup final (sub, corps, bande de lumière) ; le SILENCE est du silence numérique (≈ −125 dBFS, mesuré hors ligne) ; le claquement du logo, un grondement qui grossit, des craquements, la casse (sub, verre, souffle). MESURÉ au banc hors ligne : pic −8,1 dBFS, comme le plus fort de l'ancienne intro (la fission : −8,4). Le curseur EFFETS et le mute SON l'éteignent comme avant.
+- **RÉGLAGES** : `?label=…` (ci-dessus) · `?intro=ancien` = l'intro d'avant · `?intro=muet` = tout l'écran sans son · « réduire les animations » = ni scintillement, ni secousse, ni fissures, ni éclats (le voile s'efface) · BALADE/simulateur = droit au jeu · un chien de garde de 12 s ouvre le jeu quoi qu'il arrive (pas en démo).
+- **À SAVOIR** : vérifié en VRAI temps réel dans un Chrome sans fenêtre piloté par CDP (profil téléphone : agent Android + toucher émulé, sinon la page prend le cadre « ordinateur » et le jeu reste dans l'iframe `#colonne`) : pour chacun des cinq labels un vrai toucher, le film jusqu'au menu, 0 erreur, 60 images/s (p95 16,8 ms) ; la démo : cinq tours puis un 2e toucher qui joue le jeu, 0 erreur. Dans ce Chrome sans carte son, le toucher bloque jusqu'à ~0,7 s (création de l'AudioContext) : ce n'est pas le code (mesuré 12 ms + 20 ms dans le volet intégré).
+  Le volet intégré ne donne pas ses images (rAF gelé) quand la fenêtre est réduite : on dessine alors une image (`dbgIntro.voir(t,label)`) dans le Chrome sans fenêtre et on la capture. Revoir un instant : `voir(1.9)` (le coup final), 2,7 (le nombre net), 3,3 (la chute des cubes), 4,6 (le logo), 6,4 (la casse : appeler d'abord `dbgIntro.prise()` et attendre une seconde, pour que les loupes montrent le jeu) — × `dbgIntro.etat().K` si la leçon est finie ; `?plaque=0&bienvenue=0` pour avoir le menu derrière les éclats. Quand Léo aura choisi, supprimer les quatre autres labels (le code mort) et fixer le défaut.
+
+## LES DUNES D'OR, 3e PASSE : LE VOYAGE EN ACTES (2026-10-23, Léo : « ça a l'air pas mal mais reconstruis le paysage, c'est brouillon : l'organisation, l'harmonie » + 12 photos : dunes lisses à rides, grand sphinx, séries de pyramides, pyramide qui cache le soleil, ciels rose / nuageux / bleu / soir)
+- **VALIDÉ PAR LÉO (« oui, pousse les dunes sur le main »)**. Trois sessions en parallèle puis fusion : (1) MONUMENTS (`dunes-gizeh.js`, dunes-4.js) : le GRAND SPHINX de Gizeh (270-340 m, fosse de calcaire, temple entre les pattes) avec sa pyramide derrière, des pyramides de reines, et LE VOYAGE EN ACTES — acte I désert nu, II place du sphinx, III allée des sphinx-chats, IV vallée des dieux, V oasis — l'éparpillement (obélisques, caravanes, camps, épaves…) supprimé : au plus un élément d'ambiance ; `?sans=dunesactes` = l'ancien tirage. (2) RENDU (dunes-2.js, biomes.js) : le SABLE redevient LISSE (plus de normale plate ni de joints : les facettes poly ne restent que sur pierres, or et statues), rides du vent plus visibles, ombres franches ; palettes accordées par ambiance, variantes tirées `dnAmb` (soir rose-pêche ou doré, midi bleu ou nuageux ; `?ciel=rose|dore|bleu|nuageux`, `?ciel=0`) ; NUAGES en bandes étirées modelées par le soleil (`dnNuages`, `uCyW` dans scene-ciel.js, `?nuages=0`) ; soir pêche/abricot, plus rouge. (3) SOLEIL : le soir le soleil est calé sur le cap d'arrivée (`DN.sunAz/sunEl`), la plus grande pyramide (`S.solD` 2200 m) dans son axe (`?sans=dunessoleil`). Collines : dômes doux seulement, moins de dunes étoilées. Fusionné avec le relief ×1,3 et les montagnes russes de Sacha (v817, v827), vautours retirés (v819).
+- À juger : la pyramide-soleil reste pâle (brume), le portail d'arrivée cache le bas du soleil, un peu de moiré dans le sable du soir.
+
+
+## LA ZAGAIE (la 5-95 de Zagato) ET LE LOUP (la Countach blanche du film) (2026-10-22, v783, Léo : « zagato imite exactement la forme de la voiture orange, ensuite genere la blanche ressemblance 11/10 »)
+- **LA ZAGAIE** (`THE ASSEGAI`, index 88, ÉPIQUE, 3 500 000 $ : prix provisoire) : la Lamborghini habillée par Zagato, calquée sur les photos de la 5-95 orange (2014, un seul exemplaire) : cuivre mat, gueule creuse
+  (lèvre fine qui accroche la lumière, optiques enfoncées avec leurs projecteurs et leurs barrettes de LED), vitrage noir qui s'enroule, nacelle de toit, queue coupée net avec ses deux gros feux ronds. Elle REMPLACE
+  la première version (LE RAPACE, jamais poussée : le Rapace de 1996 n'était pas ce que Léo voulait) — même index, même place. Silhouette de côté à ±2 px de la photo, arrière et face recalés (caméra retrouvée sur
+  les clichés). `code/voitures/zagato.js` : un loft à 22 points par tranche, la tôle découpée au plan (`bulleOutils.decoupe`, les contours relevés AU PIXEL de la photo puis rayonnés sur la tôle), les creux et les
+  rebords du nez en tubes (`O.tube`) avec un filet de lumière clair du côté éclairé.
+- **LE LOUP** (`THE WOLF`, index 89, LÉGENDAIRE, 5 000 000 $ : prix provisoire) : la Countach du 25e anniversaire de « Le Loup de Wall Street », ÉPAVE comprise — c'est elle, l'identité de la caisse. `code/voitures/countach.js`.
+  Le profil vient de la photo de côté (le dessus relevé au pixel : le pare-brise très couché jusqu'à z = 1,03, le capot qui tombe sur le pare-chocs) ; le dessus et la face d'une 25e intacte : le **capot en V** (un plateau
+  plat entre deux plis, les ailes un cran plus bas), l'aileron en lame sur deux mâts en plaques, les persiennes du capot moteur, les ouïes du bas de caisse, les lèvres d'aile, la poupe (blocs de feux, plaque, pare-chocs).
+  **L'épave, côté par côté, d'après les photos** : à GAUCHE (le flanc de la photo de l'aile écrasée) l'aile avant poussée en dedans avec son bourrelet de tôle et sa déchirure, le phare entrouvert (couvercle levé, ambre
+  visible), la portière froissée (plis en diagonale), le bas de portière et la prise d'air enfoncés, le quartier arrière en accordéon ; à DROITE le phare ARRACHÉ (un seau noir penché, deux optiques rondes, une éclatée),
+  l'aile et le quartier froissés ; devant, le pare-chocs déchiré aux deux bouts (mousse brune) et sa **lame basse arrachée, tirée en avant, de travers**. Les portes à ciseaux se lèvent au tap (`CAR_ACTION`, tenue
+  3,2 s ; closes en course) et laissent voir un habitacle clair. Vitrage bleu-gris clair (la photo montre l'habitacle blanc à travers).
+- **Comment l'épave est faite** : une liste de BOSSES (`DENTS` : centre, rayons, poussée, plissure) donne un champ de déplacement appliqué à TOUS les sommets de la coque ET aux pièces du kit qui longent la tôle (`dpl` :
+  lèvres d'aile, ouïes, traits de plis) ; les facettes des zones touchées sont coupées en quatre (`raffine`) en SUIVANT les arêtes (un voisin non touché se coupe en 2 ou 3 : aucune fissure en T), les autres gardent leur
+  normale (le verre reste lisse) ; la peau se salit aux plis. `?epave=0` = la Countach intacte (`window.dbgIntacte`).
+- **Les repères du banc** (les clichés rc0 à rc5 de Léo) : une caméra retrouvée sur la photo de l'épave (`pos 8,37 · 2,93 · 10,23`, `fov 12,25`) a servi à superposer le modèle et à poser la lame, la poutre, les phares.
+- **La finition « façon LA HONTE »** (Léo : « les deux aussi belles et travaillées que LA HONTE, mais ne perds pas la forme » — la forme ne bouge pas, seule la matière est travaillée) : un morceau commun
+  `code/voitures/travail-caisse.js` (avant `zagato.js` dans `ORDRE.txt`) : `lisseDiffuse` (les normales d'une géométrie en facettes lissées en plusieurs tours : la laque coule, les ondulations d'un loft ne se lisent
+  plus dans les reflets ; un pli vif reste séparé), `patineGeo` (la couleur de chaque sommet de la tôle : marbrure à deux octaves, crasse du bas, poussière, plaques de rouille — multipliée, la peinture de la
+  boutique passe dessous), `pneuTravaille` (pavés de bande de roulement en quinconce, cordon et lettres du flanc, valve). LA ZAGAIE : laque `p` (plus le satiné `k`), jantes en cinq PAIRES de branches fines avec lèvre
+  polie, disque et étriers fixes, poupe d'après la photo (masque sombre, grille perforée d'alvéoles hexagonales, deux ailettes de carbone, feux ronds à lentille rouge à six secteurs et couronne de LED). LE LOUP :
+  laque `p` argentée (`0xb4b9c2`, reflet .29 : sous la lumière orange du garage le blanc virait crème), plis de tôle en V (`PLIS`, la diagonale du front d'aile, la portière, le quartier plié deux fois, le capot en V),
+  métal nu mat gris ou brun là où la peinture est partie (la matière `s`), normales des facettes déplacées lissées (6°), liseré de crête, catadioptres de quartier, pneus sculptés ; l'ombre cuite des portes
+  se calcule maintenant AVANT la translation à la charnière (elle noircissait toute la portière).
+- **LES CREUX COLLÉS (essai sur LA ZAGAIE, Léo : « chaque pièce distincte collée bien distincte, comme les pièces montées de LA HONTE ; trouve un moyen esthétique de rendre chacune plus simple mais respectueuse du modèle,
+  toujours aussi belle ; essaie d'abord avec la Zagato »)** — deux essais refusés avant le bon : (1) la coque entière découpée en PANNEAUX en relief séparés par des joints (« moins beau qu'avant ») ; (2) un hybride (panneaux +
+  détails peints gardés : « raté »). Ce que Léo voulait dire (23/10) : **« crée un creux, et représente-le en relief : c'est une partie en relief de la voiture, mais collée par-dessus — le fil rouge de LA HONTE »**.
+  La peau de LA ZAGAIE redevient ce qu'elle était (lisse, brillante, normales qui coulent) ; chaque détail qui était PEINT dans la tôle est maintenant une VRAIE PIÈCE : un trou dans la tôle (zone `x`, la clé des trous), la
+  construction dessous, et un bourrelet collé dessus. Le JOINT DE PORTE et le JOINT DU CAPOT = une rainure (`rainure`, deux parois, un fond sombre, un filet d'éclat sur son bord haut, un bourrelet de la couleur de la caisse
+  sur son bord bas), posée sur la surface par une paramétrisation (`surfPN` : la position et la normale sortante) ; la POIGNÉE = un bloc plat collé avec sa fente ; l'ÉVENT derrière la porte = une cavité creusée (parois, fond,
+  quatre ailettes penchées) bordée d'une lèvre collée. Les glaces, la gueule et les phares étaient déjà des trous. Reste du même esprit : la poupe (tuiles posées), les lèvres, les feux.
+  Les outils `lisseDiffuse`, `patineGeo`, `pneuTravaille` (`travail-caisse.js`) servent toujours. Les versions refusées sont gardées hors du dépôt (scratchpad `zagato-v4-panneaux.js`, `zagato-v5-hybride.js`,
+  `travail-caisse-avec-panneaux.js` : `lpPanneaux`). **Reste à faire si Léo valide** : même méthode pour LE LOUP et les autres caisses « au plan ».
+- **« UN PETIT EFFET DE PROFONDEUR DANS LA VOITURE » (LA ZAGAIE, 23/10) — essayé, REFUSÉ (« comme avant »)** : les glaces en pièce à part un peu transparente (opacité ,68) et un habitacle derrière (plancher, planche de bord,
+  deux sièges à liseré jaune, volant). Retiré : les vitres redeviennent opaques. La version avec l'intérieur est gardée hors du dépôt (scratchpad `zagato-v7-interieur.js`). Autres lectures possibles si Léo reprécise :
+  une peinture à deux couches, des creux plus sombres.
+  Du même retour (« un petit trait orange dans la fente, bizarre ») et CONSERVÉ : la rainure du joint de porte n'a ni bourrelet ni filet (sur la vraie voiture : un trait sombre), ses parois sont d'un noir franc (elles viraient
+  au roux sous la lumière du garage), l'évent n'a plus de filet clair, la poignée (absente de la photo) est retirée.
+- **LE MODELAGE CORRIGÉ SUR TROIS DÉTAILS DE LA PHOTO (LA ZAGAIE, 23/10, Léo : « focus correction modelage sur ces détails » — le museau, une jante, le bord du capot)** :
+  · LE MUSEAU : la lèvre de la gueule est ROULÉE et épaisse (un tube de 3,7 cm au lieu de 2,2) et le bord HAUT reçoit un SOURCIL (un second boudin, plus gros, qui surplombe, avec son filet d'éclat) ; la lame de carbone avance
+  et ses deux bouts se relèvent (le menton se recourbe en crochet sous les joues : un tube de la couleur de la caisse) ; aux deux bouts de la gueule le carbone est un TISSAGE croisé de face (11 barres × 15, fines) au lieu de
+  lamelles ; un petit ÉCUSSON (sans nom : plaque sombre à liseré d'or) au milieu du nez, penché sur sa pente.
+  · LE BORD DU CAPOT : au pied du pare-brise une vraie LAME EN COIN (la face avant raide, le dos qui redescend vers la glace, 4 cm de haut), de la couleur de la caisse, qui plonge à ses bouts, un filet d'éclat sur sa crête ;
+  deux ESSUIE-GLACES noirs couchés sur la glace.
+  · LA JANTE : cinq branches LARGES, plates, fourchues en Y vers la jante (au lieu des cinq paires fines), un chanfrein plus sombre sur le dessus, anthracite MAT (la lumière de studio lavait le satiné).
+  Les planches (ta photo | le jeu) sont dans la discussion ; limites assumées : c'est du low-poly, le museau ne reprend pas la profondeur réelle de la gueule.
+- **LE MUSEAU RETOUCHÉ ET LA FENTE QUI CONTOURNE (LA ZAGAIE, 23/10, Léo : « retouche le museau, et la fente qui part du milieu du capot et qui contourne sur le côté »)** : l'intérieur de la gueule est d'un noir franc
+  (les parois brunes viraient au violet sous le garage : plus de profondeur), les lèvres sont plus lourdes (tube 4,7 cm, sourcil 5,7 cm). La fente du capot (qui part du milieu du nez) se PROLONGE : elle contourne
+  l'arrière du phare et descend sur le flanc de l'aile vers la joue (`SIDE`, un trou dans la tôle + une rainure, comme le joint de porte).
+- **LE MUSEAU REFAIT DANS LE STYLE DU JEU (LA ZAGAIE, 23/10, Léo : « le museau n'est pas assez similaire à la voiture et pas assez dans le style du jeu »)** : plus de fins tubes ni de fine trame : de GROS morceaux
+  à grandes facettes, comme LA HONTE — la lèvre est un boudin à cinq pans sur un contour ré-échantillonné (un point sur deux), le sourcil un second boudin plus lourd sur le bord du haut, le menton une planche épaisse
+  aux bouts relevés, le carbone une plaque noire et trois lames épaisses ; gueule noire. Version précédente (tubes fins) : scratchpad `zagato-v10-museau.js`.
+- **LES TRAITS BLANCS SUPPRIMÉS, LE MUSEAU SIMPLIFIÉ, L'ARRIÈRE REDEVENU CELUI DE LA 5-95 (LA ZAGAIE, 23/10, Léo : « les traits blancs de sketch représentent ce que tu n'as pas réussi à modeler » puis « arrière reste comme 5-95,
+  continue remodelage museau »)** : les filets d'éclat clairs (joue, lame du capot, chanfrein des branches) sont retirés (le chanfrein = un 2e plateau, la lame du capot se lit par son coin). L'ARRIÈRE a été essayé en gros morceaux
+  (lames, barre rouge, grilles à lamelles d'après une Raptor) puis REFUSÉ : il est celui de la 5-95 (grille alvéolée, ailettes, feux ronds). LE MUSEAU : UNE lèvre épaisse et continue (boudin à six pans sur tout le contour de la
+  gueule), un menton en planche (deux blocs relevés à ses bouts), le carbone au fond ; plus de sourcil flottant, de griffes ni de crochets. Versions précédentes : scratchpad `zagato-v11-museau-gros.js`, `zagato-v12-dos-gros.js`.
+- **« SIMPLIFIE TOUTE LA VOITURE EN LA COMPLEXIFIANT : FORMES PLUS SIMPLES (INSPI LA HONTE), MIEUX DISPOSÉ, CONSTRUCTION COMPLEXE » (LA ZAGAIE, 23/10)** : la COQUE passe en mode `SIMPLE` (`window.dbgZagaieDetail=1` rend l'ancienne) :
+  15 points par section au lieu de 22 et une tranche tous les 18 cm au lieu de 9 : de GRANDS PANS plats (la laque n'est plus lissée que sur les glaces : les facettes se lisent comme celles de LA HONTE), la silhouette,
+  les arches et toutes les pièces posées (gueule, lèvre, menton, phares, rainures, évent, jantes, feux ronds, grille de poupe) sont gardées : la construction reste riche, les formes sont plus simples. Version précédente :
+  scratchpad `zagato-v13-avant-simplif.js`. Limite : les hanches arrière gardent quelques plis (les arches coupent la grille) ; ce premier passage ne retouche pas encore la DISPOSITION des pièces.
+- **LA FENTE DE LA BOUCHE (LA ZAGAIE, 23/10, Léo : « sur les côtés du museau, deux autres fentes » → « pas ici, je parle de la bouche » → sa photo avec un fil blanc : « la fente dont je parle »)** : c'est UN ARC en « ( » sur la joue de
+  chaque côté, qui part de sous le phare, contourne l'angle de la gueule et descend vers le menton (`BOUCHE`, z/y) : un trou dans la tôle + une rainure noire (`rainure`), comme le joint de porte. Les essais précédents
+  (fentes de joue horizontales, lames verticales) sont retirés. La rainure est rentrée de 1 cm : la coque en grands pans passe sous la surface idéale. Version précédente : scratchpad `zagato-v16-fentes-bouche.js`.
+- **FENTE DE LA BOUCHE REFAITE À PARTIR DE SON FIL (23/10, Léo : « mal fait 0/10 ») et LAME DU CAPOT (« on dirait un churros »)** : la fente est maintenant RELEVÉE sur sa capture — une vue calée sur sa capture (`dbgRayon`) reporte les points de son fil
+  blanc sur la tôle : un arc qui descend de sous le phare le long de l'angle de la joue (x ≈ 0,71-0,83, z ≈ 1,88-1,98) puis tourne sous le menton. La lame du capot n'est plus un boudin arrondi : une LAME PLATE, bord avant biseauté,
+  amincie aux bouts. Versions précédentes : scratchpad `zagato-v17-arc.js`. Méthode à retenir : quand il montre un tracé sur une capture de MON rendu, rendre le même cadrage et en rayonner les points, au lieu de deviner.
+- **LES DEUX FILS NE SE CROISENT PLUS (23/10, Léo : « corrige, les deux fils se croisent »)** : la fente d'aile (`SIDE`, qui contourne le phare) allait jusqu'à la joue et coupait l'arc de la bouche (`BOUCHE`) ; elle s'arrête maintenant
+  à z = 1,72, bien avant lui.
+- **LA FENTE DE LA BOUCHE = UN CROISSANT (LA ZAGAIE, 23/10, Léo : « tu peux y arriver, concentre-toi et renseigne-toi sur les creux, ne crée plus sans savoir »)** : étude de la vraie 5-95 (photo de face et zoom, Wikimedia
+  Commons) : la fente est un CROISSANT sombre qui sépare le LOBE de la bouche de l'aile — une pointe fine juste sous l'angle bas du phare, large au milieu (~3,5 cm), une pointe fine en bas où la lèvre du bas avance ; le côté bouche
+  (vers l'avant) est un gros boudin lisse. Avant : une rainure de largeur CONSTANTE (donc « 0/10 »). Maintenant : un trou en croissant dans la tôle (`CRQ`/`CRW`/`CRO` : largeur = sin^0,8 de la position le long de l'arc), un fond noir
+  à 3 cm et ses parois, le bord du côté bouche coiffé d'un boudin de la couleur de la caisse (`croissant`). Le tracé de l'arc est celui relevé sur son fil blanc. Ce que la photo montre encore et qui reste à faire : la lèvre du
+  bas qui avance en lame aux deux angles bas de la gueule, la barre d'argent courbe à l'intérieur de la bouche, le capot en plaque propre arrondie devant avec un seul trait central. Version précédente : scratchpad `zagato-v19-avant-croissant.js`.
+- **LA FENTE EST RELIÉE AU PHARE (LA ZAGAIE, 23/10, Léo)** : sur la vraie 5-95 la fente part du bord avant-bas du phare (elle le prolonge) avant de plonger en croissant. Un tronçon fin (`LFRONT`, trou + rainure) longe maintenant le bord
+  avant du phare, un cran en avant, jusqu'à son coin extérieur, où le croissant (`BOUCHE`) prend le relais.
+- **Console** : `dbgLoup(0…1)` place les portes à la main, `dbgAction()` les joue, `window.dbgIntacte=true` puis rééquiper = intacte. Poids : ~16 000 triangles, 0,3 à 0,8 s à la 1re construction (la découpe est mémorisée).
+- **Vérifié** (navigateur intégré, serveur local) : 0 erreur JS ; garage (les deux flancs, l'arrière, portes levées), vignette de boutique/inventaire, peintures de la boutique (poupée, noir, menthe : la laque change, le reste tient),
+  course (la caisse tient, plaque, feux, pots), planche de comparaison photo | jeu. La place 90 reste réservée.
+
+- **SOLIDIFIÉ, TECHNIQUE HYBRIDE PARTOUT (23/10, Léo : « solidifie et utilise la nouvelle technique hybride » → « toute la Zagaie puis le Loup »)** : audit sur fond magenta (dessous, arrière, flanc, arches, gueule) : aucune transparence, la coque est fermée derrière chaque trou. Les outils des creux (`surfPN`, `dens`, `rainure`) passent dans `travail-caisse.js` (`creuxOutils(P,{mat,tf,enfonce})`) : LA ZAGAIE les prend de là (rendu identique), LE LOUP aussi : ses joints de porte ne sont plus peints (`j`) mais de vraies rainures (trou `x` + parois et fond `k` dessous), sa grande prise d'air de flanc est un trou + cavité (parois, fond noir, trois ailettes) + lèvre `p` collée ; la tôle froissée de l'épave les emporte (`tf` = `dpl`). Les persiennes du capot moteur restent peintes + lames. ****ROUES LISSES POLY + LE BAS DU MUSEAU (23/10, Léo : « roue lisse poly » ; « c'est un peu maladroit » ; « le bas »)** : les pneus de LA ZAGAIE et du LOUP perdent leurs pavés, cordon, lettres et valve (`pneuTravaille` n'y est plus appelé) : un tour lisse à pans francs (20 pans), la branche de la Zagaie sans son chanfrein. Le bas du museau de LA ZAGAIE : la planche du menton et les lames d'angle (des débris) sont remplacées par UNE lame de la couleur de la caisse, posée sur la face du nez (z lu sur la coque, lissé), qui avance de 8 cm au milieu et s'effile aux bouts sous le lobe. **LE MUSEAU « DÉCONSTRUIT » → SMOOTH (23/10, Léo : « ça fait un peu déconstruit, smooth » ; « utilise les mêmes techniques que pour LE SQUALE »)** : la leçon du SQUALE = UNE surface lisse que toutes les couches suivent. Les sections de la coque ont TOUJOURS 22 points : loin du nez les points en trop sont posés sur les segments de la coque simple (mêmes grands pans), à partir de z 1,85 ils reprennent la vraie courbe (fondu de 1,5 à 1,85) : le lobe de la bouche est un volume rond. Le z de la lèvre de la gueule, lu sur une coque en pans, tremblait : lissé le long du contour (4 passes) et le contour arrondi (Chaikin ×2) ; les deux blocs relevés du menton sont retirés (restait de la « débris »). `dbgZagaieDetail` = tout en 22 vrais points. **LE MUSEAU REPASSÉ À CÔTÉ DU MODÈLE (23/10, Léo : « repasse dessus 20 fois, à chaque fois tu vérifies à côté du modèle, le museau doit être identique »)** : banc de comparaison photo | rendu (même cadrage, `IT`) ; la vraie 5-95 (crop de Léo + photo Commons) montre une fente MINCE qui part du bas du phare et contourne le lobe de la bouche, un lobe lisse, une gueule haute au bord supérieur en arête. Fait : le prolongement de la fente vers l'arrière sous le phare est ANNULÉ (la vraie fente ne continue pas : `SIDE` et `BOUCHE` comme avant), le croissant s'amincit (demi-largeur .0115), le nez est en tranches fines (une tous les 4,5 cm de z 1,56 à 2,03) et SES normales coulent (`lisseDiffuse(...,zone)` : z > 1,55 seulement ; le reste garde ses grands pans), la lèvre du haut est un boudin plus fin, la laque est satinée (reflectivity .22). **La fente du flanc de LA ZAGAIE (Léo : « elle se courbe mais ne se recourbe pas vers le phare : la courbe est assez grande pour passer en droite, alignée sous le phare »)** : `SIDE` se prolonge en une DROITE sous le bord bas du phare (jusqu'à z 1,845) et `BOUCHE` démarre à son bout par un grand arc (rayon ~12 cm) avant de plonger en croissant : une seule fente continue. La gueule de LA ZAGAIE (suite, Léo : « finis la lèvre du bas et la barre argent »)** : à chaque angle bas, la lèvre du bas s'avance en LAME de la couleur de la caisse (coin plat, pointe vers l'avant) ; une barre argent courbe (tube chromé, basse au milieu, relevée aux bouts) traverse la gueule devant le carbone.
+## LES DUNES D'OR, LA ROUTE HAUTE ET PENCHÉE, TOUT EN FACETTES POLY (2026-10-23, Léo : « les pharaons trouvés sans compte, rends-les en mode poly comme les voitures, toute la map, inspiré par la technique de la forêt » · réponses : « fais un sphinx chat égyptien plutôt, et quelques statues avec des têtes d'animaux choisis », style « facettes poly + joints VITRAIL », étendue « décors ET dunes de sable » · « un effet de lumière encore plus réaliste sur le sable » · « la route est trop plate… comme le jeu du pingouin… la route qui se plie un peu… les dunes sont trop répétitives »)
+- **VALIDÉ PAR LÉO (23/10, sur la planche AVANT | APRÈS : « oui, pousse les dunes sur le main »)** — branche `dunes-poly` (partie d'origin/main v812), fusionnée avec v814 (cache v815) et poussée ; trois chantiers faits en parallèle (une session par chantier) puis fusionnés : la route (cette section), les facettes poly (`dunes-shaders`), les dieux (`dunes-statues`).
+- **FACETTES POLY + VITRAIL + LUMIÈRE DU SABLE** (dunes-2.js, rien d'autre) : le quadtree du terrain ne descend plus sous des cellules de 8 m (`DN.lmin`) — moins de triangles (−27 à −35 % de tuiles, ~151 k → ~100 k triangles sur la vue de banc) — et chaque triangle est éclairé À PLAT (normale par dérivées), teinte propre à la facette, éclats quand la facette renvoie le soleil, JOINTS VITRAIL tirés des coordonnées de la grille (exacts même en plein morph, ~1 px, ils s'effacent avec la distance) ; les rides du vent restent à demi-amplitude dessous. Les décors (pierre, or, grès, peint) : normale plate, teinte et éclats par facette, joints par `gl_VertexID` sur les surfaces courbes. La LUMIÈRE du sable : contre-jour chaud sur les crêtes, voile de diffusion vers le soleil, terminateur orangé, rebond chaud dans l'ombre, ombres à pénombre — coupée sur téléphone (`QUAL_LOW`). Interrupteurs : `?poly=0` (l'ancien rendu), `?lumiere=0` ; réglage à chaud `dbgDunes('poly',{tint,joint,glint,flat,rim,scat,term,reb})` ; `dbgDunes('ecart')` : l'écart entre le sable rendu et la vraie fonction `dnHauteur` (95 % sous 0,34 m autour de la route, la route reste ≥ 1,1 m au-dessus). À juger en roulant : les éclats ; en plein midi les joints font un peu « fil de fer » sur les grandes pentes lisses (`joint` 0,8 → 0,5).
+- **LES DIEUX** (dunes-dieux.js, dunes-4.js) : SIX dieux assis sur le corps du pharaon — faucon (Horus, double couronne), chacal (Anubis), ibis (Thot), bélier (Amon), lionne (Sekhmet), crocodile (Sobek) — 1350-1500 triangles chacun ; le SPHINX-CHAT (collier usekh, oreilles dressées, yeux de khôl, trois livrées, queue à gauche ou à droite) remplace le sphinx de l'allée (une livrée par paire) ; les quatre colosses de la place sont tirés parmi les six dieux et le pharaon (jamais deux identiques côte à côte), deux petits dieux gardent la porte du départ, 3 ruines sur 4 ont une tête de dieu tombée. Rien téléchargé (Léo a préféré les construire). `?sans=dunesdieux` rend les pharaons et les sphinx de Gizeh.
+- **LA ROUTE PLUS HAUTE, QUI S'INCLINE, ET LA POSE QUI DONNE DE LA VITESSE** (2026-10-23, Léo : « la route est trop plate · je voulais comme le jeu du pingouin où il faut atterrir pour prendre la vitesse · refais comme dans les nuages, la route qui se plie un peu, la voiture roule en biais petit à petit, moins que dans les nuages, histoire de zigzaguer autour des dunes · les dunes sont trop répétitives »)
+  - **Relief** (`genDunes`, dunes-1.js) : montées à 11-20 % (avant 7-11 %), crête plus longue, descente en deux temps : l'**ÉPAULE** (pente douce 5-9 %, ~130-180 m après l'apex : c'est là que la caisse se pose) puis la **DESCENTE RAIDE** (20-29 %, qui zigzague : un balayage entre deux dunes, `ici('e'+n)` marque la fin de l'épaule), puis un creux qui **roule** (deux ondulations de ± 4 m). MESURÉ : à la vitesse de la caisse au décollage (180-190 m/s, pas la vitesse de conception de 105) une pente de 17 % file sous la parabole du vol et la caisse retombait en bas de la descente (2,5 s, choc de 100) : seule une pente douce juste après l'apex rattrape un vol rapide. De plus petites vagues (`fe.pt`) s'intercalent quand le budget de longueur le permet (paliers longs) ; le dénivelé total passe de ~170 à ~200 m, les collines de 35-68 m à 55-110 m.
+  - **Pesanteur du vol** (`DN.gx`, `gK()` dans gravite-orbite.js, `dnLevre`) : (vitesse / 110)^1,3 de ×1 à ×2,3, réglée au décollage d'un tremplin et rendue à la pose — plus on va vite, plus on retombe vite : le vol se pose sur l'épaule à toute vitesse (mesuré : 0,9 à 2,3 s, choc 16-31 au lieu de 100). `?sans=dunesgrav` = la pesanteur d'avant.
+  - **La pose qui donne de la vitesse** (`dnSurf`, `dnSurfFx`, demi-tour.js `tryLand`) : une pose axée sur une descente (> 3,5 %, écart ≤ 16° entre la trajectoire et la pente) ne coûte presque rien (la perte de pose fond de 92 %) et GAGNE de 5 à 17 % de vitesse ; « BONNE DESCENTE » / « DESCENTE PARFAITE » au couloir des annonces. La gravité de la pente accélérait déjà la caisse (boucle-2) : ceci récompense le geste. `?sans=dunessurf` l'éteint ; `dbgDunes('lev')` = le dernier tremplin (gx, vx, vy, u, t, D) + `surf` (poses récompensées) + `surfG` (le dernier gain).
+  - **La route s'incline** (`DN_BANK`, `genDunes`, `buildDunes`, `dnProfil`, depart-avance.js) : dans chaque virage la dalle se couche vers l'INTÉRIEUR, 22° au plus (les nuages vont à 50°), jamais dans la zone d'un tremplin (70 m avant l'apex → 150 m après). Les normales (une par point de contrôle, `DN.bankN`) passent à buildTrack comme `TORD.N` — SANS `TORD.on` : la gravité reste la gravité, rien d'autre de la route des nuages ne s'applique. buildDunes en tire l'angle de chaque échantillon (`S.bk`, + = la dalle penche vers le côté +1, ce côté est plus bas) ; la berme de sable suit la dalle penchée (hauteur −1,6 m −3·sin(angle) − côté × distance × tan(angle), puis garde son niveau au-delà de la berme). `dbgDunes('bank', s0, s1, pas)` : l'angle de la route contre celui du sable et la marge aux deux bords ; `dbgDunes('test')` : margeMin ≥ 0,8 sur 3 graines. `?sans=dunesbank` = la route plate.
+  - **Dunes moins répétitives** : (1) des **DUNES ÉTOILÉES** par plaques (`dnDune` JS ≡ GLSL : un bruit de 16 km, ~30 % du désert, trois houles à 120° → des pyramides de sable au lieu des crêtes parallèles ; `?sans=dunesetoile`) ; (2) la **forme des collines** change à chaque vague : `S.sP/S.sM` mélangent le DÔME (rond) et la CRÊTE (plate près de la route, pointue au sommet, `dnPf(…, sh)`) ; (3) la largeur des collines varie de 2,5 à 3,8 fois leur hauteur, les rayons des arcs de montée de 1,35 à 2,6 RMIN.
+
+## LE VRAI SAUT DES FIGURES AU GARAGE ET EN BOUTIQUE (2026-10-23, Léo : « travailler la physique des tricks dans le garage, ainsi que dans la boutique… et peut-être, quand la voiture atterrit, un petit effet : atterrissage ») — ATTEND LE OUI DE LÉO (look), `?saut=ancien` rend l'ancien saut
+- **MESURÉ au banc** (salto arrière, `dbgFigEssai('saltoa')`, horloge du jeu) : l'ancien saut était un sinus de 1,5 m PLUS la rotation du Corps à pleine vitesse dès la 1re image : à 0,17 s le nez était à 105° et le BAS de la caisse à **−1,5 m**, sous le plateau (la poupe traversait le plateau puis le sol de l'atelier, ~0,3 s) ; et la pose était un arrêt net à 3,3 m/s, sans ressort, ni poussière, ni son. 10 figures sur 13 traversaient le plateau (tonneau 0,47 m · shimmy 0,24 · double tonneau 0,62 · chandelle 1,12 · saltos, vrille penchée, rodéo ~1,5 · tire-bouchon 1,63 · cosmique 1,95 m) ; seules les trois figures à plat (tail whip, toupie, hélico) y échappaient.
+- **UN PLAN joué à l'horloge du jeu** (`interface/garage-saut.js`, nouveau morceau ; `figPlan` au lancement, `figSaut` chaque image, appelé par `garFigPas`) : (1) la ROTATION vient du même moteur que la course (`FIG.Corps`), jouée d'avance par un Corps jetable (budget du garage, 1/120 s) et relevée à 60 Hz : c'est la même figure ; (2) le SAUT est une parabole (gravité entre 1,8 et 9,5 m/s² selon la figure), précédée d'un ACCROUPI de 0,1 s (la carrosserie se tasse de 5,5 cm sur ses roues, `carBody.position.y`) ; (3) LE GOUVERNEUR : l'image de rotation suivante n'est jouée que si la caisse est assez HAUTE pour qu'aucun des huit coins de sa boîte (pièces pleines, roues comprises, SANS les ailes, voir `figBoite`) ne passe sous le plateau (marge 8 cm) — elle monte d'abord, puis tourne ; le plan choisit, parmi durées 1,2 → 3,3 s et hauteurs 1,3 → 2,4 m, le saut qui minimise T + 0,3 h et laisse la figure finie 0,12 s avant la pose ; (4) LE PIVOT est le centre de masse (45 % de la hauteur de la boîte), plus bas que la moitié de la fiche `h` qu'on utilisait (le toit balayait un grand cercle) ; (5) LE FILET : si un plan est impossible (une limousine de 6 m ne fait pas un salto dans un atelier de 6 m), la caisse est relevée de ce qui manque (mesuré : 0,15-0,4 m au plus, jamais sous le plateau).
+- **MESURÉ après** : pénétration max **0,00 m** pour les 13 figures sur LA HONTE et sur les caisses extrêmes (ELDORADO 6,3 m, DOGE cubique, ROUGE-GORGE, MASTODONTE haut de 3 m) ; le plan coûte 0,3 ms en moyenne (1,8 au pire) à l'ordinateur ; chaque figure finit à y = 0, assiette droite, `GFIG.D` = 0. Hauteurs (centre) : tonneau 1,3-1,7 · shimmy 1,3 · saltos 2,3 · tire-bouchon, rodéo, chandelle, penchée 2,4 · le cosmique dure 2,65 s de vol. Les figures À PLAT (tail whip, toupie, hélico) restent posées, avec leur gomme, comme avant.
+- **L'ATTERRISSAGE** (`figAtterrit`) : la carrosserie encaisse sur ses roues par un ressort amorti (8 cm au plus, rebond de 3 cm, 0,4 s) ; un nuage de poussière en pixels à chaque roue + l'anneau de fumée (`burnEmet`, `burnAnneau` : la fumée du burn-out, mêmes réservoirs) ; quelques étincelles si le choc est dur (> 4,2 m/s) ; `sfx('pose.nette')`, un tic dans le pouce `hap([8,18])`, l'anneau du plateau qui s'allume (`GFIG.pulse`, garage-rendu.js) et la caméra qui encaisse 4 cm (`GFIG.kick`). Au décollage : un petit nuage à chaque roue et un tic. Ce que la course fait déjà à la pose d'une figure (`frFin`), en garage.
+- **Crochets de banc** : `dbgFigPlan()` (hauteur, durée, gravité, vitesse d'impact, filet du plan en cours) ; `dbgFigEssai` rend aussi le plan. `?saut=ancien` = l'ancien saut en sinus (pour comparer sans rien débrancher).
+- Non touché : la course, l'ombre au repos, le bras des figures (`?bras=1`), la boutique des caisses (lévitation, bras d'argent).
+
+## L'OMBRE DE LA CAISSE QUI SAUTE (2026-10-23, Léo : « il y a une ombre plate qui suit la voiture pendant que ça saute, ce qui n'est pas réaliste » — au garage et en boutique, pendant les figures)
+- **MESURÉ au banc** (Chrome sans fenêtre, `dbgFigEssai('saltoa')`, horloge du jeu) : au GARAGE l'ombre de contact (`contactShadow`) suivait l'origine de la caisse — de 1500,14 à 1501,79 m pendant un salto, même taille (3,5 × 5,5), même noirceur (,9) — et basculait avec son assiette : une feuille noire collée au ventre, rien sur le plateau. En BOUTIQUE le disque `GBQ.omb` restait au sol, mais aussi noir et aussi large à 1,7 m de haut.
+- **L'EMPREINTE RESTE SUR LE PLATEAU** (`figOmbre`, nouveau morceau `interface/garage-ombre.js`, appelé chaque image par `garFigTick`) : elle se pose au sol sous le CENTRE de la caisse, tournée au CAP (l'axe du nez, ou du côté quand le nez pointe en l'air — jamais à l'assiette), à la taille de la BOÎTE de la caisse vue d'en haut (un salto la raccourcit, un tonneau l'étrécit : fonction d'appui de la boîte des pièces pleines, relevée une fois par caisse, `figBoite`). Plus le centre monte, plus elle s'ÉTALE (×1 + ,22 h) et s'éclaircit à peine (`.9 / (1 + ,18 h)`) ; les quatre appuis des roues s'éteignent dès qu'elles décollent : `EMPR.texA`, la même empreinte sans appuis (rendu/triptyque-bloom.js, `emprPeint`). Raccord : à h = ,05 m le centre garde la noirceur d'au sol (,9 × ,46 = ,575 × ,72), aucun saut au décollage ni à la pose.
+- **EN BOUTIQUE** `GBQ.omb` suit la hauteur de ce qui monte AU-DESSUS de sa lévitation (`fl` reste celui de garBqIndus : au repos et en vol stationnaire le disque est exactement celui d'avant) : plus grand, bien plus clair, centré sous la caisse.
+- **Rien d'autre ne bouge** : au repos l'ombre du garage est celle d'avant (mesuré : même position, même échelle 3,52 × 5,5, même opacité ,9) ; la course (`drive`, `fall`) n'est pas touchée (mesuré : ,72 et 3,52 × 5,5) ; la physique de la figure (saut sinusoïdal de 1,5 m) non plus.
+- **Crochets de banc** (`window.dbg*`) : `dbgFigEssai(id,c)` lance une figure (c : 0 avant · 1 arrière · 2 côté) et rend sa durée ; `dbgFigEtat()` (horloge de la figure + le disque de boutique) ; `dbgFigGel(t)` arrête l'horloge de la figure à t s pour photographier un instant exact (`null` = elle repart) ; `dbgFigOmbre()` (hauteur, emprise, cap de l'ombre).
+
+## LES DUNES D'OR : LA ROUTE CONTINUE (2026-10-22, Léo : « le niveau dune n'est pas au niveau » → « la texture du sable, j'aime pas · les sauts sont ignobles, la route se coupe comme avec un ciseau digital · j'aimerais que les routes qui font sauter embrassent une haute colline de sable, et le joueur peut piquer en bas ou décoller · je préfère le style A (pharaon assis), des pyramides plus belles, la culture égyptienne en version embellie · je veux niveau 100 »)
+- **VALIDÉ PAR LÉO (22/10, sur la planche AVANT | APRÈS : « push déjà, c'est trop »)** — branche `dunes-niveau` fusionnée avec origin/main (v808) puis poussée sur main. Léo a choisi (question posée) : « Route continue » — plus aucun trou : la route monte une grosse dune, passe une crête arrondie qui sert de tremplin, redescend l'autre versant jusqu'à la dune suivante.
+- **LA ROUTE** (`genDunes`, dunes-1.js, réécrit) : UN ruban, fait de VAGUES. Une vague = la MONTÉE (un arc de 44-70°, ou deux arcs en S, qui ENLACE une colline : le sable monte au dedans de l'arc, il tombe au dehors), la CRÊTE (courbe verticale PARABOLIQUE, l'apex est le tremplin), la DESCENTE (droite de 225-285 m à −15…−19 % sur un éperon), le CREUX (S, balayage, serpent ou droit). Les altitudes sont l'intégrale d'une courbe de pente `GN` (nœuds (u, pente), linéaire entre deux : jamais d'angle). Des LIEUX tirés : la PLACE des colosses (toujours la 2e vague, la signature de la map), l'ALLÉE des obélisques (`obel0/1`), la CUVETTE d'argile (`vlei0/1`), le RYTHME (4-5 petites bosses de ~110 m, chacune son tremplin : le « pas japonais » d'avant) ; un budget de longueur (≈ 4,2-5,5 km, 40 graines mesurées), 3-5 vagues + la dernière (descente finale, oasis). `DN.fe` = les vagues (liste d'échange du pré-bâti : `'fe'`), `DN.Q` = leurs repères (m{n}a début de montée · m{n}s milieu d'un S · m{n}b fin d'arc · c{n} apex · d{n} fin de descente · w{n}_{k} bosses · erg0 · oasis0 · fin).
+- **LE TERRAIN** (dunes-1.js) : plus de plafond ni de plancher, plus de fosse sous les sauts. Près de la route le sable est PRESCRIT : une berme plate 1,6 m sous le bitume sur 10 m (la dalle n'a qu'un liseré de tranche), puis, de chaque côté, une COLLINE (monte à ~10° puis 25°, crête, retombe à 31°) ou un ÉPERON (tombe à 17° puis 33° jusqu'à la mer). La grille fine F (12 m) stocke [Hn, w] (RG32F) ; h = désert + w × (Hn − désert), dans `dnHauteur` (JS) ET `dnHt` (GLSL, `h=mix(h,C.r,C.g)`) — à retoucher ensemble. `dnProfil`/`dnPf` (profil en travers), deux bras proches se MÊLENT (moyenne pondérée exp(−d/14), jamais un max). `buildDunes` pose les paramètres par vague (colline au DEDANS de l'arc, encoche de crête, murs du creux ; hP/wP/hM/wM) ; cuisson en deux passes (le désert n'est calculé qu'autour de la route). Test : `dbgDunes('test')` → `margeMin` ≥ 1 (le sable reste ≥ 1 m sous le bitume, toute la largeur).
+- **LES TREMPLINS** (`dnLevre`, dunes-2.js) : une caisse qui franchit l'apex à ≥ 90 km/h est lancée pour retomber SUR la route de la descente (visée `DN.lev[k].aim`, à n'importe quelle vitesse) ; plus lente, elle roule par-dessus et DESCEND. En l'air, le joueur choisit : piquer (pouce vers le bas, on se pose plus tôt sur la pente) ou planer. « Portes du ciel » : deux obélisques et des braseros de part et d'autre de chaque crête (le tremplin se lit de loin). Mesuré au pilote automatique : un saut par crête, une par bosse, aucune mort sur 20 graines, paliers moteur 0, 3, 7, 14, 20.
+- **LE SABLE FAÇON JOURNEY** (`DN_FS`, dunes-2.js) : plus de mosaïque de cubes (« la texture du sable, j'aime pas »). Des RIDES DU VENT en trois octaves (62 cm de près, 3 m, 13 m ; la normale ondule, les crêtes de rides serpentent et se fourchent, le vent tourne), des traînées longues, un lustre sur les crêtes de rides, des ÉCLATS (facettes de 9 cm qui scintillent), la lumière chaude côté soleil / froide côté ombre ; la poussière dans l'air (vent de sable, tempête : `uQ.z`). Le détail suit l'appareil (`uMo.z` = `PAL.B.dnMo` : 0 vieux téléphone, .75 moyen, 1 récent ; `?mosaique=0` = sans). Sept lectures de texture par pixel (douze avant).
+- **LES MODÈLES** (dunes-3.js) : le PHARAON ASSIS, style A (trône cubique en assises, dossier-dalle, flancs au sema-tawy, jambes en colonnes, tablier plissé, torse large au collier d'or et d'azur, mains à plat, nemès rayé azur/or aux lappets sur la poitrine, uræus, barbe tressée) construit avec le nouveau `loft` du kit (anneaux superelliptiques) et une matière neuve 5 (grès lisse patiné) ; les PYRAMIDES DE GIZEH (`pyrGiza` Khéops : parement de calcaire crème, pyramidion d'or qui flambe ; `pyrCap` Khéphren : le haut a gardé son parement blanc ; `pyrRouge` Mykérinos : la base en granit rouge d'Assouan) ; les OBÉLISQUES en granit rose gravés de vrais HIÉROGLYPHES (un atlas de 16 signes dessiné au canvas, `dnGlyphes`, lu par la pierre gravée aK 4) ; des ORIFLAMMES qui ondulent (aK 20+u, VS des décors, `dnFlag`), des BRASEROS à flamme (aK 22, la nuit ils éclairent l'allée), papyrus, lotus bleus et felouques sur le lac ; les diables de sable et le mur de tempête sont de la POUSSIÈRE translucide (plus des éclats de polygones).
+- **LES SCÈNES** (dunes-4.js) : un lieu, une scène — la porte du départ (deux pylônes à oriflammes), l'allée des sphinx dans l'allée des obélisques, les quatre colosses (50-62 m) sur la place, la colonnade qui mène aux pyramides ; les plateaux (`S.pw`) laissent un sol plat sous chaque scène, les murs de colline commencent après.
+- **Lumière** (`biomes.js`) : sable du soir moins rouge, sable de nuit plus sombre (la lune ne le blanchit plus), herbe de l'oasis d'un vert profond.
+- **Mesuré** : `dbgDunes('test')` 0 sable au-dessus du bitume, 0 décor sur la route, marge ≥ 1 m sur 20 graines ; autopilote : 7 graines × 75 s sans mort (+ météos matin, soir, nuit, vent, tempête) ; construction du monde (travailleur) 120-550 ms sous charge ; paliers moteur 3, 7, 14, 20 : routes de 4,6 à 9 km, mêmes résultats. ⚠ le chrono GPU de cette machine est trop bruité (4-45 ms pour la même image) : la mesure de coût GPU est à refaire au calme ou sur téléphone (`?banc=1`).
+- **Crochets de banc** (`dbgDunes`) : `('test')` · `('ech', s0, s1, pas)` (le terrain prescrit) · `('sauts')` · `('vueA', s, haut, cap, pente)` · `('cam', œil, cible, champ)` · `('galerie', s, [modèles])` · `('modele', nom)` · `('shader', 'sable'|'t'|'g', ancien, neuf)` · `('const')` · `('gpu')`. Pour un palier moteur donné : `dbgTrace({carte:'dunes', meteo:'midi', graine:n, palier:p})`. Piège zsh : `${=var}` pour découper une chaîne.
+- Fichiers : `maps/dunes-1.js` (route, terrain, construction), `dunes-2.js` (sable, tremplins, matière des décors, crochets), `dunes-3.js` (boîte à outils, modèles), `dunes-4.js` (scènes) ; `biomes.js` ; `moteur/piste-prebati.js` (+ `'fe'`) ; `ORDRE.txt`.
+
+## LE SCAN DE LA STRATOS — UN TAP SUR LA CAISSE LANCE LA STATION MÉTÉO (2026-10-22, v809, Léo : « Oui, fais le SCAN au tap sur la Stratos »)
+C'est l'ACTION SPÉCIALE de la caisse (`CAR_ACTION`, atchoum-feu.js — posée par `stratosMeteo`, comme LA CERISE, LE TOFU et LE SQUALE) : le TAP sur la caisse au garage (`garageImpact`), au menu ciel (`chuteTape`) et en boutique
+(`bqTape`) ; rien en course (`caisseAction` n'y est pas appelée). `dbgAction()` la joue ; `dbgStratos({scan:t})` fige un instant du scan pour les photos. Tout est fonction du TEMPS DU SCAN (`scanT`), 3 s :
+- **la charge** (0-0,45 s) : radars ×7, anneaux ×4,5, coupelles +14 rad/s, la manche à air se tend, le scanner du bouclier ×3, la barre défile plus vite ;
+- **le balayage** (0-1,05 s) : une crête blanche court sur les 21 barres — elles montent d'un coup devant elle, retombent en traînée derrière ;
+- **trois arcs** (0,55 · 1,10 · 1,65 s) : les pointes des paratonnerres claquent avec, et le gyroscope gonfle de 20 % à chaque coup (pas d'arc au hasard pendant le scan) ;
+- **l'icône** défile toutes les 0,17 s puis se FIGE à 1,4 s sur un résultat tiré au hasard (jamais celle de départ) et claque (×1,32) ; **la retombée** de 1,5 à 3 s, puis le carrousel reprend depuis le résultat. Retapé en route : il repart à 0,9 s.
+- Pas de son ajouté (le coup de tôle du tap suffit ; la bibliothèque n'a pas de recette « zap » : à cuire si Léo en veut un). 0 dessin et 0 programme de plus : le scan réécrit les mêmes tampons.
+- Vérifié : le scan déroulé image par image à la main, puis dans la VRAIE boucle (`dbgStep`) : 0 → 3 s puis −1, arcs aux bons instants, icône figée à 1,44 s, 0 avertissement ; photos des instants (studio). ⚠ Pas vu au doigt dans le vrai garage (le volet intégré était masqué) :
+  la planche est faite d'images figées, le mouvement reste à regarder à l'œil.
+
+## LA STRATOS, STATION MÉTÉO — DES GADGETS CYBER-FUTURISTES DE PRÉDICTION MÉTÉO, MOITIÉ TECHNIQUE, MOITIÉ ABSTRAIT (2026-10-22, v806, Léo : « retouche stratos : ajoute plusieurs gadgets cyber-futuristes de prédiction météorologique sur la voiture, répartition abstrait / technique, voiture épique » · « design cohérent à la Stratos » · le oui de Léo après la planche : « Oui, pousse la Stratos station météo sur le main »)
+« Stratos » vient de la STRATOSPHÈRE : la berlinette lit le ciel. La caisse n'est pas touchée (livrée, jantes, phares de rallye, feux, profil, lamelles du capot) : on lui pose du matériel dans SA langue — même palette
+(blanc, vert et rouge de la livrée, or des jantes, noir mat, chrome, blanc chaud des phares), mêmes facettes, même montage que la rampe de phares (une platine noire, un collier d'or, la pièce par-dessus).
+- **Code** : `code/voitures/stratos-meteo.js` (nouveau, avant `buildcar.js` dans ORDRE.txt) ; `gamme-3.js` : deux lignes dans `c_stratos` (la palette reçoit `stratosPal()`, et `stratosMeteo(K,P,{yT,LF})` est appelée avant
+  `K.commit(P)`, sous try/catch : une erreur laisse la Stratos d'avant). `?stratos=ancien` = la Stratos d'avant. `dbgStratos({ancien,t,vit,icone,eclair,arc,avance,course})` fige un état au banc (LA STRATOS = `dbgEquipe(48)`).
+- **TECHNIQUE** (du vrai matériel) : l'ANÉMOMÈTRE à trois coupelles blanche / verte / rouge (mât de gauche) et la MANCHE À AIR tricolore (mât de droite), deux mâts rayés vert / blanc / rouge sur les bouts de l'aileron de toit ;
+  deux RADARS DOPPLER qui tournent en sens contraire sur la plage arrière ; deux PARATONNERRES aux bouts du becquet ; deux CADRANS (baromètre, hygromètre) au bout de la rampe de phares ; l'ABRI À PERSIENNES (les persiennes du
+  capot moteur, en blanc) qui porte le gyroscope.
+- **ABSTRAIT** (de la lumière) : le GYROSCOPE (trois anneaux d'or qui basculent sur trois axes, billes verte / blanche / rouge, et l'ICÔNE météo au centre — soleil, nuage, pluie, orage ; carrousel au garage, EN COURSE la météo de
+  la zone : `LVL.pluie`, `LVL.brume`, `LVL.mer`, `LVL.nuit`) ; la BARRE DE PRÉVISION du becquet (21 barres, une courbe de pression qui défile, vert → or → rouge) ; le SCANNER sous le bouclier avant ; l'ARC qui claque d'un
+  paratonnerre à l'autre (tous les 4-9 s, plus souvent à la nitro).
+- **Ce qui bouge** : un seul groupe dans `BLING.anim` (`userData.anime` pour la salle blanche) ; l'allure (arrêt → course → nitro) accélère radars, anneaux, coupelles, barre. 10 dessins de plus (le fixe est versé dans le kit de la
+  caisse : zéro) ; les quatre pictogrammes sont UNE géométrie dont on ne dessine qu'une plage (`setDrawRange`) ; 0 programme compilé de plus (`dbgProgs().n` 16 → 16) ; 0,06 ms par image en JS, AUCUNE allocation par image (tampons
+  préparés une fois, `stratosBoite` réécrit les sommets en place).
+- ⚠ **Piège : la passe des feux LED** (`feuxCaisse`, feux-led.js) relit les couleurs des pièces `l` (matière avec `userData.lp`) aux deux bouts de la caisse et en tire des coques de lueur FIXES — sur des barres qui montent et
+  descendent elles resteraient en l'air. Les pièces lumineuses qui bougent ont donc leur matière à elles (`stratosLampe()`, Basic + couleurs de sommets, SANS `lp`, `plq` : jamais libérée) ; les graduations des cadrans (le seul
+  blanc posé à l'avant) sont en or. Relevé `dbgFeuxLed()` avant / après : 2 coques / 2 coques, rouge 480 / 480.
+- Vérifié (banc d'atelier, 720×440, `dbgEssaiCaisse`) : 0 erreur ni avertissement, ailes de la boutique (X-wing, dragon, phénix, plumes, hélices, monarque) sans collision avec le matériel, peintures de la boutique (noir, or, camo)
+  sans erreur, la caisse équipée se reconstruit 50 fois sans erreur. Puis dans le VRAI jeu (volet intégré affiché) : le garage (planche AVANT | APRÈS dans sa vraie lumière), la tombée de l'écran titre, une course sur le glacier
+  (54 i/s, l'animation tourne dans la vraie boucle) ; garage ancien / nouveau 17-20 ms contre 17-19 ms par image : dans le bruit. En course la caméra est loin : la station se lit surtout au garage. Pas vu sur un vrai téléphone.
+  Planches : `photos-gameplay/stratos-meteo-avant-apres.png` et `stratos-meteo-details.png` (CAR CAHS V3). Reste possible, non fait : au tap sur la caisse, un SCAN (`CAR_ACTION` : radars à fond, arc, éclair).
+
+## LE GARAGE : TAIL WHIP AU SOL, ŒIL ET RÉGLAGE ÉCHANGÉS, LE BAS REPRIS (2026-10-22 soir, v803, Sacha : « le tail whip à l'inventaire, la caisse décolle : il faut que ça reste sur le sol, avec une trace de pneus comme les donuts » ; « l'œil à la place du cadenas » ; « retravaille tous les boutons »)
+- **Figure à plat = caisse posée** (`garFigEssai` → `GFIG.plat`, boutique-scene-1.js) : une figure dont tous les axes sont verticaux (tail whip, toupie) ne soulève plus la caisse (le saut `1,5·sin` ne vaut que pour les autres) ; `garFigGomme` (burn-out-1.js) dépose la gomme des QUATRE pneus sur la même toile que le donut (`BURN.gom`), de point en point.
+- **Œil ⇄ réglage** (boutons-flottants.css) : le haut droit lit ŒIL · ⚙ · 🏆 (écart --fg 8 px). Lu « cadenas » = le ⚙ doré : à redire si c'était le trophée.
+- **Le bas** : INVENTAIRE / MISSIONS à 9 px, pictogrammes 27 px ; la BOUTIQUE en L a un reflet qui passe et un panier qui rebondit (coupés en mouvement réduit).
+Pas vérifié : le bras des figures (`?bras=1`) garde sa levée.
+
+## JADE PLUS LÉGER — SON CIEL DANS UN PROGRAMME À LUI, LES PEAUX VIDES, LES SINGES ÉTEINTS (2026-10-22, v798, Léo : « enlève les singes de la map jade ou rends-les plus légers, et rends la map plus légère au code : sur la map grotte ça bugue moins et pourtant c'est aussi joli »)
+Banc : Chrome sans fenêtre (profil iPhone 390 × 844, NETTE), images FIGÉES à des endroits fixes de la vallée, mesures ENTRELACÉES (A, B, A, B…) dans la même page —
+la machine était à une charge de 30-80 (le Mac de Léo aussi, côté app Claude) : aucun chiffre en ms n'est fiable seul, seuls comptent les compteurs et les A/B de la même page.
+MESURÉ, la grotte (310 k triangles, ~200 appels, 3-4 ms de scène) contre les Pics de Jade (0,8-1,1 M triangles, ~310 appels de `renderBufferDirect`, 9-13 ms) :
+- **LE CIEL DE JADE** (`MAIN.jd`, `C.jd`, `cielDeuxTemps`, `cielChauffe`) : le dôme (le rouleau peint, la mer en cubes de 4 m en 48 pas de DDA par pixel, le lointain en
+  cinq chaînes, les kasumi) tournait dans le programme PLEIN — celui qui porte aussi la ville, l'orbite, les nuages et le fond musical. Même sur sa branche courte
+  (`uJade>.9999 → jadeCiel`), la puce réserve les registres du programme ENTIER pour chaque pixel. Le canyon avait déjà « son ciel seul » (`C.cy`) ; Jade a le sien :
+  `jd = src(TETE, VILLE, K.jade, K.trame, MAIN.jd)`, le MÊME appel (`jadeSous`/`jadeCiel` + la trame). Image identique AU BIT PRÈS : 0 pixel de différence sur 5 bandes de l'écran
+  × 3 endroits de la vallée (horloge `performance.now`/`Date.now` GELÉE pendant les rendus : le ciel dépend du temps, sans ça deux rendus du MÊME programme diffèrent déjà de 3-5 % des pixels).
+  Image de scène (sans post, figée) : 9,1 → 5,8 · 14,9 → 9,3 · 13,2 → 7,7 ms ; le dôme ne coûte plus que ~0,5 ms (éteint tout à fait : 5,1 · 8,7 · 7,1). `?ciel=plein` = avant. Programme chauffé
+  au chargement avec les autres (0 compilation en course : 223 programmes au menu comme après 14 s de Jade).
+- **LES PEAUX DE COTON VIDES** (`cotonTick`, `COTON.skin`) : la peau des nuages (v773, Sacha) restait VISIBLE à zéro exemplaire — 92 des 316 appels de dessin d'une image n'étaient que
+  des peaux vides (three prépare programme, uniformes et tampons pour ne rien dessiner : la même fuite que les familles vides de `jadeTri`, v17). `visible = root.visible && count>0` : ~310 → ~160 appels.
+  Vaut aussi pour la MER DE NUAGES (même coton).
+- **LES SINGES SONT ÉTEINTS** (`JSG_ON`, `?singes=1` ou `?singesjade=1` les rend, tels quels) : plus d'ouvriers au menu (3,5 s de calcul des quatre formes vitrail), plus de programmes
+  compilés ni de géométries en mémoire, plus de `creatures/singe.js` chargé (19 Ko, 2 ms d'évaluation à chaque lancement de TOUTES les maps — la balise est écrite à la demande dans
+  `page/bibliotheques.html`). MESURÉ : un singe à l'écran ne coûtait que 19 k triangles et 3 appels — c'est son démarrage, pas sa présence, qui pesait ; s'il revient « plus léger »
+  il faudra un singe SANS vitrail (pas de calcul au menu), donc un autre dessin : à valider avec Léo.
+- Crochets de banc ajoutés : `dbgJadePoste('gros'[,seuil])` (les plus gros objets visibles, leur parent), `('monu')` (Porte et Pont : maillages, tailles, lequel est dessiné), `('temps',n)` et
+  `dbgTemps(n)` (ms d'une image de scène, la puce attendue par une lecture d'un pixel — n'importe quelle map), `('coton'|'singes'|'monuments', on)`.
+- RESTE (non fait, à proposer) : la PORTE est UN maillage de 159 k triangles (r = 634 m), dessiné dès 2,6 km de la brume (1 passe) et en TROIS passes de verre sous 450 m (477 k) ;
+  `jadeMonuLoin` (le maillage allégé de loin) est éteint au palier récent. Le ciel de Jade en deux temps (passe lisse à demi-résolution, comme les nuages et la ville) gagnerait encore ~0,5 ms.
+  `foretTri` et les autres tris de quartiers tournent à chaque image même quand leur map n'est que PRÉ-BÂTIE (invisible) : un garde `root.visible` les coupe.
+  ⚠ Banc : depuis v789 (web sans sauvegarde) il faut `&garde=1` dans l'URL, sinon le compte est neuf à chaque ouverture et le banc reste sur l'accueil.
+
+## L'ANNEAU DE FUSION AUTOUR DE LA PLANÈTE DE L'ORBITE (2026-10-22, v792, Léo : « ajoute un anneau de fusion autour de la planète, stylé · récupère ça quelque part et rends-le pixel, en cohérence avec le jeu »)
+- **D'où il vient** : le CŒUR À FUSION, moteur 25 (`case 24` de `voitures/constructeur-moteur.js`, la carte `tore · bobinesD`) — un tokamak : une petite étoile, un tore de plasma qui la
+  traverse, huit bobines de cristal passées autour du tube. Palette de la fiche du moteur (`col` 0xd8ff60 · `flam` 0xf0ff90) : le citron acide, complémentaire exact du bleu de la Terre.
+  Ici la planète est l'étoile et l'anneau l'enserre.
+- **Rendu en pixels** (`maps/orbite-anneau.js`, nouveau morceau après `orbite-2.js`) : le vocabulaire du vitrail et des nuages — de loin lisse et brillant, de près des cubes et leurs joints de lumière.
+  Le tube = 8 cubes par pas autour d'un cœur de cubes blanc-citron qui se touchent (le fil du plasma), à 88 % de leur taille (entre eux passent les joints) ; huit bobines = des cadres de cubes sombres,
+  coins en cristal, dont les joints s'allument à tour de rôle (un chenillard autour de l'anneau) ; une onde lente, trois paquets de plasma qui tournent, des étincelles, le pouls de la musique et le nitro
+  qui l'embrase. De loin : une coque additive qui lie les pixels, puis le bloom. ≈ 4 144 cubes (432 pas), deux appels de dessin (cubes + halo), tout calculé dans le sommet (4 nombres par cube).
+- **Le globe le cache à la main** : la planète se peint sur le plan lointain sans écrire de profondeur (`planetGroup`) — la moitié de l'anneau qui passe DERRIÈRE elle serait dessinée devant.
+  Chaque fragment teste donc son rayon œil → fragment contre la sphère du globe (`uPC`, `uPR`) et part s'il est derrière.
+- **Placement MESURÉ en course** (planches du 22/10, Terre, Mars, Jupiter) : rayon 2250 (×1,44 celui de la planète), axe incliné de ,75 sur la visée et recalé sur l'œil à chaque image (`anneauTick`, appelé
+  par `orbiteTick`) : la même vue à chaque virage, un arc qui enjambe la planète sans écraser le ciel, dans le cadre pendant environ le quart de la course (champ de vision ~120°). Rayon 2750 : sort du cadre ;
+  inclinaison 1,2 : passe à 500 unités de l'œil.
+- **Vie** : enfant de `planetGroup` (il suit sa place, son échelle, son fondu), créé à l'init, caché hors de l'orbite et au garage (`LVL.planete`), pris par `renderer.compile` avec le reste (il parcourt aussi le caché) :
+  trois programmes de plus au menu (228 contre 225 avec `?anneau=0`), aucun de plus en course. 60 i/s au banc. L'allègement de la copie en ligne n'y touche pas (`dbgAnneau` part avec les autres `dbg*`).
+- **Réglage** : `?anneau=0` = la planète seule, comme en v791. Banc : `dbgAnneau({tilt,R,S,fill,seam,halo,hot,core,coil,corner,off})` (`off:true` : la paire AVANT | APRÈS dans une même image).
+- **Vérifié sur le code fusionné avec main v791** : course de l'orbite au pilote automatique (4 400 m) avec et sans l'anneau, `__orbErr` / `__loopErr` / `__banqErr` vides, nombre de programmes compilés inchangé en course.
+- **À valider par Léo (le look)** : la couleur citron, l'épaisseur du tube, la taille de l'arc ; « c bof » → `?anneau=0` est l'avant, un commit de retour est trivial.
+
+## LA PLUIE DE RICHESSE DE LÉO REMISE (2026-10-22, v790, Sacha : « oui, remets sur main la pluie de richesse de Léo perdue à la fusion du 21/10 »)
+- **CE QUI ÉTAIT PERDU** : la fusion `f456df2f` (« Fusion origin/main (v779) : nuages en cubes, v780 », 21/10 3 h 23) a réassemblé index.html depuis des
+  morceaux qui n'avaient jamais reçu la pluie de richesse v766-v778 (faite dans index.html seul). Treize blocs, tous dans richesse-1/2/3 : la BAGUE
+  (`richBagueGeo`, v775), le CIGARE et le TROUSSEAU de clés (`richCigareGeo`, `richClesGeo`, v778), le VRAI CRÂNE scanné (`richCraneGeo`, v766, plus petit en v767),
+  la MONTRE ARGENTÉE une sur deux (`richTexMontreArg`, v767), leurs quotas (`RICH_CAP`) et leurs poids dans les gerbes (`RICH_TIER`). L'œuf d'or reste retiré (v777).
+  Rien d'autre de cette fusion n'a été perdu (comparaison ligne à ligne : 273 blocs gardés, 13 perdus, tous ici).
+- **D'OÙ ILS REVIENNENT** : le commit `06c4f800` (branche `neige-decor`) avait rangé ces v766-v778 dans les morceaux. Ses trois morceaux sont appliqués en trois voies :
+  les nuages du titre (richesse-3, v760-v774) restent ceux de main. Le crâne est logé dans le code (int16 en base64) : aucun fichier à ajouter.
+- **VÉRIFIÉ** (vrai jeu, Chrome sans fenêtre) : deux jackpots forcés sur l'écran titre, sans erreur ; bague, cigare, clés et crâne sortent chacun en groupe 3D,
+  une montre sur quatre en acier (tirage une sur deux). Course sans erreur couché, debout et dans le cadre de l'ordi.
+- ⚠ **LE PIÈGE** (déjà dans le guide de l'assembleur) : une retouche faite dans index.html SEUL disparaît au prochain réassemblage depuis les morceaux. Après une fusion,
+  `node code/assembler.cjs --verifier` d'abord ; s'il dit ≠, ranger la page dans les morceaux (`--depuis-index`), jamais l'inverse à l'aveugle.
+
+## DEUX PEINTURES SECRÈTES AJUSTÉES (2026-10-22, v802, Sacha : « oui » aux points de la revue)
+- **MENTHE GLACÉE** compte la neige ET le blizzard du glacier (neige seule : un niveau sur 66). **CHROME MIROIR** : cinq niveaux sur la mer de nuages (un seul l'ouvrait à la 1re course) ; indice « Cinq niveaux dans les nuages. » (anglais : « Five levels in the clouds. »).
+
+## LES CORRECTIFS DE LA REVUE (2026-10-22, v799, Sacha : « corrige ATCHOUM, traduis les indices, ne rembourse que ce qui a été acheté »)
+- **ATCHOUM** n'a plus qu'UNE mission (`figs500`) : `geyser` paie 15 000 $ (À VALIDER) — l'`av` imbriqué de CAR_UNLOCK[69] disparaît.
+- **Indices des peintures secrètes** : dix-huit traductions anglaises (`I18N`, boutique.js, juste sous `peintSecrete`).
+- **Remboursement des caisses retirées** (`san`, sauvegarde.js) : une caisse GAGNÉE par sa mission (LA CAISSE-NUAGE : `nuage30` · LA FOURNAISE : `cratere`, dans `d.m2.ok`) sort de `owned` sans remboursement. Banc : sans mission 8 870 000 $ rendus ; avec `cratere` et `nuage30` réussies, 3 670 000 $ (ZED, PUCE, TOFU, ABSTRAITE). Limite connue : LA PUCE (30 000 $) était aussi un contrat gagné gratuitement ; elle reste remboursée.
+
+## LA MAP VOLCAN D'APRÈS PHOTOS + LES PEINTURES SECRÈTES (2026-10-22, v795, Sacha : « reprends ces images pour refaire la map volcan » · « d'abord les prix et les retraits, puis les défis un par un »)
+- **Volcan v6** (maps/volcan-route.js, `VLC6`, `?volcan=avant6` = la v5) : quatre photos de coulées (croûte noir-bleu vitreuse et plissée, roche grise argentée, lave orange à cœur jaune, lac de lave). Seuls les SHADERS changent — `VLC_SOL_FS6` (croûte plissée ardoise, cendre argentée, ombres froides, reflet de verre, fissures rouge→jaune), `VLC_LAVE_FS6` (peau cordée, orange→jaune→blanc verdâtre aux points chauds, plus de lumière), `V6` dans `VLC_ROC_FS` (arche et aiguilles plus claires, fissures fines). Route, relief, collisions : intacts. Les six photos de la galerie (`repertoire-maps/img/volcan-*.jpg`) sont refaites.
+- **Peintures secrètes** (economie/boutique.js `PEINT_DEFIS`, `peintSecrete` ; détection dans missions/defis-moteur.js `m2Niveau`, `m2Fruit`, `m2Pu`, `m2Cpt`) : MENTHE (10 niveaux sous la neige), BLEU MINUIT (10 de nuit), ROSE DRAGÉE (10 le matin), ABRICOT (10 en plein jour), BLANC NEIGE (10 sur le glacier), VERT OGRE (10 dans la forêt), NUIT DE GOTHAM (10 dans la ville), CIEL D'ORAGE (10 sous la pluie), LUNAIRE (10 dans l'espace), CHROME MIROIR (traverser les nuages), ROUGE BOLIDE / ORANGE ÉMEUTE / AZUR (50 cerises / oranges / myrtilles), JAUNE TAXI / VIOLET ROYAL / FUCHSIA (50 citrons / raisins / fruits du dragon), MONDE À L'ENVERS (100 km sous la dalle), SUPER GUERRIER (palier 24). BANANA reste en vente : il n'y a plus de banane dans le jeu. Les compteurs sont dans `SAVE.d.m2.c.sc`. Le pack compte 35 couleurs.
+- **⚠ La sauvegarde (san) bornait `m2.c` à une liste** : les compteurs à vie des missions de caisse (pu, nitS, nmaxS, figs, airS, kmTot, verglasKm, met) et des peintures (sc) sautaient au rechargement (app iPhone ; le web repart à neuf sauf `?garde=1`). Ajoutés à la liste (sauvegarde.js). Vérifié : un rechargement garde tout.
+- **Bancs** : `?garde=1` est NÉCESSAIRE aux bancs (le web repart d'un compte neuf à chaque ouverture : sans lui la sauvegarde posée est ignorée et l'auto-école démarre) ; `photos.py` le passe désormais.
+
+## LE TABLEAU DES PEINTURES, 1re ÉTAPE : PRIX EN EUROS ET RETRAITS (2026-10-22, v793, Sacha : « d'abord les prix en euros et les 8 retraits, puis les défis un par un »)
+- **Prix** (`PEINT_EUR_ID`, economie/boutique.js, par-dessus `PEINT_EUR` de la rareté) : 0,50 € NOIR MAT, ROSE POUPÉE, VANILLE, PISTACHE, VERT AMANDE, BLEU PISCINE, LILAS, VERT BILLET, LAGON, CUIVRE, GRIS NARDO · 1 € COUCHER DE SOLEIL, VAPORWAVE, LAVE, HOLOGRAMME, FANTÔME, NACRE, LAMPADAIRE, CAMÉLÉON, GALAXIE, PLEIN AUX AS et les quatre de la série · 2 € LÉOPARD, TIGRE, ZÈBRE, VACHE, FLOWER POWER, CAMOUFLAGE, COCCINELLE.
+- **Retirées** (`HAB_RETIRES`, p:0) : CITRON VERT, ARGENT BROSSÉ, BORDEAUX, OLIVE, BLEU ABYSSE, AUBERGINE, DAMIER, PEAU DE DRAGON. Le pack compte 28 couleurs (35 avec les secrètes passées à l’achat plus tard).
+- **Passent à l'achat** : FANTÔME, NACRE, LAMPADAIRE, CAMÉLÉON (`PEINT_ACHAT` : plus de défi) ; VAPORWAVE, LAVE, HOLOGRAMME (leurs missions d'argent paient 10 000 / 25 000 / 50 000 $ — À VALIDER) ; BRAISE FIDÈLE, AURORE BORÉALE, LAGON INTERDIT, NUIT ÉTOILÉE (le 7e jour de la série ne donne plus que le plein de jetons).
+- **À venir, un par un** : les défis secrets de la colonne Condition du panneau des peintures.
+
+## LA PEINTURE GRIS NARDO (2026-10-22, v791, Sacha : « rajoute une couleur gris nardo »)
+- `nardo` (economie/boutique.js, la liste de la PALETTE, laque 0x74777b) : le pack compte 34 couleurs (textes « LES 34 COULEURS SONT À TOI »). En anglais NARDO GREY.
+
+## LE HOT ROD : LE PALIER 10 AVEC LA MUSIQUE (2026-10-22, v788, Sacha : « HOT ROD : atteindre le palier 10 du moteur avec la musique activée ; SQUALE reste en boutique ; TRÔNE CENTRAL reste un défi »)
+- Mission secrète `palier10` (missions/table.js) : `m2Tick` pose le drapeau quand `engTier + 1 ≥ 10` ET `SND.music` est allumé. LE HOT ROD n'est plus à l'argent (les joueurs qui l'avaient le gardent). LE SQUALE reste en boutique à 1,61 € ; LE TRÔNE CENTRAL reste « collecte toutes les voitures ».
+
+## LE TABLEAU DES VOITURES, DEUXIÈME VAGUE : DÉFIS À COMPTEUR, PRIX, RETRAITS (2026-10-22, v787, Sacha : « pousse tout »)
+- **Compteurs à vie** (`SAVE.d.m2.c`, missions/defis-moteur.js : m2Tick, m2Fig, pwrPrend → m2Pu) : `pu` power-ups · `nitS` / `nmaxS` secondes de nitro / de nitro max · `figs` figures · `airS` secondes en l'air · `kmTot` kilomètres · `verglasKm` km sur le verglas du glacier (`BANQ.sur>0`) · `met` les temps joués par map (`m2Meteo`, LA STRATOS) · `M2R.sonne` (aucun son ni musique de toute la partie → drapeau `silence`).
+- **Missions** : LE DÉFIEUR `pu100` · LE SAMOURAÏ `nmax100` · ATCHOUM `figs500` · LA TAURINE `nit2000` · LE MASTODONTE `air1000` · LA QUEUE DE CANARD `km100k` (100 000 km) · L'ICEBERG `verglas100` · LA STRATOS `meteo` · LA SILENCIEUSE `silence` (secrète) · LE CHARGEUR `mis10` · LE CORBILLARD `morts100` (visibles désormais). Les récompenses qui ne donnent plus une caisse paient de l'argent (À VALIDER : L'ORIGAMI 30 000, LE SPECTRE 20 000, LE MUR DU SON 25 000, LA FOURNAISE et LA CAISSE-NUAGE 20 000, L'ÉTERNELLE 25 000, ex-STRATOS 15 000, ex-SILENCIEUSE 10 000).
+- **Prix / boutique** : ACIDE 200 000 · L'ORIGAMI 280 000 · LE SPECTRE 420 000 (épique) · L'ÉTERNELLE, LE MUR DU SON, POSTER 84 en boutique à 1,61 € (légendaires).
+- **Retirées** : LA CAISSE-NUAGE, L'ABSTRAITE, LA FOURNAISE (remboursement au prix de CAR_UNLOCK).
+- **Laissés tels quels, à décider** : LE HOT ROD (« toutes les musiques jusqu'au palier 10 » : sens à préciser), LE SQUALE (reste en boutique à 1,61 €).
+## LA GRANDE SÉANCE DE DÉBOGAGE DES MAPS — 17 BUGS CORRIGÉS SUR 9 MAPS, LES 11 VÉRIFIÉES (2026-10-22, v787, Sacha, session DEBUGGING : « lance une immense session de debugging surtout centré sur les map, lance autant de sous-agents que tu veux, qu'il n'y ait aucun bug »)
+Deux vagues d'agents (18-19/10 : un par map + portails, mort/reprise, météos ; 22/10 : grottes, dunes, décor au hasard + nuages en cubes,
+transitions), chacun sur sa copie, au banc CDP sous le verrou commun ; les correctifs de la 1re vague (scratchpad effacé au redémarrage du Mac)
+ont été repêchés dans les transcriptions et reportés sur le code découpé. Chaque correction : prouvée au banc avant/après, puis les 11 maps
+(+ tel, debout, cadre) et une chaîne par le vrai portail, chauffe du menu attendue : 0 erreur, 0 programme compilé en course.
+- **LA VILLE** (`villeForme`, `villeSFj`, `villeSS`, `CITY.col.f`, `villeHeurt`) : les géantes de verre étaient dures selon leur BOÎTE — mort en vol
+  contre l'air jusqu'à 31 m à côté du verre (100 % des tours effilées/rondes/lames), le fuseau traversable. Dures selon leur forme visible
+  (mêmes anneaux que `vitreGeoFab`, biseau, toit de lame) ; béton et Crypto City inchangés. Et dans `batir`, `yV` suit le VRAI toit des tours de
+  béton (un retrait sauté par le `break`) : couronnes au néon, mâts et feux d'antenne ne flottent plus 95-256 m au-dessus (7-26 par ville → 0).
+- **LE VOLCAN** (le rabot du sol, `EV`/`EVon`) : sur la spirale de `vlcTrace3`, la dalle la plus basse à 120 m prenait le tour d'EN DESSOUS —
+  falaises de 110-250 m sous la moitié de la route et un lac de cratère qui FLOTTAIT en couvercle sur des rideaux de lave. Chaque route garde son
+  couloir ; le lac ne monte plus au-dessus de la lèvre rabotée. `dbgVolcan('test')` : 0/0 avant et après (photos même `pistegraine`).
+- **LA FORÊT** (`buildForetG`) : le fût d'un géant devenu saule/hêtre PLEUREUR mordait la route (32 géants sur 15 graines, jusqu'à 4 m) — testé
+  contre la chaussée (l'autre pleureur, sinon la clairière vide ; tirages inchangés). `FORET.yRaz` enfin posé (la brume du fond glissait 2 s).
+- **LE CANYON** (`cyCouloirHeurt`) : la bande des Étroits et du tunnel est bornée en long — plus de mort « encastré dans la paroi » contre rien,
+  jusqu'à 85 m avant la bouche du tunnel et après la sortie des Étroits.
+- **LES NUAGES** : `mkCloud` reteste la garde du ruban avec la VRAIE hauteur des nuages v8 (une tour sur ~450 laissait passer la route dedans).
+  La PEAU d'un nuage seul (v773, `nuSkinGeo`, `mesh.userData.peau`) est libérée par `disposeClouds` : 43 créées / 0 libérées → 38 / 38.
+  L'ORAGE des nuages (niveau d'id `'orage'`) entre dans `contiMap` et `routeSig` : bitume commun, ciel continu, ligne centrale OR — ⚠ le rendu
+  de l'orage change un peu (route plus neutre, ciel plus saturé) : à juger à l'œil, deux entrées à retirer si non.
+- **CRYPTO CITY** (`cryptoTick`) : les gerbes d'un NOUVEL ATH tiré juste avant le portail (setTimeout jusqu'à 1 s) restaient allumées toute la map suivante.
+- **LE GLACIER** : un `//` en milieu de ligne avalait le frein du voile de givre (`fx.brume.drag`) et son nom. La section 4 bis de `buildBanqG`
+  (tremplins, massif, fourche, champ, porte, îlot) prend son PROPRE flux (`seed^0xB0B57AC`) : le décor au hasard rebattait les pics de la piste
+  (16 contre 14 avec/sans décor, même graine) — la disposition des pics change donc par rapport à v785, toujours au hasard.
+- **LES DUNES** (`dnRelance`, dans `chanceRepart` et `chanceProtege`) : la SECONDE CHANCE reposait la caisse au pas 8 m avant la lèvre ratée →
+  ensevelie 6-7 s plus tard, 3 cas sur 3 (la pub regardée pour rien). Sur une map à trous, la caisse replacée repart à la croisière du palier.
+- **LES PROFONDEURS** : (1) mort en vol dans l'AIR autour des stalactites et stalagmites — leur boîte de collision (0,8 × le rayon de la base + 1 m,
+  au-delà de la pointe) : `grtPrisme` accroche son cône à la boîte (`grtCol` la rend), `grotteHeurt` teste `grtDansCone` (graine 1111 : 806 → 33
+  au-delà de la pointe). (2) `grtBouche` : un trou NOIR dans la paroi d'un puits (tronçon voisin jamais alloué) refermé, collision inchangée.
+  (3) la chute dans un lac lue « roche » (cases de 12 m) : `grtIci` une demi-case plus bas.
+- **Vérifié sain** : l'orbite (aucune pluie/orage/nuage, planètes repeintes, satellites hors route), le jade (56 vallées : aucun virage sous le
+  rayon tenable), les météos (aucune fuite d'une map à l'autre, `dbgEtat` ~300 valeurs), le tirage et les 69 cartes postales, le pré-bâti
+  (identique au bâti d'un trait : dunes, grottes), 3 parties de suite, la pause au portail, la mémoire sur 14 portails (géométries 585 → 725, stables).
+- **Faux positif levé** : « un programme compilé en course » au 1er palier venait du BANC qui touchait JOUER avant la fin de la chauffe du menu
+  (~10 s) — après la chauffe : 0 sur toutes les maps.
+- **Écarté, non prouvé** : le renvoi du coup d'épaule contre le bourrelet du glacier sur la TRAJECTOIRE (`PARIS.psiR = BKV.gl−(psi−BKV.gl)×0,3`).
+- **À TRANCHER (Sacha / Léo)** : en ORBITE, la mort en l'air au-dessus de SA route (5 s d'airtime, gravité ½, plongée de 27°) ; la durée de
+  l'orbite (8,3-8,8 km pour 45 s) ; les singes du `?play=jade` qui ne reviennent pas au 2e tour (`JSG.cle`) ; dans la ville, `cameraPosition`
+  vaut 0 dans les Lambert (la profondeur de la pluie et les reflets GTA comptés depuis l'origine — changerait l'aspect de la pluie) ; l'entonnoir
+  du puits des grottes élargi à sa vraie forme ; la caisse replacée dans les dunes décolle aussitôt (la replacer au début du segment ?).
+- Bancs (locaux, non suivis) : `debug-maps/.banc-debug/` (banc.mjs sous `verrou-banc.sh`, scénarios JSON, `--attente` = chauffe du menu finie).
+
+## LE TABLEAU DES VOITURES, PREMIÈRE VAGUE : PRIX, RARETÉS, RETRAITS (2026-10-22, v785, Sacha : « fais ces modifications-là, supprime celles où j'ai mis de les supprimer »)
+- **Prix** (deblocage.js) : ELDORADO 50 000 · LE CAÏD 60 000 · ROSSO 40 400 000 · LA VETTE 90 000 · LA GRANDE ANGLAISE 130 000 · LE CHARGEUR 69 70 000 · LA LAME 80 000 · LA BÊTE 220 000 · LA PERLE 240 000 · LA RAIE 260 000. ROSSO 40 reçoit `rar:'epique'` (à 400 000 le prix la ferait RARE).
+- **Retirées** (`{retire:1,name}`, leur ligne reste : index de sauvegarde ; le prix de CAR_UNLOCK sert au remboursement) : LA ZED, LA PUCE, LE TOFU. (REQUIN l'était déjà.)
+- **Missions de caisse** (missions/table.js, defis-moteur.js) : LA DOLORÈS = `rares` (débloque toutes les rares qui s'achètent ; `m2Rares`, `k:'raresT'`) — l'ancienne « DÉPASSE 1000 KM/H » paie 20 000 $ ; LE CHARGEUR = `mis10` (secrète : réussis 10 missions, `k:'misok'`) ; LE ROUGE-GORGE = `maps2` (explorer chaque map, même mesure que L'ORIGAMI).
+- **Pas fait, à décider ou à écrire** : ACIDE (« 20000 $ » : 200 000 ?), LE SQUALE (le tableau le passe en défi, la boutique le vend 1,61 € depuis le 21/10), et les défis qui demandent une détection neuve (power-ups, nitro, 500 figures, temps en l'air, revives, glace, musiques).
+
+## LA LUNE RETIRÉE DE L'ORBITE, LES ÉTOILES EN PROFONDEUR (2026-10-22, v783, Léo : « la lune qui suit dans la planète espace, on va la mettre ailleurs ; pour l'instant on l'enlève, on laisse juste la grande planète, et la voiture se promène » · « travaille un tout petit peu les étoiles pour créer un peu de profondeur, là c'est un peu tout noir ; des petites étoiles et des étoiles un peu moins petites ; travaille la répartition, observe des images »)
+- **La lune (le troll qui suivait la caisse) n'est plus dans l'orbite.** `LUNE_ON` (orbite-1.js, faux sauf `?lune=ancien`) : la lune n'est ni posée dans la scène, ni peinte au menu (plus de pinceau 140 ms ni de 6 Mo de toiles), ni compilée. Tout son code reste en place pour la reprendre
+  et la poser ailleurs ; `?lune=ancien` la rend telle qu'avant. Sa DIRECTION continue de piloter la clé froide (`kick`) : dans `orbiteTick`, `lunOk` (la lune est « dans le niveau ») remplace `LUNE.visible` pour les deux sorties anticipées, la caisse est éclairée comme avant.
+  Restent : la grande planète (Terre / Mars / Jupiter selon la météo), les Starlink, les débris, le soleil hors cadre, la voie lactée et les nébuleuses. (`sansLune` des niveaux n'est pas utilisé : il aurait aussi gelé la direction de la clé froide.)
+- **Les étoiles : « la voûte profonde »** (`pous` de scene-ciel.js, remplace la poussière d'étoiles du 15/10 ; `?etoiles=ancien` la rend). Avant : ~150 grains d'un pixel, tous pareils, jetés au hasard (+ la couche `cielEtoiles` des nuits, mesurée en angle sans le cosinus
+  de la latitude : des OVALES, puis des tirets vers le haut du cadre). Maintenant, QUATRE CLASSES comme sur une vraie photo (observées : panorama de La Silla, vues de l'ISS) — un voile de grains très faibles (deux grilles de pas différents), des petites, des moyennes à peine plus grosses, quelques brillantes
+  à halo (le bloom les fait fleurir) — chacune avec sa taille, son éclat (beaucoup de faibles, peu de fortes) et sa teinte (un quart bleutées, le gros blanc, plus du tiers vers l'orangé).
+  - **Rondes partout, et de la même taille sur tous les téléphones** : la distance à l'étoile se compte en PIXELS via les dérivées de la direction (`pa`), le cœur et le halo en pixels CSS (`uEtK` = `renderer.getPixelRatio()`, posé par `orbiteTick`) ; le champ de vision s'élargit avec la vitesse (74° → 135°), c'est la densité qui monte, pas la taille.
+  - **Répartition** : ceintures de même aire (pas de pincement au pôle), la bande de la voie lactée les serre (3 à 4 fois), de larges plages de ~20° plus ou moins peuplées (`c1`, `c2`), les brillantes semées sans règle ; chaque étoile se pose où elle veut dans sa cellule (une marge fixe laissait voir des rangées et des colonnes à 100° de champ).
+  - **Hors orbite rien ne change** : la couche ne tourne que si `uSpace*uNeb > 0` ; `cielEtoiles` (les nuits des autres maps) ne perd que son `(1+uSpace*.5)` devenu `(1−uSpace)` et `cielSOn` gagne `&&uSpace<.999` — tous deux inertes à `uSpace = 0` (vérifié : une nuit des nuages rend le même motif de la base). En orbite, `cielEtoiles` s'éteint (la voûte profonde la remplace).
+  - Coût : une graine de hasard par pixel de ciel et par classe (5), le reste seulement dans une cellule habitée ; la passe lisse n'y touche pas. Bancs : `dbgCiel(azimut, élévation)` en pause + `dbgScene().cam.fov`, et tout masquer sauf le dôme (`scene.children`) pour une photo du ciel seul.
+- **Mesuré** (photos du ciel seul, 562 × 1218, maxima locaux de contraste ≥ 18/255, quatre à cinq directions) : AVANT 66 à 195 étoiles par image, APRÈS 279 à 860 — 3 à 5 fois plus, dont un quart de grains faibles (contraste < 40).
+- **À valider par Léo (le look)** : la densité, la taille des brillantes et leurs couleurs ; « c bof » → `?etoiles=ancien` est l'avant, un commit de retour est trivial.
+
+## LE CHOIX DU CIEL RETIRÉ DE L'ACCUEIL (2026-10-21, v782, Léo : « enlève le choix du ciel dans le menu ciel, ça s'adapte à l'heure »)
+- La rangée AUTO · MATIN · MIDI · SOIR · NUIT · PLUIE · ORAGE (v761 → v768) n'est plus à l'accueil : `interface/ciel-choix.js` et `css/ciel-choix.css` supprimés (`ORDRE.txt` −2 lignes, 213 morceaux) et l'appel `cielChoixImpose` de
+  `classiqueJouer` (zones-caisses.js) aussi. Le ciel du menu ne reçoit plus d'ordre : il suit l'horloge du téléphone (`titreHeureDe`, relue toutes les 20 s) ; JOUER retrouve le tirage au hasard du mode classique.
+- La clé `localStorage.cashcarCiel` des appareils qui avaient choisi n'est plus lue (inoffensive, rien à nettoyer).
+- GARDÉ pour examiner (dev, rien d'autre ne les pose) : le ciel PLUIE / ORAGE du menu (`TITRE_H.pluie` / `.orage`, flash d'orage `menuEclTick`) par `?heure=pluie` / `?heure=orage` ou `dbgHeure('pluie')` ; la météo de la mer de nuages
+  à jouer par `?carte=nuages&meteo=pluie` (ou `orage`, `nuit`…). `arcEcTick` (chute-menu.js) : l'arc-en-ciel du menu se règle sur `TITRE_HF.h==='pluie'` au lieu de `CIEL_CH`.
+- Pour RETROUVER la rangée : l'ancien code = commits b3040eaf, 1a262e07, 0d0cbcbb, 37257b60, 2f785a61 (v761 → v768) ; la branche `nuages-refonte` la garde tant qu'elle ne fusionne pas ce main.
+
+## LA BOUTIQUE PAYANTE : LE SQUALE VRAIMENT VENDU, LA TRAÎNÉE DU CHAT DITE (2026-10-21, v781, Sacha : « supprime la voiture Shark à 10 euros, remplace-la par la Squall que Léo a faite, à 1,61 € ; Black Armor et Golden Dragon à 1,61 € ; plus clair que Pop-Tart-Cat est vendu avec la traînée arc-en-ciel »)
+- **À VALIDER PAR SACHA** (choix par défaut livrés) : (1) la mission secrète `abysse` (« DESCENDS AU FOND DE LA MER DE JADE ») paie **15 000 $** au lieu du SQUALE (valeur posée par Claude, comme
+  LE GLACIER / LA DEUCHE le 19/10) ; (2) « Squall » = LE SQUALE (confirmé par « l'autre requin de Léo » dans la demande du v770).
+- **Déjà livré avant, par une autre session (v770, 4c4641d)** : REQUIN retiré (`{retire:1,name:'REQUIN'}`), LE SQUALE en `{k:'premium',eur:'1,61 €'}`, LE BLINDÉ NOIR et LE DRAGON D'OR à 1,61 €.
+- **Le défaut que v770 laissait** : LE SQUALE était toujours la récompense de la mission `abysse` ; le patch des missions (`table.js`, « LES CAISSES QUI SE GAGNENT PAR MISSION ») réécrit
+  `CAR_UNLOCK[i]={k:'mis',…}` au chargement, donc il quittait la boutique payante (la boutique ne liste que `k==='premium'`). `abysse` paie maintenant de l'argent ; `CARS.rar` du SQUALE ÉPIQUE →
+  LÉGENDAIRE (comme toutes les caisses payantes : `carRar` lit la fiche avant le prix). Qui a déjà LE SQUALE le garde ; qui avait fini `abysse` n'est pas payé de nouveau.
+- **La traînée arc-en-ciel du chat, dite** (`shArcHtml`, `.shArc`) : la pastille « + ARC-EN-CIEL » de la carte du chat au garage (18/10) était posée en haut à gauche SOUS l'étiquette de rareté
+  (z-index 1, même coin, 113 px : on n'en voyait que les bords) et la page ACHAT n'en disait rien (le texte sous le nom a été retiré le 15/10). Maintenant : une BANDE arc-en-ciel dans le flux sous la
+  photo de la carte du garage (« + TRAÎNÉE / ARC-EN-CIEL »), « + TRAÎNÉE ARC-EN-CIEL INCLUSE » sous le nom dans la fiche du garage, sur la carte à la une de la page ACHAT et dans la fenêtre d'achat
+  (couché : une rangée de plus dans la grille, la phrase à 12 px). Rien une fois le chat acheté. EN : « + RAINBOW TRAIL » / « + RAINBOW TRAIL INCLUDED ».
+- **Vérifié** (Chrome sans fenêtre sous le verrou commun, couché 844×390 ET debout 390×844, code fusionné sur v780) : les six caisses de la boutique payante (CHAT POP-TART 4,20 €, FÉLINE, BLINDÉ NOIR,
+  DRAGON D'OR, SQUALE 1,61 €, PIZZA EXPRESS 161 €) dans la page ACHAT et le rayon ACHAT du garage ; pastille présente partout ; `abysse` → `{cash:15000}` ; course lancée, `__loopErr` / `__banqErr` vides,
+  0 erreur JS. Gardes burn-out et charte : OK.
+
+## v774 — FORMES D'AUTEUR, MER MOINS GRISE, TITRE PLUS DOUX (2026-10-21, branche nuages-refonte, pas pour le main)
+Léo : « formes encore plus originales » ; « le bas est trop gris, un peu lumineux » ; « au menu ciel ils sont beaucoup trop définis ».
+- Six nouveaux gabarits dans `cumulus8` : ARCHE, MÉDUSE (filaments qui pendent), ANNEAU, SPIRALE, GÂTEAU (étages), VAGUE ; ils prennent la place de six gabarits tirés (`COTON_GENRES`) + poids `COTON_POIDS`.
+- `NU_FOND` : l'ombre de la mer (`mo`) éclaircie pour matin/midi/soir/pluie (le bas n'est plus gris).
+- Cumulus du titre : finesse d'un cran plus grossière (`chuteFormes`) = moins de détail net.
+
+## LA PEAU COLLÉE AUX CUBES + LE NUAGE QUI FLOTTE (2026-10-21, v773, Léo : « couche par-dessus les cubes, pas gonflé, embrasse la forme des cubes » · « dans l'air aussi, des petits cubes qui se promènent comme des particules ; le nuage qui flotte ») — branche `nuages-refonte`
+- **LA PEAU** : plus de surface lisse gonflée. Ce sont les MÊMES faces que les cubes, décalées de 7 % de cube le long de leur normale de face (`VX.skin` .07) : une pellicule transparente collée sur chaque marche, qui en épouse tous les angles, avec les normales lissées du corps (elle luit comme un vernis). La surface lisse n'est plus calculée du tout (le calcul en est plus léger).
+- **LE NUAGE QUI FLOTTE** (`nuPouTick`, nuages-casses.js) : 240 petits cubes (1-5 m) blancs en suspension autour de la caisse (en course sur la map nuages, au titre devant l'objectif) : ils dérivent, tournent lentement, ondulent, montent un peu ; ceux qui passent derrière ou trop loin renaissent devant (60-430 m), fondus. `?air=0` = sans.
+- Vu à l'œil en course (midi) : des cubes blancs flottent autour de la voiture ; la peau polit les marches du nuage à droite. Premier essai : trop petits (0,5-2 m = 2 px) → 1-5 m.
+
+## LA PEAU TRANSPARENTE ET PLUS DE RONDS (2026-10-21, v772, Léo : « enlève tous les ronds qui n'ont plus rien à voir avec les nouveaux nuages » · « une couche transparente épaisse qui va permettre de polir le tout ») — branche `nuages-refonte`
+- **LA PEAU** : l'ouvrier calcule en plus des cubes la surface LISSE du même champ (`skin`, gonflée de ~1,2 cube le long de sa normale) ; un maillage transparent par lot (`COTON.skin`, mêmes instances que le corps), pour les nuages seuls (child du mesh) et ceux du titre (`chuteSkinPose`). Matière (`nuSkinMat`, nuages-casses.js) : surtout blanche (lumière à 30 %), plus épaisse au bord (Fresnel), fondue comme le corps entre finesses (`instanceMatrix[0][3]`) et près de l'objectif, trouée par les impacts (NHOLE). Réglable : `dbgSkin(base .2, bord .45, voile .06)` ; `?peau=0` = sans. Premier essai trop BLEU (la lumière du ciel à 100 %) → blanc.
+- **LES RONDS RETIRÉS** : (1) les BOULES provisoires (ébauche en sphères) des lots, des nuages seuls et des coussins → `nuVide()` (un nuage n'existe à l'image que fini) ; (2) les bancs de brume ROND du titre (16 sprites) et les nappes rondes (30) → `CHUTE_RONDS` faux (`?ronds=1` les rend). Les ronds ne sont plus créés dans les nuages de la map nuages.
+- Vu à l'œil en course (matin) : nuages blancs polis, cubes lisibles dessous.
+
+## LES FILS SE PROMÈNENT, EN PETIT NOMBRE (2026-10-21, v771, Léo : « les traits électriques doivent embrasser les courbes, pas qu'une ligne ; ils se promènent — regarde les images sur Internet ; là t'en as trop mis, c'est même plus réaliste ») — branche `nuages-refonte`
+- Photos regardées (Wikimedia Commons, « intracloud lightning ») : UN canal fin qui serpente en longues courbes douces + fines dentelures, deux-trois branches qui s'effilent, parfois une boucle ; un ou deux à la fois.
+- `filNeuf` : plus de fractale droite — une MARCHE À CAP PERSISTANT sur la face visible du nuage (le cap tourne doucement, ondule à basse fréquence, est rappelé vers le centre près du bord : le fil épouse le bombé), 26 pas, deux branches courtes qui s'amincissent.
+- Rareté : 2 fils au plus, un toutes les 1,1-3,3 s (avant : 3, toutes les 0,18-0,5 s), 0,9-1,5 s chacun.
+- Vu à l'œil au menu STORM : un fil violet qui serpente sur le bord d'un nuage, lueur autour.
+
+## CORRECTIFS « JVOIS PAS » (2026-10-21, v770, Léo : « jvois pas » ; « un nuage est allumé presque constamment en violet ») — branche `nuages-refonte`
+- **Fils invisibles** : le nuage est OPAQUE, un fil à l'intérieur était caché par sa propre paroi → le fil court désormais sur la FACE tournée vers la caméra (décalé de ~.9 rayon) ; naît seulement dans un nuage VISIBLE (`filVu`) ; plus souvent (0,18-0,5 s), plus longs (0,8-1,5 s), plus larges (0,34 % de la distance).
+- **Nuage allumé en permanence** : le choix favorisait toujours le plus gros nuage proche → toujours le même ; désormais au hasard parmi les nuages visibles, jamais l'un des 4 derniers (`FIL.rec`). La lueur de fond baisse (orage .5 → .14, pluie/nuit .1, menu .1) et les petits éclairs de quartier s'affinent (puissance 14 → 40).
+- Vérifié à l'œil au menu STORM : filaments violets avec lueur AUTOUR sur de petits nuages, qui changent d'une image à l'autre.
+- `dbgFil()` : fils actifs, sources, lumières, projection à l'écran.
+
+## FILS D'ÉLECTRICITÉ, FOUDRE EN ARBRE, PLUIE QUI ÉCLABOUSSE, APRÈS-PLUIE ROSE-MAUVE (2026-10-21, v769, Léo) — branche `nuages-refonte`
+- **FILS DANS LES NUAGES** (« des petits fils d'électricité qui passent dans le nuage et qui éclairent un peu autour ; c'est pas tout le nuage qui flashe ») : `filTick`/`filNeuf` (zones-caisses.js) — jusqu'à 3 fils fractals (16 segments + 2 branches) qui traversent UN gros nuage, 0,55-1,05 s, halo violet + cœur blanc-bleu, largeur ≥ 0,22 % de la distance. Chacun pose 3 LUMIÈRES de monde (`NBOLT`, 12 emplacements, `uBolt`/`uBoltR` dans `nuage8Mat`) : la ouate s'éclaire AUTOUR (gaussienne 95 m, violet puis blanc au plus près). Plus de flash global des nuages (`uMood.z` ×.12). Sur la map orage, en course et au menu (touche STORM).
+- **FOUDRE EN ARBRE** (« ta foudre n'est pas encore assez belle ») : tronc fractal de 32 segments (`eclFrac`, déplacement des milieux), 4 branches de 8 segments dont 2 re-divisées, halo ×5,2 ; le coup pose 3 lumières le long du tronc ; largeur minimale 0,16 % de la distance.
+- **PLUIE QUI ÉCLABOUSSE LA CAISSE** (« pour toutes les pluies ») : `gameplay/pluie-caisse.js` — sous toute pluie (LVL.pluie > .15) des gouttes frappent le toit/capot/coffre (boîte de la carrosserie dans son repère), chacune éclate en 3-5 gouttelettes portées à 92 % de la vitesse de la caisse (réserve `gouttes`, matière de `spray`).
+- **PLUIE : « tout l'écran est bleu, c'est nul »** → l'APRÈS-PLUIE ROSE-MAUVE (choix de Léo) : gris-mauve en haut, rose-pêche en bas (`NU_FOND.pluie`, `nuagesPluie`, nuages d'ombre rose-mauve). Seulement la pluie « pour l'instant ».
+- NON VUS à l'œil (seulement : le jeu tourne sans erreur, le menu pluie/orage s'affiche) : les fils, la foudre en arbre, les éclaboussures.
+
+## LES MAPS PLUIE ET ORAGE DIRECTEMENT AU MENU (2026-10-21, v768, Léo : « montre sur les menus les options que tu as fabriquées, directement les maps rain et storm, comme ça je peux examiner ») — branche `nuages-refonte`
+- Deux « heures » de plus au titre (chute-menu.js, après `NUF`) : `TITRE_H.pluie` / `.orage`, `TITRE_CIEL`, `BIOMES.titrePluie` / `.titreOrage` — le ciel peint de la map (`NU_FOND`) + l'éclairage de la caisse d'un temps couvert / d'une nuit d'orage. Les touches PLUIE / ORAGE de l'accueil les posent (`CIEL_MENU`), avec les cumulus en cubes du titre.
+- Au menu, l'ORAGE fait luire les cumulus de l'intérieur (violet) et les éclaire d'un flash doux toutes les 2-5 s (`menuEclTick`). Pas d'éclair tracé au menu (ils naissent dans les nuages de la piste, absents du titre).
+- Vérifié à l'œil : PLUIE = argent bleuté, éclaircie pêche et faisceaux en haut à droite ; ORAGE = dégradé mauve-violet, nuages sombres.
+
+## CIEL PEINT POUR L'ORAGE ET LA PLUIE, PLUS DE BANCS SUR LA ROUTE (2026-10-21, v767, Léo : « le ciel noir de l'orage, trop débutant, fais mieux » · « la pluie, c'est pareil : peindre un fond, trop monotone » · « évite de faire des gueules sur la route si tu n'arrives pas à les faire dégager ») — branche `nuages-refonte`
+- `NU_FOND.orage` et `NU_FOND.pluie` (chute-menu.js) : la couche peinte du titre (dégradé, lueur, faisceaux, cirrus, mer d'ombre) avec leur palette — orage : zénith bleu-nuit, milieu gris-violet, horizon mauve, mèches violettes ; pluie : ardoise bleue → argent → gris-lilas qui s'ouvre en pêche au soleil bas (l'arc-en-ciel s'y pose, il est dessiné APRÈS).
+- PLUS DE BANCS SUR LA ROUTE aux nuages (toutes météos ; `SANS_BANCS`, nuages-vitrail.js) ; `?bancs=1` les rend. Bannière du niveau : « MER DE NUAGES » (l'ancienne promettait « les nuages cachent les virages »).
+- NON VU à l'œil (Léo a interrompu mes ouvertures du navigateur) : à regarder.
+
+## PLUIE AVEC ARC-EN-CIEL, ORAGE AVEC FOUDRE DANS LES NUAGES (2026-10-21, v766, Léo : « la pluie, la map plus jolie, un petit arc-en-ciel léger, pas que de la grisaille — il faut créer le décor » · « l'orage doit avoir des teintes de violet, pas être violet ; de la foudre qui traverse les nuages ; parfois ça frappe la route ; checker des images d'éclairs, la vitesse pour un beau rendu ») — branche `nuages-refonte`
+- **PLUIE** (`etalonnage-da.js`) : ciel d'ardoise bleue qui s'éclaircit en pêche vers un soleil bas (sunC chaud, sunTint [1,.86,.66], halo .3, horizon [.74,.70,.66]), nuages plus clairs et bleutés (nuA .92, nuK .98-1.0) — l'ÉCLAIRCIE où naît l'arc.
+  **ARC-EN-CIEL** (`cielArcEC`, scene-ciel.js, `uArcE`) : cercle de 42° autour du point opposé au soleil (soleil forcé à ~21° : le sommet de l'arc ~20° quelle que soit l'heure), 7 bandes fondues, enveloppe douce, force .3 (« léger »), ajouté APRÈS le titre et la photo (qui repeignent tout le ciel). Allumé en course sous la pluie, et au menu quand ce ciel est choisi. `dbgArcEC(force, demi-largeur, hauteur)`.
+  Il n'est visible que si la caméra regarde à l'opposé du soleil (hors cadre du menu qui regarde vers le bas) — vérifié en l'élargissant à 40° (il apparaît).
+- **ORAGE** : teintes de violet moins uniformes (nuLav [.25,.23,.42], nuA [.64,.62,.78]) ; ÉCLAIRS refaits (`zones-caisses.js`) : `eclFab` (deux jeux : ECL le COUP du ciel au sol, ECL2 l'éclair DANS un nuage), chaque segment = halo violet large + coeur blanc-bleu ; enveloppe à deux lobes (coup, creux à 55 %, retour — jamais une alternance : WCAG 2.3.1) ;
+  `eclNuage` : une marche brisée à travers un gros nuage proche + deux ramifications, toutes les 0,9-2,6 s, éclaire à .34 (les cumulus s'allument de l'intérieur) ; 30 % des coups tombent SUR la route (gerbe d'étincelles bleues + secousse, visuel). `dbgEclair('nuage'|'coup'|'route')`.
+  NON VU à l'œil : le jeu a planté (explosion) à chaque essai avant d'attraper un éclair ; état vérifié (`dbgEclair` → durée de vie active, aucune erreur).
+
+## ADOUCIR, OPAQUE, ET LE COUP BRUSQUE (2026-10-21, v765, Léo : « flouter les nuages, pas trop, ne pas les rendre transparents, plus légers à l'œil ; propulsé et dispersé lorsque touché par la voiture, de manière brusque ») — branche `nuages-refonte`
+- Plus AUCUNE transparence : `NU_MOOD` part opaque = 1 partout (reste la lumière de l'intérieur). Adoucis : normales de cube plus lisses (`kn` .9) et nuance par cube plus faible (`jit` .045).
+- LE COUP : trouée ouverte en 0,07 s (R 12-34 m, selon le nuage), 16-44 blocs lancés à 22-70 m/s dans toutes les directions + 75 % de la vitesse de la caisse, qui se cassent en quatre dès 0,16-0,5 s (enfants à 5-18 m/s) ; secousse de caméra ; capacité 700 blocs ; blocs rétrécis près de l'objectif (4-17 m).
+- CONTACT AVEC LE DÉCOR (`nuCasseDecor`) : les nuages en instances n'avaient aucune collision — la caisse qui entre dans l'ellipsoïde d'un nuage le fait éclater (une fois par nuage et par 3 s). Pas vu en situation réelle (les nuages de décor sont hors du couloir) : testé par `dbgCasse`.
+
+## LES HUMEURS DES CUMULUS PAR MÉTÉO (2026-10-21, v764, Léo : « la technique de la forêt, la transparence, pour que chaque nuage soit adapté à sa météo ; le matin est le plus réussi, pars de lui ; orage plus stylé, pluie plus cool ») — branche `nuages-refonte`
+- `nuage8Mat` : `uMood` (x part opaque en TRAME Bayer = du verre fait de pixels, y lumière de l'intérieur, z éclairs) et `uInC` (sa couleur) ; la lumière de l'intérieur ne se voit que dans l'ombre et les creux + de petits éclairs lointains par quartier de ciel (comme la peau du vitrail de la forêt).
+- `NU_MOOD` / `nuMoodTick` (nuages-casses.js) : MATIN et MIDI = la référence, rien ne change · soir un souffle chaud · nuit bleu lune · PLUIE .9 / bleu froid · ORAGE .78 / violet-bleu qui monte aux éclairs (`CAMP_FLASH`). Lissé. Neutre hors course.
+- MIDI gardé (Léo : « il est beau, plus bleu, plus riche »). Un lien de test (`?carte=`/`?meteo=`) passe avant le choix du ciel gardé (il masquait `?meteo=orage`).
+- NON FAIT : la NEIGE (météo neuve + route verglacée) — à confirmer avec Léo.
+
+## LE CIEL DU MENU SUIT LE CHOIX (2026-10-21, v763, Léo : « ça doit changer aussi le ciel du menu, les boutons » · « garder tous les effets validés, tous les niveaux concernés » · « pas pour le main ») — branche `nuages-refonte`
+- Les touches AUTO · MATIN · MIDI · SOIR · NUIT · PLUIE · ORAGE posent aussi l'heure du titre (`dbgHeure`) : MATIN/MIDI/SOIR/NUIT = leur ciel ; PLUIE → après-midi, ORAGE → soir ; AUTO = l'horloge du téléphone. Vérifié : MIDI → ciel bleu du jour au menu, nuages en cubes devant.
+
+## LE PLAN D'AVION DES NUAGES (2026-10-21, v762, Léo : « tu te perds un peu, fais un point de vue avion vu de haut ; tu n'arrives pas à bien ranger tout ça ; la voiture se retrouve parfois dans un truc avec que des nuages ; trop chaotique — pour les maps nuages générales ») — branche `nuages-refonte`
+- **L'OUTIL** : `dbgPlanNuages(pas)` (nuages-casses.js) rend la piste et tous les nuages vus de dessus + la part de route DANS un nuage / frôlant un nuage ; planches : `photos-gameplay/nuages-plan-avion-avant.png` / `-apres.png` (tracé maison, scratchpad `plan.py`).
+- **LE CONSTAT** (piste graine 7, matin) : 58 nuages semés au hasard par six couronnes superposées, la route à moins de .4 rayon d'un nuage 18 % du temps.
+- **LE PLAN** (`cotonOrdonne`, `NU_ORD`, toutes les météos de la map nuages ; `?ordre=0` = l'ancien semis) : couloir libre élargi (95 m de côté, 55 m de haut en plus de la garde) ; QUATRE rangées en alternance, au pas régulier le long de la piste, chacune son plafond
+  qui suit la route et sa taille (proche r 60-95 · milieu 130-210 · lointaine 260-420 · haute 120-210 au-dessus, à l'écart) ; jamais deux nuages qui se chevauchent à la même altitude. Cathédrales, massifs, titans, colosse gardés ; l'orage garde son plafond, perd ses murs au ras de la route.
+  Mesuré : 18 % → 11 % de route à proximité d'un nuage, 70 nuages contre 58.
+- **RESTE** : « dans un nuage » = 1,7 % de la route = les BANCS SUR LA ROUTE (6 sur cette piste ; gameplay de Sacha : « les nuages cachent les virages ») — non touchés ; à réduire si Léo veut ne plus jamais être noyé.
+- Correctif : la rangée du choix du ciel ne s'affiche plus pendant la course.
+
+## LE CHOIX DU CIEL AVANT DE JOUER (2026-10-21, v761, Léo : « donne-moi la possibilité de choisir le ciel avant de jouer ; applique à toutes les météos les nuages qui m'ont le plus plu — la nouvelle version ») — branche `nuages-refonte`
+- Accueil : une rangée AUTO · MATIN · MIDI · SOIR · NUIT · PLUIE · ORAGE (`interface/ciel-choix.js`, `css/ciel-choix.css`, `#mCiel` en `position:fixed` placé d'après la barre GARAGE/BOUTIQUE/RÉGLAGES, visible seulement quand l'accueil l'est). Le JOUER suivant part sur la MER DE NUAGES à cette météo ;
+  AUTO = le tirage au hasard du mode classique. Gardé dans `localStorage.cashcarCiel`. Pose `SF.force` au toucher (le départ d'avance rebâtit la bonne piste) ; `classiqueJouer` le repose à chaque départ (`cielChoixImpose`).
+- Les cumulus en CUBES valent pour TOUTES les météos de la map (le corps v8 est commun) ; `TAPIS_M.pluie` ajouté (.46). Vérifié par `dbgNiveau` : NUIT → `nuagesNuit`.
+
+## LE MENU CIEL : DES VOLUMES AU FOND (2026-10-21, v760, Léo : « dans le menu ciel nuages fond encore plats ») — branche `nuages-refonte`
+- Seize cumulus en cubes de plus dans `CHUTE_NU` (richesse-3.js, en FIN de liste : les silhouettes d'avant ne bougent pas) : posés sur la mer à 2,4-6,2 km, tout autour, immobiles.
+- Le tapis clairsemé atteint aussi la mer du MENU (`merZ` : `uTapis`, `TAPIS_M.menu` .50 → seuil de couverture relevé de .15) : des îlots et de vraies trouées d'ombre entre les volumes.
+
+## LES NUAGES QUI SE DÉGAGENT + LE TAPIS CLAIRSEMÉ (2026-10-20 soir, v759, Léo : « plus d'harmonie entre les nuages du premier plan et l'arrière-plan, parfois pas la même couleur, 2-3 nuages devant et tout un tapis derrière » · « enlever le tapis complètement rempli, l'harmoniser avec la répartition du premier plan selon la météo » · « interactifs quand la voiture les touche, les gros blocs se cassent en petits, fluides ») — branche `nuages-refonte`
+- **LE TAPIS** : `uTapis` (scene-ciel.js : merArc ET la mer peinte du titre) = la couverture sous l'horizon ; `TAPIS_M` par météo (matin .60 · midi .56 · aprem .52 · soir .54 · nuit .50 · orage .34 : plus c'est haut, moins il y en a), `tapisPose(m)` (chute-menu.js), l'air de l'horizon entre les îlots. `?tapis=0` = le tapis plein d'avant.
+  Couleur : l'ombre des cumulus en cubes (`N8_U.uLav`) prend à moitié celle du tapis (`CIEL_ARC[m].mo`) : même famille de bleus / mauves par météo.
+- **LES TROUÉES** (`NHOLE`, 8 sphères de monde dans les matières des nuages — nuage8Mat ET nuageShader) : la ouate est effacée PAR MARCHES DE CUBES (`uHoleC` 3,2 m) ; à l'entrée dans un banc puis toutes les ~0,22 s : s'ouvre en 0,3 s, tient ~1,4 s, se referme en ~1,2 s (le tunnel derrière la caisse).
+- **LES BLOCS** (`maps/nuages-casses.js`, `NCB` ≤ 420 cubes, UNE InstancedMesh, mêmes uniformes de lumière que la ouate) : gerbe à l'entrée ; les GROS (2-9 m selon le nuage) se cassent en QUATRE (×.58) après 0,3-0,85 s, jusqu'à ~1 m ; remous (sinus lents), sillage de la caisse, tournoiement, rétrécissent et disparaissent ; rétrécis près de l'objectif. Plus de rétrécissement du banc (brokenT garde son rôle de jeu). Visuel seulement.
+- Hooks : `dbgCasse({c:1,d:30,r:150,k:1,pas:n,sonde:1})`. Limite : on ne touche qu'un banc dont le centre est dans l'ellipsoïde (rare hors bancs de route et vols) ; élargir le déclencheur si Léo veut plus d'interaction.
+
+## LES NUAGES EN CUBES DE TAILLES VARIABLES (2026-10-20 soir, v758, Léo : « le niveau nuage a l'air déchiqueté, une refonte avec toutes les techniques, entre réalisme et cubes pixel de tailles variantes ») — branche `nuages-refonte`
+- **LE CONSTAT** (captures de la map au matin) : des piliers fondus (cathédrales/champignons du sculpteur v8, érodés par le bruit) saupoudrés de cubes FANTÔMES orange/roses
+  au hasard — deux écritures (lisse + poussière) qui se battaient. **LA TECHNIQUE RETENUE** : le corps lisse v8 (mêmes formes, même base plate, même lumière de peintre) est
+  maillé en CUBES posés sur une grille emboîtée (`nuage8Calc`, branche `opt.vox`) : régions de 4 unités, cubes de 1, 2 ou 4 unités selon un bruit lisse par région (petits sur
+  les bourgeons du haut, gros vers le ventre) ; faces tournées vers le dehors seulement, une par « patch » quand le voisin change de taille (aucun trou) ; normale = face mêlée
+  au gradient du champ (`kn` .78), modelé cuit lu au centre du cube (+ une nuance par cube, `jit` .07 : c'est elle qui fait lire la mosaïque) ; AUCUN fantôme, un seul objet opaque.
+- **BRANCHEMENT** : dose `voxel` de `NUVIT` (défaut quand `ARC_ON`) : `NUVIT.on=false`, `NUVIT.vox={k,kn,jit,det,t0,t1,hb}` ; `nuage8Async` envoie `vox` à l'ouvrier à toutes les finesses
+  (le vitrail/fantôme ne sont plus calculés). Tout le reste (lots instanciés, fondus, trame, lumière de biome) est inchangé. `?nuvit=fantome` = l'avant ; `?vk=` (finesse, 2,4),
+  `?vkn=` (lissage des normales), `?vjit=` (nuance par cube).
+- **COÛT** (mesuré, Mac) : prêt en ~6-9 s contre 8,3 s (finesse 48 : cubes ×.75, `kf`), triangles par gabarit ×~1,5 (≤ 18 k), 60 i/s sur matin/midi/soir/orage. Les piliers du
+  sculpteur restent ce qu'ils étaient (forme) ; seule la matière change. Touche TOUS les cumulus v8 (aussi ceux des Pics de Jade).
+
+## LE DÉCOR DU GLACIER RECALÉ SUR LA PENTE À 45° (2026-10-21, livré le 2026-10-22 en v786, Sacha : « la map montagne neige est super buggée, genre le décor, les montagnes et tout ») — branche `neige-decor`
+- **LA CAUSE** : le manteau de neige et les cristaux (`code/maps/glacier-route.js`) datent de la descente à 7-14 % ; le 3e tour (18/10) a mis la piste à 40-50°
+  (mesuré : 103 % de pente moyenne, ~4 km de dénivelé sur 5-6 km) et trois règles « au plus bas dans un rayon » sont devenues des trous de la taille du rayon :
+  la SÛRETÉ (neige jamais au-dessus de la glace) prenait le point de piste le plus bas à 98 m, `YM` (« sous le plus bas des tours superposés », du temps des
+  spirales) celui à 120 m ; le DÉVERS de la piste (le repère roule dans les virages : 7,5° de médiane, 26° au plus, ±40 m aux bords) était ignoré ; les
+  cristaux enterraient leur base d'une profondeur fixe sous leur centre ; la « roche noire » du shader commençait vers 45°, la pente même de la montagne.
+  À l'écran : murs bleu nuit striés de noir, fosses le long de la piste, dalles de glace et aiguilles qui flottent, géants à dessous plat.
+- **LA RÈGLE** (`BK_RECALE` — à ne pas confondre avec `BK_DECOR`, le décor au hasard de v771) : la neige proche se cale sur le PLAN de la piste au pied du point le plus proche (pente + dévers, fondu de 82 à 130 m du bord ;
+  T et B penchent tous deux : on résout le 2 × 2, pas des produits scalaires), la sûreté aussi ; plus de `YM` ; chaque sommet de base d'un cristal (et le
+  milieu de chaque arête de base) descend 6 m sous la neige qu'il touche, hors de la neige d'un rayon de base plus bas ; roche au-delà de ~55°.
+  `?sans=glacerecale` = avant (même piste ; les cristaux tombent ailleurs, libre() ne refusant plus les mêmes grappes).
+- **MESURÉ** (même graine `?pistegraine=4242`, avant → après) : neige sous la glace −98 → −2 m ; au bord de la glace −95…+22 → −9…+1 m ; dans la congère
+  −82…+51 → −11…+2 m ; cristaux qui flottent (> 5 m) : dômes 54/62 → 0, aiguilles 104/172 → 0, pics de piste 23/23 → 0, géants sur la neige 60 → 0.
+  Construction 86 ms avant et après (la sûreté 4,7 → 0,8 ms). Le MASSIF (v766) passe par `pic()` → `bkPrim` : posé lui aussi.
+- **LE BANC** : Chrome sans fenêtre + `window.__ev` dans une copie d'index.html ; `dbgBanq('verglas',{s})` pour poser la caisse, `explode` neutralisé pour
+  photographier sans mourir ; vues fixes « caméra de course » roulées avec la piste (Nn en haut) aux 15-90 % de la piste ; un rayon (Raycaster) dit QUEL
+  maillage est sous un pixel (`banquise neige`, `banquise pics`, `banquise géants`, `glacier congere`). ⚠ `banqTick` remet la visibilité des morceaux :
+  cacher un maillage APRÈS avoir posé la vue.
+
+## L'ÉCRAN DE FIN COUCHÉ — ⌂ · REJOUER RENTRENT DANS LA GRILLE (2026-10-20 → 21, livré le 2026-10-22 en v786, Sacha, capture d'une fin avec records : « bug de bouton ici à corriger »)
+- **Le symptôme** (téléphone couché, 844 × 390) : la ⌂ mordait sur le coin de la carte MOTEUR, et un pan vert dépassait entre ⌂ et REJOUER —
+  la plaque ×2 · PUB (#mDouble), passée DERRIÈRE REJOUER, donc intouchable.
+- **La cause** (ux8.css, bloc « vu à la fumée ») : couché, `.mFin` était un `position:fixed` de `min(368px,44vw)` hors de la grille. 368 px,
+  plus que les 324 px de la colonne de droite → la ⌂ débordait de 44 px à gauche. Et la grille, qui ne réservait plus sa place, faisait 427 px de haut
+  pour 390 (l'écran défilait) : avec les badges RECORD et deux missions, la case `row` (×2, NON MERCI) tombait sous la rangée figée.
+- **Le correctif** (CSS seul, couché seulement) : la rangée revient dans sa case `rej` ; l'écran de fin fait la hauteur EXACTE du téléphone
+  (`#overlay[data-ecran="dead"]>#mob` et `#mDead.on` en `flex:1 1 0`, pas de `:has()` — cf. v740) ; la rangée du milieu passe en
+  `minmax(0,1fr)` et prend ce qui reste ; la plaque des chiffres (`container-type:size`) se tasse en deux crans (≤ 74 px, ≤ 63 px) quand la
+  place manque. CONTINUER (seconde chance) prend la case `rej` dans le flux, comme REJOUER.
+- **Vérifié** dans le cadre de l'ordi (844 × 390, vraie mort, puis le contenu de la capture : RECORD ×3, deux missions, ×2) et en 667 × 375 :
+  plus de défilement, ⌂ · REJOUER à la largeur de la colonne, ×2 au-dessus, chaque bouton reçoit son toucher. À 667 px, « NIVEAU FRENESIE »
+  collés et « MOTEUR ATTEINT » plus large que sa carte existaient déjà avant. (Chrome garde ~18 px de défilement tant que l'entrée de REJOUER,
+  qui monte de 26 px, n'a pas été suivie d'une remise en page — sans effet visible.)
+
+## LA MONTÉE « GRANDE » DU GÉNÉRATEUR, EN COURSE (2026-10-20 soir, v751, Léo : « quand je booste, ça apparaît, ça évolue, puis ça devient une sorte de trompette horrible qui fait bugger la musique : elle s'arrête, reprend 1-2 s après, et dès que je rappuie sur le boost ça recommence ») — branche `nitro-ronron`
+- **LE SON** n'était pas le nitro : c'est la musique de POUCE BLEU (le générateur `musique-trente-*.js`). Le jeu ne lui passe que le MOTEUR (`setTier`) ;
+  un boost tenu fait monter plusieurs paliers d'un coup, et chaque grand élément qui entre appelle une MONTÉE d'une mesure : un RISER — une fois sur deux
+  « en ton » : trois scies 110 → 440 Hz dans un passe-bas résonant 500 → 6 000 Hz (Q 3, gain jusqu'à 0,6) = la sirène-trompette qui « apparaît, évolue » —,
+  des roulements, une fois sur trois le TROU (la musique à 8 % avant l'arrivée), puis la cymbale et l'impact. Sacha (boost lâché plus tôt, autres tirages) n'y tombait pas.
+- **LA RÈGLE** (`assets/audio/pouce-bleu-jeu.js`, `importeAvance`) : EN COURSE SEULEMENT, le texte du générateur est retouché au chargement (comme l'horloge) :
+  riser = toujours le SOUFFLE (cymbale à l'envers), la montée grande sans trou, le trou retiré du tirage des petites transitions. Les versions figées ne
+  bougent pas sur le disque ; la bibliothèque les charge intactes. `?montee=ancien` = avant (A/B) ; `dbgPouce().montee` = « douce » / « ancienne ».
+- Le RONRON (v745-746) était une fausse piste — réelle au casque (sub à +10 dB), mais pas le son décrit : il reste coupé par défaut (`?ronron=1`).
+
+## LE RONRON DU NITRO EST COUPÉ PAR DÉFAUT (2026-10-20 soir, v746 — Léo, en détail : « ça apparaît, ça évolue, puis une trompette horrible qui fait bugger la musique » = ses trois temps ; baissé il restait une trompette → `?ronron=1` le rend régulé, `?ronron=ancien` = v740 ; à trancher Léo/Sacha)
+## LE RONRON DU NITRO SORT DU SUB (2026-10-20 soir, v745, Léo : « un audio parfois sur mon tel et mon ordi qu'il n'y a pas sur le tel ni l'ordi de Sacha, sur le main — lié au boost, un son qui n'a rien à voir ») — branche `nitro-ronron`
+- **LE SON** : le RONRON de Sacha (v740, le soir même) — deux triangles 44 Hz + quinte + une SOUS-OCTAVE à 22 Hz, hachés à 13 → 28 Hz, vibrato et houles après 2,5 s de tenue.
+  MESURÉ au banc muet avec la sauvegarde de Léo (`dbgVu`, tenue de 5 s) : sa chaîne sortait à **−23/−27 dB RMS**, ~10 dB au-dessus de la gorge du nitro (−35) et
+  12-15 dB au-dessus du grondement (−40/−44), tout entre 22 et 86 Hz. Un haut-parleur de Mac, de PC ou d'iPhone ne rend rien là-dessous (Sacha n'entendait rien
+  de plus sur ses enceintes) ; un CASQUE le rend en plein (Léo) : un bourdon grave qui vrombit, sans rapport avec la flamme. Le « parfois » = la tenue longue
+  (après 2,5 s les houles et le vibrato). C'est pourquoi la différence Léo/Sacha n'était pas une différence de version.
+- **LA RÈGLE** (`RR_MODE`, juste avant `const RR`) : un PASSE-HAUT à 70 Hz sur la chaîne du ronron (la sous-octave et le 44 Hz s'effacent, les harmoniques 88-176 Hz
+  qui font le « ronron » restent ; le téléphone, déjà une octave plus haut, ne change pas) et `RUG_NIV.rr` ,11 → ,045. Mesuré après : **−33/−36 dB**, au rang de la
+  gorge (−32/−38). Trois temps, houles, vibrato, crépitements de bois : intacts. `?ronron=ancien` = la v740 telle quelle · `?ronron=0` = muet. `dbgRonron().hp`.
+- **LA MÉTHODE** (à refaire pour tout « son chelou » que Léo entend et pas Sacha) : Léo joue des COPIES LOCALES complètes du main (appli Mac = `~/Downloads/CASH-CAR-MAIN`
+  servi sur :9400 ; app iPhone = `CAR-app`), Sacha la copie publiée (allégée). Chrome sans fenêtre, sa sauvegarde posée dans localStorage avant le chargement, journal
+  des sources (pile d'appel par son), puis `dbgVu()` toutes les 100 ms pendant une tenue de nitro : on PÈSE chaque chaîne au lieu de deviner.
+
+## LES FRUITS-POUVOIRS — LA ROUTE SANS BOOSTS (2026-10-20, v742, Léo : « les boosts de la route disparaissent, mais on booste non-stop si on est chaud et qu'on attrape les fruits ») — branche `fruits-boost`
+Plan de Léo (interview, fruit par fruit) ; tout est dans `code/gameplay/fruits-nouveaux.js` et `code/gameplay/fruits-auras.js` (+ petites retouches ailleurs, grep `2026-10-20, Léo`).
+- **LA ROUTE** : plus de plaques turbo (`PADS_OFF`, `?pads=1` = avant) ; la LIGNE PARFAITE de Sacha (ligne-parfaite.js) ne pose plus que des FRUITS, un toutes les 0,45 s (`LIGNE.dt`), ×2,1 (petits),
+  chacun rend `LIGNE.don` 0,48 de nitro (≈ 1,05 × ce qu'on brûle entre deux) : la NITRO NORMALE d'abord, le trop-plein dans la RÉSERVE BLEUE. Le jus à l'écran d'un fruit de la file : un sur quatre ; l'annonce
+  RAFALE : une sur quatre (même total d'aura). Au BOUT d'une longue file (16-26 fruits) tombe un FRUIT-POUVOIR (`PWR_LIGNE`, `?cristaux=1` = les anciens cristaux au hasard), les cinq à égalité (`PWR_EGAUX`).
+- **(v743, après l'essai de Léo)** la file ne reste plus en ligne : `ligneGroupe`/`ligneMotif` — des GROUPES TIRÉS AU HASARD (longueur 4-15, forme vague/marches/arc/balayage/S/repos, amplitude, espacement 0,8-1,35×, fruit dominant, un repos 1 fois sur 4), PAS de cycle (v744 : le v743 était un cycle de 9, trop répétitif) ; fruits normaux ×1,6 (`FRUIT_K`), fruits-pouvoirs ×4,8 ; sons `pwr.x` (bol chantant) et `pwr.m` (carillon d'or) refaits.
+- **(v745)** `fruitPick` : tous les fruits à égalité partout (les règles par map `jf`/`cf` ne visaient que les 7 exotiques → à Jade/Canyon/Dunes le tirage retombait sur le fruit 0, la myrtille). Fruits-pouvoirs POSÉS SUR LA ROUTE (`lev` = leur demi-hauteur) ; l'aura sort du sol (`fauraSol` : paroi de FOND d'un cylindre ouvert + disque au sol, `BackSide` : jamais devant le fruit) ; banc `dbgPwrPhoto(k,t,dist,haut)`.
+- **(v750, mini cubes — remplace les emblèmes au sol)** `fauraCubes` : l'aura vit AUTOUR du fruit, en mini cubes (shader de points carrés `FCUB_*`) — PIMENT huit langues de cubes qui se désintègrent + braises, CITRON rubans de segments DROITS qui tournent puis s'échappent (`FZ_*`), DRAGON tourbillon rouge/violet/rose/vert/bleu par groupes, RAISIN vent léger (poussière + cubes pâles), POMME DORÉE rien autour : le fruit scintille (coque `uKind` 4, sphère plus fine, plus de rouge dans l'or). `fauraSol`/`fauraFruit` restent pour le banc.
+- **(emblèmes au sol, remplacés)** le disque au sol de chaque fruit-pouvoir n'est plus un cercle : étoile de flammes, éclats de foudre, Sharingan, deux ailes déployées, aimant en fer à cheval (`FSOLD_FS`, une branche par `uKind`).
+- **9 FRUITS NORMAUX** (même nitro) : myrtille, cerise, kiwi, pêche, orange, mangue, pomme, melon, litchi — recettes de l'atelier (`FRN_*`), les 13 anciens (dont les 7 exotiques) rangés dans `FRUIT_EXO`, hors du jeu.
+- **PIMENT = nitro infinie 7 s** : la couleur du feu chauffe avec le temps de boost (rouge → orange → jaune → blanc → bleu → violet, `NINF.h`), plume, traînée et bords d'écran la suivent.
+- **CITRON = vitesse ×2** (comme avant) : éclairs en rubans (`ZAP`), onde de choc, compteur km/h électrique, son `citron.zap` (cuit en PCM : pas de ffmpeg ici). **DRAGON = aura ×2, ×3 si `CHA.x ≥ 3`** (`auraDragonK`), jus vert/rose à chaque geste, disque Genjutsu
+  dans le ciel, compteur d'aura qui change de teinte. **RAISIN = airtime ×2** : DOUBLE JAUGE (`RAI`, `airDepasse`) — la 1re vide, les ailes d'ange explosent, la 2e démarre ; 2e barre sous le chrono de vol.
+  **POMME DORÉE = aimant à PIÈCES seulement**, elles filent en spirale dorée (`magSpirale`). Le bouclier est supprimé.
+- **AURAS EN SHADER** (pas de particules : Léo les trouvait « jeu de con ») : une coque par fruit (`fauraFruit`), un temps partagé (`FAURAU.uT`), chauffée au menu (`fruitsChauffe`, 0 programme compilé en course : mesuré 221 avant/pendant).
+- Hooks de banc : `dbgPwrDevant(k,ds,lat)`, `dbgLigneFruits()`, `dbgRaisin('vide')`, `dbgFruitAura(...)`, `dbgChauffeFruits()`. Testé (pilote auto) sur nuages, jade, canyon, banquise, espace : 0 plaque, files posées et prises, aucune erreur.
+- **RESTE** : les sons des cinq prises sont ceux des anciens pouvoirs (`pwr.n/a/v/m/x`) ; pas de son propre au dragon/aimant ; vérifier à l'oeil le disque Genjutsu et l'onde de choc ; campagne et auto-école non rejouées ; iPhone non mesuré.
+
+## LES FREEZES ET LA LATENCE DE LA VERSION EN LIGNE — TROIS CAUSES MESURÉES (2026-10-20, v740, session LATENCE — Sacha : « il y a beaucoup de freeze et de latence sur la version vercel, essaye de régler le problème »)
+- **LE BANC** (scratchpad, à refaire si besoin) : la version EN LIGNE (https://car-cash-git.vercel.app/jouer/) pilotée dans Chrome sans fenêtre (téléphone couché émulé, playwright-core
+  de `~/.hermes`), une course pilotée par `dbgAuto` (gardé dans la copie allégée), et une TRACE Chrome (`Tracing.start`, catégories devtools.timeline + profileur) analysée en
+  TEMPS CPU (`tdur`) — le Mac était à une charge de 50 à 180 (les autres sessions) : en temps mur la plupart des longues images étaient le fil descendu de la puce, pas le jeu.
+  Plus la catégorie `disabled-by-default-devtools.timeline.invalidationTracking` (QUI est restylé à chaque image, et pourquoi).
+- **CE QUI COÛTE, par image de course** (trace de 100 s, Mac chargé) : `loop` ~8 ms de CPU au médian ; à côté, ~4 ms pour le HUD en HTML (styles 1,7 · peinture, calques, commit
+  ~1,9). Aucune compilation de programme en course. Les à-coups : le départ (le pré-bâti pas fini, voir 2), le passage du portail (~100 ms de `bufferData` : la géométrie de la
+  map neuve envoyée d'un coup — la chauffe la dessine déjà sous le voile), les crans de résolution de l'échelle QL (téléphone, voir plus bas), un GC majeur (~50 ms) de temps en temps.
+- **1. LE PLAFOND À 60 i/s EN IMAGES ENTIÈRES** (`fpsSaute`, `code/moteur/cadence.js`, appelé en tête de `loop`) : l'horloge cumulée à 1000/60 de la v732 tombait entre deux
+  images d'écran sur un écran qui n'est pas un multiple de 60 Hz — SIMULÉ : 90 Hz → 11 / 22 ms en alternance, 144 Hz → 14 / 21 ms, 75 et 100 Hz idem, et à ~61 Hz une image
+  sautée chaque seconde. Désormais une image d'écran sur n, n = fréquence ÷ 60 arrondie au-dessous (médiane des intervalles de rAF sur 90) : 120 et 240 Hz → 60 i/s, 144 → 72,
+  sous ~110 Hz rien ne se saute. `dbgCadence().plafond` = {actif, n, ecran}. `?fps=0` = sans plafond (inchangé).
+- **2. LA GROTTE FINIE « D'UN TRAIT »** (`buildGrotteG`, `code/maps/grottes-2.js`) : le pré-bâti pas fini quand vient le JOUER (ou le portail) est fini par
+  `prebTravaille(Infinity)` ; `direct`, lu au DÉBUT du générateur, valait faux, et toute la grotte restante (la GROTTE VASTE du 19/10) se maillait dans la même image —
+  MESURÉ en ligne : 220 ms de `grtTroncon`/`grtMailleNets` au JOUER. La boucle des tronçons relit `JF.lim===Infinity` : comme un bâti direct, les 1 100 premiers mètres tout
+  de suite, le reste par `grtTranches` (4 ms par image, `grotteTick`). `dbgPrebati().msFin` = le temps de cette fin d'un trait.
+- **3. `:has(#modale.on)` DEVENU UNE CLASSE** (`HAS_D` + `hModale`, `code/interface/passe-textes.js` ; règle `code/css/ux8.css`) : `html:not(.c6):has(#modale.on) #tPanel` (UX 8,
+  14/10) avait échappé à la passe `:has()` du 14/10. Son argument contient `.on` : MESURÉ (trace des invalidations, 25 s de course) ~60 fois par seconde une classe `on` posée
+  ou ôtée ailleurs dans le HUD relançait l'examen du `<html>` (puis `#tPanel`, des `.pxi` restylés). Désormais `.hModale:not(#ccH)` sur le `<body>` : même spécificité (2,2,1).
+- **MESURÉ, A = la version d'avant / B = celle-ci** (deux copies locales servies côte à côte, Chrome sans fenêtre, téléphone couché émulé) :
+  · le micro-banc du 14/10 (une classe `on` posée + un style relu, pages A et B en course, 8 tours alternés) : médiane **853 µs → 177 µs** (÷4,8), B plus bas à chaque tour ;
+  · examens `:has` du `<html>` par image : **1,93 → 0** ; éléments restylés par image 23,4 → 18,7 (trace des invalidations, 15 s aux nuages) ;
+  · en course (2 × 40 s chacune, en alternance, Mac chargé de 5 à 136) : styles par image 3,0 / 4,8 ms (A) → 2,0 / 1,6 ms (B), peinture 2,6 / 4,1 → 2,3 / 1,9 ms ;
+  · la grotte en 1re map, JOUER 2,5 s après le début du pré-bâti (machine calme) : fin d'un trait 622 ms et **image figée de 667 ms (A) → pire image 67 ms (B)**, les 264
+    tronçons restants finis par tranches, 0 erreur. JOUER plus tôt (la grotte pas commencée) : A et B déjà pareils (le générateur part en direct).
+  · la fenêtre QUITTER : `#tPanel` caché fenêtre ouverte, visible avant et après, dans A comme dans B.
+- **PAS TOUCHÉ, À MESURER SUR UN VRAI TÉLÉPHONE** (`…/jouer/?banc=1`) : l'échelle QL change la résolution EN COURSE (`qlPose` → `applyDPR` → `setPixelRatio`) — chaque cran
+  réalloue le canevas et ~13 cibles et attend la puce (trace : `GetGLError` + `CheckFramebufferStatus`, 5 fois en 100 s ici) ; sur un téléphone qui bute sur le PROCESSEUR,
+  l'essai de résolution échoue, revient (2 réallocations), et recommence après le plafond de 45 s. Et la sonde sans chronomètre de la puce (Safari) : 5 images synchronisées
+  toutes les 30 s. Le reste : les animations CSS du HUD tournent sur le fil principal (`.pxBurst`, la barre de nitro pleine, `::before/::after`, `#avX`) — ~12 à 24 éléments
+  restylés par image.
+
+## LE VOL SANS HAUT NI BAS — LE HAUT DU VOL FIGÉ AU DÉCOLLAGE, PLUS D'AIMANT SUR LA MAP NUAGES (2026-10-20, v737, session nuages-haut-bas — Sacha : « il y a toujours des problèmes dans la map nuage : on est aimanté à la route, le jeu a du mal à gérer le haut et le bas… il ne faut plus de haut ni de bas, juste la voiture, elle peut voler naturellement, librement ; quand tu voles près de la route, tu es attiré et ta trajectoire est déviée par le haut et le bas »)
+- **Le constat, mesuré** (3e plainte de suite : 18/10 « le jeu ne sait pas de quel côté on va », 19/10 « ça dévie la trajectoire ») : sur la route sans haut ni bas, le HAUT DU VOL
+  (`VOLR.u`) était recalé à chaque image sur la normale de la dalle la plus proche. La vrille du 19/10 (`VOLR_ROULIS`) ne portait que le ROULIS de la route ; le reste — la route qui
+  plonge, se cabre, vire sous la caisse — tournait encore la gravité, le plané du nitro, l'équilibre de la caisse et de l'écran : près de la route, tout tirait vers « sa » dalle.
+  C'EST l'aimant, et c'est lui qui déviait la trajectoire.
+- **Le correctif** (`VOLR_FIGE`, `camera.js`) : `volrSuit` ne recale plus rien. Au décollage `startFall` pose `VOLR.u = F.n` (la face de la route qu'on quitte) et il ne bouge plus de tout
+  le vol. Gravité, plané du nitro, équilibre (`veqNiveau`), `camUp`, viseur, prédictions des figures, BUMP, plafonds : tout suivait déjà `VOLR.u`, donc tout est cohérent sans autre
+  retouche — un vol est une PARABOLE NETTE dans le repère de la caisse au départ. Deux raccords : (1) `startFall` n'arme plus `TBORD` (la gravité « de la route » pendant 1,1 s après une
+  sortie par le bord : elle suivait la dalle la plus proche, image après image) ; (2) `mirTick` (le MIRACULÉ) mesure la hauteur sous la normale de la dalle la plus proche, orientée sur la face quittée
+  (avant, `VOLR.u` EN ÉTAIT la normale). Aucune aide ajoutée, rien d'enlevé aux autres maps (`VOLR.on` faux : le bas du monde, au chiffre près).
+  **`?sans=volfige` = le haut qui suit la dalle (v689) ; `dbgVolFige(false|true)` le bascule en direct pour les vols suivants.**
+- **MESURÉ — le VRAI jeu** (Chrome sans fenêtre, muet, couché 844 × 390, `?carte=nuages&meteo=midi&pistegraine=12345` puis `777`, l'image par image de `dbgStep`, mêmes points `s` de la
+  piste pour l'ancien et le nouveau vol, décollage `dbgDauphin`, `explode` neutralisé ; « sortie de plan » = de combien la caisse s'écarte du plan (vitesse de départ, haut de départ) que
+  doit garder une parabole pure) :
+  · SANS NITRO, mains libres, 12 points : avant, le haut du vol tourne de 24° en médiane (max 37°) et la caisse sort de son plan de 2,2 m (max 5,7) ; après 0° et 0 m. 12/12 posés des deux
+    côtés, durée médiane 2,35 s → 2,42 s. Avec le pilote de banc (`dbgAuto` vol, 12 points × 2 graines) : 24/24 posés avant ET après.
+  · NITRO TENUE 1,5 s, mains libres, 12 points : avant, le haut tourne de 47° en médiane (max 69°) et la caisse sort de son plan de 36 m (max 60) ; après 0° et 0 m.
+  · NITRO TENUE en continu, mains libres, 7 points : avant, le haut du vol tourne de 92 à 155° et la caisse part de 78 à 375 m sur le côté ; après 0° et 0 m, droite. C'EST ÇA que Sacha sentait.
+  · SAUTS NITRO (1,5 s de nitro, pilote de banc qui ne braque qu'en LACET, 12 points chacun) : impulsion 21 m/s à 60 m/s, graine 12345 → avant 12/12 posés (le haut du vol et la
+    route à la pose à 3° en médiane), après 9/12 ; impulsion 35 m/s à 80 m/s, graine 777 → avant 9/12, après 8/12. L'écart entre le haut du vol et la route à la pose monte à 20° (max 74°)
+    puis 51° (max 69°) en médiane : la route a tourné pendant le vol, la caisse non.
+  · Aucune erreur (`__loopErr`, `__banqErr` vides) ; le haut du vol relevé 6 fois dans un vol à la nitro, en vrai temps réel : IDENTIQUE, couché, debout et dans le cadre de l'ordi.
+- **LE PRIX, dit franchement** : plus rien ne RAMÈNE la caisse vers la route. Un saut normal se pose comme avant ; mais un long vol à la nitro file maintenant droit dans le repère du départ, et
+  sur une route qui vrille il peut la manquer (au banc, 17 sauts nitro posés sur 24 contre 21 avant, avec un pilote qui ne sait pas piquer — un joueur a le manche) ; avant, cette gravité-aimant la rattrapait toute seule.
+  Le viseur de pose, lui, devient exact (il intègre la MÊME gravité que la caisse). Rien n'a été fait pour compenser : ce serait une aide, et la règle est « zéro assistance ».
+- **À trancher (Sacha)** : si les vols à la nitro sont devenus trop durs à poser sur la route des nuages, dis-le — les pistes sont (a) laisser faire, c'est un vol libre ; (b) une route moins
+  vrillée (`NV_CALME`, `TORD_AMP`) ; (c) `?sans=volfige` pour comparer. Pas touché sans toi.
+- **Banc** : `faire-copie.sh` (la copie du jeu avec `window.__ev`, la fermeture du jeu à portée d'`eval`), `banc-vol.mjs` (Node + CDP, décollages appariés), `verif-jeu.mjs` (menu → JOUER →
+  un vol, trois formats d'écran) — dans le scratchpad de la session, pas dans le dépôt.
+
+## LES TRAÎNÉES EN CUBES — ÉTAPE 1 : SAKURA, BILLETS, FOUDRE DIVINE (2026-10-20, v734, session TRAÎNÉES PIXEL — Sacha : « passer les traînées en un joli jeu de pixels, comme le nitro ou toutes les flammes du jeu ; les billets, les éclairs, tout ça, avec le même style pixel qui bouge ; toutes les traînées du jeu, les feuilles de sakura, les billets, en pixels »)
+- **L'IDÉE** : le feu du nitro, l'arc-en-ciel et la porte sont des CUBES (faces ombrées, couleurs au-delà de 1, halo qui s'accumule) ; les traînées POP (moteur `TRX`)
+  étaient des quads lisses peints sur une planche. Elles prennent la même matière. Plan en trois étapes, validé par Sacha (« cubes, étape 1 d'abord ») :
+  **1 = SAKURA, BILLETS, FOUDRE** (ici) · 2 = les autres POP (ANNEAUX, BLOCS, GLOUTON, MATRICE, HYPERESPACE, LA GRILLE…) · 3 = les rubans de lumière (le sillage de
+  chaque caisse, MENTHE/ROSE/OR, les traînées rouges des feux arrière) et le texte de WOW. Les étapes 2 et 3 restent À FAIRE.
+- **LE MOTEUR** (`TC`, dans `code/rendu/trainees-1.js`, juste avant `TRX_EMET` ; les émetteurs et `trxParts` : `trainees-2.js`) : trois piscines de cubes — `TC.s` PLEINS (opaques, faces ombrées), `TC.o` CONTOUR (cubes un peu plus gros d'une couleur
+  plate, dont la géométrie a ses faces RETOURNÉES : seul le derrière se dessine, le cube plein le couvre, il reste un liseré — sans `BackSide`, donc sans programme de plus ;
+  un cœur blanc sans contour disparaît sur un ciel de jour et dans la salle blanche), `TC.g` LUEUR (additifs). Mêmes réglages de matière que `NFEU` / l'arc-en-ciel :
+  MESURÉ au banc, `renderer.info.programs` = 216 avec les cubes, 217 avec `?trainee=lisse` (le programme des quads) — **aucun programme compilé en plus en course**.
+  API : `tcBox(Y,x,y,z,sx,sy,sz,r,g,b)` (un cube dans le MONDE), `tcLocal` (dans le repère long/court/épaisseur d'une pièce), `tcGlow` (une lueur = trois cubes emboîtés),
+  `tcPart(p,al,E)` (le dessin d'une particule, `p.cu` : 1 pétale · 2 billet · 3 étincelle · 4 éclair blanc), `tcBolt` (un éclair, case par case).
+- **LE LANGAGE PIXEL** (à reprendre pour les étapes 2 et 3) : des cubes alignés sur la grille du MONDE (`TC_K.pas`) qui sautent de case en case ; jamais de fondu — l'ancienne
+  OPACITÉ devient la TAILLE, qui fond par crans (1 · ,84 · ,68 · ,5, comme la porte), et près de l'objectif aussi (par crans) ; le mouvement est une SUITE d'images (le pétale
+  bascule à plat / debout / à plat tourné / debout de côté, le billet se retourne par quarts de tour : `TC_PERM`, `TC_SEQ`) — jamais une rotation lisse ; des teintes en PALIERS
+  (trois roses, trois verts). Chaque particule GARDE sa physique (`trxParts` : vent, balancement, gravité, élan gardé) : seul son dessin change.
+- **LES TROIS** : SAKURA = un pétale de trois cubes plats (L), trois roses, qui basculent ; BILLETS = un cadre vert, un panneau, un médaillon clair (3 cubes) qui se retourne,
+  et l'étincelle d'or devient une croix de cubes ; FOUDRE DIVINE = la ligne brisée posée case par case (cœur clair, contour violet, aura), la frappe du ciel (14 m) en gros cubes,
+  les étincelles en croix, le halo de la tuyère et l'éclair blanc de la frappe en lueurs à bandes. L'aperçu de l'atelier et de la boutique passent par les mêmes émetteurs.
+- **`?trainee=lisse`** (ou `signal`) = les quads d'avant, intacts. `dbgTrx()` rend aussi `cubes:[pleins, contours, lueurs]`.
+- **Le banc** (nouveau, commité) : `outils/banc-trainees/` — `photos.cjs` (le vrai jeu, sans fenêtre et muet, aucune dépendance : `--ids sakura,billets --mode course|inv|bq
+  --vue "az,d,h" --cond "<expr>" --url "carte=nuages&meteo=midi"`), `sonde.cjs` (évaluer des expressions dans le jeu ; `XU=trainee=lisse` pour l'adresse), `cdp.cjs`.
+  Ports 9731/9732 (sonde 9741/9742) : vérifier qu'ils sont libres. Ne jamais éditer `index.html` pendant un passage (la mise à jour toute seule recharge la page).
+- MESURÉ : sakura ~300 cubes pleins, billets ~120, foudre ~95 pleins + ~80 contours + ~85 lueurs ; `TRX.ms` 0,1-0,2 ms par image au banc (Mac chargé, charge > 100).
+- À TRANCHER (Sacha) : la taille des pétales et des billets (`TC_K.pet`, `TC_K.bil`), et si les éclairs doivent plus zigzaguer vus de derrière (la poursuite les voit de bout).
+
+## LES NUAGES PAISIBLES — UN SEUL TYPE, 33 NUAGES, UNE MER LISSE (2026-10-20 soir, v737, Léo, relayant Sacha : « c'est trop chelou, il y a trois couches de nuages différents » · « l'impression que ça donne, beaucoup trop de nuages » · « trop chaotique, plus paisible » → « oui, mets les nuages plus calmes sur le main »)
+- **Les « trois types »** (cause trouvée) : la dose VERRE du vitrail (v704) ne vivait qu'ENTRE deux distances : du lisse tout près, une grille de verre à
+  mi-distance (écailles + peau transparente), du lisse au loin — trois aspects dans la même vue. **Retirée du défaut** : un seul type de nuage, le corps
+  lisse v8 et sa poussière de petits cubes (`?nuvit=verre` rend l'essai d'avant ; `?nuvit=fantome` est le défaut).
+- **Moins, plus calme** (map NUAGES seulement ; `?arc=0` rend tout le main d'avant la mer de nuages) :
+  · `CDENS` .14 (`?cdens=`) : 224 → 33 nuages de décor ; `GROS` .4 (`?gros=`) : cathédrales, massifs, titans, tours héroïques ÷2,5 (13 grandes masses → 5) ;
+  · la poussière de cubes 8 000 → 1 400 par gabarit (`?fant=`, `fdeh` .4), le chou-fleur des gabarits ×0,4 (`KIDS_ARC`, `?kids=`) ;
+  · la MER DE CUMULUS plus lisse : relief 3,2 → 1,6, couverture ,22 → ,12 (moins de trouées sombres).
+- **Mesuré** (banc Chrome sans fenêtre muet, 844 × 390, même piste) : 0 programme compilé en course (217 → 217) ; rendu synchronisé 11,8 (v704) → 8,8 (v731)
+  → 7 ms ; triangles des nuages 2 041 k → ~70 k. Cartes postales des six météos refaites (point de vue à 600 m de l'entrée : le soleil, la mer, une masse).
+  Planches : `photos-gameplay/nuages-un-seul-type-avant-apres.png`, `nuages-paisible-avant-apres.png` (CAR CAHS V3).
+- ⚠ Banc : les taches de couleur vives en course = le JUS des fruits ; `dbgNuVue('nuageN')` prend le N-ième PLUS GROS nuage — avec moins de nuages ce
+  n'est plus le même.
+
+## MOINS DE NUAGES SUR LA MAP NUAGES — UNE MASSE CALME, DU CIEL AUTOUR (2026-10-20, v731, Léo : « il y a trop de nuages, c'est un peu vomitif, mais on y est presque ; essaie de trouver des modèles gratuits sur lesquels tu peux t'inspirer — 3D » → « oui, mets les nuages plus légers sur le main »)
+- **Les modèles 3D libres** (poly.pizza) : les cinq « Cloud » de **Quaternius** sont en **domaine public (CC0)** — une masse calme, base plate, un dôme,
+  peu de lobes, aucun chou-fleur sur du chou-fleur ; les « Cumulus Clouds » de S. Paul Michael, « Low Poly Cloud » de Louto, « Cloud Set » de
+  Matt Schaefer sont CC-BY (inspiration seulement). Aucun fichier n'entre dans le jeu : on en garde la LEÇON (une masse, de l'air autour).
+- **Ce qui a changé** (que sur la map NUAGES et les gabarits de cumulus ; ?arc=0 rend le main d'avant la mer de nuages) :
+  · `CDENS` .3 (`?cdens=`, 1 = avant) : le semis de décor — couronne proche, au-dessus/en dessous, milieu, haute, lointain, sphère de la route
+    sans haut ni bas, satellites — passe de 224 à 75 nuages (les cathédrales, massifs, titans et tours héroïques de `okG` ne bougent pas) ;
+  · `KIDS_ARC` .55 (`?kids=`) : le chou-fleur des gabarits (`cumulus8` → `enfants`) ×0,55 : des masses plus lisibles ;
+  · `NUVIT.mix` 2 400 (`?mix=`, 6 500 avant) : les cubes éparpillés autour du vitrail en verre — moins de poussière.
+- **Mesuré** (banc Chrome sans fenêtre muet, 844 × 390, même piste `pistegraine=777`) : 0 programme compilé en course (217 → 217) ; rendu
+  synchronisé 11,8 → 8,8 ms (Mac) ; triangles des nuages 2 041 k → ~500 k. Les cartes postales des six météos de la map refaites
+  (`assets/portail/nuages-*.webp`, piste 42, 1er point de vue). Planches : `photos-gameplay/mer-nuages-moins-avant-apres.png` (CAR CAHS V3).
+- ⚠ Banc : les grandes taches de couleur sur les vues en course = le JUS des fruits (pas des nuages) ; `dbgNuVue('nuageN')` prend le N-ième plus
+  gros nuage : avec une autre densité ce n'est plus le même nuage (comparer des vues EN COURSE au même instant plutôt).
+
+## HUIT PEINTURES UNIES EN MOINS (2026-10-20, v729, Sacha : « il y a trop de couleurs classiques dans les peintures ; essaye d'en enlever quelques-unes qui se ressemblent, genre du gris et du gris foncé ; il y a trop pétrole, British Green et Abyss Blue, ça se ressemble trop »)
+- **Le constat, mesuré** : l'inventaire montrait 42 pastilles unies. Distance de couleur CIEDE2000 entre toutes les peintures unies, sur ce qu'on VOIT (le MÉTALLISÉ
+  rend ~×1,8 plus clair que sa valeur écrite, voir la note de la planche du 14/10) : les paires les plus proches étaient GRAPHITE ≈ NOIR MAT (4), BLEU HÉRISSON ≈ BLEU MINUIT (6),
+  BORDEAUX ≈ FRAMBOISE (8), ROSE DRAGÉE ≈ BARBE À PAPA (10), VERT AMANDE ≈ ÉCUME ≈ MENTHE GLACÉE (11-12), PÉTROLE ≈ ANGLAIS ≈ ABYSSE (12-13), BRONZE entre CUIVRE et OLIVE (13-16).
+  La rangée métallisée sombre (10 teintes) se lisait comme un bloc de quasi-noirs.
+- **Retirées (8)** : GRAPHITE, BLEU HÉRISSON, FRAMBOISE, BARBE À PAPA, BLEU PÉTROLE, VERT ANGLAIS, BRONZE, ÉCUME. **Gardées** de chaque groupe : NOIR MAT (et NUIT DE GOTHAM, laqué : autre
+  fini), BLEU MINUIT, BORDEAUX, ROSE DRAGÉE, BLEU ABYSSE (le seul bleu sombre), VERT AMANDE et MENTHE GLACÉE, CUIVRE et OLIVE. Résultat : 34 pastilles unies, la rangée sombre à 6
+  teintes distinctes (ARGENT, BORDEAUX, CUIVRE, OLIVE, ABYSSE, AUBERGINE). Les secrètes et les motifs ne bougent pas.
+- **Le code** : les sept lignes de la palette sortent de la liste (comme le HÉRISSON de `COSM.peinture`) ; `HAB_RETIRES` les porte (`peinture:<id>`) : au chargement l'id sort de
+  `shop.own` et la peinture portée repart en D'ORIGINE. Remboursement du seul HÉRISSON (7 000, son prix d'avant le 16/10, message « LA PEINTURE BLEU HÉRISSON EST PARTIE ») : les sept de la
+  palette ne s'achetaient qu'en pack ou en €, `p:0`. Le remboursement ne nomme plus que ce qu'il rembourse (`if(h.p)nm.push`). `PALETTE_PACK.ids` se déduit de la liste : le pack
+  donne 33 couleurs (texte « LES 33 COULEURS SONT À TOI » ; l'identifiant App Store `cashcar.palette40` ne bouge pas, ce n'est qu'un nom). Les traductions des sept noms restent dans
+  `I18N`, inertes.
+- **Vérifié** (Chrome sans fenêtre, muet) : l'inventaire montre 49 peintures au lieu de 57 ; une VIEILLE sauvegarde qui possédait graphite + hérisson + écume + minuit et portait le
+  hérisson ressort avec `own=[minuit]`, `eq=usine`, 1 000 → 8 000 $ ; syntaxe, `garde-burnout.sh` et `garde-charte.sh` OK.
+- **Rendre une peinture** : remettre sa ligne dans la liste de la palette (le texte est dans le git, commit de cette section) ET la sortir de `HAB_RETIRES`.
+- **À trancher (Sacha)** : BLANC NEIGE, CHROME MIROIR et FANTÔME (secrète) se lisent comme UN seul blanc dans la liste (3 à 15 de distance) ; leurs finis diffèrent sur la caisse, je n'y ai pas touché.
+
+## LE ROYAUME DE FEU ET LES PROFONDEURS AU HASARD — L'AXE, L'ORDRE, LES CARACTÈRES, LA MONTÉE ET LE PUITS TIRÉS (2026-10-19 → 20, v727, session HASARD — Sacha : « vérifie bien que toutes les maps sont générées aléatoirement »)
+- **Le constat, mesuré** (banc Node sur les vrais générateurs, 40 graines, palier 0 ; l'ÉCART DE FORME = les pistes rééchantillonnées en 64 points
+  par fraction de longueur, départ à l'origine, distance moyenne entre deux pistes / longueur moyenne — la jade refaite le 18/10 : 0,226) : le TIRAGE
+  de la map et de la graine était bon, mais deux maps suivaient toujours la même RECETTE. LE ROYAUME DE FEU : 0,085 — plein nord, l'arche à 6-10 %
+  du parcours, le lac au milieu, la montée du volcan toujours à 43-49 %. LES PROFONDEURS : 0,067 — plein nord, mine → luxuriante → PUITS (à 25-29 %)
+  → stalactites → lave → abysses, toujours.
+- **LE ROYAUME AU HASARD** (`vlcTrace3`, `VLC_HASARD`, `VLC_HUMEURS` ; son flux `rh`, un seul tirage `rnd` de plus) — chaque royaume tire :
+  · son AXE (±45° autour du nord, comme la jade : la butée de cap ±72° et le « devant » du cône se comptent autour de lui) et LE COUDE DE LA PLAINE
+    (au milieu de la balade, l'axe tourne une fois de 15-35° : jamais plus de 90° de la bissectrice — la balade ne se recroise toujours pas) ;
+  · l'ORDRE des tableaux de la balade : l'arche, le lac (2 à 4 courbes), un fumeron et un module toujours ; le 2e module, le 3e, le 2e fumeron si la
+    longueur visée les tient ; jamais l'arche juste avant la montée ;
+  · un CARACTÈRE par tronçon de virages (`VLC_HUMEURS` : flammes = la balade d'avant, serpent, courbes, dérive, balcon, chicanes ; jamais deux fois
+    le même de suite) et la part de chaque tronçon ;
+  · LA MONTÉE : 0,9 à 1,55 tour (avant 1,3-1,45), le dernier tour à 1-1,25 × le rayon d'avant, ≥ 140 m d'un tour à l'autre, 5-7 % ; jamais plus de
+    58 % de la longueur visée. Le rayon s'y resserre EN DOUCEUR à l'entrée et à la sortie (sinon, quand il se resserre vite, un cran de 4-7° à
+    l'entrée : un « virage » de 116 m au palier 25, banc). Le portail reste là-haut.
+- **LES PROFONDEURS AU HASARD** (`grtTrace`, `GRT_HASARD` ; flux `rh`) — chaque grotte tire :
+  · son AXE dans TOUTES les directions (sous la terre aucun soleil ne l'oriente) ;
+  · l'ORDRE des quatre salles du milieu (luxuriante, puits de la géode, stalactites, lave) entre la MINE (toujours la 1re : la porte qu'on
+    reconnaît) et les ABYSSES (toujours la dernière : le noir et la salle du portail) — jamais la lave contre le puits (son lac déborderait dans
+    l'entonnoir où l'on saute pour le raccourci) : 12 ordres, le puits arrive de ~6 à ~70 % du parcours ;
+  · la longueur de chaque salle (0,6-1,4 × sa part d'avant, puis ramenées à la longueur visée) et un CARACTÈRE par salle (ceux du volcan ; la
+    salle de lave garde ses grandes courbes) ;
+  · LE PUITS : 1¼ tour ± 0,12 (avant ± 0,04) et son rayon (+0-80 m, avant +0-30) ; on en ressort jusqu'à ±43° de biais et L'AXE SUIT (borné à ±40°
+    de celui de l'entrée : avant comme après le puits, le cap reste à moins de 90° de la bissectrice — la grotte ne revient pas sur ses pas) ;
+  · ce qui supposait l'ordre fixe suit maintenant les salles VOISINES (`R.apres`, `voisin` dans `grtEchantillons`) : le lac de lave ne déborde
+    (300 m) que dans les stalactites et les abysses — ses voisines d'avant —, jamais dans la mine, le puits ni la luxuriante ; l'eau de la
+    luxuriante, les piliers (`grtPiliers`), les décors par salle (`grtDecors` : mine, luxuriante, stalactites, lave) ; la lumière de la lave
+    n'éclaire qu'elle et les voisines où elle déborde (`GROTTE.lavLum` — avant « salle ≥ 3 », les mêmes dans l'ordre d'avant).
+- **`?sans=hasardvolcan`, `?sans=hasardgrotte` = les maps d'avant, AU BIT PRÈS** (banc `identite.cjs` : 240 pistes sur 240 identiques à main pour
+  chacune — 40 graines × paliers 0/10/25 × au JOUER et hors du JOUER). Le tirage se lit dans `dbgVolcan().hasard` et `dbgGrotte().hasard`
+  (axe, coude, ordre, caractères, parts) ; il est rangé dans `Q.hasard` (le pré-bâti l'échange avec Q).
+- **MESURÉ** (avant → après, 40 graines) :
+  ÉCARTS, ROYAUME : 0,085 → 0,23 (paliers 0, 10, 25 : 0,23 · 0,23 · 0,25 ; sans compter la rotation — la FORME seule, Procrustes autour du départ :
+  0,05 → 0,08) · PROFONDEURS : 0,067 → 0,49 (sans la rotation : 0,037 → 0,08 ; la jade : 0,23 et 0,10).
+  REPÈRES, ROYAUME : l'arche de 6 à 46 % du parcours (avant 6-10), la montée de 36 à 63 % (43-49), le lac à toutes les places de la balade ;
+  PROFONDEURS : le puits de 10 à 67 % (27-31), 11 des 12 ordres de salles sur 40 graines (avant : un seul), le puits à 1,14-1,36 tour (1,21-1,29). Longueurs inchangées (royaume 5,5-6,6 km au palier 0, avant 5,9-6,6 ; grotte 8,8-9,6, avant 8,9-9,5), 0 conflit de
+  croisement, le rayon le plus serré au même endroit qu'avant (le dernier tour de la spirale : 73-74 m au palier 0, avant 77 ; au palier 25 152 m,
+  avant 151), dénivelé du royaume 121-223 m (174-223), de la grotte 362-427 (380-423). Génération 3-15 ms.
+  EN JEU (banc Chrome sans fenêtre, muet) : 10 constructions par map (`dbgTrace({carte,graine})`) sans erreur JS, règle d'or `dbgVolcan('test')` /
+  `dbgGrotte('test')` à 0 partout. Coût de construction INCHANGÉ — compté (les temps, avec des charges de 3 à 90 ce jour-là, ne se comparent pas) :
+  grotte 734 → 744 tronçons, 341 k → 341 k triangles ; royaume 118 k → 120 k cases de relief, mêmes aiguilles, orgues, coulées.
+  COURSES au pilote (`dbgAuto`, jusqu'au 1er portail, le Mac chargé de 3 à 100 par d'autres bancs — les secondes réelles ne se comparent pas) :
+  royaume 3 sur 3 et profondeurs 3 sur 3 au portail, aucune mort, aucune erreur JS (la version d'avant, dans les mêmes conditions : 3 sur 3 et 2 sur 3,
+  une mort au pilote dans la grotte sous une charge de ~90). Couché (844 × 390), debout (390 × 844) et dans le cadre de l'ordi : menu → JOUER →
+  course sur les deux maps, sans erreur. Photos avant/après (`photos.py`, les vues « vers le volcan », le puits et les salles, trois graines).
+- **Les bancs** (pas commités, `banc-traces/` à côté du dépôt dans le worktree de la session) : `charge.cjs` extrait les VRAIS générateurs
+  d'index.html (genVolcan, vlcTrace3, vlc3Cone, genGrotte, grtTrace, genJade…) et les fait tourner dans Node avec three et des valeurs mesurées
+  (longueurCible, lvPiste au palier) — il redonne les chiffres du jeu (0,085, l'arche à 6-10 %…) en 0,3 s pour 40 pistes ; `mesure.cjs` (écarts,
+  repères, rayons, conflits), `identite.cjs` (l'interrupteur coupé = main au bit près), `rmin.cjs` (le rayon le plus serré sur la courbe du jeu),
+  `plans.cjs` (les plans vus de dessus), `jeu.cjs` (le vrai jeu par CDP : constructions, courses au pilote, photos).
+- **À trancher par Sacha** : la grotte part dans toutes les directions (le volcan reste à ±45° du nord : son soleil bas) ; la montée reste la FIN du
+  royaume (le portail là-haut, la demande du 18/10) — un volcan AU MILIEU de la map (monter une corniche puis redescendre) serait une autre map,
+  à proposer. La session « Refonte map volcan » (obstacles, spec seulement) bâtira par-dessus : elle n'a rien codé dans `vlcTrace3`/`grtTrace`.
+- **Rebâti le 20/10 sur le DÉCOUPAGE** (le travail du 19/10 attendait l'accord de Sacha ; main avait pris 94 commits, dont `code/`) : le même diff, rejoué
+  sur main v723 sans un conflit, puis rangé par `node code/assembler.cjs` — `code/maps/volcan-route.js` (VLC_HASARD, VLC_HUMEURS, vlcTrace3),
+  `volcan-construction.js` (dbgVolcan), `grottes-1.js` (GRT_HASARD, grtTrace, grtEchantillons, grtPiliers, grtLum), `grottes-2.js` (grtDecors,
+  grotteVide, dbgGrotte). L'aspect v5 du volcan (même jour) ne touche pas la route : les deux se cumulent. REVÉRIFIÉ sur cette base : identité
+  `?sans=` au bit près (240/240 chaque map), les mêmes écarts et repères, 10 + 10 constructions sans erreur et règle d'or à 0, une course au
+  pilote par map jusqu'au portail, couché / debout / cadre sans erreur.
+
+## LE SALTO AVANT OFFERT AUX JOUEURS NEUFS (2026-10-20, livré le 2026-10-22 en v786, Sacha : « quand un nouveau joueur se connecte pour la première fois, il faut pas qu'il ait la figure tonneau, il faut qu'il ait la figure salto avant, de base »)
+- **LE CONSTAT** : un joueur neuf n'avait pas le tonneau (il s'achète) mais le TAIL WHIP offert, sur le geste « côté », et l'emplacement AVANT vide : le premier
+  double-tap NITRO (auto-école comprise) lançait un tail whip — c'est ce que Sacha appelait « le tonneau ».
+- **LA RÈGLE** (`code/sauvegarde.js`, champ `figS`) : un profil neuf reçoit le SALTO AVANT (`saltov`) OFFERT, en plus du tail whip. Neuf = aucune partie finie, rien
+  acheté, aucune figure que le tail whip. Il prend l'emplacement AVANT (celui du pouce au repos) : `figSlots` remplit les cases vides avec les figures possédées,
+  et le saut NITRO prend la première. Une sauvegarde qui a déjà joué ne change pas. Le tail whip reste sur « côté ».
+- **L'ÉCONOMIE** : comme le tail whip, ce salto offert n'est pas un achat (`ecoDebutAchat` dans eco-vague3.js, `m2GagneEstime` dans defis-moteur.js).
+- **VÉRIFIÉ** (session salto-depart, 20/10) : profil vierge → figures `tailwhip`, `saltov`, emplacements `[saltov, —, tailwhip]`, tonneau non possédé ; profil qui a
+  déjà joué (3 parties, 1 200 en banque) → inchangé. Livraison du 22/10 : course sans erreur sur la version fusionnée (couché, debout, cadre de l'ordi).
+
+## LA VITESSE DE DÉPART : SEUL LE PALIER 30 L'OUVRE, PLUS LE CODE COUSIN (2026-10-20, livré le 2026-10-22 en v786, Sacha : « tu peux laisser le truc de Léo, mais c'est seulement quand t'as passé le moteur 30 au moins une fois ; et même avec le code cousin, ça marche pas »)
+- **À MONTRER À LÉO** : Sacha a changé une règle de sa fonction. Ancienne condition (pour revenir en arrière, une seule ligne, `vdepFonction` dans
+  code/gameplay/pickups-fruits.js) : `return VDEP_TOUT||cousin()||((SAVE.d.ex&&SAVE.d.ex.eng)|0)>=ENGINE_TIERS.length-1;` — le code cousin l'ouvrait aussi.
+  Nouvelle : `return VDEP_TOUT||((SAVE.d.ex&&SAVE.d.ex.eng)|0)>=ENGINE_TIERS.length-1;`. (Remettre aussi `+','+cousin()` dans `sg` de `vdepInit`, evenements-rares.js.)
+- `vdepFonction` (code/gameplay/pickups-fruits.js) ne lit plus `cousin()` : la fonction (les six crans de départ, l'étal/la grue, l'étiquette du PLAY)
+  s'ouvre UNIQUEMENT quand `SAVE.d.ex.eng` ≥ 29 (le TROU NOIR, palier 30, atteint au moins une fois en course). Le code cousin ouvre toujours les
+  caisses, figures et habillages, mais PLUS cette fonction. Une sauvegarde qui avait un cran choisi grâce au cousin sans palier 30 retombe au cran 1
+  (`vdepN` ramène au plus haut cran ouvert, donc 0 ; `SAVE.d.vdep` reste sur le disque, inoffensif).
+- Le reste de la fonction de Léo est INCHANGÉ (cadenas avant le palier 30, toast « VITESSE DE DÉPART DÉBLOQUÉE », grue d'atelier). Le crochet de banc
+  `dbgVdep('tout')` (console seulement) ouvre toujours tout le temps d'une page.
+## LE ROYAUME DE FEU, L'ASPECT REFAIT — LAVE EN PLAQUES, ROCHE EN FACETTES, CIELS ET FUMÉE (2026-10-20, v716, session VOLCAN5 — Sacha : « la map volcan est la plus moche, lance une grosse refonte »)
+- **Ce qui ne bouge pas** : la ROUTE (la balade puis la montée du volcan, `vlcTrace3`, ou `?volcan=v4`), les collisions ('lave' / 'roche'), la physique, la
+  caméra, les sons, les tirages `rnd`/`fr` (chaque tirage supprimé est GARDÉ : le décor en aval ne se décale pas). Tout ce qu'on VOIT est refait,
+  derrière `VLC5` : **`?volcan=avant5` = l'aspect d'avant** (la route se choisit à part).
+- **CE QUI ÉTAIT MOCHE (mesuré au banc, photos en course au pilote automatique + vues posées, soir / nuit / midi)** : tout l'écran MONOCHROME
+  rouge-orange (ciel orange, brume rouge, lave rouge, brume basse rouge-brun sur toute la plaine) ; la lave = un bruit noir et orange à grain fin,
+  une PEAU DE LÉOPARD plein écran ; le grand volcan rouge sur ciel orange (illisible) avec une « tour » noire rayée au sommet ; des taches de suie
+  brunes collées au ciel (plafond de cendre, panache brun) ; des braises en DISQUES rouges de 200 px quand elles frôlaient l'objectif ; dans un banc
+  de fumée l'écran entier ROUGE PUR ; des aiguilles fines comme des antennes noires.
+- **LA LAVE EN PLAQUES** (`VLC_LAVE_FS5`, `VLC_VOR` = des cellules de Voronoï, `code/maps/volcan-route.js`) : de grandes plaques de croûte (~40 m, bords
+  déformés par un courant lent) qui dérivent dans le sens de la pente, séparées par des FENTES de lave vive (ambre au cœur, orange au bord) ; une
+  cellule sur quatre reste OUVERTE (un bassin) ; un liseré tiède le long des bords ; une croûte en verre violacé qui prend le ciel. Rouge-orange →
+  orange, jamais de jaune acide (la bible : mesuré, un premier jet « or » tirait au vert-jaune). Au loin les plaques fondent en une croûte sombre à
+  peine rougeoyante (au-delà de 1,1 km, plus de calcul de cellules) : l'orange vif reste aux rivières et aux lacs proches. Fentes élargies par
+  `fwidth` : aucune ligne d'un pixel qui scintille.
+- **LA ROCHE EN FACETTES** (`VLC_SOL_FS5`) : la normale de la FACETTE (dFdx/dFdy), un relief low-poly adouci au loin ; le BASALTE indigo (une ardoise),
+  la CENDRE mauve sur les plats, une bande d'OXYDE sous le sommet des cônes et une lèvre de SOUFRE (`VOLCAN.sol.cf` = la part du cône et la hauteur
+  sur lui, posée par `volcanSol`, lue dans `aS.w`) ; le ciel froid remplit les ombres (mesuré : l'étalonnage écrasait les flancs au noir pur) ; les
+  FISSURES qui couvent sont des cellules, sur la roche chaude et seulement de près. Aiguilles et arche (`VLC_ROC_FS`, define `V5`) : facettes, basalte
+  indigo, obsidienne en verre VIOLET, arche fendue en plaques (plus de veines en boucles).
+- **LES AIGUILLES** : des flèches de basalte TRAPUES (largeur ×1,6 — `sxz` dans `buildVolcan`, `rR` et la collision suivent).
+- **LE CRATÈRE** (bug) : au bord du lac du cratère la surface de lave sautait du niveau de la mer à celui du cratère — un MUR de lave de 600 m, rayé,
+  dessinait une tour au sommet du grand volcan ; ces cases (sous la roche) ne sont plus tracées (`vlcMorceau`).
+- **LES CIELS** (bloc `if(VLC5)` dans `code/maps/continuite.js`, APRÈS la recette commune) : le SOIR avait un zénith NOIR et une bande orange — il prend
+  le dégradé de la bible (indigo → magenta → braise → or) ; la nuit plus violette ; l'ORAGE (ciel L* 2-4, noir) devient un orage violet ; la PLUIE DE
+  CENDRES (brun gris, l'interdit de la bible) une cendre mauve et ocre ; la brume prune ; elle RECULE (3 000 → 4 000-4 600 m) pour qu'on voie le
+  grand volcan dès le départ.
+- **LA FUMÉE, LA BRUME BASSE, LE PANACHE, LES BRAISES** (`VLC_MET`) : bancs de fumée PRUNE (`fuC`), plus rouge pur ; brume basse allégée de moitié et
+  violette (`bru`, `bC`) ; panache en cendre claire lavande (`fumC`) ; plus de PLAFOND DE CENDRE (`vlcPanaches`, genre 3) ; braises et cendre un
+  cran plus rares et plafonnées à 4,5-7 px (`VLC_PART_VS`).
+- **LES CARTES POSTALES** (`assets/portail/volcan-*.webp`, six) retirées sur la route d'aujourd'hui, et APRÈS la construction complète (`VOLCAN.pret`,
+  file vide) : les anciennes avaient été tirées avant la fin des tranches (un plateau vide, sans volcan).
+- MESURÉ (banc headless, RX 6600, DPR 1,5, 740 000 px, 120 images en course au pilote automatique, `dbgCout`, même route avant / après) : GPU au soir
+  avant p50 6,6 ms / p90 9,4 — après p50 6,3 / p90 8,8 (la lave en cellules ne coûte pas plus que l'ancien bruit à trois octaves, la roche ne
+  cherche ses cellules que de près) ; 206 appels et ~515 000 triangles des deux côtés. 0 erreur sur toutes les passes (6 météos).
+- BANCS (scratchpad de la session) : `vphoto5c.cjs <racine> <étiquette> 1 <météo>` (photos en course + vues posées + bancs de fumée + `dbgCout`),
+  `cp-volcan.cjs` (cartes postales), `planche.py` (avant / après).
+- ⚠ PIÈGE DE MÉTHODE : `node code/assembler.cjs` refuse (« les changements se chevauchent ») si index.html ET les morceaux ont changé depuis HEAD
+  sans s'accorder — committer l'état cohérent AVANT de rééditer, et ne toucher qu'un des deux côtés.
+- À trancher par Sacha : les aiguilles trapues (×1,6, `sxz`) ; la densité des braises (×0,7) ; tout se compare avec `?volcan=avant5`.
+
+## LA GRUE D'ATELIER À LA PLACE DE L'ÉTAL (2026-10-20, v715, Léo : « le présentoir, il est vraiment pas très beau » → entre un piédestal et une grue : « la grue ; du coin plus à gauche, là elle est vers la porte, ça fait chelou ; le moteur vers la droite et la grue vers la gauche ; et les moteurs se détruisent et se reconstruisent de la même manière que la voiture quand on regarde une pub pour réapparaître »)
+- `vdepEtal2` (code/gameplay/evenements-rares.js, bloc « LA GRUE D'ATELIER ») : une grue d'atelier jaune DE PROFIL — pieds à roulettes rayés
+  au bout, mât à GAUCHE avec ses bagues, flèche, vérin chromé, baladeuse et son cône de lumière ; le moteur pend à DROITE à la chaîne
+  (crochet, palonnier), au-dessus d'une palette, tourne et se balance ; la plaque est vissée au mât (le nom seul avant le palier 30).
+- PLACE : `ETAL_X` 6,9 / `ETAL_Z` 1,0 (l'étal était à 5,95 / 1,4, contre le montant) — mesuré en vue debout 390 × 844 : à 7,2 le mât sort
+  de l'écran, à 6,9 il tient au bord gauche, le moteur s'écarte de la porte. `?etalx=` / `?etalz=` pour la régler au banc.
+- CHANGER DE CRAN = LA RÉSURRECTION de la seconde chance (RESU) appliquée au moteur : `vdepEclats` range chaque moteur en 12 éclats
+  (boîtes gauche/droite × trois étages × avant/arrière, maillages PARTAGÉS) ; le moteur en place éclate (0,5 s, vers le côté libre, gerbe
+  d'or, `garage.tole`), ceux du suivant apparaissent éparpillés (jamais vers le mât), flottent et reviennent un à un EN TOURBILLON, le bas
+  d'abord, avec traînée d'étincelles et un `spin.arret` qui monte d'une note à chaque éclat ; le dernier posé : anneau de néon rose, gerbe
+  d'or, `jeu.miracule` (doux). ~2,4 s en tout. Étincelles : une réserve à elle (56 sprites), les réserves de la course ne tournent pas au garage.
+- `?etal=ancien` rend l'étal du 19/10. Les deux propositions (piédestal, grue d'origine) sont dans le commit 75731b29.
+- Vérifié au banc (palier 1 et palier 30+, cran 1 → 4 : V16), 0 erreur. Planche : `CAR CAHS V3/photos-gameplay/grue-moteur-avant-apres.png`.
+## LES ORANGES, PLUS FORT (2026-10-20, v714, discussion voiture, Léo : « retente la correction sur les oranges, plus fort » puis « mets la version C »)
+- MESURÉ (banc : le garage qui tourne + PICS DE JADE à midi, part de la tôle orange au plafond 255) : la correction de la v707 (laque à 70 %)
+  brûlait encore 84-89 % de la tôle DE JOUR (garage ~55 %) — un aplat sans relief. Assombrir de ×0,76 ou passer en métallisé ('k') ne
+  changeait presque rien : la saturation de l'image (1,4) et la lumière du garage poussent l'orange au plafond.
+- La palette `p` à 42 % de la v707 (≈ 29 % de la teinte d'origine), même teinte, sans gris ni bleu ajoutés (c'est ce qui brunissait) :
+  LA TAURINE aa3a05 → 471802, LA ZED ba5213 → 4e2208 (gamme-3.js), LE TRÔNE CENTRAL ba5d10 → 4e2707 (gamme-4.js). De jour 2-7 % au plafond,
+  chaque pan se lit ; au garage le capot, les flancs et le nez se séparent. `CARS[i].color` (la vignette d'usine) inchangé.
+- Essayé : D (30 %) encore plus profond ; planche `photos-gameplay/oranges-plus-fort-avant-apres.png` (avant | C | D). 0 programme compilé en course.
+
+## LE GARAGE TOUT NOIR AVEC UNE CAISSE RETIRÉE (2026-10-20, v712, bug relevé pendant l'étude des feux)
+- **Le symptôme** : au garage, équiper par `dbgEquipe(i)` une des vieilles caisses (SA MAJESTÉ, FORMULE OR, LA DEUCHE, LE LINGOT, LA MERCURE…,
+  30 en tout) mettait toute l'image 3D au NOIR (l'interface restait), avec « computeBoundingSphere : radius is NaN » (go, qn = des
+  ExtrudeGeometry/BoxGeometry de three, pas des noms du jeu). Déjà sur le main avant v711 : rien à voir avec les feux.
+- **La cause** : ce sont les caisses RETIRÉES réduites à `{retire:1,name}` (cars.js, 18/10) — sans `w`, `h`, `l` ni `shape`. Construites quand
+  même, elles tombaient dans le repli `gt` avec une largeur `undefined` : `carProfile` décalait la coque de NaN, toutes les cotes (phares,
+  roues, ancrages) et le GABARIT de la caisse passaient en NaN, le cadrage du garage aussi (`GAR.vD`, `cdx`, `cdy`…) → caméra en NaN, image noire.
+- **Le joueur n'y arrivait pas** (vérifié au banc) : `equippedCar()`, `garageListe()`, l'inventaire, les tuiles et la boutique écartent les
+  retirées ; `san` remet une retirée équipée à 0 ; une course lancée après prend `equippedCar()`. Seuls les crochets de banc y menaient.
+- **Le correctif** (rien du dessin des caisses ne bouge) : `carFicheOk(spec)` en tête de `buildCar` (code/voitures/buildcar.js) — une fiche
+  sans cotes construit LA HONTE à sa place (+ un avertissement dans la console) ; `dbgEquipe` et `dbgBras('caisse',i)` REFUSENT une retirée sans
+  fiche (« … : RETIRÉE (pas de fiche) ») au lieu de la monter. Une retirée qui garde sa fiche (LA POUPÉE, LA DAYTONA, LA COMÈTE) se construit
+  comme avant. ⚠ Pour les bancs qui balaient toute la gamme : sauter ces retours-là.
+- Vérifié : les 30 fiches vides refusées, image intacte, 0 erreur ; `buildCar` forcé dans le jeu sur 5 d'entre elles (point d'arrêt
+  conditionnel) → LA HONTE, garage allumé, 0 erreur ; une course derrière, 0 erreur. Planche :
+  `CAR CAHS V3/photos-gameplay/garage-noir-avant-apres.png` (SA MAJESTÉ, LA DEUCHE, LE LINGOT, LA MERCURE).
+
+## LES FEUX : LA LUMIÈRE DANS LE PHARE, PLUS DE BOULE (2026-10-20, v711, Léo : « une étude des lumières des voitures, que je trouve encore un peu jaunes et pas très stylées ; inspire-toi des physiques d'ARC Raiders » → au questionnaire : les FEUX, pas la lumière posée sur la caisse → planche de deux lectures → « je dirai 2 » + « intègre la lumière à l'intérieur des phares, efface cette forme de boule » → « oui, mets la colonne de droite dans le jeu »)
+- **D'où venait le jaune (mesuré au pixel, nuit et garage)** : le HALO des phares (`HALO.hM`, sprite crème 0xffe2a8 à ,95 — une boule molle qui
+  grossit au bloom : sur LE CAÏD la nuit le cœur du phare sortait #f7bd48), 30 caisses aux phares crème (#fff3d6…), les feux-boîtes des vieux
+  gabarits 0xfff6c8, le faisceau sur la route `LUMK.hlC` [1, ,88, ,7] (ampoule halogène), le halo des feux arrière qui tirait sur l'orange.
+  10 000 à 17 000 pixels jaunes autour des phares de nuit → 20 à 200.
+- **Ce qui change** (`code/voitures/feux-led.js`, une ligne en fin de buildCar) : AUCUN halo, ni devant ni derrière ; les pièces lumineuses
+  ('l') relues après la construction, aux deux bouts de la caisse : blanc LED 7 500 K, rouge LED franc (les ambres gardent leur couleur) ; la
+  LUEUR À LA FORME DE LA LAMPE : trois coques additives recopiées des triangles de chaque lampe, un peu plus larges à chaque fois (la barre du
+  CAÏD luit en barre, les ronds du SCARABÉE en ronds) — devant, la nuit seulement (la règle de Sacha : phares éteints au soleil), derrière
+  toujours, le frein l'embrase ; LE FAISCEAU DANS L'AIR la nuit (un cône additif par phare, l'air épais d'ARC) ; faisceau sur la route blanc froid.
+- ⚠ Une lampe poussée au-delà du blanc ne brille PAS plus : le bloom lit la scène écrêtée à [0,1] (son seuil plié) — d'où les coques.
+- Les CAISSES-PERSONNAGES (`FEUX_SAUF` : CHAT POP-TART, LE DOGE, LA FOURNAISE, L'ICEBERG) gardent leurs pièces lumineuses (des yeux, un pelage).
+- Lectures : `?feux=0` = les feux d'avant · `1` LED nette · `2` + faisceau dans l'air (avec de petits halos) · `3` = le jeu. Bancs : `dbgFeuxLed('mode',n)`
+  change de lecture À CHAUD (même instant), `dbgFeuxEtude({masque,boite})` (pixels des feux).
+- Vérifié : 0 erreur, 0 programme compilé en course (+1 au menu : le cône), toute la gamme passée au garage avant/après. Relevé en passant
+  (déjà sur le main, pas les feux) : au garage, une douzaine de vieilles caisses sans pièces 'l' (SA MAJESTÉ, LA DEUCHE…) sortent en image
+  NOIRE quand on les équipe par `dbgEquipe` — avec les erreurs « computeBoundingSphere : radius is NaN » (go, qn).
+- Planches : `CAR CAHS V3/photos-gameplay/feux-led-avant-apres.png` (les deux lectures) et `phares-dans-le-phare-avant-apres.png` (la 3).
+
+## LES PORTES REDESCENDENT (2026-10-20, v709, Léo : « le mission, le shop, tu remets ça en dessous ; tu as déplacé les choses d'une manière bizarre »)
+- INVENTAIRE · MISSIONS · BOUTIQUE retrouvent leur rangée AU-DESSUS DE PLAY, debout comme couché (la place du garage d'avant le 19/10) ; au
+  palier 30 la grille VITESSE se pose juste au-dessus d'elles (vdepPlace). Le ⚙ ajouté par Sacha reste en haut, à côté du trophée.
+- Dans `<style id="garageHaut">` (code/page/ecrans-garage.html), tout ce qui déplaçait les portes (la pente plaque par plaque, la colonne
+  couchée avec l'ŒIL en haut, les portes sous le nom debout, « sans la vitesse ») ne joue plus qu'avec `?portes=haut` (html.portesHaut, posé
+  dans code/page/tete.html) : le rangement de Sacha reste là pour comparer. À dire à Sacha : il voulait ces portes en haut de l'écran.
+- Vérifié au banc (390 × 844, 844 × 390, palier 1 et palier 30+), 0 erreur. Planche : `CAR CAHS V3/photos-gameplay/portes-en-bas-avant-apres.png`.
+## LE CAÏD, LE RELIEF DU FLANC QUI SE VOIT EN TOURNANT (2026-10-20, v708, discussion voiture, Léo : « produire le même relief que sur la voiture, dans le style poly, et le rendre visible quand on tourne autour — tourner, bouger la lumière, ça compte beaucoup ; c'est la forme et la propreté qui donnent envie d'acheter »)
+- Lu sur sa photo : les PORTES EN CREUX entre deux HANCHES (l'aile avant, le flanc de benne) ; une MARCHE de l'une à l'autre (droite devant,
+  inclinée derrière la porte arrière) qui attrape la lumière ; une ARÊTE à hauteur des poignées : dessus le flanc rentre (il regarde le ciel :
+  clair), dessous il tombe (plus sombre). En poly, des pans plats et des arêtes franches.
+- `grille()` sait décaler ses rangées de flanc (`D.dx(z,y)`, fondu dans les coins du nez et de la poupe) ; profils `PRF.porte/hanche/aile`,
+  `zMarche(y)`, `dxBas` dans `code/voitures/caid.js` ; colonnes ajoutées aux marches. Recalés sur le creux : contre-portes, poignées, rétros,
+  dessus des portes, pieds des arceaux, bas du pare-brise, auvent.
+- L'ÉTUDE : un banc tournant au garage (inventaire, 8 angles) — `CAR-bancs/nouvelles-voitures/caid-ouvert/tourne.py`, planche
+  `photos-gameplay/caid-relief-tour-avant-apres.png`. 0 programme compilé en course, 0 erreur (couché, debout).
+
+## LE CAÏD, LE PICK-UP DE LA PHOTO DE LÉO, TOIT OUVERT — LA VITRE V2 (2026-10-20, v705, discussion voiture, Léo : « retouche la Hummer selon la photo, c'est-à-dire sans le toit… comme sur la photo exactement », puis « zoom sur la photo, mesure… une vitre V2 qu'on mettra sur toutes les voitures »)
+- **Sa photo** : la GMC Hummer EV Edition 1 blanche, panneaux de toit retirés. Le SUV du 19/10 redevient le PICK-UP (benne, ailerons, lunette en
+  retrait ; CARS 2 : h 2,01, l 5,51, blanc nacré `0xd2d5d9` — l'ancien vert `0x7cb83f`). Tout est dans `code/voitures/caid.js`.
+- **Le toit, zoomé sur la photo** : le pare-brise est SEUL (rien au-dessus des portes avant), un ARCEAU au milieu (les montants B qui tournent en
+  une large traverse, dessus gris satiné, marche plus sombre au bord, montants noirs), un arceau arrière au-dessus de la lunette, et l'ÉPINE
+  seulement entre les deux. La serre n'est gardée que DERRIÈRE la lunette (`OUVERT` : zones de code 4 = trous, dans les vues dessus/côté/face) ;
+  l'ossature est posée en vraies pièces (`arche()` : une section chanfreinée balayée le long d'un chemin qui suit la rentrée du flanc).
+- **LA VITRE V2** (`vitreV2(P,K,o)`, fonction de haut niveau en tête du fichier, réutilisable sur toute caisse) : une vitre n'est plus peinte sur
+  la tôle, c'est une PIÈCE posée dans son repère `o.Q(u,v,w)` — un cadre noir épais (lèvre chanfreinée laquée, profondeur), le verre en retrait
+  de 2 cm, à peine bombé, normales MESURÉES sur la surface (aucune facette, aucun reflet cassé), la sérigraphie noire du bord en couleurs de
+  sommets, TEINTÉ ET TRANSPARENT (le programme des vitres 'g' en transparent : 0 programme compilé). Sur le CAÏD : le pare-brise, ses deux
+  essuie-glaces, quatre feux de gabarit ÉTEINTS (Léo : « pas de petits points orange »).
+- **Dedans** (vu par le toit et les vitres baissées) : plancher, contre-portes, planche de bord à deux écrans, volant (à gauche), console, deux
+  baquets et la banquette en cuir clair. Le dessus des portes : tôle + joint noir.
+- **Le nez** : le bandeau s'arrête au coin, fermé par le feu en C ambre (la bande noire filait sur l'aile) ; le bouclier haut couleur caisse ;
+  la PLAQUE DU CAPOT = un bloc anthracite EN RELIEF collé au pied du pare-brise (plus de panneau peint, plus d'ouïes ni de joint chromé, flancs
+  du dôme adoucis) ; rétros noirs.
+- ⚠ Une matière laquée ('g') sur un aplat tourné vers le ciel sort CLAIRE en plein jour (reflet) : un noir ou un anthracite posé à plat → 'm'.
+- Vérifié (banc Chrome sans fenêtre) : couché et debout, 0 programme compilé en course, 0 erreur, garage sans erreur. Planches (CAR CAHS V3) :
+  `photos-gameplay/caid-sans-toit-avant-apres.png`, `photos-gameplay/caid-v2-zoom-avant-apres.png` (photo zoomée | v1 | v2).
+
+## LA MER DE NUAGES FAÇON ARC RAIDERS — LE FOND EN PHOTO, LA MER DE CUMULUS, LES NUAGES EN VERRE ÉPARPILLÉS (2026-10-19 soir, v704, Léo : « retouche la mer des nuages ; le ciel dans ARC Raiders est hyper bien fait, prends les images pour un fond plus réaliste encore ; les nuages devant, c'était mieux l'avant-dernière version, avec les cubes, joue plus la transparence » → questionnaire : l'avant-dernière = le vitrail MOYEN → « reste sur ce que tu as fait, mais un tout petit peu éparpillé : le côté trash de la version d'avant, le gros nuage condensé qui se sépare en plein de trucs ; le ciel, c'est vraiment mieux » → « oui, sur le main »)
+- **Les images d'ARC Raiders sont à Embark (protégées)** : aucune n'entre dans le jeu. On en garde la LEÇON (un bleu naturel qui pâlit dans une
+  brume claire, de vrais nuages, l'air épais sur l'horizon) avec de VRAIES photos libres : Poly Haven, CC0 — MATIN `kloppenheim_06_puresky`
+  (soleil bas derrière un nuage, rayons), MIDI `wasteland_clouds_puresky`, SOIR `belfast_sunset_puresky` (altocumulus roses, horizon d'or).
+  `assets/ciel/ciel-*.jpg` : la moitié HAUTE de l'équirectangulaire, 4096 × 1024 (≈ 640 Ko les trois). La nuit, la pluie, l'orage : inchangés.
+- **Au-dessus de l'horizon : la photo** (bloc « LE CIEL D'ARC », `CIEL_ARC`, `cielArcPose` dans `nuFondTick`) — `phCiel(d)` dans la TÊTE des
+  shaders du ciel, lue dans la PASSE NETTE (pleine résolution) et le programme plein ; son soleil est CALÉ sur le nôtre (la colonne tourne avec
+  uSunDir, la hauteur se plie : 0 → notre soleil = 0 → le sien, puis jusqu'au zénith) ; `textureGrad` avec les dérivées de la plus continue
+  de fract(u) / fract(u+½) : pas de couture au raccord du tour. `ex` l'exposition (,8 · ,8 · ,9), `ns` = sans le plafond de chroma (le soir).
+- **En dessous : la MER DE CUMULUS** (`merArc`, dans `cielTitre` quand `uMr.x`) — un vrai pont de nuages sous la route : la carte de relief
+  `assets/ciel/mer-cumulus.png` (512², R hauteur · GB pente · A creux), cuite par `node atelier-ciel/mer-cumulus.js` (des dômes de trois
+  tailles au bord doux, soudés en chou-fleur, tordus par des sinus tuilables), relue à deux échelles tournées, éclairée par NOTRE soleil
+  (pente, ombre portée de trois pas, plis), des trouées vers un abîme noyé d'air, le liseré d'argent à contre-jour, et la perspective aérienne
+  qui rejoint l'horizon DE LA PHOTO à la même direction. Anisotropie au maximum de la puce (on la regarde rasante). Réglages `uMr`/`uMr2`
+  (profondeur 900 m, tuile 4,2 km, couverture ,22 · relief, brume, abîme, ombre). ⚠ Le ciel « sans dessous » de Sacha (15/10, `uSym` : le bas
+  du dôme = le reflet du haut) se COUPE quand la mer est allumée — sur la photo, le reflet faisait un lac-miroir ; la nuit / la pluie / l'orage le gardent.
+- **Les nuages : la dose VERRE** (`NV_DOSES.verre`, défaut quand l'essai est allumé) = le vitrail MOYEN d'il y a deux versions, plus
+  transparent : écailles et cœur OUVERTS DE FACE par la trame (`nvVerre`, `uVerre` ,5 : pleins sur la silhouette), peau plus claire
+  (uCoqA0 ,2), le contour qui se défait (uBordC ,6), un peu de lumière qui traverse (uTrans ,25). + **LE MÉLANGE** (`NUVIT.mix`) : l'ouvrier
+  calcule AUSSI 6 500 cubes fantômes par gabarit (`fsz` 95), aux trois quarts DEHORS et jusqu'à 10 tailles (`opt.fdeh` ,75), plus visibles —
+  le nuage dense qui se défait en petits cubes ; posés avec le vitrail (`nuFantPose` → `V.gOk`, le corps rentré n'est pas pris), aussi sur
+  les bancs, coussins et tours (`mkCloud`). Les cartes postales des six météos de la map refaites (`assets/portail/nuages-*.webp`, piste 42).
+- `?arc=0` = le main d'avant (fond peint + fantômes) ; `?nuvit=moyen|verre|fantome` ; `dbgCielArc()` l'état, `dbgCielArc(null,{ex,ns,mi,mr,mr2})`
+  règle à chaud (mi:1 = la photo et son miroir). ⚠ Noms : `ARC_C`, `arcPose`, `dbgArc` existaient déjà (l'arc-en-ciel) — tout est préfixé `cielArc`.
+- **Mesuré** (banc Chrome sans fenêtre, 844 × 390, Mac, charge 12-20) : 0 programme compilé en course (215 → 215), 60 i/s tenus ; rendu
+  synchronisé 14,3 ms contre 12,2 au main (le vitrail + 6 500 cubes contre 8 000 fantômes ; la photo et la mer, seules, ne coûtaient rien de
+  mesurable : 11,6 = 11,6). Planches : `photos-gameplay/mer-nuages-arc-avant-apres.png`, `mer-nuages-arc-avant-apres-2.png` (CAR CAHS V3).
+
+## LA VITESSE N'APPARAÎT QU'AU MOTEUR 30 (2026-10-19 soir, v703, Léo : « la vitesse n'apparaît que quand on a atteint le niveau 30, moteur 30 »)
+- Avant le palier 30 (`vdepFonction()` faux), la grille VITESSE DE DÉPART du garage (`#gVdep`) n'est plus montrée du tout : ni « VITESSE »,
+  ni les six cadenas. `vdepPlace` pose `#garage.sansVdep` ; dans `<style id="garageHaut">` (code/page/ecrans-garage.html, bloc « SANS LA
+  VITESSE ») les portes prennent sa place : debout INVENTAIRE · MISSIONS · BOUTIQUE à + 174 sous le nom (la caisse descend moins : garCadre
+  lit le bas de la BOUTIQUE), couché le bloc des portes reste centré au même endroit (50 % − 89 / − 33 px).
+- Le palier 30 atteint : la grille apparaît comme avant, avec le toast « VITESSE DE DÉPART DÉBLOQUÉE » (vdepMaj, inchangé). Le code cousin
+  l'ouvre toujours. L'ÉTAL du moteur (à gauche de la porte) reste, au cran 1.
+- Vérifié au banc (390 × 844 et 844 × 390, sauvegarde au palier 1 puis au palier 30+) : grille cachée / visible, portes à leur place, 0 erreur.
+  Planche : `CAR CAHS V3/photos-gameplay/vitesse-cachee-avant-30-avant-apres.png`.
+## LE GARAGE QUI PREND TOUT L'ÉCRAN — LE ⚙ REVIENT, LES BOUTONS MONTENT (2026-10-17 → 19, Sacha : « dans le garage, les boutons sont toujours assez mal positionnés ; faut que tu rajoutes un bouton réglage et un bouton jouer, le bouton jouer avec les trois flèches ; dispose-les mieux dans l'écran : ils sont tous assez en bas alors qu'il y a tout le haut de l'écran qui peut être utilisé » ; puis, le 19 : « oui, pousse sur main, je préviens Léo (il a ?garage=leo s'il veut l'ancien) »)
+⚠ **LÉO EST PRÉVENU PAR SACHA** : ce rangement remplace par défaut la vue principale du garage et rend le ⚙ que Léo avait masqué le 9/10
+(31840c4, « enlève le settings »). Rien n'est détruit : **`?garage=leo`** (ou `?garage=avant`, html.garLeo) rend le garage d'avant AU PIXEL
+(mêmes rectangles mesurés que le main du 19/10).
+- **Fait le 17/10, rebâti le 19/10 sur le garage d'alors** : entre-temps le JOUER ▸▸▸ était arrivé dans l'inventaire et la boutique (UI-REVUE,
+  18/10, avec la porte qui remonte d'abord — ma version de ce morceau est abandonnée), le trophée en haut à droite et la BOUTIQUE deux fois plus
+  large (Sacha, 18/10, `<style id="garShop">`), la VITESSE DE DÉPART (Léo, 19/10, `#gVdep`). Tout cela est GARDÉ : seules les PLACES de la vue
+  principale (`#garage.consoleCachee`) changent. Mêmes éléments, mêmes styles, mêmes écouteurs. Tout dans **`<style id="garageHaut">`**, juste
+  après `vitesseDepart` (la dernière feuille avant `#splash`).
+- **LE ⚙ RÉGLAGES** = l'ancien `#gOutils [data-go="set"]` (dans #gTop : le glissé de la vue l'exclut déjà), en or, À GAUCHE DU TROPHÉE, centré
+  sur lui. Le trophée est recalé à 4 Hz par plqGarage (en miroir du compte) ; **`ghPlace`** (4 Hz, garage ouvert) lit sa place et pose sur #garage
+  `--ghTx` (du bord droit de l'écran au bord droit du ⚙) et `--ghTy` (le milieu du trophée) ; trophée caché (l'œil allumé), il garde la dernière
+  place — l'œil ne saute plus de 6 px. Son ◀ RETOUR rouvre le garage : `window.__setGar` (posé par l'écouteur de `#gOutils [data-go]`, lu par le
+  routeur de la coque comme `__offGar`, effacé par `garageLaunch`).
+- **COUCHÉ** : en haut à droite ŒIL · ⚙ · trophée ; `#gBottom` devient LA COLONNE DE DROITE (300 px, de 70 px sous le haut jusqu'en bas) —
+  VITESSE (vdepPlace la pose toute seule au-dessus des portes), [INVENTAIRE][MISSIONS], la BOUTIQUE de toute la largeur (= les deux autres
+  réunies, comme l'a voulu Sacha le 18/10), centrées dans la place libre ; en bas ACCUEIL + JOUER ▸▸▸ (248 × 62). garLibre lit le bord gauche de
+  la colonne : la caisse a le reste de l'écran.
+- **DEBOUT** : le compteur d'argent s'étend loin (« $ 12 345 678 » finit à x = 224 sur 390) : seul le ⚙ tient à gauche du trophée. VITESSE et les
+  trois portes (7 · 7 · 10 sur 24, comme garShop) montent SOUS LE NOM (fixed : `top: sT + 218 px` ; vdepPlace lit alors des places d'écran,
+  `#gVdep` passe en fixed avec elles) ; la rangée ACCUEIL · JOUER ▸▸▸ · ŒIL reste au pied. garLibre : debout, la caisse se pose SOUS les portes
+  montées (sinon elle restait sous le nom, un grand vide au-dessus de JOUER).
+- **LA PENTE** : garAplomb (15/10) penche la grappe autour d'UN axe (style en ligne) ; ici chaque plaque penche autour de SON centre
+  (`transform-origin:50% 50%!important`), sinon le haut d'une colonne de toute la hauteur partait de 30 px à droite.
+- MESURÉ (téléphone couché 844 × 390, rectangles) : AVANT tout tenait dans le bas droit — VITESSE y 214, portes y 258 (116 · 116 · 164),
+  ACCUEIL · JOUER · ŒIL y 312. APRÈS : ŒIL 640,9 · ⚙ 698,9 · trophée 760,8 ; VITESSE y 113 ; INVENTAIRE · MISSIONS y 157 (155 chacun) ; BOUTIQUE
+  y 213 (309) ; ACCUEIL + JOUER y 316. Debout 390 × 844 : AVANT VITESSE y 648, portes y 692 ; APRÈS ⚙ 248,11, VITESSE y 174, portes y 218.
+- Bancs (Chrome sans fenêtre et muet par CDP, scratchpad) : `t-garage.mjs` (garage → inventaire → retour → boutique → retour, photo + relevé
+  des touches et de ce qui les couvre) au téléphone couché et debout (tactile émulé), 375 × 667, 667 × 375, avec un compte de 12 345 678 $ ;
+  `t-flux.mjs` À LA SOURIS dans le cadre de l'ordi : ⚙ → RÉGLAGES → ◀ → garage · l'œil aller-retour (seul l'œil reste, à la même place) ·
+  INVENTAIRE → JOUER → course · mort → Accueil → GARAGE (les huit touches dessus, `elementFromPoint`) → JOUER → 2e course. 0 exception.
+  `?garage=leo` : les mêmes rectangles que le main du 19/10. Pas de Poki (`html.poki`) : intouché.
+
 ## LE CANYON ET LES DUNES AU HASARD — L'AXE, LES PIÈCES ET LEUR ORDRE, LE CARACTÈRE DES LIAISONS, LES COUDES (2026-10-19, v701, session tracés canyon + dunes — Sacha : « vérifie bien que toutes les maps sont générées aléatoirement »)
 - **Le constat, mesuré** (banc des tracés, 40 graines, palier 0) : la graine changeait à chaque partie, pas la RECETTE. Le CANYON partait toujours
   plein nord (−11° à +13°) et enchaînait toujours brèche (4-6 % du parcours) → fer à cheval/raccourci (17-36 %) → arche (65-82 %) → finale (89-92 %) :
@@ -125,8 +1454,9 @@
   `pres`/`essais`). Console : `dbgForet()` et `dbgBanq()` rendent `axe` (°) et `plan` (chaque morceau et sa longueur), `dbgBanq().pres`.
 - Bancs (non commités) : la copie de banc avec `__ev`/`__ctrl` (voir la mémoire « banc des tracés »), l'analyse (écart, écart sans l'axe, repères,
   rayon sur la spline, approche), un plan SVG des 40 tracés par map et palier ; les courses au pilote rechargent la page à chaque course.
-- À trancher par Sacha : l'axe de la forêt tourne sur TOUT le cercle (on peut rouler face au soleil couchant, ses rayons) — le borner comme la jade
-  (±45°) si ça gêne ; au glacier ±90°.
+- TRANCHÉ (2026-10-20, Sacha, entre « tout le cercle », « ±90° » et « ±45° comme la jade ») : on GARDE TOUT LE CERCLE pour l'axe de la forêt
+  (on peut rouler face au soleil couchant). Mesuré avant de choisir, sur les mêmes 40 tracés (paliers 0 / 10 / 25) : écart de forme 0,26 / 0,24 /
+  0,23 sur tout le cercle, 0,22 / 0,20 / 0,18 à ±90°, 0,17 / 0,16 / 0,14 à ±45° (sous l'objectif de 0,2). Au glacier : ±90°, inchangé.
 ## LE BRAS DES FIGURES EN BOUTIQUE (2026-10-19, Léo : « mets aussi les bras robots dans la boutique, onglet FIGURES » · « faut pas qu'il soit orange, faut qu'il soit comme dans la boutique un peu ; travaille un tout petit peu l'animation ; les autres posent la voiture et un autre bras apparaît »)
 - Boutique (salle blanche), catégorie FIGURES (`brasBqVoulu` : GBQ.cat 'figure') : à la 1re figure touchée, les DEUX BRAS D'ARGENT posent la caisse
   sur le plateau et rentrent dans le socle (`BRB.bqK`, lu par `garBqIndus` — la lévitation descend — et `garBqBras` — ils rentrent une fois la
@@ -176,7 +1506,7 @@
 - **Six crans** (`VDEP_PAL` = index 0 · 5 · 10 · 15 · 20 · 25 = paliers 1 · 6 · 11 · 16 · 21 · 26) : 1 = le départ normal. LA FONCTION S'OUVRE AU PALIER 30
   (Léo : « seulement quand on a atteint le palier trente ») : le TROU NOIR atteint une fois (`SAVE.d.ex.eng`, versé à la fin de chaque partie,
   `vdepFonction`) ouvre les six crans d'un coup, toast « VITESSE DE DÉPART DÉBLOQUÉE » ; avant, les six cases sont visibles sous CADENAS (son
-  choix) et disent « ATTEINS LE PALIER 30 ». Le code cousin ouvre tout. Choix : `SAVE.d.vdep` (0-5, `san`).
+  choix) et disent « ATTEINS LE PALIER 30 ». ~~Le code cousin ouvre tout.~~ **Depuis le 20/10 (Sacha), le code cousin n'ouvre PLUS rien ici** (voir la section du dessus). Choix : `SAVE.d.vdep` (0-5, `san`).
 - **Au départ** : `vdepPose()` remplace la remise à zéro du moteur dans `resetGame`, et tourne dans `sous9` / `jadeJouer` au 1er JOUER (avant la piste) —
   pièces du palier comptées, nitro pleine. `prebDepCible` bâtit le DÉPART D'AVANCE au palier `vdepPal()` (mesuré : « pris au départ », 0 programme
   compilé). Auto-école, parc, balade, joueur sans permis : toujours le cran 1.
@@ -19221,3 +20551,65 @@ const CACHE = 'cashcar-v624'; // v624 (2026-10-18, Léo : « plus de gris chelou
 // const CACHE = 'cashcar-v636'; // v636 (2026-10-18, Sacha : « change le rgb que Léo a mis sur le bord de la route pour qu'il soit de la même couleur que la traînée choisie par le joueur ») : au boost, les bords de la route prennent la couleur de la TRAÎNÉE équipée (le scintillement reste) ; la traînée ARC-EN-CIEL garde l'arc-en-ciel ; `?bordsboost=rgb` = la version de Léo
 // const CACHE = 'cashcar-v635'; // v635 (2026-10-18, session m2colk — Claude, trouvé en passant par la session CHAUMIÈRES) : LA MIGRATION DES MISSIONS v2 TOURNE ENFIN — `M2_COLK` et `M2_RECO` étaient déclarées plus bas que l'appel de `m2Etat` du démarrage (zone morte, avalée par le try/catch : « missions v2 : migration ReferenceError » à chaque première ouverture) ; remontées à côté de `M2K`, mesuré sans effet sur les sauvegardes déjà passées
 ```
+
+## LES VOITURES ROUGES, MOINS LUMINEUSES (2026-10-19 soir, discussion Map — Léo : « rends la vette et toutes les voitures rouges moins lumineuses, tu peux donner de la vie aux couleurs ; c'est trop luisant, il n'y a pas de détail sur la voiture ») — v704
+- LE DÉFAUT, MESURÉ (banc : Chrome sans fenêtre, garage et course figée par `dbgView`) : la laque rouge sature. LA VETTE (d01a22 : 208/26/34) rendue au garage : 69-75 % de ses pixels rouges à 255,
+  vert et bleu à 0 (médiane R 253) ; en course de jour (NUAGES, midi) 63 % ; de nuit 35-39 %. La lumière du garage (~4× l'albédo) et le grade du jeu (saturation) écrasent un rouge saturé en
+  rouge pur : plus aucun dégradé, donc plus de relief ni de reflet lisible. Même défaut sur ROSSO 40, LA CERISE, LE HOT ROD, LA RAIE, LA PUCE (palette `p` de leur gabarit).
+- LA CORRECTION : la peinture `p` de ces six gabarits passe de c à c × 0,55 + (8, 15, 18) : plus foncée, un fond de vert et de bleu qui donne de la vie (un cramoisi qui chauffe vers l'orange
+  sous la lampe, au lieu d'un rouge pur). VETTE d01a22 → 7a1e25 · ROSSO 40 e8121c/b00d15 → 871921/68161d · CERISE c8151d → 761b22 · HOT ROD c8141c → 761a21 · PUCE c8141e → 761a22 · RAIE c4161c → 731b21.
+  Essayé : ×0,38 (relief maximal au garage mais un bordeaux terne en plein jour), ×0,6, ×0,5 ; ×0,55 est le compromis. Le seul levier est l'albédo : le garage reste lumineux (même à ×0,4, 48 %
+  des pixels restent saturés), le relief vient du capot, des lignes de caisse et des reflets qui reparaissent.
+- NON TOUCHÉ : `CARS[i].color` (cars.js) — c'est la couleur de la vignette de la peinture d'USINE dans l'inventaire (elle doit rester le rouge vif) ; la laque réellement rendue vient de la palette du gabarit.
+  LA DAYTONA (retirée) garde sa palette. Les peintures du joueur (boutique) passent par `peintPal` : inchangées.
+- À MONTRER À LÉO (pas appliqué, il décide) : même défaut sur LA TAURINE, LE TRÔNE CENTRAL, LA ZED (oranges qui sortent rouge-orange au garage : 40-43 % de pixels plats), LE DÉFIEUR (jaune, 35 %),
+  POSTER 84 (33 %). Planche : `photos-gameplay/rouges-autres-propositions.png` (dossier de Léo, hors dépôt).
+- Banc (scratchpad de la discussion Map) : `ab.py` (avant/après au garage et en course figée, deux serveurs), `tune3.py`/`tune4.py` (réglages à chaud par `dbgRed` + mesure des pixels saturés), `flat.py`
+  (classement de toute la gamme), `planche.py` (planche légendée capturée par Chrome).
+
+## LES ORANGES, MÊME CORRECTION (2026-10-20, discussion Map — Léo : « fais aussi la même correction sur les oranges (TAURINE, TRÔNE CENTRAL, ZED) et montre-moi la comparaison ») — v707
+- Suite des voitures rouges (v706, sur le main) : LA TAURINE, LE TRÔNE CENTRAL et LA ZED sortent aussi en aplat saturé au garage (40-43 % de pixels « plats » : un canal à 255, un autre à 0-40).
+- ESSAYÉ À 55 % (comme les rouges) : du relief au garage, mais en course de jour (NUAGES, midi) l'orange vire au BRUN. À 70 % (c × 0,70 + (8, 8, 5)) : l'orange reste vif, le relief revient.
+  TAURINE e84800 → aa3a05 (gamme-3.js) · ZED ff6a14 → ba5213 (gamme-3.js) · TRÔNE CENTRAL ff7a10 → ba5d10 (gamme-4.js). `CARS[i].color` (vignette de la peinture d'usine) inchangé.
+- Non fait : LE DÉFIEUR (jaune) et POSTER 84 (même défaut, proposés à Léo — le jaune se brunit vite en dessous de ~80 %).
+
+
+## AUJOURD'HUI — LA SÉRIE DE SEPT JOURS ET LE DÉFI DU JOUR (2026-10-20, séance « ce qu'on n'a jamais vraiment travaillé » — Léo coche : « une série de jours qui vaut le coup » · « le défi du jour, taillé pour toi »)
+- Le morceau `code/missions/aujourdhui.js` (son en-tête dit tout) : `SERIE7` (sept cases 150 $ · 250 $ · 1 jeton · 400 $ · 600 $ · 1 jeton · une PEINTURE EXCLUSIVE —
+  BRAISE FIDÈLE, AURORE BORÉALE, LAGON INTERDIT, NUIT ÉTOILÉE, `serie:1`, épiques, jamais en vente ; toutes à toi → 2 jetons) et `DJ` (un défi par jour, famille tirée sur la
+  date et pondérée par TES records, seuil calé sur ton meilleur, +1 jeton FINAL SPIN, `SAVE.d.dj`).
+- Sur le retour du jour de Sacha (son/mute-cadeau.js) : `jourCommit` verse la case du calendrier au lieu de la prime (`?serie=ancien` = la prime 0…100 $ de Sacha, que
+  `outils/jour-modele.cjs` lit toujours) ; `jourFinTexte` dit le lot, sans accent (la ligne est en police pixel : « SéRIE » s'affichait). Le ×2 du jour ne change pas.
+- Branchements : `m2Tick` → `djTick` ; la ligne du bas des missions a un genre `dj` (jamais fondu dans « n MISSIONS RÉUSSIES ») ; `m2Render` → `aujHtml` en tête ;
+  `shopOwned`/`m2HabAMoi` (`!d.serie`), `m2HabReco` (hors des lots « toutes ») ; `SAVE.d.dj` gardé par `san`. `?defijour=0` éteint le défi.
+- Vérifié au banc (Chrome muet, vrais touchers, 390 × 844) : écran MISSIONS avant / après / journée faite, une vraie partie (défi « 250 km/h » réussi en course, la ligne,
+  « ×2 DU JOUR · SÉRIE 3 +1 JETON » à l'écran de fin, 2 jetons), les 4 peintures au garage. Planche : `photos-gameplay/revenir-joueur-avant-apres.png` (dossier de Léo).
+- Console : `dbgSerie()`, `dbgSerie('jour',n)`, `dbgSerie('pris',n)`, `dbgDefiJour()`, `('force','fig')`, `('reussi')`, `('demain')`.
+
+## LES PETITS BUGS QUI TRAÎNAIENT (2026-10-20, séance « finir ce qui n'a pas été travaillé » — Léo coche : « les 3 petits bugs »)
+- LE GARAGE TROP LOURD SUR TÉLÉPHONE : `PAL.B.vhdPx` MOYEN et RÉCENT 1,6 / 3,2 M → 1,4 M de pixels (rendu/nettete-qualite.js). Mesuré sur l'iPhone 15 de Léo le 16/10 : à 3,2 M (densité 3)
+  le garage et la boutique tombaient à 41-58 i/s avec des accrocs de 200-700 ms ; 1,4 M (densité ~2) est le réglage que son appli iPhone appliquait déjà (preparer-www.js : `Math.min(…,1.4e6)`,
+  qui reste valable — la ligne de vhdDpr n'a pas bougé). L'ordinateur garde 8,3 M. `?palier=2` garde le reste du comportement RÉCENT.
+- LES ABEILLES DE LA FORÊT ÉTAIENT MUETTES : `sfx('foret.abeille')` était appelé (abeille à < 10 m de la caisse) mais aucune recette ne le cuisait. Recette `foret.abeille` (atelier-son/recettes.js) :
+  le bourdonnement qui PASSE — harmoniques en 1/k avec un « nez » vers 1,1 kHz, Doppler (plus aigu à l'arrivée, plus grave au départ), d'une oreille à l'autre ; deux variantes (l'ouvrière ~230 Hz,
+  le bourdon ~150 Hz). Cuite en PCM (`PCM=1 node atelier-son/cuire.js foret.abeille` : pas de ffmpeg sur ce Mac) — une cuisson complète avec ffmpeg la repassera en MP3. Banque `?v=34`.
+
+## LE DOMPTEUR DE GROSSE CAISSE DE POUCE BLEU (2026-10-20, séance « finir ce qui traîne » — noté le 17/10 : « la grosse caisse de certains morceaux ~18 dB au-dessus du reste »)
+- MESURÉ (banc muet, la chaîne de course : bus des basses → limiteur, 20 morceaux × 11 moteurs ; crête 20 ms de la bande 30-120 Hz contre le RMS 200 Hz-8 kHz) : les sains 5-13 dB ;
+  le générateur fait ENTRER la grosse caisse à plein aux moteurs 2-5 quand le reste n'est qu'un clavier → 17-25 dB (le « ~18 dB » = PLUIE D'ARGENT au moteur 3) ; ASPHALTE
+  D'ÉMERAUDE 14-16 dB partout. Le limiteur du jeu ne travaillait jamais (crêtes ≤ −7,5 dBFS) : un écart, pas un écrêtage.
+- `assets/audio/musique-bus.js`, section 5 : clé `kick: 12` sur les 11 morceaux fautifs — la bande sous ~130 Hz (phase linéaire) passe dans un compresseur rapide dont le seuil
+  SUIT le reste du morceau ; la basse SEULE n'est jamais touchée (`pouce-bleu-jeu.js` : `groupe()` dit au bus si la grosse caisse joue, `PB.niveau` → `bus.tick`). Au-dessus
+  de ~195 Hz rien ne bouge. Après : 11-14 dB à l'entrée de la caisse. Restent hauts, VOULU (c'est leur BASSE, décision de Léo) : CAVALE ULTRA et AVERSE DE CHROME aux moteurs 4-6.
+- Les morceaux sains et la bibliothèque : identiques à l'échantillon près (le dompteur n'est pas construit). `?kick=0` = sans dompteur ; `?basses=brut` = tout le bus d'avant.
+
+## L'ÉCRAN MISSIONS ÉPURÉ (2026-10-22, v812 — Sacha : « enlève le défi du jour, enlève toutes les catégories en haut, c'est trop compliqué ; mets-toi dans la peau d'un designer UX/UI senior : plus simple, plus beau, chaque bouton mieux placé »)
+- RETIRÉ : le DÉFI DU JOUR (`DJ.on` faux sauf `?defijour=1` : plus de tirage, de ligne ni de jeton ; le moteur reste dans `missions/aujourdhui.js`), les FILTRES de famille (`m2Chips`, `M2E.f`),
+  les trois emplacements « SUIVIES » de la colonne de gauche, le bloc « AUJOURD'HUI ». Les missions suivies (3 au plus) reviennent DANS la liste, en or, sous « À RÉCUPÉRER ».
+- LA MISE EN PAGE (couché, `#gMis.m2land` posé par `gmPlaceL`, tout en CSS) : une grille à deux colonnes pour le haut et le bas. GAUCHE (`--m2Gl` = 27 vw entre 188 et 236 px) : le titre, le compte
+  « n / 50 » et sa jauge (`--m2P`), la consigne en or (tant qu'aucune mission n'est suivie), la carte de la SÉRIE de sept jours (titre, sept cases, une phrase), RETOUR en bas. DROITE : UNE liste sans cadre,
+  deux fondus (haut et bas) disent qu'elle défile, qui court du haut de l'écran jusqu'à 8 px au-dessus de JOUER. RETOUR et JOUER ont la même hauteur (`--m2Bh` = 56 px) et la même ligne, au ras des marges
+  de l'iPhone : plus rien ne passe SOUS un bouton, et la liste montre ~4,5 missions au lieu de ~3. Les titres de groupe (À RÉCUPÉRER · SUIVIES n / 3 · MISSIONS) n'apparaissent que s'il y a plusieurs groupes.
+  Chaque ligne porte la couleur de sa famille en liseré à gauche (plus de filtres : la couleur dit ce que c'est). Debout : le même panneau qu'avant (la carte, puis la liste, un seul défilement).
+- MESURÉ au banc `outils/banc-missions/missions.mjs` (Chrome sans fenêtre, marges iPhone 47/21 px posées par `Emulation.setSafeAreaInsetsOverride`) : 844 × 390, 932 × 430, 667 × 375 et 390 × 844 — rien ne déborde,
+  la carte de la série ne passe jamais sous RETOUR ; récupérer une récompense, déplier TERMINÉES, toucher la série : sans erreur de page.

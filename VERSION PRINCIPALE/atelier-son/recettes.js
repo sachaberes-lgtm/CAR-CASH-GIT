@@ -912,6 +912,10 @@ D('pwr.a',{fam:'machine',dur:1.4,st:1,key:1,db:+2,max:1,cd:.4,grp:'r',prio:3,dit
 D('pwr.v',{fam:'machine',dur:1,st:1,key:1,db:+2,max:1,cd:.4,grp:'r',prio:3,dit:'pouvoir SPEED UP : l’étincelle électrique + la turbine qui monte',
   r:function(b,R,o){for(let k=0;k<4;k++)osc(b,{f:1800+k*400,f1:300,g:.06,t0:k*.02,a:.0005,d:.06,v:.12,fm:{r:3.3,i:3,d:.04}});osc(b,{f:600,f1:4200,g:.6,gc:.7,w:'saw',t0:0,a:.02,d:.6,v:.05,flt:['bp',1500,6000,.6,4]});
     stab(b,R,[14,21],.06,.1,.5,.12,1.2);grave(b,o,0,100,50,.1,.3,.4);}});
+/* (2026-10-20, Léo : « le citron : petits crépitements électriques mignons, addictifs, peau de gaming audio sound design ») le ZAP du citron : cinq petits « bip » FM qui dévalent, un grain de crépitement, une minuscule cloche au bout — mignon, jamais agressif, à jouer en rafale */
+D('citron.zap',{fam:'machine',bus:'fx',dur:.4,st:1,db:-3,max:3,cd:.05,dit:'citron : un petit crépitement électrique mignon et addictif (bips FM qui dévalent + grain de crépitement + minuscule cloche)',
+  r:function(b,R,o){for(let k=0;k<5;k++)osc(b,{f:2200+k*430,f1:900+k*150,g:.04,t0:k*.045,a:.0004,d:.05,v:.11,fm:{r:2.7,i:2.2,d:.03},pan:(k%3-1)*.5});
+    crepite(b,R,0,.3,14,.16,2500,7000);cloche(b,{f:3100,r:[1,2.76],m:[1,.3],d:[.12,.05],t0:.02,v:.08},R);}});
 D('pwr.bientot',{fam:'machine',bus:'fx',dur:.5,st:1,key:1,db:-4,max:1,cd:.4,dit:'un pouvoir va finir (< 1,5 s) : tic-tac sec, trois fois',
   r:function(b,R,o){bois(b,R,0,1500,.5);bois(b,R,.16,1500,.5);bois(b,R,.32,1100,.6);}});
 D('pwr.fin',{fam:'machine',dur:.8,st:1,key:1,db:0,max:1,cd:.3,dit:'un pouvoir s’éteint : le « power-down » (note qui retombe, filtre qui se ferme)',
@@ -1163,15 +1167,30 @@ D('garage.bascule',{fam:'interface',bus:'ui',dur:1.1,st:1,key:1,db:-5,max:1,cd:.
    (5 modes de tôle en rapports de CLOCHE, 0,35 s de tenue) sonnait comme un gong. Une vraie caisse qu'on tape, c'est une TÔLE ÉPAISSE
    ÉTOUFFÉE (la garniture, le joint) : un toc sourd et court, le POIDS de la caisse, sa SUSPENSION qui s'enfonce et remonte (la caisse
    recule à l'écran), et un petit cliquetis de garniture. Quatre prises (±8 %) : on tape souvent. */
-D('garage.tole',{fam:'interface',bus:'ui',dur:.55,db:-5,max:2,cd:.08,v:4,dit:'taper sur la caisse au garage : le TOC étouffé d’une portière, le poids de la caisse, sa suspension qui rebondit, la garniture qui cliquette',
+/* (2026-10-20 soir, Léo : « le bruit quand on touche la voiture est un peu nul — pour toutes les voitures ») le toc ÉTOUFFÉ ne disait rien
+   sous le doigt. Désormais un vrai COUP DE JOINTURE sur une portière : l'attaque claque (deux clics, aigu + médium), le PANNEAU sonne
+   (quatre modes de tôle, 90 ms), le creux de la caisse répond (bruit grave bref), le POIDS, et un petit « ting » métallique qui traîne
+   150 ms — la tôle qui vibre. Plus présent (−2 dB au lieu de −5). Quatre prises (±8 %). */
+D('garage.tole',{fam:'interface',bus:'ui',dur:.5,db:-2,max:2,cd:.08,v:4,dit:'taper sur la caisse (toutes) : le coup de jointure sur une portière — attaque qui claque, panneau qui sonne, creux de la caisse, poids, ting de tôle',
   r:function(b,R,o){const k=.92+R()*.16;
-    clic(b,{t0:0,f:2200,d:.005,v:.26},R);                                                     // la jointure
-    cloche(b,{f:190*k,r:[1,1.62,2.31,3.48],m:[1,.55,.32,.14],d:[.1,.065,.04,.022],t0:0,v:.5,jit:.04},R); // la tôle épaisse, étouffée
-    bruit(b,{c:'r',t0:0,a:.0008,d:.06,v:.3,ft:'lp',f:750*k,q:.8},R);                          // le creux du panneau
-    grave(b,o,0,96*k,60*k,.05,.16,.4);                                                        // le poids
-    osc(b,{f:58*k,f1:50*k,g:.3,t0:.03,a:.03,d:.32,v:.13,vib:[6,.04]});                        // la suspension qui s'enfonce et remonte
-    bruit(b,{c:'b',t0:.04,a:.02,d:.12,v:.03,ft:'bp',f:1700*k,q:5,am:[22,.7]},R);              // l'amortisseur, à peine
-    for(let i=0;i<3;i++)plastique(b,R,.018+i*.017+R()*.01,(1300+R()*600)*k,.05-i*.012);      // la garniture qui cliquette
+    clic(b,{t0:0,f:3200,d:.007,v:.5},R);clic(b,{t0:.002,f:1200,d:.012,v:.35},R);               // l'attaque : la jointure, sèche
+    cloche(b,{f:300*k,r:[1,1.9,2.9,4.3],m:[1,.6,.4,.25],d:[.09,.06,.045,.03],t0:0,v:.6,jit:.04},R); // le panneau qui sonne
+    bruit(b,{c:'r',t0:0,a:.001,d:.07,v:.35,ft:'lp',f:600*k,q:.9},R);                          // le creux de la caisse
+    grave(b,o,0,120*k,70*k,.05,.12,.35);                                                      // le poids
+    osc(b,{f:1450*k,w:'sin',t0:.004,a:.002,d:.14,v:.08});osc(b,{f:2200*k,w:'sin',t0:.004,a:.002,d:.09,v:.05}); // le ting de la tôle
+    for(let i=0;i<2;i++)plastique(b,R,.03+i*.02+R()*.01,(1400+R()*500)*k,.035-i*.012);        // la garniture, à peine
+  }});
+/* (2026-10-20 soir, Léo : « clac mécanique quand ça sort ») LES CROCS DE LA SQUALE : l'action spéciale (voir CAR_ACTION). Un VÉRIN :
+   le « zzt » du servo (45 ms), le CLAC d'acier des crocs en butée (clic + quatre modes de métal court + thud), le petit rebond 45 ms
+   après, puis le retour lent : un souffle hydraulique qui crépite doucement 1,6 s. Un seul à la fois. */
+D('squale.crocs',{fam:'interface',bus:'ui',dur:2.1,db:-3,max:1,cd:.1,dit:'LA SQUALE tapée : le servo, le CLAC d’acier des crocs en butée, le rebond, puis le vérin qui les rentre lentement',
+  r:function(b,R,o){
+    bruit(b,{c:'b',t0:0,a:.002,d:.045,v:.25,ft:'bp',f:1800,q:3,am:[90,.8]},R);                 // le servo
+    clic(b,{t0:.045,f:3000,d:.006,v:.55},R);clic(b,{t0:.047,f:900,d:.01,v:.3},R);             // le CLAC
+    cloche(b,{f:640,r:[1,1.5,2.7,4.1],m:[1,.5,.35,.2],d:[.06,.045,.03,.02],t0:.045,v:.55,jit:.03},R); // l'acier
+    grave(b,o,.045,150,90,.04,.08,.4);                                                        // le thud de butée
+    clic(b,{t0:.09,f:3000,d:.005,v:.25},R);cloche(b,{f:640,r:[1,1.5,2.7],m:[1,.5,.3],d:[.035,.025,.02],t0:.09,v:.25,jit:.03},R); // le rebond
+    bruit(b,{c:'r',t0:.4,a:.3,h:.9,d:.45,v:.05,ft:'lp',f:900,q:.8,am:[14,.6]},R);              // le vérin qui rentre : souffle qui crépite
   }});
 D('garage.lacher',{fam:'interface',dur:1.9,st:1,db:+3,max:1,cd:1,dit:'LE LÂCHER du garage (1,7 s) : le moteur qui s’ébroue, le turbo qui siffle, la caisse qui part + le WHOOSH du voile blanc (1,36 s)',
   r:function(b,R,o){for(const dt of [0,.01])osc(b,{f:48,f1:150,g:1.4,gc:1.6,w:'saw',t0:.05,a:.15,h:1.1,d:.3,v:.09,flt:['lp',300,2200,1.4,.9],pan:dt*50});
@@ -1209,16 +1228,16 @@ const D=G.CCSON_D,O=G.CCSON_OUTILS,osc=O.osc,bruit=O.bruit,cloche=O.cloche,clic=
 const nE=function(st){return 329.6276*Math.pow(2,st/12);};
 D('pwr.autre',{fam:'machine',dur:1,st:1,key:1,db:+2,max:1,cd:.4,grp:'r',prio:3,dit:'pouvoir (générique, pour un pouvoir sans signature) : éclat + deux notes',
   r:function(b,R,o){T.swish(b,R,0,.4,400,4000,.3);T.stab(b,R,[12,19],.06,.1,.5,.12,1.2);T.scintille(b,R,.1,.5,6,.08);}});
-D('pwr.m',{fam:'machine',dur:1.3,st:1,key:1,db:+2,max:1,cd:.4,grp:'r',prio:3,dit:'pouvoir AIMANT : le champ magnétique qui ronfle (« wub ») + les pièces qui filent vers la caisse',
-  r:function(b,R,o){osc(b,{f:110,t0:0,a:.05,h:.3,d:.5,v:.35,vib:[9,.12]});osc(b,{f:220,w:'saw',t0:0,a:.05,h:.3,d:.4,v:.05,vib:[9,.12],flt:['lp',900,900,1,1.5]});
-    for(let k=0;k<7;k++){const f=nE(24+[0,2,4,7,9,12,14][k]);osc(b,{f:f*.6,f1:f,g:.08,gc:.5,t0:.15+k*.07,a:.002,d:.12,v:.13,pan:(k%2?.5:-.5)});}
-    T.stab(b,R,[16,23],.1,.1,.5,.1,1.1);}});
+D('pwr.m',{fam:'machine',dur:1.4,st:1,key:1,db:+2,max:1,cd:.4,grp:'r',prio:3,dit:'POMME DORÉE (aimant) : un CARILLON D\u2019OR — une cascade de cloches qui monte, chaude, à l\u2019accord majeur',
+  r:function(b,R,o){for(let k=0;k<7;k++)cloche(b,{f:nE(12+[0,2,4,7,9,12,14][k]),r:[1,2.76,5.4],m:[1,.35,.12],d:[.9,.35,.12],t0:.02+k*.06,v:.17,pan:(k%3-1)*.55},R);
+    cloche(b,{f:nE(24),r:[1,2.76],m:[1,.3],d:[.7,.25],t0:.45,v:.14,pan:0},R);T.nappe(b,R,[12,16,19],.08,.15,.3,.7,.05,2800);}});
 D('pwr.b',{fam:'machine',dur:1.5,st:1,key:1,db:+2,max:1,cd:.4,grp:'r',prio:3,dit:'pouvoir BOUCLIER : le champ de force d’acier qui se referme (vwoom) + la cloche d’acier',
   r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.08,d:.6,v:.45,ft:'bp',f:300,f1:2400,g:.35,q:5},R);T.tole(b,R,.12,nE(7),.35,1.2);
     osc(b,{f:nE(-12),t0:.1,a:.05,h:.4,d:.6,v:.2,vib:[4,.01]});cloche(b,{f:nE(31),r:[1,2.39,3.86],m:[1,.4,.2],d:[1,.5,.25],t0:.14,v:.2},R);}});
-D('pwr.x',{fam:'machine',dur:1.4,st:1,key:1,db:+2,max:1,cd:.4,grp:'r',prio:3,dit:'pouvoir AURA ×2 : le chœur d’or bref + les cloches doublées à l’octave',
-  r:function(b,R,o){T.choeur(b,R,[12,19,24],0,.05,.25,.8,.1);[24,31].forEach(function(st,i){cloche(b,{f:nE(st),r:[1,2,2.76],m:[1,.4,.15],d:[.8,.35,.12],t0:.06+i*.09,v:.26},R);cloche(b,{f:nE(st+12),r:[1,2],m:[1,.2],d:[.6,.2],t0:.075+i*.09,v:.12},R);});
-    T.scintille(b,R,.1,.8,10,.1);}});
+D('pwr.x',{fam:'machine',dur:1.8,st:1,key:1,db:+2,max:1,cd:.4,grp:'r',prio:3,dit:'FRUIT DU DRAGON (aura ×2/×3) : le balayage inversé qui aspire + le BOL CHANTANT hypnotique (deux bols, un souffle d\u2019aigus qui tourne)',
+  r:function(b,R,o){T.swish(b,R,0,.55,250,3600,.3,-.5,.5,.6);
+    cloche(b,{f:nE(7),r:[1,2.01,2.99,4.2,5.9],m:[1,.55,.35,.2,.1],d:[1.3,.8,.5,.3,.15],t0:.5,v:.26,pan:-.2},R);cloche(b,{f:nE(14),r:[1,2.01,2.99,4.2],m:[1,.45,.28,.14],d:[1.1,.6,.4,.2],t0:.62,v:.2,pan:.25},R);
+    T.nappe(b,R,[7,14],.5,.25,.5,1.1,.08,2200);}});
 D('pwr.double',{fam:'machine',dur:1.1,st:1,key:1,db:+3,max:1,cd:.5,grp:'r',prio:4,dit:'DOUBLE POUVOIR : deux stabs qui montent + poussière',
   r:function(b,R,o){T.stab(b,R,[12,19],0,.05,.3,.14,1.1);T.stab(b,R,[16,24],.13,.15,.6,.15,1.3);T.scintille(b,R,.15,.6,8,.1);}});
 D('pwr.triple',{fam:'machine',dur:1.5,st:1,key:1,db:+5,max:1,cd:.5,grp:'r',prio:5,dit:'TRIPLE POUVOIR : trois stabs + le grave + le chœur',
@@ -1487,6 +1506,7 @@ D('garage.feu',{fam:'interface',bus:'amb',dur:6.6,st:1,db:-9,max:1,cd:.5,rj:0,vj
      le hurlement proche, un plus lointain et plus aigu, et un DUO (un second loup répond un ton au-dessous).
    · `foret.chouette` — la hulotte : « hou… hou-hou-houuuu » (le chevrotement de la fin). · `foret.corbeau` — deux ou trois « kraa ».
    · `foret.oiseau` — des phrases de passereaux (merle, rouge-gorge, pinson) : des glissés rapides 2-5 kHz, quatre variantes.
+   · `foret.abeille` — l'abeille qui frôle la caisse : le bourdonnement qui passe (Doppler, d'une oreille à l'autre).
    · `foret.pic` — le pic qui tambourine sur un tronc creux. · `foret.craque` — une branche qui casse puis grince (la nuit).
    · `foret.jourAmb` / `foret.nuitAmb` — deux BOUCLES très discrètes (−14 dB sous les autres ambiances) : le feuillage qui respire le
      jour, le vent grave qui gémit la nuit. ⚠ Rien au-dessus de ~2 kHz en continu : le souffle de la mer de nuages, 11-26 dB au-dessus
@@ -1554,6 +1574,21 @@ D('foret.craque',{fam:'foret',bus:'amb',dur:1.2,st:1,v:2,db:-4,max:1,cd:1,dit:'u
     for(let k=0;k<4;k++)clic(b,{t0:.03+R()*.12,f:1800+R()*1500,d:.004,v:.25,pan:p},R);
     osc(b,{f:o.v?150:120,f1:o.v?95:70,g:.6,gc:.7,w:'saw',t0:.25,a:.08,h:.25,d:.3,v:.07,pan:p,flt:['bp',500,350,.6,6]});
     O.echo(b,.31,.3,1,true);O.versStereo(b,.4,R);}});
+/* (2026-10-20, Léo : « les abeilles n'ont pas de son ») `foret.abeille` — L'ABEILLE QUI FRÔLE LA CAISSE (dbgAbeilles, à < 10 m) : un bourdonnement
+   qui PASSE — le battement d'ailes (fondamentale ~230 Hz, harmoniques en 1/k, un « nez » vers 1,1 kHz), l'effet Doppler (plus aigu quand elle
+   arrive, plus grave quand elle s'éloigne), le volume qui gonfle puis s'efface, et le côté qui glisse d'une oreille à l'autre. Les ailes
+   hésitent (deux vibratos lents) : jamais un moteur. Deux variantes : l'ouvrière et le BOURDON (grave, plus lent). Cuite en PCM (pas de ffmpeg sur le Mac de Léo) : la prochaine
+   cuisson complète avec ffmpeg la repassera en MP3, trois fois plus légère. */
+D('foret.abeille',{fam:'foret',bus:'amb',dur:1.7,st:1,v:2,db:-7,max:1,cd:1.2,dit:'une ABEILLE qui frôle la caisse dans la forêt : le bourdonnement qui passe d’une oreille à l’autre (Doppler)',
+  r:function(b,R,o){const sr=b.sr,k=o.v,f0=k===1?150+R()*15:225+R()*20,du=k===1?1.6:1.4,n=Math.min(b.n,Math.round(du*sr)),
+      cote=R()<.5?-1:1,v1=4+R()*3,v2=9+R()*4,p1=R()*TAU,p2=R()*TAU,NH=14;let ph=0;
+    for(let i=0;i<n;i++){const t=i/sr,u=t/du,x=(u-.5)*2;
+      const am=Math.sin(Math.PI*u)*(1/(1+x*x*2.4)),f=f0*(1-.055*Math.tanh(2.6*x))*(1+.018*Math.sin(TAU*v1*t+p1)+.009*Math.sin(TAU*v2*t+p2));
+      ph+=f/sr;ph-=Math.floor(ph);
+      let s9=0;for(let h=1;h<=NH;h++){const fh=h*f,nez=1+1.6/(1+((fh-1100)/450)*((fh-1100)/450));s9+=Math.sin(TAU*h*ph)*nez/h;}
+      s9*=am*.16*(.85+.15*Math.sin(TAU*f*.5*t));
+      const pan=cote*Math.tanh(2.2*x)*.85,a=(pan+1)*Math.PI/4;b.L[i]+=s9*Math.cos(a);if(b.R)b.R[i]+=s9*Math.sin(a);}
+    O.filtre(b,'hp',90,.7);O.filtre(b,'lp',3600,.7);O.echo(b,.11,.18,.5,true);}});
 D('foret.jourAmb',{fam:'foret',bus:'amb',dur:9,st:1,db:-14,max:1,cd:1,dit:'la FORÊT LE JOUR (boucle, très bas) : le feuillage qui respire au vent, des oiseaux très loin',
   r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.001,h:9,d:.001,v:.16,ft:'bp',f:700,q:.6,am:[.13,.6],pan:-.3},R);
     bruit(b,{c:'r',t0:0,a:.001,h:9,d:.001,v:.12,ft:'bp',f:1100,q:.7,am:[.21,.55],pan:.35},R);

@@ -1,0 +1,198 @@
+<style id="pagesPixel">
+/* (2026-10-18, allègement) LES RÈGLES DE L'INTERFACE PAR DÉFAUT QUI VIVAIENT DANS LES FEUILLES DE LA CHARTE 6 (retirée : rejetée le 14/10) —
+   la question de bienvenue, la page RÉGLAGES, le ◀ des missions, la sous-ligne MEILLEUR de la fin, TOUS LES RÉGLAGES de la pause. Même place
+   dans la page, même ordre ; le `html:not(.c6)` de tête est tombé (la classe c6 n'existe plus). */
+/* ====== LA QUESTION DE BIENVENUE (bienvMontre, 2026-10-16, Léo : « un message à la première ouverture, bien designé, en cohérence avec le
+   reste du jeu, avec une option ne plus répéter ») : la case NE PLUS ME DEMANDER (.modCoche, posée par modale() quand on lui passe `coche`)
+   — une case de 20 px qui se remplit d'or, son mot qui s'allume ; 44 px de haut pour le pouce. ====== */
+#modale .modCoche{display:flex;align-items:center;justify-content:center;gap:10px;min-height:44px;margin:14px auto 0;padding:0 10px;cursor:pointer;
+  font-family:var(--pix);font-size:10px;line-height:12px;letter-spacing:0;color:#b3b8c4;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+#modale .modCoche .mcBox{flex:0 0 auto;display:grid;place-items:center;width:20px;height:20px;background:#13161d;box-shadow:inset 0 0 0 2px #b3b8c4;transition:background .12s,box-shadow .12s}
+#modale .modCoche .mcBox .pxi{--pxs:2;opacity:0;transform:scale(.4);transition:opacity .12s,transform .16s cubic-bezier(.32,.72,0,1)}
+#modale .modCoche.on .mcBox{background:#ffc62b;box-shadow:inset 0 0 0 2px #ffc62b}
+#modale .modCoche.on .mcBox .pxi{opacity:1;transform:none;color:#1d1300}
+#modale .modCoche.on span{color:#fff}
+#modale .modCoche:is(:active,.appui) .mcBox{transform:translateY(2px)}
+/* deux plaques l'une sous l'autre, le geste en pixel, la promesse dessous en police système (elle a les accents) ; ni la ligne qui
+   déborde, ni la plaque trop basse pour le pouce. */
+#modale.bienv .modB .pbtn{flex-wrap:wrap;align-content:center;justify-content:center;column-gap:10px;row-gap:7px;height:auto;min-height:74px;padding:12px 16px;white-space:normal}
+#modale.bienv .modB .pbtn>span{font-size:12px;line-height:14px}
+#modale.bienv .modB .pbtn .pxi{--pxs:2}
+#modale.bienv .modB .pbtn>small{flex-basis:100%;text-align:center;font-family:var(--sans);font-size:13px;line-height:16px;font-weight:700;letter-spacing:0;text-transform:none;opacity:.86}
+#modale.bienv #modX{font-family:var(--sans);font-size:14px;line-height:19px;font-weight:600;letter-spacing:0}
+/* LA PAGE RÉGLAGES (en-tête, colonnes, pied) : le titre en tête, une seule colonne, la touche EFFACER et la version en bas */
+#mSet .c6Tete{display:flex;align-items:center;gap:14px;margin:6px 0 24px}
+#mSet .c6Titre{font-family:var(--pix);font-weight:400;font-size:var(--f9);color:#fff}
+#mSet :is(.c6Corps,.c6Col){display:flex;flex-direction:column;width:100%}
+#mSet .c6Pied{display:flex;flex-direction:column;align-items:center;gap:12px;margin:22px 0 0}
+#mSet .c6Ver{font-family:var(--pix);font-size:var(--f0);color:var(--tx3)}
+/* (2026-10-15, Sacha : « le RETOUR en bas à gauche sur tous les écrans ») la sortie est le dock du bas : le ◀ du haut reste caché */
+#mSet .c6Tete>.c6Ret{display:none}
+#gMis #gmHead .c6Ret{display:none}   /* le ◀ MORT des missions (.pbtn passait outre [hidden], #gmHead lui ôtait le toucher) */
+.hNxC6{display:none}  /* la sous-ligne MEILLEUR jumelle du badge RECORD ! : jamais montrée */
+#tPanel .tp[data-a="tous"]{display:none}
+</style>
+<style id="figuresV2">
+/* ===== LES FIGURES v2 — LES TROIS BOUTONS DE VOL (2026-10-14, Sacha : « on doit pouvoir équiper jusqu'à 3 figures différentes ») =====
+   Ils n'existent qu'EN VOL (body.figVol, posé par figHud) : au sol l'écran reste nu. PENCHÉS (on les touche), laque de la charte, la
+   couleur de l'AURA (ce que les figures rapportent) en liseré. Couché : en rang à GAUCHE de NITRO, sous le pouce droit ; debout : en rang
+   AU-DESSUS de NITRO. Le pictogramme dit le geste : la flèche tournante, telle quelle = salto avant, en miroir = salto arrière, aplatie =
+   toupie, pincée = tonneau, penchée = combiné. Le numéro = la touche du clavier (1 · 2 · 3) et l'emplacement de l'inventaire.
+   APPUYÉ (tenu) : la plaque s'enfonce et s'embrase ; L'EXPLOSION (.boum) : un éclair blanc → aura ; REFUS (.non, trop tard pour la planter) :
+   un coup de rouge et elle tremble. */
+:root{--fgW:58px;--fgH:52px;--fgGap:9px;--fgC:var(--aura)}
+#tFig{display:none}
+html body.touch.play.figVol #tFig{display:flex;position:fixed;z-index:3;gap:var(--fgGap);align-items:flex-end;pointer-events:auto;touch-action:none;
+  right:calc(var(--hudD) + 8px + var(--nxW,21) * var(--nxC,3.6px) + 14px);bottom:calc(var(--sB) + 16px);animation:fgEntre var(--t-fast) var(--ease)}
+@media (orientation:portrait){html body.touch.play.figVol #tFig{right:calc(var(--hudD) + 8px);bottom:calc(var(--sB) + 16px + var(--nxH,29) * var(--nxC,3.6px) + 14px)}}
+@keyframes fgEntre{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.tFigB{position:relative;width:var(--fgW);height:var(--fgH);box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  background:var(--laque);transform:skewX(var(--sk));cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;
+  box-shadow:inset 3px 0 0 var(--fgC),var(--levre),inset 0 0 0 1px rgba(255,255,255,.06),0 0 0 1px var(--anneau),0 5px 0 var(--tranche),0 5px 0 1px var(--anneau),0 10px 18px -6px rgba(0,0,0,.6);
+  transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
+.tFigB::after{content:'';position:absolute;inset:-6px -4px;} /* la zone tapable déborde le dessin (cibles ≥ 44 px, sans toucher la voisine) */
+.tFigB .pxi{--pxs:3;color:var(--fgC);margin:0;transition:color var(--t-fast) var(--ease)}
+.tFigB .pxi.fgAr{transform:scaleX(-1)}.tFigB .pxi.fgTo{transform:scaleY(.55)}.tFigB .pxi.fgTn{transform:scaleX(.55)}.tFigB .pxi.fgCo{transform:rotate(40deg) scaleY(.8)}
+.tFigB b{font-family:var(--pix);font-size:var(--f0);letter-spacing:1px;line-height:1;color:var(--tx);font-weight:400;white-space:nowrap;transform:skewX(var(--skI))}
+.tFigB u{position:absolute;left:4px;top:3px;text-decoration:none;font-family:var(--pix);font-size:var(--f0);line-height:1;color:var(--tx3)}
+.tFigB.on,.tFigB:active{transform:skewX(var(--sk)) translateY(5px);
+  background:linear-gradient(0deg,color-mix(in srgb,var(--fgC) 60%,transparent),color-mix(in srgb,var(--fgC) 8%,transparent) 80%),var(--laque);
+  box-shadow:inset 3px 0 0 var(--fgC),inset 0 0 0 1px color-mix(in srgb,var(--fgC) 55%,transparent),var(--levre),0 0 0 1px var(--anneau),0 0 22px color-mix(in srgb,var(--fgC) 55%,transparent)}
+.tFigB.on .pxi,.tFigB:active .pxi{color:#fff}
+.tFigB.boum{animation:fgBoum var(--t-slow) var(--ease)}
+@keyframes fgBoum{0%{filter:brightness(2.4)}100%{filter:none}}
+.tFigB.non{--fgC:var(--neoR);animation:fgNon var(--t-slow) steps(4)}
+@keyframes fgNon{25%{margin-left:-5px}50%{margin-left:5px}75%{margin-left:-3px}}
+@media (prefers-reduced-motion:reduce){html body.touch.play.figVol #tFig,.tFigB.boum,.tFigB.non{animation:none}}
+</style>
+<style id="figuresHud">
+/* ===== LE HUD DES FIGURES v3 (2026-10-15, Sacha : « retravaille l'HUD pour le système de figure, il est buggé et trop discret ; enlève certaines
+   des autres inscriptions qui se mettent au milieu de l'écran, comme + 2000 AURA, qui est écrit ailleurs de toute façon ; anime, mets de la
+   couleur et tout pour les figures » · « on doit pouvoir sélectionner seulement 2 figures à la fois, pas 3 » · « quand le joystick est vers
+   l'avant, ça déclenche la figure 1 ; sur les côtés, la figure 2 » — choisi : DOUBLE-TAP NITRO + joystick, plus de boutons, un rappel qu'on LIT).
+   CE QUI CLOCHAIT (vu au banc, couché 844 × 390, main v487) : les noms des trois boutons se chevauchaient (« ARRIERETOUPIETONNEAU » : des plaques
+   de 58 px pour des noms de 6-7 lettres) ; en vol, la ligne #figCombo restait vide (elle attendait la 2e figure PLANTÉE, qui tombe en général à
+   la pose) puis surgissait APRÈS la pose, à 29 % du haut, dans le couloir du verdict, ou masquée par la carte moteur ; et (lu dans le code) la figure plantée
+   s'écrivait aussi en petit au-dessus de la caisse (« SALTO ARRIERE ×2 +142 »), une 2e fois dans la chaîne d'aura.
+   · #fh (on le LIT, en haut) : le NOM de la figure qui part, gros, dans la couleur de son emplacement — 1 = CYAN (l'avant), 2 = MAGENTA (le côté),
+     OR = celle que la caisse fait seule (le saut nitro, la toupie de drift). Plantée, elle claque (éclair, confettis) et tombe dans la LIGNE DU
+     COMBO : une pastille par figure, le × qui grimpe et change de couleur (vert → or → orange → l'arc-en-ciel du max). À la pose propre, la ligne
+     flashe en or et S'ENVOLE vers la chaîne d'aura (où « COMBO ×N +X » est déjà écrit) ; à la chute, rouge, les pastilles tombent.
+   · #fhLeg (le rappel, là où étaient les boutons, à côté de NITRO) : ↑ figure 1 · ◄► figure 2. Rien ne s'y touche ; il flashe quand sa figure part.
+   Les animations passent par l'API Web Animations (fhAnime : une relance sans remise en page forcée), la courbe est --ease. */
+:root{--fh1:var(--neoC,#00eaff);--fh2:var(--neoM,#ff3ec8);--fh0:var(--or,#ffd75e);--fhO:#ff7a24;--fhVert:var(--neoV,#5ee37a);--fhKo:var(--neoR,#ff4a64);
+  --fhE:var(--encre,#1c0430);--fhT:calc(var(--ccT,env(safe-area-inset-top,0px)) + 19%);--fhCh:var(--f1,10px);--fhXs:var(--f9,24px);--fhGap:8px;
+  --fhBord:3px 0 0 var(--fhE),-3px 0 0 var(--fhE),0 3px 0 var(--fhE),0 -3px 0 var(--fhE),3px 3px 0 var(--fhE),-3px 3px 0 var(--fhE),3px -3px 0 var(--fhE),-3px -3px 0 var(--fhE),0 6px 0 var(--fhE);
+  --fhBord2:2px 0 0 var(--fhE),-2px 0 0 var(--fhE),0 2px 0 var(--fhE),0 -2px 0 var(--fhE),2px 2px 0 var(--fhE),-2px 2px 0 var(--fhE),2px -2px 0 var(--fhE),-2px -2px 0 var(--fhE),0 4px 0 var(--fhE);
+  --fhCoupe:polygon(4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px),0 4px)}
+@media (orientation:portrait){:root{--fhT:calc(var(--ccT,env(safe-area-inset-top,0px)) + 22%);--fhCh:var(--f0,8px);--fhXs:var(--f6,20px)}}
+#fh{position:fixed;left:50%;top:var(--fhT);z-index:40;pointer-events:none;transform:translateX(-50%);width:min(94vw,680px);
+  display:flex;flex-direction:column;align-items:center;gap:var(--fhGap);font-family:var(--pix);text-align:center;white-space:nowrap;visibility:hidden}
+#fh.on{visibility:visible}
+body:not(.play) #fh,body.dead #fh,body.hTp:not(#ccH) #fh,body.ebOn #fh{visibility:hidden}
+body.fhOn #lvlBan{visibility:hidden} /* une voix en haut : la figure passe devant la bannière du niveau (vue au banc : collées l'une sous l'autre) */
+/* le NOM : couleur pleine de l'emplacement, contour d'encre en pixels, la LÈVRE claire (la rangée du haut de chaque lettre, comme le verdict) */
+#fh .fhNom{--fc:var(--fh0);position:relative;opacity:0;transition:opacity var(--t-fast) var(--ease)}
+#fh .fhNom.on{opacity:1}
+#fh .fhNom b{position:relative;display:block;font-weight:400;line-height:1.2;letter-spacing:2px;color:var(--fc);
+  text-shadow:var(--fhBord),0 0 22px color-mix(in srgb,var(--fc) 70%,transparent)}
+#fh .fhNom b::after{content:attr(data-t);position:absolute;left:0;top:0;right:0;pointer-events:none;color:color-mix(in srgb,var(--fc) 30%,#fff);
+  text-shadow:none;clip-path:inset(0 0 calc(100% - .225em) 0)}
+#fh .fhNom.ko b{animation:fhKo .5s steps(2) 2}
+@keyframes fhKo{50%{color:#fff}}
+/* LA LIGNE DU COMBO : les pastilles (une par figure plantée, la couleur de son emplacement) et le × */
+#fh .fhLigne{display:flex;align-items:center;justify-content:center;gap:10px;max-width:100%;min-height:calc(var(--fhXs) * 1.2)}
+#fh .fhCs{display:flex;gap:6px;flex-wrap:nowrap}
+#fh .fhX{--xc:var(--fh0);font-style:normal;font-size:var(--fhXs);line-height:1;letter-spacing:1px;color:var(--xc);
+  text-shadow:var(--fhBord2),0 0 16px color-mix(in srgb,var(--xc) 70%,transparent)}
+#fh .fhX:empty{display:none}
+#fh .fhX.max{animation:fhMax .48s steps(1) infinite}
+@keyframes fhMax{0%{color:var(--fh1)}33%{color:var(--fh2)}66%{color:var(--fh0)}}
+#fh.perdu .fhX{--cc:var(--fhKo);--xc:var(--fhKo);animation:none}
+/* LE RAPPEL : ↑ figure 1 · ◄► figure 2 — en vol seulement, à côté de NITRO (la place des anciens boutons) ; on le lit, on ne le touche pas */
+#fhLeg{display:none}
+html body.touch.play.figVol.figDir #tFig{display:none!important}
+html body.touch.play.figVol.figDir #fhLeg{display:flex;flex-direction:column;align-items:flex-end;gap:6px;position:fixed;z-index:3;pointer-events:none;
+  right:calc(var(--hudD) + 8px + var(--nxW,21) * var(--nxC,3.6px) + 14px);bottom:calc(var(--sB) + 16px)}
+/* (2026-10-15 soir, les trois directions) debout aussi en COLONNE au-dessus de NITRO : ↑ · ↓ · ◄► dans l'ordre des gestes — trois en rangée (~285 px) passaient sur l'anneau du volant */
+@media (orientation:portrait){html body.touch.play.figVol.figDir #fhLeg{flex-direction:column;align-items:flex-end;right:calc(var(--hudD) + 8px);bottom:calc(var(--sB) + 16px + var(--nxH,29) * var(--nxC,3.6px) + 14px)}}
+.fhL{--fc:var(--fh1);display:flex;align-items:center;gap:7px;padding:7px 10px 6px 8px;background:var(--fhE);font-family:var(--pix);font-size:var(--f0,8px);
+  letter-spacing:1px;line-height:1;color:var(--fc);white-space:nowrap;clip-path:var(--fhCoupe);
+  box-shadow:inset 3px 0 0 var(--fc),inset 0 0 0 1px color-mix(in srgb,var(--fc) 45%,transparent),inset 0 3px 0 rgba(255,255,255,.10)}
+.fhL .pxi{--pxs:2;color:var(--fc);margin:0}
+.fhL b{font-weight:400;color:var(--tx,#fff7ee)}
+.fhL.ko{--fc:var(--fhKo)}
+@media (prefers-reduced-motion:reduce){#fh .fhX.max,#fh .fhNom.ko b{animation:none}}
+/* ===== v4 (2026-10-15 soir, Sacha : « retravaille l'HUD des figures, il faut que ce soit parfait : là c'est écrit en double ») — le récit est au-dessus de figNom.
+   LE NOM et sa FLÈCHE (le geste : ▲ ▼ ◄ ►) sur une ligne ; LA LIGNE DU COMBO en pastilles muettes + « COMBO ×1,5 » + « RECORD » ; LE RAPPEL dont le
+   geste visé s'allume. Les anciennes pastilles à texte (.fhC) ne sont plus posées. */
+#fh .fhNom{display:flex;align-items:center;justify-content:center;gap:.45em}
+#fh .fhNom .fhD{--pxs:3;flex:none;color:var(--fc);filter:drop-shadow(0 3px 0 var(--fhE)) drop-shadow(0 0 10px color-mix(in srgb,var(--fc) 60%,transparent))}
+#fh .fhNom .fhD.vide{display:none}
+@media (orientation:portrait){#fh .fhNom .fhD{--pxs:2}}
+#fh .fhP{--cc:var(--fh0);display:block;width:10px;height:10px;background:var(--cc);clip-path:var(--fhCoupe);box-shadow:inset 0 2px 0 rgba(255,255,255,.35),0 0 10px color-mix(in srgb,var(--cc) 60%,transparent)}
+#fh .fhP.neuf{width:15px;height:15px}
+#fh.paye .fhP{--cc:var(--fh0)}
+#fh.perdu .fhP{--cc:var(--fhKo)}
+#fh .fhX small{font-size:.42em;letter-spacing:1px;vertical-align:.32em;margin-right:.15em;color:var(--tx,#fff7ee);text-shadow:var(--fhBord2)}
+#fh .fhRec{font-family:var(--pix);font-size:var(--fhCh);letter-spacing:1px;line-height:1;text-decoration:none;color:var(--fhE);background:var(--fh0);padding:5px 6px 4px;clip-path:var(--fhCoupe);visibility:hidden}
+#fh .fhRec.on{visibility:visible;animation:fhRecBat .5s steps(2) infinite}
+@keyframes fhRecBat{50%{background:#fff}}
+/* ===== LE « RECORD » DES FIGURES EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») =====
+   iPhone 13 Pro mesuré : 58,0 i/s en course contre 59,7 i/s animations figées (WebKit repeint les fonds animés à chaque image).
+   fhRecBat est une bascule franche (steps(2)) du fond var(--fh0) au blanc OPAQUE : le blanc est posé une fois sur un pseudo-élément (sous le
+   texte : .fhRec isolé, pseudo en z-index −1, coupé par le même clip-path) dont seule l'opacité bascule. Écart attendu : 0. */
+html.han #fh .fhRec.on{animation:none;position:relative;isolation:isolate}
+html.han #fh .fhRec.on::before{content:'';position:absolute;left:0;top:0;right:0;bottom:0;z-index:-1;background:#fff;opacity:0;pointer-events:none;
+  will-change:opacity;animation:hanFhRecBat .5s steps(2) infinite}
+@keyframes hanFhRecBat{50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){html.han #fh .fhRec.on::before{animation:none!important}}
+.fhL{opacity:.62;transition:opacity var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
+.fhL.arme{opacity:1;transform:translateX(-8px);background:color-mix(in srgb,var(--fc) 28%,var(--fhE));
+  box-shadow:inset 3px 0 0 var(--fc),inset 0 0 0 2px var(--fc),0 0 16px color-mix(in srgb,var(--fc) 55%,transparent)}
+@media (prefers-reduced-motion:reduce){#fh .fhRec.on{animation:none}.fhL{transition:none}}
+/* ===== v5 (2026-10-18, Sacha : « retravaille le système de figure, notamment les combos de figures : c'est pas montré assez clairement ; les
+   bumps sur les bords de la route doivent être une figure à part entière, cumulable dans des combos ; en fonction de la rareté de la figure,
+   écris-la dans une couleur et une police différente correspondant à la rareté »). Le récit est au-dessus de FIG_RP.
+   · LA RARETÉ ÉCRITE (data-rp) : la couleur de la boutique (RARETES) et une police pixel par rareté (déclarées dans <style id="policeUnique">) ;
+     --rk = la taille qui donne la même hauteur de capitale que Press Start 2P (MESURÉ : Silkscreen ,63 em · Jersey ,54 · Sixtyfour ,87 ·
+     Jacquard ,57) ; la LÉGENDAIRE un cran plus grande, en minuscules gothiques (Salto Cosmique, `fhTitre`), et un reflet blanc qui la
+     traverse ; l'ÉPIQUE un halo.
+   · LA LIGNE DU COMBO SE LIT : plus de pastilles muettes — le NOM de chaque figure plantée, dans sa rareté, reliés par « + » ; « … » devant
+     quand la ligne déborde (les plus anciennes sortent). Dessous, LE × en grand + RECORD. Un combo à trois NOMMÉ (LA PERCEUSE…) s'écrit en grand,
+     en arc-en-ciel, et ses trois maillons se soulignent d'or. */
+:is(#fh,#fhLeg) [data-rp]{--rc:#b9c4d6;--rk:1}
+:is(#fh,#fhLeg) [data-rp=rare]{--rc:#4db8ff;--rk:1.59}
+:is(#fh,#fhLeg) [data-rp=exotique]{--rc:#3ee8a8;--rk:1.85}
+:is(#fh,#fhLeg) [data-rp=epique]{--rc:#c77dff;--rk:1.15}
+:is(#fh,#fhLeg) [data-rp=legendaire]{--rc:#ffd75e;--rk:1.9}
+:is(#fh,#fhLeg) [data-rp=combo]{--rc:#fff7ee;--rk:1}
+#fh .fhNom[data-rp]{--fc:var(--rc)}
+#fh .fhNom[data-rp]:not([data-rp=commun]):not([data-rp=combo]):not([data-rp=legendaire]) b::after{display:none} /* (2026-10-18, débogage) la légendaire en est exclue : cette règle pesait plus lourd que son reflet (plus bas), qui ne s'est jamais allumé */ /* la lèvre claire est calée sur les capitales de Press Start 2P */
+#fh .fhNom[data-rp=epique] b{text-shadow:var(--fhBord),0 0 26px color-mix(in srgb,var(--fc) 95%,transparent),0 0 8px color-mix(in srgb,var(--fc) 60%,transparent)}
+#fh .fhNom[data-rp=legendaire] b{text-shadow:var(--fhBord),0 0 30px color-mix(in srgb,var(--fc) 85%,transparent)}
+#fh .fhNom[data-rp=legendaire] b::after{display:block;clip-path:none;color:transparent;-webkit-text-fill-color:transparent;
+  background:linear-gradient(105deg,transparent 0 42%,rgba(255,255,255,.95) 47% 53%,transparent 58% 100%) 0 0/300% 100% no-repeat;
+  -webkit-background-clip:text;background-clip:text;animation:fhReflet 1.5s steps(9) infinite}
+@keyframes fhReflet{from{background-position:100% 0}to{background-position:-60% 0}}
+#fh .fhNom[data-rp=combo] b{animation:fhMax .48s steps(1) infinite}
+/* la ligne du combo : les maillons */
+#fh .fhLigne{gap:0;min-height:0;align-items:baseline}
+#fh .fhCs{gap:0;align-items:baseline}
+#fh .fhMore{font-family:var(--pix);font-size:var(--fhCh);line-height:1;text-decoration:none;color:var(--tx,#fff7ee);opacity:.7;text-shadow:var(--fhBord2);margin-right:.45em}
+#fh .fhMore:empty{display:none}
+#fh .fhM{display:block;font-style:normal;font-weight:400;line-height:1;letter-spacing:1px;white-space:nowrap;color:var(--rc);
+  font-size:calc(var(--fhCh) * 1.2 * var(--rk));text-shadow:var(--fhBord2),0 0 12px color-mix(in srgb,var(--rc) 55%,transparent)}
+#fh .fhM+.fhM::before,#fh .fhMore:not(:empty)+.fhCs .fhM:first-child::before{content:'+';display:inline-block;font-size:var(--fhCh);color:var(--tx,#fff7ee);margin:0 .5em;
+  vertical-align:.1em;text-shadow:var(--fhBord2)}
+#fh .fhM.trio{box-shadow:0 4px 0 -1px var(--fh0)}
+#fh.perdu .fhM[data-rp]{--rc:var(--fhKo)}
+#fh .fhBas{display:flex;align-items:center;justify-content:center;gap:10px;min-height:calc(var(--fhXs) * 1.2)}
+#fh .fhBas:not(:has(.fhX:not(:empty))){min-height:0}
+#fh:not(.combo) .fhLigne{display:none} /* une figure seule s'écrit UNE fois, en grand : la ligne naît à la 2e (MESURÉ au banc : « BUMP » en grand ET « BUMP » dessous) */
+#fh .fhRec.on{visibility:inherit} /* (corrigé) en « visible », RECORD restait seul à l'écran quand #fh se cachait (carte moteur, fin de partie…) */
+body.verdOn #fh .fhNom{visibility:hidden} /* UNE voix au centre : le verdict de la pose passe devant le grand nom ; la ligne du combo et le × restent */
+/* le rappel des gestes : le nom de chaque figure dans sa rareté */
+.fhL b[data-rp]{color:var(--rc);font-size:calc(var(--f0,8px) * var(--rk))}
+@media (prefers-reduced-motion:reduce){#fh .fhNom[data-rp=legendaire] b::after,#fh .fhNom[data-rp=combo] b{animation:none}}
+</style>

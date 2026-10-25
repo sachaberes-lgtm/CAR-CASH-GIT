@@ -10,6 +10,9 @@ sh garde-burnout.sh
 # (2026-10-14, Sacha) LA GARDE DE LA CHARTE : logo de l'accueil figé par empreinte, police pixel, charte 6 en opt-in (garde-charte.sh ;
 # GARDE_CHARTE=0 la coupe).
 sh garde-charte.sh
+# (2026-10-25, Sacha : « sur PC la version maximum, sur téléphone l'optimisée — que j'aie pas à te le redire ») LA GARDE DE L'ALLÈGEMENT : un allègement du rendu gardé par
+# IS_MOBILE (vrai aussi sur PC) n'est PAS publié (garde-allege.sh ; GARDE_ALLEGE=0 la coupe).
+sh garde-allege.sh
 rm -rf .vercel-static
 mkdir -p .vercel-static
 cp -R demo/cash-car-demo .vercel-static/demo
@@ -39,7 +42,7 @@ rm -f .vercel-static/jouer/musique-moteur.html .vercel-static/jouer/assets/audio
 # ce que SEULE elle lit : ses catalogues de boucles (boucles/, depart/, petites-musiques/, les *-donnees.js), le lobby du garage que le jeu ne joue
 # plus (lobby/garage-*), GLISSE, le moteur French Touch et les mesures de goûts. Les fichiers restent dans le dépôt. Rien de ce que le jeu peut
 # demander n'est touché : MENU_MUS (lobby/ciel-*), l'auto-école (lobby/chris-matin), les morts et l'argent (death/, fx/), Pouce bleu (le reste de direct/,
-# musique-moteur.json, musique-paliers.js, rendus/). boucles/dark-triad.m4a RESTE : c'est le morceau de la frénésie (MUSIC_FREN le cherche en .mp3 ailleurs).
+# musique-moteur.json, musique-paliers.js, rendus/). boucles/dark-triad.m4a RESTE : c'est le morceau de la frénésie (MUSIC_FREN.f, depuis le 24/10 — avant, le jeu le cherchait en .mp3 ailleurs).
 rm -f .vercel-static/jouer/bibliotheque.html
 rm -rf .vercel-static/jouer/assets/audio/music/depart .vercel-static/jouer/assets/audio/music/petites-musiques
 find .vercel-static/jouer/assets/audio/music/boucles -type f ! -name dark-triad.m4a -delete 2>/dev/null || true
@@ -48,6 +51,9 @@ rm -f .vercel-static/jouer/assets/audio/music/direct/french-touch.html .vercel-s
 # …et ce qui dépend des musiques de POUCE BLEU (musique-moteur.json) est calculé à chaque build, avec la règle du jeu : les dossiers de paliers
 # des morceaux rangés « bleu », les générateurs que les 👍 rejouent, les échantillons vrais/ du rejeu (outils/vrais-jeu.json, tant que sa preuve
 # colle). AVANT publie-allege (l'empreinte de la preuve lit les fichiers tels que le dépôt les a).
+# (2026-10-24, passe perf) LA BANQUE DE SONS EN DEUX MOITIÉS : le 1er lancement ne télécharge d'abord que les sons du début (0,8 Mo sur 7,7) ; le reste arrive
+# après load (sfx.js, CCSON.ajoute). La copie publiée seulement ; en cas d'échec la banque reste entière (outils/scinde-banque.cjs, preuve octet pour octet).
+node outils/scinde-banque.cjs .vercel-static/jouer || echo "⚠ scinde-banque : échec, la banque part entière"
 node outils/publie-audio.cjs .vercel-static/jouer || echo "⚠ publie-audio : échec, la copie part avec tous ses sons"
 # (2026-10-18, Sacha : « retirer les commentaires de la copie mise en ligne » + « les outils de test dbg… ») LA COPIE ALLÉGÉE : la copie
 # publiée perd ses commentaires (index.html 7,6 → 4,5 Mo, ≈ −1 Mo téléchargé par joueur) et les crochets window.dbgX que rien de publié
@@ -64,7 +70,14 @@ node outils/publie-allege.cjs .vercel-static/jouer || echo "⚠ publie-allege : 
 SHA="${VERCEL_GIT_COMMIT_SHA:-$(git rev-parse HEAD 2>/dev/null || date +%s)}"
 JEU=$(cd .vercel-static/jouer && find . -type f ! -name version.json -print0 | LC_ALL=C sort -z | xargs -0 sha1sum | sha1sum | cut -c1-40)
 [ -n "$JEU" ] || JEU="$SHA"
-sed "s/__CC_BUILD__/$JEU/" .vercel-static/jouer/index.html > .vercel-static/jouer/index.tmp && mv .vercel-static/jouer/index.tmp .vercel-static/jouer/index.html
+# (2026-10-22, piste « démarrage ») L'EMPREINTE DES PHOTOS : les photos de caisses gardées par le navigateur (IndexedDB) étaient jetées à CHAQUE
+# publication (leur signature portait l'empreinte du jeu entier) et refaites au garage : 3 à 4 s de fil principal à CPU ×4. On grave à part
+# l'empreinte des SEULS fichiers qui changent l'image d'une photo : les caisses (voitures/), le rendu (rendu/), le studio et ses constantes
+# de cadrage (photos-films.js, frole-contrats.js), la boucle des photos (atelier-ferme.js). ⚠ Un nouveau fichier qui change l'image d'une
+# photo doit entrer dans cette liste, sinon ses photos restent périmées jusqu'à la prochaine publication qui touche un fichier listé.
+PHOTOS=$(find code/voitures code/rendu code/interface/photos-films.js code/gameplay/frole-contrats.js code/interface/atelier-ferme.js -type f -print0 2>/dev/null | LC_ALL=C sort -z | xargs -0 sha1sum | sha1sum | cut -c1-40)
+[ -n "$PHOTOS" ] || PHOTOS="$JEU"
+sed "s/__CC_BUILD__/$JEU/;s/__CC_PHOTOS__/$PHOTOS/" .vercel-static/jouer/index.html > .vercel-static/jouer/index.tmp && mv .vercel-static/jouer/index.tmp .vercel-static/jouer/index.html
 printf '{"v":"%s","commit":"%s"}\n' "$JEU" "$SHA" > .vercel-static/jouer/version.json
 # (2026-10-14, Sacha : « publie ») LES DEUX PAGES QUE L'APP STORE EXIGE, à la racine du site : /confidentialite.html et /assistance.html
 # (dossier pages-app/ ; leur source est app-ios/fiche/ sur la branche ios-capacitor). Rien du jeu n'en dépend.

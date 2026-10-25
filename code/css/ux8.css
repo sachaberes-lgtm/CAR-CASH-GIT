@@ -1,0 +1,375 @@
+<style id="ux8-menus">
+/* UX 8 · LES MENUS (2026-10-14, Sacha : « on repasse à l'ancienne version des boutons avec la bonne charte graphique ; mets-toi dans la peau d'un
+   designer UX/UI ; que chaque bouton de chaque écran soit magnifique, adapté à l'iPhone, le plus ergonomique possible ; pas de bouton inutile »).
+   La charte reste la v4/v5 (laque · or · néon, police pixel, charte4) ; ce bloc ne fait que l'ERGONOMIE et le SOIN, sous html:not(.c6).
+   Accueil, garage (hub, inventaire, œil), offres, boutique. Le LOGO n'est JAMAIS touché ici. */
+
+/* ===== ACCUEIL (UX 8) : MISSIONS en plaque pleine largeur, dessous trois touches icône + MOT (GARAGE · OFFRES · RÉGLAGES), JOUER en bas.
+   Même famille de plaques, 8-10 px d'écart, libellés pixel 10 px, cibles ≥ 52 px. Le logo n'est jamais touché. */
+html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-columns:repeat(3,minmax(0,1fr));column-gap:10px}
+html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{grid-row:4;grid-column:1/-1}
+html:not(.c6).hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-row:6;grid-column:1}
+html:not(.c6).hub:not(.poki) body #mHome.acc2 .mOffres{grid-row:6;grid-column:2}
+html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear{grid-row:6;grid-column:3}
+html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay{grid-row:8;grid-column:1/-1}
+html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{flex-direction:row!important;justify-content:flex-start!important;gap:12px!important;padding:0 18px!important;font-size:10px!important;letter-spacing:2px!important}
+html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre .pxi{--pxs:3}
+html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre .mMisPips{top:calc(50% - 3px)!important;right:18px!important}
+html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear){flex-direction:column!important;gap:6px!important;padding:4px 2px!important;font-size:10px!important;letter-spacing:1px;color:var(--tx,#dfeeff)}
+html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres)>span,html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear>span{display:block!important;font-family:var(--pix);font-size:10px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:clip;max-width:100%}
+html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear) .pxi{--pxs:3}
+@media (orientation:portrait) and (max-width:400px){
+  html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-columns:repeat(3,minmax(0,1fr));column-gap:8px}
+  html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear) .pxi{--pxs:3}}
+@media (orientation:landscape) and (max-height:540px){
+  html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-columns:minmax(0,1fr) repeat(3,minmax(0,112px))}
+  html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{grid-column:2/-1}
+  html:not(.c6).hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-column:2}
+  html:not(.c6).hub:not(.poki) body #mHome.acc2 .mOffres{grid-column:3}
+  html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear{grid-column:4}
+  html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay{grid-column:2/-1}
+  html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear){gap:4px!important}}
+/* (14/10 ~21 h, Sacha : « enlève cadeau, touche et mission » de l'ACCUEIL — les missions restent au garage, le cadeau dans MISSIONS) */
+html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{display:none!important}
+html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-rows:0 auto minmax(16px,1fr) 0 0 68px 12px 74px 0}
+@media (orientation:landscape) and (max-height:540px){html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-rows:minmax(0,1fr) auto 34px 0 0 56px 8px 58px minmax(0,1fr)}} /* (2026-10-15) 34 px : les tuiles ne mordent plus le trait néon du logo */
+/* (2026-10-16, Sacha : « dans l'écran d'accueil GARAGE, OFFRE et RÉGLAGES doivent être de couleur rose, bleu et jaune — comme les bandes sous le logo CAR CASH »)
+   LES TROIS TUILES AUX COULEURS DE LA LIVRÉE : dans l'ordre des trois bandes du trait néon sous le logo (rose · cyan · or, `--livree`), de gauche à droite.
+   Tout passe par `--nc` (liseré, lueur intérieure, pictogramme) : le dessin des plaques ne bouge pas, le libellé reste blanc. */
+html:not(.c6).hub:not(.poki) body #mHome.acc2 .mHubPorte{--nc:var(--neoM)}
+html:not(.c6).hub:not(.poki) body #mHome.acc2 .mOffres{--nc:var(--neoC)}
+html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear{--nc:var(--au2)}
+</style>
+<style id="clarte-boutique">
+/* ===== CLARTÉ · BOUTIQUE DE LÉO (14/10) — l'esprit de Léo reste (salle blanche, bras, caisse au centre), on LIT mieux : la voiture en grand, son nom entier
+   (2 lignes), sa rareté en toutes lettres, son prix en « $ » seul, l'action qui suit l'état, des onglets qui ne se coupent pas. Rien ne bouge de place. ===== */
+/* une seule monnaie à l'écran : « $ » — plus d'icône pièce à côté */
+html:not(.c6):not(.ux8g) :is(#gBqTete .bqArg,.bqKp,.bqUp,#gCompteur,#gBqBtn) .pxi-piece{display:none}
+html:not(.c6):not(.ux8g) #gBqTete .bqTl .bqArg{gap:0;padding:7px 12px;font-size:11px}
+html:not(.c6):not(.ux8g) #gBqTete .bqTl .bqArg b{font-size:11px}
+/* LA CARTE : photo, rareté, nom, prix */
+html:not(.c6):not(.ux8g) :is(#gBqPan .bqK,#gBqUne .bqU){padding-bottom:0}
+/* (15/10) les vignettes restent celles de Léo (photo zoomée, mêmes hauteurs) : la voiture en GRAND, autant de cartes à l'écran */
+html:not(.c6):not(.ux8g) :is(.bqKr,.bqUrr){position:absolute;top:6px;right:6px;z-index:1;margin:0;padding:3px 5px 2px;max-width:calc(100% - 12px);box-sizing:border-box;overflow:hidden;white-space:nowrap;background:#14171c;color:var(--rc);font-size:10px;line-height:1.1;letter-spacing:0}
+html:not(.c6):not(.ux8g) :is(#gBqPan .bqK .bqKn,#gBqUne .bqUn){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;white-space:normal;overflow:hidden;overflow-wrap:anywhere;text-overflow:clip;font-size:9px;line-height:11px;letter-spacing:0;padding:5px 6px 0}
+html:not(.c6):not(.ux8g) :is(#gBqPan .bqK .bqKp,#gBqUne .bqUp){font-size:10px;letter-spacing:0;padding:4px 6px 8px;white-space:nowrap}
+html:not(.c6):not(.ux8g) #gBqPan .bqRail.habs .bqK .bqKn{-webkit-line-clamp:3;font-size:9px;padding:5px 5px 0}
+html:not(.c6):not(.ux8g) #gBqPan .bqRail.habs .bqK .bqKr{font-size:8px;top:4px;right:4px}
+html:not(.c6):not(.ux8g) #gBqPan .bqK .bqKr.lg{font-size:8px;padding:3px 4px 2px} /* (2026-10-15) LÉGENDAIRE (10 lettres) débordait de sa carte et se coupait */
+html:not(.c6):not(.ux8g) #gBqPan .bqRail.habs .bqK .bqKr.lg{font-size:7px;padding:2px 3px 1px}
+html:not(.c6):not(.ux8g) #gBqPan .bqRail.habs .bqK .bqKp{padding:4px 5px 7px}
+html:not(.c6):not(.ux8g) #gBqPan .bqK .bqKl{font-size:8px}
+html:not(.c6):not(.ux8g) #gBqNom .bqRar{font-size:10px;letter-spacing:1px}
+html:not(.c6):not(.ux8g) #gBqNom .bqRar::before{width:9px;height:9px}
+html:not(.c6):not(.ux8g) #gBqNom .bqNom{font-size:14px;letter-spacing:1px}
+/* L'ACTION SUIT L'ÉTAT : ACHETER (or) · ÉQUIPER · ÉQUIPÉE ✓ (discret) · IL TE MANQUE (éteint) */
+html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn{font-size:11px;letter-spacing:1px;gap:8px;flex-wrap:nowrap;white-space:nowrap;position:relative;overflow:hidden}
+html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn b{font-size:12px;letter-spacing:0}
+html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="achat"]{background:var(--or);color:#14171c;box-shadow:0 4px 0 var(--orF),0 10px 24px rgba(20,23,28,.22)}
+html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="equip"],html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="figeq"]{background:#3d4bff;color:#fff}
+html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="eq"]{background:none;color:#5b6572;box-shadow:none;font-size:11px;cursor:default}
+html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="eq"]{height:44px}
+html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="manque"]{background:#e3e6ea;color:#5b6572;box-shadow:inset 0 0 0 1px #c7ccd3;cursor:default;translate:none}
+html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="manque"] b{color:#14171c;font-size:9px}
+html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="manque"]{font-size:9px;gap:6px;padding-left:8px;padding-right:8px}
+/* (15/10) prix au format GTA : un prix long (≥ 1 000 000) passe un corps en dessous pour tenir dans sa carte / son bouton */
+html:not(.c6):not(.ux8g) :is(#gBqPan .bqK .bqKp,#gBqUne .bqUp).lg{font-size:8px}
+html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn b.lg{font-size:10px}
+html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="manque"] b.lg{font-size:8px}
+html:not(.c6):not(.ux8g) #gBqBtn .bqJ{position:absolute;left:0;right:0;bottom:0;height:4px;background:#c7ccd3}
+html:not(.c6):not(.ux8g) #gBqBtn .bqJ::before{content:'';display:block;height:100%;width:calc(var(--v,0) * 100%);min-width:3px;background:#14171c}
+/* LE GARAGE (hub de Léo) : seulement la lecture — « $ » seul, rien de coupé */
+html:not(.c6):not(.ux8g) #garage #gLvl{font-size:10px!important}
+html:not(.c6):not(.ux8g) #garage #gAuraC small{font-size:10px}
+html:not(.c6):not(.ux8g) body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas span{letter-spacing:0;font-size:8px;max-width:100%;overflow:visible;white-space:nowrap}
+</style>
+<style id="ux8-partie">
+/* UX 8 · LA PARTIE : pause, fenêtres de confirmation, réglages, fin de partie, missions — même règle (ergonomie et soin, charte v4/v5, html:not(.c6)). */
+/* ===== 1. LA PAUSE — REPRENDRE est l'or (en bas, sous le pouce) ; SON et MUSIQUE seuls en jeu ; le reste derrière « TOUS LES REGLAGES » ; QUITTER isolé, en contour ===== */
+html:not(.c6) #tPanel #tpIn>.tpH[data-g="run"]{display:none}
+/* (2026-10-15) LA PARTIE redevient UNE rangée : RECOMMENCER | QUITTER côte à côte, à hauteur fixe, posés au-dessus du lingot.
+   ⚠ La rangée était dissoute (display:contents) alors que `.tpRow .tp` garde son flex:1 — dans la colonne, ce flex:1 devenait de la
+   HAUTEUR : les deux plaques gonflaient à 112-152 px, avalaient tout le vide et poussaient REPRENDRE sous le bord de l'écran. */
+html:not(.c6) #tPanel #tpIn>.tpRow{order:4;display:flex;gap:12px;margin-top:auto;padding-top:12px}
+html:not(.c6) #tPanel #tpIn>.tpResume{order:1;margin-top:4px}
+html:not(.c6) #tPanel #tpIn>.tpHR{order:2;margin-top:12px}
+html:not(.c6) #tPanel #tpIn>.tpPanel{order:3}
+html:not(.c6) #tPanel #tpIn>.tp.go{order:6;margin-top:8px}
+html:not(.c6) #tPanel .tpH,html:not(.c6) #tPanel .tpResume .mStat span{font-size:var(--f1)} /* étiquettes 8 px -> 10 px */
+html:not(.c6) #tPanel #tpIn .tp.ligne[data-a="q"],html:not(.c6) #tPanel #tpIn .tp.ligne[data-a="volh"],html:not(.c6) #tPanel #tpIn .tp.ligne[data-a="figg"]{display:none} /* IMAGE, POUCE HAUT et FIGURES (2026-10-15) : dans les réglages complets (TOUS LES REGLAGES) */
+html:not(.c6) #tPanel #tpIn .tp[data-a="tous"]{display:flex;min-height:58px}
+html:not(.c6) #tPanel #tpIn .tp[data-a="tous"]::after{content:'';flex:none;width:0;height:0;margin-left:auto;border-left:8px solid var(--neoC);border-top:6px solid transparent;border-bottom:6px solid transparent}
+html:not(.c6) #tPanel #tpIn .tp.rouge{--nc:var(--neoR);min-height:48px;margin:0 0 16px;background:transparent;text-shadow:none;
+  box-shadow:inset 0 0 0 2px var(--neoR)}
+html:not(.c6) #tPanel #tpIn .tp.rouge:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px);box-shadow:inset 0 0 0 2px var(--neoR),inset 0 0 26px rgba(255,74,100,.45)}
+html:not(.c6) #tPanel #tpIn>.tpRow>.tp{flex:1 1 0;min-height:52px;margin:0} /* les deux plaques de LA PARTIE : même largeur, même hauteur */
+@media (orientation:landscape) and (max-height:540px){
+  /* (2026-10-23, Sacha : « des vides à gauche et à droite, replace correctement, ajoute quelques réglages, que l'écran soit parfait ») LA PAUSE EN PAYSAGE
+     remplit tout l'écran : deux colonnes qui prennent la largeur (marges d'encoche comprises), le titre en haut, REPRENDRE et RECOMMENCER/QUITTER sur la
+     MÊME ligne de pied, les réglages en grille 2 colonnes (SON, MUSIQUE, IMAGE, POUCE HAUT, FIGURES + TOUS LES REGLAGES) qui s'étire sur la hauteur libre. */
+  html:not(.c6) #tPanel #tpIn{max-width:1240px;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);grid-template-rows:auto minmax(0,1fr) auto;column-gap:clamp(20px,3.4vw,44px);row-gap:12px}
+  html:not(.c6) #tPanel #tpIn>.tpH:nth-child(1){grid-column:1;grid-row:1;margin:0}
+  html:not(.c6) #tPanel #tpIn>.tpResume{grid-column:1;grid-row:2;margin:0;align-self:stretch;align-items:center;min-height:0}
+  html:not(.c6) #tPanel #tpIn>.tpResume .mStat{min-height:0;height:100%;gap:12px}
+  html:not(.c6) #tPanel #tpIn>.tpResume .mStat b{font-size:var(--f6,var(--f5))}
+  html:not(.c6) #tPanel #tpIn>.tpHR{display:none}
+  html:not(.c6) #tPanel #tpIn>.tpPanel{grid-column:2;grid-row:1/span 2;align-self:stretch;display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:minmax(48px,1fr)}
+  html:not(.c6) #tPanel #tpIn>.tpPanel>.tp.ligne{min-height:0;border-top:1px solid var(--fil)}
+  html:not(.c6) #tPanel #tpIn>.tpPanel>.tp.ligne:nth-child(-n+2){border-top:0}
+  html:not(.c6) #tPanel #tpIn>.tpPanel>.tp.ligne:nth-child(even){border-left:1px solid var(--fil)}
+  html:not(.c6) #tPanel #tpIn>.tpPanel>.tp.ligne[data-a="q"],html:not(.c6) #tPanel #tpIn>.tpPanel>.tp.ligne[data-a="volh"],html:not(.c6) #tPanel #tpIn>.tpPanel>.tp.ligne[data-a="figg"]{display:flex}
+  html:not(.c6) #tPanel #tpIn>.tpPanel>.tp[data-a="tous"],html:not(.c6) #tPanel #tpIn>.tpPanel>.tp[data-a="figg"]{grid-column:1/-1;min-height:0;border-left:0}
+  html:not(.c6) #tPanel #tpIn>.tpRow{grid-column:2;grid-row:3;align-self:stretch;margin:0;padding:0}
+  html:not(.c6) #tPanel #tpIn>.tpRow>.tp{min-height:64px}
+  html:not(.c6) #tPanel #tpIn>.tp.go{grid-column:1;grid-row:3;align-self:stretch;margin:0}
+}
+/* ===== 1 bis. RÉGLAGES OUVERTS DEPUIS LA PAUSE — la page passe AU-DESSUS (l'overlay est à z-index 5, le panneau de pause à 9 : sans ceci les deux se lisaient l'un à travers l'autre) ===== */
+html:not(.c6) body.setPause #overlay{z-index:12}
+html:not(.c6) body.setPause:not(.setPauseSort) #overlay{animation:none}
+html:not(.c6) body.setPause #overlay::before{opacity:1;transition:none}
+html:not(.c6) body.setPause:not(.setPauseSort) #tPanel{visibility:hidden} /* la pause se retire derrière la page opaque ; elle reparaît au fondu de sortie */
+html:not(.c6) body.setPause.setPauseSort #overlay::before{opacity:0;transition:opacity 100ms linear}
+/* ===== 2. LA FENÊTRE QUITTER / RECOMMENCER — CONTINUER est la touche principale (or), le destructeur passe dessous, en contour rouge ===== */
+html:not(.c6) .hModale:not(#ccH) #tPanel{visibility:hidden} /* la pause se retire tant que la fenêtre est ouverte (visibility : elle ne bouge pas, elle ne reçoit plus rien) — (2026-10-20) `.hModale` posée sur le <body> par HAS_D au lieu d'un :has(#modale.on) sur <html> : même spécificité (2,2,1), voir HAS_D */
+@media (orientation:portrait),(min-height:541px){
+  html:not(.c6) #modale .modIn:has(.pb-red) .modB>.pbtn:last-child{order:-1}
+}
+html:not(.c6) #modale .modIn:has(.pb-red) .modB{gap:20px}
+html:not(.c6) #modale .modIn:has(.pb-red) .modB>.pbtn:last-child{--nc:var(--auT);color:var(--auT);min-height:64px;font-size:var(--f3);
+  background:linear-gradient(105deg,transparent 0 38%,rgba(255,255,255,.78) 46%,rgba(255,255,255,0) 54%) no-repeat,
+    linear-gradient(180deg,#fffadf 0%,#ffe78e 15%,#ffd044 40%,#f7ae16 68%,#ea930a 86%,#ffc84e 100%);
+  background-size:250% 100%,auto;background-position:180% 0,0 0;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.95),inset 0 -2px 0 rgba(255,238,170,.55),inset 0 0 0 1px rgba(150,72,0,.35),
+    0 0 0 1px #331600,0 6px 0 0 var(--auE),0 6px 0 1px #331600,0 18px 28px -10px rgba(70,24,0,.75),0 0 34px -6px var(--auG);
+  text-shadow:0 1px 0 rgba(255,247,210,.9);animation:k4Lingot 4.2s var(--ease) 1.2s infinite}
+html:not(.c6) #modale .modIn:has(.pb-red) .modB>.pbtn:last-child .pxi{color:var(--auT);filter:none}
+html:not(.c6) #modale .modIn:has(.pb-red) .modB>.pbtn:last-child:is(:active,.appui){transform:skewX(var(--sk)) translateY(6px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 0 0 1px #331600,0 0 0 0 var(--auE),0 5px 10px rgba(40,10,0,.5),0 0 44px rgba(255,190,40,.62)}
+html:not(.c6) #modale .modB>.pbtn.pb-red{--nc:var(--neoR);color:var(--neoR);min-height:48px;background:transparent;text-shadow:none;
+  box-shadow:inset 0 0 0 2px var(--neoR)}
+html:not(.c6) #modale .modB>.pbtn.pb-red .pxi{color:var(--neoR)}
+html:not(.c6) #modale .modB>.pbtn.pb-red:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px);box-shadow:inset 0 0 0 2px var(--neoR),inset 0 0 26px rgba(255,74,100,.45)}
+html:not(.c6) #modale .modIn:has(.pb-red){box-shadow:inset 0 0 0 1px var(--fil),var(--levre),inset 0 3px 0 var(--neoM),inset 0 70px 60px -60px rgba(255,62,200,.35)} /* le liseré rouge de la feuille s'en va : le rouge n'est plus que sur QUITTER */
+html:not(.c6) #modale .modIn:has(.pb-red) #modT{text-shadow:0 2px 0 var(--txO),0 0 14px rgba(255,62,200,.5)}
+
+/* ===== 3. LES RÉGLAGES #mSet — AUDIO · JEU · AIDE · SAUVEGARDE · EFFACER (rouge, seul, tout en bas) ===== */
+html:not(.c6) #mSet .c6Col{display:contents}
+html:not(.c6) #mSet .c6Corps>.c6Col:first-child>:nth-child(-n+2){order:1}
+html:not(.c6) #mSet .c6Corps .oJeu{order:2}
+html:not(.c6) #mSet .c6Corps .oAide{order:3}
+html:not(.c6) #mSet .c6Corps .oSauv{order:4}
+html:not(.c6) #mSet .c6Corps>.c6Pied{order:5;margin-top:36px}
+html:not(.c6) #mSet .mSec{font-size:var(--f1)}
+html:not(.c6) #mSet [data-m="imp"]{display:none} /* « RESTAURER UN CODE » : fondu dans « ENTRER UN CODE » */
+html:not(.c6) #mSet .volRow{display:flex;align-items:center;gap:12px;padding:0 16px 12px 62px}
+html:not(.c6) #mSet .volRow .volS{flex:1 1 auto;min-width:0;width:auto}
+html:not(.c6) #mSet .volRow .volV{flex:none;min-width:54px;text-align:right;margin:0}
+html:not(.c6) #mSet .c6Efface{--nc:var(--neoR);color:var(--neoR);background:transparent;min-height:48px;width:100%;max-width:320px;text-shadow:none;box-shadow:inset 0 0 0 2px var(--neoR)}
+html:not(.c6) #mSet .c6Efface .pxi,html:not(.c6) #mSet .c6Efface .tpL{color:var(--neoR)}
+html:not(.c6) #mSet .c6Efface:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px);box-shadow:inset 0 0 0 2px var(--neoR),inset 0 0 26px rgba(255,74,100,.45)}
+@media (orientation:landscape) and (max-height:540px){
+  html:not(.c6) #mSet .c6Corps{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:22px;align-items:start}
+  html:not(.c6) #mSet .c6Col{display:flex;flex-direction:column;min-width:0}
+  html:not(.c6) #mSet .c6Corps>.c6Col:first-child>:nth-child(-n+2),html:not(.c6) #mSet .c6Corps .c6Col>*{order:0} /* (UX 8) le :nth-child de la règle debout (order:1) l'emportait sur ce reset : SAUVEGARDE passait AVANT AUDIO — couché chaque colonne se lit dans l'ordre du DOM (AUDIO, SAUVEGARDE | JEU, AIDE) */
+  html:not(.c6) #mSet .c6Corps>.c6Pied{grid-column:1/-1;margin-top:20px}
+}
+
+/* ===== 4. L'ÉCRAN DE FIN — OFFRES · REGLAGES partent ; une seule plaque d'or ; textes lisibles ; la place de la SECONDE CHANCE ===== */
+html:not(.c6) #mDead>.mRow{display:none}
+html:not(.c6) #mDead .mOver{white-space:normal;overflow-wrap:anywhere;min-width:0}
+html:not(.c6) #mDead .hCard small,html:not(.c6) #mDead .hAura>span,html:not(.c6) #mDead .hCard em,html:not(.c6) #mDead .hNx,html:not(.c6) #mDead .hMotN i,html:not(.c6) #mDead .mCause,html:not(.c6) #mDead .mNew,html:not(.c6) #mDead .mCashL span,html:not(.c6) #mDead .mCashL small,html:not(.c6) #mDead .mCashL em.mCashRec,html:not(.c6) #mDead .obHd,html:not(.c6) #mDead .obFt{font-size:var(--f1)}
+html:not(.c6) #mDead .mStat span{font-size:var(--f1);letter-spacing:0;line-height:1.4;text-align:center;white-space:normal}
+html:not(.c6) #mDead .mFin>.pbCarre{flex:none;width:56px;min-width:56px;min-height:56px;padding:0}
+html:not(.c6) #mDead #mChance{order:2;margin:14px 0 0;width:100%;min-height:52px;font-size:var(--f1)}
+html:not(.c6) #mDead #mChance[hidden]{display:none}
+@media (orientation:landscape) and (max-height:540px){
+  html:not(.c6) #mDead .mOver{font-size:var(--f5);line-height:1.3;letter-spacing:1px}
+  html:not(.c6) #mDead #mChance{grid-area:row;margin:10px 0 0}
+}
+
+/* ---- LA SECONDE CHANCE (UX 8, 14/10 soir — PILOTAGE + DEBUGING : la plaque #mChance n'était jamais montrée ; contrat de GENERAL) ----
+   Pendant les 5,5 s de l'offre, CONTINUER · prix est LA décision : la plaque d'or monte du bas, une barre qui se vide dit le VRAI temps qui reste
+   (l'offre s'éteint vraiment : ce n'est pas une fausse urgence) ; « NON MERCI » la ferme sans bruit ; REJOUER s'efface le temps de l'offre
+   (jamais deux plaques d'or), puis reprend sa place. */
+html:not(.c6) #mDead #mChance{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:12px}
+html:not(.c6) #mDead #mChance .chT,html:not(.c6) #mDead #mChance .chP{position:relative;z-index:1}
+html:not(.c6) #mDead #mChance.chOn{animation:u8ChMonte var(--t-slow) var(--ease) both}
+html:not(.c6) #mDead #mChance .chBar{position:absolute;left:0;right:0;bottom:0;height:4px;background:currentColor;opacity:.7;transform-origin:0 50%;pointer-events:none}
+html:not(.c6) #mDead #mChance.chOn .chBar{animation:u8ChBar var(--chD,5500ms) linear forwards}
+/* (v3, 15/10, Sacha : « le bouton CONTINUER passe devant les autres ») la v2 posait une bande FIXE au bas de l'écran, par-dessus la colonne :
+   elle recouvrait les tuiles OFFRES · RÉGLAGES et le bas des cartes. Pendant l'offre, la seconde chance prend la place EXACTE de ⌂ · REJOUER,
+   DANS le flux : CONTINUER · prix là où était REJOUER (le pouce n'a pas à chercher), NON MERCI juste au-dessus en secondaire. Rien ne flotte,
+   rien ne passe devant ; ⌂ · REJOUER reviennent à la fin de l'offre ou au refus. */
+html:not(.c6) #mDead #mChanceNon{order:3;display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;margin:14px 0 0;padding:0 16px;font-size:var(--f1);letter-spacing:1px}
+html:not(.c6) #mDead :is(#mChanceNon,#mChanceFond)[hidden],html:not(.c6) #mDead #mChanceFond{display:none}
+html:not(.c6) body.chOffre #mDead .mFin{display:none}
+html:not(.c6) body.chOffre #mDead #mChance:not([hidden]){order:4;margin:10px 0 0;min-height:64px}
+html:not(.c6) body.chOffre #mDead #mChanceNon:not([hidden]){animation:u8ChMonte var(--t-slow) var(--ease) both}
+@media (orientation:landscape) and (max-height:540px){
+  /* couché : la rangée OFFRES · RÉGLAGES s'efface le temps de l'offre, NON MERCI prend sa case, CONTINUER l'ancre de REJOUER (en bas à droite) */
+  html:not(.c6) body.chOffre #mDead>.mRow{display:none}
+  html:not(.c6) body.chOffre #mDead #mChanceNon:not([hidden]){grid-area:row;margin:0;min-height:44px}
+  html:not(.c6) body.chOffre #mDead #mChance:not([hidden]){grid-area:rej;align-self:end;margin:0;min-height:58px}}
+@keyframes u8ChMonte{from{translate:0 24px;opacity:0}to{translate:0 0;opacity:1}}
+@keyframes u8ChBar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+@media (prefers-reduced-motion:reduce){html:not(.c6) #mDead #mChance.chOn{animation:none}}
+/* (vu à la fumée, 844×390, une fin AVEC record) le badge RECORD et « ENCORE 2 PIÈCES POUR… » grandissaient la carte MOTEUR, la grille étirait toute
+   la rangée, et ⌂ · REJOUER passaient SOUS le bord de l'écran. Couché : l'indice part (la place est rare), les cartes ne s'étirent plus, et la rangée
+   d'action (+ la seconde chance) reste ancrée en bas de la colonne de droite quoi qu'il arrive — une décision ne sort jamais de l'écran.
+   (2026-10-20, Sacha : « bug de bouton ici à corriger ») l'ancre était un position:fixed de 368 px HORS de la grille : plus large que la colonne
+   (324 px à 844 × 390), la ⌂ mordait sur la carte MOTEUR ; et la grille, plus haute que l'écran (427 px), défilait SOUS la rangée — la plaque ×2
+   de la case `row` passait derrière REJOUER, intouchable. La rangée revient dans sa case `rej` : l'écran de fin fait la hauteur EXACTE du
+   téléphone, la rangée du milieu (cartes | chiffres) prend ce qui reste, et la plaque des chiffres se tasse quand la place manque. */
+@media (orientation:landscape) and (max-height:540px){
+  html:not(.c6) body.touch #overlay[data-ecran="dead"]>#mob{flex:1 1 0;min-height:0} /* data-ecran plutôt qu'un :has() (v740 : le :has se payait à chaque image) */
+  html:not(.c6) #mDead.on{flex:1 1 0;min-height:0;grid-template-rows:auto auto minmax(0,1fr) auto auto}
+  html:not(.c6) #mDead{align-items:start;align-content:start;padding-bottom:calc(var(--sB) + 8px)}
+  html:not(.c6) #mDead .hNx{display:none}
+  html:not(.c6) #mDead .mStats{container-type:size} /* sa hauteur vient de la grille, plus de son contenu : elle se lit ci-dessous */
+  @container (max-height:74px){html:not(.c6) #mDead .mStat{padding:4px;gap:4px}}
+  @container (max-height:63px){html:not(.c6) #mDead .mStat{padding:2px 4px;gap:3px}html:not(.c6) #mDead .mStat b{font-size:var(--f5)}
+    html:not(.c6) #mDead .mStat span{line-height:1.2}}
+}
+</style>
+<style id="pubRecompense">
+/* LA PUB QUI RESSUSCITE (2026-10-15 soir, Sacha : « au lieu de payer il faut regarder une pub pour ressusciter ») — la plaque dit CONTINUER ▶ PUB
+   (plus de prix), et l'écran de la PUB MAISON (#pubR, voir pubMaison) : l'encre plein écran ; on LIT en haut — l'étiquette PUB (droite, coins
+   coupés) et le compte ROND (une jauge) ; la caisse de la boutique au milieu, son nom dans la couleur de sa rareté ; la barre du temps au bas.
+   Rien ne se touche. Sous le volet (#wipe 300), au-dessus de la machine à sous (250) et des fenêtres (95). */
+html:not(.c6) #mDead #mChance .chP{display:inline-flex;align-items:center;gap:7px}
+html:not(.c6) #mDead #mChance .chP .pxi{--pxs:1.5}
+/* LE ×2 DU GAIN (2026-10-19, Sacha au quiz : « ×2 sur le gain ») — la plaque #mDouble : la touche de laque au néon VERT de l'argent (jamais
+   l'or : REJOUER reste le seul lingot), « ×2 · +$ N · ▶ PUB ». Debout, juste sous la plaque d'argent (même rang -5, après elle) ; couchée, la
+   case `row` de la colonne de droite, au-dessus de ⌂ · REJOUER — celle que NON MERCI tient pendant l'offre de seconde chance. */
+.pb-cash{--nc:var(--cash)}
+html:not(.c6) #mDead #mDouble{order:-5;display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:52px;margin:10px 0 0;
+  padding:0 16px;box-sizing:border-box;font-size:var(--f1);white-space:nowrap}
+html:not(.c6) #mDead #mDouble[hidden]{display:none}
+html:not(.c6) #mDead #mDouble .dbT{font-size:var(--f3);color:var(--cash);text-shadow:0 2px 0 var(--cashO),0 0 10px rgba(125,255,155,.45)}
+html:not(.c6) #mDead #mDouble .dbS{font-weight:400;color:var(--cash);text-shadow:0 2px 0 var(--cashO)}
+html:not(.c6) #mDead #mDouble .dbP{display:inline-flex;align-items:center;gap:7px;font-weight:400}
+html:not(.c6) #mDead #mDouble .dbP .pxi{--pxs:1.5}
+html:not(.c6) #mDead #mDouble.dbOn{animation:u8ChMonte var(--t-slow) var(--ease) both}
+@media (orientation:landscape) and (max-height:540px){
+  html:not(.c6) #mDead #mDouble{grid-area:row;align-self:end;margin:0;min-height:48px}}
+@media (prefers-reduced-motion:reduce){html:not(.c6) #mDead #mDouble.dbOn{animation:none}}
+#pubR{position:fixed;inset:0;z-index:260;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;box-sizing:border-box;
+  padding:calc(var(--sT) + 64px) calc(var(--sR) + 16px) calc(var(--sB) + 40px) calc(var(--sL) + 16px);
+  background:radial-gradient(ellipse at 50% 52%,var(--k3),var(--k0) 74%);color:var(--tx);font-family:var(--pix);text-align:center;
+  opacity:0;transition:opacity var(--t-fast) var(--ease);touch-action:none;user-select:none;-webkit-user-select:none}
+#pubR.on{opacity:1}
+#pubR[hidden]{display:none}
+#pubR .prTag{position:absolute;top:calc(var(--sT) + 16px);left:calc(var(--sL) + 16px);padding:8px 10px 7px;background:var(--neoM);color:var(--txO);
+  font-style:normal;font-size:var(--f1);letter-spacing:2px;clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
+#pubR .prRond{position:absolute;top:calc(var(--sT) + 10px);right:calc(var(--sR) + 16px);width:44px;height:44px;border-radius:50%;
+  display:grid;place-items:center;background:conic-gradient(var(--au2) calc(var(--pr,0) * 360deg),var(--k4) 0)}
+#pubR .prRond::before{content:'';position:absolute;inset:4px;border-radius:50%;background:var(--k1)}
+#pubR .prRond b{position:relative;font-weight:400;font-size:var(--f3);color:var(--au1)}
+#pubR .prImg{display:block;height:min(38vh,170px);width:auto;max-width:86vw;object-fit:contain;filter:drop-shadow(0 10px 16px rgba(0,0,0,.6))}
+#pubR .prImg:not([src]){visibility:hidden}
+#pubR .prNom{font-weight:400;font-size:var(--f5);line-height:1.4;letter-spacing:1px;color:var(--rc,var(--au1));text-shadow:0 3px 0 var(--k0)}
+#pubR .prSous{font-size:var(--f1);letter-spacing:1px;color:var(--cash)}
+#pubR .prPied{position:absolute;left:16px;right:16px;bottom:calc(var(--sB) + 18px);font-size:var(--f0);letter-spacing:1px;color:var(--tx3)}
+#pubR .prBar{position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--neoM);transform-origin:0 50%;transform:scaleX(var(--pr,0))}
+@media (orientation:landscape) and (max-height:540px){#pubR{gap:8px;padding-top:calc(var(--sT) + 22px)}#pubR .prImg{height:42vh}}
+@media (prefers-reduced-motion:reduce){#pubR{transition:none}}
+</style>
+<style id="ux8-mouvement">
+/* UX 8 · LE MOUVEMENT : balayage pixel, fenêtres, pause. Une courbe (--ease), deux durées (--t-fast, --t-slow). On n'anime que transform/opacity/translate. Tout sous html:not(.c6). */
+/* le balayage : le canvas remplace l'ancien rideau (::before) tant que #wipe porte .ux8Wipe (posé par ecranWipe, hors réduire-les-animations) */
+html:not(.c6) #wipe.ux8Wipe::before,html:not(.c6) #wipe.ux8Wipe::after{display:none!important}
+html:not(.c6) #wipe>canvas.ux8Cv{display:none;position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none}
+html:not(.c6) #wipe.ux8Wipe>canvas.ux8Cv{display:block!important}
+/* les fenêtres : la PLAQUE monte du bas (24 px + opacité) derrière un voile qui s'assombrit ; elle redescend plus vite */
+@keyframes ux8Plaque{from{opacity:0;translate:0 24px}to{opacity:1;translate:0 0}}
+@keyframes ux8PlaqueOut{from{opacity:1;translate:0 0}to{opacity:0;translate:0 14px}}
+html:not(.c6) #modale.on .modIn{animation:ux8Plaque var(--t-slow) var(--ease) both}
+html:not(.c6) #modale.sortant .modIn{animation:ux8PlaqueOut var(--t-fast) var(--ease) forwards}
+html:not(.c6) #modale.on .modB>.pbtn{animation:ux8Plaque var(--t-slow) var(--ease) 80ms backwards}
+html:not(.c6) #modale.on .modB>.pbtn+.pbtn{animation-delay:120ms}
+/* la pause : même geste que les fenêtres (le voile fond, le contenu monte) */
+html:not(.c6) #tPanel.open #tpIn{animation:ux8Plaque var(--t-slow) var(--ease) both}
+html:not(.c6) #tPanel.sortant #tpIn{animation:ux8PlaqueOut var(--t-fast) var(--ease) forwards}
+/* l'écran de la coque qui part : posé en absolu, il se prépare au GPU juste le temps de son départ */
+html:not(.c6) .mscr.sort{will-change:transform,opacity}
+html[data-reduced-motion="1"]:not(.c6) :is(#modale.on .modIn,#modale.on .modB>.pbtn,#tPanel.open #tpIn){animation:k4Voile var(--t-fast) linear both}
+html[data-reduced-motion="1"]:not(.c6) :is(#modale.sortant .modIn,#tPanel.sortant #tpIn){animation:k4VoileOut var(--t-fast) linear forwards}
+@media (prefers-reduced-motion:reduce){html:not(.c6) :is(#modale.on .modIn,#modale.on .modB>.pbtn,#tPanel.open #tpIn){animation:k4Voile var(--t-fast) linear both}html:not(.c6) :is(#modale.sortant .modIn,#tPanel.sortant #tpIn){animation:k4VoileOut var(--t-fast) linear forwards}}
+/* ---- LE PORTAIL (2026-10-14 soir, PILOTAGE + PERF : « l'entrée dans le niveau suivant gèle jusqu'à 700 ms sur le jade ») ----
+   portPasseNiveau pose #portV d'un coup, attend deux images, puis newTrack() BLOQUE le script (160 à 700 ms) : l'ancien éclair rose restait
+   FIGÉ à l'écran tout ce temps. Le voile devient une laque bleu nuit à contre-jour rose, traversée d'une pluie de PIXELS D'OR qui défile en
+   animation CSS de TRANSFORM — le compositeur la joue même quand le script est bloqué : plus aucune image figée, et une vraie transition
+   de niveau, la signature du balayage doré. Il passe au-dessus du HUD (dont les chiffres se figeaient aussi), sous les fenêtres.
+   Rien ne change dans le JS du portail (l'opacité .94 → 0 reste posée par portVoile / portVoileSort). */
+html:not(.c6) #portV{z-index:8;overflow:hidden;contain:strict;
+  background:radial-gradient(120% 90% at 50% 58%,rgba(242,74,160,.55) 0,rgba(242,74,160,0) 55%),linear-gradient(180deg,#141d3a 0%,#0b0f24 60%,#07050f 100%)}
+/* (2026-10-15, Sacha : « au lieu du vieux temps de chargement, mets des feux de course : 3 feux rouges qui passent au vert, dans la même DA
+   que le logo CASH CAR ») LES FEUX DU DÉPART remplacent la pluie de pixels et le cœur qui bat. Un portique en OR EXTRUDÉ — le dégradé et
+   la profondeur brune de `.lg.gold`, coins coupés en octogone — porte trois lentilles en laque noire : rouge… rouge… rouge… VERT (150 ms
+   par feu, vert à 450 ms ; portVoileSort tient le voile jusqu'au vert, voir PORTV.t0). Tout s'allume en OPACITÉ seulement : le
+   compositeur joue la séquence même quand newTrack() bloque le script. Le vert lâche un éclair de contre-jour (::after) au moment du GO. */
+html:not(.c6) #portV::before{content:none}
+#portV .pfx{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:clamp(10px,2.6vmin,18px);
+  padding:clamp(12px,3vmin,20px) clamp(14px,3.4vmin,24px);
+  background:linear-gradient(180deg,#fffdf2 0%,#ffe9a0 28%,#ffc400 52%,#b06c05 74%,#ffe9a0 96%);
+  clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px)}
+#portV .pfxW{position:absolute;inset:0;z-index:1;filter:drop-shadow(0 7px 0 #4a2a00) drop-shadow(0 12px 18px rgba(0,0,0,.7))}
+#portV .pfx i{position:relative;display:block;width:clamp(44px,13vmin,78px);height:clamp(44px,13vmin,78px);background:#14080c;
+  box-shadow:inset 0 0 0 4px #4a2a00,inset 5px 5px 0 4px rgba(0,0,0,.55);
+  clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 8px,100% calc(100% - 8px),calc(100% - 8px) 100%,8px 100%,0 calc(100% - 8px),0 8px)}
+#portV .pfx i::before,#portV .pfx i::after{content:"";position:absolute;inset:4px;opacity:0;will-change:opacity;
+  clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px)}
+#portV .pfx i::before{background:radial-gradient(circle at 38% 34%,#fff4ec 0 12%,#ff6a52 30%,#ff3924 55%,#8a0d0d 100%)}
+#portV .pfx i::after{background:radial-gradient(circle at 38% 34%,#f4fff0 0 12%,#9cff8a 30%,#62e062 55%,#0f6a1c 100%)}
+#portV.go .pfx i:nth-child(1)::before{animation:pfR1 .5s linear both}
+#portV.go .pfx i:nth-child(2)::before{animation:pfR2 .5s linear both}
+#portV.go .pfx i:nth-child(3)::before{animation:pfR3 .5s linear both}
+#portV.go .pfx i::after{animation:pfV .5s linear both}
+@keyframes pfR1{0%,89.9%{opacity:1}90%,100%{opacity:0}}
+@keyframes pfR2{0%,29.9%{opacity:0}30%,89.9%{opacity:1}90%,100%{opacity:0}}
+@keyframes pfR3{0%,59.9%{opacity:0}60%,89.9%{opacity:1}90%,100%{opacity:0}}
+@keyframes pfV{0%,89.9%{opacity:0}90%,100%{opacity:1}}
+html:not(.c6) #portV::after{content:"";position:absolute;left:50%;top:50%;width:150vmax;height:150vmax;margin:-75vmax 0 0 -75vmax;
+  background:radial-gradient(circle,rgba(98,224,98,.55) 0,rgba(98,224,98,.18) 22%,rgba(98,224,98,0) 46%);box-shadow:none;opacity:0;will-change:opacity;animation:none}
+html:not(.c6) #portV.go::after{animation:pfV .5s linear both}
+@media (prefers-reduced-motion:reduce){#portV.go .pfx i::before{animation:none;opacity:0}#portV.go .pfx i::after,html:not(.c6) #portV.go::after{animation:none;opacity:1}}
+html[data-reduced-motion="1"] #portV.go .pfx i::before{animation:none;opacity:0}
+html[data-reduced-motion="1"] #portV.go .pfx i::after,html[data-reduced-motion="1"]:not(.c6) #portV.go::after{animation:none;opacity:1}
+</style>
+<style id="cadeauLigne">
+/* (2026-10-14, GAMEPLAY) LA LIGNE DU CADEAU — dessin convenu avec INTERFACE : laque de la charte 4, police pixel, l'icône PIÈCE (le cadeau est déjà
+   l'icône d'OFFRES) ; PRÊT = 48 px, touchable ; PAS PRÊT = 24 px à lire, non touchable. Sous html:not(.c6) : la charte 6 n'est plus le défaut. */
+html:not(.c6) #mCadeau{display:flex;align-items:center;justify-content:center;gap:10px;box-sizing:border-box;width:100%;min-height:48px;margin:0 0 8px;
+  background:var(--laque);box-shadow:inset 0 0 0 1px var(--fil);font-family:var(--pix);font-size:var(--f1);letter-spacing:1px;color:var(--tx)}
+html:not(.c6) #mCadeau[hidden]{display:none}
+html:not(.c6) #mCadeau .pxi{--pxs:2;color:var(--neoA)}
+html:not(.c6) #mCadeau.attend{min-height:24px;background:none;box-shadow:none;pointer-events:none;color:var(--tx3);font-size:var(--f0)}
+html:not(.c6) #mCadeau.attend .pxi{color:var(--tx3)}
+html:not(.c6) #mCadeau span{white-space:normal;text-align:center;line-height:1.6}
+html:not(.c6) #mCadeau{padding:4px 12px}
+/* l'accueil en GRILLE (ux8, .acc2) : debout, dans l'espace libre juste AU-DESSUS de MISSIONS (rang 3) ; couché, au-dessus de MISSIONS il n'y a que 14 px
+   (le logo est juste au-dessus) : la ligne passe SOUS JOUER, dans la marge du bas (rang 9) — toujours dans le tiers bas, jamais sur le logo */
+html:not(.c6) #gmHead #mCadeau{grid-column:1/-1;width:100%;box-sizing:border-box;margin:10px 0 0;pointer-events:auto} /* (14/10 ~21 h) le cadeau en tête de l'écran MISSIONS, sous le titre ; il n'est plus à l'accueil */
+html:not(.c6) #gmHead #mCadeau[hidden]{display:none}
+</style>
+<style id="hudAllege">
+/* LE HUD ALLÉGÉ (2026-10-15, Sacha : « supprime des éléments d'HUD un peu inutiles, je trouve qu'il y a trop d'info affichée et que ça nuit
+   à l'expérience »). Relevé au banc en course, debout (390 × 844) et couché (844 × 390) : le coin haut-gauche empilait TROIS barres (boost,
+   aura, flow), DEUX lectures de l'aura et la liste de chaque figure. Retirés (Sacha a tranché pour la jauge de Léo) :
+   1. LA JAUGE D'AURA « MOY 400 » (`#ajCourse`, Léo, 12/10) et les « +N » d'aura qui volaient vers elle à travers l'écran : doublon du
+      compteur « 609 AURA ». Retirée le 18/10 (allègement) avec `?jauge=1`. Le FLOW remonte à sa place, l'AURA d'autant (mesuré :
+      16 px à l'écran debout, 17 couché ; `#auraV2` est rétréci par `zoom`, d'où des pas CSS plus grands — l'écart flow → aura ne change pas). Les éclairs de NITRO qui volent vers la barre de boost (même couche `#ajVols`) restent.
+   2. LA LISTE DES FIGURES sous la chaîne (« VIRAGE SERRE +45 / TONNEAU +50 ») : la chaîne garde son total, son × et sa barre.
+   3. Le « $×1 » du FLOW au palier 0 : il ne dit rien tant que le flow ne multiplie pas ; il revient dès le palier 1.
+   4. (dans le script, `pwrPrend`) le NOM DU POUVOIR au centre de l'écran : sa plaque, à droite, le dit déjà. */
+html body.touch #flowHud{top:calc(var(--hudH) + 53px)!important;row-gap:3px}
+html body.touch #auraV2{top:calc(var(--hudH) + 84px)!important}
+@media (orientation:landscape) and (max-height:540px){
+  html body.touch #flowHud{top:calc(var(--hudH) + 56px)!important}
+  html body.touch #auraV2{top:calc(var(--hudH) + 87px)!important}
+}
+/* (2026-10-25, Sacha : « il y a marqué FLOW 1, FLOW 2, FLOW 3 par-dessus l'indication de AURA ») le NOM du palier vit sous la jauge
+   (2e ligne de la grille, 10 px) : l'AURA, calée avant lui à +76 / +72, se retrouvait dessous — elle passe sous l'étiquette. */
+html body #avList{display:none!important}
+html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
+</style>

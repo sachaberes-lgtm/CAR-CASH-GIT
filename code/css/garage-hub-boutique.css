@@ -1,0 +1,259 @@
+/* LA BOUTIQUE DU JOUR (2026-10-10, Léo : « un shop type Fortnite ») — voir gShopJour. La console en BOUTIQUE : plus d'onglets (la vitrine
+   mêle caisses et habillages), la barre dit « BOUTIQUE DU JOUR » et l'horloge du renouvellement, la bande devient des CARTES : fond à la
+   couleur de la rareté (éclat au centre, rayons, bords sombres), l'objet au milieu, l'étiquette en bas (catégorie · rareté, nom, prix).
+   À LA UNE : deux cartes larges, bandeau or. ACQUIS : la coche à la place du prix. La carte touchée s'allume (cadre blanc). */
+html body #garage.modeShop:not(.menu):not(.vitrine) #gTabs{display:none!important}
+html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnT{display:inline-flex;align-items:center;gap:6px;color:#fff;letter-spacing:1px;font-weight:400}
+html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnT .pxi{--pxs:1;color:#ffd75e}
+html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnT i:not(.pxi){font-style:normal;font-variant-numeric:tabular-nums}
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:auto;grid-auto-flow:row;
+  gap:10px 8px;height:auto;max-height:226px;padding:4px 14px 18px;overflow-x:hidden;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;scroll-snap-type:y proximity;
+  -webkit-mask:linear-gradient(180deg,#000 0,#000 calc(100% - 30px),transparent);mask:linear-gradient(180deg,#000 0,#000 calc(100% - 30px),transparent)} /* (même jour) une GRILLE qui défile vers le BAS : on en voit une rangée et demie, le bas se fond — il y a une suite, pas tout le catalogue */
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande.finBas{-webkit-mask:none;mask:none}
+html body #garage.consoleCachee:not(.menu):not(.vitrine) #gStrip.fnBande{display:none!important} /* (2026-10-10, Léo : « le shop, quand je rappuie dessus, ne disparaît pas ») la grille de la vitrine (display:grid!important) passait devant le repli */
+/* LA PORTE DES OFFRES (2026-10-10, Léo : « juste sous LIMITED OFFERS, le carré avec les voitures payantes, qui mène à l'écran rose ») : en tête
+   de la boutique du jour, une plaque d'or sur toute la largeur — OFFRES, « toutes les voitures payantes », le nombre, trois d'entre elles en
+   éventail. Touchée : la page OFFRES de l'accueil (gOffresPage). Voir « LA BOUTIQUE DU GARAGE, SON PLAN ». */
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnPorte{position:relative;grid-column:1/-1;height:92px;overflow:hidden;cursor:pointer;transform:skewX(var(--sk));
+  background:linear-gradient(105deg,rgba(64,40,8,.95),rgba(26,16,4,.96) 62%,rgba(48,30,6,.9));box-shadow:inset 0 0 0 1px rgba(255,215,94,.62),inset 4px 0 0 #ffd75e,0 0 20px -6px #ffc23a;
+  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnPorte:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
+#gStrip.fnBande .fnPorte>*{pointer-events:none}
+#gStrip.fnBande .fnPorte .fnFond{opacity:.35}
+html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnRetour{display:inline-flex;align-items:center;justify-content:center;width:40px;height:34px;margin:0 -4px 0 -6px;pointer-events:auto;cursor:pointer;color:#ffd75e}
+html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnRetour .pxi{--pxs:2;color:#ffd75e}
+html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnCompte{color:#ffd75e}
+/* SEE ALL ITEMS EN GRILLE (2026-10-10, Léo : « comme il y en aura plus, agrandis un tout petit peu la place des items ; on glisse vers le
+   bas, on voit trois voitures par trois voitures ») : la bande du mode `tous` devient une grille de trois qui défile vers le BAS (même
+   mécanique que la vitrine du jour) — un peu plus haute qu'une rangée, la suivante dépasse et se fond : il y a une suite. */
+html body #garage:not(.menu):not(.vitrine) #gStrip.gModeTous{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:auto;grid-auto-flow:row;
+  gap:8px;height:auto;max-height:132px;padding:4px 12px 16px;overflow-x:hidden;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;scroll-snap-type:y proximity;
+  -webkit-mask:linear-gradient(180deg,#000 0,#000 calc(100% - 26px),transparent);mask:linear-gradient(180deg,#000 0,#000 calc(100% - 26px),transparent)}
+html body #garage:not(.menu):not(.vitrine) #gStrip.gModeTous.finBas{-webkit-mask:none;mask:none}
+html body #garage:not(.menu):not(.vitrine) #gStrip.gModeTous>.gT{width:auto!important;min-width:0!important;max-width:none!important;flex:none!important;margin:0!important;scroll-snap-align:start}
+#gStrip .rarLogo{position:absolute;top:7px;right:8px;z-index:3;display:flex;line-height:0;pointer-events:none;transform:skewX(calc(-1 * var(--sk,0deg)));
+  filter:drop-shadow(1px 0 0 #07050f) drop-shadow(-1px 0 0 #07050f) drop-shadow(0 1px 0 #07050f) drop-shadow(0 -1px 0 #07050f) drop-shadow(0 0 3px var(--rl)) drop-shadow(0 0 7px var(--rl))} /* (2026-10-10, Léo : « enlève le cube qui encadre le pictogramme ») le logo seul, cerné d'encre (sur l'enveloppe : posé sur la .pxi, le masque le rognerait) — (2026-10-11, Léo : « une touche de lueur chacun ») un halo de sa couleur, en deux crans */
+#gStrip .rarLogo .pxi{--pxs:2;color:var(--rl);filter:none}
+#gStrip .rarLogo.r-infini .pxi{background:linear-gradient(90deg,#ff4d6d,#ffb03a,#ffe85e,#5ee37a,#5ec8ff,#b07dff,#ff8af0)} /* INFINI : le ∞ en arc-en-ciel */
+#gStrip.fnBande .fnC .rarLogo{top:8px;right:10px}
+/* (2026-10-11) LE COIN DU GARAGE (HOME + l'œil en haut à gauche, l'argent et l'aura à droite) a été essayé puis RETIRÉ le même jour (Léo :
+   « reviens comme avant ») : HOME et l'œil restent dans la rangée au-dessus d'INVENTAIRE · BOUTIQUE. Reste : ÉQUIPER AU TOUCHER. */
+/* LA RANGÉE HOME + ŒIL (2026-10-11, Léo : « l'œil est un peu petit, HOME allonge-le : les deux à peu près de la taille d'INVENTAIRE et de la
+   BOUTIQUE, HOME un peu plus long qu'INVENTAIRE ; plus grands pour le doigt sur mobile ; chacun une texture distincte, stylée, dans la DA ») :
+   #gRang1 (créé au démarrage) couvre les colonnes d'INVENTAIRE et de la BOUTIQUE ; HOME y prend un peu plus que la moitié, l'œil le reste,
+   à la hauteur des touches du bas. HOME : laque bleue à FINES RAYURES obliques ; l'ŒIL : orange à TRAME DE POINTS (l'afficheur). ACHETER,
+   à droite, prend la même hauteur. */
+#gRang1{display:none}
+/* (même soir, Léo : « HOME à la taille du bouton GARAGE du menu ciel ; l'œil au-dessus de JOUER ; on crée un peu de cohérence colorée ») :
+   #gRang1 s'efface (display:contents) et ses boutons entrent dans la grille de #gAct, chacun au-dessus de son PARENT DE COULEUR :
+   HOME (bleu) sur INVENTAIRE (cyan), en TUILE comme GARAGE au menu (pictogramme au-dessus du mot, 58 px — 54 couché) ;
+   ACHETER (rouge) sur la BOUTIQUE (magenta) ; l'ŒIL (orange) sur JOUER (or), de toute sa largeur. */
+html body #garage:not(.menu):not(.vitrine) #gAct>#gRang1{display:contents}
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas{flex-direction:column;min-width:0;margin:0;padding:6px 4px 4px;
+  font-size:var(--f0);letter-spacing:1px}
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gOeil{width:auto;min-width:0;margin:0;
+  background:radial-gradient(circle,rgba(255,244,214,.28) 0 1px,transparent 1.6px) 0 0/5px 5px,linear-gradient(180deg,#ffa548,#c4520c)}
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gOeil .gLueur .pxi{--pxs:3}
+html body #garage.vueSeule:not(.menu):not(.vitrine) #gRang1>#gOeil{background:none!important;box-shadow:none!important}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip{padding:0 4px;font-size:var(--f1)}
+/* (même soir, Léo, sur capture : « BOUTIQUE reste à sa place, INVENTAIRE va au-dessus de BOUTIQUE, et HOME s'élargit vers la place libérée
+   par INVENTAIRE ») : HOME, haut, sur les DEUX rangées à gauche ; INVENTAIRE au-dessus de la BOUTIQUE ; l'ŒIL au-dessus de JOUER. ACHETER
+   (quand il y a quelque chose à acheter) se range au-dessus de JOUER, à droite, et l'œil se fait étroit à sa gauche. */
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas{grid-column:1;grid-row:1/3;width:96px;height:auto;min-height:0;align-self:stretch;gap:8px}
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas .gLueur .pxi{--pxs:3}
+/* HOME EN CIEL QUI BOUGE (2026-10-11, Léo : « le HOME en mode ciel qui bouge ») : HOME ramène au ciel — il en porte un morceau : le dégradé
+   de l'accueil (bleu de zénith → lavande → pêche de l'horizon) et deux rangées de nuages pixel qui défilent (deux vitesses : la profondeur).
+   Seule la position du fond bouge (pas de repeinte de mise en page) ; « Réduire les animations » le fige. */
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas{color:#fff;text-shadow:0 1px 0 #07050f,0 0 6px rgba(7,5,15,.7);
+  background:
+    radial-gradient(ellipse 15px 6px at 30px 30%,rgba(255,255,255,.95) 92%,transparent 100%),
+    radial-gradient(ellipse 9px 5px at 42px 26%,rgba(255,255,255,.95) 92%,transparent 100%),
+    radial-gradient(ellipse 12px 5px at 96px 44%,rgba(255,255,255,.9) 92%,transparent 100%),
+    radial-gradient(ellipse 20px 7px at 60px 66%,rgba(255,244,236,.85) 92%,transparent 100%),
+    radial-gradient(ellipse 11px 5px at 74px 62%,rgba(255,244,236,.85) 92%,transparent 100%),
+    radial-gradient(ellipse 14px 5px at 8px 80%,rgba(255,236,226,.8) 92%,transparent 100%),
+    linear-gradient(180deg,#2c5fcf 0%,#5d8fe8 34%,#a8b4f0 62%,#f2c7a8 100%);
+  background-size:120px 100%,120px 100%,120px 100%,150px 100%,150px 100%,150px 100%,100% 100%;
+  background-repeat:repeat-x;animation:gHomeCiel 14s linear infinite!important} /* ⚠ pas de !important sur le fond : il figerait la position (une animation ne passe pas devant un !important) */
+@keyframes gHomeCiel{from{background-position:0 0,0 0,0 0,0 0,0 0,0 0,0 0}to{background-position:120px 0,120px 0,120px 0,300px 0,300px 0,300px 0,0 0}}
+@media (prefers-reduced-motion:reduce){html body #garage #gRang1>#gHomeBas{animation:none!important}}
+html[data-reduced-motion="1"] body #garage #gRang1>#gHomeBas{animation:none!important}
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas .pxi{color:#fff}
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas{position:relative;overflow:hidden}
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas>:not(.gHomeCielCv){position:relative;z-index:1}
+#gHomeBas .gHomeCielCv{display:none}
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas>.gHomeCielCv{display:block;position:absolute;left:-12%;top:-8%;width:124%;height:116%;z-index:0;pointer-events:none;
+  opacity:0;transition:opacity .5s;transform:skewX(calc(-1 * var(--sk)));animation:gHomeCielPan 18s ease-in-out infinite alternate}
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas>.gHomeCielCv.on{opacity:1}
+/* (2026-10-12, Léo : « remets les couleurs vives ») les boutons ne suivent plus le ciel : le filtre de nuit / de jour est retiré
+   (homeCielPrise pose toujours html.cielNuit / html.cielJour, sans effet). */
+/* LA DA DU GARAGE AU MENU CIEL (2026-10-12, Léo : « change la DA des boutons du menu ciel en la DA des boutons du garage ») : les quatre portes
+   (GARAGE · CARRIÈRE · MISSIONS · OFFRES) et le ⚙ prennent la matière d'INVENTAIRE / BOUTIQUE — laque dégradée avec son reflet oblique, filet de
+   couleur fin à gauche qui diffuse dans la plaque, contour d'encre et épaisseur dessous ; l'icône passe en grand (×3) et luit de sa couleur.
+   JOUER garde le sien (« je préfère le JOUER du ciel ») — et le garage le reprend (voir mPlayMot / #gJouer .lg). */
+html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres,.mGear){
+  background:linear-gradient(112deg,transparent 0 37%,rgba(255,255,255,.055) 37% 45%,transparent 45% 49%,rgba(255,255,255,.03) 49% 51%,transparent 51%),
+    linear-gradient(180deg,#272049 0%,#1c1738 46%,#141029 100%)!important;
+  box-shadow:inset 3px 0 0 var(--nc),inset 34px 0 30px -28px color-mix(in srgb,var(--nc) 75%,transparent),inset 0 1px 0 rgba(255,255,255,.16),inset 0 0 0 1px rgba(255,255,255,.06),
+    0 0 0 1px rgba(3,1,9,.92),0 5px 0 #0a0818,0 5px 0 1px rgba(3,1,9,.92),0 14px 24px -10px rgba(0,0,0,.72)!important}
+html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres) .pxi{--pxs:3!important;color:var(--nc)!important;filter:drop-shadow(0 0 5px var(--nc))!important}
+html.hub:not(.poki) body #mHome.acc2 .mGear .pxi{--pxs:3!important;color:var(--nc,#5ee6ff)!important;filter:drop-shadow(0 0 5px var(--nc,#5ee6ff))!important}
+html.hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{
+  background:linear-gradient(112deg,transparent 0 37%,rgba(255,255,255,.055) 37% 45%,transparent 45% 49%,rgba(255,255,255,.03) 49% 51%,transparent 51%),
+    linear-gradient(180deg,#272049 0%,#1c1738 46%,#141029 100%)!important;
+  box-shadow:inset 3px 0 0 var(--nc),inset 34px 0 30px -28px color-mix(in srgb,var(--nc) 75%,transparent),inset 0 1px 0 rgba(255,255,255,.16),inset 0 0 0 1px rgba(255,255,255,.06),
+    0 0 0 1px rgba(3,1,9,.92),0 5px 0 #0a0818,0 5px 0 1px rgba(3,1,9,.92),0 14px 24px -10px rgba(0,0,0,.72)!important}
+html.hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre .pxi{--pxs:3!important;color:var(--nc)!important;filter:drop-shadow(0 0 5px var(--nc))!important}
+/* le mot JOUER du ciel au garage : les lettres du logo (.lg, leur relief ::before), en brun sur l'or — les valeurs de la passe UX pour l'accueil */
+html body #garage:not(.menu):not(.vitrine) #gAct>#gJouer .gjMot{display:inline-flex;gap:.06em}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gJouer .lg{font-family:var(--pix);background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;
+  color:#3a1800!important;-webkit-text-fill-color:#3a1800!important;text-shadow:0 1px 0 rgba(255,247,210,.9)!important;filter:none!important;font-size:24px!important;letter-spacing:0}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gJouer .lg::after{display:none!important}
+@media (orientation:portrait){html body #garage:not(.menu):not(.vitrine) #gAct>#gJouer .lg{font-size:21px!important}}
+@keyframes gHomeCielPan{from{translate:-5% 0;scale:1.04}to{translate:5% -2%;scale:1.1}}
+@media (prefers-reduced-motion:reduce){html body #garage #gRang1>#gHomeBas>.gHomeCielCv{animation:none}}
+html[data-reduced-motion="1"] body #garage #gRang1>#gHomeBas>.gHomeCielCv{animation:none}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gvCof{grid-column:2;grid-row:1} /* (2026-10-12, Léo, 2e fois : « switch inventaire et boutique de place, encore une fois ») INVENTAIRE au-dessus, BOUTIQUE en bas — (avant : « inverse juste INVENTAIRE et BOUTIQUE de place ») INVENTAIRE en bas, BOUTIQUE au-dessus — (même jour, HOME passé au milieu, puis : « remets HOME à gauche ») HOME à gauche, BOUTIQUE / INVENTAIRE au milieu, l'œil / JOUER à droite */
+html body #garage:not(.menu):not(.vitrine) #gAct>#gShopBas{grid-column:2;grid-row:2}
+/* LE RETOUR DE LA BOUTIQUE (voir gGarageReplie) : une rangée — ◀ RETOUR à gauche, ACHETER à côté (quand il y a un achat) ; les autres
+   touches s'effacent, la vitrine prend la place */
+html body #garage.shopRet:not(.menu):not(.vitrine) #gAct{grid-template-columns:auto minmax(0,1fr)!important;grid-template-rows:auto!important}
+html body #garage.shopRet:not(.menu):not(.vitrine) :is(#gRang1>#gHomeBas,#gRang1>#gOeil,#gAct>#gvCof,#gAct>#gJouer){display:none!important}
+html body #garage.shopRet:not(.menu):not(.vitrine) #gAct>#gShopBas{grid-column:1;grid-row:1;flex-direction:row!important;gap:8px;width:auto;min-width:118px;height:52px;min-height:52px;padding:0 14px;--nc:var(--neoM)}
+html body #garage.shopRet:not(.menu):not(.vitrine) #gAct>#gShopBas.modeOn{translate:none;outline:0;filter:none}
+html body #garage.shopRet:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi{--pxs:2}
+html body #garage.shopRet:not(.menu):not(.vitrine) #gAct>#gEquip{grid-column:2!important;grid-row:1!important;justify-self:stretch!important;width:auto!important;height:52px!important;min-height:52px!important}
+html body #garage.shopRet:not(.menu):not(.vitrine) #gStrip.fnBande{max-height:min(330px,40vh)}
+/* L'ATELIER FERMÉ (voir gAtelier) : INVENTAIRE devient ◀ RETOUR en bas à gauche, le reste s'efface, l'inventaire en grille de trois prend la place */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gAct{grid-template-columns:auto minmax(0,1fr)!important;grid-template-rows:auto!important}
+html body #garage.atelierInv:not(.menu):not(.vitrine) :is(#gRang1>#gHomeBas,#gRang1>#gOeil,#gAct>#gShopBas,#gAct>#gJouer,#gAct>#gEquip){display:none!important}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom>#gRappel{display:none!important}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gAct>#gvCof{grid-column:1;grid-row:1;flex-direction:row!important;gap:8px;width:auto;min-width:118px;height:52px;min-height:52px;padding:0 14px;animation:atRet .32s var(--ease) both}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gAct>#gvCof.modeOn{translate:none;outline:0;filter:none}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gAct>#gvCof .pxi{--pxs:2}
+@keyframes atRet{from{opacity:0;translate:-24px 0}to{opacity:1;translate:0 0}}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:auto;grid-auto-flow:row;
+  gap:8px;height:auto;overflow-x:hidden;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;scroll-snap-type:y proximity;animation:atGrille .4s var(--ease) both}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT{width:auto!important;min-width:0!important;max-width:none!important;flex:none!important;margin:0!important;scroll-snap-align:start}
+/* L'INVENTAIRE RANGÉ (2026-10-15, Sacha, capture : « l'inventaire est mal géré ») — deux défauts mesurés au banc :
+   · les CINQ onglets (FIGURES est arrivé après coup) se partageaient la réglette à parts égales, 2 px de marge : « VOITURESPEINTURE »,
+     « TRAINEESFIGURES » se touchaient (73 px de mot dans 72 px d'onglet). Chacun prend désormais la largeur de SON mot, 6 px d'air entre deux,
+     un corps de moins debout (39 lettres de pixel dans ~360 px) ;
+   · la carte choisie (.on : penchée ET levée de 6 px, halo de 24 px) débordait d'une grille qui coupe à 4 px du haut — la carte du coin
+     haut-droit sortait du cadre, rognée. Dans la grille elle ne se lève plus (le liseré et le halo suffisent à la désigner), et la grille
+     garde la place de la pente (-11° sur ~70 px = 7 px de chaque côté) et du halo. */
+@media (max-width:430px){html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab{font-size:calc(var(--f0) + 1px)}}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{padding:10px 14px 14px}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.on{transform:skewX(var(--sk))}
+/* · la BANDE NOIRE (l'étiquette em, 84 % d'opacité sur toute la largeur) barrait chaque voiture à mi-hauteur en couché, pour n'y dire
+     qu'une coche — dans l'inventaire, tout est à toi : l'étiquette se resserre en pastille au coin bas-droit, la photo respire. */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT>em{left:auto;top:auto;bottom:3px;height:auto;padding:3px 6px 2px}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT>em:empty{display:none}
+@keyframes atGrille{from{opacity:0;translate:0 14px}to{opacity:1;translate:0 0}}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:calc(100vh - 200px)}}
+@media (prefers-reduced-motion:reduce){html body #garage.atelierInv #gAct>#gvCof,html body #garage.atelierInv #gStrip.gModeInv{animation:none}}
+/* ===== L'INVENTAIRE EN PICTOGRAMMES, ILLUSTRÉ, ET SES TROIS FIGURES (2026-10-15, Sacha : « en haut, voitures, peintures, ailes, traînées,
+   figures, c'est mis de manière très brouillonne : simplifie avec les pictogrammes » · « les traînées, les ailes et les figures, il n'y a
+   pas les images » · « dans l'onglet FIGURES, un bouton stylé : le nitro, trois cases en hexagone avec les figures sélectionnées, joystick
+   haut, bas, côté ») — le script : ILLU_COS / ILLU_FIG / illuFig, et le sélecteur gFigSelMaj / gFigTouche.
+   · LES ONGLETS : cinq mots de largeurs inégales serrés dans la réglette deviennent cinq PICTOGRAMMES à parts égales, 44 px de haut (la
+     cible du pouce, charte n° 5), redressés (la réglette penche, un pixel penché bave) ; le mot reste pour le lecteur d'écran (masqué, pas
+     retiré). L'onglet choisi : pictogramme blanc, lueur magenta, le trait dessous de la réglette d'avant. */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs{gap:4px;padding:3px}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab{flex:1 1 0;height:44px;padding:0;justify-content:center}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab>span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab .pxi{display:block;--pxs:3;margin:0;color:rgba(154,144,200,.85);transform:skewX(var(--skI));transition:color var(--t-fast) var(--ease)}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab.on .pxi{color:#fff;filter:drop-shadow(0 0 6px rgba(255,62,200,.85))}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab::after{top:0;bottom:0}
+/* · LES VIGNETTES ILLUSTRÉES (.ill : ailes, traînées, figures) : le dessin en grand en haut (36 px : des cases de 4 px, ou de 3 px pour un
+     anneau de figure), le nom dessous sur deux lignes au plus ; la coche monte au coin haut (elle mordait sur le nom). */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill{height:76px}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill .gIc{top:6px;--pxs:4;margin-left:-18px}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill>b{top:auto;bottom:5px;left:5px;right:5px;white-space:normal;line-height:1.4;max-height:2.8em;overflow:hidden;text-overflow:clip;text-align:center;color:var(--tx)}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill>em{top:4px;bottom:auto;right:4px;padding:3px 4px 2px}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill.photo>.gIc{display:none}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill.photo>img{left:-6%;top:-10%;width:112%}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill.photo>b{left:0;right:0;bottom:0;padding:12px 4px 5px;background:linear-gradient(180deg,rgba(7,5,15,0),rgba(7,5,15,.88) 55%)} /* le nom posé sur la photo : un fondu d'encre dessous, il se lisait mal sur la tôle orange */
+/* une FIGURE dessinée (partout où illuFig la pose) : l'anneau 12 × 12 en cases de 3 px, la caisse 9 × 9 en cases de 2 px au milieu */
+.fgIl{position:relative;display:block;width:36px;height:36px;color:var(--fc,#ffd75e)}
+.gT .fgIl.gIc{position:absolute;left:50%;top:6px;margin-left:-18px}
+.fgIl>.pxi{position:absolute;margin:0}
+.fgIl>.fgAn{left:0;top:0;--pxs:4;color:var(--fc,#ffd75e)}
+.fgIl>.fgAn.mir{transform:scaleX(-1)}
+.fgIl>.fgCv{left:9px;top:9px;--pxs:2;color:#eef3ff;transform-origin:var(--fgO,50% 60%);filter:drop-shadow(0 1px 0 rgba(7,5,15,.7))}
+/* la figure JOUE (la vignette choisie, les cases du sélecteur) : un geste, puis une pause — 3,2 s la boucle, la courbe unique de la charte */
+:is(#gStrip .gT.on,#gFigSel .fsHex) .fgIl>.fgCv{animation:var(--fgA,fgSalto) 3.2s var(--ease) infinite}
+#gFigSel .fsHex:nth-of-type(2) .fgIl>.fgCv{animation-delay:-1.07s}
+#gFigSel .fsHex:nth-of-type(3) .fgIl>.fgCv{animation-delay:-2.13s}
+@keyframes fgSalto{0%,18%{transform:rotate(0)}62%,100%{transform:rotate(calc(var(--sg,1) * 360deg))}}
+@keyframes fgSalto2{0%,12%{transform:rotate(0) rotateX(0)}72%,100%{transform:rotate(calc(var(--sg,1) * 720deg)) rotateX(360deg)}}
+@keyframes fgRoll{0%,18%{transform:rotate(0)}62%,100%{transform:rotate(calc(var(--sg,1) * 360deg))}}
+@keyframes fgRoll2{0%,12%{transform:rotate(0)}72%,100%{transform:rotate(calc(var(--sg,1) * 720deg))}}
+@keyframes fgSpin{0%,18%{transform:rotateY(0)}62%,100%{transform:rotateY(calc(var(--sg,1) * 360deg))}}
+@keyframes fgSpin2{0%,12%{transform:rotateY(0)}72%,100%{transform:rotateY(calc(var(--sg,1) * 720deg))}}
+@keyframes fgWhip{0%,18%{transform:rotateY(0)}62%,100%{transform:rotateY(calc(var(--sg,1) * 360deg))}}
+@keyframes fgChand{0%,18%,86%,100%{transform:rotate(0)}42%,62%{transform:rotate(calc(var(--sg,1) * 38deg))}}
+@keyframes fgShim{0%,18%,82%,100%{transform:rotateY(0) rotate(0)}30%,54%{transform:rotateY(35deg) rotate(6deg)}42%,66%{transform:rotateY(-35deg) rotate(-6deg)}}
+@keyframes fgPenche{0%,18%{transform:rotate3d(1,-1,0,0deg)}62%,100%{transform:rotate3d(1,-1,0,calc(var(--sg,1) * 360deg))}}
+@keyframes fgRodeo{0%,18%{transform:rotateY(0) rotate(0)}62%,100%{transform:rotateY(360deg) rotate(calc(var(--sg,1) * 360deg))}}
+@keyframes fgTire{0%,18%{transform:rotate(0) rotateX(0)}62%,100%{transform:rotate(360deg) rotateX(calc(var(--sg,1) * 360deg))}}
+@media (prefers-reduced-motion:reduce){.fgIl>.fgCv{animation:none!important}}
+html[data-reduced-motion] .fgIl>.fgCv{animation:none!important}
+/* ses DIRECTIONS, au coin haut droit de la vignette : ↑ avant · ↓ arrière · ◄► côté ; allumée = elle est équipée là */
+.gT .fgDir{position:absolute;right:5px;top:5px;display:flex;gap:2px;text-decoration:none;transform:skewX(var(--skI))}
+.gT .fgDir>i{display:block;padding:2px;background:rgba(7,5,15,.72);box-shadow:inset 0 0 0 1px rgba(154,144,200,.35);color:rgba(154,144,200,.85)}
+.gT .fgDir>i .pxi{--pxs:1;display:block;margin:0}
+.gT .fgDir>i.on{background:var(--neoC);box-shadow:0 0 8px rgba(94,230,255,.7);color:#07050f}
+#gStrip .gT.horsDir{opacity:.3;filter:saturate(.3)}
+/* · LE SÉLECTEUR DES TROIS FIGURES (#gFigSel) : l'éclair du NITRO et son « ×2 » (le double-tap), puis trois cases hexagonales — la figure
+     équipée qui tourne dedans, le JOYSTICK de sa direction sur le coin, son nom dessous. Une case touchée s'ARME (elle bat, les autres
+     s'effacent, la grille n'allume plus que ce qui y va). Masqué hors de l'onglet FIGURES de l'inventaire. */
+#gFigSel{display:none}
+html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigSel{display:flex}
+#gFigSel{position:relative;align-items:flex-end;gap:4px;margin:4px 12px 2px;padding:10px 6px 6px 4px;background:linear-gradient(180deg,rgba(11,8,24,.86),rgba(23,16,46,.86));
+  box-shadow:inset 0 0 0 1px var(--fil),inset 0 2px 0 rgba(255,255,255,.05);clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px)}
+#gFigSel .fsNitro{flex:none;align-self:center;display:flex;flex-direction:column;align-items:center;gap:3px;width:44px}
+#gFigSel .fsBolt{display:block;width:34px;height:48px;filter:drop-shadow(0 0 8px rgba(255,141,46,.45))}
+#gFigSel .fsNitro b{font-weight:400;font-size:var(--f1);line-height:1;color:var(--au1);text-shadow:0 2px 0 var(--txO)}
+#gFigSel .fsHex{position:relative;flex:1 1 0;min-width:0;min-height:44px;display:flex;flex-direction:column;align-items:center;gap:5px;padding:0;border:0;background:none;cursor:pointer;
+  font-family:var(--pix);color:var(--tx2);-webkit-tap-highlight-color:transparent;transition:opacity var(--t-fast) var(--ease),translate var(--t-fast) var(--ease)}
+#gFigSel .fsHex:active{translate:0 2px}
+#gFigSel .fsCase{position:relative;display:block;width:60px;height:52px;background:var(--fc);opacity:.95;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);
+  transition:background var(--t-fast) var(--ease)}
+#gFigSel .fsIn{position:absolute;inset:3px 4px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#231a44,#0b0818 75%);
+  clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+#gFigSel .fsQ{font-weight:400;font-size:var(--f3);color:#6c6390}
+#gFigSel .fsJoy{position:absolute;left:calc(50% - 42px);top:-6px;display:flex;align-items:center;justify-content:center;width:24px;height:24px;color:#fff;
+  background:radial-gradient(circle at 40% 35%,#4a3f7a,#1c1638 70%);box-shadow:inset 0 0 0 2px var(--fc);
+  clip-path:polygon(7px 0,17px 0,24px 7px,24px 17px,17px 24px,7px 24px,0 17px,0 7px);font-style:normal}
+#gFigSel .fsJoy .pxi{--pxs:1;width:12px;height:12px;margin:0}
+#gFigSel .fsNom{display:block;max-width:100%;min-height:2.6em;max-height:2.6em;overflow:hidden;white-space:normal;text-align:center;font-weight:400;font-size:var(--f0);line-height:1.3;color:var(--tx)}
+#gFigSel .fsHex.vide .fsCase{background:rgba(154,144,200,.32)}
+#gFigSel .fsHex.vide .fsNom{color:#6c6390}
+#gFigSel.arme .fsHex:not(.on){opacity:.42}
+#gFigSel .fsHex.on .fsCase{background:#fff;animation:fsBat .8s var(--ease) infinite alternate}
+#gFigSel .fsHex.on .fsNom{color:#fff}
+#gFigSel .fsHex.flash .fsCase{animation:fsFlash .6s var(--ease)}
+@keyframes fsBat{from{filter:drop-shadow(0 0 0 #fff)}to{filter:drop-shadow(0 0 6px #fff) brightness(1.15)}}
+@keyframes fsFlash{0%{background:#fff;filter:brightness(1.6)}100%{filter:none}}
+@media (prefers-reduced-motion:reduce){#gFigSel .fsHex.on .fsCase,#gFigSel .fsHex.flash .fsCase{animation:none}}
+/* LA HAUTEUR : les vignettes illustrées sont plus hautes (76 px contre 68) — la grille est plafonnée à trois rangées pour que le panneau
+   ne monte pas sur la caisse (MESURÉ au banc, 390 × 844 : sans plafond, les onglets passaient de 392 à 295 px du haut) ; sous le sélecteur
+   des figures, une rangée et demie (la moitié coupée dit qu'on peut faire défiler) */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:min(256px,31vh)}
+html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:min(150px,19vh)}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage.atelierInv:not(.menu):not(.vitrine):not(.figTab) #gStrip.gModeInv{max-height:calc(100vh - 220px)}
+  /* (même soir) couché, les onglets de 44 px sortaient par le haut sur VOITURES (MESURÉ, 844 × 390 : le haut de la rangée à −22 px) : le dessin
+     redescend à 34 px, la zone de touche garde ses 44 (::after), la grille rend 20 px */
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab{height:34px}
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab::after{top:-5px;bottom:-5px}
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:calc(100vh - 280px)}
+  /* couché, la colonne n'a pas la place de l'intertitre ET du sélecteur (MESURÉ, 844 × 390 : les onglets sortaient à −25 px) : l'onglet dit
+     déjà FIGURES, l'intertitre « INVENTAIRE » s'efface ; le nom tient sur une ligne (les cases sont plus larges) */
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gRar{display:none!important}
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigSel{margin-top:6px;padding-top:8px}
+  #gFigSel .fsNom{min-height:0;white-space:nowrap;text-overflow:ellipsis}}
+/* LA BOUTIQUE INDUSTRIELLE (essai, voir garBqIndus) — le GLITCH, l'EN-TÊTE, les ÉTIQUETTES et leurs FILS */
+#gBq{display:none}

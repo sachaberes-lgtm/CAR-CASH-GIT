@@ -1,0 +1,443 @@
+/* ================================== 21. LE MOUVEMENT (2026-09-28, soir) =============================================================
+   Sacha : « travaille les animations quand tu cliques sur les boutons, leurs emplacements, les transitions quand tu changes d'écran —
+   il faut que ce soit parfait et prêt à envoyer à l'App Store ; travaille vraiment les transitions entre chaque écran, avec des boutons
+   animés ». FILMÉ AVANT, au ralenti ×8 (banc `film.js`, scratchpad de la session 93a1dcda) :
+   (1) en changeant d'écran, l'ancien et le nouveau restaient superposés à moitié ~150 ms (deux titres l'un sur l'autre) ;
+   (2) les entrées animaient `transform` : le lingot JOUER, penché, arrivait DROIT puis se penchait d'un coup à la fin ;
+   (3) sur iPhone, un tap bref ne montrait jamais la touche enfoncée (`:active` n'a pas le temps de se peindre) — voir `.appui` (JS) ;
+   (4) le RETOUR apparaissait d'un bloc ; les réglages entraient comme UNE plaque ; (5) la carrière rejouait la même montée qu'on
+   entre dans un monde ou qu'on en sorte ; (6) la fenêtre remontait de 22 px au lieu d'arriver du bas comme une feuille.
+   LA LOI : une courbe (--ease), trois durées (--t-out 150 ms pour partir, --t-press pour s'enfoncer, --t-in pour arriver), une cadence
+   (--stag), une poussée (--pousse). On n'anime QUE `opacity` et les propriétés individuelles `translate`/`scale` : elles s'AJOUTENT au
+   `transform` d'une touche penchée au lieu de l'écraser, et elles se composent sur le GPU (aucune repeinte).
+   ⚠ Les verrous existants restent maîtres (ils sont en !important) : `.revu` et `body.voletSort` — l'écran que le VOLET découvre
+   n'a pas d'entrée à lui, c'est le volet qui la fait. */
+:root{--t-in:400ms;--t-out:150ms;--t-press:70ms;--stag:34ms;--pousse:30px}
+
+/* ---- L'ÉCRAN QUI PART : vite, et dans le sens du geste (il file à gauche quand on avance, à droite quand on revient) ---- */
+.mscr.sort{min-height:100%;animation-name:k6SortRacine;animation-duration:var(--t-out);animation-timing-function:var(--ease);animation-fill-mode:forwards} /* min-height : posé en absolu, l'écran qui part perdait sa hauteur — ses blocs « tombés vers la sortie » (margin auto) remontaient d'un coup sous le titre */
+.mscr.sort.avant{animation-name:k6SortAvant}
+.mscr.sort.retour{animation-name:k6SortRetour}
+@keyframes k6SortRacine{to{opacity:0;scale:.985}}
+@keyframes k6SortAvant{to{opacity:0;translate:calc(-1 * var(--pousse)) 0}}
+@keyframes k6SortRetour{to{opacity:0;translate:var(--pousse) 0}}
+
+/* ---- L'ÉCRAN QUI ARRIVE : le cadre ne fait qu'apparaître (après le départ de l'autre) ; ce sont ses BLOCS qui portent la direction,
+   en cascade : le titre d'abord, le contenu, la sortie en dernier ---- */
+.mscr.on,.mscr.on.avant,.mscr.on.retour{animation:k6Fond var(--t-out) var(--ease) 40ms both}
+@keyframes k6Fond{from{opacity:0}}
+.mscr.on>*{animation:k6Monte var(--t-in) var(--ease) backwards;animation-delay:calc(var(--i,0) * var(--stag) + 70ms)}
+.mscr.on.avant>*{animation-name:k6Avant}
+.mscr.on.retour>*{animation-name:k6Retour}
+@keyframes k6Monte{from{opacity:0;translate:0 16px}}
+@keyframes k6Avant{from{opacity:0;translate:var(--pousse) 0}}
+@keyframes k6Retour{from{opacity:0;translate:calc(-1 * var(--pousse)) 0}}
+@keyframes k6Tombe{from{opacity:0;translate:0 -18px}}
+@keyframes k6Surgit{from{opacity:0;translate:0 26px}}
+
+/* la SORTIE (RETOUR) : le dock est déjà là, sa touche glisse depuis le bord gauche — là où le pouce va la chercher */
+.mscr.on>.mDock{animation:none}
+.mscr.on>.mDock>.mBack{animation:k6DuBord var(--t-in) var(--ease) 150ms backwards}
+@keyframes k6DuBord{from{opacity:0;translate:-44px 0}}
+
+/* les CONTENANTS qui portent plusieurs blocs : leurs enfants prennent la cascade à leur tour (le contenant, lui, ne bouge plus) */
+.mscr.on>.mSet{animation:none}
+.mscr.on>.mSet>*{animation:k6Monte var(--t-in) var(--ease) backwards;animation-delay:calc(var(--j,0) * var(--stag) + 110ms)}
+.mscr.on.avant>.mSet>*{animation-name:k6Avant}
+.mscr.on.retour>.mSet>*{animation-name:k6Retour}
+.mSet>:nth-child(1){--j:0}.mSet>:nth-child(2){--j:1}.mSet>:nth-child(3){--j:2}.mSet>:nth-child(4){--j:3}.mSet>:nth-child(5){--j:4}
+.mSet>:nth-child(6){--j:5}.mSet>:nth-child(7){--j:6}.mSet>:nth-child(n+8){--j:7}
+@keyframes k6Carte{from{opacity:0;translate:0 20px;scale:.96}}
+
+/* ---- L'ACCUEIL : le logo DESCEND, les tuiles se distribuent une à une, le lingot JOUER SURGIT du bas en dernier ---- */
+#mHome.on>.mTitle{animation-name:k6Tombe}
+#mHome.on>.mIcons{animation:none}
+#mHome.on>.mIcons>.pbtn{animation:k6Monte var(--t-in) var(--ease) backwards}
+#mHome.on.retour>.mIcons>.pbtn{animation-name:k6Retour}
+#mHome.on>.mIcons>.pbtn:nth-child(1){animation-delay:calc(5 * var(--stag) + 70ms)}
+#mHome.on>.mIcons>.pbtn:nth-child(2){animation-delay:calc(6 * var(--stag) + 70ms)}
+#mHome.on>.mIcons>.pbtn:nth-child(3){animation-delay:calc(7 * var(--stag) + 70ms)}
+#mHome.on>.mPlay{animation:k6Surgit var(--t-in) var(--ease) backwards,k4LingotV4 4.2s var(--ease) 1.4s infinite;animation-delay:calc(8 * var(--stag) + 90ms),1.4s}
+
+/* ---- L'ÉCRAN DE MORT : une MISE EN SCÈNE, pas une cascade uniforme — l'enseigne s'allume, les deux cartes se DISTRIBUENT, le ticket
+   (le montant commence à s'égrener quand il apparaît, voir mCount), la porte des MISSIONS glisse de la droite, les tuiles, et REJOUER
+   surgit en dernier sous le pouce ---- */
+#mDead.on>.mCause{animation-delay:220ms}
+#mDead.on>.mHero{animation:none}
+#mDead.on>.mHero>.hCard{animation:k6Carte var(--t-in) var(--ease) 250ms backwards}
+#mDead.on>.mHero>.hCard+.hCard{animation-delay:320ms}
+#mDead.on>.mCashL{animation-delay:390ms}
+#mDead.on>.mStats{animation-delay:430ms}
+#mDead.on>.mObj{animation-name:k6Avant;animation-delay:490ms}
+#mDead.on>.mRow{animation:none}
+#mDead.on>.mRow>.pbtn{animation:k6Monte var(--t-in) var(--ease) 540ms backwards}
+#mDead.on>.mRow>.pbtn:nth-child(2){animation-delay:575ms}
+#mDead.on>.mRow>.pbtn:nth-child(3){animation-delay:610ms}
+#mDead.on>.mFin{animation:none}
+#mDead.on>.mFin>.mMenu{animation:k6DuBord var(--t-in) var(--ease) 640ms backwards}
+#mDead.on>.mFin>.pb-gold{animation:k6Surgit var(--t-in) var(--ease) 660ms backwards,k4Lingot 4.2s var(--ease) 2s infinite}
+
+/* ---- LES FEUILLES : la FENÊTRE arrive du bas comme une vraie feuille et y repart ; ses boutons suivent d'un souffle ---- */
+#modale.on .modIn{animation:k6Feuille var(--t-in) var(--ease) both}
+#modale.sortant .modIn{animation:k6FeuilleOut var(--t-out) var(--ease) forwards}
+#modale.on .modB>.pbtn{animation:k6Monte var(--t-in) var(--ease) 110ms backwards}
+#modale.on .modB>.pbtn+.pbtn{animation-delay:150ms}
+@keyframes k6Feuille{from{translate:0 calc(100% + 40px)}}
+@keyframes k6FeuilleOut{to{opacity:0;translate:0 42%}}
+/* la PAUSE : le voile tombe sur la course, le contenu se range de haut en bas, REPRENDRE surgit sous le pouce */
+#tPanel.open #tpIn{animation:none}
+#tPanel.open #tpIn>*{animation:k6Monte var(--t-in) var(--ease) backwards;animation-delay:calc(var(--j,0) * var(--stag) + 40ms)}
+#tpIn>:nth-child(2){--j:1}#tpIn>:nth-child(3){--j:2}#tpIn>:nth-child(4){--j:3}#tpIn>:nth-child(5){--j:4}#tpIn>:nth-child(6){--j:5}#tpIn>:nth-child(n+7){--j:6}
+#tPanel.open #tpIn>.tp.go{animation:k6Surgit var(--t-in) var(--ease) 230ms backwards,k4Lingot 4.2s var(--ease) 1.2s infinite}
+#tPanel.sortant #tpIn{animation:k6FeuilleOut var(--t-out) var(--ease) forwards}
+/* le GARAGE : changer de famille ou d'onglet DISTRIBUE la nouvelle bande de vignettes, de la droite (elle défile de ce côté) ; la
+   bande ne se reconstruit qu'à ces changements-là (et après un achat) — feuilleter les caisses ne la rejoue pas */
+#gStrip>.gT{animation:k6Avant var(--t-in) var(--ease) backwards;animation-delay:calc(var(--n,0) * 26ms)}
+#gStrip>:nth-child(2){--n:1}#gStrip>:nth-child(3){--n:2}#gStrip>:nth-child(4){--n:3}#gStrip>:nth-child(5){--n:4}#gStrip>:nth-child(6){--n:5}#gStrip>:nth-child(n+7){--n:6}
+/* le TOAST tombe du haut et s'y retire (il glissait de 14 px) */
+#toast{transform:translate(-50%,-26px) scale(.96)}
+#toast.on{transform:translate(-50%,0) scale(1)}
+
+/* ---- L'APPUI : la touche s'enfonce EN 70 ms (le doigt ne doit jamais attendre l'écran) et remonte en --t-fast ---- */
+.pbtn.appui,.mLigne.appui,.tp.appui,.gT.appui,.gTab.appui,.mMode.appui,.mObj.appui,.shCase.appui,.shUne.appui{transition-duration:var(--t-press)}
+.mObj[data-m].appui{filter:brightness(1.22)}
+.mObj[data-m],.mMode{transition:filter var(--t-fast) var(--ease),translate var(--t-fast) var(--ease)}
+.mObj[data-m].appui,.mMode.appui{translate:0 2px}
+.gR{transition:translate var(--t-fast) var(--ease),filter var(--t-fast) var(--ease)}
+.gR.appui{translate:0 3px;filter:brightness(1.25)}
+
+/* ---- LA SOURIS (le PC de Sacha montre le téléphone couché, et on y clique) : une touche SURVOLÉE s'éclaire d'un cran — rien sur un
+   écran tactile (hover:hover + pointeur fin), rien pendant l'appui (c'est l'enfoncement qui parle) ---- */
+@media (hover:hover) and (pointer:fine){
+  .pbtn:not(.off):hover,.tp:not(.ligne):hover,.gT:hover,.gR:hover,.mMode:hover,.mObj[data-m]:hover,.shUne:hover,.shCase:hover{filter:brightness(1.14)}
+  .mLigne:hover,.tp.ligne:hover{background:rgba(255,255,255,.035)}
+  .gTab:not(.on):hover{background:rgba(255,255,255,.04)}
+  .gTab:not(.on):hover .pxi,.gTab:not(.on):hover{color:var(--tx2)}
+  .pbtn.appui:hover,.tp.appui:hover{filter:none}
+}
+/* ---- LES TOUCHES VIVENT : un reflet passe sur les tuiles de l'accueil, l'une après l'autre (la lumière de la rue sur une rangée de
+   carrosseries) — une fois toutes les 7 s, jamais pendant qu'on les touche. Calque à part : seule sa position de fond bouge. ---- */
+#mHome .mIcons>.pbtn::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(105deg,transparent 0 40%,rgba(255,255,255,.13) 47%,rgba(255,255,255,.03) 52%,transparent 60%) no-repeat;
+  background-size:260% 100%;background-position:170% 0;animation:k6Reflet 7s var(--ease) 2.2s infinite}
+#mHome .mIcons>.pbtn:nth-child(2)::after{animation-delay:2.42s}
+#mHome .mIcons>.pbtn:nth-child(3)::after{animation-delay:2.64s}
+#mHome .mIcons>.pbtn.appui::after{animation:none}
+@keyframes k6Reflet{0%,78%{background-position:170% 0}96%,100%{background-position:-70% 0}}
+
+/* ---- « RÉDUIRE LES ANIMATIONS » (iOS, ou le réglage du jeu) : plus rien ne glisse ni ne tombe — un fondu, et c'est tout ---- */
+@media (prefers-reduced-motion:reduce){
+  .mscr.on>*,.mscr.on>.mSet>*,#mHome.on>.mIcons>.pbtn,#mHome.on>.mPlay,.mscr.on>.mDock>.mBack,#mDead.on>.mHero>.hCard,#mDead.on>.mRow>.pbtn,#mDead.on>.mFin>*,#modale.on .modB>.pbtn,#tPanel.open #tpIn>*,#mHome .mIcons>.pbtn::after,#gStrip>.gT{animation:none!important}
+  .mscr.sort{display:none}
+  #modale.on .modIn{animation:k4Voile var(--t-fast) linear both!important}
+  #toast{transform:translate(-50%,0)}
+}
+html[data-reduced-motion="1"] :is(.mscr.on>*,.mscr.on>.mSet>*,.mscr.on .misDefs>*,.mscr.on .misCol>*,#mHome.on>.mIcons>.pbtn,#mHome.on>.mPlay,.mscr.on>.mDock>.mBack,#mDead.on>.mHero>.hCard,#mDead.on>.mRow>.pbtn,#mDead.on>.mFin>*,#modale.on .modB>.pbtn,#tPanel.open #tpIn>*),
+html[data-reduced-motion="1"] #mHome .mIcons>.pbtn::after,html[data-reduced-motion="1"] #gStrip>.gT{animation:none!important}
+/* les verrous du VOLET, redits APRÈS cette section (mêmes sélecteurs, même !important : ils gagnaient déjà, on le rend explicite) */
+body.voletSort .mscr.on>.mSet>*,body.voletSort #mHome.on>.mIcons>.pbtn,body.voletSort .mscr.on>.mDock>.mBack,body.voletSort #mDead.on>.mHero>.hCard,body.voletSort #mDead.on>.mRow>.pbtn,body.voletSort #mDead.on>.mFin>*,.mscr.on.revu>.mSet>*,#mHome.on.revu>.mIcons>.pbtn,.mscr.on.revu>.mDock>.mBack,#mDead.on.revu>.mHero>.hCard,#mDead.on.revu>.mRow>.pbtn,#mDead.on.revu>.mFin>.mMenu{animation:none!important}
+#mDead.on.revu>.mFin>.pb-gold,body.voletSort #mDead.on>.mFin>.pb-gold{animation:k4Lingot 4.2s var(--ease) 1.2s infinite!important}
+/* ================================== 22. LES DÉTAILS (2026-09-28, soir) — la chasse, écran par écran, dans les trois formats =========== */
+/* REJOUER tient dans son lingot dans TOUTES les langues : « PLAY AGAIN » (10 signes) débordait du lingot et se faisait couper. Le corps
+   se règle sur la largeur du lingot (unités cqi : le lingot est son propre conteneur) et le nombre de signes de la langue (--nb) ; en
+   français rien ne change (24 px). */
+#mDead .mFin>[data-m="replay"]{container-type:inline-size;--nb:7;--ls:4px}
+html:lang(en) #mDead .mFin>[data-m="replay"]{--nb:10;--ls:2px}
+#mDead .mFin>[data-m="replay"]>span{font-size:min(var(--f9),calc((100cqi - var(--nb) * var(--ls)) / var(--nb)));letter-spacing:var(--ls);white-space:nowrap}
+@media (orientation:landscape) and (max-height:540px){#mDead .mFin>[data-m="replay"]>span{font-size:min(var(--f6),calc((100cqi - var(--nb) * var(--ls)) / var(--nb)))}}
+/* ---- relevé par une critique DA indépendante sur 57 captures (390×844, 375×667, 844×390) : les retouches retenues ---- */
+/* le RETOUR : la bande qui le porte est OPAQUE (à .97 le texte qui défilait dessous se lisait en fantôme, et un sur-titre posé 20 px
+   au-dessus semblait l'étiqueter) ; en paysage elle est moins haute (90 px, soit 23 % de l'écran, éteignaient « LES LEGENDAIRES ») */
+.mDock{padding-top:30px;background:linear-gradient(180deg,rgba(7,5,15,0),var(--k0) 24px)}
+@media (orientation:landscape) and (max-height:540px){
+  html .mDock{padding-top:14px;padding-bottom:calc(var(--sB) + 12px)}
+  html .mDock::before{background:linear-gradient(180deg,rgba(7,5,15,0),var(--k0) 14px)}
+}
+/* la PAUSE : le résumé de la partie reste COLLÉ à « LA PARTIE » (deux ressorts répartissaient 80 px partout : le résumé flottait seul
+   et « REGLAGES » tombait sur la 3D) — un seul ressort, avant les réglages, qui descendent vers REPRENDRE (verdict) */
+#tpIn>.tpResume{margin-top:4px}
+@media (orientation:landscape) and (max-height:540px){html #tpIn>.tpH:nth-child(2),html #tpIn>.tpHR{margin:4px 0 0;align-self:end}}
+/* la FENÊTRE : les mêmes marges que le reste de l'écran (12 px contre 18), un voile plus plein (la plaque rouge de dessous dépassait) */
+#modale{padding-left:calc(var(--sL) + var(--gut));padding-right:calc(var(--sR) + var(--gut));background:rgba(5,3,12,.9)}
+/* l'ACCUEIL : les pastilles « 10 » et « NEW » dans le coin de LEUR tuile (la pente les poussait de ~10 px dehors : « 10 » semblait
+   appartenir à CARRIERE) ; petit téléphone : le bloc touché redescend dans le tiers bas (il commençait à 62 % de la hauteur) */
+#mHome .mBadge{right:10px}
+@media (max-height:700px){
+  #mHome .mOutils{margin-bottom:12px}
+  #mHome .mMisBtn,#mHome .mGear{min-height:46px}
+  #mHome .mIcons{margin-bottom:14px}
+  #mHome .mIcons .pbtn{min-height:66px;gap:6px}
+  #mHome .mIcons .pbtn .pxi{--pxs:3}
+}
+/* l'ÉCRAN DE MORT : les libellés du ticket ne se cassent plus (« CHAINE / MAX » sur deux lignes, MAX calé à gauche, sur 375 px) ;
+   la porte des MISSIONS garde « 238 / 672 » d'un seul tenant et raccourcit le NOM de l'objet s'il le faut ; une aura NULLE s'éteint
+   comme la frénésie nulle (+0 en rose plein criait un chiffre qui n'existe pas) */
+#mDead .mStat span{text-align:center}
+@media (max-width:380px){#mDead .mStat span{letter-spacing:0}}
+.mObj.misPorte .obFt{flex-wrap:wrap;row-gap:6px}
+.mObj.misPorte .obFt>span:first-child{flex:none;white-space:nowrap}
+html #mDead .hCard.hAura>b.zero{color:var(--tx3);text-shadow:0 2px 0 var(--txO)}
+/* en paysage, les deux cartes démarrent sous le verdict (la porte des missions, haute, les repoussait de 88 px) */
+@media (orientation:landscape) and (max-height:540px){
+  html #mDead .mHero{margin-top:12px}
+}
+/* le GARAGE : le losange « équipée » au MÊME coin (en haut à gauche) pour les caisses et les habillages ; les puces de famille et de
+   filtre ont une zone tapable de 44 px (dessinées à 36) */
+.gT.eq::after{top:8px;bottom:auto}
+.gR{position:relative}
+.gR::after{content:'';position:absolute;left:0;right:0;top:-4px;bottom:-4px}
+/* les PHRASES : plus de mot orphelin en fin de paragraphe (« comment. » seul sur sa ligne), invite de l'écran titre équilibrée */
+#mob .mmD,#mob .shUneTx span,#modX,#gDesc{text-wrap:pretty}
+#spNote{text-wrap:wrap} /* (29/09) pas de balance ici : elle coupait « TOUCHE CASH CAR — LE / SON… » (article orphelin) ; au remplissage, « — LE SON » reste ensemble */
+/* (reprise) les FILTRES d'habillage tiennent à trois dans la largeur d'un téléphone (« A ACHETER 5 » était coupé contre le bord, dans le
+   fondu) ; À ACHETER en cyan (« aller voir ») — en vert billet il se confondait avec À MOI, vert néon */
+#gRar:has(.gF){gap:8px;padding-left:14px;padding-right:14px;-webkit-mask:none;mask:none}
+#gRar .gR.gF{padding:0 10px 0 9px;gap:7px}
+/* les RÉGLAGES : « VOLUME » et son curseur partent sous le libellé de la ligne (ils étaient décalés de 8 px) */
+.volRow{padding-left:62px}
+/* « PLUS QUE 1 PIECE · 3 CYLINDRES » : deux morceaux insécables — le point médian ne reste plus seul en bout de ligne */
+/* (balade du 29/09) les lignes de deux mots ne laissent plus un mot seul : « POSE-TOI / AVANT », « tu / peux te la payer » */
+#mDead .mCause,#gCard.verrou #gDesc,#toast{text-wrap:balance}
+/* ---- 23. L'ÉCRAN DE MORT, RESSERRÉ (2026-09-29 — Sacha, sur le cadre couché de l'ordi : « cet écran est encore un peu nul, le texte sous
+   GAME OVER sert à rien, et les fenêtres AURA et MOTEUR sont trop grandes »). MESURÉ avant : couché, les deux cartes prenaient toute la
+   hauteur de la moitié gauche (250 px) et leur contenu flottait au milieu ; debout, 176 px de haut pour un chiffre et un moteur.
+   · la CAUSE de la mort ne s'affiche plus (la caisse qui explose l'a déjà dit) ; les fins de campagne ont leur titre (« NUAGES TERMINÉS ») ;
+   · les cartes ÉPOUSENT leur contenu : plus de hauteur minimale, le moteur 3D à la taille d'une vignette, le chiffre au corps du ticket ;
+   · COUCHÉ : à gauche on LIT (verdict, cartes, puis le ticket collé dessous, aligné sur le bas de REJOUER), à droite on TOUCHE (missions,
+     tuiles, MENU | REJOUER) — les deux colonnes partagent leur haut et leur bas. */
+#mDead .mCause{display:none!important}
+html #mDead .hCard{min-height:0;justify-content:center;gap:6px;padding:14px 10px 12px}
+html #mDead .hCard>small{margin-bottom:5px}html #mDead .hCard>:last-child{margin-bottom:0}
+html #mDead .hMot3 .hMotCv{width:86%;margin:-9% 0 -7%}
+html #mDead .hMotN{font-size:var(--f6)}
+html #mDead .mHero{margin-top:18px}
+@media (max-height:760px){html #mDead .hMot3 .hMotCv{width:74%;margin:-8% 0 -6%}html #mDead .hCard{padding:10px 8px 10px;gap:5px}}
+@media (orientation:landscape) and (max-height:540px){
+  html #mDead.on{align-content:stretch;row-gap:0;
+    grid-template-areas:"over obj" "hero obj" "hero esp" "cash row" "stats rej";grid-template-rows:auto auto 1fr auto auto}
+  html #mDead .mOver{grid-area:over;align-self:start;margin:2px 0 0}
+  html #mDead .mHero{grid-area:hero;align-self:center;margin:12px 0}
+  html #mDead .hCard{padding:13px 10px 12px;gap:7px}
+  html #mDead .hCard.hAura>b{font-size:min(var(--f7),calc((100cqi - 18px) / var(--n,6)))}
+  html #mDead .hMot3 .hMotCv{width:76%;margin:-7% 0 -6%}
+  html #mDead .hMotN{font-size:var(--f6)}
+  html #mDead .mObj{grid-area:obj;align-self:start;margin:0}
+  html #mDead .mCashL{grid-area:cash;align-self:end;margin:0}
+  html #mDead .mStats{grid-area:stats;align-self:end}
+  html #mDead>.mRow{align-self:end}
+}
+/* ---- 24. LA SORTIE (2026-09-29 — Sacha : « fais ça en mode ultra complet, imagine que le jeu sort demain ») — ce que trois audits
+   (App Store, logique des écrans, iPhone) ont relevé et qu'un vrai téléphone montrerait ---- */
+/* iOS : ni flash gris sur les grands conteneurs qui portent les clics (#mob, #tPanel…), ni loupe/sélection à l'appui long, ni
+   texte grossi en paysage (les libellés en nowrap débordaient), ni image qu'on soulève pour la glisser */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+html,body{-webkit-user-select:none;-webkit-touch-callout:none}
+html{touch-action:manipulation} /* (24/10, débogage sortie iOS) Safari ignore user-scalable=no : un double-tap hors bouton zoomait la page. `manipulation` ne retire QUE le zoom au double-tap (défilement et pincement gardés ; le canvas et le HUD restent en `none`) */
+input,textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+img{-webkit-user-drag:none}
+/* les feuilles DÉFILENT au doigt sans entraîner la page, et la fenêtre défile si elle dépasse (clavier ouvert, petit écran) */
+#tPanel,#overlay,#modale{overscroll-behavior:contain}
+#modale{overflow-y:auto;-webkit-overflow-scrolling:touch}
+#modC{font-size:16px}                                          /* sous 16 px, iOS zoome la page au focus du champ */
+/* le curseur de VOLUME se saisit au pouce : même dessin (16 × 26), zone de prise 32 × 44 (un range iOS ne saute pas au point touché) */
+.volS{height:44px}
+.volS::-webkit-slider-thumb{width:32px;height:44px;margin-top:-19px;border:solid transparent;border-width:9px 8px;background-clip:padding-box;box-shadow:none}
+/* les flèches du garage : 38 px dessinées, 54 × 70 touchables */
+#garage .gNav::after{content:'';position:absolute;inset:-6px -8px}
+/* les flèches du mode PAD : au-dessus de la barre d'accueil, hors de l'encoche en paysage */
+html body #tLeft,html body #tRight{bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 20px)}
+html body #tLeft{left:calc(var(--ccL,env(safe-area-inset-left,0px)) + 16px)}
+html body #tRight{left:calc(var(--ccL,env(safe-area-inset-left,0px)) + min(84px,21vh) + 30px)}
+/* la saisie du RECORD, couché : dans la case de l'objectif (elle ouvrait une 6e rangée et l'écran débordait) */
+@media (orientation:landscape) and (max-height:540px){html #mDead #nameEntry{grid-area:obj;align-self:start;z-index:2;background:var(--k0)}}
+/* le CONTRASTE des petits textes (8-10 px) : le lavande éteint gagne un cran (≈ 4,7:1 sur les fonds d'écran), les titres de section de la
+   pause s'écrivent comme les réglages (le voile allégé laisse passer un ciel de jour), l'indication du champ se lit */
+:root{--tx3:#9a90c8}
+#tPanel .tpH:not(:first-child){color:var(--tx2);text-shadow:0 1px 0 var(--k0),0 0 8px var(--k0)}
+#nameInput::placeholder{color:var(--tx3)}
+/* « Affichage agrandi » d'iOS (320 pt de large) : RECOMMENCER tient dans sa plaque */
+@media (max-width:360px){.tpRow .tp .pxi{display:none}}
+/* (29/09) la condition d'une caisse à vendre s'écrit sur deux lignes voulues (prix, puis ce qu'il manque / « tu peux te la payer ») */
+#gCard #gDesc{white-space:pre-line}
+/* ---- 25. DEUXIÈME CRITIQUE DE SORTIE (2026-09-29) ---- */
+/* GARAGE : la condition d'une caisse (prix, boutique, défis) se lit sur une PLAQUE — elle flottait sur le décor 3D (les plots, les fûts) */
+#gCard.verrou #gDesc,#gCard.defis #gDesc{box-sizing:border-box;width:max-content;max-width:min(100%,360px);padding:8px 12px 8px 14px;
+  background:rgba(7,5,15,.8);box-shadow:inset 3px 0 0 var(--rc,var(--kl2)),inset 0 0 0 1px var(--fil);
+  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);text-shadow:none}
+/* RÉGLAGES : tous les chevrons cyan (les liens étaient gris, les valeurs cyan) ; l'icône d'un réglage COUPÉ s'éteint avec lui */
+.mLigne.lien::after{background:var(--neoC)}
+.mLigne.off>.pxi{opacity:.45}.tp.ligne:has(b.bascule.ko)>.pxi{opacity:.45} /* (24/10, débogage sortie iOS) deux règles : avant iOS 15.4, `:has` dans la liste annulait la règle ENTIÈRE, `.mLigne.off` compris */
+/* ÉCRAN DE MORT : RÉGLAGES cyan comme l'engrenage de l'accueil (« aller voir ») ; MENU reste neutre */
+#mDead [data-m="set"]{--nc:var(--neoC)}
+#mDead [data-m="set"] .pxi{color:var(--neoC)}
+/* couché : les flèches du garage descendent sous la plaque de la condition (elles la chevauchaient) */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){html #garage .gNav{top:calc(50% + 22px)}}
+.gT em.def{color:var(--neoV)}.gT em.def .pxi{--pxs:1;color:var(--neoV);margin-right:4px}   /* la caisse des missions en cours : « ◎ 1 / 3 » en vert défi */
+/* la BOUTIQUE couchée (ce que montre l'ordi) : l'offre à gauche, les LÉGENDAIRES à droite — la 2e rangée restait sous le RETOUR, l'écran
+   n'affichait qu'une bannière et un titre de section orphelin ; la vitrine se lit de haut en bas dans sa colonne */
+@media (orientation:landscape) and (max-height:540px){
+  html #mShop.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);column-gap:18px;align-content:start;
+    grid-template-areas:"head head" "une sec" "une grille" "une rest" "dock dock";grid-template-rows:auto auto auto 1fr auto}
+  html #mShop>.mHead{grid-area:head;margin-bottom:10px}
+  html #mShop>.shUne{grid-area:une;align-self:start;margin:0;position:sticky;top:calc(var(--sT) + 12px)} /* (2026-09-30, revue) l'offre reste à l'écran pendant qu'on parcourt les légendaires */
+  html #mShop>.mSec{grid-area:sec;margin:0 0 8px}
+  html #mShop>.shGrille{grid-area:grille;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-self:start}
+  html #mShop>.shRestaurer{grid-area:rest;align-self:start;justify-self:center;margin:12px 0 0}
+  html #mShop>.mDock{grid-area:dock}
+  html #mShop .shUneCadre{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);grid-template-areas:"ruban ruban" "photo tx" "bas bas";padding:12px 14px 12px;gap:6px 12px}
+  html #mShop .shUneCadre .shPhoto{height:112px}
+  html #mShop .shUneCadre .shPhoto img{height:112px}
+  html #mShop .shUneTx span{font-size:12px;line-height:1.4}
+  html #mShop .shCase{padding:9px 10px 10px;gap:6px}
+  html #mShop .shUneTx{margin-top:12px}
+}
+/* « AFFICHAGE AGRANDI » d'iOS et petits iPhone (320 pt de large) — mesuré au banc 320 × 693 */
+@media (max-width:360px){
+  .shUneBas{flex-wrap:wrap;gap:6px 10px}
+  .shUneBas s,.shUneBas em{white-space:nowrap}
+  #mDead .mStat span{white-space:normal;line-height:1.5}
+  #mDead .hNx>span{white-space:normal}
+  #gTabs{margin:0;gap:2px;padding:3px}
+  .gTab{letter-spacing:0}
+}
+/* PETIT TÉLÉPHONE COUCHÉ (667 × 375, mesuré au banc) — et tout écran où la colonne se resserre */
+/* un libellé de réglage sur deux lignes ne se chevauche plus (« REVOIR L'AUTO- / ECOLE ») */
+.mLigne .tpL,.tp.ligne .tpL{line-height:1.6}
+/* écran de mort : les libellés du ticket et « PLUS QUE 3 PIECES / ▲ BICYLINDRE » reviennent à la ligne plutôt que de déborder */
+#mDead .mStat span{white-space:normal;line-height:1.5}
+#mDead .hNx>span{white-space:normal;text-align:center}
+/* ---- 26. LES DIX PREMIÈRES MINUTES (2026-09-29, audit d'un joueur neuf) ---- */
+/* PASSER demande : « VRAIMENT ? » en rouge (le destructeur), l'en-tête dit en or ce qu'on laisse */
+html body #coach .coSkip.sur{color:var(--neoR)}
+html body #coach.passe .coN{color:var(--or);white-space:nowrap}html body #coach .coSkip.sur{white-space:nowrap}
+/* la carte MOTEUR de l'écran de mort : « MOTEUR ATTEINT » sur une ligne, comme « AURA » en face */
+#mDead .hMot>small{white-space:nowrap;letter-spacing:1px}
+/* REVOIR L'AUTO-ÉCOLE : la prime encore à prendre, en vert billet, sans second chevron (la ligne a le sien) */
+#mvTuto{color:var(--neoV);text-shadow:none}#mvTuto::after{display:none}#mvTuto[hidden]{display:none}
+/* (29/09, DEBUGGING) « POUCE HAUT EN VOL » passait sur deux lignes avec PLONGE et sur une avec MONTE : la ligne sautait à chaque appui —
+   la valeur prend toujours la place de la plus longue, l'interlettrage de la ligne se resserre d'un demi-pixel */
+.mLigne[data-m="volh"],.tp.ligne[data-a="volh"]{letter-spacing:.5px;gap:12px}.mLigne[data-m="volh"]>.pxi,.tp.ligne[data-a="volh"]>.pxi{margin-right:8px} /* (2026-09-30, revue) l'icône rend les 4 px : le libellé retombe dans l'alignement des autres lignes */#mvVolH{min-width:calc(6.6em + 18px);justify-content:flex-end}html:lang(en) #mvVolH{min-width:calc(5.5em + 18px)}html:lang(en) .mLigne[data-m="volh"]{letter-spacing:0}
+/* ---- 29. L'ÉCRAN DE FIN v5 (2026-09-29, Sacha : « cet écran n'est pas joli ; on ne compte pas l'aura, c'est le score d'une partie ;
+   l'argent doit être mis plus en avant ») — l'ARGENT est le héros : une plaque verte, le montant au plus gros corps de l'écran, le
+   compte dessous ; l'AURA (score) et le MOTEUR en deux cartes sobres ; COUCHÉ : à gauche on lit (titre, argent, cartes, chiffres),
+   à droite on touche (missions, tuiles, MENU | REJOUER), les deux colonnes réparties sur toute la hauteur — plus de trou. ---- */
+html body #mDead .mCashL{--c:14px;position:relative;container-type:inline-size;flex-direction:column;align-items:center;justify-content:center;flex-wrap:nowrap;gap:9px;
+  margin:18px 0 0;padding:16px 12px 14px;
+  background:radial-gradient(120% 110% at 50% 0%,rgba(125,255,155,.22),transparent 62%),linear-gradient(180deg,#113424,#081a12);
+  clip-path:polygon(var(--c) 0,100% 0,100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,0 100%,0 var(--c));
+  box-shadow:inset 0 3px 0 var(--cash),inset 0 0 0 1px rgba(125,255,155,.34),inset 0 -2px 0 rgba(0,0,0,.35)}
+html body #mDead .mCashL>span{order:0;font-size:var(--f0);letter-spacing:3px;color:#a7f0bd}
+html body #mDead .mCashL>b{order:1;line-height:1;letter-spacing:2px;font-size:min(var(--f8),calc((100cqi - 28px) / var(--n,6) - 2px));
+  color:var(--cash);text-shadow:0 4px 0 var(--cashO),0 0 24px rgba(125,255,155,.55)}
+html body #mDead .mCashL>b{word-spacing:-.55em} /* (2026-09-30, revue des écrans) l'espace de la police pixel est une case PLEINE : au corps du héros, « $ 9 » s'écartait d'un doigt ; resserré, « $ 128,4 k » gagne aussi de la place */
+html body #mDead .mCashL>small{order:2;font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
+html body #mDead .mCashL>small:empty{display:none}
+/* (2026-10-15, audit des écrans) LA LIGNE DU COMPTE TIENT DANS SA PLAQUE : « COMPTE : $ 2 303 400 · ×2 DU JOUR » ne tient pas sur les ~27 cases
+   de la plaque — elle se coupait en plein « ×2 DU | JOUR », calée à gauche, sans interligne (la police pixel remplit tout son corps : deux
+   lignes se TOUCHENT) et la seconde mordait le bas de la plaque. Le quotidien (.mJour) passe sur SA ligne, centrée ; l'interligne 1.5 aère
+   toute ligne repliée ; l'espace resserré comme celui du héros (une case PLEINE de la police pixel) fait tenir « ×2 OF THE DAY · STREAK 3 +$40 »
+   ou une série à deux chiffres sur une ligne, et « COMPTE : $ 2 303 400 » sur une seule même sur un petit téléphone couché. */
+html body #mDead .mCashL>small{max-width:100%;line-height:1.5;text-align:center;text-wrap:balance;word-spacing:-.4em}
+html body #mDead .mCashL>small>.mJour{display:block;font-style:normal}
+html body #mDead .mCashL>small>.mJour>u{display:none}
+/* la carte AURA : le score, et le meilleur dessous */
+html body #mDead .hAura>b{font-size:min(var(--f7),calc((100cqi - 18px) / var(--n,6)))}
+html body #mDead .hCard.hAura{container-type:inline-size}
+/* les chiffres : une plaque à part entière (ils ne sont plus soudés au ticket de l'argent) */
+html body #mDead .mStats{margin:12px 0 0;background:var(--laqueP);box-shadow:inset 0 0 0 1px var(--fil),var(--levre);
+  clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
+/* DEBOUT : titre → argent → cartes → chiffres → missions → tuiles → MENU | REJOUER */
+html body #mDead>.mOver,html body #mDead>.mCause{order:-6}
+html body #mDead>.mCashL{order:-5}
+html body #mDead>.mHero{order:-4;margin-top:12px}
+html body #mDead>.mNew,html body #mDead>.mStats{order:-3}
+html body #mDead>.mObj{order:-2}
+/* COUCHÉ (l'écran de l'ordi : un téléphone couché, 844 × 390) */
+@media (orientation:landscape) and (max-height:540px){
+  html body #mDead.on{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);column-gap:22px;row-gap:10px;align-content:stretch;
+    grid-template-areas:"over obj" "cash obj" "hero stats" "hero row" "hero rej";grid-template-rows:auto auto 1fr auto auto}
+  html body #mDead .mOver{grid-area:over;align-self:start;margin:0}
+  html body #mDead .mCashL{grid-area:cash;align-self:start;margin:0;padding:12px 12px 10px;gap:7px}
+  html body #mDead .mCashL:has(>small>.mJour){padding:9px 12px 8px;gap:4px} /* (2026-10-15) la ligne du quotidien se paie sur les marges de la plaque, pas sur les cartes du dessous : la colonne de gauche n'a pas un pixel à perdre (la MOTEUR touche déjà la ⌂) */
+  html body #mDead .mHero{grid-area:hero;align-self:stretch;margin:0}
+  html body #mDead .mHero>.hCard{justify-content:center}
+  html body #mDead .hCard{min-height:0;padding:10px 10px 10px}
+  html body #mDead .hMot3 .hMotCv{width:84%;margin:-6% 0 -4%}
+  html body #mDead .hMotN{font-size:var(--f6)}
+  html body #mDead .hAura>b{font-size:min(var(--f8),calc((100cqi - 18px) / var(--n,6)))}
+  html body #mDead .hCard{gap:9px}
+  html body #mDead .mStats{grid-area:stats;align-self:stretch;margin:0}
+  html body #mDead .mStat{min-height:0}
+  html body #mDead .mStat b{font-size:var(--f6)}
+  html body #mDead .mObj{grid-area:obj;align-self:stretch;justify-content:center;margin:0}
+  html body #mDead>.mRow{grid-area:row;align-self:end;margin:0}
+  html body #mDead .mFin{grid-area:rej;align-self:end;margin:0}
+  html body #mDead .mEsp{display:none}
+}
+@media (orientation:landscape) and (max-height:540px){
+  html body #mDead .mOver{white-space:nowrap;font-size:min(var(--f6),2.6vw)} /* « NOUVEAU RECORD ! » sur une ligne : le « ! » ne part plus seul */
+}
+/* petit téléphone couché (667 × 375) : la colonne de droite n'a que ~290 px — les tuiles passent en pictogramme AU-DESSUS du mot, les chiffres d'un cran */
+@media (orientation:landscape) and (max-height:540px) and (max-width:760px){
+  html body #mDead>.mRow .pbtn.ico{flex-direction:column;gap:5px;padding:6px 4px;font-size:var(--f0);letter-spacing:1px}
+  html body #mDead>.mRow .pbtn.ico .pxi{--pxs:2}
+  html body #mDead .mStat b{font-size:var(--f5)}
+}
+/* ---- 30. ÉCRAN DE FIN, ÉCRANS COURTS (2026-09-29, relevé par DEBUGGING) : iPhone SE dans Safari (375 × 553) et 320 × 568 — REJOUER
+   tombait ENTIÈREMENT sous le bord (567-629 pour 553). On resserre chaque bloc, on n'en retire aucun : REJOUER reste la seule plaque d'or,
+   sous le pouce, sans défiler. ---- */
+/* palier 1 (≤ 700 px : iPhone 8 / SE 2 plein écran, 667) : le titre sur UNE ligne (« NOUVEAU RECORD ! » en prenait deux), le moteur un cran plus petit */
+@media (orientation:portrait) and (max-height:700px){
+  html body #mDead .mOver{white-space:nowrap;font-size:min(var(--f6),calc((100vw - 48px) / 17))}
+  html body #mDead .hMot3 .hMotCv{width:62%;margin:-6% 0 -5%}
+  html body #mDead .hCard{min-height:0}
+}
+/* palier 2 (≤ 620 px : Safari avec ses barres) : tout se resserre */
+@media (orientation:portrait) and (max-height:620px){
+  html body #mDead .mOver{margin:0;white-space:nowrap;font-size:min(var(--f5),calc((100vw - 48px) / 17))}
+  html body #mDead .mCashL{margin-top:8px;padding:9px 12px 8px;gap:5px}
+  html body #mDead .mCashL>b{font-size:min(var(--f7),calc((100cqi - 28px) / var(--n,6) - 2px))}
+  html body #mDead>.mHero{margin-top:8px;gap:8px}
+  html body #mDead .hCard{min-height:0;padding:8px 8px 8px;gap:4px}
+  html body #mDead .hCard>small{margin-bottom:0}
+  html body #mDead .hMot3 .hMotCv{width:48%;margin:0 0 -4%}
+  html body #mDead .hMotN{font-size:var(--f5)}
+  html body #mDead .hAura>b{font-size:min(var(--f6),calc((100cqi - 18px) / var(--n,6)))}
+  html body #mDead .mStats{margin-top:8px}
+  html body #mDead .mStat{min-height:0;padding:7px 4px;gap:6px}
+  html body #mDead .mStat b{font-size:var(--f4)}
+  html body #mDead .mObj{margin-top:8px;padding:8px 12px 8px 14px;gap:6px}
+  html body #mDead .mEsp{flex:0 0 4px;max-height:4px}
+  html body #mDead>.mRow{margin-top:8px}
+  html body #mDead>.mRow .pbtn{min-height:50px;gap:4px}
+  html body #mDead .mFin{margin-top:10px}
+  html body #mDead .mFin>[data-m="replay"]{min-height:56px}
+}
+/* (29/09, DEBUGGING) 320 px de large : « GLISSE POUR TOURNER » passait sous la plaque NITRO de 14 px — interlettrage 2 → 1 px */
+@media (max-width:340px){html body #tSteerHint{letter-spacing:1px}}
+/* (2026-09-30) les vignettes de la boutique en attente de leur photo : la voiture pixel pulse, la photo entre en fondu */
+.shPhoto .shAttente{--pxs:4;color:var(--tx3);animation:shAtt 1.1s var(--ease) infinite alternate}
+@keyframes shAtt{from{opacity:.25}to{opacity:.6}}
+.shPhoto img.shArrive{animation:shArr var(--t-slow) var(--ease) both}
+@keyframes shArr{from{opacity:0;scale:.94}to{opacity:1;scale:1}}
+@media (prefers-reduced-motion:reduce){.shPhoto .shAttente,.shPhoto img.shArrive{animation:none}}
+/* ---- 31. LA BOUTIQUE EN BAS DU GARAGE (2026-09-30) : MENU | BOUTIQUE | le lingot d'or — même format que MENU (pictogramme + mot) ;
+   l'icône carrée du haut s'efface (une seule porte, dans le tiers bas) ---- */
+#gAct #gShopBas{flex:none;flex-direction:column;gap:6px;width:84px;min-width:84px;padding:6px 4px 4px 8px;font-size:var(--f0);letter-spacing:1px}
+#gAct #gShopBas .pxi{--pxs:3}
+#gOutils [data-go="shop"]{display:none}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){html #gAct #gShopBas{width:76px;min-width:76px;min-height:54px;gap:4px;padding:4px 2px 2px 6px}}
+/* quand une caisse est à acheter / équiper (`.choix`), la décision prend la place : la BOUTIQUE devient un carré (son panier), et sur un très
+   petit écran elle s'efface le temps du choix (ACHETER tombait à 41 px de large, MESURÉ) */
+html #gAct.choix :is(#gShopBas,#gClose){width:52px;min-width:52px;padding:0;gap:0}html #gAct.choix :is(#gShopBas,#gClose) span{display:none}
+html #gAct.choix :is(#gBuy,#gEquip){padding:0 6px}
+/* (MESURÉ) le verbe et le prix côte à côte faisaient ~180 px dans un lingot de ~90 : ils débordaient (et couvraient la BOUTIQUE). En choix, le
+   lingot se lit en DEUX lignes : le verbe en petit, le prix en gros dessous ; « EN BOUTIQUE » peut passer sur deux lignes, son panier se tait */
+html #gAct.choix #gBuy{flex-direction:column;gap:4px}html #gAct.choix #gBuy>span{font-size:var(--f0);letter-spacing:0;white-space:normal;text-align:center;line-height:1.5}html #gAct.choix #gBuy>.pxi{display:none}html #gAct.choix #gBuy .gPrix{font-size:var(--f3);letter-spacing:0}
+/* JOUER partage la barre avec la BOUTIQUE : le mot se règle sur la largeur RÉELLE du lingot (unités cqi) ; sous 230 px, les chevrons se taisent
+   et laissent la place au mot (MESURÉ : à 390 et 320 px le « J » passait sous la BOUTIQUE) */
+html #gAct:not(.choix) #gJouer{container-type:inline-size;padding:0 10px}
+html #gAct:not(.choix) #gJouer>span{font-size:min(var(--f8),calc((100cqi - 84px) / 6.2));letter-spacing:2px;white-space:nowrap}
+@container (max-width:230px){html #gAct:not(.choix) #gJouer .mChev{display:none}html #gAct:not(.choix) #gJouer>span{font-size:min(var(--f8),calc((100cqi - 24px) / 6))}}
+@media (max-width:360px){html #gAct{gap:10px}html #gAct #gShopBas{width:74px;min-width:74px;letter-spacing:0}html #gAct #gClose{width:60px;min-width:60px}html #gAct.choix #gShopBas{display:none}}
+</style>

@@ -1,0 +1,236 @@
+/* LE SOUFFLE DE LUMIÈRE (2026-10-16, Léo : « j'aime pas trop la transition glitch — trouve une autre transition, plus smooth ») : plus de
+   bandes ni de tressauts. Vers la boutique, la lumière NAÎT DE LA CAISSE (un disque blanc posé sur elle, ::before, qui grandit) et le blanc
+   gagne les bords (::after) ; l'image avance un peu dans la lumière (la toile grandit de 5 %, depuis la caisse) ; dessous, le décor bascule ;
+   puis le voile se lève pendant que l'image, partie un peu trop près, se POSE (−3 % → 0). Vers l'atelier : la nuit tombe d'un bloc, l'image
+   recule, puis se pose. Rien que de l'opacité et des échelles : le compositeur les joue même si le jeu travaille sous le voile. */
+#gBqVoile{position:fixed;inset:0;z-index:58;pointer-events:none;overflow:hidden;contain:strict;--vc:#f3f4f6;--vg:255,255,255}
+#gBqVoile.nuit{--vc:#0b0d16;--vg:11,13,22}
+#gBqVoile::after{content:'';position:absolute;inset:0;background:var(--vc);opacity:0}
+#gBqVoile::before{content:'';position:absolute;left:var(--fx,50%);top:var(--fy,46%);width:240px;height:240px;margin:-120px 0 0 -120px;border-radius:50%;opacity:0;scale:.2;
+  background:radial-gradient(circle closest-side,rgb(var(--vg)) 0,rgb(var(--vg)) 36%,rgba(var(--vg),.55) 64%,rgba(var(--vg),0) 100%)}
+#gBqVoile.on::after{opacity:1;transition:opacity .25s cubic-bezier(.55,0,.8,.3) .03s} /* les bords en dernier */
+#gBqVoile.on::before{opacity:1;scale:9;transition:opacity .07s linear,scale .3s cubic-bezier(.3,.5,.4,1)}
+#gBqVoile.nuit::before{display:none}
+#gBqVoile.nuit.on::after{transition:opacity .26s cubic-bezier(.45,0,.55,1)}
+#gBqVoile.leve{opacity:0;transition:opacity .5s cubic-bezier(.3,.55,.35,1)}
+canvas.bqPasse{scale:1.05;transition:scale .3s cubic-bezier(.55,0,.8,.35)}
+canvas.bqPasse.recul{scale:.96}
+canvas.bqPose{scale:.97;transition:none}
+canvas.bqPose.recul{scale:1.03}
+canvas.bqArrive{transition:scale .62s cubic-bezier(.2,.75,.25,1)}
+@media (prefers-reduced-motion:reduce){#gBqVoile::before{display:none}#gBqVoile.on::after{transition:opacity .12s linear}#gBqVoile.leve{transition:opacity .2s linear}canvas.bqPasse,canvas.bqPose{scale:none}}
+html.bqIndus body #garage.bqBlanc #gBq{display:block;position:absolute;inset:0;pointer-events:none;z-index:6} /* la page de vente : après la lueur */
+html.bqIndus body #garage #gTop{visibility:hidden!important} /* (la place reste : la console est calée en flex sous elle) */
+html.bqIndus #gTourne{display:none!important}
+html body #garage.bqBlanc::before,html body #garage.bqBlanc::after{display:none!important}
+html.bqIndus body #garage::before,html.bqIndus body #garage::after{opacity:0!important;transition:opacity .45s ease .25s} /* pendant la lueur, les voiles d'encre s'effacent */ /* les voiles d'encre du haut et du bas du garage : l'espace reste blanc */
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gBottom{background:none!important;box-shadow:none!important;clip-path:none!important;padding-top:0}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gBottom::before{display:none}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gStrip,#gStrip.fnBande){display:none!important}
+/* L'INTERFACE v3 (voir garBqPanneau) : blanc, du noir pour lire, un BLEU ÉLECTRIQUE (#3d4bff) pour ce qui compte — l'orange retiré */
+#gBqTete{position:absolute;top:calc(var(--sT,0px) + 16px);display:flex;align-items:flex-start;justify-content:space-between;font-family:var(--pix);animation:bqTete .5s var(--ease) .12s both}
+@keyframes bqTete{from{opacity:0;translate:0 -12px}to{opacity:1;translate:0 0}}
+#gBqTete .bqT1{display:flex;flex-direction:column;align-items:flex-start;gap:9px}
+#gBqTete .bqT1 b{display:block;font-weight:400;font-size:18px;letter-spacing:4px;color:#14171c}
+#gBqTete .bqTl>b::after{content:'';display:block;width:26px;height:3px;margin-top:8px;background:#3d4bff}
+#gBqTete .bqRar{display:inline-flex;align-items:center;gap:6px;font-size:8px;letter-spacing:2px;color:#8a929c}
+#gBqTete .bqRar::before{content:'';width:7px;height:7px;background:var(--rc)}
+#gBqTete .bqNom{font-size:10px;letter-spacing:1px;color:#14171c}
+#gBqTete .bqLim{display:none;align-items:center;gap:6px;padding:5px 8px;white-space:nowrap;background:#3d4bff;color:#fff;font-size:8px;letter-spacing:1px}
+#gBqTete .bqLim::before{content:'EDITION LIMITEE ·'}
+#gBqTete .bqLim .pxi{--pxs:1;color:#fff}
+#gBqTete .bqLim em{font-style:normal;font-variant-numeric:tabular-nums}
+#gBqTete.lim .bqLim{display:inline-flex}
+#gBqTete .bqArg{display:flex;align-items:center;gap:7px;padding:9px 12px;background:rgba(255,255,255,.9);box-shadow:0 0 0 1px #dde1e6,0 8px 20px rgba(30,40,55,.06);color:#14171c;font-size:11px;letter-spacing:1px}
+#gBqTete .bqArg b{font-weight:400}
+#gBqTete .bqArg .pxi{--pxs:2;color:#14171c}
+/* LES RAYONS DE LA BOUTIQUE (2026-10-15, Sacha : « enlève CETTE SEMAINE ; à la place, les pictogrammes — voiture, peinture, aile, traînée,
+   figure — qui sont pour l'instant dans une petite flèche ultra cachée ; on clique dessus, on arrive dans l'onglet ») : la colonne de gauche
+   = un rayon par ligne, pictogramme + nom, le rayon ouvert en noir avec son liseré bleu. ACHAT (les caisses payantes) a son panier bleu.
+   Hauteur des lignes calculée par bqRayons (--cH, --cG) pour tenir entre l'en-tête et la grille ; trop serré → deux colonnes de carrés (.duo). */
+#gBqCats{position:absolute;display:none;flex-direction:column;gap:var(--cG,6px);pointer-events:auto;font-family:var(--pix)}
+#gBq.pan #gBqCats{display:flex;animation:bqPan .5s var(--ease) .3s both}
+#gBqCats button{position:relative;flex:none;height:var(--cH,48px);display:flex;align-items:center;gap:9px;padding:0 6px 0 12px;border:0;cursor:pointer;background:#fff;color:#14171c;
+  box-shadow:0 0 0 1px #dde1e6,0 6px 16px rgba(30,40,55,.07);font-family:var(--pix);font-size:8px;letter-spacing:0;text-align:left;-webkit-tap-highlight-color:transparent;
+  transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease),translate var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
+#gBqCats button .pxi{--pxs:2;flex:none;color:#14171c}
+#gBqCats button span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:clip}
+#gBqCats button::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:transparent;transition:background var(--t-fast) var(--ease)}
+#gBqCats button.on{background:#14171c;color:#fff;box-shadow:0 8px 18px rgba(20,23,28,.22)}
+#gBqCats button.on .pxi{color:#fff}
+#gBqCats button.on::before{background:#3d4bff}
+#gBqCats button[data-c="achat"] .pxi{color:#3d4bff}
+#gBqCats button[data-c="achat"].on .pxi{color:#9aa3ff}
+#gBqCats button:is(:active,.appui){translate:0 2px;box-shadow:0 0 0 1px #c9ced6}
+#gBqCats.duo{flex-direction:row;flex-wrap:wrap;align-content:flex-start}
+#gBqCats.duo button{width:calc((100% - var(--cG,8px)) / 2);justify-content:center;padding:0}
+#gBqCats.duo button span{display:none}
+#gBqPan .bqK .bqKph[data-pha] img{width:100%}
+#gBqPan .bqK .bqKph[data-phf] .fgFilm{display:block;width:100%;height:100%} /* (2026-10-18) le FILM d'une figure (figFilm) : la toile prend toute la case, l'image s'y pose entière, en bas (filmDessine) */
+#gBq #gBqPan .bqK.hab .bqKph .bqSw{width:42px;height:42px} /* les grandes cartes des habillages : la pastille de la peinture, le ruban de la traînée à leur taille */
+#gBq #gBqPan .bqK.hab .bqKph .bqRub{width:70%;height:12px}
+/* (2026-10-12) v4 : l'argent À CÔTÉ de BOUTIQUE ; le choix de la catégorie ; les habillages dans la grille */
+#gBqTete .bqTl{display:flex;align-items:center;gap:14px}
+/* le NOM au-dessus de la caisse, les COLORIS dessous */
+#gBqNom{position:absolute;display:none;transform:translateX(-50%);flex-direction:column;align-items:center;gap:6px;font-family:var(--pix);white-space:nowrap;pointer-events:none}
+#gBq.pan #gBqNom{display:flex}
+#gBqNom .bqRar{display:inline-flex;align-items:center;gap:6px;font-size:8px;letter-spacing:2px;color:#8a929c}
+#gBqNom .bqRar::before{content:'';width:7px;height:7px;background:var(--rc)}
+#gBqNom .bqNom{font-size:13px;letter-spacing:2px;color:#14171c}
+#gBqNom .bqLim{display:none;align-items:center;gap:6px;padding:4px 8px;background:#3d4bff;color:#fff;font-size:8px;letter-spacing:1px}
+#gBqNom .bqLim::before{content:'EDITION LIMITEE ·'}
+html:not([lang=fr]) #gBqTete .bqLim::before,html:not([lang=fr]) #gBqNom .bqLim::before{content:'LIMITED EDITION ·'} /* (2026-10-14) en anglais (et en chinois) : applyLangDOM pose <html lang> */
+#gBqNom .bqLim .pxi{--pxs:1;color:#fff}
+#gBqNom .bqLim em{font-style:normal;font-variant-numeric:tabular-nums}
+#gBqNom.lim .bqLim{display:inline-flex}
+#gBqSkins{position:absolute;display:none;align-items:center;justify-content:center;gap:10px;font-family:var(--pix);pointer-events:none}
+#gBq.pan #gBqSkins:not(.vide){display:none} /* (2026-10-14, Léo : « enlève les couleurs skins en dessous de la voiture ») */
+#gBqSkins>b{font-weight:400;font-size:8px;letter-spacing:2px;color:#8a929c}
+#gBqSkins .bqSk{display:flex;gap:6px;pointer-events:auto}
+#gBqSkins .bqS{display:flex;align-items:center;gap:7px;height:34px;padding:0 10px 0 6px;border:0;background:#fff;box-shadow:0 0 0 1px #dde1e6;font-family:var(--pix);font-size:8px;letter-spacing:1px;color:#14171c;cursor:pointer}
+#gBqSkins .bqS i{width:20px;height:20px;background:var(--sc);box-shadow:inset 0 0 0 1px rgba(20,23,28,.18)}
+#gBqSkins .bqS.on{box-shadow:0 0 0 2px #14171c}
+#gBqTete .bqTl .bqArg{padding:7px 10px;font-size:10px;align-self:flex-start;margin-top:-4px}
+#gBqTete .bqTl .bqArg b{display:inline;font-size:10px;letter-spacing:1px}
+#gBqTete .bqTl .bqArg .pxi{--pxs:1}
+#gBqPan .bqK.hab .bqKph .bqSw{width:30px;height:30px;box-shadow:0 0 0 1px rgba(20,23,28,.15),inset 0 0 0 2px rgba(255,255,255,.35)}
+#gBqPan .bqK.hab .bqKph .bqRub{width:62%;height:10px;box-shadow:0 0 0 1px rgba(20,23,28,.15)}
+#gBqPan .bqK.hab .bqKph .pxi{--pxs:3;color:#14171c}
+#gBqPan .bqK .bqKph .pxi.bqTrIc{filter:drop-shadow(1px 1px 0 rgba(20,23,28,.6))} /* (2026-10-16, TRAÎNÉES) le pictogramme d'une traînée garde SA couleur sur la salle blanche : un trait d'ombre dur (pixel) pour que le menthe et l'or se lisent sur le blanc */
+#gBqPan .bqK .bqKp.pc{color:#14171c}
+/* LA BOUTIQUE EN GRILLE (debout comme couché) : trois de large, elle défile vers le bas */
+#gBqPan.grille .bqRail{flex-wrap:wrap;overflow-x:hidden;overflow-y:auto;touch-action:pan-y;min-height:0;flex:1;align-content:flex-start;scroll-snap-type:y proximity}
+#gBqPan.grille .bqK,#gBqPan.grille .bqK.off{width:calc((100% - 20px) / 3)}
+#gBqPan.grille .bqK .bqKph,#gBqPan.grille .bqK.off .bqKph{height:66px}
+#gBqPan.grille.cote .bqK .bqKph,#gBqPan.grille.cote .bqK.off .bqKph{height:50px}
+/* (2026-10-14, Léo : « chaque couleur à part : les peintures, des cubes de vente plus petits que les voitures, pour avoir du recul, mais pas
+   trop petits pour qu'on puisse choisir ») les HABILLAGES (peintures, ailes, traînées) : quatre de large, la pastille au milieu de sa case */
+#gBqPan.grille .bqRail.habs{gap:8px}
+#gBqPan.grille .bqRail.habs .bqK{width:calc((100% - 24px) / 4)}
+#gBqPan.grille .bqRail.habs .bqK .bqKph{height:46px}
+#gBqPan.grille.cote .bqRail.habs .bqK .bqKph{height:38px}
+#gBqPan.grille .bqRail.habs .bqK .bqKph .bqSw{width:24px;height:24px}
+#gBqPan.grille .bqRail.habs .bqK .bqKn{padding:6px 6px 0}
+#gBqPan.grille .bqRail.habs .bqK .bqKp{padding:4px 6px 7px}
+/* (2026-10-15, Sacha : « dans la boutique classe toutes les figures selon ces deux catégories ») LES FIGURES EN DEUX FAMILLES : l'intertitre
+   qui ouvre chaque famille (VERS L'AVANT · SUR LES CÔTÉS) prend toute la largeur de la grille ; à droite, en petit, le geste qui la joue
+   (il passe ENTIER sous le nom quand la ligne est trop courte — MESURÉ au banc : à 390 de large, « POUCE A GAUCHE OU A D… » était coupé).
+   Il entre en FONDU seulement : avec le glissé de 12 px des cartes (bqK), l'aimant de défilement l'attrapait en plein glissé et la grille
+   restait décalée de 14 px — le haut de VERS L'AVANT rogné (MESURÉ : scrollTop 14 à 0,3 s comme à 1,8 s) */
+#gBqPan .bqRail .bqSec{flex:0 0 100%;display:flex;flex-wrap:wrap;align-items:center;column-gap:8px;row-gap:4px;min-width:0;padding:10px 2px 0;font-family:var(--pix);color:#14171c;scroll-snap-align:start;pointer-events:none;animation:bqSec .38s var(--ease) both}
+@keyframes bqSec{from{opacity:0}to{opacity:1}}
+#gBqPan .bqRail .bqSec:first-child{padding-top:2px}
+#gBqPan .bqRail .bqSec .pxi{--pxs:2;flex:none;color:#3d4bff}
+#gBqPan .bqRail .bqSec b{font-weight:400;font-size:9px;letter-spacing:2px;white-space:nowrap}
+#gBqPan .bqRail .bqSec em{margin-left:auto;font-style:normal;font-size:7px;letter-spacing:0;color:#8a929c;white-space:nowrap}
+#gBqPan .bqRail .bqSec.bqRarS .pxi{color:var(--rc);filter:drop-shadow(0 0 0 #14171c) drop-shadow(1px 1px 0 rgba(20,23,28,.55))} /* (2026-10-18) l'intertitre d'une RARETÉ : son logo à sa couleur */
+#gBqPan .bqRail .bqSec.bqRarS{box-sizing:border-box;max-width:100%;flex-wrap:nowrap;gap:8px;margin:8px 0 4px;padding:6px 9px 6px 6px;border-radius:8px;background:#f3f5f8;background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 22%,#fff),color-mix(in srgb,var(--rc) 4%,#fff) 78%);box-shadow:inset 3px 0 0 var(--rc),0 1px 0 rgba(20,23,28,.06)} /* (2026-10-20, Sacha : « fais ça joliment ») l'intertitre d'une RARETÉ : un bandeau à sa teinte, le logo dans sa pastille, son nom, un fil, « à toi / total » */
+#gBqPan .bqRail .bqSec.bqRarS:first-child{margin-top:2px}
+#gBqPan .bqRail .bqSec.bqRarS .bqRl{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:7px;background:#14171c;box-shadow:0 0 0 1px var(--rc),0 0 10px -2px var(--rc)}
+#gBqPan .bqRail .bqSec.bqRarS .bqRl .pxi{--pxs:2;color:var(--rc);filter:none}
+#gBqPan .bqRail .bqSec.bqRarS b{font-size:10px;letter-spacing:2.5px;color:#14171c}
+#gBqPan .bqRail .bqSec.bqRarS s{flex:1;height:2px;min-width:8px;border-radius:2px;background:linear-gradient(90deg,var(--rc),transparent)}
+#gBqPan .bqRail .bqSec.bqRarS em{margin-left:0;font-size:8px;letter-spacing:1px;color:#5b6470}
+#gBqPan .bqRail .bqSec.bqRarS em i{font-style:normal;color:#14171c}
+#gBqPan .bqRail .bqSec.bqRarS .pxi[class*="pxi-infini"]{background:linear-gradient(90deg,#ff4d6d,#ffb03a,#ffe85e,#5ee37a,#5ec8ff,#b07dff,#ff8af0)}
+/* LE BOUTON QUI CHANGE (voir bqAction) et RETOUR, plus petit, plus bas */
+#gBqBtn{display:none}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gEquip{display:none!important}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gBqBtn{display:flex;grid-column:2;grid-row:1;align-items:center;justify-content:center;gap:10px;height:44px;padding:0 14px;
+  background:#14171c;color:#fff;font-family:var(--pix);font-size:9px;letter-spacing:2px;cursor:pointer;pointer-events:auto;box-shadow:0 10px 24px rgba(20,23,28,.22);transition:background .2s,color .2s,translate .12s}
+#gBqBtn b{font-weight:400;font-size:12px;letter-spacing:1px}
+#gBqBtn .pxi{--pxs:2;color:currentColor}
+#gBqBtn:is(:active,.appui){translate:0 2px}
+html.bqIndus body #garage #gAct>#gBqBtn[data-e="equip"]{background:#3d4bff}
+html.bqIndus body #garage #gAct>#gBqBtn[data-e="desequip"]{background:#fff;color:#14171c;box-shadow:0 0 0 1.5px #14171c}
+html.bqIndus body #garage #gAct>#gBqBtn[data-e="eq"]{background:#fff;color:#8a929c;box-shadow:0 0 0 1px #dde1e6}
+html.bqIndus body #garage #gAct>#gBqBtn[data-e="defi"]{background:#eef0f3;color:#8a929c;box-shadow:none}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas{min-width:0!important;width:auto!important;height:44px!important;min-height:44px!important;padding:0 14px!important;gap:6px!important}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas span{font-size:8px!important;letter-spacing:1px}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct{translate:0 20px} /* (Léo : « le bouton BACK plus bas ») la barre descend vers le bord */
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi{--pxs:1!important}
+#gBqPan{position:absolute;display:none;flex-direction:column;justify-content:flex-end;gap:12px;pointer-events:none}
+#gBq.pan #gBqPan{display:flex;animation:bqPan .5s var(--ease) .2s both}
+@keyframes bqPan{from{opacity:0;translate:0 18px}to{opacity:1;translate:0 0}}
+#gBqPan .bqRail{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;padding:2px 2px 10px;scroll-snap-type:x proximity;touch-action:pan-x;overscroll-behavior:contain;pointer-events:auto;scrollbar-width:none}
+#gBqPan .bqRail::-webkit-scrollbar{display:none}
+#gBqPan.cote .bqRail{flex-wrap:wrap;overflow-x:hidden;overflow-y:auto;touch-action:pan-y;min-height:0;flex:1;align-content:flex-start;scroll-snap-type:y proximity}
+#gBqPan .bqK{position:relative;flex:none;width:106px;display:flex;flex-direction:column;background:#fff;box-shadow:0 0 0 1px #dde1e6,0 8px 20px rgba(30,40,55,.07);scroll-snap-align:start;cursor:pointer;font-family:var(--pix);
+  animation:bqK .38s cubic-bezier(.2,1.3,.4,1) both;animation-delay:calc(.25s + var(--i) * 45ms);transition:translate .15s,box-shadow .15s}
+@keyframes bqK{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
+/* (2026-10-15) L'AIMANT COUPÉ PENDANT L'ENTRÉE (voir bqAimant) : la grille ne s'ouvre plus défilée de 14 px */
+#gBqPan .bqRail.entre{scroll-snap-type:none!important}
+#gBqPan .bqK::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--rc)}
+#gBqPan .bqK .bqKph{height:60px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(180deg,#f8f9fb,#eceff3)}
+#gBqPan .bqK .bqKph img{width:118%;max-width:none}
+#gBqPan .bqK .bqKn{padding:7px 7px 0;font-size:8px;color:#14171c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#gBqPan .bqK .bqKp{display:flex;align-items:center;gap:5px;padding:6px 7px 9px;font-size:8px;color:#14171c}
+#gBqPan .bqK .bqKp .pxi{--pxs:1;color:#14171c}
+#gBqPan .bqK .bqKp.eur{color:#3d4bff}
+#gBqPan .bqK .bqKp:is(.acq,.defi){color:#8a929c}
+#gBqPan .bqK .bqKl{position:absolute;top:6px;left:6px;padding:4px 6px;background:#3d4bff;color:#fff;font-size:8px;letter-spacing:1px}
+#gBqPan .bqK .bqKl.arc{position:static;margin:0;max-width:none;white-space:normal;overflow:visible;text-align:center;line-height:1.35;letter-spacing:0;padding:3px 4px 2px;background:linear-gradient(90deg,#ff4a4a,#ffa024 22%,#ffe23a 40%,#46f07a 60%,#3bb4ff 80%,#a066ff);color:#14171c} /* (2026-10-18 soir) le CHAT POP-TART : + ARC-EN-CIEL (voir chatPackI) ; (2026-10-20, Sacha : « plus clair que Pop-Tart-Cat est vendu avec la traînée arc-en-ciel ») elle était posée en haut à gauche, SOUS l'étiquette de rareté (LÉGENDAIRE : z-index 1, même coin) : on n'en voyait que les bords. Elle est maintenant une BANDE dans le flux, sous la photo, sur deux lignes : « + TRAÎNÉE / ARC-EN-CIEL » */
+html:not(.c6):not(.ux8g) #gBqPan .bqK .bqKl.arc{font-size:7px}
+#gBqPan .bqK.off{width:148px}
+#gBqPan .bqK.off .bqKph{height:84px}
+#gBqPan.cote .bqK,#gBqPan.cote .bqK.off{width:calc((100% - 20px) / 3)}
+#gBqPan.cote .bqK .bqKph,#gBqPan.cote .bqK.off .bqKph{height:46px}
+#gBqPan.cote .bqK .bqKl{top:4px;left:4px;padding:3px 4px}
+#gBqPan.cote{gap:9px}
+#gBqPan .bqK.sel{box-shadow:0 0 0 2px #14171c,0 10px 24px rgba(30,40,55,.16);translate:0 -2px}
+#gBqPan .bqK:is(:active,.appui){translate:0 2px}
+@media (prefers-reduced-motion:reduce){#gBqPan .bqK,#gBq.pan #gBqPan,#gBqTete{animation:none}}
+/* RETOUR et ACHETER, aux couleurs du magasin : droits, noir et orange */
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>:is(#gShopBas,#gEquip.achat){background:rgba(255,255,255,.92)!important;background-image:none!important;outline:2px solid #16181c;outline-offset:-2px;box-shadow:0 5px 0 rgba(10,11,13,.35)!important;filter:none!important;clip-path:none!important;transform:none!important;translate:none!important;color:#fff}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>:is(#gShopBas,#gEquip.achat)::before,html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>:is(#gShopBas,#gEquip.achat)::after{display:none!important}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas :is(span,.pxi){transform:none!important;color:#14171c!important}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi{color:#3d4bff!important}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas{background:rgba(255,255,255,.92)!important;outline:0;box-shadow:0 0 0 1px #d6dbe0,0 8px 20px rgba(30,40,55,.1)!important}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas span{color:#14171c!important}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gEquip.achat{outline:0}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gEquip.achat{background:#14171c!important;box-shadow:0 10px 24px rgba(20,23,28,.22)!important}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gEquip.achat :is(.gEqV,.gEqP,.gEqP.eur){color:#fff!important;text-shadow:none!important;transform:none!important}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP{font-size:var(--f3)!important}
+/* LE RAPPEL DE LA BOUTIQUE (voir le script du même nom) */
+#gRappel{display:none}
+html body #garage:is(.consoleCachee,.modeInv):not(.menu):not(.vitrine):not(.quiet):not(.launching) #gBottom>#gRappel{position:relative;display:flex;align-items:center;gap:9px;height:38px;min-height:38px;margin:0 0 10px;padding:0 12px;overflow:hidden;
+  font-size:var(--f0);letter-spacing:1px;color:#ffd75e;text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 8px rgba(255,194,58,.5);transform:skewX(var(--sk));pointer-events:auto;cursor:pointer;--nc:var(--neoM);
+  background:linear-gradient(112deg,transparent 0 37%,rgba(255,255,255,.055) 37% 45%,transparent 45%),linear-gradient(180deg,#2a1d4a 0%,#1c1538 55%,#140f2a 100%);
+  box-shadow:inset 3px 0 0 var(--neoM),inset 34px 0 30px -28px rgba(255,62,200,.7),inset 0 1px 0 rgba(255,255,255,.14),inset 0 0 0 1px rgba(255,62,200,.28),0 0 0 1px rgba(3,1,9,.92),0 4px 0 #0a0818,0 10px 18px -10px rgba(0,0,0,.7)}
+#gRappel>.pxi:first-child{--pxs:2;color:#ffd75e;filter:drop-shadow(0 0 4px rgba(255,194,58,.7))}
+#gRappel>span{flex:none;transform:skewX(calc(-1 * var(--sk)))}
+#gRappel .grT{margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-weight:400;color:#fff;letter-spacing:1px}
+#gRappel .grT .pxi{--pxs:1;color:#ff8ad8}
+#gRappel .grT i:not(.pxi){font-style:normal;font-variant-numeric:tabular-nums}
+#gRappel>.pxi:last-child{--pxs:1;color:#ff8ad8}
+#gRappel::after{content:'';position:absolute;top:0;bottom:0;left:-40%;width:30%;pointer-events:none;background:linear-gradient(100deg,transparent,rgba(255,240,200,.28),transparent);animation:grReflet 4.2s ease-in-out infinite}
+@keyframes grReflet{0%,62%{transform:translateX(0)}100%{transform:translateX(533.3%)}} /* (2026-10-23, audit mobile) transform au lieu de left : -40% → 120% du parent = 160 % / 30 % de sa largeur */
+#gRappel:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
+@media (prefers-reduced-motion:reduce){#gRappel::after{animation:none;display:none}}
+html[data-reduced-motion="1"] #gRappel::after{animation:none;display:none}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage:is(.consoleCachee,.modeInv):not(.menu):not(.vitrine):not(.quiet):not(.launching) #gBottom>#gRappel{height:34px;min-height:34px;margin-bottom:8px}
+  html body #garage.modeInv:not(.consoleCachee) #gBottom>#gRappel{display:none!important}} /* couché, l'inventaire ouvert : la colonne n'a pas la place (les onglets sortaient par le haut) — BOUTIQUE est juste dessous */
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnPorte{scroll-snap-align:start} /* la vitrine s'ouvre SUR le bandeau des offres (l'aimant de défilement la posait sur À LA UNE) */
+html body #garage.shopRet:not(.menu):not(.vitrine) #gStrip.gModeTous{max-height:min(360px,44vh)}
+/* LE BANDEAU DES OFFRES (voir bqPorte) */
+html body #garage.modeShop.shopJour:not(.menu):not(.vitrine) #gRar{display:none!important}
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnPorte.fnCarr{height:118px}
+#gStrip.fnBande .fnCarr .fpHd{position:absolute;left:14px;right:14px;top:9px;z-index:3;display:flex;align-items:center;gap:8px;font-weight:400;font-size:var(--f1);letter-spacing:2px;color:#ffd75e;text-shadow:0 2px 0 rgba(7,5,15,.95),0 0 10px rgba(255,194,58,.55)}
+#gStrip.fnBande .fnCarr .fpHd .pxi{--pxs:2;color:#ffd75e}
+#gStrip.fnBande .fnCarr .fpTim{margin-left:auto;display:inline-flex;align-items:center;gap:5px;text-decoration:none;font-size:var(--f0);letter-spacing:1px;color:#fff}
+#gStrip.fnBande .fnCarr .fpTim .pxi{--pxs:1}
+#gStrip.fnBande .fnCarr .fpTim i:not(.pxi){font-style:normal;font-variant-numeric:tabular-nums}
+#gStrip.fnBande .fnCarr .fpSl{position:absolute;left:0;right:0;top:32px;bottom:14px;overflow:hidden}
+#gStrip.fnBande .fnCarr .fpS1{position:absolute;inset:0;opacity:0;translate:36px 0;transition:opacity .45s var(--ease),translate .45s var(--ease)}
+#gStrip.fnBande .fnCarr .fpS1.on{opacity:1;translate:0 0}
+#gStrip.fnBande .fnCarr .fpS1.sort{opacity:0;translate:-36px 0}
+#gStrip.fnBande .fnCarr .fpSlPh{position:absolute;right:3%;top:-10px;width:46%;transform:skewX(calc(-1 * var(--sk)))}
+#gStrip.fnBande .fnCarr .fpSlPh img{display:block;width:100%;height:auto;filter:drop-shadow(0 5px 4px rgba(0,0,0,.6))}
+#gStrip.fnBande .fnCarr .fpNom{position:absolute;left:16px;top:8px;width:50%;font-weight:400;font-size:var(--f1);line-height:1.4;letter-spacing:1px;color:#fff;text-shadow:0 2px 0 rgba(7,5,15,.95)}
+#gStrip.fnBande .fnCarr .fpPx{position:absolute;left:16px;bottom:4px;font-style:normal;font-size:var(--f2);letter-spacing:1px;color:#ffd75e;text-shadow:0 1px 0 rgba(7,5,15,.95),0 0 8px rgba(255,215,94,.45)}
+#gStrip.fnBande .fnCarr .fpPx .pxi{--pxs:1;color:#3ee87a}
+#gStrip.fnBande .fnCarr .fpDots{position:absolute;left:0;right:0;bottom:6px;display:flex;justify-content:center;gap:4px;z-index:3}
+#gStrip.fnBande .fnCarr .fpDots u{width:5px;height:5px;background:rgba(255,215,94,.3);transition:background .3s}
+#gStrip.fnBande .fnCarr .fpDots u.on{background:#ffd75e;box-shadow:0 0 6px #ffd75e}
+@media (prefers-reduced-motion:reduce){#gStrip.fnBande .fnCarr .fpS1{transition:none}}
