@@ -341,17 +341,17 @@ return function(K){
     const roofY=x=>{const a=Math.abs(x);return a<=.705?1.8025+.0325*(1-a/.705):1.785+.0175*(1-(a-.705)/.088);};
     const col=q=>q>.95?'c':q>.80?'k':'p';
     // 1. le capot, depuis le nez : de plus en plus de blocs vers l'avant
-    for(let iz=Math.round(1.40/CE);iz*CE<1.86;iz++)for(let ix=-9;ix<=9;ix++){const z=iz*CE,x=ix*CE;if(Math.abs(x)>.62)continue;
-      const t=(z-1.40)/.46,pr=.78*Math.pow(t,1.5)*(1-.45*Math.abs(x)/.62),h=hs(iz,ix,1,0);if(h>pr)continue;
-      const q=hs(iz+.3,ix+.7,1,2),n=1+Math.floor(hs(iz+.9,ix+.1,1,4)*2.4),ht=.022+.03*hs(iz+.5,ix+.5,1,6);
+    for(let iz=Math.round(1.25/CE);iz*CE<1.86;iz++)for(let ix=-9;ix<=9;ix++){const z=iz*CE,x=ix*CE;if(Math.abs(x)>.62)continue;
+      const t=(z-1.25)/.61,pr=.98*Math.pow(t,1.25)*(1-.35*Math.abs(x)/.62),h=hs(iz,ix,1,0);if(h>pr)continue;
+      const q=hs(iz+.3,ix+.7,1,2),n=1+Math.floor(hs(iz+.9,ix+.1,1,4)*2.4),ht=.03+.038*hs(iz+.5,ix+.5,1,6);
       BX(col(q),CE*.86,ht,CE*n-.006,x,yT0(z)+.018+ht/2+(q>.85?.02:0),z+CE*(n-1)/2);}
     // 2. l'originalité : sept blocs en colonne, un par fente, qui montent au-dessus de la calandre (de plus en plus petits)
     for(let k=0;k<7;k++){const x=-.315+k*.105,hh=.05-.0055*k;BX(k%3===1?'k':'p',.075,hh,.05,x,1.205+k*.012,1.90+((k*5)%3)*.02);}
     // 3. le toit, aux deux bouts : des dalles posées sur le pavillon, plus nombreuses vers le bord
-    for(const [zb,sg,z0,z1] of [[.28,1,-.05,.27],[-2.03,-1,-1.78,-2.02]])for(let iz=0;iz<=6;iz++)for(let ix=-9;ix<=9;ix++){
+    for(const [zb,sg,z0,z1] of [[.28,1,-.05,.27],[-2.03,-1,-1.78,-2.02]])for(let iz=0;iz<=8;iz++)for(let ix=-9;ix<=9;ix++){
       const z=sg>0?z0+iz*CE:z0-iz*CE;if((sg>0&&z>z1)||(sg<0&&z<z1))continue;const x=ix*CE;if(Math.abs(x)>.70)continue;
-      const d=Math.abs(z-zb)/.32,pr=.62*Math.pow(Math.max(0,1-d),1.2)*(1-.3*Math.abs(x)/.7),h=hs(iz+7,ix,sg,10);if(h>pr)continue;
-      const q=hs(iz+.3,ix+.7,sg,12),n=1+Math.floor(hs(iz+.9,ix+.1,sg,14)*2.4),ht=.018+.026*hs(iz+.5,ix+.5,sg,16);
+      const d=Math.abs(z-zb)/.32,pr=.88*Math.pow(Math.max(0,1-d),1.0)*(1-.25*Math.abs(x)/.7),h=hs(iz+7,ix,sg,10);if(h>pr)continue;
+      const q=hs(iz+.3,ix+.7,sg,12),n=1+Math.floor(hs(iz+.9,ix+.1,sg,14)*2.4),ht=.026+.034*hs(iz+.5,ix+.5,sg,16);
       BX(col(q),CE*.86,ht,CE*n-.006,x,roofY(x)+ht/2-.004,z);}
   }
   // LA CALANDRE : sept fentes, deux phares ronds, un peu couchée

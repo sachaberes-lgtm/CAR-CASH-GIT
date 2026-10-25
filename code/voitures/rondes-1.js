@@ -351,8 +351,8 @@ SHAPES.bulle=function(K){
     const hs=(a,b,c,d)=>{const v=Math.sin(a*12.9898+b*78.233+c*37.719+d*5.171)*43758.5453;return v-Math.floor(v);};
     const CE=.07;
     for(const sd of [1,-1])for(let iz=Math.round(-.70/CE);iz*CE<.62;iz++)for(let k=-1;k<=1;k++){
-      const z=iz*CE,t=(z+.70)/1.32,pr=(k===0?.66:.28)*(.15+.85*Math.pow(t,.9)),h=hs(iz,k,sd,0);if(h>pr)continue;
-      const q=hs(iz+.3,k+.7,sd,2),n=1+Math.floor(hs(iz+.9,k+.1,sd,4)*2.4),Ln=CE*n,sz=.04+.035*hs(iz+.5,k+.5,sd,6),wd=.022+.03*hs(iz+.2,k+.8,sd,8),
+      const z=iz*CE,t=(z+.70)/1.32,pr=(k===0?.86:.42)*(.22+.78*Math.pow(t,.8)),h=hs(iz,k,sd,0);if(h>pr)continue;
+      const q=hs(iz+.3,k+.7,sd,2),n=1+Math.floor(hs(iz+.9,k+.1,sd,4)*2.4),Ln=CE*n,sz=.05+.045*hs(iz+.5,k+.5,sd,6),wd=.03+.036*hs(iz+.2,k+.8,sd,8),
             kind=q>.93?'c':q>.62?'s':'p';
       P.box(kind,wd,sz,Ln-.005,sd*(xC(z)+wd/2-.008+.012*hs(iz+.6,k+.4,sd,10)),yCr(z)+k*.07+.01,z+CE*(n-1)/2,0,0,0);}
   }
