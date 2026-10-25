@@ -5005,6 +5005,7 @@ html body #garage:not(.menu) .gTab{font-size:var(--f1)} /* les onglets étaient 
    · l'actif se dit par un TRAIT magenta dessous, un voile rose léger et le mot en blanc — plus de pavé rose plein ;
    · la cible reste à 44 px (charte, règle 5) : le dessin fait 28 px, la zone de touche (::after) déborde de 8 px en haut et en bas. */
 html body #garage:not(.menu) #gTabs{gap:2px;padding:2px;background:rgba(11,8,24,.35);box-shadow:inset 0 0 0 1px var(--fil)}
+html body #garage.modeInv #gTabs .gTab[data-tab=figure]{order:-1} /* (2026-10-25, Sacha : « avant d'avoir le choix de la voiture, les figures ») en INVENTAIRE l'onglet FIGURES passe en premier */
 html body #garage:not(.menu) .gTab{position:relative;flex-direction:row;gap:0;min-height:0;height:28px;padding:0 2px;
   color:rgba(154,144,200,.85);background:transparent;box-shadow:none;text-shadow:none;white-space:nowrap}
 html body #garage:not(.menu) .gTab .pxi{display:none}
@@ -5918,7 +5919,9 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi
 @keyframes bqK{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
 /* (2026-10-15) L'AIMANT COUPÉ PENDANT L'ENTRÉE (voir bqAimant) : la grille ne s'ouvre plus défilée de 14 px */
 #gBqPan .bqRail.entre{scroll-snap-type:none!important}
-#gBqPan .bqK::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--rc)}
+/* (2026-10-25, Léo : « le texte LÉGENDAIRE en gros empêche de voir les voitures… au lieu de la bande jaune, un fondu qui part du bas, comme éclairé par un néon, sans prendre sur l'image ») la RARETÉ se lit à la lueur du bas de la carte (couleur de la rareté, de plus en plus pâle vers le haut, elle s'arrête sous la photo) : plus d'étiquette écrite, plus de filet. Un masque (et non un dégradé sur --rc) : la couleur reste une simple valeur hex, sans color-mix. */
+#gBqPan .bqK .bqKr{display:none}
+#gBqPan .bqK::after{content:'';position:absolute;left:0;right:0;bottom:0;height:36%;max-height:46px;background:var(--rc);opacity:.55;pointer-events:none;-webkit-mask-image:linear-gradient(to top,#000,rgba(0,0,0,.35) 55%,transparent);mask-image:linear-gradient(to top,#000,rgba(0,0,0,.35) 55%,transparent)}
 #gBqPan .bqK .bqKph{height:60px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(180deg,#f8f9fb,#eceff3)}
 #gBqPan .bqK .bqKph img{width:118%;max-width:none}
 #gBqPan .bqK .bqKn{padding:7px 7px 0;font-size:8px;color:#14171c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -8051,7 +8054,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
         <!-- (2026-10-05, Léo : « en dessous du play, insère MISSIONS, et le nom du level qui va être lancé, limite collé, de manière stylée, branché énergétiquement ») LA VITRINE : voir gvNiveau -->
         <button id="gvMis" class="pbtn" aria-label="Missions"><s class="gvFx" aria-hidden="true"></s><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="gvPips" aria-hidden="true"><u></u><u></u><u></u></b></button>
         <!-- (2026-10-05, Léo : « l'inventaire va être ajouté à côté du bouton jouer ») le COFFRE : l'inventaire (le doigt tenu sur la caisse lance désormais le BURN-OUT) -->
-        <button id="gvCof" class="pbtn" aria-label="Inventaire"><i class="pxi pxi-coffre" aria-hidden="true"></i><span data-fr="INVENTAIRE">INVENTAIRE</span></button>
+        <button id="gvCof" class="pbtn" aria-label="Inventaire"><i class="pxi pxi-troisLosanges" aria-hidden="true"></i><span data-fr="INVENTAIRE">INVENTAIRE</span></button>
       </div>
       <!-- (2026-10-19, Léo) LA VITESSE DE DÉPART : six crans posés au-dessus de la rangée INVENTAIRE · MISSIONS · BOUTIQUE (placés par vdepPlace) ;
            l'étiquette du moteur choisi se colle au bord haut du PLAY. Remplis par vdepMaj. -->
@@ -8066,11 +8069,11 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
     <div id="gInv" role="dialog" aria-label="Inventaire">
       <div class="ivTete"><b data-fr="INVENTAIRE">INVENTAIRE</b><small id="ivCompte"></small><button id="ivFerme" class="pbtn pbCarre" aria-label="Fermer"><i class="pxi pxi-croix" aria-hidden="true"></i></button></div>
       <div class="ivTabs" role="tablist">
-        <button class="ivTab on" data-c="voiture" role="tab"><i class="pxi pxi-voiture" aria-hidden="true"></i><span data-fr="VOITURES">VOITURES</span><em></em></button>
+        <button class="ivTab on" data-c="figure" role="tab"><i class="pxi pxi-rotation" aria-hidden="true"></i><span data-fr="FIGURES">FIGURES</span><em></em></button><!-- (2026-10-14) les FIGURES qu'on a (double-tap nitro) ; (2026-10-25, Sacha) en premier -->
+        <button class="ivTab" data-c="voiture" role="tab"><i class="pxi pxi-voiture" aria-hidden="true"></i><span data-fr="VOITURES">VOITURES</span><em></em></button>
         <button class="ivTab" data-c="peinture" role="tab"><i class="pxi pxi-pinceau" aria-hidden="true"></i><span data-fr="PEINTURE">PEINTURE</span><em></em></button>
         <button class="ivTab" data-c="aile" role="tab"><i class="pxi pxi-aile" aria-hidden="true"></i><span data-fr="AILES">AILES</span><em></em></button>
         <button class="ivTab" data-c="trainee" role="tab"><i class="pxi pxi-trainee" aria-hidden="true"></i><span data-fr="TRAÎNÉES">TRAÎNÉES</span><em></em></button>
-        <button class="ivTab" data-c="figure" role="tab"><i class="pxi pxi-rotation" aria-hidden="true"></i><span data-fr="FIGURES">FIGURES</span><em></em></button><!-- (2026-10-14) les FIGURES qu'on a (double-tap nitro) -->
       </div>
       <div class="ivProg" aria-hidden="true"><i id="ivProgBarre"></i><b id="ivProgTxt"></b></div>
       <div id="ivGrille"></div>
@@ -8794,6 +8797,7 @@ if(window.CC_COLONNE)return; // (2026-09-28) sur l'ordi cette page n'est que le 
 const PXI_G={coeur:'.........|.##...##.|####.####|#########|#########|.#######.|..#####..|...###...|....#....',vibre:'..#####..|#.#...#.#|#.#...#.#|..#...#..|#.#...#.#|#.#...#.#|..#...#..|..#.#.#..|..#####..',aimant:'##.....##|.........|##.....##|##.....##|##.....##|###...###|.#######.|..#####..|.........',bouclier:'#########|##.....##|##.....##|##.....##|.##...##.|.##...##.|..##.##..|...###...|....#....',nuage:'.........|.........|....##...|...####..|.##.####.|#########|#########|.#######.|.........',immeuble:'....#....|...###...|...###.##|##.###.##|##.###.##|#########|#########|#########|.........',flamme:'....#....|...##....|...###...|..####.#.|..######.|.###.###.|.##...##.|.##...##.|..#####..',pinceau:'......###|.....####|....####.|...####..|..####...|.#.##....|###......|###......|.#.......',aile:'.........|#........|##.......|###......|#####....|.#######.|..#######|....#####|.......##',trainee:'.........|##.......|.###.....|..####...|...######|..####...|.###.....|##.......|.........',pouce:'...##....|...##....|...##....|...####..|.#######.|.########|.#######.|..#####..|..#####..',cadeau:'.##...##.|#..#.#..#|.#######.|#########|#...#...#|####.####|.#..#..#.|.#..#..#.|.#######.',cible:'..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..',croix:'##.....##|###...###|.###.###.|..#####..|...###...|..#####..|.###.###.|###...###|##.....##',gauche:'....##...|...###...|..####...|.#####...|######...|.#####...|..####...|...###...|....##...',droite:'...##....|...###...|...####..|...#####.|...######|...#####.|...####..|...###...|...##....',haut:'.........|....#....|...###...|..#####..|.#######.|#########|...###...|...###...|...###...',bas:'...###...|...###...|...###...|#########|.#######.|..#####..|...###...|....#....|.........',lecture:'##.......|####.....|######...|########.|#########|########.|######...|####.....|##.......',pause:'.........|###...###|###...###|###...###|###...###|###...###|###...###|###...###|.........',son:'....#....|...##..#.|####.#..#|####.#..#|####.#..#|####.#..#|...##..#.|....#....|.........',muet:'....#....|...##....|####..#.#|####...#.|####..#.#|####.....|...##....|....#....|.........',musique:'...######|...#....#|...#....#|...#....#|.###..###|####.####|####.####|.##...##.|.........',volant:'..#####..|.#.....#.|#.......#|#..###..#|#########|#...#...#|#...#...#|.#..#..#.|..#####..',fleches:'.........|..#...#..|.##...##.|###...###|###...###|###...###|.##...##.|..#...#..|.........',eclair:'.....###.|....###..|...###...|..######.|.....##..|....##...|...##....|..##.....|.#.......',drapeau:'#.#.#.#.#|##.#.#.#.|#.#.#.#.#|##.#.#.#.|#.#.#.#.#|#........|#........|#........|#........',voiture:'.........|.........|..####...|.#..#.#..|########.|#########|#########|.##...##.|.##...##.',rampe:'.........|.........|........#|......###|.....####|...######|.########|#########|.........',brique:'#########|#...#...#|#########|..#...#..|#########|#...#...#|#########|..#...#..|#########',copier:'...###...|.##...##.|.#######.|.#.....#.|.#.###.#.|.#.....#.|.#.###.#.|.#.....#.|.#######.',importer:'....#....|....#....|..#.#.#..|...###...|....#....|#.......#|#.......#|#########|.........',corbeille:'...###...|#########|.#.....#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.....#.|..#####..',rejouer:'..#####..|.#.....##|#.....###|#........|#........|#.......#|#.......#|.#.....#.|..#####..',quitter:'#####....|#...#....|#...#.#..|#...#.##.|#..######|#...#.##.|#...#.#..|#...#....|#####....',verrou:'..#####..|.#.....#.|.#.....#.|#########|#########|####.####|####.####|#########|#########',coche:'.........|........#|.......##|#.....##.|##...##..|.##.##...|..###....|...#.....|.........',etoile:'....#....|....#....|...###...|#########|.#######.|..#####..|..##.##..|.##...##.|.#.....#.',trophee:'#########|#.#####.#|#.#####.#|.#######.|..#####..|...###...|....#....|..#####..|.#######.',rotation:'..#####..|.#.....##|#.....###|#........|#..###...|#..#.#..#|#..###..#|.#.....#.|..#####..',panier:'.........|#........|.#######.|.#.#.#.#.|.#######.|..#.#.#..|..#####..|..#...#..|.........',bulle:'.#######.|#.......#|#.#.#.#.#|#.......#|.###.###.|...#.#...|...##....|...#.....|.........',piece:'..#####..|.#.....#.|#..###..#|#.#.....#|#..###..#|#.....#.#|#..###..#|.#.....#.|..#####..',maison:'....#....|...###...|..#####..|.#######.|#########|.#######.|.##...##.|.##...##.|.##...##.',horloge:'..#####..|.#..#..#.|#...#...#|#...#...#|#...###.#|#.......#|#.......#|.#.....#.|..#####..',triade:'....#....|...###...|...###...|..##.##..|.##.#.##.|.###.###.|#########|#########|.........'};
 PXI_G.reglages='....###....|.##.###.##.|.#########.|..#######..|####...####|####...####|####...####|..#######..|.#########.|.##.###.##.|....###....'; // (2026-10-15, Sacha : « fais un truc qui ressemble vraiment à un engrenage ») l'ancien 9 × 9 lisait un SOLEIL (huit rayons d'un pixel) ; un rouage, ce sont des DENTS carrées séparées par des creux et un MOYEU percé — il faut 11 × 11 pour que les trois tiennent
 PXI_G.coffre='.#######.|#.......#|#.......#|#########|#...#...#|#..###..#|#...#...#|#.......#|#########'; // (2026-10-05) le COFFRE : l'inventaire (le coffre de la caisse)
+PXI_G.troisLosanges='.....#.....|....###....|...#####...|....###....|.....#.....|...........|..#.....#..|.###...###.|#####.#####|.###...###.|..#.....#..'; /* (2026-10-25, Sacha : « les trois petits losanges pour choisir les figures ») l'inventaire : les trois EMPLACEMENTS de figures */
 PXI_G.roue='..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..'; // (2026-10-09) la famille COMMUNE : la roue
 PXI_G.gemme='.........|..#####..|.#..#..#.|#########|.#.....#.|..#...#..|...#.#...|....#....|.........'; // (2026-10-09) la famille RARE : la gemme taillée
 PXI_G.couronne='.........|#...#...#|#..###..#|##.###.##|#########|#########|.........|#########|.........'; // (2026-10-09) la famille LÉGENDAIRE : la couronne
@@ -37870,32 +37874,6 @@ SHAPES.bulle=function(K){
   // les PASSAGES DE ROUE : une joue sombre derrière chaque roue
   const joue=(w,AR0)=>{const o=[[w-.43,.28]];for(let k=0;k<=12;k++){const a=Math.PI*k/12;o.push([w-Math.cos(a)*.43,.30+Math.sin(a)*.44]);}o.push([w+.43,.28]);return o;};
   P.sym(sd=>{P.prism('d',joue(ZF),.02,sd*.50);P.prism('d',joue(ZR),.02,sd*.52);});
-  /* LA DESTRUCTION VOXEL DU SCARABÉE (25/10, Léo : « les cubes insérés, pas posés par-dessus ; une impression de destruction, pixel / voxel ; plus de noir ») `?scarabee=glitch` : des plaques de cubes de 6 cm À FLEUR
-     de la tôle, sur les FLANCS (le pli de ceinture, au milieu de la caisse — rien aux roues) : l'intérieur mis à nu en bleu-vert sombre (pas de noir), un peu de crème, bordées d'éclats de la couleur de la caisse
-     qui dépassent de 1 à 4 cm, quelques-uns arrachés. Les plaques s'effritent vers l'arrière. */
-  let SCG=false;try{SCG=!/[?&]scarabee=ancien/.test(location.search);}catch(e){}   // PAR DÉFAUT depuis la v912 ; `?scarabee=ancien` = le Scarabée d'avant
-  if(SCG){
-    const hs=(a,b,c,d)=>{const v=Math.sin(a*12.9898+b*78.233+c*37.719+d*5.171)*43758.5453;return v-Math.floor(v);};
-    const CE=.06;
-    // (25/10, Léo : « change de procédé, on dirait pas La Fidèle ») LE PROCÉDÉ DE LA FIDÈLE : des COUCHES fines (4,5 cm) faites de tronçons de longueurs inégales qui saillent d'un cran différent, toutes de la couleur de la
-    // caisse ; sur le BAS de la porte, 7 couches de plus en plus lacunaires vers le haut ; un tronçon sur cinq en crème (la touche du Scarabée). Enfoncées de 1 cm dans la tôle.
-    /* (« organisé comme sur La Fidèle, qui embrasse la forme la plus complexe » — pour le Scarabée : « ailes avant + capot rond ») LA PIXELISATION SUR GRILLE : des cubes de 5 cm sur UNE grille régulière ; chacun va au niveau de
-       grille juste AU-DESSUS de la tôle (0 à 5 cm de relief) : le galbe des ailes et du capot devient un escalier de cubes ; quelques cubes manquent (le « bug ») ; un sur dix en crème. La hauteur de la tôle est lue sur les
-       vraies sections (le tube de l'aile, la coque). */
-    /* (« des cubes glitchés qui font quelques DÉGÂTS ») trois CHOCS sur le capot et l'aile avant : un trou (l'intérieur à nu), une couronne de cubes arrachés et penchés, des débris qui retombent. */
-    const IMPC=[[-.26,1.18,.30],[.30,1.50,.26],[.58,1.00,.22]],choc=(x,z)=>{let m=9;for(const [ix,iz,R] of IMPC){const d=Math.hypot(x-ix,z-iz)/R;if(d<m)m=d;}return m;},pen=(a,b,k)=>(hs(a*13,b*17,9,k)-.5)*.9;
-    const c=.075;   // (« divise par deux ») des cubes de 7,5 cm : le capot de 5 cm coûtait 6 000 triangles
-    const hautDe=(Sx,x)=>{let m=-1e9;for(let i=0;i<Sx.length;i++){const a=Sx[i],b=Sx[(i+1)%Sx.length];if((a[0]-x)*(b[0]-x)<=0&&a[0]!==b[0]){const y=a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);if(y>m)m=y;}}return m;};
-    const aileH=(x,z)=>{const yT=L(AV.yT,z),xo=L(AV.xo,z),yL=Math.min(L(AV.yL,z),yT-.02),xi=Math.min(z<.76?xo-.08:xH(Math.max(.76,z))-.03,xo-.08);return hautDe(coupeAile(xi,xo,yT,yL),x);};
-    for(let iz=Math.round(.75/c);iz*c<1.74;iz++)for(let ix=-14;ix<=14;ix++){const x=ix*c,z=iz*c;if(hs(ix,iz,5,1)>.88)continue;
-      const H=Math.max(aileH(Math.abs(x),z),hautDe(sect(z),Math.abs(x)));if(H<0)continue;
-      const lv=Math.ceil((H-.001)/c)*c,m=choc(x,z);
-      if(m<.5){if(hs(ix,iz,6,6)<.78)P.box('y',c*.96,.012,c*.96,x,H+.004,z,0,0,0);continue;}   // le trou : l'intérieur à nu (bleu-vert sombre)
-      if(m<1){P.box('p',c*.96,c,c*.96,x,lv-c/2+.003+.035*(1-m)+.012,z,pen(ix,iz,1),pen(iz,ix,2),pen(ix+1,iz,3));continue;}   // la couronne : arrachés, penchés
-      P.box(hs(ix,iz,5,2)>.9?'s':'p',c*.96,c,c*.96,x,lv-c/2+.003,z,0,0,0);}
-    for(const [ix,iz,R] of IMPC)for(let k=0;k<9;k++){const an=hs(k,1,ix*10,3)*6.283,r=R*(1.05+.9*hs(k,2,iz*10,3)),x=ix+Math.cos(an)*r,z=iz+Math.sin(an)*r;
-      const H=Math.max(aileH(Math.abs(x),z),hautDe(sect(z),Math.abs(x)));if(H<0)continue;P.box('p',.045,.045,.045,x,H+.04+.07*hs(k,3,ix*7,3),z,pen(k,1,4),pen(k,2,5),pen(k,3,6));}   // les débris
-  }
   // la plaque dessinée : la vraie s'y pose (voir plqDessinee)
   P.box('l',.30,.075,.012,0,.665,-1.79,.5,0,0);
   K.commit(P);
@@ -40672,50 +40650,6 @@ return function(K){
     // les feux arrière (aux coins), leur verre
     P.box('L',.13,.23,.025,sd*.795,1.055,-2.1615);P.box('g',.07,.12,.006,sd*.795,1.055,-2.176);P.box('W',.05,.012,.006,sd*.795,1.11,-2.177);
   });
-  /* LA DESTRUCTION VOXEL DU BAROUDEUR (25/10, Léo : « les cubes ne doivent pas être ajoutés par-dessus, plutôt insérés, une impression de destruction — pixel, voxel ») : plus de blocs posés en relief. Des PLAQUES de
-     cubes de 6 cm, À FLEUR de la tôle (1 cm de relief) : l'intérieur MIS À NU (gris sombre, un peu de métal), bordées d'ÉCLATS — des cubes de la caisse qui dépassent de 1 à 4 cm, quelques-uns arrachés qui flottent.
-     Au museau (le capot, depuis le nez) et au toit (aux deux bouts). Les plaques naissent de quelques points d'impact et s'effritent vers l'extérieur. Tirage déterministe ; rien autour des roues. */
-  if(CCH){
-    const hs=(a,b,c,d)=>{const v=Math.sin(a*12.9898+b*78.233+c*37.719+d*5.171)*43758.5453;return v-Math.floor(v);};
-    const BX=(k,w,h,d,x,y,z)=>P.box(k,w,h,d,x,y,z,0,0,0),CE=.06;
-    const yT0=z=>lin([[.648,1.321],[1.083,1.307],[1.493,1.272],[1.684,1.225],[1.794,1.19],[1.835,1.17],[1.862,1.152]],z);
-    const yCapot=(x,z)=>yT0(z)+lin([[0,.016],[.30,.010],[.56,-.003],[.66,-.014]],Math.abs(x));
-    const roofY=x=>{const a=Math.abs(x);return a<=.705?1.8025+.0325*(1-a/.705):1.785+.0175*(1-(a-.705)/.088);};
-    // une plaque : des graines [iu, iv, rayon] en cases, bornes ; `pose(clé, iu, iv, relief, éclat)` pose un cube sur la surface
-    const plaque=(graines,u0,u1,v0,v1,id,pose)=>{const dedans=new Set();
-      for(let iu=u0;iu<=u1;iu++)for(let iv=v0;iv<=v1;iv++){let m=0;for(const [su,sv,r] of graines)m=Math.max(m,(1-Math.hypot(iu-su,iv-sv)/r)*(.55+.9*hs(iu,iv,id,1)));if(m>.34)dedans.add(iu+','+iv);}
-      for(const kk of dedans){const [iu,iv]=kk.split(',').map(Number),bord=![[1,0],[-1,0],[0,1],[0,-1]].every(([da,db])=>dedans.has((iu+da)+','+(iv+db))),q=hs(iu+.3,iv+.7,id,2);
-        if(bord){if(q<.52)pose('p',iu,iv,.01+.032*hs(iu,iv,id,3),true);else if(q<.62)pose('p',iu,iv,.05+.05*hs(iu,iv,id,4),true);}   // les éclats du bord (les derniers : arrachés, ils flottent)
-        else{if(q<.80)pose('D',iu,iv,0,false);else if(q<.90)pose('c',iu,iv,0,false);}}};                                               // l'intérieur mis à nu
-    /* (25/10, Léo : « nan c'est bizarre, on dirait pas La Fidèle, change de procédé ») LE PROCÉDÉ DE LA FIDÈLE : pas des plaques de cubes — des COUCHES FINES empilées (4,5 cm), chacune faite de TRONÇONS de longueurs inégales
-       (7 à 28 cm) qui saillent d'un cran différent (de 0,6 à 4 cm) : la tôle se découpe en escalier, tout de la couleur de la caisse, la lumière fait le reste. Sur le BAS des portes (la zone choisie) : 7 couches, de plus en plus
-       lacunaires vers le haut (la tôle « se défait »). Collées au panneau de porte, enfoncées de 1 cm dedans (rien ne flotte). */
-    const XP=SBx(.93)+RP-.002;   // la face du panneau de porte
-    /* (25/10, Léo : « organisé comme sur La Fidèle, qui embrasse la forme de la voiture la plus complexe » — pour le Baroudeur : « le toit et vers l'arrière ») LA PIXELISATION SUR GRILLE : tous les cubes de 6 cm, sur UNE grille
-       régulière ; chaque cube va au niveau de grille juste AU-DESSUS de la tôle (0 à 6 cm de relief) : le toit bombé devient un plateau à deux marches, la lunette couchée un escalier de cubes ; quelques cubes manquent
-       (le « bug »). Tout de la couleur de la caisse : c'est l'ombre des marches qui dessine la forme. */
-    const c=.09;   // (« quand les voitures ont trop de facettes, divise par deux ») des cubes de 9 cm : le toit de 6 cm coûtait 11 000 triangles
-    /* (25/10, Léo : « on veut des cubes glitchés qui font quelques DÉGÂTS sur la voiture ») la grille de cubes devient une carrosserie ENDOMMAGÉE : trois CHOCS (deux sur le toit, un sur la lunette). Au cœur du choc, plus de cubes —
-       un trou : l'intérieur apparaît (gris sombre, à fleur de la tôle) ; autour, une couronne de cubes ARRACHÉS, soulevés et penchés ; au-delà, des DÉBRIS qui retombent, penchés eux aussi. Le reste de la grille est intact. */
-    const choc=(x,z,L)=>{let m=9;for(const [ix,iz,R] of L){const d=Math.hypot(x-ix,z-iz)/R;if(d<m)m=d;}return m;},pen=(a,b,k)=>(hs(a*13,b*17,9,k)-.5)*.9;
-    const IMPT=[[.22,-1.30,.30],[-.34,-.30,.26]],IMPR=[[.18,1.52,.26]];   // (x, z, rayon) sur le toit ; (x, y, rayon) sur la lunette
-    // 1. LE TOIT : de la lunette au pare-brise
-    for(let iz=Math.round(-2.0/c);iz*c<.27;iz++)for(let ix=-12;ix<=12;ix++){const x=ix*c,z=iz*c;if(Math.abs(x)>.76)continue;if(hs(ix,iz,1,1)>.86)continue;
-      const H=roofY(x),lv=Math.ceil((H-.001)/c)*c,m=choc(x,z,IMPT);
-      if(m<.5){if(hs(ix,iz,6,6)<.78)BX('D',c*.96,.012,c*.96,x,H+.004,z);continue;}   // le trou : l'intérieur à nu
-      if(m<1){P.box('p',c*.96,c,c*.96,x,lv-c/2+.003+.035*(1-m)+.012,z,pen(ix,iz,1),pen(iz,ix,2),pen(ix+1,iz,3));continue;}   // la couronne : arrachés, penchés
-      BX('p',c*.96,c,c*.96,x,lv-c/2+.003,z);}
-    for(const [ix,iz,R] of IMPT)for(let k=0;k<9;k++){const an=hs(k,1,ix*10,3)*6.283,r=R*(1.05+.9*hs(k,2,iz*10,3)),x=ix+Math.cos(an)*r,z=iz+Math.sin(an)*r;if(Math.abs(x)>.76)continue;
-      const e=.04+.07*hs(k,3,ix*7,3);P.box('p',.05,.05,.05,x,roofY(x)+e,z,pen(k,1,4),pen(k,2,5),pen(k,3,6));}   // les débris
-    // 2. L'ARRIÈRE : la lunette couchée et le haut du hayon
-    for(let iy=Math.round(1.25/c);iy*c<1.80;iy++)for(let ix=-11;ix<=11;ix++){const x=ix*c,y=iy*c;if(Math.abs(x)>.74)continue;if(hs(ix,iy,2,2)>.78)continue;
-      const zf=-2.149+(y-1.23)*.1956,lv=Math.floor(zf/c)*c,m=choc(x,y,IMPR);
-      if(m<.5){if(hs(ix,iy,7,6)<.78)BX('D',c*.96,c*.96,.012,x,y,zf-.004);continue;}
-      if(m<1){P.box('p',c*.96,c*.96,c,x,y,lv+c/2-.003-.035*(1-m)-.012,pen(ix,iy,7),pen(iy,ix,8),pen(ix+1,iy,9));continue;}
-      BX('p',c*.96,c*.96,c,x,y,lv+c/2-.003);}
-    for(const [ix,iy,R] of IMPR)for(let k=0;k<9;k++){const an=hs(k,1,ix*10,5)*6.283,r=R*(1.05+.9*hs(k,2,iy*10,5)),x=ix+Math.cos(an)*r,y=iy+Math.sin(an)*r;if(Math.abs(x)>.74||y<1.25||y>1.80)continue;
-      const e=.04+.07*hs(k,3,ix*7,5);P.box('p',.05,.05,.05,x,y,-2.149+(y-1.23)*.1956-e,pen(k,1,7),pen(k,2,8),pen(k,3,9));}
-  }
   // LA CALANDRE : sept fentes, deux phares ronds, un peu couchée
   {const sh=new THREE.Shape(),PTS=rrect(-.66,-.18,.66,.175,.03,3);sh.moveTo(PTS[0][0],PTS[0][1]);for(let i=1;i<PTS.length;i++)sh.lineTo(PTS[i][0],PTS[i][1]);
    const fente=x=>{const h=new THREE.Path(),Q=rrect(x-.0375,-.12,x+.0375,.14,.03,3);h.moveTo(Q[0][0],Q[0][1]);for(let i=1;i<Q.length;i++)h.lineTo(Q[i][0],Q[i][1]);return h;};
@@ -43993,83 +43927,32 @@ function stratosMeteo(K,P,G){
 // garage (GAR.vD, cdx…) passait en NaN et toute l'image 3D sortait NOIRE. Le joueur n'y arrive pas (equippedCar, garageListe et
 // l'inventaire écartent les retirées) : c'est le filet. Une retirée qui garde sa fiche (LA POUPÉE, LA DAYTONA…) se construit comme avant.
 function carFicheOk(s){return !!s&&s.w>0&&s.h>0&&s.l>0;}
-/* LES CHOCS DE CUBES SUR TOUTES LES CAISSES (25/10, Léo : « essaye sur les 84 voitures en test, garde la beauté des voitures » — `?degats=1`, un ESSAI, éteint par défaut) : une passe GÉNÉRIQUE qui n'a besoin d'aucun gabarit.
-   On tire des rayons du ciel sur la caisse montée : on lit la hauteur de la tôle et la couleur de ses sommets. DEUX petits chocs seulement (rayon ~11 % de la largeur) sur les dessus de la caisse (le toit, le capot ou le
-   coffre — choisis d'après le nom de la voiture, donc toujours les mêmes) : au centre, un TROU (des tuiles sombres à fleur de tôle), autour une COURONNE de cubes arrachés, soulevés et penchés, au-delà quelques DÉBRIS.
-   Les cubes prennent la MATIÈRE et la COULEUR de la tôle qu'ils touchent (la peinture, le vernis, la boutique) : rien de nouveau à compiler, et la caisse garde sa beauté partout ailleurs. Appelée juste avant `caisseSoude()`. */
-const DEGATS_REF=new Set(['LA HONTE','LA FIDELE','ELDORADO','LE CHARGEUR 69','LA VETTE','LA BAVAROISE','LA DOLORES','LE CORBILLARD','LE CHARGEUR','LE DEFIEUR','LE TRONE CENTRAL','LA CERISE','LE SAMOURAI','L ORIGAMI','ROSSO 40','LE MASTODONTE','LA STRATOS','ATCHOUM','LA TAURINE','LE SPECTRE','L ETERNELLE','POSTER 84','LE BLINDE NOIR','SQUALE','CHAT POP TART','LA PIZZA EXPRESS','LE LOUP','LE MUR DU SON','LE DRAGON D OR']);
-const DEGATS_CACHE=new Map();   // nom → les cubes déjà calculés (les rayons ne repartent pas à chaque changement de voiture : la vignette du garage, le départ…)
-function degatsCaisse(spec){
-  let ON=true;try{ON=!/[?&]degats=0/.test(location.search);}catch(e){}
-  if(!ON||!spec||spec.shape==='wrangler'||spec.shape==='bulle')return;
-  const nm=String(spec.name).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim();
-  if(DEGATS_REF.has(nm))return;   // les 29 RÉFÉRENCES de Léo (le langage visuel du jeu) : à ne pas toucher
-  carGroup.updateMatrixWorld(true);
-  const cibles=[];carGroup.traverse(o=>{if(o.isMesh&&o.visible&&!o.userData.sol&&!o.userData.noShadow&&o.material&&!Array.isArray(o.material)&&!o.material.transparent&&o.geometry&&o.geometry.attributes.position)cibles.push(o);});
-  if(!cibles.length)return;
-  const dc=DEGATS_CACHE.get(spec.name);
-  if(dc&&dc.n===cibles.length){for(const L of dc.lots){const o=cibles[L.mi];if(!o)continue;const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(L.P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(L.N,3));if(L.a)g.setAttribute('color',new THREE.Float32BufferAttribute(L.C,3));
-      const m=new THREE.Mesh(g,o.material);m.castShadow=true;m.userData.degats=1;carGroup.add(m);}return;}
-  const RC=new THREE.Raycaster(),DN=new THREE.Vector3(0,-1,0),OR=new THREE.Vector3();RC.layers.enableAll();
-  const hs=(a,b,c)=>{const v=Math.sin(a*12.9898+b*78.233+c*37.719)*43758.5453;return v-Math.floor(v);};
-  let seed=0;for(let i=0;i<spec.name.length;i++)seed=(seed*31+spec.name.charCodeAt(i))%9973;
-  const WP=carGroup.getWorldPosition(new THREE.Vector3());   // le garage pose la caisse haut (y ≈ 1500) : les rayons partent de SA position
-  const tire=(x,z)=>{OR.set(WP.x+x,WP.y+5,WP.z+z);RC.set(OR,DN);const h=RC.intersectObjects(cibles,false);
-    for(const r of h){if(!r.face||Math.abs(r.face.normal.y)<.5)continue;const g=r.object.geometry,ca=g.attributes.color;let col=[.5,.5,.5];
-      if(ca){col=[ca.getX(r.face.a),ca.getY(r.face.a),ca.getZ(r.face.a)];}else if(r.object.material.color){const c=r.object.material.color;col=[c.r,c.g,c.b];}
-      return {y:r.point.y-WP.y,ny:Math.abs(r.face.normal.y),obj:r.object,col:col,lum:.3*col[0]+.59*col[1]+.11*col[2],ca:!!ca};}
-    return null;};
-  const tole=t=>(t.lum>.10||Math.abs(t.col[2]-t.col[0])<.03)&&t.lum>.012;   // de la tôle (même noire, neutre) — pas du verre (sombre ET bleuté)
-  const W=spec.w||1.8,Lg=spec.l||4,R=Math.max(.14,Math.min(.24,.11*W));
-  // 1. les candidats : des dessus à plat, assez clairs pour être de la tôle (pas du verre)
-  const cand=[];for(let x=-W*.4;x<=W*.4;x+=.1)for(let z=-Lg*.42;z<=Lg*.42;z+=.1){const t=tire(x,z);if(t&&t.ny>.93&&tole(t)&&t.y>.5)cand.push({x:x,z:z,y:t.y});}
-  if(cand.length<12)return;
-  cand.sort((a,b)=>b.y-a.y);
-  const haut=cand.slice(0,Math.max(6,Math.floor(cand.length*.25))),c1=haut[Math.floor(hs(seed,1,1)*haut.length)];
-  const loin=cand.filter(c=>Math.hypot(c.x-c1.x,c.z-c1.z)>R*3.2&&c.z*Math.sign(c1.z||1)<c1.z*Math.sign(c1.z||1)+9),c2=loin.length?loin[Math.floor(hs(seed,2,2)*loin.length)]:null;
-  const chocs=[c1].concat(c2?[c2]:[]);
-  // 2. les cubes, groupés par matière
-  const lots=new Map(),CE=.045;
-  const lot=(o,a)=>{const mi=cibles.indexOf(o),k=mi+(a?'c':'n');let L=lots.get(k);if(!L){L={mat:o.material,mi:mi,a:a,P:[],N:[],C:[]};lots.set(k,L);}return L;};
-  const rot=(a,b,k)=>(hs(a*13+seed,b*17,k)-.5)*.9;
-  const cube=(L,cx,cy,cz,sx,sy,sz,rx,ry,rz,col)=>{const g=new THREE.BoxGeometry(sx,sy,sz).toNonIndexed();g.rotateX(rx);g.rotateY(ry);g.rotateZ(rz);g.translate(cx,cy,cz);g.computeVertexNormals();
-    const p=g.attributes.position,n=g.attributes.normal;for(let i=0;i<p.count;i++){L.P.push(p.getX(i),p.getY(i),p.getZ(i));L.N.push(n.getX(i),n.getY(i),n.getZ(i));if(L.a)L.C.push(col[0],col[1],col[2]);}g.dispose();};
-  for(const ch of chocs)for(let ix=Math.round(-R*1.9/CE);ix<=R*1.9/CE;ix++)for(let iz=Math.round(-R*1.9/CE);iz<=R*1.9/CE;iz++){
-    const x=ch.x+ix*CE,z=ch.z+iz*CE,m=Math.hypot(ix*CE,iz*CE)/R;if(m>1.0&&m>1.9)continue;
-    if(m>=1&&hs(ix*7+seed,iz*5,ch.z*3)>.10)continue;                                                       // au-delà : quelques débris seulement
-    const t=tire(x,z);if(!t||t.ny<.85||!tole(t))continue;const L=lot(t.obj,t.ca);
-    if(m<.5){if(hs(ix,iz,seed)<.8)cube(L,x,t.y+.004,z,CE*.96,.012,CE*.96,0,0,0,[.05,.05,.06]);continue;}   // le trou : l'intérieur à nu, sombre
-    if(m<1){cube(L,x,t.y+CE/2-.012+.03*(1-m),z,CE*.96,CE,CE*.96,rot(ix,iz,1),rot(iz,ix,2),rot(ix+1,iz,3),t.col);continue;}   // la couronne
-    cube(L,x,t.y+.03+.07*hs(ix,iz,9),z,CE*.9,CE*.9,CE*.9,rot(ix,iz,4),rot(iz,ix,5),rot(ix,iz+1,6),t.col);}   // les débris
-  for(const L of lots.values()){if(!L.P.length)continue;const g=new THREE.BufferGeometry();
-    g.setAttribute('position',new THREE.Float32BufferAttribute(L.P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(L.N,3));if(L.a)g.setAttribute('color',new THREE.Float32BufferAttribute(L.C,3));
-    const m=new THREE.Mesh(g,L.mat);m.castShadow=true;m.userData.degats=1;carGroup.add(m);}
-  DEGATS_CACHE.set(spec.name,{n:cibles.length,lots:[...lots.values()].filter(L=>L.P.length).map(L=>({mi:L.mi,a:L.a,P:L.P,N:L.N,C:L.C}))});
-}
+/* LES 29 RÉFÉRENCES DE LÉO (25/10 : « à ne pas toucher », le langage visuel du jeu) : la traduction ci-dessous ne les regroupe jamais. Noms sans accent ni ponctuation. */
+const LANGAGE_REF=new Set(['LA HONTE','LA FIDELE','ELDORADO','LE CHARGEUR 69','LA VETTE','LA BAVAROISE','LA DOLORES','LE CORBILLARD','LE CHARGEUR','LE DEFIEUR','LE TRONE CENTRAL','LA CERISE','LE SAMOURAI','L ORIGAMI','ROSSO 40','LE MASTODONTE','LA STRATOS','ATCHOUM','LA TAURINE','LE SPECTRE','L ETERNELLE','POSTER 84','LE BLINDE NOIR','SQUALE','CHAT POP TART','LA PIZZA EXPRESS','LE LOUP','LE MUR DU SON','LE DRAGON D OR']);
 /* LA TRADUCTION AU LANGAGE DU JEU (25/10, Léo : « quand les voitures ont trop de facettes, tu divises par deux le nombre de facettes » ; avant : « les traduire pour que ce soit comme les autres, mais que leur modèle soit toujours ressenti, juste ajusté ») —
    PAR DÉFAUT depuis la v912 ; `?langage=0` la coupe. Une caisse qui dépasse 12 000 triangles (tes références en font ~5 000) voit sa PEINTURE regroupée en grandes facettes planes : tous les sommets d'une même case de grille n'en font plus qu'un, au centre de leur
    groupe, les triangles qui s'effondrent disparaissent. La taille de la case est CHERCHÉE (recherche par dichotomie, mémorisée par voiture) pour que la caisse entière tombe à la MOITIÉ de ses triangles, sans dépasser 45 cm. La silhouette reste celle de la
    voiture, une facette = une couleur (la moyenne de ses sommets). SEULE la peinture (laque 44, nacre 70, métallisé 90) est regroupée : feux, chrome, grilles, plastiques, verre, roues et petites pièces (< 25 cm) gardent leurs détails. Jamais sur tes 29 RÉFÉRENCES
-   (le langage visuel du jeu), ni sur le Baroudeur et le Scarabée (leur style à eux). Appelée juste avant `caisseSoude()`. */
+   (le langage visuel du jeu), ni sur le Baroudeur (sa coque est dans la même pièce que ses détails). Appelée juste avant `caisseSoude()`. */
 const LANG_CACHE=new Map();
-function traduisLangage(spec){
+function traduisGroupe(spec,corps,tout){   // corps : le groupe dont les enfants directs sont les pièces de la caisse ; tout : la caisse entière (roues, détails…) — dans le jeu carBody et carGroup, dans la liste des voitures le même groupe
   let ON=true;try{ON=!/[?&]langage=0/.test(location.search);}catch(e){}
-  if(!ON||!spec||spec.shape==='wrangler')return;   // le Baroudeur : sa coque et ses cubes sont dans la même pièce, on n'y touche pas
+  if(!ON||!spec||spec.shape==='wrangler')return;   // le Baroudeur : sa coque et ses détails sont dans la même pièce, on n'y touche pas
   const nm=String(spec.name).normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim();
-  if(DEGATS_REF.has(nm))return;
-  const GROSSE=spec.shape==='bulle'?8000:0;   // le Scarabée : SEULE sa coque (la grosse pièce de peinture) est regroupée, pas les détails ni les cubes du capot
-  carGroup.updateMatrixWorld(true);
-  let Tc=0;carGroup.traverse(o=>{if(o.isMesh&&o.geometry&&o.geometry.attributes.position&&!o.userData.sol&&!o.userData.noShadow&&!o.userData.degats&&o.material&&!Array.isArray(o.material)&&!o.material.transparent){const g=o.geometry;Tc+=g.index?g.index.count/3:g.attributes.position.count/3;}});
+  if(LANGAGE_REF.has(nm))return;
+  tout.updateMatrixWorld(true);
+  let Tc=0;tout.traverse(o=>{if(o.isMesh&&o.geometry&&o.geometry.attributes.position&&!o.userData.sol&&!o.userData.noShadow&&o.material&&!Array.isArray(o.material)&&!o.material.transparent){const g=o.geometry;Tc+=g.index?g.index.count/3:g.attributes.position.count/3;}});
   if(Tc<=12000)return;
-  const inv=new THREE.Matrix4().copy(carBody.matrixWorld).invert(),M=new THREE.Matrix4(),P=new THREE.Vector3(),pein=[];
-  for(const o of carBody.children){
-    if(!o.isMesh||!o.geometry||!o.geometry.attributes.position||o.userData.sol||o.userData.noShadow||o.userData.degats||!o.material||Array.isArray(o.material))continue;
-    if(o.material.isMeshBasicMaterial)continue;                                                 // les FEUX (matière émissive) : on n'y touche pas
-    {const sh=o.material.shininess;if(!(o.material.userData&&o.material.userData.g==='p')&&!(sh===44||sh===70||sh===90))continue;}   // SEULE la peinture
+  const inv=new THREE.Matrix4().copy(corps.matrixWorld).invert(),M=new THREE.Matrix4(),P=new THREE.Vector3(),pein=[];
+  for(const o of corps.children){
+    if(!o.isMesh||!o.geometry||!o.geometry.attributes.position||o.userData.sol||o.userData.noShadow||!o.material||Array.isArray(o.material))continue;
+    {const tg=o.material.userData&&o.material.userData.g;   // matière TAGUÉE (la liste des voitures) : peinture 'p', métallisé 'k', nacre 'n'
+      if(tg!==undefined&&tg!==null){if(!(tg==='p'||tg==='k'||tg==='n'))continue;}
+      else{if(o.material.isMeshBasicMaterial)continue;   // les FEUX (matière émissive) : on n'y touche pas
+        const sh=o.material.shininess;if(!(sh===44||sh===70||sh===90))continue;}}   // SEULE la peinture (laque 44, nacre 70, métallisé 90)
     const g=o.geometry;g.computeBoundingBox();const bb=g.boundingBox;if(bb.min.distanceTo(bb.max)*Math.max(o.scale.x,o.scale.y,o.scale.z)<.25)continue;   // les petites pièces restent
     M.multiplyMatrices(inv,o.matrixWorld);const pos=g.attributes.position,n=pos.count,W=new Float32Array(n*3);
     for(let v=0;v<n;v++){P.fromBufferAttribute(pos,v).applyMatrix4(M);W[v*3]=P.x;W[v*3+1]=P.y;W[v*3+2]=P.z;}
-    if((g.index?g.index.count/3:n/3)<GROSSE)continue;
     pein.push({o:o,W:W,n:n,ix:g.index,col:g.attributes.color,nT:g.index?g.index.count/3:n/3});
   }
   if(!pein.length)return;
@@ -44094,9 +43977,10 @@ function traduisLangage(spec){
     if(Pn.length<9)continue;
     const ng=new THREE.BufferGeometry();ng.setAttribute('position',new THREE.Float32BufferAttribute(Pn,3));if(m.col)ng.setAttribute('color',new THREE.Float32BufferAttribute(Cn,3));ng.computeVertexNormals();
     const nm2=new THREE.Mesh(ng,o.material);nm2.castShadow=o.castShadow;nm2.receiveShadow=o.receiveShadow;nm2.renderOrder=o.renderOrder;nm2.userData=Object.assign({},o.userData);
-    carBody.remove(o);carBody.add(nm2);
+    corps.remove(o);corps.add(nm2);
   }
 }
+function traduisLangage(spec){traduisGroupe(spec,carBody,carGroup);}
 function buildCar(spec){
   if(!carFicheOk(spec)){console.warn('CASH CAR : « '+((spec&&spec.name)||'?')+' » n\'a pas de fiche (caisse retirée) — LA HONTE à la place');spec=CARS[0];}
   // ⚠ LES PIÈCES LOW-POLY SE LIBÈRENT : chaque caisse a SA géométrie (plusieurs milliers de facettes)
@@ -44450,7 +44334,6 @@ function buildCar(spec){
   if(finAreteOk())finCaisse(); // (2026-10-20, FINITION STUDIO) les drapeaux d'arête de la tôle, AVANT la soudure (voir finition.js)
   if(FSTU.on)finLaque(FSTU.garage); // le vernis profond si on est au garage
   try{traduisLangage(spec);}catch(e){console.warn('langage',e);} // (25/10) ESSAI `?langage=1` : les caisses « hors langage » regroupées en grandes facettes (éteint par défaut)
-  try{degatsCaisse(spec);}catch(e){console.warn('degats',e);} // (25/10) ESSAI `?degats=1` : de petits chocs de cubes sur le dessus de la caisse (éteint par défaut)
   caisseSoude(); // (2026-09-27, passe perf iPhone) ce qui ne bouge jamais est soudé par matière — voir « LA CAISSE EN UN MINIMUM DE DESSINS »
   try{feuxLed(spec,hlM,tlM);}catch(e){console.warn('feux',e);} // (2026-10-20) l'étude des feux en LED, `?feux=1|2` (voir FEUXL) — sans paramètre, rien ne change
 }
@@ -64473,6 +64356,7 @@ function gModeVa(m){
     if(m==='inv'){if(GATL.on){gAtelier(false);gGarageReplie();}else gAtelier(true);return;} /* (2026-10-14) RETOUR de l'inventaire : le garage REPLIÉ */ // (2026-10-12, Léo) INVENTAIRE ferme l'atelier ; la même touche, devenue ◀ RETOUR, le rouvre
     return;}
   GMODE.m=m;GMODE.paye=false;GMODE.fam=m==='shop'?gShopFam():null; // (2026-10-10) la famille montrée en BOUTIQUE, détachée de la caisse affichée
+  if(m==='inv'&&SHOP.tab!=='figure')shopTab('figure'); /* (2026-10-25, Sacha : « quand on ouvre l'inventaire, on arrive directement sur les figures ») l'INVENTAIRE s'ouvre sur l'onglet FIGURES (et le CSS le range en premier) */
   const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st){st._r=null;if(m==='tous'){st.scrollTop=0;st.classList.remove('finBas');}}
   gModeCale();
   if(SHOP.tab==='voiture')garageFamilles(carRar(garageI));else gStripHabits(SHOP.tab,SHOP.i[SHOP.tab]);
@@ -69548,7 +69432,7 @@ try{const b9=document.querySelector('#gOutils [data-go="set"]'),s9=b9&&b9.queryS
    `dbgInv()` : état · `dbgInv('ouvre'|'ferme')` · `dbgInv('cat','peinture')`. */
 var INV={on:false,cat:'voiture',hold:null,mange:null,raf:0,D0:.12,D:.45};
 const INV_RANG={infini:6,mythique:5,legendaire:4,epique:3,exotique:2,defi:2,rare:1,commun:0},INV_LUEUR={commun:.35,rare:.6,exotique:.7,epique:.82,defi:.7,legendaire:1,mythique:1,infini:1};
-function cosmRar(cat,d){if(!d)return 'commun';if(d.r)return d.r;if(cat==='figure')return !d.p?'commun':d.p<=12000?'rare':d.p<=25000?'epique':'legendaire'; // (2026-10-14) une figure : sa rareté suit son prix
+function cosmRar(cat,d){if(!d)return 'commun';if(d.r)return d.r;if(cat==='figure')return !d.p?'commun':d.p<=120000?'rare':d.p<=250000?'epique':'legendaire'; /* (2026-10-14) une figure : sa rareté suit son prix — (2026-10-25, Sacha) seuils ×10 comme les prix de v899 : rare ≤ 120 k, épique ≤ 250 k */
 if(d.mis)return d.mis>=8?'epique':'rare';if(!d.p)return 'commun';return d.p<4000?'commun':d.p<60000?'rare':d.p<250000?'epique':d.p<900000?'legendaire':'mythique';} /* (2026-10-14) la grille de l'équilibrage : commune < 4 k · rare < 60 k (l'ex-tranche EXOTIQUE 16-60 k est RARE depuis le 2026-10-18, Sacha) · épique < 250 k · légendaire < 900 k (`r` sur la fiche a le dernier mot) */
 function invListe(cat){
   if(cat==='voiture'){const eq=equippedCar(),L=[];for(let i=0;i<CARS.length;i++)if(!carRetiree(i)&&(i===eq||carUnlockedVrai(i)))L.push({cat:cat,i:i,r:carRar(i),eq:i===eq});
@@ -69591,6 +69475,7 @@ function invRender(){
 function invOuvre(){
   if(!INV||INV.on||GAR.go||!garAtelierLibre())return false;
   if(SHOP.tab!=='voiture'||SHOP.prev)shopTab('voiture');{const eq=equippedCar();if(GAR.sw&&!GAR.sw.fait)GAR.sw.to=eq;else if(garageI!==eq)garageShow(eq);} /* (2026-10-07, audit avant publication ; une bascule en cours vise désormais TA caisse) l'inventaire équipe TA caisse : la fiche revient sur elle (sinon le plateau montrait la caisse équipée sous le nom et le prix d'une autre) */
+  INV.cat='figure'; /* (2026-10-25, Sacha : « quand on ouvre l'inventaire, on arrive directement sur les figures ») */
   INV.on=true;if(!((SAVE.d.ast|0)&4)){SAVE.d.ast=(SAVE.d.ast|0)|4;SAVE.mark();}
   gEl.classList.remove('aideInv');gEl.classList.add('inv');garLibre._r=null;
   const g=$('ivGrille');if(g){g._k=null;g.scrollTop=0;}invRender();

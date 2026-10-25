@@ -179,7 +179,7 @@ try{const b9=document.querySelector('#gOutils [data-go="set"]'),s9=b9&&b9.queryS
    `dbgInv()` : état · `dbgInv('ouvre'|'ferme')` · `dbgInv('cat','peinture')`. */
 var INV={on:false,cat:'voiture',hold:null,mange:null,raf:0,D0:.12,D:.45};
 const INV_RANG={infini:6,mythique:5,legendaire:4,epique:3,exotique:2,defi:2,rare:1,commun:0},INV_LUEUR={commun:.35,rare:.6,exotique:.7,epique:.82,defi:.7,legendaire:1,mythique:1,infini:1};
-function cosmRar(cat,d){if(!d)return 'commun';if(d.r)return d.r;if(cat==='figure')return !d.p?'commun':d.p<=12000?'rare':d.p<=25000?'epique':'legendaire'; // (2026-10-14) une figure : sa rareté suit son prix
+function cosmRar(cat,d){if(!d)return 'commun';if(d.r)return d.r;if(cat==='figure')return !d.p?'commun':d.p<=120000?'rare':d.p<=250000?'epique':'legendaire'; /* (2026-10-14) une figure : sa rareté suit son prix — (2026-10-25, Sacha) seuils ×10 comme les prix de v899 : rare ≤ 120 k, épique ≤ 250 k */
 if(d.mis)return d.mis>=8?'epique':'rare';if(!d.p)return 'commun';return d.p<4000?'commun':d.p<60000?'rare':d.p<250000?'epique':d.p<900000?'legendaire':'mythique';} /* (2026-10-14) la grille de l'équilibrage : commune < 4 k · rare < 60 k (l'ex-tranche EXOTIQUE 16-60 k est RARE depuis le 2026-10-18, Sacha) · épique < 250 k · légendaire < 900 k (`r` sur la fiche a le dernier mot) */
 function invListe(cat){
   if(cat==='voiture'){const eq=equippedCar(),L=[];for(let i=0;i<CARS.length;i++)if(!carRetiree(i)&&(i===eq||carUnlockedVrai(i)))L.push({cat:cat,i:i,r:carRar(i),eq:i===eq});
@@ -222,6 +222,7 @@ function invRender(){
 function invOuvre(){
   if(!INV||INV.on||GAR.go||!garAtelierLibre())return false;
   if(SHOP.tab!=='voiture'||SHOP.prev)shopTab('voiture');{const eq=equippedCar();if(GAR.sw&&!GAR.sw.fait)GAR.sw.to=eq;else if(garageI!==eq)garageShow(eq);} /* (2026-10-07, audit avant publication ; une bascule en cours vise désormais TA caisse) l'inventaire équipe TA caisse : la fiche revient sur elle (sinon le plateau montrait la caisse équipée sous le nom et le prix d'une autre) */
+  INV.cat='figure'; /* (2026-10-25, Sacha : « quand on ouvre l'inventaire, on arrive directement sur les figures ») */
   INV.on=true;if(!((SAVE.d.ast|0)&4)){SAVE.d.ast=(SAVE.d.ast|0)|4;SAVE.mark();}
   gEl.classList.remove('aideInv');gEl.classList.add('inv');garLibre._r=null;
   const g=$('ivGrille');if(g){g._k=null;g.scrollTop=0;}invRender();

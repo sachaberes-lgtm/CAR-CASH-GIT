@@ -78,11 +78,27 @@ def garde(prise, carte, meteo):  # la prise retenue → img/, réduite à 1120 �
     try: subprocess.run(['sips', '-Z', '1120', '-s', 'format', 'jpeg', '-s', 'formatOptions', '62', prise, '--out', out], check=True, stdout=subprocess.DEVNULL)
     except Exception: shutil.copy(prise, out)
 
+def version_du_jeu():  # le n° de cache du jeu (sw.js) : de quelle version est chaque photo
+    try: return int(re.search(r"const CACHE = 'cashcar-v(\d+)'", open(os.path.join(JEU, 'sw.js'), encoding='utf-8').read()).group(1))
+    except Exception: return None
+
+def note_version(carte, meteo):  # img/versions.json : « crypto-midi » → 919 (la page signale les photos d'une version plus ancienne que le jeu)
+    f = os.path.join(REP, 'img', 'versions.json')
+    try: V = json.load(open(f, encoding='utf-8'))
+    except Exception: V = {}
+    V['%s-%s' % (carte, meteo)] = version_du_jeu()
+    json.dump(V, open(f, 'w', encoding='utf-8'), indent=1, sort_keys=True)
+
 def couples_de(args):
-    txt = open(os.path.join(REP, 'maps.js'), encoding='utf-8').read()
     cartes = {}
-    for m in re.finditer(r"id:\s*'(\w+)'.*?meteos:\s*\[(.*?)\]\s*\}", txt, re.S):
-        cartes[m.group(1)] = re.findall(r"\['([\w-]+)',", m.group(2))  # (2026-10-16) une clé peut porter sa TEINTE : « pluie-vert »
+    try:  # (2026-10-25) la liste vient du JEU (jeu_maps.py : SF_CARTES, SF_HORS, SF_FUSION), plus d'une liste écrite à la main
+        sys.path.insert(0, REP)
+        import jeu_maps
+        for c in jeu_maps.lit(JEU)['cartes']: cartes[c['id']] = [m[0] for m in c['meteos']]
+    except Exception:
+        txt = open(os.path.join(REP, 'maps.js'), encoding='utf-8').read()
+        for m in re.finditer(r"id:\s*'(\w+)'.*?meteos:\s*\[(.*?)\]\s*\}", txt, re.S):
+            cartes[m.group(1)] = re.findall(r"\['([\w-]+)',", m.group(2))  # (2026-10-16) une clé peut porter sa TEINTE : « pluie-vert »
     out = []
     for a in (list(cartes) if args == ['--tout'] else args):
         if ':' in a: out.append(tuple(a.split(':', 1)))
@@ -129,6 +145,7 @@ def main():
                 open(os.path.join(prises, '%s-%s-%d.jpg' % (carte, meteo, k)), 'wb').write(base64.b64decode(r['data']))
                 c.ev("document.getElementById('cc-nu').textContent=''")
             garde(os.path.join(prises, '%s-%s-1.jpg' % (carte, meteo)), carte, meteo)
+            note_version(carte, meteo)
             print(carte, meteo, 'ok', c.ev("JSON.stringify(dbgClassique().niveau)"), flush=True)
             c.s.close()
     finally:

@@ -331,50 +331,6 @@ return function(K){
     // les feux arrière (aux coins), leur verre
     P.box('L',.13,.23,.025,sd*.795,1.055,-2.1615);P.box('g',.07,.12,.006,sd*.795,1.055,-2.176);P.box('W',.05,.012,.006,sd*.795,1.11,-2.177);
   });
-  /* LA DESTRUCTION VOXEL DU BAROUDEUR (25/10, Léo : « les cubes ne doivent pas être ajoutés par-dessus, plutôt insérés, une impression de destruction — pixel, voxel ») : plus de blocs posés en relief. Des PLAQUES de
-     cubes de 6 cm, À FLEUR de la tôle (1 cm de relief) : l'intérieur MIS À NU (gris sombre, un peu de métal), bordées d'ÉCLATS — des cubes de la caisse qui dépassent de 1 à 4 cm, quelques-uns arrachés qui flottent.
-     Au museau (le capot, depuis le nez) et au toit (aux deux bouts). Les plaques naissent de quelques points d'impact et s'effritent vers l'extérieur. Tirage déterministe ; rien autour des roues. */
-  if(CCH){
-    const hs=(a,b,c,d)=>{const v=Math.sin(a*12.9898+b*78.233+c*37.719+d*5.171)*43758.5453;return v-Math.floor(v);};
-    const BX=(k,w,h,d,x,y,z)=>P.box(k,w,h,d,x,y,z,0,0,0),CE=.06;
-    const yT0=z=>lin([[.648,1.321],[1.083,1.307],[1.493,1.272],[1.684,1.225],[1.794,1.19],[1.835,1.17],[1.862,1.152]],z);
-    const yCapot=(x,z)=>yT0(z)+lin([[0,.016],[.30,.010],[.56,-.003],[.66,-.014]],Math.abs(x));
-    const roofY=x=>{const a=Math.abs(x);return a<=.705?1.8025+.0325*(1-a/.705):1.785+.0175*(1-(a-.705)/.088);};
-    // une plaque : des graines [iu, iv, rayon] en cases, bornes ; `pose(clé, iu, iv, relief, éclat)` pose un cube sur la surface
-    const plaque=(graines,u0,u1,v0,v1,id,pose)=>{const dedans=new Set();
-      for(let iu=u0;iu<=u1;iu++)for(let iv=v0;iv<=v1;iv++){let m=0;for(const [su,sv,r] of graines)m=Math.max(m,(1-Math.hypot(iu-su,iv-sv)/r)*(.55+.9*hs(iu,iv,id,1)));if(m>.34)dedans.add(iu+','+iv);}
-      for(const kk of dedans){const [iu,iv]=kk.split(',').map(Number),bord=![[1,0],[-1,0],[0,1],[0,-1]].every(([da,db])=>dedans.has((iu+da)+','+(iv+db))),q=hs(iu+.3,iv+.7,id,2);
-        if(bord){if(q<.52)pose('p',iu,iv,.01+.032*hs(iu,iv,id,3),true);else if(q<.62)pose('p',iu,iv,.05+.05*hs(iu,iv,id,4),true);}   // les éclats du bord (les derniers : arrachés, ils flottent)
-        else{if(q<.80)pose('D',iu,iv,0,false);else if(q<.90)pose('c',iu,iv,0,false);}}};                                               // l'intérieur mis à nu
-    /* (25/10, Léo : « nan c'est bizarre, on dirait pas La Fidèle, change de procédé ») LE PROCÉDÉ DE LA FIDÈLE : pas des plaques de cubes — des COUCHES FINES empilées (4,5 cm), chacune faite de TRONÇONS de longueurs inégales
-       (7 à 28 cm) qui saillent d'un cran différent (de 0,6 à 4 cm) : la tôle se découpe en escalier, tout de la couleur de la caisse, la lumière fait le reste. Sur le BAS des portes (la zone choisie) : 7 couches, de plus en plus
-       lacunaires vers le haut (la tôle « se défait »). Collées au panneau de porte, enfoncées de 1 cm dedans (rien ne flotte). */
-    const XP=SBx(.93)+RP-.002;   // la face du panneau de porte
-    /* (25/10, Léo : « organisé comme sur La Fidèle, qui embrasse la forme de la voiture la plus complexe » — pour le Baroudeur : « le toit et vers l'arrière ») LA PIXELISATION SUR GRILLE : tous les cubes de 6 cm, sur UNE grille
-       régulière ; chaque cube va au niveau de grille juste AU-DESSUS de la tôle (0 à 6 cm de relief) : le toit bombé devient un plateau à deux marches, la lunette couchée un escalier de cubes ; quelques cubes manquent
-       (le « bug »). Tout de la couleur de la caisse : c'est l'ombre des marches qui dessine la forme. */
-    const c=.09;   // (« quand les voitures ont trop de facettes, divise par deux ») des cubes de 9 cm : le toit de 6 cm coûtait 11 000 triangles
-    /* (25/10, Léo : « on veut des cubes glitchés qui font quelques DÉGÂTS sur la voiture ») la grille de cubes devient une carrosserie ENDOMMAGÉE : trois CHOCS (deux sur le toit, un sur la lunette). Au cœur du choc, plus de cubes —
-       un trou : l'intérieur apparaît (gris sombre, à fleur de la tôle) ; autour, une couronne de cubes ARRACHÉS, soulevés et penchés ; au-delà, des DÉBRIS qui retombent, penchés eux aussi. Le reste de la grille est intact. */
-    const choc=(x,z,L)=>{let m=9;for(const [ix,iz,R] of L){const d=Math.hypot(x-ix,z-iz)/R;if(d<m)m=d;}return m;},pen=(a,b,k)=>(hs(a*13,b*17,9,k)-.5)*.9;
-    const IMPT=[[.22,-1.30,.30],[-.34,-.30,.26]],IMPR=[[.18,1.52,.26]];   // (x, z, rayon) sur le toit ; (x, y, rayon) sur la lunette
-    // 1. LE TOIT : de la lunette au pare-brise
-    for(let iz=Math.round(-2.0/c);iz*c<.27;iz++)for(let ix=-12;ix<=12;ix++){const x=ix*c,z=iz*c;if(Math.abs(x)>.76)continue;if(hs(ix,iz,1,1)>.86)continue;
-      const H=roofY(x),lv=Math.ceil((H-.001)/c)*c,m=choc(x,z,IMPT);
-      if(m<.5){if(hs(ix,iz,6,6)<.78)BX('D',c*.96,.012,c*.96,x,H+.004,z);continue;}   // le trou : l'intérieur à nu
-      if(m<1){P.box('p',c*.96,c,c*.96,x,lv-c/2+.003+.035*(1-m)+.012,z,pen(ix,iz,1),pen(iz,ix,2),pen(ix+1,iz,3));continue;}   // la couronne : arrachés, penchés
-      BX('p',c*.96,c,c*.96,x,lv-c/2+.003,z);}
-    for(const [ix,iz,R] of IMPT)for(let k=0;k<9;k++){const an=hs(k,1,ix*10,3)*6.283,r=R*(1.05+.9*hs(k,2,iz*10,3)),x=ix+Math.cos(an)*r,z=iz+Math.sin(an)*r;if(Math.abs(x)>.76)continue;
-      const e=.04+.07*hs(k,3,ix*7,3);P.box('p',.05,.05,.05,x,roofY(x)+e,z,pen(k,1,4),pen(k,2,5),pen(k,3,6));}   // les débris
-    // 2. L'ARRIÈRE : la lunette couchée et le haut du hayon
-    for(let iy=Math.round(1.25/c);iy*c<1.80;iy++)for(let ix=-11;ix<=11;ix++){const x=ix*c,y=iy*c;if(Math.abs(x)>.74)continue;if(hs(ix,iy,2,2)>.78)continue;
-      const zf=-2.149+(y-1.23)*.1956,lv=Math.floor(zf/c)*c,m=choc(x,y,IMPR);
-      if(m<.5){if(hs(ix,iy,7,6)<.78)BX('D',c*.96,c*.96,.012,x,y,zf-.004);continue;}
-      if(m<1){P.box('p',c*.96,c*.96,c,x,y,lv+c/2-.003-.035*(1-m)-.012,pen(ix,iy,7),pen(iy,ix,8),pen(ix+1,iy,9));continue;}
-      BX('p',c*.96,c*.96,c,x,y,lv+c/2-.003);}
-    for(const [ix,iy,R] of IMPR)for(let k=0;k<9;k++){const an=hs(k,1,ix*10,5)*6.283,r=R*(1.05+.9*hs(k,2,iy*10,5)),x=ix+Math.cos(an)*r,y=iy+Math.sin(an)*r;if(Math.abs(x)>.74||y<1.25||y>1.80)continue;
-      const e=.04+.07*hs(k,3,ix*7,5);P.box('p',.05,.05,.05,x,y,-2.149+(y-1.23)*.1956-e,pen(k,1,7),pen(k,2,8),pen(k,3,9));}
-  }
   // LA CALANDRE : sept fentes, deux phares ronds, un peu couchée
   {const sh=new THREE.Shape(),PTS=rrect(-.66,-.18,.66,.175,.03,3);sh.moveTo(PTS[0][0],PTS[0][1]);for(let i=1;i<PTS.length;i++)sh.lineTo(PTS[i][0],PTS[i][1]);
    const fente=x=>{const h=new THREE.Path(),Q=rrect(x-.0375,-.12,x+.0375,.14,.03,3);h.moveTo(Q[0][0],Q[0][1]);for(let i=1;i<Q.length;i++)h.lineTo(Q[i][0],Q[i][1]);return h;};
