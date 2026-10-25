@@ -31,7 +31,12 @@ def noms_des_maps():
     """[(id, nom)] dans l'ordre de maps.js (la liste de la page) — pour ranger le fichier à lire."""
     try:
         with open(os.path.join(RACINE, 'repertoire-maps', 'maps.js'), encoding='utf-8') as f:
-            return [(a, b or c) for a, b, c in re.findall(r"id:\s*'([^']+)',\s*nom:\s*(?:'([^']+)'|\"([^\"]+)\")", f.read())]
+            L, vus = [], set()  # une map du tirage par ligne : les cartes d'un même `groupe` (CRYPTOVILLE) comptent pour une
+            for a, b, c, g in re.findall(r"id:\s*'([^']+)',\s*nom:\s*(?:'([^']+)'|\"([^\"]+)\")(?:,\s*groupe:\s*'([^']+)')?", f.read()):
+                k = g or a
+                if k not in vus:
+                    vus.add(k); L.append((k, b or c))
+            return L
     except OSError:
         return []
 

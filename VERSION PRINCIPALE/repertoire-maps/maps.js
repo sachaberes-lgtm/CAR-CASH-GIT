@@ -13,15 +13,16 @@ window.REPERTOIRE = [
     meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
   // (2026-10-16, Sacha : « la map ville sera toujours la nuit […] on abandonne toutes les maps ville-jour ») : quatre temps (la teinte de base, violette) puis
   // les trois autres TEINTES sous la pluie — une clé « météo-teinte » = index.html?carte=ville&meteo=<météo>&teinte=<teinte> (banc/photos.py la comprend)
-  { id: 'ville',    nom: 'LA VILLE',          couverture: 'pluie',
-    meteos: [['pluie', 'PLUIE'], ['nuit', 'NUIT'], ['brouillard', 'BROUILLARD'], ['orage', 'ORAGE'], ['pluie-vert', 'NÉONS VERTS'], ['pluie-jaune', 'NÉONS JAUNES'], ['pluie-bleu', 'BLEU ÉLECTRIQUE']] },
-  // (2026-10-25) CRYPTO CITY : l'apogée du BULL RUN — quatre temps, jamais de pluie ni d'orage (retirée du tirage sur téléphone)
-  { id: 'crypto',   nom: 'CRYPTO CITY',       couverture: 'midi',
-    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT']] },
+  // (2026-10-25, Léo) CRYPTOVILLE : UNE map au tirage — la journée c'est CRYPTO CITY (matin, midi, soir : PC seulement), la nuit c'est LA VILLE (la nuit d'orage,
+  // en violet, vert ou jaune). Deux cartes dans le jeu (`id` = ce qu'on passe à ?carte=), une seule ligne dans la revue (`groupe`).
+  { id: 'crypto',   nom: 'CRYPTOVILLE', groupe: 'cryptoville', couverture: 'midi',
+    meteos: [['matin', 'JOUR · MATIN'], ['midi', 'JOUR · MIDI'], ['soir', 'JOUR · SOIR']] },
+  { id: 'ville',    nom: 'CRYPTOVILLE', groupe: 'cryptoville', couverture: 'orage',
+    meteos: [['orage', 'NUIT · ORAGE'], ['orage-vert', 'NUIT · NÉONS VERTS'], ['orage-jaune', 'NUIT · NÉONS JAUNES']] },
   { id: 'jade',     nom: 'PICS DE JADE',      couverture: 'matin',
     meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
   { id: 'foret',    nom: 'LA FORÊT NOIRE',    couverture: 'soir',
-    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
+    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
   { id: 'banquise', nom: 'LE GLACIER',        couverture: 'nuit',
     meteos: [['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['neige', 'NEIGE']] },
   { id: 'espace',   nom: 'EN ORBITE',         couverture: 'matin',

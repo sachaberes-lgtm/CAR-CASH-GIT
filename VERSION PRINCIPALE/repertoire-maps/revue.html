@@ -102,9 +102,14 @@
 <script src="maps.js"></script>
 <script>
 (function(){
-  var R=window.REPERTOIRE||[], LS='avisMaps-v1', avis={}, ci=0, mi=0;
+  var RAW=window.REPERTOIRE||[], R=[], LS='avisMaps-v1', avis={}, ci=0, mi=0;
+  /* une ligne par MAP DU TIRAGE : CRYPTOVILLE = deux cartes du jeu (Crypto City le jour, La Ville la nuit) rangées ensemble (`groupe`) ;
+     chaque météo = [clé de l'avis, étiquette, nom du fichier image] */
+  RAW.forEach(function(c){var gid=c.groupe||c.id,g=null;R.forEach(function(x){if(x.id===gid)g=x;});
+    if(!g){g={id:gid,nom:c.nom,cov:c.id+'-'+c.couverture,hors:!!c.hors,meteos:[]};R.push(g);}
+    c.meteos.forEach(function(m){g.meteos.push([c.groupe?c.id+'-'+m[0]:m[0],m[1],c.id+'-'+m[0]]);});});
   var $=function(i){return document.getElementById(i);};
-  var img=function(c,m){return 'img/'+c.id+'-'+m[0]+'.jpg';};
+  var img=function(c,m){return 'img/'+m[2]+'.jpg';};
   var A=function(id){return avis[id]||(avis[id]={s:'',m:{}});};
 
   /* ---------- l'enregistrement : serveur d'abord, copie navigateur toujours ---------- */
@@ -135,7 +140,7 @@
     R.forEach(function(c,i){
       var s=(avis[c.id]||{}).s||'',n=Object.keys((avis[c.id]||{}).m||{}).length;
       var li=document.createElement('div');li.className='ligne '+s;
-      var cov=c.meteos.filter(function(m){return m[0]===c.couverture;})[0]||c.meteos[0];
+      var cov=c.meteos.filter(function(m){return m[2]===c.cov;})[0]||c.meteos[0];
       li.innerHTML='<button class="vig" aria-label="Voir les images"><img loading="lazy" src="'+img(c,cov)+'" alt=""></button>'
         +'<div><div class="nom">'+c.nom+(c.hors?'<span class="tag">hors du tirage</span>':'')+'</div>'
         +'<div class="sous">'+c.meteos.length+(c.meteos.length>1?' météos':' météo')+(n?' · '+n+' à virer':'')+'</div></div>'
