@@ -8824,7 +8824,7 @@ body.touch #settings{-webkit-backdrop-filter:none;backdrop-filter:none;backgroun
   </div></div>
 </div>
 <script src="vendor/three.min.js"></script>
-<script src="figures.js?v=9"></script>
+<script src="figures.js?v=10"></script>
 <script src="creatures/vitrail.js?v=1"></script><script>if(/[?&]singes(jade)?=1\b/.test(location.search))document.write('<script src="creatures/singe.js?v=2"><\/script>');</script><script src="creatures/dauphin.js?v=2"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html — (2026-10-22) le singe n'est chargé que sur `?singes=1` : les singes sont éteints par défaut (voir JSG_ON) -->
 <script src="assets/audio/musique-bus.js?v=7"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
 <script src="assets/audio/pouce-bleu-jeu.js?v=6"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
@@ -9046,7 +9046,8 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   uTime:{value:0},uSunDir:{value:SUN_DIR},
   uSkyMul:{value:new THREE.Vector3(1,1,1)},uSkyLift:{value:new THREE.Vector3(0,0,0)},
   uSunTint:{value:new THREE.Vector3(1,.40,.28)},uSunHalo:{value:1},uCity:{value:1},uStars:{value:1},uMoon:{value:1},uRose:{value:0},
-  uNeb:{value:1}, // (2026-10-15) LES NÉBULEUSES de l'orbite (× uSpace) : 0 = le noir complet d'avant
+  uNeb:{value:1}, // (2026-10-15) LA VOÛTE d'étoiles de l'orbite (× uSpace) : 0 = le noir complet d'avant — (2026-10-25) la voie lactée et les nébuleuses ne sont plus appelées du tout
+  uBandes:{value:new THREE.Vector3(0,0,0)}, // (2026-10-25) LES ÉTOILES JOUENT LA MUSIQUE (orbite) : x = basses, y = médiums, z = aigus — l'excès de chaque bande sur sa moyenne, 0..1 (voir musicTick)
   uEtK:{value:1.5}, // (2026-10-22) pixels de rendu par pixel CSS (`renderer.getPixelRatio()`, posé par orbiteTick) : les étoiles de l'orbite gardent la même taille sur tous les téléphones
   uSpace:{value:0}, // NIVEAU ORBITE (2026-09-24) : 0 = le ciel de toujours AU PIXEL PRÈS, 1 = le noir étoilé (piloté par lvlStep)
   uPulse:{value:0}, // MUSIQUE : le ciel respire en rythme (piloté par l'analyseur audio, 0 = neutre = rendu d'origine)
@@ -9130,7 +9131,7 @@ const skyDome=(function(){
       '#endif',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse,uRose;', // grade biome (identité par défaut) + uPulse musique
       'uniform vec3 uFd[8];uniform vec3 uVc[6];', // (2026-10-16) LES TEINTES DE LA VILLE : les couleurs fixes du dégradé et du ciel de la ville (valeurs d'origine hors ville teintée)
-      'uniform float uSpace,uNeb,uEtK;', // NIVEAU ORBITE : 0 = aucun effet · uNeb : les nébuleuses (2026-10-15) · uEtK : pixels de rendu par pixel CSS, pour la taille des étoiles (2026-10-22)
+      'uniform float uSpace,uNeb,uEtK;uniform vec3 uBandes;', // NIVEAU ORBITE : 0 = aucun effet · uNeb : les nébuleuses (2026-10-15) · uEtK : pixels de rendu par pixel CSS, pour la taille des étoiles (2026-10-22)
       'uniform float uJour,uMerLoin,uCiel2;uniform vec3 uJZen,uJMid,uJHor,uJSol;uniform vec4 uMzA,uMzB,uMzT,uMzO,uMzH;', // (2026-09-30) LE JOUR D ALTITUDE : 0 = le ciel d avant, au bit près
       'uniform float uLvl,uSpin,uBeatK,uFlip,uBar,uHi,uWave,uHueAmp;uniform vec3 uAcc,uAcc2;uniform vec4 uRingR,uRingA;', // LE FOND DU NIVEAU
       'float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
@@ -9820,7 +9821,7 @@ const skyDome=(function(){
       '  c=mix(c,vec3(1.,.76,.52),smoothstep(.62,1.,t));',                          // et plus du tiers qui chauffe vers l orangé
       '  return mix(vec3(1.),c,s);}',
       // UNE classe : A = (rangées par unité de y, graine, part des cellules habitées, rayon du cœur en pixels CSS) · B = (éclat min, éclat max, halo, échelle du halo en pixels CSS) · C = (teinte, scintillement, pouls, marge)
-      'vec3 voute(float y,float u0,float pa,vec4 A,vec4 B,vec4 C){',
+      'vec3 voute(float y,float u0,float pa,vec4 A,vec4 B,vec4 C,float bd){',
       '  float row=floor(y*A.x),yc=(row+.5)/A.x,cc=sqrt(max(1.-yc*yc,.02));',      // la rangée, et le cosinus de sa latitude
       '  float M=max(3.,floor(6.2832*A.x*cc*cc+.5)),u=u0*M,ci=floor(u);',          // les cellules de la rangée : de même aire d une rangée à l autre
       '  vec2 id=vec2(row,ci)+A.y;',
@@ -9831,18 +9832,18 @@ const skyDome=(function(){
       '  if(r>3.2*sg+3.*hs)return vec3(0.);',
       '  float q=hash21(id+41.7),ph=hash21(id+53.9);',
       '  float k=exp(-.5*r*r/(sg*sg))+B.z*exp(-r/max(hs,.001));',                  // le cœur, et son halo
-      '  return vouteTeinte(hash21(id+7.9),C.x)*mix(B.x,B.y,q*q)*k*(1.+C.y*sin(uTime*(.45+ph*1.1)+ph*40.))*(1.+uPulse*C.z);}',
+      '  return vouteTeinte(hash21(id+7.9),C.x)*mix(B.x,B.y,q*q)*k*(1.+C.y*sin(uTime*(.45+ph*1.1)+ph*40.))*(1.+uPulse*C.z)*(1.+bd*step(.35,hash21(id+63.1)));}', /* (2026-10-25) LES ÉTOILES JOUENT : bd = la bande de sa classe (basses : les brillantes · médiums : les moyennes · aigus : les petites et le voile), 65 % des étoiles de la classe y répondent — très léger */
       'void cielPoussiere(inout vec3 col,float y,float az){',
       '  float pa=max(sqrt(length(cross(dFdx(vDir),dFdy(vDir)))),1e-5),u0=az*.159155+.5;',    // l angle que couvre un pixel
       '  vec3 d=vDir;float b=dot(d,normalize(vec3(.78,.38,-.50))),bl=exp(-b*b*9.),bc=exp(-b*b*55.);', // la bande de la voie lactée : large, et son cœur
       '  float c1=sin(d.x*8.3+d.z*6.1+1.7)*sin(d.y*9.7-d.x*5.1+.6)+.7*sin(d.z*13.1+d.y*7.3-1.1)*sin(d.x*11.3+d.z*8.1+2.4);', // des plages plus ou moins peuplées
       '  float c2=sin(d.x*10.7-d.y*6.1+.3)*sin(d.z*9.3+d.y*11.9+1.9)+.7*sin(d.y*14.1+d.x*7.7+2.2)*sin(d.z*12.1-d.x*9.9-.5);',
       '  float fa=.8+.8*bl+.6*bc;',
-      '  vec3 s=voute(y,u0,pa,vec4(50.,3.1,min(.9,.22*fa*exp(c1*.40)),.45),vec4(.10,.36,0.,0.),vec4(.35,0.,0.,.04));',                 // le voile : des grains très faibles, sur DEUX grilles de pas différents (une seule laisse voir ses rangées là où elle est dense)
-      '  s+=voute(y,u0,pa,vec4(33.,5.3,min(.9,.20*fa*exp(c2*.40)),.45),vec4(.10,.36,0.,0.),vec4(.35,0.,0.,.04));',
-      '  s+=voute(y,u0,pa,vec4(22.,7.7,min(.9,.38*(.9+.7*bl+.4*bc)*exp(c2*.35)),.52),vec4(.28,.75,0.,0.),vec4(.55,.06,.3,.06));',       // les petites
-      '  s+=voute(y,u0,pa,vec4(11.,11.3,min(.9,.42*(1.+.4*bl)*exp((c1+c2)*.18)),.68),vec4(.60,1.15,.14,1.7),vec4(.8,.10,.7,.15));',   // les moyennes
-      '  s+=voute(y,u0,pa,vec4(5.4,19.9,.55,.95),vec4(1.2,2.,.20,3.),vec4(1.,.10,1.,.22));',                                         // les brillantes
+      '  vec3 s=voute(y,u0,pa,vec4(50.,3.1,min(.9,.22*fa*exp(c1*.40)),.45),vec4(.10,.36,0.,0.),vec4(.35,0.,0.,.04),uBandes.z*.35);',                 // le voile : des grains très faibles, sur DEUX grilles de pas différents (une seule laisse voir ses rangées là où elle est dense)
+      '  s+=voute(y,u0,pa,vec4(33.,5.3,min(.9,.20*fa*exp(c2*.40)),.45),vec4(.10,.36,0.,0.),vec4(.35,0.,0.,.04),uBandes.z*.35);',
+      '  s+=voute(y,u0,pa,vec4(22.,7.7,min(.9,.38*(.9+.7*bl+.4*bc)*exp(c2*.35)),.52),vec4(.28,.75,0.,0.),vec4(.55,.06,.3,.06),uBandes.z*.5);',       // les petites
+      '  s+=voute(y,u0,pa,vec4(11.,11.3,min(.9,.42*(1.+.4*bl)*exp((c1+c2)*.18)),.68),vec4(.60,1.15,.14,1.7),vec4(.8,.10,.7,.15),uBandes.y*.5);',   // les moyennes
+      '  s+=voute(y,u0,pa,vec4(5.4,19.9,.55,.95),vec4(1.2,2.,.20,3.),vec4(1.,.10,1.,.22),uBandes.x*.6);',                                         // les brillantes
       '  col+=s*uSpace*uNeb;}',
     ],
     lune:[
@@ -9919,7 +9920,7 @@ const skyDome=(function(){
       '    gl_FragColor=vec4(cv,1.);return;}',
       '  float y=vDir.y;',
       '  vec3 col=cielFond(y);',
-      '  if(uSpace*uNeb>.001)cielEspace(col);', // (2026-10-15) ORBITE : voie lactée et nébuleuses
+      /* (2026-10-25, Sacha : « remets le ciel noir dans l'espace, enlève les couleurs de nébuleuses et tout ») plus d'appel à cielEspace : ni voie lactée ni nébuleuses, le noir et les étoiles */
       '  float sd=max(dot(vDir,uSunDir),0.);',      // couchant : halo rosé large, couronne corail, coeur incandescent (tamisé)
       '  cielMer(col,y,sd);', // NUAGES : la mer de nuages sous l horizon (voir merNuages)
       '  cielJour(col,y,sd);', // (2026-09-30) le jour d altitude : la lueur du soleil sur l horizon
@@ -9947,7 +9948,7 @@ const skyDome=(function(){
        d'un niveau que la trame de la passe nette ne ferait que redessiner — on arrondit donc au hasard, juste. En demi-flottant : 0. */
     basN:[LECT_TR,
       'void main(){',
-      '  float y=vDir.y;vec3 col=cielFond(y);if(uSpace*uNeb>.001)cielEspace(col);float sd=max(dot(vDir,uSunDir),0.);', // (2026-10-15) + l espace profond
+      '  float y=vDir.y;vec3 col=cielFond(y);float sd=max(dot(vDir,uSunDir),0.);', // (2026-10-15) + l espace profond
       '  cielMer(col,y,sd);cielJour(col,y,sd);cielSoleil(col,sd);if(uTi.x>.001)cielTitre(col,vDir,y,sd);cielArcEC(col,vDir,y);',
       '  if(cielGOn(y,sd))cielGuirlande(col,y,atan(vDir.x,-vDir.z),sd);',
       '  cielVoile(col,y);',
@@ -28908,7 +28909,7 @@ const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau da
    Banc / lien de test : `?carte=jade&meteo=orage` impose le 1er couple ; `dbgClassique('ville','soir')` impose le suivant (puis dbgSaut()).
    ========================================================================== */
 const SF={on:!/[?&](classique=cycle|play=sansfin)\b/.test(location.search),pret:false,neuf:false,tirage:[],der:null,force:null,prochain:null,prochainDer:null};
-const SF_HORS={vitree:VILLE_VERRE_V&&!/[?&]vitree=1\b/.test(location.search),crypto:ALLEGE&&!/[?&](carte|niveau)=crypto\b/.test(location.search),foret:ALLEGE&&!/[?&]carte=foret\b/.test(location.search)}; /* ⚠ TEL_NATIF, PAS l'ancien drapeau mobile (2026-10-25, Sacha : « sur PC la qualité a chuté ») : `l'ancien drapeau mobile` est vrai AUSSI sur l'ordi qui joue l'édition 'mobile' (FORCE_TEL, voir EDITION) — les retraits « téléphone » du 24/10 tombaient donc sur le PC. */ /* (2026-10-24, Sacha : « enlève les maps dunes et forêt de la version mobile ») LA FORÊT n'est plus tirée sur téléphone (l'ordi la garde) · (2026-10-25, Léo : « remets la map dune dans le main, intelligible pour un iPhone 13 ») LES DUNES sont REVENUES au tirage du téléphone, allégées (DN_MOB, dunes-1.js ; `?dunesplein=1` rend l'image d'avant) ; `?carte=foret` / `?carte=dunes` les remettent */ /* (2026-10-24, Sacha : « supprime la map crypto city de téléphone ») CRYPTO CITY n'est plus tirée sur téléphone (l'ordi la garde) ; `?carte=crypto` la remet pour les essais */
+const SF_HORS={vitree:VILLE_VERRE_V&&!/[?&]vitree=1\b/.test(location.search),crypto:ALLEGE&&!/[?&](carte|niveau)=crypto\b/.test(location.search)}; /* ⚠ TEL_NATIF, PAS l'ancien drapeau mobile (2026-10-25, Sacha : « sur PC la qualité a chuté ») : `l'ancien drapeau mobile` est vrai AUSSI sur l'ordi qui joue l'édition 'mobile' (FORCE_TEL, voir EDITION) — les retraits « téléphone » du 24/10 tombaient donc sur le PC. */ /* (2026-10-24, Sacha : « enlève les maps dunes et forêt de la version mobile ») LA FORÊT n'est plus tirée sur téléphone (l'ordi la garde) · (2026-10-25, Léo : « remets la map dune dans le main, intelligible pour un iPhone 13 ») LES DUNES sont REVENUES au tirage du téléphone, allégées (DN_MOB, dunes-1.js ; `?dunesplein=1` rend l'image d'avant) ; `?carte=foret` / `?carte=dunes` les remettent */ /* (2026-10-24, Sacha : « supprime la map crypto city de téléphone ») CRYPTO CITY n'est plus tirée sur téléphone (l'ordi la garde) ; `?carte=crypto` la remet pour les essais */ /* (2026-10-25, Léo : « remets forêt sur iPhone ») LA FORÊT est REVENUE au tirage du téléphone (elle y garde son allègement : arbres ×0,8, MOB) ; l'ordi la gardait déjà */
 /* (2026-10-18, Sacha : « fusionne les maps ville et ville vitrée ») les maps HORS DU TIRAGE — jouables par ?carte= et dbgClassique (voir VILLE_VERRE_V) */
 {const q9=/[?&]carte=(\w+)/.exec(location.search)||(/[?&]niveau=crypto\b/.test(location.search)?[0,'crypto']:null),m9=/[?&]meteo=(\w+)/.exec(location.search),t9=/[?&]teinte=(\w+)/.exec(location.search);if(q9||m9)SF.force={carte:q9?q9[1]:null,meteo:m9?m9[1]:null,teinte:t9?t9[1]:null};} // (2026-10-16) + `?teinte=` (la ville : violet, vert, jaune, bleu)
 const SF_NIV={nuages:NIVEAUX.find(function(n){return n.id==='nuages';}),orage:NIVEAUX.find(function(n){return n.id==='orage';}),
@@ -46047,6 +46048,10 @@ const PWR_EGAUX=PWR_LIGNE; // les cinq pouvoirs à la même fréquence
    ⚠ l'échelle des prix est géométrique (×5 environ) parce que l'économie du jeu l'est : les paliers
    moteur vont de 5 à 2 854 et la valeur d'une pièce suit. Une échelle linéaire rendrait les
    premières caisses interminables et les dernières gratuites. */
+/* ===== TOUS LES PRIX ×10, SAUF LA ZAGAIE (2026-10-25, Sacha : « tous les items du jeu, tous leurs prix des trucs que tu peux acheter, tu rajoutes un 0 à la fin de chacun de leurs prix. sauf la zagate ») =====
+   Les `p:` ci-dessous (et ceux des habillages dans boutique.js, des figures dans figures.js, des quatre caisses de carnet PX9 dans missions/table.js) sont les prix
+   d'AUJOURD'HUI ; les commentaires datés qui les accompagnent citent les prix d'AVANT. LA ZAGAIE (index 88) garde 3 500 000. Les caisses RETIRÉES gardent leur
+   ancien prix : il ne sert qu'au REMBOURSEMENT de qui les avait payées à l'époque. Les prix en € des premium (`eur`) ne bougent pas. */
 const CAR_UNLOCK=[
   /* (2026-10-06, Léo : « fiche-voitures-cash-car.txt — applique les changements ») LA GAMME RESSERRÉE : 43 caisses jouables. Prix et
      familles de la fiche ; les 25 supprimées gardent leur ligne (`retire:1` dans CARS, leur prix ici sert au REMBOURSEMENT de san) ;
@@ -46057,10 +46062,10 @@ const CAR_UNLOCK=[
      automatique (`dbgAuto`, aucune figure, aucun nitro) encaisse ~2 600 $ en une minute avant de tomber ;
      un débutant fait 200 à 1 000 $. L'ancien 25 000 $ demandait donc ~30 parties pour la 1re caisse :
      un mur. Cible : la 1re caisse en 10-15 min de jeu (parties + primes de contrat), puis ×6-7 par marche. */
-  {p:50e3},/* (2026-10-22, Sacha : « tableau des voitures » 40 000 → 50 000) */// ELDORADO — (2026-10-17, Sacha : « pas 3 000 dollars, elle doit coûter 40 000 dollars » — 3 000 → 40 000, juste sous LE CAÏD (50 000) ; le même jour LE CHARGEUR (60 000), LA BAVAROISE (100 000) et LE DÉFIEUR (120 000) montent aussi : l'ELDORADO reste la 1re caisse à l'argent) — (2026-10-14 soir, Sacha : option A de passation/ECONOMIE.md — 10 000 → 3 000 : la 1re caisse en 3-4 parties de joueur moyen, aucun gain ne change) — (2026-10-14, équilibrage : 24 000 → 10 000 — la 1re caisse à l'argent depuis le retrait des communes : un débutant l'avait en ~58 parties, ~22 désormais) — (2026-09-26) RARE : les 14 COMMUNES (1 500 → 15 000 $) prennent le rôle de « première caisse »
-  {p:60e3},/* (2026-10-22, Sacha : « tableau des voitures » 180 000 → 60 000) */ // LE CAÏD — RARE (2026-10-06 : 60 000 → 50 000) ; 50 000 → 180 000 : c'est le HUMMER EV désormais ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
+  {p:500e3},/* (2026-10-22, Sacha : « tableau des voitures » 40 000 → 50 000) */// ELDORADO — (2026-10-17, Sacha : « pas 3 000 dollars, elle doit coûter 40 000 dollars » — 3 000 → 40 000, juste sous LE CAÏD (50 000) ; le même jour LE CHARGEUR (60 000), LA BAVAROISE (100 000) et LE DÉFIEUR (120 000) montent aussi : l'ELDORADO reste la 1re caisse à l'argent) — (2026-10-14 soir, Sacha : option A de passation/ECONOMIE.md — 10 000 → 3 000 : la 1re caisse en 3-4 parties de joueur moyen, aucun gain ne change) — (2026-10-14, équilibrage : 24 000 → 10 000 — la 1re caisse à l'argent depuis le retrait des communes : un débutant l'avait en ~58 parties, ~22 désormais) — (2026-09-26) RARE : les 14 COMMUNES (1 500 → 15 000 $) prennent le rôle de « première caisse »
+  {p:600e3},/* (2026-10-22, Sacha : « tableau des voitures » 180 000 → 60 000) */ // LE CAÏD — RARE (2026-10-06 : 60 000 → 50 000) ; 50 000 → 180 000 : c'est le HUMMER EV désormais ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
   {p:180e3},            // (2026-10-06 : RETIRÉE, le prix sert au remboursement) SA MAJESTÉ — RARE, la plus chère des rares : l'argent achète la Rolls, c'est même à ça qu'il sert
-  {p:400e3},/* (2026-10-22, Sacha : « tableau des voitures » 4 000 000 → 400 000) */ // (2026-10-19 : 2,5 M → 4 M, la plus chère des caisses à l'argent du jeu ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) (2026-10-06 : 1,5 M → 2,5 M) ROSSO 40 — (2026-09-25 : le mode Survivant est retiré, un seul mode de jeu) la caisse de RÊVE, à 1,5 M
+  {p:4e6},/* (2026-10-22, Sacha : « tableau des voitures » 4 000 000 → 400 000) */ // (2026-10-19 : 2,5 M → 4 M, la plus chère des caisses à l'argent du jeu ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) (2026-10-06 : 1,5 M → 2,5 M) ROSSO 40 — (2026-09-25 : le mode Survivant est retiré, un seul mode de jeu) la caisse de RÊVE, à 1,5 M
   {k:'premium',eur:'1,61 €',rar:'leg'},/* (2026-10-22, Sacha : « tableau des voitures » : POSTER 84 en boutique à 1,61 €, légendaire ; avant : rang d'aura MYTHE) */ // POSTER 84 — le poster se mérite au style : rang MYTHE, l'argent n'y peut rien
   {k:'carnet',v:1},     // LA BULLE — contrat n° 1
   {k:'carnet',v:2},     // LE COMBI — contrat n° 2
@@ -46072,7 +46077,7 @@ const CAR_UNLOCK=[
   {k:'premium',eur:'4,99 €',rar:'leg'},       // FORMULE OR — (2026-10-06) RETIRÉE
   {k:'premium',eur:'2,99 €',rar:'leg'},       // LE MANS 24 — (2026-10-06) RETIRÉE
   {k:'premium',eur:'2,99 €',rar:'leg'},       // EL PATRON — (2026-10-06) RETIRÉE
-  {p:200000},/* (2026-10-22, Sacha : « tableau des voitures » 550 000 → 200 000) */ // (2026-10-19 : 750 000 → 550 000, la plus abordable des épiques ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) ACIDE — (2026-10-06) ÉPIQUE à l'argent du jeu (était en boutique, 1,99 €)
+  {p:2000000},/* (2026-10-22, Sacha : « tableau des voitures » 550 000 → 200 000) */ // (2026-10-19 : 750 000 → 550 000, la plus abordable des épiques ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) ACIDE — (2026-10-06) ÉPIQUE à l'argent du jeu (était en boutique, 1,99 €)
 /* ===== LES CONDITIONS DES 50 — DÉBUT ===== */
   {p:1500}, // LA POSTIÈRE — (2026-10-06) RETIRÉE
   {p:2000}, // LA DEUCHE — (2026-10-06) RETIRÉE
@@ -46084,39 +46089,39 @@ const CAR_UNLOCK=[
   {p:6000}, // LE GLACIER
   {p:7000}, // LE TOUT-TERRAIN SOVIÉTIQUE
   {p:8000}, // LE GRILLE-PAIN — (2026-10-06) RETIRÉE
-  {p:300000}, // LE CORBILLARD — (2026-10-06) RARE (était commune, 9 000 $)
+  {p:3000000}, // LE CORBILLARD — (2026-10-06) RARE (était commune, 9 000 $)
   {p:10000}, // LA SANS-PERMIS — (2026-10-06) RETIRÉE
   {p:12000}, // L'AUTO-ÉCOLE — (2026-10-06) RETIRÉE
   {p:15000}, // LE PICK-UP DU FERMIER — (2026-10-06) RETIRÉE
   {p:20000}, // L'AMBASSADEUR — (2026-10-06) RETIRÉE
-  {p:60000}, // LE CHARGEUR — (2026-10-17, Sacha : « le chargeur, il doit coûter 60 000 dollars » : 6 000 → 60 000) — (2026-10-14 soir, option A : 16 000 → 6 000, la 1re marche de transition ; les communes retirées n'ont plus de modèle) — (2026-10-14, équilibrage : 26 000 → 16 000 — une marche douce ×1,5 au bas de la gamme)
-  {p:120000}, // LE DÉFIEUR — (2026-10-17, Sacha : « tu mets son prix à 120 000 dollars » : 10 000 → 120 000, avec sa refonte en robot jaune) — (2026-10-14 soir, option A : 24 000 → 10 000, la 2e marche) — (2026-10-14, équilibrage : 32 000 → 24 000)
-  {p:100000}, // LA BAVAROISE — (2026-10-17, Sacha : « cent mille dollars » — 20 000 → 100 000, le jour du KIT RALLYE : elle passe entre LA SILENCIEUSE 90 000 et LE SAMOURAÏ 120 000) — (2026-10-14 soir, PILOTAGE après l'option A : 42 000 → 20 000, la marche à ×2 entre LE DÉFIEUR 10 000 et LE CAÏD 50 000) — (2026-10-06 : 38 000 → 42 000)
+  {p:600000}, // LE CHARGEUR — (2026-10-17, Sacha : « le chargeur, il doit coûter 60 000 dollars » : 6 000 → 60 000) — (2026-10-14 soir, option A : 16 000 → 6 000, la 1re marche de transition ; les communes retirées n'ont plus de modèle) — (2026-10-14, équilibrage : 26 000 → 16 000 — une marche douce ×1,5 au bas de la gamme)
+  {p:1200000}, // LE DÉFIEUR — (2026-10-17, Sacha : « tu mets son prix à 120 000 dollars » : 10 000 → 120 000, avec sa refonte en robot jaune) — (2026-10-14 soir, option A : 24 000 → 10 000, la 2e marche) — (2026-10-14, équilibrage : 32 000 → 24 000)
+  {p:1000000}, // LA BAVAROISE — (2026-10-17, Sacha : « cent mille dollars » — 20 000 → 100 000, le jour du KIT RALLYE : elle passe entre LA SILENCIEUSE 90 000 et LE SAMOURAÏ 120 000) — (2026-10-14 soir, PILOTAGE après l'option A : 42 000 → 20 000, la marche à ×2 entre LE DÉFIEUR 10 000 et LE CAÏD 50 000) — (2026-10-06 : 38 000 → 42 000)
   {p:45000}, // LA SUÉDOISE TURBO — (2026-10-06) RETIRÉE
   {p:52000}, // LE QUATTRO — (2026-10-06) RETIRÉE
-  {p:90000}, // LA SILENCIEUSE (2026-10-06 : 70 000 → 90 000)
+  {p:900000}, // LA SILENCIEUSE (2026-10-06 : 70 000 → 90 000)
   {p:85000}, // LE TRIDENT — (2026-10-06) RETIRÉE
   {p:100000}, // LA HUIT — (2026-10-06) RETIRÉE
-  {p:120000}, // LE SAMOURAÏ
-  {p:90000},/* (2026-10-22, Sacha : « tableau des voitures » 140 000 → 90 000) */ // LA VETTE
+  {p:1200000}, // LE SAMOURAÏ
+  {p:900000},/* (2026-10-22, Sacha : « tableau des voitures » 140 000 → 90 000) */ // LA VETTE
   {p:160000}, // LE CHÂTELAIN — (2026-10-06) RETIRÉE
-  {p:130000},/* (2026-10-22, Sacha : « tableau des voitures » 200 000 → 130 000) */ // LA GRANDE ANGLAISE
-  {p:70000},/* (2026-10-22, Sacha : « tableau des voitures » 300 000 → 70 000) */ // LE CHARGEUR 69
+  {p:1300000},/* (2026-10-22, Sacha : « tableau des voitures » 200 000 → 130 000) */ // LA GRANDE ANGLAISE
+  {p:700000},/* (2026-10-22, Sacha : « tableau des voitures » 300 000 → 70 000) */ // LE CHARGEUR 69
   {p:380000}, // L'ÉTALON — (2026-10-06) RETIRÉE
-  {p:800000}, // LA QUEUE DE CANARD — (2026-10-19) 550 000 → 800 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) — (2026-10-18, Léo) 460 000 → 550 000 : épique, elle passe au-dessus des exotiques (LA GROUPE B 500 000)
+  {p:8000000}, // LA QUEUE DE CANARD — (2026-10-19) 550 000 → 800 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) — (2026-10-18, Léo) 460 000 → 550 000 : épique, elle passe au-dessus des exotiques (LA GROUPE B 500 000)
   {p:550000}, // LA DAYTONA
-  {p:1200000}, // LA TAURINE — (2026-10-19) 650 000 → 1 200 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
-  {p:750000}, // LA STRATOS
-  {p:850000}, // LA NOCTAMBULE (ex-LA CHAUVE-SOURIS — renommée le 2026-10-14, Sacha : nom trop proche de Batman pour la revue App Store)
+  {p:12000000}, // LA TAURINE — (2026-10-19) 650 000 → 1 200 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
+  {p:7500000}, // LA STRATOS
+  {p:8500000}, // LA NOCTAMBULE (ex-LA CHAUVE-SOURIS — renommée le 2026-10-14, Sacha : nom trop proche de Batman pour la revue App Store)
   {p:950000}, // LA PAGODE — (2026-10-06) RETIRÉE
   {p:1100000}, // LA DÉESSE — (2026-10-06) RETIRÉE
-  {p:800000}, // L'AIGLE DE FEU (2026-10-06 : 1,3 M → 1 M) (2026-10-09, Léo, fiche de la salle blanche) RARE à 800 000 : entre LA QUEUE DE CANARD et LA NOCTAMBULE (ex-LA CHAUVE-SOURIS), l'ordre de la fiche
+  {p:8000000}, // L'AIGLE DE FEU (2026-10-06 : 1,3 M → 1 M) (2026-10-09, Léo, fiche de la salle blanche) RARE à 800 000 : entre LA QUEUE DE CANARD et LA NOCTAMBULE (ex-LA CHAUVE-SOURIS), l'ordre de la fiche
   {p:600000}, // (2026-10-19) 1 600 000 → 600 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) — // LA ZED
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LA FÉLINE — (2026-10-06) LÉGENDAIRE en boutique (était épique, 2 M)
-  {p:260000},/* (2026-10-22, Sacha : « tableau des voitures » 2 500 000 → 260 000) */ // LA RAIE — (2026-10-18, Sacha) REMISE dans le jeu : épique à 2,5 M, comme avant le 6/10 (« DÉFI À VENIR » du 6 au 14/10, retirée ensuite)
+  {p:2600000},/* (2026-10-22, Sacha : « tableau des voitures » 2 500 000 → 260 000) */ // LA RAIE — (2026-10-18, Sacha) REMISE dans le jeu : épique à 2,5 M, comme avant le 6/10 (« DÉFI À VENIR » du 6 au 14/10, retirée ensuite)
   {k:'premium',eur:'1,61 €',rar:'leg'},/* (2026-10-22, Sacha : « tableau des voitures » : L'ÉTERNELLE en boutique à 1,61 €, légendaire ; avant : 100 parties) */ // L'ÉTERNELLE — (2026-10-14, PILOTAGE) DÉFI : 100 PARTIES jouées (`ex.runs`, déjà compté : les parties passées valent) — c'était 100 pubs, impossible depuis qu'il n'y a plus de pubs — (2026-10-06) DÉFI : 100 pubs (était en boutique, 9,99 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE TRÔNE CENTRAL (2026-10-06 : 7,99 → 1,61 €)
-  {p:420000},/* (2026-10-22, Sacha : « tableau des voitures » : LE SPECTRE à l'argent, 420 000 $, épique ; avant : 1,61 €) */ // LE SPECTRE (2026-10-06 : 7,99 → 1,61 €)
+  {p:4200000},/* (2026-10-22, Sacha : « tableau des voitures » : LE SPECTRE à l'argent, 420 000 $, épique ; avant : 1,61 €) */ // LE SPECTRE (2026-10-06 : 7,99 → 1,61 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE BLINDÉ NOIR (2026-10-21, Sacha : 9,99 → 1,61 €) (ex-LE CHEVALIER NOIR — renommé le 2026-10-14, Sacha : nom trop proche de Batman pour la revue App Store)
   {k:'premium',eur:'1,61 €',rar:'leg'},/* (2026-10-22, Sacha : « tableau des voitures » : 0,99 → 1,61 €) */ // LE MUR DU SON (2026-10-06 : 6,99 → 0,99 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE DRAGON D'OR (2026-10-21, Sacha : 9,99 → 1,61 €)
@@ -46127,46 +46132,46 @@ const CAR_UNLOCK=[
 /* ===== LES CONDITIONS DES 50 — FIN ===== */
   {p:1800000,exK:'carrN',exV:5}, // LA CAISSE-NUAGE — (2026-10-18) la carrière retirée : à l'argent du jeu (le prix de l'ancienne édition Poki, depuis le 14/10) ; exK/exV : la condition d'avant (les 5 niveaux de SKY HIGH), gagnée = la caisse est à toi (voir la migration après SAVE.load)
   {p:2200000,exK:'carrV',exV:5}, // LE LINGOT — (2026-10-18) idem : les 5 niveaux de la VILLE gagnés = il est à toi
-  {p:280000},/* (2026-10-22, Sacha : « tableau des voitures » : L'ORIGAMI à l'argent, 280 000 $ ; avant : mission « joue sur chaque map ») */ // (2026-10-02) L'ORIGAMI — ÉPIQUE, à l'argent : entre LA DÉESSE et L'AIGLE DE FEU
-  {p:900000}, // (2026-10-06) ATCHOUM — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 900 000 : entre LA STRATOS et L'ORIGAMI, l'ordre de la fiche
+  {p:2800000},/* (2026-10-22, Sacha : « tableau des voitures » : L'ORIGAMI à l'argent, 280 000 $ ; avant : mission « joue sur chaque map ») */ // (2026-10-02) L'ORIGAMI — ÉPIQUE, à l'argent : entre LA DÉESSE et L'AIGLE DE FEU
+  {p:9000000}, // (2026-10-06) ATCHOUM — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 900 000 : entre LA STRATOS et L'ORIGAMI, l'ordre de la fiche
   {k:'premium',eur:'1,61 €',rar:'leg'}, // (2026-10-21, Sacha : « remplace le shark par l'autre requin de Léo, à 1,61 € ») LE SQUALE passe en boutique, ex-700 000 (la mission secrète `abysse` ne le donne plus : elle paie de l'argent, voir missions/table.js — sinon le patch des missions le remettait en `k:'mis'` et il disparaissait de la boutique) ; (2026-10-08) LE SQUALE — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 700 000 : entre LA TAURINE et ACIDE, l'ordre de la fiche
   {p:3000000}, // (2026-10-09, Léo : « fais-en une hyper abstraite mais travaillée, concept, ajoute-la à la liste ») L'ABSTRAITE — ÉPIQUE, la plus chère des épiques (juste après ROSSO 40)
-  {p:3200000}, // (2026-10-10, Léo : « une nouvelle abstraite, en glace, genre iceberg ») L'ICEBERG — ÉPIQUE, juste après L'ABSTRAITE
+  {p:32000000}, // (2026-10-10, Léo : « une nouvelle abstraite, en glace, genre iceberg ») L'ICEBERG — ÉPIQUE, juste après L'ABSTRAITE
   {p:3400000}, // (2026-10-10, Léo : « une voiture flamme ») LA FOURNAISE — ÉPIQUE, juste après L'ICEBERG
   {p:3600000}, // (2026-10-10, Léo : « une abstraite type eau ») LA DÉFERLANTE — ÉPIQUE, juste après LA FOURNAISE
   {p:3800000}, // (2026-10-11, Léo : « génère-la en 3D dans mon jeu ») LA MERCURE — ÉPIQUE, juste après LA DÉFERLANTE
-  {p:4000000}, // (2026-10-14, Léo : « fais une voiture tête de doge ») LE DOGE — ÉPIQUE, juste après LA MERCURE
+  {p:40000000}, // (2026-10-14, Léo : « fais une voiture tête de doge ») LE DOGE — ÉPIQUE, juste après LA MERCURE
   {p:4200000}, // (2026-10-16, Léo : « une belle Porsche Cayenne rose Barbie ») LA POUPÉE — ÉPIQUE, juste après LE DOGE
-  {p:240000},/* (2026-10-22, Sacha : « tableau des voitures » 2 000 000 → 240 000) */ // (2026-10-19) 4 400 000 → 2 000 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) (2026-10-16, Léo : « Taycan 4S », blanche, « la perle ») LA PERLE — ÉPIQUE, juste après LA POUPÉE
+  {p:2400000},/* (2026-10-22, Sacha : « tableau des voitures » 2 000 000 → 240 000) */ // (2026-10-19) 4 400 000 → 2 000 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) (2026-10-16, Léo : « Taycan 4S », blanche, « la perle ») LA PERLE — ÉPIQUE, juste après LA POUPÉE
   /* LES NOUVELLES VOITURES (2026-10-18) — prix provisoires (réglables dans la salle blanche) : communes 2 500 → 8 000 $, rares 25 000 → 50 000 $ */
   /* · */
   /* · */
   /* · */
-  {p:2500}, // 79 — COMMUNE : la berline rose des Simpson
+  {p:25000}, // 79 — COMMUNE : la berline rose des Simpson
   /* · */
   /* · */
   /* · */
-  {p:3000}, // 80 — COMMUNE : Fiat 500 (2007), finition « 1957 »
+  {p:30000}, // 80 — COMMUNE : Fiat 500 (2007), finition « 1957 »
   /* · */
   /* · */
   /* · */
-  {p:4000}, // 81 — COMMUNE : Toyota Corolla berline (2019)
+  {p:40000}, // 81 — COMMUNE : Toyota Corolla berline (2019)
   /* · */
   /* · */
   /* · */
-  {p:8000}, // 82 — COMMUNE : Jeep Wrangler JL (2018)
+  {p:80000}, // 82 — COMMUNE : Jeep Wrangler JL (2018)
   /* · */
   /* · */
   /* · */
-  {p:6000}, // 83 — COMMUNE : Mazda MX-5 NA (1989), phares escamotables
+  {p:60000}, // 83 — COMMUNE : Mazda MX-5 NA (1989), phares escamotables
   /* · */
   /* · */
   /* · */
-  {p:25000}, // 84 — RARE : Reliant Robin (trois roues)
+  {p:250000}, // 84 — RARE : Reliant Robin (trois roues)
   /* · */
   /* · */
   /* · */
-  {p:80000},/* (2026-10-22, Sacha : « tableau des voitures » 50 000 → 80 000) */ // 85 — RARE : Mazda MX-5 RF (2016), argent
+  {p:800000},/* (2026-10-22, Sacha : « tableau des voitures » 50 000 → 80 000) */ // 85 — RARE : Mazda MX-5 RF (2016), argent
   /* · */
   /* · */
   /* · */
@@ -46174,7 +46179,7 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {p:220000},/* (2026-10-22, Sacha : « tableau des voitures » 1 500 000 → 220 000) */ // 87 — ÉPIQUE : Peugeot 208 T16 Pikes Peak (2013), LA BÊTE — (2026-10-19) 1 000 000 → 1 500 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
+  {p:2200000},/* (2026-10-22, Sacha : « tableau des voitures » 1 500 000 → 220 000) */ // 87 — ÉPIQUE : Peugeot 208 T16 Pikes Peak (2013), LA BÊTE — (2026-10-19) 1 000 000 → 1 500 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
   /* · */
   /* · */
   /* · */
@@ -46182,7 +46187,7 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {p:5000000}, // 89 — LÉGENDAIRE : LE LOUP, la Countach blanche du film (2026-10-22, Léo : « genere la blanche ressemblance 11/10 ») — prix provisoire (la caisse la plus chère de la boutique à pièces)
+  {p:50000000}, // 89 — LÉGENDAIRE : LE LOUP, la Countach blanche du film (2026-10-22, Léo : « genere la blanche ressemblance 11/10 ») — prix provisoire (la caisse la plus chère de la boutique à pièces)
   /* · */
   /* · */
   /* · */
@@ -46301,7 +46306,7 @@ const M2R={lv:'',sonne:false,ctl:0,vie:0,parf:0,lac:0,tourV:[],run:[],t:0,deb:fa
   /* les quatre caisses des carnets 6 à 9 (LA PUCE, LA GROUPE B, LE HOT ROD, LE MASTODONTE) ne sont la récompense d'aucune mission v2 : sans
      carnet, plus personne ne pourrait les avoir. Elles passent à l'argent du jeu (prix posés par Claude, À VALIDER PAR SACHA), comme les
      trophées de la carrière ; leur rareté ne bouge pas ; `exK`/`exV` gardent le carnet — qui l'avait relevé l'a dans `owned` (m2MigreV2). */
-  const PX9={6:30e3,7:500e3,8:800e3,9:1e6}; // (2026-10-19, Léo : la grille des prix) LA PUCE 400 000 → 30 000 : une Mini, la moins chère des rares
+  const PX9={6:300e3,7:5e6,8:8e6,9:10e6}; // (2026-10-19, Léo : la grille des prix) LA PUCE 400 000 → 30 000 : une Mini, la moins chère des rares
   CAR_UNLOCK.forEach(function(u,i){if(!u||u.k!=='carnet'||!PX9[u.v])return;const rr=carRar(i);CAR_UNLOCK[i]={p:PX9[u.v],exK:'carnet',exV:u.v};CARS[i].rar=rr;});}
 /* ============================================================================
    L'AURA ET LA BANQUE (2026-08-17) — la nouvelle règle
@@ -48092,53 +48097,53 @@ function shopAPortee(){let n=0;for(const cat in COSM)for(const d of COSM[cat])if
 const COSM={
   peinture:[
     {id:'usine',   n:'D\'ORIGINE',        p:0,     d:'La teinte du constructeur. Elle a fait ses preuves.'},
-    {id:'menthe',  n:'MENTHE GLACÉE',     p:2500,  c:0x5ff0c6,d:'Fraîche comme un billet qui sort du distributeur.'},
-    {id:'minuit',  n:'BLEU MINUIT',       p:5000,  c:0x2b43c4,d:'Le bleu des néons de la ville, à trois heures du matin.'},
-    {id:'noir',    n:'NOIR MAT',          p:9000,  c:0x202128,g:'s',d:'Pas un reflet. Même la police hésite.'},
-    {id:'couchant',n:'COUCHER DE SOLEIL', p:18000, grad:[0xffc23a,0xff4f8b,0x6b3cff],d:'Du miel en bas, du violet en haut : le ciel de 19 h, en laque.'},
-    {id:'chrome',  n:'CHROME MIROIR',     p:60000, c:0xe9eef5,g:'c',d:'Tu te vois dedans. Les autres aussi.'},
+    {id:'menthe',  n:'MENTHE GLACÉE',     p:25000,  c:0x5ff0c6,d:'Fraîche comme un billet qui sort du distributeur.'},
+    {id:'minuit',  n:'BLEU MINUIT',       p:50000,  c:0x2b43c4,d:'Le bleu des néons de la ville, à trois heures du matin.'},
+    {id:'noir',    n:'NOIR MAT',          p:90000,  c:0x202128,g:'s',d:'Pas un reflet. Même la police hésite.'},
+    {id:'couchant',n:'COUCHER DE SOLEIL', p:180000, grad:[0xffc23a,0xff4f8b,0x6b3cff],d:'Du miel en bas, du violet en haut : le ciel de 19 h, en laque.'},
+    {id:'chrome',  n:'CHROME MIROIR',     p:600000, c:0xe9eef5,g:'c',d:'Tu te vois dedans. Les autres aussi.'},
     {id:'or',      n:'OR MASSIF',         mis:4,   c:0xffc93a,g:'o',d:'Ne s\'achète pas : elle se gagne en relevant des défis.'},
     // (2026-10-14) LES PEINTURES POP — la rareté se lit en couleur (`r`), le prix suit la grille de l'équilibrage (rare 5-12 k · exotique 20-45 k · épique 80-180 k · légendaire 300-500 k)
-    {id:'ogre',     n:'VERT OGRE',         p:5000,  r:'rare',      c:0x6f9a2e,g:'s',d:'Le vert des marais. Ça sent un peu, mais c\'est chez toi.'},
-    {id:'poupee',   n:'ROSE POUPÉE',       p:9000,  r:'rare',      c:0xff5fb0,d:'Rose bonbon, laque parfaite. Tu n\'es pas en plastique, tu es en carbone.'},
-    {id:'banana',   n:'BANANA',            p:20000, r:'rare',      grad:[0x2a5cb8,0xffd21f,0xffe45c],d:'Salopette en bas, jaune en haut. Elle dit « banana » à chaque virage.'},
-    {id:'gotham',   n:'NUIT DE GOTHAM',    p:32000, r:'rare',      c:0x0d0f15,g:'g',d:'Noir laqué, la ville qui brille dedans. Les toits sont à toi.'},
-    {id:'envers',   n:'MONDE À L\'ENVERS', p:42000, r:'rare',      grad:[0x150709,0x6e0f16,0xe0262f],d:'Noir en bas, rouge sang en haut : cette caisse vient de l\'autre côté. Les guirlandes clignotent.'},
-    {id:'vaporwave',n:'VAPORWAVE',         p:85000, r:'epique',    grad:[0x2bd9e8,0xff5ec8,0x7a2bff],d:'Cyan, rose, violet : un coucher de soleil de 1986 sur une cassette usée.'},
-    {id:'lave',     n:'LAVE',              p:130000,r:'epique',    grad:[0x1a0500,0xd8340a,0xffb21a],d:'Du volcan au toit, la coulée ne refroidit jamais. N\'y jette pas d\'anneau.'},
-    {id:'holo',     n:'HOLOGRAMME',        p:300000,r:'legendaire',grad:[0x9ff2ff,0xf3b4ff,0xfff3ae],g:'c',d:'Chrome irisé qui change de couleur à chaque angle. Une carte rare… en voiture.'},
+    {id:'ogre',     n:'VERT OGRE',         p:50000,  r:'rare',      c:0x6f9a2e,g:'s',d:'Le vert des marais. Ça sent un peu, mais c\'est chez toi.'},
+    {id:'poupee',   n:'ROSE POUPÉE',       p:90000,  r:'rare',      c:0xff5fb0,d:'Rose bonbon, laque parfaite. Tu n\'es pas en plastique, tu es en carbone.'},
+    {id:'banana',   n:'BANANA',            p:200000, r:'rare',      grad:[0x2a5cb8,0xffd21f,0xffe45c],d:'Salopette en bas, jaune en haut. Elle dit « banana » à chaque virage.'},
+    {id:'gotham',   n:'NUIT DE GOTHAM',    p:320000, r:'rare',      c:0x0d0f15,g:'g',d:'Noir laqué, la ville qui brille dedans. Les toits sont à toi.'},
+    {id:'envers',   n:'MONDE À L\'ENVERS', p:420000, r:'rare',      grad:[0x150709,0x6e0f16,0xe0262f],d:'Noir en bas, rouge sang en haut : cette caisse vient de l\'autre côté. Les guirlandes clignotent.'},
+    {id:'vaporwave',n:'VAPORWAVE',         p:850000, r:'epique',    grad:[0x2bd9e8,0xff5ec8,0x7a2bff],d:'Cyan, rose, violet : un coucher de soleil de 1986 sur une cassette usée.'},
+    {id:'lave',     n:'LAVE',              p:1300000,r:'epique',    grad:[0x1a0500,0xd8340a,0xffb21a],d:'Du volcan au toit, la coulée ne refroidit jamais. N\'y jette pas d\'anneau.'},
+    {id:'holo',     n:'HOLOGRAMME',        p:3000000,r:'legendaire',grad:[0x9ff2ff,0xf3b4ff,0xfff3ae],g:'c',d:'Chrome irisé qui change de couleur à chaque angle. Une carte rare… en voiture.'},
     {id:'guerrier', n:'SUPER GUERRIER',    mis:12,pk:350000,r:'mythique',grad:[0xff8a00,0xffd23a,0xfff4a8],g:'o',d:'Doré du toit aux pneus. Les cheveux se dressent, le niveau dépasse les 9 000.'}],
   aile:[ /* (2026-10-18, Sacha : « rajoute un zéro pour tous les prix des ailes ») les prix ×10 ; HÉLICES, PLUMES et CHAUVE-SOURIS gardent leur rareté d'avant, écrite en `r` (cosmRar la déduisait du prix) */
     {id:'panneaux',n:'PANNEAUX',          p:0,     d:'Deux planches de planeur, un aileron qui suit tes virages, des feux de position. Au boost, elles tirent deux traînées blanches.'},
-    {id:'helices', n:'HÉLICES',           p:30000, r:'commun',    d:'Quatre rotors qui s\'emballent au boost et piquent du nez pour foncer. Ça ne vole pas mieux, mais ça brasse de l\'air.'},
-    {id:'plumes',  n:'PLUMES D\'ANGE',    p:120000,r:'rare',      d:'De vraies plumes blanches et dorées qui battent lentement et s\'ouvrent en éventail. Au boost, elles sèment de la poussière d\'or.'},
-    {id:'chauve',  n:'CHAUVE-SOURIS',     p:250000,r:'rare',      d:'Membranes veinées de violet, doigts d\'os. Elles battent vite, de travers, et se replient en flèche au boost. Pour les vols de nuit.'},
+    {id:'helices', n:'HÉLICES',           p:300000, r:'commun',    d:'Quatre rotors qui s\'emballent au boost et piquent du nez pour foncer. Ça ne vole pas mieux, mais ça brasse de l\'air.'},
+    {id:'plumes',  n:'PLUMES D\'ANGE',    p:1200000,r:'rare',      d:'De vraies plumes blanches et dorées qui battent lentement et s\'ouvrent en éventail. Au boost, elles sèment de la poussière d\'or.'},
+    {id:'chauve',  n:'CHAUVE-SOURIS',     p:2500000,r:'rare',      d:'Membranes veinées de violet, doigts d\'os. Elles battent vite, de travers, et se replient en flèche au boost. Pour les vols de nuit.'},
     // (2026-10-14) LES AILES POP (voir AILES_POP) — `ico`/`col` : le pictogramme de la vignette et sa couleur
-    {id:'pigeon',   n:'PIGEON',            p:60000, r:'rare',      ico:'ai_pigeon', col:'#b4bac4',d:'Gris, deux barres noires, un cou vert-violet. Il claque des ailes au décollage, bat trop vite et plane sans savoir pourquoi.'},
-    {id:'origami',  n:'AVION EN PAPIER',   p:90000, r:'rare',      ico:'ai_origami',col:'#f4f1ea',d:'Une feuille à grands carreaux pleine de gribouillis, un volet plié. Le pan claque au vent quand tu boostes : c\'est toi qui pilotes.'},
-    {id:'monarque', n:'MONARQUE',          p:120000,r:'rare',      ico:'ai_monarque',col:'#ff8a1a',d:'Orange et noir, nervures et points blancs, comme les vrais. Elles battent, planent, battent encore. Jusqu\'à 900 à l\'heure.'},
-    {id:'pixel',    n:'8-BIT',             p:250000,r:'rare',      ico:'ai_pixel',  col:'#ffd75e',d:'Des ailes d\'ange en gros pixels, animées image par image. Au boost, elles clignotent de toutes les couleurs, comme avec l\'étoile.'},
-    {id:'baron',    n:'BARON ROUGE',       p:380000,r:'rare',      ico:'ai_baron',  col:'#ff4a4e',d:'Toile rouge, haubans, ailerons, et l\'écharpe du pilote qui claque au vent. Un chien sur sa niche en rêve encore.'},
-    {id:'rouages',  n:'ENGRENAGES',        p:1000000,r:'epique',    ico:'ai_rouages',col:'#e0a84a',d:'Les rouages font battre l\'aile, la chaudière crache sa vapeur au boost. Léonard l\'avait dessinée, toi tu la pilotes.'},
-    {id:'xwing',    n:'AILES EN X',        p:1200000,r:'epique',    ico:'ai_xwing',  col:'#e8e4da',d:'Repliées en croisière, elles s\'écartent en X dès que tu boostes, réacteurs à fond. Verrouillez les ailes en position d\'attaque.'},
-    {id:'fee',      n:'FÉE',               p:1600000,r:'epique',    ico:'ai_fee',    col:'#d9b8ff',d:'Quatre voiles irisés qui bourdonnent et sèment de la poussière de fée. Il suffit d\'y croire. Et d\'un plein de nitro.'},
-    {id:'dragon',   n:'DRAGON',            p:4500000,r:'legendaire',ico:'ai_dragon', col:'#ff5a2a',d:'Membranes veinées de lave, griffes, grands coups d\'aile. Au boost, la lave flambe et crache des braises.'},
-    {id:'air',      n:'SANS AILES',        p:5000000,r:'legendaire',ico:'ai_air',    col:'#dff1ff',d:'Les ailes, c\'est pour les pigeons. Dix buses à air comprimé planquées dans la carrosserie : elle crache des bouffées blanches, pivote sur elle-même et s\'envole. Bon. Ça a marché.'}, // (2026-10-18, Léo) LA BLAGUE : l'aile la plus chère de la boutique… n'a pas d'aile (voir AILES_POP.air)
+    {id:'pigeon',   n:'PIGEON',            p:600000, r:'rare',      ico:'ai_pigeon', col:'#b4bac4',d:'Gris, deux barres noires, un cou vert-violet. Il claque des ailes au décollage, bat trop vite et plane sans savoir pourquoi.'},
+    {id:'origami',  n:'AVION EN PAPIER',   p:900000, r:'rare',      ico:'ai_origami',col:'#f4f1ea',d:'Une feuille à grands carreaux pleine de gribouillis, un volet plié. Le pan claque au vent quand tu boostes : c\'est toi qui pilotes.'},
+    {id:'monarque', n:'MONARQUE',          p:1200000,r:'rare',      ico:'ai_monarque',col:'#ff8a1a',d:'Orange et noir, nervures et points blancs, comme les vrais. Elles battent, planent, battent encore. Jusqu\'à 900 à l\'heure.'},
+    {id:'pixel',    n:'8-BIT',             p:2500000,r:'rare',      ico:'ai_pixel',  col:'#ffd75e',d:'Des ailes d\'ange en gros pixels, animées image par image. Au boost, elles clignotent de toutes les couleurs, comme avec l\'étoile.'},
+    {id:'baron',    n:'BARON ROUGE',       p:3800000,r:'rare',      ico:'ai_baron',  col:'#ff4a4e',d:'Toile rouge, haubans, ailerons, et l\'écharpe du pilote qui claque au vent. Un chien sur sa niche en rêve encore.'},
+    {id:'rouages',  n:'ENGRENAGES',        p:10000000,r:'epique',    ico:'ai_rouages',col:'#e0a84a',d:'Les rouages font battre l\'aile, la chaudière crache sa vapeur au boost. Léonard l\'avait dessinée, toi tu la pilotes.'},
+    {id:'xwing',    n:'AILES EN X',        p:12000000,r:'epique',    ico:'ai_xwing',  col:'#e8e4da',d:'Repliées en croisière, elles s\'écartent en X dès que tu boostes, réacteurs à fond. Verrouillez les ailes en position d\'attaque.'},
+    {id:'fee',      n:'FÉE',               p:16000000,r:'epique',    ico:'ai_fee',    col:'#d9b8ff',d:'Quatre voiles irisés qui bourdonnent et sèment de la poussière de fée. Il suffit d\'y croire. Et d\'un plein de nitro.'},
+    {id:'dragon',   n:'DRAGON',            p:45000000,r:'legendaire',ico:'ai_dragon', col:'#ff5a2a',d:'Membranes veinées de lave, griffes, grands coups d\'aile. Au boost, la lave flambe et crache des braises.'},
+    {id:'air',      n:'SANS AILES',        p:50000000,r:'legendaire',ico:'ai_air',    col:'#dff1ff',d:'Les ailes, c\'est pour les pigeons. Dix buses à air comprimé planquées dans la carrosserie : elle crache des bouffées blanches, pivote sur elle-même et s\'envole. Bon. Ça a marché.'}, // (2026-10-18, Léo) LA BLAGUE : l'aile la plus chère de la boutique… n'a pas d'aile (voir AILES_POP.air)
     {id:'phenix',   n:'PHÉNIX',            mis:10,pk:400000,r:'mythique',ico:'flamme',col:'#ffb02a',d:'Des plumes de feu qui battent en semant des étincelles. Tu exploses ? Tu renais de tes cendres. Au prochain run.'}],
   trainee:[
     {id:'nitro',   n:'NITRO',             p:0,     d:'Orange brûlé. Le classique des tuyères.'},
-    {id:'rose',    n:'ROSE NÉON',         p:4000,  rgb:[1.45,.22,1.05],pop:'neon',sil:{c:1.45,h:.75,f:0,p:.3},d:'Le rose des enseignes. On te suit à la trace.'},
-    {id:'or',      n:'POUDRE D\'OR',      p:15000, rgb:[1.5,1.22,.3],pop:'paillettes',sil:{c:1.3,h:1.05,f:.1,p:1.9},d:'Tu ne laisses pas de la fumée derrière toi. Tu laisses de l\'or.'},
+    {id:'rose',    n:'ROSE NÉON',         p:40000,  rgb:[1.45,.22,1.05],pop:'neon',sil:{c:1.45,h:.75,f:0,p:.3},d:'Le rose des enseignes. On te suit à la trace.'},
+    {id:'or',      n:'POUDRE D\'OR',      p:150000, rgb:[1.5,1.22,.3],pop:'paillettes',sil:{c:1.3,h:1.05,f:.1,p:1.9},d:'Tu ne laisses pas de la fumée derrière toi. Tu laisses de l\'or.'},
     {id:'arcenciel',n:'ARC-EN-CIEL',      mis:5,   rainbow:1,d:'Ne s\'achète pas : elle se gagne en relevant des défis.'},
-    {id:'wow',     n:'WOW',               p:30000, wow:1,rgb:[1.45,.35,1.25],d:'Much sillage. Very mots. Wow.'}, // (2026-10-14) LA TRAÎNÉE WOW (voir wowStep) — la signature du DOGE
+    {id:'wow',     n:'WOW',               p:300000, wow:1,rgb:[1.45,.35,1.25],d:'Much sillage. Very mots. Wow.'}, // (2026-10-14) LA TRAÎNÉE WOW (voir wowStep) — la signature du DOGE
     // (2026-10-14) LES TRAÎNÉES POP (voir TRX) — `pop` : son moteur · `rgb` : la couleur du ruban qui l'accompagne · `rubOff` : pas de ruban (l'effet EST la traînée)
-    {id:'sakura',   n:'SAKURA',            p:8000,  r:'rare',      pop:'sakura', rgb:[1.35,.6,.9],sil:{c:1.05,h:1.2,f:0,p:.5}, ico:'tr_sakura', col:'#ff9cc4',d:'Des pétales de cerisier, comme dans un générique d\'animé. Le drame, c\'est pour les autres.'},
-    {id:'matrice',  n:'MATRICE',           p:11000, r:'rare',      pop:'matrice',rgb:[.25,1.25,.4],sil:{c:1.3,h:.65,f:0,p:1.8},ico:'tr_matrice',col:'#3dff6a',d:'Pilule rouge avalée : du code vert ruisselle derrière toi. La route, c\'est toi qui la réécris.'},
-    {id:'anneaux',  n:'ANNEAUX D\'OR',     p:22000, r:'rare',      pop:'anneaux',rgb:[1.3,1.05,.25],sil:{c:1.3,h:1,f:.06,p:1.3},ico:'tr_anneaux',col:'#ffd23a',d:'Tu sèmes des anneaux comme un hérisson qui vient de se cogner. Sauf que toi, tu ne ralentis pas.'},
-    {id:'glouton',  n:'GLOUTON',           p:40000, r:'rare',      pop:'glouton',rubOff:1,      ico:'tr_glouton',col:'#ffe14a',d:'Une ligne de pastilles et quatre fantômes à tes trousses. Lâche la nitro : ils deviennent bleus.'},
-    {id:'hyper',    n:'HYPERESPACE',       p:90000, r:'epique',    pop:'hyper',  rgb:[.42,.98,2.2],sil:{c:1.6,h:.8,f:0,p:2.4},ico:'tr_hyper', col:'#9fd0ff',d:'Les étoiles s\'étirent en traits. Tu passes en vitesse lumière, les autres restent des touristes.'}, /* (2026-10-18, HYPERESPACE v2) ruban .95,1.15,1.6 (un blanc bleuté, délavé) → bleu ÉLECTRIQUE : le feu de pixels du nitro le prend aussi (nfeuPalTrainee) */
-    {id:'grille',   n:'LA GRILLE',         p:200000,r:'epique',    pop:'grille', rubOff:1,      ico:'tr_grille', col:'#2ee8ff',d:'Un mur de lumière dans ton sillage. Celui qui te colle finit en pixels.'}, /* (2026-10-18, Sacha : « the grid doit être epic ») ÉPIQUE, et son prix dans sa famille (350 000 → 200 000 : épique < 250 000, voir cosmRar) */
-    {id:'billets',  n:'FAIS PLEUVOIR',     p:500000,r:'legendaire',pop:'billets',rgb:[.45,1.3,.55],sil:{c:1.15,h:1.05,f:.08,p:1},ico:'tr_billets',col:'#5cd685',d:'Des liasses qui s\'envolent à chaque nitro. Ce n\'est pas du gaspillage, c\'est de la communication.'},
+    {id:'sakura',   n:'SAKURA',            p:80000,  r:'rare',      pop:'sakura', rgb:[1.35,.6,.9],sil:{c:1.05,h:1.2,f:0,p:.5}, ico:'tr_sakura', col:'#ff9cc4',d:'Des pétales de cerisier, comme dans un générique d\'animé. Le drame, c\'est pour les autres.'},
+    {id:'matrice',  n:'MATRICE',           p:110000, r:'rare',      pop:'matrice',rgb:[.25,1.25,.4],sil:{c:1.3,h:.65,f:0,p:1.8},ico:'tr_matrice',col:'#3dff6a',d:'Pilule rouge avalée : du code vert ruisselle derrière toi. La route, c\'est toi qui la réécris.'},
+    {id:'anneaux',  n:'ANNEAUX D\'OR',     p:220000, r:'rare',      pop:'anneaux',rgb:[1.3,1.05,.25],sil:{c:1.3,h:1,f:.06,p:1.3},ico:'tr_anneaux',col:'#ffd23a',d:'Tu sèmes des anneaux comme un hérisson qui vient de se cogner. Sauf que toi, tu ne ralentis pas.'},
+    {id:'glouton',  n:'GLOUTON',           p:400000, r:'rare',      pop:'glouton',rubOff:1,      ico:'tr_glouton',col:'#ffe14a',d:'Une ligne de pastilles et quatre fantômes à tes trousses. Lâche la nitro : ils deviennent bleus.'},
+    {id:'hyper',    n:'HYPERESPACE',       p:900000, r:'epique',    pop:'hyper',  rgb:[.42,.98,2.2],sil:{c:1.6,h:.8,f:0,p:2.4},ico:'tr_hyper', col:'#9fd0ff',d:'Les étoiles s\'étirent en traits. Tu passes en vitesse lumière, les autres restent des touristes.'}, /* (2026-10-18, HYPERESPACE v2) ruban .95,1.15,1.6 (un blanc bleuté, délavé) → bleu ÉLECTRIQUE : le feu de pixels du nitro le prend aussi (nfeuPalTrainee) */
+    {id:'grille',   n:'LA GRILLE',         p:2000000,r:'epique',    pop:'grille', rubOff:1,      ico:'tr_grille', col:'#2ee8ff',d:'Un mur de lumière dans ton sillage. Celui qui te colle finit en pixels.'}, /* (2026-10-18, Sacha : « the grid doit être epic ») ÉPIQUE, et son prix dans sa famille (350 000 → 200 000 : épique < 250 000, voir cosmRar) */
+    {id:'billets',  n:'FAIS PLEUVOIR',     p:5000000,r:'legendaire',pop:'billets',rgb:[.45,1.3,.55],sil:{c:1.15,h:1.05,f:.08,p:1},ico:'tr_billets',col:'#5cd685',d:'Des liasses qui s\'envolent à chaque nitro. Ce n\'est pas du gaspillage, c\'est de la communication.'},
     {id:'foudre',   n:'FOUDRE DIVINE',     mis:11,pk:450000,r:'legendaire',pop:'foudre',rgb:[.85,.55,1.7],sil:{c:1.3,h:.75,f:0,p:2},ico:'eclair',col:'#b98aff',d:'Des éclairs crépitent derrière toi. Le marteau, tu l\'as laissé au garage.'} /* (2026-10-18, Sacha : « divine ligthing doit etre legendaire ») LÉGENDAIRE (elle était MYTHIQUE) ; son prix `pk` (450 000, Poki) est déjà dans la famille */]
 };
 /* (2026-10-18 soir, Sacha : « enlève la traînée menthe ») LES HABILLAGES RETIRÉS : leur ligne SORT de COSM (la sauvegarde les désigne par leur id,
@@ -53466,22 +53471,28 @@ function lvlTick(dt,S){
 function musicTick(dt,mvt){
   if(MUSREP.att&&!paused){MUSREP.att=false;if(SND.music&&started&&running&&!gameOver)try{musicStartRun(false,true);}catch(e){}} // (2026-10-15) MUSIQUE rallumée pendant la pause : la course reprend, son morceau aussi
   try{sonTonSuit();}catch(e){} // (console de son) les sons accordés suivent la tonalité du morceau qui joue
-  let target=0,beat=0,hiT=0;
+  let target=0,beat=0,hiT=0,bsT=0,mdT=0;
   if(musicOn&&musicAna){
     musicAna.getByteFrequencyData(musicData);
     /* TROIS BANDES, PAS DEUX (2026-08-08). Les AIGUS manquaient — or c'est là que vit le tempo
        RAPIDE d'un morceau : charleston, cymbales, souffle. Avec la seule basse, le décor ne
        connaissait que la pulsation lente et restait lisse entre deux coups. Le haut du spectre
        (les 45 % supérieurs des bins) alimente désormais tout ce qui doit grésiller. */
-    const nB=musicData.length;let tot=0,bass=0,hi=0,bN=Math.max(1,(nB*.18)|0),hN=Math.max(1,(nB*.55)|0);
-    for(let i=0;i<nB;i++){const v=musicData[i]/255;tot+=v;if(i<bN)bass+=v;if(i>=hN)hi+=v;}
-    tot/=nB;bass/=bN;hi/=Math.max(1,nB-hN);
+    const nB=musicData.length;let tot=0,bass=0,mid=0,hi=0,bN=Math.max(1,(nB*.18)|0),hN=Math.max(1,(nB*.55)|0);
+    for(let i=0;i<nB;i++){const v=musicData[i]/255;tot+=v;if(i<bN)bass+=v;else if(i<hN)mid+=v;else hi+=v;}
+    tot/=nB;bass/=bN;mid/=Math.max(1,hN-bN);hi/=Math.max(1,nB-hN);bsT=bass;mdT=mid;
     target=Math.min(1,tot*1.7);
     beat=Math.max(0,bass-musicBass)*3.2;musicBass=bass; // transitoire = coup de grosse caisse
     hiT=Math.min(1,hi*2.3);
   }else if(musicOn){ // pas d'analyse possible ici : le décor bat sur un métronome à 120 bpm (il vit, sans lire le morceau)
-    const ph=(performance.now()/500)%1;target=.45;beat=ph<.07?.8:0;hiT=.25+.2*Math.max(0,Math.sin(ph*6.2832*2));musicBass=0;
+    const ph=(performance.now()/500)%1;target=.45;beat=ph<.07?.8:0;hiT=.25+.2*Math.max(0,Math.sin(ph*6.2832*2));musicBass=0;bsT=ph<.2?.8:.2;mdT=.4+.25*Math.sin(ph*6.2832);
   }else {musicBass=0;hiT=0;}
+  /* (2026-10-25, Sacha : « les étoiles clignotent très légèrement au rythme de la musique : des étoiles qui font les basses, des aigus, chaque style de note »)
+     LES ÉTOILES JOUENT. Pour chaque bande (basses, médiums, aigus) on garde l'EXCÈS sur sa moyenne lente (≈1,5 s) : ce qui dépasse, c'est la note qui
+     vient d'être frappée — le fond continu d'un morceau dense n'allume rien. Attaque vive, retombée douce. Lu par la voûte de l'orbite (cielPoussiere). */
+  {const bd=musicTick._bnd||(musicTick._bnd={v:[0,0,0],m:[0,0,0]}),src=[bsT,mdT,hiT];
+   for(let k=0;k<3;k++){bd.m[k]+=(src[k]-bd.m[k])*Math.min(1,dt*.7);const t=Math.min(1,Math.max(0,src[k]-bd.m[k])*4.5);bd.v[k]+=(t-bd.v[k])*Math.min(1,dt*(t>bd.v[k]?30:9));}
+   skyU.uBandes.value.set(bd.v[0],bd.v[1],bd.v[2]);}
   /* ⚠ LES AIGUS MONTENT VITE ET DESCENDENT VITE. Les lisser comme l'énergie moyenne (dt*8) les
      transformerait en nappe continue : on perdrait exactement ce qu'on est venu chercher, le
      GRAIN. Attaque quasi instantanée (dt*24), retombée franche (dt*11). */

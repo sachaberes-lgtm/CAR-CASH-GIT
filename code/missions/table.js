@@ -111,5 +111,5 @@ const M2R={lv:'',sonne:false,ctl:0,vie:0,parf:0,lac:0,tourV:[],run:[],t:0,deb:fa
   /* les quatre caisses des carnets 6 à 9 (LA PUCE, LA GROUPE B, LE HOT ROD, LE MASTODONTE) ne sont la récompense d'aucune mission v2 : sans
      carnet, plus personne ne pourrait les avoir. Elles passent à l'argent du jeu (prix posés par Claude, À VALIDER PAR SACHA), comme les
      trophées de la carrière ; leur rareté ne bouge pas ; `exK`/`exV` gardent le carnet — qui l'avait relevé l'a dans `owned` (m2MigreV2). */
-  const PX9={6:30e3,7:500e3,8:800e3,9:1e6}; // (2026-10-19, Léo : la grille des prix) LA PUCE 400 000 → 30 000 : une Mini, la moins chère des rares
+  const PX9={6:300e3,7:5e6,8:8e6,9:10e6}; // (2026-10-19, Léo : la grille des prix) LA PUCE 400 000 → 30 000 : une Mini, la moins chère des rares
   CAR_UNLOCK.forEach(function(u,i){if(!u||u.k!=='carnet'||!PX9[u.v])return;const rr=carRar(i);CAR_UNLOCK[i]={p:PX9[u.v],exK:'carnet',exV:u.v};CARS[i].rar=rr;});}
