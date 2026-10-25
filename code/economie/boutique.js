@@ -71,6 +71,7 @@ function shopPop(src){
   shopPopVise(r);
   src.classList.add('spParti');
   try{uiGarde();}catch(e){}try{typeof sfx==='function'&&sfx('ui.modale');}catch(e){}hap(8);
+  setTimeout(function(){if(SPOP.i===i&&el.classList.contains('on'))shopTourne(i,el);},spDuree()+60); /* la vue garage démarre une fois la fenêtre posée */
 }
 function shopPopVise(r){ // pose --dx/--dy/--s : l'écart entre la vignette `r` et la carte posée au centre
   const c=SPOP.el&&SPOP.el.querySelector('.spCarte');if(!c||!r||!(r.width>0))return;
@@ -79,8 +80,33 @@ function shopPopVise(r){ // pose --dx/--dy/--s : l'écart entre la vignette `r` 
   c.style.setProperty('--dy',Math.round(r.top+r.height/2-(f.top+f.height/2))+'px');
   c.style.setProperty('--s',Math.min(1,r.width/f.width).toFixed(3));
 }
+/* LA VUE GARAGE (2026-10-25, Sacha : « quand on clique sur une voiture, il faut qu'elle se mette à tourner, qu'on la voie comme dans le garage ») :
+   la photo de la fenêtre d'achat devient un plateau tournant — STN poses de la même caisse (carPhoto, 4e argument = l'azimut), prises une par une
+   entre deux images, cadrées pour tous les angles ; dès que la première est prête la caisse tourne (une pose manquante est sautée), et on peut
+   la faire pivoter au doigt / à la souris (elle reprend sa ronde au lâcher). Fermer la fenêtre arrête tout (le jeton SPOP.tour). */
+const STN=12;
+function shopTourne(i,el){
+  const host=el.querySelector('.shPhoto.big');if(!host)return;
+  const T=SPOP.tour={i:i,F:[],a:0,v:0,drag:null,shown:-1,t0:performance.now(),stop:false};
+  const vit=function(){return SPOP.tour===T&&!T.stop&&el.classList.contains('on');};
+  const az=function(k){return PHOTO_AZ+k*2*Math.PI/STN;};
+  let k=0;(function suite(){if(!vit()||k>=STN)return;const n=k++;try{carPhoto(i,function(u){if(u)T.F[n]=u;},null,az(n));}catch(e){}setTimeout(suite,90);})();
+  host.style.touchAction='none';host.style.cursor='grab';
+  host.addEventListener('pointerdown',function(e){T.drag={x:e.clientX,a:T.a};T.v=0;try{host.setPointerCapture(e.pointerId);}catch(_){}host.style.cursor='grabbing';});
+  host.addEventListener('pointermove',function(e){if(!T.drag)return;const na=T.drag.a-(e.clientX-T.drag.x)*.012;T.v=(na-T.a);T.a=na;});
+  const lache=function(){T.drag=null;host.style.cursor='grab';};
+  host.addEventListener('pointerup',lache);host.addEventListener('pointercancel',lache);
+  const calme=document.documentElement.getAttribute('data-reduced-motion')==='1';
+  let t9=performance.now();
+  (function tour(t){if(!vit())return;const dt=Math.min(.05,(t-t9)/1000);t9=t;
+    if(!T.drag){if(Math.abs(T.v)>.002){T.a+=T.v;T.v*=.94;}else if(!calme)T.a+=dt*.7;} /* l'élan du lâcher, puis la ronde (un tour en 9 s) */
+    const P=2*Math.PI,n=Math.round(((T.a%P)+P)%P/(P/STN))%STN;let j=n;for(let d=0;d<STN;d++){const a=(n+d)%STN,b=(n-d+STN)%STN;if(T.F[a]){j=a;break;}if(T.F[b]){j=b;break;}}
+    if(T.F[j]&&j!==T.shown){T.shown=j;let im=host.querySelector('img');if(!im){const at=host.querySelector('.shAttente');if(at)at.remove();im=document.createElement('img');im.alt='';host.insertBefore(im,host.firstChild);}if(im.src!==T.F[j])im.src=T.F[j];}
+    requestAnimationFrame(tour);})(t9);
+}
 function shopPopFerme(){
   const el=SPOP.el;if(!el||!el.classList.contains('on')||el.classList.contains('sortant'))return;
+  if(SPOP.tour)SPOP.tour.stop=true;
   try{uiGarde();}catch(e){} // (2026-10-14, chasse aux bugs) la fenêtre qui s'efface a pointer-events:none : le 2e tap d'un double-tap sur ANNULER / ÉQUIPER traversait jusqu'à OFFRES (vignette, RETOUR) — comme à l'ouverture, on avale les clics 320 ms
   const src=SPOP.src;
   if(src&&src.isConnected)shopPopVise(src.getBoundingClientRect()); // la vignette a pu bouger (défilement) : on vise sa place d'ARRIVÉE (la carte est au repos, sa mesure est juste)
