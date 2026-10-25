@@ -44,7 +44,7 @@ const TITRE_H={
   golden:{bio:'titreGolden',P:{az:1.95,K:[1.05,1.3,1.8,1.6],R:[-.35,.42,.75,1],mzT:[.20,.20,.42,.55],mzO:[.30,.24,.44,.6],mzH:[1,.72,.46,.7],cleS:0xffd0a0,rimC:0xffb070,kh:.35,sk:2.1,amb:.75,sol:.9},v:['40,22,46',.30,.52,'34,18,40',.64],t:[1,.84,.70]},
   soir:  {bio:'titreSoir',  P:{K:[1,1.15,1.6,1.6],R:[-.3,.5,.72,1],mzT:[.10,.09,.24,.6],mzO:[.20,.17,.34,.6],mzH:[.85,.60,.70,.6],cleS:0xffc0cc,zenC:0xa8b8ff,rimC:0x9fb4ff,kh:.5,expo:.95,sk:2.3,amb:.85,sol:.9,sc:.3,sr:1.6},v:['20,10,40',.36,.56,'18,10,36',.66],t:[.85,.66,.78]},
   nuit:  {bio:'titreNuit',  P:{K:[.62,.72,1.3,1.4],R:[-.05,.65,.8,1],mzT:[.02,.03,.08,.9],mzO:[.07,.09,.18,.85],mzH:[.50,.58,.76,.85],cleS:0xb8ccff,zenC:0x8fa8ff,rimC:0x86a6ff,kh:.6,sk:2.5,amb:1,sol:1,sc:.35,sr:1.7},v:['2,6,20',.45,.65,'2,6,20',.7],t:[.34,.40,.58]}};
-const TITRE_HEURES=['matin','midi','aprem','golden','soir','nuit'];
+const TITRE_HEURES=['aube','matin','midi','aprem','golden','soir','nuit'];
 /* (titre v4) LA PALETTE DU CIEL DU TITRE, par heure — z zénith, m milieu, h horizon (aussi la brume des cumulus : les lointains s'y
    fondent), s lueur du soleil, mh/mo la mer de nuages au soleil/à l'ombre, c les cirrus, ca leur part, hz la distance de la brume. */
 const TITRE_CIEL={
@@ -54,6 +54,10 @@ const TITRE_CIEL={
   golden:{tw:1,ry:.7,cr:.34,z:[.12,.22,.50],m:[.56,.58,.74],h:[.96,.84,.70],s:[.42,.26,.12],mh:[1,.84,.66],mo:[.42,.42,.62],c:[1,.82,.66],ca:.5,hz:.9},
   soir:  {tw:1,ry:.45,cr:.36,z:[.04,.07,.22],m:[.20,.20,.44],h:[.66,.48,.56],s:[.28,.14,.15],mh:[.70,.58,.70],mo:[.18,.19,.36],c:[.88,.60,.66],ca:.45,hz:.85},
   nuit:  {tw:.85,ry:0,cr:.45,z:[.010,.016,.045],m:[.03,.05,.12],h:[.10,.14,.26],s:[.04,.06,.12],mh:[.34,.42,.62],mo:[.05,.07,.15],c:[.35,.42,.60],ca:.2,hz:.8}};
+/* L'AUBE (2026-10-25, Sacha : « on est tout le temps à l'aube… il faut plusieurs ambiances ») : le soleil n'est pas encore levé — un ciel indigo qui
+   pâlit en lavande, un horizon pêche-rose sous la mer de nuages, une brume rosée, les dernières étoiles ; les phares de la caisse encore en veilleuse. */
+TITRE_H.aube={bio:'titreAube',P:{K:[1.03,1.2,1.65,1.6],R:[-.33,.46,.74,1],mzT:[.20,.16,.26,.6],mzO:[.26,.22,.36,.6],mzH:[1,.72,.58,.65],cleS:0xffc8b0,zenC:0xb0b4ee,rimC:0xffb8a0,kh:.45,expo:.9,sk:2.6,amb:.9,sol:1,cjA:1.2,cjF:1.8},v:['30,26,60',.34,.54,'28,22,54',.62],t:[.92,.80,.82]};
+TITRE_CIEL.aube={tw:1,ry:.55,cr:.36,z:[.05,.09,.28],m:[.40,.36,.58],h:[.98,.66,.52],s:[.52,.32,.22],mh:[1,.78,.66],mo:[.26,.26,.44],c:[1,.74,.66],ca:.42,hz:.9};
 /* (2026-10-14, passe graphismes — ÉCRAN TITRE, les 6 heures) Retouche d'étalonnage PAR VALEURS (charte : signatures MATIN/MIDI/SOIR/NUIT, plus de violet-néon,
    sat ≤ 1,30, pas de cobalt, caisse mieux éclairée). Posée ICI, après les définitions de TITRE_CIEL/TITRE_H, donc APRÈS la copie de titreGolden/titreNuit par
    nuagesSoir/nuagesNuit (la course ne bouge pas). Couleurs de ciel/brume en LINÉAIRE. */
@@ -178,8 +182,12 @@ window.dbgNuFond=function(k){NUF.force=k==null?null:+k; // (banc) même image : 
   if(paused||arguments[1]){if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);}
   let px=null;if(arguments[1]){const gl=renderer.getContext(),W=gl.drawingBufferWidth,H=gl.drawingBufferHeight,b=new Uint8Array(4);px=[];for(const q of [[.1,.9],[.5,.95],[.9,.9],[.1,.6]]){gl.readPixels(Math.round(q[0]*W),Math.round(q[1]*H),1,1,gl.RGBA,gl.UNSIGNED_BYTE,b);px.push([b[0],b[1],b[2]]);}} // (banc) des pixels du haut de l image
   return {on:NUF.on,k:+NUF.k.toFixed(2),meteo:m9,uTi:+skyU.uTi.value.x.toFixed(2),px:px};};
-// l'heure du TÉLÉPHONE → l'ambiance : nuit 22 h-5 h · matin 5 h-10 h · midi 10 h-14 h · après-midi 14 h-17 h · golden hour 17 h-19 h 30 · soir 19 h 30-22 h
-function titreHeureDe(d){const h=d.getHours()+d.getMinutes()/60;return h<5?'nuit':h<10?'matin':h<14?'midi':h<17?'aprem':h<19.5?'golden':h<22?'soir':'nuit';}
+/* l'heure du TÉLÉPHONE + la saison → l'ambiance (2026-10-25) : les bornes suivent le soleil du jour (voir titreSoleil), plus des heures fixes.
+   nuit jusqu'à 45 min avant le lever · AUBE jusqu'à 20 min après · matin jusqu'à 2 h avant le midi solaire · midi jusqu'à 2 h après · après-midi
+   jusqu'à 1 h 25 avant le coucher · golden hour jusqu'au coucher (+ 6 min) · soir jusqu'à 1 h 25 après · nuit. À Paris : en juin le soir dure
+   jusqu'à 23 h 30, en décembre la golden hour commence à 15 h 30. */
+function titreHeureDe(d,zone){const L=titreLieu(d,zone),S=titreSoleil(d,L[0],L[1]),h=d.getHours()+d.getMinutes()/60,mi=(S.lever+S.coucher)/2;
+  return h<S.lever-.75?'nuit':h<S.lever+.35?'aube':h<mi-2?'matin':h<mi+2?'midi':h<S.coucher-1.4?'aprem':h<S.coucher+.1?'golden':h<S.coucher+1.4?'soir':'nuit';}
 const TITRE_HF={h:null,force:null,tc:0,tcol:new THREE.Color(1,1,1)};
 {const q9=(location.search.match(/[?&]heure=([a-zé\-]+)/i)||[])[1];if(q9){const n9=q9.toLowerCase().replace('apres-midi','aprem').replace('après-midi','aprem').replace('goldenhour','golden');if(TITRE_H[n9])TITRE_HF.force=n9;}}
 function titreHeurePose(h){ // pose UNE heure : son ambiance (chuteRender la verra changer et la réappliquera), ses réglages, ses voiles, sa teinte
@@ -198,7 +206,7 @@ function titreHeureTick(dt){ // l'heure, relue toutes les 20 s (un menu laissé 
 }
 window.dbgHeure=function(h){ // (dev) forcer une heure du titre : dbgHeure('golden') · dbgHeure(null) : l'horloge du téléphone
   if(h!==undefined){TITRE_HF.force=h&&TITRE_H[h]?h:null;TITRE_HF.tc=0;titreHeureTick(0);}
-  return {heure:TITRE_HF.h,forcee:TITRE_HF.force,horloge:titreHeureDe(new Date()),heures:TITRE_HEURES};};
+  var L9=titreLieu(new Date()),S9=titreSoleil(new Date(),L9[0],L9[1]);return {heure:TITRE_HF.h,forcee:TITRE_HF.force,horloge:titreHeureDe(new Date()),lever:+S9.lever.toFixed(2),coucher:+S9.coucher.toFixed(2),heures:TITRE_HEURES};};
 window.dbgTitre=function(h,o){ /* banc (2026-10-14, passe graphismes) : retoucher à chaud une heure du titre : dbgTitre('midi',{ciel:{z:[..],h:[..]},amb:{fog:[..]},P:{..},v:[..],t:[..]}) ; la repose aussitôt */
   const H=TITRE_H[h];if(!H||!o)return null;if(o.ciel)Object.assign(TITRE_CIEL[h],JSON.parse(JSON.stringify(o.ciel)));if(o.amb)Object.assign(BIOMES[H.bio],JSON.parse(JSON.stringify(o.amb)));if(o.P)Object.assign(H.P,JSON.parse(JSON.stringify(o.P)));if(o.v)H.v=o.v.slice();if(o.t)H.t=o.t.slice();
   TITRE_HF.force=h;TITRE_HF.tc=0;titreHeurePose(h);CHUTE.bioT=null;return {ciel:TITRE_CIEL[h],amb:BIOMES[H.bio].nm};};

@@ -24,6 +24,7 @@ css/garage-hub-rayons.css            # hubGarage : souffle de lumière, rayons, 
 css/garage-hub-bas.css               # hubGarage : garage replié, JOUER, missions, jauge sobre, logo, bas et barre du garage
 css/ux-nitro-aura.css                # uxPasse, nitroEclair, auraJauge, passeMobile
 css/figures.css                      # pagesPixel, figuresV2, figuresHud
+css/fil.css                          # le fil : la pastille unique des annonces de course
 css/ecole.css                        # ecoleV2 (auto-école), sansCarriere
 css/final-spin.css                   # finalSpin (la machine à sous de fin)
 css/ux8.css                          # ux8 (menus, partie, mouvement), clarté de la boutique, pub récompense, cadeau, HUD allégé
@@ -187,6 +188,7 @@ gameplay/vol-equilibre.js            # le vol équilibré, figures lancées en r
 gameplay/figures-physique.js         # figures v2 : physique, impulsion, glissé, sol, directions
 gameplay/figures-route.js            # figures sur la route
 interface/hud-figures.js             # HUD des figures (v3 à v5)
+interface/fil.js                     # le fil : la pastille unique des annonces de course (popTexte en est l'alias)
 missions/defis-moteur.js             # défis secrets, missions v2 : le moteur
 missions/ecran-revelation.js         # missions v2 : l'écran, la vignette, boutique et garage, la révélation
 missions/aujourdhui.js               # la série de sept jours (carte de l'écran MISSIONS) ; le défi du jour, éteint depuis le 22/10 (Léo, 20/10)
@@ -211,6 +213,7 @@ interface/atelier-ferme.js           # l'atelier fermé
 interface/fete-caisse.js             # la fête d'une caisse débloquée, selon sa rareté
 interface/habillages-accueil.js      # la bande des habillages, les plans de l'accueil
 interface/flammes-cubes.js           # les flammes en cubes
+interface/titre-soleil.js            # le soleil du titre : lever/coucher d'après la date et le fuseau (saisons)
 interface/chute-menu.js              # la chute : le menu dans le ciel, le doigt de bienvenue
 interface/richesse-1.js              # la pluie de richesse : programmes, dessins
 interface/richesse-2.js              # la pluie de richesse : formes

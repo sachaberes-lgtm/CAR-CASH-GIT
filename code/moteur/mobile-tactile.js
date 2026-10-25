@@ -270,7 +270,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // Le plafond peut monter sans risque parce que la résolution adaptative redescend si le GPU peine — et
   // qu'elle sait maintenant REMONTER (voir la boucle).
   try{if(!I18N['HAUTE'])I18N['HAUTE']='HIGH';}catch(e){} /* (OPTIMISATION) le 3e choix du réglage IMAGE (voir L'IMAGE EN AUTOMATIQUE) */
-  function applyQ(fast){ DPR_CAP=Math.min(devicePixelRatio,fast?1:PAL.b('dprNetCap',1.5)); // (2026-10-14, passe perf mobile) le plafond NETTE se taille sur le palier (palier 2 : 1,5 comme avant) — voir NETTE PAR PALIER
+  function applyQ(fast){ DPR_CAP=dprPlafond(fast); // (2026-10-14, passe perf mobile) le plafond NETTE se taille sur le palier (palier 2 : 1,5 comme avant) — voir NETTE PAR PALIER
     qlReprise(); } // (2026-09-27) pleine résolution tout de suite + l'échelle QL recalée sur le nouveau plafond (et son plancher NET)
   // ⚠ LES INTERRUPTEURS PASSENT PAR LES BOUTONS DU DESKTOP (`.click()`) au lieu de refaire leur
   // logique : son, voix, musique, Survivant et Parc ont des EFFETS DE BORD (suspend du contexte
@@ -288,8 +288,6 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       else if(a==='mus')e.innerHTML=tpLbl('musique','MUSIQUE',SND.music?'ON':'OFF',SND.music);
       else if(a==='ctl')e.innerHTML=tpLbl(TCTL.pad?'fleches':'volant','COMMANDES',TCTL.pad?'FLECHES':'VOLANT',true);
       else if(a==='q'){e.innerHTML=tpLbl('eclair','IMAGE',qLbl(),true);}
-      else if(a==='volh')e.innerHTML=tpLbl('aile','POUCE HAUT EN VOL',volSens()<0?'MONTE':'PLONGE',true);
-      else if(a==='figg')e.innerHTML=tpLbl('rotation','FIGURES',figGlisseOn()?'GLISSER':'2 TAPS',true); // (2026-10-15) LA FIGURE AU GLISSÉ
       else if(a==='surv')e.innerHTML=tpLbl('drapeau','SURVIVANT',SURV.armed?'ON':'OFF',SURV.armed); }
     const hd=pan.querySelector('.tpH'); if(hd)hd.textContent=run?'PAUSE':'CASH CAR'; }
   function panOpen(o,compte){ if(!pan)return;
@@ -336,8 +334,6 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       document.body.classList.toggle('tpad',TCTL.pad);
       SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush(); panSync(); }
     else if(a==='q'){ SAVE.d.q=qSuivant(SAVE.d.q); SAVE.d.qChoisi=1; SAVE.flush(); applyQ(SAVE.d.q==='fast'); panSync(); }
-    else if(a==='volh'){ volhBascule(); panSync(); }
-    else if(a==='figg'){ figGBascule(); panSync(); }
     else if(a==='surv'){ clic(survBtnEl); panSync(); }
     else if(a==='tous'){ setPauseOuvre(); } // (2026-10-14, charte 6) TOUS LES REGLAGES : l'écran complet par-dessus la pause
     else if(a==='resp'){ panOpen(false); if(started&&!gameOver&&mode==='drive')respawn(); }

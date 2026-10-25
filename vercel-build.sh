@@ -10,6 +10,9 @@ sh garde-burnout.sh
 # (2026-10-14, Sacha) LA GARDE DE LA CHARTE : logo de l'accueil figé par empreinte, police pixel, charte 6 en opt-in (garde-charte.sh ;
 # GARDE_CHARTE=0 la coupe).
 sh garde-charte.sh
+# (2026-10-25, Sacha : « sur PC la version maximum, sur téléphone l'optimisée — que j'aie pas à te le redire ») LA GARDE DE L'ALLÈGEMENT : un allègement du rendu gardé par
+# IS_MOBILE (vrai aussi sur PC) n'est PAS publié (garde-allege.sh ; GARDE_ALLEGE=0 la coupe).
+sh garde-allege.sh
 rm -rf .vercel-static
 mkdir -p .vercel-static
 cp -R demo/cash-car-demo .vercel-static/demo

@@ -83,9 +83,9 @@ html.hub:not(.poki) body #mHome.acc2 .mTitle{filter:drop-shadow(0 0 .3em rgba(25
 #wipe::after{display:none!important}
 #wipe.in::before{animation-duration:150ms!important}
 #wipe.out::before{animation-duration:320ms!important}
-#wipe::before{background:linear-gradient(90deg,var(--neoC) 0 6px,transparent 6px 9px,var(--neoM) 9px 15px,transparent 15px 18px,var(--au2) 18px 24px,transparent 24px 27px,var(--orB) 27px 33px,transparent 33px 34px,
-  rgba(7,5,15,1) 34px calc(100% - 34px),transparent calc(100% - 34px) calc(100% - 33px),var(--orB) calc(100% - 33px) calc(100% - 27px),transparent calc(100% - 27px) calc(100% - 24px),var(--au2) calc(100% - 24px) calc(100% - 18px),transparent calc(100% - 18px) calc(100% - 15px),
-  var(--neoM) calc(100% - 15px) calc(100% - 9px),transparent calc(100% - 9px) calc(100% - 6px),var(--neoC) calc(100% - 6px)),var(--matrice),#07050f!important}
+#wipe::before{background:linear-gradient(90deg,var(--neoC) 0 8px,transparent 8px 12px,var(--neoM) 12px 20px,transparent 20px 24px,var(--au2) 24px 32px,transparent 32px 34px,
+  rgba(7,5,15,1) 34px calc(100% - 34px),transparent calc(100% - 34px) calc(100% - 32px),var(--au2) calc(100% - 32px) calc(100% - 24px),transparent calc(100% - 24px) calc(100% - 20px),
+  var(--neoM) calc(100% - 20px) calc(100% - 12px),transparent calc(100% - 12px) calc(100% - 8px),var(--neoC) calc(100% - 8px)),var(--matrice),#07050f!important}
 /* L'ŒIL : la console s'EFFACE en 200 ms (elle disparaissait d'un coup), pendant que la caméra glisse sur la caisse ; elle revient en fondu */
 /* (2026-10-11) le fondu de la console sous l'œil est retiré avec le garage d'avant : l'œil vit DANS la console, une opacité 0 l'éteindrait aussi */
 </style>
