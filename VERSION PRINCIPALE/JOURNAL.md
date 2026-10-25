@@ -3,6 +3,12 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA DALLE LISSE — LES ROUTES NE BALANCENT PLUS (2026-10-25, v933 — Sacha : « la génération des maps est un peu brouillon, la route est brinquebalante, elle oscille dans les spirales »)
+- **MESURÉ** (crochet `dbgRoulis()`, vrai jeu, 13 cartes × 3 graines × paliers 0 et 20) : le ROULIS de la dalle avait des cassures — à-coups jusqu'à 25-50 × l'à-coup moyen. Cause : les normales de `pisteTord` (`TORD.N`) mélangées en ligne droite entre deux points de contrôle (une cassure à chacun, serrés dans une spirale) et le rappel `RAPPEL9` allumé/éteint sans amortissement.
+- **FAIT** (`depart-avance.js`, `ROUTE_LISSE`) : après le repère, le roulis (angle contre un repère transporté sans torsion) passe dans un filtre gaussien sans retard, σ = 0,12 s de croisière (12-30 m), symétrie impaire aux bouts. Forme de la route, flux `rnd`, départ/portail inchangés. Pas sur les pistes dessinées (parc, école, campagne). `?routes=ancien` = la dalle d'avant.
+- **RÉSULTAT** (moyenne des 13 maps) : à-coup max 0,0065 → 0,0003 (palier 0), 0,0022 → 0,00005 (palier 20) ; pics > 0,004 : 12,6 → 0 ; inversions de roulis → 0 ; écart de dalle ≤ 6,6° au pire, 0,3° en moyenne. Pilote automatique, même piste (nuages, grotte, canyon × 2 graines) : 0 mort avec comme sans.
+- Bancs : `outils/banc-routes/sc-roulis.mjs` (avant/après par carte), `sc-course-graine.mjs` (même piste, `EXTRA='&routes=ancien'`). Pas encore fait : les spirales propres à chaque map (rayon/pas), la courbure de l'axe lui-même.
+
 ## SAUVER MAMAN : LA FLÛTE DEVIENT UN VIOLON (2026-10-25 soir — Léo : « change juste la flûte (instrument) de SAUVER MAMAN »)
 - `retouches-bleu.js`, entrée `bleu-3379` : `Mx.tim.contre = 'violon'` (le contre-chant, qui entre au 12e moteur, était la flûte synthétique). Rien d'autre ne bouge (la cloche de verre retouchée, l'ordre, les grilles). Vérifié au banc : le violon joue au moteur 15, 0 erreur, niveau stable. Non écouté. Retour : retirer ce seul réglage.
 
