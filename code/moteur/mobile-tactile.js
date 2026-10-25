@@ -288,8 +288,6 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       else if(a==='mus')e.innerHTML=tpLbl('musique','MUSIQUE',SND.music?'ON':'OFF',SND.music);
       else if(a==='ctl')e.innerHTML=tpLbl(TCTL.pad?'fleches':'volant','COMMANDES',TCTL.pad?'FLECHES':'VOLANT',true);
       else if(a==='q'){e.innerHTML=tpLbl('eclair','IMAGE',qLbl(),true);}
-      else if(a==='volh')e.innerHTML=tpLbl('aile','POUCE HAUT EN VOL',volSens()<0?'MONTE':'PLONGE',true);
-      else if(a==='figg')e.innerHTML=tpLbl('rotation','FIGURES',figGlisseOn()?'GLISSER':'2 TAPS',true); // (2026-10-15) LA FIGURE AU GLISSÉ
       else if(a==='surv')e.innerHTML=tpLbl('drapeau','SURVIVANT',SURV.armed?'ON':'OFF',SURV.armed); }
     const hd=pan.querySelector('.tpH'); if(hd)hd.textContent=run?'PAUSE':'CASH CAR'; }
   function panOpen(o,compte){ if(!pan)return;
@@ -336,8 +334,6 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       document.body.classList.toggle('tpad',TCTL.pad);
       SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush(); panSync(); }
     else if(a==='q'){ SAVE.d.q=qSuivant(SAVE.d.q); SAVE.d.qChoisi=1; SAVE.flush(); applyQ(SAVE.d.q==='fast'); panSync(); }
-    else if(a==='volh'){ volhBascule(); panSync(); }
-    else if(a==='figg'){ figGBascule(); panSync(); }
     else if(a==='surv'){ clic(survBtnEl); panSync(); }
     else if(a==='tous'){ setPauseOuvre(); } // (2026-10-14, charte 6) TOUS LES REGLAGES : l'écran complet par-dessus la pause
     else if(a==='resp'){ panOpen(false); if(started&&!gameOver&&mode==='drive')respawn(); }
