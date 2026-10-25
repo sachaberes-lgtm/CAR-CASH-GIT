@@ -1,0 +1,46 @@
+<style id="mobiHud">
+/* ===== LA ZONE NITRO SANS RECALCUL (2026-10-25, passe perf mobile A4 : « les animations CSS infinies sur des propriétés non composées forcent restyle + peinture à chaque image d'ÉCRAN ») =====
+   Mêmes recettes que la passe han de v876 (hanFlowReflet / hanAhFile / hanFlowPresque). Tout sous html.mobi-h3 (posée au démarrage, `?mobi_h3=0` = l'ancien chemin) ;
+   la lueur de la jauge PLEINE (mobi-h3b) change légèrement l'image, elle reste éteinte par défaut (`?mobi_h3b=1`).
+   · LE REFLET (avant : background-position de #nitroBar::after, 3,6 s, toute la course) → .nbRef (même boîte que l'::after : inset 3 px, coupe overflow:hidden)
+     qui porte un calque de 3 largeurs (le dégradé d'origine, background-size 300 %) en translateX −100 % → +⅓ : exactement 150 % → −50 % du background-position.
+   · LES RAYURES (avant : background-position de #nitroR / #nitroX, 0,3 s, nitro tenue) → .nbRay (dans R / X) : calque 19,8 px plus large en translateX 0 → −19,8 px ;
+     l'ordre des couches est gardé (fond · rayures · reflet de lumière du haut), le fond seul reste sur R / X. */
+#nitroBar .nbRef,#nitroBar .nbRay{display:none}
+html.mobi-h3 body.touch #nitroBar::after{display:none}
+html.mobi-h3 body.touch #nitroBar>.nbRef{display:block;position:absolute;inset:3px;overflow:hidden;pointer-events:none}
+html.mobi-h3 body.touch #nitroBar>.nbRef::after{content:'';position:absolute;top:0;bottom:0;left:0;width:300%;
+  background:linear-gradient(100deg,transparent 40%,rgba(255,255,255,.35) 50%,transparent 60%);transform:translateX(-100%);will-change:transform;animation:mobiH3Reflet 3.6s ease-in-out infinite}
+@keyframes mobiH3Reflet{0%,60%{transform:translateX(-100%)}100%{transform:translateX(calc(100% / 3))}}
+/* les rayures : où elles vivent (R : boost / infinie · X : réserve bleue / infinie) */
+html.mobi-h3 body.touch #nitroBar.boost #nitroR>.nbRay,html.mobi-h3 body.touch #nitroBar.inf #nitroR>.nbRay,
+html.mobi-h3 body.touch #nitroBar.bleu #nitroX>.nbRay,html.mobi-h3 body.touch #nitroBar.inf #nitroX>.nbRay{display:block;position:absolute;inset:0;overflow:hidden;pointer-events:none}
+html.mobi-h3 body.touch #nitroBar.boost #nitroR>.nbRay::before,html.mobi-h3 body.touch #nitroBar.inf #nitroR>.nbRay::before,
+html.mobi-h3 body.touch #nitroBar.bleu #nitroX>.nbRay::before,html.mobi-h3 body.touch #nitroBar.inf #nitroX>.nbRay::before{content:'';position:absolute;top:0;bottom:0;left:0;width:calc(100% + 19.8px);
+  background-size:19.8px 100%;background-repeat:repeat-x;will-change:transform;animation:mobiH3File .3s linear infinite}
+html.mobi-h3 body.touch #nitroBar.boost #nitroR>.nbRay::after,html.mobi-h3 body.touch #nitroBar.inf #nitroR>.nbRay::after,
+html.mobi-h3 body.touch #nitroBar.bleu #nitroX>.nbRay::after,html.mobi-h3 body.touch #nitroBar.inf #nitroX>.nbRay::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.42) 0 2px,rgba(255,255,255,.12) 2px 5px,transparent 5px)}
+@keyframes mobiH3File{to{transform:translateX(-19.8px)}}
+/* les couleurs, dans l'ordre d'origine (boost · bleu · infinie la dernière, qui l'emporte) */
+html.mobi-h3 body.touch #nitroBar.boost #nitroR>.nbRay::before{background-image:repeating-linear-gradient(-45deg,rgba(255,246,220,.55) 0 4px,rgba(255,236,190,.22) 4px 6px,transparent 6px 14px)}
+html.mobi-h3 body.touch #nitroBar.bleu #nitroX>.nbRay::before{background-image:repeating-linear-gradient(-45deg,rgba(236,242,255,.55) 0 4px,rgba(210,222,255,.22) 4px 6px,transparent 6px 14px)}
+html.mobi-h3 body.touch #nitroBar.inf #nitroR>.nbRay::before,html.mobi-h3 body.touch #nitroBar.inf #nitroX>.nbRay::before{background-image:repeating-linear-gradient(-45deg,rgba(250,240,255,.6) 0 4px,rgba(236,214,255,.25) 4px 6px,transparent 6px 14px)}
+html.mobi-h3 body.touch #nitroBar.inf #nitroR>.nbRay::after,html.mobi-h3 body.touch #nitroBar.inf #nitroX>.nbRay::after{background:linear-gradient(180deg,rgba(255,255,255,.45) 0 2px,rgba(255,255,255,.14) 2px 5px,transparent 5px)}
+/* R / X ne gardent que leur fond (les rayures et le reflet du haut sont dans .nbRay) et ne s'animent plus */
+html.mobi-h3 body.touch #nitroBar.boost #nitroR{background-image:linear-gradient(180deg,#ffd58f 0 3px,#ff8d2e 3px 50%,#ff7415 50% calc(100% - 3px),#ad4200 calc(100% - 3px))!important;animation:none!important}
+html.mobi-h3 body.touch #nitroBar.bleu #nitroX{background-image:linear-gradient(180deg,#b5c4ff 0 3px,#4a68f0 3px 50%,#2a44c8 50% calc(100% - 3px),#16247a calc(100% - 3px))!important;animation:none!important}
+html.mobi-h3 body.touch #nitroBar.inf #nitroR,html.mobi-h3 body.touch #nitroBar.inf #nitroX{background-image:linear-gradient(var(--bandes4),var(--vL) 0 3px,var(--vP) 3px 50%,var(--vS) 50% calc(100% - 3px),var(--vO) calc(100% - 3px))!important;animation:none!important}
+/* (mobi-h3b, éteint par défaut) la jauge PLEINE : le filter brightness 1 → 1,32 devient une copie éclaircie dont seule l'opacité bat (écart : un canal qui sature monte en droite) */
+html.mobi-h3.mobi-h3b body.touch #nitroBar.plein:not(.boost):not(.bleu):not(.inf) #nitroR,html.mobi-h3.mobi-h3b body.touch #nitroBar.plein:not(.boost):not(.bleu):not(.inf) #nitroX{animation:none!important}
+html.mobi-h3.mobi-h3b body.touch #nitroBar.plein:not(.boost):not(.bleu):not(.inf) #nitroR>.nbRay,html.mobi-h3.mobi-h3b body.touch #nitroBar.plein:not(.boost):not(.bleu):not(.inf) #nitroX>.nbRay{display:block;position:absolute;inset:0;pointer-events:none}
+html.mobi-h3.mobi-h3b body.touch #nitroBar.plein:not(.boost):not(.bleu):not(.inf) #nitroR>.nbRay::after,html.mobi-h3.mobi-h3b body.touch #nitroBar.plein:not(.boost):not(.bleu):not(.inf) #nitroX>.nbRay::after{
+  content:'';position:absolute;inset:0;filter:brightness(1.32);opacity:0;will-change:opacity;animation:mobiH3Plein 1.3s var(--ease) infinite}
+html.mobi-h3.mobi-h3b body.touch #nitroBar.plein:not(.boost):not(.bleu):not(.inf) #nitroR>.nbRay::after{background:linear-gradient(180deg,#ffd58f 0 3px,#ff8d2e 3px 50%,#ff7415 50% calc(100% - 3px),#ad4200 calc(100% - 3px))}
+html.mobi-h3.mobi-h3b body.touch #nitroBar.plein:not(.boost):not(.bleu):not(.inf) #nitroX>.nbRay::after{background:linear-gradient(180deg,#b5c4ff 0 3px,#4a68f0 3px 50%,#2a44c8 50% calc(100% - 3px),#16247a calc(100% - 3px))}
+@keyframes mobiH3Plein{50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){
+  html.mobi-h3 body.touch #nitroBar>.nbRef::after,html.mobi-h3 body.touch #nitroBar .nbRay::before,html.mobi-h3 body.touch #nitroBar .nbRay::after{animation:none!important}}
+/* ===== H2 (éteint par défaut, `?mobi_h2=1`) : la vignette de vitesse, dont l'opacité est écrite par la boucle, a son propre calque : plus de repeinture de #hud à chaque cran ===== */
+html.mobi-h2 #speedFx{will-change:opacity}
+</style>

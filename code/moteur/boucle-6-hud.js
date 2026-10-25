@@ -51,14 +51,14 @@
     // panneaux HUD MASQUÉS (#carInfo/#cpInfo/#record en display:none) : on ne reconstruit leur texte (fmtC/fmt alloue) QUE quand la valeur change
     paintCarHud();
     if(TCTL.on)cashHudTick(dt); // (2026-09-29) le compteur d'argent du téléphone (#cashHud) · (2026-09-30) la colonne de droite s'empile
-    if(loop._money!==money){loop._money=money;elMoney.innerHTML=fmtGta(money); // un parse HTML seulement quand le compte bouge
+    if(loop._money!==money){loop._money=money;if(!(MOBI_DOM&&loop._nu))elMoney.innerHTML=fmtGta(money); /* (2026-10-25, passe perf mobile A4) #money est display:none!important sur tactile : plus de parse HTML par image ; `?mobi_dom=0` = avant */ // un parse HTML seulement quand le compte bouge
       for(const u of unitsL())if(money>=u[0]){ // on vient de changer d'ordre de grandeur ? ça se FÊTE (une fois par session)
         if(u[0]>unitSeen){unitSeen=u[0];if(SONV2)sfx('argent.palier');showMsg(TR('💸 TU COMPTES EN ')+u[2]+TR(' MAINTENANT !'),'#7dff9a');}
         break;}
     }
     if(!gameOver&&money>=nextRainAt){nextRainAt*=2.6;startMoneyRain();showMsg(pickL(RAIN_LINES),'#7dff9a');}
     if(money>best){if(SONV2&&started&&!gameOver&&!SANDBOX&&!TUTO.on&&best>START_CASH+.5&&!runStats.recSon){runStats.recSon=1;sfx('aura.record',{vol:-6});}best=money;SAVE.d.best=best;SAVE.mark();} // mark : le filet des 30 s (ou la fin de run) écrira
-    if(loop._bestHud!==best){loop._bestHud=best;elRecord.textContent=TR('record : ')+fmt(best);}
+    if(loop._bestHud!==best){loop._bestHud=best;if(!(MOBI_DOM&&loop._nu))elRecord.textContent=TR('record : ')+fmt(best);} /* (2026-10-25, passe perf mobile A4) #record est masqué sur tactile */
     // ⚠ on n'écrit la jauge QUE si elle a bougé d'un demi-pour-cent : un style par image, c'est un recalcul de style par image
     // (2026-09-28, HUD v5) la rampe dit la MÊME chose que le disque NITRO : la part du RÉSERVOIR du moteur (orange), puis la réserve bleue
     // par-dessus, plafonnées à la rampe entière — elle comptait sur 4 unités : réservoir plein = rampe à moitié, disque plein (contradiction)
@@ -75,7 +75,8 @@
        if(elNB){elNB.classList.toggle('bleu',nitroOn&&nitroBlue);elNB.classList.toggle('bas',(nR8+nX8)<.35);}}} // (2026-09-28) …et le bouton NITRO : réserve bleue, à sec
      // L'ANNEAU DU BOUTON NITRO : la même réserve, en arc autour du pouce
      const qN9=PAL.b('hudNitroQ',100),r9=Math.round(Math.min(1,nR8/mx8)*qN9)/qN9,x9=Math.round(Math.min(1,nX8/2)*qN9)/qN9; // (2026-10-24, passe perf) par crans de 1/qN9 (voir hudNitroQ)
-     if(elNB&&(loop._nbr!==r9||loop._nbx!==x9)){loop._nbr=r9;loop._nbx=x9;elNB.style.setProperty('--nr',r9);elNB.style.setProperty('--nx',x9);}}
+     if(elNB&&(!MOBI_NR||!NX3.el)&&(loop._nbr!==r9||loop._nbx!==x9)){ /* (2026-10-25, passe perf mobile A4) l'éclair pixel (NX3) dessine sa propre jauge : --nr/--nx n'ont plus de lecteur vivant (.nxJauge en display:none!important), on ne les écrit plus ; `?mobi_nr=0` = avant */
+      loop._nbr=r9;loop._nbx=x9;elNB.style.setProperty('--nr',r9);elNB.style.setProperty('--nx',x9);}}
     try{nx3Tick(dt,speedKmh);}catch(e){loopWarn(256,'nitro',e);}
     try{ajTick(dt);}catch(e){loopWarn(512,'jauge aura',e);} // (2026-10-12, Léo) LA JAUGE D'AURA (le flow passe en petit dessous) // (2026-10-12, Léo) LE BOUTON NITRO v3 : l'éclair en pixels qui s'enfonce, la vitesse à droite de la barre de boost
     // chip des POUVOIRS actifs : compte à rebours coloré au-dessus de la jauge nitro
@@ -91,13 +92,13 @@
       pwrChip.style.display=pch?'block':'none';pwrChip.classList.toggle('pw3',pwL.length>=3);loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pw'));hudReveil('pwrChip');} /* un pouvoir de plus : le HUD discret le rallume */
     if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],tx=t9.toFixed(1);
       if(el._t!==tx){el._t=tx;el.querySelector('b').textContent=tx+'s';}
-      el.style.setProperty('--p',Math.min(1,t9/PWR_DEFS[pwL[j][0]].t).toFixed(3));const f9=t9<1.5*(pwL[j][0]==='a'?pwrAirK():1); /* (2026-09-30) AIR MAX au sol s'use au quart : il clignote dans sa DERNIÈRE seconde et demie réelle */if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}
+      {const p9=Math.min(1,t9/PWR_DEFS[pwL[j][0]].t),ps9=MOBI_CRAN?(Math.round(p9*100)/100).toFixed(2):p9.toFixed(3);if(!MOBI_CRAN||el._ps!==ps9){el._ps=ps9;el.style.setProperty('--p',ps9);}} /* (2026-10-25, passe perf mobile A4) `?mobi_cran=1` : --p au centième, écrit seulement quand il change (la jauge fait 112 px) */const f9=t9<1.5*(pwL[j][0]==='a'?pwrAirK():1); /* (2026-09-30) AIR MAX au sol s'use au quart : il clignote dans sa DERNIÈRE seconde et demie réelle */if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}
       const x9=t9>PWR_DEFS[pwL[j][0]].t+.05;if(el._x!==x9){el._x=x9;el.classList.toggle('cumul',x9);}} // (pouvoirs v2) cumulé au-delà d'une durée : la jauge déborde (pleine) et la plaque le montre
     {const sp9=airPie.style.display==='block';if(sp9!==loop._psp){loop._psp=sp9;pwrChip.classList.toggle('sousPie',sp9);}}
     {const k9=(mode==='boom'||gameOver)?'':pwrNitroT>0?'n':pwrSpdT>0?'v':pwrAurT>0?'x':pwrMagT>0?'m':pwrAirT>0&&!TUTO.on?'a':''; // (HUD v3) les BORDS de l'écran battent à la couleur du pouvoir actif — (2026-09-28) pas l'airtime prêté par l'auto-école · (pouvoirs v2) le plus « chaud » d'abord
      if(k9!==loop._pfx){loop._pfx=k9;let e9=avE('pwrFx');if(!e9){e9=document.createElement('div');e9.id='pwrFx';e9.setAttribute('aria-hidden','true');document.body.appendChild(e9);avEl.pwrFx=e9;}
        if(k9){e9.style.setProperty('--pf',PWR_DEFS[k9].bd||PWR_DEFS[k9].fx);e9.style.setProperty('--pf2',PWR_DEFS[k9].bd2||PWR_DEFS[k9].fx2);} /* (2026-10-14, passe graphismes) bd/bd2 = le voile dosé (÷ 2,5) */e9.classList.toggle('on',!!k9);}}
-    if(pwrNitroT>0&&!(mode==='boom'||gameOver)){const e9=avE('pwrFx');if(e9&&Math.abs(NINF.h-(loop._pfh||0))>.012){loop._pfh=NINF.h;const r9=NINF.rgb;e9.style.setProperty('--pf','rgba('+r9[0]+','+r9[1]+','+r9[2]+','+(.2+.18*NINF.h).toFixed(3)+')');e9.style.setProperty('--pf2','rgba('+r9[0]+','+r9[1]+','+r9[2]+','+(.08+.12*NINF.h).toFixed(3)+')');}} // (2026-10-20, piment) les bords d'écran de la nitro infinie suivent la TEMPÉRATURE du feu : discrets au début, plus forts ensuite
+    if(pwrNitroT>0&&!(mode==='boom'||gameOver)){const e9=avE('pwrFx');if(e9&&Math.abs(NINF.h-(loop._pfh||0))>(MOBI_NINF?.03:.012)){ /* (2026-10-25, passe perf mobile A4) `?mobi_ninf=1` : le voile plein écran se repeint au cran de .03 et non .012 */loop._pfh=NINF.h;const r9=NINF.rgb;e9.style.setProperty('--pf','rgba('+r9[0]+','+r9[1]+','+r9[2]+','+(.2+.18*NINF.h).toFixed(3)+')');e9.style.setProperty('--pf2','rgba('+r9[0]+','+r9[1]+','+r9[2]+','+(.08+.12*NINF.h).toFixed(3)+')');}} // (2026-10-20, piment) les bords d'écran de la nitro infinie suivent la TEMPÉRATURE du feu : discrets au début, plus forts ensuite
     // JAUGE DE PROGRESSION — elle suivait le cash vers la prochaine VOITURE ; les voitures ne se
     // gagnent plus à l'argent de la partie. Elle suit désormais les PIÈCES vers le prochain MOTEUR,
     // la seule progression qui court pendant une partie. (elCp, le texte, est géré plus haut.)
@@ -114,7 +115,7 @@
     if(!PARK.on&&LVL.cur&&(LVL.cur.id==='orage'||LVL.cur.orage))orageTick(dt); /* (2026-10-13) + l'ORAGE du mode classique, sur la ville et la jade */ // (2026-09-29) L'ORAGE du mode principal : les éclairs du niveau 9 (ECL) — l'éclair RÉVÈLE : il ouvre la brume (CAMP_FOG), le tonnerre suit ; remis à zéro à chaque piste par campDebut
     { // (perf, lot 4) la jauge de style : écrite seulement quand elle change (classe au changement d'état, largeur au pour-mille)
      const cl9=fever>0?'fever':feverArmed?'armed':'',w9=(Math.round((fever>0?Math.min(1,fever/10)*100:styleM)*10)/10)+'%';
-     if(elStyleF.className!==cl9)elStyleF.className=cl9;if(loop._stW!==w9){loop._stW=w9;elStyleF.style.width=w9;}}
+     if(!(MOBI_DOM&&loop._nu)){if(elStyleF.className!==cl9)elStyleF.className=cl9;if(loop._stW!==w9){loop._stW=w9;elStyleF.style.width=w9;}}} /* (2026-10-25, passe perf mobile A4) #styleBar est masqué sur tactile */
     if(fever>0){if(feverGlow.style.display!=='block')feverGlow.style.display='block';if(feverGlow.className)feverGlow.className='';}
     else{
       // ARMÉ : le halo s'allume DÈS que la jauge est pleine — c'est lui qui réclame le double-tap

@@ -23,6 +23,7 @@ css/garage-hub-boutique.css          # hubGarage : boutique du jour, offres, gri
 css/garage-hub-rayons.css            # hubGarage : souffle de lumière, rayons, grille, boutons RETOUR/ACHETER, rappel, bandeau
 css/garage-hub-bas.css               # hubGarage : garage replié, JOUER, missions, jauge sobre, logo, bas et barre du garage
 css/ux-nitro-aura.css                # uxPasse, nitroEclair, auraJauge, passeMobile
+css/mobi-hud.css                     # mobiHud : la zone NITRO en transform/opacité (reflet, rayures), calque de la vignette (passe perf mobile A4)
 css/figures.css                      # pagesPixel, figuresV2, figuresHud
 css/ecole.css                        # ecoleV2 (auto-école), sansCarriere
 css/final-spin.css                   # finalSpin (la machine à sous de fin)
@@ -39,6 +40,7 @@ css/ecrans-iphone.css                # <style id="ecransIphone"> : les écrans s
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
 page/bibliotheques.html              # <script src> : three.js, figures, sons, post-traitement — et l'ouverture du <script> du jeu
 interface/icones-fenetre.js          # ouverture du jeu (function, 'use strict'), icônes pixel, la fenêtre du jeu
+moteur/mobi-interrupteurs.js          # MOBI_ACTIF : les interrupteurs ?mobi_x=0/1 de la passe perf mobile A4
 rendu/scene-ciel.js                  # scène three.js, grade du ciel, dôme du ciel (skyDome)
 rendu/soleil-planete.js              # soleil 1.61, lueur d'horizon, rayons, la planète
 rendu/palier-appareil.js             # PAL (palier de l'appareil), toiles 2D, fov du portrait
