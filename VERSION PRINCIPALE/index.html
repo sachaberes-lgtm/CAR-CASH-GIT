@@ -44040,6 +44040,38 @@ function degatsCaisse(spec){
     g.setAttribute('position',new THREE.Float32BufferAttribute(L.P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(L.N,3));if(L.a)g.setAttribute('color',new THREE.Float32BufferAttribute(L.C,3));
     const m=new THREE.Mesh(g,L.mat);m.castShadow=true;m.userData.degats=1;carGroup.add(m);}
 }
+/* LA TRADUCTION AU LANGAGE DU JEU (25/10, Léo : « les traduire pour que ce soit comme les autres, mais que leur modèle soit toujours ressenti, juste ajusté de manière cool et intelligente » — `?langage=1`, un ESSAI, éteint par défaut) :
+   les voitures « hors langage » (rondes, lisses, 15 à 46 k triangles) repassent par un REGROUPEMENT DE SOMMETS : tous les sommets d'une même case de grille (≈ 4,5 % de la longueur de la caisse) n'en font plus qu'un, au centre de leur
+   groupe ; les triangles qui s'effondrent disparaissent. La silhouette reste celle de la voiture (on la ressent), les petits triangles deviennent de grandes facettes planes (la lumière change à chaque plan), la couleur de chaque
+   facette est la moyenne de ses sommets. On ne touche ni aux roues, ni aux feux (matières émissives), ni aux petites pièces (< 25 cm de diagonale). `?langage=1.5` = des facettes plus grosses ; `0.7` = plus fines. Appelée juste
+   avant `caisseSoude()`. */
+const LANG_CIBLES=['LE DOGE','LE COMBI','LE CAÏD','LA PERLE','LA ZAGAIE','LA GRANDE ANGLAISE','LA LAME','LA QUEUE DE CANARD','LE SCARABÉE','LA DOLCE VITA','LA BÊTE','LE BAROUDEUR','LE HOT ROD','LA FÉLINE','LE ROUGE-GORGE'];
+function traduisLangage(spec){
+  let V=0;try{const m=/[?&]langage=([\d.]+)/.exec(location.search);V=m?+m[1]:0;}catch(e){}
+  if(!V||!spec||LANG_CIBLES.indexOf(spec.name)<0)return;
+  carGroup.updateMatrixWorld(true);
+  const inv=new THREE.Matrix4().copy(carBody.matrixWorld).invert(),cell=Math.max(.06,(spec.l||4)*.045*V),M=new THREE.Matrix4(),P=new THREE.Vector3();
+  for(const o of carBody.children.slice()){
+    if(!o.isMesh||!o.geometry||!o.geometry.attributes.position||o.userData.sol||o.userData.noShadow||o.userData.degats||!o.material||Array.isArray(o.material))continue;
+    if(o.material.isMeshBasicMaterial&&!o.material.vertexColors)continue;                      // un cabochon unicolore émissif : on n'y touche pas
+    const g=o.geometry;g.computeBoundingBox();const bb=g.boundingBox;if(bb.min.distanceTo(bb.max)*Math.max(o.scale.x,o.scale.y,o.scale.z)<.25)continue;   // les petites pièces restent
+    if(o.material.userData&&o.material.userData.g==='l')continue;
+    const pos=g.attributes.position,col=g.attributes.color,ix=g.index,nT=ix?ix.count/3:pos.count/3;
+    M.multiplyMatrices(inv,o.matrixWorld);
+    const cl=new Map(),nv=pos.count,id=new Int32Array(nv),X=[],C=[];
+    for(let v=0;v<nv;v++){P.fromBufferAttribute(pos,v).applyMatrix4(M);const k=Math.round(P.x/cell)+','+Math.round(P.y/cell)+','+Math.round(P.z/cell);let c=cl.get(k);
+      if(c===undefined){c=X.length;cl.set(k,c);X.push([0,0,0,0]);C.push([0,0,0]);}id[v]=c;const a=X[c];a[0]+=P.x;a[1]+=P.y;a[2]+=P.z;a[3]++;
+      if(col){const b=C[c];b[0]+=col.getX(v);b[1]+=col.getY(v);b[2]+=col.getZ(v);}}
+    const Pn=[],Cn=[];
+    for(let t=0;t<nT;t++){const a=id[ix?ix.getX(t*3):t*3],b=id[ix?ix.getX(t*3+1):t*3+1],c=id[ix?ix.getX(t*3+2):t*3+2];if(a===b||b===c||a===c)continue;
+      let cr=0,cg=0,cb=0;for(const q of [a,b,c]){const x=X[q];Pn.push(x[0]/x[3],x[1]/x[3],x[2]/x[3]);if(col){const y=C[q];cr+=y[0]/x[3];cg+=y[1]/x[3];cb+=y[2]/x[3];}}
+      if(col)for(let u=0;u<3;u++)Cn.push(cr/3,cg/3,cb/3);}   // une facette = UNE couleur (la moyenne de ses trois sommets) : plus de dégradé dans un plan
+    if(Pn.length<9)continue;
+    const ng=new THREE.BufferGeometry();ng.setAttribute('position',new THREE.Float32BufferAttribute(Pn,3));if(col)ng.setAttribute('color',new THREE.Float32BufferAttribute(Cn,3));ng.computeVertexNormals();
+    const nm=new THREE.Mesh(ng,o.material);nm.castShadow=o.castShadow;nm.receiveShadow=o.receiveShadow;nm.renderOrder=o.renderOrder;nm.userData=Object.assign({},o.userData);
+    carBody.remove(o);carBody.add(nm);
+  }
+}
 function buildCar(spec){
   if(!carFicheOk(spec)){console.warn('CASH CAR : « '+((spec&&spec.name)||'?')+' » n\'a pas de fiche (caisse retirée) — LA HONTE à la place');spec=CARS[0];}
   // ⚠ LES PIÈCES LOW-POLY SE LIBÈRENT : chaque caisse a SA géométrie (plusieurs milliers de facettes)
@@ -44392,6 +44424,7 @@ function buildCar(spec){
   if(bodyM.userData.mot)carGroup.traverse(function(o9){const m9=o9.material;if(o9.isMesh&&m9&&!Array.isArray(m9)&&m9.userData&&m9.userData.mot&&!MOT_FAIT.has(m9))try{motGreffe(m9,m9.userData.mot);}catch(e){}}); // (2026-10-16) un gabarit qui CLONE la tôle (l'épave : K.body.clone()) : le clone garde la couleur blanche, il reprend le motif
   if(finAreteOk())finCaisse(); // (2026-10-20, FINITION STUDIO) les drapeaux d'arête de la tôle, AVANT la soudure (voir finition.js)
   if(FSTU.on)finLaque(FSTU.garage); // le vernis profond si on est au garage
+  try{traduisLangage(spec);}catch(e){console.warn('langage',e);} // (25/10) ESSAI `?langage=1` : les caisses « hors langage » regroupées en grandes facettes (éteint par défaut)
   try{degatsCaisse(spec);}catch(e){console.warn('degats',e);} // (25/10) ESSAI `?degats=1` : de petits chocs de cubes sur le dessus de la caisse (éteint par défaut)
   caisseSoude(); // (2026-09-27, passe perf iPhone) ce qui ne bouge jamais est soudé par matière — voir « LA CAISSE EN UN MINIMUM DE DESSINS »
   try{feuxLed(spec,hlM,tlM);}catch(e){console.warn('feux',e);} // (2026-10-20) l'étude des feux en LED, `?feux=1|2` (voir FEUXL) — sans paramètre, rien ne change
