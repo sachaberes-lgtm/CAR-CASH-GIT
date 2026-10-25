@@ -64,10 +64,14 @@ const DUREE=(function(){const m=/[?&]duree=([^&]*)/.exec(location.search),v=m?de
    du glacier, les virages de course des nuages, les boucles du volcan et du canyon la ralentissent. */
 const DUREE_ELAN=[1.8,1];
 const DUREE_ALLURE={nuages:.65,ville:1,crypto:1.15,vitree:.85,espace:1.2,jade:.85,foret:.93,banquise:.7,canyon:.7,grotte:.85,dunes:.75}; // (volcan .9 : la balade et la spirale de vlcTrace3 roulent plus vite que les boucles d'avant — mesuré 34 s pour 45 à .7)
+/* (2026-10-25, Sacha : « rallonge 3 fois la durée de la map nuage… on la voit pas assez ») LA MER DE NUAGES DURE 3 FOIS PLUS : le coefficient multiplie la durée visée
+   de la map (donc sa longueur, voir longueurCible) à tous les paliers — 45 s → 135 s au départ, 20 s → 60 s à fond. Elle couvre aussi L'ORAGE (même map, carte 'nuages').
+   Une map absente de la table garde 1. `?duree=ancien` rend les longueurs d'avant, nuages compris. */
+const DUREE_FOIS={nuages:3,dunes:3}; /* (2026-10-25, Sacha : « fais une map beaucoup plus longue pour les dunes, aussi longtemps que la map nuage… de grandes dunes qui descendent, de grandes remontées, des virages très penchés ») LES DUNES D'OR durent autant que la mer de nuages (voir DN_BIG, dunes-1.js : les vagues grandissent avec) */
 const DUREE_V={banquise:function(t){return 100+3*t;}}; // (m/s) les maps dont la vitesse ne suit PAS le moteur — sur la glace du glacier, MESURÉ : ~113 m/s au palier 0, 150-195 au palier 20-23 (l'adhérence et la pente la tiennent)
 function dureeCible(){ // (s) la durée visée pour la map qu'on bâtit (LVL.cur : la map d'en face pendant le pré-bâti) — 0 hors du JOUER
   if(!DUREE||PARK.on||!LVL.cur||!LVL.cur.sansFin||!LVL.cur.carte)return 0;
-  const k=Math.min(1,Math.max(0,engTier|0)/DUREE.t1);return DUREE.d0+(DUREE.d1-DUREE.d0)*k;}
+  const k=Math.min(1,Math.max(0,engTier|0)/DUREE.t1);return (DUREE.d0+(DUREE.d1-DUREE.d0)*k)*(DUREE_FOIS[LVL.cur.carte]||1);}
 function longueurCible(){const d=dureeCible();if(!d)return 0;const c=LVL.cur.carte,k=Math.min(1,Math.max(0,engTier|0)/DUREE.t1),l=DUREE_V[c]?d*DUREE_V[c](engTier|0):d*vPalier()*(DUREE_ELAN[0]+(DUREE_ELAN[1]-DUREE_ELAN[0])*k)*(DUREE_ALLURE[c]||1); // (m) 0 = la longueur d'avant
   DUREE_NOTE[runStats.zones|0]={carte:LVL.cur.carte,d:Math.round(d),Lc:Math.round(l),eng:engTier|0};return l;} // (pendant le pré-bâti, zones est déjà celle d'en face)
 const DUREE_NOTE={};
