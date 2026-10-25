@@ -189,7 +189,7 @@ const rrect=(u0,v0,u1,v1,r,n)=>{const o=[],c=[[u1-r,v0+r,-Math.PI/2],[u1-r,v1-r,
 return function(K){
   const SP=K.spec||{},CORPS=SP.color!=null?SP.color:0x464950;
   const PAL={p:{g:'p',c:CORPS},k:{g:'m',c:0x161719},K:{g:'g',c:0x0b0c0f},c:{g:'c',c:0xd4d8de},C:{g:'c',c:0x6c727b},g:{g:'g',c:0x1d2a36},
-    W:{g:'l',c:0xfff2d2},L:{g:'l',c:0xff2a36},O:{g:'l',c:0xffa21a},R:{g:'m',c:0x7a1018},s:{g:'s',c:0x23252a},Q:{g:'l',c:0xe8e8e8},P:{g:'m',c:0x3d4047}};
+    W:{g:'l',c:0xfff2d2},L:{g:'l',c:0xff2a36},O:{g:'l',c:0xffa21a},R:{g:'m',c:0x7a1018},s:{g:'s',c:0x23252a},Q:{g:'l',c:0xe8e8e8},P:{g:'m',c:0x3d4047},N:{g:'l',c:0x5ee6ff},M:{g:'l',c:0xff3ec8}};
   const EP=(typeof peintPal==='function'?peintPal(PAL):PAL).p,GP=EP.g;
   const CODES=[];CODES[0]={g:'#'};CODES[1]={g:'#',k:.38};CODES[2]={g:'g',c:0x1d2a36};CODES[3]={g:'g',c:0x0b0c0f};CODES[22]={g:'s',c:0x23252a};
   CODES[23]={g:'m',c:0x16171b};CODES[25]={g:'m',c:0x32333a};CODES[26]={g:'#'};CODES[27]={g:'l',c:0xff2a36};
@@ -281,9 +281,19 @@ return function(K){
     // LES PORTES : deux panneaux par flanc, en relief
     for(const sd of [1,-1])for(const [z0,z1] of [[.563,-.375],[-.418,-1.16]]){const L=Math.abs(z0-z1)-.012,zc=(z0+z1)/2;
       B('p',RP,.56,L,sd*(SBx(.93)+RP/2-.002),.93,zc);}
+    // LES PETITS DÉTAILS (comme LA FIDÈLE : des pièces posées, bien saillantes — jamais dessinées dans la tôle) : poignées chromées, filet chromé sous les vitres, trappe à carburant, badge d'aile,
+    // crochets de remorquage rouges, essuie-glace arrière
+    for(const sd of [1,-1]){
+      for(const z of [-.205,-.945])B('c',.03,.045,.21,sd*(SBx(1.105)+RP+.016),1.105,z);                       // la poignée : un bloc chromé
+      B('c',.012,.016,2.27,sd*.851,1.262,-.835);                                                              // le filet chromé, sous les vitres
+      B('c',.010,.032,.13,sd*.866,1.075,1.34);                                                                // le badge d'aile
+      B('R',.075,.035,.11,sd*.46,.60,2.17);B('c',.075,.010,.11,sd*.46,.62,2.17);}                             // les crochets de remorquage
+    B('k',.016,.14,.14,.872,1.145,-1.78);B('c',.006,.12,.012,.880,1.145,-1.78);                               // la trappe à carburant (à gauche, derrière)
+    B('k',.40,.012,.018,.10,1.50,zHT(1.50)-.022);B('k',.012,.012,.20,.10,1.50,zHT(1.50)-.012);              // l'essuie-glace arrière : lame et bras
     // LE CAPOT : un loft à 6 points (bombé), entre les ailes
     {const yT0=z=>lin([[.648,1.321],[1.083,1.307],[1.493,1.272],[1.684,1.225],[1.794,1.19],[1.835,1.17],[1.862,1.152]],z),HZ=[.648,.80,.95,1.10,1.25,1.40,1.55,1.66,1.75,1.80,1.862];
-     P.loft(HZ,z=>{const t=yT0(z);return [[0,1.148],[.66,1.148],[.66,t-.014],[.56,t-.003],[.30,t+.010],[0,t+.016]];},()=>'p');}
+     P.loft(HZ,z=>{const t=yT0(z);return [[0,1.148],[.66,1.148],[.66,t-.014],[.56,t-.003],[.30,t+.010],[0,t+.016]];},()=>'p');
+     for(const sd of [1,-1])B('k',.20,.008,.06,sd*.24,yT0(.97)+.014,.97);}   // les deux prises d'air du capot
   }
   // LE CAPOT : bombé, entre les ailes, qui plonge sur la calandre
   if(!CCH){const yT=z=>lin([[.648,1.321],[1.083,1.307],[1.493,1.272],[1.684,1.225],[1.794,1.19],[1.835,1.17],[1.862,1.152]],z),
@@ -315,6 +325,23 @@ return function(K){
     // les feux arrière (aux coins), leur verre
     P.box('L',.13,.23,.025,sd*.795,1.055,-2.1615);P.box('g',.07,.12,.006,sd*.795,1.055,-2.176);P.box('W',.05,.012,.006,sd*.795,1.11,-2.177);
   });
+  // LES GLITCHS DE PIXELS (25/10, Léo : « des glitchs pixels qui remontent depuis les couvre-roues, pas partout : un effet bug de jeu ») : de petits cubes de 3-4 cm, de la couleur de la caisse (quelques-uns noirs ou chromés),
+  // posés sur les élargisseurs à partir du bord de l'arche et de plus en plus rares vers le haut ; certains saillent, d'autres flottent un cran à côté. Un tirage déterministe (la même caisse à chaque fois).
+  if(CCH){
+    const B=(k,w,h,d,x,y,z)=>P.box(k,w,h,d,x,y,z,0,0,0);
+    const hash=(a,b,c,d)=>{const v=Math.sin(a*12.9898+b*78.233+c*37.719+d*5.171)*43758.5453;return v-Math.floor(v);};
+    const dans=(Pg,z,y)=>{let c=false;for(let i=0,j=Pg.length-1;i<Pg.length;j=i++){const a=Pg[i],b=Pg[j];if((a[1]>y)!==(b[1]>y)&&z<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])c=!c;}return c;};
+    const ARF=[[.93,.522],[1.036,.719],[1.129,.872],[1.203,.949],[1.274,.976],[1.534,.979],[1.794,.976],[1.827,.902],[1.887,.826]],
+          archF=z=>lin(ARF,z),archR=z=>Math.max(.60,lin(ARR,z));
+    const CE=.05,HM=.22;
+    for(const [wh,Pg,z0,z1,arch,id] of [['av',ELAV,.93,1.90,archF,0],['ar',ELAR,-2.0,-.90,archR,1]])for(const sd of [1,-1]){
+      for(let iz=Math.round(z0/CE);iz*CE<z1;iz++)for(let iy=0;iy<Math.round(HM/CE)+2;iy++){
+        const z=iz*CE,ya=arch(z),y=ya+.02+iy*CE,d=(y-ya)/HM;if(d>1||!dans(Pg,z,y))continue;
+        const pr=.85*Math.pow(1-d,1.3),h=hash(iz,iy,sd,id);if(h>pr)continue;
+        const q=hash(iz+.3,iy+.7,sd,id+2),sz=CE*(.70+.45*hash(iz+.9,iy+.1,sd,id+4)),sail=q<.2?.045:.012+.03*hash(iz+.5,iy+.5,sd,id+6);
+        const col=q>.96?'M':q>.92?'N':q>.86?'c':q>.70?'k':'p',dz=q<.2?(q<.1?CE*.5:-CE*.5):0;
+        B(col,.02,sz,sz,sd*(.947+sail+.01),y,z+dz);}}
+  }
   // LA CALANDRE : sept fentes, deux phares ronds, un peu couchée
   {const sh=new THREE.Shape(),PTS=rrect(-.66,-.18,.66,.175,.03,3);sh.moveTo(PTS[0][0],PTS[0][1]);for(let i=1;i<PTS.length;i++)sh.lineTo(PTS[i][0],PTS[i][1]);
    const fente=x=>{const h=new THREE.Path(),Q=rrect(x-.0375,-.12,x+.0375,.14,.03,3);h.moveTo(Q[0][0],Q[0][1]);for(let i=1;i<Q.length;i++)h.lineTo(Q[i][0],Q[i][1]);return h;};
