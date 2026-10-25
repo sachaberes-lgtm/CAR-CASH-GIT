@@ -11543,7 +11543,7 @@ function qlSonde(){ try{ const g9=renderer.getContext();
    Le FILET (VHD) lit la GRANDEUR de la mesure (« l'image agrandie tiendrait-elle sous 14 ms ? ») : il garde la lecture synchrone.
    `?mobr_sonde=0` = avant · `dbgSonde('sync')` (banc) = la lecture synchrone, comme avant · `dbgMobrSonde()` : décisions, replis, barrières. */
 const MOBR_SONDE={on:null,seuil:12,mc:null,file:[],dec:0,repli:0,suite:0,pauseT:0,der:null};
-function mobrSondeOk(){ if(MOBR_SONDE.on===null)MOBR_SONDE.on=TEL_NATIF&&!/[?&]mobr_sonde=0/.test(location.search);
+function mobrSondeOk(){ if(MOBR_SONDE.on===null)MOBR_SONDE.on=TEL_NATIF&&/[?&]mobr_sonde=1/.test(location.search); /* (2026-10-25 soir) INACTIF par défaut : mesuré sur le 13 Pro chaud (v900), les 5 barrières signalent après 32-41 ms, loin sous le seuil de 12 ms : 0 décision sans repli, 5 replis sur l'ancienne lecture, sonde en pause 70 s. Aucun gain, un peu de guet. `?mobr_sonde=1` pour retenter à froid. */
   return MOBR_SONDE.on&&!QLR.sync&&!VHD.on&&!QLR.S.sync&&!(MOBR_SONDE.pauseT&&performance.now()-MOBR_SONDE.pauseT<60000)&&!!renderer.capabilities.isWebGL2;}
 function mobrTache(f){const M=MOBR_SONDE;if(!M.mc){M.mc=new MessageChannel();M.mc.port1.onmessage=function(){const a=M.file.splice(0);for(const g of a)g();};}
   M.file.push(f);M.mc.port2.postMessage(0);}
