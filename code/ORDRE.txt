@@ -234,6 +234,7 @@ gameplay/ramassage.js                # le ramassage (pickupsTick)
 interface/bouton-nitro-gains.js      # bouton nitro v3, gains qui flottent, remplissage
 moteur/cadence.js                    # la cadence stable (CAD)
 moteur/gouverneur-thermique.js        # le gouverneur thermique MOB_G : dose de chaleur sans capteur, état iOS (cc:thermique), calage sur 30
+moteur/mobh-regime-chaud.js            # MOBH_ : le régime chaud (?mobh_chaud=1), effets décoratifs allégés quand mobChaud()
 moteur/boucle-1.js                   # loop() : LA BOUCLE DE JEU — début, overdrive, pouvoirs, turbo, pilote auto
 moteur/boucle-2-conduite.js          # loop() — en course : anti-idle, momentum, drift, bord, portail, flaques
 moteur/boucle-3-physique.js          # loop() — en course : la conduite (physique au sol et en vol)

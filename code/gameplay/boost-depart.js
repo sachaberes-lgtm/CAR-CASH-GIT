@@ -206,7 +206,7 @@ function ventPose(i,loin){ // (re)nait un trait : un point de l'écran (loin du 
    effacée à chaque image (mesuré : 3,3 % du processeur de la boucle au banc ×4, à grande vitesse nitro tenue). [ANCIEN, MOYEN, RÉCENT] : la moitié, 70 %, tous. */
 PAL.B.ventK=[.5,.7,1];
 function ventDessine(kmh,nitro,dt){
-  const W=slCv.width,H=slCv.height;dt=Math.min(dt||.016,.05);
+  const W=slCv.width,H=slCv.height;dt=Math.min(dt||.016,mobhChaud()?MOBH_R.ventCap:.05); /* (2026-10-25, A6) régime chaud : le dt cumulé de deux images ne doit pas être rogné à 50 ms */
   const vcL=vCroisiere();
   let k=Math.max(0,(kmh-vcL*.6)/vcL)+(nitro?.6:0);if(mode==='boom'||gameOver)k=0;
   VENT.pic=Math.max(0,VENT.pic-dt*2.6);
@@ -217,7 +217,7 @@ function ventDessine(kmh,nitro,dt){
   if(!VENT.init||jump>160){VENT.init=true;for(let i=0;i<VENT_N;i++){ventPose(i,false);VENT.pal[i]=0;}VENT.vx=VENT.vy=VENT.vz=0;}
   else if(dt>0){const g=1-Math.exp(-dt*10);VENT.vx+=((P.x-VENT.pxP)/dt-VENT.vx)*g;VENT.vy+=((P.y-VENT.pyP)/dt-VENT.vy)*g;VENT.vz+=((P.z-VENT.pzP)/dt-VENT.vz)*g;}
   VENT.pxP=P.x;VENT.pyP=P.y;VENT.pzP=P.z;
-  k=Math.min(1.35,k);const cible=Math.min(VENT_N,(k*46+(VENT.pic>0?VENT.pic*18:0))*PAL.b('ventK',1)); // (2026-10-24, passe perf) ventK : moins de traits sur les vieux téléphones
+  k=Math.min(1.35,k);const cible=Math.min(VENT_N,(k*46+(VENT.pic>0?VENT.pic*18:0))*PAL.b('ventK',1)*(mobhChaud()?MOBH_R.vent:1)); // (2026-10-24, passe perf) ventK : moins de traits sur les vieux téléphones — (2026-10-25, A6) régime chaud : ×0,7 de plus
   if(cible<=.05&&!VENT.vivants){if(drawSpeedLines._had){slCtx.clearRect(0,0,W,H);drawSpeedLines._had=false;slCv.style.visibility='hidden';}return;}
   slCtx.clearRect(0,0,W,H);if(!drawSpeedLines._had){drawSpeedLines._had=true;slCv.style.visibility='visible';}
   const spr=VENT.sp||(VENT.sp=ventSprites());
@@ -253,7 +253,7 @@ function ventDessine(kmh,nitro,dt){
   VENT.vivants=viv;slCtx.setTransform(1,0,0,1,0,0);slCtx.globalAlpha=1;slCtx.globalCompositeOperation='source-over';
 }
 function drawSpeedLines(kmh,nitro,dt){ // speed lines façon anime : traits radiaux fuyant le centre — (2026-10-21) remplacées par LE VENT ci-dessus, sauf ?vent=ancien
-  if(!VENT.ancien){ventDessine(kmh,nitro,dt);return;}
+  if(!VENT.ancien){if(mobhVentSaute(dt))return;ventDessine(kmh,nitro,mobhChaud()?(mobhVentDt()||dt):dt);return;} /* (2026-10-25, A6) régime chaud : une image sur deux, le calque garde l'image d'avant (rien n'est effacé), le dt s'accumule */
   const W=slCv.width,H=slCv.height;dt=dt||.016;
   const vcL=vCroisiere();
   let k=Math.max(0,(kmh-vcL*.6)/vcL)+(nitro?.6:0); // (2026-09-25) « un peu » en croisière, beaucoup plus au momentum, au boost, en nitro
