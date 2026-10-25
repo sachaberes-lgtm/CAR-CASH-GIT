@@ -40650,14 +40650,16 @@ return function(K){
     const dans=(Pg,z,y)=>{let c=false;for(let i=0,j=Pg.length-1;i<Pg.length;j=i++){const a=Pg[i],b=Pg[j];if((a[1]>y)!==(b[1]>y)&&z<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])c=!c;}return c;};
     const ARF=[[.93,.522],[1.036,.719],[1.129,.872],[1.203,.949],[1.274,.976],[1.534,.979],[1.794,.976],[1.827,.902],[1.887,.826]],
           archF=z=>lin(ARF,z),archR=z=>Math.max(.60,lin(ARR,z));
-    const CE=.05,HM=.22;
-    for(const [wh,Pg,z0,z1,arch,id] of [['av',ELAV,.93,1.90,archF,0],['ar',ELAR,-2.0,-.90,archR,1]])for(const sd of [1,-1]){
+    // (25/10, Léo : « plus de cubes glitchés comme La Fidèle ») ceux de La Fidèle sont de GROS blocs plats de la couleur de la caisse, de longueurs inégales, qui saillent en escalier : ici des dalles de 6 cm
+    // (1 à 4 cases de long, 3 à 6 cm de saillie) qui remontent de l'arche sur ~30 cm, de plus en plus rares ; presque toutes de la couleur de la caisse, quelques-unes noires.
+    const CE=.06,HM=.32;
+    for(const [wh,Pg,z0,z1,arch,id] of [['av',ELAV,.90,1.92,archF,0],['ar',ELAR,-2.03,-.88,archR,1]])for(const sd of [1,-1]){
       for(let iz=Math.round(z0/CE);iz*CE<z1;iz++)for(let iy=0;iy<Math.round(HM/CE)+2;iy++){
-        const z=iz*CE,ya=arch(z),y=ya+.02+iy*CE,d=(y-ya)/HM;if(d>1||!dans(Pg,z,y))continue;
-        const pr=.85*Math.pow(1-d,1.3),h=hash(iz,iy,sd,id);if(h>pr)continue;
-        const q=hash(iz+.3,iy+.7,sd,id+2),sz=CE*(.70+.45*hash(iz+.9,iy+.1,sd,id+4)),sail=q<.2?.045:.012+.03*hash(iz+.5,iy+.5,sd,id+6);
-        const col=q>.96?'M':q>.92?'N':q>.86?'c':q>.70?'k':'p',dz=q<.2?(q<.1?CE*.5:-CE*.5):0;
-        B(col,.02,sz,sz,sd*(.947+sail+.01),y,z+dz);}}
+        const z=iz*CE,ya=arch(z),y=ya+.025+iy*CE,d=(y-ya)/HM;if(d>1||!dans(Pg,z,y))continue;
+        const pr=.92*Math.pow(1-d,1.1),h=hash(iz,iy,sd,id);if(h>pr)continue;
+        const q=hash(iz+.3,iy+.7,sd,id+2),n=1+Math.floor(hash(iz+.9,iy+.1,sd,id+4)*3.6),L=CE*n,sz=CE*(.55+.5*hash(iz+.5,iy+.5,sd,id+6)),
+              wd=.03+.03*hash(iz+.2,iy+.8,sd,id+8),col=q>.93?'k':'p';
+        B(col,wd,sz,L-.004,sd*(.947+wd/2-.004+.02*hash(iz+.6,iy+.4,sd,id+10)),y,z+L/2-CE/2);}}
   }
   // LA CALANDRE : sept fentes, deux phares ronds, un peu couchée
   {const sh=new THREE.Shape(),PTS=rrect(-.66,-.18,.66,.175,.03,3);sh.moveTo(PTS[0][0],PTS[0][1]);for(let i=1;i<PTS.length;i++)sh.lineTo(PTS[i][0],PTS[i][1]);
