@@ -151,7 +151,7 @@ function m2Portes(){const n=m2NbPret();
     p.hidden=!n;});}
 /* LES MISSIONS SUIVIES, EN COURSE (#m2Focus, à la place de #misFocus) : trois lignes au plus, discrètes — consigne · avancement · jauge
    fine ; verte quand elle tombe. Le DOM n'est écrit que si un texte ou une jauge change (4 fois par seconde au plus, m2Tick). */
-const MIS_FOCUS_OFF=true; // (2026-10-20, Sacha : « enlève ce truc de mission ») plus aucune mission suivie affichée en course ; false = on la rallume
+const MIS_FOCUS_OFF=false; // (2026-10-20, Sacha : « enlève ce truc de mission ») la mission suivie avait quitté la course ; (2026-10-25, Sacha : « on ne peut plus suivre des missions, juste les voir dans le menu ») elle y revient ; true = on la retire
 function m2FocusMaj(){let e=document.getElementById('m2Focus');const on=!MIS_FOCUS_OFF&&misOn()&&!TUTO.on;
   const s=on?m2Etat():null,L=on?s.su.filter(function(id){return m2Dispo(m2Def(id))&&!!m2Def(id);}):[];
   if(!L.length){if(e&&e._on){e.classList.remove('on');e._on=0;}return;}
