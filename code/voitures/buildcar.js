@@ -3,83 +3,32 @@
 // garage (GAR.vD, cdx…) passait en NaN et toute l'image 3D sortait NOIRE. Le joueur n'y arrive pas (equippedCar, garageListe et
 // l'inventaire écartent les retirées) : c'est le filet. Une retirée qui garde sa fiche (LA POUPÉE, LA DAYTONA…) se construit comme avant.
 function carFicheOk(s){return !!s&&s.w>0&&s.h>0&&s.l>0;}
-/* LES CHOCS DE CUBES SUR TOUTES LES CAISSES (25/10, Léo : « essaye sur les 84 voitures en test, garde la beauté des voitures » — `?degats=1`, un ESSAI, éteint par défaut) : une passe GÉNÉRIQUE qui n'a besoin d'aucun gabarit.
-   On tire des rayons du ciel sur la caisse montée : on lit la hauteur de la tôle et la couleur de ses sommets. DEUX petits chocs seulement (rayon ~11 % de la largeur) sur les dessus de la caisse (le toit, le capot ou le
-   coffre — choisis d'après le nom de la voiture, donc toujours les mêmes) : au centre, un TROU (des tuiles sombres à fleur de tôle), autour une COURONNE de cubes arrachés, soulevés et penchés, au-delà quelques DÉBRIS.
-   Les cubes prennent la MATIÈRE et la COULEUR de la tôle qu'ils touchent (la peinture, le vernis, la boutique) : rien de nouveau à compiler, et la caisse garde sa beauté partout ailleurs. Appelée juste avant `caisseSoude()`. */
-const DEGATS_REF=new Set(['LA HONTE','LA FIDELE','ELDORADO','LE CHARGEUR 69','LA VETTE','LA BAVAROISE','LA DOLORES','LE CORBILLARD','LE CHARGEUR','LE DEFIEUR','LE TRONE CENTRAL','LA CERISE','LE SAMOURAI','L ORIGAMI','ROSSO 40','LE MASTODONTE','LA STRATOS','ATCHOUM','LA TAURINE','LE SPECTRE','L ETERNELLE','POSTER 84','LE BLINDE NOIR','SQUALE','CHAT POP TART','LA PIZZA EXPRESS','LE LOUP','LE MUR DU SON','LE DRAGON D OR']);
-const DEGATS_CACHE=new Map();   // nom → les cubes déjà calculés (les rayons ne repartent pas à chaque changement de voiture : la vignette du garage, le départ…)
-function degatsCaisse(spec){
-  let ON=true;try{ON=!/[?&]degats=0/.test(location.search);}catch(e){}
-  if(!ON||!spec||spec.shape==='wrangler'||spec.shape==='bulle')return;
-  const nm=String(spec.name).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim();
-  if(DEGATS_REF.has(nm))return;   // les 29 RÉFÉRENCES de Léo (le langage visuel du jeu) : à ne pas toucher
-  carGroup.updateMatrixWorld(true);
-  const cibles=[];carGroup.traverse(o=>{if(o.isMesh&&o.visible&&!o.userData.sol&&!o.userData.noShadow&&o.material&&!Array.isArray(o.material)&&!o.material.transparent&&o.geometry&&o.geometry.attributes.position)cibles.push(o);});
-  if(!cibles.length)return;
-  const dc=DEGATS_CACHE.get(spec.name);
-  if(dc&&dc.n===cibles.length){for(const L of dc.lots){const o=cibles[L.mi];if(!o)continue;const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(L.P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(L.N,3));if(L.a)g.setAttribute('color',new THREE.Float32BufferAttribute(L.C,3));
-      const m=new THREE.Mesh(g,o.material);m.castShadow=true;m.userData.degats=1;carGroup.add(m);}return;}
-  const RC=new THREE.Raycaster(),DN=new THREE.Vector3(0,-1,0),OR=new THREE.Vector3();RC.layers.enableAll();
-  const hs=(a,b,c)=>{const v=Math.sin(a*12.9898+b*78.233+c*37.719)*43758.5453;return v-Math.floor(v);};
-  let seed=0;for(let i=0;i<spec.name.length;i++)seed=(seed*31+spec.name.charCodeAt(i))%9973;
-  const WP=carGroup.getWorldPosition(new THREE.Vector3());   // le garage pose la caisse haut (y ≈ 1500) : les rayons partent de SA position
-  const tire=(x,z)=>{OR.set(WP.x+x,WP.y+5,WP.z+z);RC.set(OR,DN);const h=RC.intersectObjects(cibles,false);
-    for(const r of h){if(!r.face||Math.abs(r.face.normal.y)<.5)continue;const g=r.object.geometry,ca=g.attributes.color;let col=[.5,.5,.5];
-      if(ca){col=[ca.getX(r.face.a),ca.getY(r.face.a),ca.getZ(r.face.a)];}else if(r.object.material.color){const c=r.object.material.color;col=[c.r,c.g,c.b];}
-      return {y:r.point.y-WP.y,ny:Math.abs(r.face.normal.y),obj:r.object,col:col,lum:.3*col[0]+.59*col[1]+.11*col[2],ca:!!ca};}
-    return null;};
-  const tole=t=>(t.lum>.10||Math.abs(t.col[2]-t.col[0])<.03)&&t.lum>.012;   // de la tôle (même noire, neutre) — pas du verre (sombre ET bleuté)
-  const W=spec.w||1.8,Lg=spec.l||4,R=Math.max(.14,Math.min(.24,.11*W));
-  // 1. les candidats : des dessus à plat, assez clairs pour être de la tôle (pas du verre)
-  const cand=[];for(let x=-W*.4;x<=W*.4;x+=.1)for(let z=-Lg*.42;z<=Lg*.42;z+=.1){const t=tire(x,z);if(t&&t.ny>.93&&tole(t)&&t.y>.5)cand.push({x:x,z:z,y:t.y});}
-  if(cand.length<12)return;
-  cand.sort((a,b)=>b.y-a.y);
-  const haut=cand.slice(0,Math.max(6,Math.floor(cand.length*.25))),c1=haut[Math.floor(hs(seed,1,1)*haut.length)];
-  const loin=cand.filter(c=>Math.hypot(c.x-c1.x,c.z-c1.z)>R*3.2&&c.z*Math.sign(c1.z||1)<c1.z*Math.sign(c1.z||1)+9),c2=loin.length?loin[Math.floor(hs(seed,2,2)*loin.length)]:null;
-  const chocs=[c1].concat(c2?[c2]:[]);
-  // 2. les cubes, groupés par matière
-  const lots=new Map(),CE=.045;
-  const lot=(o,a)=>{const mi=cibles.indexOf(o),k=mi+(a?'c':'n');let L=lots.get(k);if(!L){L={mat:o.material,mi:mi,a:a,P:[],N:[],C:[]};lots.set(k,L);}return L;};
-  const rot=(a,b,k)=>(hs(a*13+seed,b*17,k)-.5)*.9;
-  const cube=(L,cx,cy,cz,sx,sy,sz,rx,ry,rz,col)=>{const g=new THREE.BoxGeometry(sx,sy,sz).toNonIndexed();g.rotateX(rx);g.rotateY(ry);g.rotateZ(rz);g.translate(cx,cy,cz);g.computeVertexNormals();
-    const p=g.attributes.position,n=g.attributes.normal;for(let i=0;i<p.count;i++){L.P.push(p.getX(i),p.getY(i),p.getZ(i));L.N.push(n.getX(i),n.getY(i),n.getZ(i));if(L.a)L.C.push(col[0],col[1],col[2]);}g.dispose();};
-  for(const ch of chocs)for(let ix=Math.round(-R*1.9/CE);ix<=R*1.9/CE;ix++)for(let iz=Math.round(-R*1.9/CE);iz<=R*1.9/CE;iz++){
-    const x=ch.x+ix*CE,z=ch.z+iz*CE,m=Math.hypot(ix*CE,iz*CE)/R;if(m>1.0&&m>1.9)continue;
-    if(m>=1&&hs(ix*7+seed,iz*5,ch.z*3)>.10)continue;                                                       // au-delà : quelques débris seulement
-    const t=tire(x,z);if(!t||t.ny<.85||!tole(t))continue;const L=lot(t.obj,t.ca);
-    if(m<.5){if(hs(ix,iz,seed)<.8)cube(L,x,t.y+.004,z,CE*.96,.012,CE*.96,0,0,0,[.05,.05,.06]);continue;}   // le trou : l'intérieur à nu, sombre
-    if(m<1){cube(L,x,t.y+CE/2-.012+.03*(1-m),z,CE*.96,CE,CE*.96,rot(ix,iz,1),rot(iz,ix,2),rot(ix+1,iz,3),t.col);continue;}   // la couronne
-    cube(L,x,t.y+.03+.07*hs(ix,iz,9),z,CE*.9,CE*.9,CE*.9,rot(ix,iz,4),rot(iz,ix,5),rot(ix,iz+1,6),t.col);}   // les débris
-  for(const L of lots.values()){if(!L.P.length)continue;const g=new THREE.BufferGeometry();
-    g.setAttribute('position',new THREE.Float32BufferAttribute(L.P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(L.N,3));if(L.a)g.setAttribute('color',new THREE.Float32BufferAttribute(L.C,3));
-    const m=new THREE.Mesh(g,L.mat);m.castShadow=true;m.userData.degats=1;carGroup.add(m);}
-  DEGATS_CACHE.set(spec.name,{n:cibles.length,lots:[...lots.values()].filter(L=>L.P.length).map(L=>({mi:L.mi,a:L.a,P:L.P,N:L.N,C:L.C}))});
-}
+/* LES 29 RÉFÉRENCES DE LÉO (25/10 : « à ne pas toucher », le langage visuel du jeu) : la traduction ci-dessous ne les regroupe jamais. Noms sans accent ni ponctuation. */
+const LANGAGE_REF=new Set(['LA HONTE','LA FIDELE','ELDORADO','LE CHARGEUR 69','LA VETTE','LA BAVAROISE','LA DOLORES','LE CORBILLARD','LE CHARGEUR','LE DEFIEUR','LE TRONE CENTRAL','LA CERISE','LE SAMOURAI','L ORIGAMI','ROSSO 40','LE MASTODONTE','LA STRATOS','ATCHOUM','LA TAURINE','LE SPECTRE','L ETERNELLE','POSTER 84','LE BLINDE NOIR','SQUALE','CHAT POP TART','LA PIZZA EXPRESS','LE LOUP','LE MUR DU SON','LE DRAGON D OR']);
 /* LA TRADUCTION AU LANGAGE DU JEU (25/10, Léo : « quand les voitures ont trop de facettes, tu divises par deux le nombre de facettes » ; avant : « les traduire pour que ce soit comme les autres, mais que leur modèle soit toujours ressenti, juste ajusté ») —
    PAR DÉFAUT depuis la v912 ; `?langage=0` la coupe. Une caisse qui dépasse 12 000 triangles (tes références en font ~5 000) voit sa PEINTURE regroupée en grandes facettes planes : tous les sommets d'une même case de grille n'en font plus qu'un, au centre de leur
    groupe, les triangles qui s'effondrent disparaissent. La taille de la case est CHERCHÉE (recherche par dichotomie, mémorisée par voiture) pour que la caisse entière tombe à la MOITIÉ de ses triangles, sans dépasser 45 cm. La silhouette reste celle de la
    voiture, une facette = une couleur (la moyenne de ses sommets). SEULE la peinture (laque 44, nacre 70, métallisé 90) est regroupée : feux, chrome, grilles, plastiques, verre, roues et petites pièces (< 25 cm) gardent leurs détails. Jamais sur tes 29 RÉFÉRENCES
-   (le langage visuel du jeu), ni sur le Baroudeur et le Scarabée (leur style à eux). Appelée juste avant `caisseSoude()`. */
+   (le langage visuel du jeu), ni sur le Baroudeur (sa coque est dans la même pièce que ses détails). Appelée juste avant `caisseSoude()`. */
 const LANG_CACHE=new Map();
-function traduisLangage(spec){
+function traduisGroupe(spec,corps,tout){   // corps : le groupe dont les enfants directs sont les pièces de la caisse ; tout : la caisse entière (roues, détails…) — dans le jeu carBody et carGroup, dans la liste des voitures le même groupe
   let ON=true;try{ON=!/[?&]langage=0/.test(location.search);}catch(e){}
-  if(!ON||!spec||spec.shape==='wrangler')return;   // le Baroudeur : sa coque et ses cubes sont dans la même pièce, on n'y touche pas
+  if(!ON||!spec||spec.shape==='wrangler')return;   // le Baroudeur : sa coque et ses détails sont dans la même pièce, on n'y touche pas
   const nm=String(spec.name).normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim();
-  if(DEGATS_REF.has(nm))return;
-  const GROSSE=spec.shape==='bulle'?8000:0;   // le Scarabée : SEULE sa coque (la grosse pièce de peinture) est regroupée, pas les détails ni les cubes du capot
-  carGroup.updateMatrixWorld(true);
-  let Tc=0;carGroup.traverse(o=>{if(o.isMesh&&o.geometry&&o.geometry.attributes.position&&!o.userData.sol&&!o.userData.noShadow&&!o.userData.degats&&o.material&&!Array.isArray(o.material)&&!o.material.transparent){const g=o.geometry;Tc+=g.index?g.index.count/3:g.attributes.position.count/3;}});
+  if(LANGAGE_REF.has(nm))return;
+  tout.updateMatrixWorld(true);
+  let Tc=0;tout.traverse(o=>{if(o.isMesh&&o.geometry&&o.geometry.attributes.position&&!o.userData.sol&&!o.userData.noShadow&&o.material&&!Array.isArray(o.material)&&!o.material.transparent){const g=o.geometry;Tc+=g.index?g.index.count/3:g.attributes.position.count/3;}});
   if(Tc<=12000)return;
-  const inv=new THREE.Matrix4().copy(carBody.matrixWorld).invert(),M=new THREE.Matrix4(),P=new THREE.Vector3(),pein=[];
-  for(const o of carBody.children){
-    if(!o.isMesh||!o.geometry||!o.geometry.attributes.position||o.userData.sol||o.userData.noShadow||o.userData.degats||!o.material||Array.isArray(o.material))continue;
-    if(o.material.isMeshBasicMaterial)continue;                                                 // les FEUX (matière émissive) : on n'y touche pas
-    {const sh=o.material.shininess;if(!(o.material.userData&&o.material.userData.g==='p')&&!(sh===44||sh===70||sh===90))continue;}   // SEULE la peinture
+  const inv=new THREE.Matrix4().copy(corps.matrixWorld).invert(),M=new THREE.Matrix4(),P=new THREE.Vector3(),pein=[];
+  for(const o of corps.children){
+    if(!o.isMesh||!o.geometry||!o.geometry.attributes.position||o.userData.sol||o.userData.noShadow||!o.material||Array.isArray(o.material))continue;
+    {const tg=o.material.userData&&o.material.userData.g;   // matière TAGUÉE (la liste des voitures) : peinture 'p', métallisé 'k', nacre 'n'
+      if(tg!==undefined&&tg!==null){if(!(tg==='p'||tg==='k'||tg==='n'))continue;}
+      else{if(o.material.isMeshBasicMaterial)continue;   // les FEUX (matière émissive) : on n'y touche pas
+        const sh=o.material.shininess;if(!(sh===44||sh===70||sh===90))continue;}}   // SEULE la peinture (laque 44, nacre 70, métallisé 90)
     const g=o.geometry;g.computeBoundingBox();const bb=g.boundingBox;if(bb.min.distanceTo(bb.max)*Math.max(o.scale.x,o.scale.y,o.scale.z)<.25)continue;   // les petites pièces restent
     M.multiplyMatrices(inv,o.matrixWorld);const pos=g.attributes.position,n=pos.count,W=new Float32Array(n*3);
     for(let v=0;v<n;v++){P.fromBufferAttribute(pos,v).applyMatrix4(M);W[v*3]=P.x;W[v*3+1]=P.y;W[v*3+2]=P.z;}
-    if((g.index?g.index.count/3:n/3)<GROSSE)continue;
     pein.push({o:o,W:W,n:n,ix:g.index,col:g.attributes.color,nT:g.index?g.index.count/3:n/3});
   }
   if(!pein.length)return;
@@ -104,9 +53,10 @@ function traduisLangage(spec){
     if(Pn.length<9)continue;
     const ng=new THREE.BufferGeometry();ng.setAttribute('position',new THREE.Float32BufferAttribute(Pn,3));if(m.col)ng.setAttribute('color',new THREE.Float32BufferAttribute(Cn,3));ng.computeVertexNormals();
     const nm2=new THREE.Mesh(ng,o.material);nm2.castShadow=o.castShadow;nm2.receiveShadow=o.receiveShadow;nm2.renderOrder=o.renderOrder;nm2.userData=Object.assign({},o.userData);
-    carBody.remove(o);carBody.add(nm2);
+    corps.remove(o);corps.add(nm2);
   }
 }
+function traduisLangage(spec){traduisGroupe(spec,carBody,carGroup);}
 function buildCar(spec){
   if(!carFicheOk(spec)){console.warn('CASH CAR : « '+((spec&&spec.name)||'?')+' » n\'a pas de fiche (caisse retirée) — LA HONTE à la place');spec=CARS[0];}
   // ⚠ LES PIÈCES LOW-POLY SE LIBÈRENT : chaque caisse a SA géométrie (plusieurs milliers de facettes)
@@ -460,7 +410,6 @@ function buildCar(spec){
   if(finAreteOk())finCaisse(); // (2026-10-20, FINITION STUDIO) les drapeaux d'arête de la tôle, AVANT la soudure (voir finition.js)
   if(FSTU.on)finLaque(FSTU.garage); // le vernis profond si on est au garage
   try{traduisLangage(spec);}catch(e){console.warn('langage',e);} // (25/10) ESSAI `?langage=1` : les caisses « hors langage » regroupées en grandes facettes (éteint par défaut)
-  try{degatsCaisse(spec);}catch(e){console.warn('degats',e);} // (25/10) ESSAI `?degats=1` : de petits chocs de cubes sur le dessus de la caisse (éteint par défaut)
   caisseSoude(); // (2026-09-27, passe perf iPhone) ce qui ne bouge jamais est soudé par matière — voir « LA CAISSE EN UN MINIMUM DE DESSINS »
   try{feuxLed(spec,hlM,tlM);}catch(e){console.warn('feux',e);} // (2026-10-20) l'étude des feux en LED, `?feux=1|2` (voir FEUXL) — sans paramètre, rien ne change
 }
