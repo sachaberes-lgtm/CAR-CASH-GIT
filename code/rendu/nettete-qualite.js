@@ -56,8 +56,45 @@ function qlSonde(){ try{ const g9=renderer.getContext();
       if(S!==QLR.S)return;if(gpu!=null){QLR.sA.push(Math.min(120,cpu+gpu));(QLR.cg||(QLR.cg=[])).push([+cpu.toFixed(1),+gpu.toFixed(1)]);if(QLR.cg.length>10)QLR.cg.shift();}qlSondeFin();};
     setTimeout(pas,8);return;}
   if(qlChrono(g9))return; // chrono pas encore lancé (la sonde vient d'être armée en cours d'image) : il partira à l'image suivante
+  if(mobrSondeBarriere(g9))return; /* (2026-10-25, passe perf mobile) sur téléphone sans chrono : une BARRIÈRE d'abord, sans attente (voir MOBR_SONDE) */
   renderer.setRenderTarget(null);g9.readPixels(0,0,1,1,g9.RGBA,g9.UNSIGNED_BYTE,QLR.px);QLR.sN--;QLR.sA.push(performance.now()-QLR.t0);qlSondeFin();
   }catch(e){QLR.sN=0;try{if(QLT.q){renderer.getContext().endQuery(QLT.ext.TIME_ELAPSED_EXT);QLT.q=null;}}catch(e2){QLT.ok=false;}} }
+/* ===== LA SONDE SANS GEL SUR WEBKIT (2026-10-25, passe perf mobile : « la sonde qualité sans lecture synchrone sur WebKit ») =====
+   MESURÉ sur l'iPhone 13 Pro chaud (WebKit, sans chronomètre de la puce) : la série de cinq `readPixels` de la sonde fige le fil principal
+   toutes les 8 à 30 s dès que ça rame — au pire moment. Sur TÉLÉPHONE (TEL_NATIF), la série passe d'abord par des BARRIÈRES : une `fenceSync`
+   posée en fin d'image (là où était la lecture), guettée ENTRE deux tâches (MessageChannel, pas de ~0,3 ms) ; personne n'attend la puce.
+   Le signal d'une barrière ne peut pas arriver AVANT que la puce ait fini l'image ; il peut arriver EN RETARD (c'est ce qui l'a fait écarter
+   seule sur Chrome le 08/10 : ~21 ms lus pour 8). Une barrière est donc une BORNE HAUTE de ce que la lecture synchrone aurait lu (à la réponse
+   de la lecture près, < 1 ms), et la médiane est monotone. D'où une règle ÉQUIVALENTE PAR CONSTRUCTION :
+     · médiane des cinq barrières < 12 ms (le 13 ms de la cadence et le 14,5 ms de l'échelle, moins 1 ms) : la lecture aurait dit la même
+       chose (« c'est l'écran qui bride ») — on décide sans geler, avec cette valeur ;
+     · sinon (la puce rame vraiment, OU le signal traîne) : la série est REJOUÉE à l'ancienne (cinq lectures synchrones), inchangée — même
+       mesure, même décision, ~5 images plus tard. Quatre replis d'affilée : les barrières se taisent 60 s (un signal qui traîne ne paie
+       pas le détour à chaque série).
+   Le FILET (VHD) lit la GRANDEUR de la mesure (« l'image agrandie tiendrait-elle sous 14 ms ? ») : il garde la lecture synchrone.
+   `?mobr_sonde=0` = avant · `dbgSonde('sync')` (banc) = la lecture synchrone, comme avant · `dbgMobrSonde()` : décisions, replis, barrières. */
+const MOBR_SONDE={on:null,seuil:12,mc:null,file:[],dec:0,repli:0,suite:0,pauseT:0,der:null};
+function mobrSondeOk(){ if(MOBR_SONDE.on===null)MOBR_SONDE.on=TEL_NATIF&&!/[?&]mobr_sonde=0/.test(location.search);
+  return MOBR_SONDE.on&&!QLR.sync&&!VHD.on&&!QLR.S.sync&&!(MOBR_SONDE.pauseT&&performance.now()-MOBR_SONDE.pauseT<60000)&&!!renderer.capabilities.isWebGL2;}
+function mobrTache(f){const M=MOBR_SONDE;if(!M.mc){M.mc=new MessageChannel();M.mc.port1.onmessage=function(){const a=M.file.splice(0);for(const g of a)g();};}
+  M.file.push(f);M.mc.port2.postMessage(0);}
+function mobrSondeBarriere(g9){ if(!mobrSondeOk())return false;
+  let f=null;try{f=g9.fenceSync(g9.SYNC_GPU_COMMANDS_COMPLETE,0);if(f)g9.flush();}catch(e){f=null;} /* flush : sans lui la barrière peut attendre l'image suivante */
+  if(!f){MOBR_SONDE.on=false;return false;} /* pas de barrière : l'ancienne lecture, pour toujours */
+  const S=QLR.S,t0=QLR.t0;QLR.sN--;S.pend++;if(!S.b)S.b=[];
+  const pas=function(){ if(S!==QLR.S){try{g9.deleteSync(f);}catch(e){}return;} /* série réarmée entre-temps : celle-ci ne compte plus */
+    let st=-1;try{st=g9.getSyncParameter(f,g9.SYNC_STATUS);}catch(e){}
+    const t=performance.now();
+    if(st===g9.UNSIGNALED&&t-t0<60){mobrTache(pas);return;}
+    try{g9.deleteSync(f);}catch(e){}
+    S.pend--;S.b.push(st===g9.SIGNALED?t-t0:999); /* 999 : jamais signalée en 60 ms, la série se rejouera à l'ancienne */
+    if(QLR.sN<=0&&S.pend<=0)mobrSondeBilan(S);};
+  mobrTache(pas);return true;}
+function mobrSondeBilan(S){const M=MOBR_SONDE,b=S.b.slice().sort(function(a,c){return a-c;}),m=b[b.length>>1];M.der=b.map(function(x){return +x.toFixed(1);});
+  if(m<M.seuil){M.dec++;M.suite=0;QLR.sA.length=0;for(const x of S.b)QLR.sA.push(x);qlSondeFin();return;} /* la même médiane que qlSondeFin relira */
+  M.repli++;if(++M.suite>=4){M.suite=0;M.pauseT=performance.now();}
+  qlSondeArme();QLR.S.sync=1;} /* la puce rame ou le signal traîne : cinq lectures synchrones, comme avant */
+window.dbgMobrSonde=function(){const M=MOBR_SONDE;return {on:M.on,seuil:M.seuil,decisions:M.dec,replis:M.repli,pause:M.pauseT?Math.round((performance.now()-M.pauseT)/1000)+' s':null,barrieres:M.der};};
 const QL={k:0,mur:0,murT:0,roseT:0,up:0,efT:0,effondre:false,fr:0,N_EFF:5,ombre0:sun.shadow.mapSize.x,essai:null,plafK:0,plafT:0,
   nom:['ombre en vol ½','ombre 768','bloom ¾','ombre 512','flou radial']};
 /* (2026-09-27, tour 2 — « on repasse en mode pixel assez vite après avoir lancé ») LE MODE PIXEL, C'ÉTAIT LE PLANCHER : sous l'effondrement,
