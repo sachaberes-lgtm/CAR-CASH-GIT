@@ -355,22 +355,12 @@ SHAPES.bulle=function(K){
     /* (« organisé comme sur La Fidèle, qui embrasse la forme la plus complexe » — pour le Scarabée : « ailes avant + capot rond ») LA PIXELISATION SUR GRILLE : des cubes de 5 cm sur UNE grille régulière ; chacun va au niveau de
        grille juste AU-DESSUS de la tôle (0 à 5 cm de relief) : le galbe des ailes et du capot devient un escalier de cubes ; quelques cubes manquent (le « bug ») ; un sur dix en crème. La hauteur de la tôle est lue sur les
        vraies sections (le tube de l'aile, la coque). */
+    const c=.05;
     const hautDe=(Sx,x)=>{let m=-1e9;for(let i=0;i<Sx.length;i++){const a=Sx[i],b=Sx[(i+1)%Sx.length];if((a[0]-x)*(b[0]-x)<=0&&a[0]!==b[0]){const y=a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);if(y>m)m=y;}}return m;};
     const aileH=(x,z)=>{const yT=L(AV.yT,z),xo=L(AV.xo,z),yL=Math.min(L(AV.yL,z),yT-.02),xi=Math.min(z<.76?xo-.08:xH(Math.max(.76,z))-.03,xo-.08);return hautDe(coupeAile(xi,xo,yT,yL),x);};
-    /* (25/10, Léo : « essaye l'HYPERVOXEL GLITCH ») LES HYPERVOXELS : des cubes de TAILLES DIFFÉRENTES (12, 6, 3 cm) — un quadtree : le plan est découpé en grandes cases, chaque case se redivise en quatre là où la tôle change vite
-       (courbure, bords) et, au hasard, ailleurs ; chaque feuille porte un cube dont le relief tombe sur l'un de quatre crans (1,2 à 5,7 cm). Le GLITCH : un cube sur dix glisse d'une demi-case, un sur seize laisse un FANTÔME
-       flottant plus haut, un sur vingt est « corrompu » (plus haut que ses voisins). Tout de la couleur de la caisse. */
-    const quad=(u0,v0,s,Hf,place,id)=>{
-      const hh=[Hf(u0,v0),Hf(u0+s,v0),Hf(u0,v0+s),Hf(u0+s,v0+s),Hf(u0+s/2,v0+s/2)].filter(h=>h>-1e8);
-      if(!hh.length)return;
-      const mx=Math.max(...hh),mn=Math.min(...hh);
-      if(s>.035&&((mx-mn)>s*.22||hs(Math.round(u0*100),Math.round(v0*100),id,Math.round(s*100))<(s>.1?.5:.24))){const h=s/2;for(const [a,b] of [[0,0],[h,0],[0,h],[h,h]])quad(u0+a,v0+b,h,Hf,place,id);return;}
-      place(u0+s/2,v0+s/2,s,(mx+mn)/2,hs(Math.round(u0*100),Math.round(v0*100),id,7));};
-    const relief=h=>.012+.015*Math.floor(h*4);   // quatre crans
-    const capotH=(x,z)=>{if(z<.74||z>1.76)return -1e9;const H=Math.max(aileH(Math.abs(x),z),hautDe(sect(z),Math.abs(x)));return H<0?-1e9:H;};
-    const posCapot=(u,v,s,H,g)=>{const e=relief(g),T=Math.min(.07,s*.5+.012);let x=u,z=v;if(g<.10){if(hs(u*91,v*47,5,1)<.5)x+=s*.5;else z+=s*.5;}
-      const k=hs(u*29,v*31,5,3)>.9?'s':'p';P.box(k,s*.96,T,s*.96,x,H+e-T/2,z,0,0,0);if(g>.90&&g<.9625)P.box(k,s*.5,s*.5,s*.5,u,H+e+.05+.07*hs(u*13,v*17,5,2)+s*.25,v,0,0,0);};
-    for(let u=-.72;u<.72;u+=.12)for(let v=.72;v<1.80;v+=.12)quad(u,v,.12,capotH,posCapot,13);
+    for(let iz=Math.round(.75/c);iz*c<1.74;iz++)for(let ix=-14;ix<=14;ix++){const x=ix*c,z=iz*c;if(hs(ix,iz,5,1)>.88)continue;
+      const H=Math.max(aileH(Math.abs(x),z),hautDe(sect(z),Math.abs(x)));if(H<0)continue;
+      const lv=Math.ceil((H-.001)/c)*c;P.box(hs(ix,iz,5,2)>.9?'s':'p',c*.96,c,c*.96,x,lv-c/2+.003,z,0,0,0);}
   }
   // la plaque dessinée : la vraie s'y pose (voir plqDessinee)
   P.box('l',.30,.075,.012,0,.665,-1.79,.5,0,0);
