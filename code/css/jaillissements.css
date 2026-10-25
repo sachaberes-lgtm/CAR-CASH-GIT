@@ -1,0 +1,42 @@
+<style id="jaillissements">
+/* ===== LES MOTS QUI JAILLISSENT — le dessin (2026-10-25, Sacha : « petit, stylisé, qu'ils sortent à côté de la voiture, de la vie au jeu sans le rendre
+   lourd, comme Alto's Odyssey, pour des TikTok satisfaisants ») — le récit et le mouvement sont en tête de interface/mots-jaillissants.js. Remplace
+   <style id="figuresHud"> (le grand nom #fh, la ligne du combo, les plaquettes #fhLeg) et les règles #popTxt, restées dormantes plus haut.
+   · LE MOT : Press Start 2P (ou la police de sa rareté, voir <style id="policeUnique">), 11 px couché / 13 debout × le facteur de sa police, contour d'encre
+     d'UN pixel et une ombre portée de 2 px (lisible sur le sable comme dans la nuit), halo doux de sa couleur. Le gain (+50) derrière : .78 em, plus pâle.
+   · LE TRAIT : sous les figures seulement, il se tire de gauche à droite (animé en JS, transform) et s'éteint avec le mot.
+   · LA RARETÉ : sa couleur (la même que la boutique) ; l'ÉPIQUE a un halo plus large, la LÉGENDAIRE aussi et plus chaud ; un combo À TROIS NOMMÉ cycle
+     cyan · magenta · or ; « COMBO PERDU » et les refus sont en rouge.
+   · LA CARTE DE LA CHAÎNE (« 205 ×4 » et sa barre) est retirée de l'écran (Sacha : « enlève le multiplicateur de figure, le truc avec x2, x3 ») : la chaîne
+     existe toujours, elle s'encaisse dans le compteur d'aura (« +344 » à côté). */
+#jl{position:fixed;left:0;top:0;width:100%;height:100%;z-index:40;pointer-events:none;overflow:hidden}
+body:not(.play) #jl,body.hTp:not(#ccH) #jl,body.ebOn #jl,body.ebPlonge #jl{visibility:hidden} /* la carte du moteur est posée sur la caisse : les mots attendent (comme #popTxt) */
+html.balade #jl{display:none}
+#jl .jl{--jc:#ffd75e;--jk:var(--encre,#1c0430);position:absolute;left:0;top:0;display:flex;align-items:baseline;gap:.5em;white-space:nowrap;
+  line-height:1;letter-spacing:1px;color:var(--jc);will-change:transform,opacity;opacity:0}
+#jl .jlM,#jl .jlG{position:relative;font-weight:400;
+  text-shadow:1px 0 0 var(--jk),-1px 0 0 var(--jk),0 1px 0 var(--jk),0 -1px 0 var(--jk),1px 1px 0 var(--jk),-1px 1px 0 var(--jk),1px -1px 0 var(--jk),-1px -1px 0 var(--jk),
+    0 2px 0 var(--jk),0 0 9px color-mix(in srgb,var(--jc) 55%,transparent)}
+#jl .jlM{color:var(--jc)}
+#jl .jlG{font-size:.78em;color:color-mix(in srgb,var(--jc) 55%,#fff);opacity:.85;letter-spacing:0}
+#jl .jl u{display:none;position:absolute;left:0;right:0;bottom:-5px;height:2px;text-decoration:none;background:var(--jc);transform-origin:0 50%;transform:scaleX(0);
+  box-shadow:0 2px 0 var(--jk),0 0 6px color-mix(in srgb,var(--jc) 70%,transparent)}
+#jl .jl[data-rp]:not([data-rp=ko]):not([data-rp=refus]) u{display:block}
+/* la couleur de la rareté (celles de la boutique) — une couleur passée par l'appelant (--jc en ligne) passe devant */
+#jl .jl[data-rp=commun]{--jc:#e4ebf7}
+#jl .jl[data-rp=rare]{--jc:#4db8ff}
+#jl .jl[data-rp=exotique]{--jc:#3ee8a8}
+#jl .jl[data-rp=epique]{--jc:#c77dff}
+#jl .jl[data-rp=legendaire]{--jc:#ffd75e}
+#jl .jl[data-rp=combo]{--jc:#fff7ee}
+#jl .jl[data-rp=ko],#jl .jl[data-rp=refus]{--jc:#ff4a64}
+#jl .jl[data-rp=epique] .jlM{text-shadow:1px 0 0 var(--jk),-1px 0 0 var(--jk),0 1px 0 var(--jk),0 -1px 0 var(--jk),1px 1px 0 var(--jk),-1px 1px 0 var(--jk),1px -1px 0 var(--jk),-1px -1px 0 var(--jk),
+    0 2px 0 var(--jk),0 0 16px color-mix(in srgb,var(--jc) 90%,transparent),0 0 5px color-mix(in srgb,var(--jc) 60%,transparent)}
+#jl .jl[data-rp=legendaire] .jlM{text-shadow:1px 0 0 var(--jk),-1px 0 0 var(--jk),0 1px 0 var(--jk),0 -1px 0 var(--jk),1px 1px 0 var(--jk),-1px 1px 0 var(--jk),1px -1px 0 var(--jk),-1px -1px 0 var(--jk),
+    0 2px 0 var(--jk),0 0 20px color-mix(in srgb,var(--jc) 90%,transparent),0 0 6px color-mix(in srgb,#fff 50%,transparent)}
+#jl .jl[data-rp=combo] .jlM{animation:jlArc .48s steps(1) infinite}
+@keyframes jlArc{0%{color:#00eaff}33%{color:#ff3ec8}66%{color:#ffd75e}}
+@media (prefers-reduced-motion:reduce){#jl .jl[data-rp=combo] .jlM{animation:none}}
+/* LA CARTE DE LA CHAÎNE D'AURA (le total, son × et sa barre) : plus à l'écran — le compteur d'aura encaisse la chaîne tout seul */
+html body #avCh{display:none!important}
+</style>

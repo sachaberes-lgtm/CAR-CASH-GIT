@@ -85,7 +85,7 @@ function flowHudMaj(rest){
   let h=FLOW.el;
   if(!h){h=FLOW.el=document.createElement('div');h.id='flowHud';h.className='on';h.setAttribute('aria-hidden','true');
     // la 4e cellule porte la ZONE ROUGE (.fZ) : son propre remplissage rouge, par-dessus le violet, et le cran du seuil
-    h.innerHTML='<b class="fL"></b><span class="fSeg"><i><s></s></i><i><s></s></i><i><s></s></i><i><s></s><b class="fZ"><s></s></b></i><u class="fG"></u></span><em class="fM"></em>';
+    h.innerHTML='<span class="fSeg"><i><s></s></i><i><s></s></i><i><s></s></i><i><s></s><b class="fZ"><s></s></b></i><u class="fG"></u></span><em class="fM"></em>';
     FLOW.seg=Array.prototype.slice.call(h.querySelectorAll('.fSeg>i'));
     FLOW.seg.forEach(function(i9,j){i9.style.setProperty('--sc',FLOW_CEL[j]);});
     FLOW.zs=h.querySelector('.fZ s');
@@ -105,7 +105,7 @@ function flowHudMaj(rest){
   h.classList.toggle('gele',FLOW.nit&&FLOW.v>0&&FLOW.lv<4); // (v3) le nitro TIENT la jauge de la montée : rien ne fuit tant qu'il brûle
   const tr=frenEl();if(tr){tr.classList.toggle('tremble',FLOW.lv===4&&lache);tr.classList.toggle('froid',FLOW.lv===4&&fuit&&!lache);}
   if(FLOW.lvAff!==FLOW.lv){const av=FLOW.lvAff;FLOW.lvAff=FLOW.lv;h.style.setProperty('--fc',FLOW_COL[FLOW.lv]);h.dataset.lv=FLOW.lv;
-    h.querySelector('.fL').textContent=sansAcc(TR(FLOW_NOM[FLOW.lv]));h.querySelector('.fM').textContent='$×'+fmtMul(flowMult());
+    h.querySelector('.fM').textContent='$×'+fmtMul(flowMult()); /* (2026-10-25, Sacha : « sous la barre de flow, FLOW, FLOW 1, FLOW 2… ça sert à rien, ça part ») plus de nom de palier sous la bande : sa couleur le dit, et la montée de palier s'écrit au-dessus de la caisse (voir mots-jaillissants) */
     const g=FLOW.glow;g.style.setProperty('--fc',FLOW_COL[FLOW.lv]);g.dataset.lv=FLOW.lv;g.style.opacity=FLOW.lv?(.25+FLOW.lv*.15).toFixed(2):'0';
     if(FLOW.lv===4)frenEntre();else{h.classList.remove('embrase','sc1','sc2');if(av===4)frenSort();}} // (sans ça, un retour d'écran — display rendu — rejouerait l'embrasement)
 }

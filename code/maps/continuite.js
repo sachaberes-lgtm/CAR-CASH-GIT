@@ -132,8 +132,12 @@ function sfNiveau(c,m,te){ // le NIVEAU d'un couple map × météo, sous la form
   else if(C.teintes)vtBio(o.bio[0],'violet'); // (le brouillard violet a lui aussi besoin de naître)
   return o;}
 function sfTeinte(c,prev){const L=SF_CARTES[c].teintes;if(!L)return null;let t=L[(Math.random()*L.length)|0];if(prev&&t===prev.teinte)t=L[(Math.random()*L.length)|0];return t;} // (2026-10-16) la TEINTE de la ville, au hasard
-function sfTire(prev,cF){ // une MAP au hasard (jamais celle d'avant), puis une MÉTÉO permise dans cette map (pas deux fois la même de suite si on peut l'éviter) — cF : la map imposée (sa météo tirée)
-  const cs=cF?[cF]:Object.keys(SF_CARTES).filter(function(k){return (!prev||k!==prev.carte)&&!SF_HORS[k];}),c=cs[(Math.random()*cs.length)|0],M=SF_CARTES[c].m,ks=Object.keys(M);
+/* (2026-10-25, Sacha : « fais sortir la map nuage plus souvent au tirage du mode classique ») LE POIDS D'UNE MAP au tirage : 1 par défaut, 2 pour la MER DE NUAGES — elle sort
+   deux fois plus souvent que les autres (sans jamais revenir deux fois de suite : `sfTire` écarte déjà la map d'avant). Une map absente de la table pèse 1. */
+const SF_POIDS_CARTE={nuages:2};
+function sfCartePesee(cs){let tot=0;for(const k of cs)tot+=SF_POIDS_CARTE[k]||1;let r=Math.random()*tot;for(const k of cs){r-=SF_POIDS_CARTE[k]||1;if(r<=0)return k;}return cs[cs.length-1];}
+function sfTire(prev,cF){ // une MAP au hasard, pesée par SF_POIDS_CARTE (jamais celle d'avant), puis une MÉTÉO permise dans cette map (pas deux fois la même de suite si on peut l'éviter) — cF : la map imposée (sa météo tirée)
+  const cs=cF?[cF]:Object.keys(SF_CARTES).filter(function(k){return (!prev||k!==prev.carte)&&!SF_HORS[k];}),c=sfCartePesee(cs),M=SF_CARTES[c].m,ks=Object.keys(M);
   const pick=function(){let tot=0;for(const k of ks)tot+=M[k].p==null?1:M[k].p;let r=Math.random()*tot;for(const k of ks){r-=M[k].p==null?1:M[k].p;if(r<=0)return k;}return ks[ks.length-1];};
   let m=pick();if(prev&&m===prev.meteo)m=pick();
   return {carte:c,meteo:m,teinte:sfTeinte(c,prev)};}
