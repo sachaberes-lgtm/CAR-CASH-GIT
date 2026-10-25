@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Les voitures du jeu</title>
+<!-- LES VOITURES DU JEU (2026-10-16, Léo : « la liste des voitures sur le jeu, page blanche, claire, lisible, interactive, qui me permet de
+     voir chaque modèle sur le main — checker souvent s'il y a eu des changements, pour que la liste dise vraiment ce qu'il y a sur le jeu »).
+     · La liste = le jeu du MAIN, lu au commit près (moteur.js : GitHub, puis la copie d'index.html à côté si GitHub ne répond pas) ; elle se
+       relit toute seule toutes les 2 minutes, et dit ce qui a changé depuis la dernière visite (nouvelle, retirée, retouchée, prix, famille).
+     · Chaque voiture est construite par les VRAIS gabarits du jeu (rien n'est recopié), photographiée dans une salle blanche.
+     · Un toucher = la voiture en grand, qu'on tourne au doigt ; ← → la suivante ; VOIR DANS LE JEU = le vrai jeu avec elle (voir.html).
+     Outil LOCAL (comme la liste des maps) : vercel-build.sh le retire du site. Servir : python3 repertoire-voitures/serveur.py 9250 -->
+<style>
+  :root{
+    --fond:#fbfbfa;--carte:#f1f1ef;          /* --carte = le fond des photos (BG de moteur.js) : la photo se fond dans sa carte */
+    --encre:#1d1d1f;--gris:#6e6e73;--gris2:#a1a1a6;--trait:rgba(0,0,0,.08);
+    --sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{background:var(--fond);color:var(--encre);font-family:var(--sys);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+  button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+  body.vueOn{overflow:hidden}
+
+  /* ---------- LA TABLE (24/10, Léo : « que je puisse les bouger, mettre deux voitures à côté pour les comparer ») ---------- */
+  #bChoix{margin:14px 0 0 8px;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 18px;border-radius:999px;background:#fff;color:var(--encre);font-size:14px;font-weight:600;box-shadow:inset 0 0 0 1.5px var(--encre)}
+  body.choixOn #bChoix{background:var(--encre);color:#fff}
+  body.choixOn .carte{cursor:copy}
+  .carte.cote{opacity:.42;filter:grayscale(1)}
+  .carte.cote::after{content:'DE CÔTÉ';position:absolute;left:10px;top:46px;padding:3px 9px;border-radius:999px;background:var(--encre);color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.06em}
+  #bTable{margin-top:14px;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 18px;border-radius:999px;background:var(--encre);color:#fff;font-size:14px;font-weight:600}
+  #table{position:fixed;inset:0;z-index:7;background:#f4f4f2;display:none;flex-direction:column}
+  #table.on{display:flex}
+  #tBarre{flex:none;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:max(12px,env(safe-area-inset-top)) 16px 12px;background:rgba(255,255,255,.85);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 .5px 0 var(--trait)}
+  #tBarre h2{font-size:17px;font-weight:700;margin-right:6px}
+  .tb{height:34px;padding:0 14px;border-radius:999px;background:#fff;font-size:13px;font-weight:600;box-shadow:0 0 0 .5px rgba(0,0,0,.12)}
+  .tb:hover{background:var(--carte)}.tb.fort{background:var(--encre);color:#fff}
+  #tZoom{width:110px}
+  #tAide{font-size:12px;color:var(--gris2);margin-left:auto}
+  #tCorps{flex:1;display:flex;min-height:0}
+  #tBac{flex:none;width:210px;overflow:auto;background:#fff;padding:10px;box-shadow:.5px 0 0 var(--trait)}
+  #tBac h3{font-size:10.5px;font-weight:700;letter-spacing:.14em;margin:12px 4px 6px;display:flex;align-items:center;gap:7px}
+  #tBac h3 i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+  .tPuce{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:4px;border-radius:10px;font-size:12px;font-weight:600;letter-spacing:.02em}
+  .tPuce:hover{background:var(--carte)}.tPuce.pose{opacity:.35}
+  .tPuce canvas{width:54px;aspect-ratio:16/10;border-radius:6px;background:var(--carte);flex:none}
+  #tScroll{flex:1;overflow:auto;position:relative;background-image:radial-gradient(rgba(0,0,0,.13) 1px,transparent 1.2px);background-size:28px 28px;touch-action:none}
+  #tPlan{position:relative;width:6000px;height:4000px;transform-origin:0 0}
+  .tc{position:absolute;border-radius:18px;background:var(--carte);box-shadow:0 2px 6px rgba(0,0,0,.08),0 14px 36px rgba(0,0,0,.08);cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none}
+  .tc.tient{cursor:grabbing;box-shadow:0 8px 20px rgba(0,0,0,.14),0 30px 60px rgba(0,0,0,.16)}
+  .tc.sel{outline:3px solid #0a63d6;outline-offset:2px}
+  .tc canvas{display:block;width:100%;aspect-ratio:16/10;border-radius:18px 18px 0 0;pointer-events:none}
+  .tc .tx{padding:2px 14px 13px;pointer-events:none}
+  .tc .tx b{display:block;font-size:15px;font-weight:700;letter-spacing:.04em}
+  .tc .tx .mo{display:block;margin-top:2px;font-size:12px;opacity:.62}
+  .tc .tx .sp{display:block;margin-top:6px;font-size:12.5px;color:var(--gris);line-height:1.5;font-variant-numeric:tabular-nums}
+  .tc .tx .fa{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:.12em;margin-bottom:5px}
+  .tc .tx .fa i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+  .tc .sup{position:absolute;right:8px;top:8px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.85);font-size:14px;line-height:26px;text-align:center;opacity:0;transition:opacity .15s}
+  .tc:hover .sup{opacity:1}
+  .tc .poi{position:absolute;right:0;bottom:0;width:26px;height:26px;cursor:nwse-resize}
+  .tc .poi::after{content:"";position:absolute;right:7px;bottom:7px;width:9px;height:9px;border-right:2px solid var(--gris2);border-bottom:2px solid var(--gris2)}
+  .tc .meil{color:#168a3a;font-weight:700}
+  #tVide{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);text-align:center;color:var(--gris);font-size:15px;line-height:1.7;pointer-events:none}
+  body.tableOn{overflow:hidden}
+
+  /* ---------- LA LISTE ---------- */
+  #page{max-width:1240px;margin:0 auto;padding:max(28px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) 60px max(20px,env(safe-area-inset-left))}
+  h1{font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+  #sous{margin-top:8px;font-size:14px;color:var(--gris)}
+  #source{margin-top:6px;font-size:12.5px;color:var(--gris2);display:flex;align-items:center;gap:7px;flex-wrap:wrap;line-height:1.5}
+  #source i{width:7px;height:7px;border-radius:50%;background:#30c45a;flex:none}
+  #source.local i{background:#d6a520}#source.lit i{background:#a1a1a6;animation:bat 1s ease-in-out infinite}
+  @keyframes bat{50%{opacity:.25}}
+  #source q{quotes:"« " " »";color:var(--gris)}
+  #relire{font-size:12.5px;color:#0a63d6;padding:2px 0}
+
+  #chg{margin-top:22px;background:#fff;border-radius:18px;padding:16px 18px 14px;box-shadow:0 0 0 .5px var(--trait),0 8px 30px rgba(0,0,0,.04)}
+  #chg[hidden]{display:none}
+  #chg h3{font-size:13px;font-weight:650;letter-spacing:.01em;display:flex;align-items:center;gap:10px}
+  #chg h3 span{font-weight:400;color:var(--gris2)}
+  #chg ul{list-style:none;margin-top:10px;display:flex;flex-direction:column;gap:2px}
+  #chg li button{display:flex;align-items:baseline;gap:10px;width:100%;text-align:left;padding:7px 8px;border-radius:10px;font-size:14px}
+  #chg li button:hover{background:var(--carte)}
+  #chg li b{font-size:10.5px;font-weight:700;letter-spacing:.08em;flex:none;min-width:118px;color:var(--c,#0a63d6)}
+  #chg li em{font-style:normal;color:var(--gris);font-size:13px}
+  #vu{margin-top:10px;font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;background:var(--encre);color:#fff}
+
+  .fam{margin-top:34px}
+  .fam h2{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;letter-spacing:.14em;padding-bottom:12px}
+  .fam h2 i{width:10px;height:10px;border-radius:50%;background:var(--c)}
+  .fam h2 em{font-style:normal;font-weight:400;letter-spacing:.02em;color:var(--gris2);font-size:13px}
+  .grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+  .carte{position:relative;display:block;text-align:left;border-radius:18px;background:var(--carte);overflow:hidden;
+    transition:transform .25s cubic-bezier(.32,.72,0,1),box-shadow .25s}
+  .carte:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.08)}
+  .carte:active{transform:scale(.98)}
+  .carte canvas{display:block;width:100%;aspect-ratio:16/10}
+  .carte .txt{padding:2px 14px 13px}
+  .carte b{display:block;font-size:13.5px;font-weight:700;letter-spacing:.04em;line-height:1.25}
+  .carte span{display:block;margin-top:3px;font-size:12px;color:var(--gris)}
+  .carte .mod{display:block;margin-top:2px;font-style:normal;font-size:12px;color:var(--encre);opacity:.62;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .carte .mod:empty{display:none}
+  .carte .tag{position:absolute;left:10px;top:10px;font-size:10px;font-weight:700;letter-spacing:.08em;padding:4px 8px;border-radius:999px;
+    background:#fff;color:var(--c,#0a63d6);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .carte .tag:empty{display:none}
+  .carte.ratee canvas{opacity:.35}
+  #charge{margin-top:60px;text-align:center;color:var(--gris);font-size:14px;line-height:1.7}
+  #charge.erreur{color:#c4302b}
+  #charge code{display:inline-block;margin-top:8px;padding:8px 12px;background:#fff;border-radius:8px;color:var(--encre);font-size:12px}
+
+  /* ---------- LA VOITURE EN GRAND ---------- */
+  #vue{position:fixed;inset:0;background:var(--carte);z-index:5;opacity:0;pointer-events:none;transition:opacity .28s}
+  #vue.on{opacity:1;pointer-events:auto}
+  #cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #cv.tient{cursor:grabbing}
+  .rond{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.8);display:grid;place-items:center;
+    box-shadow:0 1px 2px rgba(0,0,0,.06),0 0 0 .5px rgba(0,0,0,.06);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+  .rond:hover{background:#fff}
+  .rond svg{width:18px;height:18px;stroke:var(--encre);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  #vRetour{width:auto;position:absolute;left:max(18px,env(safe-area-inset-left));top:max(18px,env(safe-area-inset-top));display:flex;align-items:center;gap:8px;
+    height:40px;padding:0 16px 0 10px;border-radius:999px;font-size:14px;font-weight:600}
+  #vRetour svg{width:18px;height:18px}
+  #vCompte{position:absolute;right:max(20px,env(safe-area-inset-right));top:max(28px,calc(env(safe-area-inset-top) + 10px));font-size:13px;color:var(--gris2);font-variant-numeric:tabular-nums}
+  #vPrec,#vSuiv{position:absolute;top:50%;margin-top:-20px}
+  #vPrec{left:max(18px,env(safe-area-inset-left))}#vSuiv{right:max(18px,env(safe-area-inset-right))}
+  #fiche{position:absolute;left:max(24px,env(safe-area-inset-left));bottom:max(24px,env(safe-area-inset-bottom));width:min(460px,calc(100% - 48px));pointer-events:none}
+  #fiche>*{pointer-events:auto}
+  #fFam{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.14em}
+  #fFam i{width:9px;height:9px;border-radius:50%;background:var(--c)}
+  #fNom{font-size:36px;font-weight:700;letter-spacing:-.01em;line-height:1.05;margin-top:8px}
+  #fMod{margin-top:6px;font-size:15px;font-weight:500;color:var(--encre);opacity:.62}
+  #fMod:empty{display:none}
+  #fLigne{margin-top:8px;font-size:14px;color:var(--gris)}
+  #fDesc{margin-top:10px;font-size:14px;line-height:1.45;color:var(--encre);opacity:.78;max-width:420px}
+  #fChg{margin-top:10px;font-size:12.5px;font-weight:600;color:#0a63d6}
+  #fChg:empty{display:none}
+  #fJeu{margin-top:16px;display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 18px;border-radius:999px;background:var(--encre);color:#fff;
+    font-size:14px;font-weight:600;text-decoration:none}
+  #fJeu svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  #aide{position:absolute;left:50%;top:max(30px,calc(env(safe-area-inset-top) + 12px));transform:translateX(-50%);font-size:12px;color:var(--gris2);
+    pointer-events:none;transition:opacity .8s;white-space:nowrap}
+  #aide.cache{opacity:0}
+  #vRatee{position:absolute;inset:0;display:grid;place-items:center;color:var(--gris);font-size:14px;pointer-events:none;text-align:center;padding:30px}
+  #vRatee:empty{display:none}
+
+  #toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;z-index:9;
+    background:var(--encre);color:#fff;font-size:13.5px;padding:11px 18px;border-radius:999px;transition:opacity .3s,transform .3s;pointer-events:none;max-width:calc(100% - 40px)}
+  #toast.on{opacity:1;transform:translate(-50%,0)}
+
+  /* ---------- LES NOTES (17/10, Léo : « une option note à côté de chaque petite voiture ») ---------- */
+  .carte .nt{position:absolute;right:10px;top:10px;height:30px;min-width:30px;padding:0 8px;border-radius:999px;background:rgba(255,255,255,.88);
+    display:inline-flex;align-items:center;justify-content:center;gap:5px;color:var(--gris);box-shadow:0 1px 3px rgba(0,0,0,.08);
+    opacity:.75;transition:opacity .15s,background .15s;cursor:pointer;margin:0}
+  .carte .nt svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+  .carte .nt em{font-style:normal;font-size:12px;font-weight:700;display:none}
+  .carte:hover .nt,.carte .nt:focus-visible{opacity:1}
+  .carte .nt:hover{background:#fff;color:var(--encre)}
+  .carte .nt.a{opacity:1;background:#0a84ff;color:#fff}
+  .carte .nt.a em{display:inline}
+  #fNote{margin-top:16px;margin-left:8px;display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 16px;border-radius:999px;background:#fff;
+    color:var(--encre);font-size:14px;font-weight:600;box-shadow:0 0 0 .5px var(--trait),0 1px 3px rgba(0,0,0,.06)}
+  #fNote svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  #fNote em{font-style:normal;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#0a84ff;color:#fff;font-size:12px;font-weight:700;
+    display:inline-flex;align-items:center;justify-content:center}
+  #fNote em:empty{display:none}
+  #notes{position:fixed;inset:0;z-index:8;display:grid;place-items:center;padding:20px}
+  #notes[hidden]{display:none}
+  #notes .nFond{position:absolute;inset:0;background:rgba(20,20,22,.32)}
+  #notes .nBoite{position:relative;width:min(520px,100%);max-height:calc(100% - 20px);display:flex;flex-direction:column;background:#fff;border-radius:22px;
+    box-shadow:0 30px 80px rgba(0,0,0,.22);overflow:hidden}
+  #notes .nTete{display:flex;align-items:center;gap:14px;padding:16px 16px 12px 16px}
+  #nPh{width:96px;aspect-ratio:16/10;border-radius:12px;background:var(--carte);object-fit:cover;flex:none}
+  #notes .nTete div{flex:1;min-width:0}
+  #nNom{display:block;font-size:19px;font-weight:700;letter-spacing:.01em;line-height:1.2}
+  #nSous{display:block;margin-top:3px;font-size:12.5px;color:var(--gris)}
+  #nFerme{flex:none;width:34px;height:34px;box-shadow:none;background:var(--carte)}
+  #nL{list-style:none;overflow:auto;padding:0 16px;display:flex;flex-direction:column;gap:6px}
+  #nL:empty{display:none}
+  #nL li{display:flex;align-items:flex-start;gap:10px;padding:10px 10px 10px 8px;border-radius:12px;background:var(--fond);box-shadow:0 0 0 .5px var(--trait)}
+  #nL li.fait p{color:var(--gris2);text-decoration:line-through}
+  #nL li p{flex:1;min-width:0;font-size:14px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+  #nL li small{display:block;margin-top:3px;font-size:11.5px;color:var(--gris2)}
+  #nL .ok,#nL .x{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:var(--gris2)}
+  #nL .ok{box-shadow:inset 0 0 0 1.5px var(--gris2)}
+  #nL li.fait .ok{background:#30c45a;color:#fff;box-shadow:none}
+  #nL .x:hover{background:rgba(0,0,0,.06);color:var(--encre)}
+  #nL svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+  #nL li.annule{background:none;box-shadow:none;justify-content:center;font-size:13px;color:var(--gris)}
+  #nL li.annule button{color:#0a63d6;font-weight:600;margin-left:6px}
+  #notes .nEcrit{padding:12px 16px 16px;display:flex;flex-direction:column;gap:10px}
+  #nT{width:100%;min-height:84px;resize:vertical;border:0;border-radius:14px;background:var(--carte);padding:12px 14px;font:inherit;font-size:15px;
+    line-height:1.45;color:var(--encre);outline:none}
+  #nT:focus{box-shadow:0 0 0 2px #0a84ff}
+  #notes .nBas{display:flex;align-items:center;gap:10px}
+  #notes .nBas span{flex:1;font-size:12px;color:var(--gris2)}
+  #nAjoute{height:40px;padding:0 20px;border-radius:999px;background:var(--encre);color:#fff;font-size:14px;font-weight:600}
+  #nAjoute:disabled{opacity:.35;cursor:default}
+
+  @media (max-width:560px){
+    h1{font-size:28px}
+    .grille{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+    .carte{border-radius:14px}.carte .txt{padding:0 11px 11px}.carte b{font-size:12.5px}
+    #fNom{font-size:28px}#fDesc{font-size:13px}
+    #vPrec,#vSuiv{top:auto;bottom:auto;margin-top:0;top:max(70px,calc(env(safe-area-inset-top) + 64px))}
+    #vPrec{left:auto;right:calc(max(18px,env(safe-area-inset-right)) + 50px)}
+    #vCompte{display:none}
+    #aide{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div id="page">
+  <h1>Les voitures du jeu</h1>
+  <p id="sous">Ouverture du garage…</p>
+  <button id="bTable">Ouvrir la table : bouger, comparer</button>
+  <button id="bChoix">Choisir ce qu'on met de côté (1re maj)</button>
+  <p id="source" class="lit"><i></i><span>Lecture du jeu sur le main…</span></p>
+  <section id="chg" hidden>
+    <h3>Ce qui a changé dans le jeu <span id="chgDepuis"></span></h3>
+    <ul id="chgL"></ul>
+    <button id="vu">C'est vu</button>
+  </section>
+  <div id="liste"></div>
+  <div id="charge"></div>
+</div>
+
+<div id="vue" aria-hidden="true">
+  <canvas id="cv"></canvas>
+  <div id="vRatee"></div>
+  <button class="rond" id="vRetour" aria-label="Toutes les voitures"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Toutes les voitures</button>
+  <span id="vCompte"></span>
+  <button class="rond" id="vPrec" aria-label="Voiture précédente"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <button class="rond" id="vSuiv" aria-label="Voiture suivante"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+  <div id="aide">glisse pour tourner · molette ou pincer pour zoomer · ← → la suivante</div>
+  <div id="fiche">
+    <span id="fFam"><i></i><span></span></span>
+    <div id="fNom"></div>
+    <div id="fMod"></div>
+    <div id="fLigne"></div>
+    <p id="fDesc"></p>
+    <div id="fChg"></div>
+    <a id="fJeu" href="#">Voir dans le jeu <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></a><button id="fNote"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Note<em></em></button>
+  </div>
+</div>
+<div id="notes" hidden>
+  <div class="nFond"></div>
+  <div class="nBoite" role="dialog" aria-label="Notes de la voiture">
+    <div class="nTete"><img id="nPh" alt=""><div><b id="nNom"></b><span id="nSous"></span></div>
+      <button class="rond" id="nFerme" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <ul id="nL"></ul>
+    <div class="nEcrit">
+      <textarea id="nT" placeholder="Ce que tu veux changer sur cette voiture…"></textarea>
+      <div class="nBas"><span>Entrée pour ajouter · Maj + Entrée pour aller à la ligne</span><button id="nAjoute" disabled>Ajouter</button></div>
+    </div>
+  </div>
+</div>
+<div id="table" aria-hidden="true">
+  <div id="tBarre">
+    <button class="tb" id="tRetour">← Liste</button><h2>La table</h2>
+    <button class="tb fort" id="tCote">Côte à côte</button>
+    <button class="tb" id="tTout">Tout poser</button>
+    <button class="tb" id="tVoir">Tout voir</button>
+    <button class="tb" id="tVider">Vider</button>
+    <label style="font-size:12px;color:var(--gris)">zoom <input id="tZoom" type="range" min="8" max="150" value="100"></label>
+    <span id="tAide">glisse une voiture · coin = taille · clic = choisir (2 choisies → Côte à côte)</span>
+  </div>
+  <div id="tCorps"><div id="tBac"></div><div id="tScroll"><div id="tPlan"></div><div id="tVide">La table est vide.<br>Touche une voiture à gauche, ou « Tout poser ».</div></div></div>
+</div>
+<div id="toast"></div>
+
+<script src="../vendor/three.min.js"></script>
+<script src="moteur.js"></script>
+<script src="modeles.js"></script>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   LA GAMME DU JEU — la famille, le prix (ou la condition), le modèle (une empreinte : sa fiche + le code de son gabarit)
+   --------------------------------------------------------------------------------------------------------------------- */
+const sp=n=>String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+function prixJeu(i){
+  const u=G.CAR_UNLOCK[i];if(!u)return 'Gratuite · la voiture de départ';
+  if(u.p)return sp(u.p)+' $';
+  const v=u.v;
+  switch(u.k){
+    case 'premium':return 'Boutique · '+(u.eur?String(u.eur).replace('.',',')+' €':'vrai argent');
+    case 'carnet':return 'À gagner · défis des missions n° '+v;
+    case 'aura':{const a=G.AURA_RANKS&&G.AURA_RANKS[v];return a?"À gagner · rang d'aura "+a.n:"À gagner · rang d'aura "+v;}
+    case 'carrN':return 'À gagner · finir les '+v+' niveaux de SKY HIGH';
+    case 'carrV':return 'À gagner · finir les '+v+' niveaux de la VILLE';
+    case 'bientot':return 'Pas encore à vendre';
+    case 'pubs':return 'À gagner · '+v+' pubs';
+    default:return u.k+(v!=null?' '+v:'');}}
+const fnv=s=>{let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193);}return (h>>>0).toString(36);};
+function empreinteCaisse(i){const c=G.CARS[i],f=G.SHAPES[c.shape];
+  return fnv(JSON.stringify(c,(k,v)=>typeof v==='function'?undefined:v)+'|'+(f?String(f):''));}
+let FAMS=[],ORDRE=[],JEU={}; // FAMS = les familles du jeu (RARETES) ; ORDRE = toutes les voitures, dans l'ordre de la liste ; JEU[i] = {n,rar,prix,h}
+function lireGamme(){
+  const R9=(G.RARETES||[]).map(r=>({id:r.id,n:r.n,n1:r.n1||r.n,c:r.c,L:[]})),parId={};for(const f of R9)parId[f.id]=f;
+  JEU={};
+  for(let i=0;i<G.CARS.length;i++){const c=G.CARS[i];if(!c||c.retire)continue;
+    let r='';try{r=G.carRar(i);}catch(e){}
+    if(!parId[r]){parId[r]={id:r||'?',n:(r||'SANS FAMILLE').toUpperCase(),n1:(r||'?').toUpperCase(),c:'#a1a1a6',L:[]};R9.push(parId[r]);}
+    parId[r].L.push(i);
+    let prix='';try{prix=prixJeu(i);}catch(e){prix='';}
+    JEU[i]={n:c.name,rar:r,prix,h:empreinteCaisse(i)};}
+  for(const f of R9)f.L.sort((a,b)=>{try{return (G.carOrdre(a)-G.carOrdre(b))||a-b;}catch(e){return a-b;}});
+  FAMS=R9.filter(f=>f.L.length);ORDRE=[].concat(...FAMS.map(f=>f.L));}
+const famDe=id=>FAMS.find(f=>f.id===id)||{n1:'?',c:'#a1a1a6'};
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   CE QUI A CHANGÉ — la photo de la gamme à la dernière visite (dans ce navigateur), comparée au jeu d'aujourd'hui
+   --------------------------------------------------------------------------------------------------------------------- */
+const CLE='cashcar.voitures.vu.v1';
+let VU=null;try{VU=JSON.parse(localStorage.getItem(CLE)||'null');}catch(e){}
+const photoGamme=()=>({quand:Date.now(),sha:SOURCE.sha,cars:JEU});
+function ecritVu(){VU=photoGamme();try{localStorage.setItem(CLE,JSON.stringify(VU));}catch(e){}}
+let CHG=[],CHG_I={}; // [{i,quoi,coul,detail}] ; i → le changement (pour l'étiquette de la carte et la fiche)
+function compare(){
+  CHG=[];CHG_I={};if(!VU||!VU.cars)return;
+  const A=VU.cars,nomF=id=>famDe(id).n1||id;
+  for(const k in JEU){const n=JEU[k],a=A[k];
+    if(!a){CHG.push({i:+k,quoi:'NOUVELLE',coul:'#1f9d4c',detail:famDe(n.rar).n1+' · '+n.prix});continue;}
+    if(a.n!==n.n)CHG.push({i:+k,quoi:'RENOMMÉE',coul:'#0a63d6',detail:'avant : '+a.n});
+    if(a.h!==n.h)CHG.push({i:+k,quoi:'MODÈLE RETOUCHÉ',coul:'#0a63d6',detail:''});
+    if(a.rar!==n.rar)CHG.push({i:+k,quoi:'FAMILLE',coul:'#9b4dd6',detail:nomF(a.rar)+' → '+nomF(n.rar)});
+    if(a.prix!==n.prix)CHG.push({i:+k,quoi:'PRIX',coul:'#b07a00',detail:a.prix+' → '+n.prix});}
+  for(const k in A)if(!JEU[k])CHG.push({i:+k,quoi:'RETIRÉE DU JEU',coul:'#c4302b',detail:'',nom:A[k].n});
+  for(const c of CHG)if(!CHG_I[c.i])CHG_I[c.i]=c;}
+function afficheChg(){
+  const box=$('chg');if(!CHG.length){box.hidden=true;return;}
+  box.hidden=false;
+  const d=new Date(VU.quand);$('chgDepuis').textContent='depuis ta visite du '+d.toLocaleString('fr-FR',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
+  $('chgL').innerHTML='';
+  for(const c of CHG){const li=document.createElement('li'),b=document.createElement('button');
+    b.innerHTML='<b></b><span></span><em></em>';b.style.setProperty('--c',c.coul);
+    b.children[0].textContent=c.quoi;b.children[1].textContent=c.nom||JEU[c.i].n;b.children[2].textContent=c.detail;
+    if(JEU[c.i])b.onclick=()=>ouvre(c.i);else b.style.cursor='default';
+    li.appendChild(b);$('chgL').appendChild(li);}}
+$('vu').onclick=()=>{ecritVu();compare();afficheChg();for(const [i,v] of VIG)v.tag.textContent='';toast('Noté : la liste repart d\'ici');};
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   LA LISTE — une carte par voiture (créée une fois ; sa photo est prise dans l'atelier, une par image)
+   --------------------------------------------------------------------------------------------------------------------- */
+const VIG=new Map(),FILE=[];
+const PW=440,PH=275; // la photo d'une carte, en pixels
+/* LE CHOIX DE LA 1re MAJ (25/10, Léo : « je vais choisir quelques voitures, à garder en mémoire dans une branche git au cas où je veux les revoir ; c'est pour déjà choisir ce qu'on garde pour une première maj ») —
+   un toucher sur une carte la met DE CÔTÉ (grisée) ; le reste part dans la 1re maj. Rien n'est retiré du jeu ici : le choix est gardé (navigateur + un fichier envoyé au petit serveur) et sert à construire la branche d'archive. */
+const CCLE='cashcar.voitures.cote.v1';let COTE=new Set();try{COTE=new Set(JSON.parse(localStorage.getItem(CCLE)||'[]'));}catch(e){}
+let CHOIX_ON=false;
+function choixMaj(){const n=COTE.size,t=ORDRE.length;const b=$('bChoix');if(!b)return;
+  b.textContent=CHOIX_ON?(n+' de côté · '+(t-n)+' pour la 1re maj · TERMINER'):(n?(n+' de côté · modifier le choix'):'Choisir ce qu\'on met de côté (1re maj)');}
+function choixSauve(){try{localStorage.setItem(CCLE,JSON.stringify([...COTE]));}catch(e){}
+  try{fetch('/repertoire-voitures/cote',{method:'POST',body:JSON.stringify({cote:[...COTE],restent:ORDRE.map(i=>JEU[i].n).filter(n=>!COTE.has(n)),quand:new Date().toISOString()})}).catch(()=>{});}catch(e){}}
+function choixBascule(i){const n=JEU[i].n;if(COTE.has(n))COTE.delete(n);else COTE.add(n);const v=VIG.get(i);if(v)v.el.classList.toggle('cote',COTE.has(n));choixSauve();choixMaj();}
+function construireListe(){
+  const box=$('liste');box.innerHTML='';VIG.clear();FILE.length=0;
+  for(const f of FAMS){
+    const s=document.createElement('section');s.className='fam';s.style.setProperty('--c',f.c);
+    s.innerHTML='<h2><i></i><span></span><em></em></h2><div class="grille"></div>';
+    s.querySelector('h2 span').textContent=f.n;s.querySelector('h2 em').textContent=f.L.length;
+    const gr=s.querySelector('.grille');
+    for(const i of f.L){const b=document.createElement('button');b.className='carte';b.dataset.i=i;
+      b.innerHTML='<canvas width="'+PW+'" height="'+PH+'"></canvas><span class="tag"></span>'+
+        '<span class="nt" role="button" tabindex="0" aria-label="Notes">'+CRAYON+'<em></em></span><div class="txt"><b></b><i class="mod"></i><span></span></div>';
+      b.querySelector('b').textContent=JEU[i].n;b.querySelector('.txt span').textContent=JEU[i].prix;
+      b.querySelector('.mod').textContent=modeleDe(i);
+      const tag=b.querySelector('.tag'),c=CHG_I[i];if(c){tag.textContent=c.quoi==='MODÈLE RETOUCHÉ'?'RETOUCHÉE':c.quoi;tag.style.setProperty('--c',c.coul);}
+      const nt=b.querySelector('.nt');
+      nt.onclick=e=>{e.stopPropagation();notesOuvre(i);};
+      nt.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();notesOuvre(i);}};
+      if(COTE.has(JEU[i].n))b.classList.add('cote');
+      b.onclick=()=>{if(CHOIX_ON)choixBascule(i);else ouvre(i);};gr.appendChild(b);
+      VIG.set(i,{el:b,cv:b.querySelector('canvas'),tag,nt});FILE.push(i);}
+    box.appendChild(s);}
+  $('sous').textContent=ORDRE.length+' voitures dans le jeu · '+FAMS.length+' familles';notesMarque();}
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   LE MODÈLE D'ORIGINE (17/10, Léo : « à côté de chaque voiture et de son nom, le modèle sur lequel elle est inspirée ») —
+   modeles.js (window.MODELES = { 'NOM DU JEU': 'marque modèle (année)' }) : le jeu n'écrit aucune marque, la liste (outil local) si.
+   --------------------------------------------------------------------------------------------------------------------- */
+const modeleDe=i=>{const M=window.MODELES||{},n=JEU[i]&&JEU[i].n;return (n&&M[n])||'';};
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   LES NOTES (17/10, Léo : « une option note à côté de chaque petite voiture ; quand je te le demande, tu lis et tu lances ») —
+   le crayon de chaque carte (et NOTE dans la grande vue) ouvre la feuille de la voiture ; elles s'enregistrent sur le Mac
+   (…/notes → notes.py : ~/Downloads/CAR-notes-voitures/notes-voitures.txt, c'est ce que Claude lit). Rangées par NOM de voiture.
+   --------------------------------------------------------------------------------------------------------------------- */
+const CRAYON='<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+let NOTES=[],NOTES_OK=null,NV=-1,RETIREE=null,retireeT=0;  // NV = la voiture dont la feuille est ouverte (-1 = fermée)
+const notesDe=i=>JEU[i]?NOTES.filter(n=>n.voiture===JEU[i].n):[];
+const aFaire=i=>notesDe(i).filter(n=>!n.fait).length;
+async function notesLit(){
+  try{const r=await fetch('notes',{cache:'no-store'});if(!r.ok)throw 0;NOTES=(await r.json()).notes||[];NOTES_OK=true;}catch(e){NOTES_OK=false;}
+  notesMarque();}
+async function notesOp(op){
+  const r=await fetch('notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(op)});
+  const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.erreur||('serveur '+r.status));
+  NOTES=d.notes||[];NOTES_OK=true;notesMarque();return d;}
+function notesMarque(){
+  for(const [i,v] of VIG){if(!v.nt)continue;const k=aFaire(i);v.nt.querySelector('em').textContent=k||'';v.nt.classList.toggle('a',k>0);
+    v.nt.setAttribute('aria-label',k?k+' note'+(k>1?'s':'')+' à faire':'Ajouter une note');}
+  if(V.on&&JEU[V.i])$('fNote').querySelector('em').textContent=aFaire(V.i)||'';
+  if(NV>=0)notesRendu();}
+const quandTxt=s=>{const d=new Date(s);return isNaN(d)?'':d.toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});};
+function notesRendu(){
+  const L=$('nL');L.innerHTML='';
+  if(RETIREE&&RETIREE.voiture===(JEU[NV]&&JEU[NV].n)){const li=document.createElement('li');li.className='annule';li.textContent='Note supprimée.';
+    const b=document.createElement('button');b.textContent='Annuler';b.onclick=async()=>{const n=RETIREE;RETIREE=null;try{await notesOp({op:'remet',note:n});}catch(e){toast('Pas enregistré : '+e.message);}};
+    li.appendChild(b);L.appendChild(li);}
+  const ns=notesDe(NV).sort((a,b)=>(a.fait-b.fait)||(a.quand<b.quand?1:-1));
+  for(const n of ns){const li=document.createElement('li');if(n.fait)li.className='fait';
+    li.innerHTML='<button class="ok" aria-label="Fait"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button><p></p><button class="x" aria-label="Supprimer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>';
+    const p=li.querySelector('p');p.textContent=n.t;const sm=document.createElement('small');sm.textContent=quandTxt(n.quand)+(n.fait?' · fait':'');p.appendChild(sm);
+    li.querySelector('.ok').onclick=async()=>{try{await notesOp({op:'fait',id:n.id,v:!n.fait});}catch(e){toast('Pas enregistré : '+e.message);}};
+    li.querySelector('.x').onclick=async()=>{try{await notesOp({op:'retire',id:n.id});RETIREE=n;clearTimeout(retireeT);
+      retireeT=setTimeout(()=>{RETIREE=null;if(NV>=0)notesRendu();},8000);notesRendu();}catch(e){toast('Pas enregistré : '+e.message);}};
+    L.appendChild(li);}}
+function notesOuvre(i){
+  if(!JEU[i])return;NV=i;RETIREE=null;
+  const v=VIG.get(i);$('nPh').src=v&&!v.el.classList.contains('ratee')?v.cv.toDataURL('image/jpeg',.85):'';
+  $('nNom').textContent=JEU[i].n;$('nSous').textContent=[modeleDe(i),famDe(JEU[i].rar).n1].filter(Boolean).join(' · ');
+  $('notes').hidden=false;notesRendu();notesLit();
+  if(NOTES_OK===false)toast('Le serveur des notes ne répond pas : rien ne sera enregistré');
+  $('nT').value=$('nT').dataset['v'+i]||'';$('nAjoute').disabled=!$('nT').value.trim();setTimeout(()=>$('nT').focus(),30);}
+function notesFerme(){if(NV<0)return;$('nT').dataset['v'+NV]=$('nT').value;NV=-1;RETIREE=null;$('notes').hidden=true;}
+async function notesAjoute(){
+  const t=$('nT').value.trim();if(!t||NV<0)return;const i=NV,v=VIG.get(i);
+  $('nAjoute').disabled=true;
+  try{await notesOp({op:'ajoute',voiture:JEU[i].n,i,t,photo:v&&!v.el.classList.contains('ratee')?v.cv.toDataURL('image/jpeg',.85):undefined});
+    $('nT').value='';delete $('nT').dataset['v'+i];toast('Note enregistrée');}
+  catch(e){toast('Pas enregistré : '+e.message);}
+  $('nAjoute').disabled=!$('nT').value.trim();}
+$('nT').addEventListener('input',()=>{$('nAjoute').disabled=!$('nT').value.trim();});
+$('nT').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();notesAjoute();}});
+$('nAjoute').onclick=notesAjoute;$('nFerme').onclick=notesFerme;document.querySelector('#notes .nFond').onclick=notesFerme;
+$('fNote').onclick=()=>{if(V.on)notesOuvre(V.i);};
+addEventListener('keydown',e=>{if(NV>=0&&e.key==='Escape'){notesFerme();e.preventDefault();e.stopImmediatePropagation();}},true);
+function videPhoto(i,txt){const v=VIG.get(i);if(!v)return;const x=v.cv.getContext('2d');x.fillStyle='#f1f1ef';x.fillRect(0,0,PW,PH);
+  x.fillStyle='#a1a1a6';x.font='600 30px -apple-system,sans-serif';x.textAlign='center';x.fillText(txt||'?',PW/2,PH/2+10);v.el.classList.add('ratee');}
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   L'ATELIER ET LA GRANDE VUE
+   --------------------------------------------------------------------------------------------------------------------- */
+const cv=$('cv');moteurInit(cv);
+const SC=new THREE.Scene();plateau(SC,true);
+const TOUR=new THREE.Group();SC.add(TOUR);
+const ombre=()=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:OMBRE_T,transparent:true,depthWrite:false,toneMapped:false}));
+  m.rotation.x=-Math.PI/2;m.position.y=.004;m.renderOrder=1;return m;};
+const OMBRE=ombre();TOUR.add(OMBRE);
+const CAM=new THREE.PerspectiveCamera(28,1,.1,200);
+const SCV=new THREE.Scene();plateau(SCV,false);const OMBV=ombre();SCV.add(OMBV);
+const CAMV=new THREE.PerspectiveCamera(24,PW/PH,.1,200);
+let TAILLE='';function tailleToile(w,h){const k=w+'x'+h;if(k===TAILLE)return;TAILLE=k;R.setSize(w,h,false);}
+function photo(i){
+  const b=caisse(i),v=VIG.get(i);if(!v)return;
+  if(!b){videPhoto(i,'?');return;}
+  const parent=b.parent;if(parent)parent.remove(b);
+  b.rotation.y=-.72;SCV.add(b);const t=b.userData.taille;OMBV.scale.set(t.x*2.05,t.z*1.42,1);OMBV.rotation.set(-Math.PI/2,0,-.72);
+  const rayon=Math.hypot(t.x,t.y,t.z)/2,fv=CAMV.fov*Math.PI/360,fh=Math.atan(Math.tan(fv)*CAMV.aspect);
+  const d=rayon/Math.sin(Math.min(fv,fh))*.8;placeCam(CAMV,d,.3,t.y*.42);SCV.fog.near=d+3;SCV.fog.far=d+26;
+  tailleToile(PW,PH);R.render(SCV,CAMV);
+  v.cv.getContext('2d').drawImage(R.domElement,0,0,PW,PH);v.el.classList.remove('ratee');
+  SCV.remove(b);b.rotation.y=0;if(parent)parent.add(b);}
+
+const V={i:-1,yaw:-.62,yawV:0,el:.2,elC:.2,dist:10,distC:10,distBase:10,tourne:true,besoin:true,car:null,ty:.6,on:false};
+function cadrer(boite,anime){
+  const t=boite.userData.taille,rayon=Math.hypot(t.x,t.y,t.z)/2;
+  const asp=Math.max(.5,innerWidth/Math.max(1,innerHeight)),fv=CAM.fov*Math.PI/360,fh=Math.atan(Math.tan(fv)*asp);
+  V.distBase=rayon/Math.sin(Math.min(fv,fh))*(asp<1?1.02:1.22)+(asp<1?.6:1.2); // debout, la largeur commande : on se rapprocheV.distC=V.distBase;if(!anime)V.dist=V.distC;
+  V.ty=t.y*.42;V.elC=.2;if(!anime)V.el=V.elC;
+  OMBRE.scale.set(t.x*2.05,t.z*1.42,1);V.besoin=true;}
+function tailleVue(){
+  const dpr=Math.min(devicePixelRatio||1,2),w=Math.round(innerWidth*dpr),h=Math.round(innerHeight*dpr);
+  tailleToile(w,h);CAM.aspect=w/Math.max(1,h);
+  CAM.setViewOffset(w,h,0,h*(h>w*.75?.16:.05),w,h); // la fiche du bas mange le bas de l'image : la caisse remonte un peu
+  CAM.updateProjectionMatrix();if(V.car)cadrer(V.car,true);V.besoin=true;}
+addEventListener('resize',()=>{if(V.on)tailleVue();});
+function montrer(i){
+  const b=caisse(i);if(V.car&&V.car!==b){TOUR.remove(V.car);}
+  V.car=b;if(b){if(b.parent)b.parent.remove(b);b.rotation.y=0;TOUR.add(b);cadrer(b,false);}
+  OMBRE.visible=!!b;$('vRatee').textContent=b?'':'Cette voiture ne se construit pas hors du jeu ('+(RATEES.get(i)||'?')+').';V.besoin=true;}
+function fiche(i){
+  const n=JEU[i],c=G.CARS[i],f=famDe(n.rar);
+  $('fFam').style.setProperty('--c',f.c);$('fFam').querySelector('span').textContent=f.n1;
+  $('fNom').textContent=n.n;$('fMod').textContent=modeleDe(i);$('fNote').querySelector('em').textContent=aFaire(i)||'';
+  $('fLigne').textContent=n.prix+(c.maxKmh?' · '+c.maxKmh+' km/h':'');
+  $('fDesc').textContent=c.desc||'';
+  const ch=CHG.filter(x=>x.i===i).map(x=>x.quoi.toLowerCase()+(x.detail?' ('+x.detail+')':''));
+  $('fChg').textContent=ch.length?'Depuis ta dernière visite : '+ch.join(' · '):'';
+  $('vCompte').textContent=(ORDRE.indexOf(i)+1)+' / '+ORDRE.length;
+  $('fJeu').href='voir.html?i='+i;
+  document.title=n.n+' · Les voitures du jeu';}
+function ouvre(i,sansHisto){
+  if(!JEU[i])return;V.i=i;
+  if(!V.on){V.on=true;document.body.classList.add('vueOn');$('vue').classList.add('on');$('vue').setAttribute('aria-hidden','false');tailleVue();
+    V.yaw=-.62;V.yawV=0;V.tourne=true;}
+  montrer(i);fiche(i);
+  if(!sansHisto)history.replaceState(null,'','#i='+i);}
+function ferme(){
+  if(!V.on)return;V.on=false;document.body.classList.remove('vueOn');$('vue').classList.remove('on');$('vue').setAttribute('aria-hidden','true');
+  if(V.car){TOUR.remove(V.car);V.car=null;}
+  history.replaceState(null,'',location.pathname+location.search);document.title='Les voitures du jeu';
+  const v=VIG.get(V.i);if(v)v.el.scrollIntoView({block:'nearest',behavior:'smooth'});}
+function voisine(d){if(!V.on||!ORDRE.length)return;const k=ORDRE.indexOf(V.i);ouvre(ORDRE[(k+d+ORDRE.length)%ORDRE.length]);V.yaw=-.62;V.yawV=0;}
+$('vRetour').onclick=ferme;$('vPrec').onclick=()=>voisine(-1);$('vSuiv').onclick=()=>voisine(1);
+addEventListener('keydown',e=>{
+  if(!V.on||NV>=0)return;   // la feuille des notes est ouverte : les flèches écrivent, elles ne changent pas de voiture
+  if(e.key==='Escape'){ferme();e.preventDefault();}
+  else if(e.key==='ArrowRight'){voisine(1);e.preventDefault();}
+  else if(e.key==='ArrowLeft'){voisine(-1);e.preventDefault();}});
+
+// la caisse tourne sous le doigt (avec son élan), le regard monte et descend, la molette et le pincement rapprochent
+const doigts=new Map();let pince0=0,distPince=0;
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);doigts.set(e.pointerId,{x:e.clientX,y:e.clientY,t:performance.now()});
+  if(doigts.size===2){const[a,b]=[...doigts.values()];pince0=Math.hypot(a.x-b.x,a.y-b.y);distPince=V.distC;}
+  V.yawV=0;V.tourne=false;cv.classList.add('tient');aideVue();});
+cv.addEventListener('pointermove',e=>{const d=doigts.get(e.pointerId);if(!d)return;
+  if(doigts.size===2){d.x=e.clientX;d.y=e.clientY;const[a,b]=[...doigts.values()];const p=Math.hypot(a.x-b.x,a.y-b.y);
+    if(pince0>0)V.distC=bornerDist(distPince*pince0/p);V.besoin=true;return;}
+  const dx=e.clientX-d.x,dy=e.clientY-d.y,now=performance.now(),dt=Math.max(1,now-d.t);
+  V.yaw+=dx*.0085;V.yawV=dx*.0085/(dt/1000)*.9;V.elC=Math.max(.02,Math.min(1.25,V.elC+dy*.005));
+  d.x=e.clientX;d.y=e.clientY;d.t=now;V.besoin=true;});
+const lache=e=>{const d=doigts.get(e.pointerId);doigts.delete(e.pointerId);if(doigts.size<2)pince0=0;
+  if(!doigts.size){cv.classList.remove('tient');if(d&&performance.now()-d.t>80)V.yawV=0;}};
+cv.addEventListener('pointerup',lache);cv.addEventListener('pointercancel',lache);
+cv.addEventListener('wheel',e=>{e.preventDefault();V.distC=bornerDist(V.distC*Math.exp(e.deltaY*.0012));V.besoin=true;aideVue();},{passive:false});
+const bornerDist=d=>Math.max(V.distBase*.38,Math.min(V.distBase*2.2,d));
+let aideT=0;function aideVue(){if(aideT)return;aideT=setTimeout(()=>$('aide').classList.add('cache'),1500);}
+
+function boucle(){
+  requestAnimationFrame(boucle);
+  const now=performance.now(),dt=Math.min(.05,(now-(boucle.t||now))/1000);boucle.t=now;
+  if(!G)return;
+  if(!V.on){ // l'atelier photo : d'abord l'étalonnage du sol, puis une vignette par image
+    if(!FILE.length)return;
+    if(!CAL.ok){const i=FILE[0],b=caisse(i);if(!b){photo(FILE.shift());return;}
+      if(b.parent)b.parent.remove(b);SCV.add(b);const t=b.userData.taille,d=Math.hypot(t.x,t.y,t.z)*1.6;placeCam(CAMV,d,.3,t.y*.36);
+      tailleToile(PW,PH);R.render(SCV,CAMV);etalonne();SCV.remove(b);return;}
+    photo(FILE.shift());return;}
+  let bouge=false;
+  if(V.tourne&&!doigts.size){V.yaw+=dt*.16;bouge=true;}
+  if(!doigts.size&&Math.abs(V.yawV)>.002){V.yaw+=V.yawV*dt;V.yawV*=Math.exp(-dt*2.6);bouge=true;}
+  const k=1-Math.exp(-dt*10);
+  if(Math.abs(V.dist-V.distC)>.001){V.dist+=(V.distC-V.dist)*k;bouge=true;}
+  if(Math.abs(V.el-V.elC)>.0005){V.el+=(V.elC-V.el)*k;bouge=true;}
+  if(!bouge&&!V.besoin)return;V.besoin=false;
+  TOUR.rotation.y=V.yaw;placeCam(CAM,V.dist,V.el,V.ty);SC.fog.near=V.dist+4;SC.fog.far=V.dist+38;
+  R.render(SC,CAM);}
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   LA SOURCE — lue à l'ouverture, puis relue toutes les 2 minutes (et quand on revient sur l'onglet) : la liste suit le jeu
+   --------------------------------------------------------------------------------------------------------------------- */
+let toastT=0;function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('on'),3600);}
+const ilYa=t=>{const s=(Date.now()-t)/1000;if(s<90)return "à l'instant";const m=Math.round(s/60);if(m<60)return 'il y a '+m+' min';
+  const h=Math.round(m/60);if(h<36)return 'il y a '+h+' h';return 'il y a '+Math.round(h/24)+' j';};
+function afficheSource(){
+  const e=$('source');e.className=SOURCE.nom==='main'?'':'local';
+  const s=e.querySelector('span');
+  if(SOURCE.nom==='main'){s.innerHTML='';
+    s.append('Le jeu du main'+(SOURCE.quand?' · changé '+ilYa(Date.parse(SOURCE.quand)):'')+(SOURCE.msg?' · ':''));
+    if(SOURCE.msg){const q=document.createElement('q');q.textContent=SOURCE.msg.length>90?SOURCE.msg.slice(0,88)+'…':SOURCE.msg;s.append(q);}
+    s.append(' · relu '+ilYa(SOURCE.lu));}
+  else s.textContent='Copie locale du jeu (GitHub ne répond pas) · relue '+ilYa(SOURCE.lu);}
+let LIT=false;
+async function relire(manuel){
+  if(LIT)return;LIT=true;if(manuel)$('source').className='lit';
+  let change=false;
+  try{change=await lireJeu();}
+  catch(e){console.warn(e);LIT=false;if(!G){$('charge').className='erreur';$('charge').innerHTML='Le jeu ne se lit pas : '+String(e.message||e)+'<br><code>python3 repertoire-voitures/serveur.py 9250</code>';}
+    afficheSource();return;}
+  LIT=false;
+  if(change){
+    const avant=JEU,premier=!Object.keys(avant).length;
+    oublieCaisses();lireGamme();
+    if(!VU)ecritVu();                   // la toute première visite : la liste part d'ici
+    compare();afficheChg();construireListe();$('charge').textContent='';
+    if(!premier){const n=Object.keys(JEU).filter(k=>!avant[k]||avant[k].h!==JEU[k].h||avant[k].prix!==JEU[k].prix||avant[k].rar!==JEU[k].rar||avant[k].n!==JEU[k].n).length
+      +Object.keys(avant).filter(k=>!JEU[k]).length;
+      toast(n?'Le jeu vient de changer : '+n+' voiture'+(n>1?'s':'')+' touchée'+(n>1?'s':''):'Le jeu a changé (pas les voitures)');}
+    if(V.on){if(JEU[V.i])ouvre(V.i,true);else ferme();}
+    else{const m=/#i=(\d+)/.exec(location.hash);if(premier&&m&&JEU[+m[1]])ouvre(+m[1],true);}}
+  else if(manuel)toast('Rien de neuf sur le main');
+  afficheSource();}
+setInterval(()=>{if(!document.hidden)relire();},120000);
+setInterval(afficheSource,30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-SOURCE.lu>60000)relire();});
+$('source').addEventListener('click',()=>relire(true));
+relire();requestAnimationFrame(boucle);notesLit();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)notesLit();});
+
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   LA TABLE (24/10, Léo : « que je puisse les bouger, mettre deux voitures à côté pour les comparer ; une vue sur tout ce qu'on a ») —
+   un grand plan : on y pose les voitures (bac à gauche), on les glisse, on les agrandit, on en choisit deux et « Côte à côte »
+   les aligne à la même taille avec leurs chiffres ; « Tout poser » étale toute la gamme par famille. Mémorisée par NOM de voiture.
+   --------------------------------------------------------------------------------------------------------------------- */
+const TCLE='cashcar.voitures.table.v1';
+const TB={cartes:[],zoom:1,sel:new Set(),z:10,ok:false};
+try{const s=JSON.parse(localStorage.getItem(TCLE)||'null');if(s&&Array.isArray(s.cartes)){TB.cartes=s.cartes.filter(c=>c&&c.n);TB.zoom=s.zoom||1;}}catch(e){}
+const tSave=()=>{try{localStorage.setItem(TCLE,JSON.stringify({cartes:TB.cartes.map(c=>({n:c.n,x:c.x,y:c.y,w:c.w})),zoom:TB.zoom}));}catch(e){}};
+const idDe=n=>ORDRE.find(i=>JEU[i].n===n);
+function photoHD(i,dest){
+  const b=caisse(i);if(!b)return false;
+  const W=PW*2,H=PH*2,parent=b.parent;if(parent)parent.remove(b);
+  b.rotation.y=-.72;SCV.add(b);const t=b.userData.taille;OMBV.scale.set(t.x*2.05,t.z*1.42,1);OMBV.rotation.set(-Math.PI/2,0,-.72);
+  const rayon=Math.hypot(t.x,t.y,t.z)/2,fv=CAMV.fov*Math.PI/360,fh=Math.atan(Math.tan(fv)*CAMV.aspect);
+  const d=rayon/Math.sin(Math.min(fv,fh))*.8;placeCam(CAMV,d,.3,t.y*.42);SCV.fog.near=d+3;SCV.fog.far=d+26;
+  tailleToile(W,H);R.render(SCV,CAMV);dest.width=W;dest.height=H;dest.getContext('2d').drawImage(R.domElement,0,0,W,H);
+  SCV.remove(b);b.rotation.y=0;if(parent)parent.add(b);return true;}
+const nb=(x,d)=>Number(x).toFixed(d).replace('.',',');
+function tFiche(i,el){
+  const c=G.CARS[i],f=famDe(JEU[i].rar);
+  el.querySelector('.fa').style.setProperty('--c',f.c);el.querySelector('.fa span').textContent=f.n1;
+  el.querySelector('b').textContent=JEU[i].n;el.querySelector('.mo').textContent=modeleDe(i);
+  const L=[JEU[i].prix];if(c.maxKmh)L.push(c.maxKmh+' km/h');if(c.accel)L.push('accél. '+c.accel);
+  const m=[c.l,c.w,c.h].every(v=>typeof v==='number')?nb(c.l,2)+' × '+nb(c.w,2)+' × '+nb(c.h,2)+' m':'';
+  el.querySelector('.sp').innerHTML=L.filter(Boolean).join(' · ')+(m?'<br>'+m:'');}
+function tCree(c){
+  const i=idDe(c.n);if(i==null)return null;
+  const el=document.createElement('div');el.className='tc';el.dataset.n=c.n;
+  el.innerHTML='<canvas></canvas><div class="tx"><span class="fa"><i></i><span></span></span><b></b><i class="mo" style="font-style:normal;display:block"></i><span class="sp"></span></div><span class="sup" title="Retirer">✕</span><span class="poi"></span>';
+  el.querySelector('.mo').className='mo';tFiche(i,el);
+  if(!photoHD(i,el.querySelector('canvas')))el.querySelector('canvas').getContext('2d');
+  tPlace(c,el);$('tPlan').appendChild(el);c.el=el;
+  const dr=e=>{if(e.target.classList.contains('sup')||e.target.classList.contains('poi'))return;
+    e.preventDefault();el.setPointerCapture(e.pointerId);el.style.zIndex=++TB.z;el.classList.add('tient');
+    const x0=e.clientX,y0=e.clientY,cx=c.x,cy=c.y;let bouge=false;
+    const mv=ev=>{const dx=(ev.clientX-x0)/TB.zoom,dy=(ev.clientY-y0)/TB.zoom;if(Math.abs(dx)+Math.abs(dy)>3)bouge=true;c.x=Math.max(0,cx+dx);c.y=Math.max(0,cy+dy);tPlace(c,el);};
+    const up=()=>{el.removeEventListener('pointermove',mv);el.removeEventListener('pointerup',up);el.removeEventListener('pointercancel',up);el.classList.remove('tient');
+      if(!bouge){if(e.shiftKey||TB.sel.size<2||TB.sel.has(c.n)){TB.sel.has(c.n)?TB.sel.delete(c.n):TB.sel.add(c.n);}else{TB.sel.clear();TB.sel.add(c.n);}tSel();}tSave();};
+    el.addEventListener('pointermove',mv);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);};
+  el.addEventListener('pointerdown',dr);
+  el.querySelector('.sup').onclick=ev=>{ev.stopPropagation();tRetire(c.n);};
+  const po=el.querySelector('.poi');
+  po.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();po.setPointerCapture(e.pointerId);const x0=e.clientX,w0=c.w;
+    const mv=ev=>{c.w=Math.max(160,Math.min(1400,w0+(ev.clientX-x0)/TB.zoom));tPlace(c,el);};
+    const up=()=>{po.removeEventListener('pointermove',mv);po.removeEventListener('pointerup',up);tSave();};
+    po.addEventListener('pointermove',mv);po.addEventListener('pointerup',up);});
+  return el;}
+function tPlace(c,el){el.style.left=c.x+'px';el.style.top=c.y+'px';el.style.width=c.w+'px';el.style.fontSize=Math.max(.8,c.w/300)+'em';}
+function tSel(){for(const c of TB.cartes)if(c.el)c.el.classList.toggle('sel',TB.sel.has(c.n));}
+function tVideMaj(){$('tVide').style.display=TB.cartes.length?'none':'';
+  for(const b of $('tBac').querySelectorAll('.tPuce'))b.classList.toggle('pose',TB.cartes.some(c=>c.n===b.dataset.n));}
+function tAjoute(n,x,y,w){
+  if(TB.cartes.some(c=>c.n===n))return;
+  const sc=$('tScroll'),c={n,w:w||300,x:x!=null?x:sc.scrollLeft/TB.zoom+60+(TB.cartes.length%6)*36,y:y!=null?y:sc.scrollTop/TB.zoom+40+(TB.cartes.length%6)*36};
+  if(!tCree(c))return;TB.cartes.push(c);tVideMaj();tSave();}
+function tRetire(n){const k=TB.cartes.findIndex(c=>c.n===n);if(k<0)return;if(TB.cartes[k].el)TB.cartes[k].el.remove();TB.cartes.splice(k,1);TB.sel.delete(n);tVideMaj();tSave();}
+function tBacRempli(){
+  const bac=$('tBac');bac.innerHTML='';
+  for(const f of FAMS){const h=document.createElement('h3');h.style.setProperty('--c',f.c);h.innerHTML='<i></i><span></span>';h.querySelector('span').textContent=f.n;bac.appendChild(h);
+    for(const i of f.L){const b=document.createElement('button');b.className='tPuce';b.dataset.n=JEU[i].n;
+      b.innerHTML='<canvas width="110" height="69"></canvas><span></span>';b.querySelector('span').textContent=JEU[i].n;
+      const v=VIG.get(i);if(v&&v.cv.width)try{b.querySelector('canvas').getContext('2d').drawImage(v.cv,0,0,110,69);}catch(e){}
+      b.onclick=()=>{if(TB.cartes.some(c=>c.n===JEU[i].n))tRetire(JEU[i].n);else tAjoute(JEU[i].n);};bac.appendChild(b);}}}
+function tReconstruit(){
+  $('tPlan').innerHTML='';const garde=TB.cartes.filter(c=>idDe(c.n)!=null);TB.cartes=[];
+  for(const c of garde){if(tCree(c))TB.cartes.push(c);}tBacRempli();tVideMaj();tSel();}
+function tZoomer(z){TB.zoom=z;$('tPlan').style.transform='scale('+z+')';$('tZoom').value=Math.round(z*100);}
+function tCote(){
+  let L=TB.cartes.filter(c=>TB.sel.has(c.n));if(L.length<2)L=TB.cartes.slice(-2);
+  if(L.length<2){toast('Pose au moins deux voitures sur la table');return;}
+  L.sort((a,b)=>a.x-b.x);const w=Math.max(...L.map(c=>c.w)),y=Math.min(...L.map(c=>c.y)),x0=L[0].x,sp=24;
+  L.forEach((c,k)=>{c.w=w;c.x=x0+k*(w+sp);c.y=y;tPlace(c,c.el);c.el.style.zIndex=++TB.z;});
+  // le meilleur chiffre de chaque ligne en vert
+  const cmp=(cle,haut)=>{const v=L.map(c=>G.CARS[idDe(c.n)][cle]);if(v.some(x=>typeof x!=='number'))return;};
+  tSave();const sc=$('tScroll');sc.scrollTo({left:Math.max(0,(x0-40)*TB.zoom),top:Math.max(0,(y-40)*TB.zoom),behavior:'smooth'});}
+function tTout(perFix){
+  const w=250,sp=18,per=perFix||Math.max(3,Math.floor(($('tScroll').clientWidth/TB.zoom-60)/(w+sp)));let y=30;
+  for(const f of FAMS){let k=0;for(const i of f.L){const n=JEU[i].n;let c=TB.cartes.find(q=>q.n===n);
+      if(!c){c={n,w,x:0,y:0};if(!tCree(c))continue;TB.cartes.push(c);}
+      c.w=w;c.x=30+(k%per)*(w+sp);c.y=y+Math.floor(k/per)*(w*.62+95);tPlace(c,c.el);k++;}
+    y+=Math.ceil(k/per)*(w*.62+95)+40;}
+  tVideMaj();tSave();$('tScroll').scrollTo({left:0,top:0});}
+// TOUT VOIR : toute la gamme posée par famille, sur le nombre de colonnes qui remplit le mieux l'écran, zoom ajusté pour que tout tienne
+function tVoir(){
+  const sc=$('tScroll'),W=sc.clientWidth,H=sc.clientHeight,w=250,sp=18,tot=FAMS.map(f=>f.L.length);
+  let meil=null;
+  for(let per=3;per<=16;per++){
+    const wp=60+per*(w+sp),hp=30+tot.reduce((a,n)=>a+Math.ceil(n/per)*(w*.62+95)+40,0),z=Math.min(W/wp,H/hp);
+    if(!meil||z>meil.z)meil={per,z};}
+  tTout(meil.per);tZoomer(Math.max(.08,Math.min(1,meil.z*.98)));tSave();sc.scrollTo({left:0,top:0});}
+function tOuvre(){if(!G||!ORDRE.length){toast('Le jeu se charge encore…');return;}
+  document.body.classList.add('tableOn');$('table').classList.add('on');if(!TB.ok){TB.ok=true;tZoomer(TB.zoom);tReconstruit();}else{tBacRempli();tVideMaj();}}
+function tFerme(){document.body.classList.remove('tableOn');$('table').classList.remove('on');}
+$('bChoix').onclick=()=>{CHOIX_ON=!CHOIX_ON;document.body.classList.toggle('choixOn',CHOIX_ON);choixMaj();};choixMaj();
+$('bTable').onclick=tOuvre;$('tRetour').onclick=tFerme;$('tCote').onclick=tCote;$('tTout').onclick=()=>tTout();$('tVoir').onclick=tVoir;
+$('tVider').onclick=()=>{for(const c of TB.cartes)if(c.el)c.el.remove();TB.cartes=[];TB.sel.clear();tVideMaj();tSave();};
+$('tZoom').oninput=e=>{tZoomer(e.target.value/100);tSave();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('table').classList.contains('on')){e.stopPropagation();tFerme();}},true);
+
+// console : l'état de la page (pour les bancs)
+window.dbgVoitures={etat:()=>({source:{nom:SOURCE.nom,sha:SOURCE.sha.slice(0,8),msg:SOURCE.msg},n:ORDRE.length,familles:FAMS.map(f=>f.id+':'+f.L.length),
+  photos:FILE.length,ratees:[...RATEES].map(([i,e])=>i+' '+G.CARS[i].name+' : '+e),reparations:reparations(),chg:CHG.length}),ouvre,ferme,relire,
+  oublieVu:()=>{try{localStorage.removeItem(CLE);}catch(e){}VU=null;}};
+</script>
+</body>
+</html>

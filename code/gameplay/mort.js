@@ -244,6 +244,9 @@ function mortsCompte(cause){ // une mort RÉELLE (explode)
   const M=mortsEx().morts,c=/^[a-z]{1,12}$/.test(cause)?cause:'autre',o=M[k]||(M[k]={});
   o[c]=Math.min(1e6,(o[c]|0)+1);mortsVerse();SAVE.mark();}
 let mortCause=''; // (2026-09-26, audit UX) POURQUOI on est mort — dit sous GAME OVER : une mort comprise donne envie de rejouer
+/* ===== LA CAUSE DE MORT, À VOIR (2026-10-25, Sacha : « on meurt encore sans raison sur la map dune ») =====
+   La ligne de cause de l'écran de mort est cachée (charte-7-details.css) : on ne sait jamais POURQUOI on est mort. `?cause=1` la remontre, avec le lieu : la cause, l'abscisse, le décalage de la route, le temps de vol et la vitesse. */
+const MORT_VOIR=/[?&]cause=1(&|$)/.test(location.search);let mortInfo='';
 /* (2026-09-30) LA PARTIE BAT-ELLE UN RECORD ? Les TROIS de l'écran de mort (mFill) : l'ARGENT (montants bruts ; 1,61 $ n'en est pas un),
    l'AURA battue en course (CHA.recB), le MOTEUR (un palier jamais atteint avant cette partie). explode s'en sert pour ne pas se moquer
    d'une partie que l'écran de mort va couronner « NOUVEAU RECORD ! ». */
@@ -266,6 +269,7 @@ function explode(cause){
   chainePerdue(true); // (aura v2) la chaîne ouverte part avec la caisse
   if(gameOver||mode==='boom')return;
   mortCause=cause||'';
+  if(MORT_VOIR)try{mortInfo='s '+Math.round(s)+' · décalage '+lat.toFixed(0)+' m · vol '+fallT.toFixed(1)+' s · '+Math.round(Math.abs(vA)*SPD*3.6)+' km/h · '+mode;}catch(e){mortInfo='?';}
   try{mortsCompte(mortCause);}catch(e){}try{m2Mort(mortCause);}catch(e){} /* (2026-10-16) LES MISSIONS v2 : morts, les secrètes de la mort */ // (2026-09-30) la mesure des morts par niveau (voir MORTS)
   flowReset();try{flowTick(0);}catch(e){} // le crash VIDE le flow
   /* (2026-09-30) LA MUSIQUE MEURT AVEC LA CAISSE : le tape-stop partait d'endGame, 1,8 s APRÈS l'explosion — toute la boule de feu se
