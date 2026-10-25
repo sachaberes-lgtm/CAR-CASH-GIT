@@ -51,7 +51,7 @@ function degatsCaisse(spec){
 /* LA TRADUCTION AU LANGAGE DU JEU (25/10, Léo : « les traduire pour que ce soit comme les autres, mais que leur modèle soit toujours ressenti, juste ajusté de manière cool et intelligente » — `?langage=1`, un ESSAI, éteint par défaut) :
    les voitures « hors langage » (rondes, lisses, 15 à 46 k triangles) repassent par un REGROUPEMENT DE SOMMETS : tous les sommets d'une même case de grille (≈ 4,5 % de la longueur de la caisse) n'en font plus qu'un, au centre de leur
    groupe ; les triangles qui s'effondrent disparaissent. La silhouette reste celle de la voiture (on la ressent), les petits triangles deviennent de grandes facettes planes (la lumière change à chaque plan), la couleur de chaque
-   facette est la moyenne de ses sommets. On ne touche ni aux roues, ni aux feux (matières émissives), ni aux petites pièces (< 25 cm de diagonale). `?langage=1.5` = des facettes plus grosses ; `0.7` = plus fines. Appelée juste
+   facette est la moyenne de ses sommets. On ne touche ni aux roues, ni aux feux, ni au chrome, aux grilles, aux plastiques, au verre (les détails qui font la voiture), ni aux petites pièces (< 25 cm de diagonale) : SEULE la peinture est regroupée. `?langage=1.5` = des facettes plus grosses ; `0.7` = plus fines. Appelée juste
    avant `caisseSoude()`. */
 const LANG_CIBLES=['LE DOGE','LE COMBI','LE CAÏD','LA PERLE','LA ZAGAIE','LA GRANDE ANGLAISE','LA LAME','LA QUEUE DE CANARD','LE SCARABÉE','LA DOLCE VITA','LA BÊTE','LE BAROUDEUR','LE HOT ROD','LA FÉLINE','LE ROUGE-GORGE'];
 function traduisLangage(spec){
@@ -61,7 +61,8 @@ function traduisLangage(spec){
   const inv=new THREE.Matrix4().copy(carBody.matrixWorld).invert(),cell=Math.max(.06,(spec.l||4)*.045*V),M=new THREE.Matrix4(),P=new THREE.Vector3();
   for(const o of carBody.children.slice()){
     if(!o.isMesh||!o.geometry||!o.geometry.attributes.position||o.userData.sol||o.userData.noShadow||o.userData.degats||!o.material||Array.isArray(o.material))continue;
-    if(o.material.isMeshBasicMaterial&&!o.material.vertexColors)continue;                      // un cabochon unicolore émissif : on n'y touche pas
+    if(o.material.isMeshBasicMaterial)continue;                                                 // les FEUX (matière émissive) : on n'y touche pas — ils font le caractère de la voiture
+    {const sh=o.material.shininess;if(!(o.material.userData&&o.material.userData.g==='p')&&!(sh===44||sh===70||sh===90))continue;}   // SEULE la peinture (laque 44, nacre 70, métallisé 90) est regroupée : chrome, or, plastiques mats (grilles), cuir et verre gardent leurs détails
     const g=o.geometry;g.computeBoundingBox();const bb=g.boundingBox;if(bb.min.distanceTo(bb.max)*Math.max(o.scale.x,o.scale.y,o.scale.z)<.25)continue;   // les petites pièces restent
     if(o.material.userData&&o.material.userData.g==='l')continue;
     const pos=g.attributes.position,col=g.attributes.color,ix=g.index,nT=ix?ix.count/3:pos.count/3;
