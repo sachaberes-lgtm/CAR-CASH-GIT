@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Revue des maps</title>
+<!-- LA REVUE DES MAPS (2026-10-25, Léo : « une page blanche, liste, voir des images, pas de gameplay, et je dis lesquelles on vire et lesquelles on garde »
+     puis « que cette page soit reliée et refresh sur ce qui est disponible sur le jeu »).
+     · La LISTE vient du JEU : serveur.py lit index.html (jeu_maps.py : SF_CARTES, SF_HORS, SF_FUSION) et sert la liste à /repertoire-maps/maps.js.
+       « Actualiser » la relit : une map ajoutée, une météo retirée dans le jeu se voit ici sans rien toucher.
+     · Les IMAGES sont des photos du vrai jeu (img/, banc/photos.py). La page dit celles qui manquent et celles prises sur un jeu plus ancien ;
+       « Photographier ce qui manque » / « Refaire cette map » lancent le banc depuis la page.
+     · Pas de jeu ici : seulement des photos. Chaque map : GARDER / VIRER ; dans le visionneur, X marque une MÉTÉO à virer.
+     · Les avis partent au serveur (POST /repertoire-maps/avis → ~/Downloads/CAR-notes-maps/avis-maps.txt) ; copie dans le navigateur au cas où. -->
+<style>
+  :root{--ink:#111;--soft:#6b6b6b;--line:#e6e6e6;--ok:#14803c;--ko:#c62828;--warn:#b26a00;--bg:#fff}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif}
+  main{max-width:860px;margin:0 auto;padding:28px 20px 80px}
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+  h1{font-size:26px;font-weight:700;letter-spacing:-.01em;margin:0}
+  #bilan{color:var(--soft);font-size:15px}
+  #bilan b{color:var(--ink);font-weight:600}
+  .outils{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 16px}
+  #jeuV{color:var(--soft);font-size:13px;flex:1;min-width:160px}
+  #jeuV b{color:var(--ink);font-weight:600}
+  #jeuV .w{color:var(--warn)}
+  .liste{border-top:1px solid var(--line)}
+  .ligne{display:grid;grid-template-columns:176px 1fr auto;gap:18px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+  .vig{position:relative;width:176px;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:#eee;cursor:pointer;border:0;padding:0;display:block}
+  .vig img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .25s}
+  .vig:hover img{transform:scale(1.04)}
+  .vig .nop{position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:var(--soft);font-size:12px;background:#f3f3f3}
+  .nom{font-weight:650;font-size:18px;letter-spacing:.01em}
+  .sous{color:var(--soft);font-size:14px;margin-top:3px}
+  .sous .w{color:var(--warn)}
+  .tag{display:inline-block;font-size:12px;color:var(--soft);border:1px solid var(--line);border-radius:99px;padding:1px 8px;margin-left:8px;vertical-align:2px;font-weight:500}
+  .choix{display:flex;gap:8px}
+  .b{appearance:none;border:1.5px solid var(--line);background:#fff;color:var(--ink);font-weight:600;font-size:14px;line-height:1;font-family:inherit;padding:11px 16px;border-radius:99px;cursor:pointer;min-width:84px;transition:background .12s,border-color .12s,color .12s}
+  .b:hover{border-color:#bdbdbd}
+  .b:disabled{opacity:.5;cursor:default}
+  .b.g.on{background:var(--ok);border-color:var(--ok);color:#fff}
+  .b.v.on{background:var(--ko);border-color:var(--ko);color:#fff}
+  .b.pt{padding:8px 14px;font-size:13px;min-width:0}
+  .ligne.virer .vig img,.ligne.virer .nom{opacity:.38}
+  .ligne.virer .nom{text-decoration:line-through}
+  .ligne.garder .nom::before{content:"✓ ";color:var(--ok)}
+  /* visionneur */
+  #vis{position:fixed;inset:0;background:#fff;display:none;flex-direction:column;z-index:10}
+  #vis.on{display:flex}
+  .haut{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-bottom:1px solid var(--line)}
+  .haut .t{font-weight:700;font-size:19px}
+  .haut .m{color:var(--soft);font-size:15px;margin-left:10px;font-weight:500}
+  .ferme{appearance:none;border:0;background:none;font-size:15px;color:var(--soft);cursor:pointer;padding:8px 6px;font-family:inherit}
+  .scene{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;background:#fafafa}
+  .scene img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+  .scene .vide{color:var(--soft)}
+  .fl{position:absolute;top:50%;translate:0 -50%;width:52px;height:80px;border:0;background:rgba(255,255,255,.82);font-size:26px;cursor:pointer;border-radius:10px;color:var(--ink);font-family:inherit}
+  .fl:hover{background:#fff}
+  .fl.g{left:12px}.fl.d{right:12px}
+  .virMet{position:absolute;left:50%;top:14px;translate:-50% 0;background:var(--ko);color:#fff;font-weight:700;font-size:13px;padding:6px 14px;border-radius:99px;display:none}
+  .virMet.on{display:block}
+  .vVer{position:absolute;right:14px;bottom:10px;font-size:12px;color:var(--soft);background:rgba(255,255,255,.88);border-radius:99px;padding:3px 10px}
+  .vVer.w{color:var(--warn)}
+  .bas{border-top:1px solid var(--line);padding:12px 20px 16px;display:flex;flex-direction:column;gap:12px}
+  .puces{display:flex;gap:8px;flex-wrap:wrap}
+  .p{appearance:none;border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:7px 13px;font-weight:500;font-size:13px;line-height:1;font-family:inherit;cursor:pointer;color:var(--ink)}
+  .p.cur{border-color:var(--ink);font-weight:700}
+  .p.vir{color:var(--ko);text-decoration:line-through}
+  .p.nop{border-style:dashed;color:var(--soft)}
+  .acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .acts .aide{color:var(--soft);font-size:13px;margin-left:auto}
+  kbd{font-weight:600;font-size:12px;line-height:1;font-family:inherit;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:2px 6px;background:#fafafa}
+  #etat{position:fixed;right:14px;bottom:12px;font-size:12px;color:var(--soft);background:#fff;border:1px solid var(--line);border-radius:99px;padding:4px 10px;z-index:20}
+  #etat.ko{color:var(--ko);border-color:var(--ko)}
+  @media (max-width:640px){
+    main{padding:18px 14px 80px}
+    .ligne{grid-template-columns:112px 1fr;gap:12px}
+    .vig{width:112px}
+    .choix{grid-column:1/-1}
+    .b{flex:1}
+    .fl{width:40px;height:64px}
+    .acts .aide{display:none}
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Maps</h1>
+    <div id="bilan"></div>
+  </header>
+  <div class="outils">
+    <div id="jeuV"></div>
+    <button class="b pt" id="photoManque" hidden></button>
+    <button class="b pt" id="actu">Actualiser</button>
+  </div>
+  <div class="liste" id="liste"></div>
+</main>
+
+<div id="vis" aria-hidden="true">
+  <div class="haut"><div><span class="t" id="vNom"></span><span class="m" id="vMet"></span></div><button class="ferme" id="vFerme">Fermer <kbd>Échap</kbd></button></div>
+  <div class="scene">
+    <button class="fl g" id="vPrec" aria-label="Précédente">‹</button>
+    <img id="vImg" alt="">
+    <div class="vide" id="vVide" hidden>pas de photo pour celle-ci</div>
+    <div class="virMet" id="vVirMet">MÉTÉO À VIRER</div>
+    <div class="vVer" id="vVer"></div>
+    <button class="fl d" id="vSuiv" aria-label="Suivante">›</button>
+  </div>
+  <div class="bas">
+    <div class="puces" id="vPuces"></div>
+    <div class="acts">
+      <button class="b g" id="vG">Garder la map <kbd>G</kbd></button>
+      <button class="b v" id="vV">Virer la map <kbd>V</kbd></button>
+      <button class="b" id="vX">Virer cette météo <kbd>X</kbd></button>
+      <button class="b pt" id="vRef">Refaire les photos de cette map</button>
+      <span class="aide"><kbd>←</kbd> <kbd>→</kbd> images · <kbd>↑</kbd> <kbd>↓</kbd> map</span>
+    </div>
+  </div>
+</div>
+<div id="etat"></div>
+
+<script src="maps.js"></script>
+<script>
+(function(){
+  var R=[], LS='avisMaps-v1', avis={}, ci=0, mi=0, SEUIL=25, BUST=Date.now(), PH={jeu:null,manquantes:[],versions:{},job:{}}, poll=null;
+  var $=function(i){return document.getElementById(i);};
+  var img=function(m){return 'img/'+m[2]+'.jpg?t='+BUST;};
+  var A=function(id){return avis[id]||(avis[id]={s:'',m:{}});};
+  var ouvert=function(){return $('vis').classList.contains('on');};
+
+  /* ---------- la liste : une ligne par MAP DU TIRAGE (window.REPERTOIRE, lu dans le jeu par le serveur) ----------
+     CRYPTOVILLE = deux cartes du jeu (Crypto City le jour, La Ville la nuit) rangées ensemble (`groupe`) ;
+     chaque météo = [clé de l'avis, étiquette, nom du fichier image, [carte, météo]] */
+  function construis(){
+    var RAW=window.REPERTOIRE||[];R=[];
+    RAW.forEach(function(c){var gid=c.groupe||c.id,g=null;R.forEach(function(x){if(x.id===gid)g=x;});
+      if(!g){g={id:gid,nom:c.nom,cov:c.id+'-'+c.couverture,pc:[],meteos:[]};R.push(g);}
+      g.pc.push(!!c.pc);
+      c.meteos.forEach(function(m){g.meteos.push([c.groupe?c.id+'-'+m[0]:m[0],m[1],c.id+'-'+m[0],[c.id,m[0]],!!c.pc]);});});
+    R.forEach(function(g){g.tousPC=g.pc.every(Boolean);g.mixte=!g.tousPC&&g.pc.some(Boolean);
+      if(g.mixte)g.meteos.forEach(function(m){if(m[4])m[1]+=' · PC';});});
+    if(ci>=R.length)ci=0;
+  }
+
+  /* ---------- l'enregistrement : serveur d'abord, copie navigateur toujours ---------- */
+  function etat(t,ko){var e=$('etat');e.textContent=t;e.className=ko?'ko':'';}
+  function copie(){try{localStorage.setItem(LS,JSON.stringify(avis));}catch(e){}}
+  function envoie(op){
+    copie();
+    fetch('/repertoire-maps/avis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(op)})
+      .then(function(r){if(!r.ok)throw 0;etat('enregistré');})
+      .catch(function(){etat('pas enregistré sur le disque (copie dans le navigateur)',1);});
+  }
+  function chargeAvis(fin){
+    try{avis=JSON.parse(localStorage.getItem(LS)||'{}')||{};}catch(e){avis={};}
+    fetch('/repertoire-maps/avis').then(function(r){if(!r.ok)throw 0;return r.json();})
+      .then(function(d){if(d&&typeof d==='object'&&Object.keys(d).length)avis=d;etat('enregistré');})
+      .catch(function(){etat('serveur absent : copie dans le navigateur seulement',1);})
+      .then(fin);
+  }
+
+  /* ---------- les photos : ce qui manque, de quelle version du jeu est chaque image ---------- */
+  function photos(fin){
+    fetch('/repertoire-maps/photos').then(function(r){if(!r.ok)throw 0;return r.json();})
+      .then(function(d){PH=d;}).catch(function(){}).then(function(){entete();if(fin)fin();});
+  }
+  /* le n° de version du jeu bouge à chaque commit (HUD, son…) : une photo n'est « ancienne » qu'à SEUIL versions de retard — plus bas, c'est une simple information */
+  function ancienne(m){var v=PH.versions&&PH.versions[m[2]];return v!=null&&PH.jeu!=null&&PH.jeu-v>=SEUIL;}
+  function entete(){
+    var nb=(PH.manquantes||[]).length,job=PH.job||{},old=0;
+    R.forEach(function(g){g.meteos.forEach(function(m){if(ancienne(m))old++;});});
+    $('jeuV').innerHTML=PH.jeu!=null?'Jeu <b>v'+PH.jeu+'</b>'+(old?' · <span class="w">'+old+' photo'+(old>1?'s':'')+' en retard de '+SEUIL+' versions ou plus</span>':' · photos récentes'):'';
+    var b=$('photoManque');
+    if(job.en_cours){b.hidden=false;b.disabled=true;b.textContent='Photos en cours… '+job.fait+' / '+job.total;}
+    else if(nb){b.hidden=false;b.disabled=false;b.textContent='Photographier ce qui manque ('+nb+')';}
+    else b.hidden=true;
+  }
+  function lance(couples){
+    fetch('/repertoire-maps/photos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(couples?{couples:couples}:{})})
+      .then(function(r){return r.json().then(function(d){if(!r.ok)throw d.erreur||0;return d;});})
+      .then(function(d){PH.job=d;entete();suit();})
+      .catch(function(e){etat('photos : '+(e||'impossible')+(e?'':' (serveur absent ?)'),1);});
+  }
+  function suit(){ /* tant que la série tourne : on relit l'état, et les images se rechargent à la fin */
+    if(poll)return;
+    poll=setInterval(function(){photos(function(){
+      if(!(PH.job&&PH.job.en_cours)){clearInterval(poll);poll=null;BUST=Date.now();rends();if(ouvert())vue();
+        etat(PH.job&&PH.job.erreur?PH.job.erreur:'photos refaites',!!(PH.job&&PH.job.erreur));}
+      else rends();});},4000);
+  }
+
+  /* ---------- la liste à l'écran ---------- */
+  function bilan(){
+    var g=0,v=0;R.forEach(function(c){var s=(avis[c.id]||{}).s;if(s==='garder')g++;else if(s==='virer')v++;});
+    $('bilan').innerHTML='<b>'+g+'</b> gardées · <b>'+v+'</b> virées · <b>'+(R.length-g-v)+'</b> à voir';
+  }
+  function choisis(c,s){var a=A(c.id);a.s=(a.s===s)?'':s;envoie({carte:c.id,s:a.s});rends();if(ouvert())vue();}
+  function manque(m){return (PH.manquantes||[]).some(function(q){return q[0]===m[3][0]&&q[1]===m[3][1];});}
+  function rends(){
+    var L=$('liste');L.innerHTML='';
+    R.forEach(function(c,i){
+      var s=(avis[c.id]||{}).s||'',n=Object.keys((avis[c.id]||{}).m||{}).length;
+      var li=document.createElement('div');li.className='ligne '+s;
+      var cov=c.meteos.filter(function(m){return m[2]===c.cov;})[0]||c.meteos[0];
+      var nb=c.meteos.length,man=c.meteos.filter(manque).length;
+      li.innerHTML='<button class="vig" aria-label="Voir les images"><img src="'+img(cov)+'" alt=""><span class="nop">pas de photo</span></button>'
+        +'<div><div class="nom">'+c.nom+(c.tousPC?'<span class="tag">PC seulement</span>':'')+'</div>'
+        +'<div class="sous">'+nb+' météo'+(nb>1?'s':'')+(n?' · '+n+' à virer':'')+(man?' · <span class="w">'+man+' sans photo</span>':'')+'</div></div>'
+        +'<div class="choix"><button class="b g'+(s==='garder'?' on':'')+'">Garder</button><button class="b v'+(s==='virer'?' on':'')+'">Virer</button></div>';
+      var im=li.querySelector('img');im.onerror=function(){im.style.display='none';li.querySelector('.nop').style.display='flex';};
+      li.querySelector('.vig').onclick=function(){ouvre(i,Math.max(0,c.meteos.indexOf(cov)));};
+      li.querySelector('.b.g').onclick=function(){choisis(c,'garder');};
+      li.querySelector('.b.v').onclick=function(){choisis(c,'virer');};
+      L.appendChild(li);
+    });
+    bilan();
+  }
+
+  /* ---------- le visionneur ---------- */
+  function ouvre(i,j){ci=i;mi=j;$('vis').classList.add('on');$('vis').setAttribute('aria-hidden','false');document.body.style.overflow='hidden';vue();}
+  function ferme(){$('vis').classList.remove('on');$('vis').setAttribute('aria-hidden','true');document.body.style.overflow='';rends();}
+  function vue(){
+    var c=R[ci];if(!c)return;if(mi>=c.meteos.length)mi=0;
+    var m=c.meteos[mi],a=A(c.id),vir=a.m&&a.m[m[0]]==='virer';
+    $('vNom').textContent=c.nom;$('vMet').textContent=m[1]+'  ·  '+(mi+1)+' / '+c.meteos.length;
+    var im=$('vImg');$('vVide').hidden=true;im.style.display='';im.onerror=function(){im.style.display='none';$('vVide').hidden=false;};im.src=img(m);im.style.opacity=vir?.35:1;
+    $('vVirMet').classList.toggle('on',vir);
+    var vv=PH.versions&&PH.versions[m[2]],V=$('vVer');
+    if(manque(m)||PH.jeu==null){V.textContent='';}
+    else{V.textContent=vv!=null?('photo du jeu v'+vv+(vv<PH.jeu?' · le jeu est en v'+PH.jeu:'')):'version de la photo inconnue';V.className='vVer'+((vv==null||PH.jeu-vv>=SEUIL)?' w':'');}
+    var P=$('vPuces');P.innerHTML='';
+    c.meteos.forEach(function(x,k){var b=document.createElement('button');b.className='p'+(k===mi?' cur':'')+((a.m&&a.m[x[0]]==='virer')?' vir':'')+(manque(x)?' nop':'');b.textContent=x[1];b.onclick=function(){mi=k;vue();};P.appendChild(b);});
+    $('vG').classList.toggle('on',a.s==='garder');$('vV').classList.toggle('on',a.s==='virer');
+    var X=$('vX');X.innerHTML=(vir?'Remettre cette météo':'Virer cette météo')+' <kbd>X</kbd>';
+    $('vRef').disabled=!!(PH.job&&PH.job.en_cours);
+    /* les voisines se chargent d'avance : le défilé reste fluide */
+    [[ci,mi+1],[ci,mi-1]].forEach(function(p){var cc=R[p[0]],mm=cc&&cc.meteos[p[1]];if(mm)(new Image()).src=img(mm);});
+  }
+  function pas(d){ /* ← → : les images de la map, puis la map d'à côté */
+    var c=R[ci];mi+=d;
+    if(mi>=c.meteos.length){ci=(ci+1)%R.length;mi=0;}
+    else if(mi<0){ci=(ci-1+R.length)%R.length;mi=R[ci].meteos.length-1;}
+    vue();
+  }
+  function carte(d){ci=(ci+d+R.length)%R.length;mi=0;vue();}
+  function virMeteo(){var c=R[ci],m=c.meteos[mi][0],a=A(c.id);a.m=a.m||{};var v=a.m[m]==='virer'?'':'virer';if(v)a.m[m]='virer';else delete a.m[m];envoie({carte:c.id,meteo:m,v:v});vue();}
+
+  $('vFerme').onclick=ferme;$('vPrec').onclick=function(){pas(-1);};$('vSuiv').onclick=function(){pas(1);};
+  $('vG').onclick=function(){choisis(R[ci],'garder');};$('vV').onclick=function(){choisis(R[ci],'virer');};$('vX').onclick=virMeteo;
+  $('vRef').onclick=function(){lance(R[ci].meteos.map(function(m){return m[3];}));};
+  $('photoManque').onclick=function(){lance(null);};
+  document.addEventListener('keydown',function(e){
+    if(!ouvert()||e.metaKey||e.ctrlKey||e.altKey)return;
+    var k=e.key,h=true;
+    if(k==='Escape')ferme();else if(k==='ArrowRight')pas(1);else if(k==='ArrowLeft')pas(-1);
+    else if(k==='ArrowDown')carte(1);else if(k==='ArrowUp')carte(-1);
+    else if(k==='g'||k==='G')choisis(R[ci],'garder');else if(k==='v'||k==='V')choisis(R[ci],'virer');
+    else if(k==='x'||k==='X')virMeteo();else h=false;
+    if(h)e.preventDefault();
+  });
+  /* le glissé du doigt */
+  var tx=null;$('vis').addEventListener('touchstart',function(e){tx=e.touches[0].clientX;},{passive:true});
+  $('vis').addEventListener('touchend',function(e){if(tx==null)return;var d=e.changedTouches[0].clientX-tx;tx=null;if(Math.abs(d)>50)pas(d<0?1:-1);},{passive:true});
+
+  /* ---------- ACTUALISER : on relit le jeu (la liste), les photos présentes, et on redessine — les avis ne bougent pas ---------- */
+  function actualise(){
+    var b=$('actu');b.disabled=true;b.textContent='…';
+    var s=document.createElement('script');s.src='maps.js?t='+Date.now();
+    s.onload=function(){construis();BUST=Date.now();photos(function(){rends();if(ouvert())vue();b.disabled=false;b.textContent='Actualiser';
+      if(PH.job&&PH.job.en_cours)suit();});};
+    s.onerror=function(){b.disabled=false;b.textContent='Actualiser';etat('liste du jeu illisible',1);};
+    document.head.appendChild(s);
+  }
+  $('actu').onclick=actualise;
+  window.addEventListener('focus',function(){if(!ouvert())photos(rends);}); /* en revenant sur la page : l'état des photos se met à jour */
+
+  construis();
+  chargeAvis(function(){rends();photos(function(){rends();if(PH.job&&PH.job.en_cours)suit();});});
+})();
+</script>
+</body>
+</html>

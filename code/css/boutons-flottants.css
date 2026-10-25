@@ -148,3 +148,17 @@ html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mOffres{--nc:var(--neoM)
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mGear{--nc:var(--au2)!important}
 html #mHome.on .mTitle::after,html #mHome .mTitle::after{background:var(--livree3)!important;box-shadow:0 0 14px rgba(0,234,255,.5)!important}
 </style>
+<style id="accueilDiagonale">
+/* ===== L'ACCUEIL EN ESCALIER (2026-10-25, Sacha : « remonte les boutons à leur base, enlève l'inclinaison de JOUER, trois lignes un peu décalées, en diagonale ») =====
+   1. Le mot des trois tuiles (GARAGE · ACHAT · REGLAGES) : même corps, plus petit, sans espacement ni retrait à gauche, jamais plus large que la tuile
+      (REGLAGES, le plus long, mordait le bord). Les tuiles restent À LEUR PLACE, toutes à la même hauteur, sans pente.
+   2. TROIS LIGNES, chacune un cran plus à droite que celle du dessus : le logo (recule), les tuiles (place d'origine), JOUER (avance). Rien ne penche.
+      Seulement `translate` (propriété à part) : le `transform:none` des tuiles et l'appui (`translate:0 2px`) restent. */
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear){padding:0 3px!important;align-items:center!important;justify-content:center!important;overflow:visible}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear)>span{display:block!important;max-width:100%;box-sizing:border-box;font-size:9px!important;letter-spacing:0!important;white-space:nowrap;overflow:hidden;text-overflow:clip;text-align:center;padding:0!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2>.mTitle{translate:-12px 0}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:24px 0}
+@media (orientation:landscape) and (max-height:540px){
+  html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2>.mTitle{translate:-30px 0}
+  html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:56px 0}}
+</style>

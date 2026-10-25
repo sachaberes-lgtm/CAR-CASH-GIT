@@ -32,6 +32,8 @@ rm -rf .vercel-static/jouer/salle-blanche.html .vercel-static/jouer/salle-blanch
 # (2026-10-15, Léo) LE RÉPERTOIRE DES MAPS (repertoire-maps/ : la page, ses photos, son banc) reste un outil LOCAL — en ligne, il changerait
 # l empreinte du jeu publié (tous les joueurs rechargés)
 rm -rf .vercel-static/jouer/repertoire-maps
+# (2026-10-16, Léo) LES VOITURES DU JEU (repertoire-voitures/ : la liste, la vue dans le jeu, son serveur) : outil LOCAL, même raison
+rm -rf .vercel-static/jouer/repertoire-voitures
 find .vercel-static/jouer -name '*.py' -delete
 # (2026-10-14, pôle SON) L'ATELIER DE LA MUSIQUE reste un outil LOCAL (Léo : « pour toi ») : la page musique-moteur.html (elle fige les
 # morceaux par le serveur de la page) et les sources des morceaux à paliers (paliers/*.html).
@@ -42,6 +44,7 @@ rm -f .vercel-static/jouer/musique-moteur.html .vercel-static/jouer/assets/audio
 # demander n'est touché : MENU_MUS (lobby/ciel-*), l'auto-école (lobby/chris-matin), les morts et l'argent (death/, fx/), Pouce bleu (le reste de direct/,
 # musique-moteur.json, musique-paliers.js, rendus/). boucles/dark-triad.m4a RESTE : c'est le morceau de la frénésie (MUSIC_FREN.f, depuis le 24/10 — avant, le jeu le cherchait en .mp3 ailleurs).
 rm -f .vercel-static/jouer/bibliotheque.html
+rm -f .vercel-static/jouer/test-depart-musique.html   # (2026-10-25) la page de test du palier de départ de la musique de course : outil local de Léo
 rm -rf .vercel-static/jouer/assets/audio/music/depart .vercel-static/jouer/assets/audio/music/petites-musiques
 find .vercel-static/jouer/assets/audio/music/boucles -type f ! -name dark-triad.m4a -delete 2>/dev/null || true
 rm -f .vercel-static/jouer/assets/audio/music/lobby/menu-donnees.js .vercel-static/jouer/assets/audio/music/lobby/chris-donnees.js .vercel-static/jouer/assets/audio/music/lobby/garage-*.m4a

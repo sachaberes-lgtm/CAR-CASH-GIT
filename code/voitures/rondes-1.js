@@ -171,7 +171,7 @@ SHAPES.bulle=function(K){
   const U=LPU,O=bulleOutils,L=(t,z)=>U.lin(t,z),cl=(v,a,b)=>v<a?a:v>b?b:v,mix=(a,b,t)=>a+(b-a)*t,lis=t=>t*t*(3-2*t);
   const R=.338,ZF=1.302,ZR=-1.098;
   const PAL={p:{g:'p',c:0x93cfd6},k:{g:'m',c:0x161719},K:{g:'g',c:0x0d0e11},c:{g:'c',c:0xe2e6eb},g:{g:'g',c:0x1a2632},
-    W:{g:'l',c:0xfff4dc},L:{g:'l',c:0xd81e2a},O:{g:'l',c:0xffa21a},w:{g:'s',c:0xf1eee6},s:{g:'s',c:0xe9e2cf},d:{g:'m',c:0x101114}};
+    W:{g:'l',c:0xfff4dc},L:{g:'l',c:0xd81e2a},O:{g:'l',c:0xffa21a},w:{g:'s',c:0xf1eee6},s:{g:'s',c:0xe9e2cf},d:{g:'m',c:0x101114},y:{g:'m',c:0x1f4651}};
   // ---- LES COURBES DU PLAN (mètres) ----
   // le dessus, dans l'axe (côté) : pare-chocs exclus — capot, pare-brise, pavillon, lunette, capot moteur, jupe
   const yTop=z=>L([[-1.865,.47],[-1.84,.55],[-1.81,.61],[-1.77,.69],[-1.707,.761],[-1.671,.827],[-1.617,.913],[-1.555,.993],[-1.49,1.064],[-1.377,1.158],
