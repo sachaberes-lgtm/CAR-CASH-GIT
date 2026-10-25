@@ -27,9 +27,11 @@ function fil(txt,col,niv){
     else LEFIL.parts.push(lb);
     LEFIL.niv=Math.max(LEFIL.niv,niv);
   }else{LEFIL.parts=[lb];LEFIL.niv=niv;}
-  while(LEFIL.parts.length>3||(LEFIL.parts.length>1&&LEFIL.parts.join(' · ').length>30))LEFIL.parts.shift(); /* la pastille tient dans la colonne du compteur */
+  const mx=LEFIL.niv>=3?14:LEFIL.niv===2?17:20; /* des caractères que la colonne du compteur porte, selon la taille du niveau */
+  while(LEFIL.parts.length>3||(LEFIL.parts.length>1&&LEFIL.parts.join(' · ').length>mx))LEFIL.parts.shift();
   LEFIL.t=n9;LEFIL.p=niv;LEFIL.pt=n9+650;
-  e.textContent=LEFIL.parts.join(' · ');e.style.setProperty('--fc',col||'#ffd75e');e.dataset.n=LEFIL.niv;
+  const tx=LEFIL.parts.join(' · ');e.textContent=tx;e.style.setProperty('--fc',col||'#ffd75e');e.dataset.n=LEFIL.niv;
+  e.style.setProperty('--sk',tx.length>mx?(mx/tx.length).toFixed(3):1); /* un nom seul trop long rétrécit au lieu de déborder */
   const k9=LEFIL.k=!LEFIL.k;e.classList.remove(k9?'on':'on2');e.classList.add(k9?'on2':'on'); /* deux animations jumelles : relance sans mise en page forcée */
   if(niv>=3)try{flashEcran('rgba(255,215,94,.2)');}catch(x){}
   return true;

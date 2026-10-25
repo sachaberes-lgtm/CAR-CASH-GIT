@@ -6683,10 +6683,14 @@ body.verdOn #fh .fhNom{visibility:hidden} /* UNE voix au centre : le verdict de 
 </style>
 <style id="leFil">
 /* (2026-10-25, Sacha : « un seul système qui allège le milieu de l'écran ») LE FIL — la pastille unique, sous le compteur d'aura (fil.js). */
-#fil{margin-top:6px;font-family:var(--pix);font-size:11px;letter-spacing:1px;white-space:nowrap;pointer-events:none;color:var(--fc,#ffd75e);
-  text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,0 4px 0 #1c0430;opacity:0;transform-origin:left center}
-#fil[data-n="2"]{font-size:13px}
-#fil[data-n="3"]{font-size:15px}
+#fil{--fs:13px;display:table;margin-top:10px;padding:4px 8px 3px;font-family:var(--pix);font-size:calc(var(--fs) * var(--sk,1));letter-spacing:1px;line-height:1.15;white-space:nowrap;pointer-events:none;color:var(--fc,#ffd75e);
+  background:rgba(28,4,48,.66);box-shadow:0 0 0 2px #1c0430,0 0 0 4px color-mix(in srgb,var(--fc,#ffd75e) 55%,#1c0430);
+  text-shadow:0 2px 0 #1c0430;opacity:0;transform-origin:left center}
+#fil[data-n="2"]{--fs:15px}
+#fil[data-n="3"]{--fs:17px;background:rgba(28,4,48,.8)}
+html body.touch #fil{--fs:calc(13px / var(--hudK,.8))} /* le HUD du téléphone est réduit en zoom (--hudK) : la pastille se lit à 13 px réels */
+html body.touch #fil[data-n="2"]{--fs:calc(15px / var(--hudK,.8))}
+html body.touch #fil[data-n="3"]{--fs:calc(17px / var(--hudK,.8))}
 #fil.on{animation:filIn .95s cubic-bezier(.3,1.5,.5,1) forwards}
 #fil.on2{animation:filIn2 .95s cubic-bezier(.3,1.5,.5,1) forwards}
 @keyframes filIn{0%{opacity:0;transform:translateX(-10px) scale(.85)}14%{opacity:1;transform:translateX(0) scale(1.12)}28%{transform:translateX(0) scale(1)}78%{opacity:1}100%{opacity:0;transform:translateX(0) scale(1)}}
@@ -57355,9 +57359,11 @@ function fil(txt,col,niv){
     else LEFIL.parts.push(lb);
     LEFIL.niv=Math.max(LEFIL.niv,niv);
   }else{LEFIL.parts=[lb];LEFIL.niv=niv;}
-  while(LEFIL.parts.length>3||(LEFIL.parts.length>1&&LEFIL.parts.join(' · ').length>30))LEFIL.parts.shift(); /* la pastille tient dans la colonne du compteur */
+  const mx=LEFIL.niv>=3?14:LEFIL.niv===2?17:20; /* des caractères que la colonne du compteur porte, selon la taille du niveau */
+  while(LEFIL.parts.length>3||(LEFIL.parts.length>1&&LEFIL.parts.join(' · ').length>mx))LEFIL.parts.shift();
   LEFIL.t=n9;LEFIL.p=niv;LEFIL.pt=n9+650;
-  e.textContent=LEFIL.parts.join(' · ');e.style.setProperty('--fc',col||'#ffd75e');e.dataset.n=LEFIL.niv;
+  const tx=LEFIL.parts.join(' · ');e.textContent=tx;e.style.setProperty('--fc',col||'#ffd75e');e.dataset.n=LEFIL.niv;
+  e.style.setProperty('--sk',tx.length>mx?(mx/tx.length).toFixed(3):1); /* un nom seul trop long rétrécit au lieu de déborder */
   const k9=LEFIL.k=!LEFIL.k;e.classList.remove(k9?'on':'on2');e.classList.add(k9?'on2':'on'); /* deux animations jumelles : relance sans mise en page forcée */
   if(niv>=3)try{flashEcran('rgba(255,215,94,.2)');}catch(x){}
   return true;
