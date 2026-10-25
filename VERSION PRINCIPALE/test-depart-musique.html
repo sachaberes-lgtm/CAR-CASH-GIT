@@ -25,7 +25,7 @@ input[type=range]{width:100%;accent-color:var(--cy)}
 
 <div class="c"><h2>1 · PALIER DE DÉPART (le moteur 1 du jeu joue ce palier du morceau)</h2>
 <div class="r" id="dep"></div>
-<div class="v">6 = le départ du 24/10 (actuel avant correction) · <b>3 = le nouveau défaut</b> · 1 = le départ d'avant, presque muet</div></div>
+<div class="v"><b>6 = le défaut du jeu (depuis le 24/10)</b> · 1 = le départ d'avant, presque muet</div></div>
 
 <div class="c"><h2>2 · LE MORCEAU</h2>
 <div class="big" id="titre">—</div>
@@ -43,7 +43,7 @@ input[type=range]{width:100%;accent-color:var(--cy)}
 <script>
 'use strict';
 const PB = window.POUCE_JEU, $ = id => document.getElementById(id);
-let PBJ_MIN = (+((/[?&]min=(\d+)/.exec(location.search) || [])[1])) || 3, ac = null, sortie = null, auto = true, mot = 1, tAuto = 0, iv = 0, vol = .8, enCours = false;
+let PBJ_MIN = (+((/[?&]min=(\d+)/.exec(location.search) || [])[1])) || 6, ac = null, sortie = null, auto = true, mot = 1, tAuto = 0, iv = 0, vol = .8, enCours = false;
 // la règle du jeu (code/son/musique.js, pbjTier) : le moteur 1 joue PBJ_MIN, le 30 reste le 30, droite entre les deux
 window.pbjTier = m => m <= 1 ? PBJ_MIN : Math.round(PBJ_MIN + (Math.min(30, m) - 1) * (30 - PBJ_MIN) / 29);
 
@@ -62,7 +62,7 @@ function plancher(dt, base, tier) {
 }
 
 function boutons() {
-  $('dep').innerHTML = ''; [1, 2, 3, 4, 5, 6].forEach(n => { const b = document.createElement('button'); b.textContent = n + (n === 6 ? ' · avant' : n === 3 ? ' · défaut' : ''); if (n === PBJ_MIN) b.className = 'on';
+  $('dep').innerHTML = ''; [1, 2, 3, 4, 5, 6].forEach(n => { const b = document.createElement('button'); b.textContent = n + (n === 6 ? ' · défaut du jeu' : ''); if (n === PBJ_MIN) b.className = 'on';
     b.onclick = () => { PBJ_MIN = n; boutons(); if (enCours) lance(true); else maj(); }; $('dep').appendChild(b); });
 }
 function maj() { $('m1').textContent = mot; $('m2').textContent = window.pbjTier(mot); $('pl').textContent = PL.db.toFixed(1); }
