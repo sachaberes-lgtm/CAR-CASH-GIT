@@ -34,7 +34,7 @@
    (2) le VERROU du volant (`veqVolant`) effaçait pendant 0,7 s le braquage tenu depuis la route — un saut dure ~1 s : on y tournait à moitié.
    Désormais le lacet vaut ×1,5 et son plafond monte (3,1 rad/s, atteint vers 390 km/h) : le rayon fond d'un bon tiers (19 m à 150 km/h, 30 m
    à 300, 54 m à 600) ; le verrou s'efface en 0,35 s (la caisse quitte toujours la route TOUT DROIT, mais le pouce tenu reprend vite la main).
-   UNE formule pour tout le vol (`lacetVol`) : le vol, la mousse, la poudreuse du glacier et le lacet emporté à la pose. `?virvol=0` = avant. */
+   UNE formule pour tout le vol (`lacetVol`) : le vol, la mousse et le lacet emporté à la pose. `?virvol=0` = avant. */
 const VIRVOL=/[?&]virvol=0\b/.test(location.search)?{k:1,cap:.6,latch:.7}:{k:1.5,cap:.9,latch:.35};
 function lacetVol(v){return VIRVOL.k*(1.15+Math.min(VIRVOL.cap,v*.004));} // rad/s au plein pouce, v = |fallVel|
 function lacetVolK(v){return lacetVol(v)/(1.15+Math.min(.6,v*.004));} /* le rapport au virage d'AVANT le 18/10 : la caméra de vol suit d'autant plus vite

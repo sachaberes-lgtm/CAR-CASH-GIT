@@ -165,9 +165,6 @@ function spawnPickups(rnd){
       if(o.face!==1||Math.abs(o.s-sp)>o.r+2.4||Math.abs(o.lat-lt)>o.r+1.4)continue;
       let n9=o.lat+(lt>=o.lat?1:-1)*(o.r+1.8);if(Math.abs(n9)>HALF)n9=o.lat+(lt>=o.lat?-1:1)*(o.r+1.8);lt=n9;
     }
-    if(BANQ.obst&&LVL.cur&&LVL.cur.id==='banquise')for(const o of BANQ.obst){ // (2026-10-17, GLACIER v4) jamais une pièce dans un pic de la piste
-      if(Math.abs(o.s-sp)>o.r+3||Math.abs(o.lat-lt)>o.r+2)continue;let n9=o.lat+(lt>=o.lat?1:-1)*(o.r+3);if(Math.abs(n9)>HALF)n9=o.lat+(lt>=o.lat?-1:1)*(o.r+3);lt=n9;}
-    if(BANQ.kick&&LVL.cur&&LVL.cur.id==='banquise')for(const k of BANQ.kick){if(sp<k.s-(k.lg||8)-3||sp>k.s+3||lt<k.l0-2||lt>k.l1+2)continue;let n9=lt-k.l0<k.l1-lt?k.l0-4:k.l1+4;if(Math.abs(n9)>HALF)n9=lt-k.l0<k.l1-lt?k.l1+4:k.l0-4;lt=n9;} // (2026-10-18) ni sous un tremplin
     return THREE.MathUtils.clamp(lt,-HALF,HALF);
   };
   // pose UNE pièce (mirroir deux faces, saute les trous, s'écarte des obstacles, clamp sur la route)

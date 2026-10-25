@@ -439,36 +439,6 @@ BIOMES.foretPluie=bioMet(BIOMES.nuagesPluie,{nm:'FORÊT · PLUIE',jZen:[.155,.21
 BIOMES.foretOrage=bioMet(BIOMES.tempete,{nm:'FORÊT · ORAGE',jour:1,jZen:[.013,.020,.051],jMid:[.035,.05,.10],jHor:[.068,.093,.162],sunTint:[.7,.75,.9],
   fog:[.10,.12,.13],fogN:50,fogF:1000,fogCj:[.24,.29,.31],fogIn:[.28,.32,.33],hemiS:[.36,.42,.50],hemiG:[.07,.09,.09],hemiI:.52,sunC:[.62,.70,.82],sunI:.5,fillC:[.30,.40,.52],fillI:.26,kickI:.18,
   expo:.9,sat:.9,con:1.18,rtK:.85,sh:[0,.01,.02],hi:[0,0,0],daCon:.4,daExpo:1.1,vigK:.45,vigC:[.015,.02,.025],bloomS:.5,bloomT:.92});
-/* LA BANQUISE — SES SIX TEMPS (2026-10-14, Sacha : « fais une map absolument magnifique »). Écrites d'après la CHARTE (jour:1, couleurs du ciel et
-   brume en LINÉAIRE, sat ≤ 1,03 de jour, ≤ 1,07 le soir, ≤ ,95 la nuit, la neige et le blizzard ; con ≤ 1,24). Identité de la map : le BLEU
-   PROFOND du ciel d'altitude contre la neige, des OMBRES BLEUES (jamais grises), la glace TURQUOISE, le rose de l'alpenglow aux heures
-   basses, le vert des aurores la nuit ; la neige et le blizzard tirent vers le LAVANDE (jamais le gris délavé). La lumière de la banquise
-   elle-même (hauteur du soleil, étincelles, alpenglow, aurores, brume de vallée, neige qui tombe) est dans BK_MET ; ici : le ciel, l'air,
-   les lumières de la caisse. La nuit, la lune du dôme reste (moon) et les AURORES se lèvent (banqTick). */
-BIOMES.banqMatin=bioMet(BIOMES.matin,{nm:'GLACIER · MATIN',jZen:[.07,.20,.58],jMid:[.42,.42,.76],jHor:[1,.58,.50],jSol:[.92,.70,.72],sunTint:[1,.80,.66],sunHalo:1,moon:0,
-  fog:[.74,.58,.72],fogN:220,fogF:4200,fogCj:[1,.80,.70],fogIn:[.80,.82,.96],hemiS:[.56,.64,.98],hemiG:[.62,.52,.66],hemiI:.72,sunC:[1,.82,.68],fillC:[.48,.52,.92],fillI:.22,
-  expo:.95,con:1.18,rtK:.8,sh:[0,.01,.045],hi:[.014,.004,-.004],vigK:.2,vigC:[.04,.04,.09],bloomS:.48,bloomT:.92,
-  env:[[0,'#3A62C8'],[.3,'#8C8EC8'],[.48,'#FFC2B0'],[.58,'#FFE2D2'],[.66,'#C8B8D8'],[1,'#8890B8']],eS1:[255,214,190,.46],eS2:[160,180,255,.3]});
-BIOMES.banqMidi=bioMet(BIOMES.midi,{nm:'GLACIER · MIDI',jZen:[.012,.14,.62],jMid:[.10,.40,.88],jHor:[.95,.62,.48],jSol:[.62,.66,.88],sunTint:[1,.93,.84],sunHalo:.7,
-  fog:[.52,.64,.90],fogN:260,fogF:5200,fogCj:[.98,.86,.78],fogIn:[.80,.86,1],hemiS:[.56,.70,1],hemiG:[.58,.62,.78],hemiI:.80,sunC:[1,.94,.86],sunI:1.6,fillC:[.46,.62,1],fillI:.24,
-  expo:.93,rtK:.85,sh:[0,.012,.05],hi:[.01,.005,-.004],vigK:.18,vigC:[.02,.04,.09],bloomS:.5,bloomT:.9,
-  env:[[0,'#1E5ED8'],[.3,'#5C9AF0'],[.48,'#CFE6FA'],[.58,'#FFFFFF'],[.66,'#C8D8F0'],[1,'#90A8D0']],eS1:[255,255,250,.48],eS2:[150,200,255,.32]});
-BIOMES.banqSoir=bioMet(BIOMES.nuagesSoir,{nm:'GLACIER · SOIR',jZen:[.06,.07,.30],jMid:[.50,.27,.46],jHor:[1,.46,.30],jSol:[.92,.48,.46],sunTint:[1,.56,.36],sunHalo:1.1,stars:.2,moon:0,
-  fog:[.74,.44,.54],fogN:200,fogF:3900,fogCj:[1,.62,.44],fogIn:[.82,.64,.78],hemiS:[.46,.42,.78],hemiG:[.52,.34,.44],hemiI:.6,sunC:[1,.60,.42],sunI:1.6,fillC:[.40,.36,.78],
-  expo:.94,con:1.2,rtK:.9,sh:[0,.004,.035],hi:[.02,.006,-.01],vigK:.26,vigC:[.07,.03,.09],bloomS:.5,bloomT:.9,
-  env:[[0,'#2A2C78'],[.3,'#8A5A9A'],[.48,'#FF9A78'],[.58,'#FFC69A'],[.66,'#B87890'],[1,'#5A4870']],eS1:[255,170,120,.5],eS2:[150,130,230,.3]});
-BIOMES.banqNuit=bioMet(BIOMES.nuagesNuit,{nm:'GLACIER · NUIT',jZen:[.003,.008,.035],jMid:[.008,.022,.065],jHor:[.025,.07,.11],jSol:[.02,.05,.07],sunTint:[.6,.75,1],stars:1.35,moon:1.15,
-  fog:[.035,.04,.10],fogN:120,fogF:2800,fogCj:[.14,.32,.30],fogIn:[.10,.22,.26],hemiS:[.28,.46,.70],hemiG:[.10,.18,.24],hemiI:.55,sunC:[.55,.72,1],fillC:[.22,.60,.48],fillI:.26,
-  expo:.96,sat:.95,con:1.16,sh:[0,.008,.03],vigK:.38,vigC:[.005,.02,.03],bloomS:.56,bloomT:.88,
-  env:[[0,'#02060e'],[.3,'#082036'],[.48,'#1E5A5A'],[.58,'#3E7A88'],[.66,'#0E1E2A'],[1,'#06101a']],eS1:[140,255,190,.36],eS2:[170,120,255,.28]});
-BIOMES.banqNeige=bioMet(BIOMES.nuagesPluie,{nm:'GLACIER · NEIGE',jZen:[.30,.34,.52],jMid:[.46,.50,.70],jHor:[.66,.69,.88],jSol:[.62,.66,.84],sunTint:[.86,.88,1],sunHalo:.08,
-  fog:[.54,.56,.82],fogN:60,fogF:1400,fogCj:[.74,.76,.92],fogIn:[.70,.74,.90],hemiS:[.74,.80,1],hemiG:[.58,.62,.78],hemiI:.95,sunC:[.84,.88,1],sunI:.55,fillC:[.55,.62,.92],fillI:.2,
-  expo:.95,sat:.95,con:1.14,rtK:.8,sh:[0,.01,.04],vigK:.28,vigC:[.05,.05,.11],bloomT:.92,
-  env:[[0,'#5A6290'],[.3,'#8088B0'],[.48,'#B0B6D6'],[.58,'#C8CCE6'],[.66,'#9AA0C6'],[1,'#7880A8']],eS1:[220,226,255,.32],eS2:[170,170,230,.26]});
-BIOMES.banqBlizzard=bioMet(BIOMES.tempete,{nm:'GLACIER · BLIZZARD',jour:1,jZen:[.09,.11,.24],jMid:[.20,.24,.40],jHor:[.38,.42,.60],jSol:[.36,.40,.58],sunTint:[.8,.82,.95],
-  fog:[.38,.40,.64],fogN:25,fogF:720,fogCj:[.50,.54,.72],fogIn:[.48,.52,.70],hemiS:[.58,.64,.88],hemiG:[.36,.40,.56],hemiI:.85,sunC:[.70,.76,.95],sunI:.45,fillC:[.45,.52,.85],fillI:.24,kickI:.14,
-  expo:.94,sat:.92,con:1.15,rtK:.85,sh:[0,.01,.035],hi:[0,0,0],vigK:.42,vigC:[.03,.03,.08],bloomS:.48,bloomT:.92,
-  env:[[0,'#2a3050'],[.3,'#485270'],[.48,'#7a84a8'],[.58,'#8e98ba'],[.66,'#5a6488'],[1,'#3a4262']],eS1:[200,210,255,.3],eS2:[140,150,220,.25]});
 BIOMES.espaceMatin=bioMet(BIOMES.espace,{nm:'ORBITE · LEVER',volSun:[1.5,1.2,1.0]});
 BIOMES.espaceSoir=bioMet(BIOMES.espace,{nm:'ORBITE · COUCHANT',volSun:[1.6,.95,.8]});
 grtBiomes();grtTextes(); // (2026-10-18) LES PROFONDEURS : une ambiance par salle et par temps, ses textes

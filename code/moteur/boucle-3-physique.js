@@ -2,7 +2,7 @@
         frameAt(s,F);
         if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
         if(levreY<0){levreY*=Math.exp(-dt*16);if(levreY>-.005)levreY=0;} // (bord v2) la caisse qui a raccroché la LÈVRE finit de remonter sa marche (~0,15 s)
-        carGroup.position.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+hopY+levreY-BKB.enf); /* (2026-10-18) -BKB.enf : enfoncée dans la congère du glacier (0 ailleurs) */
+        carGroup.position.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+hopY+levreY);
         fwdW.copy(F.t).multiplyScalar(Math.cos(psi)*driveDir).addScaledVector(F.b,Math.sin(psi)*driveDir).normalize(); // la caisse REGARDE son sens de marche (parc : peut faire face à -T)
         tmp.crossVectors(F.n,fwdW).normalize();
         mat4.makeBasis(tmp,F.n,fwdW);
@@ -23,8 +23,7 @@
             qTmp.setFromAxisAngle(F.n,driftYaw);
             carGroup.quaternion.premultiply(qTmp); // rotation MONDE autour de la verticale de la route
           }
-          if(BKV.yaw){qTmp.setFromAxisAngle(F.n,BKV.yaw);carGroup.quaternion.premultiply(qTmp);}
-          if(DMT.y||DMT.act)dmtPose(F,dt); // (LE DEMI-TOUR) le lacet de la manœuvre, la gomme, le panneau // (2026-10-15) ICE SKATE : le crabe et la foulée du patineur sur le verglas
+          if(DMT.y||DMT.act)dmtPose(F,dt); // (LE DEMI-TOUR) le lacet de la manœuvre, la gomme, le panneau
           gsolPose(F); // (2026-10-15) LES FIGURES AU SOL du GLISSER (slide 360, wheelie, stoppie)
           figMemo(dt); // (2026-10-14, LES FIGURES v2) l'assiette des deux dernières images : au décollage, la caisse emporte sa rotation
           frPose(F,dt); // (2026-10-17) LA FIGURE SUR LA ROUTE : elle tourne et bondit par-dessus la pose (après figMemo : l'élan emporté reste celui de la route)
@@ -161,8 +160,8 @@
         const hC9=Math.max(0,(CARS[level].h||1.3)-1.5), // (2026-09-26) les HAUTES (monster truck, glacier, combi) : on recule et on monte d'autant — elles bouchaient la route
         ct9=camTailleOn(),H9=CAM_HEROS.on,vCam9=(ct9||H9)?Math.min(speedKmh,CAM_TAILLE.recMax/.0018):speedKmh,bCam9=H9?camBoost*CAM_HEROS.boost:ct9?camBoost*CAM_TAILLE.boost:camBoost, /* (CAM_HEROS) la nitro ne recule plus la caméra ; couché aussi, la vitesse n'éloigne plus au-delà de recMax */
         dz9=H9?CAM_HEROS.dolly(loop._fovB):1,hz9=H9?1-CAM_HEROS.bas*THREE.MathUtils.clamp(speedKmh/Math.max(1,vCroisiere())-.6,0,1):1, /* (CAM_HEROS) le VERTIGO : la caméra avance quand le champ s'ouvre · elle descend à haute vitesse */ // (2026-09-30) CAM_TAILLE : en portrait la vitesse n'éloigne plus la caméra au-delà de recMax (NITROOO ×2,6 l'envoyait à 9 m de haut)
-        camBack=(3.6+CARS[level].l*.42+hC9*1.6+vCam9*.0018+bCam9*1.6)*(1-POR*.28)*dz9*(H9?1+(CAM_HEROS.recP-1)*POR:1)*camGlacierM(0), /* (CAM_HEROS) debout, un pas en arrière : le champ resserré suffit à grossir la caisse */ // le recul suit la LONGUEUR de la caisse : la Combi et la Bulle cadrées pareil
-       camH=(camBack*.40+hC9*.9+vCam9*.0012+bCam9*.25)*(1+POR*.70)*hz9*camGlacierM(1); // (2026-10-19) ×camGlacierM : la vue qui plonge du glacier
+        camBack=(3.6+CARS[level].l*.42+hC9*1.6+vCam9*.0018+bCam9*1.6)*(1-POR*.28)*dz9*(H9?1+(CAM_HEROS.recP-1)*POR:1), /* (CAM_HEROS) debout, un pas en arrière : le champ resserré suffit à grossir la caisse */ // le recul suit la LONGUEUR de la caisse : la Combi et la Bulle cadrées pareil
+       camH=(camBack*.40+hC9*.9+vCam9*.0012+bCam9*.25)*(1+POR*.70)*hz9;
         camLean=(loop._viseR==null||loop._viseR>=1)?steer*.065:camLean+(steer*.065-camLean)*(1-Math.exp(-dt*10));camSwing=0;camKick=0; // (conduite v3) la caméra penche avec toi (était .035) — (2026-10-17) à la POSE la penche (éteinte en vol) revient en ~0,1 s au lieu d'une image (jusqu'à 3,7°, volant tenu) ; ensuite elle colle au volant comme avant
         // (conduite v6) la caméra se place derrière un axe MI-ROUTE MI-CAISSE : avant, elle suivait le cap de la caisse et la clouait au
         // centre de l'image (mesuré : 0 % d'écart à l'écran à 15 m du centre) — on voyait le décor coulisser, pas la caisse bouger.
@@ -295,7 +294,7 @@
       // (le lacet gagne un peu d'autorité à grande vitesse → vol simplifié)
       if(VEQ.lArm)VEQ.lT+=dt; // (vol équilibré) l'horloge du verrou du volant
       const yawIn=veqVolant()*lacetVol(fallVel.length())*dtF; // (2026-10-14) le braquage tenu depuis la route ne continue plus le virage en l'air (veqVolant)
-      banqLacet(fallVel,yawIn); // (vol libre) autour du haut de la CAISSE — à gauche à l'écran, c'est à gauche, même sur le dos — (2026-10-19) au GLACIER, le CAP seulement (banqLacet)
+      fallVel.applyAxisAngle(FLY_U,yawIn); // (vol libre) autour du haut de la CAISSE — à gauche à l'écran, c'est à gauche, même sur le dos
       yawAcc+=yawIn;
       /* (2026-10-17, LE RÉACTEUR QUI S'INSTALLE) lâcher le nitro en vol (ou la jauge qui se vide) faisait passer EN UNE IMAGE la gravité de 40 %
          à 100 % et l'autorité du manche de 1,7 à 0,85 rad/s — la caisse « tombait comme une pierre » et le cabré cassait net. Le plané et
@@ -374,7 +373,6 @@
       {const hx9=volH(fallVel);if(fallVH0<0)fallVH0=Math.max(hx9,fallVel.length()); // (vol libre) plafond = la vitesse d'ÉJECTION entière : sortir d'un piqué à l'horizontale reste possible (le manche n'a plus de butée), jamais plus vite qu'au décollage
        if(hx9>fallVH0&&hx9>1){const f9=fallVH0/hx9;volHK(fallVel,f9);}} /* (LE VOL QUI SUIT LA ROUTE) « à plat » = perpendiculaire au haut du vol */
       try{jadeEauVol(dt,dtF);}catch(e){loopWarn(8192,'eau',e);} // (2026-10-13) LA MER COMME LE CIEL (voir EAU)
-      try{banqSolVol(dt,dtF);}catch(e){loopWarn(262144,'banquise',e);} // (2026-10-14) LA BANQUISE : la poudreuse qui porte et qui avale, la glace où l'on glisse (voir banqSolVol)
       if(PARK.on&&fallVel.lengthSq()>PARK_VCAP*PARK_VCAP)fallVel.setLength(PARK_VCAP); // PARC : la nitro infinie ne t'emballe pas non plus EN L'AIR — vol rapide mais pilotable
       fallPos.addScaledVector(fallVel,dtF*SPD);
       carGroup.position.copy(fallPos);
@@ -436,7 +434,6 @@
       carGroup.quaternion.slerp(qTmp,Math.min(1,dt*8));
       }
       figPose(dt); // LES FIGURES, par-dessus l'assiette — (2026-10-14) v2 : la PHYSIQUE (explosions, inertie, planté)
-      if(BANQ.glisse)try{banqAssiette(dt);}catch(e){} // (2026-10-14) LA BANQUISE : sur la glace, la caisse est posée sur la facette et DÉRIVE (voir banqAssiette)
       if(SENS&&(JEAU.dans||SEAU.pose))try{sensEau(dt);}catch(e){} // (2026-10-14, sensations) L'EAU SE SENT : le bouchon, le bouillon, le creux du plongeon (voir SEAU)
       shadow.position.y=-99999;
       /* ===== LA CAMÉRA DE VOL — RETOUR À LA CAMÉRA DE POURSUITE (2026-09-28, soir, Sacha : « la caméra en air time déconne
@@ -564,7 +561,6 @@
       if(!PARK.on&&portalMesh&&(PCUBE.on?pcubeFranchi(fallPos):fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)&&!PORTV.att)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
       else if(FORET.root&&(FORET.heurt=foretHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(foretHeurt,FORET.heurt,1.1);explode(FORET.heurt);} // (2026-10-14) LA FORÊT NOIRE : un géant, une cime, le sous-bois
       else if(GROTTE.root&&(GROTTE.heurt=grotteHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(grotteHeurt,GROTTE.heurt,1);explode(GROTTE.heurt);} // (2026-10-18) LES PROFONDEURS : la roche, la lave, l'eau, les gros décors
-      else if(BANQ.root&&(BANQ.heurt=banqHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(banqDans,BANQ.heurt,.3);explode(BANQ.heurt);} // (2026-10-14) LA BANQUISE : trop profond dans la poudreuse, la glace prise de face
       else if(JADE.col&&jadeHeurt(fallPos)){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(jadeHeurt,'pic',1.1);explode('pic');} // (2026-10-09) LES PICS DE JADE : un pilier, la muraille, l'arche
       else if(CY.on&&(CY.heurt=canyonHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(canyonHeurt,CY.heurt,1);explode(CY.heurt);} // (2026-10-14) LE CANYON DES GÉANTS : la paroi, la rivière, le fond
       else if(DN.on&&(DN.heurt=dunesHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(dunesHeurt,DN.heurt,1);explode(DN.heurt);} // (2026-10-18) LES DUNES D'OR : le sable, l'oasis, les obélisques, la pyramide

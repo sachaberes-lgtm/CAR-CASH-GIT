@@ -28,7 +28,7 @@ const IMP={frais:-1,on:false,coup:-1,COUP:.13,age:-1,rep:0,mou:false,test:null,v
 const IMP_DIRS=[];for(let x=-1;x<=1;x++)for(let y=-1;y<=1;y++)for(let z=-1;z<=1;z++)if(x||y||z)IMP_DIRS.push(new THREE.Vector3(x,y,z).normalize());
 const IMP_Y=new THREE.Vector3(0,1,0),IMP_M4=new THREE.Matrix4(),IMP_NEG='invert(1) saturate(0.35) contrast(1.3)';
 /* LE POINT DE CONTACT ET LA NORMALE — juste avant explode. `test(p)` : vrai dans l'obstacle (celui de la carte : villeHeurt, jadeHeurt,
-   canyonHeurt… — ils sont PURS ; celui du glacier ne l'est pas, on passe par sa surface, banqDans). `marge` : de combien ce test déborde
+   canyonHeurt… — ils sont PURS). `marge` : de combien ce test déborde
    de la vraie paroi (la caisse y compte pour un volume : 0,9 m pour les tours, 1,2 m pour les capsules de la forêt…) — le cratère se pose
    SUR la paroi, pas dans le vide devant ni caché derrière. */
 function impPrep(test,cause,marge){
@@ -51,7 +51,6 @@ function impPrep(test,cause,marge){
     IMP.test=test;IMP.mou=/^(riviere|seine|lave)$/.test(cause||'');IMP.frais=performance.now();
   }catch(e){IMP.frais=-1;}
 }
-function banqDans(p){const S=banqSurf(p.x,p.z);return !!(S&&S.ok&&p.y<S.h+.3);} // le glacier : sous sa surface (banqHeurt écrit son état, on ne le rappelle pas)
 /* EN CONDUITE, un MUR latéral (les couloirs du canyon, les façades de Paris) : la paroi est le bord de la route, côté `out` */
 function impMur(out){
   IMP.frais=-1;
@@ -284,7 +283,7 @@ window.dbgImpactMini=function(k,a){
     eclatsVus:IMPM.L.filter(function(c){return c.on&&c.m.visible;}).length,seuil:IMPM.K.into,programmes:renderer.info.programs?renderer.info.programs.length:null,
     couloirs:CY.on?{etroits:CY.cou,tunnel:CY.tun?[CY.tun[0]]:null,mine:CY.mineT?CY.mine:null}:null,s:+s.toFixed(1),lat:+lat.toFixed(2),demi:ROAD_HALF,mode:mode};};
 function impTestIci(){ // l'obstacle de la carte en cours (le même ordre que la boucle de vol)
-  if(FORET.root)return foretHeurt;if(GROTTE.root)return grotteHeurt;if(BANQ.root)return banqDans;
+  if(FORET.root)return foretHeurt;if(GROTTE.root)return grotteHeurt;
   if(JADE.col)return jadeHeurt;if(CY.on)return canyonHeurt;if(DN.on)return dunesHeurt;if(CITY.col)return villeHeurt;return null;}
 /* console : dbgImpact(d,v,el) → la caisse lancée EN VOL à v m/s (60) sur l'obstacle le plus proche (cherché de 6 à 400 m, élévation el en
    radians, 0 = à l'horizontale ; 'sol' = droit dessous), d m avant (22) — la boucle fait le reste, exactement comme en jeu. */

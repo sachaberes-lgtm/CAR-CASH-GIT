@@ -318,7 +318,6 @@ function respawn(){
      le décollage au manche et les figures au sol du GLISSER jusqu'au vol suivant (preuve-reste-figure.cjs). */
   POSE_F=null;try{frCoupe();}catch(e){}
   try{slideRaz();}catch(e){} // (SLIDE) replacé : le frottement en cours est perdu
-  try{bkSkateRaz();BKV.yaw=0;BKV.gl=0;BKV.gk=0;}catch(e){} // (ICE SKATE) la glisse aussi · (2026-10-15 soir) et la glissade sur le verglas
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) replacé : la tension du vol ne survit pas
   for(const t9 of SILS)t9.init=false;rainbowCoupe();nfeuCoupe(); // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
   LIGNE.sPk=null;LIGNE.sPd=LIGNE.sPd0=s; // (LIGNE PARFAITE, audit GAMEPLAY) le balayage de trajet repart d'ici : sinon il ramassait, sans contact, l'objet qu'on venait de rater

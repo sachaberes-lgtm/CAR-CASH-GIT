@@ -158,7 +158,6 @@ function ligneMotif(base,H9){ // la position latérale du prochain fruit (+ son 
 function ligneBloque(s9,k){
   if(enTrou(s9,8))return true; // (LES TROUS) jamais un fruit ni un pad dans le vide entre deux segments de route
   for(const o of OILS)if(o.face===1&&Math.abs(o.s-s9)<(o.r||4)+7)return true; // jamais dans une flaque
-  if(BANQ.obst&&LVL.cur&&LVL.cur.id==='banquise')for(const o of BANQ.obst)if(Math.abs(o.s-s9)<o.r+12)return true; // (2026-10-17) ni dans un pic de la piste du glacier
   return false;
 }
 function ligneOnPour(){return !PARK.on&&!(LVL.cur&&LVL.cur.piste==='tuto')&&!BALADE;} // (LE PRÉ-BÂTI) la règle de LIGNE.on, lue aussi par pisteRoute (sur la map d'en face)
@@ -213,11 +212,11 @@ function ligneTick(dt){ // chaque image de course : la file s'allonge devant la 
     for(let d=0;d<=160;d+=20){const q=LIGNE.prochS+d;if(q>=L-120)break;if(!ligneBloque(q,LIGNE.k)){s9=q;break;}}
     if(s9<0){LIGNE.prochS+=180;continue;}
     const lt=PADS_OFF?ligneMotif(ligneLat(s9,H9),H9):ligneLat(s9,H9); // (2026-10-21) l'ancien système : sur la corde, sans les groupes de Léo
-    if(LIGNE.k){if(!(LVL.cur&&LVL.cur.piste==='banquise'))lignePad(s9,lt);}
+    if(LIGNE.k)lignePad(s9,lt);
     else if(PWR_LIGNE&&LIGNE.cnt>=LIGNE.npow){ // le BOUT D'UNE LONGUE FILE : un fruit-pouvoir (le 1er d'un débutant : l'aimant, sans le chercher)
       let kd='n';if(!LIGNE.prem&&pwrPremier()){kd='m';LIGNE.prem=true;}else kd=pwrTire(Math.random(),pwrPoids());
       lignePower(s9,kd==='m'&&LIGNE.prem&&LIGNE.cnt===LIGNE.npow?lt*.2:lt,kd);LIGNE.cnt=0;LIGNE.npow=14+((Math.random()*20)|0);
-    }else{ligneFruit(s9,lt);LIGNE.cnt++;} // (2026-10-15) LE GLACIER : pas de pad d'or (ses fruits gardent leur cadence)
+    }else{ligneFruit(s9,lt);LIGNE.cnt++;}
     LIGNE.pts.push({s:s9,lat:lt,k:LIGNE.k});LIGNE.n[LIGNE.k]++;if(LIGNE.pts.length>40)LIGNE.pts.shift();
     if(!PADS_OFF)LIGNE.k^=1; // (plus de plaques : toujours un fruit)
     LIGNE.prochS=s9+Math.max(PADS_OFF?12:40,v*LIGNE.dt*((PADS_OFF&&LIGNE.grp&&LIGNE.grp.mult)||1));

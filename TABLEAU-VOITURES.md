@@ -43,7 +43,7 @@ Source vivante : https://claude.ai/artifact/8ARY7pWNmWxXP4rVvNSEkw · retirées 
 | 68 | L'ORIGAMI | épique | Défi officiel |  | JOUE SUR CHAQUE MAP AU MOINS UNE FOIS |
 | 69 | ATCHOUM | épique | Défi officiel |  | FAIRE 500 FIGURES |
 | 70 | SQUALE | épique | Défi officiel |  | PARCOURIR 10 KILOMETRE SOUS L'EAU |
-| 72 | L'ICEBERG | épique | Défi officiel |  | PARCOURIR 100 KM SUR DU VERGLAS |
+| 72 | L'ICEBERG | épique | Défi officiel |  | ROULE 25 000 KM |
 | 76 | LE DOGE | épique | Défi caché |  | REJOUE 10 FOIS DE SUITE SANS REVENIR AU MENU |
 | 54 | LA FÉLINE | légendaire | Premium (€) | 1,61 € |  |
 | 56 | L'ÉTERNELLE | légendaire | Premium (€) | 1,61 € |  |

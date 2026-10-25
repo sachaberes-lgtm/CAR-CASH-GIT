@@ -19,7 +19,7 @@ const CAMPM=[]; // (2026-10-18) les repères de la piste de campagne (genCampagn
    modules adaptés au gameplay de chaque map, au moins 3 par map, sélectionnés automatiquement — pour l'instant il y a trop de tout droit et trop
    peu de modules »). Chaque générateur a désormais SON paquet de modules (au moins trois, tirés au hasard dans un paquet mélangé, jamais deux fois
    de suite) — ici ceux des maps que bâtit genCtrl (VILLE et MINUIT, CRYPTO CITY, VILLE VITRÉE, EN ORBITE ; les NUAGES ont les leurs depuis le
-   matin : tSlalom…) ; les maps à générateur propre ont les leurs dans genForet, genCanyon, genBanq, genJade. Voir « LES MODULES DE
+   matin : tSlalom…) ; les maps à générateur propre ont les leurs dans genForet, genCanyon, genJade. Voir « LES MODULES DE
    CHAQUE MAP » au JOURNAL. `?sans=modcartes` rend les pistes d'avant (même graine, même route qu'avant). */
 let MODC_ON=!/[?&]sans=([^&]*,)?modcartes(,|&|$)/.test(location.search);
 window.dbgModCartes=function(v){if(v!=null)MODC_ON=!!v;return MODC_ON;}; // banc : dbgModCartes(0) = les pistes d'avant, sans recharger (la piste suivante)

@@ -63,7 +63,7 @@ function charge(){
   for(const r of [B.sr||32000,44100]){try{ctx=OC?new OC(1,1,r):null;}catch(e){ctx=null;}if(ctx)break;}
   /* (2026-10-24, allègement son mobile) VIEIL APPAREIL (palier 0 : iPhone 7 et avant, Android d'entrée de gamme) : les ambiances propres à une map (forêt, banquise, ailes) ne sont pas
      décodées (≈ 4 Mo de PCM en moins en mémoire) ; elles se taisent, comme tout son pas encore prêt. `?sonsplein=1` = tout décoder, comme avant. */
-  const SKIP0=(function(){try{return document.documentElement.dataset.palier==='0'&&!/[?&]sonsplein=1/.test(location.search);}catch(e){return false;}})()?{foret:1,banquise:1,ailes:1}:null;
+  const SKIP0=(function(){try{return document.documentElement.dataset.palier==='0'&&!/[?&]sonsplein=1/.test(location.search);}catch(e){return false;}})()?{foret:1,ailes:1}:null;
   const saute=function(k){return !!SKIP0&&k!=='__etalon'&&!!SKIP0[(B.m[k.split('#')[0]]||{}).fam];};
   const cles=Object.keys(B.d).filter(function(k){return k!=='__etalon'&&!saute(k);}).sort(function(a,b){const ia=a.split('#')[0],ib=b.split('#')[0];return ((B.m[ib]&&B.m[ib].pre)|0)-((B.m[ia]&&B.m[ia].pre)|0);});
   S.nTot=cles.length;let i=0,enCours=0,etalon=B.d.__etalon?0:2; // 0 à faire · 1 en cours · 2 fait

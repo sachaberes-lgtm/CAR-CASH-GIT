@@ -125,7 +125,7 @@ function tryLand(dt){
   // radar de dalle AVANT le filtre des 40 m (dauphin v3) : le DAUPHIN compte le vol au-dessus de la route jusqu'à DOL_HMAX, à
   // toute largeur. curTOff = décalage LE LONG de la piste : au-dessus d'un TROU le point le plus proche est le bord, ça le trahit.
   curNear=true;curHOff=hOff;curLatOff=latOff;curTOff=dTmp.dot(T[bestI]);VEQ.si=bestI;VEQ.sh=hOff;VEQ.sl=latOff;VEQ.sd=bd; // (vol équilibré) la pose se prépare sur ce radar
-  if(bd>(bkCgBord()?(ROAD_HALF+BK_CG.w+24)**2:1600))return false; // (2026-10-18, GLACIER) la piste fait 196 m : à 40 m du centre (la règle des routes de 56 m), une caisse qui retombait sur la glace la TRAVERSAIT et tombait dessous — « des problèmes de collision avec la glace elle-même » (Sacha)
+  if(bd>1600)return false;
   const vN=fallVel.dot(Nn[bestI]);
   // FLANC de la dalle : la caisse COGNE la tranche et REBONDIT — c'est le BUMP.
   // Demi-jauge d'airtime rendue + du STYLE + le feedback (message, son, secousse).
@@ -166,7 +166,7 @@ function tryLand(dt){
      bitume ne REBONDIT plus (MESURÉ : « BUMP (h 0,06, à 25 cm du bord) puis tombée » — les trois quarts de la caisse au-dessus de la route,
      et elle repartait dans le vide) : le pneu monte la marche et elle se POSE au bord — une vraie pose (la chaîne s'encaisse, la vitesse
      se paie comme partout). Plus bas, c'est la carrosserie qui cogne la tranche : BUMP, comme avant. */
-  const tranche9=!bkCgBord()&&sideCd<=0&&hOff>-THICK-.12&&hOff<.12&&(bumpIn||bumpThru),levre9=tranche9&&hOff>-LEVRE_POSE&&fallT>.35&&vN<4.5?(bumpThru?Math.sign(prevL):Math.sign(latOff)):0;
+  const tranche9=sideCd<=0&&hOff>-THICK-.12&&hOff<.12&&(bumpIn||bumpThru),levre9=tranche9&&hOff>-LEVRE_POSE&&fallT>.35&&vN<4.5?(bumpThru?Math.sign(prevL):Math.sign(latOff)):0;
   if(tranche9&&!levre9){
     const sg=bumpThru?Math.sign(prevL):Math.sign(latOff),impB=Math.abs(vB);
     fallVel.addScaledVector(B[bestI],-vB*1.65); // réflexion amortie sur la paroi
@@ -212,9 +212,9 @@ function tryLand(dt){
   // dalle (interpolé entre l'image d'avant et celle-ci) ; s'il est au-dessus du vide, on tombe. Aucun recentrage.
   if(!sideL)return false;
   const hS9=sideL>0?0:-THICK,dh9=prevH-hOff,f9=Math.abs(dh9)>1e-4?THREE.MathUtils.clamp((prevH-hS9)/dh9,0,1):1,latX9=levre9?levre9*(ROAD_HALF-.05):prevL+(latOff-prevL)*f9; /* (la LÈVRE : posée au bord, roues intérieures sur le bitume) */
-  if(Math.abs(latX9)>=ROAD_HALF+(sideL>0?bkCgBord():0))return false; /* (2026-10-18, GLACIER) on se pose aussi dans la congère */
+  if(Math.abs(latX9)>=ROAD_HALF)return false;
   s=THREE.MathUtils.clamp(bestI/(NP-1)*L+THREE.MathUtils.clamp(dTmp.dot(T[bestI]),-2,2),0,L-1);
-  side=sideL;{const lm9=ROAD_HALF-.02+(sideL>0?bkCgBord():0);lat=THREE.MathUtils.clamp(latX9,-lm9,lm9)*sideL;}
+  side=sideL;{const lm9=ROAD_HALF-.02;lat=THREE.MathUtils.clamp(latX9,-lm9,lm9)*sideL;}
   // RÉCEPTION EN GLISSE : la caisse se pose de travers et rattrape — petit drift au lieu d'un psi=0 sec
   {const vTan=fallVel.dot(T[bestI]),vLat=fallVel.dot(B[bestI])*sideL;
    psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*lacetVol(fallVel.length());slipB=0;driftYaw=0;veqPose(bestI,sideL); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */ // (2026-09-25) le cap de la pose = la direction EXACTE du vol — plus de redressement (×0,6) : c'était une aide

@@ -44,24 +44,12 @@ function camRouteTonneau(cible,axe,dt){ // LE TONNEAU : `cible` = l'écart caiss
   if(C.enCours){C.vif=true;r=a*Math.exp(-dt*C.TONNEAU);C.q.setFromAxisAngle(axe,r-a);camUp.applyQuaternion(C.q);} // le haut ROULE (il ne passe plus par zéro)
   C.q.setFromAxisAngle(axe,r*(C.enCours?1:THREE.MathUtils.smoothstep(aA,.5,1.05)));cible.applyQuaternion(C.q); // la place voulue roule avec lui : la caméra orbite autour de la caisse au lieu de couper la dalle
 }
-/* (2026-10-18, Sacha : « oui : redresse la caméra sur le glacier seulement, pour qu'on voie la pente en roulant ») LA CAMÉRA DU GLACIER.
-   La caméra de route s'incline avec la piste : à 70 % de pente, la glace remplissait l'écran comme un parking plat. Au glacier (v4, sur la
-   piste), le CABRAGE ANTICIPÉ prend en plus une part `k` de la pente sous la caisse : tout le plan pivote autour de la caisse, nez levé vers
-   l'horizon — la caisse reste à sa place à l'écran, la piste devant elle PLONGE, les pics se redressent. Le plafond du cabrage (`haut` :
-   CAM_GLACIER.max = 30°, et la caméra garde 12° au-dessus de la glace derrière la caisse) borne le geste : ~22-24° debout, ~10° couché.
-   ⚠ Ne pas MONTER la caméra pour redresser plus : essayé (banc), la caisse descend et rapetisse à l'écran — le pivot seul la garde à sa place.
-   `?glaciercam=0` = la caméra d'avant. Partout ailleurs : zéro. */
-const CAM_GLACIER={on:!/[?&]glaciercam=0\b/.test(location.search),k:.9,max:40,garde:12,monte:2,recul:1}; /* (2026-10-19, Sacha : « fais une caméra du glacier qui montre la pente, vue plus haute qui plonge » — choisie sur planche parmi 3 : l'actuelle k ,8/max 30/monte 1, « 1 » ci-contre, « 2 » monte 2,6/recul 1,2/k 1/max 45) la caméra MONTE ×2 avec la pente, et le cabrage redresse jusqu'à ~28° (11° avant) : plus de piste qui part devant et de paysage ; la caisse un peu plus basse et plus petite à l'écran */ // k : part de la pente redressée · max : plafond (°) · garde : site mini (°) de la caméra au-dessus de la glace derrière la caisse (7 essayé : vue rasante, les roues passaient derrière la glace)
-function camGlacier(){ // la part de pente (rad, ≥ 0 en descente) que la caméra du glacier redresse
-  if(!CAM_GLACIER.on||side<0||!banqOk())return 0;
-  const h=Math.hypot(F.t.x,F.t.z);return Math.max(0,Math.atan2(-driveDir*F.t.y,h))*CAM_GLACIER.k;}
-function camGlacierM(i){const g9=camGlacier();if(!(g9>0))return 1;const m9=Math.min(1,g9/(.61*CAM_GLACIER.k));return 1+((i?CAM_GLACIER.monte:CAM_GLACIER.recul)-1)*m9;} // (2026-10-19) LA VUE QUI PLONGE : au glacier, la caméra MONTE (×monte) et RECULE (×recul) avec la pente (pleine dose à 35°) — plus haute, le cabrage peut redresser davantage sans passer sous la glace derrière la caisse
 function camRouteCabrage(dt,camBack,camH){ // LE CABRAGE ANTICIPÉ : pose C.q, le pivot à appliquer autour de la caisse
   const C=CAM_ROUTE,D=THREE.MathUtils.clamp(Math.abs(vA)*SPD*C.VOIR_LOIN,C.LOIN_MIN,C.LOIN_MAX);
   frameAt(THREE.MathUtils.clamp(s+driveDir*D,0,L-.01),C.FA);
   const th=Math.atan2(driveDir*C.FA.t.dot(F.n),C.FA.t.dot(F.t)), // le cabrage de la route là-bas, dans le plan (tangente, normale de TA face) d'ici — + = elle se lève
-        gl9=camGlacier()>0,haut=Math.max(0,Math.min(gl9?CAM_GLACIER.max:C.HAUT_MAX,Math.atan2(camH,camBack)*57.3-(gl9?CAM_GLACIER.garde:C.GARDE)))/57.3, // (2026-10-18) au glacier : le plafond et la garde de CAM_GLACIER
-        vise=THREE.MathUtils.clamp(th*(side<0?C.ANTICIPE_DESSOUS:C.ANTICIPE)+camGlacier(),-C.BAS_MAX/57.3,haut);
+        haut=Math.max(0,Math.min(C.HAUT_MAX,Math.atan2(camH,camBack)*57.3-C.GARDE))/57.3,
+        vise=THREE.MathUtils.clamp(th*(side<0?C.ANTICIPE_DESSOUS:C.ANTICIPE),-C.BAS_MAX/57.3,haut);
   C.phi+=(vise-C.phi)*(1-Math.exp(-dt/C.LISSE));
   C.ax.crossVectors(F.t,F.n).multiplyScalar(driveDir).normalize(); // tourner autour de cet axe fait monter l'avant vers la normale
   C.q.setFromAxisAngle(C.ax,C.phi);

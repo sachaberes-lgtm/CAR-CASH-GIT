@@ -83,13 +83,12 @@
          `yawR/spdMult` : mêmes images et mêmes paiements qu'à ×1 dans le même virage (sinon, à ×2,6, la caisse restait en travers en
          permanence et VIRAGE SERRÉ sonnait dans des courbes molles). Rien ne tourne tout seul : pouce lâché, yawR retombe à 0 comme avant. */
       const spdMult=vitMult(); // (NITROOO) ×1,10/s tenue, et avec VITESSE ×2 : PLAFOND COMMUN ×2,6 (voir vitMult) — SPEED UP : le sol défile DEUX FOIS plus vite (2026-09-26, user : « le power-up vitesse doit faire ×2 »), sans casser la physique
-      {const rT=steer*lacetMax(vA)*spdMult*(drifte?1.15:1)*THREE.MathUtils.clamp(vA/8,-1,1)*(slipT>0?.18:BKV.sur?BK_VG.grip:1); // flaque : la direction ne mord presque plus · (2026-10-15) verglas du glacier : elle mord à moitié
+      {const rT=steer*lacetMax(vA)*spdMult*(drifte?1.15:1)*THREE.MathUtils.clamp(vA/8,-1,1)*(slipT>0?.18:1); // flaque : la direction ne mord presque plus
        yawR+=(rT-yawR)*(1-Math.exp(-dt*spdMult/VOL_TAU));
        const b0=slipB,bT=drifte?Math.sign(steer)*.42*Math.min(1,Math.abs(steer)):0;
        slipB+=(bT-slipB)*(1-Math.exp(-dt*(drifte?4:6)));
        psi+=yawR*dt+(slipB-b0); // le nez = la trajectoire + la glisse
        if(MURC.psiK>0){MURC.psiK=Math.max(0,MURC.psiK-dt/.06);psi+=(MURC.psiR-psi)*(1-Math.exp(-dt*50));} // (2026-10-17) LE COUP D'ÉPAULE : le renvoi de la paroi en ~50 ms (voir murCote)
-       if(BKV.sur)BKV.gl=THREE.MathUtils.clamp(BKV.gl+yawR*dt,-BK_VG.glMax,BK_VG.glMax); // (2026-10-15 soir) SUR LE VERGLAS le pouce tourne le NEZ, la trajectoire ne suit qu'en BK_VG.tau s (voir banqVerglas) : la caisse GLISSE
        const aB9=Math.abs(yawR/spdMult*vA)*SPD; // (HAUTE VITESSE) la charge latérale de BASE : celle qu'aurait le même virage à ×1
        glisse9=THREE.MathUtils.clamp(Math.abs(slipB)*2.6+driftT*.5+Math.max(0,aB9-22)/70,0,1)*Math.min(1,Math.abs(vA)/35); // (2026-09-26) la gomme fume et crisse dès que la caisse chasse (power-slide)
        // (aura v2) LE VIRAGE SERRÉ : tenir une grosse charge latérale 0,9 s sur la route — prendre un virage À FOND, ça se paie
@@ -115,11 +114,11 @@
       driftT=Math.max(0,driftT-dt*2.2); // retombe après un atterrissage en travers
       psi=THREE.MathUtils.clamp(psi,-1.4,1.4);
       if(DMT.act)dmtConduite(dt); // (LE DEMI-TOUR) la manœuvre tient le volant, la vitesse et la ligne pendant ~1 s
-      vL=vA*Math.sin(psi-slipB-BKV.gl); // la TRAJECTOIRE : le cap moins la glisse (0 hors drift) · moins la glissade du verglas (BKV.gl, 0 hors du glacier)
+      vL=vA*Math.sin(psi-slipB); // la TRAJECTOIRE : le cap moins la glisse (0 hors drift)
       const lat09=lat; // (BALAYAGE, voir balEcart) la ligne de la caisse AVANT l'avance : plots, pads, dos d'âne et flaques se testent sur le trajet
       lat+=vL*driveDir*dt*SPD*spdMult; // (spdMult : calculé avant le lacet, voir HAUTE VITESSE)
       const sPrev9=s; // ⚠ mémorisé AVANT l'avance : les tremplins se testent sur le SEGMENT parcouru, pas sur un point
-      s+=vA*Math.cos(psi-slipB-BKV.gl)*driveDir*dt*SPD*spdMult; // avance le long du ruban dans le SENS de conduite (parc : avant OU arrière)
+      s+=vA*Math.cos(psi-slipB)*driveDir*dt*SPD*spdMult; // avance le long du ruban dans le SENS de conduite (parc : avant OU arrière)
       const vF=vA;
       boost=Math.max(0,boost-dt);
       speedKmh=Math.abs(vF)*3.6*SPD*spdMult;
@@ -129,7 +128,6 @@
       if(side>0&&F.n.y>.5&&Math.abs(lat)<ROAD_HALF-2&&Math.abs(psi)<.5)safeS=s;
       // BORD : si la voiture dépasse le côté de la route, elle bascule et tombe dans le vide.
       if(cyCouloirIci()&&Math.abs(lat)>ROAD_HALF-1.15){murCote(dt,'paroi');slideContact();} // (2026-10-14, CANYON) LE COULOIR des Étroits : les parois touchent la route — même mur que Paris
-      else if(banqOk())bkCongere(dt); // (2026-10-18, GLACIER) LA CONGÈRE : au-delà de la glace, la neige profonde — on s'enfonce, on ralentit, on ne meurt pas (était : le mur murCote, où la caisse restait collée)
       else if(Math.abs(lat)>ROAD_HALF){
         const out=Math.sign(lat);
         // (bord v2) le CENTRE DE GRAVITÉ passe la lèvre : elle BASCULE — ni saut (était +3,4 vers le haut), ni poussée (+4 %) : on ne
@@ -165,15 +163,7 @@
         }
       }
       rampCd=Math.max(0,rampCd-dt);
-      if(mode==='drive')banqPisteHeurt(); // (v4) un pic de la piste, percuté au sol : L'IMPACT
       if(mode==='drive'&&DN.on&&DN.lev&&DN.lev.length)dnLevre(sPrev9); // (2026-10-19) LES DUNES D'OR : on décolle à la crête des vagues, même sans nitro
-      if(mode==='drive'&&BANQ.kick&&BANQ.kick.length&&banqOk())for(const k9 of BANQ.kick){ // (v4) LES TREMPLINS DE GLACE — (2026-10-18) une vraie rampe de BK_BEC.lg m : on la MONTE, on décolle à la LÈVRE (k9.s)
-        if(lat<k9.l0-.5||lat>k9.l1+.5||s<k9.s-k9.lg-2||Math.min(sPrev9,s)>k9.s+2)continue;
-        if(s<k9.s){if(rampCd<=0){const u=Math.max(0,(s-k9.s+k9.lg)/k9.lg),hR=k9.h*Math.pow(u,1.7);if(hR>hopY-.6){hopY=Math.max(hR-.8,hopY+(hR-hopY)*Math.min(1,dt*25));hopV=0;}}break;} // sur la rampe : la caisse en suit la courbe (hopY)
-        if(rampCd>0||k9.s<Math.min(sPrev9,s))break;                                                     // la lèvre franchie pendant cette image
-        hopY=Math.max(hopY,k9.h);hopV=0;                                                                 // on part du HAUT de la lèvre
-        if(Math.abs(vA)*3.6*SPD<70)break;                                                                // au pas : on tombe de la lèvre, sans décoller
-        rampCd=1.2;startFall(THREE.MathUtils.clamp(BK_BEC.pop*Math.abs(vA)*vitMult(),14,60),1.04);fallVel.addScaledVector(F.b,-fallVel.dot(F.b)*BK_BEC.axe);boost=Math.max(boost,1.2);shake=Math.max(shake,.5);try{hap([10,18]);}catch(e){}break;} /* (BK_BEC.axe) le tremplin envoie DANS L'AXE de la piste : au banc, la glisse de travers emportée en vol (3-5 s à 45°) sortait la caisse des 196 m — 2 vols sur 9 finissaient hors piste */
       if(hopY>0||hopV!==0){
         hopY+=hopV*dt;hopV-=26*GRAV_K*gK()*dt;
         if(hopY<=0){hopY=0;hopV=0;squashT=Math.max(squashT,.15);if(introD)smashPig();if(POSE_F){const f9=POSE_F;POSE_F=null;try{f9();}catch(e){}}} // SPLAT. — (2026-10-01) et le CONTACT d'une pose (gerbe, choc, gomme)
@@ -200,7 +190,6 @@
           break;
         }
       }
-      try{banqVerglas(dt);}catch(e){} // (2026-10-15) LE VERGLAS du glacier : la caisse part sur le côté (voir BKV)
       if(slipT>0){ // la voiture chasse : direction quasi coupée + embardée aléatoire
         slipT-=dt;driftT=Math.max(driftT,.7); // (2026-09-28) on VOIT la glisse : fumée de gomme + crissement (au téléphone, le message « huile » est masqué)
         if(SENS)rollV+=Math.sin(slipT*26)*20*Math.min(dt,1/30); // (2026-10-14, sensations) elle LOUVOIE : la carrosserie balance d'un flanc sur l'autre (~2°, une onde lisse — jamais du hasard par image) tant que les pneus ne mordent plus

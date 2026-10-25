@@ -28,7 +28,6 @@ const CONTI={
     canyon:{matin:'canyonMatin',midi:'canyonMidi',soir:'canyonSoir',nuit:'canyonNuit',pluie:'canyonPluie',orage:'canyonOrage'},
     dunes:{matin:'dunesMatin',midi:'dunesMidi',soir:'dunesSoir',nuit:'dunesNuit',pluie:'dunesVent',orage:'dunesTempete'}, // (2026-10-18) LES DUNES D'OR
     foret:{matin:'foretMatin',midi:'foretMidi',soir:'foretSoir',nuit:'foretNuit',pluie:'foretPluie',orage:'foretOrage'},
-    banquise:{matin:'banqMatin',midi:'banqMidi',soir:'banqSoir',nuit:'banqNuit',pluie:'banqNeige',orage:'banqBlizzard'},
     espace:{matin:'espaceMatin',midi:'espace',soir:'espaceSoir'}},
   /* LES NUITS, map par map : le ciel (jZen/jMid/jHor en LINÉAIRE ; le canyon a le sien, cy*), la brume, la lune (sunC/sunI = la clé froide), le ciel et
      le sol de l'hémisphère, le remplissage à l'accent de la map */
@@ -42,19 +41,16 @@ const CONTI={
       jZen:[.04,.05,.22],jMid:[.09,.07,.27],jHor:[.16,.10,.26],fog:[.13,.12,.27],fogCj:[.20,.17,.34],fogIn:[.18,.17,.30],
       hemiS:[.30,.34,.66],hemiG:[.12,.08,.10],hemiI:.50,sunC:[.62,.72,1],sunI:.70,fillC:[.48,.30,.78],fillI:.22,expo:.92}, // (2026-10-18) LES DUNES D'OR : la nuit du canyon, la lune un peu plus forte (le sable la renvoie)
     foretNuit:{jZen:[.05,.07,.26],jMid:[.09,.10,.30],jHor:[.10,.09,.24],fog:[.07,.08,.16],fogCj:[.14,.16,.26],fogIn:[.16,.18,.26],
-      hemiS:[.34,.42,.72],hemiG:[.06,.09,.09],hemiI:.66,sunC:[.68,.78,1],sunI:1.0,fillC:[.24,.52,.42],fillI:.26,expo:1.0},
-    banqNuit:{jZen:[.04,.06,.24],jMid:[.07,.11,.30],jHor:[.06,.13,.22],fog:[.045,.06,.14],fogCj:[.12,.24,.28],fogIn:[.12,.20,.26],
-      hemiS:[.30,.46,.74],hemiG:[.12,.18,.26],hemiI:.62,sunC:[.62,.76,1],sunI:.95,fillC:[.22,.60,.50],fillI:.28}}, /* (mesuré : à 1,1 de contraste et zénith ×4 le ciel de nuit sort enfin du noir ; la lune du dôme, à ,9, dessinait un losange) */
+      hemiS:[.34,.42,.72],hemiG:[.06,.09,.09],hemiI:.66,sunC:[.68,.78,1],sunI:1.0,fillC:[.24,.52,.42],fillI:.26,expo:1.0}}, /* (mesuré : à 1,1 de contraste et zénith ×4 le ciel de nuit sort enfin du noir ; la lune du dôme, à ,9, dessinait un losange) */
   /* LE CIEL DE JOUR CONTINU (Sacha : « le dégradé de ciel-soleil est à refaire complètement ») : le même ciel à la même heure sur les quatre maps au
-     ciel d'altitude (nuages, forêt, glacier — le canyon a le sien) — zénith azur, milieu bleu clair, HORIZON PÂLE tout autour (l'air, jamais une
-     bande orange : le glacier avait un horizon orange en plein midi), la CHALEUR seulement du côté du soleil (jSol, large) ; le soir garde son horizon
+     ciel d'altitude (nuages, forêt — le canyon a le sien) — zénith azur, milieu bleu clair, HORIZON PÂLE tout autour (l'air, jamais une
+     bande orange en plein midi), la CHALEUR seulement du côté du soleil (jSol, large) ; le soir garde son horizon
      de braise. LINÉAIRE. `cielJ_map` : l'accent d'une map par-dessus. */
   cielJ:{
     matin:{jZen:[.10,.28,.66],jMid:[.34,.50,.80],jHor:[.88,.84,.86],jSol:[.85,.48,.24]},
     midi: {jZen:[.07,.25,.68],jMid:[.30,.54,.88],jHor:[.76,.85,.95],jSol:[.34,.30,.22]},
     soir: {jZen:[.09,.10,.34],jMid:[.40,.28,.46],jHor:[.98,.64,.50],jSol:[1,.46,.16]}},
-  cielJ_map:{
-    banqSoir:{jMid:[.44,.26,.50],jHor:[1,.58,.48]}},
+  cielJ_map:{},
   /* LE JOUR, les retouches propres (au-delà de la recette) : le midi du canyon ne blanchit plus sa route, le soir des nuages retrouve
      un horizon qui brûle sans saturer tout l'écran */
   jours:{
@@ -68,12 +64,12 @@ const CONTI={
   const garde9={espace:{sat:1,con:1,vigK:1,rimK:1,stars:1}}; // l'ORBITE est déjà la map la plus sobre (chroma 15-23 mesurée) : elle garde son grade, elle prend la route, la vignette et le contre-jour
   for(const c in CONTI.cartes)for(const t in CONTI.cartes[c]){const b=BIOMES[CONTI.cartes[c][t]];if(!b)continue;const r=CONTI.temps[t],g9=garde9[c]||{};
     for(const f in r)if(!g9[f])b[f]=Array.isArray(r[f])?r[f].slice():r[f];}
-  for(const c of ['nuages','foret','banquise'])for(const t in CONTI.cielJ){const b=BIOMES[CONTI.cartes[c][t]];if(b)Object.assign(b,JSON.parse(JSON.stringify(CONTI.cielJ[t])));}
+  for(const c of ['nuages','foret'])for(const t in CONTI.cielJ){const b=BIOMES[CONTI.cartes[c][t]];if(b)Object.assign(b,JSON.parse(JSON.stringify(CONTI.cielJ[t])));}
   for(const k in CONTI.cielJ_map)if(BIOMES[k])Object.assign(BIOMES[k],JSON.parse(JSON.stringify(CONTI.cielJ_map[k])));
   for(const k in CONTI.nuits)if(BIOMES[k])Object.assign(BIOMES[k],JSON.parse(JSON.stringify(CONTI.nuits[k])));
   for(const k in CONTI.jours)if(BIOMES[k])Object.assign(BIOMES[k],JSON.parse(JSON.stringify(CONTI.jours[k])));
-  // la BRUME BASSE des nuits (celle qui noie les vallées sous la route) prend l'indigo de la nuit commune : la forêt la tirait au noir-sarcelle, le glacier au vert sombre
-  if(FOR_MET.nuit)FOR_MET.nuit.mC=[.06,.07,.15];if(BK_MET.nuit)BK_MET.nuit.mC=[.05,.09,.17];
+  // la BRUME BASSE des nuits (celle qui noie les vallées sous la route) prend l'indigo de la nuit commune : la forêt la tirait au noir-sarcelle
+  if(FOR_MET.nuit)FOR_MET.nuit.mC=[.06,.07,.15];
 }
 /* ===== L'ÉQUILIBRE DE L'ÉTALONNAGE, MAP PAR MAP × MÉTÉO (2026-10-23, Sacha : « la colorimétrie des maps avec toutes les météos, un réel équilibre colorimétrique et d'étalonnage, une unité de map en map ») =====
    MESURÉ à l'image (56 couples carte × météo, course lancée, L* et chroma par bande : ciel, horizon, bitume) — quatre écarts, tous en VALEURS :
@@ -236,7 +232,6 @@ function lvlNuageOk(o){ // quelles familles de nuages chaque monde garde (lu par
   const c=LVL.cur;if(!c)return true;
   if(c.sansNuages)return false; // un niveau au ciel NU (l'aurore d'apprentissage) : pas un seul nuage
   if(o.sea&&(c.id==='nuages'||c.id==='orage')&&!MER_MOTIF)return false; // (2026-09-28) l'ABÎME BLEU : plus de nappes de nuages plates sous la route (les cumulus du ciel de coton restent)
-  if(c.id==='banquise')return false; // (2026-10-14) LA BANQUISE : sa brume de vallée et sa neige sont à elle (buildBanq)
   if(c.id==='foret')return false; // (2026-10-14) LA FORÊT NOIRE : sa brume et ses rayons sont à elle (buildForet)
   if(c.id==='grotte')return false; // (2026-10-18) LES PROFONDEURS : sous la terre, pas un nuage
   if(c.id==='jade')return false; // (2026-10-09) LES PICS DE JADE : leur brume est à eux (buildJade)

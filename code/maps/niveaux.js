@@ -59,15 +59,10 @@ const SF_HORS={vitree:VILLE_VERRE_V&&!/[?&]vitree=1\b/.test(location.search),cry
 {const q9=/[?&]carte=(\w+)/.exec(location.search)||(/[?&]niveau=crypto\b/.test(location.search)?[0,'crypto']:null),m9=/[?&]meteo=(\w+)/.exec(location.search),t9=/[?&]teinte=(\w+)/.exec(location.search);if(q9||m9)SF.force={carte:q9?q9[1]:null,meteo:m9?m9[1]:null,teinte:t9?t9[1]:null};} // (2026-10-16) + `?teinte=` (la ville : violet, vert, jaune, bleu)
 const SF_NIV={nuages:NIVEAUX.find(function(n){return n.id==='nuages';}),orage:NIVEAUX.find(function(n){return n.id==='orage';}),
   ville:NIVEAUX.find(function(n){return n.id==='ville'&&!n.nuit;}),minuit:NIVEAUX.find(function(n){return n.id==='ville'&&n.nuit;}),
-  espace:NIVEAUX.find(function(n){return n.id==='espace';}),jade:NIV_JADE,foret:NIV_FORET,canyon:NIV_CANYON,dunes:NIV_DUNES,grotte:NIV_GROTTE,banquise:NIV_BANQ,crypto:NIV_CRYPTO,vitree:NIV_VITRE};
-const SF_METEOS={matin:'MATIN',midi:'MIDI',soir:'SOIR',nuit:'NUIT',pluie:'PLUIE',orage:'ORAGE',neige:'NEIGE',blizzard:'BLIZZARD',brouillard:'BROUILLARD'}; // (2026-10-16) BROUILLARD : le temps de la ville // (2026-10-14) NEIGE et BLIZZARD : les temps de LA BANQUISE
+  espace:NIVEAUX.find(function(n){return n.id==='espace';}),jade:NIV_JADE,foret:NIV_FORET,canyon:NIV_CANYON,dunes:NIV_DUNES,grotte:NIV_GROTTE,crypto:NIV_CRYPTO,vitree:NIV_VITRE};
+const SF_METEOS={matin:'MATIN',midi:'MIDI',soir:'SOIR',nuit:'NUIT',pluie:'PLUIE',orage:'ORAGE',brouillard:'BROUILLARD'}; // (2026-10-16) BROUILLARD : le temps de la ville
 Object.assign(I18N,{'BROUILLARD':'FOG'}); // (2026-10-16) la météo de la ville, dite au portail
 // une MAP = son niveau de base + ses météos permises (`bio` : l'ambiance, `niv` : un niveau du jeu repris tel quel, `p` : le poids au tirage, 1 par défaut)
-/* (2026-10-14, LA BIBLE CAR CASH, passe graphismes · banquise2) LA BANQUISE avait déjà son ciel saturé à horizon chaud : il leur
-   manquait les invariants communs — le contre-jour ROSE sur les caisses (ici) et la signature de route rose + or (routeSig). */
-for(const [f9,ks9] of [['banquise',['banqMatin','banqMidi','banqSoir','banqNuit','banqNeige','banqBlizzard']]])
-  for(const k of ks9)if(BIOMES[k])Object.assign(BIOMES[k],{kickC:[1,.38,.66],kickI:Math.max(BIOMES[k].kickI||0,.16)});
-{if(BIOMES.banqMatin)BIOMES.banqMatin.sat=1.08;if(BIOMES.banqMidi)BIOMES.banqMidi.sat=1.08;if(BIOMES.banqSoir)BIOMES.banqSoir.sat=1.12;} // (bible · banquise2) saturation effective : jour 1,25 → 1,31, soir 1,28 → 1,35 (neige et blizzard gardent leur retenue)
 const SF_CARTES={
   nuages:{nm:'MER DE NUAGES',base:'nuages',m:{matin:{bio:'matin'},midi:{bio:'midi'},soir:{bio:'nuagesSoir'},nuit:{bio:'nuagesNuit',nuit:1},
     pluie:{bio:'nuagesPluie',pluie:.75,route:.18,sheen:.16},orage:{niv:'orage',orage:1}}},
@@ -79,11 +74,6 @@ const SF_CARTES={
      la pluie, l'orage (les éclairs blanchissent la forêt). Voir « LA FORÊT NOIRE — LA MAP DES CONTES » (genForet, buildForet, FOR_MET). */
   foret:{nm:'LA FORÊT NOIRE',base:'foret',m:{matin:{bio:'foretMatin'},midi:{bio:'foretMidi'},soir:{bio:'foretSoir'},nuit:{bio:'foretNuit',nuit:1,pr:'LA FORET EST HANTEE'},
     pluie:{bio:'foretPluie',pluie:.8,sheen:.18},orage:{bio:'foretOrage',pluie:1,orage:1,sheen:.2,pr:'LES LOUPS HURLENT'}}},
-  /* (2026-10-14, Sacha) LE GLACIER (ex-LA BANQUISE, renommé à 20 h 40 : « ça devrait plutôt s'appeler GLACIER et être une MONTAGNE, comme dans STEEP ») :
-     le matin rose, le midi bleu profond, le soir où les pics s'embrasent, la NUIT des aurores boréales, la NEIGE, le BLIZZARD (plus rare). Ni pluie ni
-     éclairs. La promesse est la même à toute heure : le RACCOURCI (genBanq : les lacets superposés). Voir « LE GLACIER » au JOURNAL. L'id reste 'banquise'. */
-  banquise:{nm:'LE GLACIER',base:'banquise',m:{matin:{bio:'banqMatin'},midi:{bio:'banqMidi'},soir:{bio:'banqSoir'},nuit:{bio:'banqNuit',nuit:1},
-    neige:{bio:'banqNeige'},blizzard:{bio:'banqBlizzard',p:.6}}},
   /* (2026-10-15, Sacha : « un nouveau décor pour le générateur aléatoire de map : CRYPTO CITY, une ville imaginaire, de grands immeubles qui
      reflètent — vitrés, dorés, argentés, métalliques, blancs ; hyper moderne, le futur ; explosif : la période BULL RUN, l'apogée de la ville,
      pendant la montée fulgurante du Bitcoin ; pleine de références à la token culture, à l'argent et à la tech »). La CRYPTOCITY de Léo (13/10,
