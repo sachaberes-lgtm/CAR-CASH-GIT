@@ -349,9 +349,9 @@ return function(K){
     // (25/10, Léo : « plus bas — le bas des flancs seulement ; un glitch discret, une signature ») plus rien au museau ni au toit : trois petites plaques par flanc, sur le BAS des portes (entre les roues), à fleur du panneau de porte
     const XP=SBx(.93)+RP-.002;   // la face du panneau de porte
     for(const sd of [1,-1]){
-      const pose=(k,iu,iv,up,eclat)=>{const z=iu*CE,y=iv*CE;if(y<.68||y>1.0||!((z<.55&&z>-.37)||(z<-.43&&z>-1.15)))return;
-        BX(k,eclat?.016:.014,CE*.9,CE*.9,sd*(XP+(eclat?up/2+.006:.003)),y,z);};
-      plaque([[4,12.6,3.2],[-4,13.2,2.7],[-12,12.4,2.9]],-20,10,10,17,sd>0?1:2,pose);}
+      const C2=.08,pose=(k,iu,iv,up,eclat)=>{const z=iu*C2,y=iv*C2;if(y<.66||y>1.06||!((z<.55&&z>-.37)||(z<-.43&&z>-1.15)))return;
+        BX(k,eclat?.02:.014,C2*.92,C2*.92,sd*(XP+(eclat?up/2+.008:.003)),y,z);};   // (« pas aussi visible que La Fidèle ») cases de 8 cm, éclats jusqu'à 6 cm
+      plaque([[3,10.2,4],[-3,10.9,3.6],[-9,10.1,3.8],[-14,10.5,3]],-15,8,7,14,sd>0?1:2,pose);}
   }
   // LA CALANDRE : sept fentes, deux phares ronds, un peu couchée
   {const sh=new THREE.Shape(),PTS=rrect(-.66,-.18,.66,.175,.03,3);sh.moveTo(PTS[0][0],PTS[0][1]);for(let i=1;i<PTS.length;i++)sh.lineTo(PTS[i][0],PTS[i][1]);

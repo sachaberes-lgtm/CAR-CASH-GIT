@@ -171,7 +171,7 @@ SHAPES.bulle=function(K){
   const U=LPU,O=bulleOutils,L=(t,z)=>U.lin(t,z),cl=(v,a,b)=>v<a?a:v>b?b:v,mix=(a,b,t)=>a+(b-a)*t,lis=t=>t*t*(3-2*t);
   const R=.338,ZF=1.302,ZR=-1.098;
   const PAL={p:{g:'p',c:0x93cfd6},k:{g:'m',c:0x161719},K:{g:'g',c:0x0d0e11},c:{g:'c',c:0xe2e6eb},g:{g:'g',c:0x1a2632},
-    W:{g:'l',c:0xfff4dc},L:{g:'l',c:0xd81e2a},O:{g:'l',c:0xffa21a},w:{g:'s',c:0xf1eee6},s:{g:'s',c:0xe9e2cf},d:{g:'m',c:0x101114},y:{g:'m',c:0x34616c}};
+    W:{g:'l',c:0xfff4dc},L:{g:'l',c:0xd81e2a},O:{g:'l',c:0xffa21a},w:{g:'s',c:0xf1eee6},s:{g:'s',c:0xe9e2cf},d:{g:'m',c:0x101114},y:{g:'m',c:0x1f4651}};
   // ---- LES COURBES DU PLAN (mètres) ----
   // le dessus, dans l'axe (côté) : pare-chocs exclus — capot, pare-brise, pavillon, lunette, capot moteur, jupe
   const yTop=z=>L([[-1.865,.47],[-1.84,.55],[-1.81,.61],[-1.77,.69],[-1.707,.761],[-1.671,.827],[-1.617,.913],[-1.555,.993],[-1.49,1.064],[-1.377,1.158],
@@ -351,13 +351,13 @@ SHAPES.bulle=function(K){
     const hs=(a,b,c,d)=>{const v=Math.sin(a*12.9898+b*78.233+c*37.719+d*5.171)*43758.5453;return v-Math.floor(v);};
     const CE=.06;
     for(const sd of [1,-1]){
-      const dedans=new Set(),id=sd>0?5:6,graines=[[5,-3,3.6],[-3,-2.6,3],[-9,-3,2.8]];
-      for(let iu=-12;iu<=10;iu++)for(let iv=-7;iv<=0;iv++){let m=0;for(const [su,sv,r] of graines)m=Math.max(m,(1-Math.hypot(iu-su,iv-sv)/r)*(.55+.9*hs(iu,iv,id,1)));if(m>.34)dedans.add(iu+','+iv);}
-      const pose=(k,iu,iv,up,eclat)=>{const z=iu*CE,y=yCr(z)+iv*CE,x=xC(z)-.012*Math.abs(iv*CE/.1)+(eclat?up/2+.006:.003);
-        P.box(k,eclat?.016:.014,CE*.9,CE*.9,sd*x,y,z,0,0,0);};
+      const dedans=new Set(),id=sd>0?5:6,graines=[[4,-2.4,4.2],[-2,-2,3.6],[-7,-2.6,3.2]];
+      for(let iu=-9;iu<=8;iu++)for(let iv=-6;iv<=0;iv++){let m=0;for(const [su,sv,r] of graines)m=Math.max(m,(1-Math.hypot(iu-su,iv-sv)/r)*(.55+.9*hs(iu,iv,id,1)));if(m>.34)dedans.add(iu+','+iv);}
+      const C2=.08,pose=(k,iu,iv,up,eclat)=>{const z=iu*C2,y=yCr(z)+iv*C2,x=xC(z)-.006*Math.abs(iv*C2/.1)+(eclat?up/2+.008:.006);
+        P.box(k,eclat?.02:.014,C2*.92,C2*.92,sd*x,y,z,0,0,0);};   // cases de 8 cm (plus visible)
       for(const kk of dedans){const [iu,iv]=kk.split(',').map(Number),bord=![[1,0],[-1,0],[0,1],[0,-1]].every(([da,db])=>dedans.has((iu+da)+','+(iv+db))),q=hs(iu+.3,iv+.7,id,2);
-        if(bord){if(q<.52)pose('p',iu,iv,.01+.032*hs(iu,iv,id,3),true);else if(q<.62)pose('p',iu,iv,.05+.05*hs(iu,iv,id,4),true);}
-        else{if(q<.76)pose('y',iu,iv,0,false);else if(q<.88)pose('s',iu,iv,0,false);}}}
+        if(bord){if(q<.28)pose('p',iu,iv,.012+.034*hs(iu,iv,id,3),true);else if(q<.56)pose('s',iu,iv,.012+.034*hs(iu,iv,id,3),true);else if(q<.68)pose('p',iu,iv,.05+.05*hs(iu,iv,id,4),true);}
+        else{if(q<.86)pose('y',iu,iv,0,false);else pose('s',iu,iv,0,false);}}}
   }
   // la plaque dessinée : la vraie s'y pose (voir plqDessinee)
   P.box('l',.30,.075,.012,0,.665,-1.79,.5,0,0);
