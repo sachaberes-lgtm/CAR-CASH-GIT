@@ -346,13 +346,12 @@ return function(K){
       for(const kk of dedans){const [iu,iv]=kk.split(',').map(Number),bord=![[1,0],[-1,0],[0,1],[0,-1]].every(([da,db])=>dedans.has((iu+da)+','+(iv+db))),q=hs(iu+.3,iv+.7,id,2);
         if(bord){if(q<.52)pose('p',iu,iv,.01+.032*hs(iu,iv,id,3),true);else if(q<.62)pose('p',iu,iv,.05+.05*hs(iu,iv,id,4),true);}   // les éclats du bord (les derniers : arrachés, ils flottent)
         else{if(q<.80)pose('D',iu,iv,0,false);else if(q<.90)pose('c',iu,iv,0,false);}}};                                               // l'intérieur mis à nu
-    // 1. LE MUSEAU : le capot, depuis le nez (z de 1,38 à 1,86)
-    plaque([[29,-3,7],[28,6,6.5],[25,0,5],[30,1,4.5]],19,31,-11,11,1,(k,iu,iv,up,eclat)=>{const z=iu*CE,x=iv*CE;if(Math.abs(x)>.62||z>1.87)return;
-      BX(k,CE*.9,eclat?.016:.014,CE*.9,x,yCapot(x,z)+(eclat?up+.006:.003),z);});
-    // 2. LE TOIT : aux deux bouts du pavillon
-    const toit=(k,iu,iv,up,eclat)=>{const z=iu*CE,x=iv*CE;if(Math.abs(x)>.70)return;BX(k,CE*.9,eclat?.016:.014,CE*.9,x,roofY(x)+(eclat?up+.006:.003),z);};
-    plaque([[4,-4,5],[4,6,4.5],[2,1,3.4]],-3,6,-12,12,2,toit);
-    plaque([[-33,3,5],[-33,-6,4.4],[-31,0,3.2]],-37,-27,-12,12,3,toit);
+    // (25/10, Léo : « plus bas — le bas des flancs seulement ; un glitch discret, une signature ») plus rien au museau ni au toit : trois petites plaques par flanc, sur le BAS des portes (entre les roues), à fleur du panneau de porte
+    const XP=SBx(.93)+RP-.002;   // la face du panneau de porte
+    for(const sd of [1,-1]){
+      const pose=(k,iu,iv,up,eclat)=>{const z=iu*CE,y=iv*CE;if(y<.68||y>1.0||!((z<.55&&z>-.37)||(z<-.43&&z>-1.15)))return;
+        BX(k,eclat?.016:.014,CE*.9,CE*.9,sd*(XP+(eclat?up/2+.006:.003)),y,z);};
+      plaque([[4,12.6,3.2],[-4,13.2,2.7],[-12,12.4,2.9]],-20,10,10,17,sd>0?1:2,pose);}
   }
   // LA CALANDRE : sept fentes, deux phares ronds, un peu couchée
   {const sh=new THREE.Shape(),PTS=rrect(-.66,-.18,.66,.175,.03,3);sh.moveTo(PTS[0][0],PTS[0][1]);for(let i=1;i<PTS.length;i++)sh.lineTo(PTS[i][0],PTS[i][1]);

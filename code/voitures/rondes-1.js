@@ -351,9 +351,9 @@ SHAPES.bulle=function(K){
     const hs=(a,b,c,d)=>{const v=Math.sin(a*12.9898+b*78.233+c*37.719+d*5.171)*43758.5453;return v-Math.floor(v);};
     const CE=.06;
     for(const sd of [1,-1]){
-      const dedans=new Set(),id=sd>0?5:6,graines=[[7,0,6],[0,1,5],[-7,-1,4.6]];
-      for(let iu=-13;iu<=11;iu++)for(let iv=-5;iv<=5;iv++){let m=0;for(const [su,sv,r] of graines)m=Math.max(m,(1-Math.hypot(iu-su,iv-sv)/r)*(.55+.9*hs(iu,iv,id,1)));if(m>.34)dedans.add(iu+','+iv);}
-      const pose=(k,iu,iv,up,eclat)=>{const z=iu*CE,y=yCr(z)+iv*CE,x=xC(z)-.03*Math.pow(iv*CE/.14,2)+(eclat?up/2+.006:.003);
+      const dedans=new Set(),id=sd>0?5:6,graines=[[5,-3,3.6],[-3,-2.6,3],[-9,-3,2.8]];
+      for(let iu=-12;iu<=10;iu++)for(let iv=-7;iv<=0;iv++){let m=0;for(const [su,sv,r] of graines)m=Math.max(m,(1-Math.hypot(iu-su,iv-sv)/r)*(.55+.9*hs(iu,iv,id,1)));if(m>.34)dedans.add(iu+','+iv);}
+      const pose=(k,iu,iv,up,eclat)=>{const z=iu*CE,y=yCr(z)+iv*CE,x=xC(z)-.012*Math.abs(iv*CE/.1)+(eclat?up/2+.006:.003);
         P.box(k,eclat?.016:.014,CE*.9,CE*.9,sd*x,y,z,0,0,0);};
       for(const kk of dedans){const [iu,iv]=kk.split(',').map(Number),bord=![[1,0],[-1,0],[0,1],[0,-1]].every(([da,db])=>dedans.has((iu+da)+','+(iv+db))),q=hs(iu+.3,iv+.7,id,2);
         if(bord){if(q<.52)pose('p',iu,iv,.01+.032*hs(iu,iv,id,3),true);else if(q<.62)pose('p',iu,iv,.05+.05*hs(iu,iv,id,4),true);}
