@@ -425,6 +425,11 @@ function commitExploits(){
   SAVE.d.bank=Math.min(1e30,bank()+vire);gagneAjoute(vire);bankMaxMaj();
   if(!lecon)jourCommit(); /* (2026-10-14, GAMEPLAY — Sacha : « la 1re partie du JOUR ×2, plus un bonus de SÉRIE ») la partie COMPTE : le jour est marqué, la série monte, la prime de série entre en banque (voir JOUR) */
   const rangAvant=auraRank();
+  /* (2026-10-25) LE GRAPHE D'AURA de l'écran de mort : la MOYENNE et le RECORD d'AVANT cette partie (une reprise garde ceux de sa 1re fin),
+     puis la partie entre dans la moyenne — une seule fois par partie, la reprise n'ajoute que son surplus, comme SAVE.d.aura. */
+  if(!lecon){const h9=SAVE.d.auraH||(SAVE.d.auraH={s:0,n:0}),a9=Math.max(0,Math.round(auraRun));
+    if(!CHANCE.used){commitExploits._moy=h9.n>0?h9.s/h9.n:0;commitExploits._recAvant=SAVE.d.auraMax||0;h9.n++;h9.s+=a9;}
+    else h9.s+=Math.max(0,a9-(CHANCE.a0||0));}
   if(!lecon){SAVE.d.aura=(SAVE.d.aura||0)+Math.max(0,Math.round(auraRun)-(CHANCE.used?CHANCE.a0:0)); // (SECONDE CHANCE : l'aura d'avant la reprise est déjà versée)
   SAVE.d.auraMax=Math.max(SAVE.d.auraMax||0,Math.round(auraRun));} // le MAX d'une partie : c'est LUI qu'on affiche comme objectif
   commitExploits._vire=CHANCE.used?Math.max(0,vire+CHANCE.v1-CHANCE.prix):vire; // relus par l'écran de fin (après une reprise : toute la partie, prix déduit)

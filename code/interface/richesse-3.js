@@ -25,7 +25,7 @@ function richLance(t,P,n,d,delai,kv,mat){ // (rend l'objet lancé ; mat : la mat
   const montreArg=t==='montre'&&Math.random()<.5;m.material=t==='montre'?(montreArg?RICH.M.montreArg:RICH.M.montre):m.material; // la dorée ou l'argentée
   if(t==='champagne'){const k9=Math.floor(Math.random()*RICH.G.vins.length);m.geometry=RICH.G.vins[k9];m.material=RICH.M.vins[k9];} // (2026-10-16) le champagne ou l'un de ses quatre cousins
   if(t==='fleur'){m.geometry=RICH.G.fleurs[Math.floor(Math.random()*RICH.G.fleurs.length)];o.A=(.5+Math.random()*1.1)*(Math.random()<.5?-1:1);} // (2026-10-16) une des six fleurs ; o.A : sa vitesse de rotation sur sa tige
-  if(t==='billet')m.material=mat||RICH.M.billets[Math.floor(Math.random()*RICH.M.billets.length)]; // (2026-10-10) une valeur, une couleur
+  if(t==='billet'){m.material=mat||RICH.M.billets[Math.floor(Math.random()*RICH.M.billets.length)];o.bi=mat?TC_BIL_100:tcBilTire();o.wr=tcBilWear();} // (2026-10-10) une valeur, une couleur · (2026-10-25) o.bi : sa valeur pour les cubes, tirée comme celle de la traînée
   o.on=true;o.age=-delai;o.vie=rr(D.vie);o.s=rr(D.s);o.ph=Math.random()*6.28;o.fd=Math.random()*6.28;
   o.fv=.4;o.mode=0;o.ec=t==='liasse'&&Math.random()<.5?.42+Math.random()*.45:0; // une liasse sur deux CRAQUE en vol (richEclate)
   const sp=rr(D.v)*(kv||1);RICH.v1.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize();
@@ -172,6 +172,8 @@ function richCoup(P,n,d,mu,combo){
 // ---- CHAQUE IMAGE (appelé par chuteTapeTick) ----
 function richTick(dt,C){
   if(!RICH.pret)return;richChauffeTick(C);
+  if(!RICH.bc){if(!TC_BIL)tcBilBati();RICH.bc=tcPool(960,'s');} // (2026-10-25, Léo : « dans le menu ciel, les mêmes billets que la traînée ») les billets éjectés sont les CUBES de la traînée : la même piscine (même programme : 0 compilé de plus), recomposée à chaque image
+  RICH.bc.n=0;if(RICH.chauffe>0)tcBoxM(RICH.bc,RICH.v2.set(0,-99,0),RICH.q,1e-4,0,0,0,1e-4,1e-4,1e-4,0,0,0); // sous l'écran titre : un cube minuscule, pour que le programme se compile là
   const U=RICH_U,cp=camera.position;U.uT.value+=dt;U.uSunDir.value.copy(SUN_DIR);U.uSunCol.value.copy(sun.color).multiplyScalar(Math.max(.6,sun.intensity));
   U.uSky.value.copy(hemi.color).multiplyScalar(hemi.intensity);U.uGnd.value.copy(hemi.groundColor).multiplyScalar(hemi.intensity);U.uEnv.value=envTex;
   // les objets
@@ -196,12 +198,14 @@ function richTick(dt,C){
       if(pp>0&&!o.popS){o.popS=1;for(const f of RICH.fl)if(f.age>=f.vie){f.p.copy(m.position);f.v.set(0,.6,0);f.age=0;f.vie=.22;f.r0=o.s*.3;f.r1=o.s*1.7;f.c.setRGB(1,.78,.9);break;} // un éclat blanc rosé
         const t9=performance.now();if(SONV2&&!(RICH.popT>t9-45)){RICH.popT=t9;try{const i9=RICH.popI=(RICH.popI||0)+1;if(richSon())sfx('riche.coeur',{st:RICH_MEL[(i9-1)%RICH_MEL.length],vol:-4});else sfx('ui.appui',{vol:-7});}catch(e){}}}} // (2026-10-16) et son « plop » : chaque pop prend le degré suivant de la gamme — la nuée qui éclate un à un CHANTE (pas plus d'un tous les 45 ms)
     m.scale.setScalar(Math.max(1e-4,o.s*o.fr*pop*fin*pres*bt));m.visible=pres>0;
+    if(t==='billet'){m.visible=false;if(pres>0)tcBilletMesh(RICH.bc,m,o.bi,TC_PSEQ[((o.age*3+o.ph)|0)%6],o.wr);} // le billet éjecté : ses cubes, posés là où sa physique le met
     if(o.gl){ // LE BLING : une facette qui renvoie le soleil vers l'œil
       RICH.cam.copy(cp).sub(m.position).normalize();RICH.H.copy(SUN_DIR).add(RICH.cam).normalize();let g=0;
       for(const nl of o.nl){RICH.v2.set(nl[0],nl[1],nl[2]).applyQuaternion(m.quaternion);const c=RICH.v2.dot(RICH.H);if(c>0)g=Math.max(g,Math.pow(c,D.gp||(D.gem?60:D.flip==='y'?64:110)));}
       if(D.gem)g=Math.max(g,.18+.18*Math.sin(o.age*23+o.ph)); // la gemme vit toujours un peu
       const s=o.gl.s;g*=pres;if(g>.04){s.visible=true;s.position.copy(m.position).addScaledVector(RICH.cam,o.s*1.1);const sz=o.s*fin*(D.gs||(D.gem?3.4:D.flip==='y'?3.1:2.6))*(.45+g*1.1);s.scale.set(sz,sz,1);s.material.opacity=Math.min(1,g*1.4)*fin;}
       else s.visible=false;}}}
+  tcFinY(RICH.bc);
   richChaineTick(dt,cp); // les chaînes d'or
   // la flamme
   for(const f of RICH.fl){if(f.age>=f.vie){if(f.s.visible)f.s.visible=false;continue;}f.age+=dt;if(f.age<0)continue;const u=f.age/f.vie;if(u>=1){f.s.visible=false;continue;}
@@ -230,6 +234,7 @@ function richTick(dt,C){
 }
 function richRange(){ // on quitte le ciel : tout se range
   if(!RICH.pret)return;for(const t in RICH.libres)for(const o of RICH.libres[t]){o.on=false;o.m.visible=false;if(o.gl){o.gl.s.visible=false;o.gl.o=null;o.gl=null;}}
+  if(RICH.bc){RICH.bc.n=0;tcFinY(RICH.bc);} // les billets en cubes rentrent aussi
   if(RICH.ch)for(const c of RICH.ch){c.on=false;for(const m of c.links)m.visible=false;if(c.gl){c.gl.s.visible=false;c.gl.o=null;c.gl=null;}}
   for(const f of RICH.fl){f.age=f.vie=1;f.s.visible=false;}if(RICH.sp){RICH.sp.L.fill(0);RICH.sp.m.visible=false;RICH.sp.vivant=0;}
 }

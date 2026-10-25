@@ -37,6 +37,7 @@ css/plaque.css                       # <style id="plaque"> (plaque d'immatricula
 css/boutons-flottants.css           # <style id="boutonsFlottants"> : ⚙ · œil · trophée flottants en haut à droite, BOUTIQUE en L (touche entrée)
 css/palier-leger.css                 # <style id="palierLeger"> : le CSS par palier (balayages décoratifs de l'atelier figés sur ANCIEN/MOYEN), réglages sans flou sur tactile
 css/ecrans-iphone.css                # <style id="ecransIphone"> : les écrans sur tous les iPhone (pause couchée, fin du SE, HOME, noms des caisses)
+css/mort-flottante.css               # <style id="mortFlottante"> : l'écran de mort flottant (argent et moteur sans cadre, graphe d'aura en bougies, GARAGE · RÉGLAGES)
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
 page/bibliotheques.html              # <script src> : three.js, figures, sons, post-traitement — et l'ouverture du <script> du jeu
 interface/icones-fenetre.js          # ouverture du jeu (function, 'use strict'), icônes pixel, la fenêtre du jeu

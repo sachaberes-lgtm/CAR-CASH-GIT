@@ -105,7 +105,7 @@ $('gRar').addEventListener('click',e=>{const b=e.target.closest('.gR');if(!b)ret
   garageSaute(L0.indexOf(eq)>=0?eq:L0[0]);});
 $('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)return;e.stopPropagation();uiPop(t);
   GSON9=false; /* (2026-10-14, session SON) le tick « nav » ne part qu'à la FIN du geste, et seulement si rien n'a sonné (équiper, bascule, carte) */
-  if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab==='voiture'){uiClic('nav');return;}if(SHOP.tab==='figure'&&gFigTouche(j)){hap(8);return;} /* (2026-10-15) une figure à toi prend sa case (le sélecteur des trois figures) */const eq9=garEquipeHabit(SHOP.tab,j);
+  if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab==='voiture'){uiClic('nav');return;}if(SHOP.tab==='figure'&&gFigTouche(j)){hap(8);return;} /* (2026-10-15) une figure à toi prend sa case (le sélecteur des trois figures) */if(garDesequipePeinture(j)){hap(8);return;} /* (2026-10-26) une peinture déjà équipée, retouchée : elle se retire */const eq9=garEquipeHabit(SHOP.tab,j);
     if(eq9||j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);if(!eq9)try{if(SONV2){sfx('ui.carte',{vol:-3});GSON9=true;}else chimeNote(880,0,.16,.14);}catch(er){}}if(eq9)gInvSuite(SHOP.tab);if(GSON9)hap(8);else uiClic('nav');return;} // un habillage : à toi, il s'ÉQUIPE ; sinon on l'ESSAIE sur la caisse
   const i9=+t.getAttribute('data-car'),eq9=garEquipeCaisse(i9);if(i9!==garageI)garageSaute(i9);else if(eq9)garageShow(i9);if(eq9)gInvSuite('voiture');if(GSON9)hap(8);else uiClic('nav');}); // (2026-10-11) une caisse à toi s'ÉQUIPE au toucher
 /* L'INVENTAIRE QUI ENCHAÎNE (2026-10-16, Sacha : « dans l'inventaire, une fois que tu as sélectionné une voiture, ça doit automatiquement
@@ -126,6 +126,11 @@ function gInvSuite(cat){clearTimeout(gInvSuite.t);gInvSuite.t=0;if(!INV_ENCHAINE
    ACHETER (voir « LE COIN DU GARAGE » : #gEquip:not(.achat) masqué) ; un achat équipe aussi. */
 function garEquipeCaisse(i){const eq=SAVE.d.equipped|0;if(!(i>=0)||!CARS[i]||!(carUnlockedVrai(i)||i===eq))return false;
   if(i!==eq){SAVE.d.equipped=i;SAVE.flush();level=i;levelCash=0;try{if(SONV2){sfx('ui.equipe');GSON9=true;}}catch(e){}}return true;}
+/* DÉSÉLECTIONNER UNE PEINTURE (2026-10-26, Léo : « quand on appuie sur une peinture sélectionnée, ça la désélectionne et laisse la couleur originale de l'ouverture ») :
+   retoucher la peinture ÉQUIPÉE la retire — la caisse reprend sa teinte d'usine (la fiche D'ORIGINE, qui devient l'équipée). */
+function garDesequipePeinture(j){if(SHOP.tab!=='peinture')return false;const d=COSM.peinture[j],u=COSM.peinture.findIndex(function(x){return x.id==='usine';});
+  if(!d||u<0||d.id==='usine'||shopEqD('peinture')!==d||!shopEquip('peinture',u))return false;
+  SHOP.prev=null;try{buildCar(CARS[equippedCar()]);}catch(e){}shopShow('peinture',u);try{if(SONV2)sfx('ui.off');}catch(e){}return true;}
 function garEquipeHabit(cat,j){const d=COSM[cat]&&COSM[cat][j];if(!d||!shopOwned(cat,d.id))return false;
   if(shopEqD(cat)!==d&&shopEquip(cat,j)){SHOP.prev=null;try{buildCar(CARS[equippedCar()]);}catch(e){}try{if(SONV2){sfx('ui.equipe');GSON9=true;}}catch(e){}}return true;}
 // aller DIRECTEMENT à une caisse (vignette, famille) — avec la bascule du plateau, comme les flèches
