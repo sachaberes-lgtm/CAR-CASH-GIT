@@ -138,6 +138,7 @@ voitures/simpson.js                  # la voiture d'Homer
 voitures/caid.js                     # le Caïd
 voitures/atchoum-squale.js           # Atchoum, le Squale
 voitures/caisse-pieces.js            # la caisse en un minimum de dessins
+voitures/moba-ombre.js               # l'ombre de la caisse en un minimum de dessins (mandataires d'ombre, passe perf mobile A5)
 voitures/ailes.js                    # les ailes
 voitures/finition.js                 # la finition studio (dans le jeu ; ?finition=ancien = avant) : lumière de studio, vernis profond, reflets qui éclatent
 voitures/travail-caisse.js           # le travail d'une caisse : laque qui coule (lisseDiffuse), patine par sommet (patineGeo), pneu sculpté (pneuTravaille) — la Zagaie et le Loup

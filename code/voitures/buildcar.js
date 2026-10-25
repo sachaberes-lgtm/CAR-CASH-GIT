@@ -357,5 +357,6 @@ function buildCar(spec){
   if(FSTU.on)finLaque(FSTU.garage); // le vernis profond si on est au garage
   caisseSoude(); // (2026-09-27, passe perf iPhone) ce qui ne bouge jamais est soudé par matière — voir « LA CAISSE EN UN MINIMUM DE DESSINS »
   try{feuxLed(spec,hlM,tlM);}catch(e){console.warn('feux',e);} // (2026-10-20) l'étude des feux en LED, `?feux=1|2` (voir FEUXL) — sans paramètre, rien ne change
+  try{MOBA_ombreBatit();}catch(e){console.warn('moba ombre',e);} /* (2026-10-25, passe perf mobile) l'ombre de la caisse en un minimum de dessins : voir moba-ombre.js */
 }
 /* <<<FIN VOITURES>>> */

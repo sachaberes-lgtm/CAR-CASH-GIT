@@ -57,6 +57,7 @@ function loop(now){
   // ÉTAGE 1 : l'ombre en vol, une image sur deux — seulement LOIN de toute dalle (radar de tryLand), jamais au sol
   {const loin9=QL.k>=1&&mode==='fall'&&(lastNearH2+(fallPos.y-lastNearY)*(fallPos.y-lastNearY))>196;
    if(loin9){renderer.shadowMap.autoUpdate=false;QL.fr^=1;renderer.shadowMap.needsUpdate=QL.fr===0;}
+   else if(MOBA_OMBRE15&&TEL_NATIF&&CAD.on){renderer.shadowMap.autoUpdate=false;QL.fr^=1;renderer.shadowMap.needsUpdate=QL.fr===0;} /* (2026-10-25, passe perf mobile, INACTIF par défaut : ?moba_ombre15=1) cadence calée sur 30 : la carte d'ombre une image sur deux — voir moba-ombre.js */
    else if(renderer.shadowMap.autoUpdate===false)renderer.shadowMap.autoUpdate=true;}
   /* (historique conservé) RÉSOLUTION ADAPTATIVE v3 ANTI PING-PONG (2026-07-20) : l'ancienne remontée instantanée à <14,5 ms faisait
      OSCILLER la résolution sur les machines pile au seuil — chaque cran re-échantillonne TOUT l'écran, et les dégradés doux des NUAGES
