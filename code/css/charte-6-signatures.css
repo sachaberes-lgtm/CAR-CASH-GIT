@@ -169,7 +169,7 @@ html #spNote{position:fixed;bottom:calc(var(--sB) + 84px)}
 #mHome #bdShop{box-shadow:0 0 0 2px var(--k0),0 3px 0 2px var(--k0)}
 #mHome .mTitle::after{left:8%;right:8%;bottom:-20px;height:6px;animation:none;
   background:var(--livree3);
-  box-shadow:0 0 14px rgba(255,62,200,.5)}
+  box-shadow:0 0 16px rgba(255,122,230,.7)}
 #mHome.on .mTitle::after{animation:none}
 #mHome .mIcons{margin:0 0 26px}
 #mHome .mIcons .pbtn{min-height:88px}

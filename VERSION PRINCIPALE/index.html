@@ -2041,7 +2041,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
   /* LA LIVRÉE — la signature : magenta · cyan · or, séparés d'un jour (sous le logo, sous chaque titre, sur le volet) */
   --orB:#fff0a0; /* (2026-10-25, Léo : « la bande flow en dessous du CASH CAR, partout, dans cet ordre : bleu cyan, rose magenta, or, doré brillant ») l'ordre de la livrée ET des quatre cellules du flow */
   --livree:linear-gradient(90deg,var(--neoC) 0 22%,transparent 22% 26%,var(--neoM) 26% 48%,transparent 48% 52%,var(--au2) 52% 74%,transparent 74% 78%,var(--orB) 78% 100%);
-  --livree3:linear-gradient(90deg,transparent,var(--neoC) 14% 33%,transparent 33.5% 36.5%,var(--neoM) 37% 63%,transparent 63.5% 66.5%,var(--au2) 67% 86%,transparent); /* (2026-10-25, Léo : « le menu ciel : juste trois bandes ») l'accueil seul */
+  --livree3:linear-gradient(90deg,transparent,var(--neoC) 14% 33%,transparent 33.5% 36.5%,#ff7ae6 37% 63%,transparent 63.5% 66.5%,var(--au2) 67% 86%,transparent); /* (2026-10-25, Léo : « le menu ciel : juste trois bandes ») l'accueil seul */
   --livreeLogo:linear-gradient(90deg,transparent,var(--neoC) 8% 24%,transparent 24.5% 27%,var(--neoM) 27.5% 44%,transparent 44.5% 47%,var(--au2) 47.5% 64%,transparent 64.5% 67%,var(--orB) 67.5% 84%,transparent);
 }
 
@@ -3507,7 +3507,7 @@ html #spNote{position:fixed;bottom:calc(var(--sB) + 84px)}
 #mHome #bdShop{box-shadow:0 0 0 2px var(--k0),0 3px 0 2px var(--k0)}
 #mHome .mTitle::after{left:8%;right:8%;bottom:-20px;height:6px;animation:none;
   background:var(--livree3);
-  box-shadow:0 0 14px rgba(255,62,200,.5)}
+  box-shadow:0 0 16px rgba(255,122,230,.7)}
 #mHome.on .mTitle::after{animation:none}
 #mHome .mIcons{margin:0 0 26px}
 #mHome .mIcons .pbtn{min-height:88px}
