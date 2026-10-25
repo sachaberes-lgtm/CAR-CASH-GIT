@@ -56,7 +56,7 @@ function asphTex(){ if(ASPH_TEX)return ASPH_TEX;
   const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d'),im=c.createImageData(N,N);im.data.set(betonPeint(N));
   c.putImageData(im,0,0);
   const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;
-  t.anisotropy=Math.min(IS_MOBILE?4:8,renderer.capabilities.getMaxAnisotropy()); // la route se regarde RASANTE : sans anisotropie le grain devient une bouillie
+  t.anisotropy=Math.min(ALLEGE?4:8,renderer.capabilities.getMaxAnisotropy()); // la route se regarde RASANTE : sans anisotropie le grain devient une bouillie
   return (ASPH_TEX=t);
 }
 /* (2026-09-26, audit rendu) LES LUMIÈRES PONCTUELLES NE TOUCHENT QUE LA CAISSE. r128 fait tourner la boucle de CHAQUE PointLight dans

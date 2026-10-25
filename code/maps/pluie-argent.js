@@ -8,7 +8,7 @@
    de la boîte et l'objectif fondent l'objet en trame (aucun tri, aucune transparence). Deux appels de dessin, zéro calcul par objet et par
    image. `PLA.dens` (0 → 1, une part des objets) : à CRYPTOCITY une pluie de fond (.5), une AVERSE (1) à chaque NOUVEL ATH et à chaque
    pièce géante traversée ; ailleurs elle remplace l'averse de glyphes (même déclencheur : startMoneyRain). */
-const PLA={N:IS_MOBILE?900:1400,NP:IS_MOBILE?220:360,B:new THREE.Vector3(120,70,160),dens:0,surge:0,mB:null,mP:null,u:null,c:new THREE.Vector3(),f:new THREE.Vector3()};
+const PLA={N:ALLEGE?900:1400,NP:ALLEGE?220:360,B:new THREE.Vector3(120,70,160),dens:0,surge:0,mB:null,mP:null,u:null,c:new THREE.Vector3(),f:new THREE.Vector3()};
 PAL.B.memTexBillets=[.5,1,1]; // (2026-10-14, passe perf mobile) l'échelle de l'atlas des billets de la PLUIE : 1024 × 384 au palier ancien (un billet qui tombe fait quelques dizaines de pixels à l'écran) — 8,4 Mo de puce → 2,1 Mo ; paliers 1-2 : 2048 × 768 comme avant
 function plaTexBillets(){ // l'atlas 4 × 3 : la série des sept billets (pluie de richesse) + le billet ₿ · la rangée du bas : les confettis
   if(PLA.texB)return PLA.texB;

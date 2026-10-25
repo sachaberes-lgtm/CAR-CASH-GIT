@@ -234,7 +234,7 @@ function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uni
 // le liseré des caisses : direction MONDE et teinte de repos, posées par bioApply, relues chaque image par la boucle (voir RIM_U)
 let RIM_S0=.4; // (2026-09-29) la force du liseré posée par le niveau (bioApply) — la boucle la relève en vol
 const RIM_DIR=SUN_DIR.clone(),RIM_C0=new THREE.Color(0xffd9a0),RIM_T9=new THREE.Color(),KICK_DIR=kick.position.clone().normalize();
-const BLOOM_K=IS_MOBILE?.44/.54:1; // le téléphone garde son rapport de bloom (.44 contre .54 sur PC) : les forces des biomes sont des bases PC
+const BLOOM_K=LOOK_TEL?.44/.54:1; // le téléphone garde son rapport de bloom (.44 contre .54 sur PC) : les forces des biomes sont des bases PC
 function bioGo(name,dur){ // lance le voyage vers un biome (reflets carrosserie repeints tout de suite : discret)
   if(!BIOMES[name])name='golden';
   BIO.from=JSON.parse(JSON.stringify(BIO.cur));BIO.to=BIOMES[name];BIO.k=0;BIO.dur=dur||4;BIO.name=name;BIO.dip=0;

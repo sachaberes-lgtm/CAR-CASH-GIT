@@ -282,6 +282,20 @@ const TACTILE_NATIF=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)|
 const TEL_NATIF=TACTILE_NATIF&&((window.matchMedia&&matchMedia('(hover:none)').matches)||Math.min(screen.width,screen.height)<600); // (2026-10-01) l'ÉCRAN, pas la fenêtre — même test que la colonne du <head>
 const FORCE_TEL=/[?&](tel|mobile)=1/.test(location.search)||(EDITION==='mobile'&&!TEL_NATIF&&!/[?&](pc|desktop)=1/.test(location.search)); // l'ORDI qui joue la version téléphone
 const IS_MOBILE=FORCE_TEL||TEL_NATIF;
+/* ===== LES DEUX VERSIONS DU JEU : MAX SUR ORDINATEUR, OPTIMISÉE SUR TÉLÉPHONE (2026-10-25, Sacha : « quand on lance Vercel, ça arrive sur la version
+   maximum ; quand on lance le téléphone, c'est la version optimisée — que j'aie pas à te le redire ») =====
+   UN SEUL code, DEUX régimes, séparés par UN SEUL drapeau :
+     · `ALLEGE` = la version OPTIMISÉE : le VRAI téléphone (TEL_NATIF), ou un essai à la main (`?tel=1` / `?mobile=1` / `?allege=1`). `?allege=0` la coupe (comparer).
+       C'est LUI qui garde TOUT ce qui retire de l'image : résolution, ombres, bloom, anticrénelage, densité des décors, satellites, cartes retirées du tirage…
+     · l'ORDINATEUR (Vercel, /jouer/) = le MAX : chaque branche « PC » du code, jamais allégée.
+   ⚠ `IS_MOBILE` NE DIT PAS « téléphone » : il est vrai AUSSI sur l'ordi, qui joue l'édition 'mobile' dans son cadre de téléphone (FORCE_TEL, voir EDITION). Il ne sert
+   donc QU'À L'INTERFACE (tactile, disposition, cadre). Tout allègement de rendu ou de contenu se garde sur `ALLEGE` — `garde-allege.sh` (lancée par vercel-build.sh)
+   REFUSE la publication si `IS_MOBILE` apparaît hors de la liste des fichiers d'interface. Les paliers `PAL.b(...)` restent sûrs (l'ordi est au palier 2).
+   Le 24/10, des retraits « téléphone » gardés par IS_MOBILE ont dégradé le PC (forêt, dunes, Crypto City, Jade, satellites) : c'est pour que ça ne revienne pas. */
+/* `LOOK_TEL` = L'IMAGE TELLE QU'ELLE A ÉTÉ RÉGLÉE (DA, étalonnage dans l'ACES, bloom .44, flou de boost) : elle a été mise au point dans le cadre téléphone,
+   donc la MÊME sur ordi et sur téléphone — ce n'est PAS un allègement, on n'y touche pas pour « améliorer » le PC (ça changerait les couleurs et le halo que Sacha a validés). */
+const LOOK_TEL=FORCE_TEL||TEL_NATIF;
+const ALLEGE=!/[?&]allege=0\b/.test(location.search)&&(TEL_NATIF||/[?&](tel|mobile|allege)=1\b/.test(location.search));
 /* (2026-10-09, Léo : « la capacité d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulement ça : pas de jeu, que la
    voiture dans la map ») LA BALADE — `?map=jade` : la caisse sur la route des PICS DE JADE, sa conduite telle quelle ; ni pièces, ni plots,
    ni score, ni HUD ; la mort n'est qu'un replacement (le bac à sable) ; rien n'est écrit dans la sauvegarde. Voir « LES PICS DE JADE ». */
@@ -304,6 +318,6 @@ const SIMU_JEU=/[?&]simu=1\b/.test(location.search);
    devicePixelRatio — le plafond de résolution (DPR_CAP), pris une fois au démarrage, restait celui de la petite image (plein écran flou).
    En ?simu=1 seulement, il suit le zoom du cadre (même calcul qu'au démarrage). */
 if(SIMU_JEU){let dpr9=devicePixelRatio;setInterval(function(){if(Math.abs(devicePixelRatio-dpr9)<.01)return;dpr9=devicePixelRatio;
-  try{DPR_CAP=Math.min(devicePixelRatio,IS_MOBILE?1:1.5);qlReprise();}catch(e){}},250);}
+  try{DPR_CAP=Math.min(devicePixelRatio,ALLEGE?1:1.5);qlReprise();}catch(e){}},250);}
 if(BALADE)document.documentElement.classList.add('balade');
-const IS_LOW_END=IS_MOBILE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);
+const IS_LOW_END=ALLEGE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);

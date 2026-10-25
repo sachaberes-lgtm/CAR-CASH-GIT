@@ -9,6 +9,8 @@
    - IMAGE, POUCE HAUT et FIGURES, demandés en paysage par Sacha le 23/10 (v834), étaient re-cachés.
    Maintenant chaque bloc a la taille de ce qu'il contient et l'ensemble se centre. UNE carte pour la partie, UNE carte pour les réglages
    (des cases séparées d'un filet), les trois plaques à la même hauteur et dans leurs colonnes. Libellés en 12 px, PAUSE en 20.
+   (2026-10-25, Sacha : « l'interface est trop compliquée ») FIGURES et POUCE HAUT EN VOL quittent la pause (ils restent dans TOUS LES REGLAGES) : couché, quatre cases
+   en 2×2 — SON · MUSIQUE / IMAGE · RÉGLAGES — au lieu de six.
    Debout, le bloc se cale en bas, sous le pouce : le vide est au-dessus, sur la course figée (avant : un trou de 256 px au milieu).
    Tout est en #tPanel#tPanel#tPanel : les anciennes règles (charte 2/5/7, ux8, écrans iPhone) se superposent, celle-ci passe au-dessus sans !important. */
 #tPanel#tPanel#tPanel{background:radial-gradient(95% 42% at 8% -4%,rgba(255,62,200,.18),transparent 70%),
@@ -66,8 +68,8 @@
 #tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien>span{grid-row:1/span 2;color:var(--neoC,#00eaff)}
 #tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien::after{content:'';position:static;grid-column:3;grid-row:1/span 2;width:0;height:0;margin:0 2px 0 0;background:none;-webkit-mask:none;mask:none;
   border-left:8px solid var(--neoC,#00eaff);border-top:6px solid transparent;border-bottom:6px solid transparent}
-/* debout : SON, MUSIQUE, puis TOUS LES REGLAGES sur la largeur (IMAGE, POUCE HAUT et FIGURES sont dans TOUS LES REGLAGES, comme avant) */
-html:not(.c6) #tPanel#tPanel#tPanel .tpPanel>.tp.ligne:is([data-a="q"],[data-a="volh"],[data-a="figg"]){display:none}
+/* debout : SON, MUSIQUE, puis TOUS LES REGLAGES sur la largeur (IMAGE est dans TOUS LES REGLAGES, comme POUCE HAUT et FIGURES) */
+html:not(.c6) #tPanel#tPanel#tPanel .tpPanel>.tp.ligne[data-a="q"]{display:none}
 #tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien{grid-column:1/-1}
 
 /* ---- les trois plaques : même hauteur, même plaque sombre pour RECOMMENCER et QUITTER (le liseré dit le sens : cyan, rouge),
@@ -82,28 +84,30 @@ html:not(.c6) #tPanel#tPanel#tPanel .tpPanel>.tp.ligne:is([data-a="q"],[data-a="
     0 0 0 1px rgba(3,1,9,.92),0 5px 0 #0a0818,0 5px 0 1px rgba(3,1,9,.92),0 14px 24px -10px rgba(0,0,0,.72)}
 #tPanel#tPanel#tPanel #tpIn .tp.rouge:is(:active,.appui){box-shadow:inset 3px 0 0 var(--neoR,#ff4a64),inset 0 0 26px rgba(255,74,100,.4),0 0 0 1px rgba(3,1,9,.92),0 2px 0 #0a0818}
 
-/* ---- couché : la partie et REPRENDRE à gauche, les réglages (les six) et RECOMMENCER / QUITTER à droite, le tout centré en hauteur ---- */
+/* ---- couché : la partie et REPRENDRE à gauche, les réglages (quatre cases : SON, MUSIQUE, IMAGE, RÉGLAGES) et RECOMMENCER / QUITTER à droite, le tout centré en hauteur ---- */
 @media (orientation:landscape){
   #tPanel#tPanel#tPanel #tpIn{max-width:860px;column-gap:24px;row-gap:14px;align-content:center;
     grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);grid-template-rows:auto auto auto;
     grid-template-areas:"titre titre" "partie regl" "go bas";
     padding:calc(var(--sT) + 12px) calc(var(--sR) + 22px) calc(var(--sB) + 12px) calc(var(--sL) + 22px)}
   #tPanel#tPanel#tPanel #tpIn>.tpResume{align-self:stretch}
-  #tPanel#tPanel#tPanel #tpIn>.tpPanel{align-self:start}
+  #tPanel#tPanel#tPanel #tpIn>.tpPanel{align-self:stretch;grid-auto-rows:minmax(56px,1fr)} /* quatre cases : la carte des réglages finit à la même hauteur que celle de la partie, deux rangées égales */
   #tPanel#tPanel#tPanel #tpIn>.tpRow{align-self:stretch}
   #tPanel#tPanel#tPanel #tpIn>.tpRow>.tp,#tPanel#tPanel#tPanel #tpIn>.tp.go{min-height:56px;height:56px}
-  html:not(.c6) #tPanel#tPanel#tPanel .tpPanel>.tp.ligne:is([data-a="q"],[data-a="volh"],[data-a="figg"]){display:grid}
-  #tPanel#tPanel#tPanel .tpPanel>.tp.ligne:is(.lien,[data-a="figg"]){grid-column:auto} /* ux8 étalait FIGURES sur la largeur : 4 rangées, la page débordait */
+  html:not(.c6) #tPanel#tPanel#tPanel .tpPanel>.tp.ligne[data-a="q"]{display:grid}
+  #tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien{grid-column:auto} /* couché : RÉGLAGES est une case comme les autres, SON · MUSIQUE / IMAGE · RÉGLAGES */
 }
 /* couché bas (iPhone 13 mini, SE : 375 px) : le même écran serré — titre 16 px, libellés 10 px, plaques de 50 px (débordait de 18 px) */
 @media (orientation:landscape) and (max-height:380px){
   #tPanel#tPanel#tPanel #tpIn{row-gap:10px}
   #tPanel#tPanel#tPanel #tpIn>.tpH:first-child{font-size:var(--f5)}
   #tPanel#tPanel#tPanel #tpIn>.tpH:first-child::after{margin-top:7px}
-  #tPanel#tPanel#tPanel .tpPanel{grid-auto-rows:minmax(50px,auto)}
+  #tPanel#tPanel#tPanel .tpPanel{grid-auto-rows:minmax(50px,1fr)}
   #tPanel#tPanel#tPanel .tpPanel>.tp.ligne{min-height:50px;padding:6px 8px;column-gap:8px;row-gap:5px}
   #tPanel#tPanel#tPanel .tpPanel>.tp.ligne::before{left:8px}
   #tPanel#tPanel#tPanel .tpPanel>.tp.ligne>span{font-size:var(--f2)}
+  #tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien{grid-template-columns:34px minmax(0,1fr)} /* 375 px : « REGLAGES » touchait sa flèche, l'engrenage dit déjà qu'on ouvre */
+  #tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien::after{display:none}
   #tPanel#tPanel#tPanel #tpIn>.tpRow>.tp,#tPanel#tPanel#tPanel #tpIn>.tp.go{min-height:50px;height:50px}
 }
 </style>

@@ -9,7 +9,7 @@ renderer.shadowMap.enabled=true;
 PAL.B.postOmbreDouce=[0,0,1];
 renderer.shadowMap.type=PAL.b('postOmbreDouce',1)?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
 sun.castShadow=true;
-sun.shadow.mapSize.set(IS_MOBILE||IS_LOW_END?1024:1280,IS_MOBILE||IS_LOW_END?1024:1280); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
+sun.shadow.mapSize.set(ALLEGE||IS_LOW_END?1024:1280,ALLEGE||IS_LOW_END?1024:1280); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
 const SUNC=sun.shadow.camera;
 SUNC.left=-34;SUNC.right=34;SUNC.top=30;SUNC.bottom=-64;SUNC.near=40;SUNC.far=340;SUNC.updateProjectionMatrix(); // fond profond : l'ombre atteint la dalle même très haut au-dessus de la route
 sun.shadow.bias=-0.0003;sun.shadow.normalBias=0.08; // normalBias en MÈTRES (~2 texels) : assez pour tuer l'acné, pas de quoi décoller l'ombre
@@ -25,9 +25,9 @@ const POST_WB=new THREE.Vector3(1.02,0.985,1.03);       // voile MAGENTA subtil 
 const POST_SHADOW=new THREE.Vector3(0.004,-0.008,0.062); // OMBRES → bleu-violet nuit (place au néon)
 const POST_HI=new THREE.Vector3(0.052,0.008,-0.014);      // LUMIÈRES → or rosé (le couchant qui s'accroche aux tôles)
 // Grade cinéma en PASSE FINALE : tonemap préservant la chroma + contraste + saturation + split-tone. Scène en amont inchangée.
-const GRADE_ACES=IS_MOBILE; // (2026-09-25) l'étalonnage final (ex-filtre CSS du canvas) passe DANS l'ACES : plus de passe de compositeur plein écran, à la résolution de l'écran, sur téléphone
-const FXAA_ON=IS_MOBILE||IS_LOW_END||devicePixelRatio>=1.5; // (2026-09-26, audit rendu) là où il n'y a PAS de MSAA (téléphone : aucun anticrénelage, chaque marche = 3 px physiques)
-const ACES_N=IS_MOBILE?6:8;   // flou radial du boost : 18 lectures de texture au téléphone au lieu de 24 (le grain animé fond les copies)
+const GRADE_ACES=LOOK_TEL; // (2026-09-25) l'étalonnage final (ex-filtre CSS du canvas) passe DANS l'ACES : plus de passe de compositeur plein écran, à la résolution de l'écran, sur téléphone
+const FXAA_ON=ALLEGE||IS_LOW_END||devicePixelRatio>=1.5; // (2026-09-26, audit rendu) là où il n'y a PAS de MSAA (téléphone : aucun anticrénelage, chaque marche = 3 px physiques)
+const ACES_N=LOOK_TEL?6:8;   // flou radial du boost : 18 lectures de texture au téléphone au lieu de 24 (le grain animé fond les copies)
 /* LA PASSE FINALE ALLÉGÉE (2026-09-27, passe perf iPhone, tour 2 — « le post-traitement »). MESURÉ au micro-banc (la passe seule, rejouée
    sur une image figée, 585×1266 comme l'iPhone en NETTE ; rendu logiciel SwiftShader ET vraie carte, chronomètre de la puce) : en rendu
    logiciel, ce qui coûte ce sont les LECTURES de texture (FXAA ~45 %, halo ~20 %, calcul ~15 %) ; sur une vraie puce, le CALCUL de
@@ -107,11 +107,11 @@ const ACESShader={
     '    for(int i=0;i<'+ACES_N+';i++){ float t='+(ACES_N<8?'(float(i)+jt)/'+ACES_N+'.0':'float(i)/7.0')+'; vec2 off=dc*amt*t*0.62;',
     FLOU_MIPS?'      acc+=textureLod(tDiffuse,1.0-abs(1.0-abs(buv-off)),lodF).rgb; }': // (FLOU SANS MOTIF) la prise pré-floutée, repliée en miroir au bord
     '      acc+='+TXL('tDiffuse','buv-off')+'.rgb; }',        // (2026-09-26) UNE lecture par prise (il y en avait trois : 18 lectures par pixel au téléphone)
-    '    x=acc/'+ACES_N+'.0; bu=buv-dc*amt*0.31;'+(IS_MOBILE?'':' bd=dc*amt*0.155;'), // le halo se lit au milieu de la traînée (PC : aux deux quarts, il FILE comme l'image ; téléphone : une lecture — mesuré invisible, 5 lectures de moins au boost)
+    '    x=acc/'+ACES_N+'.0; bu=buv-dc*amt*0.31;'+(LOOK_TEL?'':' bd=dc*amt*0.155;'), // le halo se lit au milieu de la traînée (PC : aux deux quarts, il FILE comme l'image ; téléphone : une lecture — mesuré invisible, 5 lectures de moins au boost)
     // L'ABERRATION CHROMATIQUE (2026-09-26, vague 2) — MESURÉ : au boost, chaque bord de nuage et chaque fenêtre de la ville s'ourlait
     // d'un ARC-EN-CIEL rose/jaune/cyan de 10-12 px (×.05 de l'amplitude du flou, dès le centre). Réduite au TIERS et seulement au-delà de
     // 45 % du rayon (le bord de l'image fuit, le centre reste propre) — et COUPÉE au téléphone : deux lectures de texture en moins par pixel.
-    IS_MOBILE?'':'    { vec2 mid=buv-dc*amt*0.31, ca=dc*amt*0.015*smoothstep(.45,.9,rb);'+
+    LOOK_TEL?'':'    { vec2 mid=buv-dc*amt*0.31, ca=dc*amt*0.015*smoothstep(.45,.9,rb);'+
     '      x.r=mix(x.r,'+TXL('tDiffuse','mid-ca')+'.r,0.5); x.b=mix(x.b,'+TXL('tDiffuse','mid+ca')+'.b,0.5); }',
     '  } else {',
     FXAA_ON?[ // ANTICRÉNELAGE LÉGER (FXAA simplifié) — seulement image nette (le flou de boost lisse déjà) ; hors bord, 5 lectures et on sort
@@ -139,7 +139,7 @@ const ACESShader={
     '      float lB=dot(b,LUM); x=(lB<lMin||lB>lMax)?a:b; }'].join('\n'):'    x='+TXL('tDiffuse','vUv')+'.rgb;',
     '  }',
     // le HALO, déjà composé (poids, écrêtage à 1 et ×alpha compris) : UNE lecture — deux au PC quand il file au boost
-    IS_MOBILE?'  if(uBa>0.0)x+='+TXL('uBc','bu')+'.rgb;':'  if(uBa>0.0)x+=(bd.x!=0.0||bd.y!=0.0)?0.5*('+TXL('uBc','bu-bd')+'.rgb+'+TXL('uBc','bu+bd')+'.rgb):'+TXL('uBc','bu')+'.rgb;',
+    LOOK_TEL?'  if(uBa>0.0)x+='+TXL('uBc','bu')+'.rgb;':'  if(uBa>0.0)x+=(bd.x!=0.0||bd.y!=0.0)?0.5*('+TXL('uBc','bu-bd')+'.rgb+'+TXL('uBc','bu+bd')+'.rgb):'+TXL('uBc','bu')+'.rgb;',
     '  x*=uWE;',                                          // = x·uWB·uExposure (produit posé par image)
     'float L=dot(x,LUM);',
     'vec3 perCh=aces(x);',                              // ACES par canal : sûr mais désature les hautes lumières
@@ -229,16 +229,16 @@ if(CAN_POST){ try{
       const gl=renderer.getContext(),ok=gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE;renderer.setRenderTarget(null);t.dispose();return ok;}
     catch(e){try{renderer.setRenderTarget(null);}catch(e2){}return false;}})();
   const rtType=f16ok?THREE.HalfFloatType:THREE.UnsignedByteType;
-  if(!IS_MOBILE&&!IS_LOW_END&&devicePixelRatio<1.5&&typeof THREE.WebGLMultisampleRenderTarget==='function')rt=new THREE.WebGLMultisampleRenderTarget(w,h,{format:THREE.RGBAFormat,type:rtType}); // MSAA réservé aux écrans 1× (où le crénelage se voit) — sur Retina le resolve coûte cher pour rien
+  if(!ALLEGE&&!IS_LOW_END&&devicePixelRatio<1.5&&typeof THREE.WebGLMultisampleRenderTarget==='function')rt=new THREE.WebGLMultisampleRenderTarget(w,h,{format:THREE.RGBAFormat,type:rtType}); // MSAA réservé aux écrans 1× (où le crénelage se voit) — sur Retina le resolve coûte cher pour rien
   else rt=new THREE.WebGLRenderTarget(w,h,{format:THREE.RGBAFormat,type:rtType,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
   composer=new THREE.EffectComposer(renderer,rt);
   composer.setPixelRatio(curDPR);composer.setSize(w,h);
   composer.addPass(new THREE.RenderPass(scene,camera));
   // BLOOM demi-résolution partout : gros gain GPU, halation quasi identique à l'œil.
   const HALO_REF=2,HALO_LOG=[3,10,28,72,176].map(Math.log2); // (2026-10-14, chaîne de couleur) la résolution où le halo a été réglé (banc : DPR 2) et le rayon de chaque étage, en log2 de texels de la base
-  const bSc=IS_MOBILE?.42:IS_LOW_END?.52:.55; // bloom demi-résolution un cran plus bas sur desktop : le flou EST le produit, personne ne voit la différence
+  const bSc=LOOK_TEL?.42:IS_LOW_END?.52:.55; // bloom demi-résolution un cran plus bas sur desktop : le flou EST le produit, personne ne voit la différence
   const bRes=new THREE.Vector2(Math.max(320,Math.round(w*bSc)),Math.max(240,Math.round(h*bSc)));
-  bloomPass=new THREE.UnrealBloomPass(bRes,IS_MOBILE?0.44:0.54,IS_MOBILE?0.44:.5,0.92);
+  bloomPass=new THREE.UnrealBloomPass(bRes,LOOK_TEL?0.44:0.54,LOOK_TEL?0.44:.5,0.92);
   // (2026-09-26, audit rendu) `addPass` rappelle setSize(largeur×DPR) : la résolution `bSc` était IGNORÉE (mesuré : ½ au lieu de .42).
   // UnrealBloomPass prend la moitié de ce qu'on lui donne — on lui donne donc 2×bSc.
   /* LE HALO COMPOSÉ (2026-09-27, passe perf iPhone, tour 2 — « le post-traitement »). Le halo fusionné dans l'ACES relisait ses 5 mips
