@@ -60,20 +60,23 @@ function fpsSaute(now){ // en tête de loop : rend true si cette image d'écran 
    MÉDIANE depuis le 20/10 pour la même raison. Même règle ici. `?mob_ecran=0` = l'ancien minimum (banc A/B). */
 const MOB_ECRAN=!/[?&]mob_ecran=0\b/.test(location.search);const MOB_EA=new Float32Array(90);let MOB_EN=0;
 function cadSaute(now){ // en tête de loop : rend true si cette image d'écran se saute
+  if(MOB_GOUV)mobGouvTick(now); /* (2026-10-25) la dose de chaleur suit l'horloge — voir moteur/gouverneur-thermique.js */
   const d=now-CAD.rp;CAD.rp=now;if(MOB_ECRAN){if(d>3&&d<100)MOB_EA[MOB_EN++]=d;}else if(d>3&&d<CAD.eMin)CAD.eMin=d;
   if(MOB_ECRAN?MOB_EN>=90:++CAD.eN>=90){const m=MOB_ECRAN?(MOB_EA.sort(),MOB_EN=0,MOB_EA[45]):CAD.eMin;CAD.eN=0;CAD.eMin=99;CAD.ecran=m<7.7?1000/144:m<9.7?1000/120:m<12.6?1000/90:m<15?1000/75:1000/60;CAD.tol=CAD.ecran*.5;} // 30 Hz imposé (m ≈ 33) : on garde 60, rien ne se saute de toute façon
   if(CAD.on&&now-CAD.der<CAD.per-CAD.tol)return true;
   CAD.der=now;return false;}
-function cadPose(v,now){if(v===CAD.on)return;CAD.on=v;CAD.gel=v&&!PAL.b('cadenceMonte',1);CAD.der=now;CAD.lT=0;CAD.calT=now;
+function cadPose(v,now){if(v===CAD.on)return;CAD.on=v;CAD.gel=v&&(!PAL.b('cadenceMonte',1)||(MOB_GOUV&&mobChaud()));CAD.der=now;CAD.lT=0;CAD.calT=now;
   QLR.i=0;QLR.n=0; // l'anneau repart : les centiles ne mélangent pas des durées vraies et des durées ramenées
   if(v){CAD.entrees++;loop._ms=Math.max(CAD.ecran,(loop._ms||16)-(CAD.per-CAD.ecran));}else CAD.sorties++;}
 function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : le travail de l'image, puis la décision
   const w=performance.now()-QLR.t0;CAD.w=CAD.w*.9+w*.1;CAD.wh=CAD.wh*.97+(w>CAD.wMax?1:0); // wh : compteur fuyant, ≥ 3 ≈ plus d'une image sur dix au-dessus de wMax
   const d=Math.min(100,now-CAD.vu);CAD.vu=now;
   if(CAD.force)return;
+  if(MOB_GOUV&&CAD.on&&mobChaud())CAD.gel=true; /* (2026-10-25) calé par chaleur : l'échelle QL ne remonte pas, même si l'entrée était réactive */
   if(!(started&&running&&!gameOver&&!garageOn)){CAD.crs=false;CAD.lT=0;if(CAD.on){cadPose(false,now);CAD.sorties--;}return;} // hors course : jamais calé (et ce n'est pas une « sortie »)
   if(paused)return; // en pause : l'état reste tel quel
-  if(!CAD.crs){CAD.crs=true;CAD.lT=0;CAD.essT=0;if(PAL.b('cadenceDepart',0)&&!loop._r30)cadPose(true,now);return;} // le départ de la course
+  if(!CAD.crs){CAD.crs=true;CAD.lT=0;CAD.essT=0;if((PAL.b('cadenceDepart',0)||(MOB_GOUV&&mobChaud()))&&!loop._r30)cadPose(true,now);return;} // le départ de la course (2026-10-25 : et d'une course qui démarre déjà chaude — gouverneur thermique)
+  if(MOB_GOUV&&!CAD.on&&!loop._r30&&mobChaud()){CAD.essT=0;cadPose(true,now);return;} /* (2026-10-25) la course devient chaude (dose ou état iOS) : calage immédiat, sans attendre les images ratées */
   if(!CAD.calme||QL.essai){CAD.lT=0;CAD.calT=now;return;}
   if(!CAD.on){const ess9=CAD.essT>0&&now-CAD.essT<10000;
     CAD.lT=QLR.p75>19?CAD.lT+d:0;
@@ -81,7 +84,7 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
       if(ess9){CAD.murT=now;CAD.murD=Math.min(480000,CAD.murD*2);} // l'essai de 60 a échoué : un MUR (60 s, puis 2, 4, 8 min)
       CAD.essT=0;cadPose(true,now);}
     else if(CAD.essT>0&&!ess9){CAD.essT=0;CAD.murD=30000;}} // l'essai a tenu 10 s : 60 est acquis, le mur repart de zéro
-  else if(CAD.wh>=3||(CAD.murT>0&&now-CAD.murT<CAD.murD)||(QLR.vraiT&&now-QLR.vraiT<20000&&QLR.vrai>13))CAD.calT=now;
+  else if(CAD.wh>=3||(CAD.murT>0&&now-CAD.murT<CAD.murD)||(QLR.vraiT&&now-QLR.vraiT<20000&&QLR.vrai>13)||(MOB_GOUV&&mobChaud()))CAD.calT=now; /* (2026-10-25) chaud : la sortie réactive ne joue pas */
   else if(now-CAD.calT>5000){cadPose(false,now);CAD.essT=now;}}
 window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0)||CAD30_REC)?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
   const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1),plafond:{actif:FPS_CAP,n:FPS.n,ecran:+FPS.per.toFixed(2)}};}; // (2026-10-20) plafond : une image d'écran sur n (fpsSaute)

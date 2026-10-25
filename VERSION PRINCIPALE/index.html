@@ -70907,20 +70907,23 @@ function fpsSaute(now){ // en tête de loop : rend true si cette image d'écran 
    MÉDIANE depuis le 20/10 pour la même raison. Même règle ici. `?mob_ecran=0` = l'ancien minimum (banc A/B). */
 const MOB_ECRAN=!/[?&]mob_ecran=0\b/.test(location.search);const MOB_EA=new Float32Array(90);let MOB_EN=0;
 function cadSaute(now){ // en tête de loop : rend true si cette image d'écran se saute
+  if(MOB_GOUV)mobGouvTick(now); /* (2026-10-25) la dose de chaleur suit l'horloge — voir moteur/gouverneur-thermique.js */
   const d=now-CAD.rp;CAD.rp=now;if(MOB_ECRAN){if(d>3&&d<100)MOB_EA[MOB_EN++]=d;}else if(d>3&&d<CAD.eMin)CAD.eMin=d;
   if(MOB_ECRAN?MOB_EN>=90:++CAD.eN>=90){const m=MOB_ECRAN?(MOB_EA.sort(),MOB_EN=0,MOB_EA[45]):CAD.eMin;CAD.eN=0;CAD.eMin=99;CAD.ecran=m<7.7?1000/144:m<9.7?1000/120:m<12.6?1000/90:m<15?1000/75:1000/60;CAD.tol=CAD.ecran*.5;} // 30 Hz imposé (m ≈ 33) : on garde 60, rien ne se saute de toute façon
   if(CAD.on&&now-CAD.der<CAD.per-CAD.tol)return true;
   CAD.der=now;return false;}
-function cadPose(v,now){if(v===CAD.on)return;CAD.on=v;CAD.gel=v&&!PAL.b('cadenceMonte',1);CAD.der=now;CAD.lT=0;CAD.calT=now;
+function cadPose(v,now){if(v===CAD.on)return;CAD.on=v;CAD.gel=v&&(!PAL.b('cadenceMonte',1)||(MOB_GOUV&&mobChaud()));CAD.der=now;CAD.lT=0;CAD.calT=now;
   QLR.i=0;QLR.n=0; // l'anneau repart : les centiles ne mélangent pas des durées vraies et des durées ramenées
   if(v){CAD.entrees++;loop._ms=Math.max(CAD.ecran,(loop._ms||16)-(CAD.per-CAD.ecran));}else CAD.sorties++;}
 function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : le travail de l'image, puis la décision
   const w=performance.now()-QLR.t0;CAD.w=CAD.w*.9+w*.1;CAD.wh=CAD.wh*.97+(w>CAD.wMax?1:0); // wh : compteur fuyant, ≥ 3 ≈ plus d'une image sur dix au-dessus de wMax
   const d=Math.min(100,now-CAD.vu);CAD.vu=now;
   if(CAD.force)return;
+  if(MOB_GOUV&&CAD.on&&mobChaud())CAD.gel=true; /* (2026-10-25) calé par chaleur : l'échelle QL ne remonte pas, même si l'entrée était réactive */
   if(!(started&&running&&!gameOver&&!garageOn)){CAD.crs=false;CAD.lT=0;if(CAD.on){cadPose(false,now);CAD.sorties--;}return;} // hors course : jamais calé (et ce n'est pas une « sortie »)
   if(paused)return; // en pause : l'état reste tel quel
-  if(!CAD.crs){CAD.crs=true;CAD.lT=0;CAD.essT=0;if(PAL.b('cadenceDepart',0)&&!loop._r30)cadPose(true,now);return;} // le départ de la course
+  if(!CAD.crs){CAD.crs=true;CAD.lT=0;CAD.essT=0;if((PAL.b('cadenceDepart',0)||(MOB_GOUV&&mobChaud()))&&!loop._r30)cadPose(true,now);return;} // le départ de la course (2026-10-25 : et d'une course qui démarre déjà chaude — gouverneur thermique)
+  if(MOB_GOUV&&!CAD.on&&!loop._r30&&mobChaud()){CAD.essT=0;cadPose(true,now);return;} /* (2026-10-25) la course devient chaude (dose ou état iOS) : calage immédiat, sans attendre les images ratées */
   if(!CAD.calme||QL.essai){CAD.lT=0;CAD.calT=now;return;}
   if(!CAD.on){const ess9=CAD.essT>0&&now-CAD.essT<10000;
     CAD.lT=QLR.p75>19?CAD.lT+d:0;
@@ -70928,7 +70931,7 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
       if(ess9){CAD.murT=now;CAD.murD=Math.min(480000,CAD.murD*2);} // l'essai de 60 a échoué : un MUR (60 s, puis 2, 4, 8 min)
       CAD.essT=0;cadPose(true,now);}
     else if(CAD.essT>0&&!ess9){CAD.essT=0;CAD.murD=30000;}} // l'essai a tenu 10 s : 60 est acquis, le mur repart de zéro
-  else if(CAD.wh>=3||(CAD.murT>0&&now-CAD.murT<CAD.murD)||(QLR.vraiT&&now-QLR.vraiT<20000&&QLR.vrai>13))CAD.calT=now;
+  else if(CAD.wh>=3||(CAD.murT>0&&now-CAD.murT<CAD.murD)||(QLR.vraiT&&now-QLR.vraiT<20000&&QLR.vrai>13)||(MOB_GOUV&&mobChaud()))CAD.calT=now; /* (2026-10-25) chaud : la sortie réactive ne joue pas */
   else if(now-CAD.calT>5000){cadPose(false,now);CAD.essT=now;}}
 window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0)||CAD30_REC)?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
   const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1),plafond:{actif:FPS_CAP,n:FPS.n,ecran:+FPS.per.toFixed(2)}};}; // (2026-10-20) plafond : une image d'écran sur n (fpsSaute)
@@ -70945,6 +70948,63 @@ function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran
   if(!hc){HC.on=false;return false;}
   if(HC.on&&now-HC.der<CAD.per-CAD.tol)return true;
   HC.on=true;HC.der=now;return false;}
+/* ===== LE GOUVERNEUR THERMIQUE — MOB_G (2026-10-25, passe perf mobile : « 30 i/s stables si chaud » — Sacha ; mesure du 25/10 sur l'iPhone 13 Pro, dans l'app, jeu v897) =====
+   MESURÉ : cinq courses de 75 s de suite (nuages niv. 1, puis niv. 2 à 9 en 25 s, tenue en ville niv. 9, pilote automatique) : 56,8 / 57,7 / 51,2 / 49,4 / 37,9 i/s
+   (niveau 9 : 56,0 / 56,6 / 43,4 / 52,4 / 33,4), images > 25 ms : 52 / 38 / 262 / 109 / 425, sonde CPU 4 → 3, 4 → 3, 5 → 7, 4 → 5, 8 → 9. Le capteur de batterie ne gagne
+   que 4 °C (il retarde sur la puce) : iOS bride la puce à partir de la 3e course, soit après 150 à 200 s de course à 60 i/s cumulées, menus compris. La cadence réactive
+   (CAD30_REC, cadence.js) ne cale sur 30 qu'APRÈS avoir vu le quart des images rater la synchro : le joueur a déjà subi les secondes hachées. Ce morceau CALE AVANT :
+   une « dose » MOB_S.D, en secondes équivalentes de 60 i/s en course, estime la chaleur sans aucun capteur.
+   · Elle MONTE : +1 par seconde de course à 60 i/s, +0,5 de course déjà calée sur 30 (la puce y travaille moitié moins), +0,3 au menu / au garage (le plein rendu 3D du
+     menu chauffe aussi, mais moins qu'une course).
+   · Elle REDESCEND de 0,25 par seconde au repos : pause, écran de mort, application en arrière-plan, écran verrouillé, trou de plus d'une seconde entre deux images
+     (rien n'est rendu). 0,25 : un repos de 60 à 120 s n'efface que 15 à 30 s de dose, comme le téléphone des cinq courses (rien n'y refroidit entre deux courses).
+   · SEUIL HAUT 160 : entrée à 30 i/s. Sur la chronologie des cinq courses (22 s de menu, 75 s de course, 60 à 120 s de repos) le modèle bascule dans la 3e course,
+     20 à 50 s après son départ, jamais avant la 2e (preuve : .banc-perf/gouverneur.cjs). SEUIL BAS 40 : retour à 60 seulement quand le téléphone a VRAIMENT refroidi
+     (de 160 à 40 à 0,25/s : 8 min de repos complet ; plafond de la dose 230 : 13 min au pire). Entre les deux, on garde l'état (hystérésis).
+   · La dose survit entre les parties (mémoire du jeu) ET entre deux lancements (localStorage `cashcarMobGouv`, daté : plus de 10 min = 0, sinon refroidie du temps écoulé).
+   Branchement dans la cadence existante (cadence.js) : le départ d'une course déjà « chaude » est calé dès la 1re image ; une course qui devient chaude est calée à l'instant ;
+   `mobChaud()` retient la SORTIE réactive (le retour à 60 sur « travail < 10 ms » ne joue pas tant que le gouverneur dit chaud) et gèle la remontée de l'échelle QL
+   (`cadenceMonte`) : calé par chaleur, on ne remplit pas les 33 ms de qualité. Quand le gouverneur se tait, la règle réactive reprend la main telle quelle (essai de 60,
+   mur…). Rien de la simulation ne change : seule la CADENCE (30 calées au lieu de 17-45 hachées), jamais l'image.
+   Seulement sur un vrai téléphone (TEL_NATIF) au palier RÉCENT, comme CAD30_REC. `?mob_gouv=0` = avant (aucune ligne de ce morceau ne tourne, les tests des autres morceaux
+   sont court-circuités).
+   L'ÉTAT THERMIQUE D'iOS (prise pour un futur plugin Swift) : `window.dispatchEvent(new CustomEvent('cc:thermique',{detail:{etat:n}}))`, n = 0 nominal · 1 fair · 2 serious ·
+   3 critical. ≥ 2 : calage immédiat sur 30, quelle que soit la dose (qu'on remonte à 160 : iOS en sait plus que nous, le modèle ne relâchera qu'après un vrai repos) ;
+   3 : en plus UN cran de l'échelle QL de moins (une fois par épisode) ; 0 ou 1 : le modèle reprend la main.
+   Banc : `dbgGouv()` rend {D, seuilHaut, seuilBas, actif, thermo, pourquoi} ; `dbgGouv(n)` pose la dose ; `dbgThermique(n)` simule l'événement. */
+const MOB_GOUV=CAD30_REC&&!/[?&]mob_gouv=0\b/.test(location.search);
+const MOB_G={course60:1,course30:.5,menu:.3,repos:.25,haut:160,bas:40,max:230,trou:1,perime:600,cle:'cashcarMobGouv'}; /* tout se règle ici (secondes équivalentes, par seconde réelle) */
+const MOB_S={D:0,actif:false,thermo:0,t:0,sauveT:0,q3:false};
+function mobGouvEval(){ /* l'hystérésis : haut → entre, bas → sort, entre les deux on garde */
+  if(MOB_S.D>=MOB_G.haut)MOB_S.actif=true;else if(MOB_S.D<MOB_G.bas)MOB_S.actif=false;}
+function mobChaud(){return MOB_GOUV&&(MOB_S.thermo>=2||MOB_S.actif);} /* vrai : le gouverneur veut le téléphone calé sur 30 */
+function mobGouvSauve(){try{localStorage.setItem(MOB_G.cle,JSON.stringify({D:+MOB_S.D.toFixed(1),a:MOB_S.actif?1:0,t:Date.now()}));}catch(e){}}
+function mobGouvCharge(){try{const o=JSON.parse(localStorage.getItem(MOB_G.cle)||'null');if(!o||!(o.D>0))return;
+  const age=(Date.now()-o.t)/1000;if(!(age>=0&&age<MOB_G.perime))return; /* plus de 10 min (ou horloge refaite) : froid */
+  MOB_S.D=Math.max(0,Math.min(MOB_G.max,o.D-age*MOB_G.repos));MOB_S.actif=!!o.a;mobGouvEval();}catch(e){}}
+function mobGouvTick(now){ /* en tête de cadSaute (donc à CHAQUE image d'écran, sautée ou non) : la dose suit l'horloge, pas les images calculées */
+  if(!MOB_S.t){MOB_S.t=now;return;}
+  const d=(now-MOB_S.t)/1000;MOB_S.t=now;if(!(d>0))return;
+  let v; /* vitesse de la dose, par seconde */
+  if(d>MOB_G.trou||document.hidden)v=-MOB_G.repos; /* un trou : arrière-plan, écran verrouillé, intro du studio — rien n'a été rendu */
+  else if(started&&running&&!gameOver&&!garageOn&&!paused)v=CAD.on?MOB_G.course30:MOB_G.course60;
+  else if(paused||gameOver)v=-MOB_G.repos;
+  else v=MOB_G.menu;
+  MOB_S.D=Math.max(0,Math.min(MOB_G.max,MOB_S.D+v*d));mobGouvEval();
+  if(now-MOB_S.sauveT>5000){MOB_S.sauveT=now;mobGouvSauve();}}
+function mobThermo(n){ /* l'état thermique d'iOS (0 nominal · 1 fair · 2 serious · 3 critical) */
+  n=Math.max(0,Math.min(3,n|0));MOB_S.thermo=n;
+  if(n>=2){MOB_S.D=Math.max(MOB_S.D,n===3?MOB_G.haut+30:MOB_G.haut);MOB_S.actif=true;mobGouvSauve();}
+  if(n===3&&!MOB_S.q3){MOB_S.q3=true;try{qlPose(QL.k+1);}catch(e){}} /* UN cran de qualité par épisode critique (qlPose borne au dernier cran) */
+  else if(n<3)MOB_S.q3=false;}
+if(MOB_GOUV){mobGouvCharge();
+  window.addEventListener('cc:thermique',function(e){mobThermo(+(e&&e.detail&&e.detail.etat));});
+  window.addEventListener('pagehide',mobGouvSauve);
+  document.addEventListener('visibilitychange',function(){if(document.hidden)mobGouvSauve();});}
+window.dbgGouv=function(n){if(n!=null&&MOB_GOUV){MOB_S.D=Math.max(0,Math.min(MOB_G.max,+n||0));mobGouvEval();mobGouvSauve();} /* (banc) pose la dose */
+  const pq=!MOB_GOUV?(CAD30_REC?'coupé (?mob_gouv=0)':'hors téléphone récent'):MOB_S.thermo>=2?'état thermique iOS '+MOB_S.thermo:MOB_S.actif?'dose au-dessus du seuil bas':'froid';
+  return {D:+MOB_S.D.toFixed(1),seuilHaut:MOB_G.haut,seuilBas:MOB_G.bas,actif:mobChaud(),thermo:MOB_S.thermo,pourquoi:pq};};
+window.dbgThermique=function(n){if(MOB_GOUV)mobThermo(+n);return MOB_S.thermo;}; /* (banc) simule l'événement 'cc:thermique' */
 function loop(now){
   requestAnimationFrame(loop);
   if(window.__introCouvre){loop._pn=now;last=now;return;} // (2026-10-22, Léo : « ça bug ») l'INTRO DU STUDIO couvre tout l'écran : dessous, le jeu ne calcule ni ne dessine rien (il faisait saccader le film, surtout sur un Mac chargé) — voir moteur/intro-161.js
