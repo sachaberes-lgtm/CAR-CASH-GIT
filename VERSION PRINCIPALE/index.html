@@ -5919,7 +5919,9 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi
 @keyframes bqK{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
 /* (2026-10-15) L'AIMANT COUPÉ PENDANT L'ENTRÉE (voir bqAimant) : la grille ne s'ouvre plus défilée de 14 px */
 #gBqPan .bqRail.entre{scroll-snap-type:none!important}
-#gBqPan .bqK::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--rc)}
+/* (2026-10-25, Léo : « le texte LÉGENDAIRE en gros empêche de voir les voitures… au lieu de la bande jaune, un fondu qui part du bas, comme éclairé par un néon, sans prendre sur l'image ») la RARETÉ se lit à la lueur du bas de la carte (couleur de la rareté, de plus en plus pâle vers le haut, elle s'arrête sous la photo) : plus d'étiquette écrite, plus de filet. Un masque (et non un dégradé sur --rc) : la couleur reste une simple valeur hex, sans color-mix. */
+#gBqPan .bqK .bqKr{display:none}
+#gBqPan .bqK::after{content:'';position:absolute;left:0;right:0;bottom:0;height:36%;max-height:46px;background:var(--rc);opacity:.55;pointer-events:none;-webkit-mask-image:linear-gradient(to top,#000,rgba(0,0,0,.35) 55%,transparent);mask-image:linear-gradient(to top,#000,rgba(0,0,0,.35) 55%,transparent)}
 #gBqPan .bqK .bqKph{height:60px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(180deg,#f8f9fb,#eceff3)}
 #gBqPan .bqK .bqKph img{width:118%;max-width:none}
 #gBqPan .bqK .bqKn{padding:7px 7px 0;font-size:8px;color:#14171c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
