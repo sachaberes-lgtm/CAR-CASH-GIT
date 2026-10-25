@@ -24,7 +24,7 @@
     {id:'shimmy',     n:'SHIMMY',         en:'SHIMMY',        c:'SHIMMY',  ce:'SHIMMY',  p:20000,  D:.6,  aura:40,  dir:['cote'], m:[{a:[0,1,0],b:.06,k:3},{a:[0,0,1],b:.045,k:3}]},
     {id:'chandelle',  n:'CHANDELLE',      en:'SKY WHEELIE',   c:'CHANDEL', ce:'WHEELIE', p:35000,  D:.8,  aura:45,  dir:['arriere'], m:[{a:[1,0,0],b:-.17,k:1}]},
     {id:'saltoa',     n:'SALTO ARRIERE',  en:'BACKFLIP',      c:'ARRIERE', ce:'BACK',    p:60000,  D:.7,  aura:90,  dir:['arriere'], m:[{a:[1,0,0],t:-1}]},
-    {id:'saltov',     n:'SALTO AVANT',    en:'FRONTFLIP',     c:'AVANT',   ce:'FRONT',   p:60000,  D:.7,  aura:90,  dir:['avant'], m:[{a:[1,0,0],t:1}]},
+    {id:'saltov',     n:'SALTO AVANT',    en:'FRONTFLIP',     c:'AVANT',   ce:'FRONT',   p:60000,  D:.7,  aura:90,  dir:['avant'], r:'commun', /* (2026-10-25, Sacha : « le salto avant, c'est une figure commune ») offert aux nouveaux joueurs : COMMUN partout (boutique, inventaire, HUD) ; `r` passe avant le prix dans cosmRar (les seuils de rareté des figures n'ont pas suivi les prix ×10 de v899) */ m:[{a:[1,0,0],t:1}]},
     {id:'double',     n:'DOUBLE TONNEAU', en:'DOUBLE ROLL',   c:'DOUBLE',  ce:'ROLL×2',  p:90000,  D:.8,  aura:110, dir:['cote'], m:[{a:[0,0,1],t:2}]},
     {id:'tirebouchon',n:'TIRE-BOUCHON',   en:'CORKSCREW',     c:'BOUCHON', ce:'CORK',    p:140000, D:.8,  aura:130, dir:['avant','arriere'], m:[{a:[1,0,0],t:-1},{a:[0,0,1],t:1}]},
     {id:'helico',     n:'HELICO 720',     en:'HELI 720',      c:'HELICO',  ce:'HELI',    p:180000, D:.85, aura:140, dir:['cote'], m:[{a:[0,1,0],t:2}]},

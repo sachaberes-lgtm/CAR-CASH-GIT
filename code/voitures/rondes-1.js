@@ -346,7 +346,7 @@ SHAPES.bulle=function(K){
   /* LA DESTRUCTION VOXEL DU SCARABÉE (25/10, Léo : « les cubes insérés, pas posés par-dessus ; une impression de destruction, pixel / voxel ; plus de noir ») `?scarabee=glitch` : des plaques de cubes de 6 cm À FLEUR
      de la tôle, sur les FLANCS (le pli de ceinture, au milieu de la caisse — rien aux roues) : l'intérieur mis à nu en bleu-vert sombre (pas de noir), un peu de crème, bordées d'éclats de la couleur de la caisse
      qui dépassent de 1 à 4 cm, quelques-uns arrachés. Les plaques s'effritent vers l'arrière. */
-  let SCG=false;try{SCG=/[?&]scarabee=glitch/.test(location.search);}catch(e){}
+  let SCG=false;try{SCG=!/[?&]scarabee=ancien/.test(location.search);}catch(e){}   // PAR DÉFAUT depuis la v912 ; `?scarabee=ancien` = le Scarabée d'avant
   if(SCG){
     const hs=(a,b,c,d)=>{const v=Math.sin(a*12.9898+b*78.233+c*37.719+d*5.171)*43758.5453;return v-Math.floor(v);};
     const CE=.06;
@@ -357,7 +357,7 @@ SHAPES.bulle=function(K){
        vraies sections (le tube de l'aile, la coque). */
     /* (« des cubes glitchés qui font quelques DÉGÂTS ») trois CHOCS sur le capot et l'aile avant : un trou (l'intérieur à nu), une couronne de cubes arrachés et penchés, des débris qui retombent. */
     const IMPC=[[-.26,1.18,.30],[.30,1.50,.26],[.58,1.00,.22]],choc=(x,z)=>{let m=9;for(const [ix,iz,R] of IMPC){const d=Math.hypot(x-ix,z-iz)/R;if(d<m)m=d;}return m;},pen=(a,b,k)=>(hs(a*13,b*17,9,k)-.5)*.9;
-    const c=.05;
+    const c=.075;   // (« divise par deux ») des cubes de 7,5 cm : le capot de 5 cm coûtait 6 000 triangles
     const hautDe=(Sx,x)=>{let m=-1e9;for(let i=0;i<Sx.length;i++){const a=Sx[i],b=Sx[(i+1)%Sx.length];if((a[0]-x)*(b[0]-x)<=0&&a[0]!==b[0]){const y=a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);if(y>m)m=y;}}return m;};
     const aileH=(x,z)=>{const yT=L(AV.yT,z),xo=L(AV.xo,z),yL=Math.min(L(AV.yL,z),yT-.02),xi=Math.min(z<.76?xo-.08:xH(Math.max(.76,z))-.03,xo-.08);return hautDe(coupeAile(xi,xo,yT,yL),x);};
     for(let iz=Math.round(.75/c);iz*c<1.74;iz++)for(let ix=-14;ix<=14;ix++){const x=ix*c,z=iz*c;if(hs(ix,iz,5,1)>.88)continue;

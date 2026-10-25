@@ -8456,6 +8456,26 @@ html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mOffres{--nc:var(--neoM)
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mGear{--nc:var(--au2)!important}
 html #mHome.on .mTitle::after,html #mHome .mTitle::after{background:var(--livree3)!important;box-shadow:0 0 14px rgba(0,234,255,.5)!important}
 </style>
+<style id="accueilDiagonale">
+/* ===== L'ACCUEIL EN DIAGONALE (2026-10-25, Sacha : « REGLAGES dépasse du bouton, réduis ; mets JOUER un peu plus à droite, de belles diagonales dynamiques,
+   dans l'idée de la caisse penchée ») =====
+   1. Le mot des trois tuiles (GARAGE · ACHAT · REGLAGES) : même corps, plus petit, sans espacement ni retrait à gauche, jamais plus large que la tuile
+      (REGLAGES, le plus long, mordait le bord).
+   2. La diagonale « \ » de la caisse (nez en bas à droite) : les tuiles descendent d'un cran de gauche à droite, JOUER descend encore, part à droite et
+      penche de 4° dans le même sens. Seulement `translate` / `rotate` (propriétés à part) : le `transform:none` des tuiles et l'appui (`translate:0 2px`) restent. */
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear){padding:0 3px!important;align-items:center!important;justify-content:center!important;overflow:visible}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear)>span{display:block!important;max-width:100%;box-sizing:border-box;font-size:9px!important;letter-spacing:0!important;white-space:nowrap;overflow:hidden;text-overflow:clip;text-align:center;padding:0!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mHubPorte{translate:0 0}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mOffres{translate:0 9px}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mGear{translate:0 18px}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear):is(:active,.appui){translate:0 calc(var(--dy,0px) + 2px)}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mOffres{--dy:9px}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mGear{--dy:18px}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:22px 20px;rotate:4deg;transform-origin:50% 50%}
+@media (orientation:landscape) and (max-height:540px){
+  html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:56px 24px;rotate:4deg}}
+@media (prefers-reduced-motion:reduce){html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{transition:none}}
+</style>
 <style id="palierLeger">
 /* ===== LE CSS PAR PALIER (2026-10-23, audit mobile, Sacha : « une version mobile fluide sans que ça baisse trop en qualité ») =====
    `html[data-palier]` était écrit par PAL mais aucune règle ne le lisait : un iPhone 7 repeignait les mêmes balayages décoratifs en boucle qu'un
@@ -28853,13 +28873,12 @@ for(const [f9,ks9] of [['banquise',['banqMatin','banqMidi','banqSoir','banqNuit'
 const SF_CARTES={
   nuages:{nm:'MER DE NUAGES',base:'nuages',m:{matin:{bio:'matin'},midi:{bio:'midi'},soir:{bio:'nuagesSoir'},nuit:{bio:'nuagesNuit',nuit:1},
     pluie:{bio:'nuagesPluie',pluie:.75,route:.18,sheen:.16},orage:{niv:'orage',orage:1}}},
-  ville:{nm:'LA VILLE',base:'ville',teintes:['violet','vert','jaune','bleu'],m:{pluie:{niv:'ville',p:1.2},nuit:{niv:'minuit',pluie:0},
-    brouillard:{niv:'minuit',bio:'villeBrume',pluie:0,brume:1},orage:{bio:'villeOrage',pluie:1,orage:1,route:.5,sheen:.2,p:.8}}},
+  ville:{nm:'CRYPTOVILLE',base:'ville',teintes:['violet','vert','jaune'],m:{orage:{bio:'villeOrage',pluie:1,orage:1,route:.5,sheen:.2,p:3.5}}}, // (2026-10-25, Léo, revue des maps : « vire la nuit simple, la pluie, le brouillard et la couleur bleue ») LA VILLE de CRYPTOVILLE = la NUIT d'ORAGE (violet, vert ou jaune) ; p 3,5 = le poids des trois temps de Crypto City : la journée et la nuit de la map à égalité sur PC
   jade:{nm:'PICS DE JADE',base:'jade',m:{matin:{bio:'jadeMatin'},midi:{bio:'jadeMidi'},soir:{bio:'jade'},nuit:{bio:'jadeNuit',nuit:1},
     pluie:{bio:'jadePluie',pluie:.75,sheen:.2},orage:{bio:'jadeOrage',pluie:1,orage:1,sheen:.2}}},
   /* (2026-10-14, Sacha) LA FORÊT NOIRE : ses six temps — le matin doré, le midi vert, le soir d'or, la NUIT HANTÉE (les phares, le loup-garou),
      la pluie, l'orage (les éclairs blanchissent la forêt). Voir « LA FORÊT NOIRE — LA MAP DES CONTES » (genForet, buildForet, FOR_MET). */
-  foret:{nm:'LA FORÊT NOIRE',base:'foret',m:{matin:{bio:'foretMatin'},midi:{bio:'foretMidi'},soir:{bio:'foretSoir'},nuit:{bio:'foretNuit',nuit:1,pr:'LA FORET EST HANTEE'},
+  foret:{nm:'LA FORÊT NOIRE',base:'foret',m:{matin:{bio:'foretMatin'},midi:{bio:'foretMidi'},soir:{bio:'foretSoir'},
     pluie:{bio:'foretPluie',pluie:.8,sheen:.18},orage:{bio:'foretOrage',pluie:1,orage:1,sheen:.2,pr:'LES LOUPS HURLENT'}}},
   /* (2026-10-14, Sacha) LE GLACIER (ex-LA BANQUISE, renommé à 20 h 40 : « ça devrait plutôt s'appeler GLACIER et être une MONTAGNE, comme dans STEEP ») :
      le matin rose, le midi bleu profond, le soir où les pics s'embrasent, la NUIT des aurores boréales, la NEIGE, le BLIZZARD (plus rare). Ni pluie ni
@@ -28871,7 +28890,7 @@ const SF_CARTES={
      pendant la montée fulgurante du Bitcoin ; pleine de références à la token culture, à l'argent et à la tech »). La CRYPTOCITY de Léo (13/10,
      retirée le 14/10 faute d'être dans le tirage) revient comme MAP : ses taureaux, ses bougies, ses pièces ₿ géantes, ses fusées, ses feux,
      le NOUVEL ATH, la pluie d'argent — et des façades en cinq matières. Quatre temps, jamais de pluie ni d'orage (c'est l'apogée). */
-  crypto:{nm:'CRYPTO CITY',base:'crypto',m:{matin:{bio:'cryptoMatin'},midi:{bio:'bullrun',p:1.3},soir:{bio:'cryptoSoir',p:1.2},nuit:{bio:'cryptoNuit',nuit:1,pr:'LA VILLE NE DORT JAMAIS'}}},
+  crypto:{nm:'CRYPTOVILLE',base:'crypto',m:{matin:{bio:'cryptoMatin'},midi:{bio:'bullrun',p:1.3},soir:{bio:'cryptoSoir',p:1.2}}},
   /* (2026-10-17, Léo) LA VILLE VITRÉE : quatre heures — le MATIN aux reflets dorés, le MIDI bleu (les nuages dans les vitres), le COUCHER où les tours
      s'embrasent, la NUIT des bureaux allumés derrière le verre. Jamais de pluie ni d'orage. Voir « LA VILLE VITRÉE ». */
   ...({vitree:{nm:'VILLE VITRÉE',base:'vitree',m:{matin:{bio:'vitreMatin',pr:'REFLETS DORES'},midi:{bio:'vitreMidi',p:1.2},soir:{bio:'vitreSoir',p:1.2,pr:'LES TOURS S EMBRASENT'},nuit:{bio:'vitreNuit',nuit:1,pr:'LES BUREAUX BRILLENT'},
@@ -29044,11 +29063,21 @@ function sfNiveau(c,m,te){ // le NIVEAU d'un couple map × météo, sous la form
   else if(C.teintes)vtBio(o.bio[0],'violet'); // (le brouillard violet a lui aussi besoin de naître)
   return o;}
 function sfTeinte(c,prev){const L=SF_CARTES[c].teintes;if(!L)return null;let t=L[(Math.random()*L.length)|0];if(prev&&t===prev.teinte)t=L[(Math.random()*L.length)|0];return t;} // (2026-10-16) la TEINTE de la ville, au hasard
-function sfTire(prev,cF){ // une MAP au hasard (jamais celle d'avant), puis une MÉTÉO permise dans cette map (pas deux fois la même de suite si on peut l'éviter) — cF : la map imposée (sa météo tirée)
-  const cs=cF?[cF]:Object.keys(SF_CARTES).filter(function(k){return (!prev||k!==prev.carte)&&!SF_HORS[k];}),c=cs[(Math.random()*cs.length)|0],M=SF_CARTES[c].m,ks=Object.keys(M);
-  const pick=function(){let tot=0;for(const k of ks)tot+=M[k].p==null?1:M[k].p;let r=Math.random()*tot;for(const k of ks){r-=M[k].p==null?1:M[k].p;if(r<=0)return k;}return ks[ks.length-1];};
-  let m=pick();if(prev&&m===prev.meteo)m=pick();
-  return {carte:c,meteo:m,teinte:sfTeinte(c,prev)};}
+/* (2026-10-25, Léo : « merge crypto city et ville en une map : la journée c'est crypto, la nuit c'est la ville, le nom de la map c'est cryptoville ») UNE MAP AU TIRAGE,
+   DEUX DÉCORS : `SF_FUSION` range CRYPTO CITY (matin, midi, soir) et LA VILLE (pluie, nuit, brouillard, orage — la ville est toujours de nuit) sous un seul nom, CRYPTOVILLE.
+   Les deux cartes gardent leur identifiant (palettes, durées, musiques, sauvegardes… sont indexés dessus) : seul le TIRAGE les réunit — une place pour la map,
+   pas deux ; ses météos sont les sept, au poids de chacune. Sur téléphone Crypto City est hors du tirage (SF_HORS) : CRYPTOVILLE n'y a que ses nuits. */
+const SF_FUSION={crypto:'cryptoville',ville:'cryptoville'};
+function sfMapDe(k){return SF_FUSION[k]||k;} // la MAP du tirage à laquelle appartient une carte
+function sfTire(prev,cF){ // une MAP au hasard (jamais celle d'avant, chaque map a la même chance quel que soit son nombre de météos), puis une MÉTÉO permise dans cette map (pas deux fois la même de suite si on peut l'éviter) — cF : la carte imposée (sa météo tirée)
+  let mem;
+  if(cF)mem=[cF];
+  else{const g={};for(const k of Object.keys(SF_CARTES)){if(SF_HORS[k])continue;const id=sfMapDe(k);if(prev&&id===sfMapDe(prev.carte))continue;(g[id]||(g[id]=[])).push(k);}
+    const ids=Object.keys(g);mem=g[ids[(Math.random()*ids.length)|0]];}
+  const P=[];for(const k of mem){const M=SF_CARTES[k].m;for(const x of Object.keys(M))P.push([k,x,M[x].p==null?1:M[x].p]);}
+  const pick=function(){let tot=0;for(const q of P)tot+=q[2];let r=Math.random()*tot;for(const q of P){r-=q[2];if(r<=0)return q;}return P[P.length-1];};
+  let q=pick();if(prev&&q[1]===prev.meteo)q=pick();
+  return {carte:q[0],meteo:q[1],teinte:sfTeinte(q[0],prev)};}
 function sfImpose(prev){ // le couple imposé (lien de test, banc) s'il existe — la météo absente de la map est tirée
   const f=SF.force;SF.force=null;if(!f)return sfTire(prev);
   const c=f.carte&&SF_CARTES[f.carte]?f.carte:sfTire(prev).carte,M=SF_CARTES[c].m,L=SF_CARTES[c].teintes;
@@ -37844,7 +37873,7 @@ SHAPES.bulle=function(K){
   /* LA DESTRUCTION VOXEL DU SCARABÉE (25/10, Léo : « les cubes insérés, pas posés par-dessus ; une impression de destruction, pixel / voxel ; plus de noir ») `?scarabee=glitch` : des plaques de cubes de 6 cm À FLEUR
      de la tôle, sur les FLANCS (le pli de ceinture, au milieu de la caisse — rien aux roues) : l'intérieur mis à nu en bleu-vert sombre (pas de noir), un peu de crème, bordées d'éclats de la couleur de la caisse
      qui dépassent de 1 à 4 cm, quelques-uns arrachés. Les plaques s'effritent vers l'arrière. */
-  let SCG=false;try{SCG=/[?&]scarabee=glitch/.test(location.search);}catch(e){}
+  let SCG=false;try{SCG=!/[?&]scarabee=ancien/.test(location.search);}catch(e){}   // PAR DÉFAUT depuis la v912 ; `?scarabee=ancien` = le Scarabée d'avant
   if(SCG){
     const hs=(a,b,c,d)=>{const v=Math.sin(a*12.9898+b*78.233+c*37.719+d*5.171)*43758.5453;return v-Math.floor(v);};
     const CE=.06;
@@ -37855,7 +37884,7 @@ SHAPES.bulle=function(K){
        vraies sections (le tube de l'aile, la coque). */
     /* (« des cubes glitchés qui font quelques DÉGÂTS ») trois CHOCS sur le capot et l'aile avant : un trou (l'intérieur à nu), une couronne de cubes arrachés et penchés, des débris qui retombent. */
     const IMPC=[[-.26,1.18,.30],[.30,1.50,.26],[.58,1.00,.22]],choc=(x,z)=>{let m=9;for(const [ix,iz,R] of IMPC){const d=Math.hypot(x-ix,z-iz)/R;if(d<m)m=d;}return m;},pen=(a,b,k)=>(hs(a*13,b*17,9,k)-.5)*.9;
-    const c=.05;
+    const c=.075;   // (« divise par deux ») des cubes de 7,5 cm : le capot de 5 cm coûtait 6 000 triangles
     const hautDe=(Sx,x)=>{let m=-1e9;for(let i=0;i<Sx.length;i++){const a=Sx[i],b=Sx[(i+1)%Sx.length];if((a[0]-x)*(b[0]-x)<=0&&a[0]!==b[0]){const y=a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);if(y>m)m=y;}}return m;};
     const aileH=(x,z)=>{const yT=L(AV.yT,z),xo=L(AV.xo,z),yL=Math.min(L(AV.yL,z),yT-.02),xi=Math.min(z<.76?xo-.08:xH(Math.max(.76,z))-.03,xo-.08);return hautDe(coupeAile(xi,xo,yT,yL),x);};
     for(let iz=Math.round(.75/c);iz*c<1.74;iz++)for(let ix=-14;ix<=14;ix++){const x=ix*c,z=iz*c;if(hs(ix,iz,5,1)>.88)continue;
@@ -40508,7 +40537,7 @@ return function(K){
   const PEINT=new Set([0,26]),GAP={}; // 26 = le HARD-TOP, à la couleur de la caisse (finition Sahara) : un code à lui pour que les vitres ne mordent pas le cadre du pare-brise
   const CPx=new THREE.Color(),fondu=y=>.80+.20*cl((y-.25)/1.0,0,1),colP=y=>{CPx.setHex(EP.c);if(EP.grad&&typeof lpGrad==='function')lpGrad(EP.grad,y,CPx);
     const s=((EP.g==='p'||EP.g.charAt(0)==='p')&&EP.f!==0)?fondu(y):1;return [CPx.r*s,CPx.g*s,CPx.b*s];};
-  let CCH=false;try{CCH=/[?&]baroudeur=(couches|entre)/.test(location.search);}catch(e){}   /* (25/10, Léo : « fais évoluer le Baroudeur comme La Fidèle ») `?baroudeur=couches` : la caisse en COUCHES EMPILÉES (rangées de dalles, vitres par rangée, détails posés) au lieu de la découpe au plan */
+  let CCH=false;try{CCH=!/[?&]baroudeur=ancien/.test(location.search);}catch(e){}   /* (25/10, Léo : « push ce que tu m'as montré sur le localhost ») PAR DÉFAUT depuis la v912 ; `?baroudeur=ancien` rend la caisse « au plan » d'avant. (25/10, Léo : « fais évoluer le Baroudeur comme La Fidèle ») ancien nom : `?baroudeur=couches` : la caisse en COUCHES EMPILÉES (rangées de dalles, vitres par rangée, détails posés) au lieu de la découpe au plan */
   let C9=CACHE[0];
   if(!CCH&&!C9){
     const G=COL.map(c=>ROWS.map((r,j)=>point(c,j))),TR=[];
@@ -40665,7 +40694,7 @@ return function(K){
     /* (25/10, Léo : « organisé comme sur La Fidèle, qui embrasse la forme de la voiture la plus complexe » — pour le Baroudeur : « le toit et vers l'arrière ») LA PIXELISATION SUR GRILLE : tous les cubes de 6 cm, sur UNE grille
        régulière ; chaque cube va au niveau de grille juste AU-DESSUS de la tôle (0 à 6 cm de relief) : le toit bombé devient un plateau à deux marches, la lunette couchée un escalier de cubes ; quelques cubes manquent
        (le « bug »). Tout de la couleur de la caisse : c'est l'ombre des marches qui dessine la forme. */
-    const c=.06;
+    const c=.09;   // (« quand les voitures ont trop de facettes, divise par deux ») des cubes de 9 cm : le toit de 6 cm coûtait 11 000 triangles
     /* (25/10, Léo : « on veut des cubes glitchés qui font quelques DÉGÂTS sur la voiture ») la grille de cubes devient une carrosserie ENDOMMAGÉE : trois CHOCS (deux sur le toit, un sur la lunette). Au cœur du choc, plus de cubes —
        un trou : l'intérieur apparaît (gris sombre, à fleur de la tôle) ; autour, une couronne de cubes ARRACHÉS, soulevés et penchés ; au-delà, des DÉBRIS qui retombent, penchés eux aussi. Le reste de la grille est intact. */
     const choc=(x,z,L)=>{let m=9;for(const [ix,iz,R] of L){const d=Math.hypot(x-ix,z-iz)/R;if(d<m)m=d;}return m;},pen=(a,b,k)=>(hs(a*13,b*17,9,k)-.5)*.9;
@@ -43968,12 +43997,19 @@ function carFicheOk(s){return !!s&&s.w>0&&s.h>0&&s.l>0;}
    On tire des rayons du ciel sur la caisse montée : on lit la hauteur de la tôle et la couleur de ses sommets. DEUX petits chocs seulement (rayon ~11 % de la largeur) sur les dessus de la caisse (le toit, le capot ou le
    coffre — choisis d'après le nom de la voiture, donc toujours les mêmes) : au centre, un TROU (des tuiles sombres à fleur de tôle), autour une COURONNE de cubes arrachés, soulevés et penchés, au-delà quelques DÉBRIS.
    Les cubes prennent la MATIÈRE et la COULEUR de la tôle qu'ils touchent (la peinture, le vernis, la boutique) : rien de nouveau à compiler, et la caisse garde sa beauté partout ailleurs. Appelée juste avant `caisseSoude()`. */
+const DEGATS_REF=new Set(['LA HONTE','LA FIDELE','ELDORADO','LE CHARGEUR 69','LA VETTE','LA BAVAROISE','LA DOLORES','LE CORBILLARD','LE CHARGEUR','LE DEFIEUR','LE TRONE CENTRAL','LA CERISE','LE SAMOURAI','L ORIGAMI','ROSSO 40','LE MASTODONTE','LA STRATOS','ATCHOUM','LA TAURINE','LE SPECTRE','L ETERNELLE','POSTER 84','LE BLINDE NOIR','SQUALE','CHAT POP TART','LA PIZZA EXPRESS','LE LOUP','LE MUR DU SON','LE DRAGON D OR']);
+const DEGATS_CACHE=new Map();   // nom → les cubes déjà calculés (les rayons ne repartent pas à chaque changement de voiture : la vignette du garage, le départ…)
 function degatsCaisse(spec){
-  let ON=false;try{ON=/[?&]degats=1/.test(location.search);}catch(e){}
+  let ON=true;try{ON=!/[?&]degats=0/.test(location.search);}catch(e){}
   if(!ON||!spec||spec.shape==='wrangler'||spec.shape==='bulle')return;
+  const nm=String(spec.name).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim();
+  if(DEGATS_REF.has(nm))return;   // les 29 RÉFÉRENCES de Léo (le langage visuel du jeu) : à ne pas toucher
   carGroup.updateMatrixWorld(true);
   const cibles=[];carGroup.traverse(o=>{if(o.isMesh&&o.visible&&!o.userData.sol&&!o.userData.noShadow&&o.material&&!Array.isArray(o.material)&&!o.material.transparent&&o.geometry&&o.geometry.attributes.position)cibles.push(o);});
   if(!cibles.length)return;
+  const dc=DEGATS_CACHE.get(spec.name);
+  if(dc&&dc.n===cibles.length){for(const L of dc.lots){const o=cibles[L.mi];if(!o)continue;const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(L.P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(L.N,3));if(L.a)g.setAttribute('color',new THREE.Float32BufferAttribute(L.C,3));
+      const m=new THREE.Mesh(g,o.material);m.castShadow=true;m.userData.degats=1;carGroup.add(m);}return;}
   const RC=new THREE.Raycaster(),DN=new THREE.Vector3(0,-1,0),OR=new THREE.Vector3();RC.layers.enableAll();
   const hs=(a,b,c)=>{const v=Math.sin(a*12.9898+b*78.233+c*37.719)*43758.5453;return v-Math.floor(v);};
   let seed=0;for(let i=0;i<spec.name.length;i++)seed=(seed*31+spec.name.charCodeAt(i))%9973;
@@ -43994,7 +44030,7 @@ function degatsCaisse(spec){
   const chocs=[c1].concat(c2?[c2]:[]);
   // 2. les cubes, groupés par matière
   const lots=new Map(),CE=.045;
-  const lot=(o,a)=>{const k=o.material.uuid+(a?'c':'n');let L=lots.get(k);if(!L){L={mat:o.material,a:a,P:[],N:[],C:[]};lots.set(k,L);}return L;};
+  const lot=(o,a)=>{const mi=cibles.indexOf(o),k=mi+(a?'c':'n');let L=lots.get(k);if(!L){L={mat:o.material,mi:mi,a:a,P:[],N:[],C:[]};lots.set(k,L);}return L;};
   const rot=(a,b,k)=>(hs(a*13+seed,b*17,k)-.5)*.9;
   const cube=(L,cx,cy,cz,sx,sy,sz,rx,ry,rz,col)=>{const g=new THREE.BoxGeometry(sx,sy,sz).toNonIndexed();g.rotateX(rx);g.rotateY(ry);g.rotateZ(rz);g.translate(cx,cy,cz);g.computeVertexNormals();
     const p=g.attributes.position,n=g.attributes.normal;for(let i=0;i<p.count;i++){L.P.push(p.getX(i),p.getY(i),p.getZ(i));L.N.push(n.getX(i),n.getY(i),n.getZ(i));if(L.a)L.C.push(col[0],col[1],col[2]);}g.dispose();};
@@ -44008,38 +44044,57 @@ function degatsCaisse(spec){
   for(const L of lots.values()){if(!L.P.length)continue;const g=new THREE.BufferGeometry();
     g.setAttribute('position',new THREE.Float32BufferAttribute(L.P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(L.N,3));if(L.a)g.setAttribute('color',new THREE.Float32BufferAttribute(L.C,3));
     const m=new THREE.Mesh(g,L.mat);m.castShadow=true;m.userData.degats=1;carGroup.add(m);}
+  DEGATS_CACHE.set(spec.name,{n:cibles.length,lots:[...lots.values()].filter(L=>L.P.length).map(L=>({mi:L.mi,a:L.a,P:L.P,N:L.N,C:L.C}))});
 }
-/* LA TRADUCTION AU LANGAGE DU JEU (25/10, Léo : « les traduire pour que ce soit comme les autres, mais que leur modèle soit toujours ressenti, juste ajusté de manière cool et intelligente » — `?langage=1`, un ESSAI, éteint par défaut) :
-   les voitures « hors langage » (rondes, lisses, 15 à 46 k triangles) repassent par un REGROUPEMENT DE SOMMETS : tous les sommets d'une même case de grille (≈ 4,5 % de la longueur de la caisse) n'en font plus qu'un, au centre de leur
-   groupe ; les triangles qui s'effondrent disparaissent. La silhouette reste celle de la voiture (on la ressent), les petits triangles deviennent de grandes facettes planes (la lumière change à chaque plan), la couleur de chaque
-   facette est la moyenne de ses sommets. On ne touche ni aux roues, ni aux feux, ni au chrome, aux grilles, aux plastiques, au verre (les détails qui font la voiture), ni aux petites pièces (< 25 cm de diagonale) : SEULE la peinture est regroupée. `?langage=1.5` = des facettes plus grosses ; `0.7` = plus fines. Appelée juste
-   avant `caisseSoude()`. */
-const LANG_CIBLES=['LE DOGE','LE COMBI','LE CAÏD','LA PERLE','LA ZAGAIE','LA GRANDE ANGLAISE','LA LAME','LA QUEUE DE CANARD','LE SCARABÉE','LA DOLCE VITA','LA BÊTE','LE BAROUDEUR','LE HOT ROD','LA FÉLINE','LE ROUGE-GORGE'];
+/* LA TRADUCTION AU LANGAGE DU JEU (25/10, Léo : « quand les voitures ont trop de facettes, tu divises par deux le nombre de facettes » ; avant : « les traduire pour que ce soit comme les autres, mais que leur modèle soit toujours ressenti, juste ajusté ») —
+   PAR DÉFAUT depuis la v912 ; `?langage=0` la coupe. Une caisse qui dépasse 12 000 triangles (tes références en font ~5 000) voit sa PEINTURE regroupée en grandes facettes planes : tous les sommets d'une même case de grille n'en font plus qu'un, au centre de leur
+   groupe, les triangles qui s'effondrent disparaissent. La taille de la case est CHERCHÉE (recherche par dichotomie, mémorisée par voiture) pour que la caisse entière tombe à la MOITIÉ de ses triangles, sans dépasser 45 cm. La silhouette reste celle de la
+   voiture, une facette = une couleur (la moyenne de ses sommets). SEULE la peinture (laque 44, nacre 70, métallisé 90) est regroupée : feux, chrome, grilles, plastiques, verre, roues et petites pièces (< 25 cm) gardent leurs détails. Jamais sur tes 29 RÉFÉRENCES
+   (le langage visuel du jeu), ni sur le Baroudeur et le Scarabée (leur style à eux). Appelée juste avant `caisseSoude()`. */
+const LANG_CACHE=new Map();
 function traduisLangage(spec){
-  let V=0;try{const m=/[?&]langage=([\d.]+)/.exec(location.search);V=m?+m[1]:0;}catch(e){}
-  if(!V||!spec||LANG_CIBLES.indexOf(spec.name)<0)return;
+  let ON=true;try{ON=!/[?&]langage=0/.test(location.search);}catch(e){}
+  if(!ON||!spec||spec.shape==='wrangler')return;   // le Baroudeur : sa coque et ses cubes sont dans la même pièce, on n'y touche pas
+  const nm=String(spec.name).normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim();
+  if(DEGATS_REF.has(nm))return;
+  const GROSSE=spec.shape==='bulle'?8000:0;   // le Scarabée : SEULE sa coque (la grosse pièce de peinture) est regroupée, pas les détails ni les cubes du capot
   carGroup.updateMatrixWorld(true);
-  const inv=new THREE.Matrix4().copy(carBody.matrixWorld).invert(),cell=Math.max(.06,(spec.l||4)*.045*V),M=new THREE.Matrix4(),P=new THREE.Vector3();
-  for(const o of carBody.children.slice()){
+  let Tc=0;carGroup.traverse(o=>{if(o.isMesh&&o.geometry&&o.geometry.attributes.position&&!o.userData.sol&&!o.userData.noShadow&&!o.userData.degats&&o.material&&!Array.isArray(o.material)&&!o.material.transparent){const g=o.geometry;Tc+=g.index?g.index.count/3:g.attributes.position.count/3;}});
+  if(Tc<=12000)return;
+  const inv=new THREE.Matrix4().copy(carBody.matrixWorld).invert(),M=new THREE.Matrix4(),P=new THREE.Vector3(),pein=[];
+  for(const o of carBody.children){
     if(!o.isMesh||!o.geometry||!o.geometry.attributes.position||o.userData.sol||o.userData.noShadow||o.userData.degats||!o.material||Array.isArray(o.material))continue;
-    if(o.material.isMeshBasicMaterial)continue;                                                 // les FEUX (matière émissive) : on n'y touche pas — ils font le caractère de la voiture
-    {const sh=o.material.shininess;if(!(o.material.userData&&o.material.userData.g==='p')&&!(sh===44||sh===70||sh===90))continue;}   // SEULE la peinture (laque 44, nacre 70, métallisé 90) est regroupée : chrome, or, plastiques mats (grilles), cuir et verre gardent leurs détails
+    if(o.material.isMeshBasicMaterial)continue;                                                 // les FEUX (matière émissive) : on n'y touche pas
+    {const sh=o.material.shininess;if(!(o.material.userData&&o.material.userData.g==='p')&&!(sh===44||sh===70||sh===90))continue;}   // SEULE la peinture
     const g=o.geometry;g.computeBoundingBox();const bb=g.boundingBox;if(bb.min.distanceTo(bb.max)*Math.max(o.scale.x,o.scale.y,o.scale.z)<.25)continue;   // les petites pièces restent
-    if(o.material.userData&&o.material.userData.g==='l')continue;
-    const pos=g.attributes.position,col=g.attributes.color,ix=g.index,nT=ix?ix.count/3:pos.count/3;
-    M.multiplyMatrices(inv,o.matrixWorld);
-    const cl=new Map(),nv=pos.count,id=new Int32Array(nv),X=[],C=[];
-    for(let v=0;v<nv;v++){P.fromBufferAttribute(pos,v).applyMatrix4(M);const k=Math.round(P.x/cell)+','+Math.round(P.y/cell)+','+Math.round(P.z/cell);let c=cl.get(k);
-      if(c===undefined){c=X.length;cl.set(k,c);X.push([0,0,0,0]);C.push([0,0,0]);}id[v]=c;const a=X[c];a[0]+=P.x;a[1]+=P.y;a[2]+=P.z;a[3]++;
-      if(col){const b=C[c];b[0]+=col.getX(v);b[1]+=col.getY(v);b[2]+=col.getZ(v);}}
+    M.multiplyMatrices(inv,o.matrixWorld);const pos=g.attributes.position,n=pos.count,W=new Float32Array(n*3);
+    for(let v=0;v<n;v++){P.fromBufferAttribute(pos,v).applyMatrix4(M);W[v*3]=P.x;W[v*3+1]=P.y;W[v*3+2]=P.z;}
+    if((g.index?g.index.count/3:n/3)<GROSSE)continue;
+    pein.push({o:o,W:W,n:n,ix:g.index,col:g.attributes.color,nT:g.index?g.index.count/3:n/3});
+  }
+  if(!pein.length)return;
+  const cluster=(m,cell)=>{const id=new Int32Array(m.n),cl=new Map();let k=0;
+    for(let v=0;v<m.n;v++){const key=((Math.round(m.W[v*3]/cell)+2048)*4096+(Math.round(m.W[v*3+1]/cell)+2048))*4096+(Math.round(m.W[v*3+2]/cell)+2048);let c=cl.get(key);if(c===undefined){c=k++;cl.set(key,c);}id[v]=c;}
+    return {id:id,k:k};};
+  const apres=cell=>{let t=0;for(const m of pein){const {id}=cluster(m,cell);for(let q=0;q<m.nT;q++){const a=id[m.ix?m.ix.getX(q*3):q*3],b=id[m.ix?m.ix.getX(q*3+1):q*3+1],c=id[m.ix?m.ix.getX(q*3+2):q*3+2];if(a!==b&&b!==c&&a!==c)t++;}}return t;};
+  let cell=LANG_CACHE.get(spec.name);
+  if(!cell){let Tp=0;for(const m of pein)Tp+=m.nT;const cible=Tc/2-(Tc-Tp);   // les triangles de peinture qu'il faut garder pour que TOUTE la caisse tombe à la moitié
+    let lo=.05,hi=.45;if(cible<=0){cell=hi;}else{for(let i=0;i<8;i++){const mid=(lo+hi)/2;if(apres(mid)>cible)lo=mid;else hi=mid;}cell=hi;}
+    LANG_CACHE.set(spec.name,cell);}
+  for(const m of pein){
+    const o=m.o,cl=cluster(m,cell),id=cl.id,X=new Float32Array(cl.k*4),C=new Float32Array(cl.k*3);
+    for(let v=0;v<m.n;v++){const c=id[v];X[c*4]+=m.W[v*3];X[c*4+1]+=m.W[v*3+1];X[c*4+2]+=m.W[v*3+2];X[c*4+3]++;}
     const Pn=[],Cn=[];
-    for(let t=0;t<nT;t++){const a=id[ix?ix.getX(t*3):t*3],b=id[ix?ix.getX(t*3+1):t*3+1],c=id[ix?ix.getX(t*3+2):t*3+2];if(a===b||b===c||a===c)continue;
-      let cr=0,cg=0,cb=0;for(const q of [a,b,c]){const x=X[q];Pn.push(x[0]/x[3],x[1]/x[3],x[2]/x[3]);if(col){const y=C[q];cr+=y[0]/x[3];cg+=y[1]/x[3];cb+=y[2]/x[3];}}
-      if(col)for(let u=0;u<3;u++)Cn.push(cr/3,cg/3,cb/3);}   // une facette = UNE couleur (la moyenne de ses trois sommets) : plus de dégradé dans un plan
+    for(let t=0;t<m.nT;t++){const a=id[m.ix?m.ix.getX(t*3):t*3],b=id[m.ix?m.ix.getX(t*3+1):t*3+1],c=id[m.ix?m.ix.getX(t*3+2):t*3+2];if(a===b||b===c||a===c)continue;
+      let cr=0,cg=0,cb=0;const va=m.ix?m.ix.getX(t*3):t*3,vb=m.ix?m.ix.getX(t*3+1):t*3+1,vc=m.ix?m.ix.getX(t*3+2):t*3+2;
+      for(const q of [a,b,c]){const k=q*4;Pn.push(X[k]/X[k+3],X[k+1]/X[k+3],X[k+2]/X[k+3]);}
+      if(m.col)for(const v of [va,vb,vc]){cr+=m.col.getX(v);cg+=m.col.getY(v);cb+=m.col.getZ(v);}
+      if(m.col)for(let u=0;u<3;u++)Cn.push(cr/3,cg/3,cb/3);   // une facette = UNE couleur (la moyenne de ses trois sommets) : plus de dégradé dans un plan
+    }
     if(Pn.length<9)continue;
-    const ng=new THREE.BufferGeometry();ng.setAttribute('position',new THREE.Float32BufferAttribute(Pn,3));if(col)ng.setAttribute('color',new THREE.Float32BufferAttribute(Cn,3));ng.computeVertexNormals();
-    const nm=new THREE.Mesh(ng,o.material);nm.castShadow=o.castShadow;nm.receiveShadow=o.receiveShadow;nm.renderOrder=o.renderOrder;nm.userData=Object.assign({},o.userData);
-    carBody.remove(o);carBody.add(nm);
+    const ng=new THREE.BufferGeometry();ng.setAttribute('position',new THREE.Float32BufferAttribute(Pn,3));if(m.col)ng.setAttribute('color',new THREE.Float32BufferAttribute(Cn,3));ng.computeVertexNormals();
+    const nm2=new THREE.Mesh(ng,o.material);nm2.castShadow=o.castShadow;nm2.receiveShadow=o.receiveShadow;nm2.renderOrder=o.renderOrder;nm2.userData=Object.assign({},o.userData);
+    carBody.remove(o);carBody.add(nm2);
   }
 }
 function buildCar(spec){
@@ -52136,6 +52191,9 @@ function mortsCompte(cause){ // une mort RÉELLE (explode)
   const M=mortsEx().morts,c=/^[a-z]{1,12}$/.test(cause)?cause:'autre',o=M[k]||(M[k]={});
   o[c]=Math.min(1e6,(o[c]|0)+1);mortsVerse();SAVE.mark();}
 let mortCause=''; // (2026-09-26, audit UX) POURQUOI on est mort — dit sous GAME OVER : une mort comprise donne envie de rejouer
+/* ===== LA CAUSE DE MORT, À VOIR (2026-10-25, Sacha : « on meurt encore sans raison sur la map dune ») =====
+   La ligne de cause de l'écran de mort est cachée (charte-7-details.css) : on ne sait jamais POURQUOI on est mort. `?cause=1` la remontre, avec le lieu : la cause, l'abscisse, le décalage de la route, le temps de vol et la vitesse. */
+const MORT_VOIR=/[?&]cause=1(&|$)/.test(location.search);let mortInfo='';
 /* (2026-09-30) LA PARTIE BAT-ELLE UN RECORD ? Les TROIS de l'écran de mort (mFill) : l'ARGENT (montants bruts ; 1,61 $ n'en est pas un),
    l'AURA battue en course (CHA.recB), le MOTEUR (un palier jamais atteint avant cette partie). explode s'en sert pour ne pas se moquer
    d'une partie que l'écran de mort va couronner « NOUVEAU RECORD ! ». */
@@ -52158,6 +52216,7 @@ function explode(cause){
   chainePerdue(true); // (aura v2) la chaîne ouverte part avec la caisse
   if(gameOver||mode==='boom')return;
   mortCause=cause||'';
+  if(MORT_VOIR)try{mortInfo='s '+Math.round(s)+' · décalage '+lat.toFixed(0)+' m · vol '+fallT.toFixed(1)+' s · '+Math.round(Math.abs(vA)*SPD*3.6)+' km/h · '+mode;}catch(e){mortInfo='?';}
   try{mortsCompte(mortCause);}catch(e){}try{m2Mort(mortCause);}catch(e){} /* (2026-10-16) LES MISSIONS v2 : morts, les secrètes de la mort */ // (2026-09-30) la mesure des morts par niveau (voir MORTS)
   flowReset();try{flowTick(0);}catch(e){} // le crash VIDE le flow
   /* (2026-09-30) LA MUSIQUE MEURT AVEC LA CAISSE : le tape-stop partait d'endGame, 1,8 s APRÈS l'explosion — toute la boule de feu se
@@ -57553,7 +57612,7 @@ function secPose(g,ratee,vol,kmh){ // au verdict d'une pose : g = 1,5 PARFAIT ·
   if(!ratee&&g>=2&&kmh>SEC_K.orrose)secGagne('orrose');
   if(vol>.7){if(!ratee&&g>=1.5){SEC.parf++;if(SEC.parf>=SEC_K.nacre)secGagne('nacre');}else SEC.parf=0;}
 }
-function secFig(){const k=secCarte();if(k.c==='ville'&&k.m==='nuit'){SEC.villeFig++;if(SEC.villeFig>=SEC_K.lampadaire)secGagne('lampadaire');}} // une figure (addTrick)
+function secFig(){const k=secCarte();if(k.c==='ville'){SEC.villeFig++;if(SEC.villeFig>=SEC_K.lampadaire)secGagne('lampadaire');}} // une figure (addTrick)
 function secPorte(){} /* (2026-10-22) LUNAIRE : dix niveaux dans l'espace (m2Niveau) — l'ancien « 3e portail » n'ouvre plus rien ; */ // un portail franchi (après le compte)
 window.dbgSec=function(a){if(a==='raz'){secReset();return 'remis à zéro';}const k=secCarte();
   return {actif:secOk(),secDonne:typeof secDonne==='function',carte:k.c,meteo:k.m,sansBord:+SEC.bordT.toFixed(1),parfaitsDeSuite:SEC.parf,sansNitroOrage:Math.round(SEC.sansNit),
@@ -57578,8 +57637,8 @@ function m2Def(id){for(let i=0;i<M2.length;i++)if(M2[i].id===id)return M2[i];ret
 function m2CarIdx(nom){for(let i=0;i<CARS.length;i++)if(CARS[i]&&CARS[i].name===nom)return i;return -1;}
 function m2Jour(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 /* LES CARTES : celles que JOUER tire (SF_CARTES, le canyon compris quand il est ouvert) — « chaque map » suit la liste du jeu */
-function m2Cartes(){try{return Object.keys(SF_CARTES).filter(function(k){return !SF_HORS[k];});}catch(e){return [];}} // (2026-10-18) les maps HORS DU TIRAGE n'y sont pas (la ville vitrée vit dans la ville)
-function m2Vues(L){const K=m2Cartes();let n=0;for(const k of L)if(K.indexOf(k)>=0)n++;return n;} // les maps jouées qui comptent (une map sortie du tirage ne compte plus)
+function m2Cartes(){try{const u=[];for(const k of Object.keys(SF_CARTES)){if(SF_HORS[k])continue;const g=sfMapDe(k);if(u.indexOf(g)<0)u.push(g);}return u;}catch(e){return [];}} // (2026-10-18) les maps HORS DU TIRAGE n'y sont pas · (2026-10-25) CRYPTOVILLE : Crypto City et la ville comptent pour UNE map
+function m2Vues(L){const K=m2Cartes(),S=[];for(const k of L){const g=sfMapDe(k);if(K.indexOf(g)>=0&&S.indexOf(g)<0)S.push(g);}return S.length;} // les maps jouées qui comptent (une map sortie du tirage ne compte plus ; les anciennes sauvegardes « crypto » et « ville » valent CRYPTOVILLE)
 /* À TOI, SANS LE CODE COUSIN : le code cousin ouvre tout sur un appareil (« l'argent, l'aura et les records ne bougent pas ») — il ne
    doit pas non plus encaisser les primes de collection. Même règle que carUnlockedVrai / shopOwned / figPossede, le cousin en moins. */
 function m2CarAMoi(i){if(carRetiree(i))return false;if(carOwned(i))return true;if(i<=((SAVE.d.ex&&SAVE.d.ex.floor)|0))return true;
@@ -57600,7 +57659,7 @@ function m2Col(cat){const R=m2Reco();let n=0,tot=0,nT=0;
 /* (2026-10-22) LES RARES À TOI : celles qui s'achètent (les rares gagnées par mission ne comptent pas — LA DOLORÈS se débloque en les ayant toutes) */
 function m2Rares(){const R=m2Reco();let n=0,tot=0;for(let i=0;i<CARS.length;i++){if(carRetiree(i)||carRar(i)!=='rare'||R.car[CARS[i].name])continue;tot++;if(m2CarAMoi(i))n++;}return {n:n,tot:tot};}
 /* (2026-10-22) LA MÉTÉO D'UNE MAP (LA STRATOS) : pour chaque map, les temps (SF_CARTES[k].m : matin, midi, soir, nuit, pluie, orage…) déjà joués ; la meilleure map compte (n joués sur tot) */
-function m2Meteo(){const c=m2Etat().c,H=c.met||{};let n=0,tot=0,f=-1;for(const k of m2Cartes()){const L=Object.keys((SF_CARTES[k]&&SF_CARTES[k].m)||{});if(!L.length)continue;let j=0;for(const x of L)if((H[k]||[]).indexOf(x)>=0)j++;if(j/L.length>f||(j/L.length===f&&L.length>tot)){f=j/L.length;n=j;tot=L.length;}}return {n:n,tot:tot};}
+function m2Meteo(){const c=m2Etat().c,H=c.met||{};let n=0,tot=0,f=-1;for(const g of m2Cartes()){const P=[];for(const k of Object.keys(SF_CARTES)){if(SF_HORS[k]||sfMapDe(k)!==g)continue;for(const x of Object.keys((SF_CARTES[k].m)||{}))P.push([k,x]);}if(!P.length)continue;let j=0;for(const q of P)if((H[q[0]]||[]).indexOf(q[1])>=0)j++;if(j/P.length>f||(j/P.length===f&&P.length>tot)){f=j/P.length;n=j;tot=P.length;}}return {n:n,tot:tot};}
 function m2Tout(){let tot=0,nT=0;for(const c of ['voiture','peinture','aile','trainee','figure']){const o=m2Col(c);tot+=o.tot;nT+=o.nT;}return {tot:tot,nT:nT};}
 /* (M2_COLK est déclarée plus haut, à côté de M2K : voir là) */
 /* LA VALEUR D'UNE MISSION, maintenant (les records de la partie en cours compris) */
@@ -74854,7 +74913,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       ot.style.color=recT?'var(--aura)':'var(--neoR)'; // (2026-09-28, charte au complet) l'or est au lingot REJOUER : le record parle la couleur de l'aura
       {const CAUSES={eau:'AU FOND DE L EAU',lave:'ENGLOUTI PAR LA LAVE',roche:'ECRASE SUR LA ROCHE',paroi:'ENCASTRE DANS LA PAROI',canyon:'AU FOND DU CANYON',sable:'ENSEVELI DANS LE SABLE',oasis:"AU FOND DE L'OASIS",obelisque:"CONTRE L'OBELISQUE",pyramide:'CONTRE LA PYRAMIDE',sol:'AU PIED DES TOURS',riviere:'A LA RIVIERE !',air:"TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE',
          facade:'ENCASTRE DANS UNE FACADE',seine:'A LA SEINE !',arbre:'ENCASTRE DANS UN ARBRE',poudreuse:'ENSEVELI DANS LA POUDREUSE',glace:'FRACASSE SUR LA GLACE',sousbois:'ECRASE DANS LES FOUGERES',pic:'ENCASTRE DANS UN PIC DE JADE'}; /* (chasse aux bugs) la mort 'pic' des PICS DE JADE n'avait pas de cause sous GAME OVER */ I18N['ENCASTRE DANS UN PIC DE JADE']='SMASHED INTO A JADE PEAK';
-       const mc9=$t('mCause'),k9=SANDBOX?'':(CAUSES[mortCause]||'');if(mc9){mc9.textContent=k9?TR(k9):'';mc9.style.display=k9?'':'none';mc9.style.color='';}}
+       const mc9=$t('mCause'),k9=SANDBOX?'':(CAUSES[mortCause]||'');if(mc9){mc9.textContent=k9?TR(k9):'';mc9.style.display=k9?'':'none';mc9.style.color='';if(MORT_VOIR&&!SANDBOX){let v9=document.getElementById('mCauseVoir');if(!v9){v9=document.createElement('div');v9.id='mCauseVoir';v9.style.cssText='position:absolute;left:6px;right:6px;bottom:3px;z-index:99;padding:3px 8px;font:600 11px/1.3 monospace;color:#ffd75e;background:rgba(0,0,0,.6);text-align:center;pointer-events:none;white-space:normal';$t('mDead').appendChild(v9);}v9.textContent=(k9?TR(k9):'(aucun texte)')+' ['+(mortCause||'?')+'] '+mortInfo;}}}
       mCompteSon(recT);
       // Ce qui se gagne DANS une partie, c'est le MOTEUR (la caisse, elle, se choisit au garage) :
       // c'est donc lui qu'on montre en fin de run, pas un palier de voiture qui ne veut plus rien dire.

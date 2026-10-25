@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Voiture + map</title>
+<!-- UNE VOITURE SUR UNE MAP (2026-10-20, Léo : « liste voiture et liste map faites de la même manière, dans la même page : le cylindre avec écrit LA HONTE pour choisir les
+     voitures, le même à côté pour les maps ; tout simplement, pour tester »). UN seul jeu, deux listes déroulantes de la même façon : la VOITURE (par famille, ‹ ›) et la MAP
+     (avec sa météo) ; GARAGE montre la voiture, ROULER lance la course avec CETTE voiture sur CETTE map. En course : la map et la météo changent sur place (~0,3 s, la caisse ne
+     s'arrête pas) ; une autre voiture refait partir le jeu (~4 s) et relance la course. Le jeu de l'outil (jeu-voitures.html : index.html + deux crochets posés par serveur.py)
+     donne la liste des voitures du garage et le choix de la voiture ; la liste des maps est maps-liste.js (copie de repertoire-maps/maps.js).
+     Ouvrir : http://127.0.0.1:9250/repertoire-voitures/maps-voitures.html[?i=<voiture>&carte=<map>&meteo=<météo>] -->
+<style>
+  :root{--sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;--txt2:rgba(255,255,255,.66)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var(--sys);-webkit-font-smoothing:antialiased}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  #barre{position:fixed;top:0;left:0;right:0;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;z-index:2;background:#000;font-size:13px;
+    padding:8px max(12px,env(safe-area-inset-right)) 8px max(12px,env(safe-area-inset-left))}
+  .gr{display:flex;align-items:center;gap:6px;min-width:0}
+  svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;display:block}
+  .choix{position:relative;display:inline-flex;align-items:center;flex:0 1 auto;min-width:0}
+  .choix select{appearance:none;-webkit-appearance:none;background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:999px;height:32px;padding:0 30px 0 14px;
+    font:650 13px var(--sys);letter-spacing:.01em;cursor:pointer;max-width:100%;text-overflow:ellipsis;box-shadow:inset 0 0 0 1.5px var(--rc,transparent)}
+  .choix select:hover{background:rgba(255,255,255,.22)}
+  .choix select:focus-visible{outline:2px solid rgba(255,255,255,.6);outline-offset:1px}
+  .choix select option,.choix select optgroup{color:#000;background:#fff}
+  .choix svg{position:absolute;right:11px;width:12px;height:12px;stroke-width:2.6;pointer-events:none}
+  #voit{width:clamp(120px,22vw,190px)} #carte{width:clamp(110px,20vw,170px)} #meteo{width:clamp(96px,17vw,150px)}
+  #pas{display:inline-flex;align-items:center;gap:2px;flex:none}
+  #pas button{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.1)}
+  #pas button:hover{background:rgba(255,255,255,.22)} #pas button:disabled{opacity:.3;cursor:default}
+  #rang{min-width:50px;text-align:center;font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--txt2);font-variant-numeric:tabular-nums}
+  .sep{width:1px;height:22px;background:rgba(255,255,255,.18);flex:none}
+  #actions{display:flex;gap:6px;margin-left:auto;flex:none}
+  #actions button{height:32px;padding:0 14px;border-radius:999px;font-size:12px;font-weight:650;letter-spacing:.05em;color:rgba(255,255,255,.85);background:rgba(255,255,255,.1)}
+  #actions button:hover{background:rgba(255,255,255,.22);color:#fff} #actions button.on{background:#fff;color:#000}
+  #scene{position:fixed;left:0;right:0;top:48px;bottom:0;display:grid;place-items:center}
+  #jeu{border:0;display:block;background:#000}
+  #attente{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-size:13px;letter-spacing:.06em;color:rgba(255,255,255,.5);pointer-events:none}
+</style>
+</head>
+<body>
+<div id="barre">
+  <div class="gr">
+    <label class="choix" id="choixV"><select id="voit" aria-label="Choisir la voiture"></select><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></label>
+    <div id="pas"><button id="bPrec" type="button" aria-label="Voiture précédente"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><span id="rang"></span><button id="bSuiv" type="button" aria-label="Voiture suivante"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button></div>
+  </div>
+  <span class="sep"></span>
+  <div class="gr">
+    <label class="choix"><select id="carte" aria-label="Choisir la map"></select><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></label>
+    <label class="choix"><select id="meteo" aria-label="Choisir la météo"></select><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></label>
+  </div>
+  <div id="actions">
+    <button id="bGarage" type="button" class="on">GARAGE</button>
+    <button id="bRouler" type="button">ROULER</button>
+  </div>
+</div>
+<div id="scene"><iframe id="jeu" title="Le jeu"></iframe><div id="attente">Le jeu se charge…</div></div>
+<script>
+// le service worker du JEU, s'il s'est installé sur cette adresse, sert une vieille copie : on le retire (serveur.py refuse sw.js, il ne revient pas)
+if (navigator.serviceWorker) navigator.serviceWorker.getRegistrations().then(rs => {
+  if (!rs.length) return;
+  Promise.all(rs.map(r => r.unregister())).then(() => { try { if (!sessionStorage.getItem('ccSwRetire')) { sessionStorage.setItem('ccSwRetire', '1'); location.reload(); } } catch (e) {} });
+}).catch(() => {});
+</script>
+<script src="maps-liste.js"></script>
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const q = new URLSearchParams(location.search), L = window.REPERTOIRE || [];
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const CLE_ETAT = 'ccVoitureMap', CLE_LISTE = 'ccVoituresListe';
+  let mem = {}; try { mem = JSON.parse(localStorage.getItem(CLE_ETAT) || '{}') || {}; } catch (e) {}
+
+  // ---------- L'ÉTAT : la voiture (index dans CARS) · la map et sa météo ----------
+  let cur = parseInt(q.get('i'), 10); if (!(cur >= 0)) cur = Number.isInteger(mem.i) ? mem.i : 0;
+  let M, met, mt, te;   // la map, la clé de météo (« pluie-vert »), la météo du jeu, la teinte
+  const nomMetDe = k => (M.meteos.find(x => x[0] === k) || [k, (k || '').toUpperCase()])[1];
+  function etatMap(id, cle){
+    M = L.find(m => m.id === id) || L[0];
+    met = M.meteos.some(x => x[0] === cle) ? cle : M.couverture;
+    mt = met.split('-')[0]; te = met.split('-')[1] || (M.id === 'ville' ? 'violet' : '');   // « pluie-vert » = la météo + la TEINTE ; la ville sans teinte dite = la violette
+  }
+  etatMap(q.get('carte') || mem.carte, q.get('meteo') || mem.meteo);
+
+  // la sauvegarde de cette adresse : auto-école passée, pas de question du mode au 1er JOUER, la voiture équipée
+  try {
+    const d = JSON.parse(localStorage.getItem('cashcarSave') || '{}') || {};
+    d.v = d.v || 2; d.tuto = 1; d.permis = 1; if (d.facile == null) d.facile = 0; d.equipped = cur;
+    localStorage.setItem('cashcarSave', JSON.stringify(d));
+  } catch (e) {}
+
+  const jeu = $('jeu'), scene = $('scene'), barreEl = $('barre');
+  function taille(){
+    const bh = barreEl.offsetHeight; scene.style.top = bh + 'px';
+    const W = innerWidth, H = innerHeight - bh, debout = H > W * 1.1, w = debout ? 390 : 844, h = debout ? 844 : 390;
+    jeu.style.width = w + 'px'; jeu.style.height = h + 'px'; jeu.style.zoom = Math.min(W / w, H / h);
+  }
+  addEventListener('resize', taille); taille();
+
+  const W = () => { try { return jeu.contentWindow; } catch (e) { return null; } };
+  const ST = () => { const w = W(); try { return w && w.dbgState ? w.dbgState() : null; } catch (e) { return null; } };
+  const visible = el => !!(el && el.getClientRects().length);
+  const bouton = sel => { const w = W(); try { const b = w.document.querySelector(sel); return visible(b) ? b : null; } catch (e) { return null; } };
+  const dort = ms => new Promise(r => setTimeout(r, ms));
+  async function attend(cond, ms){ const t0 = performance.now(); while (performance.now() - t0 < ms) { let v = false; try { v = cond(); } catch (e) {} if (v) return true; await dort(100); } return false; }
+  const enCourse = () => { const s = ST(); return !!(s && s.started && !s.gameOver); };
+  const finie = () => { const s = ST(); return !!(s && s.started && s.gameOver); };
+  const auGarage = () => !!bouton('#gJouer');
+
+  // le jeu de l'outil (avec les deux crochets, posé par serveur.py) si ce serveur le sert ; sinon le jeu tel quel
+  let hook = false;
+  const urlJeu = () => (hook ? '../jeu-voitures.html' : '../index.html') + '?simu=1&hd=0&carte=' + encodeURIComponent(M.id) + '&meteo=' + encodeURIComponent(mt) + (te ? '&teinte=' + encodeURIComponent(te) : '');
+  fetch('../jeu-voitures.html', { method: 'HEAD', cache: 'no-store' }).then(r => r.ok).catch(() => false).then(ok => { hook = ok; jeu.src = urlJeu(); });
+
+  // ---------- LES DEUX LISTES, FAITES DE LA MÊME MANIÈRE ----------
+  let cars = [], fams = {}, idx = {};   // cars : [{i, nom, rar}] dans l'ordre du garage · fams : id → {n, c} · idx : index de voiture → rang
+  function construitVoitures(){
+    idx = {}; cars.forEach((c, k) => idx[c.i] = k);
+    let h = '', rar = null;
+    for (const c of cars) {
+      if (c.rar !== rar) { if (rar !== null) h += '</optgroup>'; rar = c.rar; h += '<optgroup label="' + esc(fams[rar] ? fams[rar].n : 'TOUTES') + '">'; }
+      h += '<option value="' + c.i + '">' + esc(c.nom) + '</option>';
+    }
+    h += '</optgroup>';
+    if (!(cur in idx)) h = '<option value="' + cur + '" disabled>(hors du garage)</option>' + h;
+    $('voit').innerHTML = h;
+  }
+  function liste(){
+    const w = W(); let fait = false;
+    try {
+      if (hook && w.dbgVoitures) {
+        const d = w.dbgVoitures(); cars = d.cars; fams = {}; d.fam.forEach(f => fams[f.id] = f); fait = cars.length > 0;
+        if (fait) try { localStorage.setItem(CLE_LISTE, JSON.stringify({ cars: cars, fam: d.fam })); } catch (e) {}
+      } else if (w.dbgNbCaisses && w.dbgSpec) {   // repli : toutes les fiches du jeu, sans familles (les retirées en font partie)
+        const n = w.dbgNbCaisses(); cars = []; for (let i = 0; i < n; i++) { const s = w.dbgSpec(i); if (s) cars.push({ i, nom: s.name, rar: '' }); } fams = {}; fait = cars.length > 0;
+      }
+    } catch (e) {}
+    if (!fait) return false;
+    construitVoitures(); return true;
+  }
+  (function depuisCache(){   // la dernière liste lue : la barre est pleine dès l'ouverture, sans attendre le jeu
+    try {
+      const d = JSON.parse(localStorage.getItem(CLE_LISTE) || 'null');
+      if (d && d.cars && d.cars.length && d.fam) { cars = d.cars; fams = {}; d.fam.forEach(f => fams[f.id] = f); construitVoitures(); return; }
+    } catch (e) {}
+    $('voit').innerHTML = '<option>Chargement des voitures…</option>';
+  })();
+  $('carte').innerHTML = L.map(m => '<option value="' + esc(m.id) + '">' + esc(m.nom) + '</option>').join('');
+  function construitMeteos(){ $('meteo').innerHTML = M.meteos.map(x => '<option value="' + esc(x[0]) + '">' + esc(x[1]) + '</option>').join(''); }
+
+  function barre(){
+    const c = cars[idx[cur]], k = idx[cur];
+    $('voit').value = String(cur);
+    $('rang').textContent = !cars.length ? '' : k == null ? '–' : (k + 1) + ' / ' + cars.length;
+    const f = c && fams[c.rar]; if (f) $('choixV').style.setProperty('--rc', f.c); else $('choixV').style.removeProperty('--rc');   // le liseré de la famille
+    $('bPrec').disabled = $('bSuiv').disabled = cars.length < 2;
+    construitMeteos(); $('carte').value = M.id; $('meteo').value = met;
+    document.title = (c ? c.nom : 'Voiture ' + cur) + ' · ' + M.nom + ' ' + nomMetDe(met);
+    try { history.replaceState(null, '', 'maps-voitures.html?i=' + cur + '&carte=' + encodeURIComponent(M.id) + '&meteo=' + encodeURIComponent(met)); } catch (e) {}
+    try { localStorage.setItem(CLE_ETAT, JSON.stringify({ i: cur, carte: M.id, meteo: met })); } catch (e) {}
+    taille();
+  }
+  barre();
+
+  // ---------- LES VUES : GARAGE · COURSE ----------
+  // garage = la vitrine, la voiture se change SUR PLACE · course = ROULER avec la voiture et la map choisies ; la map se change SUR PLACE en course ;
+  // l'arrêt (ARRÊTER, ou une autre voiture en roulant) RECHARGE le jeu (~4 s : revenir par le menu du jeu coûte 9 à 17 s) et, si l'on roulait, relance la course.
+  let vue = 'garage', occupe = true, relance = false;   // occupe : le jeu charge, ou un geste est en cours
+  function vues(){
+    $('bGarage').classList.toggle('on', vue === 'garage'); $('bRouler').classList.toggle('on', vue === 'course'); // 'fin' : la course est finie (mort), ni l'un ni l'autre
+    $('bRouler').textContent = vue === 'course' ? 'ARRÊTER' : 'ROULER';
+  }
+  function arme(){ const w = W(); try { w.dbgClassique(M.id, mt, te || null); } catch (e) {} }   // la map et la météo du prochain départ / du prochain portail
+  async function applique(){   // équipe ET montre la voiture ; le crochet dit « attends » tant qu'une animation du garage tourne
+    for (let k = 0; k < 24; k++) {
+      const w = W(); let r = null;
+      try { r = hook && w.dbgGarageVa ? w.dbgGarageVa(cur) : (w.dbgEquipe ? w.dbgEquipe(cur) : null); } catch (e) {}
+      if (r !== 'attends') return r;
+      await dort(150);
+    }
+  }
+  async function versGarage(){
+    if (auGarage()) return true;
+    await attend(() => bouton('[data-m="garage"]') || auGarage(), 8000);
+    const g = bouton('[data-m="garage"]'); if (g) g.click();
+    return await attend(auGarage, 6000);
+  }
+  function recharge(veutRouler){   // le jeu repart de zéro sur la voiture courante : le garage s'ouvre tout seul (pret), la course se relance si elle roulait
+    try { const d = JSON.parse(localStorage.getItem('cashcarSave') || '{}') || {}; d.equipped = cur; localStorage.setItem('cashcarSave', JSON.stringify(d)); } catch (e) {}
+    occupe = true; relance = !!veutRouler; vue = 'garage'; vues(); $('attente').style.display = ''; jeu.src = urlJeu();
+  }
+  async function aGarage(){
+    if (occupe) return;
+    if (enCourse() || finie()) { recharge(false); return; }
+    occupe = true; vue = 'garage'; vues();
+    try { await versGarage(); await applique(); } finally { occupe = false; }
+    focusJeu();
+  }
+  async function aRouler(){
+    if (occupe) return;
+    if (finie()) { occupe = true; try { await applique(); arme(); const w = W(); if (w.dbgEco) w.dbgEco('rejouer'); vue = 'course'; vues(); await attend(enCourse, 12000); } finally { occupe = false; } focusJeu(); return; }
+    if (enCourse()) return;
+    occupe = true;
+    try {
+      if (!auGarage()) await versGarage();
+      await applique(); arme(); await dort(150);
+      const b = bouton('#gJouer');
+      if (b) { b.click(); vue = 'course'; vues(); await attend(enCourse, 8000); }
+    } finally { occupe = false; }
+    focusJeu();
+  }
+  async function va(i){   // une autre voiture : sur place au garage ; en roulant, le jeu repart et la course se relance (voir recharge)
+    if (!(i in idx) && cars.length) return;
+    cur = i; barre();
+    if (enCourse() || finie()) { recharge(vue === 'course'); return; }
+    if (occupe) return; occupe = true;
+    try { if (!auGarage()) await versGarage(); await applique(); } finally { occupe = false; }
+    focusJeu();
+  }
+  async function vaMap(id, cle){   // une autre map / météo : armée pour le prochain départ, et SUR PLACE si l'on roule (dbgSaut = un portail sans le rituel)
+    etatMap(id, cle); barre();
+    const w = W(), st = ST(); if (!st) return;   // le jeu charge encore : pret() arme
+    arme();
+    try {
+      if (st.started && !st.gameOver) w.dbgSaut();
+      else if (st.started && st.gameOver && w.dbgEco) { w.dbgEco('rejouer'); vue = 'course'; vues(); }
+    } catch (e) {}
+    focusJeu();
+  }
+  const pas = d => { if (!cars.length) return; const k = idx[cur] == null ? 0 : idx[cur]; va(cars[(k + d + cars.length) % cars.length].i); };
+  $('voit').addEventListener('change', () => { const i = parseInt($('voit').value, 10); $('voit').blur(); va(i); });
+  $('carte').addEventListener('change', () => { $('carte').blur(); vaMap($('carte').value, met); });   // la même météo si la nouvelle map l'a (soir reste soir), sinon sa météo de couverture
+  $('meteo').addEventListener('change', () => { $('meteo').blur(); vaMap(M.id, $('meteo').value); });
+  $('bPrec').addEventListener('click', () => pas(-1)); $('bSuiv').addEventListener('click', () => pas(1));
+  $('bGarage').addEventListener('click', () => aGarage());
+  $('bRouler').addEventListener('click', () => { if (vue === 'course') aGarage(); else aRouler(); });
+
+  // ---------- LE CLAVIER ET LE FOCUS ----------
+  const focusJeu = () => { try { jeu.focus(); jeu.contentWindow.focus(); } catch (e) {} };
+  document.addEventListener('pointerdown', ev => { if (!ev.target.closest('#barre')) setTimeout(focusJeu, 0); });
+  for (const t of ['keydown', 'keyup']) addEventListener(t, ev => {   // une touche frappée hors du cadre part dans le jeu ; ← → changent de voiture au garage
+    if (ev.target === jeu || (ev.target.tagName === 'SELECT')) return;
+    if (vue !== 'course' && !enCourse() && /^Arrow(Left|Right)$/.test(ev.code)) { if (t === 'keydown' && !ev.repeat) pas(ev.code === 'ArrowLeft' ? -1 : 1); ev.preventDefault(); return; }
+    try { const w = jeu.contentWindow; w.document.dispatchEvent(new w.KeyboardEvent(t, { code: ev.code, key: ev.key, keyCode: ev.keyCode, repeat: ev.repeat, bubbles: true, cancelable: true })); } catch (e) {}
+    if (/^(Space|Arrow)/.test(ev.code)) ev.preventDefault();
+  });
+
+  // ---------- LE DÉPART (à chaque chargement du jeu) ----------
+  // le jeu charge → on attend son accueil (et le ciel du titre : un clic trop tôt figeait le départ des maps) → la liste est lue → le garage s'ouvre sur la voiture
+  // courante, la map est armée ; si la course roulait avant le rechargement (autre voiture), elle repart
+  async function pret(){
+    const t0 = performance.now(); let cielT = 0;
+    for (;;) {
+      await dort(300);
+      const w = W(), st = ST(), now = performance.now();
+      if (now - t0 > 90000) { occupe = false; return; }
+      if (!w || !st) continue;
+      try { if (w.document.body.classList.contains('titreCiel')) { if (!cielT) cielT = now; } else cielT = 0; } catch (e) { continue; }
+      if ((bouton('[data-m="garage"]') || auGarage()) && ((cielT && now - cielT > 800) || now - t0 > 8000)) break;
+    }
+    if (!liste() && !cars.length) { occupe = false; return; }
+    barre(); vue = 'garage'; vues(); $('attente').style.display = 'none'; arme();
+    try { await versGarage(); await applique(); } finally { occupe = false; }
+    focusJeu();
+    if (relance) { relance = false; aRouler(); }
+  }
+  jeu.addEventListener('load', () => { pret(); });
+  // la map reste armée : le départ, chaque portail et chaque nouvelle partie restent sur CETTE map (le jeu consomme l'armement à chaque tirage)
+  setInterval(() => { try { const w = W(); if (w && w.dbgClassique && !occupe && !w.dbgClassique().force && ST()) arme(); } catch (e) {} }, 400);
+  // le garage peut changer de voiture tout seul (flèches du jeu, glissé) : la barre suit
+  setInterval(() => { if (!hook || occupe || vue !== 'garage' || !(cur in idx) || !cars.length) return; try { const i = W().dbgGarageVa(); if (typeof i === 'number' && i !== cur && i in idx) { cur = i; barre(); } } catch (e) {} }, 600);
+  // une course finie (mort) : ni GARAGE ni ARRÊTER — ROULER repart tout de suite
+  setInterval(() => { if (vue === 'course' && finie() && !occupe) { vue = 'fin'; vues(); } }, 500);
+})();
+</script>
+</body>
+</html>

@@ -196,7 +196,7 @@ return function(K){
   const PEINT=new Set([0,26]),GAP={}; // 26 = le HARD-TOP, à la couleur de la caisse (finition Sahara) : un code à lui pour que les vitres ne mordent pas le cadre du pare-brise
   const CPx=new THREE.Color(),fondu=y=>.80+.20*cl((y-.25)/1.0,0,1),colP=y=>{CPx.setHex(EP.c);if(EP.grad&&typeof lpGrad==='function')lpGrad(EP.grad,y,CPx);
     const s=((EP.g==='p'||EP.g.charAt(0)==='p')&&EP.f!==0)?fondu(y):1;return [CPx.r*s,CPx.g*s,CPx.b*s];};
-  let CCH=false;try{CCH=/[?&]baroudeur=(couches|entre)/.test(location.search);}catch(e){}   /* (25/10, Léo : « fais évoluer le Baroudeur comme La Fidèle ») `?baroudeur=couches` : la caisse en COUCHES EMPILÉES (rangées de dalles, vitres par rangée, détails posés) au lieu de la découpe au plan */
+  let CCH=false;try{CCH=!/[?&]baroudeur=ancien/.test(location.search);}catch(e){}   /* (25/10, Léo : « push ce que tu m'as montré sur le localhost ») PAR DÉFAUT depuis la v912 ; `?baroudeur=ancien` rend la caisse « au plan » d'avant. (25/10, Léo : « fais évoluer le Baroudeur comme La Fidèle ») ancien nom : `?baroudeur=couches` : la caisse en COUCHES EMPILÉES (rangées de dalles, vitres par rangée, détails posés) au lieu de la découpe au plan */
   let C9=CACHE[0];
   if(!CCH&&!C9){
     const G=COL.map(c=>ROWS.map((r,j)=>point(c,j))),TR=[];
@@ -353,7 +353,7 @@ return function(K){
     /* (25/10, Léo : « organisé comme sur La Fidèle, qui embrasse la forme de la voiture la plus complexe » — pour le Baroudeur : « le toit et vers l'arrière ») LA PIXELISATION SUR GRILLE : tous les cubes de 6 cm, sur UNE grille
        régulière ; chaque cube va au niveau de grille juste AU-DESSUS de la tôle (0 à 6 cm de relief) : le toit bombé devient un plateau à deux marches, la lunette couchée un escalier de cubes ; quelques cubes manquent
        (le « bug »). Tout de la couleur de la caisse : c'est l'ombre des marches qui dessine la forme. */
-    const c=.06;
+    const c=.09;   // (« quand les voitures ont trop de facettes, divise par deux ») des cubes de 9 cm : le toit de 6 cm coûtait 11 000 triangles
     /* (25/10, Léo : « on veut des cubes glitchés qui font quelques DÉGÂTS sur la voiture ») la grille de cubes devient une carrosserie ENDOMMAGÉE : trois CHOCS (deux sur le toit, un sur la lunette). Au cœur du choc, plus de cubes —
        un trou : l'intérieur apparaît (gris sombre, à fleur de la tôle) ; autour, une couronne de cubes ARRACHÉS, soulevés et penchés ; au-delà, des DÉBRIS qui retombent, penchés eux aussi. Le reste de la grille est intact. */
     const choc=(x,z,L)=>{let m=9;for(const [ix,iz,R] of L){const d=Math.hypot(x-ix,z-iz)/R;if(d<m)m=d;}return m;},pen=(a,b,k)=>(hs(a*13,b*17,9,k)-.5)*.9;
