@@ -189,7 +189,7 @@ const rrect=(u0,v0,u1,v1,r,n)=>{const o=[],c=[[u1-r,v0+r,-Math.PI/2],[u1-r,v1-r,
 return function(K){
   const SP=K.spec||{},CORPS=SP.color!=null?SP.color:0x464950;
   const PAL={p:{g:'p',c:CORPS},k:{g:'m',c:0x161719},K:{g:'g',c:0x0b0c0f},c:{g:'c',c:0xd4d8de},C:{g:'c',c:0x6c727b},g:{g:'g',c:0x1d2a36},
-    W:{g:'l',c:0xfff2d2},L:{g:'l',c:0xff2a36},O:{g:'l',c:0xffa21a},R:{g:'m',c:0x7a1018},s:{g:'s',c:0x23252a},Q:{g:'l',c:0xe8e8e8},P:{g:'m',c:0x3d4047},N:{g:'l',c:0x5ee6ff},M:{g:'l',c:0xff3ec8},V:{g:'g',c:0x5a86ab},B:{g:'m',c:0x2d6be4}};
+    W:{g:'l',c:0xfff2d2},L:{g:'l',c:0xff2a36},O:{g:'l',c:0xffa21a},R:{g:'m',c:0x7a1018},s:{g:'s',c:0x23252a},Q:{g:'l',c:0xe8e8e8},P:{g:'m',c:0x3d4047},N:{g:'l',c:0x5ee6ff},M:{g:'l',c:0xff3ec8},V:{g:'g',c:0x5a86ab}};
   const EP=(typeof peintPal==='function'?peintPal(PAL):PAL).p,GP=EP.g;
   const CODES=[];CODES[0]={g:'#'};CODES[1]={g:'#',k:.38};CODES[2]={g:'g',c:0x1d2a36};CODES[3]={g:'g',c:0x0b0c0f};CODES[22]={g:'s',c:0x23252a};
   CODES[23]={g:'m',c:0x16171b};CODES[25]={g:'m',c:0x32333a};CODES[26]={g:'#'};CODES[27]={g:'l',c:0xff2a36};
@@ -339,7 +339,7 @@ return function(K){
     const BX=(k,w,h,d,x,y,z)=>P.box(k,w,h,d,x,y,z,0,0,0),CE=.07;
     const yT0=z=>lin([[.648,1.321],[1.083,1.307],[1.493,1.272],[1.684,1.225],[1.794,1.19],[1.835,1.17],[1.862,1.152]],z);
     const roofY=x=>{const a=Math.abs(x);return a<=.705?1.8025+.0325*(1-a/.705):1.785+.0175*(1-(a-.705)/.088);};
-    const col=q=>q>.94?'N':q>.76?'B':q>.68?'k':'p';
+    const col=q=>q>.95?'c':q>.80?'k':'p';
     // 1. le capot, depuis le nez : de plus en plus de blocs vers l'avant
     for(let iz=Math.round(1.25/CE);iz*CE<1.86;iz++)for(let ix=-9;ix<=9;ix++){const z=iz*CE,x=ix*CE;if(Math.abs(x)>.62)continue;
       const t=(z-1.25)/.61,pr=.98*Math.pow(t,1.25)*(1-.35*Math.abs(x)/.62),h=hs(iz,ix,1,0);if(h>pr)continue;
