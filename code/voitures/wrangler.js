@@ -189,7 +189,7 @@ const rrect=(u0,v0,u1,v1,r,n)=>{const o=[],c=[[u1-r,v0+r,-Math.PI/2],[u1-r,v1-r,
 return function(K){
   const SP=K.spec||{},CORPS=SP.color!=null?SP.color:0x464950;
   const PAL={p:{g:'p',c:CORPS},k:{g:'m',c:0x161719},K:{g:'g',c:0x0b0c0f},c:{g:'c',c:0xd4d8de},C:{g:'c',c:0x6c727b},g:{g:'g',c:0x1d2a36},
-    W:{g:'l',c:0xfff2d2},L:{g:'l',c:0xff2a36},O:{g:'l',c:0xffa21a},R:{g:'m',c:0x7a1018},s:{g:'s',c:0x23252a},Q:{g:'l',c:0xe8e8e8},P:{g:'m',c:0x3d4047},N:{g:'l',c:0x5ee6ff},M:{g:'l',c:0xff3ec8},V:{g:'g',c:0x5a86ab},B:{g:'m',c:0x2d6be4}};
+    W:{g:'l',c:0xfff2d2},L:{g:'l',c:0xff2a36},O:{g:'l',c:0xffa21a},R:{g:'m',c:0x7a1018},s:{g:'s',c:0x23252a},Q:{g:'l',c:0xe8e8e8},P:{g:'m',c:0x3d4047},N:{g:'l',c:0x5ee6ff},M:{g:'l',c:0xff3ec8},V:{g:'g',c:0x5a86ab},B:{g:'m',c:0x2d6be4},a:{g:'c',c:0x12d6c8},b:{g:'c',c:0x2a6cf0},e:{g:'c',c:0x7b3ff2},f:{g:'c',c:0xe23ec9},h:{g:'c',c:0x3fe07a}};
   const EP=(typeof peintPal==='function'?peintPal(PAL):PAL).p,GP=EP.g;
   const CODES=[];CODES[0]={g:'#'};CODES[1]={g:'#',k:.38};CODES[2]={g:'g',c:0x1d2a36};CODES[3]={g:'g',c:0x0b0c0f};CODES[22]={g:'s',c:0x23252a};
   CODES[23]={g:'m',c:0x16171b};CODES[25]={g:'m',c:0x32333a};CODES[26]={g:'#'};CODES[27]={g:'l',c:0xff2a36};
@@ -339,12 +339,12 @@ return function(K){
     const BX=(k,w,h,d,x,y,z)=>P.box(k,w,h,d,x,y,z,0,0,0),CE=.07;
     const yT0=z=>lin([[.648,1.321],[1.083,1.307],[1.493,1.272],[1.684,1.225],[1.794,1.19],[1.835,1.17],[1.862,1.152]],z);
     const roofY=x=>{const a=Math.abs(x);return a<=.705?1.8025+.0325*(1-a/.705):1.785+.0175*(1-(a-.705)/.088);};
-    const col=q=>q>.94?'N':q>.76?'B':q>.68?'k':'p';
+    const col=(x,z,q)=>q>.34?['a','b','e','f','h'][Math.floor((((z*.55+x*.45+.10*q)%1)+1)%1*5)]:'p';   // CAMÉLÉON : des cubes de métal teinté dont la teinte glisse (sarcelle → bleu → violet → magenta → vert) avec leur place
     // 1. le capot, depuis le nez : de plus en plus de blocs vers l'avant
     for(let iz=Math.round(1.25/CE);iz*CE<1.86;iz++)for(let ix=-9;ix<=9;ix++){const z=iz*CE,x=ix*CE;if(Math.abs(x)>.62)continue;
       const t=(z-1.25)/.61,pr=.98*Math.pow(t,1.25)*(1-.35*Math.abs(x)/.62),h=hs(iz,ix,1,0);if(h>pr)continue;
       const q=hs(iz+.3,ix+.7,1,2),n=1+Math.floor(hs(iz+.9,ix+.1,1,4)*2.4),ht=.03+.038*hs(iz+.5,ix+.5,1,6);
-      BX(col(q),CE*.86,ht,CE*n-.006,x,yT0(z)+.018+ht/2+(q>.85?.02:0),z+CE*(n-1)/2);}
+      BX(col(x,z,q),CE*.86,ht,CE*n-.006,x,yT0(z)+.018+ht/2+(q>.85?.02:0),z+CE*(n-1)/2);}
     // 2. l'originalité : sept blocs en colonne, un par fente, qui montent au-dessus de la calandre (de plus en plus petits)
     for(let k=0;k<7;k++){const x=-.315+k*.105,hh=.05-.0055*k;BX(k%3===1?'k':'p',.075,hh,.05,x,1.205+k*.012,1.90+((k*5)%3)*.02);}
     // 3. le toit, aux deux bouts : des dalles posées sur le pavillon, plus nombreuses vers le bord
@@ -352,7 +352,7 @@ return function(K){
       const z=sg>0?z0+iz*CE:z0-iz*CE;if((sg>0&&z>z1)||(sg<0&&z<z1))continue;const x=ix*CE;if(Math.abs(x)>.70)continue;
       const d=Math.abs(z-zb)/.32,pr=.88*Math.pow(Math.max(0,1-d),1.0)*(1-.25*Math.abs(x)/.7),h=hs(iz+7,ix,sg,10);if(h>pr)continue;
       const q=hs(iz+.3,ix+.7,sg,12),n=1+Math.floor(hs(iz+.9,ix+.1,sg,14)*2.4),ht=.026+.034*hs(iz+.5,ix+.5,sg,16);
-      BX(col(q),CE*.86,ht,CE*n-.006,x,roofY(x)+ht/2-.004,z);}
+      BX(col(x,z,q),CE*.86,ht,CE*n-.006,x,roofY(x)+ht/2-.004,z);}
   }
   // LA CALANDRE : sept fentes, deux phares ronds, un peu couchée
   {const sh=new THREE.Shape(),PTS=rrect(-.66,-.18,.66,.175,.03,3);sh.moveTo(PTS[0][0],PTS[0][1]);for(let i=1;i<PTS.length;i++)sh.lineTo(PTS[i][0],PTS[i][1]);

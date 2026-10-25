@@ -171,7 +171,7 @@ SHAPES.bulle=function(K){
   const U=LPU,O=bulleOutils,L=(t,z)=>U.lin(t,z),cl=(v,a,b)=>v<a?a:v>b?b:v,mix=(a,b,t)=>a+(b-a)*t,lis=t=>t*t*(3-2*t);
   const R=.338,ZF=1.302,ZR=-1.098;
   const PAL={p:{g:'p',c:0x93cfd6},k:{g:'m',c:0x161719},K:{g:'g',c:0x0d0e11},c:{g:'c',c:0xe2e6eb},g:{g:'g',c:0x1a2632},
-    W:{g:'l',c:0xfff4dc},L:{g:'l',c:0xd81e2a},O:{g:'l',c:0xffa21a},w:{g:'s',c:0xf1eee6},s:{g:'s',c:0xe9e2cf},d:{g:'m',c:0x101114},N:{g:'l',c:0x5ee6ff},B:{g:'m',c:0x2d6be4}};
+    W:{g:'l',c:0xfff4dc},L:{g:'l',c:0xd81e2a},O:{g:'l',c:0xffa21a},w:{g:'s',c:0xf1eee6},s:{g:'s',c:0xe9e2cf},d:{g:'m',c:0x101114},N:{g:'l',c:0x5ee6ff},B:{g:'m',c:0x2d6be4},a:{g:'c',c:0x12d6c8},b:{g:'c',c:0x2a6cf0},e:{g:'c',c:0x7b3ff2},f:{g:'c',c:0xe23ec9},h:{g:'c',c:0x3fe07a}};
   // ---- LES COURBES DU PLAN (mètres) ----
   // le dessus, dans l'axe (côté) : pare-chocs exclus — capot, pare-brise, pavillon, lunette, capot moteur, jupe
   const yTop=z=>L([[-1.865,.47],[-1.84,.55],[-1.81,.61],[-1.77,.69],[-1.707,.761],[-1.671,.827],[-1.617,.913],[-1.555,.993],[-1.49,1.064],[-1.377,1.158],
@@ -353,7 +353,7 @@ SHAPES.bulle=function(K){
     for(const sd of [1,-1])for(let iz=Math.round(-.70/CE);iz*CE<.62;iz++)for(let k=-1;k<=1;k++){
       const z=iz*CE,t=(z+.70)/1.32,pr=(k===0?.86:.42)*(.22+.78*Math.pow(t,.8)),h=hs(iz,k,sd,0);if(h>pr)continue;
       const q=hs(iz+.3,k+.7,sd,2),n=1+Math.floor(hs(iz+.9,k+.1,sd,4)*2.4),Ln=CE*n,sz=.05+.045*hs(iz+.5,k+.5,sd,6),wd=.03+.036*hs(iz+.2,k+.8,sd,8),
-            kind=q>.90?'N':q>.68?'B':q>.42?'s':'p';
+            kind=q>.30?['a','b','e','f','h'][Math.floor((((z*.85+sd*.25+.10*q)%1)+1)%1*5)]:q>.12?'s':'p';   // CAMÉLÉON : le métal teinté glisse de la sarcelle au vert en passant par le bleu, le violet et le magenta
       P.box(kind,wd,sz,Ln-.005,sd*(xC(z)+wd/2-.008+.012*hs(iz+.6,k+.4,sd,10)),yCr(z)+k*.07+.01,z+CE*(n-1)/2,0,0,0);}
   }
   // la plaque dessinée : la vraie s'y pose (voir plqDessinee)
