@@ -247,6 +247,11 @@ Object.assign(BIOMES.titre,{nm:'TITRE',jZen:[.05,.27,.66],jMid:[.22,.62,.90],jHo
    Ce que chaque heure règle à côté (cumulus du titre, mer de nuages, lampes de la caisse, voiles de l'écran) : `TITRE_H`, près de CHUTE_P. */
 function titreAmb(o){return Object.assign(JSON.parse(JSON.stringify(BIOMES.titre)),o);}
 BIOMES.titreMatin=BIOMES.titre; // le titre v3 tel quel : l'azur de Zelda, soleil dans le dos
+// AUBE : le soleil n'est pas levé — indigo en haut, lavande au milieu, horizon pêche-rose sous la mer de nuages, brume rosée, dernières étoiles (voir TITRE_CIEL.aube)
+BIOMES.titreAube=titreAmb({nm:'TITRE · AUBE',jZen:[.05,.09,.28],jMid:[.40,.36,.58],jHor:[.98,.66,.52],jSol:[1,.46,.22],sunTint:[1,.62,.46],sunHalo:.9,stars:.3,moon:0,
+  fog:[.70,.58,.62],fogN:560,fogF:6000,fogCj:[1,.68,.52],fogIn:[.86,.72,.72],hemiS:[.52,.50,.74],hemiG:[.34,.26,.30],hemiI:.58,sunC:[1,.74,.56],sunI:1.3,
+  expo:.9,sat:1.1,con:1.14,vigC:[.06,.045,.10],vigK:.26,
+  env:[[0,'#262c68'],[.3,'#7e74a2'],[.48,'#f2a08a'],[.58,'#ffc79a'],[.66,'#68587a'],[1,'#2a2a44']],eS1:[255,190,150,.45],eS2:[140,150,210,.3]});
 // MIDI : le soleil au plus haut — le bleu le plus profond au zénith, un horizon blanc, des cumulus d'un blanc franc, l'air limpide
 BIOMES.titreMidi=titreAmb({nm:'TITRE · MIDI',jZen:[.02,.19,.58],jMid:[.13,.51,.88],jHor:[.86,.93,.97],jSol:[.30,.30,.26],sunTint:[1,.98,.94],sunHalo:.55,
   fog:[.80,.89,.97],fogN:620,fogF:6200,hemiS:[.76,.86,.98],hemiI:.82,sunC:[1,.99,.96],sunI:1.75,expo:.95,sat:1.22,con:1.3,

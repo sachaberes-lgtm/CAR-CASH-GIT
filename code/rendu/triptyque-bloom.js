@@ -471,7 +471,7 @@ function updateContactShadow(){ // appelée juste avant le rendu
    LES FEUX : un phare n'éblouit que celui qui le regarde EN FACE (vu de profil, un point ; vu de dos, rien) ; les feux arrière
    brillent vers la caméra de poursuite et S'EMBRASENT au frein — pouce tiré vers le bas (drift) ou ↓. La nuit (ville, orbite)
    les halos s'élargissent. Zéro allocation : tout passe par VIT9. */
-const VIT9={f:new THREE.Vector3(),v:new THREE.Vector3(),frein:0,tC:new THREE.Color(0xff2818),tF:new THREE.Color(0xff5a36),trC:new THREE.Color(0xff2818),trK:0,clB:1,clW:-1,phT:{matin:0,midi:0,aprem:0,golden:.3,soir:1,nuit:1}}; // phT : les phares selon l'heure du titre (voir plus bas) · clB/clW : la lampe de carrosserie (valeur posée par la boucle / valeur dosée)
+const VIT9={f:new THREE.Vector3(),v:new THREE.Vector3(),frein:0,tC:new THREE.Color(0xff2818),tF:new THREE.Color(0xff5a36),trC:new THREE.Color(0xff2818),trK:0,clB:1,clW:-1,phT:{aube:.6,matin:0,midi:0,aprem:0,golden:.3,soir:1,nuit:1}}; // phT : les phares selon l'heure du titre (voir plus bas) · clB/clW : la lampe de carrosserie (valeur posée par la boucle / valeur dosée)
 function carVit(dt){
   const boom=mode==='boom';
   if(!running||garageOn||boom)ROUES.v=0;

@@ -6681,6 +6681,25 @@ body.verdOn #fh .fhNom{visibility:hidden} /* UNE voix au centre : le verdict de 
 .fhL b[data-rp]{color:var(--rc);font-size:calc(var(--f0,8px) * var(--rk))}
 @media (prefers-reduced-motion:reduce){#fh .fhNom[data-rp=legendaire] b::after,#fh .fhNom[data-rp=combo] b{animation:none}}
 </style>
+<style id="leFil">
+/* (2026-10-25, Sacha : « un seul système qui allège le milieu de l'écran ») LE FIL — la pastille unique, sous le compteur d'aura (fil.js). */
+#fil{--fs:13px;display:table;margin-top:10px;padding:4px 8px 3px;font-family:var(--pix);font-size:calc(var(--fs) * var(--sk,1));letter-spacing:1px;line-height:1.15;white-space:nowrap;pointer-events:none;color:var(--fc,#ffd75e);
+  background:rgba(28,4,48,.66);box-shadow:0 0 0 2px #1c0430,0 0 0 4px color-mix(in srgb,var(--fc,#ffd75e) 55%,#1c0430);
+  text-shadow:0 2px 0 #1c0430;opacity:0;transform-origin:left center}
+#fil[data-n="2"]{--fs:15px}
+#fil[data-n="3"]{--fs:17px;background:rgba(28,4,48,.8)}
+html body.touch #fil{--fs:calc(13px / var(--hudK,.8))} /* le HUD du téléphone est réduit en zoom (--hudK) : la pastille se lit à 13 px réels */
+html body.touch #fil[data-n="2"]{--fs:calc(15px / var(--hudK,.8))}
+html body.touch #fil[data-n="3"]{--fs:calc(17px / var(--hudK,.8))}
+#fil.on{animation:filIn .95s cubic-bezier(.3,1.5,.5,1) forwards}
+#fil.on2{animation:filIn2 .95s cubic-bezier(.3,1.5,.5,1) forwards}
+@keyframes filIn{0%{opacity:0;transform:translateX(-10px) scale(.85)}14%{opacity:1;transform:translateX(0) scale(1.12)}28%{transform:translateX(0) scale(1)}78%{opacity:1}100%{opacity:0;transform:translateX(0) scale(1)}}
+@keyframes filIn2{0%{opacity:0;transform:translateX(-10px) scale(.85)}14%{opacity:1;transform:translateX(0) scale(1.12)}28%{transform:translateX(0) scale(1)}78%{opacity:1}100%{opacity:0;transform:translateX(0) scale(1)}}
+@media (prefers-reduced-motion:reduce){#fil.on{animation:filRM .95s linear forwards}#fil.on2{animation:filRM2 .95s linear forwards}
+  @keyframes filRM{0%{opacity:0}15%{opacity:1}75%{opacity:1}100%{opacity:0}}@keyframes filRM2{0%{opacity:0}15%{opacity:1}75%{opacity:1}100%{opacity:0}}}
+body.dead #fil,body.ebOn #fil{visibility:hidden}
+html.fil :is(#fh,#verdHud,#trickBox,#chainHud){display:none!important} /* les anciennes voix du milieu : la pastille les remplace */
+</style>
 <style id="ecoleV2">
 /* ==============================================================================================================
    L'AUTO-ÉCOLE v2 (2026-10-14, Sacha : « le tutoriel est un peu intimidant, pas très beau — plus d'animation, plus de trucs clairs ; les carrés
@@ -7357,12 +7376,14 @@ html:not(.c6) #gmHead #mCadeau[hidden]{display:none}
    2. LA LISTE DES FIGURES sous la chaîne (« VIRAGE SERRE +45 / TONNEAU +50 ») : la chaîne garde son total, son × et sa barre.
    3. Le « $×1 » du FLOW au palier 0 : il ne dit rien tant que le flow ne multiplie pas ; il revient dès le palier 1.
    4. (dans le script, `pwrPrend`) le NOM DU POUVOIR au centre de l'écran : sa plaque, à droite, le dit déjà. */
-html body.touch #flowHud{top:calc(var(--hudH) + 53px)!important}
-html body.touch #auraV2{top:calc(var(--hudH) + 76px)!important}
+html body.touch #flowHud{top:calc(var(--hudH) + 53px)!important;row-gap:3px}
+html body.touch #auraV2{top:calc(var(--hudH) + 84px)!important}
 @media (orientation:landscape) and (max-height:540px){
   html body.touch #flowHud{top:calc(var(--hudH) + 56px)!important}
-  html body.touch #auraV2{top:calc(var(--hudH) + 72px)!important}
+  html body.touch #auraV2{top:calc(var(--hudH) + 87px)!important}
 }
+/* (2026-10-25, Sacha : « il y a marqué FLOW 1, FLOW 2, FLOW 3 par-dessus l'indication de AURA ») le NOM du palier vit sous la jauge
+   (2e ligne de la grille, 10 px) : l'AURA, calée avant lui à +76 / +72, se retrouvait dessous — elle passe sous l'étiquette. */
 html body #avList{display:none!important}
 html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
 </style>
@@ -10975,7 +10996,7 @@ function updateContactShadow(){ // appelée juste avant le rendu
    LES FEUX : un phare n'éblouit que celui qui le regarde EN FACE (vu de profil, un point ; vu de dos, rien) ; les feux arrière
    brillent vers la caméra de poursuite et S'EMBRASENT au frein — pouce tiré vers le bas (drift) ou ↓. La nuit (ville, orbite)
    les halos s'élargissent. Zéro allocation : tout passe par VIT9. */
-const VIT9={f:new THREE.Vector3(),v:new THREE.Vector3(),frein:0,tC:new THREE.Color(0xff2818),tF:new THREE.Color(0xff5a36),trC:new THREE.Color(0xff2818),trK:0,clB:1,clW:-1,phT:{matin:0,midi:0,aprem:0,golden:.3,soir:1,nuit:1}}; // phT : les phares selon l'heure du titre (voir plus bas) · clB/clW : la lampe de carrosserie (valeur posée par la boucle / valeur dosée)
+const VIT9={f:new THREE.Vector3(),v:new THREE.Vector3(),frein:0,tC:new THREE.Color(0xff2818),tF:new THREE.Color(0xff5a36),trC:new THREE.Color(0xff2818),trK:0,clB:1,clW:-1,phT:{aube:.6,matin:0,midi:0,aprem:0,golden:.3,soir:1,nuit:1}}; // phT : les phares selon l'heure du titre (voir plus bas) · clB/clW : la lampe de carrosserie (valeur posée par la boucle / valeur dosée)
 function carVit(dt){
   const boom=mode==='boom';
   if(!running||garageOn||boom)ROUES.v=0;
@@ -28366,6 +28387,11 @@ Object.assign(BIOMES.titre,{nm:'TITRE',jZen:[.05,.27,.66],jMid:[.22,.62,.90],jHo
    Ce que chaque heure règle à côté (cumulus du titre, mer de nuages, lampes de la caisse, voiles de l'écran) : `TITRE_H`, près de CHUTE_P. */
 function titreAmb(o){return Object.assign(JSON.parse(JSON.stringify(BIOMES.titre)),o);}
 BIOMES.titreMatin=BIOMES.titre; // le titre v3 tel quel : l'azur de Zelda, soleil dans le dos
+// AUBE : le soleil n'est pas levé — indigo en haut, lavande au milieu, horizon pêche-rose sous la mer de nuages, brume rosée, dernières étoiles (voir TITRE_CIEL.aube)
+BIOMES.titreAube=titreAmb({nm:'TITRE · AUBE',jZen:[.05,.09,.28],jMid:[.40,.36,.58],jHor:[.98,.66,.52],jSol:[1,.46,.22],sunTint:[1,.62,.46],sunHalo:.9,stars:.3,moon:0,
+  fog:[.70,.58,.62],fogN:560,fogF:6000,fogCj:[1,.68,.52],fogIn:[.86,.72,.72],hemiS:[.52,.50,.74],hemiG:[.34,.26,.30],hemiI:.58,sunC:[1,.74,.56],sunI:1.3,
+  expo:.9,sat:1.1,con:1.14,vigC:[.06,.045,.10],vigK:.26,
+  env:[[0,'#262c68'],[.3,'#7e74a2'],[.48,'#f2a08a'],[.58,'#ffc79a'],[.66,'#68587a'],[1,'#2a2a44']],eS1:[255,190,150,.45],eS2:[140,150,210,.3]});
 // MIDI : le soleil au plus haut — le bleu le plus profond au zénith, un horizon blanc, des cumulus d'un blanc franc, l'air limpide
 BIOMES.titreMidi=titreAmb({nm:'TITRE · MIDI',jZen:[.02,.19,.58],jMid:[.13,.51,.88],jHor:[.86,.93,.97],jSol:[.30,.30,.26],sunTint:[1,.98,.94],sunHalo:.55,
   fog:[.80,.89,.97],fogN:620,fogF:6200,hemiS:[.76,.86,.98],hemiI:.82,sunC:[1,.99,.96],sunI:1.75,expo:.95,sat:1.22,con:1.3,
@@ -28932,8 +28958,8 @@ const SF_CARTES={
   /* (2026-10-14, Sacha) LE GLACIER (ex-LA BANQUISE, renommé à 20 h 40 : « ça devrait plutôt s'appeler GLACIER et être une MONTAGNE, comme dans STEEP ») :
      le matin rose, le midi bleu profond, le soir où les pics s'embrasent, la NUIT des aurores boréales, la NEIGE, le BLIZZARD (plus rare). Ni pluie ni
      éclairs. La promesse est la même à toute heure : le RACCOURCI (genBanq : les lacets superposés). Voir « LE GLACIER » au JOURNAL. L'id reste 'banquise'. */
-  banquise:{nm:'LE GLACIER',base:'banquise',m:{matin:{bio:'banqMatin'},midi:{bio:'banqMidi'},soir:{bio:'banqSoir'},nuit:{bio:'banqNuit',nuit:1},
-    neige:{bio:'banqNeige'},blizzard:{bio:'banqBlizzard',p:.6}}},
+  banquise:{nm:'LE GLACIER',base:'banquise',m:{midi:{bio:'banqMidi'},soir:{bio:'banqSoir'},nuit:{bio:'banqNuit',nuit:1},
+    neige:{bio:'banqNeige'}}},
   /* (2026-10-15, Sacha : « un nouveau décor pour le générateur aléatoire de map : CRYPTO CITY, une ville imaginaire, de grands immeubles qui
      reflètent — vitrés, dorés, argentés, métalliques, blancs ; hyper moderne, le futur ; explosif : la période BULL RUN, l'apogée de la ville,
      pendant la montée fulgurante du Bitcoin ; pleine de références à la token culture, à l'argent et à la tech »). La CRYPTOCITY de Léo (13/10,
@@ -28944,17 +28970,17 @@ const SF_CARTES={
      s'embrasent, la NUIT des bureaux allumés derrière le verre. Jamais de pluie ni d'orage. Voir « LA VILLE VITRÉE ». */
   ...({vitree:{nm:'VILLE VITRÉE',base:'vitree',m:{matin:{bio:'vitreMatin',pr:'REFLETS DORES'},midi:{bio:'vitreMidi',p:1.2},soir:{bio:'vitreSoir',p:1.2,pr:'LES TOURS S EMBRASENT'},nuit:{bio:'vitreNuit',nuit:1,pr:'LES BUREAUX BRILLENT'},
     pluie:{bio:'vitrePluie',pluie:.8,sheen:.2,pr:'IL PLEUT ENTRE LES VILLES'}}}}), // (v2) la PLUIE : elle tombe de la ville d'en haut
-  espace:{nm:'EN ORBITE',base:'espace',m:{matin:{bio:'espaceMatin'},midi:{bio:'espace'},soir:{bio:'espaceSoir'}}}, // ni nuages, ni pluie, ni orage (Sacha) — (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») plus de météo SATELLITES
+  espace:{nm:'EN ORBITE',base:'espace',m:{matin:{bio:'espaceMatin'}}}, // ni nuages, ni pluie, ni orage (Sacha) — (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») plus de météo SATELLITES
   /* (2026-10-18, Sacha) LES PROFONDEURS : sous la terre, pas de ciel — ses quatre « temps » sont des lumières : TORCHES (la grotte explorée), CRISTAUX
      (minerais et améthyste à pleine lumière), MAGMA (la lave déborde), NOIR COMPLET (tes phares). La salle du moment choisit l'ambiance (grtBiomes). */
   grotte:{nm:'LES PROFONDEURS',base:'grotte',m:{matin:{bio:'grt-matin-mine',mt:'TORCHES',pr:'SUIS LES TORCHES'},midi:{bio:'grt-midi-mine',mt:'CRISTAUX',pr:'LES CRISTAUX T ECLAIRENT'},
     soir:{bio:'grt-soir-mine',mt:'MAGMA',pr:'LA LAVE MONTE'},nuit:{bio:'grt-nuit-mine',mt:'NOIR COMPLET',nuit:1,p:.8,pr:'TES PHARES, TA SEULE LUMIERE'}}},
-  ...(CANYON_OK?{canyon:{nm:'CANYON DES GÉANTS',base:'canyon',m:{matin:{bio:'canyonMatin'},midi:{bio:'canyonMidi'},soir:{bio:'canyonSoir'},nuit:{bio:'canyonNuit',nuit:1}, // (2026-10-14, Sacha) LE CANYON DES GÉANTS : les six météos du désert
+  ...(CANYON_OK?{canyon:{nm:'CANYON DES GÉANTS',base:'canyon',m:{matin:{bio:'canyonMatin'},soir:{bio:'canyonSoir'},nuit:{bio:'canyonNuit',nuit:1}, // (2026-10-14, Sacha) LE CANYON DES GÉANTS : les six météos du désert
     pluie:{bio:'canyonPluie',pluie:.6,sheen:.18},orage:{bio:'canyonOrage',pluie:.9,orage:1,sheen:.2}}}}:{}),
   /* (2026-10-18, Sacha : « fais les dunes d'or de manière parfaite ») LES DUNES D'OR : le matin rose, le midi turquoise et or (les mirages), le SOIR (la carte postale :
      un peu plus souvent), la nuit d'argent, le VENT DE SABLE (pas une goutte : `pluie` reste 0), la TEMPÊTE DE SABLE (un orage sec). Voir genDunes, buildDunes. */
-  ...(DUNES_OK?{dunes:{nm:"LES DUNES D'OR",base:'dunes',m:{matin:{bio:'dunesMatin'},midi:{bio:'dunesMidi'},soir:{bio:'dunesSoir',p:1.3},nuit:{bio:'dunesNuit',nuit:1,pr:'LA LUNE ARGENTE LE SABLE'},
-    pluie:{bio:'dunesVent',mt:'VENT DE SABLE',sheen:.14,pr:'LE VENT SE LEVE'},orage:{bio:'dunesTempete',orage:1,mt:'TEMPETE DE SABLE',sheen:.16,pr:'TEMPETE DE SABLE',p:.8}}}}:{})
+  ...(DUNES_OK?{dunes:{nm:"LES DUNES D'OR",base:'dunes',m:{matin:{bio:'dunesMatin'},soir:{bio:'dunesSoir',p:1.3},nuit:{bio:'dunesNuit',nuit:1,pr:'LA LUNE ARGENTE LE SABLE'},
+    pluie:{bio:'dunesVent',mt:'VENT DE SABLE',sheen:.14,pr:'LE VENT SE LEVE'}}}}:{})
 };
 /* (2026-10-16, Sacha : « la map ville, elle sera toujours la nuit […] on abandonne toutes les maps ville-jour ») LA VILLE TOUJOURS LA NUIT (voir VTEINTES) :
    plus de matin, de midi ni de soir ; la map de base sous ses quatre temps — la PLUIE (AU-DESSUS DE LA VILLE, telle quelle, un peu plus souvent), la NUIT sèche
@@ -46242,7 +46268,9 @@ const M2=[
   {id:'meteo',f:'exploration',k:'meteoMap',v:'tot',u:'',r:{car:'LA STRATOS'},t:'JOUE UNE MAP SOUS TOUTES SES MÉTÉOS ET TOUS SES MOMENTS DE LA JOURNÉE',en:'PLAY ONE MAP IN EVERY WEATHER AND TIME OF DAY'},
   {id:'silence',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA SILENCIEUSE'},t:'FAIS UNE PARTIE ENTIÈRE SANS SON NI MUSIQUE (RÉGLAGES)',en:'PLAY A WHOLE RUN WITH SOUND AND MUSIC OFF (SETTINGS)'},
   /* (2026-10-22, Sacha : « HOT ROD : atteindre le palier 10 du moteur avec la musique activée ») secrète : `m2Tick` pose le drapeau `palier10` (engTier + 1 ≥ 10, SND.music allumé) */
-  {id:'palier10',f:'secret',k:'flag',v:1,u:'b',r:{car:'LE HOT ROD'},t:'ATTEINS LE PALIER 10 DU MOTEUR, MUSIQUE ACTIVÉE',en:'REACH ENGINE TIER 10 WITH THE MUSIC ON'},
+  /* (2026-10-25, Sacha : « c'est pas palier 10 tout court, c'est palier 10 de CHAQUE musique du jeu ») le défi compte maintenant les morceaux de Pouce bleu
+     (la musique de course, un par partie) sur lesquels on a atteint le palier 10 : `m2Tick` range leur id dans `c.musP10` ; réussi quand TOUS y sont (m2Val/m2Seuil) */
+  {id:'palier10',f:'secret',k:'musP10',v:'tot',u:'',r:{car:'LE HOT ROD'},t:'ATTEINS LE PALIER 10 SUR CHAQUE MUSIQUE DU JEU',en:'REACH TIER 10 ON EVERY SONG IN THE GAME'},
   {id:'mis10',f:'exploration',k:'misok',v:10,u:'',r:{car:'LE CHARGEUR'},t:'RÉUSSIS {v} MISSIONS',en:'COMPLETE {v} MISSIONS'},
   {id:'col5',f:'collection',k:'peint',v:5,u:'',r:{cash:10000},t:'COLLECTE {v} COULEURS',en:'COLLECT {v} PAINTS'},
   {id:'col10',f:'collection',k:'peint',v:10,u:'',r:{cash:10000},t:'COLLECTE {v} COULEURS',en:'COLLECT {v} PAINTS'},
@@ -46722,6 +46750,7 @@ function driftTick(dt,on){
 // LE TEXTE QUI JAILLIT au-dessus de la caisse (l'écran est nu sur téléphone : c'est la seule annonce de conduite)
 function popTexte(txt,col,prio){
   // (2026-09-25) une PRIORITÉ : un temps fort (PARFAIT, AU CHEVEU…) ne se fait pas voler la vedette par un palier dans les 650 ms
+  if(LEFIL.on){popTexte._w=0;fil(txt,col,prio);return;} /* (2026-10-25, LE FIL) plus de texte jailli de la caisse : la pastille unique parle (fil.js) */
   prio=prio|0;const n9=performance.now();
   if(prio<(popTexte._p|0)&&n9<(popTexte._t||0))return;
   popTexte._p=prio;popTexte._t=n9+650;popTexte._s=n9;
@@ -47257,7 +47286,7 @@ function frole(c9,dl,k){
   nitroGain((.08+.08*pres)*(k>1?1.5:1),'frole');flowAdd((4+4*pres)*(k>1?1.5:1),'style','n'); // (v4→v5) frôler, c'est un peu de NARCISSE — flowAdd lui verse la part du style // ×1,5 (et non ×2) : la porte paie plus sans gonfler le FLOW
   momT=Math.min(4.3,momT+.6); // (momentum v2) le style NOURRIT la réserve de vitesse
   try{chaineAuraMuette(FROLE.n>=2?'SLALOM ×'+FROLE.n:'FRÔLÉ',20,'frole',false,SONV2);}catch(e){}
-  if(k===1&&FROLE.n>=2)popTexte('SLALOM ×'+FROLE.n,FROLE.n>=3?'#ffd75e':'#7dffec'); // (2026-09-29, Sacha) FRÔLÉ ! et PORTE ! ne s'écrivent plus : seul le SLALOM parle
+  if(k===1&&FROLE.n>=2&&!LEFIL.on)popTexte('SLALOM ×'+FROLE.n,FROLE.n>=3?'#ffd75e':'#7dffec'); // (2026-09-29, Sacha) FRÔLÉ ! et PORTE ! ne s'écrivent plus : seul le SLALOM parle
   try{froleSnd(pres,FROLE.n,c9);}catch(e){} // (2026-10-14, session SON) + l'objet frôlé : le souffle passe de SON côté
   hap(FROLE.n>=3?[8,20,8]:8);fovPunch=Math.max(fovPunch,1.5+2*pres);
   try{sparkBurst(sparkBlue,c9.mesh.position,3+Math.round(3*pres),5);}catch(e){}
@@ -55716,6 +55745,8 @@ const SAVE={
       o9.c.jd=typeof cc.jd==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(cc.jd)?cc.jd:'';o9.c.cartes=L9(cc.cartes,40);o9.c.cartesP=L9(cc.cartesP,40);o9.c.rejoue=Math.round(N9(cc.rejoue,1e5));
       /* (2026-10-22, Sacha : « tableau des voitures / des peintures ») les compteurs à vie des missions de caisse et des peintures secrètes — SANS cette liste ils sautaient au rechargement */
       for(const k of ['pu','figs'])o9.c[k]=Math.round(N9(cc[k],1e7));for(const k of ['nitS','nmaxS','airS','kmTot','verglasKm'])o9.c[k]=N9(cc[k],1e9);
+      /* (2026-10-25, Sacha : « palier 10 de chaque musique ») les morceaux de Pouce bleu joués jusqu'au palier 10 : leurs ids ont un tiret (bleu-12, pal-asphalte), L9 les jetterait */
+      if(Array.isArray(cc.musP10))o9.c.musP10=[...new Set(cc.musP10.filter(function(x){return typeof x==='string'&&/^[a-z0-9-]{2,40}$/.test(x);}))].slice(0,80);
       if(cc.met&&typeof cc.met==='object')for(const k of Object.keys(cc.met).slice(0,40))if(/^[a-z0-9_]{2,16}$/.test(k))(o9.c.met||(o9.c.met={}))[k]=L9(cc.met[k],12);
       if(cc.sc&&typeof cc.sc==='object')for(const k of Object.keys(cc.sc).slice(0,40))if(/^[a-z0-9_]{2,16}$/.test(k))(o9.c.sc||(o9.c.sc={}))[k]=N9(cc.sc[k],1e9);}
     c.cad={t:0};if(d.cad&&typeof d.cad==='object'){const tc=+d.cad.t;if(isFinite(tc)&&tc>0)c.cad.t=Math.min(Math.round(tc),Date.now());}
@@ -57250,11 +57281,12 @@ function fhXMaj(){const c=FX2.cv,x=c.n>=2?figCvX():0;fhEl();FH.el.classList.togg
   FH.x.innerHTML=x?'<small>'+fhNet(TR('COMBO'))+'</small> '+figCvTxtX(x):'';FH.x.style.setProperty('--xc',x>=3?'var(--fhO)':x>=2?'var(--fh0)':'var(--fhVert)');FH.x.classList.toggle('max',x>=IMPU.xMax); // vert → or → orange → l'arc-en-ciel du plafond
   {const bat=x>0&&x>figRec()+1e-6;if(bat!==FH.recBat){FH.recBat=bat;FH.rec.textContent=bat?fhNet(TR('RECORD')):'';FH.rec.classList.toggle('on',bat);if(bat){fhAnime(FH.rec,[{transform:'scale(2.2)',opacity:0},{transform:'scale(.9)',opacity:1,offset:.6},{transform:'none'}],380);try{hap([6,20,6]);}catch(e){}}}} // (v4) le RECORD bat à côté du × : on le voit tomber en plein vol
   if(x&&monte)fhAnime(FH.x,[{transform:'scale(2.1)',filter:'brightness(2.6)'},{transform:'scale(.9)',offset:.5},{transform:'none',filter:'none'}],380);}
-function fhLance(s,r,o){if(!r||!r.f||!window.FIG)return;const c=o&&o.douce?3:s>=0?Math.min(2,s):3;r.fhc=c; // (figLance) la figure part : son nom, en grand, dans la couleur de son emplacement
+function fhLance(s,r,o){if(!r||!r.f||!window.FIG)return;if(LEFIL.on)filFig(figNom(r.f,figRepsEnCours(r)),figRarH(r.f),1); /* (LE FIL) le nom part dans la pastille ; #fh reste caché */
+  const c=o&&o.douce?3:s>=0?Math.min(2,s):3;r.fhc=c; // (figLance) la figure part : son nom, en grand, dans la couleur de son emplacement
   if(FH.fin)fhRaz(); /* (v5) la ligne du vol d'avant s'éteignait encore : on repart à neuf (avant, son fondu « forwards » restait posé sur #fh — la figure suivante partait invisible) */
   fhNom(figNom(r.f,figRepsEnCours(r)),null,'in',r.flD||null,figRarH(r.f));FH.nomT=performance.now()+1900;FH.nomPl=false; /* (v4) le nom bien écrit (plus « HELICO 720 ×2 » pour un hélico simple) et la flèche du geste — (v5) dans la couleur et la police de SA RARETÉ (plus celle de l'emplacement) */
   if(s>=0)fhLegFx(s,false);}
-function fhPlante(r,f,reps,neuf){if(!f||!window.FIG)return;const t=figNom(f,reps),rp=figRarH(f); // (figPaye) plantée : elle claque et tombe dans la ligne
+function fhPlante(r,f,reps,neuf){if(!f||!window.FIG)return;const t=figNom(f,reps),rp=figRarH(f);if(LEFIL.on)filFig(t,rp,1); // (figPaye) plantée : elle claque et tombe dans la ligne
   if(FH.fin)fhRaz();
   const m=fhMaillon(t,rp,{neuf:neuf,d:!!(r&&r.douce)});fhXMaj(); /* (v5) son MAILLON entre dans la ligne du combo */
   fhSeule(t,rp,undefined,1000,m,Math.min(12,6+2*FX2.cv.n));}
@@ -57262,11 +57294,11 @@ function fhSeule(t,rp,dir,ms,m,nb){const n=performance.now(); // (v5) une figure
   if(FX2.cv.n<2){fhNom(t,null,'pl',dir,rp);FH.nomT=n+ms;FH.nomPl=true;try{pixBurst(FH.b,nb);}catch(e){}return;} //   (il s'éteint, son maillon arrive) : jamais écrit deux fois — Sacha, 15/10 : « là c'est écrit en double »
   if(FH.nom.classList.contains('on')&&FH.nomT>n+140&&(FH.nomPl||FH.b.textContent===fhNet(t)))FH.nomT=n+140; // le grand nom est celui d'une figure DÉJÀ dans la ligne (nomPl) : il s'éteint — une figure lancée, encore en l'air, garde le sien
   try{pixBurst(m,nb);}catch(e){}}
-function fhBump(k,neuf){fhEl();const t=TR(bumpNomH(k)),rp=figRarH(BUMP_FIG,k); // (v5) LE BUMP s'écrit comme une figure plantée : en grand s'il est seul, son maillon dans la ligne
+function fhBump(k,neuf){fhEl();const t=TR(bumpNomH(k)),rp=figRarH(BUMP_FIG,k);if(LEFIL.on)filFig(t,rp,1); // (v5) LE BUMP s'écrit comme une figure plantée : en grand s'il est seul, son maillon dans la ligne
   if(FH.fin)fhRaz();
   const L=FH.cs.lastElementChild;let m=L;if(k>1&&L&&L.getAttribute('data-b'))fhMaillonMaj(L,t,rp);else m=fhMaillon(t,rp,{neuf:neuf,b:1}); // collé au BUMP d'avant : le même maillon grandit
   fhXMaj();fhSeule(t,rp,null,1100,m,Math.min(10,4+2*k));}
-function fhTrio(txt){if(!FH.el||!FH.vu)return; // (v5, comboNote) LE COMBO À TROIS NOMMÉ : son nom en grand (arc-en-ciel), ses trois maillons soulignés d'or
+function fhTrio(txt){if(LEFIL.on)fil(txt,FIL_RAR.combo,2);if(!FH.el||!FH.vu)return; // (v5, comboNote) LE COMBO À TROIS NOMMÉ : son nom en grand (arc-en-ciel), ses trois maillons soulignés d'or
   fhNom(txt,null,'in',null,'combo');FH.nomT=FH.trioT=performance.now()+1700;FH.nomPl=false;
   const L=FH.cs.children;let n=0;for(let i=L.length-1;i>=0&&n<3;i--){if(L[i].getAttribute('data-b')||L[i].getAttribute('data-d'))continue;L[i].classList.add('trio');n++;}}
 function figBumpNote(k,pts){if(!FIGV2.on||!BUMP_FIG_ON||!figTutoOk())return; /* (2026-10-18, débogage) figTutoOk : pas de combo invisible payé pendant l'auto-école */ // (v5) LE BUMP, FIGURE À PART ENTIÈRE DU COMBO DU VOL — appelée au rebond sur la tranche (k = son rang dans le vol)
@@ -57344,6 +57376,51 @@ window.dbgFig=function(a,b){
   return {on:FIGV2.on,equipees:figEquipees(),slots:figSlots(),mode:C?C.mode:null,ecart:C?Math.round(C.ecart()*57.3):0,w:C?C.w.map(function(x){return +x.toFixed(2);}):null,
     figures:C?C.figs.map(function(r){return r.f.id+(r.paye?' payée':r.fini?' finie':'')+' '+r.mv.map(function(m){return (m.th/6.2832).toFixed(2);}).join('/');}):null,
     herite:FX2.herite,lancees:FX2.n,payees:FX2.payees,chutes:FX2.chutes,ptsVol:FX2.pts,budget:C?+(+C.budget).toFixed(2):0,boutons:document.body.classList.contains('figVol')};};
+/* ===== LE FIL (2026-10-25, Sacha : « alléger visuellement le jeu, surtout le milieu, pour TikTok : un seul système qui donne l'impression
+   d'avoir accompli quelque chose sans prendre l'écran ») — spec : docs/superpowers/specs/2026-10-25-le-fil-design.md =====
+   UNE pastille, sous le compteur d'aura (dans #auraV2 : elle suit la place du compteur sur PC comme sur téléphone), qui remplace les
+   textes jaillis de la caisse (`popTexte` devient un alias), le verdict de pose, la grande annonce des gestes, la ligne du HUD des figures.
+   · UNE ligne, remplacée à chaque annonce (la règle de priorité de popTexte est gardée : un temps fort ne se fait pas voler la vedette
+     dans les 650 ms) ;
+   · les annonces qui tombent dans la même seconde FUSIONNENT : « TONNEAU · SALTO AVANT +60 » au lieu de deux textes ;
+   · niveau 0 geste · 1 palier · 2 temps fort · 3 impact : le 3 grossit la pastille et allume les bords (flashEcran) — jamais au centre.
+   `?fil=0` rend l'ancien affichage. Console : `dbgLeFil(txt,niv)` pour en forcer une. */
+const LEFIL={on:!/[?&]fil=0\b/.test(location.search),el:null,parts:[],niv:0,t:0,p:0,pt:0,k:false,fen:1100};
+try{document.documentElement.classList.toggle('fil',LEFIL.on);}catch(e){}
+function filEl(){
+  if(LEFIL.el&&LEFIL.el.isConnected)return LEFIL.el;
+  const h=document.getElementById('auraV2');if(!h)return null;
+  const e=document.createElement('div');e.id='fil';e.setAttribute('aria-hidden','true');h.appendChild(e);LEFIL.el=e;return e;
+}
+function filBase(s){return String(s).replace(/\s*[+×]\s*[\d.,$].*$/,'').trim();} /* le nom du geste, sans ses points ni son × */
+function fil(txt,col,niv){
+  if(!LEFIL.on)return false;
+  niv=niv|0;const n9=performance.now();
+  if(niv<(LEFIL.p|0)&&n9<LEFIL.pt)return false; /* un temps fort ne se fait pas voler la vedette par un palier dans les 650 ms */
+  const e=filEl();if(!e)return false;
+  const lb=sansAcc(TR(txt)).replace(/[<>&"]/g,'').trim();if(!lb)return false;
+  if(n9-LEFIL.t<LEFIL.fen&&LEFIL.parts.length){ /* même seconde : on fusionne (le dernier mot reste le dernier) */
+    const L9=LEFIL.parts.length-1;
+    if(filBase(LEFIL.parts[L9])===filBase(lb)){if(lb.length>=LEFIL.parts[L9].length)LEFIL.parts[L9]=lb;} /* « TONNEAU » puis « TONNEAU +45 » : le même geste, on garde le plus complet */
+    else LEFIL.parts.push(lb);
+    LEFIL.niv=Math.max(LEFIL.niv,niv);
+  }else{LEFIL.parts=[lb];LEFIL.niv=niv;}
+  const mx=LEFIL.niv>=3?14:LEFIL.niv===2?17:20; /* des caractères que la colonne du compteur porte, selon la taille du niveau */
+  while(LEFIL.parts.length>3||(LEFIL.parts.length>1&&LEFIL.parts.join(' · ').length>mx))LEFIL.parts.shift();
+  LEFIL.t=n9;LEFIL.p=niv;LEFIL.pt=n9+650;
+  const tx=LEFIL.parts.join(' · ');e.textContent=tx;e.style.setProperty('--fc',col||'#ffd75e');e.dataset.n=LEFIL.niv;
+  e.style.setProperty('--sk',tx.length>mx?(mx/tx.length).toFixed(3):1); /* un nom seul trop long rétrécit au lieu de déborder */
+  const k9=LEFIL.k=!LEFIL.k;e.classList.remove(k9?'on':'on2');e.classList.add(k9?'on2':'on'); /* deux animations jumelles : relance sans mise en page forcée */
+  if(niv>=3)try{flashEcran('rgba(255,215,94,.2)');}catch(x){}
+  return true;
+}
+const FIL_RAR={commun:'#dfeeff',rare:'#35e6ff',epique:'#ff4fc2',exotique:'#ffc93a',legendaire:'#ff9a3a',combo:'#ffd75e'}; /* la couleur de la rareté d'une figure (celle des pastilles de l'ancien HUD) */
+function filFig(t,rp,niv){fil(t,FIL_RAR[rp]||FIL_RAR.commun,niv==null?1:niv);}
+function filTrick(txt,tier){ /* trickMsg : les verdicts de pose, les figures en vol, les paliers du × — sans emoji, sans la vanne après le tiret */
+  const p9=String(txt).replace(/[\u2190-\u2BFF\uD83C-\uDBFF\uDC00-\uDFFF\uFE0F]/g,'').split(' — '),t=(/^×\d/.test(p9[0])?p9.join(' '):p9[0]).replace(/\s{2,}/g,' ').trim();
+  if(t)fil(t,tier===3?'#ff3ec8':tier===2?'#ff9ee6':tier===1?'#5ee6ff':'#ffd75e',tier===3||tier===2?3:tier===1?2:1);
+}
+window.dbgLeFil=function(t,n){return fil(t||'TONNEAU +45','#ffd75e',n|0);};
 /* ===== LES DÉFIS SECRETS — les détections (2026-10-14, Sacha via PILOTAGE : « une dizaine de couleurs secrètes, chacune gagnée par un défi
    caché un peu compliqué à avoir, façon Geometry Dash » ; GRAPHISME écrit les peintures `COSM.peinture` (`sec:'id'`, l'indice) et `secDonne(id)`
    — la peinture donnée, le toast COULEUR SECRÈTE ; GAMEPLAY écrit ici QUAND on la gagne). Rien en BALADE, en BAC À SABLE, au PARC ni à
@@ -57441,6 +57518,7 @@ function m2Val(m){const d=SAVE.d,s=m2Etat(),r=s.r,c=s.c,ex=d.ex||{},enC=m2EnC();
     case 'vie':return Math.max(r.vie||0,enC?M2R.vie:0);
     case 'tours':return r.tours|0;
     case 'cartesP':return m2Vues(c.cartesP);
+    case 'musP10':{const L=m2Musiques();let n=0;if(L)for(const id of c.musP10||[])if(L.indexOf(id)>=0)n++;return n;} /* (2026-10-25) les morceaux de la liste actuelle déjà joués jusqu'au palier 10 */
     case 'cartes':return m2Vues(c.cartes);
     case 'aura':{let a=d.auraMax||0;if(enC)try{a=Math.max(a,Math.round(auraRun)||0);}catch(e){}return a;}
     case 'gagne':return c.gagne||0;
@@ -57461,7 +57539,8 @@ function m2Val(m){const d=SAVE.d,s=m2Etat(),r=s.r,c=s.c,ex=d.ex||{},enC=m2EnC();
     case 'misok':return s.ok.length;
   }
   const t=/T$/.test(m.k),o=m2Col(M2_COLK[t?m.k.slice(0,-1):m.k]);return t?o.nT:o.n;}
-function m2Seuil(m){if(m.v==='prof')return M2K.prof;if(m.v!=='tot')return m.v;
+function m2Musiques(){try{const P=window.POUCE_JEU,L=P&&P.liste;return L&&L.length?L.map(function(e){return e.id;}):null;}catch(e){return null;}} /* (2026-10-25) les ids des morceaux de Pouce bleu ; null tant que la liste n'est pas chargée (1re partie) */
+function m2Seuil(m){if(m.v==='prof')return M2K.prof;if(m.k==='musP10'){const L=m2Musiques();return L?L.length:9999;}if(m.v!=='tot')return m.v;
   if(m.k==='cartes'||m.k==='cartesP')return m2Cartes().length;if(m.k==='raresT')return m2Rares().tot;if(m.k==='meteoMap')return m2Meteo().tot;if(m.k==='toutT')return m2Tout().tot;
   return m2Col(M2_COLK[m.k.slice(0,-1)]).tot;}
 function m2Txt(m){const s=String(LANG==='fr'?m.t:m.en),v=m2Seuil(m);
@@ -57560,7 +57639,8 @@ function m2Tick(dt,kmh){if(!m2Ok()||paused)return;const s=m2Etat(),r=s.r;if(!M2R
   if(!introD&&(mode==='drive'||mode==='fall'))M2R.ctl+=dt;
   if(mode!=='boom'){M2R.vie+=dt;if(M2R.vie>(r.vie||0))r.vie=M2R.vie;}
   if(kmh>(r.kmh||0))r.kmh=Math.round(kmh);
-  if(mode==='drive'||mode==='fall'){s.c.kmTot=(s.c.kmTot||0)+kmh*dt/3600;if(SND.sfx||SND.music)M2R.sonne=true;if(SND.music&&((engTier|0)+1)>=10)m2Flag('palier10');}
+  if(mode==='drive'||mode==='fall'){s.c.kmTot=(s.c.kmTot||0)+kmh*dt/3600;if(SND.sfx||SND.music)M2R.sonne=true;if(SND.music&&((engTier|0)+1)>=10){const E=window.POUCE_JEU&&POUCE_JEU.joue()&&POUCE_JEU.E; /* (2026-10-25) le morceau de CETTE course, à son palier 10 */
+    if(E&&E.id){const L=s.c.musP10||(s.c.musP10=[]);if(L.indexOf(E.id)<0&&L.length<80){L.push(E.id);SAVE.mark();}}}}
   {const k9=secCarte(),sg=k9.c+'/'+k9.m+'/'+(runStats.zones|0);if(M2R.lv!==sg){M2R.lv=sg;m2Niveau(k9);}} /* (2026-10-22, Sacha : « tableau des peintures ») un niveau entré */
   if(mode==='drive'&&side<0)m2Cpt('envers',kmh*dt/3600,100,'envers'); /* MONDE À L'ENVERS : 100 km sous la dalle (side < 0) */
   if(((engTier|0)+1)>=24)secGagne('guerrier'); /* SUPER GUERRIER : le palier 24 */
@@ -59020,7 +59100,7 @@ function chaineAura(nom,base,fam,brut,muet,rob){ // rob : un ROBINET (récolte, 
   if(!(base>0)||!running||gameOver||(typeof PARK!=='undefined'&&PARK.on))return 0;
   if(rob){ /* (2026-10-01) LE ROBINET : au compteur, tel quel — ni chaîne, ni ×, ni horloge (voir LA CHAÎNE SE FERME) */
     const p=Math.max(1,Math.round(base*auraDragonK()));auraRun+=p;livre('a:robinet.'+(fam||nom),p);auraPop=Math.min(1,auraPop+p/90);
-    if(TCTL.on&&!CHA.sansPop)popTexte(sansAcc(TR(nom))+' +'+p,'#ffd75e',0);
+    if(TCTL.on&&!CHA.sansPop&&!LEFIL.on)popTexte(sansAcc(TR(nom))+' +'+p,'#ffd75e',0); /* (LE FIL) un robinet est un flux : le compteur pulse (auraPop), rien ne s'écrit */
     if(!muet)try{chimeNote(noteP(1,1),0,.10,.16);}catch(e){}
     return p;}
   fam=fam||nom;const k=CHA.fam[fam]|0;CHA.fam[fam]=k+1;
@@ -59673,6 +59753,7 @@ function heistFire(){
   showMsg('🚀 DÉCOLLAGE — TOUT ×2 ! ★','#ff3ec8');
 }
 function trickMsg(txt,tier){ // tier: 1 MONSTRE · 2 DOUBLE · 3 TRIPLE (ou true = mis en avant)
+  if(LEFIL.on){filTrick(txt,tier);return;} /* (2026-10-25, LE FIL) plus de verdict ni de carte au centre : la pastille unique le dit */
   if(TCTL.on){verdPousse(txt,tier);return;} // (vague 3) sur téléphone #trickBox est masqué (écran nu) : le verdict monte au COULOIR des annonces (verdSolde)
   // UN temps fort à la fois : un gros verdict (tier≥2) balaie les petits pops en cours ; sinon on plafonne à 2
   if(tier===2||tier===3){while(trickBox.firstChild)trickBox.firstChild.remove();}
@@ -59716,6 +59797,7 @@ function flyCash(worldPos,n){ // les billets VOLENT de la caisse vers le compteu
   flyV.copy(worldPos).project(camera);
   if(flyV.z>1)return; // derrière la caméra : rien à montrer
   if(SONV2&&!document.body.classList.contains('touch')){const m9=Math.min(4,n|0);for(let k=0;k<m9;k++){const i9=m9>1?Math.round(k*(n-1)/(m9-1)):0;sfx('billet.vole',{t:.58+i9*.045,st:sonPd(k)});}} // (console de son) sur téléphone .bill est masqué (écran nu) : pas de son sans image
+  if(LEFIL.on)return; /* (2026-10-25, LE FIL) le son est joué, mais plus de billets qui traversent l'écran : le compteur d'argent se met à jour seul */
   const x0=(flyV.x*.5+.5)*innerWidth,y0=(-flyV.y*.5+.5)*innerHeight;
   const r=elMoney.getBoundingClientRect(),x1=r.left+r.width/2,y1=r.top+r.height/2;
   for(let i=0;i<n;i++){
@@ -65633,6 +65715,44 @@ function garBeaute(dt,t9){ // (2026-09-30) L'ATELIER v2 : ce qui vit — le feu 
     a[j]+=v[q]*dt+Math.sin(t9*1.7+i)*dt*.25;a[j+1]+=v[q+1]*dt;a[j+2]+=v[q+2]*dt;} // …monte, et entre dans l'atelier
   P.needsUpdate=true;
 }
+/* ===== LE SOLEIL DU TITRE (2026-10-25, Sacha : « l'accueil est tout le temps à la même heure ; il faut plusieurs ambiances qui s'adaptent à l'horaire de
+   l'appareil, et à la saison, comme dans Animal Crossing ») =====
+   Les heures de l'accueil ne sont plus des seuils fixes (nuit 22 h-5 h…) : elles se calent sur le LEVER et le COUCHER du soleil du jour, calculés
+   d'après la date, le fuseau horaire et l'heure d'été de l'appareil. Aucun réseau, aucune permission de position : le lieu est deviné du fuseau
+   (TITRE_ZONES, la grande ville du fuseau) ; un fuseau inconnu prend sa latitude moyenne et sa longitude de l'heure légale. L'hémisphère Sud a
+   donc ses saisons à l'envers. Formule du NOAA (équation du temps + déclinaison), juste à quelques minutes, plus que ce qu'il faut pour une ambiance.
+   titreSoleil(d,lat,lon) → {lever,coucher} en heures locales · titreLieu(d,zone) → [lat,lon] · dbgSoleil('2026-06-21T22:00','Europe/Paris') (banc). */
+const TITRE_ZONES={'Europe/Paris':[48.9,2.4],'Europe/London':[51.5,-.1],'Europe/Dublin':[53.3,-6.3],'Europe/Lisbon':[38.7,-9.1],'Europe/Madrid':[40.4,-3.7],
+  'Europe/Brussels':[50.8,4.4],'Europe/Amsterdam':[52.4,4.9],'Europe/Berlin':[52.5,13.4],'Europe/Zurich':[47.4,8.5],'Europe/Rome':[41.9,12.5],
+  'Europe/Vienna':[48.2,16.4],'Europe/Warsaw':[52.2,21],'Europe/Stockholm':[59.3,18.1],'Europe/Oslo':[59.9,10.7],'Europe/Helsinki':[60.2,24.9],
+  'Europe/Athens':[38,23.7],'Europe/Istanbul':[41,29],'Europe/Moscow':[55.8,37.6],'Europe/Kiev':[50.5,30.5],'Europe/Kyiv':[50.5,30.5],
+  'Africa/Casablanca':[33.6,-7.6],'Africa/Algiers':[36.8,3.1],'Africa/Tunis':[36.8,10.2],'Africa/Cairo':[30,31.2],'Africa/Lagos':[6.5,3.4],
+  'Africa/Johannesburg':[-26.2,28],'Africa/Nairobi':[-1.3,36.8],'Asia/Dubai':[25.2,55.3],'Asia/Tehran':[35.7,51.4],'Asia/Kolkata':[22.6,88.4],
+  'Asia/Calcutta':[22.6,88.4],'Asia/Karachi':[24.9,67],'Asia/Dhaka':[23.8,90.4],'Asia/Bangkok':[13.8,100.5],'Asia/Jakarta':[-6.2,106.8],
+  'Asia/Singapore':[1.3,103.8],'Asia/Hong_Kong':[22.3,114.2],'Asia/Shanghai':[31.2,121.5],'Asia/Seoul':[37.6,127],'Asia/Tokyo':[35.7,139.7],
+  'Asia/Manila':[14.6,121],'Australia/Sydney':[-33.9,151.2],'Australia/Melbourne':[-37.8,145],'Australia/Brisbane':[-27.5,153],
+  'Australia/Perth':[-32,115.9],'Australia/Adelaide':[-34.9,138.6],'Pacific/Auckland':[-36.8,174.8],'America/New_York':[40.7,-74],
+  'America/Toronto':[43.7,-79.4],'America/Montreal':[45.5,-73.6],'America/Halifax':[44.6,-63.6],'America/Chicago':[41.9,-87.6],'America/Denver':[39.7,-105],
+  'America/Phoenix':[33.4,-112],'America/Los_Angeles':[34,-118.2],'America/Vancouver':[49.3,-123.1],'America/Anchorage':[61.2,-149.9],
+  'Pacific/Honolulu':[21.3,-157.9],'America/Mexico_City':[19.4,-99.1],'America/Bogota':[4.7,-74.1],'America/Lima':[-12,-77],'America/Santiago':[-33.4,-70.7],
+  'America/Sao_Paulo':[-23.5,-46.6],'America/Argentina/Buenos_Aires':[-34.6,-58.4],'America/Martinique':[14.6,-61],'America/Guadeloupe':[16.2,-61.5],
+  'America/Cayenne':[4.9,-52.3],'Indian/Reunion':[-21.1,55.5],'Pacific/Noumea':[-22.3,166.5],'Pacific/Tahiti':[-17.5,-149.6]};
+function titreLieu(d,zone){ // [latitude, longitude est] du fuseau de l'appareil
+  if(zone===undefined){try{zone=Intl.DateTimeFormat().resolvedOptions().timeZone;}catch(e){zone='';}}
+  const z=TITRE_ZONES[zone];if(z)return z;
+  const y=d.getFullYear(),legale=-Math.max(new Date(y,0,1).getTimezoneOffset(),new Date(y,6,1).getTimezoneOffset())/60; // heure légale hors heure d'été
+  const sud=/^(Australia|Antarctica)\/|Auckland|Sao_Paulo|Santiago|Lima|Johannesburg|Argentina|Montevideo|La_Paz|Asuncion|Maputo|Harare|Lusaka|Windhoek|Antananarivo|Fiji|Tongatapu|Apia|Reunion|Noumea|Tahiti/.test(zone||'');
+  return [sud?-30:/^Europe\//.test(zone||'')?48:/^America\//.test(zone||'')?38:35,legale*15];}
+function titreSoleil(d,lat,lon){ // lever et coucher du soleil ce jour-là, en heures LOCALES (l'heure d'été de l'appareil est déjà dedans)
+  const R=Math.PI/180,n=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5),g=2*Math.PI/365*(n-1);
+  const eq=229.18*(7.5e-5+1.868e-3*Math.cos(g)-3.2077e-2*Math.sin(g)-1.4615e-2*Math.cos(2*g)-4.0849e-2*Math.sin(2*g)); // l'équation du temps (min)
+  const dec=6.918e-3-.399912*Math.cos(g)+.070257*Math.sin(g)-6.758e-3*Math.cos(2*g)+9.07e-4*Math.sin(2*g)-2.697e-3*Math.cos(3*g)+1.48e-3*Math.sin(3*g); // la déclinaison (rad)
+  let c=Math.cos(90.833*R)/(Math.cos(lat*R)*Math.cos(dec))-Math.tan(lat*R)*Math.tan(dec);c=Math.max(-.985,Math.min(.985,c)); // (jour ou nuit polaire : un jour de 1 h 20 à 22 h 40, jamais de trou)
+  const ha=Math.acos(c)/R,decal=-d.getTimezoneOffset(); // demi-arc du jour (°) · décalage de l'appareil à ce jour (min)
+  return {lever:(720-4*(lon+ha)-eq+decal)/60,coucher:(720-4*(lon-ha)-eq+decal)/60};}
+window.dbgSoleil=function(iso,zone){ // (banc) dbgSoleil('2026-06-21T22:00') : l'heure du titre à cet instant ; zone = un fuseau d'IANA (sinon celui de l'appareil)
+  const d=iso?new Date(iso):new Date(),L=titreLieu(d,zone),S=titreSoleil(d,L[0],L[1]),f=function(h){const m=Math.round(h*60);return Math.floor(m/60)+'h'+('0'+m%60).slice(-2);};
+  return {date:d.toString(),lieu:L,lever:f(S.lever),coucher:f(S.coucher),heure:titreHeureDe(d,zone)};};
 /* ===================== LA CHUTE — LE MENU DANS LE CIEL (2026-09-30, Sacha, capture de Zelda : Tears of the Kingdom à l'appui) =====================
    « Au lieu d'être dans le garage, la voiture doit TOMBER DU CIEL, en face d'une route, dans le biome nuage, de très haut, à l'infini ; garde
    l'affichage et les boutons ; on la voit tomber sur la gauche, à la place de la voiture du garage, et sur la droite les boutons que j'ai faits. »
@@ -65679,7 +65799,7 @@ const TITRE_H={
   golden:{bio:'titreGolden',P:{az:1.95,K:[1.05,1.3,1.8,1.6],R:[-.35,.42,.75,1],mzT:[.20,.20,.42,.55],mzO:[.30,.24,.44,.6],mzH:[1,.72,.46,.7],cleS:0xffd0a0,rimC:0xffb070,kh:.35,sk:2.1,amb:.75,sol:.9},v:['40,22,46',.30,.52,'34,18,40',.64],t:[1,.84,.70]},
   soir:  {bio:'titreSoir',  P:{K:[1,1.15,1.6,1.6],R:[-.3,.5,.72,1],mzT:[.10,.09,.24,.6],mzO:[.20,.17,.34,.6],mzH:[.85,.60,.70,.6],cleS:0xffc0cc,zenC:0xa8b8ff,rimC:0x9fb4ff,kh:.5,expo:.95,sk:2.3,amb:.85,sol:.9,sc:.3,sr:1.6},v:['20,10,40',.36,.56,'18,10,36',.66],t:[.85,.66,.78]},
   nuit:  {bio:'titreNuit',  P:{K:[.62,.72,1.3,1.4],R:[-.05,.65,.8,1],mzT:[.02,.03,.08,.9],mzO:[.07,.09,.18,.85],mzH:[.50,.58,.76,.85],cleS:0xb8ccff,zenC:0x8fa8ff,rimC:0x86a6ff,kh:.6,sk:2.5,amb:1,sol:1,sc:.35,sr:1.7},v:['2,6,20',.45,.65,'2,6,20',.7],t:[.34,.40,.58]}};
-const TITRE_HEURES=['matin','midi','aprem','golden','soir','nuit'];
+const TITRE_HEURES=['aube','matin','midi','aprem','golden','soir','nuit'];
 /* (titre v4) LA PALETTE DU CIEL DU TITRE, par heure — z zénith, m milieu, h horizon (aussi la brume des cumulus : les lointains s'y
    fondent), s lueur du soleil, mh/mo la mer de nuages au soleil/à l'ombre, c les cirrus, ca leur part, hz la distance de la brume. */
 const TITRE_CIEL={
@@ -65689,6 +65809,10 @@ const TITRE_CIEL={
   golden:{tw:1,ry:.7,cr:.34,z:[.12,.22,.50],m:[.56,.58,.74],h:[.96,.84,.70],s:[.42,.26,.12],mh:[1,.84,.66],mo:[.42,.42,.62],c:[1,.82,.66],ca:.5,hz:.9},
   soir:  {tw:1,ry:.45,cr:.36,z:[.04,.07,.22],m:[.20,.20,.44],h:[.66,.48,.56],s:[.28,.14,.15],mh:[.70,.58,.70],mo:[.18,.19,.36],c:[.88,.60,.66],ca:.45,hz:.85},
   nuit:  {tw:.85,ry:0,cr:.45,z:[.010,.016,.045],m:[.03,.05,.12],h:[.10,.14,.26],s:[.04,.06,.12],mh:[.34,.42,.62],mo:[.05,.07,.15],c:[.35,.42,.60],ca:.2,hz:.8}};
+/* L'AUBE (2026-10-25, Sacha : « on est tout le temps à l'aube… il faut plusieurs ambiances ») : le soleil n'est pas encore levé — un ciel indigo qui
+   pâlit en lavande, un horizon pêche-rose sous la mer de nuages, une brume rosée, les dernières étoiles ; les phares de la caisse encore en veilleuse. */
+TITRE_H.aube={bio:'titreAube',P:{K:[1.03,1.2,1.65,1.6],R:[-.33,.46,.74,1],mzT:[.20,.16,.26,.6],mzO:[.26,.22,.36,.6],mzH:[1,.72,.58,.65],cleS:0xffc8b0,zenC:0xb0b4ee,rimC:0xffb8a0,kh:.45,expo:.9,sk:2.6,amb:.9,sol:1,cjA:1.2,cjF:1.8},v:['30,26,60',.34,.54,'28,22,54',.62],t:[.92,.80,.82]};
+TITRE_CIEL.aube={tw:1,ry:.55,cr:.36,z:[.05,.09,.28],m:[.40,.36,.58],h:[.98,.66,.52],s:[.52,.32,.22],mh:[1,.78,.66],mo:[.26,.26,.44],c:[1,.74,.66],ca:.42,hz:.9};
 /* (2026-10-14, passe graphismes — ÉCRAN TITRE, les 6 heures) Retouche d'étalonnage PAR VALEURS (charte : signatures MATIN/MIDI/SOIR/NUIT, plus de violet-néon,
    sat ≤ 1,30, pas de cobalt, caisse mieux éclairée). Posée ICI, après les définitions de TITRE_CIEL/TITRE_H, donc APRÈS la copie de titreGolden/titreNuit par
    nuagesSoir/nuagesNuit (la course ne bouge pas). Couleurs de ciel/brume en LINÉAIRE. */
@@ -65813,8 +65937,12 @@ window.dbgNuFond=function(k){NUF.force=k==null?null:+k; // (banc) même image : 
   if(paused||arguments[1]){if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);}
   let px=null;if(arguments[1]){const gl=renderer.getContext(),W=gl.drawingBufferWidth,H=gl.drawingBufferHeight,b=new Uint8Array(4);px=[];for(const q of [[.1,.9],[.5,.95],[.9,.9],[.1,.6]]){gl.readPixels(Math.round(q[0]*W),Math.round(q[1]*H),1,1,gl.RGBA,gl.UNSIGNED_BYTE,b);px.push([b[0],b[1],b[2]]);}} // (banc) des pixels du haut de l image
   return {on:NUF.on,k:+NUF.k.toFixed(2),meteo:m9,uTi:+skyU.uTi.value.x.toFixed(2),px:px};};
-// l'heure du TÉLÉPHONE → l'ambiance : nuit 22 h-5 h · matin 5 h-10 h · midi 10 h-14 h · après-midi 14 h-17 h · golden hour 17 h-19 h 30 · soir 19 h 30-22 h
-function titreHeureDe(d){const h=d.getHours()+d.getMinutes()/60;return h<5?'nuit':h<10?'matin':h<14?'midi':h<17?'aprem':h<19.5?'golden':h<22?'soir':'nuit';}
+/* l'heure du TÉLÉPHONE + la saison → l'ambiance (2026-10-25) : les bornes suivent le soleil du jour (voir titreSoleil), plus des heures fixes.
+   nuit jusqu'à 45 min avant le lever · AUBE jusqu'à 20 min après · matin jusqu'à 2 h avant le midi solaire · midi jusqu'à 2 h après · après-midi
+   jusqu'à 1 h 25 avant le coucher · golden hour jusqu'au coucher (+ 6 min) · soir jusqu'à 1 h 25 après · nuit. À Paris : en juin le soir dure
+   jusqu'à 23 h 30, en décembre la golden hour commence à 15 h 30. */
+function titreHeureDe(d,zone){const L=titreLieu(d,zone),S=titreSoleil(d,L[0],L[1]),h=d.getHours()+d.getMinutes()/60,mi=(S.lever+S.coucher)/2;
+  return h<S.lever-.75?'nuit':h<S.lever+.35?'aube':h<mi-2?'matin':h<mi+2?'midi':h<S.coucher-1.4?'aprem':h<S.coucher+.1?'golden':h<S.coucher+1.4?'soir':'nuit';}
 const TITRE_HF={h:null,force:null,tc:0,tcol:new THREE.Color(1,1,1)};
 {const q9=(location.search.match(/[?&]heure=([a-zé\-]+)/i)||[])[1];if(q9){const n9=q9.toLowerCase().replace('apres-midi','aprem').replace('après-midi','aprem').replace('goldenhour','golden');if(TITRE_H[n9])TITRE_HF.force=n9;}}
 function titreHeurePose(h){ // pose UNE heure : son ambiance (chuteRender la verra changer et la réappliquera), ses réglages, ses voiles, sa teinte
@@ -65833,7 +65961,7 @@ function titreHeureTick(dt){ // l'heure, relue toutes les 20 s (un menu laissé 
 }
 window.dbgHeure=function(h){ // (dev) forcer une heure du titre : dbgHeure('golden') · dbgHeure(null) : l'horloge du téléphone
   if(h!==undefined){TITRE_HF.force=h&&TITRE_H[h]?h:null;TITRE_HF.tc=0;titreHeureTick(0);}
-  return {heure:TITRE_HF.h,forcee:TITRE_HF.force,horloge:titreHeureDe(new Date()),heures:TITRE_HEURES};};
+  var L9=titreLieu(new Date()),S9=titreSoleil(new Date(),L9[0],L9[1]);return {heure:TITRE_HF.h,forcee:TITRE_HF.force,horloge:titreHeureDe(new Date()),lever:+S9.lever.toFixed(2),coucher:+S9.coucher.toFixed(2),heures:TITRE_HEURES};};
 window.dbgTitre=function(h,o){ /* banc (2026-10-14, passe graphismes) : retoucher à chaud une heure du titre : dbgTitre('midi',{ciel:{z:[..],h:[..]},amb:{fog:[..]},P:{..},v:[..],t:[..]}) ; la repose aussitôt */
   const H=TITRE_H[h];if(!H||!o)return null;if(o.ciel)Object.assign(TITRE_CIEL[h],JSON.parse(JSON.stringify(o.ciel)));if(o.amb)Object.assign(BIOMES[H.bio],JSON.parse(JSON.stringify(o.amb)));if(o.P)Object.assign(H.P,JSON.parse(JSON.stringify(o.P)));if(o.v)H.v=o.v.slice();if(o.t)H.t=o.t.slice();
   TITRE_HF.force=h;TITRE_HF.tc=0;titreHeurePose(h);CHUTE.bioT=null;return {ciel:TITRE_CIEL[h],amb:BIOMES[H.bio].nm};};
@@ -70779,6 +70907,7 @@ function volgLance(k,q,src,big){
 }
 // une nitro gagnée : elle vole si elle peut (`r` réservoir orange, `x` réserve bleue) ; sinon la barre bat tout de suite
 function volgNitro(k,q){
+  if(LEFIL.on)return false; /* (2026-10-25, LE FIL) plus d'éclairs qui traversent l'écran : la barre prend son éclat sur place (nbPrend, appelé par le refus) */
   if(!(q>.03)||!VOLG)return false;
   if(volgLance(k,q,ajSource(false),Math.min(1.5,.9+q*.6))){VOLG.n[k]+=q;return true;}
   return false;
@@ -71368,7 +71497,7 @@ function loop(now){
           vA+=18+5*trk9;boost=Math.max(boost,1.5+.2*trk9);if(!pl9)padCd=1.5; /* (LIGNE PARFAITE, audit GAMEPLAY) un pad de la file ne met plus la recharge : au niveau 12 il bloquait le 1er pad de la LIGNE DE NÉON au-delà de ~470 km/h (« LIGNE CASSÉE ») */ // viser paie plus qu'avant (14 → 18)
           if(SONV2)sfx('pad',{st:sonPd(trk9)});else boostSnd(1+.1*trk9);shake=Math.max(shake,.3+.04*trk9);hap(trk9?[10,16,10]:10);
           if(SENS)try{sensCoup(0,-1.7-.25*trk9,-.9);DRIFT_V.set(0,.12,-CARS[level].l*.42);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,5+trk9,7);}catch(e){} // (2026-10-14, sensations) la plaque POUSSE : le nez se lève, le cul s'écrase sur ses ressorts, une gerbe d'or part de sous la poupe — plus fort à chaque pad du train
-          slam(tr9>1?TR('BOOST')+' ×'+tr9:'BOOST','','#ffb000','#ff3924',28); /* (2026-09-29, Sacha : « BOOST écrit plus petit ») 46 → 28 */flashEcran('rgba(255,150,0,.5)');fovPunch=Math.max(fovPunch,10+2*trk9); // (HUD v3) « quand tu roules sur un boost, BOOST en gros »
+          if(LEFIL.on)fil(tr9>1?TR('BOOST')+' ×'+tr9:'BOOST','#ffb000',1);else slam(tr9>1?TR('BOOST')+' ×'+tr9:'BOOST','','#ffb000','#ff3924',28); /* (LE FIL) le BOOST s'écrit dans la pastille */ /* (2026-09-29, Sacha : « BOOST écrit plus petit ») 46 → 28 */flashEcran('rgba(255,150,0,.5)');fovPunch=Math.max(fovPunch,10+2*trk9); // (HUD v3) « quand tu roules sur un boost, BOOST en gros »
           if(pl9){LIGNE.pris[1]++;LIGNE.padPris.add(i9);}nitroGain(LIGNE.padI.has(i9)?LIGNE.don:.12,LIGNE.padI.has(i9)?'pad.ligne':'pad');flowAdd(6+2*trk9,'route','p');momT=Math.min(4.3,momT+.8); // (LIGNE PARFAITE) le pad de la file rend de quoi tenir jusqu'au fruit
           break;
         }
