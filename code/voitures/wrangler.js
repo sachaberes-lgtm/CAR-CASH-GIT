@@ -253,54 +253,42 @@ return function(K){
   const pose=(k,g,p,n,rz,sx,sy)=>P.put(k,g,p[0],p[1],p[2],Math.atan2(-n[1],n[2]),Math.asin(cl(n[0],-1,1)),rz||0,sx||1,sy||1,1);
   const quad=(k,a,b,c,d)=>{P.tri(k,a,b,c);P.tri(k,a,c,d);};
 
-  // ============================ LA CAISSE EN COUCHES (`?baroudeur=couches`) ============================
-  /* (25/10, Léo : « de la même manière dont j'ai fait évoluer La Fidèle ») la VRAIE forme (la baignoire, le hard-top, le capot) en RANGÉES de dalles empilées — chaque rangée est une suite de blocs de largeur
-     constante le long de z (les passages de roue restent des vides en marches) ; la cabine se lit rangée par rangée : montants de la couleur de la caisse, vitres en blocs de verre (le pare-brise et la lunette
-     en marches, comme les rangées de La Fidèle) ; les portes sont des panneaux en relief collés sur le flanc. Tout le reste (ailes, élargisseurs, calandre, roues…) est déjà en pièces posées. */
+  // ============================ LA CAISSE EN GRANDS PANS (`?baroudeur=couches`) ============================
+  /* (25/10, Léo : « c'est pas top, pas d'effet écaille en rectangles répétés ») la v1 empilait des dizaines de petites rangées : chaque bloc avait ses coins ombrés, et la tôle se lisait en écailles.
+     Désormais le MOINS de blocs possible, de grands pans lisses comme les caisses de LA HONTE : la baignoire en trois étages (le seuil noir, le bas de caisse, l'épaule), la cabine d'UN SEUL prisme
+     au profil de côté, des vitres d'une seule pièce, le capot d'UN SEUL prisme au profil bombé ; les portes sont deux panneaux en relief par flanc. Seuls les passages de roue arrière font des marches. */
   const RP=.018;   // le relief des panneaux de porte
   if(CCH){
     const B=(k,w,h,d,x,y,z,rx,ry,rz)=>P.box(k,w,h,d,x,y,z,rx||0,ry||0,rz||0),r5=v=>Math.round(v*200)/200;
-    // une rangée de blocs entre y0 et y1, de z=zA à zB ; `arche` : on laisse vide ce que le passage de roue arrière mange
-    const rangee=(k,y0,y1,w,zA,zB,arche)=>{const dz=.04,yc=(y0+y1)/2;let run=null;const flush=z1=>{if(run!=null&&z1-run>.005)B(k,2*w,y1-y0,z1-run,0,yc,(run+z1)/2);run=null;};
-      for(let z=zA+dz/2;z<zB;z+=dz){const plein=!arche||YB(z)<=y0+.015;if(plein){if(run==null)run=z-dz/2;}else flush(z-dz/2);}
-      flush(zB);};
-    // 1. LA BAIGNOIRE : de 0,60 à la ceinture (1,222), des dalles de 8 cm ; la 1re, noire (le bas de caisse) ; un liseré de ceinture
-    const ZT0=-2.149,ZT1=.88;
-    B('k',1.60,.05,ZT1-ZT0,0,.575,(ZT0+ZT1)/2);   // le dessous noir
-    const YS=[.60,.68,.76,.84,.92,1.00,1.08,1.16,1.222];
-    for(let i=0;i<YS.length-1;i++)rangee(i===0?'k':'p',YS[i],YS[i+1],r5(SBx((YS[i]+YS[i+1])/2)),ZT0,ZT1,true);
-    rangee('p',1.222,1.245,r5(SBx(1.235)+.008),ZT0,ZT1,false);   // le liseré de la ceinture
+    const ZT0=-2.149,ZT1=.88,WB=.858;
+    // 1. LA BAIGNOIRE : le dessous noir, le seuil noir, le bas de caisse (avec les marches du passage de roue arrière), l'épaule, le liseré de ceinture
+    B('k',1.60,.05,ZT1-ZT0,0,.575,(ZT0+ZT1)/2);
+    B('k',2*.82,.06,ZT1-ZT0,0,.63,(ZT0+ZT1)/2);                                                  // le seuil (noir), de bout en bout
+    const bas=(zA,zB)=>B('p',2*WB,1.005-.66,zB-zA,0,(1.005+.66)/2,(zA+zB)/2);                       // le bas de caisse, d'un bloc
+    bas(ZT0,-1.98);bas(-.99,ZT1);                                                                 // (devant et derrière le passage de roue)
+    {const dz=.04;for(const [y0,y1] of [[.66,.76],[.76,.86],[.86,.94],[.94,1.005]]){let run=null;const flush=z1=>{if(run!=null&&z1-run>.005)B('p',2*WB,y1-y0,z1-run,0,(y0+y1)/2,(run+z1)/2);run=null;};
+      for(let z=-1.98+dz/2;z<-.99;z+=dz){if(YB(z)<=y0+.015){if(run==null)run=z-dz/2;}else flush(z-dz/2);}flush(-.99);}}   // les marches du passage de roue
+    B('p',2*r5(SBx(1.10)),1.222-1.005,ZT1-ZT0,0,(1.222+1.005)/2,(ZT0+ZT1)/2);                       // l'épaule, au-dessus de l'arche, d'un bloc
+    B('p',2*(r5(SBx(1.235))+.008),.023,ZT1-ZT0,0,1.2335,(ZT0+ZT1)/2);                              // le liseré de la ceinture
     // 2. LES PORTES : deux panneaux par flanc, en relief
     for(const sd of [1,-1])for(const [z0,z1] of [[.563,-.375],[-.418,-1.16]]){const L=Math.abs(z0-z1)-.012,zc=(z0+z1)/2;
-      B('p',RP,.52,L,sd*(SBx(.93)+RP/2-.002),.93,zc);        // le panneau (bas de porte → épaule)
-      B('p',RP,.07,L,sd*(SBx(.66)+RP/2-.004),.69,zc);}        // le bas de porte, un cran plus rentré
-    // 3. LA CABINE (le hard-top) rangée par rangée : ceinture 1,245 → 1,30, vitres 1,30 → 1,717 (9 rangées), rail de toit 1,717 → 1,785
-    const Wc=y=>lin([[1.27,.846],[1.775,.793]],y),zF=y=>Math.max(.55,zPB(y)),zRr=y=>zHT(y);
-    const vitres=y=>{   // les tronçons de verre à cette hauteur (z0, z1) : porte avant, porte arrière, custode
-      const f=lin([[1.30,.322],[1.68,.25],[1.717,.228]],y),r=y>1.69?-.28:-.309,c1=lin([[1.30,-1.975],[1.69,-1.965],[1.717,-1.93]],y),c2=y>1.69?-1.27:-1.24;
-      return [[r,f],[-1.088,-.464],[c1,c2]];};
-    const couche=(y0,y1,verre)=>{const yc=(y0+y1)/2,W=r5(Wc(yc)),za=zRr(yc),zb=zF(yc);
-      if(!verre){B('p',2*W,y1-y0,zb-za,0,yc,(za+zb)/2);return;}
-      const V=vitres(yc);let z=za;
-      for(const [v0,v1] of V){if(v0>z+.004)B('p',2*W,y1-y0,v0-z,0,yc,(z+v0)/2);B('g',2*W+.004,y1-y0,v1-v0,0,yc,(v0+v1)/2);z=v1;}
-      if(zb>z+.004)B('p',2*W,y1-y0,zb-z,0,yc,(z+zb)/2);};
-    couche(1.245,1.30,false);
-    const VY=[];for(let i=0;i<=9;i++)VY.push(1.30+(1.717-1.30)*i/9);
-    for(let i=0;i<9;i++)couche(VY[i],VY[i+1],true);
-    couche(1.717,1.785,false);
-    // le pare-brise : un bloc de verre sur le devant de chaque rangée de vitres (en marches), cadre noir au-dessus
-    for(let i=0;i<9;i++){const yc=(VY[i]+VY[i+1])/2;if(yc<1.34)continue;B('g',1.41,VY[i+1]-VY[i],.03,0,yc,zF(yc)-.008);}
-    // la lunette : même chose derrière
-    for(let i=0;i<9;i++){const yc=(VY[i]+VY[i+1])/2;B('g',1.38,VY[i+1]-VY[i],.03,0,yc,zRr(yc)+.008);}
-    // le toit, bombé : deux dalles de plus (la dernière plus étroite)
-    B('p',2*.775,.03,zF(1.80)-zRr(1.80)-.14,0,1.80,(zF(1.80)+zRr(1.80))/2-.02);
-    B('p',2*.64,.03,zF(1.82)-zRr(1.82)-.50,0,1.83,(zF(1.82)+zRr(1.82))/2-.1);
-    // 4. LE CAPOT en couches : des dalles le long de z, haut qui plonge vers la calandre, un bandeau central plus haut
-    {const yT0=z=>lin([[.648,1.321],[1.083,1.307],[1.493,1.272],[1.684,1.225],[1.794,1.19],[1.835,1.17],[1.862,1.152]],z),HZ=[.648,.80,.95,1.10,1.25,1.40,1.55,1.66,1.75,1.80,1.862];
-     for(let i=0;i<HZ.length-1;i++){const zm=(HZ[i]+HZ[i+1])/2,top=yT0(zm),y0=1.148;
-       B('p',1.32,top-y0-.012,HZ[i+1]-HZ[i],0,(y0+top-.012)/2,zm);          // la dalle
-       B('p',.80,.016,HZ[i+1]-HZ[i]-.004,0,top-.004,zm);                    // le bandeau central, en relief
-       B('p',1.28,.012,HZ[i+1]-HZ[i]-.004,0,top-.014,zm);}}                  // le rebord, un cran plus bas
+      B('p',RP,.56,L,sd*(SBx(.93)+RP/2-.002),.93,zc);}
+    // 3. LA CABINE (le hard-top) : UN prisme, le profil de côté (pare-brise couché, lunette qui monte) ; le toit bombé d'une dalle
+    const Wc=.82,y0c=1.245,y1c=1.785;
+    P.prism('p',[[zHT(y0c),y0c],[zPB(y0c),y0c],[zPB(y1c),y1c],[zHT(y1c),y1c]],2*Wc,0);
+    B('p',2*.735,.04,zPB(1.80)-zHT(1.80)-.16,0,1.805,(zPB(1.80)+zHT(1.80))/2-.02);               // le toit (une dalle, un cran plus étroite)
+    // les vitres : UNE pièce chacune. Côtés : porte avant (pointe vers le pare-brise), porte arrière, custode. Chaque fenêtre est posée à fleur du flanc.
+    for(const sd of [1,-1]){const xg=sd*(Wc+.004);
+      P.prism('g',[[-.309,1.30],[.322,1.30],[.25,1.68],[.228,1.712],[-.28,1.717],[-.309,1.69]],.012,xg);
+      P.prism('g',[[-1.088,1.30],[-.464,1.30],[-.464,1.717],[-1.088,1.717]],.012,xg);
+      P.prism('g',[[-1.975,1.30],[-1.24,1.30],[-1.24,1.687],[-1.27,1.717],[-1.93,1.717],[-1.965,1.69]],.012,xg);}
+    // le pare-brise : une lame de verre posée sur le plan avant (bandeau de 1,41 m) ; la lunette sur le plan arrière (1,38 m)
+    P.prism('g',[[zPB(1.37)-.004,1.37],[zPB(1.37)+.012,1.37],[zPB(1.755)+.012,1.755],[zPB(1.755)-.004,1.755]],1.41,0);
+    P.prism('g',[[zHT(1.31)-.012,1.31],[zHT(1.31)+.004,1.31],[zHT(1.745)+.004,1.745],[zHT(1.745)-.012,1.745]],1.38,0);
+    // 4. LE CAPOT : UN prisme au profil bombé, entre les ailes (largeur 1,32 m), le bandeau central en relief
+    {const yT0=z=>lin([[.648,1.321],[1.083,1.307],[1.493,1.272],[1.684,1.225],[1.794,1.19],[1.835,1.17],[1.862,1.152]],z),HZ=[.648,1.083,1.493,1.684,1.794,1.862];
+     P.prism('p',[[.648,1.148]].concat(HZ.map(z=>[z,yT0(z)-.006])).concat([[1.862,1.148]]),1.32,0);
+     P.prism('p',HZ.map(z=>[z,yT0(z)+.008]).concat(HZ.slice().reverse().map(z=>[z,yT0(z)-.007])),.62,0);}
   }
   // LE CAPOT : bombé, entre les ailes, qui plonge sur la calandre
   if(!CCH){const yT=z=>lin([[.648,1.321],[1.083,1.307],[1.493,1.272],[1.684,1.225],[1.794,1.19],[1.835,1.17],[1.862,1.152]],z),
