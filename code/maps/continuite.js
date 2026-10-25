@@ -281,7 +281,7 @@ function lvlMontre(){ // la bannière « NIVEAU n — LIEU » (fondu d'opacité 
    premier portail de la ville, c'est un hoquet de compilation au pire moment. Elle reste donc DANS la scène,
    invisible hors niveau VILLE ; `uOp` suit le fondu du niveau (`LVL.pluie`). */
 const PLUIE=(function(){
-  const N=IS_MOBILE?600:1100,pos=new Float32Array(N*6),bout=new Float32Array(N*2); // dosée pour que la route reste LISIBLE à travers
+  const N=ALLEGE?600:1100,pos=new Float32Array(N*6),bout=new Float32Array(N*2); // dosée pour que la route reste LISIBLE à travers
   for(let i=0;i<N;i++){const a=Math.random(),b=Math.random(),c=Math.random();
     pos.set([a,b,c,a,b,c],i*6);bout[i*2]=0;bout[i*2+1]=1;}
   const g=new THREE.BufferGeometry();

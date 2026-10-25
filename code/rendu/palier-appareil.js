@@ -106,7 +106,7 @@ const FOVP_K=REDUCED_MOTION?.3:1; // (2026-09-30) « Réduire les animations » 
    d'un coup si un détail gêne). Rien de ce qui est gardé par SENS ne touche la physique, les vitesses ni l'économie : du ressenti seul. */
 var SENS=!/[?&]sens=0/.test(location.search); var SENSG=SENS; /* le même drapeau sous un nom que rien ne masque : le bloc tactile a un `const SENS` local (l interface), qui le cachait → « Cannot access SENS before initialization », le jeu ne démarrait plus */
 try{matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',function(e){if(e.matches)document.documentElement.setAttribute('data-reduced-motion','1');else document.documentElement.removeAttribute('data-reduced-motion');});}catch(e){} // (2026-09-29) le réglage d'iOS change en cours de partie : les règles qui ne lisent que l'attribut suivent
-const renderer=new THREE.WebGLRenderer({antialias:!IS_MOBILE&&!IS_LOW_END,powerPreference:'high-performance'});
+const renderer=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END,powerPreference:'high-performance'});
 renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
 try{palPuce(renderer.getContext());}catch(e){} // (2026-10-14, passe perf mobile) le palier affiné par la puce graphique — voir PAL
@@ -130,10 +130,18 @@ function ccCtxEn(){let l9='';try{l9=localStorage.ccLang||'';}catch(e){}return l9
 // (2026-09-29, audit de sortie) iOS peut garder le contexte PERDU au retour d'arrière-plan sans jamais le rendre : écran noir pour toujours.
 // Au retour, s'il est encore perdu 1,5 s plus tard, on relance (la sauvegarde a été écrite à la perte).
 addEventListener('visibilitychange',function(){if(document.hidden)return;setTimeout(function(){try{if(!document.hidden&&renderer.getContext().isContextLost()){try{enCoursPose();SAVE.flush();}catch(e){}location.reload();}}catch(e){}},1500);});
-let DPR_CAP=Math.min(devicePixelRatio,IS_MOBILE?1:1.5),curDPR=Math.min(DPR_CAP,devicePixelRatio),dprT=0; // téléphone .66→1 (2026-09-24) : la résolution adaptative sait désormais REMONTER, elle protège la fluidité
+let DPR_CAP=Math.min(devicePixelRatio,ALLEGE?1:1.5),curDPR=Math.min(DPR_CAP,devicePixelRatio),dprT=0; // téléphone .66→1 (2026-09-24) : la résolution adaptative sait désormais REMONTER, elle protège la fluidité
 // PLANCHER DE L'ADAPTATIF : sur téléphone on a le droit de descendre BAS. `setPixelRatio` ne touche
 // que le canvas 3D — le HUD est du DOM, il reste net au pixel quoi qu'il arrive. On enlève donc les
 // pixels là où ils coûtent (raymarch, bloom, ombres) sans jamais flouter une jauge.
+/* LE MAX SUR ORDINATEUR (2026-10-25, Sacha : « Vercel = la version maximum ») MESURÉ (Chrome, fenêtre 1440×900 ×2, cadre téléphone) : le jeu voit un écran de
+   844×390 à densité 3,16 (la page-cadre zoome l'iframe), mais la course était plafonnée à DPR_CAP 1,5 : dessinée en 1 266 px de large puis étirée sur ~2 670 px
+   physiques — le flou du PC. Désormais l'ordi (pas ALLEGE) dessine aux pixels RÉELS de l'écran, dans un budget de pixels (PC_PX, 4,5 M : ~4K/2) ; le téléphone
+   garde son plafond de palier (`dprNetCap`). RAPIDE (choix du joueur) reste à 1. `?pcpx=N` (millions de pixels) règle le budget au banc, `?pcpx=0` = l'ancien plafond 1,5. */
+const PC_PX=(function(){const m=/[?&]pcpx=([\d.]+)/.exec(location.search);return m?+m[1]*1e6:4.5e6;})();
+function dprPlafond(fast){ if(fast)return Math.min(devicePixelRatio,1);
+  if(ALLEGE||!PC_PX)return Math.min(devicePixelRatio,PAL.b('dprNetCap',1.5));
+  return Math.min(devicePixelRatio,Math.max(1.5,Math.sqrt(PC_PX/Math.max(1,innerWidth*innerHeight))),4);}
 const DPR_MIN=(IS_MOBILE&&!FORCE_TEL)?.5:.6; // .42 était une bouillie de pixels — et on y restait coincé (voir la remontée dans loop)
 // PORTRAIT : le `fov` de three est VERTICAL — sur un écran haut, le champ HORIZONTAL s'effondre.
 // FOV_K rouvre l'angle, POR (0 paysage → 1 portrait) recadre la caméra. Les deux se règlent ENSEMBLE

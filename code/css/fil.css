@@ -1,0 +1,5 @@
+<style id="leFil">
+/* (2026-10-25, Sacha : « un seul système qui allège le milieu de l'écran ») LE FIL — ce qu'il fait taire (fil.js). La pastille sous le compteur d'aura (#fil)
+   est partie le soir même (« petit encadré à gauche, c'est pas bien ») : les annonces jaillissent de la caisse, voir <style id="jaillissements">. */
+html.fil :is(#verdHud,#trickBox,#chainHud){display:none!important} /* les anciennes voix du milieu : LE FIL les remplace */
+</style>

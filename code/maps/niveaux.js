@@ -54,7 +54,7 @@ const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau da
    Banc / lien de test : `?carte=jade&meteo=orage` impose le 1er couple ; `dbgClassique('ville','soir')` impose le suivant (puis dbgSaut()).
    ========================================================================== */
 const SF={on:!/[?&](classique=cycle|play=sansfin)\b/.test(location.search),pret:false,neuf:false,tirage:[],der:null,force:null,prochain:null,prochainDer:null};
-const SF_HORS={vitree:VILLE_VERRE_V&&!/[?&]vitree=1\b/.test(location.search),crypto:IS_MOBILE&&!/[?&](carte|niveau)=crypto\b/.test(location.search),foret:IS_MOBILE&&!/[?&]carte=foret\b/.test(location.search),dunes:IS_MOBILE&&!/[?&]carte=dunes\b/.test(location.search)}; /* (2026-10-24, Sacha : « enlève les maps dunes et forêt de la version mobile ») LES DUNES et LA FORÊT ne sont plus tirées sur téléphone (l'ordi les garde) ; `?carte=foret` / `?carte=dunes` les remettent */ /* (2026-10-24, Sacha : « supprime la map crypto city de téléphone ») CRYPTO CITY n'est plus tirée sur téléphone (l'ordi la garde) ; `?carte=crypto` la remet pour les essais */
+const SF_HORS={vitree:VILLE_VERRE_V&&!/[?&]vitree=1\b/.test(location.search),crypto:ALLEGE&&!/[?&](carte|niveau)=crypto\b/.test(location.search)}; /* ⚠ TEL_NATIF, PAS l'ancien drapeau mobile (2026-10-25, Sacha : « sur PC la qualité a chuté ») : `l'ancien drapeau mobile` est vrai AUSSI sur l'ordi qui joue l'édition 'mobile' (FORCE_TEL, voir EDITION) — les retraits « téléphone » du 24/10 tombaient donc sur le PC. */ /* (2026-10-24, Sacha : « enlève les maps dunes et forêt de la version mobile ») LA FORÊT n'est plus tirée sur téléphone (l'ordi la garde) · (2026-10-25, Léo : « remets la map dune dans le main, intelligible pour un iPhone 13 ») LES DUNES sont REVENUES au tirage du téléphone, allégées (DN_MOB, dunes-1.js ; `?dunesplein=1` rend l'image d'avant) ; `?carte=foret` / `?carte=dunes` les remettent */ /* (2026-10-24, Sacha : « supprime la map crypto city de téléphone ») CRYPTO CITY n'est plus tirée sur téléphone (l'ordi la garde) ; `?carte=crypto` la remet pour les essais */ /* (2026-10-25, Léo : « remets forêt sur iPhone ») LA FORÊT est REVENUE au tirage du téléphone (elle y garde son allègement : arbres ×0,8, MOB) ; l'ordi la gardait déjà */
 /* (2026-10-18, Sacha : « fusionne les maps ville et ville vitrée ») les maps HORS DU TIRAGE — jouables par ?carte= et dbgClassique (voir VILLE_VERRE_V) */
 {const q9=/[?&]carte=(\w+)/.exec(location.search)||(/[?&]niveau=crypto\b/.test(location.search)?[0,'crypto']:null),m9=/[?&]meteo=(\w+)/.exec(location.search),t9=/[?&]teinte=(\w+)/.exec(location.search);if(q9||m9)SF.force={carte:q9?q9[1]:null,meteo:m9?m9[1]:null,teinte:t9?t9[1]:null};} // (2026-10-16) + `?teinte=` (la ville : violet, vert, jaune, bleu)
 const SF_NIV={nuages:NIVEAUX.find(function(n){return n.id==='nuages';}),orage:NIVEAUX.find(function(n){return n.id==='orage';}),
@@ -82,8 +82,8 @@ const SF_CARTES={
   /* (2026-10-14, Sacha) LE GLACIER (ex-LA BANQUISE, renommé à 20 h 40 : « ça devrait plutôt s'appeler GLACIER et être une MONTAGNE, comme dans STEEP ») :
      le matin rose, le midi bleu profond, le soir où les pics s'embrasent, la NUIT des aurores boréales, la NEIGE, le BLIZZARD (plus rare). Ni pluie ni
      éclairs. La promesse est la même à toute heure : le RACCOURCI (genBanq : les lacets superposés). Voir « LE GLACIER » au JOURNAL. L'id reste 'banquise'. */
-  banquise:{nm:'LE GLACIER',base:'banquise',m:{matin:{bio:'banqMatin'},midi:{bio:'banqMidi'},soir:{bio:'banqSoir'},nuit:{bio:'banqNuit',nuit:1},
-    neige:{bio:'banqNeige'},blizzard:{bio:'banqBlizzard',p:.6}}},
+  banquise:{nm:'LE GLACIER',base:'banquise',m:{midi:{bio:'banqMidi'},soir:{bio:'banqSoir'},nuit:{bio:'banqNuit',nuit:1},
+    neige:{bio:'banqNeige'}}},
   /* (2026-10-15, Sacha : « un nouveau décor pour le générateur aléatoire de map : CRYPTO CITY, une ville imaginaire, de grands immeubles qui
      reflètent — vitrés, dorés, argentés, métalliques, blancs ; hyper moderne, le futur ; explosif : la période BULL RUN, l'apogée de la ville,
      pendant la montée fulgurante du Bitcoin ; pleine de références à la token culture, à l'argent et à la tech »). La CRYPTOCITY de Léo (13/10,
@@ -94,17 +94,17 @@ const SF_CARTES={
      s'embrasent, la NUIT des bureaux allumés derrière le verre. Jamais de pluie ni d'orage. Voir « LA VILLE VITRÉE ». */
   ...({vitree:{nm:'VILLE VITRÉE',base:'vitree',m:{matin:{bio:'vitreMatin',pr:'REFLETS DORES'},midi:{bio:'vitreMidi',p:1.2},soir:{bio:'vitreSoir',p:1.2,pr:'LES TOURS S EMBRASENT'},nuit:{bio:'vitreNuit',nuit:1,pr:'LES BUREAUX BRILLENT'},
     pluie:{bio:'vitrePluie',pluie:.8,sheen:.2,pr:'IL PLEUT ENTRE LES VILLES'}}}}), // (v2) la PLUIE : elle tombe de la ville d'en haut
-  espace:{nm:'EN ORBITE',base:'espace',m:{matin:{bio:'espaceMatin'},midi:{bio:'espace'},soir:{bio:'espaceSoir'}}}, // ni nuages, ni pluie, ni orage (Sacha) — (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») plus de météo SATELLITES
+  espace:{nm:'EN ORBITE',base:'espace',m:{matin:{bio:'espaceMatin'}}}, // ni nuages, ni pluie, ni orage (Sacha) — (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») plus de météo SATELLITES
   /* (2026-10-18, Sacha) LES PROFONDEURS : sous la terre, pas de ciel — ses quatre « temps » sont des lumières : TORCHES (la grotte explorée), CRISTAUX
      (minerais et améthyste à pleine lumière), MAGMA (la lave déborde), NOIR COMPLET (tes phares). La salle du moment choisit l'ambiance (grtBiomes). */
   grotte:{nm:'LES PROFONDEURS',base:'grotte',m:{matin:{bio:'grt-matin-mine',mt:'TORCHES',pr:'SUIS LES TORCHES'},midi:{bio:'grt-midi-mine',mt:'CRISTAUX',pr:'LES CRISTAUX T ECLAIRENT'},
     soir:{bio:'grt-soir-mine',mt:'MAGMA',pr:'LA LAVE MONTE'},nuit:{bio:'grt-nuit-mine',mt:'NOIR COMPLET',nuit:1,p:.8,pr:'TES PHARES, TA SEULE LUMIERE'}}},
-  ...(CANYON_OK?{canyon:{nm:'CANYON DES GÉANTS',base:'canyon',m:{matin:{bio:'canyonMatin'},midi:{bio:'canyonMidi'},soir:{bio:'canyonSoir'},nuit:{bio:'canyonNuit',nuit:1}, // (2026-10-14, Sacha) LE CANYON DES GÉANTS : les six météos du désert
+  ...(CANYON_OK?{canyon:{nm:'CANYON DES GÉANTS',base:'canyon',m:{matin:{bio:'canyonMatin'},soir:{bio:'canyonSoir'},nuit:{bio:'canyonNuit',nuit:1}, // (2026-10-14, Sacha) LE CANYON DES GÉANTS : les six météos du désert
     pluie:{bio:'canyonPluie',pluie:.6,sheen:.18},orage:{bio:'canyonOrage',pluie:.9,orage:1,sheen:.2}}}}:{}),
   /* (2026-10-18, Sacha : « fais les dunes d'or de manière parfaite ») LES DUNES D'OR : le matin rose, le midi turquoise et or (les mirages), le SOIR (la carte postale :
      un peu plus souvent), la nuit d'argent, le VENT DE SABLE (pas une goutte : `pluie` reste 0), la TEMPÊTE DE SABLE (un orage sec). Voir genDunes, buildDunes. */
-  ...(DUNES_OK?{dunes:{nm:"LES DUNES D'OR",base:'dunes',m:{matin:{bio:'dunesMatin'},midi:{bio:'dunesMidi'},soir:{bio:'dunesSoir',p:1.3},nuit:{bio:'dunesNuit',nuit:1,pr:'LA LUNE ARGENTE LE SABLE'},
-    pluie:{bio:'dunesVent',mt:'VENT DE SABLE',sheen:.14,pr:'LE VENT SE LEVE'},orage:{bio:'dunesTempete',orage:1,mt:'TEMPETE DE SABLE',sheen:.16,pr:'TEMPETE DE SABLE',p:.8}}}}:{})
+  ...(DUNES_OK?{dunes:{nm:"LES DUNES D'OR",base:'dunes',m:{matin:{bio:'dunesMatin'},soir:{bio:'dunesSoir',p:1.3},nuit:{bio:'dunesNuit',nuit:1,pr:'LA LUNE ARGENTE LE SABLE'},
+    pluie:{bio:'dunesVent',mt:'VENT DE SABLE',sheen:.14,pr:'LE VENT SE LEVE'}}}}:{})
 };
 /* (2026-10-16, Sacha : « la map ville, elle sera toujours la nuit […] on abandonne toutes les maps ville-jour ») LA VILLE TOUJOURS LA NUIT (voir VTEINTES) :
    plus de matin, de midi ni de soir ; la map de base sous ses quatre temps — la PLUIE (AU-DESSUS DE LA VILLE, telle quelle, un peu plus souvent), la NUIT sèche

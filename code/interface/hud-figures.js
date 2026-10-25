@@ -49,7 +49,7 @@ function bumpNomH(k){return k>=4?'MEGA BUMP':k===3?'TRIPLE BUMP':k===2?'DOUBLE B
 function figRarH(f,k){if(!f)return 'commun';if(f.id==='bump')return k>=4?'epique':k===3?'exotique':k===2?'rare':'commun';
   let r='commun';try{r=cosmRar('figure',f);}catch(e){}return FIG_RP[r]?r:'commun';}
 /* ===== LE HUD DES FIGURES v6 (2026-10-25, Sacha : « SALTO AVANT, TAIL WHIP, BUMP, BIG AIR… sont mal affichés, à gauche dans un petit encadré : écrits et stylisés
-   en petit, qu'ils sortent à côté de la voiture ; et enlève le multiplicateur de figure (le × 2, × 3) » — le récit complet est en tête de mots-jaillissants.js).
+   en petit, qu'ils sortent à côté de la voiture ; et enlève le multiplicateur de figure (le × 2, × 3) » — le récit complet est en tête de mots-jaillissants.js ; ces six points d'entrée passent par LE FIL, fil.js, `filFig`, qui écrit par `jaillit`).
    RETIRÉS : le grand nom du haut (#fh), sa ligne de combo (les noms reliés par « + », « COMBO ×1,5 », RECORD) et le rappel des gestes (#fhLeg, les plaquettes
    à côté de NITRO, avec le geste visé qui s'allumait). RESTE : la règle (figNom, FIG_RP, figRarH, le BUMP figure, le meilleur combo posé) et les six points
    d'entrée que le jeu appelle déjà — leur manière d'écrire a changé, pas leur nom :
@@ -59,16 +59,16 @@ function figRarH(f,k){if(!f)return 'commun';if(f.id==='bump')return k>=4?'epique
    · `fhBump` (BUMP → DOUBLE BUMP → TRIPLE BUMP → MEGA BUMP) et `fhTrio` (un combo à trois NOMMÉ, LA PERCEUSE…, en arc-en-ciel et un cran plus grand) ;
    · `fhFin` (la pose) : un combo PERDU s'écrit en rouge (« COMBO PERDU ») ; un combo posé garde son meilleur × dans la sauvegarde (la plaque le montre),
      mais le × ne s'affiche plus. La couleur et la police de chaque nom restent celles de sa RARETÉ (v5). */
-function fhLance(s,r,o){if(!r||!r.f||!window.FIG)return;const t=figNom(r.f,figRepsEnCours(r));r.jlNom=t;jaillit(t,{rp:figRarH(r.f),dir:r.flD||null});}
-function fhPlante(r,f,reps,neuf){if(!f||!window.FIG)return;const t=figNom(f,reps);if(r){if(r.jlNom===t)return;r.jlNom=t;}jaillit(t,{rp:figRarH(f),dir:r&&r.flD||null});}
-function fhBump(k,neuf){jaillit(TR(bumpNomH(k)),{rp:figRarH(BUMP_FIG,k)});}
-function fhTrio(txt){jaillit(txt,{rp:'combo',k:1.2});}
+function fhLance(s,r,o){if(!r||!r.f||!window.FIG)return;const t=figNom(r.f,figRepsEnCours(r));r.jlNom=t;filFig(t,figRarH(r.f),1,r.flD||null);}
+function fhPlante(r,f,reps,neuf){if(!f||!window.FIG)return;const t=figNom(f,reps);if(r){if(r.jlNom===t)return;r.jlNom=t;}filFig(t,figRarH(f),1,r&&r.flD||null);}
+function fhBump(k,neuf){filFig(TR(bumpNomH(k)),figRarH(BUMP_FIG,k),1);}
+function fhTrio(txt){fil(txt,null,2,{rp:'combo',k:1.2});}
 function figRec(){return +(SAVE.d&&SAVE.d.figRec)||0;} /* le meilleur combo jamais POSÉ (le × d'un vol) */
 function figBumpNote(k,pts){if(!FIGV2.on||!BUMP_FIG_ON||!figTutoOk())return; /* (2026-10-18, débogage) figTutoOk : pas de combo invisible payé pendant l'auto-école */ /* (v5) LE BUMP, FIGURE À PART ENTIÈRE DU COMBO DU VOL — appelée au rebond sur la tranche (k = son rang dans le vol) : ses points de chaîne entrent dans FX2.pts, comme ceux des autres */
   FX2.pts+=Math.max(0,pts||0);const neuf=!FX2.cv.ids.bump;figCvNote(BUMP_FIG,1);fhBump(k,neuf);}
 function fhFin(ok){const c=FX2.cv;if(c.n<1)return; /* (la pose) — à appeler AVANT figCvRaz */
   if(ok){const x=c.n>=2?figCvX():0;if(x>figRec()+1e-6){SAVE.d.figRec=Math.round(x*100)/100;SAVE.mark();}}
-  else if(c.n>=2)jaillit(TR('COMBO PERDU'),{rp:'ko'});}
+  else if(c.n>=2)fil(TR('COMBO PERDU'),null,1,{rp:'ko'});}
 window.dbgImpu=function(a,n){if(a==='tap'){const r=figImpulsion();return r?(r.attente?'attente':'ok'):'refus';}if(a==='slot'){const r=figLance(n|0,{});return r?(r.attente?'attente':'ok'):'refus';}
   const C=FX2.corps;return {on:IMPU.on,dir:FDIR.on,mode:mode,go:gameOver,intro:!!introD,eta:+(+CAMV.eta).toFixed(2),combo:{n:FX2.cv.n,dist:FX2.cv.dist,x:figCvX(),noms:FX2.cv.noms.slice()},ptsVol:FX2.pts,
     hud:JAIL.der,chaine:CHA.liste.slice(),chutes:FX2.chutes,

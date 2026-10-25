@@ -125,14 +125,9 @@ function driftTick(dt,on){
   }
 }
 /* LE TEXTE QUI JAILLIT de la caisse (l'écran est nu sur téléphone : c'est la seule annonce de conduite) — (2026-10-25, Sacha : « petit, stylisé, qu'il
-   sorte de la voiture, qu'il donne de la vie au jeu sans le charger ») il n'a plus d'emplacement fixe : `jaillit` (mots-jaillissants) l'éjecte de la caisse,
-   de côté, et il s'efface. La PRIORITÉ reste ici (2026-09-25) : un temps fort (PARFAIT, AU CHEVEU…) ne se fait pas voler la vedette par un palier dans les 650 ms. */
-function popTexte(txt,col,prio){
-  prio=prio|0;const n9=performance.now();
-  if(prio<(popTexte._p|0)&&n9<(popTexte._t||0))return;
-  popTexte._p=prio;popTexte._t=n9+650;
-  popTexte._w=jaillit(TR(txt),{c:col,prio:prio})||0;
-}
+   sorte de la voiture, qu'il donne de la vie au jeu sans le charger ») popTexte est l'ALIAS de LE FIL (fil.js : la porte unique, sa priorité 0-3, ses
+   silences) ; `fil` écrit par `jaillit` (mots-jaillissants.js) : le mot sort de la caisse, de côté, et s'efface — plus de pastille ni d'emplacement fixe. */
+function popTexte(txt,col,prio){popTexte._w=fil(txt,col,prio)||0;}
 function n9Saut(o){const n=performance.now(),s9=n-(o._viseT||0)>400;o._viseT=n;return s9;} /* (2026-10-17) 200 → 400 ms, comme CAM_REPRISE : une image qui tousse ne fait plus sauter la visée */ // la visée repart de zéro après une absence (vol, garage, respawn)
 /* ================= LE FLOW — la signature de conduite de CASH CAR (2026-09-25) =================
    User : « pousse encore plus, fais un truc parfait pour qu'on puisse démarquer notre jeu pour ça ». Le jeu avait des
@@ -341,5 +336,5 @@ function flowVitN(){
   const v=mode==='fall'?Math.sqrt(fallVel.x*fallVel.x+fallVel.z*fallVel.z):Math.abs(vA);
   return v*3.6*SPD/vm;
 }
-const FLOW_COL=['#ffffff','#5ee6ff','#ffd75e','#ff5ec8','#ff2a3d']; // [4] = la FRÉNÉSIE, ROUGE (2026-09-28, Sacha) — elle était violette
-const FLOW_CEL=['#5ee6ff','#ffd75e','#ff5ec8','#b58cff'];            // les quatre cellules de la jauge (la 4e garde son violet : le ROUGE est réservé à la zone)
+const FLOW_COL=['#ffffff','#5ee6ff','#ff5ec8','#ffd75e','#ff2a3d']; // [4] = la FRÉNÉSIE, ROUGE (2026-09-28, Sacha) — elle était violette
+const FLOW_CEL=['#5ee6ff','#ff5ec8','#ffc72a','#fff0a0'];            // les quatre cellules de la jauge (la 4e garde son violet : le ROUGE est réservé à la zone)

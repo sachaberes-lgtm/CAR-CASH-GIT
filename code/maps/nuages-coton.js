@@ -90,7 +90,7 @@ function nuageChauffe(){ // (2026-09-26) les deux programmes de nuage compilés 
 // FINESSE : à 16×11 les grosses boules (r 200-700) montraient leurs FACETTES — d'où les « formes
 // triangulaires ». On monte la définition sur desktop (mobile reste au gabarit léger).
 const CLOUD_SPH_LO=new THREE.SphereGeometry(1,10,7); // (2026-09-30) l'ÉBAUCHE d'un coussin ou d'une tour, le temps que l'ouvrier rende la forme fine
-const CLOUD_SPH=new THREE.SphereGeometry(1,(IS_MOBILE||IS_LOW_END)?16:20,(IS_MOBILE||IS_LOW_END)?11:14); // gabarit recopié/fusionné (24×16 mangeait 25 fps : 20×14 lisse assez)
+const CLOUD_SPH=new THREE.SphereGeometry(1,(ALLEGE||IS_LOW_END)?16:20,(ALLEGE||IS_LOW_END)?11:14); // gabarit recopié/fusionné (24×16 mangeait 25 fps : 20×14 lisse assez)
 // Fusionne N sphères (x,y,z,rayon en coords locales) en UNE géométrie : un nuage = un draw call.
 function mergeSpheres(blobs,rx,ry,rz){
   const src=CLOUD_SPH, sp=src.attributes.position.array, sn=src.attributes.normal.array, si=src.index.array;

@@ -271,7 +271,7 @@ const padTex=(function(){
     if(cv.width===1&&cv.height===1)break;}
   const t=new THREE.CanvasTexture(pres);t.mipmaps=niv;t.generateMipmaps=false;t.wrapS=THREE.ClampToEdgeWrapping;t.wrapT=THREE.RepeatWrapping;
   t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearMipmapLinearFilter; // de près : les vrais pixels ; au loin : la plaque qui luit, stable
-  t.anisotropy=Math.min(IS_MOBILE?2:4,renderer.capabilities.getMaxAnisotropy()); // la plaque se voit à plat, rasante
+  t.anisotropy=Math.min(ALLEGE?2:4,renderer.capabilities.getMaxAnisotropy()); // la plaque se voit à plat, rasante
   return t;
 })();
 const PAD_MAT=new THREE.MeshBasicMaterial({map:padTex,color:new THREE.Color(1.45,1.45,1.45),polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}); // ×1,45 : la plaque ÉMET au-delà du blanc (le bloom la prend), elle reste d'or au loin au lieu d'un pavé brun // (2026-09-26) décalage de profondeur : le pad lointain ne clignote plus à travers le bitume

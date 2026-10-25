@@ -52,7 +52,9 @@ const M2=[
   {id:'meteo',f:'exploration',k:'meteoMap',v:'tot',u:'',r:{car:'LA STRATOS'},t:'JOUE UNE MAP SOUS TOUTES SES MÉTÉOS ET TOUS SES MOMENTS DE LA JOURNÉE',en:'PLAY ONE MAP IN EVERY WEATHER AND TIME OF DAY'},
   {id:'silence',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA SILENCIEUSE'},t:'FAIS UNE PARTIE ENTIÈRE SANS SON NI MUSIQUE (RÉGLAGES)',en:'PLAY A WHOLE RUN WITH SOUND AND MUSIC OFF (SETTINGS)'},
   /* (2026-10-22, Sacha : « HOT ROD : atteindre le palier 10 du moteur avec la musique activée ») secrète : `m2Tick` pose le drapeau `palier10` (engTier + 1 ≥ 10, SND.music allumé) */
-  {id:'palier10',f:'secret',k:'flag',v:1,u:'b',r:{car:'LE HOT ROD'},t:'ATTEINS LE PALIER 10 DU MOTEUR, MUSIQUE ACTIVÉE',en:'REACH ENGINE TIER 10 WITH THE MUSIC ON'},
+  /* (2026-10-25, Sacha : « c'est pas palier 10 tout court, c'est palier 10 de CHAQUE musique du jeu ») le défi compte maintenant les morceaux de Pouce bleu
+     (la musique de course, un par partie) sur lesquels on a atteint le palier 10 : `m2Tick` range leur id dans `c.musP10` ; réussi quand TOUS y sont (m2Val/m2Seuil) */
+  {id:'palier10',f:'secret',k:'musP10',v:'tot',u:'',r:{car:'LE HOT ROD'},t:'ATTEINS LE PALIER 10 SUR CHAQUE MUSIQUE DU JEU',en:'REACH TIER 10 ON EVERY SONG IN THE GAME'},
   {id:'mis10',f:'exploration',k:'misok',v:10,u:'',r:{car:'LE CHARGEUR'},t:'RÉUSSIS {v} MISSIONS',en:'COMPLETE {v} MISSIONS'},
   {id:'col5',f:'collection',k:'peint',v:5,u:'',r:{cash:10000},t:'COLLECTE {v} COULEURS',en:'COLLECT {v} PAINTS'},
   {id:'col10',f:'collection',k:'peint',v:10,u:'',r:{cash:10000},t:'COLLECTE {v} COULEURS',en:'COLLECT {v} PAINTS'},
@@ -111,5 +113,5 @@ const M2R={lv:'',sonne:false,ctl:0,vie:0,parf:0,lac:0,tourV:[],run:[],t:0,deb:fa
   /* les quatre caisses des carnets 6 à 9 (LA PUCE, LA GROUPE B, LE HOT ROD, LE MASTODONTE) ne sont la récompense d'aucune mission v2 : sans
      carnet, plus personne ne pourrait les avoir. Elles passent à l'argent du jeu (prix posés par Claude, À VALIDER PAR SACHA), comme les
      trophées de la carrière ; leur rareté ne bouge pas ; `exK`/`exV` gardent le carnet — qui l'avait relevé l'a dans `owned` (m2MigreV2). */
-  const PX9={6:30e3,7:500e3,8:800e3,9:1e6}; // (2026-10-19, Léo : la grille des prix) LA PUCE 400 000 → 30 000 : une Mini, la moins chère des rares
+  const PX9={6:300e3,7:5e6,8:8e6,9:10e6}; // (2026-10-19, Léo : la grille des prix) LA PUCE 400 000 → 30 000 : une Mini, la moins chère des rares
   CAR_UNLOCK.forEach(function(u,i){if(!u||u.k!=='carnet'||!PX9[u.v])return;const rr=carRar(i);CAR_UNLOCK[i]={p:PX9[u.v],exK:'carnet',exV:u.v};CARS[i].rar=rr;});}

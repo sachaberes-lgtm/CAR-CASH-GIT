@@ -66,7 +66,10 @@
   --ombreSol:0 14px 24px -10px rgba(0,0,0,.72);
   --coupe:14px;                                              /* les coins coupés des panneaux */
   /* LA LIVRÉE — la signature : magenta · cyan · or, séparés d'un jour (sous le logo, sous chaque titre, sur le volet) */
-  --livree:linear-gradient(90deg,var(--neoM) 0 46%,transparent 46% 52%,var(--neoC) 52% 74%,transparent 74% 80%,var(--au2) 80% 100%);
+  --orB:#fff0a0; /* (2026-10-25, Léo : « la bande flow en dessous du CASH CAR, partout, dans cet ordre : bleu cyan, rose magenta, or, doré brillant ») l'ordre de la livrée ET des quatre cellules du flow */
+  --livree:linear-gradient(90deg,var(--neoC) 0 30%,transparent 30% 35%,var(--neoM) 35% 65%,transparent 65% 70%,var(--au2) 70% 100%);
+  --livree3:linear-gradient(90deg,transparent,#1af2ff 14% 33%,transparent 33.5% 36.5%,#ff58e8 37% 63%,transparent 63.5% 66.5%,#ffd51c 67% 86%,transparent); /* (2026-10-25, Léo : « le menu ciel : juste trois bandes ») l'accueil seul */
+  --livreeLogo:var(--livree3);
 }
 
 /* ============================================ LA TOUCHE ============================================================

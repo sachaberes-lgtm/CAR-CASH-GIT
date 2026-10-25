@@ -171,7 +171,7 @@ SHAPES.bulle=function(K){
   const U=LPU,O=bulleOutils,L=(t,z)=>U.lin(t,z),cl=(v,a,b)=>v<a?a:v>b?b:v,mix=(a,b,t)=>a+(b-a)*t,lis=t=>t*t*(3-2*t);
   const R=.338,ZF=1.302,ZR=-1.098;
   const PAL={p:{g:'p',c:0x93cfd6},k:{g:'m',c:0x161719},K:{g:'g',c:0x0d0e11},c:{g:'c',c:0xe2e6eb},g:{g:'g',c:0x1a2632},
-    W:{g:'l',c:0xfff4dc},L:{g:'l',c:0xd81e2a},O:{g:'l',c:0xffa21a},w:{g:'s',c:0xf1eee6},s:{g:'s',c:0xe9e2cf},d:{g:'m',c:0x101114}};
+    W:{g:'l',c:0xfff4dc},L:{g:'l',c:0xd81e2a},O:{g:'l',c:0xffa21a},w:{g:'s',c:0xf1eee6},s:{g:'s',c:0xe9e2cf},d:{g:'m',c:0x101114},y:{g:'m',c:0x1f4651}};
   // ---- LES COURBES DU PLAN (mètres) ----
   // le dessus, dans l'axe (côté) : pare-chocs exclus — capot, pare-brise, pavillon, lunette, capot moteur, jupe
   const yTop=z=>L([[-1.865,.47],[-1.84,.55],[-1.81,.61],[-1.77,.69],[-1.707,.761],[-1.671,.827],[-1.617,.913],[-1.555,.993],[-1.49,1.064],[-1.377,1.158],
@@ -343,6 +343,32 @@ SHAPES.bulle=function(K){
   // les PASSAGES DE ROUE : une joue sombre derrière chaque roue
   const joue=(w,AR0)=>{const o=[[w-.43,.28]];for(let k=0;k<=12;k++){const a=Math.PI*k/12;o.push([w-Math.cos(a)*.43,.30+Math.sin(a)*.44]);}o.push([w+.43,.28]);return o;};
   P.sym(sd=>{P.prism('d',joue(ZF),.02,sd*.50);P.prism('d',joue(ZR),.02,sd*.52);});
+  /* LA DESTRUCTION VOXEL DU SCARABÉE (25/10, Léo : « les cubes insérés, pas posés par-dessus ; une impression de destruction, pixel / voxel ; plus de noir ») `?scarabee=glitch` : des plaques de cubes de 6 cm À FLEUR
+     de la tôle, sur les FLANCS (le pli de ceinture, au milieu de la caisse — rien aux roues) : l'intérieur mis à nu en bleu-vert sombre (pas de noir), un peu de crème, bordées d'éclats de la couleur de la caisse
+     qui dépassent de 1 à 4 cm, quelques-uns arrachés. Les plaques s'effritent vers l'arrière. */
+  let SCG=false;try{SCG=/[?&]scarabee=glitch/.test(location.search);}catch(e){}
+  if(SCG){
+    const hs=(a,b,c,d)=>{const v=Math.sin(a*12.9898+b*78.233+c*37.719+d*5.171)*43758.5453;return v-Math.floor(v);};
+    const CE=.06;
+    // (25/10, Léo : « change de procédé, on dirait pas La Fidèle ») LE PROCÉDÉ DE LA FIDÈLE : des COUCHES fines (4,5 cm) faites de tronçons de longueurs inégales qui saillent d'un cran différent, toutes de la couleur de la
+    // caisse ; sur le BAS de la porte, 7 couches de plus en plus lacunaires vers le haut ; un tronçon sur cinq en crème (la touche du Scarabée). Enfoncées de 1 cm dans la tôle.
+    /* (« organisé comme sur La Fidèle, qui embrasse la forme la plus complexe » — pour le Scarabée : « ailes avant + capot rond ») LA PIXELISATION SUR GRILLE : des cubes de 5 cm sur UNE grille régulière ; chacun va au niveau de
+       grille juste AU-DESSUS de la tôle (0 à 5 cm de relief) : le galbe des ailes et du capot devient un escalier de cubes ; quelques cubes manquent (le « bug ») ; un sur dix en crème. La hauteur de la tôle est lue sur les
+       vraies sections (le tube de l'aile, la coque). */
+    /* (« des cubes glitchés qui font quelques DÉGÂTS ») trois CHOCS sur le capot et l'aile avant : un trou (l'intérieur à nu), une couronne de cubes arrachés et penchés, des débris qui retombent. */
+    const IMPC=[[-.26,1.18,.30],[.30,1.50,.26],[.58,1.00,.22]],choc=(x,z)=>{let m=9;for(const [ix,iz,R] of IMPC){const d=Math.hypot(x-ix,z-iz)/R;if(d<m)m=d;}return m;},pen=(a,b,k)=>(hs(a*13,b*17,9,k)-.5)*.9;
+    const c=.05;
+    const hautDe=(Sx,x)=>{let m=-1e9;for(let i=0;i<Sx.length;i++){const a=Sx[i],b=Sx[(i+1)%Sx.length];if((a[0]-x)*(b[0]-x)<=0&&a[0]!==b[0]){const y=a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);if(y>m)m=y;}}return m;};
+    const aileH=(x,z)=>{const yT=L(AV.yT,z),xo=L(AV.xo,z),yL=Math.min(L(AV.yL,z),yT-.02),xi=Math.min(z<.76?xo-.08:xH(Math.max(.76,z))-.03,xo-.08);return hautDe(coupeAile(xi,xo,yT,yL),x);};
+    for(let iz=Math.round(.75/c);iz*c<1.74;iz++)for(let ix=-14;ix<=14;ix++){const x=ix*c,z=iz*c;if(hs(ix,iz,5,1)>.88)continue;
+      const H=Math.max(aileH(Math.abs(x),z),hautDe(sect(z),Math.abs(x)));if(H<0)continue;
+      const lv=Math.ceil((H-.001)/c)*c,m=choc(x,z);
+      if(m<.5){if(hs(ix,iz,6,6)<.78)P.box('y',c*.96,.012,c*.96,x,H+.004,z,0,0,0);continue;}   // le trou : l'intérieur à nu (bleu-vert sombre)
+      if(m<1){P.box('p',c*.96,c,c*.96,x,lv-c/2+.003+.035*(1-m)+.012,z,pen(ix,iz,1),pen(iz,ix,2),pen(ix+1,iz,3));continue;}   // la couronne : arrachés, penchés
+      P.box(hs(ix,iz,5,2)>.9?'s':'p',c*.96,c,c*.96,x,lv-c/2+.003,z,0,0,0);}
+    for(const [ix,iz,R] of IMPC)for(let k=0;k<9;k++){const an=hs(k,1,ix*10,3)*6.283,r=R*(1.05+.9*hs(k,2,iz*10,3)),x=ix+Math.cos(an)*r,z=iz+Math.sin(an)*r;
+      const H=Math.max(aileH(Math.abs(x),z),hautDe(sect(z),Math.abs(x)));if(H<0)continue;P.box('p',.045,.045,.045,x,H+.04+.07*hs(k,3,ix*7,3),z,pen(k,1,4),pen(k,2,5),pen(k,3,6));}   // les débris
+  }
   // la plaque dessinée : la vraie s'y pose (voir plqDessinee)
   P.box('l',.30,.075,.012,0,.665,-1.79,.5,0,0);
   K.commit(P);

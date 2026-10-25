@@ -6,8 +6,9 @@
    caisse (#popTxt) — plus la carte de la chaîne d'aura (× N) à gauche. UNE voix à la fois, et elle se lisait comme un tableau de bord.
    MAINTENANT : un mot naît DANS la caisse, est éjecté de côté (sur un arc court, d'un côté puis de l'autre, du côté du geste pour un tail whip),
    se pose un instant et s'éteint. Rien ne reste à l'écran : la route et la caisse gardent la vedette.
-   · `jaillit(txt,o)` est le seul point d'entrée — popTexte (tous les « RACCOURCI +120 M », « +21 KM/H », « MIRACULÉ ! »…) et le HUD des figures (les
-     noms de figure, dans leur rareté : couleur et police du v5) y passent. Rend la largeur estimée du mot (px), 0 s'il n'est pas écrit.
+   · `jaillit(txt,o)` est le seul point d'ÉCRITURE ; LE FIL (fil.js, la porte unique des annonces de course : sa priorité, ses niveaux, ses silences) y mène
+     tout — popTexte (les « RACCOURCI +120 M », « +21 KM/H », « MIRACULÉ ! »…), le verdict de pose, le BOOST et les noms de figure (dans leur rareté :
+     couleur et police du v5). Rend la largeur estimée du mot (px), 0 s'il n'est pas écrit.
    · LE MOT : « BIG AIR +50 » est coupé en un nom et un gain ; le gain s'écrit plus petit et plus pâle derrière. Taille : celle des anciens textes de
      figure (≈ 10-12 px) — un cran sous les annonces. Contour d'encre d'un pixel (lisible sur le sable comme sur la nuit), halo doux de sa couleur.
    · LE GESTE : il sort de la caisse (échelle .45 → 1,18 en 150 ms), file vers sa place en s'amortissant, tient, puis s'élève de 10 px en
@@ -70,11 +71,11 @@ function jaillit(txt,o){
       {transform:T(dx*.96,dy+2,1,0),opacity:1,offset:.32,easing:'ease-out'}, /* …retombe dessus… */
       {transform:T(dx,dy-4,1,0),opacity:1,offset:.78,easing:'linear'}, /* …tient… */
       {transform:T(dx*1.02,dy-16,.96,0),opacity:0,offset:1}]; /* …et s'élève en s'éteignant */
-    const q={cote:dessus?0:cote,etage:etage,t0:n,anim:null}; /* 0 = au-dessus du toit : ces mots-là s'étagent entre eux */JAIL.vivants.push(q);
+    const q={cote:dessus?0:cote,etage:etage,t0:n,anim:null,fin:null}; /* 0 = au-dessus du toit : ces mots-là s'étagent entre eux */JAIL.vivants.push(q);
     q.anim=e.animate(kf,{duration:ms,fill:'both',easing:'linear'});
     const fin=function(){const i=JAIL.vivants.indexOf(q);if(i>=0)JAIL.vivants.splice(i,1);q.anim.onfinish=q.anim.oncancel=null;try{q.anim.cancel();}catch(x){}
       if(JAIL.pool.indexOf(e)<0){e.style.display='none';JAIL.pool.push(e);}};
-    q.anim.onfinish=q.anim.oncancel=fin;
+    q.fin=fin;q.anim.onfinish=q.anim.oncancel=fin;
     if(!REDUCED_MOTION&&(fig||rp==='combo'))U.animate([{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{duration:240,delay:90,easing:'cubic-bezier(.2,.8,.2,1)',fill:'both'}); /* le trait se tire sous le mot (figures) : on le lit, puis il s'éteint avec lui */
     JAIL.der=nom+gain;JAIL.derT=n;
     if((fig&&rp!=='commun'||rp==='combo')&&!REDUCED_MOTION)try{pixBurst(e,rp==='combo'?7:4);}catch(x){} /* une poignée de pixels pour les figures rares : le mot jaillit de la caisse en étincelant */
@@ -82,4 +83,5 @@ function jaillit(txt,o){
   }catch(err){return 0;}
 }
 try{Object.assign(I18N,{'PAS DE NITRO':'NO NITRO','TROP TARD':'TOO LATE'});}catch(e){} /* les deux refus d'une figure (figRefus) */
+function jaillitRaz(){JAIL.der='';JAIL.derT=0;const v=JAIL.vivants.slice();for(let i=0;i<v.length;i++){try{v[i].fin();}catch(e){}}} /* la caisse explose, la course repart : les mots qui volent encore s'éteignent tout de suite (fin : cancel + l'élément rejoint le bassin, sans attendre l'événement) */
 window.dbgJl=function(txt,o){if(txt)return jaillit(txt,o||{});return {der:JAIL.der,vivants:JAIL.vivants.length,pool:JAIL.pool.length,off:JAIL.off};};

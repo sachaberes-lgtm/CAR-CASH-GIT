@@ -269,4 +269,4 @@ function disposeClouds(){
   CLOUDS=[];cloudIn=0;
 }
 let FLOU_OK=true; // (2026-09-26) le flou radial du boost — le palier BAS le coupe
-let QUAL_LOW=false,QUAL_MED=IS_MOBILE||IS_LOW_END; // (lus par dbgPerf : MED = un allègement posé, LOW = bloom éteint — tenus par qlPose)
+let QUAL_LOW=false,QUAL_MED=ALLEGE||IS_LOW_END; // (lus par dbgPerf : MED = un allègement posé, LOW = bloom éteint — tenus par qlPose)

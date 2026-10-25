@@ -368,6 +368,8 @@ html body.touch #auraV2{top:calc(var(--hudH) + 76px)!important}
   html body.touch #flowHud{top:calc(var(--hudH) + 56px)!important}
   html body.touch #auraV2{top:calc(var(--hudH) + 72px)!important}
 }
+/* (2026-10-25, Sacha : « il y a marqué FLOW 1, FLOW 2, FLOW 3 par-dessus l'indication de AURA » puis « sous la barre de flow, FLOW, FLOW 1, 2, 3, ça part ») le nom du palier a été retiré (frole-contrats.js) :
+   l'AURA reprend sa place d'avant, juste sous la jauge (+76 / +72) ; la couleur de la bande dit le palier. */
 html body #avList{display:none!important}
 html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
 </style>

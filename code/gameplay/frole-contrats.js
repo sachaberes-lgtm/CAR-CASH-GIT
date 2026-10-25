@@ -10,7 +10,7 @@ function frole(c9,dl,k){
   nitroGain((.08+.08*pres)*(k>1?1.5:1),'frole');flowAdd((4+4*pres)*(k>1?1.5:1),'style','n'); // (v4→v5) frôler, c'est un peu de NARCISSE — flowAdd lui verse la part du style // ×1,5 (et non ×2) : la porte paie plus sans gonfler le FLOW
   momT=Math.min(4.3,momT+.6); // (momentum v2) le style NOURRIT la réserve de vitesse
   try{chaineAuraMuette(FROLE.n>=2?'SLALOM ×'+FROLE.n:'FRÔLÉ',20,'frole',false,SONV2);}catch(e){}
-  if(k===1&&FROLE.n>=2)popTexte('SLALOM ×'+FROLE.n,FROLE.n>=3?'#ffd75e':'#7dffec'); // (2026-09-29, Sacha) FRÔLÉ ! et PORTE ! ne s'écrivent plus : seul le SLALOM parle
+  if(k===1&&FROLE.n>=2&&!LEFIL.on)popTexte('SLALOM ×'+FROLE.n,FROLE.n>=3?'#ffd75e':'#7dffec'); // (2026-09-29, Sacha) FRÔLÉ ! et PORTE ! ne s'écrivent plus : seul le SLALOM parle
   try{froleSnd(pres,FROLE.n,c9);}catch(e){} // (2026-10-14, session SON) + l'objet frôlé : le souffle passe de SON côté
   hap(FROLE.n>=3?[8,20,8]:8);fovPunch=Math.max(fovPunch,1.5+2*pres);
   try{sparkBurst(sparkBlue,c9.mesh.position,3+Math.round(3*pres),5);}catch(e){}
@@ -284,7 +284,7 @@ function hautVide(){ // l'explosion, l'écran de mort : plus personne ne parle �
   clearTimeout(HAUT.t);
   const c=HAUT.cur;if(c&&performance.now()<HAUT.fin)try{HAUT_COUPE[c.k]();}catch(e){}
   HAUT.cur=null;HAUT.fin=0;engBigCoupe();
-  const p=document.getElementById('popTxt');if(p)p.classList.remove('on','on2');popTexte._s=0; // le dernier geste ne survit pas à la caisse (gt1-16)
+  try{jaillitRaz();}catch(e){} /* le dernier mot ne survit pas à la caisse (gt1-16) : ceux qui volent encore s'éteignent avec elle */
   try{m2LigneVide();}catch(e){} // (2026-10-17) la ligne des missions du bas se tait avec les autres (l'écran de mort les récapitule)
 }
 function misBanniere(titre,texte,prime,ico){if(titre==='ASTUCE')return; /* (2026-10-20, Sacha : « enlève les pop up astuce, ça sert à rien ») plus d'ASTUCE : elle ne prend même plus son tour dans le couloir */

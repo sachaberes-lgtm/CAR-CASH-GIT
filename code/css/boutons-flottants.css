@@ -142,7 +142,9 @@ html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGea
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte){transform:none!important;border-radius:20px!important}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte) *{transform:none!important}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)::before{border-radius:inherit!important;inset:5px!important}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mHubPorte{--nc:#2f80ff!important}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mOffres{--nc:#ff3347!important}
-html #mHome.on .mTitle::after,html #mHome .mTitle::after{background:linear-gradient(90deg,transparent,var(--neoC) 18%,var(--neoC) 40%,transparent 40.5%,transparent 43%,var(--neoM) 43.5%,var(--neoM) 64%,transparent 64.5%,transparent 67%,var(--au2) 67.5%,var(--au2) 82%,transparent)!important;box-shadow:0 0 14px rgba(0,234,255,.5)!important}
+/* (2026-10-25, Léo : « GARAGE, BUY, SETTINGS dans ces couleurs également ») cyan · magenta · or, l'ordre de la bande sous le logo */
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mHubPorte{--nc:var(--neoC)!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mOffres{--nc:var(--neoM)!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mGear{--nc:var(--au2)!important}
+html #mHome.on .mTitle::after,html #mHome .mTitle::after{background:var(--livree3)!important;box-shadow:0 0 14px rgba(0,234,255,.5)!important}
 </style>
