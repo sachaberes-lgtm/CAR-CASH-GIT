@@ -9046,7 +9046,8 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   uTime:{value:0},uSunDir:{value:SUN_DIR},
   uSkyMul:{value:new THREE.Vector3(1,1,1)},uSkyLift:{value:new THREE.Vector3(0,0,0)},
   uSunTint:{value:new THREE.Vector3(1,.40,.28)},uSunHalo:{value:1},uCity:{value:1},uStars:{value:1},uMoon:{value:1},uRose:{value:0},
-  uNeb:{value:1}, // (2026-10-15) LES NÉBULEUSES de l'orbite (× uSpace) : 0 = le noir complet d'avant
+  uNeb:{value:1}, // (2026-10-15) LA VOÛTE d'étoiles de l'orbite (× uSpace) : 0 = le noir complet d'avant — (2026-10-25) la voie lactée et les nébuleuses ne sont plus appelées du tout
+  uBandes:{value:new THREE.Vector3(0,0,0)}, // (2026-10-25) LES ÉTOILES JOUENT LA MUSIQUE (orbite) : x = basses, y = médiums, z = aigus — l'excès de chaque bande sur sa moyenne, 0..1 (voir musicTick)
   uEtK:{value:1.5}, // (2026-10-22) pixels de rendu par pixel CSS (`renderer.getPixelRatio()`, posé par orbiteTick) : les étoiles de l'orbite gardent la même taille sur tous les téléphones
   uSpace:{value:0}, // NIVEAU ORBITE (2026-09-24) : 0 = le ciel de toujours AU PIXEL PRÈS, 1 = le noir étoilé (piloté par lvlStep)
   uPulse:{value:0}, // MUSIQUE : le ciel respire en rythme (piloté par l'analyseur audio, 0 = neutre = rendu d'origine)
@@ -9130,7 +9131,7 @@ const skyDome=(function(){
       '#endif',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse,uRose;', // grade biome (identité par défaut) + uPulse musique
       'uniform vec3 uFd[8];uniform vec3 uVc[6];', // (2026-10-16) LES TEINTES DE LA VILLE : les couleurs fixes du dégradé et du ciel de la ville (valeurs d'origine hors ville teintée)
-      'uniform float uSpace,uNeb,uEtK;', // NIVEAU ORBITE : 0 = aucun effet · uNeb : les nébuleuses (2026-10-15) · uEtK : pixels de rendu par pixel CSS, pour la taille des étoiles (2026-10-22)
+      'uniform float uSpace,uNeb,uEtK;uniform vec3 uBandes;', // NIVEAU ORBITE : 0 = aucun effet · uNeb : les nébuleuses (2026-10-15) · uEtK : pixels de rendu par pixel CSS, pour la taille des étoiles (2026-10-22)
       'uniform float uJour,uMerLoin,uCiel2;uniform vec3 uJZen,uJMid,uJHor,uJSol;uniform vec4 uMzA,uMzB,uMzT,uMzO,uMzH;', // (2026-09-30) LE JOUR D ALTITUDE : 0 = le ciel d avant, au bit près
       'uniform float uLvl,uSpin,uBeatK,uFlip,uBar,uHi,uWave,uHueAmp;uniform vec3 uAcc,uAcc2;uniform vec4 uRingR,uRingA;', // LE FOND DU NIVEAU
       'float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
@@ -9820,7 +9821,7 @@ const skyDome=(function(){
       '  c=mix(c,vec3(1.,.76,.52),smoothstep(.62,1.,t));',                          // et plus du tiers qui chauffe vers l orangé
       '  return mix(vec3(1.),c,s);}',
       // UNE classe : A = (rangées par unité de y, graine, part des cellules habitées, rayon du cœur en pixels CSS) · B = (éclat min, éclat max, halo, échelle du halo en pixels CSS) · C = (teinte, scintillement, pouls, marge)
-      'vec3 voute(float y,float u0,float pa,vec4 A,vec4 B,vec4 C){',
+      'vec3 voute(float y,float u0,float pa,vec4 A,vec4 B,vec4 C,float bd){',
       '  float row=floor(y*A.x),yc=(row+.5)/A.x,cc=sqrt(max(1.-yc*yc,.02));',      // la rangée, et le cosinus de sa latitude
       '  float M=max(3.,floor(6.2832*A.x*cc*cc+.5)),u=u0*M,ci=floor(u);',          // les cellules de la rangée : de même aire d une rangée à l autre
       '  vec2 id=vec2(row,ci)+A.y;',
@@ -9831,18 +9832,18 @@ const skyDome=(function(){
       '  if(r>3.2*sg+3.*hs)return vec3(0.);',
       '  float q=hash21(id+41.7),ph=hash21(id+53.9);',
       '  float k=exp(-.5*r*r/(sg*sg))+B.z*exp(-r/max(hs,.001));',                  // le cœur, et son halo
-      '  return vouteTeinte(hash21(id+7.9),C.x)*mix(B.x,B.y,q*q)*k*(1.+C.y*sin(uTime*(.45+ph*1.1)+ph*40.))*(1.+uPulse*C.z);}',
+      '  return vouteTeinte(hash21(id+7.9),C.x)*mix(B.x,B.y,q*q)*k*(1.+C.y*sin(uTime*(.45+ph*1.1)+ph*40.))*(1.+uPulse*C.z)*(1.+bd*step(.35,hash21(id+63.1)));}', /* (2026-10-25) LES ÉTOILES JOUENT : bd = la bande de sa classe (basses : les brillantes · médiums : les moyennes · aigus : les petites et le voile), 65 % des étoiles de la classe y répondent — très léger */
       'void cielPoussiere(inout vec3 col,float y,float az){',
       '  float pa=max(sqrt(length(cross(dFdx(vDir),dFdy(vDir)))),1e-5),u0=az*.159155+.5;',    // l angle que couvre un pixel
       '  vec3 d=vDir;float b=dot(d,normalize(vec3(.78,.38,-.50))),bl=exp(-b*b*9.),bc=exp(-b*b*55.);', // la bande de la voie lactée : large, et son cœur
       '  float c1=sin(d.x*8.3+d.z*6.1+1.7)*sin(d.y*9.7-d.x*5.1+.6)+.7*sin(d.z*13.1+d.y*7.3-1.1)*sin(d.x*11.3+d.z*8.1+2.4);', // des plages plus ou moins peuplées
       '  float c2=sin(d.x*10.7-d.y*6.1+.3)*sin(d.z*9.3+d.y*11.9+1.9)+.7*sin(d.y*14.1+d.x*7.7+2.2)*sin(d.z*12.1-d.x*9.9-.5);',
       '  float fa=.8+.8*bl+.6*bc;',
-      '  vec3 s=voute(y,u0,pa,vec4(50.,3.1,min(.9,.22*fa*exp(c1*.40)),.45),vec4(.10,.36,0.,0.),vec4(.35,0.,0.,.04));',                 // le voile : des grains très faibles, sur DEUX grilles de pas différents (une seule laisse voir ses rangées là où elle est dense)
-      '  s+=voute(y,u0,pa,vec4(33.,5.3,min(.9,.20*fa*exp(c2*.40)),.45),vec4(.10,.36,0.,0.),vec4(.35,0.,0.,.04));',
-      '  s+=voute(y,u0,pa,vec4(22.,7.7,min(.9,.38*(.9+.7*bl+.4*bc)*exp(c2*.35)),.52),vec4(.28,.75,0.,0.),vec4(.55,.06,.3,.06));',       // les petites
-      '  s+=voute(y,u0,pa,vec4(11.,11.3,min(.9,.42*(1.+.4*bl)*exp((c1+c2)*.18)),.68),vec4(.60,1.15,.14,1.7),vec4(.8,.10,.7,.15));',   // les moyennes
-      '  s+=voute(y,u0,pa,vec4(5.4,19.9,.55,.95),vec4(1.2,2.,.20,3.),vec4(1.,.10,1.,.22));',                                         // les brillantes
+      '  vec3 s=voute(y,u0,pa,vec4(50.,3.1,min(.9,.22*fa*exp(c1*.40)),.45),vec4(.10,.36,0.,0.),vec4(.35,0.,0.,.04),uBandes.z*.35);',                 // le voile : des grains très faibles, sur DEUX grilles de pas différents (une seule laisse voir ses rangées là où elle est dense)
+      '  s+=voute(y,u0,pa,vec4(33.,5.3,min(.9,.20*fa*exp(c2*.40)),.45),vec4(.10,.36,0.,0.),vec4(.35,0.,0.,.04),uBandes.z*.35);',
+      '  s+=voute(y,u0,pa,vec4(22.,7.7,min(.9,.38*(.9+.7*bl+.4*bc)*exp(c2*.35)),.52),vec4(.28,.75,0.,0.),vec4(.55,.06,.3,.06),uBandes.z*.5);',       // les petites
+      '  s+=voute(y,u0,pa,vec4(11.,11.3,min(.9,.42*(1.+.4*bl)*exp((c1+c2)*.18)),.68),vec4(.60,1.15,.14,1.7),vec4(.8,.10,.7,.15),uBandes.y*.5);',   // les moyennes
+      '  s+=voute(y,u0,pa,vec4(5.4,19.9,.55,.95),vec4(1.2,2.,.20,3.),vec4(1.,.10,1.,.22),uBandes.x*.6);',                                         // les brillantes
       '  col+=s*uSpace*uNeb;}',
     ],
     lune:[
@@ -9919,7 +9920,7 @@ const skyDome=(function(){
       '    gl_FragColor=vec4(cv,1.);return;}',
       '  float y=vDir.y;',
       '  vec3 col=cielFond(y);',
-      '  if(uSpace*uNeb>.001)cielEspace(col);', // (2026-10-15) ORBITE : voie lactée et nébuleuses
+      /* (2026-10-25, Sacha : « remets le ciel noir dans l'espace, enlève les couleurs de nébuleuses et tout ») plus d'appel à cielEspace : ni voie lactée ni nébuleuses, le noir et les étoiles */
       '  float sd=max(dot(vDir,uSunDir),0.);',      // couchant : halo rosé large, couronne corail, coeur incandescent (tamisé)
       '  cielMer(col,y,sd);', // NUAGES : la mer de nuages sous l horizon (voir merNuages)
       '  cielJour(col,y,sd);', // (2026-09-30) le jour d altitude : la lueur du soleil sur l horizon
@@ -9947,7 +9948,7 @@ const skyDome=(function(){
        d'un niveau que la trame de la passe nette ne ferait que redessiner — on arrondit donc au hasard, juste. En demi-flottant : 0. */
     basN:[LECT_TR,
       'void main(){',
-      '  float y=vDir.y;vec3 col=cielFond(y);if(uSpace*uNeb>.001)cielEspace(col);float sd=max(dot(vDir,uSunDir),0.);', // (2026-10-15) + l espace profond
+      '  float y=vDir.y;vec3 col=cielFond(y);float sd=max(dot(vDir,uSunDir),0.);', // (2026-10-15) + l espace profond
       '  cielMer(col,y,sd);cielJour(col,y,sd);cielSoleil(col,sd);if(uTi.x>.001)cielTitre(col,vDir,y,sd);cielArcEC(col,vDir,y);',
       '  if(cielGOn(y,sd))cielGuirlande(col,y,atan(vDir.x,-vDir.z),sd);',
       '  cielVoile(col,y);',
@@ -53465,22 +53466,28 @@ function lvlTick(dt,S){
 function musicTick(dt,mvt){
   if(MUSREP.att&&!paused){MUSREP.att=false;if(SND.music&&started&&running&&!gameOver)try{musicStartRun(false,true);}catch(e){}} // (2026-10-15) MUSIQUE rallumée pendant la pause : la course reprend, son morceau aussi
   try{sonTonSuit();}catch(e){} // (console de son) les sons accordés suivent la tonalité du morceau qui joue
-  let target=0,beat=0,hiT=0;
+  let target=0,beat=0,hiT=0,bsT=0,mdT=0;
   if(musicOn&&musicAna){
     musicAna.getByteFrequencyData(musicData);
     /* TROIS BANDES, PAS DEUX (2026-08-08). Les AIGUS manquaient — or c'est là que vit le tempo
        RAPIDE d'un morceau : charleston, cymbales, souffle. Avec la seule basse, le décor ne
        connaissait que la pulsation lente et restait lisse entre deux coups. Le haut du spectre
        (les 45 % supérieurs des bins) alimente désormais tout ce qui doit grésiller. */
-    const nB=musicData.length;let tot=0,bass=0,hi=0,bN=Math.max(1,(nB*.18)|0),hN=Math.max(1,(nB*.55)|0);
-    for(let i=0;i<nB;i++){const v=musicData[i]/255;tot+=v;if(i<bN)bass+=v;if(i>=hN)hi+=v;}
-    tot/=nB;bass/=bN;hi/=Math.max(1,nB-hN);
+    const nB=musicData.length;let tot=0,bass=0,mid=0,hi=0,bN=Math.max(1,(nB*.18)|0),hN=Math.max(1,(nB*.55)|0);
+    for(let i=0;i<nB;i++){const v=musicData[i]/255;tot+=v;if(i<bN)bass+=v;else if(i<hN)mid+=v;else hi+=v;}
+    tot/=nB;bass/=bN;mid/=Math.max(1,hN-bN);hi/=Math.max(1,nB-hN);bsT=bass;mdT=mid;
     target=Math.min(1,tot*1.7);
     beat=Math.max(0,bass-musicBass)*3.2;musicBass=bass; // transitoire = coup de grosse caisse
     hiT=Math.min(1,hi*2.3);
   }else if(musicOn){ // pas d'analyse possible ici : le décor bat sur un métronome à 120 bpm (il vit, sans lire le morceau)
-    const ph=(performance.now()/500)%1;target=.45;beat=ph<.07?.8:0;hiT=.25+.2*Math.max(0,Math.sin(ph*6.2832*2));musicBass=0;
+    const ph=(performance.now()/500)%1;target=.45;beat=ph<.07?.8:0;hiT=.25+.2*Math.max(0,Math.sin(ph*6.2832*2));musicBass=0;bsT=ph<.2?.8:.2;mdT=.4+.25*Math.sin(ph*6.2832);
   }else {musicBass=0;hiT=0;}
+  /* (2026-10-25, Sacha : « les étoiles clignotent très légèrement au rythme de la musique : des étoiles qui font les basses, des aigus, chaque style de note »)
+     LES ÉTOILES JOUENT. Pour chaque bande (basses, médiums, aigus) on garde l'EXCÈS sur sa moyenne lente (≈1,5 s) : ce qui dépasse, c'est la note qui
+     vient d'être frappée — le fond continu d'un morceau dense n'allume rien. Attaque vive, retombée douce. Lu par la voûte de l'orbite (cielPoussiere). */
+  {const bd=musicTick._bnd||(musicTick._bnd={v:[0,0,0],m:[0,0,0]}),src=[bsT,mdT,hiT];
+   for(let k=0;k<3;k++){bd.m[k]+=(src[k]-bd.m[k])*Math.min(1,dt*.7);const t=Math.min(1,Math.max(0,src[k]-bd.m[k])*4.5);bd.v[k]+=(t-bd.v[k])*Math.min(1,dt*(t>bd.v[k]?30:9));}
+   skyU.uBandes.value.set(bd.v[0],bd.v[1],bd.v[2]);}
   /* ⚠ LES AIGUS MONTENT VITE ET DESCENDENT VITE. Les lisser comme l'énergie moyenne (dt*8) les
      transformerait en nappe continue : on perdrait exactement ce qu'on est venu chercher, le
      GRAIN. Attaque quasi instantanée (dt*24), retombée franche (dt*11). */
