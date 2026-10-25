@@ -71256,7 +71256,7 @@ function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran
    3 : en plus UN cran de l'échelle QL de moins (une fois par épisode) ; 0 ou 1 : le modèle reprend la main.
    Banc : `dbgGouv()` rend {D, seuilHaut, seuilBas, actif, thermo, pourquoi} ; `dbgGouv(n)` pose la dose ; `dbgThermique(n)` simule l'événement. */
 const MOB_GOUV=CAD30_REC&&!/[?&]mob_gouv=0\b/.test(location.search);
-const MOB_G={course60:1,course30:.5,menu:.3,repos:.25,haut:160,tiede:50,bas:40,max:230,trou:1,perime:600,cle:'cashcarMobGouv'}; /* tout se règle ici (secondes équivalentes, par seconde réelle) */
+const MOB_G={course60:1,course30:.5,menu:.3,repos:.25,haut:160,tiede:50,g30:/[?&]mob_g30=1\b/.test(location.search),bas:40,max:230,trou:1,perime:600,cle:'cashcarMobGouv'}; /* tout se règle ici (secondes équivalentes, par seconde réelle) */
 const MOB_S={D:0,actif:false,thermo:0,t:0,sauveT:0,q3:false};
 function mobGouvEval(){ /* l'hystérésis : haut → entre, bas → sort, entre les deux on garde */
   if(MOB_S.D>=MOB_G.haut)MOB_S.actif=true;else if(MOB_S.D<MOB_G.bas)MOB_S.actif=false;}
@@ -71266,7 +71266,12 @@ function mobGouvEval(){ /* l'hystérésis : haut → entre, bas → sort, entre 
    était repartie à 60. Désormais : si la cadence réactive cale alors que la dose a déjà passé `tiede` (50, soit une minute de course), le gouverneur s'enclenche et RETIENT
    le 30 jusqu'au vrai repos (sous `bas`). Un téléphone qui ne rate jamais ses images n'est jamais touché avant 160. */
 function mobReactif(){if(MOB_GOUV&&!MOB_S.actif&&MOB_S.D>=MOB_G.tiede){MOB_S.actif=true;mobGouvSauve();}} /* appelé par cadPose quand la cadence cale */
-function mobChaud(){return MOB_GOUV&&(MOB_S.thermo>=2||MOB_S.actif);} /* vrai : le gouverneur veut le téléphone calé sur 30 */
+/* ===== LE 30 DÈS LE DÉPART (2026-10-26 nuit, mesure du 13 Pro : « 30 i/s stables si chaud » — Sacha) =====
+   MESURÉ : une séance de 7 min CALÉE SUR 30 DÈS LA 1re SECONDE (dose forcée) ne s'effondre pas : 31,5 · 26,5 · 25,4 · 29,6 · 30,4 · 30,3 · 30,3 · 31,1 i/s, 85-100 % des intervalles entre 28 et 39 ms,
+   p99 35-68 ms, alors que la batterie monte à 38 °C. Toutes les séances qui jouent les 60-100 premières secondes à 60 i/s s'effondrent à 5-13 i/s aux minutes 3-5 (la chaleur des premières minutes
+   à 60 déclenche la bride d'iOS), même quand le gouverneur cale ensuite sur 30. `?mob_g30=1` = le gouverneur est TOUJOURS actif en course : 30 calées dès le départ (INACTIF par défaut :
+   c'est un choix de fluidité, Sacha tranche). */
+function mobChaud(){return MOB_GOUV&&(MOB_G.g30||MOB_S.thermo>=2||MOB_S.actif);} /* vrai : le gouverneur veut le téléphone calé sur 30 */
 function mobGouvSauve(){try{localStorage.setItem(MOB_G.cle,JSON.stringify({D:+MOB_S.D.toFixed(1),a:MOB_S.actif?1:0,t:Date.now()}));}catch(e){}}
 function mobGouvCharge(){try{const o=JSON.parse(localStorage.getItem(MOB_G.cle)||'null');if(!o||!(o.D>0))return;
   const age=(Date.now()-o.t)/1000;if(!(age>=0&&age<MOB_G.perime))return; /* plus de 10 min (ou horloge refaite) : froid */
