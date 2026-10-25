@@ -24,6 +24,11 @@
   body.vueOn{overflow:hidden}
 
   /* ---------- LA TABLE (24/10, Léo : « que je puisse les bouger, mettre deux voitures à côté pour les comparer ») ---------- */
+  #bChoix{margin:14px 0 0 8px;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 18px;border-radius:999px;background:#fff;color:var(--encre);font-size:14px;font-weight:600;box-shadow:inset 0 0 0 1.5px var(--encre)}
+  body.choixOn #bChoix{background:var(--encre);color:#fff}
+  body.choixOn .carte{cursor:copy}
+  .carte.cote{opacity:.42;filter:grayscale(1)}
+  .carte.cote::after{content:'DE CÔTÉ';position:absolute;left:10px;top:46px;padding:3px 9px;border-radius:999px;background:var(--encre);color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.06em}
   #bTable{margin-top:14px;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 18px;border-radius:999px;background:var(--encre);color:#fff;font-size:14px;font-weight:600}
   #table{position:fixed;inset:0;z-index:7;background:#f4f4f2;display:none;flex-direction:column}
   #table.on{display:flex}
@@ -211,6 +216,7 @@
   <h1>Les voitures du jeu</h1>
   <p id="sous">Ouverture du garage…</p>
   <button id="bTable">Ouvrir la table : bouger, comparer</button>
+  <button id="bChoix">Choisir ce qu'on met de côté (1re maj)</button>
   <p id="source" class="lit"><i></i><span>Lecture du jeu sur le main…</span></p>
   <section id="chg" hidden>
     <h3>Ce qui a changé dans le jeu <span id="chgDepuis"></span></h3>
@@ -256,8 +262,9 @@
     <button class="tb" id="tRetour">← Liste</button><h2>La table</h2>
     <button class="tb fort" id="tCote">Côte à côte</button>
     <button class="tb" id="tTout">Tout poser</button>
+    <button class="tb" id="tVoir">Tout voir</button>
     <button class="tb" id="tVider">Vider</button>
-    <label style="font-size:12px;color:var(--gris)">zoom <input id="tZoom" type="range" min="25" max="150" value="100"></label>
+    <label style="font-size:12px;color:var(--gris)">zoom <input id="tZoom" type="range" min="8" max="150" value="100"></label>
     <span id="tAide">glisse une voiture · coin = taille · clic = choisir (2 choisies → Côte à côte)</span>
   </div>
   <div id="tCorps"><div id="tBac"></div><div id="tScroll"><div id="tPlan"></div><div id="tVide">La table est vide.<br>Touche une voiture à gauche, ou « Tout poser ».</div></div></div>
@@ -341,6 +348,15 @@ $('vu').onclick=()=>{ecritVu();compare();afficheChg();for(const [i,v] of VIG)v.t
    --------------------------------------------------------------------------------------------------------------------- */
 const VIG=new Map(),FILE=[];
 const PW=440,PH=275; // la photo d'une carte, en pixels
+/* LE CHOIX DE LA 1re MAJ (25/10, Léo : « je vais choisir quelques voitures, à garder en mémoire dans une branche git au cas où je veux les revoir ; c'est pour déjà choisir ce qu'on garde pour une première maj ») —
+   un toucher sur une carte la met DE CÔTÉ (grisée) ; le reste part dans la 1re maj. Rien n'est retiré du jeu ici : le choix est gardé (navigateur + un fichier envoyé au petit serveur) et sert à construire la branche d'archive. */
+const CCLE='cashcar.voitures.cote.v1';let COTE=new Set();try{COTE=new Set(JSON.parse(localStorage.getItem(CCLE)||'[]'));}catch(e){}
+let CHOIX_ON=false;
+function choixMaj(){const n=COTE.size,t=ORDRE.length;const b=$('bChoix');if(!b)return;
+  b.textContent=CHOIX_ON?(n+' de côté · '+(t-n)+' pour la 1re maj · TERMINER'):(n?(n+' de côté · modifier le choix'):'Choisir ce qu\'on met de côté (1re maj)');}
+function choixSauve(){try{localStorage.setItem(CCLE,JSON.stringify([...COTE]));}catch(e){}
+  try{fetch('/repertoire-voitures/cote',{method:'POST',body:JSON.stringify({cote:[...COTE],restent:ORDRE.map(i=>JEU[i].n).filter(n=>!COTE.has(n)),quand:new Date().toISOString()})}).catch(()=>{});}catch(e){}}
+function choixBascule(i){const n=JEU[i].n;if(COTE.has(n))COTE.delete(n);else COTE.add(n);const v=VIG.get(i);if(v)v.el.classList.toggle('cote',COTE.has(n));choixSauve();choixMaj();}
 function construireListe(){
   const box=$('liste');box.innerHTML='';VIG.clear();FILE.length=0;
   for(const f of FAMS){
@@ -357,7 +373,8 @@ function construireListe(){
       const nt=b.querySelector('.nt');
       nt.onclick=e=>{e.stopPropagation();notesOuvre(i);};
       nt.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();notesOuvre(i);}};
-      b.onclick=()=>ouvre(i);gr.appendChild(b);
+      if(COTE.has(JEU[i].n))b.classList.add('cote');
+      b.onclick=()=>{if(CHOIX_ON)choixBascule(i);else ouvre(i);};gr.appendChild(b);
       VIG.set(i,{el:b,cv:b.querySelector('canvas'),tag,nt});FILE.push(i);}
     box.appendChild(s);}
   $('sous').textContent=ORDRE.length+' voitures dans le jeu · '+FAMS.length+' familles';notesMarque();}
@@ -653,17 +670,26 @@ function tCote(){
   // le meilleur chiffre de chaque ligne en vert
   const cmp=(cle,haut)=>{const v=L.map(c=>G.CARS[idDe(c.n)][cle]);if(v.some(x=>typeof x!=='number'))return;};
   tSave();const sc=$('tScroll');sc.scrollTo({left:Math.max(0,(x0-40)*TB.zoom),top:Math.max(0,(y-40)*TB.zoom),behavior:'smooth'});}
-function tTout(){
-  const w=250,sp=18,per=Math.max(3,Math.floor(($('tScroll').clientWidth/TB.zoom-60)/(w+sp)));let y=30;
+function tTout(perFix){
+  const w=250,sp=18,per=perFix||Math.max(3,Math.floor(($('tScroll').clientWidth/TB.zoom-60)/(w+sp)));let y=30;
   for(const f of FAMS){let k=0;for(const i of f.L){const n=JEU[i].n;let c=TB.cartes.find(q=>q.n===n);
       if(!c){c={n,w,x:0,y:0};if(!tCree(c))continue;TB.cartes.push(c);}
       c.w=w;c.x=30+(k%per)*(w+sp);c.y=y+Math.floor(k/per)*(w*.62+95);tPlace(c,c.el);k++;}
     y+=Math.ceil(k/per)*(w*.62+95)+40;}
   tVideMaj();tSave();$('tScroll').scrollTo({left:0,top:0});}
+// TOUT VOIR : toute la gamme posée par famille, sur le nombre de colonnes qui remplit le mieux l'écran, zoom ajusté pour que tout tienne
+function tVoir(){
+  const sc=$('tScroll'),W=sc.clientWidth,H=sc.clientHeight,w=250,sp=18,tot=FAMS.map(f=>f.L.length);
+  let meil=null;
+  for(let per=3;per<=16;per++){
+    const wp=60+per*(w+sp),hp=30+tot.reduce((a,n)=>a+Math.ceil(n/per)*(w*.62+95)+40,0),z=Math.min(W/wp,H/hp);
+    if(!meil||z>meil.z)meil={per,z};}
+  tTout(meil.per);tZoomer(Math.max(.08,Math.min(1,meil.z*.98)));tSave();sc.scrollTo({left:0,top:0});}
 function tOuvre(){if(!G||!ORDRE.length){toast('Le jeu se charge encore…');return;}
   document.body.classList.add('tableOn');$('table').classList.add('on');if(!TB.ok){TB.ok=true;tZoomer(TB.zoom);tReconstruit();}else{tBacRempli();tVideMaj();}}
 function tFerme(){document.body.classList.remove('tableOn');$('table').classList.remove('on');}
-$('bTable').onclick=tOuvre;$('tRetour').onclick=tFerme;$('tCote').onclick=tCote;$('tTout').onclick=tTout;
+$('bChoix').onclick=()=>{CHOIX_ON=!CHOIX_ON;document.body.classList.toggle('choixOn',CHOIX_ON);choixMaj();};choixMaj();
+$('bTable').onclick=tOuvre;$('tRetour').onclick=tFerme;$('tCote').onclick=tCote;$('tTout').onclick=()=>tTout();$('tVoir').onclick=tVoir;
 $('tVider').onclick=()=>{for(const c of TB.cartes)if(c.el)c.el.remove();TB.cartes=[];TB.sel.clear();tVideMaj();tSave();};
 $('tZoom').oninput=e=>{tZoomer(e.target.value/100);tSave();};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('table').classList.contains('on')){e.stopPropagation();tFerme();}},true);
