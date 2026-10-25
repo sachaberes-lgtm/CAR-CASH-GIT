@@ -3,6 +3,9 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## ANNULÉ : LE DÉPART RETOURNE AU PALIER 6 (2026-10-25 soir — Léo : « je disais juste qu'UNE musique est trop lente au début et presque pas musicale, la plupart allaient bien »)
+- Le palier 3 de la section d'en dessous était un contresens : il touchait tous les morceaux. `PBJ_MIN` = 6 de nouveau ; la page `test-depart-musique.html` reste. Reste à trouver LE morceau fautif et à le traiter seul.
+
 ## LE MENU DE NUIT DANS LA MAP NUAGES, ET LES NUAGES QUI MONTENT (2026-10-25, v922 — Sacha : « les nuages bug à cause de la nuit » · « prends littéralement le même niveau que la map nuage, mets la voiture dans la map nuage » · « que les nuages montent, comme si elle les croisait dans sa chute : un petit générateur de nuages en bas » · « plus vite »)
 - **LE CONSTAT** (capture de Sacha, puis banc) : de nuit, les cumulus de l'écran titre sortaient GRIS, en rochers. `titreNuit` gardait la lumière des nuages du JOUR (`volSun` de `BIOMES.titre`, un blanc chaud ×2,2),
   un albédo de ,5 et un soleil de ,58 (le `T2('nuit')` de `chute-menu.js`) et un grade à ,9 de saturation, quand la course de nuit a son clair de lune (`nuagesNuit`, finie par l'étalonnage et `continuite.js`).

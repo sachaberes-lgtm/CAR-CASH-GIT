@@ -53361,8 +53361,8 @@ function ecoleMusPique(){ // (2026-10-16) le JOUER de la leçon : SA musique par
    secondes de pièces pour le monter : pendant tout ce temps la musique ne ressemble pas à de la musique (le plancher du départ ne rattrape que +11 dB).
    Le morceau reçoit donc un moteur REMAPPÉ : le moteur 1 du jeu joue le palier PBJ_MIN du morceau, le 30 reste le 30, entre les deux en ligne droite — le
    morceau est complet dès l'intro, et la grande montée jusqu'au 30 est gardée. `?pbjmin=1` = le départ d'avant (A/B) ; dbgPouce().min. */
-/* (2026-10-25, Léo : « une musique démarre trop tôt avec trop d'instruments, elle ne suit pas le système ») LE DÉPART PASSE DE 6 À 3 : « calme mais complet » — la montée jusqu'au 30 reste le point fort (6 = déjà le morceau plein dès l'intro). Se juge hors jeu sur test-depart-musique.html ; `?pbjmin=6` = le départ du 24/10, `?pbjmin=1` = celui d'avant. */
-const PBJ_MIN=(function(){const m=/[?&]pbjmin=(\d+)/.exec(location.search);return m?Math.max(1,Math.min(29,+m[1])):3;})();
+/* (2026-10-25 soir, Léo : « je disais juste qu'UNE musique est trop lente au début et presque pas musicale, la plupart allaient bien ») le départ repasse à 6 (essai à 3 retiré le soir même : il touchait tous les morceaux). Le morceau fautif se traite SEUL (voir PBJ_DEPART_PAR_MORCEAU s'il existe). */
+const PBJ_MIN=(function(){const m=/[?&]pbjmin=(\d+)/.exec(location.search);return m?Math.max(1,Math.min(29,+m[1])):6;})();
 function pbjTier(m){return m<=1?PBJ_MIN:Math.round(PBJ_MIN+(Math.min(30,m)-1)*(30-PBJ_MIN)/29);}
 window.pbjTier=pbjTier; // (pouce-bleu-jeu.js, un fichier à part, y lit le moteur de départ du morceau)
 let PBJ_FORCE=0; // (banc) dbgPouce('moteur', m) impose le moteur du morceau (0 = celui du jeu)
