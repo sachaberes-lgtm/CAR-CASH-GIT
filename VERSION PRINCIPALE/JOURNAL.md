@@ -12,7 +12,7 @@
   Les décors cachés ne changent rien à cette vue ; la route 0,4 ms ; les nuages en bandes du ciel ~0,7 ms (gardés : demande de Léo).
 - **FAIT** : (1) grille d'une tuile 32 → 24 cases (151 k → 82 k triangles ; cellule fine 4 → 5,3 m ; 16 cases faisaient de petits trous blancs sur une crête, écartées) ; (2) le calcul des FACETTES du sable retiré du shader de pixels
   (`dnLite`) : leurs poids joint/éclat/plat (`uPl.y/.z/.w`) valent 0 dans toutes les ambiances, il ne restait qu'une teinte de ±1,5 % par triangle ; (3) lectures de texture faites seulement là où elles comptent (végétation, argile,
-  crête vive, octaves de rides hors portée) — image identique au bit près ; (4) budgets du palier MOYEN pour les décors (arbres, palmiers, touffes, tornades, sable qui vole, ruines) et plus d'ÉCLATS de 9 cm (`dnMo` .75).
+  crête vive, octaves de rides hors portée) — écart mesuré ≤ 6/255 sur 3 vues (le même shader recompilé, sans rien changer, en fait déjà 4/255 : grain et ciel animés) ; (4) budgets du palier MOYEN pour les décors (arbres, palmiers, touffes, tornades, sable qui vole, ruines) et plus d'ÉCLATS de 9 cm (`dnMo` .75).
   La route, les tremplins, le sable à rides, les monuments, la scène du sphinx, les nuages ne changent pas.
 - **APRÈS** (même banc, même caméra, trois ambiances) : matin 10,53 → 8,74 ms, soir 10,58 → 8,88, nuit 10,81 → 9,63 ; terrain −29 à −33 % ; 151 552 → 81 792 triangles. Photos avant/après (4 vues × 3 ambiances) : même image à l'œil.
   Sable rendu ≥ 1,37 m sous le bitume avec des cellules de 4, 5,3 et 8 m (`dbgDunes('ecart', cs)`, 3 graines) ; `dbgDunes('test')` margeMin ≥ 1,2.
