@@ -350,13 +350,16 @@ return function(K){
        (7 à 28 cm) qui saillent d'un cran différent (de 0,6 à 4 cm) : la tôle se découpe en escalier, tout de la couleur de la caisse, la lumière fait le reste. Sur le BAS des portes (la zone choisie) : 7 couches, de plus en plus
        lacunaires vers le haut (la tôle « se défait »). Collées au panneau de porte, enfoncées de 1 cm dedans (rien ne flotte). */
     const XP=SBx(.93)+RP-.002;   // la face du panneau de porte
-    for(const sd of [1,-1]){const id=sd>0?1:2;
-      for(let l=0;l<7;l++){const y=.665+l*.045+.0225,dens=.97-l*.12;let z=.55;
-        while(z>-1.15){const n=1+Math.floor(hs(l,Math.round(z*100),id,1)*4),L=n*.07;
-          const zc=z-L/2;
-          if(((zc<.55&&zc>-.37)||(zc<-.43&&zc>-1.15))&&hs(l+.5,Math.round(z*100),id,2)<dens){const pr=.006+.034*Math.pow(hs(l+.2,Math.round(z*100),id,3),1.3);
-            BX('p',pr+.012,.043,L-.004,sd*(XP-.012+(pr+.012)/2),y,zc);}
-          z-=L;}}}
+    /* (25/10, Léo : « organisé comme sur La Fidèle, qui embrasse la forme de la voiture la plus complexe » — pour le Baroudeur : « le toit et vers l'arrière ») LA PIXELISATION SUR GRILLE : tous les cubes de 6 cm, sur UNE grille
+       régulière ; chaque cube va au niveau de grille juste AU-DESSUS de la tôle (0 à 6 cm de relief) : le toit bombé devient un plateau à deux marches, la lunette couchée un escalier de cubes ; quelques cubes manquent
+       (le « bug »). Tout de la couleur de la caisse : c'est l'ombre des marches qui dessine la forme. */
+    const c=.06;
+    // 1. LE TOIT : de la lunette au pare-brise
+    for(let iz=Math.round(-2.0/c);iz*c<.27;iz++)for(let ix=-12;ix<=12;ix++){const x=ix*c,z=iz*c;if(Math.abs(x)>.76)continue;if(hs(ix,iz,1,1)>.86)continue;
+      const H=roofY(x),lv=Math.ceil((H-.001)/c)*c;BX('p',c*.96,c,c*.96,x,lv-c/2+.003,z);}
+    // 2. L'ARRIÈRE : la lunette (couchée) et le haut du hayon, du haut de la caisse au toit
+    for(let iy=Math.round(1.25/c);iy*c<1.80;iy++)for(let ix=-11;ix<=11;ix++){const x=ix*c,y=iy*c;if(Math.abs(x)>.74)continue;if(hs(ix,iy,2,2)>.78)continue;
+      const zf=-2.149+(y-1.23)*.1956,lv=Math.floor(zf/c)*c;BX('p',c*.96,c*.96,c,x,y,lv+c/2-.003);}
   }
   // LA CALANDRE : sept fentes, deux phares ronds, un peu couchée
   {const sh=new THREE.Shape(),PTS=rrect(-.66,-.18,.66,.175,.03,3);sh.moveTo(PTS[0][0],PTS[0][1]);for(let i=1;i<PTS.length;i++)sh.lineTo(PTS[i][0],PTS[i][1]);

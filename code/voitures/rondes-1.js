@@ -352,12 +352,15 @@ SHAPES.bulle=function(K){
     const CE=.06;
     // (25/10, Léo : « change de procédé, on dirait pas La Fidèle ») LE PROCÉDÉ DE LA FIDÈLE : des COUCHES fines (4,5 cm) faites de tronçons de longueurs inégales qui saillent d'un cran différent, toutes de la couleur de la
     // caisse ; sur le BAS de la porte, 7 couches de plus en plus lacunaires vers le haut ; un tronçon sur cinq en crème (la touche du Scarabée). Enfoncées de 1 cm dans la tôle.
-    for(const sd of [1,-1]){const id=sd>0?5:6;
-      for(let l=0;l<7;l++){const dens=.97-l*.12;let z=.62;
-        while(z>-.72){const n=1+Math.floor(hs(l,Math.round(z*100),id,1)*4),L=n*.07,zc=z-L/2;
-          if(hs(l+.5,Math.round(z*100),id,2)<dens){const pr=.006+.034*Math.pow(hs(l+.2,Math.round(z*100),id,3),1.3),y=yCr(zc)-.10-l*.045,x=xC(zc)-.006*Math.abs((yCr(zc)-y)/.1);
-            P.box(hs(l+.9,Math.round(z*100),id,4)>.8?'s':'p',pr+.012,.043,L-.004,sd*(x-.012+(pr+.012)/2),y,zc,0,0,0);}
-          z-=L;}}}
+    /* (« organisé comme sur La Fidèle, qui embrasse la forme la plus complexe » — pour le Scarabée : « ailes avant + capot rond ») LA PIXELISATION SUR GRILLE : des cubes de 5 cm sur UNE grille régulière ; chacun va au niveau de
+       grille juste AU-DESSUS de la tôle (0 à 5 cm de relief) : le galbe des ailes et du capot devient un escalier de cubes ; quelques cubes manquent (le « bug ») ; un sur dix en crème. La hauteur de la tôle est lue sur les
+       vraies sections (le tube de l'aile, la coque). */
+    const c=.05;
+    const hautDe=(Sx,x)=>{let m=-1e9;for(let i=0;i<Sx.length;i++){const a=Sx[i],b=Sx[(i+1)%Sx.length];if((a[0]-x)*(b[0]-x)<=0&&a[0]!==b[0]){const y=a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);if(y>m)m=y;}}return m;};
+    const aileH=(x,z)=>{const yT=L(AV.yT,z),xo=L(AV.xo,z),yL=Math.min(L(AV.yL,z),yT-.02),xi=Math.min(z<.76?xo-.08:xH(Math.max(.76,z))-.03,xo-.08);return hautDe(coupeAile(xi,xo,yT,yL),x);};
+    for(let iz=Math.round(.75/c);iz*c<1.74;iz++)for(let ix=-14;ix<=14;ix++){const x=ix*c,z=iz*c;if(hs(ix,iz,5,1)>.88)continue;
+      const H=Math.max(aileH(Math.abs(x),z),hautDe(sect(z),Math.abs(x)));if(H<0)continue;
+      const lv=Math.ceil((H-.001)/c)*c;P.box(hs(ix,iz,5,2)>.9?'s':'p',c*.96,c,c*.96,x,lv-c/2+.003,z,0,0,0);}
   }
   // la plaque dessinée : la vraie s'y pose (voir plqDessinee)
   P.box('l',.30,.075,.012,0,.665,-1.79,.5,0,0);

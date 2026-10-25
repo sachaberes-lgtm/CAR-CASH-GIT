@@ -37881,12 +37881,15 @@ SHAPES.bulle=function(K){
     const CE=.06;
     // (25/10, Léo : « change de procédé, on dirait pas La Fidèle ») LE PROCÉDÉ DE LA FIDÈLE : des COUCHES fines (4,5 cm) faites de tronçons de longueurs inégales qui saillent d'un cran différent, toutes de la couleur de la
     // caisse ; sur le BAS de la porte, 7 couches de plus en plus lacunaires vers le haut ; un tronçon sur cinq en crème (la touche du Scarabée). Enfoncées de 1 cm dans la tôle.
-    for(const sd of [1,-1]){const id=sd>0?5:6;
-      for(let l=0;l<7;l++){const dens=.97-l*.12;let z=.62;
-        while(z>-.72){const n=1+Math.floor(hs(l,Math.round(z*100),id,1)*4),L=n*.07,zc=z-L/2;
-          if(hs(l+.5,Math.round(z*100),id,2)<dens){const pr=.006+.034*Math.pow(hs(l+.2,Math.round(z*100),id,3),1.3),y=yCr(zc)-.10-l*.045,x=xC(zc)-.006*Math.abs((yCr(zc)-y)/.1);
-            P.box(hs(l+.9,Math.round(z*100),id,4)>.8?'s':'p',pr+.012,.043,L-.004,sd*(x-.012+(pr+.012)/2),y,zc,0,0,0);}
-          z-=L;}}}
+    /* (« organisé comme sur La Fidèle, qui embrasse la forme la plus complexe » — pour le Scarabée : « ailes avant + capot rond ») LA PIXELISATION SUR GRILLE : des cubes de 5 cm sur UNE grille régulière ; chacun va au niveau de
+       grille juste AU-DESSUS de la tôle (0 à 5 cm de relief) : le galbe des ailes et du capot devient un escalier de cubes ; quelques cubes manquent (le « bug ») ; un sur dix en crème. La hauteur de la tôle est lue sur les
+       vraies sections (le tube de l'aile, la coque). */
+    const c=.05;
+    const hautDe=(Sx,x)=>{let m=-1e9;for(let i=0;i<Sx.length;i++){const a=Sx[i],b=Sx[(i+1)%Sx.length];if((a[0]-x)*(b[0]-x)<=0&&a[0]!==b[0]){const y=a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);if(y>m)m=y;}}return m;};
+    const aileH=(x,z)=>{const yT=L(AV.yT,z),xo=L(AV.xo,z),yL=Math.min(L(AV.yL,z),yT-.02),xi=Math.min(z<.76?xo-.08:xH(Math.max(.76,z))-.03,xo-.08);return hautDe(coupeAile(xi,xo,yT,yL),x);};
+    for(let iz=Math.round(.75/c);iz*c<1.74;iz++)for(let ix=-14;ix<=14;ix++){const x=ix*c,z=iz*c;if(hs(ix,iz,5,1)>.88)continue;
+      const H=Math.max(aileH(Math.abs(x),z),hautDe(sect(z),Math.abs(x)));if(H<0)continue;
+      const lv=Math.ceil((H-.001)/c)*c;P.box(hs(ix,iz,5,2)>.9?'s':'p',c*.96,c,c*.96,x,lv-c/2+.003,z,0,0,0);}
   }
   // la plaque dessinée : la vraie s'y pose (voir plqDessinee)
   P.box('l',.30,.075,.012,0,.665,-1.79,.5,0,0);
@@ -40683,13 +40686,16 @@ return function(K){
        (7 à 28 cm) qui saillent d'un cran différent (de 0,6 à 4 cm) : la tôle se découpe en escalier, tout de la couleur de la caisse, la lumière fait le reste. Sur le BAS des portes (la zone choisie) : 7 couches, de plus en plus
        lacunaires vers le haut (la tôle « se défait »). Collées au panneau de porte, enfoncées de 1 cm dedans (rien ne flotte). */
     const XP=SBx(.93)+RP-.002;   // la face du panneau de porte
-    for(const sd of [1,-1]){const id=sd>0?1:2;
-      for(let l=0;l<7;l++){const y=.665+l*.045+.0225,dens=.97-l*.12;let z=.55;
-        while(z>-1.15){const n=1+Math.floor(hs(l,Math.round(z*100),id,1)*4),L=n*.07;
-          const zc=z-L/2;
-          if(((zc<.55&&zc>-.37)||(zc<-.43&&zc>-1.15))&&hs(l+.5,Math.round(z*100),id,2)<dens){const pr=.006+.034*Math.pow(hs(l+.2,Math.round(z*100),id,3),1.3);
-            BX('p',pr+.012,.043,L-.004,sd*(XP-.012+(pr+.012)/2),y,zc);}
-          z-=L;}}}
+    /* (25/10, Léo : « organisé comme sur La Fidèle, qui embrasse la forme de la voiture la plus complexe » — pour le Baroudeur : « le toit et vers l'arrière ») LA PIXELISATION SUR GRILLE : tous les cubes de 6 cm, sur UNE grille
+       régulière ; chaque cube va au niveau de grille juste AU-DESSUS de la tôle (0 à 6 cm de relief) : le toit bombé devient un plateau à deux marches, la lunette couchée un escalier de cubes ; quelques cubes manquent
+       (le « bug »). Tout de la couleur de la caisse : c'est l'ombre des marches qui dessine la forme. */
+    const c=.06;
+    // 1. LE TOIT : de la lunette au pare-brise
+    for(let iz=Math.round(-2.0/c);iz*c<.27;iz++)for(let ix=-12;ix<=12;ix++){const x=ix*c,z=iz*c;if(Math.abs(x)>.76)continue;if(hs(ix,iz,1,1)>.86)continue;
+      const H=roofY(x),lv=Math.ceil((H-.001)/c)*c;BX('p',c*.96,c,c*.96,x,lv-c/2+.003,z);}
+    // 2. L'ARRIÈRE : la lunette (couchée) et le haut du hayon, du haut de la caisse au toit
+    for(let iy=Math.round(1.25/c);iy*c<1.80;iy++)for(let ix=-11;ix<=11;ix++){const x=ix*c,y=iy*c;if(Math.abs(x)>.74)continue;if(hs(ix,iy,2,2)>.78)continue;
+      const zf=-2.149+(y-1.23)*.1956,lv=Math.floor(zf/c)*c;BX('p',c*.96,c*.96,c,x,y,lv+c/2-.003);}
   }
   // LA CALANDRE : sept fentes, deux phares ronds, un peu couchée
   {const sh=new THREE.Shape(),PTS=rrect(-.66,-.18,.66,.175,.03,3);sh.moveTo(PTS[0][0],PTS[0][1]);for(let i=1;i<PTS.length;i++)sh.lineTo(PTS[i][0],PTS[i][1]);
