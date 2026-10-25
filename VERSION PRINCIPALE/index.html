@@ -40513,7 +40513,7 @@ return function(K){
   const PEINT=new Set([0,26]),GAP={}; // 26 = le HARD-TOP, à la couleur de la caisse (finition Sahara) : un code à lui pour que les vitres ne mordent pas le cadre du pare-brise
   const CPx=new THREE.Color(),fondu=y=>.80+.20*cl((y-.25)/1.0,0,1),colP=y=>{CPx.setHex(EP.c);if(EP.grad&&typeof lpGrad==='function')lpGrad(EP.grad,y,CPx);
     const s=((EP.g==='p'||EP.g.charAt(0)==='p')&&EP.f!==0)?fondu(y):1;return [CPx.r*s,CPx.g*s,CPx.b*s];};
-  let CCH=false;try{CCH=/[?&]baroudeur=couches/.test(location.search);}catch(e){}   /* (25/10, Léo : « fais évoluer le Baroudeur comme La Fidèle ») `?baroudeur=couches` : la caisse en COUCHES EMPILÉES (rangées de dalles, vitres par rangée, détails posés) au lieu de la découpe au plan */
+  let CCH=false;try{CCH=/[?&]baroudeur=(couches|entre)/.test(location.search);}catch(e){}   /* (25/10, Léo : « fais évoluer le Baroudeur comme La Fidèle ») `?baroudeur=couches` : la caisse en COUCHES EMPILÉES (rangées de dalles, vitres par rangée, détails posés) au lieu de la découpe au plan */
   let C9=CACHE[0];
   if(!CCH&&!C9){
     const G=COL.map(c=>ROWS.map((r,j)=>point(c,j))),TR=[];
@@ -40570,42 +40570,37 @@ return function(K){
   const pose=(k,g,p,n,rz,sx,sy)=>P.put(k,g,p[0],p[1],p[2],Math.atan2(-n[1],n[2]),Math.asin(cl(n[0],-1,1)),rz||0,sx||1,sy||1,1);
   const quad=(k,a,b,c,d)=>{P.tri(k,a,b,c);P.tri(k,a,c,d);};
 
-  // ============================ LA CAISSE EN GRANDS PANS (`?baroudeur=couches`) ============================
-  /* (25/10, Léo : « c'est pas top, pas d'effet écaille en rectangles répétés ») la v1 empilait des dizaines de petites rangées : chaque bloc avait ses coins ombrés, et la tôle se lisait en écailles.
-     Désormais le MOINS de blocs possible, de grands pans lisses comme les caisses de LA HONTE : la baignoire en trois étages (le seuil noir, le bas de caisse, l'épaule), la cabine d'UN SEUL prisme
-     au profil de côté, des vitres d'une seule pièce, le capot d'UN SEUL prisme au profil bombé ; les portes sont deux panneaux en relief par flanc. Seuls les passages de roue arrière font des marches. */
+  // ============================ LA CAISSE « ENTRE-DEUX » (`?baroudeur=entre`) ============================
+  /* (25/10, Léo : « un entre-deux entre l'ultra réalisme et le style de LA HONTE ou LA TAURINE ») ni la découpe au plan (des milliers de petits triangles, joints, filets : « ultra réaliste »), ni des blocs
+     (v1 : écailles de rectangles ; v2 : boîtes lisses). La VRAIE forme du Wrangler — flancs qui rentrent sous la caisse, ceinture, hard-top aux flancs qui se resserrent, toit bombé, pare-brise et lunette couchés —
+     en UN loft à sections de 11 points (comme LA TAURINE) : des facettes franches mais lisibles, pas de dessin dans la tôle. Les vitres sont des BANDES du loft (peintes), le pare-brise et la lunette aussi ;
+     le capot est un second loft à 6 points ; les portes sont deux panneaux en relief par flanc. Tout le reste (ailes, élargisseurs, calandre, roues…) est déjà en pièces posées. */
   const RP=.018;   // le relief des panneaux de porte
   if(CCH){
-    const B=(k,w,h,d,x,y,z,rx,ry,rz)=>P.box(k,w,h,d,x,y,z,rx||0,ry||0,rz||0),r5=v=>Math.round(v*200)/200;
-    const ZT0=-2.149,ZT1=.88,WB=.858;
-    // 1. LA BAIGNOIRE : le dessous noir, le seuil noir, le bas de caisse (avec les marches du passage de roue arrière), l'épaule, le liseré de ceinture
-    B('k',1.60,.05,ZT1-ZT0,0,.575,(ZT0+ZT1)/2);
-    B('k',2*.82,.06,ZT1-ZT0,0,.63,(ZT0+ZT1)/2);                                                  // le seuil (noir), de bout en bout
-    const bas=(zA,zB)=>B('p',2*WB,1.005-.66,zB-zA,0,(1.005+.66)/2,(zA+zB)/2);                       // le bas de caisse, d'un bloc
-    bas(ZT0,-1.98);bas(-.99,ZT1);                                                                 // (devant et derrière le passage de roue)
-    {const dz=.04;for(const [y0,y1] of [[.66,.76],[.76,.86],[.86,.94],[.94,1.005]]){let run=null;const flush=z1=>{if(run!=null&&z1-run>.005)B('p',2*WB,y1-y0,z1-run,0,(y0+y1)/2,(run+z1)/2);run=null;};
-      for(let z=-1.98+dz/2;z<-.99;z+=dz){if(YB(z)<=y0+.015){if(run==null)run=z-dz/2;}else flush(z-dz/2);}flush(-.99);}}   // les marches du passage de roue
-    B('p',2*r5(SBx(1.10)),1.222-1.005,ZT1-ZT0,0,(1.222+1.005)/2,(ZT0+ZT1)/2);                       // l'épaule, au-dessus de l'arche, d'un bloc
-    B('p',2*(r5(SBx(1.235))+.008),.023,ZT1-ZT0,0,1.2335,(ZT0+ZT1)/2);                              // le liseré de la ceinture
-    // 2. LES PORTES : deux panneaux par flanc, en relief
+    const B=(k,w,h,d,x,y,z,rx,ry,rz)=>P.box(k,w,h,d,x,y,z,rx||0,ry||0,rz||0);
+    const Wc=y=>lin([[1.27,.846],[1.775,.793]],y),
+          topC=z=>z<-2.04?1.23+(z+2.149)/.1956:z<=.279?1.785:Math.max(1.245,1.326+(.648-z)/.804);   // la ligne du haut : lunette, toit, pare-brise
+    // les stations : les bords des vitres et des passages de roue sont doublés (à 4 mm) pour que la peinture change net
+    let zs=[-2.149,-2.12,-2.09,-2.06,-2.04,-1.977,-1.973,-1.9,-1.8,-1.70,-1.60,-1.50,-1.40,-1.30,-1.242,-1.238,-1.16,-1.09,-1.086,-.95,-.80,-.65,-.52,-.466,-.462,-.40,-.311,-.307,-.20,-.05,.10,.22,.288,.292,.34,.40,.46,.53,.60,.648,.70,.80,.88];
+    for(const q of ARR)zs.push(q[0]);zs.sort((x,y)=>x-y);zs=zs.filter((z,i)=>i===0||z-zs[i-1]>.0015);
+    const inWin=z=>(z>-.309&&z<.29)||(z>-1.088&&z<-.464)||(z>-1.975&&z<-1.24);
+    P.loft(zs,z=>{
+      const yb=YB(z),top=topC(z),y2=Math.max(yb+.03,.70),y3=Math.max(yb+.05,1.0),y4=Math.max(y3+.03,1.222);
+      const y5=Math.max(y4+.002,Math.min(1.245,top-.002)),y6=Math.max(y5+.002,Math.min(1.30,top-.004)),y7=Math.max(y6+.002,Math.min(1.717,top-.002)),y8=Math.max(y7+.002,top),
+            dome=.05*cl((top-1.3)/.45,0,1);
+      return [[0,yb],[.80,yb],[.835,y2],[.862,y3],[.866,y4],[Wc(y5),y5],[Wc(y6),y6],[Wc(y7),y7],[Wc(y8),y8],[Math.min(.705,Wc(y8)-.06),y8+dome*.35],[0,y8+dome]];
+    },(j,z)=>{
+      if(j<0)return 'p';
+      if(j<=1)return 'k';                                                                    // le dessous et le seuil : noirs
+      if(j===6)return inWin(z)?'g':'p';                                                      // les vitres de côté : porte avant, porte arrière, custode
+      if(j===9)return ((z>.285&&z<.655)||(z>-2.135&&z<-2.045))?'g':'p';                       // le pare-brise et la lunette
+      return 'p';});
+    // LES PORTES : deux panneaux par flanc, en relief
     for(const sd of [1,-1])for(const [z0,z1] of [[.563,-.375],[-.418,-1.16]]){const L=Math.abs(z0-z1)-.012,zc=(z0+z1)/2;
       B('p',RP,.56,L,sd*(SBx(.93)+RP/2-.002),.93,zc);}
-    // 3. LA CABINE (le hard-top) : UN prisme, le profil de côté (pare-brise couché, lunette qui monte) ; le toit bombé d'une dalle
-    const Wc=.82,y0c=1.245,y1c=1.785;
-    P.prism('p',[[zHT(y0c),y0c],[zPB(y0c),y0c],[zPB(y1c),y1c],[zHT(y1c),y1c]],2*Wc,0);
-    B('p',2*.735,.04,zPB(1.80)-zHT(1.80)-.16,0,1.805,(zPB(1.80)+zHT(1.80))/2-.02);               // le toit (une dalle, un cran plus étroite)
-    // les vitres : UNE pièce chacune. Côtés : porte avant (pointe vers le pare-brise), porte arrière, custode. Chaque fenêtre est posée à fleur du flanc.
-    for(const sd of [1,-1]){const xg=sd*(Wc+.004);
-      P.prism('g',[[-.309,1.30],[.322,1.30],[.25,1.68],[.228,1.712],[-.28,1.717],[-.309,1.69]],.012,xg);
-      P.prism('g',[[-1.088,1.30],[-.464,1.30],[-.464,1.717],[-1.088,1.717]],.012,xg);
-      P.prism('g',[[-1.975,1.30],[-1.24,1.30],[-1.24,1.687],[-1.27,1.717],[-1.93,1.717],[-1.965,1.69]],.012,xg);}
-    // le pare-brise : une lame de verre posée sur le plan avant (bandeau de 1,41 m) ; la lunette sur le plan arrière (1,38 m)
-    P.prism('g',[[zPB(1.37)-.004,1.37],[zPB(1.37)+.012,1.37],[zPB(1.755)+.012,1.755],[zPB(1.755)-.004,1.755]],1.41,0);
-    P.prism('g',[[zHT(1.31)-.012,1.31],[zHT(1.31)+.004,1.31],[zHT(1.745)+.004,1.745],[zHT(1.745)-.012,1.745]],1.38,0);
-    // 4. LE CAPOT : UN prisme au profil bombé, entre les ailes (largeur 1,32 m), le bandeau central en relief
-    {const yT0=z=>lin([[.648,1.321],[1.083,1.307],[1.493,1.272],[1.684,1.225],[1.794,1.19],[1.835,1.17],[1.862,1.152]],z),HZ=[.648,1.083,1.493,1.684,1.794,1.862];
-     P.prism('p',[[.648,1.148]].concat(HZ.map(z=>[z,yT0(z)-.006])).concat([[1.862,1.148]]),1.32,0);
-     P.prism('p',HZ.map(z=>[z,yT0(z)+.008]).concat(HZ.slice().reverse().map(z=>[z,yT0(z)-.007])),.62,0);}
+    // LE CAPOT : un loft à 6 points (bombé), entre les ailes
+    {const yT0=z=>lin([[.648,1.321],[1.083,1.307],[1.493,1.272],[1.684,1.225],[1.794,1.19],[1.835,1.17],[1.862,1.152]],z),HZ=[.648,.80,.95,1.10,1.25,1.40,1.55,1.66,1.75,1.80,1.862];
+     P.loft(HZ,z=>{const t=yT0(z);return [[0,1.148],[.66,1.148],[.66,t-.014],[.56,t-.003],[.30,t+.010],[0,t+.016]];},()=>'p');}
   }
   // LE CAPOT : bombé, entre les ailes, qui plonge sur la calandre
   if(!CCH){const yT=z=>lin([[.648,1.321],[1.083,1.307],[1.493,1.272],[1.684,1.225],[1.794,1.19],[1.835,1.17],[1.862,1.152]],z),
