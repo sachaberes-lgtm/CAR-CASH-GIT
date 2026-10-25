@@ -3,6 +3,23 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA GROTTE SUR LES PAROIS — PLUS DE GÉODE, LA ROUTE LONGE LE SOL, LES MURS ET LE PLAFOND (2026-10-25, v928 — Sacha : « retire l'énorme boule violette et la géode, c'est tout le temps le même module ; plus de virages, des modules de course ; la route doit longer les parois, des fois sur le sol, des fois sur un mur à 90°, des fois au plafond ; une grande salle de lave ; sois inventif »)
+- **PARTIS** : le puits de la géode (spirale, pilier, boule d'améthyste, bassin, raccourci : `grtPuits`, `GROTTE.puits`, la lumière et la matière de la géode). Sa place est prise par **LE BOYAU DE CRISTAUX** (salle `boyau`, 3e des
+  biomes : même violet, mais un tube étroit et tortueux dont les parois portent de grosses grappes de cristaux violets/roses/azur — `GRT_CRIS_P/D`). L'améthyste reste, la boule non.
+- **LA ROUTE SE ROULE** (`GRT_ROULE`, `grtTordOn`, `GRT_TORD`) : la grotte passe par `pisteTord` (la machinerie des nuages, désormais paramétrable : `opts` = `f0`, `tenueHaut/Bas`, `lenHaut/Bas`, `quart/demi`, `dev`). Dévers jusqu'à 88° dans les virages
+  (la route se lève sur le mur dans le virage), tenues couchées/à l'envers de 3 à 7 s, quarts de tour, demi-tours (le plafond), quelques tonneaux. La mine et le départ restent À PLAT (`droit` jusqu'à `s0`). `TORD.on` : caméra, gravité du vol et
+  physique suivent la dalle comme aux nuages. `?sans=grotteparois` = la route plate d'avant (même creusement, `GRT_ROULE` faux).
+- **LE CREUX SUIT LA DALLE** : `grtCreuse1` creuse un ellipsoïde de révolution autour de la NORMALE de la dalle (`R.NNX/NNY/NNZ`, le côté `R.BX…`), plus autour du haut du monde. Sous la route il reste ~34 m de vide (`hug`) : elle LONGE la paroi ; ~25 % du temps
+  le fond s'ouvre en gouffre (`grtProfond`) ; le centre du creux se décale de côté (`lt`, `R.LAT`) : on frôle un mur latéral puis l'autre. `grtNoyau` : la carotte de la route (règle d'or) est creusée à CHAQUE échantillon de 6 m (avant : tous les rh/3,2 m).
+  `grtLibre` lit « libre de la route » dans le repère de la dalle. Les décors partent du côté de la dalle (`cote`, `paroi`).
+- **LA LAVE** reste plate (niveau du monde) : un BASSIN vertical (`R.BAS`) est creusé sous la route jusqu'au lac (70 m sous le point le plus bas de la salle) — la route peut longer un mur ou le plafond au-dessus de la lave.
+- **DES VIRAGES, DES MODULES** : trois modules de plus (`gEpingle` le lacet, `gLacets` la route de col, `gEsses` les grands S), des caractères de salle plus virageurs (les droites raccourcies et plus rares, un caractère `epingles`), 1 module par ~520-700 m de salle
+  (avant : 1 à 2 par salle), la salle de lave jusqu'à 2 modules. Le puits ne réserve plus 28 % du parcours : tout va aux salles.
+- **MESURÉ** (Chrome sans fenêtre, 1 280 × 720, `dbgHaut()`) : route à l'envers 29-44 % de la longueur, sur la tranche ~22 %, dévers max 85-86°, 0 contact de dalles ; construction ~1,2-1,5 s (creusement ~0,8-1,0 s) ; `dbgGrotte('test')` : voir la liste des essais ci-dessous.
+  Photos : `dbgGrotte('salle',{k,d,h,r,fov,slab:true})` — `slab:true` pose la caméra dans le repère de la dalle (ce que voit le joueur).
+- ⚠ Le lac de lave peut déborder (300 m) dans la salle voisine : sa surface reste sous la route (70 m sous le point le plus bas de la salle de lave).
+- Fichiers : `grottes-1.js` (génération, échantillons, creusement), `grottes-2.js` (décors, construction, console), `grottes-embellies.js` (parts de cristaux), `route-sans-haut.js` (`opts`), `depart-avance.js`, `piste-prebati.js` (`sTot`).
+
 ## LES DUNES REVIENNENT SUR TÉLÉPHONE, ALLÉGÉES (2026-10-25, v898 — Léo : « remets la map dune dans le main tout de suite… intelligible pour un iPhone 13 mais toujours aussi belle et fluide, pour moins de puissance demandée »)
 - **LE CONSTAT** : Sacha avait sorti les dunes du tirage mobile le 24/10 (`SF_HORS.dunes`, trop lourdes). Elles y reviennent, avec une facture réduite (`DN_MOB`, `dunes-1.js`/`dunes-2.js`).
   ⚠ `DN_MOB` suit `TEL_NATIF` (un VRAI téléphone), pas `IS_MOBILE` : l'ordi qui joue l'édition « mobile » garde les dunes pleines (Sacha, v897 : « sur PC la qualité a chuté »).

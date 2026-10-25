@@ -13,8 +13,8 @@
 try{Object.assign(PAL.B,{grotteCris:[.35,.65,1],grotteVeine:[0,1,1]});}catch(e){}
 const GRT_CRIS_T=[GT.ROSEC,GT.VIOLETC,GT.AZURC,GT.SOLEILC];
 const GRT_CRIS_L=[[1,.22,.5],[.55,.25,1],[.2,.55,1],[1,.7,.2]]; // la lumière cuite de chaque teinte (rose, violet, azur, or)
-const GRT_CRIS_P=[[.55,0,0,.45],[.40,0,.20,.40],[.50,0,.30,.20],[.40,.30,.30,0],[.50,0,0,.50],[.40,.20,.40,0]]; // la part de chaque teinte par salle (entrée : rose et or ; la mine est écartée plus bas)
-const GRT_CRIS_D=[.6,1,1,1,.55,1]; // la densité par salle (la lave a déjà assez de lumière)
+const GRT_CRIS_P=[[.55,0,0,.45],[.40,0,.20,.40],[.25,.55,.20,0],[.40,.30,.30,0],[.50,0,0,.50],[.40,.20,.40,0]]; // la part de chaque teinte par salle (entrée : rose et or ; la mine est écartée plus bas)
+const GRT_CRIS_D=[.6,1,1.8,1,.55,1]; // (SUR LES PAROIS) le boyau (la 3e salle) en porte beaucoup plus, violets surtout : l'améthyste reste, la boule non // la densité par salle (la lave a déjà assez de lumière)
 function* grtCristauxG(V,R,dec,seed){
   const fe=mulberry32((seed^0x5C47A1)>>>0),D=dec.D,P9=dec.P,RHd=ROAD_HALF,VZ=GRT_VASTE,K9=PAL_B9('grotteCris',1)*(TEL_NATIF?.75:1),UP=[0,1,0],BAS=[0,-1,0];
   let n=0,it=0,acc=0,suiv=30+fe()*40;
