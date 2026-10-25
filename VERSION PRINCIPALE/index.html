@@ -5005,6 +5005,7 @@ html body #garage:not(.menu) .gTab{font-size:var(--f1)} /* les onglets étaient 
    · l'actif se dit par un TRAIT magenta dessous, un voile rose léger et le mot en blanc — plus de pavé rose plein ;
    · la cible reste à 44 px (charte, règle 5) : le dessin fait 28 px, la zone de touche (::after) déborde de 8 px en haut et en bas. */
 html body #garage:not(.menu) #gTabs{gap:2px;padding:2px;background:rgba(11,8,24,.35);box-shadow:inset 0 0 0 1px var(--fil)}
+html body #garage.modeInv #gTabs .gTab[data-tab=figure]{order:-1} /* (2026-10-25, Sacha : « avant d'avoir le choix de la voiture, les figures ») en INVENTAIRE l'onglet FIGURES passe en premier */
 html body #garage:not(.menu) .gTab{position:relative;flex-direction:row;gap:0;min-height:0;height:28px;padding:0 2px;
   color:rgba(154,144,200,.85);background:transparent;box-shadow:none;text-shadow:none;white-space:nowrap}
 html body #garage:not(.menu) .gTab .pxi{display:none}
@@ -5918,7 +5919,9 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi
 @keyframes bqK{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
 /* (2026-10-15) L'AIMANT COUPÉ PENDANT L'ENTRÉE (voir bqAimant) : la grille ne s'ouvre plus défilée de 14 px */
 #gBqPan .bqRail.entre{scroll-snap-type:none!important}
-#gBqPan .bqK::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--rc)}
+/* (2026-10-25, Léo : « le texte LÉGENDAIRE en gros empêche de voir les voitures… au lieu de la bande jaune, un fondu qui part du bas, comme éclairé par un néon, sans prendre sur l'image ») la RARETÉ se lit à la lueur du bas de la carte (couleur de la rareté, de plus en plus pâle vers le haut, elle s'arrête sous la photo) : plus d'étiquette écrite, plus de filet. Un masque (et non un dégradé sur --rc) : la couleur reste une simple valeur hex, sans color-mix. */
+#gBqPan .bqK .bqKr{display:none}
+#gBqPan .bqK::after{content:'';position:absolute;left:0;right:0;bottom:0;height:36%;max-height:46px;background:var(--rc);opacity:.55;pointer-events:none;-webkit-mask-image:linear-gradient(to top,#000,rgba(0,0,0,.35) 55%,transparent);mask-image:linear-gradient(to top,#000,rgba(0,0,0,.35) 55%,transparent)}
 #gBqPan .bqK .bqKph{height:60px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(180deg,#f8f9fb,#eceff3)}
 #gBqPan .bqK .bqKph img{width:118%;max-width:none}
 #gBqPan .bqK .bqKn{padding:7px 7px 0;font-size:8px;color:#14171c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -8153,7 +8156,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
         <!-- (2026-10-05, Léo : « en dessous du play, insère MISSIONS, et le nom du level qui va être lancé, limite collé, de manière stylée, branché énergétiquement ») LA VITRINE : voir gvNiveau -->
         <button id="gvMis" class="pbtn" aria-label="Missions"><s class="gvFx" aria-hidden="true"></s><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="gvPips" aria-hidden="true"><u></u><u></u><u></u></b></button>
         <!-- (2026-10-05, Léo : « l'inventaire va être ajouté à côté du bouton jouer ») le COFFRE : l'inventaire (le doigt tenu sur la caisse lance désormais le BURN-OUT) -->
-        <button id="gvCof" class="pbtn" aria-label="Inventaire"><i class="pxi pxi-coffre" aria-hidden="true"></i><span data-fr="INVENTAIRE">INVENTAIRE</span></button>
+        <button id="gvCof" class="pbtn" aria-label="Inventaire"><i class="pxi pxi-troisLosanges" aria-hidden="true"></i><span data-fr="INVENTAIRE">INVENTAIRE</span></button>
       </div>
       <!-- (2026-10-19, Léo) LA VITESSE DE DÉPART : six crans posés au-dessus de la rangée INVENTAIRE · MISSIONS · BOUTIQUE (placés par vdepPlace) ;
            l'étiquette du moteur choisi se colle au bord haut du PLAY. Remplis par vdepMaj. -->
@@ -8168,11 +8171,11 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
     <div id="gInv" role="dialog" aria-label="Inventaire">
       <div class="ivTete"><b data-fr="INVENTAIRE">INVENTAIRE</b><small id="ivCompte"></small><button id="ivFerme" class="pbtn pbCarre" aria-label="Fermer"><i class="pxi pxi-croix" aria-hidden="true"></i></button></div>
       <div class="ivTabs" role="tablist">
-        <button class="ivTab on" data-c="voiture" role="tab"><i class="pxi pxi-voiture" aria-hidden="true"></i><span data-fr="VOITURES">VOITURES</span><em></em></button>
+        <button class="ivTab on" data-c="figure" role="tab"><i class="pxi pxi-rotation" aria-hidden="true"></i><span data-fr="FIGURES">FIGURES</span><em></em></button><!-- (2026-10-14) les FIGURES qu'on a (double-tap nitro) ; (2026-10-25, Sacha) en premier -->
+        <button class="ivTab" data-c="voiture" role="tab"><i class="pxi pxi-voiture" aria-hidden="true"></i><span data-fr="VOITURES">VOITURES</span><em></em></button>
         <button class="ivTab" data-c="peinture" role="tab"><i class="pxi pxi-pinceau" aria-hidden="true"></i><span data-fr="PEINTURE">PEINTURE</span><em></em></button>
         <button class="ivTab" data-c="aile" role="tab"><i class="pxi pxi-aile" aria-hidden="true"></i><span data-fr="AILES">AILES</span><em></em></button>
         <button class="ivTab" data-c="trainee" role="tab"><i class="pxi pxi-trainee" aria-hidden="true"></i><span data-fr="TRAÎNÉES">TRAÎNÉES</span><em></em></button>
-        <button class="ivTab" data-c="figure" role="tab"><i class="pxi pxi-rotation" aria-hidden="true"></i><span data-fr="FIGURES">FIGURES</span><em></em></button><!-- (2026-10-14) les FIGURES qu'on a (double-tap nitro) -->
       </div>
       <div class="ivProg" aria-hidden="true"><i id="ivProgBarre"></i><b id="ivProgTxt"></b></div>
       <div id="ivGrille"></div>
@@ -8558,6 +8561,26 @@ html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mOffres{--nc:var(--neoM)
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mGear{--nc:var(--au2)!important}
 html #mHome.on .mTitle::after,html #mHome .mTitle::after{background:var(--livree3)!important;box-shadow:0 0 14px rgba(0,234,255,.5)!important}
 </style>
+<style id="accueilDiagonale">
+/* ===== L'ACCUEIL EN DIAGONALE (2026-10-25, Sacha : « REGLAGES dépasse du bouton, réduis ; mets JOUER un peu plus à droite, de belles diagonales dynamiques,
+   dans l'idée de la caisse penchée ») =====
+   1. Le mot des trois tuiles (GARAGE · ACHAT · REGLAGES) : même corps, plus petit, sans espacement ni retrait à gauche, jamais plus large que la tuile
+      (REGLAGES, le plus long, mordait le bord).
+   2. La diagonale « \ » de la caisse (nez en bas à droite) : les tuiles descendent d'un cran de gauche à droite, JOUER descend encore, part à droite et
+      penche de 4° dans le même sens. Seulement `translate` / `rotate` (propriétés à part) : le `transform:none` des tuiles et l'appui (`translate:0 2px`) restent. */
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear){padding:0 3px!important;align-items:center!important;justify-content:center!important;overflow:visible}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear)>span{display:block!important;max-width:100%;box-sizing:border-box;font-size:9px!important;letter-spacing:0!important;white-space:nowrap;overflow:hidden;text-overflow:clip;text-align:center;padding:0!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mHubPorte{translate:0 0}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mOffres{translate:0 9px}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mGear{translate:0 18px}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear):is(:active,.appui){translate:0 calc(var(--dy,0px) + 2px)}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mOffres{--dy:9px}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mGear{--dy:18px}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:22px 20px;rotate:4deg;transform-origin:50% 50%}
+@media (orientation:landscape) and (max-height:540px){
+  html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:56px 24px;rotate:4deg}}
+@media (prefers-reduced-motion:reduce){html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{transition:none}}
+</style>
 <style id="palierLeger">
 /* ===== LE CSS PAR PALIER (2026-10-23, audit mobile, Sacha : « une version mobile fluide sans que ça baisse trop en qualité ») =====
    `html[data-palier]` était écrit par PAL mais aucune règle ne le lisait : un iPhone 7 repeignait les mêmes balayages décoratifs en boucle qu'un
@@ -8876,6 +8899,7 @@ if(window.CC_COLONNE)return; // (2026-09-28) sur l'ordi cette page n'est que le 
 const PXI_G={coeur:'.........|.##...##.|####.####|#########|#########|.#######.|..#####..|...###...|....#....',vibre:'..#####..|#.#...#.#|#.#...#.#|..#...#..|#.#...#.#|#.#...#.#|..#...#..|..#.#.#..|..#####..',aimant:'##.....##|.........|##.....##|##.....##|##.....##|###...###|.#######.|..#####..|.........',bouclier:'#########|##.....##|##.....##|##.....##|.##...##.|.##...##.|..##.##..|...###...|....#....',nuage:'.........|.........|....##...|...####..|.##.####.|#########|#########|.#######.|.........',immeuble:'....#....|...###...|...###.##|##.###.##|##.###.##|#########|#########|#########|.........',flamme:'....#....|...##....|...###...|..####.#.|..######.|.###.###.|.##...##.|.##...##.|..#####..',pinceau:'......###|.....####|....####.|...####..|..####...|.#.##....|###......|###......|.#.......',aile:'.........|#........|##.......|###......|#####....|.#######.|..#######|....#####|.......##',trainee:'.........|##.......|.###.....|..####...|...######|..####...|.###.....|##.......|.........',pouce:'...##....|...##....|...##....|...####..|.#######.|.########|.#######.|..#####..|..#####..',cadeau:'.##...##.|#..#.#..#|.#######.|#########|#...#...#|####.####|.#..#..#.|.#..#..#.|.#######.',cible:'..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..',croix:'##.....##|###...###|.###.###.|..#####..|...###...|..#####..|.###.###.|###...###|##.....##',gauche:'....##...|...###...|..####...|.#####...|######...|.#####...|..####...|...###...|....##...',droite:'...##....|...###...|...####..|...#####.|...######|...#####.|...####..|...###...|...##....',haut:'.........|....#....|...###...|..#####..|.#######.|#########|...###...|...###...|...###...',bas:'...###...|...###...|...###...|#########|.#######.|..#####..|...###...|....#....|.........',lecture:'##.......|####.....|######...|########.|#########|########.|######...|####.....|##.......',pause:'.........|###...###|###...###|###...###|###...###|###...###|###...###|###...###|.........',son:'....#....|...##..#.|####.#..#|####.#..#|####.#..#|####.#..#|...##..#.|....#....|.........',muet:'....#....|...##....|####..#.#|####...#.|####..#.#|####.....|...##....|....#....|.........',musique:'...######|...#....#|...#....#|...#....#|.###..###|####.####|####.####|.##...##.|.........',volant:'..#####..|.#.....#.|#.......#|#..###..#|#########|#...#...#|#...#...#|.#..#..#.|..#####..',fleches:'.........|..#...#..|.##...##.|###...###|###...###|###...###|.##...##.|..#...#..|.........',eclair:'.....###.|....###..|...###...|..######.|.....##..|....##...|...##....|..##.....|.#.......',drapeau:'#.#.#.#.#|##.#.#.#.|#.#.#.#.#|##.#.#.#.|#.#.#.#.#|#........|#........|#........|#........',voiture:'.........|.........|..####...|.#..#.#..|########.|#########|#########|.##...##.|.##...##.',rampe:'.........|.........|........#|......###|.....####|...######|.########|#########|.........',brique:'#########|#...#...#|#########|..#...#..|#########|#...#...#|#########|..#...#..|#########',copier:'...###...|.##...##.|.#######.|.#.....#.|.#.###.#.|.#.....#.|.#.###.#.|.#.....#.|.#######.',importer:'....#....|....#....|..#.#.#..|...###...|....#....|#.......#|#.......#|#########|.........',corbeille:'...###...|#########|.#.....#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.....#.|..#####..',rejouer:'..#####..|.#.....##|#.....###|#........|#........|#.......#|#.......#|.#.....#.|..#####..',quitter:'#####....|#...#....|#...#.#..|#...#.##.|#..######|#...#.##.|#...#.#..|#...#....|#####....',verrou:'..#####..|.#.....#.|.#.....#.|#########|#########|####.####|####.####|#########|#########',coche:'.........|........#|.......##|#.....##.|##...##..|.##.##...|..###....|...#.....|.........',etoile:'....#....|....#....|...###...|#########|.#######.|..#####..|..##.##..|.##...##.|.#.....#.',trophee:'#########|#.#####.#|#.#####.#|.#######.|..#####..|...###...|....#....|..#####..|.#######.',rotation:'..#####..|.#.....##|#.....###|#........|#..###...|#..#.#..#|#..###..#|.#.....#.|..#####..',panier:'.........|#........|.#######.|.#.#.#.#.|.#######.|..#.#.#..|..#####..|..#...#..|.........',bulle:'.#######.|#.......#|#.#.#.#.#|#.......#|.###.###.|...#.#...|...##....|...#.....|.........',piece:'..#####..|.#.....#.|#..###..#|#.#.....#|#..###..#|#.....#.#|#..###..#|.#.....#.|..#####..',maison:'....#....|...###...|..#####..|.#######.|#########|.#######.|.##...##.|.##...##.|.##...##.',horloge:'..#####..|.#..#..#.|#...#...#|#...#...#|#...###.#|#.......#|#.......#|.#.....#.|..#####..',triade:'....#....|...###...|...###...|..##.##..|.##.#.##.|.###.###.|#########|#########|.........'};
 PXI_G.reglages='....###....|.##.###.##.|.#########.|..#######..|####...####|####...####|####...####|..#######..|.#########.|.##.###.##.|....###....'; // (2026-10-15, Sacha : « fais un truc qui ressemble vraiment à un engrenage ») l'ancien 9 × 9 lisait un SOLEIL (huit rayons d'un pixel) ; un rouage, ce sont des DENTS carrées séparées par des creux et un MOYEU percé — il faut 11 × 11 pour que les trois tiennent
 PXI_G.coffre='.#######.|#.......#|#.......#|#########|#...#...#|#..###..#|#...#...#|#.......#|#########'; // (2026-10-05) le COFFRE : l'inventaire (le coffre de la caisse)
+PXI_G.troisLosanges='.....#.....|....###....|...#####...|....###....|.....#.....|...........|..#.....#..|.###...###.|#####.#####|.###...###.|..#.....#..'; /* (2026-10-25, Sacha : « les trois petits losanges pour choisir les figures ») l'inventaire : les trois EMPLACEMENTS de figures */
 PXI_G.roue='..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..'; // (2026-10-09) la famille COMMUNE : la roue
 PXI_G.gemme='.........|..#####..|.#..#..#.|#########|.#.....#.|..#...#..|...#.#...|....#....|.........'; // (2026-10-09) la famille RARE : la gemme taillée
 PXI_G.couronne='.........|#...#...#|#..###..#|##.###.##|#########|#########|.........|#########|.........'; // (2026-10-09) la famille LÉGENDAIRE : la couronne
@@ -64581,6 +64605,7 @@ function gModeVa(m){
     if(m==='inv'){if(GATL.on){gAtelier(false);gGarageReplie();}else gAtelier(true);return;} /* (2026-10-14) RETOUR de l'inventaire : le garage REPLIÉ */ // (2026-10-12, Léo) INVENTAIRE ferme l'atelier ; la même touche, devenue ◀ RETOUR, le rouvre
     return;}
   GMODE.m=m;GMODE.paye=false;GMODE.fam=m==='shop'?gShopFam():null; // (2026-10-10) la famille montrée en BOUTIQUE, détachée de la caisse affichée
+  if(m==='inv'&&SHOP.tab!=='figure')shopTab('figure'); /* (2026-10-25, Sacha : « quand on ouvre l'inventaire, on arrive directement sur les figures ») l'INVENTAIRE s'ouvre sur l'onglet FIGURES (et le CSS le range en premier) */
   const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st){st._r=null;if(m==='tous'){st.scrollTop=0;st.classList.remove('finBas');}}
   gModeCale();
   if(SHOP.tab==='voiture')garageFamilles(carRar(garageI));else gStripHabits(SHOP.tab,SHOP.i[SHOP.tab]);
@@ -69656,7 +69681,7 @@ try{const b9=document.querySelector('#gOutils [data-go="set"]'),s9=b9&&b9.queryS
    `dbgInv()` : état · `dbgInv('ouvre'|'ferme')` · `dbgInv('cat','peinture')`. */
 var INV={on:false,cat:'voiture',hold:null,mange:null,raf:0,D0:.12,D:.45};
 const INV_RANG={infini:6,mythique:5,legendaire:4,epique:3,exotique:2,defi:2,rare:1,commun:0},INV_LUEUR={commun:.35,rare:.6,exotique:.7,epique:.82,defi:.7,legendaire:1,mythique:1,infini:1};
-function cosmRar(cat,d){if(!d)return 'commun';if(d.r)return d.r;if(cat==='figure')return !d.p?'commun':d.p<=12000?'rare':d.p<=25000?'epique':'legendaire'; // (2026-10-14) une figure : sa rareté suit son prix
+function cosmRar(cat,d){if(!d)return 'commun';if(d.r)return d.r;if(cat==='figure')return !d.p?'commun':d.p<=120000?'rare':d.p<=250000?'epique':'legendaire'; /* (2026-10-14) une figure : sa rareté suit son prix — (2026-10-25, Sacha) seuils ×10 comme les prix de v899 : rare ≤ 120 k, épique ≤ 250 k */
 if(d.mis)return d.mis>=8?'epique':'rare';if(!d.p)return 'commun';return d.p<4000?'commun':d.p<60000?'rare':d.p<250000?'epique':d.p<900000?'legendaire':'mythique';} /* (2026-10-14) la grille de l'équilibrage : commune < 4 k · rare < 60 k (l'ex-tranche EXOTIQUE 16-60 k est RARE depuis le 2026-10-18, Sacha) · épique < 250 k · légendaire < 900 k (`r` sur la fiche a le dernier mot) */
 function invListe(cat){
   if(cat==='voiture'){const eq=equippedCar(),L=[];for(let i=0;i<CARS.length;i++)if(!carRetiree(i)&&(i===eq||carUnlockedVrai(i)))L.push({cat:cat,i:i,r:carRar(i),eq:i===eq});
@@ -69699,6 +69724,7 @@ function invRender(){
 function invOuvre(){
   if(!INV||INV.on||GAR.go||!garAtelierLibre())return false;
   if(SHOP.tab!=='voiture'||SHOP.prev)shopTab('voiture');{const eq=equippedCar();if(GAR.sw&&!GAR.sw.fait)GAR.sw.to=eq;else if(garageI!==eq)garageShow(eq);} /* (2026-10-07, audit avant publication ; une bascule en cours vise désormais TA caisse) l'inventaire équipe TA caisse : la fiche revient sur elle (sinon le plateau montrait la caisse équipée sous le nom et le prix d'une autre) */
+  INV.cat='figure'; /* (2026-10-25, Sacha : « quand on ouvre l'inventaire, on arrive directement sur les figures ») */
   INV.on=true;if(!((SAVE.d.ast|0)&4)){SAVE.d.ast=(SAVE.d.ast|0)|4;SAVE.mark();}
   gEl.classList.remove('aideInv');gEl.classList.add('inv');garLibre._r=null;
   const g=$('ivGrille');if(g){g._k=null;g.scrollTop=0;}invRender();
