@@ -270,7 +270,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // Le plafond peut monter sans risque parce que la résolution adaptative redescend si le GPU peine — et
   // qu'elle sait maintenant REMONTER (voir la boucle).
   try{if(!I18N['HAUTE'])I18N['HAUTE']='HIGH';}catch(e){} /* (OPTIMISATION) le 3e choix du réglage IMAGE (voir L'IMAGE EN AUTOMATIQUE) */
-  function applyQ(fast){ DPR_CAP=Math.min(devicePixelRatio,fast?1:PAL.b('dprNetCap',1.5)); // (2026-10-14, passe perf mobile) le plafond NETTE se taille sur le palier (palier 2 : 1,5 comme avant) — voir NETTE PAR PALIER
+  function applyQ(fast){ DPR_CAP=dprPlafond(fast); // (2026-10-14, passe perf mobile) le plafond NETTE se taille sur le palier (palier 2 : 1,5 comme avant) — voir NETTE PAR PALIER
     qlReprise(); } // (2026-09-27) pleine résolution tout de suite + l'échelle QL recalée sur le nouveau plafond (et son plancher NET)
   // ⚠ LES INTERRUPTEURS PASSENT PAR LES BOUTONS DU DESKTOP (`.click()`) au lieu de refaire leur
   // logique : son, voix, musique, Survivant et Parc ont des EFFETS DE BORD (suspend du contexte
