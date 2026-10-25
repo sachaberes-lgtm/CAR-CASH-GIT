@@ -159,7 +159,7 @@
           vA+=18+5*trk9;boost=Math.max(boost,1.5+.2*trk9);if(!pl9)padCd=1.5; /* (LIGNE PARFAITE, audit GAMEPLAY) un pad de la file ne met plus la recharge : au niveau 12 il bloquait le 1er pad de la LIGNE DE NÉON au-delà de ~470 km/h (« LIGNE CASSÉE ») */ // viser paie plus qu'avant (14 → 18)
           if(SONV2)sfx('pad',{st:sonPd(trk9)});else boostSnd(1+.1*trk9);shake=Math.max(shake,.3+.04*trk9);hap(trk9?[10,16,10]:10);
           if(SENS)try{sensCoup(0,-1.7-.25*trk9,-.9);DRIFT_V.set(0,.12,-CARS[level].l*.42);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,5+trk9,7);}catch(e){} // (2026-10-14, sensations) la plaque POUSSE : le nez se lève, le cul s'écrase sur ses ressorts, une gerbe d'or part de sous la poupe — plus fort à chaque pad du train
-          slam(tr9>1?TR('BOOST')+' ×'+tr9:'BOOST','','#ffb000','#ff3924',28); /* (2026-09-29, Sacha : « BOOST écrit plus petit ») 46 → 28 */flashEcran('rgba(255,150,0,.5)');fovPunch=Math.max(fovPunch,10+2*trk9); // (HUD v3) « quand tu roules sur un boost, BOOST en gros »
+          if(LEFIL.on)fil(tr9>1?TR('BOOST')+' ×'+tr9:'BOOST','#ffb000',1);else slam(tr9>1?TR('BOOST')+' ×'+tr9:'BOOST','','#ffb000','#ff3924',28); /* (LE FIL) le BOOST s'écrit dans la pastille */ /* (2026-09-29, Sacha : « BOOST écrit plus petit ») 46 → 28 */flashEcran('rgba(255,150,0,.5)');fovPunch=Math.max(fovPunch,10+2*trk9); // (HUD v3) « quand tu roules sur un boost, BOOST en gros »
           if(pl9){LIGNE.pris[1]++;LIGNE.padPris.add(i9);}nitroGain(LIGNE.padI.has(i9)?LIGNE.don:.12,LIGNE.padI.has(i9)?'pad.ligne':'pad');flowAdd(6+2*trk9,'route','p');momT=Math.min(4.3,momT+.8); // (LIGNE PARFAITE) le pad de la file rend de quoi tenir jusqu'au fruit
           break;
         }

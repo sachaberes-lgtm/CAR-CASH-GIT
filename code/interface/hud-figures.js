@@ -84,11 +84,12 @@ function fhXMaj(){const c=FX2.cv,x=c.n>=2?figCvX():0;fhEl();FH.el.classList.togg
   FH.x.innerHTML=x?'<small>'+fhNet(TR('COMBO'))+'</small> '+figCvTxtX(x):'';FH.x.style.setProperty('--xc',x>=3?'var(--fhO)':x>=2?'var(--fh0)':'var(--fhVert)');FH.x.classList.toggle('max',x>=IMPU.xMax); // vert → or → orange → l'arc-en-ciel du plafond
   {const bat=x>0&&x>figRec()+1e-6;if(bat!==FH.recBat){FH.recBat=bat;FH.rec.textContent=bat?fhNet(TR('RECORD')):'';FH.rec.classList.toggle('on',bat);if(bat){fhAnime(FH.rec,[{transform:'scale(2.2)',opacity:0},{transform:'scale(.9)',opacity:1,offset:.6},{transform:'none'}],380);try{hap([6,20,6]);}catch(e){}}}} // (v4) le RECORD bat à côté du × : on le voit tomber en plein vol
   if(x&&monte)fhAnime(FH.x,[{transform:'scale(2.1)',filter:'brightness(2.6)'},{transform:'scale(.9)',offset:.5},{transform:'none',filter:'none'}],380);}
-function fhLance(s,r,o){if(!r||!r.f||!window.FIG)return;const c=o&&o.douce?3:s>=0?Math.min(2,s):3;r.fhc=c; // (figLance) la figure part : son nom, en grand, dans la couleur de son emplacement
+function fhLance(s,r,o){if(!r||!r.f||!window.FIG)return;if(LEFIL.on)filFig(figNom(r.f,figRepsEnCours(r)),figRarH(r.f),1); /* (LE FIL) le nom part dans la pastille ; #fh reste caché */
+  const c=o&&o.douce?3:s>=0?Math.min(2,s):3;r.fhc=c; // (figLance) la figure part : son nom, en grand, dans la couleur de son emplacement
   if(FH.fin)fhRaz(); /* (v5) la ligne du vol d'avant s'éteignait encore : on repart à neuf (avant, son fondu « forwards » restait posé sur #fh — la figure suivante partait invisible) */
   fhNom(figNom(r.f,figRepsEnCours(r)),null,'in',r.flD||null,figRarH(r.f));FH.nomT=performance.now()+1900;FH.nomPl=false; /* (v4) le nom bien écrit (plus « HELICO 720 ×2 » pour un hélico simple) et la flèche du geste — (v5) dans la couleur et la police de SA RARETÉ (plus celle de l'emplacement) */
   if(s>=0)fhLegFx(s,false);}
-function fhPlante(r,f,reps,neuf){if(!f||!window.FIG)return;const t=figNom(f,reps),rp=figRarH(f); // (figPaye) plantée : elle claque et tombe dans la ligne
+function fhPlante(r,f,reps,neuf){if(!f||!window.FIG)return;const t=figNom(f,reps),rp=figRarH(f);if(LEFIL.on)filFig(t,rp,1); // (figPaye) plantée : elle claque et tombe dans la ligne
   if(FH.fin)fhRaz();
   const m=fhMaillon(t,rp,{neuf:neuf,d:!!(r&&r.douce)});fhXMaj(); /* (v5) son MAILLON entre dans la ligne du combo */
   fhSeule(t,rp,undefined,1000,m,Math.min(12,6+2*FX2.cv.n));}
@@ -96,11 +97,11 @@ function fhSeule(t,rp,dir,ms,m,nb){const n=performance.now(); // (v5) une figure
   if(FX2.cv.n<2){fhNom(t,null,'pl',dir,rp);FH.nomT=n+ms;FH.nomPl=true;try{pixBurst(FH.b,nb);}catch(e){}return;} //   (il s'éteint, son maillon arrive) : jamais écrit deux fois — Sacha, 15/10 : « là c'est écrit en double »
   if(FH.nom.classList.contains('on')&&FH.nomT>n+140&&(FH.nomPl||FH.b.textContent===fhNet(t)))FH.nomT=n+140; // le grand nom est celui d'une figure DÉJÀ dans la ligne (nomPl) : il s'éteint — une figure lancée, encore en l'air, garde le sien
   try{pixBurst(m,nb);}catch(e){}}
-function fhBump(k,neuf){fhEl();const t=TR(bumpNomH(k)),rp=figRarH(BUMP_FIG,k); // (v5) LE BUMP s'écrit comme une figure plantée : en grand s'il est seul, son maillon dans la ligne
+function fhBump(k,neuf){fhEl();const t=TR(bumpNomH(k)),rp=figRarH(BUMP_FIG,k);if(LEFIL.on)filFig(t,rp,1); // (v5) LE BUMP s'écrit comme une figure plantée : en grand s'il est seul, son maillon dans la ligne
   if(FH.fin)fhRaz();
   const L=FH.cs.lastElementChild;let m=L;if(k>1&&L&&L.getAttribute('data-b'))fhMaillonMaj(L,t,rp);else m=fhMaillon(t,rp,{neuf:neuf,b:1}); // collé au BUMP d'avant : le même maillon grandit
   fhXMaj();fhSeule(t,rp,null,1100,m,Math.min(10,4+2*k));}
-function fhTrio(txt){if(!FH.el||!FH.vu)return; // (v5, comboNote) LE COMBO À TROIS NOMMÉ : son nom en grand (arc-en-ciel), ses trois maillons soulignés d'or
+function fhTrio(txt){if(LEFIL.on)fil(txt,FIL_RAR.combo,2);if(!FH.el||!FH.vu)return; // (v5, comboNote) LE COMBO À TROIS NOMMÉ : son nom en grand (arc-en-ciel), ses trois maillons soulignés d'or
   fhNom(txt,null,'in',null,'combo');FH.nomT=FH.trioT=performance.now()+1700;FH.nomPl=false;
   const L=FH.cs.children;let n=0;for(let i=L.length-1;i>=0&&n<3;i--){if(L[i].getAttribute('data-b')||L[i].getAttribute('data-d'))continue;L[i].classList.add('trio');n++;}}
 function figBumpNote(k,pts){if(!FIGV2.on||!BUMP_FIG_ON||!figTutoOk())return; /* (2026-10-18, débogage) figTutoOk : pas de combo invisible payé pendant l'auto-école */ // (v5) LE BUMP, FIGURE À PART ENTIÈRE DU COMBO DU VOL — appelée au rebond sur la tranche (k = son rang dans le vol)

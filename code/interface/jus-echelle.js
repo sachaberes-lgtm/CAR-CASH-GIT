@@ -218,6 +218,7 @@ function heistFire(){
   showMsg('🚀 DÉCOLLAGE — TOUT ×2 ! ★','#ff3ec8');
 }
 function trickMsg(txt,tier){ // tier: 1 MONSTRE · 2 DOUBLE · 3 TRIPLE (ou true = mis en avant)
+  if(LEFIL.on){filTrick(txt,tier);return;} /* (2026-10-25, LE FIL) plus de verdict ni de carte au centre : la pastille unique le dit */
   if(TCTL.on){verdPousse(txt,tier);return;} // (vague 3) sur téléphone #trickBox est masqué (écran nu) : le verdict monte au COULOIR des annonces (verdSolde)
   // UN temps fort à la fois : un gros verdict (tier≥2) balaie les petits pops en cours ; sinon on plafonne à 2
   if(tier===2||tier===3){while(trickBox.firstChild)trickBox.firstChild.remove();}
@@ -261,6 +262,7 @@ function flyCash(worldPos,n){ // les billets VOLENT de la caisse vers le compteu
   flyV.copy(worldPos).project(camera);
   if(flyV.z>1)return; // derrière la caméra : rien à montrer
   if(SONV2&&!document.body.classList.contains('touch')){const m9=Math.min(4,n|0);for(let k=0;k<m9;k++){const i9=m9>1?Math.round(k*(n-1)/(m9-1)):0;sfx('billet.vole',{t:.58+i9*.045,st:sonPd(k)});}} // (console de son) sur téléphone .bill est masqué (écran nu) : pas de son sans image
+  if(LEFIL.on)return; /* (2026-10-25, LE FIL) le son est joué, mais plus de billets qui traversent l'écran : le compteur d'argent se met à jour seul */
   const x0=(flyV.x*.5+.5)*innerWidth,y0=(-flyV.y*.5+.5)*innerHeight;
   const r=elMoney.getBoundingClientRect(),x1=r.left+r.width/2,y1=r.top+r.height/2;
   for(let i=0;i<n;i++){
