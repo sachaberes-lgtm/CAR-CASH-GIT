@@ -3,6 +3,16 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES ESSAIS DE VOITURES PASSENT PAR DÉFAUT (2026-10-25, v913 — Léo : « push la grosse demande que tu m'as montrée sur le localhost » ; « quand les voitures ont trop de facettes, tu divises par deux le nombre de facettes »)
+- **PAR DÉFAUT désormais** (chacun se coupe par un paramètre d'adresse) : LE BAROUDEUR entre-deux (`?baroudeur=ancien` = la caisse « au plan » d'avant) · LE SCARABÉE à ailes avant et capot pixelisés (`?scarabee=ancien`) ·
+  LES CHOCS DE CUBES sur toutes les caisses (`?degats=0`) · LA TRADUCTION qui divise les triangles (`?langage=0`). Le premier jeu d'essais (v911) les gardait éteints.
+- **LES 29 RÉFÉRENCES DE LÉO NE SONT JAMAIS TOUCHÉES** (`DEGATS_REF`, dans `buildcar.js` : chocs ET traduction) : La Honte, La Fidèle, Eldorado, Le Chargeur 69, La Vette, La Bavaroise, La Dolorès, Le Corbillard, Le Chargeur, Le Défieur, Le Trône Central, La Cerise,
+  Le Samouraï, L'Origami, Rosso 40, Le Mastodonte, La Stratos, Atchoum, La Taurine, Le Spectre, L'Éternelle, Poster 84, Le Blindé Noir, La Squale, Le Chat Pop-Tart, La Pizza Express, Le Loup, Le Mur du Son, Le Dragon d'Or. Le langage visuel du jeu : des facettes simples et larges.
+- **LA RÈGLE « TROP DE FACETTES → ÷ 2 »** (`traduisLangage`) : toute caisse (hors références, hors Baroudeur) de plus de 12 000 triangles voit sa PEINTURE (laque 44, nacre 70, métallisé 90) regroupée par une grille dont la case est CHERCHÉE (dichotomie, 5 à 45 cm, mémorisée par voiture)
+  pour que la caisse tombe à la moitié ; feux, chrome, grilles, plastiques, verre, roues et petites pièces gardent leurs détails. Mesuré (triangles de la caisse au garage, chocs compris) : Combi 42,5 k → 20,9 k · Dolce Vita 26,5 k → 14,6 k · Lame 25,1 k → 14,0 k · Zagaie 32,7 k → 22,9 k (le plafond de 45 cm l'arrête) ·
+  Scarabée (SEULE sa coque est regroupée) 24,2 k → 19,5 k · Baroudeur 19,6 k → 18,3 k. Limites connues : pas toujours la moitié exacte ; les peaux de la Zagaie et du Caïd demandent un travail à la main.
+- **PERF** : les rayons des chocs sont calculés UNE FOIS par voiture (`DEGATS_CACHE`), la case de la traduction aussi (`LANG_CACHE`) ; les cubes de la pixelisation du Baroudeur (9 cm) et du Scarabée (7,5 cm) remplacent des cubes de 6 et 5 cm qui coûtaient 11 000 et 6 000 triangles.
+
 ## LES ESSAIS DE VOITURES, SOUS DRAPEAU (2026-10-25, v911 — Léo : « il faut d'abord push ce que t'as fait avec les voitures… mais on va continuer sûrement »)
 - **RIEN NE CHANGE PAR DÉFAUT** : quatre ESSAIS, tous éteints sans leur paramètre d'adresse. Le jeu, les photos de la liste et le garage sont ceux de v910. Un point de passage pour la suite, pas une livraison.
 - **`?baroudeur=entre`** (`wrangler.js`, bloc `CCH`) : LE BAROUDEUR « entre-deux » — la vraie forme du Wrangler en UN loft à facettes franches (flancs qui rentrent, ceinture, hard-top aux flancs qui se resserrent, toit bombé, pare-brise et lunette
