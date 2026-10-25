@@ -10507,10 +10507,11 @@ let DPR_CAP=Math.min(devicePixelRatio,ALLEGE?1:1.5),curDPR=Math.min(DPR_CAP,devi
    844×390 à densité 3,16 (la page-cadre zoome l'iframe), mais la course était plafonnée à DPR_CAP 1,5 : dessinée en 1 266 px de large puis étirée sur ~2 670 px
    physiques — le flou du PC. Désormais l'ordi (pas ALLEGE) dessine aux pixels RÉELS de l'écran, dans un budget de pixels (PC_PX, 4,5 M : ~4K/2) ; le téléphone
    garde son plafond de palier (`dprNetCap`). RAPIDE (choix du joueur) reste à 1. `?pcpx=N` (millions de pixels) règle le budget au banc, `?pcpx=0` = l'ancien plafond 1,5. */
-const PC_PX=(function(){const m=/[?&]pcpx=([\d.]+)/.exec(location.search);return m?+m[1]*1e6:4.5e6;})();
+const PC_PX=(function(){const m=/[?&]pcpx=([\d.]+)/.exec(location.search);return m?+m[1]*1e6:3.2e6;})(); /* (2026-10-25, Sacha : « Chrome prend 1 700 Mo de GPU ») budget 4,5 M → 3,2 M : toujours les pixels réels d'un écran 1080p, mais plus la 4K/2 ; `?pcpx=4.5` = avant */
+const VHD_PX_PC=(function(){const m=/[?&]vhdpc=([d.]+)/.exec(location.search);return m?+m[1]*1e6:4.2e6;})(); /* budget de pixels de la vitrine du menu sur ordinateur (8,3 M avant) ; `?vhdpc=8.3` = avant */
 function dprPlafond(fast){ if(fast)return Math.min(devicePixelRatio,1);
   if(ALLEGE||!PC_PX)return Math.min(devicePixelRatio,PAL.b('dprNetCap',1.5));
-  return Math.min(devicePixelRatio,Math.max(1.5,Math.sqrt(PC_PX/Math.max(1,innerWidth*innerHeight))),4);}
+  return Math.min(devicePixelRatio,Math.max(1.25,Math.sqrt(PC_PX/Math.max(1,innerWidth*innerHeight))),4);}
 const DPR_MIN=(IS_MOBILE&&!FORCE_TEL)?.5:.6; // .42 était une bouillie de pixels — et on y restait coincé (voir la remontée dans loop)
 // PORTRAIT : le `fov` de three est VERTICAL — sur un écran haut, le champ HORIZONTAL s'effondre.
 // FOV_K rouvre l'angle, POR (0 paysage → 1 portrait) recadre la caméra. Les deux se règlent ENSEMBLE
@@ -10569,7 +10570,7 @@ const POST_SHADOW=new THREE.Vector3(0.004,-0.008,0.062); // OMBRES → bleu-viol
 const POST_HI=new THREE.Vector3(0.052,0.008,-0.014);      // LUMIÈRES → or rosé (le couchant qui s'accroche aux tôles)
 // Grade cinéma en PASSE FINALE : tonemap préservant la chroma + contraste + saturation + split-tone. Scène en amont inchangée.
 const GRADE_ACES=LOOK_TEL; // (2026-09-25) l'étalonnage final (ex-filtre CSS du canvas) passe DANS l'ACES : plus de passe de compositeur plein écran, à la résolution de l'écran, sur téléphone
-const FXAA_ON=ALLEGE||IS_LOW_END||devicePixelRatio>=1.5; // (2026-09-26, audit rendu) là où il n'y a PAS de MSAA (téléphone : aucun anticrénelage, chaque marche = 3 px physiques)
+const FXAA_ON=!/[?&]msaa=1/.test(location.search); /* (2026-10-25, Sacha : « Léo et moi n'avons pas les mêmes bugs sur le même lien » · « 1 700 Mo de GPU ») FXAA PARTOUT : l'anticrénelage dépendait de la machine (MSAA si écran < ×1,5 et plus de 4 cœurs, FXAA sinon) — deux images différentes, et la cible MSAA demi-flottante (×4) pesait des centaines de Mo. `?msaa=1` = l'ancien choix. */ // // (2026-09-26, audit rendu) là où il n'y a PAS de MSAA (téléphone : aucun anticrénelage, chaque marche = 3 px physiques)
 const ACES_N=LOOK_TEL?6:8;   // flou radial du boost : 18 lectures de texture au téléphone au lieu de 24 (le grain animé fond les copies)
 /* LA PASSE FINALE ALLÉGÉE (2026-09-27, passe perf iPhone, tour 2 — « le post-traitement »). MESURÉ au micro-banc (la passe seule, rejouée
    sur une image figée, 585×1266 comme l'iPhone en NETTE ; rendu logiciel SwiftShader ET vraie carte, chronomètre de la puce) : en rendu
@@ -10772,7 +10773,7 @@ if(CAN_POST){ try{
       const gl=renderer.getContext(),ok=gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE;renderer.setRenderTarget(null);t.dispose();return ok;}
     catch(e){try{renderer.setRenderTarget(null);}catch(e2){}return false;}})();
   const rtType=f16ok?THREE.HalfFloatType:THREE.UnsignedByteType;
-  if(!ALLEGE&&!IS_LOW_END&&devicePixelRatio<1.5&&typeof THREE.WebGLMultisampleRenderTarget==='function')rt=new THREE.WebGLMultisampleRenderTarget(w,h,{format:THREE.RGBAFormat,type:rtType}); // MSAA réservé aux écrans 1× (où le crénelage se voit) — sur Retina le resolve coûte cher pour rien
+  if(!FXAA_ON&&!ALLEGE&&!IS_LOW_END&&devicePixelRatio<1.5&&typeof THREE.WebGLMultisampleRenderTarget==='function')rt=new THREE.WebGLMultisampleRenderTarget(w,h,{format:THREE.RGBAFormat,type:rtType}); // MSAA réservé aux écrans 1× (où le crénelage se voit) — sur Retina le resolve coûte cher pour rien
   else rt=new THREE.WebGLRenderTarget(w,h,{format:THREE.RGBAFormat,type:rtType,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
   composer=new THREE.EffectComposer(renderer,rt);
   composer.setPixelRatio(curDPR);composer.setSize(w,h);
@@ -11634,7 +11635,7 @@ window.dbgVhdEcran=function(){ const px=Math.max(1,innerWidth*innerHeight),bud=T
    `?frais=0` = comme avant. */
 const PFR_ON=TEL_NATIF&&!/[?&]frais=0\b/.test(location.search);
 const PCM_ON=(!TEL_NATIF||PFR_ON)&&!/[?&]pcmort=0\b/.test(location.search); /* (2026-10-24) le téléphone aussi, par le mode frais */
-function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?PAL.b('vhdPx',3.2e6):8.3e6; // (2026-10-14) le budget du téléphone se taille sur son palier (voir LE DÉPART AU BON CRAN)
+function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?PAL.b('vhdPx',3.2e6):VHD_PX_PC; // (2026-10-14) le budget du téléphone se taille sur son palier (voir LE DÉPART AU BON CRAN)
   return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF||VHE_MODE?1:1.5),Math.sqrt(bud/px),4));} /* (2026-10-24, passe perf PC) `?vhdecran=1|2` : sans le ×1,5 sur l'ordi (voir LA VITRINE À LA MESURE DE L'ÉCRAN) */
 function vhdAniso(on){ const m=renderer.capabilities.getMaxAnisotropy(),n=on?m:Math.min(ALLEGE?4:8,m);
   for(const t of [ASPH_TEX,LIGNE_TEX])if(t&&t.anisotropy!==n){t.anisotropy=n;t.needsUpdate=true;}}
@@ -54830,7 +54831,7 @@ function gomPas(drift,spd3,dk,T){ // à chaque image de course, à la place de l
 window.dbgGomme=function(){const r=function(p,n){return p?+p.value.toFixed(n):null;};return {doux:CRISSE_DOUX,pret:GOM.ok,k:+GOM.k.toFixed(3),souffle:r(GOM.sG&&GOM.sG.gain,4),grain:r(GOM.gG&&GOM.gG.gain,4),passeBas:r(GOM.lp1&&GOM.lp1.frequency,0),grains:r(GOM.gSrc&&GOM.gSrc.playbackRate,2)};};
 /* <<<FIN GOMME DOUCE>>> */
 function initAudio(){
-  AC=new (window.AudioContext||window.webkitAudioContext)();
+  AC=(function(){const C=window.AudioContext||window.webkitAudioContext;try{return new C({sampleRate:48000});}catch(e){return new C();}})(); /* (2026-10-25, Sacha/Léo : « sons très aigus chez lui, grésillements chez moi, même lien ») 48 kHz IMPOSÉS : le contexte prenait la cadence de la carte son de chaque ordinateur (44,1 · 48 · 96 kHz, Bluetooth 16-24 kHz) et tout le DSP tournait à une cadence différente d'une machine à l'autre ; le navigateur rééchantillonne vers la sortie. */
   if(!SND.sfx&&!(MUS_WA&&MUS_WA.on)&&!musGraphe())try{AC.suspend();}catch(e){} // le mute SON survit au redémarrage — (2026-10-14, session SON) sauf si la musique passe par WebAudio (MUS_WA) : suspendu, le contexte la rendait MUETTE au lancement (SON coupé, MUSIQUE allumée) ; musWaSon coupe alors les effets par l'entrée du limiteur
   // BUS MASTER : tout le WebAudio passe par compresseur + limiteur doux tanh — niveau perçu
   // stable, jamais de clip numérique, pas de fatigue d'oreille sur une longue session
@@ -73226,7 +73227,7 @@ const INTRO_NEUVE=!/[?&]intro=ancien\b/.test(location.search);
   const INTRO_SON=/[?&]intro=muet\b/.test(location.search)?0:/[?&]intro=musique\b/.test(location.search)?2:1, INTRO_NOTES=INTRO_SON===2;
   function introSound(){
     if(!SND.sfx||!(VOL.sfx>0))return; // mute SON : l'intro reste muette aussi — (2026-09-28) et le curseur EFFETS à zéro aussi
-    try{iAC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return;}
+    try{iAC=(function(){const C=window.AudioContext||window.webkitAudioContext;try{return new C({sampleRate:48000});}catch(e){return new C();}})();}catch(e){return;}
     const A=iAC;try{A.resume();}catch(e){}
     const t0=A.currentTime+.05,PHI=1.6180339;
     const phi=k=>110*Math.pow(PHI,k); // l'échelle d'or : 110·φ^k
