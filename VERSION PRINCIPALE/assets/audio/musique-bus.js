@@ -41,7 +41,7 @@
     // (20/10) `kick: 12` = le dompteur de grosse caisse (5.) : les 11 morceaux où elle passe 15 dB au-dessus du reste à au moins un moteur (mesuré, 20 morceaux × 11 moteurs).
     'jeu:bleu-1540': { bas: -2, kick: 12 }, 'jeu:bleu-9664': { bas: -2, kick: 12 }, 'jeu:bleu-3392': { bas: -2 }, 'jeu:bleu-8154': { bas: -2 }, 'jeu:bleu-8042': { bas: -2, kick: 12 },
     'jeu:bleu-5095': { bas: -2 }, 'jeu:bleu-6167': { bas: -1, kick: 12 }, 'jeu:bleu-2221': { bas: -.5, kick: 12 }, 'jeu:pal-neon-noir': { sub: -5, bas: -2 }, 'jeu:pal-aura-30': { bas: -2 },
-    'jeu:bleu-6562': { kick: 12 }, 'jeu:bleu-4830': { kick: 12 }, 'jeu:bleu-9688': { kick: 12 }, 'jeu:bleu-1275': { kick: 12 }, 'jeu:bleu-6104': { kick: 12 }, 'jeu:pal-asphalte': { kick: 12 }
+    'jeu:bleu-6562': { kick: 12 }, 'jeu:bleu-4830': { kick: 12 }, 'jeu:bleu-1275': { kick: 12 }, 'jeu:bleu-6104': { kick: 12 }, 'jeu:pal-asphalte': { kick: 12 }
   };
   var KICK_OFF = /[?&]kick=0\b/.test(String((W.location && W.location.search) || ''));   // (20/10) `?kick=0` : le dompteur de grosse caisse n'est pas construit (pour comparer à l'oreille)
   var MB = { PRESETS: PRESETS, FORCE: 1, CREUX: -2 };

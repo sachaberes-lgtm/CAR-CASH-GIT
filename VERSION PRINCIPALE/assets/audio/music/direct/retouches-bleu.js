@@ -107,6 +107,25 @@ const grillesNeuves = (Mx, O, specs) => { if (!O || !O.menes) return; Mx.grilles
 const motif = (Mx, k, L) => { Mx.pat[k] = L; if (Mx.patL) Mx.patL[k] = L; };   // (le générateur retire parfois une variante : la retouche les fige)
 const nomme = (O, cat, cle, nom) => { const T = O && O[cat]; if (T && !T[cle]) T[cle] = nom; };
 
+
+// LES TROIS LO-FI À RÉPARER (2026-10-25, Léo : « FIRE PRIME, AVERSE DE CHROME et TONNERRE DELUXE : les premiers bruits d'instruments sont mal gérés et ne donnent pas de
+// musique, et le niveau 30 n'est pas assez excitant » ; puis « il ne faut pas corriger juste le premier palier : sauve toute l'évolution jusqu'au palier le plus intense »).
+// MESURÉ (banc muet, 5 s par moteur) : AVERSE −38,8 dB aux moteurs 1 et 3 (le clavier tenait DEUX accords par mesure, puis le vinyle, puis le charley AVANT la grosse caisse
+// et la basse : du bruit, pas de la musique) ; TONNERRE retombait de −9,5 (moteur 22) à −11,2 (moteur 30) ; FIRE PRIME −14,5 au 22. La réparation touche TOUTE la montée :
+// (1) l'OUVERTURE est un petit morceau complet dès le moteur 5 (clavier qui joue, basse, grosse caisse, charley, caisse, mélodie, signature) — le vinyle n'est qu'une texture
+// qui arrive au 8e ; (2) le clavier JOUE au lieu de tenir (deux variantes de plus en plus actives : la dernière sert aux marches 'i_keys') et la basse marche ; (3) le haut
+// est chargé de vrais éléments de fin (sous-basse, ride, toms, roulements, accords hachés, cloche) au lieu des marches les plus discrètes ; (4) le tempo monte plus haut ;
+// (5) le dernier tiers n'est plus un palier de ralentissement : modulation, mélodie à l'octave, batterie qui double et final se suivent sans trou.
+const LOFI_ORDRE = ['keys', 'basse', 'kick', 'hat', 'snare', 'lead', 'sig', 'vinyl', 'i_filtre', 'pad', 'contre', 'sub', 'i_basse', 'clarte', 'i_keys', 'i_frappe', 'cordes', 'ride', 'double', 'i_dense',
+  'toms', 'octave', 'stab', 'i_basseOct', 'roll', 'i_tambours', 'cloche', 'modul', 'i_sommet', 'final'];   // les 30 moteurs, un élément chacun, du plus musical au plus excitant
+const lofiReparer = (Mx, O, o) => {
+  o = o || {};
+  Mx.ordre = LOFI_ORDRE.slice();
+  const kA = [[0, 3], [3, 3], [7, 2], [10, 3], [14, 2]], kB = [[0, 2], [2, 1], [3, 2], [6, 1], [7, 2], [10, 2], [11, 1], [14, 2]];
+  const bA = [[0, 0, 3], [3, 0, 3], [8, 12, 3], [11, 0, 5]], bB = [[0, 0, 2], [3, 0, 2], [6, 7, 2], [8, 12, 2], [11, 0, 2], [14, 7, 2]];
+  Mx.pat.keys = kA; Mx.patL.keys = [kA, kB]; Mx.pat.basse = bA; Mx.patL.basse = [bA, bB];
+  Mx.bpm1 = Math.round(Mx.bpm1 * (o.tempo || 1.08)); };
+
 // ---------------------------------------------------------------- LES RETOUCHES (base = le numéro de la musique 👍 ; note = la consigne de Léo)
 export const V2 = [
   { id: 'bleu-1540-retouche', base: 1540, direct: true, titre: 'CAVALE ULTRA',
@@ -201,4 +220,30 @@ export const V2 = [
     retouche(Mx) {
       Mx.tim.lead = 'cowbell'; Mx.tim.basse = '808dur'; Mx.tim.contre = 'voix';
       const sans = ['i_pulse', 'i_relance', 'i_basseOct', 'i_tambours']; insere(Mx, 'vinyl', 3, sans); insere(Mx, 'contre', 6, sans); insere(Mx, 'i_sature', 12, sans); } },
+
+  { id: 'bleu-8154-retouche', base: 8154, direct: true, titre: 'FIRE PRIME',
+    note: 'à réparer : les premiers bruits d’instruments sont mal gérés et ne donnent pas de musique, et le niveau 30 n’est pas assez excitant (puis : sauver toute l’évolution jusqu’au palier le plus intense)',
+    idee: 'une ouverture qui est déjà de la musique (piano qui joue, basse, grosse caisse, charley, caisse, trompette sourde), le vinyle en texture au 8e moteur, puis sous-basse, ride, toms, accords hachés et cloche jusqu’au 30, tempo plus haut',
+    retouche(Mx, O) { lofiReparer(Mx, O); } },
+
+  { id: 'bleu-8042-retouche', base: 8042, direct: true, titre: 'AVERSE DE CHROME',
+    note: 'à réparer : les premiers bruits d’instruments sont mal gérés et ne donnent pas de musique, et le niveau 30 n’est pas assez excitant (puis : sauver toute l’évolution jusqu’au palier le plus intense)',
+    idee: 'la harpe joue ses accords (elle ne les tenait plus : −38 dB aux moteurs 1-3), basse 808 et grosse caisse avant le charley, l’ocarina dès le 6e moteur, puis la montée chargée jusqu’au 30',
+    depart: 5,
+    retouche(Mx, O) { lofiReparer(Mx, O); } },
+
+  { id: 'bleu-6104-retouche', base: 6104, direct: true, titre: 'TONNERRE DELUXE',
+    note: 'à réparer : les premiers bruits d’instruments sont mal gérés et ne donnent pas de musique, et le niveau 30 n’est pas assez excitant (puis : sauver toute l’évolution jusqu’au palier le plus intense)',
+    idee: 'piano et contrebasse jouent dès le départ avec la grosse caisse (le vinyle et le charley ne passent plus devant), la clarinette au 6e moteur, puis la montée chargée : le 30 est le sommet, plus un retombé',
+    retouche(Mx, O) { lofiReparer(Mx, O); } },
+
+  { id: 'bleu-1275-retouche', base: 1275, direct: true, titre: 'FEU DE LUXE',
+    note: 'à complexifier : l’accord du premier instrument est beaucoup trop répétitif et l’évolution est trop discrète',
+    idee: 'trois grilles de HUIT accords qui voyagent (do♯ maj9 → fa♯ maj9 → la♭ m7 → …, le retour par le ré♭ 9) au lieu de deux boucles de quatre ; le charley commence en croches puis double (marche audible au 22e moteur), les relances de grosse caisse, la sous-basse, les toms, le ride et les cuivres en haut, tempo plus haut',
+    retouche(Mx, O) {
+      grillesNeuves(Mx, O, ['0:maj9 5:maj9 4:m7 9:m9 2:m9 7:9 0:maj7 7:7sus', '9:m9 2:m9 7:9 0:maj9 5:maj9 10:9 4:m7 7:9', '5:maj9 7:9 4:m7 9:m9 2:m9 7:7sus 0:maj9 5:maj7']);
+      motif(Mx, 'hat', 'x.x.x.x.x.x.x.x.');
+      Mx.ordre = ['cordes', 'basse', 'kick', 'keys', 'hat', 'snare', 'sig', 'lead', 'hatO', 'cuivres', 'i_filtre', 'i_basse', 'clarte', 'pompe', 'contre', 'i_relance', 'sub', 'i_keys', 'i_frappe', 'ride',
+        'double', 'toms', 'i_dense', 'octave', 'i_basseOct', 'roll', 'i_tambours', 'modul', 'i_sommet', 'final'];
+      Mx.bpm1 = Math.round(Mx.bpm1 * 1.06); } },
 ];
