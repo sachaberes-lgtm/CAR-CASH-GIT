@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v930'; /* v930 (2026-10-25 soir, Léo : « change juste la flûte de SAUVER MAMAN ») son contre-chant (moteur 12) passe de la flûte au violon ; v929 v929 (2026-10-25, Sacha : « refonte totale de la grotte : plus de géode, plus de virages, la route longe le sol, les murs et le plafond ») la grotte roulée (pisteTord), le boyau de cristaux, des modules de course */
+const CACHE = 'cashcar-v933'; /* v933 (2026-10-25 nuit, Sacha : « une énorme session de debugging, de nettoyage ») index.html repassé en fins de ligne LF (le commit de la grotte l'avait converti en CRLF : +73 Ko), sw.js ramené à une ligne (47 Ko d'historique rangés au journal), clés de traduction en double retirées, quatre allocations par image retirées (trouées de nuages, mots, piment, aspiration du portail) — rien ne change à l'écran */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

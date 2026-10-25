@@ -988,7 +988,18 @@ const skyDome=(function(){
   // (2026-09-26, vague 2 — audit GPU) gl_Position.z = w : le dôme se pose sur le PLAN LOINTAIN (profondeur 1,0) — voir renderOrder plus bas
   /* (24/10, relecture) `extensions.derivatives` : dFdx/dFdy (la photo, la voûte de l'orbite) exigent en WebGL1 la directive
      OES_standard_derivatives — three ne la pose que si on la demande, et l'ignore en WebGL2 (programme identique au bit près). */
-  const mk=(fs,lisse)=>new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,depthTest:!lisse,vertexShader:VS,fragmentShader:fs,extensions:{derivatives:true}});
+  /* ===== LES BOUCLES DU CIEL NE SE DÉROULENT PLUS (2026-10-25, Sacha : « le lien Vercel est particulièrement lent au démarrage ») =====
+     MESURÉ (Chrome, AMD RX 6600, ANGLE/Direct3D 11, site publié, profil neuf) : une seule tâche de 56 s au premier chargement, dans la compilation du ciel « plein »
+     (41 000 caractères, 14 boucles) — le compilateur Direct3D DÉROULE chaque boucle à borne constante (fbm de 4 tours rappelés des dizaines de fois…). Banc
+     (le même source, compilé seul) : 33 s tel quel · 20 s avec les bornes lues dans un uniform (le compilateur ne peut plus dérouler) · 11 s sans aucune boucle.
+     Même image : la borne vaut ce qu'elle valait. Les boucles qui lisent une texture (ombres de la mer, ombre du titre) restent constantes (dérivées dans une
+     boucle dynamique) ; WebGL1 exige des bornes constantes (téléphones anciens) : la règle ne joue qu'en WebGL2 et sur ordinateur (le téléphone ne change pas). Le navigateur garde ensuite le programme compilé
+     (cache de shaders sur le disque) : seuls les chargements qui suivent une modification des shaders payaient. `?boucles=0` = les bornes constantes d'avant. */
+  const ciBoucles=function(fs){ if(typeof WebGL2RenderingContext!=='function'||(window.matchMedia&&matchMedia('(hover:none)').matches)||/[?&]boucles=0\b/.test(location.search))return fs; const ns=[];
+    const out=fs.replace(/for\s*\(\s*int (\w+)\s*=\s*(-?\d+)\s*;\s*\1\s*(<=?)\s*(\d+)\s*;/g,function(m,v,a,op,b,off){ if(/texture2D/.test(fs.slice(off,off+260)))return m;
+      const nm='uL'+(op==='<='?'e':'')+b; if(ns.indexOf(nm)<0){ns.push(nm);if(!skyU[nm])skyU[nm]={value:+b};} return 'for(int '+v+'='+a+';'+v+op+nm+';';});
+    if(!ns.length)return fs; const k=out.search(/^(?!\s*#)\s*\S/m); return out.slice(0,k)+'uniform int '+ns.join(',')+';\n'+out.slice(k); };
+  const mk=(fs,lisse)=>new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,depthTest:!lisse,vertexShader:VS,fragmentShader:ciBoucles(fs),extensions:{derivatives:true}});
   const mat=mk(src(TETE,VILLE,VILLE_CIEL,MER,K.fond,K.mer,K.jour,K.soleil,K.titre,K.jade,K.canyon,K.gon,K.son,K.guirl,K.niveau,K.etoiles,K.espace,K.pous,K.lune,K.voile,K.onde,K.trame,MAIN.plein));
   /* LE CIEL SE PEINT EN DERNIER (2026-09-26, vague 2 — audit GPU). Il était dessiné en PREMIER (renderOrder −9, sans écrire la
      profondeur) : chaque pixel de l'écran payait le shader le plus lourd du jeu (mer de nuages, ville, étoiles, fond musical)… puis
