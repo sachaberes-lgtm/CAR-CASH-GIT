@@ -40506,7 +40506,7 @@ const rrect=(u0,v0,u1,v1,r,n)=>{const o=[],c=[[u1-r,v0+r,-Math.PI/2],[u1-r,v1-r,
 return function(K){
   const SP=K.spec||{},CORPS=SP.color!=null?SP.color:0x464950;
   const PAL={p:{g:'p',c:CORPS},k:{g:'m',c:0x161719},K:{g:'g',c:0x0b0c0f},c:{g:'c',c:0xd4d8de},C:{g:'c',c:0x6c727b},g:{g:'g',c:0x1d2a36},
-    W:{g:'l',c:0xfff2d2},L:{g:'l',c:0xff2a36},O:{g:'l',c:0xffa21a},R:{g:'m',c:0x7a1018},s:{g:'s',c:0x23252a},Q:{g:'l',c:0xe8e8e8},P:{g:'m',c:0x3d4047},N:{g:'l',c:0x5ee6ff},M:{g:'l',c:0xff3ec8}};
+    W:{g:'l',c:0xfff2d2},L:{g:'l',c:0xff2a36},O:{g:'l',c:0xffa21a},R:{g:'m',c:0x7a1018},s:{g:'s',c:0x23252a},Q:{g:'l',c:0xe8e8e8},P:{g:'m',c:0x3d4047},N:{g:'l',c:0x5ee6ff},M:{g:'l',c:0xff3ec8},V:{g:'g',c:0x46698a}};
   const EP=(typeof peintPal==='function'?peintPal(PAL):PAL).p,GP=EP.g;
   const CODES=[];CODES[0]={g:'#'};CODES[1]={g:'#',k:.38};CODES[2]={g:'g',c:0x1d2a36};CODES[3]={g:'g',c:0x0b0c0f};CODES[22]={g:'s',c:0x23252a};
   CODES[23]={g:'m',c:0x16171b};CODES[25]={g:'m',c:0x32333a};CODES[26]={g:'#'};CODES[27]={g:'l',c:0xff2a36};
@@ -40587,14 +40587,20 @@ return function(K){
     P.loft(zs,z=>{
       const yb=YB(z),top=topC(z),y2=Math.max(yb+.03,.70),y3=Math.max(yb+.05,1.0),y4=Math.max(y3+.03,1.222);
       const y5=Math.max(y4+.002,Math.min(1.245,top-.002)),y6=Math.max(y5+.002,Math.min(1.30,top-.004)),y7=Math.max(y6+.002,Math.min(1.717,top-.002)),y8=Math.max(y7+.002,top),
-            dome=.05*cl((top-1.3)/.45,0,1);
-      return [[0,yb],[.80,yb],[.835,y2],[.862,y3],[.866,y4],[Wc(y5),y5],[Wc(y6),y6],[Wc(y7),y7],[Wc(y8),y8],[Math.min(.705,Wc(y8)-.06),y8+dome*.35],[0,y8+dome]];
+            dome=(z>.285||z<-2.04)?0:.05*cl((top-1.3)/.45,0,1);
+      return [[0,yb],[.80,yb],[.835,y2],[.862,y3],[.866,y4],[Wc(y5),y5],[.82,y6],[.82,y7],[Wc(y8),y8],[Math.min(.705,Wc(y8)-.06),y8+dome*.35],[0,y8+dome]];
     },(j,z)=>{
       if(j<0)return 'p';
       if(j<=1)return 'k';                                                                    // le dessous et le seuil : noirs
       if(j===6)return inWin(z)?'g':'p';                                                      // les vitres de côté : porte avant, porte arrière, custode
       if(j===9)return ((z>.285&&z<.655)||(z>-2.135&&z<-2.045))?'g':'p';                       // le pare-brise et la lunette
       return 'p';});
+    // LES VITRES, PLUS JOLIES (25/10, Léo : « les vitres, c'est moche ») : des reflets en verre plus clair — deux traînées en diagonale sur chaque vitre de côté, un bandeau de ciel en haut du pare-brise et de la lunette
+    for(const sd of [1,-1]){const xg=sd*(.82+.0035);
+      for(const [za,zb] of [[-.309,.29],[-1.088,-.464],[-1.975,-1.24]]){const w=zb-za,y0=1.322,y1=1.695;
+        for(const [a,l] of [[.14,.20],[.46,.07]])P.prism('V',[[za+a*w,y0],[za+(a+l)*w,y0],[za+(a+l+.20)*w,y1],[za+(a+.20)*w,y1]],.006,xg);}}
+    P.prism('V',[[zPB(1.64)-.001,1.64],[zPB(1.64)+.006,1.64],[zPB(1.76)+.006,1.76],[zPB(1.76)-.001,1.76]],1.30,0);
+    P.prism('V',[[zHT(1.64)-.006,1.64],[zHT(1.64)+.001,1.64],[zHT(1.745)+.001,1.745],[zHT(1.745)-.006,1.745]],1.28,0);
     // LES PORTES : deux panneaux par flanc, en relief
     for(const sd of [1,-1])for(const [z0,z1] of [[.563,-.375],[-.418,-1.16]]){const L=Math.abs(z0-z1)-.012,zc=(z0+z1)/2;
       B('p',RP,.56,L,sd*(SBx(.93)+RP/2-.002),.93,zc);}
@@ -40652,13 +40658,13 @@ return function(K){
           archF=z=>lin(ARF,z),archR=z=>Math.max(.60,lin(ARR,z));
     // (25/10, Léo : « plus de cubes glitchés comme La Fidèle ») ceux de La Fidèle sont de GROS blocs plats de la couleur de la caisse, de longueurs inégales, qui saillent en escalier : ici des dalles de 6 cm
     // (1 à 4 cases de long, 3 à 6 cm de saillie) qui remontent de l'arche sur ~30 cm, de plus en plus rares ; presque toutes de la couleur de la caisse, quelques-unes noires.
-    const CE=.06,HM=.32;
+    const CE=.07,HM=.34;
     for(const [wh,Pg,z0,z1,arch,id] of [['av',ELAV,.90,1.92,archF,0],['ar',ELAR,-2.03,-.88,archR,1]])for(const sd of [1,-1]){
       for(let iz=Math.round(z0/CE);iz*CE<z1;iz++)for(let iy=0;iy<Math.round(HM/CE)+2;iy++){
         const z=iz*CE,ya=arch(z),y=ya+.025+iy*CE,d=(y-ya)/HM;if(d>1||!dans(Pg,z,y))continue;
         const pr=.92*Math.pow(1-d,1.1),h=hash(iz,iy,sd,id);if(h>pr)continue;
-        const q=hash(iz+.3,iy+.7,sd,id+2),n=1+Math.floor(hash(iz+.9,iy+.1,sd,id+4)*3.6),L=CE*n,sz=CE*(.55+.5*hash(iz+.5,iy+.5,sd,id+6)),
-              wd=.03+.03*hash(iz+.2,iy+.8,sd,id+8),col=q>.93?'k':'p';
+        const q=hash(iz+.3,iy+.7,sd,id+2),n=1+Math.floor(hash(iz+.9,iy+.1,sd,id+4)*3.2),L=CE*n,sz=CE*(.55+.5*hash(iz+.5,iy+.5,sd,id+6)),
+              wd=.036+.036*hash(iz+.2,iy+.8,sd,id+8),col=q>.93?'k':'p';
         B(col,wd,sz,L-.004,sd*(.947+wd/2-.004+.02*hash(iz+.6,iy+.4,sd,id+10)),y,z+L/2-CE/2);}}
   }
   // LA CALANDRE : sept fentes, deux phares ronds, un peu couchée
