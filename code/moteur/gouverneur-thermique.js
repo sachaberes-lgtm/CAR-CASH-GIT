@@ -23,10 +23,16 @@
    3 : en plus UN cran de l'échelle QL de moins (une fois par épisode) ; 0 ou 1 : le modèle reprend la main.
    Banc : `dbgGouv()` rend {D, seuilHaut, seuilBas, actif, thermo, pourquoi} ; `dbgGouv(n)` pose la dose ; `dbgThermique(n)` simule l'événement. */
 const MOB_GOUV=CAD30_REC&&!/[?&]mob_gouv=0\b/.test(location.search);
-const MOB_G={course60:1,course30:.5,menu:.3,repos:.25,haut:160,bas:40,max:230,trou:1,perime:600,cle:'cashcarMobGouv'}; /* tout se règle ici (secondes équivalentes, par seconde réelle) */
+const MOB_G={course60:1,course30:.5,menu:.3,repos:.25,haut:160,tiede:50,bas:40,max:230,trou:1,perime:600,cle:'cashcarMobGouv'}; /* tout se règle ici (secondes équivalentes, par seconde réelle) */
 const MOB_S={D:0,actif:false,thermo:0,t:0,sauveT:0,q3:false};
 function mobGouvEval(){ /* l'hystérésis : haut → entre, bas → sort, entre les deux on garde */
   if(MOB_S.D>=MOB_G.haut)MOB_S.actif=true;else if(MOB_S.D<MOB_G.bas)MOB_S.actif=false;}
+/* ===== LE PREMIER SIGNE DE LENTEUR VAUT SEUIL (2026-10-25 soir, mesure du 13 Pro, séance continue de 7 min, v900) =====
+   MESURÉ : la dose n'atteignait 160 qu'à la 5e minute alors que le téléphone s'effondre dès la 2e (20 puis 8 i/s aux minutes 3 et 4, p99 de 300 à 420 ms) ; une fois calé de force
+   il tient 30 i/s réguliers (minutes 6 à 8 : p99 43 ms, 0 image > 50 ms). La cadence réactive (CAD30_REC) avait pourtant vu la lenteur dès la 1re minute (D=54, calée) puis
+   était repartie à 60. Désormais : si la cadence réactive cale alors que la dose a déjà passé `tiede` (50, soit une minute de course), le gouverneur s'enclenche et RETIENT
+   le 30 jusqu'au vrai repos (sous `bas`). Un téléphone qui ne rate jamais ses images n'est jamais touché avant 160. */
+function mobReactif(){if(MOB_GOUV&&!MOB_S.actif&&MOB_S.D>=MOB_G.tiede){MOB_S.actif=true;mobGouvSauve();}} /* appelé par cadPose quand la cadence cale */
 function mobChaud(){return MOB_GOUV&&(MOB_S.thermo>=2||MOB_S.actif);} /* vrai : le gouverneur veut le téléphone calé sur 30 */
 function mobGouvSauve(){try{localStorage.setItem(MOB_G.cle,JSON.stringify({D:+MOB_S.D.toFixed(1),a:MOB_S.actif?1:0,t:Date.now()}));}catch(e){}}
 function mobGouvCharge(){try{const o=JSON.parse(localStorage.getItem(MOB_G.cle)||'null');if(!o||!(o.D>0))return;

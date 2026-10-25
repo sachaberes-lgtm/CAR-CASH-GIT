@@ -65,7 +65,7 @@ function cadSaute(now){ // en tête de loop : rend true si cette image d'écran 
   if(MOB_ECRAN?MOB_EN>=90:++CAD.eN>=90){const m=MOB_ECRAN?(MOB_EA.sort(),MOB_EN=0,MOB_EA[45]):CAD.eMin;CAD.eN=0;CAD.eMin=99;CAD.ecran=m<7.7?1000/144:m<9.7?1000/120:m<12.6?1000/90:m<15?1000/75:1000/60;CAD.tol=CAD.ecran*.5;} // 30 Hz imposé (m ≈ 33) : on garde 60, rien ne se saute de toute façon
   if(CAD.on&&now-CAD.der<CAD.per-CAD.tol)return true;
   CAD.der=now;return false;}
-function cadPose(v,now){if(v===CAD.on)return;CAD.on=v;CAD.gel=v&&(!PAL.b('cadenceMonte',1)||(MOB_GOUV&&mobChaud()));CAD.der=now;CAD.lT=0;CAD.calT=now;
+function cadPose(v,now){if(v===CAD.on)return;CAD.on=v;if(v&&MOB_GOUV)mobReactif();CAD.gel=v&&(!PAL.b('cadenceMonte',1)||(MOB_GOUV&&mobChaud()));CAD.der=now;CAD.lT=0;CAD.calT=now;
   QLR.i=0;QLR.n=0; // l'anneau repart : les centiles ne mélangent pas des durées vraies et des durées ramenées
   if(v){CAD.entrees++;loop._ms=Math.max(CAD.ecran,(loop._ms||16)-(CAD.per-CAD.ecran));}else CAD.sorties++;}
 function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : le travail de l'image, puis la décision
