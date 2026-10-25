@@ -57389,6 +57389,8 @@ window.dbgLeFil=function(t,n){return fil(t||'TONNEAU +45','#ffd75e',n|0);};
      hauteur de toit ; deux côtés, et jusqu'à trois étages par côté (un mot qui arrive pendant que le précédent vit monte d'un cran) ; le côté
      est celui du geste, sinon le moins chargé, sinon l'autre si le mot n'y tient pas — et AU-DESSUS du toit quand aucun côté ne suffit (une
      caisse qui remplit l'écran debout). Borné aux bords de l'écran. Jamais SOUS la caisse : c'est la réception qu'on vise.
+   · UN MOT PAR GESTE : le même nom redemandé dans la seconde (le lancement d'une figure et son entrée au journal des tours, vus au banc de la fusion avec
+     LE FIL : deux SALTO AVANT, un blanc et un bleu) ne s'écrit pas deux fois — le 1er garde la place, et lui ajoute les points que le 2e apporte.
    · « RÉDUIRE LES ANIMATIONS » : le mot s'allume sur place, sans trajet.
    `?mots=0` : sans mots (banc de perf). `dbgJl()` : l'état (le dernier mot, ceux qui vivent). */
 const JAIL={el:null,pool:[],vivants:[],cote:1,der:'',derT:0,off:/[?&]mots=0\b/.test(location.search),vect:new THREE.Vector3(),droite:new THREE.Vector3()};
@@ -57418,6 +57420,10 @@ function jaillit(txt,o){
     const larg=function(f){const s=f/kk;return nom.length*s*kw+nom.length*1.4+(gain?(gain.length+1)*s*.78:0);};
     let fs=Math.round((VP.w>VP.h?11:12.5)*(o.k||1)*kk);while(fs>9&&larg(fs)>VP.w*.84)fs--; /* le mot tient dans l'écran */
     const W=larg(fs),marge=8,vide=fs*.8;
+    const base=nom.toUpperCase(),gs=Math.max(9,Math.round(fs/kk*.78));
+    for(let i=JAIL.vivants.length-1;i>=0;i--){const q=JAIL.vivants[i];if(q.base===base&&n-q.t0<1100){ /* le MÊME geste déjà écrit — le lancement d'une figure ET son entrée au journal des tours en font deux appels : un seul mot (LE FIL les fusionnait dans sa pastille) ; les points d'un 2e appel s'ajoutent au 1er */
+      if(gain&&!q.gain){q.gain=gain;const G0=q.el.firstChild.nextSibling;G0.textContent=gain;G0.style.fontSize=q.gs+'px';G0.style.display='';}
+      return q.W;}}
     /* LE CÔTÉ : celui du geste (un tail whip part à droite si le pouce est à droite), sinon celui qui a le moins de mots — et jamais un côté où le mot ne tient pas : l'autre, puis AU-DESSUS du toit */
     let cote=o.cote||(o.dir==='gauche'?-1:o.dir==='droite'?1:0);if(!cote){const l=jlNb(-1),r=jlNb(1);cote=l===r?-JAIL.cote:l<r?-1:1;}
     const place=function(c){return c>0?VP.w-(a.x+a.w+vide)-marge:(a.x-a.w-vide)-marge;};
@@ -57441,7 +57447,7 @@ function jaillit(txt,o){
       {transform:T(dx*.96,dy+2,1,0),opacity:1,offset:.32,easing:'ease-out'}, /* …retombe dessus… */
       {transform:T(dx,dy-4,1,0),opacity:1,offset:.78,easing:'linear'}, /* …tient… */
       {transform:T(dx*1.02,dy-16,.96,0),opacity:0,offset:1}]; /* …et s'élève en s'éteignant */
-    const q={cote:dessus?0:cote,etage:etage,t0:n,anim:null,fin:null}; /* 0 = au-dessus du toit : ces mots-là s'étagent entre eux */JAIL.vivants.push(q);
+    const q={cote:dessus?0:cote,etage:etage,t0:n,anim:null,fin:null,base:base,gain:gain,el:e,W:W,gs:gs}; /* 0 = au-dessus du toit : ces mots-là s'étagent entre eux */JAIL.vivants.push(q);
     q.anim=e.animate(kf,{duration:ms,fill:'both',easing:'linear'});
     const fin=function(){const i=JAIL.vivants.indexOf(q);if(i>=0)JAIL.vivants.splice(i,1);q.anim.onfinish=q.anim.oncancel=null;try{q.anim.cancel();}catch(x){}
       if(JAIL.pool.indexOf(e)<0){e.style.display='none';JAIL.pool.push(e);}};
