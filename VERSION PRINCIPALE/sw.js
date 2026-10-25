@@ -10,7 +10,8 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v893'; /* v893 (2026-10-24, débogage vague 4) mémoire des photos de la boutique bornée, plus d'écran figé par une goutte sur toile nulle, RECOMMENCER + arrière-plan, HOME pendant le lâcher, phares et rayons floutés sous Safari, annonces en pause */
+const CACHE = 'cashcar-v897'; /* v897 (2026-10-25, Sacha : « sur PC la qualité a chuté, restaure ») les retraits « téléphone seulement » du 24/10 (forêt, dunes, Crypto City hors du tirage, Jade sobre, 90 % de satellites en moins) étaient gardés par IS_MOBILE, vrai AUSSI sur l'ordi (édition 'mobile', FORCE_TEL) : ils ne visent plus que le VRAI téléphone (TEL_NATIF) */
+// const CACHE = 'cashcar-v896'; /* v896 (2026-10-25, Léo : « plus lumineux ») les trois bandes de l'accueil : teintes vives (cyan, magenta, or) et halo plus fort */
 // const CACHE = 'cashcar-v889'; /* v889 (2026-10-24, Sacha : « enlève les maps dune et forêt de la version mobile mais garde-les sur le git ») DUNES et FORÊT hors du tirage sur téléphone (?carte=foret / ?carte=dunes les remettent) */
 // const CACHE = 'cashcar-v888'; /* v888 (2026-10-24, Sacha : « fait tout ») nuages moins fins sur vieux téléphones (palier 0 : 10/14/20/32, palier 1 : 12/16/24/40 ; ?nufin=2 = avant) : −12 % de triangles en zone d'entraînement */
 // const CACHE = 'cashcar-v887'; /* v887 (2026-10-24, relecture ligne à ligne de tout le code) révélation d'une secrète après l'offre de seconde chance, restaurer un code sans y verser la partie, appel pendant le 3-2-1, auto-école en pause, ciel et forêt en WebGL1, HUD portrait et badge RECORD sur vieux iPhone, et une vingtaine d'autres */

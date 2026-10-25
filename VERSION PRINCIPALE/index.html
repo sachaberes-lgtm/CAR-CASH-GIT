@@ -2039,7 +2039,10 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
   --ombreSol:0 14px 24px -10px rgba(0,0,0,.72);
   --coupe:14px;                                              /* les coins coupés des panneaux */
   /* LA LIVRÉE — la signature : magenta · cyan · or, séparés d'un jour (sous le logo, sous chaque titre, sur le volet) */
-  --livree:linear-gradient(90deg,var(--neoM) 0 46%,transparent 46% 52%,var(--neoC) 52% 74%,transparent 74% 80%,var(--au2) 80% 100%);
+  --orB:#fff0a0; /* (2026-10-25, Léo : « la bande flow en dessous du CASH CAR, partout, dans cet ordre : bleu cyan, rose magenta, or, doré brillant ») l'ordre de la livrée ET des quatre cellules du flow */
+  --livree:linear-gradient(90deg,var(--neoC) 0 22%,transparent 22% 26%,var(--neoM) 26% 48%,transparent 48% 52%,var(--au2) 52% 74%,transparent 74% 78%,var(--orB) 78% 100%);
+  --livree3:linear-gradient(90deg,transparent,#1af2ff 14% 33%,transparent 33.5% 36.5%,#ff58e8 37% 63%,transparent 63.5% 66.5%,#ffd51c 67% 86%,transparent); /* (2026-10-25, Léo : « le menu ciel : juste trois bandes ») l'accueil seul */
+  --livreeLogo:linear-gradient(90deg,transparent,var(--neoC) 8% 24%,transparent 24.5% 27%,var(--neoM) 27.5% 44%,transparent 44.5% 47%,var(--au2) 47.5% 64%,transparent 64.5% 67%,var(--orB) 67.5% 84%,transparent);
 }
 
 /* ============================================ LA TOUCHE ============================================================
@@ -2886,7 +2889,7 @@ html #spTitle:not(.boom),html #launchLogo{filter:drop-shadow(0 8px 0 rgba(0,0,0,
 html #launchLogo{gap:.2em;letter-spacing:0;font-size:clamp(40px,12vw,64px);transform:translate(-50%,-50%) scale(.18) skewX(var(--sk))}
 html #launchLogo.on{transform:translate(-50%,-50%) skewX(var(--sk))}
 html #launchLogo::after{content:'';position:absolute;left:8%;right:8%;bottom:-.36em;height:6px;
-  background:linear-gradient(90deg,transparent,var(--neoM) 18%,var(--neoM) 40%,transparent 40.5%,transparent 43%,var(--neoC) 43.5%,var(--neoC) 64%,transparent 64.5%,transparent 67%,var(--au2) 67.5%,var(--au2) 82%,transparent);
+  background:var(--livreeLogo);
   box-shadow:0 0 14px rgba(255,62,200,.5)}
 @media (prefers-reduced-motion:reduce){html #spTitle.tease{animation:none}}
 /* l'invite de l'écran titre : une touche d'« aller voir », filet cyan (l'or est au lingot) */
@@ -3503,8 +3506,8 @@ html #spNote{position:fixed;bottom:calc(var(--sB) + 84px)}
 #mHome .mBadge{top:-6px;min-width:26px;padding:6px 7px 5px;box-shadow:0 0 0 2px var(--k0),0 3px 0 2px var(--k0)}
 #mHome #bdShop{box-shadow:0 0 0 2px var(--k0),0 3px 0 2px var(--k0)}
 #mHome .mTitle::after{left:8%;right:8%;bottom:-20px;height:6px;animation:none;
-  background:linear-gradient(90deg,transparent,var(--neoM) 18%,var(--neoM) 40%,transparent 40.5%,transparent 43%,var(--neoC) 43.5%,var(--neoC) 64%,transparent 64.5%,transparent 67%,var(--au2) 67.5%,var(--au2) 82%,transparent);
-  box-shadow:0 0 14px rgba(255,62,200,.5)}
+  background:var(--livree3);filter:saturate(1.35) brightness(1.1) drop-shadow(0 0 7px rgba(255,255,255,.55));
+  box-shadow:0 0 20px 3px rgba(255,88,232,.75)}
 #mHome.on .mTitle::after{animation:none}
 #mHome .mIcons{margin:0 0 26px}
 #mHome .mIcons .pbtn{min-height:88px}
@@ -6315,9 +6318,9 @@ html.hub:not(.poki) body #mHome.acc2 .mTitle{filter:drop-shadow(0 0 .3em rgba(25
 #wipe::after{display:none!important}
 #wipe.in::before{animation-duration:150ms!important}
 #wipe.out::before{animation-duration:320ms!important}
-#wipe::before{background:linear-gradient(90deg,var(--au2) 0 8px,transparent 8px 12px,var(--neoC) 12px 18px,transparent 18px 22px,var(--neoM) 22px 30px,transparent 30px 34px,
-  rgba(7,5,15,1) 34px calc(100% - 34px),transparent calc(100% - 34px) calc(100% - 30px),var(--neoM) calc(100% - 30px) calc(100% - 22px),transparent calc(100% - 22px) calc(100% - 18px),
-  var(--neoC) calc(100% - 18px) calc(100% - 12px),transparent calc(100% - 12px) calc(100% - 8px),var(--au2) calc(100% - 8px)),var(--matrice),#07050f!important}
+#wipe::before{background:linear-gradient(90deg,var(--neoC) 0 6px,transparent 6px 9px,var(--neoM) 9px 15px,transparent 15px 18px,var(--au2) 18px 24px,transparent 24px 27px,var(--orB) 27px 33px,transparent 33px 34px,
+  rgba(7,5,15,1) 34px calc(100% - 34px),transparent calc(100% - 34px) calc(100% - 33px),var(--orB) calc(100% - 33px) calc(100% - 27px),transparent calc(100% - 27px) calc(100% - 24px),var(--au2) calc(100% - 24px) calc(100% - 18px),transparent calc(100% - 18px) calc(100% - 15px),
+  var(--neoM) calc(100% - 15px) calc(100% - 9px),transparent calc(100% - 9px) calc(100% - 6px),var(--neoC) calc(100% - 6px)),var(--matrice),#07050f!important}
 /* L'ŒIL : la console s'EFFACE en 200 ms (elle disparaissait d'un coup), pendant que la caméra glisse sur la caisse ; elle revient en fondu */
 /* (2026-10-11) le fondu de la console sous l'œil est retiré avec le garage d'avant : l'œil vit DANS la console, une opacité 0 l'éteindrait aussi */
 </style>
@@ -8524,9 +8527,11 @@ html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGea
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte){transform:none!important;border-radius:20px!important}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte) *{transform:none!important}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)::before{border-radius:inherit!important;inset:5px!important}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mHubPorte{--nc:#2f80ff!important}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mOffres{--nc:#ff3347!important}
-html #mHome.on .mTitle::after,html #mHome .mTitle::after{background:linear-gradient(90deg,transparent,var(--neoC) 18%,var(--neoC) 40%,transparent 40.5%,transparent 43%,var(--neoM) 43.5%,var(--neoM) 64%,transparent 64.5%,transparent 67%,var(--au2) 67.5%,var(--au2) 82%,transparent)!important;box-shadow:0 0 14px rgba(0,234,255,.5)!important}
+/* (2026-10-25, Léo : « GARAGE, BUY, SETTINGS dans ces couleurs également ») cyan · magenta · or, l'ordre de la bande sous le logo */
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mHubPorte{--nc:var(--neoC)!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mOffres{--nc:var(--neoM)!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mGear{--nc:var(--au2)!important}
+html #mHome.on .mTitle::after,html #mHome .mTitle::after{background:var(--livree3)!important;box-shadow:0 0 14px rgba(0,234,255,.5)!important}
 </style>
 <style id="palierLeger">
 /* ===== LE CSS PAR PALIER (2026-10-23, audit mobile, Sacha : « une version mobile fluide sans que ça baisse trop en qualité ») =====
@@ -24472,7 +24477,7 @@ function jadeKit(){const P=[],C=[];
    5 → 2,5 m ; un 4e niveau de détail (1,75 · 3,5 · 7 · 14 m) garde le coût : les petits cubes ne se dessinent que de près. */
 const VX=TEL_NATIF?3.5:1.75,VXG=TEL_NATIF?5:2.5;
 /* (2026-10-24, Sacha : « réduire la map jade sur mobile : moins de montagnes, plus d'animaux ni de nuages, et le reste ») JADE_SOBRE : sur téléphone, la vallée est allégée — montagnes ÷2, ni singes, ni dauphins, ni grues, ni nuages, ni rayons, ni lucioles, moins de rochers flottants, de cascades et de brume. `?jadeplein=1` rend la vallée d'avant. L'ordi n'est pas touché. */
-const JADE_SOBRE=IS_MOBILE&&!/[?&]jadeplein=1\b/.test(location.search);
+const JADE_SOBRE=TEL_NATIF&&!/[?&]jadeplein=1\b/.test(location.search);
 const JADE_NUVOX=!/[?&]nuvox=0\b/.test(location.search); // (v13) les volutes en cubes — `?nuvox=0` : les panneaux en relief de la v9
  // (v10) les montagnes en VITRAIL (voir « LE VITRAIL ») — (v11, Léo : « laisse tomber, reviens sur les pixels, c'était plus joli ») : seulement avec `?vitrail=1`
 const JM={roche:1,rouille:2,herbe:3,feuille:4,bois:5,laque:6,tuile:7,or:8,pierre:9};
@@ -28862,7 +28867,7 @@ const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau da
    Banc / lien de test : `?carte=jade&meteo=orage` impose le 1er couple ; `dbgClassique('ville','soir')` impose le suivant (puis dbgSaut()).
    ========================================================================== */
 const SF={on:!/[?&](classique=cycle|play=sansfin)\b/.test(location.search),pret:false,neuf:false,tirage:[],der:null,force:null,prochain:null,prochainDer:null};
-const SF_HORS={vitree:VILLE_VERRE_V&&!/[?&]vitree=1\b/.test(location.search),crypto:IS_MOBILE&&!/[?&](carte|niveau)=crypto\b/.test(location.search),foret:IS_MOBILE&&!/[?&]carte=foret\b/.test(location.search),dunes:IS_MOBILE&&!/[?&]carte=dunes\b/.test(location.search)}; /* (2026-10-24, Sacha : « enlève les maps dunes et forêt de la version mobile ») LES DUNES et LA FORÊT ne sont plus tirées sur téléphone (l'ordi les garde) ; `?carte=foret` / `?carte=dunes` les remettent */ /* (2026-10-24, Sacha : « supprime la map crypto city de téléphone ») CRYPTO CITY n'est plus tirée sur téléphone (l'ordi la garde) ; `?carte=crypto` la remet pour les essais */
+const SF_HORS={vitree:VILLE_VERRE_V&&!/[?&]vitree=1\b/.test(location.search),crypto:TEL_NATIF&&!/[?&](carte|niveau)=crypto\b/.test(location.search),foret:TEL_NATIF&&!/[?&]carte=foret\b/.test(location.search),dunes:TEL_NATIF&&!/[?&]carte=dunes\b/.test(location.search)}; /* ⚠ TEL_NATIF, PAS IS_MOBILE (2026-10-25, Sacha : « sur PC la qualité a chuté ») : `IS_MOBILE` est vrai AUSSI sur l'ordi qui joue l'édition 'mobile' (FORCE_TEL, voir EDITION) — les retraits « téléphone » du 24/10 tombaient donc sur le PC. */ /* (2026-10-24, Sacha : « enlève les maps dunes et forêt de la version mobile ») LES DUNES et LA FORÊT ne sont plus tirées sur téléphone (l'ordi les garde) ; `?carte=foret` / `?carte=dunes` les remettent */ /* (2026-10-24, Sacha : « supprime la map crypto city de téléphone ») CRYPTO CITY n'est plus tirée sur téléphone (l'ordi la garde) ; `?carte=crypto` la remet pour les essais */
 /* (2026-10-18, Sacha : « fusionne les maps ville et ville vitrée ») les maps HORS DU TIRAGE — jouables par ?carte= et dbgClassique (voir VILLE_VERRE_V) */
 {const q9=/[?&]carte=(\w+)/.exec(location.search)||(/[?&]niveau=crypto\b/.test(location.search)?[0,'crypto']:null),m9=/[?&]meteo=(\w+)/.exec(location.search),t9=/[?&]teinte=(\w+)/.exec(location.search);if(q9||m9)SF.force={carte:q9?q9[1]:null,meteo:m9?m9[1]:null,teinte:t9?t9[1]:null};} // (2026-10-16) + `?teinte=` (la ville : violet, vert, jaune, bleu)
 const SF_NIV={nuages:NIVEAUX.find(function(n){return n.id==='nuages';}),orage:NIVEAUX.find(function(n){return n.id==='orage';}),
@@ -29443,8 +29448,8 @@ function geoEclat(){ // [2] L'ÉCLAT : un prisme irrégulier ; dessus −1, dess
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));
   const A=new Float32Array(36);for(let i=0;i<36;i++)A[i]=i<6?-1:(i<12?-2:-3);
   g.setAttribute('aPart',new THREE.BufferAttribute(A,1));g.setAttribute('aVg',new THREE.BufferAttribute(new Float32Array(36).fill(-1),1));return g;}
-const SAT_MAX=IS_MOBILE?[23,19,130]:[340,300,2000]; // Starlink (passants + champ + trains) · gros débris · éclats (champ + anneaux) — (2026-09-30, Sacha : « plus de satellites dans l'espace ») 120/140 → 230/190 (téléphone), 204/220 → 340/300 ; le niveau HARDCORE y prend ses obstacles EN PREMIER
-const SAT_PASS=IS_MOBILE?3:44,SAT_TRAINS=IS_MOBILE?[1,2]:[5,26]; /* (2026-10-24, Sacha : « 90 % des satellites en moins », téléphone seulement : 230/190/1300, 30 passants, 3 trains de 20) */ // passants au bord de la route ; trains × satellites par train — (2026-09-30) 18/26 → 30/44 passants, 2/3 → 3/5 trains
+const SAT_MAX=TEL_NATIF?[23,19,130]:IS_MOBILE?[230,190,1300]:[340,300,2000]; // Starlink (passants + champ + trains) · gros débris · éclats (champ + anneaux) — (2026-09-30, Sacha : « plus de satellites dans l'espace ») 120/140 → 230/190 (téléphone), 204/220 → 340/300 ; le niveau HARDCORE y prend ses obstacles EN PREMIER
+const SAT_PASS=TEL_NATIF?3:IS_MOBILE?30:44,SAT_TRAINS=TEL_NATIF?[1,2]:IS_MOBILE?[3,20]:[5,26]; /* (2026-10-25) le vrai téléphone seulement : l'ordi en édition 'mobile' (IS_MOBILE sans TEL_NATIF) retrouve ses valeurs d'avant le 24/10 */ /* (2026-10-24, Sacha : « 90 % des satellites en moins », téléphone seulement : 230/190/1300, 30 passants, 3 trains de 20) */ // passants au bord de la route ; trains × satellites par train — (2026-09-30) 18/26 → 30/44 passants, 2/3 → 3/5 trains
 const SAT_U={uT:{value:0},uSol:{value:ORB.cle},uTerre:{value:new THREE.Vector3(0,-1,0)},uFog:{value:new THREE.Color(0,0,0)},uOp:{value:0},uForce:{value:0}}; // uForce : (dev) tous les éclats allumés
 const SAT_VS=['attribute vec4 aRot,aVar;uniform float uT;',
   'vec3 rotA(vec3 v,vec3 k,float a){float c=cos(a),s=sin(a);return v*c+cross(k,v)*s+k*dot(k,v)*(1.-c);}',
@@ -46899,8 +46904,8 @@ function flowVitN(){
   const v=mode==='fall'?Math.sqrt(fallVel.x*fallVel.x+fallVel.z*fallVel.z):Math.abs(vA);
   return v*3.6*SPD/vm;
 }
-const FLOW_COL=['#ffffff','#5ee6ff','#ffd75e','#ff5ec8','#ff2a3d']; // [4] = la FRÉNÉSIE, ROUGE (2026-09-28, Sacha) — elle était violette
-const FLOW_CEL=['#5ee6ff','#ffd75e','#ff5ec8','#b58cff'];            // les quatre cellules de la jauge (la 4e garde son violet : le ROUGE est réservé à la zone)
+const FLOW_COL=['#ffffff','#5ee6ff','#ff5ec8','#ffd75e','#ff2a3d']; // [4] = la FRÉNÉSIE, ROUGE (2026-09-28, Sacha) — elle était violette
+const FLOW_CEL=['#5ee6ff','#ff5ec8','#ffc72a','#fff0a0'];            // les quatre cellules de la jauge (la 4e garde son violet : le ROUGE est réservé à la zone)
 /* LA ZONE ROUGE (2026-09-28, Sacha : « une petite part rouge dans la barre de flow — une zone de tolérance pour rester en frénésie
    plus souvent »). Une HYSTÉRÉSIS qu'on VOIT : on ENTRE en FRÉNÉSIE en remplissant la jauge jusqu'au bout (100, inchangé) ; on y
    RESTE tant que le remplissage ne repasse pas sous `FREN.seuil`. Les 12 derniers points de la jauge sont peints en rouge dès le
@@ -53214,11 +53219,15 @@ function musicBandeNette(el){if(el)try{el.playbackRate=1;el.preservesPitch=true;
    s'il a une montée à sauter) ; on la perd, il S'ÉTRANGLE (tape-stop de 0,4 s) et la radio reprend EXACTEMENT où elle en était.
    MÊME lecteur que tout le reste : l'<audio> unique, libéré au premier toucher — iOS le laisse changer de source hors d'un geste,
    alors qu'un second élément lancé en pleine course y serait refusé.
-   ⚠ LE FICHIER N'EST PAS ENCORE LIVRÉ : Sacha le posera à `MUSIC_FREN.f` (mp3, nom en ASCII sans espace — une URL mal encodée ne
-   plante pas, elle se tait). Tant qu'il manque (sondé une fois, et rattrapé si la lecture échoue quand même), la frénésie joue le
-   morceau EN COURS « SURMULTIPLIÉ » : un demi-ton plus haut et 6 % plus vite, qui retombe à sa vitesse quand on la perd — on entend
-   déjà ce qu'on gagne et ce qu'on perd. `surm:1` éteint ce repli. */
-const MUSIC_FREN={titre:'THE DARK TRIAD',f:'assets/audio/music/dark-triad.mp3',drop:0,surm:1.06};
+   LE FICHIER : `MUSIC_FREN.f` (nom en ASCII sans espace — une URL mal encodée ne plante pas, elle se tait). S'il manque (sondé une
+   fois, et rattrapé si la lecture échoue quand même), la frénésie joue le morceau EN COURS « SURMULTIPLIÉ » : un demi-ton plus haut et
+   6 % plus vite, qui retombe à sa vitesse quand on la perd. `surm:1` éteint ce repli.
+   (2026-10-24, le 404 de chaque chargement) LE MORCEAU EXISTE DEPUIS LE 01/10 : la boucle maison DARK TRIAD de l'atelier (atelier-son/
+   boucles.py, « pour : FRÉNÉSIE » — phonk 140 bpm, do# phrygien, 16 mesures = 27,43 s qui bouclent), rangée à `boucles/dark-triad.m4a`
+   (vercel-build.sh la publie pour ça). `f` la cherchait en .mp3 sous music/, où rien n'a jamais été posé : deux 404 par chargement, et
+   la frénésie ne changeait jamais de morceau. Depuis que Pouce bleu tient la course (15/10), le repli accélérait le lecteur <audio>…
+   en pause : en course, la frénésie ne s'entendait plus du tout. Un autre morceau = un autre `f`. */
+const MUSIC_FREN={titre:'THE DARK TRIAD',f:'assets/audio/music/boucles/dark-triad.m4a',drop:0,surm:1.06};
 const FRENM={on:false,ok:null,sw:false,surm:false,src:'',t:0,loop:false,iv:0};
 function frenMusSonde(){ // le fichier est-il là ? (une fois — une réponse muette, comme sur iPhone, laisse la question ouverte)
   if(FRENM.ok!==null||!MUSIC_FREN.f)return;
@@ -53243,6 +53252,7 @@ function frenMusRetour(el){ // la radio reprend où elle en était (ou sur le mo
   if(pbjRegne()&&window.POUCE_JEU.joue()){stopMusic();return;} // (15/10 soir) POUCE BLEU reprend l'antenne (musicTick le remonte) : pas de radio
   if(!FRENM.src){musicPlayCurrent();return;}
   el.loop=FRENM.loop;el.src=FRENM.src;const t=FRENM.t;
+  if(musWaTient()&&MUS_WA.bus)MUS_WA.bus.piste(FRENM.src); /* (2026-10-24) le bus des basses retrouve le réglage du morceau repris */
   el.addEventListener('loadedmetadata',function(){try{el.currentTime=t;}catch(e){}},{once:true});
   musicVoulue=true;musicJoue();
 }
@@ -53263,6 +53273,7 @@ function frenMus(on){
       FRENM.src=el.src;FRENM.t=el.currentTime||0;FRENM.loop=el.loop;FRENM.sw=true;
       try{el.playbackRate=1;el.preservesPitch=true;el.webkitPreservesPitch=true;}catch(e){}
       el.loop=true;el.src=MUSIC_FREN.f;
+      if(musWaTient()&&MUS_WA.bus)MUS_WA.bus.piste(MUSIC_FREN.f); /* (2026-10-24) les basses de CE morceau, comme playMusic (musique-bus.js : 'dark-triad', cloche −2 dB) */
       if(MUSIC_FREN.drop>0)el.addEventListener('loadedmetadata',function(){try{el.currentTime=MUSIC_FREN.drop;}catch(e){}},{once:true});
       musicVoulue=true;musicJoue();try{lvlBlast();}catch(e){}
     }else if(MUSIC_FREN.surm>1){FRENM.surm=true;frenMusVit(el,MUSIC_FREN.surm,300);} // le repli : la radio S'EMBALLE

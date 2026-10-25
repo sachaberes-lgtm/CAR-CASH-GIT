@@ -121,7 +121,7 @@ html #spTitle:not(.boom),html #launchLogo{filter:drop-shadow(0 8px 0 rgba(0,0,0,
 html #launchLogo{gap:.2em;letter-spacing:0;font-size:clamp(40px,12vw,64px);transform:translate(-50%,-50%) scale(.18) skewX(var(--sk))}
 html #launchLogo.on{transform:translate(-50%,-50%) skewX(var(--sk))}
 html #launchLogo::after{content:'';position:absolute;left:8%;right:8%;bottom:-.36em;height:6px;
-  background:linear-gradient(90deg,transparent,var(--neoM) 18%,var(--neoM) 40%,transparent 40.5%,transparent 43%,var(--neoC) 43.5%,var(--neoC) 64%,transparent 64.5%,transparent 67%,var(--au2) 67.5%,var(--au2) 82%,transparent);
+  background:var(--livreeLogo);
   box-shadow:0 0 14px rgba(255,62,200,.5)}
 @media (prefers-reduced-motion:reduce){html #spTitle.tease{animation:none}}
 /* l'invite de l'écran titre : une touche d'« aller voir », filet cyan (l'or est au lingot) */
