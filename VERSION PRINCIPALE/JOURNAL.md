@@ -3,6 +3,27 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES ESSAIS DE VOITURES PASSENT PAR DÉFAUT (2026-10-25, v913 — Léo : « push la grosse demande que tu m'as montrée sur le localhost » ; « quand les voitures ont trop de facettes, tu divises par deux le nombre de facettes »)
+- **PAR DÉFAUT désormais** (chacun se coupe par un paramètre d'adresse) : LE BAROUDEUR entre-deux (`?baroudeur=ancien` = la caisse « au plan » d'avant) · LE SCARABÉE à ailes avant et capot pixelisés (`?scarabee=ancien`) ·
+  LES CHOCS DE CUBES sur toutes les caisses (`?degats=0`) · LA TRADUCTION qui divise les triangles (`?langage=0`). Le premier jeu d'essais (v911) les gardait éteints.
+- **LES 29 RÉFÉRENCES DE LÉO NE SONT JAMAIS TOUCHÉES** (`DEGATS_REF`, dans `buildcar.js` : chocs ET traduction) : La Honte, La Fidèle, Eldorado, Le Chargeur 69, La Vette, La Bavaroise, La Dolorès, Le Corbillard, Le Chargeur, Le Défieur, Le Trône Central, La Cerise,
+  Le Samouraï, L'Origami, Rosso 40, Le Mastodonte, La Stratos, Atchoum, La Taurine, Le Spectre, L'Éternelle, Poster 84, Le Blindé Noir, La Squale, Le Chat Pop-Tart, La Pizza Express, Le Loup, Le Mur du Son, Le Dragon d'Or. Le langage visuel du jeu : des facettes simples et larges.
+- **LA RÈGLE « TROP DE FACETTES → ÷ 2 »** (`traduisLangage`) : toute caisse (hors références, hors Baroudeur) de plus de 12 000 triangles voit sa PEINTURE (laque 44, nacre 70, métallisé 90) regroupée par une grille dont la case est CHERCHÉE (dichotomie, 5 à 45 cm, mémorisée par voiture)
+  pour que la caisse tombe à la moitié ; feux, chrome, grilles, plastiques, verre, roues et petites pièces gardent leurs détails. Mesuré (triangles de la caisse au garage, chocs compris) : Combi 42,5 k → 20,9 k · Dolce Vita 26,5 k → 14,6 k · Lame 25,1 k → 14,0 k · Zagaie 32,7 k → 22,9 k (le plafond de 45 cm l'arrête) ·
+  Scarabée (SEULE sa coque est regroupée) 24,2 k → 19,5 k · Baroudeur 19,6 k → 18,3 k. Limites connues : pas toujours la moitié exacte ; les peaux de la Zagaie et du Caïd demandent un travail à la main.
+- **PERF** : les rayons des chocs sont calculés UNE FOIS par voiture (`DEGATS_CACHE`), la case de la traduction aussi (`LANG_CACHE`) ; les cubes de la pixelisation du Baroudeur (9 cm) et du Scarabée (7,5 cm) remplacent des cubes de 6 et 5 cm qui coûtaient 11 000 et 6 000 triangles.
+
+## LES ESSAIS DE VOITURES, SOUS DRAPEAU (2026-10-25, v911 — Léo : « il faut d'abord push ce que t'as fait avec les voitures… mais on va continuer sûrement »)
+- **RIEN NE CHANGE PAR DÉFAUT** : quatre ESSAIS, tous éteints sans leur paramètre d'adresse. Le jeu, les photos de la liste et le garage sont ceux de v910. Un point de passage pour la suite, pas une livraison.
+- **`?baroudeur=entre`** (`wrangler.js`, bloc `CCH`) : LE BAROUDEUR « entre-deux » — la vraie forme du Wrangler en UN loft à facettes franches (flancs qui rentrent, ceinture, hard-top aux flancs qui se resserrent, toit bombé, pare-brise et lunette
+  couchés), vitres en bandes du loft + reflets en verre plus clair, capot en loft à 6 points, portes en deux panneaux en relief, petits détails posés (poignées et filet chromés, crochets rouges, prises d'air, trappe, essuie-glace arrière).
+  Sa pixelisation (toit et lunette, grille de cubes de 6 cm + trois chocs : trou à nu, couronne arrachée, débris) est dans le même bloc.
+- **`?scarabee=glitch`** (`rondes-1.js`, `SCG`) : LE SCARABÉE, ses ailes avant et son capot pixelisés (grille de cubes de 5 cm, relief 0-5 cm lu sur les vraies sections de la tôle) + trois chocs.
+- **`?degats=1`** (`buildcar.js`, `degatsCaisse`) : une passe GÉNÉRIQUE pour toutes les caisses — des rayons du ciel lisent la tôle (hauteur, couleur, matière), DEUX petits chocs de cubes sur les dessus (trou sombre, couronne penchée, débris), choisis d'après le nom.
+- **`?langage=1`** (`buildcar.js`, `traduisLangage`) : pour 15 voitures « hors langage » (rondes, 14-46 k triangles) — regroupement de sommets de la PEINTURE seule (laque 44 / nacre 70 / métallisé 90) en grandes facettes planes, une couleur par facette ;
+  feux, chrome, grilles, plastiques, verre, roues et petites pièces restent intacts. `?langage=1.5` = facettes plus grosses. À JUGER CAR PAR CAR avec Léo : voir `langage-visuel-references` (29 voitures de référence, à ne pas toucher).
+- **Banc** : une page d'essai servie sur le worktree (`/jeu-voitures.html` + crochets `dbgVoitures`/`dbgGarageVa`), captures par `dbgGarage(a,p,d)` + `dbgStep(40)` + copie du canvas dans la MÊME tâche (marche volet masqué, sans rAF).
+
 ## LES DUNES REVIENNENT SUR TÉLÉPHONE, ALLÉGÉES (2026-10-25, v898 — Léo : « remets la map dune dans le main tout de suite… intelligible pour un iPhone 13 mais toujours aussi belle et fluide, pour moins de puissance demandée »)
 - **LE CONSTAT** : Sacha avait sorti les dunes du tirage mobile le 24/10 (`SF_HORS.dunes`, trop lourdes). Elles y reviennent, avec une facture réduite (`DN_MOB`, `dunes-1.js`/`dunes-2.js`).
   ⚠ `DN_MOB` suit `TEL_NATIF` (un VRAI téléphone), pas `IS_MOBILE` : l'ordi qui joue l'édition « mobile » garde les dunes pleines (Sacha, v897 : « sur PC la qualité a chuté »).
