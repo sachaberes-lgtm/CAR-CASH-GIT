@@ -236,14 +236,14 @@ function invFerme(sec){
   feuilleFerme(el,'on');
 }
 function invEquipe(i,el){
-  if(!INV.on||GAR.go)return;uiPop(el);const cat=INV.cat;if(GAR_TAB_ANG[cat]!=null)garTourneVers(GAR_TAB_ANG[cat]); /* (2026-10-24, Léo : « quand on sélectionne, ça ne tourne pas vers l'autre ») toucher un objet ramène la caisse face à ce qu'il habille (le plateau l'avait fait dériver) */
+  if(!INV.on||GAR.go)return;uiPop(el);const cat=INV.cat;let des=false;if(GAR_TAB_ANG[cat]!=null)garTourneVers(GAR_TAB_ANG[cat]); /* (2026-10-24, Léo : « quand on sélectionne, ça ne tourne pas vers l'autre ») toucher un objet ramène la caisse face à ce qu'il habille (le plateau l'avait fait dériver) */
   if(cat==='figure'){const f=window.FIG&&FIG.liste[i];if(f){if(FIGV2.on)figEqToast(f.id);garFigEssai(f.id,figEquipee(f.id));}hap(8);invRender();return;} // (2026-10-14) toucher une figure : la caisse la fait sur le plateau — (LES FIGURES v2) et elle prend (ou rend) son emplacement
   if(cat==='voiture'){if(i===equippedCar()){uiClic('nav');return;}if(!carUnlocked(i))return;
     SAVE.d.equipped=i;SAVE.flush();level=i;levelCash=0;garageSaute(i);}       // le même geste que ÉQUIPER : la caisse de départ — et la bascule du plateau
-  else{const d=COSM[cat][i];if(!d)return;if(shopEqD(cat)===d){uiClic('nav');return;}if(!shopEquip(cat,i))return; /* (2026-10-14, session SON) toucher ce qui est DÉJÀ équipé répond d'un tick (muet avant) */
+  else{let d=COSM[cat][i];if(!d)return;if(shopEqD(cat)===d){const u9=cat==='peinture'&&d.id!=='usine'?COSM.peinture.findIndex(function(x){return x.id==='usine';}):-1;if(u9<0){uiClic('nav');return;}i=u9;d=COSM.peinture[u9];des=true;} /* (2026-10-26, Léo : « quand on appuie sur une peinture sélectionnée, ça la désélectionne et laisse la couleur originale ») retoucher la peinture ÉQUIPÉE équipe D'ORIGINE à sa place */if(!shopEquip(cat,i))return; /* (2026-10-14, session SON) toucher ce qui est DÉJÀ équipé répond d'un tick (muet avant) */
     SHOP.prev=null;buildCar(CARS[equippedCar()]);GAR.pressT=GAR.PRESS_D;}     // l'habillage se pose sur la caisse (elle accuse le coup)
-  try{if(SONV2)sfx('ui.equipe');else fanfare();}catch(er){}hap(10);
-  try{if(cat==='peinture'){const d9=COSM.peinture[i]||{},c9=d9.c!=null?d9.c:(d9.grad?d9.grad[1]:0xff7a3a);ATL.c=new THREE.Color(c9);}atlConstruit(cat);}catch(er){} // (même soir) LES OUTILS construisent l'objet
+  try{if(SONV2)sfx(des?'ui.off':'ui.equipe');else if(!des)fanfare();}catch(er){}hap(10);
+  try{if(cat==='peinture'){const d9=COSM.peinture[i]||{},c9=d9.c!=null?d9.c:(d9.grad?d9.grad[1]:des?CARS[equippedCar()].color:0xff7a3a);ATL.c=new THREE.Color(c9);}atlConstruit(cat);}catch(er){} // (même soir) LES OUTILS construisent l'objet
   el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');
   {const e9=$('gEclat');if(e9){e9.style.setProperty('--rc',el.style.getPropertyValue('--rc')||'#ffd75e');e9.classList.remove('on');void e9.offsetWidth;e9.classList.add('on');}} // l'éclair de SA couleur derrière la caisse
   invRender();
