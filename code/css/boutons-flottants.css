@@ -146,5 +146,5 @@ html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGea
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mHubPorte{--nc:var(--neoC)!important}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mOffres{--nc:var(--neoM)!important}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mGear{--nc:var(--au2)!important}
-html #mHome.on .mTitle::after,html #mHome .mTitle::after{background:var(--livreeLogo)!important;box-shadow:0 0 14px rgba(0,234,255,.5)!important}
+html #mHome.on .mTitle::after,html #mHome .mTitle::after{background:var(--livree3)!important;box-shadow:0 0 14px rgba(0,234,255,.5)!important}
 </style>
