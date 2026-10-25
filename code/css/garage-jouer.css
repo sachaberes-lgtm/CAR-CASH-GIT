@@ -36,10 +36,12 @@ html.bqIndus:not(.sansGarJouer) body #garage#garage.shopRet:not(.menu):not(.vitr
 html.bqIndus:not(.sansGarJouer) body #garage#garage.shopRet:not(.menu):not(.vitrine) #gAct#gAct>#gBqBtn{grid-column:1/-1!important;grid-row:1!important}
 html.bqIndus:not(.sansGarJouer) body #garage#garage.shopRet:not(.menu):not(.vitrine) #gAct#gAct>#gShopBas#gShopBas{grid-row:2!important;height:52px!important;min-height:52px!important} /* RETOUR à la hauteur de JOUER : une seule rangée d'aplomb */
 html.bqIndus:not(.sansGarJouer) body #garage#garage.shopRet:not(.menu):not(.vitrine) #gAct#gAct>#gJouer#gJouer{display:flex!important;grid-column:2!important;grid-row:2!important;
-  justify-self:stretch!important;width:auto!important;min-width:0!important;height:52px!important;min-height:52px!important;margin:0 0 0 12px!important;animation:atRet .32s var(--ease) both}
-/* (2026-10-19, Sacha, capture couchée de la boutique : « les boutons en bas ils sont trop proches ») JOUER est penché, RETOUR est droit : le pied
-   du lingot (et sa tranche) débordait de ~12 px vers la gauche et touchait RETOUR. La marge de 12 px lui rend en bas l'écart de la grille
-   (10 px couché, 16 px debout). */
+  justify-self:stretch!important;width:auto!important;min-width:0!important;height:52px!important;min-height:52px!important;margin:0!important;animation:atRet .32s var(--ease) both;
+  transform:none!important;translate:none!important;clip-path:none!important}
+html.bqIndus:not(.sansGarJouer) body #garage#garage.shopRet:not(.menu):not(.vitrine) #gAct#gAct>#gJouer#gJouer:is(:active,.appui){translate:0 4px!important}
+/* (2026-10-25, Sacha : « dans la boutique, le bouton JOUER ne doit pas être penché, carré comme RETOUR ») JOUER était penché (skewX de .pbtn) alors
+   que RETOUR est droit (garage-hub-rayons.css) : il est maintenant droit lui aussi. Plus de pied qui déborde sur RETOUR, donc plus besoin de la
+   marge de 12 px posée le 2026-10-19 : l'écart de la grille suffit. */
 /* les chevrons : la même vague que le JOUER du garage (le JOUER des MISSIONS la prend aussi : il n'avait que la petite flèche à pas) */
 html:not(.sansGarJouer) body #garage#garage:is(.atelierInv,.shopRet):not(.menu):not(.vitrine) #gAct#gAct>#gJouer .mChev,
 html:not(.sansGarJouer) #gMis #gmBas .gmJouer .mChev{display:inline-flex!important;gap:0;margin-left:8px;
