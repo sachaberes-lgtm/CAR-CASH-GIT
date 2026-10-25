@@ -33,7 +33,7 @@ function secPose(g,ratee,vol,kmh){ // au verdict d'une pose : g = 1,5 PARFAIT ·
   if(!ratee&&g>=2&&kmh>SEC_K.orrose)secGagne('orrose');
   if(vol>.7){if(!ratee&&g>=1.5){SEC.parf++;if(SEC.parf>=SEC_K.nacre)secGagne('nacre');}else SEC.parf=0;}
 }
-function secFig(){const k=secCarte();if(k.c==='ville'&&k.m==='nuit'){SEC.villeFig++;if(SEC.villeFig>=SEC_K.lampadaire)secGagne('lampadaire');}} // une figure (addTrick)
+function secFig(){const k=secCarte();if(k.c==='ville'){SEC.villeFig++;if(SEC.villeFig>=SEC_K.lampadaire)secGagne('lampadaire');}} // une figure (addTrick)
 function secPorte(){} /* (2026-10-22) LUNAIRE : dix niveaux dans l'espace (m2Niveau) — l'ancien « 3e portail » n'ouvre plus rien ; */ // un portail franchi (après le compte)
 window.dbgSec=function(a){if(a==='raz'){secReset();return 'remis à zéro';}const k=secCarte();
   return {actif:secOk(),secDonne:typeof secDonne==='function',carte:k.c,meteo:k.m,sansBord:+SEC.bordT.toFixed(1),parfaitsDeSuite:SEC.parf,sansNitroOrage:Math.round(SEC.sansNit),
@@ -58,8 +58,8 @@ function m2Def(id){for(let i=0;i<M2.length;i++)if(M2[i].id===id)return M2[i];ret
 function m2CarIdx(nom){for(let i=0;i<CARS.length;i++)if(CARS[i]&&CARS[i].name===nom)return i;return -1;}
 function m2Jour(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 /* LES CARTES : celles que JOUER tire (SF_CARTES, le canyon compris quand il est ouvert) — « chaque map » suit la liste du jeu */
-function m2Cartes(){try{return Object.keys(SF_CARTES).filter(function(k){return !SF_HORS[k];});}catch(e){return [];}} // (2026-10-18) les maps HORS DU TIRAGE n'y sont pas (la ville vitrée vit dans la ville)
-function m2Vues(L){const K=m2Cartes();let n=0;for(const k of L)if(K.indexOf(k)>=0)n++;return n;} // les maps jouées qui comptent (une map sortie du tirage ne compte plus)
+function m2Cartes(){try{const u=[];for(const k of Object.keys(SF_CARTES)){if(SF_HORS[k])continue;const g=sfMapDe(k);if(u.indexOf(g)<0)u.push(g);}return u;}catch(e){return [];}} // (2026-10-18) les maps HORS DU TIRAGE n'y sont pas · (2026-10-25) CRYPTOVILLE : Crypto City et la ville comptent pour UNE map
+function m2Vues(L){const K=m2Cartes(),S=[];for(const k of L){const g=sfMapDe(k);if(K.indexOf(g)>=0&&S.indexOf(g)<0)S.push(g);}return S.length;} // les maps jouées qui comptent (une map sortie du tirage ne compte plus ; les anciennes sauvegardes « crypto » et « ville » valent CRYPTOVILLE)
 /* À TOI, SANS LE CODE COUSIN : le code cousin ouvre tout sur un appareil (« l'argent, l'aura et les records ne bougent pas ») — il ne
    doit pas non plus encaisser les primes de collection. Même règle que carUnlockedVrai / shopOwned / figPossede, le cousin en moins. */
 function m2CarAMoi(i){if(carRetiree(i))return false;if(carOwned(i))return true;if(i<=((SAVE.d.ex&&SAVE.d.ex.floor)|0))return true;
@@ -80,7 +80,7 @@ function m2Col(cat){const R=m2Reco();let n=0,tot=0,nT=0;
 /* (2026-10-22) LES RARES À TOI : celles qui s'achètent (les rares gagnées par mission ne comptent pas — LA DOLORÈS se débloque en les ayant toutes) */
 function m2Rares(){const R=m2Reco();let n=0,tot=0;for(let i=0;i<CARS.length;i++){if(carRetiree(i)||carRar(i)!=='rare'||R.car[CARS[i].name])continue;tot++;if(m2CarAMoi(i))n++;}return {n:n,tot:tot};}
 /* (2026-10-22) LA MÉTÉO D'UNE MAP (LA STRATOS) : pour chaque map, les temps (SF_CARTES[k].m : matin, midi, soir, nuit, pluie, orage…) déjà joués ; la meilleure map compte (n joués sur tot) */
-function m2Meteo(){const c=m2Etat().c,H=c.met||{};let n=0,tot=0,f=-1;for(const k of m2Cartes()){const L=Object.keys((SF_CARTES[k]&&SF_CARTES[k].m)||{});if(!L.length)continue;let j=0;for(const x of L)if((H[k]||[]).indexOf(x)>=0)j++;if(j/L.length>f||(j/L.length===f&&L.length>tot)){f=j/L.length;n=j;tot=L.length;}}return {n:n,tot:tot};}
+function m2Meteo(){const c=m2Etat().c,H=c.met||{};let n=0,tot=0,f=-1;for(const g of m2Cartes()){const P=[];for(const k of Object.keys(SF_CARTES)){if(SF_HORS[k]||sfMapDe(k)!==g)continue;for(const x of Object.keys((SF_CARTES[k].m)||{}))P.push([k,x]);}if(!P.length)continue;let j=0;for(const q of P)if((H[q[0]]||[]).indexOf(q[1])>=0)j++;if(j/P.length>f||(j/P.length===f&&P.length>tot)){f=j/P.length;n=j;tot=P.length;}}return {n:n,tot:tot};}
 function m2Tout(){let tot=0,nT=0;for(const c of ['voiture','peinture','aile','trainee','figure']){const o=m2Col(c);tot+=o.tot;nT+=o.nT;}return {tot:tot,nT:nT};}
 /* (M2_COLK est déclarée plus haut, à côté de M2K : voir là) */
 /* LA VALEUR D'UNE MISSION, maintenant (les records de la partie en cours compris) */
