@@ -443,6 +443,24 @@ function boomDetone(){ // (2026-10-15) LA DÉTONATION — tout de suite (vide, a
 // bilan. On ne court-circuite PAS endGame : boomT=1.8 laisse la frame suivante éteindre la lumière, les anneaux et les débris.
 function boomSkip(){ if(mode!=='boom'||gameOver||paused||boomT<=.8)return false; boomT=1.8; return true; }
 const jeteObj=o=>o.traverse(n=>{if(n.geometry&&!n.isSprite)n.geometry.dispose();const mm=Array.isArray(n.material)?n.material:[n.material];for(const m of mm)if(m&&m.dispose)m.dispose();});
+/* ===== LES MATIÈRES DE L'EXPLOSION CHAUFFÉES AU MENU (2026-10-25, passe perf mobile : « trouver et chauffer le programme compilé à l'explosion ») =====
+   Un gel de 0,1 à 0,3 s à CHAQUE mort sur iPhone. Lu dans le code : la mort crée des matières NEUVES — les 8 éclats incandescents (MeshPhong
+   sans carte ni flatShading : aucun décor de course n'a ce programme, les éclats de l'impact sont en flatShading), les crânes et les cœurs
+   (SpriteMaterial à carte), les objets de signature (MeshPhong à envMap, transparents pour le diamant) — et le MÉNAGE (clearBoom) les LIBÈRE
+   toutes. Or three.js DÉTRUIT un programme quand sa dernière matière part : il était relié — et son état de pipeline Metal refait — à CHAQUE
+   mort, pas seulement à la première. Ici : un TÉMOIN par programme, bâti comme à la mort, dessiné une fois au menu par la chauffe (cible 8×8
+   au format de la vraie, sous les lumières de la scène), puis GARDÉ, jamais libéré : le programme reste vivant et les matières de la mort le
+   retrouvent dans le cache. Rien n'est ajouté à la scène en course, aucun pixel ne change. `?mobr_explo=0` = avant · `dbgMobrExplo()`. */
+const MOBR_EXPLO={on:!/[?&]mobr_explo=0/.test(location.search),g:null};
+function mobrChauffeMort(){ if(!MOBR_EXPLO.on||MOBR_EXPLO.g)return;
+  const g=new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(.2,.1,.2),new THREE.MeshPhongMaterial({color:0xff8800,emissive:0xff4400,emissiveIntensity:.6,shininess:90}))); /* les éclats (et les copeaux de dropChip : même programme) */
+  g.add(new THREE.Sprite(new THREE.SpriteMaterial({map:skullTex,transparent:true,depthWrite:false})));
+  g.add(new THREE.Sprite(new THREE.SpriteMaterial({map:heartTex,transparent:true,depthWrite:false})));
+  g.add(mkCaneS());g.add(mkIngotS());g.add(mkDiamS()); /* les signatures (canne : Phong sans carte ; lingot et diamant : Phong à envMap, opaque et transparent) */
+  MOBR_EXPLO.g=g;scene.add(g);try{chauffeRendu([g]);}finally{scene.remove(g);} /* retiré de la scène, mais ses matières restent en vie : leurs programmes aussi */
+  renderer.initTexture(skullTex);renderer.initTexture(heartTex);}
+window.dbgMobrExplo=function(){const L=[];if(MOBR_EXPLO.g)MOBR_EXPLO.g.traverse(function(o){if(o.material){const p=renderer.properties.get(o.material).currentProgram;L.push(o.material.type+':'+(p?p.id:'—'));}});return {on:MOBR_EXPLO.on,temoins:L};};
 function clearBoom(){
   // (2026-09-26, passe fuites) chaque mort laissait ~16 géométries sur le GPU (éclats, anneaux, cœur, objets de signature) : on les
   // LIBÈRE — sauf les débris `part` (clones de la caisse : ils partagent SA géométrie)
