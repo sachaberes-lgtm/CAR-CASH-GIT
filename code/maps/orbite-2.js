@@ -571,8 +571,8 @@ function wowAxes(){const e=carGroup.matrixWorld.elements;return [e[8],e[9],e[10]
 function wowStep(px,py,pz,k,dt,big){
   if(WOWT.p0&&dt>0){const iv=1/Math.max(dt,1e-3);WOWT.vx=(px-WOWT.p0[0])*iv;WOWT.vy=(py-WOWT.p0[1])*iv;WOWT.vz=(pz-WOWT.p0[2])*iv;}else{WOWT.p0=[0,0,0];WOWT.vx=WOWT.vy=WOWT.vz=0;}
   WOWT.p0[0]=px;WOWT.p0[1]=py;WOWT.p0[2]=pz;
-  if(k>.05){const A=wowAxes(),gar=big<1;WOWT.acc+=dt*(gar?3.2:7)*k;
-    while(WOWT.acc>=1){WOWT.acc-=1;const sd=(WOWT.mi++%2?1:-1),lat=sd*(.45+Math.random()*.9),up=.25+Math.random()*.75,ar=gar?1.6:1.1,ou=sd*(gar?.35:1.1),vk=gar?.86:.955; /* (2026-10-16, TRAÎNÉES) en course les mots gardaient 86 % de l'élan : ils passaient l'objectif en un tiers de seconde, on ne lisait rien — 95,5 %, plus écartés, plus hauts */
+  if(k>.05){const gar=big<1;WOWT.acc+=dt*(gar?3.2:7)*k;
+    while(WOWT.acc>=1){WOWT.acc-=1;const A=wowAxes(),sd=(WOWT.mi++%2?1:-1),lat=sd*(.45+Math.random()*.9),up=.25+Math.random()*.75,ar=gar?1.6:1.1,ou=sd*(gar?.35:1.1),vk=gar?.86:.955; /* (2026-10-16, TRAÎNÉES) en course les mots gardaient 86 % de l'élan : ils passaient l'objectif en un tiers de seconde, on ne lisait rien — 95,5 %, plus écartés, plus hauts */
       wowLance(px+A[3]*lat+A[6]*up-A[0]*.2,py+A[4]*lat+A[7]*up-A[1]*.2,pz+A[5]*lat+A[8]*up-A[2]*.2,
         WOWT.vx*vk-A[0]*ar+A[3]*ou+A[6]*(gar?.35:.8),WOWT.vy*vk-A[1]*ar+A[4]*ou+A[7]*(gar?.35:.8),WOWT.vz*vk-A[2]*ar+A[5]*ou+A[8]*(gar?.35:.8),big);}}
   else WOWT.acc=Math.min(WOWT.acc,.7);                                                                                  // le premier mot part à l'appui

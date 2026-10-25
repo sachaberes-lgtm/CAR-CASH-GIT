@@ -52,14 +52,15 @@ function nuCasseDans(c,k,cp){ // on roule DANS le banc : une trouée tous les ~0
   const s0=Math.min(9,Math.max(2,c.r*.06));
   for(let q=0;q<2;q++){const a=Math.random()*6.283,sp=5+Math.random()*9;
     nuCubeNew(cp.x+Math.cos(a)*R*.7,cp.y+(Math.random()-.3)*R*.6,cp.z+Math.sin(a)*R*.7,Math.cos(a)*sp+NCB.cv.x*.4,2+Math.random()*3,Math.sin(a)*sp+NCB.cv.z*.4,s0*(.6+Math.random()*.5),2.2+Math.random(),.3+Math.random()*.5,.9+Math.random()*.1);}}
+const NU_LISSE=function(a){return a*a*(3-2*a);}; /* la courbe d'ouverture des trouées : créée une seule fois, plus une closure par trouée et par image */
 function nuCasseTick(dt,t){
   if(!NCB.mesh){nuCasseInit();return;}
   NCB.dtc=dt;const cp=carGroup.position;nuPouTick(dt,t);
   if(NCB.has&&dt>0){NCB.cv.set((cp.x-NCB.lp.x)/dt,(cp.y-NCB.lp.y)/dt,(cp.z-NCB.lp.z)/dt);const l=NCB.cv.length();if(l>140)NCB.cv.multiplyScalar(140/l);} // la vitesse de la caisse, mesurée (jamais une téléportation : bornée)
   NCB.lp.copy(cp);NCB.has=true;
-  for(const h of NCB.hs){ // les trouées : elles s'ouvrent vite, tiennent, se referment (la ouate revient)
-    let r=0;if(h.t<h.d){h.t+=dt;const u=h.t/h.d,e=function(a){return a*a*(3-2*a);};r=u<.03?h.R*e(u/.03):u<.5?h.R*(1+.06*Math.sin(t*9+h.x)):h.R*(1-e(Math.min(1,(u-.5)/.5)));h.x+=NCB.cv.x*.12*dt;h.z+=NCB.cv.z*.12*dt;} // le remous tire un peu la trouée dans le sillage
-    NCB.hv=NCB.hv||NHOLE.uHole.value;const idx=NCB.hs.indexOf(h);NHOLE.uHole.value[idx].set(h.x,h.y,h.z,r);}
+  for(let idx=0;idx<NCB.hs.length;idx++){const h=NCB.hs[idx]; // les trouées : elles s'ouvrent vite, tiennent, se referment (la ouate revient)
+    let r=0;if(h.t<h.d){h.t+=dt;const u=h.t/h.d,e=NU_LISSE;r=u<.03?h.R*e(u/.03):u<.5?h.R*(1+.06*Math.sin(t*9+h.x)):h.R*(1-e(Math.min(1,(u-.5)/.5)));h.x+=NCB.cv.x*.12*dt;h.z+=NCB.cv.z*.12*dt;} // le remous tire un peu la trouée dans le sillage
+    NHOLE.uHole.value[idx].set(h.x,h.y,h.z,r);}
   const P=NCB.P,V=NCB.V,R=NCB.R,W=NCB.W,m=NCB.tm,q=NCB.tq,e=NCB.te,pp=NCB.tp,ss=NCB.ts,cv=NCB.cv,im=NCB.mesh;
   for(let i=NCB.n-1;i>=0;i--){const j=i*3;NCB.A[i]+=dt;const age=NCB.A[i],life=NCB.L[i];
     if(age>=life){nuCubeOut(i);continue;}

@@ -11350,11 +11350,11 @@ function pcubeFranchi(p){ // la caisse TRAVERSE LA FENÊTRE (le plan de l'anneau
   PCF.copy(p).sub(PORTAL.c).applyMatrix3(PCUBE.inv);const z=PCF.z,z0=PCUBE.zp;PCUBE.zp=z;
   if(PCF.x*PCF.x+PCF.y*PCF.y>Math.pow(PCUBE.Ri+PCUBE.S*.6,2))return false;
   return (z0!=null&&((z0>0&&z<=0)||(z0<0&&z>=0)))||Math.abs(z)<.4;}
-function pcubeTick(t,kmh){ if(!PCUBE.on)return;
+function pcubeTick(t,kmh,dt){ if(!PCUBE.on)return;
   PCUBE.cU.uT.value=t;PCUBE.mU.uT.value=t;
   // L'ASPIRATION : à moins de ~4 s de la caisse, l'anneau se penche vers elle
   let a=0;if(started&&!gameOver){const v9=Math.max(15,(kmh||0)/3.6),d9=carGroup.position.distanceTo(PORTAL.c);a=THREE.MathUtils.clamp(1-(d9-PCUBE.Ri)/(v9*4),0,1);}
-  PCUBE.asp+=(a-PCUBE.asp)*.08;PCUBE.cU.uAsp.value=PCUBE.asp*PCUBE.asp;
+  PCUBE.asp+=(a-PCUBE.asp)*(1-Math.pow(.92,(dt>0?Math.min(dt,.1):1/60)*60));PCUBE.cU.uAsp.value=PCUBE.asp*PCUBE.asp;
   PCUBE.halo.material.opacity=.2+.07*Math.sin(t*2.2);}
 window.dbgPortailCubes=function(){const d=PCUBE.dest;let cam=null;
   try{frameAt(s,GF);const o=camera.position.clone().sub(carGroup.position);cam={avant:+o.dot(GF.t).toFixed(2),haut:+o.dot(GF.n).toFixed(2),cote:+o.dot(GF.b).toFixed(2),fov:+camera.fov.toFixed(1),aspect:+camera.aspect.toFixed(3)};}catch(e){cam=e.message;}
@@ -13208,14 +13208,15 @@ function nuCasseDans(c,k,cp){ // on roule DANS le banc : une trouée tous les ~0
   const s0=Math.min(9,Math.max(2,c.r*.06));
   for(let q=0;q<2;q++){const a=Math.random()*6.283,sp=5+Math.random()*9;
     nuCubeNew(cp.x+Math.cos(a)*R*.7,cp.y+(Math.random()-.3)*R*.6,cp.z+Math.sin(a)*R*.7,Math.cos(a)*sp+NCB.cv.x*.4,2+Math.random()*3,Math.sin(a)*sp+NCB.cv.z*.4,s0*(.6+Math.random()*.5),2.2+Math.random(),.3+Math.random()*.5,.9+Math.random()*.1);}}
+const NU_LISSE=function(a){return a*a*(3-2*a);}; /* la courbe d'ouverture des trouées : créée une seule fois, plus une closure par trouée et par image */
 function nuCasseTick(dt,t){
   if(!NCB.mesh){nuCasseInit();return;}
   NCB.dtc=dt;const cp=carGroup.position;nuPouTick(dt,t);
   if(NCB.has&&dt>0){NCB.cv.set((cp.x-NCB.lp.x)/dt,(cp.y-NCB.lp.y)/dt,(cp.z-NCB.lp.z)/dt);const l=NCB.cv.length();if(l>140)NCB.cv.multiplyScalar(140/l);} // la vitesse de la caisse, mesurée (jamais une téléportation : bornée)
   NCB.lp.copy(cp);NCB.has=true;
-  for(const h of NCB.hs){ // les trouées : elles s'ouvrent vite, tiennent, se referment (la ouate revient)
-    let r=0;if(h.t<h.d){h.t+=dt;const u=h.t/h.d,e=function(a){return a*a*(3-2*a);};r=u<.03?h.R*e(u/.03):u<.5?h.R*(1+.06*Math.sin(t*9+h.x)):h.R*(1-e(Math.min(1,(u-.5)/.5)));h.x+=NCB.cv.x*.12*dt;h.z+=NCB.cv.z*.12*dt;} // le remous tire un peu la trouée dans le sillage
-    NCB.hv=NCB.hv||NHOLE.uHole.value;const idx=NCB.hs.indexOf(h);NHOLE.uHole.value[idx].set(h.x,h.y,h.z,r);}
+  for(let idx=0;idx<NCB.hs.length;idx++){const h=NCB.hs[idx]; // les trouées : elles s'ouvrent vite, tiennent, se referment (la ouate revient)
+    let r=0;if(h.t<h.d){h.t+=dt;const u=h.t/h.d,e=NU_LISSE;r=u<.03?h.R*e(u/.03):u<.5?h.R*(1+.06*Math.sin(t*9+h.x)):h.R*(1-e(Math.min(1,(u-.5)/.5)));h.x+=NCB.cv.x*.12*dt;h.z+=NCB.cv.z*.12*dt;} // le remous tire un peu la trouée dans le sillage
+    NHOLE.uHole.value[idx].set(h.x,h.y,h.z,r);}
   const P=NCB.P,V=NCB.V,R=NCB.R,W=NCB.W,m=NCB.tm,q=NCB.tq,e=NCB.te,pp=NCB.tp,ss=NCB.ts,cv=NCB.cv,im=NCB.mesh;
   for(let i=NCB.n-1;i>=0;i--){const j=i*3;NCB.A[i]+=dt;const age=NCB.A[i],life=NCB.L[i];
     if(age>=life){nuCubeOut(i);continue;}
@@ -30202,8 +30203,8 @@ function wowAxes(){const e=carGroup.matrixWorld.elements;return [e[8],e[9],e[10]
 function wowStep(px,py,pz,k,dt,big){
   if(WOWT.p0&&dt>0){const iv=1/Math.max(dt,1e-3);WOWT.vx=(px-WOWT.p0[0])*iv;WOWT.vy=(py-WOWT.p0[1])*iv;WOWT.vz=(pz-WOWT.p0[2])*iv;}else{WOWT.p0=[0,0,0];WOWT.vx=WOWT.vy=WOWT.vz=0;}
   WOWT.p0[0]=px;WOWT.p0[1]=py;WOWT.p0[2]=pz;
-  if(k>.05){const A=wowAxes(),gar=big<1;WOWT.acc+=dt*(gar?3.2:7)*k;
-    while(WOWT.acc>=1){WOWT.acc-=1;const sd=(WOWT.mi++%2?1:-1),lat=sd*(.45+Math.random()*.9),up=.25+Math.random()*.75,ar=gar?1.6:1.1,ou=sd*(gar?.35:1.1),vk=gar?.86:.955; /* (2026-10-16, TRAÎNÉES) en course les mots gardaient 86 % de l'élan : ils passaient l'objectif en un tiers de seconde, on ne lisait rien — 95,5 %, plus écartés, plus hauts */
+  if(k>.05){const gar=big<1;WOWT.acc+=dt*(gar?3.2:7)*k;
+    while(WOWT.acc>=1){WOWT.acc-=1;const A=wowAxes(),sd=(WOWT.mi++%2?1:-1),lat=sd*(.45+Math.random()*.9),up=.25+Math.random()*.75,ar=gar?1.6:1.1,ou=sd*(gar?.35:1.1),vk=gar?.86:.955; /* (2026-10-16, TRAÎNÉES) en course les mots gardaient 86 % de l'élan : ils passaient l'objectif en un tiers de seconde, on ne lisait rien — 95,5 %, plus écartés, plus hauts */
       wowLance(px+A[3]*lat+A[6]*up-A[0]*.2,py+A[4]*lat+A[7]*up-A[1]*.2,pz+A[5]*lat+A[8]*up-A[2]*.2,
         WOWT.vx*vk-A[0]*ar+A[3]*ou+A[6]*(gar?.35:.8),WOWT.vy*vk-A[1]*ar+A[4]*ou+A[7]*(gar?.35:.8),WOWT.vz*vk-A[2]*ar+A[5]*ou+A[8]*(gar?.35:.8),big);}}
   else WOWT.acc=Math.min(WOWT.acc,.7);                                                                                  // le premier mot part à l'appui
@@ -50226,15 +50227,15 @@ window.dbgLigneFruits=function(){let ah=0,ap=0;for(const p of pickups)if(!p.take
 PWR_DEFS.n.t=7;PWR_DEFS.n.msg='PIMENT — NITRO INFINIE 7 s À FOND !';PWR_DEFS.n.sous='7 S A FOND';
 const NINF_STOPS=[[0,0xff2208],[1,0xff1a0a]]; /* (2026-10-22, Sacha : « la flamme et le bouton du boost en rouge vif ») plus de dégradé orange → blanc → bleu → violet : la flamme reste rouge vif */
 const NINF_C=new THREE.Color(),NINF_A=new THREE.Color(),NINF_B=new THREE.Color(),NINF_W=new THREE.Color(0xffffff);
-NINF.h=0;NINF.rgb=[255,34,8];
+NINF.h=0;NINF.rgb=[255,34,8];NINF.trail=[1.6,.18,.08];
 function ninfCouleur(h,out){let i=0;while(i<NINF_STOPS.length-2&&h>NINF_STOPS[i+1][0])i++;const a=NINF_STOPS[i],b=NINF_STOPS[i+1],u=Math.max(0,Math.min(1,(h-a[0])/(b[0]-a[0])));
   NINF_A.setHex(a[1]);NINF_B.setHex(b[1]);return out.copy(NINF_A).lerp(NINF_B,u);}
 function ninfTick(dt){
-  if(!(pwrNitroT>0)){if(NINF.h!==0){NINF.h=0;NINF.jet=0xff2208;NINF.core=0xffb8a8;NINF.rac=0xff6a58;NINF.trail=[1.6,.18,.08];}return;}
+  if(!(pwrNitroT>0)){if(NINF.h!==0){NINF.h=0;NINF.jet=0xff2208;NINF.core=0xffb8a8;NINF.rac=0xff6a58;NINF.trail[0]=1.6;NINF.trail[1]=.18;NINF.trail[2]=.08;}return;}
   if(nitroOn)NINF.h=Math.min(1,NINF.h+dt/8);else NINF.h=Math.max(0,NINF.h-dt*.15);
   ninfCouleur(NINF.h,NINF_C);
   NINF.jet=NINF_C.getHex();NINF.core=NINF_B.copy(NINF_C).lerp(NINF_W,.62).getHex();NINF.rac=NINF_B.copy(NINF_C).lerp(NINF_W,.35).getHex();
-  NINF.trail=[NINF_C.r*1.25,NINF_C.g*1.25,NINF_C.b*1.25];NINF.rgb=[Math.round(NINF_C.r*255),Math.round(NINF_C.g*255),Math.round(NINF_C.b*255)];
+  NINF.trail[0]=NINF_C.r*1.25;NINF.trail[1]=NINF_C.g*1.25;NINF.trail[2]=NINF_C.b*1.25;NINF.rgb[0]=Math.round(NINF_C.r*255);NINF.rgb[1]=Math.round(NINF_C.g*255);NINF.rgb[2]=Math.round(NINF_C.b*255);
 }
 
 /* ===== LA POMME DORÉE : L'AIMANT À PIÈCES EN SPIRALE (2026-10-20, Léo : « les objets filent en spirale dorée ») =====
@@ -72791,7 +72792,7 @@ function loop(now){
       }
     }
     // portail qui pulse + pads RGB qui défilent
-    if(PCUBE.on)pcubeTick(t,speedKmh); // (2026-10-17) LE PORTAIL DE CUBES : l'onde, les flotteurs, l'aspiration
+    if(PCUBE.on)pcubeTick(t,speedKmh,dt); // (2026-10-17) LE PORTAIL DE CUBES : l'onde, les flotteurs, l'aspiration
     // (console de son) LE PORTAIL APPROCHE : un bourdon qui monte, UNE fois par portail (portalMesh est neuf à chaque piste), ~2 s avant l'ovule — et près du BOUT de la piste (un ruban qui repasse sous l'ovule ne le déclenche pas)
     if(SONV2&&portalMesh&&PORTAL.son!==portalMesh&&!PARK.on&&mode!=='boom'){const v9=Math.max(10,speedKmh/3.6),d9=carGroup.position.distanceTo(PORTAL.c)-PORTAL.R*.95;if(d9<v9*2&&L-(mode==='fall'?lastNearS:s)<v9*3+120){PORTAL.son=portalMesh;sfx('portail.proche');}}
     // pads turbo : on n'anime la texture (dessin canvas + upload GPU) que si un pad est réellement en vue

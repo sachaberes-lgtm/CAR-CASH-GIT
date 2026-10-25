@@ -148,11 +148,11 @@ function pcubeFranchi(p){ // la caisse TRAVERSE LA FENÊTRE (le plan de l'anneau
   PCF.copy(p).sub(PORTAL.c).applyMatrix3(PCUBE.inv);const z=PCF.z,z0=PCUBE.zp;PCUBE.zp=z;
   if(PCF.x*PCF.x+PCF.y*PCF.y>Math.pow(PCUBE.Ri+PCUBE.S*.6,2))return false;
   return (z0!=null&&((z0>0&&z<=0)||(z0<0&&z>=0)))||Math.abs(z)<.4;}
-function pcubeTick(t,kmh){ if(!PCUBE.on)return;
+function pcubeTick(t,kmh,dt){ if(!PCUBE.on)return;
   PCUBE.cU.uT.value=t;PCUBE.mU.uT.value=t;
   // L'ASPIRATION : à moins de ~4 s de la caisse, l'anneau se penche vers elle
   let a=0;if(started&&!gameOver){const v9=Math.max(15,(kmh||0)/3.6),d9=carGroup.position.distanceTo(PORTAL.c);a=THREE.MathUtils.clamp(1-(d9-PCUBE.Ri)/(v9*4),0,1);}
-  PCUBE.asp+=(a-PCUBE.asp)*.08;PCUBE.cU.uAsp.value=PCUBE.asp*PCUBE.asp;
+  PCUBE.asp+=(a-PCUBE.asp)*(1-Math.pow(.92,(dt>0?Math.min(dt,.1):1/60)*60));PCUBE.cU.uAsp.value=PCUBE.asp*PCUBE.asp;
   PCUBE.halo.material.opacity=.2+.07*Math.sin(t*2.2);}
 window.dbgPortailCubes=function(){const d=PCUBE.dest;let cam=null;
   try{frameAt(s,GF);const o=camera.position.clone().sub(carGroup.position);cam={avant:+o.dot(GF.t).toFixed(2),haut:+o.dot(GF.n).toFixed(2),cote:+o.dot(GF.b).toFixed(2),fov:+camera.fov.toFixed(1),aspect:+camera.aspect.toFixed(3)};}catch(e){cam=e.message;}

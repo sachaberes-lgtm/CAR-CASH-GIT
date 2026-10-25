@@ -190,7 +190,7 @@
       }
     }
     // portail qui pulse + pads RGB qui défilent
-    if(PCUBE.on)pcubeTick(t,speedKmh); // (2026-10-17) LE PORTAIL DE CUBES : l'onde, les flotteurs, l'aspiration
+    if(PCUBE.on)pcubeTick(t,speedKmh,dt); // (2026-10-17) LE PORTAIL DE CUBES : l'onde, les flotteurs, l'aspiration
     // (console de son) LE PORTAIL APPROCHE : un bourdon qui monte, UNE fois par portail (portalMesh est neuf à chaque piste), ~2 s avant l'ovule — et près du BOUT de la piste (un ruban qui repasse sous l'ovule ne le déclenche pas)
     if(SONV2&&portalMesh&&PORTAL.son!==portalMesh&&!PARK.on&&mode!=='boom'){const v9=Math.max(10,speedKmh/3.6),d9=carGroup.position.distanceTo(PORTAL.c)-PORTAL.R*.95;if(d9<v9*2&&L-(mode==='fall'?lastNearS:s)<v9*3+120){PORTAL.son=portalMesh;sfx('portail.proche');}}
     // pads turbo : on n'anime la texture (dessin canvas + upload GPU) que si un pad est réellement en vue
