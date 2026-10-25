@@ -343,6 +343,19 @@ SHAPES.bulle=function(K){
   // les PASSAGES DE ROUE : une joue sombre derrière chaque roue
   const joue=(w,AR0)=>{const o=[[w-.43,.28]];for(let k=0;k<=12;k++){const a=Math.PI*k/12;o.push([w-Math.cos(a)*.43,.30+Math.sin(a)*.44]);}o.push([w+.43,.28]);return o;};
   P.sym(sd=>{P.prism('d',joue(ZF),.02,sd*.50);P.prism('d',joue(ZR),.02,sd*.52);});
+  /* LES BLOCS GLITCHÉS (25/10, Léo : « cet exemple, c'est pour le scarabée » — ceux de LA FIDÈLE, `?scarabee=glitch`) : de gros blocs plats de la couleur de la caisse, de longueurs inégales, qui saillent en escalier le long
+     des arêtes — le bord du capot (au-dessus des ailes) et la gouttière du pavillon —, PAS autour des roues. Quelques-uns noirs, un chromé. Tirage déterministe. */
+  let SCG=false;try{SCG=/[?&]scarabee=glitch/.test(location.search);}catch(e){}
+  if(SCG){
+    const hs=(a,b,c,d)=>{const v=Math.sin(a*12.9898+b*78.233+c*37.719+d*5.171)*43758.5453;return v-Math.floor(v);};
+    const CE=.08;
+    // [courbe en x, courbe en y, z de départ, z de fin, décalage en y, id]
+    for(const [fx,fy,z0,z1,dy,id] of [[xH,yH,.74,1.72,.0,0],[xG,yG,-1.02,.34,-.03,1]])for(const sd of [1,-1])for(let iz=Math.round(z0/CE);iz*CE<z1;iz++){
+      for(let k=0;k<2;k++){const h=hs(iz,k,sd,id);if(h>(k?.22:.62))continue;
+        const z=iz*CE,q=hs(iz+.3,k+.7,sd,id+2),n=1+Math.floor(hs(iz+.9,k+.1,sd,id+4)*3),Ln=CE*n,sz=.05+.045*hs(iz+.5,k+.5,sd,id+6),
+              wd=.03+.05*hs(iz+.2,k+.8,sd,id+8),col=q>.95?'c':q>.78?'k':'p';
+        P.box(col,wd,sz,Ln-.004,sd*(fx(z)+wd/2-.012+.02*hs(iz+.6,k+.4,sd,id+10)),fy(z)+dy+k*(.06+.02*h)-.02,z+Ln/2-CE/2,0,0,0);}}
+  }
   // la plaque dessinée : la vraie s'y pose (voir plqDessinee)
   P.box('l',.30,.075,.012,0,.665,-1.79,.5,0,0);
   K.commit(P);

@@ -331,25 +331,6 @@ return function(K){
     // les feux arrière (aux coins), leur verre
     P.box('L',.13,.23,.025,sd*.795,1.055,-2.1615);P.box('g',.07,.12,.006,sd*.795,1.055,-2.176);P.box('W',.05,.012,.006,sd*.795,1.11,-2.177);
   });
-  // LES GLITCHS DE PIXELS (25/10, Léo : « des glitchs pixels qui remontent depuis les couvre-roues, pas partout : un effet bug de jeu ») : de petits cubes de 3-4 cm, de la couleur de la caisse (quelques-uns noirs ou chromés),
-  // posés sur les élargisseurs à partir du bord de l'arche et de plus en plus rares vers le haut ; certains saillent, d'autres flottent un cran à côté. Un tirage déterministe (la même caisse à chaque fois).
-  if(CCH){
-    const B=(k,w,h,d,x,y,z)=>P.box(k,w,h,d,x,y,z,0,0,0);
-    const hash=(a,b,c,d)=>{const v=Math.sin(a*12.9898+b*78.233+c*37.719+d*5.171)*43758.5453;return v-Math.floor(v);};
-    const dans=(Pg,z,y)=>{let c=false;for(let i=0,j=Pg.length-1;i<Pg.length;j=i++){const a=Pg[i],b=Pg[j];if((a[1]>y)!==(b[1]>y)&&z<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])c=!c;}return c;};
-    const ARF=[[.93,.522],[1.036,.719],[1.129,.872],[1.203,.949],[1.274,.976],[1.534,.979],[1.794,.976],[1.827,.902],[1.887,.826]],
-          archF=z=>lin(ARF,z),archR=z=>Math.max(.60,lin(ARR,z));
-    // (25/10, Léo : « plus de cubes glitchés comme La Fidèle ») ceux de La Fidèle sont de GROS blocs plats de la couleur de la caisse, de longueurs inégales, qui saillent en escalier : ici des dalles de 6 cm
-    // (1 à 4 cases de long, 3 à 6 cm de saillie) qui remontent de l'arche sur ~30 cm, de plus en plus rares ; presque toutes de la couleur de la caisse, quelques-unes noires.
-    const CE=.09,HM=.46;
-    for(const [wh,Pg,z0,z1,arch,id] of [['av',ELAV,.90,1.92,archF,0],['ar',ELAR,-2.03,-.88,archR,1]])for(const sd of [1,-1]){
-      for(let iz=Math.round(z0/CE);iz*CE<z1;iz++)for(let iy=0;iy<Math.round(HM/CE)+2;iy++){
-        const z=iz*CE,ya=arch(z),y=ya+.025+iy*CE,d=(y-ya)/HM;if(d>1||!dans(Pg,z,y))continue;
-        const pr=1.0*Math.pow(1-d,.85),h=hash(iz,iy,sd,id);if(h>pr)continue;
-        const q=hash(iz+.3,iy+.7,sd,id+2),n=1+Math.floor(hash(iz+.9,iy+.1,sd,id+4)*3.6),L=CE*n,sz=CE*(.6+.5*hash(iz+.5,iy+.5,sd,id+6)),
-              wd=.05+.05*hash(iz+.2,iy+.8,sd,id+8),col=q>.94?'c':q>.74?'k':'p';
-        B(col,wd,sz,L-.004,sd*(.947+wd/2-.004+.02*hash(iz+.6,iy+.4,sd,id+10)),y,z+L/2-CE/2);}}
-  }
   // LA CALANDRE : sept fentes, deux phares ronds, un peu couchée
   {const sh=new THREE.Shape(),PTS=rrect(-.66,-.18,.66,.175,.03,3);sh.moveTo(PTS[0][0],PTS[0][1]);for(let i=1;i<PTS.length;i++)sh.lineTo(PTS[i][0],PTS[i][1]);
    const fente=x=>{const h=new THREE.Path(),Q=rrect(x-.0375,-.12,x+.0375,.14,.03,3);h.moveTo(Q[0][0],Q[0][1]);for(let i=1;i<Q.length;i++)h.lineTo(Q[i][0],Q[i][1]);return h;};
