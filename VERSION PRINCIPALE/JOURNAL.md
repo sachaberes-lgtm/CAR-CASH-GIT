@@ -3,6 +3,9 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## SAUVER MAMAN : LA FLÛTE DEVIENT UN VIOLON (2026-10-25 soir — Léo : « change juste la flûte (instrument) de SAUVER MAMAN »)
+- `retouches-bleu.js`, entrée `bleu-3379` : `Mx.tim.contre = 'violon'` (le contre-chant, qui entre au 12e moteur, était la flûte synthétique). Rien d'autre ne bouge (la cloche de verre retouchée, l'ordre, les grilles). Vérifié au banc : le violon joue au moteur 15, 0 erreur, niveau stable. Non écouté. Retour : retirer ce seul réglage.
+
 ## LA GROTTE SUR LES PAROIS — PLUS DE GÉODE, LA ROUTE LONGE LE SOL, LES MURS ET LE PLAFOND (2026-10-25, v929 — Sacha : « retire l'énorme boule violette et la géode, c'est tout le temps le même module ; plus de virages, des modules de course ; la route doit longer les parois, des fois sur le sol, des fois sur un mur à 90°, des fois au plafond ; une grande salle de lave ; sois inventif »)
 - **PARTIS** : le puits de la géode (spirale, pilier, boule d'améthyste, bassin, raccourci : `grtPuits`, `GROTTE.puits`, la lumière et la matière de la géode). Sa place est prise par **LE BOYAU DE CRISTAUX** (salle `boyau`, 3e des
   biomes : même violet, mais un tube étroit et tortueux dont les parois portent de grosses grappes de cristaux violets/roses/azur — `GRT_CRIS_P/D`). L'améthyste reste, la boule non.
