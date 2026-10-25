@@ -19,7 +19,7 @@ disque, HORS du dépôt (un worktree supprimé ne les emporte pas, et toutes les
     cd "VERSION PRINCIPALE" && python3 repertoire-maps/serveur.py 9244
     → http://127.0.0.1:9244/repertoire-maps/
 """
-import base64, datetime, http.server, json, os, random, re, shutil, socketserver, sys, threading, urllib.parse
+import base64, datetime, http.server, json, os, random, re, shutil, socketserver, subprocess, sys, threading, urllib.parse
 
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 NOTES = os.environ.get('CC_NOTES_MAPS') or os.path.expanduser('~/Downloads/CAR-notes-maps')
@@ -177,6 +177,62 @@ def applique_avis(op):
     return d
 
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import jeu_maps  # la liste des maps lue dans le jeu lui-même (index.html du dossier servi)
+except Exception:  # pragma: no cover
+    jeu_maps = None
+IMG = os.path.join(RACINE, 'repertoire-maps', 'img')
+VERSIONS = os.path.join(IMG, 'versions.json')  # {« carte-météo »: n° de cache du jeu au moment de la photo} — écrit par banc/photos.py
+JOB = {'en_cours': False, 'total': 0, 'fait': 0, 'couples': [], 'erreur': None}
+
+
+def etat_photos():
+    """ce que le jeu a (carte × météo) contre les images du dossier : manquantes, et de quelle version du jeu est chaque photo."""
+    d = jeu_maps.lit(RACINE)
+    try:
+        with open(VERSIONS, encoding='utf-8') as f:
+            V = json.load(f)
+    except (OSError, ValueError):
+        V = {}
+    man, ver = [], {}
+    for c in d['cartes']:
+        for k, _ in c['meteos']:
+            f = '%s-%s' % (c['id'], k)
+            if os.path.isfile(os.path.join(IMG, f + '.jpg')):
+                ver[f] = V.get(f)
+            else:
+                man.append([c['id'], k])
+    return {'jeu': d['jeu'], 'manquantes': man, 'versions': ver, 'job': dict(JOB)}
+
+
+def lance_photos(couples):
+    """prend les photos demandées dans le VRAI jeu (banc/photos.py : Chrome sans fenêtre, muet) — une seule série à la fois."""
+    if JOB['en_cours']:
+        raise ValueError('une série est déjà en cours')
+    ok = [(c, m) for c, m in couples if re.match(r'^\w{1,30}$', str(c)) and re.match(r'^[\w-]{1,40}$', str(m))]
+    if not ok:
+        raise ValueError('rien à photographier')
+    JOB.update({'en_cours': True, 'total': len(ok), 'fait': 0, 'couples': [list(x) for x in ok], 'erreur': None})
+
+    def tourne():
+        try:
+            p = subprocess.Popen([sys.executable, os.path.join(RACINE, 'repertoire-maps', 'banc', 'photos.py')] + ['%s:%s' % x for x in ok],
+                                 cwd=RACINE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+            for ligne in p.stdout:
+                if ' ok ' in ligne:
+                    JOB['fait'] += 1
+            p.wait()
+            if p.returncode:
+                JOB['erreur'] = 'le banc photo s\'est arrêté (code %s)' % p.returncode
+        except Exception as e:
+            JOB['erreur'] = str(e)
+        finally:
+            JOB['en_cours'] = False
+    threading.Thread(target=tourne, daemon=True).start()
+    return dict(JOB)
+
+
 class Main(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *a, **k):
         super().__init__(*a, directory=RACINE, **k)
@@ -201,6 +257,16 @@ class Main(http.server.SimpleHTTPRequestHandler):
         if p == '/repertoire-maps/avis':
             with VERROU:
                 return self.json(200, lit_avis())
+        if p == '/repertoire-maps/maps.js' and jeu_maps:  # la liste VIVANTE : lue dans index.html à chaque demande (le fichier du dossier ne sert que de repli)
+            try:
+                return self.envoie(200, jeu_maps.en_js(jeu_maps.lit(RACINE)).encode('utf-8'), 'application/javascript; charset=utf-8')
+            except Exception:
+                pass
+        if p == '/repertoire-maps/photos' and jeu_maps:
+            try:
+                return self.json(200, etat_photos())
+            except Exception as e:
+                return self.json(500, {'erreur': str(e)})
         if p.startswith('/repertoire-maps/notes-img/'):  # l'image d'une note (elle vit hors du dossier servi)
             f = os.path.join(NOTES, 'img', os.path.basename(p))
             if os.path.isfile(f):
@@ -218,6 +284,14 @@ class Main(http.server.SimpleHTTPRequestHandler):
                     raise ValueError('trop gros')
                 with VERROU:
                     return self.json(200, applique_avis(json.loads(self.rfile.read(n).decode('utf-8'))))
+            except Exception as e:
+                return self.json(400, {'erreur': str(e)})
+        if pp == '/repertoire-maps/photos' and jeu_maps:
+            try:
+                n = int(self.headers.get('Content-Length') or 0)
+                d = json.loads(self.rfile.read(min(n, 100_000)).decode('utf-8') or '{}')
+                cp = d.get('couples') or etat_photos()['manquantes']
+                return self.json(200, lance_photos(cp))
             except Exception as e:
                 return self.json(400, {'erreur': str(e)})
         if pp != '/repertoire-maps/notes':
