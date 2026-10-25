@@ -38,6 +38,7 @@ Son `www/` est GÉNÉRÉ depuis `VERSION PRINCIPALE/` (`cd app-ios && npm run sy
 - Nouveau morceau : couper un fichier entre deux instructions et l'inscrire à sa place dans `ORDRE.txt`.
 - Tout le JS du jeu est UNE fonction `(function(){'use strict'; … })()`, ouverte dans `interface/icones-fenetre.js` et fermée dans `moteur/desktop-banc.js` : les noms se voient d'un morceau à l'autre, rien n'est global.
 - Noms et commentaires en français. Une section s'ouvre par `/* ===== LE TITRE (date, qui : « la demande ») ===== */`. Jamais de `//` au milieu d'une ligne : `/* … */`.
+- ⚠ Alléger pour le téléphone : garder sur `TEL_NATIF` (vrai téléphone), JAMAIS sur `IS_MOBILE` — il est vrai AUSSI sur l'ordi, qui joue l'édition 'mobile' (`FORCE_TEL`, voir `EDITION` dans `page/tete.html`). Le 24/10 des retraits « téléphone » gardés par `IS_MOBILE` ont dégradé le PC (forêt, dunes, Crypto City, Jade, satellites). Les paliers `PAL.b(...)` sont sûrs : l'ordi est au palier 2.
 - Crochets de test : `window.dbgXxx`. Variantes : paramètres d'URL `?x=`.
 - Chaque changement du jeu : `cashcar-vNNN` +1 dans `VERSION PRINCIPALE/sw.js` (le hook pre-push l'exige).
 - Livrer : partir d'`origin/main` à jour, fusionner (jamais de force), pousser sur `main` (Vercel publie https://car-cash-git.vercel.app/jouer/). Règles complètes : « SANS TOUT CASSER » dans `GUIDE-COMPLET.md`.

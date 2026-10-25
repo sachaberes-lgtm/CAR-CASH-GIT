@@ -3,6 +3,22 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES DUNES REVIENNENT SUR TÉLÉPHONE, ALLÉGÉES (2026-10-25, v898 — Léo : « remets la map dune dans le main tout de suite… intelligible pour un iPhone 13 mais toujours aussi belle et fluide, pour moins de puissance demandée »)
+- **LE CONSTAT** : Sacha avait sorti les dunes du tirage mobile le 24/10 (`SF_HORS.dunes`, trop lourdes). Elles y reviennent, avec une facture réduite (`DN_MOB`, `dunes-1.js`/`dunes-2.js`).
+  ⚠ `DN_MOB` suit `TEL_NATIF` (un VRAI téléphone), pas `IS_MOBILE` : l'ordi qui joue l'édition « mobile » garde les dunes pleines (Sacha, v897 : « sur PC la qualité a chuté »).
+  `?dunesplein=1` rend l'image d'avant sur un téléphone, `?dunessobre=1` essaie l'allégée sur l'ordi.
+- **MESURÉ AVANT** (Chrome, chrono GPU d'une image figée, 1 266 × 585 = 0,74 M pixels = l'iPhone 13 ; palier RÉCENT forcé) : 10,0 à 10,8 ms, dont ~5,4 pour le terrain seul (caché : 5,0). Le terrain = ~2 ms de sommets
+  (dont 1,6 pour la seule normale : trois lectures complètes du relief par sommet) + ~4 ms de PIXELS ; aucun bloc du shader de sable ne domine (chacun 0,2-0,5 ms : leur somme fait 2,4 ms), sauf les FACETTES (0,9 ms).
+  Les décors cachés ne changent rien à cette vue ; la route 0,4 ms ; les nuages en bandes du ciel ~0,7 ms (gardés : demande de Léo).
+- **FAIT** : (1) grille d'une tuile 32 → 24 cases (151 k → 82 k triangles ; cellule fine 4 → 5,3 m ; 16 cases faisaient de petits trous blancs sur une crête, écartées) ; (2) le calcul des FACETTES du sable retiré du shader de pixels
+  (`dnLite`) : leurs poids joint/éclat/plat (`uPl.y/.z/.w`) valent 0 dans toutes les ambiances, il ne restait qu'une teinte de ±1,5 % par triangle ; (3) lectures de texture faites seulement là où elles comptent (végétation, argile,
+  crête vive, octaves de rides hors portée) — image identique au bit près ; (4) budgets du palier MOYEN pour les décors (arbres, palmiers, touffes, tornades, sable qui vole, ruines) et plus d'ÉCLATS de 9 cm (`dnMo` .75).
+  La route, les tremplins, le sable à rides, les monuments, la scène du sphinx, les nuages ne changent pas.
+- **APRÈS** (même banc, même caméra, trois ambiances) : matin 10,53 → 8,74 ms, soir 10,58 → 8,88, nuit 10,81 → 9,63 ; terrain −29 à −33 % ; 151 552 → 81 792 triangles. Photos avant/après (4 vues × 3 ambiances) : même image à l'œil.
+  Sable rendu ≥ 1,37 m sous le bitume avec des cellules de 4, 5,3 et 8 m (`dbgDunes('ecart', cs)`, 3 graines) ; `dbgDunes('test')` margeMin ≥ 1,2.
+- **NON MESURÉ** : le vrai iPhone 13 (ce banc est une puce de Mac : l'iPhone y met ~2-2,5×). À demander : `?perf=1` sur les dunes, au sol et en vol. Leviers restants si ce n'est pas assez : normale du sommet moins chère
+  (réutiliser les bruits de dune du sommet central, ~−0,5 ms), éteindre mirage / étincelles / stries (~0,2-0,3 ms chacune), résolution plus basse (échelle QL).
+- **Ensuite** : `dbgDunes('gpu',n,reps)` = ms GPU d'une image figée (après `dbgDunes('vueA',s,h,cap,pente)`), cacher `scene.children.find(o=>o.name==='dunes')` pour isoler le terrain ; patcher `…material.fragmentShader` à chaud pour peser un bloc.
 ## LA FRÉNÉSIE A ENFIN SA MUSIQUE : THE DARK TRIAD (2026-10-24 soir, v894 — le 404 de `dark-triad.mp3`, vu deux fois à chaque chargement au banc du 21/10)
 - **LE CONSTAT** : `MUSIC_FREN.f` visait `assets/audio/music/dark-triad.mp3`, un fichier qui n'a JAMAIS existé dans le dépôt (aucun commit ne l'a posé, `git log --all`) ;
   le morceau est la boucle maison DARK TRIAD de l'atelier (`atelier-son/boucles.py`, 01/10, « pour : FRÉNÉSIE » : phonk 140 bpm, do# phrygien, 16 mesures = 27,43 s
