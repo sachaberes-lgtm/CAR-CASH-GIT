@@ -3,6 +3,20 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE MENU DE NUIT DANS LA MAP NUAGES, ET LES NUAGES QUI MONTENT (2026-10-25, v911 — Sacha : « les nuages bug à cause de la nuit » · « prends littéralement le même niveau que la map nuage, mets la voiture dans la map nuage » · « que les nuages montent, comme si elle les croisait dans sa chute : un petit générateur de nuages en bas » · « plus vite »)
+- **LE CONSTAT** (capture de Sacha, puis banc) : de nuit, les cumulus de l'écran titre sortaient GRIS, en rochers. `titreNuit` gardait la lumière des nuages du JOUR (`volSun` de `BIOMES.titre`, un blanc chaud ×2,2),
+  un albédo de ,5 et un soleil de ,58 (le `T2('nuit')` de `chute-menu.js`) et un grade à ,9 de saturation, quand la course de nuit a son clair de lune (`nuagesNuit`, finie par l'étalonnage et `continuite.js`).
+  ⚠ Un premier essai (jamais poussé) posait `nuLav`/`nuA` et un K plus fort sur `titreNuit` : le `T2('nuit')` l'écrasait — retiré.
+- **FAIT** (`chute-menu.js`, après les heures PLUIE/ORAGE) : le titre de nuit LIT `BIOMES[SF_CARTES.nuages.m.nuit.bio]` (= `nuagesNuit`) : matière des cumulus (`nuK`/`nuR` → `K`/`R` du titre), `volSun/Sky/Gnd/Amb`, `nuLav`, `nuA`,
+  lune, ciel et sol de l'hémisphère, remplissage, ciel (`jZen/jMid/jHor` et `TITRE_CIEL.nuit` z/m/h), brume, mer de nuages (`mzH`/`mzO`), saturation, contraste, vignette. La caisse garde son studio ; l'orage et l'aube du titre ne bougent pas. `?titrenuit=0` = avant.
+- **LES NUAGES DE PASSAGE** (`richesse-3.js` : `CHUTE_PAS`, `chutePasNeuf`, `chutePasTick`, appelés par la boucle des cumulus de `chuteRender`) : 4 / 6 / 7 cumulus de plus selon `PAL.n` (4 au plus debout), nés sous le cadre à 40-380 m
+  derrière la caisse dans l'axe du regard, rayon 4 à 10° vus de l'objectif, qui montent à `CHUTE_P.pasV` = 100 m/s (×,85-1,15 chacun ; 65 au premier essai, « plus vite » de Sacha) et renaissent en bas, ailleurs. Mêmes gabarits
+  (humilis, mediocris) et même matière que les cumulus du titre : zéro programme de plus. Au piqué ils filent (`vk`) sans renaître ; « Réduire les animations » : au pas des autres cumulus (`P.vit`). `?pas=0` les coupe, `?pas=n` en met n,
+  `dbgChute({pasV:…})` règle la vitesse, `dbgChute().pas` = [distance, hauteur par rapport à l'objectif, rayon, visible] de chacun.
+- **MESURÉ** (banc : le jeu dans un onglet caché, images tirées par un ouvrier, captures de la toile 3D) : menu sans erreur la nuit, le matin, à midi, couché et debout, et le piqué de JOUER. Vitesse lue : 87 à 111 m/s ;
+  les proches traversent l'écran en ~0,7 s, les lointains en ~3 s. Triangles du titre : 275 k → 322 k (+16 %, palier RÉCENT, 7 nuages). `index.html` = la concaténation exacte des 243 morceaux (contrôle refait sans Node).
+  **NON VU** : un vrai téléphone, et la course après le piqué (le banc caché, machine chargée, n'y arrive pas — le départ `start()` attend aussi la fin du `#splash`, qu'il faut cliquer puis retirer comme `desktop-banc.js`).
+
 ## LES DUNES REVIENNENT SUR TÉLÉPHONE, ALLÉGÉES (2026-10-25, v898 — Léo : « remets la map dune dans le main tout de suite… intelligible pour un iPhone 13 mais toujours aussi belle et fluide, pour moins de puissance demandée »)
 - **LE CONSTAT** : Sacha avait sorti les dunes du tirage mobile le 24/10 (`SF_HORS.dunes`, trop lourdes). Elles y reviennent, avec une facture réduite (`DN_MOB`, `dunes-1.js`/`dunes-2.js`).
   ⚠ `DN_MOB` suit `TEL_NATIF` (un VRAI téléphone), pas `IS_MOBILE` : l'ordi qui joue l'édition « mobile » garde les dunes pleines (Sacha, v897 : « sur PC la qualité a chuté »).

@@ -39,6 +39,7 @@ function chuteEntre(){ // de l'atelier (ou de rien) au ciel
   document.body.classList.add('titreCiel');if(!CHUTE.mz)CHUTE.mz=[skyU.uMzA.value.clone(),skyU.uMzB.value.clone(),skyU.uMzT.value.clone(),skyU.uMzO.value.clone(),skyU.uMzH.value.clone(),skyU.uMerLoin.value];CHUTE.oA=CHUTE.oAc=CHUTE.oW=CHUTE.oP=CHUTE.oPc=0;CHUTE.tk=0; // (2026-09-30) l'orbite repart du plan de face — (LE TOUR SANS FIN) et le tour lent s'y engage en douceur
   if(!CHUTE.av)CHUTE.av={c:new THREE.Color()};CHUTE.av.e=acesPass?acesPass.uniforms.uExposure.value:null;if(scene.fog){CHUTE.av.c.copy(scene.fog.color);CHUTE.av.n=scene.fog.near;CHUTE.av.f=scene.fog.far;} // (2026-09-30) l'exposition et la brume d'avant (l'atelier les retrouve)
   if(!CHUTE.w)chuteMonte();
+  if(CHUTE.nu)for(const c of CHUTE.nu)if(c.pas)c.D=0; /* (2026-10-25) les nuages de passage renaissent dans le champ du retour (le regard a pu tourner) */
   if(GAR.root)GAR.root.visible=false;garageFloor.visible=false;gEl.classList.add('ciel'); /* (niveau 1 v2) le bandeau du bas prend l'azur profond du ciel (voir #garage.menu.ciel::after) */
   try{if(openGarage._amb){openGarage._amb.stop(.35);openGarage._amb=null;}if(openGarage._feu){openGarage._feu.stop(.35);openGarage._feu=null;}}catch(e){} // l'atelier se tait : là-haut, c'est le vent
   if(CHUTE.entree){const v=chuteVoileEl();v.style.transition='none';v.style.transform='none';v.style.opacity='1';void v.offsetWidth;v.style.transition='opacity .45s ease-out';v.style.opacity='0';} // revenu de la boutique : on sort de l'atelier PAR un nuage
@@ -221,7 +222,7 @@ function chuteRender(dt){
       o*=Math.max(0,Math.min(1,(e-(rW*.75+rC))/(rW*.5+.08)));}                       // …et jamais une ouate DEVANT la caisse (son disque projeté contre celui de la caisse)
     s.material.opacity=o*(G?1:.78);}
   if(CHUTE.nu){const on9=!!P.nuages,C0=CHUTE.C,rx0=-lh.z,rz0=lh.x; // (titre v3) LES CUMULUS : ils montent, la caisse tombe
-    for(const c of CHUTE.nu){c.y+=P.vit*c.v*vk*dt;if(c.y>c.hi)c.y=c.lo;c.m.visible=on9&&!c.off&&!!c.e.g;c.m.position.set(C0.x+rx0*c.a+lh.x*c.b,C0.y+c.y,C0.z+rz0*c.a+lh.z*c.b);}}
+    for(const c of CHUTE.nu){if(c.pas){chutePasTick(c,dt,vk,!!G,on9);continue;} /* (2026-10-25) les nuages de passage : voir chutePasTick */c.y+=P.vit*c.v*vk*dt;if(c.y>c.hi)c.y=c.lo;c.m.visible=on9&&!c.off&&!!c.e.g;c.m.position.set(C0.x+rx0*c.a+lh.x*c.b,C0.y+c.y,C0.z+rz0*c.a+lh.z*c.b);}}
   {const Fi=CHUTE.fil,pos=Fi.pos,col=Fi.col,cd=camera.getWorldDirection(CHUTE.v1);
    const ax=-cd.z,az=cd.x,an=Math.hypot(ax,az)||1;                                // la largeur des filets : horizontale, face caméra
    for(let i=0;i<Fi.S.length;i++){const S9=Fi.S[i];S9.y+=P.vit*S9.v*vk*dt;if(S9.y>44)chuteFilNeuf(S9,false);
