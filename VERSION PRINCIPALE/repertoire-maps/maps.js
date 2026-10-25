@@ -16,12 +16,12 @@ window.REPERTOIRE = [
   { id: 'ville',    nom: 'LA VILLE',          couverture: 'pluie',
     meteos: [['pluie', 'PLUIE'], ['nuit', 'NUIT'], ['brouillard', 'BROUILLARD'], ['orage', 'ORAGE'], ['pluie-vert', 'NÉONS VERTS'], ['pluie-jaune', 'NÉONS JAUNES'], ['pluie-bleu', 'BLEU ÉLECTRIQUE']] },
   // (2026-10-17, Léo) LA VILLE VITRÉE : les tours de verre et leur reflet qui pend du ciel — quatre heures et la pluie
-  { id: 'vitree',   nom: 'VILLE VITRÉE',      couverture: 'midi',
+  { id: 'vitree',   nom: 'VILLE VITRÉE',      couverture: 'midi', hors: true, // hors du tirage de JOUER (SF_HORS) : jouable par ?carte=vitree
+   
     meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'COUCHER'], ['nuit', 'NUIT'], ['pluie', 'PLUIE']] },
-  // (2026-10-18, Sacha : « remet la map paris dans le mode classique ») PARIS AU SOL, de la Concorde au Sacré-Cœur : un seul temps — la course
-  // fait tourner l'heure elle-même, de l'or à la nuit
-  { id: 'paris',    nom: 'PARIS',             couverture: 'soir',
-    meteos: [['soir', 'HEURE DORÉE']] },
+  // (2026-10-25) CRYPTO CITY : l'apogée du BULL RUN — quatre temps, jamais de pluie ni d'orage (retirée du tirage sur téléphone)
+  { id: 'crypto',   nom: 'CRYPTO CITY',       couverture: 'midi',
+    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT']] },
   { id: 'jade',     nom: 'PICS DE JADE',      couverture: 'matin',
     meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
   { id: 'foret',    nom: 'LA FORÊT NOIRE',    couverture: 'soir',
@@ -29,7 +29,7 @@ window.REPERTOIRE = [
   { id: 'banquise', nom: 'LE GLACIER',        couverture: 'nuit',
     meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['neige', 'NEIGE'], ['blizzard', 'BLIZZARD']] },
   { id: 'espace',   nom: 'EN ORBITE',         couverture: 'matin',
-    meteos: [['matin', 'TERRE'], ['midi', 'MARS'], ['soir', 'JUPITER']] },
+    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR']] }, // (2026-10-25) la Terre seule : Mars et Jupiter sont retirées
   { id: 'canyon',   nom: 'CANYON DES GÉANTS', couverture: 'matin',
     meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
   // (2026-10-18, Sacha : « une nouvelle map dans les grottes, en mode Minecraft mais bien ») LES PROFONDEURS : la descente en blocs, de la mine aux

@@ -115,6 +115,63 @@ def applique(op):
         return d
 
 
+AVIS = os.path.join(NOTES, 'avis.json')
+
+
+def lit_avis():
+    try:
+        with open(AVIS, encoding='utf-8') as f:
+            d = json.load(f)
+        return d if isinstance(d, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def ecrit_avis(d):
+    """avis.json = la vérité ; avis-maps.txt = la même chose à lire (c'est ce que Claude lit quand Léo dit « j'ai fini »)."""
+    os.makedirs(NOTES, exist_ok=True)
+    tmp = AVIS + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        json.dump(d, f, ensure_ascii=False, indent=1)
+    os.replace(tmp, AVIS)
+    noms = dict(noms_des_maps())
+    L = {'garder': [], 'virer': [], 'vide': []}
+    for k, v in noms.items():
+        a = d.get(k) or {}
+        L[a.get('s') if a.get('s') in ('garder', 'virer') else 'vide'].append(k)
+    out = ['AVIS DE LÉO SUR LES MAPS (%s)' % datetime.datetime.now().strftime('%d/%m %H:%M'), '']
+    for t, titre in (('garder', 'À GARDER'), ('virer', 'À VIRER'), ('vide', 'PAS ENCORE VU')):
+        out.append('%s : %s' % (titre, ', '.join(noms[k] for k in L[t]) or '—'))
+    out.append('')
+    for k, nom in noms.items():
+        m = [x for x, v in ((d.get(k) or {}).get('m') or {}).items() if v == 'virer']
+        if m:
+            out.append('  %s — météos à virer : %s' % (nom, ', '.join(m)))
+    with open(os.path.join(NOTES, 'avis-maps.txt'), 'w', encoding='utf-8') as f:
+        f.write('\n'.join(out) + '\n')
+
+
+def applique_avis(op):
+    """une opération : {carte, s:'garder'|'virer'|''} ou {carte, meteo, v:'virer'|''} — jamais le fichier entier."""
+    k = op.get('carte')
+    if not isinstance(k, str) or not ID_OK.match(k):
+        raise ValueError('carte ?')
+    d = lit_avis()
+    a = d.setdefault(k, {'s': '', 'm': {}})
+    if 's' in op:
+        a['s'] = op['s'] if op['s'] in ('garder', 'virer') else ''
+    if 'meteo' in op:
+        m = str(op['meteo'])
+        if not ID_OK.match(m):
+            raise ValueError('météo ?')
+        if op.get('v') == 'virer':
+            a.setdefault('m', {})[m] = 'virer'
+        else:
+            a.setdefault('m', {}).pop(m, None)
+    ecrit_avis(d)
+    return d
+
+
 class Main(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *a, **k):
         super().__init__(*a, directory=RACINE, **k)
@@ -136,6 +193,9 @@ class Main(http.server.SimpleHTTPRequestHandler):
         if p == '/repertoire-maps/notes':
             with VERROU:
                 return self.json(200, lit())
+        if p == '/repertoire-maps/avis':
+            with VERROU:
+                return self.json(200, lit_avis())
         if p.startswith('/repertoire-maps/notes-img/'):  # l'image d'une note (elle vit hors du dossier servi)
             f = os.path.join(NOTES, 'img', os.path.basename(p))
             if os.path.isfile(f):
@@ -145,7 +205,17 @@ class Main(http.server.SimpleHTTPRequestHandler):
         super().do_GET()
 
     def do_POST(self):
-        if urllib.parse.urlparse(self.path).path != '/repertoire-maps/notes':
+        pp = urllib.parse.urlparse(self.path).path
+        if pp == '/repertoire-maps/avis':
+            try:
+                n = int(self.headers.get('Content-Length') or 0)
+                if n > 100_000:
+                    raise ValueError('trop gros')
+                with VERROU:
+                    return self.json(200, applique_avis(json.loads(self.rfile.read(n).decode('utf-8'))))
+            except Exception as e:
+                return self.json(400, {'erreur': str(e)})
+        if pp != '/repertoire-maps/notes':
             self.send_response(404); self.end_headers(); return
         try:
             n = int(self.headers.get('Content-Length') or 0)
