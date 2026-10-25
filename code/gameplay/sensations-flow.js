@@ -350,5 +350,5 @@ function flowVitN(){
   const v=mode==='fall'?Math.sqrt(fallVel.x*fallVel.x+fallVel.z*fallVel.z):Math.abs(vA);
   return v*3.6*SPD/vm;
 }
-const FLOW_COL=['#ffffff','#5ee6ff','#ffd75e','#ff5ec8','#ff2a3d']; // [4] = la FRÉNÉSIE, ROUGE (2026-09-28, Sacha) — elle était violette
-const FLOW_CEL=['#5ee6ff','#ffd75e','#ff5ec8','#b58cff'];            // les quatre cellules de la jauge (la 4e garde son violet : le ROUGE est réservé à la zone)
+const FLOW_COL=['#ffffff','#5ee6ff','#ff5ec8','#ffd75e','#ff2a3d']; // [4] = la FRÉNÉSIE, ROUGE (2026-09-28, Sacha) — elle était violette
+const FLOW_CEL=['#5ee6ff','#ff5ec8','#ffc72a','#fff0a0'];            // les quatre cellules de la jauge (la 4e garde son violet : le ROUGE est réservé à la zone)
