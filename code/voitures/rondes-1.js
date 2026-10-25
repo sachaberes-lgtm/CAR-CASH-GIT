@@ -171,7 +171,7 @@ SHAPES.bulle=function(K){
   const U=LPU,O=bulleOutils,L=(t,z)=>U.lin(t,z),cl=(v,a,b)=>v<a?a:v>b?b:v,mix=(a,b,t)=>a+(b-a)*t,lis=t=>t*t*(3-2*t);
   const R=.338,ZF=1.302,ZR=-1.098;
   const PAL={p:{g:'p',c:0x93cfd6},k:{g:'m',c:0x161719},K:{g:'g',c:0x0d0e11},c:{g:'c',c:0xe2e6eb},g:{g:'g',c:0x1a2632},
-    W:{g:'l',c:0xfff4dc},L:{g:'l',c:0xd81e2a},O:{g:'l',c:0xffa21a},w:{g:'s',c:0xf1eee6},s:{g:'s',c:0xe9e2cf},d:{g:'m',c:0x101114}};
+    W:{g:'l',c:0xfff4dc},L:{g:'l',c:0xd81e2a},O:{g:'l',c:0xffa21a},w:{g:'s',c:0xf1eee6},s:{g:'s',c:0xe9e2cf},d:{g:'m',c:0x101114},y:{g:'m',c:0x34616c}};
   // ---- LES COURBES DU PLAN (mètres) ----
   // le dessus, dans l'axe (côté) : pare-chocs exclus — capot, pare-brise, pavillon, lunette, capot moteur, jupe
   const yTop=z=>L([[-1.865,.47],[-1.84,.55],[-1.81,.61],[-1.77,.69],[-1.707,.761],[-1.671,.827],[-1.617,.913],[-1.555,.993],[-1.49,1.064],[-1.377,1.158],
@@ -343,18 +343,21 @@ SHAPES.bulle=function(K){
   // les PASSAGES DE ROUE : une joue sombre derrière chaque roue
   const joue=(w,AR0)=>{const o=[[w-.43,.28]];for(let k=0;k<=12;k++){const a=Math.PI*k/12;o.push([w-Math.cos(a)*.43,.30+Math.sin(a)*.44]);}o.push([w+.43,.28]);return o;};
   P.sym(sd=>{P.prism('d',joue(ZF),.02,sd*.50);P.prism('d',joue(ZR),.02,sd*.52);});
-  /* LES BLOCS GLITCHÉS DU SCARABÉE (25/10, Léo : « enlève le bug pixel noir, plus sur le côté de la voiture ; discret et visible à la fois, comme La Fidèle, une touche d'originalité par modèle ») `?scarabee=glitch` :
-     plus aucun bloc noir. Sur les FLANCS, le long du pli de ceinture, de petites dalles de la couleur de la caisse. L'ORIGINALITÉ du Scarabée : des dalles CRÈME (la teinte de ses accents) qui se détachent en traînée
-     vers l'arrière, comme si la caisse se pixélisait en roulant — plus denses vers l'aile avant, de plus en plus rares vers l'arrière (rien aux roues : le milieu de la caisse seulement). Rien autour des roues ni sur le capot. */
+  /* LA DESTRUCTION VOXEL DU SCARABÉE (25/10, Léo : « les cubes insérés, pas posés par-dessus ; une impression de destruction, pixel / voxel ; plus de noir ») `?scarabee=glitch` : des plaques de cubes de 6 cm À FLEUR
+     de la tôle, sur les FLANCS (le pli de ceinture, au milieu de la caisse — rien aux roues) : l'intérieur mis à nu en bleu-vert sombre (pas de noir), un peu de crème, bordées d'éclats de la couleur de la caisse
+     qui dépassent de 1 à 4 cm, quelques-uns arrachés. Les plaques s'effritent vers l'arrière. */
   let SCG=false;try{SCG=/[?&]scarabee=glitch/.test(location.search);}catch(e){}
   if(SCG){
     const hs=(a,b,c,d)=>{const v=Math.sin(a*12.9898+b*78.233+c*37.719+d*5.171)*43758.5453;return v-Math.floor(v);};
-    const CE=.07;
-    for(const sd of [1,-1])for(let iz=Math.round(-.70/CE);iz*CE<.62;iz++)for(let k=-1;k<=1;k++){
-      const z=iz*CE,t=(z+.70)/1.32,pr=(k===0?.86:.42)*(.22+.78*Math.pow(t,.8)),h=hs(iz,k,sd,0);if(h>pr)continue;
-      const q=hs(iz+.3,k+.7,sd,2),n=1+Math.floor(hs(iz+.9,k+.1,sd,4)*2.4),Ln=CE*n,sz=.05+.045*hs(iz+.5,k+.5,sd,6),wd=.03+.036*hs(iz+.2,k+.8,sd,8),
-            kind=q>.93?'c':q>.62?'s':'p';
-      P.box(kind,wd,sz,Ln-.005,sd*(xC(z)+wd/2-.008+.012*hs(iz+.6,k+.4,sd,10)),yCr(z)+k*.07+.01,z+CE*(n-1)/2,0,0,0);}
+    const CE=.06;
+    for(const sd of [1,-1]){
+      const dedans=new Set(),id=sd>0?5:6,graines=[[7,0,6],[0,1,5],[-7,-1,4.6]];
+      for(let iu=-13;iu<=11;iu++)for(let iv=-5;iv<=5;iv++){let m=0;for(const [su,sv,r] of graines)m=Math.max(m,(1-Math.hypot(iu-su,iv-sv)/r)*(.55+.9*hs(iu,iv,id,1)));if(m>.34)dedans.add(iu+','+iv);}
+      const pose=(k,iu,iv,up,eclat)=>{const z=iu*CE,y=yCr(z)+iv*CE,x=xC(z)-.03*Math.pow(iv*CE/.14,2)+(eclat?up/2+.006:.003);
+        P.box(k,eclat?.016:.014,CE*.9,CE*.9,sd*x,y,z,0,0,0);};
+      for(const kk of dedans){const [iu,iv]=kk.split(',').map(Number),bord=![[1,0],[-1,0],[0,1],[0,-1]].every(([da,db])=>dedans.has((iu+da)+','+(iv+db))),q=hs(iu+.3,iv+.7,id,2);
+        if(bord){if(q<.52)pose('p',iu,iv,.01+.032*hs(iu,iv,id,3),true);else if(q<.62)pose('p',iu,iv,.05+.05*hs(iu,iv,id,4),true);}
+        else{if(q<.76)pose('y',iu,iv,0,false);else if(q<.88)pose('s',iu,iv,0,false);}}}
   }
   // la plaque dessinée : la vraie s'y pose (voir plqDessinee)
   P.box('l',.30,.075,.012,0,.665,-1.79,.5,0,0);
