@@ -95,6 +95,7 @@ function m2Val(m){const d=SAVE.d,s=m2Etat(),r=s.r,c=s.c,ex=d.ex||{},enC=m2EnC();
     case 'vie':return Math.max(r.vie||0,enC?M2R.vie:0);
     case 'tours':return r.tours|0;
     case 'cartesP':return m2Vues(c.cartesP);
+    case 'musP10':{const L=m2Musiques();let n=0;if(L)for(const id of c.musP10||[])if(L.indexOf(id)>=0)n++;return n;} /* (2026-10-25) les morceaux de la liste actuelle déjà joués jusqu'au palier 10 */
     case 'cartes':return m2Vues(c.cartes);
     case 'aura':{let a=d.auraMax||0;if(enC)try{a=Math.max(a,Math.round(auraRun)||0);}catch(e){}return a;}
     case 'gagne':return c.gagne||0;
@@ -115,7 +116,8 @@ function m2Val(m){const d=SAVE.d,s=m2Etat(),r=s.r,c=s.c,ex=d.ex||{},enC=m2EnC();
     case 'misok':return s.ok.length;
   }
   const t=/T$/.test(m.k),o=m2Col(M2_COLK[t?m.k.slice(0,-1):m.k]);return t?o.nT:o.n;}
-function m2Seuil(m){if(m.v==='prof')return M2K.prof;if(m.v!=='tot')return m.v;
+function m2Musiques(){try{const P=window.POUCE_JEU,L=P&&P.liste;return L&&L.length?L.map(function(e){return e.id;}):null;}catch(e){return null;}} /* (2026-10-25) les ids des morceaux de Pouce bleu ; null tant que la liste n'est pas chargée (1re partie) */
+function m2Seuil(m){if(m.v==='prof')return M2K.prof;if(m.k==='musP10'){const L=m2Musiques();return L?L.length:9999;}if(m.v!=='tot')return m.v;
   if(m.k==='cartes'||m.k==='cartesP')return m2Cartes().length;if(m.k==='raresT')return m2Rares().tot;if(m.k==='meteoMap')return m2Meteo().tot;if(m.k==='toutT')return m2Tout().tot;
   return m2Col(M2_COLK[m.k.slice(0,-1)]).tot;}
 function m2Txt(m){const s=String(LANG==='fr'?m.t:m.en),v=m2Seuil(m);
@@ -214,7 +216,8 @@ function m2Tick(dt,kmh){if(!m2Ok()||paused)return;const s=m2Etat(),r=s.r;if(!M2R
   if(!introD&&(mode==='drive'||mode==='fall'))M2R.ctl+=dt;
   if(mode!=='boom'){M2R.vie+=dt;if(M2R.vie>(r.vie||0))r.vie=M2R.vie;}
   if(kmh>(r.kmh||0))r.kmh=Math.round(kmh);
-  if(mode==='drive'||mode==='fall'){s.c.kmTot=(s.c.kmTot||0)+kmh*dt/3600;if(SND.sfx||SND.music)M2R.sonne=true;if(SND.music&&((engTier|0)+1)>=10)m2Flag('palier10');}
+  if(mode==='drive'||mode==='fall'){s.c.kmTot=(s.c.kmTot||0)+kmh*dt/3600;if(SND.sfx||SND.music)M2R.sonne=true;if(SND.music&&((engTier|0)+1)>=10){const E=window.POUCE_JEU&&POUCE_JEU.joue()&&POUCE_JEU.E; /* (2026-10-25) le morceau de CETTE course, à son palier 10 */
+    if(E&&E.id){const L=s.c.musP10||(s.c.musP10=[]);if(L.indexOf(E.id)<0&&L.length<80){L.push(E.id);SAVE.mark();}}}}
   {const k9=secCarte(),sg=k9.c+'/'+k9.m+'/'+(runStats.zones|0);if(M2R.lv!==sg){M2R.lv=sg;m2Niveau(k9);}} /* (2026-10-22, Sacha : « tableau des peintures ») un niveau entré */
   if(mode==='drive'&&side<0)m2Cpt('envers',kmh*dt/3600,100,'envers'); /* MONDE À L'ENVERS : 100 km sous la dalle (side < 0) */
   if(((engTier|0)+1)>=24)secGagne('guerrier'); /* SUPER GUERRIER : le palier 24 */
