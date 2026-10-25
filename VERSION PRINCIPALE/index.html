@@ -52044,6 +52044,9 @@ function mortsCompte(cause){ // une mort RÉELLE (explode)
   const M=mortsEx().morts,c=/^[a-z]{1,12}$/.test(cause)?cause:'autre',o=M[k]||(M[k]={});
   o[c]=Math.min(1e6,(o[c]|0)+1);mortsVerse();SAVE.mark();}
 let mortCause=''; // (2026-09-26, audit UX) POURQUOI on est mort — dit sous GAME OVER : une mort comprise donne envie de rejouer
+/* ===== LA CAUSE DE MORT, À VOIR (2026-10-25, Sacha : « on meurt encore sans raison sur la map dune ») =====
+   La ligne de cause de l'écran de mort est cachée (charte-7-details.css) : on ne sait jamais POURQUOI on est mort. `?cause=1` la remontre, avec le lieu : la cause, l'abscisse, le décalage de la route, le temps de vol et la vitesse. */
+const MORT_VOIR=/[?&]cause=1(&|$)/.test(location.search);let mortInfo='';
 /* (2026-09-30) LA PARTIE BAT-ELLE UN RECORD ? Les TROIS de l'écran de mort (mFill) : l'ARGENT (montants bruts ; 1,61 $ n'en est pas un),
    l'AURA battue en course (CHA.recB), le MOTEUR (un palier jamais atteint avant cette partie). explode s'en sert pour ne pas se moquer
    d'une partie que l'écran de mort va couronner « NOUVEAU RECORD ! ». */
@@ -52066,6 +52069,7 @@ function explode(cause){
   chainePerdue(true); // (aura v2) la chaîne ouverte part avec la caisse
   if(gameOver||mode==='boom')return;
   mortCause=cause||'';
+  if(MORT_VOIR)try{mortInfo='s '+Math.round(s)+' · décalage '+lat.toFixed(0)+' m · vol '+fallT.toFixed(1)+' s · '+Math.round(Math.abs(vA)*SPD*3.6)+' km/h · '+mode;}catch(e){mortInfo='?';}
   try{mortsCompte(mortCause);}catch(e){}try{m2Mort(mortCause);}catch(e){} /* (2026-10-16) LES MISSIONS v2 : morts, les secrètes de la mort */ // (2026-09-30) la mesure des morts par niveau (voir MORTS)
   flowReset();try{flowTick(0);}catch(e){} // le crash VIDE le flow
   /* (2026-09-30) LA MUSIQUE MEURT AVEC LA CAISSE : le tape-stop partait d'endGame, 1,8 s APRÈS l'explosion — toute la boule de feu se
@@ -74773,7 +74777,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       ot.style.color=recT?'var(--aura)':'var(--neoR)'; // (2026-09-28, charte au complet) l'or est au lingot REJOUER : le record parle la couleur de l'aura
       {const CAUSES={eau:'AU FOND DE L EAU',lave:'ENGLOUTI PAR LA LAVE',roche:'ECRASE SUR LA ROCHE',paroi:'ENCASTRE DANS LA PAROI',canyon:'AU FOND DU CANYON',sable:'ENSEVELI DANS LE SABLE',oasis:"AU FOND DE L'OASIS",obelisque:"CONTRE L'OBELISQUE",pyramide:'CONTRE LA PYRAMIDE',sol:'AU PIED DES TOURS',riviere:'A LA RIVIERE !',air:"TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE',
          facade:'ENCASTRE DANS UNE FACADE',seine:'A LA SEINE !',arbre:'ENCASTRE DANS UN ARBRE',poudreuse:'ENSEVELI DANS LA POUDREUSE',glace:'FRACASSE SUR LA GLACE',sousbois:'ECRASE DANS LES FOUGERES',pic:'ENCASTRE DANS UN PIC DE JADE'}; /* (chasse aux bugs) la mort 'pic' des PICS DE JADE n'avait pas de cause sous GAME OVER */ I18N['ENCASTRE DANS UN PIC DE JADE']='SMASHED INTO A JADE PEAK';
-       const mc9=$t('mCause'),k9=SANDBOX?'':(CAUSES[mortCause]||'');if(mc9){mc9.textContent=k9?TR(k9):'';mc9.style.display=k9?'':'none';mc9.style.color='';}}
+       const mc9=$t('mCause'),k9=SANDBOX?'':(CAUSES[mortCause]||'');if(mc9){mc9.textContent=k9?TR(k9):'';mc9.style.display=k9?'':'none';mc9.style.color='';if(MORT_VOIR&&!SANDBOX){let v9=document.getElementById('mCauseVoir');if(!v9){v9=document.createElement('div');v9.id='mCauseVoir';v9.style.cssText='position:absolute;left:6px;right:6px;bottom:3px;z-index:99;padding:3px 8px;font:600 11px/1.3 monospace;color:#ffd75e;background:rgba(0,0,0,.6);text-align:center;pointer-events:none;white-space:normal';$t('mDead').appendChild(v9);}v9.textContent=(k9?TR(k9):'(aucun texte)')+' ['+(mortCause||'?')+'] '+mortInfo;}}}
       mCompteSon(recT);
       // Ce qui se gagne DANS une partie, c'est le MOTEUR (la caisse, elle, se choisit au garage) :
       // c'est donc lui qu'on montre en fin de run, pas un palier de voiture qui ne veut plus rien dire.
