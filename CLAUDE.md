@@ -19,7 +19,7 @@ Son `www/` est GÉNÉRÉ depuis `VERSION PRINCIPALE/` (`cd app-ios && npm run sy
 - `code/gameplay/` : flow, frénésie, pouvoirs, figures, impact, mort, caméra, aura, pose, seconde chance, ramassage.
 - `code/missions/` : la table, le moteur, l'écran, la révélation, les missions de l'atelier.
 - `code/son/` : musique, voix des moteurs, console et graphe audio, mute ; `moteur-vivant.js` = le second moteur (?moteurvivant=1, DSP dans `assets/audio/moteur-vivant/`, atelier d'écoute dans `atelier-son/moteur-vivant/`).
-- `code/interface/` : traductions (`I18N`), menus, garage, boutique 3D, inventaire, HUD des figures, auto-école.
+- `code/interface/` : traductions (`I18N`), menus, garage, boutique 3D, inventaire, HUD des figures, `mots-jaillissants.js` (les mots — figures, RACCOURCI, +21 KM/H… — qui jaillissent de la caisse : `jaillit`, appelée par `popTexte`), auto-école.
 - `code/moteur/` : la boucle `loop()` (6 tranches `boucle-*`), cadence, init, `intro-161.js` (l'intro du studio : cinq « 1.61 » blanc sur noir au choix `?label=neon|or|poussiere|luxe|hype|demo`, noir, logo qui casse l'écran ; l'ancienne est dans `init.js`, `?intro=ancien`), mobile/tactile/PWA.
 - `code/sauvegarde.js` : `SAVE`, la sauvegarde (localStorage `cashcarSave`).
 - `VERSION PRINCIPALE/` autour d'index.html : `figures.js`, `sfx.js` + `sons-banque.js`, `sw.js` (cache), `assets/`, `vendor/`.

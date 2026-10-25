@@ -27,7 +27,7 @@ function flowAdd(q,fam,trait){
   if(FLOW.v>=100&&!FREN.arme)frenArme();
   if(lv>FLOW.lv){FLOW.lv=lv;const rv9=lv>=3&&!FLOW.revele; /* (console de son) la TRIADE qui s'ouvre a SON son : pas « FLOW III » par-dessus */
     if(lv>=3&&!FLOW.revele)flowRevele(); // la rose est pleine : la TRIADE s'ouvre (et c'est elle qu'on annonce, pas « FLOW III »)
-    else popTexte(FLOW_NOM[lv]+' · $×'+fmtMul(flowMult()),FLOW_COL[lv],1);
+    else popTexte(FLOW_NOM[lv],FLOW_COL[lv],1); /* (2026-10-25) le palier s'écrit seul, petit, à côté de la caisse : le « $× » est déjà au bout de la bande */
     flowPunch();
     hap([12,30,16]);try{if(!(SONV2&&rv9))flowSnd(lv);}catch(e){}
     fovPunch=Math.max(fovPunch,4+lv*2);}

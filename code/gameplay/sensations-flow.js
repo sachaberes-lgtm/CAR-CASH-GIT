@@ -124,23 +124,14 @@ function driftTick(dt,on){
     driftC=0;driftLv=0;
   }
 }
-// LE TEXTE QUI JAILLIT au-dessus de la caisse (l'écran est nu sur téléphone : c'est la seule annonce de conduite)
+/* LE TEXTE QUI JAILLIT de la caisse (l'écran est nu sur téléphone : c'est la seule annonce de conduite) — (2026-10-25, Sacha : « petit, stylisé, qu'il
+   sorte de la voiture, qu'il donne de la vie au jeu sans le charger ») il n'a plus d'emplacement fixe : `jaillit` (mots-jaillissants) l'éjecte de la caisse,
+   de côté, et il s'efface. La PRIORITÉ reste ici (2026-09-25) : un temps fort (PARFAIT, AU CHEVEU…) ne se fait pas voler la vedette par un palier dans les 650 ms. */
 function popTexte(txt,col,prio){
-  // (2026-09-25) une PRIORITÉ : un temps fort (PARFAIT, AU CHEVEU…) ne se fait pas voler la vedette par un palier dans les 650 ms
   prio=prio|0;const n9=performance.now();
   if(prio<(popTexte._p|0)&&n9<(popTexte._t||0))return;
-  popTexte._p=prio;popTexte._t=n9+650;popTexte._s=n9;
-  let e=document.getElementById('popTxt');
-  if(!e){e=document.createElement('div');e.id='popTxt';e.setAttribute('aria-hidden','true');document.body.appendChild(e);}
-  e.textContent=TR(txt);e.style.setProperty('--pc',col||'#ffd75e');
-  // (vague 2, H5) la police pixel avance d'1 em par lettre PLUS l'interlettrage (2 px) : l'ancien calcul l'oubliait, et « DAUPHIN EN
-  // VOL +80 » débordait de 36 px. Plafond 84 % de la largeur (« AIR MONSTRE +110 » barrait l'écran d'un bord à l'autre).
-  const n9L=Math.max(1,e.textContent.length),fs9=Math.max(10,Math.min(Math.round(22*figK()),Math.floor(VP.w*.72*figK()/n9L)-2)); // (2026-09-28) .84 → .72 : l'entrée grossit ×1,15 avec un dépassement de ressort — « RECOLTE ×5 +30 » en 84 % sortait par les deux bords (vu en capture)
-  e.style.fontSize=fs9+'px';popTexte._w=n9L*(fs9+2);
-  // (2026-09-27, passe perf iPhone) relance SANS remise en page synchrone : on bascule entre deux animations jumelles (.on / .on2) — un
-  // nouveau nom d'animation repart de zéro. L'ancien `remove + void offsetWidth + add` forçait style ET mise en page à chaque figure.
-  const k9=popTexte._k=!popTexte._k;e.classList.remove(k9?'on':'on2');e.classList.add(k9?'on2':'on');
-  try{popSuit();}catch(x){} // posé tout de suite sur la caisse (sinon une image au centre de l'écran)
+  popTexte._p=prio;popTexte._t=n9+650;
+  popTexte._w=jaillit(TR(txt),{c:col,prio:prio})||0;
 }
 function n9Saut(o){const n=performance.now(),s9=n-(o._viseT||0)>400;o._viseT=n;return s9;} /* (2026-10-17) 200 → 400 ms, comme CAM_REPRISE : une image qui tousse ne fait plus sauter la visée */ // la visée repart de zéro après une absence (vol, garage, respawn)
 /* ================= LE FLOW — la signature de conduite de CASH CAR (2026-09-25) =================

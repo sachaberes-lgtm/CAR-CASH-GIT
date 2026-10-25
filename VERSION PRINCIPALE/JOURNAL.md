@@ -3,6 +3,20 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES MOTS QUI JAILLISSENT DE LA CAISSE (2026-10-25, v899, session HUD — Sacha : « glisser pour tourner, ça sert à rien, les gens ne sont pas cons ; enlève le multiplicateur de figure (le × 2, × 3) ; sous la barre de flow, FLOW, FLOW 1, 2, 3, ça part ; les textes — raccourci, bump, salto, tail whip, miracle, +21 km/h, big air — sont mal affichés, à gauche dans un petit encadré : écrits et stylisés en petit, qu'ils sortent à côté de la voiture, de la vie au jeu sans le rendre lourd, comme Alto's Odyssey, pour des TikTok satisfaisants »)
+- **RETIRÉ** : l'astuce GLISSE POUR TOURNER (`#tSteerHint` ; celle du garage, qui apprend à tourner la caisse, reste) · la carte de la chaîne d'aura (« 205 ×4 » et sa barre, `#avCh` masqué : la chaîne
+  existe toujours et s'encaisse dans le compteur d'aura) · le nom du palier sous la bande de flow (`.fL` ; le « $×1,5 » au bout de la bande reste) · le grand nom des figures en haut (`#fh`) avec
+  sa ligne de combo (les noms reliés par « + », « COMBO ×1,5 », RECORD) · les plaquettes de gestes à côté de NITRO (`#fhLeg`) · le texte unique au-dessus de la caisse (`#popTxt`, `popSuit`).
+- **NOUVEAU** : `interface/mots-jaillissants.js` + `css/jaillissements.css`. `jaillit(txt,o)` est l'unique point d'entrée : `popTexte` (RACCOURCI +120 M, BIG AIR +50, MIRACULÉ !, +21 KM/H, FLOW II…) et les
+  noms de figure (`fhLance` au départ, `fhPlante` seulement si le nom a changé en route, `fhBump`, `fhTrio`, `fhFin` pour COMBO PERDU) y passent. Un mot naît DANS la caisse, est éjecté de côté (celui du geste pour un tail
+  whip), bondit un peu, se pose à hauteur de toit, tient, s'élève en s'éteignant (≈ 1,1 s) ; jamais plus de 5 vivants, 6 éléments recyclés, transform + opacity seulement. Figures : couleur et police de leur RARETÉ
+  (v5, inchangées) et un trait qui se tire dessous ; les rares et au-delà lâchent quelques pixels. La place se mesure sur la boîte de la caisse À L'ÉCRAN : à côté si le mot y tient, sinon de l'autre côté, sinon AU-DESSUS du
+  toit (debout, une caisse proche remplit l'écran) ; chaque mot prend le premier étage libre de son côté. Les refus d'une figure (plus de plaquette qui secoue) s'écrivent en deux mots rouges : PAS DE NITRO, TROP TARD.
+- **GARDÉ** : toute la règle (figNom, raretés, BUMP figure, meilleur combo posé `SAVE.d.figRec` — la plaque le montre toujours), la priorité de `popTexte` (650 ms), les × de l'écran de fin (MULTI MAX).
+- **VÉRIFIÉ** (Chrome sans fenêtre, 844 × 390 puis 375 × 812, vraie partie, pilote auto) : plus d'astuce, de carte ×, de nom sous la bande ; un vrai lancement de figure en vol (`dbgFig('lance',0)`) écrit SALTO AVANT en bleu (rare) avec son trait,
+  le 2e lancement refusé écrit TROP TARD en rouge ; FLOW I jaillit à la montée de palier ; debout, les mots passent au-dessus du toit quand rien ne tient à côté. `?mots=0` coupe les mots (banc de perf), `dbgJl('TEXTE',{rp,c,dir})` en écrit un.
+- ⚠ **NON VÉRIFIÉ** : sur un vrai iPhone (cadence, netteté de la police pixel à 11-13 px) ; le COMBO PERDU et le combo à trois nommé en vraie partie (testés par `dbgJl` seulement) ; l'anglais (`I18N` des deux refus ajouté, pas relu à l'écran) ;
+  les preuves de `passation/preuves/` (aucune ne lit `#fh`, `#fhLeg` ni `#popTxt`, mais elles n'ont pas été rejouées : pas de node sur ce poste). Les règles CSS de `#popTxt`/`#tSteerHint`/`.fL` dorment dans leurs feuilles (éléments disparus).
 ## LA FRÉNÉSIE A ENFIN SA MUSIQUE : THE DARK TRIAD (2026-10-24 soir, v894 — le 404 de `dark-triad.mp3`, vu deux fois à chaque chargement au banc du 21/10)
 - **LE CONSTAT** : `MUSIC_FREN.f` visait `assets/audio/music/dark-triad.mp3`, un fichier qui n'a JAMAIS existé dans le dépôt (aucun commit ne l'a posé, `git log --all`) ;
   le morceau est la boucle maison DARK TRIAD de l'atelier (`atelier-son/boucles.py`, 01/10, « pour : FRÉNÉSIE » : phonk 140 bpm, do# phrygien, 16 mesures = 27,43 s

@@ -6547,136 +6547,47 @@ html body.touch.play.figVol #tFig{display:flex;position:fixed;z-index:3;gap:var(
 @keyframes fgNon{25%{margin-left:-5px}50%{margin-left:5px}75%{margin-left:-3px}}
 @media (prefers-reduced-motion:reduce){html body.touch.play.figVol #tFig,.tFigB.boum,.tFigB.non{animation:none}}
 </style>
-<style id="figuresHud">
-/* ===== LE HUD DES FIGURES v3 (2026-10-15, Sacha : « retravaille l'HUD pour le système de figure, il est buggé et trop discret ; enlève certaines
-   des autres inscriptions qui se mettent au milieu de l'écran, comme + 2000 AURA, qui est écrit ailleurs de toute façon ; anime, mets de la
-   couleur et tout pour les figures » · « on doit pouvoir sélectionner seulement 2 figures à la fois, pas 3 » · « quand le joystick est vers
-   l'avant, ça déclenche la figure 1 ; sur les côtés, la figure 2 » — choisi : DOUBLE-TAP NITRO + joystick, plus de boutons, un rappel qu'on LIT).
-   CE QUI CLOCHAIT (vu au banc, couché 844 × 390, main v487) : les noms des trois boutons se chevauchaient (« ARRIERETOUPIETONNEAU » : des plaques
-   de 58 px pour des noms de 6-7 lettres) ; en vol, la ligne #figCombo restait vide (elle attendait la 2e figure PLANTÉE, qui tombe en général à
-   la pose) puis surgissait APRÈS la pose, à 29 % du haut, dans le couloir du verdict, ou masquée par la carte moteur ; et (lu dans le code) la figure plantée
-   s'écrivait aussi en petit au-dessus de la caisse (« SALTO ARRIERE ×2 +142 »), une 2e fois dans la chaîne d'aura.
-   · #fh (on le LIT, en haut) : le NOM de la figure qui part, gros, dans la couleur de son emplacement — 1 = CYAN (l'avant), 2 = MAGENTA (le côté),
-     OR = celle que la caisse fait seule (le saut nitro, la toupie de drift). Plantée, elle claque (éclair, confettis) et tombe dans la LIGNE DU
-     COMBO : une pastille par figure, le × qui grimpe et change de couleur (vert → or → orange → l'arc-en-ciel du max). À la pose propre, la ligne
-     flashe en or et S'ENVOLE vers la chaîne d'aura (où « COMBO ×N +X » est déjà écrit) ; à la chute, rouge, les pastilles tombent.
-   · #fhLeg (le rappel, là où étaient les boutons, à côté de NITRO) : ↑ figure 1 · ◄► figure 2. Rien ne s'y touche ; il flashe quand sa figure part.
-   Les animations passent par l'API Web Animations (fhAnime : une relance sans remise en page forcée), la courbe est --ease. */
-:root{--fh1:var(--neoC,#00eaff);--fh2:var(--neoM,#ff3ec8);--fh0:var(--or,#ffd75e);--fhO:#ff7a24;--fhVert:var(--neoV,#5ee37a);--fhKo:var(--neoR,#ff4a64);
-  --fhE:var(--encre,#1c0430);--fhT:calc(var(--ccT,env(safe-area-inset-top,0px)) + 19%);--fhCh:var(--f1,10px);--fhXs:var(--f9,24px);--fhGap:8px;
-  --fhBord:3px 0 0 var(--fhE),-3px 0 0 var(--fhE),0 3px 0 var(--fhE),0 -3px 0 var(--fhE),3px 3px 0 var(--fhE),-3px 3px 0 var(--fhE),3px -3px 0 var(--fhE),-3px -3px 0 var(--fhE),0 6px 0 var(--fhE);
-  --fhBord2:2px 0 0 var(--fhE),-2px 0 0 var(--fhE),0 2px 0 var(--fhE),0 -2px 0 var(--fhE),2px 2px 0 var(--fhE),-2px 2px 0 var(--fhE),2px -2px 0 var(--fhE),-2px -2px 0 var(--fhE),0 4px 0 var(--fhE);
-  --fhCoupe:polygon(4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px),0 4px)}
-@media (orientation:portrait){:root{--fhT:calc(var(--ccT,env(safe-area-inset-top,0px)) + 22%);--fhCh:var(--f0,8px);--fhXs:var(--f6,20px)}}
-#fh{position:fixed;left:50%;top:var(--fhT);z-index:40;pointer-events:none;transform:translateX(-50%);width:min(94vw,680px);
-  display:flex;flex-direction:column;align-items:center;gap:var(--fhGap);font-family:var(--pix);text-align:center;white-space:nowrap;visibility:hidden}
-#fh.on{visibility:visible}
-body:not(.play) #fh,body.dead #fh,body.hTp:not(#ccH) #fh,body.ebOn #fh{visibility:hidden}
-body.fhOn #lvlBan{visibility:hidden} /* une voix en haut : la figure passe devant la bannière du niveau (vue au banc : collées l'une sous l'autre) */
-/* le NOM : couleur pleine de l'emplacement, contour d'encre en pixels, la LÈVRE claire (la rangée du haut de chaque lettre, comme le verdict) */
-#fh .fhNom{--fc:var(--fh0);position:relative;opacity:0;transition:opacity var(--t-fast) var(--ease)}
-#fh .fhNom.on{opacity:1}
-#fh .fhNom b{position:relative;display:block;font-weight:400;line-height:1.2;letter-spacing:2px;color:var(--fc);
-  text-shadow:var(--fhBord),0 0 22px color-mix(in srgb,var(--fc) 70%,transparent)}
-#fh .fhNom b::after{content:attr(data-t);position:absolute;left:0;top:0;right:0;pointer-events:none;color:color-mix(in srgb,var(--fc) 30%,#fff);
-  text-shadow:none;clip-path:inset(0 0 calc(100% - .225em) 0)}
-#fh .fhNom.ko b{animation:fhKo .5s steps(2) 2}
-@keyframes fhKo{50%{color:#fff}}
-/* LA LIGNE DU COMBO : les pastilles (une par figure plantée, la couleur de son emplacement) et le × */
-#fh .fhLigne{display:flex;align-items:center;justify-content:center;gap:10px;max-width:100%;min-height:calc(var(--fhXs) * 1.2)}
-#fh .fhCs{display:flex;gap:6px;flex-wrap:nowrap}
-#fh .fhX{--xc:var(--fh0);font-style:normal;font-size:var(--fhXs);line-height:1;letter-spacing:1px;color:var(--xc);
-  text-shadow:var(--fhBord2),0 0 16px color-mix(in srgb,var(--xc) 70%,transparent)}
-#fh .fhX:empty{display:none}
-#fh .fhX.max{animation:fhMax .48s steps(1) infinite}
-@keyframes fhMax{0%{color:var(--fh1)}33%{color:var(--fh2)}66%{color:var(--fh0)}}
-#fh.perdu .fhX{--cc:var(--fhKo);--xc:var(--fhKo);animation:none}
-/* LE RAPPEL : ↑ figure 1 · ◄► figure 2 — en vol seulement, à côté de NITRO (la place des anciens boutons) ; on le lit, on ne le touche pas */
-#fhLeg{display:none}
-html body.touch.play.figVol.figDir #tFig{display:none!important}
-html body.touch.play.figVol.figDir #fhLeg{display:flex;flex-direction:column;align-items:flex-end;gap:6px;position:fixed;z-index:3;pointer-events:none;
-  right:calc(var(--hudD) + 8px + var(--nxW,21) * var(--nxC,3.6px) + 14px);bottom:calc(var(--sB) + 16px)}
-/* (2026-10-15 soir, les trois directions) debout aussi en COLONNE au-dessus de NITRO : ↑ · ↓ · ◄► dans l'ordre des gestes — trois en rangée (~285 px) passaient sur l'anneau du volant */
-@media (orientation:portrait){html body.touch.play.figVol.figDir #fhLeg{flex-direction:column;align-items:flex-end;right:calc(var(--hudD) + 8px);bottom:calc(var(--sB) + 16px + var(--nxH,29) * var(--nxC,3.6px) + 14px)}}
-.fhL{--fc:var(--fh1);display:flex;align-items:center;gap:7px;padding:7px 10px 6px 8px;background:var(--fhE);font-family:var(--pix);font-size:var(--f0,8px);
-  letter-spacing:1px;line-height:1;color:var(--fc);white-space:nowrap;clip-path:var(--fhCoupe);
-  box-shadow:inset 3px 0 0 var(--fc),inset 0 0 0 1px color-mix(in srgb,var(--fc) 45%,transparent),inset 0 3px 0 rgba(255,255,255,.10)}
-.fhL .pxi{--pxs:2;color:var(--fc);margin:0}
-.fhL b{font-weight:400;color:var(--tx,#fff7ee)}
-.fhL.ko{--fc:var(--fhKo)}
-@media (prefers-reduced-motion:reduce){#fh .fhX.max,#fh .fhNom.ko b{animation:none}}
-/* ===== v4 (2026-10-15 soir, Sacha : « retravaille l'HUD des figures, il faut que ce soit parfait : là c'est écrit en double ») — le récit est au-dessus de figNom.
-   LE NOM et sa FLÈCHE (le geste : ▲ ▼ ◄ ►) sur une ligne ; LA LIGNE DU COMBO en pastilles muettes + « COMBO ×1,5 » + « RECORD » ; LE RAPPEL dont le
-   geste visé s'allume. Les anciennes pastilles à texte (.fhC) ne sont plus posées. */
-#fh .fhNom{display:flex;align-items:center;justify-content:center;gap:.45em}
-#fh .fhNom .fhD{--pxs:3;flex:none;color:var(--fc);filter:drop-shadow(0 3px 0 var(--fhE)) drop-shadow(0 0 10px color-mix(in srgb,var(--fc) 60%,transparent))}
-#fh .fhNom .fhD.vide{display:none}
-@media (orientation:portrait){#fh .fhNom .fhD{--pxs:2}}
-#fh .fhP{--cc:var(--fh0);display:block;width:10px;height:10px;background:var(--cc);clip-path:var(--fhCoupe);box-shadow:inset 0 2px 0 rgba(255,255,255,.35),0 0 10px color-mix(in srgb,var(--cc) 60%,transparent)}
-#fh .fhP.neuf{width:15px;height:15px}
-#fh.paye .fhP{--cc:var(--fh0)}
-#fh.perdu .fhP{--cc:var(--fhKo)}
-#fh .fhX small{font-size:.42em;letter-spacing:1px;vertical-align:.32em;margin-right:.15em;color:var(--tx,#fff7ee);text-shadow:var(--fhBord2)}
-#fh .fhRec{font-family:var(--pix);font-size:var(--fhCh);letter-spacing:1px;line-height:1;text-decoration:none;color:var(--fhE);background:var(--fh0);padding:5px 6px 4px;clip-path:var(--fhCoupe);visibility:hidden}
-#fh .fhRec.on{visibility:visible;animation:fhRecBat .5s steps(2) infinite}
-@keyframes fhRecBat{50%{background:#fff}}
-/* ===== LE « RECORD » DES FIGURES EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») =====
-   iPhone 13 Pro mesuré : 58,0 i/s en course contre 59,7 i/s animations figées (WebKit repeint les fonds animés à chaque image).
-   fhRecBat est une bascule franche (steps(2)) du fond var(--fh0) au blanc OPAQUE : le blanc est posé une fois sur un pseudo-élément (sous le
-   texte : .fhRec isolé, pseudo en z-index −1, coupé par le même clip-path) dont seule l'opacité bascule. Écart attendu : 0. */
-html.han #fh .fhRec.on{animation:none;position:relative;isolation:isolate}
-html.han #fh .fhRec.on::before{content:'';position:absolute;left:0;top:0;right:0;bottom:0;z-index:-1;background:#fff;opacity:0;pointer-events:none;
-  will-change:opacity;animation:hanFhRecBat .5s steps(2) infinite}
-@keyframes hanFhRecBat{50%{opacity:1}}
-@media (prefers-reduced-motion:reduce){html.han #fh .fhRec.on::before{animation:none!important}}
-.fhL{opacity:.62;transition:opacity var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
-.fhL.arme{opacity:1;transform:translateX(-8px);background:color-mix(in srgb,var(--fc) 28%,var(--fhE));
-  box-shadow:inset 3px 0 0 var(--fc),inset 0 0 0 2px var(--fc),0 0 16px color-mix(in srgb,var(--fc) 55%,transparent)}
-@media (prefers-reduced-motion:reduce){#fh .fhRec.on{animation:none}.fhL{transition:none}}
-/* ===== v5 (2026-10-18, Sacha : « retravaille le système de figure, notamment les combos de figures : c'est pas montré assez clairement ; les
-   bumps sur les bords de la route doivent être une figure à part entière, cumulable dans des combos ; en fonction de la rareté de la figure,
-   écris-la dans une couleur et une police différente correspondant à la rareté »). Le récit est au-dessus de FIG_RP.
-   · LA RARETÉ ÉCRITE (data-rp) : la couleur de la boutique (RARETES) et une police pixel par rareté (déclarées dans <style id="policeUnique">) ;
-     --rk = la taille qui donne la même hauteur de capitale que Press Start 2P (MESURÉ : Silkscreen ,63 em · Jersey ,54 · Sixtyfour ,87 ·
-     Jacquard ,57) ; la LÉGENDAIRE un cran plus grande, en minuscules gothiques (Salto Cosmique, `fhTitre`), et un reflet blanc qui la
-     traverse ; l'ÉPIQUE un halo.
-   · LA LIGNE DU COMBO SE LIT : plus de pastilles muettes — le NOM de chaque figure plantée, dans sa rareté, reliés par « + » ; « … » devant
-     quand la ligne déborde (les plus anciennes sortent). Dessous, LE × en grand + RECORD. Un combo à trois NOMMÉ (LA PERCEUSE…) s'écrit en grand,
-     en arc-en-ciel, et ses trois maillons se soulignent d'or. */
-:is(#fh,#fhLeg) [data-rp]{--rc:#b9c4d6;--rk:1}
-:is(#fh,#fhLeg) [data-rp=rare]{--rc:#4db8ff;--rk:1.59}
-:is(#fh,#fhLeg) [data-rp=exotique]{--rc:#3ee8a8;--rk:1.85}
-:is(#fh,#fhLeg) [data-rp=epique]{--rc:#c77dff;--rk:1.15}
-:is(#fh,#fhLeg) [data-rp=legendaire]{--rc:#ffd75e;--rk:1.9}
-:is(#fh,#fhLeg) [data-rp=combo]{--rc:#fff7ee;--rk:1}
-#fh .fhNom[data-rp]{--fc:var(--rc)}
-#fh .fhNom[data-rp]:not([data-rp=commun]):not([data-rp=combo]):not([data-rp=legendaire]) b::after{display:none} /* (2026-10-18, débogage) la légendaire en est exclue : cette règle pesait plus lourd que son reflet (plus bas), qui ne s'est jamais allumé */ /* la lèvre claire est calée sur les capitales de Press Start 2P */
-#fh .fhNom[data-rp=epique] b{text-shadow:var(--fhBord),0 0 26px color-mix(in srgb,var(--fc) 95%,transparent),0 0 8px color-mix(in srgb,var(--fc) 60%,transparent)}
-#fh .fhNom[data-rp=legendaire] b{text-shadow:var(--fhBord),0 0 30px color-mix(in srgb,var(--fc) 85%,transparent)}
-#fh .fhNom[data-rp=legendaire] b::after{display:block;clip-path:none;color:transparent;-webkit-text-fill-color:transparent;
-  background:linear-gradient(105deg,transparent 0 42%,rgba(255,255,255,.95) 47% 53%,transparent 58% 100%) 0 0/300% 100% no-repeat;
-  -webkit-background-clip:text;background-clip:text;animation:fhReflet 1.5s steps(9) infinite}
-@keyframes fhReflet{from{background-position:100% 0}to{background-position:-60% 0}}
-#fh .fhNom[data-rp=combo] b{animation:fhMax .48s steps(1) infinite}
-/* la ligne du combo : les maillons */
-#fh .fhLigne{gap:0;min-height:0;align-items:baseline}
-#fh .fhCs{gap:0;align-items:baseline}
-#fh .fhMore{font-family:var(--pix);font-size:var(--fhCh);line-height:1;text-decoration:none;color:var(--tx,#fff7ee);opacity:.7;text-shadow:var(--fhBord2);margin-right:.45em}
-#fh .fhMore:empty{display:none}
-#fh .fhM{display:block;font-style:normal;font-weight:400;line-height:1;letter-spacing:1px;white-space:nowrap;color:var(--rc);
-  font-size:calc(var(--fhCh) * 1.2 * var(--rk));text-shadow:var(--fhBord2),0 0 12px color-mix(in srgb,var(--rc) 55%,transparent)}
-#fh .fhM+.fhM::before,#fh .fhMore:not(:empty)+.fhCs .fhM:first-child::before{content:'+';display:inline-block;font-size:var(--fhCh);color:var(--tx,#fff7ee);margin:0 .5em;
-  vertical-align:.1em;text-shadow:var(--fhBord2)}
-#fh .fhM.trio{box-shadow:0 4px 0 -1px var(--fh0)}
-#fh.perdu .fhM[data-rp]{--rc:var(--fhKo)}
-#fh .fhBas{display:flex;align-items:center;justify-content:center;gap:10px;min-height:calc(var(--fhXs) * 1.2)}
-#fh .fhBas:not(:has(.fhX:not(:empty))){min-height:0}
-#fh:not(.combo) .fhLigne{display:none} /* une figure seule s'écrit UNE fois, en grand : la ligne naît à la 2e (MESURÉ au banc : « BUMP » en grand ET « BUMP » dessous) */
-#fh .fhRec.on{visibility:inherit} /* (corrigé) en « visible », RECORD restait seul à l'écran quand #fh se cachait (carte moteur, fin de partie…) */
-body.verdOn #fh .fhNom{visibility:hidden} /* UNE voix au centre : le verdict de la pose passe devant le grand nom ; la ligne du combo et le × restent */
-/* le rappel des gestes : le nom de chaque figure dans sa rareté */
-.fhL b[data-rp]{color:var(--rc);font-size:calc(var(--f0,8px) * var(--rk))}
-@media (prefers-reduced-motion:reduce){#fh .fhNom[data-rp=legendaire] b::after,#fh .fhNom[data-rp=combo] b{animation:none}}
+<style id="jaillissements">
+/* ===== LES MOTS QUI JAILLISSENT — le dessin (2026-10-25, Sacha : « petit, stylisé, qu'ils sortent à côté de la voiture, de la vie au jeu sans le rendre
+   lourd, comme Alto's Odyssey, pour des TikTok satisfaisants ») — le récit et le mouvement sont en tête de interface/mots-jaillissants.js. Remplace
+   <style id="figuresHud"> (le grand nom #fh, la ligne du combo, les plaquettes #fhLeg) et les règles #popTxt, restées dormantes plus haut.
+   · LE MOT : Press Start 2P (ou la police de sa rareté, voir <style id="policeUnique">), 11 px couché / 13 debout × le facteur de sa police, contour d'encre
+     d'UN pixel et une ombre portée de 2 px (lisible sur le sable comme dans la nuit), halo doux de sa couleur. Le gain (+50) derrière : .78 em, plus pâle.
+   · LE TRAIT : sous les figures seulement, il se tire de gauche à droite (animé en JS, transform) et s'éteint avec le mot.
+   · LA RARETÉ : sa couleur (la même que la boutique) ; l'ÉPIQUE a un halo plus large, la LÉGENDAIRE aussi et plus chaud ; un combo À TROIS NOMMÉ cycle
+     cyan · magenta · or ; « COMBO PERDU » et les refus sont en rouge.
+   · LA CARTE DE LA CHAÎNE (« 205 ×4 » et sa barre) est retirée de l'écran (Sacha : « enlève le multiplicateur de figure, le truc avec x2, x3 ») : la chaîne
+     existe toujours, elle s'encaisse dans le compteur d'aura (« +344 » à côté). */
+#jl{position:fixed;left:0;top:0;width:100%;height:100%;z-index:40;pointer-events:none;overflow:hidden}
+body:not(.play) #jl,body.hTp:not(#ccH) #jl,body.ebOn #jl,body.ebPlonge #jl{visibility:hidden} /* la carte du moteur est posée sur la caisse : les mots attendent (comme #popTxt) */
+html.balade #jl{display:none}
+#jl .jl{--jc:#ffd75e;--jk:var(--encre,#1c0430);position:absolute;left:0;top:0;display:flex;align-items:baseline;gap:.5em;white-space:nowrap;
+  line-height:1;letter-spacing:1px;color:var(--jc);will-change:transform,opacity;opacity:0}
+#jl .jlM,#jl .jlG{position:relative;font-weight:400;
+  text-shadow:1px 0 0 var(--jk),-1px 0 0 var(--jk),0 1px 0 var(--jk),0 -1px 0 var(--jk),1px 1px 0 var(--jk),-1px 1px 0 var(--jk),1px -1px 0 var(--jk),-1px -1px 0 var(--jk),
+    0 2px 0 var(--jk),0 0 9px color-mix(in srgb,var(--jc) 55%,transparent)}
+#jl .jlM{color:var(--jc)}
+#jl .jlG{font-size:.78em;color:color-mix(in srgb,var(--jc) 55%,#fff);opacity:.85;letter-spacing:0}
+#jl .jl u{display:none;position:absolute;left:0;right:0;bottom:-5px;height:2px;text-decoration:none;background:var(--jc);transform-origin:0 50%;transform:scaleX(0);
+  box-shadow:0 2px 0 var(--jk),0 0 6px color-mix(in srgb,var(--jc) 70%,transparent)}
+#jl .jl[data-rp]:not([data-rp=ko]):not([data-rp=refus]) u{display:block}
+/* la couleur de la rareté (celles de la boutique) — une couleur passée par l'appelant (--jc en ligne) passe devant */
+#jl .jl[data-rp=commun]{--jc:#e4ebf7}
+#jl .jl[data-rp=rare]{--jc:#4db8ff}
+#jl .jl[data-rp=exotique]{--jc:#3ee8a8}
+#jl .jl[data-rp=epique]{--jc:#c77dff}
+#jl .jl[data-rp=legendaire]{--jc:#ffd75e}
+#jl .jl[data-rp=combo]{--jc:#fff7ee}
+#jl .jl[data-rp=ko],#jl .jl[data-rp=refus]{--jc:#ff4a64}
+#jl .jl[data-rp=epique] .jlM{text-shadow:1px 0 0 var(--jk),-1px 0 0 var(--jk),0 1px 0 var(--jk),0 -1px 0 var(--jk),1px 1px 0 var(--jk),-1px 1px 0 var(--jk),1px -1px 0 var(--jk),-1px -1px 0 var(--jk),
+    0 2px 0 var(--jk),0 0 16px color-mix(in srgb,var(--jc) 90%,transparent),0 0 5px color-mix(in srgb,var(--jc) 60%,transparent)}
+#jl .jl[data-rp=legendaire] .jlM{text-shadow:1px 0 0 var(--jk),-1px 0 0 var(--jk),0 1px 0 var(--jk),0 -1px 0 var(--jk),1px 1px 0 var(--jk),-1px 1px 0 var(--jk),1px -1px 0 var(--jk),-1px -1px 0 var(--jk),
+    0 2px 0 var(--jk),0 0 20px color-mix(in srgb,var(--jc) 90%,transparent),0 0 6px color-mix(in srgb,#fff 50%,transparent)}
+#jl .jl[data-rp=combo] .jlM{animation:jlArc .48s steps(1) infinite}
+@keyframes jlArc{0%{color:#00eaff}33%{color:#ff3ec8}66%{color:#ffd75e}}
+@media (prefers-reduced-motion:reduce){#jl .jl[data-rp=combo] .jlM{animation:none}}
+/* LA CARTE DE LA CHAÎNE D'AURA (le total, son × et sa barre) : plus à l'écran — le compteur d'aura encaisse la chaîne tout seul */
+html body #avCh{display:none!important}
 </style>
 <style id="ecoleV2">
 /* ==============================================================================================================
@@ -7470,16 +7381,17 @@ html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAc
 ::placeholder{font-family:var(--pix)!important}
 /* DEUXIÈME EXCEPTION, NOMMÉE (2026-10-18, Sacha : « en fonction de la rareté de la figure, écris-la dans une couleur et une police différente
    correspondant à la rareté » — au quiz : « une police par rareté », toutes en PIXELS) : le NOM d'une figure en course, et lui seul — le HUD des
-   figures (#fh : le nom en grand, les maillons du combo) et le rappel des gestes (#fhLeg). Tout porteur de data-rp : COMMUNE Press Start 2P ·
+   figures, écrit par les mots qui jaillissent de la caisse (#jl ; avant le 25/10 : #fh et #fhLeg). Tout porteur de data-rp : COMMUNE Press Start 2P ·
    RARE Silkscreen · EXOTIQUE Jersey 10 · ÉPIQUE Sixtyfour · LÉGENDAIRE Jacquard 12 (le gothique en pixels, en minuscules à capitale initiale
    depuis le 19/10 : « Salto Cosmique », `fhTitre` — ses capitales ne se lisaient pas). Le « + », le × du combo, RECORD,
-   COMBO PERDU et tout le reste du jeu restent en Press Start 2P. Les couleurs et tailles sont dans <style id="figuresHud"> (v5). */
-:is(#fh,#fhLeg) [data-rp]{--rpf:'Press Start 2P'}
-:is(#fh,#fhLeg) [data-rp=rare]{--rpf:'CC Silkscreen'}
-:is(#fh,#fhLeg) [data-rp=exotique]{--rpf:'CC Jersey'}
-:is(#fh,#fhLeg) [data-rp=epique]{--rpf:'CC Sixtyfour'}
-:is(#fh,#fhLeg) [data-rp=legendaire]{--rpf:'CC Jacquard'}
-:is(#fh,#fhLeg) [data-rp],:is(#fh,#fhLeg) [data-rp] b,:is(#fh,#fhLeg) [data-rp] b::after{font-family:var(--rpf),'Press Start 2P',monospace!important}
+   COMBO PERDU et tout le reste du jeu restent en Press Start 2P. Les couleurs et tailles sont dans <style id="jaillissements"> (v6, le 25/10). */
+#jl [data-rp]{--rpf:'Press Start 2P'}
+#jl [data-rp=rare]{--rpf:'CC Silkscreen'}
+#jl [data-rp=exotique]{--rpf:'CC Jersey'}
+#jl [data-rp=epique]{--rpf:'CC Sixtyfour'}
+#jl [data-rp=legendaire]{--rpf:'CC Jacquard'}
+#jl [data-rp],#jl [data-rp] *{font-family:var(--rpf),'Press Start 2P',monospace!important}
+#jl [data-rp] .jlG{font-family:var(--pix)!important} /* le gain (+50) reste en Press Start 2P */
 </style>
 <style id="missionsV2">
 /* LES MISSIONS v2 — L'ÉCRAN (2026-10-16, Sacha : « un écran MISSIONS magnifique, bâti à partir de la vue garage » · « une seule liste,
@@ -8788,11 +8700,11 @@ body.touch #settings{-webkit-backdrop-filter:none;backdrop-filter:none;backgroun
   </div>
 </div>
 <div id="touchCtl">
-  <div id="tSteer" role="button" tabindex="0" aria-label="Volant — glisse pour tourner"><div id="tStick"><div id="tKnob"></div></div><div id="tSteerHint" data-fr="GLISSE POUR TOURNER">GLISSE POUR TOURNER</div></div>
+  <div id="tSteer" role="button" tabindex="0" aria-label="Volant — glisse pour tourner"><div id="tStick"><div id="tKnob"></div></div></div>
   <div id="tLeft" class="tbtn" role="button" tabindex="0" aria-label="Gauche"><i class="pxi pxi-gauche" aria-hidden="true"></i></div>
   <div id="tRight" class="tbtn" role="button" tabindex="0" aria-label="Droite"><i class="pxi pxi-droite" aria-hidden="true"></i></div>
   <div id="tNitroZone" aria-hidden="true"></div><!-- (2026-09-26) la surface tactile de la NITRO, plus grande que son disque -->
-  <div id="tFig" aria-label="Figures"></div><div id="fhLeg" aria-hidden="true"></div><!-- (2026-10-14, LES FIGURES v2) les trois emplacements, en vol (figHudMaj) -->
+  <div id="tFig" aria-label="Figures"></div><!-- (2026-10-14, LES FIGURES v2) les trois emplacements, en vol (figHudMaj) -->
   <div id="tNitro" class="tbtn" role="button" tabindex="0" aria-label="Nitro"><svg class="nxArt" viewBox="0 0 52 54" shape-rendering="crispEdges" aria-hidden="true"><path class="nx-ep" d="M1 33h1v1h-1zM50 33h1v1h-1zM1 34h1v1h-1zM50 34h1v1h-1zM2 36h1v1h-1zM49 36h1v1h-1zM2 37h1v1h-1zM49 37h1v1h-1zM3 38h1v1h-1zM48 38h1v1h-1zM3 39h1v1h-1zM48 39h1v1h-1zM4 40h1v1h-1zM47 40h1v1h-1zM4 41h2v1h-2zM46 41h2v1h-2zM5 42h2v1h-2zM45 42h2v1h-2zM6 43h1v1h-1zM45 43h1v1h-1zM7 44h1v1h-1zM44 44h1v1h-1zM7 45h3v1h-3zM42 45h3v1h-3zM8 46h3v1h-3zM41 46h3v1h-3zM10 47h2v1h-2zM40 47h2v1h-2zM11 48h3v1h-3zM38 48h3v1h-3zM12 49h4v1h-4zM36 49h4v1h-4zM14 50h5v1h-5zM33 50h5v1h-5zM16 51h20v1h-20zM19 52h14v1h-14z"/><path class="nx-encre" d="M19 1h14v1h-14zM16 2h3v1h-3zM33 2h3v1h-3zM14 3h2v1h-2zM36 3h2v1h-2zM12 4h2v1h-2zM19 4h14v1h-14zM38 4h2v1h-2zM11 5h2v1h-2zM17 5h3v1h-3zM32 5h3v1h-3zM39 5h2v1h-2zM10 6h1v1h-1zM15 6h2v1h-2zM35 6h2v1h-2zM41 6h1v1h-1zM8 7h2v1h-2zM13 7h2v1h-2zM37 7h2v1h-2zM42 7h2v1h-2zM7 8h2v1h-2zM12 8h2v1h-2zM38 8h2v1h-2zM43 8h2v1h-2zM7 9h1v1h-1zM11 9h1v1h-1zM20 9h12v1h-12zM40 9h1v1h-1zM44 9h1v1h-1zM6 10h1v1h-1zM10 10h1v1h-1zM18 10h2v1h-2zM32 10h2v1h-2zM41 10h1v1h-1zM45 10h1v1h-1zM5 11h1v1h-1zM9 11h1v1h-1zM16 11h2v1h-2zM34 11h2v1h-2zM42 11h1v1h-1zM46 11h1v1h-1zM4 12h2v1h-2zM8 12h1v1h-1zM15 12h2v1h-2zM35 12h2v1h-2zM43 12h1v1h-1zM46 12h2v1h-2zM4 13h1v1h-1zM7 13h2v1h-2zM14 13h1v1h-1zM37 13h1v1h-1zM43 13h2v1h-2zM47 13h1v1h-1zM3 14h1v1h-1zM7 14h1v1h-1zM13 14h1v1h-1zM38 14h1v1h-1zM44 14h1v1h-1zM48 14h1v1h-1zM3 15h1v1h-1zM6 15h1v1h-1zM12 15h1v1h-1zM39 15h1v1h-1zM45 15h1v1h-1zM48 15h1v1h-1zM2 16h1v1h-1zM6 16h1v1h-1zM11 16h2v1h-2zM39 16h2v1h-2zM45 16h1v1h-1zM49 16h1v1h-1zM2 17h1v1h-1zM5 17h1v1h-1zM11 17h1v1h-1zM40 17h1v1h-1zM46 17h1v1h-1zM49 17h1v1h-1zM2 18h1v1h-1zM5 18h1v1h-1zM10 18h1v1h-1zM41 18h1v1h-1zM46 18h1v1h-1zM49 18h1v1h-1zM1 19h1v1h-1zM4 19h2v1h-2zM10 19h1v1h-1zM41 19h1v1h-1zM46 19h2v1h-2zM50 19h1v1h-1zM1 20h1v1h-1zM4 20h1v1h-1zM9 20h1v1h-1zM42 20h1v1h-1zM47 20h1v1h-1zM50 20h1v1h-1zM1 21h1v1h-1zM4 21h1v1h-1zM9 21h1v1h-1zM42 21h1v1h-1zM47 21h1v1h-1zM50 21h1v1h-1zM1 22h1v1h-1zM4 22h1v1h-1zM9 22h1v1h-1zM42 22h1v1h-1zM47 22h1v1h-1zM50 22h1v1h-1zM1 23h1v1h-1zM4 23h1v1h-1zM9 23h1v1h-1zM42 23h1v1h-1zM47 23h1v1h-1zM50 23h1v1h-1zM1 24h1v1h-1zM4 24h1v1h-1zM9 24h1v1h-1zM42 24h1v1h-1zM47 24h1v1h-1zM50 24h1v1h-1zM1 25h1v1h-1zM4 25h1v1h-1zM9 25h1v1h-1zM42 25h1v1h-1zM47 25h1v1h-1zM50 25h1v1h-1zM1 26h1v1h-1zM4 26h1v1h-1zM9 26h1v1h-1zM42 26h1v1h-1zM47 26h1v1h-1zM50 26h1v1h-1zM1 27h1v1h-1zM4 27h1v1h-1zM9 27h1v1h-1zM42 27h1v1h-1zM47 27h1v1h-1zM50 27h1v1h-1zM1 28h1v1h-1zM4 28h1v1h-1zM9 28h1v1h-1zM42 28h1v1h-1zM47 28h1v1h-1zM50 28h1v1h-1zM1 29h1v1h-1zM4 29h1v1h-1zM9 29h1v1h-1zM42 29h1v1h-1zM47 29h1v1h-1zM50 29h1v1h-1zM1 30h1v1h-1zM4 30h1v1h-1zM9 30h1v1h-1zM42 30h1v1h-1zM47 30h1v1h-1zM50 30h1v1h-1zM1 31h1v1h-1zM4 31h1v1h-1zM9 31h1v1h-1zM42 31h1v1h-1zM47 31h1v1h-1zM50 31h1v1h-1zM1 32h1v1h-1zM4 32h2v1h-2zM10 32h1v1h-1zM41 32h1v1h-1zM46 32h2v1h-2zM50 32h1v1h-1zM2 33h1v1h-1zM5 33h1v1h-1zM10 33h1v1h-1zM41 33h1v1h-1zM46 33h1v1h-1zM49 33h1v1h-1zM2 34h1v1h-1zM5 34h1v1h-1zM11 34h1v1h-1zM40 34h1v1h-1zM46 34h1v1h-1zM49 34h1v1h-1zM2 35h1v1h-1zM6 35h1v1h-1zM11 35h2v1h-2zM39 35h2v1h-2zM45 35h1v1h-1zM49 35h1v1h-1zM3 36h1v1h-1zM6 36h1v1h-1zM12 36h1v1h-1zM39 36h1v1h-1zM45 36h1v1h-1zM48 36h1v1h-1zM3 37h1v1h-1zM7 37h1v1h-1zM13 37h1v1h-1zM38 37h1v1h-1zM44 37h1v1h-1zM48 37h1v1h-1zM4 38h1v1h-1zM7 38h2v1h-2zM14 38h1v1h-1zM37 38h1v1h-1zM43 38h2v1h-2zM47 38h1v1h-1zM4 39h2v1h-2zM8 39h1v1h-1zM15 39h2v1h-2zM35 39h2v1h-2zM43 39h1v1h-1zM46 39h2v1h-2zM5 40h1v1h-1zM9 40h1v1h-1zM16 40h2v1h-2zM34 40h2v1h-2zM42 40h1v1h-1zM46 40h1v1h-1zM6 41h1v1h-1zM10 41h1v1h-1zM18 41h2v1h-2zM32 41h2v1h-2zM41 41h1v1h-1zM45 41h1v1h-1zM7 42h1v1h-1zM11 42h1v1h-1zM20 42h12v1h-12zM40 42h1v1h-1zM44 42h1v1h-1zM7 43h2v1h-2zM12 43h2v1h-2zM38 43h2v1h-2zM43 43h2v1h-2zM8 44h2v1h-2zM13 44h2v1h-2zM37 44h2v1h-2zM42 44h2v1h-2zM10 45h1v1h-1zM15 45h2v1h-2zM35 45h2v1h-2zM41 45h1v1h-1zM11 46h2v1h-2zM17 46h3v1h-3zM32 46h3v1h-3zM39 46h2v1h-2zM12 47h2v1h-2zM19 47h14v1h-14zM38 47h2v1h-2zM14 48h2v1h-2zM36 48h2v1h-2zM16 49h3v1h-3zM33 49h3v1h-3zM19 50h14v1h-14z"/><path class="nx-sombre" d="M47 16h2v1h-2zM47 17h2v1h-2zM47 18h2v1h-2zM48 19h2v1h-2zM48 20h2v1h-2zM48 21h2v1h-2zM48 22h2v1h-2zM48 23h2v1h-2zM48 24h2v1h-2zM48 25h2v1h-2zM48 26h2v1h-2zM48 27h2v1h-2zM48 28h2v1h-2zM48 29h2v1h-2zM48 30h2v1h-2zM48 31h2v1h-2zM48 32h2v1h-2zM47 33h2v1h-2zM47 34h2v1h-2zM46 35h3v1h-3zM46 36h2v1h-2zM45 37h3v1h-3zM45 38h2v1h-2zM44 39h2v1h-2zM43 40h3v1h-3zM42 41h3v1h-3zM41 42h3v1h-3zM40 43h3v1h-3zM39 44h3v1h-3zM37 45h4v1h-4zM35 46h4v1h-4zM16 47h3v1h-3zM33 47h5v1h-5zM16 48h20v1h-20zM19 49h14v1h-14z"/><path class="nx-mi" d="M36 4h2v1h-2zM35 5h4v1h-4zM37 6h4v1h-4zM39 7h3v1h-3zM40 8h3v1h-3zM41 9h3v1h-3zM42 10h3v1h-3zM43 11h3v1h-3zM44 12h2v1h-2zM45 13h2v1h-2zM45 14h3v1h-3zM46 15h2v1h-2zM46 16h1v1h-1zM5 35h1v1h-1zM4 36h2v1h-2zM4 37h3v1h-3zM5 38h2v1h-2zM6 39h2v1h-2zM6 40h3v1h-3zM7 41h3v1h-3zM8 42h3v1h-3zM9 43h3v1h-3zM10 44h3v1h-3zM11 45h4v1h-4zM13 46h4v1h-4zM14 47h2v1h-2z"/><path class="nx-clair" d="M19 3h14v1h-14zM17 4h2v1h-2zM33 4h2v1h-2zM15 5h2v1h-2zM13 6h2v1h-2zM12 7h1v1h-1zM10 8h2v1h-2zM9 9h2v1h-2zM8 10h2v1h-2zM8 11h1v1h-1zM7 12h1v1h-1zM6 13h1v1h-1zM6 14h1v1h-1zM5 15h1v1h-1zM5 16h1v1h-1zM4 17h1v1h-1zM4 18h1v1h-1zM3 19h1v1h-1zM3 20h1v1h-1zM3 21h1v1h-1zM3 22h1v1h-1zM3 23h1v1h-1zM3 24h1v1h-1zM3 25h1v1h-1zM3 26h1v1h-1zM3 27h1v1h-1zM3 28h1v1h-1zM3 29h1v1h-1zM3 30h1v1h-1zM3 31h1v1h-1zM3 32h1v1h-1zM4 33h1v1h-1zM4 34h1v1h-1z"/><path class="nx-levre" d="M19 2h14v1h-14zM16 3h3v1h-3zM33 3h3v1h-3zM14 4h3v1h-3zM35 4h1v1h-1zM13 5h2v1h-2zM11 6h2v1h-2zM10 7h2v1h-2zM9 8h1v1h-1zM8 9h1v1h-1zM7 10h1v1h-1zM6 11h2v1h-2zM6 12h1v1h-1zM5 13h1v1h-1zM4 14h2v1h-2zM4 15h1v1h-1zM3 16h2v1h-2zM3 17h1v1h-1zM3 18h1v1h-1zM2 19h1v1h-1zM2 20h1v1h-1zM2 21h1v1h-1zM2 22h1v1h-1zM2 23h1v1h-1zM2 24h1v1h-1zM2 25h1v1h-1zM2 26h1v1h-1zM2 27h1v1h-1zM2 28h1v1h-1zM2 29h1v1h-1zM2 30h1v1h-1zM2 31h1v1h-1zM2 32h1v1h-1zM3 33h1v1h-1zM3 34h1v1h-1zM3 35h2v1h-2z"/><path class="nx-piste" d="M20 5h12v1h-12zM17 6h18v1h-18zM15 7h22v1h-22zM14 8h24v1h-24zM12 9h8v1h-8zM32 9h8v1h-8zM11 10h7v1h-7zM34 10h7v1h-7zM10 11h6v1h-6zM36 11h6v1h-6zM9 12h6v1h-6zM37 12h6v1h-6zM9 13h5v1h-5zM38 13h5v1h-5zM8 14h5v1h-5zM39 14h5v1h-5zM7 15h5v1h-5zM40 15h5v1h-5zM7 16h4v1h-4zM41 16h4v1h-4zM6 17h5v1h-5zM41 17h5v1h-5zM6 18h4v1h-4zM42 18h4v1h-4zM6 19h4v1h-4zM42 19h4v1h-4zM5 20h4v1h-4zM43 20h4v1h-4zM5 21h4v1h-4zM43 21h4v1h-4zM5 22h4v1h-4zM43 22h4v1h-4zM5 23h4v1h-4zM43 23h4v1h-4zM5 24h4v1h-4zM43 24h4v1h-4zM5 25h4v1h-4zM43 25h4v1h-4zM5 26h4v1h-4zM43 26h4v1h-4zM5 27h4v1h-4zM43 27h4v1h-4zM5 28h4v1h-4zM43 28h4v1h-4zM5 29h4v1h-4zM43 29h4v1h-4zM5 30h4v1h-4zM43 30h4v1h-4zM5 31h4v1h-4zM43 31h4v1h-4zM6 32h4v1h-4zM42 32h4v1h-4zM6 33h4v1h-4zM42 33h4v1h-4zM6 34h5v1h-5zM41 34h5v1h-5zM7 35h4v1h-4zM41 35h4v1h-4zM7 36h5v1h-5zM40 36h5v1h-5zM8 37h5v1h-5zM39 37h5v1h-5zM9 38h5v1h-5zM38 38h5v1h-5zM9 39h6v1h-6zM37 39h6v1h-6zM10 40h6v1h-6zM36 40h6v1h-6zM11 41h7v1h-7zM34 41h7v1h-7zM12 42h8v1h-8zM32 42h8v1h-8zM14 43h24v1h-24zM15 44h22v1h-22zM17 45h18v1h-18zM20 46h12v1h-12z"/><path class="nx-face" d="M22 11h1v1h-1zM24 11h1v1h-1zM26 11h1v1h-1zM28 11h1v1h-1zM30 11h1v1h-1zM19 12h1v1h-1zM21 12h1v1h-1zM23 12h1v1h-1zM25 12h1v1h-1zM27 12h1v1h-1zM29 12h1v1h-1zM31 12h1v1h-1zM33 12h1v1h-1zM18 13h1v1h-1zM20 13h1v1h-1zM22 13h1v1h-1zM24 13h1v1h-1zM26 13h1v1h-1zM28 13h1v1h-1zM30 13h1v1h-1zM32 13h1v1h-1zM34 13h1v1h-1zM36 13h1v1h-1zM17 14h1v1h-1zM19 14h1v1h-1zM21 14h1v1h-1zM23 14h1v1h-1zM25 14h1v1h-1zM27 14h1v1h-1zM29 14h1v1h-1zM31 14h1v1h-1zM33 14h1v1h-1zM35 14h1v1h-1zM37 14h1v1h-1zM16 15h1v1h-1zM18 15h1v1h-1zM20 15h1v1h-1zM22 15h1v1h-1zM24 15h1v1h-1zM26 15h1v1h-1zM28 15h1v1h-1zM30 15h1v1h-1zM32 15h1v1h-1zM34 15h1v1h-1zM36 15h1v1h-1zM38 15h1v1h-1zM15 16h1v1h-1zM17 16h1v1h-1zM19 16h1v1h-1zM21 16h1v1h-1zM23 16h1v1h-1zM25 16h1v1h-1zM27 16h1v1h-1zM29 16h1v1h-1zM31 16h1v1h-1zM33 16h1v1h-1zM35 16h1v1h-1zM37 16h1v1h-1zM14 17h1v1h-1zM16 17h1v1h-1zM18 17h1v1h-1zM20 17h1v1h-1zM22 17h1v1h-1zM24 17h1v1h-1zM26 17h1v1h-1zM28 17h1v1h-1zM30 17h1v1h-1zM32 17h1v1h-1zM34 17h1v1h-1zM36 17h1v1h-1zM38 17h1v1h-1zM13 18h1v1h-1zM15 18h1v1h-1zM17 18h1v1h-1zM19 18h1v1h-1zM21 18h1v1h-1zM23 18h1v1h-1zM25 18h1v1h-1zM27 18h1v1h-1zM29 18h1v1h-1zM31 18h1v1h-1zM33 18h1v1h-1zM35 18h1v1h-1zM37 18h1v1h-1zM39 18h1v1h-1zM12 19h1v1h-1zM14 19h1v1h-1zM16 19h1v1h-1zM18 19h1v1h-1zM20 19h1v1h-1zM22 19h1v1h-1zM24 19h1v1h-1zM26 19h1v1h-1zM28 19h1v1h-1zM30 19h1v1h-1zM32 19h1v1h-1zM34 19h1v1h-1zM36 19h1v1h-1zM38 19h1v1h-1zM40 19h1v1h-1zM13 20h1v1h-1zM15 20h1v1h-1zM17 20h1v1h-1zM19 20h1v1h-1zM21 20h1v1h-1zM23 20h1v1h-1zM25 20h1v1h-1zM27 20h1v1h-1zM29 20h1v1h-1zM31 20h1v1h-1zM33 20h1v1h-1zM35 20h1v1h-1zM37 20h1v1h-1zM39 20h1v1h-1zM41 20h1v1h-1zM12 21h1v1h-1zM14 21h1v1h-1zM16 21h1v1h-1zM18 21h1v1h-1zM20 21h1v1h-1zM22 21h1v1h-1zM24 21h1v1h-1zM26 21h1v1h-1zM28 21h1v1h-1zM30 21h1v1h-1zM32 21h1v1h-1zM34 21h1v1h-1zM36 21h1v1h-1zM38 21h1v1h-1zM40 21h1v1h-1zM11 22h1v1h-1zM13 22h1v1h-1zM15 22h1v1h-1zM17 22h1v1h-1zM19 22h1v1h-1zM21 22h1v1h-1zM23 22h1v1h-1zM25 22h1v1h-1zM27 22h1v1h-1zM29 22h1v1h-1zM31 22h1v1h-1zM33 22h1v1h-1zM35 22h1v1h-1zM37 22h1v1h-1zM39 22h1v1h-1zM41 22h1v1h-1zM12 23h1v1h-1zM14 23h1v1h-1zM16 23h1v1h-1zM18 23h1v1h-1zM20 23h1v1h-1zM22 23h1v1h-1zM24 23h1v1h-1zM26 23h1v1h-1zM28 23h1v1h-1zM30 23h1v1h-1zM32 23h1v1h-1zM34 23h1v1h-1zM36 23h1v1h-1zM38 23h1v1h-1zM40 23h1v1h-1zM11 24h1v1h-1zM13 24h1v1h-1zM15 24h1v1h-1zM17 24h1v1h-1zM19 24h1v1h-1zM21 24h1v1h-1zM23 24h1v1h-1zM25 24h1v1h-1zM27 24h1v1h-1zM29 24h1v1h-1zM31 24h1v1h-1zM33 24h1v1h-1zM35 24h1v1h-1zM37 24h1v1h-1zM39 24h1v1h-1zM41 24h1v1h-1zM10 25h1v1h-1zM12 25h1v1h-1zM14 25h1v1h-1zM16 25h1v1h-1zM18 25h1v1h-1zM20 25h1v1h-1zM22 25h1v1h-1zM24 25h1v1h-1zM26 25h1v1h-1zM28 25h1v1h-1zM30 25h1v1h-1zM32 25h1v1h-1zM34 25h1v1h-1zM36 25h1v1h-1zM38 25h1v1h-1zM40 25h1v1h-1zM11 26h1v1h-1zM13 26h1v1h-1zM15 26h1v1h-1zM17 26h1v1h-1zM19 26h1v1h-1zM21 26h1v1h-1zM23 26h1v1h-1zM25 26h1v1h-1zM27 26h1v1h-1zM29 26h1v1h-1zM31 26h1v1h-1zM33 26h1v1h-1zM35 26h1v1h-1zM37 26h1v1h-1zM39 26h1v1h-1zM41 26h1v1h-1zM10 27h1v1h-1zM12 27h1v1h-1zM14 27h1v1h-1zM16 27h1v1h-1zM18 27h1v1h-1zM20 27h1v1h-1zM22 27h1v1h-1zM24 27h1v1h-1zM26 27h1v1h-1zM28 27h1v1h-1zM30 27h1v1h-1zM32 27h1v1h-1zM34 27h1v1h-1zM36 27h1v1h-1zM38 27h1v1h-1zM40 27h1v1h-1zM11 28h1v1h-1zM13 28h1v1h-1zM15 28h1v1h-1zM17 28h1v1h-1zM19 28h1v1h-1zM21 28h1v1h-1zM23 28h1v1h-1zM25 28h1v1h-1zM27 28h1v1h-1zM29 28h1v1h-1zM31 28h1v1h-1zM33 28h1v1h-1zM35 28h1v1h-1zM37 28h1v1h-1zM39 28h1v1h-1zM41 28h1v1h-1zM10 29h1v1h-1zM12 29h1v1h-1zM14 29h1v1h-1zM16 29h1v1h-1zM18 29h1v1h-1zM20 29h1v1h-1zM22 29h1v1h-1zM24 29h1v1h-1zM26 29h1v1h-1zM28 29h1v1h-1zM30 29h1v1h-1zM32 29h1v1h-1zM34 29h1v1h-1zM36 29h1v1h-1zM38 29h1v1h-1zM40 29h1v1h-1zM11 30h1v1h-1zM13 30h1v1h-1zM15 30h1v1h-1zM17 30h1v1h-1zM19 30h1v1h-1zM21 30h1v1h-1zM23 30h1v1h-1zM25 30h1v1h-1zM27 30h1v1h-1zM29 30h1v1h-1zM31 30h1v1h-1zM33 30h1v1h-1zM35 30h1v1h-1zM37 30h1v1h-1zM39 30h1v1h-1zM41 30h1v1h-1zM10 31h1v1h-1zM12 31h1v1h-1zM14 31h1v1h-1zM16 31h1v1h-1zM18 31h1v1h-1zM20 31h1v1h-1zM22 31h1v1h-1zM24 31h1v1h-1zM26 31h1v1h-1zM28 31h1v1h-1zM30 31h1v1h-1zM32 31h1v1h-1zM34 31h1v1h-1zM36 31h1v1h-1zM38 31h1v1h-1zM40 31h1v1h-1zM11 32h1v1h-1zM13 32h1v1h-1zM15 32h1v1h-1zM17 32h1v1h-1zM19 32h1v1h-1zM21 32h1v1h-1zM23 32h1v1h-1zM25 32h1v1h-1zM27 32h1v1h-1zM29 32h1v1h-1zM31 32h1v1h-1zM33 32h1v1h-1zM35 32h1v1h-1zM37 32h1v1h-1zM39 32h1v1h-1zM12 33h1v1h-1zM14 33h1v1h-1zM16 33h1v1h-1zM18 33h1v1h-1zM20 33h1v1h-1zM22 33h1v1h-1zM24 33h1v1h-1zM26 33h1v1h-1zM28 33h1v1h-1zM30 33h1v1h-1zM32 33h1v1h-1zM34 33h1v1h-1zM36 33h1v1h-1zM38 33h1v1h-1zM40 33h1v1h-1zM13 34h1v1h-1zM15 34h1v1h-1zM17 34h1v1h-1zM19 34h1v1h-1zM21 34h1v1h-1zM23 34h1v1h-1zM25 34h1v1h-1zM27 34h1v1h-1zM29 34h1v1h-1zM31 34h1v1h-1zM33 34h1v1h-1zM35 34h1v1h-1zM37 34h1v1h-1zM39 34h1v1h-1zM14 35h1v1h-1zM16 35h1v1h-1zM18 35h1v1h-1zM20 35h1v1h-1zM22 35h1v1h-1zM24 35h1v1h-1zM26 35h1v1h-1zM28 35h1v1h-1zM30 35h1v1h-1zM32 35h1v1h-1zM34 35h1v1h-1zM36 35h1v1h-1zM38 35h1v1h-1zM13 36h1v1h-1zM15 36h1v1h-1zM17 36h1v1h-1zM19 36h1v1h-1zM21 36h1v1h-1zM23 36h1v1h-1zM25 36h1v1h-1zM27 36h1v1h-1zM29 36h1v1h-1zM31 36h1v1h-1zM33 36h1v1h-1zM35 36h1v1h-1zM37 36h1v1h-1zM14 37h1v1h-1zM16 37h1v1h-1zM18 37h1v1h-1zM20 37h1v1h-1zM22 37h1v1h-1zM24 37h1v1h-1zM26 37h1v1h-1zM28 37h1v1h-1zM30 37h1v1h-1zM32 37h1v1h-1zM34 37h1v1h-1zM36 37h1v1h-1zM15 38h1v1h-1zM17 38h1v1h-1zM19 38h1v1h-1zM21 38h1v1h-1zM23 38h1v1h-1zM25 38h1v1h-1zM27 38h1v1h-1zM29 38h1v1h-1zM31 38h1v1h-1zM33 38h1v1h-1zM35 38h1v1h-1zM18 39h1v1h-1zM20 39h1v1h-1zM22 39h1v1h-1zM24 39h1v1h-1zM26 39h1v1h-1zM28 39h1v1h-1zM30 39h1v1h-1zM32 39h1v1h-1zM34 39h1v1h-1zM19 40h1v1h-1zM21 40h1v1h-1zM23 40h1v1h-1zM25 40h1v1h-1zM27 40h1v1h-1zM29 40h1v1h-1zM31 40h1v1h-1zM33 40h1v1h-1zM20 41h1v1h-1zM22 41h1v1h-1zM24 41h1v1h-1zM26 41h1v1h-1zM28 41h1v1h-1zM30 41h1v1h-1z"/><path class="nx-face2" d="M21 11h1v1h-1zM23 11h1v1h-1zM25 11h1v1h-1zM27 11h1v1h-1zM29 11h1v1h-1zM33 11h1v1h-1zM18 12h1v1h-1zM20 12h1v1h-1zM22 12h1v1h-1zM24 12h1v1h-1zM26 12h1v1h-1zM28 12h1v1h-1zM30 12h1v1h-1zM32 12h1v1h-1zM34 12h1v1h-1zM17 13h1v1h-1zM19 13h1v1h-1zM21 13h1v1h-1zM23 13h1v1h-1zM25 13h1v1h-1zM27 13h1v1h-1zM29 13h1v1h-1zM31 13h1v1h-1zM33 13h1v1h-1zM35 13h1v1h-1zM16 14h1v1h-1zM18 14h1v1h-1zM20 14h1v1h-1zM22 14h1v1h-1zM24 14h1v1h-1zM26 14h1v1h-1zM28 14h1v1h-1zM30 14h1v1h-1zM32 14h1v1h-1zM34 14h1v1h-1zM36 14h1v1h-1zM15 15h1v1h-1zM17 15h1v1h-1zM19 15h1v1h-1zM21 15h1v1h-1zM23 15h1v1h-1zM25 15h1v1h-1zM27 15h1v1h-1zM29 15h1v1h-1zM31 15h1v1h-1zM33 15h1v1h-1zM35 15h1v1h-1zM37 15h1v1h-1zM14 16h1v1h-1zM16 16h1v1h-1zM18 16h1v1h-1zM20 16h1v1h-1zM22 16h1v1h-1zM24 16h1v1h-1zM26 16h1v1h-1zM28 16h1v1h-1zM30 16h1v1h-1zM32 16h1v1h-1zM34 16h1v1h-1zM36 16h1v1h-1zM38 16h1v1h-1zM13 17h1v1h-1zM15 17h1v1h-1zM17 17h1v1h-1zM19 17h1v1h-1zM21 17h1v1h-1zM23 17h1v1h-1zM25 17h1v1h-1zM27 17h1v1h-1zM29 17h1v1h-1zM31 17h1v1h-1zM33 17h1v1h-1zM35 17h1v1h-1zM37 17h1v1h-1zM39 17h1v1h-1zM12 18h1v1h-1zM14 18h1v1h-1zM16 18h1v1h-1zM18 18h1v1h-1zM20 18h1v1h-1zM22 18h1v1h-1zM24 18h1v1h-1zM26 18h1v1h-1zM28 18h1v1h-1zM30 18h1v1h-1zM32 18h1v1h-1zM34 18h1v1h-1zM36 18h1v1h-1zM38 18h1v1h-1zM40 18h1v1h-1zM13 19h1v1h-1zM15 19h1v1h-1zM17 19h1v1h-1zM19 19h1v1h-1zM21 19h1v1h-1zM23 19h1v1h-1zM25 19h1v1h-1zM27 19h1v1h-1zM29 19h1v1h-1zM31 19h1v1h-1zM33 19h1v1h-1zM35 19h1v1h-1zM37 19h1v1h-1zM39 19h1v1h-1zM12 20h1v1h-1zM14 20h1v1h-1zM16 20h1v1h-1zM18 20h1v1h-1zM20 20h1v1h-1zM22 20h1v1h-1zM24 20h1v1h-1zM26 20h1v1h-1zM28 20h1v1h-1zM30 20h1v1h-1zM32 20h1v1h-1zM34 20h1v1h-1zM36 20h1v1h-1zM38 20h1v1h-1zM40 20h1v1h-1zM11 21h1v1h-1zM13 21h1v1h-1zM15 21h1v1h-1zM17 21h1v1h-1zM19 21h1v1h-1zM21 21h1v1h-1zM23 21h1v1h-1zM25 21h1v1h-1zM27 21h1v1h-1zM29 21h1v1h-1zM31 21h1v1h-1zM33 21h1v1h-1zM35 21h1v1h-1zM37 21h1v1h-1zM39 21h1v1h-1zM41 21h1v1h-1zM12 22h1v1h-1zM14 22h1v1h-1zM16 22h1v1h-1zM18 22h1v1h-1zM20 22h1v1h-1zM22 22h1v1h-1zM24 22h1v1h-1zM26 22h1v1h-1zM28 22h1v1h-1zM30 22h1v1h-1zM32 22h1v1h-1zM34 22h1v1h-1zM36 22h1v1h-1zM38 22h1v1h-1zM40 22h1v1h-1zM11 23h1v1h-1zM13 23h1v1h-1zM15 23h1v1h-1zM17 23h1v1h-1zM19 23h1v1h-1zM21 23h1v1h-1zM23 23h1v1h-1zM25 23h1v1h-1zM27 23h1v1h-1zM29 23h1v1h-1zM31 23h1v1h-1zM33 23h1v1h-1zM35 23h1v1h-1zM37 23h1v1h-1zM39 23h1v1h-1zM41 23h1v1h-1zM12 24h1v1h-1zM14 24h1v1h-1zM16 24h1v1h-1zM18 24h1v1h-1zM20 24h1v1h-1zM22 24h1v1h-1zM24 24h1v1h-1zM26 24h1v1h-1zM28 24h1v1h-1zM30 24h1v1h-1zM32 24h1v1h-1zM34 24h1v1h-1zM36 24h1v1h-1zM38 24h1v1h-1zM40 24h1v1h-1zM11 25h1v1h-1zM13 25h1v1h-1zM15 25h1v1h-1zM17 25h1v1h-1zM19 25h1v1h-1zM21 25h1v1h-1zM23 25h1v1h-1zM25 25h1v1h-1zM27 25h1v1h-1zM29 25h1v1h-1zM31 25h1v1h-1zM33 25h1v1h-1zM35 25h1v1h-1zM37 25h1v1h-1zM39 25h1v1h-1zM41 25h1v1h-1zM10 26h1v1h-1zM12 26h1v1h-1zM14 26h1v1h-1zM16 26h1v1h-1zM18 26h1v1h-1zM20 26h1v1h-1zM22 26h1v1h-1zM24 26h1v1h-1zM26 26h1v1h-1zM28 26h1v1h-1zM30 26h1v1h-1zM32 26h1v1h-1zM34 26h1v1h-1zM36 26h1v1h-1zM38 26h1v1h-1zM40 26h1v1h-1zM11 27h1v1h-1zM13 27h1v1h-1zM15 27h1v1h-1zM17 27h1v1h-1zM19 27h1v1h-1zM21 27h1v1h-1zM23 27h1v1h-1zM25 27h1v1h-1zM27 27h1v1h-1zM29 27h1v1h-1zM31 27h1v1h-1zM33 27h1v1h-1zM35 27h1v1h-1zM37 27h1v1h-1zM39 27h1v1h-1zM41 27h1v1h-1zM10 28h1v1h-1zM12 28h1v1h-1zM14 28h1v1h-1zM16 28h1v1h-1zM18 28h1v1h-1zM20 28h1v1h-1zM22 28h1v1h-1zM24 28h1v1h-1zM26 28h1v1h-1zM28 28h1v1h-1zM30 28h1v1h-1zM32 28h1v1h-1zM34 28h1v1h-1zM36 28h1v1h-1zM38 28h1v1h-1zM40 28h1v1h-1zM11 29h1v1h-1zM13 29h1v1h-1zM15 29h1v1h-1zM17 29h1v1h-1zM19 29h1v1h-1zM21 29h1v1h-1zM23 29h1v1h-1zM25 29h1v1h-1zM27 29h1v1h-1zM29 29h1v1h-1zM31 29h1v1h-1zM33 29h1v1h-1zM35 29h1v1h-1zM37 29h1v1h-1zM39 29h1v1h-1zM41 29h1v1h-1zM10 30h1v1h-1zM12 30h1v1h-1zM14 30h1v1h-1zM16 30h1v1h-1zM18 30h1v1h-1zM20 30h1v1h-1zM22 30h1v1h-1zM24 30h1v1h-1zM26 30h1v1h-1zM28 30h1v1h-1zM30 30h1v1h-1zM32 30h1v1h-1zM34 30h1v1h-1zM36 30h1v1h-1zM38 30h1v1h-1zM40 30h1v1h-1zM11 31h1v1h-1zM13 31h1v1h-1zM15 31h1v1h-1zM17 31h1v1h-1zM19 31h1v1h-1zM21 31h1v1h-1zM23 31h1v1h-1zM25 31h1v1h-1zM27 31h1v1h-1zM29 31h1v1h-1zM31 31h1v1h-1zM33 31h1v1h-1zM35 31h1v1h-1zM37 31h1v1h-1zM39 31h1v1h-1zM41 31h1v1h-1zM12 32h1v1h-1zM14 32h1v1h-1zM16 32h1v1h-1zM18 32h1v1h-1zM20 32h1v1h-1zM22 32h1v1h-1zM24 32h1v1h-1zM26 32h1v1h-1zM28 32h1v1h-1zM30 32h1v1h-1zM32 32h1v1h-1zM34 32h1v1h-1zM36 32h1v1h-1zM38 32h1v1h-1zM40 32h1v1h-1zM11 33h1v1h-1zM13 33h1v1h-1zM15 33h1v1h-1zM17 33h1v1h-1zM19 33h1v1h-1zM21 33h1v1h-1zM23 33h1v1h-1zM25 33h1v1h-1zM27 33h1v1h-1zM29 33h1v1h-1zM31 33h1v1h-1zM33 33h1v1h-1zM35 33h1v1h-1zM37 33h1v1h-1zM39 33h1v1h-1zM12 34h1v1h-1zM14 34h1v1h-1zM16 34h1v1h-1zM18 34h1v1h-1zM20 34h1v1h-1zM22 34h1v1h-1zM24 34h1v1h-1zM26 34h1v1h-1zM28 34h1v1h-1zM30 34h1v1h-1zM32 34h1v1h-1zM34 34h1v1h-1zM36 34h1v1h-1zM38 34h1v1h-1zM13 35h1v1h-1zM15 35h1v1h-1zM17 35h1v1h-1zM19 35h1v1h-1zM21 35h1v1h-1zM23 35h1v1h-1zM25 35h1v1h-1zM27 35h1v1h-1zM29 35h1v1h-1zM31 35h1v1h-1zM33 35h1v1h-1zM35 35h1v1h-1zM37 35h1v1h-1zM14 36h1v1h-1zM16 36h1v1h-1zM18 36h1v1h-1zM20 36h1v1h-1zM22 36h1v1h-1zM24 36h1v1h-1zM26 36h1v1h-1zM28 36h1v1h-1zM30 36h1v1h-1zM32 36h1v1h-1zM34 36h1v1h-1zM36 36h1v1h-1zM38 36h1v1h-1zM15 37h1v1h-1zM17 37h1v1h-1zM19 37h1v1h-1zM21 37h1v1h-1zM23 37h1v1h-1zM25 37h1v1h-1zM27 37h1v1h-1zM29 37h1v1h-1zM31 37h1v1h-1zM33 37h1v1h-1zM35 37h1v1h-1zM37 37h1v1h-1zM16 38h1v1h-1zM18 38h1v1h-1zM20 38h1v1h-1zM22 38h1v1h-1zM24 38h1v1h-1zM26 38h1v1h-1zM28 38h1v1h-1zM30 38h1v1h-1zM32 38h1v1h-1zM34 38h1v1h-1zM36 38h1v1h-1zM17 39h1v1h-1zM19 39h1v1h-1zM21 39h1v1h-1zM23 39h1v1h-1zM25 39h1v1h-1zM27 39h1v1h-1zM29 39h1v1h-1zM31 39h1v1h-1zM33 39h1v1h-1zM18 40h1v1h-1zM20 40h1v1h-1zM22 40h1v1h-1zM24 40h1v1h-1zM26 40h1v1h-1zM28 40h1v1h-1zM30 40h1v1h-1zM32 40h1v1h-1zM21 41h1v1h-1zM23 41h1v1h-1zM25 41h1v1h-1zM27 41h1v1h-1zM29 41h1v1h-1zM31 41h1v1h-1z"/><path class="nx-reflet" d="M20 10h12v1h-12zM18 11h3v1h-3zM31 11h2v1h-2zM17 12h1v1h-1zM15 13h2v1h-2zM14 14h2v1h-2zM13 15h2v1h-2zM13 16h1v1h-1zM12 17h1v1h-1zM11 18h1v1h-1zM11 19h1v1h-1zM10 20h2v1h-2zM10 21h1v1h-1zM10 22h1v1h-1zM10 23h1v1h-1zM10 24h1v1h-1z"/></svg><b class="nxJauge" aria-hidden="true"></b><i class="pxi pxi-eclair" aria-hidden="true"></i><span>NITRO</span></div>
 </div>
 <div id="tSet">
@@ -46673,23 +46585,14 @@ function driftTick(dt,on){
     driftC=0;driftLv=0;
   }
 }
-// LE TEXTE QUI JAILLIT au-dessus de la caisse (l'écran est nu sur téléphone : c'est la seule annonce de conduite)
+/* LE TEXTE QUI JAILLIT de la caisse (l'écran est nu sur téléphone : c'est la seule annonce de conduite) — (2026-10-25, Sacha : « petit, stylisé, qu'il
+   sorte de la voiture, qu'il donne de la vie au jeu sans le charger ») il n'a plus d'emplacement fixe : `jaillit` (mots-jaillissants) l'éjecte de la caisse,
+   de côté, et il s'efface. La PRIORITÉ reste ici (2026-09-25) : un temps fort (PARFAIT, AU CHEVEU…) ne se fait pas voler la vedette par un palier dans les 650 ms. */
 function popTexte(txt,col,prio){
-  // (2026-09-25) une PRIORITÉ : un temps fort (PARFAIT, AU CHEVEU…) ne se fait pas voler la vedette par un palier dans les 650 ms
   prio=prio|0;const n9=performance.now();
   if(prio<(popTexte._p|0)&&n9<(popTexte._t||0))return;
-  popTexte._p=prio;popTexte._t=n9+650;popTexte._s=n9;
-  let e=document.getElementById('popTxt');
-  if(!e){e=document.createElement('div');e.id='popTxt';e.setAttribute('aria-hidden','true');document.body.appendChild(e);}
-  e.textContent=TR(txt);e.style.setProperty('--pc',col||'#ffd75e');
-  // (vague 2, H5) la police pixel avance d'1 em par lettre PLUS l'interlettrage (2 px) : l'ancien calcul l'oubliait, et « DAUPHIN EN
-  // VOL +80 » débordait de 36 px. Plafond 84 % de la largeur (« AIR MONSTRE +110 » barrait l'écran d'un bord à l'autre).
-  const n9L=Math.max(1,e.textContent.length),fs9=Math.max(10,Math.min(Math.round(22*figK()),Math.floor(VP.w*.72*figK()/n9L)-2)); // (2026-09-28) .84 → .72 : l'entrée grossit ×1,15 avec un dépassement de ressort — « RECOLTE ×5 +30 » en 84 % sortait par les deux bords (vu en capture)
-  e.style.fontSize=fs9+'px';popTexte._w=n9L*(fs9+2);
-  // (2026-09-27, passe perf iPhone) relance SANS remise en page synchrone : on bascule entre deux animations jumelles (.on / .on2) — un
-  // nouveau nom d'animation repart de zéro. L'ancien `remove + void offsetWidth + add` forçait style ET mise en page à chaque figure.
-  const k9=popTexte._k=!popTexte._k;e.classList.remove(k9?'on':'on2');e.classList.add(k9?'on2':'on');
-  try{popSuit();}catch(x){} // posé tout de suite sur la caisse (sinon une image au centre de l'écran)
+  popTexte._p=prio;popTexte._t=n9+650;
+  popTexte._w=jaillit(TR(txt),{c:col,prio:prio})||0;
 }
 function n9Saut(o){const n=performance.now(),s9=n-(o._viseT||0)>400;o._viseT=n;return s9;} /* (2026-10-17) 200 → 400 ms, comme CAM_REPRISE : une image qui tousse ne fait plus sauter la visée */ // la visée repart de zéro après une absence (vol, garage, respawn)
 /* ================= LE FLOW — la signature de conduite de CASH CAR (2026-09-25) =================
@@ -46930,7 +46833,7 @@ function flowAdd(q,fam,trait){
   if(FLOW.v>=100&&!FREN.arme)frenArme();
   if(lv>FLOW.lv){FLOW.lv=lv;const rv9=lv>=3&&!FLOW.revele; /* (console de son) la TRIADE qui s'ouvre a SON son : pas « FLOW III » par-dessus */
     if(lv>=3&&!FLOW.revele)flowRevele(); // la rose est pleine : la TRIADE s'ouvre (et c'est elle qu'on annonce, pas « FLOW III »)
-    else popTexte(FLOW_NOM[lv]+' · $×'+fmtMul(flowMult()),FLOW_COL[lv],1);
+    else popTexte(FLOW_NOM[lv],FLOW_COL[lv],1); /* (2026-10-25) le palier s'écrit seul, petit, à côté de la caisse : le « $× » est déjà au bout de la bande */
     flowPunch();
     hap([12,30,16]);try{if(!(SONV2&&rv9))flowSnd(lv);}catch(e){}
     fovPunch=Math.max(fovPunch,4+lv*2);}
@@ -47286,7 +47189,7 @@ function flowHudMaj(rest){
   let h=FLOW.el;
   if(!h){h=FLOW.el=document.createElement('div');h.id='flowHud';h.className='on';h.setAttribute('aria-hidden','true');
     // la 4e cellule porte la ZONE ROUGE (.fZ) : son propre remplissage rouge, par-dessus le violet, et le cran du seuil
-    h.innerHTML='<b class="fL"></b><span class="fSeg"><i><s></s></i><i><s></s></i><i><s></s></i><i><s></s><b class="fZ"><s></s></b></i><u class="fG"></u></span><em class="fM"></em>';
+    h.innerHTML='<span class="fSeg"><i><s></s></i><i><s></s></i><i><s></s></i><i><s></s><b class="fZ"><s></s></b></i><u class="fG"></u></span><em class="fM"></em>';
     FLOW.seg=Array.prototype.slice.call(h.querySelectorAll('.fSeg>i'));
     FLOW.seg.forEach(function(i9,j){i9.style.setProperty('--sc',FLOW_CEL[j]);});
     FLOW.zs=h.querySelector('.fZ s');
@@ -47306,7 +47209,7 @@ function flowHudMaj(rest){
   h.classList.toggle('gele',FLOW.nit&&FLOW.v>0&&FLOW.lv<4); // (v3) le nitro TIENT la jauge de la montée : rien ne fuit tant qu'il brûle
   const tr=frenEl();if(tr){tr.classList.toggle('tremble',FLOW.lv===4&&lache);tr.classList.toggle('froid',FLOW.lv===4&&fuit&&!lache);}
   if(FLOW.lvAff!==FLOW.lv){const av=FLOW.lvAff;FLOW.lvAff=FLOW.lv;h.style.setProperty('--fc',FLOW_COL[FLOW.lv]);h.dataset.lv=FLOW.lv;
-    h.querySelector('.fL').textContent=sansAcc(TR(FLOW_NOM[FLOW.lv]));h.querySelector('.fM').textContent='$×'+fmtMul(flowMult());
+    h.querySelector('.fM').textContent='$×'+fmtMul(flowMult()); /* (2026-10-25, Sacha : « sous la barre de flow, FLOW, FLOW 1, FLOW 2… ça sert à rien, ça part ») plus de nom de palier sous la bande : sa couleur le dit, et la montée de palier s'écrit au-dessus de la caisse (voir mots-jaillissants) */
     const g=FLOW.glow;g.style.setProperty('--fc',FLOW_COL[FLOW.lv]);g.dataset.lv=FLOW.lv;g.style.opacity=FLOW.lv?(.25+FLOW.lv*.15).toFixed(2):'0';
     if(FLOW.lv===4)frenEntre();else{h.classList.remove('embrase','sc1','sc2');if(av===4)frenSort();}} // (sans ça, un retour d'écran — display rendu — rejouerait l'embrasement)
 }
@@ -56766,7 +56669,7 @@ function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)r
   /* À L'IMAGE DU DÉCOLLAGE (le saut nitro, un doigt déjà posé) le viseur n'a pas encore mesuré le vol : une route qui plonge sous la caisse
      reprend la caisse en 0,1 s (MESURÉ au banc : le salto du saut nitro partait, puis s'annulait). La demande attend UNE image (16 ms). */
   if(FX2.img<2&&!o.attendu){FX2.att={s:s,o:Object.assign({},o,{attendu:true,dispo:null})};if(s>=0)FX2.cyc=(s+1)%FIG_NB;return {attente:true};}
-  const nc9=figNitCout(o);if(nc9>0&&nitroR+nitroX+(o.double&&FLC.ok&&performance.now()-FLC.t<450?FLC.c:0)<nc9){figRefus(s);return null;} // (2026-10-17, LA FIGURE SE PAIE — loi 6 du réservoir) pas 20 % dans la jauge (le coup de réacteur du double-tap, qui sera rendu, compté) : elle ne part pas
+  const nc9=figNitCout(o);if(nc9>0&&nitroR+nitroX+(o.double&&FLC.ok&&performance.now()-FLC.t<450?FLC.c:0)<nc9){figRefus(s,'nitro');return null;} // (2026-10-17, LA FIGURE SE PAIE — loi 6 du réservoir) pas 20 % dans la jauge (le coup de réacteur du double-tap, qui sera rendu, compté) : elle ne part pas
   const bud=o.dispo!=null?o.dispo:figBudget(),D=figDose(f,bud);
   let ax=0;for(let i=0;i<f.m.length;i++){const m=f.m[i];if(!(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)){ax=Math.abs(m.a[2])>Math.abs(m.a[1])?2:1;break;}}
   const st9=o.dx!=null&&Math.abs(o.dx)>=.3?o.dx:steer; // (2026-10-15, les deux familles) le geste de CÔTÉ donne le pouce LUI-MÊME (figDirSlot) : la figure part de ce côté, sans attendre que le volant lissé l'ait rejoint
@@ -56807,7 +56710,7 @@ function figNitRend(ok){const n=FX2.nitL|0;FX2.nitF=0;FX2.nitL=0;if(!ok||n<=0)re
   const reste=q-(nitroR-av);if(reste>.001){nitroX=Math.min(2,nitroX+reste);const dx=nitroX-ax;if(LIVRE.on){livre('n+:figure.reserve',dx);livre('n0:figure',reste-dx);}if(dx>.03&&!volgNitro('x',dx))nbPrend('x');} // …le trop-plein dans la réserve bleue
   return (nitroR-av)+(nitroX-ax);}
 window.dbgFigNit=function(){return {cout:+(NITRO2.figN.cout*nitroCap()).toFixed(3),aRendre:FX2.nitL|0,plantees:FX2.nitF|0,rendSiPose:+(NITRO2.figN.rend*(FX2.nitL|0)*nitroCap()).toFixed(3),jauge:+nitroR.toFixed(3),reserve:+nitroX.toFixed(3),cap:nitroCap(),mode:mode};};
-function figRefus(s){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);figBtFx(s,'non');fhLegFx(s,true);}
+function figRefus(s,pourquoi){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);figBtFx(s,'non');try{jaillit(TR(pourquoi==='nitro'?'PAS DE NITRO':'TROP TARD'),{rp:'refus',c:'#ff6a7e',ms:760});}catch(e){}} /* (2026-10-25) les plaquettes des gestes (#fhLeg, qui secouaient en rouge) sont parties : le refus se dit en deux mots, petits, qui sortent de la caisse */
 /* LES COMBOS À TROIS (2026-10-14, Sacha à GAMEPLAY — « réfléchis à comment ça peut être parfait, peu de jeux l'ont fait ; jouissif ; plein
    de combinaisons de trois figures à partir des moves existants » — repris par GENERAL). Chaque TROISIÈME figure plantée d'un même vol
    ferme un TRIO (1-2-3, puis 4-5-6…). Son NOM dépend des AXES des trois figures, dans n'importe quel ordre : T le tonneau (l'axe de la
@@ -57013,7 +56916,7 @@ function frLance(){ // le double-tap au sol : la figure de la direction tenue, S
   let f=FIG.par[S[s]];if(f&&FIG.oriente&&s<2)f=FIG.oriente(f,FIG_DIR[s]);if(!f)return null;
   if(FR.on||GSOL.k||DMT.act||performance.now()-VEQ.sautT<VEQ_K.sautCd*1000)return false; // une à la fois ; pas pendant un geste du GLISSER ni le demi-tour ; l'attente du saut
   const libre=pwrNitroT>0||PARK.on||startBoostT>0||TUTO.on,cout=libre?0:NITRO2.figN.cout*nitroCap();
-  if(!libre&&nitroR+nitroX<cout){figRefus(s);return false;}
+  if(!libre&&nitroR+nitroX<cout){figRefus(s,'nitro');return false;}
   if(cout>0)figNitPaye(cout);
   let ax=0;for(let i=0;i<f.m.length;i++){const m=f.m[i];if(!(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)){ax=Math.abs(m.a[2])>Math.abs(m.a[1])?2:1;break;}}
   const st9=FDIR.on&&Math.abs(FDIR.x)>=.3?FDIR.x:steer,sens=Math.abs(st9)>.25?(ax===2?(st9>0?-1:1):(st9>0?1:-1))*(f.piv?-1:1):(FX2.sensAlt=-FX2.sensAlt); // (comme figLance) elle part du côté du pouce
@@ -57162,96 +57065,30 @@ try{if(document.fonts&&document.fonts.load)setTimeout(function(){['CC Silkscreen
 function bumpNomH(k){return k>=4?'MEGA BUMP':k===3?'TRIPLE BUMP':k===2?'DOUBLE BUMP':'BUMP';}
 function figRarH(f,k){if(!f)return 'commun';if(f.id==='bump')return k>=4?'epique':k===3?'exotique':k===2?'rare':'commun';
   let r='commun';try{r=cosmRar('figure',f);}catch(e){}return FIG_RP[r]?r:'commun';}
-const FH={el:null,nom:null,b:null,d:null,cs:null,more:null,x:null,rec:null,legs:null,legCle:'',vu:false,nomT:0,fin:'',finT:0,xv:-1,ease:'',va:null,arme:-2,recBat:false,rp:'',rpT:'-',horsN:0,trioT:0,nomPl:false};
-const FH_COUL=['var(--fh1)','var(--fhVert)','var(--fh2)','var(--fh0)']; // l'emplacement 1 (l'avant, cyan) · le 2 (l'arrière, vert — 2026-10-15 soir) · le 3 (le côté, magenta) · la figure que la caisse fait SEULE (or)
-const FH_N=[26,22]; // le corps du nom (px) : couché · debout — plafonné par la largeur (police pixel : 1 em par lettre)
-function fhEase(){if(!FH.ease){try{FH.ease=getComputedStyle(document.documentElement).getPropertyValue('--ease').trim();}catch(e){}FH.ease=FH.ease||'ease-out';}return FH.ease;}
-function fhAnime(el,k,ms,o){if(!el||!el.animate)return null;if(REDUCED_MOTION&&!(o&&o.rm))return null; // « Réduire les animations » (iOS) : l'état final s'affiche, sans le mouvement
-  try{return el.animate(k,Object.assign({duration:ms,easing:fhEase()},o||{}));}catch(e){return null;}}
-function fhEl(){if(FH.el)return FH.el;const e=document.createElement('div');e.id='fh';e.setAttribute('aria-hidden','true');
-  e.innerHTML='<div class="fhNom"><i class="pxi fhD"></i><b></b></div><div class="fhLigne"><u class="fhMore"></u><span class="fhCs"></span></div><div class="fhBas"><em class="fhX"></em><u class="fhRec"></u></div>';document.body.appendChild(e); /* (v5) la ligne des NOMS du combo, puis le × dessous */
-  FH.el=e;FH.nom=e.firstChild;FH.d=FH.nom.firstChild;FH.b=FH.nom.lastChild;FH.cs=e.querySelector('.fhCs');FH.more=e.querySelector('.fhMore');FH.x=e.querySelector('.fhX');FH.rec=e.querySelector('.fhRec');return e;}
-function fhNet(t){return sansAcc(String(t)).replace(/[<>&"]/g,'');}
-function fhTitre(t,rp){return rp==='legendaire'?String(t).toLowerCase().replace(/(^|[\s'-])(\S)/g,function(m,a,c){return a+c.toUpperCase();}):t;} // (19/10) la LÉGENDAIRE en minuscules gothiques à capitale initiale (Salto Cosmique) : ses capitales gothiques ne se lisaient pas
-function fhNom(t,c,g,dir,rp){const e=fhEl();t=fhNet(t);const b=FH.b;
-  if(dir!==undefined){FH.d.className='pxi fhD'+(dir?' pxi-'+dir:' vide');} // (v4) la flèche du geste : ▲ ▼ ◄ ► (undefined = on garde celle d'avant : la plantée, le combo perdu)
-  if(rp!==undefined){FH.rp=rp||'';if(rp)FH.nom.setAttribute('data-rp',rp);else FH.nom.removeAttribute('data-rp');} // (v5) la RARETÉ du nom : sa couleur et sa police ('' = Press Start 2P, la couleur c)
-  t=fhTitre(t,FH.rp);
-  if(b.textContent!==t||FH.rpT!==FH.rp){const K=FIG_RP[FH.rp]||FIG_RP.commun;FH.rpT=FH.rp;b.textContent=t;b.setAttribute('data-t',t); /* (v5) même hauteur de capitale que Press Start 2P (k), la largeur selon la chasse de SA police (w) */
-    b.style.fontSize=Math.round(K.k*Math.max(12,Math.min(FH_N[VP.w>VP.h?0:1],Math.floor(VP.w*.8/Math.max(1,(t.length+1.5)*K.w))-2)))+'px';}
-  if(c)FH.nom.style.setProperty('--fc',c);else FH.nom.style.removeProperty('--fc');FH.nom.className='fhNom on'+(g==='ko'?' ko':'');e.classList.add('on');if(!FH.vu)document.body.classList.add('fhOn');FH.vu=true;
-  if(g==='in')fhAnime(FH.nom,[{transform:'scale(2.3) rotate(-7deg)',opacity:0,filter:'brightness(3)'},{transform:'scale(.92) rotate(2deg)',opacity:1,filter:'brightness(1.6)',offset:.45},
-    {transform:'scale(1.05) rotate(0deg)',offset:.72},{transform:'none',opacity:1,filter:'none'}],460);
-  else if(g==='pl')fhAnime(FH.nom,[{transform:'scale(1.4)',filter:'brightness(3.2)'},{transform:'scale(.94)',filter:'brightness(1.5)',offset:.5},{transform:'none',filter:'none'}],400);
-  else if(g==='ko')fhAnime(FH.nom,[{transform:'none'},{transform:'translateX(-10px) rotate(-3deg)'},{transform:'translateX(9px) rotate(2deg)'},{transform:'translateX(-6px)'},{transform:'translateX(4px)'},{transform:'none'}],460,{easing:'steps(6)'});}
-function fhMaillon(t,rp,o){fhEl();o=o||{};const i=document.createElement('i');i.className='fhM'; // (v5) un MAILLON par figure plantée : son nom, dans sa rareté (remplace la pastille muette de la v4)
-  i.setAttribute('data-rp',rp);if(o.b)i.setAttribute('data-b','1');if(o.d)i.setAttribute('data-d','1');i.textContent=fhTitre(fhNet(t),rp);FH.cs.appendChild(i);fhCsCale();
-  fhAnime(i,[{transform:'translateY(-26px) scale('+(o.neuf?2.2:1.7)+')',opacity:0,filter:'brightness(3)'},{transform:'translateY(2px) scale(.94)',opacity:1,offset:.55},{transform:'none',opacity:1,filter:'none'}],420);return i;}
-function fhMaillonMaj(i,t,rp){i.setAttribute('data-rp',rp);i.textContent=fhTitre(fhNet(t),rp);fhCsCale(); // (v5) le BUMP qui suit un BUMP : le même maillon grandit (DOUBLE BUMP…)
-  fhAnime(i,[{transform:'scale(1.7)',filter:'brightness(3)'},{transform:'scale(.94)',offset:.5},{transform:'none',filter:'none'}],380);}
-function fhCsCale(){const L=FH.cs.children,ch=VP.w>VP.h?10:8,lim=Math.min(VP.w*.94,680)*.92; // (v5) la ligne tient en largeur : les plus anciens maillons sortent, « … » devant (estimé sur la chasse de chaque police — --fhCh, ×1,2, « + » et ses marges = 2 corps : aucune mise en page lue)
-  let w=0,k=L.length;while(k>0){const e=L[k-1],n=e.textContent.length,K=FIG_RP[e.getAttribute('data-rp')]||FIG_RP.commun,ww=(n*K.w*1.2+2)*ch+n;if(k<L.length&&(w+ww>lim||L.length-k>=6))break;w+=ww;k--;}
-  if(k>0){for(let j=0;j<k;j++)L[0].remove();FH.horsN+=k;}
-  const m=FH.horsN?'…':'';if(FH.more.textContent!==m)FH.more.textContent=m;}
-function figRec(){return +(SAVE.d&&SAVE.d.figRec)||0;} // le meilleur combo jamais POSÉ (le × du vol)
-function fhXMaj(){const c=FX2.cv,x=c.n>=2?figCvX():0;fhEl();FH.el.classList.toggle('combo',c.n>=2);if(x===FH.xv)return;const monte=x>FH.xv;FH.xv=x; /* (v5) la ligne des noms n'existe qu'à partir de DEUX figures : une figure seule s'écrit une fois, en grand */
-  FH.x.innerHTML=x?'<small>'+fhNet(TR('COMBO'))+'</small> '+figCvTxtX(x):'';FH.x.style.setProperty('--xc',x>=3?'var(--fhO)':x>=2?'var(--fh0)':'var(--fhVert)');FH.x.classList.toggle('max',x>=IMPU.xMax); // vert → or → orange → l'arc-en-ciel du plafond
-  {const bat=x>0&&x>figRec()+1e-6;if(bat!==FH.recBat){FH.recBat=bat;FH.rec.textContent=bat?fhNet(TR('RECORD')):'';FH.rec.classList.toggle('on',bat);if(bat){fhAnime(FH.rec,[{transform:'scale(2.2)',opacity:0},{transform:'scale(.9)',opacity:1,offset:.6},{transform:'none'}],380);try{hap([6,20,6]);}catch(e){}}}} // (v4) le RECORD bat à côté du × : on le voit tomber en plein vol
-  if(x&&monte)fhAnime(FH.x,[{transform:'scale(2.1)',filter:'brightness(2.6)'},{transform:'scale(.9)',offset:.5},{transform:'none',filter:'none'}],380);}
-function fhLance(s,r,o){if(!r||!r.f||!window.FIG)return;const c=o&&o.douce?3:s>=0?Math.min(2,s):3;r.fhc=c; // (figLance) la figure part : son nom, en grand, dans la couleur de son emplacement
-  if(FH.fin)fhRaz(); /* (v5) la ligne du vol d'avant s'éteignait encore : on repart à neuf (avant, son fondu « forwards » restait posé sur #fh — la figure suivante partait invisible) */
-  fhNom(figNom(r.f,figRepsEnCours(r)),null,'in',r.flD||null,figRarH(r.f));FH.nomT=performance.now()+1900;FH.nomPl=false; /* (v4) le nom bien écrit (plus « HELICO 720 ×2 » pour un hélico simple) et la flèche du geste — (v5) dans la couleur et la police de SA RARETÉ (plus celle de l'emplacement) */
-  if(s>=0)fhLegFx(s,false);}
-function fhPlante(r,f,reps,neuf){if(!f||!window.FIG)return;const t=figNom(f,reps),rp=figRarH(f); // (figPaye) plantée : elle claque et tombe dans la ligne
-  if(FH.fin)fhRaz();
-  const m=fhMaillon(t,rp,{neuf:neuf,d:!!(r&&r.douce)});fhXMaj(); /* (v5) son MAILLON entre dans la ligne du combo */
-  fhSeule(t,rp,undefined,1000,m,Math.min(12,6+2*FX2.cv.n));}
-function fhSeule(t,rp,dir,ms,m,nb){const n=performance.now(); // (v5) une figure SEULE claque en grand dans sa rareté (la ligne n'existe pas encore) ; dans un COMBO, le grand nom tombe dans la ligne
-  if(FX2.cv.n<2){fhNom(t,null,'pl',dir,rp);FH.nomT=n+ms;FH.nomPl=true;try{pixBurst(FH.b,nb);}catch(e){}return;} //   (il s'éteint, son maillon arrive) : jamais écrit deux fois — Sacha, 15/10 : « là c'est écrit en double »
-  if(FH.nom.classList.contains('on')&&FH.nomT>n+140&&(FH.nomPl||FH.b.textContent===fhNet(t)))FH.nomT=n+140; // le grand nom est celui d'une figure DÉJÀ dans la ligne (nomPl) : il s'éteint — une figure lancée, encore en l'air, garde le sien
-  try{pixBurst(m,nb);}catch(e){}}
-function fhBump(k,neuf){fhEl();const t=TR(bumpNomH(k)),rp=figRarH(BUMP_FIG,k); // (v5) LE BUMP s'écrit comme une figure plantée : en grand s'il est seul, son maillon dans la ligne
-  if(FH.fin)fhRaz();
-  const L=FH.cs.lastElementChild;let m=L;if(k>1&&L&&L.getAttribute('data-b'))fhMaillonMaj(L,t,rp);else m=fhMaillon(t,rp,{neuf:neuf,b:1}); // collé au BUMP d'avant : le même maillon grandit
-  fhXMaj();fhSeule(t,rp,null,1100,m,Math.min(10,4+2*k));}
-function fhTrio(txt){if(!FH.el||!FH.vu)return; // (v5, comboNote) LE COMBO À TROIS NOMMÉ : son nom en grand (arc-en-ciel), ses trois maillons soulignés d'or
-  fhNom(txt,null,'in',null,'combo');FH.nomT=FH.trioT=performance.now()+1700;FH.nomPl=false;
-  const L=FH.cs.children;let n=0;for(let i=L.length-1;i>=0&&n<3;i--){if(L[i].getAttribute('data-b')||L[i].getAttribute('data-d'))continue;L[i].classList.add('trio');n++;}}
-function figBumpNote(k,pts){if(!FIGV2.on||!BUMP_FIG_ON||!figTutoOk())return; /* (2026-10-18, débogage) figTutoOk : pas de combo invisible payé pendant l'auto-école */ // (v5) LE BUMP, FIGURE À PART ENTIÈRE DU COMBO DU VOL — appelée au rebond sur la tranche (k = son rang dans le vol)
+/* ===== LE HUD DES FIGURES v6 (2026-10-25, Sacha : « SALTO AVANT, TAIL WHIP, BUMP, BIG AIR… sont mal affichés, à gauche dans un petit encadré : écrits et stylisés
+   en petit, qu'ils sortent à côté de la voiture ; et enlève le multiplicateur de figure (le × 2, × 3) » — le récit complet est en tête de mots-jaillissants.js).
+   RETIRÉS : le grand nom du haut (#fh), sa ligne de combo (les noms reliés par « + », « COMBO ×1,5 », RECORD) et le rappel des gestes (#fhLeg, les plaquettes
+   à côté de NITRO, avec le geste visé qui s'allumait). RESTE : la règle (figNom, FIG_RP, figRarH, le BUMP figure, le meilleur combo posé) et les six points
+   d'entrée que le jeu appelle déjà — leur manière d'écrire a changé, pas leur nom :
+   · `fhLance` (la figure PART) : son nom, une seule fois, jaillit de la caisse — du côté du geste (un tail whip part à droite si le pouce est à droite) ;
+   · `fhPlante` (elle est PLANTÉE) : rien de plus à écrire, SAUF si son nom a changé en route (un tour empilé pendant le vol : TONNEAU → DOUBLE TONNEAU) —
+     « écrit en double » est la plainte du 15/10, elle ne revient pas ;
+   · `fhBump` (BUMP → DOUBLE BUMP → TRIPLE BUMP → MEGA BUMP) et `fhTrio` (un combo à trois NOMMÉ, LA PERCEUSE…, en arc-en-ciel et un cran plus grand) ;
+   · `fhFin` (la pose) : un combo PERDU s'écrit en rouge (« COMBO PERDU ») ; un combo posé garde son meilleur × dans la sauvegarde (la plaque le montre),
+     mais le × ne s'affiche plus. La couleur et la police de chaque nom restent celles de sa RARETÉ (v5). */
+function fhLance(s,r,o){if(!r||!r.f||!window.FIG)return;const t=figNom(r.f,figRepsEnCours(r));r.jlNom=t;jaillit(t,{rp:figRarH(r.f),dir:r.flD||null});}
+function fhPlante(r,f,reps,neuf){if(!f||!window.FIG)return;const t=figNom(f,reps);if(r){if(r.jlNom===t)return;r.jlNom=t;}jaillit(t,{rp:figRarH(f),dir:r&&r.flD||null});}
+function fhBump(k,neuf){jaillit(TR(bumpNomH(k)),{rp:figRarH(BUMP_FIG,k)});}
+function fhTrio(txt){jaillit(txt,{rp:'combo',k:1.2});}
+function figRec(){return +(SAVE.d&&SAVE.d.figRec)||0;} /* le meilleur combo jamais POSÉ (le × d'un vol) */
+function figBumpNote(k,pts){if(!FIGV2.on||!BUMP_FIG_ON||!figTutoOk())return; /* (2026-10-18, débogage) figTutoOk : pas de combo invisible payé pendant l'auto-école */ /* (v5) LE BUMP, FIGURE À PART ENTIÈRE DU COMBO DU VOL — appelée au rebond sur la tranche (k = son rang dans le vol) : ses points de chaîne entrent dans FX2.pts, comme ceux des autres */
   FX2.pts+=Math.max(0,pts||0);const neuf=!FX2.cv.ids.bump;figCvNote(BUMP_FIG,1);fhBump(k,neuf);}
-function fhFin(ok){const c=FX2.cv;if(!FH.el||!FH.vu||c.n<1)return;const n=performance.now(); // (la pose) — à appeler AVANT figCvRaz
-  if(ok){if(!(FH.trioT>n))FH.nom.classList.remove('on');FH.el.classList.add('paye');FH.el.classList.remove('perdu'); // (v5) un combo NOMMÉ fermé par la pose reste écrit pendant l'encaissement
-    const M=FH.cs.children,D=c.n>=2?1000+70*M.length:600;
-    if(FH.xv>0)fhAnime(FH.x,[{transform:'scale(1)',filter:'none'},{transform:'scale(2)',filter:'brightness(3)',offset:.35},{transform:'scale(1)',filter:'none'}],420,{delay:70*M.length});
-    for(let i=0;i<M.length;i++)fhAnime(M[i],[{transform:'none',filter:'none'},{transform:'translateY(-5px) scale(1.15)',filter:'brightness(3)',offset:.4},{transform:'none',filter:'none'}],300,{delay:i*70}); /* (v5) les maillons s'allument l'un après l'autre : on lit ce qu'on encaisse, puis le × claque */
-    {const x=c.n>=2?figCvX():0;if(x>figRec()+1e-6){SAVE.d.figRec=Math.round(x*100)/100;SAVE.mark();}} // (v4) le RECORD battu à la pose est gardé
-    FH.fin='efface';FH.finT=n+D;fhAnime(FH.el,[{opacity:1},{opacity:1,offset:.7},{opacity:0}],D,{fill:'forwards',rm:true});} /* (v4) elle s'éteint SUR PLACE : plus de vol à travers l'écran par-dessus la carte moteur */
-  else{if(c.n>=2)fhNom(TR('COMBO PERDU'),'var(--fhKo)','ko',undefined,'');else FH.nom.classList.remove('on'); /* une figure seule : « FIGURE RATÉE ! » le dit déjà sur la caisse (flowCasse) — les maillons tombent, sans un 2e texte */
-    FH.el.classList.add('perdu');FH.el.classList.remove('paye');
-    const L=FH.cs.children;for(let i=0;i<L.length;i++)fhAnime(L[i],[{transform:'none',opacity:1},{transform:'translateY(46px) rotate('+(i%2?18:-16)+'deg)',opacity:0}],520,{delay:120+i*70,fill:'forwards',easing:'steps(5)'});
-    FH.fin='efface';FH.finT=n+1050;}}
-/* (v4) fhVole retirée : la ligne du combo ne traverse plus l'écran (elle passait par-dessus la carte moteur) */
-function fhRaz(){if(FH.vu)document.body.classList.remove('fhOn');FH.vu=false;FH.fin='';FH.nomT=0;FH.xv=-1;FH.recBat=false;FH.horsN=0;FH.trioT=0;if(!FH.el)return;if(FH.va){try{FH.va.cancel();}catch(e){}FH.va=null;}
-  try{FH.el.getAnimations().forEach(function(a){a.cancel();});}catch(e){}
-  FH.el.className='';FH.nom.className='fhNom';FH.cs.textContent='';FH.more.textContent='';FH.x.textContent='';FH.x.classList.remove('max');FH.rec.textContent='';FH.rec.classList.remove('on');}
-function fhTick(vol){if(!FH.vu)return;const n=performance.now(); // (chaque image, depuis figHud) rien n'est écrit tant que rien ne change
-  if(FH.fin){if(n<FH.finT)return;fhRaz();return;}
-  if(!vol){if(mode==='drive'&&!gameOver&&FH.cs.firstChild){FH.nom.classList.remove('on');FH.el.classList.add('paye');FH.fin='efface';FH.finT=n+500;fhAnime(FH.el,[{opacity:1},{opacity:0}],500,{fill:'forwards',rm:true});return;}fhRaz();return;} // (les figures plantées sont déjà dans la chaîne)
-  if(FH.nomT&&n>FH.nomT){FH.nomT=0;FH.nom.classList.remove('on');} // le nom s'éteint ; la ligne du combo reste tant qu'on vole
-  if(!FH.nomT&&!FH.cs.firstChild)fhRaz();}
-function fhLegMaj(){const el=document.getElementById('fhLeg');if(!el||!window.FIG)return;const S=figSlots(),cle=S.join(',')+'|'+LANG;if(FH.legCle===cle)return;FH.legCle=cle; // (en vol) ↑ figure 1 · ◄► figure 2
-  const I=['haut','bas','fleches']; // (2026-10-15, les directions) chaque figure avec le geste et la couleur de SON emplacement ; un emplacement vide ne s'affiche pas (le tonneau ne part que de côté)
-  el.innerHTML=S.map(function(id,i){if(!id)return '';const f=FIG.par[id];return '<div class="fhL" data-s="'+i+'" style="--fc:'+FH_COUL[i]+'">'+pxi(I[i])+'<b data-rp="'+figRarH(f)+'">'+fhTitre(fhNet(figNom(f,1)),figRarH(f))+'</b></div>';}).join(''); /* (v4) les vrais noms : « SALTO AVANT », plus « AVANT » qui se lisait comme une direction */
-  FH.legs=[];FH.arme=-2;[].forEach.call(el.children,function(c){FH.legs[+c.getAttribute('data-s')]=c;});} // rangés par EMPLACEMENT : un geste refusé ne secoue pas l'autre
-function fhArme(){if(!FH.legs||figGlisseOn())return;const s=figDirSlot();if(s===FH.arme)return; // (v4, chaque image en vol) le geste que vise le pouce s'ALLUME
-  const a=FH.legs[FH.arme];if(a)a.classList.remove('arme');FH.arme=s;const b=FH.legs[s];if(b)b.classList.add('arme');}
-function fhLegFx(s,ko){const b=FH.legs&&FH.legs[s];if(!b||s<0)return;
-  if(ko){b.classList.add('ko');clearTimeout(b._k);b._k=setTimeout(function(){b.classList.remove('ko');},460);
-    fhAnime(b,[{transform:'none'},{transform:'translateX(-6px)'},{transform:'translateX(5px)'},{transform:'translateX(-3px)'},{transform:'none'}],400,{easing:'steps(4)'});}
-  else fhAnime(b,[{transform:'scale(1.22)',filter:'brightness(2.8)'},{transform:'none',filter:'none'}],360);}
+function fhFin(ok){const c=FX2.cv;if(c.n<1)return; /* (la pose) — à appeler AVANT figCvRaz */
+  if(ok){const x=c.n>=2?figCvX():0;if(x>figRec()+1e-6){SAVE.d.figRec=Math.round(x*100)/100;SAVE.mark();}}
+  else if(c.n>=2)jaillit(TR('COMBO PERDU'),{rp:'ko'});}
 window.dbgImpu=function(a,n){if(a==='tap'){const r=figImpulsion();return r?(r.attente?'attente':'ok'):'refus';}if(a==='slot'){const r=figLance(n|0,{});return r?(r.attente?'attente':'ok'):'refus';}
-  const C=FX2.corps,e=document.getElementById('fh');return {on:IMPU.on,dir:FDIR.on,mode:mode,go:gameOver,intro:!!introD,eta:+(+CAMV.eta).toFixed(2),combo:{n:FX2.cv.n,dist:FX2.cv.dist,x:figCvX(),noms:FX2.cv.noms.slice()},ptsVol:FX2.pts,
-    hud:e?e.className+' : '+e.textContent:'',chaine:CHA.liste.slice(),chutes:FX2.chutes,
+  const C=FX2.corps;return {on:IMPU.on,dir:FDIR.on,mode:mode,go:gameOver,intro:!!introD,eta:+(+CAMV.eta).toFixed(2),combo:{n:FX2.cv.n,dist:FX2.cv.dist,x:figCvX(),noms:FX2.cv.noms.slice()},ptsVol:FX2.pts,
+    hud:JAIL.der,chaine:CHA.liste.slice(),chutes:FX2.chutes,
     figs:C?C.figs.map(function(r){return r.f.id+(r.s>0?'+':'-')+' tours '+(r.mv[0]?r.mv[0].tours:0)+(r.paye?' payée':r.fini?' finie':'');}):null};};
 function figIco(f){let m=null;for(let i=0;i<f.m.length;i++)if(f.m[i].t!=null&&(!m||Math.abs(f.m[i].t)>Math.abs(m.t)))m=f.m[i];
   if(!m)return 'fgBa';let n=0;for(let i=0;i<f.m.length;i++)if(f.m[i].t!=null)n++;if(n>1)return 'fgCo';
@@ -57263,8 +57100,8 @@ function figHudMaj(){const el=document.getElementById('tFig');if(!el||!window.FI
   FX2.bts=[];[].forEach.call(el.children,function(b){FX2.bts[+b.getAttribute('data-s')]=b;});FX2.btOn[0]=FX2.btOn[1]=FX2.btOn[2]=false;} // (les deux familles) rangés par EMPLACEMENT : 1 = avant, 2 = côté
 function figBtFx(s,c){const b=FX2.bts&&FX2.bts[s];if(!b)return;b.classList.remove('boum','non');void b.offsetWidth;b.classList.add(c);}
 function figHud(){ // (chaque image) les boutons n'existent qu'en VOL ; « on » = tenu
-  figRedP();const v=FIGV2.on&&started&&!gameOver&&mode==='fall'&&!introD&&figTutoOk();fhTick(v||FR.on);if(v&&FDIR.on)fhArme(); // (2026-10-17) la figure SUR LA ROUTE garde son HUD tant qu'elle tourne (le rappel des gestes, lui, reste au vol)
-  if(v!==FX2.vis){FX2.vis=v;document.body.classList.toggle('figVol',v);if(v){if(FDIR.on)fhLegMaj();else figHudMaj();}} // (2026-10-15) au joystick : le RAPPEL ↑ 1 · ◄► 2, plus de boutons
+  figRedP();const v=FIGV2.on&&started&&!gameOver&&mode==='fall'&&!introD&&figTutoOk(); /* (2026-10-25) plus de minuterie du grand nom ni de rappel des gestes à allumer : les mots s'éteignent seuls */
+  if(v!==FX2.vis){FX2.vis=v;document.body.classList.toggle('figVol',v);if(v&&!FDIR.on)figHudMaj();} // (2026-10-15) au joystick : le RAPPEL ↑ 1 · ◄► 2, plus de boutons
   if(v&&FX2.bts)for(let i=0;i<FX2.bts.length;i++){if(!FX2.bts[i])continue;const r=FX2.slots[i],on=!!(r&&r.tient&&!r.paye);if(FX2.btOn[i]!==on){FX2.btOn[i]=on;FX2.bts[i].classList.toggle('on',on);}}}
 /* LES TROIS BOUTONS : le doigt (et la souris, dans le cadre de l'ordi) — un appui = l'explosion, tenu = la poussée ; au clavier 1 · 2 · 3 */
 (function(){const el=document.getElementById('tFig');if(!el)return;
@@ -57292,6 +57129,91 @@ window.dbgFig=function(a,b){
   return {on:FIGV2.on,equipees:figEquipees(),slots:figSlots(),mode:C?C.mode:null,ecart:C?Math.round(C.ecart()*57.3):0,w:C?C.w.map(function(x){return +x.toFixed(2);}):null,
     figures:C?C.figs.map(function(r){return r.f.id+(r.paye?' payée':r.fini?' finie':'')+' '+r.mv.map(function(m){return (m.th/6.2832).toFixed(2);}).join('/');}):null,
     herite:FX2.herite,lancees:FX2.n,payees:FX2.payees,chutes:FX2.chutes,ptsVol:FX2.pts,budget:C?+(+C.budget).toFixed(2):0,boutons:document.body.classList.contains('figVol')};};
+/* ===== LES MOTS QUI JAILLISSENT (2026-10-25, Sacha : « RACCOURCI, BUMP, SALTO, TAIL WHIP, MIRACLE, +21 KM/H, BIG AIR… tous ces textes sont mal
+   affichés, à gauche dans un petit encadré. Il faut qu'ils soient écrits et stylisés en petit, qu'ils sortent à côté de la voiture. Ça doit donner de
+   la vie au jeu plutôt qu'afficher le score à un endroit précis — sans être trop lourd visuellement, pour des TikTok satisfaisants, comme Alto's
+   Odyssey : très discret, juste un peu d'âme ») =====
+   AVANT : trois endroits fixes — le grand nom des figures en haut (#fh), ses plaquettes à côté de NITRO (#fhLeg), l'unique ligne au-dessus de la
+   caisse (#popTxt) — plus la carte de la chaîne d'aura (× N) à gauche. UNE voix à la fois, et elle se lisait comme un tableau de bord.
+   MAINTENANT : un mot naît DANS la caisse, est éjecté de côté (sur un arc court, d'un côté puis de l'autre, du côté du geste pour un tail whip),
+   se pose un instant et s'éteint. Rien ne reste à l'écran : la route et la caisse gardent la vedette.
+   · `jaillit(txt,o)` est le seul point d'entrée — popTexte (tous les « RACCOURCI +120 M », « +21 KM/H », « MIRACULÉ ! »…) et le HUD des figures (les
+     noms de figure, dans leur rareté : couleur et police du v5) y passent. Rend la largeur estimée du mot (px), 0 s'il n'est pas écrit.
+   · LE MOT : « BIG AIR +50 » est coupé en un nom et un gain ; le gain s'écrit plus petit et plus pâle derrière. Taille : celle des anciens textes de
+     figure (≈ 10-12 px) — un cran sous les annonces. Contour d'encre d'un pixel (lisible sur le sable comme sur la nuit), halo doux de sa couleur.
+   · LE GESTE : il sort de la caisse (échelle .45 → 1,18 en 150 ms), file vers sa place en s'amortissant, tient, puis s'élève de 10 px en
+     s'éteignant (≈ 1,1 s). Un trait de sa couleur se tire dessous (figures). Transform + opacity seulement (pas de mise en page, pas de peinture
+     animée) ; 6 éléments recyclés, jamais plus de 5 vivants : le plus ancien est écourté.
+   · LA PLACE : le point d'ancrage est la caisse À L'ÉCRAN — les huit coins de sa boîte (les dimensions de sa fiche) projetés : on mesure sa largeur
+     VISIBLE (le pare-chocs, plus près de la caméra que le centre, est plus large) et son toit. Le mot se pose à côté, son bord contre le flanc, à
+     hauteur de toit ; deux côtés, et jusqu'à trois étages par côté (un mot qui arrive pendant que le précédent vit monte d'un cran) ; le côté
+     est celui du geste, sinon le moins chargé, sinon l'autre si le mot n'y tient pas — et AU-DESSUS du toit quand aucun côté ne suffit (une
+     caisse qui remplit l'écran debout). Borné aux bords de l'écran. Jamais SOUS la caisse : c'est la réception qu'on vise.
+   · « RÉDUIRE LES ANIMATIONS » : le mot s'allume sur place, sans trajet.
+   `?mots=0` : sans mots (banc de perf). `dbgJl()` : l'état (le dernier mot, ceux qui vivent). */
+const JAIL={el:null,pool:[],vivants:[],cote:1,der:'',derT:0,off:/[?&]mots=0\b/.test(location.search),vect:new THREE.Vector3(),droite:new THREE.Vector3()};
+const JL_GAIN=/^(.*?)\s*([+\-−]\s?\d[\d   .,]*(?:\s?(?:KM\/H|AURA|M|\$))?)\s*$/i; /* « NOM +120 M » → le nom, le gain ; « +21 KM/H » seul reste un mot entier */
+function jlNet(t){return sansAcc(String(t)).replace(/[<>&"]/g,'').replace(/\s+/g,' ').trim();}
+function jlTitre(t,rp){return rp==='legendaire'?t.toLowerCase().replace(/(^|[\s'-])(\S)/g,function(m,a,c){return a+c.toUpperCase();}):t;} /* (19/10, la légendaire gothique) en minuscules à capitale initiale : ses capitales ne se lisaient pas */
+function jlConteneur(){if(JAIL.el)return JAIL.el;const e=document.createElement('div');e.id='jl';e.setAttribute('aria-hidden','true');document.body.appendChild(e);JAIL.el=e;return e;}
+function jlElement(){let e=JAIL.pool.pop();if(e)return e;e=document.createElement('div');e.className='jl';e.innerHTML='<span class="jlM"></span><span class="jlG"></span><u></u>';jlConteneur().appendChild(e);return e;} /* le nom, le gain, le trait dessous */
+function jlAncre(){ /* la caisse à l'écran : les 8 coins de sa boîte (les dimensions de sa fiche) projetés — son centre, son toit, et sa demi-largeur VISIBLE (le pare-chocs, plus proche de la caméra que le centre, est plus large à l'écran) */
+  const K=CARS[level]||{w:2,h:1.5,l:4.5},v=JAIL.vect,m=carGroup.matrixWorld;let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+  for(let i=0;i<8;i++){v.set((i&1?.5:-.5)*K.w,(i&2?K.h:0),(i&4?.5:-.5)*K.l).applyMatrix4(m).project(camera);
+    const sx=(v.x*.5+.5)*VP.w,sy=(-v.y*.5+.5)*VP.h;if(sx<x0)x0=sx;if(sx>x1)x1=sx;if(sy<y0)y0=sy;if(sy>y1)y1=sy;}
+  if(!(x1>x0)||!isFinite(x0+x1+y0+y1))return {x:VP.w*.5,y:VP.h*.5,oy:VP.h*.58,w:48};
+  return {x:(x0+x1)/2,y:y0,oy:y0+(y1-y0)*.4,w:Math.max(26,Math.min(VP.w*.3,(x1-x0)/2))};}
+function jlNb(cote){let n=0;const t=performance.now();for(let i=0;i<JAIL.vivants.length;i++){const q=JAIL.vivants[i];if(q.cote===cote&&t-q.t0<760)n++;}return n;} /* les mots de ce côté (0 = au-dessus du toit) encore bien lisibles */
+function jlEtage(cote){const t=performance.now(),pris=[false,false,false];for(let i=0;i<JAIL.vivants.length;i++){const q=JAIL.vivants[i];if(q.cote===cote&&t-q.t0<760)pris[q.etage]=true;}for(let e=0;e<3;e++)if(!pris[e])return e;return 2;} /* le premier étage libre : un mot ne se pose jamais sur un autre */
+function jaillit(txt,o){
+  if(JAIL.off||!txt)return 0;o=o||{};
+  let nom=jlNet(txt),gain='';const g=JL_GAIN.exec(nom);if(g&&g[1]){nom=g[1];gain=g[2].replace(/\s+/g,' ').replace(/−/g,'-');}
+  if(!nom)return 0;
+  const n=performance.now(),rp=o.rp||'mot';
+  if(nom+gain===JAIL.der&&n-JAIL.derT<420)return 0; /* le même mot deux fois de suite (un rebond qui tousse) : un seul */
+  try{
+    const a=jlAncre(),K=FIG_RP[rp]||FIG_RP.commun,fig=!!FIG_RP[rp]&&rp!=='combo',kk=fig?K.k:1,kw=fig?K.w:1;
+    nom=jlTitre(nom,rp);
+    /* FIG_RP : k = le facteur de taille de la police (hauteur de capitale = celle de Press Start 2P), w = la chasse d'une lettre en unités du corps SANS k (mesurées au canvas, v5) */
+    const larg=function(f){const s=f/kk;return nom.length*s*kw+nom.length*1.4+(gain?(gain.length+1)*s*.78:0);};
+    let fs=Math.round((VP.w>VP.h?11:12.5)*(o.k||1)*kk);while(fs>9&&larg(fs)>VP.w*.84)fs--; /* le mot tient dans l'écran */
+    const W=larg(fs),marge=8,vide=fs*.8;
+    /* LE CÔTÉ : celui du geste (un tail whip part à droite si le pouce est à droite), sinon celui qui a le moins de mots — et jamais un côté où le mot ne tient pas : l'autre, puis AU-DESSUS du toit */
+    let cote=o.cote||(o.dir==='gauche'?-1:o.dir==='droite'?1:0);if(!cote){const l=jlNb(-1),r=jlNb(1);cote=l===r?-JAIL.cote:l<r?-1:1;}
+    const place=function(c){return c>0?VP.w-(a.x+a.w+vide)-marge:(a.x-a.w-vide)-marge;};
+    let dessus=false;if(place(cote)<W){if(place(-cote)>=W)cote=-cote;else dessus=true;}JAIL.cote=cote;
+    const etage=jlEtage(dessus?0:cote),ph=(n%7)/7; /* le léger désordre vient de l'heure (pas d'aléa : un banc rejoue le même geste) */
+    const dx0=dessus?0:cote*(a.w+vide+W/2+ph*10),dy0=-(fs*(dessus?2.1:1.5)+etage*fs*2.2+ph*8); /* le bord du mot touche le flanc de la caisse, à hauteur de toit ; un étage de plus par mot qui arrive avant que le précédent soit parti */
+    const xm=Math.max(W/2+marge,Math.min(VP.w-W/2-marge,a.x+dx0)),ym=Math.max(Math.max(VP.h*.2,48),Math.min(VP.h*.8,a.y+dy0));
+    const dx=Math.round(xm-a.x),dy=Math.round(ym-a.oy),hop=Math.round(fs*1.1);
+    if(JAIL.vivants.length>=5){const v0=JAIL.vivants[0];if(v0&&v0.anim)v0.anim.playbackRate=4;} /* jamais plus de 5 mots : le plus ancien s'écourte */
+    const e=jlElement(),M=e.firstChild,G=M.nextSibling,U=G.nextSibling;
+    M.textContent=nom;G.textContent=gain;G.style.display=gain?'':'none';if(gain)G.style.fontSize=Math.max(9,Math.round(fs/kk*.78))+'px'; /* le gain : .78 du corps de Press Start 2P, jamais de celui d'une police de rareté plus grande */
+    e.style.fontSize=fs+'px';if(o.c)e.style.setProperty('--jc',o.c);else e.style.removeProperty('--jc'); /* sans couleur donnée, c'est celle de la rareté (CSS) */
+    if(FIG_RP[rp]||rp==='ko'||rp==='refus')e.setAttribute('data-rp',rp);else e.removeAttribute('data-rp');
+    e.style.display='';
+    const T=function(x,y,s,r){return 'translate('+Math.round(a.x+x)+'px,'+Math.round(a.oy+y)+'px) translate(-50%,-50%) scale('+s+') rotate('+(r||0)+'deg)';};
+    const ms=o.ms||(rp==='combo'?1500:1120),rot=(dessus?1:cote)*(2+ph*3);
+    let kf;
+    if(REDUCED_MOTION)kf=[{transform:T(dx,dy,1),opacity:0,offset:0},{transform:T(dx,dy,1),opacity:1,offset:.12},{transform:T(dx,dy,1),opacity:1,offset:.78},{transform:T(dx,dy,1),opacity:0,offset:1}];
+    else kf=[{transform:T(0,0,.45,0),opacity:0,offset:0}, /* il sort de la caisse… */
+      {transform:T(dx*.72,dy-hop,1.18,rot),opacity:1,offset:.14,easing:'cubic-bezier(.2,.8,.3,1)'}, /* …bondit un peu au-delà de sa place… */
+      {transform:T(dx*.96,dy+2,1,0),opacity:1,offset:.32,easing:'ease-out'}, /* …retombe dessus… */
+      {transform:T(dx,dy-4,1,0),opacity:1,offset:.78,easing:'linear'}, /* …tient… */
+      {transform:T(dx*1.02,dy-16,.96,0),opacity:0,offset:1}]; /* …et s'élève en s'éteignant */
+    const q={cote:dessus?0:cote,etage:etage,t0:n,anim:null}; /* 0 = au-dessus du toit : ces mots-là s'étagent entre eux */JAIL.vivants.push(q);
+    q.anim=e.animate(kf,{duration:ms,fill:'both',easing:'linear'});
+    const fin=function(){const i=JAIL.vivants.indexOf(q);if(i>=0)JAIL.vivants.splice(i,1);q.anim.onfinish=q.anim.oncancel=null;try{q.anim.cancel();}catch(x){}
+      if(JAIL.pool.indexOf(e)<0){e.style.display='none';JAIL.pool.push(e);}};
+    q.anim.onfinish=q.anim.oncancel=fin;
+    if(!REDUCED_MOTION&&(fig||rp==='combo'))U.animate([{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{duration:240,delay:90,easing:'cubic-bezier(.2,.8,.2,1)',fill:'both'}); /* le trait se tire sous le mot (figures) : on le lit, puis il s'éteint avec lui */
+    JAIL.der=nom+gain;JAIL.derT=n;
+    if((fig&&rp!=='commun'||rp==='combo')&&!REDUCED_MOTION)try{pixBurst(e,rp==='combo'?7:4);}catch(x){} /* une poignée de pixels pour les figures rares : le mot jaillit de la caisse en étincelant */
+    return W;
+  }catch(err){return 0;}
+}
+try{Object.assign(I18N,{'PAS DE NITRO':'NO NITRO','TROP TARD':'TOO LATE'});}catch(e){} /* les deux refus d'une figure (figRefus) */
+window.dbgJl=function(txt,o){if(txt)return jaillit(txt,o||{});return {der:JAIL.der,vivants:JAIL.vivants.length,pool:JAIL.pool.length,off:JAIL.off};};
 /* ===== LES DÉFIS SECRETS — les détections (2026-10-14, Sacha via PILOTAGE : « une dizaine de couleurs secrètes, chacune gagnée par un défi
    caché un peu compliqué à avoir, façon Geometry Dash » ; GRAPHISME écrit les peintures `COSM.peinture` (`sec:'id'`, l'indice) et `secDonne(id)`
    — la peinture donnée, le toast COULEUR SECRÈTE ; GAMEPLAY écrit ici QUAND on la gagne). Rien en BALADE, en BAC À SABLE, au PARC ni à
@@ -59140,22 +59062,6 @@ function laneY(){ // où tombe le couloir des annonces (--laneA, safe area compr
   return laneY.v;
 }
 const POP_V9=new THREE.Vector3();
-function popSuit(){ // (HUD v4) le geste JAILLIT DE LA CAISSE : tant que le texte vit, il suit la voiture à l'écran — au sol comme en vol
-  if(!(performance.now()<(popTexte._s||0)+950))return;const e=avE('popTxt');if(!e)return;
-  const la=laneY();
-  // AU-DESSUS de la caisse s'il y a la place sous le couloir des annonces (au sol, toujours) ; sinon DESSOUS (en vol, la caméra
-  // centre la caisse : au-dessus, le geste se posait sur l'annonce)
-  POP_V9.copy(carGroup.position).addScaledVector(camera.up,2.6).project(camera);const yH=(-POP_V9.y*.5+.5)*VP.h,xC=(POP_V9.x*.5+.5)*VP.w; // le TOIT de la caisse à l'écran
-  POP_V9.copy(carGroup.position).addScaledVector(camera.up,-1.4).project(camera);const yB=(-POP_V9.y*.5+.5)*VP.h;  // son bas de caisse
-  const mini=la+(HAUT.cur&&performance.now()<HAUT.fin?(HAUT.cur.k==='ver'?Math.max(64,VERD.h-44):64):34); // (vague 2) une voix occupe le couloir (annonce, niveau, défi) : le geste se pose plus bas · (vague 3) sous le VERDICT, plus haut qu'une annonce
-  /* (2026-09-29, Sacha : « les textes de figure bloquent la vue ») EN VOL, le dessous de la caisse, c'est la RÉCEPTION qu'on vise : le geste ne s'y
-     pose plus. Pas la place au-dessus (une annonce occupe le couloir) → il s'efface : la liste des figures, à gauche, le garde. Au sol : comme avant. */
-  const vol9=mode==='fall',haut9=yH-56>=mini;if(vol9!==!!popSuit._v||haut9!==!!popSuit._h){popSuit._v=vol9;popSuit._h=haut9;e.classList.toggle('cache',vol9&&!haut9);}
-  const y=haut9?Math.min(yH-56,VP.h*.64):THREE.MathUtils.clamp(yB+24,mini,VP.h*.74);
-  const t9=y.toFixed(0)+'px';if(!PCF_HAN_SUIT&&e.style.top!==t9)e.style.top=t9; // (perf) on n'écrit que ce qui a bougé d'un pixel
-  // (vague 2, H5) il suit aussi la caisse en LARGEUR, mais borné : « AUPHIN EN VOL +8 » sortait de l'écran par la gauche
-  const hw=(popTexte._w||0)*.58+8,x=Math.max(hw,Math.min(VP.w-hw,xC)),l9=x.toFixed(0)+'px';if(PCF_HAN_SUIT)pcfHanPlace(e,l9,t9,popSuit);else if(e.style.left!==l9)e.style.left=l9; // .58 : le rebond d'entrée (×1,15) compris
-}
 /* (HUD v4) LE RECORD À BATTRE — la meilleure partie (SAVE.d.auraMax) s'affiche sous le compteur, avec sa jauge : on la voit se
    remplir, elle BAT à 85 %, et le jour où on la dépasse EN COURSE, le jeu le crie (une fois par partie). C'est le « encore une ». */
 function recInit(){CHA.rec=SAVE.d.auraMax||0;CHA.recB=false;CHA.recP=-1;
@@ -59203,7 +59109,7 @@ function hudDiscretTick(){const now=performance.now();
 function hudReveil(id){for(const x of HUDD.L)if(x.id===id&&x.t0){x.t0=performance.now();const e=x.el();if(e)e.classList.remove('discret');}}
 function chaineTick(dt){
   hudDiscretTick(); // (2026-09-30) LE HUD DISCRET (repris de Léo)
-  engBigSuit();popSuit();
+  engBigSuit();
   // le COMPTEUR : il grimpe vers la vraie valeur (on voit l'aura TOMBER dedans), une écriture DOM seulement quand le chiffre change
   CHA.v+=(auraRun-CHA.v)*Math.min(1,dt*7);if(Math.abs(auraRun-CHA.v)<1)CHA.v=auraRun;
   const a9=Math.round(CHA.v);if(a9!==CHA.vAff){CHA.vAff=a9;const e9=avE('avVal');if(e9){const t9=fmtAura(a9);e9.textContent=t9;const n9=t9.length>=8?'l2':t9.length>=6?'l1':'';if(e9.dataset.l!==n9)e9.dataset.l=n9;}recMaj(a9);if(CHA.recB)recSurplus(a9);} // (2026-09-28) data-l : le compteur resserre son corps quand le nombre s'allonge (il passait à la ligne : « 1 » puis « 418 »)

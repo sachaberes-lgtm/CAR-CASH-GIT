@@ -105,14 +105,15 @@ html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAc
 ::placeholder{font-family:var(--pix)!important}
 /* DEUXIÈME EXCEPTION, NOMMÉE (2026-10-18, Sacha : « en fonction de la rareté de la figure, écris-la dans une couleur et une police différente
    correspondant à la rareté » — au quiz : « une police par rareté », toutes en PIXELS) : le NOM d'une figure en course, et lui seul — le HUD des
-   figures (#fh : le nom en grand, les maillons du combo) et le rappel des gestes (#fhLeg). Tout porteur de data-rp : COMMUNE Press Start 2P ·
+   figures, écrit par les mots qui jaillissent de la caisse (#jl ; avant le 25/10 : #fh et #fhLeg). Tout porteur de data-rp : COMMUNE Press Start 2P ·
    RARE Silkscreen · EXOTIQUE Jersey 10 · ÉPIQUE Sixtyfour · LÉGENDAIRE Jacquard 12 (le gothique en pixels, en minuscules à capitale initiale
    depuis le 19/10 : « Salto Cosmique », `fhTitre` — ses capitales ne se lisaient pas). Le « + », le × du combo, RECORD,
-   COMBO PERDU et tout le reste du jeu restent en Press Start 2P. Les couleurs et tailles sont dans <style id="figuresHud"> (v5). */
-:is(#fh,#fhLeg) [data-rp]{--rpf:'Press Start 2P'}
-:is(#fh,#fhLeg) [data-rp=rare]{--rpf:'CC Silkscreen'}
-:is(#fh,#fhLeg) [data-rp=exotique]{--rpf:'CC Jersey'}
-:is(#fh,#fhLeg) [data-rp=epique]{--rpf:'CC Sixtyfour'}
-:is(#fh,#fhLeg) [data-rp=legendaire]{--rpf:'CC Jacquard'}
-:is(#fh,#fhLeg) [data-rp],:is(#fh,#fhLeg) [data-rp] b,:is(#fh,#fhLeg) [data-rp] b::after{font-family:var(--rpf),'Press Start 2P',monospace!important}
+   COMBO PERDU et tout le reste du jeu restent en Press Start 2P. Les couleurs et tailles sont dans <style id="jaillissements"> (v6, le 25/10). */
+#jl [data-rp]{--rpf:'Press Start 2P'}
+#jl [data-rp=rare]{--rpf:'CC Silkscreen'}
+#jl [data-rp=exotique]{--rpf:'CC Jersey'}
+#jl [data-rp=epique]{--rpf:'CC Sixtyfour'}
+#jl [data-rp=legendaire]{--rpf:'CC Jacquard'}
+#jl [data-rp],#jl [data-rp] *{font-family:var(--rpf),'Press Start 2P',monospace!important}
+#jl [data-rp] .jlG{font-family:var(--pix)!important} /* le gain (+50) reste en Press Start 2P */
 </style>
