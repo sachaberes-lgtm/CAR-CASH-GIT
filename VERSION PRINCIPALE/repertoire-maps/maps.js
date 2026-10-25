@@ -15,10 +15,6 @@ window.REPERTOIRE = [
   // les trois autres TEINTES sous la pluie — une clé « météo-teinte » = index.html?carte=ville&meteo=<météo>&teinte=<teinte> (banc/photos.py la comprend)
   { id: 'ville',    nom: 'LA VILLE',          couverture: 'pluie',
     meteos: [['pluie', 'PLUIE'], ['nuit', 'NUIT'], ['brouillard', 'BROUILLARD'], ['orage', 'ORAGE'], ['pluie-vert', 'NÉONS VERTS'], ['pluie-jaune', 'NÉONS JAUNES'], ['pluie-bleu', 'BLEU ÉLECTRIQUE']] },
-  // (2026-10-17, Léo) LA VILLE VITRÉE : les tours de verre et leur reflet qui pend du ciel — quatre heures et la pluie
-  { id: 'vitree',   nom: 'VILLE VITRÉE',      couverture: 'midi', hors: true, // hors du tirage de JOUER (SF_HORS) : jouable par ?carte=vitree
-   
-    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'COUCHER'], ['nuit', 'NUIT'], ['pluie', 'PLUIE']] },
   // (2026-10-25) CRYPTO CITY : l'apogée du BULL RUN — quatre temps, jamais de pluie ni d'orage (retirée du tirage sur téléphone)
   { id: 'crypto',   nom: 'CRYPTO CITY',       couverture: 'midi',
     meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT']] },
@@ -27,11 +23,11 @@ window.REPERTOIRE = [
   { id: 'foret',    nom: 'LA FORÊT NOIRE',    couverture: 'soir',
     meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
   { id: 'banquise', nom: 'LE GLACIER',        couverture: 'nuit',
-    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['neige', 'NEIGE'], ['blizzard', 'BLIZZARD']] },
+    meteos: [['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['neige', 'NEIGE']] },
   { id: 'espace',   nom: 'EN ORBITE',         couverture: 'matin',
-    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR']] }, // (2026-10-25) la Terre seule : Mars et Jupiter sont retirées
+    meteos: [['matin', 'MATIN']] }, // (2026-10-25) la Terre seule : Mars et Jupiter sont retirées
   { id: 'canyon',   nom: 'CANYON DES GÉANTS', couverture: 'matin',
-    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
+    meteos: [['matin', 'MATIN'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
   // (2026-10-18, Sacha : « une nouvelle map dans les grottes, en mode Minecraft mais bien ») LES PROFONDEURS : la descente en blocs, de la mine aux
   // abysses — sous la terre, ses « temps » sont des lumières
   { id: 'grotte',   nom: 'LES PROFONDEURS',   couverture: 'matin',
@@ -39,5 +35,5 @@ window.REPERTOIRE = [
   // (2026-10-18, Sacha : « fais les dunes d'or de manière parfaite ») LES DUNES D'OR : l'erg qu'on dévale de crête en crête, la vallée morte, l'allée des
   // obélisques, l'oasis — le temps « pluie » est un vent de sable, l'« orage » une tempête de sable
   { id: 'dunes',    nom: "LES DUNES D'OR",    couverture: 'soir',
-    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'VENT DE SABLE'], ['orage', 'TEMPÊTE DE SABLE']] },
+    meteos: [['matin', 'MATIN'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'VENT DE SABLE']] },
 ];

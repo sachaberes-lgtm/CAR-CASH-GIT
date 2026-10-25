@@ -31,7 +31,7 @@ def noms_des_maps():
     """[(id, nom)] dans l'ordre de maps.js (la liste de la page) — pour ranger le fichier à lire."""
     try:
         with open(os.path.join(RACINE, 'repertoire-maps', 'maps.js'), encoding='utf-8') as f:
-            return re.findall(r"id:\s*'([^']+)',\s*nom:\s*'([^']+)'", f.read())
+            return [(a, b or c) for a, b, c in re.findall(r"id:\s*'([^']+)',\s*nom:\s*(?:'([^']+)'|\"([^\"]+)\")", f.read())]
     except OSError:
         return []
 
