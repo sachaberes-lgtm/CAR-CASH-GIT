@@ -15118,6 +15118,22 @@ window.dbgPrebati=function(on){if(on!=null){PREB.on=!!on;if(!PREB.on)prebAnnule(
     dep:PREB.W&&PREB.dep?{pourStarted:PREB.ctx,prochain:SF.prochain?SF.prochain.carte+'-'+SF.prochain.meteo:null}:null,prisAuDepart:PREB.depPris,legers:PREB.legers, // (LE DÉPART D'AVANCE)
     cpu:+PREB.cpu.toFixed(1),images:PREB.img,pris:PREB.pris,finisAuPassage:PREB.finis,msFin:PREB.msFin,annules:PREB.annules,der:PREB.der,echecs:PREB.echecs,jade:!!PREB.jadeM,
     err:window.__prebErr?String(window.__prebErr.stack||window.__prebErr).slice(0,400):null};};
+/* ===== LA DALLE LISSE (2026-10-25, Sacha : « la route est un peu brinquebalante, elle oscille quand elle fait des spirales ») =====
+   MESURÉ (banc nuages/espace, 3 graines) : le roulis de la dalle avait des à-coups jusqu'à 25-35 × l'à-coup moyen — des CASSURES. Deux causes :
+   · les normales de pisteTord (TORD.N) étaient mélangées en ligne droite entre deux points de contrôle : une cassure de roulis à chacun, et dans
+     une spirale ils sont serrés (20 m) ;
+   · le rappel vers le ciel (RAPPEL9) s'allume et s'éteint selon la pente, sans amortissement.
+   Désormais, une fois le repère posé, le ROULIS (l'angle de la dalle autour de la route, mesuré contre un repère transporté sans torsion) est passé
+   dans un filtre gaussien sans retard : σ = 0,12 s de croisière (12-30 m). La forme de la route et le flux `rnd` ne bougent pas ; seule la dalle
+   s'adoucit. Pas sur les pistes dessinées (parc, école, campagne). `?routes=ancien` = la dalle d'avant · `dbgRoulis()` = le bilan avant/après. */
+const ROUTE_LISSE=!/[?&]routes=ancien\b/.test(location.search);
+const ROULIS={brut:null,lisse:null,ds:1,sigma:0};
+window.dbgRoulis=function(){ /* le bilan du roulis de la dernière piste bâtie : avant (brut) et après (lissé) · jerk = l'à-coup de roulis (rad/m²), pic = jerk > 0,004 */
+  if(!ROULIS.brut)return null;const ds=ROULIS.ds,bil=function(a){const n=a.length;let r2=0,j2=0,jm=0,pics=0,inv=0,wp=0;
+    for(let i=1;i<n;i++){const w=(a[i]-a[i-1])/ds;r2+=w*w;if(i>1){const j=Math.abs(w-wp)/ds;j2+=j*j;if(j>jm)jm=j;if(j>.004)pics++;if(w*wp<0&&Math.abs(w)>.002&&Math.abs(wp)>.002)inv++;}wp=w;}
+    return {roulisDegM:+(Math.sqrt(r2/n)*57.2958).toFixed(3),jerkRMS:+Math.sqrt(j2/n).toExponential(2),jerkMax:+jm.toFixed(4),pics:pics,inversions:inv};};
+  let em=0,e2=0;for(let i=0;i<ROULIS.brut.length;i++){const e=Math.abs(ROULIS.lisse[i]-ROULIS.brut[i]);if(e>em)em=e;e2+=e*e;}
+  return {sigmaM:+ROULIS.sigma.toFixed(1),L:Math.round(ROULIS.ds*(ROULIS.brut.length-1)),avant:bil(ROULIS.brut),apres:bil(ROULIS.lisse),ecartMaxDeg:+(em*57.2958).toFixed(1),ecartRMSDeg:+(Math.sqrt(e2/ROULIS.brut.length)*57.2958).toFixed(2)};};
 function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tranches — sur l'état de travail W (voir prebEchange), jamais sur la scène
   trackMeshes.length=0;PISTE_LOD.length=0;NEON_RAILS.length=0;NEON_GLOW.length=0;PADS=[];PADL=[];PAD_MATS.length=0;OILS=[];
   const rnd=mulberry32(seed);VILLE_ENTREE=null;MODMARK.length=0;TROUMARK.length=0;TROUS=[];TROU=null;
@@ -15189,6 +15205,30 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
          const th9=Math.atan2(cT9.crossVectors(n,upT9).dot(t9),n.dot(upT9)),ds9=pts[i+1].distanceTo(pts[i]),mx9=RAPPEL9*ds9*(1-ty9/.7);
          n.applyAxisAngle(t9,THREE.MathUtils.clamp(th9,-mx9,mx9));n.addScaledVector(t9,-n.dot(t9)).normalize();}}}
     }
+  }
+  ROULIS.brut=ROULIS.lisse=null;
+  if(ROUTE_LISSE&&gen9){ /* LA DALLE LISSE : voir ROUTE_LISSE */
+    const ds9=L/(NP-1),sg9=THREE.MathUtils.clamp(.12*vC9,12,30)/ds9,R9=Math.ceil(sg9*3),nr9=new Float64Array(3*NP),psi9=new Float64Array(NP),lis9=new Float64Array(NP),gw9=new Float64Array(R9+1);
+    const m9=new THREE.Vector3(),c9=new THREE.Vector3(),TWO9=2*Math.PI;let sw9=0;
+    m9.copy(Nn[0]); /* repère transporté sans torsion (RMF) : n9[i], et le roulis psi9[i] = l'angle qui l'amène à la dalle Nn[i] */
+    for(let i=0;i<NP;i++){if((i&1023)===1023)yield;
+      nr9[3*i]=m9.x;nr9[3*i+1]=m9.y;nr9[3*i+2]=m9.z;
+      let a9=Math.atan2(c9.crossVectors(m9,Nn[i]).dot(T[i]),m9.dot(Nn[i]));
+      if(i>0)a9+=TWO9*Math.round((psi9[i-1]-a9)/TWO9); /* continu : un looping tourne la dalle de plus d'un tour sans saut */
+      psi9[i]=a9;
+      if(i<NP-1){q.setFromUnitVectors(T[i],T[i+1]);m9.applyQuaternion(q);m9.addScaledVector(T[i+1],-m9.dot(T[i+1])).normalize();}
+    }
+    for(let k=0;k<=R9;k++)gw9[k]=Math.exp(-k*k/(2*sg9*sg9));
+    const psiAt9=j=>j<0?2*psi9[0]-psi9[-j]:j>=NP?2*psi9[NP-1]-psi9[Math.max(0,2*(NP-1)-j)]:psi9[j]; /* aux bouts : symétrie impaire (une pente reste une pente) */
+    for(let k=-R9;k<=R9;k++)sw9+=gw9[Math.abs(k)];
+    for(let i=0;i<NP;i++){if((i&1023)===1023)yield;
+      let s9=0;for(let k=-R9;k<=R9;k++)s9+=gw9[Math.abs(k)]*psiAt9(i+k);
+      lis9[i]=s9/sw9;
+      const c=Math.cos(lis9[i]),s=Math.sin(lis9[i]),ax=nr9[3*i],ay=nr9[3*i+1],az=nr9[3*i+2],t9=T[i];
+      const n9=Nn[i];n9.set(ax*c+(t9.y*az-t9.z*ay)*s,ay*c+(t9.z*ax-t9.x*az)*s,az*c+(t9.x*ay-t9.y*ax)*s); /* v·cos + (T×v)·sin */
+      n9.addScaledVector(t9,-n9.dot(t9)).normalize();B[i].crossVectors(n9,t9);
+    }
+    ROULIS.brut=psi9;ROULIS.lisse=lis9;ROULIS.ds=ds9;ROULIS.sigma=sg9*ds9;
   }
   /* (2026-09-28, chasse aux gels) LA CONSTRUCTION SANS TABLEAUX JS — MESURÉ (profil, 4 constructions) : un tiers de buildTrack partait
      dans des `push()` de centaines de milliers de nombres, recopiés ensuite en Float32Array, et dans computeVertexNormals. Chaque tampon
