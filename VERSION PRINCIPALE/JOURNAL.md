@@ -3,6 +3,20 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA DALLE LISSE — LES ROUTES NE BALANCENT PLUS (2026-10-25, v934 — Sacha : « la génération des maps est un peu brouillon, la route est brinquebalante, elle oscille dans les spirales »)
+- **MESURÉ** (crochet `dbgRoulis()`, vrai jeu, 13 cartes × 3 graines × paliers 0 et 20) : le ROULIS de la dalle avait des cassures — à-coups jusqu'à 25-50 × l'à-coup moyen. Cause : les normales de `pisteTord` (`TORD.N`) mélangées en ligne droite entre deux points de contrôle (une cassure à chacun, serrés dans une spirale) et le rappel `RAPPEL9` allumé/éteint sans amortissement.
+- **FAIT** (`depart-avance.js`, `ROUTE_LISSE`) : après le repère, le roulis (angle contre un repère transporté sans torsion) passe dans un filtre gaussien sans retard, σ = 0,12 s de croisière (12-30 m), symétrie impaire aux bouts. Forme de la route, flux `rnd`, départ/portail inchangés. Pas sur les pistes dessinées (parc, école, campagne). `?routes=ancien` = la dalle d'avant.
+- **RÉSULTAT** (moyenne des 13 maps) : à-coup max 0,0065 → 0,0003 (palier 0), 0,0022 → 0,00005 (palier 20) ; pics > 0,004 : 12,6 → 0 ; inversions de roulis → 0 ; écart de dalle ≤ 6,6° au pire, 0,3° en moyenne. Pilote automatique, même piste (nuages, grotte, canyon × 2 graines) : 0 mort avec comme sans.
+- Bancs : `outils/banc-routes/sc-roulis.mjs` (avant/après par carte), `sc-course-graine.mjs` (même piste, `EXTRA='&routes=ancien'`). Pas encore fait : les spirales propres à chaque map (rayon/pas), la courbure de l'axe lui-même.
+
+## SAUVER MAMAN : LA FLÛTE DEVIENT UN VIOLON (2026-10-25 soir — Léo : « change juste la flûte (instrument) de SAUVER MAMAN »)
+- `retouches-bleu.js`, entrée `bleu-3379` : `Mx.tim.contre = 'violon'` (le contre-chant, qui entre au 12e moteur, était la flûte synthétique). Rien d'autre ne bouge (la cloche de verre retouchée, l'ordre, les grilles). Vérifié au banc : le violon joue au moteur 15, 0 erreur, niveau stable. Non écouté. Retour : retirer ce seul réglage.
+
+## LA GROTTE, 2e PASSE — UNE SURFACE À LA FOIS, DES GOULETS, DES CRISTAUX SOLIDES (2026-10-25, Sacha : « longer le mur, le plafond ou le sol, des spirales adaptées pour changer de surface, pas de spirales partout »)
+- `GRT_TORD` : tenues longues (6-12 s) sur une surface, un changement = un quart de tour (mur) ou un demi-tour (plafond) lent, plus de tonneau, dévers 34° ; `GRT_ROULIS` : un caractère par salle (la lave : de très longues tenues AU PLAFOND au-dessus du lac). `pisteTord` lit `opts.zone(part)`.
+- `LES GOULETS` : la salle se pince sur ~150 m tous les ~1,2 km. Les grosses grappes de cristaux sont solides (collision en vol).
+- MESURÉ : 41 % à l'envers, 16 % sur la tranche, 3 vrilles ; pilote auto téléporté tous les 800 m (12 points, tout le parcours) : 0 mort.
+
 ## LA GROTTE SUR LES PAROIS — PLUS DE GÉODE, LA ROUTE LONGE LE SOL, LES MURS ET LE PLAFOND (2026-10-25, v929 — Sacha : « retire l'énorme boule violette et la géode, c'est tout le temps le même module ; plus de virages, des modules de course ; la route doit longer les parois, des fois sur le sol, des fois sur un mur à 90°, des fois au plafond ; une grande salle de lave ; sois inventif »)
 - **PARTIS** : le puits de la géode (spirale, pilier, boule d'améthyste, bassin, raccourci : `grtPuits`, `GROTTE.puits`, la lumière et la matière de la géode). Sa place est prise par **LE BOYAU DE CRISTAUX** (salle `boyau`, 3e des
   biomes : même violet, mais un tube étroit et tortueux dont les parois portent de grosses grappes de cristaux violets/roses/azur — `GRT_CRIS_P/D`). L'améthyste reste, la boule non.

@@ -8627,6 +8627,149 @@ body.touch #settings{-webkit-backdrop-filter:none;backdrop-filter:none;backgroun
 }
 
 </style>
+<style id="mortFlottante">
+/* ===== L'ÉCRAN DE MORT FLOTTANT (2026-10-25, Sacha : « plus de fenêtres, un truc flottant, aérien, moderne ») =====
+   UNE couche, par-dessus toutes les autres, qui ne vise que #mDead.m5 (`?mort=ancien` retire la classe : l'écran d'avant revient).
+   · L'ARGENT : plus de plaque verte — le montant seul, gros, qui flotte dans sa lueur, et la ligne du compte dessous.
+   · LE MOTEUR : plus de carte ni de « MOTEUR ATTEINT » — la pièce 3D, plus grosse, flotte (elle monte et descend, son ombre respire),
+     et seul son PALIER est écrit.
+   · L'AURA : la seule fenêtre de l'écran, un graphe en trois bougies — la PARTIE (violet), ta MOYENNE (creuse) et ton RECORD (or),
+     avec l'aura de la partie en clair, en violet, et l'écart à la moyenne (▲ / ▼ %) ou RECORD !.
+   · À DROITE : les MISSIONS descendent sous PERDU (alignées sur l'argent) ; les quatre chiffres (multi, km/h, niveau, frénésie)
+     laissent la place à deux touches de verre, GARAGE et RÉGLAGES. */
+#mDead:not(.m5) .mDuo{display:none}
+html body #mDead.m5{--m5V:#c99bff;--m5Vf:#8a4dff;--m5Vg:rgba(160,96,255,.6)}
+html body #mDead.m5 .mStats,html body #mDead.m5>.mRow,html body #mDead.m5 .mCashL>span{display:none!important}
+
+/* ---- L'ARGENT QUI FLOTTE ---- */
+html body #mDead.m5 .mCashL{background:none!important;box-shadow:none!important;clip-path:none!important;border:0!important;
+  padding:0!important;gap:6px!important;container-type:inline-size;overflow:visible}
+html body #mDead.m5 .mCashL::before,html body #mDead.m5 .mCashL::after{content:none!important;display:none!important}
+html body #mDead.m5 .mCashL>b{font-size:min(50px,calc((100cqi - 8px) / (var(--n,6) + 1)))!important;letter-spacing:2px;line-height:1;
+  color:var(--cash);text-shadow:0 3px 0 var(--cashO),0 0 16px rgba(125,255,155,.55),0 0 42px rgba(125,255,155,.28)!important}
+html body #mDead.m5 .mCashL>b::before{content:'+';margin-right:.18em;opacity:.8}
+html body #mDead.m5 .mCashL>small{font-size:var(--f0);letter-spacing:2px;color:#a7f0bd;opacity:.85}
+html body #mDead.m5 .mCashL>em.mCashRec{position:static;margin:2px 0 0;transform:none}
+
+/* ---- LE HÉROS : moteur flottant | graphe d'aura ---- */
+html body #mDead.m5 .mHero.m5Hero{display:grid!important;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);grid-template-rows:minmax(0,1fr);
+  gap:14px;margin:0;padding:0;background:none;box-shadow:none;min-height:0;overflow:visible}
+#mDead.on .m5Hero>.m5Mot{animation:k6Carte var(--t-in) var(--ease) 250ms backwards}
+#mDead.on .m5Hero>.m5Aura{animation:k6Carte var(--t-in) var(--ease) 330ms backwards}
+
+/* le moteur */
+.m5Mot{position:relative;display:flex;flex-direction:column;align-items:center;min-height:0;min-width:0}
+.m5Scene{position:relative;flex:1 1 0;min-height:0;width:100%}
+.m5Halo{position:absolute;left:50%;top:46%;width:96%;aspect-ratio:1;translate:-50% -50%;border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--ec) 34%,transparent),color-mix(in srgb,var(--ec) 10%,transparent) 55%,transparent);
+  animation:m5Respire 3.6s ease-in-out infinite}
+html body #mDead.m5 .m5Scene .hMotCv{position:absolute;left:50%;top:47%;height:112%;width:auto!important;max-width:none;aspect-ratio:480/321;margin:0!important;
+  translate:-50% -50%;animation:m5Flotte 3.6s ease-in-out infinite}
+.m5Ombre{position:absolute;left:50%;bottom:-2px;width:52%;height:12px;translate:-50% 0;border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(0,0,0,.6),transparent);animation:m5Ombre 3.6s ease-in-out infinite}
+.m5Pal{position:relative;display:flex;align-items:baseline;gap:9px;margin-top:6px;white-space:nowrap}
+.m5Pal>span{font-size:var(--f1);letter-spacing:3px;color:var(--tx2)}
+.m5Pal>b{font-size:var(--f9);line-height:1;color:var(--tx);text-shadow:0 2px 0 var(--txO),0 0 14px color-mix(in srgb,var(--ec) 70%,transparent)}
+.m5Pal.rec>b{color:var(--or);text-shadow:0 2px 0 var(--orF),0 0 14px rgba(255,215,94,.6)}
+@keyframes m5Flotte{0%,100%{transform:translateY(3px)}50%{transform:translateY(-5px)}}
+@keyframes m5Ombre{0%,100%{transform:scaleX(1);opacity:.9}50%{transform:scaleX(.78);opacity:.55}}
+@keyframes m5Respire{0%,100%{opacity:.75}50%{opacity:1}}
+
+/* le graphe d'aura : la seule fenêtre */
+.m5Aura{position:relative;display:flex;flex-direction:column;min-height:0;min-width:0;padding:9px 11px 8px;border-radius:16px;
+  background:linear-gradient(180deg,rgba(52,32,104,.62),rgba(18,11,40,.66));
+  box-shadow:inset 0 0 0 1px rgba(201,155,255,.24),inset 0 1px 0 rgba(255,255,255,.1),0 14px 30px rgba(0,0,0,.38),0 0 26px rgba(138,77,255,.14)}
+.m5Tete{display:flex;flex-wrap:wrap;align-items:center;column-gap:8px;row-gap:5px;min-width:0}
+.m5Tete>small{font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
+html body #mDead.m5 .m5Tete>#mAuraV{order:3;flex:1 0 100%;font-size:26px;line-height:1;letter-spacing:1px;white-space:nowrap;color:var(--m5V);
+  text-shadow:0 2px 0 #1a0a3a,0 0 12px var(--m5Vg),0 0 26px rgba(138,77,255,.35)}
+html body #mDead.m5 .m5Tete>#mAuraV.zero{color:var(--tx3,#8a80b0);text-shadow:0 2px 0 var(--txO)}
+.m5Vd{order:2;margin-left:auto;flex:none;padding:4px 6px 3px;border-radius:8px;font-size:7px;font-style:normal;letter-spacing:0;white-space:nowrap;
+  color:var(--tx2);background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.m5Vd.up{color:var(--neoV);background:rgba(94,227,122,.12);box-shadow:inset 0 0 0 1px rgba(94,227,122,.45)}
+.m5Vd.down{color:#ff8a9c;background:rgba(255,74,100,.1);box-shadow:inset 0 0 0 1px rgba(255,74,100,.38)}
+.m5Vd.rec{color:var(--or);background:rgba(255,215,94,.12);box-shadow:inset 0 0 0 1px rgba(255,215,94,.55),0 0 12px rgba(255,215,94,.25)}
+.m5Vd .pxi{--pxs:1}
+.m5Graphe{position:relative;flex:1 1 0;min-height:56px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:8px 0 15px;
+  border-bottom:1px solid rgba(201,155,255,.35);
+  background:repeating-linear-gradient(to top,rgba(201,155,255,.08) 0 1px,transparent 1px 25%)}
+.m5Ligne{position:absolute;left:0;right:0;bottom:var(--h);border-top:1px dashed rgba(255,215,94,.4);pointer-events:none}
+.m5Col{position:relative;min-width:0}
+.m5Pied{position:absolute;inset:0}
+.m5Meche{position:absolute;left:50%;bottom:0;width:2px;height:var(--h);translate:-50% 0;transform-origin:50% 100%}
+.m5Corps{position:absolute;left:50%;bottom:3px;width:min(40%,26px);height:max(3px,calc(var(--h) * .84 - 3px));translate:-50% 0;border-radius:3px;transform-origin:50% 100%}
+.m5Val{position:absolute;left:50%;bottom:calc(var(--h) + 4px);translate:-50% 0;font-size:var(--f0);white-space:nowrap;color:var(--tx2)}
+.m5Col>small{position:absolute;left:50%;bottom:-13px;translate:-50% 0;font-size:7px;letter-spacing:1px;white-space:nowrap;color:var(--tx2)}
+/* la PARTIE : violet, pleine, qui brille */
+.m5P .m5Meche{background:#e2c8ff}
+.m5P .m5Corps{background:linear-gradient(180deg,#e4c6ff,#a56bff 45%,#6d2fe0);box-shadow:0 0 14px var(--m5Vg,rgba(160,96,255,.6)),inset 0 1px 0 rgba(255,255,255,.6)}
+.m5P .m5Val{color:var(--m5V,#c99bff);font-size:var(--f1)}
+.m5P>small{color:var(--m5V,#c99bff)}
+/* la MOYENNE : creuse, comme une bougie qui n'a pas monté d'un coup */
+.m5M .m5Meche{background:rgba(190,215,255,.55)}
+.m5M .m5Corps{background:rgba(160,200,255,.14);box-shadow:inset 0 0 0 1.5px rgba(180,215,255,.7)}
+.m5M .m5Val{color:#c6dcff}
+/* le RECORD : or */
+.m5R .m5Meche{background:#ffe9a0}
+.m5R .m5Corps{background:linear-gradient(180deg,#fff1b8,#ffc400 50%,#b06c05);box-shadow:0 0 10px rgba(255,200,60,.35),inset 0 1px 0 rgba(255,255,255,.55)}
+.m5R .m5Val,.m5R>small{color:var(--or,#ffd75e)}
+/* les bougies poussent l'une après l'autre */
+#mDead.on .m5Corps,#mDead.on .m5Meche{animation:m5Pousse 700ms var(--ease) backwards}
+#mDead.on .m5Val{animation:m5Apparait 300ms var(--ease) backwards}
+#mDead.on .m5P .m5Corps,#mDead.on .m5P .m5Meche{animation-delay:420ms}#mDead.on .m5P .m5Val{animation-delay:1000ms}
+#mDead.on .m5M .m5Corps,#mDead.on .m5M .m5Meche{animation-delay:540ms}#mDead.on .m5M .m5Val{animation-delay:1120ms}
+#mDead.on .m5R .m5Corps,#mDead.on .m5R .m5Meche{animation-delay:660ms}#mDead.on .m5R .m5Val{animation-delay:1240ms}
+@keyframes m5Pousse{from{transform:scaleY(0)}}
+@keyframes m5Apparait{from{opacity:0;transform:translateY(4px)}}
+
+/* ---- GARAGE · RÉGLAGES : deux touches de verre ---- */
+html body #mDead.m5 .mDuo{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%}
+/* la même bulle de verre que GARAGE · ACHAT · RÉGLAGES de l'accueil (boutons-flottants.css) : reflet en haut à gauche, liseré double,
+   la couleur de la touche qui monte du bas (GARAGE bleu, RÉGLAGES or). Pas de backdrop-filter (interdit sur mobile par la charte). */
+html body #mDead.m5 .mVerre{--lk:1;position:relative;isolation:isolate;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:10px;
+  min-height:48px;margin:0;padding:0 12px;border:0;border-radius:20px!important;clip-path:none!important;transform:none!important;overflow:visible;
+  font-size:var(--f1);letter-spacing:1px;color:var(--tx);
+  background:
+    radial-gradient(120% 95% at 16% -12%,rgba(255,255,255,calc(.62*var(--lk))) 0,rgba(255,255,255,calc(.14*var(--lk))) 36%,transparent 57%),
+    linear-gradient(112deg,transparent 0 41%,rgba(255,255,255,calc(.34*var(--lk))) 42% 47%,transparent 48% 54%,rgba(255,255,255,calc(.16*var(--lk))) 55% 58%,transparent 59%),
+    radial-gradient(95% 75% at 86% 118%,color-mix(in srgb,var(--nc) calc(46%*var(--lk)),transparent),transparent 62%),
+    linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.08))!important;
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.8),inset 0 2px 2px rgba(255,255,255,calc(.85*var(--lk))),
+    inset 0 -12px 16px -9px color-mix(in srgb,var(--nc) 60%,transparent),inset 0 0 24px rgba(255,255,255,calc(.22*var(--lk))),
+    0 0 18px color-mix(in srgb,var(--nc) 42%,transparent),0 7px 16px -6px rgba(15,25,70,.32)!important;
+  transition:translate var(--t-fast) var(--ease)}
+html body #mDead.m5 .mVerre::before{content:''!important;display:block!important;position:absolute;inset:5px;z-index:-1;pointer-events:none;border-radius:inherit;
+  border:1px solid rgba(255,255,255,calc(.34*var(--lk)));box-shadow:inset 0 0 8px rgba(255,255,255,calc(.18*var(--lk)));background:none!important;animation:none!important;transform:none!important}
+html body #mDead.m5 .mVerre::after{content:''!important;display:block!important;position:absolute;left:9%;top:7%;width:30%;height:17%;z-index:-1;pointer-events:none;border-radius:50%;
+  background:radial-gradient(ellipse at 40% 40%,rgba(255,255,255,calc(.95*var(--lk))) 0,rgba(255,255,255,calc(.35*var(--lk))) 45%,transparent 72%);transform:rotate(-14deg)!important;animation:none!important;opacity:1!important}
+html body #mDead.m5 .mVerre :is(span,.pxi){text-shadow:0 1px 3px rgba(10,20,60,.7);transform:none!important}
+html body #mDead.m5 .mVerre .pxi{--pxs:2;color:var(--nc)}
+html body #mDead.m5 .mvGar{--nc:#2f80ff}
+html body #mDead.m5 .mvSet{--nc:var(--or,#ffd75e)}
+html body #mDead.m5 .mVerre:is(:active,.appui){translate:0 2px;--lk:1.25}
+html body #mDead.m5 .mVerre .mBadge{position:absolute;top:-8px;right:-6px;transform:scale(.86);transform-origin:100% 0}
+#mDead.on .mDuo>.mVerre{animation:k6Monte var(--t-in) var(--ease) 520ms backwards}
+#mDead.on .mDuo>.mVerre+.mVerre{animation-delay:570ms}
+
+/* ---- COUCHÉ (le téléphone de Sacha, 844 × 390) : PERDU seul en haut à gauche, les missions descendent à la hauteur de l'argent ---- */
+@media (orientation:landscape) and (max-height:540px){
+  html body #mDead.m5.on{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);column-gap:22px;row-gap:10px;align-content:stretch;
+    grid-template-areas:"over ." "cash obj" "hero duo" "hero row" "hero rej";grid-template-rows:auto auto minmax(0,1fr) auto auto}
+  html body #mDead.m5 .mCashL{grid-area:cash;align-self:center;margin:0}
+  html body #mDead.m5 .mHero.m5Hero{grid-area:hero;align-self:stretch;margin:4px 0 0}
+  html body #mDead.m5 .mObj{grid-area:obj;align-self:start;margin:0}
+  html body #mDead.m5 .mDuo{grid-area:duo;align-self:end}
+}
+/* ---- DEBOUT : tout en colonne, le héros a sa hauteur ---- */
+@media (orientation:portrait){
+  html body #mDead.m5 .mHero.m5Hero{height:clamp(170px,26vh,230px);margin:18px 0 6px}
+  html body #mDead.m5 .mCashL{margin-top:10px}
+  html body #mDead.m5 .mCashL>b{font-size:min(56px,calc((100cqi - 8px) / (var(--n,6) + 1)))!important}
+  html body #mDead.m5>.mDuo{order:-1;margin-top:10px}
+}
+@media (prefers-reduced-motion:reduce){.m5Halo,html body #mDead.m5 .m5Scene .hMotCv,.m5Ombre,#mDead.on .m5Corps,#mDead.on .m5Meche,#mDead.on .m5Val{animation:none!important}}
+html[data-reduced-motion="1"] :is(.m5Halo,#mDead.m5 .m5Scene .hMotCv,.m5Ombre,#mDead.on .m5Corps,#mDead.on .m5Meche,#mDead.on .m5Val){animation:none!important}
+</style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
 <nav id="gHub" role="tablist" aria-label="Garage">
@@ -8711,6 +8854,9 @@ body.touch #settings{-webkit-backdrop-filter:none;backdrop-filter:none;backgroun
       <div class="mNew" id="mNew" style="display:none"></div>
       <b id="mBest2" hidden></b>
       <div class="mStats" id="mStatsBox"></div>
+      <!-- (2026-10-25, Sacha : « enlève les stats, à la place un bouton garage et un bouton réglage ») deux touches de verre, à la place
+           des quatre chiffres. Le GARAGE ouvre l'atelier (GAR.aGar), RÉGLAGES la page des réglages. -->
+      <div class="mDuo" id="mDuo"><div class="pbtn mVerre mvGar" data-m="garage" role="button" tabindex="0"><i class="pxi pxi-voiture" aria-hidden="true"></i><span data-fr="GARAGE">GARAGE</span><em class="mBadge" id="bdGar2"></em></div><div class="pbtn mVerre mvSet" data-m="set" role="button" tabindex="0"><i class="pxi pxi-reglages" aria-hidden="true"></i><span data-fr="REGLAGES">REGLAGES</span></div></div>
       <div class="mObj" id="mObj"></div>
       <div class="mEsp" aria-hidden="true"></div>
       <!-- (2026-09-28, Sacha : « il manque un bouton pour revenir au menu ») la paire des jeux mobiles : MAISON | REJOUER. Le lingot
@@ -10020,7 +10166,18 @@ const skyDome=(function(){
   // (2026-09-26, vague 2 — audit GPU) gl_Position.z = w : le dôme se pose sur le PLAN LOINTAIN (profondeur 1,0) — voir renderOrder plus bas
   /* (24/10, relecture) `extensions.derivatives` : dFdx/dFdy (la photo, la voûte de l'orbite) exigent en WebGL1 la directive
      OES_standard_derivatives — three ne la pose que si on la demande, et l'ignore en WebGL2 (programme identique au bit près). */
-  const mk=(fs,lisse)=>new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,depthTest:!lisse,vertexShader:VS,fragmentShader:fs,extensions:{derivatives:true}});
+  /* ===== LES BOUCLES DU CIEL NE SE DÉROULENT PLUS (2026-10-25, Sacha : « le lien Vercel est particulièrement lent au démarrage ») =====
+     MESURÉ (Chrome, AMD RX 6600, ANGLE/Direct3D 11, site publié, profil neuf) : une seule tâche de 56 s au premier chargement, dans la compilation du ciel « plein »
+     (41 000 caractères, 14 boucles) — le compilateur Direct3D DÉROULE chaque boucle à borne constante (fbm de 4 tours rappelés des dizaines de fois…). Banc
+     (le même source, compilé seul) : 33 s tel quel · 20 s avec les bornes lues dans un uniform (le compilateur ne peut plus dérouler) · 11 s sans aucune boucle.
+     Même image : la borne vaut ce qu'elle valait. Les boucles qui lisent une texture (ombres de la mer, ombre du titre) restent constantes (dérivées dans une
+     boucle dynamique) ; WebGL1 exige des bornes constantes (téléphones anciens) : la règle ne joue qu'en WebGL2 et sur ordinateur (le téléphone ne change pas). Le navigateur garde ensuite le programme compilé
+     (cache de shaders sur le disque) : seuls les chargements qui suivent une modification des shaders payaient. `?boucles=0` = les bornes constantes d'avant. */
+  const ciBoucles=function(fs){ if(typeof WebGL2RenderingContext!=='function'||(window.matchMedia&&matchMedia('(hover:none)').matches)||/[?&]boucles=0\b/.test(location.search))return fs; const ns=[];
+    const out=fs.replace(/for\s*\(\s*int (\w+)\s*=\s*(-?\d+)\s*;\s*\1\s*(<=?)\s*(\d+)\s*;/g,function(m,v,a,op,b,off){ if(/texture2D/.test(fs.slice(off,off+260)))return m;
+      const nm='uL'+(op==='<='?'e':'')+b; if(ns.indexOf(nm)<0){ns.push(nm);if(!skyU[nm])skyU[nm]={value:+b};} return 'for(int '+v+'='+a+';'+v+op+nm+';';});
+    if(!ns.length)return fs; const k=out.search(/^(?!\s*#)\s*\S/m); return out.slice(0,k)+'uniform int '+ns.join(',')+';\n'+out.slice(k); };
+  const mk=(fs,lisse)=>new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,depthTest:!lisse,vertexShader:VS,fragmentShader:ciBoucles(fs),extensions:{derivatives:true}});
   const mat=mk(src(TETE,VILLE,VILLE_CIEL,MER,K.fond,K.mer,K.jour,K.soleil,K.titre,K.jade,K.canyon,K.gon,K.son,K.guirl,K.niveau,K.etoiles,K.espace,K.pous,K.lune,K.voile,K.onde,K.trame,MAIN.plein));
   /* LE CIEL SE PEINT EN DERNIER (2026-09-26, vague 2 — audit GPU). Il était dessiné en PREMIER (renderOrder −9, sans écrire la
      profondeur) : chaque pixel de l'écran payait le shader le plus lourd du jeu (mer de nuages, ville, étoiles, fond musical)… puis
@@ -13620,12 +13777,12 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
       let c=Math.max(s,z.a);for(const e of z.ev){if(e.a>c+1)seg.push({s0:c,s1:e.a,r0:rho,r1:rho});seg.push({s0:e.a,s1:e.b,r0:rho,r1:rho+e.amt,fig:1});rho+=e.amt;c=e.b;}
       if(z.b>c+1)seg.push({s0:c,s1:z.b,r0:rho,r1:rho});s=Math.max(s,z.b);continue;}
     const lim=fi<FZ.length?FZ[fi].a-lead:fin; // la route ordinaire s'arrête `lead` m avant la prochaine figure
-    const r=rg();let len,amt=0;
+    const r=rg(),Z=O.zone?Object.assign({},O,O.zone(s/Lc)):O;let len,amt=0; /* (SUR LES PAROIS) Z : les réglages DE L'ENDROIT (O.zone(part de la route) → surcharges : chaque salle de la grotte a son caractère de roulis) */
     if(NV_CALME){const w=Math.atan2(Math.sin(rho),Math.cos(rho)); // (MOINS TORDUE, voir NV_CALME) w : le roulis ramené entre −π et π (0 = à l'endroit)
-      if(Math.abs(w)>.3){if(r<(O.tenueHaut!=null?O.tenueHaut:.35))len=Math.max(250,vC*((O.lenHaut?O.lenHaut[0]:2)+rg()*(O.lenHaut?O.lenHaut[1]:2))); // là-haut (couchée, retournée) : 2-4 s de tenue, une fois sur trois…
+      if(Math.abs(w)>.3){if(r<(Z.tenueHaut!=null?Z.tenueHaut:.35))len=Math.max(250,vC*((Z.lenHaut?Z.lenHaut[0]:2)+rg()*(Z.lenHaut?Z.lenHaut[1]:2))); // là-haut (couchée, retournée) : 2-4 s de tenue, une fois sur trois…
         else{amt=-w;len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));}} // …puis on revient à l'endroit, par le plus court
-      else if(r<(O.tenueBas!=null?O.tenueBas:.6)){len=Math.max(O.lenBas?250:450,vC*((O.lenBas?O.lenBas[0]:6)+rg()*(O.lenBas?O.lenBas[1]:6)));const v9=len;len=Math.min(len,lim-s);if(len<60)break;seg.push({s0:s,s1:s+len,r0:rho,r1:rho,calme:1});s+=len;continue;} // à l'endroit : une longue tenue, 6-12 s — CALME : la dalle y est rappelée vers le ciel (voir plus bas)
-      else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<(O.quart!=null?O.quart:.6)?Math.PI/2:k<(O.demi!=null?O.demi:.95)?Math.PI:TOUR);len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));}}
+      else if(r<(Z.tenueBas!=null?Z.tenueBas:.6)){len=Math.max(Z.lenBas?250:450,vC*((Z.lenBas?Z.lenBas[0]:6)+rg()*(Z.lenBas?Z.lenBas[1]:6)));const v9=len;len=Math.min(len,lim-s);if(len<60)break;seg.push({s0:s,s1:s+len,r0:rho,r1:rho,calme:1});s+=len;continue;} // à l'endroit : une longue tenue, 6-12 s — CALME : la dalle y est rappelée vers le ciel (voir plus bas)
+      else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<(Z.quart!=null?Z.quart:.6)?Math.PI/2:k<(Z.demi!=null?Z.demi:.95)?Math.PI:TOUR);len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));}}
     else if(r<.4)len=Math.max(400,vC*(4+rg()*5)); // une tenue : la dalle reste où elle est (couchée, retournée…) 4-9 s — de quoi respirer entre deux vrilles
     else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<.45?Math.PI/2:k<.9?Math.PI:TOUR);len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));} // (EN GRAND) ~3× plus lentes qu'au premier jet, le tour complet rare
     const veut=len;len=Math.min(len,lim-s);if(len<60)break;
@@ -15118,6 +15275,22 @@ window.dbgPrebati=function(on){if(on!=null){PREB.on=!!on;if(!PREB.on)prebAnnule(
     dep:PREB.W&&PREB.dep?{pourStarted:PREB.ctx,prochain:SF.prochain?SF.prochain.carte+'-'+SF.prochain.meteo:null}:null,prisAuDepart:PREB.depPris,legers:PREB.legers, // (LE DÉPART D'AVANCE)
     cpu:+PREB.cpu.toFixed(1),images:PREB.img,pris:PREB.pris,finisAuPassage:PREB.finis,msFin:PREB.msFin,annules:PREB.annules,der:PREB.der,echecs:PREB.echecs,jade:!!PREB.jadeM,
     err:window.__prebErr?String(window.__prebErr.stack||window.__prebErr).slice(0,400):null};};
+/* ===== LA DALLE LISSE (2026-10-25, Sacha : « la route est un peu brinquebalante, elle oscille quand elle fait des spirales ») =====
+   MESURÉ (banc nuages/espace, 3 graines) : le roulis de la dalle avait des à-coups jusqu'à 25-35 × l'à-coup moyen — des CASSURES. Deux causes :
+   · les normales de pisteTord (TORD.N) étaient mélangées en ligne droite entre deux points de contrôle : une cassure de roulis à chacun, et dans
+     une spirale ils sont serrés (20 m) ;
+   · le rappel vers le ciel (RAPPEL9) s'allume et s'éteint selon la pente, sans amortissement.
+   Désormais, une fois le repère posé, le ROULIS (l'angle de la dalle autour de la route, mesuré contre un repère transporté sans torsion) est passé
+   dans un filtre gaussien sans retard : σ = 0,12 s de croisière (12-30 m). La forme de la route et le flux `rnd` ne bougent pas ; seule la dalle
+   s'adoucit. Pas sur les pistes dessinées (parc, école, campagne). `?routes=ancien` = la dalle d'avant · `dbgRoulis()` = le bilan avant/après. */
+const ROUTE_LISSE=!/[?&]routes=ancien\b/.test(location.search);
+const ROULIS={brut:null,lisse:null,ds:1,sigma:0};
+window.dbgRoulis=function(){ /* le bilan du roulis de la dernière piste bâtie : avant (brut) et après (lissé) · jerk = l'à-coup de roulis (rad/m²), pic = jerk > 0,004 */
+  if(!ROULIS.brut)return null;const ds=ROULIS.ds,bil=function(a){const n=a.length;let r2=0,j2=0,jm=0,pics=0,inv=0,wp=0;
+    for(let i=1;i<n;i++){const w=(a[i]-a[i-1])/ds;r2+=w*w;if(i>1){const j=Math.abs(w-wp)/ds;j2+=j*j;if(j>jm)jm=j;if(j>.004)pics++;if(w*wp<0&&Math.abs(w)>.002&&Math.abs(wp)>.002)inv++;}wp=w;}
+    return {roulisDegM:+(Math.sqrt(r2/n)*57.2958).toFixed(3),jerkRMS:+Math.sqrt(j2/n).toExponential(2),jerkMax:+jm.toFixed(4),pics:pics,inversions:inv};};
+  let em=0,e2=0;for(let i=0;i<ROULIS.brut.length;i++){const e=Math.abs(ROULIS.lisse[i]-ROULIS.brut[i]);if(e>em)em=e;e2+=e*e;}
+  return {sigmaM:+ROULIS.sigma.toFixed(1),L:Math.round(ROULIS.ds*(ROULIS.brut.length-1)),avant:bil(ROULIS.brut),apres:bil(ROULIS.lisse),ecartMaxDeg:+(em*57.2958).toFixed(1),ecartRMSDeg:+(Math.sqrt(e2/ROULIS.brut.length)*57.2958).toFixed(2)};};
 function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tranches — sur l'état de travail W (voir prebEchange), jamais sur la scène
   trackMeshes.length=0;PISTE_LOD.length=0;NEON_RAILS.length=0;NEON_GLOW.length=0;PADS=[];PADL=[];PAD_MATS.length=0;OILS=[];
   const rnd=mulberry32(seed);VILLE_ENTREE=null;MODMARK.length=0;TROUMARK.length=0;TROUS=[];TROU=null;
@@ -15189,6 +15362,30 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
          const th9=Math.atan2(cT9.crossVectors(n,upT9).dot(t9),n.dot(upT9)),ds9=pts[i+1].distanceTo(pts[i]),mx9=RAPPEL9*ds9*(1-ty9/.7);
          n.applyAxisAngle(t9,THREE.MathUtils.clamp(th9,-mx9,mx9));n.addScaledVector(t9,-n.dot(t9)).normalize();}}}
     }
+  }
+  ROULIS.brut=ROULIS.lisse=null;
+  if(ROUTE_LISSE&&gen9){ /* LA DALLE LISSE : voir ROUTE_LISSE */
+    const ds9=L/(NP-1),sg9=THREE.MathUtils.clamp(.12*vC9,12,30)/ds9,R9=Math.ceil(sg9*3),nr9=new Float64Array(3*NP),psi9=new Float64Array(NP),lis9=new Float64Array(NP),gw9=new Float64Array(R9+1);
+    const m9=new THREE.Vector3(),c9=new THREE.Vector3(),TWO9=2*Math.PI;let sw9=0;
+    m9.copy(Nn[0]); /* repère transporté sans torsion (RMF) : n9[i], et le roulis psi9[i] = l'angle qui l'amène à la dalle Nn[i] */
+    for(let i=0;i<NP;i++){if((i&1023)===1023)yield;
+      nr9[3*i]=m9.x;nr9[3*i+1]=m9.y;nr9[3*i+2]=m9.z;
+      let a9=Math.atan2(c9.crossVectors(m9,Nn[i]).dot(T[i]),m9.dot(Nn[i]));
+      if(i>0)a9+=TWO9*Math.round((psi9[i-1]-a9)/TWO9); /* continu : un looping tourne la dalle de plus d'un tour sans saut */
+      psi9[i]=a9;
+      if(i<NP-1){q.setFromUnitVectors(T[i],T[i+1]);m9.applyQuaternion(q);m9.addScaledVector(T[i+1],-m9.dot(T[i+1])).normalize();}
+    }
+    for(let k=0;k<=R9;k++)gw9[k]=Math.exp(-k*k/(2*sg9*sg9));
+    const psiAt9=j=>j<0?2*psi9[0]-psi9[-j]:j>=NP?2*psi9[NP-1]-psi9[Math.max(0,2*(NP-1)-j)]:psi9[j]; /* aux bouts : symétrie impaire (une pente reste une pente) */
+    for(let k=-R9;k<=R9;k++)sw9+=gw9[Math.abs(k)];
+    for(let i=0;i<NP;i++){if((i&1023)===1023)yield;
+      let s9=0;for(let k=-R9;k<=R9;k++)s9+=gw9[Math.abs(k)]*psiAt9(i+k);
+      lis9[i]=s9/sw9;
+      const c=Math.cos(lis9[i]),s=Math.sin(lis9[i]),ax=nr9[3*i],ay=nr9[3*i+1],az=nr9[3*i+2],t9=T[i];
+      const n9=Nn[i];n9.set(ax*c+(t9.y*az-t9.z*ay)*s,ay*c+(t9.z*ax-t9.x*az)*s,az*c+(t9.x*ay-t9.y*ax)*s); /* v·cos + (T×v)·sin */
+      n9.addScaledVector(t9,-n9.dot(t9)).normalize();B[i].crossVectors(n9,t9);
+    }
+    ROULIS.brut=psi9;ROULIS.lisse=lis9;ROULIS.ds=ds9;ROULIS.sigma=sg9*ds9;
   }
   /* (2026-09-28, chasse aux gels) LA CONSTRUCTION SANS TABLEAUX JS — MESURÉ (profil, 4 constructions) : un tiers de buildTrack partait
      dans des `push()` de centaines de milliers de nombres, recopiés ensuite en Float32Array, et dans computeVertexNormals. Chaque tampon
@@ -21579,8 +21776,12 @@ const GROTTE={root:null,Q:null,salles:null,sTot:1,conflits:0,croise:0, // la gé
      le lac est sous la caisse en vrai, au-dessus de sa tête vu de la dalle. */
 const GRT_ROULE=!/[?&]sans=([^&]*,)?grotteparois(,|&|$)/.test(location.search);
 function grtTordOn(){const c=LVL.cur;return GRT_ROULE&&!PARK.on&&!!c&&c.piste==='grotte'&&!c.camp&&(started||SF.pret);}
-const GRT_TORD={f0:.14,tenueHaut:.7,lenHaut:[3,4.5],tenueBas:.2,lenBas:[2.2,3.2],quart:.5,demi:.92,dev:{max:88/57.3,k:1.15,vmax:42/57.3,roulis:80/57.3}}; /* le roulis : peu de tenues à l'endroit (20 %), des tenues couchées/à l'envers de 3 à 7 s, la moitié de quarts de tour, 42 % de demi-tours, 8 % de tonneaux */
-function grtTordOpts(){const S=GROTTE.salles,s1=S&&S[1]?S[1].s/Math.max(1,GROTTE.sTot):.14;return Object.assign({},GRT_TORD,{f0:s1+.01});} /* la route ne roule qu'après la mine */
+const GRT_TORD={f0:.14,tenueHaut:.9,lenHaut:[6,6],tenueBas:.5,lenBas:[5,6],quart:.55,demi:.999,dev:{max:34/57.3,k:.8,vmax:24/57.3,roulis:50/57.3}}; /* (2e passe, Sacha : « on longe le mur, ou le plafond, ou le sol, et des spirales adaptées pour changer de surface — pas de spirales partout ») : LONGUES tenues sur une surface (6-12 s), un changement de surface = un quart de tour (mur) ou un demi-tour (plafond) lent, jamais de tonneau, un dévers modeste (34°) */ /* le roulis : peu de tenues à l'endroit (20 %), des tenues couchées/à l'envers de 3 à 7 s, la moitié de quarts de tour, 42 % de demi-tours, 8 % de tonneaux */
+/* LE CARACTÈRE DE ROULIS DE CHAQUE SALLE (surcharges de GRT_TORD, lues par pisteTord selon l'endroit) — la luxuriante : des quarts de tour tranquilles, on marche sur les murs · le BOYAU : des changements de surface plus fréquents (tenues de 4-8 s)
+    · la LAVE : de longues tenues AU PLAFOND, au-dessus du lac (des demi-tours, rarement à l'endroit) · les stalactites et les abysses : le réglage de base */
+const GRT_ROULIS={luxe:{quart:.85},boyau:{tenueHaut:.8,lenHaut:[4,4],tenueBas:.4,lenBas:[4,4],quart:.4},lave:{tenueHaut:.93,lenHaut:[8,6],tenueBas:.25,lenBas:[3,3],quart:.12},abysse:{quart:.7}};
+function grtTordOpts(){const S=GROTTE.salles||[],T9=Math.max(1,GROTTE.sTot),s1=S[1]?S[1].s/T9:.14;
+  return Object.assign({},GRT_TORD,{f0:s1+.01,zone:function(u){let k=null;for(let j=1;j<S.length;j++)if(S[j].s/T9<=u)k=S[j].k;return GRT_ROULIS[k]||null;}});} /* la route ne roule qu'après la mine */
 const GRT_SALLES=['mine','luxe','boyau','stal','lave','abysse'];
 /* LA FORME DE CHAQUE SALLE (mètres) — rh : la demi-largeur de l'air autour de la route · up : le plafond au-dessus d'elle · dn : le fond en
    dessous · ex : la forme (2 = ellipse, 6 = galerie presque carrée) · nz : la morsure du bruit (±). entree / fin : la salle d'arrivée (le
@@ -21802,6 +22003,7 @@ function grtEchantillons(){
     let rh=0,up=0,dn=0,ex=0,nz=0,lt=0,wb=-1,kb=0;const wp=grtProfond(s9);
     for(let j=0;j<F.length;j++){const a=j?sm(s9,F[j].s-90,F[j].s+90):1,b=j+1<F.length?sm(s9,F[j+1].s-90,F[j+1].s+90):0,m=a-b;if(m<=0)continue;
       const f=GRT_FORME[F[j].k];rh+=f.rh*m;up+=f.up*m;dn+=(f.hug&&GRT_ROULE?f.hug+(f.dn-f.hug)*wp:f.dn)*m;ex+=f.ex*m;nz+=f.nz*m;if(GRT_ROULE&&f.lt)lt+=f.lt*m;if(m>wb){wb=m;kb=SI[F[j].k];}}
+    if(GRT_ROULE&&lt>0){const g=Math.pow(Math.max(0,Math.sin(s9*.0051+2.1)),12),cw=1-.42*g*Math.min(1,lt/.5);rh*=cw;up*=1-.2*g*Math.min(1,lt/.5);} /* LES GOULETS : tous les ~1,2 km la salle se pince sur ~150 m (le creux se resserre autour de la route) : la vitesse se lit, puis l'espace s'ouvre */
     R.RH[q]=rh;R.UP[q]=up;R.DN[q]=dn;R.EX[q]=ex;R.NZ[q]=nz;R.SAL[q]=kb;R.LAT[q]=lt*rh*Math.sin(s9*.0082+.7);}; /* le creux se décale de côté, lentement (période ~770 m) : la route frôle un mur latéral, puis l'autre */
   const T0=T[0],T1=T[NP-1],p0=pts[0],p1=pts[NP-1],N0=Nn[0],N1=Nn[NP-1];
   for(let k=0;k<20;k++){const d=(20-k)*6;pose(k,p0.x-T0.x*d,p0.y-T0.y*d,p0.z-T0.z*d,T0.x,T0.z,-d,1,N0,T0);}
@@ -22366,7 +22568,7 @@ function* grtCristauxG(V,R,dec,seed){
   const clair=function(x,y,z,L,k){const r=(24+L*.9)*(VZ?1.4:1),c=GRT_CRIS_L[k];P9.push({x:x,y:y,z:z,r:r,r2:r*r,c:c,I:1.7});}; /* (reprise : I .85 → 1,7 — la roche autour d'une grappe rosissait trop peu pour se lire à 150 m dans la brume) */
   /* une grappe : un cristal principal (prisme à cinq pans + pointe) et trois éclats pointus, plantés dans la roche en (bx,by,bz), tournés vers dir (unitaire) */
   const grappe=function(bx,by,bz,dir,L0,r0,k,pro){const t=GRT_CRIS_T[k],L=L0+pro,h=L*.7,rot=fe()*6; /* pro : le PIED ENTERRÉ dans la roche (la grappe sort de la paroi au lieu d'y flotter) */
-    grtPrisme(D,V,bx,by,bz,dir,5,r0,r0,h,t,rot);grtPrisme(D,V,bx+dir[0]*h,by+dir[1]*h,bz+dir[2]*h,dir,5,r0,0,L*.3,t,rot);
+    grtPrisme(D,V,bx,by,bz,dir,5,r0,r0,h,t,rot,L>9?'roche':0); /* (SUR LES PAROIS) les grosses grappes se touchent : on ne les traverse plus (collision en vol, comme les concrétions) */grtPrisme(D,V,bx+dir[0]*h,by+dir[1]*h,bz+dir[2]*h,dir,5,r0,0,L*.3,t,rot);
     for(let j=0;j<3;j++){ /* trois éclats, nés de la même souche : un petit décalage de la base dans le plan perpendiculaire à l'axe, un axe qui s'écarte de ±0,5 */
       const a=[dir[0]+(fe()-.5)*1.1,dir[1]+(fe()-.5)*1.1,dir[2]+(fe()-.5)*1.1],l=Math.hypot(a[0],a[1],a[2])||1,u=[a[0]/l,a[1]/l,a[2]/l];
       let w=[fe()-.5,fe()-.5,fe()-.5];const pd=w[0]*dir[0]+w[1]*dir[1]+w[2]*dir[2];w=[w[0]-pd*dir[0],w[1]-pd*dir[1],w[2]-pd*dir[2]];const wl=Math.hypot(w[0],w[1],w[2])||1,o=r0*(.5+fe()*1.1)/wl;
@@ -55802,7 +56004,7 @@ const SAVE={
        les caisses que l'argent ne peut pas acheter.
        `owned` : les index des caisses ACHETÉES. Séparé des exploits : un achat n'est pas un exploit. */
     mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, figs:['tailwhip','saltov'], figS:1, figT0:0, figEq:[], pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
-    bank:0, aura:0, owned:[], auraMax:0, gamme:3, eco:3, frenRec:0, // `frenRec` : la plus longue FRÉNÉSIE jamais tenue (s) // `eco` : échelle de l'argent de course (vague 3, voir la migration des records en fin de san) // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
+    bank:0, aura:0, owned:[], auraMax:0, auraH:{s:0,n:0}, /* (2026-10-25) auraH : somme et nombre des parties comptées — l'aura MOYENNE du graphe de l'écran de mort */gamme:3, eco:3, frenRec:0, // `frenRec` : la plus longue FRÉNÉSIE jamais tenue (s) // `eco` : échelle de l'argent de course (vague 3, voir la migration des records en fin de san) // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
     jour:{d:'',n:0},cad:{t:0},dj:{d:'',k:'',v:0,b:0,ok:0,y:''}, // (2026-10-14, GAMEPLAY) LE RETOUR DU JOUR : `d` = la date locale de la dernière partie COMPTÉE ('AAAA-MM-JJ'), `n` = la série à cette date · LE CADEAU : `t` = l'heure (ms) du dernier cadeau ouvert, 0 = jamais (voir JOUR / CAD)
     m2:m2Vierge(), // (2026-10-16) LES MISSIONS v2 : réussies, prises, suivies, records, compteurs à vie (voir m2Etat)
     plq:{m:'fr',x:(typeof plqHasard==='function'?plqHasard():'CASH CAR'),ok:0},prof:{ne:Date.now(),tA:0,dMax:0}, // (2026-10-17) LA PLAQUE (modèle, texte, validée) et LE PROFIL (né le, temps de jeu, plus longue partie) — voir PLQ
@@ -55891,6 +56093,10 @@ const SAVE={
     c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.bienv=d.bienv?1:0;c.tutoProv=d.tutoProv?1:0; /* (2026-10-16) LA QUESTION DE BIENVENUE : `bienv` = ne plus la poser · `tutoProv` = la leçon sautée pour UNE ouverture (voir bienvMontre) */c.cousin=d.cousin?1:0;c.spinJ=Math.max(0,Math.min(9,d.spinJ|0));c.chanceG=Math.max(0,Math.min(3,d.chanceG|0));c.spinBoost=Math.max(0,Math.min(3,d.spinBoost|0)); /* (2026-10-14) FINAL SPIN v2 : les bons gagnés à la machine */ /* (2026-10-14) LE FINAL SPIN : les jetons gardés */ /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(1023,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol ; 256 le doigt de bienvenue de l'accueil, 2026-10-15 soir — d'où 1023 au lieu de 255) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
     c.aura=Math.max(0,Math.min(1e12,Math.round(+d.aura)||0));
     c.auraMax=Math.max(0,Math.min(1e12,Math.round(+d.auraMax)||0));
+    /* (2026-10-25, Sacha : « un graphe bougie : l'aura de la partie, la moyenne et le record ») LA MOYENNE D'AURA. Une sauvegarde d'avant n'a pas
+       ce compteur : on l'amorce sur le total à vie et le nombre de parties (la meilleure estimation qu'elle porte). */
+    if(d.auraH&&typeof d.auraH==='object'&&isFinite(+d.auraH.s)&&isFinite(+d.auraH.n))c.auraH={s:Math.max(0,Math.min(1e12,Math.round(+d.auraH.s)||0)),n:Math.max(0,Math.min(1e7,Math.round(+d.auraH.n)||0))};
+    else if(c.ex&&c.ex.runs>0)c.auraH={s:c.aura,n:c.ex.runs};
     c.bankMax=Math.max(c.bank||0,Math.min(1e30,Math.round(+d.bankMax)||0));c.bankMaxVu=Math.max(0,Math.min(c.bankMax,Math.round(+d.bankMaxVu)||0)); // (2026-10-06) LE RECORD DE FORTUNE (la jauge d'argent) : jamais sous la banque ; vu = celui que la jauge a déjà fêté
     c.frenRec=Math.max(0,Math.min(3600,Math.round((+d.frenRec||0)*10)/10)); // (v3) le record de frénésie, borné à une heure
     // (2026-09-30) LA PARTIE INTERROMPUE (voir enCoursPose) : bornée comme les exploits — un code importé ne remplit pas la banque par ce biais
@@ -55978,6 +56184,7 @@ const SAVE={
     if(ec){delete this.d.enCours;const x=this.d.ex,L=this.d.leaders;
       this.d.bank=Math.min(1e30,this.d.bank+ec.v);gagneAjoute(ec.v);if(this.d.bank>(this.d.bankMax||0))this.d.bankMax=this.d.bank;
       this.d.aura=(this.d.aura||0)+ec.a;this.d.auraMax=Math.max(this.d.auraMax||0,ec.a);
+      {const h9=this.d.auraH||(this.d.auraH={s:0,n:0});h9.s+=ec.a;h9.n++;} /* (2026-10-25) la partie tuée en arrière-plan compte aussi pour la moyenne */
       x.eng=Math.max(x.eng,ec.e);x.tricks+=ec.tr;x.gaps+=ec.ga;x.bumps+=ec.bu;x.surv+=ec.sv;
       x.zones=Math.max(x.zones,ec.zo);x.chain=Math.max(x.chain,ec.ch);x.kmh=Math.max(x.kmh,ec.km);x.runs++;
       if(ec.f>=5&&ec.f>(this.d.frenRec||0))this.d.frenRec=ec.f; // la frénésie qui tenait encore (endGame : frenFin)
@@ -61520,6 +61727,11 @@ function commitExploits(){
   SAVE.d.bank=Math.min(1e30,bank()+vire);gagneAjoute(vire);bankMaxMaj();
   if(!lecon)jourCommit(); /* (2026-10-14, GAMEPLAY — Sacha : « la 1re partie du JOUR ×2, plus un bonus de SÉRIE ») la partie COMPTE : le jour est marqué, la série monte, la prime de série entre en banque (voir JOUR) */
   const rangAvant=auraRank();
+  /* (2026-10-25) LE GRAPHE D'AURA de l'écran de mort : la MOYENNE et le RECORD d'AVANT cette partie (une reprise garde ceux de sa 1re fin),
+     puis la partie entre dans la moyenne — une seule fois par partie, la reprise n'ajoute que son surplus, comme SAVE.d.aura. */
+  if(!lecon){const h9=SAVE.d.auraH||(SAVE.d.auraH={s:0,n:0}),a9=Math.max(0,Math.round(auraRun));
+    if(!CHANCE.used){commitExploits._moy=h9.n>0?h9.s/h9.n:0;commitExploits._recAvant=SAVE.d.auraMax||0;h9.n++;h9.s+=a9;}
+    else h9.s+=Math.max(0,a9-(CHANCE.a0||0));}
   if(!lecon){SAVE.d.aura=(SAVE.d.aura||0)+Math.max(0,Math.round(auraRun)-(CHANCE.used?CHANCE.a0:0)); // (SECONDE CHANCE : l'aura d'avant la reprise est déjà versée)
   SAVE.d.auraMax=Math.max(SAVE.d.auraMax||0,Math.round(auraRun));} // le MAX d'une partie : c'est LUI qu'on affiche comme objectif
   commitExploits._vire=CHANCE.used?Math.max(0,vire+CHANCE.v1-CHANCE.prix):vire; // relus par l'écran de fin (après une reprise : toute la partie, prix déduit)
@@ -74995,6 +75207,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     setTimeout(function(){if(!ici())return;try{if(rec)rewardSfx('m3',3);else{chimeNote(noteP(4,1),0,.08,.3);chimeNote(noteP(7,1),.06,.07,.36);}}catch(e){}},1040);
     if(rec)setTimeout(function(){if(ici())pixBurst($t('mOverT'),34);},900); // (charte v4) un record, ça se voit aussi : l'enseigne crache ses confettis
   }
+  const MORT_FLOT=!/[?&]mort=ancien\b/.test(location.search); /* (2026-10-25) L'ÉCRAN DE MORT FLOTTANT (voir mFill) — `?mort=ancien` = les cartes d'avant */
+  Object.assign(I18N,{'PARTIE':'THIS RUN','MOYENNE':'AVERAGE','VS MOY':'VS AVG'});
+  window.dbgMortAura=function(a,moy,n,rec){if(a!=null&&started&&!gameOver)auraRun=Math.max(0,+a||0);if(moy!=null){SAVE.d.auraH={s:Math.round(moy*(n||10)),n:n||10};}if(rec!=null)SAVE.d.auraMax=Math.round(rec);return {partie:Math.round(auraRun),moyenne:SAVE.d.auraH,record:SAVE.d.auraMax};}; /* (banc) l'aura de la partie en cours (et la moyenne, le record) pour voir le graphe de l'écran de mort */
   function mFill(){ try{
     const b1=$t('mBest'),b2=$t('mBest2'),mc=$t('mCar');
     if(b1)b1.textContent=fmtC(best); if(b2)b2.textContent=fmtC(best);
@@ -75004,6 +75219,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       /* VERSÉS AU COMPTE = ce que la banque a VRAIMENT gagné depuis le départ — le magot MONTE au lieu de s'afficher : 750 ms qui font le sel de
          la fin de run. (2026-09-28) C'était le seul virement de la course (`_vire`) : « $ 37 VERSÉS » au-dessus d'une barre d'objectif « +$ 537 »,
          qui compte aussi la prime du permis et celles des défis. Même calcul que la barre (objRender) : les deux chiffres ne se contredisent plus. */
+      {const d9=$t('mDead');if(d9)d9.classList.toggle('m5',MORT_FLOT);} /* (2026-10-25) l'écran flottant : son style (css/mort-flottante.css) ne vise que #mDead.m5 */
       const prem9=mFill._mort!==TCTL.mortT;mFill._mort=TCTL.mortT; // (2026-09-29) le compte (montant, aura) ne se joue qu'à la PREMIÈRE apparition de l'écran de cette mort
       {const v9=RUNX.verse!=null?RUNX.verse:Math.max(0,Math.floor(bank())-Math.floor(RUNX.bank0||0)),c9=$t('mCash'),t9=$t('mCashTot');
        if(c9)c9.style.setProperty('--n',fmtC(v9).length); // le corps du montant se règle sur sa longueur finale (« $ 128,4 k » tient debout)
@@ -75042,17 +75258,38 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         /* (2026-09-29, Sacha : « on ne doit pas compter l'aura, c'est juste le score d'une partie ») : la carte dit le SCORE de la partie —
            plus de « + » (qui se lisait « ajouté à un total »), plus de total de carrière, plus de rang ni de jauge ; dessous, le meilleur
            score (ou RECORD ! quand il vient de tomber). */
-        if(h){h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV" style="--n:'+fA(au).length+'">0</b>'
+        /* L'ÉCRAN DE MORT FLOTTANT (2026-10-25, Sacha : « plus de fenêtres, un truc flottant, aérien, moderne ») : le MOTEUR flotte dans le vide,
+           plus gros, avec son seul palier ; l'AURA devient un graphe en bougies, lisible d'un coup d'œil — la PARTIE (violet), ta MOYENNE et
+           ton RECORD. La moyenne et le record sont ceux d'AVANT la partie (commitExploits) : le graphe dit si tu as fait mieux que d'habitude.
+           `?mort=ancien` = les deux cartes d'avant. */
+        if(h&&MORT_FLOT){
+          const n9=(SAVE.d.auraH&&SAVE.d.auraH.n)|0,moy0=commitExploits._moy||0,moyV=Math.round(moy0>0?moy0:(n9<=1?au:0)),
+                recV=Math.max(commitExploits._recAvant||0,SAVE.d.auraMax||0,au),M9=Math.max(1,au,moyV,recV),
+                hP=function(v){return Math.max(4,Math.round(v/M9*78));},
+                bg9=function(k,v,lb){return '<div class="m5Col m5'+k+'" style="--h:'+hP(v)+'%"><div class="m5Pied"><span class="m5Val">'+fA(v)+'</span><i class="m5Meche"></i><i class="m5Corps"></i></div><small>'+TR(lb)+'</small></div>';};
+          let vd9='';
+          if(!tq9&&au>0&&(commitExploits._recAvant||0)>0&&(recA||au>commitExploits._recAvant))vd9='<em class="m5Vd rec">'+pxi('etoile')+' '+TR('RECORD !')+'</em>';
+          else if(!tq9&&moy0>0&&au>0){const p9=Math.round((au-moy0)/moy0*100);vd9=p9>=1?'<em class="m5Vd up">▲ +'+p9+' % '+TR('VS MOY')+'</em>':p9<=-1?'<em class="m5Vd down">▼ '+p9+' % '+TR('VS MOY')+'</em>':'<em class="m5Vd">= '+TR('MOYENNE')+'</em>';}
+          h.className='mHero m5Hero';
+          h.innerHTML='<div class="m5Mot" style="--ec:'+hx+'"><div class="m5Scene"><i class="m5Halo"></i><canvas class="hMotCv" width="480" height="321"></canvas><i class="m5Ombre"></i></div>'
+            +'<div class="m5Pal'+(eN&&!tq9?' rec':'')+'"><span>'+TR('PALIER')+'</span><b>'+(engTier+1)+'</b></div></div>'
+            +'<div class="m5Aura"><div class="m5Tete"><small>'+TR('AURA')+'</small><b id="mAuraV">0</b>'+vd9+'</div>'
+            +'<div class="m5Graphe"><i class="m5Ligne" style="--h:'+hP(recV)+'%"></i>'+bg9('P',au,'PARTIE')+bg9('M',moyV,'MOYENNE')+bg9('R',recV,'RECORD')+'</div></div>';
+        }
+        else if(h){h.className='mHero';h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV" style="--n:'+fA(au).length+'">0</b>'
             +(recA&&!tq9&&au>0?'<em>'+TR('RECORD !')+'</em><div class="hNx hNxC6">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>':'<div class="hNx">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>')+'</div>' /* (2026-10-14, charte 6) cartes JUMELLES : la sous-ligne MEILLEUR est toujours là (.hNxC6 = celle que seule la charte 6 montre, quand le badge RECORD ! se tait) */
           +'<div class="hCard hMot hMot3" style="--ec:'+hx+'"><small>'+TR('MOTEUR ATTEINT')+'</small><canvas class="hMotCv" width="480" height="321"></canvas>'
             +'<div class="hMotN"><i>'+TR('PALIER')+'</i>'+(engTier+1)+'</div>'+(eN&&!tq9?'<em>'+TR('RECORD !')+'</em>':'')
             +(pr?'<div class="hNx hPres"><span>'+presqueTxt(mq)+'</span><span>'+pxi('haut')+' '+TR(nx.n)+'</span></div>':ci?'<div class="hNx hRec"><span>'+TR('RECORD')+'</span><span>'+TR('PALIER')+' '+(ea+1)+'</span></div>':'' /* (29/09, DEBUGGING) deux morceaux insécables : le chiffre ne tombe plus seul à la ligne */)+'</div>'; // (2026-09-28) « RECORD · PALIER 18 » : le nom du moteur (STATOREACTEUR) cassait la ligne ; la carte parle déjà en paliers
+        }
+        if(h){ /* (2026-10-25) les deux dessins (flottant ou cartes) partagent le moteur 3D et le compte de l'aura */
           {const cv9=h.querySelector('.hMotCv');ENG_MORT.cv=cv9;ENG_MORT.ctx=cv9?cv9.getContext('2d'):null;} // le moteur 3D y tourne (engVigRender)
           {const av9=$t('mAuraV');if(av9){av9.textContent=fA(prem9?0:au);av9.classList.toggle('zero',au<=0);}if(prem9&&av9)setTimeout(function(){countUp(av9,au,function(v){return fA(v);});},REDUCED_MOTION?0:260);} // la carte AURA est distribuée à 250 ms : le chiffre monte quand on la voit
           if(an){const u=$t('mAuraB'),D=Math.max(1,an.seuil-bas),w1=Math.min(100,(a1-bas)/D*100),w0=rg?0:Math.max(0,(a1-au-bas)/D*100);
             if(u){u.style.width=w0.toFixed(1)+'%';requestAnimationFrame(function(){requestAnimationFrame(function(){u.style.width=w1.toFixed(1)+'%';});});}}}
       }
-      $t('mStatsBox').innerHTML=mStatBox('×'+Math.max(1,runStats.xMax|0),TR('MULTI MAX'))+ /* (2026-09-26) « 0 FIGURES » à côté de « +820 AURA » : le compteur ne voyait que l'ancienne chaîne en $ */mStatBox(Math.round(runStats.vmax),'KM/H MAX')+mStatBox(LVL.cur?LVL.n:runStats.zones+1,TR('NIVEAU')) // (2026-09-27) en carrière : le VRAI numéro du niveau · (2026-09-30) partout : celui de la bannière (runStats.zones compte la zone de l'école : « NIVEAU 2 » après « NIVEAU 1 »)
+      /* (2026-10-25, Sacha) les quatre chiffres (MULTI MAX, KM/H MAX, NIVEAU, FRÉNÉSIE) laissent leur place à GARAGE et RÉGLAGES (#mDuo) */
+      if($t('mStatsBox'))$t('mStatsBox').innerHTML=mStatBox('×'+Math.max(1,runStats.xMax|0),TR('MULTI MAX'))+ /* (2026-09-26) « 0 FIGURES » à côté de « +820 AURA » : le compteur ne voyait que l'ancienne chaîne en $ */mStatBox(Math.round(runStats.vmax),'KM/H MAX')+mStatBox(LVL.cur?LVL.n:runStats.zones+1,TR('NIVEAU')) // (2026-09-27) en carrière : le VRAI numéro du niveau · (2026-09-30) partout : celui de la bannière (runStats.zones compte la zone de l'école : « NIVEAU 2 » après « NIVEAU 1 »)
         // (v3) la plus longue FRÉNÉSIE de la partie — .rec quand elle a battu le record (le style : session UI)
         +(function(){const t9=RUNX.frenMax||0,rc=t9>=5&&t9>=(SAVE.d.frenRec||0)-.05;return '<div class="mStat mFren'+(rc?' rec':'')+(t9<1?' zero':'')+'"><b>'+frenDuree(t9)+'</b><span>'+TR(rc?'RECORD':'FRENESIE')+'</span></div>';})();
       {const o9=$t('mObj');if(o9)objRenderV2(o9);} // (l'ancien objRender gardait l'absence d'élément)
@@ -75132,7 +75369,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if((a==='modes'||a==='set')&&garageOn){ if(surAccueilCiel())mGo(a); else ecranWipe(function(){ window.__mRetour=a; closeGarage(); }); } // (2026-09-30) depuis le garage-menu : l'atelier se ferme sous le volet, l'observateur de l'overlay ouvre l'écran (retour : le menu)
     else if(a==='modes'||a==='set')mGo(a);
     // (2026-09-28) MENU : l'écran de mort rend la main à l'ACCUEIL — sous le volet, la course est rangée et la vitrine revient
-    else if(a==='menu'&&started&&gameOver){ GAR.aGar=true; ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); }
+    else if(a==='menu'&&started&&gameOver){ /* (2026-10-25, Sacha : « la maison de l'écran de mort ramène à l'écran titre, GARAGE ouvre le garage ») plus de GAR.aGar ici : le bouton GARAGE (#mDuo) a pris ce rôle */ ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); }
     else if(a==='shop'){ if(surAccueilCiel())mGo('shop'); else ecranWipe(function(){ if(garageOn){window.__mRetour='shop';closeGarage();} else mGo('shop'); }); } // LA BOUTIQUE : l'écran des caisses en vrai argent (depuis le garage-menu : l'atelier se ferme d'abord)
     else if(a==='custom'){ ecranWipe(function(){openGarage();shopTab('peinture');}); } // la PERSONNALISATION (peinture, ailes, traînées) vit au GARAGE
     else if(a==='shopSoon'){ if(el&&el.hasAttribute('data-car'))shopPop(el); else toast(pxi('panier')+' '+TR('INDISPONIBLE')); } // (2026-10-01) la caisse SORT de la vitrine : la fenêtre d'achat (shopPop)
@@ -75143,7 +75380,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     /* (2026-09-30, Sacha : « c'est buggé, les boutons ne sont pas connectés ») GARAGE et MISSIONS, APRÈS UNE PARTIE, depuis le menu : la course
        était finie (started && gameOver restent vrais jusqu'au prochain JOUER) → ils repassaient par accueilRetour, qui ne rejoue qu'une fois
        (MENUV.retour) → le bouton ne faisait RIEN jusqu'à la partie suivante. L'atelier déjà ouvert (garageOn) = on y va tout droit. */
-    else if(a==='garage'){ if(started&&gameOver&&!garageOn)ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); else ecranWipe(function(){ if(garageOn)garMode('boutique'); else openGarage(); }); } // (2026-09-30, Sacha : ses boutons) GARAGE = l'ATELIER (caisses, peinture, ailes, traînées) — le menu, on y est déjà
+    else if(a==='garage'){ if(started&&gameOver&&!garageOn){ GAR.aGar=true; /* (2026-10-25) le bouton GARAGE de l'écran de mort ouvre le garage, pas l'écran titre */ }
+      if(started&&gameOver&&!garageOn)ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); else ecranWipe(function(){ if(garageOn)garMode('boutique'); else openGarage(); }); } // (2026-09-30, Sacha : ses boutons) GARAGE = l'ATELIER (caisses, peinture, ailes, traînées) — le menu, on y est déjà
     else if(a==='surv'){ clic(survBtnEl); mFill(); }
     else if(a==='sand'){ SANDBOX=!SANDBOX; SAVE.d.sand=SANDBOX; SAVE.flush(); mFill(); }
     else if(a==='snd'){ clic(sndBtnEl); uiClic(SND.sfx?'on':'off'); mFill(); } // (2026-09-28) cliqué AVANT la bascule, le clic tombait sur SND.sfx encore faux : RALLUMER le son était muet et sans vibration (couper, lui, se tait — c'est juste)

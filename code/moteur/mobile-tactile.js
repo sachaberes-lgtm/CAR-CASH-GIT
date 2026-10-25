@@ -561,6 +561,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     setTimeout(function(){if(!ici())return;try{if(rec)rewardSfx('m3',3);else{chimeNote(noteP(4,1),0,.08,.3);chimeNote(noteP(7,1),.06,.07,.36);}}catch(e){}},1040);
     if(rec)setTimeout(function(){if(ici())pixBurst($t('mOverT'),34);},900); // (charte v4) un record, ça se voit aussi : l'enseigne crache ses confettis
   }
+  const MORT_FLOT=!/[?&]mort=ancien\b/.test(location.search); /* (2026-10-25) L'ÉCRAN DE MORT FLOTTANT (voir mFill) — `?mort=ancien` = les cartes d'avant */
+  Object.assign(I18N,{'PARTIE':'THIS RUN','MOYENNE':'AVERAGE','VS MOY':'VS AVG'});
+  window.dbgMortAura=function(a,moy,n,rec){if(a!=null&&started&&!gameOver)auraRun=Math.max(0,+a||0);if(moy!=null){SAVE.d.auraH={s:Math.round(moy*(n||10)),n:n||10};}if(rec!=null)SAVE.d.auraMax=Math.round(rec);return {partie:Math.round(auraRun),moyenne:SAVE.d.auraH,record:SAVE.d.auraMax};}; /* (banc) l'aura de la partie en cours (et la moyenne, le record) pour voir le graphe de l'écran de mort */
   function mFill(){ try{
     const b1=$t('mBest'),b2=$t('mBest2'),mc=$t('mCar');
     if(b1)b1.textContent=fmtC(best); if(b2)b2.textContent=fmtC(best);
@@ -570,6 +573,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       /* VERSÉS AU COMPTE = ce que la banque a VRAIMENT gagné depuis le départ — le magot MONTE au lieu de s'afficher : 750 ms qui font le sel de
          la fin de run. (2026-09-28) C'était le seul virement de la course (`_vire`) : « $ 37 VERSÉS » au-dessus d'une barre d'objectif « +$ 537 »,
          qui compte aussi la prime du permis et celles des défis. Même calcul que la barre (objRender) : les deux chiffres ne se contredisent plus. */
+      {const d9=$t('mDead');if(d9)d9.classList.toggle('m5',MORT_FLOT);} /* (2026-10-25) l'écran flottant : son style (css/mort-flottante.css) ne vise que #mDead.m5 */
       const prem9=mFill._mort!==TCTL.mortT;mFill._mort=TCTL.mortT; // (2026-09-29) le compte (montant, aura) ne se joue qu'à la PREMIÈRE apparition de l'écran de cette mort
       {const v9=RUNX.verse!=null?RUNX.verse:Math.max(0,Math.floor(bank())-Math.floor(RUNX.bank0||0)),c9=$t('mCash'),t9=$t('mCashTot');
        if(c9)c9.style.setProperty('--n',fmtC(v9).length); // le corps du montant se règle sur sa longueur finale (« $ 128,4 k » tient debout)
@@ -608,17 +612,38 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         /* (2026-09-29, Sacha : « on ne doit pas compter l'aura, c'est juste le score d'une partie ») : la carte dit le SCORE de la partie —
            plus de « + » (qui se lisait « ajouté à un total »), plus de total de carrière, plus de rang ni de jauge ; dessous, le meilleur
            score (ou RECORD ! quand il vient de tomber). */
-        if(h){h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV" style="--n:'+fA(au).length+'">0</b>'
+        /* L'ÉCRAN DE MORT FLOTTANT (2026-10-25, Sacha : « plus de fenêtres, un truc flottant, aérien, moderne ») : le MOTEUR flotte dans le vide,
+           plus gros, avec son seul palier ; l'AURA devient un graphe en bougies, lisible d'un coup d'œil — la PARTIE (violet), ta MOYENNE et
+           ton RECORD. La moyenne et le record sont ceux d'AVANT la partie (commitExploits) : le graphe dit si tu as fait mieux que d'habitude.
+           `?mort=ancien` = les deux cartes d'avant. */
+        if(h&&MORT_FLOT){
+          const n9=(SAVE.d.auraH&&SAVE.d.auraH.n)|0,moy0=commitExploits._moy||0,moyV=Math.round(moy0>0?moy0:(n9<=1?au:0)),
+                recV=Math.max(commitExploits._recAvant||0,SAVE.d.auraMax||0,au),M9=Math.max(1,au,moyV,recV),
+                hP=function(v){return Math.max(4,Math.round(v/M9*78));},
+                bg9=function(k,v,lb){return '<div class="m5Col m5'+k+'" style="--h:'+hP(v)+'%"><div class="m5Pied"><span class="m5Val">'+fA(v)+'</span><i class="m5Meche"></i><i class="m5Corps"></i></div><small>'+TR(lb)+'</small></div>';};
+          let vd9='';
+          if(!tq9&&au>0&&(commitExploits._recAvant||0)>0&&(recA||au>commitExploits._recAvant))vd9='<em class="m5Vd rec">'+pxi('etoile')+' '+TR('RECORD !')+'</em>';
+          else if(!tq9&&moy0>0&&au>0){const p9=Math.round((au-moy0)/moy0*100);vd9=p9>=1?'<em class="m5Vd up">▲ +'+p9+' % '+TR('VS MOY')+'</em>':p9<=-1?'<em class="m5Vd down">▼ '+p9+' % '+TR('VS MOY')+'</em>':'<em class="m5Vd">= '+TR('MOYENNE')+'</em>';}
+          h.className='mHero m5Hero';
+          h.innerHTML='<div class="m5Mot" style="--ec:'+hx+'"><div class="m5Scene"><i class="m5Halo"></i><canvas class="hMotCv" width="480" height="321"></canvas><i class="m5Ombre"></i></div>'
+            +'<div class="m5Pal'+(eN&&!tq9?' rec':'')+'"><span>'+TR('PALIER')+'</span><b>'+(engTier+1)+'</b></div></div>'
+            +'<div class="m5Aura"><div class="m5Tete"><small>'+TR('AURA')+'</small><b id="mAuraV">0</b>'+vd9+'</div>'
+            +'<div class="m5Graphe"><i class="m5Ligne" style="--h:'+hP(recV)+'%"></i>'+bg9('P',au,'PARTIE')+bg9('M',moyV,'MOYENNE')+bg9('R',recV,'RECORD')+'</div></div>';
+        }
+        else if(h){h.className='mHero';h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV" style="--n:'+fA(au).length+'">0</b>'
             +(recA&&!tq9&&au>0?'<em>'+TR('RECORD !')+'</em><div class="hNx hNxC6">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>':'<div class="hNx">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>')+'</div>' /* (2026-10-14, charte 6) cartes JUMELLES : la sous-ligne MEILLEUR est toujours là (.hNxC6 = celle que seule la charte 6 montre, quand le badge RECORD ! se tait) */
           +'<div class="hCard hMot hMot3" style="--ec:'+hx+'"><small>'+TR('MOTEUR ATTEINT')+'</small><canvas class="hMotCv" width="480" height="321"></canvas>'
             +'<div class="hMotN"><i>'+TR('PALIER')+'</i>'+(engTier+1)+'</div>'+(eN&&!tq9?'<em>'+TR('RECORD !')+'</em>':'')
             +(pr?'<div class="hNx hPres"><span>'+presqueTxt(mq)+'</span><span>'+pxi('haut')+' '+TR(nx.n)+'</span></div>':ci?'<div class="hNx hRec"><span>'+TR('RECORD')+'</span><span>'+TR('PALIER')+' '+(ea+1)+'</span></div>':'' /* (29/09, DEBUGGING) deux morceaux insécables : le chiffre ne tombe plus seul à la ligne */)+'</div>'; // (2026-09-28) « RECORD · PALIER 18 » : le nom du moteur (STATOREACTEUR) cassait la ligne ; la carte parle déjà en paliers
+        }
+        if(h){ /* (2026-10-25) les deux dessins (flottant ou cartes) partagent le moteur 3D et le compte de l'aura */
           {const cv9=h.querySelector('.hMotCv');ENG_MORT.cv=cv9;ENG_MORT.ctx=cv9?cv9.getContext('2d'):null;} // le moteur 3D y tourne (engVigRender)
           {const av9=$t('mAuraV');if(av9){av9.textContent=fA(prem9?0:au);av9.classList.toggle('zero',au<=0);}if(prem9&&av9)setTimeout(function(){countUp(av9,au,function(v){return fA(v);});},REDUCED_MOTION?0:260);} // la carte AURA est distribuée à 250 ms : le chiffre monte quand on la voit
           if(an){const u=$t('mAuraB'),D=Math.max(1,an.seuil-bas),w1=Math.min(100,(a1-bas)/D*100),w0=rg?0:Math.max(0,(a1-au-bas)/D*100);
             if(u){u.style.width=w0.toFixed(1)+'%';requestAnimationFrame(function(){requestAnimationFrame(function(){u.style.width=w1.toFixed(1)+'%';});});}}}
       }
-      $t('mStatsBox').innerHTML=mStatBox('×'+Math.max(1,runStats.xMax|0),TR('MULTI MAX'))+ /* (2026-09-26) « 0 FIGURES » à côté de « +820 AURA » : le compteur ne voyait que l'ancienne chaîne en $ */mStatBox(Math.round(runStats.vmax),'KM/H MAX')+mStatBox(LVL.cur?LVL.n:runStats.zones+1,TR('NIVEAU')) // (2026-09-27) en carrière : le VRAI numéro du niveau · (2026-09-30) partout : celui de la bannière (runStats.zones compte la zone de l'école : « NIVEAU 2 » après « NIVEAU 1 »)
+      /* (2026-10-25, Sacha) les quatre chiffres (MULTI MAX, KM/H MAX, NIVEAU, FRÉNÉSIE) laissent leur place à GARAGE et RÉGLAGES (#mDuo) */
+      if($t('mStatsBox'))$t('mStatsBox').innerHTML=mStatBox('×'+Math.max(1,runStats.xMax|0),TR('MULTI MAX'))+ /* (2026-09-26) « 0 FIGURES » à côté de « +820 AURA » : le compteur ne voyait que l'ancienne chaîne en $ */mStatBox(Math.round(runStats.vmax),'KM/H MAX')+mStatBox(LVL.cur?LVL.n:runStats.zones+1,TR('NIVEAU')) // (2026-09-27) en carrière : le VRAI numéro du niveau · (2026-09-30) partout : celui de la bannière (runStats.zones compte la zone de l'école : « NIVEAU 2 » après « NIVEAU 1 »)
         // (v3) la plus longue FRÉNÉSIE de la partie — .rec quand elle a battu le record (le style : session UI)
         +(function(){const t9=RUNX.frenMax||0,rc=t9>=5&&t9>=(SAVE.d.frenRec||0)-.05;return '<div class="mStat mFren'+(rc?' rec':'')+(t9<1?' zero':'')+'"><b>'+frenDuree(t9)+'</b><span>'+TR(rc?'RECORD':'FRENESIE')+'</span></div>';})();
       {const o9=$t('mObj');if(o9)objRenderV2(o9);} // (l'ancien objRender gardait l'absence d'élément)
@@ -698,7 +723,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if((a==='modes'||a==='set')&&garageOn){ if(surAccueilCiel())mGo(a); else ecranWipe(function(){ window.__mRetour=a; closeGarage(); }); } // (2026-09-30) depuis le garage-menu : l'atelier se ferme sous le volet, l'observateur de l'overlay ouvre l'écran (retour : le menu)
     else if(a==='modes'||a==='set')mGo(a);
     // (2026-09-28) MENU : l'écran de mort rend la main à l'ACCUEIL — sous le volet, la course est rangée et la vitrine revient
-    else if(a==='menu'&&started&&gameOver){ GAR.aGar=true; ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); }
+    else if(a==='menu'&&started&&gameOver){ /* (2026-10-25, Sacha : « la maison de l'écran de mort ramène à l'écran titre, GARAGE ouvre le garage ») plus de GAR.aGar ici : le bouton GARAGE (#mDuo) a pris ce rôle */ ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); }
     else if(a==='shop'){ if(surAccueilCiel())mGo('shop'); else ecranWipe(function(){ if(garageOn){window.__mRetour='shop';closeGarage();} else mGo('shop'); }); } // LA BOUTIQUE : l'écran des caisses en vrai argent (depuis le garage-menu : l'atelier se ferme d'abord)
     else if(a==='custom'){ ecranWipe(function(){openGarage();shopTab('peinture');}); } // la PERSONNALISATION (peinture, ailes, traînées) vit au GARAGE
     else if(a==='shopSoon'){ if(el&&el.hasAttribute('data-car'))shopPop(el); else toast(pxi('panier')+' '+TR('INDISPONIBLE')); } // (2026-10-01) la caisse SORT de la vitrine : la fenêtre d'achat (shopPop)
@@ -709,7 +734,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     /* (2026-09-30, Sacha : « c'est buggé, les boutons ne sont pas connectés ») GARAGE et MISSIONS, APRÈS UNE PARTIE, depuis le menu : la course
        était finie (started && gameOver restent vrais jusqu'au prochain JOUER) → ils repassaient par accueilRetour, qui ne rejoue qu'une fois
        (MENUV.retour) → le bouton ne faisait RIEN jusqu'à la partie suivante. L'atelier déjà ouvert (garageOn) = on y va tout droit. */
-    else if(a==='garage'){ if(started&&gameOver&&!garageOn)ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); else ecranWipe(function(){ if(garageOn)garMode('boutique'); else openGarage(); }); } // (2026-09-30, Sacha : ses boutons) GARAGE = l'ATELIER (caisses, peinture, ailes, traînées) — le menu, on y est déjà
+    else if(a==='garage'){ if(started&&gameOver&&!garageOn){ GAR.aGar=true; /* (2026-10-25) le bouton GARAGE de l'écran de mort ouvre le garage, pas l'écran titre */ }
+      if(started&&gameOver&&!garageOn)ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); else ecranWipe(function(){ if(garageOn)garMode('boutique'); else openGarage(); }); } // (2026-09-30, Sacha : ses boutons) GARAGE = l'ATELIER (caisses, peinture, ailes, traînées) — le menu, on y est déjà
     else if(a==='surv'){ clic(survBtnEl); mFill(); }
     else if(a==='sand'){ SANDBOX=!SANDBOX; SAVE.d.sand=SANDBOX; SAVE.flush(); mFill(); }
     else if(a==='snd'){ clic(sndBtnEl); uiClic(SND.sfx?'on':'off'); mFill(); } // (2026-09-28) cliqué AVANT la bascule, le clic tombait sur SND.sfx encore faux : RALLUMER le son était muet et sans vibration (couper, lui, se tait — c'est juste)

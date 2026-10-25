@@ -185,7 +185,7 @@ export const V2 = [
     note: '« SAUVER MAMAN », retouche la cloche, elle est un peu fade',
     idee: 'la cloche retouchée (la harpe de verre des accords) : une vraie cloche de verre, des partiels qui sonnent longtemps, deux couches qui battent',
     acc: { keys: CLOCHE_VERRE },
-    retouche(Mx) { Mx.titre = 'SAUVER MAMAN'; } },
+    retouche(Mx) { Mx.titre = 'SAUVER MAMAN'; Mx.tim.contre = 'violon'; } },   // (2026-10-25, Léo : « change juste la flûte de SAUVER MAMAN ») le contre-chant (moteur 12) : flûte synthétique → violon ; tout le reste est inchangé
 
   // (15/10, « juste respecte les consignes ») les trois musiques v6 rejouées enfin telles qu'aimées : leurs consignes appliquées
   { id: 'bleu-5095-retouche', base: 5095, direct: true, titre: 'CRISTAL D’ARGENT',
