@@ -33,7 +33,8 @@ function bkVerglasPose(root,seed){ // (2026-10-15, Sacha : « toute la route doi
       n+=(nk+1)*NC;}}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));
   g.setAttribute('aV',new THREE.Float32BufferAttribute(A,4));g.setIndex(n>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeBoundingSphere();
-  const m=new THREE.Mesh(g,BANQ.mats.vg);m.name='banquise verglas';m.matrixAutoUpdate=false;m.userData.jeter=true;m.renderOrder=1;m.frustumCulled=false;root.add(m);BANQ.n.verglas=BANQ.verg.length;}
+  if(!mobgTranches(root,g,BANQ.mats.vg,function(m){m.name='banquise verglas';m.matrixAutoUpdate=false;m.userData.jeter=true;m.renderOrder=1;},4128)){ /* (MOBG_CHAMP) 86 rangées de 3,5 m par tranche, ~300 m */
+  const m=new THREE.Mesh(g,BANQ.mats.vg);m.name='banquise verglas';m.matrixAutoUpdate=false;m.userData.jeter=true;m.renderOrder=1;m.frustumCulled=false;root.add(m);}BANQ.n.verglas=BANQ.verg.length;}
 function banqVerglas(dt){ // la boucle de conduite, chaque image, après les flaques
   let v=null;
   if(mode==='drive'&&BANQ.verg&&BANQ.verg.length&&banqOk()&&hopY<=.05&&!introD&&Math.abs(lat)<ROAD_HALF)for(const o of BANQ.verg)if(s>o.s0&&s<o.s1){v=o;break;} // (toute la route : une plaque sans bornes)
@@ -105,7 +106,8 @@ function bkCongerePose(root){ // les deux rubans de neige du bord, du départ à
   g.setIndex(n>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeVertexNormals();
   {const Nm=g.attributes.normal.array;for(let i=0;i<Nm.length;i+=3){Nm[i+1]+=.6;const l=Math.hypot(Nm[i],Nm[i+1],Nm[i+2])||1;Nm[i]/=l;Nm[i+1]/=l;Nm[i+2]/=l;}} // (au banc : à 45°, parallèle à la glace, elle restait dans l'ombre bleue — presque la couleur de la glace) la neige du bord regarde un peu le ciel : plus claire, on la distingue
   g.computeBoundingSphere();
-  const m=new THREE.Mesh(g,BANQ.mats.sol);m.name='glacier congere';m.matrixAutoUpdate=false;m.userData.jeter=true;m.frustumCulled=false;root.add(m);BANQ.n.congere=I.length/3;}
+  if(!mobgTranches(root,g,BANQ.mats.sol,function(m){m.name='glacier congere';m.matrixAutoUpdate=false;m.userData.jeter=true;},3150)){ /* (MOBG_CHAMP) 75 rangées de 4 m par tranche, ~300 m */
+  const m=new THREE.Mesh(g,BANQ.mats.sol);m.name='glacier congere';m.matrixAutoUpdate=false;m.userData.jeter=true;m.frustumCulled=false;root.add(m);}BANQ.n.congere=I.length/3;}
 /* LE TREMPLIN DE GLACE (2026-10-18, Sacha : « les tremplins doivent être plus beaux, gros et visibles ») — le « bec » d'avant était un coin de 8 m
    sur 1,1 m, blanc sur glace blanche : on ne le voyait pas venir. Désormais une RAMPE de BK_BEC.lg m qui monte en courbe (u^1,7 : ~18° à la
    lèvre) jusqu'à BK_BEC.h m, en glace blanche à CHEVRONS ORANGE qui montent vers la lèvre, une LÈVRE blanche qui brille, des flancs bleu
@@ -137,7 +139,8 @@ function bkBecMesh(root,KK){
     for(let a=0;a<NL;a++){const q=b0+a;I.push(q,q+1,q+NL+1,q+1,q+NL+2,q+NL+1);}}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('aV',new THREE.Float32BufferAttribute(A,4));
   g.setIndex(n>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeVertexNormals();g.computeBoundingSphere();
-  const m=new THREE.Mesh(g,BANQ.mats.vg);m.name='glacier becs';m.matrixAutoUpdate=false;m.userData.jeter=true;m.renderOrder=1;m.frustumCulled=false;root.add(m);}
+  if(!mobgTranches(root,g,BANQ.mats.vg,function(m){m.name='glacier becs';m.matrixAutoUpdate=false;m.userData.jeter=true;m.renderOrder=1;},2208)){ /* (MOBG_CHAMP) un maillage par bec : 22×16 quads + la lèvre = 2 208 indices */
+  const m=new THREE.Mesh(g,BANQ.mats.vg);m.name='glacier becs';m.matrixAutoUpdate=false;m.userData.jeter=true;m.renderOrder=1;m.frustumCulled=false;root.add(m);}}
 function bkCgEntre(kmh){ // l'entrée dans la neige : le plouf, la gerbe, un coup dans la main
   const k=Math.min(1,kmh/300);shake=Math.max(shake,(BK_NEIGE?.4:.22)+.3*k);fovPunch=Math.max(fovPunch,3+5*k);hap(k>.5?[14,22]:[10]);
   try{if(SONV2){if(!(window.CCSON&&window.CCSON.existe('banq.plouf')&&sfx('banq.plouf',{vol:-8+6*k})))sfx('nuage.entre',{vol:-4+4*k});}else noiseBurst(.35,.08+.08*k,700);}catch(e){}

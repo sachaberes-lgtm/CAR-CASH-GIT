@@ -171,7 +171,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     const na=arrs.length,P9=new Float32Array(na*NP*6),UV9=new Float32Array(na*NP*4),I9=new Uint32Array(na*(NP-1)*6);let w=0;
     for(let a9=0;a9<na;a9++){const vb=a9*NP*2;P9.set(arrs[a9],a9*NP*6);UV9.set(sideU_,a9*NP*4);
       for(let i=0;i<NP-1;i++){const a2=vb+2*i,b2=a2+1,c2=a2+2,d2=a2+3;I9[w++]=a2;I9[w++]=c2;I9[w++]=b2;I9[w++]=b2;I9[w++]=c2;I9[w++]=d2;}}
-    const N9=yield* normales9(P9,I9);yield* pisteTranches({position:[P9,3],normal:[N9,3],uv:[UV9,2]},{blocs:2,pr:2,np:NP,pas:1},mat,{ombre:true});
+    const N9=yield* normales9(P9,I9);yield* pisteTranches({position:[P9,3],normal:[N9,3],uv:[UV9,2]},{blocs:2,pr:2,np:NP,pas:1},mat,{ombre:true,moy:true});
   };
   // faces roulables : COLS colonnes de vertex → stries longitudinales + micro-grain étiré
   /* (2026-10-24, allègement mobile) LE NOMBRE DE COLONNES DE LA ROUTE par palier : MESURÉ (zone d'entraînement, iPhone 7 émulé) la route pèse 360 000 triangles sur 1,08 M, dessus ET dessous à 11 colonnes. ANCIEN 5 · MOYEN 7 · RÉCENT 11 (l'image d'avant, au triangle près). La physique ne lit pas ces colonnes (elle lit `pts`) ; seul le grain en travers de la route s'élargit. `?routecols=n` : un autre réglage (essai). */
@@ -256,7 +256,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     const mat9=traitMat(new THREE.MeshBasicMaterial({color:accC,side:THREE.DoubleSide,polygonOffsetFactor:-2,polygonOffsetUnits:-2}),1.5,0);
     mat9.userData.base=accC.clone(); // la teinte d'accent de la zone, à retrouver après chaque pulsation
     NEON_RAILS.push(mat9);
-    yield* pisteTranches({position:[ep,3],aLat:[el,3],aS:[es9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{marge:20});
+    yield* pisteTranches({position:[ep,3],aLat:[el,3],aS:[es9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{marge:20,moy:true});
   }
   // NAPPE DE LUEUR sous chaque bande : additif qui saigne vers l intérieur du bitume — sans fog, le néon perce
   // la brume et les rails roses filent jusqu au bout de la nuit (1 mesh par face : gauche+droite fusionnées)
@@ -280,7 +280,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     mat9.userData.base=.78; // opacité de repos — la pulsation part de là et y revient
     NEON_GLOW.push(mat9);
     W.bords=true; // (LE PRÉ-BÂTI) bordsTick part à l'installation — (2026-10-14, bords-route) la 1re image du rail est déjà à la bonne couleur (chanfrein de jour / rail blanc de nuit)
-    yield* pisteTranches({position:[gp,3],color:[gc,3],aLat:[gl,3],aS:[gs9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{ordre:1,marge:20}); // ...et leur nappe aussi
+    yield* pisteTranches({position:[gp,3],color:[gc,3],aLat:[gl,3],aS:[gs9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{ordre:1,marge:20,moy:true,nap:mat9}); // ...et leur nappe aussi
   }
   // ligne centrale pointillée — sodium doré, comme les vraies voies rapides la nuit (les DEUX faces : zéro dessus-dessous)
   /* (2026-09-26) UNE VRAIE PEINTURE AU SOL. C'était un trait GL d'UN pixel : aussi fin sous la caisse qu'à 2 km, crénelé, et au loin des
@@ -297,7 +297,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     }
     // (passe perf) découpée en tranches : une paire de sommets tous les 2 points, par face
     yield* pisteTranches({position:[lp,3],aLat:[ll,3],uv:[lu,2]},{blocs:2,pr:2,np:Math.ceil(NP/2),pas:2},
-      (function(){const m9=ligneMat();if(idA9==='jade'){m9.color.setHex(0xeaf0e8);m9.opacity=LIGNE_OPJ;JADE.ligne=m9;}return m9;})(),{ordre:1,marge:20,loin:0}); // (v12) aux PICS DE JADE : une ligne de jade pâle, discrète // au-delà du brouillard : plus de peinture (voir pisteTranches)
+      (function(){const m9=ligneMat();if(idA9==='jade'){m9.color.setHex(0xeaf0e8);m9.opacity=LIGNE_OPJ;JADE.ligne=m9;}return m9;})(),{ordre:1,marge:20,loin:0,moy:true}); // (v12) aux PICS DE JADE : une ligne de jade pâle, discrète // au-delà du brouillard : plus de peinture (voir pisteTranches)
   })();
   yield;
   // pads turbo (les deux faces)

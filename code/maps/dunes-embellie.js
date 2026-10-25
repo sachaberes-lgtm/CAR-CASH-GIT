@@ -27,7 +27,7 @@ function dnEmbellir(){
   const r=mulberry32((h9>>>0)^0x3E5B1A); /* le hasard de l'embellissement : né du TRACÉ (trois points de la route), jamais du hasard de la piste */
   const inst=(geo,L,nom)=>{if(!L.length)return null;const im=new THREE.InstancedMesh(geo,M9.t,L.length);
     L.forEach(function(a,k){q9.setFromAxisAngle(ax,a[4]);mt.compose(v9.set(a[0],a[1],a[2]),q9,s9.set(a[3],a[5]!=null?a[5]:a[3],a[6]!=null?a[6]:a[3]));im.setMatrixAt(k,mt);});
-    im.instanceMatrix.needsUpdate=true;im.matrixAutoUpdate=false;im.updateMatrix();im.frustumCulled=false;im.name='dunes '+nom;DN.grp.add(im);return im;};
+    im.instanceMatrix.needsUpdate=true;im.matrixAutoUpdate=false;im.updateMatrix();im.frustumCulled=false;im.name='dunes '+nom;DN.grp.add(im);if(!/caravanes|diables|mur/.test(nom))mobgCoupe(im,DN.grp);return im;};
   const dmin=(x,z)=>{let b=1e18;for(let i=0;i<S.n;i+=2){const dx=S.x[i]-x,dz=S.z[i]-z,d=dx*dx+dz*dz;if(d<b)b=d;}return Math.sqrt(b);}; /* la distance à la route la plus proche (toutes les dalles, à toute hauteur) */
   const pente=(x,z,h)=>Math.hypot(dnHauteur(x+3,z,o1)-h,dnHauteur(x,z+3,o2)-h)/3;
   const oa=DN.oa;

@@ -32,16 +32,16 @@ function sphere9(g){ // (2026-09-28, chasse aux gels) computeBoundingSphere de t
   S.radius=Math.sqrt(m);
 }
 function pisteMaigre(att,c,lz,pas9){ // la tranche lointaine : mêmes attributs, une rangée sur PISTE_PAS (+ bords de tranche et de trou), colonnes choisies
-  const r0=c*PISTE_CH,r1=Math.min((c+1)*PISTE_CH,NP-1),R=[],pas=pas9||PISTE_PAS;
+  const P9=lz.pas||1,np9=lz.np||NP,CH9=PISTE_CH/P9,r0=c*CH9,r1=Math.min((c+1)*CH9,np9-1),R=[],pas=pas9||PISTE_PAS; /* (MOBG_RUBANS) lz.pas/lz.np : un ruban à une rangée tous les P9 points (la ligne) ; absents = comme avant (pas 1, NP rangées) */
   for(let r=r0;r<r1;r+=pas)R.push(r);R.push(r1);
-  if(pas>1&&TROU)for(let r=r0+1;r<r1;r++)if(TROU[r]!==TROU[r-1]&&r%pas)R.push(r); // (la tranche MOYENNE) chaque bord de trou est une rangée : un quad ne chevauche jamais un trou
+  if(pas>1&&TROU)for(let r=r0+1;r<r1;r++)if(TROU[r*P9]!==TROU[(r-1)*P9]&&r%pas)R.push(r); // (la tranche MOYENNE) chaque bord de trou est une rangée : un quad ne chevauche jamais un trou
   R.sort((a,b)=>a-b);
   const nb=lz.blocs,pr=lz.pr,cols=lz.cols,nc=cols.length,nR=R.length,nv=nb*nR*nc,g=new THREE.BufferGeometry(),ix=[];
   for(const nm in att){const A=att[nm][0],sz=att[nm][1],B9=new Float32Array(nv*sz);let w=0;
-    for(let b=0;b<nb;b++)for(let k=0;k<nR;k++)for(let j=0;j<nc;j++){const s0=((b*NP+R[k])*pr+cols[j])*sz;for(let q=0;q<sz;q++)B9[w++]=A[s0+q];}
+    for(let b=0;b<nb;b++)for(let k=0;k<nR;k++)for(let j=0;j<nc;j++){const s0=((b*np9+R[k])*pr+cols[j])*sz;for(let q=0;q<sz;q++)B9[w++]=A[s0+q];}
     g.setAttribute(nm,new THREE.BufferAttribute(B9,sz));}
   for(let b=0;b<nb;b++){const inv=lz.inv&&lz.inv[b];for(let k=0;k<nR-1;k++){
-    if(TROU&&TROU[R[k]])continue; // (LES TROUS) le vide entre deux segments de route : aucun triangle
+    if(TROU&&TROU[R[k]*P9])continue; // (LES TROUS) le vide entre deux segments de route : aucun triangle
     for(let j=0;j<nc-1;j++){const a2=(b*nR+k)*nc+j,b2=a2+1,c2=a2+nc,d2=c2+1;if(inv)ix.push(a2,b2,c2,b2,d2,c2);else ix.push(a2,c2,b2,b2,c2,d2);}}} // `inv` : le bloc retourné (voir BITUME)
   if(!ix.length)return null;
   g.setIndex(ix);sphere9(g);return g;
@@ -55,15 +55,81 @@ function pisteMaigre(att,c,lz,pas9){ // la tranche lointaine : mêmes attributs,
    4 m fait moins d'un vingtième de pixel en profondeur, la flèche d'un virage serré (R 110 m) 2 cm : l'image ne bouge pas. Sur l'ordinateur : rien ne
    change (règle d'or). `?pistemoy=0` = avant ; `dbgPiste()` compte les tranches moyennes. */
 const PISTE_MOY=(TEL_NATIF&&!/[?&]pistemoy=0\b/.test(location.search))?4:0,PISTE_MOY_D=400;
+/* ===== LES RUBANS MOYENS ET LA NAPPE ÉTEINTE (2026-10-25, passe perf mobile A2 : « la route fait 50 à 70 % des triangles ») =====
+   MOBG_RUBANS : la tranche MOYENNE (une rangée sur 4 m, bords de trou gardés) vaut aussi pour les FLANCS, les RAILS, la NAPPE de lueur et la LIGNE
+   centrale, comme pour le bitume. Mêmes rangées que le bitume : les rubans restent collés à lui ; un point gardé est EXACTEMENT le sommet d'avant
+   (mêmes attributs recopiés), seul l'entre-deux devient la corde (flèche 2 cm à 400 m en virage de 110 m, 5 cm à 40 m). La largeur écran des traits
+   ne dépend pas des rangées (le vertex shader élargit chaque sommet pour tenir `minPx` pixels). Téléphone seulement (PISTE_MOY=0 ailleurs).
+   `?mobg_rubans=0` = avant. MOBG_NAPPE : la nappe de lueur (additive, opacité 0 de plein jour sec sur la ville) n'est pas dessinée quand son opacité
+   est sous .001 (sa contribution additive reste sous une demi-teinte 8 bits) ; partout, sans effet visible. `?mobg_nappe=0` = avant. */
+const MOBG_RUBANS=!/[?&]mobg_rubans=0\b/.test(location.search),MOBG_NAPPE=!/[?&]mobg_nappe=0\b/.test(location.search);
+/* ===== LES DÉCORS INSTANCIÉS ÉCARTÉS AU CHAMP (2026-10-25, passe perf mobile A2 : « écarter par le champ de vision les décors du canyon et des dunes ») =====
+   Les arbres, cheminées, buttes, touffes… du canyon et des dunes étaient UN InstancedMesh à `frustumCulled=false` : tous les exemplaires de la
+   piste (des centaines) partaient au GPU à chaque image, devant, derrière et hors champ. three r128 ne sait pas écarter un InstancedMesh par
+   instance (sa sphère est celle de la géométrie seule). `mobgCoupe` range les exemplaires en cases de MOBG_CASE m (x, z) — un InstancedMesh par
+   case, MÊMES géométrie, matière et matrices —, calcule la sphère exacte de la case (sphère de la géométrie passée dans chaque matrice + MOBG_MARGE m
+   pour le balancement des shaders), et `mobgChamp(cam)` (avant chaque rendu de la scène, voir portails.js) ne montre que les cases dont la sphère
+   touche le champ : les cases visibles sont dessinées EXACTEMENT comme avant (mêmes sommets), celles qu'on écarte étaient hors de l'image. Les décors
+   qui bougent (caravanes, tornades, mur de tempête) ne passent pas par là. `?mobg_champ=0` = avant (un seul maillage, jamais écarté). */
+const MOBG_CHAMP=!/[?&]mobg_champ=0\b/.test(location.search),MOBG_CASE=1500,MOBG_MARGE=8,MOBG_GRP=[],MOBG_FR=new THREE.Frustum(),MOBG_PM=new THREE.Matrix4(),MOBG_SP=new THREE.Sphere();
+function mobgCoupe(im,grp){ /* im : InstancedMesh STATIQUE déjà ajouté à grp, matrices écrites ; rend la liste des mailles (im si rien à couper) */
+  if(!MOBG_CHAMP||!im||!im.isInstancedMesh||!grp||im.count<16||im.instanceColor||!im.geometry||im.geometry.isInstancedBufferGeometry)return [im];
+  const g=im.geometry;if(!g.boundingSphere)g.computeBoundingSphere();
+  const gs=g.boundingSphere,ma=im.instanceMatrix.array,n=im.count,cases=new Map();
+  for(let k=0;k<n;k++){const key=Math.floor(ma[k*16+12]/MOBG_CASE)*65536+Math.floor(ma[k*16+14]/MOBG_CASE);let a=cases.get(key);if(!a)cases.set(key,a=[]);a.push(k);}
+  const sortie=[];if(MOBG_GRP.indexOf(grp)<0)MOBG_GRP.push(grp);
+  const boule=function(mesh,idx){ /* centre = milieu de la boîte des centres ; rayon = le plus loin (centre + rayon de chaque exemplaire) */
+    let x0=1e30,y0=1e30,z0=1e30,x1=-1e30,y1=-1e30,z1=-1e30;const cs=new Float32Array(idx.length*4),A=mesh.instanceMatrix.array;
+    for(let j=0;j<idx.length;j++){const e=j*16,cx=gs.center.x,cy=gs.center.y,cz=gs.center.z;
+      const x=A[e]*cx+A[e+4]*cy+A[e+8]*cz+A[e+12],y=A[e+1]*cx+A[e+5]*cy+A[e+9]*cz+A[e+13],z=A[e+2]*cx+A[e+6]*cy+A[e+10]*cz+A[e+14];
+      const sc=Math.sqrt(Math.max(A[e]*A[e]+A[e+1]*A[e+1]+A[e+2]*A[e+2],A[e+4]*A[e+4]+A[e+5]*A[e+5]+A[e+6]*A[e+6],A[e+8]*A[e+8]+A[e+9]*A[e+9]+A[e+10]*A[e+10]));
+      cs[j*4]=x;cs[j*4+1]=y;cs[j*4+2]=z;cs[j*4+3]=gs.radius*sc;
+      if(x<x0)x0=x;if(y<y0)y0=y;if(z<z0)z0=z;if(x>x1)x1=x;if(y>y1)y1=y;if(z>z1)z1=z;}
+    const cx=(x0+x1)*.5,cy=(y0+y1)*.5,cz=(z0+z1)*.5;let R=0;
+    for(let j=0;j<idx.length;j++){const d=Math.hypot(cs[j*4]-cx,cs[j*4+1]-cy,cs[j*4+2]-cz)+cs[j*4+3];if(d>R)R=d;}
+    mesh.userData.mobgB=[cx,cy,cz,R+MOBG_MARGE];};
+  if(cases.size<2){boule(im,{length:n});sortie.push(im);return sortie;}
+  grp.remove(im);
+  cases.forEach(function(idx){const c=new THREE.InstancedMesh(g,im.material,idx.length);
+    for(let j=0;j<idx.length;j++)c.instanceMatrix.array.set(ma.subarray(idx[j]*16,idx[j]*16+16),j*16);
+    c.instanceMatrix.needsUpdate=true;c.matrixAutoUpdate=false;c.updateMatrix();c.frustumCulled=false;
+    c.name=im.name;c.renderOrder=im.renderOrder;c.castShadow=im.castShadow;c.receiveShadow=im.receiveShadow;c.userData=Object.assign({},im.userData);
+    boule(c,idx);grp.add(c);sortie.push(c);});
+  return sortie;}
+/* ===== LE GLACIER EN TRANCHES COUPABLES AU CHAMP (2026-10-25, passe perf mobile A2 : G1) =====
+   Le verglas, la congère et les becs du glacier étaient chacun UN maillage de toute la piste à `frustumCulled=false` (~9 triangles par mètre pour le
+   verglas, ~3,5 pour la congère). `mobgTranches` découpe l'INDEX de la géométrie finie en tranches contiguës de `run` indices (multiple de 6 : des quads
+   entiers) ; chaque tranche est un Mesh qui PARTAGE les attributs (mêmes sommets, mêmes normales, un seul envoi au GPU), avec sa sphère exacte
+   (boîte des sommets qu'elle touche + 2 m) et le culling natif de three : les triangles dessinés au-dessus du champ sont les mêmes qu'avant, seuls
+   ceux qui sont hors de l'image ne partent plus. `props(m)` pose nom, matière, ordre. Rend false (rien fait) si `?mobg_champ=0` ou si trop court. */
+function mobgTranches(root,g,mat,props,run){
+  if(!MOBG_CHAMP||!g.index||g.index.array.length<=run*2||!g.attributes.position)return false;
+  const ix=g.index.array,pos=g.attributes.position.array;
+  for(let i0=0;i0<ix.length;i0+=run){const sub=ix.slice(i0,Math.min(ix.length,i0+run));
+    let x0=1e30,y0=1e30,z0=1e30,x1=-1e30,y1=-1e30,z1=-1e30;
+    for(let k=0;k<sub.length;k++){const v=sub[k]*3,x=pos[v],y=pos[v+1],z=pos[v+2];if(x<x0)x0=x;if(y<y0)y0=y;if(z<z0)z0=z;if(x>x1)x1=x;if(y>y1)y1=y;if(z>z1)z1=z;}
+    const cx=(x0+x1)*.5,cy=(y0+y1)*.5,cz=(z0+z1)*.5;let R=0;
+    for(let k=0;k<sub.length;k++){const v=sub[k]*3,d=Math.hypot(pos[v]-cx,pos[v+1]-cy,pos[v+2]-cz);if(d>R)R=d;}
+    const g2=new THREE.BufferGeometry();for(const nm in g.attributes)g2.setAttribute(nm,g.attributes[nm]);
+    g2.setIndex(new THREE.BufferAttribute(sub,1));g2.boundingSphere=new THREE.Sphere(new THREE.Vector3(cx,cy,cz),R+2);
+    const m=new THREE.Mesh(g2,mat);props(m);m.frustumCulled=true;root.add(m);}
+  return true;}
+function mobgChamp(cam){ /* avant chaque rendu de la scène : les cases hors champ ne sont pas dessinées */
+  if(!MOBG_GRP.length)return;
+  MOBG_PM.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse);MOBG_FR.setFromProjectionMatrix(MOBG_PM);
+  for(let i=0;i<MOBG_GRP.length;i++){const gr=MOBG_GRP[i];if(!gr.visible)continue;const ch=gr.children;
+    for(let k=0;k<ch.length;k++){const b=ch[k].userData.mobgB;if(!b)continue;MOBG_SP.center.set(b[0],b[1],b[2]);MOBG_SP.radius=b[3];ch[k].visible=MOBG_FR.intersectsSphere(MOBG_SP);}}}
 function pisteLoin(cam){ // chaque tranche : entière de près, moyenne au-delà de PISTE_MOY_D (téléphone), maigre (ou absente) quand elle est TOUTE au-delà du brouillard
   if(!PISTE_LOD.length)return;
-  if(PISTE_TEMOIN||PISTE_SANSLOIN){for(const E of PISTE_LOD){E.loin=false;E.et=0;E.hi.visible=true;if(E.lo)E.lo.visible=false;if(E.mo)E.mo.visible=false;}return;}
+  if(PISTE_TEMOIN||PISTE_SANSLOIN){for(const E of PISTE_LOD){E.loin=false;E.et=0;E.nul=false;E.hi.visible=true;if(E.lo)E.lo.visible=false;if(E.mo)E.mo.visible=false;}return;}
   const f=scene.fog,far=f&&f.isFog?f.far:Infinity,e=cam.matrixWorld.elements;
   const il=1/Math.hypot(e[8],e[9],e[10]),fx=-e[8]*il,fy=-e[9]*il,fz=-e[10]*il,px=e[12],py=e[13],pz=e[14];
   for(let i=0;i<PISTE_LOD.length;i++){const E=PISTE_LOD[i],c=E.s.center;
     const p9=(c.x-px)*fx+(c.y-py)*fy+(c.z-pz)*fz-E.s.radius; // la profondeur de vue de son point le plus proche
-    const et=p9-1>=far?2:(E.mo&&!PISTE_SANSMOY&&p9>=PISTE_MOY_D)?1:0; // (1 m de garde au brouillard, comme avant)
-    if(et!==E.et){E.et=et;E.loin=et===2;E.hi.visible=et===0;if(E.lo)E.lo.visible=et===2;if(E.mo)E.mo.visible=et===1;}}
+    const et0=p9-1>=far?2:(E.mo&&!PISTE_SANSMOY&&p9>=PISTE_MOY_D)?1:0; // (1 m de garde au brouillard, comme avant)
+    const et=(et0===2&&E.garde)?((E.mo&&!PISTE_SANSMOY)?1:0):et0; // (MOBG_RUBANS) flancs, rails, nappe : jamais cachés par le brouillard (la nappe n'en a pas), seulement allégés
+    const nul=E.nap!==null&&E.nap.opacity<.001; // (MOBG_NAPPE) la nappe éteinte ne se dessine pas
+    if(et!==E.et||nul!==E.nul){E.et=et;E.nul=nul;E.loin=et===2;E.hi.visible=et===0&&!nul;if(E.lo)E.lo.visible=et===2&&!nul;if(E.mo)E.mo.visible=et===1&&!nul;}}
 }
 /* `dbgPiste(false)` : le TÉMOIN — tranches toutes entières et jamais triées, tous les plots envoyés, comme avant la passe. Sert à mesurer
    (et à comparer l'image) sur la MÊME image figée ; `dbgPiste(true,false)` : le tri sans les tranches maigres ; `dbgPiste()` rend l'état. */
@@ -119,17 +185,20 @@ function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée
     const m=new THREE.Mesh(g,mat);if(o.ombre)m.receiveShadow=true;if(o.ordre)m.renderOrder=o.ordre;
     m.updateMatrix();m.matrixAutoUpdate=false; // sommets en coordonnées MONDE : la tranche ne bouge jamais
     trackMeshes.push(m); /* (LE PRÉ-BÂTI) elle entre dans la scène à l'installation (pisteInstalle) */
-    if(o.loin===undefined)continue;
+    const moy9=PISTE_MOY>1&&MOBG_RUBANS&&!!o.moy,nap9=MOBG_NAPPE&&o.nap?o.nap:null;
+    if(o.loin===undefined&&!moy9&&!nap9)continue; /* (MOBG_RUBANS) un ruban à tranche moyenne ou à nappe entre aussi dans PISTE_LOD */
     yield;
     let lo=null;const g2=o.loin?pisteMaigre(att,c,o.loin):null;
     if(g2){lo=new THREE.Mesh(g2,mat);lo.receiveShadow=m.receiveShadow;lo.renderOrder=m.renderOrder;lo.visible=false;lo.userData.maigre=true;
       lo.updateMatrix();lo.matrixAutoUpdate=false;trackMeshes.push(lo);}
     let mo=null; // (LA TRANCHE MOYENNE, téléphone) toutes les colonnes, une rangée sur PISTE_MOY
-    if(PISTE_MOY>1&&o.loin&&lay.pas===1){yield;const cols9=[];for(let j=0;j<lay.pr;j++)cols9.push(j);
-      const g3=pisteMaigre(att,c,{blocs:lay.blocs,pr:lay.pr,cols:cols9,inv:lay.inv},PISTE_MOY);
+    const st9=Math.round(PISTE_MOY/lay.pas); /* rangées entre deux gardées : 4 pour le bitume (pas 1), 2 pour la ligne (pas 2) */
+    if(PISTE_MOY>1&&st9>1&&((o.loin&&lay.pas===1)||moy9)){yield;const cols9=[];for(let j=0;j<lay.pr;j++)cols9.push(j);
+      const g3=pisteMaigre(att,c,{blocs:lay.blocs,pr:lay.pr,cols:cols9,inv:lay.inv,np:lay.np,pas:lay.pas},st9);
+      if(g3&&o.marge)g3.boundingSphere.radius+=o.marge; /* (la sphère des rubans élargis en VS, comme celle de la tranche entière) */
       if(g3){mo=new THREE.Mesh(g3,mat);mo.receiveShadow=m.receiveShadow;mo.renderOrder=m.renderOrder;mo.visible=false;mo.userData.moyenne=true;
         mo.updateMatrix();mo.matrixAutoUpdate=false;trackMeshes.push(mo);}}
-    PISTE_LOD.push({hi:m,lo,mo,s:g.boundingSphere,loin:false,et:0});
+    if(o.loin!==undefined||mo||nap9)PISTE_LOD.push({hi:m,lo,mo,s:g.boundingSphere,loin:false,et:0,garde:!!o.moy&&o.loin===undefined,nap:nap9,nul:false});
   }
 }
 /* LE PRÉ-BÂTI (2026-10-17, Léo : « la pause du passage est beaucoup trop longue » — le portail de cubes, 3e tour). MESURÉ (banc : téléphone
