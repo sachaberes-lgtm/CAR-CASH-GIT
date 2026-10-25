@@ -52,5 +52,5 @@ Source vivante : https://claude.ai/artifact/8ARY7pWNmWxXP4rVvNSEkw · retirées 
 | 61 | LE DRAGON D'OR | légendaire | Premium (€) | 1,61 € |  |
 | 9 | CHAT POP-TART | légendaire | Premium (€) | 4,20 € |  |
 | 19 | LA PIZZA EXPRESS | légendaire | Premium (€) | 161,00 € |  |
-| 5 | POSTER 84 | légendaire | Aura |  | rang d'aura 6 |
+| 5 | POSTER 84 | légendaire | Prix | 3 200 000 $ |  |
 | 57 | LE TRÔNE CENTRAL | légendaire | Défi officiel |  | COLLECTE TOUTES LES VOITURES |

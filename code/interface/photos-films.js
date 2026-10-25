@@ -17,10 +17,11 @@ window.dbgPhotoMem=function(mo){if(mo!=null)PHOTO_MEM.max=mo*1048576;return {pho
 // le studio (pellicule, scène, objectif, lumières), monté à la première photo — caisse, aile ou figure (2026-10-15 soir : sorti de carPhoto pour figPhoto)
 function photoStudio(){if(PHOTO.rt)return;const W=PHOTO_W,H=PHOTO_H;
   PHOTO.rt=new THREE.WebGLRenderTarget(W*PHOTO_SS,H*PHOTO_SS);PHOTO.scene=new THREE.Scene();PHOTO.cam=new THREE.PerspectiveCamera(24,W/H,.1,400);
-  const hemi=new THREE.HemisphereLight(0xdfe6ff,0x281a40,.62),key=new THREE.DirectionalLight(0xfff4e6,1.75),
-        rim=new THREE.DirectionalLight(0xff5ad0,1.35),rim2=new THREE.DirectionalLight(0x5ad8ff,.9),bas=new THREE.PointLight(0x8a5cff,.7,16);
+  /* (2026-10-25, Sacha : « les photos sont bof, la lumière… elles ne donnent pas envie d'acheter ») : un vrai studio de vente — grande lampe douce de face, remplissage clair côté ombre (le dessous ne bouchait plus en violet), contre-jours plus fins et moins fluo */
+  const hemi=new THREE.HemisphereLight(0xf2f5ff,0x5a5066,1.0),key=new THREE.DirectionalLight(0xfff6ea,2.1),fill=new THREE.DirectionalLight(0xe9f0ff,1.0),
+        rim=new THREE.DirectionalLight(0xffa8dc,.95),rim2=new THREE.DirectionalLight(0x9fe4ff,.8),bas=new THREE.PointLight(0xb9a0ff,.55,16);fill.position.set(6,3,9);
   key.position.set(-3,8,7);rim.position.set(7,3.5,-6);rim2.position.set(-7,2.5,-5);bas.position.set(0,-.4,3);
-  PHOTO.scene.add(hemi,key,rim,rim2,bas);PHOTO.key=key;}
+  PHOTO.scene.add(hemi,key,fill,rim,rim2,bas);PHOTO.key=key;}
 function photoAiles(){for(const w of [carWingL,carWingR]){if(!w)continue;w.visible=true;w.scale.x=w.userData.k||1;w.rotation.z=(w===carWingL?.16:-.16);w.traverse(function(o){o.visible=true;});}
   try{ailvPose();}catch(e){}} // (2026-10-16, LES AILES VIVANTES) l'aile au plus beau de son geste : boost tenu (les ailes en X ouvertes, la lave qui flambe…)
 function aileFile(id,cb,el){const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return;const c=equippedCar(),k='a:'+id+':'+c;
@@ -41,7 +42,7 @@ function photoDevPrep(){ /* (2026-10-18) le programme de la pellicule, seul : ph
   if(!PHOTO.dev){const m=new THREE.ShaderMaterial({uniforms:{t:{value:null},px:{value:new THREE.Vector2()}},depthTest:false,depthWrite:false,blending:THREE.NoBlending,toneMapped:false,
       vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
       fragmentShader:'uniform sampler2D t;uniform vec2 px;varying vec2 vUv;'
-        +'vec3 dev(vec3 c){float L=dot(c,vec3(.2126,.7152,.0722));if(L>1e-4){float L2=pow(L,1./1.22);if(L2>.82)L2=.82+(L2-.82)/(1.+(L2-.82)*2.6);c*=L2/L;}'
+        +'vec3 dev(vec3 c){float L=dot(c,vec3(.2126,.7152,.0722));if(L>1e-4){float L2=pow(L,1./1.32);if(L2>.82)L2=.82+(L2-.82)/(1.+(L2-.82)*2.6);c*=L2/L;}'
         +'float l=dot(c,vec3(.2126,.7152,.0722));c=max(vec3(0.),l+(c-l)*1.14);float m=max(c.r,max(c.g,c.b));if(m>1.)c/=m;return c;}'
         +'void main(){vec2 u=vec2(vUv.x,1.-vUv.y),h=px*.5;vec3 s=vec3(0.);float a=0.;vec4 c;'
         +'c=texture2D(t,u+vec2(-h.x,-h.y));if(c.a>0.){s+=dev(c.rgb)*c.a;a+=c.a;}'
@@ -58,8 +59,8 @@ function photoDev(W,H){
   D.m.uniforms.t.value=PHOTO.rt.texture;D.m.uniforms.px.value.set(1/PHOTO.rt.width,1/PHOTO.rt.height);
   renderer.setRenderTarget(D.rt);renderer.render(D.sc,D.cam);renderer.readRenderTargetPixels(D.rt,0,0,W,H,D.buf);
   const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.putImageData(new ImageData(D.buf,W,H),0,0);return cv;}
-function carPhoto(i,cb,aile){
-  const ck=aile?aile.k:i; // (2026-10-15) LA PHOTO D'UNE AILE (aileFile) : la caisse i qui la porte, ailes déployées — rangée sous SA clé
+function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAGE de la fenêtre d'achat (shopTourne) — la caisse vue sous cet azimut, cadrée pour TOUS les azimuts (le cadre ne respire pas), rangée sous sa clé */
+  const ck=aile?aile.k:(az9!=null?'r'+i+'_'+az9.toFixed(2):i); // (2026-10-15) LA PHOTO D'UNE AILE (aileFile) : la caisse i qui la porte, ailes déployées — rangée sous SA clé
   if(PHOTO.cache[ck]){if(cb)cb(PHOTO.cache[ck]);return PHOTO.cache[ck];}
   if(started&&!gameOver){if(cb)cb(null);return null;}
   if(cb&&PHOTO.att&&PHOTO.att[ck]){PHOTO.att[ck].push(cb);return null;}
@@ -79,11 +80,12 @@ function carPhoto(i,cb,aile){
     carGroup.traverse(function(o){if(!o.isMesh||!o.geometry||o.userData.fx)return;for(let a=o;a;a=a.parent){if(!a.visible)return;if(a===carGroup)break;}
       if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();b9.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);bx.union(b9);});
     if(bx.isEmpty())bx.set(new THREE.Vector3(-1,0,-2),new THREE.Vector3(1,1.3,2));
-    const EL9=aile?PHOTO_AILE.el:PHOTO_EL,AZ9=aile?PHOTO_AILE.az:PHOTO_AZ,cam=PHOTO.cam,ctr=bx.getCenter(new THREE.Vector3()),dir=new THREE.Vector3(Math.sin(AZ9)*Math.cos(EL9),Math.sin(EL9),Math.cos(AZ9)*Math.cos(EL9));T9.box=bx.getSize(new THREE.Vector3()).toArray().map(function(v){return +v.toFixed(2);});T9.ailes=!!carWingL;
+    const EL9=aile?PHOTO_AILE.el:PHOTO_EL,AZ9=aile?PHOTO_AILE.az:(az9!=null?az9:PHOTO_AZ),cam=PHOTO.cam,ctr=bx.getCenter(new THREE.Vector3()),dir=new THREE.Vector3(Math.sin(AZ9)*Math.cos(EL9),Math.sin(EL9),Math.cos(AZ9)*Math.cos(EL9));T9.box=bx.getSize(new THREE.Vector3()).toArray().map(function(v){return +v.toFixed(2);});T9.ailes=!!carWingL;
     const C8=[];for(let k=0;k<8;k++)C8.push(new THREE.Vector3(k&1?bx.max.x:bx.min.x,k&2?bx.max.y:bx.min.y,k&4?bx.max.z:bx.min.z));
     let D=bx.getSize(new THREE.Vector3()).length()*2.4,tg=ctr.clone(),ymin=0;const v9=new THREE.Vector3();
     let PTS=C8;if(aile){PTS=[];carGroup.traverse(function(o){const pa=o.isMesh&&o.geometry&&o.geometry.attributes.position;if(!pa||o.userData.fx)return;for(let a=o;a;a=a.parent){if(!a.visible)return;if(a===carGroup)break;} // une AILE : le cadre se cale sur la vraie silhouette (des sommets), pas sur les coins de sa boîte — les ailes ne la remplissent pas, la caisse sortait à moitié de la taille
       const st=Math.max(1,Math.floor(pa.count/400));for(let q=0;q<pa.count;q+=st)PTS.push(new THREE.Vector3().fromBufferAttribute(pa,q).applyMatrix4(o.matrixWorld));});if(!PTS.length)PTS=C8;}
+    if(az9!=null&&!aile){PTS=[];for(let a=0;a<12;a++){const s9=Math.sin(a*Math.PI/6),c9=Math.cos(a*Math.PI/6);for(const q of C8){const dx=q.x-ctr.x,dz=q.z-ctr.z;PTS.push(new THREE.Vector3(ctr.x+dx*c9+dz*s9,q.y,ctr.z-dx*s9+dz*c9));}}} /* la boîte tournée sur 12 angles : même cadre à chaque pose */
     for(let it=0;it<4;it++){ // le cadrage : la caisse remplit le cadre (86 % de large, 70 % de haut au plus), un peu haute (la place du reflet)
       cam.position.copy(tg).addScaledVector(dir,D);cam.lookAt(tg);cam.updateMatrixWorld();cam.updateProjectionMatrix();
       let x0=9,x1=-9,y0=9,y1=-9;for(const c of PTS){v9.copy(c).project(cam);x0=Math.min(x0,v9.x);x1=Math.max(x1,v9.x);y0=Math.min(y0,v9.y);y1=Math.max(y1,v9.y);}
@@ -101,7 +103,7 @@ function carPhoto(i,cb,aile){
     if(!gros){gros=document.createElement('canvas');gros.width=RW;gros.height=RH;const gx=gros.getContext('2d'),im=gx.createImageData(RW,RH),dd=im.data;
     for(let y=0;y<RH;y++){const s0=(RH-1-y)*RW*4,d0=y*RW*4;for(let k=0;k<RW*4;k+=4){const al=buf[s0+k+3];if(!al){dd[d0+k+3]=0;continue;}
       let r=buf[s0+k]/255,g=buf[s0+k+1]/255,bl=buf[s0+k+2]/255;const L=.2126*r+.7152*g+.0722*bl;
-      if(L>1e-4){let L2=Math.pow(L,1/1.22);if(L2>.82)L2=.82+(L2-.82)/(1+(L2-.82)*2.6);const q=L2/L;r*=q;g*=q;bl*=q;}
+      if(L>1e-4){let L2=Math.pow(L,1/1.32);if(L2>.82)L2=.82+(L2-.82)/(1+(L2-.82)*2.6);const q=L2/L;r*=q;g*=q;bl*=q;}
       const l2=.2126*r+.7152*g+.0722*bl;r=Math.max(0,l2+(r-l2)*1.14);g=Math.max(0,l2+(g-l2)*1.14);bl=Math.max(0,l2+(bl-l2)*1.14);
       const m=Math.max(r,g,bl);if(m>1){r/=m;g/=m;bl/=m;}
       dd[d0+k]=r*255;dd[d0+k+1]=g*255;dd[d0+k+2]=bl*255;dd[d0+k+3]=al;}}
