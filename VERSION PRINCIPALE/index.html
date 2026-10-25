@@ -17740,26 +17740,34 @@ const CY_VS=['attribute vec4 aN;uniform sampler2D uTC,uTM,uTZ,uTS,uRND,uNZ;unifo
 const CYD=PAL.b('cyDet',2);
 const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uBnc,uRkT,uWS,uWD,uSkH,uSkZ,uMist,uMud,uPhP,uPhD,uPhC;uniform vec4 uQ;uniform float uTime,uFlash,uWet;',
   'varying vec3 vW,vN;varying vec4 vA,vB;','#include <fog_pars_fragment>',
+  'float gCs;', /* (2026-10-25, Sacha : « retravaille les textures, inspire-toi de la forêt : des gros pixels, mais lisses ») LES GROS PIXELS DE LA ROCHE : gCs = la case sous ce pixel (~10 px d'écran, par paliers doublés fondus l'un dans l'autre) */
+  'vec4 tl(sampler2D t,vec2 uv,float sh){return texture2DLodEXT(t,uv,max(log2(gCs*256.*sh),0.));}', /* une lecture au niveau de mip de la case : elle montre la MOYENNE de ce qu'elle couvre (pas de trait aux arêtes, pas de grésillement) */
+  'float dhc(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}',
+  'vec4 twp(sampler2D t,vec3 w,float k,float sh,float sv){return mix(tl(t,vec2(w.x*sh,w.y*sv),sh),tl(t,vec2(w.z*sh,w.y*sv),sh),k);}', /* une paroi lue par ses deux plans fixes (x·y et z·y), mélangés selon la normale */
   'void main(){vec3 N=normalize(vN),Vv=uCam-vW;float dist=length(Vv);vec3 V=Vv/max(dist,.001);',
   '  float wat=vA.x,dep=vA.y,rk=clamp(vA.z,0.,1.),lit=clamp(vA.w,0.,1.),veg=vB.x,fo=vB.y,dk=clamp(vB.z,0.,1.),fl=vB.w,stp=clamp(1.-N.y,0.,1.);',
-  '  float uw=dot(vW.xz,normalize(vec2(-N.z,N.x)+1e-4)),wl=smoothstep(.10,.30,stp);vec4 n0=texture2D(uNZ,vW.xz/2600.),n1=mix(texture2D(uNZ,vW.xz/170.),texture2D(uNZ,vec2(uw,vW.y)/170.),wl),n2=mix(texture2D(uNZ,vW.xz/31.),texture2D(uNZ,vec2(uw,vW.y)/31.),wl),nv=texture2D(uNZ,vec2(uw/140.,vW.y/70.));', /* sur une paroi le bruit se déroule le long du mur : plus de fenêtres étirées */
-  ...(CYD>=1?['  float wX=abs(N.x)/(abs(N.x)+abs(N.z)+.001);vec4 nf=mix(texture2D(uNZ,vec2(vW.x/17.,vW.y/89.)),texture2D(uNZ,vec2(vW.z/17.,vW.y/89.)),wX);float fx=wl*rk*(1.-smoothstep(200.,700.,dist));vec3 Tg=normalize(vec3(-N.z,0.,N.x)+vec3(1e-4,0.,1e-4));'+'']:[]),
+  '  float Lq=log2(max(dist*.012,.6)/.6),lq=floor(Lq),wq=Lq-lq,s0=.6*exp2(lq);gCs=s0*(1.+wq);vec3 c0=floor(vW/s0),c1=floor(vW/(s0*2.)),Wq=mix((c0+.5)*s0,(c1+.5)*s0*2.,wq),Pc=Wq+(vW-Wq)*.3;', /* la position lue AU CENTRE de sa case (aux 3/10 près : lisse) ; deux grilles, la fine et la double, fondues */
+  '  vec3 f0=fract(vW/s0),f1=fract(vW/(s0*2.)),e0=min(f0,1.-f0),e1=min(f1,1.-f1);float eg=mix(smoothstep(0.,.16,min(e0.x,min(e0.y,e0.z))),smoothstep(0.,.16,min(e1.x,min(e1.y,e1.z))),wq),hq=mix(dhc(c0),dhc(c1+57.),wq);', /* le bord de la case (un peu dans l'ombre) · sa nuance */
+  '  float wX=abs(N.x)/(abs(N.x)+abs(N.z)+.001),wl=smoothstep(.10,.30,stp);vec4 n0=tl(uNZ,Pc.xz/2600.,1./2600.),n1=mix(tl(uNZ,Pc.xz/170.,1./170.),twp(uNZ,Pc,wX,1./170.,1./170.),wl),n2=mix(tl(uNZ,Pc.xz/31.,1./31.),twp(uNZ,Pc,wX,1./31.,1./31.),wl),nv=twp(uNZ,Pc,wX,1./140.,1./70.);', /* sur une paroi le bruit se déroule le long du mur : plus de fenêtres étirées. (2026-10-25, Sacha : « la texture grésille, des spirales, des traits ») l'ancien axe `dot(position, tangente de la normale)` tournait d'un pixel à l'autre (spirales) et partait au hasard sur les surfaces presque plates (grésillement) : on mélange maintenant les LECTURES des deux plans fixes x/z */
+  ...(CYD>=1?['  vec4 nf=mix(tl(uNZ,vec2(Pc.x/17.,Pc.y/89.),1./17.),tl(uNZ,vec2(Pc.z/17.,Pc.y/89.),1./17.),wX);float fx=wl*rk*(1.-smoothstep(200.,700.,dist));vec3 Tg=normalize(vec3(-N.z,0.,N.x)+vec3(1e-4,0.,1e-4));'+'']:[]),
   /* LES STRATES : la colonne relue à la hauteur, gondolée par deux bruits (les couches ondulent et plongent doucement) */
-  '  float sy=(vW.y+34.*(n0.r-.5)+4.*(n1.g-.5))/'+('3.7')+';vec4 st=texture2D(uSTR,vec2(.5,sy/1024.));'+('vec3 rc=st.rgb*st.rgb*(.95+.10*n1.b);rc=max(mix(vec3(dot(rc,vec3(.3,.55,.15))),rc,1.32),0.);'),
+  '  float sy=(Pc.y+34.*(n0.r-.5)+4.*(n1.g-.5))/'+('3.7')+';vec4 st=texture2DLodEXT(uSTR,vec2(.5,sy/1024.),max(log2(gCs/3.7),0.));'+('vec3 rc=st.rgb*st.rgb*(.95+.10*n1.b);rc=max(mix(vec3(dot(rc,vec3(.3,.55,.15))),rc,1.32),0.);'),
   ...(CYD>=1?['  rc*=vec3(1.+.35*(n0.g-.5),1.,1.-.42*(n0.g-.5));rc*=1.+(nf.g-.5)*.62*fx;']:[]), /* la dérive de teinte au kilomètre (chaud ↔ froid) · les cannelures : des bandes verticales plus claires, plus sombres */
   ...(CYD>=2?['  rc*=1.-.30*(1.-smoothstep(0.,.03,abs(nf.b-.5)))*fx;']:[]), /* les fissures : de fines lignes sombres, verticales */
-  '  float lb=fract(vW.y*.42+n1.b*.6);rc*=1.-'+('(.025+.035*st.a)*smoothstep(.65,1.,lb)')+'*rk;', // le litage des grès, horizontal
+  '  float lb=fract(Pc.y*.42+n1.b*.6);rc*=1.-'+('(.025+.035*st.a)*smoothstep(.65,1.,lb)*(1.-smoothstep(120.,420.,dist))')+'*rk;', // le litage des grès, horizontal (fondu au loin : des rayures de 2,4 m moiraient)
   '  float vr=smoothstep(.55,.82,nv.r)*smoothstep(.35,.8,stp)*rk;rc=mix(rc,rc*vec3(.74,.62,.60),vr*.28);', // le VERNIS du désert
   '  vec3 sab='+('vec3(.95,.50,.29)*(.96+.08*n1.r)')+';float top=smoothstep(.72,.9,N.y);vec3 col=mix(rc,mix(rc,sab,.62),top*rk);',
   '  col=mix(col,'+('vec3(.10,.19,.03),smoothstep(.64,.86,n1.a)*top*.55')+');', // le maquis sur les replats
-  '  float bas=1.-smoothstep(.2,.5,rk);vec3 sol=sab*('+('.98+.03')+'*sin(dot(vW.xz,vec2(.83,.41))*1.6+n2.g*5.));col=mix(col,sol,bas*(1.-wat));',
+  '  float bas=1.-smoothstep(.2,.5,rk);vec3 sol=sab*('+('.98+.03*(1.-smoothstep(60.,240.,dist))')+'*sin(dot(Pc.xz,vec2(.83,.41))*1.6+n2.g*5.));col=mix(col,sol,bas*(1.-wat));',
   '  col=mix(col,mix(vec3(.05,.10,.03),vec3(.16,.24,.06),n1.r),veg*smoothstep(.42,.58,n2.g)*(1.-wat));', // la ripisylve
   '  col*=uRkT*(1.-.35*uWet*(1.-wat));',
+  '  col*=(.90+.20*hq)*mix(.84,1.,eg);', /* chaque case sa nuance (±10 %), son bord un peu dans l'ombre : on lit les gros pixels, comme les mini-cubes de la forêt */
   ...(CYD>=2?['  vec3 Nb=normalize(N+fx*((nf.g-.5)*1.4*Tg+(nf.r-.5)*.8*vec3(0.,1.,0.)));']:['  vec3 Nb=N;']), /* le relief fin : la normale tordue par les cannelures (la lumière rasante y accroche des arêtes) */
+  '  Nb=normalize(Nb+(mix(vec3(dhc(c0+3.1),dhc(c0+7.7),dhc(c0+11.3)),vec3(dhc(c1+60.),dhc(c1+64.),dhc(c1+68.)),wq)-.5)*.2*rk);', // chaque case sa facette : elle attrape la lumière à sa façon
   '  float ndl=max(dot(Nb,uSunD),0.);',
   '  vec3 Lc=uSunC*ndl*lit+mix(uGnd,uSky,N.y*.5+.5)*(1.-.5*dk)+uBnc*(1.-.65*lit)*(.35+.65*dk)*(.55+.45*stp)+uFillC*max(dot(N,uFillD),0.)*.6+(uSunC*.10+uSky*.22+uBnc*.18)*(.55+.45*stp);', /* le plancher : l'ombre d'un désert reste claire (ciel + rebond), jamais noire */
   '  Lc+=uSunC*vec3(1.,1.1,1.2)*(1.-smoothstep(.04,.5,uSunD.y))*pow(1.-smoothstep(.1,.9,dk),1.4)*(1.-lit)*(.4+.6*stp)*rk*'+(CYD>=1?'.42':'.26')+';', /* LA LUEUR D'ALTITUDE : le soleil rasant n'atteint pas le fond, mais le HAUT des parois en garde la lueur (dorée, un peu rose) ; le bas reste dans le violet */
-  '  if(dist<220.){float gr=texture2D(uNZ,vec2(uw,vW.y)/5.3).g*wl+texture2D(uNZ,vW.xz/5.3).g*(1.-wl);col*=1.+(gr-.5)*'+('.06')+'*(1.-smoothstep(90.,220.,dist));}',
+  '  if(dist<220.){float gr=twp(uNZ,Pc,wX,1./5.3,1./5.3).g*wl+tl(uNZ,Pc.xz/5.3,1./5.3).g*(1.-wl);col*=1.+(gr-.5)*'+('.06')+'*(1.-smoothstep(90.,220.,dist));}',
   '  vec3 c=max(col*Lc,col*vec3(.36,.26,.25)*(.5+.5*lit)+col*uSky*.22);', /* jamais de noir franc : un grès à l'ombre reste brun */
   '  c*=mix(vec3(1.),vec3(.80,.70,1.04),(1.-lit)*.55*rk);', // l'ombre de la roche tire au VIOLET (la bible)
   ...(CYD>=1?['  {float vz=smoothstep(.60,.80,n0.b)*(1.-smoothstep(0.,.014,abs(n1.r-.5)))*fx;c+=vec3(1.,.72,.22)*vz*(.55+.45*sin(uTime*2.1+n1.g*40.))*(.30+.70*lit);}']:[]), /* LES FILONS D'OR : de rares veines (un cinquième des falaises, une ligne tous les 40 m) qui brillent par moments */
@@ -37763,7 +37771,7 @@ SHAPES.bulle=function(K){
   const U=LPU,O=bulleOutils,L=(t,z)=>U.lin(t,z),cl=(v,a,b)=>v<a?a:v>b?b:v,mix=(a,b,t)=>a+(b-a)*t,lis=t=>t*t*(3-2*t);
   const R=.338,ZF=1.302,ZR=-1.098;
   const PAL={p:{g:'p',c:0x93cfd6},k:{g:'m',c:0x161719},K:{g:'g',c:0x0d0e11},c:{g:'c',c:0xe2e6eb},g:{g:'g',c:0x1a2632},
-    W:{g:'l',c:0xfff4dc},L:{g:'l',c:0xd81e2a},O:{g:'l',c:0xffa21a},w:{g:'s',c:0xf1eee6},s:{g:'s',c:0xe9e2cf},d:{g:'m',c:0x101114}};
+    W:{g:'l',c:0xfff4dc},L:{g:'l',c:0xd81e2a},O:{g:'l',c:0xffa21a},w:{g:'s',c:0xf1eee6},s:{g:'s',c:0xe9e2cf},d:{g:'m',c:0x101114},y:{g:'m',c:0x1f4651}};
   // ---- LES COURBES DU PLAN (mètres) ----
   // le dessus, dans l'axe (côté) : pare-chocs exclus — capot, pare-brise, pavillon, lunette, capot moteur, jupe
   const yTop=z=>L([[-1.865,.47],[-1.84,.55],[-1.81,.61],[-1.77,.69],[-1.707,.761],[-1.671,.827],[-1.617,.913],[-1.555,.993],[-1.49,1.064],[-1.377,1.158],
@@ -37935,6 +37943,32 @@ SHAPES.bulle=function(K){
   // les PASSAGES DE ROUE : une joue sombre derrière chaque roue
   const joue=(w,AR0)=>{const o=[[w-.43,.28]];for(let k=0;k<=12;k++){const a=Math.PI*k/12;o.push([w-Math.cos(a)*.43,.30+Math.sin(a)*.44]);}o.push([w+.43,.28]);return o;};
   P.sym(sd=>{P.prism('d',joue(ZF),.02,sd*.50);P.prism('d',joue(ZR),.02,sd*.52);});
+  /* LA DESTRUCTION VOXEL DU SCARABÉE (25/10, Léo : « les cubes insérés, pas posés par-dessus ; une impression de destruction, pixel / voxel ; plus de noir ») `?scarabee=glitch` : des plaques de cubes de 6 cm À FLEUR
+     de la tôle, sur les FLANCS (le pli de ceinture, au milieu de la caisse — rien aux roues) : l'intérieur mis à nu en bleu-vert sombre (pas de noir), un peu de crème, bordées d'éclats de la couleur de la caisse
+     qui dépassent de 1 à 4 cm, quelques-uns arrachés. Les plaques s'effritent vers l'arrière. */
+  let SCG=false;try{SCG=/[?&]scarabee=glitch/.test(location.search);}catch(e){}
+  if(SCG){
+    const hs=(a,b,c,d)=>{const v=Math.sin(a*12.9898+b*78.233+c*37.719+d*5.171)*43758.5453;return v-Math.floor(v);};
+    const CE=.06;
+    // (25/10, Léo : « change de procédé, on dirait pas La Fidèle ») LE PROCÉDÉ DE LA FIDÈLE : des COUCHES fines (4,5 cm) faites de tronçons de longueurs inégales qui saillent d'un cran différent, toutes de la couleur de la
+    // caisse ; sur le BAS de la porte, 7 couches de plus en plus lacunaires vers le haut ; un tronçon sur cinq en crème (la touche du Scarabée). Enfoncées de 1 cm dans la tôle.
+    /* (« organisé comme sur La Fidèle, qui embrasse la forme la plus complexe » — pour le Scarabée : « ailes avant + capot rond ») LA PIXELISATION SUR GRILLE : des cubes de 5 cm sur UNE grille régulière ; chacun va au niveau de
+       grille juste AU-DESSUS de la tôle (0 à 5 cm de relief) : le galbe des ailes et du capot devient un escalier de cubes ; quelques cubes manquent (le « bug ») ; un sur dix en crème. La hauteur de la tôle est lue sur les
+       vraies sections (le tube de l'aile, la coque). */
+    /* (« des cubes glitchés qui font quelques DÉGÂTS ») trois CHOCS sur le capot et l'aile avant : un trou (l'intérieur à nu), une couronne de cubes arrachés et penchés, des débris qui retombent. */
+    const IMPC=[[-.26,1.18,.30],[.30,1.50,.26],[.58,1.00,.22]],choc=(x,z)=>{let m=9;for(const [ix,iz,R] of IMPC){const d=Math.hypot(x-ix,z-iz)/R;if(d<m)m=d;}return m;},pen=(a,b,k)=>(hs(a*13,b*17,9,k)-.5)*.9;
+    const c=.05;
+    const hautDe=(Sx,x)=>{let m=-1e9;for(let i=0;i<Sx.length;i++){const a=Sx[i],b=Sx[(i+1)%Sx.length];if((a[0]-x)*(b[0]-x)<=0&&a[0]!==b[0]){const y=a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);if(y>m)m=y;}}return m;};
+    const aileH=(x,z)=>{const yT=L(AV.yT,z),xo=L(AV.xo,z),yL=Math.min(L(AV.yL,z),yT-.02),xi=Math.min(z<.76?xo-.08:xH(Math.max(.76,z))-.03,xo-.08);return hautDe(coupeAile(xi,xo,yT,yL),x);};
+    for(let iz=Math.round(.75/c);iz*c<1.74;iz++)for(let ix=-14;ix<=14;ix++){const x=ix*c,z=iz*c;if(hs(ix,iz,5,1)>.88)continue;
+      const H=Math.max(aileH(Math.abs(x),z),hautDe(sect(z),Math.abs(x)));if(H<0)continue;
+      const lv=Math.ceil((H-.001)/c)*c,m=choc(x,z);
+      if(m<.5){if(hs(ix,iz,6,6)<.78)P.box('y',c*.96,.012,c*.96,x,H+.004,z,0,0,0);continue;}   // le trou : l'intérieur à nu (bleu-vert sombre)
+      if(m<1){P.box('p',c*.96,c,c*.96,x,lv-c/2+.003+.035*(1-m)+.012,z,pen(ix,iz,1),pen(iz,ix,2),pen(ix+1,iz,3));continue;}   // la couronne : arrachés, penchés
+      P.box(hs(ix,iz,5,2)>.9?'s':'p',c*.96,c,c*.96,x,lv-c/2+.003,z,0,0,0);}
+    for(const [ix,iz,R] of IMPC)for(let k=0;k<9;k++){const an=hs(k,1,ix*10,3)*6.283,r=R*(1.05+.9*hs(k,2,iz*10,3)),x=ix+Math.cos(an)*r,z=iz+Math.sin(an)*r;
+      const H=Math.max(aileH(Math.abs(x),z),hautDe(sect(z),Math.abs(x)));if(H<0)continue;P.box('p',.045,.045,.045,x,H+.04+.07*hs(k,3,ix*7,3),z,pen(k,1,4),pen(k,2,5),pen(k,3,6));}   // les débris
+  }
   // la plaque dessinée : la vraie s'y pose (voir plqDessinee)
   P.box('l',.30,.075,.012,0,.665,-1.79,.5,0,0);
   K.commit(P);
@@ -40569,15 +40603,16 @@ const rrect=(u0,v0,u1,v1,r,n)=>{const o=[],c=[[u1-r,v0+r,-Math.PI/2],[u1-r,v1-r,
 return function(K){
   const SP=K.spec||{},CORPS=SP.color!=null?SP.color:0x464950;
   const PAL={p:{g:'p',c:CORPS},k:{g:'m',c:0x161719},K:{g:'g',c:0x0b0c0f},c:{g:'c',c:0xd4d8de},C:{g:'c',c:0x6c727b},g:{g:'g',c:0x1d2a36},
-    W:{g:'l',c:0xfff2d2},L:{g:'l',c:0xff2a36},O:{g:'l',c:0xffa21a},R:{g:'m',c:0x7a1018},s:{g:'s',c:0x23252a},Q:{g:'l',c:0xe8e8e8},P:{g:'m',c:0x3d4047}};
+    W:{g:'l',c:0xfff2d2},L:{g:'l',c:0xff2a36},O:{g:'l',c:0xffa21a},R:{g:'m',c:0x7a1018},s:{g:'s',c:0x23252a},Q:{g:'l',c:0xe8e8e8},P:{g:'m',c:0x3d4047},N:{g:'l',c:0x5ee6ff},M:{g:'l',c:0xff3ec8},V:{g:'g',c:0x5a86ab},D:{g:'m',c:0x1c1d22}};
   const EP=(typeof peintPal==='function'?peintPal(PAL):PAL).p,GP=EP.g;
   const CODES=[];CODES[0]={g:'#'};CODES[1]={g:'#',k:.38};CODES[2]={g:'g',c:0x1d2a36};CODES[3]={g:'g',c:0x0b0c0f};CODES[22]={g:'s',c:0x23252a};
   CODES[23]={g:'m',c:0x16171b};CODES[25]={g:'m',c:0x32333a};CODES[26]={g:'#'};CODES[27]={g:'l',c:0xff2a36};
   const PEINT=new Set([0,26]),GAP={}; // 26 = le HARD-TOP, à la couleur de la caisse (finition Sahara) : un code à lui pour que les vitres ne mordent pas le cadre du pare-brise
   const CPx=new THREE.Color(),fondu=y=>.80+.20*cl((y-.25)/1.0,0,1),colP=y=>{CPx.setHex(EP.c);if(EP.grad&&typeof lpGrad==='function')lpGrad(EP.grad,y,CPx);
     const s=((EP.g==='p'||EP.g.charAt(0)==='p')&&EP.f!==0)?fondu(y):1;return [CPx.r*s,CPx.g*s,CPx.b*s];};
+  let CCH=false;try{CCH=/[?&]baroudeur=(couches|entre)/.test(location.search);}catch(e){}   /* (25/10, Léo : « fais évoluer le Baroudeur comme La Fidèle ») `?baroudeur=couches` : la caisse en COUCHES EMPILÉES (rangées de dalles, vitres par rangée, détails posés) au lieu de la découpe au plan */
   let C9=CACHE[0];
-  if(!C9){
+  if(!CCH&&!C9){
     const G=COL.map(c=>ROWS.map((r,j)=>point(c,j))),TR=[];
     const ref=c=>[0,1.0,cl(c[2],-1.7,.4)];
     const tri=(a,b,c,k)=>{const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2],nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;
@@ -40612,7 +40647,7 @@ return function(K){
     C9={};for(const g in OUT){const o=OUT[g];C9[g]={P:new Float32Array(o.P),N:new Float32Array(o.N),K:Uint8Array.from(o.K),D:new Float32Array(o.D)};}
     CACHE[0]=C9;}
   // ---- LA CAISSE POSÉE : ses couleurs (la peinture de la boutique comprise) ----
-  const gs={},BASE=(()=>{CPx.setHex(EP.c);return [CPx.r,CPx.g,CPx.b];})(),pDe=(EP.g==='p'||EP.g.charAt(0)==='p')&&EP.f!==0,FIX=CODES.map(d=>{if(!d||d.c==null)return null;CPx.setHex(d.c);return [CPx.r,CPx.g,CPx.b];});
+  const gs={};if(!CCH){const BASE=(()=>{CPx.setHex(EP.c);return [CPx.r,CPx.g,CPx.b];})(),pDe=(EP.g==='p'||EP.g.charAt(0)==='p')&&EP.f!==0,FIX=CODES.map(d=>{if(!d||d.c==null)return null;CPx.setHex(d.c);return [CPx.r,CPx.g,CPx.b];});
   const FE9=typeof fenteVar==='function'?fenteVar():null,FC9=[0,0,0];   // (2026-10-19) LA FENTE C : la variante lue une fois (`?fente=A` = le trait noir d'avant)
   for(const g0 in C9){const c=C9[g0],g=g0==='#'?GP:g0,col=new Float32Array(c.P.length);
     for(let t=0;t<c.K.length;t++){const kk=c.K[t],d=CODES[kk],F=FIX[kk];for(let q=0;q<3;q++){const i=t*9+q*3,y=c.P[i+1];let r,gg,b;
@@ -40625,19 +40660,69 @@ return function(K){
     if(gs[g]){const H=gs[g],cat=(A,B)=>{const o=new Float32Array(A.length+B.length);o.set(A);o.set(B,A.length);return o;},n2=new THREE.BufferGeometry();
       for(const at of ['position','normal','color'])n2.setAttribute(at,new THREE.Float32BufferAttribute(cat(H.attributes[at].array,geo.attributes[at].array),3));H.dispose();geo.dispose();gs[g]=n2;}
     else gs[g]=geo;}
-  K.commit({done:()=>gs,prims:[]});
+  K.commit({done:()=>gs,prims:[]});}
   // ============================ LES PIÈCES ============================
   const P=K.kit(PAL);
   const tour=(pts,n)=>{const g=new THREE.LatheGeometry(pts.map(q=>new THREE.Vector2(q[0],q[1])),n||16);g.rotateX(Math.PI/2);return g;};
   const pose=(k,g,p,n,rz,sx,sy)=>P.put(k,g,p[0],p[1],p[2],Math.atan2(-n[1],n[2]),Math.asin(cl(n[0],-1,1)),rz||0,sx||1,sy||1,1);
   const quad=(k,a,b,c,d)=>{P.tri(k,a,b,c);P.tri(k,a,c,d);};
+
+  // ============================ LA CAISSE « ENTRE-DEUX » (`?baroudeur=entre`) ============================
+  /* (25/10, Léo : « un entre-deux entre l'ultra réalisme et le style de LA HONTE ou LA TAURINE ») ni la découpe au plan (des milliers de petits triangles, joints, filets : « ultra réaliste »), ni des blocs
+     (v1 : écailles de rectangles ; v2 : boîtes lisses). La VRAIE forme du Wrangler — flancs qui rentrent sous la caisse, ceinture, hard-top aux flancs qui se resserrent, toit bombé, pare-brise et lunette couchés —
+     en UN loft à sections de 11 points (comme LA TAURINE) : des facettes franches mais lisibles, pas de dessin dans la tôle. Les vitres sont des BANDES du loft (peintes), le pare-brise et la lunette aussi ;
+     le capot est un second loft à 6 points ; les portes sont deux panneaux en relief par flanc. Tout le reste (ailes, élargisseurs, calandre, roues…) est déjà en pièces posées. */
+  const RP=.018;   // le relief des panneaux de porte
+  if(CCH){
+    const B=(k,w,h,d,x,y,z,rx,ry,rz)=>P.box(k,w,h,d,x,y,z,rx||0,ry||0,rz||0);
+    const Wc=y=>lin([[1.27,.846],[1.775,.793]],y),
+          topC=z=>z<-2.04?1.23+(z+2.149)/.1956:z<=.279?1.785:Math.max(1.245,1.326+(.648-z)/.804);   // la ligne du haut : lunette, toit, pare-brise
+    // les stations : les bords des vitres et des passages de roue sont doublés (à 4 mm) pour que la peinture change net
+    let zs=[-2.149,-2.12,-2.09,-2.06,-2.04,-1.977,-1.973,-1.9,-1.8,-1.70,-1.60,-1.50,-1.40,-1.30,-1.242,-1.238,-1.16,-1.09,-1.086,-.95,-.80,-.65,-.52,-.466,-.462,-.40,-.311,-.307,-.20,-.05,.10,.22,.288,.292,.34,.40,.46,.53,.60,.648,.70,.80,.88];
+    for(const q of ARR)zs.push(q[0]);zs.sort((x,y)=>x-y);zs=zs.filter((z,i)=>i===0||z-zs[i-1]>.0015);
+    const inWin=z=>(z>-.309&&z<.29)||(z>-1.088&&z<-.464)||(z>-1.975&&z<-1.24);
+    P.loft(zs,z=>{
+      const yb=YB(z),top=topC(z),y2=Math.max(yb+.03,.70),y3=Math.max(yb+.05,1.0),y4=Math.max(y3+.03,1.222);
+      const y5=Math.max(y4+.002,Math.min(1.245,top-.002)),y6=Math.max(y5+.002,Math.min(1.30,top-.004)),y7=Math.max(y6+.002,Math.min(1.717,top-.002)),y8=Math.max(y7+.002,top),
+            dome=(z>.285||z<-2.04)?0:.05*cl((top-1.3)/.45,0,1);
+      return [[0,yb],[.80,yb],[.835,y2],[.862,y3],[.866,y4],[Wc(y5),y5],[.82,y6],[.82,y7],[Wc(y8),y8],[Math.min(.705,Wc(y8)-.06),y8+dome*.35],[0,y8+dome]];
+    },(j,z)=>{
+      if(j<0)return 'p';
+      if(j<=1)return 'k';                                                                    // le dessous et le seuil : noirs
+      if(j===6)return inWin(z)?'g':'p';                                                      // les vitres de côté : porte avant, porte arrière, custode
+      if(j===9)return ((z>.285&&z<.655)||(z>-2.135&&z<-2.045))?'g':'p';                       // le pare-brise et la lunette
+      return 'p';});
+    // LES VITRES, PLUS JOLIES (25/10, Léo : « les vitres, c'est moche ») : des reflets en verre plus clair — deux traînées en diagonale sur chaque vitre de côté, un bandeau de ciel en haut du pare-brise et de la lunette
+    for(const sd of [1,-1]){const xg=sd*(.82+.0035);
+      for(const [za,zb] of [[-.309,.29],[-1.088,-.464],[-1.975,-1.24]]){const w=zb-za,y0=1.322,y1=1.695;
+        for(const [a,l] of [[.14,.20],[.46,.07]])P.prism('V',[[za+a*w,y0],[za+(a+l)*w,y0],[za+(a+l+.20)*w,y1],[za+(a+.20)*w,y1]],.006,xg);}}
+    P.prism('V',[[zPB(1.64)-.001,1.64],[zPB(1.64)+.006,1.64],[zPB(1.76)+.006,1.76],[zPB(1.76)-.001,1.76]],1.30,0);
+    P.prism('V',[[zHT(1.64)-.006,1.64],[zHT(1.64)+.001,1.64],[zHT(1.745)+.001,1.745],[zHT(1.745)-.006,1.745]],1.28,0);
+    // LES PORTES : deux panneaux par flanc, en relief
+    for(const sd of [1,-1])for(const [z0,z1] of [[.563,-.375],[-.418,-1.16]]){const L=Math.abs(z0-z1)-.012,zc=(z0+z1)/2;
+      B('p',RP,.56,L,sd*(SBx(.93)+RP/2-.002),.93,zc);}
+    // LES PETITS DÉTAILS (comme LA FIDÈLE : des pièces posées, bien saillantes — jamais dessinées dans la tôle) : poignées chromées, filet chromé sous les vitres, trappe à carburant, badge d'aile,
+    // crochets de remorquage rouges, essuie-glace arrière
+    for(const sd of [1,-1]){
+      for(const z of [-.205,-.945])B('c',.03,.045,.21,sd*(SBx(1.105)+RP+.016),1.105,z);                       // la poignée : un bloc chromé
+      B('c',.012,.016,2.27,sd*.851,1.262,-.835);                                                              // le filet chromé, sous les vitres
+      B('c',.010,.032,.13,sd*.866,1.075,1.34);                                                                // le badge d'aile
+      B('R',.075,.035,.11,sd*.46,.60,2.17);B('c',.075,.010,.11,sd*.46,.62,2.17);}                             // les crochets de remorquage
+    B('k',.016,.14,.14,.872,1.145,-1.78);B('c',.006,.12,.012,.880,1.145,-1.78);                               // la trappe à carburant (à gauche, derrière)
+    B('k',.40,.012,.018,.10,1.50,zHT(1.50)-.022);B('k',.012,.012,.20,.10,1.50,zHT(1.50)-.012);              // l'essuie-glace arrière : lame et bras
+    // LE CAPOT : un loft à 6 points (bombé), entre les ailes
+    {const yT0=z=>lin([[.648,1.321],[1.083,1.307],[1.493,1.272],[1.684,1.225],[1.794,1.19],[1.835,1.17],[1.862,1.152]],z),HZ=[.648,.80,.95,1.10,1.25,1.40,1.55,1.66,1.75,1.80,1.862];
+     P.loft(HZ,z=>{const t=yT0(z);return [[0,1.148],[.66,1.148],[.66,t-.014],[.56,t-.003],[.30,t+.010],[0,t+.016]];},()=>'p');
+     for(const sd of [1,-1])B('k',.20,.008,.06,sd*.24,yT0(.97)+.014,.97);}   // les deux prises d'air du capot
+  }
   // LE CAPOT : bombé, entre les ailes, qui plonge sur la calandre
-  {const yT=z=>lin([[.648,1.321],[1.083,1.307],[1.493,1.272],[1.684,1.225],[1.794,1.19],[1.835,1.17],[1.862,1.152]],z),
+  if(!CCH){const yT=z=>lin([[.648,1.321],[1.083,1.307],[1.493,1.272],[1.684,1.225],[1.794,1.19],[1.835,1.17],[1.862,1.152]],z),
      HZ=[.648,.80,.95,1.10,1.25,1.40,1.55,1.66,1.75,1.80,1.835,1.862],HX=[-.66,-.657,-.63,-.48,-.28,-.09,.09,.28,.48,.63,.657,.66],
      S=z=>HX.map(x=>[x,Math.abs(x)>.659?1.148:yT(z)+(Math.abs(x)>.65?-.006:.016*(1-(x/.66)*(x/.66))),z]);
    for(let i=0;i<HZ.length-1;i++){const A=S(HZ[i]),B=S(HZ[i+1]);for(let j=0;j<HX.length-1;j++)quad('p',A[j],B[j],B[j+1],A[j+1]);}
    const F=S(HZ[HZ.length-1]),c0=[0,1.148,HZ[HZ.length-1]];for(let j=0;j<HX.length-1;j++)P.tri('p',c0,F[j],F[j+1]);
-   P.sym(sd=>{P.box('k',.03,.075,.06,sd*.668,1.15,1.78);});}                       // les deux loquets de caoutchouc
+  }
+  P.sym(sd=>{P.box('k',.03,.075,.06,sd*.668,1.15,1.78);});                       // les deux loquets de caoutchouc
   // LES AILES AVANT (dessus plat), LES ÉLARGISSEURS à la couleur de la caisse (Sahara), avant et arrière
   const AILE=[[.85,1.148],[1.862,1.148],[1.876,1.13],[1.886,1.0],[1.90,.86],[1.887,.826],[1.827,.902],[1.794,.976],[1.534,.979],[1.274,.976],[1.203,.949],[1.129,.872],[1.036,.719],[.930,.522],[.85,.522]],
         ELAV=[[.749,.577],[.938,.856],[1.083,1.023],[1.203,1.055],[1.493,1.066],[1.736,1.053],[1.827,1.009],[1.95,.856],[1.975,.79],[1.975,.70],[1.93,.70],[1.887,.826],[1.827,.902],[1.794,.976],[1.534,.979],[1.274,.976],[1.203,.949],[1.129,.872],[1.036,.719],[.93,.522],[.80,.522]],
@@ -40651,8 +40736,8 @@ return function(K){
      P.prism('W',bande(DRL,.008,.018),.004,sd*.949);P.prism('O',bande(CLI,.008,.018),.004,sd*.949);}
     P.box('k',.006,.07,.17,sd*.862,1.00,.98);                                                      // l'ouïe d'aile
     P.box('k',.10,.12,1.61,sd*.85,.51,-.055);P.box('s',.10,.012,1.61,sd*.85,.575,-.055);          // le MARCHEPIED
-    for(const [z,y] of [[.535,1.094],[.535,.766],[-.44,1.094],[-.44,.766]])P.box('p',.035,.065,.075,sd*(SBx(y)+.0125),y,z);   // les charnières (couleur caisse) — (relief) posées sur le flanc à leur hauteur
-    for(const z of [-.205,-.945])P.box('k',.02,.035,.19,sd*(SBx(1.105)+.006),1.105,z);              // les poignées (noires), sur l'arête
+    for(const [z,y] of [[.535,1.094],[.535,.766],[-.44,1.094],[-.44,.766]])P.box('p',.035,.065,.075,sd*(SBx(y)+.0125+(CCH?RP:0)),y,z);   // les charnières (couleur caisse) — (relief) posées sur le flanc à leur hauteur
+    for(const z of [-.205,-.945])P.box('k',.02,.035,.19,sd*(SBx(1.105)+.006+(CCH?RP:0)),1.105,z);              // les poignées (noires), sur l'arête
     // le rétroviseur, sur la portière
     {const a=[sd*.86,1.30,.40],b=[sd*.96,1.37,.41],d=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],l=Math.hypot(d[0],d[1],d[2]);
      const g=new THREE.CylinderGeometry(.016,.016,l,6);g.translate(0,l/2,0);const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3(d[0]/l,d[1]/l,d[2]/l)),e=new THREE.Euler().setFromQuaternion(q);
@@ -40660,6 +40745,50 @@ return function(K){
     // les feux arrière (aux coins), leur verre
     P.box('L',.13,.23,.025,sd*.795,1.055,-2.1615);P.box('g',.07,.12,.006,sd*.795,1.055,-2.176);P.box('W',.05,.012,.006,sd*.795,1.11,-2.177);
   });
+  /* LA DESTRUCTION VOXEL DU BAROUDEUR (25/10, Léo : « les cubes ne doivent pas être ajoutés par-dessus, plutôt insérés, une impression de destruction — pixel, voxel ») : plus de blocs posés en relief. Des PLAQUES de
+     cubes de 6 cm, À FLEUR de la tôle (1 cm de relief) : l'intérieur MIS À NU (gris sombre, un peu de métal), bordées d'ÉCLATS — des cubes de la caisse qui dépassent de 1 à 4 cm, quelques-uns arrachés qui flottent.
+     Au museau (le capot, depuis le nez) et au toit (aux deux bouts). Les plaques naissent de quelques points d'impact et s'effritent vers l'extérieur. Tirage déterministe ; rien autour des roues. */
+  if(CCH){
+    const hs=(a,b,c,d)=>{const v=Math.sin(a*12.9898+b*78.233+c*37.719+d*5.171)*43758.5453;return v-Math.floor(v);};
+    const BX=(k,w,h,d,x,y,z)=>P.box(k,w,h,d,x,y,z,0,0,0),CE=.06;
+    const yT0=z=>lin([[.648,1.321],[1.083,1.307],[1.493,1.272],[1.684,1.225],[1.794,1.19],[1.835,1.17],[1.862,1.152]],z);
+    const yCapot=(x,z)=>yT0(z)+lin([[0,.016],[.30,.010],[.56,-.003],[.66,-.014]],Math.abs(x));
+    const roofY=x=>{const a=Math.abs(x);return a<=.705?1.8025+.0325*(1-a/.705):1.785+.0175*(1-(a-.705)/.088);};
+    // une plaque : des graines [iu, iv, rayon] en cases, bornes ; `pose(clé, iu, iv, relief, éclat)` pose un cube sur la surface
+    const plaque=(graines,u0,u1,v0,v1,id,pose)=>{const dedans=new Set();
+      for(let iu=u0;iu<=u1;iu++)for(let iv=v0;iv<=v1;iv++){let m=0;for(const [su,sv,r] of graines)m=Math.max(m,(1-Math.hypot(iu-su,iv-sv)/r)*(.55+.9*hs(iu,iv,id,1)));if(m>.34)dedans.add(iu+','+iv);}
+      for(const kk of dedans){const [iu,iv]=kk.split(',').map(Number),bord=![[1,0],[-1,0],[0,1],[0,-1]].every(([da,db])=>dedans.has((iu+da)+','+(iv+db))),q=hs(iu+.3,iv+.7,id,2);
+        if(bord){if(q<.52)pose('p',iu,iv,.01+.032*hs(iu,iv,id,3),true);else if(q<.62)pose('p',iu,iv,.05+.05*hs(iu,iv,id,4),true);}   // les éclats du bord (les derniers : arrachés, ils flottent)
+        else{if(q<.80)pose('D',iu,iv,0,false);else if(q<.90)pose('c',iu,iv,0,false);}}};                                               // l'intérieur mis à nu
+    /* (25/10, Léo : « nan c'est bizarre, on dirait pas La Fidèle, change de procédé ») LE PROCÉDÉ DE LA FIDÈLE : pas des plaques de cubes — des COUCHES FINES empilées (4,5 cm), chacune faite de TRONÇONS de longueurs inégales
+       (7 à 28 cm) qui saillent d'un cran différent (de 0,6 à 4 cm) : la tôle se découpe en escalier, tout de la couleur de la caisse, la lumière fait le reste. Sur le BAS des portes (la zone choisie) : 7 couches, de plus en plus
+       lacunaires vers le haut (la tôle « se défait »). Collées au panneau de porte, enfoncées de 1 cm dedans (rien ne flotte). */
+    const XP=SBx(.93)+RP-.002;   // la face du panneau de porte
+    /* (25/10, Léo : « organisé comme sur La Fidèle, qui embrasse la forme de la voiture la plus complexe » — pour le Baroudeur : « le toit et vers l'arrière ») LA PIXELISATION SUR GRILLE : tous les cubes de 6 cm, sur UNE grille
+       régulière ; chaque cube va au niveau de grille juste AU-DESSUS de la tôle (0 à 6 cm de relief) : le toit bombé devient un plateau à deux marches, la lunette couchée un escalier de cubes ; quelques cubes manquent
+       (le « bug »). Tout de la couleur de la caisse : c'est l'ombre des marches qui dessine la forme. */
+    const c=.06;
+    /* (25/10, Léo : « on veut des cubes glitchés qui font quelques DÉGÂTS sur la voiture ») la grille de cubes devient une carrosserie ENDOMMAGÉE : trois CHOCS (deux sur le toit, un sur la lunette). Au cœur du choc, plus de cubes —
+       un trou : l'intérieur apparaît (gris sombre, à fleur de la tôle) ; autour, une couronne de cubes ARRACHÉS, soulevés et penchés ; au-delà, des DÉBRIS qui retombent, penchés eux aussi. Le reste de la grille est intact. */
+    const choc=(x,z,L)=>{let m=9;for(const [ix,iz,R] of L){const d=Math.hypot(x-ix,z-iz)/R;if(d<m)m=d;}return m;},pen=(a,b,k)=>(hs(a*13,b*17,9,k)-.5)*.9;
+    const IMPT=[[.22,-1.30,.30],[-.34,-.30,.26]],IMPR=[[.18,1.52,.26]];   // (x, z, rayon) sur le toit ; (x, y, rayon) sur la lunette
+    // 1. LE TOIT : de la lunette au pare-brise
+    for(let iz=Math.round(-2.0/c);iz*c<.27;iz++)for(let ix=-12;ix<=12;ix++){const x=ix*c,z=iz*c;if(Math.abs(x)>.76)continue;if(hs(ix,iz,1,1)>.86)continue;
+      const H=roofY(x),lv=Math.ceil((H-.001)/c)*c,m=choc(x,z,IMPT);
+      if(m<.5){if(hs(ix,iz,6,6)<.78)BX('D',c*.96,.012,c*.96,x,H+.004,z);continue;}   // le trou : l'intérieur à nu
+      if(m<1){P.box('p',c*.96,c,c*.96,x,lv-c/2+.003+.035*(1-m)+.012,z,pen(ix,iz,1),pen(iz,ix,2),pen(ix+1,iz,3));continue;}   // la couronne : arrachés, penchés
+      BX('p',c*.96,c,c*.96,x,lv-c/2+.003,z);}
+    for(const [ix,iz,R] of IMPT)for(let k=0;k<9;k++){const an=hs(k,1,ix*10,3)*6.283,r=R*(1.05+.9*hs(k,2,iz*10,3)),x=ix+Math.cos(an)*r,z=iz+Math.sin(an)*r;if(Math.abs(x)>.76)continue;
+      const e=.04+.07*hs(k,3,ix*7,3);P.box('p',.05,.05,.05,x,roofY(x)+e,z,pen(k,1,4),pen(k,2,5),pen(k,3,6));}   // les débris
+    // 2. L'ARRIÈRE : la lunette couchée et le haut du hayon
+    for(let iy=Math.round(1.25/c);iy*c<1.80;iy++)for(let ix=-11;ix<=11;ix++){const x=ix*c,y=iy*c;if(Math.abs(x)>.74)continue;if(hs(ix,iy,2,2)>.78)continue;
+      const zf=-2.149+(y-1.23)*.1956,lv=Math.floor(zf/c)*c,m=choc(x,y,IMPR);
+      if(m<.5){if(hs(ix,iy,7,6)<.78)BX('D',c*.96,c*.96,.012,x,y,zf-.004);continue;}
+      if(m<1){P.box('p',c*.96,c*.96,c,x,y,lv+c/2-.003-.035*(1-m)-.012,pen(ix,iy,7),pen(iy,ix,8),pen(ix+1,iy,9));continue;}
+      BX('p',c*.96,c*.96,c,x,y,lv+c/2-.003);}
+    for(const [ix,iy,R] of IMPR)for(let k=0;k<9;k++){const an=hs(k,1,ix*10,5)*6.283,r=R*(1.05+.9*hs(k,2,iy*10,5)),x=ix+Math.cos(an)*r,y=iy+Math.sin(an)*r;if(Math.abs(x)>.74||y<1.25||y>1.80)continue;
+      const e=.04+.07*hs(k,3,ix*7,5);P.box('p',.05,.05,.05,x,y,-2.149+(y-1.23)*.1956-e,pen(k,1,7),pen(k,2,8),pen(k,3,9));}
+  }
   // LA CALANDRE : sept fentes, deux phares ronds, un peu couchée
   {const sh=new THREE.Shape(),PTS=rrect(-.66,-.18,.66,.175,.03,3);sh.moveTo(PTS[0][0],PTS[0][1]);for(let i=1;i<PTS.length;i++)sh.lineTo(PTS[i][0],PTS[i][1]);
    const fente=x=>{const h=new THREE.Path(),Q=rrect(x-.0375,-.12,x+.0375,.14,.03,3);h.moveTo(Q[0][0],Q[0][1]);for(let i=1;i<Q.length;i++)h.lineTo(Q[i][0],Q[i][1]);return h;};
@@ -43937,6 +44066,84 @@ function stratosMeteo(K,P,G){
 // garage (GAR.vD, cdx…) passait en NaN et toute l'image 3D sortait NOIRE. Le joueur n'y arrive pas (equippedCar, garageListe et
 // l'inventaire écartent les retirées) : c'est le filet. Une retirée qui garde sa fiche (LA POUPÉE, LA DAYTONA…) se construit comme avant.
 function carFicheOk(s){return !!s&&s.w>0&&s.h>0&&s.l>0;}
+/* LES CHOCS DE CUBES SUR TOUTES LES CAISSES (25/10, Léo : « essaye sur les 84 voitures en test, garde la beauté des voitures » — `?degats=1`, un ESSAI, éteint par défaut) : une passe GÉNÉRIQUE qui n'a besoin d'aucun gabarit.
+   On tire des rayons du ciel sur la caisse montée : on lit la hauteur de la tôle et la couleur de ses sommets. DEUX petits chocs seulement (rayon ~11 % de la largeur) sur les dessus de la caisse (le toit, le capot ou le
+   coffre — choisis d'après le nom de la voiture, donc toujours les mêmes) : au centre, un TROU (des tuiles sombres à fleur de tôle), autour une COURONNE de cubes arrachés, soulevés et penchés, au-delà quelques DÉBRIS.
+   Les cubes prennent la MATIÈRE et la COULEUR de la tôle qu'ils touchent (la peinture, le vernis, la boutique) : rien de nouveau à compiler, et la caisse garde sa beauté partout ailleurs. Appelée juste avant `caisseSoude()`. */
+function degatsCaisse(spec){
+  let ON=false;try{ON=/[?&]degats=1/.test(location.search);}catch(e){}
+  if(!ON||!spec||spec.shape==='wrangler'||spec.shape==='bulle')return;
+  carGroup.updateMatrixWorld(true);
+  const cibles=[];carGroup.traverse(o=>{if(o.isMesh&&o.visible&&!o.userData.sol&&!o.userData.noShadow&&o.material&&!Array.isArray(o.material)&&!o.material.transparent&&o.geometry&&o.geometry.attributes.position)cibles.push(o);});
+  if(!cibles.length)return;
+  const RC=new THREE.Raycaster(),DN=new THREE.Vector3(0,-1,0),OR=new THREE.Vector3();RC.layers.enableAll();
+  const hs=(a,b,c)=>{const v=Math.sin(a*12.9898+b*78.233+c*37.719)*43758.5453;return v-Math.floor(v);};
+  let seed=0;for(let i=0;i<spec.name.length;i++)seed=(seed*31+spec.name.charCodeAt(i))%9973;
+  const WP=carGroup.getWorldPosition(new THREE.Vector3());   // le garage pose la caisse haut (y ≈ 1500) : les rayons partent de SA position
+  const tire=(x,z)=>{OR.set(WP.x+x,WP.y+5,WP.z+z);RC.set(OR,DN);const h=RC.intersectObjects(cibles,false);
+    for(const r of h){if(!r.face||Math.abs(r.face.normal.y)<.5)continue;const g=r.object.geometry,ca=g.attributes.color;let col=[.5,.5,.5];
+      if(ca){col=[ca.getX(r.face.a),ca.getY(r.face.a),ca.getZ(r.face.a)];}else if(r.object.material.color){const c=r.object.material.color;col=[c.r,c.g,c.b];}
+      return {y:r.point.y-WP.y,ny:Math.abs(r.face.normal.y),obj:r.object,col:col,lum:.3*col[0]+.59*col[1]+.11*col[2],ca:!!ca};}
+    return null;};
+  const tole=t=>(t.lum>.10||Math.abs(t.col[2]-t.col[0])<.03)&&t.lum>.012;   // de la tôle (même noire, neutre) — pas du verre (sombre ET bleuté)
+  const W=spec.w||1.8,Lg=spec.l||4,R=Math.max(.14,Math.min(.24,.11*W));
+  // 1. les candidats : des dessus à plat, assez clairs pour être de la tôle (pas du verre)
+  const cand=[];for(let x=-W*.4;x<=W*.4;x+=.1)for(let z=-Lg*.42;z<=Lg*.42;z+=.1){const t=tire(x,z);if(t&&t.ny>.93&&tole(t)&&t.y>.5)cand.push({x:x,z:z,y:t.y});}
+  if(cand.length<12)return;
+  cand.sort((a,b)=>b.y-a.y);
+  const haut=cand.slice(0,Math.max(6,Math.floor(cand.length*.25))),c1=haut[Math.floor(hs(seed,1,1)*haut.length)];
+  const loin=cand.filter(c=>Math.hypot(c.x-c1.x,c.z-c1.z)>R*3.2&&c.z*Math.sign(c1.z||1)<c1.z*Math.sign(c1.z||1)+9),c2=loin.length?loin[Math.floor(hs(seed,2,2)*loin.length)]:null;
+  const chocs=[c1].concat(c2?[c2]:[]);
+  // 2. les cubes, groupés par matière
+  const lots=new Map(),CE=.045;
+  const lot=(o,a)=>{const k=o.material.uuid+(a?'c':'n');let L=lots.get(k);if(!L){L={mat:o.material,a:a,P:[],N:[],C:[]};lots.set(k,L);}return L;};
+  const rot=(a,b,k)=>(hs(a*13+seed,b*17,k)-.5)*.9;
+  const cube=(L,cx,cy,cz,sx,sy,sz,rx,ry,rz,col)=>{const g=new THREE.BoxGeometry(sx,sy,sz).toNonIndexed();g.rotateX(rx);g.rotateY(ry);g.rotateZ(rz);g.translate(cx,cy,cz);g.computeVertexNormals();
+    const p=g.attributes.position,n=g.attributes.normal;for(let i=0;i<p.count;i++){L.P.push(p.getX(i),p.getY(i),p.getZ(i));L.N.push(n.getX(i),n.getY(i),n.getZ(i));if(L.a)L.C.push(col[0],col[1],col[2]);}g.dispose();};
+  for(const ch of chocs)for(let ix=Math.round(-R*1.9/CE);ix<=R*1.9/CE;ix++)for(let iz=Math.round(-R*1.9/CE);iz<=R*1.9/CE;iz++){
+    const x=ch.x+ix*CE,z=ch.z+iz*CE,m=Math.hypot(ix*CE,iz*CE)/R;if(m>1.0&&m>1.9)continue;
+    if(m>=1&&hs(ix*7+seed,iz*5,ch.z*3)>.10)continue;                                                       // au-delà : quelques débris seulement
+    const t=tire(x,z);if(!t||t.ny<.85||!tole(t))continue;const L=lot(t.obj,t.ca);
+    if(m<.5){if(hs(ix,iz,seed)<.8)cube(L,x,t.y+.004,z,CE*.96,.012,CE*.96,0,0,0,[.05,.05,.06]);continue;}   // le trou : l'intérieur à nu, sombre
+    if(m<1){cube(L,x,t.y+CE/2-.012+.03*(1-m),z,CE*.96,CE,CE*.96,rot(ix,iz,1),rot(iz,ix,2),rot(ix+1,iz,3),t.col);continue;}   // la couronne
+    cube(L,x,t.y+.03+.07*hs(ix,iz,9),z,CE*.9,CE*.9,CE*.9,rot(ix,iz,4),rot(iz,ix,5),rot(ix,iz+1,6),t.col);}   // les débris
+  for(const L of lots.values()){if(!L.P.length)continue;const g=new THREE.BufferGeometry();
+    g.setAttribute('position',new THREE.Float32BufferAttribute(L.P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(L.N,3));if(L.a)g.setAttribute('color',new THREE.Float32BufferAttribute(L.C,3));
+    const m=new THREE.Mesh(g,L.mat);m.castShadow=true;m.userData.degats=1;carGroup.add(m);}
+}
+/* LA TRADUCTION AU LANGAGE DU JEU (25/10, Léo : « les traduire pour que ce soit comme les autres, mais que leur modèle soit toujours ressenti, juste ajusté de manière cool et intelligente » — `?langage=1`, un ESSAI, éteint par défaut) :
+   les voitures « hors langage » (rondes, lisses, 15 à 46 k triangles) repassent par un REGROUPEMENT DE SOMMETS : tous les sommets d'une même case de grille (≈ 4,5 % de la longueur de la caisse) n'en font plus qu'un, au centre de leur
+   groupe ; les triangles qui s'effondrent disparaissent. La silhouette reste celle de la voiture (on la ressent), les petits triangles deviennent de grandes facettes planes (la lumière change à chaque plan), la couleur de chaque
+   facette est la moyenne de ses sommets. On ne touche ni aux roues, ni aux feux, ni au chrome, aux grilles, aux plastiques, au verre (les détails qui font la voiture), ni aux petites pièces (< 25 cm de diagonale) : SEULE la peinture est regroupée. `?langage=1.5` = des facettes plus grosses ; `0.7` = plus fines. Appelée juste
+   avant `caisseSoude()`. */
+const LANG_CIBLES=['LE DOGE','LE COMBI','LE CAÏD','LA PERLE','LA ZAGAIE','LA GRANDE ANGLAISE','LA LAME','LA QUEUE DE CANARD','LE SCARABÉE','LA DOLCE VITA','LA BÊTE','LE BAROUDEUR','LE HOT ROD','LA FÉLINE','LE ROUGE-GORGE'];
+function traduisLangage(spec){
+  let V=0;try{const m=/[?&]langage=([\d.]+)/.exec(location.search);V=m?+m[1]:0;}catch(e){}
+  if(!V||!spec||LANG_CIBLES.indexOf(spec.name)<0)return;
+  carGroup.updateMatrixWorld(true);
+  const inv=new THREE.Matrix4().copy(carBody.matrixWorld).invert(),cell=Math.max(.06,(spec.l||4)*.045*V),M=new THREE.Matrix4(),P=new THREE.Vector3();
+  for(const o of carBody.children.slice()){
+    if(!o.isMesh||!o.geometry||!o.geometry.attributes.position||o.userData.sol||o.userData.noShadow||o.userData.degats||!o.material||Array.isArray(o.material))continue;
+    if(o.material.isMeshBasicMaterial)continue;                                                 // les FEUX (matière émissive) : on n'y touche pas — ils font le caractère de la voiture
+    {const sh=o.material.shininess;if(!(o.material.userData&&o.material.userData.g==='p')&&!(sh===44||sh===70||sh===90))continue;}   // SEULE la peinture (laque 44, nacre 70, métallisé 90) est regroupée : chrome, or, plastiques mats (grilles), cuir et verre gardent leurs détails
+    const g=o.geometry;g.computeBoundingBox();const bb=g.boundingBox;if(bb.min.distanceTo(bb.max)*Math.max(o.scale.x,o.scale.y,o.scale.z)<.25)continue;   // les petites pièces restent
+    if(o.material.userData&&o.material.userData.g==='l')continue;
+    const pos=g.attributes.position,col=g.attributes.color,ix=g.index,nT=ix?ix.count/3:pos.count/3;
+    M.multiplyMatrices(inv,o.matrixWorld);
+    const cl=new Map(),nv=pos.count,id=new Int32Array(nv),X=[],C=[];
+    for(let v=0;v<nv;v++){P.fromBufferAttribute(pos,v).applyMatrix4(M);const k=Math.round(P.x/cell)+','+Math.round(P.y/cell)+','+Math.round(P.z/cell);let c=cl.get(k);
+      if(c===undefined){c=X.length;cl.set(k,c);X.push([0,0,0,0]);C.push([0,0,0]);}id[v]=c;const a=X[c];a[0]+=P.x;a[1]+=P.y;a[2]+=P.z;a[3]++;
+      if(col){const b=C[c];b[0]+=col.getX(v);b[1]+=col.getY(v);b[2]+=col.getZ(v);}}
+    const Pn=[],Cn=[];
+    for(let t=0;t<nT;t++){const a=id[ix?ix.getX(t*3):t*3],b=id[ix?ix.getX(t*3+1):t*3+1],c=id[ix?ix.getX(t*3+2):t*3+2];if(a===b||b===c||a===c)continue;
+      let cr=0,cg=0,cb=0;for(const q of [a,b,c]){const x=X[q];Pn.push(x[0]/x[3],x[1]/x[3],x[2]/x[3]);if(col){const y=C[q];cr+=y[0]/x[3];cg+=y[1]/x[3];cb+=y[2]/x[3];}}
+      if(col)for(let u=0;u<3;u++)Cn.push(cr/3,cg/3,cb/3);}   // une facette = UNE couleur (la moyenne de ses trois sommets) : plus de dégradé dans un plan
+    if(Pn.length<9)continue;
+    const ng=new THREE.BufferGeometry();ng.setAttribute('position',new THREE.Float32BufferAttribute(Pn,3));if(col)ng.setAttribute('color',new THREE.Float32BufferAttribute(Cn,3));ng.computeVertexNormals();
+    const nm=new THREE.Mesh(ng,o.material);nm.castShadow=o.castShadow;nm.receiveShadow=o.receiveShadow;nm.renderOrder=o.renderOrder;nm.userData=Object.assign({},o.userData);
+    carBody.remove(o);carBody.add(nm);
+  }
+}
 function buildCar(spec){
   if(!carFicheOk(spec)){console.warn('CASH CAR : « '+((spec&&spec.name)||'?')+' » n\'a pas de fiche (caisse retirée) — LA HONTE à la place');spec=CARS[0];}
   // ⚠ LES PIÈCES LOW-POLY SE LIBÈRENT : chaque caisse a SA géométrie (plusieurs milliers de facettes)
@@ -44289,6 +44496,8 @@ function buildCar(spec){
   if(bodyM.userData.mot)carGroup.traverse(function(o9){const m9=o9.material;if(o9.isMesh&&m9&&!Array.isArray(m9)&&m9.userData&&m9.userData.mot&&!MOT_FAIT.has(m9))try{motGreffe(m9,m9.userData.mot);}catch(e){}}); // (2026-10-16) un gabarit qui CLONE la tôle (l'épave : K.body.clone()) : le clone garde la couleur blanche, il reprend le motif
   if(finAreteOk())finCaisse(); // (2026-10-20, FINITION STUDIO) les drapeaux d'arête de la tôle, AVANT la soudure (voir finition.js)
   if(FSTU.on)finLaque(FSTU.garage); // le vernis profond si on est au garage
+  try{traduisLangage(spec);}catch(e){console.warn('langage',e);} // (25/10) ESSAI `?langage=1` : les caisses « hors langage » regroupées en grandes facettes (éteint par défaut)
+  try{degatsCaisse(spec);}catch(e){console.warn('degats',e);} // (25/10) ESSAI `?degats=1` : de petits chocs de cubes sur le dessus de la caisse (éteint par défaut)
   caisseSoude(); // (2026-09-27, passe perf iPhone) ce qui ne bouge jamais est soudé par matière — voir « LA CAISSE EN UN MINIMUM DE DESSINS »
   try{feuxLed(spec,hlM,tlM);}catch(e){console.warn('feux',e);} // (2026-10-20) l'étude des feux en LED, `?feux=1|2` (voir FEUXL) — sans paramètre, rien ne change
 }
