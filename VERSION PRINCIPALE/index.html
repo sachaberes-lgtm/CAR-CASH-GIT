@@ -37879,14 +37879,14 @@ SHAPES.bulle=function(K){
   if(SCG){
     const hs=(a,b,c,d)=>{const v=Math.sin(a*12.9898+b*78.233+c*37.719+d*5.171)*43758.5453;return v-Math.floor(v);};
     const CE=.06;
-    for(const sd of [1,-1]){
-      const dedans=new Set(),id=sd>0?5:6,graines=[[4,-2.4,4.2],[-2,-2,3.6],[-7,-2.6,3.2]];
-      for(let iu=-9;iu<=8;iu++)for(let iv=-6;iv<=0;iv++){let m=0;for(const [su,sv,r] of graines)m=Math.max(m,(1-Math.hypot(iu-su,iv-sv)/r)*(.55+.9*hs(iu,iv,id,1)));if(m>.34)dedans.add(iu+','+iv);}
-      const C2=.08,pose=(k,iu,iv,up,eclat)=>{const z=iu*C2,y=yCr(z)+iv*C2,x=xC(z)-.006*Math.abs(iv*C2/.1)+(eclat?up/2+.008:.006);
-        P.box(k,eclat?.02:.014,C2*.92,C2*.92,sd*x,y,z,0,0,0);};   // cases de 8 cm (plus visible)
-      for(const kk of dedans){const [iu,iv]=kk.split(',').map(Number),bord=![[1,0],[-1,0],[0,1],[0,-1]].every(([da,db])=>dedans.has((iu+da)+','+(iv+db))),q=hs(iu+.3,iv+.7,id,2);
-        if(bord){if(q<.28)pose('p',iu,iv,.012+.034*hs(iu,iv,id,3),true);else if(q<.56)pose('s',iu,iv,.012+.034*hs(iu,iv,id,3),true);else if(q<.68)pose('p',iu,iv,.05+.05*hs(iu,iv,id,4),true);}
-        else{if(q<.86)pose('y',iu,iv,0,false);else pose('s',iu,iv,0,false);}}}
+    // (25/10, Léo : « change de procédé, on dirait pas La Fidèle ») LE PROCÉDÉ DE LA FIDÈLE : des COUCHES fines (4,5 cm) faites de tronçons de longueurs inégales qui saillent d'un cran différent, toutes de la couleur de la
+    // caisse ; sur le BAS de la porte, 7 couches de plus en plus lacunaires vers le haut ; un tronçon sur cinq en crème (la touche du Scarabée). Enfoncées de 1 cm dans la tôle.
+    for(const sd of [1,-1]){const id=sd>0?5:6;
+      for(let l=0;l<7;l++){const dens=.97-l*.12;let z=.62;
+        while(z>-.72){const n=1+Math.floor(hs(l,Math.round(z*100),id,1)*4),L=n*.07,zc=z-L/2;
+          if(hs(l+.5,Math.round(z*100),id,2)<dens){const pr=.006+.034*Math.pow(hs(l+.2,Math.round(z*100),id,3),1.3),y=yCr(zc)-.10-l*.045,x=xC(zc)-.006*Math.abs((yCr(zc)-y)/.1);
+            P.box(hs(l+.9,Math.round(z*100),id,4)>.8?'s':'p',pr+.012,.043,L-.004,sd*(x-.012+(pr+.012)/2),y,zc,0,0,0);}
+          z-=L;}}}
   }
   // la plaque dessinée : la vraie s'y pose (voir plqDessinee)
   P.box('l',.30,.075,.012,0,.665,-1.79,.5,0,0);
@@ -40679,12 +40679,17 @@ return function(K){
       for(const kk of dedans){const [iu,iv]=kk.split(',').map(Number),bord=![[1,0],[-1,0],[0,1],[0,-1]].every(([da,db])=>dedans.has((iu+da)+','+(iv+db))),q=hs(iu+.3,iv+.7,id,2);
         if(bord){if(q<.52)pose('p',iu,iv,.01+.032*hs(iu,iv,id,3),true);else if(q<.62)pose('p',iu,iv,.05+.05*hs(iu,iv,id,4),true);}   // les éclats du bord (les derniers : arrachés, ils flottent)
         else{if(q<.80)pose('D',iu,iv,0,false);else if(q<.90)pose('c',iu,iv,0,false);}}};                                               // l'intérieur mis à nu
-    // (25/10, Léo : « plus bas — le bas des flancs seulement ; un glitch discret, une signature ») plus rien au museau ni au toit : trois petites plaques par flanc, sur le BAS des portes (entre les roues), à fleur du panneau de porte
+    /* (25/10, Léo : « nan c'est bizarre, on dirait pas La Fidèle, change de procédé ») LE PROCÉDÉ DE LA FIDÈLE : pas des plaques de cubes — des COUCHES FINES empilées (4,5 cm), chacune faite de TRONÇONS de longueurs inégales
+       (7 à 28 cm) qui saillent d'un cran différent (de 0,6 à 4 cm) : la tôle se découpe en escalier, tout de la couleur de la caisse, la lumière fait le reste. Sur le BAS des portes (la zone choisie) : 7 couches, de plus en plus
+       lacunaires vers le haut (la tôle « se défait »). Collées au panneau de porte, enfoncées de 1 cm dedans (rien ne flotte). */
     const XP=SBx(.93)+RP-.002;   // la face du panneau de porte
-    for(const sd of [1,-1]){
-      const C2=.08,pose=(k,iu,iv,up,eclat)=>{const z=iu*C2,y=iv*C2;if(y<.66||y>1.06||!((z<.55&&z>-.37)||(z<-.43&&z>-1.15)))return;
-        BX(k,eclat?.02:.014,C2*.92,C2*.92,sd*(XP+(eclat?up/2+.008:.003)),y,z);};   // (« pas aussi visible que La Fidèle ») cases de 8 cm, éclats jusqu'à 6 cm
-      plaque([[3,10.2,4],[-3,10.9,3.6],[-9,10.1,3.8],[-14,10.5,3]],-15,8,7,14,sd>0?1:2,pose);}
+    for(const sd of [1,-1]){const id=sd>0?1:2;
+      for(let l=0;l<7;l++){const y=.665+l*.045+.0225,dens=.97-l*.12;let z=.55;
+        while(z>-1.15){const n=1+Math.floor(hs(l,Math.round(z*100),id,1)*4),L=n*.07;
+          const zc=z-L/2;
+          if(((zc<.55&&zc>-.37)||(zc<-.43&&zc>-1.15))&&hs(l+.5,Math.round(z*100),id,2)<dens){const pr=.006+.034*Math.pow(hs(l+.2,Math.round(z*100),id,3),1.3);
+            BX('p',pr+.012,.043,L-.004,sd*(XP-.012+(pr+.012)/2),y,zc);}
+          z-=L;}}}
   }
   // LA CALANDRE : sept fentes, deux phares ronds, un peu couchée
   {const sh=new THREE.Shape(),PTS=rrect(-.66,-.18,.66,.175,.03,3);sh.moveTo(PTS[0][0],PTS[0][1]);for(let i=1;i<PTS.length;i++)sh.lineTo(PTS[i][0],PTS[i][1]);

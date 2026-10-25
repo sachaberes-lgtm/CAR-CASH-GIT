@@ -346,12 +346,17 @@ return function(K){
       for(const kk of dedans){const [iu,iv]=kk.split(',').map(Number),bord=![[1,0],[-1,0],[0,1],[0,-1]].every(([da,db])=>dedans.has((iu+da)+','+(iv+db))),q=hs(iu+.3,iv+.7,id,2);
         if(bord){if(q<.52)pose('p',iu,iv,.01+.032*hs(iu,iv,id,3),true);else if(q<.62)pose('p',iu,iv,.05+.05*hs(iu,iv,id,4),true);}   // les éclats du bord (les derniers : arrachés, ils flottent)
         else{if(q<.80)pose('D',iu,iv,0,false);else if(q<.90)pose('c',iu,iv,0,false);}}};                                               // l'intérieur mis à nu
-    // (25/10, Léo : « plus bas — le bas des flancs seulement ; un glitch discret, une signature ») plus rien au museau ni au toit : trois petites plaques par flanc, sur le BAS des portes (entre les roues), à fleur du panneau de porte
+    /* (25/10, Léo : « nan c'est bizarre, on dirait pas La Fidèle, change de procédé ») LE PROCÉDÉ DE LA FIDÈLE : pas des plaques de cubes — des COUCHES FINES empilées (4,5 cm), chacune faite de TRONÇONS de longueurs inégales
+       (7 à 28 cm) qui saillent d'un cran différent (de 0,6 à 4 cm) : la tôle se découpe en escalier, tout de la couleur de la caisse, la lumière fait le reste. Sur le BAS des portes (la zone choisie) : 7 couches, de plus en plus
+       lacunaires vers le haut (la tôle « se défait »). Collées au panneau de porte, enfoncées de 1 cm dedans (rien ne flotte). */
     const XP=SBx(.93)+RP-.002;   // la face du panneau de porte
-    for(const sd of [1,-1]){
-      const C2=.08,pose=(k,iu,iv,up,eclat)=>{const z=iu*C2,y=iv*C2;if(y<.66||y>1.06||!((z<.55&&z>-.37)||(z<-.43&&z>-1.15)))return;
-        BX(k,eclat?.02:.014,C2*.92,C2*.92,sd*(XP+(eclat?up/2+.008:.003)),y,z);};   // (« pas aussi visible que La Fidèle ») cases de 8 cm, éclats jusqu'à 6 cm
-      plaque([[3,10.2,4],[-3,10.9,3.6],[-9,10.1,3.8],[-14,10.5,3]],-15,8,7,14,sd>0?1:2,pose);}
+    for(const sd of [1,-1]){const id=sd>0?1:2;
+      for(let l=0;l<7;l++){const y=.665+l*.045+.0225,dens=.97-l*.12;let z=.55;
+        while(z>-1.15){const n=1+Math.floor(hs(l,Math.round(z*100),id,1)*4),L=n*.07;
+          const zc=z-L/2;
+          if(((zc<.55&&zc>-.37)||(zc<-.43&&zc>-1.15))&&hs(l+.5,Math.round(z*100),id,2)<dens){const pr=.006+.034*Math.pow(hs(l+.2,Math.round(z*100),id,3),1.3);
+            BX('p',pr+.012,.043,L-.004,sd*(XP-.012+(pr+.012)/2),y,zc);}
+          z-=L;}}}
   }
   // LA CALANDRE : sept fentes, deux phares ronds, un peu couchée
   {const sh=new THREE.Shape(),PTS=rrect(-.66,-.18,.66,.175,.03,3);sh.moveTo(PTS[0][0],PTS[0][1]);for(let i=1;i<PTS.length;i++)sh.lineTo(PTS[i][0],PTS[i][1]);
