@@ -196,8 +196,9 @@ return function(K){
   const PEINT=new Set([0,26]),GAP={}; // 26 = le HARD-TOP, à la couleur de la caisse (finition Sahara) : un code à lui pour que les vitres ne mordent pas le cadre du pare-brise
   const CPx=new THREE.Color(),fondu=y=>.80+.20*cl((y-.25)/1.0,0,1),colP=y=>{CPx.setHex(EP.c);if(EP.grad&&typeof lpGrad==='function')lpGrad(EP.grad,y,CPx);
     const s=((EP.g==='p'||EP.g.charAt(0)==='p')&&EP.f!==0)?fondu(y):1;return [CPx.r*s,CPx.g*s,CPx.b*s];};
+  let CCH=false;try{CCH=/[?&]baroudeur=couches/.test(location.search);}catch(e){}   /* (25/10, Léo : « fais évoluer le Baroudeur comme La Fidèle ») `?baroudeur=couches` : la caisse en COUCHES EMPILÉES (rangées de dalles, vitres par rangée, détails posés) au lieu de la découpe au plan */
   let C9=CACHE[0];
-  if(!C9){
+  if(!CCH&&!C9){
     const G=COL.map(c=>ROWS.map((r,j)=>point(c,j))),TR=[];
     const ref=c=>[0,1.0,cl(c[2],-1.7,.4)];
     const tri=(a,b,c,k)=>{const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2],nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;
@@ -232,7 +233,7 @@ return function(K){
     C9={};for(const g in OUT){const o=OUT[g];C9[g]={P:new Float32Array(o.P),N:new Float32Array(o.N),K:Uint8Array.from(o.K),D:new Float32Array(o.D)};}
     CACHE[0]=C9;}
   // ---- LA CAISSE POSÉE : ses couleurs (la peinture de la boutique comprise) ----
-  const gs={},BASE=(()=>{CPx.setHex(EP.c);return [CPx.r,CPx.g,CPx.b];})(),pDe=(EP.g==='p'||EP.g.charAt(0)==='p')&&EP.f!==0,FIX=CODES.map(d=>{if(!d||d.c==null)return null;CPx.setHex(d.c);return [CPx.r,CPx.g,CPx.b];});
+  const gs={};if(!CCH){const BASE=(()=>{CPx.setHex(EP.c);return [CPx.r,CPx.g,CPx.b];})(),pDe=(EP.g==='p'||EP.g.charAt(0)==='p')&&EP.f!==0,FIX=CODES.map(d=>{if(!d||d.c==null)return null;CPx.setHex(d.c);return [CPx.r,CPx.g,CPx.b];});
   const FE9=typeof fenteVar==='function'?fenteVar():null,FC9=[0,0,0];   // (2026-10-19) LA FENTE C : la variante lue une fois (`?fente=A` = le trait noir d'avant)
   for(const g0 in C9){const c=C9[g0],g=g0==='#'?GP:g0,col=new Float32Array(c.P.length);
     for(let t=0;t<c.K.length;t++){const kk=c.K[t],d=CODES[kk],F=FIX[kk];for(let q=0;q<3;q++){const i=t*9+q*3,y=c.P[i+1];let r,gg,b;
@@ -245,19 +246,70 @@ return function(K){
     if(gs[g]){const H=gs[g],cat=(A,B)=>{const o=new Float32Array(A.length+B.length);o.set(A);o.set(B,A.length);return o;},n2=new THREE.BufferGeometry();
       for(const at of ['position','normal','color'])n2.setAttribute(at,new THREE.Float32BufferAttribute(cat(H.attributes[at].array,geo.attributes[at].array),3));H.dispose();geo.dispose();gs[g]=n2;}
     else gs[g]=geo;}
-  K.commit({done:()=>gs,prims:[]});
+  K.commit({done:()=>gs,prims:[]});}
   // ============================ LES PIÈCES ============================
   const P=K.kit(PAL);
   const tour=(pts,n)=>{const g=new THREE.LatheGeometry(pts.map(q=>new THREE.Vector2(q[0],q[1])),n||16);g.rotateX(Math.PI/2);return g;};
   const pose=(k,g,p,n,rz,sx,sy)=>P.put(k,g,p[0],p[1],p[2],Math.atan2(-n[1],n[2]),Math.asin(cl(n[0],-1,1)),rz||0,sx||1,sy||1,1);
   const quad=(k,a,b,c,d)=>{P.tri(k,a,b,c);P.tri(k,a,c,d);};
+
+  // ============================ LA CAISSE EN COUCHES (`?baroudeur=couches`) ============================
+  /* (25/10, Léo : « de la même manière dont j'ai fait évoluer La Fidèle ») la VRAIE forme (la baignoire, le hard-top, le capot) en RANGÉES de dalles empilées — chaque rangée est une suite de blocs de largeur
+     constante le long de z (les passages de roue restent des vides en marches) ; la cabine se lit rangée par rangée : montants de la couleur de la caisse, vitres en blocs de verre (le pare-brise et la lunette
+     en marches, comme les rangées de La Fidèle) ; les portes sont des panneaux en relief collés sur le flanc. Tout le reste (ailes, élargisseurs, calandre, roues…) est déjà en pièces posées. */
+  const RP=.018;   // le relief des panneaux de porte
+  if(CCH){
+    const B=(k,w,h,d,x,y,z,rx,ry,rz)=>P.box(k,w,h,d,x,y,z,rx||0,ry||0,rz||0),r5=v=>Math.round(v*200)/200;
+    // une rangée de blocs entre y0 et y1, de z=zA à zB ; `arche` : on laisse vide ce que le passage de roue arrière mange
+    const rangee=(k,y0,y1,w,zA,zB,arche)=>{const dz=.04,yc=(y0+y1)/2;let run=null;const flush=z1=>{if(run!=null&&z1-run>.005)B(k,2*w,y1-y0,z1-run,0,yc,(run+z1)/2);run=null;};
+      for(let z=zA+dz/2;z<zB;z+=dz){const plein=!arche||YB(z)<=y0+.015;if(plein){if(run==null)run=z-dz/2;}else flush(z-dz/2);}
+      flush(zB);};
+    // 1. LA BAIGNOIRE : de 0,60 à la ceinture (1,222), des dalles de 8 cm ; la 1re, noire (le bas de caisse) ; un liseré de ceinture
+    const ZT0=-2.149,ZT1=.88;
+    B('k',1.60,.05,ZT1-ZT0,0,.575,(ZT0+ZT1)/2);   // le dessous noir
+    const YS=[.60,.68,.76,.84,.92,1.00,1.08,1.16,1.222];
+    for(let i=0;i<YS.length-1;i++)rangee(i===0?'k':'p',YS[i],YS[i+1],r5(SBx((YS[i]+YS[i+1])/2)),ZT0,ZT1,true);
+    rangee('p',1.222,1.245,r5(SBx(1.235)+.008),ZT0,ZT1,false);   // le liseré de la ceinture
+    // 2. LES PORTES : deux panneaux par flanc, en relief
+    for(const sd of [1,-1])for(const [z0,z1] of [[.563,-.375],[-.418,-1.16]]){const L=Math.abs(z0-z1)-.012,zc=(z0+z1)/2;
+      B('p',RP,.52,L,sd*(SBx(.93)+RP/2-.002),.93,zc);        // le panneau (bas de porte → épaule)
+      B('p',RP,.07,L,sd*(SBx(.66)+RP/2-.004),.69,zc);}        // le bas de porte, un cran plus rentré
+    // 3. LA CABINE (le hard-top) rangée par rangée : ceinture 1,245 → 1,30, vitres 1,30 → 1,717 (9 rangées), rail de toit 1,717 → 1,785
+    const Wc=y=>lin([[1.27,.846],[1.775,.793]],y),zF=y=>Math.max(.55,zPB(y)),zRr=y=>zHT(y);
+    const vitres=y=>{   // les tronçons de verre à cette hauteur (z0, z1) : porte avant, porte arrière, custode
+      const f=lin([[1.30,.322],[1.68,.25],[1.717,.228]],y),r=y>1.69?-.28:-.309,c1=lin([[1.30,-1.975],[1.69,-1.965],[1.717,-1.93]],y),c2=y>1.69?-1.27:-1.24;
+      return [[r,f],[-1.088,-.464],[c1,c2]];};
+    const couche=(y0,y1,verre)=>{const yc=(y0+y1)/2,W=r5(Wc(yc)),za=zRr(yc),zb=zF(yc);
+      if(!verre){B('p',2*W,y1-y0,zb-za,0,yc,(za+zb)/2);return;}
+      const V=vitres(yc);let z=za;
+      for(const [v0,v1] of V){if(v0>z+.004)B('p',2*W,y1-y0,v0-z,0,yc,(z+v0)/2);B('g',2*W+.004,y1-y0,v1-v0,0,yc,(v0+v1)/2);z=v1;}
+      if(zb>z+.004)B('p',2*W,y1-y0,zb-z,0,yc,(z+zb)/2);};
+    couche(1.245,1.30,false);
+    const VY=[];for(let i=0;i<=9;i++)VY.push(1.30+(1.717-1.30)*i/9);
+    for(let i=0;i<9;i++)couche(VY[i],VY[i+1],true);
+    couche(1.717,1.785,false);
+    // le pare-brise : un bloc de verre sur le devant de chaque rangée de vitres (en marches), cadre noir au-dessus
+    for(let i=0;i<9;i++){const yc=(VY[i]+VY[i+1])/2;if(yc<1.34)continue;B('g',1.41,VY[i+1]-VY[i],.03,0,yc,zF(yc)-.008);}
+    // la lunette : même chose derrière
+    for(let i=0;i<9;i++){const yc=(VY[i]+VY[i+1])/2;B('g',1.38,VY[i+1]-VY[i],.03,0,yc,zRr(yc)+.008);}
+    // le toit, bombé : deux dalles de plus (la dernière plus étroite)
+    B('p',2*.775,.03,zF(1.80)-zRr(1.80)-.14,0,1.80,(zF(1.80)+zRr(1.80))/2-.02);
+    B('p',2*.64,.03,zF(1.82)-zRr(1.82)-.50,0,1.83,(zF(1.82)+zRr(1.82))/2-.1);
+    // 4. LE CAPOT en couches : des dalles le long de z, haut qui plonge vers la calandre, un bandeau central plus haut
+    {const yT0=z=>lin([[.648,1.321],[1.083,1.307],[1.493,1.272],[1.684,1.225],[1.794,1.19],[1.835,1.17],[1.862,1.152]],z),HZ=[.648,.80,.95,1.10,1.25,1.40,1.55,1.66,1.75,1.80,1.862];
+     for(let i=0;i<HZ.length-1;i++){const zm=(HZ[i]+HZ[i+1])/2,top=yT0(zm),y0=1.148;
+       B('p',1.32,top-y0-.012,HZ[i+1]-HZ[i],0,(y0+top-.012)/2,zm);          // la dalle
+       B('p',.80,.016,HZ[i+1]-HZ[i]-.004,0,top-.004,zm);                    // le bandeau central, en relief
+       B('p',1.28,.012,HZ[i+1]-HZ[i]-.004,0,top-.014,zm);}}                  // le rebord, un cran plus bas
+  }
   // LE CAPOT : bombé, entre les ailes, qui plonge sur la calandre
-  {const yT=z=>lin([[.648,1.321],[1.083,1.307],[1.493,1.272],[1.684,1.225],[1.794,1.19],[1.835,1.17],[1.862,1.152]],z),
+  if(!CCH){const yT=z=>lin([[.648,1.321],[1.083,1.307],[1.493,1.272],[1.684,1.225],[1.794,1.19],[1.835,1.17],[1.862,1.152]],z),
      HZ=[.648,.80,.95,1.10,1.25,1.40,1.55,1.66,1.75,1.80,1.835,1.862],HX=[-.66,-.657,-.63,-.48,-.28,-.09,.09,.28,.48,.63,.657,.66],
      S=z=>HX.map(x=>[x,Math.abs(x)>.659?1.148:yT(z)+(Math.abs(x)>.65?-.006:.016*(1-(x/.66)*(x/.66))),z]);
    for(let i=0;i<HZ.length-1;i++){const A=S(HZ[i]),B=S(HZ[i+1]);for(let j=0;j<HX.length-1;j++)quad('p',A[j],B[j],B[j+1],A[j+1]);}
    const F=S(HZ[HZ.length-1]),c0=[0,1.148,HZ[HZ.length-1]];for(let j=0;j<HX.length-1;j++)P.tri('p',c0,F[j],F[j+1]);
-   P.sym(sd=>{P.box('k',.03,.075,.06,sd*.668,1.15,1.78);});}                       // les deux loquets de caoutchouc
+  }
+  P.sym(sd=>{P.box('k',.03,.075,.06,sd*.668,1.15,1.78);});                       // les deux loquets de caoutchouc
   // LES AILES AVANT (dessus plat), LES ÉLARGISSEURS à la couleur de la caisse (Sahara), avant et arrière
   const AILE=[[.85,1.148],[1.862,1.148],[1.876,1.13],[1.886,1.0],[1.90,.86],[1.887,.826],[1.827,.902],[1.794,.976],[1.534,.979],[1.274,.976],[1.203,.949],[1.129,.872],[1.036,.719],[.930,.522],[.85,.522]],
         ELAV=[[.749,.577],[.938,.856],[1.083,1.023],[1.203,1.055],[1.493,1.066],[1.736,1.053],[1.827,1.009],[1.95,.856],[1.975,.79],[1.975,.70],[1.93,.70],[1.887,.826],[1.827,.902],[1.794,.976],[1.534,.979],[1.274,.976],[1.203,.949],[1.129,.872],[1.036,.719],[.93,.522],[.80,.522]],
@@ -271,8 +323,8 @@ return function(K){
      P.prism('W',bande(DRL,.008,.018),.004,sd*.949);P.prism('O',bande(CLI,.008,.018),.004,sd*.949);}
     P.box('k',.006,.07,.17,sd*.862,1.00,.98);                                                      // l'ouïe d'aile
     P.box('k',.10,.12,1.61,sd*.85,.51,-.055);P.box('s',.10,.012,1.61,sd*.85,.575,-.055);          // le MARCHEPIED
-    for(const [z,y] of [[.535,1.094],[.535,.766],[-.44,1.094],[-.44,.766]])P.box('p',.035,.065,.075,sd*(SBx(y)+.0125),y,z);   // les charnières (couleur caisse) — (relief) posées sur le flanc à leur hauteur
-    for(const z of [-.205,-.945])P.box('k',.02,.035,.19,sd*(SBx(1.105)+.006),1.105,z);              // les poignées (noires), sur l'arête
+    for(const [z,y] of [[.535,1.094],[.535,.766],[-.44,1.094],[-.44,.766]])P.box('p',.035,.065,.075,sd*(SBx(y)+.0125+(CCH?RP:0)),y,z);   // les charnières (couleur caisse) — (relief) posées sur le flanc à leur hauteur
+    for(const z of [-.205,-.945])P.box('k',.02,.035,.19,sd*(SBx(1.105)+.006+(CCH?RP:0)),1.105,z);              // les poignées (noires), sur l'arête
     // le rétroviseur, sur la portière
     {const a=[sd*.86,1.30,.40],b=[sd*.96,1.37,.41],d=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],l=Math.hypot(d[0],d[1],d[2]);
      const g=new THREE.CylinderGeometry(.016,.016,l,6);g.translate(0,l/2,0);const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3(d[0]/l,d[1]/l,d[2]/l)),e=new THREE.Euler().setFromQuaternion(q);
