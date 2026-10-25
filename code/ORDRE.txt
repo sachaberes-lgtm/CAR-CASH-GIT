@@ -211,6 +211,7 @@ interface/atelier-ferme.js           # l'atelier fermé
 interface/fete-caisse.js             # la fête d'une caisse débloquée, selon sa rareté
 interface/habillages-accueil.js      # la bande des habillages, les plans de l'accueil
 interface/flammes-cubes.js           # les flammes en cubes
+interface/titre-soleil.js            # le soleil du titre : lever/coucher d'après la date et le fuseau (saisons)
 interface/chute-menu.js              # la chute : le menu dans le ciel, le doigt de bienvenue
 interface/richesse-1.js              # la pluie de richesse : programmes, dessins
 interface/richesse-2.js              # la pluie de richesse : formes
