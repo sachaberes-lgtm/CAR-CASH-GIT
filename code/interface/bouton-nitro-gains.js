@@ -189,6 +189,7 @@ function volgLance(k,q,src,big){
 }
 // une nitro gagnée : elle vole si elle peut (`r` réservoir orange, `x` réserve bleue) ; sinon la barre bat tout de suite
 function volgNitro(k,q){
+  if(LEFIL.on)return false; /* (2026-10-25, LE FIL) plus d'éclairs qui traversent l'écran : la barre prend son éclat sur place (nbPrend, appelé par le refus) */
   if(!(q>.03)||!VOLG)return false;
   if(volgLance(k,q,ajSource(false),Math.min(1.5,.9+q*.6))){VOLG.n[k]+=q;return true;}
   return false;

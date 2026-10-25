@@ -127,6 +127,7 @@ function driftTick(dt,on){
 // LE TEXTE QUI JAILLIT au-dessus de la caisse (l'écran est nu sur téléphone : c'est la seule annonce de conduite)
 function popTexte(txt,col,prio){
   // (2026-09-25) une PRIORITÉ : un temps fort (PARFAIT, AU CHEVEU…) ne se fait pas voler la vedette par un palier dans les 650 ms
+  if(LEFIL.on){popTexte._w=0;fil(txt,col,prio);return;} /* (2026-10-25, LE FIL) plus de texte jailli de la caisse : la pastille unique parle (fil.js) */
   prio=prio|0;const n9=performance.now();
   if(prio<(popTexte._p|0)&&n9<(popTexte._t||0))return;
   popTexte._p=prio;popTexte._t=n9+650;popTexte._s=n9;
