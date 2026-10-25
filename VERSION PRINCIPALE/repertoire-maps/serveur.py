@@ -19,7 +19,7 @@ disque, HORS du dépôt (un worktree supprimé ne les emporte pas, et toutes les
     cd "VERSION PRINCIPALE" && python3 repertoire-maps/serveur.py 9244
     → http://127.0.0.1:9244/repertoire-maps/
 """
-import base64, datetime, http.server, json, os, random, re, shutil, socketserver, sys, threading, urllib.parse
+import base64, datetime, http.server, json, os, random, re, shutil, socketserver, subprocess, sys, threading, urllib.parse
 
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 NOTES = os.environ.get('CC_NOTES_MAPS') or os.path.expanduser('~/Downloads/CAR-notes-maps')
@@ -31,7 +31,12 @@ def noms_des_maps():
     """[(id, nom)] dans l'ordre de maps.js (la liste de la page) — pour ranger le fichier à lire."""
     try:
         with open(os.path.join(RACINE, 'repertoire-maps', 'maps.js'), encoding='utf-8') as f:
-            return re.findall(r"id:\s*'([^']+)',\s*nom:\s*'([^']+)'", f.read())
+            L, vus = [], set()  # une map du tirage par ligne : les cartes d'un même `groupe` (CRYPTOVILLE) comptent pour une
+            for a, b, c, g in re.findall(r"id:\s*'([^']+)',\s*nom:\s*(?:'([^']+)'|\"([^\"]+)\")(?:,\s*groupe:\s*'([^']+)')?", f.read()):
+                k = g or a
+                if k not in vus:
+                    vus.add(k); L.append((k, b or c))
+            return L
     except OSError:
         return []
 
@@ -115,6 +120,119 @@ def applique(op):
         return d
 
 
+AVIS = os.path.join(NOTES, 'avis.json')
+
+
+def lit_avis():
+    try:
+        with open(AVIS, encoding='utf-8') as f:
+            d = json.load(f)
+        return d if isinstance(d, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def ecrit_avis(d):
+    """avis.json = la vérité ; avis-maps.txt = la même chose à lire (c'est ce que Claude lit quand Léo dit « j'ai fini »)."""
+    os.makedirs(NOTES, exist_ok=True)
+    tmp = AVIS + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        json.dump(d, f, ensure_ascii=False, indent=1)
+    os.replace(tmp, AVIS)
+    noms = dict(noms_des_maps())
+    L = {'garder': [], 'virer': [], 'vide': []}
+    for k, v in noms.items():
+        a = d.get(k) or {}
+        L[a.get('s') if a.get('s') in ('garder', 'virer') else 'vide'].append(k)
+    out = ['AVIS DE LÉO SUR LES MAPS (%s)' % datetime.datetime.now().strftime('%d/%m %H:%M'), '']
+    for t, titre in (('garder', 'À GARDER'), ('virer', 'À VIRER'), ('vide', 'PAS ENCORE VU')):
+        out.append('%s : %s' % (titre, ', '.join(noms[k] for k in L[t]) or '—'))
+    out.append('')
+    for k, nom in noms.items():
+        m = [x for x, v in ((d.get(k) or {}).get('m') or {}).items() if v == 'virer']
+        if m:
+            out.append('  %s — météos à virer : %s' % (nom, ', '.join(m)))
+    with open(os.path.join(NOTES, 'avis-maps.txt'), 'w', encoding='utf-8') as f:
+        f.write('\n'.join(out) + '\n')
+
+
+def applique_avis(op):
+    """une opération : {carte, s:'garder'|'virer'|''} ou {carte, meteo, v:'virer'|''} — jamais le fichier entier."""
+    k = op.get('carte')
+    if not isinstance(k, str) or not ID_OK.match(k):
+        raise ValueError('carte ?')
+    d = lit_avis()
+    a = d.setdefault(k, {'s': '', 'm': {}})
+    if 's' in op:
+        a['s'] = op['s'] if op['s'] in ('garder', 'virer') else ''
+    if 'meteo' in op:
+        m = str(op['meteo'])
+        if not ID_OK.match(m):
+            raise ValueError('météo ?')
+        if op.get('v') == 'virer':
+            a.setdefault('m', {})[m] = 'virer'
+        else:
+            a.setdefault('m', {}).pop(m, None)
+    ecrit_avis(d)
+    return d
+
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import jeu_maps  # la liste des maps lue dans le jeu lui-même (index.html du dossier servi)
+except Exception:  # pragma: no cover
+    jeu_maps = None
+IMG = os.path.join(RACINE, 'repertoire-maps', 'img')
+VERSIONS = os.path.join(IMG, 'versions.json')  # {« carte-météo »: n° de cache du jeu au moment de la photo} — écrit par banc/photos.py
+JOB = {'en_cours': False, 'total': 0, 'fait': 0, 'couples': [], 'erreur': None}
+
+
+def etat_photos():
+    """ce que le jeu a (carte × météo) contre les images du dossier : manquantes, et de quelle version du jeu est chaque photo."""
+    d = jeu_maps.lit(RACINE)
+    try:
+        with open(VERSIONS, encoding='utf-8') as f:
+            V = json.load(f)
+    except (OSError, ValueError):
+        V = {}
+    man, ver = [], {}
+    for c in d['cartes']:
+        for k, _ in c['meteos']:
+            f = '%s-%s' % (c['id'], k)
+            if os.path.isfile(os.path.join(IMG, f + '.jpg')):
+                ver[f] = V.get(f)
+            else:
+                man.append([c['id'], k])
+    return {'jeu': d['jeu'], 'manquantes': man, 'versions': ver, 'job': dict(JOB)}
+
+
+def lance_photos(couples):
+    """prend les photos demandées dans le VRAI jeu (banc/photos.py : Chrome sans fenêtre, muet) — une seule série à la fois."""
+    if JOB['en_cours']:
+        raise ValueError('une série est déjà en cours')
+    ok = [(c, m) for c, m in couples if re.match(r'^\w{1,30}$', str(c)) and re.match(r'^[\w-]{1,40}$', str(m))]
+    if not ok:
+        raise ValueError('rien à photographier')
+    JOB.update({'en_cours': True, 'total': len(ok), 'fait': 0, 'couples': [list(x) for x in ok], 'erreur': None})
+
+    def tourne():
+        try:
+            p = subprocess.Popen([sys.executable, os.path.join(RACINE, 'repertoire-maps', 'banc', 'photos.py')] + ['%s:%s' % x for x in ok],
+                                 cwd=RACINE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+            for ligne in p.stdout:
+                if ' ok ' in ligne:
+                    JOB['fait'] += 1
+            p.wait()
+            if p.returncode:
+                JOB['erreur'] = 'le banc photo s\'est arrêté (code %s)' % p.returncode
+        except Exception as e:
+            JOB['erreur'] = str(e)
+        finally:
+            JOB['en_cours'] = False
+    threading.Thread(target=tourne, daemon=True).start()
+    return dict(JOB)
+
+
 class Main(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *a, **k):
         super().__init__(*a, directory=RACINE, **k)
@@ -136,6 +254,19 @@ class Main(http.server.SimpleHTTPRequestHandler):
         if p == '/repertoire-maps/notes':
             with VERROU:
                 return self.json(200, lit())
+        if p == '/repertoire-maps/avis':
+            with VERROU:
+                return self.json(200, lit_avis())
+        if p == '/repertoire-maps/maps.js' and jeu_maps:  # la liste VIVANTE : lue dans index.html à chaque demande (le fichier du dossier ne sert que de repli)
+            try:
+                return self.envoie(200, jeu_maps.en_js(jeu_maps.lit(RACINE)).encode('utf-8'), 'application/javascript; charset=utf-8')
+            except Exception:
+                pass
+        if p == '/repertoire-maps/photos' and jeu_maps:
+            try:
+                return self.json(200, etat_photos())
+            except Exception as e:
+                return self.json(500, {'erreur': str(e)})
         if p.startswith('/repertoire-maps/notes-img/'):  # l'image d'une note (elle vit hors du dossier servi)
             f = os.path.join(NOTES, 'img', os.path.basename(p))
             if os.path.isfile(f):
@@ -145,7 +276,25 @@ class Main(http.server.SimpleHTTPRequestHandler):
         super().do_GET()
 
     def do_POST(self):
-        if urllib.parse.urlparse(self.path).path != '/repertoire-maps/notes':
+        pp = urllib.parse.urlparse(self.path).path
+        if pp == '/repertoire-maps/avis':
+            try:
+                n = int(self.headers.get('Content-Length') or 0)
+                if n > 100_000:
+                    raise ValueError('trop gros')
+                with VERROU:
+                    return self.json(200, applique_avis(json.loads(self.rfile.read(n).decode('utf-8'))))
+            except Exception as e:
+                return self.json(400, {'erreur': str(e)})
+        if pp == '/repertoire-maps/photos' and jeu_maps:
+            try:
+                n = int(self.headers.get('Content-Length') or 0)
+                d = json.loads(self.rfile.read(min(n, 100_000)).decode('utf-8') or '{}')
+                cp = d.get('couples') or etat_photos()['manquantes']
+                return self.json(200, lance_photos(cp))
+            except Exception as e:
+                return self.json(400, {'erreur': str(e)})
+        if pp != '/repertoire-maps/notes':
             self.send_response(404); self.end_headers(); return
         try:
             n = int(self.headers.get('Content-Length') or 0)

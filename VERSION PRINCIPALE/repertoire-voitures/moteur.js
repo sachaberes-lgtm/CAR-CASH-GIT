@@ -97,13 +97,14 @@ function morceauxDe(L){
     bloc('const SHAPES={','/* ===== LA GAMME DES 50 — FIN',false),
     bloc('const FACET_SHAPES=','function facetteCaisse',false),
     bloc('const NUAGE_BLOBS=','const GH=',false),
+    bloc('const LANGAGE_REF=','function traduisLangage',false),   // (25/10) la traduction au langage du jeu : les 29 références, le cache, traduisGroupe
     un('function lingotGeo('),
     // TOUS les gabarits posés hors de la gamme (`SHAPES.xxx=function…` : le lingot, l'origami, ATCHOUM, le SQUALE… et ceux de demain)
     ...L.map((l,i)=>/^SHAPES\.\w+=/.test(l)?i:-1).filter(i=>i>=0).map(i=>{const fin=/^SHAPES\.\w+=\s*\(function/.test(L[i])?'})();':'};'; // (19/10) COMBI, WRANGLER, SIMPSON, CAÏD sont des fonctions auto-appelées : elles finissent par « })(); », pas par le premier « }; » (le morceau était coupé en deux : « Unexpected end of input »)
     let b=i+1;while(b<L.length&&!L[b].startsWith(fin))b++;return L.slice(i,b+1).join('\n');}),
     bloc('const NY_U=','const SHAPES={',false),
     un('const ATCH=')];}
-const RETOUR='return {CARS,CAR_UNLOCK,RARETES,carRar,carOrdre,AURA_RANKS,SHAPES,lpKit,lpWheel,lpOmbre,carProfile,SPH9,FACET_SHAPES,geoFacette,echRetire,echappement,monte:function(g){carGroup=g;}};';
+const RETOUR='return {CARS,CAR_UNLOCK,RARETES,carRar,carOrdre,AURA_RANKS,SHAPES,lpKit,lpWheel,lpOmbre,carProfile,SPH9,FACET_SHAPES,geoFacette,echRetire,echappement,traduisGroupe:typeof traduisGroupe==="function"?traduisGroupe:null,monte:function(g){carGroup=g;}};';
 const STUBS=()=>({envTex:null,carFins:[],rimify:()=>{},lpGrad:()=>{},nuageShader:()=>{},vMat:m=>m,lampTex:null,
   LINGOT_MAT:(()=>{const m=new THREE.MeshPhongMaterial({color:0xc08a1c});m.userData.g='o';return m;})(),
   LINGOT_PL:(()=>{const m=new THREE.MeshPhongMaterial({color:0xd99a1c});m.userData.g='o';return m;})(),
@@ -226,6 +227,7 @@ function assemble(i){
     const f=geoFacette(o.geometry);if(f)o.geometry=f;});
   for(const r of roues){const w=roue.clone();w.position.set(r.x,r.y,r.z);if(r.miroir)w.scale.x=-1;grp.add(w);}
   grp.userData.A=A;grp.userData.spec=spec; // les ancrages du jeu (pots, phares…) : les réactions au toucher en partent
+  try{if(G.traduisGroupe)G.traduisGroupe(spec,grp,grp);}catch(e){console.warn('langage',e);}   // (25/10, Léo : « je vois le langage v2 nulle part ») la liste montre la MÊME traduction que le jeu (`?langage=0` la coupe)
   return studio(grp); // la caisse posée dans sa BOÎTE (centrée, au sol) : c'est elle qu'on fait tourner
 }
 
