@@ -3,6 +3,10 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA CROIX SUR LA PEINTURE ÉQUIPÉE + LA HONTE SE PEINT (2026-10-26, v938 — Léo : « mets une croix sur paint lorsqu'elle est équipée » et « LA HONTE, on peut pas la peindre »)
+- **Croix** : une peinture équipée (hors D'ORIGINE) porte une CROIX rouge (`pxi('croix')`) au lieu de la coche verte — tuile de l'inventaire (`<u class="x">`, `.ivT u.x`) et vignette de la console (`.gT.eq.c-peinture em .pxi`). La retoucher la retire (v936).
+- **LA HONTE** : sa peinture ne teintait que la grande tôle ; le toit, les bas de caisse, le rétro et les plaques de rouille restaient bruns (`epave`, `code/voitures/shapes-1.js`). Peinte, elle les prend : l'accent = la teinte (bas du dégradé) à 80 %, la rouille = la teinte à 50 % (`RU`, copie de `K.rust`), ton sur ton. Un MOTIF garde l'accent d'origine ; D'ORIGINE ne change pas. Vu en photos de studio (D'ORIGINE, MENTHE, MINUIT, CHROME, VAPORWAVE).
+
 ## UNE PEINTURE ÉQUIPÉE, RETOUCHÉE, SE RETIRE (2026-10-26, v936 — Léo : « quand on appuie sur une peinture sélectionnée, ça la désélectionne et laisse la couleur originale de l'ouverture »)
 - Toucher la peinture déjà ÉQUIPÉE la retire : la caisse reprend sa teinte d'usine (la fiche D'ORIGINE, `usine`, devient l'équipée ; son tick `ui.off`). Deux endroits : l'INVENTAIRE (`invEquipe`, `code/interface/garage-menu-inventaire.js`) et la bande de la console du garage (`garDesequipePeinture`, `code/missions/atelier.js`). D'ORIGINE elle-même ne fait rien de plus ; ailes, traînées, figures et caisses inchangées (une aile ou une traînée ne se retire pas : le tap sur l'équipée répond d'un tick comme avant).
 - Vérifié au banc (Chrome sans fenêtre, `?garde=1`, 2 peintures données) : tap = équipe, 2e tap = D'ORIGINE (sauvegarde `shop.eq.peinture` = `usine`), 3e tap = ré-équipe ; même chose dans la console.

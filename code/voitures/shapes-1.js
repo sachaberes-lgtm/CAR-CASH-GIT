@@ -7,6 +7,11 @@ const SHAPES={
     // plus net, qui court sur les chanfreins), toujours mate à côté de la gamme. Même programme pour les deux (le liseré de l'épave).
     const bV=K.body.clone(),aV=K.acc.clone();for(const m of [bV,aV]){m.vertexColors=true;rimify(m,null);}
     bV.shininess=30;bV.specular.setHex(0x8e8e8e);bV.reflectivity=.07;aV.shininess=26;aV.specular.setHex(0x9a9a9a);
+    /* (2026-10-26, Léo : « LA HONTE, on peut pas la peindre ») la peinture ne teintait que la grande tôle : le toit, les bas de caisse, le rétro et les
+       plaques de rouille gardaient leur brun d'origine (une caisse à moitié peinte). Peinte, elle les prend : l'accent = la teinte (le bas du dégradé)
+       un cran plus sombre, la rouille = la teinte à moitié (la patine reste visible, ton sur ton). Un MOTIF garde l'accent d'origine. */
+    const pd9=cosmSur('peinture'),pe9=!!pd9&&pd9.id!=='usine'&&!pd9.mot,pa9=pe9?new THREE.Color(pd9.c!=null?pd9.c:pd9.grad[0]):null,RU=pe9?K.rust.clone():K.rust;
+    if(pe9){aV.color.copy(pa9).multiplyScalar(.8);aV.emissive.copy(aV.color);RU.color.copy(pa9).multiplyScalar(.5);}
     const U=(w,h,d,m,x,y,z,o)=>{const ms=new THREE.Mesh(boiteUsee(w,h,d,Object.assign({yc:y},o)),m);ms.position.set(x,y,z);return K.add(ms);};
     /* (2026-10-20, LE RELIEF) de VRAIS COUPS dans la grande caisse (voir boiteUsee `creux`) : la portière gauche enfoncée, l'aile avant
        droite froissée en deux plis, le coin arrière droit cabossé — chacun loin des plaques de rouille et des lignes de portières */
@@ -31,15 +36,15 @@ const SHAPES={
        BOÎTE USÉE comme les tôles (mêmes plaques de rouille, mêmes arêtes usées), un peu moins chargée ; même taille (H×,10 × ,6 = H×,06 de haut) */
      U(W*.72,H*.06,L*.34,aV,-hT*Math.sin(RT)-c*Math.sin(RR),gl.position.y+hT*Math.cos(RT)+c*Math.cos(RR),-L*.05,{seed:9,rouille:.30,cell:.22,c:.008}).rotation.z=RR;}
     for(const sd of [-1,1]){
-      const mir=B(.09,.09,.16,sd<0?K.rust:K.acc,sd*(W/2+.10),y0+H*.95,L*.12);if(sd<0)mir.rotation.z=-.9;
+      const mir=B(.09,.09,.16,sd<0?RU:K.acc,sd*(W/2+.10),y0+H*.95,L*.12);if(sd<0)mir.rotation.z=-.9;
       U(.08,H*.25,L*.62,aV,sd*(W/2+.02),y0+H*.12,0,{seed:5+sd,rouille:.22,c:.012});
     }
     B(W*.55,H*.2,.07,K.dark,0,y0+H*.42,L/2+.10);
     for(const fz of [1,-1]){const bp=B(W*1.02,H*.24,.18,K.dark,0,y0+H*.15,fz*(L/2+.06));
       if(fz<0){bp.rotation.z=.14;bp.position.y-=.08;}}
     for(const sp of [[.30,.50,.35,.50,.30],[-.42,.45,-.10,.40,.50],[.10,.68,-.42,.60,.25],[-.25,.30,.42,.35,.40]])
-      B(W*sp[3],H*sp[4],.05,K.rust,sp[0]*W,y0+H*sp[1],sp[2]*L+(sp[2]>0?.03:-.03)); // plaques de rouille
-    B(.04,H*.40,L*.35,K.rust,W/2+.05,y0+H*.45,L*.10);
+      B(W*sp[3],H*sp[4],.05,RU,sp[0]*W,y0+H*sp[1],sp[2]*L+(sp[2]>0?.03:-.03)); // plaques de rouille
+    B(.04,H*.40,L*.35,RU,W/2+.05,y0+H*.45,L*.10);
     return {doors:1,rouesEpave:1}; // (2026-10-15) ses roues au kit (voir roueEpave), sans perdre ses phares, ses pots ni ses portières (ce que `lpw` retirerait)
   },
   /* ============================================================================================
