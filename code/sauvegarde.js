@@ -170,6 +170,8 @@ const SAVE={
       o9.c.jd=typeof cc.jd==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(cc.jd)?cc.jd:'';o9.c.cartes=L9(cc.cartes,40);o9.c.cartesP=L9(cc.cartesP,40);o9.c.rejoue=Math.round(N9(cc.rejoue,1e5));
       /* (2026-10-22, Sacha : « tableau des voitures / des peintures ») les compteurs à vie des missions de caisse et des peintures secrètes — SANS cette liste ils sautaient au rechargement */
       for(const k of ['pu','figs'])o9.c[k]=Math.round(N9(cc[k],1e7));for(const k of ['nitS','nmaxS','airS','kmTot','verglasKm'])o9.c[k]=N9(cc[k],1e9);
+      /* (2026-10-25, Sacha : « palier 10 de chaque musique ») les morceaux de Pouce bleu joués jusqu'au palier 10 : leurs ids ont un tiret (bleu-12, pal-asphalte), L9 les jetterait */
+      if(Array.isArray(cc.musP10))o9.c.musP10=[...new Set(cc.musP10.filter(function(x){return typeof x==='string'&&/^[a-z0-9-]{2,40}$/.test(x);}))].slice(0,80);
       if(cc.met&&typeof cc.met==='object')for(const k of Object.keys(cc.met).slice(0,40))if(/^[a-z0-9_]{2,16}$/.test(k))(o9.c.met||(o9.c.met={}))[k]=L9(cc.met[k],12);
       if(cc.sc&&typeof cc.sc==='object')for(const k of Object.keys(cc.sc).slice(0,40))if(/^[a-z0-9_]{2,16}$/.test(k))(o9.c.sc||(o9.c.sc={}))[k]=N9(cc.sc[k],1e9);}
     c.cad={t:0};if(d.cad&&typeof d.cad==='object'){const tc=+d.cad.t;if(isFinite(tc)&&tc>0)c.cad.t=Math.min(Math.round(tc),Date.now());}
