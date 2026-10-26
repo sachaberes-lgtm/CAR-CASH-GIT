@@ -44560,7 +44560,7 @@ const ENG_GARDE=new Map();let engChaudI=-1;
 function engChauffe(){
   if(atelierChauffe()){chauffeGrace();return;} // (chasse aux gels) L'ATELIER D'ABORD : c'est lui que JOUER montre dans la seconde
   if(engChaudI<0){chauffeGrace();if(!chauffeDivers(CHAUFFE_R.div++))engChaudI=0;return;} // d'abord ce qui peut naître à N'IMPORTE quel moment de la course (pigeons, trace, ville) — (chasse aux gels) une étape par image
-  if(engChaudI>ENGINE_TIERS.length){if(!CHAUFFE_R.fait){CHAUFFE_R.fait=true;chauffeGrace();chauffeRendu();}return;} // (tour 2) les moteurs prêts : toute la scène passe une fois par la puce
+  if(engChaudI>ENGINE_TIERS.length){if(!CHAUFFE_R.fait){CHAUFFE_R.fait=true;CH_TARD.tf=performance.now();chauffeGrace();chauffeRendu();}else chauffeTard();return;} /* (2026-10-22) …puis les étapes remises à plus tard (voir CH_TARD) */ // (tour 2) les moteurs prêts : toute la scène passe une fois par la puce
   chauffeGrace();
   try{
     const g=engChaudI<ENGINE_TIERS.length?mkEngine(engChaudI):new THREE.Mesh(engVigFeuGeo,engVigFeuMat); // dernier tour : la flamme
@@ -44618,25 +44618,52 @@ function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ce
   for(const o of vis)o.visible=false;for(const o of off)o.visible=true;for(const o of cul)o.frustumCulled=true;
   }finally{if(que){scene.children=kids;sm.autoUpdate=sa;sm.needsUpdate=sn;}}
 }catch(e){console.warn('chauffeRendu',e);} }
+/* (2026-10-22, piste « démarrage », profil CPU ×4 : engChauffe + les chauffes de caisses = 1,3 à 5,7 s de fil principal au menu) LES CHAUFFES
+   REMISES À PLUS TARD. Une étape de chauffeDivers porte une ÉTIQUETTE : `M(carte, f)` (elle prépare UNE map : ses programmes, son décor) ou
+   `V(f)` (elle découpe la tôle d'UNE caisse précise : perle, japonaises, rondes). Au chargement on ne fait que le nécessaire : les étapes sans
+   étiquette, celles de LA PROCHAINE MAP (le tirage d'avance `SF.prochain`, déjà connu au menu) ; les autres attendent dans `CH_TARD.q` et
+   passent dans `chauffeTard`, une par image, quand le menu est CALME (rien touché depuis 1,5 s, 3 s après la fin de la chauffe d'ouverture).
+   · la map tirée pour le prochain départ passe TOUJOURS devant, sans attendre le calme (un nouveau tirage au REJOUER la remonte aussi) ;
+   · prochaine map pas encore connue (`SF.prochain` vide) : l'étape se fait tout de suite, comme avant ;
+   · `?chauffe=tout` rend le chargement d'avant (tout au chargement) — banc et secours.
+   ⚠ Une map non chauffée n'est PAS prête au portail : la chauffe reprend à chaque menu / écran de mort tant qu'il en reste. */
+const CH_TARD={q:[],in:0,tf:0,tout:/[?&]chauffe=tout\b/.test(location.search)};
+['pointerdown','keydown','touchstart'].forEach(function(ev){addEventListener(ev,function(){CH_TARD.in=performance.now();},{passive:true,capture:true});});
+function chauffeCarteSuiv(){try{const t=SF.prochain||(SF.tirage&&SF.tirage[0]);return t&&t.carte||null;}catch(e){return null;}}
+function chauffeDeCarte(f,c){return !!(f&&f.m&&c&&(Array.isArray(f.m)?f.m.indexOf(c)>=0:f.m===c));}
+function chauffeRemet(f){if(CH_TARD.tout||!f)return false;if(f.v)return true;if(f.m){const c=chauffeCarteSuiv();return !!c&&!chauffeDeCarte(f,c);}return false;}
 function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image (elles tenaient toutes dans la même : ~1,8 s d'un bloc au chargement, MESURÉ) — rend vrai s'il en reste
+  const E=chauffeListe();
+  if(k<E.length){if(chauffeRemet(E[k]))CH_TARD.q.push(k);else try{E[k]();}catch(e){}}
+  return k+1<E.length;
+}
+function chauffeCalme(){const t=performance.now();return !document.hidden&&t-CH_TARD.in>1500&&CH_TARD.tf>0&&t-CH_TARD.tf>3000;}
+function chauffeTard(){ // les étapes remises : une par image. La map tirée d'abord (sans attendre le calme), le reste quand le menu est calme
+  const Q=CH_TARD.q;if(!Q.length)return false;const E=chauffeListe(),c=chauffeCarteSuiv();let j=-1;
+  for(let i=0;i<Q.length;i++)if(chauffeDeCarte(E[Q[i]],c)){j=i;break;}
+  if(j<0){if(!chauffeCalme())return false;j=0;}
+  const k=Q.splice(j,1)[0];chauffeGrace();try{E[k]();}catch(e){}return true;}
+window.dbgChauffeTard=function(){const E=chauffeListe();return {tout:CH_TARD.tout,carteSuiv:chauffeCarteSuiv(),restent:CH_TARD.q.map(function(k){return E[k].m||(E[k].v?'caisse':'?');}),calme:chauffeCalme()};}; // (banc)
+function chauffeListe(){
+  const M=function(c,f){f.m=c;return f;},V=function(f){f.v=1;return f;};
   const E=[
-  function(){orbiteChauffe();}, // (vague 3) la lune peinte et montée au GPU, lune + rochers compilés : rien ne naît au portail de l'orbite
+  M('espace',function(){orbiteChauffe();}), // (vague 3) la lune peinte et montée au GPU, lune + rochers compilés : rien ne naît au portail de l'orbite
   function(){if(!CITY.chaud){CITY.chaud=true;villeChauffe();}},
   function(){if(SPIN.on){const m9=mkJeton(1);scene.add(m9);chauffeRendu([m9]);scene.remove(m9);}}, /* (2026-10-14) LE JETON DU FINAL SPIN : texture et matières montées au menu */
-  function(){try{canyonChauffe();}catch(e){console.warn('canyonChauffe',e);}}, // (2026-10-14) LE CANYON DES GÉANTS : le relief et son ciel compilés au menu
-  function(){try{dunesChauffe();}catch(e){console.warn('dunesChauffe',e);}}, // (2026-10-18) LES DUNES D'OR : le sable et ses décors compilés au menu
+  M('canyon',function(){try{canyonChauffe();}catch(e){console.warn('canyonChauffe',e);}}), // (2026-10-14) LE CANYON DES GÉANTS : le relief et son ciel compilés au menu
+  M('dunes',function(){try{dunesChauffe();}catch(e){console.warn('dunesChauffe',e);}}), // (2026-10-18) LES DUNES D'OR : le sable et ses décors compilés au menu
   function(){campChauffe();},
-  function(){try{cryptoChauffe();}catch(e){console.warn('cryptoChauffe',e);}}, // (2026-10-13) CRYPTO CITY et la pluie d'argent : leurs matières compilées au menu
-  function(){try{vitreChauffe();}catch(e){console.warn('vitreChauffe',e);}}, // (2026-10-17) LA VILLE VITRÉE : le verre, ses tours au loin, la couche de nuages
-  function(){try{foretChauffe();}catch(e){console.warn('foretChauffe',e);}}, // (2026-10-14) LA FORÊT NOIRE : arbres, sol, torrent, fleurs, papillons, lucioles, rayons, brume, feux follets, lune, loup — compilés au menu
-  function(){try{volcanChauffe();}catch(e){console.warn('volcanChauffe',e);}}, // (2026-10-14) LE ROYAUME DE FEU : roche, lave, aiguilles, panaches, geysers, braises, cendre, bombes, halos — compilés au menu
-  function(){try{grotteChauffe();}catch(e){console.warn('grotteChauffe',e);}}, // (2026-10-18) LES PROFONDEURS : la roche en blocs (un programme) et les poussières, compilées au menu
-  function(){try{banqChauffe();}catch(e){console.warn('banqChauffe',e);}}, // (2026-10-14) LA BANQUISE : neige, glace, lacs, traces, flocons, aurores, poudre et givre — compilés au menu
+  M('crypto',function(){try{cryptoChauffe();}catch(e){console.warn('cryptoChauffe',e);}}), // (2026-10-13) CRYPTO CITY et la pluie d'argent : leurs matières compilées au menu
+  M(['ville','vitree'],function(){try{vitreChauffe();}catch(e){console.warn('vitreChauffe',e);}}), // (2026-10-17) LA VILLE VITRÉE : le verre, ses tours au loin, la couche de nuages
+  M('foret',function(){try{foretChauffe();}catch(e){console.warn('foretChauffe',e);}}), // (2026-10-14) LA FORÊT NOIRE : arbres, sol, torrent, fleurs, papillons, lucioles, rayons, brume, feux follets, lune, loup — compilés au menu
+  M('volcan',function(){try{volcanChauffe();}catch(e){console.warn('volcanChauffe',e);}}), // (2026-10-14) LE ROYAUME DE FEU : roche, lave, aiguilles, panaches, geysers, braises, cendre, bombes, halos — compilés au menu
+  M('grotte',function(){try{grotteChauffe();}catch(e){console.warn('grotteChauffe',e);}}), // (2026-10-18) LES PROFONDEURS : la roche en blocs (un programme) et les poussières, compilées au menu
+  M('banquise',function(){try{banqChauffe();}catch(e){console.warn('banqChauffe',e);}}), // (2026-10-14) LA BANQUISE : neige, glace, lacs, traces, flocons, aurores, poudre et givre — compilés au menu
   function(){if(carWingL&&carWingR&&carGroup.parent===scene){const v9=carWingL.visible;carWingL.visible=carWingR.visible=true;chauffeRendu([carGroup]);carWingL.visible=carWingR.visible=v9;}}, // (2026-10-16, LES AILES VIVANTES) les AILES de la caisse équipée, cachées au sol, compilées au menu : rien ne naît au 1er envol (MESURÉ : 1 à 2 programmes par aile, au 1er déploiement de la session)
-  function(){try{perleTraits();}catch(e){console.warn('perleTraits',e);}},
-  function(){try{perleTraits();   /* (la tôle découpée au plan) */}catch(e){console.warn('perleTraits',e);}},
-  function(){try{japChauffe();}catch(e){}},function(){try{japChauffe();}catch(e){}},function(){try{japChauffe();}catch(e){}},function(){try{japChauffe();}catch(e){}},function(){try{japChauffe();}catch(e){}}, // (2026-10-18, JAPONAISES) la tôle des japonaises découpée au plan, une caisse par étape (voir japChauffe)
-  function(){try{if(typeof rondesChauffe==='function')rondesChauffe();}catch(e){console.warn('rondesChauffe',e);}},function(){try{if(typeof rondesChauffe==='function')rondesChauffe();}catch(e){console.warn('rondesChauffe',e);}}, // (2026-10-18, RONDES) la tôle de LA QUEUE DE CANARD puis de LA GRANDE ANGLAISE découpée au plan (~60-90 ms chacune) : au menu, une caisse par étape, pas au premier garage
+  V(function(){try{perleTraits();}catch(e){console.warn('perleTraits',e);}}),
+  V(function(){try{perleTraits();   /* (la tôle découpée au plan) */}catch(e){console.warn('perleTraits',e);}}),
+  V(function(){try{japChauffe();}catch(e){}}),V(function(){try{japChauffe();}catch(e){}}),V(function(){try{japChauffe();}catch(e){}}),V(function(){try{japChauffe();}catch(e){}}),V(function(){try{japChauffe();}catch(e){}}), // (2026-10-18, JAPONAISES) la tôle des japonaises découpée au plan, une caisse par étape (voir japChauffe)
+  V(function(){try{if(typeof rondesChauffe==='function')rondesChauffe();}catch(e){console.warn('rondesChauffe',e);}}),V(function(){try{if(typeof rondesChauffe==='function')rondesChauffe();}catch(e){console.warn('rondesChauffe',e);}}), // (2026-10-18, RONDES) la tôle de LA QUEUE DE CANARD puis de LA GRANDE ANGLAISE découpée au plan (~60-90 ms chacune) : au menu, une caisse par étape, pas au premier garage
   function(){try{bqChauffe(0);}catch(e){console.warn('bqChauffe',e);}},function(){try{bqChauffe(1);}catch(e){console.warn('bqChauffe',e);}},function(){try{bqChauffe(2);}catch(e){console.warn('bqChauffe',e);}}, // (2026-10-16, « la boutique rame de ouf ») LA BOUTIQUE bâtie et compilée au menu, en trois étapes : MESURÉ, sa 1re ouverture figeait l'image 1,2 s (10 programmes, la salle blanche, les bras, le trône) // (2026-10-16) LA PERLE : les traits de son plan projetés UNE fois ici (~0,2 s ordi), pas au 1er affichage de la caisse
   function(){const F=nyanPixPool();F.o.visible=true;chauffeRendu([F.o]);F.o.visible=false;}, // (2026-10-06) les PIXELS du chat (le programme du feu du burn-out) compilés au menu
   function(){const fx9=FX_EFF||(CARS[level]&&CARS[level].fx);if(fx9&&fx9.wow){wowPool();for(const q9 of wowTex())renderer.initTexture(q9.tx);}}, // (2026-10-14, passe perf mobile) LA TRAÎNÉE WOW (le DOGE, ou la traînée WOW) : ses 12 toiles en Comic Sans, ses 18 sprites et l'envoi des textures se faisaient à la 1re NITRO, en pleine course (~20-40 ms sur iPhone 7) — au menu, seulement si la caisse la porte (sinon rien ne change)
@@ -44644,11 +44671,10 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);},
   function(){const L9=[];for(let i=0;i<FRUIT_DEFS.length;i++){const m=mkFruit(i);scene.add(m);L9.push(m);}const pd=new THREE.Mesh(padGeo,PAD_MAT);scene.add(pd);L9.push(pd); // (2026-09-29) LA LIGNE PARFAITE pose ses fruits et ses pads EN COURSE : leurs programmes et leurs géométries sont prêts dès le menu
     chauffeRendu(L9);for(const m of L9)scene.remove(m);},
-  function(){jadeChauffeProgs(0);},function(){jadeChauffeProgs(1);},function(){jadeChauffeProgs(2);},function(){jadeChauffeProgs(3);}, // (2026-10-14, passe perf mobile) LE SOLEIL DE JADE : ses 17 programmes compilés au menu, ~4 par étape (jadeChauffeProgs) — plus rien ne naît au portail vers le jade ni au REJOUER tiré sur lui
+  M('jade',function(){jadeChauffeProgs(0);}),M('jade',function(){jadeChauffeProgs(1);}),M('jade',function(){jadeChauffeProgs(2);}),M('jade',function(){jadeChauffeProgs(3);}), // (2026-10-14, passe perf mobile) LE SOLEIL DE JADE : ses 17 programmes compilés au menu, ~4 par étape (jadeChauffeProgs) — plus rien ne naît au portail vers le jade ni au REJOUER tiré sur lui
   function(){engCarteQuad.visible=engHalo.visible=true;renderer.compile(engVigQuadScene,engVigQuadCam);engCarteQuad.visible=engHalo.visible=false; // (vague 2) le recollage de la carte MOTEUR (sinon son programme naît au 1er palier)
     renderer.initTexture(engHaloMat.map);renderer.setRenderTarget(engRTc);renderer.setRenderTarget(null);}]; // …et son halo et son tampon montent au GPU dès le menu
-  if(k<E.length)try{E[k]();}catch(e){}
-  return k+1<E.length;
+  return E;
 }
 /* ============ LE CIEL EN DEUX TEMPS — CIEL2 (2026-09-27, passe perf iPhone, tour 2) ============
    MESURÉ (banc du dôme seul à la résolution de l'iPhone en NETTE, 585×1266, rendu logiciel puis carte graphique) : le dôme coûtait
