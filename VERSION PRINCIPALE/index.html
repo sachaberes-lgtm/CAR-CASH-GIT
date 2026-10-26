@@ -60879,7 +60879,18 @@ function tryLand(dt){
      bitume ne REBONDIT plus (MESURÉ : « BUMP (h 0,06, à 25 cm du bord) puis tombée » — les trois quarts de la caisse au-dessus de la route,
      et elle repartait dans le vide) : le pneu monte la marche et elle se POSE au bord — une vraie pose (la chaîne s'encaisse, la vitesse
      se paie comme partout). Plus bas, c'est la carrosserie qui cogne la tranche : BUMP, comme avant. */
-  const tranche9=!bkCgBord()&&sideCd<=0&&hOff>-THICK-.12&&hOff<.12&&(bumpIn||bumpThru),levre9=tranche9&&hOff>-LEVRE_POSE&&fallT>.35&&vN<4.5?(bumpThru?Math.sign(prevL):Math.sign(latOff)):0;
+  /* ⚠ (2026-10-26, Léo : « on passe tout simplement dans la route quand on passe sur le côté, quand on va vite — il ne faut jamais que ça se passe ») LA TRANCHE EST DURE
+     PENDANT LE RÉPIT DU BUMP. MESURÉ au banc (pilote au bord, DUNES, 3 morts sur 4 SOUS la route dans sa largeur) : un bump arme `sideCd` (0,35 s, pour ne pas payer deux
+     figures d'affilée) et la tranche n'existait plus pendant ce temps — or la route qui tourne vers la caisse (dunes, canyon, à 200-450 km/h) la ramène contre le flanc
+     en 0,2 s : elle rentrait DANS la dalle, tombait dans le milieu (rien ne la rattrape entre −1,2 m et −épaisseur+1,2 m) et sortait dessous. Désormais le CHOC
+     (la caisse est repoussée au flanc, son élan vers l'intérieur éteint) a lieu à chaque contact ; seul le PAIEMENT (figure, nitro, flow, son…) garde son répit. */
+  const cdB9=sideCd>0,tranche9=!bkCgBord()&&hOff>-THICK-.12&&hOff<.12&&(bumpIn||bumpThru),levre9=tranche9&&!cdB9&&hOff>-LEVRE_POSE&&fallT>.35&&vN<4.5?(bumpThru?Math.sign(prevL):Math.sign(latOff)):0;
+  if(tranche9&&cdB9){ // le flanc arrête la caisse sans rien payer : elle est remise contre la tranche et son élan vers l'intérieur s'éteint (un petit rebond la décolle)
+    const sg=bumpThru?Math.sign(prevL):Math.sign(latOff);
+    fallVel.addScaledVector(B[bestI],-vB*1.3);
+    fallPos.addScaledVector(B[bestI],sg*Math.max(bumpThru?0:Math.abs(latOff),ROAD_HALF+CARS[level].w*.5)-latOff);
+    return false;
+  }
   if(tranche9&&!levre9){
     const sg=bumpThru?Math.sign(prevL):Math.sign(latOff),impB=Math.abs(vB);
     fallVel.addScaledVector(B[bestI],-vB*1.65); // réflexion amortie sur la paroi
@@ -60923,6 +60934,19 @@ function tryLand(dt){
   // (2026-09-25, user : « PAS DU TOUT d'assistance ») : on acceptait la pose si UN bout du segment touchait la dalle, puis on
   // RAMENAIT la caisse dans la largeur — un aimant de plus. Désormais : le point EXACT où la trajectoire traverse le plan de la
   // dalle (interpolé entre l'image d'avant et celle-ci) ; s'il est au-dessus du vide, on tombe. Aucun recentrage.
+  /* (2026-10-26) LE FILET DE SÉCURITÉ : une caisse DANS le corps de la dalle (entre −1,2 m et −épaisseur+1,2 m, dans sa largeur) n'est pas arrivée par un plan que les règles
+     ci-dessus balaient — elle est entrée par le FLANC (lent, sans bump) ou par un plan manqué : rien ne la rattrapait, elle ressortait par le dessous (« je passe à travers la route »).
+     On la sort par la face la plus proche : le flanc (remise contre la tranche, sans rien payer), sinon le dessus ou le dessous (pose, comme les plans percés). */
+  if(!sideL&&fallT>.1&&!bkCgBord()&&Math.abs(latOff)<ROAD_HALF&&hOff<-1.2&&hOff>-THICK+1.2){
+    const dL9=ROAD_HALF+CARS[level].w*.5-Math.abs(latOff),dT9=-hOff,dB9=THICK+hOff;
+    if(dL9<=dT9&&dL9<=dB9){
+      const sg9=Math.sign(latOff)||1,vb9=fallVel.dot(B[bestI]);
+      fallPos.addScaledVector(B[bestI],sg9*(ROAD_HALF+CARS[level].w*.5)-latOff);
+      if(vb9*sg9<0)fallVel.addScaledVector(B[bestI],-vb9*1.3);
+      return false;
+    }
+    sideL=dT9<=dB9?1:-1;
+  }
   if(!sideL)return false;
   const hS9=sideL>0?0:-THICK,dh9=prevH-hOff,f9=Math.abs(dh9)>1e-4?THREE.MathUtils.clamp((prevH-hS9)/dh9,0,1):1,latX9=levre9?levre9*(ROAD_HALF-.05):prevL+(latOff-prevL)*f9; /* (la LÈVRE : posée au bord, roues intérieures sur le bitume) */
   if(Math.abs(latX9)>=ROAD_HALF+(sideL>0?bkCgBord():0))return false; /* (2026-10-18, GLACIER) on se pose aussi dans la congère */
