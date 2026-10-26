@@ -43220,22 +43220,27 @@ SHAPES.zagato=function(K){
   const b64=s=>{const t=atob(s),u=new Uint8Array(t.length);for(let i=0;i<t.length;i++)u[i]=t.charCodeAt(i);return u;};
   const PAL=[];for(let i=0;i<D.pal.length;i+=6)PAL.push([0,2,4].map(k=>parseInt(D.pal.substr(i+k,2),16)/255));
   // la peinture de la boutique : le rapport de sa couleur au cuivre d'origine, appliqué à la laque
-  const BASE=0xc7753c;let kp=[1,1,1];
-  try{const pp=typeof peintPal==='function'?peintPal({p:{g:'p',c:BASE}}):null,c=pp&&pp.p&&pp.p.c;
+  /* (26/10, Léo : « les peintures MÉTAL ») la tôle figée prend aussi la MATIÈRE de la peinture (chrome, or, noir mat, laqué noir, motif…) : elle
+     passe dans le tampon `GP` que la peinture désigne (comme toute caisse du kit, voir `peintPal`) ; un dégradé se lit à la hauteur de chaque
+     sommet (`lpGrad`). Sans peinture : GP = 'p', kp = 1 — la caisse d'usine au bit près. */
+  const BASE=0xc7753c;let kp=[1,1,1],GP='p',EP=null;
+  try{const pp=typeof peintPal==='function'?peintPal({p:{g:'p',c:BASE}}):null;EP=pp&&pp.p;const c=EP&&EP.c;if(EP&&EP.g)GP=EP.g;
     if(typeof c==='number'&&c!==BASE)kp=[16,8,0].map(s=>((c>>s&255)+1)/((BASE>>s&255)+1));}catch(e){}
+  const KG=new THREE.Color(),kpY=y=>{if(!(EP&&EP.grad&&typeof lpGrad==='function'))return kp;lpGrad(EP.grad,y,KG);
+    return [(KG.r*255+1)/((BASE>>16&255)+1),(KG.g*255+1)/((BASE>>8&255)+1),(KG.b*255+1)/((BASE&255)+1)];};
   // l'ombre cuite que K.commit pose sur tout sauf les feux (lpOmbre) : on la retire des teintes finales, le commit la remet
   const H9=K.H||1.17,hO=Math.max(.45,H9*.55),LO=[.60,.50,.72];
   const omb=(y,c)=>{const u=Math.min(1,Math.max(0,y/hO)),t=u*u*(3-2*u);return LO[c]+(1-LO[c])*t;};
   const A={};
   for(const m of D.m){
-    const P=new Int16Array(b64(m.p).buffer),Q=m.q?new Int8Array(b64(m.q).buffer):null,C=b64(m.c),a=A[m.g]||(A[m.g]={P:[],C:[],N:[]});
+    const P=new Int16Array(b64(m.p).buffer),Q=m.q?new Int8Array(b64(m.q).buffer):null,C=b64(m.c),g9=m.g==='p'?GP:m.g,a=A[g9]||(A[g9]={P:[],C:[],N:[]});
     for(let t=0;t<m.n;t++){const pal=PAL[C[t]],v=[];
       for(let u=0;u<3;u++){const i=(t*3+u)*3;v.push([P[i]/1000,P[i+1]/1000,P[i+2]/1000]);}
       let fn=null;if(!Q){const ux=v[1][0]-v[0][0],uy=v[1][1]-v[0][1],uz=v[1][2]-v[0][2],wx=v[2][0]-v[0][0],wy=v[2][1]-v[0][1],wz=v[2][2]-v[0][2];
         fn=[uy*wz-uz*wy,uz*wx-ux*wz,ux*wy-uy*wx];const l=Math.hypot(fn[0],fn[1],fn[2])||1;fn=fn.map(x=>x/l);}
       for(let u=0;u<3;u++){const p=v[u],i=(t*3+u)*3;a.P.push(p[0],p[1],p[2]);
         if(Q){const nx=Q[i]/127,ny=Q[i+1]/127,nz=Q[i+2]/127,l=Math.hypot(nx,ny,nz)||1;a.N.push(nx/l,ny/l,nz/l);}else a.N.push(fn[0],fn[1],fn[2]);
-        for(let c=0;c<3;c++){let x=pal[c];if(m.g==='p')x*=kp[c];if(m.f)x/=omb(p[1],c);a.C.push(x);}}}}
+        const k9=m.g==='p'?kpY(p[1]):null;for(let c=0;c<3;c++){let x=pal[c];if(k9)x*=k9[c];if(m.f)x/=omb(p[1],c);a.C.push(x);}}}}
   const gs={};
   for(const g in A){const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(A[g].P,3));
     geo.setAttribute('normal',new THREE.Float32BufferAttribute(A[g].N,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(A[g].C,3));gs[g]=geo;}
