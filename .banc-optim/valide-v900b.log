@@ -1,0 +1,68 @@
+21:38:38 j'attends le déverrouillage du 13 Pro (20 min au plus)
+21:41:33 13 Pro prêt
+21:41:53 CC BANC v900 installée
+21:41:56 attente de fraîcheur, batterie 35.8 °C
+21:41:56 départ à 35.8 °C
+21:41:56 séance continue v900 : tout activé, 7 min
+21:41:56 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+21:42:03 ▶ valS900-G · batterie 35.8 °C
+21:42:04 VIE {"etat":"en cours","jit":3,"plan":"valS-G"}
+21:42:24 VIE {"demarrage":{"dcl":0,"jit":3,"pret":19788,"charge":0,"froid":false}}
+21:42:26 scénario demandé → valS900-G
+21:42:27 VIE {"etat":"en cours","jit":5,"plan":"valS900-G"}
+21:42:52 VIE {"etape":"n1","erreur":"Can't find variable: n1"}
+21:42:55 VIE {"etape":"saut","r":"2 canyon","t":4}
+21:42:58 VIE {"etape":"saut","r":"3 ville","t":7}
+21:43:01 VIE {"etape":"saut","r":"4 espace","t":10}
+21:43:04 VIE {"etape":"saut","r":"5 dunes","t":13}
+21:43:07 VIE {"t":16,"etape":"saut","r":"6 ville"}
+21:43:10 VIE {"etape":"saut","r":"7 canyon","t":19}
+21:43:11 VIE {"etape":"gouv","r":"[{\"D\":22.4,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","t":20}
+21:43:13 VIE {"t":22,"etape":"saut","r":"8 espace"}
+21:43:16 VIE {"etape":"saut","r":"9 ville","t":25}
+21:43:56 VIE {"r":"[{\"D\":54.4,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","etape":"gouv","t":60}
+21:44:21 VIE {"t":90,"etape":"saut","r":"10 banquise"}
+21:44:27 VIE {"r":"2 ville","etape":"saut","t":96}
+21:44:28 VIE {"r":"3 espace","etape":"saut","t":96}
+21:44:29 VIE {"r":"4 dunes","etape":"saut","t":98}
+21:44:31 VIE {"t":101,"etape":"gouv","r":"[{\"D\":71.5,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr"}
+21:44:32 VIE {"r":"5 ville","etape":"saut","t":101}
+21:44:36 VIE {"r":"6 canyon","etape":"saut","t":104}
+21:44:39 VIE {"t":107,"etape":"saut","r":"7 espace"}
+21:44:41 VIE {"t":110,"etape":"saut","r":"8 ville"}
+21:45:11 VIE {"t":140,"etape":"gouv","r":"[{\"D\":98.8,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr"}
+21:45:45 VIE {"etape":"saut","r":"2 canyon","t":174}
+21:45:48 VIE {"r":"3 ville","etape":"saut","t":177}
+21:45:52 VIE {"r":"4 espace","etape":"saut","t":180}
+21:45:52 VIE {"t":180,"r":"[{\"D\":116.7,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"f","etape":"gouv"}
+21:45:54 VIE {"etape":"saut","r":"5 dunes","t":183}
+21:45:57 VIE {"t":186,"etape":"saut","r":"6 ville"}
+21:46:00 VIE {"t":189,"etape":"saut","r":"7 canyon"}
+21:46:03 VIE {"r":"8 espace","t":192,"etape":"saut"}
+21:46:06 VIE {"etape":"saut","r":"9 ville","t":195}
+21:46:31 VIE {"t":220,"etape":"gouv","r":"[{\"D\":136,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fro"}
+21:47:10 VIE {"r":"2 canyon","etape":"saut","t":259}
+21:47:11 VIE {"r":"[{\"D\":155.1,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"f","etape":"gouv","t":260}
+21:47:13 VIE {"etape":"saut","r":"3 ville","t":262}
+21:47:16 VIE {"t":265,"etape":"saut","r":"4 espace"}
+21:47:19 VIE {"t":268,"etape":"saut","r":"5 dunes"}
+21:47:22 VIE {"t":271,"etape":"saut","r":"6 ville"}
+21:47:25 VIE {"t":274,"etape":"saut","r":"7 canyon"}
+21:47:28 VIE {"t":277,"etape":"saut","r":"8 espace"}
+21:47:31 VIE {"t":280,"r":"9 ville","etape":"saut"}
+21:47:51 VIE {"t":300,"etape":"gouv","r":"[{\"D\":175,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose"}
+21:48:31 VIE {"t":340,"etape":"gouv","r":"[{\"D\":191.5,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+21:48:35 VIE {"t":344,"etape":"saut","r":"2 canyon"}
+21:48:38 VIE {"r":"3 ville","etape":"saut","t":347}
+21:48:41 VIE {"r":"4 espace","etape":"saut","t":350}
+21:48:44 VIE {"t":354,"etape":"saut","r":"5 dunes"}
+21:48:47 VIE {"t":356,"r":"6 ville","etape":"saut"}
+21:48:55 VIE {"t":359,"r":"7 canyon","etape":"saut"}
+21:48:56 VIE {"etape":"saut","t":365,"r":"9 ville"}
+21:48:58 VIE {"r":"8 espace","etape":"saut","t":362}
+21:49:11 VIE {"t":380,"etape":"gouv","r":"[{\"D\":211.4,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+21:49:52 bilan reçu valS900-G 233604 octets 
+21:49:53 scénario demandé → aucun
+21:49:58 CC BANC fermée (pid 595)
+21:50:02 ✓ valS900-G en 455 s · batterie après 37.1 °C
+21:50:02 file terminée

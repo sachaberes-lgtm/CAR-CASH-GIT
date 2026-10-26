@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maps</title>
+<!-- LA PAGE DES MAPS DU SIMULATEUR (2026-10-12, Léo : « une interface avec les maps, leurs noms, une photo représentative et une
+     option jouer sur la map ; chaque map n'a pas de musique pour l'instant, après il faudra associer un fichier à chaque » — puis
+     « il faut que ce soit les bonnes maps et la bonne physique »). Les VRAIES maps du jeu et leurs niveaux (simulateur/maps.js), avec les
+     photos prises dans le jeu pour la page des Niveaux (maps-ciel/img). JOUER = simulateur/course.html : le jeu lui-même, lancé sur le
+     niveau. Chaque NIVEAU a sa pastille de musique (la bibliothèque = simulateur/musiques/) ; celle de la map les règle tous d'un coup.
+     Le choix s'écrit sur le DISQUE (simulateur/choix-musiques.json, par le serveur) — c'est la table que le jeu lira. Un fichier de
+     musique (.html à jauge, .js module) GLISSÉ sur la page, ou « + Musique », rejoint la bibliothèque.
+     L'ORGANISATEUR DU PLAY (12/10, Léo : « tu es mon organisateur de map aléatoire pour le bouton PLAY ; laisse renommer si jamais je
+     veux ») : chaque niveau a son interrupteur PLAY (dans le tirage ou pas — hors du tirage, la carte pâlit), un NOM se renomme d'un clic
+     (niveau ou map ; vide = le nom d'origine), le bouton PLAY en haut lance le tirage au hasard (course.html?play=1). Tout va dans
+     simulateur/play.json, sur le disque.
+     JOUER (l'image ou le bouton) = simulateur/course.html?niv=<id> : le vrai jeu, lancé sur le niveau, sans écran titre (?simu=1).
+     (12/10, Léo : « enlève la fonction jouer sur la page, ça ne marche pas de toute manière, et ça bug ») : le jeu au SURVOL de l'image et
+     son plein écran dans la page sont RETIRÉS (essayés le 12/10 : une course préchargée, posée sur l'image survolée — voir l'historique).
+     L'ÉCOUTE (12/10, Léo : « chaque musique qu'on choisit, on peut l'écouter juste en dessous, avec la jauge pour les vitesses ») : sous
+     la pastille de musique d'un niveau, ▶ et une jauge de VITESSE (0-100 %) — la musique joue seule, sans le jeu (page à jauge : son
+     #speed ; module : setSpeed), un seul son à la fois.
+     Page blanche, le moins de texte possible. -->
+<style>
+  :root{--encre:#111113;--gris:#86868b;--gris2:#b9b9be;--trait:#efeff1;--doux:#f4f4f6;
+    --sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#fff}
+  body{color:var(--encre);font-family:var(--sys);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+  button{font:inherit;color:inherit;cursor:pointer;border:0;background:transparent}
+  .page{max-width:1040px;margin:0 auto;padding:52px max(16px,env(safe-area-inset-left)) 120px}
+  h1{font-size:34px;font-weight:650;letter-spacing:-.02em;line-height:1}
+  .map{margin-top:52px}
+  .mapTete{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px solid var(--trait)}
+  .mapTete h2{font-size:22px;font-weight:650;letter-spacing:-.01em}
+  .grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:26px 18px;margin-top:20px}
+  .carte{display:flex;flex-direction:column;gap:10px;min-width:0}
+  .photo{display:block;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,#e5e5ea,#f5f5f7)}
+  .photo img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s cubic-bezier(.32,.72,0,1)}
+  .photo:hover img{transform:scale(1.035)}
+  .photo:focus-visible,.jouer:focus-visible,.mus:focus-visible{outline:3px solid #0a63d6;outline-offset:3px}
+  .ligne{display:flex;align-items:center;gap:10px;min-width:0}
+  .num{font-size:13px;color:var(--gris2);font-variant-numeric:tabular-nums;flex:none}
+  .nom{font-size:14.5px;font-weight:600;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .jouer{margin-left:auto;height:32px;padding:0 16px;border-radius:999px;background:var(--encre);color:#fff;font-size:13px;font-weight:600;flex:none}
+  .jouer:active{transform:scale(.97)}
+  .musBox{position:relative}
+  .mus{height:30px;padding:0 13px 0 11px;border-radius:999px;background:var(--doux);font-size:12.5px;font-weight:550;
+    display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+  .mus.vide{background:transparent;box-shadow:inset 0 0 0 1px #dedee2;color:var(--gris)}
+  .mus:hover{box-shadow:inset 0 0 0 1px var(--encre);color:var(--encre)}
+  .mus svg{width:14px;height:14px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .menu{position:absolute;left:0;top:36px;z-index:5;min-width:200px;background:#fff;border-radius:12px;padding:6px;
+    box-shadow:0 10px 30px rgba(0,0,0,.14),0 0 0 1px rgba(0,0,0,.06)}
+  .menu button{display:flex;align-items:center;gap:8px;width:100%;height:36px;padding:0 10px;border-radius:8px;font-size:13.5px;text-align:left}
+  .menu button:hover{background:var(--doux)}
+  .menu button.choisi::after{content:"";margin-left:auto;width:8px;height:8px;border-radius:50%;background:var(--encre)}
+  .menu button.aucune{color:var(--gris)}
+  .tete{display:flex;align-items:center;gap:14px}
+  .ajout{margin-left:auto;height:32px;padding:0 14px;border-radius:999px;box-shadow:inset 0 0 0 1px #dedee2;font-size:13px;font-weight:550;color:var(--gris)}
+  .ajout:hover{box-shadow:inset 0 0 0 1px var(--encre);color:var(--encre)}
+  .carte .musBox{align-self:flex-start;max-width:100%}
+  .carte .mus{height:26px;font-size:12px;max-width:100%}
+  .carte .mus span{overflow:hidden;text-overflow:ellipsis}
+  #depot{position:fixed;inset:12px;border-radius:20px;border:2px dashed var(--encre);background:rgba(255,255,255,.88);display:grid;
+    place-items:center;font-size:22px;font-weight:650;z-index:20;pointer-events:none}
+  #toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--encre);color:#fff;font-size:13.5px;font-weight:550;
+    padding:10px 16px;border-radius:999px;z-index:30;transition:opacity .25s}
+  .lance{height:34px;padding:0 16px 0 13px;border-radius:999px;background:var(--encre);color:#fff;font-size:14px;font-weight:650;
+    display:inline-flex;align-items:center;gap:7px}
+  .lance svg{width:13px;height:13px;fill:currentColor}
+  .lance small{font-size:12px;font-weight:550;opacity:.6}
+  .lance:active{transform:scale(.97)}
+  .ajout{margin-left:0}
+  .tete .lance{margin-left:auto}
+  .renomme{cursor:text;border-radius:5px;outline:none}
+  .renomme:hover{box-shadow:0 0 0 4px var(--doux);background:var(--doux)}
+  .renomme[contenteditable="true"],.renomme[contenteditable="plaintext-only"]{box-shadow:0 0 0 4px #e8f0fe;background:#e8f0fe;-webkit-line-clamp:unset;display:block}
+  .bas{display:flex;align-items:center;gap:8px;min-width:0}
+  .pp{margin-left:auto;height:26px;padding:0 10px;border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.04em;flex:none;
+    display:inline-flex;align-items:center;gap:5px;background:#e7f8ec;color:#1a7f37}
+  .pp::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+  .pp.non{background:transparent;color:var(--gris2);box-shadow:inset 0 0 0 1px #dedee2}
+  .pp.non::before{background:transparent;box-shadow:inset 0 0 0 1.5px currentColor}
+  .carte.horsPlay .photo{opacity:.38;filter:grayscale(.6)}
+  .carte.horsPlay .nom{color:var(--gris)}
+  .ecoute{display:flex;align-items:center;gap:8px;min-width:0;height:26px}
+  .eco{width:26px;height:26px;border-radius:50%;background:var(--doux);display:grid;place-items:center;flex:none}
+  .eco:hover{background:#e6e6ea}
+  .eco svg{width:10px;height:10px;fill:currentColor}
+  .eco .iS{display:none}
+  .ecoute.joue .eco{background:var(--encre);color:#fff}
+  .ecoute.joue .eco .iS{display:block}.ecoute.joue .eco .iP{display:none}
+  .vit{flex:1;min-width:0;accent-color:var(--encre);height:20px;cursor:pointer}
+  .ebpm{font-size:11.5px;color:var(--gris);font-variant-numeric:tabular-nums;width:54px;text-align:right;flex:none}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main class="page">
+  <div class="tete"><h1>Maps</h1><button class="lance" id="lance" title="Le tirage au hasard du bouton PLAY"><svg viewBox="0 0 10 12"><path d="M0 0l10 6-10 6z"/></svg>PLAY <small id="nbPlay"></small></button><button class="ajout" id="ajout">+ Musique</button><input type="file" id="fic" accept=".html,.js" multiple hidden></div>
+  <div id="maps"></div>
+</main>
+<div id="depot" hidden>Lâche pour ajouter la musique</div>
+<div id="toast" hidden></div>
+<script src="simulateur/maps.js"></script>
+<script>
+(async function () {
+  const ICO_NOTE = '<svg viewBox="0 0 24 24"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg>';
+  const lien = id => 'simulateur/course.html?niv=' + encodeURIComponent(id);
+  let ouvert = null;
+  const ferme = () => { if (ouvert) { ouvert.remove(); ouvert = null; } };
+  document.addEventListener('click', ev => { if (ouvert && !ev.target.closest('.musBox')) ferme(); });
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape') ferme(); });
+  const toast = (t) => { const e = document.getElementById('toast'); e.textContent = t; e.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => { e.hidden = true; }, 2200); };
+  const peintures = [];   // chaque pastille sait se repeindre
+  const repeins = () => peintures.forEach(f => f());
+
+  // une pastille de musique : pour UN niveau, ou pour toute une map (ids = ses niveaux)
+  function pastille(box, ids) {
+    const mus = box.querySelector('.mus');
+    const peins = () => {
+      const f = ids.map(id => musiqueDe(niveauDe(id).niv)), memes = f.every(x => x === f[0]);
+      const nom = memes ? nomMusique(f[0]) : 'Plusieurs';
+      mus.classList.toggle('vide', !nom);
+      mus.innerHTML = ICO_NOTE + '<span></span>';
+      mus.querySelector('span').textContent = nom || 'Pas de musique';
+    };
+    peintures.push(peins); peins();
+    mus.onclick = ev => {
+      ev.stopPropagation(); ev.preventDefault();
+      const deja = ouvert && ouvert.parentNode === box; ferme(); if (deja) return;
+      const menu = document.createElement('div'); menu.className = 'menu';
+      const f = ids.map(id => musiqueDe(niveauDe(id).niv)), choix = f.every(x => x === f[0]) ? f[0] : null;
+      for (const m of [{ fichier: '', nom: 'Pas de musique' }, ...MUSIQUES]) {
+        const b = document.createElement('button'); b.textContent = m.nom;
+        if (!m.fichier) b.classList.add('aucune');
+        if (m.fichier === choix) b.classList.add('choisi');
+        b.onclick = async () => { ferme(); const ok = await musiqueChoisir(ids, m.fichier); repeins(); if (!ok) toast('Pas enregistré (serveur ?)'); };
+        menu.appendChild(b);
+      }
+      box.appendChild(menu); ouvert = menu;
+    };
+  }
+
+  // renommer d'un clic : Entrée garde, Échap annule, vide = le nom d'origine — écrit sur le disque (play.json)
+  function renommable(el, cle, origine, peins) {
+    el.classList.add('renomme'); el.title = 'Renommer';
+    el.addEventListener('click', ev => {
+      ev.preventDefault(); ev.stopPropagation();
+      if (el.isContentEditable) return;
+      el.contentEditable = 'plaintext-only';
+      if (!el.isContentEditable) el.contentEditable = 'true';
+      el.focus();
+      const r = document.createRange(); r.selectNodeContents(el); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    });
+    el.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter') { ev.preventDefault(); el.blur(); }
+      if (ev.key === 'Escape') { ev.stopPropagation(); el.dataset.annule = '1'; el.blur(); }
+    });
+    el.addEventListener('blur', async () => {
+      el.contentEditable = 'false';
+      const annule = el.dataset.annule; delete el.dataset.annule;
+      if (!annule) {
+        const v = el.textContent.replace(/\s+/g, ' ').trim().toUpperCase().slice(0, 60);
+        if (!v || v === origine) delete PLAY.noms[cle]; else PLAY.noms[cle] = v;
+        if (!await playEnregistre()) toast('Pas enregistré (serveur ?)');
+      }
+      peins();
+    });
+  }
+  const majPlay = () => { document.getElementById('nbPlay').textContent = poolPlay().length; };
+
+  // l'écoute (voir plus bas) : déclarée AVANT les cartes, qui la consultent en se peignant
+  const ECO = { row: null, fichier: '', type: '', inst: null, cadre: null, bouton: null, jauge: null, bpm: null, mods: {}, jeton: 0 };
+  await musiquesCharge();
+  const racine = document.getElementById('maps');
+  for (const map of MAPS) {
+    const sec = document.createElement('section'); sec.className = 'map';
+    sec.innerHTML = '<div class="mapTete"><h2></h2><div class="musBox"><button class="mus"></button></div></div><div class="grille"></div>';
+    const h2 = sec.querySelector('h2'), peinsMap = () => { h2.textContent = nomMap(map); };
+    peinsMap(); renommable(h2, 'map:' + map.id, map.nom, peinsMap);
+    if (map.niveaux.length > 1) pastille(sec.querySelector('.musBox'), map.niveaux.map(n => n.id));
+    else sec.querySelector('.musBox').remove();
+    // ses niveaux
+    const grille = sec.querySelector('.grille');
+    map.niveaux.forEach((niv, k) => {
+      const c = document.createElement('article'); c.className = 'carte';
+      c.innerHTML = '<a class="photo"><img alt=""></a><div class="ligne"><span class="num"></span><span class="nom"></span><button class="jouer">Jouer</button></div><div class="bas"><div class="musBox"><button class="mus"></button></div><button class="pp">PLAY</button></div>' +
+        '<div class="ecoute"><button class="eco" title="Écouter la musique"><svg class="iP" viewBox="0 0 10 12"><path d="M0 0l10 6-10 6z"/></svg><svg class="iS" viewBox="0 0 10 10"><path d="M0 0h10v10H0z"/></svg></button>' +
+        '<input class="vit" type="range" min="0" max="100" step="1" value="50" title="Vitesse"><span class="ebpm"></span></div>';
+      c.querySelector('.photo').href = lien(niv.id);
+      c.querySelector('.photo').setAttribute('aria-label', 'Jouer sur ' + map.nom + ' · ' + niv.nom);
+      const img = c.querySelector('img'); img.src = 'simulateur/' + niv.photo; img.onerror = () => img.remove();
+      c.querySelector('.num').textContent = map.niveaux.length > 1 ? k + 1 : '';
+      const nomEl = c.querySelector('.nom'), peinsNom = () => { nomEl.textContent = nomNiv(niv); };
+      peinsNom(); renommable(nomEl, niv.id, niv.nom, peinsNom);
+      // dans le tirage du PLAY, ou pas
+      const pp = c.querySelector('.pp');
+      const peinsPP = () => { const on = dansPlay(niv); pp.classList.toggle('non', !on); c.classList.toggle('horsPlay', !on); pp.title = on ? 'Dans le tirage du PLAY' : 'Hors du tirage du PLAY'; majPlay(); };
+      peinsPP();
+      pp.onclick = async () => { PLAY.pool[niv.id] = !dansPlay(niv); peinsPP(); if (!await playEnregistre()) toast('Pas enregistré (serveur ?)'); };
+      c.querySelector('.jouer').onclick = () => { location.href = lien(niv.id); };
+      pastille(c.querySelector('.musBox'), [niv.id]);
+      ecouteBranche(niv, c.querySelector('.ecoute'));
+      grille.appendChild(c);
+    });
+    racine.appendChild(sec);
+  }
+
+  // ——— L'ÉCOUTE : la musique d'un niveau, seule, à la vitesse de la jauge ———
+  const ecoJoueDeja = () => ECO.type === 'js' ? !!(ECO.inst && ECO.inst.playing) : ECO.type === 'html' ? !!(ECO.bouton && /stop/i.test(ECO.bouton.textContent)) : false;
+  function ecoStop() {
+    ECO.jeton++;
+    try { if (ECO.type === 'js' && ECO.inst && ECO.inst.playing) ECO.inst.stop(); if (ECO.type === 'html' && ecoJoueDeja()) ECO.bouton.click(); } catch (e) {}
+    if (ECO.cadre) ECO.cadre.remove();
+    if (ECO.row) { ECO.row.classList.remove('joue'); ECO.row.querySelector('.ebpm').textContent = ''; }
+    Object.assign(ECO, { row: null, fichier: '', type: '', inst: null, cadre: null, bouton: null, jauge: null, bpm: null });
+  }
+  function ecoVitesse(x) {
+    try {
+      if (ECO.type === 'js' && ECO.inst) { if (ECO.inst.setSpeed) ECO.inst.setSpeed(x); else ECO.inst.setTier(1 + Math.round(x * 4), 5); }
+      if (ECO.type === 'html' && ECO.jauge) { ECO.jauge.value = (x * 100).toFixed(1); ECO.jauge.dispatchEvent(new ECO.cadre.contentWindow.Event('input')); }
+    } catch (e) {}
+  }
+  async function ecoJoue(niv, row) {
+    const f = musiqueDe(niv);
+    if (ECO.row === row) { ecoStop(); return; }
+    ecoStop();
+    if (!f) return;
+    const jeton = ECO.jeton, x = row.querySelector('.vit').value / 100;
+    ECO.row = row; ECO.fichier = f; row.classList.add('joue');
+    if (/\.js$/i.test(f)) {
+      ECO.type = 'js';
+      try {
+        let inst = ECO.mods[f];
+        if (!inst) {
+          const mod = await import(new URL(f, SIMU_DIR).href);
+          const fab = Object.values(mod).find(v => typeof v === 'function' && /^create/i.test(v.name)) || Object.values(mod).find(v => typeof v === 'function');
+          inst = ECO.mods[f] = fab({});
+        }
+        if (jeton !== ECO.jeton) return;
+        ECO.inst = inst; inst.start(); ecoVitesse(x);
+      } catch (e) { toast('Musique illisible'); ecoStop(); }
+      return;
+    }
+    ECO.type = 'html';
+    const fr = document.createElement('iframe');
+    fr.src = SIMU_DIR + f; fr.tabIndex = -1; fr.setAttribute('aria-hidden', 'true'); fr.setAttribute('allow', 'autoplay');
+    fr.style.cssText = 'position:fixed;left:0;bottom:0;width:8px;height:8px;opacity:0;pointer-events:none;border:0;z-index:-1';
+    fr.onload = () => {
+      if (jeton !== ECO.jeton) return;
+      try {
+        const d = fr.contentDocument;
+        ECO.bouton = d.getElementById('play'); ECO.jauge = d.getElementById('speed'); ECO.bpm = d.getElementById('bpm');
+        if (ECO.jauge) ECO.jauge.step = 'any';
+        if (ECO.bouton && !ecoJoueDeja()) ECO.bouton.click();
+        ecoVitesse(row.querySelector('.vit').value / 100);
+      } catch (e) { toast('Musique illisible'); ecoStop(); }
+    };
+    document.body.appendChild(fr); ECO.cadre = fr;
+  }
+  function ecouteBranche(niv, row) {
+    const maj = () => { row.hidden = !musiqueDe(niv); if (row.hidden && ECO.row === row) ecoStop(); };
+    peintures.push(maj); maj();
+    row.querySelector('.eco').onclick = () => ecoJoue(niv, row);
+    row.querySelector('.vit').addEventListener('input', ev => { if (ECO.row === row) ecoVitesse(ev.target.value / 100); });
+  }
+  (function ecoTick() { // le BPM de ce qui joue
+    requestAnimationFrame(ecoTick);
+    if (!ECO.row) return;
+    let b = '';
+    try { b = ECO.type === 'js' ? ECO.inst && ECO.inst.bpm : ECO.bpm && parseFloat(ECO.bpm.textContent); } catch (e) {}
+    const t = b > 0 ? Math.round(b) + ' BPM' : '';
+    const el = ECO.row.querySelector('.ebpm'); if (el.textContent !== t) el.textContent = t;
+  })();
+
+  // ajouter une musique : « + Musique » ou un fichier glissé sur la page → simulateur/musiques/
+  async function ajoute(files) {
+    const noms = [];
+    for (const f of files) {
+      if (!/\.(html|js)$/i.test(f.name)) { toast(f.name + ' : il faut un .html ou un .js'); continue; }
+      try {
+        const r = await fetch(SIMU_DIR + 'musiques/' + encodeURIComponent(f.name), { method: 'POST', body: await f.arrayBuffer() });
+        const d = await r.json(); if (d.ok) noms.push(d.nom);
+      } catch (e) {}
+    }
+    if (noms.length) { await musiquesCharge(); repeins(); toast('Ajoutée : ' + noms.join(', ')); }
+    else if (files.length) toast('Pas ajoutée (serveur ?)');
+  }
+  document.getElementById('lance').onclick = () => {
+    if (!poolPlay().length) { toast('Aucun niveau dans le PLAY'); return; }
+    location.href = 'simulateur/course.html?play=1';
+  };
+  const fic = document.getElementById('fic'), depot = document.getElementById('depot');
+  document.getElementById('ajout').onclick = () => fic.click();
+  fic.onchange = () => { ajoute([...fic.files]); fic.value = ''; };
+  let prof = 0;
+  addEventListener('dragenter', ev => { if (ev.dataTransfer.types.includes('Files')) { prof++; depot.hidden = false; } });
+  addEventListener('dragleave', () => { if (--prof <= 0) { prof = 0; depot.hidden = true; } });
+  addEventListener('dragover', ev => ev.preventDefault());
+  addEventListener('drop', ev => { ev.preventDefault(); prof = 0; depot.hidden = true; ajoute([...ev.dataTransfer.files]); });
+})();
+</script>
+</body>
+</html>

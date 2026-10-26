@@ -1,0 +1,160 @@
+[
+ {
+  "id": "lourd-a",
+  "tag": "lourd",
+  "params": "carte=nuages&meteo=midi&palier=2",
+  "menu": 10,
+  "course": 72,
+  "etapes": [
+   {
+    "t": 1,
+    "phase": "n1",
+    "eval": "dbgQual(0)"
+   },
+   {
+    "t": 4,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 7,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 10,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 13,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 16,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 19,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 22,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 25,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 30,
+    "phase": "n9base",
+    "eval": "dbgQual(0);dbgDPR(1.5);(function(){var c=dbgCout(1);return dbgNiveau().lieu})()"
+   },
+   {
+    "t": 40,
+    "phase": "n9dpr05",
+    "eval": "dbgDPR(0.5);JSON.stringify(dbgCout().image)"
+   },
+   {
+    "t": 50,
+    "phase": "n9sansinst",
+    "eval": "dbgDPR(1.5);var n=0;dbgScene().scene.traverse(function(o){if(o.isInstancedMesh&&o.visible){o.visible=false;n++;}});n+' instanci\u00e9s cach\u00e9s \u00b7 '+JSON.stringify(dbgCout().image)"
+   },
+   {
+    "t": 60,
+    "phase": "n9q9",
+    "eval": "dbgScene().scene.traverse(function(o){if(o.isInstancedMesh)o.visible=true;});dbgQual(9);JSON.stringify(dbgCout().image)"
+   },
+   {
+    "t": 70,
+    "phase": "fin9",
+    "eval": "JSON.stringify(dbgCout().image)"
+   }
+  ]
+ },
+ {
+  "id": "lourd-b",
+  "tag": "lourd",
+  "params": "carte=foret&palier=2&pistegraine=777",
+  "menu": 10,
+  "course": 72,
+  "etapes": [
+   {
+    "t": 1,
+    "phase": "n1",
+    "eval": "dbgQual(0)"
+   },
+   {
+    "t": 4,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 7,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 10,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 13,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 16,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 19,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 22,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 25,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 30,
+    "phase": "n9base",
+    "eval": "dbgQual(0);dbgDPR(1.5);(function(){var c=dbgCout(1);return dbgNiveau().lieu})()"
+   },
+   {
+    "t": 40,
+    "phase": "n9dpr05",
+    "eval": "dbgDPR(0.5);JSON.stringify(dbgCout().image)"
+   },
+   {
+    "t": 50,
+    "phase": "n9sansinst",
+    "eval": "dbgDPR(1.5);var n=0;dbgScene().scene.traverse(function(o){if(o.isInstancedMesh&&o.visible){o.visible=false;n++;}});n+' instanci\u00e9s cach\u00e9s \u00b7 '+JSON.stringify(dbgCout().image)"
+   },
+   {
+    "t": 60,
+    "phase": "n9q9",
+    "eval": "dbgScene().scene.traverse(function(o){if(o.isInstancedMesh)o.visible=true;});dbgQual(9);JSON.stringify(dbgCout().image)"
+   },
+   {
+    "t": 70,
+    "phase": "fin9",
+    "eval": "JSON.stringify(dbgCout().image)"
+   }
+  ]
+ }
+]

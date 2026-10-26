@@ -1,0 +1,4 @@
+[
+ {"id":"bancint-jade-n1","tag":"bancint","params":"banc=1&refaire=1&carte=jade&palier=2&bancmap=jade","menu":330,"course":0,"bancInt":true},
+ {"id":"bancint-jade-n9","tag":"bancint","params":"banc=1&refaire=1&carte=jade&palier=2&bancmap=jade&bancniv=9","menu":360,"course":0,"bancInt":true}
+]

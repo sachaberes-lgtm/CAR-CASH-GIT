@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Boîte à figures — CASH CAR</title>
+<!-- LA BOÎTE À FIGURES (2026-10-14, Léo : « dans une boîte blanche, un générateur où je peux voir ces différents tricks qu'on ajoute au jeu
+     direct »). La caisse, seule dans une salle blanche, fait les FIGURES du double-tap nitro — le MÊME catalogue et la MÊME physique que le
+     jeu (figures.js, `FIG.Corps` depuis LES FIGURES v2 du 14/10 : l'explosion, l'élan, le planté) : ce qu'on voit ici, c'est ce qu'elle fait en vol. Toucher une figure = elle la fait ; ENCHAÎNER = trois figures au
+     hasard, enchaînées comme au double-tap ; GÉNÉRER = une figure neuve tirée au hasard — AJOUTER AU JEU la met au shop (sur cet appareil :
+     localStorage « cashcarFigPerso », même origine que le jeu). -->
+<style>
+  :root{--encre:#1d1d1f;--gris:#6e6e73;--gris2:#a1a1a6;--sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{color:var(--encre);font-family:var(--sys);overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;
+    background:radial-gradient(ellipse 90% 75% at 50% 42%,#ffffff 0%,#f4f4f2 58%,#e8e8e5 100%)}
+  button{font:inherit;color:inherit}
+  #cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab;filter:saturate(1.3)}
+  #cv.tient{cursor:grabbing}
+  #marque{position:fixed;left:24px;top:22px;pointer-events:none}
+  #marque b{display:block;font-size:11px;letter-spacing:.24em;font-weight:600}
+  #marque span{display:block;font-size:11px;letter-spacing:.12em;color:var(--gris2);margin-top:4px}
+  #annonce{position:fixed;left:50%;top:16%;transform:translateX(-50%);text-align:center;pointer-events:none;white-space:nowrap}
+  #annonce b{display:block;font-size:26px;font-weight:800;letter-spacing:.04em;opacity:0;transform:translateY(8px) scale(.96);transition:opacity .18s,transform .25s}
+  #annonce b.on{opacity:1;transform:none}
+  #annonce i{display:block;font-style:normal;font-size:12px;letter-spacing:.16em;color:var(--gris);margin-top:6px;min-height:14px}
+  #liste{position:fixed;right:18px;top:18px;bottom:18px;width:268px;overflow:auto;padding:10px;border-radius:18px;background:rgba(255,255,255,.66);
+    box-shadow:0 0 0 .5px rgba(0,0,0,.08),0 8px 28px rgba(0,0,0,.06);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+  #liste h2{font-size:11px;letter-spacing:.18em;font-weight:600;color:var(--gris);margin:6px 6px 8px}
+  .fig{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;border-radius:12px;padding:9px 10px;cursor:pointer;text-align:left;transition:background .15s}
+  .fig:hover{background:rgba(0,0,0,.04)}.fig.on{background:var(--encre);color:#fff}
+  .fig .pt{width:9px;height:9px;border-radius:50%;flex:none;box-shadow:0 0 0 2px rgba(255,255,255,.7)}
+  .fig .nm{flex:1;min-width:0;font-size:13px;font-weight:600;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fig .px{font-size:11px;color:var(--gris);white-space:nowrap}.fig.on .px{color:#c7c7cc}
+  .fig .px.moi{color:#1a9e5c}.fig.on .px.moi{color:#7dffb0}
+  .fig .x{border:0;background:transparent;color:var(--gris2);cursor:pointer;font-size:14px;padding:0 2px}
+  #bas{position:fixed;left:calc(50% - 134px);bottom:22px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;max-width:calc(100% - 330px)}
+  .rang{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+  .pil{border:0;border-radius:999px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;background:rgba(255,255,255,.75);color:var(--encre);
+    box-shadow:0 0 0 .5px rgba(0,0,0,.09),0 2px 8px rgba(0,0,0,.05);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);transition:background .2s,color .2s,transform .1s;white-space:nowrap}
+  .pil:active{transform:scale(.96)}
+  .pil.noir{background:var(--encre);color:#fff}
+  .pil.on{background:#ff7a3a;color:#fff}
+  #gen{display:none;width:330px;max-width:100%;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.8);box-shadow:0 0 0 .5px rgba(0,0,0,.08),0 8px 28px rgba(0,0,0,.07);
+    -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);font-size:12px}
+  #gen.on{display:block}
+  #gen .t{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  #gen .t b{font-size:15px;letter-spacing:.03em}
+  #gen .t span{color:var(--gris);font-size:11px;letter-spacing:.1em}
+  #gen .d{color:var(--gris);margin:6px 0 10px;line-height:1.45}
+  #gen .rang{justify-content:flex-start}
+  #gen .pil{padding:7px 12px;font-size:12px}
+  #toast{position:fixed;left:50%;top:20px;transform:translateX(-50%) translateY(-60px);padding:9px 16px;border-radius:999px;background:var(--encre);color:#fff;font-size:12px;
+    font-weight:600;transition:transform .3s;pointer-events:none;white-space:nowrap}
+  #toast.on{transform:translateX(-50%) translateY(0)}
+  @media (max-width:720px){
+    #liste{left:10px;right:10px;top:auto;bottom:10px;width:auto;height:34vh}
+    #bas{left:50%;bottom:calc(34vh + 20px);max-width:calc(100% - 20px)}
+    #annonce{top:12%}#annonce b{font-size:20px}
+  }
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="marque"><b>BOÎTE À FIGURES</b><span>CASH CAR · LE DOUBLE-TAP NITRO</span></div>
+<div id="annonce"><b id="anNom"></b><i id="anSous"></i></div>
+<div id="liste"></div>
+<div id="bas">
+  <div id="gen"><div class="t"><b id="gNom"></b><span>NOUVELLE FIGURE</span></div><div class="d" id="gDet"></div>
+    <div class="rang"><button class="pil" id="gRe">REJOUER</button><button class="pil noir" id="gAj">AJOUTER AU JEU</button><button class="pil" id="gAutre">UNE AUTRE</button></div></div>
+  <div class="rang"><button class="pil noir" id="bEnch">ENCHAÎNER ×3</button><button class="pil" id="bGen">GÉNÉRER</button><button class="pil" id="bLent">RALENTI</button></div>
+</div>
+<div id="toast"></div>
+<script src="vendor/three.min.js"></script>
+<script src="figures.js?v=9"></script>
+<script>
+(function(){
+'use strict';
+const $=function(i){return document.getElementById(i);};
+const RAR={commun:'#b9c4d6',rare:'#4db8ff',exotique:'#3ee8a8',epique:'#c77dff',legendaire:'#ffd75e'};
+function rar(f){return !f.p?'commun':f.p<=4000?'rare':f.p<=12000?'exotique':f.p<=25000?'epique':'legendaire';} // la même règle que le shop du jeu (cosmRar)
+function prix(n){return n>=1000?(n/1000).toFixed(n%1000?1:0).replace('.',',')+' k':String(n);}
+function aMoi(){try{const s=JSON.parse(localStorage.getItem('cashcarSave')||'{}');return ['tonneau'].concat(Array.isArray(s.figs)?s.figs:[]);}catch(e){return ['tonneau'];}}
+let toastT=0;function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(toastT);toastT=setTimeout(function(){e.classList.remove('on');},1800);}
+
+// ---- LA SCÈNE : une salle blanche, un sol qui prend l'ombre ----
+const cv=$('cv'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
+R.setPixelRatio(Math.min(2,devicePixelRatio||1));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;R.outputEncoding=THREE.sRGBEncoding;
+const S=new THREE.Scene(),C=new THREE.PerspectiveCamera(38,1,.1,200);
+S.add(new THREE.HemisphereLight(0xffffff,0xd9d4cc,.95));
+const sol9=new THREE.DirectionalLight(0xffffff,.85);sol9.position.set(4,12,6);sol9.castShadow=true;sol9.shadow.mapSize.set(2048,2048);
+Object.assign(sol9.shadow.camera,{left:-8,right:8,top:8,bottom:-8,near:1,far:40});sol9.shadow.radius=6;S.add(sol9);
+const sol=new THREE.Mesh(new THREE.CircleGeometry(30,64),new THREE.ShadowMaterial({opacity:.16}));sol.rotation.x=-Math.PI/2;sol.receiveShadow=true;S.add(sol);
+// l'ombre de contact (douce, elle s'élargit et pâlit quand la caisse saute)
+const oc=document.createElement('canvas');oc.width=oc.height=128;{const g=oc.getContext('2d'),r=g.createRadialGradient(64,64,4,64,64,64);r.addColorStop(0,'rgba(0,0,0,.42)');r.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=r;g.fillRect(0,0,128,128);}
+const ombre=new THREE.Mesh(new THREE.PlaneGeometry(5.2,3.2),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(oc),transparent:true,depthWrite:false}));
+ombre.rotation.x=-Math.PI/2;ombre.position.y=.01;S.add(ombre);
+
+// ---- LA CAISSE : une sportive low-poly, à facettes, couleur de la DA (laque orange, verre d'encre) ----
+const pivot=new THREE.Group(),caisse=new THREE.Group();S.add(pivot);pivot.add(caisse);
+const HC=.72; // le MILIEU de la caisse : c'est autour de lui qu'elle tourne (comme en jeu)
+caisse.position.y=-HC;
+const M=function(c,o){return new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.42,metalness:.12,flatShading:true},o||{}));};
+const laque=M(0xff6a2a),verre=M(0x1c1636,{roughness:.15,metalness:.4}),noir=M(0x18161c,{roughness:.8}),jante=M(0xd9dde4,{metalness:.6,roughness:.3});
+const feuB=M(0xffffff,{emissive:0xfff2c8,emissiveIntensity:1}),feuR=M(0xff2040,{emissive:0xff1030,emissiveIntensity:1});
+function boite(w,h,l,m,x,y,z){const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,l),m);b.position.set(x,y,z);b.castShadow=true;caisse.add(b);return b;}
+// la carrosserie : un bas large, un capot qui plonge, une bulle de toit
+boite(1.9,.46,4.3,laque,0,.62,0);
+const capot=boite(1.86,.26,1.5,laque,0,.92,1.25);capot.rotation.x=.12;
+const toit=boite(1.56,.5,1.9,laque,0,1.08,-.35);
+const pare=boite(1.5,.44,.08,verre,0,1.1,.62);pare.rotation.x=-.75;
+const lun=boite(1.5,.4,.08,verre,0,1.1,-1.32);lun.rotation.x=.7;
+boite(1.58,.36,1.5,verre,0,1.1,-.35).scale.set(1.002,1,1); // les vitres de côté
+const aileron=boite(1.9,.07,.42,noir,0,1.22,-2.05);boite(.08,.34,.2,noir,-.7,1.02,-2.0);boite(.08,.34,.2,noir,.7,1.02,-2.0);
+boite(.42,.14,.06,feuB,-.62,.72,2.16);boite(.42,.14,.06,feuB,.62,.72,2.16);
+boite(1.5,.12,.06,feuR,0,.76,-2.16);
+const roues=[];
+[[-.98,1.35],[.98,1.35],[-.98,-1.35],[.98,-1.35]].forEach(function(p){const r=new THREE.Group();r.position.set(p[0],.42,p[1]);caisse.add(r);
+  const pn=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.34,10),noir);pn.rotation.z=Math.PI/2;pn.castShadow=true;r.add(pn);
+  const j=new THREE.Mesh(new THREE.CylinderGeometry(.24,.24,.36,8),jante);j.rotation.z=Math.PI/2;r.add(j);roues.push(r);});
+
+// ---- LA CAMÉRA : trois-quarts avant, on tourne autour au doigt ----
+let az=.75,el=.2,dist=15,tient=null;
+cv.addEventListener('pointerdown',function(e){tient={x:e.clientX,y:e.clientY,az:az,el:el};cv.classList.add('tient');cv.setPointerCapture(e.pointerId);});
+cv.addEventListener('pointermove',function(e){if(!tient)return;az=tient.az-(e.clientX-tient.x)*.008;el=Math.max(-.05,Math.min(1.1,tient.el+(e.clientY-tient.y)*.006));});
+cv.addEventListener('pointerup',function(){tient=null;cv.classList.remove('tient');});
+cv.addEventListener('wheel',function(e){dist=Math.max(6,Math.min(22,dist*(1+e.deltaY*.001)));e.preventDefault();},{passive:false});
+function taille(){const w=innerWidth,h=innerHeight;R.setSize(w,h,false);C.aspect=w/h;C.fov=w<h?52:38;C.updateProjectionMatrix();}
+addEventListener('resize',taille);taille();
+
+// ---- LE CORPS : la MÊME physique qu'en jeu (2026-10-14, LES FIGURES v2 — FIG.Corps : l'explosion, l'élan, la prise, le planté) ----
+// ENCHAÎNER lance les figures à 0,22 s d'écart : leurs explosions S'ADDITIONNENT, comme trois boutons pressés en vol.
+const L=FIG.Corps?new FIG.Corps():new FIG.Lecteur();let saut=null,lent=false,courant=null,chaine=[],aVenir=[];
+function joue(liste,sens){ // une ou plusieurs figures
+  L.vide();chaine=[];aVenir=liste.map(function(f,i){return {f:f,t:i*.22,s:sens!=null?sens:(Math.random()<.5?-1:1)};});
+  const Dm=Math.max.apply(null,liste.map(function(f){return f.D;}));
+  saut={t:0,T:Dm+.22*(liste.length-1)+.75,H:1.8+.55*(liste.length-1)};
+}
+// L'EXPLOSION, à la place des flammes du jeu : une boule orange qui gonfle et s'éteint, au point qui pousse
+const BM=new THREE.SphereGeometry(.32,10,8),boules=[];
+for(let i=0;i<8;i++){const m=new THREE.Mesh(BM,new THREE.MeshBasicMaterial({color:0xff8a2a,transparent:true,opacity:0,depthWrite:false}));m.visible=false;caisse.add(m);boules.push({m:m,t:9});}
+function boum(e){const b=boules.find(function(x){return x.t>.3;})||boules[0];b.t=0;b.m.visible=true;b.m.position.set(e.p[0]*.95,HC+e.p[1]*.55,e.p[2]*2.15);}
+let anT=0;function annonce(f,sous){const b=$('anNom');b.classList.remove('on');void b.offsetWidth;b.textContent=f.n;b.classList.add('on');$('anSous').textContent=sous||'';clearTimeout(anT);anT=setTimeout(function(){b.classList.remove('on');$('anSous').textContent='';},1500);}
+let derN=performance.now();
+function boucle(n){requestAnimationFrame(boucle);let dt=Math.min(.05,(n-derN)/1000);derN=n;if(lent)dt*=.33;
+  // la caisse : saut (elle quitte le sol, monte, retombe), figures autour de son milieu, ressort à la pose
+  let y=HC,lev=0;
+  if(saut){saut.t+=dt;const x=Math.min(1,saut.t/saut.T);lev=saut.H*Math.sin(Math.PI*x);
+    while(aVenir.length&&aVenir[0].t<=saut.t){const a=aVenir.shift();L.lance(a.f,a.s,a.f.D);courant=a.f;annonce(a.f,chaine.length+L.occupe()>1?'+ '+(chaine.length+L.occupe()-1):'');}
+    if(L.reste)saut.T=Math.max(saut.T,saut.t+L.reste()+.12); // la boîte n'a pas de sol qui presse : le saut DURE le temps que les figures se plantent
+    const fin=L.tick(dt);fin.forEach(function(r){const f=r.f||r;chaine.push(f.id);if(r.reps>1)annonce(f,'×'+r.reps);});
+    if(L.evts){L.evts.forEach(boum);L.evts.length=0;}
+    if(x>=1&&!L.occupe()&&!aVenir.length){saut=null;courant=null;pose.v=-2.6;}}
+  boules.forEach(function(b){if(b.t>.3){b.m.visible=false;return;}b.t+=dt;const k=b.t/.3;b.m.scale.setScalar(.4+2.2*k);b.m.material.opacity=.95*(1-k);});
+  pose.v+=(-pose.x*170-pose.v*9)*dt;pose.x+=pose.v*dt; // la suspension à la pose
+  pivot.position.set(0,y+lev,0);
+  pivot.quaternion.set(L.q[0],L.q[1],L.q[2],L.q[3]);
+  caisse.position.y=-HC+Math.max(-.12,pose.x*.05);caisse.rotation.x=pose.x*.02;
+  const k=1/(1+lev*.35);ombre.scale.set(k*1.05,k*1.05,1);ombre.material.opacity=.95*k;
+  if(!tient)az+=dt*.06;
+  C.position.set(Math.sin(az)*Math.cos(el)*dist,1.2+Math.sin(el)*dist,Math.cos(az)*Math.cos(el)*dist);C.lookAt(0,2.1,0);
+  R.render(S,C);}
+const pose={x:0,v:0};
+requestAnimationFrame(boucle);
+
+// ---- LA LISTE ----
+let sel=null;
+function liste(){const moi=aMoi(),el9=$('liste');let h='<h2>LES FIGURES · '+FIG.liste.length+'</h2>';
+  FIG.liste.forEach(function(f){const a=moi.indexOf(f.id)>=0;
+    h+='<button class="fig'+(sel===f.id?' on':'')+'" data-id="'+f.id+'"><i class="pt" style="background:'+RAR[rar(f)]+'"></i><span class="nm">'+f.n+'</span>'
+      +'<span class="px'+(a?' moi':'')+'">'+(a?(f.p?'À TOI':'OFFERTE'):prix(f.p)+' $')+'</span>'+(f.perso?'<span class="x" data-x="'+f.id+'" title="Retirer">✕</span>':'')+'</button>';});
+  el9.innerHTML=h;}
+$('liste').addEventListener('click',function(e){const x=e.target.closest('[data-x]');if(x){FIG.retire(x.getAttribute('data-x'));liste();toast('Figure retirée');return;}
+  const b=e.target.closest('.fig');if(!b)return;sel=b.getAttribute('data-id');liste();joue([FIG.par[sel]]);});
+liste();
+
+// ---- ENCHAÎNER : trois figures au hasard, jamais deux fois la même d'affilée — comme trois double-taps en vol ----
+$('bEnch').addEventListener('click',function(){const tous=FIG.liste.map(function(f){return f.id;}),L3=[];let d=null;
+  for(let i=0;i<3;i++){const f=FIG.tire(tous,d);L3.push(f);d=f.id;}sel=null;liste();joue(L3);});
+$('bLent').addEventListener('click',function(){lent=!lent;this.classList.toggle('on',lent);});
+
+// ---- LE GÉNÉRATEUR ----
+let neuve=null;
+function axeTxt(a){const n=['x','y','z'].filter(function(c,i){return Math.abs(a[i])>.1;});
+  return n.length>1?'penché':n[0]==='x'?'salto':n[0]==='y'?'toupie':'tonneau';}
+function genere(){neuve=FIG.genere();$('gen').classList.add('on');$('gNom').textContent=neuve.n;
+  $('gDet').textContent=neuve.m.map(function(m){return m.t!=null?Math.abs(m.t)+' tour'+(Math.abs(m.t)>1?'s':'')+' '+axeTxt(m.a):'balancement '+axeTxt(m.a);}).join(' + ')
+    +' · '+neuve.D.toFixed(2)+' s · aura '+neuve.aura+' · '+prix(neuve.p)+' $';
+  joue([neuve]);}
+$('bGen').addEventListener('click',genere);$('gAutre').addEventListener('click',genere);
+$('gRe').addEventListener('click',function(){if(neuve)joue([neuve]);});
+$('gAj').addEventListener('click',function(){if(!neuve)return;if(FIG.ajoute(neuve)){sel=neuve.id;liste();toast('Ajoutée au jeu : '+neuve.n+' — au shop, catégorie FIGURES');$('gen').classList.remove('on');neuve=null;}else toast('Impossible de l’ajouter');});
+window.dbgBoite=function(a){if(a==='ench')$('bEnch').click();if(a==='gen')genere();return {figures:FIG.liste.length,joue:(L.figs||L.actifs).map(function(x){return x.f.id;}),payees:chaine.slice(),saut:!!saut,ecart:Math.round(L.ecart()*57.3)};};
+})();
+</script>
+</body>
+</html>

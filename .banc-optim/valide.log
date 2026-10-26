@@ -1,0 +1,14 @@
+19:27:42 construction et installation de CC BANC (jeu v898)
+IP du Mac pour le banc : 172.20.10.3
+✓ ESSAI réussi (www/ non touché) : 637 fichiers, 99.8 Mo · jeu b4179370 · version b4179370-1a7d3d5ec2 · natif.js en tête · 0 adresse réseau hors la lecture des mises à jour (https://raw.git
+mode banc posé après <script src="natif.js"></script>
+construit
+App installed:
+installé
+19:31:36 installée. Batterie 36.9 °C. Série N : sans gouverneur
+19:31:37 chef du banc sur :8931, 5 scénarios, seuil 37 °C
+19:31:57 ▶ valN-1 · batterie 36.8 °C
+19:32:17 VIE {"plan":"base-chaud-b","jit":4,"etat":"fait"}
+19:32:19 VIE {"demarrage":{"pret":2272,"charge":0,"dcl":0,"froid":false,"jit":4}}
+19:32:21 scénario demandé → valN-1
+19:32:21 VIE {"plan":"valN-1","jit":4,"etat":"en cours"}

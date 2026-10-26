@@ -1,0 +1,12 @@
+{
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capacitor/splash-screen/ios/Sources/SplashScreenPlugin/SplashScreen.swift" : {
+    "abi-baseline-json" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenPlugin.abi.json",
+    "const-values" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenPlugin-primary.swiftconstvalues",
+    "dependencies" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenPlugin-primary.d",
+    "diagnostics" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenPlugin-primary.dia",
+    "objc-header" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenPlugin-Swift.h",
+    "swiftdoc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenPlugin.swiftdoc",
+    "swiftmodule" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenPlugin.swiftmodule",
+    "swiftsourceinfo" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenPlugin.swiftsourceinfo"
+  }
+}

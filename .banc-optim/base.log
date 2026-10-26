@@ -1,0 +1,31 @@
+17:43:25 j'attends que le 13 Pro soit déverrouillé (15 min au plus)
+17:43:26 image développeur montée
+17:43:34 CC BANC installée (bundle com.sachaberes.carcash.banc)
+verrou pris par perf mobile : base v897 sur le 13 Pro
+17:43:34 chef du banc sur :8931, 5 scénarios, seuil 37 °C
+17:43:35 ▶ base-A1 · batterie  °C
+17:43:36 VIE {"plan":"liv4-apres-a","jit":3,"etat":"fait"}
+17:43:54 VIE {"demarrage":{"jit":3,"dcl":0,"charge":0,"pret":18265,"froid":false}}
+17:43:56 scénario demandé → base-A1
+17:43:56 VIE {"etat":"en cours","plan":"base-A1","jit":4}
+17:44:21 VIE {"r":"n1","etape":"n1","t":1}
+17:44:24 VIE {"t":4,"etape":"saut","r":"2 canyon"}
+17:44:28 VIE {"etape":"saut","r":"3 ville","t":7}
+17:44:31 VIE {"etape":"saut","r":"4 espace","t":10}
+17:44:34 VIE {"etape":"saut","r":"5 dunes","t":13}
+17:44:37 VIE {"etape":"saut","r":"6 ville","t":16}
+17:44:40 VIE {"etape":"saut","r":"7 canyon","t":19}
+17:44:43 VIE {"etape":"saut","r":"8 espace","t":22}
+17:44:46 VIE {"etape":"saut","r":"9 ville","t":25}
+17:44:50 VIE {"t":30,"r":"9 ville {\"tri\":true,\"tranches\":14,\"auLoin\":10,\"moyennes\":1,\"pasMoyen\":4}","etape":"tenue"}
+17:45:13 bilan reçu base-A1 54260 octets 
+17:45:15 scénario demandé → aucun
+17:45:16 CC BANC fermée (pid 2207)
+17:45:17 ✓ base-A1 en 102 s · batterie après  °C
+17:45:18 température illisible : 90 s de repos
+./base.sh: line 25: 13678 Terminated: 15          node chef.mjs file-base.json 37
+17:45:48 chef terminé
+verrou rendu
+./base.sh: line 27: 13677 Terminated: 15          ( while true; do
+    sleep 300; echo "$$ $(date +%s) perf mobile base" > $L/qui;
+done )

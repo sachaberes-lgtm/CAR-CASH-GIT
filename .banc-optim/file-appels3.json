@@ -1,0 +1,92 @@
+[
+ {
+  "id": "famDET",
+  "tag": "fam-det",
+  "params": "carte=nuages&meteo=midi&pistegraine=777",
+  "menu": 10,
+  "course": 46,
+  "qual": 0,
+  "etapes": [
+   {
+    "t": 2,
+    "phase": "detail",
+    "eval": "window.__appelsDetail=1;'ok'"
+   },
+   {
+    "t": 4,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 7,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 10,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 13,
+    "phase": "saut",
+    "eval": "dbgClassique('dunes');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 16,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 19,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 22,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 25,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 30,
+    "phase": "fam",
+    "eval": "(function(r){return r.liste.slice(0,2).map(function(e){return e[0]+'/'+e[1]+' '+String(e[2]).slice(0,95)}).join(' ; ')})(dbgAppels())"
+   },
+   {
+    "t": 32,
+    "phase": "fam",
+    "eval": "(function(r){return r.liste.slice(2,4).map(function(e){return e[0]+'/'+e[1]+' '+String(e[2]).slice(0,95)}).join(' ; ')})(dbgAppels())"
+   },
+   {
+    "t": 34,
+    "phase": "fam",
+    "eval": "(function(r){return r.liste.slice(4,6).map(function(e){return e[0]+'/'+e[1]+' '+String(e[2]).slice(0,95)}).join(' ; ')})(dbgAppels())"
+   },
+   {
+    "t": 36,
+    "phase": "fam",
+    "eval": "(function(r){return r.liste.slice(6,8).map(function(e){return e[0]+'/'+e[1]+' '+String(e[2]).slice(0,95)}).join(' ; ')})(dbgAppels())"
+   },
+   {
+    "t": 38,
+    "phase": "fam",
+    "eval": "(function(r){return r.liste.slice(8,10).map(function(e){return e[0]+'/'+e[1]+' '+String(e[2]).slice(0,95)}).join(' ; ')})(dbgAppels())"
+   },
+   {
+    "t": 40,
+    "phase": "fam",
+    "eval": "(function(r){return r.liste.slice(10,12).map(function(e){return e[0]+'/'+e[1]+' '+String(e[2]).slice(0,95)}).join(' ; ')})(dbgAppels())"
+   },
+   {
+    "t": 42,
+    "phase": "fam",
+    "eval": "(function(r){return r.liste.slice(12,14).map(function(e){return e[0]+'/'+e[1]+' '+String(e[2]).slice(0,95)}).join(' ; ')})(dbgAppels())"
+   }
+  ]
+ }
+]

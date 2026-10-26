@@ -1,0 +1,6 @@
+[
+ {"id":"hud-new-a","tag":"hud","params":"carte=nuages&meteo=midi&palier=2","menu":12,"course":35},
+ {"id":"hud-old-a","tag":"hud","params":"carte=nuages&meteo=midi&palier=2&hudanim=0","menu":12,"course":35},
+ {"id":"hud-new-b","tag":"hud","params":"carte=nuages&meteo=midi&palier=2","menu":12,"course":35},
+ {"id":"hud-old-b","tag":"hud","params":"carte=nuages&meteo=midi&palier=2&hudanim=0","menu":12,"course":35}
+]

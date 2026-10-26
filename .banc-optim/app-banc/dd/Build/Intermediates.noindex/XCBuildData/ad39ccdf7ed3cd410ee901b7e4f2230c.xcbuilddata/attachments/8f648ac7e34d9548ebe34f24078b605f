@@ -1,0 +1,21 @@
+{
+  "" : {
+    "const-values" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorPreferences.build/Release-iphoneos/PreferencesPlugin.build/Objects-normal/arm64/PreferencesPlugin-primary.swiftconstvalues",
+    "dependencies" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorPreferences.build/Release-iphoneos/PreferencesPlugin.build/Objects-normal/arm64/PreferencesPlugin-primary.d",
+    "diagnostics" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorPreferences.build/Release-iphoneos/PreferencesPlugin.build/Objects-normal/arm64/PreferencesPlugin-primary.dia",
+    "emit-module-dependencies" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorPreferences.build/Release-iphoneos/PreferencesPlugin.build/Objects-normal/arm64/PreferencesPlugin-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorPreferences.build/Release-iphoneos/PreferencesPlugin.build/Objects-normal/arm64/PreferencesPlugin-primary-emit-module.dia",
+    "pch" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorPreferences.build/Release-iphoneos/PreferencesPlugin.build/Objects-normal/arm64/PreferencesPlugin-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorPreferences.build/Release-iphoneos/PreferencesPlugin.build/Objects-normal/arm64/PreferencesPlugin-primary.swiftdeps"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capacitor/preferences/ios/Sources/PreferencesPlugin/Preferences.swift" : {
+    "index-unit-output-path" : "/CapacitorPreferences.build/Release-iphoneos/PreferencesPlugin.build/Objects-normal/arm64/Preferences.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorPreferences.build/Release-iphoneos/PreferencesPlugin.build/Objects-normal/arm64/Preferences.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorPreferences.build/Release-iphoneos/PreferencesPlugin.build/Objects-normal/arm64/Preferences.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capacitor/preferences/ios/Sources/PreferencesPlugin/PreferencesPlugin.swift" : {
+    "index-unit-output-path" : "/CapacitorPreferences.build/Release-iphoneos/PreferencesPlugin.build/Objects-normal/arm64/PreferencesPlugin.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorPreferences.build/Release-iphoneos/PreferencesPlugin.build/Objects-normal/arm64/PreferencesPlugin.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorPreferences.build/Release-iphoneos/PreferencesPlugin.build/Objects-normal/arm64/PreferencesPlugin.o"
+  }
+}

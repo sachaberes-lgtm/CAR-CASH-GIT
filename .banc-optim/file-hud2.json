@@ -1,0 +1,44 @@
+[
+ {
+  "id": "hud2-new-a",
+  "tag": "hud2",
+  "params": "carte=nuages&meteo=midi&palier=2&pistegraine=777",
+  "menu": 12,
+  "course": 35
+ },
+ {
+  "id": "hud2-old-a",
+  "tag": "hud2",
+  "params": "carte=nuages&meteo=midi&palier=2&pistegraine=777&hudanim=0",
+  "menu": 12,
+  "course": 35
+ },
+ {
+  "id": "hud2-new-b",
+  "tag": "hud2",
+  "params": "carte=nuages&meteo=midi&palier=2&pistegraine=777",
+  "menu": 12,
+  "course": 35
+ },
+ {
+  "id": "hud2-old-b",
+  "tag": "hud2",
+  "params": "carte=nuages&meteo=midi&palier=2&pistegraine=777&hudanim=0",
+  "menu": 12,
+  "course": 35
+ },
+ {
+  "id": "hud2-new-c",
+  "tag": "hud2",
+  "params": "carte=nuages&meteo=midi&palier=2&pistegraine=777",
+  "menu": 12,
+  "course": 35
+ },
+ {
+  "id": "hud2-old-c",
+  "tag": "hud2",
+  "params": "carte=nuages&meteo=midi&palier=2&pistegraine=777&hudanim=0",
+  "menu": 12,
+  "course": 35
+ }
+]

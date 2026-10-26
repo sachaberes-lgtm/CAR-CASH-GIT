@@ -1,0 +1,12 @@
+{
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/ios/App/App/AppDelegate.swift" : {
+    "abi-baseline-json" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/App.build/Release-iphoneos/App.build/Objects-normal/arm64/App.abi.json",
+    "const-values" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/App.build/Release-iphoneos/App.build/Objects-normal/arm64/App-primary.swiftconstvalues",
+    "dependencies" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/App.build/Release-iphoneos/App.build/Objects-normal/arm64/App-primary.d",
+    "diagnostics" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/App.build/Release-iphoneos/App.build/Objects-normal/arm64/App-primary.dia",
+    "objc-header" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/App.build/Release-iphoneos/App.build/Objects-normal/arm64/App-Swift.h",
+    "swiftdoc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/App.build/Release-iphoneos/App.build/Objects-normal/arm64/App.swiftdoc",
+    "swiftmodule" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/App.build/Release-iphoneos/App.build/Objects-normal/arm64/App.swiftmodule",
+    "swiftsourceinfo" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/App.build/Release-iphoneos/App.build/Objects-normal/arm64/App.swiftsourceinfo"
+  }
+}

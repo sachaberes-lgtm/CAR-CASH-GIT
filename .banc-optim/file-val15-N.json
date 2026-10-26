@@ -1,0 +1,372 @@
+[
+ {
+  "id": "valN15-1",
+  "tag": "val-v898",
+  "params": "carte=nuages&meteo=midi&pistegraine=777&mob_gouv=0",
+  "menu": 10,
+  "course": 75,
+  "etapes": [
+   {
+    "t": 1,
+    "phase": "n1",
+    "eval": "'n1'"
+   },
+   {
+    "t": 4,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 7,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 8,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   },
+   {
+    "t": 10,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 13,
+    "phase": "saut",
+    "eval": "dbgClassique('dunes');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 16,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 19,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 22,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 25,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 30,
+    "phase": "tenue",
+    "eval": "dbgNiveau().niveau+' '+dbgNiveau().lieu+' '+JSON.stringify(dbgPiste())"
+   },
+   {
+    "t": 40,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   },
+   {
+    "t": 62,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   }
+  ]
+ },
+ {
+  "id": "valN15-2",
+  "tag": "val-v898",
+  "params": "carte=nuages&meteo=midi&pistegraine=777&mob_gouv=0",
+  "menu": 10,
+  "course": 75,
+  "etapes": [
+   {
+    "t": 1,
+    "phase": "n1",
+    "eval": "'n1'"
+   },
+   {
+    "t": 4,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 7,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 8,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   },
+   {
+    "t": 10,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 13,
+    "phase": "saut",
+    "eval": "dbgClassique('dunes');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 16,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 19,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 22,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 25,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 30,
+    "phase": "tenue",
+    "eval": "dbgNiveau().niveau+' '+dbgNiveau().lieu+' '+JSON.stringify(dbgPiste())"
+   },
+   {
+    "t": 40,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   },
+   {
+    "t": 62,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   }
+  ]
+ },
+ {
+  "id": "valN15-3",
+  "tag": "val-v898",
+  "params": "carte=nuages&meteo=midi&pistegraine=777&mob_gouv=0",
+  "menu": 10,
+  "course": 75,
+  "etapes": [
+   {
+    "t": 1,
+    "phase": "n1",
+    "eval": "'n1'"
+   },
+   {
+    "t": 4,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 7,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 8,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   },
+   {
+    "t": 10,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 13,
+    "phase": "saut",
+    "eval": "dbgClassique('dunes');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 16,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 19,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 22,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 25,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 30,
+    "phase": "tenue",
+    "eval": "dbgNiveau().niveau+' '+dbgNiveau().lieu+' '+JSON.stringify(dbgPiste())"
+   },
+   {
+    "t": 40,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   },
+   {
+    "t": 62,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   }
+  ]
+ },
+ {
+  "id": "valN15-4",
+  "tag": "val-v898",
+  "params": "carte=nuages&meteo=midi&pistegraine=777&mob_gouv=0",
+  "menu": 10,
+  "course": 75,
+  "etapes": [
+   {
+    "t": 1,
+    "phase": "n1",
+    "eval": "'n1'"
+   },
+   {
+    "t": 4,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 7,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 8,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   },
+   {
+    "t": 10,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 13,
+    "phase": "saut",
+    "eval": "dbgClassique('dunes');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 16,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 19,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 22,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 25,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 30,
+    "phase": "tenue",
+    "eval": "dbgNiveau().niveau+' '+dbgNiveau().lieu+' '+JSON.stringify(dbgPiste())"
+   },
+   {
+    "t": 40,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   },
+   {
+    "t": 62,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   }
+  ]
+ },
+ {
+  "id": "valN15-5",
+  "tag": "val-v898",
+  "params": "carte=nuages&meteo=midi&pistegraine=777&mob_gouv=0",
+  "menu": 10,
+  "course": 75,
+  "etapes": [
+   {
+    "t": 1,
+    "phase": "n1",
+    "eval": "'n1'"
+   },
+   {
+    "t": 4,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 7,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 8,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   },
+   {
+    "t": 10,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 13,
+    "phase": "saut",
+    "eval": "dbgClassique('dunes');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 16,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 19,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 22,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 25,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 30,
+    "phase": "tenue",
+    "eval": "dbgNiveau().niveau+' '+dbgNiveau().lieu+' '+JSON.stringify(dbgPiste())"
+   },
+   {
+    "t": 40,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   },
+   {
+    "t": 62,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   }
+  ]
+ }
+]

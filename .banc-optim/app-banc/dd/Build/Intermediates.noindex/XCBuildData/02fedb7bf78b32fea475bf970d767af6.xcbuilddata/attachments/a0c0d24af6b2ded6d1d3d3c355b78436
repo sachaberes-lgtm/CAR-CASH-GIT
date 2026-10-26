@@ -1,0 +1,21 @@
+{
+  "" : {
+    "const-values" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorHaptics.build/Release-iphoneos/HapticsPlugin.build/Objects-normal/arm64/HapticsPlugin-primary.swiftconstvalues",
+    "dependencies" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorHaptics.build/Release-iphoneos/HapticsPlugin.build/Objects-normal/arm64/HapticsPlugin-primary.d",
+    "diagnostics" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorHaptics.build/Release-iphoneos/HapticsPlugin.build/Objects-normal/arm64/HapticsPlugin-primary.dia",
+    "emit-module-dependencies" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorHaptics.build/Release-iphoneos/HapticsPlugin.build/Objects-normal/arm64/HapticsPlugin-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorHaptics.build/Release-iphoneos/HapticsPlugin.build/Objects-normal/arm64/HapticsPlugin-primary-emit-module.dia",
+    "pch" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorHaptics.build/Release-iphoneos/HapticsPlugin.build/Objects-normal/arm64/HapticsPlugin-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorHaptics.build/Release-iphoneos/HapticsPlugin.build/Objects-normal/arm64/HapticsPlugin-primary.swiftdeps"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capacitor/haptics/ios/Sources/HapticsPlugin/Haptics.swift" : {
+    "index-unit-output-path" : "/CapacitorHaptics.build/Release-iphoneos/HapticsPlugin.build/Objects-normal/arm64/Haptics.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorHaptics.build/Release-iphoneos/HapticsPlugin.build/Objects-normal/arm64/Haptics.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorHaptics.build/Release-iphoneos/HapticsPlugin.build/Objects-normal/arm64/Haptics.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capacitor/haptics/ios/Sources/HapticsPlugin/HapticsPlugin.swift" : {
+    "index-unit-output-path" : "/CapacitorHaptics.build/Release-iphoneos/HapticsPlugin.build/Objects-normal/arm64/HapticsPlugin.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorHaptics.build/Release-iphoneos/HapticsPlugin.build/Objects-normal/arm64/HapticsPlugin.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorHaptics.build/Release-iphoneos/HapticsPlugin.build/Objects-normal/arm64/HapticsPlugin.o"
+  }
+}

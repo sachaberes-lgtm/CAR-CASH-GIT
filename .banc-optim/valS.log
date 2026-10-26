@@ -1,0 +1,110 @@
+21:02:15 attente de fraîcheur, batterie 37.2 °C
+21:05:05 attente de fraîcheur, batterie 37.0 °C
+21:07:14 départ à 36.5 °C
+21:07:14 séance S-N : sans gouverneur, 7 min continues
+21:07:17 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+21:07:24 ▶ valS-N · batterie 36.5 °C
+21:07:30 VIE {"etat":"fait","jit":4,"plan":"valF-2"}
+21:07:32 VIE {"demarrage":{"charge":0,"jit":4,"froid":false,"pret":1977,"dcl":0}}
+21:07:34 scénario demandé → valS-N
+21:07:34 VIE {"jit":4,"etat":"en cours","plan":"valS-N"}
+21:07:58 VIE {"erreur":"Can't find variable: n1","etape":"n1"}
+21:08:01 VIE {"t":4,"r":"2 canyon","etape":"saut"}
+21:08:05 VIE {"t":7,"etape":"saut","r":"3 ville"}
+21:08:08 VIE {"t":10,"r":"4 espace","etape":"saut"}
+21:08:10 VIE {"r":"5 dunes","t":13,"etape":"saut"}
+21:08:13 VIE {"t":16,"r":"6 ville","etape":"saut"}
+21:08:17 VIE {"t":19,"etape":"saut","r":"7 canyon"}
+21:08:17 VIE {"t":20,"r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé","etape":"gouv"}
+21:08:19 VIE {"etape":"saut","r":"8 espace","t":22}
+21:08:23 VIE {"r":"9 ville","t":25,"etape":"saut"}
+21:08:57 VIE {"t":60,"r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé","etape":"gouv"}
+21:09:27 VIE {"etape":"saut","t":89,"r":"2 canyon"}
+21:09:29 VIE {"etape":"saut","t":92,"r":"3 ville"}
+21:09:33 VIE {"t":95,"r":"4 espace","etape":"saut"}
+21:09:36 VIE {"etape":"saut","t":98,"r":"5 dunes"}
+21:09:37 VIE {"etape":"gouv","t":100,"r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé"}
+21:09:39 VIE {"etape":"saut","t":101,"r":"6 ville"}
+21:09:42 VIE {"t":104,"etape":"saut","r":"7 canyon"}
+21:09:45 VIE {"t":107,"etape":"saut","r":"8 espace"}
+21:09:48 VIE {"r":"9 ville","etape":"saut","t":110}
+21:10:18 VIE {"t":140,"etape":"gouv","r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé"}
+21:10:51 VIE {"r":"2 canyon","etape":"saut","t":174}
+21:10:55 VIE {"etape":"saut","t":177,"r":"3 ville"}
+21:10:58 VIE {"t":180,"r":"4 espace","etape":"saut"}
+21:10:58 VIE {"t":180,"r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé","etape":"gouv"}
+21:11:01 VIE {"t":183,"etape":"saut","r":"5 dunes"}
+21:11:04 VIE {"t":186,"r":"6 ville","etape":"saut"}
+21:11:06 VIE {"t":189,"r":"7 canyon","etape":"saut"}
+21:11:10 VIE {"t":192,"r":"8 espace","etape":"saut"}
+21:11:12 VIE {"t":195,"etape":"saut","r":"9 ville"}
+21:11:38 VIE {"etape":"gouv","t":220,"r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé"}
+21:12:17 VIE {"etape":"saut","t":259,"r":"2 canyon"}
+21:12:17 VIE {"t":260,"r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé","etape":"gouv"}
+21:12:20 VIE {"t":262,"etape":"saut","r":"3 ville"}
+21:12:23 VIE {"t":265,"etape":"saut","r":"4 espace"}
+21:12:25 VIE {"t":268,"etape":"saut","r":"5 dunes"}
+21:12:29 VIE {"r":"6 ville","t":271,"etape":"saut"}
+21:12:31 VIE {"r":"7 canyon","t":274,"etape":"saut"}
+21:12:35 VIE {"t":277,"r":"8 espace","etape":"saut"}
+21:12:38 VIE {"etape":"saut","t":280,"r":"9 ville"}
+21:12:57 VIE {"etape":"gouv","t":300,"r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé"}
+21:13:37 VIE {"t":340,"etape":"gouv","r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé"}
+21:13:42 VIE {"etape":"saut","t":344,"r":"10 canyon"}
+21:13:45 VIE {"etape":"saut","t":347,"r":"11 ville"}
+21:13:48 VIE {"t":350,"etape":"saut","r":"12 espace"}
+21:13:51 VIE {"t":353,"r":"13 dunes","etape":"saut"}
+21:13:54 VIE {"t":356,"etape":"saut","r":"14 ville"}
+21:13:56 VIE {"t":359,"etape":"saut","r":"15 canyon"}
+21:14:00 VIE {"t":362,"etape":"saut","r":"16 espace"}
+21:14:03 VIE {"t":365,"etape":"saut","r":"17 ville"}
+21:14:18 VIE {"t":380,"r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé","etape":"gouv"}
+21:14:58 bilan reçu valS-N 218488 octets 
+21:14:59 scénario demandé → aucun
+21:15:02 CC BANC fermée (pid 4158)
+21:15:03 ✓ valS-N en 449 s · batterie après 38.1 °C
+21:15:03 file terminée
+21:15:03 séance S-N finie. Repos de 12 min
+21:27:05 attente de fraîcheur, batterie 36.0 °C
+21:27:05 départ à 36.0 °C
+21:27:05 séance S-G : avec le gouverneur, 7 min continues
+21:27:05 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+21:27:06 ▶ valS-G · batterie 36 °C
+21:27:11 VIE {"jit":3,"plan":"valS-N","etat":"fait"}
+21:27:13 VIE {"demarrage":{"charge":0,"jit":3,"dcl":0,"froid":false,"pret":2017}}
+21:27:14 scénario demandé → valS-G
+21:27:15 VIE {"etat":"en cours","jit":3,"plan":"valS-G"}
+21:27:39 VIE {"erreur":"Can't find variable: n1","etape":"n1"}
+21:27:42 VIE {"r":"2 canyon","etape":"saut","t":4}
+21:27:45 VIE {"r":"3 ville","etape":"saut","t":7}
+21:27:49 VIE {"r":"4 espace","etape":"saut","t":10}
+21:27:52 VIE {"t":13,"etape":"saut","r":"5 dunes"}
+21:27:54 VIE {"t":16,"etape":"saut","r":"6 ville"}
+21:27:57 VIE {"t":19,"etape":"saut","r":"7 canyon"}
+21:27:58 VIE {"r":"[{\"D\":25.3,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","etape":"gouv","t":20}
+21:28:02 VIE {"r":"8 espace","etape":"saut","t":22}
+21:28:04 VIE {"t":25,"etape":"saut","r":"9 ville"}
+21:28:38 VIE {"t":60,"etape":"gouv","r":"[{\"D\":52.3,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr"}
+21:29:07 VIE {"t":89,"etape":"saut","r":"2 canyon"}
+21:29:11 VIE {"t":92,"etape":"saut","r":"3 ville"}
+21:29:13 VIE {"t":95,"r":"4 espace","etape":"saut"}
+21:29:16 VIE {"t":98,"r":"5 dunes","etape":"saut"}
+21:29:18 VIE {"t":100,"etape":"gouv","r":"[{\"D\":72.4,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr"}
+21:29:20 VIE {"t":101,"etape":"saut","r":"6 ville"}
+21:29:22 VIE {"r":"7 canyon","etape":"saut","t":104}
+21:29:26 VIE {"r":"8 espace","etape":"saut","t":107}
+21:29:28 VIE {"r":"9 ville","etape":"saut","t":110}
+21:29:58 VIE {"r":"[{\"D\":93.6,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","etape":"gouv","t":140}
+21:30:33 VIE {"r":"2 canyon","t":174,"etape":"saut"}
+21:30:35 VIE {"r":"3 ville","t":177,"etape":"saut"}
+21:30:39 VIE {"r":"4 espace","t":180,"etape":"saut"}
+21:30:39 VIE {"r":"[{\"D\":114.5,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"f","etape":"gouv","t":180}
+21:30:41 VIE {"r":"5 dunes","etape":"saut","t":183}
+21:30:45 VIE {"r":"6 ville","etape":"saut","t":186}
+21:30:47 VIE {"t":189,"etape":"saut","r":"7 canyon"}
+21:30:50 VIE {"t":192,"etape":"saut","r":"8 espace"}
+21:30:54 VIE {"etape":"saut","r":"9 ville","t":195}
+21:31:19 VIE {"r":"[{\"D\":134.5,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"f","etape":"gouv","t":220}
+21:36:59 ✗ pas de bilan valS-G en 584 s · batterie après  °C
+21:36:59 file terminée
+21:36:59 séances terminées

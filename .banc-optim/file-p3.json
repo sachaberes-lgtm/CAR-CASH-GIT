@@ -1,0 +1,7 @@
+[
+ {"id":"pal-volcan-a","tag":"pal","params":"carte=volcan","menu":12,"course":35},
+ {"id":"pal-volcan-nitrofige","tag":"pal","params":"carte=volcan","menu":12,"course":35,"css":"#nitroBar,#nitroBar *,#nitroBar::before,#nitroBar::after,#nitroBar *::before,#nitroBar *::after,#nitroWrap,#nitroWrap *,#nitroWrap *::before,#nitroWrap *::after,#tNitro,#tNitro *,#tNitro::before,#tNitro::after,#tNitro *::before,#tNitro *::after{animation-play-state:paused!important;transition:none!important}"},
+ {"id":"pal-volcan-horsnitrofige","tag":"pal","params":"carte=volcan","menu":12,"course":35,"css":"*,*::before,*::after{animation-play-state:paused!important}#nitroBar,#nitroBar *,#nitroBar::before,#nitroBar::after,#nitroBar *::before,#nitroBar *::after,#nitroWrap,#nitroWrap *,#nitroWrap *::before,#nitroWrap *::after,#tNitro,#tNitro *,#tNitro::before,#tNitro::after,#tNitro *::before,#tNitro *::after{animation-play-state:running!important}"},
+ {"id":"pal-volcan-b","tag":"pal","params":"carte=volcan","menu":12,"course":35},
+ {"id":"pal-volcan-sansanim","tag":"pal","params":"carte=volcan","menu":12,"course":35,"css":"*,*::before,*::after{animation-play-state:paused!important;transition:none!important}"}
+]

@@ -1,0 +1,12 @@
+17:47:54 chef du banc sur :8932, 5 scénarios, seuil 37 °C
+17:47:55 refroidit… batterie 40.5 °C
+17:49:57 refroidit… batterie 40.7 °C
+17:52:00 refroidit… batterie 40.5 °C
+17:54:03 refroidit… batterie 40.7 °C
+17:56:07 refroidit… batterie 39.6 °C
+17:58:09 refroidit… batterie 38.3 °C
+18:00:12 ▶ base15-A1 · batterie 36.9 °C
+18:04:10 ✗ pas de bilan base15-A1 en 238 s · batterie après 36.7 °C
+18:04:11 ▶ base15-B1 · batterie 36.7 °C
+./run15.sh: line 5: 14564 Terminated: 15          node chef15.mjs file-base15.json 37
+18:07:44 chef 15 terminé

@@ -1,0 +1,6 @@
+[
+ {"id":"p2-volcan-a","tag":"p2","params":"carte=volcan&palier=2","menu":12,"course":35},
+ {"id":"p2-volcan-sansanim","tag":"p2","params":"carte=volcan&palier=2","menu":12,"course":35,"css":"*,*::before,*::after{animation-play-state:paused!important;transition:none!important}"},
+ {"id":"p2-nuages-a","tag":"p2","params":"carte=nuages&meteo=midi&palier=2","menu":12,"course":35},
+ {"id":"p0-volcan-a","tag":"p0","params":"carte=volcan&palier=0","menu":12,"course":35}
+]

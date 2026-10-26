@@ -1,0 +1,91 @@
+22:50:19 j'attends la construction de la v903
+22:54:40 CC BANC v903 installée
+22:55:43 départ à 35.9 °C
+22:55:54 chef du banc sur :8931, 2 scénarios, seuil 99 °C
+22:56:29 ▶ valS903H · batterie 35.9 °C
+22:57:38 VIE {"plan":"famDET","jit":3,"etat":"fait"}
+22:57:40 VIE {"demarrage":{"jit":3,"pret":2042,"froid":false,"charge":0,"dcl":0}}
+22:57:42 scénario demandé → valS903H
+22:57:42 VIE {"etat":"en cours","jit":4,"plan":"valS903H"}
+22:58:06 VIE {"erreur":"Can't find variable: n1","etape":"n1"}
+22:58:07 VIE {"r":"{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"froid\"","t":2,"etape":"raz"}
+22:58:10 VIE {"t":4,"r":"2 canyon","etape":"saut"}
+22:58:13 VIE {"r":"3 ville","t":7,"etape":"saut"}
+22:58:16 VIE {"t":10,"r":"4 espace","etape":"saut"}
+22:58:19 VIE {"t":13,"r":"5 dunes","etape":"saut"}
+22:58:22 VIE {"t":16,"r":"6 ville","etape":"saut"}
+22:58:24 VIE {"t":19,"r":"7 canyon","etape":"saut"}
+22:58:26 VIE {"t":20,"r":"[{\"D\":18.1,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","etape":"gouv"}
+22:58:28 VIE {"t":22,"r":"8 espace","etape":"saut"}
+22:58:31 VIE {"etape":"saut","r":"9 ville","t":25}
+22:59:06 VIE {"t":60,"r":"[{\"D\":41.7,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","etape":"gouv"}
+22:59:35 VIE {"etape":"saut","t":89,"r":"2 canyon"}
+22:59:38 VIE {"etape":"saut","r":"3 ville","t":92}
+22:59:41 VIE {"r":"4 espace","t":95,"etape":"saut"}
+22:59:44 VIE {"etape":"saut","t":98,"r":"5 dunes"}
+22:59:45 VIE {"r":"[{\"D\":63.8,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","t":100,"etape":"gouv"}
+22:59:47 VIE {"t":101,"r":"6 ville","etape":"saut"}
+22:59:50 VIE {"etape":"saut","r":"7 canyon","t":104}
+22:59:53 VIE {"etape":"saut","r":"8 espace","t":107}
+22:59:56 VIE {"t":110,"r":"9 ville","etape":"saut"}
+23:00:26 VIE {"t":140,"r":"[{\"D\":84.9,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dos","etape":"gouv"}
+23:01:00 VIE {"t":174,"r":"2 canyon","etape":"saut"}
+23:01:03 VIE {"etape":"saut","t":177,"r":"3 ville"}
+23:01:06 VIE {"r":"4 espace","t":180,"etape":"saut"}
+23:01:06 VIE {"r":"[{\"D\":101.2,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv","t":180}
+23:01:09 VIE {"r":"5 dunes","t":183,"etape":"saut"}
+23:01:12 VIE {"t":186,"r":"6 ville","etape":"saut"}
+23:01:15 VIE {"etape":"saut","r":"7 canyon","t":189}
+23:01:18 VIE {"etape":"saut","r":"8 espace","t":192}
+23:01:21 VIE {"etape":"saut","t":195,"r":"9 ville"}
+23:01:46 VIE {"r":"[{\"D\":121,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose","t":220,"etape":"gouv"}
+23:02:25 VIE {"etape":"saut","r":"11 canyon","t":259}
+23:02:25 VIE {"t":260,"r":"[{\"D\":141,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose","etape":"gouv"}
+23:02:28 VIE {"t":262,"r":"12 ville","etape":"saut"}
+23:02:31 VIE {"etape":"saut","r":"13 espace","t":265}
+23:02:34 VIE {"etape":"saut","r":"14 dunes","t":268}
+23:02:37 VIE {"etape":"saut","t":271,"r":"15 ville"}
+23:02:40 VIE {"t":275,"r":"16 canyon","etape":"saut"}
+23:02:43 VIE {"t":277,"r":"17 espace","etape":"saut"}
+23:02:46 VIE {"t":280,"r":"18 ville","etape":"saut"}
+23:03:06 VIE {"t":300,"r":"[{\"D\":161.1,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv"}
+23:03:47 VIE {"t":340,"r":"[{\"D\":177.4,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv"}
+23:03:50 VIE {"t":345,"r":"2 canyon","etape":"saut"}
+23:03:53 VIE {"t":347,"r":"3 ville","etape":"saut"}
+23:03:56 VIE {"etape":"saut","t":350,"r":"4 espace"}
+23:03:59 VIE {"t":353,"r":"5 dunes","etape":"saut"}
+23:04:02 VIE {"t":356,"r":"6 ville","etape":"saut"}
+23:04:05 VIE {"t":359,"r":"7 canyon","etape":"saut"}
+23:04:08 VIE {"t":362,"r":"8 espace","etape":"saut"}
+23:04:11 VIE {"etape":"saut","r":"9 ville","t":365}
+23:04:26 VIE {"etape":"gouv","r":"[{\"D\":197.4,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":380}
+23:05:06 bilan reçu valS903H 243418 octets 
+23:05:08 scénario demandé → aucun
+23:05:22 CC BANC fermée (pid 1470)
+23:05:27 ✓ valS903H en 465 s · batterie après 38.1 °C
+23:05:49 ▶ fam903 · batterie 38.2 °C
+23:06:16 VIE {"etat":"fait","plan":"valS903H","jit":3}
+23:06:18 VIE {"demarrage":{"froid":false,"dcl":0,"charge":0,"jit":3,"pret":2048}}
+23:06:20 scénario demandé → fam903
+23:06:20 VIE {"etat":"en cours","plan":"fam903","jit":4}
+23:06:46 VIE {"etape":"raz","r":"{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"froid\"","t":2}
+23:06:48 VIE {"t":4,"etape":"saut","r":"2 canyon"}
+23:06:51 VIE {"t":7,"etape":"saut","r":"3 ville"}
+23:06:54 VIE {"r":"4 espace","t":10,"etape":"saut"}
+23:06:57 VIE {"t":13,"r":"5 dunes","etape":"saut"}
+23:07:00 VIE {"t":16,"etape":"saut","r":"6 ville"}
+23:07:03 VIE {"t":19,"etape":"saut","r":"7 canyon"}
+23:07:10 VIE {"etape":"saut","t":25,"r":"8 espace"}
+23:07:10 VIE {"t":25,"r":"9 ville","etape":"saut"}
+23:07:14 VIE {"etape":"fam","r":"115 appels 268k | 30\/56k MeshBasicMaterial (scène) ; 10\/2k MeshPhongMaterial <ca","t":30}
+23:07:16 VIE {"etape":"fam","t":32,"r":"7\/14k MeshLambertMaterial (scène ; 6\/7k MeshBasicMaterial[I] ; 6\/0k MeshBasicMat"}
+23:07:18 VIE {"etape":"fam","t":34,"r":"4\/6k MeshDepthMaterial <moba om ; 4\/12k MeshLambertMaterial (scène ; 4\/0k Sprite"}
+23:07:20 VIE {"r":"2\/1k MeshBasicMaterial[I] (scèn ; 2\/0k ShaderMaterial[I] < VIDE>  ; 2\/10k MeshLa","t":36,"etape":"fam"}
+23:07:22 VIE {"etape":"fam","t":38,"r":"2\/0k ShaderMaterial <carrosseri ; 2\/0k MeshBasicMaterial[I] < VID ; 1\/59k MeshPh"}
+23:07:24 VIE {"t":40,"etape":"fam","r":"1\/0k LineBasicMaterial (scène) ; 1\/0k PointsMaterial <banquise p ; 1\/0k PointsMa"}
+23:07:28 bilan reçu fam903 38688 octets 
+23:07:30 scénario demandé → aucun
+23:08:05 CC BANC fermée (pid 1534)
+23:08:33 ✓ fam903 en 132 s · batterie après 38.5 °C
+23:08:33 file terminée
+23:08:33 v903 terminée

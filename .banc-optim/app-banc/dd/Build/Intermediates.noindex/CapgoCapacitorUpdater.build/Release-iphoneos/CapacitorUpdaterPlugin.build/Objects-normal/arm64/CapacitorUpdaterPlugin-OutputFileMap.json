@@ -1,0 +1,121 @@
+{
+  "" : {
+    "const-values" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapacitorUpdaterPlugin-primary.swiftconstvalues",
+    "dependencies" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapacitorUpdaterPlugin-primary.d",
+    "diagnostics" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapacitorUpdaterPlugin-primary.dia",
+    "emit-module-dependencies" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapacitorUpdaterPlugin-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapacitorUpdaterPlugin-primary-emit-module.dia",
+    "pch" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapacitorUpdaterPlugin-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapacitorUpdaterPlugin-primary.swiftdeps"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/AES.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/AES.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/AES.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/AES.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/AppHealthTracker.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/AppHealthTracker.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/AppHealthTracker.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/AppHealthTracker.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/BundleInfo.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/BundleInfo.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/BundleInfo.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/BundleInfo.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/BundleStatus.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/BundleStatus.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/BundleStatus.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/BundleStatus.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/CapacitorUpdaterPlugin.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapacitorUpdaterPlugin.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapacitorUpdaterPlugin.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapacitorUpdaterPlugin.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/CapgoRawRsa.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapgoRawRsa.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapgoRawRsa.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapgoRawRsa.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/CapgoSemanticVersion.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapgoSemanticVersion.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapgoSemanticVersion.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapgoSemanticVersion.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/CapgoUpdater.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapgoUpdater.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapgoUpdater.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapgoUpdater.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/CryptoCipher.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CryptoCipher.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CryptoCipher.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CryptoCipher.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/DelayCondition.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/DelayCondition.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/DelayCondition.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/DelayCondition.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/DelayUntilNext.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/DelayUntilNext.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/DelayUntilNext.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/DelayUntilNext.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/DelayUpdateUtils.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/DelayUpdateUtils.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/DelayUpdateUtils.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/DelayUpdateUtils.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/DeviceIdHelper.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/DeviceIdHelper.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/DeviceIdHelper.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/DeviceIdHelper.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/InternalUtils.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/InternalUtils.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/InternalUtils.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/InternalUtils.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/Logger.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/Logger.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/Logger.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/Logger.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/RSA.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/RSA.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/RSA.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/RSA.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/RedirectPolicyDelegate.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/RedirectPolicyDelegate.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/RedirectPolicyDelegate.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/RedirectPolicyDelegate.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/ShakeMenu.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/ShakeMenu.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/ShakeMenu.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/ShakeMenu.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/UserDefaultsExtension.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/UserDefaultsExtension.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/UserDefaultsExtension.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/UserDefaultsExtension.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/WebViewStatsReporter.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/WebViewStatsReporter.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/WebViewStatsReporter.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/WebViewStatsReporter.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/ZipArchiveReader.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/ZipArchiveReader.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/ZipArchiveReader.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/ZipArchiveReader.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/ZipCentralDirectory.swift" : {
+    "index-unit-output-path" : "/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/ZipCentralDirectory.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/ZipCentralDirectory.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/ZipCentralDirectory.o"
+  }
+}

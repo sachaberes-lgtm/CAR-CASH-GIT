@@ -1,0 +1,531 @@
+{
+    "AbsoluteCapacity": 2020,
+    "AdapterDetails": {
+        "AdapterID": 0,
+        "AdapterPowerTier": 2,
+        "AdapterVoltage": 5000,
+        "Current": 3000,
+        "Description": "pd charger",
+        "FamilyCode": -536854518,
+        "IsWireless": false,
+        "PMUConfiguration": 3000,
+        "SerialString": "bwÑœ÷#f€DxäA\t",
+        "SharedSource": 0,
+        "Source": 0,
+        "UsbHvcHvcIndex": 0,
+        "UsbHvcMenu": [
+            {
+                "Index": 0,
+                "MaxCurrent": 3000,
+                "MaxVoltage": 5000
+            }
+        ],
+        "Watts": 15
+    },
+    "AdapterInfo": 0,
+    "Amperage": 0,
+    "AppleRawAdapterDetails": [
+        {
+            "AdapterID": 0,
+            "AdapterPowerTier": 2,
+            "AdapterVoltage": 5000,
+            "Current": 3000,
+            "Description": "pd charger",
+            "FamilyCode": -536854518,
+            "IsWireless": false,
+            "PMUConfiguration": 3000,
+            "SerialString": "bwÑœ÷#f€DxäA\t",
+            "SharedSource": 0,
+            "Source": 0,
+            "UsbHvcHvcIndex": 0,
+            "UsbHvcMenu": [
+                {
+                    "Index": 0,
+                    "MaxCurrent": 3000,
+                    "MaxVoltage": 5000
+                }
+            ],
+            "Watts": 15
+        },
+        {
+            "AdapterID": 0,
+            "AdapterPowerTier": 0,
+            "AdapterVoltage": 5000,
+            "Current": 0,
+            "Description": "batt",
+            "ErrorFlags": 0,
+            "IsWireless": false,
+            "PMUConfiguration": 3000,
+            "SharedSource": 0,
+            "Source": 0,
+            "Watts": 0
+        }
+    ],
+    "AppleRawBatteryVoltage": 4118,
+    "AppleRawCurrentCapacity": 1974,
+    "AppleRawExternalConnected": true,
+    "AppleRawMaxCapacity": 2502,
+    "AtCriticalLevel": false,
+    "AvgTimeToEmpty": 4911,
+    "BatteryCellDisconnectCount": 0,
+    "BatteryData": {
+        "AlgoChemID": 1010451020,
+        "AlgoCycleCountDbgData": {
+            "$hex": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "AlgoTemperature": 2575564,
+        "BatteryHealthMetric": 254,
+        "CellCurrentAccumulator": [
+            0
+        ],
+        "CellCurrentAccumulatorCount": 0,
+        "CellVoltage": [
+            4118
+        ],
+        "CellWom": [
+            3289138
+        ],
+        "ChargeAccum": -6193,
+        "ChemID": 1010452627,
+        "ChemicalWeightedRa": 190,
+        "CycleCount": 1276,
+        "DOD0": [
+            15522
+        ],
+        "DODatEOC": 1789,
+        "DailyMaxSoc": 88,
+        "DailyMinSoc": 10,
+        "DateOfFirstUse": 0,
+        "DesignCapacity": 3076,
+        "Dod0AtQualifiedQmax": 0,
+        "DynamicSoc1Vcut": 3099,
+        "FccComp1": 2502,
+        "FccComp2": 2502,
+        "FilteredCurrent": 0,
+        "FilteredCurrentRc3": -1,
+        "FilteredCurrentRc4": -2,
+        "Flags": 8192,
+        "GaugeFlagRaw": 8192,
+        "GaugeResetCounter": 0,
+        "ISS": 0,
+        "ITMiscStatus": 12326,
+        "IdealCRate": 0.0,
+        "LifetimeData": {
+            "AverageTemperature": 26,
+            "CycleCountLastQmax": 247,
+            "FlashEraseCounter": 0,
+            "FlashFailureCounter": 0,
+            "LTDataCorruptionOffset": 0,
+            "LTOCVRestCounter": 0,
+            "LTOCVRestCounterHsp": 0,
+            "LTQmaxUpdateCounter": 0,
+            "LTQmaxUpdateCounterHsp": 0,
+            "LowVoltageResidencyCounters": {
+                "$hex": "000000001300000000000000000000000000000000000000000000000000000000000000000000003800000000000000000000000e00000000000000000000000800000000000000310000007801000002000000140000002000000000000000000000001e00000000000000"
+            },
+            "MaximumChargeCurrent": 4059,
+            "MaximumDischargeCurrent": -5685,
+            "MaximumFCC": 3165,
+            "MaximumInternalTemperature": 0,
+            "MaximumPackVoltage": 4478,
+            "MaximumQmax": 3182,
+            "MaximumTemperature": 542,
+            "MinimumFCC": 1779,
+            "MinimumPackVoltage": 2656,
+            "MinimumQmax": 2825,
+            "MinimumTemperature": 57,
+            "NCCMax": 3160,
+            "NCCMin": 2367,
+            "PTATFaultCounter": 0,
+            "ResetCnt": 0,
+            "SafetyFaultCounter": {
+                "$hex": "1000000000000000000000000000000000000000000000000000000000000000"
+            },
+            "SystemDisconnectCount": 0,
+            "TemperatureSamples": 145822795,
+            "TimeAtHighSoc": {
+                "$hex": "200300006c0100009a00000012000000000000007e05000061050000480200004900000001000000"
+            },
+            "TotalOperatingTime": 40506,
+            "UpdateTime": 1792853274
+        },
+        "ManufactureDate": 61784013680697,
+        "MaxCapacity": 100,
+        "MfgData": {
+            "$hex": "474658323037353058434b314652564143000000000000000000000000000000"
+        },
+        "PMUConfigured": 2920,
+        "PackCurrentAccumulator": 6719543,
+        "PackCurrentAccumulatorCount": 196445,
+        "PassedCharge": -1870,
+        "PresentDOD": [
+            4814
+        ],
+        "Qmax": [
+            2861
+        ],
+        "QmaxDisqualificationReason": 1,
+        "Qstart": 527,
+        "RSS": 85,
+        "RSSFiltered": 84,
+        "Ra00": 190,
+        "Ra01": 221,
+        "Ra02": 168,
+        "Ra03": 147,
+        "Ra04": 171,
+        "Ra05": 173,
+        "Ra06": 191,
+        "Ra07": 259,
+        "Ra08": 293,
+        "Ra09": 336,
+        "Ra10": 416,
+        "Ra11": 389,
+        "Ra12": 504,
+        "Ra13": 1482,
+        "Ra14": 10239,
+        "RaTableRaw": [
+            {
+                "$hex": "00be00dd00a8009300ab00ad00bf01030125015001a0018501f805ca27ff0000"
+            }
+        ],
+        "ResScale": 1000,
+        "ResetData": {
+            "$hex": "0200000000000000020008000000000000000000000000000000000000000000"
+        },
+        "ResetDataComms": 0,
+        "ResetDataFirmware": 2,
+        "ResetDataHardware": 2,
+        "ResetDataSoftware": 0,
+        "ResetDataWatchDog": 0,
+        "Serial": "F5D21031RDQ13RK91",
+        "SimRate": 0,
+        "Soc1Voltage": 3200,
+        "StateOfCharge": 79,
+        "SystemDisconnectCountScrPad": 0,
+        "TimeToEmptyDbgData": {
+            "$hex": "00000000000000000000000000000000"
+        },
+        "TrueRemainingCapacity": 1973,
+        "UUID": 727517284,
+        "UsableBottomOcv": 0,
+        "Voltage": 4116,
+        "WatchdogDebugDump": {
+            "$hex": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "WeightedRa": [
+            190
+        ],
+        "iMaxAndSocSmoothTable": {
+            "$hex": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+    },
+    "BatteryInstalled": true,
+    "BatteryInvalidWakeSeconds": 30,
+    "BatteryShutdownReason": {
+        "ShutDownAverageCurrent": -659,
+        "ShutDownDOD0": 1976,
+        "ShutDownDataError": 0,
+        "ShutDownFilteredCurrent": -671,
+        "ShutDownFullChargeCapacity": 2381,
+        "ShutDownLPEMMode": 0,
+        "ShutDownMaxDischargeCurrent": -5685,
+        "ShutDownNominalChargeCapacity": 2396,
+        "ShutDownPassedCharge": 2353,
+        "ShutDownPresentDOD": 15470,
+        "ShutDownPrevAverageCurrent": -837,
+        "ShutDownPrevFullChargeCapacity": 2381,
+        "ShutDownPrevNominalChargeCapacity": 2396,
+        "ShutDownPrevRemainingCapacity": 27,
+        "ShutDownPrevVoltage": 3144,
+        "ShutDownRSS": 1442,
+        "ShutDownRaTableRaw": {
+            "$hex": "00be00dd00a9008f00a600a900b200f40121014e01a7018c022b06812cec0000"
+        },
+        "ShutDownRemainingCapacity": 0,
+        "ShutDownResScale": 426,
+        "ShutDownTemperature": 2930,
+        "ShutDownTimestamp": 1792631800,
+        "ShutDownUISoc": 1,
+        "ShutDownUpoReboot": 0,
+        "ShutDownVoltage": 3191,
+        "ShutdownDataCriticalFlagsKey": 1
+    },
+    "BestAdapterIndex": 0,
+    "BootPathUpdated": 1792656842,
+    "BootVoltage": 3659,
+    "CarrierMode": {
+        "CarrierModeHighVoltage": 4100,
+        "CarrierModeLowVoltage": 3600,
+        "CarrierModeStatus": 0
+    },
+    "ChargerConfiguration": 2930,
+    "ChargerData": {
+        "ChargerID": 4294967295,
+        "ChargerInhibitReason": 0,
+        "ChargerResetCounter": 0,
+        "ChargerStatus": {
+            "$hex": "0a00a675120085040f00004b0714000000000000000000000000000000000000004a010000400000000000000000000000000000000000000000000000000000"
+        },
+        "ChargingCurrent": 0,
+        "ChargingVoltage": 4168,
+        "NotChargingReason": 256,
+        "SlowChargingReason": 8,
+        "TimeChargingThermallyLimited": 1763,
+        "VacVoltageLimit": 4360
+    },
+    "CurrentCapacity": 80,
+    "CycleCount": 1276,
+    "DeadBatteryBootData": {
+        "ActivePayloads": 1,
+        "GeneralPayload": {
+            "AdapterType": 0,
+            "AverageBattSkinTemp": 0,
+            "AverageBattVirtualTemp": 0,
+            "CloakEntryCount": 0,
+            "PrechargeCount": 0,
+            "StartBatteryCapacity": 0,
+            "StartBatteryVoltage": 0,
+            "TimeOnCharger": 0,
+            "VbusType": 0,
+            "WirelessChargingMode": 0
+        }
+    },
+    "DesignCapacity": 3076,
+    "ExternalChargeCapable": true,
+    "ExternalConnected": true,
+    "FullPathUpdated": 1792852714,
+    "FullyCharged": false,
+    "GasGaugeFirmwareVersion": 109060052,
+    "IOGeneralInterest": "IOCommand is not serializable",
+    "IOReportLegend": [
+        {
+            "IOReportChannelInfo": {
+                "IOReportChannelUnit": 0
+            },
+            "IOReportChannels": [
+                [
+                    7167869599145487988,
+                    6460407809,
+                    "BatteryCycleCount"
+                ],
+                [
+                    7881712903662169456,
+                    6460407809,
+                    "BatteryMaxTemp"
+                ],
+                [
+                    7883953708359576944,
+                    6460407809,
+                    "BatteryMinTemp"
+                ],
+                [
+                    7881713247109672052,
+                    6460407809,
+                    "BatteryMaxPackVoltage"
+                ],
+                [
+                    7883954051807079540,
+                    6460407809,
+                    "BatteryMinPackVoltage"
+                ],
+                [
+                    7881713191223763049,
+                    6460407809,
+                    "BatteryChargeCurrent"
+                ],
+                [
+                    7881713195434927977,
+                    6460407809,
+                    "BatteryDischargeCurrent"
+                ],
+                [
+                    7881713242914120048,
+                    6460407809,
+                    "BatteryOverChargedCurrent"
+                ],
+                [
+                    7888177224529174896,
+                    6460407809,
+                    "BatteryOverDischargedCurrent"
+                ],
+                [
+                    7881712902252946275,
+                    6460407809,
+                    "BatteryMaxFCC"
+                ],
+                [
+                    7883953706950353763,
+                    6460407809,
+                    "BatteryMinFCC"
+                ],
+                [
+                    7881713195586841716,
+                    6460407809,
+                    "BatteryMaxDeltaVoltage"
+                ],
+                [
+                    7883954000284249204,
+                    6460407809,
+                    "BatteryMinDeltaVoltage"
+                ],
+                [
+                    7809653424000299630,
+                    6460407809,
+                    "BatteryLowAvgCurrentLastRun"
+                ],
+                [
+                    7521423047848587886,
+                    6460407809,
+                    "BatteryHighAvgCurrentLastRun"
+                ],
+                [
+                    7881712903612359032,
+                    6460407809,
+                    "BatteryMaxQmax"
+                ],
+                [
+                    7883953708309766520,
+                    6460407809,
+                    "BatteryMinQMax"
+                ],
+                [
+                    8173296068204712771,
+                    6460407809,
+                    "BatteryQmaxUpdateSuccessCnt"
+                ],
+                [
+                    8173296068204709443,
+                    6460407809,
+                    "BatteryQmaxUpdateFailCnt"
+                ],
+                [
+                    7881712903628337208,
+                    6460407809,
+                    "BatteryMaxRa0-8"
+                ],
+                [
+                    7883953708325744696,
+                    6460407809,
+                    "BatteryminRa0-8"
+                ],
+                [
+                    7881712902253732152,
+                    6460407809,
+                    "BatteryMaxRa8"
+                ],
+                [
+                    7883953706951139640,
+                    6460407809,
+                    "BatteryminRa8"
+                ],
+                [
+                    7022914058020285808,
+                    6460407809,
+                    "BatteryAvgTemp"
+                ],
+                [
+                    8387230210786946416,
+                    6460407809,
+                    "BatteryTempSamples"
+                ],
+                [
+                    8247063023976672884,
+                    6460407809,
+                    "BatteryResetCnt"
+                ],
+                [
+                    7380400846210821748,
+                    6460407809,
+                    "BatteryFlashWriteCnt"
+                ],
+                [
+                    8242829161180393076,
+                    6460407809,
+                    "BatteryRDISCnt"
+                ],
+                [
+                    7167869607987671405,
+                    6460407809,
+                    "BatteryCycleCntLastQmax"
+                ],
+                [
+                    8390052652791393637,
+                    6460407809,
+                    "BatteryTotalOperatingTime"
+                ],
+                [
+                    7957688366649270640,
+                    6460407809,
+                    "BatteryNominalChargeCapacity"
+                ],
+                [
+                    7163086726697609572,
+                    6460407809,
+                    "BatteryChemID"
+                ],
+                [
+                    7089075284462495847,
+                    6460407809,
+                    "BatteryIDChanged"
+                ]
+            ],
+            "IOReportGroupName": "Battery"
+        }
+    ],
+    "IOReportLegendPublic": true,
+    "InductiveData": {
+        "FirmwareMode": 0
+    },
+    "InstantAmperage": -1,
+    "IsCharging": false,
+    "KioskMode": {
+        "KioskModeFullChargeVoltage": 4397,
+        "KioskModeHighSocDays": 0,
+        "KioskModeHighSocSeconds": 0,
+        "KioskModeLastHighSocHours": 0,
+        "KioskModeMode": 1
+    },
+    "LPEMData": {
+        "Mode": 1
+    },
+    "Location": 0,
+    "ManufacturerData": {
+        "$hex": "474658323037353058434b314652564143000000000000000000000000000000"
+    },
+    "MaxCapacity": 100,
+    "NominalChargeCapacity": 2394,
+    "PostChargeWaitSeconds": 120,
+    "PostDischargeWaitSeconds": 120,
+    "PowerTelemetryData": {
+        "AccumulatedAdapterEfficiencyLoss": 60147575477,
+        "AccumulatedBatteryDischarge": -151657400,
+        "AccumulatedBatteryPower": 192443733,
+        "AccumulatedSystemEnergyConsumed": 79412671,
+        "AccumulatedSystemLoad": 245149142,
+        "AccumulatedSystemPowerIn": 285935475,
+        "AccumulatedWallEnergyEstimate": 97446004,
+        "AdapterEfficiencyLoss": 272,
+        "AdapterEfficiencyLossAccumulatorCount": 29495,
+        "BatteryDischargeAccumulatorCount": 163717,
+        "BatteryPower": 0,
+        "BatteryPowerAccumulatorCount": 24935,
+        "PowerTelemetryErrorCount": 0,
+        "SystemCurrentIn": 607,
+        "SystemEnergyConsumed": 837,
+        "SystemLoad": 3014,
+        "SystemLoadAccumulatorCount": 192699,
+        "SystemPowerIn": 3014,
+        "SystemPowerInAccumulatorCount": 29495,
+        "SystemVoltageIn": 4967,
+        "WallEnergyEstimate": 1109
+    },
+    "Serial": "F5D21031RDQ13RK91",
+    "SkipperNEIgnoreAtCritical": false,
+    "Temperature": 3929,
+    "TimeRemaining": 0,
+    "UpdateTime": 1792853274,
+    "UserVisiblePathUpdated": 1792853274,
+    "VirtualTemperature": 3919,
+    "Voltage": 4118,
+    "built-in": true
+}

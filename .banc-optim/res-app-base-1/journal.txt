@@ -1,0 +1,29 @@
+11:32:24 départ {"s":{"started":false,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":21.6,"fps":46,"spikes":16.7,"dpr":1.54,"dprCeil":null,"cloudIn":0,"nuages":23,"tier":"FULL","r30":false,"jit":8.9,"cad":30},"play":false}
+11:32:38 course {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":19.3,"fps":52,"spikes":11,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":5.9,"cad":30},"play":true}
+11:32:40 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":44.7,"fps":22,"spikes":21,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":24.9,"cad":30},"play":true}
+11:32:43 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":51.1,"fps":20,"spikes":36.7,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":12,"cad":30},"play":true}
+11:32:45 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":47.8,"fps":21,"spikes":48.5,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":8.2,"cad":30},"play":true}
+11:32:45 profil démarré
+11:32:47 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":58.4,"fps":17,"spikes":52.2,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":14.9,"cad":30},"play":true}
+11:32:49 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":60.5,"fps":17,"spikes":56.7,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":11.7,"cad":30},"play":true}
+11:32:51 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":62.6,"fps":16,"spikes":59.5,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":12.2,"cad":30},"play":true}
+11:32:53 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":58,"fps":17,"spikes":62,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":13.6,"cad":30},"play":true}
+11:32:55 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":54.1,"fps":18,"spikes":63.7,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":7.6,"cad":30},"play":true}
+11:32:55 profil écrit 942 nœuds
+11:32:57 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":51.8,"fps":19,"spikes":64.9,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":9.2,"cad":30},"play":true}
+11:32:59 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":52.4,"fps":19,"spikes":65.5,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":8.9,"cad":30},"play":true}
+11:33:01 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":46.8,"fps":21,"spikes":66,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":8.8,"cad":30},"play":true}
+11:33:03 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":51.8,"fps":19,"spikes":66.2,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":10.4,"cad":30},"play":true}
+11:33:06 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":54.4,"fps":18,"spikes":66.4,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":12.1,"cad":30},"play":true}
+11:33:08 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":57.8,"fps":17,"spikes":66.5,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":13.3,"cad":30},"play":true}
+11:33:10 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":47.5,"fps":21,"spikes":66.5,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":12.1,"cad":30},"play":true}
+11:33:12 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":53.9,"fps":19,"spikes":66.6,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":13.4,"cad":30},"play":true}
+11:33:14 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":51.7,"fps":19,"spikes":66.6,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":9,"cad":30},"play":true}
+11:33:16 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":47.4,"fps":21,"spikes":66.6,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":14.6,"cad":30},"play":true}
+11:33:18 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":45.5,"fps":22,"spikes":66.6,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":14,"cad":30},"play":true}
+11:33:20 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":53,"fps":19,"spikes":66.7,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":16.2,"cad":30},"play":true}
+11:33:22 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":54.1,"fps":18,"spikes":66.7,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":15.9,"cad":30},"play":true}
+11:33:24 perf {"s":{"started":true,"gameOver":false,"mode":"drive","paused":false},"p":{"ms":49.8,"fps":20,"spikes":66.7,"dpr":1,"dprCeil":null,"cloudIn":0,"nuages":0,"tier":"LOW","r30":false,"jit":14.6,"cad":30},"play":true}
+11:33:24 [menu] 230 images en 10 s = 23 i/s · méd 34 · p90 68 · p99 73 · max 97 · >25ms 228 · >50 68 · >100 0
+11:33:24 [depart] 50 images en 2 s = 24.8 i/s · méd 34 · p90 45 · p99 202 · max 202 · >25ms 50 · >50 4 · >100 2
+11:33:24 [course] 600 images en 47.6 s = 12.6 i/s · méd 67 · p90 103 · p99 304 · max 1666 · >25ms 600 · >50 533 · >100 64

@@ -1,0 +1,28 @@
+22:33:57 appels de A2 finis. Relevé par famille
+22:33:57 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+22:33:58 ▶ famON · batterie 37.7 °C
+22:33:59 VIE {"plan":"appelsOFF","jit":4,"etat":"fait"}
+22:34:04 VIE {"demarrage":{"charge":0,"jit":4,"pret":5069,"froid":false,"dcl":0}}
+22:34:06 scénario demandé → famON
+22:34:07 VIE {"etat":"en cours","jit":4,"plan":"famON"}
+22:34:35 VIE {"r":"{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"froid\"","t":2,"etape":"raz"}
+22:34:38 VIE {"etape":"saut","r":"2 canyon","t":4}
+22:34:40 VIE {"t":7,"r":"3 ville","etape":"saut"}
+22:34:44 VIE {"r":"4 espace","t":11,"etape":"saut"}
+22:34:46 VIE {"t":13,"r":"5 dunes","etape":"saut"}
+22:34:49 VIE {"t":16,"etape":"saut","r":"6 ville"}
+22:34:52 VIE {"etape":"saut","t":19,"r":"7 canyon"}
+22:34:59 VIE {"r":"8 espace","etape":"saut","t":25}
+22:34:59 VIE {"etape":"saut","r":"9 ville","t":25}
+22:35:03 VIE {"r":"130 appels 247k | 24\/51k MeshBasicMaterial (scène) ; 12\/2k MeshDepthMaterial <ca","t":30,"etape":"fam"}
+22:35:05 VIE {"r":"7\/0k PointsMaterial (scène) ; 6\/3k MeshBasicMaterial[I] ; 6\/0k MeshBasicMaterial","t":33,"etape":"fam"}
+22:35:07 VIE {"t":34,"r":"4\/4k MeshDepthMaterial ; 4\/4k MeshPhongMaterial ; 4\/0k SpriteMaterial <carrosser","etape":"fam"}
+22:35:09 VIE {"r":"3\/20k MeshLambertMaterial[I] ; 3\/3k ShaderMaterial (scène) ; 2\/6k MeshBasicMater","etape":"fam","t":36}
+22:35:11 VIE {"t":38,"r":"2\/3k MeshBasicMaterial ; 2\/0k ShaderMaterial <carrosseri ; 2\/0k MeshBasicMateria","etape":"fam"}
+22:35:13 VIE {"r":"1\/0k MeshLambertMaterial[I] < V ; 1\/0k LineBasicMaterial (scène) ; 1\/0k PointsMa","t":40,"etape":"fam"}
+22:35:17 bilan reçu famON 24929 octets 
+22:35:18 scénario demandé → aucun
+22:35:19 CC BANC fermée (pid 1172)
+22:35:19 ✓ famON en 73 s · batterie après 37.8 °C
+22:35:19 file terminée
+22:35:19 familles terminées

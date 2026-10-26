@@ -1,0 +1,95 @@
+[
+ {
+  "id": "gpu-foret-base",
+  "tag": "gpu",
+  "params": "carte=foret&pistegraine=777",
+  "menu": 10,
+  "course": 30
+ },
+ {
+  "id": "gpu-foret-dpr1",
+  "tag": "gpu",
+  "params": "carte=foret&pistegraine=777",
+  "menu": 10,
+  "course": 30,
+  "dpr": 1.0
+ },
+ {
+  "id": "gpu-foret-dpr06",
+  "tag": "gpu",
+  "params": "carte=foret&pistegraine=777",
+  "menu": 10,
+  "course": 30,
+  "dpr": 0.6
+ },
+ {
+  "id": "gpu-foret-q5",
+  "tag": "gpu",
+  "params": "carte=foret&pistegraine=777",
+  "menu": 10,
+  "course": 30,
+  "qual": 5
+ },
+ {
+  "id": "gpu-jade-base",
+  "tag": "gpu",
+  "params": "carte=jade&pistegraine=777",
+  "menu": 10,
+  "course": 30
+ },
+ {
+  "id": "gpu-jade-dpr1",
+  "tag": "gpu",
+  "params": "carte=jade&pistegraine=777",
+  "menu": 10,
+  "course": 30,
+  "dpr": 1.0
+ },
+ {
+  "id": "gpu-jade-dpr06",
+  "tag": "gpu",
+  "params": "carte=jade&pistegraine=777",
+  "menu": 10,
+  "course": 30,
+  "dpr": 0.6
+ },
+ {
+  "id": "gpu-jade-q5",
+  "tag": "gpu",
+  "params": "carte=jade&pistegraine=777",
+  "menu": 10,
+  "course": 30,
+  "qual": 5
+ },
+ {
+  "id": "gpu-ville-base",
+  "tag": "gpu",
+  "params": "carte=ville&pistegraine=777",
+  "menu": 10,
+  "course": 30
+ },
+ {
+  "id": "gpu-ville-dpr1",
+  "tag": "gpu",
+  "params": "carte=ville&pistegraine=777",
+  "menu": 10,
+  "course": 30,
+  "dpr": 1.0
+ },
+ {
+  "id": "gpu-ville-dpr06",
+  "tag": "gpu",
+  "params": "carte=ville&pistegraine=777",
+  "menu": 10,
+  "course": 30,
+  "dpr": 0.6
+ },
+ {
+  "id": "gpu-ville-q5",
+  "tag": "gpu",
+  "params": "carte=ville&pistegraine=777",
+  "menu": 10,
+  "course": 30,
+  "qual": 5
+ }
+]

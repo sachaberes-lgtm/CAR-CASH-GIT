@@ -1,0 +1,40 @@
+[
+ {
+  "id": "geoOFF-1",
+  "tag": "geo-v900",
+  "params": "carte=nuages&meteo=midi&pistegraine=777&mobg_rubans=0&mobg_nappe=0&mobg_champ=0",
+  "menu": 10,
+  "course": 135,
+  "rejoue": true,
+  "fuite": {
+   "n": 14,
+   "toutes": 8
+  },
+  "etapes": [
+   {
+    "t": 120,
+    "phase": "stats",
+    "eval": "JSON.stringify({sonde:(window.dbgMobrSonde?dbgMobrSonde():null),explo:(window.dbgMobrExplo?dbgMobrExplo():null),gouv:dbgGouv(),cad:dbgCadence()})"
+   }
+  ]
+ },
+ {
+  "id": "geoON-1",
+  "tag": "geo-v900",
+  "params": "carte=nuages&meteo=midi&pistegraine=777",
+  "menu": 10,
+  "course": 135,
+  "rejoue": true,
+  "fuite": {
+   "n": 14,
+   "toutes": 8
+  },
+  "etapes": [
+   {
+    "t": 120,
+    "phase": "stats",
+    "eval": "JSON.stringify({sonde:(window.dbgMobrSonde?dbgMobrSonde():null),explo:(window.dbgMobrExplo?dbgMobrExplo():null),gouv:dbgGouv(),cad:dbgCadence()})"
+   }
+  ]
+ }
+]

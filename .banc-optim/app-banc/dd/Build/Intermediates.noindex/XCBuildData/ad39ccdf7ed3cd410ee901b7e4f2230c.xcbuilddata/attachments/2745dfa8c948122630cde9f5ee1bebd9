@@ -1,0 +1,36 @@
+{
+  "" : {
+    "const-values" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/StatusBarPlugin-primary.swiftconstvalues",
+    "dependencies" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/StatusBarPlugin-primary.d",
+    "diagnostics" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/StatusBarPlugin-primary.dia",
+    "emit-module-dependencies" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/StatusBarPlugin-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/StatusBarPlugin-primary-emit-module.dia",
+    "pch" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/StatusBarPlugin-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/StatusBarPlugin-primary.swiftdeps"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capacitor/status-bar/ios/Sources/StatusBarPlugin/StatusBar.swift" : {
+    "index-unit-output-path" : "/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/StatusBar.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/StatusBar.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/StatusBar.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capacitor/status-bar/ios/Sources/StatusBarPlugin/StatusBarConfig.swift" : {
+    "index-unit-output-path" : "/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/StatusBarConfig.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/StatusBarConfig.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/StatusBarConfig.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capacitor/status-bar/ios/Sources/StatusBarPlugin/StatusBarInfo.swift" : {
+    "index-unit-output-path" : "/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/StatusBarInfo.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/StatusBarInfo.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/StatusBarInfo.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capacitor/status-bar/ios/Sources/StatusBarPlugin/StatusBarPlugin.swift" : {
+    "index-unit-output-path" : "/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/StatusBarPlugin.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/StatusBarPlugin.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/StatusBarPlugin.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capacitor/status-bar/ios/Sources/StatusBarPlugin/UIColor.swift" : {
+    "index-unit-output-path" : "/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/UIColor.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/UIColor.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorStatusBar.build/Release-iphoneos/StatusBarPlugin.build/Objects-normal/arm64/UIColor.o"
+  }
+}

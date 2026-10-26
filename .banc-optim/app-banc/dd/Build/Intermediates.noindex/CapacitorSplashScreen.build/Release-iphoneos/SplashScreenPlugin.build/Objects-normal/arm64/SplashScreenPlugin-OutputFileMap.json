@@ -1,0 +1,31 @@
+{
+  "" : {
+    "const-values" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenPlugin-primary.swiftconstvalues",
+    "dependencies" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenPlugin-primary.d",
+    "diagnostics" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenPlugin-primary.dia",
+    "emit-module-dependencies" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenPlugin-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenPlugin-primary-emit-module.dia",
+    "pch" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenPlugin-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenPlugin-primary.swiftdeps"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capacitor/splash-screen/ios/Sources/SplashScreenPlugin/SplashScreen.swift" : {
+    "index-unit-output-path" : "/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreen.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreen.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreen.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capacitor/splash-screen/ios/Sources/SplashScreenPlugin/SplashScreenConfig.swift" : {
+    "index-unit-output-path" : "/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenConfig.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenConfig.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenConfig.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capacitor/splash-screen/ios/Sources/SplashScreenPlugin/SplashScreenPlugin.swift" : {
+    "index-unit-output-path" : "/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenPlugin.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenPlugin.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenPlugin.o"
+  },
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capacitor/splash-screen/ios/Sources/SplashScreenPlugin/SplashScreenSettings.swift" : {
+    "index-unit-output-path" : "/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenSettings.o",
+    "llvm-bc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenSettings.bc",
+    "object" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapacitorSplashScreen.build/Release-iphoneos/SplashScreenPlugin.build/Objects-normal/arm64/SplashScreenSettings.o"
+  }
+}

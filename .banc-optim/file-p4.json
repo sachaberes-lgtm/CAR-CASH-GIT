@@ -1,0 +1,5 @@
+[
+ {"id":"pal-volcan-sansanim","tag":"pal","params":"carte=volcan","menu":12,"course":35,"css":"*,*::before,*::after{animation-play-state:paused!important;transition:none!important}"},
+ {"id":"pal-volcan-anims","tag":"pal","params":"carte=volcan","menu":12,"course":35},
+ {"id":"pal-volcan-trace","tag":"pal","params":"carte=volcan","menu":12,"course":60}
+]

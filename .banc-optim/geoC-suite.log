@@ -1,0 +1,33 @@
+22:06:21 séance v901 finie. Banc de géométrie contrôlé
+22:06:21 chef du banc sur :8931, 2 scénarios, seuil 99 °C
+22:06:22 ▶ geoCOFF · batterie 37.4 °C
+22:06:22 VIE {"etat":"fait","plan":"valS901-G","jit":3}
+22:06:25 VIE {"demarrage":{"froid":false,"pret":2857,"jit":3,"charge":0,"dcl":0}}
+22:06:27 scénario demandé → geoCOFF
+22:06:27 VIE {"etat":"en cours","jit":9,"plan":"geoCOFF"}
+22:06:54 VIE {"etape":"raz","t":2,"r":"{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"froid\""}
+22:06:59 VIE {"t":6,"etape":"saut","r":"2 canyon"}
+22:07:11 VIE {"t":18,"etape":"arme","r":"arme"}
+22:07:18 VIE {"etape":"compte","t":25,"r":"[2,\"canyon\",652482,125,0,1.5]"}
+22:07:21 VIE {"r":"3 ville","t":28,"etape":"saut"}
+22:07:37 bilan reçu geoCOFF 35773 octets 
+22:07:38 scénario demandé → aucun
+22:07:38 CC BANC fermée (pid 920)
+22:07:39 ✓ geoCOFF en 72 s · batterie après 37.5 °C
+22:07:40 ▶ geoCON · batterie 37.5 °C
+22:07:41 VIE {"plan":"geoCOFF","jit":7,"etat":"fait"}
+22:07:46 VIE {"demarrage":{"froid":false,"pret":5443,"jit":7,"charge":0,"dcl":0}}
+22:07:48 scénario demandé → geoCON
+22:07:48 VIE {"etat":"en cours","jit":5,"plan":"geoCON"}
+22:08:16 VIE {"t":2,"etape":"raz","r":"{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"froid\""}
+22:08:23 VIE {"etape":"saut","t":6,"r":"2 canyon"}
+22:08:32 VIE {"r":"arme","t":18,"etape":"arme"}
+22:08:39 VIE {"etape":"compte","t":25,"r":"[2,\"canyon\",566614,201,0,1.5]"}
+22:08:42 VIE {"t":28,"etape":"saut","r":"3 ville"}
+22:08:54 VIE {"r":"arme","t":40,"etape":"arme"}
+22:09:05 bilan reçu geoCON 29699 octets 
+22:09:07 scénario demandé → aucun
+22:09:11 CC BANC fermée (pid 934)
+22:09:13 ✓ geoCON en 85 s · batterie après 37.6 °C
+22:09:13 file terminée
+22:09:13 géométrie contrôlée terminée

@@ -1,0 +1,46 @@
+{
+  "info" : {
+    "arguments" : [
+      "devicectl",
+      "device",
+      "info",
+      "apps",
+      "--device",
+      "00008110-000621041468401E",
+      "--bundle-id",
+      "com.sachaberes.carcash.banc",
+      "--json-output",
+      "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/banc-app-info.json"
+    ],
+    "commandType" : "devicectl.device.info.apps",
+    "environment" : {
+
+    },
+    "jsonVersion" : 3,
+    "outcome" : "success",
+    "version" : "518.33"
+  },
+  "result" : {
+    "apps" : [
+      {
+        "appClip" : false,
+        "builtByDeveloper" : true,
+        "bundleIdentifier" : "com.sachaberes.carcash.banc",
+        "bundleVersion" : "2",
+        "defaultApp" : false,
+        "hidden" : false,
+        "internalApp" : false,
+        "name" : "CC BANC",
+        "removable" : true,
+        "url" : "file:///private/var/containers/Bundle/Application/98ECFE05-BB66-4E5C-9BB0-045A9D2E3B10/App.app/",
+        "version" : "1.0.0"
+      }
+    ],
+    "defaultAppsIncluded" : false,
+    "deviceIdentifier" : "FE6F8B40-DCFF-5E04-B578-871A79EDCF17",
+    "hiddenAppsIncluded" : false,
+    "internalAppsIncluded" : false,
+    "matchingBundleIdentifier" : "com.sachaberes.carcash.banc",
+    "removableAppsIncluded" : true
+  }
+}

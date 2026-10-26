@@ -1,0 +1,52 @@
+20:52:43 série G finie : courses forcées F
+20:52:44 chef du banc sur :8931, 2 scénarios, seuil 37 °C
+20:52:44 refroidit… batterie 37.1 °C
+20:54:47 ▶ valF-1 · batterie 37 °C
+20:54:49 VIE {"jit":3,"etat":"fait","plan":"valG-5"}
+20:54:50 VIE {"demarrage":{"dcl":0,"charge":0,"jit":3,"froid":false,"pret":2279}}
+20:54:52 scénario demandé → valF-1
+20:54:52 VIE {"etat":"en cours","jit":4,"plan":"valF-1"}
+20:55:17 VIE {"etape":"n1","r":"n1","t":1}
+20:55:18 VIE {"r":"{\"D\":170,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose ","etape":"force","t":2}
+20:55:20 VIE {"etape":"saut","t":4,"r":"2 canyon"}
+20:55:23 VIE {"r":"3 ville","t":7,"etape":"saut"}
+20:55:24 VIE {"etape":"gouv","r":"[{\"D\":173.2,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":8}
+20:55:26 VIE {"etape":"saut","r":"4 espace","t":10}
+20:55:29 VIE {"etape":"saut","r":"5 dunes","t":13}
+20:55:32 VIE {"etape":"saut","t":16,"r":"6 ville"}
+20:55:35 VIE {"r":"7 canyon","etape":"saut","t":19}
+20:55:38 VIE {"etape":"saut","r":"8 espace","t":22}
+20:55:41 VIE {"etape":"saut","r":"9 ville","t":25}
+20:55:46 VIE {"r":"9 ville {\"tri\":true,\"tranches\":14,\"auLoin\":0,\"moyennes\":5,\"pasMoyen\":4}","etape":"tenue","t":30}
+20:55:56 VIE {"etape":"gouv","t":41,"r":"[{\"D\":189.3,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+20:56:18 VIE {"etape":"gouv","r":"[{\"D\":200,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose","t":62}
+20:56:31 bilan reçu valF-1 80165 octets 
+20:56:33 scénario demandé → aucun
+20:56:33 CC BANC fermée (pid 4036)
+20:56:34 ✓ valF-1 en 102 s · batterie après 37.3 °C
+20:56:35 refroidit… batterie 37.3 °C
+20:58:37 refroidit… batterie 37.2 °C
+21:00:09 ▶ valF-2 · batterie 36.9 °C
+21:00:10 VIE {"jit":3,"plan":"valF-1","etat":"fait"}
+21:00:13 VIE {"demarrage":{"charge":0,"froid":false,"pret":2257,"jit":3,"dcl":0}}
+21:00:14 scénario demandé → valF-2
+21:00:14 VIE {"plan":"valF-2","jit":4,"etat":"en cours"}
+21:00:38 VIE {"etape":"n1","t":1,"r":"n1"}
+21:00:39 VIE {"t":2,"etape":"force","r":"{\"D\":170,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose "}
+21:00:41 VIE {"r":"2 canyon","etape":"saut","t":4}
+21:00:45 VIE {"r":"3 ville","etape":"saut","t":7}
+21:00:46 VIE {"r":"[{\"D\":173.2,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv","t":8}
+21:00:48 VIE {"etape":"saut","r":"4 espace","t":10}
+21:00:50 VIE {"r":"5 dunes","etape":"saut","t":13}
+21:00:54 VIE {"r":"6 ville","etape":"saut","t":16}
+21:00:57 VIE {"etape":"saut","r":"7 canyon","t":19}
+21:00:59 VIE {"t":22,"etape":"saut","r":"8 espace"}
+21:01:03 VIE {"t":25,"etape":"saut","r":"9 ville"}
+21:01:08 VIE {"r":"9 ville {\"tri\":true,\"tranches\":14,\"auLoin\":10,\"moyennes\":0,\"pasMoyen\":4}","etape":"tenue","t":30}
+21:01:18 VIE {"r":"[{\"D\":189.3,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv","t":41}
+21:01:29 bilan reçu valF-2 59690 octets 
+21:01:31 scénario demandé → aucun
+21:01:31 CC BANC fermée (pid 4083)
+21:01:32 ✓ valF-2 en 78 s · batterie après 37.4 °C
+21:01:32 file terminée
+21:01:32 validation F terminée

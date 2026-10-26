@@ -1,0 +1,68 @@
+21:56:09 comptes finis. J'attends la construction de la v901
+21:56:20 CC BANC v901 installée
+21:58:39 départ à 36.9 °C
+21:58:39 séance continue v901 : déclenchement au premier signe de lenteur, 7 min
+21:58:39 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+21:58:41 ▶ valS901-G · batterie 36.9 °C
+21:58:45 VIE {"plan":"geoON-1","jit":3,"etat":"fait"}
+21:58:47 VIE {"demarrage":{"charge":0,"dcl":0,"froid":false,"jit":3,"pret":2237}}
+21:58:48 scénario demandé → valS901-G
+21:58:48 VIE {"jit":5,"etat":"en cours","plan":"valS901-G"}
+21:59:13 VIE {"erreur":"Can't find variable: n1","etape":"n1"}
+21:59:14 VIE {"t":2,"r":"{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"froid\"","etape":"raz"}
+21:59:17 VIE {"etape":"saut","r":"2 canyon","t":4}
+21:59:20 VIE {"etape":"saut","r":"3 ville","t":7}
+21:59:23 VIE {"t":10,"r":"4 espace","etape":"saut"}
+21:59:26 VIE {"etape":"saut","r":"5 dunes","t":13}
+21:59:29 VIE {"etape":"saut","r":"6 ville","t":16}
+21:59:32 VIE {"etape":"saut","r":"7 canyon","t":19}
+21:59:33 VIE {"etape":"gouv","r":"[{\"D\":9.2,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fro","t":20}
+21:59:35 VIE {"etape":"saut","r":"8 espace","t":22}
+21:59:38 VIE {"t":25,"r":"9 ville","etape":"saut"}
+22:00:13 VIE {"r":"[{\"D\":42.6,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","t":60,"etape":"gouv"}
+22:00:42 VIE {"etape":"saut","t":89,"r":"11 canyon"}
+22:00:45 VIE {"etape":"saut","t":92,"r":"12 ville"}
+22:00:48 VIE {"etape":"saut","t":95,"r":"13 espace"}
+22:00:51 VIE {"r":"14 dunes","t":98,"etape":"saut"}
+22:00:53 VIE {"r":"[{\"D\":63.5,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","t":100,"etape":"gouv"}
+22:00:54 VIE {"etape":"saut","t":101,"r":"15 ville"}
+22:00:57 VIE {"etape":"saut","t":104,"r":"16 canyon"}
+22:01:00 VIE {"etape":"saut","t":107,"r":"17 espace"}
+22:01:03 VIE {"r":"18 ville","t":110,"etape":"saut"}
+22:01:33 VIE {"t":140,"etape":"gouv","r":"[{\"D\":85,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose "}
+22:02:07 VIE {"r":"2 canyon","t":174,"etape":"saut"}
+22:02:10 VIE {"r":"3 ville","t":177,"etape":"saut"}
+22:02:13 VIE {"r":"4 espace","t":180,"etape":"saut"}
+22:02:13 VIE {"etape":"gouv","t":180,"r":"[{\"D\":104.9,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+22:02:16 VIE {"r":"5 dunes","t":183,"etape":"saut"}
+22:02:19 VIE {"etape":"saut","r":"6 ville","t":186}
+22:02:22 VIE {"r":"7 canyon","t":189,"etape":"saut"}
+22:02:25 VIE {"r":"8 espace","t":192,"etape":"saut"}
+22:02:28 VIE {"r":"9 ville","t":195,"etape":"saut"}
+22:02:53 VIE {"etape":"gouv","t":220,"r":"[{\"D\":124.9,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+22:03:32 VIE {"etape":"saut","r":"2 canyon","t":259}
+22:03:33 VIE {"r":"[{\"D\":141.2,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":260,"etape":"gouv"}
+22:03:35 VIE {"r":"3 ville","t":262,"etape":"saut"}
+22:03:38 VIE {"r":"4 espace","t":265,"etape":"saut"}
+22:03:41 VIE {"r":"5 dunes","t":268,"etape":"saut"}
+22:03:44 VIE {"r":"6 ville","t":271,"etape":"saut"}
+22:03:47 VIE {"r":"7 canyon","t":274,"etape":"saut"}
+22:03:50 VIE {"r":"8 espace","t":277,"etape":"saut"}
+22:03:53 VIE {"r":"9 ville","t":280,"etape":"saut"}
+22:04:13 VIE {"etape":"gouv","r":"[{\"D\":161.2,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":300}
+22:04:53 VIE {"etape":"gouv","t":340,"r":"[{\"D\":177.6,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+22:04:57 VIE {"t":344,"etape":"saut","r":"2 canyon"}
+22:05:00 VIE {"t":347,"etape":"saut","r":"3 ville"}
+22:05:03 VIE {"etape":"saut","t":350,"r":"4 espace"}
+22:05:06 VIE {"t":353,"r":"5 dunes","etape":"saut"}
+22:05:09 VIE {"etape":"saut","r":"6 ville","t":356}
+22:05:12 VIE {"etape":"saut","t":359,"r":"7 canyon"}
+22:05:15 VIE {"etape":"saut","t":362,"r":"8 espace"}
+22:05:18 VIE {"etape":"saut","t":365,"r":"9 ville"}
+22:05:33 VIE {"etape":"gouv","t":380,"r":"[{\"D\":197.6,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+22:06:13 bilan reçu valS901-G 222144 octets 
+22:06:15 scénario demandé → aucun
+22:06:16 CC BANC fermée (pid 862)
+22:06:16 ✓ valS901-G en 447 s · batterie après 37.4 °C
+22:06:16 file terminée
+22:06:16 séance v901 finie

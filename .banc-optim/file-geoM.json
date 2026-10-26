@@ -1,0 +1,202 @@
+[
+ {
+  "id": "geoM-canyon-OFF",
+  "tag": "geoM-v901",
+  "params": "carte=canyon&meteo=midi&pistegraine=777&mobg_rubans=0&mobg_nappe=0&mobg_champ=0",
+  "menu": 10,
+  "course": 28,
+  "qual": 0,
+  "etapes": [
+   {
+    "t": 12,
+    "phase": "arme",
+    "eval": "dbgCout(1);'arme'"
+   },
+   {
+    "t": 19,
+    "phase": "compte",
+    "eval": "JSON.stringify([dbgNiveau().niveau,dbgNiveau().lieu,(dbgCout().image||{}).tris,(dbgCout().image||{}).calls,dbgCout().ql,dbgCout().dpr])"
+   },
+   {
+    "t": 24,
+    "phase": "compte",
+    "eval": "JSON.stringify([dbgNiveau().niveau,dbgNiveau().lieu,(dbgCout().image||{}).tris,(dbgCout().image||{}).calls,dbgCout().ql,dbgCout().dpr])"
+   }
+  ]
+ },
+ {
+  "id": "geoM-canyon-ON",
+  "tag": "geoM-v901",
+  "params": "carte=canyon&meteo=midi&pistegraine=777",
+  "menu": 10,
+  "course": 28,
+  "qual": 0,
+  "etapes": [
+   {
+    "t": 12,
+    "phase": "arme",
+    "eval": "dbgCout(1);'arme'"
+   },
+   {
+    "t": 19,
+    "phase": "compte",
+    "eval": "JSON.stringify([dbgNiveau().niveau,dbgNiveau().lieu,(dbgCout().image||{}).tris,(dbgCout().image||{}).calls,dbgCout().ql,dbgCout().dpr])"
+   },
+   {
+    "t": 24,
+    "phase": "compte",
+    "eval": "JSON.stringify([dbgNiveau().niveau,dbgNiveau().lieu,(dbgCout().image||{}).tris,(dbgCout().image||{}).calls,dbgCout().ql,dbgCout().dpr])"
+   }
+  ]
+ },
+ {
+  "id": "geoM-dunes-OFF",
+  "tag": "geoM-v901",
+  "params": "carte=dunes&meteo=midi&pistegraine=777&mobg_rubans=0&mobg_nappe=0&mobg_champ=0",
+  "menu": 10,
+  "course": 28,
+  "qual": 0,
+  "etapes": [
+   {
+    "t": 12,
+    "phase": "arme",
+    "eval": "dbgCout(1);'arme'"
+   },
+   {
+    "t": 19,
+    "phase": "compte",
+    "eval": "JSON.stringify([dbgNiveau().niveau,dbgNiveau().lieu,(dbgCout().image||{}).tris,(dbgCout().image||{}).calls,dbgCout().ql,dbgCout().dpr])"
+   },
+   {
+    "t": 24,
+    "phase": "compte",
+    "eval": "JSON.stringify([dbgNiveau().niveau,dbgNiveau().lieu,(dbgCout().image||{}).tris,(dbgCout().image||{}).calls,dbgCout().ql,dbgCout().dpr])"
+   }
+  ]
+ },
+ {
+  "id": "geoM-dunes-ON",
+  "tag": "geoM-v901",
+  "params": "carte=dunes&meteo=midi&pistegraine=777",
+  "menu": 10,
+  "course": 28,
+  "qual": 0,
+  "etapes": [
+   {
+    "t": 12,
+    "phase": "arme",
+    "eval": "dbgCout(1);'arme'"
+   },
+   {
+    "t": 19,
+    "phase": "compte",
+    "eval": "JSON.stringify([dbgNiveau().niveau,dbgNiveau().lieu,(dbgCout().image||{}).tris,(dbgCout().image||{}).calls,dbgCout().ql,dbgCout().dpr])"
+   },
+   {
+    "t": 24,
+    "phase": "compte",
+    "eval": "JSON.stringify([dbgNiveau().niveau,dbgNiveau().lieu,(dbgCout().image||{}).tris,(dbgCout().image||{}).calls,dbgCout().ql,dbgCout().dpr])"
+   }
+  ]
+ },
+ {
+  "id": "geoM-banquise-OFF",
+  "tag": "geoM-v901",
+  "params": "carte=banquise&meteo=midi&pistegraine=777&mobg_rubans=0&mobg_nappe=0&mobg_champ=0",
+  "menu": 10,
+  "course": 28,
+  "qual": 0,
+  "etapes": [
+   {
+    "t": 12,
+    "phase": "arme",
+    "eval": "dbgCout(1);'arme'"
+   },
+   {
+    "t": 19,
+    "phase": "compte",
+    "eval": "JSON.stringify([dbgNiveau().niveau,dbgNiveau().lieu,(dbgCout().image||{}).tris,(dbgCout().image||{}).calls,dbgCout().ql,dbgCout().dpr])"
+   },
+   {
+    "t": 24,
+    "phase": "compte",
+    "eval": "JSON.stringify([dbgNiveau().niveau,dbgNiveau().lieu,(dbgCout().image||{}).tris,(dbgCout().image||{}).calls,dbgCout().ql,dbgCout().dpr])"
+   }
+  ]
+ },
+ {
+  "id": "geoM-banquise-ON",
+  "tag": "geoM-v901",
+  "params": "carte=banquise&meteo=midi&pistegraine=777",
+  "menu": 10,
+  "course": 28,
+  "qual": 0,
+  "etapes": [
+   {
+    "t": 12,
+    "phase": "arme",
+    "eval": "dbgCout(1);'arme'"
+   },
+   {
+    "t": 19,
+    "phase": "compte",
+    "eval": "JSON.stringify([dbgNiveau().niveau,dbgNiveau().lieu,(dbgCout().image||{}).tris,(dbgCout().image||{}).calls,dbgCout().ql,dbgCout().dpr])"
+   },
+   {
+    "t": 24,
+    "phase": "compte",
+    "eval": "JSON.stringify([dbgNiveau().niveau,dbgNiveau().lieu,(dbgCout().image||{}).tris,(dbgCout().image||{}).calls,dbgCout().ql,dbgCout().dpr])"
+   }
+  ]
+ },
+ {
+  "id": "geoM-ville-OFF",
+  "tag": "geoM-v901",
+  "params": "carte=ville&meteo=midi&pistegraine=777&mobg_rubans=0&mobg_nappe=0&mobg_champ=0",
+  "menu": 10,
+  "course": 28,
+  "qual": 0,
+  "etapes": [
+   {
+    "t": 12,
+    "phase": "arme",
+    "eval": "dbgCout(1);'arme'"
+   },
+   {
+    "t": 19,
+    "phase": "compte",
+    "eval": "JSON.stringify([dbgNiveau().niveau,dbgNiveau().lieu,(dbgCout().image||{}).tris,(dbgCout().image||{}).calls,dbgCout().ql,dbgCout().dpr])"
+   },
+   {
+    "t": 24,
+    "phase": "compte",
+    "eval": "JSON.stringify([dbgNiveau().niveau,dbgNiveau().lieu,(dbgCout().image||{}).tris,(dbgCout().image||{}).calls,dbgCout().ql,dbgCout().dpr])"
+   }
+  ]
+ },
+ {
+  "id": "geoM-ville-ON",
+  "tag": "geoM-v901",
+  "params": "carte=ville&meteo=midi&pistegraine=777",
+  "menu": 10,
+  "course": 28,
+  "qual": 0,
+  "etapes": [
+   {
+    "t": 12,
+    "phase": "arme",
+    "eval": "dbgCout(1);'arme'"
+   },
+   {
+    "t": 19,
+    "phase": "compte",
+    "eval": "JSON.stringify([dbgNiveau().niveau,dbgNiveau().lieu,(dbgCout().image||{}).tris,(dbgCout().image||{}).calls,dbgCout().ql,dbgCout().dpr])"
+   },
+   {
+    "t": 24,
+    "phase": "compte",
+    "eval": "JSON.stringify([dbgNiveau().niveau,dbgNiveau().lieu,(dbgCout().image||{}).tris,(dbgCout().image||{}).calls,dbgCout().ql,dbgCout().dpr])"
+   }
+  ]
+ }
+]

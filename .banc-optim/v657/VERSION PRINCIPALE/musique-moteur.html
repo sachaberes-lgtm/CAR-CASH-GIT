@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Musique × moteur</title>
+<!-- L'ESSAI « LA MUSIQUE SUIT LE MOTEUR » (2026-10-12, Léo : « déjà bien et s'intensifier »).
+     Un morceau = 5 paliers de 8 mesures, même tempo, même longueur au sample près. Le moteur choisit le palier ;
+     le passage tombe sur la PROCHAINE MESURE, à la même place dans la phrase (la musique ne recommence pas).
+     Le lecteur et le rendu des paliers = `musique-paliers.js` (le même que le jeu). Un morceau = un fichier au format de
+     CONSIGNE-MUSIQUE-PALIERS.md (MOTEUR GLISSE : assets/audio/music/paliers/), ou 5 boucles déjà faites (OG GINOBILI : le morceau
+     original + un surplus de ses pistes séparées, fichiers hors git dans atelier-son/studio/references/labo/moteur/).
+     « Charger un morceau… » : n'importe quel fichier fait par Claude chat selon la consigne. -->
+<style>
+:root{--fond:#f5f5f7;--carte:#fff;--tx:#1d1d1f;--tx2:#6e6e73;--fil:#d2d2d7;--bleu:#0071e3;--ombre:0 1px 2px rgba(0,0,0,.04),0 6px 20px rgba(0,0,0,.06)}
+@media (prefers-color-scheme:dark){:root{--fond:#000;--carte:#1c1c1e;--tx:#f5f5f7;--tx2:#98989d;--fil:#38383a;--bleu:#0a84ff;--ombre:none}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--fond);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;-webkit-font-smoothing:antialiased}
+.in{max-width:640px;margin:0 auto;padding:44px 16px 80px}
+h1{font-size:34px;font-weight:700;letter-spacing:-.02em;margin:0}
+.sous{color:var(--tx2);font-size:16px;margin:6px 0 26px;line-height:1.4}
+.carte{background:var(--carte);border-radius:20px;padding:20px;box-shadow:var(--ombre)}
+.haut{display:flex;align-items:center;gap:18px}
+#jouer{flex:none;width:68px;height:68px;border-radius:50%;border:0;background:var(--bleu);color:#fff;display:grid;place-items:center;cursor:pointer;transition:transform .12s}
+#jouer:active{transform:scale(.94)}#jouer svg{width:24px;height:24px;fill:currentColor}
+#jouer:disabled{opacity:.4}
+.moteur{flex:1;min-width:0}
+#nom{font-size:24px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#info{font-size:14px;color:var(--tx2);margin-top:3px}
+.paliers{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:20px 0 6px}
+.pal{border:0;font:inherit;background:var(--fond);color:var(--tx2);border-radius:12px;padding:10px 4px;cursor:pointer;text-align:center;transition:all .15s}
+.pal b{display:block;font-size:17px;color:var(--tx)}.pal span{font-size:11px}
+.pal.on{background:var(--bleu);color:#fff}.pal.on b{color:#fff}
+.pal.attend{outline:2px dashed var(--bleu);outline-offset:-2px}
+#ce{font-size:14px;color:var(--tx2);min-height:40px;margin:10px 2px 0;line-height:1.4}
+.curs{margin-top:16px}
+.curs label{display:flex;justify-content:space-between;font-size:13px;color:var(--tx2);margin-bottom:6px}
+.curs input{width:100%;accent-color:var(--bleu)}
+.bas{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.b{border:0;background:var(--fond);color:var(--bleu);font:inherit;font-size:15px;font-weight:600;padding:11px 16px;border-radius:12px;cursor:pointer}
+.b.on{background:var(--bleu);color:#fff}
+.temps{display:flex;align-items:center;gap:8px;margin-top:18px;font-size:13px;color:var(--tx2)}
+.temps i{width:10px;height:10px;border-radius:50%;background:var(--fil);transition:background .05s}
+.temps i.on{background:var(--bleu)}.temps i.un.on{background:#ff2d55}
+#attente{margin-left:auto;color:var(--bleu);font-weight:600;opacity:0;transition:opacity .15s}#attente.on{opacity:1}
+.vol{display:flex;align-items:center;gap:10px;color:var(--tx2);font-size:13px;margin-top:22px}
+.vol input{flex:1;max-width:220px;accent-color:var(--bleu)}
+#charge{font-size:13px;color:var(--tx2);margin-top:12px}
+.morceaux{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:-8px 0 18px}
+.seg{display:inline-flex;background:var(--fil);border-radius:10px;padding:2px}
+.seg button{border:0;background:none;font:inherit;font-size:14px;font-weight:600;color:var(--tx);padding:8px 14px;border-radius:8px;cursor:pointer}
+.seg button.on{background:var(--carte);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.charger{display:inline-block}
+/* MODIFIER (Léo, 2026-10-13 : « laisse supprimer et changer les noms ») : chaque morceau devient un champ + un rond rouge */
+.seg.edit{background:none;padding:0;gap:8px;flex-wrap:wrap}
+.seg .ch{display:inline-flex;align-items:center;gap:6px;background:var(--carte);border:1px solid var(--fil);border-radius:10px;padding:4px 6px 4px 4px}
+.seg .ch input{border:0;background:none;font:inherit;font-size:14px;font-weight:600;color:var(--tx);width:15ch;padding:4px 6px;border-radius:6px;outline:none}
+.seg .ch input:focus{background:var(--fond)}
+.seg .ch .moins{width:24px;height:24px;border-radius:50%;border:0;background:#ff3b30;color:#fff;font-size:17px;line-height:22px;padding:0;cursor:pointer;flex:none}
+#modif.on{background:var(--bleu);color:#fff}
+.pal:disabled{opacity:.35;cursor:default}
+/* les paliers en MODIFIER : un nom à taper, − pour le retirer, + pour le remettre */
+.pal.ed{display:flex;flex-direction:column;align-items:stretch;gap:4px;padding:8px 6px;cursor:default}
+.pal.ed input{border:0;background:var(--carte);color:var(--tx);font:inherit;font-size:14px;font-weight:700;text-align:center;border-radius:8px;padding:6px 4px;width:100%;min-width:0;outline:none}
+.pal.ed .pb{display:flex;align-items:center;justify-content:space-between;gap:4px;font-size:11px}
+.pal.ed .moins,.pal.ed .plus{width:22px;height:22px;border-radius:50%;border:0;color:#fff;font-size:16px;line-height:20px;padding:0;cursor:pointer;flex:none}
+.pal.ed .moins{background:#ff3b30}.pal.ed .plus{background:#34c759}
+.pal.ed.sup{opacity:.45}.pal.ed.sup input{text-decoration:line-through}
+</style></head><body><div class="in">
+<h1>La musique suit le moteur</h1>
+<div class="sous" id="sous">Le morceau est déjà complet au début, chaque palier le pousse un cran plus fort. Le changement tombe toujours sur la mesure suivante.</div>
+<div class="morceaux"><div class="seg" id="choix"></div><button class="b" id="modif">Modifier</button><button class="b" id="retab" hidden>Rétablir</button><label class="b charger">Charger un morceau…<input type="file" id="fichier" accept=".html,text/html" hidden></label></div>
+
+<div class="carte">
+  <div class="haut">
+    <button id="jouer" aria-label="Jouer" disabled><svg viewBox="0 0 24 24"><path id="ico" d="M7 4l13 8-13 8z"/></svg></button>
+    <div class="moteur"><div id="nom">MOTEUR ROUILLÉ</div><div id="info">moteur 1 / 30 · 0 pièce</div></div>
+  </div>
+  <div class="paliers" id="pals"></div>
+  <div id="ce"></div>
+  <div class="curs"><label><span>MOTEUR</span><span id="cursV">1 / 30</span></label><input id="curs" type="range" min="0" max="29" value="0"></div>
+  <div class="bas">
+    <button class="b" id="plus1">+1 moteur</button>
+    <button class="b" id="simu">Simuler une partie</button>
+    <button class="b" id="mort">Nouvelle partie</button>
+  </div>
+  <div class="temps"><span>temps</span><i class="un"></i><i></i><i></i><i></i><span id="mes">mesure –</span><span id="attente">au prochain « 1 »…</span></div>
+</div>
+<div class="vol">Volume <input id="vol" type="range" min="0" max="1" step=".01" value=".8"></div>
+<div id="charge"></div>
+</div>
+<script src="musique-paliers.js?v=14"></script>
+<script>
+// les 30 moteurs du jeu (ENGINE_TIERS) : nom + pièces pour l'atteindre
+const MOT=[['MOTEUR ROUILLÉ',0],['BICYLINDRE',5],['3 CYLINDRES',12],['4 EN LIGNE',21],['4 SOUPAPES',33],['4 EN LIGNE TURBO',48],['5 CYLINDRES',66],['V6',88],['V6 BITURBO',114],['BOXER À PLAT',145],['V8 ATMO',181],['V8 COMPRESSÉ',223],['V10',271],['V12',326],['W12',389],['V16',452],['H16 F1',540],['QUADRITURBO',630],['ROTATIF TRIPLE',731],['TURBINE À GAZ',844],['TURBINE À PLASMA',970],['STATORÉACTEUR',1110],['PULSORÉACTEUR',1265],['RÉACTEUR NUCLÉAIRE',1420],['CŒUR À FUSION',1624],['ANTIMATIÈRE',1830],['MOTEUR À DISTORSION',2055],['COMÈTE',2270],['SUPERNOVA',2566],['TROU NOIR',2854]];
+// le découpage des 30 moteurs en paliers : celui du morceau (`moteurs`), sinon des paliers qui s'allongent doucement (palDecoupe,
+// musique-paliers.js — le même que le jeu). NUIT DE VELOURS : 2 moteurs par palier jusqu'au 12e, puis 3 jusqu'au 30e.
+let NB=5,DEB=palDecoupe(5);   // palMot(moteur) → le palier (plus bas : il saute les paliers retirés)
+// les morceaux : un fichier « morceau à paliers » (rendu ici), ou 5 boucles déjà faites (OG GINOBILI, hors git)
+const MORCEAUX=[
+  {id:'aura',nom:'AURA',src:'assets/audio/music/paliers/aura.html'},
+  {id:'nuit',nom:'NUIT DE VELOURS',src:'assets/audio/music/paliers/nuit-de-velours.html'},
+  {id:'velours-v1',nom:'VELOURS v1',src:'assets/audio/music/paliers/nuit-de-velours-v1.html'},
+  {id:'glisse',nom:'MOTEUR GLISSE',src:'assets/audio/music/paliers/moteur-glisse.html'},
+  {id:'og',nom:'OG GINOBILI',bpm:145,ton:'do mineur',fichiers:[1,2,3,4,5].map(n=>'atelier-son/studio/references/labo/moteur/og-p'+n+'.wav'),
+   paliers:['Le morceau tel quel (mesures 8 à 15) : déjà complet.','La suite du couplet (mesures 24 à 31), batterie un peu plus devant.',
+     'La partie où la batterie s\u2019étoffe (mesures 32 à 39), batterie et basse poussées.','Le sommet du morceau (mesures 48 à 55) : charleys serrés, mélodie plus haute.',
+     'Le final : le sommet avec batterie +5,5 dB, charleys qui claquent, basse +3 dB, plus large.']}];
+const $=id=>document.getElementById(id);
+const AC=new (window.AudioContext||window.webkitAudioContext)(),MAITRE=AC.createGain();MAITRE.gain.value=+$('vol').value;MAITRE.connect(AC.destination);
+let lect=null,M=null,mot=0,simT=null,jeton=0,choisi=0;
+
+// LES NOMS ET LES SUPPRESSIONS DE LÉO : `musique-moteur.json` sur le disque (serveur atelier-son/serveur-moteur.py), sinon ce navigateur.
+// Supprimer = retirer de la liste (le fichier du morceau reste ; « Rétablir » le ramène).
+let PREF={noms:{},suppr:[],paliers:{}},EDIT=false;const CACHE={};
+const nomDe=m=>(m&&m.id&&PREF.noms[m.id])||(m&&m.nom)||'';
+async function prefLit(){try{const r=await fetch('musique-moteur.json',{cache:'no-store'});if(r.ok){const d=await r.json();PREF={noms:d.noms||{},suppr:d.suppr||[],paliers:d.paliers||{}};return}}catch(e){}
+  try{const d=JSON.parse(localStorage.getItem('musiqueMoteurPref')||'null');if(d)PREF={noms:d.noms||{},suppr:d.suppr||[],paliers:d.paliers||{}}}catch(e){}}
+function prefEcrit(){try{localStorage.setItem('musiqueMoteurPref',JSON.stringify(PREF))}catch(e){}
+  fetch('musique-moteur.json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(PREF)}).catch(()=>{})}
+const visibles=()=>MORCEAUX.map((m,i)=>i).filter(i=>PREF.suppr.indexOf(MORCEAUX[i].id)<0);
+function chips(){const c=$('choix');c.innerHTML='';c.classList.toggle('edit',EDIT);
+  visibles().forEach(i=>{const m=MORCEAUX[i];
+    if(!EDIT){const b=document.createElement('button');b.textContent=nomDe(m);b.classList.toggle('on',i===choisi);b.onclick=()=>choisir(i);c.appendChild(b);return}
+    const s=document.createElement('span');s.className='ch';
+    const inp=document.createElement('input');inp.value=nomDe(m);inp.maxLength=40;inp.setAttribute('aria-label','Nom du morceau');
+    inp.oninput=()=>{const v=inp.value.trim();if(v&&v!==m.nom)PREF.noms[m.id]=v;else delete PREF.noms[m.id]};
+    inp.onchange=()=>{prefEcrit();if(i===choisi)sousMaj()};inp.onkeydown=e=>{if(e.key==='Enter')inp.blur()};
+    const x=document.createElement('button');x.className='moins';x.textContent='−';x.setAttribute('aria-label','Supprimer '+nomDe(m));
+    x.onclick=()=>{if(visibles().length<=1)return;PREF.suppr.push(m.id);prefEcrit();if(i===choisi){chips();choisir(visibles()[0]);}else chips()};
+    s.append(inp,x);c.appendChild(s)});
+  $('modif').textContent=EDIT?'OK':'Modifier';$('modif').classList.toggle('on',EDIT);
+  const nS=PREF.suppr.filter(id=>MORCEAUX.some(m=>m.id===id)).length;$('retab').hidden=!(EDIT&&nS);$('retab').textContent='Rétablir ('+nS+')'}
+$('modif').onclick=()=>{EDIT=!EDIT;if(!EDIT)prefEcrit();chips();dessinePal();majPal()};
+$('retab').onclick=()=>{PREF.suppr=[];prefEcrit();chips()};
+let sousTxt='';function sousMaj(){if(M&&sousTxt)$('sous').textContent=nomDe(M)+sousTxt}
+// LES PALIERS DE LÉO (« laisse supprimer et changer les noms — je parle des sons jaugés ») : un nom par palier, et des paliers RETIRÉS
+// (leurs moteurs jouent alors le palier d'avant). Par morceau, dans musique-moteur.json (`paliers`).
+const cleM=()=>M?(M.id||('fichier:'+(M.nom||''))):'';
+function palPref(){const P=PREF.paliers||(PREF.paliers={}),k=cleM();return P[k]||{noms:{},suppr:[]}}
+function palPrefW(){const P=PREF.paliers||(PREF.paliers={}),k=cleM();return P[k]||(P[k]={noms:{},suppr:[]})}
+const palSup=i=>palPref().suppr.indexOf(i)>=0, palNom=i=>palPref().noms[i]||'';
+function palMot(t){const k=palPalierDe(DEB,t);let j=k;while(j>=0&&palSup(j))j--;if(j<0){j=k;while(j<NB&&palSup(j))j++}return j<NB?j:0}
+// la plage d'un palier : hors MODIFIER, celle qu'il joue VRAIMENT (un palier retiré donne ses moteurs à celui d'avant)
+const plage=i=>{let a,fin;if(EDIT){a=DEB[i]+1;fin=i<NB-1?DEB[i+1]:30}else{for(let t=0;t<30;t++)if(palMot(t)===i){if(a==null)a=t+1;fin=t+1}}
+  return a==null?'':a===fin?'moteur '+a:'moteurs '+a+'-'+fin};
+function dessinePal(){const c=$('pals');c.innerHTML='';const vis=[...Array(NB).keys()].filter(i=>EDIT||!palSup(i));
+  c.style.gridTemplateColumns='repeat('+(vis.length>10?6:Math.max(1,Math.min(vis.length,5)))+',1fr)';
+  vis.forEach(i=>{
+    if(!EDIT){const b=document.createElement('button');b.className='pal';b.dataset.i=i;b.innerHTML=`<b></b><span>${plage(i)}</span>`;b.firstChild.textContent=palNom(i)||(i+1);
+      b.onclick=()=>{stopSimu();poseMoteur(DEB[i])};c.appendChild(b);return}
+    const d=document.createElement('div');d.className='pal ed'+(palSup(i)?' sup':'');d.dataset.i=i;
+    const inp=document.createElement('input');inp.value=palNom(i);inp.placeholder=String(i+1);inp.maxLength=24;inp.setAttribute('aria-label','Nom du palier '+(i+1));
+    inp.oninput=()=>{const P=palPrefW(),v=inp.value.trim();if(v)P.noms[i]=v;else delete P.noms[i]};inp.onchange=()=>prefEcrit();inp.onkeydown=e=>{if(e.key==='Enter')inp.blur()};
+    const pb=document.createElement('div');pb.className='pb';const sp=document.createElement('span');sp.textContent=plage(i);
+    const x=document.createElement('button');x.className=palSup(i)?'plus':'moins';x.textContent=palSup(i)?'+':'−';x.setAttribute('aria-label',(palSup(i)?'Remettre':'Retirer')+' le palier '+(i+1));
+    x.onclick=()=>{const P=palPrefW(),k=P.suppr.indexOf(i);if(k>=0)P.suppr.splice(k,1);else{if(NB-P.suppr.length<=1)return;P.suppr.push(i)}prefEcrit();dessinePal();majPal()};
+    pb.append(sp,x);d.append(inp,pb);c.appendChild(d)})}
+function boutonsPal(n,mot){NB=n;DEB=palDecoupe(n,mot);dessinePal()}
+boutonsPal(5);
+
+async function choisir(i,fichier){
+  // (Léo : « changer de morceau bloque ») : les rendus du morceau d'avant s'arrêtent (annule), ce qui est fait reste en mémoire (CACHE :
+  // y revenir est instantané), et si la musique jouait, le nouveau morceau repart tout seul dès que son palier 1 est prêt.
+  const j=++jeton,jouait=!!lect&&lect.joue();stopSimu();if(lect)lect.stop(.3);lect=PalLecteur(AC,MAITRE);majIco();
+  M=fichier?{nom:fichier.name,fichier}:MORCEAUX[i];choisi=fichier?-1:i;
+  if(M.id)try{history.replaceState(null,'','?m='+M.id)}catch(e){}
+  const pret=()=>{if(j!==jeton)return;$('jouer').disabled=false;if(jouait&&!lect.joue())demarre()};
+  chips();
+  $('jouer').disabled=true;$('charge').textContent='Chargement…';majPal();
+  try{
+    if(M.fichiers){boutonsPal(5);const bufs=await Promise.all(M.fichiers.map(f=>fetch(f).then(r=>{if(!r.ok)throw new Error(f+' : '+r.status);return r.arrayBuffer()}).then(a=>AC.decodeAudioData(a))));
+      if(j!==jeton)return;bufs.forEach((b,k)=>{lect.buf[k]=b;lect.gain[k]=1});M.titre=M.nom;
+      $('charge').textContent='Prêt · 5 paliers de 8 mesures ('+bufs[0].duration.toFixed(1)+' s chacun).';pret();}
+    else{const MM=await palLitMorceau(M.fichier||M.src);if(j!==jeton)return;Object.assign(M,{titre:MM.titre,bpm:MM.bpm,ton:MM.ton,paliers:MM.paliers,introTxt:MM.introTxt});lect.nb=MM.mesures;lect.nbIntro=MM.intro||0;boutonsPal(palNb(MM),MM.moteurs);majPal();
+      sousTxt=' · '+Math.round(MM.bpm)+' BPM · '+(MM.ton||'')+' · déjà complet au palier 1, chaque palier pousse un cran plus fort. Le changement tombe sur la mesure suivante.';
+      if(!M.id)M.nom=MM.titre;sousMaj();
+      const t0=performance.now();
+      // l'intro (s'il y en a une) se rend juste après le palier 1 : on ne peut jouer qu'une fois les deux prêts
+      const E=CACHE[cleM()+'|'+MM.titre]||(CACHE[cleM()+'|'+MM.titre]={bufs:[],gains:[],intro:null,introGain:1});
+      const r=await palRendTout(MM,(k,b,g)=>{if(k<0){E.intro=b;E.introGain=g}if(j!==jeton)return;if(k<0){lect.intro=b;lect.introGain=g}else{lect.buf[k]=b;lect.gain[k]=g}
+        if(lect.buf[0]&&(!lect.nbIntro||lect.intro))pret();
+        $('charge').textContent='Fabrication des paliers… '+(k<0?'intro prête':lect.buf.filter(Boolean).length+' / '+NB+' prêts');majPal()},{annule:()=>j!==jeton,deja:E});
+      if(j!==jeton)return;
+      $('charge').textContent='Prêt · '+(lect.nbIntro?'intro de '+lect.nbIntro+' mesures + ':'')+NB+' paliers de '+MM.mesures+' mesures ('+r.bufs[0].duration.toFixed(1)+' s chacun) · fabriqués en '+((performance.now()-t0)/1000).toFixed(1)+' s · sonie '+r.info.map(x=>x.sonie).join(' / ')+' dB';}
+    if(M.fichiers){sousTxt=' · '+M.bpm+' BPM · '+M.ton+' · déjà complet au palier 1, chaque palier pousse un cran plus fort. Le changement tombe sur la mesure suivante.';sousMaj()}
+    $('jouer').disabled=false;majPal();
+  }catch(e){if(j===jeton)$('charge').textContent='Impossible de charger ce morceau : '+e.message;}
+}
+$('fichier').onchange=e=>{const f=e.target.files[0];if(f)choisir(-1,f);e.target.value=''};
+
+function demarre(){if(AC.state==='suspended')AC.resume();if(lect.demarre(palMot(mot)))majIco()}
+function arrete(){lect.stop();majIco();$('attente').classList.remove('on')}
+function poseMoteur(t){mot=Math.max(0,Math.min(29,t));
+  $('curs').value=mot;$('cursV').textContent=(mot+1)+' / 30';$('nom').textContent=MOT[mot][0];
+  $('info').textContent='moteur '+(mot+1)+' / 30 · '+MOT[mot][1]+' pièce'+(MOT[mot][1]>1?'s':'');majPal()}
+const palTitre=i=>palNom(i)||('Palier '+(i+1));
+function majPal(){const intro=!!lect&&lect.enIntro(),enJeu=lect&&lect.joue()?lect.palier():palMot(mot),vers=lect?lect.vers():-1;
+  [...$('pals').children].forEach(b=>{const i=+b.dataset.i;b.classList.toggle('on',!EDIT&&i===enJeu);b.classList.toggle('attend',!EDIT&&!!lect&&lect.attend()&&i===vers);if(!EDIT)b.disabled=!!lect&&!lect.buf[i]});
+  $('ce').textContent=intro?'Intro · '+(M.introTxt||'')+' Puis '+palTitre(vers)+'.':M&&M.paliers&&enJeu>=0?palTitre(enJeu)+' · '+M.paliers[enJeu]:''}
+function majIco(){const j=lect&&lect.joue();$('ico').setAttribute('d',j?'M6 4h4v16H6zM14 4h4v16h-4z':'M7 4l13 8-13 8z');$('jouer').setAttribute('aria-label',j?'Arrêter':'Jouer')}
+
+// l'horloge : le palier voulu par le moteur, la bascule à la mesure, le temps
+(function tic(){requestAnimationFrame(tic);if(!lect||!lect.joue())return;
+  lect.promeut();const voulu=lect.dispo(palMot(mot));if(voulu>=0&&voulu!==lect.vers())lect.vise(voulu);
+  $('attente').classList.toggle('on',lect.attend()&&!lect.enIntro());majPal();
+  const m=lect.mesure(),e=AC.currentTime-lect.t0,tps=((Math.floor(e/(m/4))%4)+4)%4;
+  [...document.querySelectorAll('.temps i')].forEach((d,i)=>d.classList.toggle('on',i===tps));
+  $('mes').textContent=lect.enIntro()?'intro '+(Math.max(0,lect.introMesure())+1)+' / '+lect.nbIntro:'mesure '+(Math.floor(Math.max(0,e)/m)%lect.nb+1)+' / '+lect.nb})();
+
+$('jouer').onclick=()=>lect.joue()?arrete():demarre();
+$('curs').oninput=e=>{stopSimu();poseMoteur(+e.target.value)};
+$('plus1').onclick=()=>{stopSimu();poseMoteur(mot+1)};
+$('mort').onclick=()=>{stopSimu();poseMoteur(0);if(lect&&lect.joue())demarre()};   // une nouvelle partie repart de l'intro
+function stopSimu(){if(simT){clearInterval(simT);simT=null;$('simu').classList.remove('on');$('simu').textContent='Simuler une partie'}}
+$('simu').onclick=()=>{if(simT)return stopSimu();if(mot>=29)poseMoteur(0);if(!lect.joue()&&!$('jouer').disabled)demarre();
+  $('simu').classList.add('on');$('simu').textContent='Arrêter la simulation';
+  simT=setInterval(()=>{if(mot>=29)return stopSimu();poseMoteur(mot+1)},2600)};
+$('vol').oninput=e=>{MAITRE.gain.value=+e.target.value};
+poseMoteur(0);prefLit().then(()=>{chips();const q=new URLSearchParams(location.search).get('m'),v=visibles(),k=v.find(i=>MORCEAUX[i].id===q);choisir(k!=null?k:v[0])});
+</script>
+</body></html>

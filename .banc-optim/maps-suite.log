@@ -1,0 +1,91 @@
+22:22:09 séance dpr finie. Comptes carte par carte
+22:22:09 chef du banc sur :8931, 8 scénarios, seuil 99 °C
+22:22:10 ▶ geoM-canyon-OFF · batterie 37.8 °C
+22:22:10 VIE {"etat":"fait","plan":"valSdpr-G","jit":9}
+22:22:17 VIE {"demarrage":{"froid":false,"pret":7100,"charge":0,"jit":9,"dcl":0}}
+22:22:20 scénario demandé → geoM-canyon-OFF
+22:22:20 VIE {"etat":"en cours","plan":"geoM-canyon-OFF","jit":7}
+22:23:01 VIE {"etape":"arme","r":"arme","t":12}
+22:23:08 VIE {"t":19,"r":"[1,\"canyon\",667542,128,0,1.5]","etape":"compte"}
+22:23:13 VIE {"t":24,"r":"[1,\"canyon\",667542,128,0,1.5]","etape":"compte"}
+22:23:17 bilan reçu geoM-canyon-OFF 20140 octets 
+22:23:19 scénario demandé → aucun
+22:23:24 CC BANC fermée (pid 1040)
+22:23:27 ✓ geoM-canyon-OFF en 67 s · batterie après 37.8 °C
+22:23:29 ▶ geoM-canyon-ON · batterie 37.8 °C
+22:23:30 VIE {"etat":"fait","plan":"geoM-canyon-OFF","jit":4}
+22:23:35 VIE {"demarrage":{"pret":5458,"froid":false,"jit":4,"charge":0,"dcl":0}}
+22:23:37 scénario demandé → geoM-canyon-ON
+22:23:38 VIE {"etat":"en cours","jit":5,"plan":"geoM-canyon-ON"}
+22:24:17 VIE {"etape":"arme","r":"arme","t":12}
+22:24:24 VIE {"t":19,"r":"[1,\"canyon\",552262,137,0,1.5]","etape":"compte"}
+22:24:29 VIE {"r":"[1,\"canyon\",552262,137,0,1.5]","etape":"compte","t":24}
+22:24:33 bilan reçu geoM-canyon-ON 19919 octets 
+22:24:35 CC BANC fermée (pid 1052)
+22:24:35 scénario demandé → aucun
+22:24:35 ✓ geoM-canyon-ON en 58 s · batterie après 37.7 °C
+22:24:36 ▶ geoM-dunes-OFF · batterie 37.7 °C
+22:24:37 VIE {"plan":"geoM-canyon-ON","jit":8,"etat":"fait"}
+22:24:43 VIE {"demarrage":{"dcl":0,"charge":0,"froid":false,"pret":6343,"jit":8}}
+22:24:45 scénario demandé → geoM-dunes-OFF
+22:24:46 VIE {"plan":"geoM-dunes-OFF","etat":"en cours","jit":4}
+22:25:24 VIE {"etape":"arme","t":12,"r":"arme"}
+22:25:34 bilan reçu geoM-dunes-OFF 21201 octets 
+22:25:36 scénario demandé → aucun
+22:25:39 CC BANC fermée (pid 1067)
+22:25:42 ✓ geoM-dunes-OFF en 57 s · batterie après 37.7 °C
+22:25:45 ▶ geoM-dunes-ON · batterie 37.7 °C
+22:25:47 VIE {"plan":"geoM-dunes-OFF","jit":3,"etat":"fait"}
+22:25:50 VIE {"demarrage":{"charge":0,"jit":3,"froid":false,"dcl":0,"pret":3681}}
+22:25:52 scénario demandé → geoM-dunes-ON
+22:25:53 VIE {"plan":"geoM-dunes-ON","jit":4,"etat":"en cours"}
+22:26:32 VIE {"r":"arme","etape":"arme","t":13}
+22:26:42 bilan reçu geoM-dunes-ON 21045 octets 
+22:26:43 scénario demandé → aucun
+22:26:47 CC BANC fermée (pid 1084)
+22:26:49 ✓ geoM-dunes-ON en 56 s · batterie après 37.7 °C
+22:26:50 ▶ geoM-banquise-OFF · batterie 37.7 °C
+22:26:51 VIE {"plan":"geoM-dunes-ON","jit":4,"etat":"fait"}
+22:26:57 VIE {"demarrage":{"froid":false,"charge":0,"pret":5268,"jit":4,"dcl":0}}
+22:26:59 scénario demandé → geoM-banquise-OFF
+22:27:00 VIE {"jit":4,"plan":"geoM-banquise-OFF","etat":"en cours"}
+22:27:38 VIE {"etape":"arme","r":"arme","t":12}
+22:27:47 bilan reçu geoM-banquise-OFF 20441 octets 
+22:27:49 scénario demandé → aucun
+22:27:52 CC BANC fermée (pid 1096)
+22:27:54 ✓ geoM-banquise-OFF en 55 s · batterie après 37.7 °C
+22:27:56 ▶ geoM-banquise-ON · batterie 37.7 °C
+22:27:57 VIE {"plan":"geoM-banquise-OFF","etat":"fait","jit":6}
+22:28:02 VIE {"demarrage":{"pret":5186,"froid":false,"charge":0,"jit":6,"dcl":0}}
+22:28:04 scénario demandé → geoM-banquise-ON
+22:28:04 VIE {"etat":"en cours","plan":"geoM-banquise-ON","jit":4}
+22:28:43 VIE {"r":"arme","etape":"arme","t":13}
+22:28:49 bilan reçu geoM-banquise-ON 20184 octets 
+22:28:50 scénario demandé → aucun
+22:28:53 CC BANC fermée (pid 1107)
+22:28:54 ✓ geoM-banquise-ON en 50 s · batterie après 37.7 °C
+22:28:56 ▶ geoM-ville-OFF · batterie 37.7 °C
+22:28:57 VIE {"plan":"geoM-banquise-ON","jit":4,"etat":"fait"}
+22:29:01 VIE {"demarrage":{"jit":4,"dcl":0,"pret":4781,"charge":0,"froid":false}}
+22:29:03 scénario demandé → geoM-ville-OFF
+22:29:04 VIE {"etat":"en cours","plan":"geoM-ville-OFF","jit":5}
+22:29:42 VIE {"etape":"arme","t":12,"r":"arme"}
+22:29:49 VIE {"r":"[1,\"ville\",209954,104,0,1.5]","etape":"compte","t":19}
+22:29:54 VIE {"r":"[1,\"ville\",209954,104,0,1.5]","t":24,"etape":"compte"}
+22:29:58 bilan reçu geoM-ville-OFF 27626 octets 
+22:29:59 scénario demandé → aucun
+22:30:01 CC BANC fermée (pid 1118)
+22:30:02 ✓ geoM-ville-OFF en 58 s · batterie après 37.6 °C
+22:30:02 ▶ geoM-ville-ON · batterie 37.6 °C
+22:30:03 VIE {"plan":"geoM-ville-OFF","etat":"fait","jit":6}
+22:30:09 VIE {"demarrage":{"charge":0,"pret":5915,"froid":false,"jit":6,"dcl":0}}
+22:30:11 scénario demandé → geoM-ville-ON
+22:30:11 VIE {"etat":"en cours","plan":"geoM-ville-ON","jit":4}
+22:30:49 VIE {"r":"arme","etape":"arme","t":12}
+22:30:57 VIE {"r":"[1,\"ville\",203716,101,0,1.5]","t":19,"etape":"compte"}
+22:31:01 VIE {"r":"[1,\"ville\",203716,101,0,1.5]","t":24,"etape":"compte"}
+22:31:06 bilan reçu geoM-ville-ON 31511 octets 
+22:31:07 CC BANC fermée (pid 1132)
+22:31:08 ✓ geoM-ville-ON en 56 s · batterie après 37.6 °C
+22:31:08 file terminée
+22:31:08 comptes par carte terminés

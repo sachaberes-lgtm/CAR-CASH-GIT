@@ -1,0 +1,1924 @@
+
+16:54:44 chef du banc sur :8931, 6 scénarios, seuil 37 °C
+16:54:49 ▶ v866-volcan-a · batterie  °C
+16:54:58 VIE {"jit":21,"plan":null,"etat":null}
+16:54:58 scénario demandé → v866-volcan-a
+16:54:58 VIE {"jit":16,"etat":"en cours","plan":"v866-volcan-a"}
+16:56:32 bilan reçu v866-volcan-a 42809 octets 
+16:56:32 scénario demandé → aucun
+16:56:35 CC BANC fermée (pid 14227)
+16:56:36 ✓ v866-volcan-a en 107 s · batterie après  °C
+16:56:36 ▶ diag-dpr05 · batterie  °C
+16:56:37 scénario demandé → diag-dpr05
+16:56:37 VIE {"etat":"fait","plan":"v866-volcan-a","jit":3}
+16:56:40 VIE {"jit":7,"etat":"en cours","plan":"diag-dpr05"}
+16:57:40 bilan reçu diag-dpr05 51034 octets 
+16:57:40 scénario demandé → aucun
+16:57:43 CC BANC fermée (pid 14247)
+16:57:43 ✓ diag-dpr05 en 67 s · batterie après  °C
+16:57:44 ▶ diag-sanshud · batterie  °C
+16:57:45 scénario demandé → diag-sanshud
+16:57:45 VIE {"etat":"fait","plan":"diag-dpr05","jit":4}
+16:57:47 VIE {"plan":"diag-sanshud","jit":4,"etat":"en cours"}
+16:58:46 bilan reçu diag-sanshud 51601 octets 
+16:58:46 scénario demandé → aucun
+16:58:49 CC BANC fermée (pid 14260)
+16:58:50 ✓ diag-sanshud en 66 s · batterie après  °C
+16:58:50 ▶ diag-sansanim · batterie  °C
+
+17:00:03 chef du banc sur :8931, 4 scénarios, seuil 37 °C
+17:00:04 ▶ p2-volcan-a · batterie  °C
+17:03:24 ✗ pas de bilan p2-volcan-a en 200 s · batterie après  °C
+17:03:25 température illisible : 90 s de repos
+17:04:55 ▶ p2-volcan-sansanim · batterie  °C
+
+17:06:14 chef du banc sur :8931, 4 scénarios, seuil 37 °C
+17:06:15 ▶ p2-volcan-a · batterie  °C
+17:06:17 scénario demandé → p2-volcan-a
+17:06:17 VIE {"etat":"fait","jit":4,"plan":"diag-sanshud"}
+17:06:19 VIE {"etat":"en cours","jit":3,"plan":"p2-volcan-a"}
+17:07:39 bilan reçu p2-volcan-a 51288 octets 
+17:07:39 scénario demandé → aucun
+17:07:43 CC BANC fermée (pid 14412)
+17:07:43 ✓ p2-volcan-a en 88 s · batterie après  °C
+17:07:44 température illisible : 90 s de repos
+17:09:14 ▶ p2-volcan-sansanim · batterie  °C
+17:09:16 scénario demandé → p2-volcan-sansanim
+17:09:16 VIE {"plan":"p2-volcan-a","jit":3,"etat":"fait"}
+17:09:18 VIE {"jit":3,"plan":"p2-volcan-sansanim","etat":"en cours"}
+17:10:17 bilan reçu p2-volcan-sansanim 51855 octets 
+17:10:17 scénario demandé → aucun
+17:10:20 CC BANC fermée (pid 14452)
+17:10:20 ✓ p2-volcan-sansanim en 67 s · batterie après  °C
+17:10:21 température illisible : 90 s de repos
+17:11:51 ▶ p2-nuages-a · batterie  °C
+17:11:53 scénario demandé → p2-nuages-a
+17:11:53 VIE {"plan":"p2-volcan-sansanim","jit":3,"etat":"fait"}
+17:11:55 VIE {"etat":"en cours","jit":4,"plan":"p2-nuages-a"}
+17:12:54 bilan reçu p2-nuages-a 50838 octets 
+17:12:54 scénario demandé → aucun
+17:12:56 CC BANC fermée (pid 14478)
+17:12:58 ✓ p2-nuages-a en 67 s · batterie après  °C
+17:12:58 température illisible : 90 s de repos
+17:14:28 ▶ p0-volcan-a · batterie  °C
+17:14:30 scénario demandé → p0-volcan-a
+17:14:30 VIE {"plan":"p2-nuages-a","etat":"fait","jit":8}
+17:14:31 VIE {"plan":"p0-volcan-a","jit":5,"etat":"en cours"}
+17:15:33 bilan reçu p0-volcan-a 52234 octets 
+17:15:33 scénario demandé → aucun
+17:15:38 CC BANC fermée (pid 14566)
+17:15:39 ✓ p0-volcan-a en 71 s · batterie après  °C
+17:15:39 file terminée
+
+17:15:43 chef du banc sur :8931, 4 scénarios, seuil 37 °C
+17:15:44 ▶ p2-volcan-b · batterie  °C
+17:15:44 VIE {"etat":"fait","plan":"p0-volcan-a","jit":4}
+17:15:44 scénario demandé → p2-volcan-b
+17:15:47 VIE {"etat":"en cours","plan":"p2-volcan-b","jit":4}
+
+17:18:15 chef du banc sur :8931, 5 scénarios, seuil 37 °C
+17:18:15 ▶ pal-volcan-a · batterie  °C
+17:18:17 VIE {"plan":"p2-volcan-b","jit":3,"etat":"en cours"}
+17:18:19 VIE {"demarrage":{"charge":0,"jit":3,"froid":false,"pret":1907,"dcl":0}}
+17:18:19 scénario demandé → pal-volcan-a
+17:18:19 VIE {"etat":"en cours","plan":"pal-volcan-a","jit":3}
+17:19:18 bilan reçu pal-volcan-a 51591 octets 
+17:19:18 scénario demandé → aucun
+17:19:24 CC BANC fermée (pid 14633)
+17:19:25 ✓ pal-volcan-a en 69 s · batterie après  °C
+17:19:25 température illisible : 90 s de repos
+17:20:55 ▶ pal-volcan-nitrofige · batterie  °C
+17:20:57 VIE {"jit":4,"etat":"fait","plan":"pal-volcan-a"}
+17:20:59 scénario demandé → pal-volcan-nitrofige
+17:20:59 VIE {"demarrage":{"pret":1870,"dcl":0,"froid":false,"jit":4,"charge":0}}
+17:20:59 VIE {"plan":"pal-volcan-nitrofige","jit":3,"etat":"en cours"}
+17:21:58 bilan reçu pal-volcan-nitrofige 51783 octets 
+17:21:58 scénario demandé → aucun
+17:22:02 CC BANC fermée (pid 14671)
+17:22:03 ✓ pal-volcan-nitrofige en 67 s · batterie après  °C
+17:22:04 température illisible : 90 s de repos
+17:23:34 ▶ pal-volcan-horsnitrofige · batterie  °C
+17:23:41 VIE {"plan":"pal-volcan-nitrofige","jit":3,"etat":"fait"}
+17:23:42 VIE {"demarrage":{"dcl":0,"froid":false,"pret":1878,"charge":0,"jit":3}}
+17:23:42 scénario demandé → pal-volcan-horsnitrofige
+17:23:43 VIE {"etat":"en cours","plan":"pal-volcan-horsnitrofige","jit":3}
+17:24:42 bilan reçu pal-volcan-horsnitrofige 51977 octets 
+17:24:42 scénario demandé → aucun
+17:24:45 CC BANC fermée (pid 14693)
+17:24:45 ✓ pal-volcan-horsnitrofige en 72 s · batterie après  °C
+17:24:46 température illisible : 90 s de repos
+17:26:16 ▶ pal-volcan-b · batterie  °C
+17:26:17 VIE {"plan":"pal-volcan-horsnitrofige","etat":"fait","jit":4}
+17:26:19 scénario demandé → pal-volcan-b
+17:26:19 VIE {"demarrage":{"dcl":0,"jit":4,"charge":0,"froid":false,"pret":2378}}
+17:26:20 VIE {"jit":4,"plan":"pal-volcan-b","etat":"en cours"}
+17:27:21 bilan reçu pal-volcan-b 52497 octets 
+17:27:21 scénario demandé → aucun
+17:27:28 CC BANC fermée (pid 14756)
+17:27:30 ✓ pal-volcan-b en 74 s · batterie après 26.9 °C
+17:27:32 ▶ pal-volcan-sansanim · batterie 26.9 °C
+17:27:33 VIE {"plan":"pal-volcan-b","etat":"fait","jit":5}
+17:27:35 scénario demandé → pal-volcan-sansanim
+17:27:35 VIE {"demarrage":{"pret":2414,"charge":0,"jit":5,"dcl":0,"froid":false}}
+17:27:36 VIE {"jit":5,"etat":"en cours","plan":"pal-volcan-sansanim"}
+
+17:33:46 chef du banc sur :8931, 3 scénarios, seuil 37 °C
+17:33:48 ▶ pal-volcan-sansanim · batterie 36.4 °C
+17:33:54 VIE {"etat":"en cours","jit":14,"plan":"pal-volcan-sansanim"}
+17:34:02 VIE {"demarrage":{"dcl":0,"jit":14,"pret":9710,"charge":0,"froid":false}}
+17:34:02 scénario demandé → pal-volcan-sansanim
+17:37:08 CC BANC fermée (pid 14878)
+17:37:08 ✗ pas de bilan pal-volcan-sansanim en 201 s · batterie après 35.9 °C
+17:37:09 ▶ pal-volcan-anims · batterie 35.9 °C
+17:37:10 VIE {"jit":4,"plan":"pal-volcan-sansanim","etat":"en cours"}
+17:37:12 scénario demandé → pal-volcan-anims
+17:37:12 VIE {"demarrage":{"froid":false,"pret":2089,"dcl":0,"jit":4,"charge":0}}
+17:37:12 VIE {"plan":"pal-volcan-anims","jit":4,"etat":"en cours"}
+17:38:11 bilan reçu pal-volcan-anims 45697 octets 
+17:38:11 scénario demandé → aucun
+17:38:13 CC BANC fermée (pid 14924)
+17:38:13 ✓ pal-volcan-anims en 64 s · batterie après 35.6 °C
+17:38:14 ▶ pal-volcan-trace · batterie 35.6 °C
+17:38:15 VIE {"etat":"fait","jit":6,"plan":"pal-volcan-anims"}
+17:38:19 scénario demandé → pal-volcan-trace
+17:38:19 VIE {"demarrage":{"pret":4570,"dcl":0,"charge":0,"jit":6,"froid":false}}
+17:38:20 VIE {"etat":"en cours","plan":"pal-volcan-trace","jit":9}
+17:39:45 bilan reçu pal-volcan-trace 57707 octets 
+17:39:45 scénario demandé → aucun
+17:39:49 CC BANC fermée (pid 14941)
+17:39:50 ✓ pal-volcan-trace en 96 s · batterie après 35.6 °C
+17:39:50 file terminée
+
+17:56:41 chef du banc sur :8931, 4 scénarios, seuil 37 °C
+17:56:43 ▶ hud-new-a · batterie 19.8 °C
+17:56:44 VIE {"jit":3,"plan":"pal-volcan-trace","etat":"fait"}
+17:56:46 scénario demandé → hud-new-a
+17:56:46 VIE {"demarrage":{"charge":0,"jit":3,"pret":2163,"dcl":0,"froid":false}}
+17:56:46 VIE {"jit":4,"etat":"en cours","plan":"hud-new-a"}
+17:57:44 bilan reçu hud-new-a 50656 octets 
+17:57:44 scénario demandé → aucun
+17:57:46 CC BANC fermée (pid 15185)
+17:57:47 ✓ hud-new-a en 64 s · batterie après 19.3 °C
+17:57:48 ▶ hud-old-a · batterie 19.3 °C
+17:57:49 VIE {"jit":4,"plan":"hud-new-a","etat":"fait"}
+17:57:51 VIE {"demarrage":{"dcl":0,"charge":0,"froid":false,"pret":2101,"jit":4}}
+17:57:51 scénario demandé → hud-old-a
+17:57:51 VIE {"jit":4,"plan":"hud-old-a","etat":"en cours"}
+17:58:50 bilan reçu hud-old-a 52507 octets 
+17:58:50 scénario demandé → aucun
+17:58:51 CC BANC fermée (pid 15207)
+17:58:52 ✓ hud-old-a en 64 s · batterie après 19.2 °C
+17:58:52 ▶ hud-new-b · batterie 19.2 °C
+17:58:53 VIE {"plan":"hud-old-a","jit":4,"etat":"fait"}
+17:58:55 VIE {"demarrage":{"froid":false,"dcl":0,"pret":2202,"jit":4,"charge":0}}
+17:58:55 scénario demandé → hud-new-b
+17:58:55 VIE {"plan":"hud-new-b","jit":4,"etat":"en cours"}
+17:59:54 bilan reçu hud-new-b 52254 octets 
+17:59:54 scénario demandé → aucun
+17:59:57 CC BANC fermée (pid 15224)
+17:59:58 ✓ hud-new-b en 66 s · batterie après 19.3 °C
+17:59:59 ▶ hud-old-b · batterie 19.3 °C
+17:59:59 VIE {"etat":"fait","jit":4,"plan":"hud-new-b"}
+18:00:01 VIE {"demarrage":{"dcl":0,"jit":4,"charge":0,"pret":2200,"froid":false}}
+18:00:01 scénario demandé → hud-old-b
+18:00:02 VIE {"jit":4,"etat":"en cours","plan":"hud-old-b"}
+18:01:01 bilan reçu hud-old-b 50765 octets 
+18:01:01 scénario demandé → aucun
+18:01:04 CC BANC fermée (pid 15238)
+18:01:05 ✓ hud-old-b en 66 s · batterie après 19.5 °C
+18:01:05 file terminée
+
+18:01:37 chef du banc sur :8931, 6 scénarios, seuil 37 °C
+18:01:38 ▶ hud2-new-a · batterie 19.5 °C
+18:01:39 VIE {"etat":"fait","plan":"hud-old-b","jit":3}
+18:01:41 VIE {"demarrage":{"jit":3,"froid":false,"charge":0,"pret":1947,"dcl":0}}
+18:01:41 scénario demandé → hud2-new-a
+18:01:41 VIE {"etat":"en cours","jit":4,"plan":"hud2-new-a"}
+18:02:40 bilan reçu hud2-new-a 53137 octets 
+18:02:40 scénario demandé → aucun
+18:02:42 CC BANC fermée (pid 15278)
+18:02:43 ✓ hud2-new-a en 65 s · batterie après 19.5 °C
+18:02:43 ▶ hud2-old-a · batterie 19.5 °C
+18:02:44 VIE {"etat":"fait","jit":3,"plan":"hud2-new-a"}
+18:02:46 scénario demandé → hud2-old-a
+18:02:46 VIE {"demarrage":{"charge":0,"jit":3,"pret":2241,"dcl":0,"froid":false}}
+18:02:46 VIE {"jit":4,"plan":"hud2-old-a","etat":"en cours"}
+18:03:46 bilan reçu hud2-old-a 50738 octets 
+18:03:46 scénario demandé → aucun
+18:03:49 CC BANC fermée (pid 15292)
+18:03:49 ✓ hud2-old-a en 66 s · batterie après 19.7 °C
+18:03:50 ▶ hud2-new-b · batterie 19.7 °C
+18:03:51 VIE {"plan":"hud2-old-a","etat":"fait","jit":3}
+18:03:53 scénario demandé → hud2-new-b
+18:03:53 VIE {"demarrage":{"jit":3,"pret":2241,"dcl":0,"froid":false,"charge":0}}
+18:03:53 VIE {"etat":"en cours","jit":5,"plan":"hud2-new-b"}
+18:04:52 bilan reçu hud2-new-b 51755 octets 
+18:04:52 scénario demandé → aucun
+18:04:55 CC BANC fermée (pid 15311)
+18:04:56 ✓ hud2-new-b en 66 s · batterie après 20 °C
+18:04:57 ▶ hud2-old-b · batterie 20 °C
+18:04:57 VIE {"plan":"hud2-new-b","etat":"fait","jit":4}
+18:05:00 scénario demandé → hud2-old-b
+18:05:00 VIE {"demarrage":{"pret":2619,"jit":4,"froid":false,"charge":0,"dcl":0}}
+18:05:00 VIE {"jit":6,"plan":"hud2-old-b","etat":"en cours"}
+18:06:00 bilan reçu hud2-old-b 51150 octets 
+18:06:00 scénario demandé → aucun
+18:06:03 CC BANC fermée (pid 15353)
+18:06:03 ✓ hud2-old-b en 67 s · batterie après 20.3 °C
+18:06:04 ▶ hud2-new-c · batterie 20.5 °C
+18:06:05 VIE {"jit":4,"etat":"fait","plan":"hud2-old-b"}
+18:06:07 scénario demandé → hud2-new-c
+18:06:07 VIE {"demarrage":{"dcl":0,"charge":0,"froid":false,"pret":2371,"jit":4}}
+18:06:07 VIE {"plan":"hud2-new-c","jit":4,"etat":"en cours"}
+18:07:07 bilan reçu hud2-new-c 51956 octets 
+18:07:07 scénario demandé → aucun
+18:07:10 CC BANC fermée (pid 15369)
+18:07:11 ✓ hud2-new-c en 67 s · batterie après 20.8 °C
+18:07:11 ▶ hud2-old-c · batterie 20.8 °C
+18:07:12 VIE {"jit":4,"plan":"hud2-new-c","etat":"fait"}
+18:07:14 VIE {"demarrage":{"dcl":0,"froid":false,"jit":4,"pret":2526,"charge":0}}
+18:07:14 scénario demandé → hud2-old-c
+18:07:15 VIE {"plan":"hud2-old-c","etat":"en cours","jit":5}
+18:08:14 bilan reçu hud2-old-c 50414 octets 
+18:08:14 scénario demandé → aucun
+18:08:17 CC BANC fermée (pid 15382)
+18:08:17 ✓ hud2-old-c en 66 s · batterie après 20.9 °C
+18:08:17 file terminée
+
+18:09:01 chef du banc sur :8931, 4 scénarios, seuil 37 °C
+18:09:01 ▶ v873-portail-nuages-a · batterie 20.8 °C
+18:09:02 VIE {"etat":"fait","jit":3,"plan":"hud2-old-c"}
+18:09:06 scénario demandé → v873-portail-nuages-a
+18:09:06 VIE {"demarrage":{"pret":3938,"charge":0,"jit":3,"froid":false,"dcl":0}}
+18:09:06 VIE {"plan":"v873-portail-nuages-a","etat":"en cours","jit":4}
+18:10:00 bilan reçu v873-portail-nuages-a 43598 octets 
+18:10:00 scénario demandé → aucun
+18:10:03 CC BANC fermée (pid 15443)
+18:10:04 ✓ v873-portail-nuages-a en 63 s · batterie après 24.1 °C
+18:10:06 ▶ v873-portail-foret-a · batterie 24.1 °C
+18:10:07 VIE {"etat":"fait","plan":"v873-portail-nuages-a","jit":4}
+18:10:09 scénario demandé → v873-portail-foret-a
+18:10:09 VIE {"demarrage":{"pret":2348,"jit":4,"froid":false,"dcl":0,"charge":0}}
+18:10:09 VIE {"jit":5,"plan":"v873-portail-foret-a","etat":"en cours"}
+18:11:04 bilan reçu v873-portail-foret-a 45757 octets 
+18:11:04 scénario demandé → aucun
+18:11:06 CC BANC fermée (pid 15462)
+18:11:07 ✓ v873-portail-foret-a en 61 s · batterie après 27.2 °C
+18:11:07 ▶ v873-portail-jade-a · batterie 27.2 °C
+18:11:08 VIE {"plan":"v873-portail-foret-a","etat":"fait","jit":4}
+18:11:11 VIE {"demarrage":{"froid":false,"dcl":0,"pret":2646,"jit":4,"charge":0}}
+18:11:11 scénario demandé → v873-portail-jade-a
+18:11:11 VIE {"jit":5,"plan":"v873-portail-jade-a","etat":"en cours"}
+18:12:05 bilan reçu v873-portail-jade-a 41091 octets 
+18:12:05 scénario demandé → aucun
+18:12:07 CC BANC fermée (pid 15474)
+18:12:08 ✓ v873-portail-jade-a en 61 s · batterie après 29.5 °C
+18:12:09 ▶ v873-long-a · batterie 29.5 °C
+18:12:09 VIE {"jit":5,"plan":"v873-portail-jade-a","etat":"fait"}
+18:12:13 scénario demandé → v873-long-a
+18:12:13 VIE {"demarrage":{"pret":3269,"jit":5,"froid":false,"dcl":0,"charge":0}}
+18:12:13 VIE {"etat":"en cours","plan":"v873-long-a","jit":8}
+18:16:36 bilan reçu v873-long-a 133832 octets 
+18:16:36 scénario demandé → aucun
+18:16:41 CC BANC fermée (pid 15489)
+18:16:42 ✓ v873-long-a en 273 s · batterie après  °C
+18:16:42 file terminée
+
+18:41:03 chef du banc sur :8931, 1 scénarios, seuil 45 °C
+18:41:03 ▶ fuite-v876-a · batterie 35.6 °C
+18:41:04 VIE {"jit":3,"plan":"v873-long-a","etat":"fait"}
+18:41:06 scénario demandé → fuite-v876-a
+18:41:06 VIE {"demarrage":{"froid":false,"pret":2232,"jit":3,"charge":0,"dcl":0}}
+18:41:07 VIE {"jit":4,"plan":"fuite-v876-a","etat":"en cours"}
+18:41:27 VIE {"fuite":{"t":20769,"maillages":1684,"p90":18,"geoScene":827,"tex":100,"progs":212,"objets":2024,"med":17,"tas":null,"calls":null,"lieu":"nuages","ql":0,"js":2.7000000000000002,"niv":1,"dpr":1.5,"tris
+18:41:38 VIE {"fuite":{"t":31180,"maillages":1771,"p90":30,"tex":106,"geoScene":890,"progs":212,"objets":2107,"med":20,"tas":null,"calls":175,"lieu":"banquise","ql":0,"js":5.7000000000000002,"niv":2,"dpr":1.5,"tri
+18:41:48 VIE {"fuite":{"t":41259,"maillages":1833,"p90":91,"geoScene":875,"tex":108,"progs":212,"objets":2177,"med":40,"tas":null,"calls":237,"lieu":"jade","ql":5,"js":8.6999999999999993,"niv":3,"dpr":1.5,"tris":5
+18:41:58 VIE {"fuite":{"t":51730,"maillages":1704,"p90":72,"geoScene":828,"tex":108,"progs":212,"objets":2043,"med":34,"tas":null,"calls":124,"lieu":"espace","ql":7,"js":7.7000000000000002,"niv":4,"dpr":1.37999999
+18:42:09 VIE {"fuite":{"t":62146,"maillages":2310,"p90":26,"geoScene":1423,"tex":108,"progs":212,"objets":3623,"med":18,"tas":null,"calls":282,"lieu":"grotte","ql":9,"js":6.9000000000000004,"niv":5,"dpr":1.25,"tri
+18:42:19 VIE {"fuite":{"t":72228,"maillages":1814,"p90":43,"geoScene":861,"tex":110,"progs":212,"objets":2186,"med":25,"tas":null,"calls":149,"lieu":"ville","ql":9,"js":11.6,"niv":6,"dpr":1.25,"tris":457832,"geo":
+18:42:34 VIE {"fuite":{"t":87881,"maillages":1694,"p90":66,"geoScene":842,"tex":152,"progs":214,"objets":2047,"med":17,"tas":null,"calls":110,"lieu":"dunes","ql":9,"js":9.8000000000000007,"niv":1,"dpr":1.25,"tris"
+18:42:45 VIE {"fuite":{"t":98140,"maillages":1744,"p90":96,"geoScene":862,"tex":153,"progs":214,"objets":2116,"med":28,"tas":null,"calls":128,"lieu":"ville","ql":9,"js":8.8000000000000007,"niv":2,"dpr":1.25,"tris"
+18:42:55 VIE {"fuite":{"t":108550,"maillages":1726,"p90":120,"tex":153,"geoScene":849,"progs":214,"objets":2083,"med":49,"tas":null,"calls":149,"lieu":"dunes","ql":9,"js":8.3000000000000007,"niv":3,"dpr":1.25,"tri
+18:43:06 VIE {"fuite":{"t":119019,"maillages":1756,"p90":172,"geoScene":866,"tex":153,"progs":214,"objets":2126,"med":80,"tas":null,"calls":124,"lieu":"ville","ql":9,"js":8,"niv":4,"dpr":1.25,"tris":483606,"geo":9
+18:43:16 VIE {"fuite":{"t":129309,"maillages":1808,"p90":76,"tex":153,"geoScene":934,"progs":214,"objets":2178,"med":18,"tas":null,"calls":127,"lieu":"banquise","ql":9,"js":5.0999999999999996,"niv":5,"dpr":1.25,"t
+18:43:26 VIE {"fuite":{"t":139667,"maillages":1878,"p90":189,"tex":152,"geoScene":913,"progs":214,"objets":2262,"med":68,"tas":null,"calls":301,"lieu":"jade","ql":8,"js":9.6999999999999993,"niv":6,"dpr":1.31000000
+18:43:36 VIE {"fuite":{"t":149770,"maillages":1786,"p90":191,"tex":153,"geoScene":917,"progs":214,"objets":2152,"med":94,"tas":null,"calls":158,"lieu":"foret","ql":9,"js":10.300000000000001,"niv":7,"dpr":1.25,"tri
+18:43:46 VIE {"fuite":{"t":159851,"maillages":1717,"p90":206,"geoScene":855,"tex":153,"progs":214,"objets":2072,"med":76,"tas":null,"calls":228,"lieu":"dunes","ql":9,"js":11.699999999999999,"niv":8,"dpr":1.25,"tri
+18:43:57 VIE {"fuite":{"t":170081,"maillages":1823,"p90":212,"tex":153,"geoScene":905,"progs":214,"objets":2181,"med":128,"tas":null,"calls":203,"lieu":"jade","ql":9,"js":10.6,"niv":9,"dpr":1.25,"tris":1085384,"ge
+18:44:07 VIE {"fuite":{"t":180382,"maillages":1827,"p90":194,"geoScene":904,"tex":158,"progs":214,"objets":2185,"med":136,"tas":null,"calls":198,"lieu":"jade","ql":11,"js":12.5,"niv":9,"dpr":1.1299999999999999,"tr
+18:44:17 VIE {"fuite":{"t":190694,"maillages":1834,"p90":204,"tex":158,"geoScene":904,"progs":214,"objets":2192,"med":135,"tas":null,"calls":185,"lieu":"jade","ql":9,"js":13,"niv":9,"dpr":1.25,"tris":766626,"geo":
+18:44:27 VIE {"fuite":{"t":200950,"maillages":1839,"p90":207,"geoScene":905,"tex":159,"progs":214,"objets":2197,"med":137,"tas":null,"calls":191,"lieu":"jade","ql":9,"js":13.699999999999999,"niv":9,"dpr":1.25,"tri
+18:44:38 VIE {"fuite":{"t":211240,"maillages":1851,"p90":238,"geoScene":910,"tex":160,"progs":214,"objets":2207,"med":147,"tas":null,"calls":173,"lieu":"jade","ql":9,"js":17.800000000000001,"niv":9,"dpr":1.25,"tri
+18:44:47 bilan reçu fuite-v876-a 107953 octets 
+18:44:47 scénario demandé → aucun
+18:44:49 CC BANC fermée (pid 16008)
+18:44:50 ✓ fuite-v876-a en 227 s · batterie après 37.1 °C
+18:44:50 file terminée
+
+18:57:08 chef du banc sur :8931, 2 scénarios, seuil 38 °C
+18:57:09 ▶ lourd-a · batterie 36.1 °C
+18:57:09 VIE {"plan":"fuite-v876-a","etat":"fait","jit":3}
+18:57:11 scénario demandé → lourd-a
+18:57:11 VIE {"demarrage":{"charge":0,"pret":1908,"froid":false,"jit":3,"dcl":0}}
+18:57:12 VIE {"plan":"lourd-a","etat":"en cours","jit":4}
+18:58:46 bilan reçu lourd-a 64183 octets 
+18:58:46 scénario demandé → aucun
+18:58:49 CC BANC fermée (pid 16134)
+18:58:49 ✓ lourd-a en 101 s · batterie après 36.9 °C
+18:58:50 ▶ lourd-b · batterie 36.9 °C
+18:58:51 VIE {"plan":"lourd-a","etat":"fait","jit":7}
+18:58:55 scénario demandé → lourd-b
+18:58:55 VIE {"demarrage":{"charge":0,"jit":7,"froid":false,"dcl":0,"pret":4464}}
+18:58:56 VIE {"jit":6,"plan":"lourd-b","etat":"en cours"}
+19:00:14 bilan reçu lourd-b 41930 octets 
+19:00:14 scénario demandé → aucun
+19:00:17 CC BANC fermée (pid 16156)
+19:00:17 ✓ lourd-b en 87 s · batterie après 37 °C
+19:00:17 file terminée
+
+19:00:43 chef du banc sur :8931, 1 scénarios, seuil 38 °C
+19:00:44 ▶ trace-n9-a · batterie 36.6 °C
+19:00:45 VIE {"jit":3,"plan":"lourd-b","etat":"fait"}
+19:00:47 scénario demandé → trace-n9-a
+19:00:47 VIE {"demarrage":{"pret":1991,"charge":0,"dcl":0,"jit":3,"froid":false}}
+19:00:48 VIE {"jit":4,"etat":"en cours","plan":"trace-n9-a"}
+19:02:30 bilan reçu trace-n9-a 59260 octets 
+19:02:31 scénario demandé → aucun
+19:02:34 CC BANC fermée (pid 16177)
+19:02:34 ✓ trace-n9-a en 111 s · batterie après 36.4 °C
+19:02:34 file terminée
+
+19:05:57 chef du banc sur :8931, 2 scénarios, seuil 37 °C
+19:05:57 ▶ bancint-jade-n1 · batterie 37 °C
+19:05:58 VIE {"plan":"trace-n9-a","jit":4,"etat":"fait"}
+19:06:01 VIE {"demarrage":{"froid":false,"jit":4,"dcl":0,"charge":0,"pret":2545}}
+19:06:01 scénario demandé → bancint-jade-n1
+19:06:01 VIE {"jit":5,"plan":"bancint-jade-n1","etat":"en cours"}
+19:14:40 ✗ pas de bilan bancint-jade-n1 en 523 s · batterie après 35.9 °C
+19:14:41 ▶ bancint-jade-n9 · batterie 35.9 °C
+
+19:52:30 chef du banc sur :8931, 4 scénarios, seuil 36 °C
+19:52:31 ▶ liv-avant-a · batterie 34.6 °C
+19:52:32 VIE {"jit":3,"etat":"en cours","plan":"bancint-jade-n1"}
+19:52:34 VIE {"demarrage":{"jit":3,"froid":false,"pret":2305,"dcl":0,"charge":0}}
+19:52:34 scénario demandé → liv-avant-a
+19:52:34 VIE {"plan":"liv-avant-a","jit":4,"etat":"en cours"}
+19:54:01 bilan reçu liv-avant-a 63387 octets 
+19:54:01 scénario demandé → aucun
+19:54:03 CC BANC fermée (pid 16770)
+19:54:04 ✓ liv-avant-a en 93 s · batterie après 35.4 °C
+19:54:05 ▶ liv-apres-a · batterie 35.4 °C
+19:54:05 VIE {"jit":7,"plan":"liv-avant-a","etat":"fait"}
+19:54:09 VIE {"demarrage":{"pret":3801,"froid":false,"jit":7,"charge":0,"dcl":0}}
+19:54:09 scénario demandé → liv-apres-a
+19:54:10 VIE {"plan":"liv-apres-a","jit":9,"etat":"en cours"}
+19:55:42 bilan reçu liv-apres-a 53556 octets 
+19:55:42 scénario demandé → aucun
+19:55:44 CC BANC fermée (pid 16799)
+19:55:45 ✓ liv-apres-a en 100 s · batterie après 36.7 °C
+19:55:45 refroidit… batterie 36.7 °C
+19:57:48 refroidit… batterie 37.3 °C
+19:59:51 refroidit… batterie 37.1 °C
+20:01:53 refroidit… batterie 36.2 °C
+20:02:55 ▶ liv-apres-b · batterie 36 °C
+20:02:56 VIE {"etat":"fait","plan":"liv-apres-a","jit":3}
+20:02:58 scénario demandé → liv-apres-b
+20:02:58 VIE {"demarrage":{"charge":0,"dcl":0,"froid":false,"pret":2566,"jit":3}}
+20:02:59 VIE {"etat":"en cours","plan":"liv-apres-b","jit":5}
+
+20:03:26 chef du banc sur :8931, 4 scénarios, seuil 36.5 °C
+20:03:27 ▶ liv2-avant-a · batterie 36.2 °C
+20:03:28 VIE {"plan":"liv-apres-b","jit":4,"etat":"en cours"}
+20:03:30 scénario demandé → liv2-avant-a
+20:03:30 VIE {"demarrage":{"pret":2244,"froid":false,"jit":4,"charge":0,"dcl":0}}
+20:03:31 VIE {"jit":4,"plan":"liv2-avant-a","etat":"en cours"}
+20:07:56 ✗ pas de bilan liv2-avant-a en 269 s · batterie après  °C
+20:07:57 température illisible : 90 s de repos
+20:09:27 ▶ liv2-apres-a · batterie  °C
+20:13:39 ✗ pas de bilan liv2-apres-a en 253 s · batterie après  °C
+20:13:40 température illisible : 90 s de repos
+20:15:10 ▶ liv2-apres-b · batterie  °C
+20:19:23 ✗ pas de bilan liv2-apres-b en 253 s · batterie après  °C
+20:19:23 température illisible : 90 s de repos
+20:20:53 ▶ liv2-avant-b · batterie  °C
+20:25:08 CC BANC fermée (pid 16909)
+20:25:08 ✗ pas de bilan liv2-avant-b en 255 s · batterie après  °C
+20:25:08 file terminée
+
+21:10:21 chef du banc sur :8931, 4 scénarios, seuil 37 °C
+21:10:22 ▶ liv3-avant-a · batterie 29 °C
+
+21:12:42 chef du banc sur :8931, 4 scénarios, seuil 37 °C
+21:12:43 ▶ liv3-avant-a · batterie 31 °C
+21:12:44 VIE {"plan":"liv2-avant-a","etat":"en cours","jit":3}
+21:12:46 scénario demandé → liv3-avant-a
+21:12:46 VIE {"demarrage":{"jit":3,"pret":2267,"dcl":0,"charge":0,"froid":false}}
+21:12:46 VIE {"jit":4,"plan":"liv3-avant-a","etat":"en cours"}
+21:16:41 CC BANC fermée (pid 17770)
+21:16:42 ✗ pas de bilan liv3-avant-a en 239 s · batterie après 35 °C
+21:16:43 ▶ liv3-apres-a · batterie 35 °C
+21:20:41 CC BANC fermée (pid 17810)
+21:20:41 ✗ pas de bilan liv3-apres-a en 239 s · batterie après 37.2 °C
+21:20:42 refroidit… batterie 37.2 °C
+21:22:46 ▶ liv3-apres-b · batterie 36.8 °C
+
+21:24:59 chef du banc sur :8931, 2 scénarios, seuil 38 °C
+21:24:59 ▶ liv4-avant-a · batterie 37.2 °C
+21:25:00 VIE {"etat":"fait","plan":"liv3-avant-a","jit":4}
+21:25:02 VIE {"demarrage":{"froid":false,"jit":4,"dcl":0,"charge":0,"pret":2260}}
+21:25:04 scénario demandé → liv4-avant-a
+21:25:04 VIE {"etat":"en cours","plan":"liv4-avant-a","jit":4}
+21:25:25 VIE {"r":"n1","t":1,"etape":"n1"}
+21:25:29 VIE {"r":"2 canyon","t":4,"etape":"saut"}
+21:25:32 VIE {"r":"3 ville","t":7,"etape":"saut"}
+21:25:34 VIE {"etape":"saut","r":"4 espace","t":10}
+21:25:38 VIE {"r":"5 dunes","etape":"saut","t":13}
+21:25:41 VIE {"r":"6 ville","etape":"saut","t":16}
+21:25:44 VIE {"r":"7 canyon","t":19,"etape":"saut"}
+21:25:47 VIE {"r":"8 espace","t":22,"etape":"saut"}
+21:25:50 VIE {"r":"9 ville","etape":"saut","t":25}
+21:25:54 VIE {"etape":"tenue","r":"9 ville {\"tri\":true,\"tranches\":14,\"auLoin\":0,\"moyennes\":0,\"pasMoyen\":0}","t":30}
+21:26:19 VIE {"r":"{\"on\":false,\"per\":33.3,\"ecran\":16.67,\"w\":0,\"mur\":0,\"entrees\":0,\"sorties\":0,\"forc","t":55,"etape":"tenue2"}
+21:26:39 bilan reçu liv4-avant-a 45101 octets 
+21:26:41 scénario demandé → aucun
+21:26:41 CC BANC fermée (pid 17886)
+21:26:42 ✓ liv4-avant-a en 103 s · batterie après 37 °C
+21:26:43 ▶ liv4-apres-a · batterie 37 °C
+21:26:44 VIE {"plan":"liv4-avant-a","jit":8,"etat":"fait"}
+21:26:50 VIE {"demarrage":{"charge":0,"froid":false,"pret":6628,"jit":8,"dcl":0}}
+21:26:53 scénario demandé → liv4-apres-a
+21:26:53 VIE {"plan":"liv4-apres-a","etat":"en cours","jit":6}
+21:27:19 VIE {"etape":"n1","t":1,"r":"n1"}
+21:27:23 VIE {"etape":"saut","t":4,"r":"2 canyon"}
+21:27:26 VIE {"etape":"saut","r":"3 ville","t":7}
+21:27:29 VIE {"etape":"saut","r":"4 espace","t":10}
+21:27:32 VIE {"etape":"saut","r":"5 dunes","t":13}
+21:27:35 VIE {"etape":"saut","r":"6 ville","t":16}
+21:27:38 VIE {"t":19,"etape":"saut","r":"7 canyon"}
+21:27:41 VIE {"etape":"saut","t":22,"r":"8 espace"}
+21:27:44 VIE {"etape":"saut","t":25,"r":"9 ville"}
+21:27:48 VIE {"etape":"tenue","r":"9 ville {\"tri\":true,\"tranches\":14,\"auLoin\":0,\"moyennes\":6,\"pasMoyen\":4}","t":31}
+21:28:13 VIE {"etape":"tenue2","t":55,"r":"{\"on\":true,\"per\":33.3,\"ecran\":6.94,\"w\":14.2,\"mur\":0,\"entrees\":1,\"sorties\":0,\"for"}
+21:28:29 bilan reçu liv4-apres-a 45146 octets 
+21:28:31 scénario demandé → aucun
+21:28:33 CC BANC fermée (pid 17906)
+21:28:34 ✓ liv4-apres-a en 111 s · batterie après 36.9 °C
+21:28:34 file terminée
+17:43:34 chef du banc sur :8931, 5 scénarios, seuil 37 °C
+17:43:35 ▶ base-A1 · batterie  °C
+17:43:36 VIE {"plan":"liv4-apres-a","jit":3,"etat":"fait"}
+17:43:54 VIE {"demarrage":{"jit":3,"dcl":0,"charge":0,"pret":18265,"froid":false}}
+17:43:56 scénario demandé → base-A1
+17:43:56 VIE {"etat":"en cours","plan":"base-A1","jit":4}
+17:44:21 VIE {"r":"n1","etape":"n1","t":1}
+17:44:24 VIE {"t":4,"etape":"saut","r":"2 canyon"}
+17:44:28 VIE {"etape":"saut","r":"3 ville","t":7}
+17:44:31 VIE {"etape":"saut","r":"4 espace","t":10}
+17:44:34 VIE {"etape":"saut","r":"5 dunes","t":13}
+17:44:37 VIE {"etape":"saut","r":"6 ville","t":16}
+17:44:40 VIE {"etape":"saut","r":"7 canyon","t":19}
+17:44:43 VIE {"etape":"saut","r":"8 espace","t":22}
+17:44:46 VIE {"etape":"saut","r":"9 ville","t":25}
+17:44:50 VIE {"t":30,"r":"9 ville {\"tri\":true,\"tranches\":14,\"auLoin\":10,\"moyennes\":1,\"pasMoyen\":4}","etape":"tenue"}
+17:45:13 bilan reçu base-A1 54260 octets 
+17:45:15 scénario demandé → aucun
+17:45:16 CC BANC fermée (pid 2207)
+17:45:17 ✓ base-A1 en 102 s · batterie après  °C
+17:45:18 température illisible : 90 s de repos
+17:45:51 déjà fait : base-A1
+17:45:51 chef du banc sur :8931, 5 scénarios, seuil 37 °C
+17:45:52 ▶ base-B1 · batterie 32.8 °C
+17:45:53 VIE {"jit":3,"plan":"base-A1","etat":"fait"}
+17:45:56 VIE {"demarrage":{"charge":0,"jit":3,"dcl":0,"froid":false,"pret":2216}}
+17:45:57 scénario demandé → base-B1
+17:45:57 VIE {"plan":"base-B1","jit":4,"etat":"en cours"}
+17:46:21 VIE {"r":"n1","t":1,"etape":"n1"}
+17:46:24 VIE {"r":"2 canyon","etape":"saut","t":4}
+17:46:27 VIE {"etape":"saut","r":"3 ville","t":7}
+17:46:31 VIE {"r":"4 espace","t":10,"etape":"saut"}
+17:46:33 VIE {"t":13,"r":"5 dunes","etape":"saut"}
+17:46:36 VIE {"t":16,"r":"6 ville","etape":"saut"}
+17:46:40 VIE {"r":"7 canyon","t":19,"etape":"saut"}
+17:46:42 VIE {"t":22,"r":"8 espace","etape":"saut"}
+17:46:45 VIE {"r":"9 ville","t":25,"etape":"saut"}
+17:46:50 VIE {"t":30,"r":"9 ville {\"tri\":true,\"tranches\":14,\"auLoin\":0,\"moyennes\":5,\"pasMoyen\":4}","etape":"tenue"}
+17:47:12 bilan reçu base-B1 60067 octets 
+17:47:13 scénario demandé → aucun
+17:47:14 CC BANC fermée (pid 2258)
+17:47:15 ✓ base-B1 en 83 s · batterie après 33.9 °C
+17:47:16 ▶ base-B2 · batterie 33.9 °C
+17:47:16 VIE {"etat":"fait","plan":"base-B1","jit":4}
+17:47:19 VIE {"demarrage":{"pret":2383,"dcl":0,"charge":0,"jit":4,"froid":false}}
+17:47:20 scénario demandé → base-B2
+17:47:20 VIE {"etat":"en cours","plan":"base-B2","jit":5}
+17:47:45 VIE {"r":"n1","etape":"n1","t":1}
+17:47:48 VIE {"r":"2 canyon","etape":"saut","t":4}
+17:47:51 VIE {"t":7,"r":"3 ville","etape":"saut"}
+17:47:54 VIE {"t":10,"r":"4 espace","etape":"saut"}
+17:47:57 VIE {"t":13,"r":"5 dunes","etape":"saut"}
+17:48:00 VIE {"etape":"saut","r":"6 ville","t":16}
+17:48:03 VIE {"t":19,"r":"7 canyon","etape":"saut"}
+17:48:06 VIE {"t":22,"r":"8 espace","etape":"saut"}
+17:48:09 VIE {"etape":"saut","r":"9 ville","t":26}
+17:48:14 VIE {"etape":"tenue","r":"9 ville {\"tri\":true,\"tranches\":14,\"auLoin\":0,\"moyennes\":6,\"pasMoyen\":4}","t":30}
+17:48:41 bilan reçu base-B2 60036 octets 
+17:48:42 scénario demandé → aucun
+17:48:44 CC BANC fermée (pid 2273)
+17:48:44 ✓ base-B2 en 88 s · batterie après 35 °C
+17:48:45 ▶ base-A2 · batterie 35 °C
+17:48:46 VIE {"etat":"fait","plan":"base-B2","jit":7}
+17:48:50 VIE {"demarrage":{"froid":false,"pret":4730,"jit":7,"dcl":0,"charge":0}}
+17:48:52 scénario demandé → base-A2
+17:48:52 VIE {"etat":"en cours","plan":"base-A2","jit":9}
+17:52:42 CC BANC fermée (pid 2301)
+17:52:43 ✗ pas de bilan base-A2 en 238 s · batterie après 36.3 °C
+17:52:43 ▶ base-chaud-b · batterie 36.3 °C
+18:05:26 ✗ pas de bilan base-chaud-b en 763 s · batterie après 36.8 °C
+18:05:26 file terminée
+18:14:23 déjà fait : base-A1
+18:14:23 déjà fait : base-B1
+18:14:23 déjà fait : base-B2
+18:14:23 chef du banc sur :8931, 5 scénarios, seuil 37 °C
+18:14:25 refroidit… batterie 37.5 °C
+18:16:30 refroidit… batterie 37.8 °C
+18:18:47 ▶ base-A2 · batterie  °C
+18:22:46 ✗ pas de bilan base-A2 en 240 s · batterie après 37.8 °C
+18:22:47 refroidit… batterie 37.8 °C
+18:23:58 ▶ base-chaud-b · batterie 37 °C
+18:27:52 VIE {"plan":"base-A2","jit":4,"etat":"en cours"}
+18:27:54 VIE {"demarrage":{"froid":false,"charge":0,"jit":4,"pret":1973,"dcl":0}}
+18:27:55 scénario demandé → base-chaud-b
+18:27:55 VIE {"plan":"base-chaud-b","jit":3,"etat":"en cours"}
+18:28:20 VIE {"r":"n1","etape":"n1","t":1}
+18:28:23 VIE {"t":4,"r":"2 canyon","etape":"saut"}
+18:28:26 VIE {"etape":"saut","r":"3 ville","t":7}
+18:28:29 VIE {"r":"4 espace","etape":"saut","t":10}
+18:28:34 déjà fait : base-A1
+18:28:34 déjà fait : base-B1
+18:28:34 déjà fait : base-B2
+18:28:34 chef du banc sur :8931, 5 scénarios, seuil 37 °C
+18:28:35 VIE {"r":"5 dunes","t":13,"etape":"saut"}
+18:28:35 VIE {"t":16,"r":"6 ville","etape":"saut"}
+18:28:36 ▶ base-A2 · batterie 35.2 °C
+18:28:37 VIE {"etat":"en cours","plan":"base-chaud-b","jit":4}
+18:28:39 VIE {"demarrage":{"froid":false,"pret":2447,"charge":0,"dcl":0,"jit":4}}
+18:28:41 scénario demandé → base-A2
+18:28:41 VIE {"jit":4,"etat":"en cours","plan":"base-A2"}
+18:29:05 VIE {"r":"n1","etape":"n1","t":1}
+18:29:09 VIE {"r":"2 canyon","etape":"saut","t":4}
+18:29:12 VIE {"r":"3 ville","etape":"saut","t":7}
+18:29:14 VIE {"r":"4 espace","etape":"saut","t":10}
+18:29:18 VIE {"r":"5 dunes","etape":"saut","t":13}
+18:29:21 VIE {"r":"6 ville","etape":"saut","t":16}
+18:29:24 VIE {"r":"7 canyon","etape":"saut","t":19}
+18:29:27 VIE {"r":"8 espace","etape":"saut","t":22}
+18:29:30 VIE {"etape":"saut","r":"9 ville","t":25}
+18:29:34 VIE {"r":"9 ville {\"tri\":true,\"tranches\":14,\"auLoin\":2,\"moyennes\":5,\"pasMoyen\":4}","etape":"tenue","t":30}
+18:29:56 bilan reçu base-A2 58113 octets 
+18:29:58 scénario demandé → aucun
+18:30:05 CC BANC fermée (pid 2668)
+18:30:08 ✓ base-A2 en 92 s · batterie après 35.8 °C
+18:30:09 ▶ base-chaud-b · batterie 35.8 °C
+18:30:10 VIE {"etat":"fait","jit":4,"plan":"base-A2"}
+18:30:13 VIE {"demarrage":{"froid":false,"jit":4,"pret":2660,"dcl":0,"charge":0}}
+18:30:14 scénario demandé → base-chaud-b
+18:30:15 VIE {"plan":"base-chaud-b","jit":8,"etat":"en cours"}
+18:30:41 VIE {"etape":"n1","t":1,"r":"n1"}
+18:30:44 VIE {"t":4,"etape":"saut","r":"2 canyon"}
+18:30:47 VIE {"t":7,"etape":"saut","r":"3 ville"}
+18:30:50 VIE {"etape":"saut","t":10,"r":"4 espace"}
+18:30:53 VIE {"etape":"saut","r":"5 dunes","t":13}
+18:30:56 VIE {"etape":"saut","t":16,"r":"6 ville"}
+18:30:59 VIE {"etape":"saut","t":19,"r":"7 canyon"}
+18:31:02 VIE {"etape":"saut","r":"8 espace","t":22}
+18:31:05 VIE {"etape":"saut","r":"9 ville","t":25}
+18:31:10 VIE {"etape":"tenue","r":"9 ville {\"tri\":true,\"tranches\":14,\"auLoin\":0,\"moyennes\":6,\"pasMoyen\":4}","t":30}
+18:31:38 bilan reçu base-chaud-b 48674 octets 
+18:31:40 scénario demandé → aucun
+18:31:40 CC BANC fermée (pid 2693)
+18:31:41 ✓ base-chaud-b en 92 s · batterie après 36.4 °C
+18:31:41 file terminée
+19:31:37 chef du banc sur :8931, 5 scénarios, seuil 37 °C
+19:31:57 ▶ valN-1 · batterie 36.8 °C
+19:32:17 VIE {"plan":"base-chaud-b","jit":4,"etat":"fait"}
+19:32:19 VIE {"demarrage":{"pret":2272,"charge":0,"dcl":0,"froid":false,"jit":4}}
+19:32:21 scénario demandé → valN-1
+19:32:21 VIE {"plan":"valN-1","jit":4,"etat":"en cours"}
+20:01:13 chef du banc sur :8931, 5 scénarios, seuil 37 °C
+20:01:14 ▶ valN-1 · batterie 34.6 °C
+20:01:15 VIE {"etat":"en cours","plan":"valN-1","jit":3}
+20:01:17 VIE {"demarrage":{"dcl":0,"froid":false,"charge":0,"pret":1963,"jit":3}}
+20:01:18 scénario demandé → valN-1
+20:05:17 CC BANC fermée (pid 3469)
+20:05:19 ✗ pas de bilan valN-1 en 240 s · batterie après 36.1 °C
+20:05:20 ▶ valN-2 · batterie 36.1 °C
+20:05:20 VIE {"plan":"valN-1","etat":"en cours","jit":4}
+20:05:23 VIE {"demarrage":{"charge":0,"jit":4,"dcl":0,"froid":false,"pret":2186}}
+20:05:24 scénario demandé → valN-2
+20:05:24 VIE {"etat":"en cours","jit":4,"plan":"valN-2"}
+20:05:48 VIE {"r":"n1","t":1,"etape":"n1"}
+20:05:51 VIE {"r":"2 canyon","t":4,"etape":"saut"}
+20:05:55 VIE {"t":7,"etape":"saut","r":"3 ville"}
+20:05:56 VIE {"t":8,"etape":"gouv","r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé"}
+20:05:58 VIE {"r":"4 espace","t":10,"etape":"saut"}
+20:06:00 VIE {"etape":"saut","r":"5 dunes","t":13}
+20:06:04 VIE {"etape":"saut","t":16,"r":"6 ville"}
+20:06:07 VIE {"r":"7 canyon","t":19,"etape":"saut"}
+20:06:10 VIE {"t":22,"etape":"saut","r":"8 espace"}
+20:06:13 VIE {"etape":"saut","r":"9 ville","t":26}
+20:06:17 VIE {"r":"9 ville {\"tri\":true,\"tranches\":14,\"auLoin\":0,\"moyennes\":6,\"pasMoyen\":4}","t":30,"etape":"tenue"}
+20:06:28 VIE {"etape":"gouv","t":41,"r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé"}
+20:06:39 bilan reçu valN-2 55596 octets 
+20:06:41 scénario demandé → aucun
+20:06:42 CC BANC fermée (pid 3501)
+20:06:43 ✓ valN-2 en 79 s · batterie après 36.9 °C
+20:06:44 ▶ valN-3 · batterie 36.9 °C
+20:06:45 VIE {"plan":"valN-2","jit":4,"etat":"fait"}
+20:06:49 VIE {"demarrage":{"froid":false,"pret":3674,"dcl":0,"charge":0,"jit":4}}
+20:06:50 scénario demandé → valN-3
+20:06:51 VIE {"etat":"en cours","jit":9,"plan":"valN-3"}
+20:07:17 VIE {"etape":"n1","t":1,"r":"n1"}
+20:07:20 VIE {"r":"2 canyon","t":4,"etape":"saut"}
+20:07:23 VIE {"etape":"saut","t":7,"r":"3 ville"}
+20:07:24 VIE {"t":8,"etape":"gouv","r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé"}
+20:07:26 VIE {"etape":"saut","t":10,"r":"4 espace"}
+20:07:30 VIE {"etape":"saut","t":13,"r":"5 dunes"}
+20:07:33 VIE {"t":16,"etape":"saut","r":"6 ville"}
+20:07:35 VIE {"etape":"saut","r":"7 canyon","t":19}
+20:07:38 VIE {"t":22,"etape":"saut","r":"8 espace"}
+20:07:41 VIE {"t":25,"r":"9 ville","etape":"saut"}
+20:07:46 VIE {"etape":"tenue","r":"9 ville {\"tri\":true,\"tranches\":14,\"auLoin\":2,\"moyennes\":5,\"pasMoyen\":4}","t":30}
+20:07:57 VIE {"etape":"gouv","r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé","t":41}
+20:08:10 bilan reçu valN-3 44275 octets 
+20:08:12 scénario demandé → aucun
+20:08:13 CC BANC fermée (pid 3515)
+20:08:15 ✓ valN-3 en 84 s · batterie après 36.9 °C
+20:08:16 ▶ valN-4 · batterie 36.9 °C
+20:08:17 VIE {"etat":"fait","jit":4,"plan":"valN-3"}
+20:08:21 VIE {"demarrage":{"pret":4130,"dcl":0,"froid":false,"jit":4,"charge":0}}
+20:08:23 scénario demandé → valN-4
+20:08:23 VIE {"plan":"valN-4","jit":9,"etat":"en cours"}
+20:08:50 VIE {"etape":"n1","r":"n1","t":1}
+20:08:53 VIE {"t":4,"r":"2 canyon","etape":"saut"}
+20:08:56 VIE {"t":7,"etape":"saut","r":"3 ville"}
+20:08:57 VIE {"t":8,"etape":"gouv","r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé"}
+20:08:59 VIE {"t":10,"etape":"saut","r":"4 espace"}
+20:09:02 VIE {"r":"5 dunes","etape":"saut","t":13}
+20:09:05 VIE {"t":16,"etape":"saut","r":"6 ville"}
+20:09:08 VIE {"t":19,"r":"7 canyon","etape":"saut"}
+20:09:11 VIE {"r":"8 espace","t":22,"etape":"saut"}
+20:09:14 VIE {"r":"9 ville","t":25,"etape":"saut"}
+20:09:19 VIE {"r":"9 ville {\"tri\":true,\"tranches\":14,\"auLoin\":0,\"moyennes\":6,\"pasMoyen\":4}","t":30,"etape":"tenue"}
+20:09:29 VIE {"r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé","t":41,"etape":"gouv"}
+20:09:51 VIE {"r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé","etape":"gouv","t":62}
+20:10:04 bilan reçu valN-4 48827 octets 
+20:10:05 scénario demandé → aucun
+20:10:09 CC BANC fermée (pid 3531)
+20:10:11 ✓ valN-4 en 107 s · batterie après 37.2 °C
+20:10:12 refroidit… batterie 37.2 °C
+20:11:46 ▶ valN-5 · batterie 36.9 °C
+20:11:48 VIE {"jit":3,"etat":"fait","plan":"valN-4"}
+20:11:51 VIE {"demarrage":{"froid":false,"pret":2315,"charge":0,"jit":3,"dcl":0}}
+20:11:52 scénario demandé → valN-5
+20:11:52 VIE {"jit":4,"etat":"en cours","plan":"valN-5"}
+20:12:17 VIE {"t":1,"r":"n1","etape":"n1"}
+20:12:20 VIE {"etape":"saut","t":4,"r":"2 canyon"}
+20:12:23 VIE {"etape":"saut","t":7,"r":"3 ville"}
+20:12:24 VIE {"t":8,"r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé","etape":"gouv"}
+20:12:26 VIE {"etape":"saut","r":"4 espace","t":10}
+20:12:29 VIE {"etape":"saut","r":"5 dunes","t":13}
+20:12:32 VIE {"etape":"saut","t":16,"r":"6 ville"}
+20:12:35 VIE {"r":"7 canyon","etape":"saut","t":19}
+20:12:38 VIE {"etape":"saut","t":22,"r":"8 espace"}
+20:12:41 VIE {"t":25,"etape":"saut","r":"9 ville"}
+20:12:46 VIE {"etape":"tenue","r":"9 ville {\"tri\":true,\"tranches\":14,\"auLoin\":10,\"moyennes\":0,\"pasMoyen\":4}","t":30}
+20:12:56 VIE {"r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé","t":41,"etape":"gouv"}
+20:13:07 bilan reçu valN-5 60656 octets 
+20:13:09 scénario demandé → aucun
+20:13:10 CC BANC fermée (pid 3572)
+20:13:11 ✓ valN-5 en 78 s · batterie après 37 °C
+20:13:11 file terminée
+20:25:12 chef du banc sur :8931, 5 scénarios, seuil 37 °C
+20:25:13 ▶ valG-1 · batterie 36.3 °C
+20:25:14 VIE {"jit":4,"etat":"fait","plan":"valN-5"}
+20:25:16 VIE {"demarrage":{"jit":4,"charge":0,"froid":false,"pret":1998,"dcl":0}}
+20:25:17 scénario demandé → valG-1
+20:25:17 VIE {"plan":"valG-1","jit":3,"etat":"en cours"}
+20:25:42 VIE {"etape":"n1","r":"n1","t":1}
+20:25:45 VIE {"etape":"saut","t":4,"r":"2 canyon"}
+20:25:48 VIE {"t":7,"etape":"saut","r":"3 ville"}
+20:25:49 VIE {"t":8,"etape":"gouv","r":"[{\"D\":13.4,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr"}
+20:25:51 VIE {"t":10,"etape":"saut","r":"4 espace"}
+20:25:54 VIE {"t":13,"r":"5 dunes","etape":"saut"}
+20:25:57 VIE {"r":"6 ville","etape":"saut","t":16}
+20:26:00 VIE {"t":19,"r":"7 canyon","etape":"saut"}
+20:26:03 VIE {"r":"8 espace","etape":"saut","t":22}
+20:26:06 VIE {"etape":"saut","r":"9 ville","t":25}
+20:26:11 VIE {"etape":"tenue","t":30,"r":"9 ville {\"tri\":true,\"tranches\":14,\"auLoin\":0,\"moyennes\":5,\"pasMoyen\":4}"}
+20:26:22 VIE {"etape":"gouv","t":41,"r":"[{\"D\":43.7,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr"}
+20:26:33 bilan reçu valG-1 61353 octets 
+20:26:34 scénario demandé → aucun
+20:26:35 CC BANC fermée (pid 3680)
+20:26:36 ✓ valG-1 en 78 s · batterie après 36.8 °C
+20:26:37 ▶ valG-2 · batterie 36.8 °C
+20:26:37 VIE {"plan":"valG-1","etat":"fait","jit":6}
+20:26:42 VIE {"demarrage":{"charge":0,"pret":4940,"dcl":0,"jit":6,"froid":false}}
+20:26:44 scénario demandé → valG-2
+20:26:44 VIE {"jit":7,"plan":"valG-2","etat":"en cours"}
+20:27:10 VIE {"r":"n1","etape":"n1","t":1}
+20:27:13 VIE {"r":"2 canyon","etape":"saut","t":4}
+20:27:16 VIE {"r":"3 ville","etape":"saut","t":7}
+20:27:17 VIE {"r":"[{\"D\":54.9,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","etape":"gouv","t":8}
+20:27:19 VIE {"r":"4 espace","etape":"saut","t":10}
+20:27:22 VIE {"r":"5 dunes","etape":"saut","t":13}
+20:27:25 VIE {"r":"6 ville","etape":"saut","t":16}
+20:27:28 VIE {"r":"7 canyon","t":19,"etape":"saut"}
+20:27:31 VIE {"r":"8 espace","t":22,"etape":"saut"}
+20:27:34 VIE {"r":"9 ville","t":25,"etape":"saut"}
+20:27:39 VIE {"r":"9 ville {\"tri\":true,\"tranches\":14,\"auLoin\":0,\"moyennes\":6,\"pasMoyen\":4}","t":30,"etape":"tenue"}
+20:27:49 VIE {"r":"[{\"D\":82.2,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","t":41,"etape":"gouv"}
+20:28:04 bilan reçu valG-2 47386 octets 
+20:28:06 scénario demandé → aucun
+20:28:11 CC BANC fermée (pid 3711)
+20:28:14 ✓ valG-2 en 90 s · batterie après 37.1 °C
+20:28:15 refroidit… batterie 37.1 °C
+20:29:49 ▶ valG-3 · batterie 37 °C
+20:30:02 lancement refusé :                BSErrorCodeDescription = Locked |                NSLocalizedFailureReason = Unable to launch com.sachaberes.carcash.banc because the device was not, or could not be, unlocked.
+20:30:47 app muette après 45 s (essai 1)
+20:30:48 VIE {"plan":"valG-2","jit":3,"etat":"fait"}
+20:30:50 VIE {"demarrage":{"pret":2014,"dcl":0,"charge":0,"jit":3,"froid":false}}
+20:30:51 scénario demandé → valG-3
+20:30:52 VIE {"jit":3,"plan":"valG-3","etat":"en cours"}
+20:31:17 VIE {"etape":"n1","r":"n1","t":1}
+20:31:20 VIE {"r":"2 canyon","t":4,"etape":"saut"}
+20:31:23 VIE {"r":"3 ville","etape":"saut","t":7}
+20:31:24 VIE {"r":"[{\"D\":55.5,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","etape":"gouv","t":8}
+20:31:26 VIE {"etape":"saut","t":10,"r":"4 espace"}
+20:31:29 VIE {"r":"5 dunes","t":13,"etape":"saut"}
+20:31:32 VIE {"r":"6 ville","t":16,"etape":"saut"}
+20:31:35 VIE {"r":"7 canyon","t":19,"etape":"saut"}
+20:31:38 VIE {"r":"8 espace","t":22,"etape":"saut"}
+20:31:41 VIE {"r":"9 ville","t":25,"etape":"saut"}
+20:31:46 VIE {"t":30,"r":"9 ville {\"tri\":true,\"tranches\":14,\"auLoin\":10,\"moyennes\":0,\"pasMoyen\":4}","etape":"tenue"}
+20:31:56 VIE {"t":41,"r":"[{\"D\":84.9,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","etape":"gouv"}
+20:32:07 bilan reçu valG-3 60156 octets 
+20:32:09 scénario demandé → aucun
+20:32:09 CC BANC fermée (pid 3791)
+20:32:10 ✓ valG-3 en 78 s · batterie après 37.1 °C
+20:32:11 refroidit… batterie 37.1 °C
+20:34:16 refroidit… batterie 37.3 °C
+20:36:19 refroidit… batterie 37.1 °C
+20:38:22 refroidit… batterie 37.1 °C
+20:38:53 ▶ valG-4 · batterie 37 °C
+20:38:54 VIE {"jit":3,"plan":"valG-3","etat":"fait"}
+20:38:56 VIE {"demarrage":{"charge":0,"jit":3,"froid":false,"pret":2050,"dcl":0}}
+20:38:57 scénario demandé → valG-4
+20:38:58 VIE {"plan":"valG-4","jit":4,"etat":"en cours"}
+20:39:22 VIE {"t":1,"r":"n1","etape":"n1"}
+20:39:25 VIE {"t":4,"r":"2 canyon","etape":"saut"}
+20:39:28 VIE {"t":7,"etape":"saut","r":"3 ville"}
+20:39:29 VIE {"etape":"gouv","r":"[{\"D\":13.4,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","t":8}
+20:39:31 VIE {"etape":"saut","t":10,"r":"4 espace"}
+20:39:34 VIE {"t":13,"r":"5 dunes","etape":"saut"}
+20:39:37 VIE {"t":16,"etape":"saut","r":"6 ville"}
+20:39:40 VIE {"etape":"saut","t":19,"r":"7 canyon"}
+20:39:43 VIE {"etape":"saut","t":22,"r":"8 espace"}
+20:39:47 VIE {"r":"9 ville","t":25,"etape":"saut"}
+20:39:51 VIE {"t":30,"etape":"tenue","r":"9 ville {\"tri\":true,\"tranches\":14,\"auLoin\":0,\"moyennes\":6,\"pasMoyen\":4}"}
+20:40:01 VIE {"t":41,"etape":"gouv","r":"[{\"D\":42.6,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr"}
+20:40:25 bilan reçu valG-4 67054 octets 
+20:40:27 scénario demandé → aucun
+20:40:27 CC BANC fermée (pid 3859)
+20:40:28 ✓ valG-4 en 90 s · batterie après 37.7 °C
+20:40:29 refroidit… batterie 37.7 °C
+20:42:32 refroidit… batterie 38 °C
+20:44:35 refroidit… batterie 37.8 °C
+20:46:39 refroidit… batterie 37.6 °C
+20:48:41 refroidit… batterie 37.6 °C
+20:50:44 refroidit… batterie 37.1 °C
+20:51:14 ▶ valG-5 · batterie 37 °C
+20:51:19 VIE {"jit":3,"etat":"fait","plan":"valG-4"}
+20:51:21 VIE {"demarrage":{"jit":3,"froid":false,"charge":0,"dcl":0,"pret":2050}}
+20:51:22 scénario demandé → valG-5
+20:51:22 VIE {"etat":"en cours","jit":3,"plan":"valG-5"}
+20:51:46 VIE {"etape":"n1","r":"n1","t":1}
+20:51:49 VIE {"etape":"saut","r":"2 canyon","t":4}
+20:51:52 VIE {"etape":"saut","t":7,"r":"3 ville"}
+20:51:53 VIE {"etape":"gouv","t":8,"r":"[{\"D\":13.3,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr"}
+20:51:55 VIE {"t":10,"etape":"saut","r":"4 espace"}
+20:51:58 VIE {"r":"5 dunes","etape":"saut","t":13}
+20:52:01 VIE {"etape":"saut","r":"6 ville","t":16}
+20:52:05 VIE {"etape":"saut","t":19,"r":"7 canyon"}
+20:52:07 VIE {"etape":"saut","r":"8 espace","t":22}
+20:52:10 VIE {"r":"9 ville","etape":"saut","t":25}
+20:52:15 VIE {"etape":"tenue","r":"9 ville {\"tri\":true,\"tranches\":14,\"auLoin\":0,\"moyennes\":5,\"pasMoyen\":4}","t":30}
+20:52:26 VIE {"etape":"gouv","r":"[{\"D\":42.5,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","t":41}
+20:52:37 bilan reçu valG-5 59119 octets 
+20:52:38 scénario demandé → aucun
+20:52:39 CC BANC fermée (pid 3990)
+20:52:40 ✓ valG-5 en 78 s · batterie après 37.1 °C
+20:52:40 file terminée
+20:52:44 chef du banc sur :8931, 2 scénarios, seuil 37 °C
+20:52:44 refroidit… batterie 37.1 °C
+20:54:47 ▶ valF-1 · batterie 37 °C
+20:54:49 VIE {"jit":3,"etat":"fait","plan":"valG-5"}
+20:54:50 VIE {"demarrage":{"dcl":0,"charge":0,"jit":3,"froid":false,"pret":2279}}
+20:54:52 scénario demandé → valF-1
+20:54:52 VIE {"etat":"en cours","jit":4,"plan":"valF-1"}
+20:55:17 VIE {"etape":"n1","r":"n1","t":1}
+20:55:18 VIE {"r":"{\"D\":170,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose ","etape":"force","t":2}
+20:55:20 VIE {"etape":"saut","t":4,"r":"2 canyon"}
+20:55:23 VIE {"r":"3 ville","t":7,"etape":"saut"}
+20:55:24 VIE {"etape":"gouv","r":"[{\"D\":173.2,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":8}
+20:55:26 VIE {"etape":"saut","r":"4 espace","t":10}
+20:55:29 VIE {"etape":"saut","r":"5 dunes","t":13}
+20:55:32 VIE {"etape":"saut","t":16,"r":"6 ville"}
+20:55:35 VIE {"r":"7 canyon","etape":"saut","t":19}
+20:55:38 VIE {"etape":"saut","r":"8 espace","t":22}
+20:55:41 VIE {"etape":"saut","r":"9 ville","t":25}
+20:55:46 VIE {"r":"9 ville {\"tri\":true,\"tranches\":14,\"auLoin\":0,\"moyennes\":5,\"pasMoyen\":4}","etape":"tenue","t":30}
+20:55:56 VIE {"etape":"gouv","t":41,"r":"[{\"D\":189.3,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+20:56:18 VIE {"etape":"gouv","r":"[{\"D\":200,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose","t":62}
+20:56:31 bilan reçu valF-1 80165 octets 
+20:56:33 scénario demandé → aucun
+20:56:33 CC BANC fermée (pid 4036)
+20:56:34 ✓ valF-1 en 102 s · batterie après 37.3 °C
+20:56:35 refroidit… batterie 37.3 °C
+20:58:37 refroidit… batterie 37.2 °C
+21:00:09 ▶ valF-2 · batterie 36.9 °C
+21:00:10 VIE {"jit":3,"plan":"valF-1","etat":"fait"}
+21:00:13 VIE {"demarrage":{"charge":0,"froid":false,"pret":2257,"jit":3,"dcl":0}}
+21:00:14 scénario demandé → valF-2
+21:00:14 VIE {"plan":"valF-2","jit":4,"etat":"en cours"}
+21:00:38 VIE {"etape":"n1","t":1,"r":"n1"}
+21:00:39 VIE {"t":2,"etape":"force","r":"{\"D\":170,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose "}
+21:00:41 VIE {"r":"2 canyon","etape":"saut","t":4}
+21:00:45 VIE {"r":"3 ville","etape":"saut","t":7}
+21:00:46 VIE {"r":"[{\"D\":173.2,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv","t":8}
+21:00:48 VIE {"etape":"saut","r":"4 espace","t":10}
+21:00:50 VIE {"r":"5 dunes","etape":"saut","t":13}
+21:00:54 VIE {"r":"6 ville","etape":"saut","t":16}
+21:00:57 VIE {"etape":"saut","r":"7 canyon","t":19}
+21:00:59 VIE {"t":22,"etape":"saut","r":"8 espace"}
+21:01:03 VIE {"t":25,"etape":"saut","r":"9 ville"}
+21:01:08 VIE {"r":"9 ville {\"tri\":true,\"tranches\":14,\"auLoin\":10,\"moyennes\":0,\"pasMoyen\":4}","etape":"tenue","t":30}
+21:01:18 VIE {"r":"[{\"D\":189.3,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv","t":41}
+21:01:29 bilan reçu valF-2 59690 octets 
+21:01:31 scénario demandé → aucun
+21:01:31 CC BANC fermée (pid 4083)
+21:01:32 ✓ valF-2 en 78 s · batterie après 37.4 °C
+21:01:32 file terminée
+21:07:17 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+21:07:24 ▶ valS-N · batterie 36.5 °C
+21:07:30 VIE {"etat":"fait","jit":4,"plan":"valF-2"}
+21:07:32 VIE {"demarrage":{"charge":0,"jit":4,"froid":false,"pret":1977,"dcl":0}}
+21:07:34 scénario demandé → valS-N
+21:07:34 VIE {"jit":4,"etat":"en cours","plan":"valS-N"}
+21:07:58 VIE {"erreur":"Can't find variable: n1","etape":"n1"}
+21:08:01 VIE {"t":4,"r":"2 canyon","etape":"saut"}
+21:08:05 VIE {"t":7,"etape":"saut","r":"3 ville"}
+21:08:08 VIE {"t":10,"r":"4 espace","etape":"saut"}
+21:08:10 VIE {"r":"5 dunes","t":13,"etape":"saut"}
+21:08:13 VIE {"t":16,"r":"6 ville","etape":"saut"}
+21:08:17 VIE {"t":19,"etape":"saut","r":"7 canyon"}
+21:08:17 VIE {"t":20,"r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé","etape":"gouv"}
+21:08:19 VIE {"etape":"saut","r":"8 espace","t":22}
+21:08:23 VIE {"r":"9 ville","t":25,"etape":"saut"}
+21:08:57 VIE {"t":60,"r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé","etape":"gouv"}
+21:09:27 VIE {"etape":"saut","t":89,"r":"2 canyon"}
+21:09:29 VIE {"etape":"saut","t":92,"r":"3 ville"}
+21:09:33 VIE {"t":95,"r":"4 espace","etape":"saut"}
+21:09:36 VIE {"etape":"saut","t":98,"r":"5 dunes"}
+21:09:37 VIE {"etape":"gouv","t":100,"r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé"}
+21:09:39 VIE {"etape":"saut","t":101,"r":"6 ville"}
+21:09:42 VIE {"t":104,"etape":"saut","r":"7 canyon"}
+21:09:45 VIE {"t":107,"etape":"saut","r":"8 espace"}
+21:09:48 VIE {"r":"9 ville","etape":"saut","t":110}
+21:10:18 VIE {"t":140,"etape":"gouv","r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé"}
+21:10:51 VIE {"r":"2 canyon","etape":"saut","t":174}
+21:10:55 VIE {"etape":"saut","t":177,"r":"3 ville"}
+21:10:58 VIE {"t":180,"r":"4 espace","etape":"saut"}
+21:10:58 VIE {"t":180,"r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé","etape":"gouv"}
+21:11:01 VIE {"t":183,"etape":"saut","r":"5 dunes"}
+21:11:04 VIE {"t":186,"r":"6 ville","etape":"saut"}
+21:11:06 VIE {"t":189,"r":"7 canyon","etape":"saut"}
+21:11:10 VIE {"t":192,"r":"8 espace","etape":"saut"}
+21:11:12 VIE {"t":195,"etape":"saut","r":"9 ville"}
+21:11:38 VIE {"etape":"gouv","t":220,"r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé"}
+21:12:17 VIE {"etape":"saut","t":259,"r":"2 canyon"}
+21:12:17 VIE {"t":260,"r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé","etape":"gouv"}
+21:12:20 VIE {"t":262,"etape":"saut","r":"3 ville"}
+21:12:23 VIE {"t":265,"etape":"saut","r":"4 espace"}
+21:12:25 VIE {"t":268,"etape":"saut","r":"5 dunes"}
+21:12:29 VIE {"r":"6 ville","t":271,"etape":"saut"}
+21:12:31 VIE {"r":"7 canyon","t":274,"etape":"saut"}
+21:12:35 VIE {"t":277,"r":"8 espace","etape":"saut"}
+21:12:38 VIE {"etape":"saut","t":280,"r":"9 ville"}
+21:12:57 VIE {"etape":"gouv","t":300,"r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé"}
+21:13:37 VIE {"t":340,"etape":"gouv","r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé"}
+21:13:42 VIE {"etape":"saut","t":344,"r":"10 canyon"}
+21:13:45 VIE {"etape":"saut","t":347,"r":"11 ville"}
+21:13:48 VIE {"t":350,"etape":"saut","r":"12 espace"}
+21:13:51 VIE {"t":353,"r":"13 dunes","etape":"saut"}
+21:13:54 VIE {"t":356,"etape":"saut","r":"14 ville"}
+21:13:56 VIE {"t":359,"etape":"saut","r":"15 canyon"}
+21:14:00 VIE {"t":362,"etape":"saut","r":"16 espace"}
+21:14:03 VIE {"t":365,"etape":"saut","r":"17 ville"}
+21:14:18 VIE {"t":380,"r":"[{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"coupé","etape":"gouv"}
+21:14:58 bilan reçu valS-N 218488 octets 
+21:14:59 scénario demandé → aucun
+21:15:02 CC BANC fermée (pid 4158)
+21:15:03 ✓ valS-N en 449 s · batterie après 38.1 °C
+21:15:03 file terminée
+21:27:05 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+21:27:06 ▶ valS-G · batterie 36 °C
+21:27:11 VIE {"jit":3,"plan":"valS-N","etat":"fait"}
+21:27:13 VIE {"demarrage":{"charge":0,"jit":3,"dcl":0,"froid":false,"pret":2017}}
+21:27:14 scénario demandé → valS-G
+21:27:15 VIE {"etat":"en cours","jit":3,"plan":"valS-G"}
+21:27:39 VIE {"erreur":"Can't find variable: n1","etape":"n1"}
+21:27:42 VIE {"r":"2 canyon","etape":"saut","t":4}
+21:27:45 VIE {"r":"3 ville","etape":"saut","t":7}
+21:27:49 VIE {"r":"4 espace","etape":"saut","t":10}
+21:27:52 VIE {"t":13,"etape":"saut","r":"5 dunes"}
+21:27:54 VIE {"t":16,"etape":"saut","r":"6 ville"}
+21:27:57 VIE {"t":19,"etape":"saut","r":"7 canyon"}
+21:27:58 VIE {"r":"[{\"D\":25.3,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","etape":"gouv","t":20}
+21:28:02 VIE {"r":"8 espace","etape":"saut","t":22}
+21:28:04 VIE {"t":25,"etape":"saut","r":"9 ville"}
+21:28:38 VIE {"t":60,"etape":"gouv","r":"[{\"D\":52.3,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr"}
+21:29:07 VIE {"t":89,"etape":"saut","r":"2 canyon"}
+21:29:11 VIE {"t":92,"etape":"saut","r":"3 ville"}
+21:29:13 VIE {"t":95,"r":"4 espace","etape":"saut"}
+21:29:16 VIE {"t":98,"r":"5 dunes","etape":"saut"}
+21:29:18 VIE {"t":100,"etape":"gouv","r":"[{\"D\":72.4,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr"}
+21:29:20 VIE {"t":101,"etape":"saut","r":"6 ville"}
+21:29:22 VIE {"r":"7 canyon","etape":"saut","t":104}
+21:29:26 VIE {"r":"8 espace","etape":"saut","t":107}
+21:29:28 VIE {"r":"9 ville","etape":"saut","t":110}
+21:29:58 VIE {"r":"[{\"D\":93.6,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","etape":"gouv","t":140}
+21:30:33 VIE {"r":"2 canyon","t":174,"etape":"saut"}
+21:30:35 VIE {"r":"3 ville","t":177,"etape":"saut"}
+21:30:39 VIE {"r":"4 espace","t":180,"etape":"saut"}
+21:30:39 VIE {"r":"[{\"D\":114.5,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"f","etape":"gouv","t":180}
+21:30:41 VIE {"r":"5 dunes","etape":"saut","t":183}
+21:30:45 VIE {"r":"6 ville","etape":"saut","t":186}
+21:30:47 VIE {"t":189,"etape":"saut","r":"7 canyon"}
+21:30:50 VIE {"t":192,"etape":"saut","r":"8 espace"}
+21:30:54 VIE {"etape":"saut","r":"9 ville","t":195}
+21:31:19 VIE {"r":"[{\"D\":134.5,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"f","etape":"gouv","t":220}
+21:36:59 ✗ pas de bilan valS-G en 584 s · batterie après  °C
+21:36:59 file terminée
+21:41:56 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+21:42:03 ▶ valS900-G · batterie 35.8 °C
+21:42:04 VIE {"etat":"en cours","jit":3,"plan":"valS-G"}
+21:42:24 VIE {"demarrage":{"dcl":0,"jit":3,"pret":19788,"charge":0,"froid":false}}
+21:42:26 scénario demandé → valS900-G
+21:42:27 VIE {"etat":"en cours","jit":5,"plan":"valS900-G"}
+21:42:52 VIE {"etape":"n1","erreur":"Can't find variable: n1"}
+21:42:55 VIE {"etape":"saut","r":"2 canyon","t":4}
+21:42:58 VIE {"etape":"saut","r":"3 ville","t":7}
+21:43:01 VIE {"etape":"saut","r":"4 espace","t":10}
+21:43:04 VIE {"etape":"saut","r":"5 dunes","t":13}
+21:43:07 VIE {"t":16,"etape":"saut","r":"6 ville"}
+21:43:10 VIE {"etape":"saut","r":"7 canyon","t":19}
+21:43:11 VIE {"etape":"gouv","r":"[{\"D\":22.4,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","t":20}
+21:43:13 VIE {"t":22,"etape":"saut","r":"8 espace"}
+21:43:16 VIE {"etape":"saut","r":"9 ville","t":25}
+21:43:56 VIE {"r":"[{\"D\":54.4,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","etape":"gouv","t":60}
+21:44:21 VIE {"t":90,"etape":"saut","r":"10 banquise"}
+21:44:27 VIE {"r":"2 ville","etape":"saut","t":96}
+21:44:28 VIE {"r":"3 espace","etape":"saut","t":96}
+21:44:29 VIE {"r":"4 dunes","etape":"saut","t":98}
+21:44:31 VIE {"t":101,"etape":"gouv","r":"[{\"D\":71.5,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr"}
+21:44:32 VIE {"r":"5 ville","etape":"saut","t":101}
+21:44:36 VIE {"r":"6 canyon","etape":"saut","t":104}
+21:44:39 VIE {"t":107,"etape":"saut","r":"7 espace"}
+21:44:41 VIE {"t":110,"etape":"saut","r":"8 ville"}
+21:45:11 VIE {"t":140,"etape":"gouv","r":"[{\"D\":98.8,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr"}
+21:45:45 VIE {"etape":"saut","r":"2 canyon","t":174}
+21:45:48 VIE {"r":"3 ville","etape":"saut","t":177}
+21:45:52 VIE {"r":"4 espace","etape":"saut","t":180}
+21:45:52 VIE {"t":180,"r":"[{\"D\":116.7,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"f","etape":"gouv"}
+21:45:54 VIE {"etape":"saut","r":"5 dunes","t":183}
+21:45:57 VIE {"t":186,"etape":"saut","r":"6 ville"}
+21:46:00 VIE {"t":189,"etape":"saut","r":"7 canyon"}
+21:46:03 VIE {"r":"8 espace","t":192,"etape":"saut"}
+21:46:06 VIE {"etape":"saut","r":"9 ville","t":195}
+21:46:31 VIE {"t":220,"etape":"gouv","r":"[{\"D\":136,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fro"}
+21:47:10 VIE {"r":"2 canyon","etape":"saut","t":259}
+21:47:11 VIE {"r":"[{\"D\":155.1,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"f","etape":"gouv","t":260}
+21:47:13 VIE {"etape":"saut","r":"3 ville","t":262}
+21:47:16 VIE {"t":265,"etape":"saut","r":"4 espace"}
+21:47:19 VIE {"t":268,"etape":"saut","r":"5 dunes"}
+21:47:22 VIE {"t":271,"etape":"saut","r":"6 ville"}
+21:47:25 VIE {"t":274,"etape":"saut","r":"7 canyon"}
+21:47:28 VIE {"t":277,"etape":"saut","r":"8 espace"}
+21:47:31 VIE {"t":280,"r":"9 ville","etape":"saut"}
+21:47:51 VIE {"t":300,"etape":"gouv","r":"[{\"D\":175,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose"}
+21:48:31 VIE {"t":340,"etape":"gouv","r":"[{\"D\":191.5,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+21:48:35 VIE {"t":344,"etape":"saut","r":"2 canyon"}
+21:48:38 VIE {"r":"3 ville","etape":"saut","t":347}
+21:48:41 VIE {"r":"4 espace","etape":"saut","t":350}
+21:48:44 VIE {"t":354,"etape":"saut","r":"5 dunes"}
+21:48:47 VIE {"t":356,"r":"6 ville","etape":"saut"}
+21:48:55 VIE {"t":359,"r":"7 canyon","etape":"saut"}
+21:48:56 VIE {"etape":"saut","t":365,"r":"9 ville"}
+21:48:58 VIE {"r":"8 espace","etape":"saut","t":362}
+21:49:11 VIE {"t":380,"etape":"gouv","r":"[{\"D\":211.4,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+21:49:52 bilan reçu valS900-G 233604 octets 
+21:49:53 scénario demandé → aucun
+21:49:58 CC BANC fermée (pid 595)
+21:50:02 ✓ valS900-G en 455 s · batterie après 37.1 °C
+21:50:02 file terminée
+21:50:05 chef du banc sur :8931, 2 scénarios, seuil 99 °C
+21:50:09 ▶ geoOFF-1 · batterie 37.2 °C
+21:50:15 VIE {"jit":3,"plan":"valS900-G","etat":"fait"}
+21:50:17 VIE {"demarrage":{"froid":false,"pret":2284,"charge":0,"dcl":0,"jit":3}}
+21:50:19 scénario demandé → geoOFF-1
+21:50:19 VIE {"etat":"en cours","plan":"geoOFF-1","jit":7}
+21:50:45 VIE {"fuite":{"tex":102,"geoScene":820,"calls":null,"p90":56,"maillages":1658,"tas":null,"js":8.4000000000000004,"t":25863,"lieu":"nuages","med":21,"objets":2001,"dpr":1.5,"visibles":820,"geo":526,"progs"
+21:50:53 VIE {"fuite":{"progs":211,"tris":375744,"calls":203,"med":31,"tas":null,"tex":108,"js":10.800000000000001,"t":34142,"k":2,"dpr":1.5,"objets":2019,"geoScene":829,"ql":0,"p90":42,"lieu":"ville","geo":577,"n
+21:51:01 VIE {"fuite":{"tex":114,"geoScene":826,"p90":72,"calls":177,"maillages":1674,"tas":null,"js":14.1,"t":42362,"lieu":"canyon","med":37,"objets":2006,"dpr":1.5,"visibles":833,"tris":694002,"geo":571,"progs":
+21:51:09 VIE {"fuite":{"progs":211,"tris":676522,"calls":119,"med":49,"tas":null,"tex":114,"js":18.300000000000001,"t":50583,"k":4,"dpr":1.5,"objets":2027,"geoScene":844,"ql":4,"p90":88,"lieu":"orage","geo":595,"n
+21:51:17 VIE {"fuite":{"tex":114,"geoScene":844,"p90":70,"calls":210,"maillages":1742,"tas":null,"js":12.300000000000001,"t":58608,"lieu":"ville","med":40,"objets":2092,"dpr":1.4399999999999999,"visibles":901,"tri
+21:51:26 VIE {"fuite":{"progs":211,"tris":236818,"calls":141,"med":40,"tas":null,"js":11.199999999999999,"tex":114,"t":66920,"k":6,"dpr":1.3799999999999999,"objets":2124,"geoScene":897,"ql":7,"p90":59,"lieu":"banq
+21:51:34 VIE {"fuite":{"tex":114,"geoScene":823,"p90":76,"calls":206,"maillages":1716,"tas":null,"js":9.4000000000000004,"t":75420,"lieu":"canyon","med":62,"objets":2057,"dpr":1.4399999999999999,"visibles":874,"tr
+21:51:42 VIE {"fuite":{"niv":8,"progs":211,"tas":null,"calls":177,"med":61,"p90":80,"lieu":"nuages","tex":114,"maillages":1755,"geoScene":865,"tris":965243,"geo":632,"dpr":1.4399999999999999,"objets":2117,"t":8359
+21:51:51 VIE {"fuite":{"tris":534786,"k":9,"tex":114,"t":92089,"visibles":845,"maillages":1675,"lieu":"canyon","niv":9,"geo":601,"tas":null,"geoScene":825,"med":59,"calls":110,"p90":75,"progs":211,"js":11.6,"objet
+21:51:59 VIE {"fuite":{"niv":10,"tas":null,"calls":235,"progs":211,"med":71,"lieu":"jade","p90":88,"tex":115,"maillages":1774,"geoScene":876,"tris":426270,"geo":662,"dpr":1.4399999999999999,"objets":2117,"t":10041
+21:52:07 VIE {"fuite":{"niv":11,"tas":null,"calls":143,"progs":211,"med":74,"p90":91,"lieu":"nuages","tex":120,"maillages":1733,"geoScene":855,"tris":699088,"geo":641,"dpr":1.4399999999999999,"objets":2088,"t":108
+21:52:15 VIE {"fuite":{"tris":727318,"k":12,"tex":121,"t":116655,"visibles":889,"maillages":1742,"lieu":"canyon","niv":12,"geo":637,"tas":null,"geoScene":849,"med":74,"calls":116,"p90":109,"progs":211,"js":14.5,"o
+21:52:24 VIE {"fuite":{"niv":13,"progs":211,"tas":null,"calls":264,"med":85,"lieu":"nuages","p90":133,"tex":123,"maillages":1748,"geoScene":867,"tris":659728,"geo":667,"dpr":1.3100000000000001,"objets":2109,"t":12
+21:52:32 VIE {"fuite":{"niv":14,"tas":null,"calls":151,"progs":211,"med":79,"p90":111,"lieu":"jade","tex":123,"maillages":1812,"geoScene":884,"tris":591453,"geo":688,"dpr":1.25,"objets":2163,"t":133141,"k":14,"ql"
+21:52:40 VIE {"fuite":{"tris":582646,"k":15,"tex":123,"t":141392,"visibles":881,"maillages":1742,"lieu":"nuages","niv":15,"geo":658,"tas":null,"geoScene":862,"med":100,"calls":109,"p90":128,"progs":211,"js":14.6,"
+21:52:44 VIE {"etape":"stats","r":"{\"sonde\":{\"on\":true,\"seuil\":12,\"decisions\":0,\"replis\":4,\"pause\":\"49 s\",\"barriere","t":120}
+21:52:48 VIE {"fuite":{"tris":975443,"k":16,"tex":124,"t":149613,"visibles":902,"maillages":1744,"lieu":"nuages","niv":15,"geo":665,"tas":null,"geoScene":862,"med":101,"calls":172,"p90":179,"progs":211,"js":13.9,"
+21:52:57 VIE {"fuite":{"tris":604194,"k":17,"tex":125,"t":157803,"visibles":854,"maillages":1713,"lieu":"nuages","niv":15,"geo":644,"tas":null,"geoScene":857,"med":111,"calls":124,"p90":201,"progs":211,"js":15.800
+21:52:59 bilan reçu geoOFF-1 69392 octets 
+21:53:01 scénario demandé → aucun
+21:53:04 CC BANC fermée (pid 694)
+21:53:05 ✓ geoOFF-1 en 166 s · batterie après 37.1 °C
+21:53:07 ▶ geoON-1 · batterie 37.2 °C
+21:53:09 VIE {"etat":"fait","plan":"geoOFF-1","jit":9}
+21:53:15 VIE {"demarrage":{"pret":6782,"charge":0,"jit":9,"froid":false,"dcl":0}}
+21:53:18 scénario demandé → geoON-1
+21:53:18 VIE {"etat":"en cours","plan":"geoON-1","jit":6}
+21:53:49 VIE {"fuite":{"tex":102,"t":30911,"geoScene":826,"maillages":1674,"objets":2017,"calls":null,"js":64.700000000000003,"geo":525,"med":22,"p90":73,"ql":0,"progs":212,"dpr":1.5,"k":1,"niv":1,"tris":null,"lie
+21:53:57 VIE {"fuite":{"js":18.600000000000001,"objets":2054,"tas":null,"k":2,"t":39099,"ql":2,"maillages":1716,"lieu":"espace","med":49,"geo":560,"tex":104,"p90":76,"progs":212,"geoScene":862,"dpr":1.5,"niv":2,"v
+21:54:06 VIE {"fuite":{"tex":113,"t":47559,"geoScene":851,"maillages":1707,"objets":2043,"calls":132,"js":23.300000000000001,"geo":600,"med":57,"p90":113,"ql":6,"progs":212,"dpr":1.4399999999999999,"k":3,"niv":3,"
+21:54:14 VIE {"fuite":{"tex":113,"t":55644,"geoScene":1032,"maillages":1893,"objets":2501,"calls":165,"js":24.399999999999999,"geo":724,"med":50,"p90":109,"ql":4,"progs":212,"dpr":1.5,"k":4,"niv":4,"tris":238430,"
+21:54:22 VIE {"fuite":{"tex":114,"t":63998,"geoScene":871,"maillages":1746,"objets":2092,"calls":202,"js":21,"geo":614,"med":56,"p90":123,"ql":4,"progs":212,"dpr":1.5,"k":5,"niv":5,"tris":275776,"lieu":"espace","t
+21:54:31 VIE {"fuite":{"tex":114,"t":72395,"geoScene":1021,"maillages":1869,"objets":2202,"calls":231,"js":22.300000000000001,"geo":710,"med":104,"p90":177,"ql":4,"progs":212,"dpr":1.5,"k":6,"niv":6,"tris":206532,
+21:54:39 VIE {"fuite":{"tex":114,"t":80465,"geoScene":875,"maillages":1739,"objets":2085,"calls":200,"js":15.9,"geo":628,"med":122,"p90":177,"ql":4,"progs":212,"dpr":1.5,"k":7,"niv":7,"tris":280188,"lieu":"espace"
+21:54:47 VIE {"fuite":{"tex":114,"t":88545,"geoScene":1025,"maillages":1876,"objets":2215,"calls":227,"js":16.600000000000001,"geo":728,"med":128,"p90":183,"ql":4,"progs":212,"dpr":1.5,"k":8,"niv":8,"tris":207596,
+21:54:55 VIE {"fuite":{"tex":114,"t":97027,"geoScene":894,"maillages":1790,"objets":2125,"calls":214,"js":21.100000000000001,"geo":647,"med":134,"p90":189,"ql":4,"progs":212,"dpr":1.5,"k":9,"niv":9,"tris":406544,"
+21:55:04 VIE {"fuite":{"tex":114,"t":105487,"geoScene":867,"maillages":1719,"objets":2066,"calls":147,"js":17.899999999999999,"geo":619,"med":93,"p90":141,"ql":6,"progs":212,"dpr":1.4399999999999999,"k":10,"niv":1
+21:55:12 VIE {"fuite":{"tex":115,"t":113737,"geoScene":970,"maillages":1818,"objets":2147,"calls":191,"js":12.199999999999999,"geo":695,"med":51,"p90":73,"ql":8,"progs":212,"dpr":1.3100000000000001,"k":11,"niv":11
+21:55:20 VIE {"fuite":{"tex":115,"t":121801,"geoScene":879,"maillages":1765,"objets":2124,"calls":228,"js":15.199999999999999,"geo":654,"med":65,"p90":98,"ql":6,"progs":212,"dpr":1.4399999999999999,"k":12,"niv":12
+21:55:28 VIE {"fuite":{"tex":116,"t":130027,"geoScene":885,"maillages":1791,"objets":2148,"calls":136,"js":13.5,"geo":631,"med":62,"p90":88,"ql":6,"progs":212,"dpr":1.4399999999999999,"k":13,"niv":13,"tris":362062
+21:55:37 VIE {"fuite":{"tex":116,"t":138415,"geoScene":1001,"maillages":1884,"objets":2230,"calls":83,"js":14.699999999999999,"geo":738,"med":65,"p90":85,"ql":6,"progs":212,"dpr":1.4399999999999999,"k":14,"niv":14
+21:55:45 VIE {"fuite":{"tex":116,"t":146558,"geoScene":930,"maillages":1843,"objets":2185,"calls":208,"js":12.9,"geo":708,"med":47,"p90":75,"ql":6,"progs":212,"dpr":1.4399999999999999,"k":15,"niv":15,"tris":506339
+21:55:49 VIE {"r":"{\"sonde\":{\"on\":true,\"seuil\":12,\"decisions\":0,\"replis\":5,\"pause\":\"70 s\",\"barriere","t":120,"etape":"stats"}
+21:55:53 VIE {"fuite":{"tex":116,"t":154776,"geoScene":930,"maillages":1848,"objets":2190,"calls":90,"js":11,"geo":708,"med":82,"p90":109,"ql":6,"progs":212,"dpr":1.4399999999999999,"k":16,"niv":15,"tris":820465,"
+21:56:01 VIE {"fuite":{"tex":121,"t":162998,"geoScene":930,"maillages":1856,"objets":2198,"calls":95,"js":11.5,"geo":728,"med":87,"p90":115,"ql":8,"progs":212,"dpr":1.3100000000000001,"k":17,"niv":15,"tris":714996
+21:56:04 bilan reçu geoON-1 58703 octets 
+21:56:05 scénario demandé → aucun
+21:56:05 CC BANC fermée (pid 781)
+21:56:06 ✓ geoON-1 en 168 s · batterie après 37.2 °C
+21:56:06 file terminée
+21:58:39 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+21:58:41 ▶ valS901-G · batterie 36.9 °C
+21:58:45 VIE {"plan":"geoON-1","jit":3,"etat":"fait"}
+21:58:47 VIE {"demarrage":{"charge":0,"dcl":0,"froid":false,"jit":3,"pret":2237}}
+21:58:48 scénario demandé → valS901-G
+21:58:48 VIE {"jit":5,"etat":"en cours","plan":"valS901-G"}
+21:59:13 VIE {"erreur":"Can't find variable: n1","etape":"n1"}
+21:59:14 VIE {"t":2,"r":"{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"froid\"","etape":"raz"}
+21:59:17 VIE {"etape":"saut","r":"2 canyon","t":4}
+21:59:20 VIE {"etape":"saut","r":"3 ville","t":7}
+21:59:23 VIE {"t":10,"r":"4 espace","etape":"saut"}
+21:59:26 VIE {"etape":"saut","r":"5 dunes","t":13}
+21:59:29 VIE {"etape":"saut","r":"6 ville","t":16}
+21:59:32 VIE {"etape":"saut","r":"7 canyon","t":19}
+21:59:33 VIE {"etape":"gouv","r":"[{\"D\":9.2,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fro","t":20}
+21:59:35 VIE {"etape":"saut","r":"8 espace","t":22}
+21:59:38 VIE {"t":25,"r":"9 ville","etape":"saut"}
+22:00:13 VIE {"r":"[{\"D\":42.6,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","t":60,"etape":"gouv"}
+22:00:42 VIE {"etape":"saut","t":89,"r":"11 canyon"}
+22:00:45 VIE {"etape":"saut","t":92,"r":"12 ville"}
+22:00:48 VIE {"etape":"saut","t":95,"r":"13 espace"}
+22:00:51 VIE {"r":"14 dunes","t":98,"etape":"saut"}
+22:00:53 VIE {"r":"[{\"D\":63.5,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","t":100,"etape":"gouv"}
+22:00:54 VIE {"etape":"saut","t":101,"r":"15 ville"}
+22:00:57 VIE {"etape":"saut","t":104,"r":"16 canyon"}
+22:01:00 VIE {"etape":"saut","t":107,"r":"17 espace"}
+22:01:03 VIE {"r":"18 ville","t":110,"etape":"saut"}
+22:01:33 VIE {"t":140,"etape":"gouv","r":"[{\"D\":85,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose "}
+22:02:07 VIE {"r":"2 canyon","t":174,"etape":"saut"}
+22:02:10 VIE {"r":"3 ville","t":177,"etape":"saut"}
+22:02:13 VIE {"r":"4 espace","t":180,"etape":"saut"}
+22:02:13 VIE {"etape":"gouv","t":180,"r":"[{\"D\":104.9,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+22:02:16 VIE {"r":"5 dunes","t":183,"etape":"saut"}
+22:02:19 VIE {"etape":"saut","r":"6 ville","t":186}
+22:02:22 VIE {"r":"7 canyon","t":189,"etape":"saut"}
+22:02:25 VIE {"r":"8 espace","t":192,"etape":"saut"}
+22:02:28 VIE {"r":"9 ville","t":195,"etape":"saut"}
+22:02:53 VIE {"etape":"gouv","t":220,"r":"[{\"D\":124.9,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+22:03:32 VIE {"etape":"saut","r":"2 canyon","t":259}
+22:03:33 VIE {"r":"[{\"D\":141.2,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":260,"etape":"gouv"}
+22:03:35 VIE {"r":"3 ville","t":262,"etape":"saut"}
+22:03:38 VIE {"r":"4 espace","t":265,"etape":"saut"}
+22:03:41 VIE {"r":"5 dunes","t":268,"etape":"saut"}
+22:03:44 VIE {"r":"6 ville","t":271,"etape":"saut"}
+22:03:47 VIE {"r":"7 canyon","t":274,"etape":"saut"}
+22:03:50 VIE {"r":"8 espace","t":277,"etape":"saut"}
+22:03:53 VIE {"r":"9 ville","t":280,"etape":"saut"}
+22:04:13 VIE {"etape":"gouv","r":"[{\"D\":161.2,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":300}
+22:04:53 VIE {"etape":"gouv","t":340,"r":"[{\"D\":177.6,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+22:04:57 VIE {"t":344,"etape":"saut","r":"2 canyon"}
+22:05:00 VIE {"t":347,"etape":"saut","r":"3 ville"}
+22:05:03 VIE {"etape":"saut","t":350,"r":"4 espace"}
+22:05:06 VIE {"t":353,"r":"5 dunes","etape":"saut"}
+22:05:09 VIE {"etape":"saut","r":"6 ville","t":356}
+22:05:12 VIE {"etape":"saut","t":359,"r":"7 canyon"}
+22:05:15 VIE {"etape":"saut","t":362,"r":"8 espace"}
+22:05:18 VIE {"etape":"saut","t":365,"r":"9 ville"}
+22:05:33 VIE {"etape":"gouv","t":380,"r":"[{\"D\":197.6,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+22:06:13 bilan reçu valS901-G 222144 octets 
+22:06:15 scénario demandé → aucun
+22:06:16 CC BANC fermée (pid 862)
+22:06:16 ✓ valS901-G en 447 s · batterie après 37.4 °C
+22:06:16 file terminée
+22:06:21 chef du banc sur :8931, 2 scénarios, seuil 99 °C
+22:06:22 ▶ geoCOFF · batterie 37.4 °C
+22:06:22 VIE {"etat":"fait","plan":"valS901-G","jit":3}
+22:06:25 VIE {"demarrage":{"froid":false,"pret":2857,"jit":3,"charge":0,"dcl":0}}
+22:06:27 scénario demandé → geoCOFF
+22:06:27 VIE {"etat":"en cours","jit":9,"plan":"geoCOFF"}
+22:06:54 VIE {"etape":"raz","t":2,"r":"{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"froid\""}
+22:06:59 VIE {"t":6,"etape":"saut","r":"2 canyon"}
+22:07:11 VIE {"t":18,"etape":"arme","r":"arme"}
+22:07:18 VIE {"etape":"compte","t":25,"r":"[2,\"canyon\",652482,125,0,1.5]"}
+22:07:21 VIE {"r":"3 ville","t":28,"etape":"saut"}
+22:07:37 bilan reçu geoCOFF 35773 octets 
+22:07:38 scénario demandé → aucun
+22:07:38 CC BANC fermée (pid 920)
+22:07:39 ✓ geoCOFF en 72 s · batterie après 37.5 °C
+22:07:40 ▶ geoCON · batterie 37.5 °C
+22:07:41 VIE {"plan":"geoCOFF","jit":7,"etat":"fait"}
+22:07:46 VIE {"demarrage":{"froid":false,"pret":5443,"jit":7,"charge":0,"dcl":0}}
+22:07:48 scénario demandé → geoCON
+22:07:48 VIE {"etat":"en cours","jit":5,"plan":"geoCON"}
+22:08:16 VIE {"t":2,"etape":"raz","r":"{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"froid\""}
+22:08:23 VIE {"etape":"saut","t":6,"r":"2 canyon"}
+22:08:32 VIE {"r":"arme","t":18,"etape":"arme"}
+22:08:39 VIE {"etape":"compte","t":25,"r":"[2,\"canyon\",566614,201,0,1.5]"}
+22:08:42 VIE {"t":28,"etape":"saut","r":"3 ville"}
+22:08:54 VIE {"r":"arme","t":40,"etape":"arme"}
+22:09:05 bilan reçu geoCON 29699 octets 
+22:09:07 scénario demandé → aucun
+22:09:11 CC BANC fermée (pid 934)
+22:09:13 ✓ geoCON en 85 s · batterie après 37.6 °C
+22:09:13 file terminée
+22:14:29 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+22:14:31 ▶ valSdpr-G · batterie 37 °C
+22:14:34 VIE {"jit":3,"plan":"geoCON","etat":"fait"}
+22:14:36 VIE {"demarrage":{"froid":false,"charge":0,"pret":2221,"jit":3,"dcl":0}}
+22:14:37 scénario demandé → valSdpr-G
+22:14:37 VIE {"plan":"valSdpr-G","etat":"en cours","jit":4}
+22:15:02 VIE {"erreur":"Can't find variable: n1","etape":"n1"}
+22:15:03 VIE {"etape":"raz","r":"{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"froid\"","t":2}
+22:15:05 VIE {"t":4,"etape":"saut","r":"2 canyon"}
+22:15:08 VIE {"etape":"saut","r":"3 ville","t":7}
+22:15:11 VIE {"etape":"saut","r":"4 espace","t":10}
+22:15:14 VIE {"etape":"saut","r":"5 dunes","t":13}
+22:15:17 VIE {"r":"6 ville","etape":"saut","t":16}
+22:15:20 VIE {"r":"7 canyon","etape":"saut","t":19}
+22:15:21 VIE {"t":20,"etape":"gouv","r":"[{\"D\":18.5,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr"}
+22:15:23 VIE {"etape":"saut","r":"8 espace","t":22}
+22:15:26 VIE {"etape":"saut","r":"9 ville","t":25}
+22:16:01 VIE {"etape":"gouv","r":"[{\"D\":52.7,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dos","t":61}
+22:16:30 VIE {"r":"2 canyon","etape":"saut","t":89}
+22:16:33 VIE {"t":92,"r":"3 ville","etape":"saut"}
+22:16:36 VIE {"t":95,"r":"4 espace","etape":"saut"}
+22:16:39 VIE {"r":"5 dunes","etape":"saut","t":98}
+22:16:41 VIE {"r":"[{\"D\":69,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose ","etape":"gouv","t":100}
+22:16:42 VIE {"r":"6 ville","etape":"saut","t":101}
+22:16:45 VIE {"r":"7 canyon","etape":"saut","t":104}
+22:16:48 VIE {"t":107,"etape":"saut","r":"8 espace"}
+22:16:51 VIE {"t":110,"r":"9 ville","etape":"saut"}
+22:17:21 VIE {"t":140,"r":"[{\"D\":85.2,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dos","etape":"gouv"}
+22:17:55 VIE {"r":"2 canyon","etape":"saut","t":174}
+22:17:58 VIE {"r":"3 ville","etape":"saut","t":177}
+22:18:01 VIE {"r":"4 espace","etape":"saut","t":180}
+22:18:01 VIE {"etape":"gouv","r":"[{\"D\":105.1,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":180}
+22:18:04 VIE {"r":"5 dunes","etape":"saut","t":183}
+22:18:07 VIE {"etape":"saut","r":"6 ville","t":186}
+22:18:10 VIE {"r":"7 canyon","etape":"saut","t":189}
+22:18:14 VIE {"r":"8 espace","etape":"saut","t":192}
+22:18:16 VIE {"r":"9 ville","etape":"saut","t":195}
+22:18:41 VIE {"t":220,"r":"[{\"D\":125.2,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv"}
+22:19:20 VIE {"etape":"saut","r":"2 canyon","t":259}
+22:19:21 VIE {"etape":"gouv","r":"[{\"D\":141.5,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":260}
+22:19:23 VIE {"r":"3 ville","etape":"saut","t":262}
+22:19:26 VIE {"etape":"saut","r":"4 espace","t":265}
+22:19:29 VIE {"r":"5 dunes","etape":"saut","t":268}
+22:19:32 VIE {"r":"6 ville","etape":"saut","t":271}
+22:19:35 VIE {"etape":"saut","r":"7 canyon","t":274}
+22:19:38 VIE {"etape":"saut","r":"8 espace","t":277}
+22:19:41 VIE {"r":"9 ville","etape":"saut","t":280}
+22:20:01 VIE {"t":300,"r":"[{\"D\":161.3,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv"}
+22:20:41 VIE {"t":340,"r":"[{\"D\":177.8,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv"}
+22:20:45 VIE {"t":344,"r":"2 canyon","etape":"saut"}
+22:20:48 VIE {"r":"3 ville","etape":"saut","t":347}
+22:20:51 VIE {"r":"4 espace","etape":"saut","t":350}
+22:20:54 VIE {"r":"5 dunes","etape":"saut","t":353}
+22:20:57 VIE {"t":356,"r":"6 ville","etape":"saut"}
+22:21:00 VIE {"t":359,"r":"7 canyon","etape":"saut"}
+22:21:03 VIE {"r":"8 espace","etape":"saut","t":362}
+22:21:06 VIE {"r":"9 ville","etape":"saut","t":365}
+22:21:21 VIE {"t":381,"r":"[{\"D\":197.8,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv"}
+22:22:03 bilan reçu valSdpr-G 186879 octets 
+22:22:05 scénario demandé → aucun
+22:22:06 CC BANC fermée (pid 984)
+22:22:07 ✓ valSdpr-G en 448 s · batterie après 37.8 °C
+22:22:07 file terminée
+22:22:09 chef du banc sur :8931, 8 scénarios, seuil 99 °C
+22:22:10 ▶ geoM-canyon-OFF · batterie 37.8 °C
+22:22:10 VIE {"etat":"fait","plan":"valSdpr-G","jit":9}
+22:22:17 VIE {"demarrage":{"froid":false,"pret":7100,"charge":0,"jit":9,"dcl":0}}
+22:22:20 scénario demandé → geoM-canyon-OFF
+22:22:20 VIE {"etat":"en cours","plan":"geoM-canyon-OFF","jit":7}
+22:23:01 VIE {"etape":"arme","r":"arme","t":12}
+22:23:08 VIE {"t":19,"r":"[1,\"canyon\",667542,128,0,1.5]","etape":"compte"}
+22:23:13 VIE {"t":24,"r":"[1,\"canyon\",667542,128,0,1.5]","etape":"compte"}
+22:23:17 bilan reçu geoM-canyon-OFF 20140 octets 
+22:23:19 scénario demandé → aucun
+22:23:24 CC BANC fermée (pid 1040)
+22:23:27 ✓ geoM-canyon-OFF en 67 s · batterie après 37.8 °C
+22:23:29 ▶ geoM-canyon-ON · batterie 37.8 °C
+22:23:30 VIE {"etat":"fait","plan":"geoM-canyon-OFF","jit":4}
+22:23:35 VIE {"demarrage":{"pret":5458,"froid":false,"jit":4,"charge":0,"dcl":0}}
+22:23:37 scénario demandé → geoM-canyon-ON
+22:23:38 VIE {"etat":"en cours","jit":5,"plan":"geoM-canyon-ON"}
+22:24:17 VIE {"etape":"arme","r":"arme","t":12}
+22:24:24 VIE {"t":19,"r":"[1,\"canyon\",552262,137,0,1.5]","etape":"compte"}
+22:24:29 VIE {"r":"[1,\"canyon\",552262,137,0,1.5]","etape":"compte","t":24}
+22:24:33 bilan reçu geoM-canyon-ON 19919 octets 
+22:24:35 CC BANC fermée (pid 1052)
+22:24:35 scénario demandé → aucun
+22:24:35 ✓ geoM-canyon-ON en 58 s · batterie après 37.7 °C
+22:24:36 ▶ geoM-dunes-OFF · batterie 37.7 °C
+22:24:37 VIE {"plan":"geoM-canyon-ON","jit":8,"etat":"fait"}
+22:24:43 VIE {"demarrage":{"dcl":0,"charge":0,"froid":false,"pret":6343,"jit":8}}
+22:24:45 scénario demandé → geoM-dunes-OFF
+22:24:46 VIE {"plan":"geoM-dunes-OFF","etat":"en cours","jit":4}
+22:25:24 VIE {"etape":"arme","t":12,"r":"arme"}
+22:25:34 bilan reçu geoM-dunes-OFF 21201 octets 
+22:25:36 scénario demandé → aucun
+22:25:39 CC BANC fermée (pid 1067)
+22:25:42 ✓ geoM-dunes-OFF en 57 s · batterie après 37.7 °C
+22:25:45 ▶ geoM-dunes-ON · batterie 37.7 °C
+22:25:47 VIE {"plan":"geoM-dunes-OFF","jit":3,"etat":"fait"}
+22:25:50 VIE {"demarrage":{"charge":0,"jit":3,"froid":false,"dcl":0,"pret":3681}}
+22:25:52 scénario demandé → geoM-dunes-ON
+22:25:53 VIE {"plan":"geoM-dunes-ON","jit":4,"etat":"en cours"}
+22:26:32 VIE {"r":"arme","etape":"arme","t":13}
+22:26:42 bilan reçu geoM-dunes-ON 21045 octets 
+22:26:43 scénario demandé → aucun
+22:26:47 CC BANC fermée (pid 1084)
+22:26:49 ✓ geoM-dunes-ON en 56 s · batterie après 37.7 °C
+22:26:50 ▶ geoM-banquise-OFF · batterie 37.7 °C
+22:26:51 VIE {"plan":"geoM-dunes-ON","jit":4,"etat":"fait"}
+22:26:57 VIE {"demarrage":{"froid":false,"charge":0,"pret":5268,"jit":4,"dcl":0}}
+22:26:59 scénario demandé → geoM-banquise-OFF
+22:27:00 VIE {"jit":4,"plan":"geoM-banquise-OFF","etat":"en cours"}
+22:27:38 VIE {"etape":"arme","r":"arme","t":12}
+22:27:47 bilan reçu geoM-banquise-OFF 20441 octets 
+22:27:49 scénario demandé → aucun
+22:27:52 CC BANC fermée (pid 1096)
+22:27:54 ✓ geoM-banquise-OFF en 55 s · batterie après 37.7 °C
+22:27:56 ▶ geoM-banquise-ON · batterie 37.7 °C
+22:27:57 VIE {"plan":"geoM-banquise-OFF","etat":"fait","jit":6}
+22:28:02 VIE {"demarrage":{"pret":5186,"froid":false,"charge":0,"jit":6,"dcl":0}}
+22:28:04 scénario demandé → geoM-banquise-ON
+22:28:04 VIE {"etat":"en cours","plan":"geoM-banquise-ON","jit":4}
+22:28:43 VIE {"r":"arme","etape":"arme","t":13}
+22:28:49 bilan reçu geoM-banquise-ON 20184 octets 
+22:28:50 scénario demandé → aucun
+22:28:53 CC BANC fermée (pid 1107)
+22:28:54 ✓ geoM-banquise-ON en 50 s · batterie après 37.7 °C
+22:28:56 ▶ geoM-ville-OFF · batterie 37.7 °C
+22:28:57 VIE {"plan":"geoM-banquise-ON","jit":4,"etat":"fait"}
+22:29:01 VIE {"demarrage":{"jit":4,"dcl":0,"pret":4781,"charge":0,"froid":false}}
+22:29:03 scénario demandé → geoM-ville-OFF
+22:29:04 VIE {"etat":"en cours","plan":"geoM-ville-OFF","jit":5}
+22:29:42 VIE {"etape":"arme","t":12,"r":"arme"}
+22:29:49 VIE {"r":"[1,\"ville\",209954,104,0,1.5]","etape":"compte","t":19}
+22:29:54 VIE {"r":"[1,\"ville\",209954,104,0,1.5]","t":24,"etape":"compte"}
+22:29:58 bilan reçu geoM-ville-OFF 27626 octets 
+22:29:59 scénario demandé → aucun
+22:30:01 CC BANC fermée (pid 1118)
+22:30:02 ✓ geoM-ville-OFF en 58 s · batterie après 37.6 °C
+22:30:02 ▶ geoM-ville-ON · batterie 37.6 °C
+22:30:03 VIE {"plan":"geoM-ville-OFF","etat":"fait","jit":6}
+22:30:09 VIE {"demarrage":{"charge":0,"pret":5915,"froid":false,"jit":6,"dcl":0}}
+22:30:11 scénario demandé → geoM-ville-ON
+22:30:11 VIE {"etat":"en cours","plan":"geoM-ville-ON","jit":4}
+22:30:49 VIE {"r":"arme","etape":"arme","t":12}
+22:30:57 VIE {"r":"[1,\"ville\",203716,101,0,1.5]","t":19,"etape":"compte"}
+22:31:01 VIE {"r":"[1,\"ville\",203716,101,0,1.5]","t":24,"etape":"compte"}
+22:31:06 bilan reçu geoM-ville-ON 31511 octets 
+22:31:07 CC BANC fermée (pid 1132)
+22:31:08 ✓ geoM-ville-ON en 56 s · batterie après 37.6 °C
+22:31:08 file terminée
+22:31:09 chef du banc sur :8931, 2 scénarios, seuil 99 °C
+22:31:09 ▶ appelsON · batterie 37.6 °C
+22:31:10 VIE {"jit":9,"plan":"geoM-ville-ON","etat":"fait"}
+22:31:16 VIE {"demarrage":{"dcl":0,"pret":5611,"froid":false,"jit":9,"charge":0}}
+22:31:17 scénario demandé → appelsON
+22:31:18 VIE {"jit":5,"etat":"en cours","plan":"appelsON"}
+22:31:46 VIE {"r":"{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"froid\"","t":2,"etape":"raz"}
+22:31:49 VIE {"r":"2 canyon","t":4,"etape":"saut"}
+22:31:51 VIE {"r":"3 ville","t":7,"etape":"saut"}
+22:31:54 VIE {"r":"4 espace","t":10,"etape":"saut"}
+22:31:57 VIE {"etape":"saut","r":"5 dunes","t":13}
+22:32:00 VIE {"r":"6 ville","t":16,"etape":"saut"}
+22:32:03 VIE {"r":"7 canyon","t":19,"etape":"saut"}
+22:32:07 VIE {"etape":"saut","r":"8 espace","t":23}
+22:32:09 VIE {"etape":"saut","r":"9 ville","t":25}
+22:32:17 VIE {"r":"{\"appels\":129,\"triangles\":\"336k\",\"liste\":[[32,\"74k\",\"MeshBasicMaterial (scène)\"]","etape":"appels","t":33}
+22:32:24 bilan reçu appelsON 29816 octets 
+22:32:26 scénario demandé → aucun
+22:32:31 CC BANC fermée (pid 1143)
+22:32:34 ✓ appelsON en 76 s · batterie après 37.7 °C
+22:32:35 ▶ appelsOFF · batterie 37.7 °C
+22:32:36 VIE {"etat":"fait","jit":4,"plan":"appelsON"}
+22:32:41 VIE {"demarrage":{"froid":false,"charge":0,"dcl":0,"jit":4,"pret":4309}}
+22:32:43 scénario demandé → appelsOFF
+22:32:43 VIE {"plan":"appelsOFF","jit":4,"etat":"en cours"}
+22:33:11 VIE {"t":2,"r":"{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"froid\"","etape":"raz"}
+22:33:14 VIE {"t":4,"r":"2 canyon","etape":"saut"}
+22:33:17 VIE {"t":7,"r":"3 ville","etape":"saut"}
+22:33:20 VIE {"t":10,"r":"4 espace","etape":"saut"}
+22:33:23 VIE {"etape":"saut","r":"5 dunes","t":13}
+22:33:25 VIE {"etape":"saut","t":16,"r":"6 ville"}
+22:33:28 VIE {"t":19,"r":"7 canyon","etape":"saut"}
+22:33:33 VIE {"t":23,"r":"8 espace","etape":"saut"}
+22:33:34 VIE {"etape":"saut","r":"9 ville","t":25}
+22:33:42 VIE {"r":"{\"appels\":125,\"triangles\":\"386k\",\"liste\":[[30,\"131k\",\"MeshBasicMaterial (scène)\"","t":33,"etape":"appels"}
+22:33:50 bilan reçu appelsOFF 27456 octets 
+22:33:51 scénario demandé → aucun
+22:33:54 CC BANC fermée (pid 1158)
+22:33:56 ✓ appelsOFF en 73 s · batterie après 37.7 °C
+22:33:56 file terminée
+22:33:57 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+22:33:58 ▶ famON · batterie 37.7 °C
+22:33:59 VIE {"plan":"appelsOFF","jit":4,"etat":"fait"}
+22:34:04 VIE {"demarrage":{"charge":0,"jit":4,"pret":5069,"froid":false,"dcl":0}}
+22:34:06 scénario demandé → famON
+22:34:07 VIE {"etat":"en cours","jit":4,"plan":"famON"}
+22:34:35 VIE {"r":"{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"froid\"","t":2,"etape":"raz"}
+22:34:38 VIE {"etape":"saut","r":"2 canyon","t":4}
+22:34:40 VIE {"t":7,"r":"3 ville","etape":"saut"}
+22:34:44 VIE {"r":"4 espace","t":11,"etape":"saut"}
+22:34:46 VIE {"t":13,"r":"5 dunes","etape":"saut"}
+22:34:49 VIE {"t":16,"etape":"saut","r":"6 ville"}
+22:34:52 VIE {"etape":"saut","t":19,"r":"7 canyon"}
+22:34:59 VIE {"r":"8 espace","etape":"saut","t":25}
+22:34:59 VIE {"etape":"saut","r":"9 ville","t":25}
+22:35:03 VIE {"r":"130 appels 247k | 24\/51k MeshBasicMaterial (scène) ; 12\/2k MeshDepthMaterial <ca","t":30,"etape":"fam"}
+22:35:05 VIE {"r":"7\/0k PointsMaterial (scène) ; 6\/3k MeshBasicMaterial[I] ; 6\/0k MeshBasicMaterial","t":33,"etape":"fam"}
+22:35:07 VIE {"t":34,"r":"4\/4k MeshDepthMaterial ; 4\/4k MeshPhongMaterial ; 4\/0k SpriteMaterial <carrosser","etape":"fam"}
+22:35:09 VIE {"r":"3\/20k MeshLambertMaterial[I] ; 3\/3k ShaderMaterial (scène) ; 2\/6k MeshBasicMater","etape":"fam","t":36}
+22:35:11 VIE {"t":38,"r":"2\/3k MeshBasicMaterial ; 2\/0k ShaderMaterial <carrosseri ; 2\/0k MeshBasicMateria","etape":"fam"}
+22:35:13 VIE {"r":"1\/0k MeshLambertMaterial[I] < V ; 1\/0k LineBasicMaterial (scène) ; 1\/0k PointsMa","t":40,"etape":"fam"}
+22:35:17 bilan reçu famON 24929 octets 
+22:35:18 scénario demandé → aucun
+22:35:19 CC BANC fermée (pid 1172)
+22:35:19 ✓ famON en 73 s · batterie après 37.8 °C
+22:35:19 file terminée
+22:36:09 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+22:36:12 ▶ famDET · batterie 37.8 °C
+22:36:15 VIE {"etat":"fait","plan":"famON","jit":3}
+22:36:17 VIE {"demarrage":{"jit":3,"pret":2071,"dcl":0,"froid":false,"charge":0}}
+22:36:18 scénario demandé → famDET
+22:36:18 VIE {"jit":4,"plan":"famDET","etat":"en cours"}
+22:36:44 VIE {"t":2,"r":"ok","etape":"detail"}
+22:36:47 VIE {"t":4,"r":"2 canyon","etape":"saut"}
+22:36:50 VIE {"t":7,"r":"3 ville","etape":"saut"}
+22:36:53 VIE {"t":10,"r":"4 espace","etape":"saut"}
+22:36:56 VIE {"t":13,"etape":"saut","r":"5 dunes"}
+22:36:59 VIE {"t":16,"r":"6 ville","etape":"saut"}
+22:37:02 VIE {"etape":"saut","t":19,"r":"7 canyon"}
+22:37:05 VIE {"etape":"saut","t":22,"r":"8 espace"}
+22:37:10 VIE {"etape":"saut","t":27,"r":"9 ville"}
+22:37:12 VIE {"t":30,"r":"12\/2k MeshDepthMaterial <carrosserie> ; 10\/2k MeshPhongMaterial <carrosserie>","etape":"fam"}
+22:37:16 VIE {"etape":"fam","t":34,"r":"6\/3k MeshBasicMaterial[I] ; 6\/0k MeshBasicMaterial <carrosserie>"}
+22:37:16 VIE {"etape":"fam","t":34,"r":"5\/5k MeshPhongMaterial ; 4\/4k MeshDepthMaterial"}
+22:37:18 VIE {"r":"4\/0k MeshBasicMaterial < {PlaneGeometry ro0  707071}> (scène) ; 4\/48k MeshPhongM","t":36,"etape":"fam"}
+22:37:20 VIE {"etape":"fam","t":38,"r":"5\/6k MeshBasicMaterial < {BufferGeometry ro1 T moyenne f2eee6}> (scène) ; 4\/4k M"}
+22:37:23 VIE {"r":"5\/5k MeshBasicMaterial < {BufferGeometry ro1 T moyenne f2eee6}> (scène) ; 4\/4k M","etape":"fam","t":40}
+22:37:25 VIE {"t":42,"etape":"fam","r":"4\/5k MeshBasicMaterial < {BufferGeometry ro1 T moyenne f2eee6}> (scène) ; 4\/4k M"}
+22:37:29 bilan reçu famDET 23879 octets 
+22:37:30 scénario demandé → aucun
+22:37:35 CC BANC fermée (pid 1210)
+22:37:37 ✓ famDET en 79 s · batterie après 37.9 °C
+22:37:37 file terminée
+22:55:54 chef du banc sur :8931, 2 scénarios, seuil 99 °C
+22:56:29 ▶ valS903H · batterie 35.9 °C
+22:57:38 VIE {"plan":"famDET","jit":3,"etat":"fait"}
+22:57:40 VIE {"demarrage":{"jit":3,"pret":2042,"froid":false,"charge":0,"dcl":0}}
+22:57:42 scénario demandé → valS903H
+22:57:42 VIE {"etat":"en cours","jit":4,"plan":"valS903H"}
+22:58:06 VIE {"erreur":"Can't find variable: n1","etape":"n1"}
+22:58:07 VIE {"r":"{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"froid\"","t":2,"etape":"raz"}
+22:58:10 VIE {"t":4,"r":"2 canyon","etape":"saut"}
+22:58:13 VIE {"r":"3 ville","t":7,"etape":"saut"}
+22:58:16 VIE {"t":10,"r":"4 espace","etape":"saut"}
+22:58:19 VIE {"t":13,"r":"5 dunes","etape":"saut"}
+22:58:22 VIE {"t":16,"r":"6 ville","etape":"saut"}
+22:58:24 VIE {"t":19,"r":"7 canyon","etape":"saut"}
+22:58:26 VIE {"t":20,"r":"[{\"D\":18.1,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","etape":"gouv"}
+22:58:28 VIE {"t":22,"r":"8 espace","etape":"saut"}
+22:58:31 VIE {"etape":"saut","r":"9 ville","t":25}
+22:59:06 VIE {"t":60,"r":"[{\"D\":41.7,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","etape":"gouv"}
+22:59:35 VIE {"etape":"saut","t":89,"r":"2 canyon"}
+22:59:38 VIE {"etape":"saut","r":"3 ville","t":92}
+22:59:41 VIE {"r":"4 espace","t":95,"etape":"saut"}
+22:59:44 VIE {"etape":"saut","t":98,"r":"5 dunes"}
+22:59:45 VIE {"r":"[{\"D\":63.8,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","t":100,"etape":"gouv"}
+22:59:47 VIE {"t":101,"r":"6 ville","etape":"saut"}
+22:59:50 VIE {"etape":"saut","r":"7 canyon","t":104}
+22:59:53 VIE {"etape":"saut","r":"8 espace","t":107}
+22:59:56 VIE {"t":110,"r":"9 ville","etape":"saut"}
+23:00:26 VIE {"t":140,"r":"[{\"D\":84.9,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dos","etape":"gouv"}
+23:01:00 VIE {"t":174,"r":"2 canyon","etape":"saut"}
+23:01:03 VIE {"etape":"saut","t":177,"r":"3 ville"}
+23:01:06 VIE {"r":"4 espace","t":180,"etape":"saut"}
+23:01:06 VIE {"r":"[{\"D\":101.2,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv","t":180}
+23:01:09 VIE {"r":"5 dunes","t":183,"etape":"saut"}
+23:01:12 VIE {"t":186,"r":"6 ville","etape":"saut"}
+23:01:15 VIE {"etape":"saut","r":"7 canyon","t":189}
+23:01:18 VIE {"etape":"saut","r":"8 espace","t":192}
+23:01:21 VIE {"etape":"saut","t":195,"r":"9 ville"}
+23:01:46 VIE {"r":"[{\"D\":121,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose","t":220,"etape":"gouv"}
+23:02:25 VIE {"etape":"saut","r":"11 canyon","t":259}
+23:02:25 VIE {"t":260,"r":"[{\"D\":141,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose","etape":"gouv"}
+23:02:28 VIE {"t":262,"r":"12 ville","etape":"saut"}
+23:02:31 VIE {"etape":"saut","r":"13 espace","t":265}
+23:02:34 VIE {"etape":"saut","r":"14 dunes","t":268}
+23:02:37 VIE {"etape":"saut","t":271,"r":"15 ville"}
+23:02:40 VIE {"t":275,"r":"16 canyon","etape":"saut"}
+23:02:43 VIE {"t":277,"r":"17 espace","etape":"saut"}
+23:02:46 VIE {"t":280,"r":"18 ville","etape":"saut"}
+23:03:06 VIE {"t":300,"r":"[{\"D\":161.1,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv"}
+23:03:47 VIE {"t":340,"r":"[{\"D\":177.4,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv"}
+23:03:50 VIE {"t":345,"r":"2 canyon","etape":"saut"}
+23:03:53 VIE {"t":347,"r":"3 ville","etape":"saut"}
+23:03:56 VIE {"etape":"saut","t":350,"r":"4 espace"}
+23:03:59 VIE {"t":353,"r":"5 dunes","etape":"saut"}
+23:04:02 VIE {"t":356,"r":"6 ville","etape":"saut"}
+23:04:05 VIE {"t":359,"r":"7 canyon","etape":"saut"}
+23:04:08 VIE {"t":362,"r":"8 espace","etape":"saut"}
+23:04:11 VIE {"etape":"saut","r":"9 ville","t":365}
+23:04:26 VIE {"etape":"gouv","r":"[{\"D\":197.4,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":380}
+23:05:06 bilan reçu valS903H 243418 octets 
+23:05:08 scénario demandé → aucun
+23:05:22 CC BANC fermée (pid 1470)
+23:05:27 ✓ valS903H en 465 s · batterie après 38.1 °C
+23:05:49 ▶ fam903 · batterie 38.2 °C
+23:06:16 VIE {"etat":"fait","plan":"valS903H","jit":3}
+23:06:18 VIE {"demarrage":{"froid":false,"dcl":0,"charge":0,"jit":3,"pret":2048}}
+23:06:20 scénario demandé → fam903
+23:06:20 VIE {"etat":"en cours","plan":"fam903","jit":4}
+23:06:46 VIE {"etape":"raz","r":"{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"froid\"","t":2}
+23:06:48 VIE {"t":4,"etape":"saut","r":"2 canyon"}
+23:06:51 VIE {"t":7,"etape":"saut","r":"3 ville"}
+23:06:54 VIE {"r":"4 espace","t":10,"etape":"saut"}
+23:06:57 VIE {"t":13,"r":"5 dunes","etape":"saut"}
+23:07:00 VIE {"t":16,"etape":"saut","r":"6 ville"}
+23:07:03 VIE {"t":19,"etape":"saut","r":"7 canyon"}
+23:07:10 VIE {"etape":"saut","t":25,"r":"8 espace"}
+23:07:10 VIE {"t":25,"r":"9 ville","etape":"saut"}
+23:07:14 VIE {"etape":"fam","r":"115 appels 268k | 30\/56k MeshBasicMaterial (scène) ; 10\/2k MeshPhongMaterial <ca","t":30}
+23:07:16 VIE {"etape":"fam","t":32,"r":"7\/14k MeshLambertMaterial (scène ; 6\/7k MeshBasicMaterial[I] ; 6\/0k MeshBasicMat"}
+23:07:18 VIE {"etape":"fam","t":34,"r":"4\/6k MeshDepthMaterial <moba om ; 4\/12k MeshLambertMaterial (scène ; 4\/0k Sprite"}
+23:07:20 VIE {"r":"2\/1k MeshBasicMaterial[I] (scèn ; 2\/0k ShaderMaterial[I] < VIDE>  ; 2\/10k MeshLa","t":36,"etape":"fam"}
+23:07:22 VIE {"etape":"fam","t":38,"r":"2\/0k ShaderMaterial <carrosseri ; 2\/0k MeshBasicMaterial[I] < VID ; 1\/59k MeshPh"}
+23:07:24 VIE {"t":40,"etape":"fam","r":"1\/0k LineBasicMaterial (scène) ; 1\/0k PointsMaterial <banquise p ; 1\/0k PointsMa"}
+23:07:28 bilan reçu fam903 38688 octets 
+23:07:30 scénario demandé → aucun
+23:08:05 CC BANC fermée (pid 1534)
+23:08:33 ✓ fam903 en 132 s · batterie après 38.5 °C
+23:08:33 file terminée
+23:18:23 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+23:18:29 ▶ valS903D · batterie 37 °C
+23:18:48 VIE {"jit":3,"etat":"fait","plan":"fam903"}
+23:18:50 VIE {"demarrage":{"pret":2002,"charge":0,"dcl":0,"froid":false,"jit":3}}
+23:18:51 scénario demandé → valS903D
+23:18:51 VIE {"plan":"valS903D","etat":"en cours","jit":3}
+23:19:15 VIE {"erreur":"Can't find variable: n1","etape":"n1"}
+23:19:16 VIE {"r":"{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"froid\"","t":2,"etape":"raz"}
+23:19:18 VIE {"r":"2 canyon","t":4,"etape":"saut"}
+23:19:22 VIE {"r":"3 ville","t":7,"etape":"saut"}
+23:19:25 VIE {"etape":"saut","t":10,"r":"4 espace"}
+23:19:27 VIE {"etape":"saut","t":13,"r":"5 dunes"}
+23:19:30 VIE {"etape":"saut","t":16,"r":"6 ville"}
+23:19:33 VIE {"etape":"saut","t":19,"r":"7 canyon"}
+23:19:34 VIE {"t":20,"etape":"gouv","r":"[{\"D\":18,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"froi"}
+23:19:36 VIE {"r":"8 espace","t":22,"etape":"saut"}
+23:19:39 VIE {"t":25,"etape":"saut","r":"9 ville"}
+23:20:15 VIE {"t":61,"r":"[{\"D\":47.8,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","etape":"gouv"}
+23:20:43 VIE {"t":89,"etape":"saut","r":"2 canyon"}
+23:20:47 VIE {"t":92,"etape":"saut","r":"3 ville"}
+23:20:49 VIE {"r":"4 espace","etape":"saut","t":95}
+23:20:53 VIE {"etape":"saut","t":98,"r":"5 dunes"}
+23:20:54 VIE {"t":100,"r":"[{\"D\":71.1,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dos","etape":"gouv"}
+23:20:55 VIE {"t":101,"r":"6 ville","etape":"saut"}
+23:20:59 VIE {"etape":"saut","t":104,"r":"7 canyon"}
+23:21:01 VIE {"t":107,"etape":"saut","r":"8 espace"}
+23:21:04 VIE {"t":110,"etape":"saut","r":"9 ville"}
+23:21:34 VIE {"etape":"gouv","t":140,"r":"[{\"D\":87.7,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dos"}
+23:22:09 VIE {"etape":"saut","t":174,"r":"2 canyon"}
+23:22:12 VIE {"t":177,"etape":"saut","r":"3 ville"}
+23:22:15 VIE {"etape":"saut","t":180,"r":"4 espace"}
+23:22:15 VIE {"t":180,"etape":"gouv","r":"[{\"D\":107.6,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+23:22:18 VIE {"etape":"saut","t":183,"r":"5 dunes"}
+23:22:21 VIE {"t":186,"r":"6 ville","etape":"saut"}
+23:22:24 VIE {"etape":"saut","t":189,"r":"7 canyon"}
+23:22:27 VIE {"r":"8 espace","etape":"saut","t":192}
+23:22:30 VIE {"t":195,"etape":"saut","r":"9 ville"}
+23:22:54 VIE {"t":220,"etape":"gouv","r":"[{\"D\":127.7,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+23:23:34 VIE {"t":259,"r":"2 canyon","etape":"saut"}
+23:23:34 VIE {"r":"[{\"D\":144,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose","etape":"gouv","t":260}
+23:23:37 VIE {"etape":"saut","t":262,"r":"3 ville"}
+23:23:40 VIE {"etape":"saut","t":265,"r":"4 espace"}
+23:23:43 VIE {"r":"5 dunes","t":268,"etape":"saut"}
+23:23:46 VIE {"t":271,"etape":"saut","r":"6 ville"}
+23:23:48 VIE {"r":"7 canyon","t":274,"etape":"saut"}
+23:23:52 VIE {"r":"8 espace","t":278,"etape":"saut"}
+23:23:55 VIE {"t":280,"etape":"saut","r":"9 ville"}
+23:24:14 VIE {"t":300,"r":"[{\"D\":164,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose","etape":"gouv"}
+23:24:54 VIE {"t":340,"r":"[{\"D\":183.9,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv"}
+23:24:59 VIE {"etape":"saut","t":344,"r":"10 canyon"}
+23:25:02 VIE {"t":347,"r":"11 ville","etape":"saut"}
+23:25:05 VIE {"etape":"saut","t":350,"r":"12 espace"}
+23:25:08 VIE {"etape":"saut","t":353,"r":"13 dunes"}
+23:25:11 VIE {"etape":"saut","t":356,"r":"14 ville"}
+23:25:14 VIE {"etape":"saut","t":359,"r":"15 canyon"}
+23:25:17 VIE {"etape":"saut","t":362,"r":"16 espace"}
+23:25:20 VIE {"t":365,"etape":"saut","r":"17 ville"}
+23:25:34 VIE {"etape":"gouv","t":380,"r":"[{\"D\":204.1,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+23:26:14 bilan reçu valS903D 204807 octets 
+23:26:16 scénario demandé → aucun
+23:26:36 CC BANC fermée (pid 1620)
+23:26:40 ✓ valS903D en 468 s · batterie après 38.8 °C
+23:26:40 file terminée
+23:39:56 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+23:40:01 ▶ valS903Q · batterie 36.8 °C
+23:40:06 VIE {"plan":"valS903D","jit":4,"etat":"fait"}
+23:40:08 VIE {"demarrage":{"jit":4,"charge":0,"froid":false,"dcl":0,"pret":2086}}
+23:40:09 scénario demandé → valS903Q
+23:40:10 VIE {"plan":"valS903Q","etat":"en cours","jit":4}
+23:40:33 VIE {"etape":"n1","erreur":"Can't find variable: n1"}
+23:40:34 VIE {"etape":"raz","t":2,"r":"{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"froid\""}
+23:40:37 VIE {"r":"2 canyon","etape":"saut","t":4}
+23:40:40 VIE {"t":7,"r":"3 ville","etape":"saut"}
+23:40:43 VIE {"t":10,"etape":"saut","r":"4 espace"}
+23:40:46 VIE {"r":"5 dunes","t":13,"etape":"saut"}
+23:40:49 VIE {"r":"6 ville","t":16,"etape":"saut"}
+23:40:52 VIE {"etape":"saut","r":"7 canyon","t":19}
+23:40:52 VIE {"etape":"gouv","r":"[{\"D\":18.1,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","t":20}
+23:40:55 VIE {"r":"8 espace","t":22,"etape":"saut"}
+23:40:58 VIE {"t":25,"r":"9 ville","etape":"saut"}
+23:41:32 VIE {"t":60,"etape":"gouv","r":"[{\"D\":49.3,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr"}
+23:42:02 VIE {"t":89,"r":"2 canyon","etape":"saut"}
+23:42:05 VIE {"etape":"saut","t":92,"r":"3 ville"}
+23:42:08 VIE {"etape":"saut","t":95,"r":"4 espace"}
+23:42:10 VIE {"t":98,"r":"5 dunes","etape":"saut"}
+23:42:13 VIE {"t":100,"r":"[{\"D\":89.5,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","etape":"gouv"}
+23:42:14 VIE {"t":101,"r":"6 ville","etape":"saut"}
+23:42:17 VIE {"r":"7 canyon","t":104,"etape":"saut"}
+23:42:20 VIE {"t":108,"r":"8 espace","etape":"saut"}
+23:42:23 VIE {"t":110,"r":"9 ville","etape":"saut"}
+23:42:53 VIE {"t":140,"etape":"gouv","r":"[{\"D\":113.3,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+23:43:27 VIE {"t":174,"etape":"saut","r":"2 canyon"}
+23:43:30 VIE {"etape":"saut","r":"3 ville","t":177}
+23:43:33 VIE {"r":"4 espace","t":180,"etape":"saut"}
+23:43:33 VIE {"etape":"gouv","r":"[{\"D\":133.5,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":180}
+23:43:37 VIE {"etape":"saut","r":"5 dunes","t":183}
+23:43:40 VIE {"etape":"saut","t":187,"r":"6 ville"}
+23:43:42 VIE {"etape":"saut","t":189,"r":"7 canyon"}
+23:43:45 VIE {"etape":"saut","r":"8 espace","t":192}
+23:43:48 VIE {"etape":"saut","r":"9 ville","t":195}
+23:44:13 VIE {"t":220,"r":"[{\"D\":151.2,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv"}
+23:44:56 VIE {"etape":"saut","r":"2 canyon","t":264}
+23:44:57 VIE {"t":264,"r":"[{\"D\":165.6,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv"}
+23:44:57 VIE {"r":"3 ville","etape":"saut","t":264}
+23:44:58 VIE {"etape":"saut","r":"4 espace","t":265}
+23:45:01 VIE {"t":268,"r":"5 dunes","etape":"saut"}
+23:45:04 VIE {"t":271,"etape":"saut","r":"6 ville"}
+23:45:14 VIE {"etape":"saut","r":"2 canyon","t":281}
+23:45:14 VIE {"etape":"saut","r":"3 espace","t":281}
+23:45:14 VIE {"etape":"saut","r":"4 ville","t":281}
+23:45:37 VIE {"r":"[{\"D\":165.3,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv","t":304}
+23:46:12 VIE {"etape":"gouv","t":340,"r":"[{\"D\":179.1,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+23:46:17 VIE {"r":"2 canyon","t":344,"etape":"saut"}
+23:46:20 VIE {"t":347,"r":"3 ville","etape":"saut"}
+23:46:23 VIE {"r":"4 espace","t":350,"etape":"saut"}
+23:46:25 VIE {"t":353,"etape":"saut","r":"5 dunes"}
+23:46:29 VIE {"t":356,"r":"6 ville","etape":"saut"}
+23:46:32 VIE {"r":"7 canyon","etape":"saut","t":359}
+23:46:35 VIE {"r":"8 espace","t":362,"etape":"saut"}
+23:46:38 VIE {"t":365,"etape":"saut","r":"9 ville"}
+23:46:52 VIE {"etape":"gouv","r":"[{\"D\":199.1,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":380}
+23:47:33 bilan reçu valS903Q 274428 octets 
+23:47:35 scénario demandé → aucun
+23:47:40 CC BANC fermée (pid 1840)
+23:47:49 ✓ valS903Q en 459 s · batterie après 36.9 °C
+23:47:49 file terminée
+00:03:48 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+00:03:49 ▶ valS903F · batterie 32.8 °C
+00:04:00 lancement refusé :                BSErrorCodeDescription = Locked |                NSLocalizedFailureReason = Unable to launch com.sachaberes.carcash.banc because the device was not, or could not be, unlocked.
+00:04:46 app muette après 45 s (essai 1)
+00:04:59 lancement refusé :                BSErrorCodeDescription = Locked |                NSLocalizedFailureReason = Unable to launch com.sachaberes.carcash.banc because the device was not, or could not be, unlocked.
+00:08:01 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+00:08:03 ▶ valS903F · batterie 32.8 °C
+00:08:04 VIE {"jit":4,"etat":"fait","plan":"valS903Q"}
+00:08:07 VIE {"demarrage":{"dcl":0,"froid":false,"jit":4,"charge":0,"pret":2172}}
+00:08:08 scénario demandé → valS903F
+00:08:08 VIE {"plan":"valS903F","etat":"en cours","jit":4}
+00:08:32 VIE {"etape":"n1","erreur":"Can't find variable: n1"}
+00:08:33 VIE {"r":"{\"D\":200,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose ","t":2,"etape":"force"}
+00:08:35 VIE {"r":"2 canyon","etape":"saut","t":4}
+00:08:39 VIE {"etape":"saut","t":7,"r":"3 ville"}
+00:08:42 VIE {"r":"4 espace","etape":"saut","t":10}
+00:08:45 VIE {"etape":"saut","t":13,"r":"5 dunes"}
+00:08:47 VIE {"r":"6 ville","t":16,"etape":"saut"}
+00:08:51 VIE {"r":"7 canyon","etape":"saut","t":19}
+00:08:52 VIE {"r":"[{\"D\":209.1,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":20,"etape":"gouv"}
+00:08:54 VIE {"r":"8 espace","etape":"saut","t":22}
+00:08:57 VIE {"etape":"saut","t":25,"r":"9 ville"}
+00:09:32 VIE {"t":60,"etape":"gouv","r":"[{\"D\":225.6,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+00:10:00 VIE {"r":"2 canyon","etape":"saut","t":89}
+00:10:04 VIE {"etape":"saut","t":92,"r":"3 ville"}
+00:10:07 VIE {"r":"4 espace","t":95,"etape":"saut"}
+00:10:10 VIE {"t":98,"etape":"saut","r":"5 dunes"}
+00:10:11 VIE {"t":100,"etape":"gouv","r":"[{\"D\":230,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose"}
+00:10:12 VIE {"etape":"saut","t":101,"r":"6 ville"}
+00:10:16 VIE {"r":"7 canyon","etape":"saut","t":104}
+00:10:19 VIE {"r":"8 espace","etape":"saut","t":107}
+00:10:21 VIE {"t":110,"etape":"saut","r":"9 ville"}
+00:10:52 VIE {"etape":"gouv","t":140,"r":"[{\"D\":230,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose"}
+00:11:26 VIE {"t":174,"etape":"saut","r":"2 canyon"}
+00:11:29 VIE {"r":"3 ville","etape":"saut","t":177}
+00:11:32 VIE {"etape":"saut","t":180,"r":"4 espace"}
+00:11:32 VIE {"etape":"gouv","t":180,"r":"[{\"D\":230,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose"}
+00:11:35 VIE {"etape":"saut","t":183,"r":"5 dunes"}
+00:11:38 VIE {"t":186,"etape":"saut","r":"6 ville"}
+00:11:41 VIE {"t":189,"etape":"saut","r":"7 canyon"}
+00:11:44 VIE {"etape":"saut","t":192,"r":"8 espace"}
+00:11:47 VIE {"t":195,"etape":"saut","r":"9 ville"}
+00:12:11 VIE {"etape":"gouv","t":220,"r":"[{\"D\":228.8,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+00:12:51 VIE {"etape":"saut","t":259,"r":"2 canyon"}
+00:12:52 VIE {"t":260,"etape":"gouv","r":"[{\"D\":230,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose"}
+00:12:54 VIE {"etape":"saut","t":262,"r":"3 ville"}
+00:12:57 VIE {"r":"4 espace","etape":"saut","t":265}
+00:13:00 VIE {"etape":"saut","t":268,"r":"5 dunes"}
+00:13:03 VIE {"t":271,"etape":"saut","r":"6 ville"}
+00:13:06 VIE {"t":274,"etape":"saut","r":"7 canyon"}
+00:13:09 VIE {"r":"8 espace","etape":"saut","t":277}
+00:13:12 VIE {"etape":"saut","t":280,"r":"9 ville"}
+00:13:32 VIE {"r":"[{\"D\":229.9,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv","t":300}
+00:17:50 CC BANC fermée (pid 2220)
+00:17:51 ✗ pas de bilan valS903F en 583 s · batterie après 34.5 °C
+00:17:51 file terminée
+00:29:53 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+00:29:55 ▶ valABBA-A1 · batterie 32.3 °C
+00:29:57 VIE {"etat":"en cours","jit":3,"plan":"valS903F"}
+00:29:59 VIE {"demarrage":{"pret":1989,"charge":0,"jit":3,"froid":false,"dcl":0}}
+00:30:00 scénario demandé → valABBA-A1
+00:30:00 VIE {"jit":3,"etat":"en cours","plan":"valABBA-A1"}
+00:30:25 VIE {"etape":"n1","erreur":"Can't find variable: n1"}
+00:30:26 VIE {"r":"{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"froid\"","etape":"raz","t":2}
+00:30:28 VIE {"r":"2 canyon","etape":"saut","t":4}
+00:30:31 VIE {"etape":"saut","r":"3 ville","t":7}
+00:30:34 VIE {"r":"4 espace","etape":"saut","t":10}
+00:30:37 VIE {"etape":"saut","t":13,"r":"5 dunes"}
+00:30:40 VIE {"etape":"saut","t":16,"r":"6 ville"}
+00:30:43 VIE {"etape":"saut","r":"7 canyon","t":19}
+00:30:44 VIE {"etape":"gouv","t":20,"r":"[{\"D\":18.4,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr"}
+00:30:46 VIE {"etape":"saut","t":22,"r":"8 espace"}
+00:30:49 VIE {"etape":"saut","t":25,"r":"9 ville"}
+00:31:24 VIE {"r":"[{\"D\":49.7,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","etape":"gouv","t":60}
+00:31:53 VIE {"t":89,"r":"2 canyon","etape":"saut"}
+00:31:56 VIE {"etape":"saut","t":92,"r":"3 ville"}
+00:31:59 VIE {"t":95,"r":"4 espace","etape":"saut"}
+00:32:02 VIE {"t":98,"r":"5 dunes","etape":"saut"}
+00:32:04 VIE {"t":100,"r":"[{\"D\":71.4,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dos","etape":"gouv"}
+00:32:05 VIE {"t":101,"r":"6 ville","etape":"saut"}
+00:32:08 VIE {"t":104,"r":"7 canyon","etape":"saut"}
+00:32:11 VIE {"t":107,"r":"8 espace","etape":"saut"}
+00:32:14 VIE {"t":110,"r":"9 ville","etape":"saut"}
+00:32:44 VIE {"etape":"gouv","t":141,"r":"[{\"D\":88.1,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dos"}
+00:33:19 VIE {"t":174,"r":"2 canyon","etape":"saut"}
+00:33:21 VIE {"t":177,"r":"3 ville","etape":"saut"}
+00:33:24 VIE {"etape":"saut","t":180,"r":"4 espace"}
+00:33:24 VIE {"r":"[{\"D\":107.8,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":180,"etape":"gouv"}
+00:33:27 VIE {"r":"5 dunes","t":183,"etape":"saut"}
+00:33:30 VIE {"etape":"saut","t":186,"r":"6 ville"}
+00:33:33 VIE {"r":"7 canyon","t":189,"etape":"saut"}
+00:33:36 VIE {"t":192,"r":"8 espace","etape":"saut"}
+00:33:39 VIE {"t":195,"r":"9 ville","etape":"saut"}
+00:34:04 VIE {"etape":"gouv","t":220,"r":"[{\"D\":128,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose"}
+00:34:43 VIE {"t":259,"r":"10 canyon","etape":"saut"}
+00:34:44 VIE {"etape":"gouv","t":260,"r":"[{\"D\":147.7,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+00:34:46 VIE {"etape":"saut","t":262,"r":"11 ville"}
+00:34:49 VIE {"t":265,"r":"12 espace","etape":"saut"}
+00:34:52 VIE {"t":268,"r":"13 dunes","etape":"saut"}
+00:34:55 VIE {"etape":"saut","t":271,"r":"14 ville"}
+00:34:58 VIE {"etape":"saut","t":274,"r":"15 canyon"}
+00:35:01 VIE {"t":277,"r":"16 espace","etape":"saut"}
+00:35:04 VIE {"t":280,"r":"17 ville","etape":"saut"}
+00:35:24 VIE {"t":300,"r":"[{\"D\":167.8,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv"}
+00:36:04 VIE {"t":340,"r":"[{\"D\":187.8,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv"}
+00:36:13 VIE {"etape":"saut","r":"2 canyon","t":349}
+00:36:13 VIE {"etape":"saut","t":349,"r":"3 ville"}
+00:36:15 VIE {"t":350,"r":"4 espace","etape":"saut"}
+00:36:17 VIE {"t":353,"r":"5 dunes","etape":"saut"}
+00:36:20 VIE {"etape":"saut","t":356,"r":"6 ville"}
+00:36:23 VIE {"etape":"saut","t":359,"r":"7 canyon"}
+00:36:26 VIE {"etape":"saut","t":362,"r":"8 espace"}
+00:36:29 VIE {"t":365,"r":"9 ville","etape":"saut"}
+00:36:44 VIE {"etape":"gouv","t":380,"r":"[{\"D\":202.9,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+00:37:24 bilan reçu valABBA-A1 197093 octets 
+00:37:26 scénario demandé → aucun
+00:37:28 CC BANC fermée (pid 2533)
+00:37:32 ✓ valABBA-A1 en 452 s · batterie après 37.3 °C
+00:37:32 file terminée
+00:50:03 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+00:50:05 ▶ valS903F · batterie 35.9 °C
+00:50:06 VIE {"plan":"valABBA-A1","jit":3,"etat":"fait"}
+00:50:08 VIE {"demarrage":{"dcl":0,"pret":2011,"froid":false,"jit":3,"charge":0}}
+00:50:10 scénario demandé → valS903F
+00:50:10 VIE {"plan":"valS903F","jit":3,"etat":"en cours"}
+00:50:34 VIE {"erreur":"Can't find variable: n1","etape":"n1"}
+00:50:35 VIE {"t":2,"etape":"force","r":"{\"D\":200,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose "}
+00:50:38 VIE {"etape":"saut","t":4,"r":"2 canyon"}
+00:50:41 VIE {"etape":"saut","t":7,"r":"3 ville"}
+00:50:44 VIE {"etape":"saut","r":"4 espace","t":10}
+00:50:47 VIE {"etape":"saut","t":13,"r":"5 dunes"}
+00:50:50 VIE {"etape":"saut","r":"6 ville","t":16}
+00:50:53 VIE {"t":19,"etape":"saut","r":"7 canyon"}
+00:50:54 VIE {"t":20,"r":"[{\"D\":209.2,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv"}
+00:50:56 VIE {"t":22,"r":"8 espace","etape":"saut"}
+00:50:59 VIE {"t":25,"etape":"saut","r":"9 ville"}
+00:51:34 VIE {"t":60,"etape":"gouv","r":"[{\"D\":225.5,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+00:52:03 VIE {"r":"2 canyon","t":89,"etape":"saut"}
+00:52:06 VIE {"etape":"saut","r":"3 ville","t":92}
+00:52:09 VIE {"etape":"saut","r":"4 espace","t":95}
+00:52:12 VIE {"etape":"saut","t":98,"r":"5 dunes"}
+00:52:14 VIE {"r":"[{\"D\":230,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose","t":100,"etape":"gouv"}
+00:52:15 VIE {"etape":"saut","t":101,"r":"6 ville"}
+00:52:18 VIE {"t":104,"r":"7 canyon","etape":"saut"}
+00:52:21 VIE {"r":"8 espace","etape":"saut","t":107}
+00:52:24 VIE {"t":110,"r":"9 ville","etape":"saut"}
+00:52:54 VIE {"t":140,"etape":"gouv","r":"[{\"D\":230,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose"}
+00:53:28 VIE {"r":"2 canyon","t":174,"etape":"saut"}
+00:53:31 VIE {"etape":"saut","r":"3 ville","t":177}
+00:53:34 VIE {"t":180,"r":"4 espace","etape":"saut"}
+00:53:34 VIE {"r":"[{\"D\":230,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose","t":180,"etape":"gouv"}
+00:53:37 VIE {"etape":"saut","r":"5 dunes","t":183}
+00:53:40 VIE {"etape":"saut","t":186,"r":"6 ville"}
+00:53:43 VIE {"r":"7 canyon","t":189,"etape":"saut"}
+00:53:46 VIE {"etape":"saut","t":192,"r":"8 espace"}
+00:53:49 VIE {"etape":"saut","r":"9 ville","t":195}
+00:54:14 VIE {"r":"[{\"D\":220.6,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":220,"etape":"gouv"}
+00:54:53 VIE {"etape":"saut","r":"10 canyon","t":259}
+00:54:53 VIE {"t":260,"r":"[{\"D\":210.6,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","etape":"gouv"}
+00:54:56 VIE {"r":"11 ville","t":262,"etape":"saut"}
+00:54:59 VIE {"etape":"saut","r":"12 espace","t":265}
+00:55:02 VIE {"etape":"saut","r":"13 dunes","t":268}
+00:55:05 VIE {"r":"14 ville","etape":"saut","t":271}
+00:55:08 VIE {"r":"15 canyon","etape":"saut","t":274}
+00:55:11 VIE {"etape":"saut","r":"16 espace","t":277}
+00:55:14 VIE {"r":"17 ville","etape":"saut","t":280}
+00:55:34 VIE {"etape":"gouv","r":"[{\"D\":200.6,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":300}
+00:56:14 VIE {"r":"[{\"D\":190.5,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":340,"etape":"gouv"}
+00:56:17 VIE {"etape":"saut","t":344,"r":"18 canyon"}
+00:56:21 VIE {"r":"19 ville","etape":"saut","t":347}
+00:56:24 VIE {"t":350,"r":"20 espace","etape":"saut"}
+00:56:27 VIE {"etape":"saut","r":"21 dunes","t":353}
+00:56:30 VIE {"etape":"saut","r":"22 ville","t":356}
+00:56:33 VIE {"r":"23 canyon","etape":"saut","t":359}
+00:56:36 VIE {"r":"24 espace","etape":"saut","t":362}
+00:56:39 VIE {"r":"25 ville","etape":"saut","t":365}
+00:56:54 VIE {"r":"[{\"D\":180.6,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":380,"etape":"gouv"}
+00:57:34 bilan reçu valS903F 348390 octets 
+00:57:36 scénario demandé → aucun
+00:57:39 CC BANC fermée (pid 2685)
+00:57:42 ✓ valS903F en 452 s · batterie après 38 °C
+00:57:42 file terminée
+02:17:47 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+02:17:48 ▶ valS904G30 · batterie 33.8 °C
+02:17:48 VIE {"jit":4,"etat":"fait","plan":"valS903F"}
+02:17:50 VIE {"demarrage":{"jit":4,"charge":0,"froid":false,"pret":2051,"dcl":0}}
+02:17:52 scénario demandé → valS904G30
+02:17:52 VIE {"jit":3,"etat":"en cours","plan":"valS904G30"}
+02:18:16 VIE {"erreur":"Can't find variable: n1","etape":"n1"}
+02:18:17 VIE {"etape":"raz","r":"{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"froid\"}","t":2}
+02:18:20 VIE {"r":"2 canyon","etape":"saut","t":4}
+02:18:23 VIE {"r":"3 ville","etape":"saut","t":7}
+02:18:26 VIE {"r":"4 espace","etape":"saut","t":10}
+02:18:29 VIE {"r":"5 dunes","etape":"saut","t":13}
+02:18:32 VIE {"r":"6 ville","t":16,"etape":"saut"}
+02:18:35 VIE {"etape":"saut","r":"7 canyon","t":19}
+02:18:36 VIE {"r":"[{\"D\":9.2,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"froi","etape":"gouv","t":20}
+02:18:38 VIE {"r":"8 espace","etape":"saut","t":22}
+02:18:41 VIE {"etape":"saut","r":"9 ville","t":25}
+02:19:16 VIE {"etape":"gouv","t":60,"r":"[{\"D\":25.7,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"fro"}
+02:19:45 VIE {"etape":"saut","t":89,"r":"2 canyon"}
+02:19:48 VIE {"etape":"saut","t":92,"r":"3 ville"}
+02:19:51 VIE {"etape":"saut","t":95,"r":"4 espace"}
+02:19:54 VIE {"etape":"saut","t":98,"r":"5 dunes"}
+02:19:56 VIE {"etape":"gouv","t":101,"r":"[{\"D\":45.8,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"fro"}
+02:19:57 VIE {"etape":"saut","t":101,"r":"6 ville"}
+02:20:00 VIE {"etape":"saut","t":104,"r":"7 canyon"}
+02:20:03 VIE {"etape":"saut","t":107,"r":"8 espace"}
+02:20:06 VIE {"t":110,"etape":"saut","r":"9 ville"}
+02:20:36 VIE {"etape":"gouv","t":140,"r":"[{\"D\":61.7,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dos"}
+02:21:10 VIE {"t":174,"etape":"saut","r":"2 canyon"}
+02:21:13 VIE {"r":"3 ville","t":177,"etape":"saut"}
+02:21:16 VIE {"r":"4 espace","t":180,"etape":"saut"}
+02:21:16 VIE {"etape":"gouv","t":180,"r":"[{\"D\":81.6,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dos"}
+02:21:19 VIE {"etape":"saut","t":183,"r":"5 dunes"}
+02:21:22 VIE {"etape":"saut","t":186,"r":"6 ville"}
+02:21:25 VIE {"r":"7 canyon","t":189,"etape":"saut"}
+02:21:28 VIE {"etape":"saut","t":192,"r":"8 espace"}
+02:21:31 VIE {"etape":"saut","t":195,"r":"9 ville"}
+02:21:55 VIE {"etape":"gouv","t":220,"r":"[{\"D\":101.5,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+02:22:35 VIE {"etape":"saut","t":259,"r":"10 canyon"}
+02:22:36 VIE {"etape":"gouv","t":260,"r":"[{\"D\":121.7,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do"}
+02:22:38 VIE {"r":"11 ville","t":262,"etape":"saut"}
+02:22:41 VIE {"r":"12 espace","t":265,"etape":"saut"}
+02:22:44 VIE {"r":"13 dunes","t":268,"etape":"saut"}
+02:22:47 VIE {"etape":"saut","t":271,"r":"14 ville"}
+02:22:50 VIE {"etape":"saut","t":274,"r":"15 canyon"}
+02:22:53 VIE {"r":"16 espace","t":277,"etape":"saut"}
+02:22:56 VIE {"etape":"saut","t":280,"r":"17 ville"}
+02:23:16 VIE {"r":"[{\"D\":141.5,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":300,"etape":"gouv"}
+02:23:56 VIE {"r":"[{\"D\":157.9,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":340,"etape":"gouv"}
+02:24:00 VIE {"r":"2 canyon","t":344,"etape":"saut"}
+02:24:03 VIE {"etape":"saut","t":347,"r":"3 ville"}
+02:24:06 VIE {"etape":"saut","t":350,"r":"4 espace"}
+02:24:09 VIE {"r":"5 dunes","t":353,"etape":"saut"}
+02:24:12 VIE {"etape":"saut","t":356,"r":"6 ville"}
+02:24:15 VIE {"r":"7 canyon","t":359,"etape":"saut"}
+02:24:18 VIE {"etape":"saut","t":362,"r":"8 espace"}
+02:24:21 VIE {"r":"9 ville","etape":"saut","t":365}
+02:24:36 VIE {"r":"[{\"D\":177.8,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":380,"etape":"gouv"}
+02:25:16 bilan reçu valS904G30 191454 octets 
+02:25:18 scénario demandé → aucun
+02:25:18 CC BANC fermée (pid 3437)
+02:25:19 ✓ valS904G30 en 447 s · batterie après 37.9 °C
+02:25:19 file terminée
+02:37:21 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+02:37:21 ▶ valABBA-B1 · batterie 36 °C
+02:37:22 VIE {"jit":3,"plan":"valS904G30","etat":"fait"}
+02:37:24 VIE {"demarrage":{"dcl":0,"charge":0,"pret":2028,"froid":false,"jit":3}}
+02:37:25 scénario demandé → valABBA-B1
+02:37:25 VIE {"etat":"en cours","jit":4,"plan":"valABBA-B1"}
+02:37:49 VIE {"erreur":"Can't find variable: n1","etape":"n1"}
+02:37:50 VIE {"t":2,"etape":"raz","r":"{\"D\":0,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"froid\""}
+02:37:52 VIE {"r":"2 canyon","etape":"saut","t":4}
+02:37:56 VIE {"r":"3 ville","etape":"saut","t":7}
+02:37:59 VIE {"r":"4 espace","etape":"saut","t":10}
+02:38:01 VIE {"etape":"saut","r":"5 dunes","t":13}
+02:38:05 VIE {"etape":"saut","r":"6 ville","t":16}
+02:38:08 VIE {"r":"7 canyon","t":19,"etape":"saut"}
+02:38:08 VIE {"t":20,"r":"[{\"D\":18,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"froi","etape":"gouv"}
+02:38:10 VIE {"t":22,"etape":"saut","r":"8 espace"}
+02:38:14 VIE {"t":25,"etape":"saut","r":"9 ville"}
+02:38:48 VIE {"t":60,"r":"[{\"D\":46.2,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":false,\"thermo\":0,\"pourquoi\":\"fr","etape":"gouv"}
+02:39:18 VIE {"etape":"saut","r":"2 canyon","t":89}
+02:39:21 VIE {"r":"3 ville","etape":"saut","t":92}
+02:39:24 VIE {"t":95,"etape":"saut","r":"4 espace"}
+02:39:27 VIE {"etape":"saut","r":"5 dunes","t":98}
+02:39:28 VIE {"r":"[{\"D\":66.7,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dos","etape":"gouv","t":100}
+02:39:30 VIE {"t":101,"r":"6 ville","etape":"saut"}
+02:39:33 VIE {"etape":"saut","r":"7 canyon","t":104}
+02:39:36 VIE {"etape":"saut","r":"8 espace","t":107}
+02:39:39 VIE {"r":"9 ville","t":110,"etape":"saut"}
+02:40:09 VIE {"r":"[{\"D\":83.1,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dos","etape":"gouv","t":140}
+02:40:43 VIE {"t":174,"etape":"saut","r":"2 canyon"}
+02:40:46 VIE {"etape":"saut","r":"3 ville","t":177}
+02:40:49 VIE {"t":180,"r":"4 espace","etape":"saut"}
+02:40:49 VIE {"t":180,"r":"[{\"D\":103,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"dose","etape":"gouv"}
+02:40:52 VIE {"t":183,"r":"5 dunes","etape":"saut"}
+02:40:55 VIE {"t":186,"etape":"saut","r":"6 ville"}
+02:40:58 VIE {"t":189,"r":"7 canyon","etape":"saut"}
+02:41:01 VIE {"etape":"saut","r":"8 espace","t":192}
+02:41:04 VIE {"t":195,"etape":"saut","r":"9 ville"}
+02:41:29 VIE {"r":"[{\"D\":123.1,\"seuilHaut\":160,\"seuilBas\":40,\"actif\":true,\"thermo\":0,\"pourquoi\":\"do","t":220,"etape":"gouv"}

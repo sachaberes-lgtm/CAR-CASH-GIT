@@ -1,0 +1,6 @@
+[
+ {"id":"p2-volcan-b","tag":"p2","params":"carte=volcan&palier=2","menu":12,"course":35},
+ {"id":"p2-volcan-nitrofige","tag":"p2","params":"carte=volcan&palier=2","menu":12,"course":35,"css":"#nitroBar,#nitroBar *,#nitroBar::before,#nitroBar::after,#nitroBar *::before,#nitroBar *::after,#nitroWrap,#nitroWrap *,#nitroWrap *::before,#nitroWrap *::after,#tNitro,#tNitro *,#tNitro::before,#tNitro::after,#tNitro *::before,#tNitro *::after{animation-play-state:paused!important;transition:none!important}"},
+ {"id":"p2-volcan-horsnitrofige","tag":"p2","params":"carte=volcan&palier=2","menu":12,"course":35,"css":"*,*::before,*::after{animation-play-state:paused!important}#nitroBar,#nitroBar *,#nitroBar::before,#nitroBar::after,#nitroBar *::before,#nitroBar *::after,#nitroWrap,#nitroWrap *,#nitroWrap *::before,#nitroWrap *::after,#tNitro,#tNitro *,#tNitro::before,#tNitro::after,#tNitro *::before,#tNitro *::after{animation-play-state:running!important}"},
+ {"id":"p2-volcan-sansanim-b","tag":"p2","params":"carte=volcan&palier=2","menu":12,"course":35,"css":"*,*::before,*::after{animation-play-state:paused!important;transition:none!important}"}
+]

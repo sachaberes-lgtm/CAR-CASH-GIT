@@ -1,0 +1,27 @@
+22:36:09 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+22:36:12 ▶ famDET · batterie 37.8 °C
+22:36:15 VIE {"etat":"fait","plan":"famON","jit":3}
+22:36:17 VIE {"demarrage":{"jit":3,"pret":2071,"dcl":0,"froid":false,"charge":0}}
+22:36:18 scénario demandé → famDET
+22:36:18 VIE {"jit":4,"plan":"famDET","etat":"en cours"}
+22:36:44 VIE {"t":2,"r":"ok","etape":"detail"}
+22:36:47 VIE {"t":4,"r":"2 canyon","etape":"saut"}
+22:36:50 VIE {"t":7,"r":"3 ville","etape":"saut"}
+22:36:53 VIE {"t":10,"r":"4 espace","etape":"saut"}
+22:36:56 VIE {"t":13,"etape":"saut","r":"5 dunes"}
+22:36:59 VIE {"t":16,"r":"6 ville","etape":"saut"}
+22:37:02 VIE {"etape":"saut","t":19,"r":"7 canyon"}
+22:37:05 VIE {"etape":"saut","t":22,"r":"8 espace"}
+22:37:10 VIE {"etape":"saut","t":27,"r":"9 ville"}
+22:37:12 VIE {"t":30,"r":"12\/2k MeshDepthMaterial <carrosserie> ; 10\/2k MeshPhongMaterial <carrosserie>","etape":"fam"}
+22:37:16 VIE {"etape":"fam","t":34,"r":"6\/3k MeshBasicMaterial[I] ; 6\/0k MeshBasicMaterial <carrosserie>"}
+22:37:16 VIE {"etape":"fam","t":34,"r":"5\/5k MeshPhongMaterial ; 4\/4k MeshDepthMaterial"}
+22:37:18 VIE {"r":"4\/0k MeshBasicMaterial < {PlaneGeometry ro0  707071}> (scène) ; 4\/48k MeshPhongM","t":36,"etape":"fam"}
+22:37:20 VIE {"etape":"fam","t":38,"r":"5\/6k MeshBasicMaterial < {BufferGeometry ro1 T moyenne f2eee6}> (scène) ; 4\/4k M"}
+22:37:23 VIE {"r":"5\/5k MeshBasicMaterial < {BufferGeometry ro1 T moyenne f2eee6}> (scène) ; 4\/4k M","etape":"fam","t":40}
+22:37:25 VIE {"t":42,"etape":"fam","r":"4\/5k MeshBasicMaterial < {BufferGeometry ro1 T moyenne f2eee6}> (scène) ; 4\/4k M"}
+22:37:29 bilan reçu famDET 23879 octets 
+22:37:30 scénario demandé → aucun
+22:37:35 CC BANC fermée (pid 1210)
+22:37:37 ✓ famDET en 79 s · batterie après 37.9 °C
+22:37:37 file terminée

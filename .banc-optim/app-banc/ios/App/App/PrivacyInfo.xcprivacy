@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<!-- CASH CAR — le manifeste de confidentialité exigé par Apple.
+     Aucun pistage, aucune donnée collectée (le jeu est hors ligne, la sauvegarde reste sur le téléphone).
+     Une seule « API à raison déclarée » : UserDefaults, utilisée par le plugin Preferences pour la copie de la
+     sauvegarde — raison CA92.1 = lire et écrire des données de l'app elle-même.
+     (2026-10-14) Le module des mises à jour en direct (@capgo/capacitor-updater, sans manifeste à lui) en ajoute deux :
+     les métadonnées (taille) des fichiers qu'il télécharge dans le conteneur de l'app — C617.1 —, et la place libre avant
+     d'écrire une nouvelle version — E174.1. Toujours aucune donnée collectée : il ne fait que lire des fichiers publics. -->
+<dict>
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>C617.1</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryDiskSpace</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>E174.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

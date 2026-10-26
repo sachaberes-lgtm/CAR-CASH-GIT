@@ -1,0 +1,19 @@
+verrou pris par perf mobile : base v897 sur le 13 Pro (reprise)
+18:14:23 déjà fait : base-A1
+18:14:23 déjà fait : base-B1
+18:14:23 déjà fait : base-B2
+18:14:23 chef du banc sur :8931, 5 scénarios, seuil 37 °C
+18:14:25 refroidit… batterie 37.5 °C
+18:16:30 refroidit… batterie 37.8 °C
+18:18:47 ▶ base-A2 · batterie  °C
+18:22:46 ✗ pas de bilan base-A2 en 240 s · batterie après 37.8 °C
+18:22:47 refroidit… batterie 37.8 °C
+18:23:58 ▶ base-chaud-b · batterie 37 °C
+18:27:52 VIE {"plan":"base-A2","jit":4,"etat":"en cours"}
+18:27:54 VIE {"demarrage":{"froid":false,"charge":0,"jit":4,"pret":1973,"dcl":0}}
+18:27:55 scénario demandé → base-chaud-b
+18:27:55 VIE {"plan":"base-chaud-b","jit":3,"etat":"en cours"}
+18:28:20 VIE {"r":"n1","etape":"n1","t":1}
+18:28:23 VIE {"t":4,"r":"2 canyon","etape":"saut"}
+18:28:26 VIE {"etape":"saut","r":"3 ville","t":7}
+18:28:29 VIE {"r":"4 espace","etape":"saut","t":10}

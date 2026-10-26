@@ -1,0 +1,254 @@
+[
+ {
+  "id": "liv-avant-a",
+  "tag": "liv",
+  "params": "carte=nuages&meteo=midi&pistegraine=777&cad30=0&pistemoy=0&frais=0",
+  "menu": 15,
+  "course": 95,
+  "etapes": [
+   {
+    "t": 1,
+    "phase": "n1"
+   },
+   {
+    "t": 4,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 7,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 10,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 13,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 16,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 19,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 22,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 25,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 30,
+    "phase": "tenue",
+    "eval": "dbgNiveau().niveau+' '+dbgNiveau().lieu+' '+JSON.stringify(dbgPiste())"
+   },
+   {
+    "t": 60,
+    "phase": "tenue2",
+    "eval": "JSON.stringify(dbgCadence())+' '+JSON.stringify(dbgPiste())"
+   }
+  ]
+ },
+ {
+  "id": "liv-apres-a",
+  "tag": "liv",
+  "params": "carte=nuages&meteo=midi&pistegraine=777",
+  "menu": 15,
+  "course": 95,
+  "etapes": [
+   {
+    "t": 1,
+    "phase": "n1"
+   },
+   {
+    "t": 4,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 7,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 10,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 13,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 16,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 19,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 22,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 25,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 30,
+    "phase": "tenue",
+    "eval": "dbgNiveau().niveau+' '+dbgNiveau().lieu+' '+JSON.stringify(dbgPiste())"
+   },
+   {
+    "t": 60,
+    "phase": "tenue2",
+    "eval": "JSON.stringify(dbgCadence())+' '+JSON.stringify(dbgPiste())"
+   }
+  ]
+ },
+ {
+  "id": "liv-apres-b",
+  "tag": "liv",
+  "params": "carte=nuages&meteo=midi&pistegraine=777",
+  "menu": 15,
+  "course": 95,
+  "etapes": [
+   {
+    "t": 1,
+    "phase": "n1"
+   },
+   {
+    "t": 4,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 7,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 10,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 13,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 16,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 19,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 22,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 25,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 30,
+    "phase": "tenue",
+    "eval": "dbgNiveau().niveau+' '+dbgNiveau().lieu+' '+JSON.stringify(dbgPiste())"
+   },
+   {
+    "t": 60,
+    "phase": "tenue2",
+    "eval": "JSON.stringify(dbgCadence())+' '+JSON.stringify(dbgPiste())"
+   }
+  ]
+ },
+ {
+  "id": "liv-avant-b",
+  "tag": "liv",
+  "params": "carte=nuages&meteo=midi&pistegraine=777&cad30=0&pistemoy=0&frais=0",
+  "menu": 15,
+  "course": 95,
+  "etapes": [
+   {
+    "t": 1,
+    "phase": "n1"
+   },
+   {
+    "t": 4,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 7,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 10,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 13,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 16,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 19,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 22,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 25,
+    "phase": "saut",
+    "eval": "dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 30,
+    "phase": "tenue",
+    "eval": "dbgNiveau().niveau+' '+dbgNiveau().lieu+' '+JSON.stringify(dbgPiste())"
+   },
+   {
+    "t": 60,
+    "phase": "tenue2",
+    "eval": "JSON.stringify(dbgCadence())+' '+JSON.stringify(dbgPiste())"
+   }
+  ]
+ }
+]

@@ -1,0 +1,6 @@
+[
+ {"id":"v873-portail-nuages-a","tag":"v873","params":"carte=nuages&meteo=midi","menu":12,"course":30,"portail":{"apres":8,"d":2500}},
+ {"id":"v873-portail-foret-a","tag":"v873","params":"carte=foret","menu":12,"course":30,"portail":{"apres":8,"d":2500}},
+ {"id":"v873-portail-jade-a","tag":"v873","params":"carte=jade","menu":12,"course":30,"portail":{"apres":8,"d":2500}},
+ {"id":"v873-long-a","tag":"v873","params":"carte=nuages&meteo=midi","menu":12,"course":240,"rejoue":true}
+]

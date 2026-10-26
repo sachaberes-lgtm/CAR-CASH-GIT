@@ -1,0 +1,8 @@
+[
+ {"id":"v866-volcan-a","tag":"v866","params":"carte=volcan","menu":12,"course":35},
+ {"id":"diag-dpr05","tag":"diag","params":"carte=volcan","menu":12,"course":35,"dpr":0.5},
+ {"id":"diag-sanshud","tag":"diag","params":"carte=volcan","menu":12,"course":35,"css":"body>*:not(canvas){visibility:hidden!important}"},
+ {"id":"diag-sansanim","tag":"diag","params":"carte=volcan","menu":12,"course":35,"css":"*,*::before,*::after{animation-play-state:paused!important;transition:none!important}"},
+ {"id":"diag-dpr2","tag":"diag","params":"carte=volcan","menu":12,"course":35,"dpr":2},
+ {"id":"v866-nuages-a","tag":"v866","params":"carte=nuages&meteo=midi","menu":12,"course":35}
+]

@@ -1,0 +1,123 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project App.xcodeproj -scheme App -configuration Release -destination generic/platform=iOS -derivedDataPath ../../dd PRODUCT_BUNDLE_IDENTIFIER=com.sachaberes.carcash.banc CODE_SIGN_STYLE=Automatic DEVELOPMENT_TEAM=M532TDYCH2 build
+
+Build settings from command line:
+    CODE_SIGN_STYLE = Automatic
+    DEVELOPMENT_TEAM = M532TDYCH2
+    PRODUCT_BUNDLE_IDENTIFIER = com.sachaberes.carcash.banc
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  capacitor-swift-pm: https://github.com/ionic-team/capacitor-swift-pm.git @ 8.5.3
+  CapacitorPreferences: /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capacitor/preferences @ local
+  CapApp-SPM: /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/ios/App/CapApp-SPM @ local
+  CapacitorStatusBar: /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capacitor/status-bar @ local
+  CapacitorHaptics: /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capacitor/haptics @ local
+  CapgoCapacitorUpdater: /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater @ local
+  CapacitorSplashScreen: /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capacitor/splash-screen @ local
+
+2026-10-26 00:59:34.551 xcodebuild[40361:454325] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (15 targets)
+    Target 'App' in project 'App'
+        ➜ Explicit dependency on target 'CapApp-SPM' in project 'CapApp-SPM'
+    Target 'CapApp-SPM' in project 'CapApp-SPM'
+        ➜ Explicit dependency on target 'CapApp-SPM' in project 'CapApp-SPM'
+        ➜ Explicit dependency on target 'Capacitor' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'CapacitorHaptics' in project 'CapacitorHaptics'
+        ➜ Explicit dependency on target 'CapacitorPreferences' in project 'CapacitorPreferences'
+        ➜ Explicit dependency on target 'CapacitorSplashScreen' in project 'CapacitorSplashScreen'
+        ➜ Explicit dependency on target 'CapacitorStatusBar' in project 'CapacitorStatusBar'
+        ➜ Explicit dependency on target 'CapgoCapacitorUpdater' in project 'CapgoCapacitorUpdater'
+    Target 'CapApp-SPM' in project 'CapApp-SPM'
+        ➜ Explicit dependency on target 'Capacitor' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'CapacitorHaptics' in project 'CapacitorHaptics'
+        ➜ Explicit dependency on target 'CapacitorPreferences' in project 'CapacitorPreferences'
+        ➜ Explicit dependency on target 'CapacitorSplashScreen' in project 'CapacitorSplashScreen'
+        ➜ Explicit dependency on target 'CapacitorStatusBar' in project 'CapacitorStatusBar'
+        ➜ Explicit dependency on target 'CapgoCapacitorUpdater' in project 'CapgoCapacitorUpdater'
+    Target 'CapgoCapacitorUpdater' in project 'CapgoCapacitorUpdater'
+        ➜ Explicit dependency on target 'CapacitorUpdaterPlugin' in project 'CapgoCapacitorUpdater'
+        ➜ Explicit dependency on target 'Capacitor' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova' in project 'capacitor-swift-pm'
+    Target 'CapacitorUpdaterPlugin' in project 'CapgoCapacitorUpdater'
+        ➜ Explicit dependency on target 'Capacitor' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova' in project 'capacitor-swift-pm'
+    Target 'CapacitorStatusBar' in project 'CapacitorStatusBar'
+        ➜ Explicit dependency on target 'StatusBarPlugin' in project 'CapacitorStatusBar'
+        ➜ Explicit dependency on target 'Capacitor' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova' in project 'capacitor-swift-pm'
+    Target 'StatusBarPlugin' in project 'CapacitorStatusBar'
+        ➜ Explicit dependency on target 'Capacitor' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova' in project 'capacitor-swift-pm'
+    Target 'CapacitorSplashScreen' in project 'CapacitorSplashScreen'
+        ➜ Explicit dependency on target 'SplashScreenPlugin' in project 'CapacitorSplashScreen'
+        ➜ Explicit dependency on target 'Capacitor' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova' in project 'capacitor-swift-pm'
+    Target 'SplashScreenPlugin' in project 'CapacitorSplashScreen'
+        ➜ Explicit dependency on target 'Capacitor' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova' in project 'capacitor-swift-pm'
+    Target 'CapacitorPreferences' in project 'CapacitorPreferences'
+        ➜ Explicit dependency on target 'PreferencesPlugin' in project 'CapacitorPreferences'
+        ➜ Explicit dependency on target 'Capacitor' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova' in project 'capacitor-swift-pm'
+    Target 'PreferencesPlugin' in project 'CapacitorPreferences'
+        ➜ Explicit dependency on target 'Capacitor' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova' in project 'capacitor-swift-pm'
+    Target 'CapacitorHaptics' in project 'CapacitorHaptics'
+        ➜ Explicit dependency on target 'HapticsPlugin' in project 'CapacitorHaptics'
+        ➜ Explicit dependency on target 'Capacitor' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova' in project 'capacitor-swift-pm'
+    Target 'HapticsPlugin' in project 'CapacitorHaptics'
+        ➜ Explicit dependency on target 'Capacitor' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova' in project 'capacitor-swift-pm'
+    Target 'Cordova' in project 'capacitor-swift-pm' (no dependencies)
+    Target 'Capacitor' in project 'capacitor-swift-pm' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/SDKStatCaches.noindex/iphoneos26.5-23F81a-32daed1954a7d5dd0789fcaf2a9bb78b.sdkstatcache
+    cd /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/ios/App/App.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -o /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/SDKStatCaches.noindex/iphoneos26.5-23F81a-32daed1954a7d5dd0789fcaf2a9bb78b.sdkstatcache
+
+CpResource /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Products/Release-iphoneos/App.app/public /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/ios/App/App/public (in target 'App' from project 'App')
+    cd /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/ios/App
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/ios/App/App/public /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Products/Release-iphoneos/App.app
+
+ProcessInfoPlistFile /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Products/Release-iphoneos/App.app/Info.plist /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/ios/App/App/Info.plist (in target 'App' from project 'App')
+    cd /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/ios/App
+    builtin-infoPlistUtility /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/ios/App/App/Info.plist -producttype com.apple.product-type.application -genpkginfo /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Products/Release-iphoneos/App.app/PkgInfo -expandbuildsettings -format binary -platform iphoneos -additionalcontentfile /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/App.build/Release-iphoneos/App.build/Base.lproj/LaunchScreen-SBPartialInfo.plist -additionalcontentfile /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/App.build/Release-iphoneos/App.build/Base.lproj/Main-SBPartialInfo.plist -additionalcontentfile /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/App.build/Release-iphoneos/App.build/assetcatalog_generated_info.plist -scanforprivacyfile /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Products/Release-iphoneos/App.app/Frameworks/Capacitor.framework -scanforprivacyfile /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Products/Release-iphoneos/App.app/Frameworks/Cordova.framework -requiredArchitecture arm64 -o /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Products/Release-iphoneos/App.app/Info.plist
+
+CodeSign /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Products/Release-iphoneos/App.app (in target 'App' from project 'App')
+    cd /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/ios/App
+    
+    Signing Identity:     "Apple Development: Sacha Beres (TDB8A25K22)"
+    Provisioning Profile: "iOS Team Provisioning Profile: *"
+                          (da66c244-2681-4f95-983a-55157b1b016e)
+    
+    /usr/bin/codesign --force --sign 281B79A358E0DC0C488F17FAC594A9606B2283C6 --entitlements /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/App.build/Release-iphoneos/App.build/App.app.xcent --timestamp\=none --generate-entitlement-der /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Products/Release-iphoneos/App.app
+/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Products/Release-iphoneos/App.app: replacing existing signature
+
+Validate /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Products/Release-iphoneos/App.app (in target 'App' from project 'App')
+    cd /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/ios/App
+    builtin-validationUtility /Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Products/Release-iphoneos/App.app -validate-for-store -shallow-bundle -infoplist-subpath Info.plist
+
+** BUILD SUCCEEDED **
+

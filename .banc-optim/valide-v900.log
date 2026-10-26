@@ -1,0 +1,7 @@
+21:11:16 j'attends la fin des séances S
+21:37:09 séances S finies
+21:37:50 ÉCHEC de l'installation :
+                       FunctionName = -[PersonalizedImage mountRemoteImage:serverTicket:imageDigest:trustCacheURL:error:]
+                       LineNumber = 1725
+21:37:15  Acquired tunnel connection to device.
+21:37:15  Enabling developer disk image services.

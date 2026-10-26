@@ -1,0 +1,536 @@
+<title>Moteur French Touch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Chakra+Petch:wght@400;600&display=swap">
+<style>
+/* Layout: une boîte blanche — route qui défile en haut, bouton à gauche, jauge à droite */
+:root {
+  --bg: #ffffff;
+  --line: #e7e3da;
+  --text: #17140f;
+  --muted: #8b8579;
+  --gold: #a87400;
+  --display: "Bungee", "Impact", system-ui, sans-serif;
+  --ui: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--text); font-family: var(--ui);
+  padding-inline: 16px; padding-block: 24px;
+  display: flex; align-items: center; justify-content: center;
+}
+.box {
+  width: 100%; max-width: 760px; background: var(--bg);
+  border: 1px solid var(--line); border-radius: 20px;
+  padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px;
+}
+canvas { width: 100%; height: 8px; display: block; }
+.row { display: flex; align-items: center; gap: 32px; flex-wrap: wrap; }
+.play {
+  width: 88px; height: 88px; border-radius: 50%; flex: none;
+  border: 0; background: var(--text); color: #fff;
+  font-family: var(--display); font-size: .95rem; cursor: pointer;
+}
+.play:focus-visible, input:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.gauge { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 6px; }
+.top { display: flex; justify-content: space-between; align-items: baseline; }
+.top label { font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.bpm { font-family: var(--display); font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.bpm small { font-family: var(--ui); font-size: .8rem; color: var(--muted); margin-left: 4px; }
+input[type=range] { width: 100%; height: 44px; accent-color: var(--gold); }
+.ends { display: flex; justify-content: space-between; font-size: .85rem; color: var(--muted); }
+</style>
+
+<div class="box">
+  <canvas id="road" aria-hidden="true"></canvas>
+  <div class="row">
+    <button class="play" id="play" aria-label="Lancer la musique">PLAY</button>
+    <div class="gauge">
+      <div class="top">
+        <label for="speed">Vitesse</label>
+        <div class="bpm"><span id="bpm">118</span><small>BPM</small></div>
+      </div>
+      <input type="range" id="speed" min="0" max="100" value="10">
+      <div class="ends"><span>Filtré</span><span>Grand ouvert</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const BPM_MIN = 118, BPM_MAX = 128;
+const clamp = v => Math.min(1, Math.max(0, v));
+const ramp = (s, a, b) => clamp((s - a) / (b - a));
+
+// chaque couche : fonction vitesse -> volume (0 à 1)
+const LAYERS = {
+  kick:     s => 1,
+  bass:     s => 1,
+  chords:   s => 1,
+  hats:     s => ramp(s, 0.08, 0.15),
+  clap:     s => ramp(s, 0.12, 0.2),
+  guitar:   s => ramp(s, 0.3, 0.4),
+  hatsOpen: s => ramp(s, 0.4, 0.48),
+  voice:    s => ramp(s, 0.5, 0.6),
+  talk:     s => ramp(s, 0.78, 0.86),
+  strings:  s => ramp(s, 0.88, 0.95),
+  tamb:     s => ramp(s, 0.9, 0.97),
+  riser:    s => ramp(s, 0.25, 0.35),
+  talker:   s => ramp(s, 0.15, 0.22),
+  theremin: s => 1,
+  bleeps:   s => ramp(s, 0.35, 0.45),
+  laser:    s => ramp(s, 0.55, 0.65),
+};
+const IN_LOOP = ['bass', 'chords', 'guitar', 'voice', 'talk', 'strings'];  // ce qui passe dans le filtre
+
+// Ré majeur, couleur disco : Em9, A13, Dmaj9, Bm7
+const ROOTS = [40, 45, 38, 35];
+const CHORDS = [[55, 59, 62, 66], [55, 61, 66], [54, 57, 61, 64], [57, 62, 66]];
+const BASS_PAT = [0, -1, 12, -1, -1, 0, 12, -1, 0, -1, 12, 0, -1, 7, 12, -1];
+const CHORD_HITS = new Set([2, 6, 10, 13]);
+const GUIT = [1, 2, 0, 2, 1, 0, 2, 2, 1, 2, 0, 2, 1, 0, 2, 1];  // 1 note, 2 étouffé
+// phrase de la voix robot sur 2 mesures : [note, durée en pas, voyelle départ, voyelle arrivée]
+const VOICE = {
+  0: [66, 3, 'o', 'a'], 4: [69, 2, 'a', 'e'], 6: [66, 2, 'e', 'o'], 10: [64, 4, 'o', 'a'],
+  16: [62, 3, 'a', 'o'], 20: [64, 2, 'o', 'e'], 22: [66, 2, 'e', 'a'], 26: [69, 5, 'a', 'o'],
+};
+const TALK = { 0: [78, 2], 3: [76, 1], 4: [74, 2], 7: [76, 2], 10: [81, 3], 14: [78, 2] };
+const VOWELS = { o: [450, 800, 2830], a: [750, 1150, 2800], e: [420, 1700, 2600] };
+
+const slider = document.getElementById('speed');
+const playBtn = document.getElementById('play');
+const bpmEl = document.getElementById('bpm');
+const road = document.getElementById('road');
+const rctx = road.getContext('2d');
+
+let ctx = null, master, loopIn, loopFilter, pump, room, roomSend, vDelay, flWet, noiseBuf;
+const bus = {};
+let playing = false, target = 0.1, speed = 0.1;
+let step = 0, nextTime = 0, timer = null;
+let dips = [];
+let thereOsc, thereGain;
+
+const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+const bpmNow = () => BPM_MIN + speed * (BPM_MAX - BPM_MIN);
+const filterFreq = s => 300 * Math.pow(60, s);
+
+function impulse(len, power) {
+  const n = Math.floor(ctx.sampleRate * len);
+  const buf = ctx.createBuffer(2, n, ctx.sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const d = buf.getChannelData(c);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, power);
+  }
+  return buf;
+}
+
+function initAudio() {
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+  // sortie : compresseur doux, légère chaleur, aigus adoucis
+  const comp = ctx.createDynamicsCompressor();
+  comp.threshold.value = -14; comp.ratio.value = 3;
+  const warm = ctx.createWaveShaper(), c = new Float32Array(2048);
+  for (let i = 0; i < 2048; i++) { const x = i / 1024 - 1; c[i] = Math.tanh(1.2 * x) / Math.tanh(1.2); }
+  warm.curve = c;
+  const soft = ctx.createBiquadFilter(); soft.type = 'highshelf'; soft.frequency.value = 6000; soft.gain.value = -3;
+  master = ctx.createGain(); master.gain.value = 0.6;
+  master.connect(warm); warm.connect(soft); soft.connect(comp); comp.connect(ctx.destination);
+
+  // la boucle : tout passe dans un seul filtre, puis dans la pompe
+  loopIn = ctx.createGain();
+  loopFilter = ctx.createBiquadFilter(); loopFilter.type = 'lowpass';
+  loopFilter.frequency.value = filterFreq(speed); loopFilter.Q.value = 3;
+  pump = ctx.createGain();
+  loopIn.connect(loopFilter); loopFilter.connect(pump); pump.connect(master);
+
+  // flanger qui arrive tout en haut de la jauge
+  const fl = ctx.createDelay(0.02); fl.delayTime.value = 0.004;
+  const lfo = ctx.createOscillator(), lfoAmt = ctx.createGain();
+  lfo.frequency.value = 0.15; lfoAmt.gain.value = 0.0025;
+  lfo.connect(lfoAmt); lfoAmt.connect(fl.delayTime); lfo.start();
+  const flFb = ctx.createGain(); flFb.gain.value = 0.35;
+  flWet = ctx.createGain(); flWet.gain.value = 0;
+  pump.connect(fl); fl.connect(flFb); flFb.connect(fl); fl.connect(flWet); flWet.connect(master);
+
+  // petite pièce pour le clap et la voix
+  room = ctx.createConvolver(); room.buffer = impulse(1.1, 3);
+  const rOut = ctx.createGain(); rOut.gain.value = 0.22;
+  room.connect(rOut); rOut.connect(master);
+  roomSend = ctx.createGain(); roomSend.gain.value = 0.3; roomSend.connect(room);
+
+  // écho de la voix, calé sur la croche
+  vDelay = ctx.createDelay(2);
+  const vfb = ctx.createGain(); vfb.gain.value = 0.25;
+  const vOut = ctx.createGain(); vOut.gain.value = 0.18;
+  vDelay.connect(vfb); vfb.connect(vDelay); vDelay.connect(vOut); vOut.connect(loopIn);
+
+  for (const id in LAYERS) {
+    const g = ctx.createGain(); g.gain.value = LAYERS[id](speed);
+    g.connect(IN_LOOP.includes(id) ? loopIn : master);
+    bus[id] = g;
+  }
+  bus.clap.connect(roomSend);
+  bus.voice.connect(roomSend); bus.voice.connect(vDelay);
+  bus.talk.connect(vDelay);
+  bus.talker.connect(roomSend);
+  const tSend = ctx.createGain(); tSend.gain.value = 0.5;
+  bus.talker.connect(tSend); tSend.connect(vDelay);
+
+  // thérémine : une seule voix aiguë qui glisse d'une note à l'autre, avec vibrato
+  thereOsc = ctx.createOscillator(); thereOsc.type = 'sine'; thereOsc.frequency.value = mtof(78);
+  const vib = ctx.createOscillator(), vibA = ctx.createGain();
+  vib.frequency.value = 5.5; vibA.gain.value = 18;
+  vib.connect(vibA); vibA.connect(thereOsc.detune); vib.start();
+  thereGain = ctx.createGain(); thereGain.gain.value = 0;
+  thereOsc.connect(thereGain); thereGain.connect(bus.theremin); thereOsc.start();
+  bus.theremin.connect(roomSend); bus.theremin.connect(vDelay);
+  bus.bleeps.connect(vDelay);
+  bus.laser.connect(vDelay); bus.laser.connect(roomSend);
+
+  noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+  const d = noiseBuf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+}
+
+function env(g, t, peak, a, dur) {
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(peak, t + a);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+}
+
+function noise(t, dest, type, freq, q, peak, dur, off) {
+  const n = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+  n.buffer = noiseBuf; f.type = type; f.frequency.value = freq; f.Q.value = q;
+  env(g, t, peak, 0.002, dur);
+  n.connect(f); f.connect(g); g.connect(dest);
+  n.start(t, off ?? Math.random() * 0.5); n.stop(t + dur + 0.02);
+}
+
+function kick(t, beatDur) {
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.frequency.setValueAtTime(150, t);
+  o.frequency.exponentialRampToValueAtTime(48, t + 0.08);
+  env(g, t, 0.95, 0.002, 0.34);
+  o.connect(g); g.connect(bus.kick);
+  o.start(t); o.stop(t + 0.36);
+  noise(t, bus.kick, 'bandpass', 3500, 1, 0.08, 0.01);
+  // la pompe : la boucle s'écrase sur le kick puis remonte
+  pump.gain.setValueAtTime(0.35, t);
+  pump.gain.linearRampToValueAtTime(1, t + beatDur * 0.85);
+}
+
+function bass(t, midi, dur) {
+  const o = ctx.createOscillator(), sub = ctx.createOscillator();
+  const f = ctx.createBiquadFilter(), g = ctx.createGain();
+  o.type = 'sawtooth'; o.frequency.value = mtof(midi);
+  sub.frequency.value = mtof(midi);
+  f.type = 'lowpass'; f.Q.value = 3;
+  f.frequency.setValueAtTime(1800, t);
+  f.frequency.exponentialRampToValueAtTime(300, t + dur);
+  env(g, t, 0.32, 0.004, dur);
+  o.connect(f); sub.connect(f); f.connect(g); g.connect(bus.bass);
+  o.start(t); sub.start(t); o.stop(t + dur + 0.02); sub.stop(t + dur + 0.02);
+}
+
+function chordHit(t, chord, dur) {
+  const f = ctx.createBiquadFilter(), g = ctx.createGain();
+  f.type = 'lowpass'; f.Q.value = 1;
+  f.frequency.setValueAtTime(4000, t);
+  f.frequency.exponentialRampToValueAtTime(1200, t + dur);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.05, t + 0.006);
+  g.gain.setValueAtTime(0.05, t + dur * 0.7);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  chord.forEach(m => [-6, 6].forEach(dt => {
+    const o = ctx.createOscillator();
+    o.type = 'sawtooth'; o.frequency.value = mtof(m); o.detune.value = dt;
+    o.connect(f); o.start(t); o.stop(t + dur + 0.02);
+  }));
+  f.connect(g); g.connect(bus.chords);
+}
+
+// guitare funk : note avec effet wah, ou gratté étouffé
+function guitar(t, midi, muted) {
+  if (muted) { noise(t, bus.guitar, 'bandpass', 2200, 2, 0.07, 0.03); return; }
+  const o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+  o.type = 'square'; o.frequency.value = mtof(midi);
+  f.type = 'bandpass'; f.Q.value = 4;
+  f.frequency.setValueAtTime(600, t);
+  f.frequency.exponentialRampToValueAtTime(2400, t + 0.06);
+  env(g, t, 0.09, 0.003, 0.1);
+  o.connect(f); f.connect(g); g.connect(bus.guitar);
+  o.start(t); o.stop(t + 0.12);
+}
+
+// voix robot : la voyelle glisse pendant la note
+function robot(t, midi, dur, v1, v2, dest, peak) {
+  const o = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain();
+  o.type = 'sawtooth'; o.frequency.value = mtof(midi);
+  o2.type = 'square'; o2.frequency.value = mtof(midi - 12);
+  const mix2 = ctx.createGain(); mix2.gain.value = 0.4; o2.connect(mix2);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(peak, t + 0.02);
+  g.gain.setValueAtTime(peak, t + dur * 0.75);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  VOWELS[v1].forEach((fr, k) => {
+    const bp = ctx.createBiquadFilter(), fg = ctx.createGain();
+    bp.type = 'bandpass'; bp.Q.value = 5;
+    bp.frequency.setValueAtTime(fr, t);
+    bp.frequency.linearRampToValueAtTime(VOWELS[v2][k], t + dur * 0.8);
+    fg.gain.value = [1, 0.5, 0.12][k];
+    o.connect(bp); mix2.connect(bp); bp.connect(fg); fg.connect(g);
+  });
+  g.connect(dest);
+  o.start(t); o2.start(t); o.stop(t + dur + 0.02); o2.stop(t + dur + 0.02);
+}
+
+// nappe de cordes synthé : attaque lente, très large
+function strings(t, chord, dur) {
+  const f = ctx.createBiquadFilter(), g = ctx.createGain();
+  f.type = 'lowpass'; f.frequency.value = 3000;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(0.03, t + 0.4);
+  g.gain.setValueAtTime(0.03, t + dur - 0.15);
+  g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.3);
+  chord.forEach(m => [-1, 1].forEach(side => {
+    const o = ctx.createOscillator(), pn = ctx.createStereoPanner();
+    o.type = 'sawtooth'; o.frequency.value = mtof(m + 12); o.detune.value = side * 9;
+    pn.pan.value = side * 0.8;
+    o.connect(pn); pn.connect(f); o.start(t); o.stop(t + dur + 0.35);
+  }));
+  f.connect(g); g.connect(bus.strings);
+}
+
+// ordinateur de bord : bips métalliques (modulation en anneau)
+const PENTA = [74, 76, 78, 81, 83, 86, 88, 90, 93];
+function bleep(t, midi) {
+  const o = ctx.createOscillator(), m = ctx.createOscillator();
+  const ring = ctx.createGain(), g = ctx.createGain(), pn = ctx.createStereoPanner();
+  o.frequency.value = mtof(midi); m.frequency.value = mtof(midi) * 1.5;
+  ring.gain.value = 0; m.connect(ring.gain); o.connect(ring);
+  env(g, t, 0.07, 0.002, 0.06);
+  pn.pan.value = Math.random() * 1.6 - 0.8;
+  ring.connect(g); g.connect(pn); pn.connect(bus.bleeps);
+  o.start(t); m.start(t); o.stop(t + 0.08); m.stop(t + 0.08);
+}
+
+// tir laser : note qui plonge très vite
+function laser(t) {
+  const o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+  o.type = 'square';
+  o.frequency.setValueAtTime(2400, t); o.frequency.exponentialRampToValueAtTime(120, t + 0.3);
+  f.type = 'lowpass'; f.frequency.value = 3000;
+  env(g, t, 0.06, 0.003, 0.32);
+  o.connect(f); f.connect(g); g.connect(bus.laser);
+  o.start(t); o.stop(t + 0.35);
+}
+
+function riser(t, dur) {
+  const n = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+  n.buffer = noiseBuf; n.loop = true;
+  f.type = 'bandpass'; f.Q.value = 2;
+  f.frequency.setValueAtTime(400, t); f.frequency.exponentialRampToValueAtTime(6000, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12, t + dur);
+  g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.03);
+  n.connect(f); f.connect(g); g.connect(bus.riser);
+  n.start(t); n.stop(t + dur + 0.05);
+}
+
+// ——— la voix qui parle en charabia ———
+const T_VOW = { a: [750, 1150, 2800], e: [400, 2000, 2600], i: [280, 2250, 2900], o: [450, 800, 2830], u: [320, 800, 2400], è: [550, 1770, 2490] };
+const T_CONS = ['p', 't', 'k', 'b', 'd', 'm', 'n', 's', 'ch', 'r', 'l', '', ''];
+let seed = 7, phrase = [], talkK = 0, talkIdx = 3;
+function rnd() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+
+function makePhrase() {
+  phrase = [];
+  const vk = Object.keys(T_VOW);
+  while (phrase.length < 80) {
+    const len = 2 + Math.floor(rnd() * 3);  // un mot de 2 à 4 syllabes
+    for (let j = 0; j < len; j++) phrase.push({ c: T_CONS[Math.floor(rnd() * T_CONS.length)], v: vk[Math.floor(rnd() * vk.length)], acc: j === 0 });
+    if (rnd() < 0.35) phrase.push(null);      // petite respiration entre les mots
+  }
+}
+
+function talkNote(chord) {
+  const pool = [];
+  chord.forEach(m => [m + 12, m + 24].forEach(n => { if (n >= 62 && n <= 78) pool.push(n); }));
+  pool.sort((a, b) => a - b);
+  talkIdx = Math.max(0, Math.min(pool.length - 1, talkIdx + Math.round((rnd() - 0.55) * 3)));
+  return pool[talkIdx];
+}
+
+function consonant(t, c, midi, peak) {
+  const P = { p: 1200, t: 3500, k: 2200, b: 700, d: 2600, r: 1600 };
+  if (P[c]) noise(t, bus.talker, 'bandpass', P[c], 1.5, peak * 0.5, 0.018);
+  else if (c === 's') noise(t, bus.talker, 'highpass', 5500, 0.7, peak * 0.25, 0.05);
+  else if (c === 'ch') noise(t, bus.talker, 'bandpass', 2800, 1, peak * 0.3, 0.05);
+  else if (c === 'm' || c === 'n') {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.frequency.value = mtof(midi); env(g, t, peak * 0.4, 0.005, 0.045);
+    o.connect(g); g.connect(bus.talker); o.start(t); o.stop(t + 0.05);
+  }
+}
+
+function syllable(t, syl, midi, dur, peak) {
+  const lead = (syl.c === 's' || syl.c === 'ch') ? 0.04 : (syl.c === 'm' || syl.c === 'n') ? 0.03 : 0.012;
+  consonant(t, syl.c, midi, peak);
+  const tv = t + lead, vd = Math.max(0.05, dur - lead);
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = 'sawtooth';
+  o.frequency.setValueAtTime(mtof(midi - 0.6), tv);
+  o.frequency.exponentialRampToValueAtTime(mtof(midi), tv + 0.04);
+  g.gain.setValueAtTime(0.0001, tv);
+  g.gain.exponentialRampToValueAtTime(peak, tv + 0.012);
+  g.gain.setValueAtTime(peak, tv + vd * 0.75);
+  g.gain.exponentialRampToValueAtTime(0.0001, tv + vd);
+  T_VOW[syl.v].forEach((fr, k) => {
+    const bp = ctx.createBiquadFilter(), fg = ctx.createGain();
+    bp.type = 'bandpass'; bp.frequency.value = fr; bp.Q.value = 6;
+    fg.gain.value = [1, 0.55, 0.15][k];
+    o.connect(bp); bp.connect(fg); fg.connect(g);
+  });
+  g.connect(bus.talker);
+  o.start(tv); o.stop(tv + vd + 0.02);
+}
+
+// débit : syllabes par double-croche, selon la vitesse
+const talkRate = () => speed < 0.45 ? 0.5 : speed < 0.8 ? 1 : 2;
+const CUTS = [[0, 8], [0, 6, 10], [0, 3, 6, 10, 13]];
+
+function talkerStep(s, t, sd, chord) {
+  const p = s % 128;  // cycle de 8 mesures
+  if (p === 0) { makePhrase(); talkK = 0; }
+  const rate = talkRate();
+
+  // mesures 1-2 : la longue phrase en charabia, qui s'arrête sur une syllabe tenue
+  if (p < 32) {
+    if (p === 28) {
+      const syl = phrase.slice(talkK).find(Boolean) || phrase[0];
+      syllable(t, syl, talkNote(chord), sd * 4, 0.3);
+      return;
+    }
+    if (p > 28 || (rate < 1 && p % 2)) return;
+    const n = Math.max(1, rate), stepLen = rate < 1 ? sd * 2 : sd / rate;
+    for (let j = 0; j < n; j++) {
+      const syl = phrase[talkK++];
+      if (syl) syllable(t + j * stepLen, syl, talkNote(chord), stepLen * 0.95, syl.acc ? 0.32 : 0.24);
+    }
+    return;
+  }
+
+  // mesures 3-4 : silence. Mesures 5-8 : petites phrases coupées et répétées
+  if (p < 64) return;
+  const i = p % 16, barN = Math.floor(p / 16);
+  const slots = CUTS[rate < 1 ? 0 : rate < 2 ? 1 : 2];
+  const k = slots.indexOf(i);
+  if (k < 0) return;
+  const words = phrase.filter(Boolean);
+  const start = (k * 5 + (barN === 7 ? 3 : 0)) % (words.length - 4);
+  const len = 2 + (k % 2);
+  const stepLen = rate < 1 ? sd * 2 : rate < 2 ? sd : sd / 2;
+  const note = talkNote(chord);
+  for (let j = 0; j < len; j++)
+    syllable(t + j * stepLen, words[start + j], j === len - 1 ? talkNote(chord) : note, stepLen * 0.9, 0.26);
+  // tout en haut de la jauge, la dernière coupe bégaie
+  if (rate >= 2 && barN === 7 && k === slots.length - 1)
+    for (let j = 0; j < 4; j++) syllable(t + (len + j) * stepLen, words[start], note, stepLen * 0.8, 0.22);
+}
+
+function scheduleStep(s, t0, sd) {
+  const bar = Math.floor(s / 16) % 4, i = s % 16, bar8 = Math.floor(s / 16) % 8;
+  const root = ROOTS[bar], chord = CHORDS[bar];
+  const t = t0 + (i % 2 ? sd * 0.06 : 0);  // léger shuffle
+  talkerStep(s, t, sd, chord);
+
+  // fin de cycle : le filtre plonge, puis s'ouvre d'un coup sur la mesure suivante
+  if (bar8 === 7 && i === 8 && speed > 0.25) { dips.push({ start: t, end: t + sd * 8 }); riser(t, sd * 8); }
+  if (bar8 === 0 && i === 0 && s > 0 && speed > 0.25) noise(t, bus.riser, 'highpass', 6000, 0.5, 0.12, 1.2, 0);
+
+  if (i % 4 === 0) kick(t, sd * 4);
+  if (BASS_PAT[i] >= 0) bass(t, root + BASS_PAT[i], sd * 1.6);
+  if (CHORD_HITS.has(i)) chordHit(t, chord, sd * (i === 13 ? 3 : 1.6));
+
+  noise(t, bus.hats, 'highpass', 9000, 0.7, (i % 2 ? 0.025 : 0.05) * (0.8 + Math.random() * 0.4), 0.025);
+  if (i % 4 === 2) noise(t, bus.hatsOpen, 'highpass', 7500, 0.7, 0.07, 0.15);
+  if (i === 4 || i === 12) {
+    for (let k = 0; k < 3; k++) noise(t + k * 0.01, bus.clap, 'bandpass', 1300, 0.8, 0.22, 0.04);
+    noise(t + 0.03, bus.clap, 'bandpass', 1100, 0.8, 0.18, 0.14);
+  }
+
+  if (i === 0) strings(t, chord, sd * 16);
+  noise(t, bus.tamb, 'bandpass', 6500, 1.2, i % 4 === 2 ? 0.06 : 0.03, 0.05);
+  // thérémine : glisse vers une nouvelle note toutes les demi-mesures, se tait sur la 4e mesure
+  if ((i === 0 || i === 8) && bar !== 3) {
+    const pool = chord.map(m => m + 24).filter(n => n >= 74 && n <= 88);
+    const note = pool[Math.floor(Math.random() * pool.length)] || 78;
+    thereOsc.frequency.setTargetAtTime(mtof(note), t, 0.12);
+    thereGain.gain.setTargetAtTime(0.04, t, 0.25);
+  }
+  if (bar === 3 && i === 0) thereGain.gain.setTargetAtTime(0, t, 0.3);
+  if (Math.random() < 0.12 + 0.3 * speed) bleep(t, PENTA[Math.floor(Math.random() * PENTA.length)]);
+  if ((bar8 === 0 && i === 0 && s > 0) || (speed > 0.8 && i === 15 && bar % 2 === 1)) laser(t);
+  if (GUIT[i]) guitar(t, chord[chord.length - 1] + 12, GUIT[i] === 2);
+
+  const tk = TALK[i];
+  if (tk && bar % 2 === 1) robot(t, tk[0], sd * tk[1], 'o', 'a', bus.talk, 0.2);
+  const v = VOICE[s % 32], pc = s % 128;
+  if (v && ((pc >= 32 && pc < 64) || speed > 0.85)) robot(t, v[0], sd * v[1], v[2], v[3], bus.voice, 0.3);
+}
+
+function scheduler() {
+  while (nextTime < ctx.currentTime + 0.12) {
+    const sd = 60 / bpmNow() / 4;
+    scheduleStep(step, nextTime, sd);
+    nextTime += sd; step++;
+  }
+  vDelay.delayTime.setTargetAtTime(60 / bpmNow() / 2, ctx.currentTime, 0.15);
+}
+
+// route qui défile : la vitesse des tirets suit la jauge
+let offset = 0, last = performance.now();
+function drawRoad(dt) {
+  const dpr = window.devicePixelRatio || 1;
+  const w = road.clientWidth, h = road.clientHeight;
+  if (road.width !== Math.round(w * dpr)) { road.width = Math.round(w * dpr); road.height = Math.round(h * dpr); }
+  rctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  rctx.clearRect(0, 0, w, h);
+  if (playing) offset = (offset + dt * (60 + speed * 800)) % 48;
+  rctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--gold');
+  rctx.globalAlpha = playing ? 0.3 + 0.6 * speed : 0.15;
+  for (let x = -offset; x < w; x += 48) rctx.fillRect(x, h / 2 - 1.5, 24, 3);
+}
+
+function frame(now) {
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  speed += (target - speed) * 0.08;
+  bpmEl.textContent = Math.round(bpmNow());
+  if (ctx) {
+    const ct = ctx.currentTime;
+    for (const id in LAYERS) bus[id].gain.setTargetAtTime(LAYERS[id](speed), ct, 0.1);
+    dips = dips.filter(d => d.end > ct);
+    const inDip = dips.some(d => d.start <= ct);
+    loopFilter.frequency.setTargetAtTime(inDip ? 380 : filterFreq(speed), ct, inDip ? 0.25 : 0.06);
+    loopFilter.Q.setTargetAtTime(inDip ? 5 : 3 - 2 * speed, ct, 0.1);
+    flWet.gain.setTargetAtTime(ramp(speed, 0.85, 0.95) * 0.45, ct, 0.2);
+  }
+  drawRoad(dt);
+  requestAnimationFrame(frame);
+}
+
+playBtn.addEventListener('click', () => {
+  if (!ctx) initAudio();
+  if (!playing) {
+    ctx.resume();
+    step = 0; dips = []; nextTime = ctx.currentTime + 0.05;
+    timer = setInterval(scheduler, 25);
+    playing = true; playBtn.textContent = 'STOP'; playBtn.setAttribute('aria-label', 'Arrêter la musique');
+  } else {
+    clearInterval(timer); playing = false; ctx.suspend();
+    playBtn.textContent = 'PLAY'; playBtn.setAttribute('aria-label', 'Lancer la musique');
+  }
+});
+slider.addEventListener('input', () => { target = slider.value / 100; });
+requestAnimationFrame(frame);
+</script>

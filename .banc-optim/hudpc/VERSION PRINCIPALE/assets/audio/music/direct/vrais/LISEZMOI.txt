@@ -1,0 +1,3 @@
+Vrais instruments : échantillons de VSCO-2 Community Edition et de la Versilian Community Sample Library (VCSL)
+(Versilian Studios, Sam Gossner) — github.com/sgossner/VSCO-2-CE et github.com/sgossner/VCSL — licence CC0 1.0 (domaine public).
+Retaillés et compressés par atelier-son/vrais_instruments.py.

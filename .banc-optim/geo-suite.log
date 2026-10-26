@@ -1,0 +1,58 @@
+21:50:05 séance v900 finie. Comptes de triangles A/B, sans repos
+21:50:05 chef du banc sur :8931, 2 scénarios, seuil 99 °C
+21:50:09 ▶ geoOFF-1 · batterie 37.2 °C
+21:50:15 VIE {"jit":3,"plan":"valS900-G","etat":"fait"}
+21:50:17 VIE {"demarrage":{"froid":false,"pret":2284,"charge":0,"dcl":0,"jit":3}}
+21:50:19 scénario demandé → geoOFF-1
+21:50:19 VIE {"etat":"en cours","plan":"geoOFF-1","jit":7}
+21:50:45 VIE {"fuite":{"tex":102,"geoScene":820,"calls":null,"p90":56,"maillages":1658,"tas":null,"js":8.4000000000000004,"t":25863,"lieu":"nuages","med":21,"objets":2001,"dpr":1.5,"visibles":820,"geo":526,"progs"
+21:50:53 VIE {"fuite":{"progs":211,"tris":375744,"calls":203,"med":31,"tas":null,"tex":108,"js":10.800000000000001,"t":34142,"k":2,"dpr":1.5,"objets":2019,"geoScene":829,"ql":0,"p90":42,"lieu":"ville","geo":577,"n
+21:51:01 VIE {"fuite":{"tex":114,"geoScene":826,"p90":72,"calls":177,"maillages":1674,"tas":null,"js":14.1,"t":42362,"lieu":"canyon","med":37,"objets":2006,"dpr":1.5,"visibles":833,"tris":694002,"geo":571,"progs":
+21:51:09 VIE {"fuite":{"progs":211,"tris":676522,"calls":119,"med":49,"tas":null,"tex":114,"js":18.300000000000001,"t":50583,"k":4,"dpr":1.5,"objets":2027,"geoScene":844,"ql":4,"p90":88,"lieu":"orage","geo":595,"n
+21:51:17 VIE {"fuite":{"tex":114,"geoScene":844,"p90":70,"calls":210,"maillages":1742,"tas":null,"js":12.300000000000001,"t":58608,"lieu":"ville","med":40,"objets":2092,"dpr":1.4399999999999999,"visibles":901,"tri
+21:51:26 VIE {"fuite":{"progs":211,"tris":236818,"calls":141,"med":40,"tas":null,"js":11.199999999999999,"tex":114,"t":66920,"k":6,"dpr":1.3799999999999999,"objets":2124,"geoScene":897,"ql":7,"p90":59,"lieu":"banq
+21:51:34 VIE {"fuite":{"tex":114,"geoScene":823,"p90":76,"calls":206,"maillages":1716,"tas":null,"js":9.4000000000000004,"t":75420,"lieu":"canyon","med":62,"objets":2057,"dpr":1.4399999999999999,"visibles":874,"tr
+21:51:42 VIE {"fuite":{"niv":8,"progs":211,"tas":null,"calls":177,"med":61,"p90":80,"lieu":"nuages","tex":114,"maillages":1755,"geoScene":865,"tris":965243,"geo":632,"dpr":1.4399999999999999,"objets":2117,"t":8359
+21:51:51 VIE {"fuite":{"tris":534786,"k":9,"tex":114,"t":92089,"visibles":845,"maillages":1675,"lieu":"canyon","niv":9,"geo":601,"tas":null,"geoScene":825,"med":59,"calls":110,"p90":75,"progs":211,"js":11.6,"objet
+21:51:59 VIE {"fuite":{"niv":10,"tas":null,"calls":235,"progs":211,"med":71,"lieu":"jade","p90":88,"tex":115,"maillages":1774,"geoScene":876,"tris":426270,"geo":662,"dpr":1.4399999999999999,"objets":2117,"t":10041
+21:52:07 VIE {"fuite":{"niv":11,"tas":null,"calls":143,"progs":211,"med":74,"p90":91,"lieu":"nuages","tex":120,"maillages":1733,"geoScene":855,"tris":699088,"geo":641,"dpr":1.4399999999999999,"objets":2088,"t":108
+21:52:15 VIE {"fuite":{"tris":727318,"k":12,"tex":121,"t":116655,"visibles":889,"maillages":1742,"lieu":"canyon","niv":12,"geo":637,"tas":null,"geoScene":849,"med":74,"calls":116,"p90":109,"progs":211,"js":14.5,"o
+21:52:24 VIE {"fuite":{"niv":13,"progs":211,"tas":null,"calls":264,"med":85,"lieu":"nuages","p90":133,"tex":123,"maillages":1748,"geoScene":867,"tris":659728,"geo":667,"dpr":1.3100000000000001,"objets":2109,"t":12
+21:52:32 VIE {"fuite":{"niv":14,"tas":null,"calls":151,"progs":211,"med":79,"p90":111,"lieu":"jade","tex":123,"maillages":1812,"geoScene":884,"tris":591453,"geo":688,"dpr":1.25,"objets":2163,"t":133141,"k":14,"ql"
+21:52:40 VIE {"fuite":{"tris":582646,"k":15,"tex":123,"t":141392,"visibles":881,"maillages":1742,"lieu":"nuages","niv":15,"geo":658,"tas":null,"geoScene":862,"med":100,"calls":109,"p90":128,"progs":211,"js":14.6,"
+21:52:44 VIE {"etape":"stats","r":"{\"sonde\":{\"on\":true,\"seuil\":12,\"decisions\":0,\"replis\":4,\"pause\":\"49 s\",\"barriere","t":120}
+21:52:48 VIE {"fuite":{"tris":975443,"k":16,"tex":124,"t":149613,"visibles":902,"maillages":1744,"lieu":"nuages","niv":15,"geo":665,"tas":null,"geoScene":862,"med":101,"calls":172,"p90":179,"progs":211,"js":13.9,"
+21:52:57 VIE {"fuite":{"tris":604194,"k":17,"tex":125,"t":157803,"visibles":854,"maillages":1713,"lieu":"nuages","niv":15,"geo":644,"tas":null,"geoScene":857,"med":111,"calls":124,"p90":201,"progs":211,"js":15.800
+21:52:59 bilan reçu geoOFF-1 69392 octets 
+21:53:01 scénario demandé → aucun
+21:53:04 CC BANC fermée (pid 694)
+21:53:05 ✓ geoOFF-1 en 166 s · batterie après 37.1 °C
+21:53:07 ▶ geoON-1 · batterie 37.2 °C
+21:53:09 VIE {"etat":"fait","plan":"geoOFF-1","jit":9}
+21:53:15 VIE {"demarrage":{"pret":6782,"charge":0,"jit":9,"froid":false,"dcl":0}}
+21:53:18 scénario demandé → geoON-1
+21:53:18 VIE {"etat":"en cours","plan":"geoON-1","jit":6}
+21:53:49 VIE {"fuite":{"tex":102,"t":30911,"geoScene":826,"maillages":1674,"objets":2017,"calls":null,"js":64.700000000000003,"geo":525,"med":22,"p90":73,"ql":0,"progs":212,"dpr":1.5,"k":1,"niv":1,"tris":null,"lie
+21:53:57 VIE {"fuite":{"js":18.600000000000001,"objets":2054,"tas":null,"k":2,"t":39099,"ql":2,"maillages":1716,"lieu":"espace","med":49,"geo":560,"tex":104,"p90":76,"progs":212,"geoScene":862,"dpr":1.5,"niv":2,"v
+21:54:06 VIE {"fuite":{"tex":113,"t":47559,"geoScene":851,"maillages":1707,"objets":2043,"calls":132,"js":23.300000000000001,"geo":600,"med":57,"p90":113,"ql":6,"progs":212,"dpr":1.4399999999999999,"k":3,"niv":3,"
+21:54:14 VIE {"fuite":{"tex":113,"t":55644,"geoScene":1032,"maillages":1893,"objets":2501,"calls":165,"js":24.399999999999999,"geo":724,"med":50,"p90":109,"ql":4,"progs":212,"dpr":1.5,"k":4,"niv":4,"tris":238430,"
+21:54:22 VIE {"fuite":{"tex":114,"t":63998,"geoScene":871,"maillages":1746,"objets":2092,"calls":202,"js":21,"geo":614,"med":56,"p90":123,"ql":4,"progs":212,"dpr":1.5,"k":5,"niv":5,"tris":275776,"lieu":"espace","t
+21:54:31 VIE {"fuite":{"tex":114,"t":72395,"geoScene":1021,"maillages":1869,"objets":2202,"calls":231,"js":22.300000000000001,"geo":710,"med":104,"p90":177,"ql":4,"progs":212,"dpr":1.5,"k":6,"niv":6,"tris":206532,
+21:54:39 VIE {"fuite":{"tex":114,"t":80465,"geoScene":875,"maillages":1739,"objets":2085,"calls":200,"js":15.9,"geo":628,"med":122,"p90":177,"ql":4,"progs":212,"dpr":1.5,"k":7,"niv":7,"tris":280188,"lieu":"espace"
+21:54:47 VIE {"fuite":{"tex":114,"t":88545,"geoScene":1025,"maillages":1876,"objets":2215,"calls":227,"js":16.600000000000001,"geo":728,"med":128,"p90":183,"ql":4,"progs":212,"dpr":1.5,"k":8,"niv":8,"tris":207596,
+21:54:55 VIE {"fuite":{"tex":114,"t":97027,"geoScene":894,"maillages":1790,"objets":2125,"calls":214,"js":21.100000000000001,"geo":647,"med":134,"p90":189,"ql":4,"progs":212,"dpr":1.5,"k":9,"niv":9,"tris":406544,"
+21:55:04 VIE {"fuite":{"tex":114,"t":105487,"geoScene":867,"maillages":1719,"objets":2066,"calls":147,"js":17.899999999999999,"geo":619,"med":93,"p90":141,"ql":6,"progs":212,"dpr":1.4399999999999999,"k":10,"niv":1
+21:55:12 VIE {"fuite":{"tex":115,"t":113737,"geoScene":970,"maillages":1818,"objets":2147,"calls":191,"js":12.199999999999999,"geo":695,"med":51,"p90":73,"ql":8,"progs":212,"dpr":1.3100000000000001,"k":11,"niv":11
+21:55:20 VIE {"fuite":{"tex":115,"t":121801,"geoScene":879,"maillages":1765,"objets":2124,"calls":228,"js":15.199999999999999,"geo":654,"med":65,"p90":98,"ql":6,"progs":212,"dpr":1.4399999999999999,"k":12,"niv":12
+21:55:28 VIE {"fuite":{"tex":116,"t":130027,"geoScene":885,"maillages":1791,"objets":2148,"calls":136,"js":13.5,"geo":631,"med":62,"p90":88,"ql":6,"progs":212,"dpr":1.4399999999999999,"k":13,"niv":13,"tris":362062
+21:55:37 VIE {"fuite":{"tex":116,"t":138415,"geoScene":1001,"maillages":1884,"objets":2230,"calls":83,"js":14.699999999999999,"geo":738,"med":65,"p90":85,"ql":6,"progs":212,"dpr":1.4399999999999999,"k":14,"niv":14
+21:55:45 VIE {"fuite":{"tex":116,"t":146558,"geoScene":930,"maillages":1843,"objets":2185,"calls":208,"js":12.9,"geo":708,"med":47,"p90":75,"ql":6,"progs":212,"dpr":1.4399999999999999,"k":15,"niv":15,"tris":506339
+21:55:49 VIE {"r":"{\"sonde\":{\"on\":true,\"seuil\":12,\"decisions\":0,\"replis\":5,\"pause\":\"70 s\",\"barriere","t":120,"etape":"stats"}
+21:55:53 VIE {"fuite":{"tex":116,"t":154776,"geoScene":930,"maillages":1848,"objets":2190,"calls":90,"js":11,"geo":708,"med":82,"p90":109,"ql":6,"progs":212,"dpr":1.4399999999999999,"k":16,"niv":15,"tris":820465,"
+21:56:01 VIE {"fuite":{"tex":121,"t":162998,"geoScene":930,"maillages":1856,"objets":2198,"calls":95,"js":11.5,"geo":728,"med":87,"p90":115,"ql":8,"progs":212,"dpr":1.3100000000000001,"k":17,"niv":15,"tris":714996
+21:56:04 bilan reçu geoON-1 58703 octets 
+21:56:05 scénario demandé → aucun
+21:56:05 CC BANC fermée (pid 781)
+21:56:06 ✓ geoON-1 en 168 s · batterie après 37.2 °C
+21:56:06 file terminée
+21:56:06 comptes terminés

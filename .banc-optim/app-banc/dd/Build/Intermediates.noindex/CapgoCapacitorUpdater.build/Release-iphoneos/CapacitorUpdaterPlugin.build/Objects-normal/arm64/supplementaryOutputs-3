@@ -1,0 +1,12 @@
+{
+  "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/AES.swift" : {
+    "abi-baseline-json" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapacitorUpdaterPlugin.abi.json",
+    "const-values" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapacitorUpdaterPlugin-primary.swiftconstvalues",
+    "dependencies" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapacitorUpdaterPlugin-primary.d",
+    "diagnostics" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapacitorUpdaterPlugin-primary.dia",
+    "objc-header" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapacitorUpdaterPlugin-Swift.h",
+    "swiftdoc" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapacitorUpdaterPlugin.swiftdoc",
+    "swiftmodule" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapacitorUpdaterPlugin.swiftmodule",
+    "swiftsourceinfo" : "/Users/sachaberes/cash-car/optim-mobile/.banc-optim/app-banc/dd/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Release-iphoneos/CapacitorUpdaterPlugin.build/Objects-normal/arm64/CapacitorUpdaterPlugin.swiftsourceinfo"
+  }
+}

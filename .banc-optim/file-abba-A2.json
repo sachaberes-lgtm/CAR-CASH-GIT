@@ -1,0 +1,272 @@
+[
+ {
+  "id": "valABBA-A2",
+  "tag": "abba-v903",
+  "params": "carte=nuages&meteo=midi&pistegraine=777",
+  "menu": 10,
+  "course": 420,
+  "etapes": [
+   {
+    "t": 1,
+    "phase": "n1",
+    "eval": "n1"
+   },
+   {
+    "t": 2,
+    "phase": "raz",
+    "eval": "JSON.stringify(dbgGouv(0))"
+   },
+   {
+    "t": 4,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 7,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 10,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 13,
+    "phase": "saut",
+    "eval": "dbgClassique('dunes');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 16,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 19,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 20,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   },
+   {
+    "t": 22,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 25,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 60,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   },
+   {
+    "t": 89,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 92,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 95,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 98,
+    "phase": "saut",
+    "eval": "dbgClassique('dunes');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 100,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   },
+   {
+    "t": 101,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 104,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 107,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 110,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 140,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   },
+   {
+    "t": 174,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 177,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 180,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 180,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   },
+   {
+    "t": 183,
+    "phase": "saut",
+    "eval": "dbgClassique('dunes');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 186,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 189,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 192,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 195,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 220,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   },
+   {
+    "t": 259,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 260,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   },
+   {
+    "t": 262,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 265,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 268,
+    "phase": "saut",
+    "eval": "dbgClassique('dunes');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 271,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 274,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 277,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 280,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 300,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   },
+   {
+    "t": 340,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   },
+   {
+    "t": 344,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 347,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 350,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 353,
+    "phase": "saut",
+    "eval": "dbgClassique('dunes');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 356,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 359,
+    "phase": "saut",
+    "eval": "dbgClassique('canyon');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 362,
+    "phase": "saut",
+    "eval": "dbgClassique('espace');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 365,
+    "phase": "saut",
+    "eval": "dbgClassique('ville');dbgSaut();dbgAuto(1,0,{nit:1});dbgNiveau().niveau+' '+dbgNiveau().lieu"
+   },
+   {
+    "t": 380,
+    "phase": "gouv",
+    "eval": "JSON.stringify([dbgGouv(),dbgCadence()])"
+   }
+  ],
+  "rejoue": true
+ }
+]

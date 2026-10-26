@@ -1,0 +1,8 @@
+23:51:47 fin-suite terminée. Repos de 12 min avant la séance calée sur 30
+00:03:48 départ à 32.8 °C
+00:03:48 séance F : calée sur 30 dès la 1re seconde
+00:03:48 chef du banc sur :8931, 1 scénarios, seuil 99 °C
+00:03:49 ▶ valS903F · batterie 32.8 °C
+00:04:00 lancement refusé :                BSErrorCodeDescription = Locked |                NSLocalizedFailureReason = Unable to launch com.sachaberes.carcash.banc because the device was not, or could not be, unlocked.
+00:04:46 app muette après 45 s (essai 1)
+00:04:59 lancement refusé :                BSErrorCodeDescription = Locked |                NSLocalizedFailureReason = Unable to launch com.sachaberes.carcash.banc because the device was not, or could not be, unlocked.
