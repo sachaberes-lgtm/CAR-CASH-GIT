@@ -1,0 +1,1 @@
+/Users/sachaberes/cash-car/embellir-jade/VERSION PRINCIPALE/sw.js
