@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v950'; /* v950 (2026-10-26, Léo : « répare le shader de la grotte glacée ») le shader de la grotte ne compilait plus depuis la v939 : « ; » et accolades manquants (code/maps/grottes-2.js) */
+const CACHE = 'cashcar-v951'; /* v951 (2026-10-26, Léo : « les couleurs de base en haut, les brillantes encore plus bas ») peintures : primaires d'abord, brillantes sous les originales */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

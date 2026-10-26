@@ -3,6 +3,9 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## PEINTURES : LES PRIMAIRES EN HAUT, LES BRILLANTES EN BAS (2026-10-26, v951 — Léo : « les couleurs de base, rouge, bleu, vert, en haut ; en descendant, des trucs plus spéciaux ; les couleurs brillantes encore plus bas »)
+- Ordre d'une peinture (`peintClef`, `code/economie/boutique.js`) : D'ORIGINE · **basiques** (rouge, bleu azur, vert, jaune, orange, violet, rose poupée, fuchsia, bleu minuit, noir, blanc) · **originales** (pastels, menthe, ogre, lagon, nardo, Gotham…) · **brillantes** (`PEINT_BRILLANTES` : cuivre, or, or rose, chrome, fantôme nacré — unies mais métal) · **dégradés** · **motifs**. Remplace la liste « familles de teinte » des basiques (noir et blanc ouvraient la liste) et sort les métaux du milieu des originales.
+
 ## LA GROTTE COMPILE DE NOUVEAU (2026-10-26, v950 — Léo : « répare le shader de la grotte glacée »)
 - Depuis la v939 (« Grotte glacée »), une ligne du fragment shader de la grotte (`code/maps/grottes-2.js`, matière `mt<10.5`, la concrétion) collait deux instructions sans « ; » : `ERROR: 'alb' : syntax error`, le programme ne compilait pas. Corrigé avec des accolades `{…;…}` (sinon la 2e instruction, la teinte de glace, se serait appliquée à toutes les matières). Vérifié : menu atteint sans erreur de shader.
 

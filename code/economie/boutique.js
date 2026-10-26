@@ -383,11 +383,12 @@ if(PEINT_V2){
    (noir, blanc, gris) et les métaux. Une peinture est rangée par ID (les secrètes masquées n'ont ni couleur ni dégradé tant qu'on ne les a pas gagnées : leur place ne doit
    pas bouger quand elles se dévoilent). L'ordre des listes EST l'ordre à l'écran ; une peinture nouvelle s'ajoute à la bonne liste (sinon : après les dégradés listés ;
    les motifs, eux, gardent l'ordre du catalogue). */
-const PEINT_BASIQUES=['noir','neige','bolide','emeute','taxi','billet','azur','minuit','royal','fuchsia','poupee'],
-  PEINT_ORIGINALES=['dragee','orrose','abricot','cuivre','vanille','or','pistache','amande','menthe','ogre','lagon','piscine','lilas','nardo','gotham','chrome','fantome'],
+const PEINT_BASIQUES=['bolide','azur','billet','taxi','emeute','royal','poupee','fuchsia','minuit','noir','neige'], // (2026-10-26, Léo : « les couleurs de base, rouge, bleu, vert, en haut ; plus on descend, plus c'est spécial ; les brillantes encore plus bas ») les primaires d'abord
+  PEINT_ORIGINALES=['dragee','abricot','vanille','pistache','amande','menthe','ogre','lagon','piscine','lilas','nardo','gotham'],
+  PEINT_BRILLANTES=['cuivre','or','orrose','chrome','fantome'], // les métaux et le nacré : unis mais brillants, sous les originales
   PEINT_DEGRADES=['srBraise','lave','envers','couchant','guerrier','banana','prisme','jadeimperial','cameleon','srAurore','srLagon','eclair','lampadaire','srEtoile','vaporwave','holo','nacre','orage','lunaire'];
-function peintClef(j){const d=COSM.peinture[j];if(d.id==='usine')return -1; // D'ORIGINE en tête, puis 1 basiques · 2 originales · 3 dégradés · 4 motifs
-  let k=PEINT_BASIQUES.indexOf(d.id);if(k>=0)return 100+k;k=PEINT_ORIGINALES.indexOf(d.id);if(k>=0)return 200+k;k=PEINT_DEGRADES.indexOf(d.id);if(k>=0)return 300+k;
+function peintClef(j){const d=COSM.peinture[j];if(d.id==='usine')return -1; // D'ORIGINE en tête, puis 1 basiques · 2 originales · 2,5 brillantes · 3 dégradés · 4 motifs
+  let k=PEINT_BASIQUES.indexOf(d.id);if(k>=0)return 100+k;k=PEINT_ORIGINALES.indexOf(d.id);if(k>=0)return 200+k;k=PEINT_BRILLANTES.indexOf(d.id);if(k>=0)return 250+k;k=PEINT_DEGRADES.indexOf(d.id);if(k>=0)return 300+k;
   return (d.mot?400:350)+j;} // les motifs : l'ordre du catalogue
 function peintOrdre(){const L=COSM.peinture.map(function(d,j){return j;});if(!PEINT_V2)return L; // les indices de COSM.peinture, rangés par famille (voir peintClef)
   return L.sort(function(a,b){return peintClef(a)-peintClef(b);});}
