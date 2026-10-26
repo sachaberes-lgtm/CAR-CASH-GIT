@@ -1,0 +1,12 @@
+[82 s] prêt : true · 390×844 cadre=false
+[113 s] accueil passé
+[118 s] JOUER touché
+[122 s] course partie : true
+[127 s] ⏸ touché
+[130 s] QUITTER touché
+[133 s] QUITTER confirmé
+[137 s] écran de fin : true
+[144 s] NORMAL {"defile":0,"colonne":[18,405,372,483],"fin":[18,683,372,757],"finPos":"static","maison":[11,683,81,757],"moteur":[201,257,372,393],"x2":"cachée","chiffresRognes":0}
+[148 s] CHARGÉ {"defile":0,"colonne":[18,462,372,540],"fin":[18,745,372,819],"finPos":"static","maison":[11,745,81,819],"moteur":[201,287,372,450],"x2":[13,223,377,275],"chiffresRognes":0}
+[149 s] touchers #mDouble→ok · #mDead .mMenu→ok · #mDead [data-m=replay]→ok
+[197 s] erreurs : aucune
