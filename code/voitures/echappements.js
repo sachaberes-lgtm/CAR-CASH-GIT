@@ -294,7 +294,7 @@ const ECH_POTS={  // (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
  d_chevalier:{p:[{t:'turbine',r:0.205,n:12,k:'C',kp:'a',aubes:0,pts:[[0,0.8,-2.46]]}]},
  e_dragon:{p:[{t:'gueule',r:0.06,k:'o',ev:1.1,crocs:6,kc:'w',lueur:'g',pts:[[0.46,0.4,-2.41],[-0.46,0.4,-2.41]]}]},
  b_pizza:{p:[{t:'reel',r:0.034,k:'c',rx:0.45,len:0.25,pts:[[0.36,0.24,-1.845]]}]},
- bulle:{p:[{t:'rond',r:0.03,ev:1.45,k:'c',pts:[[-0.26,0.42,-2.185]]}]},
+ bulle:{enc:0,p:[{t:'rond',r:.022,ev:1.3,n:8,k:'c',len:.22,pts:[[.165,.335,-1.985],[-.165,.335,-1.985]]}]}, /* (2026-10-26, LE SCARABÉE en poly) les deux « sarbacanes » de la 1962, sous le pare-chocs, un peu derrière lui — `enc:0` : elles pendent sous la jupe, rien à percer */
  combi:{p:[{t:'reel',r:0.032,k:'C',len:0.42,pts:[[0.32,0.31,-2.42],[-0.32,0.31,-2.42]]}]},
  dolores:{p:[{t:'rect',w:0.12,h:0.05,k:'a',e:0.012,pts:[[0.38,0.3,-2.17],[-0.38,0.3,-2.17]]}]},
  d_puce:{p:[{t:'reel',r:0.026,k:'c',pts:[[-0.045,0.22,-1.55],[0.045,0.22,-1.55],[-0.045,0.3,-1.55],[0.045,0.3,-1.55]]}]},
