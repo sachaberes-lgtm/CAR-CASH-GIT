@@ -3,6 +3,13 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## PEINTURES : LES 4 ÉPIQUES DE LA SÉRIE RANGÉES AVEC LES DÉGRADÉS (2026-10-26, v955 — Léo : « pour l'instant, les derniers épiques, mets-les comme des dégradés, au-dessus des stickers »)
+- Annule la famille « légendaires » de la v952 : BRAISE FIDÈLE, AURORE BORÉALE, LAGON INTERDIT et NUIT ÉTOILÉE (la SÉRIE) ferment la liste des **dégradés** (`PEINT_DEGRADES`), juste au-dessus des motifs, qui redeviennent la toute fin. Ordre final : D'ORIGINE · basiques · originales · brillantes · dégradés (série en dernier) · motifs.
+
+## MOTEURS : LA PASSE « PROPRE » (2026-10-26, v954 — Léo : « des petits bugs sur certains moteurs… des effets de transparence pas censés être là, des bouts pas connectés qui flottent : il faut vraiment l'enlever »)
+- Revue des 29 moteurs neufs sous 4 angles (dont par-dessous). **Transparence** : les pièces tournées (pavillons, tuyères, cornets) sont des peaux ouvertes — vues de l'intérieur la face simple disparaissait (on voyait la braise à travers) → toutes les matières du kit en double face ; le verre n'écrit plus la profondeur. Flammes des grappes plus courtes et plus douces (elles se lisaient comme des pics de cristal).
+- **Pièces flottantes retirées ou attachées** : mégaphone et barre d'or du bicylindre, engrenage du 4 soupapes (contre la face avant), échangeur du turbo (deux pattes), escargots du V6 biturbo (pattes), boîtier du V8 (sur les rails), bagues d'or (axe explicite : elles sortaient en travers), grappes de propulseurs (platine + fût), anneaux et cristaux de l'antimatière (tiges), cerceaux de la distorsion (axe + rayons), éclats du tokamak et de la supernova, anneaux de la comète, cage du trou noir.
+
 ## PEINTURES : LES STICKERS À LA FIN, PUIS LES LÉGENDAIRES (2026-10-26, v952 — Léo : « mets les stickers à la toute fin, et à la toute fin, on aura les trucs légendaires »)
 - Fin de la liste (`peintClef`, `PEINT_LEGENDAIRES`, `code/economie/boutique.js`) : … dégradés · **motifs** (les « stickers » : léopard → LOADED) · **légendaires** = les 4 peintures de la SÉRIE (BRAISE FIDÈLE, AURORE BORÉALE, LAGON INTERDIT, NUIT ÉTOILÉE ; rareté épique, la plus haute que porte une peinture ici — aucune n'est étiquetée « légendaire » depuis le rangement par rareté d'octobre). Si « légendaires » voulait dire autre chose : la liste est une ligne.
 - Leur place dans les dégradés d'avant (braise en tête, aurore/lagon/étoile au milieu) est retirée.
