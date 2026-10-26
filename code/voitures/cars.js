@@ -51,7 +51,7 @@ const CARS=[
  {retire:1,name:'FORMULE OR'},
  {retire:1,name:'LE MANS 24'},
  {retire:1,name:'EL PATRON'},
- {rar:'epique',name:'ACIDE',           shape:'tuner',   color:0x5cff1e,accent:0x123a08,maxKmh:520,accel:60,turn:3.18,h:.62,w:1.88,l:4.1,spoiler:0,glow:0x8dff2a,
+ {rar:'epique',name:'ACIDE',           shape:'tuner',   color:0x5cff1e,accent:0x123a08,maxKmh:520,accel:60,turn:3.18,h:1.17,w:1.93,l:4.22,spoiler:0,
   fx:{jet:0x7cff28,core:0xe8ffb4,trail:[.52,1.55,.10],light:0x6fe81e},
   desc:'Compacte japonaise passée au bain d\'acide : capot vitré sur le bloc, aileron de table à repasser, échappement qui crache vert.'},
 /* ===== LES FICHES DES 50 — DÉBUT ===== */
