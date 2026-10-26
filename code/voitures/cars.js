@@ -229,7 +229,7 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LE ROUGE-GORGE',shape:'robin',color:0x2289dc,accent:0x1a1a1d,maxKmh:230,accel:26,turn:2.6,h:1.35,w:1.42,l:3.37,spoiler:0,rar:'rare', // 84 — discussion RONDES : la Reliant Robin Mk1 (1973-81), trois roues, la roue AVANT seule au milieu (SHAPES.robin, `w1F`)
+ {name:'LE ROUGE-GORGE',shape:'robin',color:0x1d74cc,accent:0x1a1a1d,maxKmh:230,accel:26,turn:2.6,h:1.44,w:1.42,l:3.37,spoiler:0,rar:'rare', // 84 — discussion RONDES : la Reliant Robin Mk1 (1973-81), trois roues, la roue AVANT seule au milieu (SHAPES.robin, `w1F`)
   desc:'Trois roues, de la fibre de verre et une confiance aveugle. Dans les virages, elle penche ; toi, tu pries.'},
  /* · */
  /* · */
