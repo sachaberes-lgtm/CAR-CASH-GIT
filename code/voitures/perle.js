@@ -54,7 +54,19 @@ SHAPES.perle=function(K){
         const xh=L([[CW,.74],[1.6,.70],[2.0,.60],[AV,.50]],z);
         p7=[p6[0]-.07,p6[1]-.02];p8=[xh,c-.014];p9=[xh*.6,c-.004];}
       s.push(p6,p7,p8,p9);
-      const q=s[s.length-1];s.push([q[0]*.48,mix(q[1],c,.82)],[0,c]);
+      // (Léo, 26/10 : « rends plus lisse la vitre ») le PARE-BRISE et la LUNETTE en pans PLANS : leur ligne du milieu droite, un panneau central
+      // plat entre deux plis droits, deux pans de côté — plus d'éventail. Les coupes du bord (montant, base, toit) ne bougent pas : la tôle reste la même.
+      const q=s[s.length-1],VA=z>ZT-1e-9&&z<CW,VR=z>RW&&z<-1.26;
+      // (le pan de côté du pare-brise est PLAN : le plan qui porte le montant A — une droite au plan — et le pli au pied, à 60 cm de l'axe ;
+      // le pli suit l'intersection de ce plan et du panneau central)
+      const plA=(z9,y9)=>{const A0=[L(X9,ZT),L(Y9,ZT),ZT],A1=[L(X9,ZA),L(Y9,ZA),ZA],F1=[.60,mix(yC(ZT),yC(CW),(1.10-ZT)/(CW-ZT)),1.10],
+          u9=[A1[0]-A0[0],A1[1]-A0[1],A1[2]-A0[2]],v9=[F1[0]-A0[0],F1[1]-A0[1],F1[2]-A0[2]],
+          n9=[u9[1]*v9[2]-u9[2]*v9[1],u9[2]*v9[0]-u9[0]*v9[2],u9[0]*v9[1]-u9[1]*v9[0]];
+        return A0[0]-(n9[1]*(y9-A0[1])+n9[2]*(z9-A0[2]))/n9[0];};
+      if(VA||VR){const yl=VA?mix(yC(ZT),yC(CW),(z-ZT)/(CW-ZT)):mix(yC(RW),yC(ZR+.18),(z-RW)/(ZR+.18-RW)),
+          xp=Math.min(q[0],VA?plA(z,yl):mix(.34,.37,(z+1.95)/.70));
+        s.push([xp,yl],[0,yl]);}
+      else s.push([q[0]*.48,mix(q[1],c,.82)],[0,c]);
       for(let i=2;i<=5;i++)s[i][1]=Math.max(s[i][1],yb+.025*(i-1));     // l'aile passe AU-DESSUS du passage de roue
       for(let i=1;i<s.length;i++)s[i][1]=Math.max(s[i][1],s[i-1][1]+(i<=5?.002:0));
       return s;};
