@@ -268,7 +268,7 @@ const ECH_POTS={  // (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
  c_silencieuse:{p:[{t:'rond',r:0.11,sx:1.6,sy:0.72,len:0.6,k:'a',ame:0,bague:0,bouche:0,jeu:.008,jonc:.01,pts:[[0,0.44,-2.535]]},{t:'rond',r:0.03,k:'c',len:0.1,lie:1,pts:[[0,0.44,-2.605]]}]}, // (2026-10-15, les pots encastrés « même les originales ») le silencieux remonte de 24 à 44 cm : son cul ovale dans une encoche du panneau arrière, l'embout devant lui (avant : il pendait dessous)
  d_samourai:{p:[{t:'rond',r:0.078,k:'b',kb:'v',ev:1.1,dbl:1,k2:'x',pts:[[0.42,0.28,-2.44]]}]},
  d_vette:{p:[{t:'rond',r:0.044,k:'c',dbl:1,pts:[[-0.24,0.3,-2.32],[-0.09,0.3,-2.32],[0.09,0.3,-2.32],[0.24,0.3,-2.32]]}]},
- e_anglaise:{p:[{t:'ovale',r:0.05,sx:1.9,sy:0.6,k:'c',dbl:1,pts:[[0.55,0.33,-2.44],[-0.55,0.33,-2.44]]}]},
+ e_anglaise:{p:[{t:'ovale',r:0.06,sx:1.9,sy:0.65,k:'c',dbl:1,pts:[[0.48,0.315,-2.49],[-0.48,0.315,-2.49]]}]}, // (2026-10-26, la v3 poly ; puis la croupe en goutte du coupé : x 0,48) recalé sur le nouveau bouclier arrière (face à z −2,475), un rien plus grosses : « deux grosses sorties ovales »
  d_corbillard:{p:[{t:'reel',r:0.04,k:'s',kc:'f',len:0.3,pts:[[-0.56,0.38,-3.04]]}]}, // (2026-10-15) le pot réel, noir (le corbillard)
  a_chargeur69:{p:[{t:'rond',r:0.045,ev:1.4,k:'c',pts:[[0.32,0.3,-2.66],[-0.32,0.3,-2.66]]}]},
  b_canard:{p:[{t:'rond',r:0.05,k:'C',dbl:1,k2:'c',pts:[[-0.4,0.28,-2.13]]}]},
@@ -299,7 +299,7 @@ const ECH_POTS={  // (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
  dolores:{p:[{t:'rect',w:0.12,h:0.05,k:'a',e:0.012,pts:[[0.38,0.3,-2.17],[-0.38,0.3,-2.17]]}]},
  d_puce:{p:[{t:'reel',r:0.026,k:'c',pts:[[-0.045,0.22,-1.55],[0.045,0.22,-1.55],[-0.045,0.3,-1.55],[0.045,0.3,-1.55]]}]},
  b_groupeb:{p:[{t:'rond',r:0.058,k:'C',bague:0,len:0.5,bout:'x',ry:-0.45,pts:[[0.6,0.26,-2.1572]]}]},
- c_hotrod:{p:[{t:'reel',r:.034,k:'C',len:.30,jeu:.006,jonc:.006,pts:[[.32,.29,-1.81],[-.32,.29,-1.81]]}]}, // (2026-10-19, LE HOT ROD v2) deux sorties sous la poupe (les collecteurs du V8 courent sous la caisse ; les cheminées sont parties)
+ c_hotrod:{garde:1,enc:0,p:[{t:'rond',r:.042,n:8,ev:1.12,k:'c',len:.30,pts:[[.30,.30,-1.79],[-.30,.30,-1.79]]}]}, // (2026-10-26, LE HOT ROD v4) deux pots réels sous la poupe, de part et d'autre du pont ; `garde` : aucun vieil embout à ôter, `enc:0` : ils pendent à l'air libre sous le plancher
  a_mastodonte:{ote:[[0.47,0.42,-2.43,0.67,1.27,-1.74],[-0.67,0.42,-2.43,-0.47,1.27,-1.74]],p:[{t:'cheminee',h:1.35,r:0.075,k:'c',pts:[[0.8,1.62,-0.46],[-0.8,1.62,-0.46]]}]},
  poster:{p:[{t:'rect',w:0.19,h:0.085,k:'c',e:0.014,cloison:1,pts:[[0.4,0.38,-2.15],[-0.4,0.38,-2.15]]}]},
  requin:{p:[{t:'rond',r:0.07,k:'s',kb:'C',dbl:1,k2:'n',lueur:'G',len:0.4,pts:[[0.44,0.43,-2.12],[-0.44,0.43,-2.12]]}]},
