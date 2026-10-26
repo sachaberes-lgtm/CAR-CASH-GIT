@@ -108,7 +108,8 @@ function m2Recupere(id,row){
   if(!m2Pret(id)){uiClic('refus');try{gSecoue(row);}catch(e){}toast(pxi('horloge')+' '+TR('BIENTÔT AU GARAGE'));return;}
   const o=m2Prend(id);if(!o){uiClic('refus');return;}
   row.classList.add('pris');const vg=row.querySelector('.m2R');
-  try{pixBurst(row.querySelector('.m2Pr')||row,12);if(vg)pixBurst(vg,10);}catch(e){}
+  try{pixBurst(row.querySelector('.m2Pr')||row,12);if(vg)pixBurst(vg,o.cat?20:12);}catch(e){} /* (2026-10-26, Sacha : « pas d'animation quand on gagne des couleurs, ailes ou traînées ») la vignette gagnée ÉCLATE de la couleur de sa rareté (m2Tombe, --rc) et prend plus de confettis — avant, une couleur/aile/traînée tombait en silence, comme une pièce */
+  try{if(vg){const rc=o.cat?(function(){const d=(COSM[o.cat]||[]).find(function(x){return x.id===o.hab;});return d&&(d.col||rarInfo(d.r||'commun').c);})():o.car!=null?rarInfo(carRar(o.car)).c:'#7dffa0';if(rc)vg.style.setProperty('--rc',rc);}}catch(e){}
   try{if(SONV2){sfx(o.cash?'ui.achat':'ui.debloque');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.27});}else uiClic('ok');}catch(e){}
   hap([12,40,18,40,30]);
   if(o.car!=null){try{carSnapshot();}catch(e){}toast(pxi('voiture')+' '+TR(CARS[o.car].name)+' — '+TR('EST À TOI'),true);}

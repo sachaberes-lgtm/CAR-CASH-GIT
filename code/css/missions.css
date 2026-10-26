@@ -53,8 +53,8 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 .m2Pr>span{display:inline-flex;align-items:center;gap:6px;transform:skewX(var(--skI))}.m2Pr .pxi{--pxs:1}
 .m2L.pret:active .m2Pr{transform:skewX(var(--sk)) translateY(2px);box-shadow:0 1px 0 #127a35}
 .m2Bt{color:#6f93a6!important}
-.m2L.pris .m2R{animation:m2Tombe .55s var(--ease) forwards}
-@keyframes m2Tombe{to{transform:translateY(26px) scale(.55);opacity:0}}
+.m2L.pris .m2R{animation:m2Tombe .62s var(--ease) forwards}
+@keyframes m2Tombe{0%{filter:brightness(1) drop-shadow(0 0 0 transparent)}22%{transform:scale(1.22);filter:brightness(2.3) drop-shadow(0 0 16px var(--rc,#7dffa0))}100%{transform:translateY(26px) scale(.55);opacity:0;filter:brightness(1) drop-shadow(0 0 0 transparent)}}
 /* TERMINÉE : posée, cochée, en retrait */
 .m2L.ok:not(.pret){background:#0b1a33;box-shadow:inset 0 0 0 1px rgba(95,240,255,.10);cursor:default}
 .m2L.ok:not(.pret) .glTx b{color:#a9bfd6}.m2L.ok:not(.pret) .glTx small{color:#5ee37a}.m2L.ok:not(.pret) .m2Ic{color:#5ee37a;box-shadow:inset 0 0 0 1px #5ee37a}

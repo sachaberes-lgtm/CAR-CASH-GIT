@@ -7448,8 +7448,8 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 .m2Pr>span{display:inline-flex;align-items:center;gap:6px;transform:skewX(var(--skI))}.m2Pr .pxi{--pxs:1}
 .m2L.pret:active .m2Pr{transform:skewX(var(--sk)) translateY(2px);box-shadow:0 1px 0 #127a35}
 .m2Bt{color:#6f93a6!important}
-.m2L.pris .m2R{animation:m2Tombe .55s var(--ease) forwards}
-@keyframes m2Tombe{to{transform:translateY(26px) scale(.55);opacity:0}}
+.m2L.pris .m2R{animation:m2Tombe .62s var(--ease) forwards}
+@keyframes m2Tombe{0%{filter:brightness(1) drop-shadow(0 0 0 transparent)}22%{transform:scale(1.22);filter:brightness(2.3) drop-shadow(0 0 16px var(--rc,#7dffa0))}100%{transform:translateY(26px) scale(.55);opacity:0;filter:brightness(1) drop-shadow(0 0 0 transparent)}}
 /* TERMINÉE : posée, cochée, en retrait */
 .m2L.ok:not(.pret){background:#0b1a33;box-shadow:inset 0 0 0 1px rgba(95,240,255,.10);cursor:default}
 .m2L.ok:not(.pret) .glTx b{color:#a9bfd6}.m2L.ok:not(.pret) .glTx small{color:#5ee37a}.m2L.ok:not(.pret) .m2Ic{color:#5ee37a;box-shadow:inset 0 0 0 1px #5ee37a}
@@ -8523,7 +8523,7 @@ body.touch #settings{-webkit-backdrop-filter:none;backdrop-filter:none;backgroun
    · L'AURA : la seule fenêtre de l'écran, un graphe en trois bougies — la PARTIE (violet), ta MOYENNE (creuse) et ton RECORD (or),
      avec l'aura de la partie en clair, en violet, et l'écart à la moyenne (▲ / ▼ %) ou RECORD !.
    · À DROITE : les MISSIONS descendent sous PERDU (alignées sur l'argent) ; les quatre chiffres (multi, km/h, niveau, frénésie)
-     laissent la place à deux touches de verre, GARAGE et RÉGLAGES. */
+     laissent la place à deux touches classiques, GARAGE et RÉGLAGES (2026-10-26 : elles étaient en verre, hors DA — voir plus bas). */
 #mDead:not(.m5) .mDuo{display:none}
 html body #mDead.m5{--m5V:#c99bff;--m5Vf:#8a4dff;--m5Vg:rgba(160,96,255,.6)}
 html body #mDead.m5 .mStats,html body #mDead.m5>.mRow,html body #mDead.m5 .mCashL>span{display:none!important}
@@ -8539,8 +8539,8 @@ html body #mDead.m5 .mCashL>small{font-size:var(--f0);letter-spacing:2px;color:#
 html body #mDead.m5 .mCashL>em.mCashRec{position:static;margin:2px 0 0;transform:none}
 
 /* ---- LE HÉROS : moteur flottant | graphe d'aura ---- */
-html body #mDead.m5 .mHero.m5Hero{display:grid!important;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);grid-template-rows:minmax(0,1fr);
-  gap:14px;margin:0;padding:0;background:none;box-shadow:none;min-height:0;overflow:visible}
+html body #mDead.m5 .mHero.m5Hero{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr);
+  gap:22px;margin:0;padding:0;background:none;box-shadow:none;min-height:0;overflow:visible}
 #mDead.on .m5Hero>.m5Mot{animation:k6Carte var(--t-in) var(--ease) 250ms backwards}
 #mDead.on .m5Hero>.m5Aura{animation:k6Carte var(--t-in) var(--ease) 330ms backwards}
 
@@ -8550,7 +8550,9 @@ html body #mDead.m5 .mHero.m5Hero{display:grid!important;grid-template-columns:m
 .m5Halo{position:absolute;left:50%;top:46%;width:96%;aspect-ratio:1;translate:-50% -50%;border-radius:50%;pointer-events:none;
   background:radial-gradient(closest-side,color-mix(in srgb,var(--ec) 34%,transparent),color-mix(in srgb,var(--ec) 10%,transparent) 55%,transparent);
   animation:m5Respire 3.6s ease-in-out infinite}
-html body #mDead.m5 .m5Scene .hMotCv{position:absolute;left:50%;top:47%;height:112%;width:auto!important;max-width:none;aspect-ratio:480/321;margin:0!important;
+/* (2026-10-26) le moteur CONTENU dans sa colonne : à 112% de haut et une largeur libre, il débordait sur la carte AURA voisine
+   dès que la colonne moteur était plus étroite que haute (téléphone couché, 844 × 390) — les deux max- le bornent sur ses deux axes. */
+html body #mDead.m5 .m5Scene .hMotCv{position:absolute;left:50%;top:50%;width:auto;height:auto;max-width:88%;max-height:96%;aspect-ratio:480/321;margin:0!important;
   translate:-50% -50%;animation:m5Flotte 3.6s ease-in-out infinite}
 .m5Ombre{position:absolute;left:50%;bottom:-2px;width:52%;height:12px;translate:-50% 0;border-radius:50%;pointer-events:none;
   background:radial-gradient(closest-side,rgba(0,0,0,.6),transparent);animation:m5Ombre 3.6s ease-in-out infinite}
@@ -8563,12 +8565,12 @@ html body #mDead.m5 .m5Scene .hMotCv{position:absolute;left:50%;top:47%;height:1
 @keyframes m5Respire{0%,100%{opacity:.75}50%{opacity:1}}
 
 /* le graphe d'aura : la seule fenêtre */
-.m5Aura{position:relative;display:flex;flex-direction:column;min-height:0;min-width:0;padding:9px 11px 8px;border-radius:16px;
+.m5Aura{position:relative;display:flex;flex-direction:column;min-height:0;min-width:0;padding:7px 9px 6px;border-radius:13px;
   background:linear-gradient(180deg,rgba(52,32,104,.62),rgba(18,11,40,.66));
   box-shadow:inset 0 0 0 1px rgba(201,155,255,.24),inset 0 1px 0 rgba(255,255,255,.1),0 14px 30px rgba(0,0,0,.38),0 0 26px rgba(138,77,255,.14)}
 .m5Tete{display:flex;flex-wrap:wrap;align-items:center;column-gap:8px;row-gap:5px;min-width:0}
 .m5Tete>small{font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
-html body #mDead.m5 .m5Tete>#mAuraV{order:3;flex:1 0 100%;font-size:26px;line-height:1;letter-spacing:1px;white-space:nowrap;color:var(--m5V);
+html body #mDead.m5 .m5Tete>#mAuraV{order:3;flex:1 0 100%;font-size:21px;line-height:1;letter-spacing:1px;white-space:nowrap;color:var(--m5V);
   text-shadow:0 2px 0 #1a0a3a,0 0 12px var(--m5Vg),0 0 26px rgba(138,77,255,.35)}
 html body #mDead.m5 .m5Tete>#mAuraV.zero{color:var(--tx3,#8a80b0);text-shadow:0 2px 0 var(--txO)}
 .m5Vd{order:2;margin-left:auto;flex:none;padding:4px 6px 3px;border-radius:8px;font-size:7px;font-style:normal;letter-spacing:0;white-space:nowrap;
@@ -8577,14 +8579,14 @@ html body #mDead.m5 .m5Tete>#mAuraV.zero{color:var(--tx3,#8a80b0);text-shadow:0 
 .m5Vd.down{color:#ff8a9c;background:rgba(255,74,100,.1);box-shadow:inset 0 0 0 1px rgba(255,74,100,.38)}
 .m5Vd.rec{color:var(--or);background:rgba(255,215,94,.12);box-shadow:inset 0 0 0 1px rgba(255,215,94,.55),0 0 12px rgba(255,215,94,.25)}
 .m5Vd .pxi{--pxs:1}
-.m5Graphe{position:relative;flex:1 1 0;min-height:56px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:8px 0 15px;
+.m5Graphe{position:relative;flex:1 1 0;min-height:38px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:6px 0 11px;
   border-bottom:1px solid rgba(201,155,255,.35);
   background:repeating-linear-gradient(to top,rgba(201,155,255,.08) 0 1px,transparent 1px 25%)}
 .m5Ligne{position:absolute;left:0;right:0;bottom:var(--h);border-top:1px dashed rgba(255,215,94,.4);pointer-events:none}
 .m5Col{position:relative;min-width:0}
 .m5Pied{position:absolute;inset:0}
 .m5Meche{position:absolute;left:50%;bottom:0;width:2px;height:var(--h);translate:-50% 0;transform-origin:50% 100%}
-.m5Corps{position:absolute;left:50%;bottom:3px;width:min(40%,26px);height:max(3px,calc(var(--h) * .84 - 3px));translate:-50% 0;border-radius:3px;transform-origin:50% 100%}
+.m5Corps{position:absolute;left:50%;bottom:3px;width:min(36%,19px);height:max(3px,calc(var(--h) * .84 - 3px));translate:-50% 0;border-radius:3px;transform-origin:50% 100%}
 .m5Val{position:absolute;left:50%;bottom:calc(var(--h) + 4px);translate:-50% 0;font-size:var(--f0);white-space:nowrap;color:var(--tx2)}
 .m5Col>small{position:absolute;left:50%;bottom:-13px;translate:-50% 0;font-size:7px;letter-spacing:1px;white-space:nowrap;color:var(--tx2)}
 /* la PARTIE : violet, pleine, qui brille */
@@ -8609,31 +8611,16 @@ html body #mDead.m5 .m5Tete>#mAuraV.zero{color:var(--tx3,#8a80b0);text-shadow:0 
 @keyframes m5Pousse{from{transform:scaleY(0)}}
 @keyframes m5Apparait{from{opacity:0;transform:translateY(4px)}}
 
-/* ---- GARAGE · RÉGLAGES : deux touches de verre ---- */
-html body #mDead.m5 .mDuo{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%}
-/* la même bulle de verre que GARAGE · ACHAT · RÉGLAGES de l'accueil (boutons-flottants.css) : reflet en haut à gauche, liseré double,
-   la couleur de la touche qui monte du bas (GARAGE bleu, RÉGLAGES or). Pas de backdrop-filter (interdit sur mobile par la charte). */
-html body #mDead.m5 .mVerre{--lk:1;position:relative;isolation:isolate;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:10px;
-  min-height:48px;margin:0;padding:0 12px;border:0;border-radius:20px!important;clip-path:none!important;transform:none!important;overflow:visible;
-  font-size:var(--f1);letter-spacing:1px;color:var(--tx);
-  background:
-    radial-gradient(120% 95% at 16% -12%,rgba(255,255,255,calc(.62*var(--lk))) 0,rgba(255,255,255,calc(.14*var(--lk))) 36%,transparent 57%),
-    linear-gradient(112deg,transparent 0 41%,rgba(255,255,255,calc(.34*var(--lk))) 42% 47%,transparent 48% 54%,rgba(255,255,255,calc(.16*var(--lk))) 55% 58%,transparent 59%),
-    radial-gradient(95% 75% at 86% 118%,color-mix(in srgb,var(--nc) calc(46%*var(--lk)),transparent),transparent 62%),
-    linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.08))!important;
-  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.8),inset 0 2px 2px rgba(255,255,255,calc(.85*var(--lk))),
-    inset 0 -12px 16px -9px color-mix(in srgb,var(--nc) 60%,transparent),inset 0 0 24px rgba(255,255,255,calc(.22*var(--lk))),
-    0 0 18px color-mix(in srgb,var(--nc) 42%,transparent),0 7px 16px -6px rgba(15,25,70,.32)!important;
-  transition:translate var(--t-fast) var(--ease)}
-html body #mDead.m5 .mVerre::before{content:''!important;display:block!important;position:absolute;inset:5px;z-index:-1;pointer-events:none;border-radius:inherit;
-  border:1px solid rgba(255,255,255,calc(.34*var(--lk)));box-shadow:inset 0 0 8px rgba(255,255,255,calc(.18*var(--lk)));background:none!important;animation:none!important;transform:none!important}
-html body #mDead.m5 .mVerre::after{content:''!important;display:block!important;position:absolute;left:9%;top:7%;width:30%;height:17%;z-index:-1;pointer-events:none;border-radius:50%;
-  background:radial-gradient(ellipse at 40% 40%,rgba(255,255,255,calc(.95*var(--lk))) 0,rgba(255,255,255,calc(.35*var(--lk))) 45%,transparent 72%);transform:rotate(-14deg)!important;animation:none!important;opacity:1!important}
-html body #mDead.m5 .mVerre :is(span,.pxi){text-shadow:0 1px 3px rgba(10,20,60,.7);transform:none!important}
-html body #mDead.m5 .mVerre .pxi{--pxs:2;color:var(--nc)}
+/* ---- GARAGE · RÉGLAGES : la DA CLASSIQUE (2026-10-26, Sacha : « c'est pas la bonne DA, remets-les dans la DA classique ») ----
+   La bulle de verre (v du 25/10, ci-dessus l'historique) jurait avec le reste de l'écran — aucune autre touche du jeu n'est en verre,
+   pas même REJOUER à côté. On repasse par le moule standard (.pbtn de charte-1-touches.css : plaque de laque, bande de livrée,
+   tranche qui s'enfonce sous le doigt) — la même touche que REJOUER ou ⌂, juste repliée en colonne (icône au-dessus du mot) pour
+   tenir dans la largeur étroite de la colonne de droite. GARAGE reste bleu, RÉGLAGES or : seules les couleurs changent. */
+html body #mDead.m5 .mDuo{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;align-self:end}
+html body #mDead.m5 .mVerre{flex-direction:column;gap:6px;min-height:0;padding:10px 6px 9px;font-size:var(--f1);letter-spacing:.5px}
+html body #mDead.m5 .mVerre .pxi{--pxs:3}
 html body #mDead.m5 .mvGar{--nc:#2f80ff}
 html body #mDead.m5 .mvSet{--nc:var(--or,#ffd75e)}
-html body #mDead.m5 .mVerre:is(:active,.appui){translate:0 2px;--lk:1.25}
 html body #mDead.m5 .mVerre .mBadge{position:absolute;top:-8px;right:-6px;transform:scale(.86);transform-origin:100% 0}
 #mDead.on .mDuo>.mVerre{animation:k6Monte var(--t-in) var(--ease) 520ms backwards}
 #mDead.on .mDuo>.mVerre+.mVerre{animation-delay:570ms}
@@ -9860,18 +9847,15 @@ const skyDome=(function(){
       '  return mix(mix(mix(esH(i),esH(i+vec3(1.,0.,0.)),f.x),mix(esH(i+vec3(0.,1.,0.)),esH(i+vec3(1.,1.,0.)),f.x),f.y),',
       '             mix(mix(esH(i+vec3(0.,0.,1.)),esH(i+vec3(1.,0.,1.)),f.x),mix(esH(i+vec3(0.,1.,1.)),esH(i+vec3(1.,1.,1.)),f.x),f.y),f.z);}',
       'float esF(vec3 p){float a=.5,s=0.;for(int i=0;i<4;i++){s+=a*esN(p);p=p*2.03+vec3(1.7,9.2,4.1);a*=.5;}return s;}',
-      'void cielEspace(inout vec3 col){',
+      'void cielEspace(inout vec3 col){', // (2026-10-26, Sacha : « trop de couleurs dans l espace, reste en noir et blanc ») plus de nébuleuses teintées (violet/bleu/magenta) : juste la voie lactée, en nuances de gris
       '  vec3 d=vDir,g=normalize(vec3(.78,.38,-.50));float b=dot(d,g);',
       '  vec3 cC=normalize(vec3(-.30,.55,-.78));cC=normalize(cC-g*dot(cC,g));float cen=max(dot(d,cC),0.);', // le centre galactique, dans le plan
       '  float w=esF(d*2.6+vec3(3.,1.,7.)),ln=esF(d*7.+vec3(11.,4.,2.));',
       '  float bw=.11+.07*w+.10*cen*cen*cen,band=exp(-b*b/(bw*bw));',
       '  float dust=smoothstep(.44,.70,ln)*exp(-b*b/(bw*bw*.22));', // le ruban sombre au milieu de la bande
       '  float glow=band*(.30+.70*w*w*1.6)*(.40+.60*cen*cen)*(1.-.78*dust);',
-      '  vec3 mw=mix(vec3(.34,.40,.70),vec3(1.,.82,.66),cen*cen*cen*cen*band);', // bleutée, cœur chaud
-      '  float n1=esF(d*1.7+vec3(5.,2.,9.)),n2=esF(d*2.3+vec3(13.,7.,1.)),fl=ln;',
-      '  float pv=smoothstep(.46,.78,n1),pb=smoothstep(.48,.80,n2);',
-      '  vec3 neb=vec3(.44,.14,.70)*pv*(.45+.9*fl)+vec3(.10,.26,.80)*pb*(.45+.9*(1.-fl))+vec3(.70,.12,.50)*pv*pb*1.3;',
-      '  col+=(mw*glow*.58+neb*.26*(1.-.55*dust))*uSpace*uNeb;}',
+      '  float mw=mix(.55,.92,cen*cen*cen*cen*band);', // un gris plus clair au cœur, jamais de teinte
+      '  col+=vec3(mw)*glow*.58*uSpace*uNeb;}',
     ],
     pous:[
       /* ===== LA VOÛTE PROFONDE (2026-10-22, Léo : « travaille un tout petit peu les étoiles pour créer un peu de profondeur, là c'est un peu tout noir ;
@@ -9911,11 +9895,11 @@ const skyDome=(function(){
       '  float c1=sin(d.x*8.3+d.z*6.1+1.7)*sin(d.y*9.7-d.x*5.1+.6)+.7*sin(d.z*13.1+d.y*7.3-1.1)*sin(d.x*11.3+d.z*8.1+2.4);', // des plages plus ou moins peuplées
       '  float c2=sin(d.x*10.7-d.y*6.1+.3)*sin(d.z*9.3+d.y*11.9+1.9)+.7*sin(d.y*14.1+d.x*7.7+2.2)*sin(d.z*12.1-d.x*9.9-.5);',
       '  float fa=.8+.8*bl+.6*bc;',
-      '  vec3 s=voute(y,u0,pa,vec4(50.,3.1,min(.9,.22*fa*exp(c1*.40)),.45),vec4(.10,.36,0.,0.),vec4(.35,0.,0.,.04));',                 // le voile : des grains très faibles, sur DEUX grilles de pas différents (une seule laisse voir ses rangées là où elle est dense)
-      '  s+=voute(y,u0,pa,vec4(33.,5.3,min(.9,.20*fa*exp(c2*.40)),.45),vec4(.10,.36,0.,0.),vec4(.35,0.,0.,.04));',
-      '  s+=voute(y,u0,pa,vec4(22.,7.7,min(.9,.38*(.9+.7*bl+.4*bc)*exp(c2*.35)),.52),vec4(.28,.75,0.,0.),vec4(.55,.06,.3,.06));',       // les petites
-      '  s+=voute(y,u0,pa,vec4(11.,11.3,min(.9,.42*(1.+.4*bl)*exp((c1+c2)*.18)),.68),vec4(.60,1.15,.14,1.7),vec4(.8,.10,.7,.15));',   // les moyennes
-      '  s+=voute(y,u0,pa,vec4(5.4,19.9,.55,.95),vec4(1.2,2.,.20,3.),vec4(1.,.10,1.,.22));',                                         // les brillantes
+      '  vec3 s=voute(y,u0,pa,vec4(50.,3.1,min(.9,.22*fa*exp(c1*.40)),.45),vec4(.10,.36,0.,0.),vec4(0.,0.,0.,.04));',                 // le voile : des grains très faibles, sur DEUX grilles de pas différents (une seule laisse voir ses rangées là où elle est dense)
+      '  s+=voute(y,u0,pa,vec4(33.,5.3,min(.9,.20*fa*exp(c2*.40)),.45),vec4(.10,.36,0.,0.),vec4(0.,0.,0.,.04));',
+      '  s+=voute(y,u0,pa,vec4(22.,7.7,min(.9,.38*(.9+.7*bl+.4*bc)*exp(c2*.35)),.52),vec4(.28,.75,0.,0.),vec4(0.,.06,.3,.06));',       // les petites
+      '  s+=voute(y,u0,pa,vec4(11.,11.3,min(.9,.42*(1.+.4*bl)*exp((c1+c2)*.18)),.68),vec4(.60,1.15,.14,1.7),vec4(0.,.10,.7,.15));',   // les moyennes
+      '  s+=voute(y,u0,pa,vec4(5.4,19.9,.55,.95),vec4(1.2,2.,.20,3.),vec4(0.,.10,1.,.22));',                                         // les brillantes — (2026-10-26, Sacha) toutes blanches, plus de bleuté/orangé : seul le scintillement (C.y) et le pouls musical (C.z) restent
       '  col+=s*uSpace*uNeb;}',
     ],
     lune:[
@@ -9972,9 +9956,8 @@ const skyDome=(function(){
       '  if(h<.935-.16*band)return;',
       '  vec2 stp=vec2(fract(h*23.7),fract(h*41.3))*.7+.15;',
       '  float sr=length(vec2((sfr.x-stp.x)*.0349*sqrt(max(0.,1.-y*y)),(sfr.y-stp.y)*.01667));',
-      '  float st=1.-smoothstep(0.,.0016,sr),k=fract(h*5.13);',
-      '  vec3 c=k<.4?vec3(.66,.76,1.):k<.75?vec3(1.,.96,.92):vec3(.86,.62,1.);',
-      '  col+=c*st*(.55+.65*band)*(.7+.3*sin(uTime*(.8+h*2.)+h*31.))*uSpace*uNeb;}',
+      '  float st=1.-smoothstep(0.,.0016,sr);',
+      '  col+=vec3(st)*(.55+.65*band)*(.7+.3*sin(uTime*(.8+h*2.)+h*31.))*uSpace*uNeb;}', // (2026-10-26, Sacha) blanches, plus bleu/mauve
   ];
   const LECT='uniform sampler2D uBasTex;uniform vec2 uBasInv;',LECT_TR='uniform float uBasTr;'; // (passes NETTES) la passe lisse, relue au pixel de l'écran · (passes LISSES) leur trame 8 bits
   const MAIN={
@@ -52566,7 +52549,7 @@ const MR={x:new Float32Array(MONN_N),y:new Float32Array(MONN_N),z:new Float32Arr
   sc:new Float32Array(MONN_N),f:new Uint8Array(MONN_N),head:0,viv:0,acc:0};
 let moneyRainT=0,nextRainAt=4e3*ECO3.gain; // calé sur l'éco ×2,5 : ~une pluie par niveau (l'ancien 1e4/×10 suivait l'éco ×10) · ×ECO3.gain (vague 3) : la pluie tombe au même moment de la partie
 function startMoneyRain(){
-  plaSurge(4.5);MR.acc=0; // (2026-10-13) la PLUIE D'ARGENT v2 (billets, pièces, confettis : voir PLA) remplace l'averse de glyphes — moneyRainT reste à 0 (l'ancienne se rallume avec moneyRainT=3)
+  moneyRainT=3;MR.acc=0; // (2026-10-26, Sacha : « la pluie de billets, là, elle était mieux avant » — retour à l'averse de glyphes, avant la PLUIE D'ARGENT v2 du 13/10 (PLA reste pour CRYPTOCITY)
   try{son('pluie.billets',fanfare);}catch(e){} // (console de son) la pluie FROISSE : billets qui tombent partout + pièces (plus la fanfare d'une caisse débloquée)
 }
 function updateMoneyRain(dt,t){
@@ -56393,7 +56376,8 @@ function m2Recupere(id,row){
   if(!m2Pret(id)){uiClic('refus');try{gSecoue(row);}catch(e){}toast(pxi('horloge')+' '+TR('BIENTÔT AU GARAGE'));return;}
   const o=m2Prend(id);if(!o){uiClic('refus');return;}
   row.classList.add('pris');const vg=row.querySelector('.m2R');
-  try{pixBurst(row.querySelector('.m2Pr')||row,12);if(vg)pixBurst(vg,10);}catch(e){}
+  try{pixBurst(row.querySelector('.m2Pr')||row,12);if(vg)pixBurst(vg,o.cat?20:12);}catch(e){} /* (2026-10-26, Sacha : « pas d'animation quand on gagne des couleurs, ailes ou traînées ») la vignette gagnée ÉCLATE de la couleur de sa rareté (m2Tombe, --rc) et prend plus de confettis — avant, une couleur/aile/traînée tombait en silence, comme une pièce */
+  try{if(vg){const rc=o.cat?(function(){const d=(COSM[o.cat]||[]).find(function(x){return x.id===o.hab;});return d&&(d.col||rarInfo(d.r||'commun').c);})():o.car!=null?rarInfo(carRar(o.car)).c:'#7dffa0';if(rc)vg.style.setProperty('--rc',rc);}}catch(e){}
   try{if(SONV2){sfx(o.cash?'ui.achat':'ui.debloque');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.27});}else uiClic('ok');}catch(e){}
   hap([12,40,18,40,30]);
   if(o.car!=null){try{carSnapshot();}catch(e){}toast(pxi('voiture')+' '+TR(CARS[o.car].name)+' — '+TR('EST À TOI'),true);}
@@ -72291,9 +72275,9 @@ function goImmersive(){
   const PRES_FIN=4.1; /* l'instant (s après l'appui) où le texte est éteint ; le voile fond juste après (2026-10-24 : 2,5 → 4,1 s, Léo : « laisse le temps d'apprécier ») */
   function dPresente(c,s,e){
     const sor=1-lisse(PRES_FIN-.7,PRES_FIN,s);if(sor<=.004)return;
-    /* (2026-10-24, Léo : « au lieu de PRESENTS, 1.61 STUDIO PRESENTS ») deux lignes : « 1.61 STUDIO » en grand (le « 1.61 » blanc chaud, STUDIO en or), un filet d'or qui s'ouvre depuis le centre,
+    /* (2026-10-26, Sacha : « 1.61 Studio » → « 1.61 Game ») deux lignes : « 1.61 GAME » en grand (le « 1.61 » blanc chaud, GAME en or), un filet d'or qui s'ouvre depuis le centre,
        puis « PRESENTS » plus petit, très espacé, crème. La ligne du haut s'écrit lettre à lettre (0,7 s), le filet suit, le mot du bas arrive en dernier. */
-    const t1='1.61 STUDIO',t2='PRESENTS',n1=t1.length,n2=t2.length;
+    const t1='1.61 GAME',t2='PRESENTS',n1=t1.length,n2=t2.length;
     const px=Math.max(9,Math.round(Math.min(W/23,H/9,30))),px2=Math.max(8,Math.round(px*.5)),k=sort3((s-.7)/1.5),esp=px*(.95-.5*k);
     const tot=n1*px+(n1-1)*esp,y1=e.cy-px*.1,yR=e.cy+px*.62,y2=yR+px2*2.1;
     c.save();c.textAlign='left';c.textBaseline='alphabetic';c.font=px+'px "Press Start 2P",monospace';
