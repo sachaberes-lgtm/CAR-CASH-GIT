@@ -1,0 +1,16 @@
+ok
+piste {"L":4824.707729595747,"NP":4826,"tord":true,"RH":28}
+s=464 route 58° · vol 0.19s · POSÉ face undefined à h=undefined m (image d'avant undefined) vN=undefined · haut caisse/route 2° · écran tourne 6°
+s=791 route 61° · vol 0.37s · POSÉ face 1 à h=1.89 m (image d'avant 1.98) vN=-10.8 · haut caisse/route 10° · écran tourne 18°
+s=1118 route 86° · vol 0.16s · POSÉ face undefined à h=undefined m (image d'avant undefined) vN=undefined · haut caisse/route 3° · écran tourne 21°
+s=1445 route 78° · vol 0.18s · POSÉ face undefined à h=undefined m (image d'avant undefined) vN=undefined · haut caisse/route 4° · écran tourne 14°
+s=1772 route 38° · vol 0.22s · POSÉ face undefined à h=undefined m (image d'avant undefined) vN=undefined · haut caisse/route 2° · écran tourne 21°
+s=2099 route 63° · vol 0.21s · POSÉ face undefined à h=undefined m (image d'avant undefined) vN=undefined · haut caisse/route 3° · écran tourne 11°
+s=2426 route 45° · vol 0.18s · POSÉ face undefined à h=undefined m (image d'avant undefined) vN=undefined · haut caisse/route 2° · écran tourne 7°
+s=2753 route 42° · vol 0.19s · POSÉ face undefined à h=undefined m (image d'avant undefined) vN=undefined · haut caisse/route 1° · écran tourne 11°
+s=3080 route 101° · vol 0.19s · POSÉ face undefined à h=undefined m (image d'avant undefined) vN=undefined · haut caisse/route 3° · écran tourne 19°
+s=3407 route 41° · vol 0.21s · POSÉ face undefined à h=undefined m (image d'avant undefined) vN=undefined · haut caisse/route 4° · écran tourne 9°
+s=3734 route 23° · vol 0.19s · POSÉ face undefined à h=undefined m (image d'avant undefined) vN=undefined · haut caisse/route 3° · écran tourne 13°
+s=4061 route 11° · vol 0.22s · POSÉ face undefined à h=undefined m (image d'avant undefined) vN=undefined · haut caisse/route 2° · écran tourne 7°
+erreurs jeu {"loopErr":null,"banqErr":null}
+RÉSUMÉ C graine 12345 : 12 vols, 12 posés · pris de loin (h>1,5 m) 1 · sans approcher (vN>-1) 0 · haut caisse/route >30° 0 (méd 3°) · écran tourne >30° 0 (méd 13°) · vols avec BUMP 0

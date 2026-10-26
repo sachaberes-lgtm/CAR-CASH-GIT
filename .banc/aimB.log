@@ -1,0 +1,16 @@
+ok
+piste {"L":4824.707729595747,"NP":4826,"tord":true,"RH":28}
+s=464 route 58° · vol 5.28s · pas posé (fall)
+s=791 route 61° · vol 5.28s · pas posé (fall)
+s=1118 route 86° · vol 5.28s · pas posé (fall)
+s=1445 route 78° · vol 5.28s · pas posé (fall)
+s=1772 route 38° · vol 0.94s · POSÉ face 1 à h=2.9 m (image d'avant 3.08) vN=-23.7 · haut caisse/route 22° · écran tourne 23°
+s=2099 route 63° · vol 5.28s · pas posé (fall)
+s=2426 route 45° · vol 5.28s · pas posé (fall)
+s=2753 route 42° · vol 1.3s · POSÉ face 1 à h=2.66 m (image d'avant 3.04) vN=-49.9 · haut caisse/route 25° · écran tourne 26°
+s=3080 route 101° · vol 5.28s · pas posé (fall)
+s=3407 route 41° · vol 1.78s · POSÉ face 1 à h=2.66 m (image d'avant 3.03) vN=-47.9 · haut caisse/route 17° · écran tourne 22°
+s=3734 route 23° · vol 5.28s · pas posé (fall)
+s=4061 route 11° · vol 5.28s · pas posé (fall)
+erreurs jeu {"loopErr":null,"banqErr":null}
+RÉSUMÉ B graine 12345 : 12 vols, 3 posés · pris de loin (h>1,5 m) 3 · sans approcher (vN>-1) 0 · haut caisse/route >30° 0 (méd 22°) · écran tourne >30° 0 (méd 23°) · vols avec BUMP 0
