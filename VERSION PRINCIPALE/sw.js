@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v968'; /* v967 (2026-10-26, Léo : « dragon pas mélangé à l'ouroboros ») le dragon cosmique du réacteur est PERCHÉ sur la cuve, ailes déployées, au lieu d'être enroulé (code/voitures/moteurs-themes.js) */
+const CACHE = 'cashcar-v969'; /* v967 (2026-10-26, Léo : « dragon pas mélangé à l'ouroboros ») le dragon cosmique du réacteur est PERCHÉ sur la cuve, ailes déployées, au lieu d'être enroulé (code/voitures/moteurs-themes.js) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
