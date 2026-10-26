@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v953'; /* v953 (2026-10-26, Sacha : « enlève le bureau et tout le bazar, mets un énorme cache-car en or, brillant, 3D, qui prenne toute la longueur du mur, en face du portail en flamme ») LE GARAGE : le mur du fond perd son établi, son étau, sa caisse à outils, le panneau perforé, l'affiche et l'horloge — à leur place, « CASH CAR » en pixels d'or massif, en relief, sur toute la largeur du mur (code/interface/garage-salle.js) */ /* v952 (2026-10-26, Léo : « les stickers à la toute fin, puis les légendaires ») peintures : les motifs puis la série en dernier */
+const CACHE = 'cashcar-v954'; /* v954 (2026-10-26, Léo : « des petits bugs sur certains moteurs ») moteurs : plus de pièces transparentes vues de l'intérieur ni de bouts qui flottent (code/voitures/moteurs-originaux.js) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

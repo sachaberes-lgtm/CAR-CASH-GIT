@@ -50063,21 +50063,22 @@ function turbo10(B,M,x,y,z,s){
 const PI10=Math.PI;
 // LE KIT POLI : les matières d'un palier, toutes lisses, toutes réfléchissantes
 function kit10(E){
-  const poli=(c,sh,rf)=>new THREE.MeshPhongMaterial({color:c,shininess:sh||240,specular:0xffffff,envMap:envTex,
+  const poli=(c,sh,rf)=>new THREE.MeshPhongMaterial({color:c,shininess:sh||240,specular:0xffffff,envMap:envTex,side:THREE.DoubleSide,
     reflectivity:rf==null?.5:rf,combine:THREE.MixOperation});
+  const dbl=m=>{m.side=THREE.DoubleSide;return m;};   /* (2026-10-26, Léo : « pas de bugs de transparence ») les pièces tournées sont des peaux OUVERTES : vues de l'intérieur, une face simple disparaissait */
   const sombreCol=new THREE.Color(E.col).multiplyScalar(.40).getHex();
   const profond=(()=>{const c=new THREE.Color(E.col),h={};c.getHSL(h);c.setHSL(h.h,Math.min(1,h.s*1.15+.12),Math.min(h.l,.54));return c.getHex();})();   // une laque PROFONDE, pas un pastel plastique
   const G=guil10(),laque=(c,rf)=>new THREE.MeshPhongMaterial({color:c,map:G.map,bumpMap:G.bump,bumpScale:.006,specularMap:G.spec,
-    shininess:300,specular:0xffffff,envMap:envTex,reflectivity:rf,combine:THREE.MixOperation});
+    shininess:300,specular:0xffffff,envMap:envTex,reflectivity:rf,combine:THREE.MixOperation,side:THREE.DoubleSide});
   const halo=(c,o)=>new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:o,blending:THREE.AdditiveBlending,
     depthWrite:false,side:THREE.DoubleSide});
   const carterC=new THREE.Color(0x4b5266).lerp(new THREE.Color(sombreCol),.35).getHex();
-  return {chrome:poli(0xeef3f9,340,.9),metal:poli(0xc4ccdc,240,.62),carter:poli(carterC,210,.5),lame:poli(0x242834,270,.58),alu:M10.alu(0xcdd4e0,190),
-    fonte:M10.sable(new THREE.Color(carterC).lerp(new THREE.Color(0x3a3d46),.35).getHex()),brosse:M10.alu(0xd6dce8,200),soud:M10.soudure(),laiton:M10.laiton(),noir:poli(0x14161c,170,.24),or:poli(0xffcf5a,300,.64),
+  return {chrome:poli(0xeef3f9,340,.9),metal:poli(0xc4ccdc,240,.62),carter:poli(carterC,210,.5),lame:poli(0x242834,270,.58),alu:dbl(M10.alu(0xcdd4e0,190)),
+    fonte:dbl(M10.sable(new THREE.Color(carterC).lerp(new THREE.Color(0x3a3d46),.35).getHex())),brosse:dbl(M10.alu(0xd6dce8,200)),soud:dbl(M10.soudure()),laiton:dbl(M10.laiton()),noir:poli(0x14161c,170,.24),or:poli(0xffcf5a,300,.64),
     ti:poli(0x8397c4,260,.58),cu:poli(0xd98a4e,260,.55),col:laque(profond,.40),colD:laque(sombreCol,.30),
-    glow:new THREE.MeshBasicMaterial({color:E.flam}),glowC:new THREE.MeshBasicMaterial({color:E.col}),
-    blanc:new THREE.MeshBasicMaterial({color:0xffffff}),halo:halo,
-    haloF:halo(E.flam,.55),haloC:halo(E.col,.45),verre:M9.cristal(E.col)};
+    glow:new THREE.MeshBasicMaterial({color:E.flam,side:THREE.DoubleSide}),glowC:new THREE.MeshBasicMaterial({color:E.col,side:THREE.DoubleSide}),
+    blanc:new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide}),halo:halo,
+    haloF:halo(E.flam,.55),haloC:halo(E.col,.45),verre:Object.assign(M9.cristal(E.col),{depthWrite:false})};
 }
 // ---- les pièces de base ----
 function plan10(pts,th,bev){      // un profil de CÔTÉ (x,y), épaissi sur z : aileron, nageoire, pale
@@ -50130,11 +50131,13 @@ function roul10(B,K,x,y,z,R,ax){   // un ROULEMENT À BILLES : deux bagues et un
     if(ax==='y')B.add(G10.ico||(G10.ico=new THREE.IcosahedronGeometry(1,1)),K.chrome,x+a,y,z+b,0,0,0,R*.16,R*.16,R*.16);else B.add(G10.ico||(G10.ico=new THREE.IcosahedronGeometry(1,1)),K.chrome,x,y+a,z+b,0,0,0,R*.16,R*.16,R*.16);}
 }
 function prop10(B,K,x,y,z,R,n,s){  // une GRAPPE de n propulseurs autour de l'axe, tournés vers -x : la puissance se COMPTE
+  TX(B,K.colD,[[.001,0],[R+.18*s,0],[R+.20*s,.03],[R+.18*s,.07],[.001,.07]],x-.02,y,z,0,Math.max(8,n*2));   // la PLATINE qui les porte (aucune tuyère en l'air)
+  BAR(B,K.chrome,.09*s,x,x+.75,y,z);B.add(new THREE.TorusGeometry(R+.19*s,.016*s,4,32),K.or,x+.035,y,z,0,PI10/2,0);   // le fût qui la relie au moteur
   for(let k=0;k<n;k++){const t=k/n*2*PI10+.4,yy=y+Math.cos(t)*R,zz=z+Math.sin(t)*R;
     TX(B,K.chrome,[[.06*s,0],[.08*s,.05*s],[.14*s,.18*s],[.19*s,.30*s]],x,yy,zz,PI10,16);
     B.add(new THREE.TorusGeometry(.19*s,.012*s,4,16),K.or,x-.30*s,yy,zz,0,PI10/2,0);
     TX(B,K.glow,[[.001,0],[.16*s,0],[.16*s,.012]],x-.29*s,yy,zz,0,14);
-    B.add(cone10(.13*s,.55*s,12),K.haloF,x-.30*s,yy,zz,0,PI10,0);}
+    B.add(cone10(.11*s,.36*s,12),K.halo(K.glow.color.getHex(),.30),x-.30*s,yy,zz,0,PI10,0);}
 }
 function sphN10(r,seg){return new THREE.SphereGeometry(r,seg||14,10);}
 /* LA FINESSE (2026-10-26, Léo : « tout est encore un peu brut, ajoute une bonne touche de finesse, on fait de l'art là »).
@@ -50259,13 +50262,11 @@ function crown30(B,K,S,KT,i,E,rnd,g){
   const L=S.L,XE=L*.5,horn=(x,y,z,h,r,rx,rz,m)=>B.add(tourY10([[r*.52,0],[r*.58,h*.04],[r*.68,h*.46],[r*1.0,h*.88],[r*1.16,h]],12),m||KT.chrome,x,y,z,rx||0,0,rz||0);
   let C=B,cg=null;const CS={1:1.12,2:1.30,3:1.22,4:1.28,5:1.12,6:1.35,7:1.35,8:1.18,9:1.18,10:1.35,11:1.30,12:1.35,13:1.45,14:1.7,15:1.30,16:1.7},k2=CS[i];
   if(k2){C=bat10();C.f=true;C.plat();}                     // paliers 11-17 : la couronne est GRANDIE autour de sa base (y .8)
-  const goldRing=(x,y,z,R,rx)=>C.add(new THREE.TorusGeometry(R,R*.12,6,20),KT.or,x,y,z,rx||PI10/2,0,0);
+  const goldRing=(x,y,z,R,a)=>{let rx=PI10/2,ry=0;if(a==='x'){rx=0;ry=PI10/2;}else if(a==='z'){rx=0;}else if(typeof a==='number')rx=PI10/2+a;   /* 'y' (défaut) : à plat ; 'x'/'z' : autour de cet axe ; un nombre : à plat, penchée d'autant */
+    C.add(new THREE.TorusGeometry(R,R*.12,6,20),KT.or,x,y,z,rx,ry,0);};
   switch(i){
   case 1:{ // BICYLINDRE — LE MÉGAPHONE : un tube qui s'enroule et s'ouvre en cornet, deux pavillons d'admission
-    C.add(tube10([[XE*.2,-.30,.44],[XE*.8,-.20,.62],[XE+.2,.20,.64],[XE+.34,.50,.52]],.07,12,6),KT.chrome,0,0,0);
-    horn(XE+.36,.46,.52,.52,.15);goldRing(XE+.36,.52,.52,.16,0);
-    for(let k=0;k<2;k++){const u=(k-.5)*(L-.42);horn(u,.60,-.26,.52,.11,-PI10/2,0);goldRing(u,.60,-.30,.12,0);}
-    C.add(G10.cyl6,KT.or,0,.30,-.5,0,0,PI10/2,.04,.9,.04);
+    for(let k=0;k<2;k++){const u=(k-.5)*(L-.42);horn(u,.60,-.26,.52,.11,-PI10/2,0);goldRing(u,.60,-.30,.12,'z');}
     break;}
   case 2:{ // 3 CYLINDRES — LA VOILE : trois cornets alignés et une voile de carbone qui les couvre
     for(let k=0;k<3;k++){const u=(k-1)*(L-.5)/2;horn(u,.66,-.33,.52,.10);goldRing(u,.72,-.33,.11);}
@@ -50276,24 +50277,25 @@ function crown30(B,K,S,KT,i,E,rnd,g){
     C.add(plan10([[-L*.5,0],[L*.5,0],[L*.34,.60],[-L*.40,.44]],.34,.02),KT.lame,0,.84,0);
     for(let k=0;k<5;k++)BXg(C,KT.glow,-L*.30+k*L*.15,1.08-k*.012,0,0,0,0,.02,.14,.35);
     C.add(plan10([[-L*.5,0],[L*.5,0],[L*.34,.60],[-L*.40,.44]],.20,.01),KT.col,0,.845,0,0,0,0,1,1,1.02);
-    horn(L*.5+.05,.98,0,.55,.15,0,-PI10/2);goldRing(L*.5+.10,.98,0,.17,0);
+    horn(L*.5+.05,.98,0,.55,.15,0,-PI10/2);goldRing(L*.5+.10,.98,0,.17,'x');
     for(let k=0;k<4;k++){const u=(k/3-.5)*(L-.5);C.add(G10.cyl6,KT.chrome,u,.88,-.22,0,0,0,.05,.12,.05);}
     break;}
   case 4:{ // 4 SOUPAPES — LES DEUX ARBRES : deux longs capots d'arbre à cames à six pans, l'engrenage de distribution en or
     for(let sd=-1;sd<=1;sd+=2){C.add(tourX([[.13,0],[.15,.03],[.15,L*.88],[.13,L*.91]],6),KT.col,-L*.455,.94,sd*.15);
-      for(let k=0;k<4;k++)goldRing(-L*.30+k*.26,.94,sd*.15,.15,PI10/2*1);}
-    C.add(tourX([[.001,0],[.30,0],[.32,.03],[.32,.06],[.001,.07]],8),KT.or,XE+.06,.82,0,0,0,0);
-    C.add(tourX([[.001,0],[.20,0],[.20,.02],[.001,.02]],8),KT.glow,XE+.14,.82,0,0,0,0);
+      for(let k=0;k<4;k++)goldRing(-L*.30+k*.26,.94,sd*.15,.155,'x');}
+    C.add(tourX([[.001,0],[.30,0],[.32,.03],[.32,.06],[.001,.07]],8),KT.or,L*.485-.02,.82,0,0,0,0);
+    C.add(tourX([[.001,0],[.20,0],[.20,.02],[.001,.02]],8),KT.glow,L*.485+.045,.82,0,0,0,0);
     break;}
   case 5:{ // 4 EN LIGNE TURBO — LE SOUFFLE : un escargot facetté, un échangeur en mèches, les tuyaux de charge
     turbo10(C,{alu:KT.alu,sombre:KT.noir,chrome:KT.chrome,soudure:KT.ti},XE-.02,.10,.50,1);
-    C.add(profX([[-.43,-.28],[.43,-.28],[.43,.28],[-.43,.28]],.13,.025),KT.lame,XE+.36,.02,0);
-    for(let k=0;k<6;k++)BXg(C,KT.col,XE+.43,-.22+k*.088,0,0,0,0,.02,.025,.84);
+    C.add(profX([[-.43,-.28],[.43,-.28],[.43,.28],[-.43,.28]],.13,.025),KT.lame,XE+.30,.02,0);
+    for(let sd=-1;sd<=1;sd+=2)BXg(C,KT.chrome,XE+.12,-.10,sd*.26,0,0,0,.30,.06,.06);   // les deux pattes de l'échangeur
+    for(let k=0;k<6;k++)BXg(C,KT.col,XE+.37,-.22+k*.088,0,0,0,0,.02,.025,.84);
     C.add(tube10([[XE-.06,.52,.60],[XE+.18,.46,.52],[XE+.34,.20,.34]],.055,10,6),KT.chrome,0,0,0);
     break;}
   case 6:{ // 5 CYLINDRES — LE PENTAGONE : un plénum à CINQ pans, cinq descentes, un anneau d'or
     C.add(tourX([[.001,0],[.26,0],[.29,.04],[.29,L*.80],[.26,L*.84],[.001,L*.84]],5),KT.chrome,-L*.42,1.0,0);
-    for(let k=0;k<5;k++){const u=(k/4-.5)*(L-.42);C.add(tube10([[u,.96,-.06],[u,.82,-.20],[u,.64,-.24]],.052,10,5),KT.chrome,0,0,0);goldRing(-L*.42+(k+.5)*L*.84/5,1.0,0,.30,PI10/2);}
+    for(let k=0;k<5;k++){const u=(k/4-.5)*(L-.42);C.add(tube10([[u,.96,-.06],[u,.82,-.20],[u,.64,-.24]],.052,10,5),KT.chrome,0,0,0);goldRing(-L*.42+(k+.5)*L*.84/5,1.0,0,.30,'x');}
     break;}
   case 7:{ // V6 — L'ARÊTE : une épine chromée sur la vallée, six cornets en éventail, trois arceaux
     C.add(G10.axeX8,KT.chrome,-L*.47,.80,0,0,0,0,L*.94,.075,.075);
@@ -50301,7 +50303,7 @@ function crown30(B,K,S,KT,i,E,rnd,g){
     for(let k=0;k<3;k++)C.add(new THREE.TorusGeometry(.38,.03,5,10,PI10),KT.alu,(k-1)*L*.36,.52,0,0,PI10/2,0);
     break;}
   case 8:{ // V6 BITURBO — LES DEUX SOUFFLES : un escargot par flanc, un boîtier de mèches sur la vallée
-    for(let sd=-1;sd<=1;sd+=2)turbo10(C,{alu:KT.alu,sombre:KT.noir,chrome:KT.chrome,soudure:KT.ti},XE-.02,.02,sd*.74,sd);
+    for(let sd=-1;sd<=1;sd+=2){turbo10(C,{alu:KT.alu,sombre:KT.noir,chrome:KT.chrome,soudure:KT.ti},XE-.02,.02,sd*.74,sd);BXg(C,KT.chrome,XE-.02,-.12,sd*.52,0,0,0,.10,.08,.50);}   // + la patte qui le tient au bloc
     C.add(profX([[-.30,0],[.30,0],[.26,.34],[-.26,.34]],L*.62,.045),KT.colD,0,.82,0);
     for(let sd=-1;sd<=1;sd+=2)C.add(G10.axeX8,KT.or,-L*.31,.83,sd*.30,0,0,0,L*.62,.006,.006);
     BXg(C,KT.glow,0,1.16,0,0,0,0,L*.58,.012,.30);
@@ -50311,17 +50313,17 @@ function crown30(B,K,S,KT,i,E,rnd,g){
     C.add(tourX([[.40,0],[.52,.03],[.54,.14],[.54,.24],[.42,.32],[.34,.36]],8),KT.col,-(XE+.34),0,0);
     pales10(C,KT.chrome,8,.10,.40,.07,.02,-(XE+.20),.5,0);
     C.add(G10.axeX8,KT.chrome,-L*.40,.44,0,0,0,0,L*.80,.11,.11);
-    for(let k=0;k<4;k++){const u=(k/3-.5)*(L*.72);for(let sd=-1;sd<=1;sd+=2)C.add(tube10([[u,.44,sd*.08],[u,.38,sd*.30],[u,.22,sd*.46]],.04,10,5),KT.chrome,0,0,0);goldRing(u,.44,0,.12,PI10/2);}
+    for(let k=0;k<4;k++){const u=(k/3-.5)*(L*.72);for(let sd=-1;sd<=1;sd+=2)C.add(tube10([[u,.44,sd*.08],[u,.38,sd*.30],[u,.22,sd*.46]],.04,10,5),KT.chrome,0,0,0);goldRing(u,.44,0,.12,'x');}
     break;}
   case 10:{ // V8 ATMO — L'ORGUE : huit trompes chromées en éventail au-dessus de la vallée, deux rails, des collerettes d'or
     for(let sd=-1;sd<=1;sd+=2){C.add(G10.axeX8,KT.chrome,-L*.45,.78,sd*.17,0,0,0,L*.90,.04,.04);
       for(let k=0;k<4;k++){const u=(k/3-.5)*(L-.5);horn(u,.80,sd*.17,.62,.095,sd*.30,0);goldRing(u,.86,sd*.185,.10,sd*.30);}}
-    C.add(tourX([[.001,0],[.16,0],[.20,.05],[.20,.16],[.001,.18]],8),KT.col,-L*.52,.90,0);
+    C.add(tourX([[.001,0],[.16,0],[.20,.05],[.20,.16],[.001,.18]],8),KT.col,-L*.38,.86,0);
     for(let sd=-1;sd<=1;sd+=2){roul10(C,KT,L*.47,.78,sd*.17,.075,'x');roul10(C,KT,-L*.47,.78,sd*.17,.075,'x');}
     break;}
   case 11:{ // V8 COMPRESSÉ — LE CARILLON : un gros tambour à pans, son rotor vrillé, une trompe d'admission
     C.add(tourX([[.001,0],[.22,0],[.30,.05],[.31,.50*L],[.30,.54*L],[.22,.58*L],[.001,.58*L]],10),KT.chrome,-L*.30,.98,0);
-    for(let k=0;k<5;k++)goldRing(-L*.30+.06+k*.115*L,.98,0,.315,PI10/2);
+    for(let k=0;k<5;k++)goldRing(-L*.30+.06+k*.115*L,.98,0,.315,'x');
     pales10(C,KT.col,3,.04,.24,.30,.04,-L*.30+.58*L+.01,.9,0);
     roul10(C,KT,-L*.30+.58*L+.04,.98,0,.20,'x');roul10(C,KT,-L*.30-.01,.98,0,.20,'x');
     C.add(tourX([[.14,0],[.18,.06],[.30,.30],[.40,.48]],8),KT.chrome,XE*.55+.38,.98,0,0,PI10);
@@ -50354,7 +50356,7 @@ function crown30(B,K,S,KT,i,E,rnd,g){
     for(let sd=-1;sd<=1;sd+=2){C.add(G10.axeX8,KT.chrome,-L*.48,.92,sd*.17,0,0,0,L*.96,.05,.05);
       for(let k=0;k<8;k++){const u=(k/7-.5)*(L-.4);horn(u,.94,sd*.17,.36,.07,sd*.2,0);}}
     for(let k=0;k<9;k++){const u=(k/8-.5)*(L-.3),h=.30+.34*Math.sin(k/8*PI10);C.add(plan10([[-.09,.0],[.09,.0],[.03,h],[-.03,h*.92]],.035,.006),k%2?KT.or:KT.col,u,1.0,0);}
-    goldRing(L*.5,.80,0,.30);goldRing(-L*.5,.80,0,.30);
+    goldRing(L*.48,.92,.17,.06,'x');goldRing(L*.48,.92,-.17,.06,'x');goldRing(-L*.48,.92,.17,.06,'x');goldRing(-L*.48,.92,-.17,.06,'x');
     break;}
   case 16:{ // H16 F1 — LA TOUR : un arbre cannelé, six disques de refroidissement, une hélice d'or
     C.add(tourY10([[.001,0],[.16,0],[.12,.06],[.16,.14],[.12,.22],[.16,.30],[.12,.38],[.16,.46],[.12,.54],[.16,.62],[.10,.70],[.001,.76]],8),KT.chrome,0,.92,0);
@@ -50454,25 +50456,25 @@ function orig10(g,i,E,K,rnd){
     B.add(sphN10(.17),K.blanc,0,0,0);B.add(sphN10(.32,16),K.haloF,0,0,0);
     for(let k=0;k<3;k++){const t=k/3*2*PI10+.5,p=tl(Math.cos(t)*.66,Math.sin(t)*.66,0);BAR(B,croute,.07,-.60,p[0],p[1],p[2]);}
     TX(B,K.chrome,[[.12,0],[.16,.10],[.30,.40],[.46,.70]],-.55,0,0,PI10,24);
-    for(let k=0;k<8;k++){const t=rnd()*6.28,r2=.95+rnd()*.35;eclat9(g,croute,rnd,(rnd()-.5)*.9,Math.cos(t)*r2,Math.sin(t)*r2*.7,.05+rnd()*.05);}
     ech=[-1.2,0,0];break;}
   case 25:{ // ANTIMATIÈRE — LE NÉGATIF : une sphère noire dans trois anneaux croisés, douze aiguilles d'or, quatre cristaux
     B.add(sphN10(.34,26),K.noir,0,0,0);B.add(sphN10(.42,20),K.haloC,0,0,0);
     const rg=[[.62,0,0],[.74,PI10/3,0],[.86,-PI10/3,PI10/2]];
     for(let k=0;k<3;k++){const r=rg[k];B.add(new THREE.TorusGeometry(r[0],.036,10,56),k===1?K.or:K.chrome,0,0,0,r[1],PI10/2+r[2]*.5,0);
       B.add(new THREE.TorusGeometry(r[0],.012,6,56),K.haloF,0,0,0,r[1],PI10/2+r[2]*.5,0);
-      for(let j=0;j<3;j++){const t=j/3*2*PI10;B.add(G10.sph,K.glow,Math.cos(t)*r[0]*.0,Math.sin(t)*r[0],Math.cos(t)*r[0],0,0,0,.05,.05,.05);}}
+      const eu=new THREE.Euler(r[1],PI10/2+r[2]*.5,0,'XYZ');for(const a of [0,PI10]){const v=new THREE.Vector3(Math.cos(a)*r[0],Math.sin(a)*r[0],0).applyEuler(eu),w=v.clone().multiplyScalar(.34/r[0]);
+        B.add(tube10([[w.x,w.y,w.z],[v.x,v.y,v.z]],.014,2,6),K.chrome,0,0,0);B.add(G10.sph,K.glow,v.x,v.y,v.z,0,0,0,.035,.035,.035);}}   // chaque anneau tenu par deux tiges
     for(const d of dirs10(12))vers10(B,cone10(.034,.52,8),K.or,d.clone().multiplyScalar(.36),d,1);
-    for(let k=0;k<4;k++){const t=k/4*2*PI10+.78;B.add(new THREE.OctahedronGeometry(.13,0),K.verre,0,Math.cos(t)*.98,Math.sin(t)*.98,t,0,0,1,1.8,1);}
+    for(let k=0;k<4;k++){const t=k/4*2*PI10+.78;B.add(new THREE.OctahedronGeometry(.13,0),K.verre,0,Math.cos(t)*.98,Math.sin(t)*.98,t,0,0,1,1.8,1);B.add(tube10([[0,Math.cos(t)*.34,Math.sin(t)*.34],[0,Math.cos(t)*.86,Math.sin(t)*.86]],.016,2,6),K.chrome,0,0,0);}
     TX(B,K.chrome,[[.06,0],[.10,.20],[.22,.70]],-.34,0,0,PI10,18);TX(B,K.haloF,[[.001,0],[.18,.2],[.001,.9]],-.50,0,0,PI10,14);
     ech=[-1.35,0,0];break;}
   case 26:{ // MOTEUR À DISTORSION — LE TUNNEL : sept cerceaux dont la taille respire, une hélice de lumière, une nacelle fuselée
     const R=[.30,.46,.62,.78,.62,.46,.30];
     for(let k=0;k<7;k++){const x=-1.08+k*.36;B.add(new THREE.TorusGeometry(R[k],.04+.01*(k===3),10,48),k%2?K.chrome:K.col,x,0,0,0,PI10/2,0);
       B.add(new THREE.TorusGeometry(R[k],.014,6,48),K.haloF,x,0,0,0,PI10/2,0);
-      for(let j=0;j<3;j++){const t=j/3*2*PI10+k*.3;B.add(G10.cyl6,K.or,x,Math.cos(t)*R[k],Math.sin(t)*R[k],0,0,0,.03,.12,.03);}}
+      for(let j=0;j<3;j++){const t=j/3*2*PI10+k*.3;B.add(tube10([[x,Math.cos(t)*.12,Math.sin(t)*.12],[x,Math.cos(t)*R[k],Math.sin(t)*R[k]]],.012,2,5),K.or,0,0,0);}}   // trois rayons : le cerceau tient à l'axe
     for(let h=0;h<2;h++)B.add(helix10(.50,-1.08,1.08,3.2,h*PI10,.016,6),K.haloF,0,0,0);
-    TX(B,K.chrome,[[.001,0],[.10,.10],[.19,.40],[.20,.80],[.11,1.12],[.04,1.30]],-.72,0,0,0,26);
+    TX(B,K.chrome,[[.001,0],[.10,.10],[.19,.40],[.20,.80],[.11,1.12],[.04,1.30]],-.72,0,0,0,26);BAR(B,K.chrome,.11,-1.12,1.12,0,0);   // l'axe qui porte tous les cerceaux
     TX(B,K.glow,[[.001,0],[.10,.04],[.001,.12]],-.74,0,0,PI10,16);
     for(let sd=-1;sd<=1;sd+=2)B.add(plan10([[-.5,0],[.5,0],[.25,.16],[-.5,.07]],.014,.004),K.or,-.15,sd*.20,0,sd>0?0:PI10,0,0);
     ech=[-1.55,0,0];break;}
@@ -50482,13 +50484,11 @@ function orig10(g,i,E,K,rnd){
     B.add(cone10(.46,2.1,24),K.haloF,.60,0,0,0,PI10,0);B.add(cone10(.34,1.7,24),K.haloC,.60,0,0,0,PI10,0);B.add(cone10(.20,1.3,20),K.halo(0xffffff,.45),.60,0,0,0,PI10,0);
     for(let k=0;k<26;k++){const x=-.10-rnd()*1.5,rad=(.12+(.60-x)*.12)*rnd(),t=rnd()*6.28;
       eclat9(g,croute,rnd,x,Math.cos(t)*rad,Math.sin(t)*rad,.035+rnd()*.06*(1-(.1-x)/1.6));}
-    ANN(B,K.or,.58,.030,.60,0,0,.5,PI10/2);ANN(B,K.chrome,.50,.020,.30,0,0);
     ech=[-1.6,0,0];break;}
   case 28:{ // SUPERNOVA — L'INSTANT FIGÉ : un cœur blanc, vingt-huit épines polies, trois ondes de choc inclinées, des éclats en orbite
     B.add(sphN10(.30,22),K.blanc,0,0,0);B.add(sphN10(.46,18),K.haloF,0,0,0);B.add(sphN10(.64,16),K.haloC,0,0,0);
     const dd=dirs10(44);for(let k=0;k<dd.length;k++)vers10(B,cone10(.07,k%2?.78:1.10,10),k%3?K.or:K.chrome,dd[k].clone().multiplyScalar(.30),dd[k],1);
     for(let k=0;k<3;k++){B.add(new THREE.TorusGeometry(.88+k*.14,.016,6,56),K.haloF,0,0,0,k*.8,PI10/2+k*.5,0);}
-    for(let k=0;k<10;k++){const d=dd[(k*2+1)%dd.length];eclat9(g,croute,rnd,d.x*1.25,d.y*1.25,d.z*1.25,.06+rnd()*.05);}
     ech=[-1.5,0,0];break;}
   case 29:{ // TROU NOIR — LA SINGULARITÉ : une bille d'encre, un disque d'accrétion à dix anneaux, un anneau de photons, deux jets, une cage
     B.add(sphN10(.40,30),K.noir,0,0,0);
@@ -50496,7 +50496,6 @@ function orig10(g,i,E,K,rnd){
       B.add(new THREE.TorusGeometry(R,.05+.02*t,6,56),K.halo(c,.66-.2*t),0,0,0,1.0,0,0,1,1,.28);}
     B.add(new THREE.TorusGeometry(.44,.012,6,56),K.blanc,0,0,0,1.0,0,0);
     B.add(cone10(.10,2.1,14),K.haloC,.30,0,0,0,0,0);B.add(cone10(.10,2.1,14),K.haloC,-.30,0,0,0,PI10,0);B.add(cone10(.04,2.3,10),K.blanc,.30,0,0,0,0,0);B.add(cone10(.04,2.3,10),K.blanc,-.30,0,0,0,PI10,0);
-    for(let k=0;k<4;k++){const t=k/4*2*PI10+.78;BAR(B,K.chrome,.018,-.6,.6,Math.cos(t)*1.05,Math.sin(t)*1.05);B.add(G10.sph,K.or,-.6,Math.cos(t)*1.05,Math.sin(t)*1.05,0,0,0,.05,.05,.05);B.add(G10.sph,K.or,.6,Math.cos(t)*1.05,Math.sin(t)*1.05,0,0,0,.05,.05,.05);}
     ech=[-1.6,0,0];break;}
   }
   const NP={18:4,19:5,20:6,21:6,22:7,23:8,24:8,25:9,26:10};          // la grappe de propulseurs grossit palier après palier
