@@ -1,0 +1,68 @@
+== no-unreachable : 2
+   interface/icones-fenetre.js:121  Unreachable code.
+   maps/dunes-2.js:512  Unreachable code.
+== no-undef : 205
+   rendu/soleil-planete.js:283  'EDITION' is not defined.
+   maps/nuages-vitrail.js:204  'dbgNuVue' is not defined.
+   maps/nuages-vitrail.js:205  'dbgNuVue' is not defined.
+   maps/nuages-vitrail.js:206  'dbgNuVue' is not defined.
+   maps/nuages-vitrail.js:207  'dbgNuVit' is not defined.
+   moteur/piste-prebati.js:90  'genParis' is not defined.
+   maps/glacier-verglas.js:333  'dbgBanq' is not defined.
+   maps/cryptocity-taureau.js:371  'dbgCrypto' is not defined.
+   maps/cryptocity-taureau.js:374  'dbgCrypto' is not defined.
+   maps/jade-vol.js:360  'dbgFin' is not defined.
+   interface/traductions.js:165  'FIG' is not defined.
+   interface/traductions.js:165  'FIG' is not defined.
+   interface/traductions.js:165  'FIG' is not defined.
+   interface/traductions.js:165  'FIG' is not defined.
+   voitures/plaque.js:168  'apresPolice' is not defined.
+   rendu/ciel2.js:298  'CASHCAR_BUILD' is not defined.
+   gameplay/frole-contrats.js:327  'CC_PHOTOS' is not defined.
+   gameplay/frole-contrats.js:327  'CC_BUILD' is not defined.
+   gameplay/frole-contrats.js:327  'CC_PHOTOS' is not defined.
+   gameplay/frole-contrats.js:329  'CC_BUILD' is not defined.
+   interface/photos-films.js:165  'FIG' is not defined.
+   interface/photos-films.js:172  'FIG' is not defined.
+   interface/photos-films.js:173  'FIG' is not defined.
+   interface/photos-films.js:173  'FIG' is not defined.
+   interface/photos-films.js:199  'FIG' is not defined.
+   interface/photos-films.js:253  'FIG' is not defined.
+   economie/boutique.js:407  'FIG' is not defined.
+   economie/boutique.js:407  'FIG' is not defined.
+   economie/boutique.js:412  'FIG' is not defined.
+   maps/jade-singes-dauphins.js:145  'SINGE_FC' is not defined.
+   maps/jade-singes-dauphins.js:145  'singePoseForme' is not defined.
+   maps/jade-singes-dauphins.js:155  'vitrailPrepare' is not defined.
+   maps/jade-singes-dauphins.js:155  'singePoseForme' is not defined.
+   maps/jade-singes-dauphins.js:155  'vitrailPrepare' is not defined.
+   maps/jade-singes-dauphins.js:155  'SINGE_FC' is not defined.
+   maps/jade-singes-dauphins.js:157  'singeNouveau' is not defined.
+   maps/jade-singes-dauphins.js:195  'singeCourt' is not defined.
+   maps/jade-singes-dauphins.js:196  'singeAnimePose' is not defined.
+   maps/jade-singes-dauphins.js:238  'DOL_GEO' is not defined.
+   maps/jade-singes-dauphins.js:239  'DOL_BANC' is not defined.
+== no-self-compare : 5
+   rendu/palier-appareil.js:29  Comparing to itself is potentially pointless.
+   son/fanfare-turbo.js:190  Comparing to itself is potentially pointless.
+   son/mute-cadeau.js:28  Comparing to itself is potentially pointless.
+   son/mute-cadeau.js:30  Comparing to itself is potentially pointless.
+   sauvegarde.js:162  Comparing to itself is potentially pointless.
+== no-loss-of-precision : 1
+   maps/foret-construction.js:428  This number literal will lose precision at runtime.
+== no-redeclare : 1
+   maps/dunes-embellie.js:9  'dnGeos2' is already defined.
+== no-dupe-keys : 1
+   gameplay/pose-verdict.js:284  Duplicate key 'triade'.
+
+== no-undef APRÈS FILTRE : 39 usages, 10 noms
+   EDITION ×1  rendu/soleil-planete.js:283
+   genParis ×1  moteur/piste-prebati.js:90
+   apresPolice ×4  voitures/plaque.js:168 son/musique-frenesie.js:535 rendu/billets-devises.js:114
+   CC_PHOTOS ×2  gameplay/frole-contrats.js:327 gameplay/frole-contrats.js:327
+   CC_BUILD ×4  gameplay/frole-contrats.js:327 gameplay/frole-contrats.js:329 moteur/desktop-banc.js:81
+   vitrailPrepare ×2  maps/jade-singes-dauphins.js:155 maps/jade-singes-dauphins.js:155
+   DOL_GEO_L ×1  maps/jade-singes-dauphins.js:321
+   POUCE_JEU ×21  son/musique.js:39 son/musique.js:39 son/musique.js:426
+   MUSBUS ×1  son/musique.js:203
+   CC_VER ×2  moteur/mobile-tactile.js:718 moteur/desktop-banc.js:80

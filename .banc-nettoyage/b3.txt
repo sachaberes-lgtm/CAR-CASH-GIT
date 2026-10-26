@@ -1,0 +1,32 @@
+verrou pris par nettoyage-3
+[3s] ▶ canyon colonne=0&simu=1&carte=nuages
+[27s] ▶ dunes colonne=0&simu=1&carte=nuages
+[56s] ▶ grotte colonne=0&simu=1&carte=nuages
+[75s] ▶ banquise colonne=0&simu=1&carte=nuages
+[98s] ▶ foret colonne=0&simu=1&carte=nuages
+[119s] ▶ jade colonne=0&simu=1&carte=nuages
+
+=== canyon
+  nuages: : {"n":6,"cartes":["dunes:nuit"],"sMax":314.4,"L":4363,"progs":[221,221],"geo":[428,428]}
+  eval → 1
+
+=== dunes
+  nuages: : {"n":8,"cartes":["jade:midi"],"sMax":290.2,"L":5859,"progs":[220,220],"geo":[557,558]}
+  eval → 1
+
+=== grotte
+  nuages: : {"n":7,"cartes":["ville:orage:violet"],"sMax":344.4,"L":7648,"progs":[217,217],"geo":[427,427]}
+  eval → 1
+
+=== banquise
+  nuages: : {"n":8,"cartes":["dunes:soir"],"sMax":322.8,"L":5703,"progs":[220,221],"geo":[417,422]}
+  eval → 1
+
+=== foret
+  nuages: : {"n":8,"cartes":["ville:orage:violet"],"sMax":386.8,"L":7153,"progs":[220,220],"geo":[443,443]}
+  eval → 1
+
+=== jade
+  nuages: : {"n":8,"cartes":["grotte:soir"],"sMax":341.7,"L":9223,"progs":[220,220],"geo":[578,578]}
+  eval → 1
+verrou rendu

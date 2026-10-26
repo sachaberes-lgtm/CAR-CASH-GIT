@@ -1,0 +1,33 @@
+verrou pris par nettoyage-4
+[4s] ▶ orage colonne=0&simu=1&carte=nuages
+[28s] ▶ ville colonne=0&simu=1&carte=nuages
+[52s] ▶ minuit colonne=0&simu=1&carte=nuages
+[76s] ▶ espace colonne=0&simu=1&carte=nuages
+[101s] ▶ crypto colonne=0&simu=1&carte=nuages
+[147s] ▶ vitree colonne=0&simu=1&carte=nuages
+
+=== orage
+  nuages: : {"n":7,"cartes":["crypto:midi"],"sMax":340.7,"L":7883,"progs":[220,220],"geo":[469,469]}
+  eval → 1
+
+=== ville
+  nuages: : {"n":4,"cartes":["grotte:midi"],"sMax":349.5,"L":9909,"progs":[220,220],"geo":[605,605]}
+  eval → 1
+
+=== minuit
+  nuages: : {"n":5,"cartes":["banquise:midi"],"sMax":279,"L":4862,"progs":[220,220],"geo":[493,495]}
+  eval → 1
+
+=== espace
+  nuages: : {"n":5,"cartes":["nuages:midi"],"sMax":281.4,"L":4392,"progs":[219,219],"geo":[421,428]}
+  eval → 1
+
+=== crypto
+  nuages: : {"n":5,"cartes":["espace:matin"],"sMax":620.5,"L":8404,"progs":[220,220],"geo":[532,532]}
+  eval → 1
+
+=== vitree
+  nuages: : {"n":7,"cartes":["canyon:orage"],"sMax":335.4,"L":6446,"progs":[221,221],"geo":[437,446]}
+  eval → 1
+verrou rendu
+FIN

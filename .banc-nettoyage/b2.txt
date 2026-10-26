@@ -1,0 +1,8 @@
+verrou pris par nettoyage-2
+[3s] ▶ lot2 colonne=0&simu=1&carte=nuages
+
+=== lot2
+  nuages: : {"n":9,"cartes":["nuages:null"],"sMax":1161.3,"L":4257,"progs":[220,220],"geo":[398,398]}
+  canyon : {} · ALERTES [{"q":"portail-pas-passe"}]
+verrou rendu
+FIN

@@ -1,0 +1,7 @@
+verrou pris par nettoyage-1
+[10s] ▶ lot1 colonne=0&simu=1&carte=nuages
+
+=== lot1
+  nuages: : {"n":8,"cartes":["nuages:null"],"sMax":1355.5,"L":4257,"progs":[220,220],"geo":[318,316]}
+  orage : {} · ALERTES [{"q":"portail-pas-passe"}]
+verrou rendu
