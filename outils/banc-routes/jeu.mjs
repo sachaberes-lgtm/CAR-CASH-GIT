@@ -4,7 +4,7 @@
 import {spawn} from 'node:child_process';
 import fs from 'node:fs';import path from 'node:path';import os from 'node:os';
 const [carte,meteo,secs,palier]=process.argv.slice(2);const OUT=process.env.OUT||os.tmpdir();
-const RACINE=path.resolve(new URL('../..',import.meta.url).pathname),WEB=path.join(RACINE,'VERSION PRINCIPALE');
+const RACINE=path.resolve(new URL('../..',import.meta.url).pathname),WEB=process.env.WEB||path.join(RACINE,'VERSION PRINCIPALE');
 const PS=9871+Math.floor(Math.random()*40),PC=9921+Math.floor(Math.random()*40);
 const srv=spawn('python3',['-m','http.server',String(PS),'--directory',WEB],{detached:true,stdio:'ignore'});
 const prof=fs.mkdtempSync(path.join(os.tmpdir(),'cc-bench-'));
@@ -22,7 +22,7 @@ try{
   await cdp('Page.enable');await cdp('Network.enable');await cdp('Network.setBypassServiceWorker',{bypass:true});
   await cdp('Emulation.setDeviceMetricsOverride',{width:844,height:390,deviceScaleFactor:1,mobile:true});
   await cdp('Page.addScriptToEvaluateOnNewDocument',{source:`try{if(!sessionStorage.__p){sessionStorage.__p=1;localStorage.cashcarSave=JSON.stringify({v:2,tuto:1,permis:1,bienv:1,facile:0,sfx:true,mus:false,vox:false,plq:{m:'fr',x:'CC-161-RZ',ok:1}});}}catch(e){}`});
-  await cdp('Page.navigate',{url:`http://127.0.0.1:${PS}/index.html?colonne=0&garde=1&carte=${carte}&meteo=${meteo||'midi'}`});
+  await cdp('Page.navigate',{url:`http://127.0.0.1:${PS}/index.html?colonne=0&garde=1&carte=${carte}&meteo=${meteo||"midi"}${process.env.EXTRA||""}`});
   for(let i=0;i<120;i++){if(await ev('!!window.__gameReady').catch(()=>false))break;await sleep(1000);}
   console.log('prêt',await ev('localStorage.cashcarSave&&localStorage.cashcarSave.slice(0,160)'),await ev('JSON.stringify(Object.keys(localStorage))'));
   for(let i=0;i<12;i++){const vis=await ev(`(function(){var s=document.getElementById('splash');if(!s)return false;var c=getComputedStyle(s);return c.display!=='none'&&c.visibility!=='hidden'&&+c.opacity>.05;})()`).catch(()=>false);if(!vis)break;
