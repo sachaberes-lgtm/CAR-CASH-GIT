@@ -377,8 +377,18 @@ if(PEINT_V2){
   for(const cat of ['peinture','aile','trainee'])for(const d of COSM[cat]){const id=H9[cat+':'+d.id];
     if(id){d.mis2=id;delete d.mis;delete d.p;delete d.eur;if(/relevant des défis/.test(d.d||''))d.d="Ne s'achète pas : elle se gagne par une mission.";}
     else if(d.mis){delete d.mis;if(d.id==='arcenciel'){d.pack='chat';d.d="Ne s'achète pas : elle vient avec le CHAT POP-TART.";}}}}
-function peintOrdre(){const L=COSM.peinture.map(function(d,j){return j;});if(!PEINT_V2)return L; // les indices de COSM.peinture, de la COMMUNE à l'ÉPIQUE (D'ORIGINE en tête ; dans une rareté, l'ordre du catalogue)
-  const rg=function(j){const d=COSM.peinture[j];return d.id==='usine'?-1:(INV_RANG[cosmRar('peinture',d)]|0);};return L.sort(function(a,b){return (rg(a)-rg(b))||(a-b);});}
+/* LE RANGEMENT DES PEINTURES (2026-10-26, Léo : « range toutes ces petites couleurs : les basiques qu'on connaît tous tout en haut ; en dessous les plus originales — un
+   pastel retouché, un mélange, une teinte unie un peu complexe ; en dessous les dégradés vraiment stylés ; tout en dessous ceux à motifs ») : D'ORIGINE, puis QUATRE
+   familles. Une teinte unie est rangée par ID (les secrètes masquées n'ont ni couleur ni dégradé tant qu'on ne les a pas gagnées : leur place ne doit pas bouger quand
+   elles se dévoilent) ; ce qui n'est ni basique ni original ni à motif est un dégradé. L'ordre des deux listes EST l'ordre à l'écran (noir, blanc, puis l'arc-en-ciel ;
+   les pastels, puis les teintes complexes, puis les métaux). */
+const PEINT_BASIQUES=['noir','neige','bolide','emeute','taxi','billet','azur','minuit','royal','fuchsia','poupee'],
+  PEINT_ORIGINALES=['dragee','abricot','vanille','pistache','amande','piscine','lilas','menthe','lagon','nardo','ogre','gotham','cuivre','or','orrose','chrome','fantome'];
+function peintClef(j){const d=COSM.peinture[j];if(d.id==='usine')return -1; // D'ORIGINE en tête, puis 1 basiques · 2 originales · 3 dégradés · 4 motifs
+  let k=PEINT_BASIQUES.indexOf(d.id);if(k>=0)return 100+k;k=PEINT_ORIGINALES.indexOf(d.id);if(k>=0)return 200+k;
+  return (d.mot?400:300)+j;} // dégradés et motifs : l'ordre du catalogue
+function peintOrdre(){const L=COSM.peinture.map(function(d,j){return j;});if(!PEINT_V2)return L; // les indices de COSM.peinture, rangés par famille (voir peintClef)
+  return L.sort(function(a,b){return peintClef(a)-peintClef(b);});}
 /* acheter un habillage EN EUROS (une peinture) : la porte de StoreKit, comme une caisse — rien n'est donné tant qu'Apple n'a pas encaissé */
 function habDonne(cat,id){const o=SAVE.d.shop.own,k=cat+':'+id;if(o.indexOf(k)<0)o.push(k);SAVE.d.shop.eq[cat]=id;SAVE.flush();}
 function habPaye(cat,i,bt){const d=COSM[cat]&&COSM[cat][i];if(!d||!d.eur||shopOwned(cat,d.id)||habPaye.on)return false;habPaye.on=1;uiClic('');hap(12);

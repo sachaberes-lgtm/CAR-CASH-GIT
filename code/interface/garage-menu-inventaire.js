@@ -186,6 +186,7 @@ function invListe(cat){
     return L.sort(function(a,b){return (INV_RANG[b.r]-INV_RANG[a.r])||(carOrdre(b.i)-carOrdre(a.i));});}
   if(cat==='figure'){const L=[];if(window.FIG)FIG.liste.forEach(function(f,j){if(figPossede(f.id))L.push({cat:cat,i:j,d:f,r:cosmRar(cat,f),eq:!FIGV2.on||figEquipee(f.id)>=0});}); /* (LES FIGURES v2) équipée = dans un des trois emplacements */return L.sort(function(a,b){return (figPeut(a.d.id)[0]-figPeut(b.d.id)[0])||(INV_RANG[b.r]-INV_RANG[a.r])||((b.d.p||0)-(a.d.p||0));});} /* (2026-10-15) rangées par DIRECTION, comme à la boutique : l'avant, l'arrière, les côtés */ // (2026-10-14) toutes JOUENT (le double-tap tire au hasard parmi elles)
   const e=shopEqD(cat),L=[];COSM[cat].forEach(function(d,j){if(shopOwned(cat,d.id))L.push({cat:cat,i:j,d:d,r:cosmRar(cat,d),eq:e===d});});
+  if(cat==='peinture'&&PEINT_V2)return L.sort(function(a,b){return peintClef(a.i)-peintClef(b.i);}); // (2026-10-26) les peintures : par famille, comme la console (voir peintClef)
   return L.sort(function(a,b){return (INV_RANG[b.r]-INV_RANG[a.r])||((b.d.p||0)-(a.d.p||0));});
 }
 function invTotal(cat){ // (2026-10-20) tout ce qui existe dans l'onglet (le dénominateur de la progression)
