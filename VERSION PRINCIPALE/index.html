@@ -25690,7 +25690,7 @@ const ECO_ANCIEN=/[?&]eco=ancien\b/.test(location.search); // `?eco=ancien` : EC
 const ECOD={coup:1.5,k:1,raison:'depart'}; // coup : LE réglage · k : ce que la partie en cours applique · raison : pourquoi (actif · achat · assez · cousin · ancien · erreur)
 function ecoDebutPrix(){let m=1e30;for(const x of COSM.peinture)if(x.p>0&&x.p<m&&!x.sec&&!x.mis&&!x.retire&&!x.eur)m=x.p;return m;} // la peinture la moins chère EN VENTE, LUE sur COSM : si les prix changent, le seuil suit — (GAMEPLAY, relecture) ni les couleurs SECRÈTES (gagnées par un DÉFI ou le pack), ni celles d'un carnet, ni les retirées, ni celles en euros
 function ecoDebutAchat(){ // vrai dès qu'UN achat a été fait : caisse (owned), figure (figs — le TAIL WHIP est offert ; le TONNEAU l'était avant le 15/10), habillage payant (shop.own — ceux d'un carnet n'ont pas de `p`)
-  const d=SAVE.d;if(d.owned&&d.owned.length)return true;if(d.figs&&d.figs.some(function(id){return id!=='tailwhip'&&!(id==='tonneau'&&d.figT0);}))return true; // (2026-10-15) le TAIL WHIP offert, et le tonneau offert des sauvegardes d'avant, ne sont pas des achats
+  const d=SAVE.d;if(d.owned&&d.owned.length)return true;if(d.figs&&d.figs.some(function(id){return id!=='tailwhip'&&!(id==='tonneau'&&d.figT0)&&!(id==='saltov'&&d.figS);}))return true; // (2026-10-15) le TAIL WHIP offert, et le tonneau offert des sauvegardes d'avant, ne sont pas des achats
   const o=d.shop&&d.shop.own;if(o)for(let i=0;i<o.length;i++){const a=String(o[i]).split(':'),l=COSM[a[0]],x=l&&l.find(function(y){return y.id===a[1];});if(x&&x.p>0)return true;}
   return false;
 }
@@ -51658,7 +51658,7 @@ const SAVE={
        `aura` : le total à vie de style. Elle ne s'achète rien — elle donne un RANG, et le rang ouvre
        les caisses que l'argent ne peut pas acheter.
        `owned` : les index des caisses ACHETÉES. Séparé des exploits : un achat n'est pas un exploit. */
-    mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, figs:['tailwhip'], figT0:0, figEq:[], pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
+    mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, figs:['tailwhip','saltov'], figS:1, figT0:0, figEq:[], pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
     bank:0, aura:0, owned:[], auraMax:0, gamme:3, eco:3, frenRec:0, // `frenRec` : la plus longue FRÉNÉSIE jamais tenue (s) // `eco` : échelle de l'argent de course (vague 3, voir la migration des records en fin de san) // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
     jour:{d:'',n:0},cad:{t:0},dj:{d:'',k:'',v:0,b:0,ok:0,y:''}, // (2026-10-14, GAMEPLAY) LE RETOUR DU JOUR : `d` = la date locale de la dernière partie COMPTÉE ('AAAA-MM-JJ'), `n` = la série à cette date · LE CADEAU : `t` = l'heure (ms) du dernier cadeau ouvert, 0 = jamais (voir JOUR / CAD)
     m2:m2Vierge(), // (2026-10-16) LES MISSIONS v2 : réussies, prises, suivies, records, compteurs à vie (voir m2Etat)
@@ -51738,6 +51738,7 @@ const SAVE={
       if(d.shop.eq&&typeof d.shop.eq==='object')for(const k of ['peinture','aile','trainee'])if(typeof d.shop.eq[k]==='string'&&/^[a-z]{2,12}$/.test(d.shop.eq[k]))c.shop.eq[k]=d.shop.eq[k];}
     if(Array.isArray(d.figs))c.figs=[...new Set(['tailwhip'].concat(d.figs.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k))))].slice(0,80); // (2026-10-14) LES FIGURES possédées — (2026-10-15) le TAIL WHIP offert ; le TONNEAU, offert jusque-là, reste dans la liste des sauvegardes d'avant (il s'achète désormais)
     else if((+d.best>0)||(+d.bank>0)||(+d.aura>0))c.figs=['tailwhip','tonneau']; // une sauvegarde d'avant les figures (sans liste) qui a déjà joué : elle avait le tonneau, elle le garde
+    c.figS=(d.figS===1||(c.ex.runs===0&&!(+d.best>0)&&!(+d.bank>0)&&!(+d.aura>0)&&!(Array.isArray(d.owned)&&d.owned.length)&&c.figs.every(function(k){return k==='tailwhip'||k==='saltov';})))?1:0;if(c.figS&&c.figs.indexOf('saltov')<0)c.figs.push('saltov'); // (2026-10-20, Sacha : « un nouveau joueur ne doit pas avoir le tonneau, il doit avoir le salto avant, de base ») figS : le SALTO AVANT est OFFERT — à tout profil qui n'a encore fini aucune partie ni rien acheté ; il prend l'emplacement AVANT (le double-tap pouce au repos, donc aussi la figure de l'auto-école) ; une sauvegarde qui a déjà joué ne change pas
     c.figT0=(d.figT0===1||(d.figT0===undefined&&c.figs.indexOf('tonneau')>=0))?1:0; // figT0 : ce tonneau-là était OFFERT (sauvegarde d'avant le tail whip) — pas un achat (ecoDebutAchat)
     if(d.combos&&typeof d.combos==='object'){c.combos={};for(const k of Object.keys(d.combos).slice(0,40))if(/^[MPST]{3}$/.test(k))c.combos[k]=Math.min(1e6,Math.max(0,Math.round(+d.combos[k])||0));} // (2026-10-14) LE CARNET DES COMBOS À TROIS
     if(Array.isArray(d.figEq))c.figEq=[...new Set(d.figEq.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)))].slice(0,2); // (2026-10-14, LES FIGURES v2) les emplacements — (2026-10-15, Sacha : « seulement 2 figures à la fois, pas 3 ») DEUX
@@ -53549,7 +53550,7 @@ function m2MigreV2(s,rep){const d=SAVE.d;s.vc=1;s.vr=1; /* posés d'abord : m2Va
   SAVE.mark();}
 function m2GagneEstime(){const d=SAVE.d;let t=bank();
   try{for(const i of (d.owned||[])){const u=CAR_UNLOCK[i];const o=u&&u.k==='mis'?u.av:u;if(o&&o.p)t+=o.p;}}catch(e){}
-  try{const F=(window.FIG&&FIG.liste)||[];for(const id of (d.figs||[])){if(id==='tailwhip'||(id==='tonneau'&&d.figT0))continue;const f=F.find(function(x){return x.id===id;});if(f&&f.p)t+=f.p;}}catch(e){}
+  try{const F=(window.FIG&&FIG.liste)||[];for(const id of (d.figs||[])){if(id==='tailwhip'||(id==='tonneau'&&d.figT0)||(id==='saltov'&&d.figS))continue;const f=F.find(function(x){return x.id===id;});if(f&&f.p)t+=f.p;}}catch(e){}
   try{for(const k of (d.shop&&d.shop.own)||[]){const p=k.split(':'),h=(COSM[p[0]]||[]).find(function(x){return x.id===p[1];});if(h&&h.p)t+=h.p;}}catch(e){}
   return Math.max(t,d.bankMax||0);}
 /* ---- LA VÉRIFICATION : une mission tombe dès que sa valeur passe le seuil (en course : 4 fois par seconde, sans la collection) ---- */
