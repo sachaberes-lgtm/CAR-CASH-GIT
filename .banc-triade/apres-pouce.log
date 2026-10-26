@@ -1,0 +1,202 @@
+{
+ "charge": true,
+ "sondeMenu": true,
+ "course": true,
+ "avant": {
+  "fren": {
+   "lv": 0,
+   "musique": "radio"
+  },
+  "FRENM": {
+   "on": false,
+   "ok": true,
+   "sw": false,
+   "surm": false,
+   "src": ""
+  },
+  "el": {
+   "src": "/assets/audio/music/lobby/ciel-nuages.m4a",
+   "paused": true,
+   "t": 4.56,
+   "rate": 1,
+   "vol": 1,
+   "loop": true,
+   "err": null
+  },
+  "volCour": 0,
+  "volCible": 0,
+  "mode": "run",
+  "pouce": {
+   "phase": "course",
+   "joue": true,
+   "niveau": 0.373
+  },
+  "bus": {
+   "branche": true,
+   "cle": ""
+  },
+  "gameOver": false,
+  "tuto": false,
+  "regne": true,
+  "loopErr": null
+ },
+ "entre": 4,
+ "pendant1": {
+  "fren": {
+   "lv": 4,
+   "musique": "triade"
+  },
+  "FRENM": {
+   "on": true,
+   "ok": true,
+   "sw": true,
+   "surm": false,
+   "src": "http://127.0.0.1:8847/assets/audio/music/lobby/ciel-nuages.m4a"
+  },
+  "el": {
+   "src": "/assets/audio/music/boucles/dark-triad.m4a",
+   "paused": false,
+   "t": 0.69,
+   "rate": 1,
+   "vol": 1,
+   "loop": true,
+   "err": null
+  },
+  "volCour": 0.34,
+  "volCible": 0.596,
+  "mode": "run",
+  "pouce": {
+   "phase": "course",
+   "joue": true,
+   "niveau": 0
+  },
+  "bus": {
+   "branche": true,
+   "cle": "dark-triad"
+  },
+  "gameOver": false,
+  "tuto": false,
+  "regne": true,
+  "loopErr": null
+ },
+ "pendant2": {
+  "fren": {
+   "lv": 4,
+   "musique": "triade"
+  },
+  "FRENM": {
+   "on": true,
+   "ok": true,
+   "sw": true,
+   "surm": false,
+   "src": "http://127.0.0.1:8847/assets/audio/music/lobby/ciel-nuages.m4a"
+  },
+  "el": {
+   "src": "/assets/audio/music/boucles/dark-triad.m4a",
+   "paused": false,
+   "t": 3.19,
+   "rate": 1,
+   "vol": 1,
+   "loop": true,
+   "err": null
+  },
+  "volCour": 0.596,
+  "volCible": 0.596,
+  "mode": "run",
+  "pouce": {
+   "phase": "course",
+   "joue": true,
+   "niveau": 0
+  },
+  "bus": {
+   "branche": true,
+   "cle": "dark-triad"
+  },
+  "gameOver": false,
+  "tuto": false,
+  "regne": true,
+  "loopErr": null
+ },
+ "sort": 0,
+ "apres": {
+  "fren": {
+   "lv": 0,
+   "musique": "radio"
+  },
+  "FRENM": {
+   "on": false,
+   "ok": true,
+   "sw": false,
+   "surm": false,
+   "src": "http://127.0.0.1:8847/assets/audio/music/lobby/ciel-nuages.m4a"
+  },
+  "el": {
+   "src": "/assets/audio/music/boucles/dark-triad.m4a",
+   "paused": true,
+   "t": 3.49,
+   "rate": 1,
+   "vol": 1,
+   "loop": true,
+   "err": null
+  },
+  "volCour": 0,
+  "volCible": 0,
+  "mode": "run",
+  "pouce": {
+   "phase": "course",
+   "joue": true,
+   "niveau": 0.383
+  },
+  "bus": {
+   "branche": true,
+   "cle": "dark-triad"
+  },
+  "gameOver": false,
+  "tuto": false,
+  "regne": true,
+  "loopErr": null
+ },
+ "requetes": [
+  {
+   "url": "/assets/audio/music/boucles/dark-triad.m4a",
+   "methode": "HEAD",
+   "type": "Fetch"
+  },
+  {
+   "url": "/assets/audio/music/boucles/dark-triad.m4a",
+   "methode": "GET",
+   "type": "Media"
+  },
+  {
+   "url": "/assets/audio/music/boucles/dark-triad.m4a",
+   "methode": "GET",
+   "type": "Media"
+  }
+ ],
+ "reponses": [
+  {
+   "u": "/assets/audio/music/boucles/dark-triad.m4a",
+   "st": 200,
+   "type": "Fetch"
+  },
+  {
+   "u": "/assets/audio/music/boucles/dark-triad.m4a",
+   "st": 200,
+   "type": "Media"
+  },
+  {
+   "u": "/assets/audio/music/boucles/dark-triad.m4a",
+   "echec": "net::ERR_ABORTED"
+  },
+  {
+   "u": "/assets/audio/music/boucles/dark-triad.m4a",
+   "echec": "net::ERR_ABORTED"
+  },
+  {
+   "u": "/assets/audio/music/boucles/dark-triad.m4a",
+   "st": 200,
+   "type": "Media"
+  }
+ ],
+ "erreurs": []
+}

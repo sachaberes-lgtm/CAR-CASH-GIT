@@ -1,0 +1,192 @@
+{
+ "charge": true,
+ "sondeMenu": false,
+ "course": true,
+ "avant": {
+  "fren": {
+   "lv": 0,
+   "musique": "radio"
+  },
+  "FRENM": {
+   "on": false,
+   "ok": false,
+   "sw": false,
+   "surm": false,
+   "src": ""
+  },
+  "el": {
+   "src": "/assets/audio/music/lobby/ciel-apesanteur.m4a",
+   "paused": true,
+   "t": 5.38,
+   "rate": 1,
+   "vol": 1,
+   "loop": true,
+   "err": null
+  },
+  "volCour": 0,
+  "volCible": 0,
+  "mode": "run",
+  "pouce": {
+   "phase": "course",
+   "joue": true,
+   "niveau": 0.373
+  },
+  "bus": {
+   "branche": true,
+   "cle": ""
+  },
+  "gameOver": false,
+  "piste": "canyon",
+  "tuto": false,
+  "regne": true,
+  "loopErr": null
+ },
+ "entre": 4,
+ "pendant1": {
+  "fren": {
+   "lv": 4,
+   "musique": "surmultipliee"
+  },
+  "FRENM": {
+   "on": true,
+   "ok": false,
+   "sw": false,
+   "surm": true,
+   "src": ""
+  },
+  "el": {
+   "src": "/assets/audio/music/lobby/ciel-apesanteur.m4a",
+   "paused": true,
+   "t": 5.38,
+   "rate": 1.06,
+   "vol": 1,
+   "loop": true,
+   "err": null
+  },
+  "volCour": 0,
+  "volCible": 0,
+  "mode": "run",
+  "pouce": {
+   "phase": "course",
+   "joue": true,
+   "niveau": 0.373
+  },
+  "bus": {
+   "branche": true,
+   "cle": ""
+  },
+  "gameOver": false,
+  "piste": "canyon",
+  "tuto": false,
+  "regne": true,
+  "loopErr": null
+ },
+ "pendant2": {
+  "fren": {
+   "lv": 4,
+   "musique": "surmultipliee"
+  },
+  "FRENM": {
+   "on": true,
+   "ok": false,
+   "sw": false,
+   "surm": true,
+   "src": ""
+  },
+  "el": {
+   "src": "/assets/audio/music/lobby/ciel-apesanteur.m4a",
+   "paused": true,
+   "t": 5.38,
+   "rate": 1.06,
+   "vol": 1,
+   "loop": true,
+   "err": null
+  },
+  "volCour": 0,
+  "volCible": 0,
+  "mode": "run",
+  "pouce": {
+   "phase": "course",
+   "joue": true,
+   "niveau": 0.387
+  },
+  "bus": {
+   "branche": true,
+   "cle": ""
+  },
+  "gameOver": false,
+  "piste": "canyon",
+  "tuto": false,
+  "regne": true,
+  "loopErr": null
+ },
+ "sort": 0,
+ "apres": {
+  "fren": {
+   "lv": 0,
+   "musique": "radio"
+  },
+  "FRENM": {
+   "on": false,
+   "ok": false,
+   "sw": false,
+   "surm": false,
+   "src": ""
+  },
+  "el": {
+   "src": "/assets/audio/music/lobby/ciel-apesanteur.m4a",
+   "paused": true,
+   "t": 5.38,
+   "rate": 1,
+   "vol": 1,
+   "loop": true,
+   "err": null
+  },
+  "volCour": 0,
+  "volCible": 0,
+  "mode": "run",
+  "pouce": {
+   "phase": "course",
+   "joue": true,
+   "niveau": 0.386
+  },
+  "bus": {
+   "branche": true,
+   "cle": ""
+  },
+  "gameOver": false,
+  "piste": "canyon",
+  "tuto": false,
+  "regne": true,
+  "loopErr": null
+ },
+ "requetes": [
+  {
+   "url": "/assets/audio/music/dark-triad.mp3",
+   "methode": "HEAD",
+   "type": "Fetch"
+  },
+  {
+   "url": "/assets/audio/music/dark-triad.mp3",
+   "methode": "GET",
+   "type": "Media"
+  }
+ ],
+ "reponses": [
+  {
+   "u": "/assets/audio/music/dark-triad.mp3",
+   "st": 404,
+   "type": "Fetch"
+  },
+  {
+   "u": "/assets/audio/music/dark-triad.mp3",
+   "st": 404,
+   "type": "Media"
+  },
+  {
+   "u": "/assets/audio/music/dark-triad.mp3",
+   "echec": "net::ERR_ABORTED"
+  }
+ ],
+ "erreurs": []
+}

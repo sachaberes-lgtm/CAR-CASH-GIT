@@ -1,0 +1,180 @@
+{
+ "charge": true,
+ "sondeMenu": false,
+ "course": true,
+ "avant": {
+  "fren": {
+   "lv": 0,
+   "musique": "radio"
+  },
+  "FRENM": {
+   "on": false,
+   "ok": false,
+   "sw": false,
+   "surm": false,
+   "src": ""
+  },
+  "el": {
+   "src": "/assets/audio/music/lobby/chris-matin.m4a",
+   "paused": false,
+   "t": 6,
+   "rate": 1,
+   "vol": 1,
+   "loop": true,
+   "err": null
+  },
+  "volCour": 0.57,
+  "volCible": 0.57,
+  "mode": "run",
+  "pouce": {
+   "phase": "repos",
+   "joue": false,
+   "niveau": null
+  },
+  "bus": {
+   "branche": true,
+   "cle": ""
+  },
+  "gameOver": false,
+  "loopErr": null
+ },
+ "entre": 4,
+ "pendant1": {
+  "fren": {
+   "lv": 4,
+   "musique": "surmultipliee"
+  },
+  "FRENM": {
+   "on": true,
+   "ok": false,
+   "sw": false,
+   "surm": true,
+   "src": ""
+  },
+  "el": {
+   "src": "/assets/audio/music/lobby/chris-matin.m4a",
+   "paused": false,
+   "t": 6.75,
+   "rate": 1.06,
+   "vol": 1,
+   "loop": true,
+   "err": null
+  },
+  "volCour": 0.57,
+  "volCible": 0.57,
+  "mode": "run",
+  "pouce": {
+   "phase": "repos",
+   "joue": false,
+   "niveau": null
+  },
+  "bus": {
+   "branche": true,
+   "cle": ""
+  },
+  "gameOver": false,
+  "loopErr": null
+ },
+ "pendant2": {
+  "fren": {
+   "lv": 4,
+   "musique": "surmultipliee"
+  },
+  "FRENM": {
+   "on": true,
+   "ok": false,
+   "sw": false,
+   "surm": true,
+   "src": ""
+  },
+  "el": {
+   "src": "/assets/audio/music/lobby/chris-matin.m4a",
+   "paused": false,
+   "t": 9.4,
+   "rate": 1.06,
+   "vol": 1,
+   "loop": true,
+   "err": null
+  },
+  "volCour": 0.57,
+  "volCible": 0.57,
+  "mode": "run",
+  "pouce": {
+   "phase": "repos",
+   "joue": false,
+   "niveau": null
+  },
+  "bus": {
+   "branche": true,
+   "cle": ""
+  },
+  "gameOver": false,
+  "loopErr": null
+ },
+ "sort": 0,
+ "apres": {
+  "fren": {
+   "lv": 0,
+   "musique": "radio"
+  },
+  "FRENM": {
+   "on": false,
+   "ok": false,
+   "sw": false,
+   "surm": false,
+   "src": ""
+  },
+  "el": {
+   "src": "/assets/audio/music/lobby/chris-matin.m4a",
+   "paused": false,
+   "t": 11.42,
+   "rate": 1,
+   "vol": 1,
+   "loop": true,
+   "err": null
+  },
+  "volCour": 0.57,
+  "volCible": 0.57,
+  "mode": "run",
+  "pouce": {
+   "phase": "repos",
+   "joue": false,
+   "niveau": null
+  },
+  "bus": {
+   "branche": true,
+   "cle": ""
+  },
+  "gameOver": false,
+  "loopErr": null
+ },
+ "requetes": [
+  {
+   "url": "/assets/audio/music/dark-triad.mp3",
+   "methode": "HEAD",
+   "type": "Fetch"
+  },
+  {
+   "url": "/assets/audio/music/dark-triad.mp3",
+   "methode": "GET",
+   "type": "Media"
+  }
+ ],
+ "reponses": [
+  {
+   "u": "/assets/audio/music/dark-triad.mp3",
+   "st": 404,
+   "type": "Fetch"
+  },
+  {
+   "u": "/assets/audio/music/dark-triad.mp3",
+   "echec": "net::ERR_ABORTED"
+  },
+  {
+   "u": "/assets/audio/music/dark-triad.mp3",
+   "st": 404,
+   "type": "Media"
+  }
+ ],
+ "erreurs": []
+}
