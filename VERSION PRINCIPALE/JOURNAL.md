@@ -26,6 +26,11 @@
 ## SAUVER MAMAN : LA FLÛTE DEVIENT UN VIOLON (2026-10-25 soir — Léo : « change juste la flûte (instrument) de SAUVER MAMAN »)
 - `retouches-bleu.js`, entrée `bleu-3379` : `Mx.tim.contre = 'violon'` (le contre-chant, qui entre au 12e moteur, était la flûte synthétique). Rien d'autre ne bouge (la cloche de verre retouchée, l'ordre, les grilles). Vérifié au banc : le violon joue au moteur 15, 0 erreur, niveau stable. Non écouté. Retour : retirer ce seul réglage.
 
+## LA GROTTE GLACÉE — UNE NOUVELLE MÉTÉO « GLACE » (2026-10-26, Sacha : « une nouvelle météo pour la grotte : la grotte glacée, inspirée de la grotte intérieure de Fight Club »)
+- `SF_CARTES.grotte.m.glace` (« LA GROTTE A GELE », mt « GLACE »), `GRT_MET.glace` (`ice:1` ; les 4 autres temps `ice:0`) : l'uniforme `uIce` du shader fond la palette — roche bleu glacé et sols givrés avec paillettes, lave et chutes FIGÉES (blanc-bleu), magma du rivage givré, torches à flamme froide, lumière du lieu refroidie, stalactites en glaçons, neige fine en suspension (`GRT_PART_GLACE`), brume bleu-blanc par salle (`ICE` dans `grtBiomes`).
+- Clin d'œil à Fight Club : 12 PINGOUINS-TOTEMS (~16 m, boîtes et octaèdres à facettes, collision en vol) plantés au bord de la route, face à elle (`nb.pingouins`).
+- Listes : `portails.js` (`grotte-glace`), `repertoire-maps/maps.js`, I18N (GLACE / LA GROTTE A GELE). `dbgGrotte('meteo','glace')`, `?carte=grotte&meteo=glace`. Règle d'or : 0 roche, 0 décor.
+
 ## LA GROTTE, 2e PASSE — UNE SURFACE À LA FOIS, DES GOULETS, DES CRISTAUX SOLIDES (2026-10-25, Sacha : « longer le mur, le plafond ou le sol, des spirales adaptées pour changer de surface, pas de spirales partout »)
 - `GRT_TORD` : tenues longues (6-12 s) sur une surface, un changement = un quart de tour (mur) ou un demi-tour (plafond) lent, plus de tonneau, dévers 34° ; `GRT_ROULIS` : un caractère par salle (la lave : de très longues tenues AU PLAFOND au-dessus du lac). `pisteTord` lit `opts.zone(part)`.
 - `LES GOULETS` : la salle se pince sur ~150 m tous les ~1,2 km. Les grosses grappes de cristaux sont solides (collision en vol).

@@ -7,7 +7,7 @@ window.REPERTOIRE = [
  {"id": "foret", "nom": "LA FORÊT NOIRE", "pc": false, "meteos": [["matin", "MATIN"], ["midi", "MIDI"], ["soir", "SOIR"], ["pluie", "PLUIE"], ["orage", "ORAGE"]], "couverture": "soir"},
  {"id": "banquise", "nom": "LE GLACIER", "pc": false, "meteos": [["midi", "MIDI"], ["soir", "SOIR"], ["nuit", "NUIT"], ["neige", "NEIGE"]], "couverture": "nuit"},
  {"id": "espace", "nom": "EN ORBITE", "pc": false, "meteos": [["matin", "MATIN"]], "couverture": "matin"},
- {"id": "grotte", "nom": "LES PROFONDEURS", "pc": false, "meteos": [["matin", "TORCHES"], ["midi", "CRISTAUX"], ["soir", "MAGMA"], ["nuit", "NOIR COMPLET"]], "couverture": "matin"},
+ {"id": "grotte", "nom": "LES PROFONDEURS", "pc": false, "meteos": [["matin", "TORCHES"], ["midi", "CRISTAUX"], ["soir", "MAGMA"], ["nuit", "NOIR COMPLET"], ["glace", "GLACE"]], "couverture": "matin"},
  {"id": "canyon", "nom": "CANYON DES GÉANTS", "pc": false, "meteos": [["matin", "MATIN"], ["soir", "SOIR"], ["nuit", "NUIT"], ["pluie", "PLUIE"], ["orage", "ORAGE"]], "couverture": "matin"},
  {"id": "dunes", "nom": "LES DUNES D'OR", "pc": false, "meteos": [["matin", "MATIN"], ["soir", "SOIR"], ["nuit", "NUIT"], ["pluie", "VENT DE SABLE"]], "couverture": "soir"}
 ];

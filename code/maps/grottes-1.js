@@ -110,6 +110,10 @@ const GRT_MET={
   midi: {torche:.3, lieu:1.3, amb:.042,lant:.95, emi:1.8, lav:1.05,part:1.35,flam:.3, vein:1.4, glint:1.5},
   soir: {torche:.65,lieu:1.15,amb:.055,lant:1,   emi:1.1, lav:1.75,part:1.2, flam:.65,vein:1.1, glint:1.2},
   nuit: {torche:0,  lieu:.55, amb:.014,lant:1.5, emi:.9,  lav:1.2, part:.6,  flam:0,  vein:.7,  glint:.8}};
+/* (2026-10-26, Sacha : « la grotte glacée, inspirée de la grotte intérieure de Fight Club ») GLACE : la grotte a gelé — roche bleu glacé, sols givrés, lave et chutes figées (blanc-bleu), torches froides, neige en suspension, un pingouin-totem
+   posé au bord de la route ici et là. `ice` (0/1) fond la palette des shaders (uIce) : les quatre autres temps l'ont à 0. */
+for(const k in GRT_MET)GRT_MET[k].ice=0;
+GRT_MET.glace={torche:.55,lieu:1.25,amb:.06,lant:1.05,emi:1.15,lav:.9,part:1.5,flam:.8,vein:.5,glint:1.9,ice:1};
 /* (2026-10-24, embellir) vein : les filons de minerai dans la roche · glint : leur scintillement */
 /* ---------------- LA ROUTE : LA DESCENTE DE SALLE EN SALLE ----------------
    Les aides de la balade du volcan (avance, droite, arc, tourne, vers, virages), un AXE qui borne le cap (la route avance toujours), la pente

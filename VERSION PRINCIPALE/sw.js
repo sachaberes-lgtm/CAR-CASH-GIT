@@ -10,7 +10,8 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v938'; /* v938 (2026-10-26, Léo : « mets une croix sur paint quand elle est équipée » + « LA HONTE, on peut pas la peindre ») une croix rouge sur la peinture équipée (inventaire et console) ; LA HONTE se peint entière (toit, bas de caisse, rétro, rouille) */
+const CACHE = 'cashcar-v939'; /* v939 (2026-10-26, Sacha : « la grotte glacée, inspirée de Fight Club ») nouvelle météo GLACE de la grotte : roche bleu glacé, lave figée, neige, pingouins-totems */
+// const CACHE = 'cashcar-v938'; /* v938 (2026-10-26, Léo : « mets une croix sur paint quand elle est équipée » + « LA HONTE, on peut pas la peindre ») une croix rouge sur la peinture équipée (inventaire et console) ; LA HONTE se peint entière (toit, bas de caisse, rétro, rouille) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
