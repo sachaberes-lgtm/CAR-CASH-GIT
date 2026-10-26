@@ -1,0 +1,21 @@
+origin/main = 333859a8 | worktrees: 88 | à retirer: 10 (1904 Mo)
+
+   191 Mo  missions-epure  [missions-epure, 3.0 j]
+   191 Mo  pause-equilibre  [pause-equilibre, 3.0 j]
+   191 Mo  routes-fun  [routes-fun, 3.0 j]
+   191 Mo  sans-anneau  [sans-anneau, 3.0 j]
+   190 Mo  bienv-off  [détachée, 3.0 j]
+   190 Mo  boutons-flottants  [boutons-flottants, 3.1 j]
+   190 Mo  game/.claude/worktrees/revue-tableau  [revue-tableau, 3.1 j]
+   190 Mo  garage-boutons  [garage-boutons, 3.1 j]
+   190 Mo  nitro-rouge  [nitro-rouge, 3.1 j]
+   190 Mo  plaques-sans-il  [plaques-sans-il, 3.1 j]
+
+GARDÉS :
+6 × NON: worktree actif de cette session ou dépôt principal
+1 × NON: dossier absent
+22 × NON: commits pas dans origin/main
+28 × NON: modifié ou non suivi
+14 × NON: dernier commit de moins de 2 jours
+2 × NON: un processus travaille dedans
+5 × NON: fichiers ignorés à garder
