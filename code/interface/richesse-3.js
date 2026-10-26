@@ -383,7 +383,7 @@ function chutePasNeuf(c,partout){ // (re)naissance d'un nuage de passage, dans l
 function chutePasTick(c,dt,vk,go,vis){ // un nuage de passage, chaque image (chuteRender) : il monte ; sorti par le haut, il renaît en bas
   if(!c.D)chutePasNeuf(c,true);
   const P=CHUTE_P,lent=document.documentElement.getAttribute('data-reduced-motion')==='1',C0=CHUTE.C;
-  c.y+=(lent?P.vit:(P.pasV||50)*c.vp)*vk*dt;
+  c.y+=(lent?P.vit:(P.pasV||26)*c.vp)*vk*dt;
   if(!go&&C0.y+c.y-camera.position.y>c.D*Math.tan(camera.fov*Math.PI/360)+1.3*c.r)chutePasNeuf(c,false);
   c.m.visible=vis&&!c.off&&!!c.e.g&&(camera.aspect>=1||c.i<4);c.m.position.set(c.px,C0.y+c.y,c.pz); /* debout, le champ est étroit : quatre au plus */
 }

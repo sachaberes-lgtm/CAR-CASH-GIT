@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v942'; /* v942 (2026-10-26, Léo : « une colonne de plus à chaque rangée » + « ordre de famille ») peintures rangées par famille de teinte dans chaque famille, une colonne de plus dans la grille des peintures */
+const CACHE = 'cashcar-v943'; /* v943 (2026-10-25/26, Sacha : « toujours trop rapide, ça doit être relaxant ») écran titre, 2e passe : pasV 50 → 26, vit (train des cumulus et des filets de vent) 14 → 8 — une chute lente et posée */ // v942 (2026-10-26, Léo : « une colonne de plus à chaque rangée » + « ordre de famille ») peintures rangées par famille de teinte dans chaque famille, une colonne de plus dans la grille des peintures */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
