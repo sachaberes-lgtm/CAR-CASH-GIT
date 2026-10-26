@@ -119,9 +119,11 @@ html[data-reduced-motion="1"] body #garage#garage #gAct>#gShopBas#gShopBas::befo
    #ff3347, SETTINGS or (inchangé) — les icônes suivent `--nc`. LA BANDELETTE sous CASH CAR : cyan · magenta · or (l'ordre rose · cyan · or, cyan
    et rose échangés) ; elle ne lit PAS `--livree` (son dégradé est dans `#mHome .mTitle::after`). Le badge NEW reste rose. Le verre-loupe de v858 avait été
    retiré par Sacha (v863) : c'est cette version-ci que Léo a demandée ensuite (tuiles, pas de parallélogramme — « trop Claude »).
-   Texte en contre-pente : tout enfant des tuiles a `transform:none`. Pas de backdrop-filter : il relit la 3D derrière chaque tuile à chaque image (interdit sur mobile par la charte) — un voile blanc en dégradé le remplace. */
+   Texte en contre-pente : tout enfant des tuiles a `transform:none`. Pas de backdrop-filter : il relit la 3D derrière chaque tuile à chaque image (interdit sur mobile par la charte) — un voile blanc en dégradé le remplace.
+   (2026-10-26) JOUER (`.mPlay`) REJOINT LA FAMILLE : même tuile verre-loupe, teintée or (--nc, posé dans ux-nitro-aura.css) — JOUER n'est
+   plus un objet à part qui flotte au-dessus des trois autres, c'est le même système, en plus grand. */
 html{--lk:1}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte){
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte,.mPlay){
   position:relative;isolation:isolate;border-radius:7px!important;clip-path:none!important;animation:none!important;overflow:visible;
   background:
     radial-gradient(120% 95% at 16% -12%,rgba(255,255,255,calc(.62*var(--lk))) 0,rgba(255,255,255,calc(.14*var(--lk))) 36%,transparent 57%),
@@ -131,38 +133,28 @@ html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGea
   box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.8),inset 0 2px 2px rgba(255,255,255,calc(.85*var(--lk))),
     inset 0 -12px 16px -9px color-mix(in srgb,var(--nc) 60%,transparent),inset 0 0 24px rgba(255,255,255,calc(.22*var(--lk))),
     0 0 18px color-mix(in srgb,var(--nc) 42%,transparent),0 7px 16px -6px rgba(15,25,70,.32)!important}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)::before{
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte,.mPlay)::before{
   content:''!important;display:block!important;position:absolute;inset:4px;z-index:-1;pointer-events:none;border-radius:4px;
   border:1px solid rgba(255,255,255,calc(.34*var(--lk)));box-shadow:inset 0 0 8px rgba(255,255,255,calc(.18*var(--lk)));background:none!important;animation:none!important;transform:none!important}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)::after{
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte,.mPlay)::after{
   content:''!important;display:block!important;position:absolute;left:9%;top:7%;width:30%;height:17%;z-index:-1;pointer-events:none;border-radius:50%;
   background:radial-gradient(ellipse at 40% 40%,rgba(255,255,255,calc(.95*var(--lk))) 0,rgba(255,255,255,calc(.35*var(--lk))) 45%,transparent 72%);transform:rotate(-14deg)!important;animation:none!important;opacity:1!important}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte) :is(span,.pxi,i){text-shadow:0 1px 3px rgba(10,20,60,.7)}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte):is(:active,.appui){translate:0 2px;--lk:1.25}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte){transform:none!important;border-radius:20px!important}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte) *{transform:none!important}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)::before{border-radius:inherit!important;inset:5px!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte,.mPlay) :is(span,.pxi,i){text-shadow:0 1px 3px rgba(10,20,60,.7)}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte,.mPlay):is(:active,.appui){translate:0 2px;--lk:1.25}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte,.mPlay){transform:none!important;border-radius:20px!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte) *{transform:none!important} /* .mPlay exclu : ses lettres .lg gardent leur `transform` (la vague pxScale au clic) */
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte,.mPlay)::before{border-radius:inherit!important;inset:5px!important}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mHubPorte{--nc:#2f80ff!important}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mOffres{--nc:#ff3347!important}
 html #mHome.on .mTitle::after,html #mHome .mTitle::after{background:linear-gradient(90deg,transparent,var(--neoC) 18%,var(--neoC) 40%,transparent 40.5%,transparent 43%,var(--neoM) 43.5%,var(--neoM) 64%,transparent 64.5%,transparent 67%,var(--au2) 67.5%,var(--au2) 82%,transparent)!important;box-shadow:0 0 14px rgba(0,234,255,.5)!important}
 </style>
 <style id="accueilDiagonale">
-/* ===== L'ACCUEIL EN DIAGONALE (2026-10-25, Sacha : « REGLAGES dépasse du bouton, réduis ; mets JOUER un peu plus à droite, de belles diagonales dynamiques,
-   dans l'idée de la caisse penchée ») =====
-   1. Le mot des trois tuiles (GARAGE · ACHAT · REGLAGES) : même corps, plus petit, sans espacement ni retrait à gauche, jamais plus large que la tuile
-      (REGLAGES, le plus long, mordait le bord).
-   2. La diagonale « \ » de la caisse (nez en bas à droite) : les tuiles descendent d'un cran de gauche à droite, JOUER descend encore, part à droite et
-      penche de 4° dans le même sens. Seulement `translate` / `rotate` (propriétés à part) : le `transform:none` des tuiles et l'appui (`translate:0 2px`) restent. */
+/* ===== L'ACCUEIL À PLAT (2026-10-26, Sacha, sur capture : « c'est mal géré, mets-toi dans la peau d'un designer professionnel, UX, UI,
+   redessine ça. Là, les proportions sont mal gérées. Équilibre ») =====
+   La diagonale du 2026-10-25 (tuiles en escalier 0/9/18 px, JOUER décalé + penché à 4°) cassait l'alignement entre les trois tuiles et
+   avec JOUER sans rien apporter de lisible — retirée : les trois tuiles et JOUER reviennent sur une même ligne, l'appui uniforme
+   (`translate:0 2px`, posé dans #tuilesVerre) suffit. Reste de cette passe : le mot des trois tuiles (GARAGE · ACHAT · REGLAGES), même
+   corps, plus petit, sans espacement ni retrait à gauche, jamais plus large que la tuile (REGLAGES, le plus long, mordait le bord). */
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear){padding:0 3px!important;align-items:center!important;justify-content:center!important;overflow:visible}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear)>span{display:block!important;max-width:100%;box-sizing:border-box;font-size:9px!important;letter-spacing:0!important;white-space:nowrap;overflow:hidden;text-overflow:clip;text-align:center;padding:0!important}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mHubPorte{translate:0 0}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mOffres{translate:0 9px}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mGear{translate:0 18px}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear):is(:active,.appui){translate:0 calc(var(--dy,0px) + 2px)}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mOffres{--dy:9px}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mGear{--dy:18px}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:22px 20px;rotate:4deg;transform-origin:50% 50%}
-@media (orientation:landscape) and (max-height:540px){
-  html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:56px 24px;rotate:4deg}}
-@media (prefers-reduced-motion:reduce){html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{transition:none}}
 </style>

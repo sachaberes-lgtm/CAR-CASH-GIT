@@ -6246,10 +6246,14 @@ html[data-reduced-motion="1"] body #garage#garage #gAct>#gJouer .mChev .pxi{anim
      la pastille gardée) — cinq places, plus aucun mot à l'étroit (les mots de 90 px débordaient sur la porte voisine)
    · rangée 2 : JOUER FLOTTANT — le mot d'or en cubes, sans plaque (l'accueil contemplatif du 30/09), centré sous la rangée
    Les deux boîtes d'origine (.mOutils, .mAccP) s'effacent (display:contents) : leurs boutons entrent dans UNE grille de 5 colonnes.
-   Debout : le logo en tête, les rangées au pied. Couché : le bloc à droite, centré en hauteur, le logo posé dessus (Léo). */
+   Debout : le logo en tête, les rangées au pied. Couché : le bloc à droite, centré en hauteur, le logo posé dessus (Léo).
+   ===== REÉQUILIBRAGE (2026-10-26, Sacha, sur capture : « c'est mal géré, mets-toi dans la peau d'un designer professionnel, UX, UI,
+   redessine ça. Là, les proportions sont mal gérées. Équilibre ») : même déséquilibre que la variante `.c6` de ux8.css (la ligne de ciel
+   vide prenait TOUT le `1fr` pendant que la grappe de boutons restait collée au bord du bas) — même remède ici : le ciel passe à `.6fr`,
+   une seconde ligne flexible (`.34fr`) apparaît sous JOUER, et sa propre ligne grandit (74 → 104 px) pour ne plus serrer son contenu. */
 html.hub:not(.poki) body #mHome.acc2:is(.on,.sort){display:grid!important} /* seulement quand l'accueil est à l'écran (ou qu'il en sort) : ailleurs la coque le cache */
 html.hub:not(.poki) body #mHome.acc2{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 54px 54px 54px;column-gap:10px;row-gap:0;
-  grid-template-rows:0 auto minmax(16px,1fr) 54px 8px 74px 0;align-content:stretch;justify-content:stretch}
+  grid-template-rows:0 auto minmax(24px,.6fr) 60px 12px 104px minmax(18px,.34fr);align-content:stretch;justify-content:stretch}
 html.hub:not(.poki) body #mHome.acc2>.mVide{display:none!important}
 html.hub:not(.poki) body #mHome.acc2>:is(.mOutils,.mAccP){display:contents!important}
 html.hub:not(.poki) body #mHome.acc2>.mTitle{grid-row:2;grid-column:1/-1;justify-self:center;align-self:start;margin:0!important}
@@ -6272,11 +6276,12 @@ html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear){flex-direct
 html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres)>span{display:none!important}
 html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear) .pxi{--pxs:3}
 html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres) .mBadge{top:-10px!important;right:-9px!important;transform:scale(.72)!important;transform-origin:100% 0!important}
-/* JOUER FLOTTANT : le mot d'or en cubes, sans plaque ni cadre ; il s'enfonce d'un cran sous le doigt */
-html.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay{background:none!important;box-shadow:none!important;clip-path:none!important;transform:none!important;padding:0!important;
-  display:flex!important;align-items:center!important;justify-content:center!important;filter:drop-shadow(0 0 .3em rgba(255,200,80,.45)) drop-shadow(0 4px 0 rgba(20,8,0,.35))!important}
-html.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay .lg{font-size:44px!important}
-html.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay:is(:active,.appui){transform:translateY(3px) scale(.97)!important}
+/* JOUER, LA PLAQUE (2026-10-26) : le mot d'or en cubes gardé tel quel, mais posé sur la MÊME tuile verre-loupe que GARAGE/ACHAT/RÉGLAGES
+   (le système partagé vit dans #tuilesVerre, boutons-flottants.css — .mPlay y est inscrit à côté des trois autres), teintée or (--nc).
+   JOUER se lit comme LA MÊME famille, juste plus grande et plus gravée — plus un objet à part qui flotte, un bouton comme les autres. */
+html.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay{--nc:var(--au2);clip-path:none!important;transform:none!important;padding:0!important;overflow:visible;
+  display:flex!important;align-items:center!important;justify-content:center!important;filter:none!important}
+html.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay .lg{font-size:44px!important;text-shadow:0 1px 3px rgba(10,20,60,.7)}
 /* LE LOGO D'AVANT (Sacha : « le logo CASH CAR est trop rose, remets l'ancien ») : « la brillance du logo » (Léo, 10/10, 98b905c — CAR
    en coucher de soleil, du corail au violet) est neutralisée ici : les dégradés et le reflet d'origine (.lg.gold / .lg.grad / lgShine) */
 html.hub:not(.poki) body #mHome.acc2 .mTitle .lg.gold{background:linear-gradient(180deg,#fffdf2 0%,#ffe9a0 28%,#ffc400 52%,#b06c05 74%,#ffe9a0 96%);-webkit-background-clip:text;background-clip:text}
@@ -6934,7 +6939,11 @@ html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear) .p
   html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear){gap:4px!important}}
 /* (14/10 ~21 h, Sacha : « enlève cadeau, touche et mission » de l'ACCUEIL — les missions restent au garage, le cadeau dans MISSIONS) */
 html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{display:none!important}
-html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-rows:0 auto minmax(16px,1fr) 0 0 68px 12px 74px 0}
+/* (2026-10-26, Sacha, sur capture : « c'est mal géré… les proportions sont mal gérées. Équilibre ») mesuré en vrai (iPhone 375×812) :
+   la ligne de ciel vide valait TOUT le `1fr` (577 px, 71 % de l'écran) pendant que la ligne du bas restait fixe à 0 — la grappe de
+   boutons collait au bord. Le ciel passe à `.62fr`, une seconde ligne flexible (`.38fr`) apparaît sous JOUER : l'espace libre se
+   partage désormais au-dessus ET en dessous de la grappe, qui respire au lieu d'être collée au bord. */
+html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-rows:0 auto minmax(24px,.62fr) 0 0 68px 12px 74px minmax(16px,.38fr)}
 @media (orientation:landscape) and (max-height:540px){html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-rows:minmax(0,1fr) auto 34px 0 0 56px 8px 58px minmax(0,1fr)}} /* (2026-10-15) 34 px : les tuiles ne mordent plus le trait néon du logo */
 /* (2026-10-16, Sacha : « dans l'écran d'accueil GARAGE, OFFRE et RÉGLAGES doivent être de couleur rose, bleu et jaune — comme les bandes sous le logo CAR CASH »)
    LES TROIS TUILES AUX COULEURS DE LA LIVRÉE : dans l'ordre des trois bandes du trait néon sous le logo (rose · cyan · or, `--livree`), de gauche à droite.
@@ -8415,9 +8424,11 @@ html[data-reduced-motion="1"] body #garage#garage #gAct>#gShopBas#gShopBas::befo
    #ff3347, SETTINGS or (inchangé) — les icônes suivent `--nc`. LA BANDELETTE sous CASH CAR : cyan · magenta · or (l'ordre rose · cyan · or, cyan
    et rose échangés) ; elle ne lit PAS `--livree` (son dégradé est dans `#mHome .mTitle::after`). Le badge NEW reste rose. Le verre-loupe de v858 avait été
    retiré par Sacha (v863) : c'est cette version-ci que Léo a demandée ensuite (tuiles, pas de parallélogramme — « trop Claude »).
-   Texte en contre-pente : tout enfant des tuiles a `transform:none`. Pas de backdrop-filter : il relit la 3D derrière chaque tuile à chaque image (interdit sur mobile par la charte) — un voile blanc en dégradé le remplace. */
+   Texte en contre-pente : tout enfant des tuiles a `transform:none`. Pas de backdrop-filter : il relit la 3D derrière chaque tuile à chaque image (interdit sur mobile par la charte) — un voile blanc en dégradé le remplace.
+   (2026-10-26) JOUER (`.mPlay`) REJOINT LA FAMILLE : même tuile verre-loupe, teintée or (--nc, posé dans ux-nitro-aura.css) — JOUER n'est
+   plus un objet à part qui flotte au-dessus des trois autres, c'est le même système, en plus grand. */
 html{--lk:1}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte){
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte,.mPlay){
   position:relative;isolation:isolate;border-radius:7px!important;clip-path:none!important;animation:none!important;overflow:visible;
   background:
     radial-gradient(120% 95% at 16% -12%,rgba(255,255,255,calc(.62*var(--lk))) 0,rgba(255,255,255,calc(.14*var(--lk))) 36%,transparent 57%),
@@ -8427,40 +8438,30 @@ html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGea
   box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.8),inset 0 2px 2px rgba(255,255,255,calc(.85*var(--lk))),
     inset 0 -12px 16px -9px color-mix(in srgb,var(--nc) 60%,transparent),inset 0 0 24px rgba(255,255,255,calc(.22*var(--lk))),
     0 0 18px color-mix(in srgb,var(--nc) 42%,transparent),0 7px 16px -6px rgba(15,25,70,.32)!important}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)::before{
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte,.mPlay)::before{
   content:''!important;display:block!important;position:absolute;inset:4px;z-index:-1;pointer-events:none;border-radius:4px;
   border:1px solid rgba(255,255,255,calc(.34*var(--lk)));box-shadow:inset 0 0 8px rgba(255,255,255,calc(.18*var(--lk)));background:none!important;animation:none!important;transform:none!important}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)::after{
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte,.mPlay)::after{
   content:''!important;display:block!important;position:absolute;left:9%;top:7%;width:30%;height:17%;z-index:-1;pointer-events:none;border-radius:50%;
   background:radial-gradient(ellipse at 40% 40%,rgba(255,255,255,calc(.95*var(--lk))) 0,rgba(255,255,255,calc(.35*var(--lk))) 45%,transparent 72%);transform:rotate(-14deg)!important;animation:none!important;opacity:1!important}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte) :is(span,.pxi,i){text-shadow:0 1px 3px rgba(10,20,60,.7)}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte):is(:active,.appui){translate:0 2px;--lk:1.25}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte){transform:none!important;border-radius:20px!important}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte) *{transform:none!important}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)::before{border-radius:inherit!important;inset:5px!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte,.mPlay) :is(span,.pxi,i){text-shadow:0 1px 3px rgba(10,20,60,.7)}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte,.mPlay):is(:active,.appui){translate:0 2px;--lk:1.25}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte,.mPlay){transform:none!important;border-radius:20px!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte) *{transform:none!important} /* .mPlay exclu : ses lettres .lg gardent leur `transform` (la vague pxScale au clic) */
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte,.mPlay)::before{border-radius:inherit!important;inset:5px!important}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mHubPorte{--nc:#2f80ff!important}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mOffres{--nc:#ff3347!important}
 html #mHome.on .mTitle::after,html #mHome .mTitle::after{background:linear-gradient(90deg,transparent,var(--neoC) 18%,var(--neoC) 40%,transparent 40.5%,transparent 43%,var(--neoM) 43.5%,var(--neoM) 64%,transparent 64.5%,transparent 67%,var(--au2) 67.5%,var(--au2) 82%,transparent)!important;box-shadow:0 0 14px rgba(0,234,255,.5)!important}
 </style>
 <style id="accueilDiagonale">
-/* ===== L'ACCUEIL EN DIAGONALE (2026-10-25, Sacha : « REGLAGES dépasse du bouton, réduis ; mets JOUER un peu plus à droite, de belles diagonales dynamiques,
-   dans l'idée de la caisse penchée ») =====
-   1. Le mot des trois tuiles (GARAGE · ACHAT · REGLAGES) : même corps, plus petit, sans espacement ni retrait à gauche, jamais plus large que la tuile
-      (REGLAGES, le plus long, mordait le bord).
-   2. La diagonale « \ » de la caisse (nez en bas à droite) : les tuiles descendent d'un cran de gauche à droite, JOUER descend encore, part à droite et
-      penche de 4° dans le même sens. Seulement `translate` / `rotate` (propriétés à part) : le `transform:none` des tuiles et l'appui (`translate:0 2px`) restent. */
+/* ===== L'ACCUEIL À PLAT (2026-10-26, Sacha, sur capture : « c'est mal géré, mets-toi dans la peau d'un designer professionnel, UX, UI,
+   redessine ça. Là, les proportions sont mal gérées. Équilibre ») =====
+   La diagonale du 2026-10-25 (tuiles en escalier 0/9/18 px, JOUER décalé + penché à 4°) cassait l'alignement entre les trois tuiles et
+   avec JOUER sans rien apporter de lisible — retirée : les trois tuiles et JOUER reviennent sur une même ligne, l'appui uniforme
+   (`translate:0 2px`, posé dans #tuilesVerre) suffit. Reste de cette passe : le mot des trois tuiles (GARAGE · ACHAT · REGLAGES), même
+   corps, plus petit, sans espacement ni retrait à gauche, jamais plus large que la tuile (REGLAGES, le plus long, mordait le bord). */
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear){padding:0 3px!important;align-items:center!important;justify-content:center!important;overflow:visible}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear)>span{display:block!important;max-width:100%;box-sizing:border-box;font-size:9px!important;letter-spacing:0!important;white-space:nowrap;overflow:hidden;text-overflow:clip;text-align:center;padding:0!important}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mHubPorte{translate:0 0}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mOffres{translate:0 9px}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mGear{translate:0 18px}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear):is(:active,.appui){translate:0 calc(var(--dy,0px) + 2px)}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mOffres{--dy:9px}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mGear{--dy:18px}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:22px 20px;rotate:4deg;transform-origin:50% 50%}
-@media (orientation:landscape) and (max-height:540px){
-  html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:56px 24px;rotate:4deg}}
-@media (prefers-reduced-motion:reduce){html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{transition:none}}
 </style>
 <style id="palierLeger">
 /* ===== LE CSS PAR PALIER (2026-10-23, audit mobile, Sacha : « une version mobile fluide sans que ça baisse trop en qualité ») =====

@@ -31,7 +31,11 @@ html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear) .p
   html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear){gap:4px!important}}
 /* (14/10 ~21 h, Sacha : « enlève cadeau, touche et mission » de l'ACCUEIL — les missions restent au garage, le cadeau dans MISSIONS) */
 html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{display:none!important}
-html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-rows:0 auto minmax(16px,1fr) 0 0 68px 12px 74px 0}
+/* (2026-10-26, Sacha, sur capture : « c'est mal géré… les proportions sont mal gérées. Équilibre ») mesuré en vrai (iPhone 375×812) :
+   la ligne de ciel vide valait TOUT le `1fr` (577 px, 71 % de l'écran) pendant que la ligne du bas restait fixe à 0 — la grappe de
+   boutons collait au bord. Le ciel passe à `.62fr`, une seconde ligne flexible (`.38fr`) apparaît sous JOUER : l'espace libre se
+   partage désormais au-dessus ET en dessous de la grappe, qui respire au lieu d'être collée au bord. */
+html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-rows:0 auto minmax(24px,.62fr) 0 0 68px 12px 74px minmax(16px,.38fr)}
 @media (orientation:landscape) and (max-height:540px){html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-rows:minmax(0,1fr) auto 34px 0 0 56px 8px 58px minmax(0,1fr)}} /* (2026-10-15) 34 px : les tuiles ne mordent plus le trait néon du logo */
 /* (2026-10-16, Sacha : « dans l'écran d'accueil GARAGE, OFFRE et RÉGLAGES doivent être de couleur rose, bleu et jaune — comme les bandes sous le logo CAR CASH »)
    LES TROIS TUILES AUX COULEURS DE LA LIVRÉE : dans l'ordre des trois bandes du trait néon sous le logo (rose · cyan · or, `--livree`), de gauche à droite.

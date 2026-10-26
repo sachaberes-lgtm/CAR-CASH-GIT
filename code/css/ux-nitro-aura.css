@@ -14,10 +14,14 @@
      la pastille gardée) — cinq places, plus aucun mot à l'étroit (les mots de 90 px débordaient sur la porte voisine)
    · rangée 2 : JOUER FLOTTANT — le mot d'or en cubes, sans plaque (l'accueil contemplatif du 30/09), centré sous la rangée
    Les deux boîtes d'origine (.mOutils, .mAccP) s'effacent (display:contents) : leurs boutons entrent dans UNE grille de 5 colonnes.
-   Debout : le logo en tête, les rangées au pied. Couché : le bloc à droite, centré en hauteur, le logo posé dessus (Léo). */
+   Debout : le logo en tête, les rangées au pied. Couché : le bloc à droite, centré en hauteur, le logo posé dessus (Léo).
+   ===== REÉQUILIBRAGE (2026-10-26, Sacha, sur capture : « c'est mal géré, mets-toi dans la peau d'un designer professionnel, UX, UI,
+   redessine ça. Là, les proportions sont mal gérées. Équilibre ») : même déséquilibre que la variante `.c6` de ux8.css (la ligne de ciel
+   vide prenait TOUT le `1fr` pendant que la grappe de boutons restait collée au bord du bas) — même remède ici : le ciel passe à `.6fr`,
+   une seconde ligne flexible (`.34fr`) apparaît sous JOUER, et sa propre ligne grandit (74 → 104 px) pour ne plus serrer son contenu. */
 html.hub:not(.poki) body #mHome.acc2:is(.on,.sort){display:grid!important} /* seulement quand l'accueil est à l'écran (ou qu'il en sort) : ailleurs la coque le cache */
 html.hub:not(.poki) body #mHome.acc2{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 54px 54px 54px;column-gap:10px;row-gap:0;
-  grid-template-rows:0 auto minmax(16px,1fr) 54px 8px 74px 0;align-content:stretch;justify-content:stretch}
+  grid-template-rows:0 auto minmax(24px,.6fr) 60px 12px 104px minmax(18px,.34fr);align-content:stretch;justify-content:stretch}
 html.hub:not(.poki) body #mHome.acc2>.mVide{display:none!important}
 html.hub:not(.poki) body #mHome.acc2>:is(.mOutils,.mAccP){display:contents!important}
 html.hub:not(.poki) body #mHome.acc2>.mTitle{grid-row:2;grid-column:1/-1;justify-self:center;align-self:start;margin:0!important}
@@ -40,11 +44,12 @@ html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear){flex-direct
 html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres)>span{display:none!important}
 html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear) .pxi{--pxs:3}
 html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres) .mBadge{top:-10px!important;right:-9px!important;transform:scale(.72)!important;transform-origin:100% 0!important}
-/* JOUER FLOTTANT : le mot d'or en cubes, sans plaque ni cadre ; il s'enfonce d'un cran sous le doigt */
-html.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay{background:none!important;box-shadow:none!important;clip-path:none!important;transform:none!important;padding:0!important;
-  display:flex!important;align-items:center!important;justify-content:center!important;filter:drop-shadow(0 0 .3em rgba(255,200,80,.45)) drop-shadow(0 4px 0 rgba(20,8,0,.35))!important}
-html.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay .lg{font-size:44px!important}
-html.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay:is(:active,.appui){transform:translateY(3px) scale(.97)!important}
+/* JOUER, LA PLAQUE (2026-10-26) : le mot d'or en cubes gardé tel quel, mais posé sur la MÊME tuile verre-loupe que GARAGE/ACHAT/RÉGLAGES
+   (le système partagé vit dans #tuilesVerre, boutons-flottants.css — .mPlay y est inscrit à côté des trois autres), teintée or (--nc).
+   JOUER se lit comme LA MÊME famille, juste plus grande et plus gravée — plus un objet à part qui flotte, un bouton comme les autres. */
+html.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay{--nc:var(--au2);clip-path:none!important;transform:none!important;padding:0!important;overflow:visible;
+  display:flex!important;align-items:center!important;justify-content:center!important;filter:none!important}
+html.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay .lg{font-size:44px!important;text-shadow:0 1px 3px rgba(10,20,60,.7)}
 /* LE LOGO D'AVANT (Sacha : « le logo CASH CAR est trop rose, remets l'ancien ») : « la brillance du logo » (Léo, 10/10, 98b905c — CAR
    en coucher de soleil, du corail au violet) est neutralisée ici : les dégradés et le reflet d'origine (.lg.gold / .lg.grad / lgShine) */
 html.hub:not(.poki) body #mHome.acc2 .mTitle .lg.gold{background:linear-gradient(180deg,#fffdf2 0%,#ffe9a0 28%,#ffc400 52%,#b06c05 74%,#ffe9a0 96%);-webkit-background-clip:text;background-clip:text}
