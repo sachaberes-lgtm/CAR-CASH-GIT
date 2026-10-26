@@ -195,7 +195,7 @@ function invTotal(cat){ // (2026-10-20) tout ce qui existe dans l'onglet (le dé
   return COSM[cat]?COSM[cat].length:0;}
 function invRgba(hex,a){const n=parseInt(String(hex).slice(1),16)||0;return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a.toFixed(2)+')';}
 function invRender(){
-  const g=$('ivGrille');if(!g)return;let tot=0;
+  const g=$('ivGrille');if(!g)return;let tot=0;g.dataset.cat=INV.cat; // (2026-10-26) la grille sait son onglet (les peintures, de petits nuanciers, tiennent une colonne de plus)
   document.querySelectorAll('#gInv .ivTab').forEach(function(b){const c=b.getAttribute('data-c'),on=c===INV.cat,n=invListe(c).length;tot+=n;
     b.classList.toggle('on',on);b.setAttribute('aria-selected',on);const em=b.querySelector('em');if(em&&em.textContent!==String(n))em.textContent=n;});
   const ic=$('ivCompte');if(ic)ic.textContent=tot+' '+TR(tot>1?'OBJETS':'OBJET');

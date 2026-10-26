@@ -378,15 +378,17 @@ if(PEINT_V2){
     if(id){d.mis2=id;delete d.mis;delete d.p;delete d.eur;if(/relevant des défis/.test(d.d||''))d.d="Ne s'achète pas : elle se gagne par une mission.";}
     else if(d.mis){delete d.mis;if(d.id==='arcenciel'){d.pack='chat';d.d="Ne s'achète pas : elle vient avec le CHAT POP-TART.";}}}}
 /* LE RANGEMENT DES PEINTURES (2026-10-26, Léo : « range toutes ces petites couleurs : les basiques qu'on connaît tous tout en haut ; en dessous les plus originales — un
-   pastel retouché, un mélange, une teinte unie un peu complexe ; en dessous les dégradés vraiment stylés ; tout en dessous ceux à motifs ») : D'ORIGINE, puis QUATRE
-   familles. Une teinte unie est rangée par ID (les secrètes masquées n'ont ni couleur ni dégradé tant qu'on ne les a pas gagnées : leur place ne doit pas bouger quand
-   elles se dévoilent) ; ce qui n'est ni basique ni original ni à motif est un dégradé. L'ordre des deux listes EST l'ordre à l'écran (noir, blanc, puis l'arc-en-ciel ;
-   les pastels, puis les teintes complexes, puis les métaux). */
+   pastel retouché, un mélange, une teinte unie un peu complexe ; en dessous les dégradés vraiment stylés ; tout en dessous ceux à motifs » — puis : « et ordre de famille ») :
+   D'ORIGINE, puis QUATRE familles, et DANS chaque famille les couleurs vont par FAMILLE DE TEINTE : rouges, orangés, jaunes, verts, bleus, violets, roses, puis les neutres
+   (noir, blanc, gris) et les métaux. Une peinture est rangée par ID (les secrètes masquées n'ont ni couleur ni dégradé tant qu'on ne les a pas gagnées : leur place ne doit
+   pas bouger quand elles se dévoilent). L'ordre des listes EST l'ordre à l'écran ; une peinture nouvelle s'ajoute à la bonne liste (sinon : après les dégradés listés ;
+   les motifs, eux, gardent l'ordre du catalogue). */
 const PEINT_BASIQUES=['noir','neige','bolide','emeute','taxi','billet','azur','minuit','royal','fuchsia','poupee'],
-  PEINT_ORIGINALES=['dragee','abricot','vanille','pistache','amande','piscine','lilas','menthe','lagon','nardo','ogre','gotham','cuivre','or','orrose','chrome','fantome'];
+  PEINT_ORIGINALES=['dragee','orrose','abricot','cuivre','vanille','or','pistache','amande','menthe','ogre','lagon','piscine','lilas','nardo','gotham','chrome','fantome'],
+  PEINT_DEGRADES=['srBraise','lave','envers','couchant','guerrier','banana','prisme','jadeimperial','cameleon','srAurore','srLagon','eclair','lampadaire','srEtoile','vaporwave','holo','nacre','orage','lunaire'];
 function peintClef(j){const d=COSM.peinture[j];if(d.id==='usine')return -1; // D'ORIGINE en tête, puis 1 basiques · 2 originales · 3 dégradés · 4 motifs
-  let k=PEINT_BASIQUES.indexOf(d.id);if(k>=0)return 100+k;k=PEINT_ORIGINALES.indexOf(d.id);if(k>=0)return 200+k;
-  return (d.mot?400:300)+j;} // dégradés et motifs : l'ordre du catalogue
+  let k=PEINT_BASIQUES.indexOf(d.id);if(k>=0)return 100+k;k=PEINT_ORIGINALES.indexOf(d.id);if(k>=0)return 200+k;k=PEINT_DEGRADES.indexOf(d.id);if(k>=0)return 300+k;
+  return (d.mot?400:350)+j;} // les motifs : l'ordre du catalogue
 function peintOrdre(){const L=COSM.peinture.map(function(d,j){return j;});if(!PEINT_V2)return L; // les indices de COSM.peinture, rangés par famille (voir peintClef)
   return L.sort(function(a,b){return peintClef(a)-peintClef(b);});}
 /* acheter un habillage EN EUROS (une peinture) : la porte de StoreKit, comme une caisse — rien n'est donné tant qu'Apple n'a pas encaissé */

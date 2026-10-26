@@ -315,6 +315,8 @@ html body #garage.deplie:not(.menu) #gBottom{animation:gDeplie .34s var(--ease,c
   display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));grid-auto-rows:112px;gap:16px 12px;align-content:start;padding:12px 10px 16px;
   scrollbar-width:none;-webkit-mask:linear-gradient(180deg,transparent 0,#000 12px,#000 calc(100% - 14px),transparent);mask:linear-gradient(180deg,transparent 0,#000 12px,#000 calc(100% - 14px),transparent)}
 #ivGrille::-webkit-scrollbar{display:none}
+/* (2026-10-26, Léo : « je dois pouvoir en voir plus en même temps, une de plus à chaque rangée ») les PEINTURES sont de petits nuanciers : une colonne de plus que le reste de l'inventaire, debout comme couché */
+#ivGrille[data-cat="peinture"]{grid-template-columns:repeat(auto-fill,minmax(68px,1fr))}
 /* LA TUILE : l'objet, son nom, et la LUEUR de sa rareté (--rc la couleur, --rg la lueur, --rf le fond : posés par invRender, en rgba —
    pas de color-mix : les vieux iPhone le lisent mal, voir hudDA §7) ; plus la famille est rare, plus elle brille (--rk) */
 .ivT{--rc:#b9c4d6;--rg:rgba(185,196,214,.35);--rf:rgba(185,196,214,.1);--rk:.5;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
