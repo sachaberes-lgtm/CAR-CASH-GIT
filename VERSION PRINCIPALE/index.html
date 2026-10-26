@@ -55055,7 +55055,7 @@ const MR={x:new Float32Array(MONN_N),y:new Float32Array(MONN_N),z:new Float32Arr
   sc:new Float32Array(MONN_N),f:new Uint8Array(MONN_N),head:0,viv:0,acc:0};
 let moneyRainT=0,nextRainAt=4e3*ECO3.gain; // calé sur l'éco ×2,5 : ~une pluie par niveau (l'ancien 1e4/×10 suivait l'éco ×10) · ×ECO3.gain (vague 3) : la pluie tombe au même moment de la partie
 function startMoneyRain(){
-  plaSurge(4.5);MR.acc=0; // (2026-10-13) la PLUIE D'ARGENT v2 (billets, pièces, confettis : voir PLA) remplace l'averse de glyphes — moneyRainT reste à 0 (l'ancienne se rallume avec moneyRainT=3)
+  moneyRainT=3;MR.acc=0; // (2026-10-26, Sacha : « la pluie de billets, là, elle était mieux avant » — retour à l'averse de glyphes, avant la PLUIE D'ARGENT v2 du 13/10 (PLA reste pour CRYPTOCITY)
   try{son('pluie.billets',fanfare);}catch(e){} // (console de son) la pluie FROISSE : billets qui tombent partout + pièces (plus la fanfare d'une caisse débloquée)
 }
 function updateMoneyRain(dt,t){
