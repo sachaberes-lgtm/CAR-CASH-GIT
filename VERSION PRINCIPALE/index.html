@@ -21771,7 +21771,7 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
   const Q=c=>ancien?'true':c; // (passe perf) chaque saut de calcul : `true` sur l'ANCIEN chemin (le banc compare au même code)
   m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;sh.uniforms.uWet9=ROAD_U.uWet;sh.uniforms.uCour9=CITY.uC;sh.uniforms.uPied9=CITY.uPied;sh.uniforms.uPiedC9=CITY.uPiedC;if(!ancien){sh.uniforms.uLum9=CITY.uL;}
     {sh.uniforms.uJ9=CITY.uJ;sh.uniforms.uJHor9=skyU.uJHor;sh.uniforms.uJMid9=skyU.uJMid;} // le jour, et le ciel que le verre renvoie
-    if(GTA9)sh.uniforms.uGta9=CITY.uGta;
+    if(GTA9){sh.uniforms.uGta9=CITY.uGta;sh.uniforms.uAcc9=VV.uAcc;sh.uniforms.uCamE9=VIT.uCam;sh.uniforms.uEmb9=CITY.uEmb;} // (2026-10-20, VILLE EMBELLIE) l'accent de la teinte, l'œil, l'interrupteur des ajouts (voir ville-embellie.js)
     sh.vertexShader=(ancien?'':'#undef USE_SHADOWMAP\n')+sh.vertexShader.replace('#include <common>','#include <common>\n'+DECL+(ancien?'':'\nuniform vec4 uLum9[4];\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nuniform float fogFar;\n#endif\n'))
       .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n'+
         'vec3 sc9=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));'+
@@ -21783,7 +21783,7 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
         'for(int i=0;i<4;i++)if(distance(w9,uLum9[i].xyz)<uLum9[i].w+r9)proche9=true;}\n#else\nbool proche9=true;\n#endif\n'))
       .replace('#include <lights_lambert_vertex>',ancien?'#include <lights_lambert_vertex>':'vLightFront=vec3(0.);vIndirectFront=vec3(0.);\nif(!loin9){\n'+VILLE_LLV+'\n}');
     if(!ancien)sh.fragmentShader='#undef USE_SHADOWMAP\n'+sh.fragmentShader;
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uCour9,uPied9;uniform vec3 uPiedC9;'+DECL+('uniform float uJ9;uniform vec3 uJHor9,uJMid9;')+(GTA9?'uniform float uGta9;':''))
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uCour9,uPied9;uniform vec3 uPiedC9;'+DECL+('uniform float uJ9;uniform vec3 uJHor9,uJMid9;')+(GTA9?'uniform float uGta9,uEmb9;uniform vec3 uAcc9,uCamE9;':''))
       .replace('#include <fog_fragment>',
         /* LES FENÊTRES v2 (2026-09-26) — chaque tour a sa PERSONNALITÉ, tirée de sa graine : travée 2,6-4,4 m, étage 3,5-4,4 m, taux
            d'allumage 22-62 %, habitation (ambre chaud) ou bureaux (blanc-cyan froid, fenêtres en BANDEAU allumées par plateaux entiers).
@@ -21814,7 +21814,7 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
           'float F9=min(.04+.96*pow(1.-max(dot(N9,V9),0.),5.),.5);vec3 R9=reflect(-V9,N9);'+ // (GTA) le VERRE : Fresnel de Schlick
           'vec3 sk9=mix(fo9*1.1+uPiedC9*1.4*uPied9,fo9*.3,smoothstep(-.05,.45,R9.y));'+ // ce qu'il renvoie : la lueur de la ville sur l'horizon, le ciel sombre au-dessus
           'sk9=mix(sk9,fo9*.55+uPiedC9*2.6*uPied9,smoothstep(0.,-.35,R9.y));'+ // … et la rue violette en dessous
-          'vec3 gl9=mix(vec3(.010,.012,.020)*(1.+bur),sk9*.5,F9);float sl9=0.,pr9=1.;':'')+ // pr9 : chaque carreau un peu de travers (le reflet varie) // le verre teinté (les bureaux un peu plus clairs) ; sl9 : la ligne de dalle
+          'vec3 gl9=mix(vec3(.010,.012,.020)*(1.+bur),sk9*.5,F9);'+(PAL.n>=1?VEMB_ECHO:'')+'float sl9=0.,pr9=1.;':'')+ /* (2026-10-20, VILLE EMBELLIE) l'écho des néons dans le verre éteint — paliers MOYEN et RÉCENT (voir VEMB_ECHO) */ // pr9 : chaque carreau un peu de travers (le reflet varie) // le verre teinté (les bureaux un peu plus clairs) ; sl9 : la ligne de dalle
         'if('+Q('fv>0.')+'){vec2 hw='+(GTA9?'mix(vec2(mix(.3,.46,bur),.26),mix(vec2(.32,.28),vec2(.46,.40),bur),G9);':'vec2(mix(.3,.46,bur),.26);')+ // (GTA) logements : le carreau un peu plus grand ; bureaux : le verre de dalle à dalle
         'float tx=.55+.1*s2,far=smoothstep(.3,.75,max(fw.x,fw.y)),avg=tx*4.*hw.x*hw.y;vec3 wv=mix(dom,aut,.2)*avg*1.05;'+ // wv : la lueur MOYENNE (le lointain)
         (GTA9?'wv=mix(wv,vec3(.66,.84,1.)*avg*.62,bur*G9);':'')+ // (GTA) au loin, les bureaux gardent la couleur de leur néon (et leurs 40 % allumés)
@@ -21848,6 +21848,7 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
         'gl_FragColor.rgb+=wv*fv*1.3*uCour9'+('*(1.-.9*uJ9)')+';}'+
         (GTA9?'if(G9>0.&&fv>0.){'+
           'if(vSc9.y>150.&&s5<.62){float rr=max(.9,2.2*max(fc9,ft9));float ka=(1.-smoothstep(rr*.5,rr,dc9))*(1.-smoothstep(rr*.5,rr,dt9));gl_FragColor.rgb+=vec3(1.,.07,.04)*ka*step(.55,fract(uT9*.8+s5*3.))*3.5*G9;}'+ // (GTA) les FEUX D'OBSTACLE aux coins du toit (≥ 1 px)
+          VEMB_BANDE+ /* (2026-10-20, VILLE EMBELLIE) LES ÉTAGES TECHNIQUES : une bande de LED tous les 12 à 21 étages sur une tour haute sur deux et demie */
           'if(s4>.8&&vSc9.y>80.){float lw=max(.5,1.8*fc9);float kl=max(1.-smoothstep(lw*.5,lw,dc9),1.-smoothstep(lw*.5,lw,dt9));vec3 lc=s5>.5?vec3(.24,.91,1.):normalize(uPiedC9+1e-4)*1.5;'+
           'gl_FragColor.rgb+=lc*kl*(.75+.45*sin(vLoc9.y*.06-uT9*3.+s5*20.))*1.25*uCour9*G9;}}':'')+ // (GTA) les BANDES LED des arêtes et du toit (une tour sur cinq), la lumière qui monte
         // uCour9 : la PANNE éteint les fenêtres (campagne VILLE, niveau 16) ; (facades-jour) de jour, un reflet à 10 %, pas une lumière
@@ -21859,7 +21860,7 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
     // Pondéré par uJ9 : la nuit garde ses teintes au bit près (mix(…,0) rend la couleur telle quelle).
     sh.fragmentShader=sh.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb*=mix(vec3(1.),'+('vec3(1.,1.,.98)')+',uJ9);'); /* (metropole) le béton de jour reste NEUTRE (la teinte jaunâtre beigeait l'acier et le verre) */
   };
-  m.customProgramCacheKey=function(){return ancien?('toursV3j'):('toursV5'+(FIN9?'f':'')+('n')+(GTA9?'g':''));}; // (facades-jour) une clé remplacée, pas un programme de plus
+  m.customProgramCacheKey=function(){return ancien?('toursV3j'):('toursV6'+(FIN9?'f':'')+('n')+(GTA9?'g':'')+(PAL.n>=1?'e':''));}; // (facades-jour) une clé remplacée, pas un programme de plus
   CITY[K]=m;return m;
 }
 /* (2026-10-17, banc) dbgVilleGta(k,a,d,h) : les façades GTA à k (0 = l'image d'avant, 1 = GTA) et UNE image re-rendue — la caméra posée par
@@ -21904,6 +21905,7 @@ function villeMatNeon(ancien){ // enseignes, couronnes, feux d'antenne — ils R
         '  float q=(an.x>an.z?vL9.z:vL9.x)+(an.x>an.z?vL9.x:vL9.z)*.3,d=fract(q/2.2-uT9*(1.+vS9*2.));'+
         '  float b=smoothstep(.3,.08,abs(d-.5)),lo=smoothstep(.3,.8,(an.x>an.z?fL.z:fL.x)/2.2);'+
         '  k9=mix(.45,mix(.3+1.1*b,.72,lo),fv);}'+
+        'if(sc.y>12.&&min(sc.x,sc.z)<3.&&fract(vS9*37.3+.17)>.9)gl_FragColor.rgb=vec3(1.,.8,.34)*dot(gl_FragColor.rgb,vec3(.3,.5,.2))*1.7;'+ // (2026-10-20, VILLE EMBELLIE) L'OR : une enseigne verticale sur dix passe à l'or sodium — le clin d'œil CASH, rare
         'gl_FragColor.rgb*=fl*k9*mix(.03,1.,uCour9);}}\n#include <fog_fragment>');};
   m.customProgramCacheKey=function(){return ancien?'neonsV2':'neonsV3';};
   CITY[K]=m;return m;
@@ -21945,7 +21947,7 @@ function villePubAtlas(){
   const PUB=[['CASH CAR','#ffd75e','#ff2e8e','LA CAISSE QUI PAIE'],['1.61','#fff3be','#b86bff','GAME STUDIO'],['NITRO','#ff8d2e','#ff2e2e','PLEIN GAZ'],['$$$','#ffd75e','#7a1fb0','BANQUE OUVERTE'],
     ['AURA','#ff9ee6','#7a2fd0','BRILLE FORT'],['FLOW','#5ee6ff','#1d63c8','NE LACHE RIEN'],['GO !','#ffffff','#ff5e7a','VITE VITE'],['24/7','#ffe23e','#ff7a14','NUIT BLANCHE'],
     ['RAMEN','#ffb85a','#d8261e','CHAUD'],['NEON','#2ee6ff','#ff3ea5','PLUIE ET LUMIERE'],['TURBO','#ffffff','#ff2e8e','PLUS VITE'],['CASINO','#ffd75e','#b0106a','TOUT OU RIEN'],
-    ['DRIVE','#9fe8ff','#3a2fd0','OU CREVE'],['LUCKY','#7dffec','#ff3ea5','7 7 7'],['SUSHI','#ffffff','#ff5e7a','24 H'],['VITESSE','#ffe23e','#b0102a','ILLEGALE']];
+    ['DRIVE','#9fe8ff','#3a2fd0','OU CREVE'],['LUCKY','#7dffec','#ff3ea5','7 7 7'],['SUSHI','#ffffff','#ff5e7a','24 H'],['\u20bf','#fff0b0','#c08a14','CASH CAR']]; /* (2026-10-20, VILLE EMBELLIE) L'OR : la 16e réclame (VITESSE ILLÉGALE) devient la pièce ₿, dorée — 1 panneau sur 16 */
   pubLangue(PUB); // (2026-10-14, textes) les réclames parlent la langue du joueur
   if(T9)for(const p of PUB){p[1]=vtHex(p[1],T9);p[2]=vtHex(p[2],T9);} // (teintes) le magenta et le violet des réclames → la couleur de la ville
   x.imageSmoothingEnabled=false; // (2026-09-26, vague 2) plus de VERT dans la ville (il n'est nulle part dans la bible) : « $$$ » et « CASINO » passent à l'or sur violet et sur magenta
@@ -21953,7 +21955,10 @@ function villePubAtlas(){
     const g=x.createLinearGradient(0,oy,0,oy+C);g.addColorStop(0,p[2]);g.addColorStop(1,vtHex('#08061a',T9));x.fillStyle=g;x.fillRect(ox+4,oy+4,C-8,C-8);
     x.strokeStyle=p[1];x.lineWidth=4;x.strokeRect(ox+8,oy+8,C-16,C-16);
     x.fillStyle=p[1];x.textAlign='center';x.textBaseline='middle';
-    const fz=Math.min(26,Math.floor((C-28)/Math.max(3,p[0].length)));x.font=fz+'px "Press Start 2P",monospace';x.fillText(p[0],ox+C/2,oy+C*.44);
+    const fz=Math.min(26,Math.floor((C-28)/Math.max(3,p[0].length)));if(p[0]==='\u20bf'){const u=7,x0=ox+C/2-18,y0=oy+Math.round(C*.42)-24,B9=['11110','10001','10001','11110','10001','10001','11110']; /* le ₿ en pixels, comme le reste de l'atlas (la police n'a pas ce signe) : un B et ses deux barres */
+      for(let r=0;r<7;r++)for(let c=0;c<5;c++)if(B9[r][c]==='1')x.fillRect(x0+c*u,y0+r*u,u,u);
+      x.fillRect(x0+u+2,y0-7,3,7);x.fillRect(x0+3*u-1,y0-7,3,7);x.fillRect(x0+u+2,y0+49,3,7);x.fillRect(x0+3*u-1,y0+49,3,7);}
+    else{x.font=fz+'px "Press Start 2P",monospace';x.fillText(p[0],ox+C/2,oy+C*.44);}
     x.font='8px "Press Start 2P",monospace';x.fillStyle='#ffffff';x.fillText(p[3],ox+C/2,oy+C*.74);
     for(let i=0;i<5;i++){x.fillStyle=p[1];x.globalAlpha=.55;x.fillRect(ox+14+i*20,oy+C-22,12,4);}x.globalAlpha=1;});
   CITY.pubT=te9;if(CITY.pub){CITY.pub.image=cv;CITY.pub.needsUpdate=true;return CITY.pub;} // (teintes) la même texture, sa toile remplacée : la matière des panneaux ne bouge pas
@@ -23011,7 +23016,15 @@ const VV_VERRE=vitreVerre(VV_CIEL_B).replace('sty=s3<.26?0.:s3<.50?1.:s3<.66?2.:
   .replace('colF+=vec3(.25,.62,1.)*','colF+=uAcc9*1.4*')
   .replace('step(.5,fract(vSeed9*17.9))*(.1+1.5*uNuit9)','step(.25,fract(vSeed9*17.9))*(.1+1.5*uNuit9)')
   .replace('vec3(.6,.86,1.)*1.9,uNuit9)','mix(uAcc9,vec3(1.),.35)*1.9,uNuit9)')
-  .replace('gl_FragColor.rgb+=vec3(.86,.93,1.)*(1.-smoothstep(.55,.55+fe*1.5,de))','gl_FragColor.rgb+=mix(uAcc9,vec3(1.),.3)*1.6*(1.-smoothstep(.55,.55+fe*1.5,de))');
+  .replace('gl_FragColor.rgb+=vec3(.86,.93,1.)*(1.-smoothstep(.55,.55+fe*1.5,de))','gl_FragColor.rgb+=mix(uAcc9,vec3(1.),.3)*1.6*(1.-smoothstep(.55,.55+fe*1.5,de))')
+  /* (2026-10-20, VILLE EMBELLIE) L'ÉCHO des néons dans le verre (des bandes verticales de la teinte et de cyan, fortes sous l'œil) et les ÉTAGES TECHNIQUES (une bande de LED tous les 12 à 21 étages sur une géante sur deux) */
+  .replace('vec3 refl=sky*tint*1.18+gl*uSunC9*mix(tint,vec3(1.),.6);','vec3 refl=sky*tint*1.18+gl*uSunC9*mix(tint,vec3(1.),.6);'+
+    'float bwV=8.+s2*16.,gbV=floor(ux/bwV),hbV=fract(sin(gbV*12.9898+vSeed9*78.233)*43758.5453),sbV=sin(3.14159*fract(ux/bwV)),pkV=smoothstep(.5,.9,hbV)*sbV*sbV,grV=smoothstep(280.,-140.,vW9.y-uCam9.y);'+
+    'refl+=mix(uAcc9,vec3(.24,.91,1.),step(.5,fract(hbV*7.3)))*pkV*grV*.26*uEmb9;')
+  .replace('gl_FragColor.rgb=colF;','gl_FragColor.rgb=colF;'+
+    'if(s4<.45&&vSc9.y>150.){float npV=12.+floor(s2*10.),yyV=vB9/(fh*npV),fyV=max(fwidth(yyV),1e-5),dqV=abs(fract(yyV+.5)-.5),hbV2=.4/npV;'+
+    'float lbV=1.-smoothstep(hbV2,hbV2+fyV*1.5,dqV);lbV=mix(lbV,2.*hbV2,smoothstep(.4,1.5,fyV));lbV+=.2*exp(-dqV*npV/1.2)*(1.-smoothstep(.4,1.5,fyV));'+
+    'vec3 bcV=s1>.8?vec3(1.,.78,.34):mix(uAcc9,vec3(.24,.91,1.),step(.5,s1));gl_FragColor.rgb+=bcV*lbV*1.15*uNuit9*uEmb9;}');
 /* LE PIED DANS LA BRUME : les volumes sont EMPILÉS (voir buildVoxCity), on ne connaît plus le pied de la tour — la brume est une NAPPE posée
    à ~380 m sous la caméra (la route est à ~330 m au-dessus du pied des tours), fondue sur 300 m ; la nuit, la rue l'éclaire à peine. */
 /* (CLEAN CITY) ⚠ une tour qui borde un étage de route PLUS HAUT a son pied au-dessus de la caméra : la nappe seule ne le noyait pas — elle flottait,
@@ -23048,7 +23061,7 @@ function vitreMatFab(NE){ // NE : le verre de LA VILLE (VV_VERRE, les uniformes 
     'if(fo<3.5)return (1.+.16*sin(3.1416*clamp((hh-.4)/.45,0.,1.)))*mix(1.,.5,smoothstep(.8,1.,hh));if(fo<4.5)return mix(1.,.8,smoothstep(.4,1.,hh));return 1.;}';
   m.onBeforeCompile=function(sh){Object.assign(sh.uniforms,{uT9:CITY.uT,uWet9:ROAD_U.uWet,uLum9:CITY.uL,uZen9:skyU.uJZen,uMid9:skyU.uJMid,uHor9:skyU.uJHor,
       uSun9:VIT.uSun,uCam9:VIT.uCam,uNuit9:VIT.uNuit,uSunC9:VIT.uSunC,uSunK9:VIT.uSunK,uCl9:VIT.uCl,uClK9:VIT.uClK,uClL9:VIT.uClL,uClA9:VIT.uClA,uClD9:VIT.uClD,uClS9:VIT.uClS,uClH9:VIT.uClH,uClT9:VIT.uClT,uBand9:VIT.uBand,uPlf9:VIT.uPlf,uHaut9:VIT.uHaut,uSolR9:VIT.uSolR});
-    if(NE)Object.assign(sh.uniforms,{uZen9:VV.uZen,uMid9:VV.uMid,uHor9:VV.uHor,uAcc9:VV.uAcc,uNuit9:VV.uNuit,uSunK9:VV.uSunK,uClK9:VV.uClK,uClL9:VV.uClL,uClA9:VV.uClA,uClD9:VV.uClD,uPlf9:VV.uPlf,uPied9:CITY.uPied,uPiedC9:CITY.uPiedC}); // (NÉON ET VERRE) le ciel de la ville, sa teinte, son pied
+    if(NE)Object.assign(sh.uniforms,{uZen9:VV.uZen,uMid9:VV.uMid,uHor9:VV.uHor,uAcc9:VV.uAcc,uNuit9:VV.uNuit,uSunK9:VV.uSunK,uClK9:VV.uClK,uClL9:VV.uClL,uClA9:VV.uClA,uClD9:VV.uClD,uPlf9:VV.uPlf,uPied9:CITY.uPied,uPiedC9:CITY.uPiedC,uEmb9:CITY.uEmb}); // (NÉON ET VERRE) le ciel de la ville, sa teinte, son pied
     sh.vertexShader='#undef USE_SHADOWMAP\n'+sh.vertexShader.replace('#include <common>','#include <common>\n'+DECL+'\nattribute vec2 aCh9;uniform vec4 uLum9[4];uniform float uHaut9;\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nuniform float fogFar;\n#endif\n'+SF+'\n')
       .replace('#include <color_vertex>','#include <color_vertex>\nfloat fo9=0.;\n#ifdef USE_INSTANCING_COLOR\nfo9=floor(instanceColor.r/8.+.001);vColor.r-=8.*fo9;\n#endif\nvFo9=fo9;vPb9=0.;\n#ifdef USE_INSTANCING_COLOR\nvPb9=floor(instanceColor.g/8.+.001);vColor.g-=8.*vPb9;\n#endif\n') // LA FORME, rangée dans la couleur d'instance (r + 8 × forme)
             .replace('#include <beginnormal_vertex>','#include <beginnormal_vertex>\n#ifdef USE_INSTANCING\n'+
@@ -23070,9 +23083,9 @@ function vitreMatFab(NE){ // NE : le verre de LA VILLE (VV_VERRE, les uniformes 
         '#ifdef USE_INSTANCING\nbool proche9=false;{vec3 w9=(modelMatrix*vec4(instanceMatrix[3].xyz,1.)).xyz;float r9=.5*length(sc9)+1.;'+
         'for(int i=0;i<4;i++)if(distance(w9,uLum9[i].xyz)<uLum9[i].w+r9)proche9=true;}\n#else\nbool proche9=true;\n#endif\n')
       .replace('#include <lights_lambert_vertex>','vLightFront=vec3(0.);vIndirectFront=vec3(0.);\nif(!loin9){\n'+VILLE_LLV+'\n}');
-    sh.fragmentShader='#undef USE_SHADOWMAP\n'+sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uNuit9,uSunK9,uClH9,uClT9;uniform vec3 uZen9,uMid9,uHor9,uSun9,uSunC9,uClL9,uClA9,uCam9,uPlf9,uSolR9;uniform vec4 uClK9;uniform vec2 uClD9,uClS9,uBand9;uniform sampler2D uCl9;'+DECL+SDF+(NE?'uniform vec3 uAcc9,uPiedC9;uniform float uPied9;':''))
+    sh.fragmentShader='#undef USE_SHADOWMAP\n'+sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uNuit9,uSunK9,uClH9,uClT9;uniform vec3 uZen9,uMid9,uHor9,uSun9,uSunC9,uClL9,uClA9,uCam9,uPlf9,uSolR9;uniform vec4 uClK9;uniform vec2 uClD9,uClS9,uBand9;uniform sampler2D uCl9;'+DECL+SDF+(NE?'uniform vec3 uAcc9,uPiedC9;uniform float uPied9,uEmb9;':''))
       .replace('#include <fog_fragment>',(NE?VV_VERRE:VIT_VERRE)+'#include <fog_fragment>\n'+(NE?vvPied():vitrePied(true)));};
-  m.customProgramCacheKey=function(){return NE?'toursVerreNeon1':VIT_PLAFOND?'toursVitre2':VIT_SOL?'toursVitre5':'toursVitre4';};m.dispose=function(){};
+  m.customProgramCacheKey=function(){return NE?'toursVerreNeon2':VIT_PLAFOND?'toursVitre2':VIT_SOL?'toursVitre5':'toursVitre4';};m.dispose=function(){};
   return m;
 }
 /* (NÉON ET VERRE) LE PIED D'UNE GÉANTE DE VERRE, dans la brume de la ville : le code de villePied (le même que les tours de béton, au caractère près),
@@ -23200,6 +23213,89 @@ window.dbgVitre=function(k,v){ // console : l'état de la VILLE VITRÉE · ('nua
     return L.sort(function(a,b){return a.d-b.d;}).slice(0,6);}
   return {on:vitreOn(),ville:!!CITY.root,deco:CITY.dz&&CITY.dz.genre==='vitree'?CITY.deco:null,meteo:LVL.cur&&LVL.cur.meteo,ciel:BIO.name,nuages:VIT.uClK.value.toArray().map(function(x){return +x.toFixed(2);}),eclat:+VIT.uSunK.value.toFixed(2),nuit:+VIT.uNuit.value.toFixed(2),
     couche:!!(VIT.ciel&&VIT.ciel.visible),ville9:CITY.n};};
+/* ===== LA VILLE EMBELLIE (2026-10-20, Sacha : « apporter des améliorations visuelles à chaque map — des éléments, des textures, des lumières — sans que ce soit trop gourmand pour le téléphone ») =====
+   LA VILLE reste LA VILLE : la nuit ROSE (intouchable, DA-CARCASH §3 bis), ses quatre temps, ses quatre teintes, sa piste au bit près — rien ici ne tire dans `rnd` ni dans `vr`
+   (les rais ont leur générateur LOCAL `mulberry32(graine ^ 0x7A15E5)`). Cinq ajouts, tous DANS le rose et les couleurs de la teinte (l'accent `NEON[0]`, remappé avec elle) :
+   · LES RAIS DE PROJECTEUR (pilier 2 · la lumière-vedette, pilier 4 · le détail vivant) : quelques faisceaux montent des toits lointains (380 à 1 100 m de la route, jamais dans le couloir) et
+     balaient lentement le ciel — rose de la teinte (clé) et cyan #3EE8FF (remplissage), un sur sept en OR sodium (l'éclat CASH). UNE géométrie fusionnée (1 appel de dessin), UN programme de
+     shader, zéro lumière : le tube est un cylindre ouvert dont le shader calcule l'épaisseur traversée (cœur clair, bords fondus), le balayage se fait au sommet d'après CITY.uT (zéro travail
+     processeur par image) ; additifs, fondus de près (pas de grand voile près de l'œil) et de très loin ;
+   · L'ÉCHO DES NÉONS DANS LE VERRE (pilier 3 · la matière) : dans les tours, le verre ÉTEINT renvoie des bandes verticales de la teinte et de cyan, plus fortes sous l'œil (la rue) que
+     plus haut ; le noir plat des grandes baies devient un verre qui vit (palier MOYEN et RÉCENT — au palier ANCIEN le verre garde son ancien calcul) ;
+   · LES ÉTAGES TECHNIQUES (pilier 3) : une tour haute sur deux et demie (40 %) porte, tous les 12 à 21 étages, une BANDE de LED continue (teinte, cyan ou, une fois sur cinq, or) : le rythme d'un
+     vrai gratte-ciel, et ça se lit de loin quand les fenêtres se fondent en lueur ; mêmes bandes sur les géantes de verre (leur aplat prend des étages) ;
+   · L'OR (pilier 5 · l'éclat CASH, rare) : une enseigne verticale sur dix passe à l'or sodium, un panneau holographique sur seize devient la pièce ₿ ; un rai sur sept est or.
+   Budget : voir le rapport (calls / triangles / programmes mesurés). Paliers : `PAL.B.vilRaisPas` (pas de route entre deux rais, m) · `vilRaisSeg` (côtés du tube).
+   `dbgVilleEmb()` (état) · `dbgVilleEmb('rais',0|1)` (montrer / cacher les rais) · `dbgVilleEmb('fac',0|1)` (écho et bandes des façades coupés / rendus). */
+PAL.B.vilRaisPas=[3200,1900,1200];PAL.B.vilRaisSeg=[5,6,8]; /* [ANCIEN, MOYEN, RÉCENT] : ~5 · 8 · 13 rais sur 16 km de piste ; 5 · 6 · 8 côtés */
+CITY.uEmb={value:1}; /* 1 = les façades embellies (écho du verre, étages techniques) · 0 = comme avant (banc) */
+const VEMB={mat:null,mesh:null,n:0,tris:0,pos:[],cy:[.24,.91,1],or:[1,.78,.34]};
+/* L'ÉCHO DANS LE VERRE (tours de béton — branche GTA, `gl9` = ce que le verre éteint renvoie) : à poser JUSTE APRÈS la déclaration de `gl9`. `ux9` : le long de la façade (m) ·
+   bandes de 8 à 24 m, un quart d'entre elles seulement, en cloche (fondues aux bords) · `gr9` : fort sous l'œil (la rue et ses néons), nul 280 m plus haut. */
+const VEMB_ECHO='float ux9=(an.x>an.z?vLoc9.z:vLoc9.x),bw9=8.+s2*16.,gb9=floor(ux9/bw9),hb9=fract(sin(gb9*12.9898+vSeed9*78.233)*43758.5453),sb9=sin(3.14159*fract(ux9/bw9)),'+
+  'pk9=smoothstep(.5,.9,hb9)*sb9*sb9,gr9=smoothstep(280.,-140.,vW9.y-uCamE9.y);'+
+  'gl9+=mix(uAcc9,vec3(.24,.91,1.),step(.5,fract(hb9*7.3)))*pk9*gr9*.38*(1.-.5*bur)*uEmb9;';
+/* LES ÉTAGES TECHNIQUES (tours de béton) : dans le bloc des façades GTA (G9 = la nuit) — une tour sur 2,5 (s4 < .40, l'autre bloc, s4 > .8, porte déjà les LED des arêtes), de plus de 110 m.
+   Période np étages, le filet en fait 0,8 (et son halo ~1,5) ; la hauteur se lit depuis le pied du volume (les retraits emboîtés partagent le pied : mêmes étages). Au loin (la bande sous le pixel) : sa moyenne. */
+const VEMB_BANDE='if(s4<.40&&vSc9.y>110.){float np=12.+floor(s2*10.),yy9=vB9/(cel.y*np),fy9=max(fwidth(yy9),1e-5),dq=abs(fract(yy9+.5)-.5),hbd=.4/np;'+
+  'float lb=1.-smoothstep(hbd,hbd+fy9*1.5,dq);lb=mix(lb,2.*hbd,smoothstep(.4,1.5,fy9));lb+=.20*exp(-dq*np/1.2)*(1.-smoothstep(.4,1.5,fy9));'+ /* un filet de 0,8 étage et son halo (~1,5 étage) : une LED, pas un panneau */
+  'vec3 bc9=s5>.8?vec3(1.,.78,.34):mix(uAcc9,vec3(.24,.91,1.),step(.5,s5));gl_FragColor.rgb+=bc9*lb*1.05*uCour9*G9*uEmb9;}';
+/* LES RAIS — la matière : un tube ouvert (cos, sin, t) dont le sommet pose le rai (pied `aB.xyz`, longueur `aB.w`, inclinaison `aP.x`, phase `aP.y`, vitesse `aP.z`, couleur `aP.w`),
+   le balayage : un cône lent autour de la verticale (+ un léger tangage). Au pixel : l'épaisseur traversée (1 au milieu du tube, 0 au bord), un cœur qui s'éteint avec la hauteur. */
+function villeRaisMat(){
+  if(VEMB.mat)return VEMB.mat;
+  const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,fog:false,
+    uniforms:{uT:CITY.uT,uCa:{value:new THREE.Vector3(1,.25,.78)},uCb:{value:new THREE.Vector3(.24,.91,1)},uCg:{value:new THREE.Vector3(1,.78,.34)},uK:{value:1}},
+    vertexShader:'attribute vec4 aB;attribute vec4 aP;uniform float uT;varying vec3 vR,vD,vW;varying float vT,vK;'+
+      'void main(){float az=aP.y+uT*aP.z,tl=aP.x+.05*sin(uT*.17+aP.y*3.);vec3 d=vec3(sin(tl)*cos(az),cos(tl),sin(tl)*sin(az));'+
+      'vec3 u=normalize(cross(d,vec3(0.,0.,1.))),v=cross(d,u);float t=position.z;vec3 rad=u*position.x+v*position.y;'+
+      'vec3 w=aB.xyz+d*(aB.w*t)+rad*mix(4.,40.,t);vR=rad;vD=d;vW=w;vT=t;vK=aP.w;gl_Position=projectionMatrix*viewMatrix*vec4(w,1.);}',
+    fragmentShader:'uniform vec3 uCa,uCb,uCg;uniform float uK;varying vec3 vR,vD,vW;varying float vT,vK;'+
+      'void main(){vec3 V=cameraPosition-vW;float dist=length(V);V/=dist;vec3 Vp=V-vD*dot(V,vD);float lp=length(Vp);'+
+      'float c=abs(dot(normalize(vR),Vp))/max(lp,1e-3);'+ /* l'épaisseur du tube traversée par le regard : 1 au milieu, 0 au bord */
+      'float len=1.-vT,a=pow(c,1.7)*pow(len,1.25)*smoothstep(0.,.05,vT)*smoothstep(.04,.3,lp)*smoothstep(240.,720.,dist)*(1.-.65*smoothstep(1400.,3000.,dist));'+
+      'vec3 col=vK<.5?uCa:vK<1.5?uCb:uCg;gl_FragColor=vec4(col*(.55+.9*len*len),a*.42*uK);}'});
+  m.customProgramCacheKey=function(){return 'villeRais1';};m.dispose=function(){}; /* partagé : le rebuild d'une piste ne le jette pas (comme les matières de la ville) */
+  VEMB.mat=m;return m;
+}
+function villeRaisGeo(R){ /* R : x, y, z (le pied), longueur, inclinaison, phase, vitesse, couleur — par rai (8 nombres) */
+  const n=R.length/8,seg=PAL.b('vilRaisSeg',8),nv=n*seg*2,P=new Float32Array(nv*3),B=new Float32Array(nv*4),Q=new Float32Array(nv*4),I=[];
+  for(let k=0;k<n;k++){const o=k*8,v0=k*seg*2;
+    for(let j=0;j<seg;j++){const a=j/seg*6.283185,ca=Math.cos(a),sa=Math.sin(a);
+      for(let r=0;r<2;r++){const v=v0+j*2+r;P[v*3]=ca;P[v*3+1]=sa;P[v*3+2]=r;B[v*4]=R[o];B[v*4+1]=R[o+1];B[v*4+2]=R[o+2];B[v*4+3]=R[o+3];Q[v*4]=R[o+4];Q[v*4+1]=R[o+5];Q[v*4+2]=R[o+6];Q[v*4+3]=R[o+7];}}
+    for(let j=0;j<seg;j++){const a=v0+j*2,b=v0+((j+1)%seg)*2;I.push(a,b,a+1,b,b+1,a+1);}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));g.setAttribute('aB',new THREE.BufferAttribute(B,4));g.setAttribute('aP',new THREE.BufferAttribute(Q,4));g.setIndex(I);
+  return g;}
+function villeRaisChauffe(){ /* un rai de rien, pour compiler le programme au menu (voir villeChauffe) — 0 programme compilé en course */
+  const o=new THREE.Mesh(villeRaisGeo([0,0,0,100,0,0,0,0]),villeRaisMat());o.frustumCulled=false;return o;}
+/* LA POSE (appelée par buildVoxCity, une fois la ville bâtie) : le long de la piste, une station tous les `pas` mètres ; à chacune, un toit HAUT (≥ 180 m) à 380-1 100 m de l'axe et au plus
+   520 m au-dessus de la route (le rai se lit depuis la route, il part d'un toit qu'on voit), pas deux rais à moins de 300 m l'un de l'autre. Hasard LOCAL : la piste et la ville ne bougent pas. */
+function villeRais(root,seed,corps,genre,NEON){
+  VEMB.mesh=null;VEMB.n=0;VEMB.tris=0;VEMB.pos=[];
+  if(!(NP>1)||!(L>0))return;
+  const pas=PAL.b('vilRaisPas',1200),rg=mulberry32(((seed|0)^0x7A15E5)>>>0),tops=new Map();
+  for(let i=0;i<genre.length;i++){if(genre[i]!==0)continue;const o=i*6,h=corps[o+4];if(h<180)continue; /* les retraits d'une tour partagent son centre : on garde le plus haut (le toit de la tour) */
+    const top=corps[o+1]+h/2,k=Math.round(corps[o])+','+Math.round(corps[o+2]),a=tops.get(k);if(!a||top>a[1])tops.set(k,[corps[o],top,corps[o+2]]);}
+  const T9=Array.from(tops.values()),R=[],ns=Math.max(1,Math.round(L/pas));
+  for(let k=0;k<ns;k++){
+    const ip=Math.min(NP-1,Math.max(0,Math.floor(((k+.5+(rg()-.5)*.5)/ns)*(NP-1)))),p=pts[ip],C=[];
+    for(let pass=0;pass<2&&!C.length;pass++){const d0=pass?300:380,d1=pass?1500:1100,hMin=pass?-40:30;
+      for(const t of T9){const dx=t[0]-p.x,dz=t[2]-p.z,d2=dx*dx+dz*dz,dy=t[1]-p.y;if(d2<d0*d0||d2>d1*d1||dy<hMin||dy>520)continue;
+        let ok=true;for(let q=0;q<R.length;q+=8){const ex=R[q]-t[0],ez=R[q+2]-t[2];if(ex*ex+ez*ez<300*300){ok=false;break;}}if(ok)C.push(t);}}
+    if(!C.length){rg();rg();rg();rg();rg();continue;}
+    const t=C[(rg()*C.length)|0],kd=(k%7===3)?2:(rg()<.5?0:1); /* l'OR : un rai sur sept (le 4e, le 11e…) — le reste, la teinte (clé) ou le cyan (remplissage) */
+    R.push(t[0],t[1]+1,t[2],1300+rg()*500,(8+rg()*12)*Math.PI/180,rg()*6.2832,(.022+rg()*.05)*(rg()<.5?-1:1),kd);}
+  if(!R.length)return;
+  const m=villeRaisMat(),U=m.uniforms,a=NEON[0];U.uCa.value.set(Math.min(1,a.r*1.05),Math.min(1,a.g*1.05),Math.min(1,a.b*1.05)); /* la clé : l'accent de la teinte (NEON[0] : magenta, ou son remappage) */
+  U.uCb.value.set(VEMB.cy[0],VEMB.cy[1],VEMB.cy[2]);U.uCg.value.set(VEMB.or[0],VEMB.or[1],VEMB.or[2]);
+  const g=villeRaisGeo(R),me=new THREE.Mesh(g,m);me.frustumCulled=false;me.matrixAutoUpdate=false;me.updateMatrix();me.renderOrder=2;me.name='ville rais';
+  root.add(me);trackMeshes.push(me);VEMB.mesh=me;VEMB.n=R.length/8;VEMB.tris=g.index.count/3;for(let q=0;q<R.length;q+=8)VEMB.pos.push([Math.round(R[q]),Math.round(R[q+1]),Math.round(R[q+2]),R[q+7]]);
+}
+window.dbgVilleEmb=function(k,v){
+  if(k==='rais'&&VEMB.mesh)VEMB.mesh.visible=v==null?!VEMB.mesh.visible:!!v;
+  if(k==='fac')CITY.uEmb.value=v==null?(CITY.uEmb.value?0:1):+v;
+  return {rais:VEMB.n,visible:!!(VEMB.mesh&&VEMB.mesh.visible),triangles:VEMB.tris,fac:CITY.uEmb.value,palier:PAL.n,pas:PAL.b('vilRaisPas',0),cotes:PAL.b('vilRaisSeg',0),pos:VEMB.pos,
+    programmes:renderer.info.programs?renderer.info.programs.length:null,ville:CITY.n};};
 /* ======================= LA PLUIE D'ARGENT v2 — `PLA` (2026-10-13, Léo : « ramène la pluie d'argent, et augmente la qualité ») =======================
    L'averse de glyphes (startMoneyRain : des « $ € ¥ » en sprites, 3 s) ne tombait plus que passé 4 000 $ × ECO3.gain dans UNE partie — on ne
    la voyait plus. Elle revient en VRAIS objets : les billets de la pluie de richesse (la série de sept couleurs, recto dessiné, + le billet
@@ -25696,6 +25792,7 @@ function buildVoxCity(seed,accC){
     for(let i=0;i<n9;i++){const o=i*6;Qp.setFromAxisAngle(Ay,pubs[o+3]);Pp.set(pubs[o],pubs[o+1],pubs[o+2]);Sp.set(pubs[o+4],pubs[o+5],1);M.compose(Pp,Qp,Sp);imP.setMatrixAt(i,M);}
     imP.instanceMatrix.needsUpdate=true;imP.frustumCulled=false;imP.renderOrder=3;root.add(imP);trackMeshes.push(imP);}
   if(CR)cryptoBatit(root); // (CRYPTOCITY) les taureaux, le graphique, les pièces, les diamants, les dirigeables
+  if(!VI&&!CR)try{villeRais(root,seed,corps,genre,NEON);}catch(e9){console.warn('rais',e9);} /* (2026-10-20, VILLE EMBELLIE) les rais de projecteur — hasard LOCAL (voir ville-embellie.js), aucun tirage `vr` ni `rnd` */
   CITY.n={pubs:pubs.length/6,tours:nT,reperes:nRep,places:nPl,volumes:corps.length/6,neons:neon.length/6,routeY:[Math.round(yMin),Math.round(yMax)],ms:Math.round(performance.now()-t00),L:Math.round(L),cellsC:CITY.nC,cellsF:CITY.nF};
 }
 for(const f of [villeMatTours,villeMatNeon,villeMatToursLoin,villeMatNeonLoin])f().dispose=function(){}; // partagés sur toute la partie : le rebuild ne les jette pas
@@ -25712,6 +25809,7 @@ function villeChauffe(){ // une instance de chaque, compilée hors écran puis r
   for(const m of [villeMatTours(),villeMatToursLoin()].concat(vv9,[villeMatNeon(),villeMatNeonLoin(),villeMatPub()])){const im=new THREE.InstancedMesh(m===vv9[0]?vitreGeo():geo,m,1);im.setMatrixAt(0,new THREE.Matrix4());if(m===CITY.matT||m===CITY.matN||vv9.indexOf(m)>=0)im.setColorAt(0,c);g.add(im);}
   // (passe perf) les deux matières NUES n'ont pas de couleur par instance. ⚠ L'ORDRE DE COMPILATION fait l'ordre de dessin (three trie les opaques par
   // numéro de programme) : TOUTES les tours avant TOUS les néons, comme avant — le dessus d'une couronne est au ras du toit, à égalité c'est le néon qui gagne.
+  g.add(villeRaisChauffe()); /* (2026-10-20, VILLE EMBELLIE) le programme des rais, compilé au menu avec les autres */
   scene.add(g);try{renderer.compile(scene,camera);}catch(e){}scene.remove(g);geo.dispose();
 }
 /* (2026-09-28, passe perf iPhone) LE TRI PAR QUARTIERS — chaîné sur scene.onBeforeRender (après pisteLoin : caméra et lumières
