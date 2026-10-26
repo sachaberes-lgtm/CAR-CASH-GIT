@@ -64463,11 +64463,6 @@ function buildGarageRoom(){
     x.fillStyle='rgba(0,0,0,.35)';for(let j=6;j<h;j+=24)x.fillRect(5,j,2,2);
     x.fillStyle='rgba(0,0,0,.3)';x.fillRect(0,h*.5,w,2);x.fillStyle='rgba(255,255,255,.06)';x.fillRect(0,h*.5+2,w,1);});
   const murM=(rx,ry,oy)=>{const t=murTexB.clone();t.needsUpdate=true;t.wrapS=THREE.RepeatWrapping;t.repeat.set(rx,ry||1);t.offset.y=oy||0;return L(0xffffff,0x1b212f,{map:t});};
-  const pegTex=cvT(64,64,(x,w,h)=>{ // le panneau perforé de l'établi
-    x.fillStyle='#414c60';x.fillRect(0,0,w,h);x.fillStyle='#141a26';
-    for(let i=0;i<8;i++)for(let j=0;j<8;j++){x.beginPath();x.arc(i*8+4,j*8+4,1.6,0,7);x.fill();}
-  });
-  pegTex.wrapS=pegTex.wrapT=THREE.RepeatWrapping;pegTex.repeat.set(11,4);
   const blobTex=cvT(128,128,x=>{const gr=x.createRadialGradient(64,64,0,64,64,62); // (vague 2) blanc : la matière la teinte à l'ENCRE (plus bas)
     gr.addColorStop(0,'rgba(255,255,255,.75)');gr.addColorStop(.5,'rgba(255,255,255,.34)');gr.addColorStop(1,'rgba(255,255,255,0)');
     x.fillStyle=gr;x.fillRect(0,0,128,128);});
@@ -64479,19 +64474,6 @@ function buildGarageRoom(){
     const cols=['#ff3b6b','#ffb020','#3ee08a','#4ab8ff','#ff6adf'];
     for(let r=0;r<4;r++)for(let c=0;c<4;c++){x.fillStyle=cols[(r*3+c)%5];x.fillRect(5+c*14,8+r*21,10,16);}
     x.fillStyle='rgba(180,230,255,.14)';x.fillRect(0,0,w,h);
-  });
-  const postTex=cvT(128,96,(x,w,h)=>{ // l'affiche : damier + le logo maison
-    for(let i=0;i<8;i++)for(let j=0;j<3;j++){x.fillStyle=((i+j)&1)?'#e9eef7':'#131a27';x.fillRect(i*16,j*9,16,9);}
-    x.fillStyle='#0d1220';x.fillRect(0,27,w,h-27);
-    x.textAlign='center';x.font="bold 15px 'Press Start 2P',monospace";
-    x.fillStyle='#ffcf3d';x.fillText('CASH',w/2,56);x.fillStyle='#5ff0ff';x.fillText('CAR',w/2,78);
-  });
-  // NÉON : lettres cernées de couleur, cœur blanc — le bloom du jeu fait le halo tout seul
-  const neonTex=(txt,col,px)=>cvT(256,80,(x,w,h)=>{
-    x.textAlign='center';x.textBaseline='middle';x.font='bold '+px+"px 'Press Start 2P',monospace";
-    x.shadowColor=col;x.shadowBlur=px*.9;x.strokeStyle=col;x.lineWidth=px*.22;x.lineJoin='round';
-    for(let i=0;i<3;i++)x.strokeText(txt,w/2,h/2);
-    x.shadowBlur=px*.35;x.fillStyle='#ffffff';x.fillText(txt,w/2,h/2);
   });
   const flat=(tex,x9,y9,z9,w9,h9,ry,blend)=>{const m=new THREE.Mesh(PL,new THREE.MeshBasicMaterial(
       {map:tex,transparent:true,fog:false,depthWrite:false,blending:blend||THREE.NormalBlending}));
@@ -64724,9 +64706,6 @@ function buildGarageRoom(){
     lt('D',[[r*.92,.03],[r*.92,-.04],[0,-.04]],18,x,y,z);
     for(let s=0;s<n;s++){const a=s/n*Math.PI*2;cb('C',r*.13,.03,r*.78,x+Math.sin(a)*r*.46,y+.035,z+Math.cos(a)*r*.46,0,a,0,.006);}
     cl('C',r*.22,.07,12,x,y+.03,z);cl('Or',r*.08,.08,6,x,y+.045,z);};
-  const clefM=(x,y,z,L)=>{cb('C',.045,L,.018,x,y,z,0,0,0,.006);to('C',.05,.016,x,y+L/2+.035,z,0,0,0,4);          // la clé mixte pendue : œil…
-    cb('C',.028,.075,.018,x-.042,y-L/2-.025,z,0,0,0,.005);cb('C',.028,.075,.018,x+.042,y-L/2-.025,z,0,0,0,.005);cb('C',.12,.03,.018,x,y-L/2+.012,z,0,0,0,.005); // …et fourche
-    cl('A',.007,.09,5,x,y+L/2+.035,z-.04,Math.PI/2);};
   /* LE V8 : vilebrequin selon x, la FAÇADE (poulies, courroie, ventilateur) tournée vers la salle (−x). Bloc et culasses gris,
      cache-culbuteurs en laque rouge à nervures chromées, filtre à air chromé, collecteurs chromés, faisceau d'allumage, carter, volant. */
   const moteur=(x,y,z)=>{const TH=.72,c9=Math.cos(TH),s9=Math.sin(TH);
@@ -64754,62 +64733,25 @@ function buildGarageRoom(){
     cl('N',.045,.16,10,x+.46,y+.54,z);lt('R',[[.07,.62],[.07,.66],[.03,.69],[0,.69]],10,x+.46,y,z);   // l'allumeur
     cl('O',.055,.14,12,x+.12,y-.24,z+.32,Math.PI/2);cl('A',.07,.24,10,x+.3,y-.24,z-.33,0,0,Math.PI/2);}; // filtre à huile, démarreur
 
-  // ===== MUR DU FOND : l'établi, le panneau d'outils, l'étagère — le vrai bordel utile =====
-  const zB=-hd+.9,pz=-hd+.26;
-  // L'ÉTABLI : plateau en lamellé-collé (neuf lames de deux teintes), chant d'acier, pieds à vérins, deux blocs-tiroirs
-  for(let i=0;i<9;i++)cb(i%2?'W':'W2',9.8,.1,.158,-3,.93,zB-.667+i*.1667,0,0,0,.018);
-  cb('A',9.86,.13,.035,-3,.925,zB+.765,0,0,0,.008);cb('F',9.6,.08,.05,-3,.84,zB+.7);
-  for(const px of [-7.7,-3,1.7])for(const s of [-.62,.62]){cb('F',.1,.8,.1,px,.46,zB+s,0,0,0,.012);cl('C',.018,.06,6,px,.04,zB+s);cl('D',.05,.02,10,px,.01,zB+s);}
-  cb('A',5.4,.04,1.2,-2.9,.36,zB,0,0,0,.01);                                           // l'étagère basse
-  for(const cx of [-6.35,.55]){cb('F',1.3,.76,1.1,cx,.45,zB+.05,0,0,0,.02);cb('D',1.26,.05,1.0,cx,.05,zB+.05,0,0,0,.005);
-    for(let d=0;d<4;d++){const y9=.19+d*.18;cb('R',1.22,.155,.04,cx,y9,zB+.615,0,0,0,.012);
-      cl('C',.011,.9,6,cx,y9+.035,zB+.66,0,0,Math.PI/2);for(const sx of [-.45,.45])cb('C',.02,.02,.04,cx+sx,y9+.035,zB+.645,0,0,0,0);
-      cb('Wb',.12,.035,.005,cx-.47,y9-.03,zB+.637,0,0,0,0);}}
-  
-  cb('F',9.8,.14,.08,-3,1.06,zB-.73);                                                  // la lisse du fond
-  cb('E',1.3,.08,.05,-.4,1.05,zB-.675,0,0,0,.01);for(let i=0;i<5;i++)cb('D',.07,.04,.01,-.9+i*.25,1.05,zB-.648,0,0,0,0);  // la multiprise
-  // L'ÉTAU, mâchoires vers la salle
-  {const vx=-6.3,vz=zB+.3;lt('B',[[.17,0],[.17,.05],[.14,.07],[0,.07]],14,vx,.98,vz);
-   cb('B',.34,.18,.46,vx,1.14,vz+.05,0,0,0,.02);cb('B',.5,.2,.12,vx,1.32,vz-.15,0,0,0,.02);cb('B',.5,.2,.12,vx,1.32,vz+.13,0,0,0,.02);
-   cb('A',.46,.12,.02,vx,1.36,vz-.08,0,0,0,.004);cb('A',.46,.12,.02,vx,1.36,vz+.06,0,0,0,.004);
-   cl('C',.025,.3,8,vx,1.2,vz+.34,Math.PI/2);cl('C',.012,.46,6,vx,1.2,vz+.5,0,0,Math.PI/2);
-   for(const sx of [-.23,.23])lt('C',[[0,-.03],[.028,-.02],[.03,0],[.028,.02],[0,.03]],8,vx+sx,1.2,vz+.5,0,0,Math.PI/2);
-   cb('B',.18,.1,.2,vx,1.32,vz-.31,0,0,0,.02);cl('B',.07,.2,8,vx,1.32,vz-.5,-Math.PI/2,0,0,.012);}
-  // LA CAISSE À OUTILS
-  {const tx=-4.6,tz=zB+.05;cb('R',.74,.26,.4,tx,1.11,tz,0,0,0,.02);cb('R',.76,.08,.42,tx,1.285,tz,0,0,0,.02);cb('D',.745,.012,.405,tx,1.243,tz,0,0,0,0);
-   cl('D',.018,.4,6,tx,1.41,tz,0,0,Math.PI/2);for(const sx of [-.22,.22]){cb('C',.03,.1,.04,tx+sx,1.36,tz,0,0,0,.005);cb('C',.05,.06,.02,tx+sx,1.23,tz+.215,0,0,0,.004);}
-   cb('Or',.12,.05,.006,tx,1.14,tz+.203,0,0,0,0);}
-  // LE POSTE qui gueule : haut-parleurs, cadran, poignée, antenne
-  
-  // les tasses de café froid, la paperasse, le chiffon, les clés qui traînent
-  
-  // LE PANNEAU PERFORÉ (texture) dans son cadre, et ses outils pendus
-  flat(pegTex,-3,2.6,-hd+.18,9.6,2.6);
-  cb('F',9.76,.08,.05,-3,3.94,-hd+.2,0,0,0,.01);cb('F',9.76,.08,.05,-3,1.26,-hd+.2,0,0,0,.01);
-  for(const s of [-1,1])cb('F',.08,2.76,.05,-3+s*4.84,2.6,-hd+.2,0,0,0,.01);
-  for(let i=0;i<7;i++)clefM(-7+i*.62,3.15,pz,.5+(i%3)*.1);                            // les clés mixtes
-  cl('W',.028,.62,8,-2.2,3.1,pz);cl('D',.034,.22,8,-2.2,2.9,pz);                        // le marteau
-  cb('A',.36,.1,.1,-2.2,3.46,pz,0,0,0,.02);cb('A',.12,.06,.09,-2.42,3.42,pz,0,0,.5,.01);
-  for(let i=0;i<4;i++){const x9=-1.3+i*.42;                                             // les tournevis
-    lt(['R','J','B','V'][i],[[0,0],[.03,.01],[.038,.06],[.036,.16],[.03,.2],[.018,.23],[0,.23]],8,x9,3.12,pz);
-    cl('C',.009,.34,6,x9,2.95,pz);cl('C',.006,.03,4,x9,2.765,pz,0,0,0,.001);}
-  MK.plate('A',[[.55,3.1],[1.55,3.16],[1.55,3.36],[.55,3.34]],.008,pz-.004);           // la scie
-  cb('D',1.0,.012,.012,1.05,3.13,pz,0,0,.06,0);cb('W',.24,.3,.04,1.68,3.24,pz,0,0,0,.02);cb('D',.12,.12,.045,1.7,3.24,pz,0,0,0,0);
-  for(let i=0;i<3;i++){const x9=2.4+i*.5;                                               // les pinces
-    for(const s of [-1,1])cb('B',.035,.42,.018,x9+s*.04,3.18,pz,0,0,s*.1,.006);
-    cb('C',.05,.16,.018,x9,3.47,pz,0,0,0,.006);cl('C',.02,.03,8,x9,3.38,pz,Math.PI/2);}
-  // L'ÉTAGÈRE HAUTE sur équerres : bidons d'huile étiquetés, cartons scotchés
-  
-  GAR.neons.push(flat(neonTex('CASH CAR',0xffc46a,26),-2.4,5.35,-hd+.2,7.2,2.25,0,THREE.AdditiveBlending));
-  GAR.neons.push(flat(neonTex('$',0xfff0d0,52),5.4,4.5,-hd+.2,1.9,1.9,0,THREE.AdditiveBlending));
-  flat(postTex,6.9,2.9,-hd+.2,2.3,1.72);                                                // l'affiche, dans un cadre noir
-  cb('N',2.42,.06,.04,6.9,3.79,-hd+.19,0,0,0,.01);cb('N',2.42,.06,.04,6.9,2.01,-hd+.19,0,0,0,.01);
-  for(const s of [-1,1])cb('N',.06,1.84,.04,6.9+s*1.18,2.9,-hd+.19,0,0,0,.01);
-  
-  {const cx=8.9,cy9=3.3,cz=-hd+.2;                                                       // l'horloge
-   lt('N',[[.42,0],[.42,.07],[.37,.08],[.36,.03]],24,cx,cy9,cz,Math.PI/2);lt('E',[[.36,.03],[0,.03]],24,cx,cy9,cz,Math.PI/2);
-   for(let h=0;h<12;h++){const a=h/12*Math.PI*2;cb('D',.02,h%3?.04:.07,.01,cx+Math.sin(a)*.3,cy9+Math.cos(a)*.3,cz+.035,0,0,-a,0);}
-   cb('D',.025,.2,.01,cx,cy9+.09,cz+.045,0,0,0,0);cb('D',.16,.02,.01,cx+.07,cy9,cz+.05,0,0,0,0);cl('R',.02,.02,8,cx,cy9,cz+.055,Math.PI/2);}
+  /* ===== MUR DU FOND : le GRAND CACHE-CAR en or massif (2026-10-26, Sacha : « enlève le bureau et tout son bazar, mets un énorme
+     cache-car en or, brillant, 3D, qui prenne toute la longueur du mur, en face du portail en flamme ») — plus d'établi, plus
+     d'outils, plus d'affiche ni d'horloge : à leur place, « CASH CAR » en pixels dorés massifs, en relief sur une plaque de fer
+     en retrait (comme le panneau de la porte, mais trois fois plus grand) — la SURPRISE quand on retourne la caméra. ===== */
+  {const POLICE3D={C:['.###.','#....','#....','#....','#....','#....','.###.'],A:['.###.','#...#','#...#','#####','#...#','#...#','#...#'],
+     S:['.####','#....','.###.','....#','....#','....#','####.'],H:['#...#','#...#','#...#','#####','#...#','#...#','#...#'],
+     R:['####.','#...#','#...#','####.','#.#..','#..#.','#...#']};
+   const MOTS=['CASH','CAR'],PX=.46,EPAIS=.55;
+   let total=0;MOTS.forEach((m,i)=>{total+=m.length*5+(m.length-1);if(i<MOTS.length-1)total+=3;});
+   const largeur=total*PX,hauteur=7*PX,xDebut=-largeur/2,yMilieu=3.5,zFace=-hd;
+   cb('F',largeur+1.6,hauteur+1.4,.1,0,yMilieu,zFace+.05);                            // la plaque de fond, en retrait : l'or s'y détache
+   let col=0;
+   MOTS.forEach((mot,mi)=>{
+     for(let c=0;c<mot.length;c++){const lettre=POLICE3D[mot[c]];
+       for(let row=0;row<7;row++){const ligne=lettre[row];
+         for(let pcol=0;pcol<5;pcol++)if(ligne[pcol]==='#')
+           cb('Or',PX*.94,PX*.94,EPAIS,xDebut+(col+pcol)*PX+PX/2,yMilieu+hauteur/2-row*PX-PX/2,zFace+EPAIS/2);}
+       col+=5;if(c<mot.length-1)col+=1;}
+     if(mi<MOTS.length-1)col+=3;});}
 
   // ===== MUR GAUCHE : pneus, servante, compresseur, cric, et tout ce qui roule =====
   for(const st of [[-9.6,-7.2,5],[-9.6,-5.1,4],[-9.4,7.4,6]]){                        // les piles de pneus, une jante sur chacune
@@ -64927,7 +64869,7 @@ function buildGarageRoom(){
      const me=new THREE.Mesh(G9[f],mt);me.matrixAutoUpdate=false;me.updateMatrix();g.add(me);GAR.meubles.push(me);}}
   /* LES MEUBLES POSÉS : une ombre douce à l'ENCRE sous chaque gros meuble (la recette de l'ombre de la caisse, blobTex) — sans elle,
      établi, servante, compresseur, rack flottaient sur l'époxy. Toutes dans UNE géométrie (un seul appel de dessin). */
-  {const F9=[[-3,zB,9.8,1.5],[-9.4,-1.6,.8,1.5],[-9.5,2.6,.9,2.1],[-9.6,-7.2,.8,.8],[-9.6,-5.1,.8,.8],[-9.4,7.4,.8,.8],[-8.9,5.6,.7,.7],
+  {const F9=[[-9.4,-1.6,.8,1.5],[-9.5,2.6,.9,2.1],[-9.6,-7.2,.8,.8],[-9.6,-5.1,.8,.8],[-9.4,7.4,.8,.8],[-8.9,5.6,.7,.7],
      [-9.9,-9.4,1.2,1.0],[7.7,-6.4,3.4,1.8],[9.0,-2.2,1.9,1.2],[9.6,3.4,1.5,4.4],[10.3,8.4,.9,1.5],[-5.6,10.4,3.2,1.0],[9.9,-10.3,1.2,4.0],
      [-8.2,-5.4,.6,1.4],[-8.6,1.2,.5,1.5],[7.6,-4.2,.6,.6],[-8.16,9.2,1.3,.3]],P9=[],U9=[];
    for(const f of F9){if([[-8.9,5.6],[-9.9,-9.4],[-5.6,10.4],[-8.2,-5.4],[-8.6,1.2],[7.6,-4.2],[-8.16,9.2]].some(o=>o[0]===f[0]&&o[1]===f[1]))continue; // (l'atelier aéré) plus d'ombre sans meuble
