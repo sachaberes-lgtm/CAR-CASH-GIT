@@ -3,6 +3,9 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE DRAGON NOIR DU RÉACTEUR (2026-10-26, v970 — Léo : « un dragon noir, la tête qui fait la tête du réacteur, pas besoin de corps, une tête de T-rex avec des cornes »)
+- Palier 24 : plus de corps ; une tête de T-rex noire (crâne, museau carré, mâchoire ouverte sur la braise, crocs, yeux de braise, grandes cornes d'or, crête) forme l'avant du réacteur. Bâtie à part et grandie ×1,6 devant le dôme. Palette noir / braise.
+
 ## LE DRAGON DU RÉACTEUR SE DRESSE (2026-10-26, v967 — Léo : « dragon pas mélangé à l'ouroboros »)
 - Palier 24 : le dragon cosmique n'est plus un serpent enroulé (trop proche de l'ouroboros du 27) : il est PERCHÉ sur la cuve — corps à crête d'or, quatre pattes griffues, cou dressé, tête cornue aux yeux de braise, grandes ailes déployées (membrane améthyste sur des os d'or), queue qui retombe.
 

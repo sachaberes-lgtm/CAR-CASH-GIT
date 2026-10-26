@@ -50021,7 +50021,7 @@ const TH30=[null,
  [0xff6a3c,0xffb070],[0xff5f8a,0xffe0ea],[0x15171c,0xd8f4ff],[0x5f7d3c,0xd8ff90],[0xd8282a,0xffa030],   // 7 étoile de mer · 8 corail · 9 orques · 10 tortue · 11 roquette
  [0x1f4aff,0x9af0ff],[0x4f5f2a,0xffb030],[0x2a3a8a,0xffe08a],[0xffb000,0xfff0a0],[0x1f5a3a,0xff5030],   // 12 électrique · 13 grenade · 14 vitrail · 15 soleil · 16 dragon
  [0xc0201e,0xffd070],[0x3a2a6a,0x6affd8],[0xd9a441,0x5a8aff],[0xff4a1a,0xffc040],[0x13a8a8,0x8affff],   // 17 pagode · 18 kraken · 19 sphinx · 20 phénix · 21 atlantide
- [0x7a8aa0,0x8ad8ff],[0xb81a3a,0xff6a80],[0x5a1a8a,0xff70ff],[0xffc030,0xfff6c0],[0x2adf8a,0xb0ffe0],   // 22 lance d'Odin · 23 cœur battant · 24 dragon cosmique · 25 Hélios · 26 alien
+ [0x7a8aa0,0x8ad8ff],[0xb81a3a,0xff6a80],[0x16161c,0xff4a14],[0xffc030,0xfff6c0],[0x2adf8a,0xb0ffe0],   // 22 lance d'Odin · 23 cœur battant · 24 dragon cosmique · 25 Hélios · 26 alien
  [0x1f8a4a,0xffd060],[0x9ad8ff,0xff9a40],[0xff6ea0,0xffd0f0],[0xf5f6fa,0xffd780]];                        // 27 ouroboros · 28 Halley · 29 naissance · 30 l'infini
 function th30Kit(E,i){const t=TH30[i];return t?Object.assign({},E,{col:t[0],flam:t[1]}):E;}
 function theme30(B,i,K,c,g){
@@ -50148,7 +50148,7 @@ function theme30(B,i,K,c,g){
   B.plat();
 }
 /* LES LÉGENDES ET LE COSMOS (19-30) : les mêmes règles, posées sur les objets d'`orig10` */
-function theme30b(B,i,K,g){
+function theme30b(B,i,K,g){   // (B est réassignable : le dragon noir bâtit sa tête à part)
   const P=(x,y,z)=>new THREE.Vector3(x,y,z),D=(x,y,z)=>new THREE.Vector3(x,y,z).normalize();
   const tige=(a,b,r,m)=>B.add(tube10([[a.x,a.y,a.z],[b.x,b.y,b.z]],r,1,8),m,0,0,0),corne=(p,d,r,l,m)=>vers10(B,cone10(r,l,10),m,p,d,1);
   const boule=(m,x,y,z,sx,sy,sz)=>B.add(G10.sph,m,x,y,z,0,0,0,sx,sy||sx,sz||sx);
@@ -50182,27 +50182,31 @@ function theme30b(B,i,K,g){
     tige(P(1.18,.32,0),P(1.02,.58,0),.08,K.colD);B.add(new THREE.TorusGeometry(.18,.08,8,16,PI10),K.colD,.84,.58,0,0,0,0);
     for(let k=0;k<4;k++){const a=k/4*2*PI10;B.add(tube10([[.70,Math.sin(a)*.2,Math.cos(a)*.2],[.2,Math.sin(a)*.27,Math.cos(a)*.27],[-.6,Math.sin(a+.5)*.35,Math.cos(a+.5)*.35],[-1.1,Math.sin(a)*.20,Math.cos(a)*.20]],.02,20,5),K.colD,0,0,0);}
     break;}
-  case 23:{ // LE DRAGON COSMIQUE, gardien du réacteur (Léo : « pas mélangé à l'ouroboros ») — PERCHÉ sur la cuve, pas enroulé :
-    //   corps couché sur le dessus, quatre pattes griffues qui agrippent les cerclages, cou dressé vers l'avant, tête cornue aux yeux de
-    //   braise, GRANDES AILES déployées (membrane améthyste tendue sur des os d'or), queue qui retombe le long de la tuyère
-    const Y=.70,body=[P(-.55,Y+.10,0),P(-.20,Y+.16,0),P(.15,Y+.16,0),P(.42,Y+.12,0)];
-    for(let k=0;k<body.length;k++){const q=body[k],r=.20-Math.abs(k-1.5)*.03;B.add(G10.sph,K.col,q.x,q.y,q.z,0,0,0,r*1.25,r,r*.9);if(k)tige(body[k-1],q,r*.8,K.col);
-      corne(q.clone().add(P(0,r*.9,0)),D(-.3,1,0),.05,.20,K.or);}
-    const neck=[P(.42,Y+.12,0),P(.62,Y+.40,0),P(.70,Y+.70,0),P(.82,Y+.86,0)];B.add(tube10(neck.map(q=>[q.x,q.y,q.z]),.09,16,8),K.col,0,0,0);
-    for(let k=1;k<3;k++)corne(neck[k].clone().add(P(-.06,.07,0)),D(-.6,1,0),.035,.14,K.or);
-    const H=P(.95,Y+.88,0);BXg(B,K.col,H.x,H.y,0,0,0,-.15,.34,.18,.22);corne(P(1.10,Y+.85,0),D(1,-.15,0),.10,.22,K.col);
-    for(let sd=-1;sd<=1;sd+=2){corne(P(.88,Y+.97,sd*.08),D(-1,.75,sd*.25),.045,.42,K.or);boule(K.glow,1.04,Y+.92,sd*.10,.04);
-      for(let k=0;k<3;k++)corne(P(1.00+k*.07,Y+.79,sd*.07),D(0,-1,0),.02,.09,K.blanc);}
-    for(const x of [-.40,.30])for(let sd=-1;sd<=1;sd+=2){const a=P(x,Y+.08,sd*.14),b=P(x+.05,Y-.02,sd*.42),c=P(x+.08,Y-.20,sd*.62);
-      tige(a,b,.05,K.col);tige(b,c,.04,K.col);for(let f=-1;f<=1;f++)corne(c,D(.4,-1,sd*.3+f*.3),.02,.10,K.or);}
-    for(let sd=-1;sd<=1;sd+=2){const r=P(-.05,Y+.22,sd*.12),t=P(-.30,Y+1.05,sd*1.10);tige(r,t,.035,K.or);   // l'os principal de l'aile
-      for(const f of [[-.85,.80,1.30],[-.95,.45,1.25],[-.85,.15,1.00]]){const e=P(f[0],Y+f[1],sd*f[2]);tige(t,e,.02,K.or);}
-      const m=new THREE.BufferGeometry(),pts=[r,t,P(-.85,Y+.80,sd*1.30),P(-.95,Y+.45,sd*1.25),P(-.85,Y+.15,sd*1.00),P(-.45,Y+.20,sd*.30)],v=[];
-      for(let k=1;k<pts.length-1;k++)v.push(pts[0].x,pts[0].y,pts[0].z,pts[k].x,pts[k].y,pts[k].z,pts[k+1].x,pts[k+1].y,pts[k+1].z);
-      m.setAttribute('position',new THREE.Float32BufferAttribute(v,3));m.computeVertexNormals();B.add(m,K.colD,0,0,0);}
-    const tq=[P(-.55,Y+.10,0),P(-.85,Y+.02,0),P(-1.05,Y-.30,.10),P(-1.15,Y-.62,-.05)];B.add(tube10(tq.map(q=>[q.x,q.y,q.z]),.06,16,8),K.col,0,0,0);
-    corne(tq[3],D(-.3,-1,0),.09,.24,K.or);
+  case 23:{ // LE DRAGON NOIR (Léo : « un dragon noir, la tête qui fait la tête du réacteur, pas besoin de corps, une tête de T-rex avec des
+    //   cornes ») — la gueule REMPLACE le dôme : crâne massif, museau long et carré, mâchoire inférieure ouverte sur la braise du cœur,
+    //   rangées de crocs, arcades sourcilières lourdes, yeux de braise, deux grandes cornes qui balaient vers l'arrière, crête de pointes
+    const B0=B;B=bat10();B.f=true;B.plat();                                             // la tête est bâtie à part puis GRANDIE (×1,6) devant le dôme
+    const X0=.62,noir=K.col;
+    BXg(B,noir,X0+.30,.12,0,0,0,-.08,.72,.66,.70);                                      // le crâne
+    BXg(B,noir,X0+.88,.10,0,0,0,-.04,.62,.36,.46);                                      // le museau
+    BXg(B,noir,X0+1.20,.09,0,0,0,0,.18,.30,.40);
+    for(let sd=-1;sd<=1;sd+=2)boule(K.or,X0+1.27,.18,sd*.12,.04);                       // les naseaux cerclés d'or
+    BXg(B,noir,X0+.80,-.36,0,0,0,-.42,.80,.14,.40);                                     // la mâchoire inférieure, ouverte
+    B.add(tourX([[.001,0],[.22,0],[.22,.02],[.001,.02]],12),K.glow,X0+.95,-.12,0,0,0,-.21);   // la braise au fond de la gueule
+    for(let sd=-1;sd<=1;sd+=2)for(let k=0;k<6;k++){const x=X0+.62+k*.11;
+      corne(P(x,-.08,sd*.20),D(0,-1,0),.028,.13-k*.008,K.blanc);                      // crocs du haut
+      corne(P(x-.02,-.40+(k*.11)*.45,sd*.18),D(0,1,0),.024,.10,K.blanc);}              // crocs du bas
+    for(let sd=-1;sd<=1;sd+=2){
+      BXg(B,noir,X0+.52,.44,sd*.24,0,0,-.25,.40,.12,.16);                              // l'arcade sourcilière
+      boule(K.glow,X0+.62,.34,sd*.30,.06,.045,.045);                                   // l'œil de braise
+      const c0=P(X0+.30,.46,sd*.30),c1=P(X0-.05,.85,sd*.55);tige(c0,c1,.08,K.or);       // la grande corne
+      corne(c1,D(-1,.55,sd*.35),.075,.55,K.or);
+      corne(P(X0+.05,.20,sd*.36),D(-1,-.1,sd*.6),.05,.35,noir);                         // les cornes de joue
+      corne(P(X0+.55,-.30,sd*.22),D(-.3,-1,sd*.5),.035,.20,noir);}                      // les épines de mâchoire
+    for(let k=0;k<5;k++)corne(P(X0+.55-k*.16,.46-k*.02,0),D(-.4,1,0),.05,.26-k*.03,K.or);    // la crête
+    {const hg=new THREE.Group();B.fin(hg);hg.scale.setScalar(1.6);hg.position.set(-.45,.02,0);g.add(hg);}B=B0;
     break;}
+
 
   case 24:{ // HÉLIOS — une couronne de rayons d'or plantés tout autour du tore : le soleil captif
     const TL=.55,ct=Math.cos(TL),st=Math.sin(TL);
