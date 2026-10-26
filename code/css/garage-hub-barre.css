@@ -227,6 +227,9 @@ html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>:is(#gHomeB
 html body #garage:not(.menu):not(.vitrine) #gAct>#gCache{grid-column:1;--ton:#b8b0e0}
 html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>:is(#gHomeBas,#gCache) .pxi{--pxs:1;color:var(--ton);filter:drop-shadow(0 0 4px var(--ton))}
 html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>:is(#gHomeBas,#gCache):is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
+/* (2026-10-26, chasse aux bugs, interface) la case ne fait que 34 px (30 en paysage) : sous les 44 px de cible tactile de la charte (règle 5, voir
+   le commentaire de .ghT::after plus haut) — la zone de touche déborde de 7 px en haut et en bas (comme .ghT), sans toucher au dessin. */
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>:is(#gHomeBas,#gCache)::after{content:'';position:absolute;left:0;right:0;top:-7px;bottom:-7px}
 html body #garage.consoleCachee:not(.menu):not(.vitrine) #gAct>#gCache{--ton:#fff;color:#fff}
 html body #garage.consoleCachee:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gStrip){display:none!important}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
@@ -270,6 +273,8 @@ html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil{grid
   --ton:#ff8a1f;--nc:var(--ton);--lu:rgba(255,200,120,.9);transform:skewX(var(--sk));animation:none; /* (même jour, Léo : « case bleue, œil orange », puis « orange le bouton œil, et seulement l'œil quand on l'active ») */
   background:linear-gradient(180deg,rgba(255,150,50,.92),rgba(196,82,12,.94));box-shadow:inset 0 0 0 1px rgba(255,214,160,.7),inset 0 -4px 0 #ffc27a,0 0 16px -4px var(--ton),0 6px 14px -8px var(--ton)}
 html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
+/* (2026-10-26, chasse aux bugs, interface) même correctif que HOME/CACHER : 34 px (30 en paysage) < 44 px, zone de touche étendue de 7 px. */
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil::after{content:'';position:absolute;left:0;right:0;top:-7px;bottom:-7px}
 html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil .gLueur{position:relative;display:inline-flex;line-height:0;filter:drop-shadow(0 0 2px var(--lu)) drop-shadow(0 0 6px var(--lu))}
 html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil .gLueur .pxi{--pxs:2;color:#fff3e0;filter:none}
 html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil .gLueur::after{content:'';position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;pointer-events:none;
