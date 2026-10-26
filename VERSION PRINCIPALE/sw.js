@@ -10,7 +10,8 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v806'; // v806 (2026-10-22 soir, Léo : « retouche stratos : gadgets cyber-futuristes de prédiction météo, abstrait / technique ») — LA STRATOS, STATION MÉTÉO, voir le journal
+const CACHE = 'cashcar-v807'; // v807 (2026-10-22, Sacha : « intègre le moteur vivant derrière un drapeau ») — LE MOTEUR VIVANT, ?moteurvivant=1 : un moteur synthétisé coup par coup (V8 croisé, 6 en ligne turbo, plat-plan) pour les paliers à pistons ; l'ancien reste par défaut ; musique-bus.js?v=7 (creux dynamique)
+// const CACHE = 'cashcar-v806'; // v806 (2026-10-22 soir, Léo : « retouche stratos : gadgets cyber-futuristes de prédiction météo, abstrait / technique ») — LA STRATOS, STATION MÉTÉO, voir le journal
 // const CACHE = 'cashcar-v805'; // v804 (2026-10-22, Sacha : « l'onglet missions est très mal géré ») : missions en deux colonnes, AUJOURD'HUI + SUIVIES à gauche, filtres + liste à droite
 // const CACHE = 'cashcar-v804'; // v804 (2026-10-22, Sacha : « l'onglet missions est très mal géré ») : missions en deux colonnes, AUJOURD'HUI + SUIVIES à gauche, filtres + liste à droite
 // const CACHE = 'cashcar-v803'; // v803 (2026-10-22 soir, Sacha : tail whip posé au sol avec la gomme du donut à l'inventaire ; l'œil prend la place du réglage ; bas du garage repris, BOUTIQUE qui brille) — v801 (2026-10-22, Sacha : « enlève la plaque jaune » = ISRAEL, « rajoute une plaque palestine ») : la plaque ISRAEL retirée du choix (une sauvegarde qui l'avait retombe sur FRANCE), la plaque PALESTINE ajoutée

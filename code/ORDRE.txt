@@ -155,6 +155,7 @@ son/musique.js                       # système musical, mixage, gestionnaire
 son/musique-frenesie.js              # musique de la frénésie
 rendu/billets-devises.js             # billets, pluie de devises
 son/voix-moteur.js                   # les 30 voix (une par moteur)
+son/moteur-vivant.js                 # LE MOTEUR VIVANT en jeu (?moteurvivant=1) : le branchement
 son/console-son.js                   # la console de son, le clic de la pause
 son/graphe-audio.js                  # les portes du graphe audio
 son/fanfare-turbo.js                 # fanfare de palier, turbo

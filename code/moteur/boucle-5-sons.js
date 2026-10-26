@@ -40,7 +40,7 @@
                  réservée aux deux derniers, le garde-temps passe de 350 à 500 ms. La vibration et le coup de champ (le ressenti) gardent leur
                  FORCE mais s'espacent : 900 ms au moins entre deux. Rien ne touche la vitesse : la boîte est sonore. */
               const q9=.35+.65*engGear/gn;
-              subBoom((.06+.07*engGear/gn)*q9);noiseBurst(.05,.07*q9,3000);if(engGear>=gn-1)crackle(Math.max(.3,eng.crk));
+              subBoom((.06+.07*engGear/gn)*q9);noiseBurst(.05,.07*q9,3000);if(engGear>=gn-1&&!MV.use)crackle(Math.max(.3,eng.crk));
               if(T9-(loop._shR||0)>900){loop._shR=T9;hap(5);fovPunch=Math.max(fovPunch,1.8);}}} // (2026-09-25, dosé le 14/10 : voir ci-dessus) LE PASSAGE CLAQUE : coupure, thump, pétarade À CHAQUE rapport, un tic dans le pouce, un coup de champ — c'est le RYTHME de l'accélération (le gaz est automatique : sans ça, on n'entendait qu'une rampe)
           else if(engGear>1&&sN<lo*.95)engGear--; // (2026-09-25) VRAIE hystérésis : on ne rétrograde qu'à 5 % sous le bas du rapport (l'ancien seuil tombait AU-DESSUS du seuil de montée)
           tgt=Math.pow(Math.min(1,pos),.9);
@@ -68,7 +68,7 @@
         /* LE POP-CORN D'ÉCHAPPEMENT. Il existait déjà mais ne se déclenchait qu'à l'INSTANT du
            lâcher. Un vrai échappement continue de péter pendant toute la décélération, de plus
            en plus espacé — c'est la traîne qui fait le plaisir, pas le premier pop. */
-        if(engWasUp&&!thr&&engRpm>.42&&eng.crk>0&&Math.random()<eng.crk)crackle(eng.crk);
+        if(MV.use){}else if(engWasUp&&!thr&&engRpm>.42&&eng.crk>0&&Math.random()<eng.crk)crackle(eng.crk);
         else if(ovr9>.25&&eng.crk>0&&Math.random()<dt*(AUTO_GAS?3.5:7)*eng.crk*ovr9*ovr9)crackle(eng.crk*.55); // gaz auto : la traîne dure tout le drift, égrenée deux fois moins pour laisser le « brrrr » de charge
         engWasUp=!!thr;
         const wob=eng.wob?Math.sin(t*12.7)*Math.sin(t*3.1)*eng.wob*Math.max(0,1-engRpm*3.5):0; // l'épave respire au ralenti
@@ -85,6 +85,7 @@
         {const m9=THREE.MathUtils.clamp(momT/4.2,0,1);P9.subG*=1+.35*m9;P9.mix*=1+.12*m9;
          const L9=LANCEE;for(let k9=0;k9<3;k9++){const sx9=k9===0?1.5:k9===1?3:4.2;/* (2026-10-14, passe perf mobile) mêmes seuils, sans 3 tableaux par image */if(!L9.a[k9]&&momT>=sx9&&running&&!gameOver){L9.a[k9]=1;if(SONV2&&thr)try{sfx('moteur.cylindre',{st:sonPd(2+k9*2),vol:-4});}catch(e){}if(k9===2)hap(6);}else if(L9.a[k9]&&momT<sx9-.8)L9.a[k9]=0;}}
         engApplique(P9); // (2026-10-05) les réglages appliqués aux nœuds : partagés avec le BURN-OUT du garage
+        if(MV.on)MV.drive(dt,engRpm,engShiftT>0?0:thr,charge9,nA,dk,false); // (2026-10-22) LE MOTEUR VIVANT : prend la place de la chaîne d'oscillateurs (palier à pistons) — le passage de rapport COUPE les gaz
       }else if(gainN){
         // en vol : un souffle de moteur résiduel ; MORT ('boom') : coupé NET — et on retombe au
         // ralenti pour que la reprise ne reparte pas d'un régime fantôme aigu
@@ -102,9 +103,11 @@
              ordi, .045 sur iPhone ; ici ≤ .027×vol, tension comprise). Le battement suit la même pente (il s'ajoute au gain). */
           stt(gainN.gain,.02*(1+.35*k9)*e0.vol*dk,T0,.18);
           stt(engLfo.frequency,9+4*k9,T0,.05);stt(engLfoG.gain,.009*(1+.35*k9)*e0.vol*dk,T0,.18);
+          if(MV.on)MV.drive(dt,engRpm,.4,.25,0,dk,true); // (2026-10-22) en vol, le moteur vivant s'emballe doucement
         }else{stt(gainN.gain,mode==='fall'?.004:0,AC.currentTime,mode==='boom'?.05:.1);stt(engLfoG.gain,0,AC.currentTime,.1);}
         if(mode==='boom'){engRpm=0;const e0=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0]; // idem : le ralenti de la mort suit le MOTEUR
           stt(osc.frequency,e0.i,AC.currentTime,.3);stt(osc2.frequency,e0.i,AC.currentTime,.3);}
+        if(MV.on&&!(mode==='fall'&&!nitroOn))MV.mute(mode==='boom'); // (2026-10-22) la mort coupe net, le nitro en l'air couvre
         stt(engWhineG.gain,0,AC.currentTime,.1);
         // en vol il n'y a plus ni charge, ni boîte, ni frein moteur : les roues ne touchent rien
         {const G9=loop._gn||(loop._gn=[0,0,0,0,0]);G9[0]=transG;G9[1]=diffG;G9[2]=ovrG;G9[3]=engTickG;G9[4]=pinkG;for(let i9=0;i9<5;i9++){const n9=G9[i9];if(n9)stt(n9.gain,0,AC.currentTime,.12);}}
