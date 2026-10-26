@@ -50013,7 +50013,7 @@ function orig10(g,i,E,K,rnd){
 /* ================= L'IDENTITÉ DE CHAQUE MOTEUR (2026-10-26, Léo : « chaque moteur aura une identité à lui — aquatique,
    élémentaire, animaux, des références familières avec une touche d'originalité ; toujours une intensité plus grande : le
    premier a de la gueule, le 30e mille fois plus » ; « même plus drôle, des rêves, n'importe ») =================
-   QUATRE CHAPITRES : le VIVANT (2-11) → la PUISSANCE (12-16 : électrique, grenade, vitrail, soleil, roquette) → les LÉGENDES (17-25) → l'AU-DELÀ (26-30 : alien, ouroboros, comète, naissance, l'infini). Chaque palier a sa
+   QUATRE CHAPITRES : le VIVANT (2-11) → la PUISSANCE (12-16 : électrique, grenade, vitrail, soleil, roquette) → les LÉGENDES (17-25) → l'AU-DELÀ (26-30 : alien, porte de distorsion, comète, naissance, l'infini). Chaque palier a sa
    PALETTE (`TH30` remplace la laque et la flamme du palier) et sa SIGNATURE (`theme30`), posée sur le moteur — ⚠ RÈGLE : chaque
    pièce TOUCHE le moteur (aucun bout en l'air), aucune matière transparente hors du verre voulu. */
 const TH30=[null,
@@ -50022,7 +50022,7 @@ const TH30=[null,
  [0x1f4aff,0x9af0ff],[0x4f5f2a,0xffb030],[0x2a3a8a,0xffe08a],[0xffb000,0xfff0a0],[0x1f5a3a,0xff5030],   // 12 électrique · 13 grenade · 14 vitrail · 15 soleil · 16 dragon
  [0xc0201e,0xffd070],[0x3a2a6a,0x6affd8],[0xd9a441,0x5a8aff],[0xff4a1a,0xffc040],[0x13a8a8,0x8affff],   // 17 pagode · 18 kraken · 19 sphinx · 20 phénix · 21 atlantide
  [0x7a8aa0,0x8ad8ff],[0xb81a3a,0xff6a80],[0x16161c,0xff4a14],[0xffc030,0xfff6c0],[0x2adf8a,0xb0ffe0],   // 22 lance d'Odin · 23 cœur battant · 24 dragon cosmique · 25 Hélios · 26 alien
- [0x1f8a4a,0xffd060],[0x9ad8ff,0xff9a40],[0xff6ea0,0xffd0f0],[0xf5f6fa,0xffd780]];                        // 27 ouroboros · 28 Halley · 29 naissance · 30 l'infini
+ [0x1a8ab8,0x9af0ff],[0x9ad8ff,0xff9a40],[0xff6ea0,0xffd0f0],[0xf5f6fa,0xffd780]];                        // 27 ouroboros · 28 Halley · 29 naissance · 30 l'infini
 function th30Kit(E,i){const t=TH30[i];return t?Object.assign({},E,{col:t[0],flam:t[1]}):E;}
 function theme30(B,i,K,c,g){
   const L=c.L||2,XE=L*.5,top=c.top||.85,tw=c.tw||.18;
@@ -50221,11 +50221,23 @@ function theme30b(B,i,K,g){   // (B est réassignable : le dragon noir bâtit sa
     for(let k=0;k<3;k++){const a=k/3*2*PI10+.4,c=Math.cos(a),sn=Math.sin(a);
       B.add(tube10([[c*.45,-.06,sn*.45],[c*.75,-.40,sn*.75],[c*.60,-.80,sn*.60],[c*.80,-1.0,sn*.80]],.035,16,6),K.colD,0,0,0);boule(K.glow,c*.80,-1.0,sn*.80,.06);}
     break;}
-  case 26:{ // L'OUROBOROS — le serpent qui se mord la queue sur le grand cerceau : écailles, tête, crocs
-    const R=.80;for(let k=0;k<40;k++){const a=k/40*2*PI10*.96;B.add(G10.sph,k%2?K.col:K.or,0,Math.sin(a)*R,Math.cos(a)*R,0,0,0,.10,.10,.10);}
-    const ah=2*PI10*.965,hp=P(0,Math.sin(ah)*R,Math.cos(ah)*R);boule(K.col,hp.x,hp.y,hp.z,.16,.12,.12);
-    for(let sd=-1;sd<=1;sd+=2)boule(K.glow,.10*sd,hp.y+.06,hp.z,.03);corne(hp,D(0,Math.cos(ah),-Math.sin(ah)),.06,.15,K.blanc);
+  case 26:{ // LA PORTE DE DISTORSION (Léo : « l'ouroboros donne moins envie ; un air de réacteur qui va plus loin, plus vite, plus fort ») —
+    //   un grand anneau de verre-métal à chevrons lumineux qui pointent vers l'avant (le sens de la vitesse), un vortex d'énergie au centre,
+    //   un rayon de plasma qui traverse le tunnel, quatre aimants d'accélération sur le cadre, et des anneaux de choc qui s'écartent
+    const R=.95;
+    B.add(new THREE.TorusGeometry(R,.10,10,56),K.col,0,0,0,0,PI10/2,0);B.add(new THREE.TorusGeometry(R,.035,6,56),K.or,0,0,0,0,PI10/2,0);
+    B.add(new THREE.TorusGeometry(R-.16,.022,6,56),K.chrome,0,0,0,0,PI10/2,0);
+    for(let k=0;k<24;k++){const a=k/24*2*PI10,c=Math.cos(a),sn=Math.sin(a);
+      B.add(plan10([[-.09,-.07],[.09,0],[-.09,.07],[-.03,0]],.03,.006),k%2?K.glow:K.or,0.0,sn*R,c*R,0,PI10/2,a);}                       // chevrons >>> vers l'avant
+    for(let k=0;k<4;k++){const a=k/4*2*PI10+PI10/4,c=Math.cos(a),sn=Math.sin(a);
+      B.add(new THREE.CylinderGeometry(.10,.13,.34,6).rotateZ(PI10/2),K.chrome,0,sn*R,c*R);tige(P(-.2,sn*R,c*R),P(.2,sn*R,c*R),.05,K.noir);
+      boule(K.glow,.22,sn*R,c*R,.045);}
+    for(let k=0;k<10;k++){const t=k/9,r=.78-t*.74;B.add(new THREE.TorusGeometry(Math.max(.05,r),.03,5,40),K.halo([0xffffff,0xd8f4ff,0xa0e8ff,0x70d8ff,0x40c0ff,0x30a0ff,0x3080f0,0x3a60e0,0x4a40d0,0x5a30c0][k],.5-.25*t),0,0,0,0,PI10/2,0);}
+    boule(K.blanc,0,0,0,.12);B.add(cone10(.06,2.4,12),K.haloC,.10,0,0,0,0,0);B.add(cone10(.06,2.4,12),K.haloC,-.10,0,0,0,PI10,0);
+    for(let k=0;k<3;k++)B.add(new THREE.TorusGeometry(R*(1.08+k*.14),.016,5,56),K.halo(0x7ad8ff,.45-k*.12),.22*(k+1),0,0,0,PI10/2,0);
+    for(let k=0;k<4;k++){const a=k/4*2*PI10+PI10/4;tige(P(-.55,0,0),P(0,Math.sin(a)*R,Math.cos(a)*R),.03,K.chrome);}   // la porte tient au moteur par quatre haubans
     break;}
+
 
   case 27:{ // HALLEY — des aiguilles de glace hérissent le noyau, une 2e queue d'ions bleue, et ses deux anneaux (tenus par des rayons)
     for(const d of dirs10(14))corne(P(.60,0,0).addScaledVector(d,.30),d,.04,.28,K.blanc);

@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v970'; /* v970 (2026-10-26, Léo : « un dragon noir, la tête qui fait la tête du réacteur, tête de T-rex avec des cornes ») palier 24 (code/voitures/moteurs-themes.js) */
+const CACHE = 'cashcar-v971'; /* v971 (2026-10-26, Léo : « l'ouroboros donne moins envie… un air de réacteur qui va plus loin, plus vite, plus fort ») palier 27 : la PORTE DE DISTORSION remplace l'ouroboros (code/voitures/moteurs-themes.js) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

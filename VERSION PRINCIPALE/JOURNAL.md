@@ -3,6 +3,9 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA PORTE DE DISTORSION (2026-10-26, v971 — Léo : « l'ouroboros donne un peu moins envie… toujours un air de réacteur qui va plus loin, plus vite, plus fort, du sci-fi, de nouvelles technologies, juste l'esthétique »)
+- Palier 27 : l'OUROBOROS est remplacé par une PORTE DE DISTORSION — grand anneau bleu glacé à 24 chevrons lumineux qui pointent vers l'avant (le sens de la vitesse), quatre aimants d'accélération sur le cadre, vortex d'énergie en 10 anneaux dégradés, rayon de plasma qui traverse le tunnel, anneaux de choc, quatre haubans qui la tiennent au moteur.
+
 ## LE DRAGON NOIR DU RÉACTEUR (2026-10-26, v970 — Léo : « un dragon noir, la tête qui fait la tête du réacteur, pas besoin de corps, une tête de T-rex avec des cornes »)
 - Palier 24 : plus de corps ; une tête de T-rex noire (crâne, museau carré, mâchoire ouverte sur la braise, crocs, yeux de braise, grandes cornes d'or, crête) forme l'avant du réacteur. Bâtie à part et grandie ×1,6 devant le dôme. Palette noir / braise.
 
