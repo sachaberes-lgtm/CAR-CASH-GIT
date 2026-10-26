@@ -1,0 +1,41 @@
+[
+ {
+  "k": 0,
+  "carte": "canyon",
+  "meteo": "pluie",
+  "L": 6394,
+  "fin": {
+   "passe": true,
+   "t": 65.55,
+   "carteSuivante": "banquise"
+  },
+  "piece": null,
+  "erreurs": []
+ },
+ {
+  "k": 1,
+  "carte": "canyon",
+  "meteo": "soir",
+  "L": 6203,
+  "fin": {
+   "passe": true,
+   "t": 101.905,
+   "carteSuivante": "crypto"
+  },
+  "piece": null,
+  "erreurs": []
+ },
+ {
+  "k": 2,
+  "carte": "canyon",
+  "meteo": "nuit",
+  "L": 6330,
+  "fin": {
+   "passe": true,
+   "t": 83.91,
+   "carteSuivante": "ville"
+  },
+  "piece": null,
+  "erreurs": []
+ }
+]

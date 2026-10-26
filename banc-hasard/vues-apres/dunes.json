@@ -1,0 +1,134 @@
+[
+ {
+  "k": 0,
+  "axe": -39,
+  "L": 5027,
+  "ordre": [
+   "la crête du Grand Erg",
+   "le toboggan",
+   "les vagues",
+   "le raccourci",
+   "la vallée morte",
+   "l'allée des obélisques",
+   "l'oasis"
+  ],
+  "photos": [
+   [
+    "la crête du Grand Erg",
+    "dunes-0-erg0.jpg"
+   ],
+   [
+    "le toboggan",
+    "dunes-0-tob0.jpg"
+   ],
+   [
+    "les vagues",
+    "dunes-0-vag0.jpg"
+   ],
+   [
+    "le raccourci",
+    "dunes-0-racA0.jpg"
+   ],
+   [
+    "la vallée morte",
+    "dunes-0-vlei0.jpg"
+   ],
+   [
+    "l'allée des obélisques",
+    "dunes-0-obel0.jpg"
+   ],
+   [
+    "l'oasis",
+    "dunes-0-oasis0.jpg"
+   ]
+  ]
+ },
+ {
+  "k": 1,
+  "axe": 1,
+  "L": 5726,
+  "ordre": [
+   "la crête du Grand Erg",
+   "le toboggan",
+   "le raccourci",
+   "la vallée morte",
+   "l'allée des obélisques",
+   "les vagues",
+   "l'oasis"
+  ],
+  "photos": [
+   [
+    "la crête du Grand Erg",
+    "dunes-1-erg0.jpg"
+   ],
+   [
+    "le toboggan",
+    "dunes-1-tob0.jpg"
+   ],
+   [
+    "le raccourci",
+    "dunes-1-racA0.jpg"
+   ],
+   [
+    "la vallée morte",
+    "dunes-1-vlei0.jpg"
+   ],
+   [
+    "l'allée des obélisques",
+    "dunes-1-obel0.jpg"
+   ],
+   [
+    "les vagues",
+    "dunes-1-vag0.jpg"
+   ],
+   [
+    "l'oasis",
+    "dunes-1-oasis0.jpg"
+   ]
+  ]
+ },
+ {
+  "k": 2,
+  "axe": 30,
+  "L": 4862,
+  "ordre": [
+   "la crête du Grand Erg",
+   "le toboggan",
+   "le raccourci",
+   "la deuxième crête",
+   "l'allée des obélisques",
+   "les vagues",
+   "l'oasis"
+  ],
+  "photos": [
+   [
+    "la crête du Grand Erg",
+    "dunes-2-erg0.jpg"
+   ],
+   [
+    "le toboggan",
+    "dunes-2-tob0.jpg"
+   ],
+   [
+    "le raccourci",
+    "dunes-2-racA0.jpg"
+   ],
+   [
+    "la deuxième crête",
+    "dunes-2-cr2a.jpg"
+   ],
+   [
+    "l'allée des obélisques",
+    "dunes-2-obel0.jpg"
+   ],
+   [
+    "les vagues",
+    "dunes-2-vag0.jpg"
+   ],
+   [
+    "l'oasis",
+    "dunes-2-oasis0.jpg"
+   ]
+  ]
+ }
+]

@@ -1,0 +1,139 @@
+chargé, erreurs au chargement : [
+  "warning THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+  "warning THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+  "warning THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+  "warning THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+  "warning THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+  "warning THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+  "warning THREE.MeshLambertMaterial: 'flatShading' is not a property of this material.",
+  "warning THREE.MeshLambertMaterial: 'flatShading' is not a property of this material."
+]
+canyon #0 palier 0 :  L 6473 m · nuit · 460 ms (monde {"ech":9,"plat":123,"fin":83,"texels":25933,"ombre":18,"pose":50,"total":297}) · axe -17° coudes [] · pièces etroits rac
+   grilles fine 80808 · fond 77250 · ombre 16340 · mémoire GPU ~2.2 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":10.3,"sep":362,"ou":""} · décors sur la route {"n":5,"ou":"1650:paroi 1660:paroi 1660:paroi 1670:paroi 1670:paroi"}
+canyon #1 palier 0 :  L 6271 m · pluie · 358 ms (monde {"ech":5,"plat":103,"fin":30,"texels":26359,"ombre":11,"pose":24,"total":177}) · axe -51° coudes [13] · pièces rac arche
+   grilles fine 132271 · fond 82360 · ombre 26690 · mémoire GPU ~2.9 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":8.5,"sep":265,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #2 palier 0 :  L 6243 m · pluie · 317 ms (monde {"ech":4,"plat":91,"fin":16,"texels":25711,"ombre":10,"pose":21,"total":153}) · axe 34° coudes [] · pièces rac etroits
+   grilles fine 108790 · fond 80100 · ombre 22002 · mémoire GPU ~2.6 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":25.4,"sep":340,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #3 palier 0 :  L 6154 m · soir · 308 ms (monde {"ech":4,"plat":74,"fin":18,"texels":25435,"ombre":7,"pose":41,"total":154}) · axe 26° coudes [-16] · pièces mine rac
+   grilles fine 94259 · fond 78174 · ombre 18988 · mémoire GPU ~2.3 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":23.8,"sep":270,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #4 palier 3 :  L 6357 m · soir · 172 ms (monde {"ech":4,"plat":24,"fin":13,"texels":27365,"ombre":4,"pose":14,"total":61}) · axe 18° coudes [-10] · pièces etroits rac
+   grilles fine 76284 · fond 76194 · ombre 15466 · mémoire GPU ~2.1 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":4.6,"sep":352,"ou":""} · décors sur la route {"n":4,"ou":"1550:paroi 1550:paroi 1560:paroi 1560:paroi"}
+canyon #5 palier 6 :  L 7289 m · soir · 208 ms (monde {"ech":12,"plat":41,"fin":16,"texels":32216,"ombre":7,"pose":20,"total":103}) · axe -17° coudes [] · pièces arche rac
+   grilles fine 92160 · fond 78814 · ombre 18549 · mémoire GPU ~2.3 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":3.3,"sep":420,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #6 palier 10 :  L 7965 m · nuit · 297 ms (monde {"ech":6,"plat":30,"fin":24,"texels":38864,"ombre":10,"pose":27,"total":101}) · axe -40° coudes [-24] · pièces rac etroits
+   grilles fine 174800 · fond 86718 · ombre 35084 · mémoire GPU ~3.5 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":19.1,"sep":468,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #7 palier 15 :  L 9417 m · soir · 331 ms (monde {"ech":6,"plat":33,"fin":32,"texels":53763,"ombre":11,"pose":17,"total":104}) · axe -27° coudes [14] · pièces rac chameau
+   grilles fine 213495 · fond 91242 · ombre 42912 · mémoire GPU ~4.0 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":15.7,"sep":638,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #8 palier 20 :  L 11132 m · midi · 275 ms (monde {"ech":2,"plat":25,"fin":35,"texels":72266,"ombre":9,"pose":15,"total":92}) · axe 27° coudes [-11,22] · pièces rac chameau
+   grilles fine 198030 · fond 93034 · ombre 39849 · mémoire GPU ~3.8 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":20.2,"sep":883,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #9 palier 25 :  L 12856 m · matin · 307 ms (monde {"ech":2,"plat":38,"fin":72,"texels":102828,"ombre":46,"pose":20,"total":187}) · axe 29° coudes [14] · pièces rac amphi
+   grilles fine 656910 · fond 117649 · ombre 130682 · mémoire GPU ~9.8 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":12.6,"sep":747,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #10 palier 0 :  L 6485 m · pluie · 255 ms (monde {"ech":6,"plat":45,"fin":22,"texels":26457,"ombre":15,"pose":38,"total":131}) · axe -24° coudes [-19] · pièces rac etroits
+   grilles fine 113146 · fond 79945 · ombre 22750 · mémoire GPU ~2.6 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":25.6,"sep":342,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #11 palier 0 :  L 6802 m · matin · 189 ms (monde {"ech":3,"plat":25,"fin":17,"texels":28226,"ombre":10,"pose":19,"total":78}) · axe -41° coudes [20,-13] · pièces rac chameau arche
+   grilles fine 111852 · fond 80696 · ombre 22470 · mémoire GPU ~2.6 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":19.5,"sep":330,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #12 palier 0 :  L 5998 m · matin · 165 ms (monde {"ech":5,"plat":20,"fin":11,"texels":24445,"ombre":4,"pose":14,"total":54}) · axe -16° coudes [22] · pièces etroits rac
+   grilles fine 66008 · fond 74841 · ombre 13400 · mémoire GPU ~1.9 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":26.9,"sep":359,"ou":""} · décors sur la route {"n":5,"ou":"1600:paroi 1600:paroi 2300:paroi 2310:paroi 2310:paroi"}
+canyon #13 palier 0 :  L 6265 m · nuit · 102 ms (monde {"ech":3,"plat":18,"fin":16,"texels":31491,"ombre":7,"pose":13,"total":58}) · axe 20° coudes [] · pièces amphi rac
+   grilles fine 123752 · fond 77010 · ombre 24976 · mémoire GPU ~2.7 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":15.9,"sep":339,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #14 palier 3 :  L 5737 m · soir · 115 ms (monde {"ech":1,"plat":18,"fin":11,"texels":25146,"ombre":3,"pose":12,"total":48}) · axe 31° coudes [-23] · pièces arche rac
+   grilles fine 64752 · fond 73853 · ombre 13179 · mémoire GPU ~1.9 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":16.4,"sep":294,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #15 palier 6 :  L 6732 m · midi · 134 ms (monde {"ech":2,"plat":18,"fin":19,"texels":38763,"ombre":8,"pose":13,"total":62}) · axe -21° coudes [17] · pièces amphi rac
+   grilles fine 135140 · fond 77624 · ombre 27195 · mémoire GPU ~2.8 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":27.8,"sep":338,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #16 palier 10 :  L 8910 m · nuit · 196 ms (monde {"ech":5,"plat":25,"fin":28,"texels":54431,"ombre":17,"pose":15,"total":93}) · axe 6° coudes [22] · pièces amphi rac
+   grilles fine 248844 · fond 88976 · ombre 49920 · mémoire GPU ~4.4 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":11.6,"sep":486,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #17 palier 15 :  L 9733 m · orage · 276 ms (monde {"ech":6,"plat":24,"fin":29,"texels":54049,"ombre":11,"pose":18,"total":93}) · axe 29° coudes [-11] · pièces rac etroits
+   grilles fine 195576 · fond 90895 · ombre 39186 · mémoire GPU ~3.8 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":9.7,"sep":646,"ou":""} · décors sur la route {"n":2,"ou":"7020:paroi 7020:paroi"}
+canyon #18 palier 20 :  L 9621 m · midi · 391 ms (monde {"ech":10,"plat":80,"fin":106,"texels":59548,"ombre":17,"pose":45,"total":270}) · axe -19° coudes [12] · pièces etroits rac
+   ÉCHEC  {"s":0,"p":[0,0,0],"mit":[[847,248,495],[710,253,459],[1096,353,371]],"sQ":{"depart":0,"breche0":664,"breche1":1680,"etroit0":2688,"etroit1":3536,"fer0":5104,"racA0":5160,"racA1":5640,"racA2":7136,"racA3":7824,"fer1":8112,"finale0":8520,"fin":9472}}
+   grilles fine 137984 · fond 84132 · ombre 27946 · mémoire GPU ~3.0 Mo
+   règle d'or {"dessus":0,"dessous":1,"margeMin":-1.7,"sep":870,"ou":"D4848g(-1.7)"} · décors sur la route {"n":0,"ou":""}
+canyon #19 palier 25 :  L 11274 m · nuit · 243 ms (monde {"ech":1,"plat":23,"fin":50,"texels":93808,"ombre":22,"pose":15,"total":116}) · axe 7° coudes [-17] · pièces rac amphi
+   ÉCHEC  {"s":0,"p":[0,0,0],"mit":[[894,247,476],[752,249,519],[1862,378,654]],"sQ":{"depart":0,"breche0":664,"breche1":1720,"fer0":2280,"racA0":2280,"racA1":2784,"racA2":4496,"racA3":5192,"fer1":5744,"amphi0":7704,"amphi1":8768,"finale0":10184,"fin":11120}}
+   grilles fine 371000 · fond 95226 · ombre 74100 · mémoire GPU ~6.0 Mo
+   règle d'or {"dessus":0,"dessous":1,"margeMin":-1,"sep":704,"ou":"D9798g(-1.0)"} · décors sur la route {"n":0,"ou":""}
+canyon #20 palier 0 :  L 5954 m · orage · 125 ms (monde {"ech":1,"plat":20,"fin":12,"texels":25374,"ombre":4,"pose":12,"total":54}) · axe -54° coudes [-25,22] · pièces chameau rac
+   grilles fine 103904 · fond 78300 · ombre 20862 · mémoire GPU ~2.5 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":22.8,"sep":306,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #21 palier 0 :  L 5760 m · pluie · 118 ms (monde {"ech":1,"plat":17,"fin":12,"texels":23515,"ombre":4,"pose":13,"total":49}) · axe 16° coudes [-17,16] · pièces arche rac
+   grilles fine 80573 · fond 75225 · ombre 16287 · mémoire GPU ~2.1 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":23.6,"sep":350,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #22 palier 0 :  L 6521 m · soir · 143 ms (monde {"ech":2,"plat":19,"fin":14,"texels":27770,"ombre":4,"pose":13,"total":54}) · axe -15° coudes [-10] · pièces chameau rac
+   grilles fine 116246 · fond 81238 · ombre 23364 · mémoire GPU ~2.7 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":26.4,"sep":316,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #23 palier 0 :  L 6854 m · matin · 131 ms (monde {"ech":2,"plat":18,"fin":14,"texels":28156,"ombre":4,"pose":12,"total":53}) · axe -14° coudes [11,-21] · pièces rac arche chameau
+   grilles fine 114716 · fond 80741 · ombre 23217 · mémoire GPU ~2.6 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":19,"sep":293,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #24 palier 3 :  L 6592 m · matin · 310 ms (monde {"ech":3,"plat":39,"fin":30,"texels":35534,"ombre":15,"pose":18,"total":109}) · axe -48° coudes [-12] · pièces rac amphi
+   grilles fine 178565 · fond 82748 · ombre 35775 · mémoire GPU ~3.4 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":23,"sep":313,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #25 palier 6 :  L 6252 m · matin · 245 ms (monde {"ech":2,"plat":24,"fin":16,"texels":27948,"ombre":6,"pose":23,"total":74}) · axe 53° coudes [19] · pièces rac arche
+   grilles fine 102152 · fond 78218 · ombre 20604 · mémoire GPU ~2.4 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":13.7,"sep":327,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #26 palier 10 :  L 8484 m · midi · 268 ms (monde {"ech":4,"plat":36,"fin":39,"texels":51211,"ombre":23,"pose":21,"total":129}) · axe 37° coudes [] · pièces amphi rac
+   grilles fine 294060 · fond 92070 · ombre 58793 · mémoire GPU ~5.0 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":10,"sep":482,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #27 palier 15 :  L 9828 m · soir · 353 ms (monde {"ech":9,"plat":45,"fin":40,"texels":56593,"ombre":14,"pose":30,"total":143}) · axe 36° coudes [15] · pièces rac mine
+   grilles fine 291599 · fond 99225 · ombre 58322 · mémoire GPU ~5.1 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":9.3,"sep":655,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #28 palier 20 :  L 11854 m · midi · 235 ms (monde {"ech":3,"plat":34,"fin":43,"texels":75007,"ombre":16,"pose":19,"total":121}) · axe 9° coudes [11] · pièces arche rac
+   grilles fine 297270 · fond 100998 · ombre 59565 · mémoire GPU ~5.2 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":4.4,"sep":870,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #29 palier 25 :  L 11308 m · nuit · 310 ms (monde {"ech":2,"plat":36,"fin":62,"texels":75290,"ombre":28,"pose":37,"total":173}) · axe -21° coudes [25,-18] · pièces rac arche
+   ÉCHEC  {"err":"TypeError: Cannot read properties of undefined (reading 'x')"}
+   grilles fine 202120 · fond 92672 · ombre 40768 · mémoire GPU ~3.9 Mo
+   règle d'or {"dessus":0,"dessous":1,"margeMin":-2.9,"sep":730,"ou":"D8478d(-2.9)"} · décors sur la route {"n":0,"ou":""}
+canyon #30 palier 0 :  L 6506 m · soir · 204 ms (monde {"ech":4,"plat":26,"fin":16,"texels":27076,"ombre":5,"pose":21,"total":74}) · axe 19° coudes [] · pièces chameau rac arche
+   grilles fine 85722 · fond 77924 · ombre 17302 · mémoire GPU ~2.2 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":18.6,"sep":336,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #31 palier 0 :  L 6555 m · pluie · 168 ms (monde {"ech":4,"plat":24,"fin":14,"texels":26938,"ombre":5,"pose":20,"total":70}) · axe 22° coudes [-18,14] · pièces arche bosses rac
+   grilles fine 91140 · fond 78336 · ombre 18512 · mémoire GPU ~2.3 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":15.5,"sep":289,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #32 palier 0 :  L 6162 m · pluie · 258 ms (monde {"ech":6,"plat":34,"fin":17,"texels":25504,"ombre":9,"pose":18,"total":86}) · axe 38° coudes [] · pièces bosses rac
+   grilles fine 116948 · fond 80372 · ombre 23560 · mémoire GPU ~2.7 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":24.2,"sep":370,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #33 palier 0 :  L 6041 m · pluie · 236 ms (monde {"ech":7,"plat":34,"fin":20,"texels":25587,"ombre":8,"pose":18,"total":91}) · axe 22° coudes [-16] · pièces rac bosses
+   grilles fine 86526 · fond 76368 · ombre 17390 · mémoire GPU ~2.2 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":23.7,"sep":329,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #34 palier 3 :  L 6673 m · orage · 252 ms (monde {"ech":6,"plat":38,"fin":31,"texels":35536,"ombre":14,"pose":19,"total":113}) · axe -25° coudes [] · pièces amphi rac
+   grilles fine 163552 · fond 80741 · ombre 33017 · mémoire GPU ~3.2 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":21.4,"sep":356,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #35 palier 6 :  L 6139 m · soir · 203 ms (monde {"ech":2,"plat":33,"fin":18,"texels":27543,"ombre":7,"pose":18,"total":81}) · axe 43° coudes [] · pièces rac arche
+   grilles fine 108650 · fond 78498 · ombre 21896 · mémoire GPU ~2.5 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":15.2,"sep":333,"ou":""} · décors sur la route {"n":0,"ou":""}
+canyon #36 palier 10 :  L 8031 m · midi · 189 ms (monde {"ech":2,"plat":23,"fin":27,"texels":39857,"ombre":8,"pose":18,"total":80}) · axe 19° coudes [23] · pièces rac etroits
+   grilles fine 165646 · fond 87040 · ombre 33232 · mémoire GPU ~3.4 Mo
+   règle d'or {"dessus":0,"dessous":0,"margeMin":17.5,"sep":495,"ou":""} · décors sur la route {"n":2,"ou":"5620:paroi 5620:paroi"}
+canyon #37 palier 15 :  L 9353 m · pluie · 200 ms (monde {"ech":2,"plat":24,"fin":26,"texels":51866,"ombre":9,"pose":14,"total":78}) · axe -46° coudes [23,-15] · pièces arche rac
+   ÉCHEC  {"err":"TypeError: Cannot read properties of undefined (reading 'x')"}
+   grilles fine 257400 · fond 95608 · ombre 51417 · mémoire GPU ~4.6 Mo
+   règle d'or {"dessus":0,"dessous":3,"margeMin":-6.4,"sep":627,"ou":"D3432g(-2.4) D4254d(0.9) D4260d(-6.4)"} · décors sur la route {"n":0,"ou":""}
+canyon #38 palier 20 :  L 10218 m · midi · 179 ms (monde {"ech":1,"plat":22,"fin":32,"texels":63803,"ombre":11,"pose":15,"total":86}) · axe 9° coudes [-17] · pièces arche rac
+   ÉCHEC  {"err":"TypeError: Cannot read properties of undefined (reading 'x')"}
+   grilles fine 232530 · fond 93160 · ombre 46508 · mémoire GPU ~4.3 Mo
+   règle d'or {"dessus":0,"dessous":3,"margeMin":-3.7,"sep":835,"ou":"D7944d(-2.3) D7950d(-3.7) D8892g(-1.6)"} · décors sur la route {"n":0,"ou":""}
+canyon #39 palier 25 :  L 13007 m · matin · 154 ms (monde {"ech":1,"plat":20,"fin":32,"texels":85965,"ombre":7,"pose":13,"total":77}) · axe 5° coudes [-16,11] · pièces arche rac
+   ÉCHEC  {"err":"TypeError: Cannot read properties of undefined (reading 'x')"}
+   grilles fine 254472 · fond 99702 · ombre 50964 · mémoire GPU ~4.6 Mo
+   règle d'or {"dessus":9,"dessous":18,"margeMin":-30.1,"sep":735,"ou":"D3666d(-0.9) D3672d(-9.1) 3672d D3678d(-17.0) 3678d D3684d(-23.8) 3684d D3690d(-30.1) 3690d D3696d(-22.5) 3696d D3702d(-2.3) D10560d(0.3) D10566d(1.4) D10572d(-2.7) D10578d(-0.0) D10704d(0.7) D10830g(-5.4) D10836g(-16.0) 10836g D10842g(-23.6) 10842g D10848g(-22.4) 10848g D10854g(-14.3) 10854g D10860g(1.0)"} · décors sur la route {"n":3,"ou":"3690:riviere 3690:riviere 10840:riviere"}
+RÉSUMÉ canyon paliers 0-3 n 20 monde ms médiane 78 max 297 · GPU Mo médiane 2.6 max 3.4 · règle d'or cassée 0
+RÉSUMÉ canyon paliers 6-15 n 12 monde ms médiane 93 max 143 · GPU Mo médiane 3.8 max 5.1 · règle d'or cassée 1
+RÉSUMÉ canyon paliers 20-25 n 8 monde ms médiane 121 max 270 · GPU Mo médiane 4.6 max 9.8 · règle d'or cassée 5

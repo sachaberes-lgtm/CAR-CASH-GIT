@@ -1,0 +1,89 @@
+[
+ {
+  "k": 0,
+  "axe": -6,
+  "L": 6956,
+  "ordre": [
+   "la brèche",
+   "l'amphithéâtre",
+   "le fer à cheval (raccourci)",
+   "la finale"
+  ],
+  "photos": [
+   [
+    "la brèche",
+    "canyon-0-breche1.jpg"
+   ],
+   [
+    "l'amphithéâtre",
+    "canyon-0-amphi0.jpg"
+   ],
+   [
+    "le fer à cheval (raccourci)",
+    "canyon-0-fer0.jpg"
+   ],
+   [
+    "la finale",
+    "canyon-0-finale0.jpg"
+   ]
+  ]
+ },
+ {
+  "k": 1,
+  "axe": -52,
+  "L": 5781,
+  "ordre": [
+   "la brèche",
+   "le fer à cheval (raccourci)",
+   "l'amphithéâtre",
+   "la finale"
+  ],
+  "photos": [
+   [
+    "la brèche",
+    "canyon-1-breche1.jpg"
+   ],
+   [
+    "le fer à cheval (raccourci)",
+    "canyon-1-fer0.jpg"
+   ],
+   [
+    "l'amphithéâtre",
+    "canyon-1-amphi0.jpg"
+   ],
+   [
+    "la finale",
+    "canyon-1-finale0.jpg"
+   ]
+  ]
+ },
+ {
+  "k": 2,
+  "axe": -21,
+  "L": 6142,
+  "ordre": [
+   "la brèche",
+   "le fer à cheval (raccourci)",
+   "la mine",
+   "la finale"
+  ],
+  "photos": [
+   [
+    "la brèche",
+    "canyon-2-breche1.jpg"
+   ],
+   [
+    "le fer à cheval (raccourci)",
+    "canyon-2-fer0.jpg"
+   ],
+   [
+    "la mine",
+    "canyon-2-mine0.jpg"
+   ],
+   [
+    "la finale",
+    "canyon-2-finale0.jpg"
+   ]
+  ]
+ }
+]

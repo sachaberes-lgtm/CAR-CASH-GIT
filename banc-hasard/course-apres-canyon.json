@@ -1,0 +1,62 @@
+[
+ {
+  "k": 0,
+  "carte": "canyon",
+  "meteo": "nuit",
+  "L": 6443,
+  "axe": -5,
+  "pieces": "cassures rac serpent amphi meandres",
+  "fin": {
+   "passe": true,
+   "t": 102.444,
+   "carteSuivante": "jade"
+  },
+  "piece": null,
+  "erreurs": []
+ },
+ {
+  "k": 1,
+  "carte": "canyon",
+  "meteo": "midi",
+  "L": 6528,
+  "axe": -10,
+  "pieces": "module chameau gorge bosses serpent rac gorge",
+  "fin": {
+   "passe": true,
+   "t": 94.277,
+   "carteSuivante": "espace"
+  },
+  "piece": null,
+  "erreurs": []
+ },
+ {
+  "k": 2,
+  "carte": "canyon",
+  "meteo": "midi",
+  "L": 6633,
+  "axe": 21,
+  "pieces": "gorge amphi module rac module",
+  "fin": {
+   "passe": true,
+   "t": 89.425,
+   "carteSuivante": "volcan"
+  },
+  "piece": null,
+  "erreurs": []
+ },
+ {
+  "k": 3,
+  "carte": "canyon",
+  "meteo": "pluie",
+  "L": 6076,
+  "axe": -23,
+  "pieces": "serpent rac module chameau module",
+  "fin": {
+   "passe": true,
+   "t": 94.014,
+   "carteSuivante": "volcan"
+  },
+  "piece": null,
+  "erreurs": []
+ }
+]
