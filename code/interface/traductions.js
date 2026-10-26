@@ -370,7 +370,7 @@ Object.assign(I18N,{
  "Le garage se visite depuis le menu":"Visit the garage from the menu",
  "Ça se visite depuis le menu":"Open it from the menu",
  "Le taureau doré. Assurance résiliée d'office.":"The golden bull. Insurance canceled on sight.",
- "Compacte japonaise passée au bain d'acide : capot vitré sur le bloc, aileron de table à repasser, échappement qui crache vert.":"A Japanese compact dipped in acid: glass hood over the engine, ironing-board wing, exhaust that spits green.",
+ "Un coin des années 80 passé au bain d'acide : une ampoule qui luit sur le dos, et l'échappement qui crache vert.":"An '80s wedge dipped in acid: a glowing bulb on its back, and an exhaust that spits green.",
  "Le centre de gravité au ras du bitume.":"Center of gravity scraping the asphalt.",
  "LE BITUME SE SOUVIENDRA DE TOI":"THE ASPHALT WILL REMEMBER YOU",
  "Quatre rotors. Ça ne vole pas mieux, mais ça brasse de l'air.":"Four rotors. It doesn't fly any better, but it sure moves some air.",

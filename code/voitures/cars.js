@@ -53,7 +53,7 @@ const CARS=[
  {retire:1,name:'EL PATRON'},
  {rar:'epique',name:'ACIDE',           shape:'tuner',   color:0x5cff1e,accent:0x123a08,maxKmh:520,accel:60,turn:3.18,h:1.17,w:1.93,l:4.22,spoiler:0,
   fx:{jet:0x7cff28,core:0xe8ffb4,trail:[.52,1.55,.10],light:0x6fe81e},
-  desc:'Compacte japonaise passée au bain d\'acide : capot vitré sur le bloc, aileron de table à repasser, échappement qui crache vert.'},
+  desc:'Un coin des années 80 passé au bain d\'acide : une ampoule qui luit sur le dos, et l\'échappement qui crache vert.'},
 /* ===== LES FICHES DES 50 — DÉBUT ===== */
  /* (2026-10-02, Sacha, capture du garage : « supprimer ces 6 voitures du jeu, elles sont pas intéressantes ») SIX COMMUNES RETIRÉES —
     la pizza, le monospace, le break suédois, la boule, le glacier, le tout-terrain soviétique : `retire:1`. Elles ne sont plus NULLE
