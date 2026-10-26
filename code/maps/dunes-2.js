@@ -7,6 +7,7 @@
 const DN_POLY=!/[?&]poly=0\b/.test(location.search),DN_LUM=!/[?&]lumiere=0\b/.test(location.search),DN_CELL=4;
 /* ---- LE SABLE À LA PUCE : la grille (G × G cases), ses instances (x0, z0, taille, niveau), sa matière ---- */
 const DN_TB='vec4 tB(sampler2D t,vec2 p,vec2 N){vec2 q=p-.5,i=floor(q),f=q-i,a=(i+.5)/N,e=1./N;return mix(mix(texture2D(t,a),texture2D(t,a+vec2(e.x,0.)),f.x),mix(texture2D(t,a+vec2(0.,e.y)),texture2D(t,a+e),f.x),f.y);}';
+const dnF=function(n){const t=String(+n);return /[.e]/.test(t)?t:t+'.';}; /* (un nombre écrit pour le GLSL : toujours un flottant) */
 const DN_VS=['attribute vec4 aN;uniform sampler2D uTC,uTZ,uTS,uNZ;uniform vec4 uFD,uZD,uSD,uOA,uW,uFin;uniform vec2 uFN,uZN,uSN;uniform vec3 uCam;uniform float uG,uR0,uLam;',
   'varying vec3 vW,vN;varying vec4 vA,vB;varying vec2 vGp;varying vec4 vF;','#include <fog_pars_vertex>',DN_TB,
   'float gU,gP,gV,gM,gR;',
@@ -25,7 +26,13 @@ const DN_VS=['attribute vec4 aN;uniform sampler2D uTC,uTZ,uTS,uNZ;uniform vec4 u
   /* LES BUTTES : la même fonction que dnMesa (dunes-1.js) — un seuil du bruit (canal g), le haut par un autre (canal b), rien près de la route (Z.g = la distance à la route) */
   'float dnMesa(vec2 x,float dr){if(uFin.w>.5)return 0.;float n=texture2D(uNZ,x/11000.+vec2(.21,.73)).g,e=clamp((n-.58)/.14,0.,1.),m0=e*e*(3.-2.*e);if(m0<=0.)return 0.;',
   '  float t=texture2D(uNZ,x/1700.+vec2(.5,.1)).b,f=clamp((dr-260.)/260.,0.,1.),q=clamp((length(x-uFin.xy)-1800.)/1200.,0.,1.);return m0*f*f*(3.-2.*f)*q*q*(3.-2.*q)*(70.+110.*t);}',
-  'vec4 dnHt(vec2 x){vec4 Z=tB(uTZ,(x-uZD.xy)*uZD.zw*uZN,uZN);float me=dnMesa(x,Z.g),mk=clamp(me/20.,0.,1.);float h=Z.r+Z.b*(dnDune(x)-.35)*(1.-.85*Z.a)*(1.-.92*mk)+me;gP=Z.a;gM=mk;gV=0.;gR=Z.g;',
+  /* L'IMMENSITÉ : la même fonction que dnGeant (dunes-1.js) — les dunes géantes de l'horizon, nées à `r1` m de la route (Z.g), pleines à `r2`, éteintes autour de l'arrivée */
+  ...(DN_IMM.on?['float dnGeant(vec2 x,float dr,float mk){float t=clamp((dr-'+dnF(DN_IMM.r1)+')/'+dnF(DN_IMM.r2-DN_IMM.r1)+',0.,1.),rd=t*t*(3.-2.*t);if(rd<=0.)return 0.;',
+  '  float s=clamp((length(x-uFin.xy)-'+dnF(DN_IMM.f1)+')/'+dnF(DN_IMM.f2-DN_IMM.f1)+',0.,1.),q=s*s*(3.-2.*s);if(q<=0.)return 0.;',
+  '  vec2 W=uW.xy;float n1=texture2D(uNZ,x/30000.+vec2(.19,.43)).r-.5,n2=texture2D(uNZ,x/11000.+vec2(.52,.08)).r-.5,a=dot(x,W)/(uLam*'+dnF(DN_IMM.l)+')+2.2*n1+1.4*n2,f=fract(a);',
+  '  float p=f<.7?pow(max(f/.7,1e-5),1.6):pow(max((1.-f)/.3,1e-5),1.2),v=-x.x*W.y+x.y*W.x,m=.5+.5*clamp((texture2D(uNZ,vec2(v/12000.+.31,a*.11+.2)).r-.15)*1.6,0.,1.);',
+  '  return '+dnF(DN_IMM.h)+'*(m*p+'+dnF(DN_IMM.b)+')*rd*q*(1.-.92*mk);}']:[]),
+  'vec4 dnHt(vec2 x){vec4 Z=tB(uTZ,(x-uZD.xy)*uZD.zw*uZN,uZN);float me=dnMesa(x,Z.g),mk=clamp(me/20.,0.,1.);float h=Z.r+Z.b*(dnDune(x)-.35)*(1.-.85*Z.a)*(1.-.92*mk)+me'+(DN_IMM.on?'+dnGeant(x,Z.g,mk)':'')+';gP=Z.a;gM=mk;gV=0.;gR=Z.g;',
   '  vec2 fp=(x-uFD.xy)*uFD.zw;if(fp.x>0.&&fp.y>0.&&fp.x<1.&&fp.y<1.){vec4 C=tB(uTC,fp*uFN,uFN);h=mix(h,C.r,C.g);}',
   '  float w=0.,dep=0.;if(uOA.z>0.){float rr=length(x-uOA.xy)/uOA.z;if(rr<2.4){float o=rr<1.?uOA.w-12.*(1.-rr*rr):uOA.w+(rr-1.)*uOA.z*.2;h=min(h,o);',
   '    gV=smoothstep(.95,1.06,rr)*(1.-smoothstep(1.30,1.62,rr));if(h<uOA.w-.05){dep=uOA.w-h;h=uOA.w;w=1.;}}}',
@@ -111,11 +118,13 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   '    vec3 cw=wc*(uSunC*(.3+.7*max(dot(Nw,uSunD),0.))*lit+mix(uGnd,uSky,.7))*.9+sk*f9+uSunC*pow(max(dot(R,uSunD),0.),160.)*1.2*lit;c=mix(c,cw,wat);}',
   '  if(uPhC.r+uPhC.g>.001){vec3 lv=vW-uPhP;float dl=length(lv);vec3 ld=lv/max(dl,.01);c+=col*uPhC*smoothstep(.80,.95,dot(ld,uPhD))*max(dot(NL,-ld),0.)/(1.+dl*dl/9000.);}', // les PHARES sur le sable
   /* LE MIRAGE : au loin, le sable presque à plat, vu en rasant, renvoie le ciel — et tremble */
-  '  if(uQ.y>.001){float mi=uQ.y*smoothstep(800.,3200.,dist)*(1.-smoothstep(.02,.10,abs(V.y)))*(1.-smoothstep(.06,.25,stp));',
+  '  if(uQ.y>.001){float mi=uQ.y*smoothstep(800.,3200.,dist)*(1.-smoothstep('+(DN_IMM.on?'.012,.05':'.02,.10')+',abs(V.y)))*(1.-smoothstep(.06,.25,stp))'+(DN_IMM.on?'*smoothstep(-.015,.012,V.y)':'')+';',
   '   float sh=texture2D(uNZ,vec2(vW.x/260.+uTime*.04,vW.z/260.-uTime*.03)).r;c=mix(c,mix(mix(uSkH,uSkZ,.25),uWS*1.3+.06,.42*uEx.z)*(.92+.16*sh),mi*(.55+.45*sh));}',
   /* LA BRUME EN PLANS : la poussière du proche reste chaude, celle du lointain vire au froid du ciel (le plan lointain est plus clair et plus froid) et s'épaissit dans les creux */
   '  {float far=smoothstep(1500.,6500.,dist)*uEx.z,low=smoothstep(40.,-150.,vW.y-uCam.y)*smoothstep(500.,2600.,dist);vec3 hc=mix(uHaze,uHaze*.45+mix(uSkH,uSkZ,.45)*.75,far);',
   '   c=mix(c,hc,clamp(uQ.x*smoothstep(150.,4500.,dist)*.65*(1.+.6*low*uEx.z),0.,1.));}', // la poussière en suspension
+  /* L'IMMENSITÉ : la PERSPECTIVE AÉRIENNE du lointain — au-delà de ~1,5 km chaque plan perd son contraste et vire à la brume froide du ciel (plus vite dans les creux : ils se remplissent), de sorte que chaque crête géante est plus claire et plus bleue que celle qui la précède */
+  ...(DN_IMM.on?['  {float im=smoothstep(1500.,6500.,dist)*uEx.z*'+dnF(DN_IMM.air)+'*(1.+.45*smoothstep(60.,-200.,vW.y-uCam.y));vec3 hz=mix(uSkH,uSkZ,.5);','#ifdef USE_FOG','   hz=mix(fogColor,hz,.35);','#endif','   c=mix(c,hz,clamp(im,0.,.92));}']:[]),
   '  c=mix(c,uHaze,uQ.z*smoothstep(8.,500.,dist)*.5);', // (le vent de sable et la tempête : la poussière est DANS l'air tout près — le sable proche n'est plus net)
   '  c+=uFlash*col*vec3(.75,.78,1.)*(.35+.65*max(NL.y,0.));',
   '  gl_FragColor=vec4(c,1.);','#include <fog_fragment>','}'].join('\n');
@@ -607,6 +616,20 @@ window.dbgDunes=function(k,a,b,c,d){
     camera.position.set(F9.p.x+F9.b.x*lt,F9.p.y+(c||8),F9.p.z+F9.b.z*lt);camera.up.set(0,1,0);camera.lookAt(camera.position.x+dx*200,camera.position.y-200*pe,camera.position.z+dz*200);if(arguments[6]){camera.fov=arguments[6];camera.updateProjectionMatrix();}camera.updateMatrixWorld();
     skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return {cam:camera.position.toArray().map(Math.round)};}
   if(k==='decors'){const r=function(o){return o.map(function(q){return {x:Math.round(q.x),y:Math.round(q.y),z:Math.round(q.z),h:Math.round(q.h||0),k:q.k||q.st||''};});};return {ob:r(DN.ob||[]),pyrs:r(DN.pyrs||[]),mo:r(DN.mo||[]),oasis:DN.oa?{x:Math.round(DN.oa.x),z:Math.round(DN.oa.z),r:Math.round(DN.oa.r)}:null,n:DN.decoN||null};} /* (banc) où sont les décors */
+  if(k==='immense'){if(!DN.on)return 'pas de dunes';const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},H9={}; /* (banc, L'IMMENSITÉ) le profil de l'HORIZON vu de l'abscisse a, à b m au-dessus de la dalle : tous les c azimuts (défaut 24), l'élévation du sable le plus haut (degrés) et la distance où il se trouve ; + la moyenne et le nombre de crêtes successives (plans) sur chaque azimut */
+    frameAt(Math.max(0,Math.min(L-1,a||0)),F9);const ey=F9.p.y+(b||4),n=Math.max(4,c|0||24),o=[];let sm9=0,pl9=0;
+    for(let i=0;i<n;i++){const an=i/n*6.2832,ux=Math.cos(an),uz=Math.sin(an);let mx=-90,md=0,nb=0,vu=0;for(let d9=150;d9<=12000;d9+=d9<2000?50:100){const e=Math.atan2(dnHauteur(F9.p.x+ux*d9,F9.p.z+uz*d9,H9)-ey,d9)*57.2958;if(e>mx+.05){if(d9>1500&&e>vu+.15&&mx>-89)nb++;mx=e;md=d9;vu=e;}}
+      o.push([Math.round(an*57.2958),+mx.toFixed(1),md,nb]);sm9+=mx;pl9+=nb;}
+    return {moy:+(sm9/n).toFixed(2),plans:+(pl9/n).toFixed(1),az:o};}
+  if(k==='parite'){if(!DN.on||!DN.mat)return 'pas de dunes';const N=+a||64,U=DN.mat.uniforms,Vs=DN.mat.vertexShader,i0=Vs.indexOf('void main(){float S=aN.z;');if(i0<0)return 'prefixe introuvable'; /* (banc, L'IMMENSITÉ) la PARITÉ JS/GLSL : N points du désert lointain, la hauteur lue par la puce (dnHt du vertex shader, rendue dans une cible flottante) contre dnHauteur ; rend l'écart max / moyen (m) et le nombre de points où le géant n'est pas nul */
+    const pts=[],Z=DN.Z,H9={};let ng=0;for(let i=0;i<N;i++){const r1=Math.sin(i*12.9898+1.3)*43758.5453,r2=Math.sin(i*78.233+2.1)*24634.6345,u=r1-Math.floor(r1),v=r2-Math.floor(r2),x=Z.x0+u*(Z.nx-1)*Z.ts,z=Z.z0+v*(Z.nz-1)*Z.ts;pts.push(x,z);if(dnGeant(x,z,cyBil(Z.d,Z.nx,Z.nz,4,1,(x-(Z.x0-Z.ts*.5))/Z.ts,(z-(Z.z0-Z.ts*.5))/Z.ts),0)>5)ng++;}
+    const g=new THREE.BufferGeometry(),pos=new Float32Array(N*3),px=new Float32Array(N*2);for(let i=0;i<N;i++){pos[i*3]=((i+.5)/N)*2-1;pos[i*3+1]=0;pos[i*3+2]=0;px[i*2]=pts[i*2];px[i*2+1]=pts[i*2+1];}
+    g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('pXZ',new THREE.BufferAttribute(px,2));g.boundingSphere=new THREE.Sphere(new THREE.Vector3(),1e9);
+    const mt=new THREE.ShaderMaterial({uniforms:U,vertexShader:Vs.slice(0,i0)+'attribute vec2 pXZ;varying float vHt;void main(){vHt=dnHt(pXZ).x;gl_PointSize=1.;gl_Position=vec4(position.x,0.,0.,1.);}',fragmentShader:'varying float vHt;void main(){gl_FragColor=vec4(vHt,0.,0.,1.);}',depthTest:false,depthWrite:false});
+    const rt=new THREE.WebGLRenderTarget(N,1,{type:THREE.FloatType,format:THREE.RGBAFormat,minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter,depthBuffer:false}),sc=new THREE.Scene(),cm=new THREE.Camera(),pt=new THREE.Points(g,mt);pt.frustumCulled=false;sc.add(pt);
+    const rto=renderer.getRenderTarget(),ac=renderer.autoClear;renderer.autoClear=true;renderer.setRenderTarget(rt);renderer.setClearColor(0,0);renderer.render(sc,cm);const out=new Float32Array(N*4);renderer.readRenderTargetPixels(rt,0,0,N,1,out);renderer.setRenderTarget(rto);renderer.autoClear=ac;
+    let mx=0,sm9=0,mxA=null;for(let i=0;i<N;i++){const hj=dnHauteur(pts[i*2],pts[i*2+1],H9),e=Math.abs(out[i*4]-hj);sm9+=e;if(e>mx){mx=e;mxA=[Math.round(pts[i*2]),Math.round(pts[i*2+1]),+hj.toFixed(2),+out[i*4].toFixed(2)];}}
+    rt.dispose();g.dispose();mt.dispose();return {n:N,geants:ng,ecartMax:+mx.toFixed(3),ecartMoy:+(sm9/N).toFixed(3),pire:mxA};}
   if(k==='vue'||k==='vueA'){if(!DN.on)return 'pas de dunes';if(started&&!gameOver&&!paused)togglePause();const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
     frameAt(Math.max(0,Math.min(L-1,(k==='vueA'?0:s)+(a||0))),F9);const cap=(c||0)*Math.PI/180,dx=F9.t.x*Math.cos(cap)-F9.t.z*Math.sin(cap),dz=F9.t.z*Math.cos(cap)+F9.t.x*Math.sin(cap);
     camera.position.set(F9.p.x,F9.p.y+(b||12),F9.p.z);camera.up.set(0,1,0);camera.lookAt(F9.p.x+dx*200,F9.p.y+(b||12)-200*(d!=null?d:.12),F9.p.z+dz*200);camera.updateMatrixWorld();

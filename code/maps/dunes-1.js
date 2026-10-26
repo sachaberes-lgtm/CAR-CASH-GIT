@@ -169,11 +169,25 @@ function dnDune(x,z,W,lam,o){ /* (le bruit lu aux SEULES grandes échelles, cana
 function dnMesa(x,z,dr){if(DN.sb)return 0;const n=cyNz(x/11000+.21,z/11000+.73,1),e=Math.max(0,Math.min(1,(n-.58)/.14)),m0=e*e*(3-2*e);if(m0<=0)return 0;
   const t=cyNz(x/1700+.5,z/1700+.1,2),f=Math.max(0,Math.min(1,(dr-260)/260)),w=f*f*(3-2*f),F9=DN.fin;let fe=1;if(F9){const q=Math.max(0,Math.min(1,(Math.hypot(x-F9.x,z-F9.z)-1800)/1200));fe=q*q*(3-2*q);} // (aucune butte autour de l'arrivée : les pyramides, l'oasis, le portail)
   return m0*w*fe*(70+110*t);}
+/* ===== L'IMMENSITÉ (2026-10-26, Léo : « je veux vraiment un peu l'immensité, un effet d'immensité ») =====
+   Avant : le désert lointain n'était qu'un fond 90 m SOUS la route, orné partout des mêmes dunes de 560 m — aucune crête ne passait au-dessus de l'œil, donc aucun plan derrière le premier, et l'horizon tenait à quelques km. Ici, au-delà de
+   `r1` m de la route (rien en deçà : le sable de près, la route, les décors et `dbgDunes('test')` ne bougent pas — le raccord est un smoothstep jusqu'à `r2`), un ERG DE DUNES GÉANTES : des crêtes asymétriques de `l` fois la longueur d'onde
+   des dunes (~3 km), hautes de `h` m (et le fond du désert remonte de `b`×`h` : l'horizon passe au-dessus de l'œil), perpendiculaires au même vent et serpentant sur des dizaines de km ; elles se lisent comme des plans qui s'étagent, que la brume (DN_FS) refroidit de l'un à l'autre. Rien autour de l'arrivée
+   (`f1`-`f2` m : les pyramides, hautes de 500 à 750 m). La même fonction dans le GLSL de la puce (dnGeant de DN_VS) : toute retouche ici se refait là-bas. `?sans=dunesimmense` = le désert d'avant · `?immense=h,l,r1,r2,b,air` l'essaie à d'autres réglages · `dbgDunes('immense', s, hauteur, n)` = le profil de l'horizon (élévation et distance de la crête la plus haute, par azimut) · `dbgDunes('parite', n)` = la hauteur de la puce contre dnHauteur. */
+const DN_IMM=(function(){const m=/[?&]immense=([\d.,]+)/.exec(location.search),p=m?m[1].split(',').map(Number):[],ok=function(i,d){return p[i]>0?p[i]:d;};
+  return {on:!/[?&]sans=([^&]*,)?dunesimmense(,|&|$)/.test(location.search),h:ok(0,460),l:ok(1,5.4),r1:ok(2,900),r2:ok(3,2300),b:ok(4,.4),air:ok(5,.8),f1:1500,f2:3200};})();
+function dnGeant(x,z,dr,mk){const I=DN_IMM;if(!I.on||dr<=I.r1)return 0;
+  const t=Math.min(1,(dr-I.r1)/(I.r2-I.r1)),rd=t*t*(3-2*t);let q=1;const F9=DN.fin;
+  if(F9){const s=Math.max(0,Math.min(1,(Math.hypot(x-F9.x,z-F9.z)-I.f1)/(I.f2-I.f1)));q=s*s*(3-2*s);}  // (aucun géant autour de l'arrivée : les pyramides, l'oasis, le portail)
+  if(q<=0)return 0;
+  const W=DN.vent,lg=DN.lam*I.l,n1=cyNz(x/30000+.19,z/30000+.43,0)-.5,n2=cyNz(x/11000+.52,z/11000+.08,0)-.5,a=(x*W[0]+z*W[1])/lg+2.2*n1+1.4*n2,f=a-Math.floor(a);
+  const p=f<.7?Math.pow(Math.max(f/.7,1e-5),1.6):Math.pow(Math.max((1-f)/.3,1e-5),1.2),v=-x*W[1]+z*W[0],m=.5+.5*Math.max(0,Math.min(1,(cyNz(v/12000+.31,a*.11+.2,0)-.15)*1.6)); // le profil de la crête, puis ses pics et ses cols le long d'elle
+  return I.h*(m*p+I.b)*rd*q*(1-.92*mk);}
 const DN_O9={};
 function dnFar(x,z,o){const Z=DN.Z;o=o||DN_O9;
-  const zx=(x-(Z.x0-Z.ts*.5))/Z.ts,zz=(z-(Z.z0-Z.ts*.5))/Z.ts,B=cyBil(Z.d,Z.nx,Z.nz,4,0,zx,zz),A=cyBil(Z.d,Z.nx,Z.nz,4,2,zx,zz),pan=cyBil(Z.d,Z.nx,Z.nz,4,3,zx,zz);
-  const me=dnMesa(x,z,cyBil(Z.d,Z.nx,Z.nz,4,1,zx,zz)),mk=Math.max(0,Math.min(1,me/20)); // la butte : son haut est plat (les dunes s'effacent dessus)
-  const dun=A*(dnDune(x,z,DN.vent,DN.lam)-.35)*(1-.85*pan)*(1-.92*mk)+me;o.dun=dun;o.B=B;return B+dun;}
+  const zx=(x-(Z.x0-Z.ts*.5))/Z.ts,zz=(z-(Z.z0-Z.ts*.5))/Z.ts,B=cyBil(Z.d,Z.nx,Z.nz,4,0,zx,zz),A=cyBil(Z.d,Z.nx,Z.nz,4,2,zx,zz),pan=cyBil(Z.d,Z.nx,Z.nz,4,3,zx,zz),dr=cyBil(Z.d,Z.nx,Z.nz,4,1,zx,zz);
+  const me=dnMesa(x,z,dr),mk=Math.max(0,Math.min(1,me/20)); // la butte : son haut est plat (les dunes s'effacent dessus)
+  const dun=A*(dnDune(x,z,DN.vent,DN.lam)-.35)*(1-.85*pan)*(1-.92*mk)+me;o.dun=dun;o.B=B;return B+dun+dnGeant(x,z,dr,mk);}
 /* LA HAUTEUR DU SABLE (2026-10-22, LA ROUTE CONTINUE) — la même que la puce (dnHt) : le DÉSERT (dnFar : le fond B, l'amplitude A, la cuvette `pan`, les buttes — grille de 64 m) et le TERRAIN PRESCRIT près de la
    route (grille fine : Hn = la hauteur voulue, w = son poids) : h = désert + w × (Hn − désert). Plus de plafond ni de plancher : la route porte son sable, il l'enlace. `o` (facultatif) reçoit eau (0/1), dun, B. */
 function dnHauteur(x,z,o){const F=DN.F;o=o||DN_O9;let h=dnFar(x,z,o);
@@ -323,7 +337,7 @@ function dnMondeCalc(S,opt){
   const pv=dnPrevoir(S,opt.sQ,K,RH,r,opt.deco);DN.ob=pv.ob;DN.pyr=pv.pyr;
   // ---- 6. L'OMBRE : balayée une fois dans le sens du soleil de l'heure ----
   pv.sv=opt.vol||[];const t3=performance.now();dnOmbre(opt.sun[0],opt.sun[1],pv);ms.ombre=Math.round(performance.now()-t3);
-  let yMax=-1e9,yMin=1e9;for(let o=0;o<znx*znz;o++){const b=zdat[o*4],a=zdat[o*4+2];if(b+a>yMax)yMax=b+a;if(b-a*.4<yMin)yMin=b-a*.4;}if(fymax>yMax)yMax=fymax;
+  let yMax=-1e9,yMin=1e9;for(let o=0;o<znx*znz;o++){const b=zdat[o*4],a=zdat[o*4+2];if(b+a>yMax)yMax=b+a;if(b-a*.4<yMin)yMin=b-a*.4;}if(DN_IMM.on)yMax+=DN_IMM.h*(1+DN_IMM.b); /* (les géants de l'immensité s'ajoutent au désert) */if(fymax>yMax)yMax=fymax;
   if(pv.pyr)yMax=Math.max(yMax,pv.pyr.y+pv.pyr.h);for(const b of pv.ob)yMax=Math.max(yMax,b.y+b.h);
   for(const b of pv.pyrs||[])yMax=Math.max(yMax,b.y+b.h);for(const b of pv.mo||[])yMax=Math.max(yMax,b.y+b.h);
   if(opt.oa)yMin=Math.min(yMin,opt.oa.y-20);
@@ -451,8 +465,8 @@ function buildDunes(seed,pre){
 }
 /* le travailleur : les fonctions du MONDE recopiées par leur source (une seule écriture : elles servent aussi ici, à la collision) */
 function dnTravailleur(){if(DN.w!==undefined)return DN.w;
-  try{const fns=[mulberry32,cyNz,cyBil,dnDune,dnMesa,dnFar,dnHauteur,dnPf,dnProfil,dnPyr3,dnPrevoir,dnPrevoirDeco,dnOmbre,dnMondeCalc].map(function(f){return f.toString();}).join('\n');
-    const code="'use strict';var CY={},DN={},DN_O9={},DN_STAR="+DN_STAR+",PAL={B:{},b:function(k,d){return PAL.B[k]!=null?PAL.B[k]:d;}};\n"+fns+
+  try{const fns=[mulberry32,cyNz,cyBil,dnDune,dnMesa,dnGeant,dnFar,dnHauteur,dnPf,dnProfil,dnPyr3,dnPrevoir,dnPrevoirDeco,dnOmbre,dnMondeCalc].map(function(f){return f.toString();}).join('\n');
+    const code="'use strict';var CY={},DN={},DN_O9={},DN_STAR="+DN_STAR+",DN_IMM="+JSON.stringify(DN_IMM)+",PAL={B:{},b:function(k,d){return PAL.B[k]!=null?PAL.B[k]:d;}};\n"+fns+
       "\nonmessage=function(e){var m=e.data;CY={nz:m.nz};DN={};PAL.B=m.opt.pal;var R=dnMondeCalc(m.S,m.opt);R.job=m.job;"+
       "postMessage(R,[R.Z.d.buffer,R.F.c.buffer,R.O.h.buffer]);};";
     const W=new Worker(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));
