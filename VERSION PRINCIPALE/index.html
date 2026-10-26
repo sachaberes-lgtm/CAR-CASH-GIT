@@ -27446,6 +27446,7 @@ const CARS=[
  {retire:1,name:'LA MERCURE'},
  // (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») LE DOGE (voir SHAPES.doge) : le mème du
  // shiba en voxels, regard en coin, queue en tire-bouchon, et les phrases du mème qui surgissent autour de lui. Ajoutée EN DERNIER.
+ // (2026-10-26) REDESSINÉ EN POLY (SHAPES.doge v3) : la grosse tête taillée en pans plans, ~2 800 triangles au lieu de 46 000 ; `?doge=ancien` rend la v2.
  {name:'LE DOGE',shape:'doge',color:0xd99545,accent:0xf6e6c6,maxKmh:440,accel:53,turn:3.1,h:2.0,w:2.0,l:2.3,spoiler:0,rar:'epique',
   fx:{jet:0xffc83a,core:0xfff2c0,trail:[1.5,1.1,.3],light:0xffb43a,wow:1}, // sa traînée : les phrases du mème (voir LA TRAÎNÉE WOW)
   desc:'Wow. Très tête. Beaucoup roues. Il te regarde de côté, et il a raison.'},
@@ -33272,7 +33273,7 @@ function dogeTeteObtient(){ // la tête pour SHAPES.doge : celle de l'ouvrier si
   if(DOGE_OUV.pret){const p=DOGE_OUV.pret;DOGE_OUV.pret=null;DOGE_OUV.etat='servi';return dogeTete(p);}
   if(DOGE_OUV.w){dogeOuvFin();DOGE_OUV.etat='devance';}
   const t0=performance.now(),G=dogeTete();DOGE_OUV.msFil=Math.round(performance.now()-t0);return G;}
-setTimeout(dogeOuvrier,DOGE_OUV_MS);
+if(/[?&]doge=ancien/.test(location.search))setTimeout(dogeOuvrier,DOGE_OUV_MS); // (2026-10-26) le DOGE est redessiné en poly (SHAPES.doge) : la tête sculptée ne sert plus qu'à `?doge=ancien` — l'ouvrier ne la calcule plus pour rien au menu
 window.dbgDoge=function(q){ // (banc) l'OUVRIER DU DOGE — voir plus haut
   const T=SHAPES.doge._tete;
   if(q==='compare'){if(!T)return 'pas encore de tete';const R=dogeTete(),oct=a=>new Uint8Array(a.buffer,a.byteOffset,a.byteLength),
@@ -37056,7 +37057,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
    · DESSOUS : un châssis sombre, deux essieux, les roues de bronze à cinq branches (centre jaune or), deux sorties d'or sous la nuque ;
    · SA TRAÎNÉE : « WOW » (les phrases du mème sortent des pots à la nitro, voir LA TRAÎNÉE WOW).
    Ce qui bouge : `BLING.anim` (jeu) et `userData.anime` (salle blanche). */
-  doge:function(K){
+  doge_sculpte:function(K){ // (2026-10-26) la tête SCULPTÉE de la v2 (46 000 triangles) : `?doge=ancien` la rend — voir SHAPES.doge, plus bas
     const R=.37,ZF=.62,ZR=-.62,KT=1.75,HY=1.02,HZ=.06;
     if(typeof WOWT==='object'&&WOWT)WOWT.caisse=true;
     const pal={k:{g:'nyl',c:0x111015},o:{g:'nyl',c:0xe0a83a},D:{g:'nyl',c:0x2a2830}};
@@ -37179,6 +37180,181 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
     return {hl:[.32,1.1,1.05],tl:[.30,.70,-.90],lamps:0,halos:0,wx:.82,wzF:ZF,wzR:-ZR,pots:[[.24,.42,-.89],[-.24,.42,-.89]],
             lpw:{R:R,w:.34,style:'rayons',n:5,jante:0xffc42e,accent:0xffc42e,pneu:0x141118}};   // (« un peu plus jaune le truc au milieu du pneu »)
+  },
+  /* LE DOGE v3 — EN POLY (2026-10-26, Léo : « la plus belle voiture poly que tu puisses faire, au niveau de LA ROSSO 40 et de LA HONTE » ;
+     la v2 sculptée faisait 46 000 triangles en matière sans lumière ; puis : « je préfère la FORME et la TAILLE un peu KAWAII du premier,
+     mais c'est mieux la TECHNIQUE du deuxième »). Le même mème — la GROSSE TÊTE RONDE de shiba posée sur quatre grosses roues d'or, aux
+     cotes de la tête sculptée (boule de 1,64 × 1,40 m, joues pleines, museau court sous le regard, petites oreilles rondes écartées) —,
+     taillé en GRANDS PANS PLANS : ~2 900 triangles, roues comprises.
+     · LE CRÂNE : un loft dont chaque station est une COPIE AGRANDIE de la même section (voir S0) → chaque facette est un vrai plan ;
+       la FACE est un plan penché de 16° (le front fuit), relié au crâne par un anneau dont les pans sont recalés pour être plans eux aussi ;
+       le masque CRÈME (joues, menton, gorge) et le ROUX au-dessus, une crête roux sombre sur le sommet.
+     · LE REGARD EN COIN (l'âme) : yeux en amande cernés, paupières LOURDES roux sombre, les deux pupilles du même côté — elles suivent le
+       côté de la caméra, avec un coup d'œil de l'autre côté par moments ; les deux points crème des sourcils, l'un levé (sceptique),
+       l'autre le rejoint par moments et à la nitro ; la tête PENCHÉE du mème, qui hoche en roulant.
+     · LE MUSEAU court, large en bas (les babines), la truffe laquée et son éclat, le SOURIRE EN COIN (il remonte d'un côté).
+     · LES OREILLES : deux grands triangles creusés en deux pans, roses dedans, une touffe crème au creux.
+     · LE COLLIER rouge à clous d'or et sa MÉDAILLE Ð (le dogecoin) ; DERRIÈRE (ce qu'on voit en course) : la QUEUE EN BRIOCHE du shiba
+       (rousse dehors, crème dedans), le pare-chocs et sa plaque, les feux en COUSSINETS DE PATTE, deux sorties d'or dessous.
+     Toutes les pièces du visage sont des PLAQUES posées dans le plan de la face (`plF`) : jamais dessinées dans la tôle. La tête vit sur un
+     pivot (le cou) : `?dogetilt=0` la redresse. `?doge=ancien` rend la tête sculptée de la v2 (SHAPES.doge_sculpte). */
+  doge:function(K){
+    if(/[?&]doge=ancien/.test(location.search))return SHAPES.doge_sculpte(K);
+    const R=.37,ZF=.62,ZR=-.62,gF='p';                       // (26/10, règle de Léo) le pelage en LAQUE, comme LA HONTE — des teintes assez profondes pour ne pas brûler au blanc sous la lampe
+    if(typeof WOWT==='object'&&WOWT)WOWT.caisse=true;
+    const PAL={p:{g:gF,c:0xcf8a3e},r:{g:gF,c:0xa25e26},C:{g:gF,c:0xd9b887},P:{g:gF,c:0xd9837e},q:{g:gF,c:0x6e2c10},D:{g:gF,c:0xb08250},
+      n:{g:'m',c:0x131015},e:{g:'m',c:0x24150e},w:{g:'s',c:0xfffaf0},i:{g:'s',c:0x6b3412},
+      k:{g:'m',c:0x17151b},o:{g:'o',c:0xffd75e},O:{g:'o',c:0xb07a1c},R:{g:'p',c:0xd42a34},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},Y:{g:'l',c:0xf4f1e8},E:{g:gF,c:0x140b07}};let P=K.kit(PAL);
+    const T=(k,a,b,c)=>P.tri(k,a,b,c),Q=(k,a,b,c,d)=>{T(k,a,b,c);T(k,a,c,d);},X=p=>[-p[0],p[1],p[2]],
+          SQ=(k,a,b,c,d)=>{Q(k,a,b,c,d);Q(k,X(a),X(d),X(c),X(b));},
+          // un quadrilatère GAUCHI plié vers l'extérieur : la diagonale qui bombe (milieu le plus loin du cœur de la tête)
+          QB=(k,a,b,c,d)=>{const m1=[(a[0]+c[0])/2,(a[1]+c[1])/2,(a[2]+c[2])/2],m2=[(b[0]+d[0])/2,(b[1]+d[1])/2,(b[2]+d[2])/2],cE=[0,1.16,-.1],
+            d1=Math.hypot(m1[0]-cE[0],m1[1]-cE[1],m1[2]-cE[2]),d2=Math.hypot(m2[0]-cE[0],m2[1]-cE[1],m2[2]-cE[2]);if(d1>=d2)Q(k,a,b,c,d);else{T(k,a,b,d);T(k,b,c,d);}},
+          SQB=(k,a,b,c,d)=>{QB(k,a,b,c,d);QB(k,X(a),X(d),X(c),X(b));},ST=(k,a,b,c)=>{T(k,a,b,c);T(k,X(a),X(c),X(b));},
+          V=(a,b)=>[b[0]-a[0],b[1]-a[1],b[2]-a[2]],CX=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],
+          NZ=v=>{const l=Math.hypot(v[0],v[1],v[2])||1;return [v[0]/l,v[1]/l,v[2]/l];};
+    // une PLAQUE plate face à +z, posée en z (contour [x,y], quelconque)
+    const plq=(k,pts,z)=>{if(pts.length<3)return;const v=pts.map(p=>new THREE.Vector2(p[0],p[1]));
+      for(const f of THREE.ShapeUtils.triangulateShape(v,[])){let a=pts[f[0]],b=pts[f[1]],c=pts[f[2]];
+        if((b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])<0){const t=b;b=c;c=t;}T(k,[a[0],a[1],z],[b[0],b[1],z],[c[0],c[1],z]);}};
+    const coupe=(pts,f)=>{const o=[];for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length],fa=f(a),fb=f(b);if(fa>=0)o.push(a);
+        if((fa>=0)!==(fb>=0)){const t=fa/(fa-fb);o.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t]);}}return o;},
+          dans=(pts,poly)=>{for(let i=0;i<poly.length&&pts.length>2;i++){const a=poly[i],b=poly[(i+1)%poly.length];pts=coupe(pts,p=>(b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0]));}return pts;},
+          rond=(cx,cy,rx,ry,n,a0,rot)=>{const o=[],c=Math.cos(rot||0),s=Math.sin(rot||0);for(let i=0;i<n;i++){const a=(a0||0)+i/n*Math.PI*2,x=Math.cos(a)*rx,y=Math.sin(a)*ry;o.push([cx+x*c-y*s,cy+x*s+y*c]);}return o;},
+          sym2=h=>h.concat(h.slice(1,-1).reverse().map(p=>[-p[0],p[1]]));
+    // une BANDE plate de a à b, de largeur w, couchée dans le plan de normale n (décollée de 4 mm)
+    const bande=(k,a,b,w,n)=>{n=n||[0,0,1];const s=CX(n,V(a,b)),l=Math.hypot(s[0],s[1],s[2])||1,h=w/2/l,o=.004/(Math.hypot(n[0],n[1],n[2])||1),
+        f=(p,u)=>[p[0]+s[0]*h*u+n[0]*o,p[1]+s[1]*h*u+n[1]*o,p[2]+s[2]*h*u+n[2]*o];Q(k,f(a,-1),f(b,-1),f(b,1),f(a,1));};
+    const tab=(L)=>({zs:L.map(s=>s[0]),S:z=>L.find(s=>Math.abs(s[0]-z)<1e-6)[1],
+      // le point de la peau à (z, y), côté droit, dans la bande j ; et la normale de la facette
+      sec:z=>{let i=0;while(i<L.length-2&&L[i+1][0]<z)i++;const a=L[i],b=L[i+1],t=(z-a[0])/(b[0]-a[0]);return a[1].map((p,j)=>[p[0]+(b[1][j][0]-p[0])*t,p[1]+(b[1][j][1]-p[1])*t]);},
+      nor:(z,j)=>{let i=0;while(i<L.length-2&&L[i+1][0]<z)i++;const a=L[i],b=L[i+1],A=[a[1][j][0],a[1][j][1],a[0]],B=[a[1][j+1][0],a[1][j+1][1],a[0]],
+        C=[b[1][j+1][0],b[1][j+1][1],b[0]],D=[b[1][j][0],b[1][j][1],b[0]];let n=NZ(CX(V(A,C),V(B,D)));if(n[0]<0)n=n.map(v=>-v);return n;}});
+    // ---- 1. LE CRÂNE : une BOULE dodue (les cotes de la tête sculptée d'avant : 1,64 × 1,40 × 1,40 m), les joues PLEINES et basses (larges de 1,72 m à 0,8 m du sol) ----
+    /* ⚠ CHAQUE STATION EST UNE COPIE AGRANDIE (même facteur en x et en y) DE LA MÊME SECTION S0, montée ou descendue : deux segments qui se
+       font face sont alors PARALLÈLES, et chaque facette du loft est un VRAI PLAN (un trapèze d'un seul reflet, pas deux triangles qui
+       se battent). La forme vient du facteur `k` et de la hauteur du centre `yc`, station par station : ici une boule (k suit un cercle). */
+    const S0=[[0,-.69],[.42,-.67],[.72,-.50],[.86,-.26],[.86,-.05],[.81,.15],[.69,.40],[.42,.61],[0,.68]],
+          CR=[[-.66,.30,1.06],[-.60,.56,1.06],[-.48,.77,1.05],[-.30,.92,1.05],[-.08,.99,1.05],[.12,1.0,1.05],[.30,.95,1.04]].map(([z,k,yc])=>[z,S0.map(p=>[p[0]*k,yc+p[1]*k])]);
+    const sk=tab(CR),j2C=z=>z>-.45,j3C=z=>z>.0;
+    P.loft(sk.zs,sk.S,(j,z)=>j===-1?'_':j<0?'p':j<=1?'C':j===2?(j2C(z)?'C':'p'):j===3?(j3C(z)?'C':'p'):(j===7&&z>-.4)?'r':'p');
+    // LA FACE : un PLAN penché de 16° (le front fuit vers le crâne) — l'anneau des joues et du front, en biseau, l'arrondit et la relie au crâne
+    const FA=.28,cF=Math.cos(FA),sF=Math.sin(FA),O=[0,.99,.56],NF=[0,sF,cF],
+          F3=(u,v,w)=>[u,O[1]+v*cF+(w||0)*sF,O[2]-v*sF+(w||0)*cF],                       // (u, v) du plan → monde ; w = décollé
+          AN=CR[CR.length-1][1].map(p=>[p[0],p[1],CR[CR.length-1][0]]),
+          FO=[[0,-.52],[.38,-.50],[.60,-.37],[.71,-.18],[.71,-.03],[.67,.13],[.57,.30],[.34,.42],[0,.46]];
+    /* ⚠ L'ANNEAU EN VRAIS PLANS : chaque point du contour de la face est recalé (au plus près du dessin) sur la droite où le plan de la face
+       coupe le plan des trois autres coins de sa facette — du front vers le menton, de proche en proche : chaque pan de l'anneau s'allume
+       d'un bloc. (Le dessous, qu'on ne voit pas, garde son dessin.) */
+    {const D3=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+     for(let j=FO.length-2;j>=1;j--){const Aa=AN[j],Ab=AN[j+1],Fb=F3(FO[j+1][0],FO[j+1][1]),W=F3(FO[j][0],FO[j][1]),n1=CX(V(Aa,Ab),V(Aa,Fb)),
+         a11=D3(n1,n1),a12=D3(n1,NF),a22=D3(NF,NF),r1=D3(n1,Aa)-D3(n1,W),det=a11*a22-a12*a12,al=r1*a22/det,be=-r1*a12/det,
+         Pp=[W[0]+al*n1[0]+be*NF[0],W[1]+al*n1[1]+be*NF[1],W[2]+al*n1[2]+be*NF[2]];
+       FO[j]=[Pp[0],(Pp[1]-O[1])*cF+(O[2]-Pp[2])*sF];}}
+    const FO3=FO.map(p=>F3(p[0],p[1]));
+    for(let j=0;j<FO.length-1;j++)(j===0?SQB:SQ)(j<=3?'C':j===FO.length-2?'r':'p',AN[j],AN[j+1],FO3[j+1],FO3[j]);
+    const plF=(k,pts,w,Kt)=>{if(pts.length<3)return;const t3=Kt?Kt.tri:T;const v=pts.map(p=>new THREE.Vector2(p[0],p[1]));     // une plaque DANS le plan de la face
+      for(const f of THREE.ShapeUtils.triangulateShape(v,[])){let a=pts[f[0]],b=pts[f[1]],c=pts[f[2]];
+        if((b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])<0){const t=b;b=c;c=t;}t3(k,F3(a[0],a[1],w),F3(b[0],b[1],w),F3(c[0],c[1],w));}};
+    {const lim=[FO[4],[.54,-.01],[.40,-.03],[.20,-.02],[0,-.03]];        // la lisière du masque : sous les yeux, puis SOUS le museau (au ras de son arête, elle crénelait)
+     plF('C',sym2(FO.slice(0,4).concat(lim)),0);
+     plF('p',sym2(lim.slice().reverse().concat(FO.slice(5))),0);}
+    // ---- 2. LE MUSEAU : COURT et rond, bas, rentré sous le regard (le cône de la tête d'avant : de 0,77 m de large à 0,42), l'arête rousse ----
+    const M0=[[0,-.25],[.24,-.24],[.36,-.14],[.38,.02],[.31,.15],[.17,.23],[0,.25]],                     // (même règle : des copies agrandies → des pans plans)
+          MU=[[.40,1.05,.79],[.74,.98,.77],[.90,.82,.755],[.975,.60,.76]].map(([z,k,yc])=>[z,M0.map(p=>[p[0]*k,yc+p[1]*k])]);
+    const mu=tab(MU);
+    P.loft(mu.zs,mu.S,(j,z)=>j===5&&z<.80?'p':'C');
+    // la TRUFFE : petite et basse, un trapèze laqué plus large en haut, et son éclat
+    P.plate('n',[[-.055,.795],[.055,.795],[.105,.845],[.095,.882],[-.095,.882],[-.105,.845]],.08,.94);
+    P.plate('w',[[-.07,.855],[-.035,.855],[-.04,.872],[-.07,.872]],.004,1.02);
+    // la BOUCHE (en tanné, une nuance de la crème — pas de trait noir) : le sillon sous la truffe, puis le petit SOURIRE EN COIN — côté +x il
+    // remonte (à droite vu de face), de l'autre il tombe
+    P.prism('D',[[.968,.73],[.978,.73],[.978,.795],[.968,.795]],.024,0);
+    bande('D',[0,.73,.977],[.09,.735,.977],.024);bande('D',[.09,.735,.977],[.15,.758,.977],.024);bande('D',[0,.73,.977],[-.15,.717,.977],.024);
+    {const pM=(z,y,sd)=>{const s=mu.sec(z);let x=s[3][0];for(let j=1;j<4;j++)if(y<=s[j+1][1]){const t=(y-s[j][1])/(s[j+1][1]-s[j][1]);x=s[j][0]+(s[j+1][0]-s[j][0])*t;break;}return [x*sd,y,z];},
+          nM=(z,sd)=>{const n=mu.nor(z,2);return [n[0]*sd,n[1],n[2]];},
+          ligne=(sd,L)=>{for(let i=0;i<L.length-1;i++){const zm=(L[i][0]+L[i+1][0])/2;bande('D',pM(L[i][0],L[i][1],sd),pM(L[i+1][0],L[i+1][1],sd),.026,nM(zm,sd));}};
+     ligne(1,[[.955,.76],[.86,.772],[.76,.792]]);                                  // le coin qui remonte : il sait quelque chose
+     ligne(-1,[[.955,.717],[.86,.715],[.76,.71]]);}
+    // ---- 3. LES YEUX : voir 9. LA VIE (ils sont posés à part, avec les sourcils : ils BOUGENT) ----
+    // ---- 4. LES OREILLES : plus petites, ARRONDIES et écartées (un bord bombé), creusées en coupe, roses dedans, une touffe crème au creux ----
+    {const R5=[[.24,1.63,.06],[.76,1.29,.03],[.82,1.63,-.01],[.69,1.96,-.05],[.43,1.85,0]],                // le pied intérieur, le pied extérieur, le bord bombé, la pointe, le bord intérieur
+          Cc=[.56,1.63,-.06],ep=y=>.24-.14*Math.max(0,Math.min(1,(y-1.29)/.67)),B5=R5.map(p=>[p[0]+.02,p[1]-.02,p[2]-ep(p[1])]),Cb=[.57,1.61,-.22],
+          l=(p,q,t)=>[p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t,p[2]+(q[2]-p[2])*t],sh=(p,e)=>{const q=l(Cc,p,.70);return [q[0],q[1],q[2]+(e||.012)];};
+     for(let i=0;i<5;i++){const a=R5[i],b=R5[(i+1)%5];ST('p',Cc,a,b);ST('P',sh(Cc),sh(a),sh(b));ST('r',Cb,B5[(i+1)%5],B5[i]);if(i)SQ('p',a,B5[i],B5[(i+1)%5],b);}   // la coupe rousse, son fond rose, le dos, la tranche
+     ST('C',sh(R5[0],.02),sh(l(R5[0],R5[1],.45),.02),sh(l(R5[0],Cc,.55),.02));}    // la touffe crème, au creux
+    // ---- 5. LA QUEUE EN TIRE-BOUCHON : une spirale contre la nuque, rousse dehors, crème dedans ----
+    {const nB=NZ([0,.25,-1]),e1=[1,0,0],e2=NZ(CX(e1,nB)),C0=[0,1.07,-.74],N=13,M=6,pts=[],rad=[];
+     pts.push([0,.95,-.56]);rad.push(.11);                                                   // l'amorce, dans la nuque
+     for(let i=0;i<N;i++){const t=i/(N-1),a=-Math.PI/2+t*1.32*Math.PI*2,r=.25*(1-.58*t);
+       pts.push([C0[0]+e1[0]*r*Math.cos(a)+e2[0]*r*Math.sin(a),C0[1]+e1[1]*r*Math.cos(a)+e2[1]*r*Math.sin(a),C0[2]+e1[2]*r*Math.cos(a)+e2[2]*r*Math.sin(a)]);rad.push(.105*(1-.55*t));}
+     const ring=[];let u=null;                                                // le repère TRANSPORTÉ le long du tube : il ne vrille pas (plus de pincement au départ)
+     for(let i=0;i<=N;i++){const tg=NZ(V(pts[Math.max(0,i-1)],pts[Math.min(N,i+1)]));
+       if(!u){const k=nB[0]*tg[0]+nB[1]*tg[1]+nB[2]*tg[2];u=NZ([nB[0]-tg[0]*k,nB[1]-tg[1]*k,nB[2]-tg[2]*k]);}
+       else{const k=u[0]*tg[0]+u[1]*tg[1]+u[2]*tg[2];u=NZ([u[0]-tg[0]*k,u[1]-tg[1]*k,u[2]-tg[2]*k]);}
+       const v=NZ(CX(tg,u)),o=[];
+       for(let m=0;m<M;m++){const f=(m+.5)/M*Math.PI*2;o.push([pts[i][0]+(u[0]*Math.cos(f)+v[0]*Math.sin(f))*rad[i],pts[i][1]+(u[1]*Math.cos(f)+v[1]*Math.sin(f))*rad[i],pts[i][2]+(u[2]*Math.cos(f)+v[2]*Math.sin(f))*rad[i]]);}ring.push(o);}
+     for(let i=0;i<N;i++)for(let m=0;m<M;m++){const a=ring[i][m],b=ring[i][(m+1)%M],c=ring[i+1][(m+1)%M],d=ring[i+1][m];
+       const fm=[(a[0]+b[0]+c[0]+d[0])/4-pts[i][0],(a[1]+b[1]+c[1]+d[1])/4-pts[i][1],(a[2]+b[2]+c[2]+d[2])/4-pts[i][2]],cc=V(pts[i],C0),
+             vers=(fm[0]*cc[0]+fm[1]*cc[1]+fm[2]*cc[2])/((Math.hypot(fm[0],fm[1],fm[2])*Math.hypot(cc[0],cc[1],cc[2]))||1),dos=(fm[0]*nB[0]+fm[1]*nB[1]+fm[2]*nB[2])/(Math.hypot(fm[0],fm[1],fm[2])||1);
+       Q(i>=N-1?'C':(vers>.5||dos<-.5)?'C':'p',a,b,c,d);}   // rousse dessus et dehors, CRÈME dedans (le dessous de la queue du shiba) et au bout
+     const bout=[pts[N][0]+(pts[N][0]-pts[N-1][0])*.8,pts[N][1]+(pts[N][1]-pts[N-1][1])*.8,pts[N][2]+(pts[N][2]-pts[N-1][2])*.8];
+     for(let m=0;m<M;m++)T('C',ring[N][m],ring[N][(m+1)%M],bout);}
+    // ---- 6. LE COLLIER ROUGE, SES CLOUS D'OR, LA MÉDAILLE Ð (ils vivent avec la tête) ----
+    P.put('R',new THREE.CylinderGeometry(1,1.05,.12,12,1,true),0,.475,.04,0,0,0,.60,1,.64);
+    for(let i=0;i<12;i++){const a=(i+.5)/12*Math.PI*2;if(Math.sin(a)>.86)continue;                                  // (pas devant : la médaille)
+      P.box('o',.035,.035,.03,Math.cos(a)*.63,.48,.04+Math.sin(a)*.672,0,Math.atan2(Math.cos(a)/.60,Math.sin(a)/.64),Math.PI/4);}
+    {const zc=.70,yc=.385,q=1.1;P.cyl('o',.095*q,.03,8,0,yc,zc,'z');P.cyl('O',.075*q,.034,8,0,yc,zc,'z');P.box('o',.03,.03,.06,0,yc+.10,zc-.02);   // l'or, le creux, l'anneau
+     const zf=zc+.022;P.box('o',.022*q,.10*q,.012,-.022*q,yc,zf);P.box('o',.05*q,.022*q,.012,0,yc+.039*q,zf);P.box('o',.05*q,.022*q,.012,0,yc-.039*q,zf);   // le Ð
+     P.box('o',.022*q,.06*q,.012,.034*q,yc,zf);P.box('o',.07*q,.016*q,.012,-.026*q,yc,zf+.004);}
+    // ---- 7. LE CHÂSSIS : un plateau noir caché sous la tête, deux essieux, le pare-chocs arrière (la plaque, les feux en COUSSINETS DE PATTE, les sorties d'or) ----
+    const H=P;P=K.kit(PAL);
+    P.prism('k',[[-.70,.28],[.50,.28],[.55,.30],[.55,.38],[.50,.40],[-.70,.40]],.84,0);
+    P.prism('k',[[-.70,.29],[-.70,.51],[-.785,.51],[-.80,.49],[-.80,.31],[-.785,.29]],1.12,0);
+    P.box('Y',.56,.12,.012,0,.40,-.806);                                        // la lampe de plaque : la plaque du joueur s'y pose (voir plqDessinee)
+    P.cyl('k',.06,1.52,8,0,R,ZF,'x');P.cyl('k',.06,1.52,8,0,R,ZR,'x');
+    P.sym(sd=>{P.cyl('W',.04,.02,8,sd*.28,.34,.555,'z');P.cyl('o',.054,.014,8,sd*.28,.34,.549,'z');                  // les phares, cerclés d'or
+      const x0=sd*.45,y0=.375,zf=-.81;
+      P.plate('L',[[x0-.058,y0-.034],[x0+.058,y0-.034],[x0+.072,y0],[x0+.04,y0+.03],[x0-.04,y0+.03],[x0-.072,y0]],.008,zf-.008);
+      for(const [dx,dy] of [[-.074,.054],[-.026,.077],[.026,.077],[.074,.054]])P.plate('L',rond(x0+dx,y0+dy,.023,.023,6,0),.008,zf-.008);
+      P.cyl('o',.045,.16,8,sd*.17,.255,-.80,'z');P.cyl('k',.031,.162,8,sd*.17,.255,-.80,'z');});                  // sous le pare-chocs
+    K.commit(P);
+    // ---- 8. LA TÊTE SUR SON PIVOT (le cou) : penchée comme le mème, elle hoche en roulant ----
+    const NECK=[0,.48,.04],piv=K.add(new THREE.Group()),tete=new THREE.Group();piv.position.set(NECK[0],NECK[1],NECK[2]);tete.position.set(-NECK[0],-NECK[1],-NECK[2]);piv.add(tete);
+    const mat=q=>K.mats[q]||(K.mats[q]=lpMat(q,typeof FSTU==='object'&&FSTU&&FSTU.on)),
+          poser=(kt,par,omb)=>{const gs=kt.done();for(const q in gs){if(omb&&q!=='l')lpOmbre(gs[q],K.H);const m=new THREE.Mesh(gs[q],mat(q));m.userData.lp=1;par.add(m);}};
+    poser(H,tete,1);
+    // ---- 9. LES YEUX ET LA VIE (2026-10-26, Léo : « des yeux plus NATURELS, ADAPTÉS et KAWAII — ils font trop ANIMATRONIQUE, trop précis et
+    //      perçants ») — plus de globe détaillé (blanc, iris, pupille, paupière en amande) : de GROS YEUX RONDS de bébé animal, sombres et
+    //      brillants, un dôme bas de dix pans en laque brun-noir et UN SEUL reflet blanc ; grands, écartés, posés bas sur la face ronde.
+    //      Le regard glisse DOUCEMENT du côté de la caméra (un soupçon de coin, le clin d'œil au mème, sans rien de perçant), et les deux points
+    //      crème des sourcils — doux, relevés vers l'intérieur — se lèvent ensemble par moments et à la nitro : « wow ».
+    const TQ=/[?&]dogetilt=(-?[\d.]+)/.exec(location.search),TILT=TQ?+TQ[1]:.07,OE=[.36,.12],ORX=.135,ORY=.145,
+          domeW=(u,v,cx)=>{const r=Math.hypot((u-cx)/ORX,(v-OE[1])/ORY);return .008+.016*Math.max(0,1-r);};   // la hauteur du dôme (décollée du plan de la face)
+    const YX=new THREE.Group();
+    {const kt=K.kit(PAL),n=10;
+     for(const sd of [1,-1]){const cx=OE[0]*sd,cy=OE[1],ap=F3(cx,cy,.024),rim=[];
+       for(let i=0;i<n;i++){const a=i/n*Math.PI*2+Math.PI/2;rim.push([cx+Math.cos(a)*ORX,cy+Math.sin(a)*ORY]);}
+       for(let i=0;i<n;i++){const p=rim[i],q=rim[(i+1)%n];kt.tri('E',ap,F3(p[0],p[1],.008),F3(q[0],q[1],.008));}       // le dôme sombre et brillant
+       const hx=cx-.046,hy=cy+.056,H4=[[hx-.03,hy],[hx,hy-.026],[hx+.03,hy],[hx,hy+.028]].map(p=>F3(p[0],p[1],domeW(p[0],p[1],cx)+.006));
+       kt.tri('w',H4[0],H4[1],H4[2]);kt.tri('w',H4[0],H4[2],H4[3]);}                                                // son reflet : une seule facette claire
+     poser(kt,YX);tete.add(YX);}
+    const SRC=[[.29,.355,-.18,.048],[-.29,.355,.18,.048]].map(([u,v,r,ry])=>{const kt=K.kit(PAL),grp=new THREE.Group();plF('C',rond(u,v,.085,ry,8,0,r),.006,kt);poser(kt,grp);tete.add(grp);return grp;});
+    let rs=0x0d06e5;const rnd=()=>{rs^=rs<<13;rs^=rs>>>17;rs^=rs<<5;return (rs>>>0)/4294967296;};
+    let t=0,regard=1,gz=1,coupT=3+rnd()*3,coupD=0,sourT=2.5,sourD=0,sY=0,F=0,sV=0,pOk=false,pen=TILT;const V9=new THREE.Vector3(),pP=[0,0,0];
+    const anime=dt=>{dt=Math.min(dt||0,.1);t+=dt;
+      try{if(typeof camera!=='undefined'&&camera&&camera.isCamera){V9.copy(camera.position);piv.worldToLocal(V9);if(V9.x>.5)regard=1;else if(V9.x<-.5)regard=-1;}}catch(_){}
+      const e=piv.matrixWorld.elements;if(pOk&&dt>0){const d=Math.hypot(e[12]-pP[0],e[13]-pP[1],e[14]-pP[2])/dt;sV+=(Math.min(1,d/40)-sV)*Math.min(1,dt*3);}pP[0]=e[12];pP[1]=e[13];pP[2]=e[14];pOk=true;   // la vitesse, sans rien allouer
+      coupT-=dt;if(coupT<=0){coupD=1.1;coupT=4+rnd()*5;}if(coupD>0)coupD-=dt;                    // de temps en temps, un regard rêveur de l'autre côté
+      gz+=((coupD>0?-.6*regard:regard)-gz)*Math.min(1,dt*2.5);YX.position.x=gz*.02;              // le regard GLISSE (jamais de saut)
+      const fort=(typeof nitroOn!=='undefined'&&nitroOn)?1:0;F+=(fort-F)*Math.min(1,dt*6);
+      sourT-=dt;if(sourT<=0){sourD=.8;sourT=3+rnd()*4;}if(sourD>0)sourD-=dt;
+      const vise=(F>.5||sourD>0)?.035:0;sY+=(vise-sY)*Math.min(1,dt*8);for(const g of SRC)g.position.set(0,sY*cF,-sY*sF);
+      pen+=(TILT*regard-pen)*Math.min(1,dt*3);const h=Math.sin(t*(F>.5?14:7))*Math.max(sV,F);          // la tête penche (le mème), doucement, du côté qu'elle regarde ; elle hoche en roulant
+      piv.rotation.z=pen+h*.02;piv.position.y=NECK[1]+Math.abs(h)*.02;};
+    anime(0);piv.userData.anime=anime;if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
+    return {hl:[.28,.34,.56],tl:[.45,.39,-.82],lamps:0,halos:0,wx:.82,wzF:ZF,wzR:-ZR,pots:[[.17,.255,-.88],[-.17,.255,-.88]],
+            lpw:{R:R,w:.34,style:'rayons',n:5,jante:0xffd75e,accent:0xffd75e,pneu:0x141118,branches:1}};
   }
 });
 /* ===== LA GAMME DES 50 — FIN ===== */
