@@ -74,6 +74,23 @@ window.dbgRoulis=function(){ /* le bilan du roulis de la dernière piste bâtie 
     return {roulisDegM:+(Math.sqrt(r2/n)*57.2958).toFixed(3),jerkRMS:+Math.sqrt(j2/n).toExponential(2),jerkMax:+jm.toFixed(4),pics:pics,inversions:inv};};
   let em=0,e2=0;for(let i=0;i<ROULIS.brut.length;i++){const e=Math.abs(ROULIS.lisse[i]-ROULIS.brut[i]);if(e>em)em=e;e2+=e*e;}
   return {sigmaM:+ROULIS.sigma.toFixed(1),L:Math.round(ROULIS.ds*(ROULIS.brut.length-1)),avant:bil(ROULIS.brut),apres:bil(ROULIS.lisse),ecartMaxDeg:+(em*57.2958).toFixed(1),ecartRMSDeg:+(Math.sqrt(e2/ROULIS.brut.length)*57.2958).toFixed(2)};};
+/* ===== L'AXE LISSE (2026-10-26, Sacha : « go » — la génération des routes plus propre, pas seulement la dalle) =====
+   MESURÉ (banc Node nuages/espace, 4 pistes) : l'axe de la route a des CASSURES DE COURBURE — la courbe de Catmull-Rom n'est que C1 (sa courbure saute à
+   chaque point de contrôle, serrés et inégaux dans les virages) : variation de courbure (dκ/ds) 300-530 e-6/m² en RMS, jusqu'à 4 000-6 600 e-6/m²
+   au pire, soit un coup de volant brusque tous les 20-150 m. Un filtre gaussien de 7 m sur les POSITIONS (axe entier : x, y, z) la divise par 3 au
+   RMS et par 5 au pire, pour un écart à la courbe d'origine ≤ 0,6 m (la route fait 56 m de large) et 0,1 % de longueur. Les points `pts` gardent leur
+   rang (les normales de pisteTord, les repères, tout reste calé) ; départ et arrivée ne bougent pas. Pas sur les pistes dessinées (parc, école, campagne,
+   Paris). `?axe=ancien` = l'axe d'avant (la dalle lisse reste) · `?routes=ancien` = les deux d'avant · `dbgAxe()` = le bilan avant/après. */
+const AXE_LISSE=ROUTE_LISSE&&!/[?&]axe=ancien\b/.test(location.search);
+const AXE={brut:null,sigma:7};
+window.dbgAxe=function(){ /* l'axe de la dernière piste bâtie, avant (brut) et après lissage : courbure max (1/km), variation de courbure dκ/ds (e-6/m²) RMS · p99 · max, écart à l'axe brut, régularité du pas */
+  if(!AXE.brut||!pts||NP<400)return null;const n=NP,ds=L/(n-1),bil=function(g){const kv=[];for(let i=1;i<n-1;i++){const a=g(i-1),b=g(i),c=g(i+1),t1x=c[0]-b[0],t1y=c[1]-b[1],t1z=c[2]-b[2],t0x=b[0]-a[0],t0y=b[1]-a[1],t0z=b[2]-a[2],l1=Math.hypot(t1x,t1y,t1z),l0=Math.hypot(t0x,t0y,t0z);kv.push([(t1x/l1-t0x/l0)/((l0+l1)/2),(t1y/l1-t0y/l0)/((l0+l1)/2),(t1z/l1-t0z/l0)/((l0+l1)/2)]);}
+    const dk=[];let r2=0,km=0,pas=[];for(let i=0;i<kv.length;i++){const m=Math.hypot(kv[i][0],kv[i][1],kv[i][2]);if(m>km)km=m;if(i){const d=Math.hypot(kv[i][0]-kv[i-1][0],kv[i][1]-kv[i-1][1],kv[i][2]-kv[i-1][2])/ds;dk.push(d);r2+=d*d;}}
+    for(let i=0;i<n-1;i+=7){const a=g(i),b=g(i+1);pas.push(Math.hypot(b[0]-a[0],b[1]-a[1],b[2]-a[2])/ds);}
+    dk.sort(function(x,y){return x-y;});pas.sort(function(x,y){return x-y;});
+    return {kMax_km:+(km*1000).toFixed(1),dkRMS:+(Math.sqrt(r2/dk.length)*1e6).toFixed(0),dkP99:+(dk[Math.floor(dk.length*.99)]*1e6).toFixed(0),dkMax:+(dk[dk.length-1]*1e6).toFixed(0),pasP1:+pas[Math.floor(pas.length*.01)].toFixed(3),pasP99:+pas[Math.floor(pas.length*.99)].toFixed(3)};};
+  const B0=AXE.brut,gb=function(i){return [B0[3*i],B0[3*i+1],B0[3*i+2]];},gn=function(i){return [pts[i].x,pts[i].y,pts[i].z];};let dev=0;for(let i=0;i<n;i++){const d=Math.hypot(pts[i].x-B0[3*i],pts[i].y-B0[3*i+1],pts[i].z-B0[3*i+2]);if(d>dev)dev=d;}
+  return {L:Math.round(L),avant:bil(gb),apres:bil(gn),ecartMax_m:+dev.toFixed(2)};};
 function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tranches — sur l'état de travail W (voir prebEchange), jamais sur la scène
   trackMeshes.length=0;PISTE_LOD.length=0;NEON_RAILS.length=0;NEON_GLOW.length=0;PADS=[];PADL=[];PAD_MATS.length=0;OILS=[];
   const rnd=mulberry32(seed);VILLE_ENTREE=null;MODMARK.length=0;TROUMARK.length=0;TROUS=[];TROU=null;
@@ -93,6 +110,18 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   yield;L=curve.getLength();yield;
   const N=Math.min(PARK.on?11000:9000,Math.max(3000,Math.round(L))); // parc : plus long → plus de points pour garder les loops lisses
   pts=[];for(let d9=0;d9<=N;d9++){pts.push(curve.getPointAt(d9/N));if((d9&1023)===1023)yield;}NP=pts.length; // (LE PRÉ-BÂTI) getSpacedPoints en tranches : three r128 fait exactement cette boucle
+  const Lc9=L; /* la longueur de la courbe d'origine (les tronçons des MODULES la lisent : voir sDe) */
+  AXE.brut=null;
+  if(AXE_LISSE&&!PARK.on&&!(LVL.cur&&(LVL.cur.piste==='tuto'||LVL.cur.piste==='camp'||LVL.cur.piste==='paris'))){ /* L'AXE LISSE : voir AXE_LISSE */
+    const ds9=L/(NP-1),sg9=AXE.sigma/ds9,R9=Math.ceil(sg9*3),gw9=new Float64Array(R9+1),n9=NP,P9=new Float64Array(3*n9),Q9=new Float64Array(3*n9);let sw9=0;
+    for(let i=0;i<n9;i++){P9[3*i]=pts[i].x;P9[3*i+1]=pts[i].y;P9[3*i+2]=pts[i].z;}
+    for(let k=0;k<=R9;k++)gw9[k]=Math.exp(-k*k/(2*sg9*sg9));
+    for(let k=-R9;k<=R9;k++)sw9+=gw9[Math.abs(k)];
+    for(let i=0;i<n9;i++){if((i&1023)===1023)yield;
+      for(let c=0;c<3;c++){let s9=0;for(let k=-R9;k<=R9;k++){const j=i+k;s9+=gw9[Math.abs(k)]*(j<0?2*P9[c]-P9[3*(-j)+c]:j>=n9?2*P9[3*(n9-1)+c]-P9[3*(2*(n9-1)-j)+c]:P9[3*j+c]);} /* aux bouts : symétrie impaire (le départ et l'arrivée restent en place) */
+        Q9[3*i+c]=s9/sw9;}}
+    let L9=0;for(let i=0;i<n9;i++){pts[i].set(Q9[3*i],Q9[3*i+1],Q9[3*i+2]);if(i)L9+=pts[i].distanceTo(pts[i-1]);}
+    L=L9;AXE.brut=P9;} /* L : la longueur de l'axe lissé, mesurée (un peu plus courte) */
   let sEnt=0; // (2026-09-29) L'ENTRÉE DANS LA VILLE : la droite surélevée est NUE (ni plot, ni flaque, ni dos d'âne) — le temps de s'adapter ; les tirages restent consommés
   if(VILLE_ENTREE){let dA=1e18,iA=0;const lim=Math.min(NP,Math.ceil(NP*.45));for(let i=0;i<lim;i++){const a=pts[i].distanceToSquared(VILLE_ENTREE.pA);if(a<dA){dA=a;iA=i;}}sEnt=iA*L/(NP-1)+80;VILLE_ENTREE.sA=sEnt;} // (+80 m : pas de plot caché juste derrière la bascule de la rampe)
   /* (2026-09-30, revue PISTE) LE SAS DU PORTAIL. On repart en s = 0 À PLEINE VITESSE, pendant le fondu sombre (BIO.dip, 1,2 s) et la
@@ -102,13 +131,13 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   const gen9=!PARK.on&&!(LVL.cur&&(LVL.cur.piste==='tuto'||LVL.cur.piste==='camp')),vC9=70+(lvPiste()-1)*100; // vC9 : la croisière de conception de la piste (m/s, celle du filet)
   if(gen9)sEnt=Math.max(sEnt,2.5*vC9);
   MODS=[]; // les tronçons des MODULES (voir MODMARK) : index de contrôle → abscisse exacte, par la table de longueurs de la courbe elle-même
-  if(MODMARK.length){const lg9=curve.getLengths(),n9=Math.max(1,ctrl.length-1),sDe=i=>{const f=i/n9*(lg9.length-1),k=Math.max(0,Math.min(lg9.length-2,Math.floor(f)));return lg9[k]+(lg9[k+1]-lg9[k])*(f-k);};
+  if(MODMARK.length){const lg9=curve.getLengths(),n9=Math.max(1,ctrl.length-1),sDe=i=>{const f=i/n9*(lg9.length-1),k=Math.max(0,Math.min(lg9.length-2,Math.floor(f)));return (lg9[k]+(lg9[k+1]-lg9[k])*(f-k))*(L/Lc9);};
     for(const m of MODMARK)MODS.push({s0:sDe(m.i0)-60,s1:sDe(m.i1)+vC9});} // −60 m : un groupe de plots (≤ 45 m) ne déborde pas dedans · +1 s de croisière : la réception du voltigeur
   const inModule=sp=>{for(const m of MODS)if(sp>m.s0&&sp<m.s1)return true;return false;};
   /* (LES TROUS, 2026-10-20) les vides entre les segments de route des DUNES : index de contrôle → abscisse (la même table de longueurs que les modules) → lignes de pts.
      TROU[k] = 1 : pas de ruban entre pts[k] et pts[k+1]. Les segments restent entiers : le trou va de la dernière ligne du segment (a) à la première du suivant (b). */
   TROUS=[];TROU=null;
-  if(TROUMARK.length){const lg9=curve.getLengths(),n9=Math.max(1,ctrl.length-1),sDe=i=>{const f=i/n9*(lg9.length-1),k=Math.max(0,Math.min(lg9.length-2,Math.floor(f)));return lg9[k]+(lg9[k+1]-lg9[k])*(f-k);};
+  if(TROUMARK.length){const lg9=curve.getLengths(),n9=Math.max(1,ctrl.length-1),sDe=i=>{const f=i/n9*(lg9.length-1),k=Math.max(0,Math.min(lg9.length-2,Math.floor(f)));return (lg9[k]+(lg9[k+1]-lg9[k])*(f-k))*(L/Lc9);};
     TROU=new Uint8Array(NP);const pas9=L/(NP-1);
     for(const m of TROUMARK){const s0=sDe(m.i0),s1=sDe(m.i1),a=Math.max(0,Math.min(NP-2,Math.round(s0/pas9))),b=Math.max(a+1,Math.min(NP-1,Math.round(s1/pas9)));
       for(let k=a;k<b;k++)TROU[k]=1;TROUS.push({s0:a*pas9,s1:b*pas9,a:a,b:b});}}
