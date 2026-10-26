@@ -368,7 +368,8 @@ html body #mDead>.mObj{order:-2}
   html body #mDead .mStats{grid-area:stats;align-self:stretch;margin:0}
   html body #mDead .mStat{min-height:0}
   html body #mDead .mStat b{font-size:var(--f6)}
-  html body #mDead .mObj{grid-area:obj;align-self:stretch;justify-content:center;margin:0}
+  html body #mDead .mObj{grid-area:obj;align-self:start;justify-content:center;margin:0;padding:8px 12px;gap:5px} /* (2026-10-22, Sacha : « l'onglet mission est trop haut par rapport aux stats : tasse-le, allonge les stats ») la mission se tasse en haut, les stats prennent la place */
+  html body #mDead .mStats{min-height:96px}
   html body #mDead>.mRow{grid-area:row;align-self:end;margin:0}
   html body #mDead .mFin{grid-area:rej;align-self:end;margin:0}
   html body #mDead .mEsp{display:none}

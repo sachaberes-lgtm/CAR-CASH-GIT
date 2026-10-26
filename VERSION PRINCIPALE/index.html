@@ -35,6 +35,16 @@
      (même test que TEL_NATIF). Dans la page-cadre, le grand script s'arrête à sa 1re ligne (`CC_COLONNE`) : aucun second jeu.
      ⚠ `const EDITION` VIT ICI : c'est LA ligne que `synchro-versions.js` bascule (une seule occurrence, sinon il refuse). -->
 <script>
+/* ===== ?muet=1 : LE JEU SE TAIT (2026-10-24, Sacha : « Claude joue le son du jeu, trouve un moyen de couper ça ») =====
+   Pour les essais de Claude dans un navigateur : aucune sortie sonore, le reste tourne comme avant. Les nœuds WebAudio ne se branchent plus sur la sortie
+   (`destination`), et tout élément <audio>/<video> est forcé muet. Sans `?muet=1`, rien ne change. */
+(function(){try{if(!/[?&]muet=1\b/.test(location.search))return;
+  const co=AudioNode.prototype.connect;AudioNode.prototype.connect=function(d){if(typeof AudioDestinationNode!=='undefined'&&d instanceof AudioDestinationNode)return d;return co.apply(this,arguments);};
+  Object.defineProperty(HTMLMediaElement.prototype,'muted',{get:function(){return true;},set:function(){},configurable:true});
+  Object.defineProperty(HTMLMediaElement.prototype,'volume',{get:function(){return 0;},set:function(){},configurable:true});
+}catch(e){}})();
+</script>
+<script>
 /* ⚠ LES DEUX ÉDITIONS (2026-09-25, user : « sépare-les en deux dossiers : VERSION PRINCIPALE = la version mobile fusionnée, AUTRE
    VERSION = la version PC »). C'est UN SEUL jeu : les deux dossiers portent le MÊME index.html, et cette ligne est la SEULE qui
    diffère. 'mobile' → sur l'ordi aussi on joue la version TÉLÉPHONE (l'écran d'un téléphone en paysage, voir plus haut) ; 'pc' → l'ordi garde le menu
@@ -3833,7 +3843,8 @@ html body #mDead>.mObj{order:-2}
   html body #mDead .mStats{grid-area:stats;align-self:stretch;margin:0}
   html body #mDead .mStat{min-height:0}
   html body #mDead .mStat b{font-size:var(--f6)}
-  html body #mDead .mObj{grid-area:obj;align-self:stretch;justify-content:center;margin:0}
+  html body #mDead .mObj{grid-area:obj;align-self:start;justify-content:center;margin:0;padding:8px 12px;gap:5px} /* (2026-10-22, Sacha : « l'onglet mission est trop haut par rapport aux stats : tasse-le, allonge les stats ») la mission se tasse en haut, les stats prennent la place */
+  html body #mDead .mStats{min-height:96px}
   html body #mDead>.mRow{grid-area:row;align-self:end;margin:0}
   html body #mDead .mFin{grid-area:rej;align-self:end;margin:0}
   html body #mDead .mEsp{display:none}
@@ -4348,6 +4359,10 @@ html body.touch #tNitro.inf>.nxJauge{background-image:repeating-linear-gradient(
 @keyframes daFile{to{background-position:-13px 0,0 0}}
 /* l'anneau de l'auto-école (« appuie ici ») épouse la plaque */
 /* ---- 2. LA BARRE NITRO EN NITRO INFINIE : violette (elle brûlait or, comme la nitro ordinaire — on ne voyait pas le pouvoir) ---- */
+/* (2026-10-22, Sacha : « le boost de Nitro, il doit mettre la barre en rouge vif, pas en violet ») — la barre seule passe au ROUGE VIF */
+html body.touch #nitroBar.inf{--vL:#ffd9d4;--vP:#ff2b2b;--vS:#e00d0d;--vO:#6e0505;--vG:rgba(255,40,40,.9)}
+/* (2026-10-22, Sacha : « la fenêtre NITRO MAX quand on ramasse le piment doit être en rouge, pas violet ») la PLAQUE du pouvoir (bande, cadre, minuteur, jauge) : tout sort de --pc, posée en ligne par la boucle (le violet de PWR_DEFS.n) — !important pour passer devant, même rouge vif que la barre */
+html body.touch #pwrChip .pw[data-k="n"]{--pc:#ff2b2b!important}
 html body.touch #nitroBar.inf{box-shadow:inset 0 0 0 3px var(--vL),0 4px 0 var(--jEncre),0 0 24px var(--vG),0 0 44px color-mix(in srgb,var(--vS) 55%,transparent)!important}
 html body.touch #nitroBar.inf #nitroR::after{box-shadow:0 0 10px var(--vP),0 0 18px var(--vS)!important}
 html body.touch #nitroBar.inf::before{background:linear-gradient(var(--bandes4),#fff 0 24%,var(--vL) 24% 60%,var(--vP) 60%)!important;filter:drop-shadow(0 0 8px var(--vP))!important}
@@ -7528,6 +7543,82 @@ html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-lef
 @media (orientation:landscape) and (max-height:540px){.m2A .m2L{min-height:48px;padding:6px 9px 6px 8px;margin-bottom:5px}.m2A .m2R{width:72px;height:40px}.m2Slot{min-height:40px}.m2Sui .m2L{min-height:44px}}
 #gmListe.m2.vu .m2Serie{animation:none}
 </style>
+/* ===== LA PAUSE REFAITE (2026-10-24, Sacha : « cet écran de pause est horrible, fais un truc bien ») =====
+   Une seule grille, deux dispositions : debout (titre, la partie, réglages en tuiles, boutons) et couché (la partie + REPRENDRE à gauche,
+   les réglages en tuiles + RECOMMENCER / QUITTER à droite). Les tuiles remplacent les lignes plates ; SON et MUSIQUE s'allument en vert.
+   Tout est en #tPanel#tPanel#tPanel : les anciennes règles (charte 2/5/7, ux8) se superposaient, celle-ci passe au-dessus sans !important. */
+#tPanel#tPanel#tPanel #tpIn{display:grid;box-sizing:border-box;width:100%;max-width:460px;min-height:100%;margin:0 auto;gap:12px;align-content:stretch;
+  grid-template-columns:minmax(0,1fr);grid-template-rows:none;
+  grid-template-areas:"titre" "partie" "regl" "bas" "go";
+  padding:calc(var(--sT) + 18px) calc(var(--sR) + var(--gut)) calc(var(--sB) + 16px) calc(var(--sL) + var(--gut))}
+#tPanel#tPanel#tPanel #tpIn>.tpH[data-g="run"],#tPanel#tPanel#tPanel #tpIn>.tpHR{display:none}
+#tPanel#tPanel#tPanel #tpIn>.tpH:first-child{grid-area:titre;margin:0;align-self:start}
+#tPanel#tPanel#tPanel #tpIn>.tpResume{grid-area:partie;margin:0}
+#tPanel#tPanel#tPanel #tpIn>.tpPanel{grid-area:regl;margin:0;align-self:start}
+#tPanel#tPanel#tPanel #tpIn>.tpRow{grid-area:bas;margin:0;padding:0;align-self:end}
+#tPanel#tPanel#tPanel #tpIn>.tp.go{grid-area:go;margin:0;align-self:end;position:relative;bottom:auto}
+
+/* ---- la partie en cours : AURA en grand, MOTEUR et NIVEAU dessous ---- */
+#tPanel#tPanel#tPanel .tpResume{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1.5fr 1fr;gap:0;position:relative;overflow:hidden;
+  background:linear-gradient(160deg,rgba(255,62,200,.16),rgba(0,234,255,.05) 55%,rgba(20,14,44,.7)),var(--laqueP,rgba(20,14,44,.8));
+  clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);
+  box-shadow:inset 0 0 0 1px var(--fil,rgba(255,255,255,.14)),inset 0 1px 0 rgba(255,255,255,.12)}
+#tPanel#tPanel#tPanel .tpResume .mStat{flex-direction:column-reverse;gap:6px;min-height:0;padding:10px 8px;background:none;box-shadow:none;clip-path:none;text-align:center}
+#tPanel#tPanel#tPanel .tpResume .mStat span{font-size:var(--f1);letter-spacing:3px;color:var(--tx3)}
+#tPanel#tPanel#tPanel .tpResume .mStat b{font-size:var(--f6);color:var(--tx);max-width:100%;white-space:nowrap}
+#tPanel#tPanel#tPanel .tpResume .mStat:nth-child(1){grid-column:1/-1;border-bottom:1px solid var(--fil,rgba(255,255,255,.14))}
+#tPanel#tPanel#tPanel .tpResume .mStat:nth-child(1) b{font-size:var(--f7);color:var(--neoM,#ff3ec8);text-shadow:0 0 18px rgba(255,62,200,.55),0 3px 0 var(--txO,#0a0418)}
+#tPanel#tPanel#tPanel .tpResume .mStat:nth-child(1) span{color:var(--neoM,#ff3ec8);opacity:.85}
+#tPanel#tPanel#tPanel .tpResume .mStat:nth-child(2){border-right:1px solid var(--fil,rgba(255,255,255,.14))}
+#tPanel#tPanel#tPanel .tpResume .mStat:nth-child(2) b{color:var(--neoC,#00eaff)}
+#tPanel#tPanel#tPanel .tpResume .mStat:nth-child(3) b{color:var(--auT-clair,#ffd044)}
+
+/* ---- les réglages : des tuiles, deux par rangée ---- */
+#tPanel#tPanel#tPanel .tpPanel{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne{display:grid;grid-template-columns:34px minmax(0,1fr);grid-template-rows:auto auto;column-gap:10px;row-gap:3px;align-content:center;align-items:center;
+  box-sizing:border-box;min-height:62px;margin:0;padding:8px 12px;border:0;overflow:hidden;
+  background:linear-gradient(180deg,rgba(34,28,64,.92),rgba(18,14,36,.92));
+  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
+  box-shadow:inset 0 0 0 1px var(--fil,rgba(255,255,255,.14)),inset 0 1px 0 rgba(255,255,255,.1);
+  transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease),background var(--t-fast) var(--ease)}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne::before{left:12px;top:50%;width:34px;height:34px;margin-top:-17px}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne>.pxi{grid-column:1;grid-row:1/span 2;justify-self:center;margin:0}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne .tpL{grid-column:2;grid-row:1;font-size:var(--f1);letter-spacing:1px;line-height:1.35;white-space:normal;color:var(--tx)}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne b.valeur{grid-column:2;grid-row:2;justify-self:start;font-family:var(--pix);font-weight:400;font-size:var(--f1);letter-spacing:1px;color:var(--neoC,#00eaff);
+  text-shadow:0 0 10px rgba(0,234,255,.45)}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne b.valeur::after{content:'';display:inline-block;margin-left:8px;border-left:6px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne b.bascule{grid-column:2;grid-row:2;justify-self:start;width:64px;height:24px;font-size:var(--f0)}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne b.bascule::before{width:22px;height:18px}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne b.bascule.ko::before{transform:translateX(-34px)}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne:has(b.bascule:not(.ko)){background:linear-gradient(180deg,rgba(14,56,38,.9),rgba(10,26,28,.92));
+  box-shadow:inset 0 0 0 1px rgba(94,227,122,.55),inset 0 1px 0 rgba(255,255,255,.12),inset 0 0 22px rgba(94,227,122,.12)}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne:has(b.bascule.ko){opacity:.8}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne:is(:active,.appui){transform:translateY(2px);background:linear-gradient(180deg,rgba(60,52,104,.95),rgba(30,24,60,.95))}
+/* TOUS LES REGLAGES : une tuile comme les autres, une flèche à droite (l'ancienne ::after de lien est remplacée) */
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien{display:flex;align-items:center;gap:10px;background:linear-gradient(180deg,rgba(0,60,80,.55),rgba(18,14,36,.92))}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien .tpL{flex:1;color:var(--neoC,#00eaff)}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien>.pxi{flex:none;margin:0 0 0 2px}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien::after{content:'';flex:none;width:0;height:0;margin:0 2px 0 auto;background:none;-webkit-mask:none;mask:none;
+  border-left:8px solid var(--neoC,#00eaff);border-top:6px solid transparent;border-bottom:6px solid transparent}
+html:not(.c6) #tPanel#tPanel#tPanel .tpPanel>.tp.ligne:is([data-a="q"],[data-a="volh"],[data-a="figg"]){display:none}
+
+/* ---- les trois plaques du bas : REPRENDRE (or), RECOMMENCER, QUITTER ---- */
+#tPanel#tPanel#tPanel #tpIn>.tpRow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#tPanel#tPanel#tPanel #tpIn>.tpRow>.tp{min-height:60px;margin:0;padding:0 12px;font-size:var(--f1);letter-spacing:1px}
+#tPanel#tPanel#tPanel #tpIn>.tp.go{min-height:68px}
+
+/* ---- couché : la partie et REPRENDRE à gauche, les réglages et le reste à droite ---- */
+@media (orientation:landscape){
+  #tPanel#tPanel#tPanel #tpIn{max-width:880px;column-gap:22px;row-gap:12px;grid-template-columns:minmax(0,.9fr) minmax(0,1.25fr);grid-template-rows:auto minmax(0,1fr) auto;
+    grid-template-areas:"titre regl" "partie regl" "go bas";
+    padding:calc(var(--sT) + 14px) calc(var(--sR) + 24px) calc(var(--sB) + 14px) calc(var(--sL) + 24px)}
+  #tPanel#tPanel#tPanel #tpIn>.tpRow{align-self:stretch}
+  #tPanel#tPanel#tPanel #tpIn>.tpRow>.tp,#tPanel#tPanel#tPanel #tpIn>.tp.go{min-height:60px;height:100%}
+}
+@media (orientation:landscape) and (max-height:430px){
+  #tPanel#tPanel#tPanel .tpPanel>.tp.ligne{min-height:54px;padding:6px 10px}
+  #tPanel#tPanel#tPanel .tpPanel{gap:8px}
+}
 <style id="uiRevue">
 /* LA REVUE DE L'INTERFACE (2026-10-17, session UI-REVUE, Sacha : « revois toute l'interface : chaque bouton de chaque écran au bon endroit,
    avec la bonne police ; une animation et un son pour chaque bouton ; des transitions fluides entre chaque écran »). Relevé au banc écran par
@@ -7680,11 +7771,11 @@ html:not(.sansGarJouer) body #garage#garage#garage:not(.menu):not(.vitrine):not(
      d'écran, la grille VITESSE passe en fixed avec elles) ; la rangée ACCUEIL · JOUER ▸▸▸ · ŒIL reste au pied.
    ?garage=leo (ou ?garage=avant) : html.garLeo, le garage d'avant tel quel. Pas de Poki. */
 html:not(.garLeo):not(.poki) body #garage#garage#garage.on{--ghR:calc(var(--sR) + 14px);--ghL:calc(var(--sL) + 14px);--ghB:calc(var(--sB) + 12px);--ghC:50px;--ghH:46px;--ghG:8px;--ghTx:calc(var(--sR) + 86px);--ghTy:calc(var(--sT) + 33px)}
-/* — LE ⚙ : à gauche du trophée, centré sur lui — */
-html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gTop #gOutils{position:fixed!important;top:calc(var(--ghTy) - var(--ghH) / 2)!important;right:var(--ghTx)!important;left:auto!important;bottom:auto!important;width:auto!important;height:auto!important;margin:0!important;display:flex!important;gap:var(--ghG);z-index:4;pointer-events:auto}
-html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gTop #gOutils>[data-go="set"]{display:flex!important;align-items:center;justify-content:center;width:var(--ghC)!important;min-width:var(--ghC)!important;height:var(--ghH)!important;min-height:var(--ghH)!important;padding:0!important;--nc:#ffd75e;color:#ffd75e}
-html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gTop #gOutils>[data-go="set"] .pxi{--pxs:3;filter:drop-shadow(0 0 6px rgba(255,215,94,.55))}
-html:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gTop #gOutils>:not([data-go="set"]){display:none!important}
+/* — LE ⚙ : à gauche du trophée, centré sur lui — (2026-10-20 : seulement avec ?portes=haut ; par défaut le ⚙ et le trophée sont dans la rangée du bas, voir <style id="garageOutilsBas">) */
+html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gTop #gOutils{position:fixed!important;top:calc(var(--ghTy) - var(--ghH) / 2)!important;right:var(--ghTx)!important;left:auto!important;bottom:auto!important;width:auto!important;height:auto!important;margin:0!important;display:flex!important;gap:var(--ghG);z-index:4;pointer-events:auto}
+html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gTop #gOutils>[data-go="set"]{display:flex!important;align-items:center;justify-content:center;width:var(--ghC)!important;min-width:var(--ghC)!important;height:var(--ghH)!important;min-height:var(--ghH)!important;padding:0!important;--nc:#ffd75e;color:#ffd75e}
+html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gTop #gOutils>[data-go="set"] .pxi{--pxs:3;filter:drop-shadow(0 0 6px rgba(255,215,94,.55))}
+html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gTop #gOutils>:not([data-go="set"]){display:none!important}
 /* (2026-10-20, Léo : « le mission, le shop, tu remets ça en dessous ») LES PORTES REDESCENDENT : INVENTAIRE · MISSIONS · BOUTIQUE (et la VITESSE
    au palier 30) retrouvent leur rangée au-dessus de PLAY, debout comme couché — la place du garage d'avant. Le ⚙ de Sacha reste en haut, à
    côté du trophée (ci-dessus). Tout ce qui suit (la pente plaque par plaque, la colonne couchée, les portes sous le nom, « sans la vitesse »)
@@ -7727,6 +7818,32 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
 @media (orientation:portrait){
   html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee.sansVdep:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvCof,html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee.sansVdep:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvMis,html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee.sansVdep:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gShopBas{top:calc(var(--sT) + 174px)!important}
 }
+</style>
+<style id="garageOutilsBas">
+/* ===== LA RANGÉE DU BAS SANS INVENTAIRE : RÉGLAGES · TROPHÉE EN BAS, L'ŒIL EN HAUT À DROITE (2026-10-20, Sacha : « enlève le bouton inventaire
+   du garage et remplace-le par les boutons réglage et trophée, mets le bouton œil en haut à droite ») =====
+   · INVENTAIRE (#gvCof) disparaît de la vue principale : masqué, gardé pour le câblage (atelier.js, garage-lacher.js). ⚠ La borne 3D
+     (bouton-rouge.js) est éteinte depuis le 10/10 : l'inventaire n'a plus que la touche I (clavier) ; la BOUTIQUE montre les objets ACQUIS.
+   · À sa place (la case de gauche de la 1re rangée, colonnes 1/8) la paire #gvReg ⚙ · #gvTro 🏆 : mêmes touches que MISSIONS / BOUTIQUE (verre,
+     filet de couleur dessous), l'or pour les réglages, l'orange du trophée. #gvReg a data-go="set" (même câblage que l'ancien ⚙ d'en haut,
+     garage-cadrage.js) ; #gvTro ouvre le profil comme #gProf (plaque.js). Les anciens #gOutils et #gProf restent dans la page, masqués.
+   · L'ŒIL monte dans le coin haut-droit (la place qu'avaient ⚙ et trophée) : même marge au bord que le compte en miroir à gauche.
+   Seulement la vue du garage de tous les jours : ?garage=leo, ?portes=haut et Poki gardent leurs places d'avant. */
+#gvOutils{display:none}
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvCof{display:none!important}
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvOutils{grid-row:1!important;grid-column:1/8!important;display:flex;gap:7px;align-self:stretch;min-width:0;margin:0;padding:0}
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gvOutils>button{flex:1 1 0;min-width:0;min-height:0;height:auto;margin:0;padding:0;--nc:var(--pc);color:#fff;
+  background:linear-gradient(115deg,rgba(255,255,255,.10) 0 18%,transparent 18% 100%),linear-gradient(180deg,rgba(38,30,72,.96),rgba(14,11,30,.98));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),inset 0 -3px 0 var(--pc),0 0 0 1px rgba(7,5,15,.95),0 7px 16px -9px var(--pc)}
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gvOutils>button .pxi{--pxs:3;color:var(--pc);filter:drop-shadow(0 0 5px var(--pc))}
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gvOutils>button:is(:active,.appui){translate:0 2px}
+#gvReg{--pc:#ffd75e}
+#gvTro{--pc:#ff9d2e}
+/* le trophée et le ⚙ d'en haut : remplacés par la paire du bas */
+html:not(.garLeo):not(.poki):not(.portesHaut) body #gProf#gProf{display:none!important}
+/* l'ŒIL : le coin haut-droit (même marge au bord que #gCompteur à gauche) ; la case penchée du bas devient une petite case d'angle */
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct#gAct #gRang1>#gOeil{position:fixed!important;top:calc(var(--sT) + 8px)!important;right:calc(var(--sR) + 22px)!important;bottom:auto!important;left:auto!important;
+  grid-row:auto!important;grid-column:auto!important;width:64px!important;min-width:0!important;height:48px!important;min-height:0!important;margin:0!important;padding:0!important;z-index:5}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -7814,6 +7931,8 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
         <button id="gvMis" class="pbtn" aria-label="Missions"><s class="gvFx" aria-hidden="true"></s><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="gvPips" aria-hidden="true"><u></u><u></u><u></u></b></button>
         <!-- (2026-10-05, Léo : « l'inventaire va être ajouté à côté du bouton jouer ») le COFFRE : l'inventaire (le doigt tenu sur la caisse lance désormais le BURN-OUT) -->
         <button id="gvCof" class="pbtn" aria-label="Inventaire"><i class="pxi pxi-troisHex" aria-hidden="true"></i><span data-fr="INVENTAIRE">INVENTAIRE</span></button>
+        <!-- (2026-10-20, Sacha : « enlève le bouton inventaire du garage et remplace-le par les boutons réglage et trophée, mets le bouton œil en haut à droite ») la paire RÉGLAGES · TROPHÉE prend la place d'INVENTAIRE (masqué, gardé pour le câblage : l'inventaire n'a plus que la touche I ; la borne 3D est éteinte depuis le 10/10, bouton-rouge.js) — voir <style id="garageOutilsBas"> -->
+        <div id="gvOutils"><button id="gvReg" class="pbtn" data-go="set" aria-label="Réglages"><i class="pxi pxi-reglages" aria-hidden="true"></i></button><button id="gvTro" class="pbtn" aria-label="Profil"><i class="pxi pxi-trophee" aria-hidden="true"></i></button></div>
       </div>
       <!-- (2026-10-19, Léo) LA VITESSE DE DÉPART : six crans posés au-dessus de la rangée INVENTAIRE · MISSIONS · BOUTIQUE (placés par vdepPlace) ;
            l'étiquette du moteur choisi se colle au bord haut du PLAY. Remplis par vdepMaj. -->
@@ -8403,7 +8522,7 @@ function modale(o){return new Promise(function(res){
 var BIENV={on:false,fait:false,t0:0,iv:0};
 function bienvI18n(){Object.assign(I18N,{'PREMIERE FOIS ICI ?':'FIRST TIME HERE?','OUI, GUIDE-MOI':'YES, GUIDE ME',"J'AI DEJA JOUE":"I'VE PLAYED BEFORE",'Une course guidée':'A guided run','Direct en course':'Straight to the race','NE PLUS ME DEMANDER':"DON'T ASK AGAIN",
   'Une minute en roulant pour apprendre, et ton PERMIS rapporte $ 500.':'One minute on the road to learn, and your LICENSE pays $500.'});} // (I18N naît plus bas dans le script : les mots sont posés au démarrage du guet)
-function bienvVeut(){const d=SAVE.d;if(/[?&]bienvenue=1\b/.test(location.search))return !BALADE; /* (essai) `?bienvenue=1` la pose quelle que soit la sauvegarde */ return !BALADE&&!SIMU_JEU&&!SANDBOX&&!PARK.on&&!d.tuto&&!d.permis&&!d.bienv&&!/[?&]bienvenue=0\b/.test(location.search);}
+function bienvVeut(){/* (2026-10-22, Sacha : « enlève ça du jeu ») la question de bienvenue n'est plus posée */ return false;const d=SAVE.d;if(/[?&]bienvenue=1\b/.test(location.search))return !BALADE; /* (essai) `?bienvenue=1` la pose quelle que soit la sauvegarde */ return !BALADE&&!SIMU_JEU&&!SANDBOX&&!PARK.on&&!d.tuto&&!d.permis&&!d.bienv&&!/[?&]bienvenue=0\b/.test(location.search);}
 function bienvPret(){const sp=document.getElementById('splash'),md=document.getElementById('modale');
   return !sp&&!!overlay&&overlay.getAttribute('data-ecran')==='home'&&!(started&&!gameOver)&&!(garageOn&&!document.body.classList.contains('titreCiel'))&&!(GAR&&GAR.go)&&!ecranWipe._on&&!(md&&md.classList.contains('on'))&&!document.body.classList.contains('play')&&!(PLQ&&PLQ.on);} /* (2026-10-17) LA PLAQUE se choisit d'abord (voir plqGuette) */
 function bienvGuette(){if(BIENV.iv)return;try{bienvI18n();}catch(e){}BIENV.iv=setInterval(function(){try{
@@ -8488,7 +8607,8 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   uTime:{value:0},uSunDir:{value:SUN_DIR},
   uSkyMul:{value:new THREE.Vector3(1,1,1)},uSkyLift:{value:new THREE.Vector3(0,0,0)},
   uSunTint:{value:new THREE.Vector3(1,.40,.28)},uSunHalo:{value:1},uCity:{value:1},uStars:{value:1},uMoon:{value:1},uRose:{value:0},
-  uNeb:{value:1}, // (2026-10-15) LES NÉBULEUSES de l'orbite (× uSpace) : 0 = le noir complet d'avant
+  uNeb:{value:0}, // (2026-10-25, Sacha : « remets le ciel noir dans l'espace, enlève les nébuleuses et tout ») voie lactée, nébuleuses et poussière coupées : 0 = le noir complet. (2026-10-15 : 1 = l'orbite colorée)
+  uBandes:{value:new THREE.Vector3(0,0,0)}, // (2026-10-25) LES ÉTOILES JOUENT LA MUSIQUE (orbite) : x = basses, y = médiums, z = aigus — l'excès de chaque bande sur sa moyenne, 0..1 (voir musicTick)
   uSpace:{value:0}, // NIVEAU ORBITE (2026-09-24) : 0 = le ciel de toujours AU PIXEL PRÈS, 1 = le noir étoilé (piloté par lvlStep)
   uPulse:{value:0}, // MUSIQUE : le ciel respire en rythme (piloté par l'analyseur audio, 0 = neutre = rendu d'origine)
   /* ---- LE FOND DU NIVEAU (2026-08-08) : le décor JOUE la musique, façon Geometry Dash / Super Hexagon.
@@ -8563,7 +8683,7 @@ const skyDome=(function(){
       '  return textureGrad(uPhT,uv,dx,dy).rgb*uPh.w;}',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse,uRose;', // grade biome (identité par défaut) + uPulse musique
       'uniform vec3 uFd[8];uniform vec3 uVc[6];', // (2026-10-16) LES TEINTES DE LA VILLE : les couleurs fixes du dégradé et du ciel de la ville (valeurs d'origine hors ville teintée)
-      'uniform float uSpace,uNeb;', // NIVEAU ORBITE : 0 = aucun effet · uNeb : les nébuleuses (2026-10-15)
+      'uniform float uSpace,uNeb;uniform vec3 uBandes;', // NIVEAU ORBITE : 0 = aucun effet · uNeb : les nébuleuses (2026-10-15)
       'uniform float uJour,uMerLoin,uCiel2;uniform vec3 uJZen,uJMid,uJHor,uJSol;uniform vec4 uMzA,uMzB,uMzT,uMzO,uMzH;', // (2026-09-30) LE JOUR D ALTITUDE : 0 = le ciel d avant, au bit près
       'uniform float uLvl,uSpin,uBeatK,uFlip,uBar,uHi,uWave,uHueAmp;uniform vec3 uAcc,uAcc2;uniform vec4 uRingR,uRingA;', // LE FOND DU NIVEAU
       'float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
@@ -8660,7 +8780,12 @@ const skyDome=(function(){
       '    vec3 L=G+smoothstep(3000.,7000.,t)*vec3(.05,.03,.015)*(.25+.75*qu);',           // au loin (au-delà de 7 km) : la lueur MOYENNE, pas de moiré — les fines sont dans villeFin
       '    bas=F*(1.+.28*smoothstep(-.05,-.6,y)*nuit)+L*exp(-t/2300.)*(1.+.6*lv)*nuit;}', // la brume s éclaire par en dessous
       '    else bas=F*(1.+.28*smoothstep(-.05,-.6,y)*nuit);}',
-      '  return mix(bas,haut,smoothstep(-.03,.03,y));}',
+      /* (2026-10-24, Sacha : « le ciel déconne, il n'y a pas de fondu, c'est moche ») HORIZON SANS COUPURE : hors pluie, le ciel du dessus (corail, bleu
+         nuit) basculait en 3° sur la brume du dessous — une ligne franche, la couleur de l'air n'étant pas celle du sol. Maintenant la brume REMONTE
+         dans le ciel (≈ 12°, courbe douce, 60 % au ras de l'horizon) : le dégradé du ciel s'y noie, comme le brouillard noie les tours 3D ; la jonction
+         s'élargit à ±3°. Sous la pluie (uPluie = 1) le plafond est déjà fondu dans la brume : rien ne change. */
+      '  haut=mix(haut,F,(1.-smoothstep(0.,.21,y))*(1.-uPluie)*.6);',
+      '  return mix(bas,haut,smoothstep(-.05,.045,y));}',
       /* LA SEINE (2026-09-28, Léo : « et il y a la Seine ») — un méandre dans le repère MONDE du sol de Paris (450 m sous l œil,
          la même parallaxe que l abîme) : l eau plus noire que la brume où tremblent les reflets d or, les QUAIS de pierre et leurs
          lampadaires, un PONT tous les 520 m avec ses deux rangées de lanternes, et les BATEAUX-MOUCHES qui glissent en inondant l eau
@@ -9260,7 +9385,8 @@ const skyDome=(function(){
       '  float sr=length(vec2((sfr.x-stp.x)*.0982*sqrt(max(0.,1.-y*y)),(sfr.y-stp.y)*.04545));',
       '  float st=(1.-smoothstep(0.,.0026+.0022*fract(h*7.7),sr))*step(.76,h);',
       '  st*=.55+.45*sin(uTime*(1.2+h*2.6)+h*44.);',
-      '  col+=mix(vec3(.80,.88,1.),vec3(1.,.86,.70),step(.8,fract(h*3.31)))*st*mix(smoothstep(.10,.42,y),1.,uSpace)*(1.-smoothstep(.25,.8,sd))*.9*uStars*(1.+uSpace*.5)*(1.+uPulse*1.3);}}', // elles descendent plus bas : le haut du cadre est habité — MINUIT les multiplie, l aube les éteint ; elles palpitent au beat
+      '  float kc=fract(h*13.37),mus=kc<.34?uBandes.x:kc<.67?uBandes.y:uBandes.z;', /* (2026-10-25) trois familles d étoiles : celles des BASSES, des MÉDIUMS, des AIGUS — chacune ne vibre que sur sa bande */
+      '  col+=mix(vec3(.80,.88,1.),vec3(1.,.86,.70),step(.8,fract(h*3.31)))*st*mix(smoothstep(.10,.42,y),1.,uSpace)*(1.-smoothstep(.25,.8,sd))*.9*uStars*(1.+uSpace*.5)*(1.+uPulse*1.3)*(1.+uSpace*mus*.6);}}', // elles descendent plus bas : le haut du cadre est habité — MINUIT les multiplie, l aube les éteint ; elles palpitent au beat
     ],
     espace:[
       /* (2026-10-15) LE CIEL PROFOND DE L ORBITE — une couche LISSE (passe à demi-résolution) : la VOIE LACTÉE et les NÉBULEUSES.
@@ -9279,11 +9405,11 @@ const skyDome=(function(){
       '  float bw=.11+.07*w+.10*cen*cen*cen,band=exp(-b*b/(bw*bw));',
       '  float dust=smoothstep(.44,.70,ln)*exp(-b*b/(bw*bw*.22));', // le ruban sombre au milieu de la bande
       '  float glow=band*(.30+.70*w*w*1.6)*(.40+.60*cen*cen)*(1.-.78*dust);',
-      '  vec3 mw=mix(vec3(.34,.40,.70),vec3(1.,.82,.66),cen*cen*cen*cen*band);', // bleutée, cœur chaud
+      '  vec3 mw=mix(vec3(.40,.45,.62),vec3(.86,.84,.80),cen*cen*cen*cen*band);', // (2026-10-24 sobre) grise-bleutée, cœur à peine chaud
       '  float n1=esF(d*1.7+vec3(5.,2.,9.)),n2=esF(d*2.3+vec3(13.,7.,1.)),fl=ln;',
       '  float pv=smoothstep(.46,.78,n1),pb=smoothstep(.48,.80,n2);',
-      '  vec3 neb=vec3(.44,.14,.70)*pv*(.45+.9*fl)+vec3(.10,.26,.80)*pb*(.45+.9*(1.-fl))+vec3(.70,.12,.50)*pv*pb*1.3;',
-      '  col+=(mw*glow*.58+neb*.26*(1.-.55*dust))*uSpace*uNeb;}',
+      '  vec3 neb=vec3(.30,.26,.46)*pv*(.45+.9*fl)+vec3(.22,.30,.46)*pb*(.45+.9*(1.-fl));',
+      '  col+=mw*glow*.45*uSpace*uNeb;}  /* (2026-10-24, Sacha : « supprime les nébuleuses ») la voie lactée reste, plus de nappes colorées */',
     ],
     pous:[
       /* (2026-10-15) LA POUSSIÈRE D ÉTOILES de l orbite — passe NETTE (des points au pixel). 180 cellules par tour : des étoiles d un
@@ -9295,7 +9421,7 @@ const skyDome=(function(){
       '  vec2 stp=vec2(fract(h*23.7),fract(h*41.3))*.7+.15;',
       '  float sr=length(vec2((sfr.x-stp.x)*.0349*sqrt(max(0.,1.-y*y)),(sfr.y-stp.y)*.01667));',
       '  float st=1.-smoothstep(0.,.0016,sr),k=fract(h*5.13);',
-      '  vec3 c=k<.4?vec3(.66,.76,1.):k<.75?vec3(1.,.96,.92):vec3(.86,.62,1.);',
+      '  vec3 c=k<.4?vec3(.80,.86,1.):vec3(1.,.97,.94);',
       '  col+=c*st*(.55+.65*band)*(.7+.3*sin(uTime*(.8+h*2.)+h*31.))*uSpace*uNeb;}',
     ],
     lune:[
@@ -18132,7 +18258,7 @@ function buildBanq(seed){jadeFini(buildBanqG(seed));} // (2026-10-17, LE PRÉ-B�
 function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au pré-bâti
   banqVide();
   if(PARK.on||!LVL.cur||LVL.cur.id!=='banquise'||!(NP>1))return;
-  const t0=performance.now(),M=banqMats(),fr=mulberry32((seed^0xB4A9C)>>>0),ds=L/(NP-1),KP=PAL_BK('banqPics',1)*(TEL_NATIF?.85:1);
+  const t0=performance.now(),M=banqMats(),fr=mulberry32((seed^0xB4A9C)>>>0),ds=L/(NP-1),KP=PAL_BK('banqPics',1)*(TEL_NATIF?.85:1)*.3; /* (2026-10-25, Sacha : « réduis de 70 % les pics de glace ») dômes, séracs et aiguilles : 70 % de moins */
   BANQ.graine=(seed>>>0)%100000;BANQ.met=LVL.cur.meteo||'midi';BANQ.n={};
   const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);BANQ.root=root;trackMeshes.push(root);
   const TP=BANQ.tp={},tp=k=>{const n=performance.now();TP[k]=Math.round((n-(tp.t||t0))*10)/10;tp.t=n;};
@@ -18181,7 +18307,7 @@ function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au
   BANQ.obst=[];BANQ.kick=[];
   {const RH=ROAD_HALF,kRH=RH/61.6,O=BANQ.obst,KK=BANQ.kick,ou=(s9,la)=>{const i=Math.max(0,Math.min(NP-1,Math.round(s9/ds))),p=pts[i],b=B[i];return [p.x+b.x*la,p.y+b.y*la,p.z+b.z*la];};
     const libreK=(s9,la,r)=>{for(const k of KK){if(s9>k.s-k.lg-60&&s9<k.s+260&&la+r>k.l0-8&&la-r<k.l1+8)return false;if(BK_RETOMBE&&s9+r>k.s&&s9-r<k.s+BK_BEC.retombe)return false;} /* (2026-10-18) 60 m d'approche dégagés devant la rampe (au banc, on percutait un pic en visant le tremplin), et sa retombée : 260 m (à 45°, on vole loin) — (2026-10-19) puis BK_BEC.retombe m sur TOUTE la largeur (voir BK_RETOMBE) */for(const o of O)if(Math.abs(o.s-s9)<o.r+r+8&&Math.abs(o.lat-la)<o.r+r+8)return false;return true;}; // ni sur un bec ni dans sa retombée, ni collé à un autre pic
-    const pic=(s9,la,H,pente)=>{{const i=Math.max(3,Math.min(NP-4,Math.round(s9/ds))),a=pts[i-3],c=pts[i+3];pente+=Math.max(0,(a.y-c.y)/Math.max(1,Math.hypot(a.x-c.x,a.z-c.z)));} /* (2026-10-18) + la PENTE de la piste : à 45°, le flanc aval d'un pic à 55° (1,4) devenait presque parallèle à la glace — une lame basse de 30 à 50 m qu'on croyait franchir et qui tuait (« des problèmes de collision avec la glace ») ; sa face aval garde désormais, par rapport à la piste, la raideur qu'elle aurait sur le plat */const R=H/pente;if(Math.abs(la)>RH-R*.35-3||!libreK(s9,la,R))return false;const q=ou(s9,la);
+    let gdPic=true; /* (2026-10-25) faux = la figure en cours n'a aucun pic (on n'en garde que 30 %) */const pic=(s9,la,H,pente)=>{if(!gdPic)return false;{const i=Math.max(3,Math.min(NP-4,Math.round(s9/ds))),a=pts[i-3],c=pts[i+3];pente+=Math.max(0,(a.y-c.y)/Math.max(1,Math.hypot(a.x-c.x,a.z-c.z)));} /* (2026-10-18) + la PENTE de la piste : à 45°, le flanc aval d'un pic à 55° (1,4) devenait presque parallèle à la glace — une lame basse de 30 à 50 m qu'on croyait franchir et qui tuait (« des problèmes de collision avec la glace ») ; sa face aval garde désormais, par rapport à la piste, la raideur qu'elle aurait sur le plat */const R=H/pente;if(Math.abs(la)>RH-R*.35-3||!libreK(s9,la,R))return false;const q=ou(s9,la);
       const L9=bkGrappe(q[0],q[2],q[1]-.4,H,pente,(fr()*3)|0,fr,1.4,Math.max(9,R*1.1)); /* (pied profond : sur la pente raide, le côté aval ne flotte pas) fam 1,4 : une aiguille pour la physique, mais COIFFÉE DE NEIGE (BK_PIC_FS) */pose(L9,true,false);let r=0;for(const P of L9)r=Math.max(r,Math.hypot(P.cx-q[0],P.cz-q[2])+P.r);
       O.push({s:s9,lat:la,L9:L9,r:r,x:q[0],z:q[2]});return true;};
     const bec=(s9,c,w)=>{{const cap9=s=>{const t0=T[Math.min(NP-1,Math.round((s+BK_BEC.lg)/ds))],t1=T[Math.min(NP-1,Math.round((s+BK_BEC.lg+BK_BEC.droit)/ds))];return Math.abs(Math.atan2(t0.x*t1.z-t0.z*t1.x,t0.x*t1.x+t0.z*t1.z));};
@@ -18190,7 +18316,7 @@ function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au
        champ 5-7, îlot 2-3) — ~4 × moins de pics ; (« les tremplins doivent être plus beaux, gros et visibles ») un TREMPLIN avant deux figures sur trois,
        et un tremplin seul au milieu d'une longue descente sur deux (voir BK_BEC) */
     let sp=560+fr()*120;
-    while(sp<L-380){const f=fr();
+    while(sp<L-380){const f=fr();gdPic=fr()<.3;
       if(fr()<.65){const k9=bec(sp,(fr()*2-1)*RH*.45,36+fr()*22),j9=BK_BEC.lg+100+fr()*30;sp=k9!=null&&BK_RETOMBE?Math.max(sp+j9,k9+BK_BEC.retombe):sp+j9;} // un TREMPLIN, le plus souvent juste avant une figure : on peut la survoler — (2026-10-19) elle attend la fin de sa retombée (BK_RETOMBE)
       if(f<.25){const c=(fr()-.5)*14,n=3+((fr()*3)|0),pas=34+fr()*16; // LA FOURCHE : une arête au milieu, deux couloirs
         for(let j=0;j<n;j++)pic(sp+j*pas,c+(fr()-.5)*8,12+fr()*14,1.7+fr()*.8);sp+=n*pas;}
@@ -24685,7 +24811,7 @@ const ECO_ANCIEN=/[?&]eco=ancien\b/.test(location.search); // `?eco=ancien` : EC
 const ECOD={coup:1.5,k:1,raison:'depart'}; // coup : LE réglage · k : ce que la partie en cours applique · raison : pourquoi (actif · achat · assez · cousin · ancien · erreur)
 function ecoDebutPrix(){let m=1e30;for(const x of COSM.peinture)if(x.p>0&&x.p<m&&!x.sec&&!x.mis&&!x.retire&&!x.eur)m=x.p;return m;} // la peinture la moins chère EN VENTE, LUE sur COSM : si les prix changent, le seuil suit — (GAMEPLAY, relecture) ni les couleurs SECRÈTES (gagnées par un DÉFI ou le pack), ni celles d'un carnet, ni les retirées, ni celles en euros
 function ecoDebutAchat(){ // vrai dès qu'UN achat a été fait : caisse (owned), figure (figs — le TAIL WHIP est offert ; le TONNEAU l'était avant le 15/10), habillage payant (shop.own — ceux d'un carnet n'ont pas de `p`)
-  const d=SAVE.d;if(d.owned&&d.owned.length)return true;if(d.figs&&d.figs.some(function(id){return id!=='tailwhip'&&!(id==='tonneau'&&d.figT0);}))return true; // (2026-10-15) le TAIL WHIP offert, et le tonneau offert des sauvegardes d'avant, ne sont pas des achats
+  const d=SAVE.d;if(d.owned&&d.owned.length)return true;if(d.figs&&d.figs.some(function(id){return id!=='tailwhip'&&!(id==='tonneau'&&d.figT0)&&!(id==='saltov'&&d.figS0);}))return true; // (2026-10-15) le TAIL WHIP offert, et le tonneau offert des sauvegardes d'avant, ne sont pas des achats
   const o=d.shop&&d.shop.own;if(o)for(let i=0;i<o.length;i++){const a=String(o[i]).split(':'),l=COSM[a[0]],x=l&&l.find(function(y){return y.id===a[1];});if(x&&x.p>0)return true;}
   return false;
 }
@@ -47885,9 +48011,13 @@ function musWaReveil(){ // le contexte doit tourner pour qu'on entende la musiqu
   if(!musGraphe()||!AC||AC.state==='running'||paused||document.hidden)return;
   try{const p=AC.resume();if(p&&p.catch)p.catch(function(){});}catch(e){}
 }
+/* ===== L'ESPACE SANS BRUITAGES (2026-10-24, Sacha : « coupe les sons du jeu dans l'espace, garde que la musique ») =====
+   En ORBITE (LVL.espace > .5) l'entrée des effets du limiteur se ferme comme au bouton SON ; la musique passe à côté (musGraphe). */
+const ESPACE_MUET={on:false};
+function espaceMuetTick(){const v=LVL.espace>.5;if(v===ESPACE_MUET.on)return;ESPACE_MUET.on=v;try{musWaSon();}catch(e){}}
 function musWaSon(){ // le bouton SON coupe les EFFETS (et les voix du graphe) par l'entrée du limiteur, jamais par AC.suspend : la musique y passe à côté
   if(!musGraphe()||!AC||!MASTER)return;
-  try{const p=MASTER._limIn&&MASTER._limIn.gain;if(p){const t=AC.currentTime;p.cancelScheduledValues(t);p.setTargetAtTime(SND.sfx?.937:0,t,.015);}}catch(e){}
+  try{const p=MASTER._limIn&&MASTER._limIn.gain;if(p){const t=AC.currentTime;p.cancelScheduledValues(t);p.setTargetAtTime(SND.sfx&&!ESPACE_MUET.on?.937:0,t,.015);}}catch(e){}
   try{if(paused||document.hidden){if(AC.state==='running')AC.suspend();}else musWaReveil();}catch(e){} // en pause / caché : la musique est déjà en pause, le contexte peut dormir
 }
 function musWaBranche(){
@@ -48436,24 +48566,31 @@ function lvlTick(dt,S){
 }
 /* <<<FIN FOND>>> ========================================================== */
 function musicTick(dt,mvt){
+  try{espaceMuetTick();}catch(e){}
   if(MUSREP.att&&!paused){MUSREP.att=false;if(SND.music&&started&&running&&!gameOver)try{musicStartRun(false,true);}catch(e){}} // (2026-10-15) MUSIQUE rallumée pendant la pause : la course reprend, son morceau aussi
   try{sonTonSuit();}catch(e){} // (console de son) les sons accordés suivent la tonalité du morceau qui joue
-  let target=0,beat=0,hiT=0;
+  let target=0,beat=0,hiT=0,bsT=0,mdT=0;
   if(musicOn&&musicAna){
     musicAna.getByteFrequencyData(musicData);
     /* TROIS BANDES, PAS DEUX (2026-08-08). Les AIGUS manquaient — or c'est là que vit le tempo
        RAPIDE d'un morceau : charleston, cymbales, souffle. Avec la seule basse, le décor ne
        connaissait que la pulsation lente et restait lisse entre deux coups. Le haut du spectre
        (les 45 % supérieurs des bins) alimente désormais tout ce qui doit grésiller. */
-    const nB=musicData.length;let tot=0,bass=0,hi=0,bN=Math.max(1,(nB*.18)|0),hN=Math.max(1,(nB*.55)|0);
-    for(let i=0;i<nB;i++){const v=musicData[i]/255;tot+=v;if(i<bN)bass+=v;if(i>=hN)hi+=v;}
-    tot/=nB;bass/=bN;hi/=Math.max(1,nB-hN);
+    const nB=musicData.length;let tot=0,bass=0,mid=0,hi=0,bN=Math.max(1,(nB*.18)|0),hN=Math.max(1,(nB*.55)|0);
+    for(let i=0;i<nB;i++){const v=musicData[i]/255;tot+=v;if(i<bN)bass+=v;else if(i<hN)mid+=v;else hi+=v;}
+    tot/=nB;bass/=bN;mid/=Math.max(1,hN-bN);hi/=Math.max(1,nB-hN);bsT=bass;mdT=mid;
     target=Math.min(1,tot*1.7);
     beat=Math.max(0,bass-musicBass)*3.2;musicBass=bass; // transitoire = coup de grosse caisse
     hiT=Math.min(1,hi*2.3);
   }else if(musicOn){ // pas d'analyse possible ici : le décor bat sur un métronome à 120 bpm (il vit, sans lire le morceau)
-    const ph=(performance.now()/500)%1;target=.45;beat=ph<.07?.8:0;hiT=.25+.2*Math.max(0,Math.sin(ph*6.2832*2));musicBass=0;
+    const ph=(performance.now()/500)%1;target=.45;beat=ph<.07?.8:0;hiT=.25+.2*Math.max(0,Math.sin(ph*6.2832*2));musicBass=0;bsT=ph<.2?.8:.2;mdT=.4+.25*Math.sin(ph*6.2832);
   }else {musicBass=0;hiT=0;}
+  /* (2026-10-25, Sacha : « les étoiles clignotent très légèrement au rythme de la musique : des étoiles qui font les basses, des aigus, chaque style de note »)
+     LES ÉTOILES JOUENT. Pour chaque bande (basses, médiums, aigus) on garde l'EXCÈS sur sa moyenne lente (≈1,5 s) : ce qui dépasse, c'est la note qui
+     vient d'être frappée — le fond continu d'un morceau dense n'allume rien. Attaque vive, retombée douce. Lu par cielEtoiles (orbite seulement). */
+  {const bd=musicTick._bnd||(musicTick._bnd={v:[0,0,0],m:[0,0,0]}),src=[bsT,mdT,hiT];
+   for(let k=0;k<3;k++){bd.m[k]+=(src[k]-bd.m[k])*Math.min(1,dt*.7);const t=Math.min(1,Math.max(0,src[k]-bd.m[k])*4.5);bd.v[k]+=(t-bd.v[k])*Math.min(1,dt*(t>bd.v[k]?30:9));}
+   skyU.uBandes.value.set(bd.v[0],bd.v[1],bd.v[2]);}
   /* ⚠ LES AIGUS MONTENT VITE ET DESCENDENT VITE. Les lisser comme l'énergie moyenne (dt*8) les
      transformerait en nappe continue : on perdrait exactement ce qu'on est venu chercher, le
      GRAIN. Attaque quasi instantanée (dt*24), retombée franche (dt*11). */
@@ -50463,7 +50600,7 @@ const SAVE={
        `aura` : le total à vie de style. Elle ne s'achète rien — elle donne un RANG, et le rang ouvre
        les caisses que l'argent ne peut pas acheter.
        `owned` : les index des caisses ACHETÉES. Séparé des exploits : un achat n'est pas un exploit. */
-    mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, figs:['tailwhip'], figT0:0, figEq:[], pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
+    mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, figs:['tailwhip','saltov'], figT0:0, figS0:1, figEq:[], pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
     bank:0, aura:0, owned:[], auraMax:0, gamme:3, eco:3, frenRec:0, // `frenRec` : la plus longue FRÉNÉSIE jamais tenue (s) // `eco` : échelle de l'argent de course (vague 3, voir la migration des records en fin de san) // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
     jour:{d:'',n:0},cad:{t:0},dj:{d:'',k:'',v:0,b:0,ok:0,y:''}, // (2026-10-14, GAMEPLAY) LE RETOUR DU JOUR : `d` = la date locale de la dernière partie COMPTÉE ('AAAA-MM-JJ'), `n` = la série à cette date · LE CADEAU : `t` = l'heure (ms) du dernier cadeau ouvert, 0 = jamais (voir JOUR / CAD)
     m2:m2Vierge(), // (2026-10-16) LES MISSIONS v2 : réussies, prises, suivies, records, compteurs à vie (voir m2Etat)
@@ -50543,6 +50680,7 @@ const SAVE={
       if(d.shop.eq&&typeof d.shop.eq==='object')for(const k of ['peinture','aile','trainee'])if(typeof d.shop.eq[k]==='string'&&/^[a-z]{2,12}$/.test(d.shop.eq[k]))c.shop.eq[k]=d.shop.eq[k];}
     if(Array.isArray(d.figs))c.figs=[...new Set(['tailwhip'].concat(d.figs.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k))))].slice(0,80); // (2026-10-14) LES FIGURES possédées — (2026-10-15) le TAIL WHIP offert ; le TONNEAU, offert jusque-là, reste dans la liste des sauvegardes d'avant (il s'achète désormais)
     else if((+d.best>0)||(+d.bank>0)||(+d.aura>0))c.figs=['tailwhip','tonneau']; // une sauvegarde d'avant les figures (sans liste) qui a déjà joué : elle avait le tonneau, elle le garde
+    c.figS0=(d.figS0===1||(d.figS0===undefined&&!Array.isArray(d.figs)&&!((+d.best>0)||(+d.bank>0)||(+d.aura>0))))?1:0; /* (2026-10-22, Sacha : « pour les nouveaux joueurs on doit donner la figure salto avant ») figS0 : le SALTO AVANT offert aux sauvegardes neuves — pas un achat */
     c.figT0=(d.figT0===1||(d.figT0===undefined&&c.figs.indexOf('tonneau')>=0))?1:0; // figT0 : ce tonneau-là était OFFERT (sauvegarde d'avant le tail whip) — pas un achat (ecoDebutAchat)
     if(d.combos&&typeof d.combos==='object'){c.combos={};for(const k of Object.keys(d.combos).slice(0,40))if(/^[MPST]{3}$/.test(k))c.combos[k]=Math.min(1e6,Math.max(0,Math.round(+d.combos[k])||0));} // (2026-10-14) LE CARNET DES COMBOS À TROIS
     if(Array.isArray(d.figEq))c.figEq=[...new Set(d.figEq.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)))].slice(0,2); // (2026-10-14, LES FIGURES v2) les emplacements — (2026-10-15, Sacha : « seulement 2 figures à la fois, pas 3 ») DEUX
@@ -50611,10 +50749,13 @@ const SAVE={
      c.prof=p9?{ne:Math.min(Date.now(),n9(p9.ne,1e15)||Date.now()),tA:Math.round(n9(p9.tA,1e9)),dMax:Math.round(n9(p9.dMax,1e6)*10)/10}:{ne:Date.now(),tA:Math.round(tc9),dMax:0};}
     return c;
   },
+  /* ===== SANS SAUVEGARDE SUR LE LIEN WEB (2026-10-22, Sacha : « enlève le système de sauvegarde du lien Vercel, dès qu'on se connecte on arrive sur un nouveau compte ») =====
+     Sur le web (pas Capacitor) chaque ouverture démarre un compte NEUF : on ne lit rien, on n'écrit rien. `?garde=1` rend la sauvegarde locale (bancs, essais). L'appli native garde la sienne. */
+  neuf:!(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences)&&!/[?&]garde=1/.test(location.search),
   load(){
     let d=null;
-    try{d=JSON.parse(localStorage[this.K]||'null');}catch(e){}
-    if(!d){ // première fois (ou clé rongée) : on ramasse l'ancien monde éparpillé
+    if(!this.neuf)try{d=JSON.parse(localStorage[this.K]||'null');}catch(e){}
+    if(!d&&!this.neuf){ // première fois (ou clé rongée) : on ramasse l'ancien monde éparpillé
       try{d={best:+localStorage.rrBest5||0,
         leaders:JSON.parse(localStorage.rrLeaders5||'[]'),
         bestCar:+localStorage.rrBestCar5||0,
@@ -50641,7 +50782,7 @@ const SAVE={
   },
   mark(){this.dirty=true;},
   natif:0, // (2026-09-30) le miroir natif : 0 libre · 1 suspendu (on attend la lecture du secours) · 2 restauration en cours, plus AUCUNE écriture (voir plus bas)
-  flush(){if(this.natif===2)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;}catch(e){} /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
+  flush(){if(this.natif===2||this.neuf)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;}catch(e){} /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
     // P0-03 : miroir natif sous Capacitor — NSUserDefaults (Preferences) survit aux purges WKWebView.
     // Le web n'a pas ce plugin : la garde saute et on reste sur localStorage seul.
     if(this.natif===0&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences){try{window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}}
@@ -51521,7 +51662,7 @@ window.dbgVol=function(a){
   if(a==='ancien'||a==='neuf'){VEQ.on=a==='neuf';return VEQ.on?'vol équilibré':'vol d’avant';}
   if(a==='double')return veqDouble();
   if(a==='tout'){SAVE.d.figs=FIG.liste.map(function(f){return f.id;});SAVE.flush();return SAVE.d.figs;} // (banc) toutes les figures
-  if(a==='rien'){SAVE.d.figs=['tailwhip'];SAVE.d.figT0=0;SAVE.flush();return SAVE.d.figs;}
+  if(a==='rien'){SAVE.d.figs=['tailwhip'];SAVE.d.figT0=0;SAVE.d.figS0=0;SAVE.flush();return SAVE.d.figs;}
   return {on:VEQ.on,mode:mode,u:+VEQ.u.toFixed(3),steer:+steer.toFixed(3),verrou:+VEQ.l0.toFixed(3),lT:+VEQ.lT.toFixed(2),
     lacet:+(VEQ.by*57.3).toFixed(1),tangage:+(VEQ.bp*57.3).toFixed(1),roulis:+(VEQ.br*57.3).toFixed(1),pose:+VEQ.pose.toFixed(2),ext:+VEQ.ext.toFixed(3),
     haut:FLY_U.toArray().map(function(v){return +v.toFixed(3);}),aMoi:veqFigsAMoi(),
@@ -52354,7 +52495,7 @@ function m2MigreV2(s,rep){const d=SAVE.d;s.vc=1;s.vr=1; /* posés d'abord : m2Va
   SAVE.mark();}
 function m2GagneEstime(){const d=SAVE.d;let t=bank();
   try{for(const i of (d.owned||[])){const u=CAR_UNLOCK[i];const o=u&&u.k==='mis'?u.av:u;if(o&&o.p)t+=o.p;}}catch(e){}
-  try{const F=(window.FIG&&FIG.liste)||[];for(const id of (d.figs||[])){if(id==='tailwhip'||(id==='tonneau'&&d.figT0))continue;const f=F.find(function(x){return x.id===id;});if(f&&f.p)t+=f.p;}}catch(e){}
+  try{const F=(window.FIG&&FIG.liste)||[];for(const id of (d.figs||[])){if(id==='tailwhip'||(id==='tonneau'&&d.figT0)||(id==='saltov'&&d.figS0))continue;const f=F.find(function(x){return x.id===id;});if(f&&f.p)t+=f.p;}}catch(e){}
   try{for(const k of (d.shop&&d.shop.own)||[]){const p=k.split(':'),h=(COSM[p[0]]||[]).find(function(x){return x.id===p[1];});if(h&&h.p)t+=h.p;}}catch(e){}
   return Math.max(t,d.bankMax||0);}
 /* ---- LA VÉRIFICATION : une mission tombe dès que sa valeur passe le seuil (en course : 4 fois par seconde, sans la collection) ---- */
@@ -52828,7 +52969,7 @@ function serieVue(){ /* l'état du calendrier pour l'affichage : {c : la case du
   return {c:serieCase(e.n),pris:true,faits:serieCase(e.n),n:e.n,casse:false};}
 
 /* ---- LE DÉFI DU JOUR ---- */
-const DJ={on:!/[?&]defijour=0\b/.test(location.search),t:0,
+const DJ={on:/[?&]defijour=1\b/.test(location.search),t:0, /* (2026-10-22, Sacha : « enlève le bouton défi du jour, il sert à rien ») éteint : plus de ligne ni de réussite, ?defijour=1 le rallume pour le banc */
   fam:[{k:'fig',  u:'',    ref:4,    min:2,   K:1,   t:'FAIS {v} FIGURES DANS UN SEUL SAUT',en:'LAND {v} TRICKS IN A SINGLE JUMP'},
        {k:'airP', u:'s',   ref:5,    min:3,   K:.9,  t:'TIENS {v} S EN L\'AIR ET POSE-TOI PROPREMENT',en:'STAY {v} S IN THE AIR AND LAND CLEAN'},
        {k:'vie',  u:'mn',  ref:120,  min:45,  K:.9,  t:'SURVIS {v} EN UNE PARTIE',en:'SURVIVE {v} IN ONE RUN'},
@@ -57438,7 +57579,7 @@ function vdepPlace(){ // la grille au-dessus de la rangée, les étiquettes au b
   if(gEl&&gEl.classList.contains('sansVdep')===fn)gEl.classList.toggle('sansVdep',!fn);
   let vu=false;
   if(fn&&garageOn&&!enJeu&&!(typeof GAR!=='undefined'&&GAR.go)&&!(typeof GBQ!=='undefined'&&GBQ.on)&&!(typeof INV!=='undefined'&&INV.on)&&!(gEl&&gEl.classList.contains('missions'))){
-    const J=$('gJouer'),R=[$('gvCof'),$('gvMis'),$('gShopBas')].filter(vdepVu);
+    const J=$('gJouer'),R=[$('gvCof'),$('gvOutils'),$('gvMis'),$('gShopBas')].filter(vdepVu);
     if(vdepVu(J)&&R.length){let l=1e9,r=-1e9,t=1e9;for(const e of R){l=Math.min(l,e.offsetLeft);r=Math.max(r,e.offsetLeft+e.offsetWidth);t=Math.min(t,e.offsetTop);}
       const H=VDEP.el.offsetHeight||36,x=Math.round(l),y=Math.round(t-H-8),w=Math.round(r-l);
       if(VDEP.el._p!==x+','+y+','+w){VDEP.el._p=x+','+y+','+w;VDEP.el.style.left=x+'px';VDEP.el.style.top=y+'px';VDEP.el.style.width=w+'px';}
@@ -58651,9 +58792,9 @@ function gModeM(){return GMODE&&gModeConsole()?GMODE.m:'tout';} // (GMODE est un
 function gPossede(i){return i===(SAVE.d.equipped|0)||carUnlockedVrai(i);}
 function gModeListeVoitures(m){const eq=SAVE.d.equipped|0,L=[];
   for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;
-    if(m==='inv'?gPossede(i):m==='tous'?(!!CAR_UNLOCK[i]&&(CAR_UNLOCK[i].p>0||CAR_UNLOCK[i].k==='premium')):gAVendre(i))L.push(i);}
+    if(m==='inv'?gPossede(i):m==='tous'?(i===0||(!!CAR_UNLOCK[i]&&(CAR_UNLOCK[i].p>0||CAR_UNLOCK[i].k==='premium'))):(i===0||gAVendre(i)))L.push(i);} /* (2026-10-22, Sacha : « dans le shop avec les communes, en première, même si on ne peut pas l'acheter ») LA HONTE (index 0, gratuite) ouvre SEE ALL ITEMS pour qu'on puisse la reprendre */
   if(m==='inv')L.sort(function(a,b){return (INV_RANG[carRar(b)]-INV_RANG[carRar(a)])||(carOrdre(b)-carOrdre(a));}); // (2026-10-09) les silhouettes de ce qu'on n'a pas (v221-v222) sont retirées le même soir (Léo : « enlève le truc avec les voitures transparentes »)
-  else L.sort(function(a,b){return ((CAR_UNLOCK[a].p?0:1)-(CAR_UNLOCK[b].p?0:1))||(carPrixOrdre(a)-carPrixOrdre(b));});
+  else L.sort(function(a,b){if(a===0||b===0)return a===0?-1:1;return ((CAR_UNLOCK[a].p?0:1)-(CAR_UNLOCK[b].p?0:1))||(carPrixOrdre(a)-carPrixOrdre(b));});
   return L;}
 function gModeBoutons(){const m=gModeM(),c=document.getElementById('gvCof'),b=document.getElementById('gShopBas'),r=document.getElementById('gRar'),st=document.getElementById('gStrip');
   if(c)c.classList.toggle('modeOn',m==='inv');if(b)b.classList.toggle('modeOn',m==='shop'||m==='tous');
@@ -59649,7 +59790,7 @@ function openGarage(quiet){
   bioApply(BIOMES.atelier);MENUV.bio=false;
   garageAng=Math.PI;garagePitch=.2;garageDist=7.8;if(typeof GTN!=='undefined'&&GTN){GTN.fixe=false;GTN.gt=0;GTN.glisse=false;}GAR.vA=0;GAR.vAc=0;GAR.vW=0;GAR.vD=0;GAR.vDv=0;GAR.vDw=0;GAR.preE=0;GAR.aVl=null;GAR.vAv=0;GAR.vDon=true;GAR.ret=null;GAR.tDoigt=0;GAR.pT=.2;GAR.roll=0;GAR.swK=0;GAR.fige=false; // (2026-09-30, Léo, capture de sa branche : « c'est ça que je veux ») on entre DERRIÈRE la caisse, la porte en feu au fond du cadre — le plateau la fait tourner ensuite (voir GAR_CAM_A)
   garageShow(level||0);
-  GMIS.mk=0;garMode(GAR.aMenu?'menu':'boutique');GAR.aMenu=false;
+  GMIS.mk=0;garMode(GAR.aMenu&&!GAR.aGar?'menu':'boutique');GAR.aMenu=false;GAR.aGar=false; /* (2026-10-22, Sacha : « le bouton maison de l'écran de mort doit ramener au garage, pas à l'écran titre ») aGar = ce retour-là ouvre l'atelier, pas le menu */
   if(GAR.aMis){GAR.aMis=false;garMode('missions');}
   GAR.vueT=0;GAR.vueNeuve=true; // (2026-10-06) LA MISE EN PLACE : l'atelier qui s'ouvre pose son plan d'un coup (voir garageRender) — (2026-09-30) la porte des MISSIONS, venue d'ailleurs (écran de mort…) // (2026-09-30) ouvert par l'ACCUEIL = le menu ; par un autre chemin (mort → GARAGE, missions, objectif) = la boutique
 }
@@ -62001,7 +62142,7 @@ function bqPrixCaisse(i){const u=CAR_UNLOCK[i]||{};if(bqA('v:'+i))return {t:sans
    · onglets : le 1er dit la CATÉGORIE (VOITURES · PEINTURES · AILES · TRAÎNÉES) — retouché, il ouvre le choix (#gBqPan .bqMenu) —, le 2e les OFFRES ;
    · la colonne de gauche, qui défile : CETTE SEMAINE — trois caisses et trois habillages tirés sur la semaine (bqSemaine). */
 /* (2026-10-15, Sacha) ACHAT : à la place de l'onglet OFFRES — TOUTES les caisses payantes (bqAchat), plus seulement les quatre de la semaine */
-const BQ_CATS=[['voiture','VOITURES','voiture'],['achat','ACHAT','panier'],['peinture','PEINTURES','pinceau'],['aile','AILES','aile'],['trainee','TRAÎNÉES','trainee'],['figure','FIGURES','rotation']]; // (2026-10-14) FIGURES : les tricks du double-tap nitro (figures.js)
+const BQ_CATS=[['figure','FIGURES','rotation'],['voiture','VOITURES','voiture'],['achat','ACHAT','panier'],['peinture','PEINTURES','pinceau'],['aile','AILES','aile'],['trainee','TRAÎNÉES','trainee']]; // (2026-10-14) FIGURES : les tricks du double-tap nitro (figures.js)
 /* LES FIGURES PAR DIRECTION (2026-10-15, Sacha : « dans la boutique classe toutes les figures selon ces deux catégories » · puis « mets aussi
    une catégorie vers l'ARRIÈRE ; une même figure doit avoir marqué à quelle direction elle peut aller ») : VERS L'AVANT (pouce en avant), VERS
    L'ARRIÈRE (pouce en arrière), SUR LES CÔTÉS (pouce à gauche ou à droite : elle part de ce côté). Une figure à deux sens (rodéo, tire-bouchon,
@@ -62286,6 +62427,7 @@ function garBqIndus(dt,ay,t9){
      puis il se lève en --t-slow sur l'écran déjà en place. Le glitch de Léo reste par-dessus. */
   if(veut!==GBQ.veut){const avant=GBQ.on;GBQ.veut=veut;GBQ.t=0;GBQ.bascule=false;GBQ.eclat=0;GBQ.coupT=-1;const dedans=!GAR.go&&garageOn&&!!gEl&&!['menu','missions','quiet','launching'].some(function(c){return gEl.classList.contains(c);});
     GBQ.v0=performance.now();if(dedans&&(veut||avant))bqVoile(veut);else{bqClasses(veut);GBQ.v0=0;} /* on sort du garage (HOME, missions, départ) : la bascule d'avant, d'un coup, sous le volet de l'écran */
+    if(veut&&!avant){GBQ.cat='figure';GBQ.ong='cat';GBQ.rk='';} /* (2026-10-22, Sacha : « quand tu ouvres la boutique tu tombes sur l'onglet figures en premier ») */
     if(veut){garBqBatit();garBqLueurBatit();GBQ.boum=1;GBQ.levV=2.6;}} /* (2026-10-16, Léo : « j'aime pas trop la transition glitch ») plus de garGlitch : LE SOUFFLE DE LUMIÈRE (bqVoile) fait seul la bascule */
   GBQ.t+=dt;
   if(GBQ.pose){if(!veut||GAR.go)bqPoseLache('sort');else if(garageI!==GBQ.poseI)bqPoseLache('caisse');else if((GBQ.ong||'cat')!==GBQ.poseO||(GBQ.cat||'voiture')!==GBQ.poseC)bqPoseLache();} // (2026-10-15) LA POSE TENUE : une autre caisse, un autre onglet, la sortie → le plateau
@@ -63226,7 +63368,7 @@ function garJouer(e){
 $('gJouer').addEventListener('click',garJouer);
 /* BOUTIQUE · RÉGLAGES (repris de l'écran de mort) : l'atelier se ferme sous le volet et le routeur ouvre l'écran voulu — par `__mRetour`,
    le chemin que l'observateur de l'overlay lit à la fermeture (un mGo direct serait aussitôt écrasé par son retour à la racine). */
-for(const b9 of document.querySelectorAll('#gOutils [data-go],#gShopBas'))b9.addEventListener('click',function(e){ // (2026-09-30) + la BOUTIQUE du bas
+for(const b9 of document.querySelectorAll('#gOutils [data-go],#gShopBas,#gvReg'))b9.addEventListener('click',function(e){ // (2026-09-30) + la BOUTIQUE du bas, (2026-10-20) + le ⚙ de la rangée du bas (#gvReg)
   e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(b9);uiClic('nav');
   const vers=b9.getAttribute('data-go');window.__setGar=vers==='set'; /* (2026-10-19, Sacha) le ⚙ du garage (voir <style id="garageHaut">) : le ◀ des RÉGLAGES rouvre le garage (le routeur de la coque) */
   ecranWipe(function(){window.__mRetour=vers;closeGarage();});});
@@ -66081,6 +66223,9 @@ function loop(now){
       if(TCTL.on&&!TUTO.on&&!(SAVE.d.ast&2)){loop._astV=(loop._astV||0)+dt;if(loop._astV>1){SAVE.d.ast|=2;SAVE.mark(); // ASTUCE (une fois à vie) : l'assiette au pouce
         misBanniere('ASTUCE',TR(volSens()<0?"En l'air : pouce en HAUT = monte, en BAS = plonge.":"En l'air : pouce en HAUT = plonge, en BAS = monte."),'','eclair');}}
       if(!PARK.on&&portalMesh&&(PCUBE.on?pcubeFranchi(fallPos):fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)&&!PORTV.att)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
+      /* (2026-10-24, Sacha : « quand tu te poses sur la route des fois tu meurs sans raison, il n'y a pas d'obstacle ») LA POSE PASSE AVANT LES DÉCORS : la route est
+         la zone sûre. Les tests de mort des maps (roche, sol, tour, sable…) passaient avant tryLand : une image qui touchait la dalle ET un volume de décor tuait au lieu de poser. */
+      else if(tryLand(dtF)){airPie.style.display='none';mirPose();} // posé : le total du DAUPHIN se fige et s'encaisse — (v5) et s'ÉCRIT enfin
       else if(PARIS.sol&&(PARIS.heurt=parisHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(parisHeurt,PARIS.heurt,.3);explode(PARIS.heurt);} // (Paris au sol) une façade, la Seine, le sol
       else if(FORET.root&&(FORET.heurt=foretHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(foretHeurt,FORET.heurt,1.1);explode(FORET.heurt);} // (2026-10-14) LA FORÊT NOIRE : un géant, une cime, le sous-bois
       else if(GROTTE.root&&(GROTTE.heurt=grotteHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(grotteHeurt,GROTTE.heurt,1);explode(GROTTE.heurt);} // (2026-10-18) LES PROFONDEURS : la roche, la lave, l'eau, les gros décors
@@ -66090,7 +66235,6 @@ function loop(now){
       else if(DN.on&&(DN.heurt=dunesHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(dunesHeurt,DN.heurt,1);explode(DN.heurt);} // (2026-10-18) LES DUNES D'OR : le sable, l'oasis, les obélisques, la pyramide
       else if(CITY.solY!=null&&LVL.cur&&LVL.cur.vitre&&fallPos.y<CITY.solY+1.4){airPie.style.display='none';shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else{impPrep(vitreSolDans,'sol',.6);explode('sol');}} // (2026-10-18) LA VILLE VITRÉE AU SOL : le sol est dur
       else if(CITY.col&&villeHeurt(fallPos)){airPie.style.display='none';shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else{impPrep(villeHeurt,'tour',.9);explode('tour');}} // (2026-10-15) L'IMPACT, le même partout (le cratère propre aux tours, villeImpact, n'est plus appelé : Sacha veut l'explosion de l'airtime sur la ville aussi) // (2026-09-26) DANS UNE TOUR : on meurt
-      else if(tryLand(dtF)){airPie.style.display='none';mirPose();} // posé : le total du DAUPHIN se fige et s'encaisse — (v5) et s'ÉCRIT enfin
       else if((fallTR>airMax()&&pwrAirT<=0&&!BALADE)||jadeVide(fallPos.y)){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(jadeVide(fallPos.y)||MIR.t>2.2?'vide':'air');} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----
       if(!impCoupTick(dt)){ // (2026-10-15, L'IMPACT) pendant le COUP (0,11 s), la caisse s'écrase contre la paroi : la détonation attend
@@ -67973,7 +68117,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if((a==='modes'||a==='set')&&garageOn){ if(surAccueilCiel())mGo(a); else ecranWipe(function(){ window.__mRetour=a; closeGarage(); }); } // (2026-09-30) depuis le garage-menu : l'atelier se ferme sous le volet, l'observateur de l'overlay ouvre l'écran (retour : le menu)
     else if(a==='modes'||a==='set')mGo(a);
     // (2026-09-28) MENU : l'écran de mort rend la main à l'ACCUEIL — sous le volet, la course est rangée et la vitrine revient
-    else if(a==='menu'&&started&&gameOver){ ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); }
+    else if(a==='menu'&&started&&gameOver){ GAR.aGar=true; ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); }
     else if(a==='shop'){ if(surAccueilCiel())mGo('shop'); else ecranWipe(function(){ if(garageOn){window.__mRetour='shop';closeGarage();} else mGo('shop'); }); } // LA BOUTIQUE : l'écran des caisses en vrai argent (depuis le garage-menu : l'atelier se ferme d'abord)
     else if(a==='custom'){ ecranWipe(function(){openGarage();shopTab('peinture');}); } // la PERSONNALISATION (peinture, ailes, traînées) vit au GARAGE
     else if(a==='shopSoon'){ if(el&&el.hasAttribute('data-car'))shopPop(el); else toast(pxi('panier')+' '+TR('INDISPONIBLE')); } // (2026-10-01) la caisse SORT de la vitrine : la fenêtre d'achat (shopPop)

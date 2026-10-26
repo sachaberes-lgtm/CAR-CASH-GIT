@@ -212,7 +212,7 @@ function garJouer(e){
 $('gJouer').addEventListener('click',garJouer);
 /* BOUTIQUE · RÉGLAGES (repris de l'écran de mort) : l'atelier se ferme sous le volet et le routeur ouvre l'écran voulu — par `__mRetour`,
    le chemin que l'observateur de l'overlay lit à la fermeture (un mGo direct serait aussitôt écrasé par son retour à la racine). */
-for(const b9 of document.querySelectorAll('#gOutils [data-go],#gShopBas'))b9.addEventListener('click',function(e){ // (2026-09-30) + la BOUTIQUE du bas
+for(const b9 of document.querySelectorAll('#gOutils [data-go],#gShopBas,#gvReg'))b9.addEventListener('click',function(e){ // (2026-09-30) + la BOUTIQUE du bas, (2026-10-20) + le ⚙ de la rangée du bas (#gvReg)
   e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(b9);uiClic('nav');
   const vers=b9.getAttribute('data-go');window.__setGar=vers==='set'; /* (2026-10-19, Sacha) le ⚙ du garage (voir <style id="garageHaut">) : le ◀ des RÉGLAGES rouvre le garage (le routeur de la coque) */
   ecranWipe(function(){window.__mRetour=vers;closeGarage();});});

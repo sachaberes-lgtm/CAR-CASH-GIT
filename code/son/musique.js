@@ -180,9 +180,13 @@ function musWaReveil(){ // le contexte doit tourner pour qu'on entende la musiqu
   if(!musGraphe()||!AC||AC.state==='running'||paused||document.hidden)return;
   try{const p=AC.resume();if(p&&p.catch)p.catch(function(){});}catch(e){}
 }
+/* ===== L'ESPACE SANS BRUITAGES (2026-10-24, Sacha : « coupe les sons du jeu dans l'espace, garde que la musique ») =====
+   En ORBITE (LVL.espace > .5) l'entrée des effets du limiteur se ferme comme au bouton SON ; la musique passe à côté (musGraphe). */
+const ESPACE_MUET={on:false};
+function espaceMuetTick(){const v=LVL.espace>.5;if(v===ESPACE_MUET.on)return;ESPACE_MUET.on=v;try{musWaSon();}catch(e){}}
 function musWaSon(){ // le bouton SON coupe les EFFETS (et les voix du graphe) par l'entrée du limiteur, jamais par AC.suspend : la musique y passe à côté
   if(!musGraphe()||!AC||!MASTER)return;
-  try{const p=MASTER._limIn&&MASTER._limIn.gain;if(p){const t=AC.currentTime;p.cancelScheduledValues(t);p.setTargetAtTime(SND.sfx?.937:0,t,.015);}}catch(e){}
+  try{const p=MASTER._limIn&&MASTER._limIn.gain;if(p){const t=AC.currentTime;p.cancelScheduledValues(t);p.setTargetAtTime(SND.sfx&&!ESPACE_MUET.on?.937:0,t,.015);}}catch(e){}
   try{if(paused||document.hidden){if(AC.state==='running')AC.suspend();}else musWaReveil();}catch(e){} // en pause / caché : la musique est déjà en pause, le contexte peut dormir
 }
 function musWaBranche(){

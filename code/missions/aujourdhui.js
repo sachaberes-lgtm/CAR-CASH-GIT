@@ -50,7 +50,7 @@ function serieVue(){ /* l'état du calendrier pour l'affichage : {c : la case du
   return {c:serieCase(e.n),pris:true,faits:serieCase(e.n),n:e.n,casse:false};}
 
 /* ---- LE DÉFI DU JOUR ---- */
-const DJ={on:!/[?&]defijour=0\b/.test(location.search),t:0,
+const DJ={on:/[?&]defijour=1\b/.test(location.search),t:0, /* (2026-10-22, Sacha : « enlève le bouton défi du jour, il sert à rien ») éteint : plus de ligne ni de réussite, ?defijour=1 le rallume pour le banc */
   fam:[{k:'fig',  u:'',    ref:4,    min:2,   K:1,   t:'FAIS {v} FIGURES DANS UN SEUL SAUT',en:'LAND {v} TRICKS IN A SINGLE JUMP'},
        {k:'airP', u:'s',   ref:5,    min:3,   K:.9,  t:'TIENS {v} S EN L\'AIR ET POSE-TOI PROPREMENT',en:'STAY {v} S IN THE AIR AND LAND CLEAN'},
        {k:'vie',  u:'mn',  ref:120,  min:45,  K:.9,  t:'SURVIS {v} EN UNE PARTIE',en:'SURVIVE {v} IN ONE RUN'},

@@ -1,0 +1,12 @@
+prêt {"v":2,"best":0,"leaders":[],"bestCar":0,"equipped":0,"sfx":true,"vox":false,"mus":false,"fruits":[],"vol":{"mus":0.62,"sfx":1,"vox":1},"tctl":"stick","q":"net" ["cashcarSave"]
+tuto avant {"on":false,"i":0,"tuto":1,"permis":1,"bank":0}
+{"lev":4088,"v":100,"fell":true,"out":"pose"}
+{"lev":4088,"v":170,"fell":true,"out":"pose"}
+{"lev":4088,"v":250,"fell":true,"out":"pose"}
+{"lev":4456,"v":100,"fell":true,"out":"pose"}
+{"lev":4456,"v":170,"fell":true,"out":"pose"}
+{"lev":4456,"v":250,"fell":true,"out":"pose"}
+{"lev":4816,"v":100,"fell":true,"out":"pose"}
+{"lev":4816,"v":170,"fell":true,"out":"pose"}
+{"lev":4816,"v":250,"fell":true,"out":"pose"}
+FIN

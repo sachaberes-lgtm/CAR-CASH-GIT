@@ -352,7 +352,7 @@ function vdepPlace(){ // la grille au-dessus de la rangée, les étiquettes au b
   if(gEl&&gEl.classList.contains('sansVdep')===fn)gEl.classList.toggle('sansVdep',!fn);
   let vu=false;
   if(fn&&garageOn&&!enJeu&&!(typeof GAR!=='undefined'&&GAR.go)&&!(typeof GBQ!=='undefined'&&GBQ.on)&&!(typeof INV!=='undefined'&&INV.on)&&!(gEl&&gEl.classList.contains('missions'))){
-    const J=$('gJouer'),R=[$('gvCof'),$('gvMis'),$('gShopBas')].filter(vdepVu);
+    const J=$('gJouer'),R=[$('gvCof'),$('gvOutils'),$('gvMis'),$('gShopBas')].filter(vdepVu);
     if(vdepVu(J)&&R.length){let l=1e9,r=-1e9,t=1e9;for(const e of R){l=Math.min(l,e.offsetLeft);r=Math.max(r,e.offsetLeft+e.offsetWidth);t=Math.min(t,e.offsetTop);}
       const H=VDEP.el.offsetHeight||36,x=Math.round(l),y=Math.round(t-H-8),w=Math.round(r-l);
       if(VDEP.el._p!==x+','+y+','+w){VDEP.el._p=x+','+y+','+w;VDEP.el.style.left=x+'px';VDEP.el.style.top=y+'px';VDEP.el.style.width=w+'px';}
