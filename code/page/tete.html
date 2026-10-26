@@ -35,6 +35,16 @@
      (même test que TEL_NATIF). Dans la page-cadre, le grand script s'arrête à sa 1re ligne (`CC_COLONNE`) : aucun second jeu.
      ⚠ `const EDITION` VIT ICI : c'est LA ligne que `synchro-versions.js` bascule (une seule occurrence, sinon il refuse). -->
 <script>
+/* ===== ?muet=1 : LE JEU SE TAIT (2026-10-24, Sacha : « Claude joue le son du jeu, trouve un moyen de couper ça ») =====
+   Pour les essais de Claude dans un navigateur : aucune sortie sonore, le reste tourne comme avant. Les nœuds WebAudio ne se branchent plus sur la sortie
+   (`destination`), et tout élément <audio>/<video> est forcé muet. Sans `?muet=1`, rien ne change. */
+(function(){try{if(!/[?&]muet=1\b/.test(location.search))return;
+  const co=AudioNode.prototype.connect;AudioNode.prototype.connect=function(d){if(typeof AudioDestinationNode!=='undefined'&&d instanceof AudioDestinationNode)return d;return co.apply(this,arguments);};
+  Object.defineProperty(HTMLMediaElement.prototype,'muted',{get:function(){return true;},set:function(){},configurable:true});
+  Object.defineProperty(HTMLMediaElement.prototype,'volume',{get:function(){return 0;},set:function(){},configurable:true});
+}catch(e){}})();
+</script>
+<script>
 /* ⚠ LES DEUX ÉDITIONS (2026-09-25, user : « sépare-les en deux dossiers : VERSION PRINCIPALE = la version mobile fusionnée, AUTRE
    VERSION = la version PC »). C'est UN SEUL jeu : les deux dossiers portent le MÊME index.html, et cette ligne est la SEULE qui
    diffère. 'mobile' → sur l'ordi aussi on joue la version TÉLÉPHONE (l'écran d'un téléphone en paysage, voir plus haut) ; 'pc' → l'ordi garde le menu

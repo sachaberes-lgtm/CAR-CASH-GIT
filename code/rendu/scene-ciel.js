@@ -53,7 +53,8 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   uTime:{value:0},uSunDir:{value:SUN_DIR},
   uSkyMul:{value:new THREE.Vector3(1,1,1)},uSkyLift:{value:new THREE.Vector3(0,0,0)},
   uSunTint:{value:new THREE.Vector3(1,.40,.28)},uSunHalo:{value:1},uCity:{value:1},uStars:{value:1},uMoon:{value:1},uRose:{value:0},
-  uNeb:{value:1}, // (2026-10-15) LES NÉBULEUSES de l'orbite (× uSpace) : 0 = le noir complet d'avant
+  uNeb:{value:0}, // (2026-10-25, Sacha : « remets le ciel noir dans l'espace, enlève les nébuleuses et tout ») voie lactée, nébuleuses et poussière coupées : 0 = le noir complet. (2026-10-15 : 1 = l'orbite colorée)
+  uBandes:{value:new THREE.Vector3(0,0,0)}, // (2026-10-25) LES ÉTOILES JOUENT LA MUSIQUE (orbite) : x = basses, y = médiums, z = aigus — l'excès de chaque bande sur sa moyenne, 0..1 (voir musicTick)
   uSpace:{value:0}, // NIVEAU ORBITE (2026-09-24) : 0 = le ciel de toujours AU PIXEL PRÈS, 1 = le noir étoilé (piloté par lvlStep)
   uPulse:{value:0}, // MUSIQUE : le ciel respire en rythme (piloté par l'analyseur audio, 0 = neutre = rendu d'origine)
   /* ---- LE FOND DU NIVEAU (2026-08-08) : le décor JOUE la musique, façon Geometry Dash / Super Hexagon.
@@ -128,7 +129,7 @@ const skyDome=(function(){
       '  return textureGrad(uPhT,uv,dx,dy).rgb*uPh.w;}',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse,uRose;', // grade biome (identité par défaut) + uPulse musique
       'uniform vec3 uFd[8];uniform vec3 uVc[6];', // (2026-10-16) LES TEINTES DE LA VILLE : les couleurs fixes du dégradé et du ciel de la ville (valeurs d'origine hors ville teintée)
-      'uniform float uSpace,uNeb;', // NIVEAU ORBITE : 0 = aucun effet · uNeb : les nébuleuses (2026-10-15)
+      'uniform float uSpace,uNeb;uniform vec3 uBandes;', // NIVEAU ORBITE : 0 = aucun effet · uNeb : les nébuleuses (2026-10-15)
       'uniform float uJour,uMerLoin,uCiel2;uniform vec3 uJZen,uJMid,uJHor,uJSol;uniform vec4 uMzA,uMzB,uMzT,uMzO,uMzH;', // (2026-09-30) LE JOUR D ALTITUDE : 0 = le ciel d avant, au bit près
       'uniform float uLvl,uSpin,uBeatK,uFlip,uBar,uHi,uWave,uHueAmp;uniform vec3 uAcc,uAcc2;uniform vec4 uRingR,uRingA;', // LE FOND DU NIVEAU
       'float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
@@ -225,7 +226,12 @@ const skyDome=(function(){
       '    vec3 L=G+smoothstep(3000.,7000.,t)*vec3(.05,.03,.015)*(.25+.75*qu);',           // au loin (au-delà de 7 km) : la lueur MOYENNE, pas de moiré — les fines sont dans villeFin
       '    bas=F*(1.+.28*smoothstep(-.05,-.6,y)*nuit)+L*exp(-t/2300.)*(1.+.6*lv)*nuit;}', // la brume s éclaire par en dessous
       '    else bas=F*(1.+.28*smoothstep(-.05,-.6,y)*nuit);}',
-      '  return mix(bas,haut,smoothstep(-.03,.03,y));}',
+      /* (2026-10-24, Sacha : « le ciel déconne, il n'y a pas de fondu, c'est moche ») HORIZON SANS COUPURE : hors pluie, le ciel du dessus (corail, bleu
+         nuit) basculait en 3° sur la brume du dessous — une ligne franche, la couleur de l'air n'étant pas celle du sol. Maintenant la brume REMONTE
+         dans le ciel (≈ 12°, courbe douce, 60 % au ras de l'horizon) : le dégradé du ciel s'y noie, comme le brouillard noie les tours 3D ; la jonction
+         s'élargit à ±3°. Sous la pluie (uPluie = 1) le plafond est déjà fondu dans la brume : rien ne change. */
+      '  haut=mix(haut,F,(1.-smoothstep(0.,.21,y))*(1.-uPluie)*.6);',
+      '  return mix(bas,haut,smoothstep(-.05,.045,y));}',
       /* LA SEINE (2026-09-28, Léo : « et il y a la Seine ») — un méandre dans le repère MONDE du sol de Paris (450 m sous l œil,
          la même parallaxe que l abîme) : l eau plus noire que la brume où tremblent les reflets d or, les QUAIS de pierre et leurs
          lampadaires, un PONT tous les 520 m avec ses deux rangées de lanternes, et les BATEAUX-MOUCHES qui glissent en inondant l eau
@@ -825,7 +831,8 @@ const skyDome=(function(){
       '  float sr=length(vec2((sfr.x-stp.x)*.0982*sqrt(max(0.,1.-y*y)),(sfr.y-stp.y)*.04545));',
       '  float st=(1.-smoothstep(0.,.0026+.0022*fract(h*7.7),sr))*step(.76,h);',
       '  st*=.55+.45*sin(uTime*(1.2+h*2.6)+h*44.);',
-      '  col+=mix(vec3(.80,.88,1.),vec3(1.,.86,.70),step(.8,fract(h*3.31)))*st*mix(smoothstep(.10,.42,y),1.,uSpace)*(1.-smoothstep(.25,.8,sd))*.9*uStars*(1.+uSpace*.5)*(1.+uPulse*1.3);}}', // elles descendent plus bas : le haut du cadre est habité — MINUIT les multiplie, l aube les éteint ; elles palpitent au beat
+      '  float kc=fract(h*13.37),mus=kc<.34?uBandes.x:kc<.67?uBandes.y:uBandes.z;', /* (2026-10-25) trois familles d étoiles : celles des BASSES, des MÉDIUMS, des AIGUS — chacune ne vibre que sur sa bande */
+      '  col+=mix(vec3(.80,.88,1.),vec3(1.,.86,.70),step(.8,fract(h*3.31)))*st*mix(smoothstep(.10,.42,y),1.,uSpace)*(1.-smoothstep(.25,.8,sd))*.9*uStars*(1.+uSpace*.5)*(1.+uPulse*1.3)*(1.+uSpace*mus*.6);}}', // elles descendent plus bas : le haut du cadre est habité — MINUIT les multiplie, l aube les éteint ; elles palpitent au beat
     ],
     espace:[
       /* (2026-10-15) LE CIEL PROFOND DE L ORBITE — une couche LISSE (passe à demi-résolution) : la VOIE LACTÉE et les NÉBULEUSES.
@@ -844,11 +851,11 @@ const skyDome=(function(){
       '  float bw=.11+.07*w+.10*cen*cen*cen,band=exp(-b*b/(bw*bw));',
       '  float dust=smoothstep(.44,.70,ln)*exp(-b*b/(bw*bw*.22));', // le ruban sombre au milieu de la bande
       '  float glow=band*(.30+.70*w*w*1.6)*(.40+.60*cen*cen)*(1.-.78*dust);',
-      '  vec3 mw=mix(vec3(.34,.40,.70),vec3(1.,.82,.66),cen*cen*cen*cen*band);', // bleutée, cœur chaud
+      '  vec3 mw=mix(vec3(.40,.45,.62),vec3(.86,.84,.80),cen*cen*cen*cen*band);', // (2026-10-24 sobre) grise-bleutée, cœur à peine chaud
       '  float n1=esF(d*1.7+vec3(5.,2.,9.)),n2=esF(d*2.3+vec3(13.,7.,1.)),fl=ln;',
       '  float pv=smoothstep(.46,.78,n1),pb=smoothstep(.48,.80,n2);',
-      '  vec3 neb=vec3(.44,.14,.70)*pv*(.45+.9*fl)+vec3(.10,.26,.80)*pb*(.45+.9*(1.-fl))+vec3(.70,.12,.50)*pv*pb*1.3;',
-      '  col+=(mw*glow*.58+neb*.26*(1.-.55*dust))*uSpace*uNeb;}',
+      '  vec3 neb=vec3(.30,.26,.46)*pv*(.45+.9*fl)+vec3(.22,.30,.46)*pb*(.45+.9*(1.-fl));',
+      '  col+=mw*glow*.45*uSpace*uNeb;}  /* (2026-10-24, Sacha : « supprime les nébuleuses ») la voie lactée reste, plus de nappes colorées */',
     ],
     pous:[
       /* (2026-10-15) LA POUSSIÈRE D ÉTOILES de l orbite — passe NETTE (des points au pixel). 180 cellules par tour : des étoiles d un
@@ -860,7 +867,7 @@ const skyDome=(function(){
       '  vec2 stp=vec2(fract(h*23.7),fract(h*41.3))*.7+.15;',
       '  float sr=length(vec2((sfr.x-stp.x)*.0349*sqrt(max(0.,1.-y*y)),(sfr.y-stp.y)*.01667));',
       '  float st=1.-smoothstep(0.,.0016,sr),k=fract(h*5.13);',
-      '  vec3 c=k<.4?vec3(.66,.76,1.):k<.75?vec3(1.,.96,.92):vec3(.86,.62,1.);',
+      '  vec3 c=k<.4?vec3(.80,.86,1.):vec3(1.,.97,.94);',
       '  col+=c*st*(.55+.65*band)*(.7+.3*sin(uTime*(.8+h*2.)+h*31.))*uSpace*uNeb;}',
     ],
     lune:[

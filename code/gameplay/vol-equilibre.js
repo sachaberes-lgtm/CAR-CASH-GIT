@@ -233,7 +233,7 @@ window.dbgVol=function(a){
   if(a==='ancien'||a==='neuf'){VEQ.on=a==='neuf';return VEQ.on?'vol équilibré':'vol d’avant';}
   if(a==='double')return veqDouble();
   if(a==='tout'){SAVE.d.figs=FIG.liste.map(function(f){return f.id;});SAVE.flush();return SAVE.d.figs;} // (banc) toutes les figures
-  if(a==='rien'){SAVE.d.figs=['tailwhip'];SAVE.d.figT0=0;SAVE.flush();return SAVE.d.figs;}
+  if(a==='rien'){SAVE.d.figs=['tailwhip'];SAVE.d.figT0=0;SAVE.d.figS0=0;SAVE.flush();return SAVE.d.figs;}
   return {on:VEQ.on,mode:mode,u:+VEQ.u.toFixed(3),steer:+steer.toFixed(3),verrou:+VEQ.l0.toFixed(3),lT:+VEQ.lT.toFixed(2),
     lacet:+(VEQ.by*57.3).toFixed(1),tangage:+(VEQ.bp*57.3).toFixed(1),roulis:+(VEQ.br*57.3).toFixed(1),pose:+VEQ.pose.toFixed(2),ext:+VEQ.ext.toFixed(3),
     haut:FLY_U.toArray().map(function(v){return +v.toFixed(3);}),aMoi:veqFigsAMoi(),
