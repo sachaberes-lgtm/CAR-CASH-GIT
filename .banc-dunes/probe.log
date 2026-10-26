@@ -1,0 +1,43 @@
+prêt {"v":2,"best":0,"leaders":[],"bestCar":0,"equipped":0,"sfx":true,"vox":false,"mus":false,"fruits":[],"vol":{"mus":0.62,"sfx":1,"vox":1},"tctl":"stick","q":"net" ["cashcarSave"]
+tuto avant {"on":false,"i":0,"tuto":1,"permis":1,"bank":0}
+lev {"s":608,"e":614,"aim":122.39999999999999,"seg":424,"tag":"crete"}
+{"i":0,"m":"drive","s":552.5,"vA":160.2,"y":8.3,"started":true,"over":false,"paused":false,"rc":0,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":1,"m":"drive","s":559.6,"vA":160.3,"y":9.9,"started":true,"over":false,"paused":false,"rc":0,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":2,"m":"drive","s":565.5,"vA":160.5,"y":11.2,"started":true,"over":false,"paused":false,"rc":0,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":3,"m":"drive","s":572.8,"vA":160.6,"y":12.7,"started":true,"over":false,"paused":false,"rc":0,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":4,"m":"drive","s":582.9,"vA":160.1,"y":14.4,"started":true,"over":false,"paused":false,"rc":0,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":5,"m":"drive","s":593.7,"vA":160.3,"y":16,"started":true,"over":false,"paused":false,"rc":0,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":6,"m":"drive","s":604.9,"vA":160.4,"y":17.2,"started":true,"over":false,"paused":false,"rc":0,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":7,"m":"fall","s":608.8,"vA":160.5,"y":19.3,"started":true,"over":false,"paused":false,"rc":1.2,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":8,"m":"fall","s":608.8,"vA":160.5,"y":21.4,"started":true,"over":false,"paused":false,"rc":1.2,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":9,"m":"fall","s":608.8,"vA":160.5,"y":22.9,"started":true,"over":false,"paused":false,"rc":1.2,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":10,"m":"fall","s":608.8,"vA":160.5,"y":23.9,"started":true,"over":false,"paused":false,"rc":1.2,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":11,"m":"fall","s":608.8,"vA":160.5,"y":24.4,"started":true,"over":false,"paused":false,"rc":1.2,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":12,"m":"fall","s":608.8,"vA":160.5,"y":24.4,"started":true,"over":false,"paused":false,"rc":1.2,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":13,"m":"fall","s":608.8,"vA":160.5,"y":23.9,"started":true,"over":false,"paused":false,"rc":1.2,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":14,"m":"fall","s":608.8,"vA":160.5,"y":23,"started":true,"over":false,"paused":false,"rc":1.2,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":15,"m":"fall","s":608.8,"vA":160.5,"y":21.5,"started":true,"over":false,"paused":false,"rc":1.2,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":16,"m":"fall","s":608.8,"vA":160.5,"y":19.7,"started":true,"over":false,"paused":false,"rc":1.2,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":17,"m":"fall","s":608.8,"vA":160.5,"y":17.3,"started":true,"over":false,"paused":false,"rc":1.2,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":18,"m":"drive","s":731.7,"vA":162.4,"y":14.5,"started":true,"over":false,"paused":false,"rc":1.152,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":19,"m":"drive","s":742.9,"vA":151.7,"y":11.6,"started":true,"over":false,"paused":false,"rc":1.0059999999999998,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":20,"m":"drive","s":752,"vA":123.7,"y":10.8,"started":true,"over":false,"paused":false,"rc":0.8599999999999997,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":21,"m":"drive","s":760.4,"vA":119.6,"y":9.9,"started":true,"over":false,"paused":false,"rc":0.7139999999999995,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":22,"m":"drive","s":768.7,"vA":118.8,"y":9,"started":true,"over":false,"paused":false,"rc":0.5679999999999994,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":23,"m":"drive","s":777.1,"vA":118.6,"y":8,"started":true,"over":false,"paused":false,"rc":0.421900000000139,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":24,"m":"drive","s":782.6,"vA":118.5,"y":7.2,"started":true,"over":false,"paused":false,"rc":0.32390000000013897,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":25,"m":"drive","s":782.6,"vA":118.5,"y":7.2,"started":true,"over":false,"paused":false,"rc":0.32390000000013897,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":26,"m":"drive","s":783.5,"vA":118.5,"y":7.1,"started":true,"over":false,"paused":false,"rc":0.30790000000013895,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":27,"m":"drive","s":783.5,"vA":118.5,"y":7.1,"started":true,"over":false,"paused":false,"rc":0.30790000000013895,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":28,"m":"drive","s":783.5,"vA":118.5,"y":7.1,"started":true,"over":false,"paused":false,"rc":0.30790000000013895,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":29,"m":"drive","s":784.4,"vA":118.6,"y":7,"started":true,"over":false,"paused":false,"rc":0.29190000000013894,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":30,"m":"drive","s":784.4,"vA":118.6,"y":7,"started":true,"over":false,"paused":false,"rc":0.29190000000013894,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":31,"m":"drive","s":784.4,"vA":118.6,"y":7,"started":true,"over":false,"paused":false,"rc":0.29190000000013894,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":32,"m":"drive","s":785.4,"vA":118.6,"y":6.8,"started":true,"over":false,"paused":false,"rc":0.2759000000001389,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":33,"m":"drive","s":785.4,"vA":118.6,"y":6.8,"started":true,"over":false,"paused":false,"rc":0.2759000000001389,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":34,"m":"drive","s":785.4,"vA":118.6,"y":6.8,"started":true,"over":false,"paused":false,"rc":0.2759000000001389,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":35,"m":"drive","s":785.4,"vA":118.6,"y":6.8,"started":true,"over":false,"paused":false,"rc":0.2759000000001389,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":36,"m":"drive","s":785.4,"vA":118.6,"y":6.8,"started":true,"over":false,"paused":false,"rc":0.2759000000001389,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":37,"m":"drive","s":786.3,"vA":118.6,"y":6.7,"started":true,"over":false,"paused":false,"rc":0.2599000000001389,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":38,"m":"drive","s":786.3,"vA":118.6,"y":6.7,"started":true,"over":false,"paused":false,"rc":0.2599000000001389,"mo":0,"drv":1,"side":1,"intro":false}
+{"i":39,"m":"drive","s":786.3,"vA":118.6,"y":6.7,"started":true,"over":false,"paused":false,"rc":0.2599000000001389,"mo":0,"drv":1,"side":1,"intro":false}

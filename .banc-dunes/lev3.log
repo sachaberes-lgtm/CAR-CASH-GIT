@@ -1,0 +1,56 @@
+== graine 11
+{"lev":848,"tag":"crete","aim":156,"v":90,"fell":true,"out":"pose"}
+{"lev":848,"tag":"crete","aim":156,"v":150,"fell":true,"out":"pose"}
+{"lev":848,"tag":"crete","aim":156,"v":230,"fell":false,"out":"?"}
+{"lev":1864,"tag":"grande","aim":177,"v":90,"fell":false,"out":"?"}
+{"lev":1864,"tag":"grande","aim":177,"v":150,"fell":false,"out":"?"}
+{"lev":1864,"tag":"grande","aim":177,"v":230,"fell":false,"out":"?"}
+{"lev":3320,"tag":"crete","aim":122,"v":90,"fell":false,"out":"?"}
+{"lev":3320,"tag":"crete","aim":122,"v":150,"fell":false,"out":"?"}
+{"lev":3320,"tag":"crete","aim":122,"v":230,"fell":false,"out":"?"}
+{"lev":4728,"tag":"crete","aim":95,"v":90,"fell":false,"out":"?"}
+{"lev":4728,"tag":"crete","aim":95,"v":150,"fell":false,"out":"?"}
+{"lev":4728,"tag":"crete","aim":95,"v":230,"fell":false,"out":"?"}
+FIN
+== graine 22
+{"lev":776,"tag":"crete","aim":150,"v":90,"fell":true,"out":"pose"}
+{"lev":776,"tag":"crete","aim":150,"v":150,"fell":true,"out":"pose"}
+{"lev":776,"tag":"crete","aim":150,"v":230,"fell":false,"out":"?"}
+{"lev":1824,"tag":"grande","aim":177,"v":90,"fell":false,"out":"?"}
+{"lev":1824,"tag":"grande","aim":177,"v":150,"fell":false,"out":"?"}
+{"lev":1824,"tag":"grande","aim":177,"v":230,"fell":false,"out":"?"}
+{"lev":3280,"tag":"crete","aim":150,"v":90,"fell":false,"out":"?"}
+{"lev":3280,"tag":"crete","aim":150,"v":150,"fell":false,"out":"?"}
+{"lev":3280,"tag":"crete","aim":150,"v":230,"fell":false,"out":"?"}
+{"lev":4456,"tag":"crete","aim":102,"v":90,"fell":false,"out":"?"}
+{"lev":4456,"tag":"crete","aim":102,"v":150,"fell":false,"out":"?"}
+{"lev":4456,"tag":"crete","aim":102,"v":230,"fell":false,"out":"?"}
+FIN
+== graine 33
+{"lev":760,"tag":"crete","aim":163,"v":90,"fell":true,"out":"pose"}
+{"lev":760,"tag":"crete","aim":163,"v":150,"fell":true,"out":"pose"}
+{"lev":760,"tag":"crete","aim":163,"v":230,"fell":false,"out":"?"}
+{"lev":1920,"tag":"grande","aim":170,"v":90,"fell":false,"out":"?"}
+{"lev":1920,"tag":"grande","aim":170,"v":150,"fell":false,"out":"?"}
+{"lev":1920,"tag":"grande","aim":170,"v":230,"fell":false,"out":"?"}
+{"lev":3248,"tag":"crete","aim":136,"v":90,"fell":false,"out":"?"}
+{"lev":3248,"tag":"crete","aim":136,"v":150,"fell":false,"out":"?"}
+{"lev":3248,"tag":"crete","aim":136,"v":230,"fell":false,"out":"?"}
+{"lev":4776,"tag":"crete","aim":95,"v":90,"fell":false,"out":"?"}
+{"lev":4776,"tag":"crete","aim":95,"v":150,"fell":false,"out":"?"}
+{"lev":4776,"tag":"crete","aim":95,"v":230,"fell":false,"out":"?"}
+FIN
+== graine 44
+{"lev":816,"tag":"crete","aim":143,"v":90,"fell":true,"out":"pose"}
+{"lev":816,"tag":"crete","aim":143,"v":150,"fell":true,"out":"pose"}
+{"lev":816,"tag":"crete","aim":143,"v":230,"fell":false,"out":"?"}
+{"lev":1888,"tag":"crete","aim":129,"v":90,"fell":false,"out":"?"}
+{"lev":1888,"tag":"crete","aim":129,"v":150,"fell":false,"out":"?"}
+{"lev":1888,"tag":"crete","aim":129,"v":230,"fell":false,"out":"?"}
+{"lev":3136,"tag":"grande","aim":197,"v":90,"fell":false,"out":"?"}
+{"lev":3136,"tag":"grande","aim":197,"v":150,"fell":false,"out":"?"}
+{"lev":3136,"tag":"grande","aim":197,"v":230,"fell":false,"out":"?"}
+{"lev":4864,"tag":"crete","aim":95,"v":90,"fell":false,"out":"?"}
+{"lev":4864,"tag":"crete","aim":95,"v":150,"fell":false,"out":"?"}
+{"lev":4864,"tag":"crete","aim":95,"v":230,"fell":false,"out":"?"}
+FIN

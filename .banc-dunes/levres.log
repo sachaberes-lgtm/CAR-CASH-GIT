@@ -1,0 +1,30 @@
+prêt {"v":2,"best":0,"leaders":[],"bestCar":0,"equipped":0,"sfx":true,"vox":false,"mus":false,"fruits":[],"vol":{"mus":0.62,"sfx":1,"vox":1},"tctl":"stick","q":"net" ["cashcarSave"]
+tuto avant {"on":false,"i":0,"tuto":1,"permis":1,"bank":0}
+{"lev":648,"tag":"crete","v":100,"fell":true,"out":"?"}
+{"lev":648,"tag":"crete","v":170,"fell":false,"out":"?"}
+{"lev":648,"tag":"crete","v":250,"fell":false,"out":"?"}
+{"lev":1624,"tag":"crete","v":100,"fell":false,"out":"?"}
+{"lev":1624,"tag":"crete","v":170,"fell":false,"out":"?"}
+{"lev":1624,"tag":"crete","v":250,"fell":false,"out":"?"}
+{"lev":3096,"tag":"grande","v":100,"fell":false,"out":"?"}
+{"lev":3096,"tag":"grande","v":170,"fell":false,"out":"?"}
+{"lev":3096,"tag":"grande","v":250,"fell":false,"out":"?"}
+{"lev":3736,"tag":"bosse","v":100,"fell":false,"out":"?"}
+{"lev":3736,"tag":"bosse","v":170,"fell":false,"out":"?"}
+{"lev":3736,"tag":"bosse","v":250,"fell":false,"out":"?"}
+{"lev":3840,"tag":"bosse","v":100,"fell":false,"out":"?"}
+{"lev":3840,"tag":"bosse","v":170,"fell":false,"out":"?"}
+{"lev":3840,"tag":"bosse","v":250,"fell":false,"out":"?"}
+{"lev":3952,"tag":"bosse","v":100,"fell":false,"out":"?"}
+{"lev":3952,"tag":"bosse","v":170,"fell":false,"out":"?"}
+{"lev":3952,"tag":"bosse","v":250,"fell":false,"out":"?"}
+{"lev":4056,"tag":"bosse","v":100,"fell":false,"out":"?"}
+{"lev":4056,"tag":"bosse","v":170,"fell":false,"out":"?"}
+{"lev":4056,"tag":"bosse","v":250,"fell":false,"out":"?"}
+{"lev":4168,"tag":"bosse","v":100,"fell":false,"out":"?"}
+{"lev":4168,"tag":"bosse","v":170,"fell":false,"out":"?"}
+{"lev":4168,"tag":"bosse","v":250,"fell":false,"out":"?"}
+{"lev":4616,"tag":"crete","v":100,"fell":false,"out":"?"}
+{"lev":4616,"tag":"crete","v":170,"fell":false,"out":"?"}
+{"lev":4616,"tag":"crete","v":250,"fell":false,"out":"?"}
+FIN
