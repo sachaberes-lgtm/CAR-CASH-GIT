@@ -1,0 +1,2 @@
+AVANT sol méd 117908 max 124144 | lave méd 78280 | aiguilles [38,46,42,41,41,45,44,45,43,39] | bancs [2,1,1,1,1,1,1,1,0,2] | hornitos méd 3 | orgues méd 501 | coulées [9,9,9,9,9,9,9,9,9,9] | err 0 | test [0,0,0,0,0,0,0,0,0,0]
+APRÈS sol méd 119764 max 126932 | lave méd 77292 | aiguilles [45,43,38,40,44,45,39,41,42,48] | bancs [1,1,1,2,1,1,2,1,1,1] | hornitos méd 2 | orgues méd 473 | coulées [9,9,9,9,9,9,9,9,9,9] | err 0 | test [0,0,0,0,0,0,0,0,0,0]

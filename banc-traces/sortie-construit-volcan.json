@@ -1,0 +1,138 @@
+{
+ "tache": "construit",
+ "args": [
+  "volcan",
+  "2",
+  "0"
+ ],
+ "res": [
+  {
+   "graine": 8919,
+   "trace": {
+    "ms": 209,
+    "L": 6166,
+    "niv": {
+     "carte": "volcan",
+     "meteo": "midi",
+     "teinte": null,
+     "ciel": "volcanMidi",
+     "pluie": 0,
+     "nuit": 0,
+     "orage": false
+    }
+   },
+   "decor": {
+    "pret": true,
+    "ms": 42,
+    "msTot": 196,
+    "msFile": 155,
+    "n": {
+     "sol": 119764,
+     "lave": 78046,
+     "bancs": 1,
+     "coulees": 9,
+     "gouttes": 700,
+     "orgues": 477,
+     "bouffees": 153,
+     "aiguilles": 45,
+     "hornitos": 5,
+     "geysers": 10,
+     "loin": 2
+    },
+    "conflits": 0,
+    "hasard": {
+     "axe": -0.5153365634358488,
+     "coude": -17,
+     "ordre": [
+      "mod",
+      "mod",
+      "fum",
+      "arche",
+      "lac"
+     ],
+     "humeurs": [
+      "flammes",
+      "serpent",
+      "chicanes",
+      "courbes",
+      "flammes",
+      "serpent"
+     ]
+    },
+    "L": 6166
+   },
+   "test": {
+    "dessus": 0,
+    "dessous": 0,
+    "margeMin": 12.9,
+    "ou": ""
+   },
+   "loopErr": null,
+   "erreurs": [],
+   "s": 3.6
+  },
+  {
+   "graine": 16838,
+   "trace": {
+    "ms": 169,
+    "L": 6462,
+    "niv": {
+     "carte": "volcan",
+     "meteo": "soir",
+     "teinte": null,
+     "ciel": "volcanSoir",
+     "pluie": 0,
+     "nuit": 0,
+     "orage": false
+    }
+   },
+   "decor": {
+    "pret": true,
+    "ms": 29,
+    "msTot": 142,
+    "msFile": 118,
+    "n": {
+     "sol": 121712,
+     "lave": 77220,
+     "bancs": 1,
+     "coulees": 9,
+     "gouttes": 644,
+     "orgues": 437,
+     "bouffees": 154,
+     "aiguilles": 43,
+     "hornitos": 2,
+     "geysers": 9,
+     "loin": 2
+    },
+    "conflits": 0,
+    "hasard": {
+     "axe": -0.3325033758549951,
+     "coude": 21,
+     "ordre": [
+      "arche",
+      "mod",
+      "fum",
+      "lac"
+     ],
+     "humeurs": [
+      "chicanes",
+      "derive",
+      "balcon",
+      "courbes",
+      "balcon"
+     ]
+    },
+    "L": 6462
+   },
+   "test": {
+    "dessus": 0,
+    "dessous": 0,
+    "margeMin": 12.5,
+    "ou": ""
+   },
+   "loopErr": null,
+   "erreurs": [],
+   "s": 0.9
+  }
+ ]
+}
