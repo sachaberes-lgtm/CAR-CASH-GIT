@@ -209,7 +209,7 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LA DOLCE VITA',shape:'cinq',color:0x8eb2df,accent:0xf3f1ea,maxKmh:200,accel:22,turn:2.9,h:1.50,w:1.63,l:3.57,spoiler:0,rar:'commun', // 80 — discussion RONDES : la 500 (2007) en finition « 1957 » de la photo de Léo — bleu ciel, toit blanc, rétros blancs, jantes à cercle crème (SHAPES.cinq, sur le plan coté)
+ {name:'LA DOLCE VITA',shape:'cinq',color:0x4a7599,accent:0x9d998e,maxKmh:200,accel:22,turn:2.9,h:1.50,w:1.63,l:3.43,spoiler:0,rar:'commun', // 80 — discussion RONDES : la 500 (2007) en finition « 1957 » de la photo de Léo — bleu ciel, toit blanc, rétros blancs, jantes à cercle crème (SHAPES.cinq, sur le plan coté)
   desc:'Toit blanc, robe céleste, moustache chromée. Elle se gare dans un mouchoir de poche, et elle repart avec le mouchoir.'},
  /* · */
  /* · */
