@@ -530,14 +530,17 @@ if(CAID_VIEUX){const f9=function(){try{CAID_ANCIEN.pre&&CAID_ANCIEN.pre();}catch
 /* ===== LE CAÏD, MONOLITHE (2026-10-26, la refonte poly — Léo : les caisses d'avant « lamentables » : trop de triangles, des facettes sans
    maîtrise ; l'étalon = LA ROSSO 40 et LA HONTE). Le GMC Hummer EV pick-up, sans toit, réduit à ce qui le fait reconnaître à 200 m :
    « Trois tonnes de cube. Personne ne t'a jamais demandé de te pousser. » UN monolithe blanc nacré, de GRANDS pans plans :
-    · le flanc en DEUX dalles — la basse qui tombe d'aplomb, l'ÉPAULE qui rentre et prend le ciel — sur un socle noir ;
+    · le flanc en TROIS valeurs — le bas de porte rentré (sombre), la dalle d'aplomb, l'ÉPAULE qui rentre et prend le ciel — sur un
+      socle noir ; le blanc nacré un cran sous le blanc pur (0xbec2c8) : sous la lumière il ne brûle plus, les facettes se lisent ;
     · le capot plat à plateau central, le nez droit coupé net, la poupe droite ;
     · les GARDE-BOUE noirs en trapèze aux angles coupés, qui débordent d'une main au-dessus des pneus ;
     · la cabine OUVERTE : deux ARCHES noires (la médiane, carrée ; l'arrière, qui s'arc-boute jusque sur la benne) et l'épine qui les relie
-      au pare-brise ; dedans, des baquets et une banquette sombres ;
+      au pare-brise ; dedans, des baquets et une banquette en CUIR COGNAC — la seule couleur chaude, vue de la caméra de poursuite ;
     · LA SIGNATURE : la lumière en PIXELS — la barre pleine largeur, la calandre en DAMIER de cases blanches, les phares en C aux coins,
-      et derrière, les feux en colonnes de cases rouges : un seul langage, devant comme derrière ;
-    · des pneus de 1 m, CRANTÉS (le pneu est un engrenage : on lit ses crans de profil, à 100 px), jantes noires à six lames.
+      qui tournent le coin coupé ; derrière, les feux en colonnes de cases rouges reliés par une BARRE ROUGE (l'écho de la face), et les
+      deux fentes bleues de la recharge : un seul langage, devant comme derrière ;
+    · des pneus militaires de 1 m CRANTÉS EN CHEVRON (deux demi-bandes décalées : on lit les crans de profil, à 100 px), jantes
+      gunmetal à six lames, lèvre usinée. ~4 850 triangles roues comprises (l'ancien : ~25 000).
    Tout au kit (loft + pièces posées), une couleur par matière, symétrique par construction. `?caid=ancien` = la version découpée au plan. */
 SHAPES.caid=function(K){
   if(CAID_VIEUX)return CAID_ANCIEN(K);
@@ -560,7 +563,7 @@ SHAPES.caid=function(K){
   const xW=z=>U.lin([[ZT,.90],[ZT+.08,.93],[2.62,.93],[ZN,.87]],z);         // les coins coupés en plan, devant et derrière
   P.loft(zs,z=>{
     const yb=U.arch(z,[ZF,ZR],AR,YB),xw=xW(z),zn=zone(z);
-    const s=[[0,yb],[xw-.07,yb],[xw,yb+.07],[xw,Math.max(YR,yb+.09)],[xw+.02,Math.max(YK,yb+.12)]];
+    const s=[[0,yb],[xw-.07,yb],[xw-.03,yb+.07],[xw-.03,Math.max(YR,yb+.09)],[xw+.02,Math.max(YR+.15,yb+.105)],[xw+.02,Math.max(YK,yb+.12)]]; // le bas de porte RENTRÉ (il regarde le sol : plus sombre), la dalle d'aplomb
     if(zn==='capot'){const yh=U.lin([[ZC2,YH+.01],[2.62,YH],[ZN,YH-.05]],z);  // le capot plat, son PLATEAU central (une marche de 4 cm)
       s.push([xw-.05,yh],[xw-.18,yh+.01],[.47,yh+.012],[.43,yh+.065],[0,yh+.07]);}
     else if(zn==='cabine')s.push([xw-.05,YT],[XI,YT],[XI,YF],[.40,YF],[0,YF]);
@@ -570,7 +573,7 @@ SHAPES.caid=function(K){
   },(j,z)=>{
     if(j<0)return 'p';
     if(j<=2)return 'k';                                                         // le dessous, le socle noir
-    if(j<=5)return 'p';
+    if(j<=6)return 'p';
     const zn=zone(z);
     if(zn==='capot'||zn==='hayon'||zn==='cloison')return 'p';
     if(zn==='cabine'||zn==='murC'||zn==='murP')return 'D';
@@ -617,13 +620,16 @@ SHAPES.caid=function(K){
   quad('g',[-.78,YT,ZB1+.012],[.78,YT,ZB1+.012],[.76,YA-.08,ZA2-.08],[-.76,YA-.08,ZA2-.08]); // la lunette, sur la cloison
   // ======================= LA FACE : la lumière en pixels =======================
   const zf=ZN+.004;
-  P.box('K',1.70,.26,.02,0,1.19,zf);                                              // le bandeau noir des feux
+  P.box('K',1.74,.26,.02,0,1.19,zf);                                              // le bandeau noir des feux
   lum('W',1.74,.028,0,1.305,zf+.012);                                             // LA BARRE, d'un bord à l'autre
   for(let r=0;r<2;r++)for(let i=-7;i<=7;i++)if(((i+r)&1)===0)lum('W',.075,.06,i*.09,1.125+r*.08,zf+.012); // LA CALANDRE EN DAMIER
-  P.sym(sd=>{lum('W',.035,.22,sd*.835,1.18,zf+.012);lum('W',.10,.03,sd*.80,1.275,zf+.012);lum('W',.10,.03,sd*.80,1.085,zf+.012);
-    P.box('K',.10,.26,.012,sd*.903,1.19,2.672,0,sd*1.03,0);P.box('W',.075,.03,.012,sd*.907,1.305,2.675,0,sd*1.03,0);P.box('W',.03,.20,.012,sd*.918,1.18,2.659,0,sd*1.03,0);}); // les phares en C, et leur retour sur le coin coupé
+  P.sym(sd=>{lum('W',.10,.03,sd*.82,1.275,zf+.012);lum('W',.10,.03,sd*.82,1.085,zf+.012);lum('W',.026,.22,sd*.857,1.18,zf+.012); // LES PHARES EN C : sur la face…
+    const ry=sd*1.0304,N=[sd*.8575,.5145],U9=[sd*.5145,-.8575],C9=(d,o)=>[sd*.90+N[0]*d+U9[0]*o,2.67+N[1]*d+U9[1]*o];  // …le coin coupé : son repère
+    {const q=C9(.007,0);P.box('K',.12,.26,.012,q[0],1.19,q[1],0,ry,0);}
+    for(const [y,h] of [[1.305,.028],[1.275,.03],[1.085,.03]]){const q=C9(.015,-.004);P.box('W',.11,h,.004,q[0],y,q[1],0,ry,0);} // la barre et les bras qui tournent le coin
+    {const q=C9(.015,.045);P.box('W',.03,.22,.004,q[0],1.18,q[1],0,ry,0);}});                                               // le dos du C, au bout du coin
   P.loft([ZN-.06,ZN+.05,ZN+.14],z=>{const t=z>ZN+.1?1:0;return [[0,.60+.06*t],[.96-.12*t,.60+.06*t],[.96-.12*t,.97-.05*t],[0,.97-.05*t]];},()=>'k'); // le bouclier : coins coupés en plan, dessus et dessous chanfreinés
-  P.box('K',1.10,.12,.02,0,.79,ZN+.145);                                          // sa bouche
+  P.box('K',1.10,.13,.02,0,.79,ZN+.145);for(const y of [.755,.79,.825])P.box('k',1.06,.014,.02,0,y,ZN+.152); // sa bouche, ses lames
   P.box('C',1.30,.08,.22,0,.58,ZN-.02);                                           // le sabot
   P.sym(sd=>{P.box('R',.06,.10,.08,sd*.58,.74,ZN+.16);P.cyl('c',.012,.10,6,sd*.58,.74,ZN+.18,'x');});  // les crochets, leur goupille
   // ======================= LA POUPE =======================
@@ -639,7 +645,7 @@ SHAPES.caid=function(K){
   // ======================= LES FLANCS =======================
   P.sym(sd=>{
     P.box('k',.10,.09,2.10,sd*.98,.66,(ZF-.72+ZR+.72)/2);                         // le marchepied (rock slider)
-    P.box('k',.08,.035,.12,sd*.92,YT+.02,ZC-.16);P.box('k',.10,.20,.24,sd*1.02,YT+.12,ZC-.16);P.box('g',.08,.16,.012,sd*1.02,YT+.12,ZC-.285); // le rétro : bras, coque, glace
+    P.box('k',.08,.035,.12,sd*.92,YT+.02,ZC-.16);P.prism('k',[[ZC-.28,YT+.02],[ZC-.06,YT+.03],[ZC-.04,YT+.22],[ZC-.28,YT+.22]],.10,sd*1.02);P.box('g',.08,.17,.012,sd*1.02,YT+.12,ZC-.285); // le rétro : bras, coque au nez fuyant, glace
     for(const z of [ZC-.04,-.05,ZB1])P.box('k',.012,YT-YR-.10,.012,sd*.95,(YT+YR)/2+.02,z);   // les joints de portes
     for(const z of [.24,-.62])P.box('k',.02,.04,.18,sd*.955,1.26,z);              // les poignées
   });
