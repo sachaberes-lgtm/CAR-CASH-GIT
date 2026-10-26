@@ -215,7 +215,10 @@ function engVigRender(dt){
      l'on passe son temps pied au plancher SANS aller vite, la cible plafonnait à ~.10 et la
      flamme (seuil .30) ne sortait JAMAIS. On récompensait la vitesse déjà acquise au lieu de
      l'effort en cours. C'est l'appui sur la flèche qui doit s'entendre ET se voir. */
-  const cible9=nitroOn?1:(gasOn?.34:0)+reg9*.30;
+  // (2026-10-26, chasse aux bugs, rendu) MORT NITRO TENUE : gameOver gèle `nitroOn`/`gasOn`/`vA` à leur valeur du dernier instant vivant
+  // (boucle-1 ne les touche plus) — sans ce cas la cible ne retombait jamais sous .34+reg9*.30, et la carte MOTEUR de l'écran de mort
+  // restait chaude (flamme comprise) comme si la nitro venait d'être relâchée. À la mort, le moteur COUPE : il refroidit vers le repos.
+  const cible9=gameOver?0:nitroOn?1:(gasOn?.34:0)+reg9*.30;
   engVigHeat+=(cible9-engVigHeat)*Math.min(1,dt*(cible9>engVigHeat?3.2:1.6)); // monte plus vite qu'elle ne retombe
   for(const m9 of engVigMats)m9.emissive.setRGB(engVigHeat*.60,engVigHeat*.12,engVigHeat*.02);
   /* ---- LA FLAMME, UNE PAR MOTEUR (2026-08-05) ----
