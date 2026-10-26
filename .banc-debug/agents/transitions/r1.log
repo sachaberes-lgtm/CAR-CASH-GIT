@@ -1,0 +1,39 @@
+verrou pris par debug-transitions
+[1s] ▶ chaine-13 colonne=0&simu=1&carte=nuages&meteo=midi
+[16s] chauffe du menu : {"progs":226,"attente":11}
+[134s] ▶ rejouer-3 colonne=0&simu=1&carte=foret&meteo=midi
+[172s] ▶ chance-dunes colonne=0&simu=1&carte=dunes&meteo=soir
+[201s] ▶ pause-portail colonne=0&simu=1&carte=volcan&meteo=soir
+
+=== chaine-13
+  nuages:midi : {"n":6,"cartes":["nuages:midi"],"sMax":328.7,"L":5706,"progs":[226,226],"geo":[585,634],"x":{"tm":66,"sc":616,"fen":false,"pb":"","cl":15,"r":""}}
+  ville:pluie:vert : {"n":6,"cartes":["ville:pluie:vert"],"sMax":475,"L":7140,"progs":[226,226],"geo":[634,636],"x":{"tm":88,"sc":617,"fen":false,"pb":"","cl":0,"r":"city"}}
+  jade:matin : {"n":6,"cartes":["jade:matin"],"sMax":529.5,"L":7284,"progs":[226,226],"geo":[701,717],"x":{"tm":85,"sc":623,"fen":false,"pb":"","cl":0,"r":"jade"}}
+  foret:nuit : {"n":6,"cartes":["foret:nuit"],"sMax":685.5,"L":6143,"progs":[226,226],"geo":[692,691],"x":{"tm":75,"sc":612,"fen":false,"pb":"","cl":0,"r":"foret"}}
+  banquise:neige : {"n":6,"cartes":["banquise:neige"],"sMax":744,"L":5678,"progs":[226,226],"geo":[692,719],"x":{"tm":63,"sc":598,"fen":false,"pb":"","cl":0,"r":"banq"}}
+  volcan:soir : {"n":6,"cartes":["volcan:soir"],"sMax":751.1,"L":6865,"progs":[226,226],"geo":[730,732],"x":{"tm":81,"sc":615,"fen":false,"pb":"","cl":0,"r":"volcan"}}
+  crypto:nuit : {"n":6,"cartes":["crypto:nuit"],"sMax":1542.1,"L":10219,"progs":[226,226],"geo":[685,694],"x":{"tm":108,"sc":648,"fen":false,"pb":"","cl":0,"r":"crypto,city"}}
+  espace:midi : {"n":6,"cartes":["espace:midi"],"sMax":2308.9,"L":11847,"progs":[226,226],"geo":[700,715],"x":{"tm":98,"sc":642,"fen":false,"pb":"pret","cl":0,"r":"orb"}}
+  grotte:matin : {"n":6,"cartes":["grotte:matin"],"sMax":1489.2,"L":14121,"progs":[226,226],"geo":[787,906],"x":{"tm":99,"sc":651,"fen":false,"pb":"","cl":0,"r":"grotte"}}
+  canyon:orage : {"n":6,"cartes":["canyon:orage"],"sMax":1777.8,"L":8533,"progs":[226,226],"geo":[700,639],"x":{"tm":100,"sc":641,"fen":false,"pb":"pret","cl":0,"r":"cy"}}
+  dunes:soir : {"n":6,"cartes":["dunes:soir"],"sMax":1848.7,"L":7746,"progs":[226,226],"geo":[635,651],"x":{"tm":84,"sc":624,"fen":false,"pb":"pret","cl":0,"r":"dn"}}
+  nuages:orage : {"n":6,"cartes":["nuages:orage"],"sMax":1696.1,"L":8088,"progs":[226,226],"geo":[676,685],"x":{"tm":94,"sc":651,"fen":false,"pb":"","cl":19,"r":""}}
+  foret:midi : {"n":6,"cartes":["foret:midi"],"sMax":2001.2,"L":9942,"progs":[226,226],"geo":[730,725],"x":{"tm":99,"sc":643,"fen":false,"pb":"pret","cl":0,"r":"foret"}}
+  volcan:matin : {"n":6,"cartes":["volcan:matin"],"sMax":1657,"L":10447,"progs":[226,226],"geo":[713,725],"x":{"tm":99,"sc":646,"fen":false,"pb":"en cours","cl":0,"r":"volcan"}}
+  evalFin → [{"n":"fin","c":"volcan:matin","roots":"volcan","lvl":{"nuit":0,"ville":0,"jade":0,"crypto":0,"canyon":0,"grotte":0,"dunes":0,"espace":0,"pluie":0,"brume":0,"mer":0},"bio":"volcanMatin","tir":["nuages:midi","ville:pluie:vert","jade:matin","foret:nuit","banquise:neige","volcan:soir","crypto:nuit","espace:midi","grotte:matin","canyon:orage","dunes:soir","nuages:orage","foret:midi","volcan:matin","jade:midi"],"der":"volcan","pro":null,"neuf":false,"geo":725,"tex":128,"sc":646,"tm":99,"cl":0,"mode":"drive","go":false,"run":true,"pa":false,"s":1657,"safeS":1657,"L":10447,"lat":8.01,"inv":0,"used":f
+
+=== rejouer-3
+  foret:midi : {"n":8,"cartes":["canyon:matin"],"sMax":863.8,"L":6126,"progs":[224,224],"geo":[923,923]}
+  eval → [{"n":"A-course1","c":"foret:midi","roots":"foret","lvl":{"nuit":0,"ville":0,"jade":0,"crypto":0,"canyon":0,"grotte":0,"dunes":0,"espace":0,"pluie":0,"brume":0,"mer":0},"bio":"foretMidi","tir":["foret:midi","espace:matin"],"der":"foret","pro":null,"neuf":false,"geo":554,"tex":102,"sc":592,"tm":65,"cl":0,"mode":"drive","go":false,"run":true,"pa":false,"s":251,"safeS":251,"L":5617,"lat":0,"inv":0,"used":false,"fen":false,"att":0,"portC":null,"pcube":{"on":true,"cle":"espace-matin","vis":true,"img":2},"zones":0,"errs":[],"pb":{"e":"","c":"","pris":0,"dep":0,"ann":0,"der":"","err":null}},{"n":"B-f
+  evalFin → {"n":"fin","c":"canyon:matin","roots":"cy","lvl":{"nuit":0,"ville":0,"jade":0,"crypto":0,"canyon":1,"grotte":0,"dunes":0,"espace":0,"pluie":0,"brume":0,"mer":0},"bio":"canyonMatin","tir":["canyon:matin","crypto:nuit"],"der":"canyon","pro":null,"neuf":false,"geo":923,"tex":153,"sc":620,"tm":76,"cl":0,"mode":"drive","go":false,"run":true,"pa":false,"s":864,"safeS":864,"L":6126,"lat":-0.27,"inv":0,"used":false,"fen":false,"att":0,"portC":null,"pcube":{"on":true,"cle":"crypto-nuit","vis":true,"img":4},"zones":0,"errs":[],"pb":{"e":"","c":"canyon-matin","pris":2,"dep":2,"ann":0,"der":"pris au dépar
+
+=== chance-dunes
+  dunes:soir : {"n":10,"cartes":["dunes:soir"],"sMax":1086,"L":4829,"progs":[224,224],"geo":[897,946]}
+  eval → [{"n":"A","c":"dunes:soir","roots":"dn","lvl":{"nuit":0,"ville":0,"jade":0,"crypto":0,"canyon":1,"grotte":0,"dunes":1,"espace":0,"pluie":0,"brume":0,"mer":0},"bio":"dunesSoir","tir":["dunes:soir","grotte:nuit"],"der":"dunes","pro":null,"neuf":false,"geo":508,"tex":105,"sc":590,"tm":60,"cl":0,"mode":"drive","go":false,"run":true,"pa":false,"s":396,"safeS":396,"L":4829,"lat":-2.04,"inv":0,"used":false,"fen":false,"att":0,"portC":null,"pcube":{"on":true,"cle":"grotte-nuit","vis":true,"img":2},"zones":0,"errs":[],"pb":{"e":"","c":"","pris":0,"dep":0,"ann":0,"der":"","err":null}},{"ok":true,"prix":
+  evalFin → {"n":"fin","c":"dunes:soir","roots":"dn","lvl":{"nuit":0,"ville":0,"jade":0,"crypto":0,"canyon":1,"grotte":0,"dunes":1,"espace":0,"pluie":0,"brume":0,"mer":0},"bio":"dunesSoir","tir":["dunes:soir","grotte:nuit"],"der":"dunes","pro":"crypto","neuf":false,"geo":946,"tex":150,"sc":604,"tm":64,"cl":0,"mode":"drive","go":false,"run":true,"pa":false,"s":1086,"safeS":1086,"L":4829,"lat":-0.34,"inv":0,"used":true,"fen":false,"att":0,"portC":null,"pcube":{"on":true,"cle":"grotte-nuit","vis":true,"img":2},"zones":0,"errs":[],"pb":{"e":"pret","c":"grotte-nuit","pris":0,"dep":0,"ann":1,"der":"départ","err
+
+=== pause-portail
+  volcan:soir : {"n":8,"cartes":["jade:matin"],"sMax":656,"L":6141,"progs":[222,223],"geo":[628,679]}
+  eval → [{"n":"A","c":"volcan:soir","roots":"volcan","lvl":{"nuit":0,"ville":0,"jade":0,"crypto":0,"canyon":0,"grotte":0,"dunes":0,"espace":0,"pluie":0,"brume":0,"mer":0},"bio":"volcanSoir","tir":["volcan:soir","nuages:pluie"],"der":"volcan","pro":null,"neuf":false,"geo":580,"tex":102,"sc":600,"tm":71,"cl":0,"mode":"drive","go":false,"run":true,"pa":false,"s":189,"safeS":189,"L":6140,"lat":0.77,"inv":0,"used":false,"fen":false,"att":0,"portC":null,"pcube":{"on":true,"cle":"nuages-pluie","vis":true,"img":2},"zones":0,"errs":[],"pb":{"e":"","c":"","pris":0,"dep":0,"ann":0,"der":"","err":null}},true,{"n"
+  evalFin → {"n":"fin","c":"jade:matin","roots":"jade","lvl":{"nuit":0,"ville":0,"jade":1,"crypto":0,"canyon":0,"grotte":0,"dunes":0,"espace":0,"pluie":0,"brume":0,"mer":0},"bio":"jadeMatin","tir":["volcan:soir","nuages:pluie","jade:matin","crypto:nuit"],"der":"jade","pro":null,"neuf":false,"geo":679,"tex":110,"sc":612,"tm":75,"cl":0,"mode":"drive","go":false,"run":true,"pa":false,"s":656,"safeS":656,"L":6141,"lat":-0.08,"inv":0,"used":false,"fen":false,"att":0,"portC":"0","pcube":{"on":true,"cle":"crypto-nuit","vis":true,"img":4},"zones":2,"errs":[],"pb":{"e":"pret","c":"crypto-nuit","pris":2,"dep":0,"an
+verrou rendu

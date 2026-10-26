@@ -1,0 +1,5 @@
+[{"carte":"espace","meteo":"soir","secs":16,"attente":1,"vue":"tel"},
+ {"carte":"grotte","meteo":"nuit","secs":16,"attente":1,"vue":"debout"},
+ {"carte":"canyon","meteo":"midi","secs":16,"attente":1,"vue":"cadre"},
+ {"carte":"dunes","meteo":"matin","secs":16,"attente":1,"vue":"tel"},
+ {"nom":"chaine","carte":"nuages","meteo":"midi","secs":10,"attente":1,"chaine":"grotte:midi,dunes:orage,volcan:nuit,ville:brouillard:bleu,banquise:nuit"}]

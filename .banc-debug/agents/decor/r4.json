@@ -1,0 +1,611 @@
+{
+ "jeu": "/Users/sachaberes/cash-car/debug-maps/.banc-debug/agents/decor/jeu2",
+ "scen": [
+  {
+   "nom": "g-decor-1",
+   "url": "colonne=0&simu=1&carte=banquise&meteo=midi",
+   "maps": [
+    {
+     "etiq": "banquise:midi",
+     "ech": [
+      {
+       "mode": "drive",
+       "s": 179.5,
+       "L": 4739,
+       "lat": -1.71,
+       "vA": 145.7,
+       "go": false,
+       "carte": "banquise",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 591,
+       "tex": 104,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "ts": 1
+      }
+     ],
+     "morts": [],
+     "alertes": [],
+     "resume": {
+      "n": 1,
+      "cartes": [
+       "banquise:midi"
+      ],
+      "sMax": 179.5,
+      "L": 4739,
+      "progs": [
+       222,
+       222
+      ],
+      "geo": [
+       591,
+       591
+      ]
+     }
+    }
+   ],
+   "eval": {
+    "banquise:11": {
+     "ok": true,
+     "carte": "banquise",
+     "L": 5764.45,
+     "ph": "b36fa01f",
+     "ms": 1711,
+     "pk": "a02c3e1d",
+     "pads": "741638a5",
+     "BANQ.kick": "b71e350b/5",
+     "BANQ.obst": "100872d/22",
+     "deco": [
+      "glace azur",
+      "pics ×0.6 h×1.24",
+      "séracs ×1",
+      "aiguilles ×0.5 h×0.84",
+      "géants comme avant",
+      "amphithéâtre de 4 (loin)",
+      "monument : cathédrale",
+      "2 orgues de glace",
+      "0 porte de glace",
+      "aurores or-vert ×1",
+      "brume ×0.6",
+      "poudre de diamant ×2",
+      "alpenglow ×1 orangé"
+     ],
+     "err": [
+      null,
+      null
+     ]
+    },
+    "banquise:222": {
+     "ok": true,
+     "carte": "banquise",
+     "L": 5423.04,
+     "ph": "49faced1",
+     "ms": 1750,
+     "pk": "c234be09",
+     "pads": "741638a5",
+     "BANQ.kick": "3d81b96/2",
+     "BANQ.obst": "545b5883/22",
+     "deco": [
+      "glace saphir",
+      "pics ×1.45 h×1.28",
+      "séracs ×1",
+      "aiguilles ×1.6 h×0.96",
+      "géants comme avant",
+      "amphithéâtre de 7",
+      "monument : cirque",
+      "0 orgue de glace",
+      "0 porte de glace",
+      "aurores vert-violet ×1",
+      "brume ×1",
+      "poudre de diamant ×2",
+      "alpenglow ×1.5"
+     ],
+     "err": [
+      null,
+      null
+     ]
+    },
+    "banquise:3333": {
+     "ok": true,
+     "carte": "banquise",
+     "L": 5044.28,
+     "ph": "63e5f2bc",
+     "ms": 1666,
+     "pk": "db8bc893",
+     "pads": "741638a5",
+     "BANQ.kick": "2f9997f5/4",
+     "BANQ.obst": "44447337/13",
+     "deco": [
+      "glace turquoise",
+      "pics ×1.45 h×0.98",
+      "séracs ×1.8",
+      "aiguilles ×1.6 h×1.19",
+      "géants hauts",
+      "amphithéâtre de 7",
+      "monument : cirque",
+      "1 orgue de glace",
+      "3 portes de glace",
+      "aurores cyan-magenta ×1",
+      "brume ×0.6",
+      "poudre de diamant ×0.4",
+      "alpenglow ×0.5"
+     ],
+     "err": [
+      null,
+      null
+     ]
+    },
+    "banquise:44444": {
+     "ok": true,
+     "carte": "banquise",
+     "L": 5108.26,
+     "ph": "143b2fe9",
+     "ms": 1666,
+     "pk": "b783f3f3",
+     "pads": "741638a5",
+     "BANQ.kick": "3385535c/4",
+     "BANQ.obst": "936e1ad/19",
+     "deco": [
+      "glace azur",
+      "pics ×1.45 h×0.95",
+      "séracs ×0.5",
+      "aiguilles ×0.5 h×0.90",
+      "géants comme avant",
+      "amphithéâtre de 7",
+      "monument : rien",
+      "0 orgue de glace",
+      "0 porte de glace",
+      "aurores vert-violet ×0.7",
+      "brume ×1",
+      "poudre de diamant ×1",
+      "alpenglow ×1"
+     ],
+     "err": [
+      null,
+      null
+     ]
+    },
+    "banquise:555555": {
+     "ok": true,
+     "carte": "banquise",
+     "L": 6089.39,
+     "ph": "c2a2ee8c",
+     "ms": 1611,
+     "pk": "c5b3c03d",
+     "pads": "741638a5",
+     "BANQ.kick": "2efa92b1/5",
+     "BANQ.obst": "1f73f420/21",
+     "deco": [
+      "glace saphir",
+      "pics ×1.45 h×0.90",
+      "séracs ×0.5",
+      "aiguilles ×1.6 h×0.96",
+      "géants hauts",
+      "amphithéâtre de 7",
+      "monument : cathédrale",
+      "1 orgue de glace",
+      "1 porte de glace",
+      "aurores vert-violet ×0.7",
+      "brume ×0.6",
+      "poudre de diamant ×0.4",
+      "alpenglow ×1.5"
+     ],
+     "err": [
+      null,
+      null
+     ]
+    },
+    "banquise:6666666": {
+     "ok": true,
+     "carte": "banquise",
+     "L": 4739.32,
+     "ph": "111c1608",
+     "ms": 1614,
+     "pk": "ef63cdff",
+     "pads": "741638a5",
+     "BANQ.kick": "24dd3381/4",
+     "BANQ.obst": "710dddac/12",
+     "deco": [
+      "glace turquoise",
+      "pics ×1.45 h×1.01",
+      "séracs ×0.5",
+      "aiguilles ×1.6 h×0.89",
+      "géants bas",
+      "amphithéâtre de 7 (près)",
+      "monument : cirque",
+      "1 orgue de glace",
+      "3 portes de glace",
+      "aurores rose-bleu ×1",
+      "brume ×1.45",
+      "poudre de diamant ×0.4",
+      "alpenglow ×1"
+     ],
+     "err": [
+      null,
+      null
+     ]
+    }
+   },
+   "erreurs": [],
+   "avert": []
+  },
+  {
+   "nom": "g-decor-2",
+   "url": "colonne=0&simu=1&carte=banquise&meteo=midi",
+   "maps": [
+    {
+     "etiq": "banquise:midi",
+     "ech": [
+      {
+       "mode": "drive",
+       "s": 177.2,
+       "L": 4739,
+       "lat": -1.24,
+       "vA": 145.69,
+       "go": false,
+       "carte": "banquise",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 591,
+       "tex": 104,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "ts": 1
+      }
+     ],
+     "morts": [],
+     "alertes": [],
+     "resume": {
+      "n": 1,
+      "cartes": [
+       "banquise:midi"
+      ],
+      "sMax": 177.2,
+      "L": 4739,
+      "progs": [
+       222,
+       222
+      ],
+      "geo": [
+       591,
+       591
+      ]
+     }
+    }
+   ],
+   "eval": {
+    "banquise:11": {
+     "ok": true,
+     "carte": "banquise",
+     "L": 5764.45,
+     "ph": "b36fa01f",
+     "ms": 1737,
+     "pk": "2e9d4fd1",
+     "pads": "741638a5",
+     "BANQ.kick": "b71e350b/5",
+     "BANQ.obst": "100872d/22",
+     "deco": [
+      "glace azur",
+      "pics ×0.6 h×1.24",
+      "séracs ×1",
+      "aiguilles ×0.5 h×0.84",
+      "géants comme avant",
+      "amphithéâtre de 4 (loin)",
+      "monument : cathédrale",
+      "2 orgues de glace",
+      "0 porte de glace",
+      "aurores or-vert ×1",
+      "brume ×0.6",
+      "poudre de diamant ×2",
+      "alpenglow ×1 orangé"
+     ],
+     "err": [
+      null,
+      null
+     ]
+    },
+    "banquise:222": {
+     "ok": true,
+     "carte": "banquise",
+     "L": 5423.04,
+     "ph": "49faced1",
+     "ms": 1631,
+     "pk": "2435c07d",
+     "pads": "741638a5",
+     "BANQ.kick": "3d81b96/2",
+     "BANQ.obst": "545b5883/22",
+     "deco": [
+      "glace saphir",
+      "pics ×1.45 h×1.28",
+      "séracs ×1",
+      "aiguilles ×1.6 h×0.96",
+      "géants comme avant",
+      "amphithéâtre de 7",
+      "monument : cirque",
+      "0 orgue de glace",
+      "0 porte de glace",
+      "aurores vert-violet ×1",
+      "brume ×1",
+      "poudre de diamant ×2",
+      "alpenglow ×1.5"
+     ],
+     "err": [
+      null,
+      null
+     ]
+    },
+    "banquise:3333": {
+     "ok": true,
+     "carte": "banquise",
+     "L": 5044.28,
+     "ph": "63e5f2bc",
+     "ms": 1647,
+     "pk": "3751907",
+     "pads": "741638a5",
+     "BANQ.kick": "2f9997f5/4",
+     "BANQ.obst": "44447337/13",
+     "deco": [
+      "glace turquoise",
+      "pics ×1.45 h×0.98",
+      "séracs ×1.8",
+      "aiguilles ×1.6 h×1.19",
+      "géants hauts",
+      "amphithéâtre de 7",
+      "monument : cirque",
+      "1 orgue de glace",
+      "3 portes de glace",
+      "aurores cyan-magenta ×1",
+      "brume ×0.6",
+      "poudre de diamant ×0.4",
+      "alpenglow ×0.5"
+     ],
+     "err": [
+      null,
+      null
+     ]
+    },
+    "banquise:44444": {
+     "ok": true,
+     "carte": "banquise",
+     "L": 5108.26,
+     "ph": "143b2fe9",
+     "ms": 1605,
+     "pk": "b783f3f3",
+     "pads": "741638a5",
+     "BANQ.kick": "3385535c/4",
+     "BANQ.obst": "936e1ad/19",
+     "deco": [
+      "glace azur",
+      "pics ×1.45 h×0.95",
+      "séracs ×0.5",
+      "aiguilles ×0.5 h×0.90",
+      "géants comme avant",
+      "amphithéâtre de 7",
+      "monument : rien",
+      "0 orgue de glace",
+      "0 porte de glace",
+      "aurores vert-violet ×0.7",
+      "brume ×1",
+      "poudre de diamant ×1",
+      "alpenglow ×1"
+     ],
+     "err": [
+      null,
+      null
+     ]
+    },
+    "banquise:555555": {
+     "ok": true,
+     "carte": "banquise",
+     "L": 6089.39,
+     "ph": "c2a2ee8c",
+     "ms": 1611,
+     "pk": "c5b3c03d",
+     "pads": "741638a5",
+     "BANQ.kick": "2efa92b1/5",
+     "BANQ.obst": "1f73f420/21",
+     "deco": [
+      "glace saphir",
+      "pics ×1.45 h×0.90",
+      "séracs ×0.5",
+      "aiguilles ×1.6 h×0.96",
+      "géants hauts",
+      "amphithéâtre de 7",
+      "monument : cathédrale",
+      "1 orgue de glace",
+      "1 porte de glace",
+      "aurores vert-violet ×0.7",
+      "brume ×0.6",
+      "poudre de diamant ×0.4",
+      "alpenglow ×1.5"
+     ],
+     "err": [
+      null,
+      null
+     ]
+    },
+    "banquise:6666666": {
+     "ok": true,
+     "carte": "banquise",
+     "L": 4739.32,
+     "ph": "111c1608",
+     "ms": 1617,
+     "pk": "ef63cdff",
+     "pads": "741638a5",
+     "BANQ.kick": "24dd3381/4",
+     "BANQ.obst": "710dddac/12",
+     "deco": [
+      "glace turquoise",
+      "pics ×1.45 h×1.01",
+      "séracs ×0.5",
+      "aiguilles ×1.6 h×0.89",
+      "géants bas",
+      "amphithéâtre de 7 (près)",
+      "monument : cirque",
+      "1 orgue de glace",
+      "3 portes de glace",
+      "aurores rose-bleu ×1",
+      "brume ×1.45",
+      "poudre de diamant ×0.4",
+      "alpenglow ×1"
+     ],
+     "err": [
+      null,
+      null
+     ]
+    }
+   },
+   "erreurs": [],
+   "avert": []
+  },
+  {
+   "nom": "g-sans",
+   "url": "colonne=0&simu=1&carte=banquise&meteo=midi&sans=glacierdecor",
+   "maps": [
+    {
+     "etiq": "banquise:midi",
+     "ech": [
+      {
+       "mode": "drive",
+       "s": 179.6,
+       "L": 4739,
+       "lat": -1.71,
+       "vA": 145.72,
+       "go": false,
+       "carte": "banquise",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 591,
+       "tex": 104,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "ts": 1
+      }
+     ],
+     "morts": [],
+     "alertes": [],
+     "resume": {
+      "n": 1,
+      "cartes": [
+       "banquise:midi"
+      ],
+      "sMax": 179.6,
+      "L": 4739,
+      "progs": [
+       222,
+       222
+      ],
+      "geo": [
+       591,
+       591
+      ]
+     }
+    }
+   ],
+   "eval": {
+    "banquise:11": {
+     "ok": true,
+     "carte": "banquise",
+     "L": 5764.45,
+     "ph": "b36fa01f",
+     "ms": 1701,
+     "pk": "ff890a05",
+     "pads": "741638a5",
+     "BANQ.kick": "b71e350b/5",
+     "BANQ.obst": "100872d/22",
+     "deco": null,
+     "err": [
+      null,
+      null
+     ]
+    },
+    "banquise:222": {
+     "ok": true,
+     "carte": "banquise",
+     "L": 5423.04,
+     "ph": "49faced1",
+     "ms": 1662,
+     "pk": "2990030d",
+     "pads": "741638a5",
+     "BANQ.kick": "3d81b96/2",
+     "BANQ.obst": "545b5883/22",
+     "deco": null,
+     "err": [
+      null,
+      null
+     ]
+    },
+    "banquise:3333": {
+     "ok": true,
+     "carte": "banquise",
+     "L": 5044.28,
+     "ph": "63e5f2bc",
+     "ms": 1617,
+     "pk": "db8bc893",
+     "pads": "741638a5",
+     "BANQ.kick": "2f9997f5/4",
+     "BANQ.obst": "44447337/13",
+     "deco": null,
+     "err": [
+      null,
+      null
+     ]
+    },
+    "banquise:44444": {
+     "ok": true,
+     "carte": "banquise",
+     "L": 5108.26,
+     "ph": "143b2fe9",
+     "ms": 1605,
+     "pk": "b783f3f3",
+     "pads": "741638a5",
+     "BANQ.kick": "3385535c/4",
+     "BANQ.obst": "936e1ad/19",
+     "deco": null,
+     "err": [
+      null,
+      null
+     ]
+    },
+    "banquise:555555": {
+     "ok": true,
+     "carte": "banquise",
+     "L": 6089.39,
+     "ph": "c2a2ee8c",
+     "ms": 1609,
+     "pk": "f5dbd8c7",
+     "pads": "741638a5",
+     "BANQ.kick": "2efa92b1/5",
+     "BANQ.obst": "1f73f420/21",
+     "deco": null,
+     "err": [
+      null,
+      null
+     ]
+    },
+    "banquise:6666666": {
+     "ok": true,
+     "carte": "banquise",
+     "L": 4739.32,
+     "ph": "111c1608",
+     "ms": 1613,
+     "pk": "ef63cdff",
+     "pads": "741638a5",
+     "BANQ.kick": "24dd3381/4",
+     "BANQ.obst": "710dddac/12",
+     "deco": null,
+     "err": [
+      null,
+      null
+     ]
+    }
+   },
+   "erreurs": [],
+   "avert": []
+  }
+ ]
+}

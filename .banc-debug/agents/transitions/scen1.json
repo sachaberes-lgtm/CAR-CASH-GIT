@@ -1,0 +1,48 @@
+[
+ {
+  "nom": "chaine-13",
+  "carte": "nuages",
+  "meteo": "midi",
+  "secs": 6,
+  "attente": 1,
+  "auto": {
+   "lat": 0
+  },
+  "chaine": "ville:pluie:vert,jade:matin,foret:nuit,banquise:neige,volcan:soir,crypto:nuit,espace:midi,grotte:matin,canyon:orage,dunes:soir,nuages:orage,foret:midi,volcan:matin",
+  "sonde": "(function(){const t=G.dbgT();return {tm:t.tm,sc:t.sc,fen:t.fen,pb:G.dbgPrebati().etat,cl:t.clouds,r:Object.keys(t.roots).filter(k=>t.roots[k]).join(',')}})()",
+  "evalFin": "(async function(){const w=ms=>new Promise(r=>setTimeout(r,ms));const snap=(n)=>{const t=G.dbgT(),p=G.dbgPrebati();return {n:n,c:t.carte+':'+t.meteo+(t.teinte?':'+t.teinte:''),roots:Object.keys(t.roots).filter(k=>t.roots[k]).join(','),lvl:t.lvl,bio:t.bio,tir:t.tirage,der:t.der,pro:t.prochain,neuf:t.neuf,geo:t.mem.geometries,tex:t.mem.textures,sc:t.sc,tm:t.tm,cl:t.clouds,mode:t.mode,go:t.gameOver,run:t.running,pa:t.paused,s:t.s,safeS:t.safeS,L:t.L,lat:t.lat,inv:t.inv,used:t.used,fen:t.fen,att:t.att,portC:t.portC,pcube:t.pcube,zones:t.zones,errs:t.errs,pb:{e:p.etat,c:p.carte,pris:p.pris,dep:p.prisAuDepart,ann:p.annules,der:p.der,err:p.err}};};const attend=async(f,ms)=>{const t0=Date.now();while(Date.now()-t0<ms){if(f())return true;await w(100);}return false;}; return [snap('fin'),G.dbgPrebati()];})()"
+ },
+ {
+  "nom": "rejouer-3",
+  "carte": "foret",
+  "meteo": "midi",
+  "secs": 8,
+  "auto": {
+   "lat": 0
+  },
+  "eval": "(async function(){const w=ms=>new Promise(r=>setTimeout(r,ms));const snap=(n)=>{const t=G.dbgT(),p=G.dbgPrebati();return {n:n,c:t.carte+':'+t.meteo+(t.teinte?':'+t.teinte:''),roots:Object.keys(t.roots).filter(k=>t.roots[k]).join(','),lvl:t.lvl,bio:t.bio,tir:t.tirage,der:t.der,pro:t.prochain,neuf:t.neuf,geo:t.mem.geometries,tex:t.mem.textures,sc:t.sc,tm:t.tm,cl:t.clouds,mode:t.mode,go:t.gameOver,run:t.running,pa:t.paused,s:t.s,safeS:t.safeS,L:t.L,lat:t.lat,inv:t.inv,used:t.used,fen:t.fen,att:t.att,portC:t.portC,pcube:t.pcube,zones:t.zones,errs:t.errs,pb:{e:p.etat,c:p.carte,pris:p.pris,dep:p.prisAuDepart,ann:p.annules,der:p.der,err:p.err}};};const attend=async(f,ms)=>{const t0=Date.now();while(Date.now()-t0<ms){if(f())return true;await w(100);}return false;}; const out=[];G.dbgAuto(1,0,{});await w(5000);out.push(snap('A-course1'));G.dbgChance('mort');await attend(()=>G.dbgState().gameOver,8000);await w(3000);out.push(snap('B-fin1'));\n  out.push(G.dbgT('rejoue'));await w(4000);out.push(snap('C-course2'));G.dbgChance('mort');await attend(()=>G.dbgState().gameOver,8000);await w(3000);out.push(snap('D-fin2'));out.push(G.dbgT('rejoue'));await w(4000);out.push(snap('E-course3'));return out;})()",
+  "evalFin": "(async function(){const w=ms=>new Promise(r=>setTimeout(r,ms));const snap=(n)=>{const t=G.dbgT(),p=G.dbgPrebati();return {n:n,c:t.carte+':'+t.meteo+(t.teinte?':'+t.teinte:''),roots:Object.keys(t.roots).filter(k=>t.roots[k]).join(','),lvl:t.lvl,bio:t.bio,tir:t.tirage,der:t.der,pro:t.prochain,neuf:t.neuf,geo:t.mem.geometries,tex:t.mem.textures,sc:t.sc,tm:t.tm,cl:t.clouds,mode:t.mode,go:t.gameOver,run:t.running,pa:t.paused,s:t.s,safeS:t.safeS,L:t.L,lat:t.lat,inv:t.inv,used:t.used,fen:t.fen,att:t.att,portC:t.portC,pcube:t.pcube,zones:t.zones,errs:t.errs,pb:{e:p.etat,c:p.carte,pris:p.pris,dep:p.prisAuDepart,ann:p.annules,der:p.der,err:p.err}};};const attend=async(f,ms)=>{const t0=Date.now();while(Date.now()-t0<ms){if(f())return true;await w(100);}return false;}; return snap('fin');})()"
+ },
+ {
+  "nom": "chance-dunes",
+  "carte": "dunes",
+  "meteo": "soir",
+  "secs": 10,
+  "auto": {
+   "lat": 0
+  },
+  "eval": "(async function(){const w=ms=>new Promise(r=>setTimeout(r,ms));const snap=(n)=>{const t=G.dbgT(),p=G.dbgPrebati();return {n:n,c:t.carte+':'+t.meteo+(t.teinte?':'+t.teinte:''),roots:Object.keys(t.roots).filter(k=>t.roots[k]).join(','),lvl:t.lvl,bio:t.bio,tir:t.tirage,der:t.der,pro:t.prochain,neuf:t.neuf,geo:t.mem.geometries,tex:t.mem.textures,sc:t.sc,tm:t.tm,cl:t.clouds,mode:t.mode,go:t.gameOver,run:t.running,pa:t.paused,s:t.s,safeS:t.safeS,L:t.L,lat:t.lat,inv:t.inv,used:t.used,fen:t.fen,att:t.att,portC:t.portC,pcube:t.pcube,zones:t.zones,errs:t.errs,pb:{e:p.etat,c:p.carte,pris:p.pris,dep:p.prisAuDepart,ann:p.annules,der:p.der,err:p.err}};};const attend=async(f,ms)=>{const t0=Date.now();while(Date.now()-t0<ms){if(f())return true;await w(100);}return false;}; const out=[];G.dbgAuto(1,0,{});await w(7000);G.dbgChance('t',40);G.dbgChance('$',600);out.push(snap('A'));G.dbgChance('mort');await attend(()=>G.dbgState().gameOver,8000);await w(1200);out.push(G.dbgChance());out.push(G.dbgChance('joue'));await w(300);out.push(G.dbgPub?G.dbgPub('fin'):null);\n  await attend(()=>!G.dbgState().gameOver,9000);out.push(snap('B-repris'));await w(1500);out.push(snap('C+1.5s'));return out;})()",
+  "evalFin": "(async function(){const w=ms=>new Promise(r=>setTimeout(r,ms));const snap=(n)=>{const t=G.dbgT(),p=G.dbgPrebati();return {n:n,c:t.carte+':'+t.meteo+(t.teinte?':'+t.teinte:''),roots:Object.keys(t.roots).filter(k=>t.roots[k]).join(','),lvl:t.lvl,bio:t.bio,tir:t.tirage,der:t.der,pro:t.prochain,neuf:t.neuf,geo:t.mem.geometries,tex:t.mem.textures,sc:t.sc,tm:t.tm,cl:t.clouds,mode:t.mode,go:t.gameOver,run:t.running,pa:t.paused,s:t.s,safeS:t.safeS,L:t.L,lat:t.lat,inv:t.inv,used:t.used,fen:t.fen,att:t.att,portC:t.portC,pcube:t.pcube,zones:t.zones,errs:t.errs,pb:{e:p.etat,c:p.carte,pris:p.pris,dep:p.prisAuDepart,ann:p.annules,der:p.der,err:p.err}};};const attend=async(f,ms)=>{const t0=Date.now();while(Date.now()-t0<ms){if(f())return true;await w(100);}return false;}; return snap('fin');})()"
+ },
+ {
+  "nom": "pause-portail",
+  "carte": "volcan",
+  "meteo": "soir",
+  "secs": 8,
+  "auto": {
+   "lat": 0
+  },
+  "eval": "(async function(){const w=ms=>new Promise(r=>setTimeout(r,ms));const snap=(n)=>{const t=G.dbgT(),p=G.dbgPrebati();return {n:n,c:t.carte+':'+t.meteo+(t.teinte?':'+t.teinte:''),roots:Object.keys(t.roots).filter(k=>t.roots[k]).join(','),lvl:t.lvl,bio:t.bio,tir:t.tirage,der:t.der,pro:t.prochain,neuf:t.neuf,geo:t.mem.geometries,tex:t.mem.textures,sc:t.sc,tm:t.tm,cl:t.clouds,mode:t.mode,go:t.gameOver,run:t.running,pa:t.paused,s:t.s,safeS:t.safeS,L:t.L,lat:t.lat,inv:t.inv,used:t.used,fen:t.fen,att:t.att,portC:t.portC,pcube:t.pcube,zones:t.zones,errs:t.errs,pb:{e:p.etat,c:p.carte,pris:p.pris,dep:p.prisAuDepart,ann:p.annules,der:p.der,err:p.err}};};const attend=async(f,ms)=>{const t0=Date.now();while(Date.now()-t0<ms){if(f())return true;await w(100);}return false;}; const out=[];G.dbgAuto(1,0,{});await w(4000);out.push(snap('A'));G.dbgPortail(160);const z0=G.dbgT().zones;await attend(()=>G.dbgT().zones>z0,8000);out.push(G.dbgT('pause'));out.push(snap('B-pause'));await w(1500);out.push(snap('C-pause+1.5'));out.push(G.dbgT('pause'));await w(2000);out.push(snap('D-repris'));\n  G.dbgPortail(160);const z1=G.dbgT().zones;await attend(()=>G.dbgT().zones>z1,8000);await w(30);out.push(G.dbgT('pause'));await w(1200);out.push(snap('E-pause2'));out.push(G.dbgT('pause'));await w(1500);out.push(snap('F'));return out;})()",
+  "evalFin": "(async function(){const w=ms=>new Promise(r=>setTimeout(r,ms));const snap=(n)=>{const t=G.dbgT(),p=G.dbgPrebati();return {n:n,c:t.carte+':'+t.meteo+(t.teinte?':'+t.teinte:''),roots:Object.keys(t.roots).filter(k=>t.roots[k]).join(','),lvl:t.lvl,bio:t.bio,tir:t.tirage,der:t.der,pro:t.prochain,neuf:t.neuf,geo:t.mem.geometries,tex:t.mem.textures,sc:t.sc,tm:t.tm,cl:t.clouds,mode:t.mode,go:t.gameOver,run:t.running,pa:t.paused,s:t.s,safeS:t.safeS,L:t.L,lat:t.lat,inv:t.inv,used:t.used,fen:t.fen,att:t.att,portC:t.portC,pcube:t.pcube,zones:t.zones,errs:t.errs,pb:{e:p.etat,c:p.carte,pris:p.pris,dep:p.prisAuDepart,ann:p.annules,der:p.der,err:p.err}};};const attend=async(f,ms)=>{const t0=Date.now();while(Date.now()-t0<ms){if(f())return true;await w(100);}return false;}; return snap('fin');})()"
+ }
+]

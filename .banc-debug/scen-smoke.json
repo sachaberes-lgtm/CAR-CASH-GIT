@@ -1,0 +1,11 @@
+[{"carte":"nuages","meteo":"orage","secs":18},
+ {"carte":"ville","meteo":"pluie","teinte":"vert","secs":18,"auto":{"lat":0,"vol":true,"saut":5}},
+ {"carte":"jade","meteo":"soir","secs":18},
+ {"carte":"foret","meteo":"nuit","secs":18},
+ {"carte":"banquise","meteo":"blizzard","secs":18,"auto":{"lat":0,"gl":true}},
+ {"carte":"volcan","meteo":"soir","secs":18},
+ {"carte":"crypto","meteo":"midi","secs":18,"vue":"tel"},
+ {"carte":"espace","meteo":"midi","secs":18},
+ {"carte":"grotte","meteo":"matin","secs":18},
+ {"carte":"canyon","meteo":"orage","secs":18,"vue":"debout"},
+ {"carte":"dunes","meteo":"soir","secs":18}]

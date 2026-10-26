@@ -1,0 +1,17 @@
+[
+ {
+  "old": "mesh.add(sk9);} // la peau du nuage seul (coussin, tour)",
+  "new": "mesh.add(sk9);mesh.userData.peau=sk9.geometry; /* (2026-10-22, DEBUGGING : sa géométrie est NEUVE pour chaque nuage — disposeClouds la libère, voir u9.peau) */} // la peau du nuage seul (coussin, tour)",
+  "pourquoi": "la peau d'un nuage seul (v773) : sa géométrie n'était connue de personne"
+ },
+ {
+  "old": "const u9=c.mesh&&c.mesh.userData;if(u9&&u9.vit)",
+  "new": "const u9=c.mesh&&c.mesh.userData;if(u9&&u9.peau)u9.peau.dispose(); /* (2026-10-22, DEBUGGING : la PEAU d'un nuage seul (v773, un enfant du maillage hors de u9.vit) n'était jamais libérée — MESURÉ : 12 à 16 géométries de plus au compteur à chaque sortie de la mer de nuages) */if(u9&&u9.vit)",
+  "pourquoi": "fuite de géométries de la peau des nuages seuls à chaque portail"
+ },
+ {
+  "old": "{const RH=ROAD_HALF,kRH=RH/61.6,O=BANQ.obst,",
+  "new": "{const fr=mulberry32((seed^0xB0B57AC)>>>0) /* (2026-10-22, DEBUGGING : LA PISTE a SON flux — les multiplicateurs du DÉCOR AU HASARD (pics, séracs, aiguilles, géants, amphithéâtre) changent le NOMBRE de tirages de `fr` des sections 1-4 : MESURÉ, même pistegraine, 16 pics sur la piste avec le décor contre 14 sans (23 contre 15), et les pièces qui les évitent — le décor rebattait les obstacles de la route) */,RH=ROAD_HALF,kRH=RH/61.6,O=BANQ.obst,",
+  "pourquoi": "glacier : les obstacles de la piste ne dépendent plus du tirage du décor"
+ }
+]

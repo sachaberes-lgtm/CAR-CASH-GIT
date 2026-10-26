@@ -1,0 +1,21 @@
+bash
+W=/private/tmp/claude-501/-Users-sachaberes-cash-car-foret/e762ca5d-4e2a-4f31-8f63-9bd36d6789b7/scratchpad/banc/agents/foret; cd $W; cat > mkfix.js <<'EOF'
+const fs=require('fs');
+const fut="/* (2026-10-18, DEBUGGING : « des arbres qui traversent la route ? ») LE FÛT DU PLEUREUR HORS DE LA ROUTE. geantXZ a posé ce géant à la distance que demande le fût de SON essence\n"+
+"         (FOR_GEANT_RB : un épicéa 6,6, un hêtre 8,2) ; devenu saule ou hêtre pleureur (fût de 13-15,5, penché ou tordu de 4-6 unités), son tronc mordait le bord de la route\n"+
+"         (banc, 15 graines : 32 géants, jusqu'à 4 m dans la chaussée — on le traversait en roulant, on y mourait en sautant). Le fût et les branches réels (gélules du prototype\n"+
+"         à l'échelle, ×1,3 + 2 m : le bois visible, écorce comprise) sont testés contre la chaussée (toute sa largeur, sa tranche) : l'autre pleureur s'il passe, sinon la clairière reste vide. */\n"+
+"      const fut=function(e,k){const C9=PT.geant[e][0].m.C,ca=Math.cos(g.ry),sa=Math.sin(g.ry),sx=g.sxz;let hit=false;\n"+
+"        proches(g.x,g.z,FOR_PLEUR_VOL[e].r*sx+ROAD_HALF+20,function(j){if(hit)return;const q=pts[j],b=B[j];\n"+
+"          for(const cp of C9){const ax=g.x+(cp[0]*ca+cp[2]*sa)*sx,ay=g.y+cp[1]*k,az=g.z+(-cp[0]*sa+cp[2]*ca)*sx,bx=g.x+(cp[3]*ca+cp[5]*sa)*sx-ax,by=g.y+cp[4]*k-ay,bz=g.z+(-cp[3]*sa+cp[5]*ca)*sx-az,l2=bx*bx+by*by+bz*bz,r=cp[6]*sx*1.3+2;\n"+
+"            for(let l=-ROAD_HALF;l<=ROAD_HALF+.01;l+=7)for(const h of [-3,2]){const px=q.x+b.x*l,py=q.y+b.y*l+h,pz=q.z+b.z*l;let u=l2>0?((px-ax)*bx+(py-ay)*by+(pz-az)*bz)/l2:0;u=u<0?0:u>1?1:u;\n"+
+"              const dx=px-ax-bx*u,dy=py-ay-by*u,dz=pz-az-bz*u;if(dx*dx+dy*dy+dz*dz<r*r){hit=true;return;}}}});return hit;};\n"+
+"      if(k9<=g.sy*1.45&&k9<=5.6&&fut(e9,k9)){const o9=e9==='gsaule'?'gpleureur':'gsaule',k8=pl(o9);if(k8<=g.sy*1.45&&k8<=5.6&&!fut(o9,k8)){e9=o9;k9=k8;}else k9=1e9;} /* (le fût dans la route : l'autre pleureur, ou la clairière vide) */\n"+
+"      ";
+const L=[
+ {old:"if(k9>g.sy*1.45||k9>5.6){g.vide=1;",new:fut+"if(k9>g.sy*1.45||k9>5.6){g.vide=1;",pourquoi:"buildForetG : le fût d'un géant devenu pleureur (saule, hêtre pleureur) traversait le bord de la route — il est testé contre la chaussée ; l'autre pleureur ou la clairière vide (tirages fr inchangés)"},
+ {old:"FORET.msSol=Math.round(tS-t0);FORET.sig=0;",new:"FORET.msSol=Math.round(tS-t0);FORET.sig=0;FORET.yRaz=true; /* (2026-10-18, DEBUGGING : yRaz n'était jamais posé — foretTick le lit pour poser la BRUME DU FOND à la hauteur de la route neuve dès la 1re image ; sans lui elle partait de celle de la forêt d'avant et glissait ~2 s, comme BANQ.yRaz / VOLCAN.yRaz) */",pourquoi:"buildForetG : FORET.yRaz jamais posé (lu par foretTick) — la brume du fond (uMistY) partait de la hauteur de l'ancienne route"}
+];
+fs.writeFileSync('correctif.json',JSON.stringify(L,null,1));
+EOF
+node mkfix.js; B=$W/../..; git -C /Users/sachaberes/cash-car/debug-maps show 37fd9a62:"VERSION PRINCIPALE/index.html" > $W/ref.html; node $B/applique.mjs $W/ref.html $W/correctif.json --sec; node $B/applique.mjs $W/jeu/index.html $W/correctif.json && node $B/chk.js $W/jeu/index.html; grep -n "const fut=function" $W/jeu/index.html | cut -c1-80

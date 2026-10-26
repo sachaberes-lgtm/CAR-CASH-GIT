@@ -1,0 +1,5810 @@
+{
+ "jeu": "/Users/sachaberes/cash-car/debug-maps/.banc-debug/agents/dunes/jeu",
+ "scen": [
+  {
+   "nom": "A-soir-1234",
+   "url": "colonne=0&simu=1&carte=dunes&meteo=soir&pistegraine=1234",
+   "maps": [
+    {
+     "etiq": "dunes:soir",
+     "ech": [
+      {
+       "mode": "drive",
+       "s": 29.9,
+       "L": 3941,
+       "lat": 0,
+       "vA": 74.95,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 545,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 30,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 1
+      },
+      {
+       "mode": "drive",
+       "s": 75.5,
+       "L": 3941,
+       "lat": 0,
+       "vA": 107.33,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 545,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 76,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 2
+      },
+      {
+       "mode": "drive",
+       "s": 133.6,
+       "L": 3941,
+       "lat": 0,
+       "vA": 128.76,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 545,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 134,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 3
+      },
+      {
+       "mode": "drive",
+       "s": 195.6,
+       "L": 3941,
+       "lat": -0.14,
+       "vA": 130.93,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 545,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.8,
+        "at": false,
+        "on": true,
+        "ss": 196,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 4
+      },
+      {
+       "mode": "drive",
+       "s": 259.8,
+       "L": 3941,
+       "lat": -1.16,
+       "vA": 136.23,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 545,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 260,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 5
+      },
+      {
+       "mode": "drive",
+       "s": 325.9,
+       "L": 3941,
+       "lat": 2.37,
+       "vA": 139.67,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 546,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.8,
+        "at": false,
+        "on": true,
+        "ss": 326,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 6
+      },
+      {
+       "mode": "drive",
+       "s": 393.3,
+       "L": 3941,
+       "lat": -0.88,
+       "vA": 141.73,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 546,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 393,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 7
+      },
+      {
+       "mode": "drive",
+       "s": 461.7,
+       "L": 3941,
+       "lat": -0.1,
+       "vA": 143.21,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 545,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.8,
+        "at": false,
+        "on": true,
+        "ss": 462,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 8
+      },
+      {
+       "mode": "fall",
+       "s": 484.7,
+       "L": 3941,
+       "lat": -0.04,
+       "vA": 143.66,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 559,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:69/18.6/2.41",
+        "ch": 91.8,
+        "at": false,
+        "on": true,
+        "ss": 485,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 9
+      },
+      {
+       "mode": "fall",
+       "s": 484.7,
+       "L": 3941,
+       "lat": -0.04,
+       "vA": 143.66,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 559,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:69/18.6/2.41",
+        "ch": 22.8,
+        "at": false,
+        "on": true,
+        "ss": 485,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 10
+      },
+      {
+       "mode": "drive",
+       "s": 669.8,
+       "L": 3941,
+       "lat": -1.15,
+       "vA": 109.75,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 561,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:69/18.6/2.41",
+        "ch": 7.8,
+        "at": false,
+        "on": true,
+        "ss": 670,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 11
+      },
+      {
+       "mode": "drive",
+       "s": 724.9,
+       "L": 3941,
+       "lat": -1.08,
+       "vA": 120.33,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 562,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:69/18.6/2.41",
+        "ch": 7.8,
+        "at": false,
+        "on": true,
+        "ss": 725,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 12
+      },
+      {
+       "mode": "drive",
+       "s": 786.9,
+       "L": 3941,
+       "lat": 0.01,
+       "vA": 149.47,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 605,
+       "tex": 109,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:69/18.6/2.41",
+        "ch": 7.8,
+        "at": false,
+        "on": true,
+        "ss": 787,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 13
+      },
+      {
+       "mode": "drive",
+       "s": 862.8,
+       "L": 3941,
+       "lat": 2.28,
+       "vA": 165.54,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 604,
+       "tex": 109,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:69/18.6/2.41",
+        "ch": 8.7,
+        "at": false,
+        "on": true,
+        "ss": 863,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 14
+      },
+      {
+       "mode": "drive",
+       "s": 949.6,
+       "L": 3941,
+       "lat": -1.64,
+       "vA": 180.94,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 604,
+       "tex": 109,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:69/18.6/2.41",
+        "ch": 8.8,
+        "at": false,
+        "on": true,
+        "ss": 950,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 15
+      },
+      {
+       "mode": "drive",
+       "s": 1045.6,
+       "L": 3941,
+       "lat": -0.25,
+       "vA": 205.3,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 599,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:69/18.6/2.41",
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 1046,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 16
+      },
+      {
+       "mode": "fall",
+       "s": 1062.1,
+       "L": 3941,
+       "lat": -0.15,
+       "vA": 206.58,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 599,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:99.2/17.6/2.34",
+        "ch": 110.7,
+        "at": false,
+        "on": true,
+        "ss": 1062,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 17
+      },
+      {
+       "mode": "fall",
+       "s": 1062.1,
+       "L": 3941,
+       "lat": -0.15,
+       "vA": 206.58,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 599,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:99.2/17.6/2.34",
+        "ch": 17.4,
+        "at": false,
+        "on": true,
+        "ss": 1062,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 18
+      },
+      {
+       "mode": "drive",
+       "s": 1333,
+       "L": 3941,
+       "lat": -3.64,
+       "vA": 150.13,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 601,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:99.2/17.6/2.34",
+        "ch": 9.1,
+        "at": false,
+        "on": true,
+        "ss": 1333,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 19
+      },
+      {
+       "mode": "drive",
+       "s": 1407.4,
+       "L": 3941,
+       "lat": -1.52,
+       "vA": 157.86,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 599,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:99.2/17.6/2.34",
+        "ch": 7.8,
+        "at": false,
+        "on": true,
+        "ss": 1407,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 20.1
+      },
+      {
+       "mode": "drive",
+       "s": 1488.9,
+       "L": 3941,
+       "lat": 3.09,
+       "vA": 180.28,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 606,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:99.2/17.6/2.34",
+        "ch": 7.8,
+        "at": false,
+        "on": true,
+        "ss": 1489,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 21.1
+      },
+      {
+       "mode": "drive",
+       "s": 1575.6,
+       "L": 3941,
+       "lat": -0.15,
+       "vA": 189.07,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 607,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:99.2/17.6/2.34",
+        "ch": 7.8,
+        "at": false,
+        "on": true,
+        "ss": 1576,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 22.1
+      },
+      {
+       "mode": "drive",
+       "s": 1668.8,
+       "L": 3941,
+       "lat": -0.97,
+       "vA": 193.97,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 606,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:99.2/17.6/2.34",
+        "ch": 9,
+        "at": false,
+        "on": true,
+        "ss": 1669,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 23.1
+      },
+      {
+       "mode": "fall",
+       "s": 1733.2,
+       "L": 3941,
+       "lat": -0.2,
+       "vA": 189.98,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 606,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 3,
+        "lv": "2:91.2/11.7/2.11",
+        "ch": 104.8,
+        "at": false,
+        "on": true,
+        "ss": 1733,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 24.1
+      },
+      {
+       "mode": "fall",
+       "s": 1733.2,
+       "L": 3941,
+       "lat": -0.2,
+       "vA": 189.98,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 606,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 3,
+        "lv": "2:91.2/11.7/2.11",
+        "ch": 67.8,
+        "at": false,
+        "on": true,
+        "ss": 1733,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 25.1
+      },
+      {
+       "mode": "drive",
+       "s": 1943.3,
+       "L": 3941,
+       "lat": -3.22,
+       "vA": 142.49,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 608,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 3,
+        "lv": "2:91.2/11.7/2.11",
+        "ch": 9.1,
+        "at": false,
+        "on": true,
+        "ss": 1943,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 26.1
+      },
+      {
+       "mode": "drive",
+       "s": 2013,
+       "L": 3941,
+       "lat": -0.08,
+       "vA": 152.09,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 605,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 3,
+        "lv": "2:91.2/11.7/2.11",
+        "ch": 8.8,
+        "at": false,
+        "on": true,
+        "ss": 2013,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 27.1
+      },
+      {
+       "mode": "drive",
+       "s": 2090.3,
+       "L": 3941,
+       "lat": -3.55,
+       "vA": 164.39,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 604,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 3,
+        "lv": "2:91.2/11.7/2.11",
+        "ch": 7.8,
+        "at": false,
+        "on": true,
+        "ss": 2090,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 28.1
+      },
+      {
+       "mode": "drive",
+       "s": 2180.1,
+       "L": 3941,
+       "lat": 5.37,
+       "vA": 203.05,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 604,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 3,
+        "lv": "2:91.2/11.7/2.11",
+        "ch": 7.8,
+        "at": false,
+        "on": true,
+        "ss": 2180,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 29.1
+      },
+      {
+       "mode": "drive",
+       "s": 2280,
+       "L": 3941,
+       "lat": -0.13,
+       "vA": 210.77,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 603,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 3,
+        "lv": "2:91.2/11.7/2.11",
+        "ch": 7.8,
+        "at": false,
+        "on": true,
+        "ss": 2280,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 30.1
+      }
+     ],
+     "morts": [],
+     "alertes": [],
+     "resume": {
+      "n": 30,
+      "cartes": [
+       "dunes:soir"
+      ],
+      "sMax": 2280,
+      "L": 3941,
+      "progs": [
+       226,
+       226
+      ],
+      "geo": [
+       545,
+       603
+      ],
+      "x": {
+       "sa": 3,
+       "lv": "2:91.2/11.7/2.11",
+       "ch": 7.8,
+       "at": false,
+       "on": true,
+       "ss": 2280,
+       "inv": 0,
+       "pv": false
+      }
+     }
+    }
+   ],
+   "menu": {
+    "progs": 226,
+    "attente": 9
+   },
+   "evalFin": {
+    "err": null,
+    "loopErr": null,
+    "on": true,
+    "test": {
+     "dessus": 0,
+     "dessous": 0,
+     "margeMin": 2,
+     "decorsSurLaRoute": 0,
+     "sep": 0,
+     "ou": ""
+    },
+    "L": 3941,
+    "hz": {
+     "axe": 7,
+     "B": 4045,
+     "LL": 1.04,
+     "RMIN": 68,
+     "VN": 105,
+     "sauts": 5,
+     "pieces": [
+      "dune",
+      "vlei",
+      "dune",
+      "dune"
+     ]
+    },
+    "ms": {
+     "ech": 2,
+     "fond": 67,
+     "fin": 7,
+     "texels": 13893,
+     "ombre": 9,
+     "pose": 6,
+     "total": 94
+    },
+    "sauts": 3,
+    "deco": {
+     "sd": 2568883061,
+     "sable": "blanc",
+     "pyr": [
+      "lisse:823m",
+      "gradins:894m",
+      ":1168m"
+     ],
+     "mo": [],
+     "pose": {
+      "troncons": 1,
+      "camps": 2,
+      "touffes": 0,
+      "cactus": 0,
+      "os": 0,
+      "sommets": 2268,
+      "ms": 2
+     },
+     "oasis": "mirage"
+    },
+    "fp": {
+     "L": 3941,
+     "trous": "483-591 1059-1234 1733-1865 2430-2538 2979-3093",
+     "sQ": {
+      "depart": 0,
+      "erg0": 200,
+      "vlei0": 1056,
+      "vlei1": 1232,
+      "oasis0": 3568,
+      "fin": 3792
+     },
+     "ob": 3,
+     "pyrs": "1394,3872 157,4334 1055,5396",
+     "car": "-99,190",
+     "ysum": -44476,
+     "vent": [
+      0.15,
+      0.99,
+      0.73,
+      0.68
+     ],
+     "lam": 785,
+     "nArb": 100,
+     "nPal": 0
+    },
+    "pyr": [
+     {
+      "st": "lisse",
+      "hw": 411,
+      "eMin": 1.5,
+      "s": 3936,
+      "margeY": null
+     },
+     {
+      "st": "gradins",
+      "hw": 447,
+      "eMin": 1.4,
+      "s": 3728,
+      "margeY": null
+     },
+     {
+      "st": "",
+      "hw": 584,
+      "eMin": 2.75,
+      "s": 3936,
+      "margeY": null
+     }
+    ],
+    "car": "93@192",
+    "tor": "",
+    "mo": "",
+    "lev": "s483/108/468 v1059/175/499 s1733/132/565 s2430/108/441 f2979/114/848"
+   },
+   "erreurs": [],
+   "avert": []
+  },
+  {
+   "nom": "B-soir-1234-sansprebati",
+   "url": "colonne=0&simu=1&carte=dunes&meteo=soir&pistegraine=1234&prebati=0",
+   "maps": [
+    {
+     "etiq": "dunes:soir",
+     "ech": [
+      {
+       "mode": "drive",
+       "s": 27.5,
+       "L": 3941,
+       "lat": 0,
+       "vA": 72.68,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 222,
+       "geo": 493,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "ts": 1
+      },
+      {
+       "mode": "drive",
+       "s": 70.4,
+       "L": 3941,
+       "lat": 0,
+       "vA": 104.41,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 222,
+       "geo": 493,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "ts": 2
+      },
+      {
+       "mode": "drive",
+       "s": 127.4,
+       "L": 3941,
+       "lat": 0,
+       "vA": 128.99,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 222,
+       "geo": 493,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "ts": 3
+      },
+      {
+       "mode": "drive",
+       "s": 191.4,
+       "L": 3941,
+       "lat": -0.1,
+       "vA": 130.53,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 222,
+       "geo": 493,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "ts": 4
+      },
+      {
+       "mode": "drive",
+       "s": 255.5,
+       "L": 3941,
+       "lat": -1.4,
+       "vA": 135.93,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 222,
+       "geo": 493,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "ts": 5
+      }
+     ],
+     "morts": [],
+     "alertes": [],
+     "resume": {
+      "n": 5,
+      "cartes": [
+       "dunes:soir"
+      ],
+      "sMax": 255.5,
+      "L": 3941,
+      "progs": [
+       222,
+       222
+      ],
+      "geo": [
+       493,
+       493
+      ]
+     }
+    }
+   ],
+   "evalFin": {
+    "err": null,
+    "loopErr": null,
+    "on": true,
+    "test": {
+     "dessus": 0,
+     "dessous": 0,
+     "margeMin": 2,
+     "decorsSurLaRoute": 0,
+     "sep": 0,
+     "ou": ""
+    },
+    "L": 3941,
+    "hz": {
+     "axe": 7,
+     "B": 4045,
+     "LL": 1.04,
+     "RMIN": 68,
+     "VN": 105,
+     "sauts": 5,
+     "pieces": [
+      "dune",
+      "vlei",
+      "dune",
+      "dune"
+     ]
+    },
+    "ms": {
+     "ech": 2,
+     "fond": 65,
+     "fin": 7,
+     "texels": 13893,
+     "ombre": 9,
+     "pose": 5,
+     "total": 90
+    },
+    "sauts": 0,
+    "deco": {
+     "sd": 2568883061,
+     "sable": "blanc",
+     "pyr": [
+      "lisse:823m",
+      "gradins:894m",
+      ":1168m"
+     ],
+     "mo": [],
+     "pose": {
+      "troncons": 1,
+      "camps": 2,
+      "touffes": 0,
+      "cactus": 0,
+      "os": 0,
+      "sommets": 2268,
+      "ms": 2
+     },
+     "oasis": "mirage"
+    },
+    "fp": {
+     "L": 3941,
+     "trous": "483-591 1059-1234 1733-1865 2430-2538 2979-3093",
+     "sQ": {
+      "depart": 0,
+      "erg0": 200,
+      "vlei0": 1056,
+      "vlei1": 1232,
+      "oasis0": 3568,
+      "fin": 3792
+     },
+     "ob": 3,
+     "pyrs": "1394,3872 157,4334 1055,5396",
+     "car": "-99,190",
+     "ysum": -44476,
+     "vent": [
+      0.15,
+      0.99,
+      0.73,
+      0.68
+     ],
+     "lam": 785,
+     "nArb": 100,
+     "nPal": 0
+    },
+    "pyr": [
+     {
+      "st": "lisse",
+      "hw": 411,
+      "eMin": 1.5,
+      "s": 3936,
+      "margeY": null
+     },
+     {
+      "st": "gradins",
+      "hw": 447,
+      "eMin": 1.4,
+      "s": 3728,
+      "margeY": null
+     },
+     {
+      "st": "",
+      "hw": 584,
+      "eMin": 2.75,
+      "s": 3936,
+      "margeY": null
+     }
+    ],
+    "car": "93@192",
+    "tor": "",
+    "mo": "",
+    "lev": "s483/108/468 v1059/175/499 s1733/132/565 s2430/108/441 f2979/114/848"
+   },
+   "erreurs": [],
+   "avert": []
+  },
+  {
+   "nom": "C-midi-moteur",
+   "url": "colonne=0&simu=1&carte=dunes&meteo=midi&pistegraine=777",
+   "maps": [
+    {
+     "etiq": "dunes:midi",
+     "ech": [
+      {
+       "mode": "drive",
+       "s": 33.3,
+       "L": 4625,
+       "lat": 0,
+       "vA": 90.8,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 554,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 33,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 1
+      },
+      {
+       "mode": "drive",
+       "s": 87.9,
+       "L": 4625,
+       "lat": 0,
+       "vA": 134.35,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 554,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.8,
+        "at": false,
+        "on": true,
+        "ss": 88,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 2
+      },
+      {
+       "mode": "drive",
+       "s": 163.5,
+       "L": 4625,
+       "lat": -0.05,
+       "vA": 176.03,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 554,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 163,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 3
+      },
+      {
+       "mode": "drive",
+       "s": 248.1,
+       "L": 4625,
+       "lat": 1.45,
+       "vA": 177.27,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 554,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 9.1,
+        "at": false,
+        "on": true,
+        "ss": 248,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 4
+      },
+      {
+       "mode": "drive",
+       "s": 334.9,
+       "L": 4625,
+       "lat": 0.33,
+       "vA": 201.17,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 554,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 335,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 5
+      },
+      {
+       "mode": "drive",
+       "s": 438.4,
+       "L": 4625,
+       "lat": -3.49,
+       "vA": 221.53,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 556,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.8,
+        "at": false,
+        "on": true,
+        "ss": 438,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 6
+      },
+      {
+       "mode": "drive",
+       "s": 548.4,
+       "L": 4625,
+       "lat": 2.24,
+       "vA": 234.1,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 556,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 9,
+        "at": false,
+        "on": true,
+        "ss": 548,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 7
+      },
+      {
+       "mode": "fall",
+       "s": 620.1,
+       "L": 4625,
+       "lat": 0.9,
+       "vA": 252.14,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 568,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:121/2.7/1.54",
+        "ch": 43.4,
+        "at": false,
+        "on": true,
+        "ss": 620,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 8
+      },
+      {
+       "mode": "fall",
+       "s": 620.1,
+       "L": 4625,
+       "lat": 0.9,
+       "vA": 252.14,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 568,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:121/2.7/1.54",
+        "ch": 12.8,
+        "at": false,
+        "on": true,
+        "ss": 620,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 9
+      },
+      {
+       "mode": "drive",
+       "s": 894.1,
+       "L": 4625,
+       "lat": 2.87,
+       "vA": 178.76,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 570,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:121/2.7/1.54",
+        "ch": 9,
+        "at": false,
+        "on": true,
+        "ss": 894,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 10
+      },
+      {
+       "mode": "drive",
+       "s": 980.7,
+       "L": 4625,
+       "lat": 1.81,
+       "vA": 181.96,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 568,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:121/2.7/1.54",
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 981,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 11
+      },
+      {
+       "mode": "drive",
+       "s": 1068.6,
+       "L": 4625,
+       "lat": 0.74,
+       "vA": 185.63,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 568,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:121/2.7/1.54",
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 1069,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 12
+      },
+      {
+       "mode": "drive",
+       "s": 1158.3,
+       "L": 4625,
+       "lat": -0.95,
+       "vA": 188.2,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 568,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:121/2.7/1.54",
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 1158,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 13
+      },
+      {
+       "mode": "fall",
+       "s": 1206.6,
+       "L": 4625,
+       "lat": -0.28,
+       "vA": 189.34,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 568,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:90.9/21.4/2.54",
+        "ch": 99.9,
+        "at": false,
+        "on": true,
+        "ss": 1207,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 14
+      },
+      {
+       "mode": "fall",
+       "s": 1206.6,
+       "L": 4625,
+       "lat": -0.28,
+       "vA": 189.34,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 568,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:90.9/21.4/2.54",
+        "ch": 97.8,
+        "at": false,
+        "on": true,
+        "ss": 1207,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 15
+      },
+      {
+       "mode": "drive",
+       "s": 1432.9,
+       "L": 4625,
+       "lat": -6.53,
+       "vA": 196.53,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 570,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:90.9/21.4/2.54",
+        "ch": 10.5,
+        "at": false,
+        "on": true,
+        "ss": 1433,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 16
+      },
+      {
+       "mode": "drive",
+       "s": 1504.5,
+       "L": 4625,
+       "lat": -1.91,
+       "vA": 150.48,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 570,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:90.9/21.4/2.54",
+        "ch": 9,
+        "at": false,
+        "on": true,
+        "ss": 1504,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 17
+      },
+      {
+       "mode": "drive",
+       "s": 1579.3,
+       "L": 4625,
+       "lat": -1.86,
+       "vA": 161.02,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 575,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:90.9/21.4/2.54",
+        "ch": 7.8,
+        "at": false,
+        "on": true,
+        "ss": 1579,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 18
+      },
+      {
+       "mode": "drive",
+       "s": 1659.4,
+       "L": 4625,
+       "lat": -0.55,
+       "vA": 178.37,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 575,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:90.9/21.4/2.54",
+        "ch": 7.8,
+        "at": false,
+        "on": true,
+        "ss": 1659,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 19
+      },
+      {
+       "mode": "drive",
+       "s": 1749.8,
+       "L": 4625,
+       "lat": 0.96,
+       "vA": 192.52,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 575,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:90.9/21.4/2.54",
+        "ch": 7.8,
+        "at": false,
+        "on": true,
+        "ss": 1750,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 20
+      },
+      {
+       "mode": "fall",
+       "s": 1805.3,
+       "L": 4625,
+       "lat": 0.25,
+       "vA": 192.9,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 575,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 3,
+        "lv": "2:92.6/9.6/1.84",
+        "ch": 45,
+        "at": false,
+        "on": true,
+        "ss": 1805,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 21
+      },
+      {
+       "mode": "fall",
+       "s": 1805.3,
+       "L": 4625,
+       "lat": 0.25,
+       "vA": 192.9,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 575,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 3,
+        "lv": "2:92.6/9.6/1.84",
+        "ch": 15.1,
+        "at": false,
+        "on": true,
+        "ss": 1805,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 22.1
+      },
+      {
+       "mode": "drive",
+       "s": 2019.8,
+       "L": 4625,
+       "lat": 1.63,
+       "vA": 146.37,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 572,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 3,
+        "lv": "2:92.6/9.6/1.84",
+        "ch": 8.8,
+        "at": false,
+        "on": true,
+        "ss": 2020,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 23.1
+      },
+      {
+       "mode": "drive",
+       "s": 2094.2,
+       "L": 4625,
+       "lat": 0.28,
+       "vA": 161.48,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 570,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 3,
+        "lv": "2:92.6/9.6/1.84",
+        "ch": 8.8,
+        "at": false,
+        "on": true,
+        "ss": 2094,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 24.1
+      },
+      {
+       "mode": "drive",
+       "s": 2176,
+       "L": 4625,
+       "lat": 2.26,
+       "vA": 191.32,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 570,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 3,
+        "lv": "2:92.6/9.6/1.84",
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 2176,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 25.1
+      }
+     ],
+     "morts": [],
+     "alertes": [],
+     "resume": {
+      "n": 25,
+      "cartes": [
+       "dunes:midi"
+      ],
+      "sMax": 2176,
+      "L": 4625,
+      "progs": [
+       222,
+       222
+      ],
+      "geo": [
+       554,
+       570
+      ],
+      "x": {
+       "sa": 3,
+       "lv": "2:92.6/9.6/1.84",
+       "ch": 8.9,
+       "at": false,
+       "on": true,
+       "ss": 2176,
+       "inv": 0,
+       "pv": false
+      }
+     }
+    }
+   ],
+   "eval": [
+    "1 · BICYLINDRE",
+    "2 · 3 CYLINDRES",
+    "3 · 4 EN LIGNE",
+    "4 · 4 SOUPAPES",
+    "5 · 4 EN LIGNE TURBO"
+   ],
+   "evalFin": {
+    "err": null,
+    "loopErr": null,
+    "on": true,
+    "test": {
+     "dessus": 0,
+     "dessous": 0,
+     "margeMin": 1.9,
+     "decorsSurLaRoute": 0,
+     "sep": 0,
+     "ou": ""
+    },
+    "L": 4625,
+    "hz": {
+     "axe": 11,
+     "B": 4151,
+     "LL": 1.04,
+     "RMIN": 68,
+     "VN": 105,
+     "sauts": 6,
+     "pieces": [
+      "dune",
+      "vlei",
+      "dune",
+      "dune",
+      "avenue"
+     ]
+    },
+    "ms": {
+     "ech": 2,
+     "fond": 68,
+     "fin": 8,
+     "texels": 15929,
+     "ombre": 10,
+     "pose": 7,
+     "total": 99
+    },
+    "sauts": 3,
+    "deco": {
+     "sd": 2547889126,
+     "sable": "blanc",
+     "pyr": [
+      ":856m",
+      ":872m",
+      ":1215m"
+     ],
+     "mo": [
+      "temple",
+      "porte"
+     ],
+     "pose": {
+      "troncons": 2,
+      "maisons": 14,
+      "camps": 3,
+      "touffes": 0,
+      "cactus": 0,
+      "os": 0,
+      "sommets": 7395,
+      "ms": 3
+     },
+     "oasis": "normale"
+    },
+    "fp": {
+     "L": 4625,
+     "trous": "617-747 1206-1377 1804-1916 2342-2461 2840-2973 3680-3794",
+     "sQ": {
+      "depart": 0,
+      "erg0": 200,
+      "vlei0": 1208,
+      "vlei1": 1376,
+      "obel0": 3080,
+      "obel1": 3568,
+      "oasis0": 4248,
+      "fin": 4472
+     },
+     "ob": 10,
+     "pyrs": "1391,4619 40,4885 775,6148",
+     "car": "8,1435 298,2565 -46,834",
+     "ysum": -67976,
+     "vent": [
+      -0.65,
+      0.76,
+      0.14,
+      0.99
+     ],
+     "lam": 582,
+     "nArb": 82,
+     "nPal": 4
+    },
+    "pyr": [
+     {
+      "st": "",
+      "hw": 428,
+      "eMin": 1.56,
+      "s": 4624,
+      "margeY": null
+     },
+     {
+      "st": "",
+      "hw": 436,
+      "eMin": 1.63,
+      "s": 4624,
+      "margeY": null
+     },
+     {
+      "st": "",
+      "hw": 607,
+      "eMin": 2.67,
+      "s": 4624,
+      "margeY": null
+     }
+    ],
+    "car": "149@1616 68@2496 91@784",
+    "tor": "162",
+    "mo": "temple:69 porte:74",
+    "lev": "s617/130/459 v1206/171/427 s1804/112/426 s2342/119/379 s2840/133/707 f3680/114/831"
+   },
+   "erreurs": [],
+   "avert": []
+  },
+  {
+   "nom": "D-nuit-vol",
+   "url": "colonne=0&simu=1&carte=dunes&meteo=nuit",
+   "maps": [
+    {
+     "etiq": "dunes:nuit",
+     "ech": [
+      {
+       "mode": "drive",
+       "s": 27.5,
+       "L": 4756,
+       "lat": 0,
+       "vA": 72.68,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 222,
+       "geo": 507,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.8,
+        "at": false,
+        "on": true,
+        "ss": 27,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 1
+      },
+      {
+       "mode": "drive",
+       "s": 70.4,
+       "L": 4756,
+       "lat": 0,
+       "vA": 104.41,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 222,
+       "geo": 507,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 70,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 2
+      },
+      {
+       "mode": "drive",
+       "s": 127.4,
+       "L": 4756,
+       "lat": 0,
+       "vA": 129,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 222,
+       "geo": 507,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 127,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 3
+      },
+      {
+       "mode": "drive",
+       "s": 189.3,
+       "L": 4756,
+       "lat": 0.07,
+       "vA": 130.35,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 222,
+       "geo": 507,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 189,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 4
+      },
+      {
+       "mode": "drive",
+       "s": 253.8,
+       "L": 4756,
+       "lat": 1.09,
+       "vA": 138.12,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 223,
+       "geo": 552,
+       "tex": 109,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.8,
+        "at": false,
+        "on": true,
+        "ss": 254,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 5
+      },
+      {
+       "mode": "drive",
+       "s": 321.5,
+       "L": 4756,
+       "lat": -0.59,
+       "vA": 144.8,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 223,
+       "geo": 566,
+       "tex": 109,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 321,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 6
+      },
+      {
+       "mode": "drive",
+       "s": 392.6,
+       "L": 4756,
+       "lat": -1.43,
+       "vA": 152.52,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 223,
+       "geo": 567,
+       "tex": 109,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 393,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 7
+      },
+      {
+       "mode": "drive",
+       "s": 466.2,
+       "L": 4756,
+       "lat": 0.88,
+       "vA": 154.99,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 223,
+       "geo": 552,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.8,
+        "at": false,
+        "on": true,
+        "ss": 466,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 8
+      },
+      {
+       "mode": "drive",
+       "s": 541.4,
+       "L": 4756,
+       "lat": 0.08,
+       "vA": 160.64,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 223,
+       "geo": 552,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 10.7,
+        "at": false,
+        "on": true,
+        "ss": 541,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 9
+      },
+      {
+       "mode": "fall",
+       "s": 546.6,
+       "L": 4756,
+       "lat": 0.07,
+       "vA": 161.91,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 223,
+       "geo": 552,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:77.7/19.2/2.52",
+        "ch": 59.7,
+        "at": false,
+        "on": true,
+        "ss": 547,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 10
+      },
+      {
+       "mode": "fall",
+       "s": 546.6,
+       "L": 4756,
+       "lat": 0.07,
+       "vA": 161.91,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 223,
+       "geo": 552,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:77.7/19.2/2.52",
+        "ch": 19.5,
+        "at": false,
+        "on": true,
+        "ss": 547,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 11
+      },
+      {
+       "mode": "drive",
+       "s": 772.7,
+       "L": 4756,
+       "lat": -0.03,
+       "vA": 123.56,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 223,
+       "geo": 554,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:77.7/19.2/2.52",
+        "ch": 7.8,
+        "at": false,
+        "on": true,
+        "ss": 773,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 12
+      },
+      {
+       "mode": "drive",
+       "s": 835.1,
+       "L": 4756,
+       "lat": -1.12,
+       "vA": 134.88,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 223,
+       "geo": 554,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:77.7/19.2/2.52",
+        "ch": 9,
+        "at": false,
+        "on": true,
+        "ss": 835,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 13
+      },
+      {
+       "mode": "drive",
+       "s": 906.7,
+       "L": 4756,
+       "lat": 3.65,
+       "vA": 157.81,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 223,
+       "geo": 552,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:77.7/19.2/2.52",
+        "ch": 9.2,
+        "at": false,
+        "on": true,
+        "ss": 907,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 14
+      },
+      {
+       "mode": "drive",
+       "s": 985,
+       "L": 4756,
+       "lat": -0.98,
+       "vA": 172.04,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 223,
+       "geo": 552,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:77.7/19.2/2.52",
+        "ch": 8.8,
+        "at": false,
+        "on": true,
+        "ss": 985,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 15
+      },
+      {
+       "mode": "drive",
+       "s": 1069,
+       "L": 4756,
+       "lat": -0.82,
+       "vA": 174.28,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 223,
+       "geo": 552,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:77.7/19.2/2.52",
+        "ch": 8.8,
+        "at": false,
+        "on": true,
+        "ss": 1069,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 16
+      },
+      {
+       "mode": "fall",
+       "s": 1107.4,
+       "L": 4756,
+       "lat": -0.34,
+       "vA": 170.62,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 223,
+       "geo": 552,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:81.9/15.7/2.29",
+        "ch": 86.3,
+        "at": false,
+        "on": true,
+        "ss": 1107,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 17
+      },
+      {
+       "mode": "fall",
+       "s": 1107.4,
+       "L": 4756,
+       "lat": -0.34,
+       "vA": 170.62,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 223,
+       "geo": 560,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:81.9/15.7/2.29",
+        "ch": 24.4,
+        "at": false,
+        "on": true,
+        "ss": 1107,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 18
+      },
+      {
+       "mode": "drive",
+       "s": 1315.6,
+       "L": 4756,
+       "lat": 0.05,
+       "vA": 128.92,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 223,
+       "geo": 563,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:81.9/15.7/2.29",
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 1316,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 19
+      },
+      {
+       "mode": "drive",
+       "s": 1385.7,
+       "L": 4756,
+       "lat": -1.2,
+       "vA": 143.89,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 223,
+       "geo": 570,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:81.9/15.7/2.29",
+        "ch": 7.8,
+        "at": false,
+        "on": true,
+        "ss": 1386,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 20.2
+      },
+      {
+       "mode": "drive",
+       "s": 1458.6,
+       "L": 4756,
+       "lat": 1.88,
+       "vA": 165.3,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 223,
+       "geo": 565,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:81.9/15.7/2.29",
+        "ch": 7.8,
+        "at": false,
+        "on": true,
+        "ss": 1459,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 21.2
+      },
+      {
+       "mode": "drive",
+       "s": 1543.1,
+       "L": 4756,
+       "lat": 0.48,
+       "vA": 183.24,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "nuit",
+       "teinte": null,
+       "progs": 223,
+       "geo": 565,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:81.9/15.7/2.29",
+        "ch": 7.8,
+        "at": false,
+        "on": true,
+        "ss": 1543,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 22.2
+      }
+     ],
+     "morts": [],
+     "alertes": [],
+     "resume": {
+      "n": 22,
+      "cartes": [
+       "dunes:nuit"
+      ],
+      "sMax": 1543.1,
+      "L": 4756,
+      "progs": [
+       222,
+       223
+      ],
+      "geo": [
+       507,
+       565
+      ],
+      "x": {
+       "sa": 2,
+       "lv": "1:81.9/15.7/2.29",
+       "ch": 7.8,
+       "at": false,
+       "on": true,
+       "ss": 1543,
+       "inv": 0,
+       "pv": false
+      }
+     }
+    }
+   ],
+   "erreurs": [],
+   "avert": []
+  },
+  {
+   "nom": "E-vent-lat25-tel",
+   "url": "tel=1&colonne=0&simu=1&carte=dunes&meteo=pluie",
+   "maps": [
+    {
+     "etiq": "dunes:pluie",
+     "ech": [
+      {
+       "mode": "drive",
+       "s": 26.6,
+       "L": 4811,
+       "lat": 5.87,
+       "vA": 72.52,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "pluie",
+       "teinte": null,
+       "progs": 222,
+       "geo": 491,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 9.2,
+        "at": false,
+        "on": true,
+        "ss": 27,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 1
+      },
+      {
+       "mode": "drive",
+       "s": 66.3,
+       "L": 4811,
+       "lat": 20.61,
+       "vA": 101.95,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "pluie",
+       "teinte": null,
+       "progs": 222,
+       "geo": 491,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 13.8,
+        "at": false,
+        "on": true,
+        "ss": 66,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 2
+      },
+      {
+       "mode": "drive",
+       "s": 122.7,
+       "L": 4811,
+       "lat": 24.9,
+       "vA": 121.67,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "pluie",
+       "teinte": null,
+       "progs": 222,
+       "geo": 491,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 15.7,
+        "at": false,
+        "on": true,
+        "ss": 123,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 3
+      },
+      {
+       "mode": "drive",
+       "s": 179.8,
+       "L": 4811,
+       "lat": 25.02,
+       "vA": 117.48,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "pluie",
+       "teinte": null,
+       "progs": 222,
+       "geo": 491,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 15.6,
+        "at": false,
+        "on": true,
+        "ss": 180,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 4
+      },
+      {
+       "mode": "drive",
+       "s": 236.6,
+       "L": 4811,
+       "lat": 26.29,
+       "vA": 120.3,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "pluie",
+       "teinte": null,
+       "progs": 222,
+       "geo": 491,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 16.2,
+        "at": false,
+        "on": true,
+        "ss": 221,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 5
+      },
+      {
+       "mode": "drive",
+       "s": 296.1,
+       "L": 4811,
+       "lat": 22.32,
+       "vA": 128.36,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "pluie",
+       "teinte": null,
+       "progs": 222,
+       "geo": 493,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 14.4,
+        "at": false,
+        "on": true,
+        "ss": 296,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 6
+      },
+      {
+       "mode": "drive",
+       "s": 359.9,
+       "L": 4811,
+       "lat": 24.78,
+       "vA": 146.36,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "pluie",
+       "teinte": null,
+       "progs": 222,
+       "geo": 493,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 15.5,
+        "at": false,
+        "on": true,
+        "ss": 360,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 7
+      },
+      {
+       "mode": "drive",
+       "s": 433,
+       "L": 4811,
+       "lat": 25.88,
+       "vA": 153.99,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "pluie",
+       "teinte": null,
+       "progs": 222,
+       "geo": 491,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 16.1,
+        "at": false,
+        "on": true,
+        "ss": 433,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 8
+      },
+      {
+       "mode": "fall",
+       "s": 503.8,
+       "L": 4811,
+       "lat": 25.08,
+       "vA": 151.28,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "pluie",
+       "teinte": null,
+       "progs": 222,
+       "geo": 505,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:72.6/19/2.48",
+        "ch": 32.1,
+        "at": false,
+        "on": true,
+        "ss": 504,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 9
+      },
+      {
+       "mode": "fall",
+       "s": 503.8,
+       "L": 4811,
+       "lat": 25.08,
+       "vA": 151.28,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "pluie",
+       "teinte": null,
+       "progs": 222,
+       "geo": 505,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:72.6/19/2.48",
+        "ch": 94,
+        "at": false,
+        "on": true,
+        "ss": 504,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 10
+      },
+      {
+       "mode": "fall",
+       "s": 503.8,
+       "L": 4811,
+       "lat": 25.08,
+       "vA": 151.28,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "pluie",
+       "teinte": null,
+       "progs": 222,
+       "geo": 505,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:72.6/19/2.48",
+        "ch": 26.3,
+        "at": false,
+        "on": true,
+        "ss": 504,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 11
+      },
+      {
+       "mode": "drive",
+       "s": 718.5,
+       "L": 4811,
+       "lat": 27,
+       "vA": 103.68,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "pluie",
+       "teinte": null,
+       "progs": 222,
+       "geo": 507,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:72.6/19/2.48",
+        "ch": 7.8,
+        "at": false,
+        "on": true,
+        "ss": 504,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 12
+      },
+      {
+       "mode": "drive",
+       "s": 769.7,
+       "L": 4811,
+       "lat": 25.27,
+       "vA": 110.73,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "pluie",
+       "teinte": null,
+       "progs": 222,
+       "geo": 506,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:72.6/19/2.48",
+        "ch": 7.7,
+        "at": false,
+        "on": true,
+        "ss": 770,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 13
+      },
+      {
+       "mode": "drive",
+       "s": 825.9,
+       "L": 4811,
+       "lat": 25.01,
+       "vA": 123.39,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "pluie",
+       "teinte": null,
+       "progs": 223,
+       "geo": 558,
+       "tex": 109,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:72.6/19/2.48",
+        "ch": 7.8,
+        "at": false,
+        "on": true,
+        "ss": 826,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 14
+      },
+      {
+       "mode": "drive",
+       "s": 888,
+       "L": 4811,
+       "lat": 25,
+       "vA": 136.84,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "pluie",
+       "teinte": null,
+       "progs": 223,
+       "geo": 557,
+       "tex": 109,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:72.6/19/2.48",
+        "ch": 12.4,
+        "at": false,
+        "on": true,
+        "ss": 888,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 15
+      },
+      {
+       "mode": "drive",
+       "s": 961.4,
+       "L": 4811,
+       "lat": 25,
+       "vA": 153.18,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "pluie",
+       "teinte": null,
+       "progs": 223,
+       "geo": 557,
+       "tex": 109,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:72.6/19/2.48",
+        "ch": 15.6,
+        "at": false,
+        "on": true,
+        "ss": 961,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 16
+      }
+     ],
+     "morts": [],
+     "alertes": [],
+     "resume": {
+      "n": 16,
+      "cartes": [
+       "dunes:pluie"
+      ],
+      "sMax": 961.4,
+      "L": 4811,
+      "progs": [
+       222,
+       223
+      ],
+      "geo": [
+       491,
+       557
+      ],
+      "x": {
+       "sa": 1,
+       "lv": "0:72.6/19/2.48",
+       "ch": 15.6,
+       "at": false,
+       "on": true,
+       "ss": 961,
+       "inv": 0,
+       "pv": true
+      }
+     }
+    }
+   ],
+   "erreurs": [],
+   "avert": []
+  },
+  {
+   "nom": "F-tempete-lat-25-debout",
+   "url": "tel=1&colonne=0&simu=1&carte=dunes&meteo=orage",
+   "maps": [
+    {
+     "etiq": "dunes:orage",
+     "ech": [
+      {
+       "mode": "drive",
+       "s": 26.7,
+       "L": 4948,
+       "lat": -5.51,
+       "vA": 72.54,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 222,
+       "geo": 499,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 9.5,
+        "at": false,
+        "on": true,
+        "ss": 27,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 1
+      },
+      {
+       "mode": "drive",
+       "s": 66.4,
+       "L": 4948,
+       "lat": -20.38,
+       "vA": 102.02,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 222,
+       "geo": 499,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 13.8,
+        "at": false,
+        "on": true,
+        "ss": 66,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 2
+      },
+      {
+       "mode": "drive",
+       "s": 120.8,
+       "L": 4948,
+       "lat": -24.87,
+       "vA": 122.08,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 222,
+       "geo": 499,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 15.7,
+        "at": false,
+        "on": true,
+        "ss": 121,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 3
+      },
+      {
+       "mode": "drive",
+       "s": 178.1,
+       "L": 4948,
+       "lat": -25.02,
+       "vA": 117.76,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 222,
+       "geo": 499,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 15.6,
+        "at": false,
+        "on": true,
+        "ss": 178,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 4
+      },
+      {
+       "mode": "drive",
+       "s": 235,
+       "L": 4948,
+       "lat": -25.78,
+       "vA": 120.49,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 222,
+       "geo": 499,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 15.9,
+        "at": false,
+        "on": true,
+        "ss": 235,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 5
+      },
+      {
+       "mode": "drive",
+       "s": 296.8,
+       "L": 4948,
+       "lat": -25.22,
+       "vA": 128.74,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 222,
+       "geo": 501,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 15.7,
+        "at": false,
+        "on": true,
+        "ss": 297,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 6
+      },
+      {
+       "mode": "drive",
+       "s": 360.1,
+       "L": 4948,
+       "lat": -22.97,
+       "vA": 134.76,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 222,
+       "geo": 501,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 14.7,
+        "at": false,
+        "on": true,
+        "ss": 360,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 7
+      },
+      {
+       "mode": "drive",
+       "s": 425.8,
+       "L": 4948,
+       "lat": -24.85,
+       "vA": 138.68,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 222,
+       "geo": 499,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 15.5,
+        "at": false,
+        "on": true,
+        "ss": 426,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 8
+      },
+      {
+       "mode": "drive",
+       "s": 493,
+       "L": 4948,
+       "lat": -25.83,
+       "vA": 141.09,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 222,
+       "geo": 499,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 16.2,
+        "at": false,
+        "on": true,
+        "ss": 493,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 9
+      },
+      {
+       "mode": "drive",
+       "s": 561.2,
+       "L": 4948,
+       "lat": -25.08,
+       "vA": 142.81,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 222,
+       "geo": 501,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 15.7,
+        "at": false,
+        "on": true,
+        "ss": 561,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 10
+      },
+      {
+       "mode": "fall",
+       "s": 581.8,
+       "L": 4948,
+       "lat": -25.03,
+       "vA": 143.27,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 222,
+       "geo": 513,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:68.8/20.5/2.59",
+        "ch": 91.9,
+        "at": false,
+        "on": true,
+        "ss": 582,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 11
+      },
+      {
+       "mode": "fall",
+       "s": 581.8,
+       "L": 4948,
+       "lat": -25.03,
+       "vA": 143.27,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 222,
+       "geo": 513,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:68.8/20.5/2.59",
+        "ch": 35.1,
+        "at": false,
+        "on": true,
+        "ss": 582,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 12
+      },
+      {
+       "mode": "drive",
+       "s": 772,
+       "L": 4948,
+       "lat": -26.44,
+       "vA": 117.57,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 222,
+       "geo": 515,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:68.8/20.5/2.59",
+        "ch": 7.7,
+        "at": false,
+        "on": true,
+        "ss": 582,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 13
+      },
+      {
+       "mode": "drive",
+       "s": 823.8,
+       "L": 4948,
+       "lat": -24.6,
+       "vA": 109.33,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 222,
+       "geo": 515,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:68.8/20.5/2.59",
+        "ch": 7.8,
+        "at": false,
+        "on": true,
+        "ss": 824,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 14
+      },
+      {
+       "mode": "drive",
+       "s": 878.3,
+       "L": 4948,
+       "lat": -25.15,
+       "vA": 118.54,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 222,
+       "geo": 513,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:68.8/20.5/2.59",
+        "ch": 7.7,
+        "at": false,
+        "on": true,
+        "ss": 878,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 15
+      },
+      {
+       "mode": "drive",
+       "s": 936.5,
+       "L": 4948,
+       "lat": -26.68,
+       "vA": 122.19,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 222,
+       "geo": 513,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:68.8/20.5/2.59",
+        "ch": 7.6,
+        "at": false,
+        "on": true,
+        "ss": 890,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 16
+      }
+     ],
+     "morts": [],
+     "alertes": [],
+     "resume": {
+      "n": 16,
+      "cartes": [
+       "dunes:orage"
+      ],
+      "sMax": 936.5,
+      "L": 4948,
+      "progs": [
+       222,
+       222
+      ],
+      "geo": [
+       499,
+       513
+      ],
+      "x": {
+       "sa": 1,
+       "lv": "0:68.8/20.5/2.59",
+       "ch": 7.6,
+       "at": false,
+       "on": true,
+       "ss": 890,
+       "inv": 0,
+       "pv": true
+      }
+     }
+    }
+   ],
+   "erreurs": [],
+   "avert": []
+  },
+  {
+   "nom": "G-portail",
+   "url": "colonne=0&simu=1&carte=jade&meteo=midi",
+   "maps": [
+    {
+     "etiq": "jade:midi",
+     "ech": [
+      {
+       "mode": "drive",
+       "s": 27.4,
+       "L": 5616,
+       "lat": 0,
+       "vA": 72.49,
+       "go": false,
+       "carte": "jade",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 596,
+       "tex": 102,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 27,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 1
+      },
+      {
+       "mode": "drive",
+       "s": 70.2,
+       "L": 5616,
+       "lat": 0,
+       "vA": 104.11,
+       "go": false,
+       "carte": "jade",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 597,
+       "tex": 102,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 70,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 2
+      },
+      {
+       "mode": "drive",
+       "s": 127.1,
+       "L": 5616,
+       "lat": 0,
+       "vA": 128.63,
+       "go": false,
+       "carte": "jade",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 599,
+       "tex": 102,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 127,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 3
+      },
+      {
+       "mode": "drive",
+       "s": 188.8,
+       "L": 5616,
+       "lat": 0.05,
+       "vA": 129.95,
+       "go": false,
+       "carte": "jade",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 222,
+       "geo": 599,
+       "tex": 102,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 189,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 4
+      },
+      {
+       "mode": "drive",
+       "s": 253,
+       "L": 5616,
+       "lat": -0.63,
+       "vA": 137.53,
+       "go": false,
+       "carte": "jade",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 645,
+       "tex": 106,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 253,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 5
+      },
+      {
+       "mode": "drive",
+       "s": 320.9,
+       "L": 5616,
+       "lat": -0.27,
+       "vA": 148.14,
+       "go": false,
+       "carte": "jade",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 647,
+       "tex": 106,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 321,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 6
+      },
+      {
+       "mode": "drive",
+       "s": 397.8,
+       "L": 5616,
+       "lat": -0.2,
+       "vA": 156.35,
+       "go": false,
+       "carte": "jade",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 647,
+       "tex": 106,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 398,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 7
+      },
+      {
+       "mode": "drive",
+       "s": 472.5,
+       "L": 5616,
+       "lat": 2,
+       "vA": 155.12,
+       "go": false,
+       "carte": "jade",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 646,
+       "tex": 106,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 472,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 8
+      },
+      {
+       "mode": "drive",
+       "s": 546.6,
+       "L": 5616,
+       "lat": -1.61,
+       "vA": 154.24,
+       "go": false,
+       "carte": "jade",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 647,
+       "tex": 106,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 547,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 9
+      },
+      {
+       "mode": "drive",
+       "s": 620.5,
+       "L": 5616,
+       "lat": -0.7,
+       "vA": 153.73,
+       "go": false,
+       "carte": "jade",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 648,
+       "tex": 106,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 620,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 10
+      },
+      {
+       "mode": "drive",
+       "s": 694.4,
+       "L": 5616,
+       "lat": -0.2,
+       "vA": 155.01,
+       "go": false,
+       "carte": "jade",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 636,
+       "tex": 107,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 694,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 11
+      },
+      {
+       "mode": "drive",
+       "s": 769.8,
+       "L": 5616,
+       "lat": 2.16,
+       "vA": 159.73,
+       "go": false,
+       "carte": "jade",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 643,
+       "tex": 107,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 770,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 12
+      }
+     ],
+     "morts": [],
+     "alertes": [],
+     "resume": {
+      "n": 12,
+      "cartes": [
+       "jade:midi"
+      ],
+      "sMax": 769.8,
+      "L": 5616,
+      "progs": [
+       222,
+       223
+      ],
+      "geo": [
+       596,
+       643
+      ],
+      "x": {
+       "sa": 0,
+       "lv": null,
+       "ch": null,
+       "at": false,
+       "on": false,
+       "ss": 770,
+       "inv": 0,
+       "pv": false
+      }
+     }
+    },
+    {
+     "etiq": "dunes:soir",
+     "ech": [
+      {
+       "mode": "drive",
+       "s": 99.4,
+       "L": 5477,
+       "lat": 0,
+       "vA": 182.92,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 223,
+       "geo": 597,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 99,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 1
+      },
+      {
+       "mode": "drive",
+       "s": 189.2,
+       "L": 5477,
+       "lat": -0.01,
+       "vA": 179.64,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 223,
+       "geo": 595,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 189,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 2
+      },
+      {
+       "mode": "drive",
+       "s": 274.9,
+       "L": 5477,
+       "lat": 2.14,
+       "vA": 177.57,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 223,
+       "geo": 595,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.8,
+        "at": false,
+        "on": true,
+        "ss": 275,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 3
+      },
+      {
+       "mode": "drive",
+       "s": 359.4,
+       "L": 5477,
+       "lat": -3.26,
+       "vA": 176.14,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 223,
+       "geo": 595,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.8,
+        "at": false,
+        "on": true,
+        "ss": 359,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 4
+      },
+      {
+       "mode": "drive",
+       "s": 449.5,
+       "L": 5477,
+       "lat": 1.32,
+       "vA": 201.84,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 223,
+       "geo": 595,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 450,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 5
+      },
+      {
+       "mode": "fall",
+       "s": 537.8,
+       "L": 5477,
+       "lat": 0.24,
+       "vA": 206.36,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 223,
+       "geo": 611,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:99.1/14.1/2.21",
+        "ch": 76.6,
+        "at": false,
+        "on": true,
+        "ss": 538,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 6
+      },
+      {
+       "mode": "fall",
+       "s": 537.8,
+       "L": 5477,
+       "lat": 0.24,
+       "vA": 206.36,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 223,
+       "geo": 611,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:99.1/14.1/2.21",
+        "ch": 80.5,
+        "at": false,
+        "on": true,
+        "ss": 538,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 7
+      },
+      {
+       "mode": "drive",
+       "s": 748.6,
+       "L": 5477,
+       "lat": 3.87,
+       "vA": 214.9,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 223,
+       "geo": 607,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:99.1/14.1/2.21",
+        "ch": 11.1,
+        "at": false,
+        "on": true,
+        "ss": 749,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 8
+      },
+      {
+       "mode": "drive",
+       "s": 819.4,
+       "L": 5477,
+       "lat": 2.33,
+       "vA": 182.94,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 223,
+       "geo": 608,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:99.1/14.1/2.21",
+        "ch": 7.8,
+        "at": false,
+        "on": true,
+        "ss": 819,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 9.4
+      },
+      {
+       "mode": "drive",
+       "s": 937.5,
+       "L": 5477,
+       "lat": 4.29,
+       "vA": 202.4,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 223,
+       "geo": 606,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:99.1/14.1/2.21",
+        "ch": 9.2,
+        "at": false,
+        "on": true,
+        "ss": 938,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 10.4
+      },
+      {
+       "mode": "drive",
+       "s": 1037.2,
+       "L": 5477,
+       "lat": 1.56,
+       "vA": 218.31,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 223,
+       "geo": 620,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:99.1/14.1/2.21",
+        "ch": 9,
+        "at": false,
+        "on": true,
+        "ss": 1037,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 11.4
+      },
+      {
+       "mode": "drive",
+       "s": 1143.7,
+       "L": 5477,
+       "lat": 0.86,
+       "vA": 227.38,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 223,
+       "geo": 620,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:99.1/14.1/2.21",
+        "ch": 8.9,
+        "at": false,
+        "on": true,
+        "ss": 1144,
+        "inv": 0,
+        "pv": true
+       },
+       "ts": 12.4
+      }
+     ],
+     "morts": [],
+     "alertes": [],
+     "resume": {
+      "n": 12,
+      "cartes": [
+       "dunes:soir"
+      ],
+      "sMax": 1143.7,
+      "L": 5477,
+      "progs": [
+       223,
+       223
+      ],
+      "geo": [
+       597,
+       620
+      ],
+      "x": {
+       "sa": 1,
+       "lv": "0:99.1/14.1/2.21",
+       "ch": 8.9,
+       "at": false,
+       "on": true,
+       "ss": 1144,
+       "inv": 0,
+       "pv": true
+      }
+     }
+    },
+    {
+     "etiq": "ville:pluie",
+     "ech": [
+      {
+       "mode": "drive",
+       "s": 152.2,
+       "L": 7773,
+       "lat": 0.02,
+       "vA": 232.75,
+       "go": false,
+       "carte": "ville",
+       "meteo": "pluie",
+       "teinte": "violet",
+       "progs": 223,
+       "geo": 641,
+       "tex": 113,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:99.1/14.1/2.21",
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 152,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 1
+      },
+      {
+       "mode": "drive",
+       "s": 261.4,
+       "L": 7773,
+       "lat": 0,
+       "vA": 224.54,
+       "go": false,
+       "carte": "ville",
+       "meteo": "pluie",
+       "teinte": "violet",
+       "progs": 223,
+       "geo": 636,
+       "tex": 113,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:99.1/14.1/2.21",
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 261,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 2
+      },
+      {
+       "mode": "drive",
+       "s": 368.4,
+       "L": 7773,
+       "lat": 0.59,
+       "vA": 223.96,
+       "go": false,
+       "carte": "ville",
+       "meteo": "pluie",
+       "teinte": "violet",
+       "progs": 223,
+       "geo": 636,
+       "tex": 113,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:99.1/14.1/2.21",
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 368,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 3
+      },
+      {
+       "mode": "drive",
+       "s": 479.4,
+       "L": 7773,
+       "lat": 0.78,
+       "vA": 233.2,
+       "go": false,
+       "carte": "ville",
+       "meteo": "pluie",
+       "teinte": "violet",
+       "progs": 223,
+       "geo": 636,
+       "tex": 113,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:99.1/14.1/2.21",
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 479,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 4
+      },
+      {
+       "mode": "drive",
+       "s": 588,
+       "L": 7773,
+       "lat": -0.09,
+       "vA": 227.66,
+       "go": false,
+       "carte": "ville",
+       "meteo": "pluie",
+       "teinte": "violet",
+       "progs": 223,
+       "geo": 636,
+       "tex": 113,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:99.1/14.1/2.21",
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 588,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 5
+      },
+      {
+       "mode": "drive",
+       "s": 696.8,
+       "L": 7773,
+       "lat": -0.03,
+       "vA": 226.82,
+       "go": false,
+       "carte": "ville",
+       "meteo": "pluie",
+       "teinte": "violet",
+       "progs": 223,
+       "geo": 640,
+       "tex": 113,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:99.1/14.1/2.21",
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 697,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 6
+      },
+      {
+       "mode": "drive",
+       "s": 809.9,
+       "L": 7773,
+       "lat": -0.5,
+       "vA": 251.24,
+       "go": false,
+       "carte": "ville",
+       "meteo": "pluie",
+       "teinte": "violet",
+       "progs": 223,
+       "geo": 640,
+       "tex": 113,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:99.1/14.1/2.21",
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 810,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 7
+      },
+      {
+       "mode": "drive",
+       "s": 933.1,
+       "L": 7773,
+       "lat": 5.53,
+       "vA": 261.81,
+       "go": false,
+       "carte": "ville",
+       "meteo": "pluie",
+       "teinte": "violet",
+       "progs": 223,
+       "geo": 640,
+       "tex": 113,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:99.1/14.1/2.21",
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 933,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 8
+      },
+      {
+       "mode": "drive",
+       "s": 1056.4,
+       "L": 7773,
+       "lat": 1.12,
+       "vA": 251.15,
+       "go": false,
+       "carte": "ville",
+       "meteo": "pluie",
+       "teinte": "violet",
+       "progs": 223,
+       "geo": 640,
+       "tex": 113,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:99.1/14.1/2.21",
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 1056,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 9
+      },
+      {
+       "mode": "drive",
+       "s": 1175.1,
+       "L": 7773,
+       "lat": -0.65,
+       "vA": 245.88,
+       "go": false,
+       "carte": "ville",
+       "meteo": "pluie",
+       "teinte": "violet",
+       "progs": 223,
+       "geo": 667,
+       "tex": 113,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:99.1/14.1/2.21",
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 1175,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 10
+      },
+      {
+       "mode": "drive",
+       "s": 1301.3,
+       "L": 7773,
+       "lat": -1.97,
+       "vA": 271.77,
+       "go": false,
+       "carte": "ville",
+       "meteo": "pluie",
+       "teinte": "violet",
+       "progs": 223,
+       "geo": 667,
+       "tex": 113,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:99.1/14.1/2.21",
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 1301,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 11
+      },
+      {
+       "mode": "drive",
+       "s": 1440.8,
+       "L": 7773,
+       "lat": -3.16,
+       "vA": 293.89,
+       "go": false,
+       "carte": "ville",
+       "meteo": "pluie",
+       "teinte": "violet",
+       "progs": 223,
+       "geo": 667,
+       "tex": 113,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:99.1/14.1/2.21",
+        "ch": null,
+        "at": false,
+        "on": false,
+        "ss": 1441,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 12
+      }
+     ],
+     "morts": [],
+     "alertes": [],
+     "resume": {
+      "n": 12,
+      "cartes": [
+       "ville:pluie:violet"
+      ],
+      "sMax": 1440.8,
+      "L": 7773,
+      "progs": [
+       223,
+       223
+      ],
+      "geo": [
+       641,
+       667
+      ],
+      "x": {
+       "sa": 1,
+       "lv": "0:99.1/14.1/2.21",
+       "ch": null,
+       "at": false,
+       "on": false,
+       "ss": 1441,
+       "inv": 0,
+       "pv": false
+      }
+     }
+    }
+   ],
+   "evalFin": {
+    "on": false,
+    "part": false,
+    "grp": false,
+    "mesh": false,
+    "lev": 0,
+    "dunes": 0
+   },
+   "erreurs": [],
+   "avert": []
+  },
+  {
+   "nom": "H-chance",
+   "url": "colonne=0&simu=1&carte=dunes&meteo=matin&pistegraine=4321",
+   "maps": [
+    {
+     "etiq": "dunes:matin",
+     "ech": [
+      {
+       "mode": "boom",
+       "s": 914.8,
+       "L": 4259,
+       "lat": 29.04,
+       "vA": 145.53,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "matin",
+       "teinte": null,
+       "progs": 222,
+       "geo": 532,
+       "tex": 106,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:42.1/24/2.6",
+        "ch": 0.7,
+        "at": false,
+        "on": true,
+        "ss": 909,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 1
+      },
+      {
+       "mode": "boom",
+       "s": 914.8,
+       "L": 4259,
+       "lat": 29.04,
+       "vA": 145.53,
+       "go": true,
+       "carte": "dunes",
+       "meteo": "matin",
+       "teinte": null,
+       "progs": 224,
+       "geo": 892,
+       "tex": 150,
+       "loopErr": null,
+       "mort": "PERDU AURA 43 MEILLEUR 50 MOTEUR ATTEINT PALIER 1 ENCORE 1 PIECE POUR BICYLINDRE VERSES AU COMPTE $ 75,5 k COMPTE : $ 100 153 ×2 DU JOUR · S",
+       "x": {
+        "sa": 1,
+        "lv": "0:42.1/24/2.6",
+        "ch": 0.7,
+        "at": false,
+        "on": true,
+        "ss": 909,
+        "inv": 0,
+        "pv": false
+       },
+       "ts": 2
+      }
+     ],
+     "morts": [
+      {
+       "ts": 2,
+       "s": 914.8,
+       "L": 4259,
+       "carte": "dunes",
+       "meteo": "matin",
+       "mode": "boom",
+       "lat": 29.04,
+       "texte": "PERDU AURA 43 MEILLEUR 50 MOTEUR ATTEINT PALIER 1 ENCORE 1 PIECE POUR BICYLINDRE VERSES AU COMPTE $ 75,5 k COMPTE : $ 100 153 ×2 DU JOUR · S"
+      }
+     ],
+     "alertes": [],
+     "resume": {
+      "n": 2,
+      "cartes": [
+       "dunes:matin"
+      ],
+      "sMax": 914.8,
+      "L": 4259,
+      "progs": [
+       222,
+       224
+      ],
+      "geo": [
+       532,
+       892
+      ],
+      "x": {
+       "sa": 1,
+       "lv": "0:42.1/24/2.6",
+       "ch": 0.7,
+       "at": false,
+       "on": true,
+       "ss": 909,
+       "inv": 0,
+       "pv": false
+      }
+     }
+    }
+   ],
+   "eval": {
+    "lip": 591,
+    "mortApres": 10,
+    "texte": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI RE",
+    "ch": {
+     "ok": false,
+     "prix": 0,
+     "reste": 0,
+     "offre": false,
+     "used": false,
+     "inv": 0,
+     "bank": 0,
+     "money": 100005,
+     "t": 212.7,
+     "gameOver": false,
+     "mode": "boom",
+     "base": 1.61
+    },
+    "joue": false,
+    "apres": {
+     "s": 915,
+     "vA": 145.5,
+     "safeS": 909,
+     "mode": "boom",
+     "attendu": 0
+    }
+   },
+   "erreurs": [],
+   "avert": []
+  },
+  {
+   "nom": "I-multi",
+   "url": "colonne=0&simu=1&carte=dunes&meteo=soir",
+   "maps": [
+    {
+     "etiq": "dunes:soir",
+     "ech": [
+      {
+       "mode": "drive",
+       "s": 27.5,
+       "L": 4491,
+       "lat": 0,
+       "vA": 72.68,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 222,
+       "geo": 488,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "ts": 1
+      },
+      {
+       "mode": "drive",
+       "s": 70.4,
+       "L": 4491,
+       "lat": 0,
+       "vA": 104.41,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 222,
+       "geo": 488,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "ts": 2
+      }
+     ],
+     "morts": [],
+     "alertes": [],
+     "resume": {
+      "n": 2,
+      "cartes": [
+       "dunes:soir"
+      ],
+      "sMax": 70.4,
+      "L": 4491,
+      "progs": [
+       222,
+       222
+      ],
+      "geo": [
+       488,
+       488
+      ]
+     }
+    }
+   ],
+   "evalFin": [
+    {
+     "err": null,
+     "loopErr": null,
+     "on": true,
+     "test": {
+      "dessus": 0,
+      "dessous": 0,
+      "margeMin": 2,
+      "decorsSurLaRoute": 0,
+      "sep": 0,
+      "ou": ""
+     },
+     "L": 4325,
+     "hz": {
+      "axe": 6,
+      "B": 4274,
+      "LL": 1.04,
+      "RMIN": 68,
+      "VN": 105,
+      "sauts": 5,
+      "pieces": [
+       "dune",
+       "vlei",
+       "dune",
+       "avenue"
+      ]
+     },
+     "ms": {
+      "ech": 1,
+      "fond": 73,
+      "fin": 8,
+      "texels": 14851,
+      "ombre": 11,
+      "pose": 3,
+      "total": 153
+     },
+     "sauts": 0,
+     "deco": {
+      "sd": 1121969387,
+      "sable": "rouge",
+      "pyr": [
+       "gradins:861m",
+       ":937m",
+       ":1236m"
+      ],
+      "mo": [
+       "sphinx",
+       "colosse",
+       "colosse",
+       "porte"
+      ],
+      "pose": {
+       "troncons": 1,
+       "camps": 0,
+       "touffes": 220,
+       "cactus": 0,
+       "os": 1,
+       "sommets": 9120,
+       "ms": 3
+      },
+      "oasis": "normale"
+     },
+     "pyr": [
+      {
+       "st": "gradins",
+       "hw": 431,
+       "eMin": 1.24,
+       "s": 4128,
+       "margeY": null
+      },
+      {
+       "st": "",
+       "hw": 469,
+       "eMin": 1.55,
+       "s": 4320,
+       "margeY": null
+      },
+      {
+       "st": "",
+       "hw": 618,
+       "eMin": 2.65,
+       "s": 4320,
+       "margeY": null
+      }
+     ],
+     "car": "76@368 89@1504",
+     "tor": "",
+     "mo": "sphinx:124 colosse:91 colosse:69 porte:48",
+     "lev": "s593/133/554 v1280/179/396 s1855/109/559 s2523/137/730 f3390/115/820",
+     "g": 11,
+     "p": 0
+    },
+    {
+     "err": null,
+     "loopErr": null,
+     "on": true,
+     "test": {
+      "dessus": 0,
+      "dessous": 0,
+      "margeMin": 2,
+      "decorsSurLaRoute": 0,
+      "sep": 0,
+      "ou": ""
+     },
+     "L": 4509,
+     "hz": {
+      "axe": -10,
+      "B": 4693,
+      "LL": 1.04,
+      "RMIN": 68,
+      "VN": 105,
+      "sauts": 5,
+      "pieces": [
+       "dune",
+       "vlei",
+       "dune",
+       "crete"
+      ]
+     },
+     "ms": {
+      "ech": 1,
+      "fond": 69,
+      "fin": 7,
+      "texels": 15713,
+      "ombre": 10,
+      "pose": 3,
+      "total": 95
+     },
+     "sauts": 0,
+     "deco": {
+      "sd": 961736242,
+      "sable": "rouge",
+      "pyr": [
+       "gradins:795m",
+       ":861m",
+       ":1195m"
+      ],
+      "mo": [
+       "sphinx",
+       "temple",
+       "porte"
+      ],
+      "pose": {
+       "troncons": 2,
+       "maisons": 16,
+       "camps": 0,
+       "touffes": 220,
+       "cactus": 0,
+       "os": 0,
+       "bateau": 1,
+       "sommets": 10185,
+       "ms": 3
+      },
+      "oasis": "mirage"
+     },
+     "pyr": [
+      {
+       "st": "gradins",
+       "hw": 398,
+       "eMin": 1.59,
+       "s": 4192,
+       "margeY": null
+      },
+      {
+       "st": "",
+       "hw": 431,
+       "eMin": 1.46,
+       "s": 4504,
+       "margeY": null
+      },
+      {
+       "st": "",
+       "hw": 597,
+       "eMin": 2.5,
+       "s": 4504,
+       "margeY": null
+      }
+     ],
+     "car": "102@1824",
+     "tor": "328 329",
+     "mo": "sphinx:120 temple:121 porte:54",
+     "lev": "s595/127/520 v1242/179/563 s1984/127/551 s2662/134/752 f3548/115/846",
+     "g": 22,
+     "p": 0
+    },
+    {
+     "err": null,
+     "loopErr": null,
+     "on": true,
+     "test": {
+      "dessus": 0,
+      "dessous": 0,
+      "margeMin": 2,
+      "decorsSurLaRoute": 0,
+      "sep": 0,
+      "ou": ""
+     },
+     "L": 4547,
+     "hz": {
+      "axe": 4,
+      "B": 4640,
+      "LL": 1.04,
+      "RMIN": 68,
+      "VN": 105,
+      "sauts": 9,
+      "pieces": [
+       "dune",
+       "avenue",
+       "dune",
+       "ilots"
+      ]
+     },
+     "ms": {
+      "ech": 1,
+      "fond": 113,
+      "fin": 13,
+      "texels": 15969,
+      "ombre": 9,
+      "pose": 3,
+      "total": 140
+     },
+     "sauts": 0,
+     "deco": {
+      "sd": 2454615765,
+      "sable": "blanc",
+      "pyr": [
+       "etagee:838m",
+       ":856m",
+       ":1221m"
+      ],
+      "mo": [
+       "sphinx",
+       "colosse",
+       "colosse",
+       "porte",
+       "porte"
+      ],
+      "pose": {
+       "camps": 1,
+       "touffes": 220,
+       "cactus": 0,
+       "os": 3,
+       "sommets": 13185,
+       "ms": 3
+      },
+      "oasis": "petite"
+     },
+     "pyr": [
+      {
+       "st": "etagee",
+       "hw": 419,
+       "eMin": 1.52,
+       "s": 4240,
+       "margeY": null
+      },
+      {
+       "st": "",
+       "hw": 428,
+       "eMin": 1.47,
+       "s": 4544,
+       "margeY": null
+      },
+      {
+       "st": "",
+       "hw": 610,
+       "eMin": 2.76,
+       "s": 4544,
+       "margeY": null
+      }
+     ],
+     "car": "65@2480 92@3088 139@624 88@1200",
+     "tor": "",
+     "mo": "sphinx:136 colosse:68 colosse:60 porte:66 porte:40",
+     "lev": "s617/120/561 s1298/124/699 s2121/108/480 i2709/97/97 i2903/93/95 i3091/91/93 i3275/83/90 i3448/95/85 f3628/115/804",
+     "g": 33,
+     "p": 0
+    },
+    {
+     "err": null,
+     "loopErr": null,
+     "on": true,
+     "test": {
+      "dessus": 0,
+      "dessous": 0,
+      "margeMin": 2.1,
+      "decorsSurLaRoute": 0,
+      "sep": 0,
+      "ou": ""
+     },
+     "L": 4588,
+     "hz": {
+      "axe": -12,
+      "B": 4361,
+      "LL": 1.04,
+      "RMIN": 68,
+      "VN": 105,
+      "sauts": 6,
+      "pieces": [
+       "dune",
+       "crete",
+       "dune",
+       "dune",
+       "vlei"
+      ]
+     },
+     "ms": {
+      "ech": 1,
+      "fond": 64,
+      "fin": 3,
+      "texels": 15907,
+      "ombre": 9,
+      "pose": 2,
+      "total": 80
+     },
+     "sauts": 0,
+     "deco": {
+      "sd": 1963745345,
+      "sable": "or",
+      "pyr": [
+       ":814m",
+       ":851m",
+       ":1203m"
+      ],
+      "mo": [
+       "colosse",
+       "colosse",
+       "porte"
+      ],
+      "pose": {
+       "troncons": 1,
+       "camps": 0,
+       "touffes": 90,
+       "cactus": 0,
+       "tempete": 5831,
+       "os": 1,
+       "bateau": 1,
+       "sommets": 5715,
+       "ms": 2
+      },
+      "oasis": "normale"
+     },
+     "pyr": [
+      {
+       "st": "",
+       "hw": 407,
+       "eMin": 1.32,
+       "s": 4408,
+       "margeY": null
+      },
+      {
+       "st": "",
+       "hw": 426,
+       "eMin": 1.54,
+       "s": 4264,
+       "margeY": null
+      },
+      {
+       "st": "",
+       "hw": 601,
+       "eMin": 2.64,
+       "s": 4584,
+       "margeY": null
+      }
+     ],
+     "car": "153@3216 31@1312",
+     "tor": "196",
+     "mo": "colosse:63 colosse:101 porte:34",
+     "lev": "s614/108/459 s1181/132/658 s1971/112/373 s2456/121/462 v3039/170/412 f3621/114/853",
+     "g": 44,
+     "p": 0
+    },
+    {
+     "err": null,
+     "loopErr": null,
+     "on": true,
+     "test": {
+      "dessus": 0,
+      "dessous": 0,
+      "margeMin": 2,
+      "decorsSurLaRoute": 0,
+      "sep": 0,
+      "ou": ""
+     },
+     "L": 4318,
+     "hz": {
+      "axe": -2,
+      "B": 4204,
+      "LL": 1.04,
+      "RMIN": 68,
+      "VN": 105,
+      "sauts": 5,
+      "pieces": [
+       "dune",
+       "vlei",
+       "dune",
+       "dune"
+      ]
+     },
+     "ms": {
+      "ech": 1,
+      "fond": 57,
+      "fin": 3,
+      "texels": 15233,
+      "ombre": 8,
+      "pose": 3,
+      "total": 71
+     },
+     "sauts": 0,
+     "deco": {
+      "sd": 2892574590,
+      "sable": "rouge",
+      "pyr": [
+       "etagee:851m",
+       ":905m",
+       ":1243m"
+      ],
+      "mo": [
+       "sphinx",
+       "colosse"
+      ],
+      "pose": {
+       "troncons": 1,
+       "camps": 1,
+       "touffes": 220,
+       "cactus": 0,
+       "os": 1,
+       "bateau": 1,
+       "sommets": 9894,
+       "ms": 3
+      },
+      "oasis": "petite"
+     },
+     "pyr": [
+      {
+       "st": "etagee",
+       "hw": 426,
+       "eMin": 1.53,
+       "s": 4032,
+       "margeY": null
+      },
+      {
+       "st": "",
+       "hw": 453,
+       "eMin": 1.52,
+       "s": 4312,
+       "margeY": null
+      },
+      {
+       "st": "",
+       "hw": 622,
+       "eMin": 2.4,
+       "s": 4312,
+       "margeY": null
+      }
+     ],
+     "car": "112@304 136@1232 163@3024",
+     "tor": "264",
+     "mo": "sphinx:64 colosse:112",
+     "lev": "s583/138/615 v1336/170/559 s2065/131/504 s2700/108/563 f3371/115/832",
+     "g": 55,
+     "p": 0
+    },
+    {
+     "err": null,
+     "loopErr": null,
+     "on": true,
+     "test": {
+      "dessus": 0,
+      "dessous": 0,
+      "margeMin": 2,
+      "decorsSurLaRoute": 0,
+      "sep": 0,
+      "ou": ""
+     },
+     "L": 4091,
+     "hz": {
+      "axe": -10,
+      "B": 4039,
+      "LL": 1.04,
+      "RMIN": 68,
+      "VN": 105,
+      "sauts": 8,
+      "pieces": [
+       "dune",
+       "ilots",
+       "dune",
+       "dune"
+      ]
+     },
+     "ms": {
+      "ech": 1,
+      "fond": 57,
+      "fin": 3,
+      "texels": 14422,
+      "ombre": 9,
+      "pose": 3,
+      "total": 77
+     },
+     "sauts": 0,
+     "deco": {
+      "sd": 2874336163,
+      "sable": "rouge",
+      "pyr": [
+       "gradins:824m",
+       "gradins:916m",
+       "lisse:1210m"
+      ],
+      "mo": [
+       "sphinx"
+      ],
+      "pose": {
+       "camps": 2,
+       "touffes": 220,
+       "cactus": 0,
+       "os": 1,
+       "bateau": 1,
+       "sommets": 9669,
+       "ms": 3
+      },
+      "oasis": "normale"
+     },
+     "pyr": [
+      {
+       "st": "gradins",
+       "hw": 412,
+       "eMin": 1.21,
+       "s": 3792,
+       "margeY": null
+      },
+      {
+       "st": "gradins",
+       "hw": 458,
+       "eMin": 1.52,
+       "s": 4088,
+       "margeY": null
+      },
+      {
+       "st": "lisse",
+       "hw": 605,
+       "eMin": 2.57,
+       "s": 4088,
+       "margeY": null
+      }
+     ],
+     "car": "86@1840 136@1680 74@240 76@2576",
+     "tor": "",
+     "mo": "sphinx:106",
+     "lev": "s523/139/532 i1194/83/87 i1364/87/91 i1542/91/84 i1717/86/102 s1905/128/448 s2481/118/556 f3155/115/821",
+     "g": 66,
+     "p": 0
+    },
+    {
+     "err": null,
+     "loopErr": null,
+     "on": true,
+     "test": {
+      "dessus": 0,
+      "dessous": 0,
+      "margeMin": 2,
+      "decorsSurLaRoute": 0,
+      "sep": 0,
+      "ou": ""
+     },
+     "L": 5782,
+     "hz": {
+      "axe": 3,
+      "B": 5426,
+      "LL": 1.31,
+      "RMIN": 86,
+      "VN": 179,
+      "sauts": 9,
+      "pieces": [
+       "dune",
+       "vlei",
+       "dune",
+       "ilots"
+      ]
+     },
+     "ms": {
+      "ech": 0,
+      "fond": 61,
+      "fin": 4,
+      "texels": 22055,
+      "ombre": 10,
+      "pose": 3,
+      "total": 78
+     },
+     "sauts": 0,
+     "deco": {
+      "sd": 520654839,
+      "sable": "blanc",
+      "pyr": [
+       "lisse:1025m",
+       ":1133m",
+       ":1470m"
+      ],
+      "mo": [
+       "temple"
+      ],
+      "pose": {
+       "troncons": 1,
+       "camps": 3,
+       "touffes": 220,
+       "cactus": 0,
+       "os": 0,
+       "sommets": 11823,
+       "ms": 3
+      },
+      "oasis": "petite"
+     },
+     "pyr": [
+      {
+       "st": "lisse",
+       "hw": 512,
+       "eMin": 1.44,
+       "s": 5776,
+       "margeY": null
+      },
+      {
+       "st": "",
+       "hw": 567,
+       "eMin": 1.56,
+       "s": 5776,
+       "margeY": null
+      },
+      {
+       "st": "",
+       "hw": 735,
+       "eMin": 2,
+       "s": 5776,
+       "margeY": null
+      }
+     ],
+     "car": "92@2672 137@3232 157@2736",
+     "tor": "386",
+     "mo": "temple:131",
+     "lev": "s675/202/522 v1399/298/662 s2359/228/665 i3252/154/129 i3535/139/113 i3787/151/121 i4059/157/116 i4332/151/124 f4607/195/980",
+     "g": 77,
+     "p": 8
+    },
+    {
+     "err": null,
+     "loopErr": null,
+     "on": true,
+     "test": {
+      "dessus": 0,
+      "dessous": 0,
+      "margeMin": 2.1,
+      "decorsSurLaRoute": 0,
+      "sep": 0,
+      "ou": ""
+     },
+     "L": 5671,
+     "hz": {
+      "axe": -17,
+      "B": 5300,
+      "LL": 1.31,
+      "RMIN": 86,
+      "VN": 179,
+      "sauts": 5,
+      "pieces": [
+       "dune",
+       "crete",
+       "dune",
+       "vlei"
+      ]
+     },
+     "ms": {
+      "ech": 0,
+      "fond": 65,
+      "fin": 5,
+      "texels": 22386,
+      "ombre": 14,
+      "pose": 4,
+      "total": 88
+     },
+     "sauts": 0,
+     "deco": {
+      "sd": 756882802,
+      "sable": "blanc",
+      "pyr": [
+       "etagee:962m",
+       ":1038m",
+       ":1544m"
+      ],
+      "mo": [
+       "sphinx"
+      ],
+      "pose": {
+       "camps": 2,
+       "touffes": 220,
+       "cactus": 0,
+       "os": 0,
+       "sommets": 8622,
+       "ms": 3
+      },
+      "oasis": "mirage"
+     },
+     "pyr": [
+      {
+       "st": "etagee",
+       "hw": 481,
+       "eMin": 1.45,
+       "s": 5304,
+       "margeY": null
+      },
+      {
+       "st": "",
+       "hw": 519,
+       "eMin": 1.42,
+       "s": 5528,
+       "margeY": null
+      },
+      {
+       "st": "",
+       "hw": 772,
+       "eMin": 2.18,
+       "s": 5664,
+       "margeY": null
+      }
+     ],
+     "car": "95@1392 156@1056 130@2416",
+     "tor": "328 418",
+     "mo": "sphinx:66",
+     "lev": "s748/220/472 s1440/213/975 s2628/216/626 v3470/298/688 f4456/195/1020",
+     "g": 88,
+     "p": 8
+    },
+    {
+     "err": null,
+     "loopErr": null,
+     "on": true,
+     "test": {
+      "dessus": 0,
+      "dessous": 0,
+      "margeMin": 2.1,
+      "decorsSurLaRoute": 0,
+      "sep": 0,
+      "ou": ""
+     },
+     "L": 8595,
+     "hz": {
+      "axe": 14,
+      "B": 7145,
+      "LL": 2.3,
+      "RMIN": 154,
+      "VN": 460,
+      "sauts": 4,
+      "pieces": [
+       "dune",
+       "avenue",
+       "dune"
+      ]
+     },
+     "ms": {
+      "ech": 2,
+      "fond": 74,
+      "fin": 9,
+      "texels": 46808,
+      "ombre": 18,
+      "pose": 3,
+      "total": 106
+     },
+     "sauts": 0,
+     "deco": {
+      "sd": 742286580,
+      "sable": "blanc",
+      "pyr": [
+       "lisse:1439m",
+       ":1592m",
+       ":2172m"
+      ],
+      "mo": [
+       "sphinx",
+       "colosse",
+       "temple"
+      ],
+      "pose": {
+       "troncons": 5,
+       "maisons": 12,
+       "camps": 0,
+       "touffes": 90,
+       "cactus": 0,
+       "os": 5,
+       "sommets": 14190,
+       "ms": 3
+      },
+      "oasis": "mirage"
+     },
+     "pyr": [
+      {
+       "st": "lisse",
+       "hw": 720,
+       "eMin": 1.08,
+       "s": 8136,
+       "margeY": null
+      },
+      {
+       "st": "",
+       "hw": 796,
+       "eMin": 1.41,
+       "s": 8592,
+       "margeY": null
+      },
+      {
+       "st": "",
+       "hw": 1086,
+       "eMin": 1.37,
+       "s": 8592,
+       "margeY": null
+      }
+     ],
+     "car": "122@7680 132@5184 156@3184 131@7360",
+     "tor": "157 159",
+     "mo": "sphinx:145 colosse:135 temple:78",
+     "lev": "s1166/518/829 s2513/591/1617 s4721/511/1182 f6414/500/1681",
+     "g": 99,
+     "p": 20
+    },
+    {
+     "err": null,
+     "loopErr": null,
+     "on": true,
+     "test": {
+      "dessus": 0,
+      "dessous": 0,
+      "margeMin": 2.1,
+      "decorsSurLaRoute": 0,
+      "sep": 0,
+      "ou": ""
+     },
+     "L": 7968,
+     "hz": {
+      "axe": -14,
+      "B": 6296,
+      "LL": 2.3,
+      "RMIN": 154,
+      "VN": 460,
+      "sauts": 4,
+      "pieces": [
+       "dune",
+       "vlei",
+       "dune"
+      ]
+     },
+     "ms": {
+      "ech": 1,
+      "fond": 74,
+      "fin": 8,
+      "texels": 39618,
+      "ombre": 18,
+      "pose": 2,
+      "total": 104
+     },
+     "sauts": 0,
+     "deco": {
+      "sd": 2064086400,
+      "sable": "rose",
+      "pyr": [
+       "gradins:1642m",
+       "lisse:1609m",
+       ":2376m"
+      ],
+      "mo": [
+       "colosse"
+      ],
+      "pose": {
+       "camps": 0,
+       "touffes": 90,
+       "cactus": 0,
+       "os": 5,
+       "sommets": 9294,
+       "ms": 2
+      },
+      "oasis": "mirage"
+     },
+     "pyr": [
+      {
+       "st": "gradins",
+       "hw": 821,
+       "eMin": 1.39,
+       "s": 7960,
+       "margeY": null
+      },
+      {
+       "st": "lisse",
+       "hw": 805,
+       "eMin": 1.44,
+       "s": 7960,
+       "margeY": null
+      },
+      {
+       "st": "",
+       "hw": 1188,
+       "eMin": 1.4,
+       "s": 7960,
+       "margeY": null
+      }
+     ],
+     "car": "60@4144 66@3120",
+     "tor": "",
+     "mo": "colosse:126",
+     "lev": "s1167/515/877 v2559/787/1131 s4477/492/818 f5787/500/1681",
+     "g": 111,
+     "p": 20
+    }
+   ],
+   "erreurs": [],
+   "avert": []
+  }
+ ]
+}

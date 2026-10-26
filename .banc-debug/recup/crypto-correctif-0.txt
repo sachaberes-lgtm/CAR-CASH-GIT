@@ -1,0 +1,9 @@
+bash
+B=/private/tmp/claude-501/-Users-sachaberes-cash-car-foret/e762ca5d-4e2a-4f31-8f63-9bd36d6789b7/scratchpad/banc; W=$B/agents/crypto; git -C /Users/sachaberes/cash-car/debug-maps show 37fd9a62:"VERSION PRINCIPALE/index.html" > $W/ref.html; python3 - $W/correctif.json <<'EOF'
+import json,sys
+C=[{"old":"if(!on){if(CRYPTO.lune&&CRYPTO.lune.visible){CRYPTO.lune.visible=false;CRYPTO.feux.visible=false;",
+ "new":"if(!on){if(CRYPTO.lune&&(CRYPTO.lune.visible||CRYPTO.feux.visible)){CRYPTO.lune.visible=false;CRYPTO.feux.visible=false; /* (2026-10-18, DEBUGGING : les gerbes du NOUVEL ATH partent en setTimeout jusqu'à 1 s après lui — un ATH juste avant le portail rallumait les FEUX dans la map suivante, où la lune est déjà cachée : ils restaient dans la scène toute la map, un appel de dessin de 1 200 points. Mesuré : ATH à 60 m du portail → feux visibles sur toute la MER DE NUAGES suivante) */",
+ "pourquoi":"les feux d'artifice d'un ATH tiré juste avant le portail restaient visibles (dans la scène) toute la map suivante"}]
+json.dump(C,open(sys.argv[1],'w'),ensure_ascii=False,indent=1)
+EOF
+node $B/applique.mjs $W/ref.html $W/correctif.json --sec

@@ -1,0 +1,3 @@
+[{"nom":"foret-g1","carte":"foret","meteo":"midi","secs":14,"params":"pistegraine=1111","sonde":"Object.keys(G).filter(k=>/Err$/.test(k)&&G[k]).join(',')"},
+ {"nom":"foret-g2-chaine","carte":"nuages","meteo":"midi","secs":10,"params":"pistegraine=2222","chaine":"foret:pluie,volcan:nuit,foret:orage","sonde":"Object.keys(G).filter(k=>/Err$/.test(k)&&G[k]).join(',')"},
+ {"nom":"crypto-ath-portail","carte":"crypto","meteo":"nuit","secs":6,"eval":"(async function(){G.dbgCrypto('ath');G.dbgClassique('nuages','midi');G.dbgSaut();await new Promise(r=>setTimeout(r,3500));let f=null;G.dbgScene().scene.traverse(function(o){if(o.isPoints&&o.visible&&/feu/i.test(o.name||''))f=(f||'')+o.name+' ';});return {carte:G.dbgClassique().niveau.carte,feuxVisibles:f};})()"}]

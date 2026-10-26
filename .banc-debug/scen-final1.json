@@ -1,0 +1,7 @@
+[{"carte":"nuages","meteo":"orage","secs":18,"attente":1,"shotsAt":[10]},
+ {"carte":"ville","meteo":"orage","teinte":"jaune","secs":18,"attente":1,"auto":{"lat":0,"vol":true,"saut":5}},
+ {"carte":"jade","meteo":"nuit","secs":18,"attente":1},
+ {"carte":"foret","meteo":"pluie","secs":18,"attente":1},
+ {"carte":"banquise","meteo":"neige","secs":18,"attente":1,"auto":{"lat":0,"gl":true}},
+ {"carte":"volcan","meteo":"orage","secs":18,"attente":1},
+ {"carte":"crypto","meteo":"soir","secs":18,"attente":1}]

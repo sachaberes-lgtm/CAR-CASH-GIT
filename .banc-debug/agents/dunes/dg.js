@@ -1,0 +1,12 @@
+const dg=()=>{const W=G,o={};const d=W.dbgDN(),DN=d.DN,S=DN.S,R=x=>Math.round(x);
+o.err=W.__dnErr?String(W.__dnErr.stack||W.__dnErr).slice(0,300):null;o.loopErr=W.__loopErr||null;o.on=DN.on;
+if(!DN.on||!S)return o;
+o.test=W.dbgDunes('test');const g=W.dbgDunes();o.L=g.L;o.hz=g.hz;o.ms=g.ms;o.sauts=g.sauts;
+o.deco=g.deco?{sd:g.deco.sd,sable:g.deco.sable,pyr:g.deco.pyramides,mo:g.deco.monuments,pose:g.deco.pose,oasis:g.deco.oasis&&g.deco.oasis.nm}:null;
+o.fp={L:R(d.L),trous:d.TROUS.map(t=>R(t.s0)+'-'+R(t.s1)).join(' '),sQ:g.sQ,ob:DN.ob.length,pyrs:DN.pyrs.map(p=>R(p.x)+','+R(p.z)).join(' '),car:DN.car.map(c=>R(c.x)+','+R(c.z)).join(' '),ysum:R(S.y.reduce((a,b)=>a+b,0)),vent:g.vent,lam:g.lam,nArb:DN.nArb,nPal:DN.nPal};
+o.pyr=DN.pyrs.map(P=>{const ca=Math.cos(P.a),sa=Math.sin(P.a);let eMin=1e9,mg=1e9,sm=0;for(let i=0;i<S.n;i++){const dx=S.x[i]-P.x,dz=S.z[i]-P.z,e=Math.max(Math.abs(dx*ca-dz*sa),Math.abs(dx*sa+dz*ca))-d.RH,r=e/P.hw;if(r<eMin){eMin=r;sm=i*S.ds;}if(r<1){const hp=P.y+P.h*(1-Math.max(0,r));mg=Math.min(mg,S.y[i]-hp);}}return {st:P.st,hw:R(P.hw),eMin:+eMin.toFixed(2),s:R(sm),margeY:mg<1e8?R(mg):null};});
+o.car=DN.car.map(c=>{const ca=Math.sin(c.a),cz=Math.cos(c.a);let dm=1e9,sm=0;for(let t=0;t<140;t+=2)for(let j=0;j<c.n;j++){const dd=t-j*8.5,x=c.x+ca*dd,z=c.z+cz*dd;for(let i=0;i<S.n;i+=2){const q=Math.hypot(S.x[i]-x,S.z[i]-z);if(q<dm){dm=q;sm=i*S.ds;}}}return R(dm-d.RH)+'@'+R(sm);}).join(' ');
+o.tor=DN.tor.map(c=>{let dm=1e9;for(let i=0;i<S.n;i+=2)dm=Math.min(dm,Math.hypot(S.x[i]-c.x,S.z[i]-c.z));return R(dm-30-c.h*.45-d.RH);}).join(' ');
+o.mo=DN.mo.map(m=>{let dm=1e9;for(let i=0;i<S.n;i+=2)dm=Math.min(dm,Math.hypot(S.x[i]-m.x,S.z[i]-m.z));return m.k+':'+R(dm-m.r-d.RH);}).join(' ');
+o.lev=DN.lev.map(v=>v.tag[0]+R(v.s)+'/'+R(v.e-v.s)+'/'+v.seg).join(' ');
+return o;};

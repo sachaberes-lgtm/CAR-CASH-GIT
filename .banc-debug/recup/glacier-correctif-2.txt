@@ -1,0 +1,10 @@
+bash
+cd /private/tmp/claude-501/-Users-sachaberes-cash-car-foret/e762ca5d-4e2a-4f31-8f63-9bd36d6789b7/scratchpad/banc/agents/glacier; python3 - <<'EOF'
+import json
+c=json.load(open('correctif.json'))
+c.insert(0,{"old":"if(!(PARIS.psiK>0)){PARIS.psiR=-psi*.3;PARIS.psiK=1;}yawR=0;slipB=0;vL=0;",
+ "new":"if(!(PARIS.psiK>0)){PARIS.psiR=BKV.gl-(psi-BKV.gl)*.3;PARIS.psiK=1;}yawR=0;slipB=0;vL=0; /* (2026-10-18, DEBUGGING : au glacier la caisse restait COLLÉE au bourrelet, 30 s au banc, pouce vers le large) le renvoi porte sur la TRAJECTOIRE (psi−BKV.gl), plus sur le nez : sur le verglas le pouce tourne le nez, la trajectoire ne suit qu'en BK_VG.tau — renvoyer le nez à −0,3 psi annulait le contre-braquage et la glissade (BKV.gl) gardait la trajectoire dans le mur. Ailleurs BKV.gl = 0 : le même renvoi qu'avant */",
+ "pourquoi":"GLACIER : le coup d'épaule contre le bourrelet renvoyait le NEZ, pas la trajectoire du verglas — la caisse restait collée au mur"})
+json.dump(c,open('correctif.json','w'),ensure_ascii=False,indent=1)
+EOF
+B=../..; rm -rf jeu3; sh $B/copie.sh jeu3 >/dev/null; node $B/applique.mjs jeu3/index.html banc-crochets.json && node $B/applique.mjs jeu3/index.html correctif.json && node $B/applique.mjs ref.html correctif.json --sec && node $B/chk.js jeu3/index.html | tail -1

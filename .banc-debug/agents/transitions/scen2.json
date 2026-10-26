@@ -1,0 +1,49 @@
+[
+ {
+  "nom": "sans-prebati",
+  "carte": "canyon",
+  "meteo": "midi",
+  "secs": 4,
+  "auto": {
+   "lat": 0
+  },
+  "params": "prebati=0&pistegraine=4242",
+  "chaine": "foret:soir,volcan:nuit,banquise:matin,grotte:midi,jade:soir,dunes:matin,nuages:soir",
+  "sonde": "(function(){const t=G.dbgT();return {c:t.carte+':'+t.meteo,L:t.L,NP:t.NP,h:t.h,fi:t.filets,mo:t.mods,tr:t.trous,pa:t.pads,oi:t.oils,tm:t.tm,tmV:t.tmV,cl:t.clouds,sc:t.sc,eng:t.eng,pb:G.dbgPrebati().der}})()"
+ },
+ {
+  "nom": "avec-prebati",
+  "carte": "canyon",
+  "meteo": "midi",
+  "secs": 4,
+  "auto": {
+   "lat": 0
+  },
+  "params": "pistegraine=4242&prebgraine=1",
+  "chaine": "foret:soir,volcan:nuit,banquise:matin,grotte:midi,jade:soir,dunes:matin,nuages:soir",
+  "sonde": "(function(){const t=G.dbgT();return {c:t.carte+':'+t.meteo,L:t.L,NP:t.NP,h:t.h,fi:t.filets,mo:t.mods,tr:t.trous,pa:t.pads,oi:t.oils,tm:t.tm,tmV:t.tmV,cl:t.clouds,sc:t.sc,eng:t.eng,pb:G.dbgPrebati().der}})()"
+ },
+ {
+  "nom": "annule-mi-chemin",
+  "carte": "nuages",
+  "meteo": "midi",
+  "secs": 6,
+  "auto": {
+   "lat": 0
+  },
+  "eval": "(async function(){const w=ms=>new Promise(r=>setTimeout(r,ms));const snap=(n)=>{const t=G.dbgT(),p=G.dbgPrebati();return {n:n,c:t.carte+':'+t.meteo+(t.teinte?':'+t.teinte:''),roots:Object.keys(t.roots).filter(k=>t.roots[k]).join(','),lvl:t.lvl,bio:t.bio,tir:t.tirage,der:t.der,pro:t.prochain,neuf:t.neuf,geo:t.mem.geometries,tex:t.mem.textures,sc:t.sc,tm:t.tm,cl:t.clouds,mode:t.mode,go:t.gameOver,run:t.running,pa:t.paused,s:t.s,safeS:t.safeS,L:t.L,lat:t.lat,inv:t.inv,used:t.used,fen:t.fen,att:t.att,portC:t.portC,pcube:t.pcube,zones:t.zones,errs:t.errs,pb:{e:p.etat,c:p.carte,pris:p.pris,dep:p.prisAuDepart,ann:p.annules,der:p.der,err:p.err}};};const attend=async(f,ms)=>{const t0=Date.now();while(Date.now()-t0<ms){if(f())return true;await w(100);}return false;}; const out=[];G.dbgAuto(1,0,{});await w(3000);out.push(snap('A'));G.dbgClassique('foret','nuit');G.dbgPortail(1100);await w(1200);out.push(snap('B-foret-en-cours'));\n  G.dbgClassique('volcan','soir');await w(1200);out.push(snap('C-volcan-en-cours'));G.dbgChance('mort');await attend(()=>G.dbgState().gameOver,8000);await w(300);out.push(snap('D-mort'));await w(3000);out.push(snap('E-fin+3s'));\n  out.push(G.dbgT('rejoue'));await w(4000);out.push(snap('F-course2'));return out;})()",
+  "evalFin": "(async function(){const w=ms=>new Promise(r=>setTimeout(r,ms));const snap=(n)=>{const t=G.dbgT(),p=G.dbgPrebati();return {n:n,c:t.carte+':'+t.meteo+(t.teinte?':'+t.teinte:''),roots:Object.keys(t.roots).filter(k=>t.roots[k]).join(','),lvl:t.lvl,bio:t.bio,tir:t.tirage,der:t.der,pro:t.prochain,neuf:t.neuf,geo:t.mem.geometries,tex:t.mem.textures,sc:t.sc,tm:t.tm,cl:t.clouds,mode:t.mode,go:t.gameOver,run:t.running,pa:t.paused,s:t.s,safeS:t.safeS,L:t.L,lat:t.lat,inv:t.inv,used:t.used,fen:t.fen,att:t.att,portC:t.portC,pcube:t.pcube,zones:t.zones,errs:t.errs,pb:{e:p.etat,c:p.carte,pris:p.pris,dep:p.prisAuDepart,ann:p.annules,der:p.der,err:p.err}};};const attend=async(f,ms)=>{const t0=Date.now();while(Date.now()-t0<ms){if(f())return true;await w(100);}return false;}; return snap('fin');})()"
+ },
+ {
+  "nom": "alterne",
+  "carte": "nuages",
+  "meteo": "midi",
+  "secs": 3,
+  "auto": {
+   "lat": 0
+  },
+  "chaine": "crypto:nuit,nuages:midi,espace:midi,nuages:midi,crypto:nuit,nuages:midi,grotte:matin,nuages:midi,ville:nuit:bleu,nuages:midi",
+  "sonde": "(function(){const t=G.dbgT();G.__snaps=G.__snaps||[];if(G.__z!==t.zones){G.__z=t.zones;const h={};for(const o of G.dbgScene().scene.children){const k=(o.name||o.type)+(o.visible?'':'~');h[k]=(h[k]||0)+1;}G.__snaps.push({z:t.zones,c:t.carte,sc:t.sc,geo:t.mem.geometries,tex:t.mem.textures,h:h});}return t.sc})()",
+  "evalFin": "(function(){return G.__snaps;})()"
+ }
+]

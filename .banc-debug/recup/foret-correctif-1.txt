@@ -1,0 +1,17 @@
+bash
+W=/private/tmp/claude-501/-Users-sachaberes-cash-car-foret/e762ca5d-4e2a-4f31-8f63-9bd36d6789b7/scratchpad/banc/agents/foret; cd $W; python3 - <<'EOF'
+p='mkfix.js';s=open(p).read()
+a=s.index('"      const fut=function');b=s.index('"      if(k9<=g.sy*1.45')
+new='''"      const fut=function(e,k){const ca=Math.cos(g.ry),sa=Math.sin(g.ry),sx=g.sxz,W9=[];let hit=false;\\n"+
+"        for(const cp of PT.geant[e][0].m.C){const ax=g.x+(cp[0]*ca+cp[2]*sa)*sx,ay=g.y+cp[1]*k,az=g.z+(-cp[0]*sa+cp[2]*ca)*sx,bx=g.x+(cp[3]*ca+cp[5]*sa)*sx-ax,by=g.y+cp[4]*k-ay,bz=g.z+(-cp[3]*sa+cp[5]*ca)*sx-az;\\n"+
+"          W9.push([ax,ay,az,bx,by,bz,bx*bx+by*by+bz*bz,cp[6]*sx*1.3+2,bx*bx+bz*bz]);}\\n"+
+"        proches(g.x,g.z,FOR_PLEUR_VOL[e].r*sx+ROAD_HALF+20,function(j){if(hit)return;const q=pts[j],b=B[j],dyb=ROAD_HALF*Math.abs(b.y);\\n"+
+"          for(const w of W9){const r=w[7];let u=w[8]>0?((q.x-w[0])*w[3]+(q.z-w[2])*w[5])/w[8]:0;u=u<0?0:u>1?1:u;const hx=q.x-w[0]-w[3]*u,hz=q.z-w[2]-w[5]*u,rr=r+ROAD_HALF+2; /* (tri rapide : en plan, puis en hauteur) */\\n"+
+"            if(hx*hx+hz*hz>rr*rr||q.y+dyb+3<Math.min(w[1],w[1]+w[4])-r||q.y-dyb-4>Math.max(w[1],w[1]+w[4])+r)continue;\\n"+
+"            for(let l=-ROAD_HALF;l<=ROAD_HALF+.01;l+=7)for(const h of [-3,2]){const px=q.x+b.x*l,py=q.y+b.y*l+h,pz=q.z+b.z*l;let v=w[6]>0?((px-w[0])*w[3]+(py-w[1])*w[4]+(pz-w[2])*w[5])/w[6]:0;v=v<0?0:v>1?1:v;\\n"+
+"              const dx=px-w[0]-w[3]*v,dy=py-w[1]-w[4]*v,dz=pz-w[2]-w[5]*v;if(dx*dx+dy*dy+dz*dz<r*r){hit=true;return;}}}});return hit;};\\n"+
+'''
+s=s[:a]+new+s[b:]
+open(p,'w').write(s)
+EOF
+node mkfix.js; B=$W/../..; node $B/applique.mjs $W/ref.html $W/correctif.json --sec; sh $B/copie.sh $W/jeu >/dev/null; node $B/applique.mjs $W/jeu/index.html $W/banc.json && node $B/applique.mjs $W/jeu/index.html $W/correctif.json && node $B/chk.js $W/jeu/index.html; grep -n "const fut=function" -A9 $W/jeu/index.html | cut -c1-200

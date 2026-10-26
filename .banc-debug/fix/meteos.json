@@ -1,0 +1,12 @@
+[
+ {
+  "old": "function contiMap(){const c=typeof LVL!=='undefined'&&LVL.cur;return !!c&&(c.id==='nuages'||c.id==='canyon'",
+  "new": "function contiMap(){const c=typeof LVL!=='undefined'&&LVL.cur;return !!c&&(c.id==='nuages'||c.id==='orage' /* (2026-10-18, DEBUGGING : la MER DE NUAGES sous l'ORAGE a l'id du niveau 'orage' — CONTI.cartes.nuages.orage = 'tempete' recevait la recette, mais le bitume commun rtT/rtA, le ciel continu uCiel2 et la chroma du ciel ne la lisaient pas) */||c.id==='canyon'",
+  "pourquoi": "nuages × orage (id 'orage') manquait à contiMap : la recette CONTI de la tempête n'était lue qu'à moitié"
+ },
+ {
+  "old": "  return c.id==='nuages'||c.id==='banquise'||c.id==='volcan'||c.id==='canyon'||c.id==='dunes'||c.id==='espace'||c.id==='foret'||c.id==='jade'||!!c.vitre;}",
+  "new": "  return c.id==='nuages'||c.id==='orage' /* (2026-10-18, DEBUGGING) l'orage des nuages (id 'orage') : la ligne centrale OR de la signature, comme bmapCle pour les bords */||c.id==='banquise'||c.id==='volcan'||c.id==='canyon'||c.id==='dunes'||c.id==='espace'||c.id==='foret'||c.id==='jade'||!!c.vitre;}",
+  "pourquoi": "routeSig ignorait l'orage des nuages : ligne centrale blanche au lieu d'or (la signature « sur TOUTES les météos des nuages »)"
+ }
+]

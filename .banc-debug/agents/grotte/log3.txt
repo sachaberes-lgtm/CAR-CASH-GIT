@@ -1,0 +1,37 @@
+verrou pris par debug-grotte
+[1s] ▶ v-3333 colonne=0&simu=1&carte=grotte&meteo=soir&pistegraine=3333
+[13s] ▶ preb-A colonne=0&simu=1&carte=grotte&meteo=midi&pistegraine=8888
+[27s] chauffe du menu : {"progs":226,"attente":11}
+[31s] ▶ direct-B colonne=0&simu=1&carte=grotte&meteo=midi&pistegraine=8888&prebati=0
+[42s] ▶ v-matin-vol colonne=0&simu=1&carte=grotte&meteo=matin&pistegraine=1111
+[79s] ▶ chaine colonne=0&simu=1&carte=nuages&meteo=midi&pistegraine=7777
+[123s] ▶ v-nuit-tel tel=1&colonne=0&simu=1&carte=grotte&meteo=nuit&pistegraine=4444
+
+=== v-3333
+  grotte:soir : {"n":2,"cartes":["grotte:soir"],"sMax":68.6,"L":9379,"progs":[222,222],"geo":[662,662]}
+  evalFin → {"trous":0,"bouche":1,"e":{"pret":true,"troncons":799,"air":851012,"col":360,"lum":428,"tri":356448,"dec":4248,"sd":-23938376,"sp":1163276,"L":9379,"met":"soir","salles":{"mine":180,"lave":542.921797389617,"stal":3005.3482987939647,"geode":3893.197380129768,"luxe":6079.473639099858,"abysse":8042.7455513494515,"fin":9228.628479236946},"ox":-5568,"oz":-4992},"lacs":{"lave:air":542,"lave>lave":22152,"lave>roche":8,"eau>eau":9873,"eau:air":5668,"eau>roche":11,"bassin>eau":4,"bassin>roche":2},"cone":{"cones":240,"bout":{"pts":1195,"tues":68},"cote":{"pts":1893,"tues":146},"ex":[{"t":2,"tip":[-2057,
+
+=== preb-A
+  grotte:midi : {"n":2,"cartes":["grotte:midi"],"sMax":76.1,"L":9431,"progs":[226,226],"geo":[1249,1249]}
+  evalFin → {"e":{"pret":true,"troncons":800,"air":838900,"col":375,"lum":426,"tri":352420,"dec":4344,"sd":-148959964,"sp":1157358,"L":9431,"met":"midi","salles":{"mine":180,"luxe":653.8767450258989,"geode":1752.0543552617034,"stal":3817.424650848317,"lave":5025.629597987518,"abysse":7474.523753637399,"fin":9281.06783765126},"ox":-768,"oz":-384},"bouche":0,"p":{"prisAuDepart":1},"trous":0,"lacs":{"eau:air":128,"eau>eau":7364,"bassin>eau":6501,"bassin>roche":42,"bassin:air":117,"lave:air":96,"lave>lave":23452,"lave>roche":12}}
+
+=== direct-B
+  grotte:midi : {"n":2,"cartes":["grotte:midi"],"sMax":68.6,"L":9431,"progs":[222,222],"geo":[638,638]}
+  evalFin → {"e":{"pret":true,"troncons":800,"air":838900,"col":375,"lum":426,"tri":352420,"dec":4344,"sd":-148959964,"sp":1157358,"L":9431,"met":"midi","salles":{"mine":180,"luxe":653.8767450258989,"geode":1752.0543552617034,"stal":3817.424650848317,"lave":5025.629597987518,"abysse":7474.523753637399,"fin":9281.06783765126},"ox":-768,"oz":-384},"bouche":0,"p":{"prisAuDepart":0},"trous":0,"lacs":{"eau:air":128,"eau>eau":7364,"bassin>eau":6501,"bassin>roche":42,"bassin:air":117,"lave:air":96,"lave>lave":23452,"lave>roche":12}}
+
+=== v-matin-vol
+  grotte:matin : {"n":30,"cartes":["grotte:matin"],"sMax":2194.4,"L":9448,"progs":[222,223],"geo":[620,854]}
+  eval → "veille"
+  evalFin → {"bilan":{"images":907,"camMin":42,"camRoche":0,"margeMin":1529,"margeS":1,"heurts":[]},"cone":{"cones":240,"bout":{"pts":1199,"tues":33},"cote":{"pts":1907,"tues":86},"ex":[{"t":2,"tip":[4282,-305,2960],"r0":4.3,"h":25,"q":"tite"},{"t":4,"tip":[4282,-305,2960],"r0":4.3,"h":25,"q":"tite"},{"t":6,"tip":[4282,-305,2960],"r0":4.3,"h":25,"q":"tite"},{"t":8,"tip":[4282,-305,2960],"r0":4.3,"h":25,"q":"tite"},{"t":10,"tip":[4282,-305,2960],"r0":4.3,"h":25,"q":"tite"},{"t":2,"tip":[4098,-30,2152],"r0":4.7,"h":26,"q":"tite"},{"t":4,"tip":[4098,-30,2152],"r0":4.7,"h":26,"q":"tite"},{"t":6,"tip":[4098,-3
+
+=== chaine
+  nuages:midi : {"n":10,"cartes":["nuages:midi"],"sMax":628.5,"L":4768,"progs":[222,222],"geo":[524,554],"x":{"V":false,"root":false,"lvl":0,"part":false,"bio":"nuagesMidiCC","fogF":5600,"geo":554}}
+  grotte:matin : {"n":10,"cartes":["grotte:matin"],"sMax":858.9,"L":8972,"progs":[222,223],"geo":[1253,1297],"x":{"V":true,"root":true,"lvl":1,"part":true,"bio":"grt-matin-lave","fogF":884,"geo":1297}}
+  espace:midi : {"n":10,"cartes":["espace:midi"],"sMax":1169.6,"L":9486,"progs":[223,223],"geo":[647,646],"x":{"V":false,"root":false,"lvl":0,"part":false,"bio":"espace","fogF":4200,"geo":646}}
+  evalFin → {"V":false,"root":false,"lvl":0,"part":false,"bio":"espace","fogF":4200,"geo":646}
+
+=== v-nuit-tel
+  grotte:nuit : {"n":25,"cartes":["grotte:nuit"],"sMax":1641.9,"L":9037,"progs":[221,222],"geo":[667,778]}
+  eval → "veille"
+  evalFin → {"bilan":{"images":911,"camMin":39,"camRoche":0,"margeMin":1329,"margeS":3,"heurts":[]},"cone":{"cones":180,"bout":{"pts":893,"tues":1},"cote":{"pts":1435,"tues":10},"ex":[{"t":2,"tip":[3103,24,-3096],"r0":6.4,"h":29,"q":"tite"}]},"trous":{"trous":0,"ex":[]},"fantomes":{"decors":3094,"invisibles":0,"types":{}},"test":{"roche":0,"decors":0,"ou":""},"lacs":{"lave>lave":15773,"lave:air":103,"eau>eau":7683,"eau:air":59,"eau>roche":10,"bassin>roche":16,"bassin>eau":5600,"bassin:air":188},"bouche":0,"err":[]}
+verrou rendu

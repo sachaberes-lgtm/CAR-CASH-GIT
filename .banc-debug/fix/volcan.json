@@ -1,0 +1,22 @@
+[
+ {
+  "old": "YM=new Float32Array(N).fill(1e9);",
+  "new": "YM=new Float32Array(N).fill(1e9),EV=new Float32Array(N).fill(1e9),EVon=!(VOLCAN.sauts&&VOLCAN.sauts.length); /* (2026-10-18, DEBUGGING : la spirale) EV = le COULOIR DE CHAQUE ROUTE (le plafond du sol sous chacune, voir le rabot plus bas) ; EVon : la balade (vlcTrace3, sans raccourci) — la descente v4 garde la dalle la plus basse */",
+  "pourquoi": "le plafond du sol route par route (la spirale), alloué une fois à la construction"
+ },
+ {
+  "old": "if(d2<D[k]){D[k]=d2;YN[k]=p.y;}if(d2<RY*RY&&p.y<YM[k])YM[k]=p.y;}}}",
+  "new": "if(d2<D[k]){D[k]=d2;YN[k]=p.y;}if(d2<RY*RY&&p.y<YM[k])YM[k]=p.y;if(EVon){const e9=p.y-16+Math.max(0,Math.sqrt(d2)-ROAD_HALF-10)*1.2;if(e9<EV[k])EV[k]=e9;}}}}",
+  "pourquoi": "le couloir de chaque route (16 m sous elle, puis la pente 1,2) au lieu de la dalle la plus basse à 120 m"
+ },
+ {
+  "old": "h=Math.min(h,ym-16+Math.max(0,d-ROAD_HALF-10)*1.2);",
+  "new": "const cl=EV[k]<1e8?EV[k]:ym-16+Math.max(0,d-ROAD_HALF-10)*1.2;h=Math.min(h,cl); /* (2026-10-18, DEBUGGING : « la spirale sur des falaises ») sur la spirale, `ym` (la dalle la plus basse à moins de 120 m) prenait le TOUR D'EN DESSOUS dès 15-45 m du tour d'au-dessus : le cône taillé pour elle était raboté jusqu'à 16 m sous le tour du bas — des falaises de 110-250 m sous la moitié extérieure de la route, 54-142 marches de plus de 60 m d'une case à l'autre. Chaque route garde son couloir (EV) : le sol reste sous TOUTES les routes, le flanc reste sous la spirale */",
+  "pourquoi": "plus de tranchées ni de falaises de 150 m sous les tours de la spirale (le cône taillé pour elle n'est plus raboté par le tour d'en dessous)"
+ },
+ {
+  "old": "if(r<c[1].rc)yl=Math.max(yl,c[1].yP-c[1].cr*.55);}",
+  "new": "if(r<c[1].rc)yl=Math.max(yl,Math.min(c[1].yP-c[1].cr*.55,cl-2));} /* (2026-10-18, DEBUGGING : « une boîte de lave sur le volcan ») le couloir du dernier tour rabote la lèvre du cratère côté route ; le lac, lui, restait à la hauteur du cratère d'origine : il FLOTTAIT 56-320 m au-dessus de la roche, un couvercle de lave posé sur des rideaux verticaux de 400-750 m (visibles de toute la balade). Le lac ne monte plus au-dessus du sol raboté : là où la lèvre est coupée, il déborde en pente */",
+  "pourquoi": "le lac du cratère ne flotte plus au-dessus de la lèvre rabotée (la boîte aux murs de lave au sommet du volcan)"
+ }
+]

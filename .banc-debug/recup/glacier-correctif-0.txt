@@ -1,0 +1,12 @@
+/private/tmp/claude-501/-Users-sachaberes-cash-car-foret/e762ca5d-4e2a-4f31-8f63-9bd36d6789b7/scratchpad/banc/agents/glacier/correctif.json
+[
+ {"old":"if(!(PARIS.psiK>0)){PARIS.psiR=-psi*.3;PARIS.psiK=1;}yawR=0;slipB=0;vL=0;",
+  "new":"if(!(PARIS.psiK>0)){PARIS.psiR=BKV.gl-(psi-BKV.gl)*.3;PARIS.psiK=1;}yawR=0;slipB=0;vL=0; /* (2026-10-18, DEBUGGING : la caisse restait COLLÉE au bourrelet du glacier, 50 s au banc) le renvoi porte sur la TRAJECTOIRE (psi−BKV.gl), plus sur le nez : sur le verglas le pouce tourne le nez vers le large mais la trajectoire ne suit qu'en BK_VG.tau — renvoyer le nez à −0,3 psi le rejetait vers le mur et la trajectoire y restait. Ailleurs BKV.gl = 0 : le même renvoi qu'avant */",
+  "pourquoi":"GLACIER : le coup d'épaule contre le bourrelet renvoyait le NEZ, pas la trajectoire du verglas — la caisse restait collée au mur"},
+ {"old":"const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,fog:true}));m.name='glacier becs';m.matrixAutoUpdate=false;root.add(m);}",
+  "new":"const m=new THREE.Mesh(g,BANQ.becM||(BANQ.becM=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,fog:true})));m.name='glacier becs';m.matrixAutoUpdate=false;m.userData.jeter=true;root.add(m);} /* (2026-10-18, DEBUGGING) jeter : banqVide ne libère que ces géométries-là — celle des becs restait en mémoire à chaque glacier ; la matière, une seule pour tous les glaciers (une neuve à chaque piste, jamais libérée) */",
+  "pourquoi":"GLACIER : la géométrie des becs n'était jamais libérée (pas de userData.jeter) et chaque piste créait une matière neuve jamais libérée"},
+ {"old":"// (plafond 120 px : à 46, le voile n'était qu'un point blanc sur la glace blanche)fx.brume.drag=2.4;fx.brume.mesh.name='banquise brume';",
+  "new":"/* (plafond 120 px : à 46, le voile n'était qu'un point blanc sur la glace blanche) — (2026-10-18, DEBUGGING : ce commentaire en // avalait la suite : le voile de givre filait avec la caisse, sans frein) */fx.brume.drag=2.4;fx.brume.mesh.name='banquise brume';",
+  "pourquoi":"GLACIER : un // en milieu de ligne avalait le frein (drag 2,4) et le nom du voile de givre de la glisse"}
+]

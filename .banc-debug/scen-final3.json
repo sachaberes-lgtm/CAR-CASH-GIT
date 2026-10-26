@@ -1,0 +1,3 @@
+[{"carte":"banquise","meteo":"midi","secs":20,"attente":1,"auto":{"lat":0,"gl":true},"shotsAt":[8]},
+ {"carte":"banquise","meteo":"blizzard","secs":16,"attente":1,"auto":{"lat":0,"gl":true},"vue":"tel","params":"pistegraine=1234"},
+ {"nom":"chaine2","carte":"dunes","meteo":"soir","secs":10,"attente":1,"chaine":"banquise:nuit,nuages:orage,grotte:soir,ville:pluie:violet"}]

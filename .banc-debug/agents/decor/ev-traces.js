@@ -1,0 +1,40 @@
+(async function(){
+const E=G.__ev,THREE=G.THREE,out={};
+const hs=s=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16);};
+const J=x=>{try{return JSON.stringify(x);}catch(e){return 'X';}};
+const cartes=__CARTES__,graines=__GRAINES__,COUL=__COUL__;
+const dblMat=new THREE.MeshBasicMaterial({side:THREE.DoubleSide}),tmp=new THREE.Mesh(new THREE.BufferGeometry(),dblMat),rc=new THREE.Raycaster();
+function couloir(r){ /* le couloir de la caisse : 3 voies x 2 hauteurs au-dessus de la dalle, un rayon vers l'échantillon suivant */
+  const sc=E('scene'),car=E('carGroup'),H=r.half,P=r.p,N=r.n,B=r.b,nb=P.length/3,lanes=[-.62*H,0,.62*H],hh=[1,2],S=[],CELL=24,grid=new Map();
+  for(let j=0;j<nb;j++)for(const l of lanes)for(const h of hh){const q=j*3;S.push([P[q]+N[q]*h+B[q]*l,P[q+1]+N[q+1]*h+B[q+1]*l,P[q+2]+N[q+2]*h+B[q+2]*l,j]);}
+  const per=lanes.length*hh.length;
+  S.forEach(function(s,i){const k=Math.floor(s[0]/CELL)+','+Math.floor(s[1]/CELL)+','+Math.floor(s[2]/CELL);let a=grid.get(k);if(!a)grid.set(k,a=[]);a.push(i);});
+  const vis=o=>{for(let x=o;x;x=x.parent){if(!x.visible)return false;if(x===car)return false;}return true;};
+  const M=new THREE.Matrix4(),IM=new THREE.Matrix4(),bx=new THREE.Box3(),hits={},nom=o=>(o.name||'')+'<'+((o.parent&&o.parent.name)||'')+'<'+((o.parent&&o.parent.parent&&o.parent.parent.name)||'');
+  let nObj=0,nCand=0;
+  sc.traverse(function(o){if(!o.isMesh||!o.geometry||!o.geometry.attributes||!o.geometry.attributes.position)return;if(!vis(o))return;nObj++;
+    const g=o.geometry;try{if(!g.boundingBox)g.computeBoundingBox();}catch(e){return;}if(!g.boundingBox||g.boundingBox.isEmpty())return;o.updateWorldMatrix(true,false);
+    const n=o.isInstancedMesh?o.count:1;
+    for(let k=0;k<n;k++){M.copy(o.matrixWorld);if(o.isInstancedMesh){o.getMatrixAt(k,IM);M.multiply(IM);}bx.copy(g.boundingBox).applyMatrix4(M);
+      const d=bx.min.distanceTo(bx.max);if(!(d>2.5)||d>500)continue;
+      const c0=Math.floor(bx.min.x/CELL),c1=Math.floor(bx.max.x/CELL),y0=Math.floor(bx.min.y/CELL),y1=Math.floor(bx.max.y/CELL),z0=Math.floor(bx.min.z/CELL),z1=Math.floor(bx.max.z/CELL);
+      if((c1-c0+1)*(y1-y0+1)*(z1-z0+1)>800)continue;const cand=[];
+      for(let a=c0;a<=c1;a++)for(let b=y0;b<=y1;b++)for(let c=z0;c<=z1;c++){const L9=grid.get(a+','+b+','+c);if(L9)for(const i of L9){const s=S[i];if(s[0]>=bx.min.x&&s[0]<=bx.max.x&&s[1]>=bx.min.y&&s[1]<=bx.max.y&&s[2]>=bx.min.z&&s[2]<=bx.max.z)cand.push(i);}}
+      if(!cand.length)continue;nCand++;
+      tmp.geometry=g;tmp.matrixWorld.copy(M);let touche=null;
+      for(let u=0;u<cand.length&&u<24&&!touche;u++){const i=cand[u],s=S[i],t2=S[i+per];if(!t2)continue;const v=new THREE.Vector3(s[0],s[1],s[2]),w=new THREE.Vector3(t2[0],t2[1],t2[2]),dl=w.clone().sub(v),ln=dl.length();if(!(ln>.1))continue;
+        rc.set(v,dl.normalize());rc.far=ln;const h9=[];try{tmp.raycast(rc,h9);}catch(e){}if(h9.length)touche=[Math.round(s[0]),Math.round(s[1]),Math.round(s[2]),Math.round(s[3]*r.pas)];}
+      if(touche){const kk=nom(o);if(!hits[kk])hits[kk]={n:0,ex:[]};hits[kk].n++;if(hits[kk].ex.length<3)hits[kk].ex.push(touche);}}});
+  return {nObj:nObj,nCand:nCand,hits:hits};}
+for(const cm of cartes)for(const gr of graines){const c=cm[0],m=cm[1],K=c+':'+gr,t0=performance.now();
+  let r;try{r=G.dbgTrace({carte:c,meteo:m,graine:gr});}catch(e){out[K]={err:String(e).slice(0,200)};continue;}
+  await new Promise(res=>setTimeout(res,1500));
+  const o={ok:r.graineOk,carte:r.carte,L:r.L,ph:hs(J(r.p)),ms:Math.round(performance.now()-t0)};
+  try{o.pk=hs(J(E('pickups.map(function(p){return [Math.round(p.s),Math.round(p.lat||0)];})')));}catch(e){o.pk='E';}
+  try{o.pads=hs(J(E('PADS.map(function(p){return Math.round(p.s||0);})')));}catch(e){o.pads='E';}
+  for(const ob of ['BANQ.obst','FORET.obst','VOLCAN.obst','CY.obst','JADE.obst']){try{const v=E('(typeof '+ob.split('.')[0]+"!=='undefined'&&"+ob+')?'+ob+'.map(function(q){return [Math.round(q.s||0),Math.round(q.lat||0)];}):null');if(v)o[ob]=hs(J(v))+'/'+v.length;}catch(e){}}
+  try{o.deco=E('({foret:FORET.deco,volcan:VOLCAN.deco,banquise:BANQ.deco,jade:JADE.deco,canyon:CY.deco})')[c==='banquise'?'banquise':c];if(o.deco&&!Array.isArray(o.deco))o.deco=J(o.deco).slice(0,300);}catch(e){o.deco='E '+e.message;}
+  try{o.err=[G.__loopErr||null,E("typeof window.__forErr!=='undefined'?String(window.__forErr):null")];}catch(e){}
+  if(COUL){try{const t1=performance.now();o.couloir=couloir(r);o.couloir.ms=Math.round(performance.now()-t1);}catch(e){o.couloir='E '+String(e).slice(0,160);}}
+  out[K]=o;}
+return out;})()

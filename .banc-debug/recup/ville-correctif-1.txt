@@ -1,0 +1,13 @@
+bash
+cd /private/tmp/claude-501/-Users-sachaberes-cash-car-foret/e762ca5d-4e2a-4f31-8f63-9bd36d6789b7/scratchpad/banc/agents/ville; python3 - <<'EOF'
+import json
+p='correctif.json';J=json.load(open(p))
+e=J[-1];n=e['new']
+n=n.replace("function villeSFj(f,sv,h){const S=function(a,b,x){const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t);}; // vitreSF, en JS\n  if(f===1)return 1+(-.55+.15*sv)*S(.4,1,h);if(f===2)return 1-.28*S(.3,1,h);if(f===3)return (1+.16*Math.sin(3.1416*Math.min(1,Math.max(0,(h-.4)/.45))))*(1-.5*S(.8,1,h));if(f===4)return 1-.2*S(.4,1,h);return 1;}",
+ "function villeSS(a,b,x){const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t);} // smoothstep\nfunction villeSFj(f,sv,h){ // vitreSF, en JS\n  if(f===1)return 1+(-.55+.15*sv)*villeSS(.4,1,h);if(f===2)return 1-.28*villeSS(.3,1,h);if(f===3)return (1+.16*Math.sin(3.1416*Math.min(1,Math.max(0,(h-.4)/.45))))*(1-.5*villeSS(.8,1,h));if(f===4)return 1-.2*villeSS(.4,1,h);return 1;}")
+n=n.replace(",aK=f===2?(1.6+1.2*sv)*(sv<.5?-1:1):0,S=function(x){const u=Math.min(1,Math.max(0,(x-.25)/.75));return u*u*(3-2*u);};",",aK=f===2?(1.6+1.2*sv)*(sv<.5?-1:1):0;")
+n=n.replace("aK*(S(h0)*(1-t)+S(h1)*t)","aK*(villeSS(.25,1,h0)*(1-t)+villeSS(.25,1,h1)*t)")
+assert 'function(' not in n.split('function villeForme')[1].split('function villeHeurt')[0]
+e['new']=n;json.dump(J,open(p,'w'),ensure_ascii=False,indent=1)
+EOF
+B=/private/tmp/claude-501/-Users-sachaberes-cash-car-foret/e762ca5d-4e2a-4f31-8f63-9bd36d6789b7/scratchpad/banc; node $B/applique.mjs ref.html correctif.json --sec; sh $B/copie.sh $W/jeu2 >/dev/null 2>&1; W=$B/agents/ville; sh $B/copie.sh $W/jeu2; node $B/applique.mjs $W/jeu2/index.html correctif.json && node $B/applique.mjs $W/jeu2/index.html dbg.json && node $B/chk.js $W/jeu2/index.html | tail -1

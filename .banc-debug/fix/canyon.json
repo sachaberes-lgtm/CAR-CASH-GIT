@@ -1,0 +1,7 @@
+[
+ {
+  "old": "if(bi<0||bd>(C.L0+CY_COU.T+40)**2)return false;const lt=",
+  "new": "if(bi<0||bd>(C.L0+CY_COU.T+40)**2)return false;{const al=(p.x-S.x[bi])*S.tx[bi]+(p.z-S.z[bi])*S.tz[bi];if((bi-C.i0<2&&al<0)||(C.i1-bi<2&&al>(C.i1-bi)*S.ds))return false;} /* (2026-10-18, DEBUGGING : un mur INVISIBLE sur la route) avant le 1er échantillon d'une bande (ou après le dernier), l'échantillon le plus proche est le bout et le test latéral se faisait dans SON repère : jusqu'à 85 m avant la bouche du TUNNEL et après la sortie des ÉTROITS, un vol bas au bord de la route mourait « ENCASTRÉ DANS LA PAROI » contre rien — la bande commence et finit à ses bouts */const lt=",
+  "pourquoi": "cyCouloirHeurt : la bande (Étroits, tunnel) bornée en long — plus de mort contre rien avant la bouche du tunnel et après la sortie des Étroits"
+ }
+]

@@ -1,0 +1,47 @@
+[
+ {
+  "old": "else{corps.push(cx,b+H*fr/2,cz,wk,H*fr,pk);genre.push(0);tqC.push(cx,km,cz);}",
+  "new": "else{corps.push(cx,b+H*fr/2,cz,wk,H*fr,pk);genre.push(0);tqC.push(cx,km,cz);yV=Math.max(yV,b+H*fr);} /* (2026-10-18, DEBUGGING : ville) yV = le VRAI toit de la tour de béton : quand le dernier retrait est trop fin (19,2 m → 12,8 → 6,4 : break), elle s'arrête vers 0,74 H, pas à t */",
+  "pourquoi": "1 · le vrai toit des tours de béton (le dernier retrait sauté par le break)"
+ },
+ {
+  "old": "corps.push(cx,b+(H+ha)/2,cz,2.4,H+ha,2.4)",
+  "new": "corps.push(cx,(b+yV+ha)/2,cz,2.4,yV-b+ha,2.4)",
+  "pourquoi": "1 · le mât de béton part du vrai toit (son feu flottait jusqu'à 250 m au-dessus)"
+ },
+ {
+  "old": "neon.push(cx,t+ha,cz,4.5,4.5,4.5)",
+  "new": "neon.push(cx,yV+ha,cz,4.5,4.5,4.5) /* (DEBUGGING : ville) au bout du mât posé sur le vrai toit */",
+  "pourquoi": "1 · le feu d'antenne au bout du mât"
+ },
+ {
+  "old": "neon.push(cx,(VIt?yV:t)-1.4,cz,",
+  "new": "neon.push(cx,yV-1.4,cz, /* (2026-10-18, DEBUGGING : ville) la COURONNE sur le vrai toit : à t, 5 à 15 % d'entre elles flottaient 95 à 256 m au-dessus de la tour (banc, 16 villes) */",
+  "pourquoi": "1 · la couronne au néon posée sur le vrai toit"
+ },
+ {
+  "old": "{const CG=60,g9=new Map(),cc=CR?corps.concat(cryptoColBougies()):corps;",
+  "new": "{const CG=60,g9=new Map(),cc=CR?corps.concat(cryptoColBougies()):corps,fo9=new Uint8Array(cc.length/6); /* (2026-10-18, DEBUGGING : ville) fo9 : la FORME de chaque volume de verre (1 + vitreForme ; 0 = une boîte), lue par villeForme */",
+  "pourquoi": "2 · la forme des géantes de verre rangée avec leur volume dur"
+ },
+ {
+  "old": "for(let k=0;k<cc.length/6;k++){if(k<genre.length&&genre[k]>=2)continue;const o=k*6,x0=cc[o]-cc[o+3]/2,x1=cc[o]+cc[o+3]/2,z0=cc[o+2]-cc[o+5]/2,z1=cc[o+2]+cc[o+5]/2;",
+  "new": "for(let k=0;k<cc.length/6;k++){if(k<genre.length&&genre[k]>=2)continue;const f9=k<nBas&&genre[k]===0&&(VI||verreV[k])?formV[k]+1:0,E9=f9===3?1.42:f9===4?1.17:1;fo9[k]=f9; /* la vrillée tourne, le fuseau s'enfle : leur verre déborde de la boîte */\n     const o=k*6,x0=cc[o]-cc[o+3]/2*E9,x1=cc[o]+cc[o+3]/2*E9,z0=cc[o+2]-cc[o+5]/2*E9,z1=cc[o+2]+cc[o+5]/2*E9;",
+  "pourquoi": "2 · la grille range la vrillée et le fuseau sur toute leur emprise"
+ },
+ {
+  "old": "CITY.col={g:g9,CG:CG,c:Float32Array.from(cc)};}",
+  "new": "CITY.col={g:g9,CG:CG,c:Float32Array.from(cc),f:fo9};}",
+  "pourquoi": "2 · les formes dans CITY.col"
+ },
+ {
+  "old": "for(let j=0;j<a.length;j++){const o=a[j];if(Math.abs(p.x-c[o])<c[o+3]/2+.9&&",
+  "new": "for(let j=0;j<a.length;j++){const o=a[j],f9=C.f?C.f[o/6]:0;if(f9){if(villeForme(p,c,o,f9))return true;continue;}if(Math.abs(p.x-c[o])<c[o+3]/2+.9&&",
+  "pourquoi": "2 · une géante de verre est dure selon sa forme"
+ },
+ {
+  "old": "function villeHeurt(p){ // la caisse est-elle DANS",
+  "new": "/* (2026-10-18, DEBUGGING : ville) LES GÉANTES DE VERRE SONT DURES SELON LEUR FORME. La grille rangeait leur BOÎTE (w × H × p) : une effilée finit à 45-60 % de sa\n   largeur, une ronde à 80 % (et ses pans de coin à 29 %), une lame a le toit en biais (5 à 13 % de H), les coins biseautés (jusqu'à 7 m) — on mourait contre\n   l'air à côté du verre (banc, 16 villes : 100 % des effilées, rondes et lames, 5 à 31 m de vide dur) ; la vrillée et le fuseau débordaient de leur boîte\n   (leur verre se traversait). Le calcul du sommet de vitreMatFab (vitreSF, la vrille, le biseau, le toit de la lame), à la hauteur de la caisse ; entre deux\n   anneaux de la géométrie (vitreGeoFab : 1 bande, 6 pour la vrillée et le fuseau), linéaire comme elle. f = 1 + vitreForme. Rien d'alloué. */\nfunction villeSS(a,b,x){const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t);} // smoothstep\nfunction villeSFj(f,sv,h){ // vitreSF, en JS\n  if(f===1)return 1+(-.55+.15*sv)*villeSS(.4,1,h);if(f===2)return 1-.28*villeSS(.3,1,h);if(f===3)return (1+.16*Math.sin(3.1416*Math.min(1,Math.max(0,(h-.4)/.45))))*(1-.5*villeSS(.8,1,h));if(f===4)return 1-.2*villeSS(.4,1,h);return 1;}\nfunction villeForme(p,c,o,f9){\n  const cx=c[o],cy=c[o+1],cz=c[o+2],w=c[o+3],H=c[o+4],d=c[o+5],dy=p.y-cy,f=f9-1;if(Math.abs(dy)>H/2+.5)return false;\n  const s0=cx*.0131+cz*.0173,sd=s0-Math.floor(s0),s1=sd*41.7,sv=s1-Math.floor(s1),hh=Math.min(1,Math.max(0,dy/H+.5)); // la graine de l'instance (vSeed9, sv9)\n  const NR=f===2||f===3?6:1,q=Math.min(NR-1e-6,hh*NR),r=Math.floor(q),t=q-r,h0=r/NR,h1=(r+1)/NR;\n  const s=villeSFj(f,sv,h0)*(1-t)+villeSFj(f,sv,h1)*t,aK=f===2?(1.6+1.2*sv)*(sv<.5?-1:1):0;\n  const a=aK?aK*(villeSS(.25,1,h0)*(1-t)+villeSS(.25,1,h1)*t):0,ca=Math.cos(a),sa=Math.sin(a),dx=p.x-cx,dz=p.z-cz,ax=Math.abs(ca*dx+sa*dz),az=Math.abs(-sa*dx+ca*dz);\n  const hw=s*w/2,hd=s*d/2;if(ax>hw+.9||az>hd+.9)return false;\n  const b9=sd*71.3,ch=s*(f===4?.29*Math.min(w,d):(b9-Math.floor(b9))<=.6?Math.min(Math.min(w,d)*(f===2?.08:.16),7):0); // le biseau (vCh9)\n  if(ch>0&&ax+az>hw+hd-ch+1.27)return false;\n  if(f===5&&dy>H*(.5-(.05+.08*sv)*(.5+Math.min(.5,Math.max(-.5,dx/w))))+.5)return false; // la LAME : au-dessus de son toit en biais\n  return true;}\nfunction villeHeurt(p){ // la caisse est-elle DANS",
+  "pourquoi": "2 · villeForme : le test de la forme visible (effilée, vrillée, fuseau, ronde, lame, biseau)"
+ }
+]

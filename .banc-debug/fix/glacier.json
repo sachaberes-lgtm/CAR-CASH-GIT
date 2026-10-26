@@ -1,0 +1,7 @@
+[
+ {
+  "old": "// (plafond 120 px : à 46, le voile n'était qu'un point blanc sur la glace blanche)fx.brume.drag=2.4;fx.brume.mesh.name='banquise brume';",
+  "new": "/* (plafond 120 px : à 46, le voile n'était qu'un point blanc sur la glace blanche) — (2026-10-18, DEBUGGING : ce commentaire en // avalait la suite : le voile de givre filait avec la caisse, sans frein) */fx.brume.drag=2.4;fx.brume.mesh.name='banquise brume';",
+  "pourquoi": "GLACIER : un // en milieu de ligne avalait le frein (drag 2,4) et le nom du voile de givre de la glisse"
+ }
+]

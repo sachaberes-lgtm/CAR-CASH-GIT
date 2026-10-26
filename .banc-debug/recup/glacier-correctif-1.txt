@@ -1,0 +1,19 @@
+bash
+cd /private/tmp/claude-501/-Users-sachaberes-cash-car-foret/e762ca5d-4e2a-4f31-8f63-9bd36d6789b7/scratchpad/banc/agents/glacier; python3 - <<'EOF'
+import json
+c=json.load(open('correctif.json'));c=c[1:];json.dump(c,open('correctif.json','w'),ensure_ascii=False,indent=1)
+k=json.load(open('banc-crochets.json'))
+k[0]['new']=k[0]['new'].replace("window.__bkEsqLat=best;}","window.__bkEsqLat=best;}else if(window.__bkEsq&&DBG_AUTO.on&&!banqOk())DBG_AUTO.lat=0;")
+json.dump(k,open('banc-crochets.json','w'),ensure_ascii=False,indent=1)
+EOF
+cat > js/becs.js <<'EOF'
+new Promise(async function(res){const sl=function(ms){return new Promise(function(r){setTimeout(r,ms);});};const out={};
+ G.__bkEsq=true;G.__bkBase=0;G.__bkLim=14;await sl(1500);
+ const scan=function(){let b=null,br=null;G.dbgScene().scene.traverse(function(o){if(o.name==='glacier becs')b=o;if(o.name==='banquise brume')br=o;});return [b,br];};
+ let r=scan();out.brume=!!r[1];out.b1=r[0]?r[0].material.uuid:null;
+ if(r[0]){const g=r[0].geometry,d0=g.dispose;g.dispose=function(){G.__becDisp=(G.__becDisp||0)+1;return d0.apply(this,arguments);};}
+ G.dbgClassique('espace','midi');G.dbgSaut();await sl(4000);out.becDisp=G.__becDisp||0;out.c1=G.dbgClassique().niveau.carte;
+ G.dbgClassique('banquise','nuit');G.dbgSaut();await sl(5000);r=scan();out.b2=r[0]?r[0].material.uuid:null;out.c2=G.dbgClassique().niveau.carte;out.m2=G.dbgClassique().niveau.meteo;out.nm=G.dbgClassique().niveau.nom||null;
+ res(out);})
+EOF
+B=../..; rm -rf jeu jeu2; sh $B/copie.sh jeu >/dev/null; sh $B/copie.sh jeu2 >/dev/null; node $B/applique.mjs jeu/index.html banc-crochets.json && node $B/applique.mjs jeu2/index.html banc-crochets.json && node $B/applique.mjs jeu2/index.html correctif.json && node $B/applique.mjs ref.html correctif.json --sec && node $B/chk.js jeu2/index.html | tail -1

@@ -1,0 +1,7 @@
+[
+ {
+  "old": "if(!on){if(CRYPTO.lune&&CRYPTO.lune.visible){CRYPTO.lune.visible=false;CRYPTO.feux.visible=false;",
+  "new": "if(!on){if(CRYPTO.lune&&(CRYPTO.lune.visible||CRYPTO.feux.visible)){CRYPTO.lune.visible=false;CRYPTO.feux.visible=false; /* (2026-10-18, DEBUGGING : les gerbes du NOUVEL ATH partent en setTimeout jusqu'à 1 s après lui — un ATH juste avant le portail rallumait les FEUX dans la map suivante, où la lune est déjà cachée : ils restaient dans la scène toute la map, un appel de dessin de 1 200 points. Mesuré : ATH à 60 m du portail → feux visibles sur toute la MER DE NUAGES suivante) */",
+  "pourquoi": "les feux d'artifice d'un ATH tiré juste avant le portail restaient visibles (dans la scène) toute la map suivante"
+ }
+]

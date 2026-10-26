@@ -1,0 +1,14 @@
+const fs=require('fs'),W=__dirname;
+const sonde='(function(){const g=G.dbgDunes(),d=G.dbgDN(),c=G.dbgChance();return {sa:g.sauts,lv:g.levre&&(g.levre.k+":"+g.levre.vx+"/"+g.levre.vy+"/"+g.levre.t),ch:g.carHaut,ss:Math.round(d.safeS),inv:c.inv,rel:d.DN.relance|0}})()';
+const j2=pre=>'(async()=>{const sl=ms=>new Promise(r=>setTimeout(r,ms));'+pre+'G.dbgAuto(1,0,{});G.dbgChance("t",200);await sl(2000);const d=G.dbgDN();const k=d.DN.lev.find(v=>v.s>d.s+200);G.dbgDunes("tp",k.s-60,d.vPal);const sa0=G.dbgDunes().sauts;let t=0;while(G.dbgDunes().sauts===sa0&&t<80){await sl(50);t++;}await sl(250);const ss=G.dbgDN().safeS;G.dbgChance("mort");t=0;while(!G.dbgState().gameOver&&t<150){await sl(100);t++;}const a={lip:Math.round(k.s),vide:Math.round(k.e-k.s),safeS:Math.round(ss),mortApres:t/10,ok:G.dbgChance().ok};await sl(400);a.joue=G.dbgChance("joue");t=0;while(G.dbgState().gameOver&&t<150){await sl(100);t++;}const e=G.dbgDN();a.apres={s:Math.round(e.s),vA:+e.vA.toFixed(1),vPal:+e.vPal.toFixed(1),mode:e.mode,attendu:t/10,inv:G.dbgChance().inv,rel:e.DN.relance|0};return a;})()';
+const mot='for(let i=0;i<5;i++)G.dbgMoteur();';
+const S=[
+ {nom:'J2-4321-AVANT',carte:'dunes',meteo:'matin',params:'pistegraine=4321&sansrelance=1',secs:12,eval:j2(''),sonde},
+ {nom:'J2-4321-APRES',carte:'dunes',meteo:'matin',params:'pistegraine=4321',secs:12,eval:j2(''),sonde},
+ {nom:'J2-1234-AVANT',carte:'dunes',meteo:'soir',params:'pistegraine=1234&sansrelance=1',secs:12,eval:j2(''),sonde},
+ {nom:'J2-1234-APRES',carte:'dunes',meteo:'soir',params:'pistegraine=1234',secs:12,eval:j2(''),sonde},
+ {nom:'J2-777-p5-AVANT',carte:'dunes',meteo:'midi',params:'pistegraine=777&sansrelance=1',secs:12,eval:j2(mot),sonde},
+ {nom:'J2-777-p5-APRES',carte:'dunes',meteo:'midi',params:'pistegraine=777',secs:12,eval:j2(mot),sonde},
+ {nom:'R-regression-soir',carte:'dunes',meteo:'soir',params:'pistegraine=1234',attente:1,secs:25,sonde},
+ {nom:'R-portail',carte:'jade',meteo:'soir',secs:10,chaine:'dunes:orage,canyon:midi',sonde}];
+fs.writeFileSync(W+'/scen3.json',JSON.stringify(S));console.log('ok',S.length);

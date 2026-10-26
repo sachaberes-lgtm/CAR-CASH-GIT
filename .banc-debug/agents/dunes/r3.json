@@ -1,0 +1,3268 @@
+{
+ "jeu": "/Users/sachaberes/cash-car/debug-maps/.banc-debug/agents/dunes/jeufix",
+ "scen": [
+  {
+   "nom": "J2-4321-AVANT",
+   "url": "colonne=0&simu=1&carte=dunes&meteo=matin&pistegraine=4321&sansrelance=1",
+   "maps": [
+    {
+     "etiq": "dunes:matin",
+     "ech": [
+      {
+       "mode": "fall",
+       "s": 591.6,
+       "L": 4259,
+       "lat": 0,
+       "vA": 47.34,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "matin",
+       "teinte": null,
+       "progs": 225,
+       "geo": 882,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 153COMPTE : $ 153 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 5 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:22.7/24/2.6",
+        "ch": 69.3,
+        "ss": 592,
+        "inv": 2.03,
+        "rel": 0
+       },
+       "ts": 1
+      },
+      {
+       "mode": "fall",
+       "s": 591.6,
+       "L": 4259,
+       "lat": 0,
+       "vA": 47.34,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "matin",
+       "teinte": null,
+       "progs": 225,
+       "geo": 903,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 153COMPTE : $ 153 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 5 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:22.7/24/2.6",
+        "ch": 62.5,
+        "ss": 592,
+        "inv": 1.05,
+        "rel": 0
+       },
+       "ts": 2
+      },
+      {
+       "mode": "fall",
+       "s": 591.6,
+       "L": 4259,
+       "lat": 0,
+       "vA": 47.34,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "matin",
+       "teinte": null,
+       "progs": 225,
+       "geo": 903,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 153COMPTE : $ 153 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 5 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:22.7/24/2.6",
+        "ch": 32.3,
+        "ss": 592,
+        "inv": 0.05,
+        "rel": 0
+       },
+       "ts": 3
+      },
+      {
+       "mode": "boom",
+       "s": 591.6,
+       "L": 4259,
+       "lat": 0,
+       "vA": 47.34,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "matin",
+       "teinte": null,
+       "progs": 225,
+       "geo": 913,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 153COMPTE : $ 153 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 5 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:22.7/24/2.6",
+        "ch": 1.8,
+        "ss": 592,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 4
+      },
+      {
+       "mode": "boom",
+       "s": 591.6,
+       "L": 4259,
+       "lat": 0,
+       "vA": 47.34,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "matin",
+       "teinte": null,
+       "progs": 225,
+       "geo": 913,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 153COMPTE : $ 153 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 5 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:22.7/24/2.6",
+        "ch": 1.8,
+        "ss": 592,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 5
+      },
+      {
+       "mode": "boom",
+       "s": 591.6,
+       "L": 4259,
+       "lat": 0,
+       "vA": 47.34,
+       "go": true,
+       "carte": "dunes",
+       "meteo": "matin",
+       "teinte": null,
+       "progs": 225,
+       "geo": 913,
+       "tex": 150,
+       "loopErr": null,
+       "mort": "PERDU AURA 0 MEILLEUR 0 MOTEUR ATTEINT PALIER 1 VERSES AU COMPTE $ 0 COMPTE : $ 153 ×2 DU JOUR · SERIE 1 +$ 150 ×1 MULTI MAX 293 KM/H MAX 1 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:22.7/24/2.6",
+        "ch": 1.8,
+        "ss": 592,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 6
+      }
+     ],
+     "morts": [
+      {
+       "ts": 6,
+       "s": 591.6,
+       "L": 4259,
+       "carte": "dunes",
+       "meteo": "matin",
+       "mode": "boom",
+       "lat": 0,
+       "texte": "PERDU AURA 0 MEILLEUR 0 MOTEUR ATTEINT PALIER 1 VERSES AU COMPTE $ 0 COMPTE : $ 153 ×2 DU JOUR · SERIE 1 +$ 150 ×1 MULTI MAX 293 KM/H MAX 1 "
+      }
+     ],
+     "alertes": [],
+     "resume": {
+      "n": 6,
+      "cartes": [
+       "dunes:matin"
+      ],
+      "sMax": 591.6,
+      "L": 4259,
+      "progs": [
+       225,
+       225
+      ],
+      "geo": [
+       882,
+       913
+      ],
+      "x": {
+       "sa": 2,
+       "lv": "0:22.7/24/2.6",
+       "ch": 1.8,
+       "ss": 592,
+       "inv": 0,
+       "rel": 0
+      }
+     }
+    }
+   ],
+   "eval": {
+    "lip": 591,
+    "vide": 128,
+    "safeS": 592,
+    "mortApres": 1.8,
+    "ok": true,
+    "joue": true,
+    "apres": {
+     "s": 584,
+     "vA": 26,
+     "vPal": 78,
+     "mode": "drive",
+     "attendu": 5.1,
+     "inv": 3,
+     "rel": 0
+    }
+   },
+   "erreurs": [],
+   "avert": []
+  },
+  {
+   "nom": "J2-4321-APRES",
+   "url": "colonne=0&simu=1&carte=dunes&meteo=matin&pistegraine=4321",
+   "maps": [
+    {
+     "etiq": "dunes:matin",
+     "ech": [
+      {
+       "mode": "fall",
+       "s": 591.6,
+       "L": 4259,
+       "lat": 0,
+       "vA": 162.64,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "matin",
+       "teinte": null,
+       "progs": 224,
+       "geo": 878,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 153COMPTE : $ 153 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 5 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:78.1/18.9/2.4",
+        "ch": 55,
+        "ss": 592,
+        "inv": 1.93,
+        "rel": 1
+       },
+       "ts": 1
+      },
+      {
+       "mode": "fall",
+       "s": 591.6,
+       "L": 4259,
+       "lat": 0,
+       "vA": 162.64,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "matin",
+       "teinte": null,
+       "progs": 224,
+       "geo": 903,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 153COMPTE : $ 153 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 5 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:78.1/18.9/2.4",
+        "ch": 18.9,
+        "ss": 592,
+        "inv": 0.93,
+        "rel": 1
+       },
+       "ts": 2
+      },
+      {
+       "mode": "drive",
+       "s": 817.1,
+       "L": 4259,
+       "lat": 0.01,
+       "vA": 115.83,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "matin",
+       "teinte": null,
+       "progs": 224,
+       "geo": 905,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 153COMPTE : $ 153 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 5 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:78.1/18.9/2.4",
+        "ch": 8.2,
+        "ss": 817,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 3
+      },
+      {
+       "mode": "drive",
+       "s": 872.1,
+       "L": 4259,
+       "lat": 0.4,
+       "vA": 112.64,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "matin",
+       "teinte": null,
+       "progs": 224,
+       "geo": 903,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 153COMPTE : $ 153 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 5 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:78.1/18.9/2.4",
+        "ch": 8.8,
+        "ss": 872,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 4
+      },
+      {
+       "mode": "drive",
+       "s": 925.4,
+       "L": 4259,
+       "lat": 0.1,
+       "vA": 110.45,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "matin",
+       "teinte": null,
+       "progs": 224,
+       "geo": 903,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 153COMPTE : $ 153 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 5 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:78.1/18.9/2.4",
+        "ch": 8.9,
+        "ss": 925,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 5
+      },
+      {
+       "mode": "drive",
+       "s": 979.1,
+       "L": 4259,
+       "lat": -1.25,
+       "vA": 114.34,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "matin",
+       "teinte": null,
+       "progs": 224,
+       "geo": 905,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 153COMPTE : $ 153 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 5 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:78.1/18.9/2.4",
+        "ch": 9,
+        "ss": 979,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 6
+      },
+      {
+       "mode": "drive",
+       "s": 1036.2,
+       "L": 4259,
+       "lat": -0.32,
+       "vA": 123.65,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "matin",
+       "teinte": null,
+       "progs": 224,
+       "geo": 905,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 153COMPTE : $ 153 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 5 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:78.1/18.9/2.4",
+        "ch": 8.8,
+        "ss": 1036,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 7
+      },
+      {
+       "mode": "drive",
+       "s": 1098.1,
+       "L": 4259,
+       "lat": 0.67,
+       "vA": 134.4,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "matin",
+       "teinte": null,
+       "progs": 224,
+       "geo": 921,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 153COMPTE : $ 153 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 5 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:78.1/18.9/2.4",
+        "ch": 8.9,
+        "ss": 1098,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 8
+      },
+      {
+       "mode": "drive",
+       "s": 1173,
+       "L": 4259,
+       "lat": 0.33,
+       "vA": 168.71,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "matin",
+       "teinte": null,
+       "progs": 224,
+       "geo": 921,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 153COMPTE : $ 153 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 5 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:78.1/18.9/2.4",
+        "ch": 8.8,
+        "ss": 1173,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 9
+      },
+      {
+       "mode": "drive",
+       "s": 1257.3,
+       "L": 4259,
+       "lat": 0,
+       "vA": 181.32,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "matin",
+       "teinte": null,
+       "progs": 224,
+       "geo": 921,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 153COMPTE : $ 153 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 5 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:78.1/18.9/2.4",
+        "ch": 16.8,
+        "ss": 1257,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 10
+      },
+      {
+       "mode": "fall",
+       "s": 1260.2,
+       "L": 4259,
+       "lat": 0,
+       "vA": 181.66,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "matin",
+       "teinte": null,
+       "progs": 224,
+       "geo": 921,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 153COMPTE : $ 153 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 5 ",
+       "x": {
+        "sa": 3,
+        "lv": "1:87.2/9.5/1.4",
+        "ch": 41.2,
+        "ss": 1260,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 11
+      },
+      {
+       "mode": "drive",
+       "s": 1427.3,
+       "L": 4259,
+       "lat": 0.16,
+       "vA": 130.33,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "matin",
+       "teinte": null,
+       "progs": 224,
+       "geo": 923,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 153COMPTE : $ 153 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 5 ",
+       "x": {
+        "sa": 3,
+        "lv": "1:87.2/9.5/1.4",
+        "ch": 8.9,
+        "ss": 1427,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 12
+      }
+     ],
+     "morts": [],
+     "alertes": [],
+     "resume": {
+      "n": 12,
+      "cartes": [
+       "dunes:matin"
+      ],
+      "sMax": 1427.3,
+      "L": 4259,
+      "progs": [
+       224,
+       224
+      ],
+      "geo": [
+       878,
+       923
+      ],
+      "x": {
+       "sa": 3,
+       "lv": "1:87.2/9.5/1.4",
+       "ch": 8.9,
+       "ss": 1427,
+       "inv": 0,
+       "rel": 1
+      }
+     }
+    }
+   ],
+   "eval": {
+    "lip": 591,
+    "vide": 128,
+    "safeS": 592,
+    "mortApres": 1.8,
+    "ok": true,
+    "joue": true,
+    "apres": {
+     "s": 586,
+     "vA": 162.6,
+     "vPal": 78,
+     "mode": "drive",
+     "attendu": 5.1,
+     "inv": 2.97,
+     "rel": 1
+    }
+   },
+   "erreurs": [],
+   "avert": []
+  },
+  {
+   "nom": "J2-1234-AVANT",
+   "url": "colonne=0&simu=1&carte=dunes&meteo=soir&pistegraine=1234&sansrelance=1",
+   "maps": [
+    {
+     "etiq": "dunes:soir",
+     "ech": [
+      {
+       "mode": "fall",
+       "s": 483.7,
+       "L": 3941,
+       "lat": 0,
+       "vA": 47.37,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 224,
+       "geo": 874,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 2 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:22.7/24/2.6",
+        "ch": 102.9,
+        "ss": 484,
+        "inv": 1.93,
+        "rel": 0
+       },
+       "ts": 1
+      },
+      {
+       "mode": "fall",
+       "s": 483.7,
+       "L": 3941,
+       "lat": 0,
+       "vA": 47.37,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 224,
+       "geo": 895,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 2 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:22.7/24/2.6",
+        "ch": 94.9,
+        "ss": 484,
+        "inv": 0.93,
+        "rel": 0
+       },
+       "ts": 2
+      },
+      {
+       "mode": "fall",
+       "s": 483.7,
+       "L": 3941,
+       "lat": 0,
+       "vA": 47.37,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 224,
+       "geo": 895,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 2 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:22.7/24/2.6",
+        "ch": 62.8,
+        "ss": 484,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 3
+      },
+      {
+       "mode": "fall",
+       "s": 483.7,
+       "L": 3941,
+       "lat": 0,
+       "vA": 47.37,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 224,
+       "geo": 895,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 2 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:22.7/24/2.6",
+        "ch": 7.6,
+        "ss": 484,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 4
+      },
+      {
+       "mode": "boom",
+       "s": 483.7,
+       "L": 3941,
+       "lat": 0,
+       "vA": 47.37,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 224,
+       "geo": 904,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 2 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:22.7/24/2.6",
+        "ch": 1.7,
+        "ss": 484,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 5
+      },
+      {
+       "mode": "boom",
+       "s": 483.7,
+       "L": 3941,
+       "lat": 0,
+       "vA": 47.37,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 224,
+       "geo": 904,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 2 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:22.7/24/2.6",
+        "ch": 1.7,
+        "ss": 484,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 6
+      },
+      {
+       "mode": "boom",
+       "s": 483.7,
+       "L": 3941,
+       "lat": 0,
+       "vA": 47.37,
+       "go": true,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 224,
+       "geo": 904,
+       "tex": 150,
+       "loopErr": null,
+       "mort": "PERDU AURA 0 MEILLEUR 0 MOTEUR ATTEINT PALIER 1 VERSES AU COMPTE $ 148 COMPTE : $ 150 ×2 DU JOUR · SERIE 1 +$ 150 ×2 MULTI MAX 293 KM/H MAX ",
+       "x": {
+        "sa": 2,
+        "lv": "0:22.7/24/2.6",
+        "ch": 1.7,
+        "ss": 484,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 7
+      }
+     ],
+     "morts": [
+      {
+       "ts": 7,
+       "s": 483.7,
+       "L": 3941,
+       "carte": "dunes",
+       "meteo": "soir",
+       "mode": "boom",
+       "lat": 0,
+       "texte": "PERDU AURA 0 MEILLEUR 0 MOTEUR ATTEINT PALIER 1 VERSES AU COMPTE $ 148 COMPTE : $ 150 ×2 DU JOUR · SERIE 1 +$ 150 ×2 MULTI MAX 293 KM/H MAX "
+      }
+     ],
+     "alertes": [],
+     "resume": {
+      "n": 7,
+      "cartes": [
+       "dunes:soir"
+      ],
+      "sMax": 483.7,
+      "L": 3941,
+      "progs": [
+       224,
+       224
+      ],
+      "geo": [
+       874,
+       904
+      ],
+      "x": {
+       "sa": 2,
+       "lv": "0:22.7/24/2.6",
+       "ch": 1.7,
+       "ss": 484,
+       "inv": 0,
+       "rel": 0
+      }
+     }
+    }
+   ],
+   "eval": {
+    "lip": 483,
+    "vide": 108,
+    "safeS": 484,
+    "mortApres": 1.8,
+    "ok": true,
+    "joue": true,
+    "apres": {
+     "s": 476,
+     "vA": 27.7,
+     "vPal": 78,
+     "mode": "drive",
+     "attendu": 5.1,
+     "inv": 2.97,
+     "rel": 0
+    }
+   },
+   "erreurs": [],
+   "avert": []
+  },
+  {
+   "nom": "J2-1234-APRES",
+   "url": "colonne=0&simu=1&carte=dunes&meteo=soir&pistegraine=1234",
+   "maps": [
+    {
+     "etiq": "dunes:soir",
+     "ech": [
+      {
+       "mode": "fall",
+       "s": 483.7,
+       "L": 3941,
+       "lat": 0,
+       "vA": 162.64,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 224,
+       "geo": 891,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 2 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:78.1/14.3/2.14",
+        "ch": 82,
+        "ss": 484,
+        "inv": 1.93,
+        "rel": 1
+       },
+       "ts": 1
+      },
+      {
+       "mode": "fall",
+       "s": 483.7,
+       "L": 3941,
+       "lat": 0,
+       "vA": 162.64,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 224,
+       "geo": 886,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 2 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:78.1/14.3/2.14",
+        "ch": 14.8,
+        "ss": 484,
+        "inv": 0.93,
+        "rel": 1
+       },
+       "ts": 2
+      },
+      {
+       "mode": "drive",
+       "s": 704,
+       "L": 3941,
+       "lat": -0.31,
+       "vA": 114.79,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 224,
+       "geo": 888,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 2 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:78.1/14.3/2.14",
+        "ch": 7.8,
+        "ss": 704,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 3
+      },
+      {
+       "mode": "drive",
+       "s": 758.4,
+       "L": 3941,
+       "lat": -0.38,
+       "vA": 111.12,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 224,
+       "geo": 886,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 2 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:78.1/14.3/2.14",
+        "ch": 7.8,
+        "ss": 758,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 4
+      },
+      {
+       "mode": "drive",
+       "s": 811.3,
+       "L": 3941,
+       "lat": 1.44,
+       "vA": 110.6,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 224,
+       "geo": 886,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 2 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:78.1/14.3/2.14",
+        "ch": 7.8,
+        "ss": 811,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 5
+      },
+      {
+       "mode": "drive",
+       "s": 867.4,
+       "L": 3941,
+       "lat": 0.49,
+       "vA": 116.92,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 224,
+       "geo": 921,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 2 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:78.1/14.3/2.14",
+        "ch": 8.8,
+        "ss": 867,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 6
+      },
+      {
+       "mode": "drive",
+       "s": 926.4,
+       "L": 3941,
+       "lat": -0.82,
+       "vA": 128.4,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 224,
+       "geo": 919,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 2 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:78.1/14.3/2.14",
+        "ch": 8.8,
+        "ss": 926,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 7.1
+      },
+      {
+       "mode": "drive",
+       "s": 993,
+       "L": 3941,
+       "lat": -0.15,
+       "vA": 164.68,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 224,
+       "geo": 926,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 2 ",
+       "x": {
+        "sa": 2,
+        "lv": "0:78.1/14.3/2.14",
+        "ch": 8.9,
+        "ss": 993,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 8.1
+      },
+      {
+       "mode": "fall",
+       "s": 1061.2,
+       "L": 3941,
+       "lat": 0.01,
+       "vA": 175.71,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 224,
+       "geo": 912,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 2 ",
+       "x": {
+        "sa": 3,
+        "lv": "1:84.3/22.2/2.6",
+        "ch": 103,
+        "ss": 1061,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 9.1
+      },
+      {
+       "mode": "fall",
+       "s": 1061.2,
+       "L": 3941,
+       "lat": 0.01,
+       "vA": 175.71,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 224,
+       "geo": 912,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 2 ",
+       "x": {
+        "sa": 3,
+        "lv": "1:84.3/22.2/2.6",
+        "ch": 114.1,
+        "ss": 1061,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 10.1
+      },
+      {
+       "mode": "fall",
+       "s": 1061.2,
+       "L": 3941,
+       "lat": 0.01,
+       "vA": 175.71,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 224,
+       "geo": 912,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 2 ",
+       "x": {
+        "sa": 3,
+        "lv": "1:84.3/22.2/2.6",
+        "ch": 17.7,
+        "ss": 1061,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 11.1
+      },
+      {
+       "mode": "drive",
+       "s": 1319.6,
+       "L": 3941,
+       "lat": -0.27,
+       "vA": 131.68,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 224,
+       "geo": 914,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER1 VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECORD ! $ 2 ",
+       "x": {
+        "sa": 3,
+        "lv": "1:84.3/22.2/2.6",
+        "ch": 8.9,
+        "ss": 1320,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 12.1
+      }
+     ],
+     "morts": [],
+     "alertes": [],
+     "resume": {
+      "n": 12,
+      "cartes": [
+       "dunes:soir"
+      ],
+      "sMax": 1319.6,
+      "L": 3941,
+      "progs": [
+       224,
+       224
+      ],
+      "geo": [
+       891,
+       914
+      ],
+      "x": {
+       "sa": 3,
+       "lv": "1:84.3/22.2/2.6",
+       "ch": 8.9,
+       "ss": 1320,
+       "inv": 0,
+       "rel": 1
+      }
+     }
+    }
+   ],
+   "eval": {
+    "lip": 483,
+    "vide": 108,
+    "safeS": 484,
+    "mortApres": 1.8,
+    "ok": true,
+    "joue": true,
+    "apres": {
+     "s": 478,
+     "vA": 162.6,
+     "vPal": 78,
+     "mode": "drive",
+     "attendu": 5.1,
+     "inv": 2.97,
+     "rel": 1
+    }
+   },
+   "erreurs": [],
+   "avert": []
+  },
+  {
+   "nom": "J2-777-p5-AVANT",
+   "url": "colonne=0&simu=1&carte=dunes&meteo=midi&pistegraine=777&sansrelance=1",
+   "maps": [
+    {
+     "etiq": "dunes:midi",
+     "ech": [
+      {
+       "mode": "fall",
+       "s": 617.8,
+       "L": 4625,
+       "lat": 0,
+       "vA": 52.37,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 919,
+       "tex": 149,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER6RECORD ! VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECOR",
+       "x": {
+        "sa": 2,
+        "lv": "0:25.1/24/2.6",
+        "ch": 50.4,
+        "ss": 618,
+        "inv": 2.03,
+        "rel": 0
+       },
+       "ts": 1
+      },
+      {
+       "mode": "fall",
+       "s": 617.8,
+       "L": 4625,
+       "lat": 0,
+       "vA": 52.37,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 940,
+       "tex": 149,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER6RECORD ! VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECOR",
+       "x": {
+        "sa": 2,
+        "lv": "0:25.1/24/2.6",
+        "ch": 46.8,
+        "ss": 618,
+        "inv": 1.02,
+        "rel": 0
+       },
+       "ts": 2
+      },
+      {
+       "mode": "fall",
+       "s": 617.8,
+       "L": 4625,
+       "lat": 0,
+       "vA": 52.37,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 940,
+       "tex": 149,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER6RECORD ! VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECOR",
+       "x": {
+        "sa": 2,
+        "lv": "0:25.1/24/2.6",
+        "ch": 34.3,
+        "ss": 618,
+        "inv": 0.02,
+        "rel": 0
+       },
+       "ts": 3
+      },
+      {
+       "mode": "boom",
+       "s": 617.8,
+       "L": 4625,
+       "lat": 0,
+       "vA": 52.37,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 951,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER6RECORD ! VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECOR",
+       "x": {
+        "sa": 2,
+        "lv": "0:25.1/24/2.6",
+        "ch": 2,
+        "ss": 618,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 4
+      },
+      {
+       "mode": "boom",
+       "s": 617.8,
+       "L": 4625,
+       "lat": 0,
+       "vA": 52.37,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 951,
+       "tex": 150,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER6RECORD ! VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECOR",
+       "x": {
+        "sa": 2,
+        "lv": "0:25.1/24/2.6",
+        "ch": 2,
+        "ss": 618,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 5
+      },
+      {
+       "mode": "boom",
+       "s": 617.8,
+       "L": 4625,
+       "lat": 0,
+       "vA": 52.37,
+       "go": true,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 937,
+       "tex": 150,
+       "loopErr": null,
+       "mort": "PERDU AURA 0 MEILLEUR 0 MOTEUR ATTEINT PALIER 5 RECORD ! VERSES AU COMPTE $ 0 COMPTE : $ 150 ×2 DU JOUR · SERIE 1 +$ 150 ×1 MULTI MAX 395 KM",
+       "x": {
+        "sa": 2,
+        "lv": "0:25.1/24/2.6",
+        "ch": 2,
+        "ss": 618,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 6
+      }
+     ],
+     "morts": [
+      {
+       "ts": 6,
+       "s": 617.8,
+       "L": 4625,
+       "carte": "dunes",
+       "meteo": "midi",
+       "mode": "boom",
+       "lat": 0,
+       "texte": "PERDU AURA 0 MEILLEUR 0 MOTEUR ATTEINT PALIER 5 RECORD ! VERSES AU COMPTE $ 0 COMPTE : $ 150 ×2 DU JOUR · SERIE 1 +$ 150 ×1 MULTI MAX 395 KM"
+      }
+     ],
+     "alertes": [],
+     "resume": {
+      "n": 6,
+      "cartes": [
+       "dunes:midi"
+      ],
+      "sMax": 617.8,
+      "L": 4625,
+      "progs": [
+       223,
+       223
+      ],
+      "geo": [
+       919,
+       937
+      ],
+      "x": {
+       "sa": 2,
+       "lv": "0:25.1/24/2.6",
+       "ch": 2,
+       "ss": 618,
+       "inv": 0,
+       "rel": 0
+      }
+     }
+    }
+   ],
+   "eval": {
+    "lip": 617,
+    "vide": 130,
+    "safeS": 617,
+    "mortApres": 1.8,
+    "ok": true,
+    "joue": true,
+    "apres": {
+     "s": 609,
+     "vA": 26,
+     "vPal": 98.9,
+     "mode": "drive",
+     "attendu": 5.1,
+     "inv": 3,
+     "rel": 0
+    }
+   },
+   "erreurs": [],
+   "avert": []
+  },
+  {
+   "nom": "J2-777-p5-APRES",
+   "url": "colonne=0&simu=1&carte=dunes&meteo=midi&pistegraine=777",
+   "maps": [
+    {
+     "etiq": "dunes:midi",
+     "ech": [
+      {
+       "mode": "fall",
+       "s": 619.3,
+       "L": 4625,
+       "lat": 0,
+       "vA": 206.4,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 918,
+       "tex": 149,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER6RECORD ! VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECOR",
+       "x": {
+        "sa": 2,
+        "lv": "0:99.1/7.8/1.89",
+        "ch": 39.9,
+        "ss": 619,
+        "inv": 2,
+        "rel": 1
+       },
+       "ts": 1
+      },
+      {
+       "mode": "drive",
+       "s": 811,
+       "L": 4625,
+       "lat": 0,
+       "vA": 216.64,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 945,
+       "tex": 149,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER6RECORD ! VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECOR",
+       "x": {
+        "sa": 2,
+        "lv": "0:99.1/7.8/1.89",
+        "ch": 9.6,
+        "ss": 811,
+        "inv": 1,
+        "rel": 1
+       },
+       "ts": 2
+      },
+      {
+       "mode": "drive",
+       "s": 888.5,
+       "L": 4625,
+       "lat": -0.27,
+       "vA": 145.04,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 945,
+       "tex": 149,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER6RECORD ! VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECOR",
+       "x": {
+        "sa": 2,
+        "lv": "0:99.1/7.8/1.89",
+        "ch": 8.9,
+        "ss": 889,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 3
+      },
+      {
+       "mode": "drive",
+       "s": 956.8,
+       "L": 4625,
+       "lat": -0.82,
+       "vA": 139.87,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 943,
+       "tex": 149,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER6RECORD ! VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECOR",
+       "x": {
+        "sa": 2,
+        "lv": "0:99.1/7.8/1.89",
+        "ch": 9,
+        "ss": 957,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 4
+      },
+      {
+       "mode": "drive",
+       "s": 1023.6,
+       "L": 4625,
+       "lat": 2.26,
+       "vA": 140.17,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 943,
+       "tex": 149,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER6RECORD ! VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECOR",
+       "x": {
+        "sa": 2,
+        "lv": "0:99.1/7.8/1.89",
+        "ch": 8.9,
+        "ss": 1024,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 5
+      },
+      {
+       "mode": "drive",
+       "s": 1096.2,
+       "L": 4625,
+       "lat": -1.32,
+       "vA": 165.05,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 945,
+       "tex": 149,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER6RECORD ! VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECOR",
+       "x": {
+        "sa": 2,
+        "lv": "0:99.1/7.8/1.89",
+        "ch": 8.9,
+        "ss": 1096,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 6
+      },
+      {
+       "mode": "drive",
+       "s": 1182.7,
+       "L": 4625,
+       "lat": -0.19,
+       "vA": 194.91,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 943,
+       "tex": 149,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER6RECORD ! VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECOR",
+       "x": {
+        "sa": 2,
+        "lv": "0:99.1/7.8/1.89",
+        "ch": 8.9,
+        "ss": 1183,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 7
+      },
+      {
+       "mode": "fall",
+       "s": 1207.9,
+       "L": 4625,
+       "lat": -0.07,
+       "vA": 198.6,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 943,
+       "tex": 149,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER6RECORD ! VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECOR",
+       "x": {
+        "sa": 3,
+        "lv": "1:95.3/19.5/2.4",
+        "ch": 101.4,
+        "ss": 1208,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 8
+      },
+      {
+       "mode": "fall",
+       "s": 1207.9,
+       "L": 4625,
+       "lat": -0.07,
+       "vA": 198.6,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 943,
+       "tex": 149,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER6RECORD ! VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECOR",
+       "x": {
+        "sa": 3,
+        "lv": "1:95.3/19.5/2.4",
+        "ch": 29.8,
+        "ss": 1208,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 9
+      },
+      {
+       "mode": "drive",
+       "s": 1463.4,
+       "L": 4625,
+       "lat": -3.09,
+       "vA": 167.87,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 945,
+       "tex": 149,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER6RECORD ! VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECOR",
+       "x": {
+        "sa": 3,
+        "lv": "1:95.3/19.5/2.4",
+        "ch": 8.9,
+        "ss": 1463,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 10
+      },
+      {
+       "mode": "drive",
+       "s": 1547.4,
+       "L": 4625,
+       "lat": 1.58,
+       "vA": 184.39,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 945,
+       "tex": 149,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER6RECORD ! VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECOR",
+       "x": {
+        "sa": 3,
+        "lv": "1:95.3/19.5/2.4",
+        "ch": 7.8,
+        "ss": 1547,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 11
+      },
+      {
+       "mode": "drive",
+       "s": 1639.4,
+       "L": 4625,
+       "lat": -3.68,
+       "vA": 195.12,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 943,
+       "tex": 149,
+       "loopErr": null,
+       "mort": " PERDUTOMBE DANS LE VIDE AURA0MEILLEUR 0MOTEUR ATTEINTPALIER6RECORD ! VERSES AU COMPTE$ 150COMPTE : $ 150 · ×2 DU JOUR · SERIE 1 +$ 150RECOR",
+       "x": {
+        "sa": 3,
+        "lv": "1:95.3/19.5/2.4",
+        "ch": 7.7,
+        "ss": 1639,
+        "inv": 0,
+        "rel": 1
+       },
+       "ts": 12
+      }
+     ],
+     "morts": [],
+     "alertes": [],
+     "resume": {
+      "n": 12,
+      "cartes": [
+       "dunes:midi"
+      ],
+      "sMax": 1639.4,
+      "L": 4625,
+      "progs": [
+       223,
+       223
+      ],
+      "geo": [
+       918,
+       943
+      ],
+      "x": {
+       "sa": 3,
+       "lv": "1:95.3/19.5/2.4",
+       "ch": 7.7,
+       "ss": 1639,
+       "inv": 0,
+       "rel": 1
+      }
+     }
+    }
+   ],
+   "eval": {
+    "lip": 617,
+    "vide": 130,
+    "safeS": 617,
+    "mortApres": 1.8,
+    "ok": true,
+    "joue": true,
+    "apres": {
+     "s": 609,
+     "vA": 206.1,
+     "vPal": 98.9,
+     "mode": "drive",
+     "attendu": 5.1,
+     "inv": 3,
+     "rel": 1
+    }
+   },
+   "erreurs": [],
+   "avert": []
+  },
+  {
+   "nom": "R-regression-soir",
+   "url": "colonne=0&simu=1&carte=dunes&meteo=soir&pistegraine=1234",
+   "maps": [
+    {
+     "etiq": "dunes:soir",
+     "ech": [
+      {
+       "mode": "drive",
+       "s": 29.9,
+       "L": 3941,
+       "lat": 0,
+       "vA": 74.95,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 545,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "ss": 30,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 1
+      },
+      {
+       "mode": "drive",
+       "s": 73.8,
+       "L": 3941,
+       "lat": 0,
+       "vA": 106.36,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 545,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "ss": 74,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 2
+      },
+      {
+       "mode": "drive",
+       "s": 131.5,
+       "L": 3941,
+       "lat": 0,
+       "vA": 128.83,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 545,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "ss": 132,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 3
+      },
+      {
+       "mode": "drive",
+       "s": 193.5,
+       "L": 3941,
+       "lat": -0.11,
+       "vA": 130.73,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 545,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.8,
+        "ss": 194,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 4
+      },
+      {
+       "mode": "drive",
+       "s": 257.6,
+       "L": 3941,
+       "lat": -1.31,
+       "vA": 136.08,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 545,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "ss": 258,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 5
+      },
+      {
+       "mode": "drive",
+       "s": 323.7,
+       "L": 3941,
+       "lat": 2.55,
+       "vA": 139.58,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 547,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.8,
+        "ss": 324,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 6
+      },
+      {
+       "mode": "drive",
+       "s": 391.1,
+       "L": 3941,
+       "lat": -0.9,
+       "vA": 141.68,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 547,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "ss": 391,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 7
+      },
+      {
+       "mode": "drive",
+       "s": 459.5,
+       "L": 3941,
+       "lat": -0.11,
+       "vA": 143.17,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 545,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "ss": 459,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 8
+      },
+      {
+       "mode": "fall",
+       "s": 484.7,
+       "L": 3941,
+       "lat": -0.04,
+       "vA": 143.66,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 559,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:69/18.6/2.41",
+        "ch": 92.3,
+        "ss": 485,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 9
+      },
+      {
+       "mode": "fall",
+       "s": 484.7,
+       "L": 3941,
+       "lat": -0.04,
+       "vA": 143.66,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 559,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:69/18.6/2.41",
+        "ch": 23.2,
+        "ss": 485,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 10
+      },
+      {
+       "mode": "drive",
+       "s": 668,
+       "L": 3941,
+       "lat": -1.16,
+       "vA": 110.13,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 561,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:69/18.6/2.41",
+        "ch": 7.8,
+        "ss": 668,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 11
+      },
+      {
+       "mode": "drive",
+       "s": 724.9,
+       "L": 3941,
+       "lat": -1.08,
+       "vA": 120.33,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 568,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:69/18.6/2.41",
+        "ch": 7.8,
+        "ss": 725,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 12
+      },
+      {
+       "mode": "drive",
+       "s": 786.9,
+       "L": 3941,
+       "lat": 0.01,
+       "vA": 149.47,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 611,
+       "tex": 109,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:69/18.6/2.41",
+        "ch": 7.8,
+        "ss": 787,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 13
+      },
+      {
+       "mode": "drive",
+       "s": 862.8,
+       "L": 3941,
+       "lat": 2.29,
+       "vA": 165.54,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 611,
+       "tex": 109,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:69/18.6/2.41",
+        "ch": 8.7,
+        "ss": 863,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 14
+      },
+      {
+       "mode": "drive",
+       "s": 946.7,
+       "L": 3941,
+       "lat": -1.63,
+       "vA": 180.77,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 611,
+       "tex": 109,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:69/18.6/2.41",
+        "ch": 8.8,
+        "ss": 947,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 15
+      },
+      {
+       "mode": "drive",
+       "s": 1042.3,
+       "L": 3941,
+       "lat": -0.27,
+       "vA": 205.04,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 606,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:69/18.6/2.41",
+        "ch": 8.9,
+        "ss": 1042,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 16
+      },
+      {
+       "mode": "fall",
+       "s": 1062.1,
+       "L": 3941,
+       "lat": -0.15,
+       "vA": 206.58,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 606,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:99.2/17.6/2.34",
+        "ch": 110.8,
+        "ss": 1062,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 17
+      },
+      {
+       "mode": "fall",
+       "s": 1062.1,
+       "L": 3941,
+       "lat": -0.15,
+       "vA": 206.58,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 606,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:99.2/17.6/2.34",
+        "ch": 18.3,
+        "ss": 1062,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 18
+      },
+      {
+       "mode": "drive",
+       "s": 1330.6,
+       "L": 3941,
+       "lat": -3.73,
+       "vA": 149.87,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 608,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:99.2/17.6/2.34",
+        "ch": 9.2,
+        "ss": 1331,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 19.1
+      },
+      {
+       "mode": "drive",
+       "s": 1404.9,
+       "L": 3941,
+       "lat": -1.61,
+       "vA": 157.76,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 606,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:99.2/17.6/2.34",
+        "ch": 7.8,
+        "ss": 1405,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 20.1
+      },
+      {
+       "mode": "drive",
+       "s": 1486,
+       "L": 3941,
+       "lat": 3.12,
+       "vA": 180.3,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 606,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:99.2/17.6/2.34",
+        "ch": 7.8,
+        "ss": 1486,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 21.1
+      },
+      {
+       "mode": "drive",
+       "s": 1572.6,
+       "L": 3941,
+       "lat": 0.01,
+       "vA": 188.56,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 606,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:99.2/17.6/2.34",
+        "ch": 7.8,
+        "ss": 1573,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 22.1
+      },
+      {
+       "mode": "drive",
+       "s": 1665.7,
+       "L": 3941,
+       "lat": -1.02,
+       "vA": 194.2,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 606,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 2,
+        "lv": "1:99.2/17.6/2.34",
+        "ch": 9,
+        "ss": 1666,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 23.1
+      },
+      {
+       "mode": "fall",
+       "s": 1736.2,
+       "L": 3941,
+       "lat": -0.18,
+       "vA": 189.83,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 608,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 3,
+        "lv": "2:91.1/11.2/2.07",
+        "ch": 104.3,
+        "ss": 1736,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 24.1
+      },
+      {
+       "mode": "fall",
+       "s": 1736.2,
+       "L": 3941,
+       "lat": -0.18,
+       "vA": 189.83,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 226,
+       "geo": 606,
+       "tex": 110,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 3,
+        "lv": "2:91.1/11.2/2.07",
+        "ch": 68,
+        "ss": 1736,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 25.1
+      }
+     ],
+     "morts": [],
+     "alertes": [],
+     "resume": {
+      "n": 25,
+      "cartes": [
+       "dunes:soir"
+      ],
+      "sMax": 1736.2,
+      "L": 3941,
+      "progs": [
+       226,
+       226
+      ],
+      "geo": [
+       545,
+       606
+      ],
+      "x": {
+       "sa": 3,
+       "lv": "2:91.1/11.2/2.07",
+       "ch": 68,
+       "ss": 1736,
+       "inv": 0,
+       "rel": 0
+      }
+     }
+    }
+   ],
+   "menu": {
+    "progs": 226,
+    "attente": 11
+   },
+   "erreurs": [],
+   "avert": []
+  },
+  {
+   "nom": "R-portail",
+   "url": "colonne=0&simu=1&carte=jade&meteo=soir",
+   "maps": [
+    {
+     "etiq": "jade:soir",
+     "ech": [
+      {
+       "mode": "drive",
+       "s": 36.7,
+       "L": 7172,
+       "lat": 0,
+       "vA": 80.84,
+       "go": false,
+       "carte": "jade",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 222,
+       "geo": 598,
+       "tex": 102,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "ss": 37,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 1
+      },
+      {
+       "mode": "drive",
+       "s": 81.5,
+       "L": 7172,
+       "lat": 0,
+       "vA": 110.35,
+       "go": false,
+       "carte": "jade",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 222,
+       "geo": 599,
+       "tex": 102,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "ss": 81,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 2
+      },
+      {
+       "mode": "drive",
+       "s": 138.3,
+       "L": 7172,
+       "lat": 0,
+       "vA": 127.78,
+       "go": false,
+       "carte": "jade",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 222,
+       "geo": 602,
+       "tex": 102,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "ss": 138,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 3
+      },
+      {
+       "mode": "drive",
+       "s": 201.1,
+       "L": 7172,
+       "lat": 0,
+       "vA": 130.92,
+       "go": false,
+       "carte": "jade",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 222,
+       "geo": 648,
+       "tex": 105,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "ss": 201,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 4.1
+      },
+      {
+       "mode": "drive",
+       "s": 258.3,
+       "L": 7172,
+       "lat": 0.46,
+       "vA": 137.9,
+       "go": false,
+       "carte": "jade",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 223,
+       "geo": 649,
+       "tex": 106,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "ss": 258,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 5.1
+      },
+      {
+       "mode": "drive",
+       "s": 325.9,
+       "L": 7172,
+       "lat": -0.02,
+       "vA": 151.68,
+       "go": false,
+       "carte": "jade",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 223,
+       "geo": 650,
+       "tex": 106,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "ss": 326,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 6.1
+      },
+      {
+       "mode": "drive",
+       "s": 400.8,
+       "L": 7172,
+       "lat": -0.19,
+       "vA": 156.23,
+       "go": false,
+       "carte": "jade",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 223,
+       "geo": 652,
+       "tex": 106,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "ss": 401,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 7.1
+      },
+      {
+       "mode": "drive",
+       "s": 473.1,
+       "L": 7172,
+       "lat": -0.57,
+       "vA": 155.7,
+       "go": false,
+       "carte": "jade",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 223,
+       "geo": 652,
+       "tex": 106,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "ss": 473,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 8.1
+      },
+      {
+       "mode": "drive",
+       "s": 547.8,
+       "L": 7172,
+       "lat": -0.76,
+       "vA": 155.38,
+       "go": false,
+       "carte": "jade",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 223,
+       "geo": 653,
+       "tex": 106,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "ss": 548,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 9.1
+      },
+      {
+       "mode": "drive",
+       "s": 613.7,
+       "L": 7172,
+       "lat": -0.29,
+       "vA": 156.36,
+       "go": false,
+       "carte": "jade",
+       "meteo": "soir",
+       "teinte": null,
+       "progs": 223,
+       "geo": 641,
+       "tex": 107,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": null,
+        "ss": 614,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 10.1
+      }
+     ],
+     "morts": [],
+     "alertes": [],
+     "resume": {
+      "n": 10,
+      "cartes": [
+       "jade:soir"
+      ],
+      "sMax": 613.7,
+      "L": 7172,
+      "progs": [
+       222,
+       223
+      ],
+      "geo": [
+       598,
+       641
+      ],
+      "x": {
+       "sa": 0,
+       "lv": null,
+       "ch": null,
+       "ss": 614,
+       "inv": 0,
+       "rel": 0
+      }
+     }
+    },
+    {
+     "etiq": "dunes:orage",
+     "ech": [
+      {
+       "mode": "drive",
+       "s": 115.8,
+       "L": 4482,
+       "lat": 0,
+       "vA": 171.6,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 223,
+       "geo": 572,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "ss": 116,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 1
+      },
+      {
+       "mode": "drive",
+       "s": 197.5,
+       "L": 4482,
+       "lat": 0.06,
+       "vA": 168.82,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 223,
+       "geo": 572,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.8,
+        "ss": 197,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 2
+      },
+      {
+       "mode": "drive",
+       "s": 278,
+       "L": 4482,
+       "lat": 1.57,
+       "vA": 167.01,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 223,
+       "geo": 574,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "ss": 278,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 3
+      },
+      {
+       "mode": "drive",
+       "s": 357.6,
+       "L": 4482,
+       "lat": -3.03,
+       "vA": 165.82,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 223,
+       "geo": 574,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.8,
+        "ss": 358,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 4
+      },
+      {
+       "mode": "drive",
+       "s": 439.1,
+       "L": 4482,
+       "lat": 1.17,
+       "vA": 177.68,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 223,
+       "geo": 572,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.8,
+        "ss": 439,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 5
+      },
+      {
+       "mode": "drive",
+       "s": 524.3,
+       "L": 4482,
+       "lat": 0.47,
+       "vA": 174.93,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 223,
+       "geo": 572,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 0,
+        "lv": null,
+        "ch": 8.9,
+        "ss": 524,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 6
+      },
+      {
+       "mode": "fall",
+       "s": 560.4,
+       "L": 4482,
+       "lat": 0.16,
+       "vA": 172.98,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 223,
+       "geo": 586,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:83/17.4/2.31",
+        "ch": 78.2,
+        "ss": 560,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 7
+      },
+      {
+       "mode": "fall",
+       "s": 560.4,
+       "L": 4482,
+       "lat": 0.16,
+       "vA": 172.98,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 223,
+       "geo": 586,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:83/17.4/2.31",
+        "ch": 27.8,
+        "ss": 560,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 8
+      },
+      {
+       "mode": "drive",
+       "s": 772.3,
+       "L": 4482,
+       "lat": 3.33,
+       "vA": 129.13,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 223,
+       "geo": 599,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:83/17.4/2.31",
+        "ch": 9,
+        "ss": 772,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 9
+      },
+      {
+       "mode": "drive",
+       "s": 843.9,
+       "L": 4482,
+       "lat": 0.52,
+       "vA": 167.05,
+       "go": false,
+       "carte": "dunes",
+       "meteo": "orage",
+       "teinte": null,
+       "progs": 223,
+       "geo": 596,
+       "tex": 112,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:83/17.4/2.31",
+        "ch": 8.8,
+        "ss": 844,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 10
+      }
+     ],
+     "morts": [],
+     "alertes": [],
+     "resume": {
+      "n": 10,
+      "cartes": [
+       "dunes:orage"
+      ],
+      "sMax": 843.9,
+      "L": 4482,
+      "progs": [
+       223,
+       223
+      ],
+      "geo": [
+       572,
+       596
+      ],
+      "x": {
+       "sa": 1,
+       "lv": "0:83/17.4/2.31",
+       "ch": 8.8,
+       "ss": 844,
+       "inv": 0,
+       "rel": 0
+      }
+     }
+    },
+    {
+     "etiq": "canyon:midi",
+     "ech": [
+      {
+       "mode": "drive",
+       "s": 133.4,
+       "L": 6631,
+       "lat": 0.01,
+       "vA": 194.68,
+       "go": false,
+       "carte": "canyon",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 624,
+       "tex": 116,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:83/17.4/2.31",
+        "ch": null,
+        "ss": 133,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 1
+      },
+      {
+       "mode": "drive",
+       "s": 225.9,
+       "L": 6631,
+       "lat": 0,
+       "vA": 190.9,
+       "go": false,
+       "carte": "canyon",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 624,
+       "tex": 116,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:83/17.4/2.31",
+        "ch": null,
+        "ss": 226,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 2
+      },
+      {
+       "mode": "drive",
+       "s": 316.9,
+       "L": 6631,
+       "lat": -0.04,
+       "vA": 188.51,
+       "go": false,
+       "carte": "canyon",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 624,
+       "tex": 116,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:83/17.4/2.31",
+        "ch": null,
+        "ss": 317,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 3
+      },
+      {
+       "mode": "drive",
+       "s": 407,
+       "L": 6631,
+       "lat": -0.3,
+       "vA": 187.45,
+       "go": false,
+       "carte": "canyon",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 624,
+       "tex": 116,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:83/17.4/2.31",
+        "ch": null,
+        "ss": 407,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 4
+      },
+      {
+       "mode": "drive",
+       "s": 509.2,
+       "L": 6631,
+       "lat": 0,
+       "vA": 218.1,
+       "go": false,
+       "carte": "canyon",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 624,
+       "tex": 116,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:83/17.4/2.31",
+        "ch": null,
+        "ss": 509,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 5
+      },
+      {
+       "mode": "drive",
+       "s": 616.4,
+       "L": 6631,
+       "lat": -0.03,
+       "vA": 225.95,
+       "go": false,
+       "carte": "canyon",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 638,
+       "tex": 116,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:83/17.4/2.31",
+        "ch": null,
+        "ss": 616,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 6
+      },
+      {
+       "mode": "drive",
+       "s": 726.8,
+       "L": 6631,
+       "lat": -0.01,
+       "vA": 251.79,
+       "go": false,
+       "carte": "canyon",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 638,
+       "tex": 116,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:83/17.4/2.31",
+        "ch": null,
+        "ss": 727,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 7
+      },
+      {
+       "mode": "drive",
+       "s": 852.4,
+       "L": 6631,
+       "lat": -0.05,
+       "vA": 255.89,
+       "go": false,
+       "carte": "canyon",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 633,
+       "tex": 116,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:83/17.4/2.31",
+        "ch": null,
+        "ss": 852,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 8
+      },
+      {
+       "mode": "drive",
+       "s": 981.2,
+       "L": 6631,
+       "lat": 0.77,
+       "vA": 288.25,
+       "go": false,
+       "carte": "canyon",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 633,
+       "tex": 116,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:83/17.4/2.31",
+        "ch": null,
+        "ss": 981,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 9
+      },
+      {
+       "mode": "drive",
+       "s": 1117.4,
+       "L": 6631,
+       "lat": 1.07,
+       "vA": 280.17,
+       "go": false,
+       "carte": "canyon",
+       "meteo": "midi",
+       "teinte": null,
+       "progs": 223,
+       "geo": 633,
+       "tex": 116,
+       "loopErr": null,
+       "mort": " GAME OVER VERSES AU COMPTE$0 $ 0 ×2PUBCONTINUERNON MERCI REJOUER NOUVEAU RECORD — TON NOMVALIDER BOUTIQUE REGLAGES ",
+       "x": {
+        "sa": 1,
+        "lv": "0:83/17.4/2.31",
+        "ch": null,
+        "ss": 1117,
+        "inv": 0,
+        "rel": 0
+       },
+       "ts": 10
+      }
+     ],
+     "morts": [],
+     "alertes": [],
+     "resume": {
+      "n": 10,
+      "cartes": [
+       "canyon:midi"
+      ],
+      "sMax": 1117.4,
+      "L": 6631,
+      "progs": [
+       223,
+       223
+      ],
+      "geo": [
+       624,
+       633
+      ],
+      "x": {
+       "sa": 1,
+       "lv": "0:83/17.4/2.31",
+       "ch": null,
+       "ss": 1117,
+       "inv": 0,
+       "rel": 0
+      }
+     }
+    }
+   ],
+   "erreurs": [],
+   "avert": []
+  }
+ ]
+}
