@@ -1,0 +1,11 @@
+verrou pris par verif-peintures-8
+masque [["menthe","? ? ?",true,"","Dix niveaux sous la neige."],["banana","BANANA",false,"3 €",""],["guerrier","? ? ?",true,"","Le palier vingt-quatre du moteur."],["bolide","? ? ?",true,"","Croque cinquante cerises."]]
+save {"tuto":0,"raw":"{\"v\":2,\"sfx\":false,\"mus\":false,\"vox\":false,\"tuto\":1,\"permis\":1,\"facile\":0,\"bienv\":1,\"ex\":{\"runs\":5},\"plq\":{\"m\":\"fr\",\"x\":\"BANC\",\"ok\":1}}"}
+pack 35
+etat {"started":false,"mode":"drive","go":false}
+etat2 {"started":true,"mode":"drive","go":false,"balade":false,"sand":false,"park":false,"tuto":false,"c":{"morts":0,"gagne":0,"jours":1,"jd":"2026-10-22","cartes":[],"cartesP":[],"rejoue":0,"kmTot":0.03858000861508072,"sc":{"cerise":2,"citron":1,"raisin":1,"envers":99.5},"pu":2}}
+avant {"sc":{"cerise":2,"citron":1,"raisin":1,"envers":99.5},"pu":2,"own":[]}
+raw apres flush 135 }
+apres rechargement {"own":[]}
+erreurs []
+verrou rendu

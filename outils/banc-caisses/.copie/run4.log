@@ -1,0 +1,11 @@
+verrou pris par verif-peintures-9
+masque [["menthe","? ? ?",true,"","Dix niveaux sous la neige."],["banana","BANANA",false,"3 €",""],["guerrier","? ? ?",true,"","Le palier vingt-quatre du moteur."],["bolide","? ? ?",true,"","Croque cinquante cerises."]]
+save {"tuto":1,"permis":1,"raw":"{\"v\":2,\"best\":0,\"leaders\":[],\"bestCar\":0,\"equipped\":0,\"sfx\":false,\"vox\":false,\"mus\":false,\"fruits\":[],\"vol\":{\"mus\":0.62,\"sfx\":1,\"vox\":1},\"tctl\":\"stick\",\"q\":\"net"}
+pack 35
+etat {"started":false,"mode":"drive","go":false}
+etat2 {"started":true,"mode":"drive","go":false,"balade":false,"sand":false,"park":false,"tuto":false,"c":{"morts":0,"gagne":6000,"jours":2,"jd":"2026-10-22","cartes":["nuages","espace"],"cartesP":[],"rejoue":0,"kmTot":5.000399426572121,"sc":{"midi":2,"nuages":2,"cerise":4,"myrtille":2,"orange":2,"matin":1,"espace":1,"citron":1,"raisin":1,"envers":99.5},"met":{"nuages":["midi"],"espace":["matin"]},"pu":3}}
+avant {"sc":{"midi":2,"nuages":2,"cerise":4,"myrtille":2,"orange":2,"matin":1,"espace":1,"citron":1,"raisin":1,"envers":99.5},"pu":3,"met":{"nuages":["midi"],"espace":["matin"]},"own":["peinture:chrome"]}
+raw apres flush 1575 "m2":{"v":1,"ok":[],"pr":[],"su":[],"vu":{},"nv":[],"fl":[],"r":{"kmh":424,"vie":56.265099999998284},"c":{"morts":0,"gagne":6000,"jours":2,"jd":"2026-10-22","cartes":["nuages","espace"],"cartesP":[],"rejoue":0,"kmTot":5.03364426840297,"sc":{"midi":2,"nuages":2,"cerise":4,"myrtille":2,"orange":2,"matin":1,"espace":1,"citron":1,"raisin":1,"envers":99.5},"met":{"nuages":["midi"],"espace":["matin"]},"pu":3},"vc":1,"vr":1
+apres rechargement {"sc":{"midi":2,"nuages":2,"cerise":4,"myrtille":2,"orange":3,"matin":1,"espace":1,"citron":1,"raisin":1,"envers":99.5},"pu":3,"kmTot":5.115682186816192,"nitS":0,"met":{"nuages":["midi"],"espace":["matin"]},"own":["peinture:chrome"]}
+erreurs []
+verrou rendu

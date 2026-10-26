@@ -1,0 +1,5 @@
+verrou pris par photos-volcan
+volcan soir ok {"carte":"volcan","meteo":"soir","teinte":null,"ciel":"volcanSoir","pluie":0,"nuit":0,"orage":false}
+volcan nuit ok {"carte":"volcan","meteo":"nuit","teinte":null,"ciel":"volcanNuit","pluie":0,"nuit":1,"orage":false}
+volcan midi ok {"carte":"volcan","meteo":"midi","teinte":null,"ciel":"volcanMidi","pluie":0,"nuit":0,"orage":false}
+verrou rendu

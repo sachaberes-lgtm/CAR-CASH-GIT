@@ -1,0 +1,6 @@
+verrou pris par verif-remb
+ok=  {"bank":8870000,"owned":[],"remb":{"n":["LA ZED","LA PUCE","LE TOFU","LA CAISSE-NUAGE","L'ABSTRAITE","LA FOURNAISE"],"v":8870000}}
+erreurs []
+ok= cratere,nuage30 {"bank":3670000,"owned":[],"remb":{"n":["LA ZED","LA PUCE","LE TOFU","L'ABSTRAITE"],"v":3670000}}
+erreurs []
+verrou rendu
