@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v963'; /* v963 (2026-10-26, Léo : « chaque moteur une identité ») les moteurs ont chacun leur thème et leur palette, du scarabée à l'infini (code/voitures/moteurs-themes.js) */
+const CACHE = 'cashcar-v964'; /* v964 (2026-10-26, Léo : « le Rocket et le Dragon cosmique, ils sont pas là ? » / « garder l'ouroboros, mettre à la place d'un autre ») la ROQUETTE sur le V8 atmo, le DRAGON COSMIQUE sur le réacteur nucléaire, l'alien retrouve son vert (code/voitures/moteurs-themes.js) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

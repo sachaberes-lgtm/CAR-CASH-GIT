@@ -6,10 +6,10 @@
    pièce TOUCHE le moteur (aucun bout en l'air), aucune matière transparente hors du verre voulu. */
 const TH30=[null,
  [0x1f8a6a,0x9affc8],[0x1fb8b0,0xc8a8ff],[0x2a1c14,0xffb030],[0x9a6430,0xffc040],[0x4a6680,0x9ad8ff],   // 2 scarabée · 3 colibri · 4 scorpion · 5 hibou · 6 requin
- [0xff6a3c,0xffb070],[0xff5f8a,0xffe0ea],[0x15171c,0xd8f4ff],[0x5f7d3c,0xd8ff90],[0xa81c1c,0xffa040],   // 7 étoile de mer · 8 corail · 9 orques · 10 tortue · 11 taureau
+ [0xff6a3c,0xffb070],[0xff5f8a,0xffe0ea],[0x15171c,0xd8f4ff],[0x5f7d3c,0xd8ff90],[0xd8282a,0xffa030],   // 7 étoile de mer · 8 corail · 9 orques · 10 tortue · 11 roquette
  [0x1f4aff,0x9af0ff],[0x4f5f2a,0xffb030],[0x2a3a8a,0xffe08a],[0xffb000,0xfff0a0],[0x1f5a3a,0xff5030],   // 12 électrique · 13 grenade · 14 vitrail · 15 soleil · 16 dragon
  [0xc0201e,0xffd070],[0x3a2a6a,0x6affd8],[0xd9a441,0x5a8aff],[0xff4a1a,0xffc040],[0x13a8a8,0x8affff],   // 17 pagode · 18 kraken · 19 sphinx · 20 phénix · 21 atlantide
- [0x7a8aa0,0x8ad8ff],[0xb81a3a,0xff6a80],[0x9a6a3a,0xff8a20],[0xffc030,0xfff6c0],[0xe8e8f0,0xffffff],   // 22 lance d'Odin · 23 cœur battant · 24 Prométhée · 25 Hélios · 26 miroir
+ [0x7a8aa0,0x8ad8ff],[0xb81a3a,0xff6a80],[0x5a1a8a,0xff70ff],[0xffc030,0xfff6c0],[0x2adf8a,0xb0ffe0],   // 22 lance d'Odin · 23 cœur battant · 24 dragon cosmique · 25 Hélios · 26 alien
  [0x1f8a4a,0xffd060],[0x9ad8ff,0xff9a40],[0xff6ea0,0xffd0f0],[0xf5f6fa,0xffd780]];                        // 27 ouroboros · 28 Halley · 29 naissance · 30 l'infini
 function th30Kit(E,i){const t=TH30[i];return t?Object.assign({},E,{col:t[0],flam:t[1]}):E;}
 function theme30(B,i,K,c,g){
@@ -77,10 +77,13 @@ function theme30(B,i,K,c,g){
     boule(K.col,XE+.30,.20,0,.16,.13,.13);tige(P(XE,.18,0),P(XE+.22,.20,0),.08,K.col);boule(K.noir,XE+.40,.24,.08,.025);boule(K.noir,XE+.40,.24,-.08,.025);
     for(let sx=-1;sx<=1;sx+=2)for(let sd=-1;sd<=1;sd+=2)plume(K.col,sx*L*.32,.05,sd*.55,.45,.18,0,sd>0?-.6:PI10+.6,0);
     break;}
-  case 10:{ // LE TAUREAU — deux cornes ivoire qui partent du front, l'anneau d'or au museau
-    for(let sd=-1;sd<=1;sd+=2){const a=P(XE-.05,top-.05,sd*.20),b=P(XE+.12,top+.12,sd*.55),e=P(XE+.05,top+.45,sd*.72);
-      tige(a,b,.07,K.blanc);tige(b,e,.05,K.blanc);corne(e,D(-.2,1,.15*sd),.05,.22,K.blanc);B.add(new THREE.TorusGeometry(.075,.012,4,14),K.or,b.x,b.y,b.z,0,PI10/2,0);}
-    tige(P(XE+.10,.32,0),P(XE+.20,.32,0),.025,K.or);B.add(new THREE.TorusGeometry(.13,.025,6,20),K.or,XE+.22,.20,0,0,PI10/2,0);
+  case 10:{ // LA ROQUETTE — quatre fusées blanches à nez rouge montées sur rails le long du bloc, une ogive en proue, des ailerons
+    for(let sd=-1;sd<=1;sd+=2)for(let h=0;h<2;h++){const y=.05+h*.30,z=sd*(.48+h*.06);
+      B.add(G10.axeX8,K.blanc,-L*.38,y,z,0,0,0,L*.70,.10,.10);corne(P(L*.32,y,z),D(1,0,0),.10,.28,K.col);
+      for(let f=0;f<4;f++){const a=f/4*2*PI10+PI10/4;B.add(plan10([[0,0],[.22,0],[.05,.14],[0,.14]],.015,.004),K.col,-L*.38,y+Math.sin(a)*.10,z+Math.cos(a)*.10,a-PI10/2,PI10,0);}
+      TX(B,K.chrome,[[.06,0],[.08,.04],[.11,.12]],-L*.38,y,z,PI10,10);TX(B,K.glow,[[.001,0],[.08,0],[.08,.01]],-L*.38-.10,y,z,0,10);
+      BXg(B,K.chrome,0,y,sd*(.37+h*.03),0,0,0,L*.5,.04,(z*sd)-.33);}
+    corne(P(XE+.04,.30,0),D(1,0,0),.30,.55,K.col);B.add(new THREE.TorusGeometry(.30,.03,6,24),K.blanc,XE+.05,.30,0,0,PI10/2,0);
     break;}
   case 11:{ // L'ÉLECTRIQUE — deux bobines Tesla de cuivre dressées sur le moteur, leurs tores chromés, des arcs bleus qui claquent
     for(let sd=-1;sd<=1;sd+=2){const x=sd*L*.36;tige(P(x,top,0),P(x,top+.75,0),.06,K.noir);
@@ -167,10 +170,18 @@ function theme30b(B,i,K,g){
     tige(P(1.18,.32,0),P(1.02,.58,0),.08,K.colD);B.add(new THREE.TorusGeometry(.18,.08,8,16,PI10),K.colD,.84,.58,0,0,0,0);
     for(let k=0;k<4;k++){const a=k/4*2*PI10;B.add(tube10([[.70,Math.sin(a)*.2,Math.cos(a)*.2],[.2,Math.sin(a)*.27,Math.cos(a)*.27],[-.6,Math.sin(a+.5)*.35,Math.cos(a+.5)*.35],[-1.1,Math.sin(a)*.20,Math.cos(a)*.20]],.02,20,5),K.colD,0,0,0);}
     break;}
-  case 23:{ // PROMÉTHÉE — la cuve ENCHAÎNÉE (chaîne d'anneaux qui s'enroule), la torche du feu volé sur le dôme
-    for(let k=0;k<26;k++){const t=k/25,a=t*PI10*3.2,x=-.66+t*1.30;B.add(new THREE.TorusGeometry(.06,.016,5,12),K.noir,x,Math.sin(a)*.665,Math.cos(a)*.665,k%2?PI10/2:0,a,0);}
-    tige(P(1.30,0,0),P(1.55,0,0),.05,K.or);B.add(tourX([[.05,0],[.16,.10],[.18,.16],[.001,.17]],10),K.or,1.55,0,0);
-    corne(P(1.70,0,0),D(1,.0,0),.14,.45,K.glow);B.add(cone10(.22,.65,12),K.halo(K.glow.color.getHex(),.35),1.70,0,0);
+  case 23:{ // LE DRAGON COSMIQUE, gardien du réacteur — un dragon d'améthyste enroulé autour de la cuve incandescente : crêtes d'or, grandes ailes, crocs, yeux de braise
+    const R=.86,N=46,pt=t=>{const a=t*2*PI10*1.35+.6;return P(-1.15+t*2.35,Math.sin(a)*R,Math.cos(a)*R);};
+    for(let k=0;k<N;k++){const t=k/(N-1),q=pt(t),r=.07+.07*Math.sin(Math.min(1,t*1.4)*PI10*.5);B.add(G10.sph,k%2?K.col:K.colD,q.x,q.y,q.z,0,0,0,r,r,r);
+      if(k%3===0&&k<N-3){const n=D(0,q.y,q.z);corne(q,n,.035,.10+r,K.or);}}
+    const hp=pt(1).add(P(.12,0,0)),fw=pt(1).sub(pt(.97)).normalize(),up=D(0,hp.y,hp.z);
+    boule(K.col,hp.x,hp.y,hp.z,.20,.16,.18);corne(hp.clone().addScaledVector(fw,.12),fw,.14,.34,K.col);
+    for(let sd=-1;sd<=1;sd+=2){const sideV=new THREE.Vector3().crossVectors(fw,up).normalize().multiplyScalar(sd);
+      corne(hp.clone().addScaledVector(up,.10).addScaledVector(sideV,.08),up.clone().addScaledVector(fw,-.9).addScaledVector(sideV,.4).normalize(),.045,.45,K.or);
+      const e=hp.clone().addScaledVector(fw,.10).addScaledVector(up,.07).addScaledVector(sideV,.12);boule(K.glow,e.x,e.y,e.z,.045);}
+    for(let k=0;k<4;k++)corne(hp.clone().addScaledVector(fw,.20+k*.05).addScaledVector(up,-.12),up.clone().negate(),.022,.11,K.blanc);
+    const wm=pt(.55);for(let sd=-1;sd<=1;sd+=2)B.add(plan10([[0,0],[.95,.20],[.85,.62],[.58,.34],[.44,.74],[.22,.38],[.06,.55]],.02,.004),K.colD,wm.x,wm.y,wm.z,0,sd>0?0:PI10,.5);
+    corne(pt(0),pt(0).sub(pt(.03)).normalize(),.06,.30,K.or);
     break;}
   case 24:{ // HÉLIOS — une couronne de rayons d'or plantés tout autour du tore : le soleil captif
     const TL=.55,ct=Math.cos(TL),st=Math.sin(TL);
