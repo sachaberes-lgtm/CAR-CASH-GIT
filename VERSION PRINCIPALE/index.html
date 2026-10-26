@@ -16014,6 +16014,13 @@ function jadeFinale(){if(JADE.fini){if(s>L-6)s=L-6;return;}JADE.fini=true;jadeAn
   try{slam('ARRIVÉE',TR(JADE_JEU?JADE_NOM:'PICS DE JADE')+' · '+mm+':'+(ss<10?'0':'')+ss,null,null,null,3,true);}catch(e){}shake=Math.max(shake,.25);
   setTimeout(function(){if(!started||gameOver||mode==='boom')return;try{ecranWipe(jadeRedemarre);}catch(e){jadeRedemarre();}},2800);}
 function jadeRedemarre(){if(!started||gameOver||mode==='boom')return; // (2026-10-12, passe qualité) JOUER lance le SOLEIL DE JADE : une caisse qui EXPLOSE (ou une partie finie) dans les 2,8 s après l'ARRIVÉE était remise en 'drive' au départ — ressuscitée sous l'écran de fin
+  /* (2026-10-13, passe de sortie) LE 2e TOUR N'EST PLUS VIDE : remettre s à 0 sur la même piste laissait les pièces et les fruits ramassés
+     au 1er tour, les plots couchés, et la LIGNE PARFAITE ne posait plus rien (sa file était au bout de la piste). newTrack() rebâtit la
+     MÊME piste (graine fixe de NIV_JADE), ses pièces, fruits, plots, plaques et la ligne ; la carte gardée est REPRISE telle quelle
+     (jadeReprend : montagnes remises debout comprises) — sous le volet d'ecranWipe, comme un portail. Arrivée passée EN VOL : le vol
+     s'arrête proprement (le même ménage que portailPasse). */
+  if(mode==='fall'){airPie.style.display='none';try{dolFin();}catch(e){}if(chain>0)runStats.tricks++;chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;}
+  try{newTrack();}catch(e){console.warn('jadeRedemarre',e);}
   s=0;lat=0;psi=0;prevTvalid=false;mode='drive';vA=0;jadeChuteRaz();JADE.fini=false;JADE.t0=performance.now();} // (v17, « enlève les intros ») plus de « DÉPART » : on repart, c'est tout
 /* (v16, Léo : « évite les clichés en mode Chine, le but c'est une vibe CHIHIRO ; le sol, fais-le moins scolaire… même des bouts de bois
    empilés, des TRONCS D'ARBRES collés à eux-mêmes ») LA ROUTE DE RONDINS — ses bords en vrais volumes : chaque rondin qui DÉPASSE du bord
@@ -27609,6 +27616,9 @@ window.dbgStep=function(n,ms){
   for(let k=0;k<n;k++){last=performance.now()-ms;loop(performance.now());}
   return window.dbgState();
 };
+window.dbgMem=function(){const m=renderer.info.memory,M=performance.memory;let o=0;scene.traverse(function(){o++;});return {tas:M?Math.round(M.usedJSHeapSize/1048576):null,geo:m.geometries,tex:m.textures,progs:(renderer.info.programs||[]).length,objets:o,appels:renderer.info.render.calls};}; // banc (2026-10-13, passe de sortie) : les fuites d'une partie à l'autre — tas JS (Mo), géométries/textures/programmes GPU, objets de la scène
+window.dbgCourse=function(){let pr=0,pt=0;for(const p of pickups){if(p.taken)pt++;else pr++;}let ch=0;for(const c of CONES)if(c.hit)ch++;return {sym:coinSymbole.k,pieces:pr,prises:pt,plots:CONES.length,plotsCouches:ch,pads:PADS.length,ligne:{on:LIGNE.on,proch:Math.round(LIGNE.prochS),n:LIGNE.n.slice()},s:Math.round(s),L:Math.round(L),jadeFini:!!JADE.fini,portAtt:PORTV.att,boomT:+(+boomT).toFixed(2),fallTR:+fallTR.toFixed(2),slowT:+slowT.toFixed(2),ralenti:+RALENTI.t.toFixed(2),nitroOn:nitroOn,nitroR:+nitroR.toFixed(2),pwr:[+pwrNitroT.toFixed(1),+pwrAirT.toFixed(1),+pwrSpdT.toFixed(1),+pwrMagT.toFixed(1),+pwrAurT.toFixed(1)],sable:SANDBOX};}; // banc (2026-10-13, passe de sortie) : ce que la course a sous le capot (pièces, plots, ligne, chronos, pouvoirs)
+window.dbgSable=function(v){if(v!=null)SANDBOX=!!v;return SANDBOX;}; // banc (2026-10-13, passe de sortie) : la caisse se replace au lieu de mourir — pour enchaîner les portails sans mourir
 window.CASHCAR_BUILD='2026-07-20 v5 (anti-flicker + anti-cache)'; // vérif version : taper CASHCAR_BUILD en console
 console.log('%c🏎 CASH CAR — build '+CASHCAR_BUILD,'color:#f24aa0;font-weight:bold'); // si ce texte n'apparaît pas au chargement → tu es sur une VIEILLE version en cache (Ctrl+Shift+R)
 window.dbgPerf=function(){return {ms:+(loop._ms||0).toFixed(1),fps:Math.round(1000/Math.max(1,loop._ms||16)),spikes:+(loop._spk||0).toFixed(1),dpr:+curDPR.toFixed(2),dprCeil:loop._dprCeilT?+loop._dprCeil.toFixed(2):null,cloudIn:+cloudInS.toFixed(2),nuages:CLOUDS.length,tier:QUAL_LOW?'LOW':QUAL_MED?'MED':'FULL',r30:!!loop._r30,jit:+(loop._jit||0).toFixed(1)};};
