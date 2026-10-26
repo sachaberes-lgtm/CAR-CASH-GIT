@@ -203,6 +203,7 @@ function bloc30(g,i,E,KT,rnd,K,S){
   if(i>=9)for(let sd=-1;sd<=1;sd+=2)B.add(plan10([[-L*.40,0],[L*.34,0],[L*.16,.40],[-L*.34,.18]],.025,.006),i%2?KT.col:KT.meche,0,-.22,sd*.46,sd*.5,0,0);   // les ailes
   if(i>=15)for(let sd=-1;sd<=1;sd+=2)B.add(plan10([[-L*.5,0],[L*.5,0],[L*.30,.5],[-L*.5,.22]],.018,.004),KT.col,0,-.10,sd*.60,sd*.9,0,0);                 // les ailes de lumière
   crown30(B,K,S,KT,i,E,rnd,g);
+  theme30(B,i,KT,{L:L,top:top,tw:tw},g);   // l'identité du palier : scarabée, colibri, scorpion… (moteurs-themes.js)
   B.fin(g);
   g.userData.echap={p:echap||[L*.64,-.40,.36],d:[1,0,0]};
 }
@@ -443,11 +444,12 @@ function orig10(g,i,E,K,rnd){
   case 29:{ // TROU NOIR — LA SINGULARITÉ : une bille d'encre, un disque d'accrétion à dix anneaux, un anneau de photons, deux jets, une cage
     B.add(sphN10(.40,30),K.noir,0,0,0);
     for(let k=0;k<16;k++){const t=k/15,R=.50+t*.80,c=[0xffffff,0xfff8e0,0xfff2c0,0xffe2a0,0xffd780,0xffc060,0xffb050,0xff9a44,0xff8a3c,0xff6a48,0xff5a50,0xf04a80,0xe03ca0,0xb02ac8,0x7a22c8,0x401890][k];
-      B.add(new THREE.TorusGeometry(R,.05+.02*t,6,56),K.halo(c,.66-.2*t),0,0,0,1.0,0,0,1,1,.28);}
-    B.add(new THREE.TorusGeometry(.44,.012,6,56),K.blanc,0,0,0,1.0,0,0);
+      B.add(new THREE.TorusGeometry(R,.035+.012*t,6,56),K.halo(c,.62-.25*t),0,0,0,PI10/2,0,0,1,1,.28);}
+    B.add(new THREE.TorusGeometry(.46,.014,6,56),K.blanc,0,0,0,PI10/2,0,0);
     B.add(cone10(.10,2.1,14),K.haloC,.30,0,0,0,0,0);B.add(cone10(.10,2.1,14),K.haloC,-.30,0,0,0,PI10,0);B.add(cone10(.04,2.3,10),K.blanc,.30,0,0,0,0,0);B.add(cone10(.04,2.3,10),K.blanc,-.30,0,0,0,PI10,0);
     ech=[-1.6,0,0];break;}
   }
+  theme30b(B,i,K,g);                                                  // l'identité : sphinx, phénix, Atlantide… l'infini
   const NP={18:4,19:5,20:6,21:6,22:7,23:8,24:8,25:9,26:10};          // la grappe de propulseurs grossit palier après palier
   if(NP[i])prop10(B,K,ech[0]+.55,0,0,i>=24?.62:.46,NP[i],i>=24?1.15:.9);
   B.fin(g);

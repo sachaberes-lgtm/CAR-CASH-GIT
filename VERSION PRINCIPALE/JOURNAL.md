@@ -3,6 +3,11 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## UNE IDENTITÉ PAR MOTEUR (2026-10-26, v963 — Léo : « chaque moteur une identité : aquatique, élémentaire, animaux… toujours plus intense, le 30e mille fois plus stylé » ; version validée sur sa photo des planches, + ses demandes : électrique, grenade, alien, et les anciens comète / supernova / trou noir)
+- Nouveau morceau **`code/voitures/moteurs-themes.js`** (avant `constructeur-moteur.js`) : `TH30` = la palette (laque + flamme) de chaque palier, appliquée par `th30Kit` dans `mkEngine` ; `theme30` (blocs 2-18) et `theme30b` (19-30) = la SIGNATURE posée sur le moteur, chaque pièce accrochée (règle : rien qui flotte).
+- L'échelle : 2 Scarabée · 3 Colibri · 4 Scorpion · 5 Hibou · 6 Requin · 7 Étoile de mer · 8 Corail · 9 Orques · 10 Tortue · 11 Taureau · 12 Électrique (bobines Tesla) · 13 Grenade · 14 Vitrail · 15 Soleil · 16 Dragon · 17 Pagode · 18 Kraken · 19 Sphinx · 20 Phénix · 21 Atlantide · 22 Lance d'Odin · 23 Cœur battant · 24 Prométhée · 25 Hélios · 26 Alien (soucoupe) · 27 Ouroboros · 28 Halley (ses anneaux, tenus) · 29 Naissance (corolle + grands anneaux de l'ancienne supernova) · 30 l'Infini (la CAGE de l'ancien trou noir, en grand, disque d'accrétion à plat). Le palier 1 reste l'épave.
+- Piège : `tube10` attend des tableaux [x,y,z] (un Vector3 donne une géométrie NaN, invisible). Banc : planches `seul=1` (scratchpad de la session). Pas mesuré sur iPhone (jusqu'à ~34 000 triangles pour un moteur).
+
 ## PEINTURES : LES 4 ÉPIQUES DE LA SÉRIE RANGÉES AVEC LES DÉGRADÉS (2026-10-26, v955 — Léo : « pour l'instant, les derniers épiques, mets-les comme des dégradés, au-dessus des stickers »)
 - Annule la famille « légendaires » de la v952 : BRAISE FIDÈLE, AURORE BORÉALE, LAGON INTERDIT et NUIT ÉTOILÉE (la SÉRIE) ferment la liste des **dégradés** (`PEINT_DEGRADES`), juste au-dessus des motifs, qui redeviennent la toute fin. Ordre final : D'ORIGINE · basiques · originales · brillantes · dégradés (série en dernier) · motifs.
 

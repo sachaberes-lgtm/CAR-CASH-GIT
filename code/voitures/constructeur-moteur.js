@@ -39,7 +39,7 @@ function mkEngine(i){
   const relique=i>=24;
   const croute=M9.croute(),cristal=M9.cristal(E.col);
   const MT={bloc:bloc,sombre:sombre,chrome:chrome,habit:habit,carter:carter};
-  const KT=kit10(E);
+  const KT=kit10(th30Kit(E,i));   // la palette de l'IDENTITÉ du palier (moteurs-themes.js)
   if(i>=1&&i<18){bloc30(g,i,E,KT,rnd,K,S);return g;}   // paliers 2-18 : le bloc facetté commun + la pièce unique du palier (moteurs-originaux.js)
   if(i>=18){orig10(g,i,E,KT,rnd);return g;}   // paliers 19-30 : dessins entièrement neufs (rotor, turbine, plasma, réacteur, astre…) — voir moteurs-originaux.js
 
