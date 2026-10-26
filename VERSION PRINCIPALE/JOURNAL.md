@@ -3,6 +3,9 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE DRAGON DU RÉACTEUR SE DRESSE (2026-10-26, v967 — Léo : « dragon pas mélangé à l'ouroboros »)
+- Palier 24 : le dragon cosmique n'est plus un serpent enroulé (trop proche de l'ouroboros du 27) : il est PERCHÉ sur la cuve — corps à crête d'or, quatre pattes griffues, cou dressé, tête cornue aux yeux de braise, grandes ailes déployées (membrane améthyste sur des os d'or), queue qui retombe.
+
 ## LA ROQUETTE ET LE DRAGON COSMIQUE REVIENNENT (2026-10-26, v964 — Léo : « garder l'ouroboros, mettre à la place d'un autre truc »)
 - 11 V8 atmo : la ROQUETTE (quatre fusées sur rails, ogive) remplace le Taureau. 24 réacteur nucléaire : le DRAGON COSMIQUE (enroulé autour de la cuve) remplace Prométhée. L'Ouroboros reste au 27. Correctif : l'alien (26) avait gardé la palette blanche du miroir, il retrouve son vert.
 

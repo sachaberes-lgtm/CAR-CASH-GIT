@@ -170,19 +170,28 @@ function theme30b(B,i,K,g){
     tige(P(1.18,.32,0),P(1.02,.58,0),.08,K.colD);B.add(new THREE.TorusGeometry(.18,.08,8,16,PI10),K.colD,.84,.58,0,0,0,0);
     for(let k=0;k<4;k++){const a=k/4*2*PI10;B.add(tube10([[.70,Math.sin(a)*.2,Math.cos(a)*.2],[.2,Math.sin(a)*.27,Math.cos(a)*.27],[-.6,Math.sin(a+.5)*.35,Math.cos(a+.5)*.35],[-1.1,Math.sin(a)*.20,Math.cos(a)*.20]],.02,20,5),K.colD,0,0,0);}
     break;}
-  case 23:{ // LE DRAGON COSMIQUE, gardien du réacteur — un dragon d'améthyste enroulé autour de la cuve incandescente : crêtes d'or, grandes ailes, crocs, yeux de braise
-    const R=.86,N=46,pt=t=>{const a=t*2*PI10*1.35+.6;return P(-1.15+t*2.35,Math.sin(a)*R,Math.cos(a)*R);};
-    for(let k=0;k<N;k++){const t=k/(N-1),q=pt(t),r=.07+.07*Math.sin(Math.min(1,t*1.4)*PI10*.5);B.add(G10.sph,k%2?K.col:K.colD,q.x,q.y,q.z,0,0,0,r,r,r);
-      if(k%3===0&&k<N-3){const n=D(0,q.y,q.z);corne(q,n,.035,.10+r,K.or);}}
-    const hp=pt(1).add(P(.12,0,0)),fw=pt(1).sub(pt(.97)).normalize(),up=D(0,hp.y,hp.z);
-    boule(K.col,hp.x,hp.y,hp.z,.20,.16,.18);corne(hp.clone().addScaledVector(fw,.12),fw,.14,.34,K.col);
-    for(let sd=-1;sd<=1;sd+=2){const sideV=new THREE.Vector3().crossVectors(fw,up).normalize().multiplyScalar(sd);
-      corne(hp.clone().addScaledVector(up,.10).addScaledVector(sideV,.08),up.clone().addScaledVector(fw,-.9).addScaledVector(sideV,.4).normalize(),.045,.45,K.or);
-      const e=hp.clone().addScaledVector(fw,.10).addScaledVector(up,.07).addScaledVector(sideV,.12);boule(K.glow,e.x,e.y,e.z,.045);}
-    for(let k=0;k<4;k++)corne(hp.clone().addScaledVector(fw,.20+k*.05).addScaledVector(up,-.12),up.clone().negate(),.022,.11,K.blanc);
-    const wm=pt(.55);for(let sd=-1;sd<=1;sd+=2)B.add(plan10([[0,0],[.95,.20],[.85,.62],[.58,.34],[.44,.74],[.22,.38],[.06,.55]],.02,.004),K.colD,wm.x,wm.y,wm.z,0,sd>0?0:PI10,.5);
-    corne(pt(0),pt(0).sub(pt(.03)).normalize(),.06,.30,K.or);
+  case 23:{ // LE DRAGON COSMIQUE, gardien du réacteur (Léo : « pas mélangé à l'ouroboros ») — PERCHÉ sur la cuve, pas enroulé :
+    //   corps couché sur le dessus, quatre pattes griffues qui agrippent les cerclages, cou dressé vers l'avant, tête cornue aux yeux de
+    //   braise, GRANDES AILES déployées (membrane améthyste tendue sur des os d'or), queue qui retombe le long de la tuyère
+    const Y=.70,body=[P(-.55,Y+.10,0),P(-.20,Y+.16,0),P(.15,Y+.16,0),P(.42,Y+.12,0)];
+    for(let k=0;k<body.length;k++){const q=body[k],r=.20-Math.abs(k-1.5)*.03;B.add(G10.sph,K.col,q.x,q.y,q.z,0,0,0,r*1.25,r,r*.9);if(k)tige(body[k-1],q,r*.8,K.col);
+      corne(q.clone().add(P(0,r*.9,0)),D(-.3,1,0),.05,.20,K.or);}
+    const neck=[P(.42,Y+.12,0),P(.62,Y+.40,0),P(.70,Y+.70,0),P(.82,Y+.86,0)];B.add(tube10(neck.map(q=>[q.x,q.y,q.z]),.09,16,8),K.col,0,0,0);
+    for(let k=1;k<3;k++)corne(neck[k].clone().add(P(-.06,.07,0)),D(-.6,1,0),.035,.14,K.or);
+    const H=P(.95,Y+.88,0);BXg(B,K.col,H.x,H.y,0,0,0,-.15,.34,.18,.22);corne(P(1.10,Y+.85,0),D(1,-.15,0),.10,.22,K.col);
+    for(let sd=-1;sd<=1;sd+=2){corne(P(.88,Y+.97,sd*.08),D(-1,.75,sd*.25),.045,.42,K.or);boule(K.glow,1.04,Y+.92,sd*.10,.04);
+      for(let k=0;k<3;k++)corne(P(1.00+k*.07,Y+.79,sd*.07),D(0,-1,0),.02,.09,K.blanc);}
+    for(const x of [-.40,.30])for(let sd=-1;sd<=1;sd+=2){const a=P(x,Y+.08,sd*.14),b=P(x+.05,Y-.02,sd*.42),c=P(x+.08,Y-.20,sd*.62);
+      tige(a,b,.05,K.col);tige(b,c,.04,K.col);for(let f=-1;f<=1;f++)corne(c,D(.4,-1,sd*.3+f*.3),.02,.10,K.or);}
+    for(let sd=-1;sd<=1;sd+=2){const r=P(-.05,Y+.22,sd*.12),t=P(-.30,Y+1.05,sd*1.10);tige(r,t,.035,K.or);   // l'os principal de l'aile
+      for(const f of [[-.85,.80,1.30],[-.95,.45,1.25],[-.85,.15,1.00]]){const e=P(f[0],Y+f[1],sd*f[2]);tige(t,e,.02,K.or);}
+      const m=new THREE.BufferGeometry(),pts=[r,t,P(-.85,Y+.80,sd*1.30),P(-.95,Y+.45,sd*1.25),P(-.85,Y+.15,sd*1.00),P(-.45,Y+.20,sd*.30)],v=[];
+      for(let k=1;k<pts.length-1;k++)v.push(pts[0].x,pts[0].y,pts[0].z,pts[k].x,pts[k].y,pts[k].z,pts[k+1].x,pts[k+1].y,pts[k+1].z);
+      m.setAttribute('position',new THREE.Float32BufferAttribute(v,3));m.computeVertexNormals();B.add(m,K.colD,0,0,0);}
+    const tq=[P(-.55,Y+.10,0),P(-.85,Y+.02,0),P(-1.05,Y-.30,.10),P(-1.15,Y-.62,-.05)];B.add(tube10(tq.map(q=>[q.x,q.y,q.z]),.06,16,8),K.col,0,0,0);
+    corne(tq[3],D(-.3,-1,0),.09,.24,K.or);
     break;}
+
   case 24:{ // HÉLIOS — une couronne de rayons d'or plantés tout autour du tore : le soleil captif
     const TL=.55,ct=Math.cos(TL),st=Math.sin(TL);
     for(let k=0;k<28;k++){const a=k/28*2*PI10,cx=Math.cos(a),sy=Math.sin(a),d=D(cx,sy*ct,sy*st);corne(P(cx*.84,sy*.84*ct,sy*.84*st),d,.05,k%2?.30:.55,k%2?K.or:K.blanc);}
