@@ -34706,6 +34706,9 @@ window.dbgPart=function(a,k,v){
   if(a==='veille'){let d=0,v=0;for(const n in R){if(R[n].mesh.visible)v++;else d++;}return {visibles:v,endormies:d};} // (vague 2) les réserves vides ne dessinent plus
   if(a==='pluie'){startMoneyRain();return 'pluie de devises';} // (vague 2) bancs d'essai : l'averse et l'éclat de nuage à la demande
   if(a==='nuage'){shatterCloud(carGroup.position,1);return 'nuage éclaté';}
+  if(a==='loc'){const P=R[k]||(k==='silBraises'?silBraises:k==='juicePool'?juicePool:null);if(!P)return null;const iv=new THREE.Matrix4().copy(carGroup.matrixWorld).invert(),w=new THREE.Vector3(),L=[]; // (banc particules, 2026-10-13) les particules vivantes dans le REPÈRE DE LA CAISSE (x droite, y haut, z avant) + vie restante (0-1)
+    for(let i=0;i<P.n;i++)if(P.life[i]>0){w.set(P.pos[i*3],P.pos[i*3+1],P.pos[i*3+2]).applyMatrix4(iv);L.push([+w.x.toFixed(2),+w.y.toFixed(2),+w.z.toFixed(2),P.fa?+P.fa[i].toFixed(2):+P.life[i].toFixed(2)]);}
+    const pots=CAR_POTS.map(function(p){const o=potMonde(p,new THREE.Vector3()).applyMatrix4(iv);return [+o.x.toFixed(2),+o.y.toFixed(2),+o.z.toFixed(2)];});return {pots:pots,n:L.length,L:L};}
   if(a==='fruit'){crV2.copy(carGroup.position);crV2.y+=1.1;juiceSplash(crV2,k||0xff4060,1);return 'gerbe de jus';}
   if(a==='boom')return {volutes:PAN_VOL.cnt,pluie:MONN.cnt,visV:PAN_VOL.mesh.visible,chaudV:PAN_VOL.chaud,dards:PAN_DARD.cnt, // (vague 2) l'état de la boule
     alphas:Array.from(PAN_VOL.C.slice(0,PAN_VOL.cnt*4)).filter((x,i)=>i%4===3).map(x=>+x.toFixed(2)),
