@@ -806,7 +806,9 @@
   mesure();
   setTimeout(irPret,500); /* pendant l'attente du toucher : 10 ms de calcul, hors de vue */
   setTimeout(chauffe,900); /* puis le reste (quelques dizaines de ms, hors de vue) */
-  addEventListener('keydown',kd);addEventListener('resize',remesure);
+  let remesureTO=0;
+  function remesureGroupee(){clearTimeout(remesureTO);remesureTO=setTimeout(remesure,120);} /* (2026-10-26, Sacha : « petites latences au lancement ») sur mobile, la barre d'adresse qui se rétracte envoie plusieurs `resize` d'affilée PENDANT le film : chacun relançait `remesure` (donc `prepare`, synchrone : logo, fracture) tout de suite, ça saccadait ; groupés en un seul passage 120 ms après la dernière secousse */
+  addEventListener('keydown',kd);addEventListener('resize',remesureGroupee);
   /* ===== L'INTRO SE TAIT EN ARRIÈRE-PLAN (24/10, relecture : « l'appli passe derrière pendant l'intro ») =====
      Le jeu endort SON contexte audio quand la page est cachée (voir init.js), pas celui de l'intro : la boule attend le toucher indéfiniment,
      son pad tourne en boucle — sur le site (Chrome Android), il continuait de jouer dans la poche. Caché : le contexte de l'intro s'endort ;
