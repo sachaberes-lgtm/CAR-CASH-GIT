@@ -9833,6 +9833,7 @@ window.dbgGfx=function(o){
     if(o.trame!=null&&acesPass)acesPass.uniforms.uTrame.value=o.trame?1/255:0;
     if(o.pique!=null&&acesPass){RESPIN=true;acesPass.uniforms.uSharp.value=+o.pique;}}
   return {coeur:GFX_U.uCoeur.value,glace:+ROAD_U.uGlace.value.toFixed(3),trame:acesPass?+(acesPass.uniforms.uTrame.value*255).toFixed(2):null,pique:acesPass?+acesPass.uniforms.uSharp.value.toFixed(3):null,dpr:curDPR,natif:devicePixelRatio};};
+window.dbgGfxR=function(o){if(o)window.dbgGfx(o);if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return window.dbgGfx();}; // (banc gfx-rendu, 2026-10-13) dbgGfx(o) puis UNE image re-rendue sans faire avancer le jeu (A/B sur l'image figée)
 window.dbgSonde=function(go){if(go){QLR.sync=go==='sync'?1:0;qlSondeArme();}return {vrai:+QLR.vrai.toFixed(2),age:QLR.vraiT?Math.round(performance.now()-QLR.vraiT):null,mesures:QLR.dern&&QLR.dern.map(function(x){return +x.toFixed(1);}),cpuGpu:QLR.cg,chrono:!!QLT.ok,sN:QLR.sN,enRoute:QLR.S.pend};}; // (banc) dbgSonde(1) lance la sonde, dbgSonde() la lit
 window.dbgQual=function(k){ if(k!=null){qlPose(k);RESPIN=true;} const b=qlBornes(); // dbgQual(k) force le cran k ET fige (dbgPin(false) relâche)
   const al=[];for(let i=0;i<QL.N_EFF&&i<QL.k;i++)al.push(QL.nom[i]);
