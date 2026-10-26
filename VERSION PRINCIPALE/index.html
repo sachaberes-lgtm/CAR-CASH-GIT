@@ -48824,10 +48824,12 @@ if(PEINT_V2){
 const PEINT_BASIQUES=['bolide','azur','billet','taxi','emeute','royal','poupee','fuchsia','minuit','noir','neige'], // (2026-10-26, Léo : « les couleurs de base, rouge, bleu, vert, en haut ; plus on descend, plus c'est spécial ; les brillantes encore plus bas ») les primaires d'abord
   PEINT_ORIGINALES=['dragee','abricot','vanille','pistache','amande','menthe','ogre','lagon','piscine','lilas','nardo','gotham'],
   PEINT_BRILLANTES=['cuivre','or','orrose','chrome','fantome'], // les métaux et le nacré : unis mais brillants, sous les originales
-  PEINT_DEGRADES=['srBraise','lave','envers','couchant','guerrier','banana','prisme','jadeimperial','cameleon','srAurore','srLagon','eclair','lampadaire','srEtoile','vaporwave','holo','nacre','orage','lunaire'];
-function peintClef(j){const d=COSM.peinture[j];if(d.id==='usine')return -1; // D'ORIGINE en tête, puis 1 basiques · 2 originales · 2,5 brillantes · 3 dégradés · 4 motifs
+  PEINT_DEGRADES=['lave','envers','couchant','guerrier','banana','prisme','jadeimperial','cameleon','eclair','lampadaire','vaporwave','holo','nacre','orage','lunaire'],
+  PEINT_LEGENDAIRES=['srBraise','srAurore','srLagon','srEtoile']; // (2026-10-26, Léo : « les stickers à la toute fin, et à la toute fin, les trucs légendaires ») la SÉRIE (4 dégradés exclusifs, rareté épique, la plus haute des peintures) ferme la liste, après les motifs
+function peintClef(j){const d=COSM.peinture[j];if(d.id==='usine')return -1; // D'ORIGINE en tête, puis 1 basiques · 2 originales · 2,5 brillantes · 3 dégradés · 4 motifs · 5 légendaires
   let k=PEINT_BASIQUES.indexOf(d.id);if(k>=0)return 100+k;k=PEINT_ORIGINALES.indexOf(d.id);if(k>=0)return 200+k;k=PEINT_BRILLANTES.indexOf(d.id);if(k>=0)return 250+k;k=PEINT_DEGRADES.indexOf(d.id);if(k>=0)return 300+k;
-  return (d.mot?400:350)+j;} // les motifs : l'ordre du catalogue
+  k=PEINT_LEGENDAIRES.indexOf(d.id);if(k>=0)return 500+k;
+  return (d.mot?400:350)+j;} // les motifs (les « stickers ») : l'ordre du catalogue ; puis les légendaires
 function peintOrdre(){const L=COSM.peinture.map(function(d,j){return j;});if(!PEINT_V2)return L; // les indices de COSM.peinture, rangés par famille (voir peintClef)
   return L.sort(function(a,b){return peintClef(a)-peintClef(b);});}
 /* acheter un habillage EN EUROS (une peinture) : la porte de StoreKit, comme une caisse — rien n'est donné tant qu'Apple n'a pas encaissé */
