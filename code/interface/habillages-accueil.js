@@ -116,7 +116,7 @@ const TRPV={r:[],t:0,v1:new THREE.Vector3(),c:new THREE.Color()};
 const SILPV={s:[],t:0,on:0,id:'',v:new THREE.Vector3()};
 function silBlanc(){return !!(garageOn&&GBQ.on&&GBQ.grp&&GBQ.grp.visible);}
 function silApercu(dt,on,k9){
-  const S=SILPV;
+  const S=SILPV;if(TC_RUB)tcOn();
   if(!on){for(const tr of S.s)tr.m.visible=false;S.on=0;S.id='';return false;}
   const d=cosmSur('trainee'),nf=Math.min(2,CAR_FEUX.length);if(!d||!nf)return false;
   if(!S.s.length)S.s.push(mkSillage(),mkSillage());

@@ -172,7 +172,7 @@ function trxVit(p,vk){const C=TRX.C,k=C.pv?(vk>=.999?0:-Math.max(1-vk,.35)):vk;p
 /* ⚠ L'ÉLAN GARDÉ (`vk`) DÉCIDE CE QU'ON VOIT EN COURSE (mesuré au 1er banc) : la caméra de poursuite est à quelques mètres derrière. À 80 m/s,
    une particule qui ne garde que 55 % de l'élan recule de 36 m/s et passe l'objectif en 0,15 s — on ne la voit jamais. Ce qui doit se LIRE
    (code, anneaux, blocs, pétales, billets) garde ~0,86-0,9 de l'élan, comme les mots de WOW : la traînée s'étire doucement derrière la caisse. */
-function trxQ(L,md,px,py,pz,a0,a1,a2,a3,b0,b1,b2,cell,r,g,b,al){const Y=TRX.L[L];if(Y.n>=TRX_N||al<=.003)return;const o=Y.n*4,A=Y.a;
+function trxQ(L,md,px,py,pz,a0,a1,a2,a3,b0,b1,b2,cell,r,g,b,al){if(TC_ON){tcQuad(L,md,px,py,pz,a0,a1,a2,a3,b0,b1,b2,cell,r,g,b,al);return;} /* (2026-10-21) l'entonnoir : tout passe par les cubes (voir tcQuad) */ const Y=TRX.L[L];if(Y.n>=TRX_N||al<=.003)return;const o=Y.n*4,A=Y.a;
   A.iP[o]=px;A.iP[o+1]=py;A.iP[o+2]=pz;A.iP[o+3]=md;A.iA[o]=a0;A.iA[o+1]=a1;A.iA[o+2]=a2;A.iA[o+3]=a3;
   A.iB[o]=b0;A.iB[o+1]=b1;A.iB[o+2]=b2;A.iB[o+3]=cell;A.iC[o]=r;A.iC[o+1]=g;A.iC[o+2]=b;A.iC[o+3]=al;Y.n++;}
 /* (2026-10-15 soir, Sacha : « toutes les traînées désirables ») LES OBJETS DES TRAÎNÉES QU'ON VOIT — VU au banc : de la caméra de poursuite, un pétale
@@ -284,9 +284,11 @@ function tcPool(N,kind,op){ // kind : 's' plein · 'o' contour · 'g' lueur
   m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);m.instanceColor.setUsage(THREE.DynamicDrawUsage);
   m.count=0;m.frustumCulled=false;m.visible=false;if(kind==='g')m.renderOrder=2;scene.add(m);
   return {m:m,M:m.instanceMatrix.array,C:m.instanceColor.array,n:0,N:N};}
-function tcBati(){if(!TC)TC={s:tcPool(1500,'s'),o:tcPool(500,'o'),g:tcPool(900,'g',.2)};return TC;}
-function tcRaz(){if(TC)TC.s.n=TC.o.n=TC.g.n=0;}
-function tcFin(){if(!TC)return;for(const Y of [TC.s,TC.o,TC.g]){const n=Y.n;Y.m.count=n;Y.m.visible=n>0;
+function tcBati(){if(!TC)TC={s:tcPool(3600,'s'),o:tcPool(600,'o'),g:tcPool(2000,'g',.2),fr:-9};return TC;}
+var TC_FR=0; /* (2026-10-21) le numéro de l'IMAGE, incrémenté en tête de `loop` : les piscines de cubes se vident UNE fois par image, au premier qui émet (les rubans, les traînées POP) — et `tcFin` les envoie à la carte juste avant le rendu */
+function tcOn(){const T=tcBati();if(T.fr!==TC_FR){T.fr=TC_FR;T.s.n=T.o.n=T.g.n=0;tcCam();}return T;}
+function tcRaz(){tcOn();}
+function tcFin(){if(!TC)return;if(!paused&&TC.fr<TC_FR-2){tcCoupe();return;} /* plus personne n'émet (menu, fin de partie) : tout s'éteint ; en PAUSE tout reste, figé */ for(const Y of [TC.s,TC.o,TC.g]){const n=Y.n;Y.m.count=n;Y.m.visible=n>0;
   if(n){Y.m.instanceMatrix.updateRange.count=n*16;Y.m.instanceMatrix.needsUpdate=true;Y.m.instanceColor.updateRange.count=n*3;Y.m.instanceColor.needsUpdate=true;}}}
 function tcCoupe(){if(!TC)return;for(const Y of [TC.s,TC.o,TC.g]){Y.n=0;Y.m.count=0;Y.m.visible=false;}}
 function tcBox(Y,x,y,z,sx,sy,sz,r,g,b){if(Y.n>=Y.N)return;const o=Y.n*16,M=Y.M,c=Y.n*3; // un cube posé dans le MONDE : centre, côtés sur les axes du monde, couleur
@@ -323,3 +325,112 @@ function tcBolt(A,n,f,wk){ // UN ÉCLAIR EN CUBES : la ligne brisée posée case
     for(let s=i?1:0;s<=m;s++){const t=s/m,x=Math.round((ax+dx*t)*gq)/gq,y=Math.round((ay+dy*t)*gq)/gq,z=Math.round((az+dz*t)*gq)/gq;
       if(x===lx&&y===ly&&z===lz)continue;lx=x;ly=y;lz=z;
       tcBox(T.s,x,y,z,u*q,u*q,u*q,1.9,1.75,2.4);tcBox(T.o,x,y,z,u*q*1.75,u*q*1.75,u*q*1.75,.38,.1,.95);tcBox(T.g,x,y,z,u*3.4,u*3.4,u*3.4,.5,.25,1.4);}}}
+/* ============================================================================
+   ÉTAPE 2 (2026-10-21, Sacha : « tout les étapes maintenant ») — TOUS LES DESSINS DU MOTEUR PASSENT PAR LES CUBES.
+   `trxQ` est l'entonnoir de tout ce que le moteur dessine : au lieu de poser un quad lisse, il appelle `tcQuad`, qui lit la CASE de la planche
+   (anneau, fantôme, glyphe, cœur, bulle, pièce…) et la refait en SPRITE DE CUBES. Les émetteurs ne bougent pas : leur physique, leurs tailles,
+   leurs couleurs sont celles d'avant.
+     · un SPRITE (`tcSprDef` / `tcSpr`) = une image de pixels rangée en SÉRIES de cases de même couleur ; chaque série est UN cube allongé, face à
+       l'objectif (la base de la caméra, `TC_CB`). Vue de face, tous les pixels d'une série se lisent comme des pixels ; vus de biais, ce sont de vrais blocs ;
+     · le cube a sa face claire (celle du dessus de la porte, 1) tournée VERS la caméra : un sprite se lit franchement, ses flancs seuls sont ombrés ;
+     · un TRAIT (`md` 1 : filés, jet) = un cube allongé ; un PAN (`md` 2 : le mur de LA GRILLE) = des barres de cubes ; une LUEUR (case 0) = des cubes emboîtés ;
+     · l'opacité devient la TAILLE (crans), près de l'objectif aussi ; plus rien ne se fond.
+   ========================================================================== */
+const TC_CB=new Float32Array(9),TC_V=new Float32Array(9); // la caméra (droite · haut · arrière, en monde) · un repère de travail
+function tcCam(){const e=camera.matrixWorld.elements;TC_CB[0]=e[0];TC_CB[1]=e[1];TC_CB[2]=e[2];TC_CB[3]=e[4];TC_CB[4]=e[5];TC_CB[5]=e[6];TC_CB[6]=e[8];TC_CB[7]=e[9];TC_CB[8]=e[10];}
+function tcBoxB(Y,x,y,z,ax,ay,az,bx,by,bz,cx,cy,cz,r,g,b){if(Y.n>=Y.N)return;const o=Y.n*16,M=Y.M,c=Y.n*3; // un cube ORIENTÉ : trois colonnes déjà à l'échelle (x = a, y = b, z = c), centre, couleur
+  M[o]=ax;M[o+1]=ay;M[o+2]=az;M[o+3]=0;M[o+4]=bx;M[o+5]=by;M[o+6]=bz;M[o+7]=0;M[o+8]=cx;M[o+9]=cy;M[o+10]=cz;M[o+11]=0;M[o+12]=x;M[o+13]=y;M[o+14]=z;M[o+15]=1;
+  Y.C[c]=r;Y.C[c+1]=g;Y.C[c+2]=b;Y.n++;}
+function tcSprDef(rows,pal){ // une image de pixels (chaînes) + sa palette {car:[r,g,b]} → des séries (rangée, début, longueur, couleur)
+  const h=rows.length,w=rows[0].length,runs=[],cols=[],ix={};
+  for(let j=0;j<h;j++){let i=0;while(i<w){const c=rows[j][i];if(!pal[c]){i++;continue;}let n=1;while(i+n<w&&rows[j][i+n]===c)n++;
+    if(ix[c]==null){ix[c]=cols.length;cols.push(pal[c]);}runs.push(j,i,n,ix[c]);i+=n;}}
+  return {w:w,h:h,runs:runs,cols:cols};}
+function tcSpr(D,x,y,z,sw,sh,f,tr,tg,tb,Y){ // un sprite de cubes face à l'objectif : centre, largeur, hauteur (m), taille par crans, teinte
+  const ux=sw/D.w,uy=sh/D.h,gq=Math.min(ux,uy),R=TC_CB,th=gq*.9*f,uf=uy*f;
+  x=Math.round(x/gq)*gq;y=Math.round(y/gq)*gq;z=Math.round(z/gq)*gq;
+  for(let k=0;k<D.runs.length;k+=4){const j=D.runs[k],i0=D.runs[k+1],n=D.runs[k+2],c=D.cols[D.runs[k+3]],
+      lx=(i0+n*.5-D.w*.5)*ux,ly=(D.h*.5-j-.5)*uy,wx=n*ux*f;
+    tcBoxB(Y,x+R[0]*lx+R[3]*ly,y+R[1]*lx+R[4]*ly,z+R[2]*lx+R[5]*ly,R[0]*wx,R[1]*wx,R[2]*wx,R[6]*th,R[7]*th,R[8]*th,-R[3]*uf,-R[4]*uf,-R[5]*uf,c[0]*tr,c[1]*tg,c[2]*tb);}}
+const TC_DEF=(function(){ // les images de pixels des traînées (cases de la planche) — ✱ les couleurs sont des multiplicateurs de la teinte de la particule
+  const D={},gh=['.....####.....','...########...','..##########..','.############.','.############.','.############.','##############','##############','##############','##############','##############','##############','##.###..###.##','#...##..##...#'];
+  const fant=function(col,peur){const R=gh.map(function(r){return r.split('');});
+    if(!peur)for(const ex of [2,8]){for(let y=3;y<=7;y++)for(let k=0;k<4;k++){if((y===3||y===7)&&(k===0||k===3))continue;R[y][ex+k]='w';}for(let y=3;y<=4;y++)for(let k=1;k<=2;k++)R[y][ex+k]='p';}
+    else for(const q of [[4,5],[5,5],[4,6],[5,6],[8,5],[9,5],[8,6],[9,6],[2,10],[3,9],[4,9],[5,10],[6,10],[7,9],[8,9],[9,10],[10,10],[11,9]])R[q[1]][q[0]]='w';
+    return tcSprDef(R.map(function(r){return r.join('');}),{'#':col,'w':peur?[1.2,.85,.7]:[1.4,1.4,1.4],'p':[.16,.16,.9]});};
+  D.gh=[fant([1.3,.12,.12]),fant([1.3,.7,1.3]),fant([.12,1.2,1.3]),fant([1.3,.72,.3]),fant([.16,.24,1.3],true)];
+  D.ring=tcSprDef(['.hhoo.','hh..od','h....d','o....d','oo..dd','.oddd.'],{h:[2,1.75,.8],o:[1.45,1.05,.25],d:[.95,.58,.1]});
+  D.heart=tcSprDef(['.hh.xx.','hxxxxxx','xxxxxxx','.xxxxx.','..xxx..','...x...'],{h:[1,2.6,1.35],x:[1,1,1]});
+  D.bubble=tcSprDef(['..hxx..','.y...x.','y.....x','y.....x','y.....x','.yy.xx.','..yyx..'],{h:[2.2,2.2,2.2],x:[.55,1.5,1.3],y:[1.25,.9,1.5]});
+  D.spark=tcSprDef(['.x.','xhx','.x.'],{x:[1,1,1],h:[1.5,1.5,1.5]});
+  D.glyph=['###|#.#|###|#.#|#.#','.#.|###|.#.|.#.|###','###|..#|###|#..|###','#.#|#.#|.#.|#.#|#.#','###|#.#|#.#|#.#|###','.##|#..|###|#..|.##','#..|###|#..|###|..#','###|.#.|.#.|.#.|.#.'].map(function(g){return tcSprDef(g.split('|'),{'#':[1,1,1]});});
+  D.pix=tcSprDef(['x'],{x:[1,1,1]});
+  return D;})();
+const TC_TT=[[[.07,.9,1.15],[[0,0],[1,0],[2,0],[3,0]]],[[1.15,.95,.07],[[0,0],[1,0],[0,1],[1,1]]],[[.72,.2,1.15],[[0,0],[1,0],[2,0],[1,1]]],[[.15,.9,.25],[[1,0],[2,0],[0,1],[1,1]]],
+  [[1.15,.2,.2],[[0,0],[1,0],[1,1],[2,1]]],[[.2,.4,1.15],[[0,0],[0,1],[1,1],[2,1]]],[[1.15,.6,.07],[[2,0],[0,1],[1,1],[2,1]]]]; // les sept pièces : couleur · cases
+function tcQuad(L,md,px,py,pz,a0,a1,a2,a3,b0,b1,b2,cell,r,g,b,al){ // un quad de l'ancien moteur → des cubes
+  let f=al>=.8?1:al>=.55?.84:al>=.36?.68:al>=.18?.5:al>=.06?.34:0;if(!f)return;
+  const T=TC,S=T.s,G=T.g;
+  if(!TRX.C.pv){const c=camera.position;let dx=px-c.x,dy=py-c.y,dz=pz-c.z,d=dx*dx+dy*dy+dz*dz;
+    if(md===1){dx=px+a0-c.x;dy=py+a1-c.y;dz=pz+a2-c.z;d=Math.min(d,dx*dx+dy*dy+dz*dz);dx=px-a0-c.x;dy=py-a1-c.y;dz=pz-a2-c.z;d=Math.min(d,dx*dx+dy*dy+dz*dz);} // un trait : son bout le plus proche
+    d=Math.sqrt(d);f*=d<1.8?0:d<2.7?.5:d<3.8?.8:1;if(!f)return;} // près de l'objectif : par crans aussi
+  if(md===1){ // UN TRAIT : un cube allongé — le plein (cœur, brillant) ou la lueur (translucide)
+    const lx=2*a0,ly=2*a1,lz=2*a2,ll=Math.sqrt(lx*lx+ly*ly+lz*lz)||1e-6,nx=lx/ll,ny=ly/ll,nz=lz/ll,hx=Math.abs(ny)>.9?1:0,hy=hx?0:1; // le long · un travers · l'autre travers
+    let ex=ny*0-nz*hy,ey=nz*hx-nx*0,ez=nx*hy-ny*hx;const el=Math.sqrt(ex*ex+ey*ey+ez*ez)||1;ex/=el;ey/=el;ez/=el;
+    const fx=ny*ez-nz*ey,fy=nz*ex-nx*ez,fz=nx*ey-ny*ex,w2=2*a3*f,sol=r+g+b>4.4;
+    tcBoxB(sol?S:G,px,py,pz,lx,ly,lz,ex*w2,ey*w2,ez*w2,fx*w2,fy*w2,fz*w2,sol?r:r*2.2,sol?g:g*2.2,sol?b:b*2.2);return;}
+  if(md===2){ // UN PAN : des barres de cubes sur la hauteur (le mur de LA GRILLE), ou un filet
+    const lx=2*a0,ly=2*a1,lz=2*a2,mx=2*b0,my=2*b1,mz=2*b2,hl=Math.sqrt(mx*mx+my*my+mz*mz),nb=hl>.5?4:1,tx=ly*mz-lz*my,ty=lz*mx-lx*mz,tz=lx*my-ly*mx,tl=Math.sqrt(tx*tx+ty*ty+tz*tz)||1e-6,th=(hl>.5?.07:.05)*f/tl;
+    for(let k=0;k<nb;k++){const u=nb>1?(k+.5)/nb-.5:0,hb=nb>1?f*.8/nb:f,top=k===nb-1?1:.5+k*.1;
+      tcBoxB(S,px+mx*u,py+my*u,pz+mz*u,lx,ly,lz,mx*hb,my*hb,mz*hb,tx*th,ty*th,tz*th,r*top,g*top,b*top);}
+    if(nb>1)tcBoxB(G,px,py,pz,lx,ly,lz,mx,my,mz,tx*th*3,ty*th*3,tz*th*3,r,g,b);return;}
+  const w=2*a1,h=2*a2; // UN SPRITE : sa case dit ce qu'il est
+  if(cell===0)tcGlow(px,py,pz,Math.max(w,h)*f,r*1.3,g*1.3,b*1.3);
+  else if(cell===2)tcSpr(TC_DEF.spark,px,py,pz,w*f,h*f,f,r*1.1,g*1.1,b*1.1,S);
+  else if(cell>=4&&cell<=11)tcSpr(TC_DEF.glyph[cell-4],px,py,pz,w*.8,h,f,r,g,b,S);
+  else if(cell===12)tcSpr(TC_DEF.ring,px,py,pz,w,h,f,1,1,1,S);
+  else if(cell===13||cell===14){const s=w*.9*f;tcBox(S,px,py,pz,s,s,s,cell===14?1.7:1.15,cell===14?1.5:.9,cell===14?1.2:.82);}
+  else if(cell>=15&&cell<=19)tcSpr(TC_DEF.gh[cell-15],px,py,pz,w,h,f,1,1,1,S);
+  else if(cell>=20&&cell<=26){const t=TC_TT[cell-20],L9=t[1],u=w*.406,rot=((Math.round(a0/1.5708)%4)+4)%4,R=TC_CB;let mx9=0,my9=0;for(const q of L9){if(q[0]>mx9)mx9=q[0];if(q[1]>my9)my9=q[1];}
+    for(const q of L9){let i=q[0]-mx9*.5,j=q[1]-my9*.5;for(let k=0;k<rot;k++){const t9=i;i=-j;j=t9;}
+      const cx=px+(R[0]*i-R[3]*j)*u,cy=py+(R[1]*i-R[4]*j)*u,cz=pz+(R[2]*i-R[5]*j)*u,sc=u*.94*f;
+      tcBoxB(S,cx,cy,cz,R[0]*sc,R[1]*sc,R[2]*sc,R[6]*sc*.9,R[7]*sc*.9,R[8]*sc*.9,-R[3]*sc,-R[4]*sc,-R[5]*sc,t[0][0],t[0][1],t[0][2]);}}
+  else if(cell===34)tcSpr(TC_DEF.bubble,px,py,pz,w,h,f,1,1,1,S);
+  else if(cell===35)tcSpr(TC_DEF.heart,px,py,pz,w,h,f,r,g,b,S);
+  else tcSpr(TC_DEF.pix,px,py,pz,w*.7,h*.7,f,r,g,b,S);}
+
+/* ============================================================================
+   ÉTAPE 3 (2026-10-21, Sacha : « tout les étapes maintenant ») — LES RUBANS DE LUMIÈRE EN CUBES.
+   Le sillage de chaque caisse (les feux arrière, les pots, MENTHE / ROSE / OR, le nitro) était un ruban lisse : un halo et un cœur en gaussiennes. Il est
+   refait de la même matière que le feu du nitro et l'arc-en-ciel : une CHAÎNE DE CUBES posée sur la courbe (la même, SIL_Q), un cube plein au cœur et, derrière,
+   un cube de lueur plus gros qui s'additionne. silRuban garde TOUT son calcul (coupes, fondus, largeurs, refroidissement des couleurs, pouls, tête chauffée) : la
+   rangée n'écrit plus deux sommets, elle appelle tcRubRow. Le maillage lisse existe toujours (les lumières de la route lisent son état) mais ne se dessine plus.
+     · un cube tous les ~95 % de sa largeur, interpolé entre deux rangées : la chaîne est continue à toute vitesse ;
+     · la TAILLE fond par crans avec l'âge (1 · ,95 · ,84 · ,7 · ,55 · ,38, comme la porte), et la queue s'ÉMIETTE : des cubes manquent, de plus en plus ;
+     · la lueur est un cube de lueur (TC.g) ; la tête chauffée à blanc ajoute son blanc à la couleur du cube ;
+     · en salle blanche (la boutique), la teinte pure, franche, sans lueur — le blanc ne porte pas la lumière.
+   ?ruban=lisse rend les rubans lisses d'avant. */
+const TC_RUB=TC_ON&&!/[?&]ruban=lisse\b/.test(location.search),TC_RLONG=60,TC_RMAX=240,TC_AGE=[1,.95,.84,.7,.55,.38],TC_AGES=[.1,.3,.5,.66,.82];
+const TC_RB={has:false,next:0,pa:0,n:0,px:0,py:0,pz:0,fC:0,fG:0,wc:0,wg:0,qr:0,qg:0,qb:0,ht:0}; // l'état du ruban en cours (la rangée d'avant)
+function tcRubCube(x,y,z,fC,fG,wc,wg,qr,qg,qb,ht,hk,ck,arc,LG,ink,i){
+  const T=TC,ag=arc/LG,ai=ag<TC_AGES[0]?0:ag<TC_AGES[1]?1:ag<TC_AGES[2]?2:ag<TC_AGES[3]?3:ag<TC_AGES[4]?4:5,fs=fC>.7?1:fC>.45?.84:fC>.25?.68:fC>.1?.5:0;
+  if(!fs)return;
+  if(ai>=3){const h=(Math.imul(i+1,2654435761)^Math.imul(TC_FR>>2,40503))>>>0;if(h%100<(ai-2)*15)return;} // la queue s'ÉMIETTE : des cubes manquent, de plus en plus
+  const s=Math.max(.05,2*wc)*TC_AGE[ai]*fs,gq=s*.5;x=Math.round(x/gq)*gq;y=Math.round(y/gq)*gq;z=Math.round(z/gq)*gq;
+  if(ink){const m=Math.max(qr,qg,qb,1e-4)*1.15;tcBox(T.s,x,y,z,s,s,s,qr/m,qg/m,qb/m);return;}
+  tcBox(T.s,x,y,z,s,s,s,qr*ck*.8+ht,qg*ck*.8+ht,qb*ck*.8+ht);
+  const fg=fG>.55?1:fG>.3?.8:fG>.12?.6:0;if(fg){const gs=Math.max(.1,2*wg)*fg;tcBox(T.g,x,y,z,gs,gs,gs,qr*hk*2,qg*hk*2,qb*hk*2);}}
+function tcRubRow(r,x,y,z,fC,fG,wc,wg,qr,qg,qb,ht,hk,ck,arc,LG,ink){ // une rangée du ruban : des cubes depuis la rangée d'avant jusqu'à celle-ci
+  const B=TC_RB;if(r===0){B.has=false;B.n=0;}
+  if(arc>TC_RLONG||B.n>=TC_RMAX)return;
+  if(!B.has){B.has=true;B.next=arc;B.pa=arc;B.px=x;B.py=y;B.pz=z;B.fC=fC;B.fG=fG;B.wc=wc;B.wg=wg;B.qr=qr;B.qg=qg;B.qb=qb;B.ht=ht;}
+  const da=arc-B.pa;
+  while(B.next<=arc&&B.n<TC_RMAX){const t=da>1e-6?Math.min(1,Math.max(0,(B.next-B.pa)/da)):1,u=1-t,w=wc*t+B.wc*u;
+    tcRubCube(x*t+B.px*u,y*t+B.py*u,z*t+B.pz*u,fC*t+B.fC*u,fG*t+B.fG*u,w,wg*t+B.wg*u,qr*t+B.qr*u,qg*t+B.qg*u,qb*t+B.qb*u,ht*t+B.ht*u,hk,ck,B.next,LG,ink,B.n);
+    B.n++;B.next+=Math.max(.12,(wc+B.wc)*.95);}
+  B.pa=arc;B.px=x;B.py=y;B.pz=z;B.fC=fC;B.fG=fG;B.wc=wc;B.wg=wg;B.qr=qr;B.qg=qg;B.qb=qb;B.ht=ht;}
+function tcTrailCubes(P,C,n){ // un ruban simple (la meute, le fantôme) : un cube par point de l'historique, de sa couleur, large comme le ruban
+  if(!TC_RUB)return;const T=tcOn();
+  for(let i=0;i<n;i++){const o=i*6,r=C[o],g=C[o+1],b=C[o+2],m=Math.max(r,g,b);if(m<.12)continue;
+    const s=Math.max(.06,Math.hypot(P[o]-P[o+3],P[o+1]-P[o+4],P[o+2]-P[o+5])*1.3),f=m>.8?1:m>.45?.8:.6,gq=s*.5,x=Math.round((P[o]+P[o+3])*.5/gq)*gq,y=Math.round((P[o+1]+P[o+4])*.5/gq)*gq,z=Math.round((P[o+2]+P[o+5])*.5/gq)*gq;
+    tcBox(T.s,x,y,z,s*f,s*f,s*f,r*1.1,g*1.1,b*1.1);tcBox(T.g,x,y,z,s*2.6,s*2.6,s*2.6,r*1.8,g*1.8,b*1.8);}}

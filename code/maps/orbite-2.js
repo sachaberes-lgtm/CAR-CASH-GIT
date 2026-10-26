@@ -605,6 +605,10 @@ function wowTex(){if(WOWT.tx)return WOWT.tx;WOWT.tx=[];
   const MOTS=['wow','such speed','much fast','very nitro','so car','many coin','amaze','such drift','much aura','very vroom','excite','wow'],
         TEINTES=['#ff3ec8','#5ee6ff','#7dff5a','#ffe25a','#ff8a2a','#c07bff'];
   MOTS.forEach(function(m9,n){const cv=document.createElement('canvas'),x=cv.getContext('2d'),F='40px "Press Start 2P",monospace';
+    if(TC_ON){ /* (2026-10-21) LE TEXTE EN PIXELS : la police pixel à sa taille native (8 px), un liseré d'un pixel, et la texture agrandie SANS lissage — de vrais gros pixels */
+      const F8='8px "Press Start 2P",monospace';x.font=F8;const w8=Math.ceil(x.measureText(m9).width)+6;cv.width=w8;cv.height=18;x.font=F8;x.textBaseline='middle';x.fillStyle='#1c0430';
+      for(const d of [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,-1],[-1,1],[1,1]])x.fillText(m9,3+d[0],9+d[1]);x.fillStyle=TEINTES[n%TEINTES.length];x.fillText(m9,3,9);
+      const t8=new THREE.CanvasTexture(cv);t8.minFilter=t8.magFilter=THREE.NearestFilter;t8.generateMipmaps=false;WOWT.tx.push({tx:t8,a:w8/18});return;}
     x.font=F;const w=Math.ceil(x.measureText(m9).width)+28;cv.width=w;cv.height=96;x.font=F;x.textBaseline='middle';x.lineJoin='round';
     x.lineWidth=9;x.strokeStyle='#1c0430';x.strokeText(m9,14,50);x.fillStyle=TEINTES[n%TEINTES.length];x.fillText(m9,14,50);
     const tx=new THREE.CanvasTexture(cv);tx.minFilter=THREE.LinearFilter;tx.generateMipmaps=false;WOWT.tx.push({tx:tx,a:w/96});});

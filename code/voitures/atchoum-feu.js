@@ -84,12 +84,13 @@ function trailStep(tr,px,py,pz,cr,cg,cb,k,wMul){
   tr.m.visible=true;
   tr.m.geometry.attributes.position.needsUpdate=true;
   tr.m.geometry.attributes.color.needsUpdate=true;
+  if(TC_RUB){tr.m.material.visible=false;tcTrailCubes(P,C,TRAIL_N);}else tr.m.material.visible=true; /* (2026-10-21) la meute et le fantôme : le même ruban de cubes */
 }
 const SV=new THREE.Vector3(),SD=new THREE.Vector3(),SS=new THREE.Vector3(),SP=new THREE.Vector3(); // (sillage) réutilisés : zéro allocation
 function silPousse(tr){for(const a of [tr.X,tr.Y,tr.Z,tr.T,tr.K,tr.CR,tr.CG,tr.CB])a.copyWithin(1,0,SIL.N-1);tr.n=Math.min(SIL.N,tr.n+1);} // un cran : la case 0 se libère pour la tête
 function silPose(tr,i,x,y,z,k,r,g,b){tr.X[i]=x;tr.Y[i]=y;tr.Z[i]=z;tr.T[i]=tr.clk;tr.K[i]=k;tr.CR[i]=r;tr.CG[i]=g;tr.CB[i]=b;}
 function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt,wu){ // wm : l'élargissement de la TÊTE (nitro, allumage) · wu : la largeur de TOUT le sillage (un pot seul : plus large)
-  tr.clk+=dt||0;
+  tr.clk+=dt||0;if(TC_RUB)tcOn();
   if(!tr.init){tr.n=0;tr.emit=false;tr.init=true;tr.g=0;} // réveil, portail, replacement : on repart de RIEN (pas de trait tendu depuis l'ancienne position)
   const emet=k>=.03;
   if(emet){
@@ -139,7 +140,7 @@ function silEncre(m,on){const M=m.material;if(!!M._encre===on)return;M._encre=on
   if(on){M.blending=THREE.CustomBlending;M.blendEquation=THREE.AddEquation;M.blendSrc=THREE.ZeroFactor;M.blendDst=THREE.OneMinusSrcColorFactor;}
   else M.blending=THREE.AdditiveBlending;}
 function silRuban(tr,R9,emet,dt,wm,wu){
-  const Q=SIL_Q;silEncre(tr.m,SIL_ENCRE);
+  const Q=SIL_Q,TCR=TC_RUB;silEncre(tr.m,SIL_ENCRE);if(TCR)tcOn(); // (2026-10-21) LES RUBANS EN CUBES (voir tcRubRow)
   const dk=(TRJ.on&&!SIL_ENCRE&&running&&!garageOn)?(1-LUM.nuit)*TRJ.k:0,CI=tr.coli; // (2026-10-18) LE VOILE DE JOUR (voir TRJ) : nul la nuit, au garage et en salle blanche
   // 2) LE RUBAN : face caméra, halo + cœur ; en vol, coupé à l'écran quand il PEND sous sa tuyère
   const P=tr.pos,C=tr.col,cam=camera.position,SM=THREE.MathUtils.smoothstep,wv=wm||1,wa=wu||1,LG=Math.max(4,tr.lg),QU=SIL.QUEUE*LG/SIL.LONG;
@@ -157,7 +158,7 @@ function silRuban(tr,R9,emet,dt,wm,wu){
     if(l2>1e-12){const l9=Math.sqrt(l2);sA=(lD>1e-6&&dC>1e-6)?l9/(lD*dC):0;SS.multiplyScalar(1/l9);
       if(r>0&&SS.x*SP.x+SS.y*SP.y+SS.z*SP.z<0)SS.negate();SP.copy(SS);}else SS.set(0,0,0); /* (2026-10-18) le côté GARDE son sens d'une rangée à l'autre : là où le ruban passe dans l'axe du regard (vol, vrilles, sous l'objectif), le côté s'inversait et la bande se pinçait en nœud papillon */
     const al=Math.min(1,arc/LG);
-    let f=Q[o+3]*tr.g*(1-.22*al)*SM(arc,0,.35)*(mode==='fall'?SM(sA,SIL.axeV*.25,SIL.axeV):SM(sA,.05,.22))*(1-SM(arc,LG-QU,LG)); // (v6) en vol, vu dans l'axe il RESTE (la caméra suit le vol) // RÉGULIER sur 40 m, la queue s'éteint sur les 10 derniers ; la tête naît sous la plume ; vu PILE dans l'axe, il s'efface (le « tapis »)
+    let f9=Q[o+3]*tr.g*(1-.22*al)*SM(arc,0,.35)*(1-SM(arc,LG-QU,LG)),f=f9*(mode==='fall'?SM(sA,SIL.axeV*.25,SIL.axeV):SM(sA,.05,.22)); /* f9 : la même visibilité SANS l'angle de vue — un cube se voit de bout, une nappe non */ // (v6) en vol, vu dans l'axe il RESTE (la caméra suit le vol) // RÉGULIER sur 40 m, la queue s'éteint sur les 10 derniers ; la tête naît sous la plume ; vu PILE dans l'axe, il s'efface (le « tapis »)
     let fin=r>0&&arc>=LG;
     /* (v6) DERRIÈRE L'OBJECTIF : le ruban va jusqu'au plan de la caméra (il y fond, `dC`) au lieu de s'arrêter en plein écran — avant, un
        point passé derrière valait « 9 » et la coupe s'interpolait entre ce 9 factice et le point d'avant : la bande finissait au MILIEU
@@ -167,8 +168,8 @@ function silRuban(tr,R9,emet,dt,wm,wu){
     depP=dep;
     TR_PJ.set(x,y,z).project(camera);const d=dep<SIL.pres?dp:(yh-TR_PJ.y)-SIL.kx*Math.abs(TR_PJ.x-xh)*asp; // de combien il PEND à l'écran sous sa tuyère
     if(!fin&&r>0&&d>=cut){fin=true;const t9=THREE.MathUtils.clamp((cut-dp)/Math.max(1e-4,d-dp),0,1);x=Q[o-8]+(x-Q[o-8])*t9;y=Q[o-7]+(y-Q[o-7])*t9;z=Q[o-6]+(z-Q[o-6])*t9;} // LA COUPE, au franchissement
-    if(fin)f=0;
-    const fK=1-SM(d,cutA*.5,cutK);if(!fin)f*=1-SM(d,cutA,cut);
+    if(fin){f=0;f9=0;}
+    const fK=1-SM(d,cutA*.5,cutK);if(!fin){const q9=1-SM(d,cutA,cut);f*=q9;f9*=q9;}
     dp=d;
     const fC=f*fK*SM(dC,1.4,2.7),fG=f*SM(dC,1.9,3.8), /* (2026-10-16, TRAÎNÉES) le fondu près de l'objectif RESSERRÉ (cœur 2,4-4,2 → 1,4-2,7 m, halo 3-6,5 → 1,9-3,8 m) : la poursuite est à 2,5-4,5 m des feux, donc TOUT ce qu'on voyait de la traînée en course était dans le fondu — deux fils pâles. Les plafonds de largeur (capC/capG) gardent l'écran sans voile. */wk=1+(wv-1)*Math.exp(-arc*.3); // l'élargissement de l'allumage ne gonfle que la TÊTE ; près de l'objectif tout s'efface (jamais de voile)
     const wc=Math.min(SIL.wC*wa*(1+.25*al)*wk,dC*SIL.capC*wa),wg=Math.min((SIL.wG+SIL.wGa*al)*wa*wk,dC*SIL.capG*wa); // le cœur garde sa largeur, le halo s'élargit au loin (v5 : plafonds près de l'objectif réglables)
@@ -188,12 +189,13 @@ function silRuban(tr,R9,emet,dt,wm,wu){
     C[v]=C[v+3]=gr;C[v+1]=C[v+4]=gg;C[v+2]=C[v+5]=gb;C[v+6]=C[v+9]=kr;C[v+7]=C[v+10]=kg;C[v+8]=C[v+11]=kb;
     if(dk>0){const mq=Math.max(qr,qg,qb,1e-4),s9=Math.min(TRJ.max,fG*hk*dk*(.3+.7*tr.hk)); // le voile sous le HALO — surtout au nitro : le simple trait des feux arrière reste discret de jour : le fond perd ce qui n'est pas la couleur de la traînée (le cœur n'en a pas : il brille par-dessus)
       CI[v]=CI[v+3]=(1-qr/mq)*s9;CI[v+1]=CI[v+4]=(1-qg/mq)*s9;CI[v+2]=CI[v+5]=(1-qb/mq)*s9;CI[v+6]=CI[v+7]=CI[v+8]=CI[v+9]=CI[v+10]=CI[v+11]=0;}
+    if(TCR&&!fin)tcRubRow(r,x,y,z,f9*fK*SM(dC,1.4,2.7),f9*SM(dC,1.9,3.8),wc,wg,qr,qg,qb,hot,hk,ck,arc,LG,SIL_ENCRE);
     if(fin){Rf=r+1;break;}
   }
-  tr.m.geometry.setDrawRange(0,Math.max(0,Rf-1)*12);tr.m.visible=Rf>1;
+  tr.m.geometry.setDrawRange(0,Math.max(0,Rf-1)*12);tr.m.visible=Rf>1;tr.m.material.visible=!TCR; // le ruban lisse n'est plus dessiné (son état, lui, sert encore aux lumières de la route)
   {const a9=tr.m.geometry.attributes,c9=Math.max(1,Rf)*12;a9.position.updateRange.offset=0;a9.position.updateRange.count=c9;a9.color.updateRange.offset=0;a9.color.updateRange.count=c9; // (revue GAMEPLAY) on n'envoie que les rangées dessinées — sans updateRange, three renvoyait les 2 × 19 Ko du tampon à chaque image, par pot
    a9.position.needsUpdate=true;a9.color.needsUpdate=true;}
-  tr.mi.visible=dk>0&&Rf>1;if(tr.mi.visible){const gi=tr.mi.geometry,ci=gi.attributes.color;gi.setDrawRange(0,Math.max(0,Rf-1)*12);ci.updateRange.offset=0;ci.updateRange.count=Math.max(1,Rf)*12;ci.needsUpdate=true;}
+  tr.mi.visible=!TCR&&dk>0&&Rf>1;if(tr.mi.visible){const gi=tr.mi.geometry,ci=gi.attributes.color;gi.setDrawRange(0,Math.max(0,Rf-1)*12);ci.updateRange.offset=0;ci.updateRange.count=Math.max(1,Rf)*12;ci.needsUpdate=true;}
 }
 /* <<<VOITURES>>> ---------------------------------------------------------------------------
    LA CARROSSERIE — tout ce qui fabrique une caisse, des matériaux jusqu'aux flaques au sol.
