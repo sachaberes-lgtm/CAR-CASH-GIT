@@ -16751,7 +16751,7 @@ window.dbgForetEmb=function(o){if(o)Object.assign(FOR_EMB,o);return {emb:Object.
    · `?carte=canyon&meteo=soir` (ou `dbgClassique('canyon','orage')` puis `dbgSaut()`). */
 const NIV_CANYON={id:'canyon',nm:'CANYON DES GÉANTS',bio:['canyonSoir'],planete:0,espace:0,pluie:0,cielMusical:false,route:.30,sheen:.12,piste:'canyon',pr:'LES PAROIS NE PARDONNENT PAS'};
 const CANYON_OK=!!(renderer.capabilities&&renderer.capabilities.isWebGL2); // les textures de données en flottants et la lecture de textures au sommet
-PAL.B.cyFin=[16,14,12];PAL.B.cyPlat=[96,80,64];PAL.B.cyOmbre=[36,32,27];PAL.B.cyGrille=[16,16,32];PAL.B.cyR0=[85,100,118];PAL.B.cyChem=[120,200,300];PAL.B.cyArbres=[260,450,700]; // (2026-10-14, CANYON) la finesse du relief par palier [ancien, moyen, récent]
+PAL.B.cyFin=[16,14,12];PAL.B.cyPlat=[96,80,64];PAL.B.cyOmbre=[36,32,27];PAL.B.cyGrille=[16,16,32];PAL.B.cyR0=[85,100,118];PAL.B.cyChem=[120,200,300];PAL.B.cyArbres=[260,450,700];PAL.B.cyDet=[0,1,2];PAL.B.cyPous=[40,90,160]; // (2026-10-14, CANYON) la finesse du relief par palier [ancien, moyen, récent]
 const SUN_DIR0=SUN_DIR.clone(),CY_UP=new THREE.Vector3(0,1,0),CY_SD=new THREE.Vector3(); // le soleil d'origine : il revient au bit près hors du canyon
 const CY={Q:null,on:false,ms:{},yMin:-1e4,yMax:1e4,ombre:1,prof:0,mesh:null,mat:null,geo:null,aN:null,maxN:900,G:32,S0:64,R0:118,lods:7,
   F:null,Z:null,O:null,fr:new THREE.Frustum(),pm:new THREE.Matrix4(),box:new THREE.Box3(),n:0,v:new THREE.Vector3(),sol:null};
@@ -17317,13 +17317,22 @@ const CY_VS=['attribute vec4 aN;uniform sampler2D uTC,uTM,uTZ,uTS,uRND,uNZ;unifo
   '  float lit=1.;vec2 sp=(x-uSD.xy)*uSD.zw;if(sp.x>0.&&sp.y>0.&&sp.x<1.&&sp.y<1.){float hs=tB(uTS,sp*uSN,uSN).r;lit=smoothstep(hs-4.,hs+10.,A.x);}',
   '  vA=vec4(A.z,A.w,A.y,lit);vB=vec4(vg,fo,clamp((pl-A.x)/max(pl-fl,40.),0.,1.),fl);',
   '  vec4 mvPosition=viewMatrix*vec4(vW,1.);gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
+/* ===== LA ROCHE VIVANTE (2026-10-21, Sacha : « apporter des améliorations visuelles à chaque map ») ===== le relief gagne, dans CE MÊME programme (aucun de plus), de la matière,
+   de la lumière et de la profondeur — le niveau de détail CYD vient du palier [ANCIEN, MOYEN, RÉCENT] (le RÉCENT est ce qui est conçu) :
+   · 0 : la LUEUR D'ALTITUDE seule (de l'arithmétique : le haut des parois attrape le soleil rasant, le bas reste dans le violet — deux températures) ;
+   · 1 : + la dérive de teinte de la roche (chaude ↔ froide, au km), les CANNELURES verticales des falaises (une lecture de bruit de plus) et les FILONS D'OR rares ;
+   · 2 : + le relief fin (la normale tordue par ces cannelures : la lumière rasante y accroche des arêtes), les FISSURES sombres et l'air d'ÉLOIGNEMENT (le lointain plus clair et plus froid). */
+const CYD=PAL.b('cyDet',2);
 const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uBnc,uRkT,uWS,uWD,uSkH,uSkZ,uMist,uMud,uPhP,uPhD,uPhC;uniform vec4 uQ;uniform float uTime,uFlash,uWet;',
   'varying vec3 vW,vN;varying vec4 vA,vB;','#include <fog_pars_fragment>',
   'void main(){vec3 N=normalize(vN),Vv=uCam-vW;float dist=length(Vv);vec3 V=Vv/max(dist,.001);',
   '  float wat=vA.x,dep=vA.y,rk=clamp(vA.z,0.,1.),lit=clamp(vA.w,0.,1.),veg=vB.x,fo=vB.y,dk=clamp(vB.z,0.,1.),fl=vB.w,stp=clamp(1.-N.y,0.,1.);',
   '  float uw=dot(vW.xz,normalize(vec2(-N.z,N.x)+1e-4)),wl=smoothstep(.10,.30,stp);vec4 n0=texture2D(uNZ,vW.xz/2600.),n1=mix(texture2D(uNZ,vW.xz/170.),texture2D(uNZ,vec2(uw,vW.y)/170.),wl),n2=mix(texture2D(uNZ,vW.xz/31.),texture2D(uNZ,vec2(uw,vW.y)/31.),wl),nv=texture2D(uNZ,vec2(uw/140.,vW.y/70.));', /* sur une paroi le bruit se déroule le long du mur : plus de fenêtres étirées */
+  ...(CYD>=1?['  float wX=abs(N.x)/(abs(N.x)+abs(N.z)+.001);vec4 nf=mix(texture2D(uNZ,vec2(vW.x/17.,vW.y/89.)),texture2D(uNZ,vec2(vW.z/17.,vW.y/89.)),wX);float fx=wl*rk*(1.-smoothstep(200.,700.,dist));vec3 Tg=normalize(vec3(-N.z,0.,N.x)+vec3(1e-4,0.,1e-4));'+'']:[]),
   /* LES STRATES : la colonne relue à la hauteur, gondolée par deux bruits (les couches ondulent et plongent doucement) */
   '  float sy=(vW.y+34.*(n0.r-.5)+4.*(n1.g-.5))/'+('3.7')+';vec4 st=texture2D(uSTR,vec2(.5,sy/1024.));'+('vec3 rc=st.rgb*st.rgb*(.95+.10*n1.b);rc=max(mix(vec3(dot(rc,vec3(.3,.55,.15))),rc,1.32),0.);'),
+  ...(CYD>=1?['  rc*=vec3(1.+.35*(n0.g-.5),1.,1.-.42*(n0.g-.5));rc*=1.+(nf.g-.5)*.62*fx;']:[]), /* la dérive de teinte au kilomètre (chaud ↔ froid) · les cannelures : des bandes verticales plus claires, plus sombres */
+  ...(CYD>=2?['  rc*=1.-.30*(1.-smoothstep(0.,.03,abs(nf.b-.5)))*fx;']:[]), /* les fissures : de fines lignes sombres, verticales */
   '  float lb=fract(vW.y*.42+n1.b*.6);rc*=1.-'+('(.025+.035*st.a)*smoothstep(.65,1.,lb)')+'*rk;', // le litage des grès, horizontal
   '  float vr=smoothstep(.55,.82,nv.r)*smoothstep(.35,.8,stp)*rk;rc=mix(rc,rc*vec3(.74,.62,.60),vr*.28);', // le VERNIS du désert
   '  vec3 sab='+('vec3(.95,.50,.29)*(.96+.08*n1.r)')+';float top=smoothstep(.72,.9,N.y);vec3 col=mix(rc,mix(rc,sab,.62),top*rk);',
@@ -17331,11 +17340,14 @@ const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd
   '  float bas=1.-smoothstep(.2,.5,rk);vec3 sol=sab*('+('.98+.03')+'*sin(dot(vW.xz,vec2(.83,.41))*1.6+n2.g*5.));col=mix(col,sol,bas*(1.-wat));',
   '  col=mix(col,mix(vec3(.05,.10,.03),vec3(.16,.24,.06),n1.r),veg*smoothstep(.42,.58,n2.g)*(1.-wat));', // la ripisylve
   '  col*=uRkT*(1.-.35*uWet*(1.-wat));',
-  '  float ndl=max(dot(N,uSunD),0.);',
+  ...(CYD>=2?['  vec3 Nb=normalize(N+fx*((nf.g-.5)*1.4*Tg+(nf.r-.5)*.8*vec3(0.,1.,0.)));']:['  vec3 Nb=N;']), /* le relief fin : la normale tordue par les cannelures (la lumière rasante y accroche des arêtes) */
+  '  float ndl=max(dot(Nb,uSunD),0.);',
   '  vec3 Lc=uSunC*ndl*lit+mix(uGnd,uSky,N.y*.5+.5)*(1.-.5*dk)+uBnc*(1.-.65*lit)*(.35+.65*dk)*(.55+.45*stp)+uFillC*max(dot(N,uFillD),0.)*.6+(uSunC*.10+uSky*.22+uBnc*.18)*(.55+.45*stp);', /* le plancher : l'ombre d'un désert reste claire (ciel + rebond), jamais noire */
+  '  Lc+=uSunC*vec3(1.,1.1,1.2)*(1.-smoothstep(.04,.5,uSunD.y))*pow(1.-smoothstep(.1,.9,dk),1.4)*(1.-lit)*(.4+.6*stp)*rk*'+(CYD>=1?'.42':'.26')+';', /* LA LUEUR D'ALTITUDE : le soleil rasant n'atteint pas le fond, mais le HAUT des parois en garde la lueur (dorée, un peu rose) ; le bas reste dans le violet */
   '  if(dist<220.){float gr=texture2D(uNZ,vec2(uw,vW.y)/5.3).g*wl+texture2D(uNZ,vW.xz/5.3).g*(1.-wl);col*=1.+(gr-.5)*'+('.06')+'*(1.-smoothstep(90.,220.,dist));}',
   '  vec3 c=max(col*Lc,col*vec3(.36,.26,.25)*(.5+.5*lit)+col*uSky*.22);', /* jamais de noir franc : un grès à l'ombre reste brun */
   '  c*=mix(vec3(1.),vec3(.80,.70,1.04),(1.-lit)*.55*rk);', // l'ombre de la roche tire au VIOLET (la bible)
+  ...(CYD>=1?['  {float vz=smoothstep(.60,.80,n0.b)*(1.-smoothstep(0.,.014,abs(n1.r-.5)))*fx;c+=vec3(1.,.72,.22)*vz*(.55+.45*sin(uTime*2.1+n1.g*40.))*(.30+.70*lit);}']:[]), /* LES FILONS D'OR : de rares veines (un cinquième des falaises, une ligne tous les 40 m) qui brillent par moments */
   '  if(wat>.01){vec4 nw=texture2D(uNZ,vW.xz/16.+uTime*vec2(.021,.033)),nw2=texture2D(uNZ,vW.xz/41.-uTime*vec2(.013,.008));',
   '    vec3 Nw=normalize(N*3.+vec3(nw.r+nw2.g-1.,0.,nw.g+nw2.r-1.)*(1.-stp));vec3 wc=mix(uWS,uWD,1.-exp(-dep/4.5));wc=mix(wc,uMud,uQ.w);',
   '    float fr=.02+.98*pow(1.-max(dot(V,Nw),0.),5.);vec3 R=reflect(-V,Nw),sk=mix(uSkH,uSkZ,smoothstep(0.,.5,R.y));sk=mix(sk,uBnc*1.6+col*.4,dk*.55);',
@@ -17348,6 +17360,8 @@ const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd
   '    c*=1.-.25*uWet*smoothstep(.55,.8,nv.g)*stp*rk;}', // et les coulées sombres de l'averse sur la pierre
       '  c+=uFlash*col*vec3(.70,.76,1.)*(.35+.65*max(N.y,0.));',
       '  if(uPhC.r+uPhC.g>.001){vec3 lv=vW-uPhP;float dl=length(lv);vec3 ld=lv/max(dl,.01);c+=col*uPhC*smoothstep(.80,.95,dot(ld,uPhD))*max(dot(N,-ld),0.)/(1.+dl*dl/9000.);}', // les PHARES sur la roche
+  '  c*=1.-.24*smoothstep(.45,.85,uSunD.y)*smoothstep(.55,1.3,max(c.r,max(c.g,c.b)));', /* le plein midi : les hautes lumières crème des parois sont rabattues vers l'ocre (le soleil bas, lui, n'est pas touché) */
+  ...(CYD>=2?['  {float lo=smoothstep(700.,5200.,dist);c=mix(c,c*vec3(.80,.86,1.10)+uSkH*.07,lo*.38);}']:[]), /* trois plans : le proche chaud et contrasté, le lointain plus clair et plus froid, fondu dans la brume pêche */
   '  c=mix(c,uMist,uQ.x*(1.-smoothstep(fl+4.,fl+uQ.y,vW.y))*(.35+.65*smoothstep(0.,450.,dist)));',
   '  c+=uWet*(1.-wat)*mix(uSkH,uSkZ,.5)*pow(1.-max(dot(V,N),0.),4.)*.25;',
   '  gl_FragColor=vec4(c,1.);','#include <fog_fragment>','}'].join('\n');
@@ -17419,6 +17433,7 @@ function canyonTick(dt){
   if(CY.tunT&&CY.tunT.v2&&s>=CY.tunT.s0+25){ombre=Math.min(ombre,.3);prof=1;} // (2026-10-19) dans le TUNNEL DE GRÈS : à l'abri du soleil, sous ses anneaux
   CY.ombre+=(ombre-CY.ombre)*Math.min(1,dt*5);CY.prof+=(prof-CY.prof)*Math.min(1,dt*2);
   if(k>.001||CY.ecrit){const e=CY.on?k:0;sun.intensity=c.sunI*(1-.72*(1-CY.ombre)*e);hemi.intensity=c.hemiI*(1-.28*CY.prof*e);CY.ecrit=e>.001;}
+  cyPousTick(dt,c); /* (2026-10-21) la poussière dorée (canyon-embellie.js) */
 }
 /* EN VOL : la roche, l'eau et le fond tuent (5 points de caisse, comme les piliers de jade) — renvoie la cause, ou '' */
 const CY_H9={};
@@ -17989,7 +18004,8 @@ function canyonChauffe(){ // au menu (chauffeDivers) : la matière du relief com
      à couleurs ; mesas, voûtes, tunnels) : MESURÉ, à chaque 1re visite du canyon leurs 2 programmes naissaient EN COURSE (banc ×4, dbgProgs) —
      `.g` sur une géométrie qui porte des COULEURS (celle des arbres) : sans attribut `color`, la clé du programme diffère d'un détail (vertexAlphas) */
   const M9=cyMonuMats(),g9=new THREE.Group(),bx9=new THREE.BoxGeometry(1,1,1);g9.add(new THREE.Mesh(bx9,M9.a));g9.add(new THREE.Mesh(bx9,M9.b));g9.add(new THREE.Mesh(bx9,CY_RAI_M));{const a9=cyArbreGeo(),i9=new THREE.InstancedMesh(a9,M9.t,1);i9.setMatrixAt(0,new THREE.Matrix4());g9.add(i9);g9.add(new THREE.Mesh(a9,M9.g));if(TUN2_ON){const T9=cyT2Mats();g9.add(new THREE.Mesh(a9,T9.m));g9.add(new THREE.Mesh(bx9,T9.o));}} /* (2026-10-19) + LE TUNNEL DE GRÈS : la roche cuite sans brume et l'or des anneaux */const im9=new THREE.InstancedMesh(bx9,M9.i,1);im9.setMatrixAt(0,new THREE.Matrix4());g9.add(im9);g9.traverse(function(o){o.frustumCulled=false;});scene.add(g9);
-  try{chauffeRendu([m,g9]);}finally{m.visible=v;CY.geo.instanceCount=n;scene.remove(g9);bx9.dispose();}
+  const P9=cyPousPoints(),pv9=P9.visible;P9.visible=true; /* (2026-10-21) + la poussière dorée : son programme compilé au menu, lui aussi */
+  try{chauffeRendu([m,g9,P9]);}finally{m.visible=v;P9.visible=pv9;CY.geo.instanceCount=n;scene.remove(g9);bx9.dispose();}
   try{const C=skyDome.userData.ciel;if(C.cy){const sc=new THREE.Scene(),me=new THREE.Mesh(skyDome.geometry,C.cy),t=cielCible(8,8,true),cib=renderer.getRenderTarget();me.frustumCulled=false;sc.add(me);renderer.setRenderTarget(t);renderer.render(sc,camera);renderer.setRenderTarget(cib);t.dispose();}}catch(e){console.warn('canyonChauffe ciel',e);}}
 window.dbgCanyon=function(k,a,b,c){
   if(k==='test'){if(!CY.on)return 'pas de canyon';let dessus=0,dessous=0,pire=1e9,ou=[];const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
@@ -18003,6 +18019,7 @@ window.dbgCanyon=function(k,a,b,c){
       for(let u=.15;u<=.86;u+=.1){const x=F9.p.x+(bx-F9.p.x)*u,z=F9.p.z+(bz-F9.p.z)*u;pire=Math.max(pire,cyHauteur(x,z)-(F9.p.y+(by-F9.p.y)*u));}}return o.nm+':'+Math.round(pire);});
     return {bord:{p10:q(.1),med:q(.5),p90:q(.9),libres:D.filter(d=>d===999).length+'/'+D.length},garde:gar.join(' '),mine:CY.mineT?{de:Math.round(CY.mine[0]),a:Math.round(CY.mine[1])}:null,L:Math.round(L)};}
   if(k==='reprendre'){if(paused)togglePause();return 'ok';}
+  if(k==='frag'){if(!CY.mat)return 'pas de matière';if(typeof a==='string'){CY.mat.fragmentShader=a;CY.mat.needsUpdate=true;}return CY.mat.fragmentShader;} /* (banc) la matière du relief relue / remplacée à chaud */
   if(k==='raccourcis')return CY.rac||[];
   if(k==='vue'||k==='vueA'){if(!CY.on)return 'pas de canyon';if(started&&!gameOver&&!paused)togglePause();const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
     frameAt(Math.max(0,Math.min(L-1,(k==='vueA'?0:s)+(a||0))),F9); /* 'vueA' : à l'abscisse a de la piste (sinon a mètres devant la caisse) */const cap=(c||0)*Math.PI/180,dx=F9.t.x*Math.cos(cap)-F9.t.z*Math.sin(cap),dz=F9.t.z*Math.cos(cap)+F9.t.x*Math.sin(cap);
@@ -18011,6 +18028,36 @@ window.dbgCanyon=function(k,a,b,c){
   return {on:CY.on,r66:CY.r66|0,ms:CY.ms,noeuds:CY.n,sep:CY.sep,hz:CY.hz||null,deco:CY.deco?Object.assign({},CY.deco,{pose:CY.decoN,mine:Object.assign({},CY.deco.mine,{posee:!!CY.mineT}),mitaines:(CY.mit||[]).length,cheminees:(CY.chem||[]).length,nArbres:CY.nArb|0}):null,F:CY.F?[CY.F.nx,CY.F.nz,CY.F.ts]:null,Z:CY.Z?[CY.Z.nx,CY.Z.nz,CY.Z.ts]:null,O:CY.O?[CY.O.nx,CY.O.nz,CY.O.ts]:null,
     ciel:CIEL2.mode,attente:!!CY.attente,sQ:CY.sQ,L:Math.round(L),buttes:CY.buttes?CY.buttes.length:0,soleil:SUN_DIR.toArray().map(v=>+v.toFixed(3)),ombre:+CY.ombre.toFixed(2),prof:+CY.prof.toFixed(2),canyon:+(LVL.canyon||0).toFixed(2),
     carHaut:CY.on?+(carGroup.position.y-cyHauteur(carGroup.position.x,carGroup.position.z)).toFixed(1):null};};
+/* ===== LA POUSSIÈRE DU CANYON (2026-10-21, Sacha : « apporter des améliorations visuelles à chaque map ») =====
+   Le détail vivant du canyon : des grains de poussière dorée en suspension dans une boîte de 130 m qui suit la caméra (devant elle : dans la gorge, les parois cachent le reste), poussés par un vent
+   lent. TOUT le mouvement est dans le sommet (`uTime`) : une seule instance (UN appel de dessin), aucun tirage du jeu (le générateur est local, une graine
+   fixe), aucune allocation par image. Ils brillent quand le soleil est bas (le contre-jour : la poussière dans les rais), se ternissent en argent la nuit,
+   s'éteignent sous la pluie, et s'effacent près de la caméra (jamais un grain entre elle et la caisse). Leur nombre suit le palier (`PAL.B.cyPous`).
+   La matière du RELIEF, elle, a gagné ses cannelures, ses fissures, ses filons d'or et sa lueur d'altitude dans CY_FS (voir LA ROCHE VIVANTE). */
+const CY_POUS_VS=['attribute vec4 aR;uniform float uTime,uK,uPx;uniform vec3 uBoxC,uCol;varying float vA;varying vec3 vC;',
+  'void main(){vec3 B=vec3(130.,50.,130.);',
+  '  vec3 pa=vec3(1.7,.30,.9)*uTime*(.6+.8*aR.w)+vec3(sin(uTime*.7+aR.y*9.)*2.5,sin(uTime*.9+aR.x*7.)*1.8,cos(uTime*.6+aR.z*8.)*2.5);',
+  '  vec3 rel=mod(aR.xyz*B+pa-uBoxC+B*.5,B)-B*.5,pos=uBoxC+rel;float e=min(min(.5-abs(rel.x)/B.x,.5-abs(rel.y)/B.y),.5-abs(rel.z)/B.z);',
+  '  vec4 mv=viewMatrix*vec4(pos,1.);float d=max(-mv.z,.001);',
+  '  vA=smoothstep(0.,.10,e)*uK*(.35+.65*aR.w)*smoothstep(14.,32.,d)*(1.-smoothstep(100.,140.,d));vC=uCol*(.8+.4*aR.z);',
+  '  gl_Position=projectionMatrix*mv;gl_PointSize=vA<.004||mv.z>0.?0.:(.5+aR.z*.9)*uPx*300./d;}'].join('\n');
+const CY_POUS_FS=['varying vec3 vC;varying float vA;void main(){float d=length(gl_PointCoord-.5),a=smoothstep(.5,0.,d);a*=a;if(vA*a<.004)discard;gl_FragColor=vec4(vC,min(1.,vA*a*1.6));}'].join('\n');
+const CY_POUS={p:null,v:new THREE.Vector3()};
+function cyPousPoints(){if(CY_POUS.p)return CY_POUS.p;
+  const n=PAL.b('cyPous',160),R=mulberry32(0xD057C4),g=new THREE.BufferGeometry(),aR=new Float32Array(n*4);for(let k=0;k<n*4;k++)aR[k]=R();
+  g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(n*3),3));g.setAttribute('aR',new THREE.BufferAttribute(aR,4));
+  const m=new THREE.ShaderMaterial({uniforms:{uTime:{value:0},uK:{value:0},uPx:{value:1},uBoxC:{value:new THREE.Vector3()},uCol:{value:new THREE.Color()}},
+    vertexShader:CY_POUS_VS,fragmentShader:CY_POUS_FS,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});m.dispose=function(){};
+  const p=new THREE.Points(g,m);p.name='canyon poussière';p.frustumCulled=false;p.matrixAutoUpdate=false;p.visible=false;p.renderOrder=8;scene.add(p);return CY_POUS.p=p;}
+/* chaque image (depuis canyonTick) : la force (le fondu du niveau × le sec × le soleil bas), la couleur (celle du soleil, poudrée d'or), le centre de la boîte */
+function cyPousTick(dt,c){
+  const k=CY.on&&started&&!gameOver?(LVL.canyon||0):0,P9=CY_POUS.p;
+  if(!(k>.01)){if(P9&&P9.visible)P9.visible=false;return;}
+  const p9=cyPousPoints(),u=p9.material.uniforms,wet=c.cyQ?c.cyQ[2]:0,bas=Math.max(0,Math.min(1,1-(SUN_DIR.y-.04)/.46)),nuit=Math.min(1,LVL.nuit||0);
+  const k9=k*(1-wet)*(.5+.5*bas)*(1-.45*nuit);p9.visible=k9>.02;if(!p9.visible)return;
+  u.uK.value=k9;if(!paused)u.uTime.value=(u.uTime.value+dt)%600;u.uPx.value=renderer.getPixelRatio();
+  u.uCol.value.setRGB(sun.color.r*.7+.30,sun.color.g*.7+.24,sun.color.b*.7+.14).multiplyScalar(.85);
+  camera.getWorldDirection(CY_POUS.v);u.uBoxC.value.copy(camera.position).addScaledVector(CY_POUS.v,45);}
 /* <<<DUNES>>> */
 /* =========================== LES DUNES D'OR — LA ROUTE CONTINUE (2026-10-22, Léo : « les sauts sont ignobles, la route se coupe comme avec un ciseau digital — j'aimerais que les routes qui font sauter EMBRASSENT
    une haute colline de sable, et le joueur peut à la fois piquer en bas ou décoller… je veux niveau 100 ») ===========================
