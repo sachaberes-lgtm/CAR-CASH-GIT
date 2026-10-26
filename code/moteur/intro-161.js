@@ -421,9 +421,9 @@
   const PRES_FIN=4.1; /* l'instant (s après l'appui) où le texte est éteint ; le voile fond juste après (2026-10-24 : 2,5 → 4,1 s, Léo : « laisse le temps d'apprécier ») */
   function dPresente(c,s,e){
     const sor=1-lisse(PRES_FIN-.7,PRES_FIN,s);if(sor<=.004)return;
-    /* (2026-10-24, Léo : « au lieu de PRESENTS, 1.61 STUDIO PRESENTS ») deux lignes : « 1.61 STUDIO » en grand (le « 1.61 » blanc chaud, STUDIO en or), un filet d'or qui s'ouvre depuis le centre,
+    /* (2026-10-26, Sacha : « 1.61 Studio » → « 1.61 Game ») deux lignes : « 1.61 GAME » en grand (le « 1.61 » blanc chaud, GAME en or), un filet d'or qui s'ouvre depuis le centre,
        puis « PRESENTS » plus petit, très espacé, crème. La ligne du haut s'écrit lettre à lettre (0,7 s), le filet suit, le mot du bas arrive en dernier. */
-    const t1='1.61 STUDIO',t2='PRESENTS',n1=t1.length,n2=t2.length;
+    const t1='1.61 GAME',t2='PRESENTS',n1=t1.length,n2=t2.length;
     const px=Math.max(9,Math.round(Math.min(W/23,H/9,30))),px2=Math.max(8,Math.round(px*.5)),k=sort3((s-.7)/1.5),esp=px*(.95-.5*k);
     const tot=n1*px+(n1-1)*esp,y1=e.cy-px*.1,yR=e.cy+px*.62,y2=yR+px2*2.1;
     c.save();c.textAlign='left';c.textBaseline='alphabetic';c.font=px+'px "Press Start 2P",monospace';
