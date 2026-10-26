@@ -74,6 +74,7 @@ maps/dunes-dieux.js                  # dunes : les DIEUX À TÊTE D'ANIMAL (fauc
 maps/dunes-gizeh.js                  # dunes : le GRAND SPHINX de Gizeh (150-200 m, dans sa fosse) et ses pyramides en série
 maps/dunes-4.js                      # dunes : les scènes le long de la route (colonnade, allée des sphinx, colosses, porte, portes du ciel, braseros, ruines)
 maps/dunes-embellie.js               # dunes : le plan moyen (buttes, arbres morts, touffes)
+maps/dunes-ruines.js                 # dunes : les RUINES ENSABLÉES (mur à créneaux, colonnes tronquées, arche, escalier, chapiteau, tête, obélisque couché — enfoncés dans le sable, semés à 40-900 m de la route)
 maps/glacier-route.js                # LA BANQUISE / LE GLACIER v4 : route, manteau de neige
 maps/glacier-construction.js         # glacier : construction, volant en l'air
 maps/glacier-verglas.js              # glacier : verglas, retombée des tremplins, console
